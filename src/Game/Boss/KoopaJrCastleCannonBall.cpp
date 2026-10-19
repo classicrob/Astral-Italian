@@ -19,7 +19,7 @@ KoopaJrCastleCannonBall::KoopaJrCastleCannonBall(const char* pName) : LiveActor(
     mDir.x = 0.0f;
     mDir.y = 0.0f;
     mDir.z = 0.0f;
-    _9C = 0.0f;
+    mShotSpeed = 0.0f;
 }
 
 void KoopaJrCastleCannonBall::init(const JMapInfoIter&) {
@@ -37,11 +37,15 @@ void KoopaJrCastleCannonBall::kill() {
 
 // NONMATCHING: matrix component loads are scheduled in the opposite argument order
 void KoopaJrCastleCannonBall::shoot(MtxPtr mtx, const f32& speed) {
-    _9C = speed;
-    mDir.set(mtx[0][2], mtx[1][2], mtx[2][2]);
+    f32 shotSpeed = speed;
+    f32 z = mtx[2][2];
+    f32 y = mtx[1][2];
+    f32 x = mtx[0][2];
+    mShotSpeed = shotSpeed;
+    mDir.set<f32>(x, y, z);
     MR::normalize(&mDir);
-    mVelocity.scale(_9C, mDir);
-    mPosition.set(mtx[0][3], mtx[1][3], mtx[2][3]);
+    mVelocity.scale(mShotSpeed, mDir);
+    reinterpret_cast<TPos3f*>(mtx)->getTrans(mPosition);
     mRotation.z = 0.0f;
     mRotation.y = 0.0f;
     mRotation.x = 0.0f;
@@ -80,7 +84,7 @@ void KoopaJrCastleCannonBall::exe800D1830() {
         if (!MR::normalizeOrZero(&axis))
             MR::turnVecToVecCos(&dir, dir, planar, MR::cosDegree(0.05f), axis, 0.02f);
         mDir = dir;
-        mVelocity.scale(_9C, mDir);
+        mVelocity.scale(mShotSpeed, mDir);
     }
     if (MR::isBinded(this)) {
         if (MR::isBindedGround(this)) {

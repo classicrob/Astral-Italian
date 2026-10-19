@@ -18,9 +18,9 @@ public:
     void validate();
 
     /* 0x128 */ AreaForm* mForm;
-    /* 0x12C */ MtxPtr _128;
-    /* 0x130 */ TVec3f _12C;
-    /* 0x13C */ f32 _138;
+    /* 0x12C */ MtxPtr mMtx;
+    /* 0x130 */ TVec3f mSize;
+    /* 0x13C */ f32 mOffset;
 };
 
 class CollisionArea : public AreaObj {
@@ -34,14 +34,14 @@ public:
 
     bool hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVec3f* pNormal);
 
-    /* 0x48 */ u32 _48;
-    /* 0x4C */ f32 _4C;
-    /* 0x50 */ TVec3f _50;
-    /* 0x5C */ s32 _5C;
-    /* 0x60 */ s32 _60;
-    /* 0x64 */ bool _64;
-    /* 0x68 */ s32 _68;
-    /* 0x6C */ s32 _6C;
+    /* 0x48 */ u32 mOutsideAxisCount;
+    /* 0x4C */ f32 mPenetrationDepth;
+    /* 0x50 */ TVec3f mWorldPos;
+    /* 0x5C */ s32 mPushArg;
+    /* 0x60 */ s32 mDisappearArg;
+    /* 0x64 */ bool mIsTeresaHidden;
+    /* 0x68 */ s32 mRadiusArg;
+    /* 0x6C */ s32 mSurfaceMaskArg;
     /* 0x70 */ AreaPolygon* mPolygon;
-    /* 0x74 */ bool mIsValid;
+    /* 0x74 */ bool mIsPolygonValid;
 };

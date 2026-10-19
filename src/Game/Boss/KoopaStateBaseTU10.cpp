@@ -71,7 +71,7 @@ void KoopaStateLastAttack::exeChaseRoll() {
         mStartPos.set< f32 >(mHost->mPosition);
         MR::startKoopaBattleFaceCtrl(mHost, 30);
         MR::calcKoopaBattleWorldPos(&mTargetPos, sRollPositions[mTargetIdx]);
-        mQuatA.set< f32 >(mHost->mQuatA);
+        mQuatA.set< f32 >(mHost->mPoseQuat);
         mTargetIdx++;
         if (mTargetIdx >= sRollPositionNum) {
             mTargetIdx = 0;
@@ -83,7 +83,7 @@ void KoopaStateLastAttack::exeChaseRoll() {
     MR::calcVecToPlayer(&toPlayer, mHost);
     MR::turnQuatZDirRad(&mQuatA, mQuatA, toPlayer, 0.034906585f);
     f32 angle = MR::calcNerveValue(this, 75, 0.0f, 1440.0f);
-    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mQuatA, angle);
+    MR::rotateQuatXAxisDegree(&mHost->mPoseQuat, mQuatA, angle);
     if (MR::isStep(this, 75)) {
         MR::showModel(mHost);
     }
@@ -104,7 +104,7 @@ void KoopaStateLastAttack::exeAttackSign() {
     if (MR::isLessEqualStep(this, 45)) {
         TVec3f toPlayer;
         MR::calcVecToPlayer(&toPlayer, mHost);
-        MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, toPlayer, 0.034906585f);
+        MR::turnQuatZDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, toPlayer, 0.034906585f);
         MR::calcKoopaNearestAttackRockPos(&mTargetPos);
     }
     if (MR::isActionEnd(mHost)) {
@@ -123,7 +123,7 @@ void KoopaStateLastAttack::exeMoveLoop() {
     TVec3f dir;
     dir.set< f32 >(mTargetPos - mStartPos);
     MR::normalizeOrZero(&dir);
-    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, dir, 0.034906585f);
+    MR::turnQuatZDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, dir, 0.034906585f);
     MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, MR::calcNerveValue(this, 45, 0.0f, 0.8f));
     if (MR::isGreaterEqualStep(this, 44)) {
         setNerve(&NrvKoopaStateLastAttack::KoopaStateLastAttackNrvAttack::sInstance);
@@ -146,17 +146,17 @@ void KoopaStateLastAttack::exeAttackEnd() {
         MR::endKoopaBattleFaceCtrl(mHost, 30);
         mStartPos.set< f32 >(mHost->mPosition);
         TVec3f front(0.0f, 0.0f, 1.0f);
-        mHost->mQuatA.getZDir(front);
+        mHost->mPoseQuat.getZDir(front);
         mTargetPos.set< f32 >(mStartPos - front * 2000.0f);
-        mQuatA.set< f32 >(mHost->mQuatA);
+        mQuatA.set< f32 >(mHost->mPoseQuat);
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 60);
     MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, rate);
     TQuat4f* pQuat;
     KoopaBattle* pHost = mHost;
-    pQuat = &pHost->mQuatA;
+    pQuat = &pHost->mPoseQuat;
     pQuat->set< f32 >(mQuatA);
-    pQuat->slerp(pHost->mQuatB, rate);
+    pQuat->slerp(pHost->mBattleQuat, rate);
     if (MR::isActionEnd(mHost) && MR::isGreaterEqualStep(this, 60)) {
         MR::invalidateKoopaBattleCollision(mHost);
         mHost->getDefenseForm()->appear();
@@ -178,18 +178,18 @@ void KoopaStateLastAttack::exeMoveEndRoll() {
         } else {
             MR::calcKoopaBattleWorldPos(&mTargetPos, TVec3f(0.0f, 0.0f, -12000.0f));
         }
-        mQuatA.set< f32 >(mHost->mQuatA);
+        mQuatA.set< f32 >(mHost->mPoseQuat);
         TVec3f dir;
         MR::normalizeOrZero(&dir, mStartPos - mTargetPos);
-        MR::turnQuatZDirRate(&mQuatB, mHost->mQuatB, dir, 1.0f);
+        MR::turnQuatZDirRate(&mQuatB, mHost->mBattleQuat, dir, 1.0f);
     }
     MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, MR::calcNerveEaseInOutRate(this, 75));
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    TQuat4f* pQuat = &mHost->mQuatA;
+    TQuat4f* pQuat = &mHost->mPoseQuat;
     pQuat->set< f32 >(mQuatA);
     pQuat->slerp(mQuatB, rate);
     f32 angle = MR::calcNerveEaseOutValue(this, 75, 0.0f, -1440.0f);
-    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mHost->mQuatA, angle);
+    MR::rotateQuatXAxisDegree(&mHost->mPoseQuat, mHost->mPoseQuat, angle);
     MR::startSoundInCameraDistance(mHost, "LastAttackMoveEndRoll", -1, -1, 31000.0f);
     if (MR::isStep(this, 75) && mIsChaseRoll) {
         MR::showModel(mHost);

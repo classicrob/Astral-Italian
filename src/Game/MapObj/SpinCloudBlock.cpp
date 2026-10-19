@@ -7,17 +7,11 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
 
-// Unnamed SMG2 helpers used by this unit (owned by other units).
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_800145C0(LiveActor*);
-void fn_80068E40(SpringValue*, f32);
-f32 fn_8004F300();
-void* fn_8004FEF0();
-}
+// PLACEHOLDER(objects): unnamed SpringValue helper (0x80068E40, 0x20 bytes); resolve when fn_80068E40 gets its real name in symbols.txt
+extern "C" void fn_80068E40(SpringValue*, f32);
 
 namespace MR {
-    f32 getAreaFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
+    void getAreaFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
 }
 
 namespace {
@@ -133,7 +127,7 @@ void SpinCloudBlock::control() {
         MR::restrictVelocityToPlaneModeArea(&mSwayVel, mPosition);
         mPosition.add(mSwayVel);
     }
-    fn_800145C0(this);
+    MR::fn_800145C0(this);
 }
 
 // NONMATCHING: quaternion arithmetic scheduling, FPR allocation and temporary stack order.
@@ -141,25 +135,7 @@ void SpinCloudBlock::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
 
     TPos3f mtx;
-    f32 twiceY = 2.0f * mQuat.y;
-    f32 twiceX = 2.0f * mQuat.x;
-    f32 twiceZ = 2.0f * mQuat.z;
-    f32 twiceW = 2.0f * mQuat.w;
-    f32 yy = twiceY * mQuat.y, xx = twiceX * mQuat.x, zz = twiceZ * mQuat.z;
-    f32 xy = twiceX * mQuat.y, xz = twiceX * mQuat.z, yz = twiceY * mQuat.z;
-    f32 wz = twiceW * mQuat.z, wy = twiceW * mQuat.y, wx = twiceW * mQuat.x;
-    mtx[0][0] = 1.0f - yy - zz;
-    mtx[1][1] = 1.0f - xx - zz;
-    mtx[0][1] = xy - wz;
-    mtx[1][0] = xy + wz;
-    mtx[2][2] = 1.0f - xx - yy;
-    mtx[0][2] = xz + wy;
-    mtx[2][0] = xz - wy;
-    mtx[1][2] = yz - wx;
-    mtx[2][1] = yz + wx;
-    mtx[0][3] = mPosition.x;
-    mtx[1][3] = mPosition.y;
-    mtx[2][3] = mPosition.z;
+    mtx.setQT(mQuat, mPosition);
 
     f32 springOffset = mSpring->mSpringValue;
     TVec3f offset(mGravity);
@@ -178,9 +154,7 @@ void SpinCloudBlock::calcAndSetBaseMtx() {
     TVec3f baseScale(mScale);
     f32 inv = 1.0f / scale;
     f32 root = MR::fastSqrtf(inv);
-    baseScale.x *= root;
-    baseScale.y *= scale;
-    baseScale.z *= root;
+    baseScale.mul(TVec3f(root, scale, root));
     MR::setBaseScale(this, baseScale);
 }
 
@@ -354,7 +328,7 @@ void SpinCloudBlock::calcWind() {
 
 void SpinCloudBlock::adjustOnPlayer() {
     if (MR::isActorOnPlayer(this)) {
-        f32 t = fn_8004F300();
+        f32 t = MR::getPlayerConfrontDeathParam();
         if (!(t >= 160.0f)) {
             f32 dot = mSwayVel.dot(mGravity);
             if (dot < 0.0f) {
@@ -409,6 +383,7 @@ void SpinCloudBlock::exeDisappear() {
     }
 }
 
+// NONMATCHING: position and velocity store order and vector temporary stack slots differ.
 void SpinCloudBlock::placeAt(const TVec3f& rPos) {
     TQuat4f identity;
     identity.x = identity.y = identity.z = 0.0f;
@@ -502,7 +477,7 @@ void SpinCloudBlockGroup::movement() {
             MR::calcPlayerFollowPassPosition(&offset, 100.0f * (f32) (i + 1));
             static_cast<SpinCloudBlock*>(mBlocks[i])->setAnchorPos(offset);
         }
-        if (mRespawnStep == 0 && fn_8004FEF0() != nullptr) {
+        if (mRespawnStep == 0 && MR::isPlayerSwingActionStartNow()) {
             static_cast<SpinCloudBlock*>(mBlocks[0])->tryStartTransform(*MR::getPlayerPos());
             for (s32 i = 0; i < mBlockNum - 1; i++) {
                 mBlocks[i] = mBlocks[i + 1];
@@ -521,6 +496,7 @@ void SpinCloudBlockGroup::updateBlockScale() {
     }
 }
 
+// NONMATCHING: boolean/index registers and vector component store scheduling differ.
 bool SpinCloudBlockGroup::spawnBlocks() {
     MR::resetPlayerFollowPass();
     bool result = false;

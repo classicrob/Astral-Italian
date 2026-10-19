@@ -14,7 +14,7 @@
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
 namespace KoopaJrCastleFunction {
-#define CASTLE() (MR::getSceneObj< KoopaJrCastleAccessor* >(0x8B)->mCastle)
+#define CASTLE() (MR::getSceneObj< KoopaJrCastleAccessor* >(SceneObj_KoopaJrCastleAccessor)->mCastle)
 
     KoopaJrCastle* getCastle() {
         return CASTLE();
@@ -22,23 +22,23 @@ namespace KoopaJrCastleFunction {
 
     bool tryStartDemo(const char* pName, const char* pCameraName);
     bool tryEndDemo(const char* pName, const char* pCameraName, bool bForce);
-    void fn_800D3770(const char* pName);
-    void fn_800D38A0();
-    void fn_800D3970();
-    void fn_800D3A40();
-    bool fn_800D3C60();
-    void fn_800D3DB0();
-    bool fn_800D3E10(LiveActor* pCastle);
+    void startPartsDemoActions(const char* pName);
+    void stopBattleHelpers();
+    void hideBattlePartsUnlessDemo();
+    void showBattlePartsDuringDemo();
+    bool isPlayerNearHead();
+    void resetBattleParts();
+    bool tryPushPlayerOffCastle(LiveActor* pCastle);
     void fn_800D3F10(TVec3f* pOut, LiveActor* pCastle);
     bool fn_800D41C0(TVec3f* pPos);
-    bool fn_800D4080(LiveActor* pActor, s32 arg);
-    void fn_800D4150();
-    void fn_800D4240();
-    void fn_800D4520(LiveActor* pSrc, s32 arg);
-    void fn_800D46F0();
-    void fn_800D4740();
+    bool tryBlowPlayerToStart(LiveActor* pActor, HitSensor* sensor);
+    void resetPlayerToStart();
+    void resetBodyOffsetAndShadows();
+    void startCannonVolley(s32 volleyCount, s32 shotCount);
+    void startHeadPanic();
+    void startHeadSpinSign();
     bool isBodyMoveFlagSet();
-    void fn_800D4B40();
+    void validateBodyAndHeadSensors();
     void killElectric();
     void killFireBar();
     void killCannon();
@@ -112,9 +112,9 @@ namespace KoopaJrCastleFunction {
         return false;
     }
 
-    // fn_800D3770: intro setup for the castle parts: movement on, demo anims, player placement.
+    // startPartsDemoActions: intro setup for the castle parts: movement on, demo anims, player placement.
     // Shared-header blocker: PartsModelLodCtrl getter is still declared as setLodCtrl(LodCtrl*)
-    void fn_800D3770(const char* pName) {
+    void startPartsDemoActions(const char* pName) {
         KoopaJrCastle* pCastle = CASTLE();
         MR::requestMovementOn(pCastle->mHead);
         MR::requestMovementOn(pCastle->mCapsule);
@@ -142,10 +142,10 @@ namespace KoopaJrCastleFunction {
         pCastle->mHead->setNerveC();
     }
 
-    // fn_800D38A0: kills the battle helpers (cannon, balls, wind, ring beam, electric) and stops the body.
-    void fn_800D38A0() {
+    // stopBattleHelpers: kills the battle helpers (cannon, balls, wind, ring beam, electric) and stops the body.
+    void stopBattleHelpers() {
         KoopaJrCastle* pCastle = CASTLE();
-        if (pCastle->mHead->fn_800D58D0()) {
+        if (pCastle->mHead->isPanicOrSpin()) {
             pCastle->mHead->setNerveD();
         }
         if (!MR::isDead(pCastle->mCannon)) {
@@ -158,14 +158,14 @@ namespace KoopaJrCastleFunction {
         if (!MR::isDead(pCastle->mRingBeam)) {
             pCastle->mRingBeam->kill();
         }
-        pCastle->mRingBeam->fn_800D7CE0();
+        pCastle->mRingBeam->killBeams();
         killElectric();
         bodyTryStop();
     }
 
-    // fn_800D3970: end-of-battle kill pass on the parts (unless the castle is in a cutscene).
+    // hideBattlePartsUnlessDemo: end-of-battle kill pass on the parts (unless the castle is in a cutscene).
     // NONMATCHING: early-return branch shape: target emits beq+b around the cutscene return
-    void fn_800D3970() {
+    void hideBattlePartsUnlessDemo() {
         KoopaJrCastle* pCastle = CASTLE();
         if (!MR::isOnSwitchB(pCastle)) {
             if (!MR::isStageStateScenarioOpeningCamera()) {
@@ -179,14 +179,14 @@ namespace KoopaJrCastleFunction {
                 if (!MR::isDead(pCastle->mKoopaJr)) {
                     pCastle->mKoopaJr->kill();
                 }
-                fn_800D38A0();
+                stopBattleHelpers();
                 killFireBar();
             }
         }
     }
 
-    // fn_800D3A40: switch-B / cutscene branch of the reappear pass.
-    void fn_800D3A40() {
+    // showBattlePartsDuringDemo: switch-B / cutscene branch of the reappear pass.
+    void showBattlePartsDuringDemo() {
         KoopaJrCastle* pCastle = CASTLE();
         if (MR::isOnSwitchB(pCastle) || MR::isStageStateScenarioOpeningCamera()) {
             pCastle->mBody->onFlagF4();
@@ -205,7 +205,7 @@ namespace KoopaJrCastleFunction {
 
     #pragma dont_inline on
     const TVec3f& getStartPos() {
-        return static_cast<KoopaJrCastleAccessor*>(MR::getSceneObjHolder()->getObj(0x8B))->mCastle->mStartPos;
+        return static_cast<KoopaJrCastleAccessor*>(MR::getSceneObjHolder()->getObj(SceneObj_KoopaJrCastleAccessor))->mCastle->mStartPos;
     }
     #pragma dont_inline off
 
@@ -227,7 +227,7 @@ namespace KoopaJrCastleFunction {
     }
 
 
-    bool fn_800D3C60() {
+    bool isPlayerNearHead() {
         const TVec3f* player;
         KoopaJrCastle* castle = CASTLE();
         player = MR::getPlayerPos();
@@ -242,15 +242,15 @@ namespace KoopaJrCastleFunction {
 
     bool isElectricActive() {
         KoopaJrCastle* pCastle = CASTLE();
-        if (!MR::isDead(pCastle->mElectric) && pCastle->mElectric->fn_800D2250()) {
+        if (!MR::isDead(pCastle->mElectric) && pCastle->mElectric->isElectricDischarging()) {
             return true;
         }
         return false;
     }
 
-    // fn_800D3DB0: after the battle reset the body rests (stop or wait) depending on the battle phase.
-    void fn_800D3DB0() {
-        fn_800D38A0();
+    // resetBattleParts: after the battle reset the body rests (stop or wait) depending on the battle phase.
+    void resetBattleParts() {
+        stopBattleHelpers();
         KoopaJrCastle* pCastle = CASTLE();
         pCastle->mHead->setNerveD();
         if (getBattlePhase() == 1) {
@@ -260,8 +260,8 @@ namespace KoopaJrCastleFunction {
         }
     }
 
-    // fn_800D3E10: pushes the player off the castle surface along the castle gravity when standing on it.
-    bool fn_800D3E10(LiveActor* pCastle) {
+    // tryPushPlayerOffCastle: pushes the player off the castle surface along the castle gravity when standing on it.
+    bool tryPushPlayerOffCastle(LiveActor* pCastle) {
         bool onCastle = false;
         if (isPlayerOnCapsule() || isPlayerOnHead()) {
             onCastle = true;
@@ -303,14 +303,14 @@ namespace KoopaJrCastleFunction {
         *pOut = (pCastle->mPosition - v * 3200.0f) - pCastle->mGravity * -10.0f;
     }
 
-    // fn_800D4080: spawns the dominate/cannon sequence and plays the PlayerBlow action sound.
-    bool fn_800D4080(LiveActor* pActor, s32 arg) {
+    // tryBlowPlayerToStart: spawns the dominate/cannon sequence and plays the PlayerBlow action sound.
+    bool tryBlowPlayerToStart(LiveActor* pActor, HitSensor* sensor) {
         KoopaJrCastle* pCastle = CASTLE();
         TVec3f pos(0.0f);
         fn_800D3F10(&pos, pCastle);
-        pCastle->mDominate->_9C = 0.0f;
-        pCastle->mDominate->fn_800D7560("Blow", "WaterBulletWait");
-        if (pCastle->mDominate->fn_800D71B0(pActor, arg, &pos, -1)) {
+        pCastle->mDominate->mLaunchSpeed = 0.0f;
+        pCastle->mDominate->setPlayerActionNames("Blow", "WaterBulletWait");
+        if (pCastle->mDominate->tryBindPlayer(pActor, sensor, &pos, -1)) {
             killCannon();
             MR::startActionSound(pActor, "PlayerBlow", -1, -1, -1);
             return true;
@@ -318,8 +318,8 @@ namespace KoopaJrCastleFunction {
         return false;
     }
 
-    // fn_800D4150: moves the player to the castle start point (offset 1000 along +Z), snapped to the named position.
-        void fn_800D4150() {
+    // resetPlayerToStart: moves the player to the castle start point (offset 1000 along +Z), snapped to the named position.
+        void resetPlayerToStart() {
         TVec3f pos = getStartPos() + TVec3f(0.0f, 0.0f, 1.0f) * 1000.0f;
         MR::tryFindNamePos("\x83v\x83\x8c\x83""C\x83\x84\x81[\x88\xca\x92u", &pos, nullptr);
         MR::setPlayerPos(pos);
@@ -333,16 +333,16 @@ namespace KoopaJrCastleFunction {
         return __fabsf(PSVECMag(&d)) < 5000.0f;
     }
 
-    // fn_800D4240: resets the body's F0 flag and binds the castle to its fire bar shadows.
-    void fn_800D4240() {
+    // resetBodyOffsetAndShadows: resets the body's F0 flag and binds the castle to its fire bar shadows.
+    void resetBodyOffsetAndShadows() {
         KoopaJrCastle* pCastle = CASTLE();
         pCastle->mBody->resetF0();
         pCastle->mFireBar->updateChildShadows();
         MR::onBind(pCastle);
     }
 
-    void windFn_800D4290() {
-        CASTLE()->mWind->fn_800D9B40();
+    void appearWindFromZeroPower() {
+        CASTLE()->mWind->appearFromZeroPower();
     }
 
     bool windIsDead() {
@@ -384,24 +384,24 @@ namespace KoopaJrCastleFunction {
         return CASTLE()->mBody->getStateFlag();
     }
 
-    // fn_800D4520: hands a source actor and value to the cannon and makes it appear.
-    void fn_800D4520(LiveActor* pSrc, s32 arg) {
+    // Starts shotCount shots in each of volleyCount cannon volleys.
+    void startCannonVolley(s32 volleyCount, s32 shotCount) {
         KoopaJrCastle* pCastle = CASTLE();
-        pCastle->mCannon->_D0 = reinterpret_cast<s32>(pSrc);
-        pCastle->mCannon->_C8 = arg;
+        pCastle->mCannon->mRemainingVolleys = volleyCount;
+        pCastle->mCannon->mShotsPerVolley = shotCount;
         pCastle->mCannon->appear();
     }
 
-    void cannonFn_800D4590() {
-        CASTLE()->mCannon->fn_800D0540();
+    void startCannonBallVolley() {
+        CASTLE()->mCannon->startBallVolley();
     }
 
-    void cannonFn_800D45D0() {
-        CASTLE()->mCannon->fn_800D05C0();
+    void startCannonShockVolleyImmediately() {
+        CASTLE()->mCannon->startShockVolleyImmediately();
     }
 
-    void cannonFn_800D4610() {
-        CASTLE()->mCannon->fn_800D0580();
+    void startCannonShockVolley() {
+        CASTLE()->mCannon->startShockVolley();
     }
 
     void killCannon() {
@@ -415,26 +415,26 @@ namespace KoopaJrCastleFunction {
         return MR::isDead(CASTLE()->mCannon);
     }
 
-    // fn_800D46F0: head action 'A' (only when the head is not already in an E/F/G/H nerve).
-    void fn_800D46F0() {
+    // startHeadPanic: head action 'A' (only when the head is not already in an E/F/G/H nerve).
+    void startHeadPanic() {
         KoopaJrCastle* pCastle = CASTLE();
-        if (!pCastle->mHead->fn_800D58D0()) {
-            fn_800D38A0();
-            pCastle->mHead->fn_800D5830();
+        if (!pCastle->mHead->isPanicOrSpin()) {
+            stopBattleHelpers();
+            pCastle->mHead->tryStartPanic();
         }
     }
 
-    // fn_800D4740: same as fn_800D46F0 but with the head's 'G' variant.
-    void fn_800D4740() {
+    // startHeadSpinSign: same as startHeadPanic but with the head's 'G' variant.
+    void startHeadSpinSign() {
         KoopaJrCastle* pCastle = CASTLE();
-        if (!pCastle->mHead->fn_800D58D0()) {
-            fn_800D38A0();
-            pCastle->mHead->fn_800D5880();
+        if (!pCastle->mHead->isPanicOrSpin()) {
+            stopBattleHelpers();
+            pCastle->mHead->tryStartSpinSign();
         }
     }
 
     bool isHeadFn_800D4790() {
-        return !CASTLE()->mHead->fn_800D58D0();
+        return !CASTLE()->mHead->isPanicOrSpin();
     }
 
     void appearFireBar() {
@@ -454,14 +454,14 @@ namespace KoopaJrCastleFunction {
     void fireBarOff() {
         KoopaJrCastle* pCastle = CASTLE();
         if (!MR::isDead(pCastle->mFireBar)) {
-            pCastle->mFireBar->_CC = 0;
+            pCastle->mFireBar->mIsRotating = 0;
         }
     }
 
     void fireBarOn() {
         KoopaJrCastle* pCastle = CASTLE();
         if (!MR::isDead(pCastle->mFireBar)) {
-            pCastle->mFireBar->_CC = 1;
+            pCastle->mFireBar->mIsRotating = 1;
         }
     }
 
@@ -473,10 +473,10 @@ namespace KoopaJrCastleFunction {
         pCastle->mFireBar->setCurrentToMax();
     }
 
-    f32 getFireBarB0() {
+    f32 getFireBarAngle() {
         KoopaJrCastleFireBar* pFireBar = CASTLE()->mFireBar;
         if (pFireBar != nullptr) {
-            return pFireBar->_B0;
+            return pFireBar->mRotationAngle;
         }
         return 0.0f;
     }
@@ -506,8 +506,8 @@ namespace KoopaJrCastleFunction {
         return MR::isDead(CASTLE()->mElectric);
     }
 
-    // fn_800D4B40: validates the hit sensors of the body and head (type 0x35) and the head's BreakObject sensor.
-    void fn_800D4B40() {
+    // validateBodyAndHeadSensors: validates the hit sensors of the body and head (type 0x35) and the head's BreakObject sensor.
+    void validateBodyAndHeadSensors() {
         LiveActor* pBody = CASTLE()->mBody;
         LiveActor* pHead = CASTLE()->mHead;
         if (pBody != nullptr && pHead != nullptr) {
@@ -535,7 +535,7 @@ namespace KoopaJrCastleFunction {
             rate = 0.1f;
         }
 
-        MtxPtr headMtx = CASTLE()->mHead->_A4;
+        MtxPtr headMtx = CASTLE()->mHead->mCannonMtx;
         MtxPtr jointMtx = MR::getJointMtx(CASTLE()->mHead, "JointRoot");
         TPos3f mtx;
         PSMTXIdentity(mtx);
@@ -608,7 +608,7 @@ namespace KoopaJrCastleFunction {
     // fn_800D5040: turns the castle head's matrix toward the player at the given rate (side/up re-orthonormalized).
         bool fn_800D5040(f32 farg0) {
         f32 turnRate = MR::isNearZero(farg0, 0.001f) ? 0.1f : farg0;
-        MtxPtr headMtx = CASTLE()->mHead->_A4;
+        MtxPtr headMtx = CASTLE()->mHead->mCannonMtx;
         MtxPtr jointMtx = MR::getJointMtx(CASTLE()->mHead, "JointRoot");
         TPos3f mtx;
         PSMTXIdentity(mtx);

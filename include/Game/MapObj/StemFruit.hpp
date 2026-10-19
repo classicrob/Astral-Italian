@@ -2,22 +2,13 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "math_types.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 
 class StemFruitChild;
 class FixedPosition;
 class YoshiLockOnTarget;
 
-namespace YoshiFunction {
-    bool tryYoshiEat(YoshiLockOnTarget*);
-    bool tryYoshiPull(YoshiLockOnTarget*);
-    bool tryYoshiPushEat();
-}
-
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-    bool isMsgYoshiAutoEatStart(u32);
-    bool isMsgYoshiAutoEatEnd(u32);
-}
 
 // Per-fruit parameter block returned by StemFruit::getParam() (virtual slot 0xC0, implemented by the
 // concrete fruit classes in other TUs). Offsets read from StemFruit / StemFruitChild code.

@@ -7,8 +7,7 @@
 
 // PLACEHOLDER(objects): fn_800578F0(iter, index) returns the child object name (wraps MR::getChildObjName); resolve when core names fn_800578F0
 extern "C" const char* fn_800578F0(const JMapInfoIter&, s32);
-// PLACEHOLDER(objects): fn_8004FEE0 is a bare blr returning r3 (player check used in exeCruise); resolve when core names fn_8004FEE0
-extern "C" bool fn_8004FEE0();
+
 
 // Nerve executor the target inlines into Nrv::execute (defined before the NEW_NERVE block).
 inline void SandBird::exeWait() {}
@@ -37,7 +36,7 @@ void SandBird::init(const JMapInfoIter& rIter) {
 
     s32 childNum = MR::getChildObjNum(rIter);
     if (childNum > 0) {
-        mPartsGroup = new LiveActorGroup("\x83\x70\x81\x5B\x83\x63\x8A\xC7\x97\x9D", childNum);
+        mPartsGroup = new DeriveActorGroup<SandBirdParts>("\x83\x70\x81\x5B\x83\x63\x8A\xC7\x97\x9D", childNum);
         for (s32 i = 0; i < childNum; i++) {
             SandBirdParts* pPart = new SandBirdParts(fn_800578F0(rIter, i), this, getSensor(nullptr));
             MR::initChildObj(pPart, rIter, i);
@@ -63,7 +62,7 @@ void SandBird::control() {
     MR::turnQuatYDirRate(&mQuat, mQuat, mUp, 0.05f);
 
     f32 dot = PSQUATDotProduct(&mQuat, &mQuat);
-    if (dot > 3.8146972656250e-06f) {
+    if (dot <= 3.8146972656250e-06f) {
         mQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
     } else {
         static_cast< TVec4f& >(mQuat).scale(JGeometry::TUtil< f32 >::inv_sqrt(dot));
@@ -143,6 +142,7 @@ void SandBird::exeStart() {
     }
 }
 
+// NONMATCHING: FPR allocation, temporary address scheduling and boolean materialization differ.
 void SandBird::exeCruise() {
     if (MR::isFirstStep(this)) {
         setAllPartsMove();
@@ -188,16 +188,16 @@ void SandBird::exeCruise() {
         if (MR::isPlayerSwingAction() || MR::isPlayerHipDropFalling()) {
             MR::pushPlayer(delta);
         }
-        if (fn_8004FEE0()) {
+        if (MR::isPlayerInJumpAction()) {
             TVec3f front(0.0f);
             MR::getPlayerFrontVec(&front);
-            if (MR::diffAngleAbs(front, delta) > 1.9856194257736206) {
+            if (MR::diffAngleAbs(front, delta) <= 1.9856194257736206) {
                 MR::pushPlayer(delta);
             }
         }
     }
 
-    if (MR::isNearPlayerHorizontal(this, 5000.0f)) {
+    if (!MR::isNearPlayerHorizontal(this, 5000.0f)) {
         setNerve(GET_NERVE(SandBird, SandBirdNrvStop));
     }
 }
@@ -212,6 +212,7 @@ void SandBird::exeStop() {
     }
 }
 
+// NONMATCHING: quaternion arithmetic FPR allocation differs.
 void SandBird::exeReturn() {
     if (MR::isFirstStep(this)) {
         MR::resetPosition(this, mHomePos);
@@ -222,7 +223,7 @@ void SandBird::exeReturn() {
         f32 y = mQuat.y;
         f32 z = mQuat.z;
         f32 w = mQuat.w;
-        mUp.set(2.0f * (x * y) - 2.0f * (w * z), 1.0f - 2.0f * (x * x) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
+        mUp.set<f32>(2.0f * (x * y) - 2.0f * (w * z), 1.0f - 2.0f * (x * x) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
         mQuat.getZDir(mZDir);
 
         setAllPartsAppear();

@@ -25,14 +25,14 @@ KoopaJrRobotStateDamage::KoopaJrRobotStateDamage(KoopaJrRobot* pHost, s32 mode)
 void KoopaJrRobotStateDamage::appear() {
     mIsDead = false;
     if (mMode == 1) {
-        if (mHost->mParts[3]->fn_800E25F0()) {
+        if (mHost->mParts[3]->isBroken()) {
             setNerve(&NrvKoopaJrRobotStateDamage::KoopaJrRobotStateDamageNrvDamageLast::sInstance);
             return;
         }
         setNerve(&NrvKoopaJrRobotStateDamage::KoopaJrRobotStateDamageNrvDamageHead::sInstance);
         return;
     }
-    if (mHost->fn_800DBC40()) {
+    if (mHost->isAllBodyPartsBroken()) {
         setNerve(&NrvKoopaJrRobotStateDamage::KoopaJrRobotStateDamageNrvDamageShort::sInstance);
         return;
     }
@@ -43,7 +43,7 @@ void KoopaJrRobotStateDamage::exeDamageLong() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "DamageLong");
         mHost->mSeq->fn_800DC9F0();
-        mHost->fn_800DB9C0();
+        mHost->attackShootableKillers();
         return;
     }
     if (MR::isActionEnd(mHost)) {

@@ -20,7 +20,7 @@ void PicketSwitch::init(const JMapInfoIter& rIter) {
     MR::needStageSwitchWriteA(this, rIter);
     const char* pName;
     MR::getObjectName(&pName, rIter);
-    initModelManagerWithAnm(pName, nullptr, false);
+    MR::initActor(this, rIter, pName, false);
     MR::connectToSceneMapObjDecorationStrongLight(this);
     initHitSensor(1);
     MR::addBodyMessageSensor(this, 0x49 /* ATYPE_SWITCH */);

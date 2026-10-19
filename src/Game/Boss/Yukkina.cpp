@@ -31,31 +31,29 @@ namespace NrvYukkina {
     YukkinaNrvWaitPowerStar YukkinaNrvWaitPowerStar::sInstance ATTRIBUTE_WEAK;
 }  // namespace NrvYukkina
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8004FF90, declared extern "C" so the reloc name matches; resolve when fn_8004FF90 gets its real name in symbols.txt
-extern "C" void fn_8004FF90();
 
 Yukkina::Yukkina(const char* pName)
-    : LiveActor(pName), mCameraInfo(NULL), mQuatC4(0.0f, 0.0f, 0.0f, 1.0f), mQuatD4(0.0f, 0.0f, 0.0f, 1.0f), mVelE4(0.0f, 0.0f, 1.0f),
-      mQuatF0(0.0f, 0.0f, 0.0f, 1.0f), mPos100(0.0f, 0.0f, 0.0f), mPos10C(0.0f, 0.0f, 0.0f), mSwitch(-1), mCounter(0), mStep(3), _124(0.0f),
+    : LiveActor(pName), mCameraInfo(NULL), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mBreakBaseQuat(0.0f, 0.0f, 0.0f, 1.0f), mFront(0.0f, 0.0f, 1.0f),
+      mInitialQuat(0.0f, 0.0f, 0.0f, 1.0f), mInitialPos(0.0f, 0.0f, 0.0f), mCameraTargetPos(0.0f, 0.0f, 0.0f), mCameraRegisterId(-1), mCounter(0), mStep(3), _124(0.0f),
       _128(0.0f), _12C(0.0f), mLowAngle(1.0f), mHighAngle(3.0f), mRollSpeed(1.5f), mIdx(1), mHasPlayerLink(0) {
     mBaseMtx.identity();
 }
 
 void Yukkina::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
-    MR::makeQuatAndFrontFromRotate(&mQuatC4, &mVelE4, this);
-    mQuatF0.set(mQuatC4);
-    mPos100.set(mPosition);
+    MR::makeQuatAndFrontFromRotate(&mPoseQuat, &mFront, this);
+    mInitialQuat.set(mPoseQuat);
+    mInitialPos.set(mPosition);
 
     MR::setAllEffectHostMtx(this, mBaseMtx);
     mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::initAnimCamera(this, mCameraInfo, "DemoOpening");
     MR::initAnimCamera(this, mCameraInfo, "DemoDown");
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\x83\x49\x81\x5b\x83\x76\x83\x6a\x83\x93\x83\x4f\x83\x66\x83\x82\x83\x58\x83\x4c\x83\x62\x83\x76");
-    MR::getJMapInfoArg7WithInit(rIter, &mSwitch);
-    if (mSwitch != -1) {
-        MR::declareCameraRegisterVec(this, mSwitch, &mPos10C);
-        MR::calcPositionUpOffset(&mPos10C, this, 250.0f);
+    MR::getJMapInfoArg7WithInit(rIter, &mCameraRegisterId);
+    if (mCameraRegisterId != -1) {
+        MR::declareCameraRegisterVec(this, mCameraRegisterId, &mCameraTargetPos);
+        MR::calcPositionUpOffset(&mCameraTargetPos, this, 250.0f);
     }
 
     TriangleFilterDelegator< Yukkina >* pFilter = MR::createTriangleFilterDelegator(this, &Yukkina::isInvalidTriangle);
@@ -75,9 +73,9 @@ void Yukkina::kill() {
 }
 
 void Yukkina::control() {
-    if (mSwitch != -1) {
-        mPos10C.set(mPosition);
-        JMAVECScaleAdd(&mGravity, &mPos10C, &mPos10C, 250.0f);
+    if (mCameraRegisterId != -1) {
+        mCameraTargetPos.set(mPosition);
+        JMAVECScaleAdd(&mGravity, &mCameraTargetPos, &mCameraTargetPos, 250.0f);
     }
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
@@ -90,7 +88,7 @@ void Yukkina::control() {
 }
 
 void Yukkina::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, mQuatC4);
+    MR::setBaseTRMtx(this, mPoseQuat);
 }
 
 void Yukkina::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -125,7 +123,7 @@ bool Yukkina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             mIdx += 1;
             TVec3f sp8;
             MR::calcSensorHorizonNormalize(&sp8, mGravity, pSender, pReceiver);
-            mVelE4.set(sp8);
+            mFront.set(sp8);
             MR::setVelocitySeparateHV(this, pSender, pReceiver, 20.0f, 40.0f);
             setNerve(&NrvYukkina::YukkinaNrvBreak::sInstance);
             return true;
@@ -136,8 +134,8 @@ bool Yukkina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 
 void Yukkina::exeHidden() {
     if (MR::isFirstStep(this)) {
-        mQuatC4.set(mQuatF0);
-        MR::resetPosition(this, mPos100);
+        mPoseQuat.set(mInitialQuat);
+        MR::resetPosition(this, mInitialPos);
         MR::zeroVelocity(this);
         MR::stopStageBgmForDemo();
     }
@@ -150,7 +148,7 @@ void Yukkina::exeHidden() {
                 MR::startBckPlayer("BattleWait", NULL);
             }
             MR::startAnimCameraTargetSelf(this, mCameraInfo, "DemoOpening", 0, false, 1.0f);
-            fn_8004FF90();
+            MR::clearPlayerFootprints();
             setNerve(&NrvYukkina::YukkinaNrvAppear::sInstance);
         }
     }
@@ -190,8 +188,8 @@ void Yukkina::exeWait() {
     updateSound();
     if (mCounter < 5) {
         f32 turn = MR::isNearPlayer(this, 1000.0f) ? mLowAngle : mHighAngle;
-        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mVelE4, *MR::getPlayerPos(), turn);
-        MR::addVelocityMoveToDirection(this, mVelE4, mRollSpeed);
+        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mFront, *MR::getPlayerPos(), turn);
+        MR::addVelocityMoveToDirection(this, mFront, mRollSpeed);
     } else {
         MR::addVelocityToGravity(this, 1.5f);
     }
@@ -206,7 +204,7 @@ void Yukkina::exeWait() {
     MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
-    MR::rotateQuatRollBall(&mQuatC4, mVelocity, up, 400.0f * mScale.x);
+    MR::rotateQuatRollBall(&mPoseQuat, mVelocity, up, 400.0f * mScale.x);
 }
 
 void Yukkina::exeBreak() {
@@ -218,14 +216,14 @@ void Yukkina::exeBreak() {
         MR::calcVecToPlayerHorizon(&toPlayer, this, NULL);
         TVec3f up;
         JGeometry::negateInternal(&mGravity.x, &up.x);
-        MR::makeQuatUpFront(&mQuatD4, up, toPlayer);
+        MR::makeQuatUpFront(&mBreakBaseQuat, up, toPlayer);
     }
     MR::addVelocityToGravity(this, 1.5f);
     MR::attenuateVelocity(this, 0.99f);
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
-    MR::turnQuatZDirRate(&mQuatD4, mQuatD4, up, 0.1f);
-    MR::rotateQuatXAxisDegree(&mQuatC4, mQuatD4, MR::calcNerveEaseOutValue(this, 40, 0.0f, -360.0f));
+    MR::turnQuatZDirRate(&mBreakBaseQuat, mBreakBaseQuat, up, 0.1f);
+    MR::rotateQuatXAxisDegree(&mPoseQuat, mBreakBaseQuat, MR::calcNerveEaseOutValue(this, 40, 0.0f, -360.0f));
     if (!MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"))) {
         if (MR::isGreaterStep(this, 10) && MR::isBindedGround(this)) {
             MR::zeroVelocity(this);
@@ -253,7 +251,7 @@ void Yukkina::exeJump() {
     MR::attenuateVelocity(this, 0.99f);
     TVec3f toPlayer;
     MR::calcVecToPlayerH(&toPlayer, this, NULL);
-    MR::fn_800104F0(&mQuatC4, this, &toPlayer, 0.2f, 0.1f);
+    MR::fn_800104F0(&mPoseQuat, this, &toPlayer, 0.2f, 0.1f);
     if (MR::isGreaterStep(this, 10) && MR::isBindedGround(this)) {
         MR::zeroVelocity(this);
         setNerve(&NrvYukkina::YukkinaNrvJumpWait::sInstance);
@@ -266,7 +264,7 @@ void Yukkina::exeJumpWait() {
     }
     TVec3f toPlayer;
     MR::calcVecToPlayerH(&toPlayer, this, NULL);
-    MR::fn_800104F0(&mQuatC4, this, &toPlayer, 0.2f, 0.1f);
+    MR::fn_800104F0(&mPoseQuat, this, &toPlayer, 0.2f, 0.1f);
     if (MR::isGreaterStep(this, 0x50)) {
         setNerve(&NrvYukkina::YukkinaNrvWaitTurn::sInstance);
     }
@@ -274,13 +272,13 @@ void Yukkina::exeJumpWait() {
 
 void Yukkina::exeWaitTurn() {
     if (MR::isFirstStep(this)) {
-        MR::calcVecToPlayerH(&mVelE4, this, NULL);
-        JGeometry::negateInternal(&mVelE4.x, &mVelE4.x);
+        MR::calcVecToPlayerH(&mFront, this, NULL);
+        JGeometry::negateInternal(&mFront.x, &mFront.x);
     }
     updateSound();
     if (mCounter < 5) {
-        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mVelE4, *MR::getPlayerPos(), 0.0f);
-        MR::addVelocityMoveToDirection(this, mVelE4, mRollSpeed);
+        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mFront, *MR::getPlayerPos(), 0.0f);
+        MR::addVelocityMoveToDirection(this, mFront, mRollSpeed);
     } else {
         MR::addVelocityToGravity(this, 1.5f);
     }
@@ -295,7 +293,7 @@ void Yukkina::exeWaitTurn() {
     MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
-    MR::rotateQuatRollBall(&mQuatC4, mVelocity, up, 400.0f * mScale.x);
+    MR::rotateQuatRollBall(&mPoseQuat, mVelocity, up, 400.0f * mScale.x);
     if (MR::isGreaterStep(this, 0x5A)) {
         setNerve(&NrvYukkina::YukkinaNrvWait::sInstance);
     }
@@ -310,7 +308,7 @@ void Yukkina::exeSwitchDead() {
         MR::calcVecToPlayerHorizon(&toPlayer, this, NULL);
         TVec3f up;
         JGeometry::negateInternal(&mGravity.x, &up.x);
-        MR::makeQuatUpFront(&mQuatC4, up, toPlayer);
+        MR::makeQuatUpFront(&mPoseQuat, up, toPlayer);
     }
     if (MR::isActionEnd(this)) {
         if (MR::isValidSwitchDead(this)) {
@@ -322,8 +320,8 @@ void Yukkina::exeSwitchDead() {
 
 void Yukkina::exeDemoStart() {
     if (MR::tryStartDemoMarioPuppetable(this, "\x83\x5f\x83\x45\x83\x93")) {
-        mQuatC4.set(mQuatF0);
-        MR::resetPosition(this, mPos100);
+        mPoseQuat.set(mInitialQuat);
+        MR::resetPosition(this, mInitialPos);
         MR::zeroVelocity(this);
         MR::showModel(this);
         MR::startAnimCameraTargetSelf(this, mCameraInfo, "DemoDown", 0, false, 1.0f);

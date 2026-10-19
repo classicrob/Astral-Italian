@@ -42,13 +42,13 @@ public:
 private:
     /* 0x90 */ ActorCameraInfo* mCameraInfo;
     /* 0x94 */ TPos3f mBaseMtx;
-    /* 0xC4 */ TQuat4f mQuatC4;
-    /* 0xD4 */ TQuat4f mQuatD4;
-    /* 0xE4 */ TVec3f mVelE4;
-    /* 0xF0 */ TQuat4f mQuatF0;
-    /* 0x100 */ TVec3f mPos100;
-    /* 0x10C */ TVec3f mPos10C;
-    /* 0x118 */ s32 mSwitch;
+    /* 0xC4 */ TQuat4f mPoseQuat;
+    /* 0xD4 */ TQuat4f mBreakBaseQuat;
+    /* 0xE4 */ TVec3f mFront;
+    /* 0xF0 */ TQuat4f mInitialQuat;
+    /* 0x100 */ TVec3f mInitialPos;
+    /* 0x10C */ TVec3f mCameraTargetPos;
+    /* 0x118 */ s32 mCameraRegisterId;
     /* 0x11C */ s32 mCounter;
     /* 0x120 */ s32 mStep;
     /* 0x124 */ f32 _124;

@@ -184,7 +184,7 @@ void KoopaBattleStage::exeDamage() {
 }
 
 bool KoopaBattleStage::isAttackable() const {
-    if (getHost()->_10C || isNerve(&NrvKoopaBattleStage::KoopaBattleStageNrvDamage::sInstance)) {
+    if (getHost()->mIsDefenseForm || isNerve(&NrvKoopaBattleStage::KoopaBattleStageNrvDamage::sInstance)) {
         return false;
     }
     return true;

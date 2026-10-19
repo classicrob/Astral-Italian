@@ -472,20 +472,18 @@ Game/AreaObj/AreaObjFollower.cpp:
 	.data       start:0x8066A7B0 end:0x8066A7C0
 
 Game/AreaObj/AudioEffectArea.cpp:
-	.text       start:0x80071790 end:0x80071930
-	.data       start:0x8066A7C0 end:0x8066A7F8
+	.text       start:0x80071790 end:0x80071920
+	.data       start:0x8066A7C0 end:0x8066A808
 
 Game/AreaObj/BgmChangeArea.cpp:
-	.text       start:0x80071930 end:0x80071E70
+	.text       start:0x80071920 end:0x80071E70
+	.data       start:0x8066A808 end:0x8066A890
 
 Game/AreaObj/BgmVolumeFadeArea.cpp:
-	.text       start:0x80071E70 end:0x80072120
-
-Game/AreaObj/ImageEffectArea.cpp:
-	.text       start:0x80072120 end:0x80072180
+	.text       start:0x80071E70 end:0x800720C0
 
 Game/AreaObj/BloomArea.cpp:
-	.text       start:0x80072180 end:0x80072270
+	.text       start:0x800720C0 end:0x80072270
 	.data       start:0x8066A890 end:0x8066A8D0
 
 Game/AreaObj/CancelBeeMorphArea.cpp:
@@ -1068,25 +1066,35 @@ Game/Boss/DinoPackunBabyTU01.cpp:
 	.data       start:0x80671348 end:0x80671970
 
 Game/Boss/DinoPackunBabyTU02.cpp:
-	.text       start:0x800BAB10 end:0x800BAFC0
+	.text       start:0x800BAB10 end:0x800BB270
 	.ctors      start:0x80643E4C end:0x80643E50
+	.data       start:0x80671970 end:0x80671AA8
+	.sbss       start:0x807D13B0 end:0x807D13B8
+
+Game/Boss/DinoPackunBabyState.cpp:
+	.text       start:0x800BB270 end:0x800BB600
+	.ctors      start:0x80643E50 end:0x80643E54
+	.data       start:0x80671AA8 end:0x80671B78
+	.sdata      start:0x807CF550 end:0x807CF558
+	.sbss       start:0x807D13B8 end:0x807D13C0
 
 Game/Boss/Dodoryu.cpp:
-	.text       start:0x800BB600 end:0x800BE450
+	.text       start:0x800BB600 end:0x800BE5C0
 	.ctors      start:0x80643E54 end:0x80643E58
-	.data       start:0x80672488 end:0x80672680
+	.data       start:0x80672488 end:0x80672710
 
 Game/Boss/DodoryuStateBase.cpp:
 	.text       start:0x800BE5C0 end:0x800BF800
+	.data       start:0x80672710 end:0x806728C0
 
 Game/Boss/DodoryuDemo.cpp:
-	.text       start:0x800BF800 end:0x800BF890
+	.text       start:0x800BF800 end:0x800BFA30
 	.ctors      start:0x80643E58 end:0x80643E5C
-	.data       start:0x806728C0 end:0x80672B90
+	.data       start:0x806728C0 end:0x80672C60
 
 Game/Boss/DodoryuHill.cpp:
 	.text       start:0x800BFA30 end:0x800BFBA0
-	.data       start:0x80672CC8 end:0x80672D40
+	.data       start:0x80672C60 end:0x80672D40
 
 Game/Boss/DodoryuSub.cpp:
 	.text       start:0x800BFBA0 end:0x800C05B0
@@ -1095,19 +1103,19 @@ Game/Boss/DodoryuStateBase2.cpp:
 	.text       start:0x800C05B0 end:0x800C0730
 
 Game/Boss/DodoryuStateLv1.cpp:
-	.text       start:0x800C0730 end:0x800C1AE0
+	.text       start:0x800C0730 end:0x800C1C30
 	.ctors      start:0x80643E5C end:0x80643E60
-	.data       start:0x80672F38 end:0x80673058
+	.data       start:0x80672F38 end:0x806730E8
 
 Game/Boss/DodoryuStateLv2.cpp:
-	.text       start:0x800C1C30 end:0x800C4680
+	.text       start:0x800C1C30 end:0x800C4A10
 	.ctors      start:0x80643E60 end:0x80643E64
-	.data       start:0x80673300 end:0x80673420
+	.data       start:0x806730E8 end:0x80673570
 
 Game/Boss/DodoryuStateWait.cpp:
-	.text       start:0x800C4A10 end:0x800C4C50
+	.text       start:0x800C4A10 end:0x800C4C70
 	.ctors      start:0x80643E64 end:0x80643E68
-	.data       start:0x806735A0 end:0x806736C0
+	.data       start:0x80673570 end:0x806736D0
 
 Game/Boss/DodoryuUtil.cpp:
 	.text       start:0x800C4C70 end:0x800C53D0
@@ -4667,12 +4675,10 @@ Game/MapObj/CymbalsStep.cpp:
 	.text       start:0x802934E0 end:0x80293DB0
 	.ctors      start:0x80644394 end:0x80644398
 
-Game/MapObj/DashFruitHooks.cpp:
-	.text       start:0x80293DB0 end:0x80293DD0
-
 Game/MapObj/DashFruit.cpp:
-	.text       start:0x80293DD0 end:0x80293F20
+	.text       start:0x80293DB0 end:0x80293F20
 	.ctors      start:0x80644398 end:0x8064439C
+	.bss        start:0x80729910 end:0x80729940
 
 Game/MapObj/StemFruitParam.cpp:
 	.text       start:0x80293F20 end:0x80293F70
@@ -4718,10 +4724,7 @@ Game/MapObj/ElectricRail.cpp:
 	.data       start:0x8069FDA0 end:0x8069FEF8
 
 Game/MapObj/ElectricRail2Point.cpp:
-	.text       start:0x8029ABA0 end:0x8029AF30
-
-Game/MapObj/ElectricRail2Point2.cpp:
-	.text       start:0x8029AF30 end:0x8029B9C0
+	.text       start:0x8029ABA0 end:0x8029B9C0
 	.ctors      start:0x806443B4 end:0x806443B8
 
 Game/MapObj/ElectricRailHolder.cpp:
@@ -4863,7 +4866,7 @@ Game/MapObj/GravityFallBlock.cpp:
 	.ctors      start:0x8064441C end:0x80644420
 
 Game/MapObj/GravityLightRoad.cpp:
-	.text       start:0x802ACC20 end:0x802AD580
+	.text       start:0x802ACC20 end:0x802AD590
 	.ctors      start:0x80644420 end:0x80644424
 
 Game/MapObj/GravityTimerChangeWall.cpp:
@@ -5273,7 +5276,7 @@ Game/MapObj/RelayDrill2DPlanet.cpp:
 	.text       start:0x802EC170 end:0x802EC370
 
 Game/MapObj/RepeatBlockAtom.cpp:
-	.text       start:0x802EC370 end:0x802EC410
+	.text       start:0x802EC370 end:0x802EC610
 
 Game/MapObj/RepeatBlockHead.cpp:
 	.text       start:0x802EC610 end:0x802ECAD0
@@ -5325,11 +5328,12 @@ Game/MapObj/RollingWaterCreator.cpp:
 	.ctors      start:0x80644578 end:0x8064457C
 
 Game/MapObj/RotateHammerPressure.cpp:
-	.text       start:0x802F73D0 end:0x802F7460
+	.text       start:0x802F73D0 end:0x802F7B00
+	.ctors      start:0x8064457C end:0x80644580
 
 Game/MapObj/RotateMoveObj.cpp:
-	.text       start:0x802F7460 end:0x802F80E0
-	.ctors      start:0x8064457C end:0x80644584
+	.text       start:0x802F7B00 end:0x802F80E0
+	.ctors      start:0x80644580 end:0x80644584
 	.data       start:0x806AB900 end:0x806AB9E8
 
 Game/MapObj/RotateSeesawTrampoline.cpp:
@@ -5350,8 +5354,12 @@ Game/MapObj/Sandstorm.cpp:
 	.data       start:0x806ABF58 end:0x806AC0A8
 
 Game/MapObj/SecretGate.cpp:
-	.text       start:0x802FB580 end:0x802FBDE0
-	.ctors      start:0x80644594 end:0x8064459C
+	.text       start:0x802FB580 end:0x802FB9D0
+	.ctors      start:0x80644594 end:0x80644598
+
+Game/MapObj/SecretGateCounter.cpp:
+	.text       start:0x802FB9D0 end:0x802FBDE0
+	.ctors      start:0x80644598 end:0x8064459C
 
 Game/MapObj/Shellfish.cpp:
 	.text       start:0x802FBDE0 end:0x802FCD50
@@ -5381,14 +5389,8 @@ Game/MapObj/SimpleFloaterObj.cpp:
 	.data       start:0x806ACE40 end:0x806ACEC0
 
 Game/MapObj/SimpleMapObj.cpp:
-	.text       start:0x802FF680 end:0x802FFB30
+	.text       start:0x802FF680 end:0x80300170
 	.rodata     start:0x80649740 end:0x806497A0
-
-Game/MapObj/SimpleSeesawObj.cpp:
-	.text       start:0x802FFB30 end:0x802FFDA0
-
-Game/MapObj/PictureJoinPlanet.cpp:
-	.text       start:0x802FFDA0 end:0x802FFE30
 
 Game/MapObj/SmallStone.cpp:
 	.text       start:0x80300170 end:0x80301850
@@ -7025,7 +7027,7 @@ Game/Ride/Creeper.cpp:
 	.sbss       start:0x807D4FF8 end:0x807D5018
 
 Game/Ride/Fluff.cpp:
-	.text       start:0x8042C690 end:0x8042E250
+	.text       start:0x8042C690 end:0x8042E260
 	.ctors      start:0x80644818 end:0x8064481C
 	.data       start:0x806EC508 end:0x806EC618
 	.sbss       start:0x807D501C end:0x807D5040
@@ -7096,7 +7098,7 @@ Game/Ride/RollingRockStateRoll.cpp:
 	.ctors      start:0x80644848 end:0x8064484C
 
 Game/Ride/SledRopePoint.cpp:
-	.text       start:0x804404D0 end:0x80440620
+	.text       start:0x804404D0 end:0x80440710
 	.data       start:0x806EE1E0 end:0x806EE1F0
 
 Game/Ride/SphereAccelSensorController.cpp:
@@ -7134,13 +7136,10 @@ Game/Ride/TamakoroTutorial.cpp:
 	.sbss       start:0x807D5218 end:0x807D5258
 
 Game/Ride/Trapeze.cpp:
-	.text       start:0x80448F60 end:0x8044B6F0
+	.text       start:0x80448F60 end:0x8044B940
 	.ctors      start:0x80644858 end:0x8064485C
-	.data       start:0x806EEDE0 end:0x806EEE98
+	.data       start:0x806EEDE0 end:0x806EEF78
 	.sbss       start:0x807D5290 end:0x807D52A0
-
-Game/Ride/NrvTrapeze.cpp:
-	.text       start:0x8044B6F0 end:0x8044B940
 
 Game/Ride/TubeSlider.cpp:
 	.text       start:0x8044B940 end:0x8044E620
@@ -7161,7 +7160,7 @@ Game/Ride/TubeSliderCrystal.cpp:
 	.sbss       start:0x807D52D8 end:0x807D52E0
 	.sdata2     start:0x807E1180 end:0x807E1188
 
-Game/Ride/TubeSliderDamageObjCreator.cpp:
+Game/Ride/TubeSliderDamageObj.cpp:
 	.text       start:0x8044ED20 end:0x8044F810
 	.ctors      start:0x80644864 end:0x80644868
 	.data       start:0x806EF458 end:0x806EF628

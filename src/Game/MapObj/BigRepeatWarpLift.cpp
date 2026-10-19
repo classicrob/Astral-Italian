@@ -85,7 +85,7 @@ void BigRepeatWarpLift::exeMove() {
 
     if (mRailMover->isReachedEnd()) {
         MR::startActionSound(this, "Stop", -1, -1, -1);
-        mRailMover->control();
+        mRailMover->end();
         setNerve(&NrvBigRepeatWarpLift::BigRepeatWarpLiftNrvSign::sInstance);
     }
 }

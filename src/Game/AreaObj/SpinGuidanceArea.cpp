@@ -5,7 +5,7 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-SpinGuidanceArea::SpinGuidanceArea(int formType, const char* pName) : AreaObj(formType, pName) {
+SpinGuidanceArea::SpinGuidanceArea(const char* pName) : AreaObj(pName) {
 }
 
 SpinGuidanceArea::~SpinGuidanceArea() {
@@ -15,12 +15,9 @@ void SpinGuidanceArea::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
     MR::createSceneObj(SceneObj_PlayerActionGuidance);
 
-    const char* objName = nullptr;
-    MR::getObjectName(&objName, rIter);
-
-    if (MR::isEqualString(objName, "SpinGuidanceCube")) {
+    if (MR::isObjectName(rIter, "SpinGuidanceCube")) {
         MR::getPlayerActionGuidance()->createSpinLayout();
-    } else if (MR::isEqualString(objName, "TamakoroMoveGuidanceCube") || MR::isEqualString(objName, "TamakoroJumpGuidanceCube")) {
+    } else if (MR::isObjectName(rIter, "TamakoroMoveGuidanceCube") || MR::isObjectName(rIter, "TamakoroJumpGuidanceCube")) {
         MR::getPlayerActionGuidance()->createTamakoroLayout();
     }
 }

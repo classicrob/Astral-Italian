@@ -8,13 +8,10 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_800346F0(LiveActor*, const char*, const TPos3f*);
-extern const char* lbl_807CF5F8;
-}
 
-static const char* const sSealFixPosNames[] = {
+static const char* sSealFixPosSingle = "SealFixPosSingle";
+
+static const char* sSealFixPosNames[] = {
     "SealFixPosMulti0", "SealFixPosMulti1", "SealFixPosMulti2", "SealFixPosMulti3", "SealFixPosMulti4",
 };
 
@@ -83,7 +80,7 @@ void KoopaSealField::init(const JMapInfoIter& rIter) {
         mSealGroup = new DeriveActorGroup< KoopaJrRobotSeal >("\x8F\xE9\x96\xE5\x95\x95\x88\xF3\x83\x8A\x83\x58\x83\x67", 1);
         KoopaJrRobotSeal* pSeal = new KoopaJrRobotSeal("\x8F\xE9\x96\xE5\x95\x95\x88\xF3");
         pSeal->initWithoutIter();
-        pSeal->setup(this, lbl_807CF5F8, 3);
+        pSeal->setup(this, sSealFixPosSingle, 3);
         pSeal->setClipping(&mPosition, radius);
         mSealGroup->registerActor(pSeal);
     }
@@ -139,7 +136,7 @@ bool KoopaSealField::tryStartPuppet() {
         MR::calcFrontVec(&front, this);
         TPos3f mtx;
         MR::makeMtxUpNoSupportPos(&mtx, front, *MR::getPlayerPos());
-        fn_800346F0(this, "\x83\x7D\x83\x8A\x83\x49\x83\x43\x83\x93", &mtx);
+        MR::tryHitReactionAtMtx(this, "\x83\x7D\x83\x8A\x83\x49\x83\x43\x83\x93", &mtx);
         setNerve(GET_NERVE(KoopaSealField, KoopaSealFieldNrvDemoPuppet));
         return true;
     }
@@ -206,6 +203,7 @@ void KoopaSealField::exeOpenEnd() {
     }
 }
 
+// NONMATCHING: epilogue register restore order.
 void KoopaSealField::exeDemoCamera() {
     if (MR::isFirstStep(this)) {
         if (mCameraInfo != nullptr) {

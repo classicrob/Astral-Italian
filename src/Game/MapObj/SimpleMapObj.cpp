@@ -1,20 +1,14 @@
 #include "Game/MapObj/SimpleMapObj.hpp"
+#include "Game/MapObj/PictureJoinPlanet.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MapObjActorInitInfo.hpp"
 #include "Game/NameObj/NameObjArchiveListCollector.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
+#include <cmath>
 #include "Game/Util/MapPartsUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-
-namespace {
-    static const SoundEffectDataEntry sSeDataTable[] = {
-        {"KoopaShipSeesawStep", "SE_OJ_LV_KOOPA_SHIP_SEESAW", 0.001f},   {"IceVolcanoBalanceStepA", "SE_OJ_LV_VOL_BAL_STEP_ROT", 0.001f},
-        {"IceVolcanoBalanceStepB", "SE_OJ_LV_VOL_BAL_STEP_ROT", 0.001f}, {"IceMountainSeesawSlipA", "SE_OJ_LV_ICE_M_SEESAW_S", 0.001f},
-        {"IceMountainSeesawSlipB", "SE_OJ_LV_ICE_M_SEESAW_M", 0.001f},   {"IceMountainSeesawSlipC", "SE_OJ_LV_ICE_M_SEESAW_L", 0.001f},
-        {"IceMountainSeesawSlipD", "SE_OJ_LV_ICE_M_SEESAW_L", 0.001f},   {"IceMountainSeesawNoSlipA", "SE_OJ_LV_ICE_M_SEESAW_S", 0.001f},
-    };
-};  // namespace
 
 void SimpleMapObj::init(const JMapInfoIter& rIter) {
     MapObjActor::init(rIter);
@@ -24,6 +18,14 @@ void SimpleMapObj::init(const JMapInfoIter& rIter) {
     MapObjActorUtil::setupInitInfoColorChangeArg0(&info, rIter);
     MapObjActorUtil::setupInitInfoTextureChangeArg1(&info, rIter);
     MapObjActorUtil::setupInitInfoShadowLengthArg2(&info, rIter);
+    initialize(rIter, info);
+}
+
+void SimpleEnvironmentObj::init(const JMapInfoIter& rIter) {
+    MapObjActor::init(rIter);
+    MapObjActorInitInfo info;
+    MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
+    info.setupHioNode("環境オブジェ");
     initialize(rIter, info);
 }
 
@@ -39,9 +41,117 @@ void SimpleEnvironmentObj::connectToScene(const MapObjActorInitInfo& rInfo) {
     }
 }
 
+void SimpleMapObjWithEffect::init(const JMapInfoIter& iter) {
+    SimpleMapObj::init(iter);
+    if (MR::isEqualString("PeachCastleMeteor", mObjectName)) MR::invalidateClipping(this);
+}
+
+bool SimpleMapObjWithEffect::tryEmitWaitEffect() {
+    if (!MR::isExistEffectKeeper(this)) return false;
+    if (!MR::isRegisteredEffect(this, mObjectName)) return false;
+    if (MR::isEffectValid(this, mObjectName)) return false;
+    if (MR::calcCameraDistanceZ(mPosition) > 100000.0f) return false;
+    MR::emitEffect(this, mObjectName);
+    MR::startActionSoundAuto(this, "EffectEmitStart");
+    return true;
+}
+
+bool SimpleMapObjWithEffect::tryDeleteWaitEffect() {
+    if (MR::calcCameraDistanceZ(mPosition) > 100000.0f) {
+        MR::tryDeleteEffect(this, mObjectName);
+        return true;
+    }
+    return false;
+}
+
+void SimpleMapObjWithEffect::control() {
+    MapObjActor::control();
+    if (MR::isEffectValid(this, mObjectName)) MR::startActionSoundAuto(this, "EffectEmitLoop");
+}
+
 void SimpleMapObjFarMax::init(const JMapInfoIter& rIter) {
     SimpleMapObj::init(rIter);
     MR::setClippingFarMax(this);
+}
+
+void SimpleTextureSwitchChangeObj::initCaseUseSwitchA(const MapObjActorInitInfo& rInfo) {
+    MR::listenStageSwitchOnA(this, MR::FunctorV0M<SimpleTextureSwitchChangeObj*, void (SimpleTextureSwitchChangeObj::*)()>(this, &SimpleTextureSwitchChangeObj::changeTexture));
+}
+
+void SimpleTextureSwitchChangeObj::changeTexture() {
+    MR::startBtk(this, "TexChange");
+    MR::setBtkFrameAndStop(this, getChangedTextureNo());
+}
+
+s32 SimpleTextureSwitchChangeObj::getChangedTextureNo() const {
+    return 1;
+}
+
+void GlaringLight::connectToScene(const MapObjActorInitInfo& rInfo) {
+    if (rInfo.mConnectToScene) {
+        MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_MapObj, MR::DrawBufferType_GlaringLight, MR::DrawType_None);
+    }
+}
+
+namespace {
+    static const SoundEffectDataEntry sSeDataTable[] = {
+        {"KoopaShipSeesawStep", "SE_OJ_LV_KOOPA_SHIP_SEESAW", 0.001f},   {"IceVolcanoBalanceStepA", "SE_OJ_LV_VOL_BAL_STEP_ROT", 0.001f},
+        {"IceVolcanoBalanceStepB", "SE_OJ_LV_VOL_BAL_STEP_ROT", 0.001f}, {"IceMountainSeesawSlipA", "SE_OJ_LV_ICE_M_SEESAW_S", 0.001f},
+        {"IceMountainSeesawSlipB", "SE_OJ_LV_ICE_M_SEESAW_M", 0.001f},   {"IceMountainSeesawSlipC", "SE_OJ_LV_ICE_M_SEESAW_L", 0.001f},
+        {"IceMountainSeesawSlipD", "SE_OJ_LV_ICE_M_SEESAW_L", 0.001f},   {"IceMountainSeesawNoSlipA", "SE_OJ_LV_ICE_M_SEESAW_S", 0.001f},
+    };
+    const char* sSeesawEffectName = "Moving";
+};  // namespace
+
+namespace {
+    const SoundEffectDataEntry* getSeParam(const char* pName) {
+        for (u32 i = 0; i < 8; i++) {
+            if (MR::isEqualString(pName, sSeDataTable[i].objectName)) {
+                return &sSeDataTable[i];
+            }
+        }
+
+        return nullptr;
+    }
+};  // namespace
+
+SimpleSeesawObj::SimpleSeesawObj(const char* pName) : MapObjActor(pName) {
+    _C4.identity();
+}
+
+void SimpleSeesawObj::init(const JMapInfoIter& rIter) {
+    MapObjActor::init(rIter);
+    MapObjActorInitInfo info;
+    MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
+    const SoundEffectDataEntry* entry = ::getSeParam(mObjectName);
+    const char* sound_name = entry != nullptr ? entry->soundName : nullptr;
+    entry = ::getSeParam(mObjectName);
+    MapObjActorUtil::setupInitInfoSeesaw(&info, rIter, sound_name, entry != nullptr ? entry->_8 : 0.0f);
+    if (MR::isEqualString(mObjectName, "MagmaMonsterRotateSeasaw")) info.setupProjmapMtx(false, false);
+    initialize(rIter, info);
+    if (MR::isRegisteredEffect(this, sSeesawEffectName)) {
+        _C4.set(getBaseMtx());
+        MR::setEffectHostMtx(this, sSeesawEffectName, _C4);
+    }
+}
+
+void SimpleSeesawObj::control() {
+    MapObjActor::control();
+    const char* effect = sSeesawEffectName;
+    if (MR::isRegisteredEffect(this, effect)) {
+        bool isMoving = __fabsf(MapObjActorUtil::getSeesaw1AxisAngularSpeed(this)) > 0.01f;
+        if (!isMoving && MR::isEffectValid(this, effect)) {
+            MR::deleteEffect(this, effect);
+        } else if (isMoving && !MR::isEffectValid(this, effect)) {
+            MR::emitEffect(this, effect);
+        }
+    }
+}
+
+void SimpleMapObjPush::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isSensorPlayer(pReceiver)) {
+        MR::sendMsgPush(pReceiver, pSender);
+    }
 }
 
 void SimpleMapObjNoSilhouetted::connectToScene(const MapObjActorInitInfo& rInfo) {
@@ -53,16 +163,6 @@ void SimpleMapObjNoSilhouetted::connectToScene(const MapObjActorInitInfo& rInfo)
             MR::connectToSceneNoSilhouettedMapObj(this);
             return;
         }
-    }
-}
-
-void SimpleTextureSwitchChangeObj::initCaseUseSwitchA(const MapObjActorInitInfo& rInfo) {
-    MR::listenStageSwitchOnA(this, MR::Functor(this, &SimpleTextureSwitchChangeObj::changeTexture));
-}
-
-void GlaringLight::connectToScene(const MapObjActorInitInfo& rInfo) {
-    if (rInfo.mConnectToScene) {
-        MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_MapObj, MR::DrawBufferType_GlaringLight, MR::DrawType_None);
     }
 }
 
@@ -93,43 +193,6 @@ void SimpleMirrorReflectionObj::init(const JMapInfoIter& rIter) {
 
 void SimpleMirrorReflectionObj::connectToScene(const MapObjActorInitInfo& rInfo) {
     MR::connectToSceneMirrorMapObjNoMovement(this);
-}
-
-namespace {
-    const SoundEffectDataEntry* getSeParam(const char* pName) {
-        for (u32 i = 0; i < 8; i++) {
-            if (MR::isEqualString(pName, sSeDataTable[i].objectName)) {
-                return &sSeDataTable[i];
-            }
-        }
-
-        return nullptr;
-    }
-};  // namespace
-
-SimpleSeesawObj::SimpleSeesawObj(const char* pName) : MapObjActor(pName) {
-    _C4.identity();
-}
-
-void SimpleSeesawObj::init(const JMapInfoIter& rIter) {
-    MapObjActor::init(rIter);
-    MapObjActorInitInfo info;
-    MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
-    const SoundEffectDataEntry* entry = ::getSeParam(mObjectName);
-    const char* sound_name = entry != nullptr ? entry->soundName : nullptr;
-    entry = ::getSeParam(mObjectName);
-    MapObjActorUtil::setupInitInfoSeesaw(&info, rIter, sound_name, entry != nullptr ? entry->_8 : 0.0f);
-    initialize(rIter, info);
-}
-
-void SimpleSeesawObj::control() {
-    MapObjActor::control();
-}
-
-void SimpleMapObjPush::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver)) {
-        MR::sendMsgPush(pReceiver, pSender);
-    }
 }
 
 void UFOKinokoUnderConstruction::init(const JMapInfoIter& rIter) {
@@ -170,19 +233,6 @@ namespace MR {
     }
 };  // namespace MR
 
-void SimpleEnvironmentObj::init(const JMapInfoIter& rIter) {
-    MapObjActor::init(rIter);
-    MapObjActorInitInfo info;
-    MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
-    info.setupHioNode("環境");
-    initialize(rIter, info);
-}
-
-void SimpleTextureSwitchChangeObj::changeTexture() {
-    MR::startBtk(this, "TexChange");
-    MR::setBtkFrameAndStop(this, getChangedTextureNo());
-}
-
 void SimpleMirrorObj::init(const JMapInfoIter& rIter) {
     MapObjActor::init(rIter);
     MapObjActorInitInfo info;
@@ -205,8 +255,16 @@ void SimpleMirrorObj::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(this);
 }
 
-s32 SimpleTextureSwitchChangeObj::getChangedTextureNo() const {
-    return 1;
+void PictureJoinPlanet::init(const JMapInfoIter& iter) {
+    MapObjActor::init(iter);
+    MapObjActorInitInfo info;
+    MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
+    MapObjActorUtil::setupInitInfoTypical(&info, mObjectName);
+    MapObjActorUtil::setupInitInfoColorChangeArg0(&info, iter);
+    MapObjActorUtil::setupInitInfoTextureChangeArg1(&info, iter);
+    MapObjActorUtil::setupInitInfoShadowLengthArg2(&info, iter);
+    info.setupBaseMtxFollowTarget();
+    initialize(iter, info);
 }
 
 SimpleEnvironmentObj::~SimpleEnvironmentObj() {
@@ -236,6 +294,5 @@ SimpleMapObjPush::~SimpleMapObjPush() {
 UFOKinokoUnderConstruction::~UFOKinokoUnderConstruction() {
 }
 
-void SimpleMapObj_FORCE_MATCH(TMtx34f* pMtx, const Mtx pSrc) {
-    pMtx->set(pSrc);
+PictureJoinPlanet::~PictureJoinPlanet() {
 }

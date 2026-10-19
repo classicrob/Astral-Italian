@@ -44,7 +44,7 @@ SandyBall::SandyBall(s32 type, const char* pName)
 void SandyBall::init(const JMapInfoIter& rIter) {
     const char* pActorName;
     if (mType == 2) {
-        pActorName = "SandyBall";
+        pActorName = "SandySandBall";
     } else if (mType == 3) {
         pActorName = "SandyCactusBallBig";
     } else {
@@ -111,14 +111,15 @@ void SandyBall::calcTargetPos(TVec3f* pOut) {
         if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, start, dir)) {
             toGround.set(hitPos - mPosition);
         }
-        TVec3f handUp = -pHand->mGravity;
+        TVec3f handUp;
+        handUp.negate(pHand->mGravity);
         if (pSandy->isMinisDownOrDead()) {
             TVec3f side(toGround);
             MR::vecKillElement(side, mGravity, &side);
             TVec3f cross;
             PSVECCrossProduct(&side, &handUp, &cross);
             if (!pHand->mIsRight) {
-                cross = -cross;
+                cross.negate();
             }
             cross.setLength(1.3f * MR::getSensorRadius(this, "Body"));
             pOut->set((mPosition + toGround) + cross);
@@ -378,7 +379,8 @@ bool SandyBall::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 // 800FC9E0
 // NONMATCHING: negateInternal is expanded inline in the target (single call site per TU).
 void SandyBall::initPath(const TVec3f& rFrom, const TVec3f& rTo) {
-    TVec3f negGravity = -mGravity;
+    TVec3f negGravity;
+    negGravity.negate(mGravity);
     mPath->initFromUpVector(rFrom, rTo, negGravity, 650.0f);
     f32 speed;
     if (mType == 3) {

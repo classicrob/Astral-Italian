@@ -7,13 +7,6 @@
 #include "math_types.hpp"
 
 
-namespace NameObjFactory {
-    LiveActor* initChildObj(const JMapInfoIter&, s32);
-};  // namespace NameObjFactory
-
-// group name / "SecretGate" / CollectCounter name / "SecretGateCounter" in one table, like the target .data block
-static const char sSecretGateNames[] = "\x83\x56\x81\x5B\x83\x4E\x83\x8C\x83\x62\x83\x67\x83\x51\x81\x5B\x83\x67\x8A\xC4\x8E\x8B\x00\x00\x53\x65\x63\x72\x65\x74\x47\x61\x74\x65\x00\x00\x92\xCA\x89\xDF\x83\x51\x81\x5B\x83\x67\x83\x4A\x83\x45\x83\x93\x83\x67\x00\x00\x53\x65\x63\x72\x65\x74\x47\x61\x74\x65\x43\x6F\x75\x6E\x74\x65\x72\x00\x00\x00";
-
 namespace NrvSecretGate {
     class SecretGateNrvWait : public Nerve {
     public:
@@ -35,11 +28,6 @@ namespace NrvSecretGate {
     };
     SecretGateNrvWaitAfterPass SecretGateNrvWaitAfterPass::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvSecretGate
-
-namespace NrvSecretGateCounter {
-    NEW_NERVE(SecretGateCounterNrvCount, SecretGateCounter, Count);
-    NEW_NERVE(SecretGateCounterNrvMovementOn, SecretGateCounter, MovementOn);
-};  // namespace NrvSecretGateCounter
 
 SecretGate::SecretGate(const char* pName) : LiveActor(pName) {
     mScaleA = 500.0f;
@@ -121,63 +109,4 @@ void SecretGate::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 SecretGate::~SecretGate() {
-}
-
-SecretGateGroup::SecretGateGroup(const char* pName, int num) : LiveActorGroup(pName, num) {
-}
-
-SecretGateGroup::~SecretGateGroup() {
-}
-
-SecretGateCounter::SecretGateCounter(const char* pName) : LiveActor(pName), mGroup(nullptr), mPassCount(0) {
-}
-
-void SecretGateCounter::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneMapObjMovement(this);
-    MR::initDefaultPos(this, rIter);
-    s32 num = MR::getChildObjNum(rIter);
-    mGroup = new SecretGateGroup(&sSecretGateNames[0], num);
-    for (s32 i = 0; i < num; i++) {
-        const char* pName;
-        MR::getChildObjName(&pName, rIter, i);
-        if (MR::isEqualString(pName, &sSecretGateNames[0x18])) {
-            mGroup->registerActor(NameObjFactory::initChildObj(rIter, i));
-        }
-    }
-    MR::invalidateClipping(this);
-    mCounter = new CollectCounter(&sSecretGateNames[0x24], 110.0f);
-    mCounter->initWithoutIter();
-    initSound(3, &sSecretGateNames[0x38], nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE(SecretGateCounter, SecretGateCounterNrvCount), 0);
-    makeActorAppeared();
-}
-
-void SecretGateCounter::exeCount() {
-    s32 count = 0;
-    s32 num = mGroup->getObjNum();
-    for (s32 i = 0; i < num; i++) {
-        if (static_cast< SecretGate* >(mGroup->getActor(i))->isNerveWaitAfterPass()) {
-            count++;
-        }
-    }
-    if (mPassCount < count) {
-        mPassCount = count;
-        mCounter->setCount(count);
-        if (mPassCount < num) {
-            MR::startActionSound(this, "Pass", mPassCount - 1, -1, -1);
-        } else {
-            MR::startActionSound(this, "PassFinal", mPassCount - 1, -1, -1);
-        }
-        setNerve(GET_NERVE(SecretGateCounter, SecretGateCounterNrvMovementOn));
-    }
-}
-
-void SecretGateCounter::exeMovementOn() {
-    if (MR::isFirstStep(this)) {
-        MR::requestMovementOn(mCounter);
-    }
-    setNerve(GET_NERVE(SecretGateCounter, SecretGateCounterNrvCount));
-}
-
-SecretGateCounter::~SecretGateCounter() {
 }

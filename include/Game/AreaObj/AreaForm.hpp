@@ -16,13 +16,13 @@ public:
         Type_Bowl,
     };
 
-    AreaForm() : _4() {
+    AreaForm() : mFollowMtx() {
     }
 
     virtual void init(const JMapInfoIter&);
     virtual bool isInVolume(const TVec3f&) const;
 
-    TPos3f* _4;
+    /* 0x04 */ TPos3f* mFollowMtx;
 };
 
 class AreaFormCube : public AreaForm {
@@ -59,7 +59,7 @@ public:
     /* 0x18 */ TVec3f mRotation;
     /* 0x24 */ TVec3f mScale;
     /* 0x30 */ TBox3f mBounding;
-    /* 0x48 */ TPos3f _48;
+    /* 0x48 */ TPos3f mLocalMtx;
 };
 
 class AreaFormSphere : public AreaForm {
@@ -90,7 +90,7 @@ public:
 
     /* 0x08 */ TVec3f mTranslation;
     /* 0x14 */ TVec3f mUp;
-    /* 0x20 */ f32 _20;
+    /* 0x20 */ f32 mRadius;
 };
 
 class AreaFormCylinder : public AreaForm {

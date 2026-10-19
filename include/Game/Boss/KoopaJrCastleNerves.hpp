@@ -711,7 +711,7 @@ namespace NrvKoopaJrCastleBody {
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleBody* a = reinterpret_cast< KoopaJrCastleBody* >(pSpine->mExecutor);
             if (MR::isFirstStep(a)) {
-                a->_F0 = 0.0f;
+                a->mVerticalOffset = 0.0f;
             }
         }
         static KoopaJrCastleBodyNrvStop sInstance;

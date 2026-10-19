@@ -16,5 +16,5 @@ public:
     void initBaseMtx();
     void initCollision(const JMapInfoIter&);
 
-    TMtx34f mBaseMtx;
+    /* 0x090 */ TMtx34f mBaseMtx;
 };

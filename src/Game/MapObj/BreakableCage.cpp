@@ -119,7 +119,7 @@ void BreakableCage::init(const JMapInfoIter& rIter) {
 void BreakableCage::appear() {
     mRotation.zero();
     MR::showModel(this);
-    getSensor("Body")->validate();
+    MR::validateHitSensor(this, "Body");
     MR::validateClipping(this);
 
     if (isTypeCage()) {
@@ -206,6 +206,7 @@ void BreakableCage::initMapToolInfo(const JMapInfoIter& rIter) {
     mIsRiddle = riddleArg != -1;
 }
 
+// NONMATCHING: paired-single copy registers and load scheduling differ.
 void BreakableCage::initModel(const char* pName, const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, pName, false);
 
@@ -229,11 +230,11 @@ void BreakableCage::initModel(const char* pName, const JMapInfoIter& rIter) {
         if (mItemModel != nullptr) {
             if (MR::getDummyDisplayModelId(rIter, -1) == 4) {
                 MR::startAction(mItemModel, "Rotation");
+                MR::declareStarPiece(this, 5);
             }
         }
     }
 
-    MR::declareStarPiece(this, 5);
 }
 
 void BreakableCage::initBaseMtxForCage() {
@@ -247,18 +248,22 @@ void BreakableCage::initBaseMtxForCage() {
     MR::makeMtxUpFrontPos(&mMtx, -mGravity, front, mPosition);
 }
 
-// NONMATCHING: 80%; logic matches (fixed/standard/trash/capsule chain) but target keeps the isFixed/isStandard temporaries in r5/r4 and reorders the compares (regalloc/branch layout only)
 bool BreakableCage::isTypeCage() const {
     bool isCage = true;
+    bool isTrashCage = true;
     bool isStandardCage = true;
+    bool isFixedCage = true;
     CageType type = mCageType;
-    bool isFixedCage = type == CAGE_INVALID || type == CAGE_LARGE;
-
+    if (type != CAGE_INVALID && type != CAGE_LARGE) {
+        isFixedCage = false;
+    }
     if (!isFixedCage && type != CAGE_NORMAL) {
         isStandardCage = false;
     }
-
-    if (!isStandardCage && type != CAGE_TRASH && type != CAGE_CAPSULE) {
+    if (!isStandardCage && type != CAGE_TRASH) {
+        isTrashCage = false;
+    }
+    if (!isTrashCage && type != CAGE_CAPSULE) {
         isCage = false;
     }
 
@@ -302,6 +307,7 @@ void BreakableCage::exeWait() {
 void BreakableCage::exeWaitStartDemoBreak() {
 }
 
+// NONMATCHING: equivalent enum comparison folding and register allocation differ.
 void BreakableCage::exeBreak() {
     u32 activateDeadEarly = 1;
     u32 hasImmediateDeadCondition = 0;

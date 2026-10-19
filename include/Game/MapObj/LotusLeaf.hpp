@@ -16,7 +16,7 @@ public:
     void exeWaitPlayerOn();
     void exeShake();
 
-    /* 0x8C */ TVec3f mInitPos;
-    /* 0x98 */ f32 mShakeSpeed;
-    /* 0x9C */ f32 mShakePeriod;
+    /* 0x090 */ TVec3f mInitPos;
+    /* 0x09C */ f32 mShakeSpeed;
+    /* 0x0A0 */ f32 mShakePeriod;
 };

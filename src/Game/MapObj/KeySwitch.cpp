@@ -5,7 +5,7 @@
 #include <JSystem/JMath/JMath.hpp>
 
 namespace {
-    static const char* const cDemoName = "カギ出現";
+    const char* cDemoName = "カギ出現";
 };  // namespace
 
 namespace NrvKeySwitch {
@@ -31,31 +31,34 @@ void KeySwitch::init(const JMapInfoIter& rIter) {
     box.x = 0.0f;
     box.y = 105.0f;
     box.z = 0.0f;
-    MR::addHitSensorMapObjSimple(this, "body", 8, 105.0f, box);
+    MR::addHitSensorMapObjSimple(this, "Body", 8, 105.0f, box);
     initBinder(105.0f, 105.0f, 0);
     initEffectKeeper(0, 0, false);
     initSound(4, "KeySwitch", nullptr, TVec3f(0.0f));
     MR::initShadowVolumeCylinder(this, 90.0f);
+    f32 dropLength = -1.0f;
+    MR::getJMapInfoArg0NoInit(rIter, &dropLength);
 
-    if (MR::isValidInfo(rIter)) {
-        MR::initActorCamera(this, rIter, &mCameraInfo);
+    if (dropLength >= 0.0f) {
+        MR::setShadowDropLength(this, nullptr, dropLength);
     }
 
-    bool usesSwitch = false;
+    MR::calcGravity(this);
 
     if (MR::isValidInfo(rIter)) {
-        bool uses = MR::useStageSwitchReadAppear(this, rIter);
-        if (uses) {
-            usesSwitch = true;
-            MR::syncStageSwitchAppear(this);
+        if (!MR::initActorCamera(this, rIter, &mCameraInfo)) {
+            mCameraInfo = nullptr;
         }
+    }
 
+    if (MR::isValidInfo(rIter)) {
         MR::needStageSwitchWriteA(this, rIter);
     }
 
+    bool usesSwitch = MR::useStageSwitchSyncAppear(this, rIter);
+
     if (usesSwitch || !MR::isValidInfo(rIter)) {
         initNerve(GET_NERVE(KeySwitch, KeySwitchNrvDemoStart));
-
     } else {
         initNerve(GET_NERVE(KeySwitch, KeySwitchNrvWait));
     }
@@ -73,10 +76,13 @@ void KeySwitch::initKeySwitchByOwner(const JMapInfoIter& rIter) {
     MR::initActorCamera(this, rIter, &mCameraInfo);
 }
 
+void KeySwitch::prepareDemoStart() {
+    setNerve(GET_NERVE(KeySwitch, KeySwitchNrvDemoStart));
+    makeActorDead();
+}
+
 void KeySwitch::appearKeySwitch(const TVec3f& rVec) {
     MR::resetPosition(this, rVec);
-    MR::onCalcGravity(this);
-    MR::invalidateClipping(this);
     appear();
 }
 
@@ -104,7 +110,7 @@ void KeySwitch::exeAppear() {
     MR::setBckRate(this, MR::calcNerveValue(this, 0xB4, 3.0f, 1.5f));
     MR::addVelocityToGravity(this, 2.0f);
 
-    bool val = false;
+    bool isLanded = false;
 
     if (MR::isBindedGround(this)) {
         if (mVelocity.length() >= 10.0f) {
@@ -115,16 +121,16 @@ void KeySwitch::exeAppear() {
             }
 
             MR::startActionSound(this, "OjKeySwitchBound", mag);
-            TVec3f neg;
-            neg.negate(mGravity);
-            MR::calcReboundVelocity(&mVelocity, neg, 0.60f, 0.7f);
+            TVec3f upDir;
+            upDir.negate(mGravity);
+            MR::calcReboundVelocity(&mVelocity, upDir, 0.60f, 0.7f);
         } else {
-            val = true;
+            isLanded = true;
         }
     }
 
     if (!tryAvoid()) {
-        if (val) {
+        if (isLanded) {
             MR::validateClipping(this);
             setNerve(GET_NERVE(KeySwitch, KeySwitchNrvWait));
         }
@@ -141,12 +147,14 @@ void KeySwitch::exeWait() {
 }
 
 void KeySwitch::appear() {
+    MR::onCalcGravity(this);
+    MR::invalidateClipping(this);
     LiveActor::appear();
 }
 
 void KeySwitch::kill() {
     MR::onSwitchA(this);
-    MR::startSystemSE("SE_SY_READ_RIDDLE_S");
+    MR::startActionSound(this, "SyReadRiddleS", -1, -1, -1);
     MR::emitEffect(this, "Get");
     LiveActor::kill();
 }
@@ -160,14 +168,20 @@ void KeySwitch::calcAndSetBaseMtx() {
 }
 
 void KeySwitch::control() {
-    if (mCurDemoFrame != -1 && mCameraInfo) {
-        if (mCurDemoFrame >= 0x28) {
+    if (mCurDemoFrame != -1 && mCameraInfo != nullptr) {
+        s32 frames = MR::getActorCameraFrames(this, mCameraInfo);
+
+        if (frames == -1) {
+            frames = 40;
+        }
+
+        if (mCurDemoFrame >= frames) {
             MR::endActorCamera(this, mCameraInfo, false, -1);
             MR::endDemo(this, ::cDemoName);
-            mCameraInfo = 0;
+            mCameraInfo = nullptr;
             mCurDemoFrame = -1;
         } else {
-            mCurDemoFrame = mCurDemoFrame + 1;
+            mCurDemoFrame++;
         }
     }
 }
@@ -213,17 +227,17 @@ bool KeySwitch::tryAvoid() {
         return false;
     }
 
-    sensorActor = sensor->mHost;
+    sensorActor = MR::getSensorHost(sensor);
     TVec3f up;
     MR::calcUpVec(&up, sensorActor);
-    TVec3f thing;
-    thing.sub(mPosition, sensorActor->mPosition);
-    TVec3f stack_8 = thing.killElement(up);
+    TVec3f fromHost;
+    fromHost.sub(mPosition, sensorActor->mPosition);
+    TVec3f avoidDir = fromHost.killElement(up);
 
-    if (MR::normalizeOrZero(&stack_8)) {
-        MR::calcFrontVec(&stack_8, sensorActor);
+    if (MR::normalizeOrZero(&avoidDir)) {
+        MR::calcFrontVec(&avoidDir, sensorActor);
     }
 
-    mVelocity.scale(10.0f, stack_8);
+    mVelocity.scale(10.0f, avoidDir);
     return true;
 }

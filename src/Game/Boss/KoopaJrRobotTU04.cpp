@@ -97,7 +97,7 @@ bool KoopaJrRobotStateAttack::tryAppearFire() {
     return false;
 }
 
-bool KoopaJrRobotStateAttack::fn_800DEA50() {
+bool KoopaJrRobotStateAttack::tryTurnToPlayer() {
     if (KoopaJrRobotFunction::isPlayerInRushAir()) {
         return false;
     }
@@ -114,9 +114,9 @@ void KoopaJrRobotStateAttack::exeAttackSearch() {
         mHost->mSeq->fn_800DC9F0();
     }
     if (MR::isStep(this, 50)) {
-        mHost->mSeq->fn_800DC870();
+        mHost->mSeq->startMagnumShot();
     }
-    fn_800DEA50();
+    tryTurnToPlayer();
     if (MR::isActionEnd(mHost)) {
         kill();
     }
@@ -172,7 +172,7 @@ void KoopaJrRobotStateAttack::exeAttackA() {
     }
     tryAppearFire();
     if (MR::isLessStep(this, 60)) {
-        fn_800DEA50();
+        tryTurnToPlayer();
     }
     if ((isNerve(&NrvKoopaJrRobotStateAttack::KoopaJrRobotStateAttackNrvAttackB::sInstance) && MR::isGreaterStep(this, 198)) ||
         (isNerve(&NrvKoopaJrRobotStateAttack::KoopaJrRobotStateAttackNrvAttackC::sInstance) && MR::isGreaterStep(this, 172))) {

@@ -4,9 +4,6 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_800DA9C0, declared extern "C" so the reloc name matches; resolve when fn_800DA9C0 gets its real name in symbols.txt
-extern "C" const char* fn_800DA9C0();
-
 static const char* sCameraName = "DemoOpeningKoopaJrRobot";
 static const char* sActionName = "DemoOpeningKoopaJrRobot";
 
@@ -25,11 +22,11 @@ KoopaJrRobotStateIntro::KoopaJrRobotStateIntro(KoopaJrRobot* pHost, const JMapIn
     KoopaJrRobot* pRobot = mHost;
     const char* pAction = sActionName;
     LiveActor* head = pRobot->mHeadModel;
-    MR::initDemoSheetTalkAnim(pRobot, rIter, fn_800DA9C0(), pAction, nullptr, TVec3f(0.0f, 100.0f, 0.0f), MR::getJointMtx(head, "Root"));
+    MR::initDemoSheetTalkAnim(pRobot, rIter, KoopaJrRobotFunction::getDemoName(), pAction, nullptr, TVec3f(0.0f, 100.0f, 0.0f), MR::getJointMtx(head, "Root"));
     LiveActor* pBody = mHost->mBody;
-    MR::initTalkAnimDemoCast(pBody, rIter, fn_800DA9C0(), pAction);
+    MR::initTalkAnimDemoCast(pBody, rIter, KoopaJrRobotFunction::getDemoName(), pAction);
     LiveActor* pHead = mHost->mHeadModel;
-    MR::initTalkAnimDemoCast(pHead, rIter, fn_800DA9C0(), pAction);
+    MR::initTalkAnimDemoCast(pHead, rIter, KoopaJrRobotFunction::getDemoName(), pAction);
 }
 
 void KoopaJrRobotStateIntro::kill() {
@@ -37,7 +34,7 @@ void KoopaJrRobotStateIntro::kill() {
         MR::startBckNoInterpole(mHost, "Wait");
     }
     KoopaJrRobotFunction::attachBodyToHead(mHost);
-    mHost->mSeq->fn_800DC5B0();
+    mHost->mSeq->appearLaunchers();
     KoopaJrRobotFunction::showStarPieces(mHost);
     mIsDead = true;
 }
@@ -49,7 +46,7 @@ void KoopaJrRobotStateIntro::exeWait() {
         }
     }
     KoopaJrRobot* pRobot = mHost;
-    if (MR::tryStartTimeKeepDemoMarioPuppetable(pRobot, fn_800DA9C0(), nullptr)) {
+    if (MR::tryStartTimeKeepDemoMarioPuppetable(pRobot, KoopaJrRobotFunction::getDemoName(), nullptr)) {
         MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, sCameraName, 0, false, 1.0f);
         MR::overlayWithPreviousScreen(2);
         setNerve(&NrvKoopaJrRobotStateIntro::KoopaJrRobotStateIntroNrvDemo::sInstance);
@@ -68,7 +65,7 @@ void KoopaJrRobotStateIntro::exeDemo() {
         MR::showModel(mHost->mBody);
         MR::showModel(mHost->mHeadModel);
         MR::stopStageBGM(30);
-        mHost->mSeq->fn_800DC6B0();
+        mHost->mSeq->killLaunchers();
         KoopaJrRobotFunction::attachBodyToAllRoot(mHost);
         KoopaJrRobotFunction::hideStarPieces(mHost);
     }
@@ -79,7 +76,7 @@ void KoopaJrRobotStateIntro::exeDemo() {
         KoopaJrRobotFunction::showAll(mHost);
     }
     KoopaJrRobot* pHost = mHost;
-    if (MR::tryEndDemoAndKillEffects(pHost, fn_800DA9C0())) {
+    if (MR::tryEndDemoAndKillEffects(pHost, KoopaJrRobotFunction::getDemoName())) {
         KoopaJrRobotFunction::showAll(mHost);
         kill();
     }

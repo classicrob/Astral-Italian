@@ -1,5 +1,8 @@
 #include "Game/MapObj/HipDropTimerSwitch.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/Functor.hpp"
+#include "Game/Screen/SwitchingScreenEffect.hpp"
+#include "Game/Screen/TimeStopScreenEffect.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/CollisionParts.hpp"
 #include "Game/MapObj/MapObjConnector.hpp"
@@ -34,10 +37,7 @@ namespace NrvHipDropTimerSwitch {
     NEW_NERVE(HipDropTimerSwitchNrvSwitchUp, HipDropTimerSwitch, SwitchUp);
     class HipDropTimerSwitchNrvSyncOn : public Nerve {
     public:
-        virtual void execute(Spine* spine) const {
-            HipDropTimerSwitch* actor = static_cast<HipDropTimerSwitch*>(spine->mExecutor);
-            if (MR::isFirstStep(actor)) MR::startAction(actor, "SyncOn");
-        }
+        virtual void execute(Spine* spine) const;
         static HipDropTimerSwitchNrvSyncOn sInstance;
     };
     HipDropTimerSwitchNrvSyncOn HipDropTimerSwitchNrvSyncOn::sInstance;
@@ -45,45 +45,29 @@ namespace NrvHipDropTimerSwitch {
 };  // namespace NrvHipDropTimerSwitch
 
 HipDropTimerSwitch::HipDropTimerSwitch(const char* pName)
-    : LiveActor(pName), _8C(0), mMapObjConnector(nullptr), mCollisionParts(nullptr), mTimerMax(300), mTimerSFXType(0), mWasLightPressed(false),
-      mIsLightPressed(false) {
+    : LiveActor(pName), _90(0), mMapObjConnector(nullptr), mCollisionParts(nullptr), mTimerMax(300), mTimerSFXType(0), mWasLightPressed(false),
+      mIsLightPressed(false), mScreenEffectType(0) {
     mSpring = new SpringValue;
     mMapObjConnector = new MapObjConnector(this);
     mSpring->setParam(0.0f, 0.0f, 0.2f, 0.9f, 0.0f);
-    _9C.identity();
+    _A0.identity();
 }
 
 void HipDropTimerSwitch::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::initActor(this, rIter, "HipDropTimerSwitch", false);
-    MR::connectToSceneMapObjDecorationStrongLight(this);
-    MR::initLightCtrl(this);
-    initSound(4, "HipDropTimerSwitch", nullptr, TVec3f(0.0f));
-    initHitSensor(2);
-    MR::addHitSensorMapObj(this, "body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorMapObj(this, "hit", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::initStarPointerTarget(this, 150.0f, TVec3f(0.0f));
-    MR::initCollisionParts(this, "HipDropTimerSwitch", getSensor("body"), nullptr);
+    MR::initActor(this, rIter, false);
     mCollisionParts = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mCollisionParts);
     initNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff));
-    MR::needStageSwitchWriteA(this, rIter);
-    MR::tryRegisterDemoCast(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mTimerMax);
     MR::getJMapInfoArg1NoInit(rIter, &mTimerSFXType);
-
-    if (mTimerSFXType <= 0) {
-        mTimerSFXType = 0;
+    if (mTimerSFXType <= 0) mTimerSFXType = 0;
+    MR::getJMapInfoArg2NoInit(rIter, &mScreenEffectType);
+    switch (mScreenEffectType) {
+    case 1: MR::createSwitchingScreenEffect(); break;
+    case 2: MR::createTimeStopScreenEffect(); break;
     }
-
-    initEffectKeeper(0, nullptr, false);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-        return;
-    }
-
-    makeActorAppeared();
+    MR::listenStageSwitchOnOffA(this, MR::Functor(this, &HipDropTimerSwitch::listenSwitchOnA), MR::Functor(this, &HipDropTimerSwitch::listenSwitchOffA));
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void HipDropTimerSwitch::initAfterPlacement() {
@@ -167,7 +151,7 @@ bool HipDropTimerSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hit
         return true;
     }
 
-    if (MR::isMsgPlayerHipDropFloor(msg) && mCollisionParts->mHitSensor == pReceiver && isNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff))) {
+    if (MR::isMsgPlayerHipDropFloor(msg) && mCollisionParts->mHitSensor == pReceiver && isNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff)) && !MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
         setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvSwitchDown));
         mSpring->reset();
@@ -189,20 +173,13 @@ bool HipDropTimerSwitch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor*
 void HipDropTimerSwitch::exeOff() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
-        MR::offSwitchA(this);
         MR::startAction(this, "Wait");
-        MR::startBrk(this, "Off");
         mSpring->reset();
-    }
-
-    // "Weak"
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        mIsLightPressed = true;
     }
 
     if (!mWasLightPressed && mIsLightPressed) {
         mSpring->mVelocity += -10.0f;
-        MR::startActionSound(this, "OjPncKinokoBound");
+        MR::startActionSound(this, "Land");
     }
 
     mSpring->update();
@@ -210,20 +187,23 @@ void HipDropTimerSwitch::exeOff() {
 
 void HipDropTimerSwitch::exeSwitchDown() {
     if (MR::isStep(this, 0)) {
-        MR::startAction(this, "On");
-        MR::startBrk(this, "On");
+        MR::startAction(this, "OnNormal");
     }
 
     if (MR::isGreaterStep(this, 0) && MR::isActionEnd(this)) {
+        MR::onSwitchA(this);
         setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOn));
     }
 }
 
 void HipDropTimerSwitch::exeOn() {
     if (MR::isFirstStep(this)) {
-        MR::onSwitchA(this);
         MR::startActionSound(this, "OjHipdropSwitchOn");
         MR::shakeCameraNormal();
+        switch (mScreenEffectType) {
+        case 1: MR::onSwitchingScreenEffect(); break;
+        case 2: MR::onTimeStopScreenEffect(); break;
+        }
     }
 
     updateTimerSE();
@@ -235,19 +215,42 @@ void HipDropTimerSwitch::exeOn() {
 
 void HipDropTimerSwitch::exeSwitchUp() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Off");
-        MR::startBrk(this, "Off");
+        MR::startAction(this, "OffNormal");
+        switch (mScreenEffectType) {
+        case 1: MR::offSwitchingScreenEffect(); break;
+        case 2: MR::offTimeStopScreenEffect(); break;
+        }
     }
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff));
+        MR::offSwitchA(this);
     }
 }
 
 HipDropTimerSwitch::~HipDropTimerSwitch() {
 }
 
+void NrvHipDropTimerSwitch::HipDropTimerSwitchNrvSyncOn::execute(Spine* spine) const {
+    HipDropTimerSwitch* actor = static_cast<HipDropTimerSwitch*>(spine->mExecutor);
+    if (MR::isFirstStep(actor)) MR::startAction(actor, "SyncOn");
+}
+
 void HipDropTimerSwitch::exeSyncOff() {
     if (MR::isFirstStep(this)) MR::startAction(this, "SyncOff");
     if (MR::isActionEnd(this)) setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff));
+}
+
+void HipDropTimerSwitch::listenSwitchOnA() {
+    if (isNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff))) {
+        MR::invalidateClipping(this);
+        setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvSyncOn));
+    }
+}
+
+void HipDropTimerSwitch::listenSwitchOffA() {
+    if (isNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvSyncOn))) {
+        MR::invalidateClipping(this);
+        setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvSyncOff));
+    }
 }

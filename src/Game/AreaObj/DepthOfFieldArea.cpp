@@ -2,7 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 
-DepthOfFieldArea::DepthOfFieldArea(int formType, const char* pName) : ImageEffectArea(IMAGE_EFFECT_TYPE_DOF, formType, pName), mIsPlayerSync() {
+DepthOfFieldArea::DepthOfFieldArea(const char* pName) : ImageEffectArea(IMAGE_EFFECT_TYPE_DOF, pName), mIsPlayerSync() {
 }
 
 void DepthOfFieldArea::init(const JMapInfoIter& rIter) {
@@ -27,4 +27,8 @@ s32 DepthOfFieldArea::getBlurMaxDist() const {
 
 s32 DepthOfFieldArea::getBlurMinDist() const {
     return mObjArg3;
+}
+
+s32 DepthOfFieldArea::getArg4() const {
+    return mObjArg4;
 }

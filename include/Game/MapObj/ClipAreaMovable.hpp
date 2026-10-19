@@ -32,4 +32,7 @@ namespace MR {
     NameObj* createClipAreaBottomBox(const char* pModel);
     NameObj* createClipAreaTopCone(const char* pModel);
     NameObj* createClipAreaBottomCone(const char* pModel);
+    NameObj* createClipAreaCylinder(const char* pModel);
+    NameObj* createClipAreaCenterBoxHighModel(const char* pModel);
+    NameObj* createClipAreaBottomBoxHighModel(const char* pModel);
 };  // namespace MR

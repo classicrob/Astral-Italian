@@ -123,7 +123,7 @@ namespace {
 };  // namespace
 
 OtaKing::OtaKing(const char* pName)
-    : LiveActor(pName), mMagma(), mCocoNutBallArray(), mFireBallArray(), mFireBubbleArray(), mThrowPos(), mHits(), _EC(), mTurnSpeed(), mSoundObj(),
+    : LiveActor(pName), mMagma(), mCocoNutBallArray(), mFireBallArray(), mFireBubbleArray(), mThrowPos(), mHits(), mCocoNutThrowCount(), mTurnSpeed(), mSoundObj(),
       mSoundObjPos(gZeroVec), mBubbleAppearPos(), mDownCocoNut(), mAnimCamera(), mIsLv2(), mScaleController() {
     MR::zeroMemory(mFeet, sizeof(mFeet));
     MR::zeroMemory(mLongFeet, sizeof(mLongFeet));
@@ -304,7 +304,7 @@ bool OtaKing::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 
                     return true;
                 } else if (isNerve(GET_NERVE(OtaKing, OtaKingNrvThrowCocoNut)) || isNerve(GET_NERVE(OtaKing, OtaKingNrvHitBack))) {
-                    _EC = 2;
+                    mCocoNutThrowCount = 2;
                     return true;
                 }
             }
@@ -571,8 +571,8 @@ void OtaKing::throwCocoNut() {
     f32 angle = mRotation.y - MR::repeat(MR::toDegree(MR::atan2(vec.x, vec.z)), mRotation.y - 180.0f, 360.0f);
     f32 random = MR::getRandom(::cThrowAngleMin, ::cThrowAngleMax);
 
-    cocoNut->appearAndThrow(trans, angle + (_EC % 2 == mHits % 2 ? random : -random));
-    _EC++;
+    cocoNut->appearAndThrow(trans, angle + (mCocoNutThrowCount % 2 == mHits % 2 ? random : -random));
+    mCocoNutThrowCount++;
 }
 
 void OtaKing::throwFireBall() {
@@ -720,8 +720,8 @@ void OtaKing::disappearParts() {
         }
     }
 
-    getSensor("Body")->invalidate();
-    getSensor("Search")->invalidate();
+    MR::invalidateHitSensor(this, "Body");
+    MR::invalidateHitSensor(this, "Search");
 
     MR::validateClipping(this);
     MR::pauseOffEffectAll(mMagma);
@@ -749,6 +749,7 @@ void OtaKing::exeWaitOnSwitch() {
     }
 }
 
+// NONMATCHING: saved pointer register allocation.
 void OtaKing::exeAppearDemo() {
     if (MR::isFirstStep(this)) {
         startDemo();
@@ -876,7 +877,7 @@ void OtaKing::exeWait() {
     }
 
     if (tryThrowCocoNutOrFireBallIfWait(::cWaitFrame)) {
-        _EC = 0;
+        mCocoNutThrowCount = 0;
     }
 }
 
@@ -916,7 +917,7 @@ void OtaKing::exeThrowCocoNut() {
             } else {
                 setNerve(GET_NERVE(OtaKing, OtaKingNrvThrowFireBallWait));
             }
-        } else if (_EC >= 2) {
+        } else if (mCocoNutThrowCount >= 2) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvThrowFireBallWait));
         } else {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvThrowCocoNutWait));
@@ -1226,7 +1227,7 @@ void OtaKing::exeHitBack() {
             } else {
                 setNerve(GET_NERVE(OtaKing, OtaKingNrvThrowFireBallWait));
             }
-        } else if (_EC >= 2) {
+        } else if (mCocoNutThrowCount >= 2) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvThrowFireBallWait));
         } else {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvThrowCocoNutWait));

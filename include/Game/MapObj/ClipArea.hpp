@@ -27,8 +27,9 @@ public:
 
 namespace MR {
     void setClipSphereArea(ClipArea*);
-    void setClipCenterBoxArea(ClipArea*);
-    void setClipBottomBoxArea(ClipArea*);
+    void setClipCenterBoxArea(ClipArea*, const char*);
+    void setClipBottomBoxArea(ClipArea*, const char*);
+    void setClipCylinderArea(ClipArea*);
     void setClipTopConeArea(ClipArea*);
     void setClipBottomConeArea(ClipArea*);
 };  // namespace MR

@@ -24,9 +24,9 @@ public:
 
     /* 0x90 */ AnimScaleController* mAnimScaleCtrl;
     /* 0x94 */ WalkerStateBindStarPointer* mBindStarPointer;
-    /* 0x98 */ TVec3f _8C;
+    /* 0x98 */ TVec3f mFront;
     /* 0xA4 */ LiveActor* mFirePressure;
-    /* 0xA8 */ f32 _9C;
-    /* 0xAC */ bool _A0;
-    /* 0xAD */ bool _A1;
+    /* 0xA8 */ f32 mSpeed;
+    /* 0xAC */ bool mIsHoming;
+    /* 0xAD */ bool mIgnoreCollision;
 };

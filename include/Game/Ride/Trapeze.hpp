@@ -2,6 +2,8 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class ActorCameraInfo;
@@ -76,7 +78,14 @@ public:
     /* 0x0C */ JUTTexture* mTexture;
 };
 
-// these have to be header bodies because for some reason they are actually linked in NameObjFactory
+inline void Trapeze::exeStop() {
+    if (MR::isFirstStep(this)) {
+        MR::validateClipping(this);
+        MR::invalidateHitSensor(this, "Body");
+    }
+}
+
+// Nerve bodies share the Trapeze translation unit.
 namespace NrvTrapeze {
     NEW_NERVE(TrapezeNrvStop, Trapeze, Stop);
     NEW_NERVE(TrapezeNrvFree, Trapeze, Free);

@@ -6,8 +6,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80050FE0, declared extern "C" so the reloc name matches; resolve when fn_80050FE0 gets its real name in symbols.txt
-extern "C" void fn_80050FE0();
 
 static const char* sDemoName = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x83_\x83""E\x83\x93\x83""f\x83\x82";
 static const char* sCameraName = "DemoDown";
@@ -54,8 +52,8 @@ void KoopaJrRobotStateTU07::exeDown() {
         MR::startAction(mHost->mHeadModel, sHeadActionName);
         MR::setPlayerPosOnGround("\x8aJ\x8en\x83""f\x83\x82");
         MR::startBckPlayer("BattleWait", nullptr);
-        fn_80050FE0();
-        mHost->mSeq->fn_800DC6B0();
+        MR::hidePlayerDeleteEffect();
+        mHost->mSeq->killLaunchers();
         mHost->mCollisionA->kill();
         mHost->mCollisionB->kill();
         KoopaJrRobotFunction::attachBodyToAllRoot(mHost);

@@ -16,21 +16,23 @@ WarpCube::~WarpCube() {
 }
 
 WarpCube* WarpCubeMgr::getPairCube(const AreaObj* pObj) {
-    if (static_cast< const WarpCube* >(pObj)->mMapIdInfo == nullptr) {
+    const WarpCube* pWarpCube = static_cast< const WarpCube* >(pObj);
+    if (pWarpCube->mMapIdInfo == nullptr) {
         return nullptr;
     }
 
-    for (WarpCube** pCube = reinterpret_cast< WarpCube** >(mArray.begin()); pCube != reinterpret_cast< WarpCube** >(mArray.end()); pCube++) {
-        if (*pCube == pObj) {
+    for (AreaObj* const* pArea = mArray.begin(); pArea != mArray.end(); pArea++) {
+        WarpCube* pCube = static_cast< WarpCube* >(*pArea);
+        if (pCube == pObj) {
             continue;
         }
 
-        if ((*pCube)->mMapIdInfo == nullptr) {
+        if (pCube->mMapIdInfo == nullptr) {
             continue;
         }
 
-        if (*(*pCube)->mMapIdInfo == *static_cast< const WarpCube* >(pObj)->mMapIdInfo) {
-            return *pCube;
+        if (*pCube->mMapIdInfo == *pWarpCube->mMapIdInfo) {
+            return pCube;
         }
     }
 

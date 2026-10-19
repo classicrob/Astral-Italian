@@ -154,15 +154,15 @@ void CrystalCage::initAfterPlacement() {
         TVec3f stack_20;
         MR::calcUpVec(&up_vec, this);
         // TODO: fix this during .scale pass
-        stack_20.add(mPosition, up_vec * (val * mScale.x));
+        stack_20.add(_DC, up_vec * (val * mScale.x));
         stack_2C.scale((-(2.0f * val) * mScale.x), up_vec);
 
         if (!MR::getFirstPolyOnLineToMapExceptActor(&_F8, 0, stack_20, stack_2C, this)) {
-            _F8.set(mPosition);
+            _F8.set(_DC);
         }
 
         if (mHasBinding) {
-            _110.sub(_F8, mPosition);
+            _110.sub(_F8, _DC);
             _110.add(up_vec * 50.0f);
             mVelocity.scale(-2.0f, up_vec);
         }
@@ -232,7 +232,7 @@ bool CrystalCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
         }
 
         if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::sendMsgReflect(pSender, pReceiver)) {
-            return false;
+            return MR::isMsgPlayerSpinAttackOrSupportTico(msg);
         }
 
         {

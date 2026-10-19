@@ -1,4 +1,5 @@
 #include "Game/AreaObj/SoundPlayArea.hpp"
+#include "Game/GameAudio/ActionSoundInfo.hpp"
 #include "Game/GameAudio/ActionSoundKeeper.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
@@ -8,8 +9,6 @@
 
 // PLACEHOLDER(objects): unnamed target symbol fn_80222AC0, declared extern "C" so the reloc name matches; resolve when fn_80222AC0 gets its real name in symbols.txt
 extern "C" void* fn_80222AC0(void*, const char*);
-// PLACEHOLDER(objects): unnamed target symbol fn_80220830, declared extern "C" so the reloc name matches; resolve when fn_80220830 gets its real name in symbols.txt
-extern "C" bool fn_80220830(void*);
 extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 
 static const char* sSoundName = "PlaySound";
@@ -22,7 +21,7 @@ void SoundPlayArea::setupSoundPos() {
     mCenter.x = 0.0f;
     mCenter.y = 0.0f;
     mCenter.z = 0.0f;
-    _54 = false;
+    mIsSoundStarted = false;
     _55 = false;
     mSoundObj = nullptr;
 }
@@ -39,7 +38,7 @@ void SoundPlayArea::init(const JMapInfoIter& rIter) {
 
     sound = fn_80222AC0(sound, sSoundName);
     if (sound) {
-        _55 = fn_80220830(sound);
+        _55 = reinterpret_cast< ActionSoundInfo* >(sound)->fn_80220830();
     }
 
     MR::connectToSceneAreaObj(this);
@@ -52,14 +51,14 @@ void SoundPlayArea::movement() {
         mSoundObj->update();
 
         if (!_55) {
-            if (!_54) {
+            if (!mIsSoundStarted) {
                 mSoundObj->startSound(sSoundName, -1, -1);
-                _54 = true;
+                mIsSoundStarted = true;
             }
         } else {
             fn_80222A80(mSoundObj, sSoundName, -1, -1, -1);
         }
     } else {
-        _54 = false;
+        mIsSoundStarted = false;
     }
 }

@@ -61,14 +61,14 @@ void PressureBase::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     const char* objName;
     MR::getObjectName(&objName, rIter);
-    initModelManagerWithAnm(objName, nullptr, false);
+    MR::initActor(this, rIter, objName, false);
     MR::calcFrontVec(&mFront, this);
     MR::connectToSceneNoShadowedMapObjStrongLight(this);
     initHitSensor(2);
     MR::addHitSensorMapObj(this, "body", 8, 70.0f, TVec3f(0.0f, 30.0f, 0.0f));
     MR::addHitSensorAtJointMapObjSimple(this, "cannon", "Cannon1", 8, 70.0f, TVec3f(40.0f, 0.0f, 0.0f));
     initEffectKeeper(0, nullptr, false);
-    initSound(6, "PressureBase", nullptr, TVec3f(0.0f));
+    initSound(6, nullptr, nullptr, TVec3f(0.0f));
     MR::initShadowVolumeSphere(this, 75.0f);
     MR::invalidateShadow(this, nullptr);
 
@@ -151,8 +151,8 @@ void PressureBase::calcAndSetBaseMtx() {
 void PressureBase::control() {
     if (mShotType == ShotType_AimTurn) {
         MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), ::sAimTurnRate);
-        mParamScale->calcHostVelocity();
     }
+    mParamScale->calcHostVelocity();
 }
 
 void PressureBase::exeBound() {

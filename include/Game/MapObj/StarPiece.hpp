@@ -7,38 +7,44 @@
 #include <JSystem/JGeometry/TVec.hpp>
 
 class HitSensor;
-// this function does not belong in this header, but will put here for now
+// Shared angle-wrap helper used by the floating/throw states.
 namespace MR {
     void repeatDegree(f32*);
 };  // namespace MR
 
+// Per-actor gift quota, including gifts still travelling toward the receiver.
 struct StarPieceReceiverInfo {
 public:
-    inline StarPieceReceiverInfo(NameObj* pNameObj, s32 a2, s32 a3, s32 a4) : mObj(pNameObj), _4(a2), _8(a3), mGotCount(a4) {
+    inline StarPieceReceiverInfo(NameObj* pNameObj, s32 requested, s32 pending, s32 received) : mObj(pNameObj), mRequestedCount(requested), mPendingGiftCount(pending), mGotCount(received) {
     }
     NameObj* mObj;
-    u32 _4;
-    u32 _8;
+    u32 mRequestedCount;
+    u32 mPendingGiftCount;
     u32 mGotCount;
 };
 
+// Runtime emission budget for one declaring actor; active pieces return to this budget when killed.
 struct StarPieceHostInfo {
 public:
-    inline StarPieceHostInfo(NameObj* pNameObj, s32 a2, s32 a3, s32 a4) : mObj(pNameObj), _4(a2), _8(a3), _C(a4) {
+    inline StarPieceHostInfo(NameObj* pNameObj, s32 declared, s32 active, s32 collected) : mObj(pNameObj), mDeclaredCount(declared), mActiveCount(active), mCollectedCount(collected) {
     }
+    // A declared piece may be emitted only if it is neither active nor already collected.
     bool isAppearable() NO_INLINE {
-        return _C < _4 && _8 < _4 - _C;
+        return mCollectedCount < mDeclaredCount && mActiveCount < mDeclaredCount - mCollectedCount;
     }
 
     NameObj* mObj;
-    s32 _4;
-    s32 _8;
-    s32 _C;
+    s32 mDeclaredCount;
+    s32 mActiveCount;
+    s32 mCollectedCount;
 };
 
 class StarPiece : public LiveActor {
 public:
-    enum groupType { groupType_noGroup, groupType_FloatingGroup, groupType_RailMoveGroup };
+    // These enums retain the original numeric values; group membership does not imply collection eligibility.
+    enum ColorIndex { Color_Purple, Color_Gold, Color_Green, Color_Blue, Color_Red, Color_Silver, Color_Count };
+    enum ShadowMode { ShadowMode_Default = -1, ShadowMode_Dynamic = 0, ShadowMode_Disabled = 1 };
+    enum GroupType { GroupType_None, GroupType_Floating, GroupType_RailMove };
 
     StarPiece(const char*);
 
@@ -53,6 +59,10 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+
+    // Group switch A controls collection independently of visibility.
+    inline void setCollectionEnabled(bool enabled) { mFlags._1 = enabled; }
+    inline bool isCollectionEnabled() const { return mFlags._1; }
 
     void initAndSetFloatingFromGroup(const JMapInfoIter&);
     void initAndSetRailMoveFromGroup(const JMapInfoIter&);
@@ -82,9 +92,9 @@ public:
     bool throwToTargetCore(const TVec3f&, const TVec3f&, const TVec3f&, f32, bool);
     void giftToTarget(StarPieceReceiverInfo*, u32, HitSensor*, const TVec3f&);
     void goToPlayer(TVec3f);
-    void launch(const TVec3f&, f32, f32, bool, bool, bool = false);
-    void launch(const TVec3f&, const TVec3f&, f32, f32, bool, bool, bool = false);
-    void launch(const TVec3f&, const TVec3f&, bool, bool, bool = false);
+    void launch(const TVec3f& launchPos, f32 randomSpeed, f32 verticalSpeed, bool ignoreWater, bool lightEffect, bool quickCollect = false);
+    void launch(const TVec3f& launchPos, const TVec3f& launchDirection, f32 randomSpeed, f32 speed, bool ignoreWater, bool lightEffect, bool quickCollect = false);
+    void launch(const TVec3f& launchPos, const TVec3f& launchVelocity, bool ignoreWater, bool lightEffect, bool quickCollect = false);
     f32 calcEffectScale(f32, f32, bool);
     f32 calcNearCameraScale();
     f32 calcDistToCamera();
@@ -101,41 +111,41 @@ public:
     void setHostInfo(StarPieceHostInfo*);
     bool isNerveToPlayerEnd();
 
-    TVec3f _8C;
+    TVec3f mFront;
 
-    f32 _98;
-    f32 _9C;
-    f32 _A0;
-    f32 _A4;
-    TVec3f _A8;
-    TVec3f _B4;
+    f32 mTargetTurnRate;
+    f32 mTargetSpeedRate;
+    f32 mParabolaA;
+    f32 mParabolaB;
+    TVec3f mThrowStartPos;
+    TVec3f mThrowEndPos;  // Reused as the player-relative offset while spin-drained.
 
-    /* 0xC0 */ TriangleFilterDelegator< StarPiece >* mDelegator;
-    /* 0xC4 */ HitSensor* mTargetSensor;
-    s32 _C8;
-    /* 0xCC */ s32 mGettableDelayCounter;
-    s32 _SMG2New;  // new in SMG2, init -1
-    /* 0xD0 */ s32 mFallKillTimer;
+    /* 0xC4 */ TriangleFilterDelegator< StarPiece >* mThrowTriangleFilter;
+    /* 0xC8 */ HitSensor* mTargetSensor;
+    s32 mGettableEffectTimer;
+    /* 0xD0 */ s32 mGettableDelayCounter;
+    s32 mPointerCollectDelay;  // new in SMG2, init -1
+    /* 0xD8 */ s32 mFallKillTimer;
 
-    /* 0xD4 */ J3DGXColor mColor;
+    /* 0xDC */ J3DGXColor mColor;
 
-    /* 0xD8 */ groupType mGroupType;
-    /* 0xDC */ StarPieceHostInfo* mHostInfo;
-    /* 0xE0 */ StarPieceReceiverInfo* mReceiverInfo;
+    /* 0xE0 */ GroupType mGroupType;
+    /* 0xE4 */ StarPieceHostInfo* mHostInfo;
+    /* 0xE8 */ StarPieceReceiverInfo* mReceiverInfo;
     /* 0XE4 */ s32 mNumGift;
 
     struct {
         bool isGoToPlayer : 1;
-        // is turned off when part of a StarPieceGroup and switchA is off
+        // Collection enabled by group switch A. Legacy name retained for StarPieceMother.
         bool _1 : 1;
         // flags related to enabling/disabling shadows
-        bool _2 : 1;
-        bool _3 : 1;
+        bool isDynamicShadow : 1;
+        bool isShadowDisabled : 1;
 
         bool isGroup : 1;
-        bool InWater : 1;
+        bool isInWater : 1;
         // used in IsEffectLight
-        bool _6 : 1;
+        bool isLightEffect : 1;
         bool isLaunched : 1;
     } /* 0XE8 */ mFlags;
 };

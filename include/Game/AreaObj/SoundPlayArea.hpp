@@ -14,7 +14,7 @@ public:
     void setupSoundPos();
 
     /* 0x48 */ TVec3f mCenter;
-    /* 0x54 */ bool _54;
+    /* 0x54 */ bool mIsSoundStarted;
     /* 0x55 */ bool _55;
     /* 0x58 */ ActionSoundKeeper* mSoundObj;
 };

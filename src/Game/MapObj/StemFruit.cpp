@@ -6,11 +6,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/FixedPosition.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 
-// PLACEHOLDER(objects): fn_80422310 (0x40 bytes, no args, MR Yoshi helper); resolve when core names fn_80422310
-extern "C" bool fn_80422310();
-// PLACEHOLDER(objects): fn_80422880 (msg == 253 test, Yoshi message); resolve when core names fn_80422880
-extern "C" bool fn_80422880(u32 msg);
 
 namespace NrvStemFruit {
     NEW_NERVE(StemFruitNrvWait, StemFruit, Wait);
@@ -124,6 +121,7 @@ void StemFruit::exeComeOff() {
 }
 
 #pragma dont_inline on
+// NONMATCHING: target has no out-of-line TPosition3 default ctor call for the local TPos3f (ours calls it under auto_inline off)
 void StemFruit::exePull() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Pull");
@@ -378,8 +376,9 @@ void StemFruitChild::exeNearPlayer() {
     }
 
     f32 dist = PSVECDistance(&mPullPos, &mPosition);
-    if (!MR::isNearPlayer(this, dist + 75.0f)) {
-        fn_80422310();
+    bool isFar = !MR::isNearPlayer(this, dist + 75.0f);
+    if (isFar) {
+        MR::fn_80422310();
         setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvGravity));
         mParent->setNerveGet();
         MR::startActionSoundAuto(mParent, "PulledOut", -1, -1, -1);
@@ -493,7 +492,7 @@ bool StemFruitChild::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             return true;
         }
         if (mParent->getParam()->mFlag11 != 0) {
-            if (fn_80422880(msg)) {
+            if (MR::fn_80422880(msg)) {
                 return true;
             }
             if (MR::isMsgYoshiAutoEatStart(msg)) {

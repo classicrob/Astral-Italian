@@ -105,7 +105,7 @@ struct RepeatBlockHistoryNode {
 class RepeatBlockHead : public LiveActor {
 public:
     RepeatBlockHead(const char*, RepeatBlock*);
-    virtual void appear();
+    void appearWithAtoms();
     void updateAtomPositions();
     virtual ~RepeatBlockHead();
     virtual void kill();

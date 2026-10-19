@@ -49,13 +49,9 @@ static void calcFootJoint(GliBird* pHost, const char* pJointName, const char* pP
     TVec3f dir(birdPos);
     dir.sub(playerPos);
     MR::normalizeOrZero(&dir);
-    TVec3f dirScaled = dir * scale;
-    playerPos.add(dirScaled);
+    playerPos.add(dir * scale);
 
-    TVec3f birdPart = birdPos * (1.0f - rate);
-    TVec3f playerPart = playerPos * rate;
-    TVec3f result(playerPart);
-    result.add(birdPart);
+    TVec3f result = playerPos * rate + birdPos * (1.0f - rate);
     jointMtx[0][3] = result.x;
     jointMtx[1][3] = result.y;
     jointMtx[2][3] = result.z;

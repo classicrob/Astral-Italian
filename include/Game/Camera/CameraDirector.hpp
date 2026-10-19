@@ -14,6 +14,7 @@ class CameraManGame;
 class CameraManEvent;
 class CameraManPause;
 class CameraManSubjective;
+class CameraParamChunk;
 class CameraParamChunkEvent;
 class CameraParamChunkHolder;
 class CameraPoseParam;

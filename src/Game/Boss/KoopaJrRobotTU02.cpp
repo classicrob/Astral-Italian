@@ -69,7 +69,7 @@ namespace NrvKoopaJrRobotSeq {
         virtual void execute(Spine* pSpine) const {
             KoopaJrRobotSeq* pSeq = reinterpret_cast< KoopaJrRobotSeq* >(pSpine->mExecutor);
             if (MR::isFirstStep(pSeq)) {
-                pSeq->fn_800DC880();
+                pSeq->startRearLauncherShots();
                 pSeq->setNerve(&KoopaJrRobotSeqNrvC::sInstance);
             }
         }
@@ -97,15 +97,15 @@ bool KoopaJrRobot::releaseKiller(LiveActor* pOwner, HomingKiller* pKiller) {
     return mSeq->mPool->release(pOwner, pKiller);
 }
 
-bool KoopaJrRobot::fn_800DB9B0(HitSensor* pSensor) {
+bool KoopaJrRobot::isKillerShotEnd(HitSensor* pSensor) {
     return mSeq->mPool->isShotEnd(pSensor);
 }
 
-void KoopaJrRobot::fn_800DB9C0() {
-    mSeq->fn_800DC8E0();
+void KoopaJrRobot::attackShootableKillers() {
+    mSeq->attackShootableKillers();
 }
 
-bool KoopaJrRobot::fn_800DB9D0(HitSensor* pSensor) {
+bool KoopaJrRobot::isArmSensor(HitSensor* pSensor) {
     const char* names[6] = {"ElbowL", "UpperArmL", "ForeArmL", "ElbowR", "UpperArmR", "ForeArmR"};
     for (u32 i = 0; i < 6; i++) {
         if (MR::isEqualSensor(pSensor, this, names[i])) {
@@ -115,7 +115,7 @@ bool KoopaJrRobot::fn_800DB9D0(HitSensor* pSensor) {
     return false;
 }
 
-bool KoopaJrRobot::fn_800DBA70(HitSensor* pSensor) {
+bool KoopaJrRobot::isWeakPointSensor(HitSensor* pSensor) {
     for (s32 i = 0; i < 4; i++) {
         if (MR::isEqualSensor(pSensor, this, KoopaJrRobotPart::getSensorName(i))) {
             return true;
@@ -132,7 +132,7 @@ bool KoopaJrRobotFunction::isPlayerInRushAir() {
     return ret;
 }
 
-bool KoopaJrRobot::fn_800DBB30(f32 angle) {
+bool KoopaJrRobot::isPlayerNearBack(f32 angle) {
     bool inAir = false;
     if (MR::isPlayerInRush() && !MR::isOnGroundPlayer()) {
         inAir = true;
@@ -150,9 +150,9 @@ bool KoopaJrRobot::fn_800DBB30(f32 angle) {
     return MR::diffAngleAbs(back, dir) * 57.29578f < angle;
 }
 
-bool KoopaJrRobot::fn_800DBC40() {
+bool KoopaJrRobot::isAllBodyPartsBroken() {
     bool ret = false;
-    if (mParts[0]->fn_800E25F0() && mParts[1]->fn_800E25F0() && mParts[2]->fn_800E25F0()) {
+    if (mParts[0]->isBroken() && mParts[1]->isBroken() && mParts[2]->isBroken()) {
         ret = true;
     }
     return ret;
@@ -190,16 +190,9 @@ void KoopaJrRobotFunction::hideStarPieces(KoopaJrRobot* pHost) {
     }
 }
 
-// PLACEHOLDER(objects): extern "C" declaration of a target symbol with a non-C++ name (relocs must match); resolve when the symbol is renamed in symbols.txt
-extern "C" CollisionObj* __ct__12CollisionObjFP9LiveActorPCcPCcbPA4_fi(CollisionObj*, LiveActor*, const char*, const char*, HitSensor*, MtxPtr, s32);
-
 LiveActor* KoopaJrRobotFunction::createHand(KoopaJrRobot* pHost, const char* pName) {
-    // SMG2 passes the HitSensor* straight into the (bool) parameter, no conversion code
-    CollisionObj* pObj = reinterpret_cast< CollisionObj* >(operator new(0x94));
-    if (pObj != nullptr) {
-        pObj = __ct__12CollisionObjFP9LiveActorPCcPCcbPA4_fi(pObj, pHost, "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x83R\x83\x8a\x83W\x83\x87\x83\x93\x83I\x83u\x83W\x83""F", pName,
-                                  pHost->getSensor(pName), MR::getJointMtx(pHost, pName), -1);
-    }
+    CollisionObj* pObj = new CollisionObj(pHost, "クッパJrロボットコリジョンオブジェ", pName,
+                                         pHost->getSensor(pName), MR::getJointMtx(pHost, pName), -1);
     pObj->initWithoutIter();
     return pObj;
 }
@@ -284,10 +277,10 @@ void KoopaJrRobotFunction::onDrawEffect(KoopaJrRobot* pHost) {
     MR::onDrawEffect(pHost->mParts[2]->mModel);
 }
 
-KoopaJrRobotSeq::KoopaJrRobotSeq(KoopaJrRobot* pHost) : NerveExecutor("\x83L\x83\x89\x81[\x90\xa7\x8c\xe4"), mHost(pHost), mPool(nullptr), mMagnumLauncher(nullptr), mFlagA(false), mFlagB(false) {}
+KoopaJrRobotSeq::KoopaJrRobotSeq(KoopaJrRobot* pHost) : NerveExecutor("\x83L\x83\x89\x81[\x90\xa7\x8c\xe4"), mHost(pHost), mPool(nullptr), mMagnumLauncher(nullptr), mLaunchersDisabled(false), mLauncherSide(false) {}
 
 // NONMATCHING: regalloc only (begin pointer r26 vs p r23 permuted); string-pool offsets differ
-void KoopaJrRobotSeq::fn_800DC380() {
+void KoopaJrRobotSeq::initLaunchers() {
     mPool = new KoopaJrRobotKillerPool(mHost, 48);
     mMagnumLauncher = new KoopaJrRobotKillerLauncher(mHost, 1, new FixedPosition(mHost, "MagnumKillerPoint", TVec3f(0.0f), TVec3f(0.0f, 90.0f, 0.0f)));
     mMagnumLauncher->initWithoutIter();
@@ -329,56 +322,56 @@ void KoopaJrRobotSeq::fn_800DC380() {
 }
 
 // NONMATCHING: ptmf by-value arg copy: target keeps a second 12-byte PTMF copy on the stack (frame +16)
-void KoopaJrRobotSeq::fn_800DC5B0() {
-    mFlagA = false;
+void KoopaJrRobotSeq::appearLaunchers() {
+    mLaunchersDisabled = false;
     mMagnumLauncher->appear();
     void (KoopaJrRobotKillerLauncher::*pmf)() = &KoopaJrRobotKillerLauncher::appear;
     forEachCall(mLaunchers, mLaunchers + 8, pmf);
 }
 
-// NONMATCHING: same ptmf arg-copy stack layout as fn_800DC5B0
-void KoopaJrRobotSeq::fn_800DC6B0() {
-    mFlagA = true;
+// NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
+void KoopaJrRobotSeq::killLaunchers() {
+    mLaunchersDisabled = true;
     mMagnumLauncher->kill();
     mPool->killUnused();
     void (KoopaJrRobotKillerLauncher::*pmf)() = &KoopaJrRobotKillerLauncher::kill;
     forEachCall(mLaunchers, mLaunchers + 8, pmf);
 }
 
-// NONMATCHING: same ptmf arg-copy stack layout as fn_800DC5B0
-void KoopaJrRobotSeq::fn_800DC740() {
-    if (!mFlagA) {
+// NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
+void KoopaJrRobotSeq::updateLauncherTransforms() {
+    if (!mLaunchersDisabled) {
         mMagnumLauncher->updateTransform();
         void (KoopaJrRobotKillerLauncher::*pmf)() = &KoopaJrRobotKillerLauncher::updateTransform;
         forEachCall(mLaunchers, mLaunchers + 8, pmf);
     }
 }
 
-// NONMATCHING: same ptmf arg-copy stack layout as fn_800DC5B0
-void KoopaJrRobotSeq::fn_800DC7C0() {
-    if (!mFlagA) {
+// NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
+void KoopaJrRobotSeq::movementLaunchers() {
+    if (!mLaunchersDisabled) {
         forEachCallInline(mLaunchers, mLaunchers + 8, &LiveActor::movement);
     }
 }
 
-void KoopaJrRobotSeq::fn_800DC850() {
-    if (!mFlagA) {
+void KoopaJrRobotSeq::movementKillerPool() {
+    if (!mLaunchersDisabled) {
         mPool->movementAll();
     }
 }
 
-void KoopaJrRobotSeq::fn_800DC870() {
+void KoopaJrRobotSeq::startMagnumShot() {
     mMagnumLauncher->startShot();
 }
 
-void KoopaJrRobotSeq::fn_800DC880() {
+void KoopaJrRobotSeq::startRearLauncherShots() {
     for (s32 i = 2; i < 8; i++) {
         mLaunchers[i]->startShot();
     }
 }
 
 // NONMATCHING: regalloc only (loop vars r28..r31 permuted)
-void KoopaJrRobotSeq::fn_800DC8E0() {
+void KoopaJrRobotSeq::attackShootableKillers() {
     if (!MR::isDead(mMagnumLauncher) && mMagnumLauncher->isShootable()) {
         HitSensor* pSensor = mHost->getSensor("Body");
         MR::sendMsgEnemyAttackExplosion(mMagnumLauncher->getKiller()->getSensor("Body"), pSensor);
@@ -423,22 +416,22 @@ void KoopaJrRobotSeq::exeA() {
 
 void KoopaJrRobotSeq::exeB() {
     if (MR::isFirstStep(this)) {
-        mLaunchers[!mFlagB]->startShot();
+        mLaunchers[!mLauncherSide]->startShot();
     }
     if (MR::isStep(this, 70)) {
-        mLaunchers[mFlagB != 0]->startShot();
-        mFlagB = !mFlagB;
+        mLaunchers[mLauncherSide != 0]->startShot();
+        mLauncherSide = !mLauncherSide;
         setNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvB::sInstance);
     }
 }
 
 void KoopaJrRobotSeq::exeC() {
     if (MR::isFirstStep(this)) {
-        mLaunchers[!mFlagB]->startShot();
+        mLaunchers[!mLauncherSide]->startShot();
     }
     if (MR::isStep(this, 120)) {
-        mLaunchers[mFlagB != 0]->startShot();
-        mFlagB = !mFlagB;
+        mLaunchers[mLauncherSide != 0]->startShot();
+        mLauncherSide = !mLauncherSide;
         setNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvB::sInstance);
     }
 }

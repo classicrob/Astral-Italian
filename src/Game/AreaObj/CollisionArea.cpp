@@ -11,42 +11,39 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
-void CollisionArea_FORCE_MATCH_SDATA2() {
-    (void)5.0f;
-}
 
 CollisionArea::CollisionArea(int formType, const char* pName) : AreaObj(formType, pName) {
-    _48 = 0;
-    _4C = 0.0f;
-    _50.zero();
-    _5C = 0;
-    _60 = 0;
-    _64 = false;
-    _68 = 0;
-    _6C = 0;
+    mOutsideAxisCount = 0;
+    mPenetrationDepth = 0.0f;
+    mWorldPos.zero();
+    mPushArg = 0;
+    mDisappearArg = 0;
+    mIsTeresaHidden = false;
+    mRadiusArg = 0;
+    mSurfaceMaskArg = 0;
     mPolygon = nullptr;
-    mIsValid = false;
+    mIsPolygonValid = false;
 }
 
 void CollisionArea::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
     MR::connectToSceneAreaObj(this);
 
-    _5C = -1;
-    _48 = 0;
-    _4C = 0.0f;
-    _60 = -1;
-    _68 = 0;
-    _6C = -1;
+    mOutsideAxisCount = 0;
+    mPenetrationDepth = 0.0f;
+    mPushArg = -1;
+    mDisappearArg = -1;
+    mRadiusArg = 0;
+    mSurfaceMaskArg = -1;
 
-    MR::getJMapInfoArg0NoInit(rIter, &_5C);
-    MR::getJMapInfoArg1NoInit(rIter, &_60);
-    MR::getJMapInfoArg2NoInit(rIter, &_68);
-    MR::getJMapInfoArg3NoInit(rIter, &_6C);
+    MR::getJMapInfoArg0NoInit(rIter, &mPushArg);
+    MR::getJMapInfoArg1NoInit(rIter, &mDisappearArg);
+    MR::getJMapInfoArg2NoInit(rIter, &mRadiusArg);
+    MR::getJMapInfoArg3NoInit(rIter, &mSurfaceMaskArg);
 
-    _64 = false;
+    mIsTeresaHidden = false;
 
-    if (_6C == 0) {
+    if (mSurfaceMaskArg == 0) {
         mPolygon = nullptr;
     } else {
         mPolygon = new AreaPolygon();
@@ -59,42 +56,42 @@ void CollisionArea::init(const JMapInfoIter& rIter) {
         }
     }
 
-    mIsValid = isValid();
+    mIsPolygonValid = isValid();
 }
 
 void CollisionArea::movement() {
     if (!isValid()) {
-        if (mIsValid) {
+        if (mIsPolygonValid) {
             if (mPolygon != nullptr) {
                 MR::invalidateCollisionParts(mPolygon->mParts);
             }
 
-            mIsValid = false;
+            mIsPolygonValid = false;
         }
     } else {
-        if (!mIsValid) {
+        if (!mIsPolygonValid) {
             if (mPolygon != nullptr) {
                 MR::validateCollisionParts(mPolygon->mParts);
             }
 
-            mIsValid = true;
+            mIsPolygonValid = true;
         }
 
-        if (_60 == -1 && MR::isPlayerTeresaDisappear()) {
-            _64 = true;
+        if (mDisappearArg == -1 && MR::isPlayerTeresaDisappear()) {
+            mIsTeresaHidden = true;
 
             if (mPolygon != nullptr) {
                 MR::invalidateCollisionParts(mPolygon->mParts);
             }
         } else {
             TVec3f playerPos = *MR::getPlayerCenterPos();
-            f32 radius = static_cast< f32 >(_68);
+            f32 radius = static_cast< f32 >(mRadiusArg);
 
-            if (_68 == 0) {
+            if (mRadiusArg == 0) {
                 radius = MR::getPlayerHitRadius();
             }
 
-            if (_64) {
+            if (mIsTeresaHidden) {
                 radius += 5.0f;
             }
 
@@ -102,19 +99,19 @@ void CollisionArea::movement() {
             TVec3f hitNormal;
 
             if (!hitCheck(playerPos, radius, &hitPos, &hitNormal)) {
-                if (_64) {
-                    _64 = false;
+                if (mIsTeresaHidden) {
+                    mIsTeresaHidden = false;
 
                     if (mPolygon != nullptr) {
                         MR::validateCollisionParts(mPolygon->mParts);
                     }
                 }
-            } else if (!_64 && _5C == -1) {
+            } else if (!mIsTeresaHidden && mPushArg == -1) {
                 TVec3f push;
 
-                if (_48 == 0) {
+                if (mOutsideAxisCount == 0) {
                     push = hitNormal;
-                    push.setLength(radius + _4C);
+                    push.setLength(radius + mPenetrationDepth);
                 } else {
                     push = playerPos - hitPos;
                     push.setLength(radius);
@@ -136,7 +133,7 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
     s32 surface = -1;
     TPos3f matrix;
     pCube->calcWorldMtx(&matrix);
-    pCube->calcWorldPos(&_50);
+    pCube->calcWorldPos(&mWorldPos);
     TVec3f localPoint;
     TVec3f axisX;
     TVec3f axisY;
@@ -155,7 +152,7 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
     sizeZ *= 0.5f * (pCube->mScale.z * pCube->getBaseSize());
     TVec3f expanded(sizeX + radius, sizeY + radius, sizeZ + radius);
     TVec3f relative(rPos);
-    relative.sub(_50);
+    relative.sub(mWorldPos);
     f32 x = relative.dot(axisX);
     f32 y = relative.dot(axisY);
     f32 z = relative.dot(axisZ);
@@ -185,7 +182,7 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
         count++;
     }
 
-    _48 = count;
+    mOutsideAxisCount = count;
     TVec3f corner;
     TVec3f depth;
     if (count == 3) {
@@ -223,14 +220,14 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
         depth.y = sizeY - absolute.y;
         depth.z = sizeZ - absolute.z;
         if (depth.x < depth.y && depth.x < depth.z) {
-            _4C = depth.x;
             outside[0] = true;
+            mPenetrationDepth = depth.x;
         } else if (depth.y < depth.x && depth.y < depth.z) {
-            _4C = depth.y;
             outside[1] = true;
+            mPenetrationDepth = depth.y;
         } else {
-            _4C = depth.z;
             outside[2] = true;
+            mPenetrationDepth = depth.z;
         }
 
         count = 1;
@@ -308,9 +305,9 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
         }
     }
 
-    pPoint->set(axisX * localPoint.x + axisY * localPoint.y + axisZ * localPoint.z + _50);
+    pPoint->set(axisX * localPoint.x + axisY * localPoint.y + axisZ * localPoint.z + mWorldPos);
     MR::normalizeOrZero(pNormal);
-    if (mPolygon != nullptr && (_6C & (1 << surface))) {
+    if (mPolygon != nullptr && (mSurfaceMaskArg & (1 << surface))) {
         mPolygon->setSurfaceAndSync(surface);
     }
 
@@ -318,9 +315,9 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
 }
 
 void AreaPolygon::setMtx(MtxPtr pMatrix, const TVec3f& rSize, f32 offset) {
-    _128 = pMatrix;
-    _12C = rSize;
-    _138 = offset;
+    mMtx = pMatrix;
+    mSize = rSize;
+    mOffset = offset;
 }
 
 void AreaPolygon::setSurfaceAndSync(s32 surface) {
@@ -337,8 +334,8 @@ void AreaPolygon::setSurface(s32 surface) {
         static_cast< AreaFormCube* >(mForm)->calcWorldMtx(&matrix);
         static_cast< AreaFormCube* >(mForm)->calcWorldPos(&mPosition);
     } else {
-        PSMTXCopy(_128, matrix);
-        MR::extractMtxTrans(_128, &mPosition);
+        PSMTXCopy(mMtx, matrix);
+        MR::extractMtxTrans(mMtx, &mPosition);
     }
 
     TVec3f axisX;
@@ -347,8 +344,8 @@ void AreaPolygon::setSurface(s32 surface) {
     matrix.getXDir(axisX);
     matrix.getYDir(axisY);
     matrix.getZDir(axisZ);
-    if (_128 != nullptr) {
-        mPosition.add(axisY * _138);
+    if (mMtx != nullptr) {
+        mPosition.add(axisY * mOffset);
     }
 
     f32 sizeX = axisX.length();
@@ -362,9 +359,9 @@ void AreaPolygon::setSurface(s32 surface) {
         sizeY *= 0.5f * (static_cast< AreaFormCube* >(mForm)->getSizeY());
         sizeZ *= 0.5f * (static_cast< AreaFormCube* >(mForm)->getSizeZ());
     } else {
-        sizeX *= 0.5f * _12C.x;
-        sizeY *= 0.5f * _12C.y;
-        sizeZ *= 0.5f * _12C.z;
+        sizeX *= 0.5f * mSize.x;
+        sizeY *= 0.5f * mSize.y;
+        sizeZ *= 0.5f * mSize.z;
     }
 
     if (!MR::isPlayerElementModeTeresa()) {
@@ -447,30 +444,30 @@ CollisionArea::~CollisionArea() {
 
 AreaPolygon::AreaPolygon() : DynamicCollisionObj("エリアポリゴン") {
     mForm = nullptr;
-    _128 = nullptr;
-    _12C.zero();
+    mMtx = nullptr;
+    mSize.zero();
 }
 
 void AreaPolygon::init(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
         MR::initDefaultPos(this, rIter);
     } else {
-        MR::extractMtxTrans(_128, &mPosition);
+        MR::extractMtxTrans(mMtx, &mPosition);
         mRotation.set(0.0f, 0.0f, 0.0f);
     }
 
     mScale.set(1.0f, 1.0f, 1.0f);
     mKCLFile = nullptr;
     mPositionNum = 4;
-    _94 = 2;
+    mTriangleNum = 2;
     mPositions = new TVec3f[mPositionNum];
     setSurface(0);
 
     initHitSensor(1);
     MR::addHitSensorEye(this, "body", 8, 1.0f, TVec3f(0.0f));
 
-    mIndices = new TriangleIndexing[_94];
-    _9C = new TVec3f[_94];
+    mIndices = new TriangleIndexing[mTriangleNum];
+    mFaceNormals = new TVec3f[mTriangleNum];
 
     TriangleIndexing& rFirst = mIndices[0];
     rFirst.mIndex[0] = 0;

@@ -36,3 +36,9 @@ namespace MR {
     bool isTimeStopScreenEffectActive();
     JUTTexture* getTimeStopScreenCaptureTexture();
 }
+
+namespace MR {
+    void createTimeStopScreenEffect();
+    void onTimeStopScreenEffect();
+    void offTimeStopScreenEffect();
+}

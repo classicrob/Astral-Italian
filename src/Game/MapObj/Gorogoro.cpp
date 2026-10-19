@@ -16,8 +16,6 @@ namespace NrvGorogoro {
     NEW_NERVE(GorogoroNrvDisappear, Gorogoro, Disappear);
 };  // namespace NrvGorogoro
 
-
-
 Gorogoro::Gorogoro(const char* pName) : LiveActor(pName) {
     mRailMover = nullptr;
     mRotator = nullptr;
@@ -75,6 +73,7 @@ void Gorogoro::init(const JMapInfoIter& rIter) {
 
     char nameBuf[0x80];
     snprintf(nameBuf, 0x80, "%sAlpha", pObjName);
+    // Shift-JIS "半透明化オブジェ" (translucent object) model name
     ModelObj* pSand = new ModelObj("\x94\xbc\x93\xa7\x96\xbe\x89\xbb\x83\x49\x83\x75\x83\x57\x83\x46", nameBuf, getBaseMtx(), 0x14, 0x2A, -2, false);
     mSandModel = pSand;
     pSand->initWithoutIter();

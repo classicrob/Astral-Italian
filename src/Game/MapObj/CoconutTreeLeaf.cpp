@@ -28,10 +28,10 @@ namespace {
 };  // namespace
 
 CoconutTreeLeaf::CoconutTreeLeaf(const CoconutTreeLeafGroup* pGroup, MtxPtr pJointMtx, const TVec3f* pWindDirection)
-    : LiveActor("ヤシの木の葉"), mGroup(pGroup), mTipPosition(0.0f), mRestTipPosition(0.0f),
+    : LiveActor("ヤシの木の葉"), mGroup(pGroup), mTipPosition(0.0f, 0.0f, 0.0f), mRestTipPosition(0.0f, 0.0f, 0.0f),
       mRestUp(pJointMtx[0][1], pJointMtx[1][1], pJointMtx[2][1]), mAxisX(pJointMtx[0][0], pJointMtx[1][0], pJointMtx[2][0]),
       mAxisY(pJointMtx[0][1], pJointMtx[1][1], pJointMtx[2][1]), mAxisZ(pJointMtx[0][2], pJointMtx[1][2], pJointMtx[2][2]), mJointMtx(pJointMtx),
-      mWindStep(), mWindStartStep(), mWindAccel(0.0f), mWindDirection(pWindDirection) {
+      mWindStep(), mWindStartStep(), mWindAccel(0.0f, 0.0f, 0.0f), mWindDirection(pWindDirection) {
     mPosition.set< f32 >(pJointMtx[0][3], pJointMtx[1][3], pJointMtx[2][3]);
     mRestTipPosition.set(mAxisZ);
     mRestTipPosition.mult(::sPointInterval);
@@ -155,12 +155,16 @@ void CoconutTreeLeafGroup::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "CoconutTreeLeaf", false);
     MR::connectToSceneMapObjNoCalcAnim(this);
+    bool isDemoCast = false;
+    MR::getJMapInfoArg0NoInit(rIter, &isDemoCast);
+    if (isDemoCast) MR::registerDemoSimpleCastAll(this);
     mNumLeaves = MR::getJointNum(this) - 1;
     mLeaves = new CoconutTreeLeaf*[mNumLeaves];
 
     for (s32 i = 0; i < mNumLeaves; i++) {
         mLeaves[i] = new CoconutTreeLeaf(this, MR::getJointMtx(this, i + 1), &mWindDirection);
         mLeaves[i]->initWithoutIter();
+        if (isDemoCast) MR::registerDemoSimpleCastAll(mLeaves[i]);
     }
 
     initHitSensor(1);

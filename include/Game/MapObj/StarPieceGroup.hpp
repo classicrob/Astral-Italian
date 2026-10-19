@@ -31,13 +31,13 @@ public:
 
     /* 0x90 */ StarPiece** mPieces;
     /* 0x94 */ f32* mRailCoords;
-    bool _94;
-    bool _95;
+    bool mHasAppeared;
+    bool mEmitAppearEffects;
     /* 0x9C */ s32 mNumPieces;
     /* 0xA0 */ f32 mCircleRadius;
     /* 0xA4 */ bool mIsRail;
     /* 0xA5 */ bool mPlaceAtPathPoints;
-    s32 _A4;
+    s32 mLifeTimer;
     /* 0xAC */ f32 mRailSpeed;
-    TVec3f _AC;
+    TVec3f mRailClippingCenter;
 };

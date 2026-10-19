@@ -55,8 +55,8 @@ namespace {
 
 KoopaJrCastleBody::KoopaJrCastleBody(LiveActor* pHost, const char* pName)
     : PartsModel(pHost, pName, "KoopaJrCastleBody", mMtx, 0x13, false), mLowModel(nullptr), mGearCtrl(nullptr), mGearCtrlLR(nullptr),
-      mCollision(nullptr), mState(nullptr), _B4(true), mGearMtx(nullptr), mJointIdx(nullptr), _F4(false), _F5(false), _F6(false),
-      _F8(0.0f), _FC(0.0f), mRate(0.0f), mGearStep(0), mPropStep(0), mWindStep(0) {
+      mCollision(nullptr), mState(nullptr), mDisableGearCallbacks(true), mGearMtx(nullptr), mJointIdx(nullptr), mUseHighDetailModel(false), mIgnoreVerticalOffset(false), mAnimateGears(false),
+      mLeftGearFrame(0.0f), mRightGearFrame(0.0f), mRate(0.0f), mGearStep(0), mPropStep(0), mWindStep(0) {
     PSMTXCopy(pHost->getBaseMtx(), mMtx);
 }
 
@@ -134,9 +134,9 @@ void KoopaJrCastleBody::init(const JMapInfoIter& rInfo) {
     MR::initActorState(this, mState, &NrvKoopaJrCastleBody::KoopaJrCastleBodyNrvMove::sInstance, "Move");
     makeActorAppeared();
     validateCollisionB();
-    _F0 = -1600.0f;
-    _B4 = false;
-    _F6 = false;
+    mVerticalOffset = -1600.0f;
+    mDisableGearCallbacks = false;
+    mAnimateGears = false;
 }
 
 void KoopaJrCastleBody::makeActorAppeared() {
@@ -145,8 +145,8 @@ void KoopaJrCastleBody::makeActorAppeared() {
     mGearStep = 0;
     mPropStep = 0;
     mWindStep = 0;
-    _F8 = 0.0f;
-    _FC = 0.0f;
+    mLeftGearFrame = 0.0f;
+    mRightGearFrame = 0.0f;
     mRate = 0.0f;
 }
 
@@ -167,7 +167,7 @@ void KoopaJrCastleBody::calcAnim() {
 // NONMATCHING: literal pool offsets and callee-saved register assignment
 void KoopaJrCastleBody::control() {
     const char* pBck;
-    if (_F4) {
+    if (mUseHighDetailModel) {
         if (!MR::isDead(mLowModel)) {
             mLowModel->kill();
         }
@@ -179,8 +179,8 @@ void KoopaJrCastleBody::control() {
         MR::hideModelAndOnCalcAnimIfShown(this);
     }
     PSMTXCopy(mHost->getBaseMtx(), mMtx);
-    if (!_F5) {
-        MR::addTransMtxLocalY(mMtx, _F0);
+    if (!mIgnoreVerticalOffset) {
+        MR::addTransMtxLocalY(mMtx, mVerticalOffset);
     }
     if (MR::isBindedWall(this)) {
         HitSensor* pSensor = getSensor("Collision");
@@ -188,27 +188,27 @@ void KoopaJrCastleBody::control() {
     }
     pBck = MR::getPlayingBckName(this);
     if (MR::isEqualString(pBck, "MoveR")) {
-        _F8 -= mRate;
-        _FC += mRate;
-        MR::repeat(_F8, 0.0f, MR::getBckFrameMax(this));
-        MR::repeat(_FC, 0.0f, MR::getBckFrameMax(this));
+        mLeftGearFrame -= mRate;
+        mRightGearFrame += mRate;
+        MR::repeat(mLeftGearFrame, 0.0f, MR::getBckFrameMax(this));
+        MR::repeat(mRightGearFrame, 0.0f, MR::getBckFrameMax(this));
     } else if (MR::isEqualString(pBck, "MoveL")) {
-        _F8 += mRate;
-        _FC -= mRate;
-        MR::repeat(_F8, 0.0f, MR::getBckFrameMax(this));
-        MR::repeat(_FC, 0.0f, MR::getBckFrameMax(this));
+        mLeftGearFrame += mRate;
+        mRightGearFrame -= mRate;
+        MR::repeat(mLeftGearFrame, 0.0f, MR::getBckFrameMax(this));
+        MR::repeat(mRightGearFrame, 0.0f, MR::getBckFrameMax(this));
     } else if (MR::isEqualString(pBck, "MoveLR")) {
-        _F8 += mRate;
-        _FC += mRate;
-        MR::repeat(_F8, 0.0f, MR::getBckFrameMax(this));
-        MR::repeat(_FC, 0.0f, MR::getBckFrameMax(this));
+        mLeftGearFrame += mRate;
+        mRightGearFrame += mRate;
+        MR::repeat(mLeftGearFrame, 0.0f, MR::getBckFrameMax(this));
+        MR::repeat(mRightGearFrame, 0.0f, MR::getBckFrameMax(this));
     } else if (MR::isEqualString(pBck, "MoveBack")) {
-        _F8 -= mRate;
-        _FC -= mRate;
-        MR::repeat(_F8, 0.0f, MR::getBckFrameMax(this));
-        MR::repeat(_FC, 0.0f, MR::getBckFrameMax(this));
+        mLeftGearFrame -= mRate;
+        mRightGearFrame -= mRate;
+        MR::repeat(mLeftGearFrame, 0.0f, MR::getBckFrameMax(this));
+        MR::repeat(mRightGearFrame, 0.0f, MR::getBckFrameMax(this));
     }
-    if (_F6) {
+    if (mAnimateGears) {
         if (++mGearStep > 500) {
             mGearStep = 0;
         }
@@ -239,14 +239,14 @@ void KoopaJrCastleBody::calcAndSetBaseMtx() {
 void KoopaJrCastleBody::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::offBind(mHost);
-        _F0 = -1600.0f;
+        mVerticalOffset = -1600.0f;
     }
 }
 
 #pragma dont_inline on
 void KoopaJrCastleBody::exeFall() {
     MR::offBind(mHost);
-    _F0 = MR::calcNerveValue(this, 120, -1600.0f, 0.0f);
+    mVerticalOffset = MR::calcNerveValue(this, 120, -1600.0f, 0.0f);
 }
 #pragma dont_inline off
 
@@ -342,29 +342,29 @@ void KoopaJrCastleBody::validateCollisionB() {
 }
 
 void KoopaJrCastleBody::onFlagF4() {
-    _F4 = true;
+    mUseHighDetailModel = true;
 }
 
 void KoopaJrCastleBody::offFlagF4() {
-    _F4 = false;
+    mUseHighDetailModel = false;
 }
 
 void KoopaJrCastleBody::onFlagF5() {
-    _F5 = true;
+    mIgnoreVerticalOffset = true;
     MR::setBckRate(this, 1.0f);
 }
 
 void KoopaJrCastleBody::offFlagF5() {
-    _F5 = false;
+    mIgnoreVerticalOffset = false;
     MR::startAction(this, "Wait");
 }
 
 void KoopaJrCastleBody::onFlagF6() {
-    _F6 = true;
+    mAnimateGears = true;
 }
 
 void KoopaJrCastleBody::resetF0() {
-    _F0 = 0.0f;
+    mVerticalOffset = 0.0f;
 }
 
 bool KoopaJrCastleBody::isMove() const {
@@ -409,7 +409,7 @@ bool KoopaJrCastleBody::calcBodyGear2(TPos3f* pMtx, const JointControllerInfo&) 
 
 bool KoopaJrCastleBody::calcBodyGear3(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
-    f32 angle = -KoopaJrCastleFunction::getFireBarB0();
+    f32 angle = -KoopaJrCastleFunction::getFireBarAngle();
     TVec3f sp8(sAxisY);
     sp8.scale(angle);
     Mtx rot;
@@ -445,7 +445,7 @@ bool KoopaJrCastleBody::calcWindmill(TPos3f* pMtx, const JointControllerInfo&) {
 
 bool KoopaJrCastleBody::calcGearL(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
-    if (_B4) {
+    if (mDisableGearCallbacks) {
         return false;
     }
     u16 jntNo = rInfo.mJoint->getJntNo();
@@ -462,7 +462,7 @@ bool KoopaJrCastleBody::calcGearL(TPos3f* pMtx, const JointControllerInfo& rInfo
 
 bool KoopaJrCastleBody::calcGearR(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
-    if (_B4) {
+    if (mDisableGearCallbacks) {
         return false;
     }
     u16 jntNo = rInfo.mJoint->getJntNo();
@@ -479,8 +479,8 @@ bool KoopaJrCastleBody::calcGearR(TPos3f* pMtx, const JointControllerInfo& rInfo
 
 void KoopaJrCastleBody::calcGearMtx() {
     if (MR::getPlayingBckName(this) != nullptr) {
-        f32 f30 = _F8 / 480.0f;
-        f32 f31 = _FC / 480.0f;
+        f32 f30 = mLeftGearFrame / 480.0f;
+        f32 f31 = mRightGearFrame / 480.0f;
         Mtx sp70;
         Mtx sp40;
         Mtx sp10;

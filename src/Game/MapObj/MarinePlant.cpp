@@ -143,13 +143,14 @@ s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& gravity, const TVe
         pos += dir;
         pos += -gravity * 100.0f;
         Triangle triangle;
-        if (!MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, &triangle, pos, gravity * 1000.0f)) {
+        if (MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, &triangle, pos, gravity * 1000.0f)) {
+            *pOut += mMembers[i]->mPosition;
+            count++;
+        } else {
             mMembers[i]->kill();
             pos += gravity * 1000.0f;
             continue;
         }
-        *pOut += mMembers[i]->mPosition;
-        count++;
         mGravity = gravity;
         TVec3f* memberGravity = &mMembers[i]->mGravity;
         *memberGravity = -*triangle.getNormal(0);

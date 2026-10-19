@@ -6,8 +6,6 @@
 #include "Game/Player/MarioHolder.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 
-// PLACEHOLDER(objects): player damage-state exception used to allow tornado binding; resolve when core names fn_80050350.
-extern "C" bool fn_80050350();
 
 namespace {
     static const f32 sRailSpeed = 3.0f;
@@ -525,7 +523,7 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
         return false;
     }
 
-    if (MR::isPlayerDamaging() && !fn_80050350()) {
+    if (MR::isPlayerDamaging() && !MR::isPlayerDamageCooldown()) {
         return false;
     }
 

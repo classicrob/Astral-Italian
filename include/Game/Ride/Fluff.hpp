@@ -13,6 +13,8 @@ public:
     virtual void init(const JMapInfoIter& rIter);
     void onDemoAction();
     virtual void initAfterPlacement();
+    virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
@@ -34,15 +36,15 @@ public:
     bool trySpinUp(s32 step);
     void endBind(f32 ejectForce, bool isDamage, u32 msg);
 
-    /* 0x8C */ TVec3f mSide;
-    /* 0x98 */ TVec3f mUp;
-    /* 0xA4 */ TVec3f mFront;
-    /* 0xB0 */ TPos3f mBaseMtx;
-    /* 0xE0 */ TVec3f mTargetUpVec;
-    /* 0xEC */ TVec3f mWindDir;
-    /* 0xF8 */ f32 mWindDistance;
-    /* 0xFC */ s32 mWindSpinTimer;
-    /* 0x100 */ s32 mSpinsRemaining;
+    /* 0x90 */ TVec3f mSide;
+    /* 0x9C */ TVec3f mUp;
+    /* 0xA8 */ TVec3f mFront;
+    /* 0xB4 */ TPos3f mBaseMtx;
+    /* 0xE4 */ TVec3f mTargetUpVec;
+    /* 0xF0 */ TVec3f mWindDir;
+    /* 0xFC */ f32 mWindDistance;
+    /* 0x100 */ s32 mWindSpinTimer;
+    /* 0x104 */ s32 mSpinsRemaining;
     /* 0x108 */ ModelObj* mModel;
     /* 0x10C */ LiveActor* mRider;
     /* 0x110 */ CameraTargetMtx* mCameraTargetMtx;

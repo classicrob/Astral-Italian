@@ -29,9 +29,9 @@ public:
     void exeMain();
 
     /* 0x90 */ ActorCameraInfo* mCameraInfo;
-    /* 0x94 */ PlacementObj** mChildren;
-    /* 0x98 */ s32 mChildCount;
+    /* 0x94 */ PlacementObj** mPlacements;
+    /* 0x98 */ s32 mPlacementCount;
     /* 0x9C */ Coin** mCoins;
     /* 0xA0 */ s32 mCoinCount;
-    /* 0xA4 */ s32 mTime;
+    /* 0xA4 */ s32 mCoinLifetime;  // Frames; -1 means no timer.
 };

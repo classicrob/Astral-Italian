@@ -34,5 +34,5 @@ public:
     /* 0x18 */ PoltaStateGenerateRock* mStateGenerateRock;
     /* 0x1C */ PoltaStateGroundRockAttack* mStateGroundRockAttack;
     /* 0x20 */ s32 mPoltaHealth;
-    s32 _24;
+    s32 mAttackPatternIndex;
 };

@@ -38,9 +38,9 @@ namespace NrvBossStinkBugActionFlyHigh {
 
 BossStinkBugActionFlyHigh::BossStinkBugActionFlyHigh(BossStinkBug* pStinkBug)
     : BossStinkBugActionBase("ボスカメムシ高空戦", pStinkBug), _68(0), _6C(false), _70(0) {
-    _38 = 20.0f;
-    _3C = 1000.0f;
-    _44 = -400.0f;
+    mCruiseSpeed = 20.0f;
+    mRailHeight = 1000.0f;
+    mRailHeightOffset = -400.0f;
     _68 = calcKeepRollTime(60);
     initNerve(GET_NERVE(BossStinkBugActionFlyHigh, BossStinkBugActionFlyHighNrvFly));
 }
@@ -103,9 +103,9 @@ bool BossStinkBugActionFlyHigh::receiveOtherMsg(u32 msg, HitSensor* pSender, Hit
         }
     } else if (isEnableAttack() && (MR::isMsgWallTouch(msg) || MR::isMsgCeilTouch(msg))) {
         BossStinkBug* pStinkBug = getHost();
-            const TVec3f& rFront = pStinkBug->_EC;
+            const TVec3f& rFront = pStinkBug->mFront;
             if (MR::isFaceToTargetDegree(pStinkBug, *MR::getSensorPos(pSender), rFront, 45.0f)) {
-            if (MR::sendMsgEnemyAttackStrongToDir(pSender, pReceiver, getHost()->_EC * 50.0f)) {
+            if (MR::sendMsgEnemyAttackStrongToDir(pSender, pReceiver, getHost()->mFront * 50.0f)) {
                 if (isNerve(GET_NERVE(BossStinkBugActionFlyHigh, BossStinkBugActionFlyHighNrvGroundRun))) {
                     getHost()->validateCollisionHitOnly();
                     setNerve(GET_NERVE(BossStinkBugActionFlyHigh, BossStinkBugActionFlyHighNrvToFly));

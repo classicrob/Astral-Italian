@@ -12,6 +12,6 @@ public:
     s32 getFadeTime() const;
     f32 getVolume() const;
 
-    /* 0x48 */ bool _48;
-    /* 0x49 */ bool _49;
+    /* 0x48 */ bool mIsInsideApplied;
+    /* 0x49 */ bool mIsOutsideApplied;
 };

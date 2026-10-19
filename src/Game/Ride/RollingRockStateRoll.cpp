@@ -38,6 +38,8 @@ void fn_8004FFB0();
 #define sRumbleForceDash "\x8b\xad\x90\xa7\x83_\x83""b\x83V\x83\x85"
 #define sRumbleJump "\x83W\x83\x83\x83\x93\x83v"
 namespace {
+    extern const f32 sJumpGravityRate;
+    extern const f32 sReflectSideRate;
     static const f32 sBinderRadiusMin = 40.0f;
     static const f32 sBinderRadiusMax = 106.0f;
     static const s32 sVolumeScale = 450;
@@ -146,6 +148,7 @@ bool RollingRockStateRoll::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiv
     return false;
 }
 
+// NONMATCHING: vector temporary placement and boolean branch layout differ.
 bool RollingRockStateRoll::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (msg == 0x62 && RollingRock::isNotBreakableSensor(pSender) && MR::isEqualSensor(pReceiver, mHost, "Body")) {
         if (!mIsDead) {
@@ -273,6 +276,7 @@ bool RollingRockStateRoll::tryDeath() {
     return false;
 }
 
+// NONMATCHING: boolean result register and branch layout differ.
 static bool isBreakCageSensor(const HitSensor* pSensor) {
     if (pSensor == nullptr) {
         return false;
@@ -284,6 +288,7 @@ static bool isBreakCageSensor(const HitSensor* pSensor) {
     return ret;
 }
 
+// NONMATCHING: host and sensor registers are exchanged.
 bool RollingRockStateRoll::tryReflect() {
     if (MR::isBindedWall(mHost)) {
         LiveActor* pHost = mHost;
@@ -403,6 +408,7 @@ void RollingRockStateRoll::updateStep() {
     }
 }
 
+// NONMATCHING: vector temporary stack slots differ.
 void RollingRockStateRoll::updateMoment() {
     TVec3f moment;
     moment.setAll< f32 >(0.0f);
@@ -418,11 +424,11 @@ void RollingRockStateRoll::updateMoment() {
         if (MR::isBindedGround(mHost)) {
             up.set(MR::getGroundNormal(mHost));
         }
-        TVec3f vel(mHost->mVelocity);
-        vel.scale(1.2f);
-        MR::calcMomentRollBall(&moment, vel, up, MR::getSensorRadius(mHost, "Body"));
-        MR::rotateQuatMoment(&mHost->mQuat, moment);
+        MR::calcMomentRollBall(&moment, mHost->mVelocity.scaleInline(1.2f), up, MR::getSensorRadius(mHost, "Body"));
+    } else {
+        return;
     }
+    MR::rotateQuatMoment(&mHost->mQuat, moment);
 }
 
 void RollingRockStateRoll::updatePose() {
@@ -435,31 +441,32 @@ void RollingRockStateRoll::updatePose() {
         if (!MR::isNearZero(mHost->mVelocity, 0.001f)) {
             front.set(mHost->mVelocity);
         } else {
-            front.set< f32 >(mHost->mEffectMtx.mMtx[0][2], mHost->mEffectMtx.mMtx[1][2], mHost->mEffectMtx.mMtx[2][2]);
+            mHost->mEffectMtx.getZDir(front);
         }
         MR::vecKillElement(front, mHost->mGravity, &front);
     }
     if (MR::normalizeOrZero(&front)) {
-        f32 x = mHost->mQuat.x;
-        f32 y = mHost->mQuat.y;
-        f32 z = mHost->mQuat.z;
-        f32 w = mHost->mQuat.w;
-        front.set< f32 >(2.0f * (x * z) + 2.0f * (w * y), 2.0f * (y * z) - 2.0f * (w * x), (1.0f - 2.0f * (x * x)) - 2.0f * (y * y));
+        mHost->mQuat.getZDir(front);
     }
     if (MR::isSameDirection(front, mHost->mGravity, 0.01f)) {
+        RollingRock* pHost = mHost;
         TVec3f up;
         up.negate(mHost->mGravity);
-        MR::makeMtxUpNoSupportPos(&mHost->mEffectMtx, up, mHost->mPosition);
+        MR::makeMtxUpNoSupportPos(&pHost->mEffectMtx, up, mHost->mPosition);
     } else {
+        RollingRock* pHost = mHost;
         TVec3f up;
-        up.negate(mHost->mGravity);
-        MR::makeMtxUpFrontPos(&mHost->mEffectMtx, up, front, mHost->mPosition);
+        up.negate(pHost->mGravity);
+        MR::makeMtxUpFrontPos(&pHost->mEffectMtx, up, front, mHost->mPosition);
     }
 }
 
+// NONMATCHING: equivalent early-return branch layout differs.
 void RollingRockStateRoll::updateEffect() {
     if (!isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvStart::sInstance)) {
-        if (!isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
+        if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
+            return;
+        } else {
             if (mAirStep > 5) {
                 if (MR::isEffectValid(mHost, "Move")) {
                     MR::deleteEffect(mHost, "Move");
@@ -490,38 +497,26 @@ void RollingRockStateRoll::startMove() {
     setNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvMove::sInstance);
 }
 
+// NONMATCHING: vector temporary placement and register allocation differ.
 void RollingRockStateRoll::changeState(s32 type) {
-    LiveActor* pHost = mHost;
+    RollingRock* pHost = mHost;
     TVec3f* pVel = &pHost->mVelocity;
     switch (type) {
     case 0: {
-        TVec3f front(mHost->mFront);
-        TVec3f pos(mHost->mPosition);
-        TVec3f a(front);
-        a.scale(1.0f - 0.72f);
-        TVec3f b(pHost->mGravity);
-        b.scale(0.72f);
-        TVec3f c = a - b;
-        pVel->set(c);
+        TVec3f front(pHost->mFront);
+        TVec3f pos(pHost->mPosition);
+        pVel->set(front.scaleInline(1.0f - sJumpGravityRate) - pHost->mGravity.scaleInline(sJumpGravityRate));
         pVel->setLength(15.0f);
         break;
     }
     case 1: {
-        TVec3f neg;
-        neg.negate(pHost->mGravity);
-        TVec3f v(neg);
-        v.scale(18.0f);
-        pVel->set(v);
+        pVel->set((-pHost->mGravity).scaleInline(18.0f));
         break;
     }
     case 5:
     case 3:
         if (MR::isNearZero(*pVel, 0.001f)) {
-            TVec3f neg;
-            neg.negate(pHost->mGravity);
-            TVec3f v(neg);
-            v.scale(18.0f);
-            pVel->set(v);
+            pVel->set((-pHost->mGravity).scaleInline(18.0f));
         } else {
             TVec3f up;
             up.negate(pHost->mGravity);
@@ -529,14 +524,7 @@ void RollingRockStateRoll::changeState(s32 type) {
             MR::vecKillElement(*pVel, up, &side);
             MR::normalizeOrZero(&side);
             side.negate();
-            TVec3f a(up);
-            a.scale(1.0f - 0.3f);
-            TVec3f b(side);
-            b.scale(0.3f);
-            TVec3f c(b + a);
-            TVec3f d(c);
-            d.scale(18.0f);
-            pVel->set(d);
+            pVel->set((side.scaleInline(sReflectSideRate) + up.scaleInline(1.0f - sReflectSideRate)).scaleInline(18.0f));
         }
         break;
     case 4:
@@ -570,6 +558,7 @@ void RollingRockStateRoll::changeState(s32 type) {
     kill();
 }
 
+// NONMATCHING: branch layout and register scheduling differ.
 void RollingRockStateRoll::exeStart() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(mHost);
@@ -610,10 +599,11 @@ void RollingRockStateRoll::exeAppear() {
     }
 }
 
+// NONMATCHING: integer conversion spills and floating-point operand order differ.
 void RollingRockStateRoll::exeMove() {
     TVec3f prevVel(mHost->mVelocity);
     TVec3f newVel;
-    newVel.x = newVel.y = newVel.z = 0.0f;
+    newVel.z = newVel.y = newVel.x = 0.0f;
     if (turnByStick()) {
         newVel = mHost->mVelocity;
         MR::diffAngleAbs(newVel, prevVel);
@@ -621,10 +611,10 @@ void RollingRockStateRoll::exeMove() {
     if (!tryJump() && !tryReflect() && !tryForceDash() && !tryTimeOver()) {
         s32 volScale = sVolumeScale;
         s32 base = (s32)MR::clamp(volScale * (mStickRate - 0.1f), 0.0f, 1000.0f);
-        s32 pitchScale = sPitchScale;
         s32 pitchBase = sPitchBase;
-        s32 pitch = (s32)MR::clamp(pitchScale * PSVECMag(mHost->mVelocity) + pitchBase, 0.0f, 1000.0f);
-        s32 volume = ((s32)MR::clamp(pitchScale * PSVECMag(mHost->mVelocity) + pitchBase, 0.0f, 1000.0f) + base) - 200;
+        s32 pitchScale = sPitchScale;
+        s32 pitch = (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f);
+        s32 volume = (base + (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f)) - 200;
         if (mAirStep > 5) {
             volume += 100;
             pitch = (s32)(pitch * 0.9f);
@@ -644,6 +634,7 @@ void RollingRockStateRoll::exeMove() {
     }
 }
 
+// NONMATCHING: integer conversion spills and floating-point operand order differ.
 void RollingRockStateRoll::exeAccel() {
     if (MR::isFirstStep(this)) {
         MR::startLevelSoundPlayer("RockAccel", -1, -1);
@@ -661,10 +652,10 @@ void RollingRockStateRoll::exeAccel() {
         if (MR::isGreaterStep(this, 45)) {
             setNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvMove::sInstance);
         }
-        s32 pitchScale = sPitchScale;
         s32 pitchBase = sPitchBase;
-        s32 pitch = (s32)MR::clamp(pitchScale * PSVECMag(mHost->mVelocity) + pitchBase, 0.0f, 1000.0f);
-        MR::startActionSound(mHost, "Move", pitch, (s32)MR::clamp(pitchScale * PSVECMag(mHost->mVelocity) + pitchBase, 0.0f, 1000.0f), -1);
+        s32 pitchScale = sPitchScale;
+        s32 pitch = (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f);
+        MR::startActionSound(mHost, "Move", pitch, (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f), -1);
     }
 }
 
@@ -788,6 +779,11 @@ void RollingRockStateRoll::exeJump() {
         mJumpBuffer = 5;
     }
     if (!tryEnd() && !tryPadSwing() && !tryReflect()) {
-        tryLand();
+        if (tryLand()) return;
     }
+}
+
+namespace {
+    const f32 sJumpGravityRate = 0.72f;
+    const f32 sReflectSideRate = 0.3f;
 }

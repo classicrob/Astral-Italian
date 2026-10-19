@@ -64,3 +64,5 @@ namespace MR {
     void endStoryBookAppear();
     void resetStoryBookAppear();
 }
+
+namespace MR { bool registerStoryBookDemoCast(LiveActor*); }

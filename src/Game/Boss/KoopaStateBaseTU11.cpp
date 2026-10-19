@@ -1,4 +1,5 @@
 #pragma auto_inline off
+#include "Game/Util/DemoUtil.hpp"
 #include "Game/Boss/KoopaBattle.hpp"
 #include "Game/Boss/KoopaBattleFunction.hpp"
 #include "Game/Boss/KoopaStateCommon.hpp"
@@ -33,7 +34,7 @@ void KoopaStatePreFinalDemo::setCastActor(LiveActor* pActor) {
 void KoopaStatePreFinalDemo::initDemo(const JMapInfoIter& rIter) {
     initNerve(&NrvKoopaStatePreFinalDemo::KoopaStatePreFinalDemoNrvWait::sInstance, 0);
     MR::initAnimCamera(mHost, mHost->mCameraInfo, sDownCameraName);
-    fn_80020860(mHost, rIter, sDownDemoName, sDownCameraName);
+    MR::initDemoSheetAnim(mHost, rIter, sDownDemoName, sDownCameraName);
     MR::initAnimCamera(mHost, mHost->mCameraInfo, sStartCameraName);
     MR::initDemoSheetTalkAnim(mHost, rIter, sStartDemoName, sStartCameraName, nullptr, TVec3f(0.0f, 0.0f, 0.0f), nullptr);
     mTicoBaby = reinterpret_cast< LiveActor* >(
@@ -41,7 +42,8 @@ void KoopaStatePreFinalDemo::initDemo(const JMapInfoIter& rIter) {
     mTicoBaby->makeActorDead();
     MR::initTalkAnimDemoCast(mTicoBaby, rIter, sDownDemoName, sDownCameraName);
     MR::initTalkAnimDemoCast(mTicoBaby, rIter, sStartDemoName, sStartCameraName);
-    mPowerStarModel = MR::createPowerStarDemoModel(mHost, "パワースターデモモデル", mHost->getBaseMtx());
+    KoopaBattle* pHost = mHost;
+    mPowerStarModel = MR::createPowerStarDemoModel(pHost, "パワースターデモモデル", pHost->getBaseMtx());
     mPowerStarModel->makeActorDead();
     MR::invalidateClipping(mPowerStarModel);
     MR::initTalkAnimDemoCast(mPowerStarModel, rIter, sDownDemoName, sDownCameraName);

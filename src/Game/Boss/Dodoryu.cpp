@@ -41,19 +41,13 @@
 #include <cstdio>
 
 // SMG2 2-arg tryFindNamePos (no symbol name in symbols.txt)
-// PLACEHOLDER(objects): unnamed target symbol fn_8004E770, declared extern "C" so the reloc name matches; resolve when fn_8004E770 gets its real name in symbols.txt
-extern "C" void fn_8004E770(const char*, MtxPtr);
 
-void Dodoryu_FORCE_MATCH(DodoryuStateBase* pState, TPos3f* pMtx, TVec3f* pVec) {
-    pVec->setAll< f32 >(0.0f);
-    pState->DodoryuStateBase::catchSendPlayerFlying(nullptr, nullptr);
-    pState->DodoryuStateBase::catchSendPlayerFlying(nullptr, nullptr);
-    pMtx->getXDir(*pVec);
-    pMtx->getXDir(*pVec);
-    pMtx->getYDir(*pVec);
-    pMtx->getYDir(*pVec);
+void DodoryuStateBase::catchSendPlayerFlying(HitSensor*, HitSensor*) {
 }
 
+// PLACEHOLDER(objects): forces the signed-int conversion bias before the readonly sensor offsets;
+// resolve when the missing early conversion or original constant-table layout is recovered.
+// An explicit bias/sensor table restores the bytes but changes initHitSensor's base-register allocation.
 f32 Dodoryu_FORCE_MATCH_CONVERSION(s32 value) {
     return value;
 }
@@ -271,9 +265,9 @@ void Dodoryu_DUMMY() {
 }
 
 Dodoryu::Dodoryu(const char* pName)
-    : LiveActor(pName), _BC(0.0f, 0.0f, 0.0f), _C8(), _CC(), mState(), mMoveStateHolder(), mHill(), mLeadHill(), mBank(), mRabbit(),
-      _128(0.0f, 1.0f, 0.0f), _134(1.0f, 0.0f, 0.0f), mClosedAreaObj(), _144(), _148(new CameraTargetMtx("カメラターゲットダミー")),
-      _14C(new CameraTargetMtx("カメラターゲットダミー")), _150(), _154(), mAnimScaleCtrl(new AnimScaleController(nullptr)) {
+    : LiveActor(pName), mCameraTargetPos(0.0f, 0.0f, 0.0f), mCameraFollowsPlayer(), mStateIndex(), mState(), mMoveStateHolder(), mHill(), mLeadHill(), mBank(), mRabbit(),
+      mGroundNormal(0.0f, 1.0f, 0.0f), mMoveFront(1.0f, 0.0f, 0.0f), mClosedAreaObj(), mBattleStarted(), mInitialCameraTarget(new CameraTargetMtx("カメラターゲットダミー")),
+      mSpinOutCameraTarget(new CameraTargetMtx("カメラターゲットダミー")), mRumbleEnabled(), mRumbleStep(), mAnimScaleCtrl(new AnimScaleController(nullptr)) {
     mBaseMtx.identity();
 }
 
@@ -301,18 +295,18 @@ void Dodoryu::init(const JMapInfoIter& rIter) {
     initSwitch(rIter);
     initEffectKeeper(0, nullptr, false);
     MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
-    MR::declareCameraRegisterVec(this, 0, &_BC);
+    MR::declareCameraRegisterVec(this, 0, &mCameraTargetPos);
     MR::declareGlobalEventCameraFixedThere(::sSpinOutCamera, true, 0.0f);
     createMogucchiHill();
     mLeadHill = new DodoryuLeadHill(this);
     createDodoryuBank();
     MR::declareStarPiece(this, 24);
     MR::createCenterScreenBlur();
-    _148->mMatrix.setInline(MR::getZonePlacementMtx(rIter));
+    mInitialCameraTarget->mMatrix.setInline(MR::getZonePlacementMtx(rIter));
     MR::startBckWithInterpole(this, "UnderGroundWalk", 0);
     MR::startBva(this, "Normal");
     MR::startBrk(this, "Normal");
-    mState[_CC]->start();
+    mState[mStateIndex]->start();
 
     if (MR::isValidSwitchB(this)) {
         MR::onSwitchB(this);
@@ -329,7 +323,7 @@ void Dodoryu::initAfterPlacement() {
 void Dodoryu::control() {
     mMoveStateHolder->execute();
     checkHipDrop();
-    mState[_CC]->movement();
+    mState[mStateIndex]->movement();
     updateRumblePad();
     updateCameraTarget();
     mAnimScaleCtrl->updateNerve();
@@ -337,12 +331,12 @@ void Dodoryu::control() {
 
 void Dodoryu::startClipped() {
     LiveActor::startClipped();
-    mState[_CC]->catchStartClipped();
+    mState[mStateIndex]->catchStartClipped();
 }
 
 void Dodoryu::endClipped() {
     LiveActor::endClipped();
-    mState[_CC]->catchEndClipped();
+    mState[mStateIndex]->catchEndClipped();
 }
 
 void Dodoryu::snapToGround() {
@@ -352,7 +346,7 @@ void Dodoryu::snapToGround() {
     TVec3f v4;
 
     if (MR::getFirstPolyOnLineToMap(&v4, &triangle, mPosition - mGravity.scaleInline(200.0f), mGravity.scaleInline(2200.0f))) {
-        _128 = *triangle.getNormal(0);
+        mGroundNormal = *triangle.getNormal(0);
 
         turnUpVecTo(-mGravity);
         mPosition.set(v4);
@@ -377,7 +371,7 @@ bool Dodoryu::snapToWall() {
     }
 
     MR::normalize(&v1);
-    _134.set(v1);
+    mMoveFront.set(v1);
     v1 *= cylinderRadius;
     TVec3f v2 = cylinderPos + v1;
     mPosition.set(v2);
@@ -390,10 +384,10 @@ void Dodoryu::setMtx(const TPos3f& rMtx) {
     mBaseMtx.setInline(&rMtx);
     mBaseMtx.getTrans(mPosition);
 
-    if (_C8) {
-        _BC = *MR::getPlayerPos();
+    if (mCameraFollowsPlayer) {
+        mCameraTargetPos = *MR::getPlayerPos();
     } else {
-        _BC = mPosition - mGravity * 150.0f;
+        mCameraTargetPos = mPosition - mGravity * 150.0f;
     }
 }
 
@@ -402,16 +396,16 @@ void Dodoryu::notifyOnSwitchA() {
     MR::invalidateClipping(mHill);
     MR::invalidateClipping(mLeadHill);
     MR::invalidateClipping(mBank);
-    _144 = 1;
+    mBattleStarted = 1;
     mHill->setAppearNum(mHill->mPieceCount);
 }
 
 void Dodoryu::nextState() {
-    mState[_CC]->end();
+    mState[mStateIndex]->end();
 
-    _CC++;
+    mStateIndex++;
 
-    if (_CC >= mState.size()) {
+    if (mStateIndex >= mState.size()) {
         MR::startAfterBossRushBGM();
 
         if (MR::isValidSwitchB(this)) {
@@ -420,7 +414,7 @@ void Dodoryu::nextState() {
 
         kill();
     } else {
-        mState[_CC]->start();
+        mState[mStateIndex]->start();
     }
 }
 
@@ -448,7 +442,7 @@ void Dodoryu::getPlayerResetMtx(TPos3f* pMtx, u32 param2) const {
     char buf[64];
     snprintf(buf, sizeof(buf), "マリオ再セット%d", param2 + 1);
 
-    fn_8004E770(buf, (MtxPtr)pMtx);
+    MR::tryFindNamePos(buf, (MtxPtr)pMtx);
 }
 
 bool Dodoryu::checkWallWithVelocity() {
@@ -483,7 +477,7 @@ bool Dodoryu::checkWallWithVelocity() {
 
     MR::normalize(&deltaPos);
 
-    _134 = deltaPos;
+    mMoveFront = deltaPos;
     mClosedAreaObj = closedAreaObj;
 
     return true;
@@ -494,7 +488,7 @@ void Dodoryu::reactJumpOutCommon() const {
 }
 
 void Dodoryu::startSpinOutCamera() {
-    MR::startGlobalEventCamera(::sSpinOutCamera, CameraTargetArg(_14C), 120);
+    MR::startGlobalEventCamera(::sSpinOutCamera, CameraTargetArg(mSpinOutCameraTarget), 120);
 }
 
 void Dodoryu::endSpinOutCamera() {
@@ -685,7 +679,7 @@ void Dodoryu::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             MR::sendMsgEnemyAttack(pReceiver, pSender);
         }
     } else {
-        mState[_CC]->catchAttackSensor(pSender, pReceiver);
+        mState[mStateIndex]->catchAttackSensor(pSender, pReceiver);
     }
 }
 
@@ -710,7 +704,7 @@ bool Dodoryu::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         return true;
     }
 
-    return mState[_CC]->catchPlayerAttack(msg, pSender, pReceiver);
+    return mState[mStateIndex]->catchPlayerAttack(msg, pSender, pReceiver);
 }
 
 void Dodoryu::initHitSensor() {
@@ -769,7 +763,7 @@ void Dodoryu::turnUpVecTo(const TVec3f& rVec) {
 
 void Dodoryu::checkHipDrop() {
     if (MR::isPlayerHipDropLand()) {
-        mState[_CC]->catchHipDrop();
+        mState[mStateIndex]->catchHipDrop();
     }
 }
 
@@ -782,15 +776,15 @@ void Dodoryu::initState() {
     mState.push_back(new DodoryuDemoAngry(this, "DodoryuDemoAngry"));
     mState.push_back(new DodoryuStateLv2(this, &::sDodoryuChaseDataLv3, "DodoryuStateLv3"));
     mState.push_back(new DodoryuDemoDown(this, "DodoryuDemoDown"));
-    _CC = 0;
+    mStateIndex = 0;
 }
 
 void Dodoryu::updateRumblePad() {
-    if (!_150) {
+    if (!mRumbleEnabled) {
         return;
     }
 
-    _154++;
+    mRumbleStep++;
 
     MR::tryRumblePadWeak(this, WPAD_CHAN0);
 }
@@ -806,11 +800,11 @@ void Dodoryu::updateCameraTarget() {
 
     v1 = v4;
     m1.setTrans(v1);
-    _14C->mMatrix.setInline(m1);
+    mSpinOutCameraTarget->mMatrix.setInline(m1);
 }
 
-DodoryuBank::DodoryuBank() : ModelObj("ドドリュウ盛土", "DodoryuBank", _90, 11 /* MapObjStrongLight (SMG2 value) */, -2, -2, false) {
-    _90.identity();
+DodoryuBank::DodoryuBank() : ModelObj("ドドリュウ盛土", "DodoryuBank", mBaseMtx, MR::DrawBufferType_MapObjStrongLight, -2, -2, false) {
+    mBaseMtx.identity();
 }
 
 void DodoryuBank::init(const JMapInfoIter& rIter) {
@@ -825,21 +819,23 @@ void DodoryuBank::exeAppear() {
     }
 }
 
+// PLACEHOLDER(objects): forces the Jump literal before the rabbit constructor's pool entries;
+// resolve when the missing early action-name use or original literal-table ownership is recovered.
 void Dodoryu_FORCE_MATCH_RABBIT(LiveActor* pActor) {
     MR::startAction(pActor, "Jump");
 }
 
 DodoryuRabbit::DodoryuRabbit(Dodoryu* pHost, const JMapInfoIter& rIter)
-    : ModelObj("ドドリュウに追われるウサギ", "DodoryuRabbit", _94, MR::DrawBufferType_NPC, -2, -2, false), mHost(pHost), _C4(), mTalkCtrl(), _CC(300),
-      _D0(), _D4(), _D8(), mIsDisplayMessage() {
-    _94.identity();
+    : ModelObj("ドドリュウに追われるウサギ", "DodoryuRabbit", mBaseMtx, MR::DrawBufferType_NPC, -2, -2, false), mHost(pHost), mRailCoord(), mTalkCtrl(), mTalkInterval(300),
+      mTalkMessageIndex(), mLongRumbler(), mShortRumbler(), mIsDisplayMessage() {
+    mBaseMtx.identity();
 
     initWithoutIter();
 
-    _E0.identity();
-    _E0.setTrans(mPosition);
+    mTalkMtx.identity();
+    mTalkMtx.setTrans(mPosition);
 
-    mTalkCtrl = MR::createTalkCtrl(this, rIter, "DodoryuRabbit", TVec3f(100.0f, 150.0f, 100.0f), _E0);
+    mTalkCtrl = MR::createTalkCtrl(this, rIter, "DodoryuRabbit", TVec3f(100.0f, 150.0f, 100.0f), mTalkMtx);
     MR::setDistanceToTalk(mTalkCtrl, 1500.0f);
 }
 
@@ -849,8 +845,8 @@ void DodoryuRabbit::init(const JMapInfoIter& rIter) {
     MR::addHitSensorAtJointEnemy(this, "body", "Spine", 8, 50.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
 
-    _D4 = new JointRumbler(this, "Spine", 4.0f, 0.2f, 60, true, 0);
-    _D8 = new JointRumbler(this, "Spine", 4.0f, 0.2f, 30, true, 0);
+    mLongRumbler = new JointRumbler(this, "Spine", 4.0f, 0.2f, 60, true, 0);
+    mShortRumbler = new JointRumbler(this, "Spine", 4.0f, 0.2f, 30, true, 0);
 
     MR::initLightCtrl(this);
     reset(false);
@@ -863,34 +859,34 @@ void DodoryuRabbit::control() {
                     isNerve(GET_NERVE_ANON(DodoryuRabbitNrvRabbitEscapeSlow));
 
     if (isEscape) {
-        _CC--;
+        mTalkInterval--;
 
-        if (_CC <= 0) {
-            _CC = 300;
-            _D0 = (_D0 + 1) % 2;
+        if (mTalkInterval <= 0) {
+            mTalkInterval = 300;
+            mTalkMessageIndex = (mTalkMessageIndex + 1) % 2;
 
-            MR::resetAndForwardNode(mTalkCtrl, _D0);
+            MR::resetAndForwardNode(mTalkCtrl, mTalkMessageIndex);
         }
     }
 
-    if (_D4->isRumbling()) {
-        _D4->update();
+    if (mLongRumbler->isRumbling()) {
+        mLongRumbler->update();
     }
 
-    if (_D8->isRumbling()) {
-        _D8->update();
+    if (mShortRumbler->isRumbling()) {
+        mShortRumbler->update();
     }
 
     if (isNerve(GET_NERVE_ANON(DodoryuRabbitNrvRabbitPleasure)) && getNerveStep() > 30) {
         return;
     }
 
-    _E0.setInline(MR::getJointMtx(this, "Spine"));
+    mTalkMtx.setInline(MR::getJointMtx(this, "Spine"));
 
     if (MR::isShadowProjected(this, nullptr)) {
         TVec3f shadowPos;
         MR::getShadowProjectionPos(this, nullptr, &shadowPos);
-        _E0.setTrans(shadowPos);
+        mTalkMtx.setTrans(shadowPos);
     }
 }
 
@@ -960,7 +956,7 @@ void DodoryuRabbit::exeJump() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Jump");
         MR::startBtp(this, "Blink");
-        _94.setInline(mHost->_148->mMatrix);
+        mBaseMtx.setInline(mHost->mInitialCameraTarget->mMatrix);
     }
 
     MR::setNerveAtBckStopped(this, GET_NERVE_ANON(DodoryuRabbitNrvRabbitWait));
@@ -1003,21 +999,21 @@ void DodoryuRabbit::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool DodoryuRabbit::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerTrample(msg)) {
-        if (_D8->isRumbling()) {
-            _D8->reset();
+        if (mShortRumbler->isRumbling()) {
+            mShortRumbler->reset();
         }
 
-        _D4->start();
+        mLongRumbler->start();
 
         return true;
     }
 
     if (MR::isMsgStarPieceReflect(msg)) {
-        if (_D4->isRumbling()) {
-            _D4->reset();
+        if (mLongRumbler->isRumbling()) {
+            mLongRumbler->reset();
         }
 
-        _D8->start();
+        mShortRumbler->start();
 
         return false;
     }
@@ -1026,7 +1022,7 @@ bool DodoryuRabbit::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
 }
 
 void DodoryuRabbit::reset(bool param1) {
-    _C4 = MR::getRailCoord(mHost) + 1075.0f;
+    mRailCoord = MR::getRailCoord(mHost) + 1075.0f;
 
     setNerve(GET_NERVE_ANON(DodoryuRabbitNrvRabbitEscape));
 
@@ -1036,21 +1032,21 @@ void DodoryuRabbit::reset(bool param1) {
 }
 
 void DodoryuRabbit::updatePos(f32 f1) {
-    _C4 += f1;
+    mRailCoord += f1;
 
-    if (_C4 >= MR::getRailTotalLength(mHost)) {
-        _C4 -= MR::getRailTotalLength(mHost);
+    if (mRailCoord >= MR::getRailTotalLength(mHost)) {
+        mRailCoord -= MR::getRailTotalLength(mHost);
     }
 
     TVec3f railPos;
-    MR::calcRailPosAtCoord(&railPos, mHost, _C4);
+    MR::calcRailPosAtCoord(&railPos, mHost, mRailCoord);
     mPosition.set(railPos);
 
     MR::calcGravityVector(this, &mGravity, nullptr, false);
 
     TVec3f upVec(-mGravity);
     TVec3f railDir;
-    MR::calcRailDirectionAtCoord(&railDir, mHost, _C4);
+    MR::calcRailDirectionAtCoord(&railDir, mHost, mRailCoord);
 
     TVec3f vec98;
     vec98.cross(upVec, railDir);
@@ -1061,18 +1057,18 @@ void DodoryuRabbit::updatePos(f32 f1) {
         vecA4.set(railPos);
     }
 
-    _94.setXYZDir(vec98, upVec, railDir);
-    _94.setTrans(vecA4);
+    mBaseMtx.setXYZDir(vec98, upVec, railDir);
+    mBaseMtx.setTrans(vecA4);
 }
 
 f32 DodoryuRabbit::calcCoordDiff() const {
     f32 coord = MR::getRailCoord(mHost);
 
-    if (_C4 < coord) {
-        return (_C4 + MR::getRailTotalLength(mHost)) - coord;
+    if (mRailCoord < coord) {
+        return (mRailCoord + MR::getRailTotalLength(mHost)) - coord;
     }
 
-    return _C4 - coord;
+    return mRailCoord - coord;
 }
 
 bool DodoryuRabbit::tryTalk() {

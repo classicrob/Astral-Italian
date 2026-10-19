@@ -4,6 +4,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MapPartsRailMover.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/MathUtil.hpp"
 #include "Game/Util/SpringValue.hpp"
 #include "math_types.hpp"
 #include <revolution/types.h>
@@ -25,11 +26,7 @@ namespace NrvCloudStep {
     NEW_NERVE(CloudStepNrvDisappear, CloudStep, Disappear);
 };  // namespace NrvCloudStep
 
-CloudStep::CloudStep(const char* pName) : LiveActor(pName) {
-    mRailMover = nullptr;
-    mClipPos.zero();
-    mBounceTimer = 0;
-    mIsHeavy = false;
+CloudStep::CloudStep(const char* pName) : LiveActor(pName), mRailMover(nullptr), mSpring(nullptr), mClipPos(0.0f, 0.0f, 0.0f), mBounceTimer(0), mIsHeavy(false) {
     mSpring = new SpringValue(0.0f, 0.0f, 0.03f, 0.92f, 0.0f);
 }
 
@@ -43,7 +40,7 @@ void CloudStep::init(const JMapInfoIter& rIter) {
     if (MR::isConnectedWithRail(rIter)) {
         mRailMover = new MapPartsRailMover(this);
         mRailMover->init(rIter);
-        mRailMover->initAfterPlacement();
+        mRailMover->start();
     }
     MR::onCalcGravity(this);
     MR::initMapPartsClipping(this, rIter, &mClipPos, false);
@@ -65,22 +62,19 @@ void CloudStep::control() {
     }
 }
 
-// NONMATCHING: base scale math (frsqrte path) simplified, ~45%.
 void CloudStep::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     TPos3f mtx;
-    mtx = *reinterpret_cast< const TPos3f* >(getBaseMtx());
-    TVec3f offset(mGravity);
-    offset *= mSpring->mSpringValue;
-    MR::addTransMtx(mtx.mMtx, offset);
+    mtx.set(getBaseMtx());
+    f32 springValue = mSpring->mSpringValue;
+    MR::addTransMtx(mtx.mMtx, mGravity.multInLine2(springValue));
     MR::setBaseTRMtx(this, mtx);
-    f32 k = mIsHeavy ? 0.25f : 0.12f;
-    f32 s = 1.0f - k * (mSpring->mSpringValue / 60.0f);
-    if (s < 0.05f) {
-        s = 0.05f;
-    }
-    f32 r = 1.0f / s;
-    MR::setBaseScale(this, TVec3f(r, s, r));
+    f32 k = mIsHeavy ? 0.12f : 0.25f;
+    f32 s = MR::clamp(1.0f - k * (mSpring->mSpringValue / 60.0f), 0.05f, 2.0f);
+    TVec3f scale(mScale);
+    f32 r = MR::sqrt(1.0f / s);
+    scale *= TVec3f(r, s, r);
+    MR::setBaseScale(this, scale);
 }
 
 bool CloudStep::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -92,20 +86,24 @@ bool CloudStep::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
 }
 
 bool CloudStep::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isPlayerElementModeBee()) {
+    if (MR::isPlayerElementModeBee() || MR::isPlayerElementModeCloud()) {
+        if (MR::isMsgFloorTouch(msg)) {
+            if (mBounceTimer == 0) {
+                mSpring->mVelocity += mIsHeavy ? 5.0f : 8.0f;
+            }
+
+            mBounceTimer = 10;
+        }
+
         return false;
     }
-    if (MR::isPlayerElementModeCloud()) {
-        if (MR::isMsgFloorTouch(msg)) {
-            mSpring->mVelocity += mIsHeavy ? 8.0f : 5.0f;
-            mBounceTimer = 10;
-            return false;
-        }
-        if (MR::isMsgWallTouch(msg) || MR::isMsgCeilTouch(msg)) {
-            setNerve(&NrvCloudStep::CloudStepNrvDisappear::sInstance);
-            MR::invalidateCollisionParts(this);
-        }
+
+    if (MR::isMsgFloorTouch(msg) || MR::isMsgWallTouch(msg) || MR::isMsgCeilTouch(msg)) {
+        setNerve(&NrvCloudStep::CloudStepNrvDisappear::sInstance);
+        MR::invalidateCollisionParts(this);
+        return false;
     }
+
     return false;
 }
 

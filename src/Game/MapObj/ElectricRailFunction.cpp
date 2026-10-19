@@ -13,10 +13,6 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 
-void ElectricRailHolder_FORCE_MATCH_SDATA2() {
-    (void)30.0f;
-}
-
 namespace {
     const f32 cHitSensorRadius = 30.0f;
 
@@ -164,8 +160,8 @@ f32 ElectricRailFunction::getHitSensorRadius() {
     return ::cHitSensorRadius;
 }
 
-u32 ElectricRailFunction::calcDisplayListSize(u32 size, s32 count) {
-    return (((size * count + 3) / 32) + 2) * 32;
+f32 ElectricRailFunction::getHipDropSensorRadius() {
+    return 60.0f;
 }
 
 void ElectricRailHolder::init(const JMapInfoIter& rIter) {
@@ -250,4 +246,8 @@ ModelObj* ElectricRailHolder::createModel(ElectricRailType railType) const {
     }
 
     return pModel;
+}
+
+u32 ElectricRailFunction::calcDisplayListSize(u32 size, s32 count) {
+    return (((size * count + 3) / 32) + 2) * 32;
 }

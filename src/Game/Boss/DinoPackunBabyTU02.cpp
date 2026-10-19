@@ -1,6 +1,7 @@
 #include "Game/Boss/DinoPackunBaby.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
+#include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorStateUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -118,3 +119,39 @@ DinoPackunBabyShell::DinoPackunBabyShell(LiveActor* pHost, const char* pName, co
     mModelMtx.identity();
     loadFixedPosition(pJointName, nullptr);
 }
+
+inline PartsModel::~PartsModel() {}
+
+// NONMATCHING: string-address lifetime and register allocation differ.
+void DinoPackunBabyShell::init(const JMapInfoIter& rIter) {
+    PartsModel::init(rIter);
+    mModelMtx.set(getBaseMtx());
+    mModel = new BreakModel(this, "シェル壊れ", "DinoPackunBabyShellBreak", mModelMtx, "Break");
+    mModel->initWithoutIter();
+}
+
+void DinoPackunBabyShell::kill() {
+    LiveActor::kill();
+    MR::calcGravity(this);
+    MR::makeMtxUpNoSupportPos(&mModelMtx, -mGravity, mPosition);
+    mModel->mAnimName = "Break";
+    mModel->appear();
+}
+
+void DinoPackunBabyShell::startBreak(const char* pActionName) {
+    mModelMtx.set(mHost->getBaseMtx());
+    mModel->mAnimName = pActionName;
+    mModel->appear();
+}
+
+void DinoPackunBabyShell::updateModelMtx() {
+    mModelMtx.set(mHost->getBaseMtx());
+}
+void DinoPackunBabyShell::requestMovementOnModel() {
+    MR::requestMovementOn(mModel);
+}
+void DinoPackunBabyShell::killModel() {
+    MR::tryKillAndForceDeleteEffectAll(mModel);
+}
+DinoPackunBabyShell::~DinoPackunBabyShell() {}
+

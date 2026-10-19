@@ -13,10 +13,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
-// PLACEHOLDER(objects): unnamed target symbol fn_800145C0, declared extern "C" so the reloc name matches; resolve when fn_800145C0 gets its real name in symbols.txt
-extern "C" void fn_800145C0(LiveActor*);
-// PLACEHOLDER(objects): unnamed target symbol fn_80014670, declared extern "C" so the reloc name matches; resolve when fn_80014670 gets its real name in symbols.txt
-extern "C" void fn_80014670(LiveActor*);
 
 namespace NrvCoin {
     NEW_NERVE(CoinNrvNonActive, Coin, NonActive);
@@ -42,12 +38,12 @@ Coin::Coin(const char* pName) : LiveActor(pName) {
     mClippingRange.x = 0.0f;
     mClippingRange.y = 0.0f;
     mClippingRange.z = 0.0f;
-    _B8.x = 0.0f;
-    _B8.y = 0.0f;
-    _B8.z = 0.0f;
+    mSpinDrainStartPos.x = 0.0f;
+    mSpinDrainStartPos.y = 0.0f;
+    mSpinDrainStartPos.z = 0.0f;
     mLifeTime = 600;
     mCannotTime = 0;
-    mShadowType = -1;
+    mShadowType = ShadowType_Default;
     mInWater = false;
     mShadowCalcOn = false;
     mIgnoreGravity = false;
@@ -67,7 +63,7 @@ void Coin::init(const JMapInfoIter& rIter) {
     f32 scale = mScale.x;
     initHitSensor(1);
 
-    MR::addHitSensor(this, "coin", 0x44 /* ATYPE_COIN */, 4, 55.0f * scale, TVec3f(0.0f, 70.0f * scale, 0.0f));
+    MR::addHitSensor(this, "coin", ATYPE_COIN, 4, 55.0f * scale, TVec3f(0.0f, 70.0f * scale, 0.0f));
     initBinder(55.0f * scale, 70.0f * scale, 0);
     MR::initStarPointerTarget(this, 55.0f * scale, TVec3f(0.0f, 70.0f * scale, 0.0f));
     MR::setClippingFar100m(this);
@@ -106,10 +102,10 @@ void Coin::init(const JMapInfoIter& rIter) {
         if (!MR::useStageSwitchSyncAppear(this, rIter)) {
             appearFixInit();
         }
-    }
 
-    if (MR::initUseStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOnB(this, MR::FunctorV0M< Coin*, void (Coin::*)() >(this, &Coin::makeActorDead));
+        if (MR::initUseStageSwitchReadB(this, rIter)) {
+            MR::listenStageSwitchOnB(this, MR::FunctorV0M< Coin*, void (Coin::*)() >(this, &Coin::makeActorDead));
+        }
     } else {
         makeActorDead();
     }
@@ -130,16 +126,16 @@ void Coin::initShadow(const JMapInfoIter& rIter) {
 
     if (MR::isValidInfo(rIter)) {
         MR::getJMapInfoArg5NoInit(rIter, &dropLength);
-        if (mShadowType == -1) {
+        if (mShadowType == ShadowType_Default) {
             MR::getJMapInfoArg6NoInit(rIter, &mShadowType);
         }
     }
 
     switch (mShadowType) {
-    case 0:
+    case ShadowType_SurfaceCircle:
         MR::initShadowSurfaceCircle(this, 50.0f * mScale.x);
         break;
-    case 1:
+    case ShadowType_VolumeCylinder:
         MR::initShadowVolumeCylinder(this, 50.0f * mScale.x);
         break;
     default:
@@ -182,12 +178,14 @@ void Coin::setShadowAndPoseModeFromJMapIter(const JMapInfoIter& rIter) {
 }
 
 void Coin::makeActorAppeared() {
-    if (!isNerve(GET_NERVE(Coin, CoinNrvGot))) {
-        MR::offCalcGravity(this);
+    if (isNerve(GET_NERVE(Coin, CoinNrvGot))) {
+        return;
+    }
 
-        if (!mIgnoreGravity) {
-            MR::calcGravityOrZero(this);
-        }
+    MR::offCalcGravity(this);
+
+    if (!mIgnoreGravity) {
+        MR::calcGravityOrZero(this);
     }
 
     if (!mIsPurple && MR::isGalaxyDarkCometAppearInCurrentStage()) {
@@ -208,7 +206,7 @@ void Coin::makeActorAppeared() {
         MR::validateShadow(this, nullptr);
 
         if (!mIsPurple) {
-            mCoinHostInfo->_8++;
+            mCoinHostInfo->mSpawnedCount++;
         }
 
         mInWater = MR::isInWater(mPosition);
@@ -227,6 +225,7 @@ void Coin::makeActorDead() {
     }
 }
 
+// NONMATCHING: matrix x/z component loads occur in the opposite order.
 void Coin::calcAndSetBaseMtx() {
     TVec3f another_vec;
     another_vec.set(MR::isNearZero(mGravity) ? TVec3f(0.0f, 1.0f, 0.0f) : -mGravity);
@@ -332,6 +331,7 @@ void Coin::exeFixTimer() {
     }
 }
 
+// NONMATCHING: zero-velocity and scaled-velocity temporaries use reversed stack slots.
 void Coin::exeMove() {
     if (MR::isFirstStep(this)) {
         mFlashingCtrl->start(mLifeTime);
@@ -392,8 +392,8 @@ void Coin::exeMove() {
     if (mFlashingCtrl->mIsEnded) {
         kill();
     } else {
-        fn_800145C0(this);
-        fn_80014670(this);
+        MR::fn_800145C0(this);
+        MR::fn_80014670(this);
         MR::attachSupportTicoToTarget(this);
     }
 }
@@ -440,14 +440,14 @@ void Coin::exeSupportTicoThrow() {
         MR::zeroVelocity(this);
         MR::offCalcGravity(this);
         mGravity = *MR::getPlayerGravity();
-        _B8 = mPosition;
+        mSpinDrainStartPos = mPosition;
     }
 
     MR::emitEffect(this, "CoinSpinBlur");
 
     TVec3f center(*MR::getPlayerCenterPos());
     f32 rate = MR::calcNerveEaseOutRate(this, 20);
-    MR::vecBlend(&mPosition, _B8, center, rate);
+    MR::vecBlend(&mPosition, mSpinDrainStartPos, center, rate);
 
     f32 parabola = MR::calcNerveParabolaValue(this, 30) * 250.0f;
     mPosition += (-mGravity) * parabola;
@@ -648,13 +648,13 @@ void Coin::noticeGetCoin() {
     } else {
         MR::incCoin(1, this);
         MR::startActionSound(this, "SyCoin");
-        mCoinHostInfo->_C++;
+        mCoinHostInfo->mCollectedCount++;
     }
 }
 
 void Coin::setLife(s32 lifeTime) {
     if (lifeTime < 0) {
-        mLifeTime = 0x258;
+        mLifeTime = 600;
     } else {
         mLifeTime = lifeTime;
     }
@@ -680,7 +680,7 @@ void Coin::setCalcShadowMode() {
 
 void Coin::setCannotTime(s32 cannotTime) {
     if (cannotTime < 0) {
-        mCannotTime = 0x1E;
+        mCannotTime = 30;
     } else {
         mCannotTime = cannotTime;
     }
@@ -733,7 +733,7 @@ f32 Coin::attenuateVelocity() {
 }
 
 void Coin::setShadowCylinder() {
-    mShadowType = 1;
+    mShadowType = ShadowType_VolumeCylinder;
 }
 
 bool Coin::canStartMove() const {

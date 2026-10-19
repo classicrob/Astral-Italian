@@ -10,17 +10,6 @@
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
-void MercatorTransformCube_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)0.000003814697265625f;
-    (void)3.141592653589793f;
-    (void)1.5707963267948966f;
-    (void)2.0f;
-    (void)-0.000003814697265625f;
-    (void)-1.5707963267948966f;
-}
 
 namespace MR {
     MercatorTransformCube* getMercatorCube() {
@@ -39,19 +28,15 @@ namespace {
 
 };  // namespace
 
-void MercatorTransformCube_FORCE_EMIT() {
-    TVec3f vec;
-    vec *= 0.0f;
-}
 
 MercatorTransformCube::MercatorTransformCube(int formType, const char* pName) : AreaObj(formType, pName) {
-    _3C.identity();
+    mZonePlacementMtx.identity();
 }
 
 void MercatorTransformCube::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
 
-    _3C.setInline(MR::getZonePlacementMtx(rIter));
+    mZonePlacementMtx.setInline(MR::getZonePlacementMtx(rIter));
 }
 
 f32 MercatorTransformCube::calcLocalHeight(const TVec3f& rPos) const {
@@ -83,8 +68,8 @@ void MercatorTransformCube::convertTransAndRotate(TVec3f* pPos, TPos3f* pRotatio
     }
 
     MR::makeMtxUpFront(pRotation, point, front);
-    _3C.mult(point, point);
-    TMtx34f rotation(_3C);
+    mZonePlacementMtx.mult(point, point);
+    TMtx34f rotation(mZonePlacementMtx);
     rotation.mMtx[0][3] = 0.0f;
     rotation.mMtx[1][3] = 0.0f;
     rotation.mMtx[2][3] = 0.0f;

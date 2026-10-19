@@ -1,5 +1,7 @@
 #include "Game/Boss/BossStinkBugBomb.hpp"
 #include "Game/Util.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -14,38 +16,29 @@
 namespace NrvBossStinkBugBomb {
     NEW_NERVE(BossStinkBugBombNrvWait, BossStinkBugBomb, Wait);
     NEW_NERVE(BossStinkBugBombNrvExplosion, BossStinkBugBomb, Explosion);
+    NEW_NERVE(BossStinkBugBombNrvBindStarPointer, BossStinkBugBomb, BindStarPointer);
 };  // namespace NrvBossStinkBugBomb
 
-BossStinkBugBomb::BossStinkBugBomb(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 0.0f, 1.0f), _9C(0.0f, 0.0f, 0.0f) {
+BossStinkBugBomb::BossStinkBugBomb(const char* pName) : LiveActor(pName), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mAngularVelocity(0.0f, 0.0f, 0.0f) {
 }
 
 void BossStinkBugBomb::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "BossStinkBugBomb", false);
-    MR::connectToSceneEnemy(this);
+    MR::initActor(this, "BossStinkBugBomb", false);
     MR::onCalcGravity(this);
-    initHitSensor(2);
-
-    MR::addHitSensorEnemy(this, "Body", 8, 60.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEnemyAttack(this, "Bomb", 8, 280.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::invalidateHitSensor(this, "Bomb");
-
-    initBinder(60.0f, 0.0f, 0);
-    initEffectKeeper(0, nullptr, false);
-    initSound(5, "BossStinkBugBomb", nullptr, TVec3f(0.0f));
-    MR::initShadowVolumeSphere(this, 60.0f);
-
-    initNerve(GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvWait));
+    initNerve(GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvWait), 1);
+    MR::initActorState(this, new WalkerStateBindStarPointer(this, nullptr), GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvBindStarPointer), "SupportFreeze");
     MR::invalidateClipping(this);
     makeActorDead();
 }
 
 void BossStinkBugBomb::control() {
-    _9C *= 0.96f;
-    MR::rotateQuatMoment(&_8C, _9C);
+    mAngularVelocity *= 0.96f;
+    MR::rotateQuatMoment(&mPoseQuat, mAngularVelocity);
 }
 
 void BossStinkBugBomb::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _8C);
+    MR::setBaseTRMtx(this, mPoseQuat);
     MR::setBaseScale(this, mScale);
 }
 
@@ -77,7 +70,7 @@ bool BossStinkBugBomb::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
         return true;
     }
 
-    if (MR::isMsgStarPieceAttack(msg)) {
+    if (MR::isMsgStarPieceAttack(msg) || MR::isMsgSupportTicoSpin(msg)) {
         MR::emitEffect(this, "Explosion");
         kill();
         return true;
@@ -114,6 +107,10 @@ void BossStinkBugBomb::exeWait() {
 
     MR::attenuateVelocity(this, MR::isBinded(this) ? 0.9f : 0.98f);
 
+    if (MR::attachSupportTicoToTarget(this)) {
+        setNerve(GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvBindStarPointer));
+    }
+
     if (MR::isGreaterStep(this, 150)) {
         setNerve(GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvExplosion));
     }
@@ -142,4 +139,9 @@ void BossStinkBugBomb::exeExplosion() {
     if (MR::isGreaterStep(this, 20)) {
         kill();
     }
+}
+
+void BossStinkBugBomb::exeBindStarPointer() {
+    if (MR::isFirstStep(this)) MR::zeroVelocity(this);
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvWait));
 }

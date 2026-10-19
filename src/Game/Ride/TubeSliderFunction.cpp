@@ -1,5 +1,8 @@
 #include "Game/Ride/TubeSliderFunction.hpp"
 #include "Game/Ride/TubeSlider.hpp"
+#include "Game/Ride/TubeSliderEnemy.hpp"
+#include "Game/Ride/TubeSliderObjCreator.hpp"
+#include "Game/Enemy/HanachanRunaway.hpp"
 #include "Game/Ride/TubeSliderCoinCreator.hpp"
 #include "Game/Ride/TubeSliderDamageObjCreator.hpp"
 #include "Game/Util/ActorInitUtil.hpp"
@@ -10,15 +13,12 @@
 #include "Game/Util/StringUtil.hpp"
 
 namespace TubeSliderFunction {
-    // TODO: Needs class definitions
     void initChildObjs(TubeSlider* pSlider, const JMapInfoIter& rIter) {
         s32 childNum = MR::getChildObjNum(rIter);
         for (s32 i = 0; i < childNum; i++) {
             const char* pName = nullptr;
             MR::getChildObjName(&pName, rIter, i);
 
-            // NONMATCHING: TubeSliderEnemy, HanachanRunaway and TubeSliderObjCreator are not ported yet
-            // (no complete type to `new`), so those three branches only run the name check.
             if (MR::isEqualString(pName, "TubeSliderCoinCreator")) {
                 MR::initChildObj(new TubeSliderCoinCreator(pSlider, false), rIter, i);
             } else if (MR::isEqualString(pName, "TubeSliderCoinCreatorPurple")) {
@@ -26,9 +26,11 @@ namespace TubeSliderFunction {
             } else if (MR::isEqualString(pName, "TubeSliderDamageObj")) {
                 MR::initChildObj(new TubeSliderDamageObjCreator(pSlider), rIter, i);
             } else if (MR::isEqualString(pName, "TubeSliderEnemy")) {
+                MR::initChildObj(new TubeSliderEnemy(pSlider), rIter, i);
             } else if (MR::isEqualString(pName, "TubeSliderHana")) {
+                MR::initChildObj(new HanachanRunaway(pSlider), rIter, i);
             } else {
-                // TubeSliderObjCreator(pSlider, pName)
+                MR::initChildObj(new TubeSliderObjCreator(pSlider, pName), rIter, i);
             }
         }
     }
@@ -52,13 +54,14 @@ namespace TubeSliderFunction {
         nextPointDist = 0.0f;
         MR::calcDistanceToCurrentAndNextRailPoint(pSlider, &currentPointDist, &nextPointDist);
 
-        f32 f0 = nextPointDist;
+        f32 sum = currentPointDist + nextPointDist;
+        f32 f0;
         f32 f3 = 1.0f;
-        if (currentPointDist + nextPointDist < 1.0f) {
+        if (sum < 1.0f) {
             f0 = 0.0f;
         } else {
-            f3 = currentPointDist / (currentPointDist + nextPointDist);
-            f0 = nextPointDist / (currentPointDist + nextPointDist);
+            f3 = currentPointDist / sum;
+            f0 = nextPointDist / sum;
         }
         return (A * f0) + (B * f3);
     }

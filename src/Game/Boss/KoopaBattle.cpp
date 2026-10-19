@@ -8,7 +8,7 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/Util.hpp"
-#include "Game/Util/TriangleFilter.hpp"
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 
 namespace {
     // scale of the attack range volume (cylinder) drawn around Bowser
@@ -21,13 +21,14 @@ namespace NrvKoopaBattle {
 
 KoopaBattle::KoopaBattle(const char* pName)
     : LiveActor(pName), mSequence(nullptr), mJointCtrl(nullptr), mCameraInfo(nullptr), mShell(nullptr), mDefenseForm(nullptr),
-      mDefenseCollision(nullptr), mVolumeDrawer(nullptr), mQuatA(0.0f, 0.0f, 0.0f, 1.0f), mQuatB(0.0f, 0.0f, 0.0f, 1.0f), mPos(0.0f, 0.0f, 0.0f),
-      mBattleNo(-1), _10C(false) {
+      mDefenseCollision(nullptr), mVolumeDrawer(nullptr), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mBattleQuat(0.0f, 0.0f, 0.0f, 1.0f), mBattleOrigin(0.0f, 0.0f, 0.0f),
+      mBattleNo(-1), mIsDefenseForm(false) {
     MR::createKoopaBattleAccessor();
     MR::getKoopaBattleAccessor()->registerKoopaBattle(this);
     mBaseMtx.identity();
 }
 
+// NONMATCHING: saved registers and vector temporary stack allocation.
 void KoopaBattle::init(const JMapInfoIter& rIter) {
     s32 level = 1;
     const char* pName = "KoopaVs1";
@@ -40,17 +41,14 @@ void KoopaBattle::init(const JMapInfoIter& rIter) {
         pName = "KoopaVs3";
     }
     MR::initActor(this, rIter, pName, false);
-    MR::makeQuatFromRotate(&mQuatA, this);
-    mQuatB.set< f32 >(mQuatA);
-    mPos.set< f32 >(mPosition);
+    MR::makeQuatFromRotate(&mPoseQuat, this);
+    mBattleQuat.set< f32 >(mPoseQuat);
+    mBattleOrigin.set< f32 >(mPosition);
     MR::getKoopaBattleAccessor()->setPoseA(this);
     {
         TVec3f front;
         MR::calcFrontVec(&front, this);
-        TVec3f offset(front);
-        offset.scale(4000.0f);
-        TVec3f newPos(mPosition);
-        newPos.sub(offset);
+        TVec3f newPos(mPosition - front.scaleInline(4000.0f));
         mPosition.set< f32 >(newPos);
     }
     mJointCtrl = new ActorJointCtrl(this);
@@ -68,8 +66,9 @@ void KoopaBattle::init(const JMapInfoIter& rIter) {
     }
     initNerve(&NrvKoopaBattle::KoopaBattleNrvBattle::sInstance, 1);
     MR::initActorState(this, mSequence, &NrvKoopaBattle::KoopaBattleNrvBattle::sInstance, "PhaseSequence");
-    TriangleFilterDelegator< KoopaBattle >* pFilter = new TriangleFilterDelegator< KoopaBattle >(this, &KoopaBattle::isInvalidTriangle);
-    MR::addBaseMatrixFollowTarget(this, rIter, nullptr, reinterpret_cast< BaseMatrixFollowValidater* >(pFilter));
+    BaseMatrixFollowValidateDelegator< KoopaBattle >* pValidater =
+        new BaseMatrixFollowValidateDelegator< KoopaBattle >(this, &KoopaBattle::isValidFollowId);
+    MR::addBaseMatrixFollowTarget(this, rIter, nullptr, pValidater);
     mShell = MR::createPartsModelEnemy(this, "クッパ殻モデル", "KoopaShell", MR::getJointMtx(this, "Armor"));
     mShell->mScale.set(1.0f, 1.0f, 1.0f);
     MR::registerDemoSimpleCastAll(mShell);
@@ -95,8 +94,9 @@ void KoopaBattle::init(const JMapInfoIter& rIter) {
 
 void KoopaBattle::appearDefenseForm() {
     if (mDefenseForm == nullptr) {
-        mDefenseForm = MR::createPartsModelEnemy(this, "クッパ防御姿勢", "KoopaDefenseForm", getBaseMtx());
-        mDefenseForm->mCheckHiddenHost = true;
+        PartsModel* pForm = MR::createPartsModelEnemy(this, "クッパ防御姿勢", "KoopaDefenseForm", getBaseMtx());
+        pForm->mCheckHiddenHost = true;
+        mDefenseForm = pForm;
         mDefenseForm->mScale.set< f32 >(mScale);
         mDefenseForm->kill();
         MR::startAction(mDefenseForm, "Wait");
@@ -119,9 +119,9 @@ CollisionObj* KoopaBattle::getDefenseCollision() const {
 }
 
 void KoopaBattle::setPose(const TQuat4f& rQuat, const TVec3f& rPos) {
-    mQuatB.set< f32 >(rQuat);
-    mQuatA.set< f32 >(rQuat);
-    mPos.set< f32 >(rPos);
+    mBattleQuat.set< f32 >(rQuat);
+    mPoseQuat.set< f32 >(rQuat);
+    mBattleOrigin.set< f32 >(rPos);
 }
 
 void KoopaBattle::makeActorAppeared() {
@@ -153,9 +153,8 @@ void KoopaBattle::control() {
     MR::setBtkFrameAndStop(mShell, frame);
 }
 
-// all triangles are rejected when the pointer is "negative", otherwise only the battle number match
-bool KoopaBattle::isInvalidTriangle(const Triangle* pTriangle) {
-    s32 n = reinterpret_cast< s32 >(pTriangle);
+// Unrestricted followers use a negative ID; numbered followers must match the current battle.
+bool KoopaBattle::isValidFollowId(s32 n) const {
     if (n < 0) {
         return true;
     }
@@ -163,7 +162,7 @@ bool KoopaBattle::isInvalidTriangle(const Triangle* pTriangle) {
 }
 
 void KoopaBattle::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, mQuatA);
+    MR::setBaseTRMtx(this, mPoseQuat);
     mJointCtrl->setCallBackFunction();
 }
 

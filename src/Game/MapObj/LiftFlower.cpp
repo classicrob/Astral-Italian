@@ -6,8 +6,24 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
+namespace {
+    extern const f32 sWaitHeightRate;
+    extern const f32 sRaisedHeightRate;
+}
+
 namespace NrvLiftFlower {
-    NEW_NERVE(LiftFlowerNrvWait, LiftFlower, Wait);
+    class LiftFlowerNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static LiftFlowerNrvWait sInstance;
+    };
+    LiftFlowerNrvWait LiftFlowerNrvWait::sInstance;
+    class LiftFlowerNrvWaitImmediate : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static LiftFlowerNrvWaitImmediate sInstance;
+    };
+    LiftFlowerNrvWaitImmediate LiftFlowerNrvWaitImmediate::sInstance;
     NEW_NERVE(LiftFlowerNrvMoveUp, LiftFlower, MoveUp);
     NEW_NERVE(LiftFlowerNrvMoveStop, LiftFlower, MoveStop);
     NEW_NERVE(LiftFlowerNrvDisappearSign, LiftFlower, DisappearSign);
@@ -17,7 +33,9 @@ namespace NrvLiftFlower {
 };  // namespace NrvLiftFlower
 
 LiftFlower::LiftFlower(const char* pName) : LiveActor(pName) {
-    mHomePos.zero();
+    mHomePos.x = 0.0f;
+    mHomePos.y = 0.0f;
+    mHomePos.z = 0.0f;
     mMoveHeight = 100.0f;
     mBounceTimer = 0;
     mStopStep = 0;
@@ -30,8 +48,8 @@ void LiftFlower::init(const JMapInfoIter& rIter) {
     mHomePos.set< f32 >(mPosition);
     MR::getJMapInfoArg0NoInit(rIter, &mMoveHeight);
     MR::getJMapInfoArg1NoInit(rIter, &mStopStep);
-    getBaseMtx();
-    mDemoObj = MR::createDemoObj("LiftFlowerFrame", "LiftFlower", mDemoMtx);
+    mDemoMtx.setInline(getBaseMtx());
+    mDemoObj = MR::createDemoObj("リフトフラワーフレーム", "LiftFlowerFrame", mDemoMtx);
     MR::excludeCalcShadowToMyCollision(this, nullptr);
     initNerve(&NrvLiftFlower::LiftFlowerNrvWait::sInstance, 0);
     MR::calcGravity(this);
@@ -47,35 +65,30 @@ void LiftFlower::control() {
 bool LiftFlower::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgFloorTouch(msg)) {
         mBounceTimer = 10;
-        return false;
     }
     return false;
 }
 
-void LiftFlower::exeWait() {
+bool LiftFlower::exeWait(s32 delay) {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::validateClipping(this);
     }
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f offset = up * (mMoveHeight * 1.0f);
-    TVec3f pos = mHomePos + offset;
-    MR::setPosition(this, pos);
-    if (MR::isGreaterStep(this, mStopStep)) {
-        setNerve(&NrvLiftFlower::LiftFlowerNrvMoveUp::sInstance);
-    }
+    MR::setPosition(this, mHomePos + up * (mMoveHeight * sWaitHeightRate));
+    if (MR::isGreaterStep(this, delay + 60)) return true;
+    return false;
 }
 
 void LiftFlower::exeMoveUp() {
     TVec3f up;
     MR::calcUpVec(&up, this);
-    f32 t = MR::calcNerveEaseOutRate(this, mStopStep);
-    TVec3f offset = up * (mMoveHeight * t);
-    TVec3f pos = mHomePos + offset;
-    MR::setPosition(this, pos);
+    s32 moveSteps = mMoveHeight / 10.0f;
+    f32 t = MR::calcNerveEaseOutRate(this, moveSteps);
+    MR::setPosition(this, mHomePos + up * (mMoveHeight * t));
     MR::startActionSound(this, "MoveUp", -1, -1, -1);
-    if (MR::isGreaterStep(this, mStopStep)) {
+    if (MR::isGreaterStep(this, moveSteps)) {
         MR::startActionSound(this, "MoveStop", -1, -1, -1);
         setNerve(&NrvLiftFlower::LiftFlowerNrvMoveStop::sInstance);
     }
@@ -84,9 +97,7 @@ void LiftFlower::exeMoveUp() {
 void LiftFlower::exeMoveStop() {
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f offset = up * (mMoveHeight * 0.5f);
-    TVec3f pos = mHomePos + offset;
-    MR::setPosition(this, pos);
+    MR::setPosition(this, mHomePos + up * (mMoveHeight * sRaisedHeightRate));
     if (MR::isGreaterStep(this, 30)) {
         setNerve(&NrvLiftFlower::LiftFlowerNrvDisappearSign::sInstance);
     }
@@ -101,9 +112,7 @@ void LiftFlower::exeDisappearSign() {
     }
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f offset = up * (mMoveHeight * 0.5f);
-    TVec3f pos = mHomePos + offset;
-    MR::setPosition(this, pos);
+    MR::setPosition(this, mHomePos + up * (mMoveHeight * sRaisedHeightRate));
     if (MR::isBrkStopped(this)) {
         setNerve(&NrvLiftFlower::LiftFlowerNrvDisappear::sInstance);
     }
@@ -138,9 +147,24 @@ void LiftFlower::exeAppear() {
         MR::validateCollisionParts(this);
     }
     if (MR::isActionEnd(this)) {
-        setNerve(&NrvLiftFlower::LiftFlowerNrvWait::sInstance);
+        setNerve(&NrvLiftFlower::LiftFlowerNrvWaitImmediate::sInstance);
     }
 }
 
 LiftFlower::~LiftFlower() {
+}
+
+void NrvLiftFlower::LiftFlowerNrvWaitImmediate::execute(Spine* spine) const {
+    LiftFlower* actor = static_cast<LiftFlower*>(spine->mExecutor);
+    if (actor->exeWait(0)) actor->setNerve(&LiftFlowerNrvMoveUp::sInstance);
+}
+
+void NrvLiftFlower::LiftFlowerNrvWait::execute(Spine* spine) const {
+    LiftFlower* actor = static_cast<LiftFlower*>(spine->mExecutor);
+    if (actor->exeWait(actor->mStopStep)) actor->setNerve(&LiftFlowerNrvMoveUp::sInstance);
+}
+
+namespace {
+    const f32 sWaitHeightRate = 0.0f;
+    const f32 sRaisedHeightRate = 1.0f;
 }

@@ -8,6 +8,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual void control();
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     virtual void calcAndSetBaseMtx();
 

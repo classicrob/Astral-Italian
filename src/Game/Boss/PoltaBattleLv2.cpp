@@ -31,13 +31,13 @@ namespace NrvPoltaBattleLv2 {
     NEW_NERVE(PoltaBattleLv2NrvDamageCore, PoltaBattleLv2, DamageCore);
 };  // namespace NrvPoltaBattleLv2
 
-PoltaBattleLv2::PoltaBattleLv2(Polta* pPolta) : PoltaActionBase("ボステレサ2戦目", pPolta), mPoltaHealth(3), _2C() {
+PoltaBattleLv2::PoltaBattleLv2(Polta* pPolta) : PoltaActionBase("ボステレサ2戦目", pPolta), mPoltaHealth(3), mAttackPatternIndex() {
     initNerve(GET_NERVE(PoltaBattleLv2, PoltaBattleLv2NrvWait));
     mStateAttackGround = new PoltaStateAttackGround(pPolta);
     mStatePunch = new PoltaStatePunch(pPolta);
     mStateStagger = new PoltaStateStagger(pPolta);
     mStateGroundRockAttack = new PoltaStateGroundRockAttack(pPolta);
-    mStateGroundRockAttack->_10 = 8;
+    mStateGroundRockAttack->mRockCount = 8;
     mStateGenerateRock = new PoltaStateGenerateRock(pPolta);
     mStateGenerateRock->mMaxIndexIntoPattern = 7;
     mStateGenerateRock->mEndDelayStep = 180;
@@ -135,7 +135,7 @@ bool PoltaBattleLv2::tryAttackGround() {
     if (!PoltaFunction::isEnableAttackLeftArm(getHost()) && !PoltaFunction::isEnableAttackRightArm(getHost())) {
         return false;
     }
-    if (!MR::isFaceToPlayerHorizontalDegree(getHost(), getHost()->_C4, 45.0f)) {
+    if (!MR::isFaceToPlayerHorizontalDegree(getHost(), getHost()->mFront, 45.0f)) {
         return false;
     }
     if (MR::isNearPlayer(getHost(), 1500.0f)) {
@@ -162,12 +162,12 @@ bool PoltaBattleLv2::tryAttackGround() {
 }
 
 void PoltaBattleLv2::setNerveGenerateRock() {
-    if (_2C == 2 && PoltaFunction::getCountDeadGroundRock(getHost()) >= 8) {
+    if (mAttackPatternIndex == 2 && PoltaFunction::getCountDeadGroundRock(getHost()) >= 8) {
         setNerve(GET_NERVE(PoltaBattleLv2, PoltaBattleLv2NrvGenerateGroundRock));
     } else {
         setNerve(GET_NERVE(PoltaBattleLv2, PoltaBattleLv2NrvGenerateRock));
     }
-    _2C = (_2C + 4) % 3;
+    mAttackPatternIndex = (mAttackPatternIndex + 4) % 3;
 }
 
 bool PoltaBattleLv2::tryGenerateRock() {

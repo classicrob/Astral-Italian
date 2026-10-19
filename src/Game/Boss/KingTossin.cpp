@@ -6,6 +6,10 @@
 
 
 namespace {
+    extern const f32 sHalf;
+    extern const f32 sRollingSpeed;
+    extern const f32 sRollingSpeedStep;
+
     struct MoveParam {
         f32 _0;
         f32 _4;
@@ -176,6 +180,7 @@ void KingTossin::control() {
     mJointCtrl->update();
 }
 
+// NONMATCHING: conditional branch scheduling.
 void KingTossin::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isEnableAttack()) {
         return;
@@ -401,8 +406,8 @@ void KingTossin::exeAttack() {
 
 void KingTossin::exeDamage() {
     if (MR::isFirstStep(this)) {
-        MR::tryHitReaction(this, "ダメージ");
         mLife--;
+        MR::tryHitReaction(this, "ダメージ");
         mMoveDir = mFront;
         MR::startAction(this, "BackSideDamage");
         MR::emitItemBossDamage(this);
@@ -527,6 +532,7 @@ void KingTossin::exeChanceEnd() {
     }
 }
 
+// NONMATCHING: floating-point register allocation.
 void KingTossin::exeRun() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Run");
@@ -599,12 +605,13 @@ void KingTossin::exeRolling() {
     }
 }
 
+// NONMATCHING: temporary stack slots and integer register allocation.
 void KingTossin::exeRollingLv2() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "RollingLoop");
         mIsTargetInSight = false;
         MR::calcVecToTargetPosH(&mMoveDir, this, getTargetPos(), nullptr);
-        f32 speed = 15.0f + 3.0f * 3.0f;
+        f32 speed = sRollingSpeed + 3.0f * sRollingSpeedStep;
         MR::setVelocity(this, mMoveDir * speed);
         mTimer = 0;
         mRollCount = 0;
@@ -661,7 +668,7 @@ void KingTossin::exeSliding() {
 
     TVec3f dir(0.0f);
     MR::calcVecToTargetPosH(&dir, this, getTargetPos(), nullptr);
-    f32 cos = MR::cosDegree(30.0f * 0.5f);
+    f32 cos = MR::cosDegree(30.0f * sHalf);
 
     if (mFront.dot(dir) > cos) {
         MR::zeroVelocity(this);
@@ -670,7 +677,8 @@ void KingTossin::exeSliding() {
         return;
     }
 
-    f32 t = getNerveStep() / 30.0f;
+    s32 endStep = 30;
+    f32 t = f32(getNerveStep()) / f32(endStep);
     if (t > 1.0f) {
         t = 1.0f;
     }
@@ -946,6 +954,7 @@ void KingTossin::exeChase() {
     }
 }
 
+// NONMATCHING: saved integer register allocation.
 void KingTossin::exeBrake() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Sliding");
@@ -1007,7 +1016,7 @@ bool KingTossin::tryEndTargetInSight() {
             return false;
         }
 
-        if (isTargetInSight(180.0f, 1100.0f * 0.5f)) {
+        if (isTargetInSight(180.0f, 1100.0f * sHalf)) {
             return false;
         }
 
@@ -1023,16 +1032,15 @@ bool KingTossin::tryEndTargetInSight() {
 }
 
 bool KingTossin::isFrontToSensor(HitSensor* pSensor) {
-    const TVec3f* pSensorPos = MR::getSensorPos(pSensor);
-    TVec3f dir(getTargetPos());
-    dir -= *pSensorPos;
+    TVec3f dir(getTargetPos() - *MR::getSensorPos(pSensor));
     MR::vecKillElement(dir, mGravity, &dir);
 
     if (MR::normalizeOrZero(&dir)) {
         return true;
     }
 
-    return mFront.dot(dir) < MR::cosDegree(80.0f);
+    f32 dot = mFront.dot(dir);
+    return dot < MR::cosDegree(80.0f);
 }
 
 bool KingTossin::isEnableAttack() {
@@ -1140,8 +1148,14 @@ bool KingTossin::deleteBrakeSmoke() {
 
 void KingTossin::resetPosition() {
     MR::setBaseTRMtx(this, mStartMtx);
-    mPosition.set< f32 >(mStartMtx.mMtx[0][3], mStartMtx.mMtx[1][3], mStartMtx.mMtx[2][3]);
+    mStartMtx.getTrans(mPosition);
     MR::setPlayerBaseMtx(mPlayerMtx);
 }
 
 KingTossin::~KingTossin() {}
+
+namespace {
+    const f32 sHalf = 0.5f;
+    const f32 sRollingSpeed = 15.0f;
+    const f32 sRollingSpeedStep = 3.0f;
+}

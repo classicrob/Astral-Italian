@@ -3,6 +3,7 @@
 #pragma auto_inline off
 #include "Game/Ride/RollingRock.hpp"
 #include "Game/Camera/CameraDirector.hpp"
+#include "Game/Camera/CameraParamChunk.hpp"
 #include "Game/Camera/CameraHolder.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/Camera/CameraTargetMtx.hpp"
@@ -18,8 +19,6 @@
 
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
-bool fn_80050350();
-void* fn_80114940(void*);
 void fn_803F5E20(f32*);
 }
 
@@ -189,7 +188,7 @@ bool RollingRock::isPlayerRolling() {
         return false;
     }
     bool isCamera;
-    u8* pCam = (u8*)fn_80114940(MR::getCameraDirector());
+    CameraParamChunk* pCam = MR::getCameraDirector()->getCurrentGameCameraChunk();
     if (pCam == nullptr) {
         isCamera = false;
     } else {
@@ -198,7 +197,7 @@ bool RollingRock::isPlayerRolling() {
         isCamera = false;
         for (u32 i = 0; i < 5; i++) {
             CameraDirector* pDir = MR::getCameraDirector();
-            u8 cur = pCam[8];
+            u8 cur = pCam->mCameraTypeIndex;
             if (cur == pDir->mHolder->getIndexOf(names[i])) {
                 isCamera = true;
                 break;
@@ -219,7 +218,7 @@ namespace NrvRollingRockStateParent {
     public:
         virtual void execute(Spine* pSpine) const {
             RollingRockStateParent* pState = reinterpret_cast< RollingRockStateParent* >(pSpine->mExecutor);
-            if (!MR::isPlayerDamaging() && !fn_80050350()) {
+            if (!MR::isPlayerDamaging() && !MR::isPlayerDamageCooldown()) {
                 pState->setNerve(&RollingRockStateParentNrvWait::sInstance);
             }
         }
@@ -243,7 +242,7 @@ void RollingRockStateParent::appear() {
     MR::onCalcGravity(mHost);
     MR::onCalcShadow(mHost, nullptr);
     MR::tryRumblePadMiddle(mHost, 0);
-    if (MR::isPlayerDamaging() || fn_80050350()) {
+    if (MR::isPlayerDamaging() || MR::isPlayerDamageCooldown()) {
         setNerve(&NrvRollingRockStateParent::RollingRockStateParentNrvDamage::sInstance);
     } else {
         setNerve(&NrvRollingRockStateParent::RollingRockStateParentNrvWait::sInstance);

@@ -29,3 +29,7 @@ namespace MR {
 namespace MR {
     void fn_80008510(const LiveActor*, const char*, s32);
 }
+
+namespace MR {
+    void startActionSoundLevel(const LiveActor*, const char*, s32 = -1, s32 = -1, s32 = -1);
+}

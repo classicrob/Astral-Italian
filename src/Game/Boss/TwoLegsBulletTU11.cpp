@@ -52,6 +52,7 @@ bool TwoLegsStateWalkNoDamage::tryStamp(NerveExecutor* pState, TwoLegs* pHost, H
     return false;
 }
 
+// NONMATCHING: left/right boolean and result use exchanged nonvolatile registers.
 bool TwoLegsStateWalkNoDamage::isStampTiming(NerveExecutor* pState, TwoLegs* pHost, HitSensor* pSender) {
     if (pState->getNerveStep() <= 0) {
         return false;
@@ -75,6 +76,7 @@ bool TwoLegsStateWalkNoDamage::isStampTiming(NerveExecutor* pState, TwoLegs* pHo
     return false;
 }
 
+// NONMATCHING: attacked-flag load is scheduled after the nonvolatile register save.
 bool TwoLegsStateWalkNoDamage::isWalkEnd() {
     if (mAttacked) {
         return true;

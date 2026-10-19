@@ -343,6 +343,7 @@ void MorphItemObjNeo::calcContainerBaseMtx() {
 }
 
 // NONMATCHING: unsigned conversion loads and multiply scheduling differ
+// NONMATCHING: target reloads mAppearMode (lhz) for the RotAxis angle and orders fmuls operands differently (scheduling/CSE)
 void MorphItemObjNeo::calcAndSetBaseMtx() {
     if (isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait))) {
         if (mContainerType == 1) {
@@ -433,6 +434,7 @@ bool MorphItemObjNeo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
 }
 
 // NONMATCHING: sensor/vector temporary register allocation differs
+// NONMATCHING: regalloc (pSender/pReceiver saved-register order) and the resulting psq load order in velocity -= senderPos
 bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isHiddenModel(this)) {
         return false;

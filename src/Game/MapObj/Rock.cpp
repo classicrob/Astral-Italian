@@ -132,8 +132,8 @@ void Rock::init(const JMapInfoIter& rIter) {
 
 void Rock::appear() {
     mFallVelocity.zero();
-    mAirTime = 0;
     mGravityRate = ::cGravity;
+    mAirTime = 0;
     mCurrentRailPoint = -1;
     mInvalidBindTime = 0;
     mPosition.set(mAppearPos);
@@ -887,7 +887,7 @@ void Rock::exeBreak() {
         mFallVelocity.zero();
         MR::deleteEffectAll(this);
 
-        mBreakModel->mPosition.set(mPosition);
+        MR::setPosition(mBreakModel, mPosition);
 
         TPos3f mtx;
         calcBaseMtx(&mtx);
@@ -928,7 +928,7 @@ void Rock::exeBreak() {
         }
     }
 
-    if (MR::isBckStopped(mBreakModel)) {
+    if (MR::isActionEnd(mBreakModel)) {
         kill();
         mBreakModel->kill();
     }

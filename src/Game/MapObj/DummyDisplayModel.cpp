@@ -1,4 +1,5 @@
 #include "Game/MapObj/DummyDisplayModel.hpp"
+#include "Game/MapObj/SuperSpinDriver.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/MapObj/CoinRotater.hpp"
@@ -13,48 +14,26 @@
 
 #include "Game/Util/StringUtil.hpp"
 
-void DummyDisplayModel_FORCE_MATCH_STRINGS() {
-    MR::isEqualString("Coin", "Coin");
-    MR::isEqualString("Kinopio", "Kinopio");
-    MR::isEqualString("Freeze", "Freeze");
-    MR::isEqualString("SpinDriver", "SpinDriver");
-    MR::isEqualString("SuperSpinDriver", "SuperSpinDriver");
-    MR::isEqualString("StarPieceDummy", "StarPieceDummy");
-    MR::isEqualString("Tico", "Tico");
-    MR::isEqualString("KeySwitch", "KeySwitch");
-    MR::isEqualString("InRotation", "InRotation");
-    MR::isEqualString("PowerStar", "PowerStar");
-    MR::isEqualString("KinokoOneUp", "KinokoOneUp");
-    MR::isEqualString("Kuribo", "Kuribo");
-    MR::isEqualString("BlueChip", "BlueChip");
-    MR::isEqualString("YellowChip", "YellowChip");
-    MR::isEqualString("StrayTico", "StrayTico");
-    MR::isEqualString("GrandStar", "GrandStar");
-    MR::isEqualString("KinokoLifeUp", "KinokoLifeUp");
-    MR::isEqualString("ColorChange", "ColorChange");
-    MR::isEqualString("Shadow", "Shadow");
-    MR::isEqualString("Light", "Light");
-    MR::isEqualString("body", "body");
-}
-
 namespace {
     const DummyDisplayModelInfo cDummyDisplayModelInfoTable[15] = {
-        {"Coin", {0.0f, 70.0f, 0.0f}, 15, nullptr, false},
-        {"Kinopio", {0.0f, 50.0f, 0.0f}, 16, "Freeze", true},
-        {"SpinDriver", {0.0f, 0.0f, 0.0f}, 11, nullptr, false},
-        {"SuperSpinDriver", {0.0f, 0.0f, 0.0f}, 11, "Freeze", false},
-        {"StarPieceDummy", {-30.0f, 100.0f, -30.0f}, 13, "Freeze", false},
-        {"Tico", {0.0f, 50.0f, 0.0f}, 16, nullptr, true},
-        {"KeySwitch", {0.0f, 0.0f, 0.0f}, 10, "InRotation", false},
-        {"PowerStar", {0.0f, 0.0f, 0.0f}, 13, nullptr, false},
-        {"KinokoOneUp", {0.0f, 40.0f, 0.0f}, 13, nullptr, false},
-        {"Kuribo", {0.0f, 80.0f, 0.0f}, 18, nullptr, false},
-        {"BlueChip", {0.0f, 0.0f, 0.0f}, 11, nullptr, false},
-        {"YellowChip", {0.0f, 0.0f, 0.0f}, 11, nullptr, false},
-        {"StrayTico", {0.0f, 50.0f, 0.0f}, 16, nullptr, false},
-        {"GrandStar", {0.0f, 0.0f, 0.0f}, 13, nullptr, false},
-        {"KinokoLifeUp", {0.0f, 40.0f, 0.0f}, 13, nullptr, false},
+        {"Coin", nullptr, {0.0f, 70.0f, 0.0f}, 16, nullptr, false},
+        {"Kinopio", nullptr, {0.0f, 50.0f, 0.0f}, 17, "Freeze", true},
+        {"SpinDriver", nullptr, {0.0f, 0.0f, 0.0f}, 12, nullptr, false},
+        {"SuperSpinDriver", nullptr, {0.0f, 0.0f, 0.0f}, 12, "Freeze", false},
+        {"StarPieceDummy", nullptr, {-30.0f, 100.0f, -30.0f}, 14, "Freeze", false},
+        {"Tico", "Dummy", {0.0f, 50.0f, 0.0f}, 17, nullptr, true},
+        {"KeySwitch", nullptr, {0.0f, 0.0f, 0.0f}, 11, "InRotation", false},
+        {"PowerStar", "Demo", {0.0f, 0.0f, 0.0f}, -1, nullptr, false},
+        {"KinokoOneUp", "Dummy", {0.0f, 40.0f, 0.0f}, 14, nullptr, false},
+        {"Kuribo", "Dummy", {0.0f, 80.0f, 0.0f}, 19, nullptr, false},
+        {"BlueChip", nullptr, {0.0f, 0.0f, 0.0f}, 12, nullptr, false},
+        {"YellowChip", nullptr, {0.0f, 0.0f, 0.0f}, 12, nullptr, false},
+        {"StrayTico", nullptr, {0.0f, 50.0f, 0.0f}, 17, nullptr, false},
+        {"GrandStar", nullptr, {0.0f, 0.0f, 0.0f}, 14, nullptr, false},
+        {"KinokoLifeUp", "Dummy", {0.0f, 40.0f, 0.0f}, 14, nullptr, false},
     };
+
+    const DummyDisplayModelInfo cDummyDisplayModelInfoCrystalPowerStar = {"PowerStar", "Dummy", {0.0f, 0.0f, 0.0f}, -1, nullptr, false};
 
     s32 getItemType(const JMapInfoIter& rIter) {
         s32 type = 0;
@@ -78,7 +57,6 @@ namespace {
 
 namespace MR {
 DummyDisplayModel* tryCreateDummyModel(LiveActor* pHost, const JMapInfoIter& rIter, s32 a3, int itemIdx) {
-    const DummyDisplayModelInfo* pInfo;
     s32 modelId = MR::getDummyDisplayModelId(rIter, a3);
 
     if (modelId == -1) {
@@ -89,25 +67,33 @@ DummyDisplayModel* tryCreateDummyModel(LiveActor* pHost, const JMapInfoIter& rIt
         return nullptr;
     }
 
-    pInfo = &::cDummyDisplayModelInfoTable[modelId];
-    DummyDisplayModel* mdl = new DummyDisplayModel(pHost, pInfo, itemIdx < 0 ? pInfo->_10 : itemIdx, modelId, getItemType(rIter));
+    const DummyDisplayModelInfo* pInfo = &::cDummyDisplayModelInfoTable[modelId];
+
+    if (modelId == 7 && itemIdx == 34) {
+        pInfo = &::cDummyDisplayModelInfoCrystalPowerStar;
+    }
+
+    DummyDisplayModel* mdl = new DummyDisplayModel(pHost, pInfo, itemIdx < 0 ? pInfo->_14 : itemIdx, modelId, getItemType(rIter));
     mdl->initWithoutIter();
     return mdl;
 }
 };  // namespace MR
 
 DummyDisplayModel::DummyDisplayModel(LiveActor* pHost, const DummyDisplayModelInfo* pInfo, int a3, s32 itemType, s32 a5)
-    : PartsModel(pHost, pInfo->mName, pInfo->mName, nullptr, a3, 0) {
+    : PartsModel(pHost, pInfo->mName, pInfo->mSubName == nullptr ? pInfo->mName : nullptr, nullptr, a3, 0) {
     mModelInfo = pInfo;
     mItemType = itemType;
     _A4 = a5;
     _A8 = 0;
-    _AC = a3 == 33;
+    _AC = a3 == 34;
+    if (pInfo->mSubName != nullptr) {
+        MR::initActor(this, pInfo->mName, pInfo->mSubName, false);
+    }
     mScale.x = 1.0f;
     mScale.y = 1.0f;
     mScale.z = 1.0f;
 
-    switch (itemType) {
+    switch (mItemType) {
     case ITEM_TYPE_COIN: {
         if (!_AC) {
             MR::createCoinRotater();
@@ -128,33 +114,42 @@ void DummyDisplayModel::init(const JMapInfoIter& rIter) {
         MR::setBrkFrameAndStop(this, _A4);
     }
 
-    if (mItemType != ITEM_TYPE_GRAND_STAR && MR::getLightNumMax(this) > 0) {
+    if (mItemType != ITEM_TYPE_GRAND_STAR && mItemType != 9 && mItemType != 8 && mItemType != 14 && MR::getLightNumMax(this) > 0) {
         MR::initLightCtrl(this);
     }
 
     switch (mItemType) {
     case ITEM_TYPE_STARPIECE: {
         if (!_AC) {
-            MR::initShadowFromCSV(this, "Shadow");
+            MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
         }
 
         break;
     }
 
-    case ITEM_TYPE_POWER_STAR:
-    case ITEM_TYPE_GRAND_STAR: {
+    case ITEM_TYPE_POWER_STAR: {
+        s32 color = PowerStar::setupColor(this, mHost, -1);
+        PowerStar::emitColorEffect(this, "Light", color, false);
+
         if (!_AC) {
             PowerStar::initShadowPowerStar(this, false);
         }
 
-        PowerStar::setupColor(this, mHost, -1);
-        MR::emitEffect(this, "Light");
         break;
     }
 
+    case ITEM_TYPE_GRAND_STAR:
+        PowerStar::setupColor(this, mHost, -1);
+        MR::emitEffect(this, "Light");
+        break;
+
+    case ITEM_TYPE_SUPER_SPIN_DRIVER:
+        MR::startSuperSpinDriverYellowColorAnim(this);
+        break;
+
     case ITEM_TYPE_KINOPIO:
         _A8 = new LodCtrl(this, rIter);
-        _A8->createLodModel(33, -1, -1);
+        _A8->createLodModel(34, -1, -1);
         _A8->syncMaterialAnimation();
         _A8->syncJointAnimation();
         _A8->initLightCtrl();
@@ -186,6 +181,11 @@ void DummyDisplayModel::control() {
     case ITEM_TYPE_POWER_STAR:
     case ITEM_TYPE_GRAND_STAR:
         PowerStar::requestPointLight(this, mHost, -1);
+
+        if (!_AC) {
+            mRotation.y = MR::repeat(mRotation.y + PowerStar::getPowerStarWaitRotateSpeed(), 0.0f, 360.0f);
+        }
+
         break;
     case ITEM_TYPE_KINOPIO:
         _A8->update();
@@ -198,7 +198,7 @@ void DummyDisplayModel::calcAndSetBaseMtx() {
     TPos3f* m = (TPos3f*)getBaseMtx();
 
     TVec3f offset;
-    TVec3f v19 = mModelInfo->_4;
+    TVec3f v19 = mModelInfo->_8;
     offset.negate(v19);
     PSMTXMultVec((MtxPtr)m, offset, &mPosition);
     m->setTrans(mPosition);

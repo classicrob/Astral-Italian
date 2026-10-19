@@ -4,7 +4,7 @@
 
 class BloomArea : public ImageEffectArea {
 public:
-    BloomArea(int, const char*);
+    BloomArea(const char*);
 
     virtual ~BloomArea();
     virtual void init(const JMapInfoIter&);

@@ -39,11 +39,11 @@ namespace NrvAssemblyBlock {
 };  // namespace NrvAssemblyBlock
 
 AssemblyBlock::AssemblyBlock(const char* pName)
-    : LiveActor(pName), mObjArg7(-1), mPlayerSearchDistance(-1.0f), _124(0.0f, 0.0f, 0.0f), mFloatRotateSpeed(), mTimer(::sDefaultTimer),
-      mBloomModel(), _13C() {
-    _8C.identity();
-    _BC.identity();
-    _EC.identity();
+    : LiveActor(pName), mObjArg7(-1), mPlayerSearchDistance(-1.0f), mClippingCenter(0.0f, 0.0f, 0.0f), mFloatRotateSpeed(), mTimer(::sDefaultTimer),
+      mBloomModel(), mIsTimerModel() {
+    mCurrentMtx.identity();
+    mAssembledMtx.identity();
+    mReturnMtx.identity();
 }
 
 void AssemblyBlock::init(const JMapInfoIter& rIter) {
@@ -56,26 +56,26 @@ void AssemblyBlock::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::tryRegisterNamePosLinkObj(this, rIter, ::sReturnPosName);
 
-    if (!MR::tryFindLinkNamePos(this, ::sReturnPosName, _EC.toMtxPtr())) {
+    if (!MR::tryFindLinkNamePos(this, ::sReturnPosName, mReturnMtx.toMtxPtr())) {
         stack_18.x = 0.0f;
         stack_18.y = 1000.0f;
         stack_18.z = 1000.0f;
         stack_3C.add(mPosition, stack_18);
-        _EC.setTrans(stack_3C);
+        mReturnMtx.setTrans(stack_3C);
     }
 
     MR::getMapPartsObjectNameIfExistShapeID(name, sizeof(name), rIter);
     MR::initActor(this, rIter, name, false);
 
     if (MR::isEqualString(name, "AssemblyBlockPartsTimerA")) {
-        _13C = true;
+        mIsTimerModel = true;
     } else {
-        _13C = false;
+        mIsTimerModel = false;
     }
 
-    _BC.set(getBaseMtx());
-    _8C.set(_EC);
-    MR::setBaseTRMtx(this, _8C);
+    mAssembledMtx.set(getBaseMtx());
+    mCurrentMtx.set(mReturnMtx);
+    MR::setBaseTRMtx(this, mCurrentMtx);
 
     if (MR::isEqualSubString(name, "PartsIce")) {
         MR::connectToSceneIndirectMapObj(this);
@@ -87,15 +87,16 @@ void AssemblyBlock::init(const JMapInfoIter& rIter) {
     MR::addBodyMessageSensorMapObj(this);
     MR::initCollisionPartsAutoEqualScaleOne(this, name, getSensor(nullptr), nullptr);
 
-    _BC.getTrans(stack_30);
-    _EC.getTrans(stack_24);
-    _124.add(stack_30, stack_24);
-    _124.x *= 0.5f;
-    _124.y *= 0.5f;
-    _124.z *= 0.5f;
+    mAssembledMtx.getTrans(stack_30);
+    mReturnMtx.getTrans(stack_24);
+    mClippingCenter.add(stack_30, stack_24);
+    mClippingCenter.x *= 0.5f;
+    mClippingCenter.y *= 0.5f;
+    mClippingCenter.z *= 0.5f;
     f32 boundingRadius;
     MR::calcModelBoundingRadius(&boundingRadius, this);
-    MR::setClippingTypeSphere(this, boundingRadius + _124.distance(stack_24), &_124);
+    MR::setClippingTypeSphere(this, boundingRadius + mClippingCenter.distance(stack_24), &mClippingCenter);
+    MR::useStageSwitchAwake(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mPlayerSearchDistance);
 
     if (mPlayerSearchDistance <= 0.0f) {
@@ -118,7 +119,6 @@ void AssemblyBlock::init(const JMapInfoIter& rIter) {
     }
 
     initSound(4, "AssemblyBlock", nullptr, TVec3f(0.0f));
-    MR::initStarPointerTarget(this, boundingRadius, TVec3f(0.0f, 0.0f, 0.0f));
 
     if (MR::isEqualString(name, "AssemblyBlockPartsTimerA")) {
         mBloomModel = MR::createBloomModel2(this, getBaseMtx());
@@ -139,16 +139,16 @@ void AssemblyBlock::exeWait() {
         MR::validateHitSensors(this);
     }
 
-    MR::rotateMtxLocalXDegree(_8C.toMtxPtr(), mFloatRotateSpeed);
-    MR::rotateMtxLocalYDegree(_8C.toMtxPtr(), mFloatRotateSpeed);
-    MR::rotateMtxLocalZDegree(_8C.toMtxPtr(), mFloatRotateSpeed);
+    MR::rotateMtxLocalXDegree(mCurrentMtx.toMtxPtr(), mFloatRotateSpeed);
+    MR::rotateMtxLocalYDegree(mCurrentMtx.toMtxPtr(), mFloatRotateSpeed);
+    MR::rotateMtxLocalZDegree(mCurrentMtx.toMtxPtr(), mFloatRotateSpeed);
 
     f32 scalar = MR::sinDegree(getNerveStep());
 
     TVec3f trans;
-    _8C.getTrans(trans);
+    mCurrentMtx.getTrans(trans);
     trans.scaleAdd(scalar, mGravity, trans);
-    _8C.setTrans(trans);
+    mCurrentMtx.setTrans(trans);
 
     tryStartAssemble();
 }
@@ -157,7 +157,7 @@ void AssemblyBlock::exeAssemble() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, "Blur");
 
-        if (_13C) {
+        if (mIsTimerModel) {
             MR::startActionSound(this, "OjAssembleBlockStF");
         } else {
             MR::startActionSound(this, "OjAssembleBlockStart");
@@ -167,10 +167,10 @@ void AssemblyBlock::exeAssemble() {
         MR::invalidateHitSensors(this);
     }
 
-    MR::blendMtx(_EC.toMtxPtr(), _BC.toMtxPtr(), MR::calcNerveRate(this, ::sStepForAssemble), _8C.toMtxPtr());
+    MR::blendMtx(mReturnMtx.toMtxPtr(), mAssembledMtx.toMtxPtr(), MR::calcNerveRate(this, ::sStepForAssemble), mCurrentMtx.toMtxPtr());
 
     if (MR::isStep(this, ::sStepForAssemble)) {
-        if (_13C) {
+        if (mIsTimerModel) {
             MR::startActionSound(this, "OjAssembleBlockEdF");
         } else {
             MR::startActionSound(this, "OjAssembleBlockEnd");
@@ -203,7 +203,7 @@ void AssemblyBlock::exeReturn() {
         MR::tryRumblePadWeak(this, WPAD_CHAN0);
         MR::emitEffect(this, "Blur");
 
-        if (_13C) {
+        if (mIsTimerModel) {
             MR::startActionSound(this, "OjAssembleBlockRetF");
         } else {
             MR::startActionSound(this, "OjAssembleBlockReturn");
@@ -213,7 +213,7 @@ void AssemblyBlock::exeReturn() {
         MR::invalidateHitSensors(this);
     }
 
-    MR::blendMtx(_BC.toMtxPtr(), _EC.toMtxPtr(), MR::calcNerveRate(this, ::sStepForReturn), _8C.toMtxPtr());
+    MR::blendMtx(mAssembledMtx.toMtxPtr(), mReturnMtx.toMtxPtr(), MR::calcNerveRate(this, ::sStepForReturn), mCurrentMtx.toMtxPtr());
 
     if (MR::isStep(this, ::sStepForReturn)) {
         setNerve(GET_NERVE(AssemblyBlock, AssemblyBlockNrvWait));
@@ -226,7 +226,7 @@ void AssemblyBlock::exeTimer() {
     }
 
     if (MR::isStep(this, mTimer)) {
-        if (_13C) {
+        if (mIsTimerModel) {
             MR::startActionSound(this, "OjAssembleBlockVanF");
         } else {
             MR::startActionSound(this, "OjAssembleBlockVanish");
@@ -241,7 +241,7 @@ void AssemblyBlock::exeTimer() {
 }
 
 void AssemblyBlock::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _8C);
+    MR::setBaseTRMtx(this, mCurrentMtx);
 }
 
 bool AssemblyBlock::tryStartAssemble() {

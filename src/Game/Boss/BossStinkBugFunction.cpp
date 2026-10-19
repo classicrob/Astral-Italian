@@ -1,5 +1,6 @@
 #include "Game/Boss/BossStinkBugFunction.hpp"
 #include "Game/Util.hpp"
+#include "Game/Demo/DemoPositionController.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -34,7 +35,7 @@ void BossStinkBugFunction::moveRail(BossStinkBug* pStinkBug, f32 f1, f32 f2, f32
     MR::moveCoord(pStinkBug, f1);
     TVec3f railPos(MR::getRailPos(pStinkBug));
     addHeightOffset(&railPos, pStinkBug, f2);
-    MR::turnDirectionDegree(pStinkBug, &pStinkBug->_EC, MR::getRailDirection(pStinkBug), 10.0f);
+    MR::turnDirectionDegree(pStinkBug, &pStinkBug->mFront, MR::getRailDirection(pStinkBug), 10.0f);
     addLocalHeightOffset(&railPos, pStinkBug, f3);
     pStinkBug->mPosition.set(railPos);
 }
@@ -43,7 +44,7 @@ void BossStinkBugFunction::turnRailGround(BossStinkBug* pStinkBug, const TVec3f&
     if (MR::isRailGoingToEnd(pStinkBug) == a1) {
         MR::reverseRailDirection(pStinkBug);
     }
-    MR::rotateVecDegree(&pStinkBug->_EC, rVec, pStinkBug->mGravity, MR::getEaseInOutValue(f1, 0.0f, 1.0f, 1.0f) * 180.0f * -(a1 ? 1.0f : -1.0f));
+    MR::rotateVecDegree(&pStinkBug->mFront, rVec, pStinkBug->mGravity, MR::getEaseInOutValue(f1, 0.0f, 1.0f, 1.0f) * 180.0f * -(a1 ? 1.0f : -1.0f));
 }
 
 void BossStinkBugFunction::turnRail(BossStinkBug* pStinkBug, const TVec3f& rVec1, f32 f1, f32 f2, f32 f3, f32 f4, f32 f5, bool a1) {
@@ -68,7 +69,7 @@ void BossStinkBugFunction::turnRail(BossStinkBug* pStinkBug, const TVec3f& rVec1
     f32 rollAngle = f1 * (1.0f - temp) + (90.0f * flt1) * temp;
     pStinkBug->mRotation.z = MR::repeat(rollAngle, -180.0f, 360.0f);
 
-    MR::rotateVecDegree(&pStinkBug->_EC, rVec1, pStinkBug->mGravity, MR::getEaseInOutValue(f2, 0.0f, 1.0f, 1.0f) * 180.0f * -flt1);
+    MR::rotateVecDegree(&pStinkBug->mFront, rVec1, pStinkBug->mGravity, MR::getEaseInOutValue(f2, 0.0f, 1.0f, 1.0f) * 180.0f * -flt1);
     addLocalHeightOffset(&railPos, pStinkBug, f5);
     pStinkBug->mPosition.set(railPos);
 }
@@ -81,9 +82,9 @@ void BossStinkBugFunction::regainToRail(BossStinkBug* pStinkBug, const TVec3f& r
     addLocalHeightOffset(&railPos, pStinkBug, f4);
     TVec3f dif = railPos - pStinkBug->mPosition;
     if (MR::isNearZero(dif)) {
-        MR::turnDirectionDegree(pStinkBug, &pStinkBug->_EC, dif, 2.0f);
+        MR::turnDirectionDegree(pStinkBug, &pStinkBug->mFront, dif, 2.0f);
     } else {
-        MR::turnDirectionDegree(pStinkBug, &pStinkBug->_EC, MR::getRailDirection(pStinkBug), 10.0f);
+        MR::turnDirectionDegree(pStinkBug, &pStinkBug->mFront, MR::getRailDirection(pStinkBug), 10.0f);
     }
     pStinkBug->mPosition.scaleAdd(1.0f - f1, rVec, railPos);
 }
@@ -130,4 +131,26 @@ bool BossStinkBugFunction::isExistPlayerBack(const BossStinkBug* pStinkBug, f32 
 void BossStinkBugFunction::validateAttack(BossStinkBug* pStinkBug) {
     MR::validateHitSensor(pStinkBug, "attack_left");
     MR::validateHitSensor(pStinkBug, "attack_right");
+}
+
+void BossStinkBugFunction::syncDemoPose(BossStinkBug* boss, DemoPositionController* controller) {
+    controller->movement();
+    MR::setPlayerBaseMtx(MR::getJointMtx(controller, "MarioPosition"));
+    boss->setPose(MR::getJointMtx(controller, "Boss"));
+}
+
+bool BossStinkBugFunction::tryEndDemoPose(BossStinkBug* boss, DemoPositionController* controller, const char* name) {
+    if (MR::isDemoEndWaitCameraInterpolating()) {
+        MR::setBckFrameEndAndStop(boss);
+        MR::setBckFrameEndAndStop(controller);
+        controller->movement();
+        MR::setPlayerBaseMtx(MR::getJointMtx(controller, "MarioPosition"));
+        boss->setPose(MR::getJointMtx(controller, "Boss"));
+        MR::tryForceDeleteEffectAll(boss);
+        controller->setAnimCameraLastFrame(name);
+        MR::overlayWithPreviousScreen(2);
+        return false;
+    }
+    controller->endDemo(name);
+    return true;
 }

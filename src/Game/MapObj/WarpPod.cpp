@@ -26,17 +26,15 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <cstdio>
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [1.0f, 0.0f, 0.5f, 3.0f, MR::pi()] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void WarpPod_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
     (void)0.5f;
     (void)3.0f;
     (void)MR::pi();
-    (void)2.0f;
-    (void)200.0f;
-    (void)(MR::pi() / 4.0f);
-    (void)30.0f;
-    (void)100.0f;
 }
 
 GXColor gGlowEffectEnvColor[] = {
@@ -121,13 +119,6 @@ void WarpPodMgr::notifyWarpEnd(WarpPod* pWarpPod) {
 
 void WarpPodMgr::draw() const {
     MR::mDrawTimer++;
-}
-
-void WarpPod::startWaitAfterDelay(u16 delay) {
-    mDelay = delay;
-    if (mVisibilityState != 0) {
-        MR::startAction(this, "Wait");
-    }
 }
 
 void WarpPod::init(const JMapInfoIter& rIter) {
@@ -373,6 +364,13 @@ void WarpPod::control() {
     }
 
     glowEffect();
+}
+
+void WarpPod::startWaitAfterDelay(u16 delay) {
+    mDelay = delay;
+    if (mVisibilityState != 0) {
+        MR::startAction(this, "Wait");
+    }
 }
 
 void WarpPod::movement() {

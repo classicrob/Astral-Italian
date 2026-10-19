@@ -10,8 +10,8 @@ KoopaJrRobotBeam::KoopaJrRobotBeam(const char* pName, LiveActor* pHost, MtxPtr p
     JMath::gekko_ps_copy3(&mOffset, &rOffset);
     mSpeed = speed;
     mLife = life;
-    _E0 = a;
-    _E4 = b;
+    mColorIndex = a;
+    mBeamRadius = b;
     mBaseMtx.set(pMtx);
 }
 
@@ -22,8 +22,8 @@ void KoopaJrRobotBeam::init(const JMapInfoIter& rIter) {
     mRingBeam->init(rIter);
     mRingBeam->setSpeed(mSpeed);
     mRingBeam->setLife(mLife);
-    mRingBeam->setColor(_E0);
-    mRingBeam->setRadius(_E4);
+    mRingBeam->setColor(mColorIndex);
+    mRingBeam->setRadius(mBeamRadius);
     MR::invalidateClipping(this);
     makeActorDead();
 }

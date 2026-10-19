@@ -65,8 +65,6 @@ namespace {
     static const f32 sSquareHeightOffset = 100.0f;
 };  // namespace
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8004FF70, declared extern "C" so the reloc name matches; resolve when fn_8004FF70 gets its real name in symbols.txt
-extern "C" void fn_8004FF70();  // unnamed MarioAccess stub (b fn_803B6010), name unknown
 
 namespace NrvPole {
     NEW_NERVE(PoleNrvDemoAppear, Pole, DemoAppear);
@@ -95,6 +93,7 @@ Pole::Pole(const char* pName)
     mBaseMtx.identity();
 }
 
+// NONMATCHING: sound-offset and sensor temporary stack slots differ.
 void Pole::init(const JMapInfoIter& rIter) {
     TVec3f soundOffsetTree;
     TVec3f soundOffset;
@@ -281,14 +280,8 @@ void Pole::exeDemoAppear() {
 }
 
 void Pole::exeFree() {
-    TVec3f up(mUp);
-    up.scale(20.0f);
-    TVec3f top(mTopPos);
-    top.sub(up);
-    TVec3f up2(mUp);
-    up2.scale(20.0f);
-    TVec3f base(mBasePos);
-    base.add(up2);
+    TVec3f top = mTopPos - mUp.scaleInline(20.0f);
+    TVec3f base = mBasePos + mUp.scaleInline(20.0f);
     MR::calcPerpendicFootToLineInside(&mPosition, *MR::getPlayerCenterPos(), top, base);
 }
 
@@ -365,6 +358,7 @@ void Pole::exeBindWait() {
     }
 }
 
+// NONMATCHING: equivalent early-return branch layout differs.
 void Pole::exeBindTurn() {
     if (MR::isFirstStep(this)) {
         if (mIsSquare) {
@@ -750,7 +744,7 @@ bool Pole::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         tryStartTreeAnim("Land");
 
         if (isTree()) {
-            fn_8004FF70();
+            MR::resetPlayerFootState();
         }
 
         return true;
@@ -959,7 +953,8 @@ bool Pole::tryStartTreeAnim(const char* pName) {
 
             bool isPlaying = MR::isAnyAnimPlaying(this, "Shake") || MR::isAnyAnimPlaying(this, "Land");
 
-            if (isPlaying && MR::getBckFrame(this) < ::sStepShakeInterrupt) {
+            s32 interruptStep = 30;
+            if (isPlaying && MR::getBckFrame(this) < interruptStep) {
                 return false;
             }
         }

@@ -136,4 +136,5 @@ public:
 namespace MR {
     NameObj* createSuperSpinDriverYellow(const char*);
     NameObj* createSuperSpinDriverPink(const char*);
+    void startSuperSpinDriverYellowColorAnim(LiveActor*);
 };  // namespace MR

@@ -14,6 +14,9 @@
 #include "Game/Util/SupportPlayUtil.hpp"
 
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [1.0f, MR::epsilon(), 0.0f, 0.5f, 2.0f, -1.0f, MR::pi()] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void SuperSpinDriver_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)MR::epsilon();
@@ -211,18 +214,6 @@ void SuperSpinDriver::initColor() {
     }
 }
 
-bool SuperSpinDriver::isFollowValid(s32) const {
-    return isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvShootStart)) || isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvShoot));
-}
-
-void SuperSpinDriver::makeActorDead() {
-    LiveActor::makeActorDead();
-
-    if (mPathDrawer != nullptr) {
-        mPathDrawer->makeActorDead();
-    }
-}
-
 void SuperSpinDriver::initAppearState(const JMapInfoIter& rIter) {
     bool isAppear = true;
 
@@ -267,6 +258,14 @@ void SuperSpinDriver::makeActorAppeared() {
 
     if (mPathDrawer != nullptr && mPathDrawer->_B0 > 0.0f) {
         startPathDraw();
+    }
+}
+
+void SuperSpinDriver::makeActorDead() {
+    LiveActor::makeActorDead();
+
+    if (mPathDrawer != nullptr) {
+        mPathDrawer->makeActorDead();
     }
 }
 
@@ -393,6 +392,7 @@ bool SuperSpinDriver::canBind(HitSensor* pSender, HitSensor* pReceiver) const {
     return false;
 }
 
+// NONMATCHING: position-copy address scheduling differs.
 bool SuperSpinDriver::tryBind(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerveEnableBind()) {
         return false;
@@ -548,9 +548,6 @@ void SuperSpinDriver::requestShow() {
     }
 }
 
-void SuperSpinDriver::exeTryDemo() {
-}
-
 void SuperSpinDriver::exeEmptyNonActive() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
@@ -558,6 +555,9 @@ void SuperSpinDriver::exeEmptyNonActive() {
 
     onUse();
     setNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvNonActive));
+}
+
+void SuperSpinDriver::exeTryDemo() {
 }
 
 void SuperSpinDriver::exeEmptyAppear() {
@@ -634,6 +634,7 @@ void SuperSpinDriver::exeAppear() {
     }
 }
 
+// NONMATCHING: epilogue register restore ordering differs.
 void SuperSpinDriver::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -690,17 +691,6 @@ void SuperSpinDriver::exeCapture() {
     }
 }
 
-void SuperSpinDriver::exeCoolDown() {
-    // BUG, is supposed to be a conditional to call tryEndCoolDown
-
-    if (MR::isFirstStep(this)) {
-    }
-
-    if (!tryEndCoolDown()) {
-        trySwitchOff();
-    }
-}
-
 void SuperSpinDriver::exeShootStart() {
     if (tryForceCancel()) {
         return;
@@ -735,6 +725,17 @@ void SuperSpinDriver::exeShootStart() {
     }
 }
 
+void SuperSpinDriver::exeCoolDown() {
+    // BUG, is supposed to be a conditional to call tryEndCoolDown
+
+    if (MR::isFirstStep(this)) {
+    }
+
+    if (!tryEndCoolDown()) {
+        trySwitchOff();
+    }
+}
+
 void SuperSpinDriver::exeShoot() {
     if (tryForceCancel()) {
         return;
@@ -766,15 +767,6 @@ void SuperSpinDriver::exeShoot() {
     if (tryEndShoot()) {
         return;
     }
-}
-
-void SuperSpinDriver::updateEaseRotate() {
-    if (_154 <= getNerveStep() && getNerveStep() <= _158) {
-        f32 v = MR::normalize(getNerveStep(), _154, _158);
-        _138 = _13C * MR::getEaseOutValue(v, 0.0f, 1.0f, 1.0f);
-    }
-
-    _148 = PI * MR::normalize(getNerveStep(), _158, _15C);
 }
 
 void SuperSpinDriver::updateShootMotion() {
@@ -847,6 +839,15 @@ void SuperSpinDriver::updateShootMotion() {
     }
 }
 
+void SuperSpinDriver::updateEaseRotate() {
+    if (_154 <= getNerveStep() && getNerveStep() <= _158) {
+        f32 v = MR::normalize(getNerveStep(), _154, _158);
+        _138 = _13C * MR::getEaseOutValue(v, 0.0f, 1.0f, 1.0f);
+    }
+
+    _148 = PI * MR::normalize(getNerveStep(), _158, _15C);
+}
+
 void SuperSpinDriver::cancelBind() {
     if (mBindActor != nullptr) {
         MR::endBindAndPlayerJump(this, _D0, 0);
@@ -862,6 +863,7 @@ void SuperSpinDriver::endBind() {
     mSpinDriverCamera->end();
 }
 
+// NONMATCHING: matrix temporary store scheduling differs.
 void SuperSpinDriver::updateBindActorMatrix() {
     TPos3f mtx;
     mtx.identity();
@@ -1023,6 +1025,15 @@ void SuperSpinDriver::onUse() {
     MR::showModel(this);
 }
 
+bool SuperSpinDriver::isNeedEmptyModel() const {
+    switch (mColor) {
+    case 1:
+        return true;
+    default:
+        return false;
+    }
+}
+
 void SuperSpinDriver::offUse() {
     if (mEmptyModel != nullptr) {
         mEmptyModel->appear();
@@ -1031,13 +1042,8 @@ void SuperSpinDriver::offUse() {
     MR::hideModelAndOnCalcAnim(this);
 }
 
-bool SuperSpinDriver::isNeedEmptyModel() const {
-    switch (mColor) {
-    case 1:
-        return true;
-    default:
-        return false;
-    }
+bool SuperSpinDriver::isFollowValid(s32) const {
+    return isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvShootStart)) || isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvShoot));
 }
 
 bool SuperSpinDriver::isRightToUse() const {
@@ -1068,5 +1074,12 @@ namespace MR {
 
     NameObj* createSuperSpinDriverPink(const char* pName) {
         return new SuperSpinDriver(pName, 2);
+    }
+
+    // Yellow (green-star) colour of the SuperSpinDriver model; also used for its dummy display model.
+    void startSuperSpinDriverYellowColorAnim(LiveActor* pActor) {
+        MR::startBtp(pActor, "SuperSpinDriver");
+        MR::setBtpFrameAndStop(pActor, 0.0f);
+        MR::startBrk(pActor, "Yellow");
     }
 };  // namespace MR

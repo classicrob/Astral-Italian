@@ -24,14 +24,14 @@ public:
     bool tryStartAssemble();
     bool tryStartReturn();
 
-    /* 0x08C */ TPos3f _8C;
-    /* 0x0BC */ TPos3f _BC;
-    /* 0x0EC */ TPos3f _EC;
-    /* 0x11C */ s32 mObjArg7;
-    /* 0x120 */ f32 mPlayerSearchDistance;
-    /* 0x124 */ TVec3f _124;
-    /* 0x130 */ f32 mFloatRotateSpeed;
-    /* 0x134 */ s32 mTimer;
-    /* 0x138 */ ModelObj* mBloomModel;
-    /* 0x13C */ bool _13C;
+    /* 0x090 */ TPos3f mCurrentMtx;
+    /* 0x0C0 */ TPos3f mAssembledMtx;
+    /* 0x0F0 */ TPos3f mReturnMtx;
+    /* 0x120 */ s32 mObjArg7;
+    /* 0x124 */ f32 mPlayerSearchDistance;
+    /* 0x128 */ TVec3f mClippingCenter;
+    /* 0x134 */ f32 mFloatRotateSpeed;
+    /* 0x138 */ s32 mTimer;
+    /* 0x13C */ ModelObj* mBloomModel;
+    /* 0x140 */ bool mIsTimerModel;
 };

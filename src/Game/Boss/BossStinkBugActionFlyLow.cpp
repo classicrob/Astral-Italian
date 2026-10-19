@@ -31,9 +31,9 @@ namespace NrvBossStinkBugActionFlyLow {
 };  // namespace NrvBossStinkBugActionFlyLow
 
 BossStinkBugActionFlyLow::BossStinkBugActionFlyLow(BossStinkBug* pStinkBug) : BossStinkBugActionBase("ボスカメムシ低空戦", pStinkBug), _64(0.0f) {
-    _38 = 14.0f;
-    _3C = 900.0f;
-    _44 = -400.0f;
+    mCruiseSpeed = 14.0f;
+    mRailHeight = 900.0f;
+    mRailHeightOffset = -400.0f;
     initNerve(GET_NERVE(BossStinkBugActionFlyLow, BossStinkBugActionFlyLowNrvFly));
 }
 
@@ -45,7 +45,7 @@ void BossStinkBugActionFlyLow::appear() {
     }
 
     _64 = 0.0f;
-    _3C = 900.0f;
+    mRailHeight = 900.0f;
     BossStinkBugActionBase::appear();
     setNerve(GET_NERVE(BossStinkBugActionFlyLow, BossStinkBugActionFlyLowNrvDash));
     MR::offBind(getHost());
@@ -96,7 +96,7 @@ bool BossStinkBugActionFlyLow::receiveOtherMsg(u32 msg, HitSensor* pSender, HitS
 void BossStinkBugActionFlyLow::exeFly() {
     _64 += 0.05235988f;
     MR::repeatDegree(&_64);
-    _3C = 900.0f + MR::sin(_64) * 100.0f;
+    mRailHeight = 900.0f + MR::sin(_64) * 100.0f;
     throwBomb(60);
     updateFly();
     if (BossStinkBugFunction::isExistPlayerBack(getHost(), 2000.0f)) {

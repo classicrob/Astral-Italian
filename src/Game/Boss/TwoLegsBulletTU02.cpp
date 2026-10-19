@@ -54,21 +54,14 @@ void HorinoHillPart::appear() {
     setNerve(&NrvHorinoHillPart::HorinoHillPartNrvWait::sInstance);
 }
 
+// NONMATCHING: vector temporary evaluation order and register scheduling differ; calls and constants agree.
 bool HorinoHillPart::tryPlace(const TVec3f& rPos, const TVec3f& rUp) {
     Triangle tri;
-    TVec3f offs;
-    offs.scale(500.0f, rUp);
-    TVec3f start;
-    start.add(rPos, offs);
-    TVec3f negUp;
-    negUp.negate(rUp);
-    f32 lenSq = negUp.dot(negUp);
+    TVec3f offs(static_cast<const Vec&>(rUp));
+    offs.scale(500.0f);
+    TVec3f start = rPos + offs;
     TVec3f end;
-    if (lenSq <= 3.8146973e-06f) {
-        end.zero();
-    } else {
-        end.scale(JGeometry::TUtil< f32 >::inv_sqrt(lenSq) * 1000.0f, negUp);
-    }
+    end.setLength(-rUp, 1000.0f);
     if (!MR::getFirstPolyOnLineToMap(&mPosition, &tri, start, end)) {
         return false;
     }
@@ -95,7 +88,9 @@ HorinoHill::HorinoHill(LiveActor* pHost, s32 num, const char* pName, f32 radius)
     mParts = nullptr;
     mPartNum = num;
     mRadius = radius;
-    mPos.zero();
+    mPos.x = 0.0f;
+    mPos.y = 0.0f;
+    mPos.z = 0.0f;
     mUpDir = nullptr;
 }
 

@@ -21,7 +21,7 @@ void ClipAreaMovable::init(const JMapInfoIter& rIter) {
     initMoveFunction(rIter);
     initHitSensor(1);
     MR::addHitSensorMapObj(this, "body", 0, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::useStageSwitchReadB(this, rIter);
+    MR::initUseStageSwitchReadB(this, rIter);
     MR::addBaseMatrixFollowTarget(this, rIter, 0, 0);
     makeActorAppeared();
 }
@@ -113,7 +113,7 @@ NameObj* MR::createClipAreaSphere(const char* pParam1) {
 NameObj* MR::createClipAreaCenterBox(const char* pParam1) {
     ClipArea* pClipArea = new ClipAreaMovable(pParam1);
 
-    MR::setClipCenterBoxArea(pClipArea);
+    MR::setClipCenterBoxArea(pClipArea, "VolumeBox");
 
     return pClipArea;
 }
@@ -121,7 +121,7 @@ NameObj* MR::createClipAreaCenterBox(const char* pParam1) {
 NameObj* MR::createClipAreaBottomBox(const char* pParam1) {
     ClipArea* pClipArea = new ClipAreaMovable(pParam1);
 
-    MR::setClipBottomBoxArea(pClipArea);
+    MR::setClipBottomBoxArea(pClipArea, "VolumeBox");
 
     return pClipArea;
 }
@@ -138,6 +138,30 @@ NameObj* MR::createClipAreaBottomCone(const char* pParam1) {
     ClipArea* pClipArea = new ClipAreaMovable(pParam1);
 
     MR::setClipBottomConeArea(pClipArea);
+
+    return pClipArea;
+}
+
+NameObj* MR::createClipAreaCenterBoxHighModel(const char* pParam1) {
+    ClipArea* pClipArea = new ClipAreaMovable(pParam1);
+
+    MR::setClipCenterBoxArea(pClipArea, "VolumeBox");
+
+    return pClipArea;
+}
+
+NameObj* MR::createClipAreaBottomBoxHighModel(const char* pParam1) {
+    ClipArea* pClipArea = new ClipAreaMovable(pParam1);
+
+    MR::setClipBottomBoxArea(pClipArea, "VolumeBox");
+
+    return pClipArea;
+}
+
+NameObj* MR::createClipAreaCylinder(const char* pParam1) {
+    ClipArea* pClipArea = new ClipAreaMovable(pParam1);
+
+    MR::setClipCylinderArea(pClipArea);
 
     return pClipArea;
 }

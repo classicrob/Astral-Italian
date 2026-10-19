@@ -26,9 +26,9 @@ namespace NrvKoopaJrCastleHead { KoopaJrCastleHeadNrvH KoopaJrCastleHeadNrvH::sI
 
 
 KoopaJrCastleHead::KoopaJrCastleHead(LiveActor* pHost, const char* pName) : PartsModel(pHost, pName, "KoopaJrCastleHead", 0, 0x13, false) {
-    _A0 = nullptr;
-    _D4 = true;
-    PSMTXIdentity(_A4);
+    mCannonJointCtrl = nullptr;
+    mForceJointCallback = true;
+    PSMTXIdentity(mCannonMtx);
 }
 
 
@@ -36,18 +36,18 @@ KoopaJrCastleHead::KoopaJrCastleHead(LiveActor* pHost, const char* pName) : Part
 // fn_800D5440: head init: joint controller on "Cannon1", inverse rest matrix, then the 'Wait' action.
 // NONMATCHING: target builds a derived JointController (vtable lbl_80674F10 with ptmf callback fields); base-class version emitted
 void KoopaJrCastleHead::init(const JMapInfoIter& rIter) {
-    _A0 = MR::createJointDelegatorWithNullChildFunc(this, &KoopaJrCastleHead::calcJointCannon, "Cannon1");
+    mCannonJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &KoopaJrCastleHead::calcJointCannon, "Cannon1");
     MR::initJointTransform(this);
     MtxPtr rootMtx = MR::getJointMtx(this, "JointRoot");
     Mtx inv;
     PSMTXInverse(rootMtx, inv);
-    PSMTXConcat(inv, MR::getJointMtx(this, "Cannon1"), _A4);
+    PSMTXConcat(inv, MR::getJointMtx(this, "Cannon1"), mCannonMtx);
     PartsModel::init(rIter);
     initNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance, 0);
     MR::startAction(this, "Wait");
     makeActorAppeared();
     MR::invalidateHitSensor(this, "Panic");
-    _D4 = false;
+    mForceJointCallback = false;
 }
 
 // fn_800D55B0: forwards an attack-sensor pair to the host unless the actor is in its C nerve.
@@ -94,8 +94,8 @@ void KoopaJrCastleHead::setNerveC() {
     setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance);
 }
 
-// fn_800D5760: break the capsule (Break + Wait animations), then invalidate its collision.
-void fn_800D5760(LiveActor* pActor) {
+// breakCastleCapsule: break the capsule (Break + Wait animations), then invalidate its collision.
+void breakCastleCapsule(LiveActor* pActor) {
     MR::invalidateCollisionParts(pActor);
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     MR::startBva(pCastle->mCapsule, "Break");
@@ -108,7 +108,7 @@ void KoopaJrCastleHead::setNerveD() {
     setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
 }
 
-void KoopaJrCastleHead::fn_800D57D0() {
+void KoopaJrCastleHead::resetWaitUnlessDamaged() {
     if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance)) {
         return;
     }
@@ -118,23 +118,23 @@ void KoopaJrCastleHead::fn_800D57D0() {
     setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);
 }
 
-bool KoopaJrCastleHead::fn_800D5830() {
-    if (fn_800D5E90()) {
+bool KoopaJrCastleHead::tryStartPanic() {
+    if (canStartAction()) {
         setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvE::sInstance);
         return true;
     }
     return false;
 }
 
-bool KoopaJrCastleHead::fn_800D5880() {
-    if (fn_800D5E90()) {
+bool KoopaJrCastleHead::tryStartSpinSign() {
+    if (canStartAction()) {
         setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvG::sInstance);
         return true;
     }
     return false;
 }
 
-bool KoopaJrCastleHead::fn_800D58D0() const {
+bool KoopaJrCastleHead::isPanicOrSpin() const {
     bool ret = false;
     if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvE::sInstance) || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvF::sInstance) ||
         isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvG::sInstance) || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvH::sInstance)) {
@@ -193,7 +193,7 @@ void KoopaJrCastleHead::exe800D5B10() {
     }
     if (!KoopaJrCastleFunction::isPlayerOnCastle() && MR::isOnGroundPlayer()) {
         MR::startAction(pCastle->mKoopaJr, "Wait");
-        setNerveD();
+        setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
         return;
     }
     KoopaJrCastleFunction::fn_800D5040(0.4f);
@@ -214,7 +214,7 @@ void KoopaJrCastleHead::exe800D5BF0() {
     MR::startActionSound(this, "EmLvWaterbazPreStorm", -1, -1, -1);
     if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvF::sInstance)) {
         if (!KoopaJrCastleFunction::isPlayerOnCastle() && MR::isOnGroundPlayer()) {
-            setNerveD();
+            setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
             return;
         }
     }
@@ -242,43 +242,43 @@ void KoopaJrCastleHead::exe800D5D20() {
         MR::invalidateHitSensor(this, "Panic");
     }
     TVec3f pos;
-    pos.set< f32 >(_A4[0][3], _A4[1][3], _A4[2][3]);
+    pos.set< f32 >(mCannonMtx[0][3], mCannonMtx[1][3], mCannonMtx[2][3]);
     TVec3f side;
-    side.set< f32 >(_A4[0][0], _A4[1][0], _A4[2][0]);
+    side.set< f32 >(mCannonMtx[0][0], mCannonMtx[1][0], mCannonMtx[2][0]);
     f32 ease = MR::calcNerveEaseOutValue(this, 0x96, 25.0f, 0.0f);
     MR::rotateVecDegree(&side, mGravity, ease);
     TVec3f up = -mGravity;
-    MR::makeMtxSideUpPos(reinterpret_cast< TPos3f* >(&_A4), side, up, pos);
+    MR::makeMtxSideUpPos(reinterpret_cast< TPos3f* >(&mCannonMtx), side, up, pos);
     MR::startActionSound(this, "EmLvWaterbazStorm", static_cast<s32>(100.0f * ease / 25.0f), -1, -1);
     if (MR::isGreaterStep(this, 0x96)) {
         setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
     }
 }
 
-// fn_800D5E90: true when the head is idle enough to take a new action (not in A/B/C and not in the E..H group).
-bool KoopaJrCastleHead::fn_800D5E90() {
+// canStartAction: true when the head is idle enough to take a new action (not in A/B/C and not in the E..H group).
+bool KoopaJrCastleHead::canStartAction() {
     if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance) || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance) ||
         isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
         return false;
     }
-    return !fn_800D58D0();
+    return !isPanicOrSpin();
 }
 
 // fn_800D5F10: refreshes the base matrix and registers the joint controller callback.
 void KoopaJrCastleHead::calcAndSetBaseMtx() {
     PartsModel::calcAndSetBaseMtx();
-    _A0->registerCallBack();
+    mCannonJointCtrl->registerCallBack();
 }
 
 // fn_800D5F50: writes the head's pose matrix from the given matrix's translation (idle head only).
 // NONMATCHING: joint concat order and setMtxTrans argument shape inferred from the m2c read only
 bool KoopaJrCastleHead::calcJointCannon(TPos3f* pMtx, const JointControllerInfo&) {
-    if (!_D4 && isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (!mForceJointCallback && isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
         return false;
     }
     TPos3f mtx;
     PSMTXIdentity(mtx);
-    PSMTXConcat(MR::getJointMtx(this, "JointRoot"), _A4, mtx);
+    PSMTXConcat(MR::getJointMtx(this, "JointRoot"), mCannonMtx, mtx);
     TVec3f trans(0.0f);
     MR::extractMtxTrans(pMtx->toMtxPtr(), &trans);
     MR::setMtxTrans(mtx, trans.x, trans.y, trans.z);

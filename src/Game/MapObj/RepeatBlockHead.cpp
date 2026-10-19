@@ -25,7 +25,7 @@ RepeatBlockHead::RepeatBlockHead(const char* name,RepeatBlock* parent) : LiveAct
     updateAtomPositions();
 }
 RepeatBlockHead::~RepeatBlockHead() {}
-void RepeatBlockHead::appear() {
+void RepeatBlockHead::appearWithAtoms() {
     LiveActor::appear();
     for (s32 i=0;i<mParent->getBlockNum();i++) mAtoms[i]->appear();
 }

@@ -2,14 +2,14 @@
 #include "Game/Util.hpp"
 
 BgmVolumeFadeArea::BgmVolumeFadeArea(const char* pName) : AreaObj(pName) {
-    _48 = false;
-    _49 = true;
+    mIsInsideApplied = false;
+    mIsOutsideApplied = true;
 }
 
 void BgmVolumeFadeArea::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
     MR::connectToSceneAreaObj(this);
-    _49 = true;
+    mIsOutsideApplied = true;
 }
 
 void BgmVolumeFadeArea::movement() {
@@ -18,17 +18,17 @@ void BgmVolumeFadeArea::movement() {
     }
 
     if (isInVolume(*MR::getPlayerPos())) {
-        if (!_48) {
+        if (!mIsInsideApplied) {
             s32 fadeTime = getFadeTime();
             MR::moveVolumeStageBGM(getVolume(), fadeTime);
-            _48 = true;
-            _49 = false;
+            mIsInsideApplied = true;
+            mIsOutsideApplied = false;
         }
     } else {
-        if (!_49) {
+        if (!mIsOutsideApplied) {
             MR::moveVolumeStageBGM(1.0f, getFadeTime());
-            _49 = true;
-            _48 = false;
+            mIsOutsideApplied = true;
+            mIsInsideApplied = false;
         }
     }
 }

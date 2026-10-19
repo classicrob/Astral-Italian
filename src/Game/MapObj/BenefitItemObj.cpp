@@ -24,30 +24,13 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [1.0f, 0.0f, 0.5f] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void BenefitItemObj_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
     (void)0.5f;
-    (void)5.0f;
-    (void)10.0f;
-    (void)140.0f;
-    (void)2000.0f;
-    (void)50.0f;
-    (void)150.0f;
-    (void)6.2831854820251465f;
-    (void)7.0f;
-    (void)0.019999999552965164f;
-    (void)1.100000023841858f;
-    (void)0.009999999776482582f;
-    (void)0.949999988079071f;
-    (void)20.0f;
-    (void)15.0f;
-    (void)0.30000001192092896f;
-    (void)0.0010000000474974513f;
-    (void)0.20000000298023224f;
-    (void)0.10000000149011612f;
-    (void)250.0f;
-    (void)60.0f;
 }
 
 

@@ -18,6 +18,9 @@ ClipArea::ClipArea(const char* pName) : LiveActor(pName), mShape() {
 void ClipArea::init(const JMapInfoIter& rIter) {
     initBaseMatrix(rIter);
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_ClipArea);
+    if (MR::isValidInfo(rIter)) {
+        MR::useStageSwitchAwake(this, rIter);
+    }
 }
 
 void ClipArea::initBaseMatrix(const JMapInfoIter& rIter) {
@@ -54,12 +57,16 @@ namespace MR {
         pClipArea->setShape(new ClipAreaShapeSphere("VolumeSphere"));
     }
 
-    void setClipCenterBoxArea(ClipArea* pClipArea) {
-        pClipArea->setShape(new ClipAreaShapeBox(0));
+    void setClipCenterBoxArea(ClipArea* pClipArea, const char* pName) {
+        pClipArea->setShape(new ClipAreaShapeBox(pName, 0));
     }
 
-    void setClipBottomBoxArea(ClipArea* pClipArea) {
-        pClipArea->setShape(new ClipAreaShapeBox(1));
+    void setClipBottomBoxArea(ClipArea* pClipArea, const char* pName) {
+        pClipArea->setShape(new ClipAreaShapeBox(pName, 1));
+    }
+
+    void setClipCylinderArea(ClipArea* pClipArea) {
+        pClipArea->setShape(new ClipAreaShapeCylinder());
     }
 
     void setClipTopConeArea(ClipArea* pClipArea) {

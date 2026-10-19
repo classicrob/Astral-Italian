@@ -13,6 +13,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void exeWait();
     void exeBreak();
@@ -22,9 +23,9 @@ public:
     void initItem(const JMapInfoIter&);
     void appearItem();
 
-    /* 0x8C */ ModelObj* mBreakModel;
-    /* 0x90 */ TMtx34f mBreakModelMtx;
-    /* 0xC0 */ s32 mItemType;
-    /* 0xC4 */ s32 mStarPieceNum;
-    /* 0xC8 */ bool mObjArg7;
+    /* 0x090 */ ModelObj* mBreakModel;
+    /* 0x094 */ TMtx34f mBreakModelMtx;
+    /* 0x0C4 */ s32 mItemType;
+    /* 0x0C8 */ s32 mStarPieceNum;
+    /* 0x0CC */ bool mKillOnBreak;
 };

@@ -26,13 +26,13 @@ public:
     void exeFloat();           // fn_802C3520
     void exeWind();            // fn_802C35B0
 
-    /* 0x090 */ TPos3f mMtx90;
+    /* 0x090 */ TPos3f mWaterMtx;
     /* 0x0C0 */ TQuat4f mRot;
     /* 0x0D0 */ TVec3f mDir;           // up direction (= -gravity while active)
     /* 0x0DC */ TVec3f mPlayerPos;     // last player position on floor touch
     /* 0x0E8 */ TVec3f mShadowPos;     // water surface position
     /* 0x0F4 */ TVec3f mShadowNormal;  // water surface normal
     /* 0x100 */ f32 mShadowAlpha;
-    /* 0x104 */ s32 mTimer104;
-    /* 0x108 */ bool mFlag108;
+    /* 0x104 */ s32 mFloatTimer;
+    /* 0x108 */ bool mTouchedFloorFrame;
 };

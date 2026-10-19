@@ -19,50 +19,139 @@ namespace {
     const f32 hRandomScaleMax = 1.25f;
 };  // namespace
 
-void SmallStone_FORCE_MATCH_SDATA2() {
-    (void)0.017453292f;
-    (void)-360.0f;
-    (void)360.0f;
-    (void)0.75f;
-    (void)1.25f;
-    (void)100.0f;
-    (void)6.2831855f;
-    (void)2607.5945f;
-    (void)-2607.5945f;
-    (void)300.0f;
-    (void)1000.0f;
-    (void)0.01f;
-    (void)57.29578f;
-    (void)120.0f;
-    (void)400.0f;
-    (void)800.0f;
-    (void)0.2f;
-    (void)3.8f;
-    (void)20.0f;
-    (void)40.0f;
-    (void)30.0f;
-}
-
-void SmallStone_FORCE_MATCH_STRINGS(const char** pStrings) {
-    pStrings[0] = "CircleShell";
-    pStrings[1] = "CircleStrawberry";
-    pStrings[2] = "SmallStone";
-    pStrings[3] = "Kind";
-    pStrings[4] = "Break2";
-    pStrings[5] = "Break1";
-    pStrings[6] = "Break3";
-    pStrings[7] = "Break";
-    pStrings[8] = "Range";
-    pStrings[9] = "SmallStoneMember";
-    pStrings[10] = "WindLoop";
-    pStrings[11] = "WindEnd";
-}
-
 SmallStone::SmallStone(const char* pName) : LiveActor(pName), mMembers(), mMemberCount(), mPlacementOffset(), mStoneType(), mUseGravity(true) {
 }
 
 SmallStone::~SmallStone() {
     delete[] mMembers;
+}
+
+void SmallStone::init(const JMapInfoIter& rIter) {
+    MR::connectToSceneMapObjMovement(this);
+    MR::initDefaultPos(this, rIter);
+    mMemberCount = 8;
+    s32 arg = -1;
+    MR::getJMapInfoArg0NoInit(rIter, &arg);
+
+    if (arg == -1) {
+        mPlacementOffset = 0.0f;
+    } else {
+        mPlacementOffset = arg;
+    }
+
+    arg = -1;
+    MR::getJMapInfoArg1NoInit(rIter, &arg);
+
+    if (arg == -1) {
+        mUseGravity = true;
+    } else {
+        mUseGravity = false;
+        f32 x = mRotation.x;
+        f32 y = mRotation.y;
+        f32 z = mRotation.z;
+        mRotation.x = x * (PI / 180.0f);
+        mRotation.y = y * (PI / 180.0f);
+        mRotation.z = z * (PI / 180.0f);
+        TQuat4f rotation;
+        rotation.setEuler(mRotation.x, mRotation.y, mRotation.z);
+        rotation.getYDir(mGravity);
+        mGravity.scale(-1.0f);
+    }
+
+    arg = -1;
+    MR::getJMapInfoArg2NoInit(rIter, &arg);
+
+    if (arg == -1) {
+        mIsStarPiece = false;
+    } else {
+        mIsStarPiece = true;
+    }
+
+    const char* pObjectName = nullptr;
+    MR::getObjectName(&pObjectName, rIter);
+
+    if (MR::isEqualString(pObjectName, "CircleShell")) {
+        mStoneType = 1;
+        initMember("CircleShell", mUseGravity);
+    } else if (MR::isEqualString(pObjectName, "CircleStrawberry")) {
+        mStoneType = 2;
+        initMember("CircleStrawberry", mUseGravity);
+    } else {
+        mStoneType = 0;
+        initMember("SmallStone", mUseGravity);
+    }
+
+    initSound(4, "SmallStone", nullptr, TVec3f(0.0f));
+    appear();
+}
+void SmallStone::initMember(const char* pModelName, bool useGravity) {
+    s32 i;
+    mMembers = new SmallStoneMember*[mMemberCount];
+    MR::declareStarPiece(this, mMemberCount);
+
+    for (i = 0; i < mMemberCount; i++) {
+        SmallStoneMember* pMember = new SmallStoneMember(pModelName);
+        pMember->mAnimRate = 1.0f;
+        pMember->mShakeRequested = 0;
+        pMember->mUseGravity = useGravity;
+        pMember->mAnimStopped = false;
+        MR::onCalcAnim(pMember);
+        MR::invalidateClipping(pMember);
+        pMember->appear();
+
+        if (mStoneType == 1) {
+            f32 angle = MR::getRandom(-::hRandomRotateAngle, ::hRandomRotateAngle);
+            MR::setRotation(pMember, 0.0f, angle, 0.0f);
+            f32 scale = MR::getRandom(::hRandomScaleMin, ::hRandomScaleMax);
+            MR::setScale(pMember, scale);
+            MR::startBva(pMember, "Kind");
+            MR::stopBva(pMember);
+            s32 max = MR::getBvaFrameMax(pMember, "Kind");
+            s32 frame = (max + i) % max;
+            MR::setBvaFrameAndStop(pMember, frame);
+
+            switch (frame) {
+            case 0:
+                pMember->mBreakEffectName = "Break2";
+                break;
+            case 1:
+                pMember->mBreakEffectName = "Break1";
+                break;
+            case 2:
+                pMember->mBreakEffectName = "Break3";
+                break;
+            case 3:
+                pMember->mBreakEffectName = "Break1";
+                break;
+            case 4:
+                pMember->mBreakEffectName = "Break3";
+                break;
+            }
+        } else {
+            mRotation.set(0.0f);
+            mScale.set(1.0f);
+            pMember->mBreakEffectName = "Break";
+        }
+
+        mMembers[i] = pMember;
+    }
+
+    if (mStoneType == 1 || mStoneType == 2) {
+        for (i = 0; i < mMemberCount; i++) {
+            s32 index = MR::getRandom(0, i + 1);
+            SmallStoneMember* pMember = mMembers[i];
+            SmallStoneMember* pOther = mMembers[index];
+            f32 frame = MR::getBvaFrame(pMember);
+            MR::setBvaFrame(pMember, MR::getBvaFrame(pOther));
+            MR::setBvaFrame(pOther, frame);
+            const char* pEffect = pMember->mBreakEffectName;
+            pMember->mBreakEffectName = pOther->mBreakEffectName;
+            pOther->mBreakEffectName = pEffect;
+        }
+    }
+
+    initHitSensor(1);
+    MR::addHitSensorMapObjSimple(this, "Range", 16, ::hSize, TVec3f(gZeroVec));
 }
 
 #pragma push
@@ -196,6 +285,7 @@ void SmallStone::initAfterPlacement() {
 }
 #pragma pop
 
+
 void SmallStone::control() {
     for (s32 i = 0; i < mMemberCount; i++) {
         mMembers[i]->movementByHost(this);
@@ -279,6 +369,11 @@ void SmallStone::endClipped() {
     }
 }
 
+SmallStoneMember::SmallStoneMember(const char* pModelName)
+    : ModelObj("SmallStoneMember", pModelName, nullptr, MR::DrawBufferType_MapObjStrongLight, MR::MovementType_None, -2, false), mAnimRate(1.0f),
+      mShakeRequested(), mAnimStopped(), mBreakTimer(-1), mBreakEffectName(), mUseGravity(true) {
+}
+
 bool SmallStoneMember::tryShake() {
     TVec3f distance(*MR::getPlayerPos());
     distance.sub(mPosition);
@@ -328,159 +423,6 @@ bool SmallStoneMember::tryPush(HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-void SmallStoneMember::movementByHost(SmallStone* pHost) {
-    animControl();
-
-    if (mBreakTimer > -1) {
-        mBreakTimer--;
-
-        if (mBreakTimer == -1) {
-            doBreak(pHost);
-        }
-    }
-
-    if (MR::isValidCalcAnim(this)) {
-        MR::updateModelAnimPlayer(this);
-    }
-}
-
-SmallStoneMember::~SmallStoneMember() {
-}
-
-void SmallStone::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneMapObjMovement(this);
-    MR::initDefaultPos(this, rIter);
-    mMemberCount = 8;
-    s32 arg = -1;
-    MR::getJMapInfoArg0NoInit(rIter, &arg);
-
-    if (arg == -1) {
-        mPlacementOffset = 0.0f;
-    } else {
-        mPlacementOffset = arg;
-    }
-
-    arg = -1;
-    MR::getJMapInfoArg1NoInit(rIter, &arg);
-
-    if (arg == -1) {
-        mUseGravity = true;
-    } else {
-        mUseGravity = false;
-        f32 x = mRotation.x;
-        f32 y = mRotation.y;
-        f32 z = mRotation.z;
-        mRotation.x = x * (PI / 180.0f);
-        mRotation.y = y * (PI / 180.0f);
-        mRotation.z = z * (PI / 180.0f);
-        TQuat4f rotation;
-        rotation.setEuler(mRotation.x, mRotation.y, mRotation.z);
-        rotation.getYDir(mGravity);
-        mGravity.scale(-1.0f);
-    }
-
-    arg = -1;
-    MR::getJMapInfoArg2NoInit(rIter, &arg);
-
-    if (arg == -1) {
-        mIsStarPiece = false;
-    } else {
-        mIsStarPiece = true;
-    }
-
-    const char* pObjectName = nullptr;
-    MR::getObjectName(&pObjectName, rIter);
-
-    if (MR::isEqualString(pObjectName, "CircleShell")) {
-        mStoneType = 1;
-        initMember("CircleShell", mUseGravity);
-    } else if (MR::isEqualString(pObjectName, "CircleStrawberry")) {
-        mStoneType = 2;
-        initMember("CircleStrawberry", mUseGravity);
-    } else {
-        mStoneType = 0;
-        initMember("SmallStone", mUseGravity);
-    }
-
-    initSound(4, "SmallStone", nullptr, TVec3f(0.0f));
-    appear();
-}
-
-void SmallStone::initMember(const char* pModelName, bool useGravity) {
-    s32 i;
-    mMembers = new SmallStoneMember*[mMemberCount];
-    MR::declareStarPiece(this, mMemberCount);
-
-    for (i = 0; i < mMemberCount; i++) {
-        SmallStoneMember* pMember = new SmallStoneMember(pModelName);
-        pMember->mAnimRate = 1.0f;
-        pMember->mShakeRequested = 0;
-        pMember->mUseGravity = useGravity;
-        pMember->mAnimStopped = false;
-        MR::onCalcAnim(pMember);
-        MR::invalidateClipping(pMember);
-        pMember->appear();
-
-        if (mStoneType == 1) {
-            f32 angle = MR::getRandom(-::hRandomRotateAngle, ::hRandomRotateAngle);
-            MR::setRotation(pMember, 0.0f, angle, 0.0f);
-            f32 scale = MR::getRandom(::hRandomScaleMin, ::hRandomScaleMax);
-            MR::setScale(pMember, scale);
-            MR::startBva(pMember, "Kind");
-            MR::stopBva(pMember);
-            s32 max = MR::getBvaFrameMax(pMember, "Kind");
-            s32 frame = (max + i) % max;
-            MR::setBvaFrameAndStop(pMember, frame);
-
-            switch (frame) {
-            case 0:
-                pMember->mBreakEffectName = "Break2";
-                break;
-            case 1:
-                pMember->mBreakEffectName = "Break1";
-                break;
-            case 2:
-                pMember->mBreakEffectName = "Break3";
-                break;
-            case 3:
-                pMember->mBreakEffectName = "Break1";
-                break;
-            case 4:
-                pMember->mBreakEffectName = "Break3";
-                break;
-            }
-        } else {
-            mRotation.set(0.0f);
-            mScale.set(1.0f);
-            pMember->mBreakEffectName = "Break";
-        }
-
-        mMembers[i] = pMember;
-    }
-
-    if (mStoneType == 1 || mStoneType == 2) {
-        for (i = 0; i < mMemberCount; i++) {
-            s32 index = MR::getRandom(0, i + 1);
-            SmallStoneMember* pMember = mMembers[i];
-            SmallStoneMember* pOther = mMembers[index];
-            f32 frame = MR::getBvaFrame(pMember);
-            MR::setBvaFrame(pMember, MR::getBvaFrame(pOther));
-            MR::setBvaFrame(pOther, frame);
-            const char* pEffect = pMember->mBreakEffectName;
-            pMember->mBreakEffectName = pOther->mBreakEffectName;
-            pOther->mBreakEffectName = pEffect;
-        }
-    }
-
-    initHitSensor(1);
-    MR::addHitSensorMapObjSimple(this, "Range", 16, ::hSize, TVec3f(gZeroVec));
-}
-
-SmallStoneMember::SmallStoneMember(const char* pModelName)
-    : ModelObj("SmallStoneMember", pModelName, nullptr, MR::DrawBufferType_MapObjStrongLight, MR::MovementType_None, -2, false), mAnimRate(1.0f),
-      mShakeRequested(), mAnimStopped(), mBreakTimer(-1), mBreakEffectName(), mUseGravity(true) {
-}
-
 void SmallStoneMember::animControl() {
     if (mShakeRequested == 1) {
         if (!MR::isBckPlaying(this, "WindLoop")) {
@@ -516,4 +458,23 @@ void SmallStoneMember::doBreak(SmallStone* pHost) {
 
     MR::offCalcAnim(this);
     MR::hideModel(this);
+}
+
+void SmallStoneMember::movementByHost(SmallStone* pHost) {
+    animControl();
+
+    if (mBreakTimer > -1) {
+        mBreakTimer--;
+
+        if (mBreakTimer == -1) {
+            doBreak(pHost);
+        }
+    }
+
+    if (MR::isValidCalcAnim(this)) {
+        MR::updateModelAnimPlayer(this);
+    }
+}
+
+SmallStoneMember::~SmallStoneMember() {
 }

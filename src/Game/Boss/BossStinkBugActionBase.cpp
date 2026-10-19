@@ -22,9 +22,9 @@
 
 
 BossStinkBugActionBase::BossStinkBugActionBase(const char* pName, BossStinkBug* pStinkBug)
-    : ActorStateBase< BossStinkBug >(pName, pStinkBug), mSpringValue(), _14(0.0f, 0.0f, 0.0f), _20(0.0f, 0.0f, 1.0f), _38(15.0f), _3C(), _40(), _44(),
-      mThrowBombTimer(), _50(true), _54(), _58(), _5C(), _60(), _61() {
-    mSpringValue = new SpringValue(_3C, _3C, 0.02f, 0.95f, 0.0f);
+    : ActorStateBase< BossStinkBug >(pName, pStinkBug), mSpringValue(), mMoveOffset(0.0f, 0.0f, 0.0f), mTurnStartFront(0.0f, 0.0f, 1.0f), mCruiseSpeed(15.0f), mRailHeight(), _40(), mRailHeightOffset(),
+      mThrowBombTimer(), mWasRailGoingToEnd(true), mCameraDistance(), mPrevCameraDistance(), mApproachSoundTimer(), mIsNearPlayer(), mWasNearPlayer() {
+    mSpringValue = new SpringValue(mRailHeight, mRailHeight, 0.02f, 0.95f, 0.0f);
 }
 
 bool BossStinkBugActionBase::updateGroundWalk(f32 f1) {
@@ -33,7 +33,7 @@ bool BossStinkBugActionBase::updateGroundWalk(f32 f1) {
     }
 
     BossStinkBugFunction::moveRail(getHost(), f1, 0.0f, 0.0f);
-    _48 = f1;
+    mMoveSpeed = f1;
 
     MR::calcDistanceToPlayer(getHost());
     return false;
@@ -45,9 +45,9 @@ bool BossStinkBugActionBase::updateFlyRoll() {
     }
 
     startSoundFly(0);
-    _48 = _38;
+    mMoveSpeed = mCruiseSpeed;
 
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isActionEnd(getHost())) {
         return true;
@@ -62,9 +62,9 @@ bool BossStinkBugActionBase::updateFlyRollWait(s32 waitSteps) {
     }
 
     startSoundFly(0);
-    _48 = _38;
+    mMoveSpeed = mCruiseSpeed;
 
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isGreaterStep(this, waitSteps)) {
         return true;
@@ -79,9 +79,9 @@ bool BossStinkBugActionBase::updateFlyRollEnd() {
     }
 
     startSoundFly(0);
-    _48 = _38;
+    mMoveSpeed = mCruiseSpeed;
 
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isActionEnd(getHost())) {
         return true;
@@ -93,18 +93,18 @@ bool BossStinkBugActionBase::updateFlyRollEnd() {
 bool BossStinkBugActionBase::updateFlyDash(f32 f1) {
     if (MR::isFirstStep(this)) {
         MR::tryStartBck(getHost(), "FlyWait");
-        BossStinkBugFunction::calcDiffCurrentRailPosition(&_14, getHost(), _3C, _44);
+        BossStinkBugFunction::calcDiffCurrentRailPosition(&mMoveOffset, getHost(), mRailHeight, mRailHeightOffset);
     }
 
     startSoundFly(0);
 
     if (MR::isLessStep(this, 30)) {
-        _48 = MR::calcNerveEaseInOutValue(this, 30, f1, 40.0f);
+        mMoveSpeed = MR::calcNerveEaseInOutValue(this, 30, f1, 40.0f);
     } else {
-        _48 = MR::calcNerveEaseInOutValue(this, 30, 100, 40.0f, _38);
+        mMoveSpeed = MR::calcNerveEaseInOutValue(this, 30, 100, 40.0f, mCruiseSpeed);
     }
 
-    BossStinkBugFunction::regainToRail(getHost(), _14, MR::calcNerveRate(this, 100), _48, _3C, _44);
+    BossStinkBugFunction::regainToRail(getHost(), mMoveOffset, MR::calcNerveRate(this, 100), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isGreaterStep(this, 100)) {
         return true;
@@ -128,22 +128,22 @@ void BossStinkBugActionBase::resetThrowBombTiming() {
 
 f32 BossStinkBugActionBase::calcShakeOffSignSpeed(s32 a1) const {
     if (MR::isLessStep(this, 10)) {
-        return MR::calcNerveEaseInOutValue(this, a1, _38, 3.0f);
+        return MR::calcNerveEaseInOutValue(this, a1, mCruiseSpeed, 3.0f);
     } else {
         return 3.0f;
     }
 }
 
 f32 BossStinkBugActionBase::calcShakeOffSpeed() const {
-    return MR::calcNerveEaseInOutValue(this, MR::getBckFrameMax(getHost(), "FlyRollRight"), 3.0f, _38);
+    return MR::calcNerveEaseInOutValue(this, MR::getBckFrameMax(getHost(), "FlyRollRight"), 3.0f, mCruiseSpeed);
 }
 
 f32 BossStinkBugActionBase::calcShakeOffEndSpeed() const {
-    return MR::calcNerveEaseInOutValue(this, MR::getBckFrameMax(getHost(), "FlyRollEndRight"), 35.0f, _38);
+    return MR::calcNerveEaseInOutValue(this, MR::getBckFrameMax(getHost(), "FlyRollEndRight"), 35.0f, mCruiseSpeed);
 }
 
 s32 BossStinkBugActionBase::calcKeepRollTime(s32 a1) const {
-    f32 flt1 = (MR::getRailTotalLength(getHost()) * (2.0f / 3.0f)) / _38;
+    f32 flt1 = (MR::getRailTotalLength(getHost()) * (2.0f / 3.0f)) / mCruiseSpeed;
 
     f32 flt2 = 0.0f;
     flt2 += MR::getBckFrameMax(getHost(), "FlyRollRight");
@@ -161,17 +161,17 @@ s32 BossStinkBugActionBase::calcKeepRollTime(s32 a1) const {
 
 s32 BossStinkBugActionBase::calcFlySoundVol() const {
     s32 vol = 550;
-    if (_5C > 0) {
-        if (_54 < 1500.0f) {
+    if (mApproachSoundTimer > 0) {
+        if (mCameraDistance < 1500.0f) {
             vol = 1000;
-            if (_5C < 12) {
-                vol = MR::getLinerValue(_5C, 0.0f, 1.0f, 12.0f);
+            if (mApproachSoundTimer < 12) {
+                vol = MR::getLinerValue(mApproachSoundTimer, 0.0f, 1.0f, 12.0f);
                 vol = 450 * vol + 550;
             }
-        } else if (_54 < 2500) {
-            vol = MR::getLinerValueFromMinMax(_54, 1500.0f, 2500.0f, 1000.0f, 550.0f);
-            if (_5C < 12) {
-                vol = MR::getLinerValue(_5C, 0.0f, 1.0f, 12.0f);
+        } else if (mCameraDistance < 2500) {
+            vol = MR::getLinerValueFromMinMax(mCameraDistance, 1500.0f, 2500.0f, 1000.0f, 550.0f);
+            if (mApproachSoundTimer < 12) {
+                vol = MR::getLinerValue(mApproachSoundTimer, 0.0f, 1.0f, 12.0f);
                 vol = 450 * vol + 550;
             }
         } else {
@@ -183,10 +183,10 @@ s32 BossStinkBugActionBase::calcFlySoundVol() const {
 }
 
 s32 BossStinkBugActionBase::calcIIRCutOff() const {
-    if (_54 < 2000.0f) {
+    if (mCameraDistance < 2000.0f) {
         return 126;
-    } else if (_54 < 4500.0f) {
-        return MR::getLinerValueFromMinMax(_54, 2000.0f, 4500.0f, 126.0f, 20.0f);
+    } else if (mCameraDistance < 4500.0f) {
+        return MR::getLinerValueFromMinMax(mCameraDistance, 2000.0f, 4500.0f, 126.0f, 20.0f);
     }
 
     return 20;
@@ -209,35 +209,35 @@ void BossStinkBugActionBase::updateSound() {
 }
 
 void BossStinkBugActionBase::updateSoundFly() {
-    _61 = _60;
+    mWasNearPlayer = mIsNearPlayer;
 
     if (MR::isNearPlayer(getHost(), 2000.0f)) {
-        _60 = true;
+        mIsNearPlayer = true;
     } else {
-        _60 = false;
+        mIsNearPlayer = false;
     }
 
-    if (_5C > 0) {
-        _5C--;
+    if (mApproachSoundTimer > 0) {
+        mApproachSoundTimer--;
     }
 
-    _58 = _54;
-    _54 = MR::getCamPos().distance(getHost()->mPosition);
+    mPrevCameraDistance = mCameraDistance;
+    mCameraDistance = MR::getCamPos().distance(getHost()->mPosition);
 
-    if (_58 - _54 > 0.0f) {
-        _5C = 12;
+    if (mPrevCameraDistance - mCameraDistance > 0.0f) {
+        mApproachSoundTimer = 12;
     }
 }
 
 bool BossStinkBugActionBase::updateGroundRegainRail(f32 f1) {
     if (MR::isFirstStep(this)) {
         MR::tryStartBck(getHost(), "GroundWalk");
-        BossStinkBugFunction::calcDiffCurrentRailPosition(&_14, getHost(), _3C, _44);
+        BossStinkBugFunction::calcDiffCurrentRailPosition(&mMoveOffset, getHost(), mRailHeight, mRailHeightOffset);
     }
 
     f32 nerveRate = MR::calcNerveRate(this, 90);
-    BossStinkBugFunction::regainToRail(getHost(), _14, nerveRate, f1, 0.0f, 0.0f);
-    _48 = f1;
+    BossStinkBugFunction::regainToRail(getHost(), mMoveOffset, nerveRate, f1, 0.0f, 0.0f);
+    mMoveSpeed = f1;
 
     if (MR::isGreaterStep(this, 90)) {
         return true;
@@ -250,7 +250,7 @@ bool BossStinkBugActionBase::updateGroundFind() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(getHost(), "BvBossBugAttackG");
         MR::startAction(getHost(), "Find");
-        _48 = 0.0f;
+        mMoveSpeed = 0.0f;
     }
 
     if (MR::isActionEnd(getHost())) {
@@ -265,8 +265,8 @@ bool BossStinkBugActionBase::updateGroundShakeOff() {
         MR::startAction(getHost(), "GroundRide");
     }
 
-    _48 *= 0.95f;
-    BossStinkBugFunction::moveRail(getHost(), _48, 0.0f, 0.0f);
+    mMoveSpeed *= 0.95f;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, 0.0f, 0.0f);
 
     if (MR::isGreaterStep(this, 90)) {
         return true;
@@ -285,8 +285,8 @@ bool BossStinkBugActionBase::updateGroundRun(f32 f1) {
         MR::startActionSound(getHost(), "BmLvBossBugRunAddWater");
     }
 
-    _48 = f1 * MR::calcNerveRate(this, 60);
-    BossStinkBugFunction::moveRail(getHost(), _48, 0.0f, 0.0f);
+    mMoveSpeed = f1 * MR::calcNerveRate(this, 60);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, 0.0f, 0.0f);
 
     if (MR::isGreaterStep(this, 180)) {
         return true;
@@ -304,8 +304,8 @@ bool BossStinkBugActionBase::updateGroundAttackSuccess() {
         MR::startActionSound(getHost(), "BvBossBugGlad");
     }
 
-    _48 *= 0.75f;
-    BossStinkBugFunction::moveRail(getHost(), _48, 0.0f, 0.0f);
+    mMoveSpeed *= 0.75f;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, 0.0f, 0.0f);
 
     if (MR::isGreaterStep(this, 180)) {
         return true;
@@ -325,8 +325,8 @@ bool BossStinkBugActionBase::updateGroundCoolDown() {
         MR::startActionSound(getHost(), "BmLvBossBugRunAddWater");
     }
 
-    _48 *= 0.95f;
-    BossStinkBugFunction::moveRail(getHost(), _48, 0.0f, 0.0f);
+    mMoveSpeed *= 0.95f;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, 0.0f, 0.0f);
 
     if (MR::isActionEnd(getHost())) {
         return true;
@@ -337,20 +337,20 @@ bool BossStinkBugActionBase::updateGroundCoolDown() {
 
 bool BossStinkBugActionBase::updateGroundTurn() {
     if (MR::isFirstStep(this)) {
-        _20 = getHost()->_EC;
+        mTurnStartFront = getHost()->mFront;
 
-        _50 = MR::isRailGoingToEnd(getHost());
+        mWasRailGoingToEnd = MR::isRailGoingToEnd(getHost());
 
-        if (_50) {
+        if (mWasRailGoingToEnd) {
             MR::startAction(getHost(), "GroundTurnLeft");
         } else {
             MR::startAction(getHost(), "GroundTurnRight");
         }
 
-        _48 = 0.0f;
+        mMoveSpeed = 0.0f;
     }
 
-    BossStinkBugFunction::turnRailGround(getHost(), _20, MR::calcNerveRate(this, 120), _50);
+    BossStinkBugFunction::turnRailGround(getHost(), mTurnStartFront, MR::calcNerveRate(this, 120), mWasRailGoingToEnd);
 
     if (MR::isGreaterStep(this, 160)) {
         return true;
@@ -371,7 +371,7 @@ bool BossStinkBugActionBase::updateGroundDamage() {
         getHost()->startEventCamera("Fall");
         getHost()->disposeBomb();
 
-        _48 = 0.0f;
+        mMoveSpeed = 0.0f;
         MR::offPlayerControl();
     }
 
@@ -395,24 +395,24 @@ bool BossStinkBugActionBase::updateFly() {
 
     startSoundFly(0);
 
-    _48 = _38;
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    mMoveSpeed = mCruiseSpeed;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
     return false;
 }
 
 bool BossStinkBugActionBase::updateFlyShakeOffSign(s32 numSteps) {
     if (MR::isFirstStep(this)) {
         MR::startAction(getHost(), "FlyRide");
-        mSpringValue->mSpringValue = _3C;
-        mSpringValue->mRestValue = _3C;
+        mSpringValue->mSpringValue = mRailHeight;
+        mSpringValue->mRestValue = mRailHeight;
         mSpringValue->mVelocity = -15.0f;
     }
 
     startSoundFly(0);
 
-    _48 = calcShakeOffSignSpeed(numSteps);
+    mMoveSpeed = calcShakeOffSignSpeed(numSteps);
 
-    BossStinkBugFunction::moveRail(getHost(), _48, mSpringValue->update(), _44);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mSpringValue->update(), mRailHeightOffset);
 
     if (MR::isGreaterStep(this, numSteps)) {
         return true;
@@ -428,9 +428,9 @@ bool BossStinkBugActionBase::updateFlyShakeOff() {
 
     startSoundFly(3);
 
-    _48 = calcShakeOffSpeed();
+    mMoveSpeed = calcShakeOffSpeed();
 
-    BossStinkBugFunction::moveRail(getHost(), _48, mSpringValue->update(), _44);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mSpringValue->update(), mRailHeightOffset);
 
     if (MR::isActionEnd(getHost())) {
         return true;
@@ -446,8 +446,8 @@ bool BossStinkBugActionBase::updateFlyShakeOffWait(s32 numSteps) {
 
     startSoundFly(0);
 
-    _48 = 35.0f;
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    mMoveSpeed = 35.0f;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isGreaterStep(this, numSteps)) {
         return true;
@@ -463,8 +463,8 @@ bool BossStinkBugActionBase::updateFlyShakeOffEnd() {
 
     startSoundFly(0);
 
-    _48 = calcShakeOffEndSpeed();
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    mMoveSpeed = calcShakeOffEndSpeed();
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isActionEnd(getHost())) {
         return true;
@@ -484,8 +484,8 @@ bool BossStinkBugActionBase::updateFlyRollSign(s32 numSteps) {
 
     startSoundFly(0);
 
-    _48 = _38;
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    mMoveSpeed = mCruiseSpeed;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isGreaterStep(this, numSteps)) {
         return true;
@@ -502,8 +502,8 @@ bool BossStinkBugActionBase::updateFlyTurnSign() {
 
     startSoundFly(0);
 
-    _48 = _38;
-    BossStinkBugFunction::moveRail(getHost(), _48, _3C, _44);
+    mMoveSpeed = mCruiseSpeed;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mRailHeight, mRailHeightOffset);
 
     if (MR::isActionEnd(getHost())) {
         return true;
@@ -515,14 +515,14 @@ bool BossStinkBugActionBase::updateFlyTurnSign() {
 bool BossStinkBugActionBase::updateFlyTurn() {
     if (MR::isFirstStep(this)) {
         MR::startAction(getHost(), "FlyTurn");
-        _20 = getHost()->_EC;
-        _50 = MR::isRailGoingToEnd(getHost());
+        mTurnStartFront = getHost()->mFront;
+        mWasRailGoingToEnd = MR::isRailGoingToEnd(getHost());
     }
 
     startSoundFly(1);
 
-    _48 = 0.0f;
-    BossStinkBugFunction::turnRail(getHost(), _20, 0.0f, MR::calcNerveRate(this, 120), _38, _3C, _44, _50);
+    mMoveSpeed = 0.0f;
+    BossStinkBugFunction::turnRail(getHost(), mTurnStartFront, 0.0f, MR::calcNerveRate(this, 120), mCruiseSpeed, mRailHeight, mRailHeightOffset, mWasRailGoingToEnd);
 
     if (MR::isGreaterStep(this, 120)) {
         return true;
@@ -537,14 +537,14 @@ bool BossStinkBugActionBase::updateFall() {
         MR::startAction(getHost(), "Fall");
         MR::onBind(getHost());
 
-        _14 = getHost()->mPosition;
-        _48 = 0.0f;
+        mMoveOffset = getHost()->mPosition;
+        mMoveSpeed = 0.0f;
         getHost()->disposeBomb();
     }
 
     MR::startActionSound(getHost(), "BmLvBossBugFlyAdd", 600, 126);
 
-    BossStinkBugFunction::setFallVelocity(getHost(), _14, MR::calcNerveRate(this, 80), 0.3f, 1100.0f);
+    BossStinkBugFunction::setFallVelocity(getHost(), mMoveOffset, MR::calcNerveRate(this, 80), 0.3f, 1100.0f);
 
     if (MR::isBinded(getHost())) {
         MR::offBind(getHost());
@@ -564,7 +564,7 @@ bool BossStinkBugActionBase::updateFallDamage() {
         MR::shakeCameraStrong();
         MR::offBind(getHost());
 
-        _48 = 0.0f;
+        mMoveSpeed = 0.0f;
         MR::offPlayerControl();
         getHost()->disposeBomb();
     }
@@ -589,35 +589,35 @@ bool BossStinkBugActionBase::updateToGround() {
         MR::tryStartBck(getHost(), "TurnDown");
         getHost()->validateCollisionGround();
         getHost()->onBindLeg();
-        getHost()->_10C = 0.0f;
-        _20 = getHost()->_EC;
+        getHost()->mPoseBlendRate = 0.0f;
+        mTurnStartFront = getHost()->mFront;
 
-        _2C = _3C + _44;
-        _34 = 0.0f;
+        mFallHeight = mRailHeight + mRailHeightOffset;
+        mFallVelocity = 0.0f;
     }
 
     startSoundFly(0);
-    _2C += _34;
+    mFallHeight += mFallVelocity;
 
     if (MR::isLessEqualStep(this, 40)) {
-        _34 += 1.2f;
+        mFallVelocity += 1.2f;
     }
 
-    _34 -= 1.0f;
-    _34 *= 0.99f;
+    mFallVelocity -= 1.0f;
+    mFallVelocity *= 0.99f;
 
-    if (_2C < 0.0f) {
-        _2C = 0.0f;
+    if (mFallHeight < 0.0f) {
+        mFallHeight = 0.0f;
     }
 
     f32 nerveRate = MR::calcNerveRate(this, 60);
-    getHost()->_10C = nerveRate;
-    MR::rotateVecDegree(&getHost()->_EC, MR::getRailDirection(getHost()), getHost()->mGravity, MR::calcNerveValue(this, 60, 0.0f, 180.0f));
+    getHost()->mPoseBlendRate = nerveRate;
+    MR::rotateVecDegree(&getHost()->mFront, MR::getRailDirection(getHost()), getHost()->mGravity, MR::calcNerveValue(this, 60, 0.0f, 180.0f));
 
-    _48 *= 0.9f;
-    BossStinkBugFunction::moveRail(getHost(), _48, _2C, 0.0f);
+    mMoveSpeed *= 0.9f;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, mFallHeight, 0.0f);
 
-    if (_2C <= 0.0f) {
+    if (mFallHeight <= 0.0f) {
         MR::reverseRailDirection(getHost());
         return true;
     } else {
@@ -628,11 +628,11 @@ bool BossStinkBugActionBase::updateToGround() {
 bool BossStinkBugActionBase::updateLand() {
     if (MR::isFirstStep(this)) {
         MR::tryStartBck(getHost(), "Land");
-        getHost()->_10C = 1.0f;
+        getHost()->mPoseBlendRate = 1.0f;
     }
 
-    _48 *= 0.99f;
-    BossStinkBugFunction::moveRail(getHost(), _48, 0.0f, 0.0f);
+    mMoveSpeed *= 0.99f;
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, 0.0f, 0.0f);
 
     if (MR::isGreaterStep(this, 20)) {
         return true;
@@ -646,7 +646,7 @@ bool BossStinkBugActionBase::updateToFly() {
         MR::startActionSound(getHost(), "BvBossBugAngryTakeoff");
         MR::startAction(getHost()->getWingModel(), "Fly");
         MR::tryStartBck(getHost(), "TakeOff");
-        _30 = _48;
+        mTakeoffStartSpeed = mMoveSpeed;
         getHost()->validateCollisionHitOnly();
         getHost()->offBindLeg();
     }
@@ -658,13 +658,13 @@ bool BossStinkBugActionBase::updateToFly() {
     }
 
     if (MR::isLessStep(this, 60)) {
-        _48 = MR::calcNerveEaseInOutValue(this, 60, _30, 40.0f);
+        mMoveSpeed = MR::calcNerveEaseInOutValue(this, 60, mTakeoffStartSpeed, 40.0f);
     } else {
-        _48 = MR::calcNerveEaseInOutValue(this, 60, 120, 40.0f, _38);
+        mMoveSpeed = MR::calcNerveEaseInOutValue(this, 60, 120, 40.0f, mCruiseSpeed);
     }
 
-    f32 nerveEaseInOutValue = MR::calcNerveEaseInOutValue(this, 120, 0.0f, _3C + _44);
-    BossStinkBugFunction::moveRail(getHost(), _48, nerveEaseInOutValue, 0.0f);
+    f32 nerveEaseInOutValue = MR::calcNerveEaseInOutValue(this, 120, 0.0f, mRailHeight + mRailHeightOffset);
+    BossStinkBugFunction::moveRail(getHost(), mMoveSpeed, nerveEaseInOutValue, 0.0f);
 
     if (MR::isGreaterStep(this, 120)) {
         getHost()->validateCollisionFly();

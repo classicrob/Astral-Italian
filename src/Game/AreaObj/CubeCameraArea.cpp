@@ -6,7 +6,9 @@
 
 #include <cstring>
 
-CubeCameraArea::CubeCameraArea(int formType, const char* pName) : AreaObj(formType, pName), _3C(), mZoneID() {
+CubeCameraArea::CubeCameraArea(const char* pName) : AreaObj(pName) {
+    mCategory = 0;
+    mZoneID = 0;
 }
 
 // needed to get sCubeCategory emitted in sbss;
@@ -33,15 +35,13 @@ void CubeCameraArea::init(const JMapInfoIter& rIter) {
         mZoneID = 0;
     }
 
-    _3C = getCategoryArg();
-    if (_3C < 0) {
-        _3C = 0;
+    mCategory = getCategoryArg();
+    if (getCategoryArg() < 0) {
+        mCategory = 1 << ECategory_Normal;
     }
 
-    u32 temp = 1 << (_3C & 0xF);
-    _3C = _3C >> 4;
-    if (_3C == 0) {
-        _3C |= temp;
+    if (mCategory == 0) {
+        mCategory = 1 << ECategory_Normal;
     }
 
     MR::connectToSceneAreaObj(this);
@@ -74,7 +74,7 @@ u16 CubeCameraArea::getCameraID() const {
 }
 
 bool CubeCameraArea::isInVolume(const TVec3f& rVec) const {
-    return (_3C & sCubeCategory) != 0 && AreaObj::isInVolume(rVec);
+    return (mCategory & sCubeCategory) != 0 && AreaObj::isInVolume(rVec);
 }
 
 void CubeCameraArea::setCurrentCategory(s32 category) {
@@ -86,7 +86,7 @@ s32 CubeCameraArea::getCategoryArg() const {
 }
 
 CubeCameraMgr::CubeCameraMgr(s32 maxNum, const char* pName) : AreaObjMgr(maxNum, pName) {
-    CubeCameraArea::sCubeCategory = 1;
+    CubeCameraArea::sCubeCategory = 1 << CubeCameraArea::ECategory_Normal;
 }
 
 void CubeCameraMgr::initAfterLoad() {

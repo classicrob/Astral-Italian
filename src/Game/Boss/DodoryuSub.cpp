@@ -168,7 +168,7 @@ namespace DodoryuSub {
             TVec3f yDir;
             mHost->mBaseMtx.getYDir(yDir);
 
-            accelDir.cross(yDir, mHost->_134);
+            accelDir.cross(yDir, mHost->mMoveFront);
         }
 
         DodoryuUtil::accelerate(mHost, accelDir, _10, _14, _18);
@@ -190,7 +190,7 @@ namespace DodoryuSub {
     bool MoveStateDetour::isPlayerOppositeFromWall() const {
         TVec3f toPlayer = *MR::getPlayerPos() - mHost->mPosition;
 
-        return mHost->_134.dot(toPlayer) > 0.0f;
+        return mHost->mMoveFront.dot(toPlayer) > 0.0f;
     }
 
     MoveStateEscape::MoveStateEscape(MoveStateHolder* pHolder)

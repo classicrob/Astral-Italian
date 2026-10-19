@@ -589,3 +589,13 @@ bool Fluff::trySpinUp(s32 step) {
 
     return false;
 }
+
+void Fluff::makeActorAppeared() {
+    mModel->makeActorAppeared();
+    LiveActor::makeActorAppeared();
+}
+
+void Fluff::makeActorDead() {
+    mModel->makeActorDead();
+    LiveActor::makeActorDead();
+}

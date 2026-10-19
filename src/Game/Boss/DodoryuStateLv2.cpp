@@ -1,3 +1,4 @@
+#define JGEOMETRY_OUTLINE_MATRIX_DIRECTION
 #include "Game/Boss/DodoryuStateLv2.hpp"
 #include "Game/Boss/Dodoryu.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -9,11 +10,6 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <JSystem/JMath/JMath.hpp>
 #include <cmath>
-
-void DodoryuStateLv2_FORCE_MATCH(TPos3f* pMtx, TVec3f* pVec) {
-    pMtx->getYDir(*pVec);
-    pMtx->getYDir(*pVec);
-}
 
 namespace {
     static const f32 sKnockSpeed = 10.0f;
@@ -523,7 +519,7 @@ void DodoryuStateLv2::exeChaseMoreStart() {
     addVelocity(true);
 
     TVec3f toPlayer;
-    MR::calcVecToPlayerH(&toPlayer, mHost, nullptr);
+    MR::calcVecToPlayerHorizon(&toPlayer, mHost, nullptr);
     turnToward(toPlayer, 180.0f);
 
     if (MR::isBckOneTimeAndStopped(mHost)) {

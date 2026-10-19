@@ -33,16 +33,16 @@ namespace NrvEarthenPipe {
 };  // namespace NrvEarthenPipe
 
 EarthenPipe::EarthenPipe(const char* pName) : LiveActor(pName) {
-    _8C.x = 0.0f;
-    _8C.y = 0.0f;
-    _8C.z = 0.0f;
-    _98.x = 0.0f;
-    _98.y = 1.0f;
-    _98.z = 0.0f;
-    _A4 = 100.0f;
+    mInitialPos.x = 0.0f;
+    mInitialPos.y = 0.0f;
+    mInitialPos.z = 0.0f;
+    mUp.x = 0.0f;
+    mUp.y = 1.0f;
+    mUp.z = 0.0f;
+    mMoveDistance = 100.0f;
     mIsIgnoreGravity = false;
     mPipeMode = 0;
-    _B0 = 0;
+    mTargetPipe = 0;
     mTopJointMtx = nullptr;
     mBottomJointMtx = nullptr;
     mHostActor = nullptr;
@@ -57,10 +57,10 @@ EarthenPipe::EarthenPipe(const char* pName) : LiveActor(pName) {
     mPipeStreamModel = nullptr;
     mIsPipeStreamShown = 0;
     mCameraInfo = nullptr;
-    _F0.identity();
-    _120.identity();
-    _150.identity();
-    _BC.identity();
+    mPlayerMtx.identity();
+    mPlayerStartMtx.identity();
+    mPlayerEndMtx.identity();
+    mEffectMtx.identity();
 }
 
 void EarthenPipe::init(const JMapInfoIter& rIter) {
@@ -85,12 +85,12 @@ void EarthenPipe::init(const JMapInfoIter& rIter) {
     if (mPipeMode == 4) MR::declareCoin(this, 3);
     if (mPipeMode == 5) MR::declareStarPiece(this, 8);
     if (isLaunchMode()) {
-        _B0 = this;
+        mTargetPipe = this;
     } else {
         MR::createSceneObj(SceneObj_EarthenPipeMediator);
         MR::getSceneObj<EarthenPipeMediator>(SceneObj_EarthenPipeMediator)->entry(this, rIter);
     }
-    _8C.set(mPosition);
+    mInitialPos.set(mPosition);
     MR::calcGravity(this);
     MR::initActor(this, rIter, "EarthenPipe", false);
     mTopJointMtx = MR::getJointMtx(this, "Top");
@@ -105,27 +105,27 @@ void EarthenPipe::init(const JMapInfoIter& rIter) {
     v25.getZDir(v23);
 
     if (mIsIgnoreGravity) {
-        v25.getYDir(_98);
+        v25.getYDir(mUp);
     } else {
-        _98.set(mGravity);
-        f32 _x = _98.x;
+        mUp.set(mGravity);
+        f32 _x = mUp.x;
         f32 mult = -1.0f;
         f32 x = _x * mult;
-        f32 y = _98.y * mult;
-        f32 z = _98.z * mult;
+        f32 y = mUp.y * mult;
+        f32 z = mUp.z * mult;
 
-        _98.x = x;
-        _98.y = y;
-        _98.z = z;
+        mUp.x = x;
+        mUp.y = y;
+        mUp.z = z;
     }
 
     TPos3f v24;
     v24.identity();
-    MR::makeMtxUpFrontPos(&v24, _98, v23, _8C);
+    MR::makeMtxUpFrontPos(&v24, mUp, v23, mInitialPos);
     PSMTXCopy(v24, mTopJointMtx);
-    _BC.setInline(v24);
-    TVec3f v22(_8C);
-    TVec3f v21(_98);
+    mEffectMtx.setInline(v24);
+    TVec3f v22(mInitialPos);
+    TVec3f v21(mUp);
     v21.scale(50.0f);
     v22.sub(v21);
     v24.setTrans(v22);
@@ -152,11 +152,11 @@ void EarthenPipe::init(const JMapInfoIter& rIter) {
 
     f32 v14 = (100.0f * mScale.y);
     mScale.y = 1.0f;
-    _A4 = v14;
+    mMoveDistance = v14;
     calcTrans(1.0f);
     initEffectKeeper(0, nullptr, false);
-    MR::setEffectHostMtx(this, "LavaAppear", _BC.mMtx);
-    MR::setEffectHostMtx(this, "LavaVanish", _BC.mMtx);
+    MR::setEffectHostMtx(this, "LavaAppear", mEffectMtx.mMtx);
+    MR::setEffectHostMtx(this, "LavaVanish", mEffectMtx.mMtx);
     initSound(4, "EarthenPipe", nullptr, TVec3f(0.0f));
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, "出現");
     initNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvWait));
@@ -186,8 +186,8 @@ void EarthenPipe::init(const JMapInfoIter& rIter) {
         }
     } else if (MR::isEqualStageName("HeavensDoorGalaxy")) {
         MR::registerDemoSimpleCastAll(this);
-        MR::registerMarioFaceShipNpc(this, rIter);
     }
+    MR::registerMarioFaceShipNpc(this, rIter);
 
     makeActorAppeared();
 }
@@ -244,7 +244,7 @@ bool EarthenPipe::isNerveShowUp() const {
 void EarthenPipe::exeWait() {
     if (MR::isValidSwitchA(this)) {
         if (MR::isOnSwitchA(this)) {
-            if (!MR::isValidHitSensor(this, "binder")) {
+            if (MR::tryValidateHitSensor(this, "binder")) {
                 MR::validateHitSensors(this);
                 if (mPipeStreamModel != nullptr) {
                     mPipeStreamModel->appear();
@@ -252,7 +252,7 @@ void EarthenPipe::exeWait() {
                     mIsPipeStreamShown = 1;
                 }
             }
-        } else if (MR::isValidHitSensor(this, "binder")) {
+        } else if (MR::tryInvalidateHitSensor(this, "binder")) {
             MR::invalidateHitSensors(this);
             if (mPipeStreamModel != nullptr) {
                 mPipeStreamModel->kill();
@@ -268,7 +268,7 @@ void EarthenPipe::exeReady() {
         MR::startBckPlayer("EarthenPipeReady", nullptr);
     }
 
-    MR::blendMtx(_120.mMtx, _150.mMtx, MR::calcNerveRate(this, MR::getBckFrameMaxPlayer()), _F0.mMtx);
+    MR::blendMtx(mPlayerStartMtx.mMtx, mPlayerEndMtx.mMtx, MR::calcNerveRate(this, MR::getBckFrameMaxPlayer()), mPlayerMtx.mMtx);
     if (MR::isBckStoppedPlayer()) {
         if (!MR::isPlayerDead()) {
             setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvPlayerIn));
@@ -285,22 +285,22 @@ void EarthenPipe::exePlayerIn() {
             mSavedBgmId = MR::getPlayingStageBgmId();
             mSavedBgmState = MR::getStageBgmState();
         }
-        if (_B0->mSavedBgmId) {
-            if (MR::getPlayingStageBgmId() && !MR::isEqualString(MR::getPlayingStageBgmId(), _B0->mSavedBgmId))
+        if (mTargetPipe->mSavedBgmId) {
+            if (MR::getPlayingStageBgmId() && !MR::isEqualString(MR::getPlayingStageBgmId(), mTargetPipe->mSavedBgmId))
                 MR::stopStageBGM(60);
-        } else if (_B0->mMusicChangeIdx != 10000) {
-            fn_8001B430(_B0->mMusicChangeIdx, _B0->mMusicState);
+        } else if (mTargetPipe->mMusicChangeIdx != 10000) {
+            fn_8001B430(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
         }
     }
     if (MR::isBckStoppedPlayer() && !MR::isPlayerDead()) {
-        _F0.setInline(_B0->getBaseMtx());
+        mPlayerMtx.setInline(mTargetPipe->getBaseMtx());
         fn_8005FFC0();
         if (isLaunchMode()) {
             if (mPipeMode == 4) MR::appearCoinAgainstGravity(this, mPosition, 3);
             if (mPipeMode == 5) MR::appearStarPiece(this, mPosition, 8, 10.0f, 40.0f, false);
             mPipeMode = 3;
             setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvLaunch));
-        } else if (_B0->tryShowUp()) {
+        } else if (mTargetPipe->tryShowUp()) {
             setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvTargetPipeShowUp));
         } else {
             setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvPlayerOut));
@@ -313,8 +313,8 @@ void EarthenPipe::exeTargetPipeShowUp() {
         MR::hidePlayer();
     }
 
-    if (!_B0->isNerveShowUp()) {
-        _F0.setInline(_B0->getBaseMtx());
+    if (!mTargetPipe->isNerveShowUp()) {
+        mPlayerMtx.setInline(mTargetPipe->getBaseMtx());
         fn_8005FFC0();
         MR::showPlayer();
         setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvPlayerOut));
@@ -325,13 +325,13 @@ void EarthenPipe::exePlayerOut() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("EarthenPipeOut", nullptr);
         MR::startActionSound(this, "DmDokanWarp", -1, -1, -1);
-        if (_B0->mSavedBgmId) {
-            if (!MR::getPlayingStageBgmId() || !MR::isEqualString(MR::getPlayingStageBgmId(), _B0->mSavedBgmId)) {
-                MR::startStageBGM(_B0->mSavedBgmId, false);
-                if (_B0->mSavedBgmState >= 0) MR::setStageBGMState(_B0->mSavedBgmState, 0);
+        if (mTargetPipe->mSavedBgmId) {
+            if (!MR::getPlayingStageBgmId() || !MR::isEqualString(MR::getPlayingStageBgmId(), mTargetPipe->mSavedBgmId)) {
+                MR::startStageBGM(mTargetPipe->mSavedBgmId, false);
+                if (mTargetPipe->mSavedBgmState >= 0) MR::setStageBGMState(mTargetPipe->mSavedBgmState, 0);
             }
-        } else if (_B0->mMusicChangeIdx != 10000) {
-            fn_8001B510(_B0->mMusicChangeIdx, _B0->mMusicState);
+        } else if (mTargetPipe->mMusicChangeIdx != 10000) {
+            fn_8001B510(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
         }
     }
     if (MR::isBckStoppedPlayer()) launchPlayer(false);
@@ -340,7 +340,7 @@ void EarthenPipe::exePlayerOut() {
 void EarthenPipe::exeLaunch() {
     if (MR::isStep(this, 22)) {
         MR::startActionSound(this, "DmDokanWarp", -1, -1, -1);
-        fn_8001B510(_B0->mMusicChangeIdx, _B0->mMusicState);
+        fn_8001B510(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
         launchPlayer(true);
     }
 }
@@ -435,23 +435,23 @@ bool EarthenPipe::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
         TVec3f diff = *MR::getPlayerPos() - TVec3f(mTopJointMtx[0][3], mTopJointMtx[1][3], mTopJointMtx[2][3]);
         TVec3f delta = diff;
         MR::vecKillElement(delta, mGravity, &delta);
-        if (!MR::isPlayerSwimming() && delta.length() > 50.0f && diff.dot(_98) < -5.0f) {
+        if (!MR::isPlayerSwimming() && delta.length() > 50.0f && diff.dot(mUp) < -5.0f) {
             return false;
         }
         mHostActor = MR::getSensorHost(pSender);
         MR::invalidateClipping(this);
-        _120.set(MR::getPlayerBaseMtx());
-        _F0.set(_120);
+        mPlayerStartMtx.set(MR::getPlayerBaseMtx());
+        mPlayerMtx.set(mPlayerStartMtx);
         TVec3f camPos = MR::getCamPos();
         camPos.sub(mPosition);
         MR::normalize(&camPos);
-        MR::makeMtxUpFrontPos(&_150, _98, camPos, mPosition);
+        MR::makeMtxUpFrontPos(&mPlayerEndMtx, mUp, camPos, mPosition);
         MR::invalidateHitSensors(this);
         setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvReady));
         return true;
     }
     if (MR::isMsgUpdateBaseMtx(msg)) {
-        MR::setPlayerBaseMtx(_F0);
+        MR::setPlayerBaseMtx(mPlayerMtx);
         return true;
     }
     if (msg == 0xF2 /* ACTMES_HEAVENSDOOR_RUNAWAY_RABBIT_WAIT */) {
@@ -463,7 +463,7 @@ bool EarthenPipe::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
     }
     if (MR::isMsgRushForceCancel(msg)) {
         mHostActor = nullptr;
-        _B0->tryHideDown();
+        mTargetPipe->tryHideDown();
         setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvInvalid));
         return true;
     }
@@ -472,9 +472,9 @@ bool EarthenPipe::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
 }
 
 void EarthenPipe::calcTrans(f32 a1) {
-    mPosition.set(_98);
-    mPosition.scale(a1 * _A4);
-    mPosition.add(_8C);
+    mPosition.set(mUp);
+    mPosition.scale(a1 * mMoveDistance);
+    mPosition.add(mInitialPos);
 
     (mTopJointMtx)[0][3] = mPosition.x;
     (mTopJointMtx)[1][3] = mPosition.y;
@@ -486,15 +486,15 @@ void EarthenPipe::calcTrans(f32 a1) {
 }
 
 void EarthenPipe::launchPlayer(bool quick) {
-    MtxPtr baseMtx = _B0->getBaseMtx();
+    MtxPtr baseMtx = mTargetPipe->getBaseMtx();
     fn_8005FFD0(baseMtx);
     TVec3f front(baseMtx[0][2], baseMtx[1][2], baseMtx[2][2]);
     TVec3f horizontal(front);
     TVec3f vertical(baseMtx[0][1], baseMtx[1][1], baseMtx[2][1]);
-    horizontal.scale(_B0->mHorizExitForce);
-    vertical.scale(_B0->mVertExitForce);
+    horizontal.scale(mTargetPipe->mHorizExitForce);
+    vertical.scale(mTargetPipe->mVertExitForce);
     TVec3f velocity(vertical);
-    if (!MR::isInWater(_B0->mPosition)) velocity.add(horizontal);
+    if (!MR::isInWater(mTargetPipe->mPosition)) velocity.add(horizontal);
     MR::startLevelSoundPlayer("JumpMM", -1, -1);
     MR::startLevelSoundPlayer("JumpObj", -1, -1);
     if (quick) MR::startBckPlayerJ("土管クイックジャンプ");
@@ -503,7 +503,7 @@ void EarthenPipe::launchPlayer(bool quick) {
     MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, velocity);
     fn_8004FF80(5);
     mHostActor = nullptr;
-    _B0->tryHideDown();
+    mTargetPipe->tryHideDown();
     if (!_194 && MR::isValidSwitchB(this)) MR::onSwitchB(this);
     setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvInvalid));
 }
@@ -535,8 +535,8 @@ void EarthenPipeMediator::entry(EarthenPipe* pPipe, const JMapInfoIter& rIter) {
 
         if (pipeID == entry->mPipeID) {
             entry->_4 = pPipe;
-            entry->_0->_B0 = pPipe;
-            entry->_4->_B0 = entry->_0;
+            entry->_0->mTargetPipe = pPipe;
+            entry->_4->mTargetPipe = entry->_0;
             return;
         }
     }

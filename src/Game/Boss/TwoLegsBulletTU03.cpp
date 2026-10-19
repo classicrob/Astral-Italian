@@ -1,4 +1,6 @@
+#define JGEOMETRY_VEC3_ADD2_NOINLINE
 #include "Game/Boss/TwoLegs.hpp"
+#include "Game/Animation/XanimeCore.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
@@ -47,7 +49,7 @@ void TwoLegsCamera::end(bool) {
     MR::endActorCameraProgrammable(mHost, -1, true);
 }
 
-// NONMATCHING: vector temporary stack slots; current geometry header expands add to PSVECAdd
+// NONMATCHING: vector temporary stack slots and register assignment.
 // (0, 0, 1) seed vector for makeMtxUpFront (SB4E01 .data lbl_806478D8)
 namespace {
     const Vec sCameraUp = {0.0f, 0.0f, 1.0f};
@@ -69,7 +71,7 @@ void TwoLegsCamera::update() {
         MR::calcDirectionVec(&front, *MR::getPlayerCenterPos(), center);
         TPos3f mtx;
         MR::makeMtxUpFront(&mtx, up, front);
-        right.set<f32>(mtx.mMtx[0][0], mtx.mMtx[1][0], mtx.mMtx[2][0]);
+        mtx.getXDir(right);
         MR::rotateVecDegree(&up, right, -20.0f);
         TVec3f scaled;
         scaled.x = up.x * fov;
@@ -102,7 +104,6 @@ void TwoLegsCamera::reset() {
     mNumTargets = 0;
 }
 
-// NONMATCHING: current geometry header expands two-argument add into PSVECAdd
 void TwoLegsCamera::calcBox(TVec3f* pBox) {
     TVec3f center;
     TVec3f root;
@@ -129,7 +130,6 @@ void TwoLegsCamera::calcBox(TVec3f* pBox) {
 
 namespace {
     // grows the box (min at +0, max at +0xC) so that it contains the sphere
-    // NONMATCHING: two-argument vector add is expanded to PSVECAdd by the current geometry header.
     void expandBox(TVec3f* pBox, const TwoLegsSphere* pSphere) {
         TVec3f bounds[2];
         TVec3f radius;
@@ -195,9 +195,8 @@ TwoLegsJointCtrl::TwoLegsJointCtrl(LiveActor* pHost) {
     MR::initJointTransform(pHost);
     mJointL = MR::getJointTransform(pHost, "BoltL");
     mJointR = MR::getJointTransform(pHost, "BoltR");
-    // XjointTransform+0x68: user matrix pointer read by the joint callbacks
-    *reinterpret_cast< TPos3f** >(reinterpret_cast< u8* >(mJointL) + 0x68) = &mMtxR;
-    *reinterpret_cast< TPos3f** >(reinterpret_cast< u8* >(mJointR) + 0x68) = &mMtxL;
+    mJointL->mPostTransform = mMtxR.toMtxPtr();
+    mJointR->mPostTransform = mMtxL.toMtxPtr();
     bool (TwoLegs::*callback)(TPos3f*, const JointControllerInfo&) = &TwoLegs::calcJointCallback;
     bool (TwoLegs::*before)(TPos3f*, const JointControllerInfo&) = nullptr;
     JointController* ctrl = new JointControlDelegator< TwoLegs >(static_cast< TwoLegs* >(pHost), before, callback);

@@ -591,7 +591,11 @@ namespace JGeometry {
 #endif
         }
 
+#ifdef JGEOMETRY_VEC3_PL_NOINLINE
+        TVec3 operator+(const TVec3& op) const NO_INLINE {
+#else
         TVec3 operator+(const TVec3& op) const JGEOMETRY_WMR_OP_NOINLINE {
+#endif
             TVec3 ret(*this);
             ret += op;
             return ret;
@@ -609,7 +613,11 @@ namespace JGeometry {
             JMathInlineVEC::PSVECAdd(this, &b, this);
         }
 
+#ifdef JGEOMETRY_VEC3_ADD2_NOINLINE
+        void add(const TVec3& a, const TVec3& b) NO_INLINE {
+#else
         void add(const TVec3& a, const TVec3& b) {
+#endif
             JMathInlineVEC::PSVECAdd(&a, &b, this);
         }
 
@@ -660,7 +668,11 @@ namespace JGeometry {
             return ret;
         }
 
+#ifdef JGEOMETRY_VEC3_MULASSIGN_NOINLINE
+        void operator*=(f32 scalar) NO_INLINE {
+#else
         void operator*=(f32 scalar) {
+#endif
             scale(scalar);
         }
 
@@ -746,7 +758,7 @@ namespace JGeometry {
 #ifdef JGEOMETRY_VEC3_UNARY_NEG_NOINLINE
         TVec3 operator-() const NO_INLINE {
 #else
-#ifdef JGEOMETRY_VEC3_NEGATE_OPERATOR_NOINLINE
+#if defined(JGEOMETRY_VEC3_NEGATE_OPERATOR_NOINLINE) || defined(JGEOMETRY_VEC3_NEG_NOINLINE)
         TVec3 operator-() const NO_INLINE {
 #else
         TVec3 operator-() const {
@@ -1419,7 +1431,11 @@ namespace JGeometry {
                                     r.x * -this->y - r.y * -this->x + r.z * this->w + r.w * -this->z);
         }
 
+#ifdef JGEOMETRY_QUAT_TRANSFORM_NOINLINE
+        void transform(TVec3< T >& v) const NO_INLINE {
+#else
         void transform(TVec3< T >& v) const {
+#endif
             transform(v, v);
         }
 
@@ -1466,7 +1482,11 @@ namespace JGeometry {
         }
 
         /* Operators */
+#ifdef JGEOMETRY_QUAT_ASSIGN_NOINLINE
+        TQuat4< T >& operator=(const TQuat4< T >& rSrc) NO_INLINE {
+#else
         TQuat4< T >& operator=(const TQuat4< T >& rSrc) {
+#endif
             this->x = rSrc.x;
             this->y = rSrc.y;
             this->z = rSrc.z;

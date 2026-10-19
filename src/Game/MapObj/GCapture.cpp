@@ -32,29 +32,16 @@
 #include <revolution/types.h>
 #include <revolution/wpad.h>
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [1.0f, MR::epsilon(), 0.0f, 2.0f, 0.5f, 0.1f] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void GCapture_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)MR::epsilon();
     (void)0.0f;
     (void)2.0f;
-    (void)1.0f;
     (void)0.5f;
     (void)0.1f;
-    (void)FLOAT_MAX;
-    (void)0.05f;
-    (void)0.91f;
-    (void)200.0f;
-    (void)80.0f;
-    (void)75.0f;
-    (void)0.992f;
-    (void)0.99f;
-    (void)0.002f;
-    (void)0.033333335f;
-    (void)180.0f;
-    (void)0.001f;
-    (void)130.0f;
-    (void)500.0f;
-    (void)0.7f;
 }
 
 namespace {
@@ -255,20 +242,22 @@ bool GCapture::requestCancelBind() {
     return false;
 }
 
-void GCapture::endStarPointerMode() {
-    _108 = nullptr;
-    setNerve(GET_NERVE(GCapture, GCaptureNrvCoolDown));
-    releaseTractTarget();
-    MR::deleteEffectAll(this);
-    MR::emitEffect(this, "LightBreak");
-    MR::startActionSound(this, "OjGcaptureRelease");
-    MR::endStarPointerMode(this);
-}
-
 bool GCapture::requestDamageCancel(u32 msg) {
     if (_108 != nullptr && canCancelBind() && !MR::isPlayerElementModeInvincible()) {
         endBindByDamage(msg);
         setNerve(GET_NERVE(GCapture, GCaptureNrvCoolDown));
+        return true;
+    }
+
+    return false;
+}
+
+bool GCapture::tryCapture() {
+    if (mTarget != nullptr && MR::testCorePadTriggerAorB()) {
+        decideTractTarget();
+        MR::setBinderRadius(this, 75.0f);
+        _110->getTargetPosition(&mPosition);
+        setNerve(GET_NERVE(GCapture, GCaptureNrvCapture));
         return true;
     }
 
@@ -286,18 +275,6 @@ void GCapture::reset() {
     setNerve(GET_NERVE(GCapture, GCaptureNrvWait));
 }
 
-bool GCapture::tryCapture() {
-    if (mTarget != nullptr && MR::testCorePadTriggerAorB(WPAD_CHAN0)) {
-        decideTractTarget();
-        MR::setBinderRadius(this, 75.0f);
-        _110->getTargetPosition(&mPosition);
-        setNerve(GET_NERVE(GCapture, GCaptureNrvCapture));
-        return true;
-    }
-
-    return false;
-}
-
 bool GCapture::tryCancelCapture() {
     bool ret = false;
 
@@ -309,7 +286,7 @@ bool GCapture::tryCancelCapture() {
         }
     }
 
-    if (MR::isGreaterStep(this, 40) || (!MR::testCorePadButtonAorB(WPAD_CHAN0) && MR::isGreaterStep(this, 30)) || ret) {
+    if (MR::isGreaterStep(this, 40) || (!MR::testCorePadButtonAorB() && MR::isGreaterStep(this, 30)) || ret) {
         releaseTractTarget();
         setNerve(GET_NERVE(GCapture, GCaptureNrvWait));
         return true;
@@ -319,7 +296,7 @@ bool GCapture::tryCancelCapture() {
 }
 
 bool GCapture::tryEndTraction() {
-    if (!MR::testCorePadButtonAorB(WPAD_CHAN0) && MR::isGreaterStep(this, 30)) {
+    if (!MR::testCorePadButtonAorB() && MR::isGreaterStep(this, 30)) {
         releaseTractTarget();
         setNerve(GET_NERVE(GCapture, GCaptureNrvHold));
         return true;
@@ -329,7 +306,7 @@ bool GCapture::tryEndTraction() {
 }
 
 bool GCapture::tryRecapture() {
-    if (mTarget != nullptr && MR::testCorePadTriggerAorB(WPAD_CHAN0)) {
+    if (mTarget != nullptr && MR::testCorePadTriggerAorB()) {
         decideTractTarget();
         setNerve(GET_NERVE(GCapture, GCaptureNrvRecapture));
         return true;
@@ -453,12 +430,6 @@ void GCapture::exeCapture() {
     }
 }
 
-void GCapture::endCapture() {
-    MR::deleteEffect(this, "RibbonPoint");
-    MR::emitEffect(this, "RibbonBreak");
-    MR::invalidateHitSensor(this, "bind");
-}
-
 void GCapture::exeRecapture() {
     TVec3f targetPos;
     _110->getTargetPosition(&targetPos);
@@ -484,7 +455,7 @@ void GCapture::exeRecapture() {
     }
 }
 
-void GCapture::endRecapture() {
+void GCapture::endCapture() {
     MR::deleteEffect(this, "RibbonPoint");
     MR::emitEffect(this, "RibbonBreak");
     MR::invalidateHitSensor(this, "bind");
@@ -560,6 +531,12 @@ void GCapture::exeTraction() {
         MR::deleteEffect(this, "LightSplash");
         MR::emitEffect(this, "Light");
     }
+}
+
+void GCapture::endRecapture() {
+    MR::deleteEffect(this, "RibbonPoint");
+    MR::emitEffect(this, "RibbonBreak");
+    MR::invalidateHitSensor(this, "bind");
 }
 
 void GCapture::exeHold() {
@@ -655,7 +632,7 @@ void GCapture::updateBindActorMatrix() {
 }
 
 bool GCapture::canRequestTarget() const {
-    return !MR::testCorePadButtonAorB(WPAD_CHAN0);
+    return !MR::testCorePadButtonAorB();
 }
 
 bool GCapture::canCancelBind() const {
@@ -781,6 +758,16 @@ void GCapture::releaseTractTarget() {
     _110 = nullptr;
 }
 
+void GCapture::endStarPointerMode() {
+    _108 = nullptr;
+    setNerve(GET_NERVE(GCapture, GCaptureNrvCoolDown));
+    releaseTractTarget();
+    MR::deleteEffectAll(this);
+    MR::emitEffect(this, "LightBreak");
+    MR::startActionSound(this, "OjGcaptureRelease");
+    MR::endStarPointerMode(this);
+}
+
 void GCapture::updateCameraTargetMatrix() {
     TPos3f pos;
     pos.identity();
@@ -828,7 +815,7 @@ namespace MR {
         gCapture->mGuidanceTime = 20;
     }
 
-    bool testCorePadButtonAorB(s32) {
+    bool testCorePadButtonAorB() {
         bool ret = false;
         if (MR::testCorePadButtonA(WPAD_CHAN0) || MR::testCorePadButtonB(WPAD_CHAN0)) {
             ret = true;
@@ -836,7 +823,7 @@ namespace MR {
         return ret;
     }
 
-    bool testCorePadTriggerAorB(s32) {
+    bool testCorePadTriggerAorB() {
         bool ret = false;
         if (MR::testCorePadTriggerA(WPAD_CHAN0) || MR::testCorePadTriggerB(WPAD_CHAN0)) {
             ret = true;

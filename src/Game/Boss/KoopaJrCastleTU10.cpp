@@ -16,12 +16,12 @@
 namespace NrvKoopaJrCastleDominate { KoopaJrCastleDominateNrvA KoopaJrCastleDominateNrvA::sInstance ATTRIBUTE_WEAK; }
 
 KoopaJrCastleDominate::KoopaJrCastleDominate(const char* pName) : LiveActor(pName) {
-    _90 = nullptr;
-    _94 = nullptr;
-    _98 = -1;
-    _9C = 0.0f;
-    _A0 = nullptr;
-    _A4 = nullptr;
+    mBoundActor = nullptr;
+    mBinder = nullptr;
+    mCancelStep = -1;
+    mLaunchSpeed = 0.0f;
+    mStartActionName = nullptr;
+    mWaitActionName = nullptr;
 }
 
 void KoopaJrCastleDominate::init(const JMapInfoIter&) {
@@ -36,20 +36,20 @@ void KoopaJrCastleDominate::init(const JMapInfoIter&) {
 }
 
 // NONMATCHING: floating-point register allocation and vector temporary scheduling
-bool KoopaJrCastleDominate::fn_800D71B0(LiveActor* binder, s32 sensor, const TVec3f* pos, s32 cancelStep) {
+bool KoopaJrCastleDominate::tryBindPlayer(LiveActor* binder, HitSensor* sensor, const TVec3f* pos, s32 cancelStep) {
     if (MR::isOnGroundPlayer() && !MR::isPlayerInRush()) {
         MR::tryRumblePadMiddle(this, 0);
-        _94 = binder;
-        _90 = MR::getSensorHost(reinterpret_cast<HitSensor*>(sensor));
-        const TVec3f& gravity = _90->mGravity;
-        _98 = cancelStep;
-        MR::setPosition(this, _90->mPosition);
+        mBinder = binder;
+        mBoundActor = MR::getSensorHost(sensor);
+        const TVec3f& gravity = mBoundActor->mGravity;
+        mCancelStep = cancelStep;
+        MR::setPosition(this, mBoundActor->mPosition);
         TVec3f diff(*pos);
         JMathInlineVEC::PSVECSubtract(&diff, &mPosition, &diff);
         TVec3f horizontal(0.0f);
         MR::vecKillElement(diff, gravity, &horizontal);
         f32 height = diff.dot(gravity);
-        f32 speed = _9C;
+        f32 speed = mLaunchSpeed;
         f32 time = (-speed + MR::fastSqrtf(speed * speed + (2.0f * 0.7f) * height)) / -0.7f;
         TVec3f negGravity(-gravity);
         TVec3f verticalVelocity(negGravity);
@@ -71,39 +71,39 @@ bool KoopaJrCastleDominate::fn_800D71B0(LiveActor* binder, s32 sensor, const TVe
         LiveActor::appear();
         setNerve(&NrvKoopaJrCastleDominate::KoopaJrCastleDominateNrvA::sInstance);
         MR::offBind(this);
-        MR::startBckPlayer(_A0, nullptr);
+        MR::startBckPlayer(mStartActionName, nullptr);
         return true;
     }
     return false;
 }
 
 void KoopaJrCastleDominate::kill() {
-    if (_90) {
-        MR::endBindAndPlayerJumpWithRollLanding(_94, mVelocity, 0);
-        _90 = nullptr;
-        _94 = nullptr;
+    if (mBoundActor) {
+        MR::endBindAndPlayerJumpWithRollLanding(mBinder, mVelocity, 0);
+        mBoundActor = nullptr;
+        mBinder = nullptr;
     }
     LiveActor::kill();
 }
 
-void KoopaJrCastleDominate::fn_800D7560(const char* start, const char* wait) {
-    _A0 = start;
-    _A4 = wait;
+void KoopaJrCastleDominate::setPlayerActionNames(const char* start, const char* wait) {
+    mStartActionName = start;
+    mWaitActionName = wait;
 }
 
 void KoopaJrCastleDominate::exe800D7570() {
     MR::attenuateVelocity(this, 0.98f);
     MR::addVelocityToGravity(this, 0.7f);
     if (MR::isStep(this, 10)) MR::onBind(this);
-    if (_90 && _A4 && MR::isBckOneTimeAndStopped(_90)) MR::startBckPlayer(_A4, nullptr);
-    if (_90 && _98 >= 0 && MR::isGreaterEqualStep(this, _98) && MR::isPadSwing(0)) {
+    if (mBoundActor && mWaitActionName && MR::isBckOneTimeAndStopped(mBoundActor)) MR::startBckPlayer(mWaitActionName, nullptr);
+    if (mBoundActor && mCancelStep >= 0 && MR::isGreaterEqualStep(this, mCancelStep) && MR::isPadSwing(0)) {
         MR::startSoundPlayer("SE_PV_TWIST_START", -1, -1);
         MR::startSoundPlayer("SE_PM_SPIN_ATTACK", -1, -1);
         MR::tryRumblePadMiddle(this, 0);
         MR::startBckPlayer("Spin", nullptr);
-        MR::endBindAndPlayerJump(_94, mVelocity, 0);
-        _90 = nullptr;
-        _94 = nullptr;
+        MR::endBindAndPlayerJump(mBinder, mVelocity, 0);
+        mBoundActor = nullptr;
+        mBinder = nullptr;
         kill();
         return;
     }
@@ -124,7 +124,7 @@ void KoopaJrCastleDominate::attackSensor(HitSensor* sender, HitSensor* receiver)
 }
 
 MtxPtr KoopaJrCastleDominate::getBaseMtx() const {
-    if (_90) return _90->getBaseMtx();
+    if (mBoundActor) return mBoundActor->getBaseMtx();
     return nullptr;
 }
 
@@ -132,7 +132,7 @@ void KoopaJrCastleDominate::updateBaseMtx() {
     TPos3f mtx;
     mtx.identity();
     MR::makeMtxTR((MtxPtr)&mtx, this);
-    MR::setBaseTRMtx(_90, mtx);
+    MR::setBaseTRMtx(mBoundActor, mtx);
 }
 
 KoopaJrCastleDominate::~KoopaJrCastleDominate() {}

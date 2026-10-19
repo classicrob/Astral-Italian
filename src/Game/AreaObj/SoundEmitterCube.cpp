@@ -1,42 +1,45 @@
 #include "Game/AreaObj/SoundEmitterCube.hpp"
-#include "Game/AudioLib/AudAnmSoundObject.hpp"
-#include "Game/AudioLib/AudMicWrap.hpp"
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
+#include "Game/AudioLib/AudMicWrap.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
-#include "Game/Util/MemoryUtil.hpp"
-#include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include <cstdio>
+#include <new>
 
-namespace {
-    const char* cSoundNameTable[] = {"SE_AT_LV_GRAVE", "SE_AT_LV_KOOPA_WIND", "SE_AT_LV_WIND_DESERT", "SE_AT_LV_WIND_ICE_MT_TOP"};
-};  // namespace
+// PLACEHOLDER(objects): unnamed target symbol fn_80222A80, declared extern "C" so the reloc name matches; resolve when fn_80222A80 gets its real name in symbols.txt
+extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
+
+static const char* sSoundName = "PlaySound";
 
 SoundEmitterCube::~SoundEmitterCube() {
 }
 
-SoundEmitterCube::SoundEmitterCube(int formType, const char* pName) : AreaObj(formType, pName), mSoundObj(), _40(0.0f, 0.0f, 0.0f), mSoundName() {
+SoundEmitterCube::SoundEmitterCube(int formType, const char* pName) : AreaObj(formType, pName), mSoundObj(), mSoundPos(0.0f, 0.0f, 0.0f) {
+}
+
+SoundEmitterCubeWorldMapSync::SoundEmitterCubeWorldMapSync(int formType, const char* pName) : SoundEmitterCube(formType, pName) {
 }
 
 void SoundEmitterCube::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
 
-    mSoundName = ::cSoundNameTable[mObjArg0];
-    mSoundObj = new AudAnmSoundObject(&_40, 4, MR::getCurrentHeap());
+    char name[0x100];
+    snprintf(name, 0x100, "SoundEmitterCube%d", mObjArg0);
+    mSoundObj = new ActionSoundKeeper(4, name, &mSoundPos);
 
     MR::connectToSceneAreaObj(this);
     MR::registerDemoSimpleCastAll(this);
 }
 
 void SoundEmitterCube::movement() {
-    switch (mObjArg0) {
-    case 0:
-    case 3:
-        _40.set(MR::getCameraWatchPos());
-        break;
-    default:
-        _40.set(AudMicWrap::getMicPos());
-        break;
+    TVec3f pos(0.0f);
+    if (mObjArg1 == 0) {
+        pos.set(MR::getCameraWatchPos());
+    } else {
+        pos.set(AudMicWrap::getMicPos());
     }
 
     TDirBox3f worldBox;
@@ -64,30 +67,38 @@ void SoundEmitterCube::movement() {
     cornerX.scaleAdd(worldBox._30.z, worldBox._18, cornerX);
     bounds.extend(cornerX);
 
-    if (_40.x < bounds.i.x) {
-        _40.x = bounds.i.x;
+    mSoundPos = pos;
+
+    if (mSoundPos.x < bounds.i.x) {
+        mSoundPos.x = bounds.i.x;
     }
 
-    if (_40.x > bounds.f.x) {
-        _40.x = bounds.f.x;
+    if (mSoundPos.x > bounds.f.x) {
+        mSoundPos.x = bounds.f.x;
     }
 
-    if (_40.y < bounds.i.y) {
-        _40.y = bounds.i.y;
+    if (mSoundPos.y < bounds.i.y) {
+        mSoundPos.y = bounds.i.y;
     }
 
-    if (_40.y > bounds.f.y) {
-        _40.y = bounds.f.y;
+    if (mSoundPos.y > bounds.f.y) {
+        mSoundPos.y = bounds.f.y;
     }
 
-    if (_40.z < bounds.i.z) {
-        _40.z = bounds.i.z;
+    if (mSoundPos.z < bounds.i.z) {
+        mSoundPos.z = bounds.i.z;
     }
 
-    if (_40.z > bounds.f.z) {
-        _40.z = bounds.f.z;
+    if (mSoundPos.z > bounds.f.z) {
+        mSoundPos.z = bounds.f.z;
     }
 
-    mSoundObj->process();
-    MR::startSoundObjectLevel(mSoundObj, mSoundName);
+    if (PSVECDistance(&mSoundPos, MR::getPlayerCenterPos()) >= 20000.0f) {
+        return;
+    }
+
+    if (isValid()) {
+        mSoundObj->update();
+        fn_80222A80(mSoundObj, sSoundName, -1, -1, -1);
+    }
 }

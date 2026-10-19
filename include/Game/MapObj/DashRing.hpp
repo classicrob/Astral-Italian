@@ -4,20 +4,16 @@
 
 class DashRing : public LiveActor {
 public:
-    DashRing(const char* pName) : LiveActor(pName) {
-    }
+    DashRing(const char* pName);
 
     virtual ~DashRing();
-    virtual void init(const JMapInfoIter& rIter) {
-        initCommon(rIter, "DashRing");
-    }
+    virtual void init(const JMapInfoIter& rIter);
     virtual void initAfterPlacement();
     virtual void draw() const;
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
 
-    void initCommon(const JMapInfoIter&, const char*);
     void calcAxis();
     void calcSubAxis();
     void updateAxisTowardsPlayer();
@@ -31,6 +27,5 @@ public:
     /* 0xBC */ s32 mMaxDuration;
     /* 0xC0 */ f32 mSpeedScale;
     /* 0xC4 */ bool mDoTurn;
-    /* 0xC5 */ bool mDoLoop;
     /* 0xC8 */ TVec3f mInitialPosition;
 };

@@ -28,7 +28,7 @@ namespace MR {
     void setStageBGMStateBit(u32);
     const char* getPlayingStageBgmId();
     s32 getStageBgmState();
-    void adjustPorterBGGM(s32);
+    void adjustPorterBGGM(s32, s32);  // SMG2: nerve step and step limit.
 
     JAISoundHandle* startSubBGM(const char*, bool);
     void stopSubBGM(u32);

@@ -143,21 +143,21 @@ void KoopaStateLastChase::exeDashWait() {
     if (MR::isFirstStep(this)) {
         setupTarget();
         mDashWait->setStartActionName(mIsLeft ? "LastMoveStartLeft" : "LastMoveStartRight");
-        mQuat.set< f32 >(mHost->mQuatA);
+        mQuat.set< f32 >(mHost->mPoseQuat);
     }
     TVec3f dir;
     MR::normalizeOrZero(&dir, mPosB - mPosA);
-    TQuat4f* pQuat = &mHost->mQuatA;
+    TQuat4f* pQuat = &mHost->mPoseQuat;
     MR::turnQuatZDirRate(pQuat, mQuat, dir, 0.5f * MR::calcNerveEaseInOutRate(this, 70));
     MR::updateActorStateAndNextNerve(this, &NrvKoopaStateLastChase::KoopaStateLastChaseNrvRoll::sInstance);
 }
 
 void KoopaStateLastChase::exeRoll() {
     if (MR::isFirstStep(this)) {
-        mQuat.set< f32 >(mHost->mQuatA);
+        mQuat.set< f32 >(mHost->mPoseQuat);
         mStep = 0;
     }
-    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mQuat, MR::calcNerveValue(this, mRollStep - 4, 0.0f, 720.0f));
+    MR::rotateQuatXAxisDegree(&mHost->mPoseQuat, mQuat, MR::calcNerveValue(this, mRollStep - 4, 0.0f, 720.0f));
     moveToTarget();
     MR::startSoundInCameraDistance(mHost, "LastChaseRoll", -1, -1, 31000.0f);
     if (MR::isGreaterStep(this, mRollStep - 5)) {
@@ -169,7 +169,7 @@ void KoopaStateLastChase::exeRoll() {
 void KoopaStateLastChase::exeMoveEnd() {
     if (MR::isFirstStep(this)) {
         MR::startKoopaBattleFaceCtrl(mHost, 30);
-        mQuat.set< f32 >(mHost->mQuatA);
+        mQuat.set< f32 >(mHost->mPoseQuat);
         MR::startAction(mHost, mIsLeft ? "LastMoveEndLeft" : "LastMoveEndRight");
         mIsLoopAnim = false;
     }
@@ -180,9 +180,9 @@ void KoopaStateLastChase::exeMoveEnd() {
     bool isEnd = moveToTarget();
     f32 rate = MR::calcNerveEaseInOutRate(this, mHoldStep);
     KoopaBattle* pHost = mHost;
-    TQuat4f* pQuat = &pHost->mQuatA;
+    TQuat4f* pQuat = &pHost->mPoseQuat;
     pQuat->set< f32 >(mQuat);
-    pQuat->slerp(pHost->mQuatB, rate);
+    pQuat->slerp(pHost->mBattleQuat, rate);
     if (MR::isGreaterStep(this, mHoldStep)) {
         if (isEnd) {
             kill();
@@ -222,7 +222,7 @@ bool KoopaStateLastChase::calcTargetPos(TVec3f* pDst, const TVec3f& rSrc, s32 id
 
 bool KoopaStateLastChase::isChasing() const {
     bool res;
-    if (mHost->_10C) {
+    if (mHost->mIsDefenseForm) {
         res = false;
     } else {
         res = false;

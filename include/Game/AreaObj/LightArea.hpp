@@ -12,5 +12,5 @@ public:
         return "LightArea";
     }
 
-    /* 0x48 */ bool _48;
+    /* 0x48 */ bool mIsLinked;
 };

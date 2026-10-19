@@ -8,29 +8,29 @@
 #include "Game/Util/SoundUtil.hpp"
 
 namespace {
-    static const f32 sRandomPieceValue = 15.0f;
-    static const f32 sLaunchYVel = 40.0f;
+    static const f32 sLaunchRandomSpeed = 15.0f;
+    static const f32 sLaunchVerticalSpeed = 40.0f;
 };  // namespace
 
 StarPieceSpot::StarPieceSpot(const char* pName) : LiveActor(pName) {
 }
 
+// Director host accounting prevents a repeated trigger from exceeding the declared supply.
 void StarPieceSpot::emit() {
-    MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
-    MR::appearStarPiece(this, mPosition, MR::getDeclareRemnantStarPieceCount(this), ::sRandomPieceValue, ::sLaunchYVel, false);
+    MR::appearStarPiece(this, mPosition, MR::getDeclareRemnantStarPieceCount(this), ::sLaunchRandomSpeed, ::sLaunchVerticalSpeed, false);
 }
 
 void StarPieceSpot::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
-    s32 arg0 = 5;
-    MR::getJMapInfoArg0NoInit(rIter, &arg0);
-    MR::declareStarPiece(this, arg0);
+    s32 pieceCount = 5;
+    MR::getJMapInfoArg0NoInit(rIter, &pieceCount);
+    MR::declareStarPiece(this, pieceCount);
 
     initSound(1, "StarPieceSpot", nullptr, TVec3f(0.0f));
 
     if (MR::initUseStageSwitchReadAppear(this, rIter)) {
-        MR::listenStageSwitchOnAppear(this, MR::Functor(this, &StarPieceSpot::emit));
+        MR::listenStageSwitchOnAppear(this, MR::FunctorV0M< StarPieceSpot*, void (StarPieceSpot::*)() >(this, &StarPieceSpot::emit));
         kill();
     } else {
         initHitSensor(1);
@@ -40,9 +40,8 @@ void StarPieceSpot::init(const JMapInfoIter& rIter) {
 }
 
 bool StarPieceSpot::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerSpinAttack(msg)) {
-        MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
-        MR::appearStarPiece(this, mPosition, MR::getDeclareRemnantStarPieceCount(this), ::sRandomPieceValue, ::sLaunchYVel, false);
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
+        emit();
         kill();
         return false;
     } else {

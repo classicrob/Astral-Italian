@@ -6,7 +6,7 @@ namespace {
     static const f32 sDefaultDistance = 1000.0f;
 };  // namespace
 
-HazeCube::HazeCube(int formType, const char* pName) : AreaObj(formType, pName), mDistance(::sDefaultDistance) {
+HazeCube::HazeCube(s32 formType, const char* pName) : AreaObj(formType, pName), mDistance(::sDefaultDistance) {
 }
 
 void HazeCube::init(const JMapInfoIter& rIter) {
@@ -17,4 +17,11 @@ void HazeCube::init(const JMapInfoIter& rIter) {
     }
 
     MR::createSceneObj(SceneObj_HeatHazeDirector);
+}
+
+bool HazeCube::isInVolume(const TVec3f& position) const {
+    if (isValidSwitchA() && !isOnSwitchA()) {
+        return false;
+    }
+    return AreaObj::isInVolume(position);
 }

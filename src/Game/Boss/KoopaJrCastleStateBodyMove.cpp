@@ -14,6 +14,11 @@
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
 
+namespace {
+    extern const f32 sMaxMoveSpeed;
+    extern const f32 sCenterRadius;
+}
+
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvSel KoopaJrCastleStateBodyMoveNrvSel::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvTurnA KoopaJrCastleStateBodyMoveNrvTurnA::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvTurnB KoopaJrCastleStateBodyMoveNrvTurnB::sInstance ATTRIBUTE_WEAK; }
@@ -28,10 +33,10 @@ KoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMove(KoopaJrCastleBody* pHost)
     mDirection.x = 0.0f;
     mDirection.y = 0.0f;
     mDirection.z = 0.0f;
-    _1C = 0.0f;
+    mTurnRate = 0.0f;
     mMode = 0;
-    _24 = 1.0f;
-    _2C = 0;
+    mTurnDirection = 1.0f;
+    mHasCompletedTurn = 0;
 }
 
 KoopaJrCastleStateBodyMove::~KoopaJrCastleStateBodyMove() {}
@@ -48,10 +53,10 @@ void KoopaJrCastleStateBodyMove::appear() {
     mIsDead = false;
     setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvSel::sInstance);
     mHost->validateCollisionA();
-    KoopaJrCastleFunction::fn_800D4B40();
-    _24 = 1.0f;
+    KoopaJrCastleFunction::validateBodyAndHeadSensors();
+    mTurnDirection = 1.0f;
     mMoveStep = 0;
-    _2C = 0;
+    mHasCompletedTurn = 0;
 }
 
 void KoopaJrCastleStateBodyMove::setMode0() {
@@ -84,7 +89,7 @@ bool KoopaJrCastleStateBodyMove::isMoving() const {
 }
 
 bool KoopaJrCastleStateBodyMove::getFlag() const {
-    return _2C;
+    return mHasCompletedTurn;
 }
 
 void KoopaJrCastleStateBodyMove::exe800CF2A0() {
@@ -100,7 +105,7 @@ void KoopaJrCastleStateBodyMove::exe800CF2A0() {
                 setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvTurnA::sInstance);
             }
         } else if (mMode == 2) {
-            _24 = MR::isPlayerLeftSide(mHost) ? -1.0f : 1.0f;
+            mTurnDirection = MR::isPlayerLeftSide(mHost) ? -1.0f : 1.0f;
             if (isOutsideCenter()) {
                 setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvRotA::sInstance);
             } else {
@@ -116,7 +121,7 @@ void KoopaJrCastleStateBodyMove::exe800CF2A0() {
 void KoopaJrCastleStateBodyMove::exe800CF3B0() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     if (MR::isFirstStep(this)) {
-        _1C = 0.0f;
+        mTurnRate = 0.0f;
         KoopaJrCastleFunction::fireBarOff();
     }
     if (MR::isPlayerLeftSide(mHost)) {
@@ -129,17 +134,9 @@ void KoopaJrCastleStateBodyMove::exe800CF3B0() {
         }
     }
     MR::startActionSound(mHost, "MoveRotate", -1, -1, -1);
-    _1C += 0.025f;
-    f32 temp = _1C;
-    f32 rate;
-    if (temp < 0.0f) {
-        rate = 0.0f;
-    } else if (temp > 0.5f) {
-        rate = 0.5f;
-    } else {
-        rate = temp;
-    }
-    _1C = rate;
+    mTurnRate += 0.025f;
+    f32 rate = MR::clamp(mTurnRate, 0.0f, 0.5f);
+    mTurnRate = rate;
     if (MR::turnDirectionToPlayerDegreeHorizon(pCastle, &pCastle->mFrontVec, rate)) {
         KoopaJrCastleFunction::fireBarOn();
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvTurnB::sInstance);
@@ -202,7 +199,7 @@ static inline void limitSpeed(LiveActor* pActor, f32 lim) {
     }
 }
 
-// NONMATCHING: limitSpeed constant folding (-17.0f is loaded + fneg in target), tail branch layout
+// NONMATCHING: tail branch layout.
 void KoopaJrCastleStateBodyMove::exe800CF700() {
     setMoveRate(MR::calcNerveEaseOutValue(this, 60, 0.1f, 1.8f));
     mHost->startMoveSound();
@@ -210,7 +207,7 @@ void KoopaJrCastleStateBodyMove::exe800CF700() {
     TVec3f vel(pCastle->mFrontVec);
     vel *= 1.0f;
     MR::addVelocity(pCastle, vel);
-    limitSpeed(pCastle, 17.0f);
+    limitSpeed(pCastle, sMaxMoveSpeed);
     MR::attenuateVelocity(pCastle, 0.93f);
     mHost->validateCollisionA();
     if (mMode == 2) {
@@ -240,11 +237,9 @@ void KoopaJrCastleStateBodyMove::exe800CF8D0() {
     TVec3f target(0.0f);
     calcTargetDir(&target);
     setMoveRate(MR::calcNerveEaseOutValue(this, 10, 0.1f, 1.8f));
-    f32 rate = _24;
-    TVec3f axis(TVec3f(-pCastle->mGravity));
-    axis *= rate;
+    TVec3f axis((-pCastle->mGravity) * mTurnDirection);
     f32 angle = MR::turnVecToVecDegree(&pCastle->mFrontVec, pCastle->mFrontVec, target, 0.5f, axis);
-    if (_24 > 0.0f) {
+    if (mTurnDirection > 0.0f) {
         if (startBtkKeepFrame("MoveR")) {
             MR::setBtkRate(mHost, 1.0f);
         }
@@ -275,9 +270,7 @@ void KoopaJrCastleStateBodyMove::exe800CFA70() {
     mHost->startMoveSound();
     TVec3f target(0.0f);
     calcTargetDir(&target);
-    f32 rate = _24;
-    TVec3f axis(TVec3f(-pCastle->mGravity));
-    axis *= rate;
+    TVec3f axis((-pCastle->mGravity) * mTurnDirection);
     if (MR::turnVecToVecDegree(&pCastle->mFrontVec, pCastle->mFrontVec, target, 0.5f, axis) < 4.0f) {
         KoopaJrCastle* pCastle2 = KoopaJrCastleFunction::getCastle();
         TVec3f vel(pCastle2->mFrontVec);
@@ -294,7 +287,7 @@ void KoopaJrCastleStateBodyMove::exe800CFA70() {
     }
     if (MR::calcDistanceToPlayerH(mHost) < 4000.0f && MR::isFaceToPlayerDegree(mHost, pCastle->mFrontVec, 60.0f)) {
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
-        _2C = 1;
+        mHasCompletedTurn = 1;
     } else {
         mHost->validateCollisionA();
     }
@@ -310,13 +303,10 @@ void KoopaJrCastleStateBodyMove::exe800CFC40() {
     mHost->startMoveSound();
     TVec3f target(0.0f);
     calcTargetDir(&target);
-    f32 rate = _24;
-    TVec3f axis(TVec3f(-pCastle->mGravity));
-    axis *= rate;
+    TVec3f axis((-pCastle->mGravity) * mTurnDirection);
     if (MR::turnVecToVecDegree(&pCastle->mFrontVec, pCastle->mFrontVec, target, 0.5f, axis) < 4.0f) {
         KoopaJrCastle* pCastle2 = KoopaJrCastleFunction::getCastle();
-        TVec3f vel = -pCastle2->mFrontVec;
-        vel *= 1.0f;
+        TVec3f vel((-pCastle2->mFrontVec) * 1.0f);
         MR::addVelocity(pCastle2, vel);
         if (MR::calcVelocityLength(pCastle2) > 17.0f) {
             MR::normalize(&pCastle2->mVelocity);
@@ -355,8 +345,8 @@ void KoopaJrCastleStateBodyMove::calcTargetDir(TVec3f* pDst) {
     MR::makeMtxUpSidePos(&mtx, -pCastle->mGravity, dir, pCastle->mPosition);
     MR::extractMtxZDir(mtx.toMtxPtr(), &front);
     TVec3f axis = -pCastle->mGravity;
-    MR::rotateVecDegree(&front, axis, 7.0f * _24);
-    front *= _24;
+    MR::rotateVecDegree(&front, axis, 7.0f * mTurnDirection);
+    front *= mTurnDirection;
     *pDst = front;
 }
 
@@ -393,7 +383,7 @@ bool KoopaJrCastleStateBodyMove::isOutsideCenter() {
     f32 dist;
     TVec3f dir;
     MR::separateScalarAndDirection(&dist, &dir, mDirection - KoopaJrCastleFunction::getCastle()->mPosition);
-    f32 centerRadius = 3200.0f;
+    f32 centerRadius = sCenterRadius;
     f32 margin = 50.0f;
     return dist > centerRadius - margin;
 }
@@ -402,4 +392,9 @@ void KoopaJrCastleStateBodyMove::setMoveRate(f32 rate) {
     mHost->mRate = rate;
     MR::setBckRate(mHost, rate);
     MR::setBtkRate(mHost, rate);
+}
+
+namespace {
+    const f32 sMaxMoveSpeed = 17.0f;
+    const f32 sCenterRadius = 3200.0f;
 }

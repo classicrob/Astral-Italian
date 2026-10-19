@@ -6,7 +6,7 @@
 KoopaJrRobotStateBase::KoopaJrRobotStateBase(const char* pName, KoopaJrRobot* pHost) : ActorStateBase< KoopaJrRobot >(pName, pHost), _10(0.0f), _14(0.0f, 0.0f, 1.0f) {}
 
 void KoopaJrRobotStateBase::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if ((!mHost->fn_800DB9D0(pSender) || !MR::isSensorType(pReceiver, 0x2D) || !MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) &&
+    if ((!mHost->isArmSensor(pSender) || !MR::isSensorType(pReceiver, 0x2D) || !MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) &&
         MR::isSensorPlayerOrYoshiOrRide(pReceiver) && !MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
@@ -79,7 +79,7 @@ bool KoopaJrRobotStateBase::updateTurnEnd(s32 dir) {
 }
 
 bool KoopaJrRobotStateBase::isPlayerNearFront() {
-    return mHost->fn_800DBB30(45.0f);
+    return mHost->isPlayerNearBack(45.0f);
 }
 
 const char* KoopaJrRobotStateBase::getWaitActionName() {

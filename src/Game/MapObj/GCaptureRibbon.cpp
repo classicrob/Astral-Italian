@@ -14,42 +14,42 @@
 #include <revolution/gx/GXVert.h>
 #include <revolution/types.h>
 
-GCaptureRibbon::GCaptureRibbon(const char* pName) : LiveActor(pName), mTexture(), _990(), _994() {
+GCaptureRibbon::GCaptureRibbon(const char* pName) : LiveActor(pName), mTexture(), mPointCount(), _998() {
 }
 
 void GCaptureRibbon::draw() const {
-    if (_990 >= 2) {
+    if (mPointCount >= 2) {
         TDDraw::cameraInit3D();
         TDDraw::setup(1, 2, 0);
         f32 width = calcLineWidth();
         mTexture->load(GX_TEXMAP0);
         GXSetZMode(true, GX_LEQUAL, false);
 
-        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 2 * _990);
+        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 2 * mPointCount);
         {
-            for (s32 i = 0; i < _990; i++) {
-                f32 v2 = i / (_990 - 1.0f);
+            for (s32 i = 0; i < mPointCount; i++) {
+                f32 v2 = i / (mPointCount - 1.0f);
 
-                TVec3f v1 = _690[i] * width;
+                TVec3f v1 = mUpVecs[i] * width;
 
-                GXPosition3f32(v1.x + _90[i].x, v1.y + _90[i].y, v1.z + _90[i].z);
+                GXPosition3f32(v1.x + mPoints[i].x, v1.y + mPoints[i].y, v1.z + mPoints[i].z);
                 GXTexCoord2f32(0.0f, v2);
-                GXPosition3f32(_90[i].x - v1.x, _90[i].y - v1.y, _90[i].z - v1.z);
+                GXPosition3f32(mPoints[i].x - v1.x, mPoints[i].y - v1.y, mPoints[i].z - v1.z);
                 GXTexCoord2f32(1.0f, v2);
             }
         }
         GXEnd();
 
-        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 2 * _990);
+        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 2 * mPointCount);
         {
-            for (s32 j = 0; j < _990; j++) {
-                f32 v2 = j / (_990 - 1.0f);
+            for (s32 j = 0; j < mPointCount; j++) {
+                f32 v2 = j / (mPointCount - 1.0f);
 
-                TVec3f v1 = _390[j] * width;
+                TVec3f v1 = mSideVecs[j] * width;
 
-                GXPosition3f32(v1.x + _90[j].x, v1.y + _90[j].y, v1.z + _90[j].z);
+                GXPosition3f32(v1.x + mPoints[j].x, v1.y + mPoints[j].y, v1.z + mPoints[j].z);
                 GXTexCoord2f32(0.0f, v2);
-                GXPosition3f32(_90[j].x - v1.x, _90[j].y - v1.y, _90[j].z - v1.z);
+                GXPosition3f32(mPoints[j].x - v1.x, mPoints[j].y - v1.y, mPoints[j].z - v1.z);
                 GXTexCoord2f32(1.0f, v2);
             }
         }
@@ -58,62 +58,63 @@ void GCaptureRibbon::draw() const {
 }
 
 void GCaptureRibbon::reset() {
-    _990 = 0;
-    _994 = 0;
+    mPointCount = 0;
+    _998 = 0;
 }
 
-void GCaptureRibbon::lengthen(const TVec3f& a1, const TVec3f& a2) {
-    _90[0].set(a1);
-    _90[1].set(a2);
-    _990 = 2;
+void GCaptureRibbon::lengthen(const TVec3f& rStart, const TVec3f& rEnd) {
+    mPoints[0].set(rStart);
+    mPoints[1].set(rEnd);
+    mPointCount = 2;
     updateAxis();
 }
 
-void GCaptureRibbon::shorten(const TVec3f& a1, const TVec3f& a2) {
-    _90[0].set(a1);
-    _90[1].set(a2);
-    _990 = 2;
+void GCaptureRibbon::shorten(const TVec3f& rStart, const TVec3f& rEnd) {
+    mPoints[0].set(rStart);
+    mPoints[1].set(rEnd);
+    mPointCount = 2;
     updateAxis();
 }
 
+// NONMATCHING: loop index and array pointer lifetimes use one extra saved register.
 void GCaptureRibbon::updateAxis() {
     TQuat4f quat;
-    if (_990 >= 2) {
-        TVec3f v1 = _90[1] - _90[0];
+    if (mPointCount >= 2) {
+        TVec3f v1 = mPoints[1] - mPoints[0];
         MR::normalizeOrZero(&v1);
 
         if (MR::isNearZero(v1)) {
-            _390[0] = TVec3f(1, 0, 0);
-            _690[0] = TVec3f(0, 1, 0);
+            mSideVecs[0] = TVec3f(1, 0, 0);
+            mUpVecs[0] = TVec3f(0, 1, 0);
             v1 = TVec3f(0, 0, 1);
         } else {
-            MR::makeAxisVerticalZX(&_390[0], v1);
-            _690[0].cross(v1, _390[0]);
+            MR::makeAxisVerticalZX(&mSideVecs[0], v1);
+            mUpVecs[0].cross(v1, mSideVecs[0]);
         }
 
-        for (s32 i = 1; i < _990 - 1; i++) {
-            TVec3f v2 = _90[i + 1] - _90[i];
+        for (s32 i = 1; i < mPointCount - 1; i++) {
+            TVec3f v2 = mPoints[i + 1] - mPoints[i];
             if (MR::isNearZero(v2)) {
-                _390[i] = _390[i - 1];
-                _690[i] = _690[i - 1];
+                mSideVecs[i] = mSideVecs[i - 1];
+                mUpVecs[i] = mUpVecs[i - 1];
             } else {
                 MR::normalize(&v2);
                 if (v1.dot(v2) < 0.0f) {
                     v2 = -v2;
                 }
                 quat.setRotate(v1, v2);
-                quat.transform(_390[i - 1], _390[i]);
-                quat.transform(_690[i - 1], _690[i]);
+                quat.transform(mSideVecs[i - 1], mSideVecs[i]);
+                quat.transform(mUpVecs[i - 1], mUpVecs[i]);
                 v1.set(v2);
             }
         }
-        _390[_990 - 1] = _390[_990 - 2];
-        _690[_990 - 1] = _690[_990 - 2];
+        mSideVecs[mPointCount - 1] = mSideVecs[mPointCount - 2];
+        mUpVecs[mPointCount - 1] = mUpVecs[mPointCount - 2];
     }
 }
 
 f32 GCaptureRibbon::calcLineWidth() const {
-    f32 normalize = MR::normalize(_90[0].distance(_90[_990 - 1]), 500.0f, 2000.0f);
+    f32 normalize = MR::normalize(mPoints[0].distance(mPoints[mPointCount - 1]), 500.0f, 2000.0f);
     return (20.0f * normalize) + (90.0f * (1.0f - normalize));
 }
 
@@ -121,7 +122,7 @@ GCaptureRibbon::~GCaptureRibbon() {
 }
 
 void GCaptureRibbon::init(const JMapInfoIter& rIter) {
-    mTexture = new JUTTexture(MR::loadTexFromArc("GCaptureRibbon.arc", "GCaptureRibbon.bti"), 0);
+    mTexture = new JUTTexture(MR::loadTexFromArc("GCaptureRibbon.arc", "GCaptureRibbon.bti", nullptr), 0);
     MR::invalidateClipping(this);
     makeActorAppeared();
 }

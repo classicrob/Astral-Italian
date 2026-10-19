@@ -6,9 +6,8 @@
 #include "Game/Util/ActorMovementUtil.hpp"
 
 // SMG2-only boss "DinoPackunBaby" (ベビーディノパックン). No Petari counterpart.
-// Units: DinoPackunBaby (actor), DinoPackunBabyTU01 (actor helpers + DinoPackunBabyBattle),
-// DinoPackunBabyTU02 (DinoPackunBabyDemo state + DinoPackunBabyShell ctor).
-// The unsplit region after TU02 (0x800BAFC0..) holds DinoPackunBabyShell's other members and DinoPackunBabyState.
+// Units: DinoPackunBaby (actor), DinoPackunBabyHelpers (actor helpers),
+// DinoPackunBabyTU01 (battle), DinoPackunBabyTU02 (demo and shell), DinoPackunBabyState (walk state).
 
 class ActorCameraInfo;
 class AnimScaleController;
@@ -16,8 +15,9 @@ class DinoPackunBaby;
 class DinoPackunBabyBattle;
 class DinoPackunBabyDemo;
 class DinoPackunBabyShell;
+class BreakModel;
 
-// Shell part (size 0xD4). Ctor lives in TU02, the rest in the following (unsplit) unit.
+// Shell part (size 0xD4), with a separate model for its breaking animation.
 class DinoPackunBabyShell : public PartsModel {
 public:
     DinoPackunBabyShell(LiveActor*, const char*, const char*, const char*);
@@ -31,26 +31,28 @@ public:
     void requestMovementOnModel();
     void killModel();
 
-    /* 0xA0 */ LiveActor* mModel;
+    /* 0xA0 */ BreakModel* mModel;
     /* 0xA4 */ TPos3f mModelMtx;
 };
 
-// Generic 0x28-byte walking state (ctor (host, name)), lives in the unsplit region after TU02.
-class DinoPackunBabyState : public ActorStateBase< DinoPackunBaby > {
+struct DinoPackunBabyStateParam {
+    DinoPackunBabyStateParam();
+    /* 0x00 */ const char* mActionName;
+    /* 0x04 */ s32 mDuration;
+    /* 0x08 */ const MR::ActorMoveParam* mChaseMoveParam;
+    /* 0x0C */ const MR::ActorMoveParam* mEscapeMoveParam;
+    /* 0x10 */ bool mIsBreakCrystal;
+};
+
+class DinoPackunBabyState : public ActorStateBase<DinoPackunBaby> {
 public:
     DinoPackunBabyState(DinoPackunBaby*, const char*);
-
     virtual ~DinoPackunBabyState();
     virtual void init();
     virtual void appear();
-
+    void exeWait();
     /* 0x10 */ const char* mStateName;
-    /* 0x14 */ const char* mActionName;
-    /* 0x18 */ s32 mDuration;
-    /* 0x1C */ const MR::ActorMoveParam* mChaseMoveParam;
-    /* 0x20 */ const MR::ActorMoveParam* mEscapeMoveParam;
-    /* 0x24 */ bool mIsAttack;
-
+    /* 0x14 */ DinoPackunBabyStateParam mParam;
 };
 
 // TU02: demo state (size 0x20).

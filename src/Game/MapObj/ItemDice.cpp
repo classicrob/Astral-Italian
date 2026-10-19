@@ -12,13 +12,6 @@
 #include "JSystem/JGeometry/TVec.hpp"
 #include <new>
 
-// String/data labels (.data) and float constants (.sdata2) used by the dice classes.
-
-
-// Unnamed SMG2 helpers (DiceBase/BenefitItem unit, not ours to name here).
-// PLACEHOLDER(objects): Kuribo appear-from-box pose helper; awaiting the enemies owner declaration.
-extern "C" void appearKuriboFromBox(Kuribo*, const TVec3f*, const TQuat4f*);
-
 namespace {
     inline const char* diceName(const char* pLabel) {
         return pLabel;
@@ -108,7 +101,7 @@ void ItemDice::placeMainItem() {
     ItemDiceFunction::initItemPose(mMainItem, &mPosition, &rot, 0.0f);
     TQuat4f quat;
     rot.getQuat(quat);
-    appearKuriboFromBox(mMainItem, &mPosition, &quat);
+    mMainItem->appearKuriboFromBox(mPosition, quat);
 }
 
 // unnamed fn_802B4BB0: pop the sub item out of the dice with a random speed
@@ -376,5 +369,3 @@ void LuckyDice::shootItems(s32 count) {
 }
 
 #pragma dont_inline reset
-
-// Destructor helper for the ItemDice TU -----------------------------------

@@ -38,7 +38,7 @@ void KoopaJrCastleStateBattle1::control() {
 }
 
 void KoopaJrCastleStateBattle1::exe800D7F60() {
-    if (MR::isFirstStep(this)) fn_800D4520(reinterpret_cast<LiveActor*>(2), 2);
+    if (MR::isFirstStep(this)) startCannonVolley(2, 2);
     appearFireBar();
     killRingBeam();
     if (isPlayerOnCastle()) {
@@ -49,7 +49,7 @@ void KoopaJrCastleStateBattle1::exe800D7F60() {
 }
 
 void KoopaJrCastleStateBattle1::exe800D7FE0() {
-    if (MR::isFirstStep(this)) cannonFn_800D4590();
+    if (MR::isFirstStep(this)) startCannonBallVolley();
     appearFireBar();
     killRingBeam();
     if (isPlayerOnCastle()) {
@@ -60,7 +60,7 @@ void KoopaJrCastleStateBattle1::exe800D7FE0() {
 }
 
 void KoopaJrCastleStateBattle1::exe800D8060() {
-    if (MR::isFirstStep(this)) fn_800D46F0();
+    if (MR::isFirstStep(this)) startHeadPanic();
     appearFireBar();
     killRingBeam();
     if (isHeadFn_800D4790()) setNerve(&KoopaJrCastleStateBattle1NrvA::sInstance);

@@ -1,61 +1,60 @@
 #include "Game/AreaObj/SoundEmitterSphere.hpp"
-#include "Game/AudioLib/AudAnmSoundObject.hpp"
 #include "Game/AudioLib/AudMicWrap.hpp"
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
-#include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include <cstdio>
+#include <new>
 
-namespace {
-    const char* cSoundNameTable[] = {"SE_AT_LV_MAGMA_AMBIENT",      "SE_OJ_LV_FLOATING_SAND",    "SE_AT_LV_WIND_DESERT",
-                                     "SE_AT_LV_MAGMA_WIND_VOLCANO", "SE_AT_LV_KOOPA_FLOAT_SAND", "SE_AT_LV_WIND_RABBIT_MAZE"};
-};  // namespace
+// PLACEHOLDER(objects): unnamed target symbol fn_80222A80, declared extern "C" so the reloc name matches; resolve when fn_80222A80 gets its real name in symbols.txt
+extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 
 SoundEmitterSphere::~SoundEmitterSphere() {
 }
 
-SoundEmitterSphere::SoundEmitterSphere(int formType, const char* pName)
-    : AreaObj(formType, pName), mSoundObj(), _40(0.0f, 0.0f, 0.0f), mSoundName(), mSoundIndex() {
+SoundEmitterSphere::SoundEmitterSphere(int formType, const char* pName) : AreaObj(formType, pName), mSoundObj(), mSoundPos(0.0f, 0.0f, 0.0f) {
 }
 
 void SoundEmitterSphere::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
 
-    mSoundName = ::cSoundNameTable[mObjArg0];
-    mSoundIndex = mObjArg0;
-    mSoundObj = new AudAnmSoundObject(&_40, 4, MR::getCurrentHeap());
+    char name[0x100];
+    snprintf(name, 0x100, "SoundEmitterSphere%d", mObjArg0);
+    mSoundObj = new ActionSoundKeeper(4, name, &mSoundPos);
 
     MR::connectToSceneAreaObj(this);
     MR::registerDemoSimpleCastAll(this);
 }
 
 void SoundEmitterSphere::movement() {
-    switch (mSoundIndex) {
-    case 1:
-    case 2:
-    case 4:
-    case 5:
-        _40.set(MR::getCameraWatchPos());
-        break;
-    case 0:
-    case 3:
-    default:
-        _40.set(AudMicWrap::getMicPos());
-        break;
+    TVec3f pos(0.0f);
+    if (mObjArg1 == 0) {
+        pos.set(MR::getCameraWatchPos());
+    } else {
+        pos.set(AudMicWrap::getMicPos());
     }
 
-    if (!isInVolume(_40)) {
+    if (!isInVolume(pos)) {
         TVec3f center;
         MR::calcSpherePos(&center, this);
         f32 radius = MR::getSphereRadius(this);
-        f32 rate = radius / (_40 - center).length();
-        _40.x = center.x + rate * (_40.x - center.x);
-        _40.y = center.y + rate * (_40.y - center.y);
-        _40.z = center.z + rate * (_40.z - center.z);
+        f32 rate = radius / (mSoundPos - center).length();
+        mSoundPos.x = center.x + rate * (mSoundPos.x - center.x);
+        mSoundPos.y = center.y + rate * (mSoundPos.y - center.y);
+        mSoundPos.z = center.z + rate * (mSoundPos.z - center.z);
+    } else {
+        mSoundPos = pos;
     }
 
-    mSoundObj->process();
-    MR::startSoundObjectLevel(mSoundObj, mSoundName);
+    if (PSVECDistance(&mSoundPos, MR::getPlayerCenterPos()) >= 20000.0f) {
+        return;
+    }
+
+    mSoundObj->update();
+    fn_80222A80(mSoundObj, "PlaySound", -1, -1, -1);
 }

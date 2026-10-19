@@ -404,6 +404,3 @@ void GeneralMapParts::exeMoveStart() {
     }
 }
 
-bool GeneralMapParts_FORCE_MATCH(MapPartsFunction* pFunction, u32 msg) {
-    return pFunction->MapPartsFunction::receiveMsg(msg);
-}

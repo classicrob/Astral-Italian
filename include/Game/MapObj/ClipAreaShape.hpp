@@ -29,7 +29,7 @@ public:
 
 class ClipAreaShapeBox : public ClipAreaShape {
 public:
-    ClipAreaShapeBox(s32);
+    ClipAreaShapeBox(const char*, s32);
 
     virtual bool isInArea(const TVec3f&) const;
     virtual void calcVolumeMatrix(TPos3f*, const TPos3f&, const TVec3f&) const;
@@ -56,6 +56,7 @@ public:
     ClipAreaShapeCylinder();
     virtual bool isInArea(const TVec3f&) const;
     virtual void calcVolumeMatrix(TPos3f*, const TPos3f&, const TVec3f&) const;
+    void calcBaseScale(TVec3f*) const;
     void calcScale(TVec3f*, const TVec3f&) const;
     f32 mRadius; // 0x08
     f32 mHeight; // 0x0C

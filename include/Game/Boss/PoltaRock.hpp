@@ -26,6 +26,8 @@ public:
     void exeSign();
     void exeMove();
     void generateKill();
+    bool tryStartPointBind(bool);
+    void exeBindStarPointer();
     bool isEnableAttack() const NO_INLINE;
     bool isEnableExplosion() const;
 
@@ -34,9 +36,9 @@ public:
     }  // required to match instruction order in generateKill
 
     /* 0x8C */ Polta* mOwner;
-    s32 _94;
-    TQuat4f _98;
-    TVec3f _A8;
-    TVec3f _B4;
+    WalkerStateBindStarPointer* mPointerBindState;
+    TQuat4f mPoseQuat;
+    TVec3f mChaseDirection;
+    TVec3f mOwnerLocalPos;
     /* 0xC0 */ s32 mType;
 };

@@ -21,7 +21,7 @@
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
     s32 fn_804B8960();
-    void fn_8004FE50();
+    void fn_8004F030();
     void fn_80051910();
     void fn_80051940();
     LiveActor* fn_80235370(void*, LiveActor*, const char*, f32, const f32*);
@@ -149,7 +149,7 @@ void GliBird::init(const JMapInfoIter& rIter) {
         mVolumeDrawer->setColor(color);
         mVolumeDrawer->setDrawPasses(drawPasses);
         mVolumeDrawer->setScale(TVec3f(0.05f));
-        MR::setScale(reinterpret_cast< LiveActor* >(mVolumeDrawer), 0.85f);
+        MR::setScale(mVolumeDrawer, 0.85f);
         mVolumeDrawer->setScaleDownRate(-1);
     }
 
@@ -184,6 +184,7 @@ void GliBird::movement() {
     LiveActor::movement();
 }
 
+// NONMATCHING: vector temporary placement and scalar expression scheduling differ; alpha helper is misnamed in target metadata.
 void GliBird::control() {
     if (fn_804B8960() != 0) {
         mNoRumble = true;
@@ -370,6 +371,7 @@ void GliBird::exeTakeOff() {
     }
 }
 
+// NONMATCHING: field-load and floating-point operation scheduling differ.
 void GliBird::exeGlide() {
     MR::isFirstStep(this);
 
@@ -461,6 +463,7 @@ void GliBird::exeDeadWater() {
     }
 }
 
+// NONMATCHING: vector temporary stack placement and field-load scheduling differ.
 void GliBird::calcAndSetBaseMtx() {
     mJointCtrl->setCallBackFunction();
 
@@ -470,7 +473,7 @@ void GliBird::calcAndSetBaseMtx() {
 
     if (!isNerve(GET_NERVE(GliBird, GliBirdNrvDeadDamage)) && !isNerve(GET_NERVE(GliBird, GliBirdNrvDeadWall))) {
         if (mVelocity.dot(mFront) > 0.0f) {
-            TVec3f velPart = mVelocity * mSpeed;
+            TVec3f velPart = mDirFront * mSpeed;
             dir.set(velPart);
             TVec3f sidePart = mSide * (mSideAccel * 0.1f);
             dir.add(sidePart);
@@ -623,7 +626,7 @@ void GliBird::damage(bool isFire) {
             setNerve(GET_NERVE(GliBird, GliBirdNrvDamage));
         }
 
-        fn_8004FE50();
+        MR::decrementPlayerSwimLife();
         mDamageTimer = 180;
         return;
     }
@@ -666,6 +669,7 @@ void GliBird::restart() {
     setNerve(GET_NERVE(GliBird, GliBirdNrvHide));
 }
 
+// NONMATCHING: vector temporary stack placement and scalar expression scheduling differ.
 bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     if (updateCollision()) {
         return true;
@@ -827,6 +831,7 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     return false;
 }
 
+// NONMATCHING: register allocation and floating-point operand order differ.
 bool GliBird::updateCollision() {
     if (MR::isBinded(this)) {
         if (MR::isBindedGroundWater(this)) {
@@ -986,6 +991,7 @@ bool GliBird::tryDeadWall(const TVec3f& rNormal, HitSensor* pSensor, bool isFire
     return false;
 }
 
+// NONMATCHING: floating-point operand order differs.
 void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
     if (!mIsWaterEffect) {
         MR::emitEffect(this, "NearWater");

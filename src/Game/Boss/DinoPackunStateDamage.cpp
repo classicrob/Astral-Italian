@@ -7,13 +7,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-void DinoPackunStateDamage_FORCE_MATCH_STRINGS() {
-    MR::isEqualString("ディノパックンダメージ状態", "ディノパックンダメージ状態");
-    MR::isEqualString("SE_BV_D_PAKKUN_SPIN_HIT", "SE_BV_D_PAKKUN_SPIN_HIT");
-    MR::isEqualString("SE_BM_D_PAKKUN_SLAVER", "SE_BM_D_PAKKUN_SLAVER");
-    MR::isEqualString("ディノパックンダメージ", "ディノパックンダメージ");
-}
-
 namespace {
     static const TVec3f sOutPosition(0.0f, 100.0f, -300.0f);
     static const TVec3f sEggOutPosition(0.0f, 0.0f, -400.0f);
@@ -98,6 +91,13 @@ void DinoPackunStateDamage::exePunched() {
     getHost()->updateNormalVelocity();
 }
 
+void DinoPackunStateDamage::exeTryPulledDemo() {
+    if (MR::tryStartDemoMarioPuppetable(getHost(), "ディノパックンダメージ")) {
+        setNerve(GET_NERVE(DinoPackunStateDamage, DinoPackunStateDamageNrvPulled));
+    }
+}
+
+// NONMATCHING: vector argument address calculation order.
 void DinoPackunStateDamage::exePulled() {
     TVec3f v21(0.0f, 0.0f, 0.0f);
     getHost()->mTail->getEndTailPosition(&v21);
@@ -133,7 +133,7 @@ void DinoPackunStateDamage::exePulled() {
     if (v21.distance(getHost()->mPosition) > 800.0f) {
         TVec3f v15;
         getHost()->mTail->getTailNodePosition(&v15, 3);
-        MR::turnDirectionFromTargetDegree(getHost(), &getHost()->_E8, v15, 6.0f);
+        MR::turnDirectionFromTargetDegree(getHost(), &getHost()->mFront, v15, 6.0f);
     }
 
     getHost()->updateNormalVelocity();
@@ -172,6 +172,7 @@ void DinoPackunStateDamage::exeEggBroken() {
     }
 
     if (MR::isGreaterStep(this, 120)) {
+        MR::endDemo(getHost(), "ディノパックンダメージ");
         getHost()->endDemo();
         getHost()->getEggBrokenModel()->kill();
         kill();
@@ -235,17 +236,13 @@ void DinoPackunStateDamage::updateDamage() {
     }
 
     if (MR::isActionEnd(getHost())) {
+        MR::endDemo(getHost(), "ディノパックンダメージ");
         getHost()->endDemo();
         kill();
         getHost()->endDamageCamera();
     }
 }
 
-void DinoPackunStateDamage::exeTryPulledDemo() {
-    if (MR::tryStartDemoMarioPuppetable(getHost(), "ディノパックンダメージ")) {
-        setNerve(GET_NERVE(DinoPackunStateDamage, DinoPackunStateDamageNrvPulled));
-    }
-}
 
 DinoPackunStateDamage::~DinoPackunStateDamage() {
 }

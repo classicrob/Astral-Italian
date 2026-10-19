@@ -4,9 +4,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_800DA9B0, declared extern "C" so the reloc name matches; resolve when fn_800DA9B0 gets its real name in symbols.txt
-extern "C" s32 fn_800DA9B0();
-
 static KoopaJrRobotPart::PartInfo sPartTable[4] = {
     {0, "\x8e\xe3\x93_:\x8d\xb6", "WeakPointFL", "WeakPointLeft", "JrRobotWeakPointL"},
     {1, "\x8e\xe3\x93_:\x89""E", "WeakPointFR", "WeakPointRight", "JrRobotWeakPointR"},
@@ -96,7 +93,7 @@ bool KoopaJrRobotPart::receiveMsgExplosion(u32 msg, HitSensor* pSender, HitSenso
     if (!MR::isMsgExplosionAttack(msg)) {
         return false;
     }
-    if (!mHost->fn_800DB9B0(pSender)) {
+    if (!mHost->isKillerShotEnd(pSender)) {
         return false;
     }
     if (!MR::isEqualSensor(pReceiver, mHost, mSensor)) {
@@ -125,11 +122,11 @@ void KoopaJrRobotPart::appearStarPiece() {
         if (MR::normalizeOrZero(&up)) {
             MR::calcUpVec(&up, mModel);
         }
-        MR::appearStarPieceToDirection(mHost, pos, up, fn_800DA9B0(), 45.0f, 50.0f, false);
+        MR::appearStarPieceToDirection(mHost, pos, up, KoopaJrRobotFunction::getStarPieceCountPerPart(), 45.0f, 50.0f, false);
     }
 }
 
-bool KoopaJrRobotPart::fn_800E25F0() {
+bool KoopaJrRobotPart::isBroken() {
     bool b = false;
     if (isNerve(&NrvKoopaJrRobotPart::KoopaJrRobotPartNrvDamage2::sInstance) || isNerve(&NrvKoopaJrRobotPart::KoopaJrRobotPartNrvDead::sInstance)) {
         b = true;

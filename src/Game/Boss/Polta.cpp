@@ -52,9 +52,9 @@ void Polta::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "Polta", false);
     MR::connectToSceneCollisionEnemy(this);
     MR::initLightCtrl(this);
-    MR::makeQuatAndFrontFromRotate(&_B4, &_C4, this);
-    _D0.set(_B4);
-    _E0.set(mPosition);
+    MR::makeQuatAndFrontFromRotate(&mPoseQuat, &mFront, this);
+    mInitialQuat.set(mPoseQuat);
+    mInitialPos.set(mPosition);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
     initArm();
     initPartsModel();
@@ -68,7 +68,7 @@ void Polta::init(const JMapInfoIter& rIter) {
     MR::initUseStageSwitchWriteDead(this, rIter);
 
     if (MR::initUseStageSwitchReadA(this, rIter)) {
-        MR::listenStageSwitchOnA(this, MR::Functor(this, &Polta::start));
+        MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &Polta::start));
     }
 
     MR::startBva(this, "BreakLevel");
@@ -142,7 +142,7 @@ void BombTeresaHolder::disperseAll() {
 
 Polta::Polta(const char* pName)
     : LiveActor(pName), mSensorCtrl(), mLeftArm(), mRightArm(), mSequencer(), mBombTeresaHolder(), mRockHolder(), mGroundRockHolder(), mCameraInfo(),
-      mBreakModel(), mFormationModel(), _B4(0, 0, 0, 1), _C4(0, 0, 1), _D0(0, 0, 0, 1), _E0(0, 0, 0), _EC() {
+      mBreakModel(), mFormationModel(), mPoseQuat(0, 0, 0, 1), mFront(0, 0, 1), mInitialQuat(0, 0, 0, 1), mInitialPos(0, 0, 0), mTurnSpeed() {
 }
 
 void Polta::initSensor() {
@@ -172,15 +172,15 @@ void Polta::killBreakModel() {
 }
 
 void Polta::rotateToPlayer() {
-    _EC = calcToPlayerRotateSpeed();
+    mTurnSpeed = calcToPlayerRotateSpeed();
 
-    MR::rotateDirectionGravityDegree(this, &_C4, _EC);
+    MR::rotateDirectionGravityDegree(this, &mFront, mTurnSpeed);
 }
 
 f32 Polta::calcToPlayerRotateSpeed() const {
-    f32 speed = _EC;
+    f32 speed = mTurnSpeed;
 
-    if (MR::isFaceToPlayerHorizontalDegree(this, _C4, 10.0f)) {
+    if (MR::isFaceToPlayerHorizontalDegree(this, mFront, 10.0f)) {
         speed *= ::sTurnBreakFric;
     } else {
         TVec3f sideVec;
@@ -226,7 +226,7 @@ void Polta::calcAnim() {
 }
 
 void Polta::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _B4);
+    MR::setBaseTRMtx(this, mPoseQuat);
 }
 
 void Polta::updateAction() {
@@ -236,15 +236,15 @@ void Polta::updateAction() {
 }
 
 void Polta::updatePose(f32 upVecBlendRate, f32 frontVecBlendRate) {
-    _C4.orthogonalize(mGravity);
+    mFront.orthogonalize(mGravity);
 
-    if (MR::isNearZero(_C4)) {
-        _B4.getZDir(_C4);
+    if (MR::isNearZero(mFront)) {
+        mPoseQuat.getZDir(mFront);
     } else {
-        MR::normalize(&_C4);
+        MR::normalize(&mFront);
     }
 
-    MR::blendQuatUpFront(&_B4, -mGravity, _C4, upVecBlendRate, frontVecBlendRate);
+    MR::blendQuatUpFront(&mPoseQuat, -mGravity, mFront, upVecBlendRate, frontVecBlendRate);
 }
 
 void Polta::start() {
@@ -256,9 +256,9 @@ void Polta::start() {
 }
 
 void Polta::setStartPose() {
-    _B4.set(_D0);
-    MR::resetPosition(this, _E0);
-    _B4.getZDir(_C4);
+    mPoseQuat.set(mInitialQuat);
+    MR::resetPosition(this, mInitialPos);
+    mPoseQuat.getZDir(mFront);
 }
 
 void Polta::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

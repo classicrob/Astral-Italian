@@ -42,7 +42,7 @@ void YoshiBlockCollision::init(const JMapInfoIter& rIter) {
     mScale.z = 1.0f;
     initHitSensor(1);
     MR::addHitSensorMapObj(this, "Body", 8, 80.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    _94 = 12;
+    mTriangleNum = 12;
     mPositionNum = 8;
     mPositions = new TVec3f[mPositionNum];
     sp20.mul(TVec3f(0.5f, 1.0f, 0.5f));
@@ -54,7 +54,7 @@ void YoshiBlockCollision::init(const JMapInfoIter& rIter) {
     mPositions[5].set<f32>(sp20.x, 0.0f, sp20.z);
     mPositions[6].set<f32>(sp20.x, 0.0f, -sp20.z);
     mPositions[7].set<f32>(-sp20.x, 0.0f, -sp20.z);
-    mIndices = new TriangleIndexing[_94];
+    mIndices = new TriangleIndexing[mTriangleNum];
     mIndices[0].set(0, 1, 2);
     mIndices[1].set(0, 2, 3);
     mIndices[2].set(4, 5, 1);
@@ -67,7 +67,7 @@ void YoshiBlockCollision::init(const JMapInfoIter& rIter) {
     mIndices[9].set(7, 0, 3);
     mIndices[10].set(7, 6, 5);
     mIndices[11].set(7, 5, 4);
-    _9C = new TVec3f[_94];
+    mFaceNormals = new TVec3f[mTriangleNum];
     createCollision();
 }
 

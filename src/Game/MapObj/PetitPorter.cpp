@@ -125,7 +125,7 @@ void PetitPorter::exeAppear() {
 // NONMATCHING: the angle-speed addition loads its operands into reversed floating-point registers.
 void PetitPorter::exeWait() {
     if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
-        f32 t = mAngleSpeed + 0.2f;
+        f32 t = 0.2f + mAngleSpeed;
         mAngleSpeed = (t >= 3.6f) ? 3.6f : t;
     } else {
         f32 t = mAngleSpeed - 0.2f;
@@ -252,7 +252,7 @@ void PetitPorter::exeLeaveWait() {
     }
 
     if (!MR::isPlayerDead()) {
-        MR::adjustPorterBGGM(getNerveStep());
+        MR::adjustPorterBGGM(getNerveStep(), mStepLimit);
         if (MR::isStep(this, mStepLimit - 0x33)) {
             MR::startActionSound(this, "TimerNearlyUp", -1, -1, -1);
         } else if (MR::isGreaterEqualStep(this, mStepLimit - 1)) {

@@ -23,10 +23,10 @@ public:
     void exeShootDown();
 
     /* 0x90 */ SupportTicoStop* mTicoStop;
-    /* 0x94 */ s32 mArg0;
-    /* 0x98 */ s32 mArg1;
-    /* 0x9C */ TVec3f _94;
-    /* 0xA8 */ TVec3f _A0;
+    /* 0x94 */ s32 mWaitTime;
+    /* 0x98 */ s32 mShootKeepTime;
+    /* 0x9C */ TVec3f mTopPos;
+    /* 0xA8 */ TVec3f mUpDir;
     /* 0xB4 */ f32 _AC;
     /* 0xB8 */ f32 _B0;  // one of these may be a different data type
     /* 0xBC */ f32 _B4;

@@ -1,8 +1,12 @@
+#define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #include "Game/MapObj/WingBlock.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
+#include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 #include "math_types.hpp"
 #include <revolution/types.h>
@@ -12,14 +16,7 @@ namespace NrvWingBlock {
     NEW_NERVE(WingBlockNrvHit, WingBlock, Hit);
 };  // namespace NrvWingBlock
 
-WingBlock::WingBlock(const char* pName) : LiveActor(pName) {
-    mQuat.x = 0.0f;
-    mQuat.y = 0.0f;
-    mQuat.z = 0.0f;
-    mQuat.w = 1.0f;
-    mRailPos.zero();
-    mFlySpeed = 0.0f;
-    mItemType = -1;
+WingBlock::WingBlock(const char* pName) : LiveActor(pName), mQuat(0.0f, 0.0f, 0.0f, 1.0f), mRailPos(0.0f, 0.0f, 0.0f), mFlySpeed(4.0f), mItemType(-1) {
 }
 
 void WingBlock::init(const JMapInfoIter& rIter) {
@@ -53,26 +50,36 @@ void WingBlock::initItem(const JMapInfoIter& rIter) {
 }
 
 void WingBlock::appearItem() {
-    if (mItemType == 0) {
+    switch (mItemType) {
+    case 0: {
         TVec3f dir(mGravity);
-        dir *= mFlySpeed;
+        dir *= -10.0f;
         MR::appearCoinPopToDirection(this, mPosition, dir, 1);
-    } else if (mItemType == 1) {
+        break;
+    }
+    case 1: {
         TVec3f dir;
         dir.negate(mGravity);
-        MR::appearStarPieceToDirection(this, mPosition, dir, 8, 1.0f, 2.0f, false);
+        MR::appearStarPieceToDirection(this, mPosition, dir, 8, 10.0f, 40.0f, false);
+        break;
+    }
     }
 }
 
-// NONMATCHING: control() approximated (camera-facing quat turn), ~36%; rates and sign handling not recovered.
 void WingBlock::control() {
     TVec3f camZ = MR::getCamZdir();
-    TVec3f back;
-    back.negate(camZ);
-    MR::turnQuatZDirRate(&mQuat, mQuat, back, 0.0f);
+    TVec3f zDir;
+    mQuat.getZDir(zDir);
+
+    if (zDir.dot(camZ) <= 0.0f) {
+        camZ.negate();
+    }
+
+    MR::turnQuatZDirRate(&mQuat, mQuat, camZ, 0.05f);
     TVec3f up;
     up.negate(mGravity);
-    MR::turnQuatYDirRate(&mQuat, mQuat, up, 0.0f);
+    MR::turnQuatYDirRate(&mQuat, mQuat, up, 0.95f);
+    mQuat.normalize();
 }
 
 void WingBlock::calcAndSetBaseMtx() {
@@ -99,23 +106,30 @@ void WingBlock::exeFly() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
     }
-    if (MR::getBckFrame(this) >= 0.0f && ((s32)MR::getBckFrame(this) % 20) == 1) {
+
+    if (static_cast< s32 >(MR::getBckFrame(this)) % 20 == 1) {
         MR::startActionSound(this, "FlyTrg", -1, -1, -1);
     }
+
     if (MR::isExistRail(this)) {
-        MR::moveCoordAndFollowTrans(this, mFlySpeed);
+        f32 rate = MR::normalize(MR::calcDistanceToNearestRailEnd(this), 0.0f, 50.0f);
+        MR::moveCoordAndFollowTrans(this, MR::getInterpolateValue(rate, 0.1f * mFlySpeed, mFlySpeed));
+
         if (MR::isRailReachedGoal(this)) {
             MR::reverseRailDirection(this);
-            MR::attachSupportTicoToTarget(this);
         }
     }
+
+    MR::attachSupportTicoToTarget(this);
 }
 
 void WingBlock::exeHit() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Reaction");
     }
+
     if (MR::isActionEnd(this)) {
+        MR::emitEffect(this, "Break");
         appearItem();
         kill();
     }

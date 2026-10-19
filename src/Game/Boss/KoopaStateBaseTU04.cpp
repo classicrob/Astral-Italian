@@ -26,12 +26,12 @@ void KoopaStateDefense::appear() {
     mIsDead = false;
     MR::killKoopaBattlePlanet();
     if (mFlag) {
-        if (!mHost->_10C) {
+        if (!mHost->mIsDefenseForm) {
             setNerve(&NrvKoopaStateDefense::KoopaStateDefenseNrvStart::sInstance);
         } else {
             kill();
         }
-    } else if (mHost->_10C) {
+    } else if (mHost->mIsDefenseForm) {
         setNerve(&NrvKoopaStateDefense::KoopaStateDefenseNrvEnd::sInstance);
     } else {
         kill();

@@ -13,10 +13,6 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 
-void ElectricRailHolder_FORCE_MATCH_SDATA2() {
-    (void)30.0f;
-}
-
 namespace {
     const f32 cHitSensorRadius = 30.0f;
 
@@ -50,6 +46,18 @@ namespace {
 ElectricRailHolder::ElectricRailHolder(const char* pName) : LiveActor(pName), mIsActive() {
     MR::zeroMemory(&mRailModels, sizeof(mRailModels));
     MR::zeroMemory(&mRailItems, sizeof(mRailItems.mArray));
+}
+
+void ElectricRailHolder::init(const JMapInfoIter& rIter) {
+    MR::connectToScene(this, 0x22 /* SMG2 MovementType_MapObjDecoration (our enum: 0x23) */, MR::CalcAnimType_MapObj, MR::DrawBufferType_None, MR::DrawType_ElectricRailHolder);
+
+    MR::invalidateClipping(this);
+
+    MR::registerDemoSimpleCastAll(this);
+
+    MR::createAdaptorAndConnectToDrawBloomModel("電撃レールブルーム描画", MR::FunctorV0M< const ElectricRailHolder*, void (ElectricRailHolder::*)() const >(this, &ElectricRailHolder::draw));
+
+    makeActorAppeared();
 }
 
 void ElectricRailHolder::calcAnim() {
@@ -87,6 +95,23 @@ void ElectricRailHolder::draw() const {
 
         pItem->mHost->draw();
     }
+}
+
+void ElectricRailHolder::registerRail(const LiveActor* pActor, ElectricRailType railType) {
+    if (mRailModels[railType] == nullptr) {
+        mRailModels[railType] = createModel(railType);
+    }
+
+    RailItem* pItem = new RailItem();
+    (*mRailItems.end()) = pItem;
+    (*mRailItems.end())->mRailType = railType;
+    (*mRailItems.end())->mHost = static_cast< const ElectricRailMoving* >(pActor);
+
+    J3DModel* pModel = MR::getJ3DModel(mRailModels[railType]);
+    J3DMatPacket* pPacket = pModel->getMatPacket(MR::getMaterialNo(pModel, "SparkMat"));
+    (*mRailItems.end())->mMatPacket = pPacket;
+
+    mRailItems.mCount++;
 }
 
 bool ElectricRailHolder::isTouchRail(const HitSensor* pSensor, TVec3f* pVec1, TVec3f* pVec2) const {
@@ -145,35 +170,6 @@ void ElectricRailHolder::initDraw() const {
     GXLoadPosMtxImm(MR::getCameraViewMtx(), GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 30, GX_FALSE, 125);
-}
-
-void ElectricRailHolder::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, 0x22 /* SMG2 MovementType_MapObjDecoration (our enum: 0x23) */, MR::CalcAnimType_MapObj, MR::DrawBufferType_None, MR::DrawType_ElectricRailHolder);
-
-    MR::invalidateClipping(this);
-
-    MR::registerDemoSimpleCastAll(this);
-
-    MR::createAdaptorAndConnectToDrawBloomModel("電撃レールブルーム描画", MR::FunctorV0M< const ElectricRailHolder*, void (ElectricRailHolder::*)() const >(this, &ElectricRailHolder::draw));
-
-    makeActorAppeared();
-}
-
-void ElectricRailHolder::registerRail(const LiveActor* pActor, ElectricRailType railType) {
-    if (mRailModels[railType] == nullptr) {
-        mRailModels[railType] = createModel(railType);
-    }
-
-    RailItem* pItem = new RailItem();
-    (*mRailItems.end()) = pItem;
-    (*mRailItems.end())->mRailType = railType;
-    (*mRailItems.end())->mHost = static_cast< const ElectricRailMoving* >(pActor);
-
-    J3DModel* pModel = MR::getJ3DModel(mRailModels[railType]);
-    J3DMatPacket* pPacket = pModel->getMatPacket(MR::getMaterialNo(pModel, "SparkMat"));
-    (*mRailItems.end())->mMatPacket = pPacket;
-
-    mRailItems.mCount++;
 }
 
 ModelObj* ElectricRailHolder::createModel(ElectricRailType railType) const {

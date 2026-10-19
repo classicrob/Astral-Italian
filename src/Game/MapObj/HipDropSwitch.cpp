@@ -11,6 +11,7 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/SpringValue.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
@@ -19,7 +20,6 @@
 
 namespace {
     static const s32 sOnSomethingAcc = 0;
-    // sSwitchOnDelayTime
 };  // namespace
 
 namespace NrvHipDropSwitch {
@@ -28,17 +28,28 @@ namespace NrvHipDropSwitch {
     NEW_NERVE(HipDropSwitchNrvOn, HipDropSwitch, On);
 };  // namespace NrvHipDropSwitch
 
-HipDropSwitch::HipDropSwitch(const char* pName) : LiveActor(pName), _8C(), mConnector(), mSpringModel(), _CC(), _CD(), _CE() {
-    mSpringValue = new SpringValue();
+HipDropSwitch::HipDropSwitch(const char* pName) : LiveActor(pName), _90(), mConnector(), mSpringModel(), mIsHipDropped(), mWasTouched(), mIsTouched() {
     mConnector = new MapObjConnector(this);
+    mSpringValue = new SpringValue();
     mSpringValue->setParam(0.0f, 0.0f, 0.2f, 0.90f, 0.0f);
-    _9C.identity();
+    _A0.identity();
 }
 
-inline void HipDropSwitch::initStarPointerTarget() {
-    TVec3f targetOffs;
-    targetOffs.set(0.0f);
-    MR::initStarPointerTarget(this, 150.0f, targetOffs);
+void SpringValue::reset() {
+    mSpringValue = mRestValue;
+    mVelocity = 0.0f;
+}
+
+void HipDropSwitch::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    CollisionParts* pParts = mSpringModel;
+    pParts->_CC = true;
+    pParts->_CD = true;
+}
+
+void HipDropSwitch::makeActorDead() {
+    LiveActor::makeActorDead();
+    mSpringModel->_CC = false;
 }
 
 void HipDropSwitch::init(const JMapInfoIter& rIter) {
@@ -48,21 +59,15 @@ void HipDropSwitch::init(const JMapInfoIter& rIter) {
     MR::initLightCtrl(this);
     initSound(4, "HipDropSwitch", nullptr, TVec3f(0.0f));
     initHitSensor(2);
-    MR::addHitSensorMapObj(this, "body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorMapObj(this, "hit", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initStarPointerTarget();
-    MR::initCollisionParts(this, "HipDropSwitch", getSensor("body"), nullptr);
+    MR::initCollisionParts(this, "HipDropSwitch", getSensor("Body"), nullptr);
     mSpringModel = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mSpringModel);
     initNerve(GET_NERVE(HipDropSwitch, HipDropSwitchNrvOff));
     MR::needStageSwitchWriteA(this, rIter);
-
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchAwake(this, rIter);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void HipDropSwitch::initAfterPlacement() {
@@ -70,9 +75,9 @@ void HipDropSwitch::initAfterPlacement() {
 }
 
 void HipDropSwitch::control() {
-    _CC = false;
-    _CD = _CE;
-    _CE = false;
+    mIsHipDropped = false;
+    mWasTouched = mIsTouched;
+    mIsTouched = false;
 }
 
 void HipDropSwitch::calcAnim() {
@@ -101,10 +106,10 @@ void HipDropSwitch::calcAndSetBaseMtx() {
 
 bool HipDropSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceAttack(msg)) {
-        _CE = true;
+        mIsTouched = true;
         return true;
-    } else if (MR::isMsgPlayerHipDropFloor(msg) && mSpringModel->mHitSensor == pReceiver && !_CC) {
-        _CC = true;
+    } else if (MR::isMsgPlayerHipDropFloor(msg) && mSpringModel->mHitSensor == pReceiver && isPlayerOnTop() && !mIsHipDropped) {
+        mIsHipDropped = true;
         return true;
     }
 
@@ -112,16 +117,16 @@ bool HipDropSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
 }
 
 bool HipDropSwitch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgFloorTouch(msg) && mSpringModel->mHitSensor == pReceiver) {
-        _CE = true;
-        return _CD == false;
+    if (MR::isMsgFloorTouch(msg) && mSpringModel->mHitSensor == pReceiver && isPlayerOnTop()) {
+        mIsTouched = true;
+        return mWasTouched == false;
     }
 
     return false;
 }
 
 bool HipDropSwitch::trySwitchDown() {
-    if (_CC) {
+    if (mIsHipDropped) {
         setNerve(GET_NERVE(HipDropSwitch, HipDropSwitchNrvSwitchDown));
         return true;
     }
@@ -138,9 +143,19 @@ bool HipDropSwitch::tryOn() {
     return false;
 }
 
+bool HipDropSwitch::isPlayerOnTop() {
+    if (!MR::isOnPlayer(getSensor("hit"))) {
+        return false;
+    }
+
+    TVec3f upVec;
+    MR::calcUpVec(&upVec, this);
+    return upVec.dot(*MR::getPlayerGroundNormal()) > 0.9f;
+}
+
 void HipDropSwitch::exeOff() {
     if (MR::isFirstStep(this)) {
-        _CC = false;
+        mIsHipDropped = false;
         MR::validateClipping(this);
         MR::offSwitchA(this);
         MR::startAction(this, "Wait");
@@ -148,11 +163,7 @@ void HipDropSwitch::exeOff() {
         mSpringValue->reset();
     }
 
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        _CE = true;
-    }
-
-    if (!_CD && _CE) {
+    if (!mWasTouched && mIsTouched) {
         mSpringValue->mVelocity += -10.0f;
         MR::startActionSound(this, "OjPncKinokoBound");
     }

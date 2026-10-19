@@ -7,7 +7,7 @@
 #include <new>
 
 DynamicCollisionObj::DynamicCollisionObj(const char* pName)
-    : LiveActor(pName), mKCLFile(nullptr), mParts(nullptr), _94(0), mPositionNum(0), mPositions(nullptr), _9C(nullptr),
+    : LiveActor(pName), mKCLFile(nullptr), mParts(nullptr), mTriangleNum(0), mPositionNum(0), mPositions(nullptr), mFaceNormals(nullptr),
       mIndices(nullptr), _A4(0), _A8(0), _AC(0) {}
 
 void DynamicCollisionObj::init(const JMapInfoIter& rIter) {
@@ -22,11 +22,11 @@ void DynamicCollisionObj::syncCollision() {
     mParts->updateBoundingSphereRange(mScale);
 }
 
-// NONMATCHING: regalloc only; the target recomputes i * sizeof(TVec3f) for mPos[i] instead of reusing the _9C[i] offset
+// NONMATCHING: regalloc only; the target recomputes i * sizeof(TVec3f) for mPos[i] instead of reusing the mFaceNormals[i] offset
 void DynamicCollisionObj::updateTriangle() {
     s32 normalidx = 0;
 
-    for (u16 i = 0; i < _94; i++) {
+    for (u16 i = 0; i < mTriangleNum; i++) {
         TVec3f Vertex1(mPositions[mIndices[i].mIndex[0]]);
         TVec3f Vertex2(mPositions[mIndices[i].mIndex[1]]);
         TVec3f Vertex3(mPositions[mIndices[i].mIndex[2]]);
@@ -43,7 +43,7 @@ void DynamicCollisionObj::updateTriangle() {
         MR::normalizeOrZero(&c);
         TVec3f cross = b.cross(a);
         MR::normalizeOrZero(&cross);
-        _9C[i] = cross;
+        mFaceNormals[i] = cross;
 
         if (mKCLFile == nullptr) {
             continue;
@@ -141,7 +141,7 @@ void DynamicCollisionObj::updateCollisionHeader() {
 }
 
 void DynamicCollisionObj::createCollision() {
-    s32 v = _94;
+    s32 v = mTriangleNum;
     u32 posSize = v * sizeof(TVec3f);
     u32 normSize = v * (4 * sizeof(TVec3f));
     u32 octSize = (v + 3) * sizeof(u16);

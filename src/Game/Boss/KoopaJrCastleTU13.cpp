@@ -41,7 +41,7 @@ void KoopaJrCastleStateBattle2::control() {
 }
 
 void KoopaJrCastleStateBattle2::exe800D82B0() {
-    if (MR::isFirstStep(this)) fn_800D4520(reinterpret_cast<LiveActor*>(2), 2);
+    if (MR::isFirstStep(this)) startCannonVolley(2, 2);
     if (isPlayerOnCastle()) {
         setNerve(&KoopaJrCastleStateBattle2NrvE::sInstance);
         return;
@@ -50,7 +50,7 @@ void KoopaJrCastleStateBattle2::exe800D82B0() {
 }
 
 void KoopaJrCastleStateBattle2::exe800D8330() {
-    if (MR::isFirstStep(this)) cannonFn_800D4590();
+    if (MR::isFirstStep(this)) startCannonBallVolley();
     if (MR::isGreaterEqualStep(this, 120)) {
         setNerve(&KoopaJrCastleStateBattle2NrvC::sInstance);
         return;
@@ -60,12 +60,12 @@ void KoopaJrCastleStateBattle2::exe800D8330() {
 
 void KoopaJrCastleStateBattle2::exe800D83B0() {
     if (MR::isFirstStep(this)) {
-        windFn_800D4290();
-        cannonFn_800D4590();
+        appearWindFromZeroPower();
+        startCannonBallVolley();
     }
     if (windFn_800D4310()) appearElectric();
-    if (MR::isStep(this, 120)) fn_800D4520(reinterpret_cast<LiveActor*>(2), 2);
-    else if (MR::isGreaterStep(this, 120) && isCannonDead()) cannonFn_800D4590();
+    if (MR::isStep(this, 120)) startCannonVolley(2, 2);
+    else if (MR::isGreaterStep(this, 120) && isCannonDead()) startCannonBallVolley();
     if (isPlayerOnCastle() && isElectricActive()) {
         setNerve(&KoopaJrCastleStateBattle2NrvF::sInstance);
         return;
@@ -83,12 +83,12 @@ void KoopaJrCastleStateBattle2::exe800D8490() {
 }
 
 void KoopaJrCastleStateBattle2::exe800D8500() {
-    if (MR::isFirstStep(this)) fn_800D46F0();
+    if (MR::isFirstStep(this)) startHeadPanic();
     if (isHeadFn_800D4790()) setNerve(&KoopaJrCastleStateBattle2NrvA::sInstance);
 }
 
 void KoopaJrCastleStateBattle2::exe800D8550() {
-    if (MR::isFirstStep(this)) fn_800D4740();
+    if (MR::isFirstStep(this)) startHeadSpinSign();
     if (isHeadFn_800D4790()) setNerve(&KoopaJrCastleStateBattle2NrvB::sInstance);
 }
 

@@ -79,8 +79,8 @@ KoopaJrRobot::KoopaJrRobot(const char* pName)
 void KoopaJrRobot::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "KoopaJrRobot", false);
     mSeq = new KoopaJrRobotSeq(this);
-    mSeq->fn_800DC380();
-    mSeq->fn_800DC6B0();
+    mSeq->initLaunchers();
+    mSeq->killLaunchers();
     MR::declarePowerStar(this);
     MR::declareStarPiece(this, 24);
     mParts[0] = KoopaJrRobotFunction::createPart(this, 0);
@@ -160,10 +160,10 @@ bool KoopaJrRobot::isStateNerve() const {
 
 // NONMATCHING: bool-negation lowering and iterator/end pointer register allocation differ.
 void KoopaJrRobot::control() {
-    mSeq->fn_800DC850();
+    mSeq->movementKillerPool();
     if (!isStateNerve()) {
         mSeq->updateNerve();
-        mSeq->fn_800DC7C0();
+        mSeq->movementLaunchers();
     }
     std::for_each(mParts, mParts + 4, std::mem_fun(&NerveExecutor::updateNerve));
 }
@@ -177,7 +177,7 @@ void KoopaJrRobot::movement() {
 void KoopaJrRobot::calcAnim() {
     LiveActor::calcAnim();
     if (MR::isValidCalcAnim(this)) {
-        mSeq->fn_800DC740();
+        mSeq->updateLauncherTransforms();
         mHandL->calcAnim();
         mHandR->calcAnim();
         mBody->calcAnim();

@@ -3,12 +3,17 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+struct MapObjConnectorAttachment {
+    bool mAttached;
+    MtxPtr mBaseMtx;
+};
+
 class MapObjConnector {
 public:
     MapObjConnector(LiveActor*);
 
-    void fn_802CC510(LiveActor*);
-    void fn_802CC5D0();
+    void attachToActor(LiveActor*);
+    void detach();
     bool attachToUnder();
     bool attachToBack();
     bool attach(const TVec3f&);
@@ -16,6 +21,6 @@ public:
     void connect(LiveActor*);
 
     /* 0x0 */ LiveActor* mHost;
-    /* 0x4 */ CollisionParts* mParts;
+    /* 0x4 */ MapObjConnectorAttachment* mAttachment;
     /* 0x8 */ TMtx34f _8;
 };

@@ -13,9 +13,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
-// PLACEHOLDER(objects): unnamed KoopaJrCastleCannonBall shoot helper (ball, mtx, speed); resolve when CannonBall TU names fn_800D1770
-extern "C" void fn_800D1770(LiveActor*, MtxPtr, f32*);
-
 namespace NrvKoopaJrCastleCannon { KoopaJrCastleCannonNrvPre KoopaJrCastleCannonNrvPre::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleCannon { KoopaJrCastleCannonNrvA KoopaJrCastleCannonNrvA::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleCannon { KoopaJrCastleCannonNrvB KoopaJrCastleCannonNrvB::sInstance ATTRIBUTE_WEAK; }
@@ -27,7 +24,7 @@ namespace NrvKoopaJrCastleCannonShock { KoopaJrCastleCannonShockNrvB KoopaJrCast
 namespace NrvKoopaJrCastleCannonShock { KoopaJrCastleCannonShockNrvC KoopaJrCastleCannonShockNrvC::sInstance ATTRIBUTE_WEAK; }
 
 KoopaJrCastleCannon::KoopaJrCastleCannon(KoopaJrCastle* pHost, const char* pName)
-    : LiveActor(pName), mHost(pHost), mShock(nullptr), _C8(1), _CC(0), _D0(0), _D4(false), _D8(0.0f) {
+    : LiveActor(pName), mHost(pHost), mShock(nullptr), mShotsPerVolley(1), mShotIndex(0), mRemainingVolleys(0), mUseShock(false), mAimRate(0.0f) {
     for (int i = 0; i < 12; i++) {
         mBall[i] = nullptr;
     }
@@ -51,31 +48,31 @@ void KoopaJrCastleCannon::init(const JMapInfoIter& rIter) {
 void KoopaJrCastleCannon::appear() {
     LiveActor::appear();
     setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvA::sInstance);
-    _CC = 0;
-    _D4 = false;
-    _D8 = 0.0f;
+    mShotIndex = 0;
+    mUseShock = false;
+    mAimRate = 0.0f;
 }
 
-void KoopaJrCastleCannon::fn_800D0540() {
+void KoopaJrCastleCannon::startBallVolley() {
     KoopaJrCastleCannon::appear();
     setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvB::sInstance);
 }
 
-void KoopaJrCastleCannon::fn_800D0580() {
+void KoopaJrCastleCannon::startShockVolley() {
     KoopaJrCastleCannon::appear();
     setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvB::sInstance);
-    _D4 = true;
+    mUseShock = true;
 }
 
-void KoopaJrCastleCannon::fn_800D05C0() {
+void KoopaJrCastleCannon::startShockVolleyImmediately() {
     KoopaJrCastleCannon::appear();
     setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvC::sInstance);
-    _D4 = true;
+    mUseShock = true;
 }
 
 void KoopaJrCastleCannon::makeActorDead() {
     LiveActor::makeActorDead();
-    mHost->mHead->fn_800D57D0();
+    mHost->mHead->resetWaitUnlessDamaged();
 }
 
 void KoopaJrCastleCannon::exe800D0640() {
@@ -85,8 +82,8 @@ void KoopaJrCastleCannon::exe800D0640() {
     MR::startActionSound(mHost->mHead, "EmLvWaterbazTurn", -1, -1, -1);
     MR::startActionSound(mHost->mHead, "PreShoot", -1, -1, -1);
     updateGauge();
-    if (KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f) != 0 || MR::isGreaterEqualStep(this, 40)) {
-        if (_D4) {
+    if (KoopaJrCastleFunction::aimHeadAtPlayer(mAimRate, 15.0f) != 0 || MR::isGreaterEqualStep(this, 40)) {
+        if (mUseShock) {
             setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvE::sInstance);
             return;
         }
@@ -98,12 +95,12 @@ void KoopaJrCastleCannon::exe800D0720() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(mHost->mHead, "Aim");
     }
-    if (_D4 && !MR::isEffectValid(mHost->mHead, "Shot")) {
+    if (mUseShock && !MR::isEffectValid(mHost->mHead, "Shot")) {
         MR::emitEffect(mHost->mHead, "Shot");
     }
     MR::startActionSound(mHost->mHead, "EmLvWaterbazTurn", -1, -1, -1);
     updateGauge();
-    KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f);
+    KoopaJrCastleFunction::aimHeadAtPlayer(mAimRate, 15.0f);
 }
 
 void KoopaJrCastleCannon::exe800D07E0() {
@@ -114,10 +111,10 @@ void KoopaJrCastleCannon::exe800D07E0() {
         MR::startActionSound(mHost->mHead, "EmWaterbazTurnEnd", -1, -1, -1);
     }
     if (MR::isGreaterEqualStep(this, 20) && MR::isLessStep(this, 45)) {
-        _D8 = 0.0f;
+        mAimRate = 0.0f;
     } else {
         updateGauge();
-        KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f);
+        KoopaJrCastleFunction::aimHeadAtPlayer(mAimRate, 15.0f);
     }
     if (MR::isLessStep(this, 30)) {
         MR::startActionSound(mHost->mHead, "PreShoot", -1, -1, -1);
@@ -126,14 +123,14 @@ void KoopaJrCastleCannon::exe800D07E0() {
         MR::startActionSound(mHost->mHead, "EmWaterbazShot", -1, -1, -1);
         shoot();
     }
-    if (_CC + 1 < _C8) {
+    if (mShotIndex + 1 < mShotsPerVolley) {
         if (MR::isActionEnd(mHost->mHead) && MR::isGreaterStep(this, 60)) {
-            _CC += 1;
+            mShotIndex += 1;
             setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvC::sInstance);
         }
     } else if (MR::isActionEnd(mHost->mHead)) {
-        _CC = 0;
-        if (_D0 <= 0) {
+        mShotIndex = 0;
+        if (mRemainingVolleys <= 0) {
             setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvD::sInstance);
             return;
         }
@@ -143,7 +140,7 @@ void KoopaJrCastleCannon::exe800D07E0() {
 
 void KoopaJrCastleCannon::exe800D09B0() {
     updateGauge();
-    KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f);
+    KoopaJrCastleFunction::aimHeadAtPlayer(mAimRate, 15.0f);
     if (MR::isGreaterStep(this, 30)) {
         kill();
     }
@@ -205,8 +202,8 @@ bool KoopaJrCastleCannon::shoot() {
     if (KoopaJrCastleFunction::getBattlePhase() == 1) {
         speed = 14.0f;
     }
-    fn_800D1770(pBall, mtx, &speed);
-    _D0 -= 1;
+    pBall->shoot(mtx, speed);
+    mRemainingVolleys -= 1;
     return true;
 }
 
@@ -221,17 +218,17 @@ KoopaJrCastleCannonBall* KoopaJrCastleCannon::findDeadBall() {
 
 // NONMATCHING: constant/operand register order of the 0.02 add differs (fadds operands swapped)
 void KoopaJrCastleCannon::updateGauge() {
-    f32 temp = 0.02f + _D8;
-    _D8 = temp;
-    _D8 = MR::clamp(temp, 0.0f, 0.55f);
+    f32 temp = 0.02f + mAimRate;
+    mAimRate = temp;
+    mAimRate = MR::clamp(temp, 0.0f, 0.55f);
 }
 
 KoopaJrCastleCannonShock::KoopaJrCastleCannonShock(const char* pName) : LiveActor(pName) {
     mDir.x = 0.0f;
     mDir.y = 0.0f;
     mDir.z = 0.0f;
-    _9C = 0.0f;
-    _A0 = 1.0f;
+    mShotSpeed = 0.0f;
+    mScaleAtTransition = 1.0f;
 }
 
 void KoopaJrCastleCannonShock::init(const JMapInfoIter& rIter) {
@@ -249,9 +246,13 @@ void KoopaJrCastleCannonShock::kill() {
 
 // NONMATCHING: set<f> argument load scheduling differs (target loads matrix entries right to left)
 void KoopaJrCastleCannonShock::shoot(MtxPtr pMtx, const f32& rSpeed) {
-    _9C = rSpeed;
-    mDir.set(pMtx[0][2], pMtx[1][2], pMtx[2][2]);
-    mPosition.set(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
+    f32 shotSpeed = rSpeed;
+    f32 z = pMtx[2][2];
+    f32 y = pMtx[1][2];
+    f32 x = pMtx[0][2];
+    mShotSpeed = shotSpeed;
+    mDir.set<f32>(x, y, z);
+    reinterpret_cast<TPos3f*>(pMtx)->getTrans(mPosition);
     mRotation.z = 0.0f;
     mRotation.y = 0.0f;
     mRotation.x = 0.0f;
@@ -287,7 +288,7 @@ void KoopaJrCastleCannonShock::exe800D0FA0() {
 void KoopaJrCastleCannonShock::exe800D10A0() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Move");
-        mVelocity.scale(_9C, mDir);
+        mVelocity.scale(mShotSpeed, mDir);
     }
     MR::startActionSound(this, "EmLvElecbublletFly", -1, -1, -1);
     if (MR::isGreaterStep(this, 10)) {
@@ -300,13 +301,13 @@ void KoopaJrCastleCannonShock::exe800D10A0() {
                 MR::sendMsgEnemyAttackElectric(MR::getWallSensor(this), getSensor(nullptr));
             }
             setNerve(&NrvKoopaJrCastleCannonShock::KoopaJrCastleCannonShockNrvC::sInstance);
-            _A0 = mScale.x;
+            mScaleAtTransition = mScale.x;
             return;
         }
     }
     if (MR::isStep(this, 300)) {
         setNerve(&NrvKoopaJrCastleCannonShock::KoopaJrCastleCannonShockNrvC::sInstance);
-        _A0 = mScale.x;
+        mScaleAtTransition = mScale.x;
     }
 }
 
@@ -315,7 +316,7 @@ void KoopaJrCastleCannonShock::exe800D1220() {
     if (MR::isFirstStep(this)) {
         MR::invalidateHitSensors(this);
     }
-    f64 v = MR::calcNerveEaseOutValue(this, 8, _A0, 1.0f);
+    f64 v = MR::calcNerveEaseOutValue(this, 8, mScaleAtTransition, 1.0f);
     mScale.x = v;
     f32 w = v;
     mScale.y = w;
@@ -324,21 +325,21 @@ void KoopaJrCastleCannonShock::exe800D1220() {
     MR::setShadowVolumeCylinderRadius(this, nullptr, 80.0f * mScale.y);
     MR::setBinderRadius(this, 75.0f * mScale.y);
     if (MR::isGreaterStep(this, 8)) {
-        makeActorDead();
+        kill();
     }
 }
 
 void KoopaJrCastleCannonShock::control() {
     if (MR::isStarPointerPointing2PAttachTarget(this) && !isNerve(&NrvKoopaJrCastleCannonShock::KoopaJrCastleCannonShockNrvC::sInstance)) {
         setNerve(&NrvKoopaJrCastleCannonShock::KoopaJrCastleCannonShockNrvC::sInstance);
-        _A0 = mScale.x;
+        mScaleAtTransition = mScale.x;
     }
 }
 
 void KoopaJrCastleCannonShock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
         setNerve(&NrvKoopaJrCastleCannonShock::KoopaJrCastleCannonShockNrvC::sInstance);
-        _A0 = mScale.x;
+        mScaleAtTransition = mScale.x;
     }
 }
 

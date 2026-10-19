@@ -1,3 +1,4 @@
+#define JGEOMETRY_OUTLINE_MATRIX_POSITION
 #pragma auto_inline off
 #include "Game/MapObj/MapObjActor.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
@@ -224,6 +225,7 @@ void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInf
             radius *= mScale.x;
         }
 
+        // NONMATCHING: target reloads mIsAffectedByScale (lbz) after the position copy; ours CSEs it (scheduling)
         TVec3f position(rInfo.mSensorPosition);
         if (rInfo.mIsAffectedByScale) {
             position.mul(mScale);
@@ -578,9 +580,7 @@ void MapObjActor::calcAndSetBaseMtx() {
             mtx.concat(mRailRotator->_5C);
         }
 
-        mtx.mMtx[0][3] = mPosition.x;
-        mtx.mMtx[1][3] = mPosition.y;
-        mtx.mMtx[2][3] = mPosition.z;
+        mtx.setTrans(mPosition);
         MR::setBaseTRMtx(this, mtx);
     }
 }
@@ -857,12 +857,10 @@ void MapObjActorUtil::startRailMover(const MapObjActor* pActor) {
     pActor->mRailMover->start();
 }
 
-void MapObjActorUtil::startRailMoverDirect(const MapObjActor* pActor) {
-    pActor->mRailMover->doStart();
-}
-
+// NOTE(objects): symbols.txt names 0x802CB810 endRotator, but the target body is mRailMover->doStart() (vtable 0x40);
+// the SMG2 name is probably startRailMoverDirect.
 void MapObjActorUtil::endRotator(const MapObjActor* pActor) {
-    pActor->mRotator->end();
+    pActor->mRailMover->doStart();
 }
 
 void MapObjActorUtil::pauseRotator(const MapObjActor* pActor) {

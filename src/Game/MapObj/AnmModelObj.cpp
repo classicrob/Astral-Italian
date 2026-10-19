@@ -68,13 +68,13 @@ void AnmModelObj::exeWait() {
 void AnmModelObj::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::tryStartAllAnim(this, ::cAnimFileName);
-        MR::startActionSound(this, "AnmModelMoveStart", -1, -1, -1);
+        MR::startActionSoundAuto(this, "AnmModelMoveStart", -1, -1, -1);
         MR::StageEffect::tryStageEffectStart(this, mObjectName);
         MR::StageEffect::shakeCameraMoving(this, mObjectName);
         onStartMove();
     }
 
-    MR::startActionSound(this, "AnmModelMoveLoop", -1, -1, -1);
+    MR::startActionSoundAuto(this, "AnmModelMoveLoop", -1, -1, -1);
     MR::StageEffect::rumblePadMoving(this, mObjectName);
     onLoopMove();
 
@@ -110,7 +110,7 @@ void AnmModelObj::exeDone() {
             MR::emitEffect(this, ::cEndLoopEffectName);
         }
 
-        MR::startActionSound(this, "AnmModelStop", -1, -1, -1);
+        MR::startActionSoundAuto(this, "AnmModelStop", -1, -1, -1);
     }
 
     onDone();
@@ -159,7 +159,7 @@ void AnmModelSwitchMoveValidateCollision::onStopMove() {
 
 void AnmModelSwitchMoveEndKill::kill() {
     MapObjActor::kill();
-    MR::startActionSound(this, "AnmModelKill", -1, -1, -1);
+    MR::startActionSoundAuto(this, "AnmModelKill", -1, -1, -1);
 }
 
 bool AnmModelSwitchMoveEndKill::isKilledAtMoveDone() const {
@@ -266,7 +266,7 @@ bool AnmModelSwitchSyncBrk::isOnStartAnmTrigger() const {
 void AnmModelSwitchSyncBrk::checkForReverse() {
     if (MR::isValidSwitchA(this) && !MR::isOnSwitchA(this)) {
         MR::startBrk(this, ::cReverseName);
-        MR::startActionSound(this, "AnmModelReverse", -1, -1, -1);
+        MR::startActionSoundAuto(this, "AnmModelReverse", -1, -1, -1);
         setNerve(GET_NERVE(AnmModelObj, HostTypeWait));
     }
 }

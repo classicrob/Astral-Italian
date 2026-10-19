@@ -24,6 +24,6 @@ public:
     void exeWait();
     bool tryAvoid();
 
-    /* 0x8C */ ActorCameraInfo* mCameraInfo;
-    /* 0x90 */ s32 mCurDemoFrame;
+    /* 0x090 */ ActorCameraInfo* mCameraInfo;
+    /* 0x094 */ s32 mCurDemoFrame;  // -1 when no demo is running
 };

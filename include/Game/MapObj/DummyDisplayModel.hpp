@@ -7,16 +7,18 @@ class NameObjArchiveListCollector;
 
 #define ITEM_TYPE_COIN 0
 #define ITEM_TYPE_KINOPIO 1
+#define ITEM_TYPE_SUPER_SPIN_DRIVER 3
 #define ITEM_TYPE_STARPIECE 4
 #define ITEM_TYPE_POWER_STAR 7
 #define ITEM_TYPE_GRAND_STAR 13
 
 struct DummyDisplayModelInfo {
     /* 0x00 */ const char* mName;
-    /* 0x04 */ Vec _4;
-    /* 0x10 */ u32 _10;
-    /* 0x14 */ const char* mAnim;
-    /* 0x18 */ bool mHasColorChange;
+    /* 0x04 */ const char* mSubName;
+    /* 0x08 */ Vec _8;
+    /* 0x14 */ s32 _14;
+    /* 0x18 */ const char* mAnim;
+    /* 0x1C */ bool mHasColorChange;
 };
 
 class DummyDisplayModel : public PartsModel {

@@ -4,7 +4,7 @@
 
 class SunLightArea : public AreaObj {
 public:
-    SunLightArea(int, const char*);
+    SunLightArea(const char*);
 
     virtual const char* getManagerName() const {
         return "SunLightArea";

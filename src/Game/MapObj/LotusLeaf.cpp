@@ -1,4 +1,5 @@
 #include "Game/MapObj/LotusLeaf.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -76,12 +77,12 @@ void LotusLeaf::exeShake() {
         mShakeSpeed = ::sShakeInitSpeed;
         mShakePeriod = ::sShakePeriodStart;
 
-        MR::startSound(this, "SE_OJ_LOTUS_LEAF_WAVE");
+        MR::startActionSound(this, "OjLotusLeafWave");
         MR::emitEffect(this, "LotusLeafRipple");
     }
 
-    f32 f1 = TWO_PI / mShakePeriod;
-    f32 angle = getNerveStep() * f1;
+    f32 angularFreq = TWO_PI / mShakePeriod;
+    f32 angle = getNerveStep() * angularFreq;
     f32 vel = -mShakeSpeed * MR::cos(angle);
     mShakePeriod += ::sShakePeriodSlowPitch;
     mShakeSpeed *= ::sShakeSpeedAtten;

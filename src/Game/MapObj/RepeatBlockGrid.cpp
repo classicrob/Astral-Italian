@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MULASSIGN_NOINLINE
 #pragma auto_inline off
 
 #include "Game/MapObj/RepeatBlock.hpp"
@@ -402,7 +403,7 @@ s32 RepeatBlockShadowDrawer::calcFaceLength(s32 n, s32 dir) const {
 
 void RepeatBlockShadowDrawer::makeHeadFace() {
     mVolume->mIsValid = false;
-    if (mHistory->mCount < 2) {
+    if (static_cast<u32>(mHistory->mCount) < 2u) {
         mHasHead = false;
         return;
     }
@@ -415,13 +416,14 @@ void RepeatBlockShadowDrawer::makeHeadFace() {
     calcDropOffset(&drop);
     RepeatBlockCell* pFirst = &mHistory->getNode(0)->mCell;
     mVolume->setup(pFirst, calcDirection(pFirst, &mHistory->getNode(1)->mCell), mOffset);
-    TVec3f offset = drop * (f32)len;
+    TVec3f offset(drop);
+    offset *= (f32)len;
     mHasHead = mVolume->calcFace(mHeadPoints, mDirection, offset);
 }
 
 void RepeatBlockShadowDrawer::makeTailFace() {
     mVolume->mIsValid = false;
-    if (mHistory->mCount < mHistory->mCapacity) {
+    if (static_cast<u32>(mHistory->mCount) < static_cast<u32>(mHistory->mCapacity)) {
         mHasTail = false;
         return;
     }
@@ -434,7 +436,8 @@ void RepeatBlockShadowDrawer::makeTailFace() {
     calcDropOffset(&drop);
     RepeatBlockCell* pLast = &mHistory->getNode(mHistory->mCount - 1)->mCell;
     mVolume->setup(pLast, calcDirection(pLast, &mHistory->getNode(mHistory->mCount - 2)->mCell), 1.0f - mOffset);
-    TVec3f offset = drop * (f32)len;
+    TVec3f offset(drop);
+    offset *= (f32)len;
     mHasTail = mVolume->calcFace(mTailPoints, mDirection, offset);
 }
 

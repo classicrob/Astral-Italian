@@ -4,7 +4,7 @@
 
 class MessageArea : public AreaObj {
 public:
-    MessageArea(int, const char*);
+    MessageArea(const char*);
 
     virtual void init(const JMapInfoIter&);
 

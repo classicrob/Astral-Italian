@@ -22,7 +22,7 @@ public:
     void updateBindActorMtx();
     void endBindAndShootUp(f32, JumpType);
 
-    /* 0x8C */ LiveActor* mBindedActor;
-    /* 0x90 */ TPos3f _90;
-    /* 0xC0 */ bool mIsMarioJumpingHigh;
+    /* 0x090 */ LiveActor* mBindedActor;
+    /* 0x094 */ TPos3f mCollisionMtx;
+    /* 0x0C4 */ bool mIsMarioJumpingHigh;
 };

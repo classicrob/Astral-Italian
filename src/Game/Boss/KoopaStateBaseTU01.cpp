@@ -56,7 +56,7 @@ void KoopaStateAttackQuake::kill() {
     MR::zeroVelocity(mHost);
     MR::endKoopaBattleFaceCtrl(mHost, 0);
     MR::setKoopaBattleVolumeScaleDownRate(mHost, 0);
-    mRock->fn_800E4160();
+    mRock->startDisappear();
 }
 
 void KoopaStateAttackQuake::setMode(s32 mode) {
@@ -145,7 +145,7 @@ void KoopaStateAttackQuake::exeStraightPunchLoop() {
             }
         }
         mVolumeDrawer->setScaleUpRate(6);
-        mRock->fn_800E40E0();
+        mRock->appearAtArenaEdge();
     }
     if (MR::isStep(this, 6)) {
         MR::sendMsgKoopaReleaseAttackRock();
@@ -159,7 +159,7 @@ void KoopaStateAttackQuake::exeStraightPunchLoop() {
 void KoopaStateAttackQuake::exeStraightPunchEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "StraightPunchEnd");
-        mRock->fn_800E4160();
+        mRock->startDisappear();
     }
     if (MR::isActionEnd(mHost)) {
         kill();

@@ -32,16 +32,16 @@ public:
     void unLockPosition();
     void addNodeVelocityHost(const TVec3f&);
 
-    /* 0x8C */ DinoPackun* mParent;
-    /* 0x90 */ TVec3f mNodeDirection;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ TVec3f _A8;
-    /* 0xB4 */ LiveActor* _B4;
-    /* 0xB8 */ LiveActor* _B8;
-    /* 0xBC */ MtxPtr _BC;
-    /* 0xC0 */ JointControlDelegator< DinoPackunTailNode >* _C0;
-    /* 0xC4 */ JointControlDelegator< DinoPackunTailNode >* _C4;
-    /* 0xC8 */ f32 mLinkLength;
-    /* 0xCC */ f32 mKeepBendPower;
-    /* 0xD0 */ u8 _D0;
+    /* 0x90 */ DinoPackun* mParent;
+    /* 0x94 */ TVec3f mNodeDirection;
+    /* 0xA0 */ TVec3f mAnimatedPos;
+    /* 0xAC */ TVec3f mJointFront;
+    /* 0xB8 */ DinoPackunTailNode* mPrevNode;
+    /* 0xBC */ DinoPackunTailNode* mNextNode;
+    /* 0xC0 */ MtxPtr mJointMtx;
+    /* 0xC4 */ JointControlDelegator< DinoPackunTailNode >* mPreCalcJointCtrl;
+    /* 0xC8 */ JointControlDelegator< DinoPackunTailNode >* mJointCtrl;
+    /* 0xCC */ f32 mLinkLength;
+    /* 0xD0 */ f32 mKeepBendPower;
+    /* 0xD4 */ u8 mIsPositionLocked;
 };

@@ -5,8 +5,6 @@
 #include "Game/Map/WaterInfo.hpp"
 #include "Game/Util.hpp"
 
-// Float constants (.sdata2) used by LeafBoard.
-
 // SMG2 target calls the symbol scaleVelocity__2MRFP9LiveActorf with (actor, const TVec3f&) and reads the f32 result in f1.
 // The name does not match the C++ signature, so declare it extern "C" to get the same reloc name.
 extern "C" f32 scaleVelocity__2MRFP9LiveActorf(LiveActor*, const TVec3f*);
@@ -66,9 +64,9 @@ LeafBoard::LeafBoard(const char* pName) : LiveActor(pName) {
     mShadowNormal.y = one;
     mShadowNormal.z = zero;
     mShadowAlpha = zero;
-    mTimer104 = 0;
-    mFlag108 = false;
-    mMtx90.identity();
+    mFloatTimer = 0;
+    mTouchedFloorFrame = false;
+    mWaterMtx.identity();
 }
 
 void LeafBoard::init(const JMapInfoIter& rIter) {
@@ -80,7 +78,7 @@ void LeafBoard::init(const JMapInfoIter& rIter) {
     MR::setShadowSurfaceOvalAlpha(this, "Water", 64);
     MR::setShadowProjectionPtr(this, "Water", &mShadowPos, &mShadowNormal);
     MR::setShadowSurfaceOvalAlpha(this, "Water", (u8)(s32)mShadowAlpha);
-    MR::setEffectHostMtx(this, "Ripple", mMtx90);
+    MR::setEffectHostMtx(this, "Ripple", mWaterMtx);
     MR::emitEffect(this, "Ripple");
     initNerve(GET_NERVE(LeafBoard, LeafBoardNrvWait), 0);
     makeActorAppeared();
@@ -93,14 +91,14 @@ void LeafBoard::initAfterPlacement() {
 }
 
 void LeafBoard::control() {
-    s32 timer = mTimer104;
-    mFlag108 = false;
+    s32 timer = mFloatTimer;
+    mTouchedFloorFrame = false;
     if (timer > 0) {
-        mTimer104 = timer - 1;
+        mFloatTimer = timer - 1;
     }
     MR::turnQuatYDirRate(&mRot, mRot, mDir, 0.03f);
     updateWaterShadow();
-    MR::makeMtxUpNoSupportPos(&mMtx90, mShadowNormal, mShadowPos);
+    MR::makeMtxUpNoSupportPos(&mWaterMtx, mShadowNormal, mShadowPos);
     updateMoveSound();
 }
 
@@ -163,6 +161,7 @@ void LeafBoard::reboundFromWall() {
         f32 speed = scaleVelocity__2MRFP9LiveActorf(this, &normal);
         if (speed > 5.0f) {
             MR::startAction(this, "Reaction");
+            // Shift-JIS "ぶつかり" (bump) hit reaction
             MR::tryHitReaction(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
             MR::startActionSound(this, "HitWall", (s32)(100.0f * speed), -1, -1);
         }
@@ -189,6 +188,7 @@ bool LeafBoard::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
             MR::addVelocity(this, push);
         }
         MR::startAction(this, "Reaction");
+        // Shift-JIS "ぶつかり" (bump) hit reaction
         MR::tryHitReaction(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
         MR::startActionSound(this, "HitWall", 0x320, -1, -1);
         return true;
@@ -200,8 +200,8 @@ bool LeafBoard::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 bool LeafBoard::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgFloorTouch(msg)) {
         mPlayerPos.set(*MR::getPlayerPos());  // out-of-line set<f> in target
-        mFlag108 = true;
-        mTimer104 = 60;
+        mTouchedFloorFrame = true;
+        mFloatTimer = 60;
     }
     return false;
 }
@@ -215,7 +215,7 @@ void LeafBoard::exeWait() {
     mDir.set(up);
     MR::addVelocityKeepHeightUseShadowAndWater(this, 0, 40.0f, 0.2f, 50.0f);
     MR::attenuateVelocity(this, 0.96f);
-    if (mTimer104 > 0) {
+    if (mFloatTimer > 0) {
         setNerve(GET_NERVE(LeafBoard, LeafBoardNrvFloat));
     }
 }
@@ -237,27 +237,27 @@ void LeafBoard::exeWind() {
     TVec3f dir(up);
     TVec3f sp20;
     sp20.set(0.0f, 0.0f, 0.0f);
-    f32 var_f31 = 0.97f;
-    f32 var_f30 = 0.0f;
-    if (mFlag108) {
+    f32 turnCos = 0.97f;
+    f32 playerProximity = 0.0f;
+    if (mTouchedFloorFrame) {
         MR::calcVecToTargetHorizon(&sp20, this, &mPlayerPos, 0);
         f32 len = PSVECMag(&sp20);
-        var_f30 = MR::normalize(len, 100.0f, 150.0f);
-        var_f31 = MR::getLinerValue(var_f30, 1.0f, 0.97f, 1.0f);
+        playerProximity = MR::normalize(len, 100.0f, 150.0f);
+        turnCos = MR::getLinerValue(playerProximity, 1.0f, 0.97f, 1.0f);
         if (MR::normalizeOrZero(&sp20)) {
             dir.set(up);
         } else {
             dir.set(sp20);
         }
     }
-    MR::turnVecToVecCos(&mDir, up, dir, var_f31, mGravity, 0.02f);
+    MR::turnVecToVecCos(&mDir, up, dir, turnCos, mGravity, 0.02f);
     TVec3f sp8 = sp20 * 0.2f;
-    TVec3f sp14 = sp8 * var_f30;
+    TVec3f sp14 = sp8 * playerProximity;
     MR::addVelocity(this, sp14);
     MR::addVelocityKeepHeightUseShadowAndWater(this, 0, 100.0f, 0.4f, 40.0f);
     MR::attenuateVelocity(this, 0.992f);
     reboundFromWall();
-    if (mTimer104 <= 0) {
+    if (mFloatTimer <= 0) {
         MR::zeroVelocity(this);
         setNerve(GET_NERVE(LeafBoard, LeafBoardNrvWait));
     }

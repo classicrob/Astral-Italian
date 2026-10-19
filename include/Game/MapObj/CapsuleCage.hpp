@@ -3,6 +3,7 @@
 #include "Game/MapObj/MapObjActor.hpp"
 
 class ActorCameraInfo;
+class PartsModel;
 
 class CapsuleCage : public MapObjActor {
 public:
@@ -18,6 +19,7 @@ public:
     virtual void initCaseUseSwitchB(const MapObjActorInitInfo&);
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo&) {};
 
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     void startOpen();
 
     void exeWait();
@@ -25,5 +27,10 @@ public:
     void exeOpen();
     void exeEndCamera();
 
-    /* 0xC4 */ ActorCameraInfo* mCameraInfo;
+    /* 0xD0 */ ActorCameraInfo* mCameraInfo;
+    bool mNoKeyHole;
+    bool mRestartBgm;
+    bool mRockCover;
+    PartsModel* mFrame;
+    bool mPlayRiddle;
 };

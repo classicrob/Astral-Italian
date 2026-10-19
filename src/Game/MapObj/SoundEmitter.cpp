@@ -2,6 +2,9 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/RailRider.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
+#include "Game/Demo/StoryBookDemo.hpp"
+#include <cstdio>
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -12,12 +15,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <JSystem/JAudio2/JAISound.hpp>
 
-namespace {
-    const u32 sSeTable[33] = {0x60000, 0x6000e, 0x6000f, 0x60010, 0x60011, 0x60014, 0x501a6, 0x501a7, 0x60015, 0x60016, 0x60017,
-                              0x60018, 0x60019, 0x5021b, 0x60020, 0x60021, 0x60022, 0x50272, 0x50273, 0x6002a, 0xa00a8, 0xa00a9,
-                              0x6002d, 0x6002e, 0x50318, 0x6002f, 0x6001c, 0x50332, 0x60030, 0x60004, 0x17,    0x60035, 0x50363};
-};  // namespace
-
 namespace NrvSoundEmitter {
     NEW_NERVE(SoundEmitterNrvStandBy, SoundEmitter, StandBy);
     NEW_NERVE(SoundEmitterNrvPlaySound, SoundEmitter, PlaySound);
@@ -25,22 +22,37 @@ namespace NrvSoundEmitter {
 
 SoundEmitter::SoundEmitter(const char* pName) : LiveActor(pName) {
     _8C = -1;
+    _94 = -1;
+    _98 = false;
+    _99 = false;
+    _9A = false;
 }
 
 void SoundEmitter::init(const JMapInfoIter& rIter) {
+    MR::connectToSceneMapObjMovement(this);
     MR::initDefaultPos(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &_8C);
-    MR::connectToSceneMapObjMovement(this);
-    MR::registerDemoSimpleCastAll(this);
+    MR::getJMapInfoArg1NoInit(rIter, &_94);
+    s32 demoType = -1;
+    MR::getJMapInfoArg2NoInit(rIter, &demoType);
+    if (demoType >= 0) _98 = true; else _98 = false;
+    if (demoType == 1) _99 = true; else _99 = false;
+    s32 repeat = -1;
+    MR::getJMapInfoArg3NoInit(rIter, &repeat);
+    if (repeat >= 0) _9A = true; else _9A = false;
+    if (!_98) MR::registerDemoSimpleCastAll(this);
+    if (_99) MR::registerStoryBookDemoCast(this);
 
     if (MR::isConnectedWithRail(rIter)) {
         initRailRider(rIter);
     }
 
-    initSound(8, "SoundEmitter", nullptr, TVec3f(0.0f));
+    char soundName[256];
+    snprintf(soundName, sizeof(soundName), "SoundEmitterPoint%d", _8C);
+    initSound(2, soundName, nullptr, TVec3f(0.0f));
     MR::setClippingTypeSphere(this, 20000.0f);
-    MR::useStageSwitchReadAppear(this, rIter);
-    MR::useStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadAppear(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
 
     if (MR::isValidSwitchAppear(this)) {
         initNerve(GET_NERVE(SoundEmitter, SoundEmitterNrvStandBy));
@@ -54,58 +66,24 @@ void SoundEmitter::init(const JMapInfoIter& rIter) {
 void SoundEmitter::control() {
     if (MR::isValidSwitchA(this)) {
         if (MR::isOnSwitchA(this)) {
-            kill();
+            if (_9A) setNerve(GET_NERVE(SoundEmitter, SoundEmitterNrvPlaySound));
+            else kill();
         }
     }
 }
 
 void SoundEmitter::exePlaySound() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSoundOneShot(this, "PlaySound");
+    }
+    MR::startActionSoundLevel(this, "PlaySound");
     RailRider* rider = mRailRider;
-    s32 v3 = -1;
-
     if (rider != nullptr) {
-        switch (_8C) {
-        case 0xd:
-        case 0x11:
-        case 0x12: {
-            rider->moveToNearestPos(MR::getCameraWatchPos());
-        } break;
-        default: {
-            rider->moveToNearestPos(MR::getCamPos());
-        } break;
-        }
-
+        if (_94 == 0) rider->moveToNearestPos(MR::getCameraWatchPos());
+        else rider->moveToNearestPos(MR::getCamPos());
         mPosition.x = mRailRider->mCurPos.x;
         mPosition.y = mRailRider->mCurPos.y;
         mPosition.z = mRailRider->mCurPos.z;
-    }
-
-    switch (_8C) {
-    case 9:
-    case 0xA:
-    case 0xB: {
-        if (MR::calcDistanceToPlayer(this) < 1000.0f) {
-            return;
-        }
-    } break;
-    case 0x16:
-    case 0x17: {
-        if (MR::isDemoActive("ロゼッタ状況説明デモ")) {
-            return;
-        }
-    } break;
-    case 0x1A: {
-        v3 = 5;
-    } break;
-    case 0x1E: {
-        MR::startSystemSE("SE_SY_READ_RIDDLE_S");
-        kill();
-        return;
-    } break;
-    }
-
-    if (_8C >= 0) {
-        MR::startLevelSound(this, ::sSeTable[_8C], -1, -1, v3);
     }
 }
 

@@ -11,6 +11,9 @@ public:
     virtual ~ActorStatePlayerPosReset();
     virtual void appear();
     bool isResetStart();
+    void exeClose();
+    void exeReset();
+    void exeOpen();
 
     const char* mPositionName;
     MtxPtr mPositionMtx;

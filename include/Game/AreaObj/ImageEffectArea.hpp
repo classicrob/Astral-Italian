@@ -12,7 +12,6 @@ public:
         /* 0x04 */ IMAGE_EFFECT_TYPE_POST_OUTLINE,
     };
 
-    ImageEffectArea(EImageEffectType, int, const char*);
     ImageEffectArea(int, const char*);
 
     virtual void init(const JMapInfoIter&);

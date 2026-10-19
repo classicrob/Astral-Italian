@@ -41,20 +41,20 @@ void TwoLegsStateExplosion::explode() {
 void TwoLegsStateExplosion::exeBlurWait() {
     if (MR::isFirstStep(this)) {
         mHost->placeAtAllRoot();
-        MR::startAction(mHost, "Explosion");
-        MR::startActionSound(mHost, "Death", -1, -1, -1);
+        MR::startAction(mHost, "Damage");
+        MR::startActionSound(mHost, "DeathAS", -1, -1, -1);
         MR::stopStageBGM(10);
     }
     if (MR::isStep(this, 60)) {
-        MR::requestStartDemoMarioPuppetable(this, mHost, "Explosion", &NrvTwoLegsStateExplosion::TwoLegsStateExplosionNrvDemo::sInstance, nullptr);
+        MR::requestStartDemoMarioPuppetable(this, mHost, "爆発", &NrvTwoLegsStateExplosion::TwoLegsStateExplosionNrvDemo::sInstance, nullptr);
     }
 }
 
 void TwoLegsStateExplosion::exeDemo() {
     if (MR::isFirstStep(this)) {
         mHost->resetToInitPos();
-        MR::startAction(mHost, "Death");
-        MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Death", nullptr, 0, 1.0f);
+        MR::startAction(mHost, "Explosion");
+        MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Explosion", nullptr, 0, 1.0f);
         MR::overlayWithPreviousScreen(2);
         MR::hidePlayer();
         LiveActor* pCarry = MR::getPlayerCarrySensorActor();
@@ -63,7 +63,7 @@ void TwoLegsStateExplosion::exeDemo() {
         }
         MR::forceDeleteEffect(mHost, "Weaken1st");
         MR::forceDeleteEffect(mHost, "Weaken2nd");
-        MR::setPlayerPosAndWait("Weaken3rd", false);
+        MR::setPlayerPosAndWait("二脚ボス爆発デモ後座標", false);
     }
     if (MR::isStep(this, 180)) {
         MR::deleteEffect(mHost, "Eye");
@@ -89,8 +89,8 @@ void TwoLegsStateExplosion::exeEnd() {
         MR::endAnimCamera(mHost, mHost->mCameraInfo, "Explosion", -1, true);
     }
     if (MR::isEndPowerStarAppearDemo(mHost)) {
-        MR::showPlayer();
         MR::overlayWithPreviousScreen(2);
+        MR::showPlayer();
         LiveActor* pCarry = MR::getPlayerCarrySensorActor();
         if (pCarry != nullptr) {
             MR::showModelIfHidden(pCarry);

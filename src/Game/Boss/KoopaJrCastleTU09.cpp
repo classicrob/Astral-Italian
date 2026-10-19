@@ -33,8 +33,8 @@ void KoopaJrCastleStateOpening::appear() {
 }
 
 void KoopaJrCastleStateOpening::exe800D6D80() {
-    fn_800D3970();
-    fn_800D3A40();
+    hideBattlePartsUnlessDemo();
+    showBattlePartsDuringDemo();
     if (MR::isOnSwitchA(mHost)) {
         KoopaJrCastle* castle = getCastle();
         MR::invalidateClipping(castle);
@@ -53,9 +53,8 @@ void KoopaJrCastleStateOpening::exe800D6E00() {
     }
 }
 
-// NONMATCHING: target initializes unused r4 before the one-argument setPlayerPosAndWait call
 void KoopaJrCastleStateOpening::exe800D6E90() {
-    if (MR::isFirstStep(this)) fn_800D3770("DemoOpeningKoopaJrCastle");
+    if (MR::isFirstStep(this)) startPartsDemoActions("DemoOpeningKoopaJrCastle");
     if (MR::isDemoPartFirstStep("\x83\x74\x83\x40\x83\x43\x83\x41\x83\x6f\x81\x5b\x8b\x4e\x93\xae")) {
         mHost->mBody->onFlagF6();
         appearFireBar();

@@ -11,6 +11,7 @@
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 
 
 namespace {

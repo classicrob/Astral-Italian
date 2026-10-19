@@ -16,7 +16,8 @@ public:
     void start(const TVec3f&, const TVec3f&);
     void exeWait();
     void exeExplosion();
+    void exeBindStarPointer();
 
-    TQuat4f _8C;
-    TVec3f _9C;
+    TQuat4f mPoseQuat;
+    TVec3f mAngularVelocity;
 };

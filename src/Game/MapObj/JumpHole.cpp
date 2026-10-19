@@ -13,12 +13,9 @@ namespace {
     const f32 sBallToCenterFreq = 0.98f;
     const f32 sBallToCenterEndFreq = 0.7f;
     const s32 sForceSetCenterTime = 180;
-    // sLaunchVelocity
     const s32 sLaunchFixTime = 10;
     const s32 sSetUpTime = 45;
     const f32 sLaunchValidHeight = 160.0f;
-    // sVelocityScale
-    // sTestBindSphereRadius
 
     static TVec3f sTestBindSpherePos(0, 0, 0);
     static TVec3f sTestBindSphereVelocity(0, 0, 0);
@@ -37,8 +34,8 @@ JumpHole::JumpHole(const char* pName)
     mBaseMtx.identity();
 }
 
-// SMG2 ActorCamera name for the hole (Shift-JIS bytes, read from the target data).
-static const char lbl_cameraName[] = "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89";
+// Shift-JIS "発射カメラ" (launch camera): ActorCamera name for the hole.
+static const char sLaunchCameraName[] = "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89";
 
 namespace {
     // Follow validater whose PMF takes no argument; the isValid thunk forwards the id untouched.
@@ -59,7 +56,7 @@ namespace {
 void JumpHole::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     mCone->setPosition(mPosition);
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, lbl_cameraName);
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, sLaunchCameraName);
     MR::makeMtxTR(reinterpret_cast< MtxPtr >(&mBaseMtx), this);
     bool (JumpHole::*pFunc)() = &JumpHole::isNerveTypeNotWait;
     MR::addBaseMatrixFollowTarget(this, rIter, &mBaseMtx, new JumpHoleFollowValidater(this, pFunc));
@@ -147,7 +144,7 @@ void JumpHole::exeRailMove() {
         MR::startLevelSoundPlayer("JumpObj", -1, -1);
         MR::startLevelSoundPlayer("JumpLongV", -1, -1);
         MR::sendArbitraryMsg(0xA6 /* ACTMES_SHOOT_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
-        MR::startMultiActorCameraTargetPlayer(this, mCameraInfo, lbl_cameraName, -1);
+        MR::startMultiActorCameraTargetPlayer(this, mCameraInfo, sLaunchCameraName, -1);
     }
 
     f32 horizontal = mLaunchDistance * mLaunchTime;
@@ -161,7 +158,7 @@ void JumpHole::exeRailMove() {
         MR::getSensorHost(mBoundSensor)->mVelocity.set<f32>(position - previous);
         MR::sendArbitraryMsg(0xA7 /* ACTMES_END_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
         mBoundSensor = nullptr;
-        MR::endMultiActorCamera(this, mCameraInfo, lbl_cameraName, false, -1);
+        MR::endMultiActorCamera(this, mCameraInfo, sLaunchCameraName, false, -1);
         setNerve(GET_NERVE(JumpHole, JumpHoleNrvWait));
         MR::validateClipping(this);
     }

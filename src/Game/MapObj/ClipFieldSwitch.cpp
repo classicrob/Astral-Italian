@@ -3,14 +3,17 @@
 #include "Game/MapObj/ClipAreaHolder.hpp"
 #include "Game/Util.hpp"
 
-void ClipFieldSwitch_FORCE_MATCH_SDATA2() {
-    (void)1000.0f;
-}
-
-ClipFieldSwitch::~ClipFieldSwitch() {
-}
-
 ClipFieldSwitch::ClipFieldSwitch(const char* pName) : LiveActor(pName) {
+}
+
+void ClipFieldSwitch::init(const JMapInfoIter& rIter) {
+    MR::connectToSceneMapObjMovement(this);
+    MR::useStageSwitchWriteA(this, rIter);
+    MR::useStageSwitchWriteB(this, rIter);
+    initHitSensor(1);
+    MR::addHitSensorEye(this, "Body", 8, 1000.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::invalidateClipping(this);
+    appear();
 }
 
 void ClipFieldSwitch::control() {
@@ -35,12 +38,5 @@ void ClipFieldSwitch::control() {
     }
 }
 
-void ClipFieldSwitch::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneMapObjMovement(this);
-    MR::useStageSwitchWriteA(this, rIter);
-    MR::useStageSwitchWriteB(this, rIter);
-    initHitSensor(1);
-    MR::addHitSensorEye(this, "Body", 8, 1000.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::invalidateClipping(this);
-    appear();
+ClipFieldSwitch::~ClipFieldSwitch() {
 }

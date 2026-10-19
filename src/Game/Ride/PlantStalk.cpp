@@ -20,13 +20,7 @@
 #include <revolution/gx/GXTransform.h>
 #include <revolution/gx/GXVert.h>
 
-void PlantStalk_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-}
 
-s32 PlantStalk_FORCE_MATCH_CLAMP(s32 a, s32 b, s32 c) {
-    return MR::clamp(a, b, c) + MR::clamp(b, c, a) + MR::clamp(c, a, b);
-}
 
 namespace {
     static const f32 sGrowSpeedMin = 15.0f;
@@ -91,6 +85,10 @@ void PlantStalk::draw() const {
     }
 }
 
+// Keep the integer clamp call out of line, as in the original function.
+#pragma push
+#pragma dont_inline on
+// NONMATCHING: register allocation and integer-to-float conversion scheduling differ.
 bool PlantStalk::updateGrowUp() {
     mGrowAccelTime--;
     if (mGrowAccelTime <= 0) {
@@ -149,6 +147,8 @@ void PlantStalk::calcPosAndAxisY(TVec3f* pPos, TVec3f* pAxisY, f32 lengthAlongRa
 void PlantStalk::calcNearestPos(TVec3f* pRailPos, const TVec3f& rSrcPos) const {
     mRailInfo->calcNearestPointPos(pRailPos, rSrcPos, ::sOffsetPointNum);
 }
+
+#pragma pop
 
 f32 PlantStalk::calcPlayerCoord() const {
     TVec3f playerPos = *MR::getPlayerCenterPos();

@@ -35,10 +35,10 @@ public:
 
     /* 0x90 */ KCLFile* mKCLFile;
     /* 0x94 */ CollisionParts* mParts;
-    /* 0x98 */ u16 _94;
+    /* 0x98 */ u16 mTriangleNum;
     /* 0x9A */ u16 mPositionNum;
     /* 0x9C */ TVec3f* mPositions;
-    /* 0xA0 */ TVec3f* _9C;
+    /* 0xA0 */ TVec3f* mFaceNormals;
     /* 0xA4 */ TriangleIndexing* mIndices;
     /* 0xA8 */ u32 _A4;
     /* 0xAC */ u32 _A8;

@@ -423,7 +423,7 @@ void Kinopio::exeEscape() {
 }
 
 void Kinopio::exeMount() {
-    if (MR::isFirstStep(this) && mMapObjConnector->mParts == nullptr) {
+    if (MR::isFirstStep(this) && mMapObjConnector->mAttachment == nullptr) {
         MR::calcGravity(this);
         MR::setBaseTRMtx(this, mOrientationQuat);
         mMapObjConnector->attachToUnder();

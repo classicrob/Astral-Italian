@@ -25,10 +25,10 @@
 extern "C" void fn_80051940();
 // PLACEHOLDER(objects): unnamed target symbol fn_80051910, declared extern "C" so the reloc name matches; resolve when fn_80051910 gets its real name in symbols.txt
 extern "C" void fn_80051910();
-// PLACEHOLDER(objects): unnamed target symbol fn_8004FE50, declared extern "C" so the reloc name matches; resolve when fn_8004FE50 gets its real name in symbols.txt
-extern "C" void fn_8004FE50();
 
 namespace {
+    extern const f32 sCeilingReflectRate;
+    extern const f32 sWallReflectRate;
     f32 one = 1.0f;
     f32 thirty = 30.0f;
     f32 onefifty = 150.0f;
@@ -70,12 +70,12 @@ namespace NrvTubeSlider {
 }  // namespace NrvTubeSlider
 
 TubeSlider::TubeSlider(const char* pName)
-    : LiveActor(pName), _90(nullptr), _94(0.0f), _98(0.0f, 0.0f, 1.0f), _A4(0.0f, 1.0f, 0.0f), _E0(0.0f), mCameraInfo(nullptr),
-      mPlayerTheta(0.0f), _EC(0.0f), _F0(0.0f), _F4(0.0f), _F8(4.0f), _FC(0.0f), _100(0.0f, 0.0f, 0.0f), _10C(0.0f, 0.0f, 0.0f), _118(0),
+    : LiveActor(pName), mRider(nullptr), _94(0.0f), _98(0.0f, 0.0f, 1.0f), _A4(0.0f, 1.0f, 0.0f), mForwardSpeed(0.0f), mCameraInfo(nullptr),
+      mPlayerTheta(0.0f), _EC(0.0f), _F0(0.0f), _F4(0.0f), _F8(4.0f), _FC(0.0f), _100(0.0f, 0.0f, 0.0f), mJumpVelocity(0.0f, 0.0f, 0.0f), _118(0),
       _11C(0.0f), _120(0), mInfo(500.0f), mRadiusDefault(500.0f), mFloorCodeDefault(0), _148(0.0f, 0.0f, 0.0f),
       mShadowDropPos(0.0f, 0.0f, 0.0f), mShadowDropDir(0.0f, 1.0f, 0.0f), _16C(0.0f, 0.0f, 0.0f), _178(0.0f, 0.0f, 0.0f),
       _184(0.0f, 0.0f, 1.0f), _190(0.0f, 1.0f, 0.0f), _19C(150.0f), _1A0(&thirty), _1A4(&onefifty), _1A8(false) {
-    _B0.identity();
+    mRiderMtx.identity();
 }
 
 void TubeSlider::init(const JMapInfoIter& rIter) {
@@ -95,7 +95,7 @@ void TubeSlider::init(const JMapInfoIter& rIter) {
     MR::calcRailStartPointPos(&mPosition, this);
     initHitSensor(2);
     MR::addHitSensorCallbackBinder(this, "Bind", 8, 50.0f);
-    MR::addHitSensorMtxRide(this, "Ride", 8, 50.0f, _B0, TVec3f(0.0f, 50.0f, 0.0f));
+    MR::addHitSensorMtxRide(this, "Ride", 8, 50.0f, mRiderMtx, TVec3f(0.0f, 50.0f, 0.0f));
     MR::initUseStageSwitchWriteA(this, rIter);
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, "滑り");
     MR::initActorCameraProgrammable(this);
@@ -155,12 +155,12 @@ void TubeSlider::exeRideAir() {
     if (isReachedGoal) {
         fn_80051940();
         MR::endActorCameraProgrammable(this, -1, true);
-        MR::endBindAndPlayerJump(this, _10C, 0);
+        MR::endBindAndPlayerJump(this, mJumpVelocity, 0);
         MR::invalidateShadow(this, nullptr);
         if (MR::isValidSwitchA(this))
             MR::offSwitchA(this);
-        MR::tryDeleteEffect(_90, "共通スリップ坂");
-        _90 = nullptr;
+        MR::tryDeleteEffect(mRider, "共通スリップ坂");
+        mRider = nullptr;
         MR::resetSupportTicoAttachRangeTubeSlider();
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvEnd));
 
@@ -186,7 +186,7 @@ void TubeSlider::exeRideAir() {
         {
         s32 pitchBase = 50;
         s32 scale = 10;
-        f32 spd = _E0;
+        f32 spd = mForwardSpeed;
         s32 windPitch = (s32)((f32)pitchBase + __fabsf(spd) * (f32)scale);
         s32 windVol = MR::clamp((s32)(spd * (f32)scale) + 600, 0, 1000);
         MR::startActionSound(this, "Wind", windPitch, windVol, -1);
@@ -206,9 +206,9 @@ void TubeSlider::exeRideAir() {
         MR::makeAxisUpFront(&fro, &up, _A4, up);
 
         if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage))) {
-            _10C.scale(0.98f);
+            mJumpVelocity.scale(0.98f);
         } else {
-            _10C.scale(0.995f);
+            mJumpVelocity.scale(0.995f);
         }
         TVec3f unk(0.0f, 1.0f, 0.0f);
         TubeSlider::tryCalcInfo(nullptr, &unk, nullptr, this, false);
@@ -217,17 +217,17 @@ void TubeSlider::exeRideAir() {
         }
         if (MR::getSubPadStickX(0) != 0.0f) {
             if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSpin))) {
-                _10C.sub(fro * MR::getSubPadStickX(0) * 0.2f);
+                mJumpVelocity.sub(fro * MR::getSubPadStickX(0) * 0.2f);
             } else if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage))) {
-                _10C.sub(fro * MR::getSubPadStickX(0) * 0.3f);
+                mJumpVelocity.sub(fro * MR::getSubPadStickX(0) * 0.3f);
             } else {
-                _10C.sub(fro * MR::getSubPadStickX(0) * 0.03f);
+                mJumpVelocity.sub(fro * MR::getSubPadStickX(0) * 0.03f);
             }
         }
-        _10C.sub(_A4 * 0.88f);
-        _100.add(_10C);
-        _B0.setXYZDir(fro, _A4, up);
-        _B0.setTrans(_100);
+        mJumpVelocity.sub(_A4 * 0.88f);
+        _100.add(mJumpVelocity);
+        mRiderMtx.setXYZDir(fro, _A4, up);
+        mRiderMtx.setTrans(_100);
         TVec3f igh(_98);
         if (MR::isGreaterEqualStep(this, 10)) {
             TubeSlider::tryCalcInfo(nullptr, nullptr, nullptr, this, true);
@@ -237,7 +237,7 @@ void TubeSlider::exeRideAir() {
         updateCameraAndShadow(MR::getRailDirection(this));
 
         if (!isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSpin)) && !isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage)) &&
-            _10C.dot(_A4) < 0.0f && tryPlayerJumpSpin())
+            mJumpVelocity.dot(_A4) < 0.0f && tryPlayerJumpSpin())
             return;
 
         if (MR::isGreaterStep(this, 120))
@@ -256,7 +256,7 @@ void TubeSlider::exeRideWallHit() {
         MR::startLevelSoundPlayer("WallHitSlider", -1, -1);
         MR::startBckPlayerJ("チューブスライダー壁ヒット");
     }
-    if (!updateOnGround() && MR::isActionEnd(_90))
+    if (!updateOnGround() && MR::isActionEnd(mRider))
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRide));
 }
 
@@ -278,7 +278,7 @@ void TubeSlider::exeRideLand() {
                 MR::startLevelSoundPlayer("Land", -1, -1);
             }
         }
-        MR::emitEffect(_90, "共通スリップ坂");
+        MR::emitEffect(mRider, "共通スリップ坂");
     }
 
     bool isDamaging = isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamageLand));
@@ -292,7 +292,7 @@ void TubeSlider::exeRideLand() {
     } else if (updateOnGround()) {
         if (isDamaging)
             fn_80051940();
-    } else if (MR::isActionEnd(_90)) {
+    } else if (MR::isActionEnd(mRider)) {
         if (isDamaging)
             fn_80051940();
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRide));
@@ -304,14 +304,14 @@ void TubeSlider::exeKillPlayer() {
         MR::startBckPlayerJ("壁ヒット");
     }
 
-    _10C.sub(_A4 * 0.88f);
-    _100.add(_10C);
+    mJumpVelocity.sub(_A4 * 0.88f);
+    _100.add(mJumpVelocity);
 
     TVec3f front(1.0f, 0.0f, 0.0f);
     TVec3f up(_98);
     MR::makeAxisUpFront(&front, &up, _A4, up);
-    _B0.setXYZDir(front, _A4, up);
-    _B0.setTrans(_100);
+    mRiderMtx.setXYZDir(front, _A4, up);
+    mRiderMtx.setTrans(_100);
     updateCameraAndShadow(_98);
 
     if (MR::isGreaterStep(this, 120))
@@ -319,7 +319,7 @@ void TubeSlider::exeKillPlayer() {
 }
 
 void TubeSlider::updateHitSensor(HitSensor* sensor) {
-    if (!_90 || (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideJump)) || isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSpin)) ||
+    if (!mRider || (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideJump)) || isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSpin)) ||
                  isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideFall)) || isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage)))) {
         TVec3f A(0.0f);
         TVec3f B(0.0f);
@@ -331,9 +331,8 @@ void TubeSlider::updateHitSensor(HitSensor* sensor) {
     }
 }
 
-// NONMATCHING: f30/f31 swap
 void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!_90)
+    if (!mRider)
         return;
 
     if (MR::isSensorBinder(pSender) &&
@@ -349,7 +348,7 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         TubeSlider::tryCalcInfo(nullptr, &scratch2, nullptr, this, true);
         scratch2.scale(-1.0f);
         f32 dotA = scratch.dot(scratch2);
-        f32 dotB = _10C.dot(scratch2);
+        f32 dotB = mJumpVelocity.dot(scratch2);
 
         f32 wallDist = 0.0f;
         if (dotB < 0.0f && (50.0f <= dotA || TubeSliderFunction::isHitLeftWall(this, &wallDist) ||
@@ -375,7 +374,7 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (dotB > 0.0f && -50.0f < dotA && dotA < -30.0f) {
             MR::tryRumblePadMiddle(this, 0);
             MR::shakeCameraNormal();
-            _10C.sub(scratch2 * dotB * (1.0f + 0.6f));
+            mJumpVelocity.sub(scratch2.scaleInline(dotB).scaleInline(1.0f + sCeilingReflectRate));
             fn_80051940();
             setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSlamCeiling));
             return;
@@ -383,13 +382,14 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (-30.0f <= dotA && dotA < 50.0f) {
             MR::tryRumblePadMiddle(this, 0);
             MR::shakeCameraNormal();
-            _10C.sub(_98 * _10C.dot(_98) * (1.0f + 0.2f));
+            f32 along = mJumpVelocity.dot(_98);
+            mJumpVelocity.sub(_98.scaleInline(along).scaleInline(1.0f + sWallReflectRate));
             fn_80051940();
             setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSlamWall));
             return;
         }
     }
-    MR::tryGetItem(pSender, pReceiver);
+    if (MR::tryGetItem(pSender, pReceiver)) return;
 }
 
 bool TubeSlider::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -401,7 +401,7 @@ bool TubeSlider::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
 }
 
 bool TubeSlider::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!_90)
+    if (!mRider)
         return false;
 
     if (!isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage)) && !isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamageLand)) &&
@@ -416,11 +416,11 @@ bool TubeSlider::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     if (MR::isMsgAutoRushBegin(msg)) {
         if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvEnd)) || MR::isOnGroundPlayer())
             return false;
-        _90 = MR::getSensorHost(pSender);
+        mRider = MR::getSensorHost(pSender);
         MR::invalidateClipping(this);
         if (!isOffSlide()) {
             MR::validateClipping(this);
-            _90 = nullptr;
+            mRider = nullptr;
             return false;
         }
         MR::tryRumblePadMiddle(this, 0);
@@ -440,15 +440,15 @@ bool TubeSlider::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     }
     if (MR::isMsgUpdateBaseMtx(msg)) {
         _120++;
-        MR::setBaseTRMtx(_90, _B0);
+        MR::setBaseTRMtx(mRider, mRiderMtx);
         return true;
     }
     if (MR::isMsgRushCancel(msg)) {
         MR::endActorCameraProgrammable(this, -1, true);
         if (MR::isValidSwitchA(this))
             MR::offSwitchA(this);
-        MR::tryDeleteEffect(_90, "共通スリップ坂");
-        _90 = nullptr;
+        MR::tryDeleteEffect(mRider, "共通スリップ坂");
+        mRider = nullptr;
         MR::resetSupportTicoAttachRangeTubeSlider();
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvEnd));
         return true;
@@ -472,8 +472,8 @@ bool TubeSlider::isOffSlide() {
     _A4.set(-temp);
     MR::repeatDegree(&mPlayerTheta);
     MR::setRailDirectionToEnd(this);
-    _E0 = MR::getPlayerVelocity()->dot(MR::getRailDirection(this));
-    _E0 = MR::clamp(_E0, 20.0f, 45.0f);
+    mForwardSpeed = MR::getPlayerVelocity()->dot(MR::getRailDirection(this));
+    mForwardSpeed = MR::clamp(mForwardSpeed, 20.0f, 45.0f);
     _EC = 0.0f;
     _F4 = 0.0f;
     _FC = 0.0f;
@@ -488,10 +488,10 @@ bool TubeSlider::tryEndSlide() {
 
     MR::moveCoordToEndPos(this);
     TVec3f vec;
-    _B0.getTrans(vec);
+    mRiderMtx.getTrans(vec);
     MR::setPlayerPos(vec);
     TVec3f vec2;
-    _B0.getZDir(vec2);
+    mRiderMtx.getZDir(vec2);
     MR::setPlayerFrontTargetVec(vec2, 1);
     TVec3f vec3(vec2);
     vec3.scale(20.0f);
@@ -503,8 +503,8 @@ bool TubeSlider::tryEndSlide() {
     MR::invalidateShadow(this, nullptr);
     if (MR::isValidSwitchA(this))
         MR::offSwitchA(this);
-    MR::tryDeleteEffect(_90, "共通スリップ坂");
-    _90 = nullptr;
+    MR::tryDeleteEffect(mRider, "共通スリップ坂");
+    mRider = nullptr;
     MR::resetSupportTicoAttachRangeTubeSlider();
     setNerve(GET_NERVE(TubeSlider, TubeSliderNrvEnd));
     return true;
@@ -516,7 +516,7 @@ bool TubeSlider::tryPlayerJump(bool b) {
             MR::startLevelSoundPlayer("JumpSkate", -1, -1);
         else
             MR::startLevelSoundPlayer("JumpS", -1, -1);
-        MR::tryDeleteEffect(_90, "共通スリップ坂");
+        MR::tryDeleteEffect(mRider, "共通スリップ坂");
         startJump(25.0f);
         MR::startBckPlayerJ("チューブスライダージャンプ");
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideJump));
@@ -530,10 +530,10 @@ bool TubeSlider::tryPlayerJumpSpin() {
     if (MR::isPadSwing(0)) {
         MR::startLevelSoundPlayer("JumpSpin", -1, -1);
         MR::tryRumblePadMiddle(this, 0);
-        MR::vecKillElement(_10C, _A4, &_10C);
-        _10C.add(_A4 * 22.0f);
+        MR::vecKillElement(mJumpVelocity, _A4, &mJumpVelocity);
+        mJumpVelocity.add(_A4 * 22.0f);
         MR::startBckPlayer("Spin", nullptr);
-        MR::emitEffect(_90, "SliderSpinLight");
+        MR::emitEffect(mRider, "SliderSpinLight");
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSpin));
         return true;
     }
@@ -542,7 +542,7 @@ bool TubeSlider::tryPlayerJumpSpin() {
 
 bool TubeSlider::tryPlayerFall() {
     if (TubeSliderFunction::isUnknown2(this)) {
-        MR::tryDeleteEffect(_90, "共通スリップ坂");
+        MR::tryDeleteEffect(mRider, "共通スリップ坂");
         MR::startBckPlayerJ("落下");
         startJump(0.0f);
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideFall));
@@ -553,12 +553,12 @@ bool TubeSlider::tryPlayerFall() {
 
 void TubeSlider::damagePlayer() {
     fn_80051910();
-    fn_8004FE50();
+    MR::decrementPlayerSwimLife();
     MR::tryRumblePadMiddle(this, 0);
     MR::startLevelSoundPlayer("DamageS", -1, -1);
     MR::startBckPlayerJ("チューブスライダーダメージ");
-    MR::emitEffect(_90, "TubeSlideDamage");
-    MR::tryDeleteEffect(_90, "共通スリップ坂");
+    MR::emitEffect(mRider, "TubeSlideDamage");
+    MR::tryDeleteEffect(mRider, "共通スリップ坂");
     startJump(25.0f);
     setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage));
 }
@@ -568,7 +568,7 @@ void TubeSlider::startJump(f32 power) {
     TVec3f b(_98);
     MR::makeAxisUpFront(&a, &b, _A4, b);
     _100.set(*MR::getPlayerPos());
-    _10C.set(_98 * _E0 + _A4 * power - a * _EC * 2.0f);
+    mJumpVelocity.set(_98 * mForwardSpeed + _A4 * power - a * _EC * 2.0f);
 }
 
 // NONMATCHING: fmuls operand order on int-to-float conversions
@@ -591,8 +591,8 @@ bool TubeSlider::updateOnGround() {
     s32 volScale = 10;
     s32 pitchScale = 23;
     s32 curveVol = MR::clamp((s32)(__fabsf(MR::getSubPadStickX(0)) * (f32)curveScale) + 60, 0, 1000);
-    s32 slipPitch = (s32)(_E0 * (f32)pitchScale);
-    s32 slipVol = MR::clamp((s32)(_E0 * (f32)volScale) + 600, 0, 1000);
+    s32 slipPitch = (s32)(mForwardSpeed * (f32)pitchScale);
+    s32 slipVol = MR::clamp((s32)(mForwardSpeed * (f32)volScale) + 600, 0, 1000);
     if (curveVol > 170)
         slipPitch -= (s32)(0.4f * (f32)curveVol);
 
@@ -619,29 +619,29 @@ bool TubeSlider::updateOnGround() {
 // NONMATCHING: stack temp slot order, f-reg allocation in wind block and wall-hit frsp ordering
 bool TubeSlider::updatePlayer() {
     TVec3f railDir(MR::getRailDirection(this));
-    _E0 += 1.0f;
+    mForwardSpeed += 1.0f;
     if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRide))) {
         if (TubeSliderFunction::isGroundSlow(this)) {
-            _E0 *= 0.95f;
+            mForwardSpeed *= 0.95f;
         } else if (TubeSliderFunction::isGroundIce(this)) {
-            _E0 *= 0.995f;
+            mForwardSpeed *= 0.995f;
         } else {
-            _E0 *= 0.99f;
+            mForwardSpeed *= 0.99f;
         }
     } else if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamageLand))) {
-        _E0 *= 0.95f;
+        mForwardSpeed *= 0.95f;
     } else {
-        _E0 *= one;
+        mForwardSpeed *= one;
     }
-    _E0 = MR::clamp(_E0, 20.0f, 45.0f);
-    MR::moveCoordAndFollowTrans(this, _E0);
+    mForwardSpeed = MR::clamp(mForwardSpeed, 20.0f, 45.0f);
+    MR::moveCoordAndFollowTrans(this, mForwardSpeed);
     TubeSliderFunction::updateTubeSliderInfo(this, true);
     TVec3f cross(1.0f, 0.0f, 0.0f);
     PSVECCrossProduct(railDir, _A4, &cross);
     MR::normalizeOrZero(&cross);
     _EC -= cross.dot(MR::getRailDirection(this)) * 7.0f;
     TVec3f vec(0.0f);
-    _B0.getTrans(vec);
+    mRiderMtx.getTrans(vec);
     TVec3f vec2(0.0f);
     TVec3f vec3(_A4);
     if (!TubeSliderFunction::isUnknown2(this)) {
@@ -655,14 +655,10 @@ bool TubeSlider::updatePlayer() {
         MR::turnVecToVecDegree(&vec3, vec3, upVec, 10.0f, TVec3f((int)0, (int)1, (int)0));
     }
     f32 dist = TubeSliderFunction::getRadius(this) - _F4 - _F8;
-    TVec3f scaled(vec3);
-    scaled.scale(dist);
-    TVec3f pos(mPosition);
-    pos.sub(scaled);
-    vec2.set(pos);
+    vec2.set(mPosition - vec3.scaleInline(dist));
     TVec3f diff(vec2);
     diff.sub(vec);
-    _11C += _E0 - diff.dot(railDir);
+    _11C += mForwardSpeed - diff.dot(railDir);
     MR::turnVecToVecDegree(&_98, _98, MR::getRailDirection(this), 1.0f, TVec3f((int)0, (int)1, (int)0));
     if (!TubeSliderFunction::isUnknown2(this) && MR::getSubPadStickX(0) != 0.0f) {
         _EC += 0.215f * MR::getSubPadStickX(0);
@@ -694,11 +690,11 @@ bool TubeSlider::updatePlayer() {
         _EC = 2.0f;
         mPlayerTheta += _EC;
         MR::repeatDegree(&mPlayerTheta);
-        _E0 *= 0.2f;
+        mForwardSpeed *= 0.2f;
         MR::tryRumblePadMiddle(this, 0);
         if (_F4 <= 0.0f) {
             hasHitWall = true;
-            MR::emitEffect(_90, "SliderWallHitL");
+            MR::emitEffect(mRider, "SliderWallHitL");
             setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideWallHit));
         }
     }
@@ -707,11 +703,11 @@ bool TubeSlider::updatePlayer() {
         mPlayerTheta += (f32)(-(f64)lim);
         _EC = -lim;
         MR::repeatDegree(&mPlayerTheta);
-        _E0 *= 0.2f;
+        mForwardSpeed *= 0.2f;
         MR::tryRumblePadMiddle(this, 0);
         if (_F4 <= 0.0f) {
             hasHitWall = true;
-            MR::emitEffect(_90, "SliderWallHitR");
+            MR::emitEffect(mRider, "SliderWallHitR");
             setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideWallHit));
         }
     }
@@ -721,7 +717,7 @@ bool TubeSlider::updatePlayer() {
     {
         s32 pitchBase = 50;
         s32 scale = 10;
-        f32 spd = _E0;
+        f32 spd = mForwardSpeed;
         s32 windPitch = (s32)((f32)pitchBase + __fabsf(spd) * (f32)scale);
         s32 windVol = MR::clamp((s32)(spd * (f32)scale) + 600, 0, 1000);
         MR::startActionSound(this, "Wind", windPitch, windVol, -1);
@@ -767,24 +763,21 @@ void TubeSlider::updateMarioPos() {
         MR::turnVecToVecDegree(&_A4, _A4, railup, 10.0f, TVec3f((int)0, (int)1, (int)0));
     }
     TVec3f translation(0.0f);
-    _B0.getTrans(translation);
+    mRiderMtx.getTrans(translation);
     TVec3f front(1.0f, 0.0f, 0.0f);
     TVec3f up(_98);
     MR::makeAxisUpFront(&front, &up, _A4, up);
-    _B0.setXYZDir(front, _A4, up);
+    mRiderMtx.setXYZDir(front, _A4, up);
     _F8 = MR::lerp(_F8, 0.0f, 0.5f);
     f32 dist = TubeSliderFunction::getRadius(this) - _F4 - _F8;
-    TVec3f scaled(_A4);
-    scaled.scale(dist);
-    TVec3f p(mPosition);
-    p.sub(scaled);
-    _B0.setTrans(p);
+    TVec3f p = mPosition - _A4.scaleInline(dist);
+    mRiderMtx.setTrans(p);
     updateCameraAndShadow(MR::getRailDirection(this));
 }
 
 void TubeSlider::updateCameraAndShadow(const TVec3f& rDir) {
     mShadowDropDir.set(-_A4);
-    _B0.getTrans(mShadowDropPos);
+    mRiderMtx.getTrans(mShadowDropPos);
     mShadowDropPos.add(_A4 * 10.0f);
     MR::turnVecToVecDegree(&_184, _184, rDir, 0.3f, TVec3f((int)0, (int)1, (int)0));
     MR::vecBlend(&_190, _190, _A4, 0.03f);
@@ -804,4 +797,9 @@ void TubeSlider::updateCameraAndShadow(const TVec3f& rDir) {
     MR::setRailCoord(this, railCoord);
     TubeSliderFunction::updateTubeSliderInfo(this, true);
     MR::setProgrammableCameraParam(this, _178, _16C, _190);
+}
+
+namespace {
+    const f32 sCeilingReflectRate = 0.6f;
+    const f32 sWallReflectRate = 0.2f;
 }

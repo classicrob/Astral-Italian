@@ -1,7 +1,7 @@
 #include "Game/AreaObj/ImageEffectArea.hpp"
 #include "Game/Util.hpp"
 
-ImageEffectArea::ImageEffectArea(EImageEffectType effectType, int formType, const char* pName) : AreaObj(formType, pName), mEffectType(effectType) {
+ImageEffectArea::ImageEffectArea(int effectType, const char* pName) : AreaObj(pName), mEffectType(effectType) {
 }
 
 ImageEffectAreaMgr::ImageEffectAreaMgr(s32 maxNum, const char* pName) : AreaObjMgr(maxNum, pName) {
@@ -33,4 +33,8 @@ void ImageEffectAreaMgr::sort() {
             mArray[selected] = pOriginal;
         }
     }
+}
+
+void ImageEffectArea::init(const JMapInfoIter& rIter) {
+    AreaObj::init(rIter);
 }

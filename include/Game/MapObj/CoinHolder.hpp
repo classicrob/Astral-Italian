@@ -17,7 +17,6 @@ public:
     virtual void init(const JMapInfoIter& rIter);
 
     bool hopCoin(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity);
-    bool appearCoinFix(const NameObj* pObj, const TVec3f& rPosition, s32 count);
     bool appearCoinPop(const NameObj* pObj, const TVec3f& rPosition, s32 count);
     bool appearCoinPopToDirection(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count);
     bool appearCoinToVelocity(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count);

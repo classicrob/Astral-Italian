@@ -25,7 +25,7 @@ void BigFan::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     const char* object_name;
     MR::getObjectName(&object_name, rIter);
-    initModelManagerWithAnm(object_name, 0, false);
+    MR::initActor(this, rIter, object_name, false);
     MR::connectToSceneNoSilhouettedMapObj(this);
 
     if (MR::isExistCollisionResource(this, object_name)) {
@@ -50,8 +50,8 @@ void BigFan::init(const JMapInfoIter& rIter) {
     }
 
     initNerve(GET_NERVE(BigFan, BigFanNrvWait));
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::listenStageSwitchOnAppear(this, MR::Functor(this, &BigFan::start));
+    if (MR::initUseStageSwitchReadAppear(this, rIter)) {
+        MR::listenStageSwitchOnAppear(this, MR::Functor_Inline(this, &BigFan::start));
         setNerve(GET_NERVE(BigFan, BigFanNrvStop));
         mWindModel->kill();
     }

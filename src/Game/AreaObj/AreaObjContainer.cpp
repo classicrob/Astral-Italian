@@ -18,13 +18,14 @@ namespace {
             return pMatch != nullptr && pMatch == pName;
         }
     };
+}  // namespace
 
-    template < typename T >
-    AreaObjMgr* createManager(s32 numMax, const char* pName) {
-        return new T(numMax, pName);
-    }
+template < typename T >
+AreaObjMgr* AreaObjContainer::createManager(s32 numMax, const char* pName) {
+    return new T(numMax, pName);
+}
 
-    const Name2CreateManagerFunc cCreateTable[] = {
+const Name2CreateManagerFunc AreaObjContainer::cCreateTable[] = {
         {
             "SwitchArea",
             0x40,
@@ -360,17 +361,17 @@ namespace {
             0x20,
             createManager< AreaObjMgr >,
         },
-    };
-};  // namespace
+};
 
 AreaObjContainer::AreaObjContainer(const char* pName) : NameObj(pName) {
     mNumManagers = 0;
 }
 
 void AreaObjContainer::init(const JMapInfoIter& rIter) {
-    for (u32 i = 0; i < ARRAY_SIZE(::cCreateTable); i++) {
-        const Name2CreateManagerFunc* pName2CreateManagerFunc = &::cCreateTable[i];
-        AreaObjMgr* mgr = pName2CreateManagerFunc->mCreateFunc(pName2CreateManagerFunc->_4, pName2CreateManagerFunc->mName);
+    mManagerArray.init(ARRAY_SIZE(cCreateTable));
+    for (s32 i = 0; i < ARRAY_SIZE(cCreateTable); i++) {
+        const Name2CreateManagerFunc* pName2CreateManagerFunc = &cCreateTable[i];
+        AreaObjMgr* mgr = pName2CreateManagerFunc->mCreateFunc(pName2CreateManagerFunc->mNumMax, pName2CreateManagerFunc->mName);
         mgr->init(JMapInfoIter());
         s32 num = mNumManagers;
         mNumManagers++;
@@ -379,7 +380,19 @@ void AreaObjContainer::init(const JMapInfoIter& rIter) {
 }
 
 AreaObjMgr* AreaObjContainer::getManager(const char* pName) const {
-    return *std::find_if(mManagerArray, mManagerArray + mNumManagers, std::binder2nd< IsManagerName, const char* >(IsManagerName(), pName));
+    AreaObjMgr* const* pIter = std::find_if(mManagerArray.begin(), mManagerArray.begin() + mNumManagers, std::binder2nd< IsManagerName, const char* >(IsManagerName(), pName));
+    if (pIter != mManagerArray.begin() + mNumManagers) {
+        return *pIter;
+    }
+    return nullptr;
+}
+
+AreaObjMgr* AreaObjContainer::getManager2(const char* pName) const {
+    return getManager(pName);
+}
+
+bool AreaObjContainer::isExistAreaObj(const char* pName) const {
+    return getManager(pName)->getNumAreaObj() > 0;
 }
 
 AreaObj* AreaObjContainer::getAreaObj(const char* pName, const TVec3f& rVec) const {

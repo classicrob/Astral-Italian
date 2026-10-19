@@ -186,8 +186,9 @@ void PlantGroup::initMember(s32 itemCount, const JMapInfoIter&) {
         strongLight = true;
     }
 
+    const char* pMemberName = "汎用植物";
     for (s32 i = 0; i < mMemberCount; i++) {
-        mMembers[i] = new PlantMember("汎用植物", modelName, useLight, strongLight);
+        mMembers[i] = new PlantMember(pMemberName, modelName, useLight, strongLight);
         mMembers[i]->initWithoutIter();
         mMembers[i]->mScale = mScale;
         mMembers[i]->mPlantType = mPlantType;
@@ -301,7 +302,8 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
 
         bool hit = MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, nullptr, start, ray);
         if (hit) {
-            mMembers[i]->mPosition += -rGravity * _B4;
+            TVec3f* pPos = &mMembers[i]->mPosition;
+            *pPos += -rGravity * _B4;
             *pCenter += mMembers[i]->mPosition;
             placedCount++;
         } else {
@@ -664,16 +666,19 @@ void PlantMember::appear() {
     }
 }
 
+// PLACEHOLDER(objects): JMAHermiteInterpolation<f32>(t, x0, y0, d0, x1, y1, d1); resolve when core names fn_802DB510
+extern "C" f32 fn_802DB510(f32, f32, f32, f32, f32, f32, f32);
+
 #define PLANT_APPEAR_SCALE(dst, t)                                                                                                         \
     if ((t) <= 0.75f) {                                                                                                                       \
-        dst = JMAHermiteInterpolation< f32 >(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
+        dst = fn_802DB510(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
     } else if ((t) <= 0.92f) {                                                                                                                \
-        dst = JMAHermiteInterpolation< f32 >(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
+        dst = fn_802DB510(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
     } else {                                                                                                                                  \
-        dst = JMAHermiteInterpolation< f32 >(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
+        dst = fn_802DB510(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
     }
 
-// NONMATCHING: Hermite threshold loads and floating-point register scheduling differ
+// NONMATCHING: target hoists the 0.92 Hermite threshold into f31 (5 saved FPRs); ours reloads it (3 saved FPRs)
 void PlantMember::control() {
     if (isAppearing()) {
         f32 rate = 1.0f;
@@ -690,8 +695,9 @@ void PlantMember::control() {
             _98 = -1.0f;
         }
 
+        TVec3f& rScale = mScale;
         if (rate >= 1.0f) {
-            mScale.set<f32>(1.0f, 1.0f, 1.0f);
+            rScale.set<f32>(1.0f, 1.0f, 1.0f);
         } else {
             f32 x = MR::clamp(MR::normalize(rate, 0.0f, 0.7f), 0.01f, 1.0f);
             f32 y = MR::clamp(MR::normalize(rate, 0.1f, 0.9f), 0.01f, 1.0f);
@@ -700,9 +706,9 @@ void PlantMember::control() {
             PLANT_APPEAR_SCALE(sx, x);
             PLANT_APPEAR_SCALE(sy, y);
             PLANT_APPEAR_SCALE(sz, z);
-            mScale.x = sx;
-            mScale.y = sy;
-            mScale.z = sz;
+            rScale.x = sx;
+            rScale.y = sy;
+            rScale.z = sz;
         }
     }
 }

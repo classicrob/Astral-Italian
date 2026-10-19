@@ -308,10 +308,10 @@ bool GCaptureTarget::isReleaseForce() const {
     return MR::isDead(this);
 }
 
-void GCaptureTarget::getTargetPosition(TVec3f* a1) {
-    a1->x = mPosition.x;
-    a1->y = mPosition.y;
-    a1->z = mPosition.z;
+void GCaptureTarget::getTargetPosition(TVec3f* pPos) {
+    pPos->x = mPosition.x;
+    pPos->y = mPosition.y;
+    pPos->z = mPosition.z;
 }
 
 f32 GCaptureTarget::releaseDistance() const {

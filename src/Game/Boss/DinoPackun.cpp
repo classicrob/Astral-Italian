@@ -44,7 +44,7 @@ namespace {
         TVec3f normal;
         TVec3f ray = pActor->mGravity * 200.0f;
         if (MR::getFirstPolyNormalOnLineToMap(&normal, rStart, ray, &position, nullptr)) {
-            pActor->mFootPrint->addPrint(position, pActor->_E8, normal, IsRight);
+            pActor->mFootPrint->addPrint(position, pActor->mFront, normal, IsRight);
         }
     }
 
@@ -80,15 +80,15 @@ namespace {
 
 DinoPackun::DinoPackun(const char* pName)
     : LiveActor(pName), mTail(), mBall(), mFootPrint(), mShell(), mDemoPos(), mShellBreakModel(), mTailBall(), mCamTargetMtx(), mCameraInfo(),
-      mSequence(), _B4(), _B8(), _BC(0.0f, 0.0f, 0.0f, 1.0f), _E8(0, 0, 1) {
-    _F4 = -1;
+      mSequence(), mHitScaleJointCtrl(), mAnimScaleCtrl(), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mFront(0, 0, 1) {
+    mCameraRegisterId = -1;
     mCameraVec.x = 0.0f;
     mCameraVec.y = 0.0f;
     mCameraVec.z = 0.0f;
-    _104 = 0.0f;
-    _108 = 0.0f;
-    _10C = -1;
-    _110 = 0;
+    mTailCameraBlendStep = 0.0f;
+    mTailCameraBlendRate = 0.0f;
+    mDamageCameraState = -1;
+    mIsCalculatingAnim = 0;
 }
 
 void DinoPackun::init(const JMapInfoIter& rIter) {
@@ -96,9 +96,9 @@ void DinoPackun::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, isVs1() ? "DinoPackun" : "DinoPackun2", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
-    MR::makeQuatAndFrontFromRotate(&_BC, &_E8, this);
-    _CC.set(_BC);
-    _DC.set(mPosition);
+    MR::makeQuatAndFrontFromRotate(&mPoseQuat, &mFront, this);
+    mInitialQuat.set(mPoseQuat);
+    mInitialPos.set(mPosition);
     initSound(8, "DinoPackun", nullptr, TVec3f(0.0f));
     MR::onCalcGravity(this);
     initHitSensor(3);
@@ -234,10 +234,10 @@ void DinoPackun::initCamera(const JMapInfoIter& rIter) {
     MR::initAnimCamera(this, mCameraInfo, "AngryDemo");
     MR::initAnimCamera(this, mCameraInfo, "DownDemo");
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, ::sEventCameraName);
-    MR::getJMapInfoArg7WithInit(rIter, &_F4);
+    MR::getJMapInfoArg7WithInit(rIter, &mCameraRegisterId);
 
-    if (_F4 != -1) {
-        MR::declareCameraRegisterVec(this, _F4, &mCameraVec);
+    if (mCameraRegisterId != -1) {
+        MR::declareCameraRegisterVec(this, mCameraRegisterId, &mCameraVec);
     }
 
     mCamTargetMtx = new CameraTargetMtx("カメラターゲットダミー");
@@ -252,8 +252,8 @@ bool DinoPackun::isVs2() const {
 }
 
 void DinoPackun::initScaleJointController() {
-    _B8 = new AnimScaleController(&::sParam);
-    _B4 = MR::createJointDelegatorWithNullChildFunc(this, &DinoPackun::hitScaleJoint, "Spine1");
+    mAnimScaleCtrl = new AnimScaleController(&::sParam);
+    mHitScaleJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &DinoPackun::hitScaleJoint, "Spine1");
 }
 
 void DinoPackun::makeActorDead() {
@@ -266,21 +266,21 @@ void DinoPackun::makeActorDead() {
 
 void DinoPackun::startHitReaction() {
     MR::startActionSound(this, "OjStarPieceHitStop");
-    if (_B8 != nullptr) {
-        _B8->startHitReaction();
+    if (mAnimScaleCtrl != nullptr) {
+        mAnimScaleCtrl->startHitReaction();
     }
 }
 
 bool DinoPackun::isHitReaction(s32 a1) const {
-    if (_B8 != nullptr) {
-        return _B8->isHitReaction(a1);
+    if (mAnimScaleCtrl != nullptr) {
+        return mAnimScaleCtrl->isHitReaction(a1);
     }
 
     return false;
 }
 
 bool DinoPackun::hitScaleJoint(TPos3f* pA1, const JointControllerInfo& rA2) {
-    TVec3f v5(_B8->mScale);
+    TVec3f v5(mAnimScaleCtrl->mScale);
     TVec3f v4;
     v4.x = v5.y;
     v4.y = v5.z;
@@ -358,47 +358,47 @@ void DinoPackun::control() {
         mSequence->update();
     }
 
-    if (_B8 != nullptr) {
-        _B8->updateNerve();
+    if (mAnimScaleCtrl != nullptr) {
+        mAnimScaleCtrl->updateNerve();
     }
 
     updatePose();
-    _110 = 1;
+    mIsCalculatingAnim = 1;
     calcAnim();
-    _110 = 0;
+    mIsCalculatingAnim = 0;
     mTail->updateJoint();
     updateCameraInfo();
 }
 
 void DinoPackun::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _BC);
+    MR::setBaseTRMtx(this, mPoseQuat);
     MR::setBaseScale(this, mScale);
 
-    if (_110) {
+    if (mIsCalculatingAnim) {
         mTail->registerPreCalcJointCallBack();
     } else {
         mTail->registerJointCallBack();
     }
 
-    if (_B4 != nullptr) {
-        _B4->registerCallBack();
+    if (mHitScaleJointCtrl != nullptr) {
+        mHitScaleJointCtrl->registerCallBack();
     }
 }
 
 void DinoPackun::updatePose() {
-    _E8.orthogonalize(mGravity);
-    if (MR::isNearZero(_E8)) {
-        _BC.getZDir(_E8);
+    mFront.orthogonalize(mGravity);
+    if (MR::isNearZero(mFront)) {
+        mPoseQuat.getZDir(mFront);
     } else {
-        MR::normalize(&_E8);
+        MR::normalize(&mFront);
     }
 
-    MR::blendQuatUpFront(&_BC, -mGravity, _E8, 0.1f, 0.2f);
+    MR::blendQuatUpFront(&mPoseQuat, -mGravity, mFront, 0.1f, 0.2f);
 }
 
 void DinoPackun::updateFootPrintNerve(s32 a2, s32 a3) {
     TVec3f side;
-    _BC.getXDir(side);
+    mPoseQuat.getXDir(side);
     if (!(a2 % a3)) {
         addDinoFootPrint< false >(this, mPosition + side * -100.0f + mGravity * -100.0f);
     } else {
@@ -409,10 +409,10 @@ void DinoPackun::updateFootPrintNerve(s32 a2, s32 a3) {
 }
 
 void DinoPackun::updateCameraInfo() {
-    if (_F4 != -1) {
+    if (mCameraRegisterId != -1) {
         f32 v2 = 0.0;
-        f32 v3 = (_108 + _104);
-        _108 += _104;
+        f32 v3 = (mTailCameraBlendRate + mTailCameraBlendStep);
+        mTailCameraBlendRate += mTailCameraBlendStep;
 
         if (v3 < 0.0f) {
             v3 = v3;
@@ -425,16 +425,16 @@ void DinoPackun::updateCameraInfo() {
             }
         }
 
-        _108 = v2;
+        mTailCameraBlendRate = v2;
         TVec3f v6(0, 0, 0);
         TVec3f v5;
-        _BC.getYDir(v5);
+        mPoseQuat.getYDir(v5);
         v6.scaleAdd(300.0f, v5, mPosition);
 
-        if (_108 > 0.0f) {
+        if (mTailCameraBlendRate > 0.0f) {
             TVec3f v4;
             mTail->getEndTailPosition(&v4);
-            MR::vecBlend(v6, v4, &v6, (0.60f * _108));
+            MR::vecBlend(v6, v4, &v6, (0.60f * mTailCameraBlendRate));
         }
 
         mCameraVec.set(v6);
@@ -469,13 +469,13 @@ bool DinoPackun::isSensorEgg(const HitSensor* pSensor) const {
 }
 
 void DinoPackun::resetPosition() {
-    _BC.set(_CC);
-    _BC.getZDir(_E8);
-    MR::resetPosition(this, _DC);
+    mPoseQuat.set(mInitialQuat);
+    mPoseQuat.getZDir(mFront);
+    MR::resetPosition(this, mInitialPos);
     MR::zeroVelocity(this);
 
     TPos3f v28;
-    v28.setQT(_BC, mPosition);
+    v28.setQT(mPoseQuat, mPosition);
     TVec3f v27;
     v28.mult(::sMarioSetLocalPos, v27);
     TVec3f v26;
@@ -489,7 +489,7 @@ void DinoPackun::resetPosition() {
 
 void DinoPackun::adjustTailRootPosition(const TVec3f& rDir, f32 ratio) {
     TVec3f newPos;
-    _BC.transform(rDir, newPos);
+    mPoseQuat.transform(rDir, newPos);
     newPos.add(mPosition);
     TVec3f currPos;
     currPos = mTail->getNode(1)->mPosition;
@@ -521,19 +521,19 @@ void DinoPackun::onMovementParts() {
 
 void DinoPackun::onAimTailBall(s32 a1) {
     if (a1 <= 0) {
-        _104 = 0.0f;
-        _108 = 1.0f;
+        mTailCameraBlendStep = 0.0f;
+        mTailCameraBlendRate = 1.0f;
     } else {
-        _104 = 1.0f / a1;
+        mTailCameraBlendStep = 1.0f / a1;
     }
 }
 
 void DinoPackun::offAimTailBall(s32 a1) {
     if (a1 <= 0) {
-        _104 = 0.0f;
-        _108 = 0.0f;
+        mTailCameraBlendStep = 0.0f;
+        mTailCameraBlendRate = 0.0f;
     } else {
-        _104 = -1.0f / a1;
+        mTailCameraBlendStep = -1.0f / a1;
     }
 }
 
@@ -566,13 +566,13 @@ void DinoPackun::endDemo() {
 void DinoPackun::startDamageCamera() {
     CameraTargetArg arg(nullptr, mCamTargetMtx, nullptr, nullptr);
     MR::startMultiActorCameraTargetOther(this, mCameraInfo, ::sEventCameraName, arg);
-    _10C = 0;
+    mDamageCameraState = 0;
 }
 
 void DinoPackun::endDamageCamera() {
-    if (_10C != -1) {
+    if (mDamageCameraState != -1) {
         MR::endMultiActorCamera(this, mCameraInfo, ::sEventCameraName, false);
-        _10C = -1;
+        mDamageCameraState = -1;
     }
 }
 

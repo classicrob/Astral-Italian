@@ -1,3 +1,7 @@
+#define JGEOMETRY_OUTLINE_MATRIX_POSITION
+#define JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_QUAT_TRANSFORM_NOINLINE
+#define JGEOMETRY_VEC3_NEG_NOINLINE
 #include "Game/MapObj/ItemDiceFunction.hpp"
 #pragma auto_inline off
 
@@ -198,9 +202,9 @@ void DiceBase::exeThrow() {
             bound = 0;
         }
         if (bound > 0x258) {
-            MR::startActionSound(this, "Bound", -1, -1, -1);
+            MR::startActionSound(this, "Bound", bound, -1, -1);
         } else if (bound > 0) {
-            MR::startActionSound(this, "BoundLittle", -1, -1, -1);
+            MR::startActionSound(this, "BoundLittle", bound, -1, -1);
         }
     }
 
@@ -376,8 +380,6 @@ void DiceBase::createMover(HitSensor* pSensor) {
     mMover->setPointArray(pBlock, 0);
 }
 
-// Empty SDK constructors remain outlined here; target only retains the substantive vector/quaternion calls.
-#pragma dont_inline on
 void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     MtxPtr pMtx = getBaseMtx();
     TVec3f dir = rPos - mPosition;
@@ -411,16 +413,14 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     MR::normalizeOrZero(&pos);
     pos.scale(50.0f);
     pos.add(mPosition);
-    TVec3f grav = -mGravity;
     f32 scaleB = mThrowScaleB;
-    TVec3f vel(grav);
+    TVec3f grav = -mGravity;
+    TVec3f vel = grav;
     vel.scale(scaleB);
     mMover->collide(&pos, &vel);
 }
 
-// NONMATCHING: under dont_inline (needed for out-of-line scale/add/transform) the trivial TVec3/TQuat4 default ctors become calls; target has none
-#pragma dont_inline reset
-// NONMATCHING: final `>= 10` return compiles to a branch-free subfc form in ours; target branches (cmplwi/blt); also r30/r31 allocation
+// NONMATCHING: float constant scheduling around 2.0f*acos / fabs compare (instruction set identical)
 bool DiceBase::isSettled() {
     if (MR::isFirstStep(this)) {
         MtxPtr pMtx = getBaseMtx();
@@ -442,34 +442,27 @@ bool DiceBase::isSettled() {
     TVec3f axis;
     TQuat4f quat;
     mtx.getQuat(quat);
-    const TVec3f& qv = *reinterpret_cast<const TVec3f*>(&quat);
-    f32 sq = qv.squared();
+    f32 sq = reinterpret_cast<const TVec3f*>(&quat)->squared();
 
     if (sq <= 0.000003814697265625f) {
         axis.x = axis.y = axis.z = 0.0f;
     } else {
-        axis.scale(JGeometry::TUtil<f32>::inv_sqrt(sq), qv);
+        axis.scale(JGeometry::TUtil<f32>::inv_sqrt(sq), *reinterpret_cast<const TVec3f*>(&quat));
     }
     f32 angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
-
-    if (__fabsf(angle) < 0.0872664675116539f) {
-        f32 dist = PSVECDistance(&trans2, &trans1);
-        if (dist < 10.0f) {
-            mBounceCount++;
-        } else {
-            mBounceCount = 0;
-        }
+    if (__fabsf(angle) < 0.0872664675116539f &&
+        PSVECDistance(&trans2, &trans1) < 10.0f) {
+        mBounceCount++;
     } else {
         mBounceCount = 0;
     }
 
     MtxPtr pMtx2 = getBaseMtx();
     JMath::gekko_ps_copy12(&mMtxC4, pMtx2);
-    bool settled = false;
     if (mBounceCount >= 10) {
-        settled = true;
+        return true;
     }
-    return settled;
+    return false;
 }
 
 // NONMATCHING: calls match; float expression scheduling differs.
@@ -492,7 +485,8 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
     f32 depth = scale * (pReceiver->mRadius + pSender->mRadius - len);
 
     f32 sq = dir.squared();
-    if (sq > 0.000003814697265625f) {
+    if (sq <= 0.000003814697265625f) {
+    } else {
         dir.scale(JGeometry::TUtil<f32>::inv_sqrt(sq) * depth);
     }
 

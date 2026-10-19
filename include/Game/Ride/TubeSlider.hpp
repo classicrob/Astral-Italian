@@ -60,12 +60,12 @@ public:
         return mPlayerTheta;
     }
 
-    LiveActor* _90;                // 0x90
+    LiveActor* mRider;                // 0x90
     f32 _94;                       // 0x94 : mRailCoord?
     TVec3f _98;                    // 0x98
     TVec3f _A4;                    // 0xA4
-    TPos3f _B0;                    // 0xB0
-    f32 _E0;                       // 0xE0
+    TPos3f mRiderMtx;                    // 0xB0
+    f32 mForwardSpeed;                       // 0xE0
     ActorCameraInfo* mCameraInfo;  // 0xE4
     f32 mPlayerTheta;              // 0xE8 : Represents the angle around the tube that the player should currently be at
     f32 _EC;                       // 0xEC
@@ -74,7 +74,7 @@ public:
     f32 _F8;                       // 0xF8
     f32 _FC;                       // 0xFC : seems to never be read from, only written to...
     TVec3f _100;                   // 0x100
-    TVec3f _10C;                   // 0x10C
+    TVec3f mJumpVelocity;                   // 0x10C
     s32 _118;                      // 0x118
     f32 _11C;                      // 0x11C
     s32 _120;                      // 0x120

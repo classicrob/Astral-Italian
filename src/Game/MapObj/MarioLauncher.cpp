@@ -28,6 +28,9 @@
 #include "Game/Util/TriangleFilter.hpp"
 #include "revolution/wpad.h"
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [0.0f, -1.0f, (MR::pi() / 2.0f)] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void MarioLauncher_FORCE_MATCH_SDATA2() {
     (void)0.0f;
     (void)-1.0f;
@@ -357,6 +360,7 @@ MtxPtr MarioLauncherShell::getBaseMtx() const {
     return const_cast< TPos3f& >(mBaseMtx);
 }
 
+// NONMATCHING: vector temporary stack placement and register lifetimes differ.
 void MarioLauncher::exeReject() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "SyMarioLauncherOut");
@@ -371,7 +375,8 @@ void MarioLauncher::exeReject() {
         MR::extractMtxYDir(getBaseMtx(), &jumpY);
         TVec3f jumpZ;
         MR::extractMtxZDir(getBaseMtx(), &jumpZ);
-        MR::endBindAndPlayerJump(this, jumpY * ::sRejectJumpY - jumpZ * ::sRejectJumpZ, 0);
+        const TVec3f& jump = jumpY * ::sRejectJumpY - jumpZ * ::sRejectJumpZ;
+        MR::endBindAndPlayerJump(this, jump, 0);
         MR::startLevelSoundPlayer("JumpSV", -1, -1);
     }
 
@@ -392,8 +397,8 @@ void MarioLauncher::exeLand() {
 
 void MarioLauncher::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorRide(pSender)) {
-        if (!MR::tryGetItem(pSender, pReceiver) && MR::isSensorEnemy(pSender)) {
-            MR::sendArbitraryMsg(0xF4 /* ACTMES_LAUNCHER_BREAKABLE */, pSender, pReceiver);
+        if (!MR::tryGetItem(pSender, pReceiver) && MR::isSensorEnemy(pReceiver)) {
+            MR::sendArbitraryMsg(0xF4 /* ACTMES_LAUNCHER_BREAKABLE */, pReceiver, pSender);
         }
     }
 }
@@ -581,6 +586,7 @@ bool MarioLauncher::doEject() {
     return true;
 }
 
+// NONMATCHING: gravity temporary register lifetimes differ.
 bool MarioLauncher::doFlight() {
     bool isInAttractor = false;
 
@@ -598,7 +604,8 @@ bool MarioLauncher::doFlight() {
     currGrav = mShell->mGravity;
     attract *= (1.0f - ::sGravityRatio);
     currGrav *= ::sGravityRatio;
-    mShell->mGravity = attract + currGrav;
+    const TVec3f& newGravity = attract + currGrav;
+    mShell->mGravity = newGravity;
 
     if (isInAttractor != mIsInAttractor) {
         mIsInAttractor = isInAttractor;
@@ -684,6 +691,7 @@ bool MarioLauncher::testHitCollision() {
     return MR::isBinded(mShell) != false;
 }
 
+// NONMATCHING: saved-register allocation differs.
 bool MarioLauncher::isBreak(const Triangle* pTriangle) {
     HitSensor* pSensor = pTriangle->mSensor;
     if (pSensor == getSensor("Bind")) {
@@ -693,16 +701,16 @@ bool MarioLauncher::isBreak(const Triangle* pTriangle) {
     return MR::sendArbitraryMsg(0xF4 /* ACTMES_LAUNCHER_BREAKABLE */, pSensor, getSensor("Shell"));
 }
 
-bool MarioLauncher::isFollowValid(s32) const {
-    return isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvWait)) || isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvReady));
-}
-
 void MarioLauncher::onSwitchA() {
     MR::validateHitSensor(this, "Bind");
 }
 
 void MarioLauncher::offSwitchA() {
     MR::invalidateHitSensor(this, "Bind");
+}
+
+bool MarioLauncher::isFollowValid(s32) const {
+    return isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvWait)) || isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvReady));
 }
 
 void MarioLauncherShell::calcAndSetBaseMtx() {

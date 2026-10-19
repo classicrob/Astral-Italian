@@ -2,7 +2,7 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 
-class FloaterFloatingForceTypeNormal;
+class FloaterFloatingForce;
 class ProjmapEffectMtxSetter;
 class LodCtrl;
 
@@ -24,7 +24,7 @@ public:
     void exeFloat();
     void exeSink();
 
-    /* 0x90 */ FloaterFloatingForceTypeNormal* mFloatingForce;
+    /* 0x90 */ FloaterFloatingForce* mFloatingForce;
     /* 0x94 */ ProjmapEffectMtxSetter* mMtxSetter;
     /* 0x98 */ LodCtrl* mLodCtrlPlanet;
     /* 0x9C */ const char* mObjectName;

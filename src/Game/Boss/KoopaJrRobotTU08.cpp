@@ -26,7 +26,7 @@ void KoopaJrRobotStateTU08::kill() {
     if (MR::isDemoEndWaitCameraInterpolating()) {
         MR::setAllAnimFrameAtEnd(mHost->mBody, sActionName);
     }
-    mHost->mSeq->fn_800DC5B0();
+    mHost->mSeq->appearLaunchers();
     KoopaJrRobotFunction::attachBodyToHead(mHost);
     KoopaJrRobotFunction::showStarPieces(mHost);
     KoopaJrRobotFunction::onDrawEffect(mHost);
@@ -54,7 +54,7 @@ void KoopaJrRobotStateTU08::exeDemo() {
         MR::startAction(mHost->mHeadModel, "DemoWeakPointHeadKoopaJrRobot");
         mHost->mParts[3]->appear();
         MR::validateHitSensor(mHost, "WeakPointHead");
-        mHost->mSeq->fn_800DC6B0();
+        mHost->mSeq->killLaunchers();
         if (!MR::isDead(mHost->mCollisionA)) {
             mHost->mCollisionA->kill();
         }

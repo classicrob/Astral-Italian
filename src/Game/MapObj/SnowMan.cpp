@@ -1,5 +1,6 @@
 #include "Game/MapObj/SnowMan.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/DemoObj.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/CollisionParts.hpp"
@@ -25,19 +26,14 @@ namespace NrvSnowMan {
     NEW_NERVE(SnowManNrvDownBody, SnowMan, DownBody);
 };  // namespace NrvSnowMan
 
-SnowMan::SnowMan(const char* pName) : LiveActor(pName), mHeadCollisionParts(), mBodyCollisionParts(), mAnimScaleCtrl(), mAnimScaleParam() {
+SnowMan::SnowMan(const char* pName) : LiveActor(pName), mHeadCollisionParts(), mBodyCollisionParts(), mBreakDustDemo(), mAnimScaleCtrl(), mAnimScaleParam() {
 }
 
 void SnowMan::init(const JMapInfoIter& rrIter) {
-    MR::initDefaultPos(this, rrIter);
-    MR::initActor(this, rrIter, "SnowMan", false);
-    MR::connectToSceneMapObjStrongLight(this);
-    initHitSensor(2);
-    MR::addMessageSensorMapObj(this, "head");
-    MR::addMessageSensorMapObj(this, "body");
-    mHeadCollisionParts = MR::createCollisionPartsFromLiveActor(this, "HeadCol", getSensor("head"), MR::getJointMtx(this, "Head"),
+    MR::initActor(this, rrIter, false);
+    mHeadCollisionParts = MR::createCollisionPartsFromLiveActor(this, "HeadCol", getSensor("Head"), MR::getJointMtx(this, "Head"),
                                                                 MR::CollisionScaleType_NotUsingScale);
-    mBodyCollisionParts = MR::createCollisionPartsFromLiveActor(this, "BodyCol", getSensor("body"), MR::getJointMtx(this, "Body"),
+    mBodyCollisionParts = MR::createCollisionPartsFromLiveActor(this, "BodyCol", getSensor("Body"), MR::getJointMtx(this, "Body"),
                                                                 MR::CollisionScaleType_NotUsingScale);
     MR::validateCollisionParts(mHeadCollisionParts);
     MR::validateCollisionParts(mBodyCollisionParts);
@@ -48,11 +44,6 @@ void SnowMan::init(const JMapInfoIter& rrIter) {
     mAnimScaleParam->mHitReactionDamping = 0.8f;
     mAnimScaleCtrl = new AnimScaleController(mAnimScaleParam);
     mBreakDustDemo = MR::tryCreateBreakDustDemoObj(this, getBaseMtx());
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "SnowMan", nullptr, TVec3f(0.0f));
-    MR::useStageSwitchWriteA(this, rrIter);
-    MR::useStageSwitchWriteB(this, rrIter);
-    MR::useStageSwitchWriteDead(this, rrIter);
     initNerve(GET_NERVE(SnowMan, SnowManNrvWait));
     makeActorAppeared();
 }
@@ -75,9 +66,95 @@ void SnowMan::kill() {
     LiveActor::kill();
 }
 
+void SnowMan::calcAndSetBaseMtx() {
+    LiveActor::calcAndSetBaseMtx();
+    TVec3f scale = mAnimScaleCtrl->mScale * mScale;
+    MR::setBaseScale(this, scale);
+}
+
+void SnowMan::exeWait() {
+}
+
+void SnowMan::exeWaitBody() {
+}
+
+void SnowMan::exeWaitHead() {
+}
+
+void SnowMan::exeMeltHead() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateCollisionParts(mHeadCollisionParts);
+        MR::startAction(this, "MeltHead");
+        MR::shakeCameraWeak();
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
+        }
+    }
+
+    if (MR::isActionEnd(this)) {
+        MR::hideMaterial(this, "SnowManBucketMat_v");
+        setNerve(GET_NERVE(SnowMan, SnowManNrvWaitBody));
+    }
+}
+
+void SnowMan::exeMeltBody() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateCollisionParts(mBodyCollisionParts);
+        MR::startAction(this, "MeltBody");
+        MR::shakeCameraWeak();
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
+        }
+
+        if (MR::isValidSwitchB(this)) {
+            MR::onSwitchB(this);
+        }
+    }
+
+    if (MR::isActionEnd(this)) {
+        setNerve(GET_NERVE(SnowMan, SnowManNrvWaitHead));
+    }
+}
+
+void SnowMan::exeDownHead() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateCollisionParts(mHeadCollisionParts);
+        MR::invalidateCollisionParts(mBodyCollisionParts);
+        MR::startAction(this, "DownHead");
+        MR::shakeCameraWeak();
+    }
+
+    if (MR::isActionEnd(this)) {
+        kill();
+    }
+}
+
+void SnowMan::exeDownBody() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateCollisionParts(mHeadCollisionParts);
+        MR::invalidateCollisionParts(mBodyCollisionParts);
+        MR::startAction(this, "DownBody");
+        MR::shakeCameraWeak();
+        if (MR::isValidSwitchB(this)) {
+            MR::onSwitchB(this);
+        }
+    }
+
+    if (MR::isActionEnd(this)) {
+        kill();
+    }
+}
+
+void SnowMan::attackSensor(HitSensor* sender, HitSensor* receiver) {
+    if (isNerve(GET_NERVE(SnowMan, SnowManNrvMeltBody)) && MR::isEqualSensor(sender, this, "Push")) {
+        MR::sendMsgPush(receiver, sender);
+    }
+}
+
 bool SnowMan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgFireBallAttack(msg)) {
-        if (pReceiver == getSensor("head")) {
+    if (MR::isEqualSensor(pReceiver, this, "Push")) return false;
+    if (MR::isMsgFireBallAttack(msg) || MR::isMsgRockAttack(msg) || MR::isMsgSnowBallAttack(msg)) {
+        if (pReceiver == getSensor("Head")) {
             damageHead();
         } else {
             damageBody();
@@ -91,6 +168,7 @@ bool SnowMan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return false;
         } else {
             mAnimScaleCtrl->startHitReaction();
+            MR::startActionSound(this, "Shake");
             return true;
         }
     }
@@ -112,87 +190,8 @@ void SnowMan::damageBody() {
     } else if (isNerve(GET_NERVE(SnowMan, SnowManNrvWaitBody))) {
         setNerve(GET_NERVE(SnowMan, SnowManNrvDownBody));
     }
-}
-
-void SnowMan::calcAndSetBaseMtx() {
-    LiveActor::calcAndSetBaseMtx();
-    TVec3f scale = mAnimScaleCtrl->mScale * mScale;
-    MR::setBaseScale(this, scale);
-}
-
-void SnowMan::exeWait() {
-}
-
-void SnowMan::exeWaitBody() {
-}
-
-void SnowMan::exeWaitHead() {
-}
-
-void SnowMan::exeMeltHead() {
-    if (MR::isFirstStep(this)) {
-        MR::invalidateCollisionParts(mHeadCollisionParts);
-        MR::startAction(this, "MeltHead");
-        MR::startActionSound(this, "OjSnowManMelt");
-        MR::shakeCameraWeak();
-        if (MR::isValidSwitchA(this)) {
-            MR::onSwitchA(this);
-        }
-    }
-
-    if (MR::isStep(this, ::sStepForMelt)) {
-        MR::hideMaterial(this, "SnowManBucketMat_v");
-        setNerve(GET_NERVE(SnowMan, SnowManNrvWaitBody));
+    if (mBreakDustDemo && MR::isDead(mBreakDustDemo)) {
+        mBreakDustDemo->appear();
     }
 }
 
-void SnowMan::exeMeltBody() {
-    if (MR::isFirstStep(this)) {
-        MR::invalidateCollisionParts(mBodyCollisionParts);
-        MR::startAction(this, "MeltBody");
-        MR::startActionSound(this, "OjSnowManMelt");
-        MR::shakeCameraWeak();
-        if (MR::isValidSwitchA(this)) {
-            MR::onSwitchA(this);
-        }
-
-        if (MR::isValidSwitchB(this)) {
-            MR::onSwitchB(this);
-        }
-    }
-
-    if (MR::isStep(this, ::sStepForMelt)) {
-        setNerve(GET_NERVE(SnowMan, SnowManNrvWaitHead));
-    }
-}
-
-void SnowMan::exeDownHead() {
-    if (MR::isFirstStep(this)) {
-        MR::invalidateCollisionParts(mHeadCollisionParts);
-        MR::invalidateCollisionParts(mBodyCollisionParts);
-        MR::startAction(this, "DownHead");
-        MR::startActionSound(this, "OjSnowManMelt");
-        MR::shakeCameraWeak();
-    }
-
-    if (MR::isActionEnd(this)) {
-        kill();
-    }
-}
-
-void SnowMan::exeDownBody() {
-    if (MR::isFirstStep(this)) {
-        MR::invalidateCollisionParts(mHeadCollisionParts);
-        MR::invalidateCollisionParts(mBodyCollisionParts);
-        MR::startAction(this, "DownBody");
-        MR::startActionSound(this, "OjSnowManMelt");
-        MR::shakeCameraWeak();
-        if (MR::isValidSwitchB(this)) {
-            MR::onSwitchB(this);
-        }
-    }
-
-    if (MR::isActionEnd(this)) {
-        kill();
-    }
-}

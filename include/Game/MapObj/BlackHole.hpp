@@ -14,6 +14,7 @@ public:
     virtual ~BlackHole();
     virtual void init(const JMapInfoIter&);
     virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void kill();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
@@ -28,12 +29,12 @@ public:
     void exeDemo();
     void exeDisappear();
 
-    /* 0x8C */ ModelObj* mBlackHoleModel;
-    /* 0x90 */ TVec3f _90;
-    /* 0x9C */ f32 _9C;
-    /* 0xA0 */ f32 _A0;
-    /* 0xA4 */ TBox3f* _A4;
-    /* 0xA8 */ TPos3f _A8;
-    /* 0xD8 */ TPos3f _D8;
-    /* 0x108 */ ActorCameraInfo* mCameraInfo;
+    /* 0x090 */ ModelObj* mBlackHoleModel;
+    /* 0x094 */ TVec3f _90;
+    /* 0x0A0 */ f32 mModelScale;
+    /* 0x0A4 */ f32 mSensorRadius;
+    /* 0x0A8 */ TBox3f* mCubeBounds;
+    /* 0x0AC */ TPos3f mCubeMtx;
+    /* 0x0DC */ TPos3f mEffectMtx;
+    /* 0x10C */ ActorCameraInfo* mCameraInfo;
 };

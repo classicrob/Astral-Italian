@@ -26,6 +26,7 @@ void CancelBeeMorphArea::movement() {
     pos.add(offset);
 
     if (isInVolume(*MR::getPlayerPos()) || isInVolume(pos)) {
+        // the target evaluates the player position once more here; the result is unused
         MR::getPlayerPos();
         MR::curePlayerElementMode();
     }

@@ -26,7 +26,7 @@ public:
     void exeWait();
     void exeSetUp();
     void exeRun();
-    bool trySetNerveRun();
+    bool isValidFollow(s32) const;
     inline void exeNoBind();
 
     /* 0x90 */ BallRailPoint* mRailPoints;

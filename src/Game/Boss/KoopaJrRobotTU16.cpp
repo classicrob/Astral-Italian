@@ -33,7 +33,7 @@ void KoopaJrRobotRock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-void KoopaJrRobotRock::fn_800E40E0() {
+void KoopaJrRobotRock::appearAtArenaEdge() {
     setNerve(&NrvKoopaJrRobotRock::KoopaJrRobotRockNrvAppear::sInstance);
     MR::calcKoopaBattleActorEdgePos(&mPosition);
     MR::resetPosition(this);
@@ -45,7 +45,7 @@ void KoopaJrRobotRock::fn_800E40E0() {
     appear();
 }
 
-void KoopaJrRobotRock::fn_800E4160() {
+void KoopaJrRobotRock::startDisappear() {
     setNerve(&NrvKoopaJrRobotRock::KoopaJrRobotRockNrvDisappear::sInstance);
 }
 

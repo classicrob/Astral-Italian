@@ -3,7 +3,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include <revolution.h>
 
-/* FINISHED */
+// Host accounting separates declared supply, spawned coins and coins collected by the player.
 
 class FlashingCtrl;
 class PartsModel;
@@ -13,19 +13,21 @@ class CoinHostInfo {
 public:
     CoinHostInfo() {
         mHostActor = nullptr;
-        _4 = 0;
-        _8 = 0;
-        _C = 0;
+        mDeclaredCount = 0;
+        mSpawnedCount = 0;
+        mCollectedCount = 0;
     }
 
     /* 0x0 */ const NameObj* mHostActor;
-    /* 0x4 */ s32 _4;
-    /* 0x8 */ s32 _8;
-    /* 0xC */ u32 _C;
+    /* 0x4 */ union { s32 mDeclaredCount; s32 _4; };  // Legacy CoinHolder alias.
+    /* 0x8 */ union { s32 mSpawnedCount; s32 _8; };  // Legacy CoinHolder alias.
+    /* 0xC */ union { u32 mCollectedCount; u32 _C; };  // Legacy CoinHolder alias.
 };
 
 class Coin : public LiveActor {
 public:
+    enum ShadowType { ShadowType_Default = -1, ShadowType_SurfaceCircle = 0, ShadowType_VolumeCylinder = 1 };
+
     Coin(const char* pName);
 
     virtual ~Coin();
@@ -85,7 +87,7 @@ public:
     MapObjConnector* mConnector;     // 0x9C
     TVec3f mShadowDropPos;           // 0xA0
     TVec3f mClippingRange;           // 0xAC
-    TVec3f _B8;                      // 0xB8 : unused
+    TVec3f mSpinDrainStartPos;        // 0xB8: position at the start of spin collection
     s32 mLifeTime;                   // 0xC4
     s32 mCannotTime;                 // 0xC8
     s32 mShadowType;                 // 0xCC

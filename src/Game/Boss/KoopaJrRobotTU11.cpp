@@ -22,7 +22,7 @@ KoopaJrRobotStateC::KoopaJrRobotStateC(KoopaJrRobot* pHost) : KoopaJrRobotStateB
 }
 
 bool KoopaJrRobotStateC::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgExplosionAttack(msg) && mHost->fn_800DB9B0(pSender) && mHost->fn_800DBA70(pReceiver)) {
+    if (MR::isMsgExplosionAttack(msg) && mHost->isKillerShotEnd(pSender) && mHost->isWeakPointSensor(pReceiver)) {
         if (mHost->mParts[3]->receiveMsgExplosion(msg, pSender, pReceiver)) {
             setNerve(&NrvKoopaJrRobotStateC::KoopaJrRobotStateCNrvDamage::sInstance);
             return true;
@@ -106,7 +106,7 @@ void KoopaJrRobotStateC::exeWait() {
 
 void KoopaJrRobotStateC::exeDamage() {
     if (MR::updateActorState(this)) {
-        if (mHost->mParts[3]->fn_800E25F0()) {
+        if (mHost->mParts[3]->isBroken()) {
             kill();
             return;
         }

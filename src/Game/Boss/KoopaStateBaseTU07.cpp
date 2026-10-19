@@ -20,12 +20,14 @@ namespace NrvKoopaStateOpeningDemo {
     NEW_NERVE(KoopaStateOpeningDemoNrvDemo, KoopaStateOpeningDemo, Demo);
 };  // namespace NrvKoopaStateOpeningDemo
 
+// NONMATCHING: host-pointer load scheduling.
 KoopaStateOpeningDemo::KoopaStateOpeningDemo(KoopaBattle* pHost, const JMapInfoIter& rIter, const char* pCameraName, const char* pArcName,
                                              bool hasPeach)
     : ActorStateBase< KoopaBattle >(sOpeningDemoName, pHost), mTicoBaby(nullptr), mPeach(nullptr), mPeachCage(nullptr) {
     initNerve(&NrvKoopaStateOpeningDemo::KoopaStateOpeningDemoNrvWait::sInstance, 0);
     MR::initAnimCamera(mHost, mHost->mCameraInfo, pCameraName);
-    MR::initDemoSheetTalkAnim(mHost, rIter, sOpeningDemoName, pCameraName, nullptr, TVec3f(0.0f, 0.0f, 0.0f), MR::getJointMtx(mHost, "Face"));
+    KoopaBattle* pDemoHost = mHost;
+    MR::initDemoSheetTalkAnim(pDemoHost, rIter, sOpeningDemoName, pCameraName, nullptr, TVec3f(0.0f, 0.0f, 0.0f), MR::getJointMtx(pDemoHost, "Face"));
     if (hasPeach) {
         mPeach = reinterpret_cast< LiveActor* >(MR::createDemoObjWithAnimArc("デモ用ピーチ", "Peach", "PeachAnim", "Demo", mHost->getBaseMtx()));
         mPeach->makeActorDead();

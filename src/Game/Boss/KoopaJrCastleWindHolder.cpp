@@ -100,7 +100,7 @@ void KoopaJrCastleWind::appear() {
     setNerve(&NrvKoopaJrCastleWind::KoopaJrCastleWindNrvD::sInstance);
 }
 
-void KoopaJrCastleWind::fn_800D9B40() {
+void KoopaJrCastleWind::appearFromZeroPower() {
     LiveActor::appear();
     mPower = 0.0f;
     setNerve(&NrvKoopaJrCastleWind::KoopaJrCastleWindNrvA::sInstance);

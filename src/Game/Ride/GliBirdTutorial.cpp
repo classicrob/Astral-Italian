@@ -52,20 +52,16 @@ void GliBirdTutorial::init(const JMapInfoIter& rIter) {
     mGuidance->initWithoutIter();
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(GliBirdTutorial, GliBirdTutorialNrvTalkFirst), 0);
-    TVec3f soundOffset(0.0f);
-    initSound(4, "GliBirdTutorial", nullptr, soundOffset);
+    initSound(4, "GliBirdTutorial", nullptr, TVec3f(0.0f));
     MR::tryFindNamePos(::sTutorialPosName, &mTutorialPos, nullptr);
     makeActorDead();
 }
 
+// NONMATCHING: frame-to-angle multiplication operands are commuted.
 void GliBirdTutorial::movement() {
     MR::getCorePadAcceleration(&mPadAccel, WPAD_CHAN0);
     f32 sinValue = JMASinDegree(mFrame * 3.0f);
-    TVec3f up(0.0f, 1.0f, 0.0f);
-    TVec3f offset = up * sinValue;
-    TVec3f offsetScaled = offset * 30.0f;
-    TVec3f pos(mTutorialPos);
-    pos.add(offsetScaled);
+    TVec3f pos = mTutorialPos + (TVec3f(0.0f, 1.0f, 0.0f) * sinValue) * 30.0f;
     mFrame++;
     MR::setPosition(mGliBird, pos);
     LiveActor::movement();

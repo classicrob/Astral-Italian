@@ -21,20 +21,23 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void updateTimerSE();
+    void listenSwitchOnA();
+    void listenSwitchOffA();
     void exeOff();
     void exeSwitchDown();
     void exeOn();
     void exeSwitchUp();
     void exeSyncOff();
 
-    u32 _8C;
-    /* 0x90 */ SpringValue* mSpring;
-    /* 0x94 */ MapObjConnector* mMapObjConnector;
-    /* 0x98 */ CollisionParts* mCollisionParts;
-    TPos3f _9C;
-    /* 0xCC */ s32 mTimerMax;      // In frames
-    /* 0xD0 */ s32 mTimerSFXType;  // 0: A ticking, 1: B ticking
-    u8 _D4;
-    /* 0xD5 */ bool mWasLightPressed;
-    /* 0xD6 */ bool mIsLightPressed;
+    /* 0x090 */ u32 _90;
+    /* 0x094 */ SpringValue* mSpring;
+    /* 0x098 */ MapObjConnector* mMapObjConnector;
+    /* 0x09C */ CollisionParts* mCollisionParts;
+    /* 0x0A0 */ TPos3f _A0;
+    /* 0x0D0 */ s32 mTimerMax;      // In frames
+    /* 0x0D4 */ s32 mTimerSFXType;  // 0: A ticking, 1: B ticking
+    /* 0x0D8 */ u8 _D8;
+    /* 0x0D9 */ bool mWasLightPressed;
+    /* 0x0DA */ bool mIsLightPressed;
+    /* 0x0DC */ s32 mScreenEffectType;
 };

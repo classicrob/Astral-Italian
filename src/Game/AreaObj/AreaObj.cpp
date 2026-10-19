@@ -1,7 +1,7 @@
 #include "Game/AreaObj/AreaObj.hpp"
 #include "Game/AreaObj/AreaForm.hpp"
 #include "Game/AreaObj/AreaObjFollower.hpp"
-#include "Game/Map/AwakeControllerHolder.hpp"
+#include "Game/Map/SleepControllerHolder.hpp"
 #include "Game/Map/StageSwitch.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
@@ -12,12 +12,12 @@
 #include <functional.hpp>
 
 AreaObj::AreaObj(const char* pName)
-    : NameObj(pName), mForm(nullptr), mFormType(-1), mIsValid(true), _1D(true), mObjArg0(-1), mObjArg1(-1), mObjArg2(-1), mObjArg3(-1), mObjArg4(-1),
+    : NameObj(pName), mForm(nullptr), mFormType(-1), mIsValid(true), mIsFollowValid(true), mObjArg0(-1), mObjArg1(-1), mObjArg2(-1), mObjArg3(-1), mObjArg4(-1),
       mObjArg5(-1), mObjArg6(-1), mObjArg7(-1), mPriority(-1), mSwitchCtrl() {
 }
 
 AreaObj::AreaObj(int formType, const char* pName)
-    : NameObj(pName), mForm(nullptr), mFormType(formType), mIsValid(true), _1D(true), mObjArg0(-1), mObjArg1(-1), mObjArg2(-1), mObjArg3(-1),
+    : NameObj(pName), mForm(nullptr), mFormType(formType), mIsValid(true), mIsFollowValid(true), mObjArg0(-1), mObjArg1(-1), mObjArg2(-1), mObjArg3(-1),
       mObjArg4(-1), mObjArg5(-1), mObjArg6(-1), mObjArg7(-1), mPriority(-1), mSwitchCtrl() {
 }
 
@@ -48,6 +48,7 @@ void AreaObj::init(const JMapInfoIter& rIter) {
     }
 
     MR::getAreaObjManager(getManagerName())->entry(this);
+    // the target does a second lookup here whose result is unused; needed to match
     MR::getAreaObjManager(getManagerName());
     AwakeControlFunc::addAwakeControl(this, rIter);
 }
@@ -97,19 +98,19 @@ bool AreaObj::isNotHemisphere() const {
 }
 
 void AreaObj::setFollowMtx(const TPos3f* pMtx) {
-    mForm->_4 = const_cast< TPos3f* >(pMtx);
+    mForm->mFollowMtx = const_cast< TPos3f* >(pMtx);
 }
 
 TPos3f* AreaObj::getFollowMtx() const {
-    return mForm->_4;
+    return mForm->mFollowMtx;
 }
 
-AreaObjMgr::AreaObjMgr(s32 count, const char* pName) : NameObj(pName), mArray(), _20(count) {
+AreaObjMgr::AreaObjMgr(s32 count, const char* pName) : NameObj(pName), mArray(), mCapacity(count) {
 }
 
 void AreaObjMgr::entry(AreaObj* pAreaObj) {
     if (mArray.capacity() == 0) {
-        mArray.init(_20);
+        mArray.init(mCapacity);
     }
 
     mArray.push_back(pAreaObj);

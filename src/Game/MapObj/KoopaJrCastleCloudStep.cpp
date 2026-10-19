@@ -10,11 +10,8 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_80068E40(SpringValue*, f32);
-}
-
+// PLACEHOLDER(objects): unnamed target symbol fn_80068E40 (spring-value helper, size 0x20), declared extern "C" so the reloc name matches; resolve when it gets a real name in symbols.txt
+extern "C" void fn_80068E40(SpringValue*, f32);
 
 namespace NrvKoopaJrCastleCloudStep {
     NEW_NERVE(KoopaJrCastleCloudStepNrvWait, KoopaJrCastleCloudStep, Wait);

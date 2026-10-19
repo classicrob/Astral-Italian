@@ -1,16 +1,10 @@
 #pragma auto_inline off
-// NONMATCHING (logic written from asm): only register/order diffs in init (99.3%) and movement (99.0%).
 // Nerve execute bodies fn_802A3120/fn_802A3130 are emitted as class methods (names match by bytes via namefn).
 #include "Game/MapObj/FireRing.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/NameObj/NameObjExecuteHolder.hpp"
 
-
-// SMG2 LiveActor::mScale sits at 0x30 (target asm); the shared header still says 0x2C.
-static inline f32 getScaleX(const LiveActor* pActor) {
-    return *reinterpret_cast< const f32* >(reinterpret_cast< const u8* >(pActor) + 0x30);
-}
 
 namespace NrvFireRingBall {
     class FireRingBallNrvWait : public Nerve {
@@ -60,7 +54,7 @@ void FireRingBall::init(const JMapInfoIter& rIter) {
     initNerve(&NrvFireRingBall::FireRingBallNrvWait::sInstance, 1);
     mBindStarPointerState = new WalkerStateBindStarPointer(this, nullptr);
     MR::initActorState(this, mBindStarPointerState, &NrvFireRingBall::FireRingBallNrvBindStarPointer::sInstance, nullptr);
-    MR::setShadowVolumeCylinderRadius(this, "Body", 30.0f * getScaleX(this));
+    MR::setShadowVolumeCylinderRadius(this, "Body", 30.0f * mScale.y);
 }
 
 void FireRingBall::movement() {
@@ -70,10 +64,10 @@ void FireRingBall::movement() {
         MR::startActionSound(this, "MoveNear", pitch, -1, -1);
     }
     PartsModel::movement();
-    if (MR::isConnectToDrawTemporarily(this)) {
-        MR::validateShadowAll(this);
-    } else {
+    if (!MR::isConnectToDrawTemporarily(this)) {
         MR::invalidateShadowAll(this);
+    } else {
+        MR::validateShadowAll(this);
     }
 }
 

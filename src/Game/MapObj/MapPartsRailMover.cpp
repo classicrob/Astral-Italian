@@ -5,8 +5,6 @@
 #include "Game/MapObj/MapPartsRailPointPassChecker.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): checks named action availability through ActorAnimKeeper or model animations; resolve when core names fn_80008F00
-extern "C" bool fn_80008F00(const LiveActor*, const char*);
 
 namespace NrvMapPartsRailMover {
     NEW_NERVE(HostTypeWait, MapPartsRailMover, WaitForRestart);
@@ -451,7 +449,7 @@ void MapPartsRailMover::exeMoveStart() {
         if (!_78) MR::tryStartAllAnim(mHost, "RailMoveSign");
     }
     MR::startActionSoundAuto(mHost, "RailMoverSignLoop", -1, -1, -1);
-    if (!_78 && fn_80008F00(mHost, "RailMoveSign")) {
+    if (!_78 && MR::fn_80008F00(mHost, "RailMoveSign")) {
         if (MR::isActionEnd(mHost)) {
             MR::setRailCoord(mHost, _48);
             if (MR::isExistCollisionParts(mHost)) MR::onUpdateCollisionParts(mHost);

@@ -621,7 +621,7 @@ bool Pyudon::updateGroundActor() {
     LiveActor* pGround = MR::getGroundActor(this);
     mGroundActor = pGround;
     if (pGround != nullptr) {
-        mConnector->fn_802CC510(pGround);
+        mConnector->attachToActor(pGround);
         return true;
     }
     return false;
@@ -636,7 +636,7 @@ bool Pyudon::tryReleaseGroundActor() {
     if (!isDead && MR::isValidCollisionParts(mGroundActor)) {
         return false;
     }
-    mConnector->fn_802CC5D0();
+    mConnector->detach();
     mGroundActor = nullptr;
     return true;
 }
@@ -646,7 +646,7 @@ bool Pyudon::releaseGroundActor() {
     if (mGroundActor == nullptr) {
         return true;
     }
-    mConnector->fn_802CC5D0();
+    mConnector->detach();
     mGroundActor = nullptr;
     return true;
 }

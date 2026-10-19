@@ -1,3 +1,4 @@
+#define JGEOMETRY_QUAT_ASSIGN_NOINLINE
 #pragma auto_inline off
 
 #include "Game/MapObj/SpinDriver.hpp"

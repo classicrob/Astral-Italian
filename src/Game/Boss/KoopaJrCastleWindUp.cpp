@@ -1,5 +1,6 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrCastleNerves.hpp"
+#include "Game/Boss/KoopaJrRobot.hpp"
 #include <cmath>
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
@@ -117,3 +118,12 @@ bool KoopaJrCastleWindUp::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 }
 
 KoopaJrCastleWindUp::~KoopaJrCastleWindUp() {}
+
+// These two robot constants precede KoopaJrRobot's actor TU in the original split.
+s32 KoopaJrRobotFunction::getStarPieceCountPerPart() {
+    return 8;
+}
+
+const char* KoopaJrRobotFunction::getDemoName() {
+    return "クッパJrロボットデモ";
+}

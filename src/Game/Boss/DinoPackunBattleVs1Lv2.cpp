@@ -11,15 +11,6 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-void DinoPackunBattleVs1Lv2_FORCE_MATCH_SDATA2() {
-    (void)1.3e+03f;
-    (void)9e+01f;
-    (void)1.3f;
-    (void)4.0f;
-    (void)1.8f;
-    (void)1.8e+02f;
-}
-
 namespace NrvDinoPackunBattleVs1Lv2 {
     NEW_NERVE(DinoPackunBattleVs1Lv2NrvStart, DinoPackunBattleVs1Lv2, Start);
     NEW_NERVE(DinoPackunBattleVs1Lv2NrvTurn, DinoPackunBattleVs1Lv2, Turn);
@@ -129,7 +120,7 @@ void DinoPackunBattleVs1Lv2::setStartContinueBattle() {
 }
 
 bool DinoPackunBattleVs1Lv2::tryFind() {
-    if (MR::isInSightConePlayer(getHost(), getHost()->_E8, 1300.0f, 90.0f)) {
+    if (MR::isInSightConePlayer(getHost(), getHost()->mFront, 1300.0f, 90.0f)) {
         setNerve(GET_NERVE(DinoPackunBattleVs1Lv2, DinoPackunBattleVs1Lv2NrvFind));
         return true;
     }
@@ -156,8 +147,8 @@ void DinoPackunBattleVs1Lv2::exeTurn() {
 
     TVec3f side;
     MR::calcSideVec(&side, getHost());
-    MR::turnDirectionDegree(getHost(), &getHost()->_E8, side * _10, 1.0f);
-    MR::addVelocityMoveToDirection(getHost(), getHost()->_E8, 1.3f);
+    MR::turnDirectionDegree(getHost(), &getHost()->mFront, side * _10, 1.0f);
+    MR::addVelocityMoveToDirection(getHost(), getHost()->mFront, 1.3f);
     getHost()->updateRunVelocity();
     getHost()->updateFootPrintNerve(getNerveStep(), 50);
 

@@ -8,6 +8,9 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [MR::epsilon(), -25.0f] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void FlipPanel_FORCE_MATCH_SDATA2() {
     (void)MR::epsilon();
     (void)-25.0f;

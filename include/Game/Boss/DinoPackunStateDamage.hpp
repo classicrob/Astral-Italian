@@ -25,6 +25,6 @@ public:
     void exeLastDamage();
     void updateDamage();
 
-    u32 _10;
-    u32 _14;
+    s32 _10;
+    s32 _14;
 };

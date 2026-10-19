@@ -1,5 +1,6 @@
 #include "Game/Boss/PoltaRock.hpp"
 #include "Game/Util.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Boss/Polta.hpp"
 #include "Game/Boss/PoltaArm.hpp"
 #include "Game/Boss/PoltaFunction.hpp"
@@ -20,26 +21,18 @@ namespace NrvPoltaRock {
     NEW_NERVE(PoltaRockNrvFloat, PoltaRock, Float);
     NEW_NERVE(PoltaRockNrvSign, PoltaRock, Sign);
     NEW_NERVE(PoltaRockNrvMove, PoltaRock, Move);
+    NEW_NERVE(PoltaRockNrvBindStarPointer, PoltaRock, BindStarPointer);
 };  // namespace NrvPoltaRock
 
 PoltaRock::PoltaRock(const char* pName)
-    : LiveActor(pName), mOwner(nullptr), _94(0), _98(0.0f, 0.0f, 0.0f, 1.0f), _A8(0.0f, 0.0f, 1.0f), _B4(0.0f, 0.0f, 0.0f), mType(0) {
+    : LiveActor(pName), mOwner(nullptr), mPointerBindState(0), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mChaseDirection(0.0f, 0.0f, 1.0f), mOwnerLocalPos(0.0f, 0.0f, 0.0f), mType(0) {
 }
 
 void PoltaRock::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "PoltaRock", false);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    MR::onCalcGravity(this);
-    initHitSensor(1);
-    MR::addHitSensorEnemy(this, "Body", 8, 120.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initBinder(120.0f, 0.0f, 0);
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "PoltaRock", nullptr, TVec3f(0.0f));
-    MR::initShadowFromCSV(this, "Shadow");
-    initNerve(GET_NERVE(PoltaRock, PoltaRockNrvFloat));
-    MR::invalidateClipping(this);
+    mPointerBindState = new WalkerStateBindStarPointer(this, nullptr);
+    initNerve(GET_NERVE(PoltaRock, PoltaRockNrvFloat), 1);
+    MR::initActorState(this, mPointerBindState, GET_NERVE(PoltaRock, PoltaRockNrvBindStarPointer), "SupportFreeze");
     makeActorDead();
 }
 
@@ -61,14 +54,14 @@ void PoltaRock::control() {
 }
 
 void PoltaRock::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _98);
+    MR::setBaseTRMtx(this, mPoseQuat);
     MR::setBaseScale(this, mScale);
 }
 
 void PoltaRock::start(Polta* pPolta, const TVec3f& rPosition, const TVec3f& rVec2) {
     mOwner = pPolta;
     mPosition.set(rPosition);
-    _B4.set(rVec2);
+    mOwnerLocalPos.set(rVec2);
     setNerve(GET_NERVE(PoltaRock, PoltaRockNrvFloat));
     appear();
     MR::offBind(this);
@@ -139,13 +132,15 @@ void PoltaRock::exeFloat() {
         MR::emitEffect(this, "Appear");
     }
     MR::startActionSound(this, "OjLvPoltaRockFloat");
-    PSMTXMultVec(getOwner()->getBaseMtx(), &_B4, v3);
+    PSMTXMultVec(getOwner()->getBaseMtx(), &mOwnerLocalPos, v3);
     MR::addVelocityMoveToTargetHorizon(this, v3, 0.0f, 1.2f, 0.0f, 200.0f);
     MR::addVelocityKeepHeightUseShadow(this, 800.0f, 1.5f, 300.0f, nullptr);
     MR::attenuateVelocity(this, 0.92f);
+    if (MR::isGreaterStep(this, 20) && tryStartPointBind(true)) {
+        return;
+    }
     if (MR::isGreaterStep(this, 90)) {
         setNerve(GET_NERVE(PoltaRock, PoltaRockNrvSign));
-        MR::onBind(this);
     }
 }
 
@@ -154,31 +149,36 @@ void PoltaRock::exeSign() {
 
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Sign");
+        MR::onBind(this);
     }
-    PSMTXMultVec(getOwner()->getBaseMtx(), &_B4, v3);
+    PSMTXMultVec(getOwner()->getBaseMtx(), &mOwnerLocalPos, v3);
     MR::addVelocityMoveToTargetHorizon(this, v3, 0.0f, 1.2f, 0.0f, 200.0f);
     MR::addVelocityKeepHeightUseShadow(this, 800.0f, 1.5f, 300.0f, nullptr);
     MR::attenuateVelocity(this, 0.92f);
     if (MR::isGreaterStep(this, 60)) {
+        mChaseDirection.set(*MR::getPlayerCenterPos() - mPosition);
+        MR::normalizeOrZero(&mChaseDirection);
         setNerve(GET_NERVE(PoltaRock, PoltaRockNrvMove));
         MR::onBind(this);
+    } else {
+        if (tryStartPointBind(true)) {
+            return;
+        }
     }
 }
 
 void PoltaRock::exeMove() {
     if (MR::isFirstStep(this)) {
-        _A8.set(*MR::getPlayerCenterPos() - mPosition);
-        MR::normalizeOrZero(&_A8);
         MR::startActionSound(this, "OjPoltaRockFly");
         MR::zeroVelocity(this);
     }
 
     if (MR::isLessStep(this, 30)) {
-        mVelocity.add(_A8 * (3.0f * MR::calcNerveRate(this, 30)));
+        mVelocity.add(mChaseDirection * (3.0f * MR::calcNerveRate(this, 30)));
     }
     MR::addVelocityToGravity(this, -0.02f);
     MR::attenuateVelocity(this, 0.999f);
-    MR::rotateQuatRollBall(&_98, mVelocity, -mGravity, 120.0f);
+    MR::rotateQuatRollBall(&mPoseQuat, mVelocity, -mGravity, 120.0f);
     if (MR::isBinded(this)) {
         MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"));
         MR::tryRumbleDefaultHit(this, 0);
@@ -188,14 +188,23 @@ void PoltaRock::exeMove() {
 
     if (MR::isGreaterStep(this, 300)) {
         kill();
+    } else {
+        if (tryStartPointBind(false)) {
+            return;
+        }
     }
 }
 
 void PoltaRock::generateKill() {
     switch (mType) {
-    case 1:
-        PoltaFunction::appearBombTeresaNormal(getOwner(), mPosition, TVec3f(0.0f, 0.0f, 0.0f));
+    case 1: {
+        TVec3f velocity;
+        velocity.x = 0.0f;
+        velocity.y = 0.0f;
+        velocity.z = 0.0f;
+        PoltaFunction::appearBombTeresaNormal(mOwner, mPosition, velocity);
         break;
+    }
     case 2:
         MR::appearCoinPop(getOwner(), mPosition, 1);
         break;
@@ -204,7 +213,10 @@ void PoltaRock::generateKill() {
 }
 
 bool PoltaRock::isEnableAttack() const {
-    return isNerve(GET_NERVE(PoltaRock, PoltaRockNrvSign)) || isNerve(GET_NERVE(PoltaRock, PoltaRockNrvMove));
+    if (isNerve(GET_NERVE(PoltaRock, PoltaRockNrvMove)) || isNerve(GET_NERVE(PoltaRock, PoltaRockNrvBindStarPointer))) {
+        return true;
+    }
+    return false;
 }
 
 bool PoltaRock::isEnableExplosion() const {
@@ -214,5 +226,24 @@ bool PoltaRock::isEnableExplosion() const {
     return true;
 }
 
+bool PoltaRock::tryStartPointBind(bool aimAtPlayer) {
+    if (mPointerBindState->tryStartPointBind()) {
+        if (aimAtPlayer) {
+            mChaseDirection.set(*MR::getPlayerCenterPos() - mPosition);
+            MR::normalizeOrZero(&mChaseDirection);
+        }
+        setNerve(GET_NERVE(PoltaRock, PoltaRockNrvBindStarPointer));
+        return true;
+    }
+    return false;
+}
+
 PoltaRock::~PoltaRock() {
+}
+
+void PoltaRock::exeBindStarPointer() {
+    if (MR::isFirstStep(this)) {
+        MR::onBind(this);
+    }
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(PoltaRock, PoltaRockNrvMove));
 }

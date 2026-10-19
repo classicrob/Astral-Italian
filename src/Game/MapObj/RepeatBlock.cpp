@@ -281,7 +281,7 @@ void RepeatBlock::init(const JMapInfoIter& rIter) {
 
 void RepeatBlock::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    mHead->RepeatBlockHead::appear();
+    mHead->RepeatBlockHead::appearWithAtoms();
     mShadowDrawer->makeVertexBuffer();
 }
 
@@ -346,7 +346,7 @@ bool RepeatBlock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
 void RepeatBlock::initHead() {
     RepeatBlockHead* pHead = new RepeatBlockHead("頭ブロック", this);
     mHead = pHead;
-    mHead->RepeatBlockHead::appear();
+    mHead->RepeatBlockHead::appearWithAtoms();
 }
 
 void RepeatBlock::updateHead() {
@@ -435,7 +435,7 @@ void RepeatBlock::moveTails() {
     }
 }
 
-// Target retains more by-value cell temporaries and outlines the position-history assignment.
+// NONMATCHING: target retains more by-value RepeatBlockCell temporaries (5 struct copies of the cell difference, frame 0x50), `!isEqual` as cntlzw/srwi., and outlines the position-history assignment.
 bool RepeatBlock::stepForward() {
     mGrid->worldToCell(&mCell, mPosition);
     if (mRailCell.isEqual(mCell)) {
@@ -453,11 +453,23 @@ bool RepeatBlock::stepForward() {
 
     REPEAT_BLOCK_CELL_SUB(diff, mRailCell, mCell);
     if (diff.mX != 0) {
-        mDir = diff.mX < 0 ? 0 : 1;
+        if (diff.mX < 0) {
+            mDir = 0;
+        } else {
+            mDir = 1;
+        }
     } else if (diff.mY != 0) {
-        mDir = diff.mY < 0 ? 2 : 3;
+        if (diff.mY < 0) {
+            mDir = 2;
+        } else {
+            mDir = 3;
+        }
     } else if (diff.mZ != 0) {
-        mDir = diff.mZ < 0 ? 4 : 5;
+        if (diff.mZ < 0) {
+            mDir = 4;
+        } else {
+            mDir = 5;
+        }
     }
 
     mNextCell.mX = mCell.mX;

@@ -3,6 +3,7 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
@@ -10,23 +11,6 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
-
-void FallDownBridge_FORCE_MATCH_SDATA2() {
-    (void)1250.0f;
-    (void)90.0f;
-    (void)2600.0f;
-    (void)9.090276718139648f;
-    (void)0.01745329238474369f;
-    (void)-2607.594482421875f;
-    (void)2607.594482421875f;
-    (void)0.05999999865889549f;
-    (void)-0.5f;
-    (void)0.10000000149011612f;
-    (void)0.9900000095367432f;
-    (void)0.44999998807907104f;
-    (void)0.30000001192092896f;
-    (void)400.0f;
-}
 
 namespace {
     const TVec3f sBaseClipCentor = TVec3f(0.0f, 1250.0f, 0.0f);
@@ -58,17 +42,18 @@ void FallDownBridge::init(const JMapInfoIter& rIter) {
 
     const char* pName = nullptr;
     MR::getObjectName(&pName, rIter);
-    initModelManagerWithAnm(pName, nullptr, false);
+    MR::initActor(this, rIter, pName, false);
 
     MR::connectToSceneMapObj(this);
 
     initHitSensor(1);
-    MR::addHitSensorMapObj(this, "body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
 
-    MR::initCollisionParts(this, pName, getSensor("body"), nullptr);
+    MR::initCollisionParts(this, pName, getSensor("Body"), nullptr);
     initSound(4, "FallDownBridge", nullptr, TVec3f(0.0f));
 
     MR::setClippingTypeSphere(this, 2600.0f, &_8C);
+    MR::initUseStageSwitchWriteA(this, rIter);
 
     initNerve(GET_NERVE(FallDownBridge, FallDownBridgeNrvWait));
 
@@ -130,8 +115,8 @@ void FallDownBridge::control() {
     _9C *= 0.99f;
 }
 
-bool FallDownBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!_A8 && isNerve(GET_NERVE(FallDownBridge, FallDownBridgeNrvWait)) && (msg == 0x41 /* ACTMES_BALL_DASH_WALL */ || msg == 0x3F /* ACTMES_BALL_TOUCH_WALL */)) {
+bool FallDownBridge::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!_A8 && isNerve(GET_NERVE(FallDownBridge, FallDownBridgeNrvWait)) && MR::isMsgRockAttack(msg)) {
         LiveActor* pHost = pSender->mHost;
 
         if (!MR::isBindedWall(pHost)) {
@@ -145,7 +130,46 @@ bool FallDownBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
         mtx60.set(getBaseMtx());
 
         TVec3f vec78;
-        mtx60.getXDir(vec78);
+        vec78.set(mtx60.mMtx[0][1], mtx60.mMtx[1][1], mtx60.mMtx[2][1]);
+
+        f32 dot = vec78.dot(vec6C);
+
+        if (MR::abs(dot) < 0.1f) {
+            return false;
+        }
+
+        f32 val = 0.45f;
+
+        if (dot < 0.0f) {
+            val = -val;
+        }
+
+        MR::startActionSound(this, "OjChalFdBridgeHit");
+        _9C += val;
+        setNerve(GET_NERVE(FallDownBridge, FallDownBridgeNrvQuake));
+        return true;
+    }
+
+    return false;
+}
+
+bool FallDownBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!_A8 && isNerve(GET_NERVE(FallDownBridge, FallDownBridgeNrvWait)) &&
+        (msg == 0x41 /* ACTMES_BALL_DASH_WALL */ || msg == 0x3F /* ACTMES_BALL_TOUCH_WALL */ || MR::isMsgInvincibleAttack(msg))) {
+        LiveActor* pHost = pSender->mHost;
+
+        if (!MR::isBindedWall(pHost) && !MR::isMsgInvincibleAttack(msg)) {
+            return false;
+        }
+
+        TVec3f vec6C(MR::getWallNormal(pHost));
+        MR::normalizeOrZero(&vec6C);
+
+        TPos3f mtx60;
+        mtx60.set(getBaseMtx());
+
+        TVec3f vec78;
+        vec78.set(mtx60.mMtx[0][0], mtx60.mMtx[1][0], mtx60.mMtx[2][0]);
 
         f32 dot = vec78.dot(vec6C);
 
@@ -155,7 +179,7 @@ bool FallDownBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
 
         f32 val;
 
-        if (msg == 0x41 /* ACTMES_BALL_DASH_WALL */) {
+        if (msg == 0x41 /* ACTMES_BALL_DASH_WALL */ || MR::isMsgInvincibleAttack(msg)) {
             val = 0.45f;
             MR::startActionSound(this, "OjChalFdBridgeHit");
         } else {
@@ -215,6 +239,10 @@ void FallDownBridge::exeWait() {
 
 void FallDownBridge::exeQuake() {
     if (getNerveStep() > ::sQuakeTime) {
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
+        }
+
         setNerve(GET_NERVE(FallDownBridge, FallDownBridgeNrvWait));
     }
 }

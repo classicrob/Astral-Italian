@@ -15,10 +15,10 @@ namespace NrvLavaGeyser {
 
 LavaGeyser::LavaGeyser(const char* pName) : LiveActor(pName) {
     mTicoStop = nullptr;
-    mArg0 = 180;
-    mArg1 = 180;
-    _94.set(0.0f, 0.0f, 0.0f);
-    _A0.set(0.0f, 1.0f, 0.0f);
+    mWaitTime = 180;
+    mShootKeepTime = 180;
+    mTopPos.set(0.0f, 0.0f, 0.0f);
+    mUpDir.set(0.0f, 1.0f, 0.0f);
     _B0 = 0.0f;
     _AC = 0.0f;
     _B8 = 0.0f;
@@ -31,16 +31,16 @@ void LavaGeyser::init(const JMapInfoIter& iter) {
     MR::hideModel(this);
     TQuat4f quat1;
     quat1.setEulerDegree(mRotation.x, mRotation.y, mRotation.z);
-    quat1.getYDir(_A0);
-    MR::getJMapInfoArg0NoInit(iter, &mArg0);
-    MR::getJMapInfoArg1NoInit(iter, &mArg1);
+    quat1.getYDir(mUpDir);
+    MR::getJMapInfoArg0NoInit(iter, &mWaitTime);
+    MR::getJMapInfoArg1NoInit(iter, &mShootKeepTime);
     if (MR::isValidSwitchA(this)) {
         initNerve(GET_NERVE(LavaGeyser, HostTypeNrvWaitSwitch));
     } else {
         initNerve(GET_NERVE(LavaGeyser, HostTypeNrvWait));
     }
     mTicoStop = new SupportTicoStop(this, nullptr);
-    MR::startBckAndSetFrameAndStop(this, "LavaGeyserAppear", 0.0f);
+    MR::startBckAndSetFrameAndStop(this, "LavaGeyserAppear", 0.0f, nullptr);
     makeActorAppeared();
 }
 
@@ -71,19 +71,19 @@ void LavaGeyser::control() {
 void LavaGeyser::updateHitSensor(HitSensor* pSensor) {
     TVec3f cPos = *MR::getPlayerCenterPos();
     cPos -= mPosition;
-    f32 v1 = _A0.dot(cPos);
-    TVec3f v2 = _94;
-    v2 -= mPosition;
-    f32 v3 = _A0.dot(v2) + -100.f;
-    if (v3 < 0.f) {
-        MR::setSensorPos(pSensor, _94);
+    f32 playerHeight = mUpDir.dot(cPos);
+    TVec3f topOffset = mTopPos;
+    topOffset -= mPosition;
+    f32 topHeight = mUpDir.dot(topOffset) + -100.f;
+    if (topHeight < 0.f) {
+        MR::setSensorPos(pSensor, mTopPos);
         return;
     }
 
-    f32 v4 = MR::clamp(v1, 0.0f, v3);
+    f32 clampedHeight = MR::clamp(playerHeight, 0.0f, topHeight);
 
     MR::setSensorPos(pSensor, mPosition);
-    *MR::getSensorPos2(pSensor) += _A0 * v4;
+    *MR::getSensorPos2(pSensor) += mUpDir * clampedHeight;
 }
 
 void LavaGeyser::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -111,11 +111,11 @@ void LavaGeyser::exeWait() {
         MR::setBckFrameAndStop(this, MR::getBckFrameMax(this));
         MR::hideModel(this);
         MR::invalidateHitSensors(this);
-        _94.set<f32>(mPosition);
+        mTopPos.set<f32>(mPosition);
     }
     if (MR::isValidSwitchA(this) && !MR::isOnSwitchA(this)) {
         setNerve(GET_NERVE(LavaGeyser, HostTypeNrvWaitSwitch));
-    } else if (MR::isStep(this, mArg0)) {
+    } else if (MR::isStep(this, mWaitTime)) {
         setNerve(GET_NERVE(LavaGeyser, HostTypeNrvSign));
     }
 }
@@ -123,10 +123,10 @@ void LavaGeyser::exeWait() {
 void LavaGeyser::exeSign() {
     if (MR::isFirstStep(this)) {
         const TVec3f* pos = &mPosition;
-        _94.set<f32>(*pos);
+        mTopPos.set<f32>(*pos);
         MR::emitEffect(this, "Sign");
     }
-    MR::copyJointPos(this, "Top", &_94);
+    MR::copyJointPos(this, "Top", &mTopPos);
     MR::startActionSound(this, "OjLvLavaGeyserSign");
     if (MR::isStep(this, 90)) {
         MR::deleteEffect(this, "Sign");
@@ -141,7 +141,7 @@ void LavaGeyser::exeShootUp() {
         MR::startActionSound(this, "OjLavaGeyserShoot");
         MR::startAction(this, "LavaGeyserAppear");
     }
-    MR::copyJointPos(this, "Top", &_94);
+    MR::copyJointPos(this, "Top", &mTopPos);
     if (!mTicoStop->tryAttachTouch()) {
         MR::startActionSound(this, "OjLvLavaGeyserSign");
         MR::startActionSound(this, "OjLvLavaGeyserKeep");
@@ -155,11 +155,11 @@ void LavaGeyser::exeShootKeep() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "LavaGeyserWait");
     }
-    MR::copyJointPos(this, "Top", &_94);
+    MR::copyJointPos(this, "Top", &mTopPos);
     if (!mTicoStop->tryAttachTouch()) {
         MR::startActionSound(this, "OjLvLavaGeyserSign");
         MR::startActionSound(this, "OjLvLavaGeyserKeep");
-        if (MR::isGreaterStep(this, mArg1)) {
+        if (MR::isGreaterStep(this, mShootKeepTime)) {
             setNerve(GET_NERVE(LavaGeyser, HostTypeNrvShootDown));
         }
     }
@@ -169,7 +169,7 @@ void LavaGeyser::exeShootDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "LavaGeyserDisappear");
     }
-    MR::copyJointPos(this, "Top", &_94);
+    MR::copyJointPos(this, "Top", &mTopPos);
     if (!mTicoStop->tryAttachTouch()) {
         MR::startActionSound(this, "OjLvLavaGeyserKeep");
         if (MR::isActionEnd(this)) {

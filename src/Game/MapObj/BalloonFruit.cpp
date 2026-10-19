@@ -9,12 +9,8 @@
 
 // Float constants (.sdata2) used by BalloonFruit.
 
-class YoshiLockOnTarget;
+#include "Game/Player/YoshiFunction.hpp"
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-    bool tryYoshiPushEat();
-}
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
@@ -57,6 +53,8 @@ extern "C" void fn_802730E0_unused();
 extern "C" void fn_80422580();
 // PLACEHOLDER(objects): unnamed target symbol fn_80422880, declared extern "C" so the reloc name matches; resolve when fn_80422880 gets its real name in symbols.txt
 extern "C" s32 fn_80422880(u32 msg);
+
+namespace { extern const f32 sSpinDegrees; }
 
 namespace NrvBalloonFruit {
     NEW_NERVE(BalloonFruitNrvAppear, BalloonFruit, Appear);
@@ -101,6 +99,7 @@ BalloonFruit::BalloonFruit(const char* pName) : LiveActor(pName) {
 BalloonFruit::~BalloonFruit() {
 }
 
+// NONMATCHING: vector temporary stack slots differ.
 void BalloonFruit::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "BalloonFruit", false);
@@ -141,12 +140,13 @@ void BalloonFruit::exeAppear() {
     }
 }
 
+// NONMATCHING: epilogue restores r0/r31 in the opposite order.
 void BalloonFruit::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
+        mMtxAC.set(getBaseMtx());
+        MR::addTransMtxLocalY(mMtxAC, 100.0f);
     }
-    mMtxAC.set(getBaseMtx());
-    MR::addTransMtxLocalY(mMtxAC, 100.0f);
     tryStartBind();
 }
 
@@ -198,6 +198,7 @@ void BalloonFruit::exeBreak() {
     }
 }
 
+// NONMATCHING: vector temporary address and paired-single load scheduling differ.
 void BalloonFruit::exeHipDropCrash() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HipDropCrash");
@@ -243,6 +244,7 @@ static inline f32 degToRad(f32 deg) {
     return (3.1415927f * deg) / 180.0f;
 }
 
+// NONMATCHING: vector temporary stack slots and arithmetic register scheduling differ.
 void BalloonFruit::control() {
     if (mTimerE0 != 0) {
         mTimerE0 = mTimerE0 - 1;
@@ -269,7 +271,7 @@ void BalloonFruit::control() {
             mRotation.z = JMath::sAtanTable.atan2_(mtx[1][0], mtx[0][0]);
             mRotation.y = JGeometry::TUtil< f32 >::asin(-mtx[2][0]);
         }
-        mAngleE4 = mAngleE4 + degToRad(1.0f);
+        mAngleE4 = mAngleE4 + sSpinDegrees * MR::pi() / 180.0f;
         mRotation.x *= 57.295776f;
         mRotation.y *= 57.295776f;
         mRotation.z *= 57.295776f;
@@ -445,3 +447,5 @@ void BalloonFruit::enableYoshiBalloonResource() {
     MR::enablePlayerResourceYoshiBalloon();
 }
 
+
+namespace { const f32 sSpinDegrees = 1.0f; }

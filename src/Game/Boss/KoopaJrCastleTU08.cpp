@@ -46,7 +46,7 @@ void KoopaJrCastleStateBattle::appear() {
     mPhase = 3;
     mIsDead = false;
     setNerve(&NrvKoopaJrCastleStateBattle::KoopaJrCastleStateBattleNrvA::sInstance);
-    KoopaJrCastleFunction::fn_800D4B40();
+    KoopaJrCastleFunction::validateBodyAndHeadSensors();
 }
 
 void KoopaJrCastleStateBattle::attackSensor(HitSensor* sender, HitSensor* receiver) {
@@ -85,7 +85,7 @@ bool KoopaJrCastleStateBattle::receiveOtherMsg(u32 msg, HitSensor* sender, HitSe
     }
     if (MR::isMsgAutoRushBegin(msg) && !MR::isPlayerHipDropFalling()) {
         if (KoopaJrCastleFunction::isPlayerOnHead() || KoopaJrCastleFunction::isPlayerOnCapsule())
-            return KoopaJrCastleFunction::fn_800D4080(MR::getSensorHost(receiver), reinterpret_cast<s32>(sender));
+            return KoopaJrCastleFunction::tryBlowPlayerToStart(MR::getSensorHost(receiver), sender);
         return false;
     }
     KoopaJrCastle* castle = KoopaJrCastleFunction::getCastle();
@@ -96,7 +96,7 @@ bool KoopaJrCastleStateBattle::receiveOtherMsg(u32 msg, HitSensor* sender, HitSe
             return true;
         }
         if (MR::isMsgUpdateBaseMtx(msg)) {
-            if (castle->mDominate->_90) {
+            if (castle->mDominate->mBoundActor) {
                 castle->mDominate->updateBaseMtx();
                 return true;
             }
@@ -111,13 +111,13 @@ bool KoopaJrCastleStateBattle::isDemo() const {
 }
 
 void KoopaJrCastleStateBattle::exe800D68C0() {
-    if (MR::isFirstStep(this)) KoopaJrCastleFunction::fn_800D3DB0();
+    if (MR::isFirstStep(this)) KoopaJrCastleFunction::resetBattleParts();
     if (!mPhaseState[0]->mIsDead) MR::updateActorState(this);
 }
 
 void KoopaJrCastleStateBattle::exe800D6910() {
     if (MR::isFirstStep(this)) {
-        KoopaJrCastleFunction::fn_800D3DB0();
+        KoopaJrCastleFunction::resetBattleParts();
         KoopaJrCastleFunction::appearCapsuleStarPiece();
     }
     if (!mPhaseState[1]->mIsDead) MR::updateActorState(this);
@@ -125,7 +125,7 @@ void KoopaJrCastleStateBattle::exe800D6910() {
 
 void KoopaJrCastleStateBattle::exe800D6970() {
     if (MR::isFirstStep(this)) {
-        KoopaJrCastleFunction::fn_800D3DB0();
+        KoopaJrCastleFunction::resetBattleParts();
         KoopaJrCastleFunction::appearCapsuleStarPiece();
     }
     if (!mPhaseState[2]->mIsDead) MR::updateActorState(this);
@@ -155,13 +155,13 @@ void KoopaJrCastleStateBattle::exe800D69D0() {
 
 void KoopaJrCastleStateBattle::exe800D6AD0() {
     if (MR::isFirstStep(this)) {
-        KoopaJrCastleFunction::fn_800D3770("DemoPowerUpKoopaJrCastle");
+        KoopaJrCastleFunction::startPartsDemoActions("DemoPowerUpKoopaJrCastle");
         mHost->mBody->setNerveFall();
         mHost->mFireBar->updateChildShadows();
     } else if (KoopaJrCastleFunction::tryEndDemo("DemoPowerUpKoopaJrCastle", nullptr, false)) {
         MR::overlayWithPreviousScreen(4);
         MR::startStageBGM("MBGM_SMG2_BOSS_06B", false);
-        KoopaJrCastleFunction::fn_800D4240();
+        KoopaJrCastleFunction::resetBodyOffsetAndShadows();
         setNerve(&NrvKoopaJrCastleStateBattle::KoopaJrCastleStateBattleNrvC::sInstance);
     }
 }

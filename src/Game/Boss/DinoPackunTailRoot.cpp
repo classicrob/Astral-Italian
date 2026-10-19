@@ -26,7 +26,7 @@ bool DinoPackunTailRoot::calcJointDirection(TPos3f* pOut, const JointControllerI
     MR::orthogonalize(&stack_20);
     TVec3f stack_14;
     stack_20.getZDir(stack_14);
-    _A8.set(stack_14);
+    mJointFront.set(stack_14);
     TVec3f v12;
     pOut->getTrans(v12);
     mPosition.set(v12);

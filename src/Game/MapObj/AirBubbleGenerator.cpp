@@ -1,4 +1,5 @@
 #include "Game/MapObj/AirBubbleGenerator.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/AirBubbleHolder.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
@@ -54,13 +55,13 @@ void AirBubbleGenerator::exeGenerate() {
     TVec3f axisY;
 
     if (MR::isFirstStep(this)) {
-        MR::startSound(this, "SE_OJ_AIR_BUBBLE_APPEAR");
+        MR::startActionSound(this, "OjAirBubbleAppear");
         MR::startAction(this, "Generate");
     }
 
     if (MR::isGreaterStep(this, ::sGenerateTime)) {
         MR::calcActorAxisY(&axisY, this);
-        MR::appearAirBubble(mPosition + axisY * ::sGenerateOffsetY, mBubbleLifeTime);
+        MR::appearAirBubble(mPosition + axisY.multInLine(::sGenerateOffsetY), mBubbleLifeTime);
         setNerve(GET_NERVE(AirBubbleGenerator, AirBubbleGeneratorNrvWait));
     }
 }

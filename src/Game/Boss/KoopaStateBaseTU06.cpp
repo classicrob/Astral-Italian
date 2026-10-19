@@ -28,25 +28,30 @@ void KoopaStateEndDemo::setCastActor(LiveActor* pActor) {
 void KoopaStateEndDemo::initDemo(const JMapInfoIter& rIter) {
     initNerve(&NrvKoopaStateEndDemo::KoopaStateEndDemoNrvWait::sInstance, 0);
     MR::initAnimCamera(mHost, mHost->mCameraInfo, sEndDemoCameraName);
-    MR::initDemoSheetTalkAnim(mHost, rIter, sEndDemoName, sEndDemoCameraName, nullptr, TVec3f(0.0f, 0.0f, 0.0f), MR::getJointMtx(mHost, "Face"));
+    KoopaBattle* pDemoHost = mHost;
+    MR::initDemoSheetTalkAnim(pDemoHost, rIter, sEndDemoName, sEndDemoCameraName, nullptr, TVec3f(0.0f, 0.0f, 0.0f), MR::getJointMtx(pDemoHost, "Face"));
     mPeach = reinterpret_cast< LiveActor* >(MR::createDemoObjWithAnimArc("デモ用ピーチ", "Peach", "PeachAnim", "Demo", mHost->getBaseMtx()));
     mPeach->makeActorDead();
     MR::initTalkAnimDemoCast(mPeach, rIter, sEndDemoName, sEndDemoCameraName);
-    mPowerStarModel = MR::createPowerStarDemoModel(mHost, "パワースターデモモデル", mHost->getBaseMtx());
+    KoopaBattle* pStarHost = mHost;
+    mPowerStarModel = MR::createPowerStarDemoModel(pStarHost, "パワースターデモモデル", pStarHost->getBaseMtx());
     mPowerStarModel->makeActorDead();
     MR::initTalkAnimDemoCast(mPowerStarModel, rIter, sEndDemoName, sEndDemoCameraName);
     mTicoBaby = reinterpret_cast< LiveActor* >(
         MR::createDemoObjWithAnimArc("デモ用チコベビー", "TicoBaby", "TicoBabyAnimVsKoopaLv3Galaxy", mHost->getBaseMtx()));
     mTicoBaby->makeActorDead();
     MR::initTalkAnimDemoCast(mTicoBaby, rIter, sEndDemoName, sEndDemoCameraName);
+    KoopaBattle* pActionHost = mHost;
     MR::registerDemoActionFunctorDirect(
-        mHost, MR::Functor(this, &KoopaStateEndDemo::lightOnPeach), sEndDemoName,
+        pActionHost, MR::Functor(this, &KoopaStateEndDemo::lightOnPeach), sEndDemoName,
         "ライトON[ピーチ]");
+    pActionHost = mHost;
     MR::registerDemoActionFunctorDirect(
-        mHost, MR::Functor(this, &KoopaStateEndDemo::lightOnLastStar), sEndDemoName,
+        pActionHost, MR::Functor(this, &KoopaStateEndDemo::lightOnLastStar), sEndDemoName,
         "ライトON[ラストスター]");
+    pActionHost = mHost;
     MR::registerDemoActionFunctorDirect(
-        mHost, MR::Functor(this, &KoopaStateEndDemo::lightOnLastStar), sEndDemoName,
+        pActionHost, MR::Functor(this, &KoopaStateEndDemo::lightOnLastStar), sEndDemoName,
         "ライトON[ラストスター2]");
     if (mCastActor != nullptr) {
         MR::tryRegisterDemoCast(mCastActor, sEndDemoName, rIter);

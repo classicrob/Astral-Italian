@@ -45,7 +45,7 @@ void KoopaStateLastDamage::appear() {
     localPos.z = -20000.0f;
     MR::calcKoopaBattleWorldPos(&mTargetPos, localPos);
     if (mIsFinal) {
-        mHost->mQuatB.getZDir(front);
+        mHost->mBattleQuat.getZDir(front);
         TVec3f pos = mStartPos - front * 3000.0f;
         mTargetPos.set< f32 >(pos);
     }
@@ -71,8 +71,8 @@ void KoopaStateLastDamage::setDamageType(HitSensor* pSensor) {
 
 void KoopaStateLastDamage::exeDamage() {
     if (MR::isFirstStep(this)) {
-        mHost->mQuatA.set< f32 >(mHost->mQuatB);
-        mQuatA.set< f32 >(mHost->mQuatA);
+        mHost->mPoseQuat.set< f32 >(mHost->mBattleQuat);
+        mQuatA.set< f32 >(mHost->mPoseQuat);
         MR::stopScene(15);
         MR::startAction(mHost, "LastDamage");
         MR::sendMsgKoopaBB();
@@ -105,7 +105,7 @@ void KoopaStateLastDamage::exeRollEnd() {
     if (MR::isFirstStep(this)) {
         MR::hideModelAndOnCalcAnim(mHost);
     }
-    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mQuatA, MR::calcNerveEaseOutValue(this, 90, 0.0f, -1440.0f));
+    MR::rotateQuatXAxisDegree(&mHost->mPoseQuat, mQuatA, MR::calcNerveEaseOutValue(this, 90, 0.0f, -1440.0f));
     MR::startSoundInCameraDistance(mHost, "LastDamageRollEnd", -1, -1, 31000.0f);
     if (MR::isGreaterEqualStep(this, 89)) {
         kill();

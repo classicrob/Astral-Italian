@@ -105,7 +105,7 @@ public:
     /* 0x0E0 */ FireBubble* mFireBubbleArray;
     /* 0x0E4 */ FixedPosition* mThrowPos;
     /* 0x0E8 */ s32 mHits;
-    /* 0x0EC */ s32 _EC;
+    /* 0x0EC */ s32 mCocoNutThrowCount;
     /* 0x0F0 */ f32 mTurnSpeed;
     /* 0x0F4 */ AudAnmSoundObject* mSoundObj;
     /* 0x0F8 */ TVec3f mSoundObjPos;

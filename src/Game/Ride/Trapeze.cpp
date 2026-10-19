@@ -79,7 +79,6 @@ Trapeze::Trapeze(const char* pName)
     mPosMtx.identity();
 }
 
-// NONMATCHING: initSound arg scheduling
 void Trapeze::init(const JMapInfoIter& rIter) {
     MR::createSceneObj(SceneObj_TrapezeRopeDrawInit);
     MR::connectToScene(this, 0x28 /* MovementType_Ride (SMG2) */, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_Trapeze);
@@ -113,8 +112,7 @@ void Trapeze::init(const JMapInfoIter& rIter) {
 
     MR::calcGravity(this);
 
-    TVec3f soundOffset(0.0f);
-    initSound(4, "Trapeze", nullptr, soundOffset);
+    initSound(4, "Trapeze", nullptr, TVec3f(0.0f));
 
     MR::setClippingTypeSphere(this, mRopeLength);
 
@@ -159,13 +157,6 @@ void Trapeze::draw() const {
     } else {
         drawRope(left, swingLeft, mStickPoint->mSide, mStickPoint->mFront, 0.0f, mRopeLength * ::sTexRate);
         drawRope(right, swingRight, mStickPoint->mSide, mStickPoint->mFront, 0.0f, mRopeLength * ::sTexRate);
-    }
-}
-
-void Trapeze::exeStop() {
-    if (MR::isFirstStep(this)) {
-        MR::validateClipping(this);
-        getSensor("Body")->invalidate();
     }
 }
 
@@ -379,13 +370,12 @@ void Trapeze::exeSwingBackEnd() {
     }
 }
 
-// NONMATCHING: stack temp slot order and f31 allocation
 void Trapeze::updateHitSensor(HitSensor* pSensor) {
     if (MR::isSensorAutoRush(pSensor)) {
         if (isNerve(GET_NERVE(Trapeze, TrapezeNrvStop))) {
             MR::setSensorPos(pSensor, TVec3f(mPosition.x, MR::getPlayerPos()->y, mPosition.z));
-            f32 yPos = mPosition.y;
-            yPos = MR::clamp(MR::getSensorPos(pSensor)->y, yPos - mRopeLength, yPos);
+            f32 sensorY = MR::getSensorPos(pSensor)->y;
+            f32 yPos = MR::clamp(sensorY, mPosition.y - mRopeLength, mPosition.y);
             MR::getSensorPos2(pSensor)->y = yPos;
             return;
         }
@@ -400,9 +390,7 @@ void Trapeze::updateHitSensor(HitSensor* pSensor) {
     if (mRider != nullptr) {
         TVec3f offset(mHangPoint->mUp);
         offset.scale(::sSensorOffsetY);
-        TVec3f pos(mRider->mPosition);
-        pos.add(offset);
-        MR::setSensorPos(pSensor, pos);
+        MR::setSensorPos(pSensor, mRider->mPosition + offset);
     }
 }
 
@@ -435,7 +423,7 @@ bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
             return false;
         }
 
-        TVec3f posDiff = MR::getSensorHost(pSender)->mPosition;
+        TVec3f posDiff(MR::getSensorHost(pSender)->mPosition);
         posDiff.sub(*MR::getSensorPos(pReceiver));
 
         if (MR::abs(posDiff.dot(mFront)) > ::sDistanceStartBindZ) {
@@ -444,7 +432,7 @@ bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 
         mRider = MR::getSensorHost(pSender);
 
-        TVec3f grabPos = MR::getSensorHost(pSender)->mPosition;
+        TVec3f grabPos(MR::getSensorHost(pSender)->mPosition);
         grabPos.sub(mPosition);
 
         f32 dotUp = mUp.dot(grabPos);

@@ -1,8 +1,7 @@
 #include "Game/AreaObj/YoshiEatGuidanceArea.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80422710, declared extern "C" so the reloc name matches; resolve when fn_80422710 gets its real name in symbols.txt
-extern "C" bool fn_80422710();
 
 YoshiEatGuidanceArea::YoshiEatGuidanceArea(const char* pName) : AreaObj(pName) {
 }
@@ -24,7 +23,7 @@ void YoshiEatGuidanceArea::movement() {
         return;
     }
 
-    if (fn_80422710()) {
+    if (MR::fn_80422710()) {
         onSwitchA();
     } else {
         offSwitchA();

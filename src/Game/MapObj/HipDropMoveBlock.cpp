@@ -5,6 +5,10 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 
 
+namespace {
+    const char* sSwitchCsvName = "InitHipDropMoveBlockSwitch";
+}
+
 namespace NrvHipDropMoveBlock {
     class HipDropMoveBlockNrvWait : public Nerve {
     public:
@@ -29,6 +33,7 @@ HipDropMoveBlock::HipDropMoveBlock(const char* pName) : LiveActor(pName) {
     mActiveSwitch = nullptr;
 }
 
+// NONMATCHING: sound-offset argument scheduling differs.
 void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
     char sObjName[0x100];
     MR::getMapPartsObjectNameIfExistShapeID(sObjName, 0x100, rIter);
@@ -36,7 +41,8 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
         MR::initDefaultPos(this, rIter);
         MR::connectToSceneMapObj(this);
         initEffectKeeper(0, nullptr, false);
-        initSound(4, nullptr, nullptr, TVec3f(0.0f));
+        TVec3f soundOffset(0.0f);
+        initSound(4, nullptr, nullptr, soundOffset);
         MR::initMapPartsClipping(this, rIter, nullptr, false);
     }
     initHitSensor(1);
@@ -51,13 +57,13 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
     TVec3f dir(0.0f, dist, 0.0f);
     mMoveFunction->setMoveVec(dir);
 
-    s32 val1 = 1;
-    MR::getJMapInfoArg1NoInit(rIter, &val1);
-    mMoveFunction->setReturnStep(val1);
+    s32 returnStep = 1;
+    MR::getJMapInfoArg1NoInit(rIter, &returnStep);
+    mMoveFunction->setReturnStep(returnStep);
 
-    s32 val2 = 60;
-    MR::getJMapInfoArg2NoInit(rIter, &val2);
-    mMoveFunction->setMoveStep(val2);
+    s32 moveStep = 60;
+    MR::getJMapInfoArg2NoInit(rIter, &moveStep);
+    mMoveFunction->setMoveStep(moveStep);
 
     s32 val3 = -1;
     MR::getJMapInfoArg3NoInit(rIter, &val3);
@@ -81,8 +87,7 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
 }
 
 bool HipDropMoveBlock::tryInitSwitch() {
-    const char* pNames = "InitHipDropMoveBlockSwitch";
-    JMapInfo* pCsv = MR::tryCreateCsvParser(this, "\200j\"\200");
+    JMapInfo* pCsv = MR::tryCreateCsvParser(this, sSwitchCsvName);
     if (pCsv != nullptr) {
         mSwitchCount = MR::getCsvDataElementNum(pCsv);
         mSwitches = new HipDropMoveBlockSwitch*[mSwitchCount];
@@ -92,17 +97,17 @@ bool HipDropMoveBlock::tryInitSwitch() {
         for (s32 i = 0; i < mSwitchCount; i++) {
             HipDropMoveBlockSwitchParam* pParam = new HipDropMoveBlockSwitchParam;
             if (pParam != nullptr) {
-                pParam->mOffset.set(0.0f, 0.0f, 0.0f);
+                pParam->mOffset.set<f32>(0.0f, 0.0f, 0.0f);
                 pParam->mRotate.x = zero;
                 pParam->mRotate.y = zero;
                 pParam->mRotate.z = zero;
             }
             mSwitchParams[i] = pParam;
             HipDropMoveBlockSwitchParam* pCur = mSwitchParams[i];
-            MR::getCsvDataVec(&pCur->mOffset, pCsv, pNames + 0x34, i);
-            MR::getCsvDataVec(&pCur->mRotate, pCsv, pNames + 0x3C, i);
+            MR::getCsvDataVec(&pCur->mOffset, pCsv, "Offset", i);
+            MR::getCsvDataVec(&pCur->mRotate, pCsv, "Rotate", i);
 
-            HipDropMoveBlockSwitch* pSwitch = new HipDropMoveBlockSwitch(pNames + 0x44, this, getBaseMtx(),
+            HipDropMoveBlockSwitch* pSwitch = new HipDropMoveBlockSwitch("付随ヒップドロップスイッチ", this, getBaseMtx(),
                                                                          pCur->mOffset, pCur->mRotate);
             mSwitches[i] = pSwitch;
             mSwitches[i]->initWithoutIter();
@@ -119,15 +124,11 @@ bool HipDropMoveBlock::isValidSensorHost(HitSensor* pSensor) {
         return true;
     }
 
-    s32 offset = 0;
-    s32 i = 0;
-    while (i < mSwitchCount) {
+    for (s32 i = 0; i < mSwitchCount; i++) {
         LiveActor* pHost = MR::getSensorHost(pSensor);
-        if (*reinterpret_cast<LiveActor**>(reinterpret_cast<u8*>(mSwitches) + offset) == pHost) {
+        if (mSwitches[i] == pHost) {
             return true;
         }
-        i++;
-        offset += 4;
     }
 
     return false;
@@ -203,17 +204,16 @@ void HipDropMoveBlock::exeWaitSwitch() {
 }
 
 void HipDropMoveBlock::exeMove() {
-    const char* pNames = "InitHipDropMoveBlockSwitch";
     if (MR::isFirstStep(this)) {
-        MR::tryStartAllAnim(this, pNames + 0x60);
-        MR::startActionSoundAuto(this, pNames + 0x60, -1, -1, -1);
-        MR::tryHitReaction(this, pNames + 0x68);
+        MR::tryStartAllAnim(this, "Start");
+        MR::startActionSoundAuto(this, "Start", -1, -1, -1);
+        MR::tryHitReaction(this, "移動開始");
         if (MR::isValidSwitchA(this) && mFlag96) {
             MR::onSwitchA(this);
         }
     }
 
-    MR::startActionSoundAuto(this, pNames + 0x74, -1, -1, -1);
+    MR::startActionSoundAuto(this, "Moving", -1, -1, -1);
     if (mMoveFunction->update()) {
         bool bMove = (mMoveFunction->isEndStep() && mMoveFunction->mFlag74) ||
                      (mMoveFunction->isStartStep() && !mMoveFunction->mFlag74);
@@ -221,9 +221,9 @@ void HipDropMoveBlock::exeMove() {
             if (MR::isValidSwitchA(this) && !mFlag96) {
                 MR::onSwitchA(this);
             }
-            MR::tryStartAllAnim(this, pNames + 0x80);
-            MR::startActionSoundAuto(this, pNames + 0x80, -1, -1, -1);
-            MR::tryHitReaction(this, pNames + 0x88);
+            MR::tryStartAllAnim(this, "StopEnd");
+            MR::startActionSoundAuto(this, "StopEnd", -1, -1, -1);
+            MR::tryHitReaction(this, "行き止まり停止");
             setNerve(GET_NERVE(HipDropMoveBlock, HipDropMoveBlockNrvWait));
             return;
         }
@@ -231,9 +231,9 @@ void HipDropMoveBlock::exeMove() {
         if (MR::isValidSwitchA(this)) {
             MR::offSwitchA(this);
         }
-        MR::tryStartAllAnim(this, pNames + 0x98);
-        MR::startActionSoundAuto(this, pNames + 0x98, -1, -1, -1);
-        MR::tryHitReaction(this, pNames + 0xA0);
+        MR::tryStartAllAnim(this, "Stop");
+        MR::startActionSoundAuto(this, "Stop", -1, -1, -1);
+        MR::tryHitReaction(this, "移動終わり");
 
         if (mActiveSwitch != nullptr) {
             if (mActiveSwitch->tryOff()) {

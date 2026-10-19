@@ -1,8 +1,5 @@
 #include "Game/Boss/Sandy.hpp"
-// SMG2: MR::appearCoinPop returns bool (ObjUtil.hpp declares it void), declare the real one here.
-#define appearCoinPop appearCoinPopUnused
 #include "Game/Util.hpp"
-#undef appearCoinPop
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -13,10 +10,6 @@
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/Util/FixedPosition.hpp"
 #include <cstdio>
-
-namespace MR {
-    bool isGalaxyDarkCometAppearInCurrentStage();
-};  // namespace MR
 
 // Call a pointer-to-member on every element of a range (std::for_each like).
 template < typename It, typename F >
@@ -83,20 +76,7 @@ static inline void calcEulerHand(const TPos3f& rMtx, TVec3f& rDest) {
 }
 
 // Inline identity (the target stores the 12 elements directly, TMtx34::identity is out of line in our header).
-static inline void setIdentityInline(TPos3f& rMtx) {
-    rMtx.mMtx[0][3] = 0.0f;
-    rMtx.mMtx[1][3] = 0.0f;
-    rMtx.mMtx[2][3] = 0.0f;
-    rMtx.mMtx[0][0] = 1.0f;
-    rMtx.mMtx[0][1] = 0.0f;
-    rMtx.mMtx[0][2] = 0.0f;
-    rMtx.mMtx[1][0] = 0.0f;
-    rMtx.mMtx[1][1] = 1.0f;
-    rMtx.mMtx[1][2] = 0.0f;
-    rMtx.mMtx[2][0] = 0.0f;
-    rMtx.mMtx[2][1] = 0.0f;
-    rMtx.mMtx[2][2] = 1.0f;
-}
+
 
 static const bool sCactusTable[20] = {false, false, false, true, false, false, false, false, false, true, false, false, false, false, false, true, false, false, false, false};
 static u32 sBallCount = 0;
@@ -214,16 +194,11 @@ SandyBall* SandyBallHolder::getFreeBallType4(LiveActor* pOwner) {
 // 800FD800
 // NONMATCHING: PTMF for_each calls (two stack copies of the member-function pointer in the target).
 void SandyBallHolder::killAll() {
-    bool (SandyBall::*pKill0)() = &SandyBall::tryKill;
-    ForEachPtmf(mBalls0.begin(), mBalls0.end(), pKill0);
-    bool (SandyBall::*pKill1)() = &SandyBall::tryKill;
-    ForEachPtmf(mBalls1.begin(), mBalls1.end(), pKill1);
-    bool (SandyBall::*pKill2)() = &SandyBall::tryKill;
-    ForEachPtmf(mBalls2.begin(), mBalls2.end(), pKill2);
-    bool (SandyBall::*pKill3)() = &SandyBall::tryKill;
-    ForEachPtmf(mBalls3.begin(), mBalls3.end(), pKill3);
-    bool (SandyBall::*pKill4)() = &SandyBall::tryKill;
-    ForEachPtmf(mBalls4.begin(), mBalls4.end(), pKill4);
+    ForEachPtmf(mBalls0.begin(), mBalls0.end(), &SandyBall::tryKill);
+    ForEachPtmf(mBalls1.begin(), mBalls1.end(), &SandyBall::tryKill);
+    ForEachPtmf(mBalls2.begin(), mBalls2.end(), &SandyBall::tryKill);
+    ForEachPtmf(mBalls3.begin(), mBalls3.end(), &SandyBall::tryKill);
+    ForEachPtmf(mBalls4.begin(), mBalls4.end(), &SandyBall::tryKill);
 }
 
 // 800FDA70
@@ -262,19 +237,33 @@ SandyBall* SandyMini::takeBall() {
 }
 
 // 800FDCE0
-// NONMATCHING: TPos3f::setInline/identity expanded inline in the target (single call site per TU).
+// NONMATCHING: matrix copy remains out of line in this combined TU; register scheduling differs.
 void attachBallToJoint(const LiveActor* pActor, SandyBall* pBall, const char* pJoint, const TVec3f& rOffset) {
     TPos3f joint;
-    joint.setInline(MR::getJointMtx(pActor, pJoint));
+    JMath::gekko_ps_copy12(&joint, MR::getJointMtx(pActor, pJoint));
     TPos3f offset;
     offset.mMtx[0][3] = rOffset.x;
     offset.mMtx[1][3] = rOffset.y;
     offset.mMtx[2][3] = rOffset.z;
     TPos3f result;
     result.concat(joint, offset);
-    TVec3f pos(result.mMtx[0][3], result.mMtx[1][3], result.mMtx[2][3]);
+    TVec3f pos;
+    pos.set<f32>(result.mMtx[0][3], result.mMtx[1][3], result.mMtx[2][3]);
     MR::setPosition(pBall, pos);
-    setIdentityInline(result);
+
+    result.mMtx[0][3] = 0.0f;
+    result.mMtx[1][3] = 0.0f;
+    result.mMtx[2][3] = 0.0f;
+    result.mMtx[0][0] = 1.0f;
+    result.mMtx[0][1] = 0.0f;
+    result.mMtx[0][2] = 0.0f;
+    result.mMtx[1][0] = 0.0f;
+    result.mMtx[1][1] = 1.0f;
+    result.mMtx[1][2] = 0.0f;
+    result.mMtx[2][0] = 0.0f;
+    result.mMtx[2][1] = 0.0f;
+    result.mMtx[2][2] = 1.0f;
+
     result.getQuat(pBall->mQuat);
 }
 
@@ -298,7 +287,6 @@ void Sandy::copyQuat() {
 }
 
 // 800FDEA0
-// NONMATCHING: getZDir/negateInternal expanded inline in the target (single call site per TU).
 void turnToPlayer(TQuat4f* pQuat, LiveActor* pActor, f32 degree) {
     TVec3f dir = *MR::getPlayerPos() - pActor->mPosition;
     MR::vecKillElement(dir, pActor->mGravity, &dir);
@@ -485,6 +473,7 @@ SandyHand::SandyHand(Sandy* pSandy, bool isLeft, SandyBallHolder* pHolder, Fixed
 void SandyHand::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "SandyHand", mIsRight);
     if (mIsRight) {
+        // PLACEHOLDER(objects): target passes its hand-type byte at 0xA2; resolve the SMG2 core prototype before removing this cast.
         MR::initDLMakerTexMtx(this, reinterpret_cast< const char* >(&mHandType));
         MR::newDifferedDLBuffer(this);
         mScale.x *= -1.0f;
@@ -540,6 +529,7 @@ void SandyHand::calcAndSetBaseMtx() {
 }
 
 // 800FE790
+// NONMATCHING: Euler/vector scale floating-point registers and instruction scheduling differ.
 void SandyHand::control() {
     mFixedPos->calc();
     mFixedPos->copyTrans(&mPosition);
@@ -619,11 +609,11 @@ void SandyHand::exeThrow() {
 }
 
 // 800FEC60
-// NONMATCHING: TPos3f::setInline/identity expanded inline in the target (single call site per TU).
+// NONMATCHING: matrix copy remains out of line in this combined TU; register scheduling differs.
 void SandyHand::calcBallPos() {
     if (mBall != nullptr && !mBall->isFree()) {
         TPos3f joint;
-        joint.setInline(MR::getJointMtx(this, "Hand1"));
+        JMath::gekko_ps_copy12(&joint, MR::getJointMtx(this, "Hand1"));
         TPos3f offset;
         offset.mMtx[0][3] = sHandBallOffset.x;
         offset.mMtx[1][3] = sHandBallOffset.y;
@@ -633,7 +623,20 @@ void SandyHand::calcBallPos() {
         TVec3f pos;
         result.getTrans(pos);
         MR::setPosition(mBall, pos);
-        setIdentityInline(result);
+    
+    result.mMtx[0][3] = 0.0f;
+    result.mMtx[1][3] = 0.0f;
+    result.mMtx[2][3] = 0.0f;
+    result.mMtx[0][0] = 1.0f;
+    result.mMtx[0][1] = 0.0f;
+    result.mMtx[0][2] = 0.0f;
+    result.mMtx[1][0] = 0.0f;
+    result.mMtx[1][1] = 1.0f;
+    result.mMtx[1][2] = 0.0f;
+    result.mMtx[2][0] = 0.0f;
+    result.mMtx[2][1] = 0.0f;
+    result.mMtx[2][2] = 1.0f;
+
         result.getQuat(mBall->mQuat);
     }
 }

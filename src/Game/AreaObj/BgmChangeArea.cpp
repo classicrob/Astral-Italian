@@ -13,12 +13,13 @@ extern "C" s32 fn_8008A150(const char*, s32, s32);
 extern "C" s32 fn_8008A1A0(const char*, s32);
 
 namespace MR {
-    bool isStageTwisterTowerGalaxy();
-    bool isStageStateScenarioOpeningCamera();
+    bool isStageTwisterTowerGalaxy() {
+        return isEqualStageName("TwisterTowerGalaxy");
+    }
 };  // namespace MR
 
 BgmChangeArea::BgmChangeArea(const char* pName) : AreaObj(pName) {
-    _48 = false;
+    mIsBgmApplied = false;
 }
 
 void BgmChangeArea::init(const JMapInfoIter& rIter) {
@@ -26,26 +27,33 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
     MR::isStageTwisterTowerGalaxy();
 
     switch (mObjArg0) {
-    case 0:
-        if (mObjArg1 >= 0) {
+    case 0: {
+        s32 arg1 = mObjArg1;
+        if (arg1 >= 0) {
             s32 scenario = MR::getCurrentScenarioNo();
-            fn_8008A150(MR::getCurrentStageName(), scenario, mObjArg1);
+            fn_8008A150(MR::getCurrentStageName(), scenario, arg1);
         }
-        if (mObjArg2 >= 0) {
-            fn_8008A1A0(MR::getCurrentStageName(), mObjArg2);
+        s32 arg2 = mObjArg2;
+        if (arg2 >= 0) {
+            fn_8008A1A0(MR::getCurrentStageName(), arg2);
         }
         break;
-    case 1:
-        if (mObjArg2 >= 0) {
+    }
+    case 1: {
+        s32 arg2 = mObjArg2;
+        if (arg2 >= 0) {
             s32 scenario = MR::getCurrentScenarioNo();
-            fn_8008A150(MR::getCurrentStageName(), scenario, mObjArg2);
+            fn_8008A150(MR::getCurrentStageName(), scenario, arg2);
         }
         break;
-    case 2:
-        if (mObjArg1 >= 0) {
-            fn_8008A1A0(MR::getCurrentStageName(), mObjArg1);
+    }
+    case 2: {
+        s32 arg1 = mObjArg1;
+        if (arg1 >= 0) {
+            fn_8008A1A0(MR::getCurrentStageName(), arg1);
         }
         break;
+    }
     }
 
     MR::connectToSceneAreaObj(this);
@@ -87,14 +95,14 @@ void BgmChangeArea::movement() {
     }
 
     if (!isInVolume(*MR::getPlayerPos())) {
-        if (mObjArg4 == 0 && _48) {
+        if (mObjArg4 == 0 && mIsBgmApplied) {
             MR::startCurrentStageBGM(true);
         }
-        _48 = false;
+        mIsBgmApplied = false;
         return;
     }
 
-    if (_48) {
+    if (mIsBgmApplied) {
         return;
     }
 
@@ -125,7 +133,7 @@ void BgmChangeArea::movement() {
         break;
     }
 
-    _48 = true;
+    mIsBgmApplied = true;
 }
 
 s32 BgmChangeArea::getFadeTime() const {

@@ -10,8 +10,10 @@ namespace {
     const f32 sOffset = 50.0f;
 };  // namespace
 
-MapObjConnector::MapObjConnector(LiveActor* pActor) : mHost(pActor), mParts() {
+MapObjConnector::MapObjConnector(LiveActor* pActor) : mHost(pActor), mAttachment() {
     _8.identity();
+    mAttachment = new MapObjConnectorAttachment;
+    mAttachment->mAttached = false;
 }
 
 bool MapObjConnector::attachToUnder() {
@@ -28,15 +30,20 @@ bool MapObjConnector::attachToBack() {
     return attach(frontVec);
 }
 
+// NONMATCHING: vector temporary stack slots and register allocation differ.
 bool MapObjConnector::attach(const TVec3f& rVec) {
     Triangle triangle = Triangle();
 
     TVec3f vec;
     if (!MR::getFirstPolyOnLineToMapExceptActor(&vec, &triangle, mHost->mPosition + rVec * ::sOffset, -rVec * ::sDepth, mHost)) {
+        mAttachment->mAttached = false;
         return false;
     }
 
-    mParts = triangle.mParts;
+    MtxPtr groundMtx = triangle.mParts->mBaseMatrix;
+    MapObjConnectorAttachment* attachment = mAttachment;
+    attachment->mAttached = true;
+    attachment->mBaseMtx = groundMtx;
 
     TPos3f baseMtx;
     baseMtx.set(mHost->getBaseMtx());
@@ -48,18 +55,34 @@ bool MapObjConnector::attach(const TVec3f& rVec) {
     return true;
 }
 
+void MapObjConnector::attachToActor(LiveActor* actor) {
+    MapObjConnectorAttachment* attachment = mAttachment;
+    attachment->mAttached = true;
+    attachment->mBaseMtx = actor->getBaseMtx();
+    TPos3f baseMtx;
+    baseMtx.set(mHost->getBaseMtx());
+    TPos3f inverse;
+    inverse.set(actor->getBaseMtx());
+    inverse.invert(inverse);
+    _8.concat(inverse, baseMtx);
+}
+
+void MapObjConnector::detach() {
+    if (mAttachment) mAttachment->mAttached = false;
+}
+
 void MapObjConnector::connect() {
     connect(mHost);
 }
 
 void MapObjConnector::connect(LiveActor* pActor) {
-    if (mParts == nullptr) {
+    if (!mAttachment->mAttached) {
         return;
     }
 
     TPos3f baseMtx;
     baseMtx.identity();
-    baseMtx.set(mParts->mBaseMatrix);
+    baseMtx.set(mAttachment->mBaseMtx);
     baseMtx.concat(baseMtx, _8);
     baseMtx.getTrans(pActor->mPosition);
 

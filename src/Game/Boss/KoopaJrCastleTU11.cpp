@@ -22,21 +22,21 @@ namespace NrvKoopaJrCastleRingBeam { KoopaJrCastleRingBeamNrvA KoopaJrCastleRing
 const volatile s32 sKoopaJrCastleRingBeamColor = 0;
 
 KoopaJrCastleRingBeam::KoopaJrCastleRingBeam(const char* pName) : LiveActor(pName) {
-    _90 = nullptr;
-    _94 = nullptr;
+    mFixedPos = nullptr;
+    mBeams = nullptr;
 }
 
 void KoopaJrCastleRingBeam::init(const JMapInfoIter& iter) {
     MR::connectToScene(this, 0x29, -1, -1, -1);
-    _94 = new RingBeam*[5];
-    for (s32 i = 0; i < 5; i++) _94[i] = nullptr;
+    mBeams = new RingBeam*[5];
+    for (s32 i = 0; i < 5; i++) mBeams[i] = nullptr;
     s32 color = sKoopaJrCastleRingBeamColor;
     for (s32 i = 0; i < 5; i++) {
-        _94[i] = new RingBeam("\x83\x8a\x83\x93\x83\x4f\x83\x72\x81\x5b\x83\x80", this, false, false, true, true, nullptr);
-        _94[i]->init(iter);
-        _94[i]->setSpeed(18.0f);
-        _94[i]->setLife(110);
-        _94[i]->setColor(color);
+        mBeams[i] = new RingBeam("\x83\x8a\x83\x93\x83\x4f\x83\x72\x81\x5b\x83\x80", this, false, false, true, true, nullptr);
+        mBeams[i]->init(iter);
+        mBeams[i]->setSpeed(18.0f);
+        mBeams[i]->setLife(110);
+        mBeams[i]->setColor(color);
     }
     initNerve(&NrvKoopaJrCastleRingBeam::KoopaJrCastleRingBeamNrvPre::sInstance, 0);
     MR::invalidateClipping(this);
@@ -47,47 +47,47 @@ void KoopaJrCastleRingBeam::appear() {
     LiveActor::appear();
     control();
     setNerve(&NrvKoopaJrCastleRingBeam::KoopaJrCastleRingBeamNrvA::sInstance);
-    fn_800D7CE0();
+    killBeams();
 }
 
 MtxPtr KoopaJrCastleRingBeam::getBaseMtx() const {
-    return (MtxPtr)&_90->mMtx;
+    return (MtxPtr)&mFixedPos->mMtx;
 }
 
 void KoopaJrCastleRingBeam::control() {
-    _90->calc();
+    mFixedPos->calc();
     TVec3f pos(0.0f);
     TVec3f up(0.0f);
-    MR::extractMtxTrans((MtxPtr)&_90->mMtx, &pos);
-    MR::extractMtxYDir((MtxPtr)&_90->mMtx, &up);
+    MR::extractMtxTrans((MtxPtr)&mFixedPos->mMtx, &pos);
+    MR::extractMtxYDir((MtxPtr)&mFixedPos->mMtx, &up);
     MR::setPosition(this, pos);
     MR::setQuatUpNoSupport(this, up);
 }
 
 void KoopaJrCastleRingBeam::setup(LiveActor* host, const TVec3f& trans, const TVec3f& rot, const char* joint) {
     if (joint) {
-        _90 = new FixedPosition(host, joint, trans, rot);
+        mFixedPos = new FixedPosition(host, joint, trans, rot);
         return;
     }
-    _90 = new FixedPosition(host, trans, rot);
+    mFixedPos = new FixedPosition(host, trans, rot);
 }
 
 void KoopaJrCastleRingBeam::exe800D7C00() {
     for (s32 i = 0; i < 5; i++) {
-        if (MR::isDead(_94[i])) {
-            _94[i]->setSpeed(18.0f);
-            _94[i]->setLife(110);
-            _94[i]->setColor(sKoopaJrCastleRingBeamColor);
-            _94[i]->appear();
+        if (MR::isDead(mBeams[i])) {
+            mBeams[i]->setSpeed(18.0f);
+            mBeams[i]->setLife(110);
+            mBeams[i]->setColor(sKoopaJrCastleRingBeamColor);
+            mBeams[i]->appear();
             break;
         }
     }
     setNerve(&NrvKoopaJrCastleRingBeam::KoopaJrCastleRingBeamNrvPre::sInstance);
 }
 
-void KoopaJrCastleRingBeam::fn_800D7CE0() {
+void KoopaJrCastleRingBeam::killBeams() {
     for (s32 i = 0; i < 5; i++) {
-        if (!MR::isDead(_94[i])) _94[i]->makeActorDead();
+        if (!MR::isDead(mBeams[i])) mBeams[i]->makeActorDead();
     }
 }
 

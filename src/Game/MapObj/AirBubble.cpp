@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MULASSIGN_NOINLINE
 #include "Game/MapObj/AirBubble.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -12,6 +13,9 @@
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [1.0f, 0.0f, MR::pi(), 2.0f] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void AirBubble_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
@@ -234,6 +238,5 @@ bool AirBubble::canSpinGet() const {
     return false;
 }
 
-void AirBubble_FORCE_MATCH(TVec3f* pVec, f32 scale) {
-    *pVec *= scale;
-}
+// PLACEHOLDER(objects): forces .sdata2/.data pool order that the target gets from an unidentified earlier consumer in the TU;
+// resolve when the real cause (header inline / earlier function) is found

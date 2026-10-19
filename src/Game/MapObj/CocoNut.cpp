@@ -16,29 +16,6 @@
 
 #include "Game/Util/StringUtil.hpp"
 
-void CocoNut_FORCE_MATCH_STRINGS() {
-    MR::isEqualString("Watermelon", "Watermelon");
-    MR::isEqualString("CocoNut", "CocoNut");
-    MR::isEqualString("BreakWatermelon", "BreakWatermelon");
-    MR::isEqualString("CocoNutBreak", "CocoNutBreak");
-    MR::isEqualString("OjCoconutHit", "OjCoconutHit");
-    MR::isEqualString("PmSpinHit", "PmSpinHit");
-    MR::isEqualString("OjCoconutLaunch", "OjCoconutLaunch");
-    MR::isEqualString("OjCoconutFlipM", "OjCoconutFlipM");
-    MR::isEqualString("OjCoconutFlipS", "OjCoconutFlipS");
-    MR::isEqualString("body", "body");
-    MR::isEqualString("RollingSmoke", "RollingSmoke");
-    MR::isEqualString("Land", "Land");
-    MR::isEqualString("WaterColumn", "WaterColumn");
-    MR::isEqualString("SpinHitMark", "SpinHitMark");
-    MR::isEqualString("OjCoconutBoundWater", "OjCoconutBoundWater");
-    MR::isEqualString("OjCoconutBound", "OjCoconutBound");
-    MR::isEqualString("OjLvCoconutRollWater", "OjLvCoconutRollWater");
-    MR::isEqualString("OjLvCoconutRoll", "OjLvCoconutRoll");
-    MR::isEqualString("OjFallInWaterM", "OjFallInWaterM");
-    MR::isEqualString("SE_OJ_FALL_IN_WATER_M", "SE_OJ_FALL_IN_WATER_M");
-}
-
 namespace NrvCocoNut {
     NEW_NERVE(CocoNutNrvWait, CocoNut, Wait);
     NEW_NERVE(CocoNutNrvWaitOnBind, CocoNut, WaitOnBind);
@@ -54,9 +31,6 @@ CocoNut::CocoNut(const char* pName)
     _A0.identity();
     _D8.identity();
     _108.identity();
-}
-
-CocoNut::~CocoNut() {
 }
 
 void CocoNut::init(const JMapInfoIter& rIter) {
@@ -199,6 +173,182 @@ bool CocoNut::isPossibleToHit(const TVec3f& rA1, const TVec3f& rA2, const TVec3f
 
 f32 CocoNut::calcMoveSpeed() const {
     return !isNerve(GET_NERVE(CocoNut, CocoNutNrvMove)) ? 0.0f : MR::max(_8C, _150.length());
+}
+
+const char* CocoNut::getModelName() {
+    bool watermelonMode = GameDataFunction::isOnGameEventFlagStarPieceCounterStop();
+    return watermelonMode ? "Watermelon" : "CocoNut";
+}
+
+const char* CocoNut::getBreakEffectName() {
+    bool watermelonMode = GameDataFunction::isOnGameEventFlagStarPieceCounterStop();
+    return watermelonMode ? "BreakWatermelon" : "CocoNutBreak";
+}
+
+void CocoNut::calcAndSetBaseMtx() {
+    _A0.mMtx[0][3] = this->mPosition.x;
+    _A0.mMtx[1][3] = this->mPosition.y;
+    _A0.mMtx[2][3] = this->mPosition.z;
+
+    MR::setBaseTRMtx(this, _A0);
+
+    if (isNerve(GET_NERVE(CocoNut, CocoNutNrvMove)) && MR::isOnGround(this)) {
+        const TVec3f& groundNormal = MR::getGroundNormal(this);
+        f32 temp_f31 = _D0;
+
+        TVec3f stack_14;
+        TVec3f stack_8(groundNormal);
+        stack_8.scale(temp_f31);
+
+        stack_14.sub(mPosition, stack_8);
+
+        if (MR::isSameDirection(groundNormal, _94)) {
+            MR::makeMtxUpNoSupportPos(&_D8, groundNormal, stack_14);
+        } else {
+            MR::makeMtxUpFrontPos(&_D8, groundNormal, _94, stack_14);
+        }
+
+        f32 temp_f9 = mScale.x;
+        _D8.mMtx[0][0] *= temp_f9;
+        _D8.mMtx[0][1] *= temp_f9;
+        _D8.mMtx[0][2] *= temp_f9;
+        _D8.mMtx[1][0] *= temp_f9;
+        _D8.mMtx[1][1] *= temp_f9;
+        _D8.mMtx[1][2] *= temp_f9;
+        _D8.mMtx[2][0] *= temp_f9;
+        _D8.mMtx[2][1] *= temp_f9;
+        _D8.mMtx[2][2] *= temp_f9;
+    }
+}
+
+void CocoNut::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!isValidReceiveMsg(pSender)) {
+        return;
+    }
+
+    if (MR::isSensorPlayer(pReceiver) && !isValidPushedFromPlayer(pSender, pReceiver)) {
+        if (!MR::isPlayerHipDropFalling()) {
+            MR::sendMsgPush(pReceiver, pSender);
+        }
+    } else if (pReceiver->isType(0x1B /* ATYPE_COCO_NUT */)) {
+        if (MR::sendMsgPush(pReceiver, pSender)) {
+            MR::startActionSound(this, "OjCoconutHit");
+        }
+    } else if (_13C && isNerve(GET_NERVE(CocoNut, CocoNutNrvMove)) && MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
+        MR::startActionSound(this, "OjCoconutHit");
+        setNerve(GET_NERVE(CocoNut, CocoNutNrvBreak));
+    } else {
+        MR::sendMsgPush(pReceiver, pSender);
+    }
+}
+
+bool CocoNut::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!isValidReceiveMsg(pReceiver)) {
+        return false;
+    }
+
+    if (pSender->isType(0x1B /* ATYPE_COCO_NUT */)) {
+        return tryHit(pReceiver, pSender);
+    }
+
+    return tryPushedFromActor(pReceiver, pSender);
+}
+
+bool CocoNut::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!isValidReceiveMsg(pReceiver)) {
+        return false;
+    }
+
+    if (!MR::isMsgPlayerHitAll(msg) && !MR::isMsgPlayerTrample(msg) && !MR::isMsgPlayerHipDrop(msg) && !MR::isMsgStarPieceReflect(msg)) {
+        return false;
+    }
+
+    f32 var_f31;
+    f32 var_f30;
+
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
+        var_f31 = 35.0f;
+        var_f30 = -20.0f;
+        MR::startActionSound(this, "PmSpinHit");
+        MR::startActionSound(this, "OjCoconutLaunch");
+        emitEffectSpinHit(pSender, pReceiver);
+        _13C = true;
+    } else if (MR::isMsgPlayerHipDrop(msg) || MR::isMsgInvincibleAttack(msg)) {
+        var_f31 = 25.0f;
+        var_f30 = -15.0f;
+        MR::startActionSound(this, "OjCoconutFlipM");
+
+        if (MR::isMsgPlayerHipDrop(msg)) {
+            MR::sendMsgAwayJump(pSender, pReceiver);
+        }
+    } else {
+        var_f31 = 10.0f;
+        var_f30 = -5.0f;
+        MR::startActionSound(this, "OjCoconutFlipS");
+    }
+
+    _8C = var_f31;
+    _90 = var_f30;
+    TVec3f stack_2C;
+    TVec3f stack_20;
+    TVec3f stack_14;
+    stack_2C.sub(pReceiver->mPosition, pSender->mPosition);
+
+    if (MR::isMsgStarPieceReflect(msg) && !MR::normalizeOrZero(&stack_20, stack_2C) && !MR::normalizeOrZero(&stack_14, pSender->mHost->mVelocity)) {
+        if (stack_20.dot(stack_14) < MR::cosDegree(60.0f)) {
+            TVec3f stack_8(stack_14);
+            stack_8.scale(65.0f);
+            stack_2C.add(stack_8);
+        }
+    }
+
+    setFrontVec(stack_2C);
+
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
+        reviseFrontVec();
+    }
+
+    setNerve(GET_NERVE(CocoNut, CocoNutNrvMove));
+    return true;
+}
+
+bool CocoNut::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    f32 temp_f0;
+    f32 temp_f1;
+    f32 var_f2;
+
+    if (!isValidReceiveMsg(pReceiver)) {
+        return false;
+    }
+
+    if (MR::isMsgPlayerKick(msg)) {
+        if (isValidPushedFromPlayer(pReceiver, pSender)) {
+            TVec3f* playerVelocity = MR::getPlayerVelocity();
+            setFrontVec(*playerVelocity);
+            temp_f1 = _94.dot(*playerVelocity);
+            var_f2 = 18.0f;
+            temp_f0 = 1.1f * temp_f1;
+
+            _8C = var_f2 >= temp_f0 ? var_f2 : temp_f0;
+            _90 = -(0.7f * temp_f1);
+            MR::startActionSound(this, "OjCoconutFlipS");
+            setNerve(GET_NERVE(CocoNut, CocoNutNrvMove));
+            return true;
+        }
+    } else if (MR::isMsgHitmarkEmit(msg)) {
+        return true;
+    }
+
+    return false;
+}
+
+void CocoNut::initMapToolInfo(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+    MR::getJMapInfoArg0NoInit(rIter, &mSphericalShadow);
+    MR::getJMapInfoArg1NoInit(rIter, &mRespawnWhenOutOfView);
+    MR::getJMapInfoArg2NoInit(rIter, &mContinueRolling);
+    _D0 = 55.0f * mScale.x;
+    mSpawnPosition.set(mPosition);
 }
 
 void CocoNut::initSensor() {
@@ -602,6 +752,10 @@ void CocoNut::calcHitSpeedAndFrontVec(f32* pArg0, f32* pArg1, TVec3f* pArg2, TVe
     *pArg0 = temp_f1_2 * var_f30;
 }
 
+void CocoNut::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
+    pCollector->addArchive(getModelName());
+}
+
 bool CocoNut::isOnGround() const {
     if (0.0f < _90 && MR::isOnGround(this)) {
         const TVec3f& groundNormal = MR::getGroundNormal(this);
@@ -656,186 +810,6 @@ bool CocoNut::isValidReceiveMsg(const HitSensor* pSensor) const {
     return (isNerve(GET_NERVE(CocoNut, CocoNutNrvWait)) || isNerve(GET_NERVE(CocoNut, CocoNutNrvWaitOnBind)) ||
             isNerve(GET_NERVE(CocoNut, CocoNutNrvMove))) &&
            pSensor == getSensor("body");
-}
-
-const char* CocoNut::getModelName() {
-    bool watermelonMode = GameDataFunction::isOnGameEventFlagStarPieceCounterStop();
-    return watermelonMode ? "Watermelon" : "CocoNut";
-}
-
-const char* CocoNut::getBreakEffectName() {
-    bool watermelonMode = GameDataFunction::isOnGameEventFlagStarPieceCounterStop();
-    return watermelonMode ? "BreakWatermelon" : "CocoNutBreak";
-}
-
-void CocoNut::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
-    pCollector->addArchive(getModelName());
-}
-
-void CocoNut::calcAndSetBaseMtx() {
-    _A0.mMtx[0][3] = this->mPosition.x;
-    _A0.mMtx[1][3] = this->mPosition.y;
-    _A0.mMtx[2][3] = this->mPosition.z;
-
-    MR::setBaseTRMtx(this, _A0);
-
-    if (isNerve(GET_NERVE(CocoNut, CocoNutNrvMove)) && MR::isOnGround(this)) {
-        const TVec3f& groundNormal = MR::getGroundNormal(this);
-        f32 temp_f31 = _D0;
-
-        TVec3f stack_14;
-        TVec3f stack_8(groundNormal);
-        stack_8.scale(temp_f31);
-
-        stack_14.sub(mPosition, stack_8);
-
-        if (MR::isSameDirection(groundNormal, _94)) {
-            MR::makeMtxUpNoSupportPos(&_D8, groundNormal, stack_14);
-        } else {
-            MR::makeMtxUpFrontPos(&_D8, groundNormal, _94, stack_14);
-        }
-
-        f32 temp_f9 = mScale.x;
-        _D8.mMtx[0][0] *= temp_f9;
-        _D8.mMtx[0][1] *= temp_f9;
-        _D8.mMtx[0][2] *= temp_f9;
-        _D8.mMtx[1][0] *= temp_f9;
-        _D8.mMtx[1][1] *= temp_f9;
-        _D8.mMtx[1][2] *= temp_f9;
-        _D8.mMtx[2][0] *= temp_f9;
-        _D8.mMtx[2][1] *= temp_f9;
-        _D8.mMtx[2][2] *= temp_f9;
-    }
-}
-
-void CocoNut::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isValidReceiveMsg(pSender)) {
-        return;
-    }
-
-    if (MR::isSensorPlayer(pReceiver) && !isValidPushedFromPlayer(pSender, pReceiver)) {
-        if (!MR::isPlayerHipDropFalling()) {
-            MR::sendMsgPush(pReceiver, pSender);
-        }
-    } else if (pReceiver->isType(0x1B /* ATYPE_COCO_NUT */)) {
-        if (MR::sendMsgPush(pReceiver, pSender)) {
-            MR::startActionSound(this, "OjCoconutHit");
-        }
-    } else if (_13C && isNerve(GET_NERVE(CocoNut, CocoNutNrvMove)) && MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
-        MR::startActionSound(this, "OjCoconutHit");
-        setNerve(GET_NERVE(CocoNut, CocoNutNrvBreak));
-    } else {
-        MR::sendMsgPush(pReceiver, pSender);
-    }
-}
-
-bool CocoNut::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isValidReceiveMsg(pReceiver)) {
-        return false;
-    }
-
-    if (pSender->isType(0x1B /* ATYPE_COCO_NUT */)) {
-        return tryHit(pReceiver, pSender);
-    }
-
-    return tryPushedFromActor(pReceiver, pSender);
-}
-
-bool CocoNut::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isValidReceiveMsg(pReceiver)) {
-        return false;
-    }
-
-    if (!MR::isMsgPlayerHitAll(msg) && !MR::isMsgPlayerTrample(msg) && !MR::isMsgPlayerHipDrop(msg) && !MR::isMsgStarPieceReflect(msg)) {
-        return false;
-    }
-
-    f32 var_f31;
-    f32 var_f30;
-
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        var_f31 = 35.0f;
-        var_f30 = -20.0f;
-        MR::startActionSound(this, "PmSpinHit");
-        MR::startActionSound(this, "OjCoconutLaunch");
-        emitEffectSpinHit(pSender, pReceiver);
-        _13C = true;
-    } else if (MR::isMsgPlayerHipDrop(msg) || MR::isMsgInvincibleAttack(msg)) {
-        var_f31 = 25.0f;
-        var_f30 = -15.0f;
-        MR::startActionSound(this, "OjCoconutFlipM");
-
-        if (MR::isMsgPlayerHipDrop(msg)) {
-            MR::sendMsgAwayJump(pSender, pReceiver);
-        }
-    } else {
-        var_f31 = 10.0f;
-        var_f30 = -5.0f;
-        MR::startActionSound(this, "OjCoconutFlipS");
-    }
-
-    _8C = var_f31;
-    _90 = var_f30;
-    TVec3f stack_2C;
-    TVec3f stack_20;
-    TVec3f stack_14;
-    stack_2C.sub(pReceiver->mPosition, pSender->mPosition);
-
-    if (MR::isMsgStarPieceReflect(msg) && !MR::normalizeOrZero(&stack_20, stack_2C) && !MR::normalizeOrZero(&stack_14, pSender->mHost->mVelocity)) {
-        if (stack_20.dot(stack_14) < MR::cosDegree(60.0f)) {
-            TVec3f stack_8(stack_14);
-            stack_8.scale(65.0f);
-            stack_2C.add(stack_8);
-        }
-    }
-
-    setFrontVec(stack_2C);
-
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        reviseFrontVec();
-    }
-
-    setNerve(GET_NERVE(CocoNut, CocoNutNrvMove));
-    return true;
-}
-
-bool CocoNut::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    f32 temp_f0;
-    f32 temp_f1;
-    f32 var_f2;
-
-    if (!isValidReceiveMsg(pReceiver)) {
-        return false;
-    }
-
-    if (MR::isMsgPlayerKick(msg)) {
-        if (isValidPushedFromPlayer(pReceiver, pSender)) {
-            TVec3f* playerVelocity = MR::getPlayerVelocity();
-            setFrontVec(*playerVelocity);
-            temp_f1 = _94.dot(*playerVelocity);
-            var_f2 = 18.0f;
-            temp_f0 = 1.1f * temp_f1;
-
-            _8C = var_f2 >= temp_f0 ? var_f2 : temp_f0;
-            _90 = -(0.7f * temp_f1);
-            MR::startActionSound(this, "OjCoconutFlipS");
-            setNerve(GET_NERVE(CocoNut, CocoNutNrvMove));
-            return true;
-        }
-    } else if (MR::isMsgHitmarkEmit(msg)) {
-        return true;
-    }
-
-    return false;
-}
-
-void CocoNut::initMapToolInfo(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::getJMapInfoArg0NoInit(rIter, &mSphericalShadow);
-    MR::getJMapInfoArg1NoInit(rIter, &mRespawnWhenOutOfView);
-    MR::getJMapInfoArg2NoInit(rIter, &mContinueRolling);
-    _D0 = 55.0f * mScale.x;
-    mSpawnPosition.set(mPosition);
 }
 
 void CocoNut::statusToHide() {
@@ -969,6 +943,9 @@ void CocoNut::exeBreak() {
         mPosition.set(mSpawnPosition);
         setNerve(GET_NERVE(CocoNut, CocoNutNrvReplaceReady));
     }
+}
+
+CocoNut::~CocoNut() {
 }
 
 void CocoNut::exeReplaceReady() {

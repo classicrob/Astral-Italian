@@ -12,8 +12,6 @@
 #include "Game/Util.hpp"
 
 
-// PLACEHOLDER(objects): unnamed core helper (dst = joint matrix of (actor, joint name) * local position); resolve when core names fn_8002D5C0
-extern "C" void fn_8002D5C0(TVec3f*, const TVec3f*, const LiveActor*, const char*);
 
 namespace {
     TVec3f sFaceOffset(100.0f, -50.0f, 0.0f);
@@ -41,7 +39,7 @@ namespace MR {
             pDst->zero();
             return;
         }
-        pDst->set< f32 >(pBattle->mPos);
+        pDst->set< f32 >(pBattle->mBattleOrigin);
     }
 
     f32 getKoopaBattleRadius() {
@@ -119,8 +117,8 @@ namespace MR {
             return;
         }
         TVec3f rotated;
-        pBattle->mQuatB.transform(rLocal, rotated);
-        TVec3f res = pBattle->mPos + rotated;
+        pBattle->mBattleQuat.transform(rLocal, rotated);
+        TVec3f res = pBattle->mBattleOrigin + rotated;
         pDst->set< f32 >(res);
     }
 
@@ -129,9 +127,9 @@ namespace MR {
         if (pBattle == nullptr) {
             return 0.0f;
         }
-        TVec3f diff = rPos - pBattle->mPos;
+        TVec3f diff = rPos - pBattle->mBattleOrigin;
         TVec3f front;
-        pBattle->mQuatB.getZDir(front);
+        pBattle->mBattleQuat.getZDir(front);
         return diff.dot(front);
     }
 
@@ -168,8 +166,8 @@ namespace MR {
             rate = 1.0f - MR::normalize(angle, 100.0f, 180.0f);
         }
         MR::calcVecToTargetPosH(&toTarget, pBattle, *MR::getPlayerPos(), &toActor);
-        MR::turnQuatYDirRad(&pBattle->mQuatA, pBattle->mQuatA, toTarget, 0.017453292f * (3.0f * rate));
-        MR::turnQuatZDirRad(&pBattle->mQuatA, pBattle->mQuatA, -toActor, 0.10471976f);
+        MR::turnQuatYDirRad(&pBattle->mPoseQuat, pBattle->mPoseQuat, toTarget, 0.017453292f * (3.0f * rate));
+        MR::turnQuatZDirRad(&pBattle->mPoseQuat, pBattle->mPoseQuat, -toActor, 0.10471976f);
         MR::calcUpVec(&up, pBattle);
         JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));
         MR::normalizeOrZero(&up);
@@ -196,8 +194,7 @@ namespace MR {
 
     void resetKoopaBattleDemo(KoopaBattle* pBattle) {
         pBattle->mJointCtrl->endFaceCtrl(0);
-        s32 frame;
-        pBattle->mJointCtrl->endDynamicCtrl(frame);
+        pBattle->mJointCtrl->endDynamicCtrl(0);
         MR::showModel(pBattle);
         MR::showPlayer();
         MR::resetPlayerStatus();
@@ -218,10 +215,10 @@ namespace MR {
         TVec3f front;
         TVec3f playerPos;
         TVec3f up;
-        pBattle->mQuatB.getZDir(front);
-        playerPos.set< f32 >(pBattle->mPos + front * 1350.0f);
+        pBattle->mBattleQuat.getZDir(front);
+        playerPos.set< f32 >(pBattle->mBattleOrigin + front * 1350.0f);
         mtx.identity();
-        pBattle->mQuatB.getYDir(up);
+        pBattle->mBattleQuat.getYDir(up);
         MR::makeMtxUpFrontPos(&mtx, front, up, playerPos);
         MR::setPlayerBaseMtx(mtx.toMtxPtr());
         MR::resetPlayerStatus();
@@ -232,7 +229,7 @@ namespace MR {
         KoopaDemoChamber* pChamber = getKoopaBattleAccessor()->mDemoChamber;
         TPos3f mtx;
         mtx.set(pChamber->getBaseMtx());
-        mtx.getQuat(pBattle->mQuatA);
+        mtx.getQuat(pBattle->mPoseQuat);
         mtx.getTrans(pBattle->mPosition);
         MR::resetPosition(pBattle);
         TPos3f playerMtx;
@@ -247,7 +244,7 @@ namespace MR {
         if (pPlanet != nullptr) {
             TPos3f mtx;
             mtx.set(pPlanet->getBaseMtx());
-            mtx.getQuat(pBattle->mQuatA);
+            mtx.getQuat(pBattle->mPoseQuat);
             mtx.getTrans(pBattle->mPosition);
             MR::resetPosition(pBattle);
             TPos3f playerMtx;
@@ -260,28 +257,28 @@ namespace MR {
 
     void resetKoopaBattlePosition(KoopaBattle* pBattle) {
         MR::zeroVelocity(pBattle);
-        pBattle->mQuatA = pBattle->mQuatB;
+        pBattle->mPoseQuat = pBattle->mBattleQuat;
         TVec3f front;
-        pBattle->mQuatB.getZDir(front);
-        MR::resetPosition(pBattle, pBattle->mPos - front * 4000.0f);
+        pBattle->mBattleQuat.getZDir(front);
+        MR::resetPosition(pBattle, pBattle->mBattleOrigin - front * 4000.0f);
     }
 
     void invalidateKoopaBattleCollision(KoopaBattle* pBattle) {
         pBattle->getDefenseCollision()->appear();
         MR::invalidateCollisionParts(pBattle);
-        pBattle->_10C = true;
+        pBattle->mIsDefenseForm = true;
     }
 
     void validateKoopaBattleCollision(KoopaBattle* pBattle) {
         pBattle->getDefenseCollision()->kill();
         MR::validateCollisionParts(pBattle);
-        pBattle->_10C = false;
+        pBattle->mIsDefenseForm = false;
     }
 
     void calcKoopaBattleFacePos(TVec3f* pDst) {
         KoopaBattle* pBattle = getKoopaBattle();
         if (pBattle != nullptr && pDst != nullptr) {
-            fn_8002D5C0(pDst, &sFaceOffset, pBattle, "Face");
+            MR::fn_8002D5C0(pDst, sFaceOffset, pBattle, "Face");
         }
     }
 
@@ -332,7 +329,7 @@ namespace MR {
     LiveActor* createKoopaBattleSky(KoopaBattle* pBattle) {
         Sky* pSky = new Sky("クッパ戦闘中の空", "KoopaBattleSky");
         TVec3f up;
-        pBattle->mQuatB.getYDir(up);
+        pBattle->mBattleQuat.getYDir(up);
         MR::setQuatUpNoSupport(pSky, up);
         pSky->initWithoutIter();
         pSky->makeActorDead();
@@ -342,7 +339,7 @@ namespace MR {
     LiveActor* createKoopaLastBattleSky(KoopaBattle* pBattle) {
         Sky* pSky = new Sky("クッパ最終戦空", "KoopaLastBattleSky");
         TVec3f front;
-        pBattle->mQuatB.getZDir(front);
+        pBattle->mBattleQuat.getZDir(front);
         MR::setQuatUpNoSupport(pSky, front);
         pSky->initWithoutIter();
         pSky->makeActorDead();

@@ -19,28 +19,6 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-void DinoPackunBattleVs2Lv1_FORCE_MATCH_SDATA2() {
-    (void)1.05e+03f;
-    (void)6e+01f;
-    (void)1.5f;
-    (void)1.1f;
-    (void)1.2f;
-    (void)4e+01f;
-    (void)8e+01f;
-    (void)32.0f;
-    (void)132.0f;
-    (void)2e+03f;
-    (void)45.0f;
-    (void)1.4f;
-    (void)1.9f;
-    (void)1.6e+03f;
-    (void)1.8f;
-    (void)5e+01f;
-    (void)3e+01f;
-    (void)1.2e+02f;
-    (void)1.5e+02f;
-}
-
 namespace {
     static TVec3f sShotMouthFireOffset = TVec3f(150.0f, 150.0f, 0.0f);
 };  // namespace
@@ -189,7 +167,7 @@ bool DinoPackunBattleVs2Lv1::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSen
 }
 
 bool DinoPackunBattleVs2Lv1::tryAwake() {
-    if (MR::isInSightConePlayer(getHost(), getHost()->_E8, 1050.0f, 60.0f)) {
+    if (MR::isInSightConePlayer(getHost(), getHost()->mFront, 1050.0f, 60.0f)) {
         setNerve(GET_NERVE(DinoPackunBattleVs2Lv1, DinoPackunBattleVs2Lv1NrvAwake));
         return true;
     }
@@ -204,14 +182,14 @@ void DinoPackunBattleVs2Lv1::exeWalk() {
     }
 
     f32 val = MR::calcNerveValue(this, 30, 1.0f, 1.5f);
-    getHost()->mTail->_C = val;
+    getHost()->mTail->mBendAccelRate = val;
 
     if (!tryAwake()) {
         s32 v3 = _3B ? 75 : 100;
         s32 v4 = _3B ? 15 : 20;
         f32 v5 = _3B ? 1.1f : 1.2f;
 
-        MR::rotateDirectionGravityDegree(getHost(), &getHost()->_E8, (v5 * ((getNerveStep() / v3) % 2 == _34 ? -1.0f : 1.0f)));
+        MR::rotateDirectionGravityDegree(getHost(), &getHost()->mFront, (v5 * ((getNerveStep() / v3) % 2 == _34 ? -1.0f : 1.0f)));
         updateOnOffFireTail(v3, v4, 20);
 
         s32 v8 = _3A ? 500 : 610;
@@ -228,7 +206,7 @@ void DinoPackunBattleVs2Lv1::exeWalk() {
 }
 
 void DinoPackunBattleVs2Lv1::endWalk() {
-    getHost()->mTail->_C = 1.0f;
+    getHost()->mTail->mBendAccelRate = 1.0f;
 }
 
 void DinoPackunBattleVs2Lv1::exeTurn() {
@@ -247,7 +225,7 @@ void DinoPackunBattleVs2Lv1::exeTurn() {
 
     if (updateTurn(60, 3.0f)) {
         setNerve(GET_NERVE(DinoPackunBattleVs2Lv1, DinoPackunBattleVs2Lv1NrvWalk));
-    } else if (MR::isInSightFanPlayer(getHost(), getHost()->_E8, 1050.0f, 40.0f, 80.0f)) {
+    } else if (MR::isInSightFanPlayer(getHost(), getHost()->mFront, 1050.0f, 40.0f, 80.0f)) {
         setNerve(GET_NERVE(DinoPackunBattleVs2Lv1, DinoPackunBattleVs2Lv1NrvAwake));
     }
 }
@@ -260,9 +238,9 @@ void DinoPackunBattleVs2Lv1::exeFindCrazy() {
         mStateFire->requestFire();
     }
 
-    MR::turnDirectionToPlayerDegree(getHost(), &getHost()->_E8, 3.0f);
+    MR::turnDirectionToPlayerDegree(getHost(), &getHost()->mFront, 3.0f);
     MR::calcNerveRate(this, 45);
-    MR::addVelocityMoveToDirection(getHost(), getHost()->_E8, 0.0f);
+    MR::addVelocityMoveToDirection(getHost(), getHost()->mFront, 0.0f);
     getHost()->updateNormalVelocity();
     if (MR::isActionEnd(getHost())) {
         setNerve(GET_NERVE(DinoPackunBattleVs2Lv1, DinoPackunBattleVs2Lv1NrvCrazy));
@@ -282,10 +260,10 @@ void DinoPackunBattleVs2Lv1::exeCrazy() {
     }
 
     f32 val = MR::calcNerveValue(this, 30, 1.0f, 1.5f);
-    getHost()->mTail->_C = val;
+    getHost()->mTail->mBendAccelRate = val;
 
-    if (MR::isLessStep(this, 60) || MR::isInSightConePlayer(getHost(), getHost()->_E8, 2000.0f, 45.0f)) {
-        MR::turnDirectionToPlayerDegree(getHost(), &getHost()->_E8, 1.2f);
+    if (MR::isLessStep(this, 60) || MR::isInSightConePlayer(getHost(), getHost()->mFront, 2000.0f, 45.0f)) {
+        MR::turnDirectionToPlayerDegree(getHost(), &getHost()->mFront, 1.2f);
     } else {
         s32 step = getNerveStep();
         s32 div = (step / 60);
@@ -297,24 +275,24 @@ void DinoPackunBattleVs2Lv1::exeCrazy() {
             v4 = 1.0f;
         }
 
-        MR::rotateDirectionGravityDegree(getHost(), &getHost()->_E8, (1.4f * v4));
+        MR::rotateDirectionGravityDegree(getHost(), &getHost()->mFront, (1.4f * v4));
     }
 
     getHost()->updateFootPrintNerve(getNerveStep(), 46);
     updateOnOffFireTail(60, 10, 15);
     f32 rate = MR::calcNerveRate(this, 30);
-    MR::addVelocityMoveToDirection(getHost(), getHost()->_E8, (1.9f * rate));
+    MR::addVelocityMoveToDirection(getHost(), getHost()->mFront, (1.9f * rate));
     getHost()->updateRunVelocity();
 
     if (MR::isGreaterStep(this, 240)) {
-        if (MR::isInSightConePlayer(getHost(), getHost()->_E8, 1600.0f, 45.0f)) {
+        if (MR::isInSightConePlayer(getHost(), getHost()->mFront, 1600.0f, 45.0f)) {
             setNerve(GET_NERVE(DinoPackunBattleVs2Lv1, DinoPackunBattleVs2Lv1NrvFindCrazy));
         }
     }
 }
 
 void DinoPackunBattleVs2Lv1::endCrazy() {
-    getHost()->mTail->_C = 1.0f;
+    getHost()->mTail->mBendAccelRate = 1.0f;
 }
 
 void DinoPackunBattleVs2Lv1::exeChase() {
@@ -331,9 +309,9 @@ void DinoPackunBattleVs2Lv1::exeChase() {
     }
 
     f32 val = MR::calcNerveValue(this, 30, 1.0f, 1.5f);
-    getHost()->mTail->_C = val;
-    if (MR::isInSightConePlayer(getHost(), getHost()->_E8, 2000.0f, 60.0f)) {
-        MR::turnDirectionToPlayerDegree(getHost(), &getHost()->_E8, 1.0f);
+    getHost()->mTail->mBendAccelRate = val;
+    if (MR::isInSightConePlayer(getHost(), getHost()->mFront, 2000.0f, 60.0f)) {
+        MR::turnDirectionToPlayerDegree(getHost(), &getHost()->mFront, 1.0f);
     } else {
         s32 step = getNerveStep();
         s32 div = (step / 60);
@@ -345,24 +323,24 @@ void DinoPackunBattleVs2Lv1::exeChase() {
             v4 = 1.0f;
         }
 
-        MR::rotateDirectionGravityDegree(getHost(), &getHost()->_E8, (2.0f * v4));
+        MR::rotateDirectionGravityDegree(getHost(), &getHost()->mFront, (2.0f * v4));
     }
 
     getHost()->updateFootPrintNerve(getNerveStep(), 46);
     emitFireTail();
     f32 rate = MR::calcNerveRate(this, 45);
-    MR::addVelocityMoveToDirection(getHost(), getHost()->_E8, (1.8f * rate));
+    MR::addVelocityMoveToDirection(getHost(), getHost()->mFront, (1.8f * rate));
     getHost()->updateRunVelocity();
 
     if (MR::isGreaterStep(this, 120)) {
-        if (!MR::isInSightConePlayer(getHost(), getHost()->_E8, 2000.0f, 60.0f)) {
+        if (!MR::isInSightConePlayer(getHost(), getHost()->mFront, 2000.0f, 60.0f)) {
             setNerve(GET_NERVE(DinoPackunBattleVs2Lv1, DinoPackunBattleVs2Lv1NrvWalk));
         }
     }
 }
 
 void DinoPackunBattleVs2Lv1::endChase() {
-    getHost()->mTail->_C = 1.0f;
+    getHost()->mTail->mBendAccelRate = 1.0f;
 }
 
 void DinoPackunBattleVs2Lv1::exeAttackHit() {

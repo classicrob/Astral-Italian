@@ -48,10 +48,10 @@ void WoodLogBridgeParts::updateRandomKick() NO_INLINE {
 
 // NONMATCHING: 96%; stack slot order of the kick/diff temporaries is swapped (stack offsets only)
 // NONMATCHING: target negates the 2.5 pool constant at runtime (fneg) and reloads it per use; named locals get hoisted into f31
+// NONMATCHING: target negates the loaded 2.5 constant at runtime (fneg) instead of a folded -2.5f pool entry; arg setup order of the temp copy
 void WoodLogBridgeParts::control() {
     mVelocity.scale(0.95f);
-    TVec3f diff = mRestPos - mPosition;
-    TVec3f kick(diff);
+    TVec3f kick = TVec3f(mRestPos - mPosition);
     kick.scale(0.01f);
     mVelocity.add(kick);
 
@@ -69,7 +69,7 @@ void WoodLogBridgeParts::control() {
     if (2.5f <= mVelocity.y) {
         MR::startActionSound(this, "Sway1", vol, -1, -1);
     }
-    if (mVelocity.y <= -2.5f) {
+    if (-2.5f >= mVelocity.y) {
         MR::startActionSound(this, "Sway2", vol, -1, -1);
     }
 }
@@ -96,6 +96,7 @@ WoodLogBridge::WoodLogBridge(const char* pName) : LiveActor(pName) {
 
 // NONMATCHING: 93%; the loop keeps &mGravity/&mPosition in r29/r28 and the loop guard is hoisted differently (regalloc/branch layout only)
 // NONMATCHING: loop register assignment (i/part/pos/gravity pointers shuffled) and missing count>0 loop guard
+// NONMATCHING: saved-register assignment in the part loop (pPart/i/pos/grav) and fmuls/fadds operand order
 void WoodLogBridge::init(const JMapInfoIter& rIter) {
     const char* pStrs = "\212\333\221\276\203v\203\214\201[\203g\225\224\225i";
     const char* objName = nullptr;
@@ -119,15 +120,15 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     mParts = new LiveActorGroup(pStrs + 0x54, count);
     mParts->initWithoutIter();
 
-    const TVec3f& rGrav = mGravity;
-    const TVec3f& rPos = mPosition;
     for (s32 i = 0; i < count; i++) {
+        const TVec3f& rPos = mPosition;
+        const TVec3f& rGrav = mGravity;
         WoodLogBridgeParts* pPart = new WoodLogBridgeParts(this, objName);
 
         f32 t = (f32)i / (f32)(count - 1);
         f32 s = MR::sinDegree(180.0f * t);
 
-        TVec3f g = rPos + upVec.scaleInline(20.0f) + mDirZ.scaleInline(50.0f + 2.0f * ((f32)i * 50.0f)) +
+        TVec3f g = rPos + upVec.scaleInline(20.0f) + mDirZ.scaleInline(50.0f + 2.0f * (50.0f * (f32)i)) +
                    rGrav.scaleInline(100.0f).scaleInline(s);
 
         MR::setPosition(pPart, g);
@@ -137,7 +138,7 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     }
 
     s32 half = count / 2;
-    f32 w = 50.0f + 2.0f * ((f32)half * 50.0f);
+    f32 w = 50.0f + 2.0f * (50.0f * (f32)half);
     mClipPos.set<f32>(mPosition + mDirZ.scaleInline(w));
     MR::setClippingTypeSphere(this, w + 500.0f, &mClipPos);
     mTex = MR::loadTexFromArc(this, pStrs + 0x68, pStrs + 0x7C);
@@ -159,7 +160,10 @@ void WoodLogBridge::makeActorDead() {
 }
 
 // NONMATCHING: 95%; stack slot order / reg alloc of the temporaries (fn_8032BB00 in target)
+// NONMATCHING: loop-invariant FPR allocation order (f21-f31) differs; instruction stream otherwise identical
 void applySway(LiveActorGroup* pGroup, const TVec3f* pVecA, const TVec3f* pVecB, f32 min, f32 max) NO_INLINE {
+    f32 cNear = 100.0f;
+    f32 cFar = 1500.0f;
     for (s32 i = 0; i < pGroup->getObjNum(); i++) {
         LiveActor* pActor = pGroup->getActor(i);
         TVec3f diff = *MR::getPlayerPos() - pActor->mPosition;
@@ -167,7 +171,7 @@ void applySway(LiveActorGroup* pGroup, const TVec3f* pVecA, const TVec3f* pVecB,
         f32 sinVal = MR::sinDegree(180.0f * ((f32)i / (f32)(pGroup->getObjNum() - 1)));
         f32 amp = min + sinVal * (max - min);
         f32 mag = PSVECMag(&diff);
-        f32 t = (1500.0f - (mag - 100.0f)) / 1400.0f;
+        f32 t = (cFar - (mag - cNear)) / (cFar - cNear);
         if (t < 0.0f) {
             t = 0.0f;
         } else if (t > 1.0f) {
@@ -306,7 +310,7 @@ void setupLogDraw(const WoodLogBridge* pBridge) NO_INLINE {
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
-    GXSetChanCtrl(GX_ALPHA0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetChanCtrl(GX_COLOR1A1, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_NONE, GX_AF_NONE);
     GXColor col = {0xFF, 0x00, 0x00, 0xFF};
     GXSetChanMatColor(GX_COLOR0A0, col);
     GXSetNumTexGens(1);
@@ -314,7 +318,7 @@ void setupLogDraw(const WoodLogBridge* pBridge) NO_INLINE {
     pBridge->mTex->load(GX_TEXMAP0);
     GXSetNumTevStages(1);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_C0, GX_CC_ZERO);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);

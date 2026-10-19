@@ -10,11 +10,11 @@ namespace {
 };  // namespace
 
 namespace NrvCoinGroup {
+    NEW_NERVE(CoinGroupNrvWait, CoinGroup, Wait);
     NEW_NERVE(CoinGroupNrvAppear, CoinGroup, Appear);
     NEW_NERVE(CoinGroupNrvTryStartDemo, CoinGroup, TryStartDemo);
     NEW_NERVE(CoinGroupNrvDemoAppear, CoinGroup, DemoAppear);
     NEW_NERVE(CoinGroupNrvKill, CoinGroup, Kill);
-    NEW_NERVE(CoinGroupNrvWait, CoinGroup, Wait);
 };  // namespace NrvCoinGroup
 
 CoinGroup::CoinGroup(const char* pName) : LiveActor(pName), mCoinArray(), mCameraInfo(), mCoinCount(), mTimeLimit(-1), mIsPurpleCoinGroup() {

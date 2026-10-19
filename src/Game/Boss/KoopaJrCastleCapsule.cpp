@@ -50,7 +50,7 @@ void KoopaJrCastleElectric::appear() {
     setNerve(&NrvKoopaJrCastleElectric::KoopaJrCastleElectricNrvA::sInstance);
     KoopaJrCastleFunction::getCastle();
     KoopaJrCastleFunction::getCastle();
-    KoopaJrCastleFunction::fn_800D4B40();
+    KoopaJrCastleFunction::validateBodyAndHeadSensors();
 }
 
 void KoopaJrCastleElectric::makeActorDead() {
@@ -61,7 +61,27 @@ void KoopaJrCastleElectric::makeActorDead() {
     LiveActor::makeActorDead();
 }
 
-bool KoopaJrCastleElectric::fn_800D2250() {
+void KoopaJrCastleElectric::exe800D20F0() {
+    LiveActor* head = KoopaJrCastleFunction::getCastle()->mHead;
+    if (!MR::isEffectValid(head, "LeakSign")) MR::emitEffect(head, "LeakSign");
+    MR::startActionSound(head, "EmLvElecbazPreElecLeak");
+    if (MR::isGreaterStep(this, 60)) {
+        MR::deleteEffect(head, "LeakSign");
+        setNerve(&NrvKoopaJrCastleElectric::KoopaJrCastleElectricNrvB::sInstance);
+    }
+}
+
+void KoopaJrCastleElectric::exe800D21A0() {
+    LiveActor* head = KoopaJrCastleFunction::getCastle()->mHead;
+    if (!MR::isEffectValid(head, "Leak")) MR::emitEffect(head, "Leak");
+    MR::startActionSound(head, "EmLvElecbazElecLeak");
+    if (MR::isGreaterStep(this, 330)) {
+        MR::deleteEffect(head, "Leak");
+        kill();
+    }
+}
+
+bool KoopaJrCastleElectric::isElectricDischarging() {
     if (!MR::isDead(this) && isNerve(&NrvKoopaJrCastleElectric::KoopaJrCastleElectricNrvB::sInstance)) {
         return true;
     }

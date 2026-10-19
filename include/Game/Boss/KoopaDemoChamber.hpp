@@ -2,12 +2,24 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 
-// SMG2-only parts of the final Bowser battle (units outside the Koopa state family); only the interface used by
-// the battle helpers is declared here.
+class LiveActorGroup;
+class DemoObj;
+class FixedPosition;
 class KoopaDemoChamber : public LiveActor {
 public:
+    KoopaDemoChamber(const char*);
+    virtual ~KoopaDemoChamber();
+    virtual void makeActorAppeared();
+    virtual void makeActorDead();
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
     void startBreak();
+    void exeBreak();
+    void exeWait();
     void getDemoEndPlayerPos(MtxPtr) const;
+    LiveActorGroup* mChildGroup;
+    DemoObj* mBreakObj;
+    FixedPosition* mPlayerPosition;
 };
 
 class KoopaBattlePlanet : public LiveActor {

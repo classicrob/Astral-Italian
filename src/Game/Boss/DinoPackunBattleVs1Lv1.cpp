@@ -96,7 +96,7 @@ bool DinoPackunBattleVs1Lv1::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSen
 }
 
 bool DinoPackunBattleVs1Lv1::tryFind() {
-    if (MR::isInSightConePlayer(getHost(), getHost()->_E8, 1000.0f, 80.0f)) {
+    if (MR::isInSightConePlayer(getHost(), getHost()->mFront, 1000.0f, 80.0f)) {
         setNerve(GET_NERVE(DinoPackunBattleVs1Lv1, DinoPackunBattleVs1Lv1NrvFind));
         return true;
     }

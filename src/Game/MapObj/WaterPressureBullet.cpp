@@ -70,7 +70,7 @@ void WaterPressureBullet::movement() {
 }
 
 void WaterPressureBullet::control() {
-    if (isNotBound() && MR::isStarPointerPointing2POnTriggerButton(this, "弱", true, false)) {
+    if (isNotBound() && MR::isStarPointerPointing2PAttachTarget(this)) {
         kill();
     } else {
         TVec3f stack_8;
@@ -82,6 +82,7 @@ void WaterPressureBullet::control() {
         }
 
         MR::turnVecToVecCosOnPlane(&_8C, stack_8, _98, MR::cosDegree(2.5f));
+        mParamScale->calcHostVelocity();
     }
 }
 #pragma pop
@@ -122,7 +123,7 @@ void WaterPressureBullet::shotWaterBullet(LiveActor* pActor, const ActorStatePar
 }
 
 void WaterPressureBullet::exeFly() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         MR::startAction(this, "Shot");
     }
 
@@ -139,12 +140,11 @@ void WaterPressureBullet::exeFly() {
     }
 
     if (!_B0) {
-        mVelocity.scaleAdd(0.4f, mGravity, mVelocity);
+        mParamScale->calcHostVelocity(mGravity, mVelocity, 0.4f);
     }
 
     if (MR::isPadSwing(WPAD_CHAN0) && isBound() && !_B2) {
-        MR::startActionSound(mHostActor, "PvTwistStart");
-        MR::startActionSound(mHostActor, "PmSpinAttack");
+        MR::startLevelSoundPlayer("TwistStart", -1, -1);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         setNerve(GET_NERVE(WaterPressureBullet, WaterPressureBulletNrvSpinKill));
         return;
@@ -167,13 +167,13 @@ void WaterPressureBullet::exeFly() {
         }
     }
 
-    if (!_B2 && MR::isGreaterEqualStep(this, 180) || _B2 && MR::isGreaterEqualStep(this, 300)) {
+    if (!_B2 && mParamScale->isGreaterEqualStep(180) || _B2 && mParamScale->isGreaterEqualStep(300)) {
         kill();
     }
 }
 
 void WaterPressureBullet::exeSpinKill() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         MR::startBckPlayer("Spin2nd", 0L);
         mVelocity.zero();
         MR::invalidateHitSensors(this);
@@ -221,7 +221,7 @@ bool WaterPressureBullet::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
             return false;
         } else {
             MR::startActionSound(this, "OjWPressBubbleIn");
-            MR::startActionSound(mHostActor, "PvCatch");
+            MR::startLevelSoundPlayer("CatchV", -1, -1);
 
             return true;
         }
@@ -258,6 +258,7 @@ bool WaterPressureBullet::endHostCamera() const {
     return false;
 }
 
+// NONMATCHING: gravity/velocity address register lifetimes and saved registers differ.
 bool WaterPressureBullet::inviteMario(HitSensor* pSensor) {
     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
 
@@ -277,7 +278,7 @@ bool WaterPressureBullet::inviteMario(HitSensor* pSensor) {
         }
     }
 
-    mHostActor = pSensor->mHost;
+    mHostActor = MR::getSensorHost(pSensor);
     MR::startBckWithInterpole(this, "Touch", 0);
     MR::startBckPlayer("WaterBulletStart", nullptr);
     startHostCamera();

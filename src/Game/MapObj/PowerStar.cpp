@@ -1,5 +1,6 @@
 #include "Game/MapObj/PowerStarColor.hpp"
 #include "Game/MapObj/PowerStar.hpp"
+#include "Game/Map/RaceManager.hpp"
 #include "Game/Util.hpp"
 #include <cstdio>
 #include "Game/Camera/CameraTargetArg.hpp"
@@ -37,7 +38,6 @@
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 void fn_8005BBE0(bool);
-void fn_802654A0();
 }
 
 class DemoObj : public LiveActor {};
@@ -806,12 +806,13 @@ void PowerStar::exeWait() {
     processWait(mIsGrandStar ? 2.0f : 3.0f);
 }
 
+// NONMATCHING: effect argument scheduling and persistent register allocation differ.
 void PowerStar::exeStageClearDemo() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
 
         if (mIsGreenStar) {
-            fn_802654A0();
+            RaceManagerFunction::killRace();
         }
 
         const char* pName = getStarGetAnimCameraName();

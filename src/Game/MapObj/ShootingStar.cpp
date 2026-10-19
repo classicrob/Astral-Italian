@@ -37,6 +37,7 @@ ShootingStar::ShootingStar(const char* pName)
       mWaitForNextShootTime(::sWaitForNextShootTime), mFallHeight(::sFallHeight) {
 }
 
+// NONMATCHING: the two listener FunctorV0M temporaries are copied 3x in the target (extra stack copies around listenStageSwitchOnOffAppear); ours copies once.
 void ShootingStar::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "ShootingStar", false);
     MR::connectToSceneMapObj(this);
@@ -67,8 +68,8 @@ void ShootingStar::init(const JMapInfoIter& rIter) {
     MR::addHitSensorMapObj(this, "message", 1, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initShadowVolumeSphere(this, 30.0f);
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::listenStageSwitchOnOffAppear(this, MR::Functor(this, &ShootingStar::appearPreShooting), MR::Functor< LiveActor >(this, &LiveActor::kill));
+    if (MR::initUseStageSwitchReadAppear(this, rIter)) {
+        MR::listenStageSwitchOnOffAppear(this, MR::FunctorV0M< ShootingStar*, void (ShootingStar::*)() >(this, &ShootingStar::appearPreShooting), MR::FunctorV0M< LiveActor*, void (LiveActor::*)() >(this, &LiveActor::kill));
         makeActorDead();
     } else {
         makeActorAppeared();
@@ -78,6 +79,7 @@ void ShootingStar::init(const JMapInfoIter& rIter) {
     TPos3f matrix = getBaseMtx();
     matrix.getYDir(mFallAxis);
     MR::startBpk(this, "ShootingStar");
+    MR::useStageSwitchAwake(this, rIter);
 }
 
 void ShootingStar::appearPreShooting() {
@@ -110,6 +112,7 @@ void ShootingStar::exePreShooting() {
     }
 }
 
+// NONMATCHING: if/else block layout; target places the Burst arm out of line (bne to a block that branches back before deleteEffect).
 void ShootingStar::exeShooting() {
     if (MR::isFirstStep(this)) {
         mVelocity = -mFallAxis * ::sFallVelScale;
@@ -127,10 +130,10 @@ void ShootingStar::exeShooting() {
     if (MR::isBinded(this)) {
         setNerve(GET_NERVE(ShootingStar, HostTypeNrvWaitForNextShoot));
 
-        if (MR::appearStarPiece(this, mPosition, mNumBurstStarPiece, 15.0f, ::sLaunchYVel, false)) {
-            MR::startActionSound(this, "OjStarPieceBurst");
-        } else {
+        if (!MR::appearStarPiece(this, mPosition, mNumBurstStarPiece, 15.0f, ::sLaunchYVel, false)) {
             MR::startActionSound(this, "OjStarPieceNotBurst");
+        } else {
+            MR::startActionSound(this, "OjStarPieceBurst");
         }
 
         MR::deleteEffect(this, "ShootingStarBlur");

@@ -77,7 +77,7 @@ void FountainBig::exeSpout() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
         MR::emitEffect(this, "FountainBig");
-        MR::startActionSound(this, "SE_OJ_FOUNTAIN_BIG_START");
+        MR::startActionSound(this, "OjFountainBigStart");
         MR::validateHitSensors(this);
     }
     s32 spoutTimer = mSpoutTimer;
@@ -94,7 +94,7 @@ void FountainBig::exeSpout() {
         MR::setScale(this, 1.0f, calcNerve, 1.0f);
         MR::clamp(calcNerve, 0.01f, 1.0f);
     }
-    MR::startActionSound(this, "SE_OJ_LV_FOUNTAIN_BIG_SPOUT");
+    MR::startActionSound(this, "OjLvFountainBigSpout");
     if (MR::isStep(this, 180)) {
         MR::invalidateHitSensors(this);
         MR::deleteEffect(this, "FountainBig");

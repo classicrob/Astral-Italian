@@ -111,7 +111,7 @@ void DinoPackunBattleEggVs2::exeTurn() {
 void DinoPackunBattleEggVs2::exeWalk() {
     if (MR::isFirstStep(this)) {
         MR::startAction(getHost(), "EggWalk");
-        getHost()->mTail->_C = 1.5f;
+        getHost()->mTail->mBendAccelRate = 1.5f;
     }
 
     getHost()->adjustTailRootPosition(::sEggOutPosition, 1.0f);
@@ -126,7 +126,7 @@ void DinoPackunBattleEggVs2::exeWalk() {
         v3 = 1.0f;
     }
 
-    MR::rotateDirectionGravityDegree(getHost(), &getHost()->_E8, (0.75f * v3));
+    MR::rotateDirectionGravityDegree(getHost(), &getHost()->mFront, (0.75f * v3));
     s32 v4 = getNerveStep() % 200;
     if (v4 < 80) {
         mStateFire->requestFire();
@@ -145,7 +145,7 @@ void DinoPackunBattleEggVs2::exeWalk() {
 
 void DinoPackunBattleEggVs2::exeDamage() {
     if (MR::isFirstStep(this)) {
-        getHost()->mTail->_C = 1.0f;
+        getHost()->mTail->mBendAccelRate = 1.0f;
     }
 
     if (MR::updateActorState(this, mStateDamage)) {

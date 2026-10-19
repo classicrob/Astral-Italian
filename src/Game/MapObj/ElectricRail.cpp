@@ -1,4 +1,5 @@
 #include "Game/MapObj/ElectricRail.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ShadowVolumeDrawer.hpp"
@@ -20,8 +21,6 @@
 #include "Game/Util/SchedulerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-// PLACEHOLDER(objects): projects a sensor position into tower-mode areas; resolve when core names fn_800143D0.
-extern "C" void fn_800143D0(TVec3f*);
 
 namespace {
     const char* cSensorNameTable[] = {"body0", "body1", "body2", "body3", "body4", "body5", "body6", "body7"};
@@ -624,7 +623,7 @@ void ElectricRail::updateHitSensorPos() {
     }
     if (MR::isInTowerModeCylinder(_94[0], nullptr, nullptr, nullptr)) {
         for (s32 i = 0; i < mRailHeight; i++) {
-            fn_800143D0(&_94[i]);
+            MR::fn_800143D0(&_94[i]);
         }
     }
 }

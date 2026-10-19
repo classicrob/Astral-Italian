@@ -119,6 +119,7 @@ namespace NrvTamakoro {
     NEW_NERVE(TamakoroNrvBindEnd, Tamakoro, BindEnd);
 };  // namespace NrvTamakoro
 
+// Shared GameAudio layout: AudTamakoroBgmCtrl must be 0x2C bytes (target allocation), not 4.
 Tamakoro::Tamakoro(const char* pName)
     : LiveActor(pName), mAccelSensorCtrl(nullptr), mTutorial(nullptr), mJointCtrl(nullptr), mPurpleCoin(nullptr), mBallRotateQuat(0, 0, 0, 1),
       mMarioRotateQuat(0, 0, 0, 1), mRingUp(0, 1, 0), mKickVel(0, 0, 0), mMarioBindRequestPos(0, 0, 0), mMarioUp(0, 1, 0), mMarioPos(0, 0, 0),
@@ -723,6 +724,7 @@ void Tamakoro::exeJump() {
     updateMarioPose(3.0f);
 }
 
+// NONMATCHING: equivalent early-return branch layout differs.
 void Tamakoro::exeBumpWall() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("BallHit", nullptr);
@@ -742,12 +744,14 @@ void Tamakoro::exeBumpWall() {
     }
     if (tryBindStarPointer()) {
         return;
-    }
-    if (MR::isGreaterStep(this, 15)) {
-        setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
+    } else {
+        if (MR::isGreaterStep(this, 15)) {
+            setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
+        }
     }
 }
 
+// NONMATCHING: equivalent early-return branch layout differs.
 void Tamakoro::exeLand() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("Land", nullptr);
@@ -768,9 +772,10 @@ void Tamakoro::exeLand() {
     }
     if (tryBindStarPointer()) {
         return;
-    }
-    if (MR::isGreaterStep(this, 15)) {
-        setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
+    } else {
+        if (MR::isGreaterStep(this, 15)) {
+            setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
+        }
     }
 }
 
@@ -835,7 +840,7 @@ void Tamakoro::endJumpHoleLaunch() {
 void Tamakoro::exeDashRail() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("BallRoll", nullptr);
-        MR::startLevelSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
+        MR::startLevelSoundPlayer("JumpObj", -1, -1);
         MR::startActionSound(this, "SmIronsphRaildash", -1, -1, -1);
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
         mAccelDir.zero();
@@ -1065,6 +1070,7 @@ void Tamakoro::updateMarioPose(f32 degree) {
     MR::setPlayerUpperRotateY(PI_180 * rotY);
 }
 
+// NONMATCHING: floating-point register allocation differs.
 void Tamakoro::updateMarioOffset() {
     f32 velocity = mMarioOffsetVelocity - ::sMarioOffsetGravityAccel;
     velocity *= ::sMarioOffsetFric;

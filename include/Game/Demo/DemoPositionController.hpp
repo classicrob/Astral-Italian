@@ -13,6 +13,7 @@ public:
     void initAnimCamera(const char*);
     void startDemo(const char*);
     void endDemo(const char*);
+    void setAnimCameraLastFrame(const char*);
 
     /* 0x8C */ ActorCameraInfo* pCameraInfo;
 };

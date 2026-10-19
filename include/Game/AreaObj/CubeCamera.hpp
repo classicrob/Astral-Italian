@@ -13,7 +13,7 @@ public:
         /* 0x05 */ ECategory_None,
     };
 
-    CubeCameraArea(int, const char*);
+    CubeCameraArea(const char*);
 
     virtual void init(const JMapInfoIter&);
     virtual void movement();
@@ -33,8 +33,8 @@ public:
         return mZoneID;
     }
 
-    /* 0x3C */ s32 _3C;
-    /* 0x40 */ u32 mZoneID;
+    /* 0x48 */ u16 mCategory;
+    /* 0x4C */ u32 mZoneID;
 };
 
 class CubeCameraMgr : public AreaObjMgr {

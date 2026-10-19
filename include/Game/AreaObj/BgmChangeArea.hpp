@@ -11,5 +11,5 @@ public:
 
     s32 getFadeTime() const;
 
-    /* 0x48 */ bool _48;
+    /* 0x48 */ bool mIsBgmApplied;
 };

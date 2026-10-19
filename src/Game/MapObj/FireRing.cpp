@@ -1,18 +1,10 @@
 #pragma auto_inline off
-// NONMATCHING (not yet byte-exact, logic written from asm):
-//   calcBallPositions (fn_802A25F0): 0x2CC vs 0x2BC, register/order diffs in the sin/cos table math.
-//   exeAccel / exeRotate: 4-16 byte size diffs, same calls; regalloc in the clamp/rotate sequence.
-//   initBalls (fn_802A2420): 93.7%, regalloc only (target keeps the 0.0f zero in f28 for setBtkFrame).
-//   getBaseMtx: target symbol is non-const (getBaseMtx__8FireRingFv), LiveActor::getBaseMtx is const.
-//   __sinit_FireRing_cpp: 97.7%, nerve sbss order matches, ctor layout differs.
+// NONMATCHING: calcBallPositions uses different vector inlining, stack and register scheduling.
+// NONMATCHING: initBalls and calcRadiusSpeed retain instruction/register scheduling differences.
+// Symbol issue: target getBaseMtx__8FireRingFv lacks the const qualifier used by LiveActor's virtual.
 #include "Game/MapObj/FireRing.hpp"
 #include "Game/Util.hpp"
 #include "Game/NameObj/NameObjExecuteHolder.hpp"
-
-// SMG2 LiveActor::mScale sits at 0x30 (target asm); the shared header still says 0x2C.
-static inline f32 getScaleX(const LiveActor* pActor) {
-    return *reinterpret_cast< const f32* >(reinterpret_cast< const u8* >(pActor) + 0x30);
-}
 
 namespace NrvFireRing {
     NEW_NERVE(FireRingNrvWait, FireRing, Wait);
@@ -104,7 +96,7 @@ void FireRing::initBalls(const JMapInfoIter& rIter) {
         if (mIsShadowDropDirPtr) {
             mBalls[i]->setShadowDropDirectionPtr();
         }
-        f32 scale = getScaleX(this);
+        f32 scale = mScale.y;
         if (scale > 1.2f) {
             MR::setSensorRadius(mBalls[i], "Attack", 0.65f * MR::getSensorRadius(mBalls[i], "Attack") * scale);
         }
@@ -122,23 +114,21 @@ void FireRing::calcBallPositions() {
     f32 step = 360.0f / (f32)mBallCount;
     for (s32 i = 0; i < mBallCount; i++) {
         f32 angle = step * (f32)i;
+        const f32 degreeToTableIndex = JMath::TSinCosTable<14, f32>::LEN / 360.0f;
+        const s32 tableIndexMask = JMath::TSinCosTable<14, f32>::LEN - 1;
         f32 absAngle = angle;
         if (angle < 0.0f) {
             absAngle = -angle;
         }
-        f32 cosVal = mRadius * reinterpret_cast< const f32* >(reinterpret_cast< const u8* >(&JMath::sSinCosTable) + ((s32)(45.511112f * absAngle) * 8 & 0x1FFF8))[1];
+        f32 cosVal = mRadius * JMath::sSinCosTable.table[(s32)(degreeToTableIndex * absAngle) & tableIndexMask].b1;
         f32 sinVal;
         if (angle < 0.0f) {
-            sinVal = -*reinterpret_cast< const f32* >(reinterpret_cast< const u8* >(&JMath::sSinCosTable) + ((s32)(-45.511112f * angle) * 8 & 0x1FFF8));
+            sinVal = -JMath::sSinCosTable.table[(s32)(-degreeToTableIndex * angle) & tableIndexMask].a1;
         } else {
-            sinVal = *reinterpret_cast< const f32* >(reinterpret_cast< const u8* >(&JMath::sSinCosTable) + ((s32)(45.511112f * angle) * 8 & 0x1FFF8));
+            sinVal = JMath::sSinCosTable.table[(s32)(degreeToTableIndex * angle) & tableIndexMask].a1;
         }
 
-        TVec3f upPart;
-        upPart = up * (mRadius * sinVal);
-        TVec3f sidePart;
-        sidePart = side * cosVal;
-        TVec3f offset = sidePart + upPart;
+        TVec3f offset = side * cosVal + up * (mRadius * sinVal);
         TVec3f ballPos = mPosition + offset;
         MR::setPosition(mBalls[i], ballPos);
 
@@ -150,7 +140,7 @@ void FireRing::calcBallPositions() {
         mBalls[i]->setFrontAndUp(dir, cross);
 
         if (mIsShadowDropDirPtr) {
-            TVec3f negDir(-dir.x, -dir.y, -dir.z);
+            TVec3f negDir = -dir;
             mBalls[i]->setShadowDropDirection(negDir);
         }
     }
@@ -185,7 +175,8 @@ void FireRing::exeAccel() {
             }
         }
     }
-    mRadius = MR::clamp(mRadius + mRadiusSpeed, 0.0f, mRadiusMax);
+    mRadius += mRadiusSpeed;
+    mRadius = MR::clamp(mRadius, 0.0f, mRadiusMax);
     if (!isAnyBallBinding()) {
         MR::rotateMtxLocalZDegree(mBaseMtx, mRotSpeed / 10.0f);
         calcBallPositions();
@@ -207,7 +198,8 @@ void FireRing::exeRotate() {
     if (!isAnyBallBinding()) {
         MR::startActionSound(this, "Move", -1, -1, -1);
         if (!MR::isNearZero(mRadiusMax - mRadiusMin, 0.001f)) {
-            mRadius = MR::clamp(mRadius + mRadiusSpeed, mRadiusMin, mRadiusMax);
+            mRadius += mRadiusSpeed;
+            mRadius = MR::clamp(mRadius, mRadiusMin, mRadiusMax);
             if (MR::isNearZero(mRadius - mRadiusMax, 0.001f)) {
                 mRadiusSpeed = -calcRadiusSpeed();
             }

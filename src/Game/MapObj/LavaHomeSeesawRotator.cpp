@@ -12,6 +12,9 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <JSystem/JMath/JMATrigonometric.hpp>
 
+// PLACEHOLDER(objects): forces the leading .sdata2 pool order [1.0f, JGeometry::TUtil< f32 >::epsilon(), -JGeometry::TUtil< f32 >::epsilon(), 0.0f, 0.5f, 2.0f, -HALF_PI, HALF_PI] that the target has but plain first-use order does not give
+// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
+// function order already matches the target); resolve when those inline bodies are identified
 void LavaHomeSeesawRotator_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)JGeometry::TUtil< f32 >::epsilon();

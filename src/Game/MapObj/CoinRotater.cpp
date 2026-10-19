@@ -5,7 +5,7 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-CoinRotater::CoinRotater(const char* pName) : NameObj(pName), _C(), _10(), _14() {
+CoinRotater::CoinRotater(const char* pName) : NameObj(pName), mAngle(), mWaterAngle(), mHiSpeedAngle() {
     mRotateYMtx.identity();
     mHiSpeedRotateYMtx.identity();
     mWaterRotateMtx.identity();
@@ -14,18 +14,18 @@ CoinRotater::CoinRotater(const char* pName) : NameObj(pName), _C(), _10(), _14()
 }
 
 void CoinRotater::movement() {
-    _C += 8.0f;
-    _C = MR::repeat(_C, 0.0f, 360.0f);
+    mAngle += 8.0f;
+    mAngle = MR::repeat(mAngle, 0.0f, 360.0f);
 
-    _10 += 4.0f;
-    _10 = MR::repeat(_10, 0.0f, 360.0f);
+    mWaterAngle += 4.0f;
+    mWaterAngle = MR::repeat(mWaterAngle, 0.0f, 360.0f);
 
-    _14 += 16.0f;
-    _14 = MR::repeat(_14, 0.0f, 360.0f);
+    mHiSpeedAngle += 16.0f;
+    mHiSpeedAngle = MR::repeat(mHiSpeedAngle, 0.0f, 360.0f);
 
-    MR::makeMtxRotateY(mRotateYMtx, _C);
-    MR::makeMtxRotateY(mHiSpeedRotateYMtx, _14);
-    MR::makeMtxRotateY(mWaterRotateMtx, _10);
+    MR::makeMtxRotateY(mRotateYMtx, mAngle);
+    MR::makeMtxRotateY(mHiSpeedRotateYMtx, mHiSpeedAngle);
+    MR::makeMtxRotateY(mWaterRotateMtx, mWaterAngle);
 }
 
 namespace MR {

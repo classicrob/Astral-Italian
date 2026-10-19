@@ -138,7 +138,7 @@ void KoopaStateLastBattle::exeStart() {
     MR::calcKoopaBattleWorldPos(&mHost->mPosition, pos);
     MR::startSoundInCameraDistance(mHost, "LastChaseRoll", -1, -1, 31000.0f);
     f32 angle = MR::calcNerveValue(this, 120, 0.0f, 2520.0f);
-    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mHost->mQuatB, angle);
+    MR::rotateQuatXAxisDegree(&mHost->mPoseQuat, mHost->mBattleQuat, angle);
     if (MR::isGreaterEqualStep(this, 120)) {
         mChase->_64 = true;
         setNerve(&SINST(Chase));

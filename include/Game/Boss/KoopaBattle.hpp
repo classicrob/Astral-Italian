@@ -8,7 +8,6 @@ class ActorCameraInfo;
 class ActorJointCtrl;
 class CollisionObj;
 class PartsModel;
-class Triangle;
 class VolumeDrawer;
 
 // SMG2-only final Bowser battle actor (KoopaVs1 / KoopaLv2 / KoopaVs2 / KoopaLv3 / KoopaVs3).
@@ -30,7 +29,7 @@ public:
     PartsModel* getDefenseForm() const;                   // fn_800C8F40
     CollisionObj* getDefenseCollision() const;            // fn_800C8F50
     void setPose(const TQuat4f&, const TVec3f&);          // fn_800C8F60
-    bool isInvalidTriangle(const Triangle*);              // fn_800C9140
+    bool isValidFollowId(s32) const;              // fn_800C9140
     void startBattle();
     void exeBattle();
 
@@ -42,9 +41,9 @@ public:
     /* 0xA4 */ CollisionObj* mDefenseCollision;
     /* 0xA8 */ VolumeDrawer* mVolumeDrawer;
     /* 0xAC */ TPos3f mBaseMtx;
-    /* 0xDC */ TQuat4f mQuatA;
-    /* 0xEC */ TQuat4f mQuatB;
-    /* 0xFC */ TVec3f mPos;
+    /* 0xDC */ TQuat4f mPoseQuat;
+    /* 0xEC */ TQuat4f mBattleQuat;
+    /* 0xFC */ TVec3f mBattleOrigin;
     /* 0x108 */ s32 mBattleNo;
-    /* 0x10C */ bool _10C;
+    /* 0x10C */ bool mIsDefenseForm;
 };

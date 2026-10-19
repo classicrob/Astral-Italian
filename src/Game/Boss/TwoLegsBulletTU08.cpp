@@ -4,6 +4,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 
+namespace { const char* sOpeningDemoName = "Opening"; }
+
 namespace NrvTwoLegsStateOpening {
     NEW_NERVE(TwoLegsStateOpeningNrvWaitDemo, TwoLegsStateOpening, WaitDemo);
     NEW_NERVE(TwoLegsStateOpeningNrvDemo, TwoLegsStateOpening, Demo);
@@ -30,7 +32,7 @@ void TwoLegsStateOpening::kill() {
 }
 
 void TwoLegsStateOpening::exeWaitDemo() {
-    if (MR::tryStartDemo(mHost, "Eye")) {
+    if (MR::tryStartDemo(mHost, sOpeningDemoName)) {
         MR::stopStageBGM(30);
         MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Opening", nullptr, 0, 1.0f);
         MR::overlayWithPreviousScreen(2);
@@ -53,7 +55,7 @@ void TwoLegsStateOpening::exeDemo() {
     if (MR::isStep(this, 470)) {
         MR::startCenterScreenBlur(100, 15.0f, 80, 5, 30);
     }
-    if (MR::tryEndDemoAndAnimCamera(mHost, mHost->mCameraInfo, "Eye", 0)) {
+    if (MR::tryEndDemoAndAnimCamera(mHost, mHost->mCameraInfo, sOpeningDemoName, 0)) {
         kill();
     }
 }

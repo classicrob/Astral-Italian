@@ -49,7 +49,7 @@ public:
     }
 
     bool isValid() const {
-        return mIsValid && _1D;
+        return mIsValid && mIsFollowValid;
     }
 
     template < typename T >
@@ -60,7 +60,7 @@ public:
     /* 0x14 */ AreaForm* mForm;
     /* 0x18 */ int mFormType;
     /* 0x1C */ bool mIsValid;
-    /* 0x1D */ bool _1D;
+    /* 0x1D */ bool mIsFollowValid;
     /* 0x20 */ s32 mObjArg0;
     /* 0x24 */ s32 mObjArg1;
     /* 0x28 */ s32 mObjArg2;
@@ -90,5 +90,5 @@ public:
     }
 
     /* 0x14 */ MR::Vector< MR::AssignableArray< AreaObj* > > mArray;
-    /* 0x20 */ s32 _20;
+    /* 0x20 */ s32 mCapacity;
 };

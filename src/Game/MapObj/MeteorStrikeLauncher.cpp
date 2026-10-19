@@ -30,7 +30,6 @@ void MeteorStrikeLauncher::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(MeteorStrikeLauncher, MeteorStrikeLauncherNrvCreate));
 
-    MR::syncStageSwitchAppearAndSync(this, rIter);
 
     if (mIsMeteorStrike && mIsValidMultiMeteor) {
         f32 speed = MeteorStrike::getSpeed(rIter);

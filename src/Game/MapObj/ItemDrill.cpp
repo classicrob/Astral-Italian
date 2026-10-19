@@ -13,15 +13,11 @@
 #include "JSystem/JGeometry/TVec.hpp"
 #include "JSystem/JMath/JMath.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80038D20, declared extern "C" so the reloc name matches; resolve when fn_80038D20 gets its real name in symbols.txt
-extern "C" HitSensor* fn_80038D20(const Triangle*);
 
-// PLACEHOLDER(objects): unnamed target symbol fn_800222A0, declared extern "C" so the reloc name matches; resolve when fn_800222A0 gets its real name in symbols.txt
-extern "C" void fn_800222A0(const LiveActor*);
 // PLACEHOLDER(objects): unnamed target symbol fn_80038FB0, declared extern "C" so the reloc name matches; resolve when fn_80038FB0 gets its real name in symbols.txt
 extern "C" CollisionParts* fn_80038FB0(const TVec3f*, const TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_8004FF70, declared extern "C" so the reloc name matches; resolve when fn_8004FF70 gets its real name in symbols.txt
-extern "C" void fn_8004FF70();
+// PLACEHOLDER(objects): unnamed target symbol fn_80050380, declared extern "C" so the reloc name matches; resolve when fn_80050380 gets its real name in symbols.txt
+extern "C" bool fn_80050380();
 // PLACEHOLDER(objects): unnamed target symbol fn_802B5800, declared extern "C" so the reloc name matches; resolve when fn_802B5800 gets its real name in symbols.txt
 extern "C" void fn_802B5800(TMtx34f*, const TVec3f*, const TVec3f*, TVec3f*);
 
@@ -145,7 +141,7 @@ void ItemDrill::init(const JMapInfoIter& rIter) {
 
 void ItemDrill::draw() const {
     if (!MR::isDead(this) && !MR::isClipped(this) && isTakenByPlayer()) {
-        fn_800222A0(this);
+        MR::fn_800222A0(this);
     }
 }
 
@@ -355,7 +351,7 @@ bool ItemDrill::startDrill() {
         TVec3f limitPos(mLimitPos->mPosition);
         JMathInlineVEC::PSVECAdd(&limitPos, &scaled, &limitPos);
         TVec3f diff(limitPos);
-        PSVECSubtract(&playerPos, &diff, &diff);
+        JMathInlineVEC::PSVECSubtract(&playerPos, &diff, &diff);
         if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, playerPos, diff)) {
             mMtx12C.setTrans(mLimitPos->mPosition);
             mUnk20C = 0;
@@ -367,7 +363,7 @@ bool ItemDrill::startDrill() {
     }
 
     JMath::gekko_ps_copy12(&mMtxFC, MR::getPlayerBaseMtx());
-    fn_8004FF70();
+    MR::resetPlayerFootState();
     mDrillingTime = 0;
     mUnk220 = false;
     setNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveStart));
@@ -472,9 +468,6 @@ bool ItemDrill::updateDrillMove(const TVec3f& rMove) {
     TVec3f dir;
     TVec3f camPos;
     TVec3f center;
-    TVec3f pos1;
-    TVec3f pos2;
-    TVec3f diff;
 
     bool result = false;
     s32 counter = mUnk20C;
@@ -496,11 +489,11 @@ bool ItemDrill::updateDrillMove(const TVec3f& rMove) {
 
         bool moved;
         if (MR::normalizeOrZero(&dir, rMove) == false) {
-            pos1.set(mPosition);
+            TVec3f pos1(mPosition);
             JMathInlineVEC::PSVECAdd(&pos1, &rMove, &pos1);
             moved = mLimitPos->adjustPositionByCollision(pos1, &dir);
         } else {
-            pos2.set(mPosition);
+            TVec3f pos2(mPosition);
             JMathInlineVEC::PSVECAdd(&pos2, &rMove, &pos2);
             moved = mLimitPos->adjustPositionByCollision(pos2, nullptr);
         }
@@ -531,8 +524,8 @@ bool ItemDrill::updateDrillMove(const TVec3f& rMove) {
         mCameraTargetMtx->mMatrix.getTrans(camPos);
         center.set(*MR::getPlayerCenterPos());
         if (40.0f < PSVECDistance(&camPos, &center)) {
-            diff.set(center);
-            PSVECSubtract(&diff, &camPos, &diff);
+            TVec3f diff(center);
+            JMathInlineVEC::PSVECSubtract(&diff, &camPos, &diff);
             MR::normalize(&center, diff);
             JMAVECScaleAdd(&center, &camPos, &center, 40.0f);
         }
@@ -548,11 +541,9 @@ s32 ItemDrill::calcDiveStep() {
     mMtx15C.getTrans(to);
     s32 steps = static_cast< s32 >(PSVECDistance(&from, &to) / 30.0f) + 1;
 
-    TVec3f step;
-    TVec3f delta;
-    delta.set(to);
-    PSVECSubtract(&delta, &from, &delta);
-    step.set(delta);
+    TVec3f delta(to);
+    JMathInlineVEC::PSVECSubtract(&delta, &from, &delta);
+    TVec3f step(delta);
     step.scale(1.0f / static_cast< f32 >(steps));
 
     if (updateDrillMove(step)) {
@@ -677,7 +668,7 @@ bool ItemDrill::checkAimDirection(HitSensor* pFrom, HitSensor* pTo) {
 
     TVec3f dir;
     const TVec3f* pFromPos = MR::getSensorPos(pFrom);
-    PSVECSubtract(MR::getSensorPos(pTo), pFromPos, &dir);
+    JMathInlineVEC::PSVECSubtract(MR::getSensorPos(pTo), pFromPos, &dir);
     if (MR::normalizeOrZero(&dir)) {
         return false;
     }
@@ -811,7 +802,7 @@ void ItemDrill::exeDrillDiveLoop() {
         }
 
         HitSensor* pBody = getSensor("Body");
-        if (MR::sendMsgDrillAttack(fn_80038D20(mTriangle), pBody)) {
+        if (MR::sendMsgDrillAttack(MR::fn_80038D20(mTriangle), pBody)) {
             TVec3f up;
             mBaseTRMtx.getYDir(up);
             MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, up);

@@ -19,7 +19,7 @@ KoopaStatePowerUpDemo::KoopaStatePowerUpDemo(KoopaBattle* pHost) : ActorStateBas
 void KoopaStatePowerUpDemo::appear() {
     mIsDead = false;
     MR::appearKoopaBattlePlanet();
-    fn_8001FEF0(this, mHost, "パワーアップ", &NrvKoopaStatePowerUpDemo::KoopaStatePowerUpDemoNrvDemo::sInstance,
+    MR::requestStartDemo(this, mHost, "パワーアップ", &NrvKoopaStatePowerUpDemo::KoopaStatePowerUpDemoNrvDemo::sInstance,
                 &NrvKoopaStatePowerUpDemo::KoopaStatePowerUpDemoNrvWait::sInstance);
     mIsCameraInterpolating = false;
 }

@@ -2,8 +2,8 @@
 #include "Game/Util.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 
-BloomArea::BloomArea(int formType, const char* pName)
-    : ImageEffectArea(IMAGE_EFFECT_TYPE_BLOOM, formType, pName), mThreshold(128), mIntensity(255), mIntensity1(-1), mIntensity2(-1) {
+BloomArea::BloomArea(const char* pName)
+    : ImageEffectArea(IMAGE_EFFECT_TYPE_BLOOM, pName), mThreshold(128), mIntensity(255), mIntensity1(-1), mIntensity2(-1) {
 }
 
 void BloomArea::init(const JMapInfoIter& rIter) {

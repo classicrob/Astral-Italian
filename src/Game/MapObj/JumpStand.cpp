@@ -16,7 +16,7 @@ namespace NrvJumpStand {
 };  // namespace NrvJumpStand
 
 JumpStand::JumpStand(const char* pName) : LiveActor(pName), mBindedActor(), mIsMarioJumpingHigh() {
-    _90.identity();
+    mCollisionMtx.identity();
 }
 
 // NONMATCHING: TVec3f(0.0f) sound-offset temp is out of line (__ct__TVec3<f>Ff) in target, inlined in ours.
@@ -31,8 +31,8 @@ void JumpStand::init(const JMapInfoIter& rIter) {
     binderOffs.set(0.0f, 100.0f, 0.0f);
     MR::addHitSensorPriorBinder(this, "binder", 4, 200.0f, binderOffs);
     MR::invalidateHitSensor(this, "binder");
-    _90.set(MR::getJointMtx(this, "JumpStandJoint03"));
-    MR::initCollisionParts(this, "JumpStand", getSensor("Body"), _90);
+    mCollisionMtx.set(MR::getJointMtx(this, "JumpStandJoint03"));
+    MR::initCollisionParts(this, "JumpStand", getSensor("Body"), mCollisionMtx);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "JumpStand", nullptr, TVec3f(0.0f));
     MR::setGroupClipping(this, rIter, 16);
@@ -99,10 +99,10 @@ void JumpStand::exeHipDropBound() {
     }
 
     if (MR::isLessStep(this, 15) && mBindedActor != nullptr) {
-        f32 v2 = (6.0f - MR::calcNerveEaseOutRate(this, 15));
-        TVec3f v3;
-        MR::calcUpVec(&v3, this);
-        mBindedActor->mPosition.scaleAdd(-v2, v3, mBindedActor->mPosition);
+        f32 pushBack = (6.0f - MR::calcNerveEaseOutRate(this, 15));
+        TVec3f upVec;
+        MR::calcUpVec(&upVec, this);
+        mBindedActor->mPosition.scaleAdd(-pushBack, upVec, mBindedActor->mPosition);
     }
 
     if (MR::isStep(this, 15)) {
@@ -135,7 +135,7 @@ void JumpStand::exeStarPieceBound() {
 void JumpStand::control() {
     TVec3f pos;
     MR::copyJointPos(this, "JumpStandJoint03", &pos);
-    _90.setTrans(pos);
+    mCollisionMtx.setTrans(pos);
 }
 
 bool JumpStand::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -212,38 +212,38 @@ bool JumpStand::tryToStartBind(HitSensor* pSensor) {
 }
 
 void JumpStand::updateBindActorMtx() {
-    TPos3f v6;
-    v6.identity();
-    TVec3f v5;
-    MR::calcPlayerWorldPadDir(&v5, MR::getSubPadStickX(0), MR::getSubPadStickY(0));
-    MR::calcMtxFromGravityAndZAxis(&v6, mBindedActor, mGravity, v5);
-    MR::blendMtxRotate(mBindedActor->getBaseMtx(), v6, 0.40f, v6);
-    v6.setTrans(mBindedActor->mPosition);
-    MR::setBaseTRMtx(mBindedActor, v6);
+    TPos3f bindMtx;
+    bindMtx.identity();
+    TVec3f padDir;
+    MR::calcPlayerWorldPadDir(&padDir, MR::getSubPadStickX(0), MR::getSubPadStickY(0));
+    MR::calcMtxFromGravityAndZAxis(&bindMtx, mBindedActor, mGravity, padDir);
+    MR::blendMtxRotate(mBindedActor->getBaseMtx(), bindMtx, 0.40f, bindMtx);
+    bindMtx.setTrans(mBindedActor->mPosition);
+    MR::setBaseTRMtx(mBindedActor, bindMtx);
 }
 
-void JumpStand::endBindAndShootUp(f32 v1, JumpType type) {
-    TVec3f v28;
+void JumpStand::endBindAndShootUp(f32 shootSpeed, JumpType type) {
+    TVec3f shootVel;
 
     if (MR::isPlayerInRush()) {
         if (type == Jump_High) {
-            MR::calcUpVec(&v28, this);
+            MR::calcUpVec(&shootVel, this);
         } else {
-            v28.negate(mGravity);
+            shootVel.negate(mGravity);
         }
 
-        v28 *= v1;
+        shootVel *= shootSpeed;
         f32 stickLen = MR::sqrt(MR::getSubPadStickX(WPAD_CHAN0) * MR::getSubPadStickX(WPAD_CHAN0) +
                                 MR::getSubPadStickY(WPAD_CHAN0) * MR::getSubPadStickY(WPAD_CHAN0));
-        TVec3f v27;
+        TVec3f stickDir;
         if (stickLen > 0.1f) {
-            MR::normalize(v28, &v27);
-            TVec3f v26;
-            MR::calcPlayerWorldPadDir(&v26, MR::getSubPadStickX(WPAD_CHAN0), MR::getSubPadStickY(WPAD_CHAN0));
-            TVec3f v25;
-            v25.scale(3.0f * stickLen, v26);
-            v25.orthogonalize(v27);
-            v28.add(v25);
+            MR::normalize(shootVel, &stickDir);
+            TVec3f stickWorldDir;
+            MR::calcPlayerWorldPadDir(&stickWorldDir, MR::getSubPadStickX(WPAD_CHAN0), MR::getSubPadStickY(WPAD_CHAN0));
+            TVec3f lateralVel;
+            lateralVel.scale(3.0f * stickLen, stickWorldDir);
+            lateralVel.orthogonalize(stickDir);
+            shootVel.add(lateralVel);
         }
 
         if (type == Jump_Low) {
@@ -254,7 +254,7 @@ void JumpStand::endBindAndShootUp(f32 v1, JumpType type) {
             MR::startBckPlayer("TrampolineJumpHigh", nullptr);
         }
 
-        MR::endBindAndPlayerJump(this, v28, 0);
+        MR::endBindAndPlayerJump(this, shootVel, 0);
 
         if (type != Jump_High) {
             MR::becomePlayerNormalJumpStatus();

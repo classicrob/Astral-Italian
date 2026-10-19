@@ -38,13 +38,13 @@ bool PoltaActionBase::updateWait() {
 bool PoltaActionBase::updateDamageBody(bool isFirst) {
     if (MR::isFirstStep(this)) {
         PoltaFunction::startAction(getHost(), "Damage", true);
-        MR::startSystemSE("SE_SY_VS_BOSS_DAMAGE_1");
+        MR::startActionSound(getHost(), "SyVsBossDamage1");
         MR::startActionSound(getHost(), "BmPoltaRockDamage");
         MR::startActionSound(getHost(), "BvPoltaDamageBody");
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
         MR::shakeCameraNormalStrong();
         MR::stopScene(3);
-        getHost()->_EC = 0.0f;
+        getHost()->mTurnSpeed = 0.0f;
         if (isFirst) {
             getHost()->appearBreakModelFirst(getHost()->mPosition);
         } else {
@@ -66,7 +66,7 @@ bool PoltaActionBase::updateDamageBody(bool isFirst) {
 bool PoltaActionBase::updateBreakBody() {
     if (MR::isFirstStep(this)) {
         PoltaFunction::startAction(getHost(), "BreakBody", true);
-        MR::startSystemSE("SE_SY_VS_BOSS_DAMAGE_1");
+        MR::startActionSound(getHost(), "SyVsBossDamage1");
         MR::startActionSound(getHost(), "BmPoltaRockBreak");
         MR::startActionSound(getHost(), "BvPoltaLoseShell");
         PoltaFunction::breakLeftArm(getHost());
@@ -77,7 +77,7 @@ bool PoltaActionBase::updateBreakBody() {
         MR::zeroVelocity(getHost());
         MR::shakeCameraNormalStrong();
         MR::stopScene(3);
-        getHost()->_EC = 0.0f;
+        getHost()->mTurnSpeed = 0.0f;
         getHost()->appearBreakModelLast(getHost()->mPosition);
     }
     this->updateScreamSensor();
@@ -105,7 +105,7 @@ bool PoltaActionBase::updateDamageCore() {
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
         MR::shakeCameraNormalStrong();
         MR::stopScene(3);
-        getHost()->_EC = 0.0f;
+        getHost()->mTurnSpeed = 0.0f;
         MR::zeroVelocity(getHost());
         PoltaFunction::disperseBombTeresa(getHost());
     }

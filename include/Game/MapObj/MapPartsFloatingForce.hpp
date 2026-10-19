@@ -37,6 +37,7 @@ public:
     void exeMove();
     void exeMoveSpring();
     void exeMoveReturn();
+    void exeMoveEnd();
 
     /* 0x18 */ SpringStep* mSpringStep;
     /* 0x1C */ const char* mObjectName;

@@ -66,7 +66,7 @@ public:
 
     void updateMode();                             // fn_800DE770
     bool tryAppearFire();                          // fn_800DE8E0
-    bool fn_800DEA50();
+    bool tryTurnToPlayer();
     void exeAttackB();
 
     void exeWait() {}
@@ -251,19 +251,19 @@ class KoopaJrRobotSeq : public NerveExecutor {
 public:
     KoopaJrRobotSeq(KoopaJrRobot*);  // TU02 fn_800DC310
     virtual ~KoopaJrRobotSeq();      // fn_800DCC10
-    void fn_800DC380();
-    void fn_800DC6B0();
-    void fn_800DC740();
-    void fn_800DC7C0();
-    void fn_800DC850();
-    void fn_800DC5B0();
+    void initLaunchers();
+    void killLaunchers();
+    void updateLauncherTransforms();
+    void movementLaunchers();
+    void movementKillerPool();
+    void appearLaunchers();
     void fn_800DC9F0();
     void fn_800DC9C0();
     void fn_800DC9D0();
     void fn_800DC9E0();
-    void fn_800DC870();
-    void fn_800DC880();
-    void fn_800DC8E0();
+    void startMagnumShot();
+    void startRearLauncherShots();
+    void attackShootableKillers();
     void exeA();  // fn_800DCA00
     void exeB();  // fn_800DCAD0
     void exeC();  // fn_800DCB70
@@ -272,8 +272,8 @@ public:
     /* 0x0C */ KoopaJrRobotKillerPool* mPool;
     /* 0x10 */ KoopaJrRobotKillerLauncher* mMagnumLauncher;
     /* 0x14 */ KoopaJrRobotKillerLauncher* mLaunchers[8];
-    /* 0x34 */ bool mFlagA;
-    /* 0x35 */ bool mFlagB;
+    /* 0x34 */ bool mLaunchersDisabled;
+    /* 0x35 */ bool mLauncherSide;
 };
 
 class KoopaJrRobotPart : public NerveExecutor {
@@ -299,7 +299,7 @@ public:
     static KoopaJrRobotPart* create(KoopaJrRobot*, s32);  // fn_800E20E0
     static const char* getSensorName(s32);                // fn_800E21C0
     void appearStarPiece();                               // fn_800E2510
-    bool fn_800E25F0();
+    bool isBroken();
     void exeNormal();   // fn_800E2650
     void exeDamage1();  // fn_800E26A0
     void exeDamage2();  // fn_800E2700
@@ -357,8 +357,8 @@ public:
     /* 0xCC */ TVec3f mOffset;
     /* 0xD8 */ f32 mSpeed;
     /* 0xDC */ s32 mLife;
-    /* 0xE0 */ f32 _E0;
-    /* 0xE4 */ f32 _E4;
+    /* 0xE0 */ f32 mColorIndex;
+    /* 0xE4 */ f32 mBeamRadius;
 };
 
 // StarPieceGroup child layout (array at 0x90, count at 0x9C)
@@ -370,6 +370,8 @@ public:
 };
 
 namespace KoopaJrRobotFunction {
+    s32 getStarPieceCountPerPart();
+    const char* getDemoName();
     bool isPlayerInRushAir();                      // fn_800DBAE0
     void attachBodyToAllRoot(KoopaJrRobot*);       // fn_800DBCC0
     void attachBodyToHead(KoopaJrRobot*);          // fn_800DBD00
@@ -405,16 +407,16 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
 
     void killParts();
-    void fn_800DB9C0();
+    void attackShootableKillers();
     HomingKiller* allocKiller(LiveActor*);              // fn_800DB990
     bool releaseKiller(LiveActor*, HomingKiller*);      // fn_800DB9A0
     LiveActor* getKillerOwner(HomingKiller*);           // fn_800DBCB0
-    bool fn_800DB9B0(HitSensor*);
+    bool isKillerShotEnd(HitSensor*);
     bool fn_800DEB50(const char*, const TVec3f&);
-    bool fn_800DBB30(f32);
-    bool fn_800DBA70(HitSensor*);
-    bool fn_800DB9D0(HitSensor*);
-    bool fn_800DBC40();
+    bool isPlayerNearBack(f32);
+    bool isWeakPointSensor(HitSensor*);
+    bool isArmSensor(HitSensor*);
+    bool isAllBodyPartsBroken();
     bool isStateNerve() const;
     void initChildren(const JMapInfoIter&);
 
@@ -462,8 +464,8 @@ public:
     virtual void calcAndSetBaseMtx();               // fn_800E4060
     virtual void attackSensor(HitSensor*, HitSensor*);  // fn_800E4070
 
-    void fn_800E40E0();
-    void fn_800E4160();
+    void appearAtArenaEdge();
+    void startDisappear();
     void exeAppear();     // fn_800E4170
     void exeDisappear();  // fn_800E41D0
     void exeWait();       // fn_800E4320

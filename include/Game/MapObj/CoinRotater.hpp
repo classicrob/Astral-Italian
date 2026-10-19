@@ -9,9 +9,9 @@ public:
 
     virtual void movement();
 
-    /* 0x14 */ f32 _C;
-    /* 0x18 */ f32 _10;
-    /* 0x1C */ f32 _14;
+    /* 0x14 */ f32 mAngle;
+    /* 0x18 */ f32 mWaterAngle;
+    /* 0x1C */ f32 mHiSpeedAngle;
     /* 0x20 */ TMtx34f mRotateYMtx;
     /* 0x50 */ TMtx34f mHiSpeedRotateYMtx;
     /* 0x80 */ TMtx34f mWaterRotateMtx;

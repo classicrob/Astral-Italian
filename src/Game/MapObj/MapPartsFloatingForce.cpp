@@ -1,11 +1,13 @@
+#define JGEOMETRY_VEC3_NEG_NOINLINE
 #include "Game/MapObj/MapPartsFloatingForce.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
-#include "Game/MapObj/FloaterFunction.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/MapPartsUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/SpringValue.hpp"
@@ -15,6 +17,7 @@ namespace NrvMapPartsFloatingForce {
     NEW_NERVE(HostTypeMove, MapPartsFloatingForce, Move);
     NEW_NERVE(HostTypeMoveSpring, MapPartsFloatingForce, MoveSpring);
     NEW_NERVE(HostTypeMoveReturn, MapPartsFloatingForce, MoveReturn);
+    NEW_NERVE(HostTypeMoveEnd, MapPartsFloatingForce, MoveEnd);
 };  // namespace NrvMapPartsFloatingForce
 
 SpringStep::SpringStep(f32 cond, f32 speed, f32 angle) : mSpringValue() {
@@ -99,7 +102,10 @@ void MapPartsFloatingForce::updateVelocity() {
         }
     } else {
         if (_48 <= 0.0f) {
-            _4C = MR::converge< f32 >(_4C, 0.0f, 0.05f);
+            if (!MR::isNearZero(_4C, 0.001f)) {
+                MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUpEnd", -1, -1, -1);
+                _4C = 0.0f;
+            }
         } else {
             _4C = _4C - (0.0001f * mRotateAngle);
         }
@@ -140,12 +146,8 @@ bool MapPartsFloatingForce::tryOn() {
     }
 
     if (MR::isOnPlayer(MR::getBodySensor(mHost))) {
-        const char* pGroundSound = FloaterFunction::getSeGroundOn(mObjectName);
-        if (pGroundSound != nullptr) {
-            MR::startSound(mHost, pGroundSound);
-        }
-
         setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeMoveSpring));
+        MR::startActionSoundAuto(mHost, "MapPartsFloaterRidden", -1, -1, -1);
         return true;
     }
 
@@ -184,19 +186,19 @@ void MapPartsFloatingForce::exeMove() {
     _50.set(-mUpDirection * _4C);
     _48 += _4C;
     _48 = MR::clamp(_48, 0.0f, _20);
-    TVec3f* const pPosition = &mHost->mPosition;
-    pPosition->set(_30 - mUpDirection * _48);
+    LiveActor* pHost = mHost;
+    MR::setPosition(pHost, _30 - mUpDirection * _48);
+
+    if (mRotateAccelType == 2 && _20 <= _48) {
+        MR::tryRumblePadWeak(this, 0);
+        setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeMoveEnd));
+    }
+
     if (mObjectName != nullptr) {
         if (_4C > 0.1f) {
-            const char* pSound = FloaterFunction::getSeMoveDown(mObjectName);
-            if (pSound != nullptr) {
-                MR::startLevelSound(mHost, pSound);
-            }
+            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveDown", static_cast< s32 >(1000.0f * __fabsf(_4C)), -1, -1);
         } else if (_4C < -0.1f) {
-            const char* pSound = FloaterFunction::getSeMoveUp(mObjectName);
-            if (pSound != nullptr) {
-                MR::startLevelSound(mHost, pSound);
-            }
+            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", static_cast< s32 >(1000.0f * __fabsf(_4C)), -1, -1);
         }
     }
 }
@@ -220,18 +222,40 @@ void MapPartsFloatingForce::exeMoveReturn() {
     updateVelocitySpring();
     mHost->mVelocity.set(_50);
     if (mObjectName != nullptr && 0.1f != _4C) {
-        const char* pSound = FloaterFunction::getSeMoveUp(mObjectName);
-        if (pSound != nullptr) {
-            MR::startLevelSound(mHost, pSound);
-        }
+        MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", static_cast< s32 >(1000.0f * __fabsf(_4C)), -1, -1);
     }
 
     if (MR::isNearZero(_30 - mHost->mPosition) && MR::isNearZero(_50)) {
-        mHost->mPosition.set(_30);
+        MR::setPosition(mHost, _30);
         setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeWait));
     } else {
         tryOn();
     }
+}
+
+void MapPartsFloatingForce::exeMoveEnd() {
+    if (MR::isOnPlayer(MR::getBodySensor(mHost))) {
+        if (_20 - _3C > _48) {
+            _4C = 0.0f;
+            _50 = mUpDirection * _4C;
+            _48 = _20 - _3C;
+            _4C = MR::converge< f32 >(_4C, 0.0f, 0.05f);
+        } else {
+            _4C = -_3C / 5.0f;
+        }
+    } else {
+        _4C = 0.0f;
+        _50 = mUpDirection * _4C;
+        setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeMove));
+    }
+
+    _4C *= 0.98f;
+    _4C = MR::clamp(_4C, -50.0f, 50.0f);
+    _50.set(-mUpDirection * _4C);
+    _48 += _4C;
+    _48 = MR::clamp(_48, 0.0f, _20);
+    LiveActor* pHost = mHost;
+    MR::setPosition(pHost, _30 - mUpDirection * _48);
 }
 
 MapPartsFloatingForce::~MapPartsFloatingForce() {

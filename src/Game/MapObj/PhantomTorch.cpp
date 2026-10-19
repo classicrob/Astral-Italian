@@ -4,6 +4,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/JMapUtil.hpp"
@@ -19,6 +21,10 @@ namespace NrvPhantomTorch {
     NEW_NERVE(HostTypeExtinguish, PhantomTorch, Extinguish);
 };  // namespace NrvPhantomTorch
 
+namespace {
+    const char* sRisePictureBookParticle = "PhantomTorchRotate";
+};  // namespace
+
 PhantomTorch::~PhantomTorch() {
 }
 
@@ -29,14 +35,23 @@ PhantomTorch::PhantomTorch(const char* pName) : LiveActor(pName) {
     mIsDecorative = false;
 }
 
+void PhantomTorch::initFromRisePictureBook() {
+    mItem = 1;
+    mParticle = sRisePictureBookParticle;
+    initWithoutIter();
+}
+
 void PhantomTorch::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     f32 x = mScale.x;
-    MR::getJMapInfoArg0NoInit(rIter, &mItem);
-    s32 arg = -1;
-    MR::getJMapInfoArg1NoInit(rIter, &arg);
-    mIsDecorative = arg != -1;
-    MR::getObjectName(&mParticle, rIter);
+
+    if (rIter.isValid()) {
+        MR::getJMapInfoArg0NoInit(rIter, &mItem);
+        s32 arg = -1;
+        MR::getJMapInfoArg1NoInit(rIter, &arg);
+        mIsDecorative = arg != -1;
+        MR::getObjectName(&mParticle, rIter);
+    }
 
     if (mItem == -1) {
         MR::declareCoin(this, 1);
@@ -56,14 +71,15 @@ void PhantomTorch::init(const JMapInfoIter& rIter) {
     vec.z = 0.0f;
     MR::addHitSensorMapObj(this, "body", 8, 50.0f * x, vec);
     MR::setClippingTypeSphere(this, 500.0f * x);
-    MR::joinToGroupArray(this, rIter, nullptr, 32);
+    MR::initStarPointerTarget(this, 50.0f * x, TVec3f(0.0f, 70.0f * x, 0.0f));
+    MR::joinToGroupArray(this, rIter, mParticle, 32);
     initNerve(GET_NERVE(PhantomTorch, HostTypeWait));
     MR::connectToSceneMapObjMovement(this);
     makeActorAppeared();
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchAwake(this, rIter);
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
+    if (MR::initUseStageSwitchReadAppear(this, rIter)) {
         MR::listenStageSwitchOnOffAppear(this, MR::Functor(this, &PhantomTorch::makeActorAppeared), MR::Functor(this, &PhantomTorch::makeActorDead));
         makeActorDead();
     }
@@ -119,6 +135,19 @@ void PhantomTorch::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+bool PhantomTorch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (mIsDecorative) {
+        return false;
+    }
+
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && isNerve(GET_NERVE(PhantomTorch, HostTypeWait))) {
+        setNerve(GET_NERVE(PhantomTorch, HostTypeExtinguish));
+        return true;
+    }
+
+    return false;
+}
+
 bool PhantomTorch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (mIsDecorative) {
         return false;
@@ -146,20 +175,20 @@ void PhantomTorch::soundOrder() {
 
         switch (num) {
         case 1:
-            MR::startSystemSE("SE_SY_CANDLE_COMBO_5");
+            MR::startActionSound(this, "SyCandleCombo1", -1, -1, -1);
             break;
         case 2:
-            MR::startSystemSE("SE_SY_CANDLE_COMBO_4");
+            MR::startActionSound(this, "SyCandleCombo2", -1, -1, -1);
             break;
         case 3:
-            MR::startSystemSE("SE_SY_CANDLE_COMBO_3");
+            MR::startActionSound(this, "SyCandleCombo3", -1, -1, -1);
             break;
         case 4:
-            MR::startSystemSE("SE_SY_CANDLE_COMBO_2");
+            MR::startActionSound(this, "SyCandleCombo4", -1, -1, -1);
             break;
         case 5:
         default:
-            MR::startSystemSE("SE_SY_CANDLE_COMBO_1");
+            MR::startActionSound(this, "SyCandleCombo5", -1, -1, -1);
             break;
         }
     }
@@ -171,6 +200,8 @@ void PhantomTorch::exeWait() {
     } else {
         MR::startActionSound(this, "OjLvPhantomToachBurn");
     }
+
+    MR::attachSupportTicoToTarget(this);
 }
 
 void PhantomTorch::exeAttack() {
@@ -181,6 +212,8 @@ void PhantomTorch::exeAttack() {
     } else {
         MR::startActionSound(this, "OjLvPhantomToachBurn");
     }
+
+    MR::attachSupportTicoToTarget(this);
 }
 
 void PhantomTorch::exeExtinguish() {

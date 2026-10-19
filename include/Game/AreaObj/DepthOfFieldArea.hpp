@@ -4,7 +4,7 @@
 
 class DepthOfFieldArea : public ImageEffectArea {
 public:
-    DepthOfFieldArea(int, const char*);
+    DepthOfFieldArea(const char*);
 
     virtual void init(const JMapInfoIter&);
 

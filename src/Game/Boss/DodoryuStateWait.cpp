@@ -43,7 +43,7 @@ void DodoryuStateWait::exeWait() {
 
     MR::startActionSound(mHost, "SE_BM_LV_DODORYU_MOVE_U_SHALLOW", -1, -1, -1);
 
-    if (mHost->_144 && !MR::isPlayerInRush()) {
+    if (mHost->mBattleStarted && !MR::isPlayerInRush()) {
         mNextStateCounter++;
     } else {
         mNextStateCounter = 0;

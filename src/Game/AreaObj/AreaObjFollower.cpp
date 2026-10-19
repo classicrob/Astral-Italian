@@ -10,11 +10,11 @@ AreaObjFollower::AreaObjFollower(AreaObj* pObj, const JMapInfoIter& rIter) : Bas
 
 void AreaObjFollower::update() {
     if (MR::isDead(static_cast< LiveActor* >(getFollowTargetActor())) || !isValid()) {
-        mObj->_1D = false;
+        mObj->mIsFollowValid = false;
     } else {
         calcFollowMatrix(&mFollowMtx);
 
-        mObj->_1D = true;
+        mObj->mIsFollowValid = true;
     }
 }
 

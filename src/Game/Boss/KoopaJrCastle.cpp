@@ -22,7 +22,7 @@ namespace NrvKoopaJrCastle { KoopaJrCastleNrvBattle KoopaJrCastleNrvBattle::sIns
 KoopaJrCastle::KoopaJrCastle(const char* pName)
     : LiveActor(pName), mWind(nullptr), mCannon(nullptr), mFireBar(nullptr), mRingBeam(nullptr), mElectric(nullptr), mDominate(nullptr),
       mBody(nullptr), mHead(nullptr), mCapsule(nullptr), mKoopaJr(nullptr), mBreakModel(nullptr), mStateOpening(nullptr),
-      mStateBattle(nullptr), mCameraInfo(nullptr), mFrontVec(0.0f, 0.0f, 0.0f), mStartPos(0.0f, 0.0f, 0.0f), _110(0.0f, 0.0f, 0.0f) {
+      mStateBattle(nullptr), mCameraInfo(nullptr), mFrontVec(0.0f, 0.0f, 0.0f), mStartPos(0.0f, 0.0f, 0.0f), mCameraOffset(0.0f, 0.0f, 0.0f) {
     PSMTXIdentity(mBaseMtx.toMtxPtr());
 }
 
@@ -45,7 +45,7 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
         MR::declareCameraRegisterVec(this, mCameraRegId, &mCameraPos);
     }
     MR::createSceneObj(0x8B);
-    reinterpret_cast< KoopaJrCastleAccessor* >(MR::getSceneObjHolder()->getObj(0x8B))->mCastle = this;
+    reinterpret_cast< KoopaJrCastleAccessor* >(MR::getSceneObjHolder()->getObj(SceneObj_KoopaJrCastleAccessor))->mCastle = this;
 
     mBody = new KoopaJrCastleBody(this, "\x93y\x91\xe4(Body)");
     mBody->initWithoutIter();
@@ -54,7 +54,7 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
     mHead->initFixedPosition(MR::getJointMtx(mBody, "HeadPos"), TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
     mHead->initWithoutIter();
     mCapsule = new KoopaJrCastleCapsule(mHead, "\x83J\x83v\x83Z\x83\x8b");
-    mCapsule->initFixedPosition(MR::getJointMtx(mHead, "Cockpit"), TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
+    mCapsule->initFixedPosition(MR::getJointMtx(mHead, "Top"), TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
     mCapsule->initWithoutIter();
     MR::invalidateClipping(mCapsule);
     mKoopaJr = new PartsModelLodCtrl(mHead, "\x83N\x83""b\x83pJr", "KoopaJr", 0, 0x13, false);
@@ -65,8 +65,8 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
     mKoopaJr->initLightCtrl();
     mKoopaJr->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
     mKoopaJr->getLodCtrl()->setDistanceToMiddle(0.0f);
-    MR::startBva(mKoopaJr->getLodCtrl()->mMiddleModel, "Wait");
-    MR::startBva(mKoopaJr->getLodCtrl()->mLowModel, "Wait");
+    MR::startBva(mKoopaJr->getLodCtrl()->mMiddleModel, "Cockpit");
+    MR::startBva(mKoopaJr->getLodCtrl()->mLowModel, "Cockpit");
     MR::startAction(mKoopaJr, "Wait");
     mBreakModel = new BreakModel(this, "\x83L\x83\x83\x83""b\x83X\x83\x8b\x89\xf3\x82\xea\x83\x82\x83""f\x83\x8b", "KoopaJrCastleBreak", 0, "Break");
     mBreakModel->initWithoutIter();
@@ -118,7 +118,7 @@ void KoopaJrCastle::control() {
         TPos3f mtx;
         PSMTXIdentity(mtx.toMtxPtr());
         MR::makeMtxFrontUp(&mtx, mGravity, grav);
-        MR::extractMtxXDir(mtx.toMtxPtr(), &_110);
+        MR::extractMtxXDir(mtx.toMtxPtr(), &mCameraOffset);
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayer(&toPlayer, mCapsule);
         f32 d = toPlayer.dot(mGravity) / 2000.0f;
@@ -130,9 +130,9 @@ void KoopaJrCastle::control() {
         } else {
             v = d;
         }
-        _110 = (grav * -0.0f) * v;
+        mCameraOffset = (grav * -0.0f) * v;
     }
-    mCameraPos += _110;
+    mCameraPos += mCameraOffset;
     if (mStateBattle->isDemo()) {
         mCameraPos += mGravity * 1200.0f;
     } else {
@@ -141,17 +141,16 @@ void KoopaJrCastle::control() {
     MR::calcMtxFromGravityAndZAxis(&mBaseMtx, this, mFrontVec);
 }
 
+// NONMATCHING: vector temporary stack slots and saved registers.
 void KoopaJrCastle::exeBattle() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
         MR::startStageBGM("MBGM_SMG2_BOSS_06A", false);
     }
     if (MR::updateActorState(this)) {
-        TVec3f pos(mPosition);
-        pos -= mGravity * 1600.0f;
+        TVec3f pos(mPosition - mGravity * 1600.0f);
         MR::requestAppearPowerStar(this, pos);
-        TVec3f cam(mStartPos);
-        cam += mGravity * -100.0f;
+        TVec3f cam(mStartPos + mGravity * -100.0f);
         mCameraPos = cam;
         mCapsule->kill();
         mHead->kill();

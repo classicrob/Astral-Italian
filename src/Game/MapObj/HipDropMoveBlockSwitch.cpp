@@ -5,7 +5,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Map/CollisionParts.hpp"
 
-
 namespace NrvHipDropMoveBlockSwitch {
     NEW_NERVE(HipDropMoveBlockSwitchNrvOff, HipDropMoveBlockSwitch, Off);
     NEW_NERVE(HipDropMoveBlockSwitchNrvSwitchDown, HipDropMoveBlockSwitch, SwitchDown);
@@ -32,6 +31,8 @@ HipDropMoveBlockSwitch::HipDropMoveBlockSwitch(const char* pName, HipDropMoveBlo
 }
 
 void HipDropMoveBlockSwitch::init(const JMapInfoIter& rIter) {
+    // pNames + N are offsets into one pooled literal block (target string layout); the substrings are not
+    // separate literals, so they stay as offsets.
     const char* pNames = "HipDropMoveBlockSwitch";
     MR::initActor(this, rIter, pNames + 0x0, false);
     initHitSensor(2);
@@ -54,8 +55,7 @@ void HipDropMoveBlockSwitch::calcAnim() {
     mCollisionParts->setMtx(mtx);
 }
 
-// NONMATCHING: the TVec3 copy (trans(pos)) is inlined here (target calls out-of-line copy ctor) and the
-// position adds are scheduled differently, so the body only approximates the target.
+// NONMATCHING: target copy-constructs trans out of line and assigns mPosition inline (psq); ours inlines the copy-ctor and calls operator= out of line.
 void HipDropMoveBlockSwitch::calcAndSetBaseMtx() {
     TVec3f pos(0.0f);
     mBaseMtx.mult(mOffset, pos);

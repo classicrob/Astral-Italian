@@ -39,7 +39,7 @@ public:
     /* 0x64 */ f32 mUIRange;
     /* 0x68 */ f32 mUIRangeFixed;
     /* 0x6C */ bool mIsDeactivated;
-    /* 0x70 */ s32 mAlreadyDoneFlag;
+    /* 0x70 */ int mAlreadyDoneFlag;
     /* 0x74 */ u8 mIsListeningAppear;
     /* 0x75 */ u8 mIsCounterVisible;
 };

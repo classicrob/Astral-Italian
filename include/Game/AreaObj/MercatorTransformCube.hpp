@@ -27,7 +27,7 @@ public:
     void calcUV(TVec2f*, const TVec3f&) const;
     void calcLocalBoxSize(TVec3f*) const NO_INLINE;
 
-    /* 0x3C */ TMtx34f _3C;
+    /* 0x3C */ TMtx34f mZonePlacementMtx;
 };
 
 namespace MR {

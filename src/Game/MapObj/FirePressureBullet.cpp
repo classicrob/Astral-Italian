@@ -12,13 +12,13 @@ namespace NrvFirePressureBullet {
 FirePressureBullet::FirePressureBullet(const char* pName) : LiveActor(pName) {
     mAnimScaleCtrl = nullptr;
     mBindStarPointer = nullptr;
-    _8C.x = 0.0f;
-    _8C.y = 0.0f;
-    _8C.z = 0.0f;
+    mFront.x = 0.0f;
+    mFront.y = 0.0f;
+    mFront.z = 0.0f;
     mFirePressure = nullptr;
-    _9C = 0.0f;
-    _A0 = false;
-    _A1 = false;
+    mSpeed = 0.0f;
+    mIsHoming = false;
+    mIgnoreCollision = false;
 }
 
 void FirePressureBullet::init(const JMapInfoIter& rIter) {
@@ -41,24 +41,25 @@ void FirePressureBullet::control() {
 
 void FirePressureBullet::calcAndSetBaseMtx() {
     TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, _8C);
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
     MR::setBaseTRMtx(this, mtx);
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
 void FirePressureBullet::shotFireBullet(LiveActor* pActor, const TPos3f& rPos, const f32& a3, bool a4, bool a5) {
     mFirePressure = pActor;
-    _9C = a3;
-    _A0 = a4;
-    _A1 = a5;
+    mSpeed = a3;
+    mIsHoming = a4;
+    mIgnoreCollision = a5;
 
-    rPos.getZDir(_8C);
-    mVelocity.scale(_9C, _8C);
+    rPos.getZDir(mFront);
+    mVelocity.scale(mSpeed, mFront);
     rPos.getTrans(mPosition);
     mRotation.zero();
     MR::validateHitSensors(this);
     MR::invalidateClipping(this);
     setNerve(GET_NERVE(FirePressureBullet, FirePressureBulletNrvFly));
+    MR::calcGravity(this);
     makeActorAppeared();
 }
 
@@ -74,9 +75,9 @@ void FirePressureBullet::exeFly() {
 
     MR::startActionSound(this, "OjLvFPressureBullet");
 
-    if (_A0 && !(getNerveStep() % 5)) {
-        MR::turnDirectionToTargetDegree(this, &_8C, *MR::getPlayerPos(), 3.0f);
-        mVelocity.scale(_9C, _8C);
+    if (mIsHoming && !(getNerveStep() % 5)) {
+        MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), 3.0f);
+        mVelocity.scale(mSpeed, mFront);
     }
 
     if (mBindStarPointer->tryStartPointBind()) {
@@ -90,7 +91,7 @@ void FirePressureBullet::exeFly() {
 
 void FirePressureBullet::exeBindStarPointer() {
     if (MR::updateActorStateAndNextNerve(this, &NrvFirePressureBullet::FirePressureBulletNrvFly::sInstance)) {
-        mVelocity.scale(_9C, _8C);
+        mVelocity.scale(mSpeed, mFront);
     }
 }
 
@@ -105,7 +106,7 @@ void FirePressureBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
 }
 
 bool FirePressureBullet::isCrash() const {
-    if (_A1) {
+    if (mIgnoreCollision) {
         return false;
     }
 

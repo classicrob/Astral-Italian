@@ -15,20 +15,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include <JSystem/JUtility/JUTVideo.hpp>
 
-void BrightObj_FORCE_MATCH_SDATA2() {
-    (void)0.001f;
-    (void)0.25f;
-    (void)0.4f;
-    (void)0.7f;
-    (void)1.1f;
-    (void)100.0f;
-    (void)100000.0f;
-    (void)3000.0f;
-    (void)-0.999f;
-    (void)180.0f;
-    (void)57.295776f;
-}
-
 namespace {
     inline const TPos3f& getBrightView(const BrightCamInfo& rInfo, u16 index) {
         return rInfo.mViewMtx[index];
@@ -319,7 +305,25 @@ void BrightObj::getNowCenter(TVec2f* pDst) const {
     ::calcScreenPosition(pDst, mPosition, MR::getCameraViewMtx(), MR::getCameraProjectionMtx());
 }
 
+BrightObjBase::~BrightObjBase() {
+}
+
 BrightSun::BrightSun(const char* pName) : LiveActor(pName), BrightObjBase(), mSun() {
+}
+
+void BrightSun::init(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+
+    MR::invalidateClipping(this);
+
+    // SMG2 MovementType_Environment is 0x20 (our enum: 0x21)
+    MR::connectToScene(this, 0x20, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_BrightSun);
+
+    mSun = new Sun("太陽");
+    mSun->initWithoutIter();
+
+    MR::tryRegisterDemoCast(this, rIter);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void BrightSun::control() {
@@ -358,6 +362,9 @@ void BrightSun::calcBrightInfo(u16 index, const BrightCamInfo& rCamInfo) {
     checkVisibilityOfSphere(index, rCamInfo);
 }
 
+BrightObj::~BrightObj() {
+}
+
 void BrightSun::getNowCenter(TVec2f* pDst) const {
     ::calcScreenPosition(pDst, mPosition, MR::getCameraViewMtx(), MR::getCameraProjectionMtx());
 }
@@ -386,15 +393,6 @@ void BrightSun::controlSunModel() {
     MR::setRotation(mSun, rotation);
 }
 
-BrightObj::~BrightObj() {
-}
-
-BrightSun::~BrightSun() {
-}
-
-BrightObjBase::~BrightObjBase() {
-}
-
 void BrightObjBase::endRead() {
     mInfo.endRead();
 }
@@ -415,17 +413,5 @@ void BrightObjBase::getNowCenter(TVec2f* pDst) const {
     pDst->set(mNowCenter);
 }
 
-void BrightSun::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-
-    MR::invalidateClipping(this);
-
-    // SMG2 MovementType_Environment is 0x20 (our enum: 0x21)
-    MR::connectToScene(this, 0x20, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_BrightSun);
-
-    mSun = new Sun("太陽");
-    mSun->initWithoutIter();
-
-    MR::tryRegisterDemoCast(this, rIter);
-    MR::useStageSwitchSyncAppear(this, rIter);
+BrightSun::~BrightSun() {
 }

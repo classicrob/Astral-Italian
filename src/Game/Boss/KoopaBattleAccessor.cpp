@@ -232,8 +232,8 @@ void KoopaLastBattleCamera::start(f32 frames) {
     TVec3f dir = mHostPos - mPlayerPos;
     MR::normalizeOrZero(&dir);
     TVec3f up;
-    reinterpret_cast< KoopaBattle* >(mHost)->mQuatB.getYDir(up);
-    reinterpret_cast< KoopaBattle* >(mHost)->mQuatB.getZDir(dir);
+    reinterpret_cast< KoopaBattle* >(mHost)->mBattleQuat.getYDir(up);
+    reinterpret_cast< KoopaBattle* >(mHost)->mBattleQuat.getZDir(dir);
     TVec3f front = -dir;
     MR::makeQuatFrontUp(&mQuat, front, up);
     MR::startActorCameraProgrammable(mHost, static_cast< s32 >(frames));
@@ -259,7 +259,7 @@ void KoopaLastBattleCamera::updateQuat() {
     MR::normalizeOrZero(&dir);
     if (!MR::isNearZero(dir, 0.001f)) {
         TVec3f up;
-        reinterpret_cast< KoopaBattle* >(mHost)->mQuatB.getYDir(up);
+        reinterpret_cast< KoopaBattle* >(mHost)->mBattleQuat.getYDir(up);
         TQuat4f target;
         MR::makeQuatFrontUp(&target, dir, up);
         mQuat.slerp(target, 0.1f);

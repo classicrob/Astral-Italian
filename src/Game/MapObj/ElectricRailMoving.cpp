@@ -12,8 +12,6 @@
 #include <revolution/gd/GDBase.h>
 #include <revolution/gx/GXEnum.h>
 
-// PLACEHOLDER(objects): projects a sensor position into tower-mode areas; resolve when core names fn_800143D0.
-extern "C" void fn_800143D0(TVec3f*);
 
 namespace {
     const char* cSensorNameTable[] = {"body0", "body1", "body2", "body3", "body4", "body5", "body6", "body7"};
@@ -372,7 +370,7 @@ void ElectricRailMoving::updateHitSensorPos() {
     }
     if (isValid && MR::isInTowerModeCylinder(mSensorOffsets[0], nullptr, nullptr, nullptr)) {
         for (s32 i = 0; i < mStackHeight; i++) {
-            fn_800143D0(&mSensorOffsets[i]);
+            MR::fn_800143D0(&mSensorOffsets[i]);
         }
     }
 }

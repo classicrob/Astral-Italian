@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MUL_NOINLINE
 #pragma auto_inline off
 #include "Game/Boss/KoopaBattle.hpp"
 #include "Game/Boss/KoopaBattleFunction.hpp"
@@ -14,12 +15,14 @@ namespace NrvKoopaStateFireAttack {
     NEW_NERVE(KoopaStateFireAttackNrvFireEnd, KoopaStateFireAttack, FireEnd);
 };  // namespace NrvKoopaStateFireAttack
 
+// NONMATCHING: allocation-loop register selection and instruction scheduling differ.
 KoopaStateFireAttack::KoopaStateFireAttack(KoopaBattle* pHost)
     : ActorStateBase< KoopaBattle >("クッパ炎アタック", pHost), mFireBalls(nullptr), mFireCount(1), mIsLoopStarted(false) {
     DeriveActorGroup< KoopaFireBall >* pGroup = new DeriveActorGroup< KoopaFireBall >("火炎管理", 32);
     mFireBalls = pGroup;
+    const char* ballName = "クッパ火炎";
     for (s32 i = 0; i < pGroup->mObjNumMax; i++) {
-        KoopaFireBall* pBall = new KoopaFireBall("クッパ火炎");
+        KoopaFireBall* pBall = new KoopaFireBall(ballName);
         pBall->initWithoutIter();
         pGroup->registerActor(pBall);
     }
@@ -52,10 +55,11 @@ void KoopaStateFireAttack::exeFireStart() {
     TVec3f toActor = mHost->mPosition - base;
     MR::normalizeOrZero(&toActor);
     TVec3f toTarget;
-    MR::calcVecToTargetPosH(&toTarget, mHost, *MR::getPlayerPos(), &toActor);
-    MR::turnQuatYDirRad(&mHost->mQuatA, mHost->mQuatA, toTarget, 0.04363323f);
+    KoopaBattle* host = mHost;
+    MR::calcVecToTargetPosH(&toTarget, host, *MR::getPlayerPos(), &toActor);
+    MR::turnQuatYDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, toTarget, 0.04363323f);
     TVec3f negActor = -toActor;
-    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, negActor, 0.10471976f);
+    MR::turnQuatZDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, negActor, 0.10471976f);
     if (MR::isActionEnd(mHost)) {
         setNerve(&NrvKoopaStateFireAttack::KoopaStateFireAttackNrvFireLoop::sInstance);
     }
@@ -97,7 +101,7 @@ void KoopaStateFireAttack::exeFireEnd() {
     }
 }
 
-// NONMATCHING: target calls TVec3f::operator*(f32) out of line (bl __ml__) here; ours expands it inline. Calls/constants agree.
+// NONMATCHING: vector temporary stack placement and register allocation differ; calls/constants agree.
 void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     TVec3f base;
     MR::getKoopaBattleBasePos(&base);
@@ -109,9 +113,11 @@ void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     f32 angle = 57.29578f * MR::diffAngleAbs(toActor, toPlayerDir);
     f32 rate = MR::normalize(angle, 70.0f, 110.0f);
     TVec3f toTarget;
-    MR::calcVecToTargetPosH(&toTarget, mHost, *MR::getPlayerPos(), &toActor);
-    MR::turnQuatYDirRad(&mHost->mQuatA, mHost->mQuatA, toTarget, 0.01745329f * (2.5f * rate));
-    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, -toActor, 0.10471976f);
+    KoopaBattle* host = mHost;
+    MR::calcVecToTargetPosH(&toTarget, host, *MR::getPlayerPos(), &toActor);
+    MR::turnQuatYDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, toTarget, 0.01745329f * (2.5f * rate));
+    TVec3f negActor = -toActor;
+    MR::turnQuatZDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, negActor, 0.10471976f);
     TVec3f up;
     MR::calcUpVec(&up, mHost);
     JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));

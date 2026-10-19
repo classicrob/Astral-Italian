@@ -139,6 +139,7 @@ namespace MR {
     void setSoundVolumeSetting(s32, u32);
     void recoverSoundVolumeSetting(u32);
     void setAudioEffectType(s32, s32, s32);
+    void fn_8005ADA0();  // PLACEHOLDER(objects): resets the audio effect type (AudEffectDirector off); resolve when core names fn_8005ADA0
     void startCSSound(const char*, const char*, s32);
     void startCSSound(const char*, const char*, s32, s32, f32);
     void startCSSound2P(const char*, const char*);

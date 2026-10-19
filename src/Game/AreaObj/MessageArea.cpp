@@ -2,7 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
-MessageArea::MessageArea(int formType, const char* pName) : AreaObj(formType, pName), mZoneID(-1) {
+MessageArea::MessageArea(const char* pName) : AreaObj(pName), mZoneID(-1) {
 }
 
 void MessageArea::init(const JMapInfoIter& rIter) {

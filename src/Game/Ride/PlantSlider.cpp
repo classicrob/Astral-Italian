@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #include "Game/Ride/PlantSlider.hpp"
 #include "Game/Util.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
@@ -150,7 +151,7 @@ void PlantSlider::init(const JMapInfoIter& rIter) {
 
         MR::makeMtxUpFrontPos(&mLeafMtxs[i], front, pPoint->mSide, pPoint->mPosition);
 
-        LiveActor* pLeaf = reinterpret_cast<LiveActor*>(MR::createDemoObj("つるスライダーの葉", "PlantSliderLeaf", reinterpret_cast<MtxPtr>(&mLeafMtxs[i])));
+        LiveActor* pLeaf = reinterpret_cast<LiveActor*>(MR::createDemoObj("つるスライダーの葉", "PlantSliderLeaf", mLeafMtxs[i].toMtxPtr()));
         pLeaf->initWithoutIter();
         pLeaf->makeActorAppeared();
         mLeafGroup->registerActor(pLeaf);
@@ -169,6 +170,7 @@ void PlantSlider::exeCooldown() {
     }
 }
 
+// NONMATCHING: equivalent early-return branch layout differs.
 void PlantSlider::exeStart() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("PlantSliderStart", nullptr);
@@ -190,6 +192,7 @@ void PlantSlider::exeStart() {
     setNerve(GET_NERVE(PlantSlider, PlantSliderNrvSlide));
 }
 
+// NONMATCHING: equivalent early-return branch layout differs.
 void PlantSlider::exeSlide() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("PlantSlider", nullptr);
@@ -229,22 +232,14 @@ void PlantSlider::endClipped() {
 
 // NONMATCHING: loop setup scheduling and stack temporary placement differ.
 void PlantSlider::control() {
-    if (mNumLeaves <= 0) {
-        return;
-    }
+    s32 i = 0;
+    if (mNumLeaves <= 0) return;
     s32 leafStart = sLeafPointStart;
     const TVec3f* gravityPos = &mGravity;
-    for (s32 i = 0; i < mNumLeaves; i++) {
+    for (; i < mNumLeaves; i++) {
         PlantSliderPoint* pPoint = mSliderPoints[leafStart + i * 30];
 
-        TVec3f gravity(*gravityPos);
-        gravity.scale(2.0f);
-        TVec3f side(pPoint->mSide);
-        side.scale(1.5f);
-        TVec3f up(pPoint->mUp);
-        up.add(side);
-        TVec3f front(up);
-        front.add(gravity);
+        TVec3f front = (pPoint->mUp + pPoint->mSide.scaleInline(1.5f)) + gravityPos->scaleInline(2.0f);
         MR::normalize(&front);
 
         MR::makeMtxUpFrontPos(&mLeafMtxs[i], front, pPoint->mSide, pPoint->mPosition);
@@ -255,11 +250,11 @@ void PlantSlider::control() {
 void PlantSlider::updateHitSensor(HitSensor* pSensor) {
     MR::setSensorPos(pSensor, mSliderPoints[2]->mPosition);
     const TVec3f* first = &mSliderPoints[2]->mPosition;
-    f32 minDist = PSVECDistance(MR::getPlayerCenterPos(), first);
+    f32 minDist = PSVECDistance(first, MR::getPlayerCenterPos());
 
     for (s32 i = 3; i < mNumPoints - 2; i++) {
         const TVec3f* pos = &mSliderPoints[i]->mPosition;
-        f32 dist = PSVECDistance(MR::getPlayerCenterPos(), pos);
+        f32 dist = PSVECDistance(pos, MR::getPlayerCenterPos());
         if (dist < minDist) {
             minDist = dist;
             MR::setSensorPos(pSensor, mSliderPoints[i]->mPosition);
@@ -271,6 +266,7 @@ void PlantSlider::attackSensor(HitSensor*, HitSensor*) {
 }
 
 // Matrix-copy and vector-subtraction helpers are expanded differently by the compiler.
+// NONMATCHING: vector temporary slots and matrix-copy helper inlining differ.
 bool PlantSlider::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgAutoRushBegin(msg)) {
         if (!isNerve(GET_NERVE(PlantSlider, PlantSliderNrvCooldown)) && MR::isOnGroundPlayer()) {
@@ -383,6 +379,7 @@ bool PlantSlider::tryReachGoal() {
     return true;
 }
 
+// NONMATCHING: matrix-copy helper inlining and register scheduling differ.
 void PlantSlider::updateSlide() {
     f32 gravityComp = MR::clamp(-MR::getRailDirection(this).y, 0.0f, 1.0f);
     mSlideSpeed = mSlideSpeed * 0.998f + gravityComp * 1.3f;
@@ -432,7 +429,8 @@ void PlantSlider::updatePoints() {
 
 // NONMATCHING: integer conversion spills and register allocation differ.
 void PlantSlider::updateSpringPoints() {
-    s32 coord = MR::clamp((s32)(MR::getRailCoord(this) / 30.0f), 0, mNumPoints - 1);
+    f32 railCoord = MR::getRailCoord(this);
+    s32 coord = MR::clamp((s32)(railCoord / 30.0f), 0, mNumPoints - 1);
 
     for (s32 i = 1; i < coord; i++) {
         f32 ease = MR::getEaseOutValue((f32)i / (f32)(coord - 1), 0.0f, 1.0f, 1.0f);
@@ -481,7 +479,7 @@ void PlantSlider::initDrawSetting() const {
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_INV);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
     GXSetAlphaCompare(GX_GREATER, 0, GX_AOP_OR, GX_GREATER, 0);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetZCompLoc(GX_FALSE);
@@ -502,11 +500,11 @@ void PlantSlider::draw() const {
         side.scale(mSliderPoints[i]->mThickness);
         front.scale(mSliderPoints[i]->mThickness);
         writeVertexPos(pPoint->mPosition.x + 10.0f * front.x, pPoint->mPosition.y + 10.0f * front.y, pPoint->mPosition.z + 10.0f * front.z);
-        GXWGFifo.u32 = *reinterpret_cast<const u32*>(&sColorWhite);
+        GXWGFifo.u32 = sColorWhite.mColor;
         GXWGFifo.f32 = 0.0f;
         GXWGFifo.f32 = (f32)i;
         writeVertexPos(pPoint->mPosition.x + 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y + 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z + 10.0f * side.z - 10.0f * front.z);
-        GXWGFifo.u32 = *reinterpret_cast<const u32*>(&sColorGray);
+        GXWGFifo.u32 = sColorGray.mColor;
         GXWGFifo.f32 = 1.0f;
         GXWGFifo.f32 = (f32)i;
     }
@@ -518,11 +516,11 @@ void PlantSlider::draw() const {
         side.scale(mSliderPoints[i]->mThickness);
         front.scale(mSliderPoints[i]->mThickness);
         writeVertexPos(pPoint->mPosition.x - 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y - 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z - 10.0f * side.z - 10.0f * front.z);
-        GXWGFifo.u32 = *reinterpret_cast<const u32*>(&sColorLight);
+        GXWGFifo.u32 = sColorLight.mColor;
         GXWGFifo.f32 = 0.0f;
         GXWGFifo.f32 = (f32)i;
         writeVertexPos(pPoint->mPosition.x + 10.0f * front.x, pPoint->mPosition.y + 10.0f * front.y, pPoint->mPosition.z + 10.0f * front.z);
-        GXWGFifo.u32 = *reinterpret_cast<const u32*>(&sColorWhite);
+        GXWGFifo.u32 = sColorWhite.mColor;
         GXWGFifo.f32 = 1.0f;
         GXWGFifo.f32 = (f32)i;
     }
@@ -534,11 +532,11 @@ void PlantSlider::draw() const {
         side.scale(mSliderPoints[i]->mThickness);
         front.scale(mSliderPoints[i]->mThickness);
         writeVertexPos(pPoint->mPosition.x + 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y + 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z + 10.0f * side.z - 10.0f * front.z);
-        GXWGFifo.u32 = *reinterpret_cast<const u32*>(&sColorGray);
+        GXWGFifo.u32 = sColorGray.mColor;
         GXWGFifo.f32 = 0.0f;
         GXWGFifo.f32 = (f32)i;
         writeVertexPos(pPoint->mPosition.x - 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y - 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z - 10.0f * side.z - 10.0f * front.z);
-        GXWGFifo.u32 = *reinterpret_cast<const u32*>(&sColorLight);
+        GXWGFifo.u32 = sColorLight.mColor;
         GXWGFifo.f32 = 1.0f;
         GXWGFifo.f32 = (f32)i;
     }
@@ -566,6 +564,7 @@ PlantSliderPoint::PlantSliderPoint(const TVec3f& pPos, const TVec3f& pUp, const 
 }
 
 #pragma dont_inline on
+// NONMATCHING: vector temporary stack placement differs.
 void PlantSliderPoint::updateSpring(f32 pScale, f32 pDamping) {
     mVelocity.scale(pDamping);
     TVec3f diff = mBasePos - mPosition;
@@ -581,21 +580,15 @@ void PlantSliderPoint::updateSpring(f32 pScale, f32 pDamping) {
 #pragma dont_inline reset
 
 // Vector operators are expanded differently by the compiler; the spring and blend operands follow the target.
+// NONMATCHING: vector temporary stack placement and operator+= inlining differ.
 void PlantSliderPoint::updateSprings(f32 pHeight, f32 pInterp, f32 pDamping, f32 pAccel) {
     TVec3f base(mBasePos);
     base.y -= pHeight;
     mVelocity.scale(pAccel);
-    TVec3f diff = mBasePos - mPosition;
-    TVec3f offset(diff);
-    offset.scale(pDamping);
+    TVec3f offset = (mBasePos - mPosition).scaleInline(pDamping);
     mVelocity += offset;
     mTargetPos += mVelocity;
-    TVec3f blend(mTargetPos);
-    blend.scale(1.0f - pInterp);
-    TVec3f target(base);
-    target.scale(pInterp);
-    TVec3f pos(target);
-    pos += blend;
+    TVec3f pos = base.scaleInline(pInterp) + mTargetPos.scaleInline(1.0f - pInterp);
     mPosition = pos;
 }
 

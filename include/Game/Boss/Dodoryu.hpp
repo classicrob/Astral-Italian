@@ -87,23 +87,23 @@ public:
     void updateCameraTarget();
 
     /* 0x08C */ TPos3f mBaseMtx;
-    /* 0x0BC */ TVec3f _BC;
-    /* 0x0C8 */ u8 _C8;
-    /* 0x0CC */ u32 _CC;
+    /* 0x0BC */ TVec3f mCameraTargetPos;
+    /* 0x0C8 */ u8 mCameraFollowsPlayer;
+    /* 0x0CC */ u32 mStateIndex;
     /* 0x0D0 */ MR::Vector< MR::FixedArray< DodoryuStateBase*, 16 > > mState;
     /* 0x114 */ DodoryuSub::MoveStateHolder* mMoveStateHolder;
     /* 0x118 */ DodoryuHill* mHill;
     /* 0x11C */ DodoryuLeadHill* mLeadHill;
     /* 0x120 */ DodoryuBank* mBank;
     /* 0x124 */ DodoryuRabbit* mRabbit;
-    /* 0x128 */ TVec3f _128;
-    /* 0x134 */ TVec3f _134;
+    /* 0x128 */ TVec3f mGroundNormal;
+    /* 0x134 */ TVec3f mMoveFront;
     /* 0x140 */ AreaObj* mClosedAreaObj;
-    /* 0x144 */ u8 _144;
-    /* 0x148 */ CameraTargetMtx* _148;
-    /* 0x14C */ CameraTargetMtx* _14C;
-    /* 0x150 */ u8 _150;
-    /* 0x154 */ u32 _154;
+    /* 0x144 */ u8 mBattleStarted;
+    /* 0x148 */ CameraTargetMtx* mInitialCameraTarget;
+    /* 0x14C */ CameraTargetMtx* mSpinOutCameraTarget;
+    /* 0x150 */ u8 mRumbleEnabled;
+    /* 0x154 */ u32 mRumbleStep;
     /* 0x158 */ AnimScaleController* mAnimScaleCtrl;
 };
 
@@ -116,7 +116,7 @@ public:
 
     void exeAppear();
 
-    /* 0x90 */ TMtx34f _90;
+    /* 0x90 */ TMtx34f mBaseMtx;
 };
 
 class DodoryuRabbit : public ModelObj {
@@ -143,15 +143,15 @@ public:
     void exePleasure();
 
     /* 0x90 */ Dodoryu* mHost;
-    /* 0x94 */ TPos3f _94;
-    /* 0xC4 */ f32 _C4;
+    /* 0x94 */ TPos3f mBaseMtx;
+    /* 0xC4 */ f32 mRailCoord;
     /* 0xC8 */ TalkMessageCtrl* mTalkCtrl;
-    /* 0xCC */ s32 _CC;
-    /* 0xD0 */ s32 _D0;
-    /* 0xD4 */ JointRumbler* _D4;
-    /* 0xD8 */ JointRumbler* _D8;
+    /* 0xCC */ s32 mTalkInterval;
+    /* 0xD0 */ s32 mTalkMessageIndex;
+    /* 0xD4 */ JointRumbler* mLongRumbler;
+    /* 0xD8 */ JointRumbler* mShortRumbler;
     /* 0xDC */ bool mIsDisplayMessage;
-    /* 0xE0 */ TPos3f _E0;
+    /* 0xE0 */ TPos3f mTalkMtx;
 };
 
 class DodoryuLeadHill : public LiveActor {

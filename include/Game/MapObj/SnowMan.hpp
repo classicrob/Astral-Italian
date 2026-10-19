@@ -14,6 +14,7 @@ public:
     virtual void kill();
     virtual void control();
     virtual void calcAndSetBaseMtx();
+    virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
 
     void damageHead();

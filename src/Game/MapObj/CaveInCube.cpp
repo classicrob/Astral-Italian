@@ -100,8 +100,9 @@ bool CaveInCube::getUnusedDebris(u32 kind, CaveInParts** ppOut) {
     return false;
 }
 
+// NONMATCHING: regalloc of the (mTypeIdx + 1) % 5 / mNumGenerated++ pair (target keeps the divisor in r5).
 void CaveInCube::exeGenerate() {
-    if (mMaxNum != -1 && mMaxNum <= mNumGenerated) {
+    if (mMaxNum != -1 && static_cast< u32 >(mMaxNum) <= static_cast< u32 >(mNumGenerated)) {
         return;
     }
 

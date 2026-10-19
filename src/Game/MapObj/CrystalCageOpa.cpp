@@ -33,12 +33,11 @@ CrystalCageOpa::CrystalCageOpa(const char* pName)
     : LiveActor(pName), mWaitTime(1000), mIsStartAnim(false), mIsHideModel(false), mObjName(nullptr), mItemType(-1), mStarPieceNum(5) {}
 
 void CrystalCageOpa::init(const JMapInfoIter& rIter) {
-    const char* pBase = "Break";
     MR::initActor(this, rIter, false);
     initNerve(&NrvCrystalCageOpa::CrystalCageOpaNrvWait::sInstance, 0);
     MR::getObjectName(&mObjName, rIter);
 
-    if (MR::startBvaIfExist(this, pBase)) {
+    if (MR::startBvaIfExist(this, "Break")) {
         MR::setBvaFrameAndStop(this, 0.0f);
     }
 

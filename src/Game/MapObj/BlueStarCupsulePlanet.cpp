@@ -52,7 +52,7 @@ BlueStarCupsulePlanet::BlueStarCupsulePlanet(const char* pName) : LiveActor(pNam
 void BlueStarCupsulePlanet::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::getObjectName(&mName, rIter);
-    initModelManagerWithAnm(mName, nullptr, false);
+    MR::initActor(this, rIter, mName, false);
     MR::connectToScene(this, MR::MovementType_Planet, MR::CalcAnimType_Planet, MR::DrawBufferType_Planet, MR::DrawType_None);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "BlueStarCupsulePlanet", nullptr, TVec3f(0.0f));
@@ -82,24 +82,20 @@ void BlueStarCupsulePlanet::init(const JMapInfoIter& rIter) {
     mRotator->start();
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
         MR::listenStageSwitchOnOffB(this, MR::Functor(this, &BlueStarCupsulePlanet::activateMapPartsFunction),
                                     MR::Functor(this, &BlueStarCupsulePlanet::deactivateMapPartsFunction));
     } else if (mRailMover || mRotator) {
         activateMapPartsFunction();
     }
 
-    makeActorAppeared();
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 
     if (MR::tryRegisterDemoCast(this, rIter) && MR::isRegisteredDemoActionAppear(this)) {
         makeActorDead();
     }
 
-    MR::startAllAnim(this, "Wait");
+    MR::startAction(this, "Wait");
 }
 
 void BlueStarCupsulePlanet::control() {
@@ -205,7 +201,7 @@ void BlueStarCupsulePlanet::exeHitPointer() {
     }
 
     if (MR::isStep(this, 3)) {
-        MR::startCSSound("CS_STAR_POWER", nullptr, WPAD_CHAN0);
+        MR::startCSSound("CS_STAR_POWER", nullptr, WPAD_CHAN0, 0, 1.0f);
     }
 
     updatePose();

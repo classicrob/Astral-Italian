@@ -27,3 +27,9 @@ namespace NrvSwitchingScreenEffect {
     DECLARE_SWITCHING_NERVE(Display)
 #undef DECLARE_SWITCHING_NERVE
 }
+
+namespace MR {
+    void createSwitchingScreenEffect();
+    void onSwitchingScreenEffect();
+    void offSwitchingScreenEffect();
+}

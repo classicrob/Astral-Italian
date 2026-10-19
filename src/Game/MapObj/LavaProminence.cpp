@@ -1,8 +1,10 @@
 #include "Game/MapObj/LavaProminence.hpp"
+#include "Game/Enemy/SupportTicoStop.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
+#include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -24,11 +26,6 @@ namespace {
     static const s32 sDefaultTimeWait = 180;
     static const s32 sTimeSign = 90;
     static const f32 sDefaultMoveSpeed = 20.0f;
-    // sSubScale
-    // sScaleMin
-    // sSubNum
-    // sExtraMoveLength
-    // sDefaultCoordBeforeLanding
 };  // namespace
 
 namespace NrvLavaProminence {
@@ -43,9 +40,9 @@ namespace NrvLavaProminence {
 };  // namespace NrvLavaProminence
 
 LavaProminence::LavaProminence(const char* pName)
-    : LiveActor(pName), _90(0), mWaitTime(::sDefaultTimeWait), mMoveSpeed(::sDefaultMoveSpeed), mMoveRailCoord(), mMoveRailEndOffset(),
-      mRailStartDir(0, 0, 0), mRailEndDir(0, 0, 0), mRailStartPos(0.0f), mRailEndPos(0.0f), _12C(0, 0, 0), mBloomModel(),
-      _16C(0.0f, 0.0f, 0.0f, 1.0f), mRailDir(0, 0, 1), mEmitDropEffect(true) {
+    : LiveActor(pName), mTicoStop(nullptr), mWaitTime(::sDefaultTimeWait), mMoveSpeed(::sDefaultMoveSpeed), mMoveRailCoord(), mMoveRailEndOffset(),
+      mRailStartDir(0, 0, 0), mRailEndDir(0, 0, 0), mRailStartPos(0.0f, 0.0f, 0.0f), mRailEndPos(0.0f, 0.0f, 0.0f), _12C(0, 0, 0), mBloomModel(),
+      mBaseQuat(0.0f, 0.0f, 0.0f, 1.0f), mRailDir(0, 0, 1), mEmitDropEffect(true) {
     mEffectStartMtx.identity();
     mEffectEndMtx.identity();
     mBloomModelMtx.identity();
@@ -54,11 +51,11 @@ LavaProminence::LavaProminence(const char* pName)
 
 void LavaProminence::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    _16C.setEuler(mRotation);
+    mBaseQuat.setEuler(mRotation);
     MR::getJMapInfoArg0NoInit(rIter, &mWaitTime);
     MR::getJMapInfoArg1NoInit(rIter, &mMoveSpeed);
     MR::getJMapInfoArg3NoInit(rIter, &mMoveRailEndOffset);
-    MR::useStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
     const char* name = nullptr;
     MR::getObjectName(&name, rIter);
     bool isWithoutShadow = false;
@@ -74,6 +71,7 @@ void LavaProminence::init(const JMapInfoIter& rIter) {
     TVec3f offset;
     offset.set(0.0f);
     MR::addHitSensorMapObjSimple(this, "Body", 8, 120.0f, offset);
+    MR::initStarPointerTarget(this, 120.0f, TVec3f(0, 0, 0));
     initRailRider(rIter);
     MR::calcRailPosAtCoord(&mRailStartPos, this, 0.0f);
     MR::calcRailPosAtCoord(&mRailEndPos, this, MR::getRailTotalLength(this));
@@ -89,18 +87,20 @@ void LavaProminence::init(const JMapInfoIter& rIter) {
         initNerve(GET_NERVE(LavaProminence, HostTypeNrvWait));
     }
 
-    initEffectKeeper(0, nullptr, false);
+    initEffectKeeper(1, nullptr, false);
     MR::setEffectHostMtx(this, "Sign", mEffectStartMtx);
     MR::setEffectHostMtx(this, "Start", mEffectStartMtx);
     MR::setEffectHostMtx(this, "End", mEffectEndMtx);
     MR::setEffectName(this, "Drop", "DropEffect");
+
+    mTicoStop = new SupportTicoStop(this, nullptr);
 
     if (!isWithoutShadow) {
         MR::initShadowVolumeSphere(this, 100.0f);
     }
 
     mBloomModel = MR::createBloomModel2(this, mBloomModelMtx);
-    MR::startBtk(this, "LavaProminenceBloom");
+    MR::startBtk(mBloomModel, "LavaProminenceBloom");
     makeActorAppeared();
 }
 
@@ -148,6 +148,10 @@ void LavaProminence::startClipped() {
     }
 }
 
+void LavaProminence::control() {
+    mTicoStop->updateNerve();
+}
+
 void LavaProminence::moveOnRail() {
     mMoveRailCoord += mMoveSpeed;
     MR::setRailCoord(this, MR::clamp(mMoveRailCoord, 0.0f, MR::getRailTotalLength(this)));
@@ -158,6 +162,7 @@ void LavaProminence::moveOnRail() {
     setGravityAndMakeMtx();
 }
 
+// NONMATCHING: quaternion component store scheduling differs.
 void LavaProminence::setGravityAndMakeMtx() {
     MR::makeMtxUpNoSupportPos(&_18C, -mGravity, mPosition);
 
@@ -233,6 +238,7 @@ void LavaProminence::exeSign() {
     }
 }
 
+// NONMATCHING: vector temporary stack slots and saved-register allocation differ.
 void LavaProminence::exeMoveStartExtra() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, "Start");
@@ -283,6 +289,9 @@ void LavaProminence::exeMoveStart() {
 
 void LavaProminence::exeMoveLoop() {
     MR::startActionSound(this, "OjLvProminenceMove", -1, -1, -1);
+    if (mTicoStop->tryAttachTouch()) {
+        return;
+    }
     moveOnRail();
 
     if (mMoveRailCoord >= MR::getRailTotalLength(this) - mMoveRailEndOffset) {
@@ -332,12 +341,12 @@ void LavaProminence::calcAndSetBaseMtx() {
     MR::normalizeOrZero(&vec);
 
     if (!MR::isNearZero(vec)) {
-        _16C.getZDir(front);
+        mBaseQuat.getZDir(front);
         quat.setRotate(front, vec);
-        _16C.mult(quat);
+        mBaseQuat.mult(quat);
     }
 
-    mtx.makeQuat(_16C);
+    mtx.makeQuat(mBaseQuat);
     mtx.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx);
     mBloomModelMtx.set(mtx);
@@ -352,4 +361,11 @@ void LavaProminence::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 bool LavaProminence::isNrvMove() {
     return isNerve(GET_NERVE(LavaProminence, HostTypeNrvMoveStartExtra)) || isNerve(GET_NERVE(LavaProminence, HostTypeNrvMoveLoop)) ||
            isNerve(GET_NERVE(LavaProminence, HostTypeNrvMoveEndExtra));
+}
+
+bool LavaProminence::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) {
+    if (MR::isMsgLockOnStarPieceShoot(msg)) {
+        return true;
+    }
+    return MR::isMsgStarPieceAttack(msg);
 }

@@ -14,10 +14,11 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 
 namespace {
     ALWAYS_INLINE inline TubeSliderDamageObj* createDamageObj(TubeSlider* pSlider, s32 type, f32 edgeOffset, TVec3f& vec) {
-        TubeSliderDamageObj* obj = new TubeSliderDamageObj(type, -MR::getRailDirection(pSlider));  // Negate operator needs to be inlined, but isn't
+        TubeSliderDamageObj* obj = new TubeSliderDamageObj(type, -MR::getRailDirection(pSlider));
         if (type == 1)
             edgeOffset += 50.0f;
         TubeSliderFunction::getUnknown1(&obj->mPosition, pSlider, vec, -edgeOffset);
@@ -106,17 +107,31 @@ bool TubeSliderDamageObj::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hi
     return false;
 }
 
+// NONMATCHING: integer conversion scheduling, vector register allocation and stack layout.
 void TubeSliderDamageObj::control() {
-    // TODO: All of this :(
-
-    // MR::getMicDistance???
-    MR::startActionSound(this, "MarioPassLv", -1, -1, -1);  // incorrect statement. only here to make the string spawn in
+    f32 micDistance = MR::getMicDistance(this);
+    f32 distance = MR::calcDistanceToPlayer(this);
+    if (distance <= 450.0f && !_A0) _A0 = true;
+    if (distance <= 1000.0f && _A0) {
+        s32 baseVolume = 50;
+        s32 basePitch = -100;
+        f32 volume = baseVolume + 1000.0f * (100.0f * (2.3f / micDistance));
+        s32 pitch = MR::clamp((s32)(basePitch + 1000.0f * (50.0f / (50.0f + (micDistance - _A4)))), 50, 1000);
+        TVec3f velocity(*MR::getPlayerVelocity());
+        velocity -= mVelocity;
+        f32 soundVolume = MR::getLinerValueFromMinMax(PSVECMag(&velocity), 27.0f, 34.0f, 0.0f, volume);
+        MR::startActionSound(this, "MarioPassLv", soundVolume, pitch, -1);
+    } else if (_A0) {
+        _A0 = false;
+    }
+    _A4 = micDistance;
 }
 
 TubeSliderDamageObjCreator::TubeSliderDamageObjCreator(TubeSlider* pSlider) : LiveActor("ダメージオブジェ生成（チューブスライダー用）") {
     mSlider = pSlider;
 }
 
+// NONMATCHING: equivalent range-check folding and loop/register scheduling.
 void TubeSliderDamageObjCreator::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::moveCoordToNearestPos(mSlider, mPosition);

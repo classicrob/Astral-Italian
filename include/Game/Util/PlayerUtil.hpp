@@ -97,6 +97,7 @@ namespace MR {
     bool isOnPlayerShadow(const LiveActor*);
     void setPlayerPos(const char*) NO_INLINE;
     void setPlayerPosAndWait(const TVec3f&, bool);
+    void setPlayerPosAndWait(const char*, bool);
     void setPlayerLinkPosAndWait(const NameObj*, const char*, bool);
     void setPlayerPosOnGround(const char*);
     void setPlayerPosOnGroundAndWait(const char*, bool);
@@ -328,7 +329,6 @@ namespace MR {
 namespace MR { bool fn_804222D0(); f32 getYoshiTongueScale(); }
 namespace MR { void requestPlayerMovementOnDuringDemo(); }
 
-namespace MR { void setPlayerPosAndWait(const char*, bool); }
 namespace MR {
     // PLACEHOLDER(m1): clears Mario movement flag 0x20000000; resolve when Player owner recovers its meaning.
     void fn_8004F310();

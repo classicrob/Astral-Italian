@@ -13,7 +13,7 @@ public:
     virtual void init(const JMapInfoIter&) override;
     virtual void control() override;
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*) override;
-    void exeWait();
+    bool exeWait(s32);
     void exeMoveUp();
     void exeMoveStop();
     void exeDisappearSign();

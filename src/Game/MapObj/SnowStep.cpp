@@ -57,7 +57,7 @@ void SnowStep::control() {
 
 void SnowStep::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mQuat);
-    mBaseMtx = *reinterpret_cast< const TPos3f* >(getBaseMtx());
+    mBaseMtx.set(*reinterpret_cast< const TPos3f* >(getBaseMtx()));
     MR::preScaleMtx(mBaseMtx, mBaseScale);
 }
 

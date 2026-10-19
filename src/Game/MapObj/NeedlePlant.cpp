@@ -13,14 +13,8 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
-#include "Game/Enemy/SearchBeamer.hpp"
 #include "Game/Player/YoshiFunction.hpp"
 
-
-// PLACEHOLDER(objects): unnamed target symbol fn_804222D0, declared extern "C" so the reloc name matches; resolve when fn_804222D0 gets its real name in symbols.txt
-extern "C" void fn_804222D0();
-// PLACEHOLDER(objects): unnamed target symbol fn_80422310, declared extern "C" so the reloc name matches; resolve when fn_80422310 gets its real name in symbols.txt
-extern "C" void fn_80422310();
 
 namespace {
     // Shared name pool: object name, fly object name, demo object name (Shift-JIS, +0x1C), model name and joint name.
@@ -191,7 +185,7 @@ void NeedlePlant::exeEatPull() {
     if (far) {
         tryAppearDemoObj();
         MR::tryHitReaction(this, "ヨッシー舌引き抜き");
-        fn_80422310();
+        MR::fn_80422310();
         setNerve(GET_NERVE_ANON(NeedlePlantNrvEaten));
     }
 }
@@ -312,7 +306,7 @@ bool NeedlePlant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
 
     if (MR::isMsgYoshiReleaseEaten(msg) || MR::isMsgYoshiCancelEaten(msg)) {
         if (isNerve(GET_NERVE_ANON(NeedlePlantNrvEatPull))) {
-            fn_804222D0();
+            MR::fn_804222D0();
             setNerve(GET_NERVE_ANON(NeedlePlantNrvEatPullEnd));
             return true;
         }
@@ -323,7 +317,7 @@ bool NeedlePlant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
             return true;
         }
 
-        fn_804222D0();
+        MR::fn_804222D0();
         setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait));
         return true;
     }

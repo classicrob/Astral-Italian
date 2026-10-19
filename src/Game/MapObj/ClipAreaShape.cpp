@@ -3,13 +3,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
-void ClipAreaShape_FORCE_MATCH_SDATA2() {
-    (void)0.001f;
-    (void)500.0f;
-    (void)0.01f;
-    (void)1000.0f;
-}
-
 ClipAreaShape::ClipAreaShape(const char* pName) : mModelData() {
     mModelData = MR::getJ3DModelData(pName);
 }
@@ -31,6 +24,10 @@ bool ClipAreaShape::isInArea(const TVec3f& rPosition, const TPos3f& rMtx, const 
     return isInArea(srcVec);
 }
 
+bool ClipAreaShape::isInArea(const TVec3f&) const {
+    return false;
+}
+
 void ClipAreaShape::calcVolumeMatrix(TPos3f* pVolMtx, const TPos3f& rSrcMtx, const TVec3f& rScale) const {
     pVolMtx->set(rSrcMtx);
     MR::preScaleMtx(pVolMtx->toMtxPtr(), rScale);
@@ -45,6 +42,9 @@ void ClipAreaShape::drawVolumeShape(const TPos3f& rMtx, const TVec3f& rPos) cons
     MR::drawSimpleModel(mModelData);
 }
 
+ClipAreaShapeSphere::ClipAreaShapeSphere(const char* pName) : ClipAreaShape(pName), mRadius(500.0f) {
+}
+
 bool ClipAreaShapeSphere::isInArea(const TVec3f& rVec) const {
     return rVec.squared() < mRadius * mRadius;
 }
@@ -55,6 +55,11 @@ void ClipAreaShapeSphere::calcVolumeMatrix(TPos3f* pPos, const TPos3f& rPos, con
     TVec3f stack_14 = (TVec3f(rVec.scaleInline(mRadius)));
     stack_14.scale(0.0099999998f);
     MR::preScaleMtx(pPos->toMtxPtr(), stack_14);
+}
+
+ClipAreaShapeBox::ClipAreaShapeBox(const char* pName, s32 u1) : ClipAreaShape(pName) {
+    mRadius = 500.0f;
+    _C = u1;
 }
 
 bool ClipAreaShapeBox::isInArea(const TVec3f& rVec) const {
@@ -78,9 +83,48 @@ void ClipAreaShapeBox::calcVolumeMatrix(TPos3f* pPos, const TPos3f& rPos, const 
     MR::preScaleMtx(pPos->toMtxPtr(), rVec);
 }
 
+ClipAreaShapeCylinder::ClipAreaShapeCylinder() : ClipAreaShape("VolumeCylinder") {
+    mRadius = 500.0f;
+    mHeight = 500.0f;
+}
+
+// NONMATCHING: branch layout only (target emits the in-range compare block out of line: bne over li r3,0 / b); logic matches.
+bool ClipAreaShapeCylinder::isInArea(const TVec3f& rVec) const {
+    f32 v = (rVec.y / mHeight);
+    if (!MR::isInRange(v, 0.0f, 1.0f)) {
+        return false;
+    }
+
+    return ((rVec.x * rVec.x) + (rVec.z * rVec.z)) < (mRadius * mRadius);
+}
+
+void ClipAreaShapeCylinder::calcBaseScale(TVec3f* pOut) const {
+    pOut->set(mRadius / 500.0f, mHeight / 500.0f, mRadius / 500.0f);
+}
+
+static void mulScaleVec(const TVec3f& rBase, const TVec3f& rScale, TVec3f& rOut) NO_INLINE {
+    JGeometry::mulInternal(&rBase.x, &rScale.x, &rOut.x);
+}
+
+void ClipAreaShapeCylinder::calcScale(TVec3f* pOut, const TVec3f& rScale) const {
+    TVec3f base;
+    calcBaseScale(&base);
+    mulScaleVec(base, rScale, *pOut);
+}
+
+void ClipAreaShapeCylinder::calcVolumeMatrix(TPos3f* pVolMtx, const TPos3f& rSrcMtx, const TVec3f& rScale) const {
+    pVolMtx->set(rSrcMtx);
+
+    TVec3f scale;
+    TVec3f base;
+    calcBaseScale(&base);
+    mulScaleVec(base, rScale, scale);
+    MR::preScaleMtx(pVolMtx->toMtxPtr(), scale);
+}
+
 ClipAreaShapeCone::ClipAreaShapeCone(s32 a1) : ClipAreaShape("ClipVolumeSphere") {
     _8 = 500.0f;
-    _C = 1000.0f;
+    _C = 500.0f;
     _10 = a1;
 }
 
@@ -98,16 +142,4 @@ bool ClipAreaShapeCone::isInArea(const TVec3f& rVec) const {
     f32 v23 = ((rVec.x * rVec.x) + (rVec.z * rVec.z));
     f32 v24 = (v3 * _8) * (v3 * _8);
     return v23 < v24;
-}
-
-bool ClipAreaShape::isInArea(const TVec3f&) const {
-    return false;
-}
-
-ClipAreaShapeSphere::ClipAreaShapeSphere(const char* pName) : ClipAreaShape(pName), mRadius(500.0f) {
-}
-
-ClipAreaShapeBox::ClipAreaShapeBox(s32 u1) : ClipAreaShape("ClipVolumeBox") {
-    mRadius = 500.0f;
-    _C = u1;
 }

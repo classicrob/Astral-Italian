@@ -94,7 +94,7 @@ void DodoryuDemoOpening::end() {
 
     TPos3f playerResetMtx;
     mHost->getPlayerResetMtx(&playerResetMtx, 0);
-    mHost->_150 = false;
+    mHost->mRumbleEnabled = false;
 
     MR::setPlayerBaseMtx(playerResetMtx.toMtxPtr());
     MR::setPlayerStateWait();
@@ -108,7 +108,7 @@ void DodoryuDemoOpening::exeDemoWait() {
 
     MR::invalidateShadowAll(mHost);
     MR::startActionSound(mHost, "DmMeetBoss");
-    MR::startAnimCameraTargetOther(mHost, &mActorCameraInfo, sOpeningDemoName, CameraTargetArg(mHost->_148), 0, false, 1.0f);
+    MR::startAnimCameraTargetOther(mHost, &mActorCameraInfo, sOpeningDemoName, CameraTargetArg(mHost->mInitialCameraTarget), 0, false, 1.0f);
     mHost->pauseOff();
     MR::hidePlayer();
     MR::startAction(mHost, "EffectWalk");
@@ -127,8 +127,8 @@ void DodoryuDemoOpening::exeUnderground() {
         mHost->startHill();
 
         Dodoryu* pHost = mHost;
-        pHost->_150 = true;
-        pHost->_154 = 0;
+        pHost->mRumbleEnabled = true;
+        pHost->mRumbleStep = 0;
     }
 
     if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
@@ -204,7 +204,7 @@ void DodoryuDemoOpening::exeWalk() {
     MR::startActionSound(mHost, "BmLvDodoryuMoveGround");
 
     if (MR::isGreaterEqualStep(this, 60)) {
-        mHost->_150 = false;
+        mHost->mRumbleEnabled = false;
 
         setNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningHideReady));
     }
@@ -241,8 +241,8 @@ void DodoryuDemoOpening::exeHide() {
         MR::startAction(mHost, "EffectWalk");
 
         Dodoryu* pHost = mHost;
-        pHost->_150 = true;
-        pHost->_154 = 0;
+        pHost->mRumbleEnabled = true;
+        pHost->mRumbleStep = 0;
         mHost->startLeadHillBck("EffectWalk");
     }
 }

@@ -2,6 +2,8 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 
 namespace NrvBallRail {
     NEW_NERVE(BallRailNrvWait, BallRail, Wait);
@@ -26,10 +28,11 @@ void BallRail::init(const JMapInfoIter& rIter) {
 
     MR::connectToSceneMapObjMovement(this);
     MR::invalidateClipping(this);
-    MR::onCalcGravity(this);
     initRailRider(rIter);
     initRailPoints();
     MR::moveCoordToStartPos(this);
+    MR::moveTransToCurrentRailPos(this);
+    MR::onCalcGravity(this);
     MR::setRailCoordSpeed(this, 0.0f);
     initHitSensor(1);
     TVec3f offs;
@@ -37,6 +40,8 @@ void BallRail::init(const JMapInfoIter& rIter) {
     offs.x = 0.0f;
     offs.z = 0.0f;
     MR::addHitSensor(this, "bind", 0x76 /* ATYPE_BALL_RAIL */, 8, _AC, offs);
+    MR::makeMtxTR(mBaseMtx, this);
+    MR::addBaseMatrixFollowTarget(this, rIter, &mBaseMtx, MR::createBaseMatrixFollowValidateDelegator(this, &BallRail::isValidFollow));
     initNerve(GET_NERVE(BallRail, BallRailNrvWait));
     appear();
 }
@@ -46,8 +51,8 @@ void BallRail::control() {
 
 bool BallRail::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (msg == 0xA4 /* ACTMES_SPHERE_PLAYER_BINDED */ && isNerve(GET_NERVE(BallRail, BallRailNrvWait))) {
-        TVec3f v9(pSender->mHost->mVelocity);
-        TVec3f v8 = pSender->mPosition - pReceiver->mPosition;
+        TVec3f v9(MR::getSensorHost(pSender)->mVelocity);
+        TVec3f v8 = *MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver);
 
         if (v8.dot(v9) > 0.0f) {
             return false;
@@ -56,7 +61,7 @@ bool BallRail::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver
         if (mGravity.dot(v8) > 0.0f) {
             MR::normalizeOrZero(&v8);
             v8.dot(v9);
-            MR::zeroVelocity(pSender->mHost);
+            MR::zeroVelocity(MR::getSensorHost(pSender));
 
             return false;
         } else {
@@ -127,8 +132,8 @@ void BallRail::exeWait() {
 
 void BallRail::exeSetUp() {
     if (MR::isFirstStep(this)) {
-        _C8 = _90->mPosition;
-        MR::zeroVelocity(_90->mHost);
+        _C8 = *MR::getSensorPos(_90);
+        MR::zeroVelocity(MR::getSensorHost(_90));
         MR::setRailCoordSpeed(this, 0.0f);
     }
 
@@ -139,22 +144,24 @@ void BallRail::exeSetUp() {
 
     if (MR::isLessStep(this, 15)) {
         TVec3f v6;
-        v6.scaleAdd(-_90->mRadius, mGravity, mPosition);
+        v6.scaleAdd(-MR::getSensorRadius(_90), mGravity, mPosition);
         f32 rate = MR::calcNerveEaseInRate(this, 15);
         MR::vecBlend(_C8, v6, &v7, rate);
     } else {
-        v7.scaleAdd(-_90->mRadius, mGravity, mPosition);
+        v7.scaleAdd(-MR::getSensorRadius(_90), mGravity, mPosition);
     }
 
     if (MR::isStep(this, 15)) {
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
     }
 
-    TVec3f& rVelocity = _90->mHost->mVelocity;
-    rVelocity.set(v7 - _90->mPosition);
+    LiveActor* pHost = MR::getSensorHost(_90);
+    pHost->mVelocity.set(v7 - *MR::getSensorPos(_90));
 
     if (MR::isGreaterStep(this, 45)) {
         setNerve(GET_NERVE(BallRail, BallRailNrvRun));
+    } else {
+        PSMTXCopy(MR::getPlayerBaseMtx(), mBaseMtx);
     }
 }
 
@@ -180,25 +187,29 @@ void BallRail::exeRun() {
 
     MR::moveRailRider(this);
     MR::moveTransToCurrentRailPos(this);
-    v12.scaleAdd(-_90->mRadius, mGravity, mPosition);
-    TVec3f& rVelocity = _90->mHost->mVelocity;
-    rVelocity.set(v12 - _90->mPosition);
+    v12.scaleAdd(-MR::getSensorRadius(_90), mGravity, mPosition);
+    LiveActor* pHost = MR::getSensorHost(_90);
+    pHost->mVelocity.set(v12 - *MR::getSensorPos(_90));
 
     if (MR::isRailReachedGoal(this)) {
-        TVec3f& rVelocity = _90->mHost->mVelocity;
-        rVelocity.set(MR::getRailDirection(this) * MR::getRailCoordSpeed(this));
+        LiveActor* pActor = MR::getSensorHost(_90);
+        pActor->mVelocity.set(MR::getRailDirection(this) * MR::getRailCoordSpeed(this));
         MR::sendArbitraryMsg(0xA9 /* ACTMES_END_BALL_RAIL */, _90, getSensor("bind"));
         _90 = nullptr;
         setNerve(GET_NERVE(BallRail, BallRailNrvNoBind));
+    } else {
+        PSMTXCopy(MR::getPlayerBaseMtx(), mBaseMtx);
     }
 }
 
-bool BallRail::trySetNerveRun() {
+bool BallRail::isValidFollow(s32) const {
+    bool result = false;
+
     if (isNerve(GET_NERVE(BallRail, BallRailNrvSetUp)) || isNerve(GET_NERVE(BallRail, BallRailNrvRun))) {
-        return true;
+        result = true;
     }
 
-    return false;
+    return result;
 }
 
 void BallRail::exeNoBind() {

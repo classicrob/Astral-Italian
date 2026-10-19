@@ -32,16 +32,18 @@ ChipGroup::ChipGroup(const char* pName, s32 chipType) : NameObj(pName) {
     mIsCounterVisible = false;
 }
 
+// NONMATCHING: loop-entry load scheduling and pointer register reuse differ.
 void ChipGroup::updateUIRange() {
     if (mUIRangeFixed < 0.0f) {
         TBox3f range;
 
-        for (s32 i = 0; i < mTotalCount; i++) {
+        s32 i = 0;
+        while (i < mTotalCount) {
             TBox3f currBound;
             TVec3f pos = mChips[i].mChip->mPosition;
 
             TVec3f center = pos;
-            TVec3f pad(2000.0f);
+            TVec3f pad(2000.0f, 2000.0f, 2000.0f);
             currBound.set(center - pad, center + pad);
 
             if (i == 0) {
@@ -50,6 +52,7 @@ void ChipGroup::updateUIRange() {
             } else {
                 range.extend(currBound.i, currBound.f);
             }
+            i++;
         }
 
         range.getCenter(&mUIPos);
@@ -98,6 +101,10 @@ void ChipGroup::registerChip(ChipBase* pChip) {
     updateUIRange();
 }
 
+void updateChipGroupUIRange(ChipGroup* pGroup) {
+    pGroup->updateUIRange();
+}
+
 void ChipGroup::noticeEndCompleteDemo() {
     mSwitchCtrl->onSwitchA();
 }
@@ -136,7 +143,7 @@ void ChipGroup::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg3NoInit(rIter, &arg3);
 
     if (arg3 == 1) {
-        mIsDeactivated = MR::setupAlreadyDoneFlag(reinterpret_cast< int* >(&mAlreadyDoneFlag), "チップ集め済み", rIter, 1);
+        mIsDeactivated = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlag, "チップ集め済み", rIter, 1);
     } else {
         mIsDeactivated = false;
         mAlreadyDoneFlag = -1;
@@ -147,7 +154,7 @@ void ChipGroup::init(const JMapInfoIter& rIter) {
     mSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
 
     if (mSwitchCtrl->isValidSwitchAppear()) {
-        MR::listenNameObjStageSwitchOnAppear(this, mSwitchCtrl, MR::Functor(this, &ChipGroup::receiveAppearRequest));
+        MR::listenNameObjStageSwitchOnAppear(this, mSwitchCtrl, MR::Functor_Inline(this, &ChipGroup::receiveAppearRequest));
         mIsListeningAppear = true;
     } else {
         mIsListeningAppear = false;
@@ -183,7 +190,7 @@ void ChipGroup::noticeGet(ChipBase* pChip) {
                 MR::requestMovementOn(pChip);
 
                 if (mAlreadyDoneFlag >= 0) {
-                    MR::updateAlreadyDoneFlag(mAlreadyDoneFlag, 1);
+                    MR::updateAlreadyDoneFlag(mAlreadyDoneFlag);
                 }
 
                 if (mChipType == 0) {

@@ -27,11 +27,13 @@ inline void Fountain::initHitSensors(const char* hitSensor) {
     MR::addHitSensorMapObj(this, hitSensor, 16, ::sSensorRadius, TVec3f(0.0f, ::sSensorOffsetY, 0.0f));
 }
 
+// NONMATCHING: Euler-angle floating-point registers are exchanged.
 void Fountain::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     TPos3f mtx;
     mtx.identity();
-    mtx.setRotateDegree(mRotation);
+    TVec3f rotation = mRotation * (PI / 180.0f);
+    mtx.setRotate(rotation);
     mtx.getYDir(mUp);
     MR::normalize(&mUp);
     MR::getObjectName(&mFountainName, rIter);
@@ -40,14 +42,11 @@ void Fountain::init(const JMapInfoIter& rIter) {
     initHitSensor(1);
     initHitSensors("Body");
     MR::setClippingTypeSphere(this, ::sClippingRadius);
-    MR::useStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
     initNerve(GET_NERVE(Fountain, HostTypeMove));
     MR::connectToSceneMapObjMovement(this);
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
+    if (!MR::useStageSwitchSyncAppear(this, rIter)) {
         appear();
     }
 }
@@ -78,13 +77,14 @@ void Fountain::endClipped() {
     }
 }
 
+// NONMATCHING: host/sensor registers and inlined cylinder-test register reuse differ.
 void Fountain::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver)) {
-        f32 playerRadius = pReceiver->mRadius * 1.0f;
+        f32 playerRadius = MR::getSensorRadius(pReceiver) * 1.0f;
 
         HitSphere sphere(mPosition + mUp * ::sHitSphereOffsetY, ::sHitSphereRadius);
 
-        if (sphere.isHit(HitSphere(pReceiver->getPosition(), playerRadius))) {
+        if (sphere.isHit(HitSphere(*MR::getSensorPos(pReceiver), playerRadius))) {
             if (MR::sendArbitraryMsg(0x4C /* ACTMES_FOUNTAINJUMP */, pReceiver, pSender)) {
                 return;
             }
@@ -93,7 +93,7 @@ void Fountain::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         HitCylinder cyl(mPosition, mUp * ::sHitCylinderHeight);
 
         f32 proj, ortho;
-        cyl.getParams(pReceiver->getPosition(), &proj, &ortho);
+        cyl.getParams(*MR::getSensorPos(pReceiver), &proj, &ortho);
 
         if (0.0f <= proj && proj <= 1.0f && ortho < playerRadius + ::sHitCylinderRange) {
             if (MR::sendArbitraryMsg(0x4C /* ACTMES_FOUNTAINJUMP */, pReceiver, pSender)) {

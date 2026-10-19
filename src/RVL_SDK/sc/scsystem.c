@@ -11,7 +11,7 @@ typedef struct {
     SCItemID id;
 } NameAndID;
 
-static NameAndID NameAndIDTbl[36] = {
+static NameAndID NameAndIDTbl[SC_ITEM_ID_MAX_PLUS1] = {
     "IPL.CB",   SC_ITEM_ID_IPL_COUNTER_BIAS,
     "IPL.AR",   SC_ITEM_ID_IPL_ASPECT_RATIO,
     "IPL.ARN",  SC_ITEM_ID_IPL_AUTORUN_MODE,
@@ -48,6 +48,8 @@ static NameAndID NameAndIDTbl[36] = {
     "BT.BAR",   SC_ITEM_ID_BT_SENSOR_BAR_POSITION,
     "DVD.CNF",  SC_ITEM_ID_DVD_CONFIG,
     "WWW.RST",  SC_ITEM_ID_WWW_RESTRICTION,
+    "MPLS.MOVIE", SC_ITEM_ID_MPLS_MOVIE,
+    "IPL.TID",  SC_ITEM_ID_IPL_TID,
 };
 
 static const char ConfDirName[] = "/shared2/sys";
@@ -327,7 +329,7 @@ u32 ParseConfBuf(u8* bufp, u32 bufSize) {
 
     bufTop = bufp;
     bufEndp = bufp + bufSize - 4;
-    ItemIDMaxPlus1 = 36;
+    ItemIDMaxPlus1 = SC_ITEM_ID_MAX_PLUS1;
 
     if (memcmp(bufp, "SCv0", 4) || memcmp(bufEndp, "SCed", 4)) {
         goto error;
@@ -370,7 +372,7 @@ u32 ParseConfBuf(u8* bufp, u32 bufSize) {
         goto error;
     }
 
-    runtimeRefp = (u16*)(bufEndp - 2 * (35));
+    runtimeRefp = (u16*)(bufEndp - 2 * SC_ITEM_ID_MAX_PLUS1);
 
     if ((u8*)(bufTop + itemOffset) > (u8*)runtimeRefp) {
         goto error;

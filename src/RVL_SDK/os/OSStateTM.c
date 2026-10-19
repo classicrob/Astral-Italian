@@ -111,7 +111,7 @@ void __OSShutdownToSBY(void) {
     __VIRegs[1] = 0;
 
     if (!StmReady) {
-        OSPanic(__FILE__, 0x13C, "Error: The firmware doesn't support shutdown feature.\n");
+        OSPanic(__FILE__, 0x15C, "Error: The firmware doesn't support shutdown feature.\n");
     }
 
     StmImInBuf[0] = 0;
@@ -125,7 +125,7 @@ void __OSHotReset(void) {
     __VIRegs[1] = 0;
 
     if (!StmReady) {
-        OSPanic(__FILE__, 380, "Error: The firmware doesn't support reboot feature.\n");
+        OSPanic(__FILE__, 0x19C, "Error: The firmware doesn't support reboot feature.\n");
     }
 
     result = IOS_Ioctl(StmImDesc, 0x2001, StmImInBuf, sizeof(StmImInBuf), StmImOutBuf, sizeof(StmImOutBuf));
@@ -244,7 +244,7 @@ static s32 __OSStateEventHandler(s32 ret, void* pUnused) {
     OSResetCallback cb;
 
     if (ret != 0) {
-        OSPanic(__FILE__, 0x314, "Error on STM state event handler\n");
+        OSPanic(__FILE__, 0x334, "Error on STM state event handler\n");
     }
 
     StmEhRegistered = 0;

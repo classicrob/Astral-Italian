@@ -7,7 +7,9 @@ struct RSORel {
     u32 addend;
 };
 
-#define RSO_STATIC_LIST ((RSOObjectList*)0x80003168)
+static RSOObjectList sRsoList;
+
+#define RSO_STATIC_LIST (&sRsoList)
 
 void RSONotifyModuleLoaded(RSOObjectHeader*) NO_INLINE {
     return;
@@ -619,6 +621,7 @@ BOOL RSOLinkList(void* i_newRso, void* i_bss) {
     return LinkList(i_newRso, i_bss, 0);
 }
 
+// NONMATCHING: signed branch-distance range check lowers to two comparisons; target uses one unsigned interval check.
 int cnvJumpCode(const RSOObjectHeader* rso, RSOImportTable* impTab, int impIndex, u32 addr, u32* i_buff) {
     RSORel* rel;
     u32 offset;
@@ -641,9 +644,14 @@ int cnvJumpCode(const RSOObjectHeader* rso, RSOImportTable* impTab, int impIndex
             if (x != 0 && x != y) {
                 i_sw = 1;
                 x = (u32)i_buff - (u32)p;
-                *p = (*p & 0xFC000003) | (x & 0x03FFFFFC);
-                DCFlushRange(p, 0x20);
-                ICInvalidateRange(p, 0x20);
+                if ((s32)x > -0x01FFFFFF && (s32)x < 0x01FFFFFF) {
+                    *p = (*p & 0xFC000003) | (x & 0x03FFFFFC);
+                    DCFlushRange(p, 0x20);
+                    ICInvalidateRange(p, 0x20);
+                } else {
+                    i_sw = -1;
+                    break;
+                }
             }
         }
 
@@ -691,6 +699,7 @@ int RSOLinkJump(RSOObjectHeader* i_rsoImp, const RSOObjectHeader* i_rsoExp, void
     const char* impName;
     RSOImportTable* impTab;
     int a_idx;
+    int result;
     u32* a_buff;
 
     imp = &i_rsoImp->mImpHeader;
@@ -708,8 +717,12 @@ int RSOLinkJump(RSOObjectHeader* i_rsoImp, const RSOObjectHeader* i_rsoExp, void
 
             if (a_idx >= 0) {
                 a_buff = (u32*)i_buff + a_idx * (RSO_FAR_JUMP_SIZE / 4);
-                if (cnvJumpCode(i_rsoImp, impTab, i, (u32)RSOGetExportSymbolAddr(i_rsoExp, a_idx), a_buff) != 0) {
+                result = cnvJumpCode(i_rsoImp, impTab, i, (u32)RSOGetExportSymbolAddr(i_rsoExp, a_idx), a_buff);
+                if (result == 1) {
                     count++;
+                } else if (result == -1) {
+                    count = -1;
+                    break;
                 }
             }
         }

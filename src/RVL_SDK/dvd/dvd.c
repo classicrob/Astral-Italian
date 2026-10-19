@@ -13,7 +13,7 @@ static DVDDiskID CurrDiskID __attribute__((aligned(32)));
 
 static DVDDiskID* IDShouldBe;
 static OSBootInfo* bootInfo;
-const char* __DVDVersion = "<< RVL_SDK - DVD \trelease build: Feb 22 2008 06:17:35 (0x4199_60831) >>";
+const char* __DVDVersion = "<< RVL_SDK - DVD \trelease build: Dec 11 2009 15:55:57 (0x4302_145) >>";
 static BOOL autoInvalidation = TRUE;
 
 static DVDCommandBlock DummyCommandBlock;
@@ -205,7 +205,7 @@ static void stateReadingFST(void) {
     LastState = (stateFunc)stateReadingFST;
 
     if (!(bootInfo->FSTMaxLength >= BB2.FSTLength)) {
-        OSPanic(__FILE__, 0x43B, "DVDChangeDisk(): FST in the new disc is too big.   ");
+        OSPanic(__FILE__, 0x445, "DVDChangeDisk(): FST in the new disc is too big.   ");
     }
 
     DVDLowClearCoverInterrupt(NULL);
@@ -1092,13 +1092,13 @@ static void CoverAlarmHandler(OSAlarm* alarm, OSContext* context) {
 static void stateReady(void) {
     DVDCommandBlock* finished;
 
-    if (!__DVDCheckWaitingQueue()) {
+    if (PauseFlag) {
+        PausingFlag = TRUE;
         executing = NULL;
         return;
     }
 
-    if (PauseFlag) {
-        PausingFlag = TRUE;
+    if (!__DVDCheckWaitingQueue()) {
         executing = NULL;
         return;
     }

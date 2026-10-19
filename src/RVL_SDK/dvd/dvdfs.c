@@ -270,11 +270,11 @@ static void cbForReadAsync(s32 result, DVDCommandBlock* block);
 
 BOOL DVDReadAsyncPrio(DVDFileInfo* fileInfo, void* addr, s32 length, s32 offset, DVDCallback callback, s32 prio) {
     if (!((0 <= offset) && (offset <= fileInfo->length))) {
-        OSPanic(__FILE__, 0x337, "DVDReadAsync(): specified area is out of the file  ");
+        OSPanic(__FILE__, 0x34D, "DVDReadAsync(): specified area is out of the file  ");
     }
 
     if (!((0 <= offset + length) && (offset + length < fileInfo->length + 32))) {
-        OSPanic(__FILE__, 0x33D, "DVDReadAsync(): specified area is out of the file  ");
+        OSPanic(__FILE__, 0x353, "DVDReadAsync(): specified area is out of the file  ");
     }
 
     fileInfo->callback = callback;
@@ -298,11 +298,11 @@ s32 DVDReadPrio(DVDFileInfo* fileInfo, void* addr, s32 length, s32 offset, s32 p
     s32 state, retVal;
 
     if (!((0 <= offset) && (offset <= fileInfo->length))) {
-        OSPanic(__FILE__, 0x37D, "DVDRead(): specified area is out of the file  ");
+        OSPanic(__FILE__, 0x393, "DVDRead(): specified area is out of the file  ");
     }
 
     if (!((0 <= offset + length) && (offset + length < fileInfo->length + 32))) {
-         OSPanic(__FILE__, 0x383, "DVDRead(): specified area is out of the file  ");
+         OSPanic(__FILE__, 0x399, "DVDRead(): specified area is out of the file  ");
     }
 
     block = &fileInfo->cb;

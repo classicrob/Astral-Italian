@@ -1097,7 +1097,7 @@ void VIConfigure(const GXRenderModeObj* rm) {
 
     if (((tvInBootrom != VI_PAL && tvInBootrom != VI_EURGB60) && (tvInGame == VI_PAL || tvInGame == VI_EURGB60)) ||
         ((tvInBootrom == VI_PAL || tvInBootrom == VI_EURGB60) && (tvInGame != VI_PAL && tvInGame != VI_EURGB60))) {
-        OSPanic(__FILE__, 0xA57, "VIConfigure(): Tried to change mode from (%d) to (%d), which is forbidden\n", tvInBootrom, tvInGame);
+        OSPanic(__FILE__, 0xA5B, "VIConfigure(): Tried to change mode from (%d) to (%d), which is forbidden\n", tvInBootrom, tvInGame);
     }
 
     if ((tvInGame == VI_NTSC) || (tvInGame == VI_MPAL)) {

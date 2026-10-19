@@ -935,6 +935,7 @@ void J3DTevBlock4::patchTexNoAndTexCoordScale() {
 
     u32 tevStageNum = mTevStageNum;
 
+    // ORIGINAL BUG (SDK): indices4..7 read mTevOrder halfwords beyond mTexNo[4]; see PORT-PLAN hazards.
     for (u32 i = 0; i < 8; i++) {
         if (mTexNo[i] != 0xffff) {
             loadTexNo(i, mTexNo[i]);

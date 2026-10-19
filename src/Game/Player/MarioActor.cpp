@@ -4197,7 +4197,7 @@ void MarioActor::syncJumpBeeStickMode() {
 
     _33C = mPosition - mMario->mFrontVec * 2.0f;
     _354 = mPosition - _33C;
-    _360 = _2A0 - _33C;
+    _360 = _240 - _33C;
     MR::normalize(&_360);
 }
 
@@ -6351,9 +6351,9 @@ bool MarioActor::trySpinPunch() {
 
 
 void MarioActor::printHitMark(HitSensor* pSensor) {
-    TVec3f vec(pSensor->mPosition - _2A0);
+    TVec3f vec(pSensor->mPosition - _240);
     vec.setLength(200.0f);
-    playEffectTrans("パンチヒット", _2A0 + vec);
+    playEffectTrans("パンチヒット", _240 + vec);
 }
 
 

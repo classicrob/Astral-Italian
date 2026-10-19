@@ -73,7 +73,7 @@ namespace NrvKoopaJrRobot { KoopaJrRobotNrvDemo KoopaJrRobotNrvDemo::sInstance A
 namespace NrvKoopaJrRobot { KoopaJrRobotNrvDead KoopaJrRobotNrvDead::sInstance ATTRIBUTE_WEAK; }
 
 KoopaJrRobot::KoopaJrRobot(const char* pName)
-    : LiveActor(pName), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
+    : LiveActor(pName), mChildCount(0), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
       mHeadModel(nullptr), mBody(nullptr), mZAxis(0.0f, 0.0f, 1.0f), mZAxis2(0.0f, 0.0f, 1.0f), _10C(0.0f) {
 }
 
@@ -232,22 +232,16 @@ bool KoopaJrRobot::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
 // NONMATCHING: child-array/count load register allocation differs.
 void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
     s32 num = MR::getChildObjNum(rIter);
-    mChildren.mArray = new NameObj*[num - 1];
-    mChildren.mCapacity = num - 1;
+    mChildren.mArr = new LiveActor*[num - 1];
+    mChildren.mMaxSize = num - 1;
     for (s32 i = 0; i < num; i++) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
         if (MR::isEqualString(pName, "StarPieceGroup")) {
             mStarPieceGroup = static_cast< StarPieceGroup* >(NameObjFactory::initChildObj(rIter, i));
         } else {
-            mChildren.mArray[mChildren.mCount++] = NameObjFactory::initChildObj(rIter, i);
+            mChildren.mArr[mChildCount++] = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
         }
-    }
-}
-
-KoopaJrRobotChildren::~KoopaJrRobotChildren() {
-    if (mArray != nullptr) {
-        delete[] mArray;
     }
 }
 

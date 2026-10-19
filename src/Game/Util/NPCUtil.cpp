@@ -365,15 +365,10 @@ namespace MR {
         if (isTalkStart(talk)) {
             action = selectNPCTalkAction(pActor);
         } else if (isTalkTalking(talk)) {
-            bool select = isShortTalk(talk);
-            if (!select) {
-                bool turning = false;
-                if (!isNullOrEmptyString(pActor->mParam._20)) {
-                    turning = !isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20);
-                }
-                select = turning || isBckOneTimeAndStopped(pActor);
-            }
-            if (select) {
+            if (isShortTalk(talk) ||
+                (!isNullOrEmptyString(pActor->mParam._20) &&
+                 !isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20)) ||
+                isBckOneTimeAndStopped(pActor)) {
                 action = selectNPCTalkAction(pActor);
             } else if (pActor->mParam._1) {
                 pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10);

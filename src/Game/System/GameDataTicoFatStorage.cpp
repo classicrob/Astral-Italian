@@ -55,9 +55,11 @@ s32 GameDataTicoFatStorage::serialize(u8* pData, u32 dataSize) const {
     stream.write(mStarPieceAlms, 0x60);
 
     for (s32 i = 0; i < 16; i++) {
-        u16 value = 0;
+        u16 value;
         if (i < mTicoCoinFeedList->size()) {
             value = (*mTicoCoinFeedList)[i];
+        } else {
+            value = 0;
         }
         stream.write(&value, sizeof(u16));
     }

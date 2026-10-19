@@ -79,7 +79,7 @@ void BossBussunStateChangeSide::exeFlip() {
         if (mIsUpSide) {
             pDir = &mHost->mUpVec;
         } else {
-            neg = -mHost->mUpVec;
+            neg.negate(mHost->mUpVec);
             pDir = &neg;
         }
         mUpDir.set(*pDir);
@@ -87,9 +87,7 @@ void BossBussunStateChangeSide::exeFlip() {
         PSVECCrossProduct(&mUpDir, &mDirFromCenter, &mAxis);
         mHeight = __fabs(MR::calcDistanceVertical(mHost, mHost->mCenterPos, mHost->mUpVec));
         TVec3f offset = mUpDir * mHeight;
-        TVec3f start(mHost->mPosition);
-        start.sub(offset);
-        mStartPos.set(start);
+        mStartPos.set(mHost->mPosition - offset);
         MR::zeroVelocity(mHost);
         MR::startAction(mHost, "ChangeSide");
         MR::offBind(mHost);
@@ -97,9 +95,7 @@ void BossBussunStateChangeSide::exeFlip() {
     TVec3f rotated;
     MR::rotateVecDegree(&rotated, mUpDir, mAxis, MR::calcNerveValue(this, 90, 0.0f, 180.0f));
     TVec3f scaled = rotated * mHeight;
-    TVec3f pos(mStartPos);
-    pos.add(scaled);
-    mHost->mPosition.set(pos);
+    mHost->mPosition.set(mStartPos + scaled);
     if (MR::isGreaterEqualStep(this, 90)) {
         MR::onBind(mHost);
         setNerve(GET_NERVE(BossBussunStateChangeSide, BossBussunStateChangeSideNrvMoveToHome));

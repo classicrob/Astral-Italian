@@ -365,9 +365,9 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
         }
     }
 
-    bool found;
+    bool found = true;
 
-    do {
+    while (found && step <= 100) {
         found = false;
         step++;
 
@@ -389,11 +389,16 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
                             adjacent = 1;
                         }
 
-                        adjacent = (adjacent != 0) | isLinked14(from, otherFrom);
-                        adjacent = (adjacent != 0) | isLinked14(from, otherTo);
-                        adjacent = (adjacent != 0) | isLinked14(to, otherFrom);
+                        bool connected = adjacent != 0;
+                        adjacent = connected | isLinked14(from, otherFrom);
+                        connected = adjacent != 0;
+                        adjacent = connected | isLinked14(from, otherTo);
+                        connected = adjacent != 0;
+                        adjacent = connected | isLinked14(to, otherFrom);
+                        connected = adjacent != 0;
+                        adjacent = connected | isLinked14(to, otherTo);
 
-                        if (((adjacent != 0) | isLinked14(to, otherTo)) != 0) {
+                        if (adjacent != 0) {
                             mLinks->setLineAlpha(from, to, 0.0f);
                             pEdge->mStep = step;
                             found = true;
@@ -411,7 +416,7 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
             }
         }
 
-    } while (found && step <= 100);
+    }
 }
 
 void WorldMapResultWorld::refreshRouteComet() {

@@ -397,14 +397,17 @@ namespace MR {
         return ::getJMapInfoArg(rIter, "FollowId", pId);
     }
 
+#pragma dont_inline on
     bool getJMapInfoGroupID(const JMapInfoIter& rIter, s32* pId) {
-        if (!::getJMapInfoArg(rIter, "GroupId", pId)) {
+        *pId = -1;
+        if (!::getJMapInfoArgNoInit(rIter, "GroupId", pId)) {
             return MR::getJMapInfoClippingGroupID(rIter, pId);
         }
 
         return true;
     }
 
+#pragma dont_inline reset
     bool getJMapInfoClippingGroupID(const JMapInfoIter& rIter, s32* pId) {
         return ::getJMapInfoArg(rIter, "ClippingGroupId", pId);
     }

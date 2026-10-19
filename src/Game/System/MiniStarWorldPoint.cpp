@@ -90,8 +90,7 @@ void MiniStarWorldPoint::makeActorAppeared() {
 // NONMATCHING: target keeps the 0.0f additions/subtractions (fsubs/fadds with a loaded 0.0f); folded here
 void MiniStarWorldPoint::control() {
     mRotation.y += 0.1f;
-    f32 angle = 360.0f + (mRotation.y - 0.0f);
-    mRotation.y = 0.0f + (f32)fmod(angle, 360.0);
+    MR::repeatDegree(&mRotation.y);
 }
 
 MiniStarWorldPoint::~MiniStarWorldPoint() {

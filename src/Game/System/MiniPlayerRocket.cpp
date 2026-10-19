@@ -195,21 +195,22 @@ void MiniPlayerRocket::updateRotation(const TVec3f& rDir, f32 blendRate) {
         return;
     }
 
+    TQuat4f quat;
+    TVec3f front;
     TVec3f dir;
     MR::normalize(&dir, rDir);
 
-    TQuat4f quat;
     MR::makeQuatRotateDegree(&quat, mRotation);
 
     // Z axis of the current rotation
-    TVec3f front;
     front.set<f32>(2.0f * (quat.x * quat.z) + 2.0f * (quat.w * quat.y),
               2.0f * (quat.y * quat.z) - 2.0f * (quat.w * quat.x),
               1.0f - 2.0f * (quat.x * quat.x) - 2.0f * (quat.y * quat.y));
 
     if (MR::isOppositeDirection(front, dir, 0.01f)) {
         TVec3f adjust(-0.1f, 0.0f, 0.1f);
-        TVec3f sum = dir + adjust;
+        TVec3f sum(dir);
+        sum += adjust;
         MR::normalize(&dir, sum);
     }
 

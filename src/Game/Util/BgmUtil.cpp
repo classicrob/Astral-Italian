@@ -535,7 +535,8 @@ namespace MR {
 
     void startGrandStarReturnBGMIfNotUnlocked() {
         if (unlockStageBGM() == 0) {
-            AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(getGrandStarReturnBGMName()), false, -1);
+            const char* name = getGrandStarReturnBGMName();
+            AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name), false, -1);
         }
     }
 

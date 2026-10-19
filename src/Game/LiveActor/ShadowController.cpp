@@ -20,9 +20,7 @@ namespace {
 };  // namespace
 
 // NONMATCHING: register scheduling
-ShadowControllerHolder::ShadowControllerHolder() : NameObj("影管理"), _C(), _18(), mIsFarClipEnabled(false), mIsDefaultFarClipEnabled(false) {
-    mFarClip = 7000.0f;
-    mDefaultFarClip = 7000.0f;
+ShadowControllerHolder::ShadowControllerHolder() : NameObj("影管理"), _C(), _18(), mFarClip(7000.0f), mDefaultFarClip(7000.0f), mIsFarClipEnabled(false), mIsDefaultFarClipEnabled(false) {
     _C.init(0x500);
     _18.init(0x400);
     MR::connectToScene(this, MR::MovementType_ShadowControllerHolder, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);

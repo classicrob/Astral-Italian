@@ -1,15 +1,9 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Util/Array.hpp"
 
-struct WorldMapModelChildren {
-    WorldMapModelChildren() ALWAYS_INLINE : mArr(0), mMaxSize(0) {}
-    ~WorldMapModelChildren() NO_INLINE;
-    LiveActor** mArr;
-    s32 mMaxSize;
-};
-
-/// The world-map scenery: a LiveActor owning the child objects named by the stage's ChildObj list (0x98 bytes).
+/// World-map scenery with owned pointer storage for the stage's ChildObj actors (0x98 bytes).
 class WorldMapModel : public LiveActor {
 public:
     WorldMapModel(const char* pName);
@@ -21,5 +15,5 @@ public:
     void appearAll();  // fn_804E7900: makeActorAppeared on every child, then on itself, then starts all animations
     void killAll();    // fn_804E7990
 
-    /* 0x90 */ WorldMapModelChildren mChildren;
+    /* 0x90 */ MR::AssignableArray< LiveActor* > mChildren;
 };

@@ -799,7 +799,10 @@ namespace MR {
         if (isBindedGround(pActor) || isBindedRoof(pActor)) {
             return false;
         }
-        return pActor->mBinder->isBindedWall() && isWallCodeNoAction(&pActor->mBinder->mWallInfo.mParentTriangle);
+        if (!pActor->mBinder->isBindedWall()) {
+            return false;
+        }
+        return isWallCodeNoAction(&pActor->mBinder->mWallInfo.mParentTriangle);
     }
 
     bool isBindedDamageFire(const LiveActor* pActor) {

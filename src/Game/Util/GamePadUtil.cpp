@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_ADD_NOINLINE
 #define JGEOMETRY_VEC3_COPY_NOINLINE
 #include "Game/Util/GamePadUtil.hpp"
 #include "Game/Util.hpp"
@@ -180,6 +181,7 @@ namespace MR {
 
 
 
+#pragma dont_inline on
     bool testSubPadStickTriggerLeft(s32 channel) {
         return (MR::getWPad(channel)->mStick->mTrigger & 8) != 0;
     }
@@ -188,6 +190,7 @@ namespace MR {
         return (MR::getWPad(channel)->mStick->mTrigger & 4) != 0;
     }
 
+#pragma dont_inline reset
     void getSubPadAcceleration(TVec3f* pAccel, s32 channel) {
         MR::getWPad(channel)->mSubPadAccel->getAcceleration(pAccel);
     }
@@ -212,14 +215,12 @@ namespace MR {
         return testCorePadTriggerB(WPAD_CHAN0) != false;
     }
 
-    // NONMATCHING: equivalent stick-trigger getter inlining
     bool testSystemTriggerRight() {
         bool result = true;
         if (!testCorePadTriggerRight(0) && !testSubPadStickTriggerRight(0)) result = false;
         return result;
     }
 
-    // NONMATCHING: equivalent stick-trigger getter inlining
     bool testSystemTriggerLeft() {
         bool result = true;
         if (!testCorePadTriggerLeft(0) && !testSubPadStickTriggerLeft(0)) result = false;

@@ -60,7 +60,7 @@ s32 GrandGalaxyMap::findWorldNode(WorldMapResultWorld* pWorld, s32 worldId) {
 void MR::setActorPositionFromLayoutPane(LiveActor* pActor, const LayoutActor* pLayout, const char* pPaneName, const TVec2f& rOffset, f32 depth) {
     TVec2f trans;
     MR::copyPaneTrans(&trans, pLayout, pPaneName);
-    TVec2f screen = trans.addOperatorInline(rOffset);
+    TVec2f screen = trans + rOffset;
     TVec3f pos;
     MR::calcWorldPositionFromScreen(&pos, screen, depth);
     pActor->mPosition.set(pos);

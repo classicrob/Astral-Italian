@@ -763,7 +763,6 @@ namespace MR {
         return pActor->receiveMessage(msg, sender, receiver);
     }
 
-    // NONMATCHING: equivalent sensor getter inlining
     bool sendMsgToGroundSensor(u32 msg, HitSensor* pSender) {
         if (!isBindedGround(getSensorHost(pSender))) {
             return false;
@@ -772,7 +771,6 @@ namespace MR {
         return getGroundSensor(getSensorHost(pSender))->receiveMessage(msg, pSender);
     }
 
-    // NONMATCHING: equivalent sensor getter inlining
     bool sendMsgToWallSensor(u32 msg, HitSensor* pSender) {
         if (!isBindedWall(getSensorHost(pSender))) {
             return false;
@@ -892,18 +890,22 @@ namespace MR {
         return false;
     }
 
+#pragma dont_inline on
     HitSensor* getGroundSensor(const LiveActor* pActor) NO_INLINE {
         return pActor->mBinder->mGroundInfo.mParentTriangle.mSensor;
     }
 
+#pragma dont_inline reset
     HitSensor* getRoofSensor(const LiveActor* pActor) {
         return pActor->mBinder->mRoofInfo.mParentTriangle.mSensor;
     }
 
+#pragma dont_inline on
     HitSensor* getWallSensor(const LiveActor* pActor) NO_INLINE {
         return pActor->mBinder->mWallInfo.mParentTriangle.mSensor;
     }
 
+#pragma dont_inline reset
     LiveActor* getGroundActor(const LiveActor* pActor) {
         return pActor->mBinder->mGroundInfo.mParentTriangle.getSensor()->mHost;
     }

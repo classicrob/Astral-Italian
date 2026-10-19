@@ -92,11 +92,8 @@ void GameSequenceEnding::startDemoMessage() {
 // NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection.
 void GameSequenceEnding::requestSaveDemo() {
     GameSystemFunction::setPermissionToCheckWiiRemoteConnect(true);
-    const Nerve* pNerve = GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence);
-    if (mIsNormalEnding) {
-        pNerve = GET_NERVE_ANON(GameSequenceEndingNrvMessage);
-    }
-    MR::requestStartDemo(this, mNameObj, "セーブ", pNerve, nullptr);
+    MR::requestStartDemo(this, mNameObj, "セーブ",
+                         mIsNormalEnding ? static_cast<const Nerve*>(GET_NERVE_ANON(GameSequenceEndingNrvMessage)) : GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence), nullptr);
 }
 
 void GameSequenceEnding::initAfterResourceLoaded() {
@@ -148,11 +145,8 @@ void GameSequenceEnding::exeWipeClose() {
 void GameSequenceEnding::exeDemoMessage() {
     if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
         MR::tryStartTimeKeepDemoMarioPuppetable(mNameObj, "コンプリートエンディング", nullptr);
-        const Nerve* pNerve = GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence);
-        if (mIs120PowerStarsEnding) {
-            pNerve = GET_NERVE_ANON(GameSequenceEndingNrvMessageNext);
-        }
-        MR::requestStartDemo(this, mNameObj, "セーブ", pNerve, nullptr);
+        MR::requestStartDemo(this, mNameObj, "セーブ",
+                             mIs120PowerStarsEnding ? static_cast<const Nerve*>(GET_NERVE_ANON(GameSequenceEndingNrvMessageNext)) : GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence), nullptr);
     }
 }
 

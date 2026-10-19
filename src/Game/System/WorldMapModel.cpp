@@ -316,7 +316,7 @@ void WorldMapFunction::setFogDrawOn(LiveActor* actor) { MR::setFogType(actor, 2)
 void WorldMapFunction::setFogDrawOff(LiveActor* actor) { MR::setFogType(actor, 0); }
 bool WorldMapFunction::isPointing(LiveActor* actor) { return MR::isStarPointerPointing1PWithoutCheckZ(actor, "弱", true, false); }
 // NONMATCHING: regalloc
-void WorldMapFunction::approachScale(LiveActor* actor, f32 speed, f32 max) { f32 scale = speed + actor->mScale.x; if (scale >= max) {} else max = scale; MR::setScale(actor, max); }
+void WorldMapFunction::approachScale(LiveActor* actor, f32 speed, f32 max) { f32 scale = speed + actor->mScale.x; if (scale >= max) scale = max; MR::setScale(actor, scale); }
 void WorldMapFunction::returnScale(LiveActor* actor, f32 speed, f32 min) { MR::setScale(actor, actor->mScale.x - speed >= min ? actor->mScale.x - speed : min); }
 // NONMATCHING: regalloc
 bool WorldMapOwner::isWorldEventFlagOff() const {
@@ -370,5 +370,3 @@ void WorldMapFunction::initRocketOffsets() {
 
 __declspec(section ".ctors") void (*sInitMiniCamera)() = WorldMapFunction::initMiniCamera;
 __declspec(section ".ctors") void (*sInitRocketOffsets)() = WorldMapFunction::initRocketOffsets;
-
-inline WorldMapModelChildren::~WorldMapModelChildren() { if (mArr) delete[] mArr; }

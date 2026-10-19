@@ -147,10 +147,8 @@ void MiniStarCheckPoint::resetOpen() {
 }
 
 bool MiniStarCheckPoint::isDone() const {
-    if (isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvOpen::sInstance)) {
-        return true;
-    }
-    if (isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvDone::sInstance)) {
+    if (isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvOpen::sInstance) ||
+        isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvDone::sInstance)) {
         return true;
     }
     return false;

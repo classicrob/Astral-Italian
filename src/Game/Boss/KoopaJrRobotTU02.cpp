@@ -254,8 +254,8 @@ void KoopaJrRobotFunction::hideAll(KoopaJrRobot* pHost) {
     MR::hideModelAndOnCalcAnim(pHost->mParts[0]->mModel);
     MR::hideModelAndOnCalcAnim(pHost->mParts[1]->mModel);
     MR::hideModelAndOnCalcAnim(pHost->mParts[2]->mModel);
-    LiveActor** pChildren = reinterpret_cast< LiveActor** >(pHost->mChildren.mArray);
-    forEachFn(pChildren, pChildren + pHost->mChildren.mCount, MR::hideModelAndOnCalcAnim);
+    LiveActor** pChildren = pHost->mChildren.mArr;
+    forEachFn(pChildren, pChildren + pHost->mChildCount, MR::hideModelAndOnCalcAnim);
 }
 
 void KoopaJrRobotFunction::showAll(KoopaJrRobot* pHost) {
@@ -263,8 +263,8 @@ void KoopaJrRobotFunction::showAll(KoopaJrRobot* pHost) {
     MR::showModel(pHost->mParts[0]->mModel);
     MR::showModel(pHost->mParts[1]->mModel);
     MR::showModel(pHost->mParts[2]->mModel);
-    LiveActor** pChildren = reinterpret_cast< LiveActor** >(pHost->mChildren.mArray);
-    forEachFn(pChildren, pChildren + pHost->mChildren.mCount, MR::showModel);
+    LiveActor** pChildren = pHost->mChildren.mArr;
+    forEachFn(pChildren, pChildren + pHost->mChildCount, MR::showModel);
 }
 
 void KoopaJrRobotFunction::offDrawEffect(KoopaJrRobot* pHost) {

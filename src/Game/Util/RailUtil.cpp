@@ -428,11 +428,11 @@ namespace MR {
     // NONMATCHING: regalloc
     void calcRailDirectionAtOffset(TVec3f* pDir, LiveActor* pActor, f32 offset) {
         RailRider* railRider = pActor->mRailRider;
-        f32 coord;
+        f32 coord = railRider->mCoord;
         if (railRider->mIsNotReverse) {
-            coord = railRider->mCoord + offset;
+            coord += offset;
         } else {
-            coord = railRider->mCoord - offset;
+            coord -= offset;
         }
 
         if (railRider->isLoop()) {

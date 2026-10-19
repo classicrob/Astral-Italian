@@ -742,18 +742,22 @@ namespace MR {
 
     // NONMATCHING: regalloc and equivalent vector inlining
     void separateMtxScale(MtxPtr rotation, MtxPtr scale, MtxPtr source) {
-        f32 sumX = source[0][0] * source[0][0] + source[1][0] * source[1][0] + source[2][0] * source[2][0];
-        f32 sumY = source[0][1] * source[0][1] + source[1][1] * source[1][1] + source[2][1] * source[2][1];
-        f32 sumZ = source[0][2] * source[0][2] + source[1][2] * source[1][2] + source[2][2] * source[2][2];
+        f32 sums[3];
+        sums[0] = source[0][0] * source[0][0] + source[1][0] * source[1][0] + source[2][0] * source[2][0];
+        sums[1] = source[0][1] * source[0][1] + source[1][1] * source[1][1] + source[2][1] * source[2][1];
+        sums[2] = source[0][2] * source[0][2] + source[1][2] * source[1][2] + source[2][2] * source[2][2];
 
-        f32 sz = MR::sqrt< f32 >(sumZ);
-        f32 sy = MR::sqrt< f32 >(sumY);
-        f32 sx = MR::sqrt< f32 >(sumX);
+        f32 sz = MR::sqrt< f32 >(sums[2]);
+        f32 sy = MR::sqrt< f32 >(sums[1]);
+        f32 sx = MR::sqrt< f32 >(sums[0]);
         PSMTXScale(scale, sx, sy, sz);
 
-        f32 invZ = isNearZero(scale[2][2], 0.001f) ? 0.0f : 1.0f / scale[2][2];
-        f32 invY = isNearZero(scale[1][1], 0.001f) ? 0.0f : 1.0f / scale[1][1];
-        f32 invX = isNearZero(scale[0][0], 0.001f) ? 0.0f : 1.0f / scale[0][0];
+        f32 scaleZ = scale[2][2];
+        f32 invZ = isNearZero(scaleZ, 0.001f) ? 0.0f : 1.0f / scaleZ;
+        f32 scaleY = scale[1][1];
+        f32 invY = isNearZero(scaleY, 0.001f) ? 0.0f : 1.0f / scaleY;
+        f32 scaleX = scale[0][0];
+        f32 invX = isNearZero(scaleX, 0.001f) ? 0.0f : 1.0f / scaleX;
 
         f32 invScale[3][4];
         PSMTXScale(invScale, invX, invY, invZ);

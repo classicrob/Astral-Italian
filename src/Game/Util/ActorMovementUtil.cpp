@@ -234,18 +234,12 @@ namespace MR {
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcNearestPointToPlayerOnSideLine(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pOffset, f32 scaleA, f32 scaleB) {
+        TVec3f lineA;
+        TVec3f lineB;
         TVec3f side;
         calcSideVec(&side, pActor);
-
-        TVec3f sideA(side);
-        sideA.scale(scaleA);
-        TVec3f lineA(*pOffset);
-        lineA.add(sideA);
-
-        TVec3f sideB(side);
-        sideB.scale(scaleB);
-        TVec3f lineB(*pOffset);
-        lineB.add(sideB);
+        lineA = *pOffset + side * scaleA;
+        lineB = *pOffset + side * scaleB;
 
         return MR::calcPerpendicFootToLineInside(pOut, *MR::getPlayerPos(), lineA, lineB);
     }
@@ -1673,10 +1667,10 @@ namespace MR {
             return 3.4028235e38f;
         }
 
-        TVec3f diff(*getPlayerPos());
-        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
-        TVec3f vertical;
-        vertical.scale(pActor->mGravity.dot(diff), pActor->mGravity);
+        const TVec3f& gravity = pActor->mGravity;
+        TVec3f vertical(*getPlayerPos());
+        JMathInlineVEC::PSVECSubtract(&vertical, &pActor->mPosition, &vertical);
+        vertical.scale(gravity.dot(vertical), gravity);
         return PSVECMag(&vertical);
     }
 
@@ -1744,7 +1738,7 @@ namespace MR {
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcGravitySpeedAbs(const LiveActor* pActor) {
-        return fabs(pActor->mGravity.dot(pActor->mVelocity));
+        return __fabsf(pActor->mVelocity.dot(pActor->mGravity));
     }
 
     void addVelocityMoveToTargetHorizon(LiveActor* pActor, const TVec3f& rTarget, f32 speed) {

@@ -6,6 +6,7 @@
 #include "Game/LiveActor/ActorStateBase.hpp"
 #include "Game/System/NerveExecutor.hpp"
 #include "Game/NameObj/NameObj.hpp"
+#include "Game/Util/Array.hpp"
 #include <JSystem/JGeometry.hpp>
 
 // SMG2-only unit (Bowser Jr. robot boss). Class names are provisional (see report).
@@ -24,16 +25,6 @@ class KoopaJrRobotStateC;
 class KoopaJrRobotStateIntro;
 class KoopaJrRobotStateTU07;
 class KoopaJrRobotStateTU08;
-
-// array that owns a heap array of child pointers (dtor = fn_800DB560)
-class KoopaJrRobotChildren {
-public:
-    inline KoopaJrRobotChildren() : mArray(nullptr), mCapacity(0), mCount(0) {}
-    ~KoopaJrRobotChildren();
-    /* 0x0 */ NameObj** mArray;
-    /* 0x4 */ s32 mCapacity;
-    /* 0x8 */ s32 mCount;
-};
 
 // base of the three phase states (TU04 ctor fn_800DE1E0); vtable +0x20.. are SMG2 additions
 class KoopaJrRobotStateBase : public ActorStateBase< KoopaJrRobot > {
@@ -419,7 +410,8 @@ public:
     /* 0xC0 */ LiveActor* mHandL;
     /* 0xC4 */ LiveActor* mHandR;
     /* 0xC8 */ StarPieceGroup* mStarPieceGroup;
-    /* 0xCC */ KoopaJrRobotChildren mChildren;
+    /* 0xCC */ MR::AssignableArray< LiveActor* > mChildren;
+    /* 0xD4 */ s32 mChildCount;
     /* 0xD8 */ KoopaJrRobotStateA* mStateA;
     /* 0xDC */ KoopaJrRobotStateB* mStateB;
     /* 0xE0 */ KoopaJrRobotStateC* mStateC;

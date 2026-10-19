@@ -236,7 +236,8 @@ namespace MR {
 
     // NONMATCHING: equivalent inline validity check/branch layout
     bool useStageSwitchSyncAppear(LiveActor* actor, const JMapInfoIter& iter) {
-        if (isValidSwitchAppear(actor) || useStageSwitchReadAppear(actor, iter)) {
+        if ((actor->mStageSwitchCtrl != nullptr && actor->mStageSwitchCtrl->isValidSwitchAppear()) ||
+            useStageSwitchReadAppear(actor, iter)) {
             syncStageSwitchAppear(actor);
             actor->makeActorDead();
             return true;

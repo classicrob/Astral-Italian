@@ -235,7 +235,7 @@ namespace MR {
         TVec3f groundPos(0.0f);
         TVec3f normal;
         normal.negate(actor->mGravity);
-        TVec3f ray = normal * distance;
+        TVec3f ray = actor->mGravity * distance;
         if (MR::getFirstPolyNormalOnLineToMap(&normal, *pos, ray, &groundPos, nullptr)) {
             handle->addPrint(groundPos, *front, normal, right);
             return true;

@@ -26,9 +26,10 @@ namespace MR {
     const wchar_t* getGameMessageDirect(const char* pMessageId) {
         TalkMessageInfo messageInfo = TalkMessageInfo();
 
-        const wchar_t* text = nullptr;
-        if (MessageSystem::getGameMessageDirect(&messageInfo, pMessageId)) text = reinterpret_cast<wchar_t*>(messageInfo.mMessageText);
-        return text;
+        if (!MessageSystem::getGameMessageDirect(&messageInfo, pMessageId)) {
+            return nullptr;
+        }
+        return reinterpret_cast<wchar_t*>(messageInfo.mMessageText);
     }
 
     const wchar_t* getLayoutMessageDirect(const char* pMessageId) {

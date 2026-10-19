@@ -59,8 +59,9 @@ void WorldMapResultStatePointEvent::init() {
     mTalkCtrls = new TalkMessageCtrl*[3];
     for (s32 i = 0; i < 3; i++) {
         if (sTalkNames[i] != NULL) {
+            WorldMapOwner* owner = mHost;
             TVec3f zero(0.0f, 0.0f, 0.0f);
-            mTalkCtrls[i] = MR::createTalkCtrlDirect(mHost->getMeister(), sTalkNames[i], zero, NULL);
+            mTalkCtrls[i] = MR::createTalkCtrlDirect(owner->getMeister(), sTalkNames[i], zero, NULL);
         }
     }
     mRoute = new WorldMapResultRoute();

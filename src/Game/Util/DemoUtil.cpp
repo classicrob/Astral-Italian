@@ -603,7 +603,10 @@ namespace MR {
         }
 
         char buf[0x80];
-        snprintf(buf, 0x80, "%s%s", pActor->mName, pName != nullptr ? pName : "");
+        if (pName == nullptr) {
+            pName = "";
+        }
+        snprintf(buf, 0x80, "%s%s", pActor->mName, pName);
 
         bool isDone;
         if (isOnAlreadyDoneFlag(buf)) isDone = true;

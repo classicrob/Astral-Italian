@@ -126,7 +126,7 @@ void BellyDragon::updateFrontVec(f32 speed) {
     TVec3f up(mBaseMtx.mMtx[0][1], mBaseMtx.mMtx[1][1], mBaseMtx.mMtx[2][1]);
     MR::normalize(&up);
     TVec3f turned = -mGravity;
-    TVec3f axis(0.0f, 1.0f, 0.0f);
+    TVec3f axis(0, 1, 0);
     TVec3f from = -mGravity;
     MR::turnVecToVecDegree(&turned, up, from, turn, axis);
     MR::makeMtxFrontUpPos(&mBaseMtx, mFront, turned, mPosition);

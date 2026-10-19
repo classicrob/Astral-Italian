@@ -189,13 +189,11 @@ void clearFileLoaderRequestFileInfo(bool param1) {
     bool trySuspendAsyncExecuteThread(const char* pThreadName) {
         OSThread* pThread = ::getFunctionAsyncExecutor()->getOSThread(pThreadName);
 
-        if (pThread != nullptr) {
-            OSSuspendThread(pThread);
-
-            return true;
+        if (pThread == nullptr) {
+            return false;
         }
-
-        return false;
+        OSSuspendThread(pThread);
+        return true;
     }
 
     void resumeAsyncExecuteThread(const char* pThreadName) {

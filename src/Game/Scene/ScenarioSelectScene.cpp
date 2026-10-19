@@ -321,21 +321,20 @@ void ScenarioSelectScene::exeWaitResumeInitializeThreadIfRequestedReset() {
     }
 }
 
-// NONMATCHING: equivalent branch layout of the selection-locked guard; all calls and arguments match.
 bool ScenarioSelectScene::trySetCurrentScenarioNo() const {
-    if (!mScenarioLayout->mSelectionLocked) {
-        return false;
-    }
-    if (!MR::isScenarioDecided()) {
-        s32 selected = mScenarioLayout->getSelectedScenarioNo();
-        s32 placed = selected;
-        GalaxyStatusAccessor accessor = MR::makeCurrentGalaxyStatusAccessor();
-        if (accessor.isNotNormalStar(selected)) {
-            placed = MR::getPlacedHiddenStarScenarioNo(MR::getCurrentStageName(), selected);
+    if (mScenarioLayout->mSelectionLocked) {
+        if (!MR::isScenarioDecided()) {
+            s32 selected = mScenarioLayout->getSelectedScenarioNo();
+            s32 placed = selected;
+            GalaxyStatusAccessor accessor = MR::makeCurrentGalaxyStatusAccessor();
+            if (accessor.isNotNormalStar(selected)) {
+                placed = MR::getPlacedHiddenStarScenarioNo(MR::getCurrentStageName(), selected);
+            }
+            MR::setCurrentScenarioNo(placed, selected);
         }
-        MR::setCurrentScenarioNo(placed, selected);
+        return true;
     }
-    return true;
+    return false;
 }
 
 // Local prototypes: defined in src/System, not declared in their headers

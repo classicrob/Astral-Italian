@@ -624,7 +624,11 @@ namespace JGeometry {
             add(op);
         }
 
+#ifdef JGEOMETRY_VEC3_ADD_NOINLINE
+        void add(const TVec3< f32 >& b) NO_INLINE {
+#else
         void add(const TVec3< f32 >& b) JGEOMETRY_WMR_NOINLINE {
+#endif
             JMathInlineVEC::PSVECAdd(this, &b, this);
         }
 

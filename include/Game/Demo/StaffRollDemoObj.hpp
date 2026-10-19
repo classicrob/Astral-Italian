@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
-#include "Game/System/WorldMapModel.hpp"
+#include "Game/Util/Array.hpp"
 
 class StaffRoll;
 class StaffRollDemoCamera;
@@ -31,7 +31,7 @@ public:
     /* 0x98 */ s32 mStep98;
     /* 0x9C */ s32 mStep9C;
     /* 0xA0 */ ActorCameraInfo* mCameraInfo;
-    /* 0xA4 */ WorldMapModelChildren mActorArray;
+    /* 0xA4 */ MR::AssignableArray< LiveActor* > mActorArray;
     /* 0xAC */ s32 mActorFill;
     /* 0xB0 */ LiveActor* mChildB;
     /* 0xB4 */ LiveActor* mChildC;

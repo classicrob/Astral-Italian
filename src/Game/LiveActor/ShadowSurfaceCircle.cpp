@@ -29,5 +29,7 @@ void ShadowSurfaceCircle::draw() const {
     controller->getProjectionPos(&pos);
     controller->getProjectionNormal(&normal);
     TDDraw::resetViewMtx();
-    TDDraw::drawFillCircle(pos + normal * 1.0f, -normal, radius, 128, 20);
+    TVec3f facing;
+    facing.negate(normal);
+    TDDraw::drawFillCircle(pos + normal * 1.0f, facing, radius, 128, 20);
 }

@@ -24,11 +24,8 @@ namespace NrvMiniMeister {
     NEW_NERVE(MiniMeisterNrvDisappear, MiniMeister, Disappear);
 };  // namespace NrvMiniMeister
 
-// NONMATCHING: regalloc; front-vector stores scheduled after screen-position member construction.
-MiniMeister::MiniMeister(WorldMapCameraHolder* pOwner) : LiveActor("ミニマイスター"), mFront(), mScreenPos(sTalkScreenPos) {
-    mFront.x = 0.0f;
-    mFront.y = 0.0f;
-    mFront.z = 1.0f;
+// NONMATCHING: constructor load/store scheduling.
+MiniMeister::MiniMeister(WorldMapCameraHolder* pOwner) : LiveActor("ミニマイスター"), mFront(0, 0, 1), mScreenPos(sTalkScreenPos) {
     mOwner = pOwner;
 }
 
@@ -132,10 +129,10 @@ void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
 
 // NONMATCHING: TVec2 copies use floating loads/stores instead of target word copies; stack scheduling.
 void MiniMeister::updateTalkScreenPos(f32 ratio) {
-    TVec2f screen;
-    screen.x = mScreenPos.x;
-    screen.y = mScreenPos.y;
-    f32 halfTan = MR::tan(0.017453292f * (0.5f * MR::getFovy()));
+    TVec2f screen(mScreenPos);
+    f32 halfFovy = MR::getFovy();
+    halfFovy *= 0.5f;
+    f32 halfTan = MR::tan(0.017453292f * halfFovy);
     TVec3f worldPos;
     MR::calcWorldPositionFromCenterScreen(&worldPos, screen, (875.0f * MR::tan(0.3926991f)) / halfTan);
     TVec3f anchor;
@@ -148,10 +145,7 @@ void MiniMeister::updateTalkScreenPos(f32 ratio) {
     f32 distB = (worldPos - MR::getCamPos()).length();
     f32 scale = distB / distA;
     f32 blend = scale + (ratio * (1.0f - scale));
-    TVec2f a = worldScreen * blend;
-    TVec2f b = anchorScreen * (1.0f - blend);
-    // Keep the anchor contribution first in the floating-point addition.
-    TVec2f mix = b + a;
+    TVec2f mix = anchorScreen * (1.0f - blend) + worldScreen * blend;
     TVec3f dir;
     MR::calcWorldRayDirectionFromScreen(&dir, mix);
     MR::normalize(&dir);

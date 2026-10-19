@@ -1599,12 +1599,10 @@ config.libs = [
             Object(NonMatching, "Game/NameObj/NameObjFinder.cpp"),
             Object(NonMatching, "Game/NameObj/NameObjHolder.cpp"),
             Object(NonMatching, "Game/NameObj/NameObjRegister.cpp"),
-            Object(NonMatching, "Game/NPC/NPCActor2.cpp"),
             Object(NonMatching, "Game/NameObj/NameObjExecuteHolder.cpp"),
             Object(NonMatching, "Game/NameObj/NameObjListExecutor.cpp"),
             Object(NonMatching, "Game/NameObj/BombHeiRed.cpp"),
             Object(NonMatching, "Game/NameObj/BringEnemy.cpp"),
-            Object(NonMatching, "Game/NameObj/JointControlDelegator.cpp"),
         ],
     ),
     GameLib(

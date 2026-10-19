@@ -92,12 +92,7 @@ bool NANDErrorSequence::tryLessBlockOrInode(u32 answer) {
 bool NANDErrorSequence::tryNoRecoverErroSequence(s32 code) {
     NANDResultCode resultCode(code);
 
-    if (resultCode.isUnknown() || resultCode.isMaxBlocks()) {
-        startErrorToWiiMenu("NAND_12");
-        return true;
-    }
-
-    if (resultCode.isMaxFiles()) {
+    if (resultCode.isUnknown() || resultCode.isMaxBlocks() || resultCode.isMaxFiles()) {
         startErrorToWiiMenu("NAND_12");
         return true;
     }

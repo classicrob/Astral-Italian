@@ -14,7 +14,7 @@
 
 namespace {
     static const ArchiveName sModelExt[] = {".bdl", ".bmd", nullptr};
-    static const ArchiveName sMotionExt[] = {".bck", ".bca", nullptr};
+    static const ArchiveName sMotionExt[] = {".bck", nullptr};
     static const ArchiveName sBtkExt[] = {".btk", nullptr};
     static const ArchiveName sBpkExt[] = {".bpk", nullptr};
     static const ArchiveName sBtpExt[] = {".btp", nullptr};

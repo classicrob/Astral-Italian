@@ -1,0 +1,8 @@
+@@ manual (conflict) petari line 87 in ?
++#ifdef GALAXY_NATIVE
++    // Lowest and highest placement data addresses; host addresses are pointer-sized.
++    uintptr_t _E4;
++    uintptr_t _E8;
++#else
++#endif
+

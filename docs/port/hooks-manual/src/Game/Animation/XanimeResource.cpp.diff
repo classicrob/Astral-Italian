@@ -1,0 +1,23 @@
+@@ missing (context matches 0 places) petari line 8 in ?
++#ifdef GALAXY_NATIVE
++#include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 195 in XanimeResourceTable::initGroupInfo
++#ifdef GALAXY_NATIVE
++            // The Wii reads J3DAnmBase::mAttribute and mFrameMax at their 32-bit byte offsets
++            // (after a 4-byte vtable pointer); natively the object layout differs.
++            const J3DAnmBase* pAnm = static_cast< const J3DAnmBase* >(entry->_20[0]);
++            entry->mAttribute = pAnm->getAttribute();
++            entry->mLoop = 0.0f;
++            entry->mEnd = static_cast< f32 >(pAnm->getFrameMax());
++#else
++#endif
+
+@@ missing petari line 223 in XanimeResourceTable::getGroupInfo
+-    case 1:
++    case 1: {
+
+@@ missing petari line 235 in XanimeResourceTable::getGroupInfo
++    }
+

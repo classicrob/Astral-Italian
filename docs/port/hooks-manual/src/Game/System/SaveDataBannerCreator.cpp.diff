@@ -1,0 +1,8 @@
+@@ unconditional petari line 88 in SaveDataBannerCreator::setupBannerInfo
+-    MR::copyMemory(mBanner->bannerTexture, reinterpret_cast< const u8* >(bannerTex) + bannerTex->mImageDataOffset, NAND_BANNER_TEXTURE_SIZE);
++    MR::copyMemory(mBanner->bannerTexture, reinterpret_cast< const u8* >(bannerTex) + JUT_RESTIMG_OFFSET(bannerTex->mImageDataOffset), NAND_BANNER_TEXTURE_SIZE);
+
+@@ unconditional petari line 95 in SaveDataBannerCreator::setupBannerInfo
+-        MR::copyMemory(mBanner->iconTexture[i], reinterpret_cast< const u8* >(iconTex) + iconTex->mImageDataOffset, NAND_BANNER_ICON_SIZE);
++        MR::copyMemory(mBanner->iconTexture[i], reinterpret_cast< const u8* >(iconTex) + JUT_RESTIMG_OFFSET(iconTex->mImageDataOffset), NAND_BANNER_ICON_SIZE);
+

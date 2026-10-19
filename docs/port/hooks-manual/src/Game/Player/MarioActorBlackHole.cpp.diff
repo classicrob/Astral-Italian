@@ -1,0 +1,12 @@
+@@ missing (context matches 0 places) petari line 3 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/editor/runtime.hpp>
++#endif
+
+@@ missing petari line 43 in MarioActor::exeGameOverBlackHole2
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this) && PetariEditor::Runtime::playerMissing("マリオ奈落")) {
++        return;
++    }
++#endif
+

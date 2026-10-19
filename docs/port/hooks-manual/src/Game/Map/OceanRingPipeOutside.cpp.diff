@@ -1,0 +1,6 @@
+@@ missing petari line 76 in OceanRingPipeOutside::loadMaterial
+-    GXSetArray(GX_VA_POS, mRingPipe->_A0, 12);
+-    GXSetArray(GX_VA_NRM, mRingPipe->_A4, 6);
++    GXSETARRAY(GX_VA_POS, mRingPipe->_A0, mRingPipe->_94 * sizeof(*mRingPipe->_A0), 12, true);
++    GXSETARRAY(GX_VA_NRM, mRingPipe->_A4, mRingPipe->_94 * sizeof(*mRingPipe->_A4), 6, true);
+

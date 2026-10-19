@@ -1,0 +1,21 @@
+@@ manual (conflict) petari line 63 in ?
++#ifdef GALAXY_NATIVE
++    NEW_NERVE(GameScenePhotoMode, GameScene, PhotoMode);
++    NEW_NERVE(GameSceneEditMode, GameScene, EditMode);
++#endif
+
+@@ manual (conflict) petari line 165 in GameScene::update
++
++#ifdef GALAXY_NATIVE
++    // Home menu Level Select: warp once normal play allows a pause (no demo,
++    // wipe, death or damage), through the game's own galaxy move.
++    if (PetariNative::PlayerLaunch::warpPending.load() && isPermitToPauseMenu()) {
++        PetariNative::PlayerLaunch::warpPending.store(false);
++        GalaxyMoveArgument argument(0, nullptr, 1, nullptr);
++        if (petariDirectStageMove(&argument, PetariNative::PlayerLaunch::warpStage, PetariNative::PlayerLaunch::warpScenario,
++                                  "PETARI LEVEL SELECT: warping to")) {
++            GameSequenceFunction::requestGalaxyMove(argument);
++        }
++    }
++#endif
+

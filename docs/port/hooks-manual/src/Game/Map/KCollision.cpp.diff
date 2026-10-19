@@ -1,0 +1,11 @@
+@@ manual (conflict) petari line 8 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/kcl_collision.hpp>
++#include <revolution/os.h>
++#endif
+
+@@ unconditional petari line 1205 in KCollisionServer::KCHitSphereWithThickness
+-    f32 distance = MR::sqrt(*pDist);
++    f32 distance;
++    distance = MR::sqrt(*pDist);
+

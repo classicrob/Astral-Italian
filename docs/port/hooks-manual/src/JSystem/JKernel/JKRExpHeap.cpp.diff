@@ -1,0 +1,16 @@
+@@ unconditional petari line 810 in JKRExpHeap::dump_sort
+-            CMemBlock* block = reinterpret_cast< CMemBlock* >(0xffffffff);
++            CMemBlock* block = reinterpret_cast< CMemBlock* >(~static_cast< uintptr_t >(0));
+
+@@ unconditional petari line 817 in JKRExpHeap::dump_sort
+-            if (reinterpret_cast< u32 >(block) == 0xffffffff) {
++            if (reinterpret_cast< uintptr_t >(block) == ~static_cast< uintptr_t >(0)) {
+
+@@ unconditional petari line 932 in JKRExpHeap::state_register
+-                checkCode += reinterpret_cast< u32 >(block) * 3;
++                checkCode += static_cast< u32 >(reinterpret_cast< uintptr_t >(block) * 3);
+
+@@ unconditional petari line 935 in JKRExpHeap::state_register
+-            checkCode += reinterpret_cast< u32 >(block) * 3;
++            checkCode += static_cast< u32 >(reinterpret_cast< uintptr_t >(block) * 3);
+

@@ -1,0 +1,12 @@
+@@ missing petari line 399 in WaterRoadModelInfo::loadMaterialHigh
+-    GXSetArray(GX_VA_POS, mPoints, sizeof(TVec3f));
+-    GXSetArray(GX_VA_NRM, mNormals, sizeof(TVec3s));
++    GXSETARRAY(GX_VA_POS, mPoints, mNumPoints * sizeof(*mPoints), sizeof(TVec3f), true);
++    GXSETARRAY(GX_VA_NRM, mNormals, mNumPoints * sizeof(*mNormals), sizeof(TVec3s), true);
+
+@@ missing petari line 500 in WaterRoadModelInfo::loadMaterialLow
+-    GXSetArray(GX_VA_POS, mPoints, sizeof(TVec3f));
+-    GXSetArray(GX_VA_NRM, mNormals, sizeof(TVec3s));
++    GXSETARRAY(GX_VA_POS, mPoints, mNumPoints * sizeof(*mPoints), sizeof(TVec3f), true);
++    GXSETARRAY(GX_VA_NRM, mNormals, mNumPoints * sizeof(*mNormals), sizeof(TVec3s), true);
+

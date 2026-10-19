@@ -1,0 +1,5 @@
+@@ missing (context matches 0 places) petari line 24 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/game_compat.hpp>
++#endif
+

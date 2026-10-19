@@ -1,0 +1,502 @@
+@@ manual (conflict) petari line 147 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 159 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 163 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 167 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 171 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 177 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 181 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 187 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 199 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 203 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 207 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 211 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 215 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 226 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 230 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 234 in LayoutUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 245 in setTextBoxVerticalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 249 in setTextBoxVerticalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 253 in setTextBoxVerticalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 264 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 268 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 272 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 279 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 286 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 290 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 294 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 298 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 302 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 306 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return true; }
++#endif
++
+
+@@ manual (conflict) petari line 322 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 326 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 331 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 336 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { pTrans->zero(); return; }
++#endif
++
+
+@@ manual (conflict) petari line 343 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 350 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 357 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 363 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { pScale->set(1.0f, 1.0f); return; }
++#endif
++
+
+@@ manual (conflict) petari line 368 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 373 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 379 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { pRotate->zero(); return; }
++#endif
++
+
+@@ manual (conflict) petari line 384 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 392 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 397 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 413 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return nullptr; }
++#endif
++
+
+@@ manual (conflict) petari line 414 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!pPicture || !pPicture->GetMaterial()) return nullptr;
++#endif
+
+@@ manual (conflict) petari line 418 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 419 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!pPicture || !pPicture->GetMaterial() || !pTexture) return;
++#endif
+
+@@ manual (conflict) petari line 423 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 430 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 436 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 440 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 446 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 452 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName) || !pActor->getLayoutManager()->getPaneCtrl(nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)->getFrameCtrl(animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 459 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)->getFrameCtrl(animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 466 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 471 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 478 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 482 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 489 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 496 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 503 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 507 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 511 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 515 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, param3)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 519 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 523 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 527 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 531 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)) { return true; }
++#endif
++
+
+@@ manual (conflict) petari line 535 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return true; }
++#endif
++
+
+@@ manual (conflict) petari line 539 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, param2)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 543 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 547 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, param2)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 551 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 555 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 559 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)->getFrameCtrl(animLayer)) { return nullptr; }
++#endif
++
+
+@@ manual (conflict) petari line 563 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)->getFrameCtrl(animLayer)) { return nullptr; }
++#endif
++
+
+@@ manual (conflict) petari line 704 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 794 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return nullptr; }
++#endif
++
+
+@@ manual (conflict) petari line 798 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, nullptr)) { return nullptr; }
++#endif
++
+
+@@ manual (conflict) petari line 802 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { pBox->i.zero(); pBox->f.zero(); return; }
++#endif
++
+
+@@ manual (conflict) petari line 817 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
++#endif
++
+
+@@ manual (conflict) petari line 863 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 871 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+
+@@ manual (conflict) petari line 875 in setTextBoxHorizontalPositionRecursive
++#ifdef GALAXY_NATIVE
++        if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
++#endif
++
+

@@ -1,0 +1,14 @@
+@@ manual (conflict) petari line 273 in WaterPlantDrawInit::WaterPlantDrawInit
+-    mPlantATex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantA.bti"), nullptr);
+-    mPlantBTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantB.bti"), nullptr);
+-    mPlantCTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantC.bti"), nullptr);
+-    mPlantDTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantD.bti"), nullptr);
++    mPlantATex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantA.bti"), 0);
++    mPlantBTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantB.bti"), 0);
++    mPlantCTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantC.bti"), 0);
++    mPlantDTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantD.bti"), 0);
+
+@@ unconditional petari line 351 in WaterPlantDrawInit::initDraw
+-    GXSetArray(GX_VA_TEX0, &::gxArray, sizeof(TVec2f));
++    GXSETARRAY(GX_VA_TEX0, &::gxArray, sizeof(::gxArray), sizeof(TVec2f), true);
+

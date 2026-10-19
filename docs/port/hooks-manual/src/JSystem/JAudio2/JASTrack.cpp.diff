@@ -1,0 +1,10 @@
+@@ unconditional petari line 64 in JASTrack::init
+-    memcpy(mOscParam, &sEnvOsc, 0x18);
+-    memcpy(mOscParam + 1, &sPitchEnvOsc, 0x18);
++    memcpy(mOscParam, &sEnvOsc, sizeof(JASOscillator::Data));
++    memcpy(mOscParam + 1, &sPitchEnvOsc, sizeof(JASOscillator::Data));
+
+@@ unconditional petari line 545 in JASTrack::setOscAdsr
+-    memcpy(mOscParam, &sEnvOsc, 0x18);
++    memcpy(mOscParam, &sEnvOsc, sizeof(JASOscillator::Data));
+

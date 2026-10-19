@@ -1,0 +1,12 @@
+@@ manual (conflict) petari line 37 in JMAQuatLerp
++#elif defined(GALAXY_NATIVE)
++    dp = PSQUATDotProduct(p, q);
+
+@@ manual (conflict) petari line 70 in JMAVECScaleAdd
++#elif defined(GALAXY_NATIVE)
++    *dst = {vec1->x * scale + vec2->x, vec1->y * scale + vec2->y, vec1->z * scale + vec2->z};
+
+@@ manual (conflict) petari line 88 in JMAVECLerp
++#elif defined(GALAXY_NATIVE)
++    *dst = {a->x + (b->x - a->x) * t, a->y + (b->y - a->y) * t, a->z + (b->z - a->z) * t};
+

@@ -1,0 +1,7 @@
+@@ missing (context matches 0 places) petari line 378 in MarioActor::changeMorphString
++#ifdef GALAXY_NATIVE
++            // Slot 8 is the Luigi fallback, not a power-up; Tornado is mode 9.
++            const char* morph = mPlayerMode < PlayerMode_8 ? item->_0[mPlayerMode] : nullptr;
++#else
++#endif
+

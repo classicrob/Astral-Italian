@@ -1,0 +1,60 @@
+@@ manual (conflict) petari line 72 in HeapMemoryWatcher::createFileCacheHeapOnGameHeap
++#ifdef GALAXY_NATIVE
++    // Natively each J3D model or animation file in a cached archive also gets a same-size
++    // host-layout copy (J3DModelLoader/J3DAnmLoader). Archive placement (the 3% rule of
++    // getAproposHeapForSceneArchive) only sees archive bytes, so the copies get their own
++    // heap of the same size, a sibling under the game heap, created before the scene heap
++    // takes the rest. Every copy duplicates a file inside an archive resident in the file
++    // cache, each file is converted once per residency, and all such files are multiples of
++    // 32 bytes, so 32-aligned copies pack without padding except before the first one (a new
++    // solid heap's data is 16-aligned): the copies fit in the file cache size plus 32. Native
++    // J3D object growth stays on the file cache, as the Wii objects do.
++    mFileCacheHostImageHeap = ::createSolidHeap(size + 0x20, mGameHeapGDDR);
++#endif
+
+@@ manual (conflict) petari line 114 in HeapMemoryWatcher::destroyGameHeap
++#ifdef GALAXY_NATIVE
++    // The file cache's J3D objects point into these copies; both go away together.
++    if (mFileCacheHostImageHeap != nullptr) {
++        ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mFileCacheHostImageHeap));
++    }
++#endif
++
+
+@@ manual (conflict) petari line 142 in HeapMemoryWatcher::createHeaps
++#ifdef GALAXY_NATIVE
++    // Measured by the AudioLib audit: native audio objects need about 280 KB more than
++    // the Wii's 0x1E0000, which left about 250 KB free.
++    mAudSystemHeap = ::createSolidHeap(0x300000, JKRHeap::sRootHeap);
++#else
++#endif
++#ifdef GALAXY_NATIVE
++    // Stationed resources get native-only memory on top of the Wii 0x900000: same-size host
++    // images of every J3D file and of the particle container, plus larger native objects.
++    // Measured on the disc with the native loaders: player J3D loading 3.23 MiB, other NAPA
++    // J3D about 0.2 MiB, particles (created here by initAfterStationedResourceLoaded)
++    // 4.36 MiB; at most 7.8 MiB more than the Wii, of which at least 5.2 MiB host images.
++    // adjustStationedHeaps() trims the unused tail once loading ends.
++    mStationedHeapNapa = ::createExpHeap(0x900000 + 0x900000, JKRHeap::sRootHeap, false);
++#else
++#endif
+
+@@ manual (conflict) petari line 148 in HeapMemoryWatcher::createHeaps
++#ifdef GALAXY_NATIVE
++    // Measured on the disc: native J3D loading of the GDDR stationed archives uses 7.55 MiB,
++    // of which 6.49 MiB are host images the Wii never allocates; the rest bounds native
++    // object growth. The extra 0xA00000 covers that plus margin for unmeasured native growth
++    // (layouts, tables). adjustStationedHeaps() trims the unused tail once loading ends.
++    mStationedHeapGDDR = ::createExpHeap(0x1400000 + 0xA00000, HeapMemoryWatcher::sRootHeapGDDR3, false);
++#else
++#endif
+
+@@ manual (conflict) petari line 159 in HeapMemoryWatcher::HeapMemoryWatcher
+-      mSceneHeapNapa(nullptr), mSceneHeapGDDR(nullptr), mWPadHeap(nullptr), mHomeButtonLayoutHeap(nullptr), mAudSystemHeap(nullptr) {
++      mSceneHeapNapa(nullptr), mSceneHeapGDDR(nullptr), mWPadHeap(nullptr), mHomeButtonLayoutHeap(nullptr), mAudSystemHeap(nullptr)
++#ifdef GALAXY_NATIVE
++      ,
++      mFileCacheHostImageHeap(nullptr), mFileCacheArchiveBytes(0), mFileCacheArchiveCount(0)
++#endif
++{
+

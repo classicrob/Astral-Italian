@@ -1,0 +1,12 @@
+@@ missing petari line 80 in ChangeBgmCube::movement
+-        case 0:
++        case 0: {
+
+@@ missing petari line 122 in ChangeBgmCube::movement
+-        case 1:
++        }
++        case 1: {
+
+@@ missing petari line 155 in ChangeBgmCube::movement
++        }
+

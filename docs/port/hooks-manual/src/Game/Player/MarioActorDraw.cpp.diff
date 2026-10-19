@@ -1,0 +1,42 @@
+@@ missing petari line 7 in ?
++#include "Game/Player/GenericFigure.hpp"
+
+@@ missing petari line 472 in MarioActor::drawMarioModel
++#ifdef GALAXY_NATIVE
++    if (GenericFigure::on()) {
++        // Generic character mod: the figure instead of the body, hands, face
++        // and ice models (drawIndirectModel draws none of them).
++        drawSpinInhibit();
++        drawSphereMask();
++        drawDarkMask();
++        GenericFigure::drawPlayer(this);
++        return;
++    }
++#endif
++
+
+@@ missing petari line 759 in MarioActor::draw
++#ifdef GALAXY_NATIVE
++        GenericFigure::drawBoo(this);
++#endif
+
+@@ missing petari line 791 in MarioActor::drawIndirectModel
++#ifdef GALAXY_NATIVE
++    if (GenericFigure::on()) {
++        return;  // Generic character mod: no Mario reflection, ice or ice hands
++    }
++#endif
+
+@@ missing petari line 931 in MarioActor::drawModelBlur
++#ifdef GALAXY_NATIVE
++    if (GenericFigure::on()) {
++        return;  // Generic character mod: no Mario afterimages
++    }
++#endif
+
+@@ missing petari line 965 in MarioActor::createTextureDL
+-    GDSetTexImgPtr(static_cast< GXTexMapID >(texMapID), reinterpret_cast< u8* >(texture) + texture->mImageDataOffset);
++    // A model texture's offset may be negative after J3DTexture::setResTIMG rebases it (see
++    // JUT_RESTIMG_OFFSET); added as an unsigned 32-bit value it would point 4 GiB away natively.
++    GDSetTexImgPtr(static_cast< GXTexMapID >(texMapID), reinterpret_cast< u8* >(texture) + JUT_RESTIMG_OFFSET(texture->mImageDataOffset));
+

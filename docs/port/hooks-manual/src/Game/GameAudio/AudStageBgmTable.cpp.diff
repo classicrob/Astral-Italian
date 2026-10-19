@@ -1,0 +1,125 @@
+@@ missing petari line 6 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/platform/mod_galaxy.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 19 in ?
+-            {-1, MBGM_GALAXY_03, MBGM_GALAXY_18, MBGM_GALAXY_01_TOMB, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {0xFFFFFFFF, MBGM_GALAXY_03, MBGM_GALAXY_18, MBGM_GALAXY_01_TOMB, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 24 in ?
+-            {MBGM_GALAXY_12, MBGM_GALAXY_05, MBGM_GALAXY_INTER, MBGM_GALAXY_06, MBGM_GALAXY_18, -1},
+-            {0, 1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_12, MBGM_GALAXY_05, MBGM_GALAXY_INTER, MBGM_GALAXY_06, MBGM_GALAXY_18, 0xFFFFFFFF},
++            {0, 1, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 29 in ?
+-            {MBGM_GALAXY_12, MBGM_GALAXY_01, MBGM_GALAXY_INTER, MBGM_GALAXY_01_TOMB, MBGM_GALAXY_18, -1},
+-            {0, 1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_12, MBGM_GALAXY_01, MBGM_GALAXY_INTER, MBGM_GALAXY_01_TOMB, MBGM_GALAXY_18, 0xFFFFFFFF},
++            {0, 1, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 35 in ?
+-            {0, 1, -1, -1, -1, -1, -1, -1},
++            {0, 1, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 39 in ?
+-            {MBGM_GALAXY_INTER, MBGM_GALAXY_06, MBGM_GALAXY_12, MBGM_GALAXY_18, -1, -1},
+-            {0, 1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_INTER, MBGM_GALAXY_06, MBGM_GALAXY_12, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0, 1, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 44 in ?
+-            {MBGM_GALAXY_11, MBGM_GALAXY_13, MBGM_GALAXY_01_TOMB, MBGM_GALAXY_18, -1, -1},
+-            {0, 1, 7, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_11, MBGM_GALAXY_13, MBGM_GALAXY_01_TOMB, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0, 1, 7, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 49 in ?
+-            {MBGM_GALAXY_03, MBGM_GALAXY_13, MBGM_GALAXY_18, MBGM_GALAXY_17, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_03, MBGM_GALAXY_13, MBGM_GALAXY_18, MBGM_GALAXY_17, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 54 in ?
+-            {MBGM_GALAXY_INTER, MBGM_GALAXY_16, MBGM_GALAXY_13, MBGM_GALAXY_18, -1, -1},
+-            {0, 1, 2, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_INTER, MBGM_GALAXY_16, MBGM_GALAXY_13, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0, 1, 2, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 59 in ?
+-            {MBGM_GALAXY_11, MBGM_GALAXY_13, MBGM_GALAXY_01_TOMB, MBGM_GALAXY_18, -1, -1},
+-            {0, 1, 7, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_11, MBGM_GALAXY_13, MBGM_GALAXY_01_TOMB, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0, 1, 7, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 64 in ?
+-            {MBGM_GALAXY_22, MBGM_GALAXY_18, MBGM_BOSS_MECHA_KOOPA, MBGM_GALAXY_27, MBGM_BOSS_05_A, -1},
+-            {0, 1, 2, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_22, MBGM_GALAXY_18, MBGM_BOSS_MECHA_KOOPA, MBGM_GALAXY_27, MBGM_BOSS_05_A, 0xFFFFFFFF},
++            {0, 1, 2, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 69 in ?
+-            {MBGM_GALAXY_19, MBGM_GALAXY_13, MBGM_GALAXY_18, -1, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_19, MBGM_GALAXY_13, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 74 in ?
+-            {MBGM_GALAXY_24, MBGM_GALAXY_25, MBGM_GALAXY_26, MBGM_GALAXY_18, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_24, MBGM_GALAXY_25, MBGM_GALAXY_26, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 79 in ?
+-            {MBGM_GALAXY_10, MBGM_GALAXY_18, MBGM_GALAXY_10_HURRY, -1, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_10, MBGM_GALAXY_18, MBGM_GALAXY_10_HURRY, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 84 in ?
+-            {MBGM_GALAXY_10, MBGM_GALAXY_18, MBGM_GALAXY_INTER, MBGM_BOSS_05_A, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_10, MBGM_GALAXY_18, MBGM_GALAXY_INTER, MBGM_BOSS_05_A, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 89 in ?
+-            {MBGM_GALAXY_14, MBGM_GALAXY_13, MBGM_GALAXY_12, MBGM_GALAXY_18, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_14, MBGM_GALAXY_13, MBGM_GALAXY_12, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 94 in ?
+-            {MBGM_GALAXY_02, MBGM_GALAXY_18, -1, -1, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_02, MBGM_GALAXY_18, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 99 in ?
+-            {MBGM_GALAXY_28, -1, -1, -1, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_28, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 104 in ?
+-            {MBGM_GALAXY_03, -1, -1, -1, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_03, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing (context matches 0 places) petari line 109 in ?
+-            {MBGM_GALAXY_03, -1, -1, -1, -1, -1},
+-            {-1, -1, -1, -1, -1, -1, -1, -1},
++            {MBGM_GALAXY_03, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
++            {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF},
+
+@@ missing petari line 115 in ?
++#ifdef GALAXY_NATIVE
++        // A mod galaxy plays the music of the disc galaxy it borrows from (galaxy.json, TECH.md 5.7).
++        if (const char* pBorrowed = PetariNative::Platform::ModGalaxy::musicFrom(pStageName)) {
++            pStageName = pBorrowed;
++        }
++#endif
+

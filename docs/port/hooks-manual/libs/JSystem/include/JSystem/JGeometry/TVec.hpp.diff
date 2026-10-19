@@ -1,0 +1,69 @@
+@@ manual (conflict) petari line 25 in ?
++#ifdef GALAXY_NATIVE
++    inline void negateInternal(const f32* src, f32* dst) {
++        for (int i = 0; i < 3; ++i) dst[i] = -src[i];
++    }
++#else
++#endif
+
+@@ manual (conflict) petari line 44 in ?
++#ifdef GALAXY_NATIVE
++    inline void subInternal(const f32* a, const f32* b, f32* dst) {
++        // The Wii helper reverses the operands for z (unlike TVec3::sub).
++        dst[0] = a[0] - b[0];
++        dst[1] = a[1] - b[1];
++        dst[2] = b[2] - a[2];
++    }
++#else
++#endif
+
+@@ manual (conflict) petari line 61 in ?
++#ifdef GALAXY_NATIVE
++    inline void mulInternal(const f32* a, const f32* b, f32* dst) {
++        for (int i = 0; i < 3; ++i) dst[i] = a[i] * b[i];
++    }
++#else
++#endif
+
+@@ manual (conflict) petari line 194 in ?
++#ifdef GALAXY_NATIVE
++        inline TVec2 scaleInline(f32 scalar) {
++#else
++#endif
+
+@@ manual (conflict) petari line 347 in ?
++#ifdef GALAXY_NATIVE
++        TVec3(const Vec& vec) { x = vec.x; y = vec.y; z = vec.z; }
++#else
++#endif
+
+@@ manual (conflict) petari line 368 in ?
++#ifdef GALAXY_NATIVE
++        TVec3(const TVec3< f32 >& vec) { x = vec.x; y = vec.y; z = vec.z; }
++#else
++#endif
+
+@@ manual (conflict) petari line 425 in ?
++#elif defined(GALAXY_NATIVE)
++            x = vec.x; y = vec.y; z = vec.z;
+
+@@ manual (conflict) petari line 643 in ?
++#ifdef GALAXY_NATIVE
++        void setPSZeroVec() { zero(); }
++#else
++#endif
+
+@@ manual (conflict) petari line 669 in ?
++#elif defined(GALAXY_NATIVE)
++            return PSVECDotProduct(this, &rOther);
+
+@@ manual (conflict) petari line 811 in ?
++#ifdef GALAXY_NATIVE
++        f32 squared(const TVec3& rB) const { return JMathInlineVEC::PSVECSquareDistance(this, &rB); }
++#else
++#endif
+
+@@ unconditional petari line 1130 in ?
+-                set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
++                this->template set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
+

@@ -1,0 +1,4 @@
+@@ unconditional petari line 284 in BloomEffect::drawBlur
+-    GXSetArray(GX_TEX_MTX_ARRAY, pMtx, sizeof(Mtx));
++    GXSETARRAY(GX_TEX_MTX_ARRAY, pMtx, matrixCount * sizeof(Mtx), sizeof(Mtx), true);
+

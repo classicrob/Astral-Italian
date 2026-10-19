@@ -1,0 +1,4 @@
+@@ missing (context matches 0 places) petari line 50 in GalaxyMapSelectButton::isDecidedList
+-    return mPaneCtrl->mIsSelected != nullptr && mPaneCtrl->isDecidedWait();
++    return mPaneCtrl->mIsSelected != false && mPaneCtrl->isDecidedWait();
+

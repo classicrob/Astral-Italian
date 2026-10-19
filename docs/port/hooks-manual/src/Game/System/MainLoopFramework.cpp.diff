@@ -1,0 +1,9 @@
+@@ manual (conflict) petari line 462 in MainLoopFramework::setForOSResetSystem
++#ifdef GALAXY_NATIVE
++        OSTime tick = static_cast< u64 >(OS_BUS_CLOCK / 4 * 0.5);
++#else
++#endif
++#ifdef GALAXY_NATIVE
++        petari_gx_wait_check(&alarm.mNativeWait, 0);  // the first check records the position
++#endif
+

@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 48 in ?
++#ifdef GALAXY_NATIVE
++        JMath::pair< T, T > table[LEN];
++#else
++#endif
+

@@ -1,0 +1,40 @@
+@@ manual (conflict) petari line 2 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/editor/runtime_hooks.hpp>
++#endif
+
+@@ manual (conflict) petari line 293 in StageDataHolder::getChildObjNum
++#ifdef GALAXY_NATIVE
++    if (!MR::getJMapInfoLinkID(rIter, &linkID)) return 0;
++#else
++#endif
+
+@@ manual (conflict) petari line 299 in StageDataHolder::getChildObjNum
++#ifdef GALAXY_NATIVE
++                if (!pInfo->getValue(i, "ParentID", &parentID)) continue;
++#else
++#endif
+
+@@ manual (conflict) petari line 313 in StageDataHolder::getChildObjInfoFromDataIndex
++#ifdef GALAXY_NATIVE
++    if (!MR::getJMapInfoLinkID(rIter, &linkID)) return JMapInfoIter();
++#else
++#endif
+
+@@ manual (conflict) petari line 318 in StageDataHolder::getChildObjInfoFromDataIndex
++#ifdef GALAXY_NATIVE
++            if (!pInfo->getValue(i, "ParentID", &parentID)) continue;
++#else
++#endif
+
+@@ manual (conflict) petari line 648 in StageDataHolder::updateDataAddress
++#ifdef GALAXY_NATIVE
++        uintptr_t start = reinterpret_cast< uintptr_t >(pInfo->mData);
++        if (start < _E4) {
++            _E4 = start;
++        }
++
++        uintptr_t addr = (pInfo->mData->mEntrySize * pInfo->mData->mNumEntries) + (start + pInfo->mData->mDataOffset);
++#else
++#endif
+

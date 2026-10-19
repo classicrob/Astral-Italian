@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 320 in RaceManager::exeRace
++        NATIVE_MILESTONE("Race.Start");
+
+@@ manual (conflict) petari line 450 in RaceManager::resetRace
++    NATIVE_MILESTONE("Race.Reset");
+

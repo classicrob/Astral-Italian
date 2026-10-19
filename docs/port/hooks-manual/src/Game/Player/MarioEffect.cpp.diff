@@ -1,0 +1,36 @@
+@@ manual (conflict) petari line 30 in ?
++#ifdef GALAXY_NATIVE
++            u8 mByte3;
++            u8 mByte2;
++            u8 mByte1;
++            u8 mByte0;
++#else
++#endif
+
+@@ manual (conflict) petari line 48 in ?
++#ifdef GALAXY_NATIVE
++            u8 mByte3;
++            u8 mByte2;
++            u8 mByte1;
++            u8 mByte0;
++#else
++#endif
+
+@@ manual (conflict) petari line 205 in MarioActor::initMaterialEffect
++#ifdef GALAXY_NATIVE
++        _BA4->addPtr(cMaterialEffectTable[i].mName, &cMaterialEffectTable[i], false);
++#else
++#endif
+
+@@ manual (conflict) petari line 311 in MarioActor::playMaterialEffect
++#ifdef GALAXY_NATIVE
++    _BA4->searchPtr(pName, &entry);
++#else
++#endif
+
+@@ manual (conflict) petari line 357 in MarioActor::stopMaterialEffect
++#ifdef GALAXY_NATIVE
++    _BA4->searchPtr(pName, &entry);
++#else
++#endif
+

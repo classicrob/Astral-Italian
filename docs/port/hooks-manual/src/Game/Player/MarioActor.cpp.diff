@@ -1,0 +1,65 @@
+@@ manual (conflict) petari line 47 in ?
++#ifdef GALAXY_NATIVE
++#include <cstdio>
++#include <petari/ui_observe.hpp>
++namespace {
++    // Smoke-run diagnostic: a single position change this large is a teleport
++    // (Good Egg Bean B investigation). Observation only.
++    void nativeNoteBigMove(const char* pWhere, const char* pName, const TVec3f& rFrom, const TVec3f& rTo) {
++        const TVec3f delta = rTo - rFrom;
++        if (petari_ui_observing() && delta.squared() > 500.0f * 500.0f) {
++            std::fprintf(stderr, "[mario] %s %s moved %.0f: (%.0f, %.0f, %.0f) -> (%.0f, %.0f, %.0f)\n", pWhere,
++                         pName != nullptr ? pName : "(unnamed)", delta.length(), rFrom.x, rFrom.y, rFrom.z, rTo.x, rTo.y, rTo.z);
++        }
++    }
++}  // namespace
++#endif
+
+@@ manual (conflict) petari line 835 in MarioActor::movement
++#ifdef GALAXY_NATIVE
++                        nativeNoteBigMove("MarioActor", "landing ray", mPosition, stack_E0);
++#endif
+
+@@ manual (conflict) petari line 870 in MarioActor::movement
++#ifdef GALAXY_NATIVE
++                        nativeNoteBigMove("MarioActor", "eject to shadow", mPosition, mMario->mShadowPos);
++#endif
+
+@@ unconditional petari line 1397 in MarioActor::updateSwingAction
++    }
+
+@@ unconditional petari line 1410 in MarioActor::updateSwingAction
+-    case 4:
++    case 4: {
+
+@@ unconditional petari line 1419 in MarioActor::updateSwingAction
++    }
+
+@@ unconditional petari line 1873 in MarioActor::calcAnimInMovement
+-            case 1:
++            case PlayerMode_Bee:
+
+@@ unconditional petari line 1876 in MarioActor::calcAnimInMovement
+-            case 2:
++            case PlayerMode_Teresa:
+
+@@ unconditional petari line 1879 in MarioActor::calcAnimInMovement
+-            case 3:
++            case PlayerMode_Hopper:
+
+@@ unconditional petari line 1882 in MarioActor::calcAnimInMovement
+-            case 4:
++            case PlayerMode_2:  // fire
+
+@@ unconditional petari line 1885 in MarioActor::calcAnimInMovement
+-            case 5:
++            case PlayerMode_Ice:
+
+@@ unconditional petari line 1888 in MarioActor::calcAnimInMovement
+-            case 6:
++            case PlayerMode_Foo:
+
+@@ unconditional petari line 1891 in MarioActor::calcAnimInMovement
+-            case 7:
++            case PlayerMode_Invincible:
+

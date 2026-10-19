@@ -1,0 +1,7 @@
+@@ missing (context matches 0 places) petari line 390 in GalaxyCometScheduler::getEncounterCometPowerStarId
++#ifdef GALAXY_NATIVE
++    if (timeTable == nullptr) {
++        return -1;  // a galaxy with no comet schedule (a mod galaxy, TECH.md 5.7)
++    }
++#endif
+

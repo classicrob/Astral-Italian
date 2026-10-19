@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 46 in SpkWave::getWaveData
++#ifdef GALAXY_NATIVE
++    u8* res = static_cast< u8* >(mResource);
++    return reinterpret_cast< WaveData* >(res + PetariNative::readU32BE(res + wave * 4 + 8));
++#else
++#endif
+

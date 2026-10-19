@@ -1,0 +1,6 @@
+@@ missing (context matches 0 places) petari line 163 in TripodBossAccesser::createSceneObj
+-    u32 getTripodBossGravityHostID() {
+-        return reinterpret_cast< u32 >(getTripodBossAccesser());
++    GravityHostID getTripodBossGravityHostID() {
++        return reinterpret_cast< GravityHostID >(getTripodBossAccesser());
+

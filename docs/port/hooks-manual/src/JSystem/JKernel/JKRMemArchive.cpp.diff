@@ -1,0 +1,7 @@
+@@ unconditional petari line 225 in JKRMemArchive::fetchResource_subroutine
+-    case JKR_COMPRESSION_SZS:
++    case JKR_COMPRESSION_SZS: {
+
+@@ unconditional petari line 234 in JKRMemArchive::fetchResource_subroutine
++    }
+

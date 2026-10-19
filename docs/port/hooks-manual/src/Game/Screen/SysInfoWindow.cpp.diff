@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 2 in ?
++#include "Game/System/NativeBootTrace.hpp"
++#ifdef GALAXY_NATIVE
++#include <petari/ui_observe.hpp>
++#endif
+

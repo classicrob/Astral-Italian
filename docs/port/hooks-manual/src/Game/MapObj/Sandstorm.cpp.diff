@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 232 in Sandstorm::exeStormEnd
++#ifdef GALAXY_NATIVE
++        if (&Sandstorm::isSunakazeKun != nullptr) {
++#else
++#endif
+

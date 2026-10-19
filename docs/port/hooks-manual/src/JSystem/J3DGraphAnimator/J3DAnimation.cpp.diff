@@ -1,0 +1,62 @@
+@@ manual (conflict) petari line 551 in J3DHermiteInterpolation
++#else
++    // GQR5 is set by J3DSys::drawInit to unscaled s16 loads. The fused paired
++    // single operations map to single-precision fmaf.
++    f32 time = *pp2;
++    f32 end = *pp5;
++    f32 start = *pp3;
++    f32 duration = end - time;
++    end = *pp6;
++    f32 t = pp1 - time;
++    f32 value = *pp7;
++    f32 delta = end - start;
++    t = t / duration;
++    time = *pp4;
++    value = fmaf(value, duration, start);
++    delta = fmaf(-duration, time, delta);
++    f32 squared = t * t;
++    value = value - end;
++    value = value - delta;
++    end = squared * value;
++    value = fmaf(duration, time, end);
++    value = fmaf(value, t, start);
++    value = fmaf(delta, squared, value);
++    value = value - end;
++    return value;
+
+@@ unconditional petari line 647 in J3DAnmTransformKey::calcTransform
+-        pTransform->mRotation.x = mRotData[entryX->mRotationInfo.mOffset] << mDecShift;
++        pTransform->mRotation.x = J3D_ROT_SHIFT(mRotData[entryX->mRotationInfo.mOffset], mDecShift);
+
+@@ unconditional petari line 650 in J3DAnmTransformKey::calcTransform
+-        pTransform->mRotation.x = (int)J3DGetKeyFrameInterpolation(frame, &entryX->mRotationInfo, &mRotData[entryX->mRotationInfo.mOffset])
+-                                  << mDecShift;
++        pTransform->mRotation.x = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryX->mRotationInfo, &mRotData[entryX->mRotationInfo.mOffset]), mDecShift);
+
+@@ unconditional petari line 659 in J3DAnmTransformKey::calcTransform
+-        pTransform->mRotation.y = mRotData[entryY->mRotationInfo.mOffset] << mDecShift;
++        pTransform->mRotation.y = J3D_ROT_SHIFT(mRotData[entryY->mRotationInfo.mOffset], mDecShift);
+
+@@ unconditional petari line 662 in J3DAnmTransformKey::calcTransform
+-        pTransform->mRotation.y = (int)J3DGetKeyFrameInterpolation(frame, &entryY->mRotationInfo, &mRotData[entryY->mRotationInfo.mOffset])
+-                                  << mDecShift;
++        pTransform->mRotation.y = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryY->mRotationInfo, &mRotData[entryY->mRotationInfo.mOffset]), mDecShift);
+
+@@ unconditional petari line 671 in J3DAnmTransformKey::calcTransform
+-        pTransform->mRotation.z = mRotData[entryZ->mRotationInfo.mOffset] << mDecShift;
++        pTransform->mRotation.z = J3D_ROT_SHIFT(mRotData[entryZ->mRotationInfo.mOffset], mDecShift);
+
+@@ unconditional petari line 674 in J3DAnmTransformKey::calcTransform
+-        pTransform->mRotation.z = (int)J3DGetKeyFrameInterpolation(frame, &entryZ->mRotationInfo, &mRotData[entryZ->mRotationInfo.mOffset])
+-                                  << mDecShift;
++        pTransform->mRotation.z = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryZ->mRotationInfo, &mRotData[entryZ->mRotationInfo.mOffset]), mDecShift);
+
+@@ unconditional petari line 758 in J3DAnmTextureSRTKey::calcTransform
+-        pTexSRTInfo->mRotation = mRotData[entryRot->mRotationInfo.mOffset] << mDecShift;
++        pTexSRTInfo->mRotation = J3D_ROT_SHIFT(mRotData[entryRot->mRotationInfo.mOffset], mDecShift);
+
+@@ unconditional petari line 761 in J3DAnmTextureSRTKey::calcTransform
+-        pTexSRTInfo->mRotation = (int)J3DGetKeyFrameInterpolation(frame, &entryRot->mRotationInfo, &mRotData[entryRot->mRotationInfo.mOffset])
+-                                 << mDecShift;
++        pTexSRTInfo->mRotation = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryRot->mRotationInfo, &mRotData[entryRot->mRotationInfo.mOffset]), mDecShift);
+

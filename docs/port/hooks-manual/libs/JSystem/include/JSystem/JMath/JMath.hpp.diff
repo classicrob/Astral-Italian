@@ -1,0 +1,38 @@
+@@ manual (conflict) petari line 23 in JMAFastSqrt
++#elif defined(GALAXY_NATIVE)
++    return input > 0.0f ? std::sqrt(input) : input;
+
+@@ manual (conflict) petari line 55 in JMAHermiteInterpolation
++#elif defined(GALAXY_NATIVE)
++    // The same operation sequence as the asm, with its fused multiply-adds as fmaf: the
++    // expanded Hermite polynomial cancels differently for large values and tangents.
++    const f32 elapsed = p1 - p2;
++    const f32 duration = p5 - p2;
++    const f32 t = elapsed / duration;
++    const f32 t2 = t * t;
++    const f32 twoT = t + t;
++    const f32 t2MinusT = t2 - t;
++    const f32 valueDelta = p3 - p6;
++    f32 value = fmaf(twoT, t2MinusT, -t2);
++    f32 tangent = fmaf(p4, t2MinusT, p4);
++    value = fmaf(value, valueDelta, p3);
++    tangent = fmaf(p7, t2MinusT, tangent);
++    tangent = fmaf(t, p4, -tangent);
++    return fmaf(-elapsed, tangent, value);
+
+@@ manual (conflict) petari line 84 in JMAHermiteInterpolation
++#elif defined(GALAXY_NATIVE)
++        std::memmove(dest, src, 3 * sizeof(f32));
+
+@@ manual (conflict) petari line 98 in JMAHermiteInterpolation
++#elif defined(GALAXY_NATIVE)
++        std::memmove(dest, src, 6 * sizeof(f32));
+
+@@ manual (conflict) petari line 120 in JMAHermiteInterpolation
++#elif defined(GALAXY_NATIVE)
++        std::memmove(pDest, pSrc, 12 * sizeof(f32));
+
+@@ manual (conflict) petari line 146 in JMAHermiteInterpolation
++#elif defined(GALAXY_NATIVE)
++        std::memmove(pDest, pSrc, 16 * sizeof(f32));
+

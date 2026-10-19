@@ -1,0 +1,19 @@
+@@ missing petari line 24 in ?
++
++#ifdef GALAXY_NATIVE
++#include "Game/System/CutsceneSkip.hpp"
++#endif
+
+@@ missing petari line 107 in GalaxyMapController::init
+-    if (MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(this, GalaxyMapController::capture), "GalaxyMapController::capture")) {
++    if (MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(this, &GalaxyMapController::capture), "GalaxyMapController::capture")) {
+
+@@ missing petari line 602 in GalaxyMapController::tryDisplayAndKeyWait
+-    if (MR::isGreaterStep(this, ::sDisplayKeepFrame) && MR::testCorePadTriggerA(WPAD_CHAN0)) {
++    bool isDecide = MR::testCorePadTriggerA(WPAD_CHAN0);
++#ifdef GALAXY_NATIVE
++    isDecide = isDecide || CutsceneSkip::isActive();  // hold-to-skip mod: the new-galaxy map closes
++#endif
++
++    if (MR::isGreaterStep(this, ::sDisplayKeepFrame) && isDecide) {
+

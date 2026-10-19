@@ -1,0 +1,13 @@
+@@ manual (conflict) petari line 116 in LiveActorGroupArray::entry
++#ifdef GALAXY_NATIVE
++    // pName is used after the block (createGroup copies it), so the buffer must outlive
++    // the block; Clang reuses block-local stack slots.
++    char defaultName[32];
++    if (pName == nullptr) {
++        snprintf(defaultName, sizeof(defaultName), "group%02d", groupID);
++
++        pName = defaultName;
++    }
++#else
++#endif
+

@@ -1,0 +1,6 @@
+@@ unconditional petari line 22 in ?
+-    virtual void loadModelDrawMtx() const override;
+-    virtual void drawShape() const override;
++    virtual void loadModelDrawMtx() const;
++    virtual void drawShape() const;
+

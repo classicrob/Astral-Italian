@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 337 in CameraUtil_DUMMY
++#ifdef GALAXY_NATIVE
++            chunk->mGeneralParam->mNum1 = 0;
++            chunk->mGeneralParam->mAnimData = pAnimData;
++#else
++#endif
+

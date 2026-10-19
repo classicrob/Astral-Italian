@@ -1,0 +1,9 @@
+@@ manual (conflict) petari line 227 in Tico::control
++#ifdef GALAXY_NATIVE
++    MR::Native::publishActor("Luma", mPosition, -mGravity, isNerve(GET_NERVE(Tico, TicoNrvMeta)) ? 1 : 0, 0);
++#endif
+
+@@ unconditional petari line 299 in Tico::exeReaction
+-        MR::startSound(this, "SE_BM_BUTLER_ABSORB");
++        MR::startSound(this, "SE_SM_BUTLER_ABSORB");
+

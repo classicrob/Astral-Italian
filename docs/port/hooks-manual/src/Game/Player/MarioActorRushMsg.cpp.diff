@@ -1,0 +1,4 @@
+@@ missing (context matches 0 places) petari line 356 in MarioActor::tryJumpRush
+-        if (out != nullptr) {
++        if (out != false) {
+

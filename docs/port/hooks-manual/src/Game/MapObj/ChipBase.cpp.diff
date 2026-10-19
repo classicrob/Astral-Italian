@@ -1,0 +1,15 @@
+@@ manual (conflict) petari line 193 in ChipBase::control
++#ifdef GALAXY_NATIVE
++    {
++        const bool collectible = isNerve(GET_NERVE(ChipBase, ChipBaseNrvWait)) || isNerve(GET_NERVE(ChipBase, ChipBaseNrvFlashing));
++        MR::Native::publishActor("StarChip", mPosition, -mGravity, mChipType, collectible ? PETARI_ACTOR_READY : 0u);
++    }
++#endif
+
+@@ manual (conflict) petari line 342 in ChipBase::exeGot
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this)) {
++        petari_milestone("StarChip.Got");
++    }
++#endif
+

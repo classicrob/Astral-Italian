@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 195 in MiiSelectIcon::exeWait
++#ifdef GALAXY_NATIVE
++        if (!mIsMiiDummy && mIconID->isFellow() && mIconID->getFellowID() == FileSelectIconID::Mario) {
++            _20->publishUiTarget("MiiSelect.Mario", 0);
++        }
++#endif
+

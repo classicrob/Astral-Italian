@@ -1,0 +1,7 @@
+@@ unconditional petari line 4 in ?
++#include "Game/Util/GravityUtil.hpp"
+
+@@ manual (conflict) petari line 34 in ?
+-    bool calcTotalGravityVector(TVec3f* pGravity, GravityInfo* pInfo, const TVec3f& rPosition, u32 gravityType, u32 requester) const;
++    bool calcTotalGravityVector(TVec3f* pGravity, GravityInfo* pInfo, const TVec3f& rPosition, u32 gravityType, GravityHostID requester) const;
+

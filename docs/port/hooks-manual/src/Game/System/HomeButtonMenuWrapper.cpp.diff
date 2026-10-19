@@ -1,0 +1,17 @@
+@@ missing (context matches 0 places) petari line 15 in ?
++#ifdef GALAXY_NATIVE
++// The HOME Button Menu module (/ModuleData/HomeButtonMenuWrapperRSO.rso) is
++// PowerPC code and cannot be loaded natively. The entry points are served by
++// the native menu instead (native/home_menu, petari/home_menu.hpp).
++void RSO::setupRsoHomeButtonMenu() {
++    HBMCreateRSO = &PetariNative::HomeMenu::Hbm::create;
++    HBMInitRSO = &PetariNative::HomeMenu::Hbm::init;
++    HBMCalcRSO = &PetariNative::HomeMenu::Hbm::calc;
++    HBMDrawRSO = &PetariNative::HomeMenu::Hbm::draw;
++    HBMGetSelectBtnNumRSO = &PetariNative::HomeMenu::Hbm::getSelectBtnNum;
++    HBMSetAdjustFlagRSO = &PetariNative::HomeMenu::Hbm::setAdjustFlag;
++    HBMStartBlackOutRSO = &PetariNative::HomeMenu::Hbm::startBlackOut;
++}
++#else
++#endif
+

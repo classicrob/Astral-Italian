@@ -1,0 +1,36 @@
+@@ unconditional petari line 27 in osdsp_task_FORCE_MATCH_RODATA
+-    if (DspRunningStatus == 1 || DspRunningStatus == 0) {
++    if (DSP_SHARED_LOAD(DspRunningStatus) == 1 || DSP_SHARED_LOAD(DspRunningStatus) == 0) {
+
+@@ unconditional petari line 44 in osdsp_task_FORCE_MATCH_RODATA
+-            DspRunningStatus = 1;
++            DSP_SHARED_STORE(DspRunningStatus, 1);
+
+@@ unconditional petari line 55 in osdsp_task_FORCE_MATCH_RODATA
+-            DspRunningStatus = 1;
++            DSP_SHARED_STORE(DspRunningStatus, 1);
+
+@@ unconditional petari line 121 in osdsp_task_FORCE_MATCH_RODATA
+-            DspRunningStatus = 3;
++            DSP_SHARED_STORE(DspRunningStatus, 3);
+
+@@ unconditional petari line 140 in DsyncFrame2
+-void DsyncFrame2(u32 param_0, u32 param_1, u32 param_2) {
+-    if (DspRunningStatus != 1) {
++void DsyncFrame2(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
++    if (DSP_SHARED_LOAD(DspRunningStatus) != 1) {
+
+@@ unconditional petari line 154 in DsyncFrame3
+-void DsyncFrame3(u32 param_0, u32 param_1, u32 param_2, u32 param_3, u32 param_4) {
+-    if (DspRunningStatus != 1) {
++void DsyncFrame3(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr param_3, JASDspAddr param_4) {
++    if (DSP_SHARED_LOAD(DspRunningStatus) != 1) {
+
+@@ unconditional petari line 183 in Dsp_Running_Check
+-    return DspRunningStatus == 1 ? TRUE : FALSE;
++    return DSP_SHARED_LOAD(DspRunningStatus) == 1 ? TRUE : FALSE;
+
+@@ unconditional petari line 187 in Dsp_Running_Start
+-    DspRunningStatus = 1;
++    DSP_SHARED_STORE(DspRunningStatus, 1);
+

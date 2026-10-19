@@ -1,0 +1,12 @@
+@@ unconditional petari line 60 in JMapInfo::getValueFast
+-    case JMAP_VALUE_TYPE_STRING_PTR:
++    case JMAP_VALUE_TYPE_STRING_PTR: {
+
+@@ unconditional petari line 64 in JMapInfo::getValueFast
++    }
+
+@@ unconditional petari line 101 in JMapInfo::getValueFast
+-    const char* valuePtr = getEntryAddress(mData, mData->mDataOffset, entryIndex) + item->mOffsData;
++    const char* valuePtr;
++    valuePtr = getEntryAddress(mData, mData->mDataOffset, entryIndex) + item->mOffsData;
+

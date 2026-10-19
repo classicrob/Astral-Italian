@@ -1,0 +1,3 @@
+@@ unconditional petari line 49 in ?
++BOOL ARCOpen(ARCHandle *, const char *, ARCFileInfo *);
+

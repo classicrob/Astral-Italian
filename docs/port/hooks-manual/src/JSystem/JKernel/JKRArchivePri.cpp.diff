@@ -1,0 +1,8 @@
+@@ manual (conflict) petari line 188 in JKRArchive::CArcName::store
+-        s32 ch = tolower(*name);
++        s32 ch = JKR_ARC_TOLOWER(*name);
+
+@@ manual (conflict) petari line 204 in JKRArchive::CArcName::store
+-        s32 lch = tolower(static_cast< int >(*name));
++        s32 lch = JKR_ARC_TOLOWER(static_cast< int >(*name));
+

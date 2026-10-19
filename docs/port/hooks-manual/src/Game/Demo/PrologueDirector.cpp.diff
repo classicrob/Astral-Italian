@@ -1,0 +1,22 @@
+@@ missing (context matches 0 places) petari line 21 in ?
++
++#ifdef GALAXY_NATIVE
++// Progress telemetry and the automated smoke run (native/app); observation only.
++#include <petari/milestone.hpp>
++#define NATIVE_MILESTONE(name) petari_milestone(name)
++#else
++#define NATIVE_MILESTONE(name)
++#endif
+
+@@ missing (context matches 0 places) petari line 119 in PrologueDirector::exePictureBook
++        NATIVE_MILESTONE("Prologue.PictureBook");
+
+@@ missing (context matches 0 places) petari line 148 in PrologueDirector::exePeachLetter
++        NATIVE_MILESTONE("Prologue.PeachLetter");
+
+@@ missing (context matches 0 places) petari line 204 in PrologueDirector::exeArrive
++        NATIVE_MILESTONE("Prologue.Arrive");
+
+@@ missing (context matches 0 places) petari line 248 in PrologueDirector::exeGameStart
++        NATIVE_MILESTONE("Prologue.GameStart");
+

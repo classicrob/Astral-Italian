@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 340 in ?
++#ifdef GALAXY_NATIVE
++                friend Self;
++#else
++#endif
+

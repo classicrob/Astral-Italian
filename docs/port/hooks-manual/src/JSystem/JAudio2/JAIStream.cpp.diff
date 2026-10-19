@@ -1,0 +1,5 @@
+@@ unconditional petari line 57 in JAIStream::prepare_prepareStream_
+-            inner_.aramStream.init((u32)streamAramAddr, local_28, &JAIStream_JASAramStreamCallback_, this);
++            // Stream heaps come from the ARAM heap, whose bases are 32-bit ARAM offsets.
++            inner_.aramStream.init((u32)(uintptr_t)streamAramAddr, local_28, &JAIStream_JASAramStreamCallback_, this);
+

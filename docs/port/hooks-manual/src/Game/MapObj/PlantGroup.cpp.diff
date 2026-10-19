@@ -1,0 +1,14 @@
+@@ manual (conflict) petari line 182 in PlantGroup::placeOnCollisionFormCircle
++#ifdef GALAXY_NATIVE
++        const TVec3f up = rGravity * 100.0f;
++        const TVec3f* pUp = &up;
++#else
++#endif
+
+@@ manual (conflict) petari line 185 in PlantGroup::placeOnCollisionFormCircle
++#ifdef GALAXY_NATIVE
++        const TVec3f ray = rGravity * ::sCheckLineLength;
++        const TVec3f* pRay = &ray;
++#else
++#endif
+

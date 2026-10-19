@@ -1,0 +1,46 @@
+@@ missing (context matches 0 places) petari line 1 in ?
++#ifdef GALAXY_NATIVE
++#include <cstdio>
++#include <petari/ui_observe.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 688 in Mario::checkAllWall
++#ifdef GALAXY_NATIVE
++        f32 groundAngle = 0.0f;
++#else
++#endif
+
+@@ missing (context matches 0 places) petari line 702 in Mario::checkAllWall
++#ifdef GALAXY_NATIVE
++        // Without a ground contact there is no ground angle to compare these walls against.
++        if (mMovementStates._1 && maxAngle - minAngle < 60.0f && maxAngle - minAngle > 5.0f && maxAngle < 80.0f) {
++#else
++#endif
+
+@@ missing (context matches 0 places) petari line 957 in Mario::getSideWallNorm
++#ifdef GALAXY_NATIVE
++namespace {
++    const TVec3f sNativeZeroVec(0.0f, 0.0f, 0.0f);
++}  // namespace
++#endif
++
+
+@@ missing (context matches 0 places) petari line 1434 in Mario::checkHeadPoint
++#ifdef GALAXY_NATIVE
++            if (petari_ui_observing()) {
++                std::fprintf(stderr, "[mario] blown by collision reaction (%.1f, %.1f, %.1f), angle %.1f to up; gravity (%.2f, %.2f, %.2f), air gravity (%.2f, %.2f, %.2f), pos (%.0f, %.0f, %.0f), status %d\n",
++                             reaction.x, reaction.y, reaction.z, calcAngleD(normal), getGravityVec()->x, getGravityVec()->y,
++                             getGravityVec()->z, getAirGravityVec().x, getAirGravityVec().y, getAirGravityVec().z, mPosition.x, mPosition.y,
++                             mPosition.z, static_cast< int >(getCurrentStatus()));
++            }
++#endif
+
+@@ missing (context matches 0 places) petari line 2054 in Mario::checkGround
++#ifdef GALAXY_NATIVE
++        if (petari_ui_observing() && MR::abs(distance) > 500.0f) {
++            std::fprintf(stderr, "[mario] force Trans to ground (%.0f, %.0f, %.0f) from (%.0f, %.0f, %.0f), gravity (%.2f, %.2f, %.2f), %.0f along it; status %d\n",
++                         mGroundPos.x, mGroundPos.y, mGroundPos.z, mPosition.x, mPosition.y, mPosition.z, getGravityVec()->x,
++                         getGravityVec()->y, getGravityVec()->z, distance, static_cast< int >(getCurrentStatus()));
++        }
++#endif
+

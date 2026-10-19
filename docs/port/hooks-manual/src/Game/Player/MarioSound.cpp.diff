@@ -1,0 +1,23 @@
+@@ missing petari line 17 in ?
++
++        // The table initializes _0 and code reads _4[0], the most significant byte on the Wii.
++        u8 getHighByte() const {
++#ifdef GALAXY_NATIVE
++            return static_cast< u8 >(_0 >> 24);
++#else
++            return _4[0];
++#endif
++        }
+
+@@ missing petari line 1745 in Mario::playSoundJ
+-        switch (soundlist[index]._8._4[0] & 0x3) {
++        switch (soundlist[index]._8.getHighByte() & 0x3) {
+
+@@ missing petari line 1763 in Mario::playSoundJ
+-        switch (soundlist[index]._8._4[0] & ~0x3) {
++        switch (soundlist[index]._8.getHighByte() & ~0x3) {
+
+@@ missing petari line 1782 in Mario::stopSoundJ
+-        switch (soundlist[index]._8._4[0] & 0x3) {
++        switch (soundlist[index]._8.getHighByte() & 0x3) {
+

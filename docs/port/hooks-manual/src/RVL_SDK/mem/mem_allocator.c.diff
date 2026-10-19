@@ -1,0 +1,8 @@
+@@ unconditional petari line 5 in AllocatorAllocForExpHeap_
+-    return MEMAllocFromExpHeapEx(pAllocator->pHeap, size, pAllocator->heapParam1);
++    return MEMAllocFromExpHeapEx((MEMHeapHandle)pAllocator->pHeap, size, pAllocator->heapParam1);
+
+@@ unconditional petari line 9 in AllocatorFreeForExpHeap_
+-    MEMFreeToExpHeap(pAllocator->pHeap, pBlock);
++    MEMFreeToExpHeap((MEMHeapHandle)pAllocator->pHeap, pBlock);
+

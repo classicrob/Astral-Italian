@@ -1,0 +1,48 @@
+@@ missing (context matches 0 places) petari line 2 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/editor/runtime.hpp>
++#endif
+
+@@ missing petari line 24 in MarioActor::forceKill
++
++#ifdef GALAXY_NATIVE
++    if (PetariEditor::Runtime::playerMissing("マリオダウン")) {
++        return;
++    }
++#endif
+
+@@ missing petari line 89 in MarioActor::exeGameOver
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this) && PetariEditor::Runtime::playerMissing("マリオダウン")) {
++        return;
++    }
++#endif
+
+@@ missing petari line 138 in MarioActor::exeGameOverAbyss
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this) && PetariEditor::Runtime::playerMissing("マリオ奈落")) {
++        return;
++    }
++#endif
+
+@@ missing petari line 164 in MarioActor::exeGameOverFire
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this) && PetariEditor::Runtime::playerMissing("マリオ炎ダウン")) {
++        return;
++    }
++#endif
+
+@@ missing petari line 191 in MarioActor::exeGameOverSink
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this) && PetariEditor::Runtime::playerMissing("マリオダウン")) {
++        return;
++    }
++#endif
+
+@@ missing petari line 241 in MarioActor::exeGameOverNonStop
++#ifdef GALAXY_NATIVE
++    if (MR::isFirstStep(this) && PetariEditor::Runtime::playerMissing("マリオ炎ダウン")) {
++        return;
++    }
++#endif
+

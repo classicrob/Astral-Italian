@@ -1,0 +1,37 @@
+@@ manual (conflict) petari line 48 in ?
++#ifdef GALAXY_NATIVE
++#include <cstdio>
++#include <petari/ui_observe.hpp>
++namespace {
++    // Smoke-run diagnostic: a single position change this large is a teleport
++    // (Good Egg Bean B investigation). Observation only.
++    void nativeNoteBigMove(const char* pWhere, const char* pName, const TVec3f& rFrom, const TVec3f& rTo) {
++        const TVec3f delta = rTo - rFrom;
++        if (petari_ui_observing() && delta.squared() > 500.0f * 500.0f) {
++            std::fprintf(stderr, "[mario] %s %s moved %.0f: (%.0f, %.0f, %.0f) -> (%.0f, %.0f, %.0f)\n", pWhere,
++                         pName != nullptr ? pName : "(unnamed)", delta.length(), rFrom.x, rFrom.y, rFrom.z, rTo.x, rTo.y, rTo.z);
++        }
++    }
++}  // namespace
++#endif
+
+@@ manual (conflict) petari line 1296 in Mario::addTrans
++#ifdef GALAXY_NATIVE
++    nativeNoteBigMove("Mario::addTrans", pA2, mPosition, mPosition + rShift);
++#endif
+
+@@ manual (conflict) petari line 1313 in Mario::setTrans
++#ifdef GALAXY_NATIVE
++    nativeNoteBigMove("Mario::setTrans", pA2, mPosition, rShift);
++#endif
+
+@@ manual (conflict) petari line 1567 in Mario::writeBackPhyisicalVector
++#ifdef GALAXY_NATIVE
++        nativeNoteBigMove("Mario", "stack_104", mPosition, stack_104);
++#endif
+
+@@ manual (conflict) petari line 1573 in Mario::writeBackPhyisicalVector
++#ifdef GALAXY_NATIVE
++        nativeNoteBigMove("Mario", "_688 + stack_f8", mPosition, _688 + stack_f8);
++#endif
+

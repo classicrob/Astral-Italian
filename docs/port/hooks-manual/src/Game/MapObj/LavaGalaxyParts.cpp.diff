@@ -1,0 +1,6 @@
+@@ missing (context matches 0 places) petari line 26 in LavaGalaxyParts::initAfterPlacement
++#ifdef GALAXY_NATIVE
++        TVec3f groundVec(mPosition);  // no ground: retain the placement with zero offset
++#else
++#endif
+

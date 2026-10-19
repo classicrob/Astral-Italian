@@ -1,0 +1,38 @@
+@@ manual (conflict) petari line 109 in TalkMessageCtrl::rootNodeEve
+-        if (mEventFunc->operator()(nodeEvent->mUnknown) == nullptr) {
++        if (mEventFunc->operator()(nodeEvent->mUnknown) == false) {
+
+@@ manual (conflict) petari line 117 in TalkMessageCtrl::rootNodeEve
+-        if (mAnimeFunc->operator()(nodeEvent->mUnknown) == nullptr) {
++        if (mAnimeFunc->operator()(nodeEvent->mUnknown) == false) {
+
+@@ manual (conflict) petari line 128 in TalkMessageCtrl::rootNodeEve
+-        if (mKillFunc->operator()(nodeEvent->mUnknown) == nullptr) {
++        if (mKillFunc->operator()(nodeEvent->mUnknown) == false) {
+
+@@ unconditional petari line 164 in TalkMessageCtrl::rootNodePre
+-        switch (branch->mIndex) {
++        u16 condition = branch->mIndex;
++#ifdef GALAXY_NATIVE
++        // These case numbers follow the Korean build this code was decompiled from
++        // (RMGK01), which added the LED-pattern check. The US disc's message flows
++        // (RMGE01, the disc the port runs; its rootNodePre has 14 cases) number them
++        // 11 = Astro Galaxy branch, 12 = time-keep demo, 13 = message already read.
++        // Read unmapped, every observatory progress branch asked isTimeKeepDemoActive
++        // (e.g. the Luma at the Fountain's Launch Star always said "You can't go up
++        // there yet.").
++        switch (condition) {
++        case 11:
++            condition = 14;
++            break;
++        case 12:
++            condition = 11;
++            break;
++        case 13:
++            condition = 12;
++            break;
++        }
++#endif
++
++        switch (condition) {
+

@@ -1,0 +1,6 @@
+@@ missing (context matches 0 places) petari line 30 in LargeChain::init
++#ifdef GALAXY_NATIVE
++    s32 chainLen = static_cast<s32>(::sPartsLength);  // absent length: retain the one-part default
++#else
++#endif
+

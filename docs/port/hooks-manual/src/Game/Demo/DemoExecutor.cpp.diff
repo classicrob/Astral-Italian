@@ -1,0 +1,5 @@
+@@ manual (conflict) petari line 19 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/game_compat.hpp>
++#endif
+

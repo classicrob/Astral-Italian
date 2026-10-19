@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 22 in ?
++
++#ifdef GALAXY_NATIVE
++// native/platform/include/petari/platform/os_host.hpp
++extern "C" void petari_os_preemption_point(void);
++#endif
+

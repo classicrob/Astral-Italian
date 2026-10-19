@@ -1,0 +1,8 @@
+@@ unconditional petari line 196 in JKRDecomp::decodeSZS
+-    u32 decompSize = ((s32)pDst + *(u32*)(pSrc + 4)) - a4;
++    uintptr_t decompSize = ((intptr_t)pDst + JKR_DECOMP_SZS_HEADER_U32(pSrc, 4)) - a4;
+
+@@ unconditional petari line 205 in JKRDecomp::decodeSZS
+-    if (a4 > *(u32*)pSrc) {
++    if (a4 > JKR_DECOMP_SZS_HEADER_U32(pSrc, 0)) {
+

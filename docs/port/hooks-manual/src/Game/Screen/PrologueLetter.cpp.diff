@@ -1,0 +1,18 @@
+@@ missing petari line 8 in ?
++
++#ifdef GALAXY_NATIVE
++#include "Game/System/CutsceneSkip.hpp"
++#endif
+
+@@ missing (context matches 0 places) petari line 61 in PrologueLetter::exeWait
++        NATIVE_MILESTONE("PrologueLetter.Ready");
+
+@@ missing petari line 65 in PrologueLetter::exeWait
+-    if (MR::testSystemPadTriggerDecide()) {
++    bool isDecide = MR::testSystemPadTriggerDecide();
++#ifdef GALAXY_NATIVE
++    isDecide = isDecide || CutsceneSkip::isActive();  // hold-to-skip mod: close the letter
++#endif
++
++    if (isDecide) {
+

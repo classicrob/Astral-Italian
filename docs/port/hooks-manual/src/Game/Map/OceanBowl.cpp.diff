@@ -1,0 +1,16 @@
+@@ missing petari line 406 in OceanBowl::loadMaterial
+-    GXSetArray(GX_VA_TEX0, mVtxTex0Array, 8);
+-    GXSetArray(GX_VA_TEX1, mVtxTex1Array, 8);
+-    GXSetArray(GX_VA_TEX2, mVtxTex2Array, 8);
+-    GXSetArray(GX_VA_TEX3, mVtxTex3Array, 8);
++    GXSETARRAY(GX_VA_TEX0, mVtxTex0Array, 24 * 25 * 4 * sizeof(f32), 8, true);
++    GXSETARRAY(GX_VA_TEX1, mVtxTex1Array, 24 * 25 * 4 * sizeof(f32), 8, true);
++    GXSETARRAY(GX_VA_TEX2, mVtxTex2Array, 24 * 25 * 4 * sizeof(f32), 8, true);
++    GXSETARRAY(GX_VA_TEX3, mVtxTex3Array, 24 * 25 * 4 * sizeof(f32), 8, true);
+
+@@ missing petari line 522 in OceanBowl::loadMaterialBloom
+-    GXSetArray(GX_VA_TEX0, mVtxTex0Array, 8);
+-    GXSetArray(GX_VA_TEX1, mVtxTex1Array, 8);
++    GXSETARRAY(GX_VA_TEX0, mVtxTex0Array, 24 * 25 * 4 * sizeof(f32), 8, true);
++    GXSETARRAY(GX_VA_TEX1, mVtxTex1Array, 24 * 25 * 4 * sizeof(f32), 8, true);
+

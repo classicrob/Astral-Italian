@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 10 in ?
++#ifdef GALAXY_NATIVE
++#include <JSystem/JUtility/JUTTexture.hpp>
++#include <petari/kcl_collision.hpp>
++#endif
+

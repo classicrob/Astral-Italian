@@ -1,0 +1,16 @@
+@@ unconditional petari line 3 in ?
++
++// Native C++ may include this inside another header's extern "C" block, so use
++// the C header there.
++#if defined(GALAXY_NATIVE) || !defined(__cplusplus)
++#include <stddef.h>
++#else
++#include <cstddef>
++#endif
++#include "revolution/types.h"
+
+@@ unconditional petari line 7 in ?
+-
+-#include <cstddef>
+-#include "revolution/types.h"
+

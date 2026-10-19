@@ -1,0 +1,4 @@
+@@ unconditional petari line 368 in ?
+-    /* 0xC0 */ s32 mpUserWork;
++    /* 0xC0 */ uintptr_t mpUserWork;
+

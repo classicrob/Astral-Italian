@@ -1,0 +1,4 @@
+@@ unconditional petari line 182 in ?
+-        u32* ptr = (u32*)param_0;
++        const JSU_BE(u32)* ptr = (const JSU_BE(u32)*)param_0;
+

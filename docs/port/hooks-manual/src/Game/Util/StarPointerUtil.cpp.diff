@@ -1,0 +1,18 @@
+@@ manual (conflict) petari line 584 in StarPointerUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, rPlaneBasePos, camNorm)) {
++            pPos->set(rPlaneBasePos);
++            return false;
++        }
++#else
++#endif
+
+@@ manual (conflict) petari line 596 in StarPointerUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        if (!MR::checkHitSemilinePlane(pPos, forceIntersectPos, forceNorm, rPlaneBasePos, rPlaneNorm)) {
++            pPos->set(rPlaneBasePos);
++            return false;
++        }
++#else
++#endif
+

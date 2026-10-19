@@ -1,0 +1,4 @@
+@@ unconditional petari line 131 in MarineSnow::draw
+-                GXColor color = {0, 0, 0, alpha};
++                GXColor color = {0, 0, 0, static_cast< u8 >(alpha)};
+

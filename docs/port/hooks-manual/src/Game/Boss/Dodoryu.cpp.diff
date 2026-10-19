@@ -1,0 +1,30 @@
+@@ manual (conflict) petari line 812 in DodoryuBank::DodoryuBank
+-DodoryuBank::DodoryuBank() : ModelObj("ドドリュウ盛土", "DodoryuBank", _90, MR::DrawBufferType_MapObjStrongLight, -2, -2, false) {
++DodoryuBank::DodoryuBank() : ModelObj("ドドリュウ盛土", "DodoryuBank",
++#ifdef GALAXY_NATIVE
++                                           nullptr,
++#else
++                                           _90,
++#endif
++                                           MR::DrawBufferType_MapObjStrongLight, -2, -2, false) {
+
+@@ manual (conflict) petari line 814 in DodoryuBank::DodoryuBank
++#ifdef GALAXY_NATIVE
++    mMtx = _90;
++#endif
+
+@@ manual (conflict) petari line 833 in DodoryuRabbit::DodoryuRabbit
+-    : ModelObj("ドドリュウに追われるウサギ", "DodoryuRabbit", _94, MR::DrawBufferType_NPC, -2, -2, false), mHost(pHost), _C4(), mTalkCtrl(), _CC(300),
++    : ModelObj("ドドリュウに追われるウサギ", "DodoryuRabbit",
++#ifdef GALAXY_NATIVE
++               nullptr,
++#else
++               _94,
++#endif
++               MR::DrawBufferType_NPC, -2, -2, false), mHost(pHost), _C4(), mTalkCtrl(), _CC(300),
+
+@@ manual (conflict) petari line 836 in DodoryuRabbit::DodoryuRabbit
++#ifdef GALAXY_NATIVE
++    mMtx = _94;
++#endif
+

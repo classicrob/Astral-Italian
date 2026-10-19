@@ -1,0 +1,21 @@
+@@ manual (conflict) petari line 161 in ?
++#ifdef GALAXY_NATIVE
++        static TVec3f sOffset(0.0f, 200.0f, 0.0f);
++        return &sOffset;
++#else
++#endif
+
+@@ manual (conflict) petari line 181 in ?
++#ifdef GALAXY_NATIVE
++        static TVec3f sOffset(0.0f, 200.0f, 0.0f);
++        return &sOffset;
++#else
++#endif
+
+@@ manual (conflict) petari line 202 in ?
++#ifdef GALAXY_NATIVE
++        static TVec3f sOffset(0.0f, 580.0f, 0.0f);
++        return &sOffset;
++#else
++#endif
+

@@ -1,0 +1,4 @@
+@@ unconditional petari line 25 in ?
+-    int loadResourceAsync(JKRArchive*, u16, u8*, u32, void (*)(u32, u32), u32);
++    int loadResourceAsync(JKRArchive*, u16, u8*, u32, LoadCallback, uintptr_t);
+

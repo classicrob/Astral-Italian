@@ -1,0 +1,40 @@
+@@ manual (conflict) petari line 4 in ?
++#ifdef GALAXY_NATIVE
++#include <cstdint>
++#endif
+
+@@ manual (conflict) petari line 9 in ?
+-    bool add(const char*, u32, bool);
+-    bool add(u32, u32);
+-    bool addOrSkip(u32, u32);
++    bool add(const char*, Value, bool);
++    bool add(u32, Value);
++    bool addOrSkip(u32, Value);
+
+@@ manual (conflict) petari line 18 in ?
++#ifdef GALAXY_NATIVE
++    /// @brief Looks up a payload without narrowing it to `u32`.
++    bool searchValue(u32, Value*);
++    bool searchValue(const char*, Value*);
++
++    /// @brief Adds an object pointer payload. Native replacement for `add(pName, (u32)pObj, skip)`.
++    template < typename T >
++    bool addPtr(const char* pName, T* pObj, bool isValidSkip) {
++        return add(pName, reinterpret_cast< Value >(pObj), isValidSkip);
++    }
++
++    /// @brief Looks up an object pointer payload stored with `addPtr`. `*ppObj` is null if not found.
++    template < typename T >
++    bool searchPtr(const char* pName, T** ppObj) {
++        Value value;
++        bool isFound = searchValue(pName, &value);
++        *ppObj = reinterpret_cast< T* >(value);
++        return isFound;
++    }
++#endif
++
+
+@@ manual (conflict) petari line 20 in ?
+-    /* 0x08 */ u32* _8;
++    /* 0x08 */ Value* _8;
+

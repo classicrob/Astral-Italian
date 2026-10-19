@@ -1,0 +1,4 @@
+@@ missing petari line 457 in CollisionShadow::drawAndCaptureTex
+-        void* destination = const_cast< u8* >(reinterpret_cast< const u8* >(image) + image->mImageDataOffset);
++        void* destination = const_cast< u8* >(reinterpret_cast< const u8* >(image) + JUT_RESTIMG_OFFSET(image->mImageDataOffset));
+

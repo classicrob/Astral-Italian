@@ -1,0 +1,12 @@
+@@ unconditional petari line 910 in JPAResource::setPTev
+-    GXSetArray(GX_VA_POS, jpa_pos + pos_offset, 3);
+-    GXSetArray(GX_VA_TEX0, jpa_crd + crd_offset, 2);
++    GXSETARRAY(GX_VA_POS, jpa_pos + pos_offset, sizeof(jpa_pos) - pos_offset, 3, true);
++    GXSETARRAY(GX_VA_TEX0, jpa_crd + crd_offset, sizeof(jpa_crd) - crd_offset, 2, true);
+
+@@ unconditional petari line 949 in JPAResource::setCTev
+-    GXSetArray(GX_VA_POS, jpa_pos + pos_offset, 3);
+-    GXSetArray(GX_VA_TEX0, jpa_crd, 2);
++    GXSETARRAY(GX_VA_POS, jpa_pos + pos_offset, sizeof(jpa_pos) - pos_offset, 3, true);
++    GXSETARRAY(GX_VA_TEX0, jpa_crd, sizeof(jpa_crd), 2, true);
+

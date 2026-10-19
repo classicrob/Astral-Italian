@@ -1,0 +1,130 @@
+@@ missing petari line 11 in ?
++#ifdef GALAXY_NATIVE
++// OdysseyMovement mod (docs/dev/ODYSSEY_MOVEMENT.md): SMO's run speed rules.
++#include <petari/odyssey_move.hpp>
++extern "C" bool petari_mod_enabled(int mod);
++#endif
+
+@@ missing petari line 15 in ?
++#include <cstdlib>
+
+@@ missing petari line 563 in Mario::updateWalkSpeed
++#ifdef GALAXY_NATIVE
++    // OdysseyMovement: SMO's roll (crouch + Spin; Spin again to boost). It sets
++    // the speed directly; Galaxy's walking steers it. It ends below 17 (the run
++    // then slows to its cap), in the air, or when Mario stops being normal Mario.
++    {
++        namespace Odyssey = PetariNative::Odyssey;
++        const bool canRoll = petari_mod_enabled(2) && getPlayerMode() == 0 && mMovementStates._1 && !mMovementStates.jumping &&
++                             !mMovementStates._4 && mSinkTimer == 0 && !isStatusActive(17);
++        const f32 unit = mActor->getConst().getTable()->mWalkSpeed;
++        if (Odyssey::Live::rollStart && canRoll && !Odyssey::Live::roll.rolling) {
++            Odyssey::Live::roll = Odyssey::startRoll(mWalkSpeed * unit, false);
++            mMovementStates._A = false;
++            _20._A = false;
++            mMovementStates._26 = false;
++            stopAnimation("しゃがみ基本");
++            changeAnimation("飛び込み失敗回転着地");
++            playSound("スピンジャンプ");
++            std::fprintf(stderr, "[odyssey] roll at %.2f\n", Odyssey::Live::roll.speed);
++        } else if (Odyssey::Live::rollBoost && Odyssey::Live::roll.rolling && canRoll &&
++                   Odyssey::Live::roll.sinceBoost + 1 >= Odyssey::Const::SlopeRollingReStartInterval) {
++            changeAnimation("飛び込み失敗回転着地");
++            playSound("スピンジャンプ");
++        }
++        Odyssey::Live::rollStart = false;
++        static const bool trace = std::getenv("PETARI_ODYSSEY_TRACE") != nullptr;
++        if (trace && Odyssey::Live::roll.rolling) {
++            std::fprintf(stderr, "[odyssey] roll speed %.3f walk %.3f pos (%.1f, %.1f, %.1f) slope %.1f ground %d jumping %d slip %d sink %d status17 %d\n",
++                         Odyssey::Live::roll.speed, mWalkSpeed, mPosition.x, mPosition.y, mPosition.z,
++                         getGroundPolygon() != nullptr && getGroundPolygon()->isValid()
++                             ? MR::acos(MR::clamp(getGroundPolygon()->getNormal(0)->dot(-*getGravityVec()), -1.0f, 1.0f)) * 180.0f / MR::pi()
++                             : -1.0f,
++                         static_cast< int >(mMovementStates._1),
++                         static_cast< int >(mMovementStates.jumping), static_cast< int >(mMovementStates._4), static_cast< int >(mSinkTimer),
++                         static_cast< int >(isStatusActive(17)));
++        }
++        if (Odyssey::Live::roll.rolling && !canRoll) {
++            Odyssey::Live::roll.rolling = false;
++        }
++        if (Odyssey::Live::roll.rolling) {
++            // Slopes: faster down, slower up (along the roll's heading).
++            if (getGroundPolygon() != nullptr && getGroundPolygon()->isValid()) {
++                TVec3f up(-*getGravityVec());
++                MR::normalizeOrZero(&up);
++                const TVec3f& normal = *getGroundPolygon()->getNormal(0);
++                const f32 cosSlope = MR::clamp(normal.dot(up), -1.0f, 1.0f);
++                TVec3f downhill(-up - normal * normal.dot(-up));  // gravity along the ground
++                if (MR::normalizeOrZero(&downhill) == 0) {  // a usable direction (flat ground gives none)
++                    TVec3f front(mFrontVec - normal * normal.dot(mFrontVec));
++                    MR::normalizeOrZero(&front);
++                    const f32 slopeDegrees = MR::acos(cosSlope) * 180.0f / MR::pi();
++                    Odyssey::Live::roll.speed += Odyssey::rollSlopeChange(slopeDegrees, front.dot(downhill));
++                }
++            }
++            Odyssey::stepRoll(Odyssey::Live::roll, Odyssey::Live::rollBoost);
++            Odyssey::Live::rollBoost = false;
++            mMovementStates._A = false;
++            mWalkSpeed = Odyssey::Live::roll.speed / unit;
++            // Keep Galaxy's run target following the stick through the roll (its
++            // animator only updates it while a walk animation runs), so the run
++            // picks up where the roll ends.
++            decideWalkSpeed();
++            if (!Odyssey::Live::roll.rolling) {
++                // The roll ended (below 17): a direction held runs on at this speed,
++                // slowing to the cap; released, Galaxy's brake skid to a stop.
++                stopAnimation("飛び込み失敗回転着地", "基本");
++                _404 = 0;  // no slow start: the stick already holds a run
++                if (!isStickOn()) {
++                    doBrakingAnimation();
++                    _71F = mActor->getConst().getTable()->mBrakeSecondTimer;
++                }
++                return;
++            }
++            // Galaxy has no rolling loop: restart the dive landing's forward roll
++            // (about 12 frames long) for as long as the roll lasts; otherwise Mario
++            // glides standing between rolls.
++            if (Odyssey::Live::roll.sinceBoost % 12 == 0) {
++                stopAnimation("飛び込み失敗回転着地");
++                changeAnimation("飛び込み失敗回転着地");
++            }
++            return;
++        }
++        Odyssey::Live::rollBoost = false;
++    }
++#endif
+
+@@ missing petari line 665 in Mario::updateWalkSpeed
++#ifdef GALAXY_NATIVE
++    // OdysseyMovement (Mods::Mod::OdysseyMovement = 2): on normal ground, SMO's
++    // run: cap 3 + 11*stick (14), accelerate 14/40, slow 14/120 above the cap,
++    // brake 1.4 with the stick released. Crouching, sinking, tornado and the
++    // special player modes keep Galaxy's speed.
++    if (petari_mod_enabled(2) && getPlayerMode() == 0 && !mMovementStates._A && !mMovementStates._F && mSinkTimer == 0 &&
++        !isStatusActive(17)) {
++        const f32 unit = mActor->getConst().getTable()->mWalkSpeed;  // Galaxy's full run, units/frame
++        // The stick's tilt itself, not Galaxy's target: that one follows a run-speed
++        // index only its animator updates, and ramps up from 0 after a stop
++        // (_404), so right after a mod move hands over (dive or long-jump landing,
++        // roll end) it reads "no stick" and Mario glides standing while braking.
++        // Galaxy's turn slip and brake turn (_3D0, _10) still stop the run.
++        const f32 stick = (_3D0 == 0 && !mMovementStates._10) ? MR::clamp(mStickPos.z, 0.0f, 1.0f) : 0.0f;
++        _404 = 0;
++        decideWalkSpeed();  // keep the run animation's index on the stick, so it runs instead of standing
++        if (PetariNative::Odyssey::Live::getUpFrames > 0 && --PetariNative::Odyssey::Live::getUpFrames == 0) {
++            // The dive landing's forward roll is done: Galaxy would hold its last
++            // (standing) frame while Mario moves on; hand over to the run.
++            stopAnimation("飛び込み失敗回転着地", "基本");
++        }
++        if (PetariNative::Odyssey::Live::capThrowBrake > 0) {
++            // Cappy mod: a ground throw slows Mario x0.95 a frame for 15 frames
++            // (SMO's SpinBrakeFrame/SpinBrakeRate), then the run picks up again.
++            --PetariNative::Odyssey::Live::capThrowBrake;
++            mWalkSpeed *= 0.95f;
++            return;
++        }
++        mWalkSpeed = PetariNative::Odyssey::stepRun(mWalkSpeed * unit, stick) / unit;
++        return;
++    }
++#endif
+

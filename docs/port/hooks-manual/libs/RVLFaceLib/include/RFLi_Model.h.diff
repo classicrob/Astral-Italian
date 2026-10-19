@@ -1,0 +1,8 @@
+@@ manual (conflict) petari line 138 in RFLiSetCoordinateData
+-inline void RFLiSetCoordinateData(const RFLiCoordinateData* data) {
++RFL_HEADER_INLINE void RFLiSetCoordinateData(const RFLiCoordinateData* data) {
+
+@@ manual (conflict) petari line 142 in RFLiGetCoordinateData
+-inline RFLiCoordinateData* RFLiGetCoordinateData(void) {
++RFL_HEADER_INLINE RFLiCoordinateData* RFLiGetCoordinateData(void) {
+

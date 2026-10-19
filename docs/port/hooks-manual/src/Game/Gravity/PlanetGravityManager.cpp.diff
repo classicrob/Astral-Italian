@@ -1,0 +1,4 @@
+@@ manual (conflict) petari line 11 in PlanetGravityManager::calcTotalGravityVector
+-bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo* pInfo, const TVec3f& rPosition, u32 gravityType, u32 host) const {
++bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo* pInfo, const TVec3f& rPosition, u32 gravityType, GravityHostID host) const {
+

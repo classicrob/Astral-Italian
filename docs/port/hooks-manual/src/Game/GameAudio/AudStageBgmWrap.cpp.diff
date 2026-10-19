@@ -1,0 +1,35 @@
+@@ missing petari line 6 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/platform/mod_galaxy.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 62 in ?
+-    {nullptr, nullptr, -1, -1},
++    {nullptr, nullptr, 0xFFFFFFFF, -1},
+
+@@ missing (context matches 0 places) petari line 83 in ?
+-        -1,
++        0xFFFFFFFF,
+
+@@ missing (context matches 0 places) petari line 92 in ?
+-        -1,
+-        -1,
+-        -1,
+-        -1,
++        0xFFFFFFFF,
++        0xFFFFFFFF,
++        0xFFFFFFFF,
++        0xFFFFFFFF,
+
+@@ missing (context matches 0 places) petari line 97 in ?
+-        -1,
++        0xFFFFFFFF,
+
+@@ missing petari line 114 in AudStageBgmWrap::changeStageNameToSoundID
++#ifdef GALAXY_NATIVE
++    // A mod galaxy plays the music of the disc galaxy it borrows from (galaxy.json, TECH.md 5.7).
++    if (const char* pBorrowed = PetariNative::Platform::ModGalaxy::musicFrom(pStageName)) {
++        pStageName = pBorrowed;
++    }
++#endif
+

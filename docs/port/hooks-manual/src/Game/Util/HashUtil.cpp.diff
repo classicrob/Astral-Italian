@@ -1,0 +1,42 @@
+@@ manual (conflict) petari line 12 in HashSortTable::HashSortTable
+-    _8 = new u32[cnt];
++    _8 = new Value[cnt];
+
+@@ manual (conflict) petari line 20 in HashSortTable::add
+-bool HashSortTable::add(const char* pName, u32 a2, bool isValidSkip) {
++bool HashSortTable::add(const char* pName, Value a2, bool isValidSkip) {
+
+@@ manual (conflict) petari line 30 in HashSortTable::add
+-bool HashSortTable::add(u32 a1, u32 a2) {
++bool HashSortTable::add(u32 a1, Value a2) {
+
+@@ manual (conflict) petari line 38 in HashSortTable::addOrSkip
+-bool HashSortTable::addOrSkip(u32 a1, u32 a2) {
++bool HashSortTable::addOrSkip(u32 a1, Value a2) {
+
+@@ manual (conflict) petari line 59 in HashSortTable::sort
+-    u32 swapArray[0x400];
++    Value swapArray[0x400];
+
+@@ manual (conflict) petari line 111 in HashSortTable::search
++#ifdef GALAXY_NATIVE
++    // Index payloads only; pointer payloads must use searchValue or searchPtr.
++    Value value;
++    bool isFound = searchValue(a1, &value);
++
++    if (a2 != nullptr) {
++        *a2 = static_cast< u32 >(value);
++    }
++
++    return isFound;
++}
++
++bool HashSortTable::searchValue(const char* a1, Value* a2) {
++    return searchValue(MR::getHashCode(a1), a2);
++}
++
++bool HashSortTable::searchValue(u32 a1, Value* a2) {
++#else
++bool HashSortTable::search(u32 a1, u32* a2) {
++#endif
+

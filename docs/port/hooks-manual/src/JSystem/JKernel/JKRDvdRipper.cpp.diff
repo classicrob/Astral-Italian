@@ -1,0 +1,4 @@
+@@ unconditional petari line 286 in decompSZS_subroutine
+-    endPtr = dest + (header->length - fileOffset);
++    endPtr = dest + (JKR_YAZ0_LENGTH(header) - fileOffset);
+

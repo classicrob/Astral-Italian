@@ -1,0 +1,8 @@
+@@ manual (conflict) petari line 20 in ?
++#include "Game/Util/NativeActorObserve.hpp"
+
+@@ manual (conflict) petari line 155 in Takobo::control
++#ifdef GALAXY_NATIVE
++    MR::Native::publishActor("Octoomba", mPosition, -mGravity, 0, PETARI_ACTOR_HOSTILE);
++#endif
+

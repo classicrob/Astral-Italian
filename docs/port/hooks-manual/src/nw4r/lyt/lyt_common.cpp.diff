@@ -1,0 +1,16 @@
+@@ unconditional petari line 129 in ?
+-                    GXColor1u32(vtxColors[0]);
++                    GXColor1u32(PETARI_GREY_RGBA(vtxColors[0]));
+
+@@ unconditional petari line 139 in ?
+-                    GXColor1u32(vtxColors[1]);
++                    GXColor1u32(PETARI_GREY_RGBA(vtxColors[1]));
+
+@@ unconditional petari line 149 in ?
+-                    GXColor1u32(vtxColors[3]);
++                    GXColor1u32(PETARI_GREY_RGBA(vtxColors[3]));
+
+@@ unconditional petari line 159 in ?
+-                    GXColor1u32(vtxColors[2]);
++                    GXColor1u32(PETARI_GREY_RGBA(vtxColors[2]));
+

@@ -1,0 +1,17 @@
+@@ manual (conflict) petari line 82 in TalkStateEvent::TalkStateEvent
+-    _14 = nullptr;
+-    _10 = nullptr;
++    _14 = 0;
++    _10 = 0;
+
+@@ manual (conflict) petari line 129 in TalkStateEvent::talk
++#ifdef GALAXY_NATIVE
++    if (petari_ui_observing() && !TalkFunction::isSelectTalk(_04)) {
++        petari_ui_target("Talk.Advance", 0, 0.5f, 0.5f, PETARI_UI_SELECTABLE);
++    }
++#endif
+
+@@ manual (conflict) petari line 131 in TalkStateEvent::talk
+-    if (_1C != nullptr) {
++    if (_1C != 0) {
+

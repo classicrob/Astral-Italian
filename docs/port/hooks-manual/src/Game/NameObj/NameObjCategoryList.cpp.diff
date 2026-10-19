@@ -1,0 +1,5 @@
+@@ manual (conflict) petari line 2 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/editor/runtime_hooks.hpp>
++#endif
+

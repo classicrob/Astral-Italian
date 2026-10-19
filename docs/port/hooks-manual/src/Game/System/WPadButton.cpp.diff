@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 3 in ?
++
++#ifdef GALAXY_NATIVE
++// Hold-to-skip mod (petari/skip.hpp): hides the A hold that latched a skip.
++#include <petari/skip.hpp>
++#endif
+

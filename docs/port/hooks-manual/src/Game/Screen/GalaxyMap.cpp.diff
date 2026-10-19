@@ -1,0 +1,16 @@
+@@ missing (context matches 2 places) petari line 23 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/game_compat.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 85 in GalaxyMap::appear
++#ifdef GALAXY_NATIVE
++extern "C" void petari_gx_pipeline_stage_begin(const char* stage, const char* seed_db_path);
++#endif
++
+
+@@ missing (context matches 0 places) petari line 86 in GalaxyMap::appear
++#ifdef GALAXY_NATIVE
++    petari_gx_pipeline_stage_begin("GalaxyMap", nullptr);
++#endif
+

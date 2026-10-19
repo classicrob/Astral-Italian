@@ -1,0 +1,8 @@
+@@ unconditional petari line 274 in loadTexNo
+-    J3DGDSetTexImgPtr(GXTexMapID(param_0), (u8*)resTIMG + resTIMG->mImageDataOffset);
++    J3DGDSetTexImgPtr(GXTexMapID(param_0), (u8*)resTIMG + JUT_RESTIMG_OFFSET(resTIMG->mImageDataOffset));
+
+@@ unconditional petari line 283 in loadTexNo
+-        J3DGDLoadTlut((u8*)resTIMG + resTIMG->mPaletteDataOffset, (param_0 << 13) + 0xf0000, tlutSize);
++        J3DGDLoadTlut((u8*)resTIMG + JUT_RESTIMG_OFFSET(resTIMG->mPaletteDataOffset), (param_0 << 13) + 0xf0000, tlutSize);
+

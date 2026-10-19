@@ -1,0 +1,5 @@
+@@ manual (conflict) petari line 34 in ?
++#elif defined(GALAXY_NATIVE)
++// Defined once by the native OS platform with the Wii bus clock value.
++extern vu32 OS_BUS_CLOCK_SPEED;
+

@@ -1,0 +1,18 @@
+@@ manual (conflict) petari line 505 in LayoutManager::initArc
++#ifdef GALAXY_NATIVE
++    if (pLayoutRes == nullptr) {
++        // Layout::Build would dereference the null resource; list what the holder
++        // indexed and stop with the requested names instead.
++        OSReport("LayoutManager::initArc: no layout \"%s\" in archive \"%s\" (language %s; %u layouts, %u animations, %u other)\n",
++                 layoutResName, pArchiveName, MR::getCurrentLanguagePrefix(), mLayoutHolder->mLayoutRes.mCount, mLayoutHolder->mAnimRes.mCount,
++                 mLayoutHolder->mResOther.mCount);
++        for (u32 i = 0; i < mLayoutHolder->mLayoutRes.mCount; i++) {
++            OSReport("  layout[%u] \"%s\"\n", i, mLayoutHolder->mLayoutRes.getResName(i));
++        }
++        for (u32 i = 0; i < mLayoutHolder->mResOther.mCount; i++) {
++            OSReport("  other[%u] \"%s\"\n", i, mLayoutHolder->mResOther.getResName(i));
++        }
++        OSPanic(__FILE__, __LINE__, "LayoutManager: layout \"%s\" missing from \"%s\"", layoutResName, pArchiveName);
++    }
++#endif
+

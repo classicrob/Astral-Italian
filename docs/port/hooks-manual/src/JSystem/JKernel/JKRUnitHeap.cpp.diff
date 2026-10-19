@@ -1,0 +1,21 @@
+@@ unconditional petari line 41 in JKRUnitHeap::create
+-    u8* units = reinterpret_cast< u8* >(ALIGN_NEXT(reinterpret_cast< u32 >(bat + ALIGN_NEXT(unitCount / 8, 4)), alignment));
++    // The mask must be pointer-width; a u32 alignment would clear the high address bits.
++    u8* units = reinterpret_cast< u8* >(ALIGN_NEXT(reinterpret_cast< uintptr_t >(bat + ALIGN_NEXT(unitCount / 8, 4)), static_cast< uintptr_t >(alignment)));
+
+@@ unconditional petari line 100 in JKRUnitHeap::find1FreeBlock
+-            word = *words;
++            word = JKR_UNIT_HEAP_BAT_WORD(words);
+
+@@ unconditional petari line 113 in JKRUnitHeap::find1FreeBlock
+-            word = *words;
++            word = JKR_UNIT_HEAP_BAT_WORD(words);
+
+@@ unconditional petari line 148 in JKRUnitHeap::findFreeBlock_fromHead
+-        u32 word = words != end ? *words : 0xFFFFFFFF;
++        u32 word = words != end ? JKR_UNIT_HEAP_BAT_WORD(words) : 0xFFFFFFFF;
+
+@@ unconditional petari line 207 in JKRUnitHeap::findFreeBlock_fromTail
+-        u32 word = words != end ? *words : 0xFFFFFFFF;
++        u32 word = words != end ? JKR_UNIT_HEAP_BAT_WORD(words) : 0xFFFFFFFF;
+

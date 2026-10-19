@@ -1,0 +1,12 @@
+@@ manual (conflict) petari line 87 in FileHolder::findEntry
++#ifdef GALAXY_NATIVE
++        // Every path that is not on the disc has entry number -1: match those by name, or the
++        // first such file would answer for all of them (TECH.md 2.5).
++        if (entryNum < 0) {
++            if ((*pEntry)->mEntryNum < 0 && (*pEntry)->mNativePath != nullptr && MR::isEqualStringCase((*pEntry)->mNativePath, pFilePath)) {
++                return *pEntry;
++            }
++            continue;
++        }
++#endif
+

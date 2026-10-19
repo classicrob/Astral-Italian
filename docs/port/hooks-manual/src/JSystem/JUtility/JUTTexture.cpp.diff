@@ -1,0 +1,24 @@
+@@ unconditional petari line 50 in JUTTexture::storeTIMG
+-        mImage = reinterpret_cast< u8* >(const_cast< ResTIMG* >(pTIMG)) + pTIMG->mImageDataOffset;
++        mImage = reinterpret_cast< u8* >(const_cast< ResTIMG* >(pTIMG)) + JUT_RESTIMG_OFFSET(pTIMG->mImageDataOffset);
+
+@@ unconditional petari line 79 in JUTTexture::storeTIMG
+-                                         reinterpret_cast< u8* >(const_cast< ResTIMG* >(getTexInfo())) + getTexInfo()->mPaletteDataOffset);
++                                         reinterpret_cast< u8* >(const_cast< ResTIMG* >(getTexInfo())) + JUT_RESTIMG_OFFSET(getTexInfo()->mPaletteDataOffset));
+
+@@ unconditional petari line 84 in JUTTexture::storeTIMG
+-                                   reinterpret_cast< u8* >(const_cast< ResTIMG* >(getTexInfo())) + getTexInfo()->mPaletteDataOffset);
++                                   reinterpret_cast< u8* >(const_cast< ResTIMG* >(getTexInfo())) + JUT_RESTIMG_OFFSET(getTexInfo()->mPaletteDataOffset));
+
+@@ unconditional petari line 105 in JUTTexture::storeTIMG
+-        mImage = reinterpret_cast< u8* >(const_cast< ResTIMG* >(pTIMG)) + pTIMG->mImageDataOffset;
++        mImage = reinterpret_cast< u8* >(const_cast< ResTIMG* >(pTIMG)) + JUT_RESTIMG_OFFSET(pTIMG->mImageDataOffset);
+
+@@ unconditional petari line 166 in JUTTexture::initTexObj
+-    image += (mTIMG->mImageDataOffset ? mTIMG->mImageDataOffset : 0x20);
++    image += (mTIMG->mImageDataOffset ? JUT_RESTIMG_OFFSET(mTIMG->mImageDataOffset) : 0x20);
+
+@@ unconditional petari line 183 in JUTTexture::initTexObj
+-    image += (mTIMG->mImageDataOffset ? mTIMG->mImageDataOffset : 0x20);
++    image += (mTIMG->mImageDataOffset ? JUT_RESTIMG_OFFSET(mTIMG->mImageDataOffset) : 0x20);
+

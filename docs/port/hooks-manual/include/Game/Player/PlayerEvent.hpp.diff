@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 93 in ?
++#ifdef GALAXY_NATIVE
++        mHashTable->addPtr(pName, new T(), false);
++#else
++#endif
+

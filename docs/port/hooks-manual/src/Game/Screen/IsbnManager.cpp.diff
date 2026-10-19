@@ -1,0 +1,34 @@
+@@ missing (context matches 0 places) petari line 6 in ?
++#ifdef GALAXY_NATIVE
++#include <cwchar>
++#include <petari/asset_diagnostics.hpp>
++#else
++#endif
+
+@@ missing (context matches 0 places) petari line 79 in IsbnManager::setNumber
++#ifdef GALAXY_NATIVE
++        if (!pTextBox) {
++            PetariNative::reportMissingLayoutReference("IsbnLayout_00", cIsbnNumberPaneName[i], "pane");
++            pIsbnNumber += length;
++            continue;
++        }
++#endif
+
+@@ missing (context matches 0 places) petari line 90 in IsbnManager::setNumber
++#ifdef GALAXY_NATIVE
++        if (!pTextBox) {
++            PetariNative::reportMissingLayoutReference("IsbnLayout_00", cRegistNumberPaneName[i], "pane");
++            pRegistNumber += partLength;
++            continue;
++        }
++#endif
+
+@@ missing (context matches 0 places) petari line 101 in IsbnManager::setNumber
++#ifdef GALAXY_NATIVE
++        if (!pTextBox) {
++            PetariNative::reportMissingLayoutReference("IsbnLayout_00", cOtherNumberPaneName[i], "pane");
++            pOtherNumber += otherPartLength;
++            continue;
++        }
++#endif
+

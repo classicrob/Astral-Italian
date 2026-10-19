@@ -1,0 +1,4 @@
+@@ manual (conflict) petari line 215 in ?
+-        {-1, -1, -1, -1, 0, 0, 0, 0},
++        {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0, 0, 0, 0},
+

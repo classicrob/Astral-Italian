@@ -1,0 +1,4 @@
+@@ manual (conflict) petari line 54 in LavaFloater::init
+-    initEffectKeeper(nullptr, nullptr, false);
++    initEffectKeeper(0, nullptr, false);
+

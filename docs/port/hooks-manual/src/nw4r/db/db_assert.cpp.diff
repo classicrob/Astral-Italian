@@ -1,0 +1,29 @@
+@@ manual (conflict) petari line 21 in ?
++#ifdef GALAXY_NATIVE
++        // Host equivalent of the PowerPC back-chain walk: print return addresses
++        // and the nearest exported symbol from the dynamic loader.
++        static void ShowStack_() {
++            Assertion_Printf_("-------------------------------- TRACE\n");
++            Assertion_Printf_("Address:            Symbol\n");
++
++            void* frames[17];
++            int count = backtrace(frames, 17);
++            for (int i = 1; i < count; i++) {
++                Dl_info info;
++                if (dladdr(frames[i], &info) && info.dli_sname != NULL) {
++                    Assertion_Printf_("%p  %s+0x%lx\n", frames[i], info.dli_sname,
++                                      static_cast< unsigned long >(static_cast< char* >(frames[i]) - static_cast< char* >(info.dli_saddr)));
++                } else {
++                    Assertion_Printf_("%p\n", frames[i]);
++                }
++            }
++        }
++#else
++#endif
+
+@@ manual (conflict) petari line 83 in ?
++#ifdef GALAXY_NATIVE
++            ShowStack_();
++#else
++#endif
+

@@ -1,0 +1,22 @@
+@@ manual (conflict) petari line 680 in ?
+-    f32 frsqrte(f32);
+-    f32 fastSqrtf(f32);
++    // Native versions of the inline asm above. __frsqrte is the native reciprocal
++    // square-root estimate (native/src/intrinsics.cpp); the Newton step is unchanged.
++    inline f32 frsqrte(f32 x) {
++        return __frsqrte(x) * x;
++    }
++
++    inline f32 fastSqrtf(f32 x) {
++        if (x > 0.0f) {
++            f32 recip = __frsqrte(x);
++            f32 v = recip * x;
++            recip = -(v * recip - 3.0f);
++            recip = (recip * v);
++            recip *= 0.5f;
++            return recip;
++        }
++
++        return x;
++    }
+

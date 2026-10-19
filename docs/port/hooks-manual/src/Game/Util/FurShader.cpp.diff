@@ -1,0 +1,31 @@
+@@ missing petari line 211 in CShader::setup
++    // Display lists are big-endian GX command streams.
++    inline u16 readDLU16(const u8* p) {
++#ifdef GALAXY_NATIVE
++        return PetariNative::readU16BE(p);
++#else
++        return *reinterpret_cast< const u16* >(p);
++#endif
++    }
++
+
+@@ missing petari line 212 in CShader::setup
+-        return *reinterpret_cast< u16* >(pRead + 1);
++        return readDLU16(pRead + 1);
+
+@@ missing petari line 269 in CShader::makeIndexData
+-                u16 pos = *reinterpret_cast< u16* >(pVertex + posOffset);
+-                u16 nrm = *reinterpret_cast< u16* >(pVertex + nrmOffset);
+-                u16 tex = *reinterpret_cast< u16* >(pVertex + texOffset);
++                u16 pos = readDLU16(pVertex + posOffset);
++                u16 nrm = readDLU16(pVertex + nrmOffset);
++                u16 tex = readDLU16(pVertex + texOffset);
+
+@@ missing petari line 326 in CShader::checkBorderVtx
+-                s32 count = *reinterpret_cast< u16* >(pRead + 1);
++                s32 count = readDLU16(pRead + 1);
+
+@@ missing petari line 329 in CShader::checkBorderVtx
+-                    u16 pos = *reinterpret_cast< u16* >((pRead + stride * i) + (posOffset + 3));
++                    u16 pos = readDLU16((pRead + stride * i) + (posOffset + 3));
+

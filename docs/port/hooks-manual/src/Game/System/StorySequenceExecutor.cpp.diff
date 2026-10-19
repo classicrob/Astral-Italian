@@ -1,0 +1,115 @@
+@@ missing (context matches 4 places) petari line 24 in ?
++#ifdef GALAXY_NATIVE
++#include <cstdlib>
++#include <cstring>
++#include <petari/test_fixture.hpp>
++#include <petari/player_launch.hpp>
++#include "Game/System/GameDataHolder.hpp"
++#include "Game/System/GalaxyStatusAccessor.hpp"
++#endif
+
+@@ missing (context matches 0 places) petari line 643 in StorySequenceExecutor::exePlayDemoSequence
++#ifdef GALAXY_NATIVE
++        // PETARI_ENDING_TEST (or PETARI_STORY_TRACE): each step of a story demo sequence.
++        static const bool sTrace = std::getenv("PETARI_ENDING_TEST") != nullptr || std::getenv("PETARI_STORY_TRACE") != nullptr;
++        if (sTrace) {
++            std::fprintf(stderr, "[story] demo step: kind %d, id %d, %s\n", static_cast< int >(pDemoInfo->_0),
++                         static_cast< int >(pDemoInfo->_2), pDemoInfo->_4 != nullptr ? pDemoInfo->_4 : "");
++        }
++#endif
+
+@@ missing (context matches 0 places) petari line 720 in StorySequenceExecutor::exePlayDemoSequence
+-        if (tryNextDemoInfo() != nullptr) {
++        if (tryNextDemoInfo() != false) {
+
+@@ missing (context matches 0 places) petari line 732 in StorySequenceExecutor::exePlayDemoSequence
+-        if (tryNextDemoInfo() != nullptr) {
++        if (tryNextDemoInfo() != false) {
+
+@@ missing (context matches 0 places) petari line 1027 in StorySequenceExecutor::overwriteGalaxyNameAfterLoading
++#ifdef GALAXY_NATIVE
++// Direct entry to a stage and scenario (test fixture, --stage after a file
++// loads, the Home menu's Level Select): the scenario as ScenarioSelectScene::
++// trySetCurrentScenarioNo would set it (hidden stars placed in their host
++// scenario). pStage must outlive the move. False: no such scenario.
++bool petariDirectStageMove(GalaxyMoveArgument* pMoveArgument, const char* pStage, s32 selected, const char* pLabel) {
++    GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(pStage);
++    // getScenarioNum() counts only non-hidden scenarios (hidden stars are
++    // numbered after them); getPowerStarNum() counts scenarios with a star
++    // (hubs such as AstroDome have none). Every scenario row is one or both.
++    const s32 scenarioNum = accessor.getScenarioNum() > accessor.getPowerStarNum() ? accessor.getScenarioNum()
++                                                                                    : accessor.getPowerStarNum();
++    if (selected < 1 || selected > scenarioNum) {
++        std::fprintf(stderr, "%s: %s has %d scenarios; scenario %d does not exist, entry not applied\n", pLabel, pStage,
++                     static_cast< int >(scenarioNum), static_cast< int >(selected));
++        return false;
++    }
++    const s32 placed = accessor.isHiddenStar(selected) ? MR::getPlacedHiddenStarScenarioNo(pStage, selected) : selected;
++    pMoveArgument->mStageName = pStage;
++    pMoveArgument->mScenarioNo = placed;
++    pMoveArgument->_C = selected;
++    std::fprintf(stderr, "%s %s scenario %d (placed %d); not earned progression\n", pLabel, pStage,
++                 static_cast< int >(selected), static_cast< int >(placed));
++    return true;
++}
++
++namespace {
++    bool enterStageDirectly(GalaxyMoveArgument* pMoveArgument, const char* pStage, s32 selected, const char* pLabel) {
++        return petariDirectStageMove(pMoveArgument, pStage, selected, pLabel);
++    }
++}  // namespace
++#endif
++
+
+@@ missing (context matches 0 places) petari line 1028 in StorySequenceExecutor::overwriteGalaxyNameAfterLoading
++#ifdef GALAXY_NATIVE
++    if (PetariNative::TestFixture::observatory) {
++        // Match a post-tutorial reload on both snapshots, so "just acquired"
++        // checks do not trigger first-Grand-Star return demos during loading.
++        // Only raises progress: a file already past this point (e.g. an
++        // unlocked save, native/SAVES.md) keeps its own story progress.
++        GameDataHolder* holders[] = {GameDataFunction::getCurrentGameDataHolder(),
++                                    GameDataFunction::getSceneStartGameDataHolder()};
++        for (GameDataHolder* holder : holders) {
++            holder->setPowerStar("HeavensDoorGalaxy", 1, true);
++            if (!holder->isPassedStoryEvent("バトラー情報Ａ")) {
++                holder->followStoryEventByName("バトラー情報Ａ");
++            }
++            holder->onGalaxyScenarioFlagAlreadyVisited("HeavensDoorGalaxy", 1);
++        }
++        std::fprintf(stderr, "PETARI FIXTURE: tutorial Grand Star and observatory introduction set; Good Egg progress unchanged\n");
++    }
++    if (!PetariNative::TestFixture::stage.empty() &&
++        enterStageDirectly(pMoveArgument, PetariNative::TestFixture::stage.c_str(), PetariNative::TestFixture::stageScenario,
++                           "PETARI FIXTURE: synthetic stage entry")) {
++        return;
++    }
++    if (const char* ending = std::getenv("PETARI_ENDING_TEST"); ending != nullptr && ending[0] != '\0') {
++        // Test: what follows a cleared Bowser's Galaxy Reactor (decideNextEventForClearGalaxy),
++        // straight after the file loads: epilogue, ending movies, staff roll. The fight
++        // and the Grand Star are not played. "complete" adds the 120-star ending.
++        const bool complete = std::strcmp(ending, "complete") == 0;
++        prepareDemoSequence(complete ? ::cDemoEpilogueComplete : ::cDemoEpilogueNormal);
++        pMoveArgument->mStageName = "EpilogueDemoStage";
++        pMoveArgument->mScenarioNo = 1;
++        std::fprintf(stderr, "PETARI ENDING TEST: %s ending sequence from the file load (Bowser fight and Grand Star skipped)\n",
++                     complete ? "120-star" : "normal");
++        return;
++    }
++    if (!PetariNative::PlayerLaunch::stage.empty()) {
++        // --stage (normal play): once per session, without changing progression.
++        // A file before the observatory keeps the story's own destination.
++        // GalaxyMoveArgument keeps the name pointer, so it must outlive this call
++        // (and no game heap may own it).
++        static char stage[64];
++        std::snprintf(stage, sizeof(stage), "%s", PetariNative::PlayerLaunch::stage.c_str());
++        PetariNative::PlayerLaunch::stage.clear();
++        if (!GameDataFunction::hasGrandStar(1)) {
++            std::fprintf(stderr, "PETARI LAUNCH: this file has not reached the observatory yet; --stage %s ignored\n", stage);
++        } else if (enterStageDirectly(pMoveArgument, stage, PetariNative::PlayerLaunch::scenario, "PETARI LAUNCH: entering")) {
++            return;
++        }
++    }
++#endif
++
+

@@ -1,0 +1,47 @@
+@@ missing petari line 7 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/platform/mod_galaxy.hpp>
++#endif
+
+@@ missing petari line 16 in GameEventFlagChecker::canOn
++#ifdef GALAXY_NATIVE
++    // No flag (the table is compiled in): a mod galaxy's own flag (its name) is open; anything
++    // else is off. The Wii read through the null flag (TECH.md 5.7).
++    if (pFlag == nullptr) {
++        return PetariNative::Platform::ModGalaxy::find(pFlagName) != nullptr;
++    }
++#endif
+
+@@ missing petari line 22 in GameEventFlagChecker::canOn
+-    case GameEventFlag::Type_GalaxyOpenStar:
++    case GameEventFlag::Type_GalaxyOpenStar: {
+
+@@ missing petari line 27 in GameEventFlagChecker::canOn
++    }
+
+@@ missing petari line 29 in GameEventFlagChecker::canOn
+-    case GameEventFlag::Type_EventFlag:
++    case GameEventFlag::Type_EventFlag: {
+
+@@ missing petari line 36 in GameEventFlagChecker::canOn
++    }
+
+@@ missing petari line 44 in GameEventFlagChecker::canOn
+-    case GameEventFlag::Type_StarPiece:
++    case GameEventFlag::Type_StarPiece: {
+
+@@ missing petari line 49 in GameEventFlagChecker::canOn
+-    case GameEventFlag::Type_EventValueIsZero:
++    }
++    case GameEventFlag::Type_EventValueIsZero: {
+
+@@ missing petari line 57 in GameEventFlagChecker::canOn
++    }
+
+@@ missing petari line 65 in GameEventFlagChecker::isOn
++#ifdef GALAXY_NATIVE
++    if (pFlag == nullptr) {
++        return PetariNative::Platform::ModGalaxy::find(pFlagName) != nullptr;
++    }
++#endif
+

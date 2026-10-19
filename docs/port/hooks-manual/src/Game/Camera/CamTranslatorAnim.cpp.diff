@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 9 in CamTranslatorAnim::setParam
++#ifdef GALAXY_NATIVE
++    camera->setParam(static_cast< u8* >(pChunk->mGeneralParam->mAnimData), pChunk->mGeneralParam->mDist);
++#else
++#endif
+

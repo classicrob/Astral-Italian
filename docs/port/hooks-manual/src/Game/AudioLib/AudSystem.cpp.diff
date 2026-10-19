@@ -1,0 +1,16 @@
+@@ manual (conflict) petari line 112 in AudNewAudSystem
++#ifdef GALAXY_NATIVE
++    u32 maxSeqDataSize = 0;  // no sequence archive: do not allocate dynamic sequence blocks
++#else
++#endif
+
+@@ unconditional petari line 299 in AudSystem::startSound
+-    if (_82B && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
++    if ((_82B || PETARI_SKIP_MUTED()) && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
++        PETARI_SKIP_NOTE_MUTED(_82B);
+
+@@ unconditional petari line 340 in AudSystem::startLevelSound
+-    if (_82C && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
++    if ((_82C || PETARI_SKIP_MUTED()) && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
++        PETARI_SKIP_NOTE_MUTED(_82C);
+

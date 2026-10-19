@@ -1,0 +1,31 @@
+@@ missing (context matches 0 places) petari line 2 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/editor/runtime_hooks.hpp>
++#endif
+
+@@ missing (context matches 4 places) petari line 27 in ?
++
++#ifdef GALAXY_NATIVE
++// Progress telemetry and the automated smoke run (native/app); observation only.
++#include <petari/milestone.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 108 in GameSequenceProgress::startScene
++#ifdef GALAXY_NATIVE
++        if (MR::isEqualStageName("PeachCastleGardenGalaxy")) {
++            petari_milestone("Stage.PeachCastleGardenGalaxy");
++        } else if (MR::isEqualStageName("HeavensDoorGalaxy")) {
++            petari_milestone("Stage.HeavensDoorGalaxy");
++        } else if (MR::isEqualStageName("AstroGalaxy")) {
++            petari_milestone("Stage.AstroGalaxy");
++        }
++#endif
+
+@@ missing petari line 194 in GameSequenceProgress::requestGalaxyMove
+-        if (mPlayerMissLeft != nullptr && !isCometStar(moveArg)) {
++        if (mPlayerMissLeft != nullptr && !isCometStar(moveArg)
++#ifdef GALAXY_NATIVE
++            && !PetariEditor::Hooks::editorReload()  // the level editor's reload is not a miss
++#endif
++        ) {
+

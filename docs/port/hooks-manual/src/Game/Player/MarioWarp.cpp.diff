@@ -1,0 +1,39 @@
+@@ manual (conflict) petari line 11 in ?
++#ifndef GALAXY_NATIVE
++#endif
+
+@@ unconditional petari line 536 in MarioWarp::close
+-    case 3:
+-        MR::endGlobalEventCamera("引き戻し", -1, true);
+-        if (getPlayerMode() != 1) {
+-            mActor->_A6E = 0;
+-        }
++    case 3: {
++            MR::endGlobalEventCamera("引き戻し", -1, true);
++            if (getPlayerMode() != 1) {
++                mActor->_A6E = 0;
++            }
+
+@@ unconditional petari line 542 in MarioWarp::close
+-        getPlayer()->mMovementStates._1 = false;
+-        getPlayer()->mMovementStates.jumping = true;
+-        getPlayer()->mMovementStates._2B = true;
+-        getPlayer()->_402 = 0;
+-        getPlayer()->mJumpVec = TVec3f(0.0f, 0.0f, 0.0f);
+-        changeAnimation("落下");
+-        Mario* player = getPlayer();
+-        player->_42A = 0;
+-        player->_430 = 0;
+-        break;
++            getPlayer()->mMovementStates._1 = false;
++            getPlayer()->mMovementStates.jumping = true;
++            getPlayer()->mMovementStates._2B = true;
++            getPlayer()->_402 = 0;
++            getPlayer()->mJumpVec = TVec3f(0.0f, 0.0f, 0.0f);
++            changeAnimation("落下");
++            Mario* player = getPlayer();
++            player->_42A = 0;
++            player->_430 = 0;
++            break;
++    }
+

@@ -1,0 +1,15 @@
+@@ missing petari line 11 in ?
++
++#ifdef GALAXY_NATIVE
++#include "Game/System/CutsceneSkip.hpp"
++#endif
+
+@@ missing petari line 78 in LuigiLetter::exeWait
+-    if (mAButtonIcon->isWait() && MR::testCorePadButtonA(WPAD_CHAN0)) {
++    bool isDecide = MR::testCorePadButtonA(WPAD_CHAN0);
++#ifdef GALAXY_NATIVE
++    isDecide = isDecide || CutsceneSkip::isActive();  // hold-to-skip mod: close the letter
++#endif
++
++    if (mAButtonIcon->isWait() && isDecide) {
+

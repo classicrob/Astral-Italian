@@ -1,0 +1,54 @@
+@@ unconditional petari line 18 in setup_callback
+-    flag = FALSE;
++    DSP_SHARED_STORE(flag, FALSE);
+
+@@ unconditional petari line 24 in DsetupTable
+-    table[1] = param_1;
+-    table[2] = param_2;
+-    table[3] = param_3;
+-    table[4] = param_4;
++    table[1] = DSP_MAIL_ADDR(param_1);
++    table[2] = DSP_MAIL_ADDR(param_2);
++    table[3] = DSP_MAIL_ADDR(param_3);
++    table[4] = DSP_MAIL_ADDR(param_4);
+
+@@ unconditional petari line 30 in DsetupTable
+-    flag = TRUE;
++    DSP_SHARED_STORE(flag, TRUE);
+
+@@ unconditional petari line 33 in DsetupTable
+-    } while (flag);
++    } while (DSP_SHARED_LOAD(flag));
+
+@@ unconditional petari line 45 in DsyncFrame2ch
+-    msgs[1] = param_1;
+-    msgs[2] = param_2;
++    msgs[1] = DSP_MAIL_ADDR(param_1);
++    msgs[2] = DSP_MAIL_ADDR(param_2);
+
+@@ unconditional petari line 55 in DsyncFrame4ch
+-    msgs[1] = param_1;
+-    msgs[2] = param_2;
+-    msgs[3] = param_3;
+-    msgs[4] = param_4;
++    msgs[1] = DSP_MAIL_ADDR(param_1);
++    msgs[2] = DSP_MAIL_ADDR(param_2);
++    msgs[3] = DSP_MAIL_ADDR(param_3);
++    msgs[4] = DSP_MAIL_ADDR(param_4);
+
+@@ unconditional petari line 63 in dummy_callback
+-    d_waitflag = FALSE;
++    DSP_SHARED_STORE(d_waitflag, FALSE);
+
+@@ unconditional petari line 70 in DsetVARAM
+-    msgs[1] = param_0;
++    msgs[1] = DSP_MAIL_ADDR(param_0);
+
+@@ unconditional petari line 72 in DsetVARAM
+-    d_waitflag = TRUE;
++    DSP_SHARED_STORE(d_waitflag, TRUE);
+
+@@ unconditional petari line 75 in DsetVARAM
+-    } while (d_waitflag);
++    } while (DSP_SHARED_LOAD(d_waitflag));
+

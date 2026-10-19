@@ -1,0 +1,15 @@
+@@ missing petari line 4 in ?
++#include "Game/Player/GenericFigure.hpp"
+
+@@ missing petari line 585 in MarioActor::drawSilhouette
++#ifdef GALAXY_NATIVE
++    if (GenericFigure::drawSilhouette(this)) {
++        // Generic character mod: no Mario-shaped silhouette; the state the pass leaves.
++        GXSetAlphaUpdate(GX_TRUE);
++        GXSetColorUpdate(GX_TRUE);
++        GXSetDstAlpha(GX_TRUE, 0);
++        return;
++    }
++#endif
++
+

@@ -1,0 +1,4 @@
+@@ manual (conflict) petari line 189 in DemoDirector::startDemoRequested
+-    startDemo(DemoStartRequestUtil::getDemoStarter(info), info.mDemoName, info.mFrameType == nullptr, info._24);
++    startDemo(DemoStartRequestUtil::getDemoStarter(info), info.mDemoName, info.mFrameType == 0, info._24);
+

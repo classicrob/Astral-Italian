@@ -1,0 +1,16 @@
+@@ unconditional petari line 268 in PauseMenu::exeSelecting
++    if (MR::isFirstStep(this)) {
++        // Also entered again after the confirm, save and letter sub-screens return.
++        NATIVE_MILESTONE("PauseMenu.Open");
++    }
++#ifdef GALAXY_NATIVE
++    // Native automation (the soak script): the two main buttons as pointer
++    // targets. PauseMenu.Back is "Back to the Comet Observatory" in a galaxy
++    // and "End Game" (save, then the title) in the observatory.
++    _20->publishUiTarget("PauseMenu.Continue", 0);
++    if (_24 != nullptr) {
++        _24->publishUiTarget("PauseMenu.Back", 0);
++    }
++#endif
++
+

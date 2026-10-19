@@ -1,0 +1,8 @@
+@@ unconditional petari line 16 in JSUMemoryInputStream::readData
+-        memcpy(pDest, (void*)((int)mBuffer + mPosition), length);
++        memcpy(pDest, (void*)((uintptr_t)mBuffer + mPosition), length);
+
+@@ unconditional petari line 55 in JSUMemoryOutputStream::writeData
+-        memcpy((void*)((int)mBuffer + mPosition), pSrc, length);
++        memcpy((void*)((uintptr_t)mBuffer + mPosition), pSrc, length);
+

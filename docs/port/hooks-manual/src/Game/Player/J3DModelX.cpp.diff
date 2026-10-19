@@ -1,0 +1,4 @@
+@@ unconditional petari line 365 in J3DModelX::J3DModelX
+-    GDSetTexImgPtr(GX_TEXMAP0, const_cast< u8* >(reinterpret_cast< const u8* >(MR::getScreenResTIMG())) + MR::getScreenResTIMG()->mImageDataOffset);
++    GDSetTexImgPtr(GX_TEXMAP0, const_cast< u8* >(reinterpret_cast< const u8* >(MR::getScreenResTIMG())) + JUT_RESTIMG_OFFSET(MR::getScreenResTIMG()->mImageDataOffset));
+

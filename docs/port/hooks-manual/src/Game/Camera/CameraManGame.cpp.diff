@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 496 in CameraManGame::createStartAnimCamera
++#ifdef GALAXY_NATIVE
++        chunk->mGeneralParam->mNum1 = 0;
++        chunk->mGeneralParam->mAnimData = data;
++#else
++#endif
+

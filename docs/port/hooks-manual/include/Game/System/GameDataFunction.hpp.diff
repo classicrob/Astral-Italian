@@ -1,0 +1,13 @@
+@@ unconditional petari line 9 in ?
++class UserFile;
++class GameDataTemporaryInGalaxy;
++
+
+@@ manual (conflict) petari line 10 in ?
++#ifdef GALAXY_NATIVE
++    /// The save file in use (the level editor's play-test isolation snapshots and restores it).
++    UserFile* nativeCurrentUserFile();
++    /// This galaxy's run (Star Bits and coins collected, committed to the save file on leaving).
++    GameDataTemporaryInGalaxy* nativeTemporaryInGalaxy();
++#endif
+

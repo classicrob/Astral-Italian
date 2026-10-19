@@ -1,0 +1,34 @@
+@@ manual (conflict) petari line 119 in GameSystem::exeInitializeAudio
++        TRACE_BOOT("[boot] InitializeAudio: starting async audio system creation\n");
+
+@@ manual (conflict) petari line 125 in GameSystem::exeInitializeAudio
++        TRACE_BOOT("[boot] InitializeAudio: audio system created and system wave data loaded\n");
+
+@@ manual (conflict) petari line 135 in GameSystem::exeInitializeLogoScene
++            TRACE_BOOT("[boot] InitializeLogoScene: requesting scene \"Logo\"\n");
+
+@@ manual (conflict) petari line 146 in GameSystem::exeLoadStationedArchive
++#ifdef GALAXY_NATIVE
++    u32 traceFrames, traceSeconds;
++    if (isTraceBoot() && isTraceBootHeartbeat("LoadStationedArchive", &traceFrames, &traceSeconds)) {
++        OSReport("[boot] LoadStationedArchive: loading %us (%u frames)\n", traceSeconds, traceFrames);
++    }
++#endif
++
+
+@@ manual (conflict) petari line 147 in GameSystem::exeLoadStationedArchive
++#ifdef GALAXY_NATIVE
++        TRACE_BOOT("[boot] stationed archive loading: done\n");
++        if (isTraceBoot()) {
++            traceBootHeaps();
++        }
++#endif
+
+@@ manual (conflict) petari line 175 in GameSystem::initAfterStationedResourceLoaded
++#ifdef GALAXY_NATIVE
++    TRACE_BOOT("[boot] initAfterStationedResourceLoaded: done\n");
++    if (isTraceBoot()) {
++        traceBootHeaps();
++    }
++#endif
+

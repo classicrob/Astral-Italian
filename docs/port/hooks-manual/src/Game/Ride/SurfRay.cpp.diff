@@ -1,0 +1,31 @@
+@@ missing (context matches 0 places) petari line 2 in ?
++
++#ifdef GALAXY_NATIVE
++// Tells the keyboard layer the Ray steers by tilt, so WASD tilt the remote.
++#include <petari/input.hpp>
++#endif
+
+@@ missing (context matches 0 places) petari line 24 in ?
++#ifdef GALAXY_NATIVE
++#include "Game/Util/NativeActorObserve.hpp"
++#endif
+
+@@ missing petari line 393 in SurfRay::exeTutorial
+-    case 11:
++    case 11: {
+
+@@ missing petari line 406 in SurfRay::exeTutorial
++    }
+
+@@ missing (context matches 0 places) petari line 465 in SurfRay::control
++#ifdef GALAXY_NATIVE
++    // state: 1 ridden, plus 2 on the water.
++    MR::Native::publishActor("Ray", mPosition, mFront, (mRider != nullptr ? 1 : 0) | (mInWater ? 2 : 0),
++                             mRider != nullptr ? PETARI_ACTOR_BOUND : PETARI_ACTOR_READY);
++#endif
+
+@@ missing (context matches 0 places) petari line 650 in SurfRay::updateRide
++#ifdef GALAXY_NATIVE
++    PetariNative::Input::motionControlShown(PetariNative::Input::Steering::Ray);
++#endif
+

@@ -1,0 +1,24 @@
+@@ unconditional petari line 120 in JASAramStream::prepare
+-    if (!sLoadThread->sendCmdMsg(headerLoadTask, &data, 0xc)) {
++    if (!sLoadThread->sendCmdMsg(headerLoadTask, &data, sizeof(data))) {
+
+@@ unconditional petari line 189 in JASAramStream::firstLoadTask
+-        if (!sLoadThread->sendCmdMsg(firstLoadTask, data, 0xc)) {
++        if (!sLoadThread->sendCmdMsg(firstLoadTask, data, sizeof(*data))) {
+
+@@ unconditional petari line 267 in JASAramStream::headerLoad
+-    if (!sLoadThread->sendCmdMsg(firstLoadTask, &data, 0xc)) {
++    if (!sLoadThread->sendCmdMsg(firstLoadTask, &data, sizeof(data))) {
+
+@@ unconditional petari line 590 in JASAramStream::channelProc
+-        switch ((u32)msg) {
++        switch ((u32)(uintptr_t)msg) {
+
+@@ unconditional petari line 605 in JASAramStream::channelProc
+-        switch ((u32)msg & 0xff) {
++        switch ((u32)(uintptr_t)msg & 0xff) {
+
+@@ unconditional petari line 610 in JASAramStream::channelProc
+-            channelStop(JSUHiHalf((u32)msg));
++            channelStop(JSUHiHalf((u32)(uintptr_t)msg));
+

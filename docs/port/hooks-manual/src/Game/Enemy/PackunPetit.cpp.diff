@@ -1,0 +1,10 @@
+@@ manual (conflict) petari line 330 in PackunPetit::control
++#ifdef GALAXY_NATIVE
++    {
++        const bool down = isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown));
++        TVec3f front;
++        MR::calcFrontVec(&front, this);
++        MR::Native::publishActor("PiranhaPlant", mPosition, front, down ? 1 : 0, down ? 0u : PETARI_ACTOR_HOSTILE);
++    }
++#endif
+

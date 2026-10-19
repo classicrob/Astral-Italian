@@ -1,0 +1,12 @@
+@@ manual (conflict) petari line 128 in ?
++#ifdef GALAXY_NATIVE
++        const auto* disc = DVDGetCurrentDiskID();
++        const auto selection = PetariNative::selectDiscLanguage(disc ? disc->gameName[3] : '\0', language);
++        if (!selection || !disc || disc->gameName[0] != 'R' || disc->gameName[1] != 'M' || disc->gameName[2] != 'G') {
++            std::fprintf(stderr, "Native language selection requires a mounted Super Mario Galaxy disc with a recognized region.\n");
++            std::abort();
++        }
++        return ::cSCLanguage2GameLanguageTable[selection->table][selection->language];
++#else
++#endif
+

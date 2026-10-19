@@ -1,0 +1,22 @@
+@@ manual (conflict) petari line 174 in EffectKeeper::getEmitter
++#ifdef GALAXY_NATIVE
++        MultiEmitter* result;
++
++        if (_18->searchPtr(pParam1, &result)) {
++            return result;
++        }
++#else
++#endif
+
+@@ manual (conflict) petari line 349 in EffectKeeper::registMultiEmitter
++#ifdef GALAXY_NATIVE
++            _18->addPtr(pParam3, pEmitter, false);
++#else
++#endif
+
+@@ manual (conflict) petari line 353 in EffectKeeper::registMultiEmitter
++#ifdef GALAXY_NATIVE
++            _18->addPtr(pParam2, pEmitter, false);
++#else
++#endif
+

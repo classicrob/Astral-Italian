@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 1667 in LiveActorUtil_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++        pTransform->_68 = reinterpret_cast< uintptr_t >(pMtx);
++#else
++#endif
+

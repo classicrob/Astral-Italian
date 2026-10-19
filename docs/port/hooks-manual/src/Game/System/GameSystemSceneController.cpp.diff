@@ -1,0 +1,12 @@
+@@ manual (conflict) petari line 27 in ?
++
++#ifdef GALAXY_NATIVE
++// Queue the stage's known pipeline configurations before its resources load, and
++// wait for residual compilation before the first gameplay frame is drawn.
++extern "C" void petari_gx_pipeline_stage_begin(const char* stage, const char* seed_db_path);
++extern "C" void petari_gx_pipeline_stage_wait(void);
++extern "C" void petari_os_begin_host_blocking(void);
++extern "C" void petari_os_end_host_blocking(void);
++#include <petari/frame_telemetry.hpp>
++#endif
+

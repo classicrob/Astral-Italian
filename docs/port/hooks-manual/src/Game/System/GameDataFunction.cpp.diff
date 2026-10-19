@@ -1,0 +1,18 @@
+@@ manual (conflict) petari line 2 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/editor/runtime_hooks.hpp>
++#endif
+
+@@ manual (conflict) petari line 32 in ?
++#ifdef GALAXY_NATIVE
++    UserFile* nativeCurrentUserFile() {
++        SaveDataHandleSequence* pSequence = ::getSaveDataHandleSequence();
++        return pSequence != nullptr ? pSequence->getCurrentUserFile() : nullptr;
++    }
++
++    GameDataTemporaryInGalaxy* nativeTemporaryInGalaxy() {
++        return ::getGameDataTemporaryInGalaxy();
++    }
++#endif
++
+

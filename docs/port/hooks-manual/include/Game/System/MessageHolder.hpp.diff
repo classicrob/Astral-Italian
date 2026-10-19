@@ -1,0 +1,17 @@
+@@ manual (conflict) petari line 38 in ?
++#ifdef GALAXY_NATIVE
++    /// @brief Builds the message tables from BMG and MessageId.tbl resources in memory.
++    MessageData(const void* pMessageData, const void* pIdTable);
++    void initFromResource(const void* pMessageData, const void* pIdTable);
++#endif
+
+@@ manual (conflict) petari line 56 in ?
++#ifdef GALAXY_NATIVE
++    // Host-order copies built at load time; the resource stays untouched.
++    // mText holds the DAT1 payload as UTF-16 code units, so INF1 byte offsets index it.
++    u16* mText;
++    u32 mTextUnitCount;
++    TalkNode* mNodes;
++    u16* mBranchNodeIndices;
++#endif
+

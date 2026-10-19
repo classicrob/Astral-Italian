@@ -1,0 +1,4 @@
+@@ missing petari line 81 in OceanRingPipeInside::loadMaterial
+-    GXSetArray(GX_VA_POS, mRingPipe->_A0, 12);
++    GXSETARRAY(GX_VA_POS, mRingPipe->_A0, mRingPipe->_94 * sizeof(*mRingPipe->_A0), 12, true);
+

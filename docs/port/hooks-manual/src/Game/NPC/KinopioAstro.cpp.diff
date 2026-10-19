@@ -1,0 +1,5 @@
+@@ missing (context matches 0 places) petari line 24 in JKRArchive::getExpandedResSize
++#ifndef GALAXY_NATIVE
++// Wii link-placement artifact; the native build defines this in JKRArchivePri.cpp.
++#endif
+

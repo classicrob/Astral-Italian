@@ -1,0 +1,3 @@
+@@ manual (conflict) petari line 120 in InformationObserver::exeDisp
++    NATIVE_MILESTONE("InformationObserver.Close");
+

@@ -1,0 +1,5 @@
+@@ manual (conflict) petari line 5 in ?
++#ifdef GALAXY_NATIVE
++#include <cfloat>
++#endif
+

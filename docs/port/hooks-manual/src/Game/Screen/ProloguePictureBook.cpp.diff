@@ -1,0 +1,25 @@
+@@ missing petari line 9 in ?
++
++#ifdef GALAXY_NATIVE
++// Progress telemetry and the automated smoke run (native/app); observation only.
++#include <petari/milestone.hpp>
++// Hold-to-skip mod: turns the pages.
++#include "Game/System/CutsceneSkip.hpp"
++#define NATIVE_MILESTONE(name) petari_milestone(name)
++#else
++#define NATIVE_MILESTONE(name)
++#endif
+
+@@ missing (context matches 0 places) petari line 82 in ProloguePictureBook::exeKeyWait
++        // The book stops at each sBookPageInfo frame until A is pressed.
++        NATIVE_MILESTONE("ProloguePictureBook.PageReady");
+
+@@ missing petari line 86 in ProloguePictureBook::exeKeyWait
+-    if (MR::testCorePadTriggerA(WPAD_CHAN0)) {
++    bool isDecide = MR::testCorePadTriggerA(WPAD_CHAN0);
++#ifdef GALAXY_NATIVE
++    isDecide = isDecide || CutsceneSkip::isActive();  // hold-to-skip mod: turn the page
++#endif
++
++    if (isDecide) {
+

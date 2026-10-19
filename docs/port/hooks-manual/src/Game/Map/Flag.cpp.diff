@@ -1,0 +1,10 @@
+@@ unconditional petari line 434 in Flag::draw
+-        GXSetArray(GX_VA_CLR0, &::sStickColors, ARRAY_SIZE(::sStickColors));
++        GXSETARRAY(GX_VA_CLR0, &::sStickColors, sizeof(::sStickColors), ARRAY_SIZE(::sStickColors), true);
+
+@@ unconditional petari line 472 in Flag::loadMaterial
+-    GXSetArray(GX_VA_CLR0, mColors, 4);
+-    GXSetArray(GX_VA_TEX0, mTexST, 8);
++    GXSETARRAY(GX_VA_CLR0, mColors, mNumPointsV * (mNumPointsU + 1) * sizeof(*mColors), 4, true);
++    GXSETARRAY(GX_VA_TEX0, mTexST, mNumPointsV * (mNumPointsU + 1) * 2 * sizeof(*mTexST), 8, true);
+

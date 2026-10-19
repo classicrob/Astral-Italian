@@ -1,0 +1,25 @@
+@@ manual (conflict) petari line 22 in AudSoundNameConverter::getSoundID
++#ifdef GALAXY_NATIVE
++    if (!pName) {
++        PetariNative::reportMissingSoundReference(pName);
++        return -1;
++    }
++#endif
+
+@@ manual (conflict) petari line 44 in AudSoundNameConverter::getSoundID
++#ifdef GALAXY_NATIVE
++    if (!pName || strlen(pName) < 5) {
++        PetariNative::reportMissingSoundReference(pName);
++        return -1;
++    }
++#endif
+
+@@ manual (conflict) petari line 51 in AudSoundNameConverter::getSoundID
++#ifdef GALAXY_NATIVE
++    const s32 category = isSE ? getSeSoundCategory(pName) : getOtherSoundCategory(pName);
++    if (category < 0 || !mGroupItemOffsets) {
++        PetariNative::reportMissingSoundReference(pName);
++        return -1;
++    }
++#endif
+

@@ -1,0 +1,3 @@
+@@ manual (conflict) petari line 79 in TitleSequenceProduct::exeBgmPrepare
++        TITLE_SEQUENCE_MILESTONE("TitleSequence.BgmPrepare");
+

@@ -1,0 +1,4 @@
+@@ unconditional petari line 21 in ?
+-    /* 0x64 */ int field_0x64;
++    /* 0x64 */ uintptr_t field_0x64;
+

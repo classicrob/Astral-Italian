@@ -1,0 +1,5 @@
+@@ missing (context matches 0 places) petari line 101 in OceanWaveFloater::initAfterPlacement
++#ifdef GALAXY_NATIVE
++    mMapGroundUpper.set(mPosition);  // no ground: retain the placement with zero offset
++#endif
+

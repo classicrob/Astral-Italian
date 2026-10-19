@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 7 in ?
++
++#ifdef GALAXY_NATIVE
++// Tells the keyboard layer the Star Ball steers by tilt, so WASD tilt the remote.
++#include <petari/input.hpp>
++#endif
+

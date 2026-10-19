@@ -1,0 +1,20 @@
+@@ unconditional petari line 84 in DisplayInformationForResult::exeDisplay
+-    if (MR::testSystemPadTriggerDecide()) {
++    if (::isDecide()) {
+
+@@ unconditional petari line 176 in StageResultInformer::exeCountUpPowerStar
+-    if (MR::testSystemPadTriggerDecide()) {
++    if (::isDecide()) {
+
+@@ unconditional petari line 292 in StageResultInformer::exeDisplayGetStarPiece
+-    if (MR::testSystemPadTriggerDecide()) {
++    if (::isDecide()) {
+
+@@ unconditional petari line 423 in StageResultInformer::tryWaitSystemPadTriggerDecide
+-    if (MR::testSystemPadTriggerDecide() || _30) {
++    if (::isDecide() || _30) {
+
+@@ unconditional petari line 436 in StageResultInformer::tryWaitIntervalBeforeKeyWait
+-    if (MR::testSystemPadTriggerDecide()) {
++    if (::isDecide()) {
+

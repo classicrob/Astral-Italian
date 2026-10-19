@@ -1,0 +1,4 @@
+@@ manual (conflict) petari line 37 in SubMeterLayout::requestAppear
+-    MR::startAnim(this, "Appear", nullptr);
++    MR::startAnim(this, "Appear", 0);
+

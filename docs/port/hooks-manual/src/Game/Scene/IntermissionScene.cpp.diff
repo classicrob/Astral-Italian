@@ -1,0 +1,4 @@
+@@ unconditional petari line 33 in IntermissionScene::setCurrentSceneControllerState
+-    va_end();
++    va_end(list);
+

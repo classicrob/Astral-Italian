@@ -1,0 +1,10 @@
+@@ manual (conflict) petari line 3 in ?
++#ifdef GALAXY_NATIVE
++// RFL_Res.dat is big-endian; see native/resource/rfl/rfl_native.h.
++#include "rfl_native.h"
++#endif
++#if defined(GALAXY_NATIVE)
++#include <stdio.h>
++#else
++#endif
+

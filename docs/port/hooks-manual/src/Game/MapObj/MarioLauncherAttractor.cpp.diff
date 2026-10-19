@@ -1,0 +1,4 @@
+@@ missing (context matches 0 places) petari line 15 in MarioLauncherAttractor::init
+-    initModelManagerWithAnm("MarioLauncherAttractor", nullptr, nullptr);
++    initModelManagerWithAnm("MarioLauncherAttractor", nullptr, false);
+

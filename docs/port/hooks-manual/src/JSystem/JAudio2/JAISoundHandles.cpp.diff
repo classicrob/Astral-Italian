@@ -1,0 +1,4 @@
+@@ unconditional petari line 30 in JAISoundHandles::getHandleUserData
+-            if ((u32)mHandles[i]->getUserData() == addr) {
++            if (mHandles[i]->getUserData() == addr) {
+

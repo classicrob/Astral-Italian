@@ -1,0 +1,8 @@
+@@ manual (conflict) petari line 158 in AllocUsedBlockFromFreeBlock_
+-    if (GetOffsetFromPtr(freeRgnT.start, freeRgnT.end) < sizeof(MEMiExpHeapMBlockHead) + 4) {
++    if (GetOffsetFromPtr(freeRgnT.start, freeRgnT.end) < sizeof(MEMiExpHeapMBlockHead) + MEM_EXP_HEAP_MIN_ALIGN) {
+
+@@ manual (conflict) petari line 164 in AllocUsedBlockFromFreeBlock_
+-    if (GetOffsetFromPtr(freeRgnB.start, freeRgnB.end) < sizeof(MEMiExpHeapMBlockHead) + 4) {
++    if (GetOffsetFromPtr(freeRgnB.start, freeRgnB.end) < sizeof(MEMiExpHeapMBlockHead) + MEM_EXP_HEAP_MIN_ALIGN) {
+

@@ -1,0 +1,5 @@
+@@ manual (conflict) petari line 55 in GalaxyConfirmLayout::exeSelecting
++#ifdef GALAXY_NATIVE
++    mPaneCtrl->publishUiTarget("Galaxy.Start", 0);
++#endif
+

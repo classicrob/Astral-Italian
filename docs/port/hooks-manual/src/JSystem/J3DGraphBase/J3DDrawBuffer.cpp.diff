@@ -1,0 +1,4 @@
+@@ unconditional petari line 51 in J3DDrawBuffer::entryMatSort
+-        hash = (reinterpret_cast< uintptr_t >(pTexture->getResTIMG(texNo)) + pTexture->getResTIMG(texNo)->mImageDataOffset) >> 5;
++        hash = (reinterpret_cast< uintptr_t >(pTexture->getResTIMG(texNo)) + JUT_RESTIMG_OFFSET(pTexture->getResTIMG(texNo)->mImageDataOffset)) >> 5;
+

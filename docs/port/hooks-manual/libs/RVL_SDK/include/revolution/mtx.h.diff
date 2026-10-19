@@ -1,0 +1,4 @@
+@@ unconditional petari line 55 in ?
++u32 PSMTXInvXpose(const Mtx, Mtx);
++void C_MTXLookAt(Mtx, const Point3d*, const Vec*, const Point3d*);
+

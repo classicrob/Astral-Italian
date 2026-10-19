@@ -1,0 +1,4 @@
+@@ unconditional petari line 42 in JKRThread::setCommon_mesgQueue
+-    mMesgBuffer = reinterpret_cast< OSMessage* >(JKRHeap::alloc(mMessageCount * 4, 0, pHeap));
++    mMesgBuffer = reinterpret_cast< OSMessage* >(JKRHeap::alloc(mMessageCount * sizeof(OSMessage), 0, pHeap));
+

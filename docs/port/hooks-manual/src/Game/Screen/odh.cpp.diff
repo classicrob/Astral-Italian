@@ -1,0 +1,10 @@
+@@ missing petari line 66 in CArGBAOdh::compressGbaOdh
+-    u16 size[2] = {width, height};
++    u16 size[2] = {static_cast< u16 >(width), static_cast< u16 >(height)};
+
+@@ missing (context matches 0 places) petari line 572 in CArGBAOdh::huffmanCoder
++#ifdef GALAXY_NATIVE
++        if ((reinterpret_cast< uintptr_t >(pCoefficients) & 2) == 0) {
++#else
++#endif
+

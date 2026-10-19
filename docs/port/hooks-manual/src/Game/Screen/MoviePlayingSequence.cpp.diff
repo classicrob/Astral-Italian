@@ -1,0 +1,32 @@
+@@ missing petari line 18 in ?
++
++#ifdef GALAXY_NATIVE
++// Progress telemetry and the automated smoke run (native/app); observation only.
++#include <petari/milestone.hpp>
++// Hold-to-skip mod: any movie takes the game's FinalBattle skip below.
++#include "Game/System/CutsceneSkip.hpp"
++#endif
+
+@@ missing petari line 369 in MoviePlayingSequence::trySkip
++#ifdef GALAXY_NATIVE
++    if (CutsceneSkip::isActive()) {
++        OSReport("[skip] movie %s: stopped at frame %d of %d\n", mInfo->mMovieName, MR::getMovieCurrentFrame(), MR::getMovieTotalFrame());
++        MR::stopMoviePlayer();
++        MR::forceCloseWipeFade();
++        setNerve(GET_NERVE(MoviePlayingSequence, HostTypeEndWait));
++
++        return true;
++    }
++#endif
++
+
+@@ missing (context matches 0 places) petari line 403 in MoviePlayingSequence::exeEndWait
++
++#ifdef GALAXY_NATIVE
++        // PrologueB changes stage here; note its end before the request so the milestone does
++        // not depend on MovieStarter observing isEndMovie before the scene is torn down.
++        if (MR::isEqualStringCase(pInfo->mMovieName, "/MovieData/PrologueB.thp")) {
++            petari_milestone("Movie.PrologueB.End");
++        }
++#endif
+

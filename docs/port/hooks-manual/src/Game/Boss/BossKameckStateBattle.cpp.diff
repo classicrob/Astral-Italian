@@ -1,0 +1,4 @@
+@@ missing (context matches 0 places) petari line 171 in BossKameckStateBattle::trySummonKameck
+-    if (mBattlePattarn->_10 == nullptr) {
++    if (mBattlePattarn->_10 == false) {
+

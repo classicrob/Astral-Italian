@@ -1,0 +1,10 @@
+@@ unconditional petari line 98 in AudSoundObject::startSound
+-    if (AudWrap::getSystem()->_82B && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
++    if ((AudWrap::getSystem()->_82B || PETARI_SKIP_MUTED()) && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
++        PETARI_SKIP_NOTE_MUTED(AudWrap::getSystem()->_82B);
+
+@@ unconditional petari line 122 in AudSoundObject::startLevelSound
+-    if (AudWrap::getSystem()->_82C && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
++    if ((AudWrap::getSystem()->_82C || PETARI_SKIP_MUTED()) && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
++        PETARI_SKIP_NOTE_MUTED(AudWrap::getSystem()->_82C);
+

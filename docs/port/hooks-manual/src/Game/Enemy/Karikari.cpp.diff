@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 188 in Karikari::control
++#ifdef GALAXY_NATIVE
++    MR::Native::publishActor("Karipon", mPosition, -mGravity, isNerve(GET_NERVE(Karikari, HostTypeNrvCling)) ? 1 : 0,
++                             PETARI_ACTOR_HOSTILE);
++#endif
+

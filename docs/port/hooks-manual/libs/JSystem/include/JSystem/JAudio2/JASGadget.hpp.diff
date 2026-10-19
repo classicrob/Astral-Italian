@@ -1,0 +1,4 @@
+@@ unconditional petari line 74 in ?
+-    JASPtrArray() : JASPtrTable(mPtrArray, LEN) {
++    JASPtrArray() : JASPtrTable< T >(mPtrArray, LEN) {
+

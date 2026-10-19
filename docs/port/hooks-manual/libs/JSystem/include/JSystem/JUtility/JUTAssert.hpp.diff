@@ -1,0 +1,4 @@
+@@ unconditional petari line 17 in ?
+-    void showAssert_f_va(u32 device, const char* file, int line, const char* msg, __va_list args);
++    void showAssert_f_va(u32 device, const char* file, int line, const char* msg, va_list args);
+

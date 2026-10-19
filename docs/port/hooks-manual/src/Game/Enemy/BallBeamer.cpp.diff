@@ -1,0 +1,10 @@
+@@ missing (context matches 0 places) petari line 41 in BallBeamer::init
+-    initModelManagerWithAnm("BallBeamer", nullptr, nullptr);
++    initModelManagerWithAnm("BallBeamer", nullptr, false);
+
+@@ missing (context matches 0 places) petari line 49 in BallBeamer::init
+-    initEffectKeeper(3, nullptr, nullptr);
+-    initSound(2, nullptr);
++    initEffectKeeper(3, nullptr, false);
++    initSound(2, false);
+

@@ -1,0 +1,32 @@
+@@ unconditional petari line 17 in readStream
++}
++
++// Oscillator point tables are copied out of the bank and read by the oscillator
++// at runtime, so native copies are converted to host order.
++static inline void JASBNKPointsToHost(void* pTable, u32 size) {
++#ifdef GALAXY_NATIVE
++    JSU_BE(s16)* src = static_cast< JSU_BE(s16)* >(pTable);
++    s16* dst = static_cast< s16* >(pTable);
++    for (u32 i = 0; i < size / sizeof(s16); i++) {
++        dst[i] = src[i];
++    }
++#endif
+
+@@ unconditional petari line 61 in JASBNKParser::Ver1::createEffector
+-    u32* data = (u32*)(intptr_t)stream;
++    const JSU_BE(u32)* data = (const JSU_BE(u32)*)(intptr_t)stream;
+
+@@ unconditional petari line 99 in JASBNKParser::Ver1::createBasicBank
++    JASBNKPointsToHost(envt, envt_chunk->mSize);
+
+@@ unconditional petari line 245 in JASBNKParser::Ver0::createBasicBank
++                            JASBNKPointsToHost(table, size * sizeof(JASOscillator::Point));
+
+@@ unconditional petari line 256 in JASBNKParser::Ver0::createBasicBank
++                            JASBNKPointsToHost(table, size * sizeof(JASOscillator::Point));
+
+@@ unconditional petari line 387 in JASBNKParser::Ver0::getOscTableEndPtr
+-        s16 tmp = ptr->_0;
++        // Reads the serialized (big-endian) table.
++        s16 tmp = *reinterpret_cast< const JSU_BE(s16)* >(ptr);
+

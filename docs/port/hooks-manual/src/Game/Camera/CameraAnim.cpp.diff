@@ -1,0 +1,8 @@
+@@ unconditional petari line 116 in KeyCamAnmDataAccessor::get3f
+-    f32* values = mValues + offset + index * 3;
++    const CanmValue* values = mValues + offset + index * 3;
+
+@@ unconditional petari line 123 in KeyCamAnmDataAccessor::get4f
+-    f32* values = mValues + offset + index * 4;
++    const CanmValue* values = mValues + offset + index * 4;
+

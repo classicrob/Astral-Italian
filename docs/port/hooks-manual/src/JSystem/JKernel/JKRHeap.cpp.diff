@@ -1,0 +1,6 @@
+@@ unconditional petari line 78 in JKRHeap::initArena
+-    ramStart = (void*)(((u32)arenaStart + 31) & 0xFFFFFFE0);
+-    ramEnd = (void*)((u32)arenaHi & 0xFFFFFFE0);
++    ramStart = (void*)(((uintptr_t)arenaStart + 31) & ~(uintptr_t)0x1F);
++    ramEnd = (void*)((uintptr_t)arenaHi & ~(uintptr_t)0x1F);
+

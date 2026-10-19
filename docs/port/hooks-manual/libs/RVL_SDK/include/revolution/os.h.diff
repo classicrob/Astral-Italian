@@ -1,0 +1,34 @@
+@@ manual (conflict) petari line 4 in ?
++#if defined(GALAXY_NATIVE) && !defined(__cplusplus)
++#include <stdarg.h>
++#else
++#endif
+
+@@ manual (conflict) petari line 16 in ?
++#elif defined(GALAXY_NATIVE)
++// Values of the Wii low-memory globals, defined once by the native OS platform.
++extern u32 __OSBusClock;
++extern uintptr_t __MEM2End;
+
+@@ manual (conflict) petari line 49 in ?
++#ifdef GALAXY_NATIVE
++void* PetariNativePhysicalToHost(uintptr_t);
++uintptr_t PetariNativeHostToPhysical(const void*);
++BOOL PetariNativeIsMemoryRegion(const void*, int);
++#define OSPhysicalToCached(paddr) PetariNativePhysicalToHost((uintptr_t)(paddr))
++#define OSCachedToPhysical(caddr) PetariNativeHostToPhysical((const void*)(caddr))
++#define OSUncachedToPhysical(ucaddr) PetariNativeHostToPhysical((const void*)(ucaddr))
++#define OSPhysicalToUncached(paddr) PetariNativePhysicalToHost((uintptr_t)(paddr))
++#define OSIsMEM1Region(addr) PetariNativeIsMemoryRegion((const void*)(addr), 1)
++#define OSIsMEM2Region(addr) PetariNativeIsMemoryRegion((const void*)(addr), 2)
++#else
++#endif
+
+@@ manual (conflict) petari line 57 in ?
++#ifdef GALAXY_NATIVE
++// Accepts pointers or sizes; pointer inputs keep their full host width.
++#define OSRoundUp32B(x) (((uintptr_t)(x) + 32 - 1) & ~(uintptr_t)(32 - 1))
++#define OSRoundDown32B(x) (((uintptr_t)(x)) & ~(uintptr_t)(32 - 1))
++#else
++#endif
+

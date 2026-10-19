@@ -1,0 +1,59 @@
+@@ manual (conflict) petari line 2 in ?
++#ifdef GALAXY_NATIVE
++#include <petari/player_launch.hpp>
++#endif
+
+@@ manual (conflict) petari line 42 in ?
++
++#ifdef GALAXY_NATIVE
++// Progress telemetry and the automated smoke run (native/app); observation only.
++#include <petari/milestone.hpp>
++#define FILE_SELECTOR_MILESTONE(name) petari_milestone(name)
++#else
++#define FILE_SELECTOR_MILESTONE(name)
++#endif
+
+@@ manual (conflict) petari line 360 in FileSelector::createMiiFont
++#ifdef GALAXY_NATIVE
++    // MiiFont.arc (MiiFont26.brfnt, for Hangul Mii names) ships on the Korean disc this code
++    // matches. The US disc has no such archive, and its FileInfo, MiiSelect and MiiConfirmIcon
++    // layouts name MessageFont26.brfnt for these text boxes, so without the archive they keep
++    // their layout font.
++    if (!MR::isFileExist("/LayoutData/MiiFont.arc", false)) {
++        return;
++    }
++#endif
+
+@@ unconditional petari line 935 in FileSelector::exeTitle
+-    mTitle->updateNerve();
++#ifdef GALAXY_NATIVE
++    // A restart into a new galaxy (PlayerLaunch::openFile, the level editor): no title screen.
++    if (PetariNative::PlayerLaunch::openFile > 0) {
++        mTitle->kill();
++    } else
++#endif
++    {
++        mTitle->updateNerve();
+
+@@ unconditional petari line 937 in FileSelector::exeTitle
+-    if (mTitle->isActive()) {
+-        return;
++        if (mTitle->isActive()) {
++            return;
++        }
+
+@@ manual (conflict) petari line 972 in FileSelector::exeRFLError
++        FILE_SELECTOR_MILESTONE("FileSelector.RFLError");
+
+@@ manual (conflict) petari line 1008 in FileSelector::exeFileSelectStart
++        FILE_SELECTOR_MILESTONE("FileSelector.FileSelectStart");
+
+@@ manual (conflict) petari line 1133 in FileSelector::exeDemoStartWait
++        FILE_SELECTOR_MILESTONE("FileSelector.DemoStartWait");
+
+@@ manual (conflict) petari line 1216 in FileSelector::exeCreate
++        FILE_SELECTOR_MILESTONE("FileSelector.Create");
+
+@@ manual (conflict) petari line 1481 in FileSelector::exeMiiSelect
++        FILE_SELECTOR_MILESTONE("FileSelector.MiiSelect");
+

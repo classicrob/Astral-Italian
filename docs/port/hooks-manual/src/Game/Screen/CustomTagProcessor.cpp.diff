@@ -1,0 +1,11 @@
+@@ manual (conflict) petari line 597 in CustomTagProcessor::exeStringGroup
++#ifdef GALAXY_NATIVE
++    const wchar_t* pString = tag.getArgString();
++    if (pString == nullptr) {
++        return OPERATION_DEFAULT;
++    }
++
++    writeString(rect, pString, context);
++#else
++#endif
+

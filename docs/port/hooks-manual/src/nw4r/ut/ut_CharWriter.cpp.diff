@@ -1,0 +1,16 @@
+@@ unconditional petari line 193 in ?
+-                GXColor1u32(mVertexColor.lu);
++                GXColor1u32(PETARI_GREY_RGBA(mVertexColor.lu));
+
+@@ unconditional petari line 197 in ?
+-                GXColor1u32(mVertexColor.ru);
++                GXColor1u32(PETARI_GREY_RGBA(mVertexColor.ru));
+
+@@ unconditional petari line 201 in ?
+-                GXColor1u32(mVertexColor.rd);
++                GXColor1u32(PETARI_GREY_RGBA(mVertexColor.rd));
+
+@@ unconditional petari line 205 in ?
+-                GXColor1u32(mVertexColor.ld);
++                GXColor1u32(PETARI_GREY_RGBA(mVertexColor.ld));
+

@@ -1,0 +1,12 @@
+@@ manual (conflict) petari line 7 in ?
++#include "Game/Util/NativeActorObserve.hpp"
+
+@@ manual (conflict) petari line 48 in CrystalCage::init
+-        MR::setBinderOffsetVec(this, &_110, nullptr);
++        MR::setBinderOffsetVec(this, &_110, false);
+
+@@ manual (conflict) petari line 295 in CrystalCage::exeWait
++#ifdef GALAXY_NATIVE
++    MR::Native::publishActor("CrystalCage", mPosition, -mGravity, 0, PETARI_ACTOR_READY);
++#endif
+

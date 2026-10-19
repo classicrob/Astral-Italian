@@ -1,0 +1,14 @@
+@@ missing petari line 13 in ?
++#ifdef GALAXY_NATIVE
++#include "Game/Player/MarioCappy.hpp"
++#endif
+
+@@ missing petari line 57 in MarioActor::initParts
++#ifdef GALAXY_NATIVE
++    petariCappyInit(this);  // Cappy mod: the cap models, only with the mod on
++#endif
+
+@@ missing (context matches 0 places) petari line 241 in MarioActor::getCarrySensor
+-    if (_468 == nullptr) {
++    if (_468 == 0) {
+

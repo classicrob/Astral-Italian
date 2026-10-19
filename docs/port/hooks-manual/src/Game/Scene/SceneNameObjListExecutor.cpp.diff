@@ -1,0 +1,32 @@
+@@ manual (conflict) petari line 191 in ?
+-            -1,  // TODO "None" MovementType name?
++            0xFFFFFFFF,  // TODO "None" MovementType name?
+
+@@ manual (conflict) petari line 285 in ?
+-            -1,  // TODO "None" CalcAnimType name?
++            0xFFFFFFFF,  // TODO "None" CalcAnimType name?
+
+@@ unconditional petari line 293 in ?
+-            MR::LightType_None,
++            static_cast< u32 >(MR::LightType_None),
+
+@@ unconditional petari line 527 in ?
+-            MR::LightType_None,
++            static_cast< u32 >(MR::LightType_None),
+
+@@ unconditional petari line 533 in ?
+-            MR::LightType_None,
++            static_cast< u32 >(MR::LightType_None),
+
+@@ manual (conflict) petari line 537 in ?
+-            -1,  // TODO "None" DrawBufferType name?
++            0xFFFFFFFF,  // TODO "None" DrawBufferType name?
+
+@@ unconditional petari line 539 in ?
+-            MR::LightType_None,
++            static_cast< u32 >(MR::LightType_None),
+
+@@ manual (conflict) petari line 877 in ?
+-            -1,  // TODO "None" DrawType name?
++            0xFFFFFFFF,  // TODO "None" DrawType name?
+

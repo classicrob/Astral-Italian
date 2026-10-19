@@ -1,0 +1,26 @@
+@@ missing (context matches 0 places) petari line 1 in ?
++#ifdef GALAXY_NATIVE
++#include "Game/Screen/LayoutManager.hpp"
++#endif
+
+@@ missing (context matches 0 places) petari line 153 in PowerStarList_FORCE_MATCH_SDATA2
++#ifdef GALAXY_NATIVE
++            // The last page is kept for the race times: mod galaxies (up to 64 parsed) would
++            // otherwise run the list past its 75 rows (the disc opens at most 42).
++            if (open && availableGalaxies >= MAX_ITEMS - ITEMS_PER_PAGE) {
++                open = false;
++            }
++#endif
+
+@@ missing (context matches 0 places) petari line 700 in PowerStarList::setSeparatorPaneSize
++#ifdef GALAXY_NATIVE
++        if (!pPane) continue;
++#endif
+
+@@ missing (context matches 0 places) petari line 707 in PowerStarList::setTotalPowerStarNumForMessageBoardCapture
++#ifdef GALAXY_NATIVE
++    // The RMGE01 capture layout has no total-star field (nor does its DOL name
++    // this pane). Preserve capture for that region without inventing a target.
++    if (!getLayoutManager()->findPaneByName("TxtStarTotal")) return;
++#endif
+

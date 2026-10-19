@@ -1,0 +1,15 @@
+@@ manual (conflict) petari line 238 in MiiSelect::control
++#ifdef GALAXY_NATIVE
++        if (pAnimCtrl)
++#endif
+
+@@ manual (conflict) petari line 244 in MiiSelect::control
++#ifdef GALAXY_NATIVE
++        if (pAnimCtrl)
++#endif
+
+@@ manual (conflict) petari line 416 in MiiSelect::onSelect
++#ifdef GALAXY_NATIVE
++    if (!pTexMap) return;
++#endif
+

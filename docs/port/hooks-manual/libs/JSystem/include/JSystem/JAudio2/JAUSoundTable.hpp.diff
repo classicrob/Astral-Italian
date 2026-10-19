@@ -1,0 +1,9 @@
+@@ unconditional petari line 49 in ?
+-        if (*(u32*)mData != Root::magicNumber()) {
++        const JSU_BE(u32)* header = (const JSU_BE(u32)*)mData;
++        if (header[0] != Root::magicNumber()) {
+
+@@ unconditional petari line 52 in ?
+-            mRoot = (Root*)((u8*)mData + *((u32*)mData + 3));
++            mRoot = (Root*)((u8*)mData + header[3]);
+

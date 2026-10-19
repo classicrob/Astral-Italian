@@ -1,0 +1,7 @@
+@@ manual (conflict) petari line 16 in ?
++#ifdef GALAXY_NATIVE
++    // Read in place from the big-endian ME table resource.
++    /* 0x4 */ BigEndianValue< u16 > _4;
++#else
++#endif
+

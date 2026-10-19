@@ -1,0 +1,16 @@
+@@ unconditional petari line 230 in J3DAnmFullLoader_v15::setAnmVtxColor
+-        dst->mAnmVtxColorIndexData[0][i].mpData = (void*)((s32)indexPtr0 + (s32)dst->mAnmVtxColorIndexData[0][i].mpData * 2);
++        dst->mAnmVtxColorIndexData[0][i].mpData = (void*)((uintptr_t)indexPtr0 + (uintptr_t)dst->mAnmVtxColorIndexData[0][i].mpData * 2);
+
+@@ unconditional petari line 232 in J3DAnmFullLoader_v15::setAnmVtxColor
+-        dst->mAnmVtxColorIndexData[1][i].mpData = (void*)((s32)indexPtr1 + (s32)dst->mAnmVtxColorIndexData[1][i].mpData * 2);
++        dst->mAnmVtxColorIndexData[1][i].mpData = (void*)((uintptr_t)indexPtr1 + (uintptr_t)dst->mAnmVtxColorIndexData[1][i].mpData * 2);
+
+@@ unconditional petari line 428 in J3DAnmKeyLoader_v15::setAnmVtxColor
+-        dst->mAnmVtxColorIndexData[0][i].mpData = (void*)((s32)indexPtr0 + (s32)dst->mAnmVtxColorIndexData[0][i].mpData * 2);
++        dst->mAnmVtxColorIndexData[0][i].mpData = (void*)((uintptr_t)indexPtr0 + (uintptr_t)dst->mAnmVtxColorIndexData[0][i].mpData * 2);
+
+@@ unconditional petari line 430 in J3DAnmKeyLoader_v15::setAnmVtxColor
+-        dst->mAnmVtxColorIndexData[1][i].mpData = (void*)((s32)indexPtr1 + (s32)dst->mAnmVtxColorIndexData[1][i].mpData * 2);
++        dst->mAnmVtxColorIndexData[1][i].mpData = (void*)((uintptr_t)indexPtr1 + (uintptr_t)dst->mAnmVtxColorIndexData[1][i].mpData * 2);
+

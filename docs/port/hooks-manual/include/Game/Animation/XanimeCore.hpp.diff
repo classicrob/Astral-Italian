@@ -1,0 +1,6 @@
+@@ manual (conflict) petari line 35 in ?
++#ifdef GALAXY_NATIVE
++    /* 0x68 */ uintptr_t _68;  // local matrix (MtxPtr) or 0
++#else
++#endif
+

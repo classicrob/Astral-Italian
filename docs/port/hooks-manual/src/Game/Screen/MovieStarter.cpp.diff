@@ -1,0 +1,30 @@
+@@ missing (context matches 0 places) petari line 8 in ?
++
++#ifdef GALAXY_NATIVE
++// Progress telemetry and the automated smoke run (native/app); observation only.
++#include <petari/milestone.hpp>
++
++namespace {
++    // Milestone names need static storage; only the two prologue movies are placed with
++    // MovieStarter (PeachCastleGardenGalaxy). PrologueB's end is noted by
++    // MoviePlayingSequence::exeEndWait, before its stage change can tear this actor down.
++    void noteMovieMilestone(s32 movieType, bool isEnd) {
++        if (movieType == 0) {
++            petari_milestone(isEnd ? "Movie.PrologueA.End" : "Movie.PrologueA.Start");
++        } else if (movieType == 1 && !isEnd) {
++            petari_milestone("Movie.PrologueB.Start");
++        }
++    }
++}  // namespace
++#endif
+
+@@ missing (context matches 0 places) petari line 42 in MovieStarter::appear
++#ifdef GALAXY_NATIVE
++    noteMovieMilestone(mMovieType, false);
++#endif
+
+@@ missing (context matches 0 places) petari line 55 in MovieStarter::control
++#ifdef GALAXY_NATIVE
++        noteMovieMilestone(mMovieType, true);
++#endif
+

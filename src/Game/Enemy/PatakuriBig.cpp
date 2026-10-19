@@ -10,6 +10,18 @@
 
 namespace {
     // Nerve objects of Patakuri (TU00). Declared in the sinit order of the target.
+#ifdef GALAXY_NATIVE
+#define PATAKURI_NERVE(name, cls, fn)                                                                                                             \
+    class name : public Nerve {                                                                                                                  \
+    public:                                                                                                                                      \
+        virtual void execute(Spine* pSpine) const {                                                                                              \
+            cls* actor = reinterpret_cast< cls* >(pSpine->mExecutor);                                                                            \
+            actor->fn();                                                                                                                         \
+        };                                                                                                                                       \
+        static name sInstance;                                                                                                                   \
+    };                                                                                                                                           \
+    name name::sInstance;
+#else
 #define PATAKURI_NERVE(name, cls, fn)                                                                                                             \
     class name : public Nerve {                                                                                                                  \
     public:                                                                                                                                      \
@@ -20,6 +32,7 @@ namespace {
         static name sInstance;                                                                                                                   \
     };                                                                                                                                           \
     name name::sInstance ATTRIBUTE_WEAK;
+#endif
 
     PATAKURI_NERVE(PatakuriNrvRail, Patakuri, exeRail);
     PATAKURI_NERVE(PatakuriNrvBlow, Patakuri, exePatakuriBlow);
@@ -37,7 +50,11 @@ namespace {
         };
         static PatakuriNrvBind sInstance;
     };
+#ifdef GALAXY_NATIVE
+    PatakuriNrvBind PatakuriNrvBind::sInstance;
+#else
     PatakuriNrvBind PatakuriNrvBind::sInstance ATTRIBUTE_WEAK;
+#endif
 
     PATAKURI_NERVE(PatakuriNrvDead, Patakuri, exePatakuriDead);
 
@@ -46,7 +63,11 @@ namespace {
         virtual void execute(Spine*) const {};
         static PatakuriWingNrvWait sInstance;
     };
+#ifdef GALAXY_NATIVE
+    PatakuriWingNrvWait PatakuriWingNrvWait::sInstance;
+#else
     PatakuriWingNrvWait PatakuriWingNrvWait::sInstance ATTRIBUTE_WEAK;
+#endif
 
     class PatakuriNrvKill : public Nerve {
     public:
@@ -58,7 +79,11 @@ namespace {
         };
         static PatakuriNrvKill sInstance;
     };
+#ifdef GALAXY_NATIVE
+    PatakuriNrvKill PatakuriNrvKill::sInstance;
+#else
     PatakuriNrvKill PatakuriNrvKill::sInstance ATTRIBUTE_WEAK;
+#endif
 }  // namespace
 
 // ---------------------------------------------------------------------------------------------

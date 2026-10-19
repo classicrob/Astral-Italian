@@ -16,7 +16,9 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <algorithm>
+#ifndef GALAXY_NATIVE
 #include <functional.hpp>
+#endif
 
 namespace {
     const char* cStaffRollMsgId = "StaffList000";
@@ -81,8 +83,12 @@ void StaffRoll::init(const JMapInfoIter&) {
         duration = 430;
     }
     mPartDuration = duration;
+#ifdef GALAXY_NATIVE
+    std::for_each(mParts, mParts + mPartCount, [duration](StaffRollPart* item) { item->setDuration(duration); });
+#else
     std::for_each(mParts, mParts + mPartCount,
                   std::binder2nd<std::mem_fun1_t<void, StaffRollPart, s32>, s32>(std::mem_func(&StaffRollPart::setDuration), duration));
+#endif
     initNerve(STAFF_NERVE(PrepareBgm));
     kill();
 }
@@ -94,20 +100,32 @@ void StaffRoll::appear() {
 }
 
 void StaffRoll::kill() {
+#ifdef GALAXY_NATIVE
+    std::for_each(mParts, mParts + mPartCount, [](StaffRollPart* item) { item->kill(); });
+#else
     std::for_each(mParts, mParts + mPartCount, std::mem_func(&StaffRollPart::kill));
+#endif
     LayoutActor::kill();
 }
 
 void StaffRoll::movement() {
     if (MR::isExecuteCalcAnimLayout(this)) {
         LayoutActor::movement();
+#ifdef GALAXY_NATIVE
+        std::for_each(mParts, mParts + mPartCount, [](StaffRollPart* item) { item->movement(); });
+#else
         std::for_each(mParts, mParts + mPartCount, std::mem_func(&StaffRollPart::movement));
+#endif
     }
 }
 
 void StaffRoll::calcAnim() {
     LayoutActor::calcAnim();
+#ifdef GALAXY_NATIVE
+    std::for_each(mParts, mParts + mPartCount, [](StaffRollPart* item) { item->calcAnim(); });
+#else
     std::for_each(mParts, mParts + mPartCount, std::mem_func(&StaffRollPart::calcAnim));
+#endif
 }
 
 void StaffRoll::draw() const {
@@ -115,7 +133,11 @@ void StaffRoll::draw() const {
         GXColor color = {0, 0, 0, 0};
         MR::fillScreen(color);
         LayoutActor::draw();
+#ifdef GALAXY_NATIVE
+        std::for_each(mParts, mParts + mPartCount, [](StaffRollPart* item) { item->draw(); });
+#else
         std::for_each(mParts, mParts + mPartCount, std::mem_func(&StaffRollPart::draw));
+#endif
     }
 }
 

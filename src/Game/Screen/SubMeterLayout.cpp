@@ -34,7 +34,11 @@ void SubMeterLayout::requestDeactivate() {
 
 void SubMeterLayout::requestAppear() {
     MR::showLayout(this);
+#ifdef GALAXY_NATIVE
+    MR::startAnim(this, "Appear", 0);
+#else
     MR::startAnim(this, "Appear", nullptr);
+#endif
     mState = State_Appear;
     control();
 }

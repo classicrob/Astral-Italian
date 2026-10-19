@@ -46,7 +46,13 @@ bool TicoStateEatCoin::isComplete() const { return isNerve(&TicoStateEatCoinNrvC
 void TicoStateEatCoin::exeTurn() {
     if (MR::isFirstStep(this)) TicoStateEatCoinFunction::calcMouthPosition(&mMouthPosition, mActor);
     TVec3f cameraPosition(0.0f, 0.0f, 0.0f);
+#ifdef GALAXY_NATIVE
+    const TVec3f cameraX = MR::getCamXdir();
+    const TVec3f cameraPos = MR::getCamPos();
+    JMAVECScaleAdd(&cameraX, &cameraPos, &cameraPosition, 300.0f);
+#else
     JMAVECScaleAdd(&MR::getCamXdir(), &MR::getCamPos(), &cameraPosition, 300.0f);
+#endif
     TVec3f direction(0.0f, 0.0f, 1.0f);
     direction.sub(cameraPosition, mMouthPosition);
     if (MR::faceToVector(&mActor->mOrientationQuat, direction, mActor->mParam._8)) setNerve(&TicoStateEatCoinNrvEat::sInstance);
@@ -86,7 +92,13 @@ void TicoStateEatCoin::exeEat() {
         }
         if (coin) {
             TVec3f position(0.0f, 0.0f, 0.0f);
+#ifdef GALAXY_NATIVE
+            const TVec3f cameraX = MR::getCamXdir();
+            const TVec3f cameraPos = MR::getCamPos();
+            JMAVECScaleAdd(&cameraX, &cameraPos, &position, 300.0f);
+#else
             JMAVECScaleAdd(&MR::getCamXdir(), &MR::getCamPos(), &position, 300.0f);
+#endif
             coin->shoot(position, &mMouthPosition);
             MR::stopCSSound(5, 0);
             MR::startCSSound("CS_COIN", nullptr, 0, 0, 1.0f);

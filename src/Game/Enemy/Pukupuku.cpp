@@ -578,14 +578,22 @@ bool Pukupuku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     if (!isDamaged()) {
         if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvTrampled));
+#ifdef GALAXY_NATIVE
+            ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
+#else
             ScoreAttackFunction::scoreByAttack(this, msg, false);
+#endif
             return true;
         }
 
         if (MR::isMsgPlayerHitAll(msg) || MR::isMsgYoshiProjectile(msg)) {
             f32 rate = getBlownOffSpeedRate();
             MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * rate, 20.0f * rate, 4);
+#ifdef GALAXY_NATIVE
+            ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
+#else
             ScoreAttackFunction::scoreByAttack(this, msg, false);
+#endif
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
             return true;
         }

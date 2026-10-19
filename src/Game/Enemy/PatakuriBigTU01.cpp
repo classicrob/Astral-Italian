@@ -22,6 +22,18 @@ namespace {
     PatakuriBigParam sBigScaleParam;
 
     // Nerve objects of PatakuriBig (TU01). Declared in the sinit order of the target.
+#ifdef GALAXY_NATIVE
+#define PATAKURI_BIG_NERVE(name, cls, fn)                                                                                                         \
+    class name : public Nerve {                                                                                                                  \
+    public:                                                                                                                                      \
+        virtual void execute(Spine* pSpine) const {                                                                                              \
+            cls* actor = reinterpret_cast< cls* >(pSpine->mExecutor);                                                                            \
+            actor->fn();                                                                                                                         \
+        };                                                                                                                                       \
+        static name sInstance;                                                                                                                   \
+    };                                                                                                                                           \
+    name name::sInstance;
+#else
 #define PATAKURI_BIG_NERVE(name, cls, fn)                                                                                                         \
     class name : public Nerve {                                                                                                                  \
     public:                                                                                                                                      \
@@ -32,6 +44,7 @@ namespace {
         static name sInstance;                                                                                                                   \
     };                                                                                                                                           \
     name name::sInstance ATTRIBUTE_WEAK;
+#endif
 
     PATAKURI_BIG_NERVE(PatakuriBigNrvRail, PatakuriBig, exeBigRail);
     PATAKURI_BIG_NERVE(PatakuriBigNrvBlow, PatakuriBig, exeBigBlow);
@@ -47,7 +60,11 @@ namespace {
         virtual void execute(Spine*) const {};
         static PatakuriBigWingNrvWait sInstance;
     };
+#ifdef GALAXY_NATIVE
+    PatakuriBigWingNrvWait PatakuriBigWingNrvWait::sInstance;
+#else
     PatakuriBigWingNrvWait PatakuriBigWingNrvWait::sInstance ATTRIBUTE_WEAK;
+#endif
 
     class PatakuriBigWingNrvKill : public Nerve {
     public:
@@ -59,7 +76,11 @@ namespace {
         };
         static PatakuriBigWingNrvKill sInstance;
     };
+#ifdef GALAXY_NATIVE
+    PatakuriBigWingNrvKill PatakuriBigWingNrvKill::sInstance;
+#else
     PatakuriBigWingNrvKill PatakuriBigWingNrvKill::sInstance ATTRIBUTE_WEAK;
+#endif
 }  // namespace
 
 // ---------------------------------------------------------------------------------------------

@@ -185,7 +185,7 @@ void TalkMessageCtrl::rootNodePre(bool arg) {
         static const bool trace = std::getenv("PETARI_TALK_TRACE") != nullptr;
         if (trace) {
             std::fprintf(stderr, "[talk] branch condition %d (case %d) arg %d: %s\n", static_cast< int >(branch->mIndex),
-                         static_cast< int >(condition), static_cast< int >(branch->mNextIdx), cond ? "true" : "false");
+                         static_cast< int >(branch->mIndex), static_cast< int >(branch->mNextIdx), cond ? "true" : "false");
         }
 #endif
         if (cond) {

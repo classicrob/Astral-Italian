@@ -19,7 +19,11 @@ extern const f32 cBodyCount;
 extern const f32 cOne;
 extern const f32 cHalf;
 extern const f32 cStretchMin;
+#ifdef GALAXY_NATIVE
+extern volatile s32 cWavePeriod;
+#else
 __declspec(section ".sdata2") extern volatile s32 cWavePeriod;
+#endif
 
 // Joint names of the 7 body joints, and the joint index -> body index table filled by init.
 static const char* sJointNames[7] = {"HeadPos", "Body5", "Body4", "Body3", "Body2", "Body1", "AllRoot"};
@@ -760,6 +764,10 @@ const f32 cBodyCount = 7.0f;
 const f32 cOne = 1.0f;
 const f32 cHalf = 0.5f;
 const f32 cStretchMin = 0.05f;
+#ifdef GALAXY_NATIVE
+volatile s32 cWavePeriod = 180;
+#else
 __declspec(section ".sdata2") volatile s32 cWavePeriod = 180;
+#endif
 
 const f32 cSegmentCount = 6.0f;

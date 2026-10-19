@@ -7,6 +7,18 @@
 
 namespace {
     // Nerve objects of FlowerMimic, declared in the sinit order of the target.
+#ifdef GALAXY_NATIVE
+#define FLOWER_MIMIC_NERVE(name, fn)                                                                                                              \
+    class name : public Nerve {                                                                                                                  \
+    public:                                                                                                                                      \
+        virtual void execute(Spine* pSpine) const {                                                                                              \
+            FlowerMimic* actor = reinterpret_cast< FlowerMimic* >(pSpine->mExecutor);                                                            \
+            actor->fn();                                                                                                                         \
+        };                                                                                                                                       \
+        static name sInstance;                                                                                                                   \
+    };                                                                                                                                           \
+    name name::sInstance;
+#else
 #define FLOWER_MIMIC_NERVE(name, fn)                                                                                                              \
     class name : public Nerve {                                                                                                                  \
     public:                                                                                                                                      \
@@ -17,6 +29,7 @@ namespace {
         static name sInstance;                                                                                                                   \
     };                                                                                                                                           \
     name name::sInstance ATTRIBUTE_WEAK;
+#endif
 
     FLOWER_MIMIC_NERVE(FlowerMimicNrvWait, exeMimicWait);
     FLOWER_MIMIC_NERVE(FlowerMimicNrvAttackSign, exeMimicAttackSign);
@@ -33,7 +46,11 @@ namespace {
         };
         static FlowerMimicNrvBind sInstance;
     };
+#ifdef GALAXY_NATIVE
+    FlowerMimicNrvBind FlowerMimicNrvBind::sInstance;
+#else
     FlowerMimicNrvBind FlowerMimicNrvBind::sInstance ATTRIBUTE_WEAK;
+#endif
 }  // namespace
 
 FlowerMimic::FlowerMimic(const char* pName) : LiveActor(pName) {

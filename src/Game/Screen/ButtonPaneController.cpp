@@ -142,7 +142,7 @@ void ButtonPaneController::publishUiTarget(const char* pId, s32 index) const {
     bool isResting = isNerve(GET_NERVE(ButtonPaneController, ButtonPaneControllerNrvWait)) ||
                      isNerve(GET_NERVE(ButtonPaneController, ButtonPaneControllerNrvPointing)) ||
                      isNerve(GET_NERVE(ButtonPaneController, ButtonPaneControllerNrvNotPointing));
-    if (_24 && mDecideAnimName != nullptr && isResting) {
+    if (mIsActive && mDecideAnimName != nullptr && isResting) {
         flags |= PETARI_UI_SELECTABLE;
     }
 

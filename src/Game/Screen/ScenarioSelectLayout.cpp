@@ -21,6 +21,10 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/NativeUiObserve.hpp"
+#include <petari/progress_hook.hpp>
+#endif
 
 namespace {
     const char* const cStarPaneName[] = {"Star1", "Star2", "Star3", "Star4", "Star5", "Star6"};

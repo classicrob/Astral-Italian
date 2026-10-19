@@ -252,7 +252,11 @@ void RingBeam::setColorFrame(f32 color) {
 }
 void RingBeam::setRadius(f32 radius) {
     TVec3f Ydir;
+#ifdef GALAXY_NATIVE
+    TVec3f temp2(mBeamPos);
+#else
     TVec3f temp2;
+#endif
     TVec3f temp6;
 
     if (radius >= mMaxRadius) {

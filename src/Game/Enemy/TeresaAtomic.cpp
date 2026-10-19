@@ -2,6 +2,9 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/MapObj/ClipAreaDropHolder.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/MapObj/ClipAreaDrop.hpp"
+#endif
 #include "Game/Map/SunshadeMapHolder.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
@@ -66,7 +69,11 @@ void TeresaAtomic::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg1WithInit(rIter, &radius);
     if (radius >= 1.0f) {
         MR::createClipAreaDropHolder();
+#ifdef GALAXY_NATIVE
+        mClipAreaDrop = MR::appearClipAreaDrop(mPosition, radius);
+#else
         mClipAreaDrop = (LiveActor*)(u32)MR::appearClipAreaDrop(mPosition, radius);
+#endif
     }
     mPowerStarIndex = -1;
     MR::getJMapInfoArg2WithInit(rIter, &mPowerStarIndex);

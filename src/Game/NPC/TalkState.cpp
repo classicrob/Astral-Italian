@@ -17,6 +17,9 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/ui_observe.hpp>
+#endif
 
 bool TalkFunction::isSkipEventTalkBalloon() {
     if(GameSceneFunction::isExecSuperDreamerTalk()) return false;

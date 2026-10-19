@@ -437,7 +437,11 @@ void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, 
 
     if (rCaps.mScaleJointName != nullptr) {
         mScaleController = new AnimScaleController(rCaps.mUseAlternateScaleParam ? &::sParam2 : &::sParam);
+#ifdef GALAXY_NATIVE
+        mDelegator = MR::createJointDelegatorWithNullChildFunc(this, &NPCActor::calcJointScale, rCaps.mScaleJointName);
+#else
         mDelegator = MR::createJointDelegatorWithNullChildFunc(this, &calcJointScale, rCaps.mScaleJointName);
+#endif
     }
 
     if (rCaps.mDropItemOnSupportTicoSpin) {

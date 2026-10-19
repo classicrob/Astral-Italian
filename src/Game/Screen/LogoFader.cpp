@@ -25,7 +25,11 @@ void LogoFader::draw() const {
         GXSetColorUpdate(GX_TRUE);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
 
+#ifdef GALAXY_NATIVE
+        GXColor fillColor = {0, 0, 0, static_cast<u8>(mRate * 255.0f)};
+#else
         GXColor fillColor = {0, 0, 0, mRate * 255.0f};
+#endif
         MR::fillScreen(fillColor);
     }
 }

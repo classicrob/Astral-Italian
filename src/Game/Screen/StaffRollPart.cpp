@@ -9,7 +9,9 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SystemUtil.hpp"
 #include <algorithm>
+#ifndef GALAXY_NATIVE
 #include <functional.hpp>
+#endif
 
 namespace NrvStaffRollPart {
     NEW_NERVE(StaffRollPartNrvWait, StaffRollPart, Wait);
@@ -78,27 +80,43 @@ void StaffRollPart::appear() {
 }
 
 void StaffRollPart::kill() {
+#ifdef GALAXY_NATIVE
+    std::for_each(mLines, mLines + mLineCount, [](StaffRollLine* item) { item->kill(); });
+#else
     std::for_each(mLines, mLines + mLineCount, std::mem_func(&StaffRollLine::kill));
+#endif
     mIsAlive = false;
 }
 
 void StaffRollPart::movement() {
     updateNerve();
     if (mIsAlive) {
+#ifdef GALAXY_NATIVE
+        std::for_each(mLines, mLines + mLineCount, [](StaffRollLine* item) { item->movement(); });
+#else
         std::for_each(mLines, mLines + mLineCount, std::mem_func(&LayoutActor::movement));
+#endif
     }
     mScrollFrames++;
 }
 
 void StaffRollPart::calcAnim() {
     if (mIsAlive) {
+#ifdef GALAXY_NATIVE
+        std::for_each(mLines, mLines + mLineCount, [](StaffRollLine* item) { item->calcAnim(); });
+#else
         std::for_each(mLines, mLines + mLineCount, std::mem_func(&LayoutActor::calcAnim));
+#endif
     }
 }
 
 void StaffRollPart::draw() const {
     if (mIsAlive) {
+#ifdef GALAXY_NATIVE
+        std::for_each(mLines, mLines + mLineCount, [](StaffRollLine* item) { item->draw(); });
+#else
         std::for_each(mLines, mLines + mLineCount, std::mem_func(&LayoutActor::draw));
+#endif
     }
 }
 
@@ -160,8 +178,12 @@ void StaffRollPart::setDuration(s32 duration) {
 
 void StaffRollPart::setLineDuration(s32 duration) {
     mElapsedFrames = duration;
+#ifdef GALAXY_NATIVE
+    std::for_each(mLines, mLines + mLineCount, [duration](StaffRollLine* item) { item->setDuration(duration); });
+#else
     std::for_each(mLines, mLines + mLineCount,
         std::binder2nd<std::mem_fun1_t<void, StaffRollLine, s32>, s32>(std::mem_func(&StaffRollLine::setDuration), duration));
+#endif
 }
 
 bool StaffRollPart::isEnd() const {
@@ -213,7 +235,11 @@ void StaffRollPart::exeWaitBeforePart() {
 
 void StaffRollPart::exePart() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        std::for_each(mLines, mLines + mLineCount, [](StaffRollLine* item) { item->appear(); });
+#else
         std::for_each(mLines, mLines + mLineCount, std::mem_func(&StaffRollLine::appear));
+#endif
         alignLines(mType);
     } else if (isAllLinesDead()) {
         kill();

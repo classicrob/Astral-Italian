@@ -1,6 +1,9 @@
 #pragma once
 
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include "Game/Util/BigEndian.hpp"
+#endif
 
 class JMapInfo;
 class TalkMessageInfo;
@@ -8,6 +11,34 @@ class TalkNode;
 struct MsbtInfo;
 struct MsbfInfo;
 
+#ifdef GALAXY_NATIVE
+// BMG block headers as stored in the resource (big-endian).
+struct MessageInfoBlock {
+    BigEndianValue< u32 > mMagic;
+    BigEndianValue< u32 > mBlockSize;
+    BigEndianValue< u16 > mItemCount;
+    BigEndianValue< u16 > mItemSize;
+    BigEndianValue< u32 > _C;
+};
+
+struct MessageDataBlock {
+    BigEndianValue< u32 > mMagic;
+    BigEndianValue< u32 > mBlockSize;
+};
+
+struct MessageFlowBlock {
+    BigEndianValue< u32 > mMagic;
+    BigEndianValue< u32 > mBlockSize;
+    BigEndianValue< u16 > mNodeCount;
+    BigEndianValue< u16 > _A;
+    BigEndianValue< u32 > _C;
+};
+
+struct MessageFLI1Block {
+    BigEndianValue< u32 > mMagic;
+    BigEndianValue< u32 > mBlockSize;
+};
+#else
 struct MessageInfoBlock {
     /* 0x0 */ u32 mMagic;
     /* 0x4 */ u32 mBlockSize;
@@ -33,6 +64,7 @@ struct MessageFLI1Block {
     /* 0x0 */ u32 mMagic;
     /* 0x4 */ u32 mBlockSize;
 };
+#endif
 
 // SMG2: a MessageData wraps two LMS handles (message table + flowchart), see MarioFaceShipEventDataHolder.cpp
 class MessageData {

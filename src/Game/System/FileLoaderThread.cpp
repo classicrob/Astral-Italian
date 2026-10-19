@@ -1,6 +1,10 @@
 #include "Game/System/FileLoaderThread.hpp"
 #include "Game/System/FileRipper.hpp"
 #include "Game/Util/FileUtil.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/System/HeapMemoryWatcher.hpp"
+#include "Game/Util/SingletonHolder.hpp"
+#endif
 
 namespace {
     void* loadFileUsingRipper(RequestFileInfo* pInfo) {
@@ -47,6 +51,9 @@ void FileLoaderThread::mountArchiveAndStartCreateResource(RequestFileInfo* pInfo
     pInfo->_88 = 1;
     void* data = ::loadFileUsingRipper(pInfo);
     MR::createAndAddArchive(data, pInfo->mFileEntry->mHeap, pInfo->mFileName);
+#ifdef GALAXY_NATIVE
+    SingletonHolder< HeapMemoryWatcher >::get()->noteArchiveMounted(pInfo->mFileEntry->mHeap, pInfo->mFileName, data);
+#endif
     pInfo->mFileEntry->setContext(data, pInfo->mFileEntry->mHeap);
     pInfo->_88 = 2;
 }

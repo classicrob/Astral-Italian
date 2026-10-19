@@ -2,6 +2,9 @@
 #include "Game/Util.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include <JSystem/J3DGraphAnimator/J3DModelData.hpp>
+#ifdef GALAXY_NATIVE
+#include <petari/endian.hpp>
+#endif
 #include <JSystem/J3DGraphBase/J3DMaterial.hpp>
 #include <JSystem/J3DGraphBase/J3DShape.hpp>
 #include <JSystem/J3DGraphBase/J3DShapeDraw.hpp>

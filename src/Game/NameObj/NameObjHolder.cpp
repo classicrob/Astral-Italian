@@ -3,6 +3,9 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/HashUtil.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#endif
 #include <cstring>
 
 namespace {

@@ -116,6 +116,9 @@ bool requestChangeArchivePlayer(bool isPlayerMario) {
 
 void waitEndChangeArchivePlayer() {
     while (!GameSystemFunction::isEndChangeArchivePlayer()) {
+#ifdef GALAXY_NATIVE
+        petari_os_preemption_point();  // the change completes on other threads
+#endif
     }
 }
 

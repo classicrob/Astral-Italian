@@ -9,6 +9,14 @@
 FileHolderFileEntry::FileHolderFileEntry(const char* pFilePath, JKRHeap* pHeap, void* pContext)
     : mHashCode(MR::getHashCodeLower(pFilePath)), mContext(nullptr), mHeap(pHeap), mState(FILE_HOLDER_STATE_NONE), mContextSet(true) {
     OSInitMessageQueue(&mQueue, &mMessage, 1);
+#ifdef GALAXY_NATIVE
+    mNativePath = nullptr;
+    if (mEntryNum < 0 && pFilePath != nullptr) {
+        const s32 length = strlen(pFilePath) + 1;
+        mNativePath = new (pHeap, 0) char[length];
+        MR::copyString(mNativePath, pFilePath, length);
+    }
+#endif
 
     if (pContext) {
         mContextSet = false;
@@ -20,6 +28,9 @@ FileHolderFileEntry::~FileHolderFileEntry() {
     if (mContextSet && (mContext != nullptr)) {
         delete (u8*)mContext;
     }
+#ifdef GALAXY_NATIVE
+    delete[] mNativePath;
+#endif
 }
 
 void FileHolderFileEntry::waitReadDone() {

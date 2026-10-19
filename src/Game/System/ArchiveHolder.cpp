@@ -77,6 +77,22 @@ void ArchiveHolder::removeArchive(const char* pArchiveName) {
     }
 }
 
+#ifdef GALAXY_NATIVE
+bool ArchiveHolder::nativeRemove(const char* pArchiveName) {
+    OSLockMutex(&mMutex);
+    for (ArchiveHolderArchiveEntry** i = mEntries.begin(); i != mEntries.end(); i++) {
+        if (MR::isEqualStringCase((*i)->mArchiveName, pArchiveName)) {
+            delete *i;
+            mEntries.erase(i);
+            OSUnlockMutex(&mMutex);
+            return true;
+        }
+    }
+    OSUnlockMutex(&mMutex);
+    return false;
+}
+#endif
+
 ArchiveHolderArchiveEntry* ArchiveHolder::findEntry(const char* pArchiveName) const {
     for (ArchiveHolderArchiveEntry* const* i = mEntries.begin(); i != mEntries.end(); i++) {
         if (MR::isEqualStringCase((*i)->mArchiveName, pArchiveName)) {

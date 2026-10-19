@@ -41,6 +41,19 @@ void* NANDManagerThread::run() {
 }
 
 void NANDManagerThread::executeWriteSequence(NANDRequestInfo* pRequestInfo) {
+#ifdef GALAXY_NATIVE
+    // Prepared during a level-editor play-test (NANDRequestInfo::setWriteSeq): nothing reaches
+    // the save (its progress is put back when the session ends). The game sees a write that succeeded.
+    if (pRequestInfo->mNativeDropWrite) {
+        static bool sTold = false;
+        if (!sTold) {
+            std::fprintf(stderr, "[editor] play-test isolation: %s not written\n", pRequestInfo->mPath);
+            sTold = true;
+        }
+        pRequestInfo->mResult = NAND_RESULT_OK;
+        return;
+    }
+#endif
     pRequestInfo->mResult = NANDCreate(pRequestInfo->mPath, pRequestInfo->mPermission, pRequestInfo->mAttribute);
 
     if (pRequestInfo->mResult == NAND_RESULT_OK || pRequestInfo->mResult == NAND_RESULT_EXISTS) {

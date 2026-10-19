@@ -45,5 +45,23 @@ public:
     /* 0x24 */ JKRExpHeap* mWPadHeap;
     /* 0x28 */ JKRExpHeap* mHomeButtonLayoutHeap;
     /* 0x2C */ JKRSolidHeap* mAudSystemHeap;
+#ifdef GALAXY_NATIVE
+    // Host-layout copies of big-endian J3D files whose archive is in mFileCacheHeap (see
+    // HeapMemoryWatcher.cpp). Created and destroyed with mFileCacheHeap.
+    JKRSolidHeap* mFileCacheHostImageHeap;
+
+    // Heap headroom diagnostics (PETARI_TRACE_BOOT): FileLoaderThread reports each mounted
+    // archive; the archive bytes resident in the file cache since it was created separate the
+    // Wii's share of its use (the same archive bytes) from native growth.
+    void noteArchiveMounted(JKRHeap* pHeap, const char* pName, const void* pData);
+
+    // Native room on top of the Wii file cache size for native resource-object growth (see
+    // createFileCacheHeapOnGameHeap), and the free ratio the Wii placement rule sees: the file
+    // cache's free bytes beyond that room over the Wii size.
+    static const u32 cFileCacheNativeAllowance = 0x300000;
+    f32 getFileCachePlacementFreeRatio() const;
+    u32 mFileCacheArchiveBytes;
+    u32 mFileCacheArchiveCount;
+#endif
     static JKRExpHeap* sRootHeapGDDR3;
 };

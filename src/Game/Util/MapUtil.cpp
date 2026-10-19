@@ -534,7 +534,13 @@ namespace MR {
         TVec3f direction(gravity);
         direction.scale(directionScale);
         HitInfo hit;
+#ifdef GALAXY_NATIVE
+        if (pParts->checkStrikeLine(&hit, 1, start, direction, nullptr) == 0) {
+            return false;
+        }
+#else
         pParts->checkStrikeLine(&hit, 1, start, direction, nullptr);
+#endif
         CollisionPartsFilterSensor filter(pParts->mHitSensor);
         return getFirstPolyOnLineCategory(pOut, nullptr, hit.mHitPos, direction, nullptr, &filter, 0);
     }

@@ -75,7 +75,18 @@ FunctionAsyncExecutor::FunctionAsyncExecutor() : mMainThreadExec(nullptr), mHold
     }
 
     mMainThreadExec = new FunctionAsyncExecutorOnMainThread(OSGetCurrentThread());
+#ifdef GALAXY_NATIVE
+    // The Wii heap holds 256 units of sizeof(FunctionAsyncExecInfo) (0x34). Natively the
+    // info is larger and 8-byte aligned; a larger object would span two units, and
+    // JKRUnitHeap::free releases only one. Keep 256 units of the native size: header,
+    // allocation bitmap, alignment slack and units.
+    const u32 unitNum = 256;
+    const u32 unitSize = ALIGN_NEXT(sizeof(FunctionAsyncExecInfo), alignof(FunctionAsyncExecInfo));
+    const u32 heapSize = sizeof(JKRUnitHeap) + unitNum / 8 + alignof(FunctionAsyncExecInfo) + unitNum * unitSize;
+    _410 = JKRUnitHeap::create(unitSize, heapSize, alignof(FunctionAsyncExecInfo), MR::getCurrentHeap(), false);
+#else
     _410 = JKRUnitHeap::create(0x34, 0x34A8, 4, MR::getCurrentHeap(), false);
+#endif
     _414 = JKRExpHeap::create(0x2800, MR::getCurrentHeap(), false);
 }
 
@@ -112,6 +123,15 @@ void FunctionAsyncExecutor::waitForEnd(const char* pName) {
         cur++;
     }
 
+#ifdef GALAXY_NATIVE
+    // startOnMainThread ran the function inline and queued nothing (a resource holder created
+    // on the main thread during play, as the level editor does): nothing to wait for. On the
+    // Wii this read past the list.
+    if (cur == lst) {
+        OSUnlockMutex(&MR::MutexHolder< 2 >::sMutex);
+        return;
+    }
+#endif
     FunctionAsyncExecInfo* info = *cur;
     OSUnlockMutex(&MR::MutexHolder< 2 >::sMutex);
     OSReceiveMessage(&info->mQueue, &info->mMessage, OS_MESSAGE_BLOCK);

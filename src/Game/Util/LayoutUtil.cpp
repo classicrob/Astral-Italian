@@ -28,18 +28,41 @@
 
 template nw4r::lyt::TextBox* nw4r::ut::DynamicCast< nw4r::lyt::TextBox*, nw4r::lyt::Pane >(nw4r::lyt::Pane*);
 
+#ifndef GALAXY_NATIVE
+// Matching-build instantiation; 4 is the Wii offset of the pane link (natively PaneList uses offsetof).
 template const nw4r::lyt::Pane* nw4r::ut::LinkList< nw4r::lyt::Pane, 4 >::ConstIterator::operator->() const;
+#endif
 template void JGeometry::TVec2< f32 >::set< f32 >(f32, f32);
 template void JGeometry::TBox2< f32 >::set(const TVec2f&, const TVec2f&);
 
+#ifndef GALAXY_NATIVE
+// Emission-order instantiation for the matching build; the native LinkList iterator differs.
 template nw4r::lyt::PaneList::Iterator nw4r::ut::LinkList< nw4r::lyt::Pane, 4 >::Iterator::operator++(int);
+#endif
 
 extern "C" int vswprintf(wchar_t*, size_t, const wchar_t*, va_list);
+
+
+#ifdef GALAXY_NATIVE
+#include <petari/asset_diagnostics.hpp>
+namespace {
+    bool nativeLayoutPaneReady(const LayoutActor* actor, const char* name) {
+        if (!actor || !actor->getLayoutManager()) {
+            PetariNative::reportMissingLayoutReference("<no layout manager>", name, "pane");
+            return false;
+        }
+        return actor->getLayoutManager()->getPane(name) != nullptr;
+    }
+}
+#endif
 
 
 
 namespace {
     void setInfluencedAlphaToChild(nw4r::lyt::Pane* pPane) {
+#ifdef GALAXY_NATIVE
+        if (!pPane) return;
+#endif
         pPane->SetInfluencedAlpha(true);
 
         nw4r::lyt::PaneList& rChildren = pPane->GetChildList();
@@ -50,6 +73,9 @@ namespace {
     }
 
     void showPaneRecursive(nw4r::lyt::Pane* pPane) {
+#ifdef GALAXY_NATIVE
+        if (!pPane) return;
+#endif
         pPane->SetVisible(true);
 
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
@@ -58,6 +84,9 @@ namespace {
     }
 
     void hidePaneRecursive(nw4r::lyt::Pane* pPane) {
+#ifdef GALAXY_NATIVE
+        if (!pPane) return;
+#endif
         pPane->SetVisible(false);
 
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
@@ -81,6 +110,9 @@ namespace {
     }
 
     bool getTextDrawRectRecursive(nw4r::ut::Rect* pRect, const nw4r::lyt::Pane* pPane, bool initialized) {
+#ifdef GALAXY_NATIVE
+        if (!pPane) return false;
+#endif
         const nw4r::lyt::PaneList& rChildren = pPane->GetChildList();
 
         for (nw4r::lyt::PaneList::ConstIterator it = rChildren.GetBeginIter(); it != rChildren.GetEndIter(); ++it) {
@@ -118,6 +150,9 @@ namespace {
     }
 
     u32 getTextLineNumMaxRecursiveSub(const nw4r::lyt::Pane* pPane) {
+#ifdef GALAXY_NATIVE
+        if (!pPane) return 0;
+#endif
         u32 max = 0;
         const nw4r::lyt::PaneList& rChildren = pPane->GetChildList();
 

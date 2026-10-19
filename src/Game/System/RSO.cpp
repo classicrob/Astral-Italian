@@ -5,6 +5,10 @@
 #include <JSystem/JKernel/JKRExpHeap.hpp>
 #include <revolution/rso.h>
 
+#ifdef GALAXY_NATIVE
+#include "petari/home_menu_hbm.hpp"
+#endif
+
 void (*HBMCreateRSO)(const HBMDataInfo*);
 void (*HBMInitRSO)(void);
 void (*HBMCalcRSO)(const HBMControllerData*);

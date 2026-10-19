@@ -6,6 +6,7 @@
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSystemFunction.hpp"
 #include "Game/System/MainLoopFramework.hpp"
+#include "Game/System/NativeBootTrace.hpp"
 #include "Game/Util/Color.hpp"
 #include "Game/Util/DrawUtil.hpp"
 #include "Game/Util/LayoutUtil.hpp"
@@ -30,6 +31,37 @@ namespace NrvGameSystemResetAndPowerProcess {
     NEW_NERVE(GameSystemResetAndPowerProcessWaitPrepareFadein, GameSystemResetAndPowerProcess, WaitPrepareFadein);
     NEW_NERVE(GameSystemResetAndPowerProcessFadein, GameSystemResetAndPowerProcess, Fadein);
 };  // namespace NrvGameSystemResetAndPowerProcess
+
+#ifdef GALAXY_NATIVE
+namespace {
+    // Check-disk request of the current Reset nerve: when it was issued and answered.
+    OSTime sCheckDiskIssued = 0;
+    volatile OSTime sCheckDiskAnswered = 0;
+    volatile s32 sCheckDiskResult = -1;
+
+    const char* getResetNerveName(const GameSystemResetAndPowerProcess* pProcess) {
+        if (pProcess->isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessPolling))) {
+            return "Polling";
+        }
+        if (pProcess->isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessWaitResetPermitted))) {
+            return "WaitResetPermitted";
+        }
+        if (pProcess->isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessPrepareReset))) {
+            return "PrepareReset";
+        }
+        if (pProcess->isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessReset))) {
+            return "Reset";
+        }
+        if (pProcess->isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessWaitPrepareFadein))) {
+            return "WaitPrepareFadein";
+        }
+        if (pProcess->isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessFadein))) {
+            return "Fadein";
+        }
+        return "?";
+    }
+}  // namespace
+#endif
 
 void GameSystemResetAndPowerProcess::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessPolling));
@@ -164,6 +196,11 @@ void GameSystemResetAndPowerProcess::exeReset() {
     if (MR::isFirstStep(this)) {
         _5C = false;
 
+#ifdef GALAXY_NATIVE
+        sCheckDiskIssued = OSGetTime();
+        sCheckDiskAnswered = 0;
+        sCheckDiskResult = -1;
+#endif
         DVDCheckDiskAsync(&mCommandBlock, GameSystemResetAndPowerProcess::handleCheckDiskAsync);
     }
 
@@ -213,6 +250,7 @@ void GameSystemResetAndPowerProcess::exeFadein() {
 }
 
 void GameSystemResetAndPowerProcess::exitApplication() {
+    NATIVE_TRACE_BOOT("[reset] exitApplication: operation %d\n", mResetOperation);
     DrawSyncManager::end();
     MainLoopFramework::setForOSResetSystem();
     VISetBlack(TRUE);
@@ -261,13 +299,44 @@ bool GameSystemResetAndPowerProcess::isResetAcceptAudio() const {
 void GameSystemResetAndPowerProcess::control() {
     mResetTriggerChecker->update(OSGetResetButtonState() != FALSE);
     mFadeinoutControl->update();
+
+#ifdef GALAXY_NATIVE
+    // Reset/power state: every nerve change, and once per second outside Polling, with
+    // the gates WaitResetPermitted and PrepareReset wait for and the Reset check-disk state.
+    if (MR::Native::isTraceBoot()) {
+        static const char* sPrevNerve = nullptr;
+        static OSTime sLastReport = 0;
+        const char* pNerve = getResetNerveName(this);
+        bool isChanged = pNerve != sPrevNerve;
+
+        if (isChanged || (isActive() && MR::Native::isTraceHeartbeat(&sLastReport))) {
+            s32 answeredMs = sCheckDiskAnswered == 0 ? -1 : static_cast< s32 >(OSTicksToMilliseconds(sCheckDiskAnswered - sCheckDiskIssued));
+            // The NWC24 messenger is queried only where PrepareReset itself queries it (-1 elsewhere).
+            bool isNWC24Queried = isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessPrepareReset)) ||
+                                  isNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessReset));
+            OSReport("[reset] %s %s (step %d): operation %d, power request %d, fade frame %d; permit audio %d, permit save %d, "
+                     "save prepared %d, audio accepted %d, NWC24 idle %d; check disk done %d (result %d, %d ms)\n",
+                     isChanged ? "nerve" : "still", pNerve, getNerveStep(), mResetOperation, mIsValidPowerOff, mFadeinoutControl->mFrame,
+                     GameSystemFunction::isPermitToResetAudioSystem(), GameSystemFunction::isPermitToResetSaveDataHandleSequence(),
+                     GameSystemFunction::isPrepareResetSaveDataHandleSequence(), isResetAcceptAudio(),
+                     isNWC24Queried ? GameSequenceFunction::isEnableToResetNWC24() : -1, _5C, sCheckDiskResult, answeredMs);
+            sPrevNerve = pNerve;
+        }
+    }
+#endif
 }
 
 void GameSystemResetAndPowerProcess::handleOSPowerCallback() {
+    NATIVE_TRACE_BOOT("[reset] power callback\n");
     SingletonHolder< GameSystemResetAndPowerProcess >::get()->mIsValidPowerOff = true;
 }
 
 void GameSystemResetAndPowerProcess::handleCheckDiskAsync(s32 result, DVDCommandBlock* pBlock) {
+#ifdef GALAXY_NATIVE
+    // Drive thread; the game thread's trace reports it.
+    sCheckDiskResult = result;
+    sCheckDiskAnswered = OSGetTime();
+#endif
     SingletonHolder< GameSystemResetAndPowerProcess >::get()->notifyCheckDiskResult(result != 0);
 }
 

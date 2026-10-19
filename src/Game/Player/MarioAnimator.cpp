@@ -1187,42 +1187,6 @@ void MarioAnimator::switchMirrorMode() {
     }
 }
 
-void MarioAnimator::changePickupAnimation(const HitSensor* pSensor) {
-    u32 type = pSensor->mType;
-    switch (type) {
-    case ACTMES_STAR_PIECE_GIFT_MAX:
-        mActor->_494 = mActor->_49C;
-        getPlayer()->MarioModule::changeAnimation("カブ抜き");
-        mActor->changeNullAnimation("PullOut", -2);
-        getPlayer()->stopWalk();
-        break;
-    case ACTMES_STAR_PIECE_GIFT:
-    case ACTMES_STAR_PIECE_GIFT_1:
-        mActor->_494 = mActor->_498;
-        if (!getPlayer()->isSwimming()) {
-            if (mActor->_424 == pSensor) {
-                getPlayer()->MarioModule::changeAnimationUpper("ひろいクイック");
-                getPlayer()->MarioModule::playEffect("ひろいクイック");
-                mActor->clearNullAnimation(-3);
-                getPlayer()->MarioModule::startPadVib(2);
-            } else if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
-                getPlayer()->MarioModule::changeAnimation("ひろい空中");
-                mActor->clearNullAnimation(-3);
-                getPlayer()->stopWalk();
-            } else {
-                getPlayer()->MarioModule::changeAnimation("ひろい");
-                mActor->changeNullAnimation("CarryStart", -2);
-                getPlayer()->stopWalk();
-            }
-        } else {
-            mActor->clearNullAnimation(0);
-            getPlayer()->MarioModule::startPadVib(2);
-        }
-
-        break;
-    }
-}
-
 // NONMATCHING: equivalent literal-pool base materialization and prologue scheduling.
 void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     if (pSensor == nullptr) {

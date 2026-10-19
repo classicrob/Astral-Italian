@@ -234,7 +234,7 @@ void MarioActor::fn_803CAA00() {
 void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData* d) {
     const char* bck = b;
     if (F(u8, 0xFB9) == 0) {
-        if (F(s32, 0x750) == 0) {
+        if (static_cast<s32>(_468) == 0) {
             this->mMario->stopAnimationUpperForce();
         }
         char buf[0x80];
@@ -430,7 +430,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         F(u16, 0x700) = 0;
         FP(this->mMario, u16, 0x764) = 0;
         if (this->mMario->isSwimming()) {
-            if (F(s32, 0x750) == 0) {
+            if (static_cast<s32>(_468) == 0) {
                 this->mMario->changeAnimation((const char*)nullptr, "水泳基本");
             }
         } else if (this->isJumping()) {
@@ -640,7 +640,7 @@ bool MarioActor::fn_803CD000() {
         return false;
     }
     if (mActionTable1080->isActionOk("カメ持ち")) {
-        return F(s32, 0x750) == 0;
+        return static_cast<s32>(_468) == 0;
     }
     return false;
 }
@@ -661,7 +661,7 @@ bool MarioActor::fn_803CD0A0() {
     if (!mActionTable1080->isActionOk("カメ持ち")) {
         return false;
     }
-    if (F(s32, 0x750) != 0) {
+    if (static_cast<s32>(_468) != 0) {
         return false;
     }
     if (BITAT(this->mMario, 0xC, 0x14) && this->fn_803CD180()) {
@@ -702,7 +702,7 @@ bool MarioActor::fn_803CD2C0() {
     if (!mActionTable1080->isActionOk("カメ持ち")) {
         return false;
     }
-    if (F(s32, 0x750) != 0) {
+    if (static_cast<s32>(_468) != 0) {
         return false;
     }
     if (BITAT(this->mMario, 0xC, 0x14) && this->fn_803CD180()) {
@@ -734,7 +734,7 @@ bool MarioActor::fn_803CD3C0() {
     if (this->mMario->isDamaging()) {
         return false;
     }
-    return F(s32, 0x750) == 0;
+    return static_cast<s32>(_468) == 0;
 }
 
 void MarioActor::fn_803CD450(HitSensor* s) {
@@ -775,11 +775,11 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
         }
     }
     TVec3f perp;
-    f32 d = MR::vecKillElement(p, F(TVec3f, 0x7B4), &perp);
+    f32 d = MR::vecKillElement(p, mBodyDownDirection, &perp);
     if (d > -f0) {
         if (d < f2 && PSVECMag((Vec*)&perp) < (f1 + f0)) {
             HitSensor* hs = this->getSensor("dummy");
-            TVec3f t(F(TVec3f, 0x7B4));
+            TVec3f t(mBodyDownDirection);
             t.scale(d);
             TVec3f q(F(TVec3f, 0x5F4));
             q += t;
@@ -788,13 +788,13 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             return true;
         }
         if (d == f2) {
-            TVec3f t(F(TVec3f, 0x7B4));
+            TVec3f t(mBodyDownDirection);
             t.scale(f2);
             TVec3f e(p);
             e -= t;
             if (PSVECMag((Vec*)&e) < (f0 + f1)) {
                 HitSensor* hs = this->getSensor("dummy");
-                TVec3f t2(F(TVec3f, 0x7B4));
+                TVec3f t2(mBodyDownDirection);
                 t2.scale(f2);
                 TVec3f q(F(TVec3f, 0x5F4));
                 q += t2;
@@ -808,11 +808,11 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
     if (BITAT(m, 0xC, 0x15) && BITAT(m, 0xC, 0x1E)) {
         return false;
     }
-    f32 d2 = MR::vecKillElement(p, F(TVec3f, 0x7A8), &perp);
+    f32 d2 = MR::vecKillElement(p, mBodyUpDirection, &perp);
     if (d2 > -f0) {
         if (d2 < f2 && PSVECMag((Vec*)&perp) < (f1 + f0)) {
             HitSensor* hs = this->getSensor("dummy");
-            TVec3f t(F(TVec3f, 0x7A8));
+            TVec3f t(mBodyUpDirection);
             t.scale(d2);
             TVec3f q(F(TVec3f, 0x5F4));
             q += t;
@@ -821,13 +821,13 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             return true;
         }
         if (d2 == f2) {
-            TVec3f t(F(TVec3f, 0x7A8));
+            TVec3f t(mBodyUpDirection);
             t.scale(f2);
             TVec3f e(p);
             e -= t;
             if (PSVECMag((Vec*)&e) < (f0 + f1)) {
                 HitSensor* hs = this->getSensor("dummy");
-                TVec3f t2(F(TVec3f, 0x7A8));
+                TVec3f t2(mBodyUpDirection);
                 t2.scale(f2);
                 TVec3f q(F(TVec3f, 0x5F4));
                 q += t2;
@@ -916,7 +916,7 @@ void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
 }
 
 void MarioActor::fn_803CEBC0() {
-    if (F(s32, 0x750) != 0) {
+    if (static_cast<s32>(_468) != 0) {
         HitSensor* cs = (HitSensor*)this->getCarrySensor();
         bool drill = false;
         if (MR::getSensorHost(cs) != nullptr && MR::isEqualString(MR::getSensorHost(cs)->mName, "アイテムドリル")) {
@@ -949,11 +949,11 @@ void MarioActor::fn_803CEBC0() {
             PSMTXMultVec(this->getBaseMtx(), (Vec*)&lp, (Vec*)&lp);
             f32 sp = FP(this->mMario, f32, 0x278);
             f32 amp = 10.0f * (sp * sp);
-            f32 sn = JMASinRadian(F(f32, 0x778));
-            F(f32, 0x778) += MR::getRandom(0.1f, 1.0f);
+            f32 sn = JMASinRadian(mCarryWobblePhase778);
+            mCarryWobblePhase778 += MR::getRandom(0.1f, 1.0f);
             lp.y += amp * sn;
             MR::getSensorHost(cs)->mPosition = lp;
-            TVec3f r(F(TVec3f, 0x720));
+            TVec3f r(mThrowMemoRotations[0]);
             r += F(TVec3f, 0x20);
             MR::getSensorHost(cs)->mRotation = r;
         }
@@ -1250,7 +1250,7 @@ f32 MarioActor::fn_803D18D0() {
     if (this->mMario->isSwimming()) {
         return 2000.0f;
     }
-    if (F(s32, 0x750) != 0) {
+    if (static_cast<s32>(_468) != 0) {
         return 2000.0f;
     }
     if (BITAT(this->mMario, 0xC, 0x10)) {

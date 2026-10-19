@@ -19,28 +19,28 @@ void Mario::fn_803880D0() {
 void Mario::fn_80388150() {
     if (((this->mMovementStates.mHighWord >> 8) & 1) || ((this->mFlags14.mLowWord >> 10) & 1)) {
         TVec3f sp38(this->mPosHolder->mPos);
-        sp38 -= FLD<TVec3f>(this, 0x67C);
-        MR::vecKillElement(sp38, FLD<TVec3f>(this, 0x694), &sp38);
+        sp38 -= this->_688;
+        MR::vecKillElement(sp38, this->mSwimSideVec694, &sp38);
         TVec3f* temp_r31 = &this->mPosHolder->mPos;
-        TVec3f sp14(FLD<TVec3f>(this, 0x67C));
+        TVec3f sp14(this->_688);
         sp14 += sp38;
         TVec3f sp20(sp14);
         sp20 -= *temp_r31;
         this->mPosHolder->fn_80406010(sp20);
-        MR::vecKillElement(this->mVelocity, FLD<TVec3f>(this, 0x694), &this->mVelocity);
-        TVec3f sp8(FLD<TVec3f>(this, 0x688));
-        sp8 -= FLD<TVec3f>(this, 0x67C);
+        MR::vecKillElement(this->mVelocity, this->mSwimSideVec694, &this->mVelocity);
+        TVec3f sp8(this->_694);
+        sp8 -= this->_688;
         TVec3f sp2C;
-        f32 temp_f1 = MR::vecKillElement(sp8, FLD<TVec3f>(this, 0x694), &sp2C);
+        f32 temp_f1 = MR::vecKillElement(sp8, this->mSwimSideVec694, &sp2C);
         f32 var_f31 = temp_f1;
         if (temp_f1 > 1.0f) {
             var_f31 = 1.0f;
         } else if (temp_f1 < -1.0f) {
             var_f31 = -1.0f;
         }
-        sp2C = FLD<TVec3f>(this, 0x694);
+        sp2C = this->mSwimSideVec694;
         sp2C.setLength(var_f31);
-        FLD<TVec3f>(this, 0x67C) += sp2C;
+        this->_688 += sp2C;
     }
 }
 
@@ -139,9 +139,9 @@ void Mario::fn_8038A560(f32 (*arg1)[4], s32 arg2) {
 }
 
 void Mario::fn_8038A840(void*, f32 x, f32 y, f32 z) {
-    FLD<TVec3f>(this, 0x60).set(x, y, z);
-    MR::orderRotateMtx(0, FLD<TVec3f>(this, 0x60), FLD<TMtx34f>(this, 0x6C));
-    MR::orderRotateMtx(0, -FLD<TVec3f>(this, 0x60), FLD<TMtx34f>(this, 0x9C));
+    this->_58.set(x, y, z);
+    MR::orderRotateMtx(0, this->_58, this->_64);
+    MR::orderRotateMtx(0, -this->_58, this->_94);
 }
 
 void Mario::fn_8038A9D0() {

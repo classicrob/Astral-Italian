@@ -190,7 +190,7 @@ void MarioActor::fn_803B9F10() {
 }
 
 void MarioActor::fn_803BA070() {
-    if (F(s32, 0x750) == 0) {
+    if (static_cast<s32>(_468) == 0) {
         if (this->mMario->isAnimationRun("ひろいクイック")) {
             this->mMario->stopAnimationUpperForce();
             F(s8, 0xFBA) = 0;
@@ -198,17 +198,17 @@ void MarioActor::fn_803BA070() {
             F(u8, 0x768) = 0;
         }
     } else {
-        for (u32 i = 0; i < (u32)F(s32, 0x750); i++) {
+        for (u32 i = 0; i < (u32)static_cast<s32>(_468); i++) {
             if (this->fn_803CEEE0(_428[i])) {
                 _428[i]->receiveMessage(0x2D, this->getSensor("Body"));
                 _428[i] = nullptr;
-                F(s32, 0x750) -= 1;
+                _468 -= 1;
             } else if (_428[i] != nullptr) {
                 this->fn_803D5A00(i);
             }
         }
         _474 = nullptr;
-        if (F(s32, 0x750) == 0) {
+        if (static_cast<s32>(_468) == 0) {
             this->mMario->stopAnimationUpperForce();
             this->mMario->mSwim->resetJet();
         }
@@ -414,7 +414,7 @@ bool MarioActor::fn_803BED10() {
 }
 
 
-// NONMATCHING: loop index registers, commuted pointer adds and address scheduling differ.
+// NONMATCHING: typed count/pointer clears replace redundant vector type-pun; loop registers and scheduling differ.
 void MarioActor::initMember() {
     F(u8, 0x90) = 0;
     fn_803BF6F0();
@@ -516,11 +516,10 @@ void MarioActor::initMember() {
     F(u8, 0x706) = 0;
     F(u8, 0x707) = 0;
     _424 = nullptr;
-    F(u32, 0x750) = 0;
+    _468 = 0;
     for (s32 i = 0; i < 4; i++) {
         _428[i] = nullptr;
     }
-    F(TVec3f, 0x750).zero();
     _46C = nullptr;
     _470 = nullptr;
     _474 = nullptr;
@@ -528,7 +527,7 @@ void MarioActor::initMember() {
     F(u32, 0x764) = 0;
     F(u8, 0x768) = 0;
     mThrowProbePosition76C.zero();
-    F(f32, 0x778) = 0.0f;
+    mCarryWobblePhase778 = 0.0f;
     _494 = nullptr;
     mCarryFixedPosition780 = nullptr;
     mTurnipFixedPosition784 = nullptr;
@@ -542,11 +541,11 @@ void MarioActor::initMember() {
     mSearchLightTimer = 0;
     mSearchLightThrowPos = nullptr;
     mNearestUnderSensor798 = nullptr;
-    F(f32, 0x79C) = 0.0f;
-    F(f32, 0x7A0) = 0.0f;
-    F(f32, 0x7A4) = 0.0f;
-    F(TVec3f, 0x7A8).zero();
-    F(TVec3f, 0x7B4).zero();
+    mNearestUnderAngle79C = 0.0f;
+    mBodyRadius7A0 = 0.0f;
+    mBodyHeight7A4 = 0.0f;
+    mBodyUpDirection.zero();
+    mBodyDownDirection.zero();
     for (s32 i = 0; i < 128; i++) {
         mPulledSensors7C0[i] = nullptr;
     }
@@ -886,12 +885,12 @@ void MarioActor::fn_803BFCE0() {
 }
 
 void MarioActor::fn_803BFE50() {
-    F(f32, 0x7A0) = 35.0f;
-    F(f32, 0x7A4) = 60.0f;
-    F(f32, 0x7A8) = 0.0f;
-    F(f32, 0x7AC) = 1.0f;
-    F(f32, 0x7B0) = 0.0f;
-    F(TVec3f, 0x7B4) = -F(TVec3f, 0x7A8);
+    mBodyRadius7A0 = 35.0f;
+    mBodyHeight7A4 = 60.0f;
+    mBodyUpDirection.x = 0.0f;
+    mBodyUpDirection.y = 1.0f;
+    mBodyUpDirection.z = 0.0f;
+    mBodyDownDirection = -mBodyUpDirection;
 }
 
 void DLchanger::addDL(J3DModelX* m) {
@@ -1265,7 +1264,7 @@ bool MarioActor::fn_803C3260() {
     if (this->mMario->isStatusActive(0x13)) {
         return false;
     }
-    if (F(s32, 0x750) != 0) {
+    if (static_cast<s32>(_468) != 0) {
         return false;
     }
     if (this->mMario->isStatusActive(2)) {
@@ -2219,7 +2218,7 @@ void MarioActor::movement() {
     ++_378;
     _1E1 = false;
     mLifeDecreasedThisFrame = 0;
-    F(f32, 0x79C) = 0.7853981852531433f;
+    mNearestUnderAngle79C = 0.7853981852531433f;
     mNearestUnderSensor798 = nullptr;
     PSMTXCopy(mCurrentViewMatrix.toMtxPtr(), mPreviousViewMatrix.toMtxPtr());
     PSMTXCopy(MR::getCameraViewMtx(), mCurrentViewMatrix.toMtxPtr());

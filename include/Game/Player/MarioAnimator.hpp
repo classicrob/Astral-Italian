@@ -118,7 +118,6 @@ public:
     void clearAllJointTransform();
     bool isMirrorAnimation();
     void switchMirrorMode();
-    void changePickupAnimation(const HitSensor*);
     void updateTakingAnimation(const HitSensor*);
     void changeThrowAnimation(const HitSensor*);
     void stopWaitAnimation();

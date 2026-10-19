@@ -1192,9 +1192,6 @@ void MarioActor::decLifeSmall() {
 }
 
 
-void MarioActor::resetWaterLife() {
-    mWaterLife = 8;
-}
 
 
 void MarioActor::updateLife() {
@@ -7444,12 +7441,13 @@ void MarioActor::recordScoutingObject(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: independent timer/sensor-store scheduling and verified string pools.
 void MarioActor::updateScouter() {
     const u32 count = _468;
     HitSensor* previous = _F24;
     _F24 = nullptr;
     if (count) {
-        if (_9D4 != nullptr && MR::isExistInAttributeGroupSearchTurtle(_9D4->mHost)) {
+        if (_9D4 != nullptr && MR::isExistInAttributeGroupSearchTurtle(MR::getSensorHost(_9D4))) {
             if (MR::isSensorEnemy(_9D4)) {
                 _F28 = 16;
             } else {
@@ -7487,9 +7485,9 @@ void MarioActor::updateScouter() {
 
     TVec3f position;
     if (mMario->isSwimming()) {
-        position = _2A0 + mUpVec * _9D0;
+        position = _240 + _270 * _9D0;
     } else {
-        position = _2A0 + mMario->mFrontVec * _9D0;
+        position = _240 + mMario->mFrontVec * _9D0;
     }
 
     getSensor("ex-eye")->mPosition = position;
@@ -7924,11 +7922,11 @@ void MarioActor::drawSilhouette() const {
     }
 
     if (mMario->isStatusActive(MarioStatus_Bury)) {
-        if (!MR::isExistMapCollision(mCamPos, mPosition - mCamPos)) {
+        if (!MR::isExistMapCollision(mCameraPosition, mPosition - mCameraPosition)) {
             return;
         }
 
-        if (!MR::isExistMapCollision(mCamPos, _2AC - mCamPos)) {
+        if (!MR::isExistMapCollision(mCameraPosition, _2AC - mCameraPosition)) {
             return;
         }
     }
@@ -8791,13 +8789,14 @@ void MarioActorTakeMsg_FORCE_MATCH_SDATA2() {
 }
 
 
+// NONMATCHING: register moves and independent count/sensor-store scheduling.
 void MarioActor::memorizeSensorThrow(HitSensor* pSensor) {
     _428[_468] = pSensor;
-    _438[_468] = pSensor->mHost->mRotation - mRotation;
+    mThrowMemoRotations[_468] = MR::getSensorHost(pSensor)->mRotation - mRotation;
 
     _424 = nullptr;
     _468++;
-    _490 = 0.0f;
+    mCarryWobblePhase778 = 0.0f;
     _EF6 = 30;
 
     mMario->startHandy();

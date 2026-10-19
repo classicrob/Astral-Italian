@@ -8206,7 +8206,7 @@ void Mario::procHipDrop() {
         return;
     }
 
-    if (MR::isNearZero(mActor->_240)) {
+    if (MR::isNearZero(mActor->mAppliedGravityVec)) {
         mMovementStates.mLowWord |= Mario::MovementStates::DigitalJump;
     }
 
@@ -8270,7 +8270,7 @@ void Mario::procHipDrop() {
             mWalkSpeed = 0.0f;
             _71E = 0;
 
-            if (isCurrentFloorSand()) {
+            if (isCurrentFloorSand() && !isPlayerModeYoshi()) {
                 changeStatus(mBury);
                 return;
             }
@@ -8373,18 +8373,18 @@ PROC_HIP_DROP_MOVE:
                     fn_803EFA30(strikeInfo->mParentTriangle.mSensor, "SHDホーミング許可")) {
                     TVec3f sensorPos(strikeInfo->mParentTriangle.mSensor->mPosition);
 
-                    if (MR::diffAngleAbs(sensorPos - mActor->_2A0, *getGravityVec()) < maxAngle) {
+                    if (MR::diffAngleAbs(sensorPos - mActor->_240, *getGravityVec()) < maxAngle) {
                         homingSensor = strikeInfo->mParentTriangle.mSensor;
                     }
                 }
             }
 
             if (homingSensor == nullptr) {
-                homingSensor = reinterpret_cast< HitSensor* >(mActor->_4A8);
+                homingSensor = mActor->mNearestUnderSensor798;
             }
 
             if (homingSensor != nullptr) {
-                TVec3f targetJump(homingSensor->mPosition - mActor->_2A0);
+                TVec3f targetJump(*MR::getSensorPos(homingSensor) - mActor->_240);
                 targetJump.setLength(mJumpVec.length());
 
                 TVec3f lastMove;

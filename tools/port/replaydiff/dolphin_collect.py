@@ -350,10 +350,22 @@ def collect(args):
     installed = False
     step_installed = False
     remote = None
+    inputs = None
     log = (output / "run.log").open("w", buffering=1)
     try:
         manifest.update(collector_sha256=sha256(__file__), python_version=sys.version.split()[0],
                         columns_sha256=hashlib.sha256(",".join(COLUMNS).encode()).hexdigest())
+        if args.input_script:
+            if args.movie or args.gui:
+                raise ObserverError("scripted KPAD input requires batch collection without a movie")
+            sys.modules.setdefault("dolphin_collect", sys.modules[__name__])
+            from kpad_script import ScriptedInput
+            script = Path(args.input_script).expanduser().resolve()
+            inputs = ScriptedInput(script, args.frames, output / "inputs.jsonl", args.live_input_script)
+            manifest.update(input_method="scripted filtered KPAD injection", input_script_sha256=sha256(script),
+                            input_adapter_sha256=sha256(Path(__file__).with_name("kpad_script.py")),
+                            input_contract_sha256=sha256(REPO / "native/tools/headless.py"))
+            (output / "input-script.json").write_bytes(script.read_bytes())
         if args.dolphin:
             user = game_private_path(args.user)
             disc = game_private_path(args.disc)
@@ -418,6 +430,8 @@ def collect(args):
             expected = bytes.fromhex(encoded)
             if remote.read(address, len(expected)) != expected:
                 raise ObserverError(f"SB4E01 instruction signature mismatch at {address:#x}")
+        if inputs:
+            inputs.install(remote)
         remote.ok(f"Z0,{SEAM:x},4")
         installed = True
         snapshot = Snapshot(remote)
@@ -431,6 +445,8 @@ def collect(args):
                     raise ObserverError("capture wall timeout")
                 remote.stop("c")
                 pc, lr = remote.reg(64), remote.reg(67)
+                if inputs and inputs.handle(remote, pc, manifest["frames"]):
+                    continue
                 if pc != SEAM:
                     raise ObserverError(f"unexpected stop PC {pc:#x}, LR {lr:#x}")
                 if lr == CALLER:
@@ -447,6 +463,8 @@ def collect(args):
                         log.write(json.dumps({k: row[k] for k in ("frame", "scene", "stage", "scenario", "init_state", "player_valid", "observer_error")}) + "\n")
                     if row["observer_error"]:
                         raise ObserverError(row["observer_error"])
+                    if inputs:
+                        inputs.end_frame()
                 else:
                     rejected += 1
                     manifest["rejected_stops"] = rejected
@@ -478,6 +496,11 @@ def collect(args):
         log.write(manifest["error"] + "\n")
         raise
     finally:
+        if inputs:
+            manifest["input_reads"] = inputs.reads
+            manifest["live_input_revisions"] = inputs.revisions
+            (output / "input-script-final.json").write_text(json.dumps(inputs.script, indent=2) + "\n")
+            inputs.close(remote, manifest["status"] == "captured; repeat qualification required")
         if remote and step_installed:
             try:
                 remote.ok(f"z0,{SEAM + 4:x},4")
@@ -498,6 +521,8 @@ def collect(args):
                 process.kill()
                 process.wait()
                 log.write("Dolphin required SIGKILL after SIGTERM timeout.\n")
+            if stream and endpoint.is_socket():
+                endpoint.unlink()
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         log.close()
 
@@ -515,6 +540,8 @@ def main():
     capture.add_argument("--dolphin", help="executable; omit to attach to an already locked isolated run")
     capture.add_argument("--disc", default="~/MacioGalaxy2-gamedata/SB4E01.iso")
     capture.add_argument("--movie")
+    capture.add_argument("--input-script", help="explicit filtered KPAD script; writes SDK output buffers/register r3")
+    capture.add_argument("--live-input-script", action="store_true", help="exploration only: reload future-only script edits")
     capture.add_argument("--gui", action="store_true", help="show the main UI for TAS recording/navigation")
     capture.add_argument("--output", required=True)
     capture.add_argument("--frames", type=int, default=600)

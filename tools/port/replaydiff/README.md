@@ -1,7 +1,9 @@
 # Original-game Dolphin collector
 
 `dolphin_collect.py` observes the original **SB4E01** game over Dolphin's GDB
-remote protocol. It does not call guest functions or write guest RAM/registers.
+remote protocol. Observation alone does not call guest functions or write guest
+RAM/registers. Explicit `--input-script` enables the filtered input injection
+described below.
 Every CSV row is one accepted `GameSystem::frameLoop` call to
 `MainLoopFramework::waitForRetrace`: PC `804be280`, LR **`804b6ac4`**. VI frames,
 movie polls, and the debugger's single steps are separate clocks.
@@ -137,6 +139,45 @@ Keep required save/checkpoint fixtures outside the team tree. Fresh M0 profiles
 can be regenerated; their accepted traces and initial INIs are archived before
 pruning. Never label a run qualified until a second fresh-save run with the same
 movie matches every semantic row.
+
+## Scripted filtered KPAD input
+
+`collect --input-script tools/port/replaydiff/inputs/galaxy-route.json` runs a
+frame-indexed script through the original game. It cannot be combined with
+`--movie` or `--gui`. This is input gate A: it bypasses KPAD filtering and does
+not qualify raw Wiimote/KPAD behavior.
+
+The adapter verifies original DOL instructions at `KPADReadEx` (`8054b440`) and
+its WPadHolder return (`804cf884`, call at `804cf880`). It lets the original SDK
+read finish, then writes one complete synthesized 240-byte sample to its captured
+output buffer, the captured error word, and GPR3 returned count. It checks all
+three by reading back. No scene, player, RNG, save, instruction or PC writes are
+issued. Unknown callers, nested reads, non-120 capacities and invalid pointers
+fail closed. Channel 0 is connected Nunchuk with one sample; other channels have
+zero samples returned, error -1 and an explicit disconnected slot 0. The native
+adapter injects the same return values and samples at KPADReadEx.
+
+Script v1 has `version: 1`, a declared `frames` count equal to `--frames`, and
+ordered disjoint half-open `segments`. Gaps mean idle, no pointer. Each segment
+has `start,end`, optional `buttons` (A, B, PLUS, MINUS, ONE, TWO, HOME, directions,
+C, Z), `pointer: [x,y]` and `stick: [x,y]`. Both coordinate pairs use normalized
+-1..1; pointer y increases downward, before the game's screen mapping. No world
+positions or adaptive steering are part of the script. Button edges are generated
+per channel read: trigger on 0->1, release on 1->0; repeated reads do not repeat
+edges. Pointer validity is 2 while present, horizon (1,0), distance 2. MotionPlus
+and unknown words are zero, with full upright acceleration and Nunchuk samples
+from the native contract's `idle_sample`. Exact float32 values and bits are
+exported for every field.
+
+Every observed read is exported to `inputs.jsonl` using the strict native schema
+from `native/tools/headless.py`, including boot reads before frame 0's seam,
+per-frame global ordinals, actual capacity, all samples, errors and connection
+state. The file remains `.partial` on failure. The run also pins script, adapter
+and contract SHA256 hashes, and copies the script. The native harness consumes
+that JSONL through its existing pack/run commands; it must not guess one read
+per channel per frame. The small public script under `inputs/` contains only
+intentional controller input, with no game data. Original traces and expanded
+read exports stay outside the checkout.
 
 ## Deterministic input movies
 

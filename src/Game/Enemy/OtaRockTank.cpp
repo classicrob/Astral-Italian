@@ -971,7 +971,9 @@ void OtaRockTank::updateTankEaseOutSpeed(s32 step, f32 target) {
     if (mLife == 1) {
         len *= 0.9f;
     }
-    mSpeed = base + (1.0f - MR::getEaseInValue(frame / len, 0.0f, 1.0f, 1.0f)) * difference;
+    f32 contribution = 1.0f - MR::getEaseInValue(frame / len, 0.0f, 1.0f, 1.0f);
+    contribution *= difference;
+    mSpeed = base + contribution;
     mSpeed = MR::clamp(mSpeed, base, getTankMinSpeed());
 }
 
@@ -998,7 +1000,9 @@ void OtaRockTank::updateTankBrakeSpeed(s32 steps, f32 from, f32 to) {
     f32 diff = from - to;
     if (!(diff < 0.0f)) {
         f32 rate = MR::calcNerveRate(this, steps);
-        mSpeed = to + MR::getEaseInValue(1.0f - rate, 0.0f, 1.0f, 1.0f) * diff;
+        f32 contribution = MR::getEaseInValue(1.0f - rate, 0.0f, 1.0f, 1.0f);
+        contribution *= diff;
+        mSpeed = to + contribution;
     }
 }
 

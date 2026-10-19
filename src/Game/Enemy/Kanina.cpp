@@ -1267,7 +1267,7 @@ Kanina::~Kanina() {
 }
 
 namespace {
-    // NONMATCHING: target inlines TPos3f::makeRotate here (this body is 0x184 bytes, ours calls makeRotate out of line)
+    // NONMATCHING: Rodrigues rotation temporary registers and final diagonal-store scheduling differ.
     void calcWalkDirection(TVec3f* pDirection, const LiveActor* pActor, f32 maxAngle) {
         TVec3f front;
         TVec3f up;
@@ -1278,7 +1278,33 @@ namespace {
 
         TPos3f rotate;
         rotate.identity();
-        rotate.makeRotate(up, angle);
+        rotate.mMtx[0][3] = 0.0f;
+        rotate.mMtx[1][3] = 0.0f;
+        rotate.mMtx[2][3] = 0.0f;
+        TVec3f axis;
+        axis.set(up);
+        PSVECMag(&axis);
+        PSVECNormalize(&axis, &axis);
+        f32 sine = sin(angle);
+        f32 cosine = cos(angle);
+        f32 complement = 1.0f - cosine;
+        f32 x, y, z;
+        x = axis.x;
+        y = axis.y;
+        z = axis.z;
+        f32 xx, yy, zz;
+        xx = x * x;
+        yy = y * y;
+        zz = z * z;
+        rotate.mMtx[0][0] = cosine + complement * xx;
+        rotate.mMtx[0][1] = complement * x * y - sine * z;
+        rotate.mMtx[0][2] = complement * x * z + sine * y;
+        rotate.mMtx[1][0] = complement * x * y + sine * z;
+        rotate.mMtx[1][1] = cosine + complement * yy;
+        rotate.mMtx[1][2] = complement * y * z - sine * x;
+        rotate.mMtx[2][0] = complement * x * z - sine * y;
+        rotate.mMtx[2][1] = complement * y * z + sine * x;
+        rotate.mMtx[2][2] = cosine + complement * zz;
         rotate.mult(front, front);
 
         MR::normalize(&front);

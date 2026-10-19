@@ -1417,7 +1417,10 @@ void Meramera::endStartDiving() {
 }
 
 void Meramera::exeBindStarPointer() {
-    MR::updateActorStateAndNextNerve(this, mWalkerStateBindStarPointer, GET_NERVE(Meramera, MerameraNrvWait));
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
+    }
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(Meramera, MerameraNrvWait));
 }
 
 void Meramera::endBindStarPointer() {
@@ -1425,7 +1428,10 @@ void Meramera::endBindStarPointer() {
 }
 
 void Meramera::exeBindStarPointerNoFire() {
-    MR::updateActorStateAndNextNerve(this, mWalkerStateBindStarPointer, GET_NERVE(Meramera, MerameraNrvRunaway));
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Escape");
+    }
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(Meramera, MerameraNrvRunaway));
 }
 
 void Meramera::endBindStarPointerNoFire() {

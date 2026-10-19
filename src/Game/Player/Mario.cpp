@@ -4927,6 +4927,7 @@ bool Mario::doFireDanceWithInitialDamage(u8 amount) {
             mActor->decLife(0);
         }
 
+        mActor->fn_803BE960();
         if (!mActor->mHealth) {
             mActor->forceGameOverNonStop();
         }

@@ -312,10 +312,8 @@ bool Mario::fn_8039A430() {
 
 s32 Mario::fn_803A2D10() {
     s32 r = 0;
-    if (!((this->mDrawStates.mWord >> 26) & 1) && !((this->mMovementStates.mHighWord >> 28) & 1)) {
-        if (this->_754 != 0) {
-            r = 1;
-        }
+    if (((this->mDrawStates.mWord >> 26) & 1) || ((this->mMovementStates.mHighWord >> 28) & 1) || this->_754 != 0) {
+        r = 1;
     }
     return r;
 }
@@ -412,7 +410,7 @@ bool Mario::fn_803A0FF0() {
     if (v == 0) {
         return false;
     }
-    if (this->mStickPos.z < 0.75f) {
+    if (this->mStickPos.z >= 0.75f) {
         this->_40C = 0;
         return false;
     }

@@ -2906,7 +2906,7 @@ void MarioSwim::fn_803FA820() {
     }
 }
 
-// NONMATCHING: equivalent final multiply register and omitted move.
+// NONMATCHING: relocation identities; target multiply operand order restored.
 f32 MarioSwim::fn_803FB250() {
     TVec3f velocity;
     Mario* mario = getPlayer();
@@ -2914,7 +2914,8 @@ f32 MarioSwim::fn_803FB250() {
     f32 speed = PSVECMag(&velocity);
     if (getFrontVec().dot(velocity) < 0.0f)
         speed = 0.0f;
-    return MR::clamp(speed * 0.1f, 0.0f, 1.0f);
+    speed *= 0.1f;
+    return MR::clamp(speed, 0.0f, 1.0f);
 }
 
 // NONMATCHING: FP rounding schedule and register allocation; live strings resolve equally.

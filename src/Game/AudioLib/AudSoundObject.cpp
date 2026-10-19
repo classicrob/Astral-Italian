@@ -378,7 +378,7 @@ void AudSoundObject::setMapCodeToPort(JAISoundHandle* pHandle, JAISoundID soundI
     case 0x20025:
         if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiDash()) {
             MR::startActionSoundPlayer("DashFootNoteAddL", -1, -1);
-        } else if (MR::isPlayerElementModeYoshi() && MR::fn_80422710()) {
+        } else if (MR::isPlayerElementModeYoshi() && MR::isYoshiTongueReadyToEat()) {
             MR::startActionSoundPlayer("HoldFootNoteAddL", -1, -1);
         } else if (MR::isPlayerElementModeRock()) {
             PSVECMag(reinterpret_cast<const Vec*>(MR::getPlayerVelocity()));
@@ -391,7 +391,7 @@ void AudSoundObject::setMapCodeToPort(JAISoundHandle* pHandle, JAISoundID soundI
     case 0x20026:
         if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiDash()) {
             MR::startActionSoundPlayer("DashFootNoteAddR", -1, -1);
-        } else if (MR::isPlayerElementModeYoshi() && MR::fn_80422710()) {
+        } else if (MR::isPlayerElementModeYoshi() && MR::isYoshiTongueReadyToEat()) {
             MR::startActionSoundPlayer("HoldFootNoteAddR", -1, -1);
         } else if (MR::isPlayerElementModeRock()) {
             PSVECMag(reinterpret_cast<const Vec*>(MR::getPlayerVelocity()));

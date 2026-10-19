@@ -2801,8 +2801,15 @@ f32 Mario::calcDistToCeilHead() {
     TVec3f hitPos;
     TVec3f start = mActor->mCapPosition - mFrontVec * 40.0f;
 
-    if (MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, -getAirGravityVec() * 80.0f)) {
-        *getTmpPolygon() = triangle;
+    TVec3f direction(-getAirGravityVec() * 80.0f);
+    bool hit;
+    if (fn_803B2950()) {
+        hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, start, direction);
+    } else {
+        hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, direction);
+    }
+    if (hit) {
+        *fn_803EFA20() = triangle;
         return (hitPos - mPosHolder->mPos).length();
     }
 

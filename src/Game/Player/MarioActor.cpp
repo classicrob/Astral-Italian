@@ -10137,6 +10137,13 @@ MultiEmitter* MarioActor::playEffect(const char* pName) {
         return playMaterialEffect(pName);
     }
 
+    if (mMario->isPlayerModeYoshi()) {
+        MultiEmitter* emitter = MR::tryEmitEffect(mYoshiHolder->mYoshi, pName);
+        if (emitter != nullptr) {
+            return emitter;
+        }
+    }
+
     return MR::emitEffect(this, pName);
 }
 
@@ -10253,6 +10260,10 @@ void MarioActor::stopEffect(const char* pName) {
         return;
     }
 
+    if (mMario->isPlayerModeYoshi() && MR::tryDeleteEffect(mYoshiHolder->mYoshi, pName)) {
+        return;
+    }
+
     MR::deleteEffect(this, pName);
 }
 
@@ -10265,6 +10276,10 @@ void MarioActor::stopEffectForce(const char* pName) {
 
     if (isMaterialEffect(pName)) {
         stopMaterialEffect(pName);
+        return;
+    }
+
+    if (mMario->isPlayerModeYoshi() && MR::tryForceDeleteEffect(mYoshiHolder->mYoshi, pName)) {
         return;
     }
 

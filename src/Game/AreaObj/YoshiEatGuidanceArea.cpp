@@ -23,7 +23,7 @@ void YoshiEatGuidanceArea::movement() {
         return;
     }
 
-    if (MR::fn_80422710()) {
+    if (MR::isYoshiTongueReadyToEat()) {
         onSwitchA();
     } else {
         offSwitchA();

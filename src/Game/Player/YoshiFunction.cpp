@@ -129,7 +129,7 @@ namespace MR {
     bool fn_804225C0() {
         return getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FF60();
     }
-    bool fn_80422710() {
+    bool isYoshiTongueReadyToEat() {
         return getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FA40();
     }
     void resetYoshiTongueForDemo() {

@@ -4,6 +4,7 @@
 class LiveActor;
 class YoshiTargetMark;
 struct YoshiLockOnTarget {
+    YoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&) NO_INLINE;
     LiveActor* mActor;
     MtxPtr mMtx;
     TVec3f mOffset;

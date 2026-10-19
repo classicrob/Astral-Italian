@@ -1,5 +1,6 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #include "Game/Player/Mario.hpp"
+#include "Game/Player/MarioMoveInfoA84.hpp"
 #include "Game/Animation/XanimeCore.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
 #include "Game/LiveActor/Binder.hpp"
@@ -6881,10 +6882,11 @@ bool Mario::isEnableSideHang() {
 // ---- MarioInit.cpp ----
 
 void Mario::initMember() {
+    mPosHolder = new MarioPosHolder();
     _40.zero();
     _4C.zero();
     PSMTXIdentity(_F4.toMtxPtr());
-    mPosHolder->mPos.zero();
+    mPosHolder->fn_80405F90(TVec3f(0.0f));
     _16C.zero();
     mVelocityAfter.zero();
     _1B4.zero();
@@ -6918,6 +6920,7 @@ void Mario::initMember() {
     _688.zero();
     _694.zero();
 
+    mInitValue6A0 = 0;
     _6C8.y = 0.0f;
     _6C8.x = 0.0f;
     _6D0.zero();
@@ -6961,9 +6964,22 @@ void Mario::initMember() {
     _A58.zero();
     _A64 = 0.0f;
 
-    for (int i = 0; i < ARRAY_SIZE(_A6C); i++) {
-        _A6C[i] = 0;
-    }
+    _A6C[0] = 0;
+    _A6C[1] = 0;
+    _A6C[2] = 0;
+    mDashWallCooldown = 0;
+    _A6C[0xE] = 0;
+    _A6C[0xF] = 0;
+    _A6C[0x10] = 0;
+    mCometNoSpinArea = false;
+    mCometFireDanceArea = false;
+    mCometRainbowArea = false;
+    mCometHopperArea = false;
+    mCometHopperApplied = false;
+    mCometRainbowApplied = false;
+    mMoveInfoA84 = new MarioMoveInfoA84();
+    mStateFlags.fn_8038C890();
+    mDashWallSoundPlayed = false;
 }
 
 // ---- MarioJump.cpp ----
@@ -16675,4 +16691,9 @@ bool Mario::isStateHanging() const {
 
 bool Mario::isStateBury() const {
     return getCurrentStatus() == MarioStatus_Bury;
+}
+
+f32 fn_80386D30(f32 first, f32 second, f32 third) {
+    f32 largest = first >= second ? first : second;
+    return largest >= third ? largest : third;
 }

@@ -41,16 +41,15 @@ namespace MarioAccess {
     void fn_803B7070(s32);               // PLACEHOLDER(core): incAirWalkTimer loop when state 0x6F8 == 4
     bool fn_803B4E40();                  // PLACEHOLDER(core): jumping && state 0x42C == 5
     void fn_803B6010();                  // PLACEHOLDER(core): actor 0xE25 = 1, 0xE28 = 0
-    void fn_803B6050(void*);             // PLACEHOLDER(core): actor 0xE28 = arg
     void fn_803B6090();                  // PLACEHOLDER(core): actor->fn_803BE6D0() (footprint clear)
     void fn_803B71E0();                  // PLACEHOLDER(core): actor 0x1066 = 1
     void fn_803B7210();                  // PLACEHOLDER(core): actor 0x1066 = 0
     bool fn_803B71B0();                  // PLACEHOLDER(core): actor->fn_803BE800()
-    void fn_803B7170();                  // PLACEHOLDER(core): tail-calls fn_8041BE00 (gravity scale)
     f32 fn_803B7240();                   // PLACEHOLDER(core): isConfrontDeath ? const : actor 0x724
     void fn_803B72A0();                  // PLACEHOLDER(core): clear flag bits in actor 0x584 block
     void fn_803B59A0();                  // PLACEHOLDER(core): swim/life decrement
-    void fn_803B7370();                  // PLACEHOLDER(core): unit auto_03_803B7340
+    u32 fn_803B7370();
+    LiveActor* getPlayerOrYoshiActor();
     bool isPowerupTransforming();
     void prepareForPositionReset();
     void getTakePos(TVec3f*);

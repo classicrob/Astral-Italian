@@ -4,6 +4,7 @@
 #include "Game/Enemy/KarikariDirector.hpp"
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Player/MarioActor.hpp"
+#include "Game/Player/MarioActorHelpers.hpp"
 #include "Game/Player/MarioAnimator.hpp"
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Player/MarioMapCode.hpp"
@@ -616,3 +617,11 @@ bool MarioModule::isSlipPolygon(const Triangle* triangle) const {
 }
 
 TVec3f& MarioModule::fn_803EF570() const { return mActor->mCameraDirY1014; }
+
+Triangle* MarioModule::fn_803EFA20() const {
+    return mActor->mMario->mTmpPolygon;
+}
+
+bool MarioModule::fn_803EFA30(const HitSensor* sensor, const char* name) const {
+    return mActor->mActionTable1080->testEffect(MR::getSensorHost(sensor)->mName, name);
+}

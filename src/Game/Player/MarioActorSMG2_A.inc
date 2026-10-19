@@ -414,7 +414,7 @@ bool MarioActor::fn_803BEBE0() {
     return MR::isEqualString(name, "土管");
 }
 
-void* MarioActor::fn_803BECC0() {
+LiveActor* MarioActor::fn_803BECC0() {
     if (this->mMario->isPlayerModeYoshi()) {
         return F(YoshiHolder*, 0xEE4)->mYoshi;
     }

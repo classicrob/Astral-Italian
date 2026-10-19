@@ -179,13 +179,3 @@ MarioWait::MarioWait(MarioActor* pActor) : MarioState(pActor, MarioStatus_Wait) 
 void MarioState::hitPoly(const TVec3f&, HitSensor*) {
 }
 
-bool MarioState::keep() {
-    return true;
-}
-
-bool MarioState::notice() {
-    return false;
-}
-
-void MarioState::init() {
-}

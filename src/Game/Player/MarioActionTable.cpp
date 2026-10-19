@@ -244,36 +244,15 @@ namespace {
         "NoShadow",
         "DamagePop",
     };
-    const char* sMorphNames[] = {
-        "DieBlackHole",
-        "DieBlackHole",
-        nullptr,
-        nullptr,
-        nullptr,
-        "DieBlackHoleBee",
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        "DieBlackHoleCloud",
-        nullptr,
-        "DieBlackHoleLuigi",
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        "DieBlackHoleCloudLuigi",
-        nullptr,
+    struct MorphAction {
+        const char* mName;
+        const char* mVariants[2][14];
+    };
+    MorphAction sMorphNames[] = {
+        { "DieBlackHole", {
+            { "DieBlackHole", nullptr, nullptr, nullptr, "DieBlackHoleBee", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, "DieBlackHoleCloud", nullptr },
+            { "DieBlackHoleLuigi", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, "DieBlackHoleCloudLuigi", nullptr }
+        } }
     };
 }
 
@@ -295,6 +274,28 @@ void MarioActionTable::initEffects() {
 MarioActionHash::MarioActionHash() {
     _4 = 2;
     mTable = new HashSortTable(1);
-    mTable->add(sMorphNames[0], 0, false);
+    mTable->add(sMorphNames[0].mName, 0, false);
     mTable->sort();
+}
+
+
+// NONMATCHING: fallback mode and player-stride temporaries exchange r5/r6.
+bool MarioActionHash::fn_803DB650(const char** result, const char* name, u16 player, u16 mode) {
+    u32 index;
+    if (!mTable->search(name, &index))
+        return false;
+
+    s32 fallback = _4;
+    *result = sMorphNames[index].mVariants[player][mode];
+    switch (fallback) {
+    case 1:
+        if (!*result)
+            *result = sMorphNames[index].mVariants[player][0];
+        break;
+    case 2:
+        if (!*result)
+            *result = sMorphNames[index].mVariants[0][0];
+        break;
+    }
+    return true;
 }

@@ -12,6 +12,14 @@ public:
     virtual bool close();
     virtual bool update();
 
+    void applyAirVelocity();
+    bool isGrounded();
+    void land();
+    void applyGroundVelocity();
+    void limitVelocity();
+    bool updateAir();
+    bool updateGround();
+
     f32 vecKillActor240(const TVec3f&);
 
     /* 0x12 */ u16 mTimer;

@@ -6349,11 +6349,14 @@ Game/Player/JetTurtleShadow.cpp:
 	.text       start:0x803861E0 end:0x803863B0
 	.data       start:0x806C1410 end:0x806C1480
 
+Game/Player/YoshiJointModelCtrl.cpp:
+	.text       start:0x803863B0 end:0x80386500
+
 Game/Player/MarineSnow.cpp:
 	.text       start:0x80386500 end:0x80386D30
 
 Game/Player/Mario.cpp:
-	.text       start:0x80386D60 end:0x803B48E0
+	.text       start:0x80386D30 end:0x803B48E0
 	.rodata     start:0x8064BC78 end:0x8064BCA8
 	.data       start:0x806C20C0 end:0x806C4B90
 	.sdata      start:0x807CFFB0 end:0x807CFFD0
@@ -6366,7 +6369,7 @@ Game/Player/MarioAccess.cpp:
 	.sdata2     start:0x807DFBB8 end:0x807DFBC8
 
 Game/Player/MarioActor.cpp:
-	.text       start:0x803B7470 end:0x803D9A80
+	.text       start:0x803B7340 end:0x803D9A80
 	.ctors      start:0x806447C8 end:0x806447CC
 	.rodata     start:0x8064BCB8 end:0x8064BD50
 	.data       start:0x806C7430 end:0x806C7588
@@ -6390,7 +6393,8 @@ Game/Player/MarioActorConditionGroup.cpp:
 	.data       start:0x806C76C0 end:0x806C7780
 
 Game/Player/MarioActionTable.cpp:
-	.text       start:0x803DB270 end:0x803DB650
+	.text       start:0x803DB270 end:0x803DB740
+	.data       start:0x806C8670 end:0x806C86E8
 
 Game/Player/MarioScreenStrip.cpp:
 	.text       start:0x803DB740 end:0x803DBDE0
@@ -6409,8 +6413,10 @@ Game/Player/MarioAnimator.cpp:
 	.sdata2     start:0x807DFE08 end:0x807DFE4C
 
 Game/Player/MarioBlown.cpp:
-	.text       start:0x803E1940 end:0x803E1CE0
-	.data       start:0x806DC548 end:0x806DC590
+	.text       start:0x803E1940 end:0x803E2200
+	.rodata     start:0x8064BDC8 end:0x8064BDE0
+	.data       start:0x806DC4D8 end:0x806DC590
+	.sdata2     start:0x807DFE90 end:0x807DFEA8
 
 Game/Player/MarioBump.cpp:
 	.text       start:0x803E2200 end:0x803E2410
@@ -6455,7 +6461,7 @@ Game/Player/MarioAllModel.cpp:
 	.text       start:0x803E7720 end:0x803E7C80
 
 Game/Player/MarioEffect.cpp:
-	.text       start:0x803E7C80 end:0x803E8300
+	.text       start:0x803E7C80 end:0x803E8320
 	.data       start:0x806DCDA0 end:0x806DCDE0
 
 Game/Player/MarioFaint.cpp:
@@ -6509,7 +6515,7 @@ Game/Player/MarioMessenger.cpp:
 	.data       start:0x806DD680 end:0x806DD6B0
 
 Game/Player/MarioModule.cpp:
-	.text       start:0x803EE730 end:0x803EFA20
+	.text       start:0x803EE730 end:0x803EFA80
 
 Game/Player/MarioMove.cpp:
 	.text       start:0x803EFA80 end:0x803EFB40
@@ -6545,7 +6551,7 @@ Game/Player/MarioSideStep.cpp:
 	.data       start:0x806DDD30 end:0x806DDD78
 
 Game/Player/MarioSkate.cpp:
-	.text       start:0x803F4B40 end:0x803F56D0
+	.text       start:0x803F4AF0 end:0x803F56D0
 	.data       start:0x806DDED0 end:0x806DDF18
 
 Game/Player/MarioSlider.cpp:
@@ -6565,7 +6571,7 @@ Game/Player/MarioStep.cpp:
 	.data       start:0x806DE0D8 end:0x806DE120
 
 Game/Player/MarioStick.cpp:
-	.text       start:0x803F6B80 end:0x803F7190
+	.text       start:0x803F69A0 end:0x803F7190
 	.data       start:0x806DE170 end:0x806DE1B8
 
 Game/Player/MarioSukekiyo.cpp:
@@ -6609,6 +6615,11 @@ Game/Player/MarioWall.cpp:
 	.rodata     start:0x8064BEC0 end:0x8064BEC8
 	.data       start:0x806DED78 end:0x806DEEA0
 	.sdata2     start:0x807E04B0 end:0x807E04D8
+
+Game/Player/MarioWallShadow.cpp:
+	.text       start:0x80407A90 end:0x80407F30
+	.rodata     start:0x8064BEC8 end:0x8064BED0
+	.sdata2     start:0x807E04D8 end:0x807E0508
 
 Game/Player/MarioWarp.cpp:
 	.text       start:0x80407F30 end:0x80408F20
@@ -6671,6 +6682,15 @@ Game/Player/YoshiAnimationModelCtrl.cpp:
 	.sdata      start:0x807D00A8 end:0x807D00BC
 	.sdata2     start:0x807E0548 end:0x807E0558
 
+Game/Player/RushEndInfo.cpp:
+	.text       start:0x8040B760 end:0x8040B7A0
+
+Game/Player/MarioMoveInfoA84.cpp:
+	.text       start:0x8040B7A0 end:0x8040B8C0
+	.ctors      start:0x806447E4 end:0x806447E8
+	.bss        start:0x8072B3F0 end:0x8072B448
+	.sdata2     start:0x807E0558 end:0x807E0568
+
 Game/Player/TornadoMario.cpp:
 	.text       start:0x8040B8C0 end:0x8040BD00
 	.data       start:0x806DF968 end:0x806DF9D8
@@ -6727,7 +6747,7 @@ Game/Player/YoshiModelCtrl.cpp:
 	.sdata2     start:0x807E0720 end:0x807E0750
 
 Game/Player/YoshiLockOnTarget.cpp:
-	.text       start:0x80419720 end:0x8041A8B0
+	.text       start:0x80419720 end:0x8041A9A0
 	.data       start:0x806EAF38 end:0x806EB018
 	.sdata      start:0x807D00D8 end:0x807D00F8
 	.sdata2     start:0x807E0750 end:0x807E0758

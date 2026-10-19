@@ -54,6 +54,8 @@ class MarioAllModel;
 class MarioActionHash;
 class MarioTeresaModel;
 class MarioActionTable;
+class MarioWallShadow;
+
 struct MarioInputConfig {
     MarioInputConfig();
     s16 _0;
@@ -164,7 +166,7 @@ public:
     void fn_803BEAF0();
     void fn_803BEB10(s32 a);
     bool fn_803BEBE0();
-    void* fn_803BECC0();
+    LiveActor* fn_803BECC0();
     bool fn_803BED10();
     void fn_803BF6F0();
     void fn_803BF760(const JMapInfoIter& iter, s32* anim);
@@ -985,7 +987,7 @@ public:
     /* 0x570 */ u16 _1C4;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x572 */ bool _1E1;
     /* 0x573 */ bool _1E0;
-    /* 0x574 */ u8 _pad574[8];  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x574 */ union { u8 _pad574[8]; struct { MarioWallShadow* mWallShadow574; u8 _padWallShadow578[4]; }; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x57C */ u16 _1C6;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x57E */ bool _3E4;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x57F */ u8 _1D1;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1069,7 +1071,7 @@ public:
     /* 0x6BC */ u32 _390;
     /* 0x6C0 */ u32 _394;  // SMG2 offset vote-TAIL
     /* 0x6C4 */ u32 _398;
-    /* 0x6C8 */ u8 _pad6C8[0x4];
+    /* 0x6C8 */ union { u8 _pad6C8[0x4]; u32 mCounter6C8; };
     /* 0x6CC */ u8 _39D;
     /* 0x6CD */ u8 _39C;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6CE */ u16 _3A8;

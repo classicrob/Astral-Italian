@@ -55,13 +55,13 @@ class MarioState : public MarioModule {
 public:
     MarioState(MarioActor*, u32);
 
-    virtual void init();
+    virtual void init() NO_INLINE {}
     virtual bool proc(u32);
     virtual bool start();
     virtual bool close();
     virtual bool update();
-    virtual bool notice();
-    virtual bool keep();
+    virtual bool notice() NO_INLINE { return false; }
+    virtual bool keep() NO_INLINE { return true; }
     virtual bool postureCtrl(MtxPtr);
     virtual void hitWall(const TVec3f&, HitSensor*);
     virtual void hitPoly(const TVec3f&, HitSensor*);

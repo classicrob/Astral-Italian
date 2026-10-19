@@ -52,13 +52,7 @@ bool MarioStick::postureCtrl(MtxPtr pMtx) {
     return true;
 }
 
-// SB4E01 has no setStickSensor symbol (the bee-flower path is absent from the target), and the
-// body needs ATYPE_BEE_FLOWER (Petari 0x53, SMG2 value not in our headers). Body kept in #if 0.
-bool MarioStick::setStickSensor(const HitSensor* pSensor) {
-    return false;
-}
-
-#if 0
+// NONMATCHING: center-reference scheduling and explicit zero for the unused setTrans debug argument.
 bool MarioStick::setStickSensor(const HitSensor* pSensor) {
     if (getPlayer()->_3BC < 0x78) {
         return false;
@@ -68,10 +62,10 @@ bool MarioStick::setStickSensor(const HitSensor* pSensor) {
         return false;
     }
 
-    if (pSensor->isType(ATYPE_BEE_FLOWER)) {
+    if (pSensor->isType(0x4D)) {
         TVec3f v12;
-        MR::getRotatedAxisY(&v12, pSensor->mHost->mRotation);
-        TVec3f v11(mActor->_2A0 - pSensor->mPosition);
+        MR::getRotatedAxisY(&v12, MR::getSensorHost(pSensor)->mRotation);
+        TVec3f v11(mActor->_240 - *MR::getSensorPos(pSensor));
         MR::normalizeOrZero(&v11);
 
         if (v12.dot(v11) < mActor->getConst().getTable()->mBeeStickAngleLimit) {
@@ -82,21 +76,21 @@ bool MarioStick::setStickSensor(const HitSensor* pSensor) {
             return false;
         }
 
-        v11.setLength(pSensor->mRadius);
-        _14 = pSensor->mPosition + v11 * 0.9f;
-        getPlayer()->setTrans(_14, "Stick");
+        v11.setLength(MR::getSensorRadius(const_cast<HitSensor*>(pSensor)));
+        _14 = *MR::getSensorPos(pSensor) + v11 * 0.9f;
+        getPlayer()->setTrans(_14, nullptr);
         clearVelocity();
         MR::normalize(&v11);
         _20 = v11;
         _2C = v12;
-        _38 = pSensor->mPosition;
-        _44 = pSensor->mRadius;
+        _38 = *MR::getSensorPos(pSensor);
+        _44 = MR::getSensorRadius(const_cast<HitSensor*>(pSensor));
         return true;
     }
 
     return false;
 }
-#endif
+
 
 bool MarioStick::start() {
     _4C = 0;

@@ -3,6 +3,7 @@
 #include "Game/Screen/YoshiTargetMark.hpp"
 #include "Game/Screen/StarPointerTarget.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
 namespace {
 const char* sParamFile="lockonparams";
 s32 sTimer=30;
@@ -54,3 +55,20 @@ void YoshiLockOnTargetControl::updateMarkPosition() {
 void YoshiLockOnTargetControl::invalidate() { if(mTarget) mTarget->mValid=false; }
 
 #include "../src/Game/Player/YoshiLockOnManager.cpp"
+
+// NONMATCHING: copy load/store scheduling and FPR allocation differ.
+YoshiLockOnTarget::YoshiLockOnTarget(LiveActor* actor, MtxPtr mtx, const TVec3f& offset) : mActor(actor), mMtx(mtx) {
+    JMathInlineVEC::PSVECCopy(&offset, &mOffset);
+    mValid = false;
+}
+
+namespace MR {
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor* actor, MtxPtr mtx, const TVec3f& offset) {
+        return new YoshiLockOnTarget(actor, mtx, offset);
+    }
+
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor* actor, const char* jointName, const TVec3f& offset) {
+        MtxPtr mtx = getJointMtx(actor, jointName);
+        return new YoshiLockOnTarget(actor, mtx, offset);
+    }
+}

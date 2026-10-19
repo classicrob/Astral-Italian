@@ -24,10 +24,13 @@
 #include "Game/Player/MarioNullBck.hpp"
 #include "Game/Player/MarioParts.hpp"
 #include "Game/Player/MarioShadow.hpp"
+#include "Game/Player/MarioWallShadow.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Player/MarioSwim.hpp"
 #include "Game/Player/ModelHolder.hpp"
 #include "Game/Player/RushEndInfo.hpp"
 #include "Game/Scene/SceneFunction.hpp"
+#include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/GameSceneLayoutHolder.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -240,37 +243,46 @@ bool gIsLuigi;
 static f32 BASE_ROTATION = 0.0f;
 
 
-MarioActor::MarioActor(const char* pName) : LiveActor(pName), _1B0(0xFFFFFFFF) {
+namespace MarioAccess {
+    LiveActor* getPlayerOrYoshiActor() {
+        return MR::getMarioHolder()->getMarioActor()->fn_803BECC0();
+    }
+
+    u32 fn_803B7370() {
+        if (!MR::isExistSceneObj(0x15)) return 0;
+        if (MR::getMarioHolder()->mActor == nullptr) return 0;
+        MarioActor* actor = MR::getMarioHolder()->getMarioActor();
+        if (actor != nullptr && actor->mCollisionShadow580 != nullptr) {
+            return actor->mCollisionShadow580->mStatus308;
+        }
+        return 0;
+    }
+}
+
+// NONMATCHING: compiler emits recursive empty anonymous-union constructors before the exact initialization body.
+MarioActor::MarioActor(const char* pName) : LiveActor(pName) {
+    mDLSize = -1;
+    mYoshiHolder = nullptr;
     initMember();
     mMario = new Mario(this);
     _930 = 0;
     _468 = 0;
-    mMaxHealth = 3;
-    mHealth = 3;
-    mWaterLife = 8;
-
-    if (MR::isPlayerLuigi()) {
-        mMaxHealth = 3;
-        mHealth = 3;
-    }
-
+    mHealth = GameSequenceFunction::getResultPlayerHealth();
+    mMaxHealth = mHealth > 3 ? 6 : 3;
     if (MR::isGalaxyDarkCometAppearInCurrentStage()) {
         mMaxHealth = 1;
         mHealth = 1;
     }
-
     init2D();
     _989 = 0;
     _41C = 0;
-    _420 = 0;
     _37C = 0;
+    mLastRushEndFrameE1C = 0;
     _92C = 0;
-    _388 = 0;
     _38C = 0;
     _390 = 0;
     _394 = 0;
     _398 = 0;
-    _3A4 = 0;
     _3A8 = 0;
     _3AA = 0;
     _944 = 0;
@@ -279,7 +291,6 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName), _1B0(0xFFFFFFFF) {
     _948 = 0;
     _94C = 0;
     _94E = 0;
-    _94A = 0;
     _47C = 0;
     _3DC = 0;
     _3D8 = 0;
@@ -292,87 +303,59 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName), _1B0(0xFFFFFFFF) {
     mPowerupCollected = false;
     mTransforming = false;
     _950 = 0;
-    _951 = 0;
     _974 = 0;
-    _39C = 0;
+    mCounter6C8 = 0;
     _3B0 = 1.0f;
-
-    _3B4.zero();
-
+    mPressNormal6D8.zero();
     _3C1 = false;
-    _211 = 0;
-    _46C = 0;
-    _470 = 0;
-    _474 = 0;
+    _46C = nullptr;
+    _470 = nullptr;
+    _474 = nullptr;
     _924 = nullptr;
-    _928 = 0;
-    _480 = 0;
+    _928 = nullptr;
+    _480 = false;
     _481 = 0;
-    _482 = 0;
-    _483 = 0;
-
-    _484.zero();
-
+    _482 = false;
+    _483 = false;
+    mCameraTrans.zero();
     _B92 = 0;
     mPlayerMode = 0;
     _3D6 = 0;
     _3D2 = 1;
     _3DF = 0;
     _3DE = 0;
-    _EEB = 1;
-    _9D4 = 0;
-
+    _EEB = true;
+    _9D4 = nullptr;
     _9CC = 0.0f;
     _9D0 = 0.0f;
-
     _9D8.zero();
-
     mBeeWallWalk = 0;
-    _9F2 = false;
+    _9F2 = 0;
     _EA4 = false;
     _EA5 = false;
     _FCC = false;
     _FCD = false;
-
-    PSMTXIdentity((MtxPtr)&_EA8);
-    PSMTXIdentity((MtxPtr)&_3EC);
-
-    _1F0.zero();
-    _1FC.zero();
-
+    mFlag1052 = 0;
+    mDashWallHit1053 = 0;
+    PSMTXIdentity(mRemoteDemoMtx4E4);
+    mWallShadow574 = new MarioWallShadow();
     mBlackHole = nullptr;
-    _208 = 1000.0f;
-
-    mBlackHolePosition.zero();
-    mBlackHoleRotateAxis.zero();
-    mPosRelativeToBlackHole.zero();
-
-    for (int i = 0; i < 6; i++) {
-        mModels[i] = nullptr;
-    }
-
-    _A61 = false;
-
-    _A64 = 0xff;
-
-
-    _A6C = 0;
+    mBlackHolePosition528.zero();
+    _ED8.zero();
+    _2C4.zero();
     _B48 = nullptr;
     _934 = false;
     _7E2 = 0;
     _EF6 = 0;
-    _424 = 0;
+    _424 = nullptr;
     _4A4 = nullptr;
-    _6D0 = false;
     _3A0 = 0;
+    _6D0 = false;
     _EFC = 0;
     _EF8 = 0;
     mBlendMtxTimer = 0;
-
     _EA0 = 1.0f;
-
-    _3C4.zero();
-
+    mRushFront6E8.zero();
     _3D0 = 0;
     _7DE = 0;
     _3C0 = false;
@@ -385,41 +368,22 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName), _1B0(0xFFFFFFFF) {
     _EF4 = 0x78;
     _1AA = 0;
     _1AC = 0.0f;
-
-    _1B0.set(0xFF, 0xFF, 0xFF, 0);
-
-    _1B5 = false;
+    mSwimFogColor.set(0xFF, 0xFF, 0xFF, 0);
+    mSwimFogDisabled = false;
     _988 = 0;
-
-    _F10 = 2;
-    _F12 = 2;
-
-    _F14 = 3;
-    _F16 = 3;
-
-    _F18 = 0xb;
-
-    _F1A = 3;
-
-    _F0E = 7;
-
+    mInputConfig = new MarioInputConfig();
     resetPadSwing();
-
-    _F0D = 0;
-
     _F1C = 0x3C;
     _F1E = 0x3C;
-
-    _1E1 = 0;
-    _F24 = 0;
+    _F20 = false;
+    _1E1 = false;
+    _F24 = nullptr;
     _F28 = 0;
-
-    PSMTXIdentity((MtxPtr)&mHandLMatrix);
-    PSMTXIdentity((MtxPtr)&mHandRMatrix);
-    PSMTXIdentity((MtxPtr)&mFootRMatrix);
-    PSMTXIdentity((MtxPtr)&mSpine1Matrix);
-    PSMTXIdentity((MtxPtr)&mCapMatrix);
-
+    PSMTXIdentity(mHandLMatrix);
+    PSMTXIdentity(mHandRMatrix);
+    PSMTXIdentity(mFootRMatrix);
+    PSMTXIdentity(mSpine1Matrix);
+    PSMTXIdentity(mCapMatrix);
     _1B4 = 0;
     _1C3 = false;
     _1E0 = false;
@@ -3839,15 +3803,9 @@ void MarioActor::calcViewMainModel() {
 
 
 void MarioActor::draw() const {
-    if (_B48 != nullptr) {
-        _B48->draw();
-    }
-
-    if (!is481or482On() && !_A61 && !_1C3) {
-        if (_A0C) {
-            drawWallShade(_1F0, _1FC, _208);
-        }
-
+    if (_B48 != nullptr) _B48->draw();
+    if (!is481or482On() && (mMario->isPlayerModeYoshi() || (!mActorEffectState->mActive && !_1C3))) {
+        mWallShadow574->draw(mMaskTextures[mRandomTextureIndex]);
         drawMarioModel();
         mMario->draw();
     }

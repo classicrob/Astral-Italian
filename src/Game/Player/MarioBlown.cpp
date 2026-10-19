@@ -32,12 +32,14 @@ bool Mario::blown(const TVec3f& rVec) {
     return true;
 }
 
+// NONMATCHING: independent initialization scheduling.
 MarioBlown::MarioBlown(MarioActor* pActor) : MarioState(pActor, MarioStatus_Blown), mTimer(), _14() {
     _18.zero();
     _24 = false;
     _25 = false;
 }
 
+// NONMATCHING: independent timer initialization order.
 bool MarioBlown::start() {
     mTimer = 0;
     _14 = 0;
@@ -54,7 +56,7 @@ bool MarioBlown::start() {
     getPlayer()->mMovementStates.jumping = true;
     getPlayer()->mMovementStates._B = false;
 
-    _18 += -mActor->_240 * mActor->getConst().getTable()->mJumpHeightBlown;
+    _18 += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightBlown;
     getPlayer()->setJumpVec(_18);
     addVelocity(_18);
     getPlayer()->lockGroundCheck(this, true);
@@ -63,81 +65,14 @@ bool MarioBlown::start() {
 
 bool MarioBlown::update() {
     mTimer++;
-
     if (getPlayerMode() == PlayerMode_Teresa) {
         return false;
     }
-
-    switch (_14) {
-    case 0:
-    case 2:
-        addVelocity(_18);
-        _18 += mActor->_240 * mActor->getConst().getTable()->mGravityBlown;
-        if (mTimer > 120) {
-            changeAnimation("中ダメージ空中");
-        }
-
-        if (mTimer > 60) {
-            TVec3f killed;
-            if (MR::isNearZero(MR::vecKillElement(mActor->getLastMove(), mActor->_240, &killed))) {
-                return false;
-            }
-        }
-
-        if (getPlayer()->getMovementStates()._1 || MR::isNearZero(getPlayer()->mVerticalSpeed)) {
-            getPlayer()->mMovementStates.jumping = false;
-            getPlayer()->mMovementStates._D = true;
-
-            if (getPlayer()->damagePolygonCheck(getPlayer()->getGroundPolygon())) {
-                getPlayer()->_1C._16 = true;
-                _24 = true;
-                return false;
-            }
-
-            if (_14 != 2 || mTimer >= 3) {
-                playSound("吹っ飛び倒れ");
-                changeAnimation("壁ヒット着地");
-                playEffect("共通壁ヒット着地");
-                MR::vecKillElement(_18, mActor->_240, &_18);
-            }
-
-            _14 = 1;
-            mTimer = 0;
-        }
-
-        break;
-    case 1:
-        if (!getPlayer()->getMovementStates()._1 && !MR::isNearZero(getPlayer()->mVerticalSpeed)) {
-            _25 = true;
-            return false;
-        }
-
-        addVelocity(_18);
-        _18.mult(0.95f);
-
-        if (!isAnimationRun("壁ヒット着地")) {
-            return false;
-        }
-
-        if (mTimer > 15 && checkTrgA()) {
-            getPlayer()->stopJump();
-            getPlayer()->tryJump();
-            _24 = true;
-            return false;
-        }
-
-        break;
+    if (getPlayer()->_960 == 25 || getPlayer()->_960 == 31) {
+        return false;
     }
-
-    f32 dot = vecKillActor240(_18);
-
-    if (_18.length() > 10.0f) {
-        _18.mult(0.5f);
-    }
-
-    _18 += mActor->_240 * MR::clamp(dot, 0.0f, 40.0f);
-    getPlayer()->setJumpVec(_18);
-    return true;
+    bool (MarioBlown::*steps[])() = {&MarioBlown::updateAir, &MarioBlown::updateGround};
+    return (this->*steps[_14])();
 }
 
 bool MarioBlown::close() {
@@ -162,3 +97,91 @@ bool MarioBlown::close() {
 }
 
 f32 MarioBlown::vecKillActor240(const TVec3f& v) { return MR::vecKillElement(v, mActor->mAppliedGravityVec, &_18); }
+
+void MarioBlown::applyAirVelocity() {
+    addVelocity(_18);
+    _18 += mActor->mAppliedGravityVec * mActor->getConst().getTable()->mGravityBlown;
+}
+
+// NONMATCHING: equivalent boolean result materialization.
+bool MarioBlown::isGrounded() {
+    bool grounded = true;
+    if (!getPlayer()->mMovementStates._1 && !MR::isNearZero(getPlayer()->mVerticalSpeed)) {
+        grounded = false;
+    }
+    return grounded;
+}
+
+void MarioBlown::land() {
+    getPlayer()->mMovementStates.jumping = false;
+    getPlayer()->mMovementStates._D = true;
+}
+
+void MarioBlown::applyGroundVelocity() {
+    addVelocity(_18);
+    _18.mult(0.95f);
+}
+
+void MarioBlown::limitVelocity() {
+    f32 vertical = MR::vecKillElement(_18, mActor->mAppliedGravityVec, &_18);
+    if (_18.length() > 10.0f) {
+        _18.mult(0.5f);
+    }
+    _18 += mActor->mAppliedGravityVec * MR::clamp(vertical, 0.0f, 40.0f);
+}
+
+// NONMATCHING: literal pool order changes string offsets, preserving all values.
+bool MarioBlown::updateAir() {
+    applyAirVelocity();
+    if (mTimer > 300) {
+        return false;
+    }
+    if (mTimer > 120) {
+        changeAnimation("中ダメージ空中");
+    }
+    if (mTimer > 60) {
+        TVec3f horizontal;
+        if (MR::isNearZero(MR::vecKillElement(mActor->getLastMove(), mActor->mAppliedGravityVec, &horizontal))) {
+            return false;
+        }
+    }
+    if (isGrounded()) {
+        if (getPlayer()->mMovementStates._1) {
+            land();
+        }
+        if (getPlayer()->damagePolygonCheck(getPlayer()->getGroundPolygon())) {
+            getPlayer()->_1C._16 = true;
+            _24 = true;
+            return false;
+        }
+        playSound("吹っ飛び倒れ");
+        changeAnimation("壁ヒット着地");
+        playEffect("共通壁ヒット着地");
+        MR::vecKillElement(_18, mActor->mAppliedGravityVec, &_18);
+        _14 = 1;
+        mTimer = 0;
+    }
+    limitVelocity();
+    getPlayer()->setJumpVec(_18);
+    return true;
+}
+
+bool MarioBlown::updateGround() {
+    if (!isGrounded()) {
+        _25 = true;
+        return false;
+    }
+    applyGroundVelocity();
+    if (!isAnimationRun("壁ヒット着地")) {
+        return false;
+    }
+    if (mTimer > 15 && checkTrgA()) {
+        getPlayer()->stopJump();
+        getPlayer()->tryJump();
+        _24 = true;
+        return false;
+    }
+    limitVelocity();
+    getPlayer()->setJumpVec(_18);
+    return true;
+}

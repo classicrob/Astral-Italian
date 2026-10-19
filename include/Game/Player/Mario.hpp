@@ -14,6 +14,7 @@ class GravityInfo;
 class HashSortTable;
 class HitInfo;
 class HitSensor;
+class MarioMoveInfoA84;
 class MarioAbyssDamage;
 class MarioActor;
 class MarioBlown;
@@ -1094,6 +1095,7 @@ public:
     union {
         /* 0x694 */ TVec3f mSwimSideVec694;
         /* 0x694 */ TVec3f _6A0;
+        struct { u8 _padInit694[0xC]; u32 mInitValue6A0; };
         struct {
     /* 0x694 */ u8 _6AC;
     /* 0x695 */ u8 _6AD;
@@ -1239,7 +1241,7 @@ public:
     /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
-    /* 0xA70 */ union { struct { u8 _padJumpA70[0x1C]; s32 mJumpFallTimer; }; u8 _A6C[0x20]; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; bool mCometHopperApplied; bool mCometRainbowApplied; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
+    /* 0xA70 */ union { struct { u8 _padJumpA70[0x1C]; s32 mJumpFallTimer; }; u8 _A6C[0x20]; struct { u8 _padMoveInfoA70[0x14]; MarioMoveInfoA84* mMoveInfoA84; }; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; bool mCometHopperApplied; bool mCometRainbowApplied; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93[9];
 };

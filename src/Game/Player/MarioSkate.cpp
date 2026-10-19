@@ -317,3 +317,9 @@ bool MarioSkate::close() {
     stopEffect("スケート右");
     return true;
 }
+
+void MarioSkate::fn_803F4AF0() {
+    _18 = true;
+    getPlayer()->tryJump();
+    playSound("スケートジャンプ");
+}

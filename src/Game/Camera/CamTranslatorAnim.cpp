@@ -14,5 +14,9 @@ Camera* CamTranslatorAnim::CamTranslatorAnim::getCamera() const {
 }
 
 u32 CamTranslatorAnim::getAnimFrame(const CameraParamChunk* pChunk) const {
+#ifdef GALAXY_NATIVE
+    return CameraAnim::getAnimFrame(static_cast< u8* >(pChunk->mGeneralParam->mAnimData));
+#else
     return CameraAnim::getAnimFrame(reinterpret_cast< u8* >(pChunk->mGeneralParam->mNum1));
+#endif
 }

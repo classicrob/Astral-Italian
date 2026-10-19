@@ -40,6 +40,11 @@ void LayoutActor::calcAnim() {
 }
 
 void LayoutActor::draw() const {
+#ifdef GALAXY_NATIVE
+    if (petariHudHidden(this)) {
+        return;  // HideHud mod / PETARI_HIDE_HUD=1
+    }
+#endif
     if (MR::isExecuteDrawLayout(this)) {
         mLayoutManager->draw();
     }
@@ -86,6 +91,9 @@ namespace {
         f32 x = rTrans.x;
         TVec2f trans(x, y);
         nw4r::lyt::Pane* pRootPane = MR::getRootPane(pActor);
+#ifdef GALAXY_NATIVE
+        if (!pRootPane) return;
+#endif
         TVec3f translation(trans.x, trans.y, 0.0f);
         pRootPane->mTranslate.x = translation.x;
         pRootPane->mTranslate.y = translation.y;
@@ -113,14 +121,23 @@ MtxPtr LayoutActor::getPaneMtxRef(const char* pParam1) {
 
 void LayoutActor::initLayoutManager(const char* pName, u32 rootPaneAnimLayerNum) {
     mLayoutManager = new LayoutManager(pName, true, rootPaneAnimLayerNum, 0x100);
+#ifdef GALAXY_NATIVE
+    petariNoteHudLayout(this, pName);
+#endif
 }
 
 void LayoutActor::initLayoutManagerNoConvertFilename(const char* pName, u32 rootPaneAnimLayerNum) {
     mLayoutManager = new LayoutManager(pName, false, rootPaneAnimLayerNum, 0x100);
+#ifdef GALAXY_NATIVE
+    petariNoteHudLayout(this, pName);
+#endif
 }
 
 void LayoutActor::initLayoutManagerWithTextBoxBufferLength(const char* pName, u32 textBoxBufferLength, u32 rootPaneAnimLayerNum) {
     mLayoutManager = new LayoutManager(pName, false, rootPaneAnimLayerNum, textBoxBufferLength);
+#ifdef GALAXY_NATIVE
+    petariNoteHudLayout(this, pName);
+#endif
 }
 
 void LayoutActor::initNerve(const Nerve* pNerve) {

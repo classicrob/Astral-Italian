@@ -902,6 +902,7 @@ void FileSelector::updatePointingGuidanceSelect() {
 
 void FileSelector::exeTitle() {
     if (MR::isFirstStep(this)) {
+        FILE_SELECTOR_MILESTONE("FileSelector.Title");
         mTitle->appear();
         MR::deactivateDefaultGameLayout();
         MR::startStarPointerModeTitle(this);
@@ -992,6 +993,7 @@ void FileSelector::exeRFLWaitEnd() {
 
 void FileSelector::exeFileSelectStart() {
     if (MR::isFirstStep(this)) {
+        FILE_SELECTOR_MILESTONE("FileSelector.TitleEnd");
         mCameraController->goToFarPoint();
         calcBasePos(0.0f);
         validateRotateAllItems();
@@ -1004,7 +1006,23 @@ void FileSelector::exeFileSelectStart() {
 
 void FileSelector::exeFileSelect() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        // A restart into a new galaxy (PlayerLaunch::openFile, the level editor): the file it was
+        // made from is loaded without asking, as onSelect and the confirm screen would. A file that
+        // is gone or broken leaves the choice to the player.
+        const s32 openFile = PetariNative::PlayerLaunch::openFile;
+        PetariNative::PlayerLaunch::openFile = 0;
+        const int openIndex = openFile > 0 ? ::getItemArrayIndex(openFile) : -1;
+        FileSelectItem* pOpen = openIndex >= 0 ? static_cast< FileSelectItem* >(mItems->getActor(openIndex)) : nullptr;
+        if (pOpen != nullptr && !pOpen->isNew() && !isUserFileCorrupted(openFile)) {
+            FILE_SELECTOR_MILESTONE("FileSelector.OpenFile");
+            _B4 = pOpen;
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvDemoStartWait));
+            return;
+        }
+#endif
         validateSelectAll();
+        FILE_SELECTOR_MILESTONE("FileSelector.FileSelect");
         appearAllIndex();
         MR::activeStarPointerGuidance();
     } else {
@@ -1071,6 +1089,7 @@ void FileSelector::exeFileConfirmMiiDeleteSave() {
 
 void FileSelector::exeFileConfirm() {
     if (MR::isFirstStep(this)) {
+        FILE_SELECTOR_MILESTONE("FileSelector.FileConfirm");
         mOperationButton->appear();
         mBackButton->appear();
 

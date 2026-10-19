@@ -2,6 +2,9 @@
 
 #include "Game/System/NerveExecutor.hpp"
 #include <revolution/thp.h>
+#ifdef GALAXY_NATIVE
+#include <petari/movie_thp.hpp>
+#endif
 
 class THPSimplePlayerWrapper;
 

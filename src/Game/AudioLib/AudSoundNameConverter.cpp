@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/asset_diagnostics.hpp>
+#endif
 #include "Game/AudioLib/AudSoundNameConverter.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JAudio2/JAUSoundTable.hpp>
@@ -67,6 +70,9 @@ JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) const 
             return data.mID;
         }
     }
+#ifdef GALAXY_NATIVE
+    PetariNative::reportMissingSoundReference(pName);
+#endif
     return -1;
 }
 

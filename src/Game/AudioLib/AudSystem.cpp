@@ -144,6 +144,13 @@ AudSystem* AudNewAudSystem(JKRHeap* pHeap, JKRSolidHeap* pSolidHeap, AudArchiveS
     MR::becomeCurrentHeap(prevHeap);
     newHeap->finishBuild();
 
+#ifdef GALAXY_NATIVE
+    // The audio heap size is tuned for 32-bit objects; report the native headroom
+    // so boot logs show whether it is enough.
+    OSReport("AudNewAudSystem: audio heap %u bytes free, section heap %u bytes free\n", pHeap->getFreeSize(),
+             newHeap->getHeap_()->getFreeSize());
+#endif
+
     return system;
 }
 

@@ -3,6 +3,14 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/IconAButton.hpp"
 #include "Game/Util/GamePadUtil.hpp"
+
+#ifdef GALAXY_NATIVE
+// Progress telemetry and the automated smoke run (native/app); observation only.
+#include <petari/milestone.hpp>
+#define NATIVE_MILESTONE(name) petari_milestone(name)
+#else
+#define NATIVE_MILESTONE(name)
+#endif
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"

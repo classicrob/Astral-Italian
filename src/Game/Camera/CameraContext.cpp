@@ -2,6 +2,9 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SystemUtil.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/editor_view.hpp>
+#endif
 
 CameraContext::~CameraContext() {
 }

@@ -18,6 +18,14 @@
 #include "Game/Util/SequenceUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+#ifdef GALAXY_NATIVE
+// Progress telemetry and the automated smoke run (native/app); observation only.
+#include <petari/milestone.hpp>
+#define NATIVE_MILESTONE(name) petari_milestone(name)
+#else
+#define NATIVE_MILESTONE(name)
+#endif
+
 namespace {
     const s32 cBackSequenceFadeFrame = 90;
 
@@ -136,7 +144,16 @@ void PauseMenu::appear() {
 }
 
 void PauseMenu::kill() {
+#ifdef GALAXY_NATIVE
+    // Only a menu that was shown closes; init also kills the menu once.
+    const bool isClosing = !MR::isDead(this);
+#endif
     LayoutActor::kill();
+#ifdef GALAXY_NATIVE
+    if (isClosing) {
+        NATIVE_MILESTONE("PauseMenu.Close");
+    }
+#endif
 
     if (mWasDefaultLayoutActive) {
         MR::activateDefaultGameLayout();

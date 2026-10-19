@@ -129,7 +129,9 @@ void YoshiTongue::exeState7() {
     mTipPosition += mRetractOffset;
     if (MR::isLessStep(this, 12)) {
         f32 t = static_cast<f32>(getNerveStep()) / 12.0f;
-        mProgress = (1.0f - t * t) * mRetractProgress;
+        f32 progress = 1.0f - t * t;
+        progress *= mRetractProgress;
+        mProgress = progress;
         return;
     }
     mProgress = 0.0f;
@@ -195,8 +197,8 @@ void YoshiTongueCurve::fn_8041D750(const TVec3f& start, const TVec3f& startTange
     f32 length = 0.0f;
     for (u32 index = 1; index <= 6; ++index) {
         f32 distance = PSVECDistance(&mSamples[index], &mSamples[index - 1]);
+        mDistances[index] = distance + length;
         length += distance;
-        mDistances[index] = length;
     }
     mDistances[0] = 0.0f;
     if (length > 0.0f) {

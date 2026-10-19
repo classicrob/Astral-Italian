@@ -1007,7 +1007,7 @@ void AudSystem::initVolumeSetting() {
     }
 }
 
-// NONMATCHING: byte loads use struct-relative relocations; allocation and instruction order
+// NONMATCHING: in-TU constant records fold to immediates; target loads their bytes.
 void AudSystem::initCategoryArrangement() {
     JAISeCategoryArrangement arrangement;
 
@@ -1182,3 +1182,20 @@ void AudSystem::setVolumeZeroForce(s32 menuType) {
 }
 
 JAIStreamAramMgr::~JAIStreamAramMgr() {}
+
+namespace AudParams {
+    const JAISeCategoryArrangementItem arrangeSE_SY = {8, 16};
+    const JAISeCategoryArrangementItem arrangeSE_PV = {2, 4};
+    const JAISeCategoryArrangementItem arrangeSE_PM = {10, 18};
+    const JAISeCategoryArrangementItem arrangeSE_BV = {8, 12};
+    const JAISeCategoryArrangementItem arrangeSE_BM = {20, 24};
+    const JAISeCategoryArrangementItem arrangeSE_OJ = {10, 18};
+    const JAISeCategoryArrangementItem arrangeSE_AT = {16, 28};
+    const JAISeCategoryArrangementItem arrangeSE_DM = {10, 20};
+    const JAISeCategoryArrangementItem arrangeSE_SM = {24, 32};
+    const JAISeCategoryArrangementItem arrangeSE_EV = {16, 36};
+    const JAISeCategoryArrangementItem arrangeSE_EM = {16, 20};
+    const JAISeCategoryArrangementItem arrangeSE_SV = {8, 12};
+    const JAISeCategoryArrangementItem arrangeSE_RS = {16, 20};
+    const JAISeCategoryArrangementItem arrangeHOMESE = {8, 16};
+}

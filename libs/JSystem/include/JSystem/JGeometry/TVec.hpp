@@ -1411,9 +1411,13 @@ namespace JGeometry {
             setRotate(pVec, pAngle);
         }
 
+#ifdef JGEOMETRY_QUAT_ROTATE_DEFER_INLINE
+        void rotate(TVec3< T >& v) const NO_INLINE;
+#else
         void rotate(TVec3< T >& v) const {
             transform(v, v);
         }
+#endif
 
         void slerp(const TQuat4< T >& a1, const TQuat4< T >& a2, T a3) {
             this->x = a1.x;

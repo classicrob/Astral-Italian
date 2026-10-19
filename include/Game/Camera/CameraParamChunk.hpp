@@ -14,6 +14,9 @@ public:
     CameraGeneralParam()
         : mString(), mDist(1200.0f), mAxis(0.0f, 1.0f, 0.0f), mWPoint(0.0f, 0.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), mAngleA(), mAngleB(0.3f), mNum1(1),
           mNum2() {
+#ifdef GALAXY_NATIVE
+        mAnimData = nullptr;
+#endif
     }
 
     CameraGeneralParam& operator=(const CameraGeneralParam&);
@@ -35,6 +38,10 @@ public:
     /* 0x30 */ intptr_t mNum1;
     /* 0x34 */ s32 mNum2;
     /* 0x38 */ CameraParamString mString;
+#ifdef GALAXY_NATIVE
+    /// @brief Camera animation data for CAM_TYPE_ANIM. The Wii build stores this pointer in `mNum1`.
+    void* mAnimData;
+#endif
 };
 
 class CameraParamChunk {

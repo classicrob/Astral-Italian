@@ -50,6 +50,10 @@ void YesNoController::update() {
         updateNerve();
         mButtonYesPaneCtrl->update();
         mButtonNoPaneCtrl->update();
+#ifdef GALAXY_NATIVE
+        mButtonYesPaneCtrl->publishUiTarget("Prompt.Yes", 0);
+        mButtonNoPaneCtrl->publishUiTarget("Prompt.No", 0);
+#endif
     }
 }
 

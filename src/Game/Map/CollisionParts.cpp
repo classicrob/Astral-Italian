@@ -32,10 +32,26 @@ void CollisionParts::resetBelongZone() {
     if (mIsRegistered) addToBelongZone();
 }
 
+#ifdef GALAXY_NATIVE
+void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
+                          bool useAutoScale) {
+    mServer->init(const_cast< void* >(pKclData), pMapInfo);
+    initAfterServerData(rMatrix, pHitSensor, keeperIndex, useAutoScale);
+}
+
+void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, KCLFile* pFile, const void* pMapInfo, s32 keeperIndex, bool useAutoScale) {
+    mServer->initWithFile(pFile, pMapInfo);
+    initAfterServerData(rMatrix, pHitSensor, keeperIndex, useAutoScale);
+}
+
+void CollisionParts::initAfterServerData(const TPos3f& rMatrix, HitSensor* pHitSensor, s32 keeperIndex, bool useAutoScale) {
+    mHitSensor = pHitSensor;
+#else
 void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
                           bool useAutoScale) {
     mServer->init(const_cast< void* >(pKclData), pMapInfo);
     mHitSensor = pHitSensor;
+#endif
 
     resetAllMtx(rMatrix);
 

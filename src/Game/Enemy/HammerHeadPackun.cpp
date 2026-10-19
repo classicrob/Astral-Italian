@@ -20,6 +20,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/NativeActorObserve.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
@@ -118,6 +119,16 @@ void HammerHeadPackun::appearStarPiece() {
 }
 
 void HammerHeadPackun::control() {
+#ifdef GALAXY_NATIVE
+    {
+        // Publish the actual trample/spin target, including its animated
+        // joint offset, so an observer aims at the same sensor as a player.
+        const TVec3f head = getSensor("body")->mPosition;
+        TVec3f front;
+        MR::calcFrontVec(&front, this);
+        MR::Native::publishActor("HammerHead", head, front, 0, (isChance() ? PETARI_ACTOR_READY : 0u) | PETARI_ACTOR_HOSTILE);
+    }
+#endif
     mJointRumbler->update();
 }
 
@@ -516,7 +527,7 @@ void HammerHeadPackun::initShadow() {
 }
 
 inline s32 JMapInfo_getEntries(const JMapInfo* jmap) {
-    return jmap->mData ? jmap->mData->mNumEntries : nullptr;
+    return jmap->mData ? jmap->mData->mNumEntries : 0;
 }
 
 inline bool JMapInfo_inRange(const JMapInfoIter& rIter) {

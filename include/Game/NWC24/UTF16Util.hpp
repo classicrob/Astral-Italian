@@ -1,7 +1,11 @@
 #pragma once
 
 #include <revolution.h>
+#ifdef GALAXY_NATIVE
+#include <cstddef>
+#else
 #include <size_t.h>
+#endif
 
 namespace MR {
     /// @brief Scans up to 1024 UTF-16 code units for a terminator.

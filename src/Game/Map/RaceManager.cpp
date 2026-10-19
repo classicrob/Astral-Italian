@@ -20,6 +20,17 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#endif
+
+#ifdef GALAXY_NATIVE
+// Race progress for the automated stage smoke run (native/app); observation only.
+#include <petari/milestone.hpp>
+#define NATIVE_MILESTONE(name) petari_milestone(name)
+#else
+#define NATIVE_MILESTONE(name)
+#endif
 
 // FIXME: String "Record" is out of order in .data, yet function order matches in retail and debug
 
@@ -103,6 +114,7 @@ void RaceManager::exeWait() {
 }
 
 void RaceManager::exePrep() {
+    NATIVE_MILESTONE("Race.Prep");
     std::for_each(&mRacer[0], &mRacer[mRacerNum], std::mem_func(&AbstractRacer::initRacer));
 
     if (isNerve(GET_NERVE(RaceManager, RaceManagerNrvPrepWipe))) {
@@ -187,6 +199,7 @@ void RaceManager::exeWipeIn() {
 
 void RaceManager::exeIntro() {
     if (MR::isFirstStep(this)) {
+        NATIVE_MILESTONE("Race.Intro");
         if (::getRaceStruceData(mCurrentRace).mIsDemoWithStarPointer) {
             MR::startStarPointerModeDemoWithStarPointer(this);
         } else {
@@ -201,6 +214,7 @@ void RaceManager::exeIntro() {
 
 void RaceManager::exeCount() {
     if (MR::isFirstStep(this)) {
+        NATIVE_MILESTONE("Race.Count");
         mLayout->setTime(0);
         mLayout->setBestTime(mBestTime);
         mLayout->appear();
@@ -247,6 +261,7 @@ void RaceManager::exeDemo() {
 
 void RaceManager::exeGoal() {
     if (MR::isFirstStep(this)) {
+        NATIVE_MILESTONE("Race.Goal");
         MR::stopStageBGM(30);
 
         if (mRank == 0) {

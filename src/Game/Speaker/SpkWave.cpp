@@ -1,4 +1,7 @@
 #include "Game/Speaker/SpkWave.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/endian.hpp>
+#endif
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 #include <revolution/os.h>
 #include <stdint.h>

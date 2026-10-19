@@ -35,6 +35,41 @@ void KCollisionServer::init(void* pData, const void* pMapData) {
     }
 }
 
+#ifdef GALAXY_NATIVE
+void KCollisionServer::setData(void* pData) {
+    // ResourceHolder converts .kcl resources to host order when their archive is mounted.
+    if (!isBinaryInitialized(pData)) {
+        OSPanic(__FILE__, __LINE__, "KCL resource was not converted at registration");
+    }
+
+    const u8* pBytes = static_cast< const u8* >(pData);
+    const f32* pHeader = reinterpret_cast< const f32* >(pBytes);
+    const s32* pShifts = reinterpret_cast< const s32* >(pBytes);
+    KCLFile* pFile = new KCLFile;
+    pFile->mPos = reinterpret_cast< TVec3f* >(static_cast< u8* >(pData) + PetariNative::KCL::positionOffset(pData));
+    pFile->mNorms = reinterpret_cast< TVec3f* >(static_cast< u8* >(pData) + PetariNative::KCL::normalOffset(pData));
+    pFile->mPrisms = reinterpret_cast< KC_PrismData* >(static_cast< u8* >(pData) + PetariNative::KCL::prismOffset(pData));
+    pFile->mOctree = static_cast< u8* >(pData) + PetariNative::KCL::octreeOffset(pData);
+    pFile->mThickness = pHeader[4];
+    pFile->mMin.set(pHeader[5], pHeader[6], pHeader[7]);
+    pFile->mXMask = pShifts[8];
+    pFile->mYMask = pShifts[9];
+    pFile->mZMask = pShifts[10];
+    pFile->mBlockWidthShift = pShifts[11];
+    pFile->mBlockXShift = pShifts[12];
+    pFile->mBlockXYShift = pShifts[13];
+    pFile->mTriangleNum = (reinterpret_cast< u8* >(pFile->mOctree) - reinterpret_cast< u8* >(pFile->mPrisms + 1)) / sizeof(KC_PrismData);
+    mFile = pFile;
+}
+
+void KCollisionServer::initWithFile(KCLFile* pFile, const void* pMapData) {
+    mFile = pFile;
+
+    if (pMapData != nullptr) {
+        mapInfo->attach(pMapData);
+    }
+}
+#else
 void KCollisionServer::setData(void* pData) {
     mFile = reinterpret_cast< KCLFile* >(pData);
 
@@ -45,6 +80,7 @@ void KCollisionServer::setData(void* pData) {
         mFile->mOctree = reinterpret_cast< void* >(reinterpret_cast< u8* >(mFile) + reinterpret_cast<uintptr_t>(mFile->mOctree));
     }
 }
+#endif
 
 bool KCollisionServer::calcFarthestVertexDistance() {
     s32 triCount = getTriangleNum();
@@ -1402,7 +1438,11 @@ KC_PrismData* KCollisionServer::getPrismData(u32 index) const {
 }
 
 s32 KCollisionServer::getTriangleNum() const {
+#ifdef GALAXY_NATIVE
+    return mFile->mTriangleNum;
+#else
     return (reinterpret_cast< u8* >(mFile->mOctree) - reinterpret_cast< u8* >(mFile->mPrisms + 1)) / sizeof(KC_PrismData);
+#endif
 }
 
 JMapInfoIter KCollisionServer::getAttributes(u32 index) const {
@@ -1418,11 +1458,21 @@ s32* KCollisionServer::searchBlock(s32* pShift, const u32& rX, const u32& rY, co
 
     s32 xyShift = file->mBlockXYShift;
     s32 xShift = file->mBlockXShift;
+#ifdef GALAXY_NATIVE
+    // Generated collision marks a single root block with -1 shifts; test that before shifting
+    // (a negative shift count is undefined behaviour in C++).
+    s32 offset = 0;
+
+    if (xyShift != -1 || xShift != -1) {
+        offset = (((rZ >> blockWidthShift) << xyShift) | ((rY >> blockWidthShift) << xShift) | (rX >> blockWidthShift)) * 4;
+    }
+#else
     s32 offset = (((rZ >> blockWidthShift) << xyShift) | ((rY >> blockWidthShift) << xShift) | (rX >> blockWidthShift)) * 4;
 
     if (xyShift == -1 && xShift == -1) {
         offset = 0;
     }
+#endif
 
     while ((offset = *reinterpret_cast< s32* >(octree + offset)) >= 0) {
         octree += offset;

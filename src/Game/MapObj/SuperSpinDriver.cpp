@@ -11,6 +11,9 @@
 #include "Game/MapObj/SpinDriverUtil.hpp"
 #include <cstring>
 #include "Game/Util.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/NativeActorObserve.hpp"
+#endif
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 

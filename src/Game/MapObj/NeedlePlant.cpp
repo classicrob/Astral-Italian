@@ -43,7 +43,11 @@ namespace {
         virtual void execute(Spine*) const {}
         static NeedlePlantNrvEaten sInstance;
     };
+#ifdef GALAXY_NATIVE
+    NeedlePlantNrvEaten NeedlePlantNrvEaten::sInstance;
+#else
     NeedlePlantNrvEaten NeedlePlantNrvEaten::sInstance ATTRIBUTE_WEAK;
+#endif
 
     NEW_NERVE(NeedlePlantNrvBroken, NeedlePlant, Broken);
 };  // namespace

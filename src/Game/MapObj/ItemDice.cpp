@@ -306,7 +306,12 @@ void DiceBase::exeThrow() {
 // NONMATCHING: 96%: string-table base is hoisted into a register differently (same calls and constants).
 void DiceBase::exeLand() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        const TVec3f velocity(mGravity);
+        const TVec3f* pVel = &velocity;
+#else
         const TVec3f* pVel = &TVec3f(mGravity);
+#endif
         s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         if (isGoodResult(result)) {
             MR::startActionSound(this, "FixedGood", -1, -1, -1);
@@ -316,7 +321,12 @@ void DiceBase::exeLand() {
     }
 
     if (MR::isStep(this, 10)) {
+#ifdef GALAXY_NATIVE
+        const TVec3f velocity(mGravity);
+        const TVec3f* pVel = &velocity;
+#else
         const TVec3f* pVel = &TVec3f(mGravity);
+#endif
         s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         setResultFrame(result);
     }
@@ -325,7 +335,12 @@ void DiceBase::exeLand() {
         MR::emitEffect(this, "Explosion");
         mIsLanded = true;
 
+#ifdef GALAXY_NATIVE
+        const TVec3f velocity(mGravity);
+        const TVec3f* pVel = &velocity;
+#else
         const TVec3f* pVel = &TVec3f(mGravity);
+#endif
         s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         mIsGood = makeResult(result);
         if (mIsGood) {

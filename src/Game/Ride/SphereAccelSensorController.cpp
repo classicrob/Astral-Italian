@@ -5,6 +5,9 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <JSystem/JMath/JMath.hpp>
 #include <revolution/wpad.h>
+#ifdef GALAXY_NATIVE
+#include <petari/input.hpp>
+#endif
 
 
 namespace {

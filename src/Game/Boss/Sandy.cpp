@@ -30,6 +30,12 @@ F ForEachPtmf(It first, It last, F f) {
 // Single-use inline copy of JGeometry::mulInternal (CW size mode only inlines functions with one call site; the target
 // had each of these in its own translation unit).
 static inline void mulScaleSandy(register const f32* a, register const f32* b, register f32* d) {
+#ifdef GALAXY_NATIVE
+    const f32 x = a[0] * b[0];
+    const f32 y = a[1] * b[1];
+    d[0] = x;
+    d[1] = y;
+#else
     register f32 xy1, xy2, res;
     __asm {
         psq_l xy1, 0(a), 0, 0
@@ -37,6 +43,7 @@ static inline void mulScaleSandy(register const f32* a, register const f32* b, r
         ps_mul res, xy1, xy2
         psq_st res, 0(d), 0, 0
     }
+#endif
     d[2] = a[2] * b[2];
 }
 

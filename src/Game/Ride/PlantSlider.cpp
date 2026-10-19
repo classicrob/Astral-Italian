@@ -497,13 +497,23 @@ void PlantSlider::draw() const {
         side.scale(mSliderPoints[i]->mThickness);
         front.scale(mSliderPoints[i]->mThickness);
         writeVertexPos(pPoint->mPosition.x + 10.0f * front.x, pPoint->mPosition.y + 10.0f * front.y, pPoint->mPosition.z + 10.0f * front.z);
+#ifdef GALAXY_NATIVE
+        GXColor4u8(sColorWhite.r, sColorWhite.g, sColorWhite.b, sColorWhite.a);
+        GXTexCoord2f32(0.0f, static_cast< f32 >(i));
+#else
         GXWGFifo.u32 = sColorWhite.mColor;
         GXWGFifo.f32 = 0.0f;
         GXWGFifo.f32 = (f32)i;
+#endif
         writeVertexPos(pPoint->mPosition.x + 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y + 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z + 10.0f * side.z - 10.0f * front.z);
+#ifdef GALAXY_NATIVE
+        GXColor4u8(sColorGray.r, sColorGray.g, sColorGray.b, sColorGray.a);
+        GXTexCoord2f32(1.0f, static_cast< f32 >(i));
+#else
         GXWGFifo.u32 = sColorGray.mColor;
         GXWGFifo.f32 = 1.0f;
         GXWGFifo.f32 = (f32)i;
+#endif
     }
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, mNumPoints * 2);
     for (s32 i = 0; i < mNumPoints; i++) {
@@ -513,13 +523,23 @@ void PlantSlider::draw() const {
         side.scale(mSliderPoints[i]->mThickness);
         front.scale(mSliderPoints[i]->mThickness);
         writeVertexPos(pPoint->mPosition.x - 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y - 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z - 10.0f * side.z - 10.0f * front.z);
+#ifdef GALAXY_NATIVE
+        GXColor4u8(sColorLight.r, sColorLight.g, sColorLight.b, sColorLight.a);
+        GXTexCoord2f32(0.0f, static_cast< f32 >(i));
+#else
         GXWGFifo.u32 = sColorLight.mColor;
         GXWGFifo.f32 = 0.0f;
         GXWGFifo.f32 = (f32)i;
+#endif
         writeVertexPos(pPoint->mPosition.x + 10.0f * front.x, pPoint->mPosition.y + 10.0f * front.y, pPoint->mPosition.z + 10.0f * front.z);
+#ifdef GALAXY_NATIVE
+        GXColor4u8(sColorWhite.r, sColorWhite.g, sColorWhite.b, sColorWhite.a);
+        GXTexCoord2f32(1.0f, static_cast< f32 >(i));
+#else
         GXWGFifo.u32 = sColorWhite.mColor;
         GXWGFifo.f32 = 1.0f;
         GXWGFifo.f32 = (f32)i;
+#endif
     }
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, mNumPoints * 2);
     for (s32 i = 0; i < mNumPoints; i++) {
@@ -529,21 +549,35 @@ void PlantSlider::draw() const {
         side.scale(mSliderPoints[i]->mThickness);
         front.scale(mSliderPoints[i]->mThickness);
         writeVertexPos(pPoint->mPosition.x + 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y + 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z + 10.0f * side.z - 10.0f * front.z);
+#ifdef GALAXY_NATIVE
+        GXColor4u8(sColorGray.r, sColorGray.g, sColorGray.b, sColorGray.a);
+        GXTexCoord2f32(0.0f, static_cast< f32 >(i));
+#else
         GXWGFifo.u32 = sColorGray.mColor;
         GXWGFifo.f32 = 0.0f;
         GXWGFifo.f32 = (f32)i;
+#endif
         writeVertexPos(pPoint->mPosition.x - 10.0f * side.x - 10.0f * front.x, pPoint->mPosition.y - 10.0f * side.y - 10.0f * front.y, pPoint->mPosition.z - 10.0f * side.z - 10.0f * front.z);
+#ifdef GALAXY_NATIVE
+        GXColor4u8(sColorLight.r, sColorLight.g, sColorLight.b, sColorLight.a);
+        GXTexCoord2f32(1.0f, static_cast< f32 >(i));
+#else
         GXWGFifo.u32 = sColorLight.mColor;
         GXWGFifo.f32 = 1.0f;
         GXWGFifo.f32 = (f32)i;
+#endif
     }
 }
 
 // out-of-line FIFO write of one position (fn_804386A0)
 void writeVertexPos(f32 x, f32 y, f32 z) {
+#ifdef GALAXY_NATIVE
+    GXPosition3f32(x, y, z);
+#else
     GXWGFifo.f32 = x;
     GXWGFifo.f32 = y;
     GXWGFifo.f32 = z;
+#endif
 }
 
 PlantSlider::~PlantSlider() {

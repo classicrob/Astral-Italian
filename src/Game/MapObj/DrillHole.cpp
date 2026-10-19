@@ -6,9 +6,11 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
+#ifndef GALAXY_NATIVE
 namespace MR {
     void createSceneObj(s32);
 };  // namespace MR
+#endif
 
 
 namespace NrvDrillHole {

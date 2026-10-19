@@ -291,9 +291,17 @@ void drawLogSection(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const 
     const GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     const GXColor blue = {0x80, 0x80, 0x80, 0xFF};
 
+#ifdef GALAXY_NATIVE
+    const Color8 logBlue(blue);
+    const Color8 logWhite(white);
+    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, 0.0f, 6.0f, 6.0f, -6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, -6.0f, -6.0f, 0.0f, 6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, 6.0f, -6.0f, -6.0f, -6.0f, 10.0f);
+#else
     drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 0.0f, 6.0f, 6.0f, -6.0f, 10.0f);
     drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), -6.0f, -6.0f, 0.0f, 6.0f, 10.0f);
     drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 6.0f, -6.0f, -6.0f, -6.0f, 10.0f);
+#endif
 }
 
 // fn_8032C750: sets up the TEV/vertex state for the bridge draw.

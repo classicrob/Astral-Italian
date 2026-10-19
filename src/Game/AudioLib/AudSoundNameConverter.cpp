@@ -12,7 +12,33 @@ namespace {
     };
 
     // static const u8 sGroupNoTable[] = { };
+
+    static bool isSeName(const char* pName) NO_INLINE;
+    static bool isSeName(const char* pName) {
+        if (pName[0] == 'S' && pName[1] == 'E') {
+            return true;
+        }
+        return false;
+    }
 };  // namespace
+
+inline s32 AudSoundNameConverter::getSeSoundCategory(const char* pName) const {
+    for (s32 i = 0; i < 13; i++) {
+        if (pName[3] == sCategoryNamePrefix[i][0] && pName[4] == sCategoryNamePrefix[i][1]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+inline s32 AudSoundNameConverter::getOtherSoundCategory(const char* pName) const {
+    for (s32 i = 13; i < 17; i++) {
+        if (pName[0] == sCategoryNamePrefix[i][0] && pName[1] == sCategoryNamePrefix[i][1]) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 AudSoundNameConverter::AudSoundNameConverter()
     : mNumItems(), mNumNameDatas(), mGroupItemOffsets(), mNumItemsSection0(), mNumItemsSection1(), mNumItemsSection2(), mSoundNameData() {
@@ -23,18 +49,9 @@ JAISoundID AudSoundNameConverter::getSoundID(const char* pName) {
     return getSoundID(pName, JGadget::getHashCode(pName));
 }
 
-
-
 JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) const {
-    bool isSE;
-    if (pName[0] == 'S' && pName[1] == 'E') {
-        isSE = true;
-    } else {
-        isSE = false;
-    }
-
     s32 startingOffset;
-    if (isSE) {
+    if (isSeName(pName)) {
         startingOffset = mGroupItemOffsets[getSeSoundCategory(pName)];
     } else {
         startingOffset = mGroupItemOffsets[getOtherSoundCategory(pName)];
@@ -47,6 +64,10 @@ JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) const 
         }
     }
     return -1;
+}
+
+const char* AudSoundNameConverter::getSoundNameID(const JAISoundID& rID) const {
+    return JAUSoundNameTable::getInstance()->getName(rID);
 }
 
 void AudSoundNameConverter::init() {

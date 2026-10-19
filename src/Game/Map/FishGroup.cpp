@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #include "Game/Map/FishGroup.hpp"
 #include "Game/Util.hpp"

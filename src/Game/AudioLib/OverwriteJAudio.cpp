@@ -173,7 +173,3 @@ bool JASWaveArc::load(JASHeap* pHeap) {
     }
     return sendLoadCmd();
 }
-
-JASInstParam::JASInstParam()
-    : mChannelType(JASChannel::CH_WAVE), _18(0), mOscillatorData(nullptr), mNumOscillators(0), _24(false), mDirectRelease(0) {
-}

@@ -26,13 +26,12 @@ public:
     void changeFaceModel(const MiiFaceRecipe& rRecipe);
     void initFaceModel();
     bool tryChangeExpression(u32 expression);
-
-    /* 0x8C */ RFLCharModel* mCharModel;
-    /* 0x90 */ void* _90;
-    /* 0x94 */ MiiFaceRecipe* mRecipe;
-    /* 0x98 */ TPos3f _98;
-    /* 0xC8 */ MtxPtr _C8;
-    /* 0xCC */ FixedPosition* _CC;
-    /* 0xD0 */ bool _D0;
-    /* 0xD1 */ bool _D1;
+    /* 0x90 */ RFLCharModel* mCharModel;
+    /* 0x94 */ void* mModelBuffer;
+    /* 0x98 */ MiiFaceRecipe* mRecipe;
+    /* 0x9C */ TPos3f mModelMtx;
+    /* 0xCC */ MtxPtr mFollowMtx;
+    /* 0xD0 */ FixedPosition* mFixedPosition;
+    /* 0xD4 */ bool mNeedsModelReinit;
+    /* 0xD5 */ bool mIsModelUninitialized;
 };

@@ -41,13 +41,13 @@ void CameraManEvent::calc() {
 }
 
 void CameraManEvent::start(const CameraParamChunkID& rID, const CameraTargetArg& rTargetArg, s32 frame) {
-    CameraParamChunkEvent* chunk = findChunk(rID);
+    CameraParamChunkEvent* chunk = static_cast<CameraParamChunkEvent*>(mChunkHolder->getChunk(rID));
     requestChunk(chunk, static_cast< EPriority >(chunk->mEvPriority), rTargetArg, frame);
     rTargetArg.setTarget();
 }
 
 void CameraManEvent::end(const CameraParamChunkID& rID, s32 frame) {
-    CameraParamChunkEvent* chunk = findChunk(rID);
+    CameraParamChunkEvent* chunk = static_cast<CameraParamChunkEvent*>(mChunkHolder->getChunk(rID));
     searchPriority(chunk);
 
     if (cleanChunkFIFO(chunk)) {
@@ -141,14 +141,12 @@ bool CameraManEvent::isCorrectingErpPositionOff() const {
 }
 
 u32 CameraManEvent::getAnimCameraFrame(const CameraParamChunkID& rID) const {
-    mHolder->getIndexOf("CAM_TYPE_ANIM");
     CameraParamChunkEvent* chunk = findChunk(rID);
 
     return reinterpret_cast< CamTranslatorAnim* >(mHolder->getTranslator(chunk->mCameraTypeIndex))->getAnimFrame(chunk);
 }
 
 void CameraManEvent::pauseOnAnimCamera(const CameraParamChunkID& rID) {
-    mHolder->getIndexOf("CAM_TYPE_ANIM");
     CameraParamChunkEvent* chunk = findChunk(rID);
 
     if (chunk == mChunk && mCamera != nullptr) {
@@ -157,7 +155,6 @@ void CameraManEvent::pauseOnAnimCamera(const CameraParamChunkID& rID) {
 }
 
 void CameraManEvent::pauseOffAnimCamera(const CameraParamChunkID& rID) {
-    mHolder->getIndexOf("CAM_TYPE_ANIM");
     CameraParamChunkEvent* chunk = findChunk(rID);
 
     if (chunk == mChunk && mCamera != nullptr) {
@@ -313,6 +310,7 @@ void CameraManEvent::setSafePose() {
 }
 
 CameraParamChunkEvent* CameraManEvent::findChunk(const CameraParamChunkID& rID) const {
+    mHolder->getIndexOf("CAM_TYPE_ANIM");
     return reinterpret_cast< CameraParamChunkEvent* >(mChunkHolder->getChunk(rID));
 }
 
@@ -448,7 +446,6 @@ CameraManEvent::~CameraManEvent() {
 }
 
 bool CameraManEvent::isAnimCameraEnd(const CameraParamChunkID& rID) const {
-    mHolder->getIndexOf("CAM_TYPE_ANIM");
     CameraParamChunkEvent* chunk = findChunk(rID);
 
     if (isInFIFO(chunk)) {
@@ -462,4 +459,30 @@ bool CameraManEvent::isAnimCameraEnd(const CameraParamChunkID& rID) const {
     }
 
     return true;
+}
+
+bool CameraManEvent::isUnknownOff() const {
+    return mCamera != nullptr && mCamera->isUnknownOff();
+}
+
+bool CameraManEvent::isEnableToRoundLeft() const {
+    if (mCamera != nullptr) return mCamera->isEnableToRoundLeft();
+    return false;
+}
+
+bool CameraManEvent::isEnableToRoundRight() const {
+    if (mCamera != nullptr) return mCamera->isEnableToRoundRight();
+    return false;
+}
+
+bool CameraManEvent::isEnableToReset() const {
+    if (mCamera != nullptr) return mCamera->isEnableToReset();
+    return false;
+}
+
+void CameraManEvent::setAnimCameraFrame(const CameraParamChunkID& rID, f32 frame) {
+    CameraParamChunkEvent* chunk = findChunk(rID);
+    if (isInFIFO(chunk) && chunk == mChunk) {
+        static_cast<CameraAnim*>(mCamera)->setFrame(frame);
+    }
 }

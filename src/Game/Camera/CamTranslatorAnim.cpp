@@ -6,7 +6,7 @@ void CamTranslatorAnim::setParam(const CameraParamChunk* pChunk) {
     CameraAnim* camera = mCamera;
 
     // mNum1 is used to store the pointer to the data
-    camera->setParam(reinterpret_cast< u8* >(pChunk->mGeneralParam->mNum1), pChunk->mGeneralParam->mDist);
+    camera->setParam(reinterpret_cast< u8* >(pChunk->mGeneralParam->mNum1), pChunk->mGeneralParam->mDist, pChunk->mGeneralParam->mNum2 < 0);
 }
 
 Camera* CamTranslatorAnim::CamTranslatorAnim::getCamera() const {

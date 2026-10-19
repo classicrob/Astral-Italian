@@ -183,6 +183,8 @@ bool StageSwitchCtrl::isOnAnyOneSwitchAfterB(int idx) const {
 }
 
 namespace StageSwitchFunction {
+#pragma push
+#pragma auto_inline off
     SwitchIdInfo* createSwitchIdInfo(const char* pName, const JMapInfoIter& rIter, bool /* unused*/) {
         s32 switchVal;
         if (!rIter.getValue< s32 >(pName, &switchVal)) {
@@ -201,6 +203,8 @@ namespace StageSwitchFunction {
 
         return info;
     }
+
+#pragma pop
 
     void onSwitchBySwitchIdInfo(const SwitchIdInfo& rInfo) {
         s32 switchNo = rInfo.getSwitchNo();

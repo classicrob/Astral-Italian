@@ -25,11 +25,11 @@ AudBgm* AudBgmKeeper::get(BgmType type) {
 }
 
 void AudBgmKeeper::release(AudBgm* pBgm) {
-    u32 bgmMask = 1;
+    u8 bgmMask = 1;
     for (int idx = 0; idx < 2; idx++) {
         if (&mSingleBgm[idx] == pBgm) {
             mSingleBgm[idx].init();
-            mSingleBgmActiveFlags &= ~bgmMask;
+            mSingleBgmActiveFlags &= (u8)~bgmMask;
             return;
         }
         bgmMask = (bgmMask & 0x7F) << 1;
@@ -39,7 +39,7 @@ void AudBgmKeeper::release(AudBgm* pBgm) {
     for (int idx = 0; idx < 2; idx++) {
         if (&mMultiBgm[idx] == pBgm) {
             mMultiBgm[idx].init();
-            mMultiBgmActiveFlags &= ~bgmMask;
+            mMultiBgmActiveFlags &= (u8)~bgmMask;
             return;
         }
         bgmMask = (bgmMask & 0x7F) << 1;

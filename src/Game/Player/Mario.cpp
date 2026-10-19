@@ -7518,7 +7518,7 @@ void Mario::trySpinJump(u8 a1) {
         mWalkSpeed = 0.0f;
         _10._1 = true;
 
-        fn_801EFB00();
+        tryShootStickingPopo();
 
         if (isStatusActive(MarioStatus_Rabbit)) {
             mRabbit->hop();

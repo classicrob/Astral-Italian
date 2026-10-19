@@ -25,6 +25,9 @@ public:
         return mName;
     }
 
+    void awake();
+    void sleep();
+
     void initForm(const JMapInfoIter& rIter);
 
     void onSwitchA();

@@ -111,6 +111,6 @@ public:
     /* 0x18 */ Popo* mStickPopo;
 };
 
-bool fn_801EFAB0();
-void fn_801EFB00();
-void fn_801EFB40();
+bool isPopoSticking();
+void tryShootStickingPopo();
+void tryReactStickingPopo();

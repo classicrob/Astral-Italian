@@ -22,7 +22,7 @@ public:
     public:
         ChunkFIFOItem();
 
-        /* 0x00 */ CameraParamChunkEvent* mChunk;
+        /* 0xBC */ CameraParamChunkEvent* mChunk;
         /* 0x04 */ CameraTargetArg mTargetArg;
         /* 0x14 */ u32 mFrame;
     };
@@ -48,6 +48,10 @@ public:
     virtual bool isCollisionOff() const;
     virtual bool isZeroFrameMoveOff() const;
     virtual bool isCorrectingErpPositionOff() const;
+    virtual bool isUnknownOff() const;
+    virtual bool isEnableToRoundLeft() const;
+    virtual bool isEnableToRoundRight() const;
+    virtual bool isEnableToReset() const;
 
     void start(const CameraParamChunkID&, const CameraTargetArg&, s32);
     void end(const CameraParamChunkID&, s32);
@@ -77,11 +81,11 @@ public:
     bool isInFIFO(CameraParamChunk*) const;
     bool isAnimCameraEnd(const CameraParamChunkID&) const;
 
-    /* 0x48 */ CameraHolder* mHolder;
-    /* 0x4C */ CameraParamChunkHolder* mChunkHolder;
-    /* 0x50 */ Camera* mCamera;
-    /* 0x54 */ ChunkFIFOItemPair mItems[NR_FIFO_ITEMS];
-    /* 0xB4 */ CameraParamChunkEvent* mChunk;
-    /* 0xB8 */ u32 _B8;
-    /* 0xBC */ bool mRequestReset;
+    /* 0x50 */ CameraHolder* mHolder;
+    /* 0x54 */ CameraParamChunkHolder* mChunkHolder;
+    /* 0x58 */ Camera* mCamera;
+    /* 0x5C */ ChunkFIFOItemPair mItems[NR_FIFO_ITEMS];
+    /* 0xBC */ CameraParamChunkEvent* mChunk;
+    /* 0xC0 */ u32 _B8;
+    /* 0xC4 */ bool mRequestReset;
 };

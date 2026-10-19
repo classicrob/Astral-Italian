@@ -6,27 +6,13 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
+#include <JSystem/JUtility/TColor.hpp>
 
-// NONMATCHING: target stores constant GXColor values as single 32-bit words (lis/addi + stw); byte-wise field stores here
-ShadowColorSetter::ShadowColorSetter(const char* pName) : NameObj(pName) {
-    mArea = nullptr;
-    mCurColor.r = 0x00;
-    mCurColor.g = 0xFF;
-    mCurColor.b = 0x00;
-    mCurColor.a = 0xFF;
-    mPrevColor.r = 0x00;
-    mPrevColor.g = 0x00;
-    mPrevColor.b = 0x00;
-    mPrevColor.a = 0xFF;
-    mTargetColor.r = 0x00;
-    mTargetColor.g = 0x00;
-    mTargetColor.b = 0x00;
-    mTargetColor.a = 0xFF;
+ShadowColorSetter::ShadowColorSetter(const char* pName) : NameObj(pName), mArea(nullptr), mCurColor(JUtility::TColor(0x00FF00FF)), mPrevColor(JUtility::TColor(0x000000FF)), mTargetColor(JUtility::TColor(0x000000FF)) {
     mBlendT = 0.0f;
     MR::connectToSceneMapObjMovement(this);
 }
 
-// NONMATCHING: null-area branch: target stores 0xFF as one word (li+stw), we copy via operator= (bl __as__8_GXColor); regalloc of clamp temps differs
 void ShadowColorSetter::movement() {
     AreaObj* area = MR::getAreaObj("ShadowColorArea", *MR::getPlayerPos());
     if (mArea != area) {
@@ -39,7 +25,7 @@ void ShadowColorSetter::movement() {
             mTargetColor.b = b;
             mTargetColor.a = 0xFF;
         } else {
-            GXColor black = {0x00, 0x00, 0x00, 0xFF};
+            GXColor black = JUtility::TColor(0x000000FF);
             mTargetColor = black;
         }
         mPrevColor = mCurColor;
@@ -61,7 +47,7 @@ namespace MR {
     }
 
     GXColor calcShadowColor(u8 alpha) {
-        GXColor color = {0x00, 0x00, 0x00, 0xFF};
+        GXColor color = JUtility::TColor(0x000000FF);
         if (MR::isExistSceneObj(SceneObj_ShadowColorSetter)) {
             ShadowColorSetter* pSetter = MR::getSceneObj< ShadowColorSetter >(SceneObj_ShadowColorSetter);
             GXColor cur = pSetter->mCurColor;

@@ -42,12 +42,20 @@ void Air::init(const JMapInfoIter& rIter) {
     s32 arg_1 = -1;
     MR::getJMapInfoArg1NoInit(rIter, &arg_1);
     _8D = arg_1 + 1;
+    s32 arg_2 = -1;
+    MR::getJMapInfoArg2NoInit(rIter, &arg_2);
+    bool isAlwaysVisible = arg_2 + 1;
     MR::tryStartAllAnim(this, object_name);
     MR::setClippingTypeSphereContainsModelBoundingBox(this, 100.0f);
     setFarClipping();
     MR::setGroupClipping(this, rIter, 0x10);
-    initNerve(GET_NERVE(Air, HostTypeOut));
+    if (isAlwaysVisible) {
+        initNerve(GET_NERVE(Air, HostTypeWait));
+    } else {
+        initNerve(GET_NERVE(Air, HostTypeOut));
+    }
     MR::registerDemoSimpleCastAll(this);
+    MR::useStageSwitchAwake(this, rIter);
     bool registered = MR::tryRegisterDemoCast(this, rIter);
 
     if (registered) {

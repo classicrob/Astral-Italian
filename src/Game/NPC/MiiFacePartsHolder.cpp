@@ -17,13 +17,13 @@
 #include <JSystem/JKernel/JKRMemArchive.hpp>
 #include <JSystem/JKernel/JKRSolidHeap.hpp>
 
-MiiFacePartsHolder::MiiFacePartsHolder(int partsNumMax) : LiveActorGroup("Mii顔モデル保持", partsNumMax), JKRDisposer(), mRFLWorkBuffer(), _34() {
+MiiFacePartsHolder::MiiFacePartsHolder(int partsNumMax) : LiveActorGroup("Mii顔モデル保持", partsNumMax), JKRDisposer(), mRFLWorkBuffer(), mMiiDatabase() {
 }
 
 MiiFacePartsHolder::~MiiFacePartsHolder() {
     RFLExit();
     delete[] mRFLWorkBuffer;
-    delete _34;
+    delete mMiiDatabase;
 }
 
 void MiiFacePartsHolder::init(const JMapInfoIter& rIter) {
@@ -32,7 +32,7 @@ void MiiFacePartsHolder::init(const JMapInfoIter& rIter) {
     JKRMemArchive* pArchive = MR::mountArchive("/ObjectData/MiiFaceDatabase.arc", nullptr, true);
     void* pResBuffer = pArchive->getResource("/RFL_Res.dat");
     u32 resSize = pArchive->getResSize(pResBuffer);
-    _38 = RFLInitResAsync(mRFLWorkBuffer, pResBuffer, resSize, false);
+    mRFLStatus = RFLInitResAsync(mRFLWorkBuffer, pResBuffer, resSize, false);
 
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_NPC, MR::DrawBufferType_None, MR::DrawType_MiiFacePartsHolder);
     MR::createDrawAdaptor("Miiモデル再作成", 0x5B, MR::FunctorV0M< MiiFacePartsHolder*, void (MiiFacePartsHolder::*)() >(this, &MiiFacePartsHolder::reinitCharModel));
@@ -79,27 +79,27 @@ void MiiFacePartsHolder::draw() const {
 void MiiFacePartsHolder::reinitCharModel() {
     MiiFaceParts* pParts;
 
-    if (_38 == RFLErrcode_Busy) {
+    if (mRFLStatus == RFLErrcode_Busy) {
         RFLErrcode err = RFLGetAsyncStatus();
 
         if (err == RFLErrcode_Busy) {
             return;
         }
 
-        _38 = err;
+        mRFLStatus = err;
 
         if (err == RFLErrcode_NANDCommandfail) {
-            _3C = RFLGetLastReason();
+            mLastNANDReason = RFLGetLastReason();
 
-            GameSequenceFunction::tryNANDErrorSequence(_3C);
+            GameSequenceFunction::tryNANDErrorSequence(mLastNANDReason);
         }
     }
 
-    if (_38 == RFLErrcode_Success) {
+    if (mRFLStatus == RFLErrcode_Success) {
         for (int i = 0; i < getObjNum(); i++) {
             pParts = static_cast< MiiFaceParts* >(getActor(i));
 
-            if (pParts->_D0 || pParts->_D1) {
+            if (pParts->mNeedsModelReinit || pParts->mIsModelUninitialized) {
                 pParts->initFaceModel();
             }
         }
@@ -116,7 +116,7 @@ bool MiiFacePartsHolder::isInitEnd() const {
     for (int i = 0; i < getObjNum(); i++) {
         pParts = static_cast< MiiFaceParts* >(getActor(i));
 
-        if (pParts->_D1) {
+        if (pParts->mIsModelUninitialized) {
             return false;
         }
     }
@@ -125,7 +125,7 @@ bool MiiFacePartsHolder::isInitEnd() const {
 }
 
 bool MiiFacePartsHolder::isError() const {
-    return _38 != RFLErrcode_Success && _38 != RFLErrcode_Busy;
+    return mRFLStatus != RFLErrcode_Success && mRFLStatus != RFLErrcode_Busy;
 }
 
 MiiFaceParts* MiiFacePartsHolder::createPartsFromReceipe(const char* pName, const MiiFaceRecipe& rRecipe) {

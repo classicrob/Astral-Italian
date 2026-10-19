@@ -115,7 +115,9 @@ void LightPointCtrl::blendPointLight(PointLightInfo* pDst, const PointLightInfo&
     } else if (mPreviousActor == nullptr) {
         pDst->mPos = rEnd.mPos;
     } else {
-        MR::blendVec(&pDst->mPos, rStart.mPos, rEnd.mPos, t);
+        TVec3f position;
+        MR::vecBlend(&position, TVec3f(rStart.mPos), TVec3f(rEnd.mPos), t);
+        pDst->mPos = position;
     }
 
     f32 start = mPreviousActor == nullptr ? 0.95f : rStart.mRefBrightness;

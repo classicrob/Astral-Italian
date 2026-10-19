@@ -30,12 +30,8 @@ namespace MR {
     void onDiffFlagBtp(u32*, const J3DAnmTexPattern*, const char*, const char*);
     void onDiffFlagBtk(u32*, const J3DAnmTextureSRTKey*, const char*, const char*);
     void onDiffFlagBrk(u32*, const J3DAnmTevRegKey*, const char*, const char*);
-    void onDiffFlagBpk(u32* pFlags, const J3DAnmColorKey* pAnm, const char* pName);
     void offDiffFlagBpk(u32* pFlags, const J3DAnmColorKey* pAnm, const char* pName);
-    void onDiffFlagBtp(u32* pFlags, const J3DAnmTexPattern* pAnm, const char* pName);
     void offDiffFlagBtp(u32* pFlags, const J3DAnmTexPattern* pAnm, const char* pName);
-    void onDiffFlagBtk(u32* pFlags, const J3DAnmTextureSRTKey* pAnm, const char* pName);
     void offDiffFlagBtk(u32* pFlags, const J3DAnmTextureSRTKey* pAnm, const char* pName);
-    void onDiffFlagBrk(u32* pFlags, const J3DAnmTevRegKey* pAnm, const char* pName);
     void offDiffFlagBrk(u32* pFlags, const J3DAnmTevRegKey* pAnm, const char* pName);
 };  // namespace MR

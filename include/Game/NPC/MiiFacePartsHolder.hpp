@@ -31,8 +31,8 @@ public:
     void setTevOpa() const;
     void setTevXlu() const;
 
-    /* 0x30 */ u8* mRFLWorkBuffer;
-    /* 0x34 */ MiiDatabase* _34;
-    /* 0x38 */ RFLErrcode _38;
-    /* 0x3C */ s32 _3C;
+    /* 0x38 */ u8* mRFLWorkBuffer;
+    /* 0x3C */ MiiDatabase* mMiiDatabase;
+    /* 0x40 */ RFLErrcode mRFLStatus;
+    /* 0x44 */ s32 mLastNANDReason;
 };

@@ -915,20 +915,20 @@ void PopoStickingManager::tryReaction() {
 PopoStickingManager::~PopoStickingManager() {
 }
 
-bool fn_801EFAB0() {
+bool isPopoSticking() {
     if (!MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         return false;
     }
     return MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->mStickPopo != nullptr;
 }
 
-void fn_801EFB00() {
+void tryShootStickingPopo() {
     if (MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->tryShootOut();
     }
 }
 
-void fn_801EFB40() {
+void tryReactStickingPopo() {
     if (MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->tryReaction();
     }

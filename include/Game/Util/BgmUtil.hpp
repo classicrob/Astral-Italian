@@ -26,7 +26,7 @@ namespace MR {
     bool isPreparedStageBgm();
     void setStageBGMState(s32, u32);
     void setStageBGMStateBit(u32);
-    s32 getPlayingStageBgmId();
+    const char* getPlayingStageBgmId();
     s32 getStageBgmState();
     void adjustPorterBGGM(s32);
 

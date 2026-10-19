@@ -47,6 +47,33 @@ bool NWC24SendThread::isDone(NWC24Err* pErr, u32* pSize) {
     }
 }
 
+bool NWC24SendThread::requestSend(const u16* pText, const u16* pAltName, const u8* pLetter, u32 letterSize, const u8* pPicture,
+                                  u32 pictureSize, u16 tag, bool isMsgLedPattern, u8 delayHours) {
+    BOOL status = OSDisableInterrupts();
+
+    if (mMessageQueue.usedCount >= mMessageQueue.msgCount) {
+        OSRestoreInterrupts(status);
+        return false;
+    }
+
+    mMsgSendStatus.mText = pText;
+    mMsgSendStatus.mAltName = pAltName;
+    mMsgSendStatus.mLetter = pLetter;
+    mMsgSendStatus.mLetterSize = letterSize;
+    mMsgSendStatus.mPicture = pPicture;
+    mMsgSendStatus.mPictureSize = pictureSize;
+    mMsgSendStatus._18 = false;
+    mMsgSendStatus.mIsMsgLedPattern = isMsgLedPattern;
+    mMsgSendStatus.mSentErr = NWC24_OK;
+    mMsgSendStatus.mSentSize = 0;
+    mMsgSendStatus.mTag = tag;
+    mMsgSendStatus.mDelayHours = delayHours;
+
+    OSSendMessage(&mMessageQueue, &mMsgSendStatus, OS_MESSAGE_NOBLOCK);
+    OSRestoreInterrupts(status);
+    return true;
+}
+
 void* NWC24SendThread::threadProc(void*) {
     while (true) {
         MsgSendStatus* pMsgSendStatus = nullptr;
@@ -65,9 +92,13 @@ void NWC24SendThread::initMsgSendStatus() {
     mMsgSendStatus.mPicture = nullptr;
     mMsgSendStatus.mPictureSize = 0;
     mMsgSendStatus._18 = true;
+    mMsgSendStatus.mIsMsgLedPattern = false;
     mMsgSendStatus.mSentErr = NWC24_OK;
+    mMsgSendStatus.mTag = 0;
+    mMsgSendStatus.mDelayHours = 0;
 }
 
+// NONMATCHING: the LED-pattern call targets 0x8055E934 (symbols.txt names NWC24SetMsgLedPattern at 0x8055E868); lis/addi operand scheduling differs.
 NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSize) {
     NWC24Err err;
     NWC24MsgObj msgObj;
@@ -93,6 +124,20 @@ NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSi
             return err;
         }
     }
+    err = NWC24SetMsgTag(&msgObj, pMsgSendStatus->mTag);
+
+    if (err != NWC24_OK) {
+        return err;
+    }
+
+    if (pMsgSendStatus->mDelayHours != 0) {
+        err = NWC24SetMsgMBDelay(&msgObj, pMsgSendStatus->mDelayHours);
+
+        if (err != NWC24_OK) {
+            return err;
+        }
+    }
+
     const u16* pText = pMsgSendStatus->mText;
     u32 textLength = MR::strlenUTF16(pText);
     err = NWC24SetMsgText(&msgObj, reinterpret_cast< const char* >(pText), textLength * sizeof(u16), NWC24_UTF_16, NWC24_ENC_8BIT);

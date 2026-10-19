@@ -2067,6 +2067,9 @@ Game/Camera/CameraRotChecker.cpp:
 	.sbss       start:0x807D1D78 end:0x807D1D80
 	.sdata2     start:0x807D9410 end:0x807D9428
 
+Game/Camera/CameraPadOrbitCtrl.cpp:
+	.text       start:0x80129070 end:0x80129510
+
 Game/Camera/CameraShakePatternSingly.cpp:
 	.text       start:0x80129510 end:0x801296C0
 	.rodata     start:0x80647C50 end:0x80647C58
@@ -2257,7 +2260,7 @@ Game/Demo/DemoFunction.cpp:
 	.data       start:0x8067F228 end:0x8067F238
 
 Game/Demo/DemoPlayerKeeper.cpp:
-	.text       start:0x80139480 end:0x801396F0
+	.text       start:0x80139480 end:0x80139850
 	.data       start:0x8067F280 end:0x8067F2B0
 
 Game/Demo/DemoPositionController.cpp:
@@ -4024,10 +4027,12 @@ Game/Map/AwakeControllerHolder.cpp:
 	.text       start:0x80244F10 end:0x80245290
 
 Game/Map/AwakeControlFunc.cpp:
-	.text       start:0x80245290 end:0x802453C0
+	.text       start:0x80245290 end:0x802453E0
+	.data       start:0x80696454 end:0x8069646C
 
 Game/Map/AwakeControlFunc2.cpp:
 	.text       start:0x802453E0 end:0x802455C0
+	.data       start:0x8069646C end:0x80696498
 
 Game/Map/BezierRail.cpp:
 	.text       start:0x80245620 end:0x802467D0
@@ -4129,10 +4134,10 @@ Game/Map/GroupSwitchWatcher.cpp:
 	.data       start:0x80697AA8 end:0x80697B18
 
 Game/Map/Halo.cpp:
-	.text       start:0x80255EB0 end:0x80256710
+	.text       start:0x80255D60 end:0x80256710
 	.ctors      start:0x806442B4 end:0x806442B8
-	.rodata     start:0x80648BD0 end:0x80648BF0
-	.data       start:0x80697B58 end:0x80697CD8
+	.rodata     start:0x80648BD0 end:0x80648BF8
+	.data       start:0x80697B18 end:0x80697CD8
 	.sbss       start:0x807D3600 end:0x807D3610
 	.sdata2     start:0x807DC840 end:0x807DC850
 

@@ -40,6 +40,7 @@ void AudTrackController::mute() {
     if (track == nullptr) {
         return;
     }
+    JASCriticalSection crit;
     track->mute(true);
 }
 
@@ -61,6 +62,7 @@ void AudTrackController::unmute() {
     if (track == nullptr) {
         return;
     }
+    JASCriticalSection crit;
     track->mute(false);
 }
 
@@ -95,6 +97,7 @@ void AudTrackController::update() {
         mFader.update();
 
         f32 volume = mVolume * mFader.getVolume();
+        JASCriticalSection crit;
         JAISoundParamsMove* params = mHandle->getSound()->getChild(mTrackNo)->getMoveParams();
         if (params == nullptr) {
             return;
@@ -123,21 +126,18 @@ void AudTrackController::muteIfVolumeZero() {
         return;
     }
 
-    JAISoundChild* child = sound->getChild(mTrackNo);
+    JASCriticalSection crit;
+    JAISoundChild* child = mHandle->getSound()->getChild(mTrackNo);
     if (child == nullptr) {
         return;
     }
 
     JASTrack* track = mHandle->getSound()->getChildTrack(mTrackNo);
-    if (track == nullptr) {
-        return;
-    }
-
-    if (child->mParams.mVolume == 0.0f) {
-        JASCriticalSection crit;
-        track->mute(true);
-    } else {
-        JASCriticalSection crit;
-        track->mute(false);
+    if (track != nullptr) {
+        if (child->mParams.mVolume == 0.0f) {
+            track->mute(true);
+        } else {
+            track->mute(false);
+        }
     }
 }

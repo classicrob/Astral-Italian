@@ -18,17 +18,17 @@ namespace {
 };  // namespace
 
 AudRmxSeqNoteOnTimer::AudRmxSeqNoteOnTimer() {
-    _8 = nullptr;
     _0 = 0.0f;
     _4 = 0.0f;
+    _8 = nullptr;
     _C = nullptr;
     initData();
 }
 
 void AudRmxSeqNoteOnTimer::initData() {
-    _8 = nullptr;
     _4 = 0.0f;
     _0 = 0.0f;
+    _8 = nullptr;
     _C = nullptr;
 }
 

@@ -262,3 +262,7 @@ bool CameraAnim::loadBin(u8* pFile) {
 
     return true;
 }
+
+void CameraAnim::setFrame(f32 frame) {
+    mCurrentFrame = frame;
+}

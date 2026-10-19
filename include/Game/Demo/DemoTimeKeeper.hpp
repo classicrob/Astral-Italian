@@ -12,6 +12,7 @@ public:
     /* 0x00 */ const char* mPartName;
     /* 0x04 */ s32 mTotalStep;
     /* 0x08 */ bool mSuspendFlag;
+    /* 0x09 */ bool mWaitUserInputFlag;
 };
 
 class DemoTimeKeeper {

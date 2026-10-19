@@ -40,8 +40,15 @@ void FileSelectCameraController::init(const JMapInfoIter& rIter) {
 
 void FileSelectCameraController::appear() {
     LiveActor::appear();
-    setNerve(GET_NERVE(FileSelectCameraController, FileSelectCameraControllerNrvTitle));
-    MR::startActorCameraProgrammable(this);
+    setNerve(GET_NERVE(FileSelectCameraController, FileSelectCameraControllerNrvFarPoint));
+    MR::startActorCameraProgrammable(this, 0);
+    mUpVec.set(0.0f, 1.0f, 0.0f);
+    mPrevWPoint = TVec3f(::cFarTarget);
+    mWPoint = mPrevWPoint;
+    mFovy = mPrevFovy = ::cFarFovy;
+    MR::setPosition(this, TVec3f(::cFarPoint));
+    MR::setProgrammableCameraParam(this, mPrevWPoint, mPosition, mUpVec);
+    MR::setProgrammableCameraParamFovy(this, mPrevFovy);
 }
 
 void FileSelectCameraController::kill() {
@@ -54,7 +61,10 @@ void FileSelectCameraController::goToFarPoint() {
 }
 
 void FileSelectCameraController::goToNearPoint(const TVec3f& rPoint) {
-    mNearTarget.set(rPoint + TVec3f(::cNearTargetOffset));
+    TVec3f target = rPoint + TVec3f(::cNearTargetOffset);
+    mNearTarget.x = target.x;
+    mNearTarget.y = target.y;
+    mNearTarget.z = target.z;
 
     setNerve(GET_NERVE(FileSelectCameraController, FileSelectCameraControllerNrvMoveToNearPoint));
 }
@@ -99,9 +109,10 @@ void FileSelectCameraController::exeMoveToFarPoint() {
 }
 
 void FileSelectCameraController::exeFarPoint() {
+    mUpVec.set(0.0f, 1.0f, 0.0f);
     mWPoint = ::cFarTarget;
     mFovy = ::cFarFovy;
-    mPosition.set(TVec3f(::cFarPoint));
+    MR::setPosition(this, TVec3f(::cFarPoint));
 }
 
 void FileSelectCameraController::exeMoveToNearPoint() {
@@ -120,7 +131,7 @@ void FileSelectCameraController::exeNearPoint() {
     TVec3f nearPoint = mNearTarget + ::cNearPointOffset;
 
     mFovy = ::cNearFovy;
-    mPosition.set(nearPoint);
+    MR::setPosition(this, nearPoint);
 }
 
 void FileSelectCameraController::control() {

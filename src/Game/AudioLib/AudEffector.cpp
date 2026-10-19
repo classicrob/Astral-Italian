@@ -2,11 +2,21 @@
 #include <JSystem/JKernel/JKRHeap.hpp>
 
 JASDsp::FxlineConfig_ AudEffector::mFxLine[] = {
-    {1, 0, 0, 0x7000, 1, 0x0000, 0, 64, {0, 0x1000, 0, 0, 0, 0, 0x3FFF, 0}},
-    {1, 0, 0, 0x0000, 1, 0x7000, 0, 64, {0, 0x1000, 0, 0, 0, 0, 0x3FFF, 0}},
-    {1, 0, 0, 0x7000, 1, 0x0000, 0, 64, {0, 0x1000, 0, 0, 0, 0, 0x3FFF, 0}},
-    {1, 0, 0, 0x0000, 1, 0x7000, 0, 64, {0, 0x1000, 0, 0, 0, 0, 0x3FFF, 0}},
+    {1, 0, 0x0, 0, 3, 0, 0x0, 0x0, {0, 0, 0, 0, 0, 0, 0, 0}},
+    {1, 0, 0x2, 0, 1, 0, 0x0, 0x0, {0, 0, 0, 0, 0, 0, 0, 0}},
+    {1, 0, 0x0, 0, 5, 0, 0x0, 0x0, {0, 0, 0, 0, 0, 0, 0, 0}},
+    {1, 0, 0x4, 0, 1, 0, 0x0, 0x0, {0, 0, 0, 0, 0, 0, 0, 0}},
 };
+
+namespace {
+    // Second line configuration (selected by setFxLineType(1)).
+    static JASDsp::FxlineConfig_ sFxLineType1[] = {
+        {1, 0, 0x0, 32767, 3, 10000, 0x0, 0x45, {1573, -1861, 1573, -1574, -1288, 2152, 12445, -3864}},
+        {1, 0, 0x2, 10000, 1, 32767, 0x0, 0x45, {1573, -1861, 1573, -1574, -1288, 2152, 12445, -3864}},
+        {1, 0, 0x0, 32767, 5, 10000, 0x0, 0x64, {1573, -1861, 1573, -1574, -1288, 2152, 12445, -3864}},
+        {1, 0, 0x4, 10000, 1, 32767, 0x0, 0x55, {1573, -1861, 1573, -1574, -1288, 2152, 12445, -3864}},
+    };
+};  // namespace
 
 AudEffector::AudEffector() : mFxSend(), mCutoff(0x7F), mSpecialFx(-1) {
     for (u8 i = 0; i < 4; i++) {
@@ -18,6 +28,18 @@ void AudEffector::initFxLine(JKRHeap* pHeap) {
     for (u8 i = 0; i < 4; i++) {
         mFxLines[i] = new (pHeap, 0x20) s16[0x2800];
         JASDsp::setFXLine(i, mFxLines[i], &mFxLine[i]);
+    }
+}
+
+void AudEffector::setFxLineType(s32 type) {
+    if (type == 0) {
+        for (u8 i = 0; i < 4; i++) {
+            JASDsp::setFXLine(i, mFxLines[i], &mFxLine[i]);
+        }
+    } else if (type == 1) {
+        for (u8 i = 0; i < 4; i++) {
+            JASDsp::setFXLine(i, mFxLines[i], &sFxLineType1[i]);
+        }
     }
 }
 

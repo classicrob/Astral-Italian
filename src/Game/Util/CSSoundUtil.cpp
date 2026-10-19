@@ -66,6 +66,6 @@ namespace MR {
         if (param1 == -1) {
             return;
         }
-        AudSpeakerWrap::fn_80086880(param1, param2);
+        AudSpeakerWrap::startLevel(param1, param2);
     }
 }  // namespace MR

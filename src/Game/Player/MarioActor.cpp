@@ -6529,7 +6529,7 @@ bool MarioActor::trySpinPunch() {
     tryReleaseBombTeresa();
     _950 = false;
 
-    fn_801EFB00();
+    tryShootStickingPopo();
     return out;
 }
 

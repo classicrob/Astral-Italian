@@ -1,20 +1,7 @@
 #pragma once
 
 #include "Game/Camera/Camera.hpp"
-
-// PLACEHOLDER(core): descriptive name for the camera pad-orbit helper at80129070;
-// resolve when the original class name is recovered.
-class CameraPadOrbitCtrl {
-public:
-    CameraPadOrbitCtrl() NO_INLINE;
-    void reset() NO_INLINE;
-    void update(const TVec3f&, const TVec3f&, const TVec3f&, TVec3f*) NO_INLINE;
-    void updateRotation(const TVec3f&, const TVec3f&, const TVec3f&, TVec3f*) NO_INLINE;
-    void updateInput(const TVec3f&, const TVec3f&, const TVec3f&, TVec3f*) NO_INLINE;
-    bool mRotating;
-    f32 mAngle;
-    f32 mTargetAngle;
-};
+#include "Game/Camera/CameraPadOrbitCtrl.hpp"
 
 class CameraCubePlanet : public Camera {
 public:

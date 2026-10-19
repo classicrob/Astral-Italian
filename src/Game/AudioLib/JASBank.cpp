@@ -87,3 +87,7 @@ JASChannel* JASBank::noteOn(JASBank const* pBank, int progNo, u8 pitch, u8 veloc
     }
     return channel;
 }
+
+JASInstParam::JASInstParam()
+    : mChannelType(JASChannel::CH_WAVE), _18(0), mOscillatorData(nullptr), mNumOscillators(0), _24(false), mDirectRelease(0) {
+}

@@ -8,6 +8,7 @@ public:
     u16 getSoundSw(JAISoundID) const;
     s32 getLimitNum(JAISoundID) const;
     bool isLimitNumPlaying(JAISoundID) const;
+    u32 getPlayCountLimit(u32) const NO_INLINE;
     bool isLimitCountPlaying(JAISoundID) const;
     u16 getChordResIdBgm(JAISoundID) const;
     bool isRhythmBgm(JAISoundID) const;

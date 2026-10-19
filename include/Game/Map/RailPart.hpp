@@ -11,7 +11,7 @@ public:
     RailPart();
 
     void init(const TVec3f&, const TVec3f&, const TVec3f&, const TVec3f&);
-    void initForBezier(const TVec3f&, const TVec3f&, const TVec3f&, const TVec3f&);
+    void initForBezier(const TVec3f&, const TVec3f&, const TVec3f&, const TVec3f&) NO_INLINE;
     void calcPos(TVec3f*, f32) const;
     void calcVelocity(TVec3f*, f32) const;
     f32 getLength(f32, f32, int) const;

@@ -56,10 +56,12 @@ void drawBlurTexture(const PauseBlur* pBlur) {
 }
 
 PauseBlur::PauseBlur(const char* pName) : NameObj(pName) {
+    mTexture1 = nullptr;
+    mTexture2 = nullptr;
     mAlpha = 0;
     mTimer = 0;
     mResolution = 4;
-    mHalfResolution = mResolution >> 1;
+    mHalfResolution = mResolution / 2;
     mSquareResolution = mHalfResolution * mHalfResolution;
     mDelay = 0;
     mIsActive = false;
@@ -79,8 +81,14 @@ void PauseBlur::movement() {
             return;
         }
 
-        if (mAlpha != 0 && mAlpha > 0x23) {
-            mAlpha -= 0x23;
+        if (mAlpha != 0) {
+            if (static_cast<s32>(mAlpha) > 0x23) {
+                mAlpha -= 0x23;
+                return;
+            }
+            mAlpha = 0;
+            mTimer = 0;
+            mIsActive = false;
             return;
         }
 

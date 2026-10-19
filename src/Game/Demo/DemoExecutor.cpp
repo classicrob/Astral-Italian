@@ -22,7 +22,7 @@
 
 DemoExecutor::DemoExecutor(const char* pName)
     : DemoCastGroup(pName), mSheetName(), _SMG2_20(), mTimeKeeper(), mSubPartKeeper(), mPlayerKeeper(), mCameraKeeper(), mActionKeeper(), mWipeKeeper(),
-      mSoundKeeper(), mSheetKeeper(), _40(), _44(), _48(), _4C(-1), _50(), mActor(), mTalkAnimCtrl(), mTalkMessageCtrl(), _SMG2_3CC(), _SMG2_3CD() {
+      mSoundKeeper(), mSheetKeeper(), _40(), _44(), _48(), _4C(-1), _50(), mActor(), mTalkAnimCtrl(), mTalkMessageCtrl(), mIsStoryBookStarting(), _SMG2_3CD() {
 }
 
 void DemoExecutor::init(const JMapInfoIter& rIter) {
@@ -76,13 +76,13 @@ void DemoExecutor::start(NameObj* pParam1, const char* pParam2, s32 param3) {
 
     if (MR::isStoryBookDemoName(pParam2)) {
         MR::startStoryBookTurnPage();
-        _SMG2_3CC = true;
+        mIsStoryBookStarting = true;
     } else {
         mTimeKeeper->start();
         mCameraKeeper->start();
         std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::start));
         std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::startDemo));
-        _SMG2_3CC = false;
+        mIsStoryBookStarting = false;
     }
 
     mActor.clear();
@@ -250,7 +250,7 @@ void DemoSheetKeeperBase::update() {
 }
 
 bool DemoExecutor::updateStoryBookStart() {
-    if (!_SMG2_3CC) return false;
+    if (!mIsStoryBookStarting) return false;
     if (MR::isStoryBookTurnPageStart()) {
         MR::resetPointLight();
         mTimeKeeper->start();
@@ -264,7 +264,7 @@ bool DemoExecutor::updateStoryBookStart() {
     }
     if (MR::isStoryBookTurnPageEnd()) {
         std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::resume));
-        _SMG2_3CC = false;
+        mIsStoryBookStarting = false;
         return true;
     }
     std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::pause));

@@ -48,7 +48,7 @@ public:
     /* 0x138 */ ActorCameraInfo* mCameraInfo;
     /* 0x13C */ CameraTargetMtx* mCameraTargetMtx;
     /* 0x140 */ JointController* mJointController;
-    /* 0x144 */ s32 mBgmHandle1;
+    /* 0x144 */ const char* mSavedStageBgmName;
     /* 0x148 */ s32 mBgmHandle2;
 };
 

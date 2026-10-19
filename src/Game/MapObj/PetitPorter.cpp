@@ -46,7 +46,7 @@ PetitPorter::PetitPorter(const char* pName) : LiveActor(pName) {
     mCameraInfo = nullptr;
     mCameraTargetMtx = nullptr;
     mJointController = nullptr;
-    mBgmHandle1 = 0;
+    mSavedStageBgmName = nullptr;
     mBgmHandle2 = -1;
     mBaseMtx.identity();
     mMtx108.identity();
@@ -188,7 +188,7 @@ void PetitPorter::exeEnterDemo() {
         MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203C\203\223", mCameraTargetMtx, -1);
         MR::startActionSound(this, "WarpStart", -1, -1, -1);
         if (MR::isPlayingStageBgm()) {
-            mBgmHandle1 = MR::getPlayingStageBgmId();
+            mSavedStageBgmName = MR::getPlayingStageBgmId();
             mBgmHandle2 = MR::getStageBgmState();
         }
         MR::stopStageBGM(0);
@@ -294,9 +294,9 @@ void PetitPorter::exeLeaveCamera() {
         }
         JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
         MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203A\203E\203g", mCameraTargetMtx, -1);
-        if (mBgmHandle1 != 0) {
+        if (mSavedStageBgmName != nullptr) {
             // SMG2 binary calls the const char* overload with the stored id (startStageBGM__2MRFPCcb).
-            MR::startStageBGM(reinterpret_cast<const char*>(mBgmHandle1), false);
+            MR::startStageBGM(mSavedStageBgmName, false);
         }
         if (mBgmHandle2 > 0) {
             MR::setStageBGMState(mBgmHandle2, sRescueBgmState);

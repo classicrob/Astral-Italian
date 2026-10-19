@@ -282,11 +282,11 @@ void EarthenPipe::exePlayerIn() {
         MR::startActionSound(this, "DmDokanWarp", -1, -1, -1);
         if (MR::getPlayingStageBgmId()) {
             mMusicChangeIdx = 10000;
-            mSavedBgmId = reinterpret_cast<const char*>(MR::getPlayingStageBgmId());
+            mSavedBgmId = MR::getPlayingStageBgmId();
             mSavedBgmState = MR::getStageBgmState();
         }
         if (_B0->mSavedBgmId) {
-            if (MR::getPlayingStageBgmId() && !MR::isEqualString(reinterpret_cast<const char*>(MR::getPlayingStageBgmId()), _B0->mSavedBgmId))
+            if (MR::getPlayingStageBgmId() && !MR::isEqualString(MR::getPlayingStageBgmId(), _B0->mSavedBgmId))
                 MR::stopStageBGM(60);
         } else if (_B0->mMusicChangeIdx != 10000) {
             fn_8001B430(_B0->mMusicChangeIdx, _B0->mMusicState);
@@ -326,7 +326,7 @@ void EarthenPipe::exePlayerOut() {
         MR::startBckPlayer("EarthenPipeOut", nullptr);
         MR::startActionSound(this, "DmDokanWarp", -1, -1, -1);
         if (_B0->mSavedBgmId) {
-            if (!MR::getPlayingStageBgmId() || !MR::isEqualString(reinterpret_cast<const char*>(MR::getPlayingStageBgmId()), _B0->mSavedBgmId)) {
+            if (!MR::getPlayingStageBgmId() || !MR::isEqualString(MR::getPlayingStageBgmId(), _B0->mSavedBgmId)) {
                 MR::startStageBGM(_B0->mSavedBgmId, false);
                 if (_B0->mSavedBgmState >= 0) MR::setStageBGMState(_B0->mSavedBgmState, 0);
             }

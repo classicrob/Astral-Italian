@@ -52,18 +52,25 @@ void ActionSoundInfo::setDefault() {
 }
 
 void ActionSoundInfo::fn_802207A0() {
-    if (mSoundType < 8) {
-        if (mSoundType >= 6) {
-            mSoundId = MR::getCSSoundID(mSoundLabel);
-        } else if (mSoundType >= 0) {
-            mSoundId = MR::fn_8005ADD0(mSoundLabel);
-        }
-    } else if (mSoundType < 12) {
-        if (mSoundType >= 10) {
-            mSoundId = MR::fn_8005ADD0(mSoundLabel);
-        } else {
-            mSoundId = MR::fn_80042230(mSoundLabel);
-        }
+    switch (mSoundType) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 10:
+    case 11:
+        mSoundId = MR::fn_8005ADD0(mSoundLabel);
+        break;
+    case 6:
+    case 7:
+        mSoundId = MR::getCSSoundID(mSoundLabel);
+        break;
+    case 8:
+    case 9:
+        mSoundId = MR::fn_80042230(mSoundLabel);
+        break;
     }
 }
 
@@ -90,17 +97,23 @@ s32 ActionSoundInfo::fn_80220890() const {
 }
 
 bool ActionSoundInfo::fn_802208A0(s32 type) {
-    if (type >= 0 && type <= 5) {
+    switch (type) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 10:
+    case 11:
         return true;
-    }
-    if (type >= 6 && type <= 9) {
+    case -1:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+        return false;
+    default:
         return false;
     }
-    if (type >= 10 && type <= 11) {
-        return true;
-    }
-    if (type == -1) {
-        return false;
-    }
-    return false;
 }

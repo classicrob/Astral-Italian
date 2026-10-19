@@ -34,12 +34,14 @@ public:
     virtual bool isZeroFrameMoveOff() const {
         return false;
     }
+
     virtual bool isSubjectiveCameraOff() const {
         return false;
     }
     virtual bool isCorrectingErpPositionOff() const {
         return false;
     }
+
     virtual bool isUnknownOff() const {  // SMG2-only virtual (Camera vtable +0x48)
         return false;
     }

@@ -12,12 +12,9 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-// Unnamed SMG2 helpers: the 2-string ReceiverTagMail ctor, the mail request step, and the
-// vtable-driven resource lookups in exeSend.
-extern "C" void* getMailSourceRes(ResourceHolder*, const char*);
-extern "C" void* createMailData(ResourceHolder*, void*);
-extern "C" void* getResTableRes(ResourceHolder*, const char*);
+// PLACEHOLDER(enemies): createMailData is the unnamed SMG2 call in exeSend (holder->mArchive virtual slot 0x3C,
+// the mail-data build step); resolve when its owner names it and its virtual slot is declared.
+void* createMailData(ResourceHolder*, void*);
 
 
 namespace NrvWiiMessageBoardMailSenderState {
@@ -56,9 +53,9 @@ void WiiMessageBoardMailSenderState::setup(const char* messageId, const char* pR
 
 void WiiMessageBoardMailSenderState::exeSend() {
     if (MR::isFirstStep(this)) {
-        void* pSource = getMailSourceRes(mResourceHolder, mResName);
+        void* pSource = mResourceHolder->mArchive->getResource(mResName);
         void* pData = createMailData(mResourceHolder, pSource);
-        void* pRes = getResTableRes(mResourceHolder, mResName);
+        void* pRes = mResourceHolder->mFileInfoTable->getRes(mResName);
         mReceiverTagMail->send(mMessageId, static_cast<const u8*>(pRes), reinterpret_cast<u32>(pData), false);
     }
 

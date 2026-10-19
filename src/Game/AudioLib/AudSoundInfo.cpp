@@ -33,19 +33,22 @@ bool AudSoundInfo::isLimitNumPlaying(JAISoundID soundID) const {
     return sw <= numOfPlaying;
 }
 
-bool AudSoundInfo::isLimitCountPlaying(JAISoundID soundID) const {
-    u32 max;
-    switch (getSoundSw(soundID) & 0x60) {
+u32 AudSoundInfo::getPlayCountLimit(u32 limitSw) const {
+    switch (limitSw) {
     case 0x20:
-        max = 1;
-        break;
+        return 1;
     case 0x40:
-        max = 5;
-        break;
+        return 5;
     case 0x60:
-        max = 10;
-        break;
-    default:
+        return 10;
+    }
+    return 0;
+}
+
+bool AudSoundInfo::isLimitCountPlaying(JAISoundID soundID) const {
+    u32 limitSw = getSoundSw(soundID) & 0x60;
+    u32 max = getPlayCountLimit(limitSw);
+    if (limitSw == 0) {
         return false;
     }
     return AudWrap::getSystem()->getPlayCountMin(soundID) < max;

@@ -28,12 +28,14 @@ public:
     virtual bool isZeroFrameMoveOff() const {
         return false;
     }
+
     virtual bool isSubjectiveCameraOff() const {
         return false;
     }
     virtual bool isCorrectingErpPositionOff() const {
         return false;
     }
+
     virtual bool isUnknownOff() const {  // SMG2-only virtual (CameraMan vtable +0x4C)
         return false;
     }
@@ -56,9 +58,9 @@ public:
     void activate(CameraDirector*);
     void deactivate(CameraDirector*);
 
-    /* 0x0C */ CameraDirector* mDirector;
-    /* 0x10 */ CameraPoseParam* mPoseParam;
-    /* 0x14 */ bool mIsActivated;
-    /* 0x15 */ bool mRequestLOfsReset;
-    /* 0x18 */ TPos3f mMatrix;
+    /* 0x14 */ CameraDirector* mDirector;
+    /* 0x18 */ CameraPoseParam* mPoseParam;
+    /* 0x1C */ bool mIsActivated;
+    /* 0x1D */ bool mRequestLOfsReset;
+    /* 0x20 */ TPos3f mMatrix;
 };

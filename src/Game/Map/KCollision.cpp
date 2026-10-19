@@ -4,6 +4,7 @@
 #include "Game/Map/CollisionDirector.hpp"
 #include "Game/Util/JMapInfo.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/MemoryUtil.hpp"
 #include <algorithm>
 
 void KCollision_FORCE_MATCH_SDATA2() {
@@ -89,7 +90,7 @@ bool KCollisionServer::calcFarthestVertexDistance() {
 }
 
 bool KCollisionServer::isBinaryInitialized(const void* pData) NO_INLINE {
-    return reinterpret_cast< const s32* >(pData)[0] < 0;
+    return MR::fn_80040EA0(reinterpret_cast<const u32*>(pData)[0]);
 }
 
 KC_PrismData* KCollisionServer::checkPoint(Fxyz* pPoint, f32 param, f32* pDist) {

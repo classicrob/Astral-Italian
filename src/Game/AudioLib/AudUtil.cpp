@@ -25,6 +25,18 @@ namespace AudUtil {
         return ret;
     }
 
+    f32 linerMinMax(f32 val, f32 min, f32 max, f32 start, f32 end) {
+        f32 ret;
+        if (val <= min) {
+            ret = start;
+        } else if (val >= max) {
+            ret = end;
+        } else {
+            ret = start + (end - start) * (val - min) / (max - min);
+        }
+        return ret;
+    }
+
     bool isProperCurrentStageOrAudioDebugMode() {
         return true;
     }

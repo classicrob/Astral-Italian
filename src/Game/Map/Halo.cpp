@@ -32,13 +32,34 @@ namespace {
     }
 };  // namespace
 
+void Halo::startAnimAtEnd(const char* pAnimName) {
+    MR::tryStartAllAnim(this, pAnimName);
+
+    if (MR::isExistBtk(this, pAnimName)) {
+        MR::setBtkFrame(this, MR::getBtkCtrl(this)->getEnd());
+    }
+
+    if (MR::isExistBpk(this, pAnimName)) {
+        MR::setBpkFrame(this, MR::getBpkCtrl(this)->getEnd());
+    }
+
+    if (MR::isExistBtp(this, pAnimName)) {
+        MR::setBtpFrame(this, MR::getBtpCtrl(this)->getEnd());
+    }
+
+    if (MR::isExistBrk(this, pAnimName)) {
+        MR::setBrkFrame(this, MR::getBrkCtrl(this)->getEnd());
+    }
+
+}
+
 Halo::Halo(const char* pName) : MapObjActor(pName), mDistance(70.0f) {
 }
 
 void Halo::init(const JMapInfoIter& rIter) {
     MapObjActor::init(rIter);
     MapObjActorInitInfo info;
-    info.setupHioNode("環境");
+    info.setupHioNode("環境オブジェ");
     info.setupDefaultPos();
     info.setupConnectToScene();
     info.setupNerve(GET_NERVE(Halo, HostTypeAppear));
@@ -47,36 +68,23 @@ void Halo::init(const JMapInfoIter& rIter) {
     info.setupAffectedScale();
     initialize(rIter, info);
     MR::getJMapInfoArg0NoInit(rIter, &mDistance);
+    if (MR::isEqualStageName("StarCreekGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 1) {
+        MR::startAction(this, "Appear");
+        startAnimAtEnd("Appear");
+        makeActorAppeared();
+    }
 }
 
 void Halo::appear() {
     MapObjActor::appear();
 
     if (isDistanceDisappear()) {
-        const char* pAnimName = "Disappear";
-
-        MR::tryStartAllAnim(this, pAnimName);
-
-        if (MR::isExistBtk(this, pAnimName)) {
-            MR::setBtkFrame(this, MR::getBtkCtrl(this)->getEnd());
-        }
-
-        if (MR::isExistBpk(this, pAnimName)) {
-            MR::setBpkFrame(this, MR::getBpkCtrl(this)->getEnd());
-        }
-
-        if (MR::isExistBtp(this, pAnimName)) {
-            MR::setBtpFrame(this, MR::getBtpCtrl(this)->getEnd());
-        }
-
-        if (MR::isExistBrk(this, pAnimName)) {
-            MR::setBrkFrame(this, MR::getBrkCtrl(this)->getEnd());
-        }
+        startAnimAtEnd("Disappear");
 
         MR::hideModel(this);
         setNerve(GET_NERVE(Halo, HostTypeDisappear));
     } else {
-        MR::startAllAnim(this, "Appear");
+        MR::startAction(this, "Appear");
         setNerve(GET_NERVE(Halo, HostTypeAppear));
     }
 }
@@ -142,7 +150,7 @@ void Halo::exeDisappear() {
 
     if (isDistanceAppear()) {
         MR::showModel(this);
-        MR::startAllAnim(this, "Appear");
+        MR::startAction(this, "Appear");
         setNerve(GET_NERVE(Halo, HostTypeAppear));
     }
 }

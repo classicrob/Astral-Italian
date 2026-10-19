@@ -1,5 +1,6 @@
 #include "Game/Demo/DemoTimeKeeper.hpp"
 #include "Game/Demo/DemoFunction.hpp"
+#include "Game/Demo/DemoExecutor.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
@@ -17,10 +18,15 @@ DemoTimeKeeper::DemoTimeKeeper(const DemoExecutor* pExecutor)
         s32 suspendFlag = 0;
         MR::getCsvDataS32(&suspendFlag, pMap, "SuspendFlag", i);
         pInfo->mSuspendFlag = suspendFlag != 0;
+        s32 waitUserInputFlag = 0;
+        if (MR::hasCsvItem(pMap, "WaitUserInputFlag")) {
+            MR::getCsvDataS32(&waitUserInputFlag, pMap, "WaitUserInputFlag", i);
+        }
+        pInfo->mWaitUserInputFlag = waitUserInputFlag != 0;
     }
 }
 
-DemoTimePartInfo::DemoTimePartInfo() : mPartName(), mTotalStep(1), mSuspendFlag() {
+DemoTimePartInfo::DemoTimePartInfo() : mPartName(), mTotalStep(1), mSuspendFlag(), mWaitUserInputFlag() {
 }
 
 void DemoTimeKeeper::start() {
@@ -108,4 +114,15 @@ void DemoTimeKeeper::setCurrentPart(const char* pPartName) {
 
 bool DemoTimeKeeper::isCurrentDemoPartLastStep() const {
     return mSubPartInfos->mTotalStep - 1 <= mCurrentStep;
+}
+
+bool DemoTimeKeeper::isTalkWaitUserInput() const {
+    return mSubPartInfos->mWaitUserInputFlag;
+}
+
+// NONMATCHING: equivalent equality result is materialized without the target return branches.
+bool DemoTimeKeeper::isLastPart(bool checkPaused) const {
+    if (mExecutor->mIsStoryBookStarting) return false;
+    if (checkPaused && mIsPaused) return false;
+    return _18 == mNumPartInfos - 1;
 }

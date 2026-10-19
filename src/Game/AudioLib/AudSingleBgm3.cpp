@@ -1,3 +1,5 @@
+#define JAISOUND_STOPPING_NOINLINE
+
 #include "Game/AudioLib/AudBgm.hpp"
 #include "Game/AudioLib/AudBgmMgr.hpp"
 #include "Game/AudioLib/AudBgmSetting.hpp"
@@ -14,6 +16,8 @@
 #include <JSystem/JAudio2/JAISoundChild.hpp>
 #include <JSystem/JAudio2/JAISoundInfo.hpp>
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
+#include "Game/RhythmLib/AudMePlayer.hpp"
+#include "Game/RhythmLib/AudMeTrack.hpp"
 
 AudSingleBgm::AudSingleBgm() : AudBgm(), mHandle(), mSoundID(-1) {
     init();
@@ -253,3 +257,8 @@ JAISoundID AudSingleBgm::getRhythmSoundID() const {
 bool AudSingleBgm::isAttached() const {
     return mHandle.isSoundAttached();
 }
+
+// NONMATCHING (data order only): the target's two init guards sit in reverse order in .sbss (AudMe at 0x..29).
+// The target's static initializer of this unit constructs the memory pools of AudMe and AudMeTrack.
+template JASMemPool< AudMe > JASPoolAllocObject< AudMe >::memPool_;
+template JASMemPool< AudMeTrack > JASPoolAllocObject< AudMeTrack >::memPool_;

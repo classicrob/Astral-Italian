@@ -257,8 +257,8 @@ bool SpkSound::setWaveData(s32 waveID) {
 }
 
 SpkSoundHolder::SpkSoundHolder() : JASGlobalInstance(true) {
-    _44 = 10;
     mBaseVolume = 1.0f;
+    _44 = 15;
 
     for (int i = 0; i < 4; i++) {
         mVolume[i] = 1.0f;
@@ -302,6 +302,71 @@ bool SpkSoundHolder::startSound(s32 padChannel, s32 waveID, SpkSoundHandle* pHan
     JASCriticalSection crit;
     mSoundList[padChannel].append(sound);
     return true;
+}
+
+bool SpkSoundHolder::startSound(s32 padChannel, s32 waveID, SpkSoundHandle* pHandle, s32 arg4, f32 fadeTarget) {
+    if (!SpkSpeakerCtrl::isEnable(padChannel)) {
+        return false;
+    }
+
+    if (waveID < 0) {
+        return false;
+    }
+
+    if (pHandle != nullptr) {
+        SpkSound* sound = pHandle->getSound();
+        if (sound != nullptr) {
+            if (sound->mState == SpkSound::State_LOCK) {
+                sound->mState = SpkSound::State_DEAD;
+            } else {
+                sound->stop(0);
+            }
+        }
+    }
+
+    SpkSound* sound = new SpkSound();
+    if (sound == nullptr) {
+        return false;
+    }
+
+    if (pHandle != nullptr) {
+        sound->attachHandle(pHandle);
+        sound->mVolume.setFadeTarget(0, fadeTarget);
+    }
+
+    if (!sound->start(padChannel, waveID, arg4)) {
+        delete sound;
+        return false;
+    }
+
+    JASCriticalSection crit;
+    mSoundList[padChannel].append(sound);
+    return true;
+}
+
+bool SpkSoundHolder::startLevelSound(s32 padChannel, s32 waveID, SpkSoundHandle* pHandle) {
+    if (pHandle == nullptr) {
+        return false;
+    }
+
+    SpkSound* sound = pHandle->getSound();
+    if (sound != nullptr) {
+        if (sound->mState != SpkSound::State_STOP && sound->mState != SpkSound::State_DEAD) {
+            sound->_3C = 2;
+        }
+        return true;
+    }
+
+    if (!startSound(padChannel, waveID, pHandle, 0, 1.0f)) {
+        return false;
+    }
+
+    sound = pHandle->getSound();
+    if (sound != nullptr) {
+        sound->_3C = 2;
+        return true;
+    }
+    return false;
 }
 
 bool SpkSoundHolder::update(s32 padChannel) {

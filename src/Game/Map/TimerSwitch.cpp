@@ -4,12 +4,13 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-TimerSwitch::TimerSwitch(const char* pName) : LiveActor(pName), mTimeLimit(-1), mTimeLeft(-1) {
+TimerSwitch::TimerSwitch(const char* pName) : LiveActor(pName), mTimeLimit(-1), mTimeLeft(-1), mTurnSwitchOff(false) {
 }
 
 void TimerSwitch::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     MR::getJMapInfoArg0NoInit(rIter, &mTimeLimit);
+    MR::getJMapInfoArg1NoInit(rIter, &mTurnSwitchOff);
     MR::needStageSwitchWriteA(this, rIter);
     MR::needStageSwitchReadB(this, rIter);
     MR::invalidateClipping(this);
@@ -31,6 +32,10 @@ void TimerSwitch::control() {
         return;
     }
 
-    MR::onSwitchA(this);
+    if (mTurnSwitchOff) {
+        MR::offSwitchA(this);
+    } else {
+        MR::onSwitchA(this);
+    }
     kill();
 }

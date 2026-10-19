@@ -6,6 +6,22 @@
 #include <cstring>
 #include <revolution/types.h>
 
+void XanimeGroupInfo::init() {
+    mParent.mAnimationName = "not-initialized";
+    mRate = 0.0f;
+    _8 = 0;
+    mStart = 0.0f;
+    mEnd = 0.0f;
+    mLoop = 0.0f;
+    mAttribute = 0;
+    mBckTableVariant = 0;
+    for (u32 i = 0; i < 4; i++) {
+        mWeights[i] = 0.0f;
+        _20[i] = nullptr;
+    }
+    _40 = 0;
+}
+
 static bool unknownByte;
 
 XanimeResourceTable::XanimeResourceTable(ResourceHolder* pArg) {

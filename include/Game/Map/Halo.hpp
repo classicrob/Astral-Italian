@@ -19,12 +19,14 @@ public:
     virtual void connectToScene(const MapObjActorInitInfo&);
     virtual f32 getDistance() const;
 
+    void startAnimAtEnd(const char*) NO_INLINE;
+
     bool isDistanceAppear() const;
     bool isDistanceDisappear() const;
     void exeAppear();
     void exeDisappear();
 
-    /* 0xC4 */ f32 mDistance;
+    /* 0xD0 */ f32 mDistance;
 };
 
 class PowerStarHalo : public Halo {
@@ -38,5 +40,5 @@ public:
 
     void exeWaitScenarioOpeningEnd();
 
-    /* 0xC8 */ s32 mAppearDuringOpeningCam;
+    /* 0xD4 */ s32 mAppearDuringOpeningCam;
 };

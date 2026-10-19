@@ -29,6 +29,7 @@ namespace SleepControlFunc {
 };  // namespace SleepControlFunc
 
 namespace AwakeControlFunc {
+    bool addAwakeControl(AreaObj*, const JMapInfoIter&);
     bool addAwakeControl(LiveActor*, const JMapInfoIter&);
     void initSyncSleepController();
 }

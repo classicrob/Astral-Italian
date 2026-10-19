@@ -1,8 +1,11 @@
 #include "Game/AudioLib/AudBgmVolumeController.hpp"
 #include "Game/AudioLib/AudParams.hpp"
+#include "Game/AudioLib/AudSystem.hpp"
+#include "Game/AudioLib/AudWrap.hpp"
 
 #define FADER_VOLZERO 0
 #define FADER_VOLDOWN 1
+#define FADER_MENU 5
 #define FADER_INTERRUPTED 2
 #define FADER_AUX 3
 #define FADER_NOTEFAIRY 4
@@ -27,13 +30,16 @@ AudBgmVolumeController::AudBgmVolumeController() : mIsMuted() {
     mFaderCtrl[FADER_NOTEFAIRY].mVolume = 0.0f;
     mFaderCtrl[FADER_NOTEFAIRY].mTime = 5;
     mFaderCtrl[FADER_NOTEFAIRY].mRecoverTime = 5;
-    mFaderCtrl[5].mVolume = 0.0f;
-    mFaderCtrl[5].mTime = 0;
-    mFaderCtrl[5].mRecoverTime = 0;
+    mFaderCtrl[FADER_MENU].mVolume = 0.0f;
+    mFaderCtrl[FADER_MENU].mTime = 0;
+    mFaderCtrl[FADER_MENU].mRecoverTime = 0;
 }
 
 void AudBgmVolumeController::update() {
     for (s32 i = 0; i < NUM_FADERS; i++) {
+        if (i == FADER_MENU && AudWrap::getSystem()->isMenuOrErrorActive()) {
+            continue;
+        }
         if (mTimers[i] > 0) {
             mTimers[i]--;
             if (mTimers[i] <= 0) {

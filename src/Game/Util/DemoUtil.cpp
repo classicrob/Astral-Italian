@@ -953,7 +953,7 @@ namespace MR {
             return false;
         }
 
-        return executor->_SMG2_3CC;
+        return executor->mIsStoryBookStarting;
     }
 
     bool isSystemTalking() {

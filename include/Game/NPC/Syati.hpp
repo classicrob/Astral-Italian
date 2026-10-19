@@ -57,27 +57,27 @@ public:
     void setupBalloonFollowMtx(const TVec3f& rVec);
     bool calcHeadJoint(TPos3f* pPos, const JointControllerInfo& rInfo);
 
-    /* 0x8C */ TQuat4f _8C;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ f32 mClippingRange;
-    /* 0xAC */ TVec3f mClippingVec;
-    /* 0xB8 */ TalkMessageCtrl* mTalkMessageCtrl;
-    /* 0xBC */ ActorCameraInfo* mActorCameraInfo;
-    /* 0xC0 */ s32 mHideOnShoreMode;
-    /* 0xC4 */ PlayerPoseSetterInWater* mPlayerPoseSetterInWater;
-    /* 0xC8 */ s32 mBlinkTimer;
-    /* 0xCC */ TVec3f mMarioMoveLocalOffsetVec;
-    /* 0xD8 */ TPos3f mBalloonFollowMtx;
-    /* 0x108 */ JointControlDelegator< Syati >* mJointControlDelegator;
-    /* 0x10C */ TMtx34f _10C;
-    /* 0x13C */ RaceManagerLayout* mRaceManagerLayout;
-    /* 0x140 */ LiveActorGroup* mPrizeRingGroup;
-    /* 0x144 */ s32 mNumRings;
-    /* 0x148 */ s32 mStarSpawnType;
-    /* 0x14C */ s32 mSwimMode;
-    /* 0x150 */ s32 mPrizeRingLife;
-    /* 0x154 */ s32 mPrizeRingCount;
-    /* 0x158 */ s32 mCurrentRailPointNo;
+    /* 0x90 */ TQuat4f mOrientationQuat;
+    /* 0xA0 */ TVec3f mSmoothedDirection;
+    /* 0xAC */ f32 mClippingRange;
+    /* 0xB0 */ TVec3f mClippingVec;
+    /* 0xBC */ TalkMessageCtrl* mTalkMessageCtrl;
+    /* 0xC0 */ ActorCameraInfo* mActorCameraInfo;
+    /* 0xC4 */ s32 mHideOnShoreMode;
+    /* 0xC8 */ PlayerPoseSetterInWater* mPlayerPoseSetterInWater;
+    /* 0xCC */ s32 mBlinkTimer;
+    /* 0xD0 */ TVec3f mMarioMoveLocalOffsetVec;
+    /* 0xDC */ TPos3f mBalloonFollowMtx;
+    /* 0x10C */ JointControlDelegator< Syati >* mJointControlDelegator;
+    /* 0x110 */ TMtx34f mUnusedMtx;
+    /* 0x140 */ RaceManagerLayout* mRaceManagerLayout;
+    /* 0x144 */ LiveActorGroup* mPrizeRingGroup;
+    /* 0x148 */ s32 mNumRings;
+    /* 0x14C */ s32 mStarSpawnType;
+    /* 0x150 */ s32 mSwimMode;
+    /* 0x154 */ s32 mPrizeRingLife;
+    /* 0x158 */ s32 mPrizeRingCount;
+    /* 0x15C */ s32 mCurrentRailPointNo;
 };
 
 class PlayerPoseSetterInWater {
@@ -85,8 +85,8 @@ public:
     inline PlayerPoseSetterInWater(const TVec3f& rVec, Syati* pSyati);
     void update();
 
-    /* 0x00 */ TVec3f _0;
-    /* 0x0C */ TQuat4f _C;
-    /* 0x1C */ s32 _1C;
-    /* 0x20 */ Vec* _20;
+    /* 0x00 */ TVec3f mPosition;
+    /* 0x0C */ TQuat4f mOrientationQuat;
+    /* 0x1C */ s32 mPitchFrame;
+    /* 0x20 */ Vec* mLocalOffset;
 };

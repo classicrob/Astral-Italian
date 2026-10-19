@@ -228,11 +228,11 @@ namespace MR {
         return -1;
     }
 
-    s32 getPlayingStageBgmId() {
+    const char* getPlayingStageBgmId() {
         u32 id = getCurrentStageBgmId();
 
         if (id == -1) {
-            return 0;
+            return nullptr;
         }
 
         JAISoundID soundID(id);

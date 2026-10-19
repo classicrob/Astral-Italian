@@ -100,6 +100,6 @@ public:
     /* 0x054 */ MR::Vector< MR::FixedArray< LiveActor*, 192 > > mActor;
     /* 0x358 */ MR::Vector< MR::FixedArray< DemoTalkAnimCtrl*, 8 > > mTalkAnimCtrl;
     /* 0x37C */ MR::Vector< MR::FixedArray< DemoTalkMessageCtrl, 8 > > mTalkMessageCtrl;
-    bool _SMG2_3CC;  // SMG2
+    /* 0x3CC */ bool mIsStoryBookStarting;
     bool _SMG2_3CD;  // SMG2
 };

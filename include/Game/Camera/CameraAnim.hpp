@@ -69,6 +69,7 @@ public:
 
     void setParam(u8*, f32, bool = false);
     bool isAnimEnd() const;
+    void setFrame(f32) NO_INLINE;
     static u32 getAnimFrame(u8*);
     bool loadBin(u8*);
 

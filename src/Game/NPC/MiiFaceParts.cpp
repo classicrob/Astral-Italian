@@ -10,7 +10,7 @@
 #include <RVLFaceLib.h>
 
 MiiFaceParts::MiiFaceParts(const char* pName, const MiiFaceRecipe& rRecipe)
-    : LiveActor(pName), mCharModel(nullptr), _90(nullptr), mRecipe(nullptr), _CC(nullptr), _D0(false) {
+    : LiveActor(pName), mCharModel(nullptr), mModelBuffer(nullptr), mRecipe(nullptr), mFixedPosition(nullptr), mNeedsModelReinit(false) {
     mRecipe = new MiiFaceRecipe(rRecipe);
 
     MR::createSceneObj(SceneObj_MiiFacePartsHolder);
@@ -20,35 +20,35 @@ MiiFaceParts::~MiiFaceParts() {
 }
 
 void MiiFaceParts::init(const JMapInfoIter& rIter) {
-    _90 = new (32) u8[mRecipe->getModelBufferSize()];
+    mModelBuffer = new (32) u8[mRecipe->getModelBufferSize()];
     mCharModel = new RFLCharModel;
-    _D1 = true;
+    mIsModelUninitialized = true;
 }
 
 void MiiFaceParts::calcAnim() {
-    if (_CC != nullptr) {
-        _CC->calc();
-        MR::setPosition(this, _C8[0][3], _C8[1][3], _C8[2][3]);
-        PSMTXCopy(_C8, _98);
+    if (mFixedPosition != nullptr) {
+        mFixedPosition->calc();
+        MR::setPosition(this, mFollowMtx[0][3], mFollowMtx[1][3], mFollowMtx[2][3]);
+        PSMTXCopy(mFollowMtx, mModelMtx);
     } else {
-        MR::makeMtxTR(_98, mPosition, mRotation);
+        MR::makeMtxTR(mModelMtx, mPosition, mRotation);
     }
-    MR::preScaleMtx(_98, mScale);
+    MR::preScaleMtx(mModelMtx, mScale);
 }
 
 void MiiFaceParts::calcViewAndEntry() {
     Mtx viewMtx;
 
-    if (_D1) {
+    if (mIsModelUninitialized) {
         return;
     }
 
-    MR::multMtx(viewMtx, _98, j3dSys.mViewMtx);
+    MR::multMtx(viewMtx, mModelMtx, j3dSys.mViewMtx);
     RFLSetMtx(mCharModel, viewMtx);
 }
 
 void MiiFaceParts::drawOpa(const RFLDrawCoreSetting* pSetting) const {
-    if (_D1) {
+    if (mIsModelUninitialized) {
         return;
     }
 
@@ -60,7 +60,7 @@ void MiiFaceParts::drawOpa(const RFLDrawCoreSetting* pSetting) const {
 }
 
 void MiiFaceParts::drawXlu(const RFLDrawCoreSetting* pSetting) const {
-    if (_D1) {
+    if (mIsModelUninitialized) {
         return;
     }
 
@@ -72,8 +72,8 @@ void MiiFaceParts::drawXlu(const RFLDrawCoreSetting* pSetting) const {
 }
 
 void MiiFaceParts::initFixedPosition(MtxPtr pParam1, const TVec3f& rParam2, const TVec3f& rParam3) {
-    _CC = new FixedPosition(pParam1, rParam2, rParam3);
-    _C8 = _CC->mMtx;
+    mFixedPosition = new FixedPosition(pParam1, rParam2, rParam3);
+    mFollowMtx = mFixedPosition->mMtx;
 }
 
 void MiiFaceParts::changeExpressionNormal() {
@@ -92,18 +92,18 @@ void MiiFaceParts::changeFaceModel(const MiiFaceRecipe& rRecipe) {
         mRecipe->setDatabase(rRecipe.mMiddleDB);
     }
 
-    _D0 = true;
+    mNeedsModelReinit = true;
 }
 
 void MiiFaceParts::initFaceModel() {
-    mRecipe->initFaceModel(mCharModel, _90);
+    mRecipe->initFaceModel(mCharModel, mModelBuffer);
 
-    _D0 = false;
-    _D1 = false;
+    mNeedsModelReinit = false;
+    mIsModelUninitialized = false;
 }
 
 bool MiiFaceParts::tryChangeExpression(u32 expression) {
-    if (_D1) {
+    if (mIsModelUninitialized) {
         return false;
     }
 

@@ -69,10 +69,10 @@ PackunPetit::PackunPetit(const char* pName)
 
 namespace {
     struct TurnParam {
-        f32 _0;
-        f32 _4;
-        f32 _8;
-        f32 _C;
+        /* 0x00 */ f32 mMoveAccel;
+        /* 0x04 */ f32 mGravityAccel;
+        /* 0x08 */ f32 mVelocityDamping;
+        /* 0x0C */ f32 mTurnMaxDegree;
     };
 
     const TurnParam sTurnParam = {0.0f, 3.0f, 0.98f, 0.0f};
@@ -372,7 +372,7 @@ void PackunPetit::control() {
     tryDPDSwoon();
 
     if (mUseGroundMovement) {
-        MR::moveAndTurnToPlayer(this, &mFront, sTurnParam._0, sTurnParam._4, sTurnParam._8, sTurnParam._C);
+        MR::moveAndTurnToPlayer(this, &mFront, sTurnParam.mMoveAccel, sTurnParam.mGravityAccel, sTurnParam.mVelocityDamping, sTurnParam.mTurnMaxDegree);
     }
 
     if (!isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvEaten)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown))) {

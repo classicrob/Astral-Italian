@@ -39,6 +39,10 @@ void AudSystemVolumeController::setSeVolumeSetLevel(s32 volumeSet, s32 fadeTime,
 }
 
 void AudSystemVolumeController::updateSeVolumeSetLevel() {
+    if (mSystem->isMenuOrErrorActive()) {
+        return;
+    }
+
     if (mVolumeSetDelay > 0) {
         mVolumeSetDelay--;
     }

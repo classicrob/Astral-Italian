@@ -133,7 +133,7 @@ namespace DemoFunction {
         LiveActor* actor = MR::getSceneObj<LiveActor>(0x89);
         DemoExecutor* executor = getDemoDirector()->mExecutor;
         if (!executor) return false;
-        if (executor->_SMG2_3CC) return false;
+        if (executor->mIsStoryBookStarting) return false;
         DemoActionKeeper* keeper = executor->mActionKeeper;
         DemoActionInfo* info = keeper->findInfo(actor, getCurrentDemoPartNameMain(nullptr));
         return info ? info->mActionType == 19 : false;

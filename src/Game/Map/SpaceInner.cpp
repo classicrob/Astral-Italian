@@ -1,6 +1,7 @@
 #include "Game/Map/SpaceInner.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
@@ -15,7 +16,7 @@ SpaceInner::SpaceInner(const char* pName) : LiveActor(pName) {
 
 void SpaceInner::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("SpaceInner", 0, false);
+    MR::initActor(this, rIter, "SpaceInner", false);
     MR::connectToSceneSky(this);
     initNerve(GET_NERVE(SpaceInner, HostTypeAppear));
     MR::invalidateClipping(this);
@@ -24,7 +25,7 @@ void SpaceInner::init(const JMapInfoIter& rIter) {
 }
 
 void SpaceInner::calcAnim() {
-    mPosition.set(MR::getCamPos());
+    MR::setPosition(this, MR::getCamPos());
     LiveActor::calcAnim();
 }
 

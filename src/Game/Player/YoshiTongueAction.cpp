@@ -939,7 +939,7 @@ void YoshiTongueAction::fn_804210B0() {
 }
 
 bool YoshiTongueAction::tryStartNearestAutoEat(const TVec3f& position) {
-    if (fn_801EFAB0()) return false;
+    if (isPopoSticking()) return false;
     _A0 = nullptr;
     s32 count = mYoshi->getAutoEatSensorCount();
     if (!count) return false;
@@ -974,13 +974,13 @@ bool YoshiTongueAction::tryStartNearestAutoEat(const TVec3f& position) {
 }
 
 bool YoshiTongueAction::fn_8041F970() const {
-    if (fn_801EFAB0()) return false;
+    if (isPopoSticking()) return false;
     if (isNerve(&NrvYoshiTongueAction::State0::sInstance)) return true;
     return isNerve(&NrvYoshiTongueAction::State1::sInstance);
 }
 bool YoshiTongueAction::fn_8041F9E0() const {
     bool result = false;
-    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) && !fn_801EFAB0()) result = true;
+    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) && !isPopoSticking()) result = true;
     return result;
 }
 bool YoshiTongueAction::fn_804206E0() {
@@ -1056,8 +1056,8 @@ void YoshiTongueAction::fn_8041DFD0() {
     if (mYoshi->fn_8040F5B0("口を閉じる") && mYoshi->fn_8040F5F0()) mYoshi->fn_8040EE70(nullptr);
     MR::fn_8005E5B0(this);
     if (MR::testCorePadTriggerB(0)) {
-        if (fn_801EFAB0()) {
-            fn_801EFB40();
+        if (isPopoSticking()) {
+            tryReactStickingPopo();
             return;
         }
         mTarget->takeLockOnTargets();
@@ -1123,7 +1123,7 @@ void YoshiTongueAction::fn_8041E470() {
         fn_804217B0();
         fn_80420230(nullptr);
         if (!isNerve(&NrvYoshiTongueAction::State1::sInstance)) {
-            if (fn_801EFAB0() || !isNerve(&NrvYoshiTongueAction::State3::sInstance)) {
+            if (isPopoSticking() || !isNerve(&NrvYoshiTongueAction::State3::sInstance)) {
                 _60 = false;
                 setNerve(&NrvYoshiTongueAction::State7::sInstance);
                 return;

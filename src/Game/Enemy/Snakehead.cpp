@@ -28,14 +28,14 @@ public:
 
 namespace {
     struct SnakeheadData {
-        const s32* _0;
-        const s32* _4;
-        const f32* _8;
-        const char* _C;
-        const char* _10;
-        const char* _14;
-        const char* _18;
-        const char* _1C;
+        /* 0x00 */ const s32* mWaitFrames;
+        /* 0x04 */ const s32* mRestFrames;
+        /* 0x08 */ const f32* mDefeatReturnSpeed;
+        /* 0x0C */ const char* mAppearBck;
+        /* 0x10 */ const char* mWaitAction;
+        /* 0x14 */ const char* mForwardAction;
+        /* 0x18 */ const char* mForwardSmokeEffect;
+        /* 0x1C */ const char* mBackAction;
     };
 
     static const f32 sDefaultForwardSpeed = 15.0f;
@@ -132,9 +132,9 @@ void Snakehead::init(const JMapInfoIter& rIter) {
 
     initEffectKeeper(1, nullptr, false);
 
-    if (::getParam(mType)->_18 != nullptr) {
+    if (::getParam(mType)->mForwardSmokeEffect != nullptr) {
         mEffectPos = mPosition;
-        MR::setEffectHostSRT(this, ::getParam(mType)->_18, &mEffectPos, nullptr, nullptr);
+        MR::setEffectHostSRT(this, ::getParam(mType)->mForwardSmokeEffect, &mEffectPos, nullptr, nullptr);
     }
 
     initSound(4, "Snakehead", nullptr, TVec3f(0.0f));
@@ -296,7 +296,7 @@ void Snakehead::exeWait() {
         choiceAndStartBck("Wait");
     }
 
-    if (MR::isGreaterEqualStep(this, *::getParam(mType)->_0) && (isMove() || isNearPlayerFromRail())) {
+    if (MR::isGreaterEqualStep(this, *::getParam(mType)->mWaitFrames) && (isMove() || isNearPlayerFromRail())) {
         setNerve(GET_NERVE(Snakehead, SnakeheadNrvMoveForward));
     }
 }
@@ -322,7 +322,7 @@ void Snakehead::exeMoveForward() {
 }
 
 void Snakehead::exeRest() {
-    if (MR::isStep(this, *::getParam(mType)->_4)) {
+    if (MR::isStep(this, *::getParam(mType)->mRestFrames)) {
         setNerve(GET_NERVE(Snakehead, SnakeheadNrvMoveBack));
     }
 }
@@ -355,7 +355,7 @@ void Snakehead::exeTurtleDown() {
         MR::startActionSound(this, "EvSnakeheadDamage");
     }
 
-    f32 coord = *::getParam(mType)->_8;
+    f32 coord = *::getParam(mType)->mDefeatReturnSpeed;
     if (MR::isRailReachedNearGoal(this, ::sStartCoord + coord)) {
         MR::setRailCoord(this, ::sStartCoord);
         MR::moveTransToCurrentRailPos(this);
@@ -445,13 +445,13 @@ bool Snakehead::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
 void Snakehead::choiceAndStartBck(const char* pBck) {
     const char* v1 = nullptr;
     if (MR::isEqualString(pBck, "Forward")) {
-        v1 = ::getParam(mType)->_14;
+        v1 = ::getParam(mType)->mForwardAction;
     } else if (MR::isEqualString(pBck, "Back")) {
-        v1 = ::getParam(mType)->_1C;
+        v1 = ::getParam(mType)->mBackAction;
     } else if (MR::isEqualString(pBck, "Waylay")) {
-        v1 = ::getParam(mType)->_C;
+        v1 = ::getParam(mType)->mAppearBck;
     } else if (MR::isEqualString(pBck, "Wait")) {
-        v1 = ::getParam(mType)->_10;
+        v1 = ::getParam(mType)->mWaitAction;
     }
 
     if (v1 != nullptr) {

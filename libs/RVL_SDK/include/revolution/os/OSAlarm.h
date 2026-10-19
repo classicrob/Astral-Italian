@@ -29,6 +29,7 @@ void OSSetPeriodicAlarm(OSAlarm *, OSTime, OSTime, OSAlarmHandler);
 void OSCancelAlarm(OSAlarm *);
 void OSCancelAlarms(u32);
 void __OSSetInternalAlarmUserData(OSAlarm *, void *);
+void __OSCancelInternalAlarms(void *);
 void OSSetAlarmUserData(OSAlarm *, void *);
 void* OSGetAlarmUserData(const OSAlarm *);
 

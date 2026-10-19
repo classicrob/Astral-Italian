@@ -1,49 +1,40 @@
 #include "revolution.h"
+#include "private/iosrestypes.h"
+#include <cstring>
 
-static s32 IpcFdArray[32];
-static u32 IpcReqPtrArray[32];
+#define IPC_PROFILE_REQUEST_COUNT 96
+#define IPC_PROFILE_HANDLE_COUNT 128
+#define IPC_PROFILE_PATH_LENGTH 48
+
+static IOSResourceRequest IpcRequests[IPC_PROFILE_REQUEST_COUNT] = {0};
+static IOSResourceRequest* IpcPending[IPC_PROFILE_REQUEST_COUNT];
+static OSTime IpcQueuedAt[IPC_PROFILE_REQUEST_COUNT];
+static char IpcHandlePaths[IPC_PROFILE_HANDLE_COUNT][IPC_PROFILE_PATH_LENGTH];
+static char IpcPendingPaths[IPC_PROFILE_REQUEST_COUNT][IPC_PROFILE_PATH_LENGTH];
 
 static u32 IpcNumPendingReqs = 0;
 static u32 IpcNumUnIssuedReqs = 0;
 
-static void AddReqInfo(void *, s32);
-static void DelReqInfo(void *, s32);
-
-static s32 IPCGetQueueStatus(u32 i) {
-    if (i > 32) {
-        return -1;
-    }
-    return IpcFdArray[i];
-}
+static void AddReqInfo(IOSResourceRequest* req);
+static void DelReqInfo(IOSResourceRequest* req);
 
 void IPCiProfInit(void) {
     u32 i;
-
     IpcNumPendingReqs = 0;
     IpcNumUnIssuedReqs = 0;
-
-    for (i = 0; i < 32; ++i) {
-        IpcReqPtrArray[i] = 0;
-        IpcFdArray[i] = -1;
+    for (i = 0; i < IPC_PROFILE_REQUEST_COUNT; ++i) {
+        IpcPending[i] = NULL;
+        IpcQueuedAt[i] = 0;
     }
+    memset(IpcHandlePaths, 0, sizeof(IpcHandlePaths));
+    memset(IpcPendingPaths, 0, sizeof(IpcPendingPaths));
+    memset(IpcRequests, 0, sizeof(IpcRequests));
 }
 
-void IPCiProfQueueReq(void *req, s32 fd) {
+void IPCiProfQueueReq(void* req, s32 fd) {
     ++IpcNumPendingReqs;
     ++IpcNumUnIssuedReqs;
-    AddReqInfo(req, fd);
-}
-
-static void AddReqInfo(void* ptr, s32 fd) {
-    u32 i;
-
-    for (i = 0; i < 32; ++i) {
-        if (IpcReqPtrArray[i] == 0 && IpcFdArray[i] == -1) {
-            IpcReqPtrArray[i] = (u32)ptr;
-            IpcFdArray[i] = fd;
-            break;
-        }
-    }
+    AddReqInfo((IOSResourceRequest*)req);
 }
 
 void IPCiProfAck(void) {
@@ -52,16 +43,47 @@ void IPCiProfAck(void) {
 
 void IPCiProfReply(void* req, s32 fd) {
     --IpcNumPendingReqs;
-    DelReqInfo(req, fd);
+    DelReqInfo((IOSResourceRequest*)req);
 }
 
-static void DelReqInfo(void* ptr, s32 fd) {
+static void AddReqInfo(IOSResourceRequest* req) {
     u32 i;
+    for (i = 0; i < IPC_PROFILE_REQUEST_COUNT; ++i) {
+        if (IpcPending[i] == NULL) {
+            BOOL enabled = OSDisableInterrupts();
+            IpcPending[i] = req;
+            IpcRequests[i] = *req;
+            IpcQueuedAt[i] = OSGetTime();
+            if (IpcRequests[i].cmd == 1) {
+                strncpy(IpcPendingPaths[i], (const char*)OSPhysicalToCached(IpcRequests[i].args.open.path),
+                        IPC_PROFILE_PATH_LENGTH - 1);
+                IpcPendingPaths[i][IPC_PROFILE_PATH_LENGTH - 1] = '\0';
+                IpcRequests[i].args.open.path = (u8*)IpcPendingPaths[i];
+            }
+            OSRestoreInterrupts(enabled);
+            break;
+        }
+    }
+}
 
-    for (i = 0; i < 32; ++i) {
-        if (IpcReqPtrArray[i] == (u32)ptr && IpcFdArray[i] == fd) {
-            IpcReqPtrArray[i] = 0;
-            IpcFdArray[i] = -1;
+static void DelReqInfo(IOSResourceRequest* req) {
+    u32 i;
+    for (i = 0; i < IPC_PROFILE_REQUEST_COUNT; ++i) {
+        if (req == IpcPending[i] && req->handle == IpcRequests[i].cmd) {
+            BOOL enabled = OSDisableInterrupts();
+            if (IpcRequests[i].cmd == 1 && req->status >= 0) {
+                strncpy(IpcHandlePaths[req->status], (const char*)IpcRequests[i].args.open.path,
+                        IPC_PROFILE_PATH_LENGTH - 1);
+                IpcHandlePaths[req->status][IPC_PROFILE_PATH_LENGTH - 1] = '\0';
+                memset(IpcPendingPaths[i], 0, IPC_PROFILE_PATH_LENGTH);
+            }
+            if (IpcRequests[i].cmd == 2) {
+                memset(IpcHandlePaths[IpcRequests[i].handle], 0, IPC_PROFILE_PATH_LENGTH);
+            }
+            IpcPending[i] = NULL;
+            memset(&IpcRequests[i], 0, sizeof(IOSResourceRequest));
+            IpcQueuedAt[i] = 0;
+            OSRestoreInterrupts(enabled);
             break;
         }
     }

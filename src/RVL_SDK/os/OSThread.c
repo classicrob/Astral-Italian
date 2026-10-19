@@ -458,6 +458,8 @@ void OSExitThread(void* val) {
 void OSCancelThread(OSThread* thread) {
     BOOL enabled = OSDisableInterrupts();
 
+    __OSCancelInternalAlarms(thread);
+
     switch (thread->state) {
     case OS_THREAD_STATE_READY:
         if (!IsSuspended(thread->suspend)) {
@@ -678,7 +680,9 @@ OSPriority OSGetThreadPriority(OSThread* thread) {
 }
 
 static void SleepAlarmHandler(OSAlarm* alarm, OSContext* context) {
-    OSResumeThread((OSThread*)OSGetAlarmUserData(alarm));
+    if (__OSIsThreadActive((OSThread*)OSGetAlarmUserData(alarm))) {
+        OSResumeThread((OSThread*)OSGetAlarmUserData(alarm));
+    }
 }
 
 void OSSleepTicks(OSTime tick) {

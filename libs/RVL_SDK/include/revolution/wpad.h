@@ -244,6 +244,36 @@ typedef struct WPADCLStatus {
     u8 clTriggerR;
 } WPADCLStatus;
 
+// MotionPlus report: only the shared prefix and extension-status byte are decoded here.
+typedef struct WPADMPStatus {
+    WPADStatus core;
+    u8 extension[12];
+    u8 status;
+    u8 reserved[9];
+} WPADMPStatus;
+
+// Balance-board and vendor analog reports share the 0x2A-byte core prefix.
+typedef struct WPADBLStatus {
+    WPADStatus core;
+    u16 pressure[4];
+    s8 temperature;
+    u8 battery;
+    u8 reserved[12];
+} WPADBLStatus;
+typedef struct WPADPercussionStatus {
+    WPADStatus core;
+    u16 button;
+    u8 force[2];
+    u8 reserved[18];
+} WPADPercussionStatus;
+typedef struct WPADAnalogStatus {
+    WPADStatus core;
+    u16 button;
+    s16 axis[4];
+    u8 trigger[2];
+    u8 reserved[10];
+} WPADAnalogStatus;
+
 typedef struct WPADAcc {
     s16 x;
     s16 y;
@@ -419,6 +449,18 @@ u8 WPADGetSensorBarPosition(void);
 s32 WPADProbe(s32 chan, u32* type);
 s32 WPADGetStatus(void);
 
+// Address names retained for compiled-out SDK board providers. Signatures come
+// from every KPAD caller; actual target bodies return 0/0/0/-1/-1/-1.
+BOOL fn_805E7BE0(void);
+BOOL fn_805E7BF0(void);
+BOOL fn_805E7C00(u8 battery);
+s32 fn_805E7C10(const WPADBLStatus* report, f64* weight, u32 count);
+s32 fn_805E7C20(const f64* weight, u32 count);
+s32 fn_805E7C30(f64* result, const WPADBLStatus* report, f64 totalWeight);
+s32 WPADControlBLC(s32 chan, u8 command, WPADCallback callback);
+s32 WPADiControlMpls(s32 chan, u8 mode, WPADCallback callback);
+u8 WPADiGetMplsStatus(s32 chan);
+void WPADSetCallbackByKPAD(BOOL enabled);
 void WPADInit(void);
 u8 WPADGetDpdSensitivity(void);
 

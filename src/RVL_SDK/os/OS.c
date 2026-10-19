@@ -55,7 +55,7 @@ static __OSExceptionHandler* OSExceptionTable;
 static void OSExceptionInit(void);
 void OSDefaultExceptionHandler( __OSException exception, OSContext* context );
 
-static const char* __OSVersion = "<< RVL_SDK - OS \trelease build: Jan 30 2008 01:38:43 (0x4199_60831) >>";
+static const char* __OSVersion = "<< RVL_SDK - OS \trelease build: Dec 11 2009 15:58:32 (0x4302_145) >>";
 
 asm void __OSFPRInit(void) {
     nofralloc
@@ -348,7 +348,7 @@ static void CheckTargets(void) {
             break;
         case 0x81:
             OSReport("OS ERROR: boot program is not for RVL target. Please use correct boot program.\n");
-            OSPanic(__FILE__, 0x47E, "Failed to run app");
+            OSPanic(__FILE__, 0x488, "Failed to run app");
             break;
         default:
             break;
@@ -359,7 +359,7 @@ static void CheckTargets(void) {
             break;
         case 0x81:
             OSReport("OS ERROR: apploader[D].img is not for RVL target. Please use correct apploader[D].img.\n");
-            OSPanic(__FILE__, 0x490, "Failed to run app");
+            OSPanic(__FILE__, 0x49A, "Failed to run app");
             break;
         default:
             break;
@@ -382,7 +382,7 @@ static void ReportOSInfo(void) {
     void* MEM2Lo;
 
     OSReport("\nRevolution OS\n");
-    OSReport("Kernel built : %s %s\n", "Jan 30 2008", "01:38:43");
+    OSReport("Kernel built : %s %s\n", "Dec 11 2009", "15:58:32");
     OSReport("Console Type : " );
 
     consoleType = OSGetConsoleType();
@@ -459,9 +459,11 @@ static void ReportOSInfo(void) {
     OSReport("MEM2 Arena : 0x%x - 0x%x\n", MEM2Lo, MEM2Hi);
 }
 
+// NONMATCHING: compiler removes unused IOS revision fields; equivalent branch/arena-default code and pool symbols differ.
 void OSInit(void) {
     void* bi2StartAddr;
     void* arenaAddr;
+    void* defaultArenaLo = (void*)OSRoundUp32B(__ArenaLo);
 
     if (AreWeInitialized != FALSE) {
         return;
@@ -508,9 +510,9 @@ void OSInit(void) {
     arenaAddr = (void*)*(u32*)OSPhysicalToCached(0x310C);
 
     if (arenaAddr == NULL) {
-        if (OSIsMEM1Region((void*)__ArenaLo)) {
+        if (OSIsMEM1Region(defaultArenaLo)) {
             void* tmp = BootInfo->arenaLo;
-            arenaAddr = tmp == NULL ? (void*)__ArenaLo : tmp;
+            arenaAddr = tmp == NULL ? defaultArenaLo : tmp;
         
             if (!BootInfo->arenaLo&& (BI2DebugFlag && (*(BI2DebugFlag) < 2))) {
                 arenaAddr = (void*)OSRoundUp32B(_stack_addr);
@@ -535,8 +537,8 @@ void OSInit(void) {
     arenaAddr = (void*)*(u32*)OSPhysicalToCached(0x3124);
 
     if (arenaAddr != 0) {
-        if (OSIsMEM2Region((void*)__ArenaLo)) {
-            arenaAddr = (void*)__ArenaLo;
+        if (OSIsMEM2Region(defaultArenaLo)) {
+            arenaAddr = defaultArenaLo;
 
             if ((BI2DebugFlag && (*(BI2DebugFlag) < 2))) {
                 arenaAddr = (void*)OSRoundUp32B(_stack_addr);
@@ -607,6 +609,28 @@ void OSInit(void) {
 
     if (!__OSInIPL) {
         CheckTargets();
+        {
+            OSIOSRev ios;
+            u32 requiredVersion;
+            GXColor background = {0, 0, 255, 0};
+            GXColor foreground = {255, 255, 255, 0};
+
+            __OSGetIOSRev(&ios);
+            requiredVersion = *(u32*)OSPhysicalToCached(0x3188);
+            if (ios.major != (requiredVersion >> 16) ||
+                (ios.major == (requiredVersion >> 16) &&
+                 ((ios.major << 16) | (ios.minor << 8) | ios.micro) < requiredVersion)) {
+                OSReport("OS ERROR: This firmware is an improper version for this SDK. Please use a correct Firmware.\n");
+                OSFatal(foreground, background,
+                        "\n\nERROR #002\nAn error has occurred.\n"
+                        "Press the Eject Button, remove the\n"
+                        "Game Disc, and turn off the power to \n"
+                        "the console. \n"
+                        "Please read the Wii Operations Manual \n"
+                        "for further instructions.\n");
+                OSPanic(__FILE__, 0x4DB, "Failed to run app");
+            }
+        }
         DVDInit();
 
         if (__OSIsGcam) {

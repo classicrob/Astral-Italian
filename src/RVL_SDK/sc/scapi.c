@@ -104,7 +104,7 @@ u8 SCGetSoundMode(void) {
     if (!SCFindU8Item(&mode, SC_ITEM_ID_IPL_SOUND_MODE)) {
         mode = SC_SOUND_MODE_DEFAULT;
     } else {
-        if (mode != SC_SOUND_MODE_MONO && mode != SC_SOUND_MODE_STEREO && mode != SC_SOUND_MODE_SURROUND) {
+        if (mode > SC_SOUND_MODE_SURROUND) {
             mode = SC_SOUND_MODE_DEFAULT;
         }
     }

@@ -24,14 +24,20 @@ static const char* MIMETypeSuffix[] = {
 };
 
 static const char* CharsetStr[] = {
-    "euc-jp",     "iso-2022-jp", "iso-8859-1", "iso-8859-10", "iso-8859-15", "iso-8859-2", "iso-8859-3", "iso-8859-5",
-    "iso-8859-7", "iso-8859-9",  "shift_jis",  "us-ascii",    "utf-16be",    "utf-32be",   "utf-8",      "windows-1252",
+    "euc-jp", "euc-kr", "gb2312", "iso-2022-jp",
+    "iso-8859-1", "iso-8859-10", "iso-8859-15", "iso-8859-2",
+    "iso-8859-3", "iso-8859-5", "iso-8859-7", "iso-8859-9",
+    "shift_jis", "us-ascii", "utf-16be", "utf-32be",
+    "utf-8", "windows-1252",
 };
 
 static NWC24Charset CharsetConv[] = {
-    NWC24_EUC_JP,     NWC24_ISO_2022_JP, NWC24_ISO_8859_1, NWC24_ISO_8859_10,  NWC24_ISO_8859_15, NWC24_ISO_8859_2,
-    NWC24_ISO_8859_3, NWC24_ISO_8859_5,  NWC24_ISO_8859_7, NWC24_ISO_8859_9,   NWC24_SHIFT_JIS,   NWC24_US_ASCII,
-    NWC24_UTF_16BE,   NWC24_UTF_32BE,    NWC24_UTF_8,      NWC24_WINDOWS_1252,
+    NWC24_EUC_JP, NWC24_EUC_KR, NWC24_GB_2312,
+    NWC24_ISO_2022_JP, NWC24_ISO_8859_1, NWC24_ISO_8859_10,
+    NWC24_ISO_8859_15, NWC24_ISO_8859_2, NWC24_ISO_8859_3,
+    NWC24_ISO_8859_5, NWC24_ISO_8859_7, NWC24_ISO_8859_9,
+    NWC24_SHIFT_JIS, NWC24_US_ASCII, NWC24_UTF_16BE,
+    NWC24_UTF_32BE, NWC24_UTF_8, NWC24_WINDOWS_1252,
 };
 
 static const char* EncodingStr[] = {

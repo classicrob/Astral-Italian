@@ -2,6 +2,7 @@
 #include "private/OSLoMem.h"
 #include "private/flipper.h"
 #include "revolution/dvd.h"
+#include "revolution/esp.h"
 #include "revolution/os.h"
 #include "revolution/os/OSExecParams.h"
 #include "revolution/pad.h"
@@ -242,8 +243,10 @@ static void KillThreads(void) {
     }
 }
 
-void __OSReturnToMenu(u8 menuMode) {
+static void __OSReturnToMenu(u8 menuMode) {
     OSStateFlags state;
+    ESTicketView* ticket;
+    s32 result;
 
     __OSStopPlayRecord();
     __OSUnRegisterStateEvent();
@@ -254,6 +257,29 @@ void __OSReturnToMenu(u8 menuMode) {
     state.menuMode = menuMode;
     __OSClearRTCFlags();
     __OSWriteStateFlags(&state);
+
+    OSSetArenaLo((void*)0x81280000);
+    OSSetArenaHi((void*)0x812F0000);
+    result = ESP_InitLib();
+    if (result != 0) {
+        __OSReturnToMenuForError();
+    }
+
+    ticket = (ESTicketView*)OSAllocFromMEM1ArenaLo(OSRoundUp32B(sizeof(ESTicketView)), 32);
+    if (ticket == NULL) {
+        __OSReturnToMenuForError();
+    }
+    memset(ticket, 0, OSRoundUp32B(sizeof(ESTicketView)));
+    result = ESP_DiGetTicketView(NULL, ticket);
+    if (result == 0 && OSPlayTimeIsLimited()) {
+        __OSPlayTimeType type = OSPLAYTIME_PERMANENT;
+        u32 remaining = 0xFFFFFFFF;
+        __OSGetPlayTime(ticket, &type, &remaining);
+        if (remaining == 0) {
+            __OSWriteExpiredFlagIfSet();
+        }
+    }
+
     OSDisableScheduler();
     __OSShutdownDevices(5);
     OSEnableScheduler();
@@ -265,12 +291,12 @@ void __OSReturnToMenu(u8 menuMode) {
 
 void OSReturnToMenu(void) {
     __OSReturnToMenu(0);
-    OSPanic(__FILE__, 0x348, "OSReturnToMenu(): Falied to boot system menu.\n");
+    OSPanic(__FILE__, 0x37F, "OSReturnToMenu(): Falied to boot system menu.\n");
 }
 
 void OSReturnToDataManager(void) {
     __OSReturnToMenu(1);
-    OSPanic(__FILE__, __LINE__, "OSReturnToDataManager(): Falied to boot system menu.\n");
+    OSPanic(__FILE__, 0x391, "OSReturnToDataManager(): Falied to boot system menu.\n");
 }
 
 void OSReturnToSetting(u8 setting) {
@@ -326,7 +352,7 @@ void __OSReturnToMenuForError(void) {
     OSDisableScheduler();
     __VISetRGBModeImm();
     __OSHotResetForError();
-    OSPanic(__FILE__, 0x3BB, "__OSReturnToMenu(): Falied to boot system menu.\n");
+    OSPanic(__FILE__, 0x3F2, "__OSReturnToMenu(): Falied to boot system menu.\n");
 }
 
 void __OSHotResetForError(void) {
@@ -336,7 +362,7 @@ void __OSHotResetForError(void) {
 
     __OSHotReset();
 
-    OSPanic(__FILE__, 0x3D3, "__OSHotReset(): Falied to reset system.\n");
+    OSPanic(__FILE__, 0x40A, "__OSHotReset(): Falied to reset system.\n");
 }
 
 u32 OSGetResetCode(void) {
@@ -352,7 +378,7 @@ u32 OSGetResetCode(void) {
 }
 
 void OSResetSystem(int, u32, int) {
-    OSPanic(__FILE__, 1130, "OSResetSystem() is obsoleted. It doesn't work any longer.\n");
+    OSPanic(__FILE__, 0x4A1, "OSResetSystem() is obsoleted. It doesn't work any longer.\n");
 }
 
 u32 OSSetBootDol(u32 dolOffset) {

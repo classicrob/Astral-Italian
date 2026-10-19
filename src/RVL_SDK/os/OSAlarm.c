@@ -285,3 +285,23 @@ void OSSetAlarmUserData(OSAlarm* alarm, void *userData) {
 void* OSGetAlarmUserData(const OSAlarm* alarm) {
     return alarm->userData;
 }
+
+void __OSCancelInternalAlarms(void* userData) {
+    BOOL enabled;
+    OSAlarm* alarm;
+    OSAlarm* next;
+
+    enabled = OSDisableInterrupts();
+    alarm = AlarmQueue.head;
+    next = alarm ? alarm->next : NULL;
+
+    while (alarm != NULL) {
+        if (alarm->tag == (u32)-1 && alarm->userData == userData) {
+            OSCancelAlarm(alarm);
+        }
+        alarm = next;
+        next = alarm ? alarm->next : NULL;
+    }
+
+    OSRestoreInterrupts(enabled);
+}

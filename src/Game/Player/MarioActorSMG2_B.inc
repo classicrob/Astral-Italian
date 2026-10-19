@@ -233,7 +233,7 @@ void MarioActor::fn_803CAA00() {
 
 void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData* d) {
     const char* bck = b;
-    if (F(u8, 0xFB9) == 0) {
+    if (this->_B91 == 0) {
         if (static_cast<s32>(_468) == 0) {
             this->mMario->stopAnimationUpperForce();
         }
@@ -523,7 +523,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
 }
 
 void MarioActor::fn_803CBA90(bool a, bool b) {
-    if (F(u8, 0x516) != 0) {
+    if (this->mTransforming != 0) {
         MR::endDemo(this, "マリオ変身");
         this->mTransforming = 0;
     }
@@ -562,14 +562,14 @@ void MarioActor::fn_803CBB30(bool b) {
         this->mPowerupCollected = 0;
     }
     this->_945 = 0;
-    F(s16, 0xE3E) = 0;
+    reinterpret_cast<s16&>(this->_946) = 0;
     this->mSpinRadius = 0.0f;
     this->mSpinHeight = 0.0f;
     for (int i = 0; i < 0x80; i++) {
         mSpinNoise[i] = 0.0f;
     }
-    F(s16, 0xE42) = 0;
-    F(s16, 0xE44) = 0;
+    reinterpret_cast<s16&>(this->_948) = 0;
+    reinterpret_cast<s16&>(this->_94C) = 0;
     this->updateFairyStar();
 }
 
@@ -598,7 +598,7 @@ void MarioActor::fn_803CCE60(HitSensor* a, s16 b) {
     this->mMarioAnim->fn_803DDD80(a);
     if (!this->mMario->isSwimming()) {
         if (BITAT(this->mMario, 0xC, 0x1E) && this->_B92 != -3) {
-            F(s16, 0x6B8) = b;
+            reinterpret_cast<s16&>(this->_38C) = b;
         }
         mVelocity.zero();
         (this->mMario)->mWalkSpeed = 0.0f;
@@ -634,7 +634,7 @@ bool MarioActor::fn_803CD000() {
     if (_934 != 0) {
         return false;
     }
-    if (F(s32, 0x6B0) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
         return false;
     }
     if (this->mMario->isDamaging()) {
@@ -650,7 +650,7 @@ bool MarioActor::fn_803CD0A0() {
     if (_934 != 0) {
         return false;
     }
-    if (F(s32, 0x6B0) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
         return false;
     }
     if (this->_3AC != 0) {
@@ -713,7 +713,7 @@ bool MarioActor::fn_803CD2C0() {
 }
 
 bool MarioActor::fn_803CD380() {
-    if (F(s32, 0x6B0) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
         return false;
     }
     if (this->_3D8 != 0) {
@@ -726,7 +726,7 @@ bool MarioActor::fn_803CD3C0() {
     if (_934 != 0) {
         return false;
     }
-    if (F(s32, 0x6B0) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
         return false;
     }
     if (this->_3AC != 0) {
@@ -846,7 +846,7 @@ namespace MR {
 }
 
 void MarioActor::fn_803CE8A0(HitSensor* s) {
-    if (F(u8, 0x768) != 0) {
+    if (this->_480 != 0) {
         if (s == nullptr) {
             this->_480 = 0;
             return;
@@ -877,7 +877,7 @@ void MarioActor::fn_803CE8A0(HitSensor* s) {
 
 
 void MarioActor::fn_803CE9D0(HitSensor* s) {
-    if (F(s32, 0x1054) == 0) {
+    if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
         _494->calc();
         TVec3f t, r;
         FP(_494, TPos3f, 0x1C).getTrans(t);
@@ -893,7 +893,7 @@ void MarioActor::fn_803CE9D0(HitSensor* s) {
 }
 
 void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
-    if (F(s32, 0x1054) == 0) {
+    if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
         Mtx tmp;
         PSMTXConcat(this->getBaseMtx(), mMainJointMatrix4A8.mMtx, tmp);
         PSMTXCopy(tmp, MR::getJ3DModel(mNullAnimation)->getBaseTRMtx());
@@ -924,7 +924,7 @@ void MarioActor::fn_803CEBC0() {
             drill = true;
         }
         if (drill) {
-            if (_934 == 0 && F(s32, 0x1054) == 0) {
+            if (_934 == 0 && reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
                 _494->calc();
                 TVec3f t;
                 FP(_494, TPos3f, 0x1C).getTrans(t);
@@ -1083,7 +1083,7 @@ bool MarioActor::fn_803CFCA0(HitSensor* s) {
 
 // NONMATCHING: sensor-loop register allocation and verified constant-pool addresses.
 HitSensor* MarioActor::fn_803D0CE0(s32 a) {
-    if (F(s32, 0x6B0) == 0 || F(s32, 0xE20) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0 || reinterpret_cast<s32&>(this->_930) == 0) {
         return nullptr;
     }
     f32 best = 100000.0f;
@@ -1125,7 +1125,7 @@ HitSensor* MarioActor::fn_803D0E40(s32 a) {
         if (!this->mMario->isDamaging()) {
             u32 i = 0;
             s32 off = 0;
-            while (i < (u32)F(s32, 0xE20)) {
+            while (i < (u32)reinterpret_cast<s32&>(this->_930)) {
                 HitSensor* cur = _7E4[i];
                 if (mActionTable1080->testEffect(MR::getSensorHost(cur)->mName, "HD中ラッシュ")) {
                     return cur;
@@ -1146,7 +1146,7 @@ bool MarioActor::fn_803D0F60(HitSensor* s) {
     if (s == nullptr) {
         return false;
     }
-    if (F(s32, 0x6B0) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
         return false;
     }
     if (m->isStatusActive(0x13)) {
@@ -1168,7 +1168,7 @@ bool MarioActor::fn_803D11C0() {
     if (BITAT(m, 0xC, 9)) {
         return true;
     }
-    if (F(s32, 0x6B0) == 0) {
+    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
         return true;
     }
     if (m->fn_8038CCF0()) {
@@ -1377,7 +1377,7 @@ void MarioActor::fn_803D5A00(u32 idx) {
 // NONMATCHING: Equivalent typed-member address reuse and saved-register allocation.
 void MarioActor::fn_803D32F0() {
     mWallShadow574->mActive = 0;
-    if (F(u8, 0xEFC) == 0 && F(u8, 0xEF8) == 0) {
+    if (this->mGroundReflectionEFC == 0 && this->mWaterReflectionEF8 == 0) {
         if (F(u8, 0xEF9) != 0) {
             return;
         }
@@ -1933,7 +1933,7 @@ void MarioActor::endMovement() {
 }
 
 void MarioActor::fn_803D9710() {
-    F(s16, 0x552) = 0;
+    reinterpret_cast<s16&>(this->_1A8) = 0;
     this->mBlinkRequested1067 = 1;
 }
 
@@ -1943,10 +1943,10 @@ void MarioActor::fn_803D9730() {
 
 void MarioActor::fn_803D9740() {
     if (gIsLuigi) {
-        if (this->mMaxHealth != 3 && (u32)F(s32, 0x6B0) <= 3) {
+        if (this->mMaxHealth != 3 && (u32)reinterpret_cast<s32&>(this->mHealth) <= 3) {
             this->mMaxHealth = 3;
         }
-    } else if (this->mMaxHealth != 3 && (u32)F(s32, 0x6B0) <= 3) {
+    } else if (this->mMaxHealth != 3 && (u32)reinterpret_cast<s32&>(this->mHealth) <= 3) {
         this->mMaxHealth = 3;
     }
 }

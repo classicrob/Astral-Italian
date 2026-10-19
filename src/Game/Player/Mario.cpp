@@ -784,6 +784,10 @@ bool Mario::isNonFixHeadVec() const {
         return true;
     }
 
+    if (isAnimationRun("水泳ジェット")) {
+        return true;
+    }
+
     if (isStatusActive(MarioStatus_Wall)) {
         return true;
     }
@@ -800,11 +804,19 @@ bool Mario::isNonFixHeadVec() const {
         return true;
     }
 
+    if (isStatusActive(MarioStatus_YoshiBalloon)) {
+        return true;
+    }
+
     if (((mMovementStates.mHighWord >> 0) & 3U)) {
         return true;
     }
 
     if (mActor->_EA5) {
+        return true;
+    }
+
+    if (isPlayerModeYoshi() && mActor->fn_803B9810()->fn_8041F8B0()) {
         return true;
     }
 
@@ -4840,10 +4852,17 @@ bool Mario::damage(const TVec3f& rDirection) {
     mDamage->setVec(rDirection);
     stopWalk();
     forceStopTornado();
-    mActor->damageDropThrowMemoSensor();
     if (isStatusActive(MarioStatus_Damage)) {
         closeStatus(mDamage);
     }
+
+    if (isPlayerModeYoshi() && isStatusActive(MarioStatus_Swim)) {
+        closeStatus(mSwim);
+    }
+    if (isStatusActive(MarioStatus_FpView)) {
+        closeStatus(mFpView);
+    }
+    mActor->damageDropThrowMemoSensor();
 
     mMovementStates.mLowWord |= 0x00000010U;
     return true;
@@ -5866,9 +5885,19 @@ bool Mario::faint(const TVec3f& rVec) {
         return false;
     }
 
-    mFaint->setVec(rVec);
+    if (isPlayerModeYoshi()) {
+        if (isStatusActive(MarioStatus_Swim)) {
+            closeStatus(mSwim);
+        }
+        mDamage->_34 = rVec;
+    } else {
+        mFaint->setVec(rVec);
+    }
     stopWalk();
     forceStopTornado();
+    if (isStatusActive(MarioStatus_FpView)) {
+        closeStatus(mFpView);
+    }
     mActor->damageDropThrowMemoSensor();
 
     if (getCurrentStatus() != MarioStatus_Faint) {

@@ -485,7 +485,7 @@ public:
     void resetCondition();
     bool isFixJumpRushSensor(const HitSensor*) const;
     bool isLandEffectRushSensor(const HitSensor*) const;
-    void beginRush();
+    void beginRush(HitSensor*);
 
     bool takeSensor(HitSensor*);
 
@@ -685,8 +685,7 @@ public:
 
     // Defined in MarioActorMorph
     void setPlayerMode(u16, bool, bool);
-    void resetPlayerModeOnDamage();
-    void resetPlayerModeOnNoDamage();
+    void applyAutoBindPlayerMode(u32);
     void updatePlayerMode();
     void touchSensor(HitSensor*);
     void initMorphStringTable();
@@ -724,7 +723,7 @@ public:
     HitSensor* getNearestJumpTarget() const;
     HitSensor* getHighPriorityTarget() const;
     HitSensor* getRescueTarget() const;
-    bool tryStartRush(bool);
+    bool tryStartRush(HitSensor*, bool);
     bool tryJumpRush();
     void tryRushInRush();
 
@@ -1014,7 +1013,7 @@ public:
         struct { u8 _padGravity594[0xC]; TVec3f mPreviousGravityVec; };
     };
     /* 0x5AC */ TVec3f _258;  // SMG2 offset guess-gap
-    /* 0x5B8 */ TVec3f _1F0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x5B8 */ union { TVec3f _1F0; TVec3f mRushVelocityBackup5B8; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5C4 */ TVec3f _1FC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5D0 */ const AreaObj* _20C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5D4 */ u8 _210;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1064,14 +1063,16 @@ public:
     /* 0x6D0 */ u16 _3AA;
     /* 0x6D2 */ u16 _3AC;
     /* 0x6D4 */ f32 _3B0;
+    union { TVec3f mPressNormal6D8; struct {
     /* 0x6D8 */ u32 _388;  // SMG2 offset inh-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6DC */ u8 _39E;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6DD */ u8 _pad6DD[0x3];
     /* 0x6E0 */ f32 _490;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
+    }; };
     /* 0x6E4 */ bool _3C0;
     /* 0x6E5 */ bool _3C1;
     /* 0x6E6 */ u8 _pad6E6[0x2];
-    /* 0x6E8 */ TVec3f _3B4;  // SMG2 offset inh-gap  // SMG2 offset inh  // SMG2 offset inh
+    /* 0x6E8 */ union { TVec3f _3B4; TVec3f mRushFront6E8; };  // SMG2 offset inh-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6F4 */ u16 _3D0;
     /* 0x6F6 */ u16 _3D2;
     /* 0x6F8 */ u16 mPlayerMode;
@@ -1174,8 +1175,10 @@ public:
     };
     /* 0xE14 */ HitSensor* _924;
     /* 0xE18 */ HitSensor* _928;
-    /* 0xE1C */ u16 _F1A;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
-    /* 0xE1E */ u16 _F18;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
+    union { u32 mLastRushEndFrameE1C; struct {
+    /* 0xE1C */ u16 _F1A;
+    /* 0xE1E */ u16 _F18;
+    }; };
     /* 0xE20 */ u32 _930;
     /* 0xE24 */ bool _934;
     /* 0xE25 */ u8 _7E2;
@@ -1383,7 +1386,7 @@ public:
     };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1050 */ bool _FCC;
     /* 0x1051 */ bool _FCD;
-    /* 0x1052 */ union { u16 _B88; struct { u8 _pad1052; u8 mDashWallHit1053; }; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
+    /* 0x1052 */ union { u16 _B88; struct { union { u8 _pad1052; u8 mFlag1052; }; u8 mDashWallHit1053; }; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
     union {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
         struct {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
             /* 0x1054 */ Mtx* _A70[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
@@ -1394,6 +1397,8 @@ public:
         struct { u8 _padInput1054[0x10]; u8 mFlag1064; u8 _padFlag1065; bool mInputDisabled1066; bool mBlinkRequested1067; };
         struct { u8 _padCondition1054[0x34]; MarioActorConditionGroup* mConditionGroup; };
         struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; MarioScreenStrip* mScreenStrip1084; };
+        u32 mRushAnimationDelay1054;
+        struct { u8 _padCarry1054[4]; TVec3f mCarryAnimationPosition1058; };
         /* 0x1054 */ Mtx* mLegacyBlurMatrices[2][8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     /* 0x1094 */ union { MarioActionHash* mActionHash; void* _B44; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset guess

@@ -513,7 +513,17 @@ bool Mario::isEnableSideHang() {
 }
 
 void MarioHang::recordWallPolygon(const Triangle* pTriangle) {
-    *_20 = *pTriangle;
+    Triangle* triangle = _20;
+    triangle->mParts = pTriangle->mParts;
+    triangle->mIdx = pTriangle->mIdx;
+    triangle->mSensor = pTriangle->mSensor;
+    triangle->mNormals[0] = pTriangle->mNormals[0];
+    triangle->mNormals[1] = pTriangle->mNormals[1];
+    triangle->mNormals[2] = pTriangle->mNormals[2];
+    triangle->mNormals[3] = pTriangle->mNormals[3];
+    triangle->mPos[0] = pTriangle->mPos[0];
+    triangle->mPos[1] = pTriangle->mPos[1];
+    triangle->mPos[2] = pTriangle->mPos[2];
     mWallSensor = pTriangle->mSensor;
     TPos3f matrix;
     MR::makeMtxWithoutScale(&matrix, *_20->getBaseInvMtx());
@@ -569,64 +579,32 @@ bool MarioHang::start() {
     return true;
 }
 
+// NONMATCHING: equivalent state increment, stack and ignored addTrans tag setup.
 bool MarioHang::update() {
-    getPlayer()->mDrawStates._A = false;
-    TPos3f matrix;
-    matrix.identity();
-    MR::makeMtxWithoutScale(&matrix, *_20->getBaseMtx());
-    TVec3f normal;
-    PSMTXMultVecSR(matrix.toMtxPtr(), &_28, &normal);
-    getPlayer()->setFrontVecKeepUp(-normal);
-    _34 = normal;
     _14++;
-    if (_16) {
-        _16--;
-        if (!_16) {
-            _1A = 1;
-        } else {
-            return true;
-        }
+    mActor->damageDropThrowMemoSensor();
+    getPlayer()->mDrawStates._A = false;
+    fn_803ED7E0();
+    getPlayer()->setFrontVecKeepUp(-_34);
+    if (fn_803ED840())
+        return false;
+    if (!fn_803ED870()) {
+        if (fn_803ED940())
+            return false;
+    } else {
+        fn_803ED990();
+        fn_803EDA20();
     }
-
-    if (_1A) {
+    if (fn_803EDAC0()) {
+        fn_803ED8C0();
         return false;
     }
-
-    if (MR::isSameMtx(_20->getBaseMtx()->toMtxPtr(), _20->getPrevBaseMtx()->toMtxPtr())) {
-        if (getPlayer()->_8D4 != nullptr) {
-            addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
-            mActor->setBlendMtxTimer(16);
-            stopAnimation("崖つかまり中", "基本");
-            return false;
-        }
-    } else {
-        if (getPlayer()->mMovementStates._1A && _14 > 2) {
-            TVec3f movement(mActor->getLastMove());
-            if (movement.dot(getPlayer()->getSideWallNorm()) < 0.0f) {
-                _1C = 1;
-            }
-        }
-
-        Mario* pPlayer = getPlayer();
-        if (pPlayer->_184.dot(getFrontVec()) > 0.707f && getPlayer()->_4E4 < 45.0f && !isAnimationRun("崖つかまり開始")) {
-            _1C = 1;
-        }
+    if (fn_803EDD70()) {
+        fn_803ED8C0();
+        return false;
     }
-
-    if (getPlayer()->_8D4 != nullptr) {
-        Mario* pPlayer = getPlayer();
-        if (mWallSensor != pPlayer->_8D4) {
-            addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
-            mActor->setBlendMtxTimer(16);
-            stopAnimation("崖つかまり中", "基本");
-            return false;
-        }
-    }
-
     if (_1C) {
-        addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
-        mActor->setBlendMtxTimer(16);
-        stopAnimation("崖つかまり中", "基本");
+        fn_803ED8C0();
         return false;
     }
 
@@ -634,9 +612,7 @@ bool MarioHang::update() {
     case 0:
         if (getPlayer()->mVerticalSpeed < 160.0f) {
             if (getPlayer()->getShadowNorm().dot(getGravityVec()) < -0.707f) {
-                addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
-                mActor->setBlendMtxTimer(16);
-                stopAnimation("崖つかまり中", "基本");
+                fn_803ED8C0();
                 return false;
             }
         }
@@ -651,17 +627,15 @@ bool MarioHang::update() {
 
         break;
     case 1:
-        if (calcAngleD(getPlayer()->_368) > 5.0f) {
-            changeAnimationNonStop("崖つかまり終了坂");
-            changeAnimation(nullptr, "基本");
-        } else {
-            changeAnimation("崖つかまり終了", "基本");
-        }
-
+        if (!fn_803EDB30())
+            _1C = 1;
+        fn_803EDE40();
         playSound("声崖つかまり終了");
         _12++;
         return true;
     case 2:
+        if (!fn_803EDB30())
+            _1C = 1;
         if (!getPlayer()->mMovementStates._1) {
             addVelocity(getFrontVec() * 6.0f);
         }
@@ -675,9 +649,7 @@ bool MarioHang::update() {
     }
 
     if (_1C) {
-        addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
-        mActor->setBlendMtxTimer(16);
-        stopAnimation("崖つかまり中", "基本");
+        fn_803ED8C0();
         return false;
     }
 
@@ -712,7 +684,7 @@ bool MarioHang::update() {
         if (isAnimationRun("崖つかまり開始") && getAnimator()->getFrame() < 20.0f) {
             _1D = 1;
         } else {
-            addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
+            getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
             mActor->setBlendMtxTimer(16);
             Mario* pPlayer = getPlayer();
             pPlayer->_3C0 = 0;
@@ -762,9 +734,10 @@ bool MarioHang::close() {
     return true;
 }
 
+// NONMATCHING: vector operand scheduling and ignored addTrans tag setup.
 bool MarioHang::notice() {
     if (getNoticedStatus() == MarioStatus_Faint) {
-        addTrans(getPlayer()->mFrontVec * -150.0f, "Module");
+        getPlayer()->addTrans(getPlayer()->mFrontVec * -150.0f, "Module");
         mActor->setBlendMtxTimer(16);
         stopAnimation("崖つかまり中", "基本");
     }
@@ -772,6 +745,7 @@ bool MarioHang::notice() {
     return false;
 }
 
+// NONMATCHING: register allocation and ignored addTrans tag setup.
 void MarioHang::tryClimb(bool jump) {
     if (_12) {
         return;
@@ -781,29 +755,20 @@ void MarioHang::tryClimb(bool jump) {
         return;
     }
 
-    Triangle frontTriangle;
-    if (MR::getFirstPolyOnLineToMap(nullptr, &frontTriangle, getTrans() - getGravityVec() * 30.0f, getFrontVec() * 60.0f)) {
+    if (!fn_803EDB30())
         return;
-    }
-
     u32 i;
     for (i = 0; i < 3; i++) {
-        Triangle sideTriangle;
-        Mario* pPlayer = getPlayer();
-        Mario* pSidePlayer = getPlayer();
-        bool left = MR::getFirstPolyOnLineToMap(nullptr, &sideTriangle, getTrans() - getGravityVec() * 30.0f - pSidePlayer->mSideVec * 15.0f,
-                                                pPlayer->mSideVec * 55.0f);
-        bool right = MR::getFirstPolyOnLineToMap(nullptr, &sideTriangle, getTrans() - getGravityVec() * 30.0f + getPlayer()->mSideVec * 15.0f,
-                                                 getPlayer()->mSideVec * -55.0f);
+        bool left = fn_803EDBD0();
+        bool right = fn_803EDCA0();
         if (right && left) {
             _1C = 1;
             return;
         }
-
         if (left) {
-            addTrans(getPlayer()->mSideVec * -15.0f, "Module");
+            getPlayer()->addTrans(getPlayer()->mSideVec * -15.0f, "Module");
         } else if (right) {
-            addTrans(getPlayer()->mSideVec * 15.0f, "Module");
+            getPlayer()->addTrans(getPlayer()->mSideVec * 15.0f, "Module");
         } else {
             break;
         }
@@ -815,7 +780,7 @@ void MarioHang::tryClimb(bool jump) {
     }
 
     if (isAnimationRun("崖つかまり開始")) {
-        if (_1E && jump && getAnimationFrame() < 30.0f) {
+        if (_1E && jump && getFrame() < 30.0f) {
             _16 = 5;
             changeAnimationNonStop("つかまりスリップアップ準備");
         }
@@ -827,10 +792,10 @@ void MarioHang::tryClimb(bool jump) {
     _12 = 1;
     _14 = 0;
 }
+// NONMATCHING: vector addition inlines to copy and add operations.
 bool MarioHang::postureCtrl(MtxPtr pMatrix) {
     TVec3f up;
-    TVec3f direction(getPlayer()->mHeadVec);
-    direction += _34;
+    TVec3f direction = getPlayer()->mHeadVec + _34;
     if (MR::isNearZero(direction)) {
         return false;
     }
@@ -852,4 +817,106 @@ bool MarioHang::postureCtrl(MtxPtr pMatrix) {
     }
 
     return true;
+}
+
+void MarioHang::fn_803ED7E0() {
+    TPos3f matrix;
+    matrix.identity();
+    MR::makeMtxWithoutScale(&matrix, *_20->getBaseMtx());
+    PSMTXMultVecSR(matrix.toMtxPtr(), &_28, &_34);
+}
+
+// NONMATCHING: boolean normalization of the byte flag.
+bool MarioHang::fn_803ED840() {
+    if (_16) {
+        _16--;
+        if (!_16)
+            _1A = 1;
+    }
+    return _1A;
+}
+
+bool MarioHang::fn_803ED870() {
+    return MR::isSameMtx(_20->getBaseMtx()->toMtxPtr(), _20->getPrevBaseMtx()->toMtxPtr());
+}
+
+// NONMATCHING: vector operand scheduling and ignored addTrans tag setup.
+void MarioHang::fn_803ED8C0() {
+    getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
+    mActor->setBlendMtxTimer(16);
+    stopAnimation("崖つかまり中", "基本");
+}
+
+bool MarioHang::fn_803ED940() {
+    if (getPlayer()->_8D4 == nullptr)
+        return false;
+    fn_803ED8C0();
+    return true;
+}
+
+// NONMATCHING: equivalent flag extraction.
+void MarioHang::fn_803ED990() {
+    if (getPlayer()->mMovementStates._1A && _14 > 2) {
+        MarioActor* actor = mActor;
+        const TVec3f& normal = getPlayer()->getSideWallNorm();
+        if (actor->getLastMove().dot(normal) < 0.0f)
+            _1C = 1;
+    }
+}
+
+// NONMATCHING: equivalent comparison/register scheduling.
+void MarioHang::fn_803EDA20() {
+    Mario* player = getPlayer();
+    if (!(player->_184.dot(getFrontVec()) <= 0.707f)) {
+        if (!(getPlayer()->_4E4 >= 45.0f) && !isAnimationRun("崖つかまり開始"))
+            _1C = 1;
+    }
+}
+
+// NONMATCHING: equivalent boolean folding.
+bool MarioHang::fn_803EDAC0() {
+    bool result = false;
+    if (getPlayer()->_8D4 != nullptr && mWallSensor != getPlayer()->_8D4)
+        result = true;
+    return result;
+}
+
+bool MarioHang::fn_803EDB30() {
+    Triangle triangle;
+    return !getPlayer()->fn_803B2770(nullptr, &triangle, getTrans() - getGravityVec() * 30.0f, getFrontVec() * 60.0f);
+}
+
+bool MarioHang::fn_803EDBD0() {
+    Triangle triangle;
+    Mario* player = getPlayer();
+    Mario* sidePlayer = getPlayer();
+    return getPlayer()->fn_803B2770(nullptr, &triangle, getTrans() - getGravityVec() * 30.0f - sidePlayer->mSideVec * 15.0f,
+                                  player->mSideVec * 55.0f);
+}
+
+#pragma dont_inline on
+bool MarioHang::fn_803EDCA0() {
+    Triangle triangle;
+    Mario* player = getPlayer();
+    Mario* sidePlayer = getPlayer();
+    return getPlayer()->fn_803B2770(nullptr, &triangle, getTrans() - getGravityVec() * 30.0f + sidePlayer->mSideVec * 15.0f,
+                                  player->mSideVec * -55.0f);
+}
+
+bool MarioHang::fn_803EDD70() {
+    Triangle triangle;
+    return getPlayer()->fn_803B2770(nullptr, &triangle, getTrans() + getGravityVec() * 30.0f + getFrontVec() * 60.0f,
+                                  -getFrontVec() * 100.0f);
+}
+
+#pragma dont_inline off
+
+// NONMATCHING: equivalent early return branch folding.
+void MarioHang::fn_803EDE40() {
+    if (calcAngleD(getPlayer()->_368) > 5.0f) {
+        changeAnimationNonStop("崖つかまり終了坂");
+        changeAnimation(nullptr, "基本");
+    } else {
+        changeAnimation("崖つかまり終了", "基本");
+    }
 }

@@ -576,15 +576,33 @@ void Mario::fn_803A56C0() {
     }
 }
 
-// NONMATCHING: 2D/wall-press side checks approximated from the draft
+// NONMATCHING: saved register allocation and independent load scheduling.
 void Mario::fn_803A6BE0() {
-    s32 var_r31 = 0;
-    if (((FLD<u32>(this, 0x10) >> 30) & 1) != 0) {
-        var_r31 = 0;
+    bool press = false;
+    if (_95C->getCode(_4C8) != 29) {
+        if (_95C->getCode(_4C8) != 39 && MR::isSensorPressObj(_730)) {
+            TVec3f projected;
+            if (MR::vecKillElement(_184, *getGravityVec(), &projected) < -0.5f) press = true;
+            else {
+                TVec3f current;
+                TVec3f previous;
+                MR::extractMtxTrans(_730->mHost->mCollisionParts->mBaseMatrix, &current);
+                MR::extractMtxTrans(_730->mHost->mCollisionParts->mPrevBaseMatrix, &previous);
+                TVec3f movement(current);
+                movement -= previous;
+                if (MR::vecKillElement(movement, *getGravityVec(), &projected) < -0.5f) press = true;
+            }
+        }
     }
-    if (FLD<s32>(this, 0x730) != 0 && var_r31 != 0) {
-        FLD<TVec3f>(this->mActor, 0x6D8) = FLD<TVec3f>(this, 0x368);
-        this->mActor->setPress(0, 0);
+    bool grounded = (mMovementStates_LOW_WORD >> 30) & 1;
+    if (grounded) {
+        const char* name = mGroundPolygon->mSensor->mHost->mName;
+        if (strstr(name, "TriPod") || strstr(name, "Tripod")) press = false;
+    }
+    if (grounded && _730 == mGroundPolygon->mSensor) press = false;
+    if (_730 != nullptr && press) {
+        mActor->mPressNormal6D8 = _368;
+        mActor->setPress(0, 0);
     }
 }
 

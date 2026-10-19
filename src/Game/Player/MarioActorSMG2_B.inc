@@ -1163,7 +1163,7 @@ bool MarioActor::fn_803D0F60(HitSensor* s) {
         return false;
     }
     F(TVec3f, 0x38).zero();
-    this->beginRush();
+    this->beginRush(s);
     return true;
 }
 

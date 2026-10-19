@@ -6413,6 +6413,11 @@ Game/Player/MarioClimb.cpp:
 	.text       start:0x803E2410 end:0x803E2620
 	.data       start:0x806DC608 end:0x806DC650
 
+Game/Player/MarioConst.cpp:
+	.text       start:0x803E2620 end:0x803E4290
+	.data       start:0x806DC650 end:0x806DC690
+	.bss        start:0x80729C68 end:0x8072B3F0
+
 Game/Player/MarioDamage.cpp:
 	.text       start:0x803E4290 end:0x803E6610
 	.rodata     start:0x8064BDE0 end:0x8064BE28
@@ -6482,7 +6487,7 @@ Game/Player/MarioHairAndHatModel.cpp:
 	.sbss       start:0x807D4E90 end:0x807D4EA0
 
 Game/Player/MarioHang.cpp:
-	.text       start:0x803ECB50 end:0x803ED7E0
+	.text       start:0x803ECB50 end:0x803EDED0
 	.data       start:0x806DD5E8 end:0x806DD630
 
 Game/Player/MarioHolder.cpp:

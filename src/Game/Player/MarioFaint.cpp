@@ -108,6 +108,7 @@ bool MarioFaint::update() {
     return true;
 }
 
+// NONMATCHING: stack temporaries, registers and independent floating-point loads.
 bool MarioFaint::start() {
     mTimer = 0;
     _16 = 0;
@@ -137,7 +138,10 @@ bool MarioFaint::start() {
 
     if (!mNoDamage) {
         mActor->decLife(0);
-        mActor->resetPlayerModeOnDamage();
+        TVec3f reaction(_18);
+        reaction.scale(0.5f);
+        mActor->fn_803BE8D0(reaction);
+        mActor->fn_803B94E0();
 
         if (mActor->mHealth == 0) {
             if (!getPlayer()->getMovementStates()._1) {
@@ -151,7 +155,7 @@ bool MarioFaint::start() {
     }
 
     mNoDamage = false;
-    mActor->resetPlayerModeOnNoDamage();
+    mActor->fn_803B9560();
     return true;
 }
 

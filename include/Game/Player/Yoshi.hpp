@@ -226,7 +226,7 @@ public:
     void fn_8040EE70(const char*);
     void fn_8040ED90(const char*);
     void fn_8040EDE0(const char*);
-    f32 fn_8040F180() const;
+    static f32 fn_8040F180();
     void fn_8040F3C0();
     void fn_804107D0() NO_INLINE;
     bool fn_80411860() const;

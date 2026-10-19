@@ -20,6 +20,7 @@ namespace MR {
     bool isFloorPolygon(f32);
     bool isCeilingPolygon(f32);
     bool isWaterPolygon(const Triangle*);
+    bool isGroundCodePress(const Triangle*);
     bool isThroughPolygon(const Triangle*);
     bool getFirstPolyOnLineToMap(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
     bool getFirstPolyOnLineToMapAndMoveLimit(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);

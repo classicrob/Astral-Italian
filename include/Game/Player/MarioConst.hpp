@@ -532,8 +532,13 @@ struct MarioConstTable {
     /* 0x78A */ u16 mTornadoHoldTime;  // SMG2 offset guess
     /* 0x78C */ u16 mMetalHoldTime;  // SMG2 offset guess
     /* 0x78E */ u16 mFireModeTime;  // SMG2 offset guess
-    /* 0x790 */ u16 mIceModeTime;  // SMG2 offset guess
-    /* 0x792 */ u8 _pad792[0x6];
+    union {
+        struct {
+            /* 0x790 */ u16 mIceModeTime;
+            /* 0x792 */ u8 _pad792[0x6];
+        };
+        struct { u8 _pad790[4]; u32 mDrillCarryAnimationDelay794; };
+    };
     /* 0x798 */ f32 mHeadAngleFixMargin;
     /* 0x79C */ f32 mFrontAngleFixMargin;
     /* 0x7A0 */ u16 mCameraHeadRotationTimer;  // SMG2 offset inh
@@ -575,6 +580,8 @@ public:
     }
 
 private:
+    void loadTable(MarioConstTable*, const char*) NO_INLINE;
+
     /// @brief The array of player character constant tables.
     /* 0x00 */ MarioConstTable* mTable[3];  // SMG2: 3 tables (mCurrentTable read at 0xC)
 

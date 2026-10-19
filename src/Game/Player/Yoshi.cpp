@@ -2409,7 +2409,7 @@ void Yoshi::fn_8040F0A0(){mFruitCtrl->_10=false;}
 void Yoshi::fn_8040F0B0(){YoshiFruitCtrl* fruit=mFruitCtrl;fruit->_11=true;fruit->_10=false;}
 void Yoshi::fn_8040F0D0(){mFruitCtrl->_11=false;}
 void Yoshi::fn_8040F110(){mDashTimer=480;MR::startCenterScreenBlur(35,15.0f,80,5,30);MR::startActionSound(this,"Dash",-1,-1,-1);}
-f32 Yoshi::fn_8040F180()const{return 1.8f;}
+f32 Yoshi::fn_8040F180(){return 1.8f;}
 bool Yoshi::fn_8040F230(const JMapInfoIter& iter){
     if(MR::isDemoExist("ヨッシー出会いデモ")){
         TalkMessageCtrl* talk=MR::createTalkCtrlDirectOnRootNodeAutomatic(this,iter,"DemoMeetYoshi",TVec3f(0.0f,0.0f,0.0f),nullptr);

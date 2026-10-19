@@ -21,6 +21,20 @@ public:
     void forceDrop();
     void tryClimb(bool);
 
+    void fn_803ED7E0() NO_INLINE;
+    bool fn_803ED840() NO_INLINE;
+    bool fn_803ED870() NO_INLINE;
+    void fn_803ED8C0() NO_INLINE;
+    bool fn_803ED940() NO_INLINE;
+    void fn_803ED990() NO_INLINE;
+    void fn_803EDA20() NO_INLINE;
+    bool fn_803EDAC0() NO_INLINE;
+    bool fn_803EDB30() NO_INLINE;
+    bool fn_803EDBD0() NO_INLINE;
+    bool fn_803EDCA0() NO_INLINE;
+    bool fn_803EDD70() NO_INLINE;
+    void fn_803EDE40() NO_INLINE;
+
     /* 0x12 */ u16 _12;
     /* 0x14 */ u16 _14;
     /* 0x16 */ u16 _16;

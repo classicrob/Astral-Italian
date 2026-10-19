@@ -2860,6 +2860,7 @@ config.libs = [
             Object(NonMatching, "Game/Player/MarioBlown.cpp"),
             Object(NonMatching, "Game/Player/MarioBump.cpp"),
             Object(NonMatching, "Game/Player/MarioClimb.cpp"),
+            Object(NonMatching, "Game/Player/MarioConst.cpp"),
             Object(NonMatching, "Game/Player/MarioCrush.cpp"),
             Object(NonMatching, "Game/Player/MarioStun.cpp"),
             Object(NonMatching, "Game/Player/MarioFreeze.cpp"),

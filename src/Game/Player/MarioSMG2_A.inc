@@ -2063,3 +2063,164 @@ void Mario::fn_8038B9F0() {
 void Mario::fn_80395400(u32 arg) {
     this->pushTask(&Mario::taskOnEffectCheck, arg);
 }
+
+// NONMATCHING: independent load scheduling and register allocation.
+void Mario::updateWalkSpeed() {
+    f32 target = getTargetWalkSpeed();
+    f32 ramp = 1.0f;
+    MarioConst* constants;
+    if (target == 0.0f) {
+        constants = mActor->mConst;
+        _404 = FLD<u16>(constants->mTable[constants->mCurrentTable], 0x282);
+    }
+    u16 remaining = _404;
+    if (remaining != 0) {
+        constants = mActor->mConst;
+        u16 duration = FLD<u16>(constants->mTable[constants->mCurrentTable], 0x282);
+        _404 = remaining - 1;
+        ramp = static_cast<f32>(duration - remaining) / static_cast<f32>(duration);
+    }
+    target *= ramp * ramp;
+    if (((mMovementStates_LOW_WORD >> 16) & 1) || isStatusActive(17)) {
+        constants = mActor->mConst;
+        target *= constants->mTable[constants->mCurrentTable]->mTornadoMultiply;
+    }
+    s32 wasSquatting = (mMovementStates_LOW_WORD >> 21) & 1;
+    if (wasSquatting && ((_1C_WORD >> 16) & 1)) {
+        fn_803A6BE0();
+    } else {
+        mMovementStates_LOW_WORD &= 0xFFDFFFFF;
+        if (_436 == 0 && _434 == 0 && checkSquat(false) && mSinkTimer <= 32 && !isStatusActive(31)) {
+            if (!checkLockOnHoming()) mMovementStates_LOW_WORD |= 0x200000;
+            if (!wasSquatting) {
+                u32 flags = mMovementStates_LOW_WORD;
+                if (((flags >> 21) & 1) && (((flags >> 23) & 1) || ((mMovementStates_HIGH_WORD >> 13) & 1))) {
+                    mTargetWalkSpeedIndex = 0;
+                    mWalkSpeed = 0.0f;
+                }
+            }
+        }
+        if (((_1C_WORD >> 16) & 1) && !((mMovementStates_LOW_WORD >> 21) & 1) && isAnimationRun("しゃがみ終了")) mMovementStates_LOW_WORD |= 0x200000;
+        u32 flags = mMovementStates_LOW_WORD;
+        if (!((flags >> 21) & 1) && wasSquatting) {
+            mMovementStates_LOW_WORD = flags | 0x200000;
+            cancelSquatMode();
+            _71E = 0;
+        }
+    }
+    if (_3D0 != 0) target = 0.0f;
+    if ((mMovementStates_LOW_WORD >> 15) & 1) target = 0.0f;
+    f32 inertia = decideInertia(target);
+    if (sPreviousInertiaName != sInertiaName) sPreviousInertiaName = sInertiaName;
+    if (mCometFireDanceArea && mTargetWalkSpeedIndex != 0) {
+        inertia = 1.0f;
+        target = inertia;
+        mWalkSpeed = 1.5f;
+    }
+    if (!((mMovementStates_LOW_WORD >> 21) & 1) && (getPlayerMode() == 1 || mCometFireDanceArea)) {
+        f32 speed = mWalkSpeed;
+        if (speed >= 0.9999f) {
+            constants = mActor->mConst;
+            target *= FLD<f32>(constants->mTable[constants->mCurrentTable], 0x274);
+            if (target > speed) inertia = 0.99f;
+            if (getPlayer()->mWalkSpeed >= 1.5f) getAnimator()->changeTrackAnim(2, "メタルダッシュ");
+        } else getAnimator()->fn_803DEC10();
+    }
+    if (fn_803B1C10()) {
+        target = Yoshi::fn_8040F180();
+        inertia = 0.9f;
+        cancelSquatMode();
+    }
+    if (isPlayerModeYoshi() && getAnimator()->isAnimationRun("基本")) {
+        if (mActor->fn_803B97F0()->mDashTimer > 0) {
+            getAnimator()->changeTrackAnim(0, "ヨッシーダッシュ");
+            getAnimator()->changeTrackAnim(1, "ヨッシーダッシュ");
+            getAnimator()->changeTrackAnim(2, "ヨッシーダッシュ");
+            FLD<u8>(this, 0xA70) = 1;
+        } else if (FLD<u8>(this, 0xA70) != 0) {
+            getAnimator()->changeTrackAnim(0, "ヨッシー鈍行");
+            getAnimator()->changeTrackAnim(1, "ヨッシー歩行");
+            getAnimator()->changeTrackAnim(2, "ヨッシーラン");
+            FLD<u8>(this, 0xA70) = 0;
+        }
+    }
+    mWalkSpeed = mWalkSpeed * inertia + target * static_cast<f32>(256 - mSinkTimer) * 0.00390625f * (1.0f - inertia);
+}
+
+// NONMATCHING: independent loads and temporary/register allocation.
+f32 Mario::decideInertia(f32 speed) {
+    sInertiaName = "スケート";
+    if (isStatusActive(31)) return decideInertiaOnIce(speed);
+    sInertiaName = "速度超過";
+    if (mWalkSpeed > 1.0f) {
+        MarioConst* c = mActor->mConst;
+        return FLD<f32>(c->mTable[c->mCurrentTable], 0x258);
+    }
+    sInertiaName = "床";
+    u32 flags = mMovementStates_HIGH_WORD;
+    if ((flags >> 11) & 1) return decideInertiaOnIce(speed);
+    if ((flags >> 10) & 1) return decideInertiaOnSlip(speed);
+    sInertiaName = "基本";
+    MarioConst* c = mActor->mConst;
+    MarioConstTable* table = c->mTable[c->mCurrentTable];
+    f32 base = (1.0f - mWalkSpeed) * FLD<f32>(table, 0x228) + mWalkSpeed * FLD<f32>(table, 0x22C);
+    f32 inertia = base * (1.0f - _3F4) + _3F4 * FLD<f32>(table, 0x254);
+    if (base != inertia) sInertiaName = "空転";
+    if (speed == 0.0f) {
+        sInertiaName = "停止";
+        c = mActor->mConst;
+        inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x238);
+        if ((mMovementStates_LOW_WORD >> 15) & 1) {
+            sInertiaName = "ターン滑り";
+            c = mActor->mConst;
+            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x240);
+        }
+        if (!((mMovementStates_LOW_WORD >> 15) & 1) && isAnimationRun("歩行制動ブレーキ")) {
+            sInertiaName = "ターン後滑り";
+            c = mActor->mConst;
+            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x244);
+        }
+        if ((mMovementStates_LOW_WORD >> 27) & 1) {
+            sInertiaName = "ターン中";
+            c = mActor->mConst;
+            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x248);
+        }
+        if (_3CE < 30) {
+            sInertiaName = "ジャンプ終了";
+            c = mActor->mConst;
+            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x24C);
+        }
+        if ((mMovementStates_LOW_WORD >> 21) & 1) {
+            sInertiaName = "しゃがみ";
+            c = mActor->mConst;
+            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x23C);
+        }
+    }
+    if ((mMovementStates_LOW_WORD >> 16) & 1) {
+        sInertiaName = "トルネード";
+        c = mActor->mConst;
+        if (mWalkSpeed >= speed) inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x3DC);
+        else inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x3D8);
+    }
+    if (_3F8 != 0) {
+        sInertiaName = "反射";
+        _3F8--;
+        c = mActor->mConst;
+        inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x250);
+    }
+    if (mWalkSpeed < 0.08f && _3CE > 10 && speed > 0.5f && (((mMovementStates_LOW_WORD >> 21) & 1) || ((mMovementStates_LOW_WORD >> 19) & 1))) {
+        c = mActor->mConst;
+        _3FA = FLD<u16>(c->mTable[c->mCurrentTable], 0x27C);
+        mWalkSpeed = 0.08f;
+    }
+    if (_3FA != 0) {
+        sInertiaName = "停止急発進";
+        _3FA--;
+        c = mActor->mConst;
+        inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x254);
+        if (_3FA == 0) _3FC = 60;
+    }
+    if (_3FC != 0) _3FC--;
+    if (fn_803EF7C0() == 32 && mWalkSpeed > 0.4f) inertia *= 0.5f;
+    return inertia;
+}

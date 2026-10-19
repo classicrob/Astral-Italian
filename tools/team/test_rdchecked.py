@@ -426,7 +426,7 @@ class LiteralAndCommutativitySafetyTests(unittest.TestCase):
         from pathlib import Path
         path = Path(__file__).with_name('rdclass.py')
         tree = ast.parse(path.read_text())
-        functions = {'rd', 'dol_bss_ranges', 'litonly', 'rebind_equal', 'fixed'}
+        functions = {'rd', 'dol_bss_ranges', 'litonly', 'align_object_literals', 'strict_equal', 'rebind_equal', 'fixed'}
         constants = {'LIT', 'TOK', 'REG', 'COMM', 'NODEF', 'VOL'}
         selected = [n for n in tree.body if
                     isinstance(n, ast.FunctionDef) and n.name in functions or
@@ -471,6 +471,38 @@ class LiteralAndCommutativitySafetyTests(unittest.TestCase):
         self.assertIsNone(rd(0x1ffc, 4))
         self.assertIsNone(rd(0x200e, 4))
         self.assertIsNone(rd(0x2010, 4))
+
+    def test_same_prefix_strings_fail(self):
+        left = self.api['litonly']('lis r3, lbl_00001000@ha', lambda _: b'WindFoo\0')
+        right = self.api['litonly']('lis r3, @123@ha', lambda _: b'WindBar\0')
+        self.assertNotEqual(left, right)
+        self.assertFalse(self.api['strict_equal']([left], [right])[0])
+
+    def test_same_first_word_tables_fail(self):
+        left = self.api['litonly']('addi r3, r3, lbl_00001000@l', lambda _: b'ABCD\0\0\0\1')
+        right = self.api['litonly']('addi r3, r3, @123@l', lambda _: b'ABCD\0\0\0\2')
+        self.assertFalse(self.api['strict_equal']([left], [right])[0])
+
+    def test_direct_load_uses_only_actual_width(self):
+        for op, width in [('lbz', 1), ('lhz', 2), ('lwz', 4), ('lfs', 4), ('lfd', 8)]:
+            left = self.api['litonly'](f'{op} f0, lbl_00001000@sda21', lambda _: bytes(width) + b'A')
+            right = self.api['litonly'](f'{op} f0, @123@sda21', lambda _: bytes(width) + b'B')
+            self.assertEqual(left, right)
+        self.assertIn('UNRESOLVED[', self.api['litonly']('lfd f0, @123@sda21', lambda _: bytes(4)))
+
+    def test_target_only_zero_padding_allowed(self):
+        left, right = self.api['align_object_literals'](['lis r3, OBJ[414243440000]@ha'], ['lis r3, OBJ[41424344]@ha'])
+        self.assertEqual(left, right)
+        left, right = self.api['align_object_literals'](['lis r3, OBJ[41424344]@ha'], ['lis r3, OBJ[414243440000]@ha'])
+        self.assertNotEqual(left, right)
+
+    def test_target_nonzero_tail_and_ambiguous_padding_fail(self):
+        left, right = self.api['align_object_literals'](['lis r3, OBJ[414243440001]@ha'], ['lis r3, OBJ[41424344]@ha'])
+        self.assertNotEqual(left, right)
+        left, _ = self.api['align_object_literals'](['lis r3, OBJ[410000]@ha'], ['lis r3, OBJ[41]@ha', 'lis r4, OBJ[4100]@ha'])
+        self.assertEqual(left, ['lis r3, OBJ[410000]@ha'])
+        left, right = self.api['align_object_literals'](['lis r3, OBJ[0000]@ha'], ['lis r3, OBJ[]@ha'])
+        self.assertNotEqual(left, right)
 
     def test_dol_header_bss_range(self):
         import struct

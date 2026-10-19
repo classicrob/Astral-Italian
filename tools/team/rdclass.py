@@ -126,24 +126,50 @@ def osyms(obj):
 
 LIT = re.compile(r'(lbl_[0-9A-F]{8}|@\d+)(@sda21|@ha|@l)?')
 def norm(ins, vals):
-    s = re.sub(r'\b0x[0-9a-f]+\(r1\)', 'S(r1)', ins)
+    s = litonly(ins, vals)
+    s = re.sub(r'\b0x[0-9a-f]+\(r1\)', 'S(r1)', s)
     s = re.sub(r'^(addi\s+\w+, r1, )0x[0-9a-f]+$', r'\1S', s)
     s = re.sub(r'\b[rf](?:[02-9]|[12]\d|3[01])\b', 'R', s)
-    s = re.sub(r'^(b\w*)\s+(?:cr\d,\s*)?0x[0-9a-f]+$', r'\1 B', s)
-    w = 8 if s.startswith(('lfd', 'psq_l')) else 4
-    def lit(m):
-        v = vals(m.group(1))
-        if v is not None: v = v[:w]
-        return ('LIT[' + v.hex() + ']' if v is not None else m.group(1)) + (m.group(2) or '')
-    return LIT.sub(lit, s)
+    return re.sub(r'^(b\w*)\s+(?:cr\d,\s*)?0x[0-9a-f]+$', r'\1 B', s)
+
 
 def litonly(ins, vals):
-    w = 8 if ins.startswith(('lfd', 'psq_l')) else 4
+    fields = ins.strip().split(None, 1)
+    op = fields[0] if fields else ''
+    operands = [x.strip() for x in fields[1].split(',')] if len(fields) == 2 else []
+    widths = {'lbz': 1, 'lhz': 2, 'lha': 2, 'lwz': 4, 'lfs': 4, 'lfd': 8,
+              'psq_l': 8, 'psq_lu': 8, 'lbzu': 1, 'lhzu': 2, 'lhau': 2,
+              'lwzu': 4, 'lfsu': 4, 'lfdu': 8}
+    width = widths.get(op)
+    if op in ('psq_l', 'psq_lu') and len(operands) >= 3 and operands[2] == '1':
+        width = 4
+    # Only the memory-address operand of a direct load can denote scalar data.
+    direct = operands[1] if width and len(operands) >= 2 else None
     def lit(m):
-        v = vals(m.group(1))
-        if v is not None: v = v[:w]
-        return ('LIT[' + v.hex() + ']' if v is not None else m.group(1)) + (m.group(2) or '')
+        blob = vals(m.group(1))
+        suffix = m.group(2) or ''
+        if blob is None:
+            return m.group(0)
+        if direct is not None and m.group(0) in direct:
+            if len(blob) < width:
+                return 'UNRESOLVED[' + m.group(1) + ']' + suffix
+            return 'LIT[' + blob[:width].hex() + ']' + suffix
+        return 'OBJ[' + blob.hex() + ']' + suffix
     return LIT.sub(lit, ins)
+
+
+def align_object_literals(left, right):
+    """Full source objects must match; only extra target zero padding may vanish."""
+    pattern = re.compile(r'OBJ\[([0-9a-f]*)\]')
+    source = {m[1] for line in right for m in pattern.finditer(line)}
+    def target(m):
+        blob = m[1]
+        if blob in source:
+            return m[0]
+        candidates = [candidate for candidate in source if candidate and len(candidate) < len(blob)
+                      and blob.startswith(candidate) and not set(blob[len(candidate):]) - {'0'}]
+        return 'OBJ[' + candidates[0] + ']' if len(candidates) == 1 else m[0]
+    return [pattern.sub(target, line) for line in left], right
 
 TOK = re.compile(r'(0x[0-9a-f]+\(r1\)|\b[rf]\d+\b|[^\s,()]+|[(),])')
 def strict_equal(L, R):
@@ -273,12 +299,16 @@ for unit, fns in sorted(rows.items()):
         result = None
         if n in tsym:
             a, size = tsym[n]
-            result = rd(a, min(size, 8))
-        if result is None: unresolved_literals.add(('target', n))
+            result = rd(a, size)
+        if not result:
+            unresolved_literals.add(('target', n))
+            return None
         return result
     def oval(n):
-        result = ov[n][:8] if n in ov else None
-        if result is None: unresolved_literals.add(('ours', n))
+        result = ov[n] if n in ov else None
+        if not result:
+            unresolved_literals.add(('ours', n))
+            return None
         return result
     left, right = d['left']['symbols'], d['right']['symbols']
     for f in fns:
@@ -303,6 +333,9 @@ for unit, fns in sorted(rows.items()):
             if not mm: return t
             n = mm.group(1)
             DS = ('.data', '.rodata', '.sdata', '.bss', '.sbss', '.sdata2')
+            if add and ((side == 'L' and n in tsym) or (side == 'R' and n in ov)):
+                unresolved_literals.add((side, 'literal with nonzero relocation addend: ' + n))
+                return t
             if side == 'L' and n in tsym and not add: return t   # target literal: value-normalized later
             if side == 'R' and n in ov and not add and not n.startswith('...'): return t
             if side == 'L' and n in taddr and taddr[n][0] in DS:
@@ -320,6 +353,9 @@ for unit, fns in sorted(rows.items()):
         unresolved_literals.clear()
         la = [litonly(dfmt(i, 'L'), tval) for i in L['instructions']]
         ra = [litonly(dfmt(i, 'R'), oval) for i in R['instructions']]
+        if any('UNRESOLVED[' in line for line in la + ra):
+            unresolved_literals.add(('load', 'object shorter than load width'))
+        la, ra = align_object_literals(la, ra)
         if unresolved_literals:
             real.append((unit, f, 'unresolved literal bytes: ' + str(sorted(unresolved_literals))))
             continue

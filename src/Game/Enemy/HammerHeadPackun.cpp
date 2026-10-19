@@ -373,8 +373,7 @@ inline bool HammerHeadPackun::checkBlowAttack() const {
 void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!checkBlowAttack() && MR::isEqualSensor(pSender, this, "blow") && MR::getSensorHost(pReceiver) &&
         !strcmp(MR::getSensorHost(pReceiver)->mName, "パンチングキノコ")) {
-        f32 temp = MR::getSensorRadius(pReceiver);
-        temp = MR::getSensorRadius(pSender) + temp;
+        f32 temp = MR::getSensorRadius(pSender) + MR::getSensorRadius(pReceiver);
         temp = MR::getSensorRadius(pReceiver) / temp;
         TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * (1.0f - temp);
         TVec3f senderWeighted = *MR::getSensorPos(pSender) * temp;
@@ -424,8 +423,7 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
         return false;
     }
     if (!checkBlowAttack() && MR::isMsgPlayerHitProjectiles(msg)) {
-        f32 temp = MR::getSensorRadius(pReceiver);
-        temp = MR::getSensorRadius(pSender) + temp;
+        f32 temp = MR::getSensorRadius(pSender) + MR::getSensorRadius(pReceiver);
         temp = MR::getSensorRadius(pSender) / temp;
         if (MR::isMsgRockAttack(msg)) {
             MR::invalidateHitSensors(this);
@@ -477,11 +475,10 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
     }
 }
 
-// NONMATCHING: Vector temporary stack slots and commutative add operand order differ.
+// NONMATCHING: Vector temporary stack slots differ.
 bool HammerHeadPackun::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgToEnemyAttackBlow(msg) && !checkBlowAttack()) {
-        f32 sendRadius = MR::getSensorRadius(pReceiver);
-        sendRadius = MR::getSensorRadius(pSender) + sendRadius;
+        f32 sendRadius = MR::getSensorRadius(pSender) + MR::getSensorRadius(pReceiver);
         f32 temp = MR::getSensorRadius(pSender) / sendRadius;
         TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
         TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;

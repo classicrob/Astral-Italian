@@ -115,7 +115,7 @@ bool MarioActor::fn_803B9920() {
     if (!this->mMario->isPlayerModeYoshi()) {
         return false;
     }
-    if (F(u8, 0xE24) != 0 || F(u16, 0x6B8) != 0) {
+    if (F(u8, 0xE24) != 0 || this->_38C != 0) {
         return false;
     }
     if (F(u8, 0xE2C) != 0) {
@@ -193,7 +193,7 @@ void MarioActor::fn_803BA070() {
     if (static_cast<s32>(_468) == 0) {
         if (this->mMario->isAnimationRun("ひろいクイック")) {
             this->mMario->stopAnimationUpperForce();
-            F(s8, 0xFBA) = 0;
+            this->_B92 = 0;
             mNullAnimation->kill();
             F(u8, 0x768) = 0;
         }
@@ -216,7 +216,7 @@ void MarioActor::fn_803BA070() {
             this->mMario->stopAnimationUpperForce();
             F(u8, 0x768) = 0;
         }
-        F(s8, 0xFBA) = 0;
+        this->_B92 = 0;
         mNullAnimation->kill();
         this->tryReleaseWithMsg(0x2D);
         this->updateSearchLight();
@@ -249,7 +249,7 @@ void MarioActor::fn_803BB510(const TVec3f& a, const TVec3f& b) {
 
 void MarioActor::fn_803BE6D0() {
     if (F(void*, 0xF74) != nullptr) {
-        F(FootPrint*, 0xF74)->clearForce();
+        this->_B48->clearForce();
     }
 }
 
@@ -808,7 +808,7 @@ void MarioActor::fn_803BF8F0() {
 
 void MarioActor::fn_803BF950() {
     mGravityInfo = new GravityInfo();
-    F(f32, 0x6A4) = 1.0f;
+    this->mGravityRatio = 1.0f;
     F(f32, 0x594) = 0.0f;
     F(f32, 0x598) = -1.0f;
     F(f32, 0x59C) = 0.0f;
@@ -826,7 +826,7 @@ void MarioActor::fn_803BF9D0() {
     this->mBinder->setTriangleFilter(MR::createTriangleFilterDelegator(this, &MarioActor::binderFilter));
     this->mBinder->_1EC._3 = true;
     F(u8, 0x51E) = 1;
-    F(f32, 0xE78) = 0.0f;
+    this->_984 = 0.0f;
     F(TVec3f, 0xE6C).zero();
     mBinderMotion5D0.zero();
     mBinderDirection5DC.zero();
@@ -859,8 +859,8 @@ void MarioActor::fn_803BFBB0() {
 
 void MarioActor::fn_803BFC10() {
     FootPrint* fp = new FootPrint("足跡", 0x100, -1);
-    F(FootPrint*, 0xF74) = fp;
-    F(FootPrint*, 0xF74)->setTexture(MR::getTexFromArc("Footprint.bti", this));
+    this->_B48 = fp;
+    this->_B48->setTexture(MR::getTexFromArc("Footprint.bti", this));
 }
 
 void MarioActor::fn_803BFC90(s32 a) {
@@ -965,7 +965,7 @@ void MarioActor::fn_803C1940() {
         if (BITAT(this->mMario, 0x10, 0x1C)) {
             this->fn_803D8BD0(&a, &b);
         }
-        if ((FP(this->mMario, u32, 0xC) >> 0x1F) != 0 && F(u8, 0xECD) == 0) {
+        if ((FP(this->mMario, u32, 0xC) >> 0x1F) != 0 && this->mBeeWallWalk == 0) {
             this->fn_803D8E30(&b);
             return;
         }
@@ -1003,7 +1003,7 @@ bool MarioActor::fn_803C1C60() {
     MR::requestPowerUpHPMeter();
     this->mMario->startPadVib("マリオ[変身]");
     MR::startSystemSE("SE_SY_SUPER_KINOKO_GET", -1, -1);
-    F(u16, 0x6FE) = 0x5A;
+    this->_3DA = 0x5A;
     return true;
 }
 
@@ -1016,7 +1016,7 @@ bool MarioActor::fn_803C1D30() {
     }
     F(u8, 0x516) = 1;
     F(u8, 0x515) = 0;
-    F(u16, 0x6FC) = 0x40;
+    this->_3D8 = 0x40;
     if (mPlayerMode == 6) {
         this->fn_803BB4F0();
         this->changeTeresaAnimation("change", -1);
@@ -1024,9 +1024,9 @@ bool MarioActor::fn_803C1D30() {
     if (mPlayerMode == 0xA) {
         MR::requestMovementOn(this);
         MR::requestMovementOn(mYoshiHolder->mYoshi);
-        F(u16, 0x6FC) = 0x13;
+        this->_3D8 = 0x13;
         this->mMario->clearVelocity();
-        FP(this->mMario, f32, 0x278) = 0.0f;
+        (this->mMario)->mWalkSpeed = 0.0f;
     }
     if (mPlayerMode != 0xA) {
         MR::stopAnimFrame(this);
@@ -1038,7 +1038,7 @@ bool MarioActor::fn_803C1D30() {
 
 bool MarioActor::fn_803C1E40() {
     bool r = false;
-    if ((F(u16, 0x6FC) != 0 && mPlayerMode != 0) || F(u16, 0x6FE) != 0) {
+    if ((this->_3D8 != 0 && mPlayerMode != 0) || this->_3DA != 0) {
         r = true;
     }
     return r;
@@ -1064,7 +1064,7 @@ bool MarioActor::fn_803C1F30() {
     bool r = false;
     if (BITAT(m, 0xC, 0x1E)) {
         MtxPtr prev = FP(m, Triangle*, 0x458)->getPrevBaseMtx()->mMtx;
-        if (!MR::isSameMtx(FP(this->mMario, Triangle*, 0x458)->getBaseMtx()->mMtx, prev)) {
+        if (!MR::isSameMtx((this->mMario)->_45C->getBaseMtx()->mMtx, prev)) {
             r = true;
         }
     }
@@ -1072,9 +1072,9 @@ bool MarioActor::fn_803C1F30() {
 }
 
 void MarioActor::fn_803C2010() {
-    u16 t = F(u16, 0x260);
+    u16 t = this->_BC4;
     if (t != 0) {
-        F(u16, 0x260) = t - 1;
+        this->_BC4 = t - 1;
     }
 }
 
@@ -1097,17 +1097,17 @@ void MarioActor::fn_803C2030() {
 
 void MarioActor::fn_803C2320() {
     F(s32, 0x6AC) = F(s32, 0x6AC) + 1;
-    if (F(u16, 0xFF2) != 0) {
-        F(u16, 0xFF2) -= 1;
+    if (this->_EF6 != 0) {
+        this->_EF6 -= 1;
     }
-    if (F(u16, 0x6CE) != 0) {
-        F(u16, 0x6CE) -= 1;
+    if (this->_3A8 != 0) {
+        this->_3A8 -= 1;
     }
-    if (F(u16, 0x6D2) != 0) {
-        F(u16, 0x6D2) -= 1;
+    if (this->_3AC != 0) {
+        this->_3AC -= 1;
     }
-    if (F(s32, 0xE28) != 0) {
-        F(s32, 0xE28) -= 1;
+    if (this->mAnimationDelayE28 != 0) {
+        this->mAnimationDelayE28 -= 1;
     }
     if (F(s32, 0x1054) != 0) {
         F(s32, 0x1054) -= 1;
@@ -1126,9 +1126,9 @@ void MarioActor::fn_803C23B0() {
 }
 
 void MarioActor::fn_803C2520() {
-    if (F(u16, 0xFBC) != 0) {
-        F(u16, 0xFBC) -= 1;
-        if (F(u16, 0xFBC) == 0) {
+    if (this->_B94 != 0) {
+        this->_B94 -= 1;
+        if (this->_B94 == 0) {
             this->mMario->stopAnimationUpper("ハンマー投げ回転中", (const char*)nullptr);
             this->mMario->stopAnimation("ハンマー投げ回転中", (const char*)nullptr);
         }
@@ -1137,10 +1137,10 @@ void MarioActor::fn_803C2520() {
 
 
 void MarioActor::fn_803C2590() {
-    if (F(u8, 0xE3C) != 0) {
-        u8 t = F(u8, 0xE3D);
-        F(u8, 0xE3C) = F(u8, 0xE3C) - 1;
-        F(u8, 0xE3D) = t + 1;
+    if (this->_944 != 0) {
+        u8 t = this->_945;
+        this->_944 = this->_944 - 1;
+        this->_945 = t + 1;
         this->fn_803C2610();
         this->fn_803C26A0();
     }
@@ -1150,7 +1150,7 @@ void MarioActor::fn_803C2590() {
 }
 
 void MarioActor::fn_803C2610() {
-    if ((F(s16, 0xE3E) != 0 || BITAT(this->mMario, 0x10, 0x14)) && !this->mMario->isSwimming() && F(u8, 0xE3C) == 0 &&
+    if ((F(s16, 0xE3E) != 0 || BITAT(this->mMario, 0x10, 0x14)) && !this->mMario->isSwimming() && this->_944 == 0 &&
         mActionTable1080->selectAction("スピン回復エフェクト") == 1) {
         this->playEffect("スピンリング");
     }
@@ -1173,10 +1173,10 @@ bool MarioActor::fn_803C2710() {
     if (this->mMario->isAnimationRun("ハンマー投げリリース") && BITAT(this->mMario, 0xC, 0x1E)) {
         d = 1;
     }
-    if (d != 0 && F(u16, 0x6B8) == 0) {
+    if (d != 0 && this->_38C == 0) {
         c = 1;
     }
-    if (c != 0 && FP(this->mMario, u16, 0x41C) == 0) {
+    if (c != 0 && (this->mMario)->_420 == 0) {
         b = 1;
     }
     if (b != 0 && this->mMario->isStickOn()) {
@@ -1196,7 +1196,7 @@ void MarioActor::fn_803C2900() {
         MarioSwim* sw = this->mMario->mSwim;
         s32 before = FP(sw, s32, 0xFC);
         sw->fn_803FD5E0(0);
-        s32 after = FP(this->mMario->mSwim, s32, 0xFC);
+        s32 after = (this->mMario->mSwim)->mSwimState;
         if (after != before) {
             MarioSwim* sw2 = this->mMario->mSwim;
             if ((u32)after <= 1 && (u32)(before - 2) <= 1) {
@@ -1338,7 +1338,7 @@ bool MarioActor::fn_803C3930() {
     bool r = false;
     if (BITAT(m, 0xC, 0x1E)) {
         MtxPtr prev = FP(m, Triangle*, 0x458)->getPrevBaseMtx()->mMtx;
-        if (!MR::isSameMtx(FP(this->mMario, Triangle*, 0x458)->getBaseMtx()->mMtx, prev)) {
+        if (!MR::isSameMtx((this->mMario)->_45C->getBaseMtx()->mMtx, prev)) {
             r = true;
         }
     }
@@ -1346,9 +1346,9 @@ bool MarioActor::fn_803C3930() {
 }
 
 void MarioActor::fn_803C3C90() {
-    if (F(u16, 0x6FE) != 0) {
-        F(u16, 0x6FE) -= 1;
-        if (F(u16, 0x6FE) == 0) {
+    if (this->_3DA != 0) {
+        this->_3DA -= 1;
+        if (this->_3DA == 0) {
             MR::endDemo(this, "マリオスーパー化");
             MR::releaseAnimFrame(this);
             if (this->mMario->isPlayerModeYoshi()) {
@@ -1360,21 +1360,21 @@ void MarioActor::fn_803C3C90() {
 }
 
 void MarioActor::fn_803C3D10() {
-    if (F(u16, 0x6FC) != 0) {
+    if (this->_3D8 != 0) {
         if (mPlayerMode == 6) {
             void* r5 = F(void*, 0x590);
-            if (FP(this->mMario, f32, 0x484) < FP(FP(r5, void*, FP(r5, u32, 0xC) * 4), f32, 0x710)) {
+            if ((this->mMario)->mVerticalSpeed < FP(FP(r5, void*, FP(r5, u32, 0xC) * 4), f32, 0x710)) {
                 this->mPosition -= *this->mMario->getGravityVec();
             }
         }
         if (!this->fn_803C3DF0() && !this->mMario->fn_803B26C0()) {
             this->fn_803C3E40();
         }
-        F(u16, 0x6FC) -= 1;
-        if (F(u16, 0x6FC) == 0 && !this->mMario->fn_803B26C0()) {
+        this->_3D8 -= 1;
+        if (this->_3D8 == 0 && !this->mMario->fn_803B26C0()) {
             this->fn_803C4020();
         }
-        F(u8, 0x703) = 1;
+        this->_3DF = 1;
         return;
     }
     this->mMario->updateMorphResetTimer();
@@ -1450,7 +1450,7 @@ void MarioActor::fn_803C4020() {
         F(u8, 0x516) = 0;
         MR::releaseAnimFrame(this);
     }
-    F(u8, 0x702) = 1;
+    this->_3DE = 1;
     switch (mPlayerMode) {
     case 4:
         MR::explainBeeMarioIfAtFirst();
@@ -1481,15 +1481,15 @@ void MarioActor::fn_803C4020() {
         break;
     }
     if (F(u8, 0x666) != 0) {
-        F(u16, 0x668) = 10;
+        this->_338 = 10;
         F(u8, 0x666) = 0;
     }
 }
 
 void MarioActor::fn_803C4100() {
-    if (F(u16, 0x668) != 0) {
-        F(u16, 0x668) -= 1;
-        if (F(u16, 0x668) == 0) {
+    if (this->_338 != 0) {
+        this->_338 -= 1;
+        if (this->_338 == 0) {
             MR::zoomOutTargetGameCamera();
             MR::endGlobalEventCamera("変身初出カメラ", 60, true);
         }
@@ -1497,14 +1497,14 @@ void MarioActor::fn_803C4100() {
 }
 
 void MarioActor::calcAnimPlayerMode() {
-    if (F(u8, 0x703) == 0) {
-        F(u8, 0x702) = 0;
+    if (this->_3DF == 0) {
+        this->_3DE = 0;
         return;
     }
     u16 mode;
-    u16 t = F(u16, 0x6FC);
+    u16 t = this->_3D8;
     if ((s32)(t & 7) < ((s32)t >> 3)) {
-        mode = F(u16, 0x6FA);
+        mode = this->_3D6;
     } else {
         mode = mPlayerMode;
     }
@@ -1513,15 +1513,15 @@ void MarioActor::calcAnimPlayerMode() {
     case 1:
         mAllModel->fn_803E7880(4);
         _9C0->calcAnim();
-        if (F(u8, 0x702) != 0) {
-            F(u8, 0x1B1) = 2;
+        if (this->_3DE != 0) {
+            this->_A6E = 2;
         }
         break;
     case 4:
         mAllModel->fn_803E7880(2);
         break;
     case 5:
-        F(u8, 0x703) = 0;
+        this->_3DF = 0;
         mAllModel->fn_803E7880(5);
         break;
     case 3:
@@ -1549,20 +1549,20 @@ void MarioActor::calcAnimPlayerMode() {
         break;
     }
     }
-    F(u8, 0x703) = 0;
-    F(u8, 0x702) = 0;
+    this->_3DF = 0;
+    this->_3DE = 0;
 }
 
 void MarioActor::calcAnimHorrorBone() {
     if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
         Mario* m = this->mMario;
         if (FP(m, s32, 0x5F8) != 0) {
-            if (FP(mAllModel, s32, 4) == 6) {
+            if ((mAllModel)->mCurrentModel == 6) {
                 mAllModel->fn_803E7B80();
                 this->playEffect("ホラーマリオ解除");
             }
         } else if (MR::isPowerStarGetDemoActive()) {
-            if (FP(mAllModel, s32, 4) == 6) {
+            if ((mAllModel)->mCurrentModel == 6) {
                 mAllModel->fn_803E7B80();
             }
         } else {
@@ -1586,7 +1586,7 @@ void MarioActor::calcAnimHorrorBone() {
             mAllModel->fn_803E7B80();
             return;
         }
-        if (FP(mAllModel, s32, 4) == 1 && F(s32, 0x6B0) != 0) {
+        if ((mAllModel)->mCurrentModel == 1 && F(s32, 0x6B0) != 0) {
             mAllModel->fn_803E7B80();
         }
     }
@@ -1803,10 +1803,10 @@ void MarioActor::fn_803C5920() {
 
 bool MarioActor::fn_803C5990() {
     if (F(u8, 0x56C) == 0) {
-        F(u8, 0x56D) = 1;
+        this->_A0C = 1;
         return false;
     }
-    F(u8, 0x56D) = 0;
+    this->_A0C = 0;
     F(u8, 0x56C) = 0;
     return true;
 }
@@ -1821,7 +1821,7 @@ void MarioActor::fn_803C59C0() {
     this->mMario->setSideVec(side);
     ((TPos3f*)this->getBaseMtx())->getYDir(head);
     this->mMario->forceSetHeadVecKeepSide(head);
-    FP(this->mMario, f32, 0x278) = 0.0f;
+    (this->mMario)->mWalkSpeed = 0.0f;
     FP(this->mMario, u8, 0x714) = 0;
     this->mMario->stopJump();
     FP(this->mMario, TVec3f, 0x334) = FP(this->mMario, TVec3f, 0x208);
@@ -1837,7 +1837,7 @@ void MarioActor::fn_803C5AB0(MtxPtr mtx) {
     } else if (F(s32, 0x6C0) != 0) {
         this->fn_803C5E20(mtx);
     } else if (!BITAT(this->mMario, 0x10, 3)) {
-        F(f32, 0x6D4) = 1.0f;
+        this->_3B0 = 1.0f;
     }
     s32 t = F(s32, 0x6C4);
     if (t != 0) {
@@ -1845,82 +1845,83 @@ void MarioActor::fn_803C5AB0(MtxPtr mtx) {
     }
 }
 
+// NONMATCHING: Typed scalar members use direct offsets instead of a saved field address.
 void MarioActor::fn_803C5B30(MtxPtr mtx) {
     s32 mode = static_cast<s32>(mCounter6C8);
     F(s32, 0x6C0) = 0x1E;
     switch (mode) {
     case 0:
     case 2: {
-        u32 cnt = F(u32, 0x6BC);
+        u32 cnt = this->_390;
         if (cnt > 0xF) {
             f32 a = this->mMario->calcDistToCeil(false);
             f32 b = this->mMario->calcDistToCeilOnPress();
             f32 v1 = MR::clamp(a / 150.0f, 0.2f, 1.0f);
-            if (F(f32, 0x6D4) > v1) {
-                F(f32, 0x6D4) = v1;
+            if (this->_3B0 > v1) {
+                this->_3B0 = v1;
             } else {
                 f32 v2 = MR::clamp(b / 150.0f, 0.2f, 1.0f);
-                if (F(f32, 0x6D4) > v2) {
-                    F(f32, 0x6D4) = v2;
+                if (this->_3B0 > v2) {
+                    this->_3B0 = v2;
                 }
                 MR::setMtxTrans(mtx, this->mPosition.x, this->mPosition.y, this->mPosition.z);
-                if (FP(this->mMario, u16, 0x964) != 0x1B) {
+                if ((this->mMario)->_960 != 0x1B) {
                     F(u8, 0x573) = 1;
                 }
             }
         } else {
-            F(f32, 0x6D4) = 0.2f + ((0.8f * (f32)(0xF - cnt)) / 15.0f);
+            this->_3B0 = 0.2f + ((0.8f * (f32)(0xF - cnt)) / 15.0f);
         }
         s32 t = F(s32, 0x6C4);
         if (t != 0) {
-            F(f32, 0x6D4) = F(f32, 0x6D4) + 0.02f * (f32)t;
+            this->_3B0 = this->_3B0 + 0.02f * (f32)t;
             return;
         }
         return;
     }
     case 1:
     case 3: {
-        u32 cnt = F(u32, 0x6BC);
+        u32 cnt = this->_390;
         if (cnt > 0xF) {
             f32 w = this->mMario->calcDistWidth();
             this->mPosition = this->mMario->mPosHolder->mPos;
             f32 v = MR::clamp(w / 80.0f, 0.2f, 1.0f);
-            if (F(f32, 0x6D4) > v) {
-                F(f32, 0x6D4) = v;
+            if (this->_3B0 > v) {
+                this->_3B0 = v;
             } else {
-                f32 t2 = F(f32, 0x6D4) - 0.01f;
-                F(f32, 0x6D4) = t2;
-                F(f32, 0x6D4) = MR::clamp(t2, 0.2f, 1.0f);
+                f32 t2 = this->_3B0 - 0.01f;
+                this->_3B0 = t2;
+                this->_3B0 = MR::clamp(t2, 0.2f, 1.0f);
             }
         } else {
-            F(f32, 0x6D4) = 0.2f + ((0.8f * (f32)(0xF - cnt)) / 15.0f);
+            this->_3B0 = 0.2f + ((0.8f * (f32)(0xF - cnt)) / 15.0f);
         }
         s32 t = F(s32, 0x6C4);
         if (t != 0) {
-            F(f32, 0x6D4) = F(f32, 0x6D4) + 0.02f * (f32)t;
+            this->_3B0 = this->_3B0 + 0.02f * (f32)t;
             return;
         }
         break;
     }
     case 4:
-        F(f32, 0x6D4) = 0.2f + ((0.8f * (160.0f * (1.0f - JMACosRadian(0.5f * (((f32)F(s32, 0x6BC) / 120.0f) * 3.1415927f))))) / 160.0f);
+        this->_3B0 = 0.2f + ((0.8f * (160.0f * (1.0f - JMACosRadian(0.5f * (((f32)F(s32, 0x6BC) / 120.0f) * 3.1415927f))))) / 160.0f);
         break;
     }
 }
 
 void MarioActor::fn_803C5E20(MtxPtr mtx) {
-    u32 t = F(u32, 0x6C0) - 1;
-    F(u32, 0x6C0) = t;
-    F(f32, 0x6D4) = 1.0f + (((0.15f * (f32)F(u32, 0x6C0)) / 30.0f) * JMASinRadian((2.0f * ((f32)t * 3.1415927f)) / 15.0f));
+    u32 t = this->_394 - 1;
+    this->_394 = t;
+    this->_3B0 = 1.0f + (((0.15f * (f32)this->_394) / 30.0f) * JMASinRadian((2.0f * ((f32)t * 3.1415927f)) / 15.0f));
 }
 
 void MarioActor::fn_803C5ED0(MtxPtr m1, MtxPtr m2) {
-    u16 t = F(u16, 0x4D8);
+    u16 t = this->mBlendMtxTimer;
     if (t != 0) {
-        f32 f = 1.0f - ((1.0f - F(f32, 0x4DC)) * ((f32)(t - 1) / (f32)t));
-        F(f32, 0x4DC) = f;
+        f32 f = 1.0f - ((1.0f - this->_EA0) * ((f32)(t - 1) / (f32)t));
+        this->_EA0 = f;
         MR::blendMtx(m2, m1, f, m1);
-        F(u16, 0x4D8) = F(u16, 0x4D8) - 1;
+        this->mBlendMtxTimer = this->mBlendMtxTimer - 1;
     }
 }
 
@@ -1981,7 +1982,7 @@ void MarioActor::fn_803BBFD0(const char* name) {
 void MarioActor::fn_803BC440(const char* name) {
     F(LiveActor*, 0xFB4)->appear();
     MR::startAction(F(LiveActor*, 0xFB4), name);
-    F(s8, 0xFBA) = -2;
+    this->_B92 = -2;
 }
 
 void MarioActor::fn_803BC5C0() {
@@ -1990,17 +1991,17 @@ void MarioActor::fn_803BC5C0() {
         Mario* m2 = this->mMario;
         if (BITAT(m2, 0xC, 0x1E) && FP(m2, u16, 0x964) == 0x20 && this->mMarioAnim->fn_803DCB80()) {
             this->mMarioAnim->fn_803DF0F0();
-            F(u8, 0xFBE) = 2;
+            this->_B96 = 2;
         }
     } else {
-        F(u8, 0xFBE) = 0;
+        this->_B96 = 0;
     }
     switch (mPlayerMode) {
     case 6:
         this->updateTeresaAnimation();
         break;
     case 4:
-        if (F(u8, 0xECD) != 0 && !this->isJumping() && this->mMarioAnim->fn_803DCB80()) {
+        if (this->mBeeWallWalk != 0 && !this->isJumping() && this->mMarioAnim->fn_803DCB80()) {
             this->mMarioAnim->fn_803DF1B0();
         }
         break;
@@ -2008,10 +2009,10 @@ void MarioActor::fn_803BC5C0() {
         FP(this->mMario, s16, 0x414) = 0;
         break;
     }
-    u8 t = F(u8, 0xFBE);
+    u8 t = this->_B96;
     if (t != 0) {
         u8 n = t - 1;
-        F(u8, 0xFBE) = n;
+        this->_B96 = n;
         if (n == 0 && BITAT(this->mMario, 0xC, 0x1E) && this->mMarioAnim->fn_803DCB80()) {
             this->mMarioAnim->fn_803DF2D0();
         }
@@ -2031,7 +2032,7 @@ bool MarioActor::fn_803BDE10() {
     if (this->mMario->isPlayerModeYoshi() && YoshiParam::fn_8041BD40() == 0) {
         return false;
     }
-    if (F(u8, 0xE24) != 0 || F(u16, 0x6B8) != 0) {
+    if (F(u8, 0xE24) != 0 || this->_38C != 0) {
         return false;
     }
     if (F(u8, 0xE2C) != 0) {
@@ -2055,7 +2056,7 @@ void* MarioActor::fn_803BE0E0() const {
 void MarioActor::initFireMario() {
     if (MR::isCreatePlayerResourceFire()) {
         this->initFireBall();
-        F(u16, 0x6F6) |= 4;
+        this->_3D2 |= 4;
     }
 }
 
@@ -2063,7 +2064,7 @@ void MarioActor::initYoshi() {
     if (MR::isCreatePlayerResourceYoshi()) {
         mYoshiHolder = new YoshiHolder(this->mMario);
         mYoshiHolder->fn_8041B700(this);
-        F(u16, 0x6F6) |= 0x400;
+        this->_3D2 |= 0x400;
     }
 }
 
@@ -2074,7 +2075,7 @@ void MarioActor::initCloudMario() {
             name = "CloudLuigi";
         }
         ModelHolder* mh = new ModelHolder(name, true);
-        F(ModelHolder*, 0xEEC) = mh;
+        this->mModelEEC = mh;
         mh->initWithoutIter();
         mAllModel->registerModel(7, F(LiveActor*, 0xEEC), true, true);
         F(LiveActor*, 0xEEC)->kill();
@@ -2084,7 +2085,7 @@ void MarioActor::initCloudMario() {
         CloudMarioHat* hat = new CloudMarioHat("雲マリオの帽子");
         F(CloudMarioHat*, 0xEF0) = hat;
         hat->initWithoutIter();
-        F(u16, 0x6F6) |= 0x1000;
+        this->_3D2 |= 0x1000;
     }
 }
 
@@ -2095,13 +2096,13 @@ void MarioActor::initRockMario() {
             name = "RockLuigi";
         }
         ModelHolder* mh = new ModelHolder(name, true);
-        F(ModelHolder*, 0xEF4) = mh;
+        this->mModelEF4 = mh;
         mh->initWithoutIter();
         mAllModel->registerModel(8, F(LiveActor*, 0xEF4), true, true);
         F(LiveActor*, 0xEF4)->kill();
         MR::hideModel(F(LiveActor*, 0xEF4));
         MR::hideJoint(F(LiveActor*, 0xEF4), "Face0");
-        F(u16, 0x6F6) |= 0x2000;
+        this->_3D2 |= 0x2000;
     }
 }
 
@@ -2129,7 +2130,7 @@ void J3DModelX::swapDrawBuffer(u32 a) {
 
 bool MarioActor::fn_803C9300() {
     bool c = this->mMario->isCeiling();
-    if ((c || BITAT(this->mMario, 0x1C, 0xA)) && F(u8, 0xECD) == 0 && F(u16, 0xECE) == 0) {
+    if ((c || BITAT(this->mMario, 0x1C, 0xA)) && this->mBeeWallWalk == 0 && this->_9F2 == 0) {
         Mario* m = this->mMario;
         bool r = false;
         if (BITAT(m, 0x1C, 0xA)) {
@@ -2153,19 +2154,19 @@ bool MarioActor::fn_803C9300() {
 
 void MarioActor::fn_803C9920(TVec3f& vec) {
     if (mPlayerMode != 4) {
-        F(u8, 0xECD) = 0;
-        F(u16, 0xECE) = 0;
+        this->mBeeWallWalk = 0;
+        this->_9F2 = 0;
         return;
     }
-    u16 timer = F(u16, 0xECE);
-    u8 prev = F(u8, 0xECD);
+    u16 timer = this->_9F2;
+    u8 prev = this->mBeeWallWalk;
     if (timer != 0) {
-        F(u16, 0xECE) = timer - 1;
+        this->_9F2 = timer - 1;
     }
-    if (F(u16, 0xECE) != 0 || (!this->fn_803C9300() && !this->checkBeeWallStick(vec) && !this->checkBeeFloorStick(vec))) {
+    if (this->_9F2 != 0 || (!this->fn_803C9300() && !this->checkBeeWallStick(vec) && !this->checkBeeFloorStick(vec))) {
         this->updateBeeStickMode(vec);
     }
-    u8 cur = F(u8, 0xECD);
+    u8 cur = this->mBeeWallWalk;
     if (cur == 5) {
         MR::vecBlendSphere(&vec, mAppliedGravityVec, vec, 0.1f);
         return;
@@ -2175,7 +2176,7 @@ void MarioActor::fn_803C9920(TVec3f& vec) {
         return;
     }
     if (prev != 0) {
-        F(u16, 0xECE) = 0x3C;
+        this->_9F2 = 0x3C;
     }
 }
 
@@ -2189,7 +2190,7 @@ void MarioActor::setPlayerMode(u16 mode, bool a, bool b) {
             this->mMario->closeStatus(nullptr);
         }
         F(s16, 0x700) = 0;
-        F(u8, 0x1B1) = 0;
+        this->_A6E = 0;
         this->fn_803CB2E0(mode);
         this->fn_803CB510(mode, a);
         if (mPlayerMode == 0) {

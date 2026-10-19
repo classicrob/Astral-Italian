@@ -370,7 +370,7 @@ static inline MarioConstTable* marioCurTableEntry(Mario* self) {
 
 void Mario::fn_8039A5B0() {
     if (this->beeMarioOnAir()) {
-        this->_76C = FLD<u16>(marioCurTableEntry(this), 0x670);
+        this->_76C = this->mActor->mConst->getTable()->mBeeGravityReviveTime;
     }
 }
 
@@ -1668,39 +1668,41 @@ bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
     return result;
 }
 
-// NONMATCHING: m2c draft's table/switch on the mode is approximated with the same weights
+// NONMATCHING: register allocation and boolean lowering.
 f32 Mario::fn_8039A810() {
-    u16 t = this->_774;
-    if (t != 0) {
-        void* e = marioCurTableEntry(this);
-        f32 f31 = (f32)t / FLD<f32>(e, 0x670);
-        return ((1.0f - f31) + f31 * FLD<f32>(e, 0x54)) * this->fn_8039ADC0();
+    u16 timer = this->_76C;
+    if (timer != 0) {
+        MarioConstTable* entry = this->mActor->mConst->getTable();
+        f32 ratio = static_cast<f32>(timer) / static_cast<f32>(entry->mBeeGravityReviveTime);
+        f32 multiplier = this->fn_8039ADC0();
+        return ((1.0f - ratio) + ratio * entry->mGravityAirWalk) * multiplier;
     }
     if (this->_3CC != 0) {
-        return FLD<f32>(marioCurTableEntry(this), 0x54);
+        return this->mActor->mConst->getTable()->mGravityAirWalk;
     }
-    f32 var_f31 = 0.0f;
-    if (this->_430 == 0xB && (this->isRising() || this->_3BE < FLD<u16>(marioCurTableEntry(this), 0x138))) {
-        var_f31 = FLD<f32>(marioCurTableEntry(this), 0x24);
+    f32 gravity;
+    if (this->_430 == 0xB && (this->isRising() || this->_3BE < this->mActor->mConst->getTable()->mTrampleBegomaOpenTime)) {
+        gravity = this->mActor->mConst->getTable()->mGravityJumping[0];
     } else {
-        u32 m = this->_430;
-        if (m == 8 && this->_410 == 1) {
-            var_f31 = FLD<f32>(marioCurTableEntry(this), 0x430);
-        } else if (m == 0xC) {
-            var_f31 = 1.8f;
-        } else if (m == 0xD) {
-            var_f31 = FLD<f32>(marioCurTableEntry(this), 0x48);
+        u32 mode = this->_430;
+        if (mode == 8 && this->_42A == 1) {
+            gravity = this->mActor->mConst->getTable()->mSpinJumpGravity;
+        } else if (mode == 0xC) {
+            gravity = 1.8f;
+        } else if (mode == 0xD) {
+            gravity = this->mActor->mConst->getTable()->mGravityJumping[9];
         } else {
-            var_f31 = FLD<f32>(marioCurTableEntry(this), 0x24);
+            MarioConstTable* entry = this->mActor->mConst->getTable();
+            gravity = FLD<f32>(entry, 0x24 + ((mode << 2) & 0xFFFFFFFCU));
         }
     }
     if (this->isPlayerModeCloud() && !this->isRising()) {
-        var_f31 *= 0.5f;
+        gravity *= 0.5f;
     }
     if (this->_430 == 8 && !this->isRising()) {
-        var_f31 *= 0.25f;
+        gravity *= 0.25f;
     }
-    return var_f31 * this->fn_8039ADC0();
+    return gravity * this->fn_8039ADC0();
 }
 
 // NONMATCHING: temporary register allocation; verified collision-sensor and velocity gates.
@@ -2008,7 +2010,7 @@ void Mario::fn_8038B9F0() {
     if (isStatusActive(MarioStatus_Blown)) {
         return;
     }
-    if (mActor->mVelocityBlendE24 != 0) {
+    if (mActor->_934) {
         MR::vecBlend(&_13C, _13C, offset, 0.3f);
     }
     MarioState* state = _97C;

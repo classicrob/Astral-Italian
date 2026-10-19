@@ -52,12 +52,16 @@ Fish::~Fish() {
 FishGroup::~FishGroup() {
 }
 
+// NONMATCHING: explicit RNG sequencing preserves the DOL draw order on native compilers; initializer stores move earlier.
 Fish::Fish(const char* pName, FishGroup* pGroup, int fishType, bool canEscape)
     : LiveActor(pName), mGroup(pGroup), mFishType(fishType), mCanEscape(canEscape), mFollowPos(0.0f, 0.0f, 0.0f),
-      mFollowPosOffset(MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax), MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax),
-                       MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax)),
-      mFront(1.0f, 0.0f, 0.0f), mDistanceToApproach(MR::getRandom(::sDistanceToApproachMin, ::sDistanceToApproachMax)),
-      mTimeToSearchPlayer(MR::getRandom(::sTimeToSearchPlayerMin, ::sTimeToSearchPlayerMax)), mStepToMove(), mEscapePos() {
+      mFollowPosOffset(0.0f, 0.0f, 0.0f), mFront(1.0f, 0.0f, 0.0f), mDistanceToApproach(), mTimeToSearchPlayer(), mStepToMove(), mEscapePos() {
+    const f32 z = MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax);
+    const f32 y = MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax);
+    const f32 x = MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax);
+    mFollowPosOffset.set(x, y, z);
+    mDistanceToApproach = MR::getRandom(::sDistanceToApproachMin, ::sDistanceToApproachMax);
+    mTimeToSearchPlayer = MR::getRandom(::sTimeToSearchPlayerMin, ::sTimeToSearchPlayerMax);
 }
 
 void Fish::init(const JMapInfoIter& rIter) {

@@ -4720,69 +4720,78 @@ void MarioActor::updateBeeStickMode(TVec3f& rGravity) {
 
 // ---- MarioActorHand.cpp ----
 
+// NONMATCHING: verified equivalent pooled string addresses.
 void MarioActor::initHand() {
-    MR::hideJoint(mModels[0], "HandR0");
-    MR::hideJoint(mModels[0], "HandL0");
+    MR::hideJoint(mAllModel->mModels[0], "HandR0");
+    MR::hideJoint(mAllModel->mModels[0], "HandL0");
 
-    if (_A04 != nullptr) {
-        MR::hideJoint(mModels[1], "HandR0");
-        MR::hideJoint(mModels[1], "HandL0");
+    if (mModelEE0 != nullptr) {
+        MR::hideJoint(mAllModel->mModels[1], "HandR0");
+        MR::hideJoint(mAllModel->mModels[1], "HandL0");
     }
 
     if (_9E4 != nullptr) {
-        MR::hideJoint(mModels[2], "HandR0");
-        MR::hideJoint(mModels[2], "HandL0");
+        MR::hideJoint(mAllModel->mModels[2], "HandR0");
+        MR::hideJoint(mAllModel->mModels[2], "HandL0");
+    }
+
+    if (mModelE9C != nullptr) {
+        MR::hideJoint(mAllModel->mModels[3], "HandR0");
+        MR::hideJoint(mAllModel->mModels[3], "HandL0");
     }
 
     if (_9C0 != nullptr) {
-        MR::hideJoint(mModels[3], "HandR0");
-        MR::hideJoint(mModels[3], "HandL0");
+        MR::hideJoint(mAllModel->mModels[4], "HandR0");
+        MR::hideJoint(mAllModel->mModels[4], "HandL0");
     }
 
-    if (_9C8 != nullptr) {
-        MR::hideJoint(mModels[4], "HandR0");
-        MR::hideJoint(mModels[4], "HandL0");
+    if (mModelEEC != nullptr) {
+        MR::hideJoint(mAllModel->mModels[7], "HandR0");
+        MR::hideJoint(mAllModel->mModels[7], "HandL0");
+    }
+    if (mModelEF4 != nullptr) {
+        MR::hideJoint(mAllModel->mModels[8], "HandR0");
+        MR::hideJoint(mAllModel->mModels[8], "HandL0");
+    }
+    mHandFlagF35 = 0;
+    mHandFlagF36 = 0;
+    mModelF1C = nullptr;
+    _A10 = nullptr;
+
+    if (mModelE9C != nullptr) {
+        mModelF1C = new ModelHolder("IceMarioHandL", true);
+        MR::initDLMakerFog(mModelF1C, true);
+        MR::newDifferedDLBuffer(mModelF1C);
+
+        _A10 = new ModelHolder("IceMarioHandR", true);
+        MR::initDLMakerFog(_A10, true);
+        MR::newDifferedDLBuffer(_A10);
     }
 
-    _A59 = 0;
-    _A5A = 0;
-    _A40 = nullptr;
-    _A44 = nullptr;
+    mModelF24 = new ModelHolder("MarioHandL", true);
+    MR::initDLMakerFog(mModelF24, true);
+    MR::newDifferedDLBuffer(mModelF24);
+
+    mModelF28 = new ModelHolder("MarioHandR", true);
+    MR::initDLMakerFog(mModelF28, true);
+    MR::newDifferedDLBuffer(mModelF28);
+
+    mHandModelL = nullptr;
+    mHandModelR = nullptr;
 
     if (_9C0 != nullptr) {
-        _A40 = new ModelHolder("IceMarioHandL", true);
-        MR::initDLMakerFog(_A40, true);
-        MR::newDifferedDLBuffer(_A40);
+        mHandModelL = new ModelHolder("InvincibleMarioHandL", true);
+        MR::initDLMakerFog(mHandModelL, true);
+        MR::newDifferedDLBuffer(mHandModelL);
 
-        _A44 = new ModelHolder("IceMarioHandR", true);
-        MR::initDLMakerFog(_A44, true);
-        MR::newDifferedDLBuffer(_A44);
+        mHandModelR = new ModelHolder("InvincibleMarioHandR", true);
+        MR::initDLMakerFog(mHandModelR, true);
+        MR::newDifferedDLBuffer(mHandModelR);
     }
 
-    _A48 = new ModelHolder("MarioHandL", true);
-    MR::initDLMakerFog(_A48, true);
-    MR::newDifferedDLBuffer(_A48);
-
-    _A4C = new ModelHolder("MarioHandR", true);
-    MR::initDLMakerFog(_A4C, true);
-    MR::newDifferedDLBuffer(_A4C);
-
-    _A50 = nullptr;
-    _A54 = nullptr;
-
-    if (_9C8 != nullptr) {
-        _A50 = new ModelHolder("InvincibleMarioHandL", true);
-        MR::initDLMakerFog(_A50, true);
-        MR::newDifferedDLBuffer(_A50);
-
-        _A54 = new ModelHolder("InvincibleMarioHandR", true);
-        MR::initDLMakerFog(_A54, true);
-        MR::newDifferedDLBuffer(_A54);
-    }
-
-    for (u32 idx = 0; idx < MR::getJointNum(_A48) - 1; idx++) {
-        copyMaterial(MR::getJ3DModel(_A48), MR::getJointIndex(this, "HandL0"), idx);
-        copyMaterial(MR::getJ3DModel(_A4C), MR::getJointIndex(this, "HandR0"), idx);
+    for (u32 idx = 0; idx < MR::getJointNum(mModelF24) - 1; idx++) {
+        fn_803C8E40(MR::getJ3DModel(mModelF24), MR::getJointIndex(this, "HandL0"), idx);
+        fn_803C8E40(MR::getJ3DModel(mModelF28), MR::getJointIndex(this, "HandR0"), idx);
     }
 
     updateHandAtMorph();

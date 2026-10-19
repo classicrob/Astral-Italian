@@ -6358,9 +6358,9 @@ Game/Player/MarineSnow.cpp:
 Game/Player/Mario.cpp:
 	.text       start:0x80386D30 end:0x803B48E0
 	.rodata     start:0x8064BC78 end:0x8064BCA8
-	.data       start:0x806C20C0 end:0x806C4B90
+	.data       start:0x806C1490 end:0x806C4B90
 	.sdata      start:0x807CFFB0 end:0x807CFFD0
-	.sdata2     start:0x807DF988 end:0x807DFBA8
+	.sdata2     start:0x807DF980 end:0x807DFBB8
 
 Game/Player/MarioAccess.cpp:
 	.text       start:0x803B48E0 end:0x803B7340
@@ -6371,12 +6371,12 @@ Game/Player/MarioAccess.cpp:
 Game/Player/MarioActor.cpp:
 	.text       start:0x803B7340 end:0x803D9A80
 	.ctors      start:0x806447C8 end:0x806447CC
-	.rodata     start:0x8064BCB8 end:0x8064BD50
-	.data       start:0x806C7430 end:0x806C7588
+	.rodata     start:0x8064BCA8 end:0x8064BD70
+	.data       start:0x806C73D8 end:0x806C7588
 	.bss        start:0x80729C40 end:0x80729C68
-	.sdata      start:0x807CFFDC end:0x807CFFF0
+	.sdata      start:0x807CFFD8 end:0x807D0004
 	.sbss       start:0x807D4E34 end:0x807D4E60
-	.sdata2     start:0x807DFBD8 end:0x807DFCD0
+	.sdata2     start:0x807DFBC8 end:0x807DFDA0
 
 Game/Player/CloudMarioHat.cpp:
 	.text       start:0x803D9A80 end:0x803DAAE0
@@ -6701,9 +6701,12 @@ Game/Player/YoshiMatrixUtil.cpp:
 Game/Player/Yoshi.cpp:
 	.text       start:0x8040BF30 end:0x80413C40
 	.ctors      start:0x806447E8 end:0x806447EC
-	.data       start:0x806EA4A4 end:0x806EA718
+	.rodata     start:0x8064BEE0 end:0x8064BEE8
+	.data       start:0x806E9FF0 end:0x806EA718
 	.bss        start:0x8072B448 end:0x8072B480
+	.sdata      start:0x807D00C4 end:0x807D00C8
 	.sbss       start:0x807D4EB8 end:0x807D4F38
+	.sdata2     start:0x807E0584 end:0x807E064C
 
 Game/Player/YoshiArrow.cpp:
 	.text       start:0x80413C40 end:0x80414290
@@ -6742,6 +6745,7 @@ Game/Player/YoshiFruitCounter.cpp:
 
 Game/Player/YoshiModelCtrl.cpp:
 	.text       start:0x804179E0 end:0x80419720
+	.rodata     start:0x8064BEE8 end:0x8064BEF0
 	.data       start:0x806EAE70 end:0x806EAF38
 	.sdata      start:0x807D00D0 end:0x807D00D8
 	.sdata2     start:0x807E0720 end:0x807E0750

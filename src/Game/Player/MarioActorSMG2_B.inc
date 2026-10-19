@@ -1568,17 +1568,18 @@ s32 MarioActor::fn_803D8490() {
     return 1;
 }
 
+// NONMATCHING: registers, pooled color/bias addressing, equivalent color packing and redundant target branches.
 void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) {
-    J3DModelX* m = (J3DModelX*)MR::getJ3DModel(F(LiveActor*, 0xE8C));
+    J3DModelX* m = static_cast<J3DModelX*>(MR::getJ3DModel(mSearchLight));
     u32 t = F(u32, 0xE90);
     f32 f = 1.0f;
-    J3DMaterial* mat = **FP(FP(m, void*, 4), J3DMaterial***, 0x60);
+    J3DMaterial* mat = m->getModelData()->getMaterialNodePointer(0);
     if (t < 0x1E) {
         f = 0.0f;
     } else if (t < 0xB4) {
         f = (f32)(t - 0x1E) / 150.0f;
     }
-    TDDraw::setup(1, 2, 0);
+    TDDraw::setup(0, 1, 2);
     GXSetCullMode(GX_CULL_NONE);
     GXSetAlphaUpdate(GX_TRUE);
     GXSetColorUpdate(GX_TRUE);
@@ -1591,9 +1592,9 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) {
     TDDraw::drawFillBox(*a, *b, col);
     GXSetDstAlpha(GX_FALSE, 0);
     GXSetAlphaUpdate(GX_FALSE);
-    TDDraw::setup(1, 1, 0);
+    TDDraw::setup(0, 1, 1);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-    GXSetAlphaCompare(GX_GREATER, 0, GX_AOP_AND, GX_ALWAYS, 0);
+    GXSetAlphaCompare(GX_GREATER, 4, GX_AOP_AND, GX_ALWAYS, 0);
     bool ok = m->simpleDrawSetup(mat);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
@@ -1602,14 +1603,14 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) {
     c.a = (u8)(s32)(f * (f32)FP(((void**)F(void*, 0x590))[FP(F(void*, 0x590), u32, 0xC)], u8, 0x765));
     GXSetTevColorS10(GX_TEVREG0, c);
     GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_1);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A0, GX_CA_ZERO, GX_CA_TEXA, GX_CA_ZERO);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_KONST, GX_CA_ZERO, GX_CA_A0, GX_CA_RASA);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     if (ok) {
         m->simpleDrawShape(mat);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_RASA, GX_CA_A0, GX_CA_A1, GX_CA_ZERO);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_2, GX_TRUE, GX_TEVPREV);
-        static const GXColorS10 c1 = {255, 255, 255, 4};
-        static const GXColorS10 c2 = {255, 255, 255, 0};
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A1, GX_CA_A0, GX_CA_RASA, GX_CA_ZERO);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
+        static const GXColorS10 c1 = {255, 255, 255, 0};
+        static const GXColorS10 c2 = {255, 255, 255, 4};
         u32 i = 0;
         do {
             m->setDrawView(i + 1);

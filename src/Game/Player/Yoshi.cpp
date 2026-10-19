@@ -950,11 +950,25 @@ Yoshi::Yoshi(const char* name) : LiveActor(name), mAnimationResources(NULL), mXa
 Yoshi::~Yoshi() {
 }
 
-// NONMATCHING: HitInfo assignment and trigonometric helpers are inlined differently.
 void YoshiGroundChecker::update() {
     if (MR::isOnGround(mActor)) {
         mAirborneFrames = 0;
-        mGroundHit = mActor->mBinder->mGroundInfo;
+        const HitInfo& ground = mActor->mBinder->mGroundInfo;
+        mGroundHit.mParentTriangle.mParts = ground.mParentTriangle.mParts;
+        mGroundHit.mParentTriangle.mIdx = ground.mParentTriangle.mIdx;
+        mGroundHit.mParentTriangle.mSensor = ground.mParentTriangle.mSensor;
+        mGroundHit.mParentTriangle.mNormals[0] = ground.mParentTriangle.mNormals[0];
+        mGroundHit.mParentTriangle.mNormals[1] = ground.mParentTriangle.mNormals[1];
+        mGroundHit.mParentTriangle.mNormals[2] = ground.mParentTriangle.mNormals[2];
+        mGroundHit.mParentTriangle.mNormals[3] = ground.mParentTriangle.mNormals[3];
+        mGroundHit.mParentTriangle.mPos[0] = ground.mParentTriangle.mPos[0];
+        mGroundHit.mParentTriangle.mPos[1] = ground.mParentTriangle.mPos[1];
+        mGroundHit.mParentTriangle.mPos[2] = ground.mParentTriangle.mPos[2];
+        mGroundHit._60 = ground._60;
+        mGroundHit._64 = ground._64;
+        mGroundHit._70 = ground._70;
+        mGroundHit._7C = ground._7C;
+        mGroundHit._88 = ground._88;
         if (MR::isBindedGroundSlip(mActor)) {
             mSlipping = true;
         }
@@ -972,7 +986,9 @@ void YoshiGroundChecker::update() {
     else {
         mAirborneFrames++;
     }
-    if (mUpdated && mAirborneFrames > 4) {
+    bool airborne = false;
+    if (mUpdated == true && mAirborneFrames > 4) airborne = true;
+    if (airborne) {
         mSlipping = false;
     }
     mUpdated = true;
@@ -1302,6 +1318,7 @@ void Yoshi::fn_8040EF30() {
     mYoshiModelCtrl->fn_80418120();
 }
 
+// NONMATCHING: temporary stack layout, equivalent unordered comparison lowering and FPR allocation differ.
 void Yoshi::fn_80410D90() {
     if (mWaterInfo->isInWater()) {
         f32 depth = mWaterInfo->mCamWaterDepth;
@@ -1398,6 +1415,7 @@ void Yoshi::fn_80410D90() {
     }
 }
 
+// NONMATCHING: matrix zeroTrans is inlined; quaternion arithmetic and argument scheduling differ.
 void Yoshi::fn_80410570(f32 amount) {
     TVec3f direction(mMovementVelocity);
     YoshiGroundChecker* ground = mGroundChecker;
@@ -1499,6 +1517,7 @@ bool Yoshi::fn_80410810(TVec3f* slope) const {
     return !MR::normalizeOrZero(slope);
 }
 
+// NONMATCHING: gravity address is recomputed instead of retained in a saved register.
 void Yoshi::fn_80411630() {
     TVec3f velocity;
     JMAVECScaleAdd(&mGravity, &mMovementVelocity, &velocity, -mGravity.dot(mMovementVelocity));
@@ -2116,6 +2135,7 @@ bool Yoshi::fn_80411CB0() const {
     TVec3f hit;
     return MR::getFirstPolyOnLineToMap(&hit, &triangle, _14C, ray);
 }
+// NONMATCHING: string pool address hoisting, temporary stack slots and register allocation differ.
 void Yoshi::fn_8040DC20() {
     if (MR::isFirstStep(this)) fn_8040EDA0("水中泳ぎ（Ｎｐｃ）");
     if (!fn_8040F490("水面泳ぎ（Ｎｐｃ）") && !fn_8040F490("水中泳ぎ（Ｎｐｃ）")) {
@@ -2273,6 +2293,7 @@ void Yoshi::fn_804109E0() {
         } else mMovementVelocity.zero();
     }
 }
+// NONMATCHING: position address lifetime and saved register allocation differ.
 void Yoshi::fn_80410AC0() {
     YoshiGroundChecker* ground = mGroundChecker;
     TVec3f movement;

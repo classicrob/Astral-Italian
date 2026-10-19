@@ -1977,87 +1977,98 @@ void Mario::fn_803A1600(s32* arg1) {
     }
 }
 
-// NONMATCHING: velocity blend/sink/shadow-danger terms follow the draft; vecBlend is written as a lerp
+// NONMATCHING: cached position pointers, integer conversion scheduling and stack allocation.
 void Mario::fn_8038B9F0() {
-    TVec3f spEC;
-    spEC.zero();
-    if (!this->isStatusActive(4)) {
-        if (FLD<u32>(this->mActor, 0xE24) != 0) {
-            TVec3f blend(FLD<TVec3f>(this, 0x13C));
-            FLD<TVec3f>(this, 0x13C) = blend + (spEC - blend) * 0.3f;
-        }
-        void* st = FLD<void*>(this, 0x97C);
-        if (st == nullptr) {
-            if (this->isAnimationRun("LifeAlertTrg")) {
-                TVec3f spB0(FLD<TVec3f>(this, 0x4E8));
-                spB0 -= this->mPosHolder->mPos;
-                TVec3f spE0;
-                MR::vecKillElement(spB0, this->mHeadVec, &spE0);
-                f32 mag = PSVECMag(&spE0);
-                TVec3f spA4(*this->mFrontWallTriangle->getNormal(0));
-                spA4 *= mag - 35.0f;
-                spEC = spA4;
-            }
-        } else if (FLD<u32>(st, 0xC) == 6) {
-            f32 t31 = FLD<f32>(marioCurTableEntry(this), 0x48);
-            TVec3f sp98(-*this->getGravityVec());
-            sp98 *= t31;
-            spEC += sp98;
-        }
-        u32 hi = FLD<u32>(this, 0xC);
-        if (((hi >> 30) & 1) && ((hi >> 31) == 0)) {
-            f32 vs = this->mVerticalSpeed;
-            if (vs > 5.0f && vs < 65.0f && !this->isCurrentShadowFloorDangerAction()) {
-                TVec3f spD4(this->mGroundPos);
-                spD4 -= this->mShadowPos;
-                MR::normalizeOrZero(&spD4);
-                f32 d = spD4.dot(FLD<TVec3f>(this, 0x368));
-                if (d < 0.1f) {
-                    TVec3f sp80(FLD<TVec3f>(this, 0x1D8));
-                    sp80 *= vs;
-                    spEC += sp80;
-                } else {
-                    TVec3f sp74(this->mGroundPos);
-                    sp74 -= this->mPosHolder->mPos;
-                    f32 t = MR::vecKillElement(sp74, *this->getGravityVec(), &spEC);
-                    TVec3f sp68(*this->getGravityVec());
-                    sp68 *= t;
-                    spEC += sp68;
-                }
-            }
-        }
-        TVec3f spBC;
-        spBC.zero();
-        if (this->mSinkTimer != 0) {
-            TVec3f sp44(*this->getGravityVec());
-            sp44 *= (f32)this->mSinkTimer;
-            TVec3f sp50(sp44);
-            sp50 *= 0.00390625f;
-            TVec3f sp5C(sp50);
-            sp5C *= 120.0f;
-            spBC = sp5C;
-        }
-        f32 var_f31 = 0.2f;
-        if (!this->isUseSimpleGroundCheck()) {
-            if (this->fn_8038CCF0()) {
-                var_f31 = 0.01f;
-            } else if (this->mTargetWalkSpeedIndex == 0 && this->mWalkSpeed < 0.2f && this->isBlendWaitGround()) {
-                f32 m = PSVECMag(&spEC);
-                if (PSVECMag(&FLD<TVec3f>(this, 0x148)) > m) {
-                    var_f31 = 0.5f;
-                } else {
-                    var_f31 = 0.02f * (f32)FLD<s16>(this, 0x3CE);
-                }
-            }
-        }
-        TVec3f& v148 = FLD<TVec3f>(this, 0x148);
-        v148 = v148 + (spEC - v148) * var_f31;
-        TVec3f& v154 = FLD<TVec3f>(this, 0x154);
-        v154 = v154 + (spBC - v154) * 0.2f;
-        TVec3f sp8(FLD<TVec3f>(this, 0x148));
-        sp8 += FLD<TVec3f>(this, 0x154);
-        FLD<TVec3f>(this, 0x13C) = sp8;
+    TVec3f offset;
+    offset.zero();
+    if (isStatusActive(MarioStatus_Blown)) {
+        return;
     }
+    if (mActor->mVelocityBlendE24 != 0) {
+        MR::vecBlend(&_13C, _13C, offset, 0.3f);
+    }
+    MarioState* state = _97C;
+    if (state == nullptr) {
+        if (isAnimationRun("壁押し")) {
+            TVec3f wallDelta(_4E8);
+            wallDelta -= mPosHolder->mPos;
+            TVec3f horizontal;
+            MR::vecKillElement(wallDelta, mHeadVec, &horizontal);
+            f32 length = PSVECMag(&horizontal);
+            TVec3f wallOffset(*mFrontWallTriangle->getNormal(0));
+            wallOffset *= length - 35.0f;
+            offset = wallOffset;
+        }
+    } else if (state->mStatusId == MarioStatus_Swim) {
+        f32 surfaceOffset = mSwim->mSurfaceOffset;
+        const TVec3f& swimDirection = -*getGravityVec();
+        TVec3f swimOffset(swimDirection);
+        swimOffset *= surfaceOffset;
+        offset += swimOffset;
+    }
+    if (mMovementStates._1 && !mMovementStates.jumping) {
+        f32 verticalSpeed = mVerticalSpeed;
+        if (verticalSpeed > 5.0f && verticalSpeed < 65.0f && !isCurrentShadowFloorDangerAction()) {
+            TVec3f direction(mGroundPos);
+            direction -= mShadowPos;
+            MR::normalizeOrZero(&direction);
+            if (direction.dot(_368) < 0.1f) {
+                f32 speed = mVerticalSpeed;
+                TVec3f floorOffset(getAirGravityVec());
+                floorOffset *= speed;
+                offset += floorOffset;
+            } else {
+                TVec3f groundDelta(mGroundPos);
+                groundDelta -= mPosHolder->mPos;
+                TVec3f horizontal;
+                f32 distance = MR::vecKillElement(groundDelta, *getGravityVec(), &horizontal);
+                TVec3f floorOffset(*getGravityVec());
+                floorOffset *= distance;
+                offset += floorOffset;
+            }
+        }
+    }
+    TVec3f sinkOffset;
+    sinkOffset.zero();
+    if (mSinkTimer != 0) {
+        TVec3f first(*getGravityVec());
+        first *= static_cast<f32>(mSinkTimer);
+        TVec3f second(first);
+        second *= 0.00390625f;
+        TVec3f third(second);
+        third *= 120.0f;
+        sinkOffset = third;
+        f32 sink = static_cast<f32>(mSinkTimer);
+        const TVec3f& sinkDirection = -_1FC;
+        TVec3f fourth(sinkDirection);
+        fourth *= sink;
+        TVec3f fifth(fourth);
+        fifth *= 0.00390625f;
+        TVec3f sixth(fifth);
+        sixth *= 120.0f;
+        sinkOffset = sixth;
+    }
+    f32 blendRate = 0.2f;
+    if (!isUseSimpleGroundCheck()) {
+        if (fn_8038CCF0()) {
+            blendRate = 0.01f;
+        } else if (mTargetWalkSpeedIndex == 0 && mWalkSpeed < 0.2f && isBlendWaitGround()) {
+            f32 length = PSVECMag(&offset);
+            if (PSVECMag(&_148) > length) {
+                blendRate = 0.5f;
+            } else {
+                blendRate = 0.02f * static_cast<f32>(_3CE);
+                if (blendRate >= 0.2f) {
+                    blendRate = 0.2f;
+                }
+            }
+        }
+    }
+    MR::vecBlend(&_148, _148, offset, blendRate);
+    MR::vecBlend(&_154, _154, sinkOffset, 0.2f);
+    TVec3f combined(_148);
+    combined += _154;
+    _13C = combined;
 }
 
 void Mario::fn_80395400(u32 arg) {

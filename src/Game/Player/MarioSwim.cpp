@@ -3328,7 +3328,7 @@ void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3
     }
 }
 
-// NONMATCHING: collision-node pointer CSE and GPR allocation.
+// NONMATCHING: literal-pool relocation offsets; masked instructions are exact.
 void MarioSwim::fn_803FD140() {
     _1F0.zero();
     if (_180) {
@@ -3350,28 +3350,28 @@ void MarioSwim::fn_803FD140() {
     TVec3f selectedPosition;
     f32 radius = 9600.0f;
     for (u32 i = 0; i < mCollisionNodeCount; i++) {
-        MarioSwimCollisionNode& node = mCollisionNodes[i];
-        TVec3f position(node.mOffset);
+        TVec3f position(mCollisionNodes[i].mOffset);
         base.mult33(position);
         position.add(center);
         MR::getWaterAreaObj(&info, position);
-        u8 wasInWater = node._10;
-        node._10 = info.isInWater();
-        node._30 = wasInWater != node._10;
-        node._14.set(position);
-        if (node._10) {
-            if (!count || radius > node.mRadius) {
+        u8 wasInWater = mCollisionNodes[i]._10;
+        mCollisionNodes[i]._10 = info.isInWater();
+        mCollisionNodes[i]._30 = wasInWater != mCollisionNodes[i]._10;
+        mCollisionNodes[i]._14.set(position);
+        if (mCollisionNodes[i]._10) {
+            if (!count || radius > mCollisionNodes[i].mRadius) {
                 selected = info;
                 selectedPosition.set(position);
-                radius = node.mRadius;
+                radius = mCollisionNodes[i].mRadius;
             }
-            node.mWaterArea = info.mWaterArea;
-            if (info.mWaterArea) {
-                node._24 = position;
-                if (info.mWaterArea->isNotHemisphere() && info.mWaterArea->getFollowMtx()) {
-                    TPos3f inverse(*info.mWaterArea->getFollowMtx());
+            const WaterArea* area = info.mWaterArea;
+            mCollisionNodes[i].mWaterArea = area;
+            if (area) {
+                mCollisionNodes[i]._24 = position;
+                if (area->isNotHemisphere() && area->getFollowMtx()) {
+                    TPos3f inverse(*area->getFollowMtx());
                     inverse.invert(inverse);
-                    inverse.mult(node._24, node._24);
+                    inverse.mult(mCollisionNodes[i]._24, mCollisionNodes[i]._24);
                 }
             }
             _1F0.add(position);
@@ -4059,7 +4059,7 @@ bool MarioSwim::fn_803FBC70() {
     return true;
 }
 
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
+// NONMATCHING: pooled-string offsets and commutative fmuls operand ordering.
 bool MarioSwim::fn_803FC020() {
     f32 threshold = 0.75f * (1.0f - 0.3f * MR::abs(getStickX()));
     if (mVerticalAngle < 1.5707964f && getStickY() > threshold && !mActionLockTimer && _1E) {
@@ -4071,9 +4071,11 @@ bool MarioSwim::fn_803FC020() {
     _1E = false;
     if (!isAnimationTerminate("水泳一掻き")) {
         if (_1D) return false;
-        const MarioConstTable* table = mActor->mConst->getTable();
+        MarioConst* constants = mActor->mConst;
+        f32 frame = getAnimator()->getFrame();
+        const MarioConstTable* table = constants->getTable();
         u16 start = table->mSwimConnectIn;
-        if (!MR::isInRange(getAnimator()->getFrame(), static_cast<f32>(start), static_cast<f32>(table->mSwimConnectOut))) {
+        if (!MR::isInRange(frame, static_cast<f32>(start), static_cast<f32>(table->mSwimConnectOut))) {
             _1D = true;
             return false;
         }

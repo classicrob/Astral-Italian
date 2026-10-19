@@ -166,6 +166,7 @@ void YoshiModelTargetState::calcTargetRotation(const TPos3f& input,TQuat4f* quat
     if(!MR::normalizeOrZero(&rootZ)) {TQuat4f q;q.setRotate(x,rootZ);q.transform(x);q.transform(y);q.transform(z);}
     TPos3f rot;rot.identity();rot.setXDir(x);rot.setYDir(y);rot.setZDir(z);rot.getQuat(*quat);
 }
+// NONMATCHING: matrix helper inlining, register allocation and stack temporary placement differ.
 void YoshiModelTargetState::calc(const TPos3f& input,TPos3f* out) {
     if(mReset) {JMath::gekko_ps_copy12(&mInitialMtx,&input);mInitialMtx.invert(mInitialMtx);mInitialMtx.concat(*out);mReset=false;}
     TVec3f scale,trans;TQuat4f oldQuat;
@@ -176,23 +177,25 @@ void YoshiModelTargetState::calc(const TPos3f& input,TPos3f* out) {
     TQuat4f targetQuat;calcTargetRotation(input,&targetQuat);
     TPos3f original;original.concat(input,mInitialMtx);TVec3f originalScale,originalTrans;TQuat4f originalQuat;decomposeYoshiModelMtx(original,&originalScale,&originalTrans,&originalQuat);
     f32 factor=0.1f;if(mCtrl->mBlend->mMode) factor=1.0f;
-    TVec3f targetX,targetY,targetZ,originalX,originalY,originalZ;
+    TVec3f originalZ,originalY,originalX,targetZ,targetY,targetX;
     targetQuat.getXDir(targetX);targetQuat.getYDir(targetY);targetQuat.getZDir(targetZ);
     originalQuat.getXDir(originalX);originalQuat.getYDir(originalY);originalQuat.getZDir(originalZ);
     TVec3f projected;JMAVECScaleAdd(&targetY,&originalX,&projected,-targetY.dot(originalX));
     if(MR::normalizeOrZero(&projected)) {
         TQuat4f q;if(originalX.dot(targetY)>0.0f) q.setRotate(originalZ,-1.5707963705062866f);else q.setRotate(originalZ,1.5707963705062866f);
-        projected=originalX;q.transform(projected);JMAVECScaleAdd(&targetY,&projected,&projected,-targetY.dot(projected));MR::normalize(&projected);
+        projected.x=originalX.x;projected.y=originalX.y;projected.z=originalX.z;q.transform(projected);JMAVECScaleAdd(&targetY,&projected,&projected,-targetY.dot(projected));MR::normalize(&projected);
     }
     f32 baseAngle=projected.angle(targetX);if(targetZ.dot(projected)>0.0f) baseAngle=-baseAngle;
-    f32 upper=1.919862151145935f-baseAngle,lower=-1.919862151145935f-baseAngle;
+    f32 limit=1.919862151145935f;
+    f32 upper=limit-baseAngle,lower=-limit-baseAngle;
     TVec3f targetProjected;JMAVECScaleAdd(&targetY,&targetDir,&targetProjected,-targetY.dot(targetDir));TVec3f cross;PSVECCrossProduct(&projected,&targetY,&cross);MR::normalize(&cross);
     f32 targetAngle=projected.angle(targetProjected);if(cross.dot(targetProjected)>0.0f) targetAngle=-targetAngle;
     if(targetAngle>upper) targetAngle=upper;if(targetAngle<lower) targetAngle=lower;
+    f32 yaw=baseAngle+targetAngle*factor;
     TVec3f up;targetQuat.getYDir(up);f32 elevation=up.angle(targetDir);if(elevation>2.356194496154785f) elevation=2.356194496154785f;else if(elevation<0.7853981852531433f) elevation=0.7853981852531433f;
-    f32 pitch=1.5707963705062866f-elevation;
+    f32 pitch=1.5707963705062866f + -elevation;
     TQuat4f pitchQuat,yawQuat,result;
-    pitchQuat.setRotate(TVec3f(0.0f,0.0f,1.0f),pitch);yawQuat.setRotate(TVec3f(0.0f,1.0f,0.0f),baseAngle+targetAngle*factor);
+    pitchQuat.setRotate(TVec3f(0.0f,0.0f,1.0f),pitch);yawQuat.setRotate(TVec3f(0.0f,1.0f,0.0f),yaw);
     PSQUATMultiply(&targetQuat,&yawQuat,&result);PSQUATMultiply(&result,&pitchQuat,&result);out->makeQuat(result);
     TPos3f scaleMtx;scaleMtx.zeroTrans();setYoshiModelScale(&scaleMtx,scale);out->concat(scaleMtx);out->setTrans(trans);
     JMath::gekko_ps_copy12(&mInitialMtx,&input);mInitialMtx.invert(mInitialMtx);mInitialMtx.concat(*out);

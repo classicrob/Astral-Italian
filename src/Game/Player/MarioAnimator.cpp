@@ -149,9 +149,10 @@ void MarioAnimator::spinEntry() {
     }
 }
 
+// NONMATCHING: literal relocation labels; scalar and effect bytes verified.
 void MarioAnimator::spinUpdate() {
     if (getFrame() > 30.0f) {
-        getPlayer()->MarioModule::stopEffect("スピンライト");
+        mActor->stopEffect("スピンライト");
     }
 }
 
@@ -262,6 +263,7 @@ void MarioAnimator::stopAnimation(const char* name, const char* defaultName) {
     }
 }
 
+// NONMATCHING: external table and string-pool address materialization; target addresses verified.
 void MarioAnimator::init() {
     XanimeSwapTable* luigiAnimations = nullptr;
     if (gIsLuigi) {
@@ -551,15 +553,16 @@ void MarioAnimator::setHand() {
 
 extern const char* jname_chest;
 
+// NONMATCHING: floating-point register allocation and scheduling.
 void MarioAnimator::setTilt() {
     f32 tiltAngle = 0.0f;
 
     if (!MR::isNearZero(_60)) {
-        f32 frontDot = _60.dot(getPlayer()->MarioModule::getFrontVec());
+        f32 frontDot = _60.dot(getPlayer()->mFrontVec);
         tiltAngle = 1.0f - frontDot;
 
         if (tiltAngle > 0.001f) {
-            TVec3f cross = _60.cross(getPlayer()->MarioModule::getFrontVec());
+            TVec3f cross = _60.cross(getPlayer()->mFrontVec);
 
             f32 gravDot = cross.dot(*getPlayer()->getGravityVec());
             if (gravDot < 0.0f) {
@@ -570,7 +573,7 @@ void MarioAnimator::setTilt() {
         }
     }
 
-    _60 = getPlayer()->MarioModule::getFrontVec();
+    _60 = getPlayer()->mFrontVec;
 
     Mario* player = getPlayer();
     MarioConstTable* table = mActor->mConst->getTable();
@@ -797,7 +800,7 @@ void MarioAnimator::setHipSliderTilt() {
 
 void MarioAnimator::setHipSlipTilt() {
     TVec3f worldPadDir(getPlayer()->MarioModule::getWorldPadDir());
-    f32 frontDot = MR::vecKillElement(worldPadDir, getPlayer()->MarioModule::getFrontVec(), &worldPadDir);
+    f32 frontDot = MR::vecKillElement(worldPadDir, getPlayer()->mFrontVec, &worldPadDir);
     Mario* player = getPlayer();
     f32 gravDot = MR::vecKillElement(worldPadDir, player->mSideVec, &worldPadDir);
     setHipSlidingTilt(-gravDot, frontDot);
@@ -854,12 +857,13 @@ void MarioAnimator::calc() {
 }
 
 #pragma dont_inline on
+// NONMATCHING: player-pointer load scheduling.
 void MarioAnimator::fn_803E0E40(const char* pName) {
     const XanimeGroupInfo* info = mXanimePlayer->mCurrentAnimation;
     if (info->mAttribute == 2) {
-        getPlayer()->startBas(pName, false, info->mLoop, info->mEnd);
+        mActor->mMario->startBas(pName, false, info->mLoop, info->mEnd);
     } else {
-        getPlayer()->startBas(pName, false, 0.0f, 0.0f);
+        mActor->mMario->startBas(pName, false, 0.0f, 0.0f);
     }
 }
 #pragma dont_inline reset
@@ -921,11 +925,12 @@ void MarioAnimator::stopUpper(const char* pName) {
 }
 
 #pragma dont_inline on
+// NONMATCHING: zero-literal relocation label.
 void MarioAnimator::changeDefault(const char* pName) {
-    getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
+    mActor->mMario->startBas(nullptr, false, 0.0f, 0.0f);
 
     mXanimePlayer->setDefaultAnimation(pName);
-    if (getPlayer()->isPlayerModeYoshi()) {
+    if (mActor->mMario->isPlayerModeYoshi()) {
         mActor->fn_803B97F0()->fn_8040ED90(pName);
         mXanimePlayerExtra->setDefaultAnimation(pName);
     }
@@ -954,6 +959,7 @@ u16 MarioAnimator::getUpperJointID() const {
 const char* jname_chest = "Spine1";
 #pragma push
 #pragma opt_propagation off
+// NONMATCHING: string-pool materialization, saved registers, and scheduling.
 void MarioAnimator::updateJointRumble() {
     u32 timer = _74;
     if (timer == 0) {
@@ -988,15 +994,15 @@ void MarioAnimator::updateJointRumble() {
     if (getPlayer()->mMovementStates._1 && !getPlayer()->mMovementStates._37 && getPlayer()->mTargetWalkSpeedIndex == 0 &&
         getPlayer()->calcAngleD(getPlayer()->_368) > 5.0f) {
         TVec3f dir;
-        const TVec3f* airGrav = &getPlayer()->getAirGravityVec();
         Mario* playerVec = getPlayer();
+        const TVec3f* airGrav = &playerVec->getAirGravityVec();
         MR::vecKillElement(playerVec->_368, *airGrav, &dir);
         MR::normalizeOrZero(&dir);
 
-        if (getPlayer()->MarioModule::getFrontVec().dot(dir) < -0.707f) {
+        if (getPlayer()->mFrontVec.dot(dir) < -0.707f) {
             hipRot = -hipRot;
         } else {
-            hipRot = getPlayer()->MarioModule::getFrontVec().dot(dir) > 0.707f ? hipRot : 0.9f * _118;
+            hipRot = getPlayer()->mFrontVec.dot(dir) > 0.707f ? hipRot : 0.9f * _118;
         }
 
         PSMTXRotRad(_AC.toMtxPtr(), 'Z', hipRot);
@@ -1086,8 +1092,13 @@ void MarioAnimator::clearAllJointTransform() {
     _70 = 0.0f;
 }
 
+// NONMATCHING: string-pool materialization and vector-address scheduling.
 bool MarioAnimator::isMirrorAnimation() {
     if (mActor->_468) {
+        return false;
+    }
+
+    if (getPlayer()->isPlayerModeYoshi()) {
         return false;
     }
 
@@ -1259,16 +1270,17 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     }
 }
 
+// NONMATCHING: string-pool materialization and branch scheduling.
 void MarioAnimator::changeThrowAnimation(const HitSensor* pSensor) {
     u32 type = pSensor->mType;
     switch (type) {
-    case ACTMES_STAR_PIECE_GIFT_MAX:
+    case 0x1D:
         getPlayer()->MarioModule::stopAnimationUpper(nullptr);
         getPlayer()->MarioModule::changeAnimation("両手投げ");
         getPlayer()->MarioModule::startPadVib("マリオ[亀投げ]");
         break;
-    case ACTMES_STAR_PIECE_GIFT:
-    case ACTMES_STAR_PIECE_GIFT_1:
+    case 0x12:
+    case 0x13:
         getPlayer()->MarioModule::stopAnimationUpper(nullptr);
         if (getPlayer()->isSwimming()) {
             getPlayer()->MarioModule::changeAnimation("水泳亀投げ", "水泳基本");
@@ -1281,6 +1293,7 @@ void MarioAnimator::changeThrowAnimation(const HitSensor* pSensor) {
     }
 }
 
+// NONMATCHING: string-pool materialization and saved registers.
 void MarioAnimator::waterToGround() {
     HitSensor* swimSensor;
     if (mActor->_468 == 0) {
@@ -1295,13 +1308,13 @@ void MarioAnimator::waterToGround() {
 
     u32 state = swimSensor->mType;
     switch (state) {
-    case ACTMES_STAR_PIECE_GIFT:
-    case ACTMES_STAR_PIECE_GIFT_1:
+    case 0x12:
+    case 0x13:
         getPlayer()->MarioModule::changeAnimationUpper("ひろいウエイト");
         mActor->clearNullAnimation(0);
-        MR::deleteEffect(swimSensor->mHost, "SwimBubble");
+        MR::deleteEffect(MR::getSensorHost(swimSensor), "SwimBubble");
         break;
-    case ACTMES_STAR_PIECE_GIFT_MAX:
+    case 0x1D:
         getPlayer()->MarioModule::changeAnimationUpper("カブウエイト");
         mActor->clearNullAnimation(0);
         break;

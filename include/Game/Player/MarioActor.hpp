@@ -1195,9 +1195,11 @@ public:
     /* 0xE1E */ u16 _F18;
     }; };
     /* 0xE20 */ u32 _930;
+    union { u32 mVelocityBlendE24; struct {
     /* 0xE24 */ bool _934;
     /* 0xE25 */ u8 _7E2;
     /* 0xE26 */ u16 _F16;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
+    }; };
     /* 0xE28 */ s32 mAnimationDelayE28;
     /* 0xE2C */ bool _935;  // SMG2 offset guess
     /* 0xE2D */ u8 _padE2D[0x1];
@@ -1301,6 +1303,7 @@ public:
         };
         struct { ModelHolder* mModelF24; ModelHolder* mModelF28; };
         struct { u8 _padModelF24[0x14]; ModelHolder* mModelF38; };
+        struct { u8 _padHandFlagsF24[0x11]; u8 mHandFlagF35; u8 mHandFlagF36; };
         struct { u8 _padReflectionF24[0x20]; TVec3f mReflectionPositionF44; };
         struct { u8 _padHandF24[8]; ModelHolder* mHandModelL; ModelHolder* mHandModelR; };
         struct { u8 _padEffectF24[0x1C]; MarioActorEffectState* mActorEffectState; };

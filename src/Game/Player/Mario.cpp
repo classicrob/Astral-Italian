@@ -8813,6 +8813,7 @@ bool Mario::isSoftLandingFloor() const {
 
 
 void Mario::checkAndTryForceJump() {
+    // NONMATCHING: pooled literal placement.
     bool doForceJump = false;
     TVec3f forceJumpVec;
 
@@ -8859,7 +8860,8 @@ void Mario::checkAndTryForceJump() {
         doForceJump = false;
 
         if (mActor->mHealth != 0) {
-            if (getCurrentStatus() == 2) {
+            const u32 status = getCurrentStatus();
+            if (status == 2 || status == 4) {
                 closeStatus(nullptr);
             }
 
@@ -8901,7 +8903,11 @@ void Mario::checkAndTryForceJump() {
 
         if (mActor->isEnableNerveChange()) {
             playSound("トランポリンジャンプ大");
-            playSound("声大ジャンプ");
+            if (isPlayerModeYoshi()) {
+                MR::startActionSound(mActor->getYoshi(), "JumpObj", -1, -1, -1);
+            } else {
+                playSound("声大ジャンプ");
+            }
             playSound("ジャンプ踏切");
         }
     }

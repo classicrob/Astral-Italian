@@ -191,7 +191,7 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
         arg1 = 0;
     }
 
-    _92 = arg1;
+    mMotionProfileIndex = arg1;
     _E2 = false;
     _E0 = true;
 
@@ -254,7 +254,7 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     }
 
     mShellType = shellType;
-    _8C = 0.0f;
+    mPlayerThrowSpeedBonus = 0.0f;
 
     initNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait));
 
@@ -463,7 +463,7 @@ void JetTurtle::appear() {
     MR::showModel(this);
 
     if (_E1 != 0) {
-        if (_92 == 0) {
+        if (mMotionProfileIndex == 0) {
             TVec3f gravityVec;
             TVec3f gravityVec2;
             TVec3f frontVec;
@@ -472,7 +472,7 @@ void JetTurtle::appear() {
             MR::calcGravityVectorOrZero(this, mPosition + frontVec * 100.0f, &gravityVec2, nullptr, 0);
 
             if (!MR::isNearZero(gravityVec - gravityVec2)) {
-                _92 = 1;
+                mMotionProfileIndex = 1;
             }
         }
 
@@ -643,7 +643,7 @@ void JetTurtle::exeThrowing() {
             _EC = false;
         }
 
-        if (MR::isStep(this, ::sResetStep[_92])) {
+        if (MR::isStep(this, ::sResetStep[mMotionProfileIndex])) {
             if ((_C0 - mPosition).length() > 5000.0f) {
                 reset(1);
             } else {
@@ -672,14 +672,14 @@ void JetTurtle::exeThrowing() {
                 }
 
                 v22 = _9C;
-                v22.setLength(_8C + ::sThrowSpdHoming[_92]);
+                v22.setLength(mPlayerThrowSpeedBonus + ::sThrowSpdHoming[mMotionProfileIndex]);
                 mVelocity = v22;
             }
         }
 
         if (_98 == nullptr) {
             v22 = _9C;
-            v22.setLength(_8C + ::sThrowSpdStraight[_92]);
+            v22.setLength(mPlayerThrowSpeedBonus + ::sThrowSpdStraight[mMotionProfileIndex]);
             mVelocity = v22;
         }
 
@@ -732,7 +732,7 @@ void JetTurtle::exeThrowing() {
 
         if (_98 == nullptr) {
             if (!(grav == _CC)) {
-                MR::vecBlendSphere(&_9C, _9C, grav, ::sGravityLevel[_92]);
+                MR::vecBlendSphere(&_9C, _9C, grav, ::sGravityLevel[mMotionProfileIndex]);
             }
 
             _CC = grav;
@@ -972,7 +972,7 @@ bool JetTurtle::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
             mtx.getTrans(mPosition);
             MR::getPlayerThrowVec(&_9C);
             _C0.set(mPosition);
-            _8C = 0.0f;
+            mPlayerThrowSpeedBonus = 0.0f;
             _98 = nullptr;
             MR::showModel(this);
             MR::setScale(this, 1.0f);
@@ -1128,10 +1128,10 @@ bool JetTurtle::receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver) {
         MR::normalizeOrZero(&_9C);
     }
 
-    if (!_92) {
-        _8C = MR::getPlayerVelocity()->length();
+    if (!mMotionProfileIndex) {
+        mPlayerThrowSpeedBonus = MR::getPlayerVelocity()->length();
     } else {
-        _8C = 0.0f;
+        mPlayerThrowSpeedBonus = 0.0f;
     }
 
     _C0 = mPosition;

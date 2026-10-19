@@ -4,6 +4,7 @@
 #include "Game/Util.hpp"
 #include <cstdio>
 #include "Game/Camera/CameraTargetArg.hpp"
+#include "Game/LiveActor/DemoObj.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -34,8 +35,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
-
-class DemoObj : public LiveActor {};
 
 const GXColor lightColor[] = {
     {0x96, 0x96, 0x32, 0}, {0x96, 0x96, 0x32, 0}, {0x32, 0x96, 0x32, 0}, {0x96, 0x32, 0x32, 0}, {0x64, 0x64, 0x64, 0},

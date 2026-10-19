@@ -296,3 +296,6 @@ UFOKinokoUnderConstruction::~UFOKinokoUnderConstruction() {
 
 PictureJoinPlanet::~PictureJoinPlanet() {
 }
+
+SimpleMapObjWithEffect::~SimpleMapObjWithEffect() {
+}

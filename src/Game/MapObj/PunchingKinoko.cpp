@@ -5,11 +5,6 @@
 #include "JSystem/JGeometry/TVec.hpp"
 #include <revolution.h>
 
-void PunchingKinoko_FORCE_EMIT_SCALE() {
-    TVec3f vec;
-    vec.scale(0.0f);
-}
-
 namespace NrvPunchingKinoko {
     NEW_NERVE(PunchingKinokoNrvCrushedShrink, PunchingKinoko, CrushedShrink);
     NEW_NERVE(PunchingKinokoNrvCrushedFlat, PunchingKinoko, CrushedFlat);

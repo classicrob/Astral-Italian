@@ -21,10 +21,8 @@ public:
 
     /* 0x14 */ u32 mEdgeIndex;
     /* 0x18 */ u8 mUseTexAlpha;
-    /* 0x1C */ union {
-        u32 _1C;
-        GXColor mEdgeColor;
-    };
+    /* 0x19 */ u8 _19[3];
+    /* 0x1C */ GXColor mEdgeColor;
     /* 0x20 */ bool mIsEdgeColorOverridden;
 };
 

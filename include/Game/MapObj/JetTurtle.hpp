@@ -51,23 +51,23 @@ public:
     void throwByYoshi(const TVec3f&, const TVec3f&);
     void dropByYoshi(const TVec3f&, const TVec3f&);
 
-    /* 0x8C */ f32 _8C;
-    /* 0x90 */ u16 mShellType;  // (0 = green, 1 = red, 2 = gold)
-    /* 0x92 */ u16 _92;
-    /* 0x94 */ HitSensor* _94;
-    /* 0x98 */ HitSensor* _98;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ TVec3f _A8;
-    /* 0xB4 */ TVec3f _B4;
-    /* 0xC0 */ TVec3f _C0;
-    /* 0xCC */ TVec3f _CC;
-    /* 0xD8 */ u16 _D8;
-    /* 0xDA */ u16 _DA;
-    /* 0xDC */ u32 _DC;
-    /* 0xE0 */ u8 _E0;
-    /* 0xE1 */ u8 _E1;
-    /* 0xE2 */ u8 _E2;
-    /* 0xE3 */ u8 _E3;
+    /* 0x90 */ f32 mPlayerThrowSpeedBonus;
+    /* 0x94 */ u16 mShellType;  // (0 = green, 1 = red, 2 = gold)
+    /* 0x96 */ u16 mMotionProfileIndex;
+    /* 0x98 */ HitSensor* _94;
+    /* 0x9C */ HitSensor* _98;
+    /* 0xA0 */ TVec3f _9C;
+    /* 0xAC */ TVec3f _A8;
+    /* 0xB8 */ TVec3f _B4;
+    /* 0xC4 */ TVec3f _C0;
+    /* 0xD0 */ TVec3f _CC;
+    /* 0xDC */ u16 _D8;
+    /* 0xDE */ u16 _DA;
+    /* 0xE0 */ u32 _DC;
+    /* 0xE4 */ u8 _E0;
+    /* 0xE5 */ u8 _E1;
+    /* 0xE6 */ u8 _E2;
+    /* 0xE7 */ u8 _E3;
     /* 0xE8 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0xEC */ bool _EC;
 };

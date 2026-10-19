@@ -74,7 +74,7 @@ void BombHeiLauncher::init(const JMapInfoIter& rIter) {
         mBomb->mType = BombHei::BOMB;
     }
 
-    mBomb->mPosition.set(mPosition);
+    MR::setPosition(mBomb, mPosition);
     mBomb->initWithoutIter();
     mBomb->setGroupClipping(rIter);
 

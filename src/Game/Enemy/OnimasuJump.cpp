@@ -1,5 +1,6 @@
 #include "Game/Enemy/OnimasuJump.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
 
 OnimasuJump::OnimasuJump(const char* pName) : Onimasu(pName), mCurNormal(), mNormals() {
 }
@@ -76,7 +77,7 @@ void OnimasuJump::updatePoseInner() {
     TVec3f gravityDir;
     calcGravityDir(&gravityDir);
 
-    mVelocity.add(gravityDir * getGravityScalar());
+    _90->calcHostVelocity(gravityDir * getGravityScalar());
 }
 
 s32 OnimasuJump::getNextPointNo() const {

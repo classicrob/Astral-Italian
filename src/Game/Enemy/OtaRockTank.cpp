@@ -520,6 +520,7 @@ void OtaRockTank::exeMeteor() {
         if (mMeteorCount > 10) {
             if (MR::isActionEnd(this)) {
                 setNerve(NT(FallDashStart));
+            } else {
                 return;
             }
         } else {
@@ -1084,7 +1085,7 @@ ScatterFireBall* OtaRockTank::fn_801E0850() {
 
 // NONMATCHING: positive-count test uses a different comparison idiom
 bool OtaRockTank::fn_801E08C0() {
-    if (fn_801E0700() > 0) {
+    if (fn_801E0700() != 0) {
         fn_801E0940();
     }
     fn_801E0A90();

@@ -17,6 +17,7 @@ void TerritoryMover::decideNextTargetPos(const LiveActor* pActor) {
     randVec *= mRadius;
     randVec += mCenter;
     mTarget = randVec;
+    MR::fn_800143D0(&mTarget);
 }
 
 bool TerritoryMover::isReachedTarget(const LiveActor* pActor, f32 range) {

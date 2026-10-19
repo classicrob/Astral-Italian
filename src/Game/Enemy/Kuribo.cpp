@@ -222,8 +222,13 @@ void Kuribo::control() {
     }
 
     if (!tryDead()) {
-        if (tryPointBind()) return;
-        if (fn_801BAF60()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
+        switch (tryPointBind()) {
+        case false:
+            if (fn_801BAF60()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
+            break;
+        default:
+            break;
+        }
     }
 }
 

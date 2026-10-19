@@ -58,7 +58,7 @@ void SamboHead::init(const JMapInfoIter& rIter) {
     mSpinCtrl = new SpinHitController(this);
 
     MR::initUseStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
     MR::useStageSwitchAwake(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
 }
@@ -446,7 +446,7 @@ void SamboHead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             !isNerve(GET_NERVE(SamboHead, HostTypeNrvHitBlow))) {
             MR::sendMsgPush(pReceiver, pSender);
         }
-    } else if (MR::isSensorEnemy(pReceiver)) {
+    } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }

@@ -122,7 +122,6 @@ namespace MR {
     bool fn_8003A720(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
     HitSensor* fn_80038D20(const Triangle*);
     // MapUtil (enemies lane, callees named by address; lead renames symbols)
-    bool fn_80037E40(s32, Triangle**, const TVec3f*, const TVec3f*);
     bool fn_80037E40(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
     bool fn_80038570(const TVec3f*, const TVec3f*);
     bool fn_8008DDC0(MtxPtr, const TVec3f*, f32, f32);

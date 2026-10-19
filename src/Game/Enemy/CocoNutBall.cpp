@@ -325,7 +325,7 @@ bool CocoNutBall::tryToKill(bool alwaysKill) {
     HitSensor* bindedSensor = isBindedAny();
 
     if (bindedSensor != nullptr) {
-        if (MR::isSensorType(bindedSensor, 0x4F) && !isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvRebound))) {
+        if (MR::isSensorType(bindedSensor, 0x4F) && !isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreezeStart))) {
             MR::sendMsgEnemyAttack(bindedSensor, getSensor("Body"));
         }
 

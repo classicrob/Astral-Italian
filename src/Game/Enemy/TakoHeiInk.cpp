@@ -26,6 +26,7 @@ void TakoHeiInk::init(const JMapInfoIter& rIter) {
 
 void TakoHeiInk::kill() {
     LiveActor::kill();
+    MR::tryHitReactionBreak(this);
     MR::emitEffect(this, "Break");
 }
 
@@ -46,8 +47,7 @@ void TakoHeiInk::start(const TVec3f& startPos, const TVec3f& startVelocity, bool
 }
 
 void TakoHeiInk::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-        MR::startActionSound(this, "EmTakoheiInkBreak");
+    if (MR::isSensorPlayerOrRide(pReceiver) && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         kill();
     }
 }
@@ -65,7 +65,6 @@ void TakoHeiInk::exeWait() {
     MR::attenuateVelocity(this, ::sNormalFric);
 
     if (MR::isBinded(this) || MR::isGreaterStep(this, ::sForceBreakTime)) {
-        MR::startActionSound(this, "EmTakoheiInkBreak");
         kill();
     }
 }

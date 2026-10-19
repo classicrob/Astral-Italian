@@ -262,9 +262,8 @@ namespace MR {
         return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, nullptr, nullptr, 0);
     }
 
-    bool fn_80037E40(s32 pPos, Triangle** ppTriangle, const TVec3f* pStart, const TVec3f* pDirection) {
-        return ::getFirstPolyOnLineCategory(reinterpret_cast< TVec3f* >(pPos), reinterpret_cast< Triangle* >(ppTriangle), *pStart, *pDirection,
-                                            nullptr, nullptr, 3);
+    bool fn_80037E40(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection) {
+        return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, nullptr, nullptr, 3);
     }
 
     bool getFirstPolyOnLineToMapAndMoveLimit(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection) {

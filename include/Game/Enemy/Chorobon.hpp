@@ -11,8 +11,8 @@ class Chorobon : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
     bool fn_80176D90();
-    bool fn_80176E00();
-    bool fn_80176E30();
+    bool fn_80176E00() NO_INLINE;
+    bool fn_80176E30() NO_INLINE;
     bool fn_80176E60();
     Chorobon(const char* pName);
 

@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/Enemy/BombTeresa.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -154,11 +155,14 @@ bool BombTeresa::rootTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& 
 
     MR::turnMtxToXDirRate(pMtx, dir, (0.5f * _DC));
     f32 dist = MR::getEaseInOutValue(MR::normalize(pos.distance(tonguePos), 400.0f, 1000.0f), 1.0f, 0.5f, 1.0f);
-    MR::preScaleMtx(pMtx->toMtxPtr(), TVec3f(1.0f, dist, dist));
+    TVec3f scale;
+    scale.x = 1.0f;
+    scale.y = dist;
+    scale.z = dist;
+    MR::preScaleMtx(pMtx->toMtxPtr(), scale);
     return true;
 }
 
-// NONMATCHING: target calls out-of-line TVec3::operator*(f32) const (__ml__CFf); the in-class header definition always inlines (__ct+__amu in ours). Needs a shared TVec.hpp change.
 bool BombTeresa::endTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     if (_DC == 0.0f) {
         return false;
@@ -182,7 +186,11 @@ bool BombTeresa::endTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& r
     pos += side2 * -35.0f * _DC;
     pMtx->setTrans(pos);
     f32 dist = MR::getEaseInOutValue(MR::normalize(pos.distance(tonguePos), 400.0f, 1000.0f), 1.0f, 0.5f, 1.0f);
-    MR::preScaleMtx(pMtx->toMtxPtr(), TVec3f(1.0f, dist, dist));
+    TVec3f scale;
+    scale.x = 1.0f;
+    scale.y = dist;
+    scale.z = dist;
+    MR::preScaleMtx(pMtx->toMtxPtr(), scale);
     return true;
 }
 
@@ -211,7 +219,6 @@ void BombTeresa::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-// NONMATCHING: target calls out-of-line TVec3::operator*(f32) const (__ml__CFf); the in-class header definition always inlines (__ct+__amu in ours). Needs a shared TVec.hpp change.
 bool BombTeresa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorEnemy(pReceiver)) {
         return false;
@@ -255,7 +262,6 @@ bool BombTeresa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     return false;
 }
 
-// NONMATCHING: target calls out-of-line TVec3::operator*(f32) const (__ml__CFf); the in-class header definition always inlines (__ct+__amu in ours). Needs a shared TVec.hpp change.
 bool BombTeresa::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgToEnemyAttackBlow(msg) && isEnableHitExplosion()) {
         MR::zeroVelocity(this);

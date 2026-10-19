@@ -7,6 +7,7 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
@@ -19,16 +20,6 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
-
-// SMG2 step-tracking state, stored at JumpEmitter+0xC8 (not declared in our headers yet).
-class ActorStateParamScale {
-public:
-    bool isFirstStep();
-    bool isGreaterEqualStep(s32);
-    bool isStep(s32);
-    bool isIntervalStep(s32, s32);
-    f32 getNerveStepRate();
-};
 
 static ActorStateParamScale* getParamScale(const JumpBeamer* pBeamer) {
     return *reinterpret_cast< ActorStateParamScale* const* >(reinterpret_cast< const char* >(pBeamer) + 0xC8);
@@ -114,9 +105,9 @@ void JumpBeamer::calcAndSetBaseMtx() {
 
 bool JumpBeamer::isStarPointerBindable() const {
     bool ret = false;
-    if (!isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait)) && !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvPreOpen)) &&
-        !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvOpen)) && !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvClose)) &&
-        !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait)) && isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvInter))) {
+    if (isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait)) || isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvPreOpen)) ||
+        isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvOpen)) || isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvClose)) ||
+        isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait)) || isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvInter))) {
         ret = true;
     }
 
@@ -171,8 +162,8 @@ void JumpBeamer::init(const JMapInfoIter& rIter) {
     }
 
     for (s32 i = 0; i < 3; i++) {
-        mBeams[i] = new RingBeam("リングビーム", this, false, false, false, false, nullptr);
-        mBeams[i]->init(rIter);
+        mBeams[i] = new RingBeam("リングビーム", this, false, false, true, true, nullptr);
+        mBeams[i]->initWithParamScale(rIter, getParamScale(this));
         mBeams[i]->setSpeed(arg1);
         mBeams[i]->setLife(arg0);
     }

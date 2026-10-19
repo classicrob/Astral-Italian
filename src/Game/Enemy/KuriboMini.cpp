@@ -501,9 +501,14 @@ void KuriboMini::exeAttackSuccess() {
     calcPassiveMovement();
 
     if (!tryDeadMap() && !tryPointBind()) {
-        if (fn_801BDAA0()) return;
-        if (MR::isGreaterStep(this, 60)) {
-            setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
+        switch (fn_801BDAA0()) {
+        case false:
+            if (MR::isGreaterStep(this, 60)) {
+                setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
+            }
+            break;
+        default:
+            break;
         }
     }
 }

@@ -73,8 +73,8 @@ void BrosProjectileBase::calcAndSetBaseMtx() {
         mOwner->calcHoldMtx(mtx);
         MR::setBaseTRMtx(this, mtx);
         MR::extractMtxTrans(mtx, &mPosition);
-        MR::calcFrontVec(&mFront, this);
     }
+    MR::calcFrontVec(&mFront, this);
     MR::updateBaseScale(this, mScaleCtrl);
 }
 
@@ -88,8 +88,8 @@ void BrosProjectileBase::attachToBros(BrosBase* pBros) {
         MR::extractMtxTrans(mtx, &mPosition);
         MR::calcFrontVec(&mFront, this);
         appear();
+        mOwner = pBros;
     }
-    mOwner = pBros;
     MR::zeroVelocity(this);
     MR::tryDeleteEffectAll(this);
 }
@@ -114,8 +114,10 @@ void BrosProjectileBase::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
             if (MR::sendMsgPush(pReceiver, pSender)) {
                 mState = 3;
                 kill();
+                return;
             }
         }
+        return;
     } else {
         MR::sendMsgEnemyAttack(pReceiver, pSender);
     }

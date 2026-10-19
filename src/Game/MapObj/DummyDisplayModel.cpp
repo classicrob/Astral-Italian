@@ -236,14 +236,14 @@ namespace MR {
         return mdl;
     }
 
-    DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, const JMapInfoIter& rIter, const char* pName, s32 a4) {
+    DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, const JMapInfoIter& rIter, const char* pName, s32 a4, const TVec3f& rTrans, const TVec3f& rRot) {
         DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, rIter, a4, -1);
 
         if (mdl == nullptr) {
             return nullptr;
         }
 
-        mdl->initFixedPosition(pName);
+        mdl->initFixedPosition(rTrans, rRot, pName);
         return mdl;
     }
 

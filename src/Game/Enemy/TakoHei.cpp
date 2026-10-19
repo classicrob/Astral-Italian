@@ -854,9 +854,9 @@ void TakoHei::exePunchDown() {
         MR::stopScene(::sPunchStopSceneTime);
         MR::startActionSound(this, "EmTakoheiHitpunch");
         MR::startBlowHitSound(this);
-        _E8 = 10;
     }
 
+    _E8 = 10;
     updateNormalVelocity();
 
     if (MR::isGreaterStep(this, ::sPunchDownTime) || (MR::isBinded(this) && MR::isGreaterStep(this, 5))) {
@@ -869,17 +869,9 @@ void TakoHei::updatePose() {
     MR::blendQuatUpFront(&_94, MR::isBindedGround(this) ? MR::getGroundNormal(this) : -mGravity, _B0, 0.1f, 0.2f);
 }
 
-// NONMATCHING: branch block order (target emits the airborne path first, shared attenuate call after the ground lfs)
 void TakoHei::updateNormalVelocity() {
-    f32 frec;
-    if (!MR::isBindedGround(this)) {
-        MR::addVelocityToGravity(this, 1.0f);
-        frec = (_E8 >= 5) ? ::sNormalAirFrec : ::sNormalGroundFrec;
-    } else {
-        frec = ::sNormalGroundFrec;
-    }
-
-    MR::attenuateVelocity(this, frec);
+    if (!MR::isBindedGround(this)) MR::addVelocityToGravity(this, 1.0f);
+    MR::attenuateVelocity(this, _E8 >= 5 ? ::sNormalAirFrec : ::sNormalGroundFrec);
     MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
 }
 

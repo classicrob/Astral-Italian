@@ -113,8 +113,8 @@ bool HanachanBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
         mHitCount = 0;
         if (isNerve(GET_NERVE(HanachanBig, HanachanBigNrvWait))) {
             setNerve(GET_NERVE(HanachanBig, HanachanBigNrvStandby));
-            return true;
         }
+        return true;
     }
     if (msg == 122) {
         if (isNerve(GET_NERVE(HanachanBig, HanachanBigNrvStandby))) {
@@ -127,8 +127,8 @@ bool HanachanBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
                 MR::setBckRate(mParts[i], rate);
             }
             setNerve(GET_NERVE(HanachanBig, HanachanBigNrvWait));
-            return true;
         }
+        return true;
     }
     return false;
 }
@@ -263,6 +263,7 @@ void HanachanBigParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
             }
+            return;
         }
     } else if (MR::isSensorEnemy(pSender)) {
         if (MR::isSensorPlayerOrRide(pReceiver)) {
@@ -278,15 +279,15 @@ bool HanachanBigParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
     if (MR::isMsgPlayerTrample(msg)) {
         if (mScaleController->isHitReaction(-1)) {
             mScaleController->startHitReaction();
-            return true;
         }
+        return true;
     }
     if (MR::isMsgPlayerHipDrop(msg)) {
         if (!mScaleController->isHitReaction(-1)) {
             mScaleController->startHitReaction();
-            MR::sendMsgAwayJump(pSender, pReceiver);
-            return true;
         }
+        MR::sendMsgAwayJump(pSender, pReceiver);
+        return true;
     }
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return false;
@@ -294,8 +295,8 @@ bool HanachanBigParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
     if (MR::isMsgStarPieceReflect(msg)) {
         if (!mScaleController->isHitReaction(-1)) {
             mScaleController->startHitReaction();
-            return true;
         }
+        return true;
     }
     return false;
 }

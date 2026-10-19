@@ -43,7 +43,7 @@ namespace NrvTakobo {
     public:
         virtual void execute(Spine* pSpine) const {
             Takobo* actor = reinterpret_cast< Takobo* >(pSpine->mExecutor);
-            MR::updateActorStateAndNextNerve(actor, &TakoboNrvWait::sInstance);
+            MR::updateActorStateAndNextNerve(actor, &TakoboNrvWaitAfter::sInstance);
         };
         static TakoboNrvSupportFreeze sInstance;
     };

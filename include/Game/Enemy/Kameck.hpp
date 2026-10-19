@@ -41,6 +41,7 @@ public:
     void exeNonActive();
     void exeHide();
     void exeAttackWait();
+    void fn_801A5C60();
     void exeAttack();
     void exeGuard();
     void exeMoveHide();

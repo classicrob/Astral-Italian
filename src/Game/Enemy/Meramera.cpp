@@ -255,7 +255,7 @@ void Meramera::init(const JMapInfoIter& rIter) {
 
     MR::initActor(this, rIter, ::sElementArcName[mElementType], false);
     initEffect();
-    f32 pointerRadius = 0.5f * mScale.x;
+    f32 pointerRadius = 55.0f * mScale.x;
     TVec3f starPointerOffset(0.0f, 0.0f, 0.0f);
     MR::initStarPointerTarget(this, pointerRadius, starPointerOffset);
     mHomePosition = mPosition;
@@ -501,7 +501,7 @@ bool Meramera::requestDamage(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    if (!MR::isSensorPlayer(pReceiver) || !MR::isPlayerSwingAction()) {
+    if (MR::isSensorPlayer(pReceiver) && !MR::isPlayerSwingAction()) {
         return false;
     }
 
@@ -1375,10 +1375,10 @@ void Meramera::resetAppear() {
 
     default:
         setNerve(GET_NERVE(Meramera, MerameraNrvWait));
-        mAppearTimer = 40;
         break;
     }
 
+    mAppearTimer = 40;
     MR::resetPosition(this);
 }
 

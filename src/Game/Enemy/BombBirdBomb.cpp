@@ -37,7 +37,7 @@ namespace NrvBombBirdBomb {
     NEW_NERVE(HostTypeNrvBindStarPointer, BombBirdBomb, BindStarPointer);
 };  // namespace NrvBombBirdBomb
 
-BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), mBindStarPtr(), _94(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 0.0f), _B0(0), _B4(0) {
+BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), mBindStarPtr(), _94(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 0.0f), _B4(0) {
 }
 
 void BombBirdBomb::init(const JMapInfoIter& rIter) {
@@ -87,26 +87,27 @@ void BombBirdBomb::start(const TVec3f& rTrans, const TVec3f& rVelocity) {
 }
 
 void BombBirdBomb::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion)) && MR::isSensorEnemyAttack(pSender)) {
-        MR::sendMsgEnemyAttackExplosion(pReceiver, pSender);
+    if (isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
+        if (MR::isSensorEnemyAttack(pSender)) {
+            MR::sendMsgEnemyAttackExplosion(pReceiver, pSender);
+            return;
+        }
         return;
     }
-
-    if (!MR::isSensorPlayer(pReceiver)) {
-        return;
+    if (MR::isSensorPlayerOrYoshi(pReceiver) || MR::isSensorEnemy(pReceiver)) {
+        if (isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait))) {
+            if (MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) {
+                MR::emitEffect(this, "Explosion");
+                MR::startActionSound(this, "EmBombExplosion");
+                kill();
+                return;
+            }
+            MR::sendMsgPush(pReceiver, pSender);
+        }
+        if (isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvBindStarPointer))) {
+            MR::sendMsgPush(pReceiver, pSender);
+        }
     }
-
-    if (!isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait))) {
-        return;
-    }
-
-    if (!MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) {
-        return;
-    }
-
-    MR::emitEffect(this, "Explosion");
-    MR::startActionSound(this, "EmBombExplosion");
-    kill();
 }
 
 bool BombBirdBomb::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
@@ -167,7 +168,7 @@ void BombBirdBomb::exeWait() {
         MR::startBrk(this, "Signal");
     }
 
-    f32 dotP = mGravity.dot(mVelocity);
+    f32 dotP = MR::calcGravitySpeed(this);
     TVec3f velocity;
     velocity.set(0.0f);
 
@@ -186,7 +187,14 @@ void BombBirdBomb::exeWait() {
         }
     }
 
-    if (MR::isGreaterStep(this, ::sWaitTime)) {
+    if (_B4 == 0 && mBindStarPtr->tryStartPointBind()) {
+        setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvBindStarPointer));
+        return;
+    }
+    if (--_B4 < 0) {
+        _B4 = 0;
+    }
+    if (--_B0 < 0) {
         setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion));
     }
 }

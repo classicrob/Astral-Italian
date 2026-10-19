@@ -8,6 +8,7 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 
 namespace {
     static const s32 sPointCanceBindTime = 5;
@@ -21,7 +22,7 @@ WalkerStateBindStarPointer::WalkerStateBindStarPointer(LiveActor* pHost, AnimSca
     : ActorStateBase("歩行型スターポインタ拘束", pHost), mScaleController(pController), mUpdateCounter(0), mHasEffect(false) {
     initNerve(GET_NERVE(WalkerStateBindStarPointer, WalkerStateBindStarPointerNrvBind));
 
-    if (!MR::isRegisteredEffect(pHost, "Touch")) {
+    if (MR::isExistEffectKeeper(pHost) && !MR::isRegisteredEffect(pHost, "Touch")) {
         mHasEffect = true;
         MR::addEffect(pHost, "PointerTouch");
     }
@@ -38,21 +39,25 @@ void WalkerStateBindStarPointer::kill() {
         mScaleController->startAnim();
     }
 
-    MR::deleteEffect(getHost(), mHasEffect ? "PointerTouch" : "Touch");
+    if (MR::isExistEffectKeeper(getHost())) {
+        MR::deleteEffect(getHost(), mHasEffect ? "PointerTouch" : "Touch");
+    }
     if (MR::isExistBck(getHost(), nullptr)) {
         MR::setBckRate(getHost(), 1.0f);
     }
 }
 
 bool WalkerStateBindStarPointer::tryStartPointBind() const {
-    return MR::isStarPointerPointing2POnPressButton(getHost(), "弱", true, false);
+    return MR::attachSupportTicoToTarget(getHost());
 }
 
 void WalkerStateBindStarPointer::exeBind() {
     if (MR::isFirstStep(this)) {
         MR::startDPDHitSound();
         mUpdateCounter = 0;
-        MR::emitEffect(getHost(), mHasEffect ? "PointerTouch" : "Touch");
+        if (MR::isExistEffectKeeper(getHost())) {
+            MR::emitEffect(getHost(), mHasEffect ? "PointerTouch" : "Touch");
+        }
         if (MR::isExistBck(getHost(), nullptr)) {
             MR::setBckRate(getHost(), 0.0f);
         }
@@ -64,7 +69,7 @@ void WalkerStateBindStarPointer::exeBind() {
 
     MR::startDPDFreezeLevelSound(getHost());
     MR::zeroVelocity(getHost());
-    if (MR::isStarPointerPointing2POnPressButton(getHost(), "弱", true, false)) {
+    if (MR::attachSupportTicoToTarget(getHost())) {
         mUpdateCounter = 0;
     } else {
         mUpdateCounter++;

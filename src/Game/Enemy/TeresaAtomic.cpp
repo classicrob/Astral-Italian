@@ -374,6 +374,6 @@ void NrvTeresaAtomic::TeresaAtomicNrvDeadPowerStarGet::execute(Spine* pSpine) co
     TeresaAtomic* actor = static_cast<TeresaAtomic*>(pSpine->mExecutor);
     if (MR::isFirstStep(actor)) {
         MR::tryStartActionNotPlaying(actor, "Wait");
+        actor->kill();
     }
-    actor->kill();
 }

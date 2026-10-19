@@ -186,6 +186,7 @@ void KirairaChain::updatePoints() {
         dir.scale(-100.0f);
         dir.add(mHost->mPosition);
         restrictPointFromTopAndCalcAxis(0, mPointCount - 1, dir, 0.9f);
+        restrictPointFromBottomAndCalcAxis(0, mPointCount - 1, dir, 0.9f);
     }
 }
 

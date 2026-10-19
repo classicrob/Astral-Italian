@@ -508,7 +508,7 @@ void BegomanSpring::exeBlow() {
 void BegomanSpring::exeElectricDeath() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "electricshock");
-        MR::zeroVelocity(this);
+        mVelocity.zero();
         MR::invalidateHitSensor(this, "Body");
         MR::startActionSound(this, "EmBegomanElecDamage");
         MR::invalidateClipping(this);
@@ -534,7 +534,7 @@ void BegomanSpring::exeHide() {
     }
 
     updateRotateY(0.0f, 1.0f);
-    MR::zeroVelocity(this);
+    mVelocity.zero();
     TVec3f toPlayer(*MR::getPlayerPos());
     toPlayer.sub(mPosition);
     toPlayer.squared();

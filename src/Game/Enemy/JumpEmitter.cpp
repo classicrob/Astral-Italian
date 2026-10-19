@@ -89,7 +89,6 @@ void JumpEmitter::endEventCamera() {
     }
 }
 
-// NONMATCHING: SMG2 folds the angle math differently from the Petari cousin (~69%).
 void JumpEmitter::updateRotate() {
     PartsModel* head = mHeadModel;
 
@@ -108,18 +107,7 @@ void JumpEmitter::updateRotate() {
 
     MR::normalize(&playerPos);
 
-    f32 newAngle;
-    if (playerPos.z == 0.0f) {
-        if (playerPos.x >= 0.0f) {
-            newAngle = 90.0f;
-        } else {
-            newAngle = -90.0f;
-        }
-    } else if (playerPos.z >= 0.0f) {
-        newAngle = MR::toDegree(MR::atan2(playerPos.x, playerPos.z));
-    } else {
-        newAngle = 180.0f - MR::toDegree(MR::atan2(playerPos.x, -playerPos.z));
-    }
+    f32 newAngle = MR::calcYawDegreeXZ(playerPos);
 
     f32 angleDiff = MR::repeat(newAngle - head->mRotation.y, sRepeatMin, sRepeatMax);
 

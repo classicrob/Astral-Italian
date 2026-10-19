@@ -129,9 +129,9 @@ void Dossun::initShadow() {
     if (mShadowType != 1) {
         calcParameters();
         if (mShadowType == 0) {
-            MR::initShadowFromCSV(this, "Shadow2D");
+            MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow2D");
         } else {
-            MR::initShadowFromCSV(this, "Shadow");
+            MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
             MR::excludeCalcShadowToMyCollision(this, nullptr);
         }
     }

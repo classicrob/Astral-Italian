@@ -107,7 +107,7 @@ void KickStone::control() {
 void KickStone::calcAndSetBaseMtx() {
     MR::fn_8000F9A0(this, &mUp, &mFront);
     mMtx.set(getBaseMtx());
-    if (isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak)) || isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreakSub)) ||
+    if (isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreakSub)) || isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak)) ||
         isNerve(GET_KICKSTONE_NERVE(KickStoneNrvDead))) {
         MR::setMtxTrans(reinterpret_cast<MtxPtr>(&mMtx), mOffset.x, mOffset.y, mOffset.z);
     }

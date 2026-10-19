@@ -265,3 +265,5 @@ namespace MR {
 namespace MR {
     f32 fn_8000E760(TVec3f*, const LiveActor*, const TVec3f*, f32, f32);
 }
+
+namespace MR { void fn_800143D0(TVec3f*); }

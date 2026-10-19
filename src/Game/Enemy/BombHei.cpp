@@ -729,12 +729,11 @@ void BombHei::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (!MR::isSensorNpc(pReceiver) && !MR::isSensorEnemy(pReceiver)) {
-        if (MR::isSensorYoshi(pReceiver)) {
-            if (mCountdown != -1 && MR::sendArbitraryMsg(61, pReceiver, pSender)) {
-                kill();
-            }
-        }
+    if (!MR::isSensorNpc(pReceiver) && !MR::isSensorEnemy(pReceiver) && !MR::isSensorYoshi(pReceiver)) {
+        return;
+    }
+    if (mCountdown != -1 && MR::sendArbitraryMsg(61, pReceiver, pSender)) {
+        kill();
         return;
     }
 

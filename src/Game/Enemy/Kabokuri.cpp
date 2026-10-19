@@ -74,8 +74,8 @@ void Kabokuri::init(const JMapInfoIter& rIter) {
 
     if (MR::isExistRail(this)) {
         MR::moveCoordAndTransToNearestRailPos(this);
-        MR::makeQuatAndFrontFromRotate(&mRotationQuat, &mFrontVec, this);
     }
+    MR::makeQuatAndFrontFromRotate(&mRotationQuat, &mFrontVec, this);
 
     MR::getJMapInfoArg0WithInit(rIter, &mIsFloating);
 
@@ -144,12 +144,12 @@ void Kabokuri::control() {
 
     if (mIsFloating) {
         MR::calcGravityOrZero(this);
+    }
 
-        if (MR::isBindedGround(this)) {
+    if (MR::isBindedGround(this)) {
             mCounter = 0;
         } else {
             mCounter++;
-        }
     }
 
     updatePose();
@@ -209,8 +209,8 @@ bool Kabokuri::tryYoshiEat() {
 }
 
 bool Kabokuri::isEatable() const {
-    if (!isNerve(GET_NERVE(Kabokuri, KabokuriNrvWait)) && !isNerve(GET_NERVE(Kabokuri, KabokuriNrvWalk)) &&
-        !isNerve(GET_NERVE(Kabokuri, KabokuriNrvBindStarPointer)) && isNerve(GET_NERVE(Kabokuri, KabokuriNrvDropFire))) {
+    if (isNerve(GET_NERVE(Kabokuri, KabokuriNrvWait)) || isNerve(GET_NERVE(Kabokuri, KabokuriNrvWalk)) ||
+        isNerve(GET_NERVE(Kabokuri, KabokuriNrvBindStarPointer)) || isNerve(GET_NERVE(Kabokuri, KabokuriNrvDropFire))) {
         return true;
     }
 

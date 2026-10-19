@@ -4,6 +4,7 @@
 #include "Game/Enemy/KameckBeamHolder.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
@@ -14,9 +15,6 @@ namespace MR {
 namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
 };  // namespace YoshiFunction
-
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D27E0;  // unnamed nerve (AttackWait-like, Yoshi-side)
 
 namespace {
     static const f32 sDefaultActiveDistance = 3000.0f;
@@ -46,6 +44,14 @@ namespace NrvKameck {
     NEW_NERVE(KameckNrvAppear, Kameck, Appear);
     NEW_NERVE(KameckNrvWait, Kameck, Wait);
     NEW_NERVE(KameckNrvHide, Kameck, Hide);
+    class KameckNrvfn_801A68C0 : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<Kameck*>(pSpine->mExecutor)->fn_801A5C60();
+        }
+        static KameckNrvfn_801A68C0 sInstance;
+    };
+    KameckNrvfn_801A68C0 KameckNrvfn_801A68C0::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(KameckNrvAttackWait, Kameck, AttackWait);
     NEW_NERVE(KameckNrvAttack, Kameck, Attack);
     NEW_NERVE(KameckNrvGuard, Kameck, Guard);
@@ -55,6 +61,12 @@ namespace NrvKameck {
     NEW_NERVE_ONEND(KameckNrvBindStarPointer, Kameck, BindStarPointer, BindStarPointer);
     NEW_NERVE(KameckNrvDown, Kameck, Down);
     NEW_NERVE(KameckNrvPressDown, Kameck, PressDown);
+    class KameckNrvfn_801A6960 : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static KameckNrvfn_801A6960 sInstance;
+    };
+    KameckNrvfn_801A6960 KameckNrvfn_801A6960::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKameck
 
 Kameck::Kameck(const char* pName)
@@ -174,7 +186,7 @@ void Kameck::control() {
 
 bool Kameck::isEnableEat() const {
     if (isNerve(GET_NERVE(Kameck, KameckNrvWait)) || isNerve(GET_NERVE(Kameck, KameckNrvAppear)) ||
-        isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) || isNerve(reinterpret_cast<const Nerve*>(&lbl_807D27E0)) ||
+        isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) || isNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0)) ||
         isNerve(GET_NERVE(Kameck, KameckNrvAttack)) || isNerve(GET_NERVE(Kameck, KameckNrvMoveHide)) ||
         isNerve(GET_NERVE(Kameck, KameckNrvBindStarPointer))) {
         return true;
@@ -216,6 +228,10 @@ bool Kameck::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         return requestGuard(pSender, pReceiver);
     }
 
+    if (MR::isMsgStarPieceAttack(msg)) {
+        return isNerve(GET_NERVE(Kameck, KameckNrvBindStarPointer));
+    }
+
     if (MR::isMsgJetTurtleAttack(msg)) {
         return requestDown(pSender, pReceiver);
     }
@@ -250,9 +266,6 @@ namespace MR {
     bool isMsgYoshiCancelEaten(u32 msg);
 };  // namespace MR
 
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2808; // unnamed 8-byte nerve (Yoshi tongue start)
-
 bool Kameck::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStartPowerStarGet(msg)) {
         makeActorDead();
@@ -260,7 +273,7 @@ bool Kameck::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
     }
 
     if (MR::isMsgYoshiStartTongue(msg)) {
-        setNerve(reinterpret_cast<const Nerve*>(&lbl_807D2808));
+        setNerve(GET_NERVE(Kameck, KameckNrvfn_801A6960));
         return true;
     }
 
@@ -372,7 +385,7 @@ bool Kameck::tryOpeningDemo() {
     return false;
 }
 
-bool Kameck::tryOpeningDemoEnd() {
+inline bool Kameck::tryOpeningDemoEnd() {
     if (!MR::isStageStateScenarioOpeningCamera()) {
         setNonActive();
 
@@ -400,7 +413,7 @@ bool Kameck::tryAttackWait() {
         }
 
         if (railPoint == 0) {
-            setNerve(reinterpret_cast<const Nerve*>(&lbl_807D27E0));
+            setNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0));
             return true;
         }
 
@@ -447,7 +460,7 @@ bool Kameck::tryAppearEnd() {
     return false;
 }
 
-bool Kameck::tryAttack() {
+inline bool Kameck::tryAttack() {
     if (MR::isGreaterStep(this, ::sAttackWaitTime)) {
         setNerve(GET_NERVE(Kameck, KameckNrvAttack));
         return true;
@@ -484,9 +497,7 @@ void Kameck::exeOpeningDemo() {
         MR::validateClipping(this);
     }
 
-    if (tryOpeningDemoEnd()) {
-        return;
-    }
+    tryOpeningDemoEnd();
 }
 
 void Kameck::exeDemoAppear() {
@@ -551,6 +562,17 @@ void Kameck::exeWait() {
 void Kameck::exeHide() {
 }
 
+void Kameck::fn_801A5C60() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "AttackWait");
+        MR::invalidateClipping(this);
+    }
+    MR::turnDirectionToTarget(this, &mFrontVec, *MR::getPlayerPos(), ::sTurnPlayerLimit);
+    if (!tryPointBind() && MR::isGreaterStep(this, mShootTiming + 60)) {
+        setNerve(GET_NERVE(Kameck, KameckNrvMoveHide));
+    }
+}
+
 void Kameck::exeAttackWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackWait");
@@ -560,8 +582,8 @@ void Kameck::exeAttackWait() {
     MR::startActionSound(this, "EmLvKameckStaffTurn");
     MR::turnDirectionToTarget(this, &mFrontVec, *MR::getPlayerPos(), ::sTurnPlayerLimit);
 
-    if (!tryPointBind() && tryAttack()) {
-        return;
+    if (!tryPointBind()) {
+        tryAttack();
     }
 }
 
@@ -665,6 +687,7 @@ void Kameck::exeDown() {
         MR::startAction(this, "Down");
         MR::startBlowHitSound(this);
         MR::startActionSound(this, "EvKameckDeadBlow");
+        MR::tryHitReactionBlow(this, &mPosition);
     }
 
     MR::addVelocityToGravity(this, ::sDownGravityAccel);
@@ -672,6 +695,7 @@ void Kameck::exeDown() {
 
     if (MR::isActionEnd(this) || MR::isBinded(this)) {
         MR::startActionSound(this, "EmExplodeS");
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -686,6 +710,7 @@ void Kameck::exePressDown() {
 
     if (MR::isActionEnd(this)) {
         MR::startActionSound(this, "EmExplodeS");
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -710,7 +735,7 @@ bool Kameck::canNonActive() const {
 
 bool Kameck::isEnableAttack() const {
     if (!(!isNerve(GET_NERVE(Kameck, KameckNrvWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvAppear)) &&
-          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(reinterpret_cast<const Nerve*>(&lbl_807D27E0)) &&
+          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvAttack)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvMoveHide)))) {
         return true;
@@ -721,7 +746,7 @@ bool Kameck::isEnableAttack() const {
 
 bool Kameck::isEnableGurad() const {
     if (!(!isNerve(GET_NERVE(Kameck, KameckNrvWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvAppear)) &&
-          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(reinterpret_cast<const Nerve*>(&lbl_807D27E0)) &&
+          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvAttack)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvGuard)) && !isNerve(GET_NERVE(Kameck, KameckNrvMoveHide)))) {
         return true;
@@ -736,7 +761,7 @@ bool Kameck::isEnableDown() const {
     }
 
     if (!(!isNerve(GET_NERVE(Kameck, KameckNrvNonActive)) && !isNerve(GET_NERVE(Kameck, KameckNrvDown)) &&
-          !isNerve(GET_NERVE(Kameck, KameckNrvPressDown)) && !isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2808)))) {
+          !isNerve(GET_NERVE(Kameck, KameckNrvPressDown)) && !isNerve(GET_NERVE(Kameck, KameckNrvfn_801A6960)))) {
         return false;
     }
 

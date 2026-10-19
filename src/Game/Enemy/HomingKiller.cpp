@@ -449,7 +449,9 @@ void HomingKiller::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     if (mType == Type_MagnumKiller && !MR::isSensorPlayerOrRide(pReceiver)) {
-        MR::sendMsgToEnemyAttackTrample(pReceiver, pSender);
+        if (MR::sendMsgToEnemyAttackTrample(pReceiver, pSender)) {
+            return;
+        }
     }
 }
 

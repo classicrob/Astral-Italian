@@ -304,21 +304,24 @@ void Grapyon::calcAndSetBaseMtx() {
     MR::makeMtxUpFrontPos(&mMtx, scaledUp, mFront, headPos);
 }
 
-// Existing mismatch: target retains branches around the empty send-result checks.
 void Grapyon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorPlayerOrRide(pReceiver)) {
         if (!isNerve(NRV(Down))) {
             if (!MR::sendMsgPush(pReceiver, pSender)) {
+                return;
             }
         }
+        return;
     } else {
         if (isNerve(NRV(SupportFreeze))) {
             if (MR::isEqualSensor(pSender, this, "SupportFreezeAttack")) {
                 if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+                    return;
                 }
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
             }
+            return;
         } else if (MR::isSensorEnemyAttack(pSender)) {
             if (isNormalNerve()) {
                 if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {

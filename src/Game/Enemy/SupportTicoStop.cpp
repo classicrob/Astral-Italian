@@ -60,11 +60,7 @@ void SupportTicoStop::exeTouch() {
         MR::startDPDHitSound();
         mCounter = 0;
         if (MR::isExistEffectKeeper(mHost)) {
-            const char* pEffectName = "Touch";
-            if (mHasPointerEffect) {
-                pEffectName = "PointerTouch";
-            }
-            MR::emitEffect(mHost, pEffectName);
+            MR::emitEffect(mHost, mHasPointerEffect ? "PointerTouch" : "Touch");
         }
         if (MR::isExistBck(mHost, nullptr)) {
             MR::setBckRate(mHost, 0.0f);
@@ -95,11 +91,7 @@ void SupportTicoStop::exeEndTouch() {
             mScaleController->startAnim();
         }
         if (MR::isExistEffectKeeper(mHost)) {
-            const char* pEffectName = "Touch";
-            if (mHasPointerEffect) {
-                pEffectName = "PointerTouch";
-            }
-            MR::deleteEffect(mHost, pEffectName);
+            MR::deleteEffect(mHost, mHasPointerEffect ? "PointerTouch" : "Touch");
         }
         if (MR::isExistBck(mHost, nullptr)) {
             MR::setBckRate(mHost, 1.0f);
@@ -116,6 +108,8 @@ void SupportTicoStop::exeDoNothing() {
     mIsTouching = false;
 }
 
+#pragma push
+#pragma dont_inline on
 void fn_80203850(TVec3f* pDst, const LiveActor* pTarget) {
     TVec3f sp8(*MR::getPlayerPos());
     sp8 -= pTarget->mPosition;
@@ -125,3 +119,4 @@ void fn_80203850(TVec3f* pDst, const LiveActor* pTarget) {
         MR::turnVecToVecDegree(pDst, *pDst, sp8, 2.865f, pTarget->mGravity);
     }
 }
+#pragma pop

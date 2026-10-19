@@ -21,7 +21,7 @@ ElectricPressureBullet::ElectricPressureBullet(const char* pName) : LiveActor(pN
 }
 
 void ElectricPressureBullet::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "ElectricBullet", false);
+    MR::initActor(this, "ElectricBullet", false);
     initNerve(GET_NERVE(ElectricPressureBullet, ElectricPressureBulletNrvFly));
     makeActorDead();
 }
@@ -33,11 +33,19 @@ void ElectricPressureBullet::kill() {
     LiveActor::kill();
 }
 
+static inline void killLong(LiveActor* pActor) {
+    MR::tryHitReaction(pActor, "破壊（余韻あり）");
+    MR::emitEffect(pActor, "BreakLong");
+    MR::startActionSound(pActor, "EmElecbublletBreak");
+    pActor->LiveActor::kill();
+}
+
 void ElectricPressureBullet::shotElectricBullet(LiveActor* actor, const TPos3f& pos, const f32& value, bool flag) {
     _98 = actor;
     _9C = value;
     _A4 = flag;
     pos.getZDir(_8C);
+    MR::normalize(&_8C);
     mVelocity.scale(_9C, _8C);
     pos.getTrans(mPosition);
     mRotation.zero();
@@ -61,8 +69,16 @@ void ElectricPressureBullet::exeFly() {
         if (MR::isLessStep(this, 150)) {
             s32 v2 = getNerveStep();
             if (!(v2 % 5)) {
+                TVec3f target(0.0f, 0.0f, 0.0f);
+                if (_A4) {
+                    TVec3f up(0.0f, 1.0f, 0.0f);
+                    MR::getPlayerUpVec(&up);
+                    JMAVECScaleAdd(&up, MR::getPlayerPos(), &target, 120.0f);
+                } else {
+                    target.set(*MR::getPlayerCenterPos());
+                }
                 TVec3f v3;
-                v3.sub(*MR::getPlayerCenterPos(), mPosition);
+                v3.sub(target, mPosition);
                 MR::normalize(&v3);
                 MR::turnVecToVecDegree(&_8C, _8C, v3, 4.0f, TVec3f(0, 1, 0));
                 mVelocity.scale(_9C, _8C);
@@ -71,7 +87,14 @@ void ElectricPressureBullet::exeFly() {
     }
 
     if (MR::isBinded(this)) {
-        kill();
+        if (MR::isBindedGround(this)) {
+            MR::sendMsgEnemyAttackElectric(MR::getGroundSensor(this), getSensor(nullptr));
+        } else if (MR::isBindedRoof(this)) {
+            MR::sendMsgEnemyAttackElectric(MR::getRoofSensor(this), getSensor(nullptr));
+        } else if (MR::isBindedWall(this)) {
+            MR::sendMsgEnemyAttackElectric(MR::getWallSensor(this), getSensor(nullptr));
+        }
+        killLong(this);
     } else if (MR::isStep(this, 360)) {
         kill();
     }

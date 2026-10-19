@@ -54,7 +54,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
         v9.y = 10.0f * mScale.x;
         v9.x = 0.0f;
         v9.z = 0.0f;
-        MR::addHitSensorEnemy(this, "body", 8, 110.0f * mScale.x, v9);
+        MR::addHitSensorEnemy(this, "Body", 8, 110.0f * mScale.x, v9);
     } else {
         MR::addBodyMessageSensorEnemy(this);
     }
@@ -65,7 +65,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     v8.z = 0.0f;
     MR::addHitSensorAtJointEnemyAttack(this, "head", "Face", 8, 100.0f * mScale.x, v8);
     if (!_C4) {
-        MR::initCollisionParts(this, "Switch", getSensor("body"), nullptr);
+        MR::initCollisionParts(this, "Switch", getSensor("Body"), nullptr);
     }
 
     initBinder(200.0f * mScale.x, 200.0f * mScale.x, 0);
@@ -254,7 +254,7 @@ void StinkBugSmall::exePanic() {
     MR::startActionSound(this, "EvLvStinkbugSPanic", -1, -1, 15);
     MR::startActionSound(this, "EmLvStinkbugSPanic");
     mVelocity.zero();
-    if (!MR::isOnPlayer(getSensor("body"))) {
+    if (!MR::isOnPlayer(getSensor("Body"))) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvRecover));
         return;
     }

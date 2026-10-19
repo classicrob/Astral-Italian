@@ -29,6 +29,7 @@ public:
     WalkerStateStagger(LiveActor* pHost, TVec3f* pDirection, WalkerStateParam* pStateParam, WalkerStateStaggerParam* pStaggerParam);
 
     virtual void appear();
+    virtual void kill();
 
     void setPunchDirection(HitSensor* pSender, HitSensor* pReceiver);
     void exeStagger();

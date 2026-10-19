@@ -144,7 +144,7 @@ void KameckFireBall::exeWait() {
     MR::attenuateVelocity(this, ::sFreqRate);
 
     if (MR::reboundVelocityFromCollision(this, ::sReboundRate, 0.0f, 1.0f)) {
-        if (mVelocity.dot(-mGravity) >= 1.0f) {
+        if (-MR::calcGravitySpeed(this) >= 1.0f) {
             MR::startActionSound(this, "BmKameckFireBound");
         }
     }

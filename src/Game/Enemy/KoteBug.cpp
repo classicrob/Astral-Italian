@@ -614,8 +614,10 @@ bool KoteBug::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
 
 // NONMATCHING: compiler folds the target eaten-state branch into the common exit.
 void KoteBug::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) && !isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) && !isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
-        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvEaten))) return;
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath)) ||
+        isNerve(GET_NERVE(KoteBug, HostTypeNrvEaten))) {
+        return;
+    }
         if (pSender != getSensor("Body")) {
             return;
         }
@@ -641,7 +643,6 @@ void KoteBug::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
             MR::sendMsgPush(pReceiver, pSender);
         }
-    }
 }
 
 bool KoteBug::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {

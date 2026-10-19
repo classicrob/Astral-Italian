@@ -192,6 +192,7 @@ namespace MR {
     f32 convergeRadian(f32 angle, f32 target, f32 speed);
     bool isInRange(f32 x, f32 min, f32 max);
     f32 calcRotateY(f32 x, f32 z);
+    f32 calcYawDegreeXZ(const TVec3f& rVec);
     f32 calcRotateZ(const TVec3f& rVecA, const TVec3f& rVecB);
 
     inline f32 toDegree(f32 angle) {

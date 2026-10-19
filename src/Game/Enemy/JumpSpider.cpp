@@ -3,6 +3,7 @@
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/SpinHitController.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
@@ -92,7 +93,7 @@ void JumpSpider::initAfterPlacement() {
 
     if (MR::getFirstPolyNormalOnLineToMap(&v1, v15, mGravity * 300.0f, &v2, nullptr)) {
         _A0.set(v2);
-        mPosition.set(v2);
+        MR::setPosition(this, v2);
         mGravity.set(-v1);
     } else {
         kill();
@@ -284,6 +285,7 @@ void JumpSpider::exeHitBlow() {
     }
 
     if (mSpinHitController->execute(this)) {
+        MR::emitItemHit(this);
         MR::startActionSound(this, "EmExplodeS");
     }
 }
@@ -383,7 +385,7 @@ void JumpSpider::exeNoPowerEnd() {
 
 void JumpSpider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvHitBlow)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampDeath)) ||
-        isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampFall))) {
+        isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampFall)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvEaten))) {
         return;
     }
 

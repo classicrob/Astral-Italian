@@ -21,7 +21,6 @@ public:
     void updateGravity(f32);
     void calcReflectVelocity(TVec3f*) const;
     bool tryChaseEnd();
-    bool tryReflect();
     void killOrWaitToApppear();
 
     void exeAppear();

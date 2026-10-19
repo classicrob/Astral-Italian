@@ -528,7 +528,7 @@ bool NokonokoLand::receiveTrample(HitSensor* pSender, HitSensor* pReceiver) {
         return true;
     }
     if (pReceiver == getSensor("shell") && isNerve(GET_NERVE(NokonokoLand, HostTypeShellWait)) && MR::isPlayerCarryAny()) {
-        setNerve(GET_NERVE(NokonokoLand, HostTypeShellStart));
+        setNerve(GET_NERVE(NokonokoLand, HostTypeShellStartB));
         return true;
     }
 

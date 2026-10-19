@@ -548,12 +548,12 @@ bool Petari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
     }
 
     if (MR::isMsgYoshiReleaseEaten(msg)) {
-        kill();
+        makeActorDead();
         return true;
     }
 
     if (MR::isMsgYoshiCancelEaten(msg)) {
-        kill();
+        makeActorDead();
         return true;
     }
 

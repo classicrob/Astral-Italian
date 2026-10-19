@@ -43,7 +43,7 @@ void KameckTurtle::init(const JMapInfoIter& rIter) {
     initHitSensor(1);
     MR::initShadowVolumeSphere(this, 60.0f);
     MR::invalidateClipping(this);
-    MR::addHitSensorEnemyAttack(this, "attack", 8, 50.0f, TVec3f(0.0f));
+    MR::addHitSensorEnemyAttack(this, "attack", 8, 50.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initEffectKeeper(0, "BossKameckBeam", false);
     initNerve(GET_NERVE(KameckTurtle, KameckTurtleNrvWait));
     makeActorAppeared();
@@ -90,9 +90,7 @@ void KameckTurtle::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 MR::normalize(mVelocity, &_B0);
             }
 
-            if (mEventListener != nullptr) {
-                mEventListener->hitBeam();
-            }
+            KameckBeamProjectile::fn_801A7E40();
         }
     } else if (!isNerve(GET_NERVE(KameckTurtle, KameckTurtleNrvWait))) {
         appearJetTurtle(false);
@@ -217,7 +215,7 @@ void KameckTurtle::appearJetTurtle(bool tryTaken) {
     MR::invalidateShadow(this, nullptr);
     MR::invalidateHitSensors(this);
     MR::hideModel(this);
-    mTurtle->mPosition.set(mPosition);
+    MR::setPosition(mTurtle, mPosition);
     mTurtle->becomeSlowType();
 
     if (tryTaken) {

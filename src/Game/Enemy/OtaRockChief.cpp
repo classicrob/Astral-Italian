@@ -5,6 +5,11 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+namespace {
+    const char* sJointName = "OtaRockPos";
+    const char* sModelName = "OtaRockChief";
+}
+
 namespace NrvOtaRockChief {
     // Wait nerve: its execute is an empty function in the target (bare blr).
     class OtaRockChiefNrvWait : public Nerve {
@@ -15,19 +20,17 @@ namespace NrvOtaRockChief {
     OtaRockChiefNrvWait OtaRockChiefNrvWait::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvOtaRockChief
 
-// NONMATCHING: target loads the model-name pointer from a global (lwz) instead of a literal (lis/addi)
-OtaRockChief::OtaRockChief(OtaRockTank* pHost, const char* pName) : PartsModel(pHost, pName, "OtaRockChief", nullptr, -1, false) {
+OtaRockChief::OtaRockChief(OtaRockTank* pHost, const char* pName) : PartsModel(pHost, pName, sModelName, nullptr, -1, false) {
     mAnimScaleCtrl = nullptr;
 }
 
 OtaRockChief::~OtaRockChief() {}
 
-// NONMATCHING: target loads the joint-name pointer from a global (lwz) instead of a literal
 void OtaRockChief::init(const JMapInfoIter& rIter) {
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mAnimScaleCtrl->setParamTight();
     PartsModel::init(rIter);
-    initFixedPosition("OtaRockPos");
+    initFixedPosition(sJointName);
     initNerve(&NrvOtaRockChief::OtaRockChiefNrvWait::sInstance, 0);
 }
 

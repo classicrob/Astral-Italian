@@ -22,8 +22,8 @@ namespace NrvSearchBeamer {
     NEW_NERVE(SearchBeamerNrvStop, SearchBeamer, Stop);
     NEW_NERVE(SearchBeamerNrvStopForPlayerOff, SearchBeamer, StopForPlayerOff);
     NEW_NERVE(SearchBeamerNrvRecover, SearchBeamer, Recover);
+    NEW_NERVE(SearchBeamerNrvDPDSwoon, SearchBeamer, DPDSwoon);
     NEW_NERVE(SearchBeamerNrvEaten, SearchBeamer, Eaten);
-    NEW_NERVE_ONEND(SearchBeamerNrvDPDSwoon, SearchBeamer, DPDSwoon, DPDSwoon);
 };  // namespace NrvSearchBeamer
 
 namespace {
@@ -58,11 +58,11 @@ void SearchBeamer::init(const JMapInfoIter& rIter) {
     MR::connectToSceneCollisionMapObjStrongLight(this);
     MR::initLightCtrl(this);
     initHitSensor(2);
-    MR::addHitSensorEnemy(this, "body", 8, 60.0f, TVec3f(0.0f, -80.0f, 0.0f));
+    MR::addHitSensorEnemy(this, "Body", 8, 60.0f, TVec3f(0.0f, -80.0f, 0.0f));
     MR::addHitSensorCallbackEnemyAttack(this, "beam", 8, 15.0f);
     MR::invalidateHitSensor(this, "beam");
     _B8.setInline(getBaseMtx());
-    MR::initCollisionParts(this, "Face", getSensor("body"), _B8);
+    MR::initCollisionParts(this, "Face", getSensor("Body"), _B8);
     initEffectKeeper(1, nullptr, false);
     initSound(4, "SearchBeamer", nullptr, TVec3f(0.0f));
     MR::initStarPointerTarget(this, 80.0f, TVec3f(0, 0, 0));
@@ -71,11 +71,11 @@ void SearchBeamer::init(const JMapInfoIter& rIter) {
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
 
     MR::initShadowControllerList(this, 2);
-    MR::addShadowVolumeCylinder(this, "body", 80.0f);
+    MR::addShadowVolumeCylinder(this, "Body", 80.0f);
     MR::addShadowVolumeBox(this, "beam", TVec3f(10.0f, 10.0f, 100.0f), MR::getJointMtx(this, "BeamStart"));
-    MR::setShadowVolumeStartDropOffset(this, "body", 100.0f);
+    MR::setShadowVolumeStartDropOffset(this, "Body", 100.0f);
     MR::invalidateShadow(this, "beam");
-    MR::setShadowDropLength(this, "body", 200.0f);
+    MR::setShadowDropLength(this, "Body", 200.0f);
     MR::setShadowDropLength(this, "beam", 200.0f);
     MR::useStageSwitchAwake(this, rIter);
     MR::initUseStageSwitchReadA(this, rIter);
@@ -389,11 +389,9 @@ bool SearchBeamer::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
         return true;
     }
 
-    if (!MR::isMsgYoshiReleaseEaten(msg)) {
-        if (MR::isMsgYoshiCancelEaten(msg)) {
-            kill();
-            return true;
-        }
+    if (MR::isMsgYoshiReleaseEaten(msg) || MR::isMsgYoshiCancelEaten(msg)) {
+        kill();
+        return true;
     }
 
     if (MR::isMsgFloorTouch(msg)) {

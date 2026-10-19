@@ -120,7 +120,7 @@ void Garigari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
         if (MR::isSensorType(pReceiver, 0x1D)) {
             if (isNerve(&NrvGarigari::GarigariNrvRotate::sInstance)) {
-                if (MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) {
+                if (!MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) {
                     return;
                 }
             } else {
@@ -130,7 +130,9 @@ void Garigari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             if (isNerve(&NrvGarigari::GarigariNrvRotate::sInstance)) {
                 if (MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
                     MR::fn_80034820(this);
+                    return;
                 }
+                return;
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
             }

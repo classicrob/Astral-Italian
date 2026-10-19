@@ -45,7 +45,7 @@ void KarikariDirector::removeAllClingingKarikari() {
         Karikari* karikari = mClingingKarikari[idx];
         if (karikari != nullptr) {
             karikari->tryHipDropRelease();
-            unregistCling(karikari);
+            fn_801B0DB0(karikari);
         }
     }
 }
@@ -90,24 +90,6 @@ void KarikariDirector::movement() {
     }
 }
 
-bool KarikariDirector::requestRelease(Karikari* pKarikari, TVec2f, f32) {
-    if (mClingNum >= ::hKarikariHoldingMax) {
-        return false;
-    }
-
-    mClingNum++;
-
-    for (s32 idx = 0; idx < ::hKarikariHoldingMax; idx++) {
-        if (mClingingKarikari[idx] == nullptr) {
-            mClingingKarikari[idx] = pKarikari;
-            pKarikari->mClingPosition = mClingPositions[idx];
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool KarikariDirector::registCling(Karikari* pKarikari) {
     if (mClingNum >= ::hKarikariHoldingMax) {
         return false;
@@ -136,6 +118,17 @@ bool KarikariDirector::unregistCling(Karikari* pKarikari) {
         }
     }
 
+    return false;
+}
+
+bool KarikariDirector::fn_801B0DB0(Karikari* pKarikari) {
+    for (s32 idx = 0; idx < ::hKarikariHoldingMax; idx++) {
+        if (mClingingKarikari[idx] == pKarikari) {
+            mClingingKarikari[idx] = nullptr;
+            mClingNum--;
+            return true;
+        }
+    }
     return false;
 }
 

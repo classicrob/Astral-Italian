@@ -37,7 +37,17 @@ WalkerStateStagger::WalkerStateStagger(LiveActor* pHost, TVec3f* pDirection, Wal
 
 void WalkerStateStagger::appear() {
     mIsDead = false;
-    setNerve(GET_NERVE(WalkerStateStagger, WalkerStateStaggerNrvStagger));
+    MR::invalidateClipping(getHost());
+    if (_28) {
+        setNerve(GET_NERVE(WalkerStateStagger, WalkerStateStaggerNrvStaggerEnd));
+    } else {
+        setNerve(GET_NERVE(WalkerStateStagger, WalkerStateStaggerNrvStagger));
+    }
+}
+
+void WalkerStateStagger::kill() {
+    mIsDead = true;
+    MR::validateClipping(getHost());
 }
 
 void WalkerStateStagger::setPunchDirection(HitSensor* pSender, HitSensor* pReceiver) {

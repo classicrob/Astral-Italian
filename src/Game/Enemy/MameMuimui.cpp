@@ -36,17 +36,16 @@ namespace NrvMameMuimui {
     MameMuimuiNrvBindStarPointer MameMuimuiNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvMameMuimui
 
-// NONMATCHING: target stores the fields in a different order and calls set<f> out of line for the quaternion
 MameMuimui::MameMuimui(const char* pName) : LiveActor(pName) {
     mListener = NULL;
     mAnimScaleCtrl = NULL;
     mStarPointBind = NULL;
-    mQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
     mFront.set(0.0f, 0.0f, 1.0f);
     mType = 0;
     mWaitTime = 60;
     mPoints = 1;
     mYoshiLockOn = NULL;
+    mQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void MameMuimui::setTypeGreen() {

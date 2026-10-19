@@ -31,10 +31,13 @@ namespace NrvOtaRock {
     NEW_NERVE(OtaRockNrvHide, OtaRock, Hide);
     NEW_NERVE(OtaRockNrvHideWait, OtaRock, HideWait);
     NEW_NERVE(OtaRockNrvShow, OtaRock, Show);
+    class OtaRockNrvOpeningDemo : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const { static_cast<OtaRock*>(spine->mExecutor)->fn_801DD210(); }
+        static OtaRockNrvOpeningDemo sInstance;
+    };
+    OtaRockNrvOpeningDemo OtaRockNrvOpeningDemo::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvOtaRock
-
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2D6C;
 
 void OtaRock::fn_801DC550(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
@@ -72,7 +75,7 @@ void OtaRock::fn_801DD210() {
 
 bool OtaRock::fn_801DCC00() {
     if (MR::isStageStateScenarioOpeningCamera()) {
-        this->setNerve(reinterpret_cast< const Nerve* >(&lbl_807D2D6C));
+        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvOpeningDemo));
         return true;
     }
     return false;
@@ -99,9 +102,9 @@ void OtaRock::init(const JMapInfoIter& rIter) {
     this->fn_801DCC50();
 
     if (MR::isExistStageSwitchAwake(rIter)) {
-        makeActorAppeared();
-    } else {
         makeActorDead();
+    } else {
+        makeActorAppeared();
     }
 }
 
@@ -260,7 +263,7 @@ bool OtaRock::isValidThrowCocoNut() const {
 }
 
 bool OtaRock::isValidThrowFireBall() const {
-    return getDisappearedFireBallNum() >= 0;
+    return getDisappearedFireBallNum() > 0;
 }
 
 void OtaRock::throwCocoNut() {
@@ -308,7 +311,7 @@ void OtaRock::exeWait() {
     }
     updateBaseMtx();
     if (!this->fn_801DCC00() && !tryToHide() && MR::isGreaterStep(this, mWaitFrame)) {
-        if (!mNoThrowCocoNut && mThrowCocoNutCounter < 2) {
+        if (!mNoThrowCocoNut && mThrowCocoNutCounter < 1) {
             if (isValidThrowCocoNut()) {
                 setNerve(GET_NERVE(OtaRock, OtaRockNrvThrowCocoNut));
             }

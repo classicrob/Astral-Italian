@@ -46,11 +46,8 @@ public:
     bool tryBlowOut(const TVec3f&, bool);
     bool tryElectricKill();
     bool tryHipDropRelease();
-    bool tryDPDRelease(const TVec2f&);
     bool tryStarPointerBind();
-    bool tryDPDAttacked();
 
-    void setVelocityFromCursorMove(const TVec2f&);
 
     void tryTurnToDirection(const TVec3f& rDir, f32 turnRatio);
 

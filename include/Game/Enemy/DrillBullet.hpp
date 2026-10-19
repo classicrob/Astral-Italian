@@ -4,7 +4,7 @@
 
 class AnimScaleController;
 class HitSensor;
-class PartsModel;
+class HorinoHill;
 class WalkerStateBindStarPointer;
 class YoshiLockOnTarget;
 
@@ -40,7 +40,7 @@ public:
     /* 0x90 */ AnimScaleController* mAnimScaleCtrl;
     /* 0x94 */ WalkerStateBindStarPointer* mStarPointBind;
     /* 0x98 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0x9C */ PartsModel* mPartsModel;
+    /* 0x9C */ HorinoHill* mPartsModel;
     /* 0xA0 */ TVec3f mRailClip;
     /* 0xAC */ s32 mIsNoGravity;
 };

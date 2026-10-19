@@ -251,9 +251,9 @@ void Pattan::fn_801E7710() {
 }
 
 void Pattan::fn_801E77A0() {
-    if (isNerve(GET_PATTAN_NERVE(PattanNrvAppear)) || isNerve(GET_PATTAN_NERVE(PattanNrvWait)) ||
-    isNerve(GET_PATTAN_NERVE(PattanNrvFind)) || isNerve(GET_PATTAN_NERVE(PattanNrvChase))) {
-        this->setNerve(GET_PATTAN_NERVE(PattanNrvJump));
+    if (isNerve(GET_PATTAN_NERVE(PattanNrvWait)) || isNerve(GET_PATTAN_NERVE(PattanNrvFind)) ||
+        isNerve(GET_PATTAN_NERVE(PattanNrvChase)) || isNerve(GET_PATTAN_NERVE(PattanNrvAttackSign))) {
+        setNerve(GET_PATTAN_NERVE(PattanNrvJump));
     }
 }
 

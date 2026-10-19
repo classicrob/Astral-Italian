@@ -28,21 +28,20 @@ void StinkBugBase::setDashVelocity(f32 velocity) {
 
 void StinkBugBase::fixInitPos() {
     mVelocity.zero();
-    mPosition.set(_98);
+    MR::setPosition(this, _98);
 }
 
 void StinkBugBase::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     const char* objectName;
     MR::getObjectName(&objectName, rIter);
-    initModelManagerWithAnm(objectName, nullptr, false);
+    MR::initActor(this, rIter, objectName, false);
     MR::connectToSceneCollisionEnemyNoShadowedMapObjStrongLight(this);
     MR::initLightCtrl(this);
-    MR::initShadowFromCSV(this, "Shadow");
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     initEffectKeeper(2, nullptr, false);
     MR::addEffectHitNormal(this, nullptr);
-    initSound(4, "StinkBugBase", nullptr, TVec3f(0.0f));
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
     _98.set(mPosition);
     MR::calcFrontVec(&_8C, this);
     _A4.set(_8C);
@@ -128,7 +127,7 @@ bool StinkBugBase::tryTurnDashSign(f32 angle) {
 
 bool StinkBugBase::isHitHorn(HitSensor* pSender, HitSensor* pReceiver, f32 arg3) const {
     TVec3f toReceiver;
-    toReceiver.sub(pReceiver->mPosition, pSender->mPosition);
+    toReceiver.sub(*MR::getSensorPos(pReceiver), *MR::getSensorPos(pSender));
 
     if (toReceiver.dot(_8C) < 0.0f) {
         return false;
@@ -140,7 +139,6 @@ bool StinkBugBase::isHitHorn(HitSensor* pSender, HitSensor* pReceiver, f32 arg3)
     TVec3f v2;
     v2.scale(up.dot(toReceiver), up);
 
-    f32 radius = pReceiver->mRadius;
-
-    return v2.length() <= arg3 + radius;
+    f32 length = v2.length();
+    return length <= arg3 + MR::getSensorRadius(pReceiver);
 }

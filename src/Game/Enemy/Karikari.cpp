@@ -701,7 +701,7 @@ bool Karikari::tryBlowOut(const TVec3f& rPos, bool spawnMultipleStarPieces) {
 
     MR::emitEffect(this, "Hit");
 
-    ::getKarikariDirector()->unregistCling(this);
+    ::getKarikariDirector()->fn_801B0DB0(this);
 
     if (spawnMultipleStarPieces) {
         setNerve(GET_NERVE(Karikari, HostTypeNrvBlowOutStarPiece));
@@ -730,62 +730,13 @@ bool Karikari::tryHipDropRelease() {
     away.sub(mGravity * ::sAttackedVerticalVel);
     mVelocity.set(away);
     setNerve(GET_NERVE(Karikari, HostTypeNrvDPDAttacked));
-    ::getKarikariDirector()->unregistCling(this);
+    ::getKarikariDirector()->fn_801B0DB0(this);
     return true;
-}
-
-bool Karikari::tryDPDRelease(const TVec2f& rVel) {
-    setVelocityFromCursorMove(rVel);
-    setNerve(GET_NERVE(Karikari, HostTypeNrvDPDAttacked));
-    return true;
-}
-
-bool Karikari::tryDPDAttacked() {
-    // FIXME: TVec2 copy operations are done via memregs, not float regs
-    // https://decomp.me/scratch/W6YWF
-
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        MR::startDPDHitSound();
-        s32 padChannel = *MR::getStarPointerLastPointedPort(this);
-        TVec2f pointerVel(*MR::getStarPointerScreenVelocity(padChannel));
-        TVec2f pointingPos;
-        TVec2f screenPos;
-        MR::getCorePadPointingPosBasedOnScreen(&pointingPos, padChannel);
-        MR::calcScreenPosition(&screenPos, mPosition);
-        TVec2f fromCursorPos = screenPos;
-        fromCursorPos.sub(pointingPos);
-        TVec2f vel(pointerVel);
-        if (MR::isNearZero(pointerVel)) {
-            vel = fromCursorPos;
-            vel.setLength(::sFromCursorVelScale);
-        }
-
-        if (inClingNerve()) {
-            ::getKarikariDirector()->requestRelease(this, vel, fromCursorPos.squared());
-        } else {
-            setVelocityFromCursorMove(vel);
-            setNerve(GET_NERVE(Karikari, HostTypeNrvDPDAttacked));
-        }
-        return true;
-    }
-
-    return false;
-}
-
-void Karikari::setVelocityFromCursorMove(const TVec2f& rVel) {
-    TVec3f camX = MR::getCamXdir();
-    TVec3f camY = -MR::getCamYdir();
-    mVelocity = camX * rVel.x + camY * rVel.y;
-    if (mVelocity.dot(mGravity) > 0.0f) {
-        MR::vecKillElement(mVelocity, mGravity, &mVelocity);
-    }
-    mVelocity.setLength(::sScratchStrongVel);
-    mVelocity.sub(mGravity * 40.0);
 }
 
 void Karikari::makeActorDead() {
     LiveActor::makeActorDead();
-    ::getKarikariDirector()->unregistCling(this);
+    ::getKarikariDirector()->fn_801B0DB0(this);
 }
 
 void Karikari::kill() {
@@ -924,7 +875,7 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgToEnemyAttackTrample(msg)) {
-        ::getKarikariDirector()->unregistCling(this);
+        ::getKarikariDirector()->fn_801B0DB0(this);
         setNerve(GET_NERVE(Karikari, HostTypeNrvInTornado));
         return true;
     }
@@ -935,7 +886,7 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return true;
         }
 
-        ::getKarikariDirector()->unregistCling(this);
+        ::getKarikariDirector()->fn_801B0DB0(this);
         // blow away from explosion
         TVec3f vel(*MR::getSensorPos(pReceiver));
         vel.sub(*MR::getSensorPos(pSender));

@@ -1,5 +1,6 @@
 #include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Enemy/DrillBullet.hpp"
+#include "Game/Boss/TwoLegs.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -15,7 +16,6 @@ namespace NrvDrillBullet {
     NEW_NERVE(DrillBulletNrvStepDown, DrillBullet, StepDown);
     NEW_NERVE(DrillBulletNrvSpinReaction, DrillBullet, Reaction);
     NEW_NERVE(DrillBulletNrvAttackSuccess, DrillBullet, Reaction);
-    NEW_NERVE(DrillBulletNrvEaten, DrillBullet, Eaten);
 
     // Star-pointer bind: updates the state, then goes back to Move unless it can dig again.
     class DrillBulletNrvBindStarPointer : public Nerve {
@@ -24,6 +24,7 @@ namespace NrvDrillBullet {
         static DrillBulletNrvBindStarPointer sInstance;
     };
     DrillBulletNrvBindStarPointer DrillBulletNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
+    NEW_NERVE(DrillBulletNrvEaten, DrillBullet, Eaten);
 };  // namespace NrvDrillBullet
 
 #define GET_DRILL_BULLET_NERVE(name) (&NrvDrillBullet::name::sInstance)
@@ -43,19 +44,20 @@ DrillBullet::~DrillBullet() {
 }
 
 void DrillBullet::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "Horino", nullptr, false);
+    MR::initActor(this, rIter, "Horino", false);
+    MR::addEffectHitNormal(this, nullptr);
     MR::moveCoordAndTransToNearestRailPos(this);
     MR::initAndSetRailClipping(&mRailClip, this, 100.0f, 500.0f);
 
-    mPartsModel = reinterpret_cast<PartsModel*>(MR::fn_80105820(this, 7, "ホリーノ塚の道", 150.0f));
+    mPartsModel = new HorinoHill(this, 7, "ホリーノ塚の道", 150.0f);
     mPartsModel->initWithoutIter();
     mScale.x = 1.2f;
     mScale.y = 1.2f;
     mScale.z = 1.2f;
     MR::setSensorRadius(this, "Body", 1.2f * MR::getSensorRadius(this, "Body"));
     MR::setSensorRadius(this, "Attack", 1.2f * MR::getSensorRadius(this, "Attack"));
-    MR::invalidateShadowAll(this);
     MR::startBtkAndSetFrameAndStop(this, "Scale", 1.0f);
+    MR::invalidateShadowAll(this);
 
     MR::getJMapInfoArg0NoInit(rIter, &mIsNoGravity);
     if (mIsNoGravity == 0) {
@@ -67,8 +69,7 @@ void DrillBullet::init(const JMapInfoIter& rIter) {
     mAnimScaleCtrl->setParamTight();
     mStarPointBind = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
     MR::initActorState(this, mStarPointBind, GET_DRILL_BULLET_NERVE(DrillBulletNrvBindStarPointer), "SupportFreeze");
-    TVec3f centerOffset(0.0f, 75.0f, 0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), centerOffset);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f, 75.0f, 0.0f));
 
     if (MR::useStageSwitchAwake(this, rIter)) {
         makeActorDead();
@@ -92,12 +93,11 @@ void DrillBullet::calcAndSetBaseMtx() {
         mtx.identity();
         TVec3f up(0.0f, 1.0f, 0.0f);
         MR::calcUpVec(&up, this);
-        f32 railDot = MR::getRailDirection(this).dot(up);
         TVec3f front = MR::getRailDirection(this);
         if (MR::isSameDirection(front, up, 0.01f) == false) {
-            MR::makeMtxFrontUpPos(&mtx, up, front, mPosition);
+            MR::makeMtxFrontUpPos(&mtx, front, up, mPosition);
         } else {
-            MR::makeMtxFrontNoSupportPos(&mtx, up, front);
+            MR::makeMtxFrontNoSupportPos(&mtx, front, mPosition);
         }
         MR::setBaseTRMtx(this, mtx);
     } else {
@@ -108,7 +108,7 @@ void DrillBullet::calcAndSetBaseMtx() {
 
 void DrillBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvStepDown)) &&
-        !isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvEaten))) {
+        !isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvEaten)) && MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorEnemy(pReceiver)) {
             if (MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
                 MR::emitItemHit(this);
@@ -286,21 +286,19 @@ bool DrillBullet::tryDigWall() {
 
     s32 digType = -1;
     MR::getRailPointArg0NoInit(this, nextPoint, &digType);
-    switch (digType) {
-    case 0:
+    if (digType == 0) {
         setNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvDigWallIn));
         return true;
-    case 1:
+    }
+    if (digType == 1) {
         setNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvDigWallOut));
         return true;
-    default:
-        return false;
     }
+    return false;
 }
 
 bool DrillBullet::tryBindStarPointer() {
-    if (isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvMove)) || isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvSpinReaction)) ||
-        isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvAttackSuccess))) {
+    if (isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvMove)) || isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvSpinReaction))) {
         if (mStarPointBind->tryStartPointBind()) {
             setNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvBindStarPointer));
             return true;
@@ -319,7 +317,7 @@ bool DrillBullet::tryEaten() {
 
 bool DrillBullet::isTargetable() const {
     if (isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvMove)) || isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvSpinReaction)) ||
-        isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvAttackSuccess))) {
+        isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvBindStarPointer))) {
         return true;
     }
     return false;

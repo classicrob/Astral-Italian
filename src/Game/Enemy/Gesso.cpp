@@ -389,20 +389,20 @@ void Gesso::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (MR::isSensorEnemy(pSender)) {
-        if (MR::isSensorPlayer(pReceiver)) {
-            if (isNerve(GET_NERVE(Gesso, GessoNrvDPDSwoon))) {
-                MR::sendMsgPush(pReceiver, pSender);
-            } else if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
-                MR::emitEffectHitBetweenSensors(this, pSender, pReceiver, 0.0f, nullptr);
-                TVec3f dir;
-                MR::calcSensorDirectionNormalize(&dir, pReceiver, pSender);
-                mVelocity.scale(25.0f, dir);
-                setNerve(GET_NERVE(Gesso, GessoNrvAttack));
-            }
-        } else if (MR::isSensorYoshi(pReceiver)) {
+    if (MR::isSensorEnemy(pSender) && MR::isSensorPlayer(pReceiver)) {
+        if (isNerve(GET_NERVE(Gesso, GessoNrvDPDSwoon))) {
             MR::sendMsgPush(pReceiver, pSender);
+        } else if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
+            MR::emitEffectHitBetweenSensors(this, pSender, pReceiver, 0.0f, nullptr);
+            TVec3f dir;
+            MR::calcSensorDirectionNormalize(&dir, pReceiver, pSender);
+            mVelocity.scale(25.0f, dir);
+            setNerve(GET_NERVE(Gesso, GessoNrvAttack));
         }
+        return;
+    }
+    if (MR::isSensorYoshi(pReceiver)) {
+        MR::sendMsgPush(pReceiver, pSender);
     }
 }
 

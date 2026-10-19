@@ -6461,9 +6461,9 @@ Game/Player/MarioConst.cpp:
 
 Game/Player/MarioDamage.cpp:
 	.text       start:0x803E4290 end:0x803E6610
-	.rodata     start:0x8064BDE0 end:0x8064BE28
-	.data       start:0x806DC848 end:0x806DC9F8
-	.sdata2     start:0x807DFED0 end:0x807DFEE4
+	.rodata     start:0x8064BDE0 end:0x8064BE30
+	.data       start:0x806DC690 end:0x806DC9F8
+	.sdata2     start:0x807DFEC0 end:0x807DFF00
 
 Game/Player/MarioCrush.cpp:
 	.text       start:0x803E6610 end:0x803E68D0
@@ -6637,7 +6637,7 @@ Game/Player/MarioPosHolder.cpp:
 
 Game/Player/MarioWait.cpp:
 	.text       start:0x80406390 end:0x80406AC0
-	.data       start:0x806DED30 end:0x806DED78
+	.data       start:0x806DECC8 end:0x806DED78
 	.sdata2     start:0x807E04A8 end:0x807E04B0
 
 Game/Player/MarioWall.cpp:

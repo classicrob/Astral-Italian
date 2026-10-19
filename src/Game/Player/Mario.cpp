@@ -4,6 +4,7 @@
 #include "Game/Player/MarioMoveInfoA84.hpp"
 #include "Game/Animation/XanimeCore.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
+#include "Game/Enemy/Popo.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -7505,6 +7506,7 @@ bool Mario::taskOnTornadoCentering(u32 a1) {
 }
 
 
+// NONMATCHING: literal pool offsets; full string arguments verified.
 void Mario::trySpinJump(u8 a1) {
     if (mMovementStates._B) {
         return;
@@ -7547,7 +7549,7 @@ void Mario::trySpinJump(u8 a1) {
     mJumpVec = mFrontVec * frontSpeed * tornadoSpeed;
 
     const f32 spinJumpHeight = mActor->getConst().getTable()->mSpinJumpHeight;
-    mJumpVec += -mActor->_240 * spinJumpHeight;
+    mJumpVec += -mActor->mAppliedGravityVec * spinJumpHeight;
 
     mMovementStates._E = false;
     _402 = mActor->getConst().getTable()->mAirWalkTimeSpin;
@@ -7555,9 +7557,17 @@ void Mario::trySpinJump(u8 a1) {
 
     if (!mMovementStates._B) {
         stopAnimationUpper(nullptr);
-        changeAnimation("空中ひねり", "落下");
-        playSound("声スピン");
+        if (isPlayerModeCloud()) {
+            changeAnimation("雲スピン空中", "落下");
+        } else {
+            changeAnimation("空中ひねり", "落下");
+        }
         playSound("スピンジャンプ");
+        if (isPlayerModeYoshi()) {
+            MR::startActionSound(mActor->fn_803B97F0(), "HeadShake", -1, -1, -1);
+        } else {
+            playSound("声スピン");
+        }
         startPadVib(2);
 
         mMovementStates.jumping = true;
@@ -7568,6 +7578,8 @@ void Mario::trySpinJump(u8 a1) {
         _3D0 = 0;
         mWalkSpeed = 0.0f;
         _10._1 = true;
+
+        fn_801EFB00();
 
         if (isStatusActive(MarioStatus_Rabbit)) {
             mRabbit->hop();
@@ -14391,6 +14403,7 @@ bool Mario::isStatusActive(u32 statusId) const {
 
 // ---- MarioStep.cpp ----
 
+// NONMATCHING: relocation label; all scalar values verified.
 void Mario::checkStep() {
     if (mMovementStates.jumping) {
         return;
@@ -14420,11 +14433,6 @@ void Mario::checkStep() {
         return;
     }
 
-#if VERSION == RMGK01
-    if (isPlayerModeHopper()) {
-        return;
-    }
-#endif
 
     if (isDamaging()) {
         return;
@@ -14451,25 +14459,6 @@ void Mario::checkStep() {
     }
 
     if (isSlipPolygon(_45C)) {
-        return;
-    }
-
-    if (_4D8->isValid() && !mMovementStates._8 && mMovementStates._1) {
-        const f32 frontDot = mFrontVec.dot(*_4D8->getNormal(0));
-        TVec3f horizontal;
-        MR::vecKillElement(_50C - mPosHolder->mPos, -*getGravityVec(), &horizontal);
-
-        if (horizontal.length() < 20.0f && MR::abs(frontDot) < 0.3926991f) {
-            f32 stepHeight = (_50C - mPosHolder->mPos).dot(-*getGravityVec());
-            if (stepHeight < mActor->getConst().getTable()->mWalkStepHeight) {
-                startStep(_50C);
-            }
-        } else if (MR::abs(frontDot) < 1.0471976f) {
-            Mtx rotMtx;
-            PSMTXRotAxisRad(rotMtx, &mSideVec, frontDot);
-            PSMTXMultVec(rotMtx, &mVelocity, &mVelocity);
-        }
-
         return;
     }
 
@@ -15523,6 +15512,7 @@ void Mario::decideSquatWalkAnimation() {
 }
 
 
+// NONMATCHING: relocation labels; speed tables and scalar values verified.
 void Mario::decideWalkSpeed() {
     u32 i;
     bool canIndexDecrease = false;
@@ -15544,6 +15534,9 @@ void Mario::decideWalkSpeed() {
     }
 
     s32 clingNum = MR::getKarikariClingNum();
+    if (!mActor->isEnableNerveChange()) {
+        clingNum = 0;
+    }
     if (clingNum != 0) {
         if (clingNum > 5) {
             clingNum = 5;
@@ -15562,7 +15555,7 @@ void Mario::decideWalkSpeed() {
         mTargetWalkSpeedIndex = 4;
     }
 
-    if (_960 == 32) {
+    if (_960 == 32 || (isPlayerModeYoshi() && mActor->fn_803B9810()->fn_8041F8C0())) {
         if (mTargetWalkSpeedIndex > 3) {
             mTargetWalkSpeedIndex = 3;
         }
@@ -15572,12 +15565,12 @@ void Mario::decideWalkSpeed() {
         }
 
         if (mTargetWalkSpeedIndex > 2) {
-            getAnimator()->getXanimePlayer()->_0C = 0.5f;
+            getAnimator()->setAnimationInterpoleRatio(0.5f);
         } else {
-            getAnimator()->getXanimePlayer()->_0C = 1.0f;
+            getAnimator()->setAnimationInterpoleRatio(1.0f);
         }
     } else {
-        f32 speed = getAnimator()->getXanimePlayer()->_0C;
+        f32 speed = getAnimator()->getAnimationInterpoleRatio();
         f32 new0C = speed;
         new0C += 0.1f;
 
@@ -15585,7 +15578,16 @@ void Mario::decideWalkSpeed() {
             new0C = 1.0f;
         }
 
-        getAnimator()->getXanimePlayer()->_0C = new0C;
+        getAnimator()->setAnimationInterpoleRatio(new0C);
+    }
+    if (isPlayerModeYoshi() && mActor->fn_803B9810()->fn_8041FA40() && mTargetWalkSpeedIndex > 8) {
+        mTargetWalkSpeedIndex = 8;
+    }
+    if (fn_803B1C10()) {
+        mTargetWalkSpeedIndex = 7;
+    }
+    if (mCometFireDanceArea) {
+        mTargetWalkSpeedIndex = 7;
     }
 }
 

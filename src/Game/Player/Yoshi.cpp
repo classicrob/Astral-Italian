@@ -1,3 +1,4 @@
+#define JGEOMETRY_OUTLINE_MATRIX_ZERO_TRANS
 #include "Game/Player/Yoshi.hpp"
 #include "Game/NPC/TalkMessageFunc.hpp"
 #include "Game/Util/TalkUtil.hpp"
@@ -1318,11 +1319,11 @@ void Yoshi::fn_8040EF30() {
     mYoshiModelCtrl->fn_80418120();
 }
 
-// NONMATCHING: temporary stack layout, equivalent unordered comparison lowering and FPR allocation differ.
+// NONMATCHING: temporary stack layout, FPR allocation and argument scheduling differ.
 void Yoshi::fn_80410D90() {
     if (mWaterInfo->isInWater()) {
         f32 depth = mWaterInfo->mCamWaterDepth;
-        if (!(depth < 200.0f)) depth = 200.0f;
+        depth = depth < 200.0f ? depth : 200.0f;
         mMovementVelocity.x *= 0.98f;
         mMovementVelocity.y *= 0.98f;
         mMovementVelocity.z *= 0.98f;
@@ -1341,8 +1342,9 @@ void Yoshi::fn_80410D90() {
         f32 speed = mMovementVelocity.dot(opposite);
         f32 maximum = mWaterInfo->mCamWaterDepth - 60.0f;
         if (maximum < speed) {
+            f32 correctionSpeed = speed - maximum;
             TVec3f correction(mGravity);
-            correction.scale(speed - maximum);
+            correction.scale(correctionSpeed);
             mMovementVelocity.add(correction);
         }
     } else {
@@ -1415,7 +1417,7 @@ void Yoshi::fn_80410D90() {
     }
 }
 
-// NONMATCHING: matrix zeroTrans is inlined; quaternion arithmetic and argument scheduling differ.
+// NONMATCHING: quaternion arithmetic and argument scheduling differ.
 void Yoshi::fn_80410570(f32 amount) {
     TVec3f direction(mMovementVelocity);
     YoshiGroundChecker* ground = mGroundChecker;

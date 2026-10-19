@@ -2033,11 +2033,10 @@ void MarioActor::jumpHop() {
 }
 
 
+// NONMATCHING: commutative floating operand/register order and verified pooled literals.
 void MarioActor::calcCenterPos() {
-    // FIXME: optimized floats (needs to be separate)
-    // https://decomp.me/scratch/oy8tV
-    if (_934 || _8C) {
-        MR::copyJointPos(this, "Spine1", &_2A0);
+    if (_934 || mInitializing90) {
+        MR::copyJointPos(this, "Spine1", &_240);
 
         return;
     }
@@ -2047,7 +2046,7 @@ void MarioActor::calcCenterPos() {
         vec24 = mMario->_75C;
     } else {
         if (mMario->isStatusActive(MarioStatus_Hang)) {
-            MR::copyJointPos(this, "Spine1", &_2A0);
+            MR::copyJointPos(this, "Spine1", &_240);
 
             return;
         }
@@ -2055,12 +2054,15 @@ void MarioActor::calcCenterPos() {
         if (mMario->isSwimming()) {
             vec24 = _4B8;
         } else {
-            vec24 = -getGravityVec();
+            vec24 = -*mMario->getGravityVec();
         }
     }
 
     f32 val;
-    if (mMario->getMovementStates()._A) {
+    if (mMario->isPlayerModeYoshi() && mMario->isStatusActive(0x27) && !MR::isDead(mYoshiHolder->mRideModelActor)) {
+        val = 20.0f + 0.8f * mBinder->mRadius;
+        mBinder->mRadius = val;
+    } else if (mMario->getMovementStates()._A) {
         f32 radius = mBinder->mRadius;
         f32 height = 40.0f;
         val = 0.8f * radius + 0.2f * height;
@@ -2080,7 +2082,7 @@ void MarioActor::calcCenterPos() {
         mBinder->mRadius = val2;
     }
 
-    _2A0 = mPosition + vec24 * val;
+    _240 = mPosition + vec24 * val;
 }
 
 
@@ -2092,6 +2094,7 @@ void MarioActor::calcHeadPos() {
 }
 
 
+// NONMATCHING: verified pooled literal and nerve addresses.
 void MarioActor::setPress(u8 myChar, s32 myInt) {
     if (_390 != 0) {
         return;
@@ -2105,7 +2108,7 @@ void MarioActor::setPress(u8 myChar, s32 myInt) {
         return;
     }
 
-    if (_39C == 0 || _39C == 2) {
+    if (mCounter6C8 == 0 || mCounter6C8 == 2) {
         // Missing instruction
         *mMario->_480 = *mMario->mGroundPolygon;
         *mMario->_484 = *mMario->_4C8;
@@ -2145,16 +2148,20 @@ void MarioActor::setPress(u8 myChar, s32 myInt) {
     mMarioAnim->setSpeed(0.0f);
 
     _B90 = true;
-    _39C = myChar;
+    mCounter6C8 = myChar;
     _F44 = false;
 
     mMario->playSound("プレスダメージ");
-    mMario->playSound("声大ダメージ");
+    if (mMario->isPlayerModeYoshi()) {
+        MR::startActionSoundPlayer("DeathInstant", -1, -1);
+    } else {
+        mMario->playSound("声大ダメージ");
+    }
 
     _FB4 = GET_NERVE(MarioActor, MarioActorNrvGameOver);
     _FB8 = 60;
 
-    if (_39C != 4) {
+    if (mCounter6C8 != 4) {
         _390 = 1000;
     }
 
@@ -2163,6 +2170,7 @@ void MarioActor::setPress(u8 myChar, s32 myInt) {
     }
 
     MR::startStarPointerModeDemoMarioDeath(this);
+    mMario->mPosHolder->fn_804060C0();
 }
 
 
@@ -8917,6 +8925,7 @@ void MarioActor::updateReflectAlphaDL(u8 alpha) {
 }
 
 
+// NONMATCHING: equivalent packed RGBA word copies versus target byte copies; stack and instruction order.
 void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, const Color8& rFog, f32 strength) {
     u8 buffer[512] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
@@ -8942,7 +8951,7 @@ void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, 
     GDPadCurr32();
     u32 length = displayList.ptr - displayList.start;
     mCurrDL = 1 - mCurrDL;
-    mDLSize = length;
+    mCurrentDLSize1A0 = length;
     u32 size = (length + 31) & ~31;
     MR::copyMemory(mDL[mCurrDL], buffer, size);
     DCStoreRange(mDL[mCurrDL], size);
@@ -9458,8 +9467,8 @@ bool MarioActor::drawDarkMask() const {
 
     TVec3f position(mPosition);
     TDDraw::project2D(&center, position);
-    TDDraw::project2D(&screenX, position + mCamDirX * radius);
-    TDDraw::project2D(&screenY, position + mCamDirY * radius);
+    TDDraw::project2D(&screenX, position + mCameraBasisX * radius);
+    TDDraw::project2D(&screenY, position + mCameraBasisY * radius);
     u16 width = ((static_cast< u32 >((screenX - center).length()) + 3) & ~3) + 4;
     u16 height = ((static_cast< u32 >((screenY - center).length()) + 3) & ~3) + 4;
     TDDraw::project2D(&origin, position);

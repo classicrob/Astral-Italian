@@ -411,14 +411,22 @@ void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target
     if (MR::normalizeOrZero(&up)) original.getYDir(up);
     TVec3f side;
     PSVECCrossProduct(&up, &gravity, &side);
-    if (MR::normalizeOrZero(&side)) side.set<f32>(original.mMtx[0][0], original.mMtx[1][0], original.mMtx[2][0]);
-    TVec3f delta(target);
-    JMathInlineVEC::PSVECSubtract(&delta, &position, &delta);
-    up = delta;
+    if (MR::normalizeOrZero(&side)) {
+        f32 z = original.mMtx[2][0];
+        f32 y = original.mMtx[1][0];
+        f32 x = original.mMtx[0][0];
+        side.set<f32>(x, y, z);
+    }
+    up = target - position;
     if (MR::normalizeOrZero(&up)) original.getYDir(up);
     TVec3f front;
     PSVECCrossProduct(&side, &up, &front);
-    if (MR::normalizeOrZero(&front)) front.set<f32>(original.mMtx[0][2], original.mMtx[1][2], original.mMtx[2][2]);
+    if (MR::normalizeOrZero(&front)) {
+        f32 z = original.mMtx[2][2];
+        f32 y = original.mMtx[1][2];
+        f32 x = original.mMtx[0][2];
+        front.set<f32>(x, y, z);
+    }
     PSVECCrossProduct(&up, &front, &side);
     TPos3f oriented;
     oriented.identity();
@@ -427,7 +435,7 @@ void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target
     TQuat4f targetRotation;
     original.getQuat(originalRotation);
     oriented.getQuat(targetRotation);
-    TQuat4f rotation(originalRotation);
+    TQuat4f rotation(static_cast<const Quaternion&>(originalRotation));
     rotation.slerp(targetRotation, progress);
     side.set<f32>((1.0f - 2.0f * (rotation.y * rotation.y)) - 2.0f * (rotation.z * rotation.z),
                   2.0f * (rotation.x * rotation.y) + 2.0f * (rotation.w * rotation.z),
@@ -442,9 +450,8 @@ void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target
     mPlayer->setHeadVec(up);
     mPlayer->setFrontVec(front);
     mPlayer->clearVelocity();
-    TVec3f velocity(position);
-    JMathInlineVEC::PSVECSubtract(&velocity, &mYoshi->mPosition, &velocity);
-    mPlayer->addVelocity(velocity);
+    const TVec3f& yoshiPosition = mYoshi->mPosition;
+    mPlayer->addVelocity(position - yoshiPosition);
 }
 
 void YoshiTongueAction::fn_80421830(TVec3f* output) const {
@@ -586,10 +593,7 @@ void YoshiTongueAction::fn_8041F0E0() {
     TVec3f position(mYoshi->mPosition);
     TVec3f target;
     mTarget->fn_8041C240(&target);
-    TVec3f offset(mDirection);
-    offset.scale(170.0f);
-    TVec3f approach(target);
-    JMathInlineVEC::PSVECSubtract(&approach, &offset, &approach);
+    TVec3f approach(target - mDirection.scaleInline(170.0f));
     TVec3f gravity(mPlayer->getAirGravityVec());
     fn_80420AC0(&position, approach, gravity, fn_80420A20());
     s32 turnStep = fn_80420980() - 4;

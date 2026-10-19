@@ -799,35 +799,33 @@ void Mario::fn_803A1BB0() {
     }
 }
 
+// NONMATCHING: floating-point register allocation.
 void Mario::fn_803A1240(f32* a, f32* b) {
-    void* e = marioCurTableEntry(this);
-    f32 f1 = *b;
-    if ((f1 < 0.0f ? -f1 : f1) > FLD<f32>(e, 0x36C)) {
-        f32 f2 = FLD<f32>(e, 0x364);
-        f32 av = *a;
-        if ((av < 0.0f ? -av : av) < f2) {
+    f32 vertical = *b;
+    const MarioConstTable* table = mActor->getConst().getTable();
+    f32 absVertical = MR::abs(vertical);
+    if (absVertical > table->mStickMarginYstart) {
+        f32 horizontal = *a;
+        f32 margin = table->mStickMarginX;
+        if (MR::abs(horizontal) < margin) {
             *a = 0.0f;
             return;
         }
-        if (av > 0.0f) {
-            *a = (av - f2) / (1.0f - f2);
+        if (horizontal > 0.0f) {
+            *a = (horizontal - margin) / (1.0f - margin);
         } else {
-            *a = (av + f2) / (1.0f - f2);
+            *a = (horizontal + margin) / (1.0f - margin);
         }
-    } else {
-        f32 av = *a;
-        if ((av < 0.0f ? -av : av) <= FLD<f32>(e, 0x370)) {
-            return;
-        }
-        f32 f2 = FLD<f32>(e, 0x368);
-        if ((f1 < 0.0f ? -f1 : f1) < f2) {
+    } else if (MR::abs(*a) > table->mStickMarginXstart) {
+        f32 margin = table->mStickMarginY;
+        if (absVertical < margin) {
             *b = 0.0f;
             return;
         }
-        if (f1 > 0.0f) {
-            *b = (f1 - f2) / (1.0f - f2);
+        if (vertical > 0.0f) {
+            *b = (vertical - margin) / (1.0f - margin);
         } else {
-            *b = (f1 + f2) / (1.0f - f2);
+            *b = (vertical + margin) / (1.0f - margin);
         }
     }
 }

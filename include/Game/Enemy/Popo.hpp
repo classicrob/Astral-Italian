@@ -112,4 +112,5 @@ public:
 };
 
 bool fn_801EFAB0();
+void fn_801EFB00();
 void fn_801EFB40();

@@ -1,6 +1,7 @@
 #include "Game/Player/MarioAccess.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
+#include "Game/LiveActor/ModelManager.hpp"
 #include "Game/MapObj/CollectCounter.hpp"
 #include "Game/MapObj/StarPiece.hpp"
 #include "Game/MapObj/StarPieceDirector.hpp"
@@ -239,9 +240,9 @@ namespace MarioAccess {
         }
 
         getPlayerActor()->getMario()->setFrontVecKeepUp(rVec);
-        getPlayerActor()->_2DC = getPlayerActor()->getMario()->mFrontVec;
-        getPlayerActor()->mUpVec = getPlayerActor()->getMario()->mHeadVec;
-        getPlayerActor()->_2E8 = getPlayerActor()->getMario()->mSideVec;
+        getPlayerActor()->_27C = getPlayerActor()->getMario()->mFrontVec;
+        getPlayerActor()->_270 = getPlayerActor()->getMario()->mHeadVec;
+        getPlayerActor()->_288 = getPlayerActor()->getMario()->mSideVec;
     }
 
     void setFrontVecTarget(const TVec3f& rVec, u16 a2) {
@@ -331,8 +332,8 @@ namespace MarioAccess {
         MarioActor* actor = getPlayerActor();
         actor->_1AA = fogTime;
         actor->_1AC = fogLevel;
-        actor->_1B0.set(0xFF, 0xFF, 0xFF, 0);
-        actor->_1B5 = false;
+        actor->mSwimFogColor.set(0xFF, 0xFF, 0xFF, 0);
+        actor->mSwimFogDisabled = false;
     }
 
     void getStarPieceDirect() {
@@ -444,7 +445,7 @@ namespace MarioAccess {
         getPlayerActor()->mMarioAnim->update();
         getPlayerActor()->calcAnimInMovement();
 
-        XanimePlayer* animePlayer = getPlayerActor()->mMarioAnim->getXanimePlayer();
+        XanimePlayer* animePlayer = getPlayerActor()->mModelManager->mXanimePlayer;
         animePlayer->updateBeforeMovement();
         animePlayer->updateAfterMovement();
     }
@@ -652,7 +653,7 @@ namespace MarioAccess {
 
             StarPiece* launchPiece = MR::getDeadStarPiece();
 
-            launchPiece->launch(getPlayerActor()->_2A0, 24.0f, 24.0f, false, false);
+            launchPiece->launch(getPlayerActor()->_240, 24.0f, 24.0f, false, false);
             MR::addStarPiece(-1);
         }
     }

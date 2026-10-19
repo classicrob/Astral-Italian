@@ -1,5 +1,4 @@
 // SMG2-only MarioActor functions (part B, fn_803CA000 and up), written from the asm. Included at the end of MarioActor.cpp (unity TU).
-void fn_803D4450(f32 a, f32 b, f32 c);
 // Uses the F()/FP()/BITAT()/CT() helpers defined in MarioActorSMG2_A.inc.
 
 
@@ -1356,9 +1355,6 @@ void MarioActor::fn_803D26F0() {
     F(CollisionShadow*, 0x580)->setUpdateFlag();
 }
 
-void fn_803D4450(f32 a, f32 b, f32 c) {
-    GXPosition3f32(a, b, c);
-}
 
 f32 MarioState::getBlurOffset() const {
     return 0.0f;

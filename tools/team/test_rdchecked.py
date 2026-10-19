@@ -570,7 +570,7 @@ class StringPoolReachSafetyTests(unittest.TestCase):
             self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; '+definition+'; lwz r3, 0x44(r31); blr', True)
 
     def test_get_castle_return_does_not_alias_stale_string_argument(self):
-        self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[53616d65]@l; bl startBtkKeepFrame__26KoopaJrCastleStateBodyMoveFPCc; bl getCastle__21KoopaJrCastleFunctionFv; mr r31, r3; lwz r3, 0x44(r31); blr', True)
+        self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[53616d65]@l; mr r31, r4; bl startBtkKeepFrame__26KoopaJrCastleStateBodyMoveFPCc; bl getCastle__21KoopaJrCastleFunctionFv; mr r31, r3; lwz r3, 0x44(r31); blr', True)
 
     def test_get_castle_keeps_nonvolatile_string_base_taint(self):
         self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; bl getCastle__21KoopaJrCastleFunctionFv; lwz r3, 0x44(r31); blr')

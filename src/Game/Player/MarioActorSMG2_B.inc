@@ -1681,12 +1681,14 @@ bool MarioActor::fn_803D8B30(HitSensor* s) {
     return true;
 }
 
+// NONMATCHING: local vector stack slots, registers, and elided value copy before scaling.
 void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
     f32 ma = PSVECMag((Vec*)a);
     if (PSVECMag((Vec*)&F(TVec3f, 0x38)) < ma) {
         if (a->dot(*this->mMario->getGravityVec()) < -0.0f) {
             TVec3f k;
-            if (MR::isNearZero(k, 0.001f), MR::vecKillElement(F(TVec3f, 0x38), *this->mMario->getGravityVec(), &k), MR::isNearZero(k, 0.001f)) {
+            MR::vecKillElement(mVelocity, *mMario->getGravityVec(), &k);
+            if (MR::isNearZero(k, 0.001f)) {
                 MR::vecKillElement(*a, *this->mMario->getGravityVec(), &k);
             }
             k.setLength(PSVECMag((Vec*)a));

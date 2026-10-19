@@ -521,11 +521,10 @@ void Mario::fn_803ACF70() {
     }
 }
 
-// NONMATCHING: animator speed scaling approximated
 void Mario::fn_803AD0B0() {
-    f32 var_f31 = this->mWalkSpeed * (60.0f / FLD<f32>(marioCurTableEntry(this), 0x384));
-    if (!((FLD<u32>(this, 0x10) >> 25) & 1)) {
-        var_f31 = 0.0f;
+    f32 var_f31 = this->mWalkSpeed * (60.0f / this->mActor->mConst->getTable()->mSquatWalkStep);
+    if (!((this->mMovementStates_HIGH_WORD >> 25) & 1)) {
+        var_f31 = 1.0f;
     }
     this->getAnimator()->setSpeed(var_f31);
 }
@@ -705,57 +704,93 @@ void Mario::fn_803B1180() {
     }
 }
 
-// NONMATCHING: animation-state reset and the yoshi jump-rise speed update approximated
 void Mario::fn_803B12B0() {
-    if ((FLD<u32>(this, 0xC) >> 20) & 1) {
-        FLD<u32>(this, 0x10) &= 0xFFDFFFFF;
+    if ((this->mMovementStates_LOW_WORD >> 20) & 1) {
+        this->_10_HIGH_WORD &= 0xFFDFFFFF;
+        return;
     }
     if (!this->isPlayerModeYoshi()) {
-        FLD<u32>(this, 0x10) &= 0xFFDFFFFF;
-        if ((FLD<u32>(this, 0xC) >> 30) & 1) {
+        this->_10_HIGH_WORD &= 0xFFDFFFFF;
+        if ((this->mMovementStates_LOW_WORD >> 30) & 1) {
             this->changeAnimation("基本", (const char*)nullptr);
+            return;
         }
         this->changeAnimation("落下", (const char*)nullptr);
+        return;
     }
-    if ((FLD<u32>(this, 0xC) >> 30) & 1) {
-        FLD<u32>(this, 0x10) &= 0xFFDFFFFF;
+    if ((this->mMovementStates_LOW_WORD >> 30) & 1) {
+        this->_10_HIGH_WORD &= 0xFFDFFFFF;
         this->changeAnimation("基本", (const char*)nullptr);
+        return;
     }
     if (!this->isAnimationRun("踏ん張り")) {
         this->changeAnimation("踏ん張り", (const char*)nullptr);
     }
+    const TVec3f& gravity = this->mActor->mAppliedGravityVec;
+    TVec3f lateral;
+    lateral.killElement(this->mJumpVec, gravity);
+    this->mJumpVec -= lateral;
+    this->mJumpVec *= 0.95f * this->mActor->fn_803B9A90();
+    this->mJumpVec += lateral;
+    f32 maxRiseSpeed = YoshiParam::fn_8041BDB0();
+    if (this->mActor->fn_803B9A90() < maxRiseSpeed) {
+        f32 maxSpeed = YoshiParam::fn_8041BDB0();
+        f32 riseSpeed = this->mActor->fn_803B9A90();
+        f32 ratio = (YoshiParam::fn_8041BDB0() - riseSpeed) / maxSpeed;
+        f32 acceleration = YoshiParam::fn_8041BDA0();
+        this->mJumpVec += -this->mActor->mAppliedGravityVec * ratio * acceleration;
+    }
     this->mActor->fn_803B9A50();
-    if (this->mActor->fn_803B9A70() == 0) {
+    if (this->mActor->fn_803B9A70() == 0 || !MR::testCorePadButtonA(0)) {
         this->fn_803B14E0();
     }
 }
 
-// NONMATCHING: yoshi-end cleanup approximated from the draft
 s32 Mario::fn_803B1540() {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    this->mActor->fn_803B9840();
-    s32 r = 0;
-    if (((FLD<u32>(m, 0x430 - 4) >> 0) & 1) != 0 && m->isRising()) {
-        FLD<u32>(m, 0xC) |= 0x1000;
+    if (!this->mActor->fn_803B9840()) {
+        return 0;
     }
-    m->fn_8039A600();
-    m->resetTornado();
-    m->cancelTornadoJump();
-    FLD<u32>(m, 0x10) = (FLD<u32>(m, 0x10) & 0xBFFFFFFF);
-    FLD<u32>(m, 0x14) |= 0x300000;
+    if (this->mActor->fn_803B9830()->fn_8041BBD0()) {
+        return 0;
+    }
+    if (!this->isPlayerModeYoshi()) {
+        return 0;
+    }
+    if ((this->_10_HIGH_WORD >> 21) & 1) {
+        return 0;
+    }
+    if ((this->mMovementStates_LOW_WORD >> 30) & 1) {
+        return 0;
+    }
+    if ((this->mMovementStates_LOW_WORD >> 21) & 1) {
+        return 0;
+    }
+    if (this->_430 - 0xBU <= 2U || this->_430 == 9) {
+        if (this->isRising()) {
+            this->mMovementStates_LOW_WORD |= 0x1000;
+            return 0;
+        }
+    }
+    if (MR::isNearZero(this->mActor->mAppliedGravityVec, 0.001f)) {
+        return 0;
+    }
+    this->fn_8039A600();
+    this->resetTornado();
+    this->cancelTornadoJump();
+    this->mDrawStates_WORD |= 0x800000;
+    this->mMovementStates_HIGH_WORD &= 0xBFFFFFFF;
+    this->_10_HIGH_WORD |= 0x300000;
     this->mActor->fn_803B9A10();
-    if (FLD<u32>(m, 0x42C) == 4) {
-        TVec3f sp8;
-        sp8 = -FLD<TVec3f>(m, 0x220);
-        m->setFrontVecKeepUp(sp8);
-        FLD<u32>(m, 0x42C) = 0;
+    if (this->_430 == 4) {
+        this->setFrontVecKeepUp(-this->_220);
+        this->_430 = 0;
     }
     if (this->isAnimationRun("カリカリ限界")) {
         this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
     }
     this->changeAnimation("踏ん張り", (const char*)nullptr);
-    FLD<u32>(m, 0x10) &= 0xFFFFFFFC;
-    return r;
+    this->mMovementStates_HIGH_WORD &= 0xFFFFFFFC;
+    return 1;
 }
 
 // NONMATCHING: initial status comparison and temporary register allocation.
@@ -1159,7 +1194,6 @@ f32 Mario::fn_803B2CC0(TVec3f* arg1) {
     return 0.0f;
 }
 
-// NONMATCHING: stubs for the three helpers whose bodies are not recovered (return the draft's default)
 // NONMATCHING: register allocation / constant pool labels
 bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     TVec3f start;

@@ -858,9 +858,10 @@ void MarioActor::changeGameOverAnimation() {
 
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::updateRotationInfo() {
     TRot3f stack_44;
-    MR::multMtx(stack_44, _E3C, getBaseMtx());
+    MR::multMtx(stack_44, mMainJointMatrix4A8, getBaseMtx());
     MR::makeRTFromMtxPtr(nullptr, &mRotation, stack_44, true);
     if (mRotation.z > 90.0f && mRotation.x > 90.0f) {
         f32 diff = 180.0f - mRotation.y;
@@ -869,15 +870,11 @@ void MarioActor::updateRotationInfo() {
         mRotation.x = 0.0f;
     }
 
-    stack_44.getEuler(_318);
-    _318.mult(57.2957763672f);
-    stack_44.getEuler(_324);
-    _324.mult(57.2957763672f);
-    if (MR::isSameDirection(_240, mMario->mFrontVec)) {
+    if (MR::isSameDirection(mAppliedGravityVec, mMario->mFrontVec)) {
         _A18 = mRotation;
     } else {
         TPos3f stack_14;
-        TVec3f stack_8 = -_240;
+        TVec3f stack_8 = -mAppliedGravityVec;
         MR::makeMtxUpFront(&stack_14, stack_8, mMario->mFrontVec);
         MR::makeRTFromMtxPtr(nullptr, &_A18, stack_14, true);
         if (_A18.z > 90.0f && _A18.x > 90.0f) {
@@ -3828,23 +3825,10 @@ void MarioActor::draw() const {
 void MarioActor::drawIndirect() const {
     drawModelBlur();
     drawIndirectModel();
-
     if (mMario->_1C._3) {
-        drawColdWaterDamage();
+        mScreenStrip1084->fn_803DBB10(_37C, mMario->mSwim->mColdWaterDamageInterval);
     }
-
-    if (_1E4 != 0.0f) {
-        drawRasterScroll(_1E4, static_cast< s16 >(_1E8), _1EC);
-    }
-
-    if (_390) {
-        drawMosaic();
-    }
-
-    if (_3DA) {
-        drawLifeUp();
-    }
-
+    mScreenStrip1084->fn_803DBAA0(_37C);
     drawSpinEffect();
 }
 

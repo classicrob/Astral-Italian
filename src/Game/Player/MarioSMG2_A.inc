@@ -152,22 +152,22 @@ void Mario::fn_8038A9D0() {
 }
 
 void Mario::fn_8038AB10() {
-    s32 temp_r4 = FLD<s32>(this, 0x754);
-    if (temp_r4 != 0) {
-        f32 temp_f3 = FLD<f32>(this, 0x74C);
-        FLD<s32>(this, 0x754) = temp_r4 - 1;
-        FLD<s32>(this, 0x750) = 0;
-        FLD<f32>(this, 0x74C) = temp_f3 + ((3.1415927f - temp_f3) / (f32)temp_r4);
+    u32 count = this->_754;
+    if (count != 0) {
+        f32 phase = this->_74C;
+        this->_754 = count - 1;
+        this->_750 = 0;
+        this->_74C = phase + ((3.1415927f - phase) / (f32)count);
     }
 }
 
 void Mario::fn_8038AB70() {
-    s32 temp_r6 = FLD<s32>(this, 0x750);
-    if (temp_r6 != 0) {
-        s32 temp_r5 = temp_r6 - 1;
-        FLD<s32>(this, 0x750) = temp_r5;
-        FLD<f32>(this, 0x74C) = (FLD<f32>(this, 0x74C) * (f32)temp_r5) / (f32)temp_r6;
-        if (temp_r5 == 0) {
+    u32 count = this->_750;
+    if (count != 0) {
+        u32 remaining = count - 1;
+        this->_750 = remaining;
+        this->_74C = (this->_74C * (f32)remaining) / (f32)count;
+        if (remaining == 0) {
             this->setFrontVecKeepUp(this->mFrontVec);
         }
     }
@@ -641,13 +641,13 @@ void Mario::fn_8039AB50() {
 
 f32 Mario::fn_8039ADC0() {
     if (!this->mActor->isEnableNerveChange()) {
-        return 0.0f;
+        return 1.0f;
     }
     if (MR::getKarikariClingNum() == 0) {
-        return 0.0f;
+        return 1.0f;
     }
     if (this->getPlayerMode() == 4) {
-        return 0.0f;
+        return 1.0f;
     }
     f32 n = (f32)MR::getKarikariClingNum();
     return (n + 2.0f) * 0.5f;
@@ -736,23 +736,11 @@ void Mario::fn_803A1C90() {
     }
 }
 
-// JGeometry::TUtil<f>::epsilonEquals(a, b, eps) stand-in: |a - b| <= eps
-static inline bool marioEpsEq(f32 a, f32 b, f32 e) {
-    f32 d = a - b;
-    if (d < 0.0f) {
-        d = -d;
-    }
-    return d <= e;
-}
-
 bool Mario::fn_803A1920() {
-    TVec3f s;
-    this->mActor->getStickValue(&s.x, &s.y);
-    s.z = 0.0f;
-    bool eq0 = marioEpsEq(FLD<f32>(this, 0x250), s.x, 0.0001f);
-    bool eq1 = eq0 && marioEpsEq(FLD<f32>(this, 0x254), s.y, 0.0001f);
-    bool eq2 = marioEpsEq(FLD<f32>(this, 0x258), s.z, 0.0001f);
-    return eq1 && !eq2;
+    TVec3f stick;
+    this->mActor->getStickValue(&stick.x, &stick.y);
+    stick.z = 0.0f;
+    return !this->_250.epsilonEquals(stick, 0.000003814697265625f);
 }
 
 void Mario::fn_803A20E0(s32 arg) {
@@ -1003,33 +991,28 @@ void Mario::fn_8039ACE0() {
     }
 }
 
-// NONMATCHING: gravity scaling chain approximated from the asm
 f32 Mario::fn_8039AA40() {
     if (this->getPlayerMode() == 6) {
         return 0.0f;
     }
-    f32 f31 = 1.0f;
-    if (FLD<u32>(this, 0x42C) == 13) {
-        if (!((FLD<u32>(this, 0xC) >> 17) & 1) && !this->isRising()) {
-            f31 = 0.0f;
-            return f31;
-        }
+    f32 ratio = 1.0f;
+    if (this->_430 == 13 && (((this->mMovementStates_LOW_WORD >> 17) & 1) || !this->isRising())) {
+        ratio = 1.0f;
+    } else if (this->fn_8039A100()) {
+        ratio = this->mActor->mConst->getTable()->mGravityRatioA;
     }
-    if (this->fn_8039A100()) {
-        f31 = FLD<f32>(marioCurTableEntry(this), 0x58);
-        f31 *= this->mActor->getGravityRatio();
-        if (FLD<u16>(this->mActor, 0x66C) != 0) {
-            f31 *= 0.3f;
-        }
-        if (!this->mActor->fn_803B93E0() && FLD<f32>(this, 0x484) < 300.0f) {
-            if (FLD<f32>(this, 0x484) < 200.0f) {
-                f31 = 0.0f;
+    ratio *= this->mActor->getGravityRatio();
+    if (this->mActor->_334 != 0) {
+        ratio *= 0.3f;
+        if (!this->mActor->fn_803B93E0() && this->mVerticalSpeed < 300.0f) {
+            ratio = 0.0f;
+            if (this->mVerticalSpeed < 200.0f) {
+                this->cutGravityElementFromJumpVec(true);
+                ratio = -0.1f;
             }
         }
-        this->cutGravityElementFromJumpVec(true);
-        f31 = -0.1f;
     }
-    return f31;
+    return ratio;
 }
 
 // ---- rough bodies (NONMATCHING) for the remaining range-A functions ----

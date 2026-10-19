@@ -113,6 +113,7 @@
 #include "Game/MapObj/WarpPod.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Player/Yoshi.hpp"
+#include "Game/Player/YoshiHolder.hpp"
 #include "Game/Player/MarioMtxPos.hpp"
 #include "Game/Player/MarioYoshiPull.hpp"
 #include "Game/Player/MarioYoshiBalloon.hpp"

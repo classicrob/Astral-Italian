@@ -639,8 +639,8 @@ f32 MarioFoo::calcRingAcc() {
                 MarioActor* actor = mActor;
                 actor->_1AA = actor->getConst().getTable()->mStarPieceFogTime;
                 actor->_1AC = 1.0f;
-                actor->_1B0.set(255, 255, 255, 0);
-                actor->_1B5 = false;
+                actor->mSwimFogColor.set(255, 255, 255, 0);
+                actor->mSwimFogDisabled = false;
             }
 
             if (!_50) {

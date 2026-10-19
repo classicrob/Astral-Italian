@@ -1382,16 +1382,16 @@ void MarioActor::fn_803C3D10() {
 
 bool MarioActor::fn_803C3DF0() {
     switch (mPlayerMode) {
+    case 4:
+        return MR::isOnGameEventFlagBeeMarioAtFirst();
+    case 6:
+        return MR::isOnGameEventFlagTeresaMarioAtFirst();
+    case 5:
+        return MR::isOnGameEventFlagHopperMarioAtFirst();
     case 2:
         return MR::isOnGameEventFlagFireMarioAtFirst();
     case 3:
         return MR::isOnGameEventFlagIceMarioAtFirst();
-    case 4:
-        return MR::isOnGameEventFlagBeeMarioAtFirst();
-    case 5:
-        return MR::isOnGameEventFlagHopperMarioAtFirst();
-    case 6:
-        return MR::isOnGameEventFlagTeresaMarioAtFirst();
     case 7:
         return MR::isOnGameEventFlagFlyingMarioAtFirst();
     case 12:

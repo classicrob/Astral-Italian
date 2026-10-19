@@ -14,6 +14,18 @@ class MapPartsRailMover;
 
 class MorphItemObjNeo : public LiveActor {
 public:
+    enum PowerUpType {
+        PowerUpNone = 0,
+        PowerUpHopper = 1,
+        PowerUpBee = 2,
+        PowerUpTeresa = 3,
+        PowerUpIce = 4,
+        PowerUpFire = 5,
+        PowerUpFoo = 6,
+        PowerUpCloud = 7,
+        PowerUpRock = 8
+    };
+
     MorphItemObjNeo(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -53,16 +65,16 @@ public:
     void exeFall() NO_INLINE;            // fn_802D3FE0
     void endHide();                      // fn_802D4190
 
-    /* 0x90 */ u16 mAppearMode;
-    /* 0x92 */ u16 mAppearFrames;
+    /* 0x90 */ u16 mAppearFramesRemaining;
+    /* 0x92 */ u16 mCameraFramesRemaining;
     /* 0x94 */ bool mIsUseSwitch;
     /* 0x95 */ bool mIsFloating;  // Obj_arg2
-    /* 0x96 */ bool _92;
+    /* 0x96 */ bool mAppearDemoRequested;
     /* 0x97 */ u8 mCameraMode;     // Obj_arg5
     /* 0x98 */ s8 mRotateMode;     // Obj_arg6
-    /* 0x99 */ u8 _95;           // Obj_arg0
+    /* 0x99 */ u8 mUseAppearAnimation;           // Obj_arg0
     /* 0x9A */ u8 mContainerType;  // Obj_arg3
-    /* 0x9B */ u8 _97;
+    /* 0x9B */ u8 mBounceCount;
     /* 0x9C */ s8 mIsBind;      // Obj_arg1
     /* 0x9D */ u8 mShadowType;  // Obj_arg4
     /* 0xA0 */ TVec3f mZRotation;
@@ -84,7 +96,7 @@ public:
     virtual void emitAppearEffects();
 
     virtual int getPowerUp() {
-        return 1;
+        return PowerUpHopper;
     }
 };
 
@@ -94,7 +106,7 @@ public:
     }
 
     virtual int getPowerUp() {
-        return 4;
+        return PowerUpIce;
     }
 };
 
@@ -106,7 +118,7 @@ public:
     virtual void emitAppearEffects();
 
     virtual int getPowerUp() {
-        return 5;
+        return PowerUpFire;
     }
 };
 
@@ -116,7 +128,7 @@ public:
     }
 
     virtual int getPowerUp() {
-        return 6;
+        return PowerUpFoo;
     }
 };
 
@@ -126,7 +138,7 @@ public:
     }
 
     virtual int getPowerUp() {
-        return 2;
+        return PowerUpBee;
     }
 };
 
@@ -136,7 +148,7 @@ public:
     }
 
     virtual int getPowerUp() {
-        return 3;
+        return PowerUpTeresa;
     }
 };
 

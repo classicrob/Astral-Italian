@@ -1,0 +1,60 @@
+{
+  "all_ALLOC_file_bytes_identical": true,
+  "all_effective_relocation_identities_identical": true,
+  "functions": 71,
+  "source_object_before_sha256": "6b525864464f31b011a9656ddcdb4f6f6bab6856b543ea94b71054ce3710c6de",
+  "source_object_after_sha256": "07076dd38d68ce6ae1462c3586434297faf6d2eb80baaef51304e3cab51630c0",
+  "allocated_sections": [
+    {
+      "index": 1,
+      "name": ".text",
+      "bytes": 9824
+    },
+    {
+      "index": 2,
+      "name": ".ctors",
+      "bytes": 4
+    },
+    {
+      "index": 3,
+      "name": ".rodata",
+      "bytes": 16
+    },
+    {
+      "index": 4,
+      "name": ".data",
+      "bytes": 1288
+    },
+    {
+      "index": 5,
+      "name": ".sdata",
+      "bytes": 4
+    },
+    {
+      "index": 7,
+      "name": ".sdata2",
+      "bytes": 128
+    },
+    {
+      "index": 10,
+      "name": ".text",
+      "bytes": 416
+    },
+    {
+      "index": 11,
+      "name": ".text",
+      "bytes": 84
+    },
+    {
+      "index": 12,
+      "name": ".text",
+      "bytes": 56
+    },
+    {
+      "index": 13,
+      "name": ".text",
+      "bytes": 168
+    }
+  ],
+  "relocations": 651
+}

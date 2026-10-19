@@ -73,8 +73,8 @@ namespace MR {
 }  // namespace MR
 
 MorphItemObjNeo::MorphItemObjNeo(const char* pName)
-    : LiveActor(pName), mAppearMode(0), mAppearFrames(0), mIsUseSwitch(true), mIsFloating(false), _92(false), mCameraMode(0), mRotateMode(0), _95(0),
-      mContainerType(0), _97(0), mIsBind(0), mShadowType(0), mAngle(0.0f), mSpawnPosition(makeZeroVec()), mActorCameraInfo(nullptr),
+    : LiveActor(pName), mAppearFramesRemaining(0), mCameraFramesRemaining(0), mIsUseSwitch(true), mIsFloating(false), mAppearDemoRequested(false), mCameraMode(0), mRotateMode(0), mUseAppearAnimation(0),
+      mContainerType(0), mBounceCount(0), mIsBind(0), mShadowType(0), mAngle(0.0f), mSpawnPosition(makeZeroVec()), mActorCameraInfo(nullptr),
       mContainerModel(nullptr), mCameraTargetMtx(nullptr), mRailMover(nullptr), mRailClipping(0.0f, 0.0f, 0.0f), mFallPos(0.0f, 0.0f, 0.0f) {
 }
 
@@ -121,10 +121,10 @@ void MorphItemObjNeo::init(const JMapInfoIter& rIter) {
     s32 arg7 = -1;
     MR::getJMapInfoArg7NoInit(rIter, &arg7);
 
-    _95 = 0;
+    mUseAppearAnimation = 0;
 
     if (arg0 == 1) {
-        _95 = 1;
+        mUseAppearAnimation = 1;
     }
 
     mIsBind = arg1;
@@ -141,7 +141,7 @@ void MorphItemObjNeo::init(const JMapInfoIter& rIter) {
         mIsFloating = false;
     }
 
-    if (isPowerUp(1)) {
+    if (isPowerUp(PowerUpHopper)) {
         MR::connectToSceneIndirectMapObjStrongLight(this);
     } else {
         MR::connectToSceneNoSilhouettedMapObjStrongLight(this);
@@ -261,7 +261,7 @@ void MorphItemObjNeo::init(const JMapInfoIter& rIter) {
 
     mIsUseSwitch = MR::useStageSwitchSyncAppear(this, rIter);
 
-    if (isPowerUp(6) && arg7 == 1) {
+    if (isPowerUp(PowerUpFoo) && arg7 == 1) {
         makeActorDead();
     } else if (!mIsUseSwitch) {
         makeActorAppeared();
@@ -298,19 +298,19 @@ void MorphItemObjNeo::appear() {
     LiveActor::appear();
 
     if (mCameraMode != 0) {
-        _92 = true;
+        mAppearDemoRequested = true;
     }
 
-    mAppearMode = 0;
+    mAppearFramesRemaining = 0;
 
-    if (_95 == 1) {
-        mAppearMode = 60;
+    if (mUseAppearAnimation == 1) {
+        mAppearFramesRemaining = 60;
     }
 
-    bool b1 = false;
+    bool isSwitchAppear = false;
 
-    if (mCameraMode != 0 || _95 != 0) {
-        b1 = true;
+    if (mCameraMode != 0 || mUseAppearAnimation != 0) {
+        isSwitchAppear = true;
 
         setNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvSwitchAppear));
 
@@ -321,14 +321,14 @@ void MorphItemObjNeo::appear() {
                               static_cast< const Nerve* >(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait2)));
     }
 
-    _95 = 0;
+    mUseAppearAnimation = 0;
     mIsUseSwitch = false;
 
     if (mIsBind != 0) {
         MR::onBind(this);
     }
 
-    if (!b1) {
+    if (!isSwitchAppear) {
         emitAppearEffects();
     }
 
@@ -375,7 +375,7 @@ void MorphItemObjNeo::calcContainerBaseMtx() {
 }
 
 // NONMATCHING: unsigned conversion loads and multiply scheduling differ
-// NONMATCHING: target reloads mAppearMode (lhz) for the RotAxis angle and orders fmuls operands differently (scheduling/CSE)
+// NONMATCHING: target reloads mAppearFramesRemaining (lhz) for the RotAxis angle and orders fmuls operands differently (scheduling/CSE)
 void MorphItemObjNeo::calcAndSetBaseMtx() {
     if (isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait))) {
         if (mContainerType == 1) {
@@ -401,14 +401,14 @@ void MorphItemObjNeo::calcAndSetBaseMtx() {
         if (isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvFall))) {
             MtxPtr pMtx = MR::tmpMtxScale(0.8f, 0.8f, 0.8f);
             PSMTXConcat(getBaseMtx(), pMtx, getBaseMtx());
-        } else if (mAppearMode != 0) {
+        } else if (mAppearFramesRemaining != 0) {
             TPos3f rotMtx;
-            PSMTXRotAxisRad(rotMtx, mVelocity, mAppearMode * 0.20943952f);
+            PSMTXRotAxisRad(rotMtx, mVelocity, mAppearFramesRemaining * 0.20943952f);
 
             TVec3f rotVec;
             PSMTXMultVec(rotMtx, mZRotation, rotVec);
 
-            rotVec.setLength(30.0f + 2.0f * mAppearMode);
+            rotVec.setLength(30.0f + 2.0f * mAppearFramesRemaining);
             MR::addTransMtx(getBaseMtx(), rotVec);
         }
     }
@@ -523,23 +523,23 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
     bool isInvalid = false;
 
     switch (powerUp) {
-    case 4:
+    case PowerUpIce:
         MR::startActionSound(this, "PowerUp2");
         break;
-    case 5:
+    case PowerUpFire:
         MR::startActionSound(this, "PowerUp2");
         break;
-    case 6:
+    case PowerUpFoo:
         MR::startActionSound(this, "PowerUp2");
         break;
-    case 7:
+    case PowerUpCloud:
         if (!MR::isOnGameEventFlagCloudMarioAtFirst()) {
             MR::startActionSound(this, "PowerUp2");
         } else {
             MR::startActionSound(this, "PowerUp");
         }
         break;
-    case 1:
+    case PowerUpHopper:
         if (MR::isPlayerElementModeHopper()) {
             isInvalid = true;
         } else if (!MR::isOnGameEventFlagHopperMarioAtFirst()) {
@@ -548,7 +548,7 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
             MR::startActionSound(this, "Morph");
         }
         break;
-    case 2:
+    case PowerUpBee:
         if (MR::isPlayerElementModeBee()) {
             isInvalid = true;
         } else if (!MR::isOnGameEventFlagBeeMarioAtFirst()) {
@@ -557,7 +557,7 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
             MR::startActionSound(this, "Morph");
         }
         break;
-    case 3:
+    case PowerUpTeresa:
         if (MR::isPlayerElementModeTeresa()) {
             isInvalid = true;
         } else if (!MR::isOnGameEventFlagTeresaMarioAtFirst()) {
@@ -566,7 +566,7 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
             MR::startActionSound(this, "Morph");
         }
         break;
-    case 8:
+    case PowerUpRock:
         if (MR::isPlayerElementModeRock()) {
             isInvalid = true;
         } else if (!MR::isOnGameEventFlagRockMarioAtFirst()) {
@@ -575,7 +575,7 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
             MR::startActionSound(this, "Morph");
         }
         break;
-    case 0:
+    case PowerUpNone:
     default:
         MR::startActionSound(this, "PowerUp");
         break;
@@ -586,25 +586,25 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     switch (getPowerUp()) {
-    case 1:
+    case PowerUpHopper:
         MR::changePlayerModeHopper();
         break;
-    case 2:
+    case PowerUpBee:
         MR::changePlayerModeBee();
         break;
-    case 3:
+    case PowerUpTeresa:
         MR::changePlayerModeTeresa();
         break;
-    case 4:
+    case PowerUpIce:
         MR::changePlayerModeIce();
         break;
-    case 5:
+    case PowerUpFire:
         MR::changePlayerModeFire();
         break;
-    case 6:
+    case PowerUpFoo:
         MR::changePlayerModeFoo();
         break;
-    case 8:
+    case PowerUpRock:
         MR::changePlayerModeRock();
         break;
     }
@@ -626,7 +626,7 @@ void MorphItemObjNeo::resetToSpawn() {
     mScale.y = 1.0f;
     mScale.z = 1.0f;
 
-    _97 = 0;
+    mBounceCount = 0;
 }
 
 void MorphItemObjNeo::vanishByGet() {
@@ -705,7 +705,7 @@ void MorphItemObjNeo::updateRotateY() {
 }
 
 bool MorphItemObjNeo::tryStartAppearDemo() {
-    if (!_92) {
+    if (!mAppearDemoRequested) {
         return false;
     }
 
@@ -713,15 +713,15 @@ bool MorphItemObjNeo::tryStartAppearDemo() {
         return false;
     }
 
-    _92 = false;
+    mAppearDemoRequested = false;
 
     TPos3f* pMtx = &mCameraTargetMtx->mMatrix;
     pMtx->set(getBaseMtx());
     MR::startMultiActorCameraTargetSelf(this, mActorCameraInfo, "出現1", -1);
-    mAppearFrames = MR::getMultiActorCameraFrames(this, mActorCameraInfo, "出現1");
+    mCameraFramesRemaining = MR::getMultiActorCameraFrames(this, mActorCameraInfo, "出現1");
 
-    if (mAppearFrames != 0) {
-        mAppearFrames--;
+    if (mCameraFramesRemaining != 0) {
+        mCameraFramesRemaining--;
     }
 
     MR::requestMovementOn(this);
@@ -751,7 +751,7 @@ void MorphItemObjNeo::exeWait() {
 bool MorphItemObjNeo::isDemo() const {
     bool ret = false;
 
-    if (mAppearMode != 0 || mAppearFrames != 0) {
+    if (mAppearFramesRemaining != 0 || mCameraFramesRemaining != 0) {
         ret = true;
     }
 
@@ -764,14 +764,14 @@ void MorphItemObjNeo::exeWait2() {
 
     glowEffect(this, getPowerUp());
 
-    if (!isDemo() && mIsFloating && _97 <= 3) {
+    if (!isDemo() && mIsFloating && mBounceCount <= 3) {
         if (MR::isBindedGround(this) && MR::calcGravitySpeed(this) > 0.0f) {
             if (MR::calcVelocityLength(this) < 2.0f) {
                 MR::zeroVelocity(this);
                 return;
             }
 
-            if (_97 < 3) {
+            if (mBounceCount < 3) {
                 mVelocity = mVelocity * -0.5f;
 
                 MR::tryStartActionNotPlaying(this, "Land");
@@ -779,7 +779,7 @@ void MorphItemObjNeo::exeWait2() {
                 MR::zeroVelocity(this);
             }
 
-            _97++;
+            mBounceCount++;
         } else {
             MR::calcGravity(this);
 
@@ -805,18 +805,18 @@ void MorphItemObjNeo::exeSwitchAppear() {
     if (MR::isFirstStep(this)) {
         MR::calcGravity(this);
 
-        if (mAppearMode != 0) {
+        if (mAppearFramesRemaining != 0) {
             MR::startAction(this, "AppearFirst");
 
-            if (isPowerUp(3)) {
+            if (isPowerUp(PowerUpTeresa)) {
                 MR::emitEffect(this, "AppearTeresa");
-            } else if (isPowerUp(1)) {
+            } else if (isPowerUp(PowerUpHopper)) {
                 MR::emitEffect(this, "AppearHopper");
             } else {
                 MR::emitEffect(this, "AppearBee");
             }
 
-            if (!isPowerUp(4) && !isPowerUp(5)) {
+            if (!isPowerUp(PowerUpIce) && !isPowerUp(PowerUpFire)) {
                 MR::startActionSound(this, "OjMorphItemAppear");
             }
         } else {
@@ -831,20 +831,20 @@ void MorphItemObjNeo::exeSwitchAppear() {
     if (MR::isStep(this, 60)) {
         MR::showModel(this);
 
-        if (isPowerUp(4)) {
+        if (isPowerUp(PowerUpIce)) {
             MR::startAction(this, "AppearFirst");
             MR::emitEffect(this, "AppearIceFlower");
             MR::startActionSound(this, "OjMorphFlowerAppear");
         }
 
-        if (isPowerUp(5)) {
+        if (isPowerUp(PowerUpFire)) {
             MR::startAction(this, "AppearFirst");
             MR::emitEffect(this, "AppearFireFlower");
             MR::startActionSound(this, "OjMorphFlowerAppear");
         }
     }
 
-    if (mCameraMode != 0 && mAppearFrames != 0 && --mAppearFrames == 0) {
+    if (mCameraMode != 0 && mCameraFramesRemaining != 0 && --mCameraFramesRemaining == 0) {
         MR::endMultiActorCamera(this, mActorCameraInfo, "出現1", false, -1);
         MR::endMultiActorCamera(this, mActorCameraInfo, "出現2", false, -1);
 
@@ -859,20 +859,20 @@ void MorphItemObjNeo::exeSwitchAppear() {
 
             MR::startMultiActorCameraTargetOther(this, mActorCameraInfo, "出現2", CameraTargetArg(nullptr, mCameraTargetMtx, nullptr, nullptr), -1);
 
-            mAppearFrames = MR::getMultiActorCameraFrames(this, mActorCameraInfo, "出現2");
+            mCameraFramesRemaining = MR::getMultiActorCameraFrames(this, mActorCameraInfo, "出現2");
         }
     }
 
-    if (mAppearMode != 0) {
-        mAppearMode--;
+    if (mAppearFramesRemaining != 0) {
+        mAppearFramesRemaining--;
     }
 
-    if (mAppearMode == 0) {
+    if (mAppearFramesRemaining == 0) {
         MR::validateHitSensors(this);
         MR::zeroVelocity(this);
     }
 
-    if (mCameraMode == 0 && mAppearMode == 0) {
+    if (mCameraMode == 0 && mAppearFramesRemaining == 0) {
         setNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait2));
     }
 }
@@ -959,25 +959,25 @@ const char* MorphItemObjNeo::getMorphModelName(int type) {
 void MorphItemObjNeo::glowEffect(LiveActor* pActor, int type) {
     if (!MR::isHiddenModel(pActor)) {
         switch (type) {
-        case 1:
+        case PowerUpHopper:
             MR::emitEffect(pActor, "GlowHopper");
             break;
-        case 2:
+        case PowerUpBee:
             MR::emitEffect(pActor, "GlowBee");
             break;
-        case 3:
+        case PowerUpTeresa:
             MR::emitEffect(pActor, "GlowTeresa");
             break;
-        case 4:
+        case PowerUpIce:
             MR::emitEffect(pActor, "GlowIce");
             break;
-        case 5:
+        case PowerUpFire:
             MR::emitEffect(pActor, "GlowFire");
             break;
-        case 6:
+        case PowerUpFoo:
             MR::emitEffect(pActor, "GlowFoo");
             break;
-        case 8:
+        case PowerUpRock:
             MR::emitEffect(pActor, "GlowRock");
             break;
         }

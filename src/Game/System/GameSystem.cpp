@@ -1,3 +1,9 @@
+#ifdef GALAXY_NATIVE
+#include <petari/app.hpp>
+#endif
+#if defined(GALAXY_NATIVE) && defined(GALAXY_HEADLESS)
+#include <petari/headless.h>
+#endif
 #include "Game/System/GameSystem.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -213,7 +219,14 @@ void GameSystem::frameLoop() {
     calcAnim();
     mObjHolder->captureIfAllowForScreenPreserver();
     MainLoopFramework::sManager->endFrame();
+#ifdef GALAXY_NATIVE
+    petari_host_frame_seam();
+#endif
+#if defined(GALAXY_NATIVE) && defined(GALAXY_HEADLESS)
+    petari_headless_wait_frame();
+#else
     MainLoopFramework::sManager->waitForRetrace();
+#endif
 }
 
 void GameSystem::draw() {

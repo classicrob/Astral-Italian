@@ -377,7 +377,8 @@ namespace DemoFunction {
         s32 zoneId = executor->mLinkInfo.mZoneID;
         if (!getDemoDirector()->getDemoResourceHolder(zoneId)) return 0;
         const char* sheet = executor->mSheetName;
-        JMapInfo* map = MR::tryCreateCsvParser(getDemoDirector()->getDemoResourceHolder(zoneId), "Demo%s%s.bcsv", sheet, suffix);
+        s32 sheetZoneId = executor->mLinkInfo.mZoneID;
+        JMapInfo* map = MR::tryCreateCsvParser(getDemoDirector()->getDemoResourceHolder(sheetZoneId), "Demo%s%s.bcsv", sheet, suffix);
         *out = map;
         if (map) return map->getNumEntries();
         return map ? map->getNumEntries() : 0;

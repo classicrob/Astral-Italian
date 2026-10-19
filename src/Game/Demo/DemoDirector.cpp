@@ -45,17 +45,10 @@ void DemoDirector::movement() {
         return;
     }
 
-    if (!mIsEndPending) {
-        return;
+    if (mIsEndPending && MR::isCameraInterpolatingNearlyEnd()) {
+        mIsEndPending = false;
+        doDemoEndRequest();
     }
-
-    if (!MR::isCameraInterpolatingNearlyEnd()) {
-        return;
-    }
-
-    mIsEndPending = false;
-
-    doDemoEndRequest();
 
     if (mIsActive) {
         bool isGrandStarDemo;

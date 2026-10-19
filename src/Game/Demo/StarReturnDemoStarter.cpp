@@ -28,11 +28,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-namespace GameSequenceFunction {
-    bool hasStageResultSequence();
-    bool hasNextDemoForStorySequenceEvent();
-};  // namespace GameSequenceFunction
-
 namespace {
     const s32 cDemoAppearEffectStep = 30;
     const s32 cDemoAppearWaitFrame = 45;

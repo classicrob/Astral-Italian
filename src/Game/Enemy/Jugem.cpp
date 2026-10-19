@@ -48,6 +48,9 @@ namespace NrvJugem {
 #define JN(n) (&NrvJugem::JugemNrv##n::sInstance)
 
 // Constant data of this TU (.bss, filled by the sinit at the end).
+namespace {
+    extern const f32 sFollowRange;
+}
 extern const f32 cHeight;
 extern const f32 cRayLength;
 extern const f32 cFallSpeed;
@@ -305,7 +308,7 @@ void Jugem::exeFollow() {
         }
         TVec3f target(0.0f);
         calcJugemFollowPosition(&target, 350.0f);
-        moveJugemKeepingHeight(this, target, true, 0.7f, 0.2f, 350.0f, 100.0f, 350.0f);
+        moveJugemKeepingHeight(this, target, true, 0.7f, 0.2f, sFollowRange, 100.0f, 350.0f);
         turnJugemFrontToTarget(&mFrontVec, this, *MR::getPlayerPos(), 0.06f);
         mStepCounter++;
     }
@@ -1412,3 +1415,7 @@ const f32 cRayLength = 1000.0f;
 const f32 cFallSpeed = 27.0f;
 
 extern const volatile s32 gJugemFollowDuration = 0;
+
+namespace {
+    const f32 sFollowRange = 350.0f;
+}

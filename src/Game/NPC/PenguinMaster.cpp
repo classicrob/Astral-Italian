@@ -20,8 +20,8 @@ void PenguinMaster::init(const JMapInfoIter& rIter) {
     caps.mReactionNerve = GET_NERVE(PenguinMaster, PenguinMasterNrvReaction);
     initialize(rIter, caps, "PenguinMaster", nullptr, nullptr);
 
-    mParam._14 = "Wait";
     mParam._1C = "Talk";
+    mParam._14 = "Wait";
     mParam._18 = nullptr;
     mParam._20 = nullptr;
     mParam._0 = false;

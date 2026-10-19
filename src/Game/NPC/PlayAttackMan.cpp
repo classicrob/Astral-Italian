@@ -30,8 +30,8 @@ void PlayAttackMan::initialize(NPCActor* actor,const JMapInfoIter& iter,bool mes
     caps.setDefault();
     caps.mMessage=message;
     actor->initialize(iter,caps,"ScoreAttackMan",nullptr,nullptr);
-    actor->mParam._14="Wait";
     actor->mParam._18="Turn";
+    actor->mParam._14="Wait";
     actor->mParam._1C="Talk";
     actor->mParam._20="Turn";
     actor->setDefaults();

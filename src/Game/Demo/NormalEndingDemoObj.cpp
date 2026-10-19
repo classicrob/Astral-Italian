@@ -285,7 +285,7 @@ void NormalEndingDemoObj::kill() {
 DemoAstroPlanet::DemoAstroPlanet(const char* pName, MtxPtr pMtx)
     : LiveActor(pName), mJointController(NULL), mBaseMtx(pMtx), mEaseTimer(0.0f), mRotationY(0.0f), mIsRotating(false) {
     if (pMtx != NULL) {
-        mPosition.set(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
+        mPosition.set<f32>(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
     }
 }
 
@@ -317,7 +317,7 @@ void DemoAstroPlanet::control() {
 
 void DemoAstroPlanet::calcAndSetBaseMtx() {
     if (mBaseMtx != NULL) {
-        mPosition.set(mBaseMtx[0][3], mBaseMtx[1][3], mBaseMtx[2][3]);
+        mPosition.set<f32>(mBaseMtx[0][3], mBaseMtx[1][3], mBaseMtx[2][3]);
         MR::setBaseTRMtx(this, mBaseMtx);
     } else {
         LiveActor::calcAndSetBaseMtx();

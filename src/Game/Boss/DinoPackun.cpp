@@ -93,7 +93,7 @@ DinoPackun::DinoPackun(const char* pName)
 
 void DinoPackun::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm(mSequence->getVsCount() == 1 ? "DinoPackun" : "DinoPackun2", nullptr, false);
+    MR::initActor(this, rIter, isVs1() ? "DinoPackun" : "DinoPackun2", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     MR::makeQuatAndFrontFromRotate(&_BC, &_E8, this);
@@ -113,7 +113,7 @@ void DinoPackun::init(const JMapInfoIter& rIter) {
     initEffectKeeper(0, nullptr, false);
     initCamera(rIter);
     initTail();
-    MR::initShadowFromCSV(this, "Shadow");
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     initFootPrint();
 
     if (mSequence->isUseEggShell()) {
@@ -123,14 +123,17 @@ void DinoPackun::init(const JMapInfoIter& rIter) {
     initBall();
     initScaleJointController();
     initDemoPosition(rIter);
-    MR::declarePowerStar(this);
+    if (isVs2()) {
+        MR::declarePowerStar(this);
+    }
+
     MR::needStageSwitchReadA(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
     MR::startAction(this, "OpeningDemo");
     MR::stopBck(this);
     MR::startBtp(this, "FlowerAll");
     MR::startBrk(this, "Normal");
-    MR::listenStageSwitchOnA(this, MR::Functor(this, &DinoPackun::startSequence));
+    MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &DinoPackun::startSequence));
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
 
     if (mSequence != nullptr) {

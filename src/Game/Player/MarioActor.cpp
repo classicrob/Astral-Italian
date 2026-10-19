@@ -1203,7 +1203,7 @@ const char* MarioActor_FORCE_MATCH_DATA() {
 
 
 void MarioActor::incLife(u32 amt) {
-    if (isEnableNerveChange() && !_3E4) {
+    if (isEnableNerveChange() && !_B68) {
         const u32 health = getHealth();
         if (mHealth != mMaxHealth) {
             mMario->playSound("ライフ回復");
@@ -1215,7 +1215,7 @@ void MarioActor::incLife(u32 amt) {
         }
 
         if (health == 1 && mMarioAnim->isAnimationStop()) {
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(3, "ノーマルウエイト");
+            mMarioAnim->changeTrackAnim(3, "ノーマルウエイト");
             if (mMario->_970 && strcmp(mMario->_970, "DamageWait")) {
                 mMario->startBas(nullptr, false, 0.0f, 0.0f);
                 setBlink(nullptr);
@@ -6562,8 +6562,7 @@ void MarioActor::settingRush() {
 
     _934 = 1;
     resetCondition();
-    XanimePlayer* p = mMario->getAnimator()->mXanimePlayer;
-    p->mAutoRunDefaultAnimation = false;
+    mMarioAnim->setAnimationPaused(false);
 }
 
 

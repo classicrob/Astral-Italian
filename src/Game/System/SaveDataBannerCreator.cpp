@@ -27,6 +27,12 @@ void SaveDataBannerCreator::execute() {
     setNerve(GET_NERVE_ANON(SaveDataBannerCreatorCreateOnTemporary));
 }
 
+void SaveDataBannerCreator::startMoveToHomeDir() {
+    if (_50) {
+        setNerve(GET_NERVE_ANON(SaveDataBannerCreatorMoveToHomeDir));
+    }
+}
+
 bool SaveDataBannerCreator::isDone() const {
     return isNerve(GET_NERVE_ANON(SaveDataBannerCreatorNoOperation));
 }
@@ -52,7 +58,8 @@ void SaveDataBannerCreator::exeCreateOnTemporary() {
     NANDResultCode resultCode = mNANDRequestInfo->mResult;
 
     if (resultCode.isSuccess()) {
-        setNerve(GET_NERVE_ANON(SaveDataBannerCreatorMoveToHomeDir));
+        _50 = true;
+        setNerve(GET_NERVE_ANON(SaveDataBannerCreatorNoOperation));
     } else {
         setNerve(GET_NERVE_ANON(SaveDataBannerCreatorNoOperation));
     }
@@ -83,18 +90,18 @@ void SaveDataBannerCreator::exeMoveToHomeDir() {
 void SaveDataBannerCreator::setupBannerInfo() {
     mBanner = new (MR::getStationedHeapGDDR3(), 32) NANDBanner;
 
-    const u16* title = reinterpret_cast< const u16* >(MR::getSystemMessageDirect("TITLE_MAIN"));
-    const u16* comment = reinterpret_cast< const u16* >(MR::getSystemMessageDirect("TITLE_SUB"));
+    const u16* title = reinterpret_cast< const u16* >(MR::getGameMessageDirect("TITLE_MAIN"));
+    const u16* comment = reinterpret_cast< const u16* >(MR::getGameMessageDirect("TITLE_SUB"));
     NANDInitBanner(mBanner, NAND_BANNER_FLAG_ANIM_LOOP, title, comment);
 
-    const ResTIMG* bannerTex = MR::loadTexFromArc("SaveIconBanner.arc", "SaveBanner.bti");
+    const ResTIMG* bannerTex = MR::loadTexFromArc("SaveIconBanner.arc", "SaveBanner.bti", nullptr);
     MR::copyMemory(mBanner->bannerTexture, reinterpret_cast< const u8* >(bannerTex) + bannerTex->mImageDataOffset, NAND_BANNER_TEXTURE_SIZE);
 
     for (s32 i = 0; i < 1; i++) {
         char iconTexName[32];
         snprintf(iconTexName, sizeof(iconTexName), "SaveIcon%02d.bti", i);
 
-        const ResTIMG* iconTex = MR::loadTexFromArc("SaveIconBanner.arc", iconTexName);
+        const ResTIMG* iconTex = MR::loadTexFromArc("SaveIconBanner.arc", iconTexName, nullptr);
         MR::copyMemory(mBanner->iconTexture[i], reinterpret_cast< const u8* >(iconTex) + iconTex->mImageDataOffset, NAND_BANNER_ICON_SIZE);
 
         NANDSetIconSpeed(mBanner, i, NAND_BANNER_ICON_ANIM_SPEED_SLOW);

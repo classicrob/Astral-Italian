@@ -1897,8 +1897,12 @@ namespace MR {
     }
 
     CollisionParts* createCollisionPartsFromResourceHolder(ResourceHolder* pResHolder, const char* pName, HitSensor* pSensor, const TPos3f& rMtx,
-                                                           CollisionScaleType scaleType) {
-        return ::createCollisionParts(pResHolder, pName, pSensor, rMtx, scaleType, 0);
+                                                           MtxPtr pBaseMtx, CollisionScaleType scaleType) {
+        CollisionParts* parts = ::createCollisionParts(pResHolder, pName, pSensor, rMtx, scaleType, 0);
+        if (pBaseMtx != nullptr) {
+            parts->_0 = reinterpret_cast<TPos3f*>(pBaseMtx);
+        }
+        return parts;
     }
 
     CollisionParts* createDashYoshiStepCollisionPartsFromResourceHolder(ResourceHolder* pResourceHolder, const char* pCollisionName,

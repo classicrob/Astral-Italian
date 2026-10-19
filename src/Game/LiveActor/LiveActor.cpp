@@ -394,7 +394,7 @@ void LiveActor::initActorCollisionParts(const char* pParam1, HitSensor* pParam2,
             MR::makeMtxTRS(mtx.toMtxPtr(), this);
         }
 
-        mCollisionParts = MR::createCollisionPartsFromResourceHolder(pParam3, pParam1, pParam2, mtx, scaleType);
+        mCollisionParts = MR::createCollisionPartsFromResourceHolder(pParam3, pParam1, pParam2, mtx, pParam4, scaleType);
     } else if (pParam4 == nullptr) {
         mCollisionParts = MR::createCollisionPartsFromLiveActor(this, pParam1, pParam2, scaleType);
     } else {

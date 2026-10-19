@@ -115,7 +115,7 @@ namespace MR {
         f32 safetyFrameWidthRatio = viWidthMax * getSafetyVIScreenWidthRatio();
         f32 viWidthRatio = screenWidthF / viWidthF;
 
-        return safetyFrameWidthRatio * viWidthRatio + 0.5f;
+        return safetyFrameWidthRatio * viWidthRatio + 0.999f;
     }
 
     s32 getSafetyFrameLeft() {

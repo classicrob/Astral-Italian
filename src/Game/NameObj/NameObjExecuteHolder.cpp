@@ -73,6 +73,8 @@ void NameObjExecuteInfo::requestConnect(u8* pData) {
     case 7:
         *pData = 3;
         break;
+    case 3:
+    case 4:
     case 1:
         return;
     }
@@ -96,7 +98,7 @@ void NameObjExecuteInfo::requestDisconnect(u8* pData, bool a2) {
     case 5:
     case 6:
     case 7:
-        break;
+        return;
     case 4:
         *pData = 5;
         break;

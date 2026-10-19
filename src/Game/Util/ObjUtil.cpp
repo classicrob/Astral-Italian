@@ -995,11 +995,11 @@ void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
         angle.y = -1.5707964f;
         angle.z = 0.0f;
     } else if (m[2][0] + 1.0f <= 3.814697265625e-6f) {
-        angle.x = JMath::sAtanTable.atan2_(m[0][1], m[1][1]);
+        angle.x = JMath::sAtanTable.atan2_(m[1][1], m[0][1]);
         angle.y = 1.5707964f;
         angle.z = 0.0f;
     } else {
-        angle.x = JMath::sAtanTable.atan2_(m[2][1], m[2][2]);
+        angle.x = JMath::sAtanTable.atan2_(m[2][2], m[2][1]);
         angle.z = JMath::sAtanTable.atan2_(m[1][0], m[0][0]);
         angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
     }

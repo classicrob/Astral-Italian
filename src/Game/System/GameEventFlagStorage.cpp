@@ -7,7 +7,7 @@
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
 
-GameEventFlagStorage::GameEventFlagStorage() : mUnk04(nullptr), mFlagBitArray(nullptr) {
+GameEventFlagStorage::GameEventFlagStorage() : mFlagBitArray(nullptr) {
     SingletonHolder< GameEventFlagTableInstance >::init();
     mFlagBitArray = new MR::BitArray(GameEventFlagTable::getTableSize());
 }

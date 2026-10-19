@@ -8,8 +8,6 @@ class Nerve;
 
 class ActorStateParamScale {
 public:
-    f32 fn_8022D440(s32);
-    f32 fn_8022D3E0(s32);
     ActorStateParamScale(LiveActor* pHost);
 
     void init(const JMapInfoIter& rIter);
@@ -27,7 +25,7 @@ public:
     LiveActor* calcHostVelocity(const TVec3f& rVel);
     void calcHostVelocity(const TVec3f& rVel, const TVec3f& rScale, f32 rate);
     f32 calcStepRatio(s32 maxStep);
-    void updateStepRatioEase(s32 maxStep);
+    f32 calcStepRatioEase(s32 maxStep);
 
 private:
     bool isNeedForReset(const Nerve* pNerve, s32 step);

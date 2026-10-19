@@ -19,7 +19,7 @@ namespace MR {
 s32 sFirstCometAppearStep = 0;
 
 /// Camera vectors of the demo (8 entries, constructed in declaration order).
-extern TVec3f sCameraTable[8];
+extern TVec3f sGreenStarDemoCameraTable[8];
 
 /// Camera name of the demo ("グリーンスターデモカメラ").
 extern const char* sCameraName;
@@ -93,11 +93,11 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
         mComet->appear();
     }
     f32 rate = MR::calcNerveRate(this, 300);
-    TVec3f vec2c = sCameraTable[0] * (1.0f - rate);
-    TVec3f vec38 = sCameraTable[1] * rate;
+    TVec3f vec2c = sGreenStarDemoCameraTable[0] * (1.0f - rate);
+    TVec3f vec38 = sGreenStarDemoCameraTable[1] * rate;
     TVec3f vec50 = vec38 + vec2c;
-    TVec3f vec14 = sCameraTable[2] * (1.0f - rate);
-    TVec3f vec20 = sCameraTable[3] * rate;
+    TVec3f vec14 = sGreenStarDemoCameraTable[2] * (1.0f - rate);
+    TVec3f vec20 = sGreenStarDemoCameraTable[3] * rate;
     TVec3f vec44 = vec20 + vec14;
     TVec3f vecUp(0.0f, 1.0f, 0.0f);
     MR::setProgrammableCameraParam(sCameraName, vec44, vec50, vecUp, true);
@@ -128,9 +128,9 @@ void WorldMapResultStateGreenStarDemo::exeShower() {
         }
     }
     TVec3f vec20;
-    calcRoutePos(&vec20, sCameraTable[4], sCameraTable[5], getNerveStep(), 500);
+    calcRoutePos(&vec20, sGreenStarDemoCameraTable[4], sGreenStarDemoCameraTable[5], getNerveStep(), 500);
     TVec3f vec14;
-    calcRoutePos(&vec14, sCameraTable[6], sCameraTable[7], getNerveStep(), 500);
+    calcRoutePos(&vec14, sGreenStarDemoCameraTable[6], sGreenStarDemoCameraTable[7], getNerveStep(), 500);
     TVec3f vecUp(0.0f, 1.0f, 0.0f);
     MR::setProgrammableCameraParam(sCameraName, vec14, vec20, vecUp, true);
     MR::setProgrammableCameraParamFovy(sCameraName, 26.0f);
@@ -185,7 +185,7 @@ namespace NrvWorldMapResultStateGreenStarDemo {
     WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoEnd, WorldMapResultStateGreenStarDemo, End);
 }
 
-TVec3f sCameraTable[8] = {
+TVec3f sGreenStarDemoCameraTable[8] = {
     TVec3f(60000.0f, 30000.0f, 35000.0f),
     TVec3f(-65000.0f, 30000.0f, 35000.0f),
     TVec3f(60000.0f, -3000.0f, 8000.0f),

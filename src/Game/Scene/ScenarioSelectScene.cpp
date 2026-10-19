@@ -81,7 +81,7 @@ void ScenarioSelectScene::init() {
     _24 = ::createDrawBuffer();
     mEffectSystem = new EffectSystem("エフェクトシステム", false);
     mEffectSystem->initWithoutIter();
-    mEffectSystem->entry(MR::getParticleResourceHolder(), 0x300, 0x20);
+    mEffectSystem->entry(MR::getParticleResourceHolder(), 0x280, 0x20);
     mCameraContext = new CameraContext();
 
     TPos3f view;

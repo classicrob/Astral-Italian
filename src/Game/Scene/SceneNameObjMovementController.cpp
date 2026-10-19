@@ -1,5 +1,6 @@
 #include "Game/Scene/SceneNameObjMovementController.hpp"
 #include "Game/Util.hpp"
+#include "Game/Demo/StoryBookDemo.hpp"
 #include "Game/Camera/CameraContext.hpp"
 #include "Game/Camera/CameraDirector.hpp"
 #include "Game/LiveActor/ClippingDirector.hpp"
@@ -31,6 +32,7 @@ namespace {
         CategoryList::requestMovementOn(MR::MovementType_ShadowControllerHolder);
         CategoryList::requestMovementOn(MR::MovementType_LayoutOnPause);
         MR::pauseOffTalkDirector();
+        MR::requestMovementOnStoryBook();
         MR::requestMovementOn(MR::getSceneObj< NameObj >(SceneObj_SensorHitChecker));
         MR::requestMovementOn(MR::getSceneObj< NameObj >(SceneObj_CameraContext));
         MR::requestMovementOn(MR::getSceneObj< NameObj >(SceneObj_ClippingDirector));

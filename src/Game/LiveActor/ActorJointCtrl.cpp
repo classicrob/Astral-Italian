@@ -1,4 +1,6 @@
 #include "Game/LiveActor/ActorJointCtrl.hpp"
+#include "Game/LiveActor/ActionFlagCtrl.hpp"
+#include "Game/LiveActor/ActorActionKeeper.hpp"
 #include "Game/LiveActor/DynamicJointCtrl.hpp"
 #include "Game/LiveActor/FaceJointCtrl.hpp"
 #include "Game/LiveActor/IKJointCtrl.hpp"
@@ -12,12 +14,16 @@ ActorJointCtrl::ActorJointCtrl(LiveActor* pActor) {
     _10 = 1;
     _11 = 0;
 
-    mJointCtrlKeeper = new DynamicJointCtrlKeeper(mActor);
-    mFaceJointCtrl = FaceJointCtrlKeeper::tryCreate(mActor);
-    mJointCtrlHolder = ActorJoint::createIKJointCtrlHolder(mActor);
+    mJointCtrlKeeper = DynamicJointCtrlKeeper::tryCreate(pActor);
+    mFaceJointCtrl = FaceJointCtrlKeeper::tryCreate(pActor);
+    mJointCtrlHolder = ActorJoint::createIKJointCtrlHolder(pActor);
 
     if (mJointCtrlHolder) {
         _11 = 1;
+    }
+
+    if (pActor->mActionKeeper != nullptr && pActor->mActionKeeper->mFlagCtrl != nullptr) {
+        pActor->mActionKeeper->mFlagCtrl->setJointCtrl(this);
     }
 }
 

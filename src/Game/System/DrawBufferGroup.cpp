@@ -58,8 +58,8 @@ void DrawBufferGroup::deactive(LiveActor* pActor, s32 index) {
 }
 
 void DrawBufferGroup::findLightInfo(LiveActor* pActor, s32 index) {
-    MR::initActorLightInfoLightType(pActor, mLightType);
     mExecutors[index]->findLightInfo(pActor);
+    MR::initActorLightInfoLightType(pActor, mLightType);
 
     if (mLightLoadType != -1) {
         for (u32 i = 0; i < mExecutors.size(); i++) {

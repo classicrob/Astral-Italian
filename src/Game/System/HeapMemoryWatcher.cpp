@@ -1,5 +1,6 @@
 #include "Game/System/HeapMemoryWatcher.hpp"
 #include "Game/Util/MemoryUtil.hpp"
+#include "Game/Util/DelegatingHeap.hpp"
 #include <JSystem/JKernel/JKRHeap.hpp>
 #include <revolution/aralt.h>
 #include <JSystem/JKernel/JKRExpHeap.hpp>
@@ -75,6 +76,7 @@ void HeapMemoryWatcher::createWorldMapHeap() {
 
 void HeapMemoryWatcher::createFileCacheHeapOnGameHeap(u32 size) {
     mFileCacheHeap = ::createSolidHeap(size, mGameHeapGDDR);
+    mFileCacheDelegateHeap = new (mFileCacheHeap, 0) DelegatingHeap(mFileCacheHeap);
 }
 
 void HeapMemoryWatcher::createSceneHeapOnGameHeap() {
@@ -125,7 +127,7 @@ void HeapMemoryWatcher::destroyFileCache() {
 }
 
 void HeapMemoryWatcher::fn_804BCD50() {
-    _18->freeAll();
+    mFileCacheDelegateHeap->freeAll();
 }
 
 void HeapMemoryWatcher::destroySceneHeap() {
@@ -178,7 +180,7 @@ void HeapMemoryWatcher::createGameHeap() {
 }
 
 HeapMemoryWatcher::HeapMemoryWatcher()
-    : mStationedHeapNapa(), mStationedHeapGDDR(), mGameHeapNapa(), mGameHeapGDDR(), mWorldMapHeap(), mFileCacheHeap(), _18(), mSceneHeapNapa(),
+    : mStationedHeapNapa(), mStationedHeapGDDR(), mGameHeapNapa(), mGameHeapGDDR(), mWorldMapHeap(), mFileCacheHeap(), mFileCacheDelegateHeap(), mSceneHeapNapa(),
       mSceneHeapGDDR(), mWPadHeap(), mHomeButtonLayoutHeap(), mAudSystemHeap() {
     JKRHeap::setErrorHandler(HeapMemoryWatcher::memoryErrorCallback);
     createHeaps();

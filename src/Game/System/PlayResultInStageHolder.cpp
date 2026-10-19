@@ -98,7 +98,7 @@ void PlayResultInStageHolder::setupStageResult() {
     pHolder->mIsStageResult = true;
     const char* pName = pHolder->mStageName;
     pHolder->mHasPowerStar = !GameDataFunction::hasPowerStar(pName, starNo);
-    if (!pHolder->mHasPowerStar) {
+    if (pHolder->mHasPowerStar) {
         bool isNotGreen = false;
         if (pHolder->mIsSuperDreamer == false) {
             GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(pName);
@@ -114,9 +114,9 @@ void PlayResultInStageHolder::setupStageResult() {
         }
         pHolder->mIsNotGreenStar = isBronze;
     }
-    if (pHolder->mPlayTime != 0 && pHolder->mPlayTime < 0x34BC0 && pHolder->mIsSuperDreamer == false) {
+    if (pHolder->mPlayTime != 0 && static_cast<u32>(pHolder->mPlayTime) < 0x34BC0U && pHolder->mIsSuperDreamer == false) {
         s32 count = GameDataFunction::getScenarioClearTime(pName, starNo);
-        if (count != 0 && pHolder->mPlayTime < count) {
+        if (count != 0 && static_cast<u32>(pHolder->mPlayTime) < static_cast<u32>(count)) {
             pHolder->mIsNewBestTime = true;
         } else {
             pHolder->mIsNewBestTime = false;

@@ -94,7 +94,7 @@ void BringEnemy::exeBring() {
 }
 
 f32 BringEnemy::calcNearestEnemy(TVec3f* pVec, const LiveActor* pActor) {
-    f32 minDist = 0.0f;
+    f32 minDist = 3.4028234663852886e38f;
     LiveActor* pNearest = NULL;
 
     for (s32 i = 0; i < mChildNum; i++) {

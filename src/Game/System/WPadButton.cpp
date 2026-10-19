@@ -13,7 +13,7 @@ void WPadButton::update() {
     }
 
     if (mHold != 0) {
-        mTrigger = pStatus->trig & ~mHold & KPAD_BUTTON_MASK;
+        mTrigger = pStatus->trig & ~mHold;
     } else {
         mTrigger = pStatus->trig;
     }
@@ -136,4 +136,8 @@ bool WPadButton::testReleaseZ() const {
 
 bool WPadButton::isChangeAnyState() const {
     return mTrigger != 0 || mRelease != 0;
+}
+
+bool WPadButton::testButtonOnlyMinus() const {
+    return (mHold & 0xFFFF) == WPAD_BUTTON_MINUS;
 }

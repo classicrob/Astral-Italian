@@ -11,8 +11,8 @@ public:
         ResetOperation_ApplicationReset,
         ResetOperation_Restart,
         ResetOperation_ReturnToMenu,
+        ResetOperation_ReturnToDataManager,
         ResetOperation_ShutdownSystem,
-        ResetOperation_RebootSystem,
     };
 
     /// @brief Creates a new `GameSystemResetAndPowerProcess`.

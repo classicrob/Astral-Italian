@@ -39,7 +39,7 @@ public:
     /* 0x0C */ JKRExpHeap* mGameHeapGDDR;
     /* 0x10 */ JKRSolidHeap* mWorldMapHeap;
     /* 0x14 */ JKRSolidHeap* mFileCacheHeap;
-    /* 0x18 */ JKRHeap* _18;
+    /* 0x18 */ JKRHeap* mFileCacheDelegateHeap;
     /* 0x1C */ JKRSolidHeap* mSceneHeapNapa;
     /* 0x20 */ JKRSolidHeap* mSceneHeapGDDR;
     /* 0x24 */ JKRExpHeap* mWPadHeap;

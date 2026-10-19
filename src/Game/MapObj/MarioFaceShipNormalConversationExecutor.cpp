@@ -87,7 +87,7 @@ void MarioFaceShipNormalConversationExecutor::exeCameraClose() {
         setNerve(CONV_NERVE(DemoEnd));
     }
 }
-void MarioFaceShipNormalConversationExecutor::initConversation(Param* param, Meister* meister) {
+void MarioFaceShipNormalConversationExecutor::initConversation(MarioFaceShipNormalConversationParam* param, Meister* meister) {
     mTalkIndex = param->mTalkIndex;
     mActorGroup = param->mActorGroup;
     mMeister = meister;

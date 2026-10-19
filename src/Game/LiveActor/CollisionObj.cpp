@@ -6,7 +6,7 @@
 
 CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, int drawType)
     : LiveActor(pName), mBaseMtx(nullptr) {
-    if (drawType < 0) {
+    if (drawType < -1) {
         drawType = 0x1d;
     }
 

@@ -88,7 +88,10 @@ void ViewGroupCtrl::update() {
 }
 
 void ViewGroupCtrl::startInitViewGroupTable() {
-    mViewCubeMgr = MR::getAreaObjManager("ViewGroupCtrlCube");
+    if (mMaxViewGroupId == 0) {
+        mMaxViewGroupId = 1;
+    }
+    mViewCubeMgr = MR::getAreaObjManager("ViewGroupCtrl");
     if (mViewCubeMgr) {
         for (s32 i = 0; i < mViewCubeMgr->getNumAreaObj(); i++) {
             s32 groupID = mViewCubeMgr->getAreaObj(i)->mObjArg0;
@@ -107,6 +110,8 @@ void ViewGroupCtrl::startInitViewGroupTable() {
         entry->_3 = false;
         entry->_4 = false;
     }
+
+    mViewGroupData[0]._0 = true;
 
     for (s32 i = 0; i < mViewCtrlCount; i++) {
         LodCtrl* ctrl = mLodCtrls[i];

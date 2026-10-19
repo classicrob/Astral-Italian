@@ -108,7 +108,7 @@ void PlacementInfoOrdered::attach(const JMapInfo* pInfo, PlacementInfoOrdered* p
 
 void PlacementInfoOrdered::sort() {
     SameIdSet* sets[0x800];
-    s32 count = mSetList.mCount;
+    u32 count = mSetList.mCount;
     s32 i = 0;
 
     for (MR::BothDirList< SameIdSet >::iterator it = mSetList.begin(); !it.isEnd(); it++) {

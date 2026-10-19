@@ -3,6 +3,7 @@
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/NameObj/NameObjExecuteHolder.hpp"
 #include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
@@ -12,7 +13,7 @@ MirrorActor::~MirrorActor() {
 }
 
 MirrorActor::MirrorActor(LiveActor* pActor, const char* pName, const char* pArcName) : LiveActor(pName), mHost(pActor), mIsDisconnected() {
-    initModelManagerWithAnm(pArcName, nullptr, false);
+    MR::initActor(this, pArcName, false);
 }
 
 void MirrorActor::init(const JMapInfoIter& rIter) {

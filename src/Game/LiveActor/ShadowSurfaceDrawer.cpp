@@ -13,7 +13,7 @@
 ShadowSurfaceBox::~ShadowSurfaceBox() {
 }
 
-ShadowSurfaceBox::ShadowSurfaceBox() : ShadowSurfaceDrawer("影描画[水面ボックス]"), mSize(100.0f) {
+ShadowSurfaceBox::ShadowSurfaceBox() : ShadowSurfaceDrawer("影描画[水面ボックス]"), mSize(100.0f, 100.0f, 100.0f) {
 }
 
 void ShadowSurfaceBox::setSize(const TVec3f& pSize) {

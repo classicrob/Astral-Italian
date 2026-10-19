@@ -79,7 +79,7 @@ namespace MR {
     }
 
     JKRHeap* getUseResourceHeap() {
-        return SingletonHolder< HeapMemoryWatcher >::get()->_18;
+        return SingletonHolder< HeapMemoryWatcher >::get()->mFileCacheDelegateHeap;
     }
 
     JKRHeap* getHeapNapa(const JKRHeap* pHeap) {

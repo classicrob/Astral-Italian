@@ -244,3 +244,9 @@ namespace MR {
         WPADSetAutoSleepTime(minute);
     }
 };  // namespace MR
+
+namespace MR {
+    bool testHBMKPadTrigger(s32 channel, u32 buttons) {
+        return (::getWPadHolder()->mRawReadDataInfoArray[channel].mStatusArray->trig & buttons) != 0;
+    }
+}

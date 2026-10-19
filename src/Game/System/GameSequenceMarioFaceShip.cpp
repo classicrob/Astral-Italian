@@ -73,7 +73,7 @@ void GameSequenceMarioFaceShip::exeStart() {
         bool isRetry = MR::getCurrentMarioStartIdInfo()._0 == 1;
         GameSceneFunction::startStagePlayRetry();
         if (isRetry) {
-            MR::requestEndModelWipeScene();
+            MR::requestEndModelWipe();
         }
         if (mEvent->hasStartEvent()) {
             setNerve(&GameSequenceMarioFaceShipNrvEvent::sInstance);

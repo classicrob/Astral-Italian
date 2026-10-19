@@ -2,6 +2,7 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Screen/StarPointerDirector.hpp"
 #include "Game/Screen/StarPointerLayout.hpp"
+#include "Game/Screen/StarPointerMovePositionHolder.hpp"
 #include "Game/System/NerveExecutor.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
@@ -122,7 +123,8 @@ void StarPointerOnOffController::setupPictureBook() {
     ::getStarPointerLayout(WPAD_CHAN1)->show();
     ::getStarPointerDirector()->startFingerPointer();
     ::getStarPointerLayout(WPAD_CHAN0)->validate();
-    ::getStarPointerLayout(WPAD_CHAN1)->invalidate();
+    ::getStarPointerLayout(WPAD_CHAN1)->validate();
+    ::getStarPointerDirector()->mMovePositionHolders->resetSelection();
     MR::deactiveStarPointerGuidance();
     MR::disableStarPointerShootStarPiece();
 }
@@ -140,19 +142,20 @@ void StarPointerOnOffController::setupDemo() {
 void StarPointerOnOffController::setupDemoWithStarPointer() {
     ::getStarPointerLayout(WPAD_CHAN0)->show();
     ::getStarPointerLayout(WPAD_CHAN1)->show();
-    ::getStarPointerDirector()->startStarPointer();
+    ::getStarPointerDirector()->startYoshiPointerNoBlur();
     ::getStarPointerLayout(WPAD_CHAN0)->validate();
     ::getStarPointerLayout(WPAD_CHAN1)->validate();
     MR::activeStarPointerGuidance();
     MR::disableStarPointerShootStarPiece();
+    ::getStarPointerDirector()->mIsAllowP2StarPieceShot = true;
 }
 
 void StarPointerOnOffController::setupDemoWithHandPointerFinger() {
-    ::getStarPointerLayout(WPAD_CHAN0)->show();
+    ::getStarPointerLayout(WPAD_CHAN0)->hide();
     ::getStarPointerLayout(WPAD_CHAN1)->show();
     ::getStarPointerDirector()->startFingerPointer();
-    ::getStarPointerLayout(WPAD_CHAN0)->validate();
-    ::getStarPointerLayout(WPAD_CHAN1)->validate();
+    ::getStarPointerLayout(WPAD_CHAN0)->invalidate();
+    ::getStarPointerLayout(WPAD_CHAN1)->invalidate();
     MR::activeStarPointerGuidance();
     MR::disableStarPointerShootStarPiece();
 }

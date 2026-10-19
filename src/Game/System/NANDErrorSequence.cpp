@@ -40,7 +40,7 @@ void NANDErrorSequence::startErrorToWiiMenu(const char* pSystemMessageId) {
 
     mSystemMessageId = pSystemMessageId;
 
-    setNerve(GET_NERVE_ANON(NANDErrorSequenceError));
+    setNerve(GET_NERVE_ANON(NANDErrorSequenceErrorToFreeze));
 }
 
 void NANDErrorSequence::startErrorToFreeze(const char* pSystemMessageId) {

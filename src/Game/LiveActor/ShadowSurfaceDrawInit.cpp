@@ -12,6 +12,11 @@
 #include "Game/Util/DirectDraw.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
+ShadowSurfaceDrawer::ShadowSurfaceDrawer(const char* pName) : ShadowDrawer(pName) {
+    MR::createSceneObj(SceneObj_ShadowSurfaceDrawInit);
+    MR::connectToScene(this, -1, -1, -1, MR::DrawType_ShadowSurface);
+}
+
 ShadowSurfaceDrawInit::ShadowSurfaceDrawInit(const char* pName) : NameObj(pName) {
     MR::registerPreDrawFunction(MR::FunctorV0F(&ShadowSurfaceDrawInit::initDraw), MR::DrawType_ShadowSurface);
 }

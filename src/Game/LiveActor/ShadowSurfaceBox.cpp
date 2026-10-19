@@ -21,7 +21,7 @@ void ShadowSurfaceBox::setSize(const TVec3f& pSize) {
 }
 
 void ShadowSurfaceBox::draw() const {
-    MtxPtr baseMtx;
+    TPos3f base;
     ShadowController* controller = getController();
 
     if (!controller->isProjected() || !controller->isDraw()) {
@@ -29,10 +29,13 @@ void ShadowSurfaceBox::draw() const {
     }
 
     TPos3f modelMtx;
-    baseMtx = controller->_18;
-    TVec3f side(baseMtx[0][0], baseMtx[1][0], baseMtx[2][0]);
-    TVec3f up(baseMtx[0][1], baseMtx[1][1], baseMtx[2][1]);
-    TVec3f front(baseMtx[0][2], baseMtx[1][2], baseMtx[2][2]);
+    controller->calcBaseMtx(&base);
+    TVec3f side;
+    side.set<f32>(base.mMtx[0][0], base.mMtx[1][0], base.mMtx[2][0]);
+    TVec3f up;
+    up.set<f32>(base.mMtx[0][1], base.mMtx[1][1], base.mMtx[2][1]);
+    TVec3f front;
+    front.set<f32>(base.mMtx[0][2], base.mMtx[1][2], base.mMtx[2][2]);
     TVec3f normal;
     controller->getProjectionNormal(&normal);
     f32 sideDot = normal.dot(side);

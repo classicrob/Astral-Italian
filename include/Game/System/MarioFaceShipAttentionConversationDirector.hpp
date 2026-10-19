@@ -62,7 +62,7 @@ public:
 // Handles the ordinary ("Meister_%dEventNotice") conversations.  SceneObj 0x96.
 class MarioFaceShipNormalConversationDirector : public NameObj {
 public:
-    typedef MarioFaceShipNormalConversationExecutor::Param Param;
+    typedef MarioFaceShipNormalConversationParam Param;
 
     MarioFaceShipNormalConversationDirector(const char*);                                 // fn_804C0270
     virtual ~MarioFaceShipNormalConversationDirector();                                   // fn_804C0E50

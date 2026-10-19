@@ -19,7 +19,7 @@ void SceneDataInitializer::startStageFileLoad() {
     mFileLoader->startLoadingStageFile();
 
     if (!MR::isStageDisablePauseMenu()) {
-        MR::mountAsyncArchive("/LayoutData/PauseMenu.arc", MR::getAproposHeapForSceneArchive(0.03f));
+        MR::mountAsyncArchive("/LayoutData/PauseMenu.arc", MR::getFileCacheHeap(), true, 1);
     }
 }
 

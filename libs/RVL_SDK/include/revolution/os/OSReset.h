@@ -39,6 +39,7 @@ void OSRebootSystem(void);
 void OSShutdownSystem(void);
 void OSRestart(u32);
 void OSReturnToMenu(void);
+void OSReturnToDataManager(void);
 
 u32 OSGetResetCode(void);
 

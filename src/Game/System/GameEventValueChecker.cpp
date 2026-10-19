@@ -105,8 +105,9 @@ bool GameEventValueChecker::isOnIndexedBit(const char* pName, s32 bit) const {
 void GameEventValueChecker::onIndexedBit(const char* pName, s32 bit) {
     char name[128];
     snprintf(name, sizeof(name), "%s/%01d", pName, bit / 16);
-    s32 idx = findIndex(name);
-    mValues[idx] = mValues[idx] | 1 << (bit % 16);
+    u16 value = getValue(name);
+    u16 mask = 1 << (bit % 16);
+    setValue(name, value | mask);
 }
 
 u32 GameEventValueChecker::makeHeaderHashCode() const {

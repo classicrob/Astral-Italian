@@ -29,12 +29,15 @@ void ShadowVolumeBox::loadModelDrawMtx() const {
 }
 
 void ShadowVolumeBox::makeVertexBuffer() const {
-    MtxPtr mtx;
+    TPos3f base;
     ShadowController* controller = getController();
-    mtx = controller->_18;
-    TVec3f side(mtx[0][0], mtx[1][0], mtx[2][0]);
-    TVec3f up(mtx[0][1], mtx[1][1], mtx[2][1]);
-    TVec3f front(mtx[0][2], mtx[1][2], mtx[2][2]);
+    controller->calcBaseMtx(&base);
+    TVec3f side;
+    side.set<f32>(base.mMtx[0][0], base.mMtx[1][0], base.mMtx[2][0]);
+    TVec3f up;
+    up.set<f32>(base.mMtx[0][1], base.mMtx[1][1], base.mMtx[2][1]);
+    TVec3f front;
+    front.set<f32>(base.mMtx[0][2], base.mMtx[1][2], base.mMtx[2][2]);
 
     TVec3f pos, dir;
     calcBaseDropPosition(&pos);

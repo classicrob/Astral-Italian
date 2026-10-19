@@ -79,9 +79,7 @@ s32 ConfigDataMii::deserialize(const u8* pBuffer, u32 size) {
     stream.read(mMiiId, sizeof(RFLCreateID));
 
     if (stream.getAvailable() == 0) {
-        if ((mFlag & FLAG_UNK1) != 0) {
-            mIconId = ICON_ID_MII;
-        }
+        mIconId = 1;
     } else {
         stream.read(&mIconId, sizeof(mIconId));
     }

@@ -1,3 +1,4 @@
+#define JGEOMETRY_OUTLINE_MATRIX_DIRECTION
 #include "Game/Util/DirectDraw.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/CameraUtil.hpp"
@@ -18,12 +19,6 @@ namespace {
     static Mtx mViewMtx;
 
 };  // namespace
-
-namespace {
-NO_INLINE void getXDirNI(const TPos3f& rMtx, TVec3f& rDest) { rMtx.getXDir(rDest); }
-NO_INLINE void getYDirNI(const TPos3f& rMtx, TVec3f& rDest) { rMtx.getYDir(rDest); }
-NO_INLINE void getZDirNI(const TPos3f& rMtx, TVec3f& rDest) { rMtx.getZDir(rDest); }
-}  // namespace
 
 namespace TDDraw {
     void DirectDraw_FORCE_MATCH_SDATA2() {
@@ -324,11 +319,11 @@ namespace TDDraw {
     void drawSpherePart(const TPos3f& rMtx, f32 radius, f32 startAzimuth, f32 endAzimuth, f32 startPolar, f32 endPolar, u32 color,
                         u32 azimuthSegments, u32 polarSegments) {
         TVec3f side;
-        getXDirNI(rMtx, side);
+        rMtx.getXDir(side);
         TVec3f up;
-        getYDirNI(rMtx, up);
+        rMtx.getYDir(up);
         TVec3f front;
-        getZDirNI(rMtx, front);
+        rMtx.getZDir(front);
         TVec3f center;
         rMtx.getTrans(center);
         f32 azimuthSin, azimuthCos;

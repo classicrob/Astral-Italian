@@ -98,7 +98,7 @@ ViewProjmapEffectMtxSetter::ViewProjmapEffectMtxSetter(J3DModelData* pModelData,
 }
 
 void ViewProjmapEffectMtxSetter::update() {
-    TMtx44f projection = MR::getCameraProjectionMtx();
+    TMtx44f projection = *reinterpret_cast<const TMtx44f*>(mBaseMtx);
     projection[2][0] = 0.0f;
     projection[2][1] = 0.0f;
     projection[2][2] = -1.0f;

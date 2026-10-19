@@ -1033,12 +1033,13 @@ namespace NameObjFactory {
             return PlanetMapCreatorFunction::getPlanetMapCreator(name);
         if (MR::hasProductMapCreator(name))
             return MR::getProductMapCreator(name);
+        const Name2CreateFunc* end = cCreateTable + 977;
         const Name2CreateFunc* entry = cCreateTable;
-        for (; entry != cCreateTable + 977; ++entry) {
+        for (; entry != end; ++entry) {
             if (entry->mName && MR::isEqualStringCase(entry->mName, name))
                 break;
         }
-        if (entry == cCreateTable + 977)
+        if (entry == end)
             entry = nullptr;
         if (entry == nullptr)
             return nullptr;

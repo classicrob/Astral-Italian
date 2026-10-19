@@ -16,7 +16,9 @@ void ActorLightCtrl::init(int interpolate, bool /* unused */) {
         _C = 1;
     }
 
-    initActorLightInfo();
+    if (!_C) {
+        MR::findActorLightInfo(mActor);
+    }
     tryFindNewAreaLight(false);
     mAreaLightInf = LightFunction::getAreaLightInfo(mLightID);
     mLightInfo = *getTargetActorLight(mAreaLightInf);
@@ -64,6 +66,10 @@ void ActorLightCtrl::copy(const ActorLightCtrl* pCtrl) {
     _54 = pCtrl->_54;
 }
 
+void ActorLightCtrl::setLightType(s32 type) {
+    _4 = type;
+}
+
 bool ActorLightCtrl::isSameLight(const ActorLightCtrl* pLight) const {
     if (_1C) {
         return false;
@@ -78,15 +84,6 @@ const ActorLightInfo* ActorLightCtrl::getActorLight() const {
     }
 
     return getTargetActorLight(mAreaLightInf);
-}
-
-void ActorLightCtrl::initActorLightInfo() {
-    if (_C) {
-        return;
-    }
-
-    MR::findActorLightInfo(mActor);
-    return;
 }
 
 void ActorLightCtrl::tryFindNewAreaLight(bool a2) {
@@ -154,9 +151,7 @@ const ActorLightInfo* ActorLightCtrl::getTargetActorLight(const AreaLightInfo* p
         return &pInfo->mStrongLight;
     } else if (type == 2) {
         return &pInfo->mWeakLight;
-    } else if (type == 3) {
-        return &pInfo->mPlanetLight;
     }
 
-    return 0;
+    return &pInfo->mPlanetLight;
 }

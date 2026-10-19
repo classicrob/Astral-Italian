@@ -8,7 +8,7 @@ namespace MR {
     void setFovy(f32);
 }
 
-WorldMapResultStateGrandGalaxyEnd::WorldMapResultStateGrandGalaxyEnd(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[グランドギャラクシーマップ終了]", pHost) {
+WorldMapResultStateGrandGalaxyEnd::WorldMapResultStateGrandGalaxyEnd(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[グランドギャラクシーマップ終了]", pHost), mFovy(0.0f) {
 }
 
 void WorldMapResultStateGrandGalaxyEnd::init() {
@@ -17,6 +17,9 @@ void WorldMapResultStateGrandGalaxyEnd::init() {
 }
 
 void WorldMapResultStateGrandGalaxyEnd::appear() {
+    mIsDead = false;
+    mHost->changeRocketActionBck("Wait");
+    mHost->startNodeCamera(-1, 0);
     setNerve(GET_NERVE(WorldMapResultStateGrandGalaxyEnd, WorldMapResultStateGrandGalaxyEndZoomOut));
 }
 

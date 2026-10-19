@@ -18,7 +18,6 @@ public:
     void setLightType(s32);
     bool isSameLight(const ActorLightCtrl*) const;
     const ActorLightInfo* getActorLight() const;
-    void initActorLightInfo() NO_INLINE;
     void tryFindNewAreaLight(bool);
     void updateLightBlend();
     void resetCurrentLightInfo();

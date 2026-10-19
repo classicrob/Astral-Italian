@@ -126,6 +126,7 @@ void GameSystem::exeInitializeAudio() {
     updateSceneController();
 
     if (MR::isEndFunctionAsyncExecute(INIT_AUDIO_KEY) && mObjHolder->mAudioSystem->isLoadDoneWaveDataAtSystemInit()) {
+        mObjHolder->mAudioSystem->loadSystemWaveData();
         MR::waitForEndFunctionAsyncExecute(INIT_AUDIO_KEY);
         MainLoopFramework::sManager->_3F = true;
         setNerve(GET_NERVE(GameSystem, GameSystemInitializeLogoScene));
@@ -137,7 +138,7 @@ void GameSystem::exeInitializeLogoScene() {
         setNerve(GET_NERVE(GameSystem, GameSystemWaitForReboot));
     } else {
         if (MR::isFirstStep(this)) {
-            MR::requestChangeScene("Logo");
+            GameSequenceFunction::requestChangeScene("Logo");
         }
 
         updateSceneController();
@@ -194,10 +195,8 @@ inline bool isSystemNormal(const GameSystem* pGameSystem) {
 
 bool GameSystem::isPreparedReset() const {
     bool isPrepared = false;
-    if (!isSystemWaitForReboot(this)) {
-        if (mStationedArchiveLoader->isPreparedReset()) {
-            isPrepared = true;
-        }
+    if (isSystemWaitForReboot(this) || mStationedArchiveLoader->isPreparedReset()) {
+        isPrepared = true;
     }
     return isPrepared;
 }
@@ -237,12 +236,13 @@ void GameSystem::draw() {
 void GameSystem::update() {
     SingletonHolder< GameSystemResetAndPowerProcess >::get()->movement();
     mSceneController->checkRequestAndChangeScene();
-    mObjHolder->update();
     mHomeButtonLayout->movement();
 
     if (!mHomeButtonLayout->isActive()) {
         mErrorWatcher->movement();
     }
+
+    mObjHolder->update();
 
     mDimmingWatcher->_5 = mErrorWatcher->isWarning() || mHomeButtonLayout->isActive() || GameSequenceFunction::isActiveSaveDataHandleSequence();
     mDimmingWatcher->update();

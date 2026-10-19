@@ -350,8 +350,8 @@ void Peto::exeJumpArc() {
     f32 dot = -mGravity.dot(toJump);
     f32 a, b;
     MR::calcParabolicFunctionParam(&a, &b, 300.0f, dot);
-    f32 t = mStateParam->fn_8022D440(45);
-    f32 u = mStateParam->fn_8022D3E0(45);
+    f32 t = mStateParam->calcStepRatioEase(45);
+    f32 u = mStateParam->calcStepRatio(45);
     f32 height = u * (b + a * u);
     TVec3f blend;
     TVec3f pos = mWalkPos + mGravity * dot;

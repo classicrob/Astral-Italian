@@ -9,26 +9,28 @@
 
 ModelObj::ModelObj(const char* pName, const char* pModelName, MtxPtr pMtx, int drawBufferType, int movementType, int calcAnimType, bool a7)
     : LiveActor(pName), mBaseMtx(pMtx) {
-    if (drawBufferType < MR::DrawBufferType_None) {
-        drawBufferType = MR::DrawBufferType_MapObj;
+    if (pMtx != nullptr) {
+        mPosition.set< f32 >(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
     }
 
-    if (movementType < MR::MovementType_None) {
-        movementType = MR::MovementType_MapObjDecoration;
+    if (!MR::initActor(this, pModelName, a7) && mModelManager != nullptr) {
+        if (drawBufferType < MR::DrawBufferType_None) {
+            drawBufferType = MR::DrawBufferType_MapObj;
+        }
+
+        if (movementType < MR::MovementType_None) {
+            movementType = MR::MovementType_MapObjDecoration;
+        }
+
+        if (calcAnimType < MR::CalcAnimType_None) {
+            calcAnimType = MR::CalcAnimType_MapObjDecoration;
+        }
+
+        MR::connectToScene(this, movementType, calcAnimType, drawBufferType, MR::DrawType_None);
+        initSound(4, nullptr, nullptr, TVec3f(0.0f));
     }
 
-    if (calcAnimType < MR::CalcAnimType_None) {
-        calcAnimType = MR::CalcAnimType_MapObjDecoration;
-    }
-
-    initModelManagerWithAnm(pModelName, nullptr, a7);
-    MR::connectToScene(this, movementType, calcAnimType, drawBufferType, MR::DrawType_None);
-    initSound(8, "ModelObj", nullptr, TVec3f(0.0f));
     initEffectKeeper(8, nullptr, false);
-
-    if (mBaseMtx != nullptr) {
-        mPosition.set< f32 >(mBaseMtx[0][3], mBaseMtx[1][3], mBaseMtx[2][3]);
-    }
 }
 
 void ModelObj::init(const JMapInfoIter& rIter) {

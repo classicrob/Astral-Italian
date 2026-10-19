@@ -25,6 +25,7 @@ namespace {
 namespace {
     NEW_NERVE(SaveDataHandlerWait, SaveDataHandler, Wait);
     NEW_NERVE(SaveDataHandlerProcessing, SaveDataHandler, Processing);
+    NEW_NERVE(SaveDataHandlerPrepareBanner, SaveDataHandler, PrepareBanner);
     NEW_NERVE(SaveDataHandlerSaveProcessingGameData, SaveDataHandler, SaveProcessingGameData);
     NEW_NERVE(SaveDataHandlerSaveProcessingBanner, SaveDataHandler, SaveProcessingBanner);
     NEW_NERVE(SaveDataHandlerRemoveProcessingBanner, SaveDataHandler, RemoveProcessingBanner);
@@ -170,7 +171,7 @@ void SaveDataHandler::requestSaveSaveData() {
     SaveDataFileHeader* pHeader = fileAccessorB.getHeader();
     mNANDRequestInfo->setWriteSeq(::cSaveFileName, _14, OSRoundUp32B(pHeader->mFileSize), 60, 0);
 
-    setNerve(GET_NERVE_ANON(SaveDataHandlerSaveProcessingGameData));
+    setNerve(GET_NERVE_ANON(SaveDataHandlerPrepareBanner));
 }
 
 void SaveDataHandler::requestRemoveSaveData() {
@@ -202,6 +203,20 @@ void SaveDataHandler::exeProcessing() {
     setNerve(GET_NERVE_ANON(SaveDataHandlerWait));
 }
 
+void SaveDataHandler::exePrepareBanner() {
+    if (MR::isFirstStep(this)) {
+        mBannerCreator->execute();
+    } else if (mBannerCreator->isDone()) {
+        NANDResultCode resultCode = mBannerCreator->getResultCode();
+        mNANDRequestInfo->mResult = resultCode.getCode();
+        if (resultCode.isSuccess()) {
+            setNerve(GET_NERVE_ANON(SaveDataHandlerSaveProcessingGameData));
+        } else {
+            setNerve(GET_NERVE_ANON(SaveDataHandlerWait));
+        }
+    }
+}
+
 void SaveDataHandler::exeSaveProcessingGameData() {
     if (MR::isFirstStep(this)) {
         MR::addRequestToNANDManager(mNANDRequestInfo);
@@ -220,7 +235,7 @@ void SaveDataHandler::exeSaveProcessingGameData() {
 
 void SaveDataHandler::exeSaveProcessingBanner() {
     if (MR::isFirstStep(this)) {
-        mBannerCreator->execute();
+        mBannerCreator->startMoveToHomeDir();
     } else if (mBannerCreator->isDone()) {
         NANDResultCode resultCode = mBannerCreator->getResultCode();
         mNANDRequestInfo->mResult = resultCode.getCode();
@@ -260,17 +275,17 @@ void SaveDataHandler::exeRemoveProcessingBanner() {
 
 void SaveDataHandler::resetSaveData(u8* pBuffer) {
     SaveDataFile* pFile = reinterpret_cast< SaveDataFile* >(pBuffer);
-    u32 offset = 0x140;
+    u32 offset = 0x80;
 
     pFile->mHeader.mCheckSum = 0;
-    pFile->mHeader.mVersion = 2;
-    pFile->mHeader.mUserFileInfoNum = 19;
+    pFile->mHeader.mVersion = 3;
+    pFile->mHeader.mUserFileInfoNum = 7;
     pFile->mHeader.mFileSize = 0;
 
     SaveDataFileInfo* pFileInfos = pFile->mInfo;
     int fileIndex = 0;
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 3; i++) {
         for (u32 j = 0; j < sizeof(::cSaveFileSpecTable) / sizeof(*::cSaveFileSpecTable); j++) {
             SaveDataFileInfo* pFileInfo = &pFileInfos[fileIndex];
 

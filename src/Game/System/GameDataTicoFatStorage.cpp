@@ -5,22 +5,30 @@
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
 
-// PLACEHOLDER(core): fn_804DE1B0 / fn_804DE210 / fn_804DE280 are the feed-name hash list helpers of
-// MR::Vector<MR::AssignableArray<u16>> in the unowned auto_03 gap (ctor(capacity) with zeroed count,
-// contains(name), push(hash, name) which ignores its name when it is null); resolve when named.
-extern "C" {
-    MR::Vector< MR::AssignableArray< u16 > >* fn_804DE1B0(MR::Vector< MR::AssignableArray< u16 > >*, s32);
-    bool fn_804DE210(const MR::Vector< MR::AssignableArray< u16 > >*, const char*);
-    void fn_804DE280(MR::Vector< MR::AssignableArray< u16 > >*, u16, const char*);
+TicoCoinFeedList::TicoCoinFeedList(s32 capacity) {
+    init(capacity);
+}
+
+// NONMATCHING: regalloc (hash and iterator registers only).
+bool TicoCoinFeedList::contains(const char* pName) const {
+    u16 hash = MR::getHashCode(pName);
+    const u16* p = begin();
+    const u16* pEnd = end();
+    while (p != pEnd && *p != hash) {
+        ++p;
+    }
+    return p != pEnd;
+}
+
+void TicoCoinFeedList::add(u16 hash, const char*) {
+    if (capacity() > size()) {
+        push_back(hash);
+    }
 }
 
 GameDataTicoFatStorage::GameDataTicoFatStorage() : mStarPieceAlms() {
     mStarPieceAlms = new u16[48];
-    MR::Vector< MR::AssignableArray< u16 > >* pList = (MR::Vector< MR::AssignableArray< u16 > >*)::operator new(sizeof(MR::Vector< MR::AssignableArray< u16 > >));
-    if (pList != nullptr) {
-        pList = fn_804DE1B0(pList, 16);
-    }
-    mTicoCoinFeedList = pList;
+    mTicoCoinFeedList = new TicoCoinFeedList(16);
     initializeData();
 }
 
@@ -66,7 +74,7 @@ s32 GameDataTicoFatStorage::deserialize(const u8* pData, u32 dataSize) {
         u16 value;
         stream.read(&value, sizeof(u16));
         if (value != 0) {
-            fn_804DE280(mTicoCoinFeedList, value, nullptr);
+            mTicoCoinFeedList->add(value, nullptr);
         }
     }
 
@@ -79,10 +87,10 @@ void GameDataTicoFatStorage::initializeData() {
 }
 
 void GameDataTicoFatStorage::onTicoCoinFeed(const char* pName) {
-    MR::Vector< MR::AssignableArray< u16 > >* pList = mTicoCoinFeedList;
-    fn_804DE280(pList, (u16)MR::getHashCode(pName), pName);
+    TicoCoinFeedList* pList = mTicoCoinFeedList;
+    pList->add((u16)MR::getHashCode(pName), pName);
 }
 
 bool GameDataTicoFatStorage::isTicoCoinFeed(const char* pName) const {
-    return fn_804DE210(mTicoCoinFeedList, pName);
+    return mTicoCoinFeedList->contains(pName);
 }

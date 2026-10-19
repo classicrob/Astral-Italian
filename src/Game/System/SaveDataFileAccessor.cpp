@@ -34,7 +34,7 @@ void SaveDataFileAccessor::makeUserFileInfo(SaveDataUserFileInfo* pUserFileInfo,
 
         pUserFileInfo->mData = reinterpret_cast< u8* >(getHeader()) + pInfo[i].mOffset;
 
-        if (strstr(pInfo[i].mName, "mario") != nullptr || strstr(pInfo[i].mName, "luigi") != nullptr) {
+        if (strstr(pInfo[i].mName, "user") != nullptr) {
             pUserFileInfo->mKind = 0;
         }
 

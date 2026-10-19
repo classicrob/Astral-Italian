@@ -17,7 +17,7 @@ namespace MR {
         u32 i = 0;
 
         do {
-            f64 v7 = 0.02 * (i / 255.0) + 0.98;
+            f64 v7 = (1.0 - 0.98) * (i / 255.0) + 0.98;
             if (v7 > 1.0) {
                 v7 = 1.0;
             }
@@ -408,8 +408,10 @@ namespace MR {
         }
 
         f32 ratio = rPlaneNorm.dot(offset) / dot;
-        pHitPos->set(rPos);
-        pHitPos->add(rDir * ratio);
+        if (pHitPos != nullptr) {
+            pHitPos->set(rPos);
+            pHitPos->add(rDir * ratio);
+        }
 
         return true;
     }
@@ -680,11 +682,14 @@ namespace MR {
         TVec3f xDir;
         rSrc.getXDir(xDir);
 
+        bool needsRandomTurn;
         if (xDir.dot(rTo) >= 0.0f) {
-            return;
+            needsRandomTurn = false;
+        } else {
+            needsRandomTurn = isSameDirection(xDir, rTo, 0.01f);
         }
 
-        if (isSameDirection(xDir, rTo, 0.01f)) {
+        if (needsRandomTurn) {
             turnRandomVector(&xDir, xDir, 0.001f);
         }
 
@@ -699,11 +704,14 @@ namespace MR {
         TVec3f yDir;
         rSrc.getYDir(yDir);
 
+        bool needsRandomTurn;
         if (yDir.dot(rTo) >= 0.0f) {
-            return;
+            needsRandomTurn = false;
+        } else {
+            needsRandomTurn = isSameDirection(yDir, rTo, 0.01f);
         }
 
-        if (isSameDirection(yDir, rTo, 0.01f)) {
+        if (needsRandomTurn) {
             turnRandomVector(&yDir, yDir, 0.001f);
         }
 
@@ -718,11 +726,14 @@ namespace MR {
         TVec3f zDir;
         rSrc.getZDir(zDir);
 
+        bool needsRandomTurn;
         if (zDir.dot(rTo) >= 0.0f) {
-            return;
+            needsRandomTurn = false;
+        } else {
+            needsRandomTurn = isSameDirection(zDir, rTo, 0.01f);
         }
 
-        if (isSameDirection(zDir, rTo, 0.01f)) {
+        if (needsRandomTurn) {
             turnRandomVector(&zDir, zDir, 0.001f);
         }
 

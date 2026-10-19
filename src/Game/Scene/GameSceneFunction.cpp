@@ -3,7 +3,9 @@
 #include "Game/Scene/GameScene.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
+#include "Game/NPC/EventDirector.hpp"
 #include "Game/Util/SingletonHolder.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
 
 namespace {
     GameScene* getGameScene() NO_INLINE {
@@ -40,6 +42,16 @@ namespace GameSceneFunction {
         ::getGameScene()->requestGrandStarGetDemo();
     }
 
+    void requestStartSuperDreamerTalk() {
+        MR::pauseCometTimer();
+        ::getGameScene()->requestStartSuperDreamerTalk();
+    }
+
+    void requestEndSuperDreamerTalk() {
+        MR::resumeCometTimer();
+        ::getGameScene()->requestEndSuperDreamerTalk();
+    }
+
     void requestShowGalaxyMap() {
         ::getGameScene()->requestShowGalaxyMap();
     }
@@ -60,12 +72,36 @@ namespace GameSceneFunction {
         return ::getGameScene()->isExecStageClearDemo();
     }
 
+    bool isExecSuperDreamerTalk() {
+        return ::getGameScene()->isExecSuperDreamerTalk();
+    }
+
     void loadScenarioWaveData(bool loadPlayer) {
         SingletonHolder< GameSystem >::get()->mSceneController->loadScenarioWaveData(loadPlayer);
     }
 
     bool isLoadDoneScenarioWaveData() {
         return SingletonHolder< GameSystem >::get()->mSceneController->isLoadDoneScenarioWaveData();
+    }
+
+    bool isExecPauseMenu() {
+        return ::getGameScene()->isExecPauseMenu();
+    }
+
+    bool isExecAction() {
+        return ::getGameScene()->isExecAction();
+    }
+
+    void startStagePlayFirst() {
+        ::getGameScene()->startStagePlayFirst();
+    }
+
+    void startStagePlayRetry() {
+        ::getGameScene()->startStagePlayRetry();
+    }
+
+    void startStarPointerModeGame() {
+        MR::startStarPointerModeGame(::getGameScene());
     }
 
     void activateDraw3D() {

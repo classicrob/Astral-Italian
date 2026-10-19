@@ -161,7 +161,7 @@ void MiniRouteLine::setup(const TVec3f& rFrom, const TVec3f& rTo) {
     mScale.set<f32>(dir.length() / 1000.0f, 1.0f, 1.0f);
     MR::normalize(&dir);
     MR::makeQuatSideUp(&quat, dir, TVec3f(0.0f, 1.0f, 0.0f));
-    MR::setRotation(this, quat);
+    MR::setRotationFromQuat(this, quat);
     MR::setPosition(this, TVec3f(rFrom.x, rFrom.y, rFrom.z));
 }
 

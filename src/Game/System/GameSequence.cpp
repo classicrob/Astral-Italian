@@ -62,13 +62,13 @@ GameSequence::GameSequence() : NerveExecutor("\x83Q\x81[\x83\x80\x83V\x81[\x83P\
     initNerve(GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvSystemStart), 8);
 
     mSystemStart = new GameSequenceSystemStart(this);
-    MR::initActorState(this, mSystemStart, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvSystemStart), "GameSequenceSystemStart");
+    MR::initActorState(this, mSystemStart, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvSystemStart), "SystemStart");
     mTitle = new GameSequenceTitle(this);
-    MR::initActorState(this, mTitle, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvTitle), "GameSequenceTitle");
+    MR::initActorState(this, mTitle, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvTitle), "Title");
     mInGame = new GameSequenceInGame(this);
-    MR::initActorState(this, mInGame, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvInGame), "GameSequenceInGame");
+    MR::initActorState(this, mInGame, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvInGame), "InGame");
     mEnding = new GameSequenceEnding(this);
-    MR::initActorState(this, mEnding, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvEnding), "GameSequenceEnding");
+    MR::initActorState(this, mEnding, GET_NERVE_DIRECT(NrvGameSequence, GameSequenceNrvEnding), "Ending");
     mNameEntryTable = new GameSequenceNameEntryTable(0x60);
 }
 

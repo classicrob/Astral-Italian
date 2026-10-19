@@ -8,7 +8,7 @@ namespace MR {
     class BitArray;
 };  // namespace MR
 
-class GameEventFlagStorage : public BinaryDataChunkBase {
+class GameEventFlagStorage : public EmptyNonPolymorphicBase, public BinaryDataChunkBase {
 public:
     GameEventFlagStorage();
 
@@ -21,6 +21,5 @@ public:
     void set(const char*, bool);
     bool isOn(const char*) const;
 
-    /* 0x04 */ void* mUnk04;  // target stores a vtable-like address here in the ctor (extra base?), purpose unknown
     /* 0x08 */ MR::BitArray* mFlagBitArray;
 };

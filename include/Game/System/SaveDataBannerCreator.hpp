@@ -12,6 +12,7 @@ public:
     SaveDataBannerCreator();
 
     void execute();
+    void startMoveToHomeDir();
     bool isDone() const;
     NANDResultCode getResultCode() const;
     void exeNoOperation();

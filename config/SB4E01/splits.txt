@@ -7194,7 +7194,7 @@ Game/Scene/GameScenePauseControl.cpp:
 	.sbss       start:0x807D5330 end:0x807D5338
 
 Game/Scene/GameSceneScenarioOpeningCameraState.cpp:
-	.text       start:0x80453060 end:0x80453470
+	.text       start:0x80453060 end:0x804534B0
 	.ctors      start:0x80644878 end:0x8064487C
 	.data       start:0x806EFB18 end:0x806EFB90
 
@@ -8443,7 +8443,7 @@ Game/System/WPadHVSwing.cpp:
 	.sdata2     start:0x807E19A8 end:0x807E19B8
 
 Game/System/WPadHolder.cpp:
-	.text       start:0x804CF4C0 end:0x804CFD90
+	.text       start:0x804CF4C0 end:0x804CFDF0
 	.data       start:0x806FE740 end:0x806FE750
 	.sdata2     start:0x807E19B8 end:0x807E19C8
 
@@ -8561,7 +8561,7 @@ Game/System/GameDataPlayerStatus.cpp:
 	.data       start:0x80700710 end:0x80700798
 
 Game/System/GameDataTicoFatStorage.cpp:
-	.text       start:0x804DE2B0 end:0x804DE5E0
+	.text       start:0x804DE1B0 end:0x804DE5E0
 	.data       start:0x807007B0 end:0x807007E8
 
 Game/System/GameDataWorldMapStorage.cpp:

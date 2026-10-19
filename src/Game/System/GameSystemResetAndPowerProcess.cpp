@@ -3,6 +3,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/System/DrawSyncManager.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSystemFunction.hpp"
 #include "Game/System/MainLoopFramework.hpp"
 #include "Game/Util/Color.hpp"
@@ -11,6 +12,7 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SingletonHolder.hpp"
+#include "Game/Util/SystemUtil.hpp"
 #include "Game/Util/TriggerChecker.hpp"
 #include "Game/Util/ValueControl.hpp"
 #include <JSystem/JUtility/JUTVideo.hpp>
@@ -43,7 +45,7 @@ void GameSystemResetAndPowerProcess::draw() const {
     J2DOrthoGraphSimple graph;
     graph.setPort();
 
-    u8 alpha = MR::lerp(255.0f, 0.0f, mFadeinoutControl->getValue());
+    u8 alpha = MR::lerp(static_cast< u8 >(255), static_cast< u8 >(0), mFadeinoutControl->getValue());
     graph.setColor(static_cast< const GXColor& >(GXColor(Color8(0, 0, 0, alpha))));
 
     f32 height = static_cast< s32 >(JUTVideo::getManager()->getRenderMode()->efbHeight);
@@ -61,6 +63,14 @@ void GameSystemResetAndPowerProcess::setResetOperationApplicationReset() {
 
 void GameSystemResetAndPowerProcess::setResetOperationReturnToMenu() {
     mResetOperation = ResetOperation_ReturnToMenu;
+}
+
+void GameSystemResetAndPowerProcess::requestShutdown(bool skipFade) {
+    if (tryPermitReset()) {
+        _5E = skipFade;
+        mResetOperation = ResetOperation_ReturnToDataManager;
+        setNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessWaitResetPermitted));
+    }
 }
 
 void GameSystemResetAndPowerProcess::requestReset(bool param1) {
@@ -143,7 +153,9 @@ void GameSystemResetAndPowerProcess::exePrepareReset() {
     }
 
     if (b) {
+        MR::stopAllSound(0);
         GameSequenceFunction::resetNWC24();
+        MR::forceHideModelWipe();
         setNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessReset));
     }
 }
@@ -174,6 +186,7 @@ void GameSystemResetAndPowerProcess::exeWaitPrepareFadein() {
     }
 
     if (GameSystemFunction::isPreparedFadeinSystem()) {
+        GameSystemFunction::clearAudioStageWaveResources();
         setNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessFadein));
     }
 }
@@ -184,7 +197,6 @@ void GameSystemResetAndPowerProcess::exeFadein() {
     }
 
     if (tryAcceptPowerOff()) {
-        GameSystemFunction::restartControllerLeaveWatcher();
         GameSystemFunction::restartSceneController();
         setNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessWaitResetPermitted));
     } else {
@@ -193,8 +205,8 @@ void GameSystemResetAndPowerProcess::exeFadein() {
         }
 
         if (mFadeinoutControl->mFrame == mFadeinoutControl->mMaxFrame) {
-            GameSystemFunction::restartControllerLeaveWatcher();
             GameSystemFunction::restartSceneController();
+            GameDataFunction::resetAllGameData();
             setNerve(GET_NERVE(GameSystemResetAndPowerProcess, GameSystemResetAndPowerProcessPolling));
         }
     }
@@ -214,8 +226,8 @@ void GameSystemResetAndPowerProcess::exitApplication() {
     case ResetOperation_ReturnToMenu:
         OSReturnToMenu();
         break;
-    case ResetOperation_RebootSystem:
-        OSRebootSystem();
+    case ResetOperation_ReturnToDataManager:
+        OSReturnToDataManager();
         break;
     case ResetOperation_ShutdownSystem:
         OSShutdownSystem();

@@ -3,6 +3,14 @@
 #include "Game/System/BinaryDataChunkHolder.hpp"
 #include "Game/Util/Array.hpp"
 
+// Bounded list of the low 16 bits of fed galaxy-name hashes.
+class TicoCoinFeedList : public MR::Vector< MR::AssignableArray< u16 > > {
+public:
+    TicoCoinFeedList(s32 capacity);
+    bool contains(const char*) const;
+    void add(u16 hash, const char* name);
+};
+
 // SMG2 TicoFat save record ("SaveDataStorageTicoFat", signature "STF1").
 // Holds the star piece alms values (8 worlds x 6 entries, u16) and the list of galaxy-name hashes
 // that were fed a Tico coin.
@@ -22,5 +30,5 @@ public:
     bool isTicoCoinFeed(const char*) const;
 
     /* 0x08 */ u16* mStarPieceAlms;          // 0x60 bytes
-    /* 0x0C */ MR::Vector< MR::AssignableArray< u16 > >* mTicoCoinFeedList;
+    /* 0x0C */ TicoCoinFeedList* mTicoCoinFeedList;
 };

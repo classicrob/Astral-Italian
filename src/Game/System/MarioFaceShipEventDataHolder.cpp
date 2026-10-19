@@ -152,7 +152,7 @@ bool MarioFaceShipEventDataHolder::isSpecialEventSatisfied(s32 eventId, const ch
         return MR::isBigTreeCloudGardenPairedStarUncollected(pStage, starId);
     }
     if (eventId == 0x12D) {
-        return MR::isWorld3NormalStarsGatheredForFaceShip();
+        return MR::isPowerStarNumWorld3Enough();
     }
     return false;
 }

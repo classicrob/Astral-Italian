@@ -4,6 +4,8 @@
 
 namespace MR {
     void addCometTimer(s32);
+    void pauseCometTimer();
+    void resumeCometTimer();
 };
 
 // Merged from Petari (core lane): declarations missing here

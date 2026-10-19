@@ -30,6 +30,7 @@ public:
     NANDResultCode getLastResultCode() const;
     void exeWait();
     void exeProcessing();
+    void exePrepareBanner();
     void exeSaveProcessingGameData();
     void exeSaveProcessingBanner();
     void exeRemoveProcessingBanner();

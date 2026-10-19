@@ -237,14 +237,12 @@ SandyBall* SandyMini::takeBall() {
 }
 
 // 800FDCE0
-// NONMATCHING: matrix copy remains out of line in this combined TU; register scheduling differs.
+// NONMATCHING: initializes discarded offset rotation for native safety; matrix-copy outlining and register scheduling differ.
 void attachBallToJoint(const LiveActor* pActor, SandyBall* pBall, const char* pJoint, const TVec3f& rOffset) {
     TPos3f joint;
     JMath::gekko_ps_copy12(&joint, MR::getJointMtx(pActor, pJoint));
     TPos3f offset;
-    offset.mMtx[0][3] = rOffset.x;
-    offset.mMtx[1][3] = rOffset.y;
-    offset.mMtx[2][3] = rOffset.z;
+    offset.makeTrans(rOffset);
     TPos3f result;
     result.concat(joint, offset);
     TVec3f pos;
@@ -608,33 +606,31 @@ void SandyHand::exeThrow() {
 }
 
 // 800FEC60
-// NONMATCHING: matrix copy remains out of line in this combined TU; register scheduling differs.
+// NONMATCHING: initializes discarded offset rotation for native safety; matrix-copy outlining and register scheduling differ.
 void SandyHand::calcBallPos() {
     if (mBall != nullptr && !mBall->isFree()) {
         TPos3f joint;
         JMath::gekko_ps_copy12(&joint, MR::getJointMtx(this, "Hand1"));
         TPos3f offset;
-        offset.mMtx[0][3] = sHandBallOffset.x;
-        offset.mMtx[1][3] = sHandBallOffset.y;
-        offset.mMtx[2][3] = sHandBallOffset.z;
+        offset.makeTrans(sHandBallOffset);
         TPos3f result;
         result.concat(joint, offset);
         TVec3f pos;
         result.getTrans(pos);
         MR::setPosition(mBall, pos);
-    
-    result.mMtx[0][3] = 0.0f;
-    result.mMtx[1][3] = 0.0f;
-    result.mMtx[2][3] = 0.0f;
-    result.mMtx[0][0] = 1.0f;
-    result.mMtx[0][1] = 0.0f;
-    result.mMtx[0][2] = 0.0f;
-    result.mMtx[1][0] = 0.0f;
-    result.mMtx[1][1] = 1.0f;
-    result.mMtx[1][2] = 0.0f;
-    result.mMtx[2][0] = 0.0f;
-    result.mMtx[2][1] = 0.0f;
-    result.mMtx[2][2] = 1.0f;
+
+        result.mMtx[0][3] = 0.0f;
+        result.mMtx[1][3] = 0.0f;
+        result.mMtx[2][3] = 0.0f;
+        result.mMtx[0][0] = 1.0f;
+        result.mMtx[0][1] = 0.0f;
+        result.mMtx[0][2] = 0.0f;
+        result.mMtx[1][0] = 0.0f;
+        result.mMtx[1][1] = 1.0f;
+        result.mMtx[1][2] = 0.0f;
+        result.mMtx[2][0] = 0.0f;
+        result.mMtx[2][1] = 0.0f;
+        result.mMtx[2][2] = 1.0f;
 
         result.getQuat(mBall->mQuat);
     }

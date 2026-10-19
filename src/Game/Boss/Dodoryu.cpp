@@ -45,14 +45,13 @@
 void DodoryuStateBase::catchSendPlayerFlying(HitSensor*, HitSensor*) {
 }
 
-// PLACEHOLDER(objects): forces the signed-int conversion bias before the readonly sensor offsets;
-// resolve when the missing early conversion or original constant-table layout is recovered.
-// An explicit bias/sensor table restores the bytes but changes initHitSensor's base-register allocation.
-f32 Dodoryu_FORCE_MATCH_CONVERSION(s32 value) {
-    return value;
-}
 
 namespace {
+// Original read-only data starts with the signed-integer conversion bias.
+#pragma push
+#pragma force_active on
+    extern const f64 sSignedConversionBias = 4503601774854144.0;
+#pragma pop
     static const Vec sHeadOffset = {50.0f, 30.0f, 0.0f};
     static const Vec sBodyOffset = {0.0f, 0.0f, 30.0f};
     static const Vec sLegOffset = {40.0f, 0.0f, 0.0f};
@@ -258,11 +257,6 @@ namespace {
     NEW_NERVE(DodoryuRabbitNrvRabbitReturn, DodoryuRabbit, Return);
     NEW_NERVE(DodoryuRabbitNrvRabbitPleasure, DodoryuRabbit, Pleasure);
 };  // namespace
-
-void Dodoryu_DUMMY() {
-    TVec3f vec;
-    vec.scale(1.0f);
-}
 
 Dodoryu::Dodoryu(const char* pName)
     : LiveActor(pName), mCameraTargetPos(0.0f, 0.0f, 0.0f), mCameraFollowsPlayer(), mStateIndex(), mState(), mMoveStateHolder(), mHill(), mLeadHill(), mBank(), mRabbit(),
@@ -819,10 +813,8 @@ void DodoryuBank::exeAppear() {
     }
 }
 
-// PLACEHOLDER(objects): forces the Jump literal before the rabbit constructor's pool entries;
-// resolve when the missing early action-name use or original literal-table ownership is recovered.
-void Dodoryu_FORCE_MATCH_RABBIT(LiveActor* pActor) {
-    MR::startAction(pActor, "Jump");
+namespace {
+    char sRabbitJumpAction[] = "Jump";
 }
 
 DodoryuRabbit::DodoryuRabbit(Dodoryu* pHost, const JMapInfoIter& rIter)
@@ -954,7 +946,7 @@ void DodoryuRabbit::exeRest() {
 
 void DodoryuRabbit::exeJump() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Jump");
+        MR::startAction(this, sRabbitJumpAction);
         MR::startBtp(this, "Blink");
         mBaseMtx.setInline(mHost->mInitialCameraTarget->mMatrix);
     }

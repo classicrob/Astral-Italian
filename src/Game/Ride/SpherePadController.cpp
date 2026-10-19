@@ -8,12 +8,6 @@
 #include <JSystem/JGeometry/TUtil.hpp>
 #include <revolution/wpad.h>
 
-void SpherePadController_DUMMY() {
-    TPos3f m;
-    TVec3f a, b;
-    m.setRotate(a, b);
-}
-
 SpherePadController::SpherePadController() : SphereController() {
 }
 

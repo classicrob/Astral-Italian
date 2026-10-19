@@ -11,10 +11,6 @@
 #include <revolution/gx/GXVert.h>
 #include <revolution/wpad.h>
 
-void SpiderThreadPart_DUMMY() {
-    TVec3f a(1.0f);
-}
-
 namespace {
     static Color8 sColorPlusX(0x64, 0x64, 0x64, 0xFF);
     static Color8 sColorMinusX(0x96, 0x96, 0x96, 0xFF);

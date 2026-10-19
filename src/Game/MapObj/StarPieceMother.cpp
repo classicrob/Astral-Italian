@@ -127,7 +127,7 @@ void StarPieceMother::exeMoveOnRail() {
 void StarPieceMother::placementPieceOnRail(f32 distance) {
     TVec3f railPos;
     MR::calcRailPosAtCoord(&railPos, this, distance);
-    mStarPieceArray[0]->mPosition.set(railPos);
+    MR::setPosition(mStarPieceArray[0], railPos);
     mPieceRailCoords[0] = distance;
 
     f32 step;
@@ -141,7 +141,7 @@ void StarPieceMother::placementPieceOnRail(f32 distance) {
         distance += step;
         f32 value = distance >= difference ? difference : distance;
         MR::calcRailPosAtCoord(&railPos, this, value);
-        mStarPieceArray[idx]->mPosition.set(railPos);
+        MR::setPosition(mStarPieceArray[idx], railPos);
         mPieceRailCoords[idx] = value;
     }
 }

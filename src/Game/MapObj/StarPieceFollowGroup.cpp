@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MULASSIGN_NOINLINE
 #include "Game/MapObj/StarPieceFollowGroup.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/StarPiece.hpp"
@@ -15,11 +16,6 @@
 #include "math_types.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <revolution/mtx.h>
-
-void StarPieceFollowGroup_DUMMY() {
-    TVec3f a;
-    a *= 1.0f;
-}
 
 namespace NrvStarPieceFollowGroup {
     NEW_NERVE(HostTypeNrvFollowToPlayer, StarPieceFollowGroup, FollowToPlayer);

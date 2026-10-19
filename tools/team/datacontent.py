@@ -247,16 +247,17 @@ class World:
         self.image = (self.tree / f'build/{VERSION}/main.dol').read_bytes()
         self.dol_sections = [(word(self.image, i * 4), word(self.image, 0x48 + i * 4),
                               word(self.image, 0x90 + i * 4)) for i in range(18)]
-        self.symbols, self.bases = {}, {}
+        self.symbols, self.bases, self.ranges = defaultdict(list), {}, {}
         for line in (self.tree / f'config/{VERSION}/symbols.txt').read_text().splitlines():
             match = re.match(r'(.+?) = (\.\w+):0x([\da-fA-F]+);(.*)', line)
             if match:
                 name, section, address, meta = match.groups()
                 size = re.search(r'\bsize:0x([\da-fA-F]+)', meta)
-                self.symbols[name] = {'name': name, 'section': section, 'address': int(address, 16),
-                                      'size': int(size[1], 16) if size else 0,
-                                      'function': 'type:function' in meta}
-        self.data_symbols = sorted((s for s in self.symbols.values() if not s['function']), key=lambda s: s['address'])
+                self.symbols[name].append({'name': name, 'section': section, 'address': int(address, 16),
+                                          'size': int(size[1], 16) if size else 0,
+                                          'function': 'type:function' in meta,
+                                          'local': bool(re.search(r'\bscope:local\b', meta))})
+        self.data_symbols = sorted((s for records in self.symbols.values() for s in records if not s['function']), key=lambda s: s['address'])
         self.data_starts = [s['address'] for s in self.data_symbols]
         self.data_max_end = []
         maximum = 0
@@ -267,43 +268,77 @@ class World:
         for line in (self.tree / f'config/{VERSION}/splits.txt').read_text().splitlines():
             if line and not line[0].isspace() and line.endswith(':'):
                 unit = line[:-1].removesuffix('.cpp').removesuffix('.c')
-            match = re.search(r'^\s+(\.\w+)\s+start:0x([\da-fA-F]+)', line)
+            match = re.search(r'^\s+(\.\w+)\s+start:0x([\da-fA-F]+)\s+end:0x([\da-fA-F]+)', line)
             if match:
                 self.bases[unit, match[1]] = int(match[2], 16)
+                self.ranges[unit, match[1]] = (int(match[2], 16), int(match[3], 16))
+
+    def owns(self, unit, section, address):
+        bounds = self.ranges.get((unit, section))
+        return bounds is not None and bounds[0] <= address < bounds[1]
+
+    def resolve_address(self, elf, unit, pointer):
+        rel, symbol = pointer.relocation, pointer.relocation.symbol
+        if elf.local(symbol):
+            # Target ELF section offsets, plus this unit's split, identify local
+            # symbols even when other TUs use the same spelling. Never fall back
+            # to a globally indexed name if the owning section is unavailable.
+            section = elf.names[symbol.section]
+            base = self.bases.get((unit, section))
+            if base is None:
+                return None, 'target_owning_section_unknown'
+            address = base + symbol.address
+            if not self.owns(unit, section, address):
+                return None, 'target_symbol_outside_owning_section'
+            effective = address + rel.addend + pointer.delta
+            if not self.owns(unit, section, effective):
+                return None, 'target_effective_address_outside_owning_section'
+            return effective, None
+        records = self.symbols.get(symbol.name, [])
+        if symbol.binding == 0:
+            return None, 'target_local_symbol_requires_owning_section'
+        # An undefined relocation cannot identify another TU's local object by
+        # spelling. Duplicate global identities are also unresolved, not last-win.
+        globals_ = [record for record in records if not record['local']]
+        identities = {(record['section'], record['address']) for record in globals_}
+        if len(identities) == 1:
+            return next(iter(identities))[1] + rel.addend + pointer.delta, None
+        if len(identities) > 1:
+            return None, 'ambiguous_target_symbol_identity'
+        return None, ('target_local_symbol_requires_owning_section' if records
+                      else 'target_address_unknown')
 
     def address(self, elf, unit, pointer):
-        rel, symbol = pointer.relocation, pointer.relocation.symbol
-        known = self.symbols.get(symbol.name)
-        if known:
-            return known['address'] + rel.addend + pointer.delta
-        if elf.local(symbol):
-            base = self.bases.get((unit, elf.names[symbol.section]))
-            if base is not None:
-                return base + symbol.address + rel.addend + pointer.delta
-        return None
+        return self.resolve_address(elf, unit, pointer)[0]
 
     def is_data(self, elf, pointer):
         symbol = pointer.relocation.symbol
         if elf.local(symbol):
             return bool(elf.data_symbol(symbol))
-        known = self.symbols.get(symbol.name)
-        return known is None or not known['function']
+        known = [record for record in self.symbols.get(symbol.name, []) if not record['local']]
+        # Unknown/ambiguous references remain visible for a resolution advisory.
+        identities = {(record['section'], record['address']) for record in known}
+        return (symbol.binding == 0 or len(identities) != 1
+                or any(not record['function'] for record in known))
 
     def target_bound(self, elf, unit, pointer, limit):
-        address = self.address(elf, unit, pointer)
-        if address is None:
-            return None, 'target_address_unknown'
+        address, error = self.resolve_address(elf, unit, pointer)
+        if error:
+            return None, error
         candidates = []
         index = bisect_right(self.data_starts, address) - 1
         while index >= 0 and self.data_max_end[index] > address:
             symbol = self.data_symbols[index]
-            if symbol['size'] and symbol['address'] <= address < symbol['address'] + symbol['size']:
+            if (symbol['size'] and symbol['address'] <= address < symbol['address'] + symbol['size']
+                    and (not symbol['local'] or self.owns(unit, symbol['section'], symbol['address']))):
                 candidates.append(symbol)
             index -= 1
         if not candidates:
             return None, 'target_object_bound_unknown'
         obj = min(candidates, key=lambda s: (s['size'], s['address'], s['name']))
         start, size = obj['address'], obj['size']
+        if obj['local'] and not self.owns(unit, obj['section'], start + size - 1):
+            return None, 'target_local_object_extent_outside_owning_section'
         if size > limit:
             return None, 'object_exceeds_limit'
         blob = None
@@ -329,6 +364,7 @@ class World:
                 pointers[base + where - start] = {'symbol': rel.symbol.name, 'addend': rel.addend,
                                                  'relocation_kind': rel.kind}
         return {'symbol': obj['name'], 'section': obj['section'], 'start': start,
+                'owning_unit': unit if obj['local'] else None,
                 'size': size, 'reference_offset': address - start,
                 'extent_proof': proof, 'hex': blob.hex(), 'pointers': pointers,
                 'decode_words': [dict(offset=i, **decode(blob[i:i + 4])) for i in range(0, len(blob), 4)]}, None

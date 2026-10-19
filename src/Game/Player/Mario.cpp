@@ -12807,17 +12807,15 @@ SoundList soundlist[] = {
 struct SoundSwapList {
     const char* name;
 
-    u32 offset1;
-    u32 offset2;
-    u32 offset3;
+    u32 soundIDs[3];
 };
 
 
-SoundSwapList soundswaplist[] = {{"", 0, 0, 0}};
+SoundSwapList soundswaplist[] = {{"", {0, 0, 0}}};
 
 
+// Nonzero selectors address the three override columns (1..3).
 u32 Mario::initSoundTable(SoundList* pList, u32 globalTablePosition) {
-    u32* pSwapOffset = reinterpret_cast< u32* >(soundswaplist) + globalTablePosition;
     SoundList* pEntry;
     u32 count = 0;
     s32 i = 0;
@@ -12839,7 +12837,7 @@ u32 Mario::initSoundTable(SoundList* pList, u32 globalTablePosition) {
                 }
 
                 if (strcmp(pEntry->name, pSwapEntry->name) == 0) {
-                    u32 soundID = pSwapOffset[swapIndex * 4];
+                    u32 soundID = soundswaplist[swapIndex].soundIDs[globalTablePosition - 1];
                     if (soundID != 0) {
                         pEntry->_14 = soundID;
                     }

@@ -895,7 +895,7 @@ void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
     if (F(s32, 0x1054) == 0) {
         Mtx tmp;
         PSMTXConcat(this->getBaseMtx(), mMainJointMatrix4A8.mMtx, tmp);
-        PSMTXCopy(tmp, FP(MR::getJ3DModel(mNullAnimation), Mtx, 0x24));
+        PSMTXCopy(tmp, MR::getJ3DModel(mNullAnimation)->getBaseTRMtx());
         TVec3f pos, rot;
         if (mNullAnimation->getFramePos(t, &pos, &rot)) {
             this->_B92 = -3;
@@ -1278,7 +1278,7 @@ void MarioActor::fn_803D1940() {
                 this->mMario->isAnimationRun("アイスひねり移動") || this->mMario->isAnimationRun("アイスひねり静止") ||
                 this->mMario->isAnimationRun("ハンマー投げリリース") ||
                 (this->mMario->isSwimming() && this->mMario->mSwim->fn_803FE9F0()) ||
-                (this->mMario->isStatusActive(0x18) && FP(FP(this->mMario, void*, 0x774), s32, 0x50) != 0))) {
+                (this->mMario->isStatusActive(0x18) && this->mMario->mFoo->_4C != 0))) {
         F(u8, 0x704) = 1;
         F(u8, 0x705) = 1;
     }
@@ -1441,18 +1441,39 @@ void MarioActor::fn_803D32F0() {
                     MR::normalizeOrZero(&nrm);
                     J3DModel* mdl = mAllModel->getJ3DModel();
                     J3DModelX* mx = mSimpleModelF08;
-                    PSMTXCopy(FP(mdl, Mtx, 0x24), FP(mx, Mtx, 0x24));
-                    TPos3f* rot = (TPos3f*)((u8*)mx + 0x24);
+                    PSMTXCopy(mdl->getBaseTRMtx(), mx->getBaseTRMtx());
+                    MtxPtr rot = mx->getBaseTRMtx();
                     TVec3f x, y, z;
-                    rot->getXDir(x);
+                    {
+                        f32 vz = rot[2][0];
+                        f32 vy = rot[1][0];
+                        f32 vx = rot[0][0];
+                        x.set<f32>(vx, vy, vz);
+                    }
                     MR::vecKillElement(x, nrm, &x);
-                    rot->getYDir(y);
+                    {
+                        f32 vz = rot[2][1];
+                        f32 vy = rot[1][1];
+                        f32 vx = rot[0][1];
+                        y.set<f32>(vx, vy, vz);
+                    }
                     MR::vecKillElement(y, nrm, &y);
-                    rot->getZDir(z);
+                    {
+                        f32 vz = rot[2][2];
+                        f32 vy = rot[1][2];
+                        f32 vx = rot[0][2];
+                        z.set<f32>(vx, vy, vz);
+                    }
                     MR::vecKillElement(z, nrm, &z);
-                    rot->setXDir(x);
-                    rot->setYDir(y);
-                    rot->setZDir(z);
+                    rot[0][0] = x.x;
+                    rot[1][0] = x.y;
+                    rot[2][0] = x.z;
+                    rot[0][1] = y.x;
+                    rot[1][1] = y.y;
+                    rot[2][1] = y.z;
+                    rot[0][2] = z.x;
+                    rot[1][2] = z.y;
+                    rot[2][2] = z.z;
                     const TVec3f* g = this->mMario->getGravityVec();
                     TVec3f off(this->mPosition);
                     off -= hit;
@@ -1463,8 +1484,8 @@ void MarioActor::fn_803D32F0() {
                     t.scale(10.0f + m);
                     TVec3f p(this->mPosition);
                     p += t;
-                    MR::setMtxTrans(rot->mMtx, p.x, p.y, p.z);
-                    PSMTXConcat(rot->mMtx, mReflectionBaseMtx264.mMtx, rot->mMtx);
+                    MR::setMtxTrans(rot, p.x, p.y, p.z);
+                    PSMTXConcat(rot, mReflectionBaseMtx264.mMtx, rot);
                     mx->viewCalcRef(3, mdl);
                     mWallShadow574->mActive = 1;
                 }

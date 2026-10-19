@@ -2091,6 +2091,7 @@ void Yoshi::fn_8040DB10() {
     if (fn_8040F590(nullptr)) fn_80410280();
 }
 
+// NONMATCHING: named quaternion components replace the outlined vector alias; stack and FPR allocation differ.
 void Yoshi::fn_804103F0() {
     MR::calcGravity(this);
     TVec3f up;
@@ -2109,8 +2110,9 @@ void Yoshi::fn_804103F0() {
     else {
         f32 angle = 0.1f * (0.5f * JMAATan2(length, up.dot(gravityUp)));
         f32 factor = static_cast<f32>(::sin(angle)) / length;
-        TVec3f* imaginary = reinterpret_cast<TVec3f*>(&rotation);
-        imaginary->scale(factor, axis);
+        rotation.x = axis.x * factor;
+        rotation.y = axis.y * factor;
+        rotation.z = axis.z * factor;
         rotation.w = static_cast<f32>(::cos(angle));
     }
     rotation.transform(up);

@@ -92,21 +92,21 @@ void MarioActor::fn_803B9870() {
 }
 
 void MarioActor::fn_803B98C0() {
-    if (*(void* volatile*)((u8*)this + 0xEE4) != nullptr) {
-        FP(mYoshiHolder, u8, 0x3C) = 1;
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->_3C = 1;
     }
 }
 
 void MarioActor::fn_803B98E0() {
-    if (*(void* volatile*)((u8*)this + 0xEE4) != nullptr) {
-        FP(mYoshiHolder, u8, 0x3C) = 0;
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->_3C = 0;
     }
 }
 
 s32 MarioActor::fn_803B9900() {
     YoshiHolder* p = mYoshiHolder;
     if (p != nullptr) {
-        return FP(p, u8, 0x3C);
+        return p->_3C;
     }
     return 0;
 }
@@ -136,20 +136,20 @@ bool MarioActor::fn_803B9920() {
 }
 
 void MarioActor::fn_803B9A10() {
-    if (*(void* volatile*)((u8*)this + 0xEE4) != nullptr) {
-        mYoshiHolder->fn_8041BAE0();
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BAE0();
     }
 }
 
 void MarioActor::fn_803B9A30() {
-    if (*(void* volatile*)((u8*)this + 0xEE4) != nullptr) {
-        mYoshiHolder->fn_8041BAF0();
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BAF0();
     }
 }
 
 void MarioActor::fn_803B9A50() {
-    if (*(void* volatile*)((u8*)this + 0xEE4) != nullptr) {
-        mYoshiHolder->fn_8041BB00();
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BB00();
     }
 }
 
@@ -2112,7 +2112,7 @@ void MarioActor::fn_803C8AA0() {
         m->viewCalc3(0, nullptr);
         Mtx inv1, inv2;
         PSMTXInverse(mJointTransform294.mMtx, inv1);
-        PSMTXInverse(FP(mAllModel->getJ3DModel(), Mtx, 0x24), inv2);
+        PSMTXInverse(mAllModel->getJ3DModel()->getBaseTRMtx(), inv2);
         PSMTXConcat(inv1, inv2, mReflectionBaseMtx264.mMtx);
     }
 }

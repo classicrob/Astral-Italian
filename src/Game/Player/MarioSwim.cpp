@@ -3675,7 +3675,7 @@ f32 MarioSwim::fn_803F8EF0() {
     return factor;
 }
 
-// NONMATCHING: temporary stack placement, FPR allocation and equivalent bit test.
+// NONMATCHING: explicit quaternion components, temporary stack placement, FPR allocation and equivalent bit test.
 void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immediate) {
     f32 ratio = 0.1f;
     if (immediate) ratio = 1.0f;
@@ -3697,7 +3697,10 @@ void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immedi
                 rotation.set<f32>(0.0f, 0.0f, 0.0f, 1.0f);
             } else {
                 f32 angle = ratio * (0.5f * JMath::sAtanTable.atan2_(magnitude, oldSide.dot(side)));
-                reinterpret_cast<TVec3f*>(&rotation)->scale(static_cast<f32>(sin(angle)) / magnitude, axis);
+                f32 factor = static_cast<f32>(sin(angle)) / magnitude;
+                rotation.x = axis.x * factor;
+                rotation.y = axis.y * factor;
+                rotation.z = axis.z * factor;
                 rotation.w = static_cast<f32>(cos(angle));
             }
         } else {

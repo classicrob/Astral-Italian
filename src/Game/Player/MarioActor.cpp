@@ -1,3 +1,4 @@
+#define XJOINT_TRANSFORM_SCALE_NOINLINE
 #include "Game/NPC/EventDirector.hpp"
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
@@ -5512,19 +5513,20 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
 }
 
 
+// NONMATCHING: verified equivalent pooled literal addresses.
 void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
-    f32 initialRadius = pReceiver->mRadius;
+    f32 initialRadius = MR::getSensorRadius(pReceiver);
 
     if (!isEnableMoveMario()) {
         return;
     }
 
-    if (radius < initialRadius + mSensorRadiusAttack) {
+    if (radius < initialRadius + 120.0f) {
         bool touching = false;
         f32 sensorRadius;
 
-        f32 width = 20.0f + _4B0;
-        f32 height = _4B4;
+        f32 width = 20.0f + mBodyRadius7A0;
+        f32 height = mBodyHeight7A4;
 
         if (isJumping()) {
             height += 10.0f;
@@ -5534,9 +5536,7 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
             width += 15.0f;
         }
 
-        sensorRadius = pReceiver->mRadius;
-
-        if (cylinderPushCheck(pReceiver->mPosition - _2A0, sensorRadius, width, height)) {
+        if (fn_803CD4B0(pReceiver, width, height)) {
             if (mConditionGroup->tryGetItem(pReceiver)) {
                 return;
             }
@@ -5554,8 +5554,8 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
         return;
     }
 
-    f32 width = 20.0f + _4B0;
-    f32 height = _4B4;
+    f32 width = 20.0f + mBodyRadius7A0;
+    f32 height = mBodyHeight7A4;
 
     if (isJumping()) {
         height += 10.0f;
@@ -5565,9 +5565,9 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
         width += 15.0f;
     }
 
-    f32 sensorRadius = pReceiver->mRadius;
-    TVec3f offset = pReceiver->mPosition - _2A0;
-    f32 depth = MR::vecKillElement(offset, mCamDirZ, &offset);
+    f32 sensorRadius = MR::getSensorRadius(pReceiver);
+    TVec3f offset = *MR::getSensorPos(pReceiver) - _240;
+    f32 depth = MR::vecKillElement(offset, mCameraBasisZ, &offset);
     if (depth < 250.0f && depth > -250.0f && cylinderPushCheck(offset, sensorRadius, width, height) && mConditionGroup->tryGetItem(pReceiver)) {
         return;
     }
@@ -6548,42 +6548,36 @@ void MarioActor::update2D() {
 }
 
 
+// NONMATCHING: verified equivalent scalar literal addresses.
 void MarioActor::updateThrowVector() {
     HitSensor* sensor = _46C;
-    if (sensor && !MR::isExistInAttributeGroupSearchTurtle(sensor->mHost))
-        sensor = nullptr;
+    if (sensor && !MR::isExistInAttributeGroupSearchTurtle(MR::getSensorHost(sensor))) sensor = nullptr;
+    if (getDrawStates()._5) return;
     if (sensor && _468) {
-        if (!getDrawStates()._5) {
-            if (_470 && _46C != _470)
-                _470 = nullptr;
-        }
-        if (!getDrawStates()._5) {
-            if (!_47C)
-                _484 = _2A0;
-            _47C++;
-            TVec3f direction = _46C->mPosition - _484;
-            if (direction.length() <= 40.0f + _46C->getRadius()) {
-                _484 = _46C->mPosition;
-                _470 = _46C;
-                if (MR::isSensorEnemy(_46C)) {
-                    _47C = 60;
-                    return;
-                }
-                _47C = 2;
+        if (_470 && _46C != _470) _470 = nullptr;
+        if (!_47C) mCameraTrans = _240;
+        ++_47C;
+        TVec3f direction = _46C->mPosition - mCameraTrans;
+        f32 radius = _46C->mRadius;
+        if (direction.length() <= 40.0f + radius) {
+            mCameraTrans = _46C->mPosition;
+            _470 = _46C;
+            if (MR::isSensorEnemy(_46C)) {
+                _47C = 60;
                 return;
             }
-            MR::normalize(&direction);
-            _484 += direction * 40.0f;
-            if (MR::checkStrikePointToMap(_484, nullptr)) {
-                _47C = 0;
-                _470 = nullptr;
-            }
+            _47C = 2;
+            return;
         }
-    } else if (!getDrawStates()._5) {
-        if (_47C)
-            _47C--;
-        if (!_47C)
+        MR::normalize(&direction);
+        mCameraTrans += direction * 40.0f;
+        if (mMario->fn_803B2AF0(mCameraTrans, nullptr)) {
+            _47C = 0;
             _470 = nullptr;
+        }
+    } else {
+        if (_47C) --_47C;
+        if (!_47C) _470 = nullptr;
     }
 }
 
@@ -6856,25 +6850,30 @@ bool MarioActor::tryPunchAirAfter(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: saved-register allocation, load scheduling and verified pooled literals.
 bool MarioActor::sendBodyAttack(HitSensor* pSensor) {
     bool isStatus = true;
     if (mMario->getCurrentStatus() != MarioStatus_None && (s32)mMario->getCurrentStatus() != (s32)MarioStatus_Skate) {
         isStatus = false;
     }
 
-    if (isStatus && !getMovementStates()._8 && !isDamaging() && !getMovementStates()._B) {
-        TVec3f newPos(pSensor->mPosition - (*MR::getSensorPos(this, "body")));
+    if (isStatus && !getMovementStates()._8 && !mMario->isDamaging() && !getMovementStates()._B) {
+        TVec3f newPos(*MR::getSensorPos(pSensor) - getSensor("Body")->mPosition);
         TVec3f* frontVec = &mMario->mFrontVec;
-        if (MR::diffAngleAbsHorizontal(newPos, *frontVec, getGravityVector()) >= HALF_PI) {
+        if (MR::diffAngleAbsHorizontal(newPos, *frontVec, *mMario->getGravityVec()) >= HALF_PI) {
             return false;
         }
 
-        if (MR::sendArbitraryMsg(ACTMES_KICK, pSensor, getSensor("body"))) {
-            playSound("声ランニングキック", -1);
-            changeAnimation("ランニングキック");
+        if (MR::sendArbitraryMsg(0x35, pSensor, getSensor("Body"))) {
+            if (mMario->isPlayerModeYoshi()) {
+                MR::startActionSound(mYoshiHolder->mYoshi, "Hit", -1, -1, -1);
+            } else {
+                mMario->playSound("声ランニングキック", -1);
+            }
+            mMario->changeAnimation("ランニングキック", static_cast<const char*>(nullptr));
             mMario->startPadVib(2);
 
-            if (!MR::sendArbitraryMsg(ACTMES_HITMARK_EMIT, pSensor, getSensor("body"))) {
+            if (!MR::sendArbitraryMsg(0x27, pSensor, getSensor("Body"))) {
                 printHitMark(pSensor);
             }
 
@@ -6882,7 +6881,7 @@ bool MarioActor::sendBodyAttack(HitSensor* pSensor) {
         }
     }
 
-    if (mPlayerMode == 1 && MR::sendArbitraryMsg(ACTMES_INVINCIBLE_ATTACK, pSensor, getSensor("body"))) {
+    if (mPlayerMode == 1 && MR::sendArbitraryMsg(0xE, pSensor, getSensor("Body"))) {
         mMario->startPadVib(2);
         printHitMark(pSensor);
 
@@ -7877,8 +7876,9 @@ void MarioActor::trampleJump(f32 normal, f32 extra) {
 }
 
 
+// NONMATCHING: equivalent conditional branch layout and verified pooled literals.
 void MarioActor::attackSensor(HitSensor* pOwn, HitSensor* pOther) {
-    if (!isEnableNerveChange()) {
+    if (MR::isSensorType(pOther, 0x3D) || !isEnableNerveChange()) {
         return;
     }
 
@@ -7888,16 +7888,16 @@ void MarioActor::attackSensor(HitSensor* pOwn, HitSensor* pOther) {
         }
     } else {
         if (pOwn == getSensor("eye")) {
-            if (MR::isDead(pOther->mHost)) {
+            if (MR::isDead(MR::getSensorHost(pOther))) {
                 return;
             }
 
             if (_934) {
-                attackOrPushSensorInRush(pOther, (pOther->mPosition - pOwn->mPosition).length());
-            } else if (isDamaging()) {
-                attackOrPushSensorInDamage(pOther, (pOther->mPosition - pOwn->mPosition).length());
+                attackOrPushSensorInRush(pOther, (*MR::getSensorPos(pOther) - *MR::getSensorPos(pOwn)).length());
+            } else if (mMario->isDamaging()) {
+                attackOrPushSensorInDamage(pOther, (*MR::getSensorPos(pOther) - *MR::getSensorPos(pOwn)).length());
             } else {
-                attackOrPushSensor(pOther, (pOther->mPosition - pOwn->mPosition).length());
+                attackOrPushSensor(pOther, (*MR::getSensorPos(pOther) - *MR::getSensorPos(pOwn)).length());
             }
         }
 

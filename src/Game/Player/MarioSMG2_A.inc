@@ -1337,7 +1337,7 @@ void Mario::fn_803886B0() {
     mWalkSpeed *= weight;
 }
 
-// NONMATCHING: gate chain from the draft, state transitions approximated
+// NONMATCHING: equivalent comet-condition boolean lowering and unused pointer argument setup.
 void Mario::fn_80388DB0() {
     if (!((FLD<u32>(this, 0xC) >> 9) & 1)) {
         if (this->checkDamage() == false) {
@@ -1345,7 +1345,7 @@ void Mario::fn_80388DB0() {
                 this->mActor->fn_803B9810()->fn_8041DF40();
             }
             if (!this->isPlayerModeYoshi() || this->mActor->fn_803B9810()->fn_8041F8A0() == 0) {
-                if (FLD<void*>(this, 0x97C) != nullptr) {
+                if (_97C != nullptr) {
                     this->sendStateMsg(2);
                 } else if ((FLD<u32>(this, 0xC) >> 31) != 0) {
                     this->procJump(false);
@@ -1366,12 +1366,13 @@ void Mario::fn_80388DB0() {
             }
             if (this->isStatusActive(0x28)) {
                 this->mActor->fn_803B9A30();
-                FLD<u32>(this, 0x14) &= 0xFFDFFFFF;
+                _10_HIGH_WORD &= 0xFFDFFFFF;
                 this->mActor->fn_803B9830()->fn_8041BB90();
+                return;
             }
             u32 t = FLD<u32>(this, 0xC);
             if (((t >> 30) & 1) || !((t >> 12) & 1)) {
-                FLD<u32>(this, 0x14) &= 0xFFEFFFFF;
+                _10_HIGH_WORD &= 0xFFEFFFFF;
             }
         }
         this->fn_803A7540();
@@ -1383,12 +1384,21 @@ void Mario::fn_80388DB0() {
             this->mActor->fn_803B9830()->fn_8041BBB0();
         }
         if (this->isStickOn()) {
-            if (this->isAnimationRun("ブレーキ")) {
+            if (this->isAnimationRun("水泳陸うちあげ")) {
                 this->stopAnimation((const char*)nullptr, (const char*)nullptr);
             }
         }
         if (!((FLD<u32>(this, 0x1C) >> 27) & 1)) {
             FLD<u16>(this, 0x3FE) = 0;
+        }
+        if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
+            if (mCometRestrictions != 0 && mPreviousCometRestrictions == 0) {
+                MR::addCometTimer(3600);
+                MR::pauseCometTimer();
+            }
+            if (mCometRestrictions == 0 && mPreviousCometRestrictions != 0) {
+                MR::resumeCometTimer();
+            }
         }
         mPreviousCometRestrictions = mCometRestrictions;
         this->callExtraTasks(0);
@@ -1396,7 +1406,7 @@ void Mario::fn_80388DB0() {
         this->checkSpecialWaitAnimation();
         this->fn_803B4280();
         if (!((FLD<u32>(this, 0x1C) >> 9) & 1)) {
-            this->retainMoveDir(0.0f, 0.0f, nullptr);
+            this->retainMoveDir(mStickPos.x, mStickPos.y, nullptr);
         }
     }
 }

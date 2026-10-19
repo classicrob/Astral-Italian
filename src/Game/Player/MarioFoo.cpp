@@ -438,7 +438,7 @@ const TVec3f& MarioFoo::getGravityVec() const {
     return MarioModule::getGravityVec();
 }
 
-// NONMATCHING: independent stores are scheduled in a different order.
+// NONMATCHING: literal-pool relocations; masked instructions are exact.
 void MarioFoo::jet() {
     f32 acceleration = calcRingAcc();
     f32 speed;
@@ -470,8 +470,8 @@ void MarioFoo::jet() {
         getPlayer()->_1C._9 = true;
     } else if (_14 < 8) {
         _AC++;
-        _AE = 1;
         _28 = 0.0f;
+        _AE = 1;
     } else if (_AC) {
         if (_AC < 8) {
             _AC = 0;

@@ -19,8 +19,18 @@ class XjointTransform {
 public:
     XjointTransform();
 
-    void setLocalScale(f32 scale) {
+    void setLocalScale(f32 scale)
+#ifdef XJOINT_TRANSFORM_SCALE_NOINLINE
+        NO_INLINE
+#endif
+    {
+#ifdef XJOINT_TRANSFORM_SCALE_NOINLINE
+        mScale.x = scale;
+        mScale.y = scale;
+        mScale.z = scale;
+#else
         mScale.set(scale);
+#endif
     }
 
     /* 0x00 */ J3DJoint* _0;

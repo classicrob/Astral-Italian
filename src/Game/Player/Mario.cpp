@@ -1,5 +1,6 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #include "Game/Player/Mario.hpp"
+#include "Game/NPC/EventDirector.hpp"
 #include "Game/Player/MarioMoveInfoA84.hpp"
 #include "Game/Animation/XanimeCore.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
@@ -5905,6 +5906,7 @@ void Mario::doEnforceJump(f32 param) {
 }
 
 
+// NONMATCHING: relocation labels; all scalar and string values verified.
 void Mario::pushedByWind() {
     f32 windMag = _91C.length();
 
@@ -5920,11 +5922,9 @@ void Mario::pushedByWind() {
             stopAnimation("向かい風走り");
         }
 
-        if (_10.debugMode) {
-            getPlayerMode();
+        if ((_10_LOW_WORD >> 9) & 1) {
+            _10_LOW_WORD &= 0xFFFFFDFF;
         }
-
-        _10.debugMode = 0;
         return;
     }
 
@@ -5939,8 +5939,7 @@ void Mario::pushedByWind() {
         if (windMag > table->mWindSlideLimit) {
             windMag -= table->mWindSlideLimit;
             windMag *= table->mWindSlideFriction;
-            _350 += windDir * windMag;
-            _1C._15 = 1;
+            push(windDir * windMag);
             changeAnimation("向かい風ふんばり");
         }
         return;
@@ -5950,31 +5949,28 @@ void Mario::pushedByWind() {
 
     if (mVelocity.dot(windDir) > 0.0f) {
         const MarioConstTable* table = mActor->getConst().getTable();
-        _350 += scaled * table->mWindForwardFriction;
-        _1C._15 = 1;
+        push(scaled * table->mWindForwardFriction);
         stopAnimation("向かい風ふんばり");
         stopAnimation("向かい風走り");
-        return;
+    } else {
+        TVec3f killed;
+        f32 element = MR::vecKillElement(scaled + mVelocity, windDir, &killed);
+
+        const MarioConstTable* table = mActor->getConst().getTable();
+        if (element > table->mWindSlideLimit) {
+            element -= table->mWindSlideLimit;
+            element *= table->mWindSlideFrictionAgainst;
+        } else if (element > 0.0f) {
+            element = 0.0f;
+        }
+
+        clearVelocity();
+
+        scaled = killed + windDir * element;
+
+        changeAnimation("向かい風走り");
     }
-
-    TVec3f killed;
-    f32 element = MR::vecKillElement(scaled + mVelocity, windDir, &killed);
-
-    const MarioConstTable* table = mActor->getConst().getTable();
-    if (element > table->mWindSlideLimit) {
-        element -= table->mWindSlideLimit;
-        element *= table->mWindSlideFrictionAgainst;
-    } else if (element > 0.0f) {
-        element = 0.0f;
-    }
-
-    clearVelocity();
-
-    scaled = killed + windDir * element;
-
-    changeAnimation("向かい風走り");
-    _350 += scaled;
-    _1C._15 = 1;
+    push(scaled);
 }
 
 // ---- MarioFaint.cpp ----
@@ -15893,8 +15889,9 @@ void Mario::decideOnIceAnimation() {
 }
 
 
+// NONMATCHING: equivalent early-exit branch orientation and register allocation.
 void Mario::updateOnSand() {
-    if (mMovementStates._1F) {
+    if (mMovementStates._1F || mCometFireDanceArea) {
         return;
     }
 
@@ -15937,16 +15934,20 @@ void Mario::updateOnSand() {
                     playSound("砂沈み");
                 }
             } else {
-                mActor->forceGameOverSink();
+                mActor->fn_803BAFE0();
                 return;
             }
 
             if (!isAnimationRun(nullptr)) {
-                getAnimator()->getXanimePlayer()->changeTrackAnimation(1, "埋まり歩行");
+                getAnimator()->changeTrackAnim(1, "埋まり歩行");
+            }
+        } else if (_960 == 32 || _A6C[0xF] != 0) {
+            if (mSinkTimer < 48) {
+                mSinkTimer++;
             }
         } else {
             if (mSinkTimer != 0 && !isAnimationRun(nullptr)) {
-                getAnimator()->getXanimePlayer()->changeTrackAnimation(1, "歩行");
+                getAnimator()->changeTrackAnim(1, "歩行");
             }
 
             mSinkTimer = 0;

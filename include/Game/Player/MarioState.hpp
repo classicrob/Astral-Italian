@@ -57,17 +57,17 @@ public:
 
     virtual void init() NO_INLINE {}
     virtual bool proc(u32);
-    virtual bool start();
-    virtual bool close();
-    virtual bool update();
+    virtual bool start() NO_INLINE { return true; }
+    virtual bool close() NO_INLINE { return true; }
+    virtual bool update() NO_INLINE { return true; }
     virtual bool notice() NO_INLINE { return false; }
     virtual bool keep() NO_INLINE { return true; }
     virtual bool postureCtrl(MtxPtr);
-    virtual void hitWall(const TVec3f&, HitSensor*);
-    virtual void hitPoly(const TVec3f&, HitSensor*);
+    virtual void hitWall(const TVec3f&, HitSensor*) NO_INLINE {}
+    virtual void hitPoly(const TVec3f&, HitSensor*) NO_INLINE {}
     virtual bool passRing(const HitSensor*);
     virtual f32 getBlurOffset() const;
-    virtual void draw3D() const;
+    virtual void draw3D() const NO_INLINE {}
 
     u32 getNoticedStatus() const;
 

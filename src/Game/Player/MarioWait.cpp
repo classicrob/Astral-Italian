@@ -176,6 +176,3 @@ MarioWait::MarioWait(MarioActor* pActor) : MarioState(pActor, MarioStatus_Wait) 
     _14 = 0;
 }
 
-void MarioState::hitPoly(const TVec3f&, HitSensor*) {
-}
-

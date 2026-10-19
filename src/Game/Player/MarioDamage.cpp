@@ -29,6 +29,13 @@
 
 
 
+namespace {
+    const char sDamageAirAnimation[] = "中ダメージ空中";
+    const char sDamageLandAnimation[] = "中ダメージ着地";
+    const char sBackDamageAirAnimation[] = "中後ダメージ空中";
+    const char sBackDamageLandAnimation[] = "中後ダメージ着地";
+}
+
 void MarioDamage_FORCE_MATCH_SDATA2() {
     (void)10.0f;
     (void)5.0f;
@@ -49,29 +56,26 @@ MarioDamage::MarioDamage(MarioActor* pActor)
     _44 = 0;
 }
 
+// NONMATCHING: read-only animation array base hoisting and register scheduling differ.
 bool MarioDamage::start() {
     _14 = 0;
     _18 = 0;
     if (_30) {
         _1C = _34;
         f32 mag = _34.length();
-        TVec3f gravity(getAirGravityVec());
-        gravity.scale(mag);
-        TVec3f gravity2(gravity);
-        gravity2.scale(0.75f);
-        _1C.sub(gravity2);
+        _1C.sub(getAirGravityVec().scaleInline(mag).scaleInline(0.75f));
         _1C.setLength(7.0f);
     }
 
     if (_1C.dot(getPlayer()->mFrontVec) > 0.0f) {
         changeAnimationNonStop("中後ダメージ");
-        _28 = "中後ダメージ空中";
-        _2C = "中後ダメージ着地";
+        _28 = sBackDamageAirAnimation;
+        _2C = sBackDamageLandAnimation;
         getPlayer()->setFrontVecKeepUp(_1C);
     } else {
         changeAnimationNonStop("中ダメージ");
-        _28 = "中ダメージ空中";
-        _2C = "中ダメージ着地";
+        _28 = sDamageAirAnimation;
+        _2C = sDamageLandAnimation;
         getPlayer()->setFrontVecKeepUp(-_1C);
     }
 
@@ -131,9 +135,9 @@ void MarioDamage::setVecSize(f32 horizontal, f32 vertical) {
 void MarioDamage::stopHead(const TVec3f& rNormal) {
     if (!_18) {
         TVec3f horizontal;
-        f32 verticalSpeed = MR::vecKillElement(_1C, mActor->_240, &horizontal);
+        f32 verticalSpeed = MR::vecKillElement(_1C, mActor->mAppliedGravityVec, &horizontal);
         f32 towardWall = MR::vecKillElement(horizontal, rNormal, &_1C);
-        _1C += mActor->_240 * verticalSpeed;
+        _1C += mActor->mAppliedGravityVec * verticalSpeed;
         if (towardWall < 0.0f) {
             _1C += rNormal * -towardWall * 0.5f;
         }
@@ -350,6 +354,7 @@ bool MarioAbyssDamage::start() {
     return false;
 }
 
+// NONMATCHING: the target omits setup of the ignored addTrans debug tag.
 bool MarioAbyssDamage::update() {
     Mario* player = getPlayer();
     player->addTrans(_18, "Module");
@@ -426,6 +431,7 @@ bool MarioFireRun::move() {
     return true;
 }
 
+// NONMATCHING: timer/table temporary registers and literal labels differ.
 bool MarioFireRun::update() {
     switch (_14) {
     case 0:
@@ -437,7 +443,7 @@ bool MarioFireRun::update() {
                 _18 = 50.0f;
             }
 
-            const TVec3f& velocity = mActor->_288;
+            const TVec3f& velocity = mActor->mBinderDirection5DC;
             if (velocity.dot(getAirGravityVec()) < -10.0f) {
                 _18 = 0.0f;
                 addVelocity(getFrontVec() * 5.0f);
@@ -487,7 +493,7 @@ bool MarioFireRun::update() {
                 _18 = 50.0f;
             }
 
-            const TVec3f& velocity = mActor->_288;
+            const TVec3f& velocity = mActor->mBinderDirection5DC;
             if (velocity.dot(getAirGravityVec()) < -10.0f) {
                 _18 = 0.0f;
                 addVelocity(getFrontVec() * 5.0f);

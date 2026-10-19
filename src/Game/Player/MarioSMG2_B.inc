@@ -95,7 +95,7 @@ void fn_803B21D0(const MarioRotationMatrix* matrix, TQuat4f& rDest) {
 void Mario::fn_803B3010() {
     this->mMovementStates.mLowWord &= 0xFFFFFBFF;
     this->mMovementStates.mHighWord &= 0xFFFFFFBF;
-    (*reinterpret_cast<s32**>(reinterpret_cast<u8*>(this) + 0x478))[1] = -1;
+    this->_47C->mIdx = -1;
     this->_4E0 = 0.0f;
 }
 
@@ -210,7 +210,7 @@ f32 Mario::fn_803B1BA0() {
 bool Mario::fn_803B1C10() {
     bool ret = false;
     bool yoshi = false;
-    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
+    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), offsetof(Yoshi, mDashTimer)) > 0) {
         yoshi = true;
     }
     if (yoshi && this->isAnimationRun("基本")) {
@@ -237,7 +237,7 @@ f32 Mario::fn_803B1D00() {
 bool Mario::fn_803B1D60() {
     bool ret = false;
     bool yoshi = false;
-    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
+    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), offsetof(Yoshi, mDashTimer)) > 0) {
         yoshi = true;
     }
     if (yoshi && !(this->getPlayer()->mFlags14.mHighWord >> 21 & 1)) {
@@ -412,7 +412,7 @@ bool Mario::fn_803A4210() {
 }
 
 void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {
-    if (FLD<u32>(this->mActor, 0x6C) != 0) {
+    if (this->mActor->mSoundHolder != 0) {
         MR::startBas(this->mActor, pName, loop, startFrame, speed, false);
         this->_970 = pName;
     }
@@ -1200,18 +1200,18 @@ f32 Mario::fn_803B2CC0(TVec3f* arg1) {
         return 1.0f;
     }
     if (arg1->dot(this->mHeadVec) < 0.0f) {
-        u16 t = FLD<u16>(this->mActor, 0x664);
+        u16 t = this->mActor->_334;
         if (t != 0) {
             f32 t3 = (f32)t / 15.0f;
-            return t3 * FLD<f32>(marioCurTableEntry(this), 0x7BC) + (1.0f - t3) * FLD<f32>(marioCurTableEntry(this), 0x7B8);
+            return t3 * marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityM + (1.0f - t3) * marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityL;
         }
-        return FLD<f32>(marioCurTableEntry(this), 0x7B8);
+        return marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityL;
     }
     if (arg1->dot(this->mHeadVec) < 0.99f) {
-        return FLD<f32>(marioCurTableEntry(this), 0x7BC);
+        return marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityM;
     }
     if (this->mTargetWalkSpeedIndex <= 2) {
-        return FLD<f32>(marioCurTableEntry(this), 0x7C0);
+        return marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityS;
     }
     return 1.0f;
 }

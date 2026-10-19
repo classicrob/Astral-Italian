@@ -83,6 +83,7 @@
 #include <JSystem/JParticle/JPAEmitter.hpp>
 #include <JSystem/JParticle/JPAMath.hpp>
 #include <cstdio>
+#include <cstddef>
 #include "Game/Player/MarioModule.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include "Game/MapObj/DashRing.hpp"

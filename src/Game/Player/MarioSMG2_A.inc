@@ -1,5 +1,5 @@
 // SMG2-only Mario:: functions (fn_ range A), written from the asm. Included at the end of Mario.cpp (unity TU).
-// PLACEHOLDER(enemies): FLD<T>(self, off) typed access to a Mario field by its SMG2 byte offset where the header name is unknown; resolve when the Mario layout is recovered and the fields are named
+// PLACEHOLDER(astra): dynamic table index bounds remain unproved; Yoshi views use canonical member offsets.
 template <typename T, typename P>
 inline T& FLD(P* p, u32 off) { return *reinterpret_cast<T*>(reinterpret_cast<u8*>(const_cast<void*>(static_cast<const void*>(p))) + off); }
 
@@ -295,7 +295,7 @@ void Mario::fn_803A1FC0() {
 }
 
 void Mario::fn_803A2690(f32* p) {
-    if (FLD<u8>(this->mActor, 0xECD) != 0) {
+    if (this->mActor->mBeeWallWalk != 0) {
         if (*p > 0.1f) {
             *p = 0.1f;
         }
@@ -444,7 +444,7 @@ void Mario::fn_8039A020() {
 
 void Mario::fn_8039A090() {
     if (this->checkTrgA() || this->mActor->fn_803BE0C0() != nullptr) {
-        this->_558 = FLD<u32>(this->mActor, 0x6AC);
+        this->_558 = this->mActor->_37C;
         if (this->isEnableFutureJump()) {
             this->mMovementStates.mHighWord |= 0x80;
         }
@@ -532,12 +532,12 @@ f32 Mario::fn_803A1DB0() {
 #pragma dont_inline reset
 
 void Mario::fn_803A11A0(TVec3f* arg) {
-    f32 sp12 = FLD<f32>(this, 0x1C0);
-    f32 sp8 = FLD<f32>(this, 0x1C4);
-    if (!(FLD<u32>(this->getPlayer(), 0x14) & 0x4000)) {
+    f32 sp12 = this->mStickPos.x;
+    f32 sp8 = this->mStickPos.y;
+    if (!(this->getPlayer()->mFlags14.mLowWord & 0x4000)) {
         this->fn_803A1240(&sp12, &sp8);
         this->calcMoveDir(sp12, sp8, arg, true);
-        this->calcShadowDir(*arg, &FLD<TVec3f>(this, 0x22C));
+        this->calcShadowDir(*arg, &this->_22C);
     }
 }
 
@@ -546,8 +546,8 @@ bool Mario::fn_80394550(const TVec3f* arg) {
         if (this->isStatusActive(6)) {
             this->mSwim->fn_803F7C00();
         } else {
-            void* e = marioCurTableEntry(this);
-            this->mDamage->setVecSize(FLD<f32>(e, 0x170), FLD<f32>(e, 0x16C));
+            MarioConstTable* e = marioCurTableEntry(this);
+            this->mDamage->setVecSize(e->mJumpDistLargeDamage, e->mJumpHeightLargeDamage);
             this->playSound("投げられ", -1);
         }
         return true;
@@ -595,10 +595,10 @@ bool Mario::fn_803A1050() {
 }
 
 void Mario::fn_803A0D90(TVec3f* arg) {
-    if (MR::isNearZero(FLD<TVec3f>(this, 0x328), 0.001f)) {
-        FLD<TVec3f>(this, 0x328) = this->mFrontVec;
-        *arg = FLD<TVec3f>(this, 0x328);
-        this->calcShadowDir(FLD<TVec3f>(this, 0x328), &FLD<TVec3f>(this, 0x22C));
+    if (MR::isNearZero(this->_328, 0.001f)) {
+        this->_328 = this->mFrontVec;
+        *arg = this->_328;
+        this->calcShadowDir(this->_328, &this->_22C);
         this->_40C = 10;
     }
 }
@@ -663,17 +663,17 @@ f32 Mario::fn_8039ADC0() {
 }
 
 void Mario::fn_803A27A0(TVec3f* arg) {
-    if (MR::diffAngleAbs(this->mFrontVec, FLD<TVec3f>(this, 0x22C)) < 2.5f) {
+    if (MR::diffAngleAbs(this->mFrontVec, this->_22C) < 2.5f) {
         return;
     }
-    if (this->_3D4 != FLD<u16>(marioCurTableEntry(this), 0x2E6)) {
+    if (this->_3D4 != marioCurTableEntry(this)->mWeakTurnTime) {
         return;
     }
     if ((this->mDrawStates.mWord >> 18) & 1) {
         return;
     }
     TVec3f sp8;
-    PSVECCrossProduct(&FLD<TVec3f>(this, 0x214), arg, &sp8);
+    PSVECCrossProduct(&this->_214, arg, &sp8);
     f32 d = sp8.dot(this->mHeadVec);
     this->_274 = d > 0.0f;
     this->mFlags14.mLowWord |= 0x80000;
@@ -715,10 +715,10 @@ bool Mario::fn_8039A100() {
 }
 
 void Mario::fn_803A10D0(s32 arg) {
-    void* e = marioCurTableEntry(this);
-    u32 dur = FLD<u8>(this->mActor, 0xECD) == 0 ? 30 : FLD<u16>(e, 0x2E4);
+    MarioConstTable* e = marioCurTableEntry(this);
+    u32 dur = this->mActor->mBeeWallWalk == 0 ? 30 : e->mStandingTurnTime;
     if (arg == 0) {
-        this->setFrontVecKeepUp(FLD<TVec3f>(this, 0x22C), dur);
+        this->setFrontVecKeepUp(this->_22C, dur);
         if (this->isEnableTurn()) {
             this->changeAnimation("その場足踏み", (const char*)nullptr);
             if (!this->isAnimationRun("カリカリ限界") && !this->isPlayerModeYoshi()) {
@@ -730,16 +730,16 @@ void Mario::fn_803A10D0(s32 arg) {
 
 void Mario::fn_803A1C90() {
     TVec3f sp8;
-    PSVECCrossProduct(&FLD<TVec3f>(this, 0x214), &FLD<TVec3f>(this, 0x22C), &sp8);
-    if (sp8.dot(FLD<TVec3f>(this, 0x3D8)) < 0.0f) {
+    PSVECCrossProduct(&this->_214, &this->_22C, &sp8);
+    if (sp8.dot(this->_3D8) < 0.0f) {
         if (!this->fn_803A19C0()) {
-            if (!(FLD<TVec3f>(this, 0x214).dot(FLD<TVec3f>(this, 0x22C)) < 0.0f)) {
+            if (!(this->_214.dot(this->_22C) < 0.0f)) {
                 this->_3D4 = 0;
             }
         }
     } else {
         u16 v = this->_3D4;
-        if (v < FLD<u16>(marioCurTableEntry(this), 0x2E6)) {
+        if (v < marioCurTableEntry(this)->mWeakTurnTime) {
             this->_3D4 = v + 1;
             this->fn_803A1D60();
         }
@@ -756,8 +756,8 @@ bool Mario::fn_803A1920() {
 void Mario::fn_803A20E0(f32 rate, s32 arg) {
     if (this->_3D0 == 0) {
         TVec3f sp8;
-        if (!MR::vecBlendSphere(&sp8, FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), rate)) {
-            MR::vecRotAxis(FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), this->mHeadVec, &sp8, 0.3926991f);
+        if (!MR::vecBlendSphere(&sp8, this->_214, this->_22C, rate)) {
+            MR::vecRotAxis(this->_214, this->_22C, this->mHeadVec, &sp8, 0.3926991f);
         }
         if (arg == 0) {
             this->setFrontVecKeepUp(sp8);
@@ -773,10 +773,10 @@ void Mario::fn_803A1BB0() {
     }
     this->mFlags14.mLowWord &= 0xFFF7FFFF;
     this->mMovementStates.mLowWord &= 0xEFFFFFFF;
-    f32 d = MR::diffAngleAbs(FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C));
+    f32 d = MR::diffAngleAbs(this->_214, this->_22C);
     if (MR::isInRange(d, 0.0f, 0.707f)) {
         TVec3f s;
-        PSVECCrossProduct(&FLD<TVec3f>(this, 0x214), &FLD<TVec3f>(this, 0x22C), &s);
+        PSVECCrossProduct(&this->_214, &this->_22C, &s);
         if (this->_274 == 0) {
             if (s.dot(this->mHeadVec) < 0.0f) {
                 this->mFlags14.mLowWord &= 0xFFF7FFFF;
@@ -822,12 +822,12 @@ void Mario::fn_803A1240(f32* a, f32* b) {
 
 
 s32 Mario::fn_803A1E60(f32 f) {
-    void* e = marioCurTableEntry(this);
-    f32 v = JMACosRadian(FLD<f32>(e, 0x2C0));
+    MarioConstTable* e = marioCurTableEntry(this);
+    f32 v = JMACosRadian(e->mTurnSlipAngle);
     s32 r31 = 0;
     if (f < v && !((this->mMovementStates.mLowWord >> 26) & 1)) {
-        if (this->mWalkSpeed > FLD<f32>(e, 0x2C8)) {
-            if (this->_38 > FLD<f32>(this, 0x1C8)) {
+        if (this->mWalkSpeed > e->mTurnSlipNeutral) {
+            if (this->_38 > this->mStickPos.z) {
                 if (!((this->mDrawStates.mWord >> 18) & 1)) {
                     r31 = 1;
                 }
@@ -846,10 +846,10 @@ void Mario::fn_803A1FF0(f32 x, s32 arg) {
     } else {
         this->fn_803A1E40();
         if (this->_3D4 == 0) {
-            FLD<TVec3f>(this, 0x244).zero();
-            PSVECCrossProduct(&FLD<TVec3f>(this, 0x214), &FLD<TVec3f>(this, 0x22C), &FLD<TVec3f>(this, 0x3D8));
+            this->_244.zero();
+            PSVECCrossProduct(&this->_214, &this->_22C, &this->_3D8);
             x *= 0.01f;
-            FLD<TVec3f>(this, 0x238) = FLD<TVec3f>(this, 0x22C);
+            this->_238 = this->_22C;
             f32 k = 0.3f;
             if ((this->mDrawStates.mWord >> 18) & 1) {
                 if (this->fn_803A2270()) {
@@ -891,7 +891,7 @@ void Mario::fn_803A22D0(f32 x, s32 arg) {
     } else if ((this->mFlags14.mLowWord >> 13) & 1) {
         this->fn_803A24C0(&sp8);
     } else {
-        f32 d = MR::diffAngleAbs(this->mFrontVec, FLD<TVec3f>(this, 0x22C));
+        f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);
         if (d < 0.1f) {
             this->fn_803A2530(&sp8);
         } else {
@@ -907,10 +907,10 @@ void Mario::fn_803A22D0(f32 x, s32 arg) {
 }
 
 void Mario::fn_803A2570(f32 x, TVec3f* arg) {
-    f32 d = MR::diffAngleAbs(this->mFrontVec, FLD<TVec3f>(this, 0x22C));
+    f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);
     f32 s = MR::clamp(x / d, 0.0f, 1.0f);
     this->fn_803A2690(&s);
-    if ((FLD<u32>(this->getPlayer(), 0x14) >> 13) & 1) {
+    if ((this->getPlayer()->mFlags14.mLowWord >> 13) & 1) {
         s *= this->fn_803A26C0(d);
     }
     if (this->isPlayerModeYoshi()) {
@@ -918,9 +918,9 @@ void Mario::fn_803A2570(f32 x, TVec3f* arg) {
             s *= 0.5f;
         }
     }
-    if (!MR::vecBlendSphere(arg, this->mFrontVec, FLD<TVec3f>(this, 0x22C), s)) {
+    if (!MR::vecBlendSphere(arg, this->mFrontVec, this->_22C, s)) {
         this->_3D4 = 0;
-        MR::vecRotAxis(FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), this->mHeadVec, arg, 0.3926991f);
+        MR::vecRotAxis(this->_214, this->_22C, this->mHeadVec, arg, 0.3926991f);
     }
 }
 
@@ -933,7 +933,7 @@ void Mario::fn_803A28D0(TVec3f* arg) {
             const TVec3f* n = this->mFrontWallTriangle->getNormal(0);
             if (this->mVelocity.dot(*n) < 0.0f) {
                 TVec3f sp20(this->mPosHolder->mPos);
-                sp20 -= FLD<TVec3f>(this, 0x4E4);
+                sp20 -= this->_4E8;
                 TVec3f sp56;
                 MR::vecKillElement(sp20, *n, &sp56);
                 MR::vecKillElement(sp56, *this->getGravityVec(), &sp56);
@@ -948,9 +948,9 @@ void Mario::fn_803A28D0(TVec3f* arg) {
                     f32 m2 = PSVECMag(&sp44);
                     MR::normalizeOrZero(&sp44);
                     TVec3f sp32;
-                    PSVECCrossProduct(&FLD<TVec3f>(this, 0x368), &sp44, &sp32);
+                    PSVECCrossProduct(&this->_368, &sp44, &sp32);
                     MR::normalizeOrZero(&sp32);
-                    PSVECCrossProduct(&sp32, &FLD<TVec3f>(this, 0x368), &sp44);
+                    PSVECCrossProduct(&sp32, &this->_368, &sp44);
                     sp44.setLength(m2);
                     this->mVelocity = sp44;
                 }
@@ -1134,16 +1134,16 @@ void Mario::fn_8039A1C0() {
 // NONMATCHING: the target-speed and sound branches are approximated
 void Mario::fn_803A0ED0(TVec3f* arg1, s32 arg2) {
     if (this->fn_803A0FF0()) {
-        *arg1 = FLD<TVec3f>(this, 0x328);
+        *arg1 = this->_328;
     }
-    this->calcMoveDir(this->mStickPos.x, FLD<f32>(this, 0x1C4), arg1, true);
-    this->calcShadowDir(*arg1, &FLD<TVec3f>(this, 0x22C));
-    this->calcShadowDir(this->mFrontVec, &FLD<TVec3f>(this, 0x214));
+    this->calcMoveDir(this->mStickPos.x, this->mStickPos.y, arg1, true);
+    this->calcShadowDir(*arg1, &this->_22C);
+    this->calcShadowDir(this->mFrontVec, &this->_214);
     if (this->fn_803A1050()) {
         this->fn_803A10D0(arg2);
     }
     if (arg2 == 0) {
-        this->setFrontVecKeepUp(FLD<TVec3f>(this, 0x22C));
+        this->setFrontVecKeepUp(this->_22C);
     }
     if (this->isAnimationRun("食べる") || this->isAnimationRun("噛む") || this->isAnimationRun("飲み下す")) {
         this->stopAnimation((const char*)nullptr, (const char*)nullptr);
@@ -1196,7 +1196,7 @@ void Mario::fn_8039A480() {
                 this->cancelTornadoJump();
                 this->playEffect("スピンライト消去");
                 if (this->getPlayerMode() != 4) {
-                    this->_402 = FLD<u16>(marioCurTableEntry(this), 0xD8);
+                    this->_402 = marioCurTableEntry(this)->mAirWalkTime;
                 }
             }
         }
@@ -1216,11 +1216,11 @@ void Mario::fn_803882A0() {
         for (u32 i = 0; i < this->_578; i++) {
             Triangle* tri = this->_57C[i];
             TVec3f clipped;
-            if (MR::vecKillElement(FLD<TVec3f>(this, 0x160), *tri->getNormal(0), &clipped) < 0.0f) {
-                FLD<TVec3f>(this, 0x160) = clipped;
+            if (MR::vecKillElement(this->mVelocity, *tri->getNormal(0), &clipped) < 0.0f) {
+                this->mVelocity = clipped;
                 if (!((this->mFlags20.mWord >> 18) & 1)) {
                     TVec3f projected;
-                    f32 depth = MR::vecKillElement(FLD<TVec3f>(this, 0x2D4), *tri->getNormal(0), &projected);
+                    f32 depth = MR::vecKillElement(this->mJumpVec, *tri->getNormal(0), &projected);
                     if (depth <= 0.0f) {
                         TVec3f normal(*tri->getNormal(0));
                         normal *= depth;
@@ -1228,22 +1228,22 @@ void Mario::fn_803882A0() {
                         half *= 0.5f;
                         TVec3f result(projected);
                         result += half;
-                        FLD<TVec3f>(this, 0x2D4) = result;
+                        this->mJumpVec = result;
                     }
-                } else if (MR::diffAngleAbs(*getGravityVec(), FLD<TVec3f>(this, 0x2D4)) < 0.10471976f) {
+                } else if (MR::diffAngleAbs(*getGravityVec(), this->mJumpVec) < 0.10471976f) {
                     TVec3f tangent;
                     MR::vecKillElement(*tri->getNormal(0), *getGravityVec(), &tangent);
-                    f32 length = PSVECMag(&FLD<TVec3f>(this, 0x2D4));
+                    f32 length = PSVECMag(&this->mJumpVec);
                     MR::normalizeOrZero(&tangent);
-                    FLD<TVec3f>(this, 0x2D4) += tangent;
-                    FLD<TVec3f>(this, 0x2D4).setLength(length);
+                    this->mJumpVec += tangent;
+                    this->mJumpVec.setLength(length);
                 }
                 if (rising) {
                     if (tri->getNormal(0)->dot(*getGravityVec()) > 0.707f) {
                         mActor->sendMsgUpperPunch(tri->mSensor);
                     }
                 }
-                if (isPlayerModeBee() && FLD<u8>(mActor, 0xECD) == 0) {
+                if (isPlayerModeBee() && mActor->mBeeWallWalk == 0) {
                     const char* code = MR::getWallCodeString(tri);
                     if (code && strcmp(code, "Fur") == 0) {
                         Triangle hitTriangle;
@@ -1251,7 +1251,7 @@ void Mario::fn_803882A0() {
                         TVec3f ray(negativeNormal);
                         ray *= 300.0f;
                         TVec3f hitPos;
-                        const TVec3f& origin = FLD<TVec3f>(mActor, 0x5F4);
+                        const TVec3f& origin = mActor->_240;
                         bool hit;
                         if (fn_803B2950()) {
                             hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &hitTriangle, origin, ray);
@@ -1368,8 +1368,8 @@ void Mario::fn_80388DB0() {
         }
         this->fn_803A7540();
         if (this->getPlayerMode() != 6 && ((this->mMovementStates.mLowWord >> 23) & 1) && this->mFrontWallTriangle->isValid() &&
-            this->mFrontWallTriangle->getNormal(0)->dot(FLD<TVec3f>(this, 0x160)) < 0.0f) {
-            MR::vecKillElement(FLD<TVec3f>(this, 0x160), *this->mFrontWallTriangle->getNormal(0), &FLD<TVec3f>(this, 0x160));
+            this->mFrontWallTriangle->getNormal(0)->dot(this->mVelocity) < 0.0f) {
+            MR::vecKillElement(this->mVelocity, *this->mFrontWallTriangle->getNormal(0), &this->mVelocity);
         }
         if (this->mActor->fn_803B9840() != 0) {
             this->mActor->fn_803B9830()->fn_8041BBB0();
@@ -1558,7 +1558,7 @@ void Mario::fn_8039A2A0() {
         sp8 *= g;
         TVec3f sp14(sp8);
         sp14 *= f31;
-        FLD<TVec3f>(this, 0x2D4) += sp14;
+        this->mJumpVec += sp14;
     }
 }
 
@@ -1750,7 +1750,7 @@ void Mario::fn_803A0BE0() {
         } else {
             this->fn_803A11A0(&spC);
         }
-        this->calcShadowDir(this->mFrontVec, &FLD<TVec3f>(this, 0x214));
+        this->calcShadowDir(this->mFrontVec, &this->_214);
         this->fn_803A1330(&sp8);
         this->fn_803A1600(&sp8);
         f32 rate = this->fn_803A1800();
@@ -1769,10 +1769,10 @@ void Mario::fn_803A2A70() {
     MarioConst* constants = mActor->mConst;
     f32 speed = constants->mTable[constants->mCurrentTable]->mWalkSpeed;
     if ((this->mMovementStates.mHighWord >> 11) & 1) {
-        TVec3f front(FLD<TVec3f>(this, 0x208));
-        TVec3f direction(FLD<TVec3f>(this, 0x208));
-        if (!MR::isNearZero(FLD<TVec3f>(this, 0x16C), 0.001f)) {
-            direction = FLD<TVec3f>(this, 0x16C);
+        TVec3f front(this->mFrontVec);
+        TVec3f direction(this->mFrontVec);
+        if (!MR::isNearZero(this->_16C, 0.001f)) {
+            direction = this->_16C;
         }
         MR::normalize(&direction);
         constants = mActor->mConst;
@@ -1786,7 +1786,7 @@ void Mario::fn_803A2A70() {
     }
     if ((this->mDrawStates.mWord >> 26) & 1) {
         f32 walkSpeed = mWalkSpeed;
-        TVec3f direction(FLD<TVec3f>(this, 0x22C));
+        TVec3f direction(this->_22C);
         direction *= speed;
         TVec3f scaled(direction);
         scaled *= walkSpeed;
@@ -1794,7 +1794,7 @@ void Mario::fn_803A2A70() {
         return;
     }
     f32 walkSpeed = mWalkSpeed;
-    TVec3f direction(FLD<TVec3f>(this, 0x208));
+    TVec3f direction(this->mFrontVec);
     direction *= speed;
     TVec3f scaled(direction);
     scaled *= walkSpeed;
@@ -1806,7 +1806,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
     s32 var_r29 = arg1;
     s32 var_r28 = arg2;
     if (this->_430 == 4) {
-        TVec3f sp14(-FLD<TVec3f>(this, 0x220));
+        TVec3f sp14(-this->_220);
         this->setFrontVecKeepUp(sp14);
     }
     if (this->isAnimationRun("飛び込みジャンプ") || this->isAnimationRun("後方飛び込みジャンプ") || ((this->mFlags14.mLowWord >> 23) & 1)) {
@@ -1851,7 +1851,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
             if (!this->checkSquat(false)) {
                 this->cancelSquatMode();
             }
-            if (FLD<u32>(this->mActor, 0x750) == 0) {
+            if (this->mActor->_468 == 0) {
                 this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
             }
             this->changeAnimation("着地幅とび", "基本");
@@ -1896,7 +1896,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
             this->startCamVib(4);
             this->_3CE += 0x10;
         }
-        if (FLD<u8>(this->mActor, 0xECD) != 0) {
+        if (this->mActor->mBeeWallWalk != 0) {
             this->changeAnimation("ハチ匍匐着地", "基本");
         }
     } else {
@@ -2108,12 +2108,12 @@ void Mario::updateWalkSpeed() {
     MarioConst* constants;
     if (target == 0.0f) {
         constants = mActor->mConst;
-        _404 = FLD<u16>(constants->mTable[constants->mCurrentTable], 0x282);
+        _404 = constants->mTable[constants->mCurrentTable]->_282;
     }
     u16 remaining = _404;
     if (remaining != 0) {
         constants = mActor->mConst;
-        u16 duration = FLD<u16>(constants->mTable[constants->mCurrentTable], 0x282);
+        u16 duration = constants->mTable[constants->mCurrentTable]->_282;
         _404 = remaining - 1;
         ramp = static_cast<f32>(duration - remaining) / static_cast<f32>(duration);
     }
@@ -2158,7 +2158,7 @@ void Mario::updateWalkSpeed() {
         f32 speed = mWalkSpeed;
         if (speed >= 0.9999f) {
             constants = mActor->mConst;
-            target *= FLD<f32>(constants->mTable[constants->mCurrentTable], 0x274);
+            target *= constants->mTable[constants->mCurrentTable]->mCameraAngleLimit;
             if (target > speed) inertia = 0.99f;
             if (getPlayer()->mWalkSpeed >= 1.5f) getAnimator()->changeTrackAnim(2, "メタルダッシュ");
         } else getAnimator()->fn_803DEC10();
@@ -2191,7 +2191,7 @@ f32 Mario::decideInertia(f32 speed) {
     sInertiaName = "速度超過";
     if (mWalkSpeed > 1.0f) {
         MarioConst* c = mActor->mConst;
-        return FLD<f32>(c->mTable[c->mCurrentTable], 0x258);
+        return c->mTable[c->mCurrentTable]->mTurnAngleSpeed;
     }
     sInertiaName = "床";
     u32 flags = mMovementStates.mHighWord;
@@ -2200,61 +2200,61 @@ f32 Mario::decideInertia(f32 speed) {
     sInertiaName = "基本";
     MarioConst* c = mActor->mConst;
     MarioConstTable* table = c->mTable[c->mCurrentTable];
-    f32 base = (1.0f - mWalkSpeed) * FLD<f32>(table, 0x228) + mWalkSpeed * FLD<f32>(table, 0x22C);
-    f32 inertia = base * (1.0f - _3F4) + _3F4 * FLD<f32>(table, 0x254);
+    f32 base = (1.0f - mWalkSpeed) * table->mInertiaStandardStop + mWalkSpeed * table->mInertiaStandardMax;
+    f32 inertia = base * (1.0f - _3F4) + _3F4 * table->mInertiaOverSpeed;
     if (base != inertia) sInertiaName = "空転";
     if (speed == 0.0f) {
         sInertiaName = "停止";
         c = mActor->mConst;
-        inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x238);
+        inertia = c->mTable[c->mCurrentTable]->mInertiaStop;
         if ((mMovementStates.mLowWord >> 15) & 1) {
             sInertiaName = "ターン滑り";
             c = mActor->mConst;
-            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x240);
+            inertia = c->mTable[c->mCurrentTable]->mInertiaTurnSlip;
         }
         if (!((mMovementStates.mLowWord >> 15) & 1) && isAnimationRun("歩行制動ブレーキ")) {
             sInertiaName = "ターン後滑り";
             c = mActor->mConst;
-            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x244);
+            inertia = c->mTable[c->mCurrentTable]->mInertiaTurning;
         }
         if ((mMovementStates.mLowWord >> 27) & 1) {
             sInertiaName = "ターン中";
             c = mActor->mConst;
-            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x248);
+            inertia = c->mTable[c->mCurrentTable]->mInertiaJumpFinish;
         }
         if (_3CE < 30) {
             sInertiaName = "ジャンプ終了";
             c = mActor->mConst;
-            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x24C);
+            inertia = c->mTable[c->mCurrentTable]->mInertiaReflectSlip;
         }
         if ((mMovementStates.mLowWord >> 21) & 1) {
             sInertiaName = "しゃがみ";
             c = mActor->mConst;
-            inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x23C);
+            inertia = c->mTable[c->mCurrentTable]->mInertiaSquat;
         }
     }
     if ((mMovementStates.mLowWord >> 16) & 1) {
         sInertiaName = "トルネード";
         c = mActor->mConst;
-        if (mWalkSpeed >= speed) inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x3DC);
-        else inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x3D8);
+        if (mWalkSpeed >= speed) inertia = c->mTable[c->mCurrentTable]->mInertiaTornadoBrake;
+        else inertia = c->mTable[c->mCurrentTable]->mInertiaTornadoAccel;
     }
     if (_3F8 != 0) {
         sInertiaName = "反射";
         _3F8--;
         c = mActor->mConst;
-        inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x250);
+        inertia = c->mTable[c->mCurrentTable]->mInertiaStartSpin;
     }
     if (mWalkSpeed < 0.08f && _3CE > 10 && speed > 0.5f && (((mMovementStates.mLowWord >> 21) & 1) || ((mMovementStates.mLowWord >> 19) & 1))) {
         c = mActor->mConst;
-        _3FA = FLD<u16>(c->mTable[c->mCurrentTable], 0x27C);
+        _3FA = c->mTable[c->mCurrentTable]->mAutoBdashTime;
         mWalkSpeed = 0.08f;
     }
     if (_3FA != 0) {
         sInertiaName = "停止急発進";
         _3FA--;
         c = mActor->mConst;
-        inertia = FLD<f32>(c->mTable[c->mCurrentTable], 0x254);
+        inertia = c->mTable[c->mCurrentTable]->mInertiaOverSpeed;
         if (_3FA == 0) _3FC = 60;
     }
     if (_3FC != 0) _3FC--;
@@ -2302,10 +2302,10 @@ void Mario::fixHeadFrontVecByGravity() {
         }
         MarioConst* constants = mActor->mConst;
         MarioConstTable* table = constants->mTable[constants->mCurrentTable];
-        if (MR::diffAngleAbs(_43C, mFrontVec) < FLD<f32>(table, 0x79C)) setFrontVec(_43C);
+        if (MR::diffAngleAbs(_43C, mFrontVec) < table->mFrontAngleFixMargin) setFrontVec(_43C);
         constants = mActor->mConst;
         table = constants->mTable[constants->mCurrentTable];
-        if (MR::diffAngleAbs(mHeadVec, previousHead) < FLD<f32>(table, 0x798)) {
+        if (MR::diffAngleAbs(mHeadVec, previousHead) < table->mHeadAngleFixMargin) {
             mHeadVec = previousHead;
             MR::normalize(&mHeadVec);
         }

@@ -207,7 +207,7 @@ namespace {
         5.0f,
         -1,
         45,
-        -1,
+        0xFFFFFFFF,
         true,
         18.0f,
         0.5f,

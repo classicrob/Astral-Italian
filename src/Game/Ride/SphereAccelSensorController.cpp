@@ -44,6 +44,9 @@ SphereAccelSensorController::SphereAccelSensorController()
 }
 
 void SphereAccelSensorController::getPadAcceleration(TVec3f* pAccel) const {
+#ifdef GALAXY_NATIVE
+    PetariNative::Input::motionControlShown(PetariNative::Input::Steering::Ball);
+#endif
     if (mPad == Pad_Core) {
         MR::getCorePadAcceleration(pAccel, WPAD_CHAN0);
     } else {

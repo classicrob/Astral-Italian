@@ -32,6 +32,7 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
+#include "Game/Util/NativeActorObserve.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
@@ -357,6 +358,17 @@ void DinoPackun::control() {
     if (mSequence != nullptr) {
         mSequence->update();
     }
+#ifdef GALAXY_NATIVE
+    {
+        const s32 phase = mSequence != nullptr && mSequence->getVsCount() == 1
+                              ? static_cast< const DinoPackunVs1* >(mSequence)->nativeObservePhase()
+                              : 8;
+        const bool battle = phase == 1 || phase == 3 || phase == 5 || phase == 6;
+        TVec3f front;
+        MR::calcFrontVec(&front, this);
+        MR::Native::publishActor("DinoPiranha", mPosition, front, phase, battle ? PETARI_ACTOR_HOSTILE : 0u);
+    }
+#endif
 
     if (mAnimScaleCtrl != nullptr) {
         mAnimScaleCtrl->updateNerve();

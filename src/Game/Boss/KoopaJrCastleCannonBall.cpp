@@ -56,7 +56,7 @@ void KoopaJrCastleCannonBall::shoot(MtxPtr mtx, const f32& speed) {
 }
 
 // NONMATCHING: string-address registers and vector temporary stack placement
-void KoopaJrCastleCannonBall::exe800D1830() {
+void KoopaJrCastleCannonBall::exeMove() {
     const char* const reaction = "\x94\x6a\x89\xf3\x81\x69\x97\x5d\x89\x43\x82\xa0\x82\xe8\x81\x6a";
     const char* const effect = "BreakLong";
     if (MR::isFirstStep(this)) {

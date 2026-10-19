@@ -30,7 +30,7 @@ public:
     void exeDisappear();
 
     /* 0x090 */ ModelObj* mBlackHoleModel;
-    /* 0x094 */ TVec3f _90;
+    /* 0x094 */ TVec3f _94;  // never written after the ctor zero-init
     /* 0x0A0 */ f32 mModelScale;
     /* 0x0A4 */ f32 mSensorRadius;
     /* 0x0A8 */ TBox3f* mCubeBounds;

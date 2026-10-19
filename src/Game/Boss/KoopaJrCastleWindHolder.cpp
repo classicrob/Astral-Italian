@@ -117,7 +117,7 @@ void KoopaJrCastleWind::makeActorDead() {
     }
 }
 
-bool KoopaJrCastleWind::fn_800D9C40() {
+bool KoopaJrCastleWind::isBlowing() {
     bool ret = false;
     if ((isNerve(&NrvKoopaJrCastleWind::KoopaJrCastleWindNrvA::sInstance) && MR::isGreaterStep(this, 0x2B)) ||
         (isNerve(&NrvKoopaJrCastleWind::KoopaJrCastleWindNrvD::sInstance) && MR::isGreaterStep(this, 0x2B)) ||
@@ -127,7 +127,7 @@ bool KoopaJrCastleWind::fn_800D9C40() {
     return ret;
 }
 
-void KoopaJrCastleWind::exe800D9CF0() {
+void KoopaJrCastleWind::exeBlowStart() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mCastle->mBody, "BlowStart");
     }
@@ -136,7 +136,7 @@ void KoopaJrCastleWind::exe800D9CF0() {
     }
 }
 
-void KoopaJrCastleWind::exe800D9D60() {
+void KoopaJrCastleWind::exeVacuum() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mCastle->mBody, "Blow");
         MR::emitEffect(mCastle->mBody, "WindRingVacuum");
@@ -151,7 +151,7 @@ void KoopaJrCastleWind::exe800D9D60() {
     }
 }
 
-void KoopaJrCastleWind::exe800D9E20() {
+void KoopaJrCastleWind::exeBlowEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mCastle->mBody, "BlowEnd");
     }
@@ -164,7 +164,7 @@ void KoopaJrCastleWind::exe800D9E20() {
     }
 }
 
-void KoopaJrCastleWind::exe800D9EC0() {
+void KoopaJrCastleWind::exeBlow() {
     mPower = 1.6f;
     MR::emitEffect(mCastle->mBody, "WindRing");
     if (MR::isGreaterStep(this, 0x10E)) {

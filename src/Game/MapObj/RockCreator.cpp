@@ -22,7 +22,7 @@ void RockCreator::init(const JMapInfoIter& rIter) {
 
     MR::syncStageSwitchAppearAndSync(this, rIter);
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnA(this, MR::Functor(this, &RockCreator::invalidate));
     }
 

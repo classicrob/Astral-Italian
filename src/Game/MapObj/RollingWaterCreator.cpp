@@ -37,7 +37,7 @@ void RollingWaterCreator::init(const JMapInfoIter& rIter) {
     pFirst->makeActorDead();
     s32 count = pFirst->calcRailStepCount() / mInterval + 2;
 
-    mRollingWaterGroup = new LiveActorGroup("\x83\x53\x83\x8D\x90\x85\x8B\xCA\x83\x8A\x83\x58\x83\x67", count);
+    mRollingWaterGroup = new DeriveActorGroup<RollingWater>("\x83\x53\x83\x8D\x90\x85\x8B\xCA\x83\x8A\x83\x58\x83\x67", count);
     mRollingWaterGroup->registerActor(pFirst);
 
     for (s32 i = 0; i < count - 1; i++) {

@@ -337,7 +337,7 @@ bool SmallStone::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
 }
 
 bool SmallStone::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isMsgPlayerSpinAttack(msg)) {
+    if (!MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         return false;
     }
 

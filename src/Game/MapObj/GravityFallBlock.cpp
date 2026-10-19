@@ -8,27 +8,31 @@
 
 namespace NrvGravityFallBlock {
     NEW_NERVE(GravityFallBlockNrvWait, GravityFallBlock, Wait);
-    NEW_NERVE(GravityFallBlockNrvFall, GravityFallBlock, Fall);
-
     class GravityFallBlockNrvStartFall : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            GravityFallBlock* actor = reinterpret_cast< GravityFallBlock* >(pSpine->mExecutor);
-            if (MR::isGreaterStep(actor, 15)) {
-                actor->setNerve(&NrvGravityFallBlock::GravityFallBlockNrvFall::sInstance);
-            }
-        };
+        virtual void execute(Spine* pSpine) const;
 
         static GravityFallBlockNrvStartFall sInstance;
     };
     GravityFallBlockNrvStartFall GravityFallBlockNrvStartFall::sInstance ATTRIBUTE_WEAK;
+
+    NEW_NERVE(GravityFallBlockNrvFall, GravityFallBlock, Fall);
+
+    inline void GravityFallBlockNrvStartFall::execute(Spine* pSpine) const {
+        GravityFallBlock* actor = reinterpret_cast< GravityFallBlock* >(pSpine->mExecutor);
+        if (MR::isGreaterStep(actor, 15)) {
+            actor->setNerve(&NrvGravityFallBlock::GravityFallBlockNrvFall::sInstance);
+        }
+    }
 
     NEW_NERVE(GravityFallBlockNrvBreak, GravityFallBlock, Break);
 };  // namespace NrvGravityFallBlock
 
 GravityFallBlock::GravityFallBlock(const char* pName) : LiveActor(pName) {
     mBreakModel = nullptr;
-    mBasePos.zero();
+    mBasePos.x = 0.0f;
+    mBasePos.y = 0.0f;
+    mBasePos.z = 0.0f;
     mUpDir.set(0.0f, 1.0f, 0.0f);
 }
 

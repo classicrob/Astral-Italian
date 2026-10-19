@@ -12,7 +12,7 @@
 
 ClipFieldFillDraw::ClipFieldFillDraw(const char* pName)
     : NameObj(pName), mFillBlendMode(GX_BM_BLEND), mFillSrcFactor(GX_BL_SRCALPHA), mFillDstFactor(GX_BL_ONE), mFillLogicOp(GX_LO_NOOP),
-      _1C(255, 230, 80, 200), _20(255, 255, 255, 255), _24(), _25() {
+      mFillColor(255, 230, 80, 200), _20(255, 255, 255, 255), mIsVolumeDraw(), _25() {
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_ClipFieldFillDraw);
     MR::createScreenAlphaSceneObj(2, 1.0f);
 }
@@ -107,7 +107,7 @@ void ClipFieldFillDraw::sendFillScreen(GXColor color) const {
 void ClipFieldFillDraw::draw() const {
     MR::loadScreenAlphaTexture(2, GX_TEXMAP0);
     setUpFillScreen();
-    sendFillScreen(_1C);
+    sendFillScreen(mFillColor);
     MR::loadViewMtx();
     MR::loadProjectionMtx();
     GXSetZScaleOffset(1.0f, 0.0f);
@@ -117,7 +117,7 @@ void ClipFieldFillDraw::draw() const {
     GXSetAlphaUpdate(GX_FALSE);
     GXSetColorUpdate(GX_TRUE);
 
-    if (_24) {
+    if (mIsVolumeDraw) {
         TDDraw::setup(0, 1, 0);
         GXSetCullMode(GX_CULL_FRONT);
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
@@ -134,9 +134,9 @@ namespace MR {
 
         clipFieldFillDraw = static_cast< ClipFieldFillDraw* >(createClipFieldFillDraw(pParam1));
         clipFieldFillDraw->_25 = false;
-        clipFieldFillDraw->_24 = false;
+        clipFieldFillDraw->mIsVolumeDraw = false;
         clipFieldFillDraw->setModeSubColor();
-        clipFieldFillDraw->_1C = static_cast< u32 >(Color8(70, 35, 11, 80));
+        clipFieldFillDraw->mFillColor = static_cast< u32 >(Color8(70, 35, 11, 80));
         clipFieldFillDraw->_20 = static_cast< u32 >(Color8(255, 255, 128, 80));
 
         return clipFieldFillDraw;

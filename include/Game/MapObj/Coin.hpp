@@ -19,9 +19,9 @@ public:
     }
 
     /* 0x0 */ const NameObj* mHostActor;
-    /* 0x4 */ union { s32 mDeclaredCount; s32 _4; };  // Legacy CoinHolder alias.
-    /* 0x8 */ union { s32 mSpawnedCount; s32 _8; };  // Legacy CoinHolder alias.
-    /* 0xC */ union { u32 mCollectedCount; u32 _C; };  // Legacy CoinHolder alias.
+    /* 0x4 */ s32 mDeclaredCount;
+    /* 0x8 */ s32 mSpawnedCount;
+    /* 0xC */ u32 mCollectedCount;
 };
 
 class Coin : public LiveActor {

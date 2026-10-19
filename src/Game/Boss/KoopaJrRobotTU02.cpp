@@ -386,19 +386,19 @@ void KoopaJrRobotSeq::attackShootableKillers() {
     }
 }
 
-void KoopaJrRobotSeq::fn_800DC9C0() {
+void KoopaJrRobotSeq::startFastFrontLauncherShots() {
     setNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvD::sInstance);
 }
 
-void KoopaJrRobotSeq::fn_800DC9D0() {
+void KoopaJrRobotSeq::startRearLauncherSequence() {
     setNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvF::sInstance);
 }
 
-void KoopaJrRobotSeq::fn_800DC9E0() {
+void KoopaJrRobotSeq::startSlowFrontLauncherShots() {
     setNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvE::sInstance);
 }
 
-void KoopaJrRobotSeq::fn_800DC9F0() {
+void KoopaJrRobotSeq::stopLauncherSequence() {
     setNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvG::sInstance);
 }
 

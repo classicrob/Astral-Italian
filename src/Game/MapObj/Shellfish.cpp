@@ -121,8 +121,10 @@ void Shellfish::exeOpen() {
         mItem->mPosition.scaleAdd(speed, up, mItem->mPosition);
     }
 
-    if (MR::isStep(this, ::sStepToSetPosItem) && mIsItemBound) {
-        endBindItem();
+    if (MR::isStep(this, ::sStepToSetPosItem)) {
+        if (mIsItemBound) {
+            endBindItem();
+        }
         setNerve(GET_NERVE(Shellfish, ShellfishNrvOpenWait));
     }
 }

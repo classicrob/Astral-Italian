@@ -31,7 +31,7 @@ bool WaterPressure::shotBullet(f32 speed) {
     }
     TPos3f point;
     calcGunPointFromCannon(&point);
-    pBullet->shotWaterBullet(this, point, speed, !isShotTypeOnGravity(), false, mIsInvalidSpinKill, &mCameraInfo);
+    pBullet->shotWaterBullet(this, mParamScale, point, speed, !isShotTypeOnGravity(), false, mIsInvalidSpinKill, &mCameraInfo);
     return true;
 }
 

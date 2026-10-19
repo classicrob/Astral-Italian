@@ -1,3 +1,4 @@
+#define JGEOMETRY_QUAT_ASSIGN_NOINLINE
 #pragma auto_inline off
 
 #include "Game/MapObj/SuperSpinDriver.hpp"
@@ -39,11 +40,6 @@ namespace NrvSuperSpinDriver {
     NEW_NERVE(SuperSpinDriverNrvCoolDown, SuperSpinDriver, CoolDown);
 };  // namespace NrvSuperSpinDriver
 
-// Fix JGeometry inlining
-void SuperSpinDriver_DUMMY() {
-    TQuat4f e;
-    e = e;
-}
 
 SuperSpinDriver::SuperSpinDriver(const char* pName, s32 color)
     : LiveActor(pName), mBindActor(), mShootPath(), mSpinDriverCamera(), mPathDrawer(), mEmptyModel(), mTalkCtrl(), _A4(0, 0, 0, 1),
@@ -86,12 +82,12 @@ void SuperSpinDriver::init(const JMapInfoIter& rIter) {
     initColor();
     initEmptyModel();
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnA(this, MR::Functor(this, &SuperSpinDriver::requestActive));
         setNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvNonActive));
     }
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
         MR::listenStageSwitchOnOffB(this, MR::Functor(this, &SuperSpinDriver::requestShow), MR::Functor(this, &SuperSpinDriver::requestHide));
     }
 

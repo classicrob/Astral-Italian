@@ -32,7 +32,7 @@ void KoopaJrCastleStateOpening::appear() {
     setNerve(&KoopaJrCastleStateOpeningNrvA::sInstance);
 }
 
-void KoopaJrCastleStateOpening::exe800D6D80() {
+void KoopaJrCastleStateOpening::exeWaitSwitch() {
     hideBattlePartsUnlessDemo();
     showBattlePartsDuringDemo();
     if (MR::isOnSwitchA(mHost)) {
@@ -43,7 +43,7 @@ void KoopaJrCastleStateOpening::exe800D6D80() {
     }
 }
 
-void KoopaJrCastleStateOpening::exe800D6E00() {
+void KoopaJrCastleStateOpening::exeStartOpeningDemo() {
     if (MR::isFirstStep(this)) MR::stopStageBGM(10);
     if (tryStartDemo("\x83\x4e\x83\x62\x83\x70Jr\x83\x4c\x83\x83\x83\x62\x83\x58\x83\x8b\x93\x6f\x8f\xea", "DemoOpeningKoopaJrCastle")) {
         MR::endStartPosCamera();
@@ -53,7 +53,7 @@ void KoopaJrCastleStateOpening::exe800D6E00() {
     }
 }
 
-void KoopaJrCastleStateOpening::exe800D6E90() {
+void KoopaJrCastleStateOpening::exeOpeningDemo() {
     if (MR::isFirstStep(this)) startPartsDemoActions("DemoOpeningKoopaJrCastle");
     if (MR::isDemoPartFirstStep("\x83\x74\x83\x40\x83\x43\x83\x41\x83\x6f\x81\x5b\x8b\x4e\x93\xae")) {
         mHost->mBody->onFlagF6();

@@ -41,8 +41,7 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
         MR::initDefaultPos(this, rIter);
         MR::connectToSceneMapObj(this);
         initEffectKeeper(0, nullptr, false);
-        TVec3f soundOffset(0.0f);
-        initSound(4, nullptr, nullptr, soundOffset);
+        initSound(4, nullptr, nullptr, TVec3f(0.0f));
         MR::initMapPartsClipping(this, rIter, nullptr, false);
     }
     initHitSensor(1);

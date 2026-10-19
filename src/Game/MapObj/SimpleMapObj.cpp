@@ -127,7 +127,7 @@ void SimpleSeesawObj::init(const JMapInfoIter& rIter) {
     const char* sound_name = entry != nullptr ? entry->soundName : nullptr;
     entry = ::getSeParam(mObjectName);
     MapObjActorUtil::setupInitInfoSeesaw(&info, rIter, sound_name, entry != nullptr ? entry->_8 : 0.0f);
-    if (MR::isEqualString(mObjectName, "MagmaMonsterRotateSeasaw")) info.setupProjmapMtx(false, false);
+    if (MR::isEqualString(mObjectName, "MagmaMonsterRotateSeasaw")) MapObjActorUtil::setupProjmapMtx(&info, false, false);
     initialize(rIter, info);
     if (MR::isRegisteredEffect(this, sSeesawEffectName)) {
         _C4.set(getBaseMtx());

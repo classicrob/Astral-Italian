@@ -883,9 +883,9 @@ void CocoNut::exeWaitOnBind() {
         if (MR::isOnGround(this)) {
             statusToWait();
         }
-    }
 
-    MR::attachSupportTicoToTarget(this);
+        MR::attachSupportTicoToTarget(this);
+    }
 }
 
 void CocoNut::exeMove() {

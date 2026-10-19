@@ -61,8 +61,9 @@ bool BallOpener::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     if (msg == 0xA4 /* ACTMES_SPHERE_PLAYER_BINDED */) {
         f32 radiusSquared = MR::getSensorRadius(pReceiver) * MR::getSensorRadius(pReceiver);
 
+        const TVec3f* pSenderPos = MR::getSensorPos(pSender);
         TVec3f offset(*MR::getSensorPos(pReceiver));
-        offset -= *MR::getSensorPos(pSender);
+        offset -= *pSenderPos;
         TVec3f lateral;
         lateral.killElement2(offset, mHoleGravity);
 

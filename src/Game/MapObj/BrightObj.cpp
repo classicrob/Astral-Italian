@@ -163,8 +163,8 @@ void BrightObjBase::checkVisibilityOfSphere(u16 index, const BrightCamInfo& rCam
     TVec3f drawDir(rCamInfo.mCameraPos[index] - drawPos);
 
     if (MR::isNearZero(drawDir)) {
-        mIsNotVisible = true;
         mBrightness = 0.0f;
+        mIsNotVisible = true;
 
         return;
     }
@@ -259,11 +259,11 @@ void BrightObjBase::drawSphere(const TVec3f& rPos, float radius) const {
     GXSetDstAlpha(GX_FALSE, 0);
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
 
-    TDDraw::drawSphere(TVec3f(0, 0, 0), radius * 1.1f, 0xFF000000, 0x10);
+    TDDraw::drawSphere3D(TVec3f(0, 0, 0), radius * 1.1f, 0xFF000000, 0x10);
 
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
 
-    TDDraw::drawSphere(TVec3f(0, 0, 0), radius, 0x00FF00FF, 0x10);
+    TDDraw::drawSphere3D(TVec3f(0, 0, 0), radius, 0x00FF00FF, 0x10);
 
     GXSetColorUpdate(GX_TRUE);
     GXSetAlphaUpdate(GX_FALSE);

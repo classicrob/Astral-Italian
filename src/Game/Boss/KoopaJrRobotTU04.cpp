@@ -111,7 +111,7 @@ bool KoopaJrRobotStateAttack::tryTurnToPlayer() {
 void KoopaJrRobotStateAttack::exeAttackSearch() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "AttackA");
-        mHost->mSeq->fn_800DC9F0();
+        mHost->mSeq->stopLauncherSequence();
     }
     if (MR::isStep(this, 50)) {
         mHost->mSeq->startMagnumShot();
@@ -123,7 +123,7 @@ void KoopaJrRobotStateAttack::exeAttackSearch() {
 }
 
 // NONMATCHING: shared matrix-copy helper expansion and vector temporary stack/register allocation
-bool KoopaJrRobot::fn_800DEB50(const char* pJoint, const TVec3f& rOffset) {
+bool KoopaJrRobot::tryAttackMapSensorsAroundJoint(const char* pJoint, const TVec3f& rOffset) {
     f32 range = 600.0f;
     MtxPtr pJointMtx = MR::getJointMtx(this, pJoint);
     HitSensor* pBody = getSensor("Body");
@@ -163,12 +163,12 @@ bool KoopaJrRobot::fn_800DEB50(const char* pJoint, const TVec3f& rOffset) {
 void KoopaJrRobotStateAttack::exeAttackA() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, isNerve(&NrvKoopaJrRobotStateAttack::KoopaJrRobotStateAttackNrvAttackB::sInstance) ? "AttackB" : "AttackC");
-        mHost->mSeq->fn_800DC9F0();
+        mHost->mSeq->stopLauncherSequence();
         MR::onSwitchA(mHost);
     }
     if (MR::isStep(this, 140)) {
-        mHost->fn_800DEB50("HandL", sOffsetL);
-        mHost->fn_800DEB50("HandR", sOffsetR);
+        mHost->tryAttackMapSensorsAroundJoint("HandL", sOffsetL);
+        mHost->tryAttackMapSensorsAroundJoint("HandR", sOffsetR);
     }
     tryAppearFire();
     if (MR::isLessStep(this, 60)) {

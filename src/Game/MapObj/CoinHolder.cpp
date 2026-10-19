@@ -4,13 +4,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): forces the leading .sdata2 pool order [0.0f, 0.001f] that the target has but plain first-use order does not give
-// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
-// function order already matches the target); resolve when those inline bodies are identified
-void CoinHolder_FORCE_MATCH() {
-    TVec3f vector(0.0f, 0.0f, 0.0f);
-    (void)0.001f;
-}
 
 namespace {
     static const s32 sCoinNumMax = 512;
@@ -47,7 +40,7 @@ bool CoinHolder::appearCoin(const NameObj* pObj, const TVec3f& rPosition, const 
 
     bool appeared = false;
     for (s32 i = 0; i < count; i++) {
-        if (pHostInfo->_8 >= pHostInfo->_4) {
+        if (pHostInfo->mSpawnedCount >= pHostInfo->mDeclaredCount) {
             break;
         }
 
@@ -80,7 +73,7 @@ bool CoinHolder::appearCoin(const NameObj* pObj, const TVec3f& rPosition, const 
 bool CoinHolder::hopCoin(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rDirection) {
     CoinHostInfo* hostInfo = findHostInfo(pObj);
 
-    if (hostInfo->_8 >= hostInfo->_4) {
+    if (hostInfo->mSpawnedCount >= hostInfo->mDeclaredCount) {
         return false;
     }
 
@@ -118,7 +111,7 @@ bool CoinHolder::appearCoinPopToDirection(const NameObj* pObj, const TVec3f& rPo
 bool CoinHolder::appearCoinAgainstGravity(const NameObj* pObj, const TVec3f& rPosition, s32 count) {
     TVec3f gravity;
     MR::calcGravityVector(this, rPosition, &gravity, nullptr, 0);
-    TVec3f velocity(-gravity);
+    TVec3f velocity(TVec3f(-gravity));
     velocity.scale(::sCoinVelVertical);
     return appearCoin(pObj, rPosition, velocity, count, -1, -1, 8.0f);
 }
@@ -170,7 +163,7 @@ CoinHostInfo* CoinHolder::declare(const NameObj* pObj, s32 count) {
         mHostInfoCount++;
     }
 
-    hostInfo->_4 += count;
+    hostInfo->mDeclaredCount += count;
     return hostInfo;
 }
 
@@ -181,12 +174,12 @@ s32 CoinHolder::getDeclareRemnantCoinCount(const NameObj* pObj) const {
         return 0;
     }
 
-    return hostInfo->_4 - hostInfo->_8;
+    return hostInfo->mDeclaredCount - hostInfo->mSpawnedCount;
 }
 
 s32 CoinHolder::getUncollectedCoinCount(const NameObj* pObj) const {
     CoinHostInfo* hostInfo = findHostInfo(pObj);
-    return hostInfo->_4 - hostInfo->_C;
+    return hostInfo->mDeclaredCount - hostInfo->mCollectedCount;
 }
 
 CoinHostInfo* CoinHolder::findHostInfo(const NameObj* pObj) const {

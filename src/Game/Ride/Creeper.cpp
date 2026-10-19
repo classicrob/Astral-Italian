@@ -238,7 +238,7 @@ void Creeper::exeHangDown() {
         MR::endMultiActorCamera(this, mCameraInfo, "掴まり", true, -1);
         MR::endBindAndPlayerJump(this, TVec3f(0.0f, 0.0f, 0.0f), 0);
         MR::startSoundPlayer("SE_PV_JUMP_S", -1, -1);
-        MR::startActionSound(this, "SE_OJ_CREEPER_SWING", -1, -1, -1);
+        MR::startActionSound(this, "OjCreeperSwing", -1, -1, -1);
         mRider = nullptr;
         setNerve(GET_NERVE(Creeper, CreeperNrvFreeInvalid));
     } else {
@@ -419,9 +419,9 @@ bool Creeper::tryJump() {
 
     MR::setPlayerSwingInhibitTimer(::sStepInvalidSpin);
     MR::stopSound(mRider, "SE_OJ_CREEPER_UP_START");
-    MR::startSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
+    MR::startLevelSoundPlayer("JumpObj", -1, -1);
     MR::startSoundPlayer("SE_PM_JUMP_L", -1, -1);
-    MR::startActionSound(this, "SE_OJ_CREEPER_FLIP", -1, -1, -1);
+    MR::startActionSound(this, "OjCreeperFlip", -1, -1, -1);
     mRider = nullptr;
     setNerve(GET_NERVE(Creeper, CreeperNrvFreeInvalid));
 

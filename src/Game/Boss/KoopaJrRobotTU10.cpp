@@ -81,7 +81,7 @@ void KoopaJrRobotStateB::exeStart() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Angry");
         MR::startAction(mHost->mBody, "Wait");
-        mHost->mSeq->fn_800DC9F0();
+        mHost->mSeq->stopLauncherSequence();
     }
     if (MR::isActionEnd(mHost) && !tryTurnStart()) {
         setNerve(&NrvKoopaJrRobotStateB::KoopaJrRobotStateBNrvWait::sInstance);
@@ -96,7 +96,7 @@ void KoopaJrRobotStateB::exeWait() {
         }
         KoopaJrRobot* pHost = mHost;
         MR::startAction(pHost, getWaitActionName());
-        mHost->mSeq->fn_800DC9E0();
+        mHost->mSeq->startSlowFrontLauncherShots();
     }
     if (!KoopaJrRobotFunction::isPlayerInRushAir()) {
         turnToPlayerSlow();

@@ -13,9 +13,9 @@ KoopaJrRobotPod::KoopaJrRobotPod(LiveActor* pHost, MtxPtr pMtx) : LiveActor("\x8
     mtx.getEuler(euler);
     TVec3f scaled;
     JMath::gekko_ps_copy3(&scaled, &euler);
-    scaled.x *= 57.295776f;
-    scaled.y *= 57.295776f;
-    scaled.z *= 57.295776f;
+    scaled.x *= 57.29578f;
+    scaled.y *= 57.29578f;
+    scaled.z *= 57.29578f;
     mRotation.z = scaled.z;
     mRotation.x = scaled.x;
     mRotation.y = scaled.y;

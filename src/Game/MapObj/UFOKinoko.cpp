@@ -47,7 +47,7 @@ void UFOKinoko::init(const JMapInfoIter& rIter) {
 
     MapObjActorUtil::setupInitInfoColorChangeArg0(&info, rIter);
 
-    bool arg7 = true;
+    bool arg7 = false;
     MR::getJMapInfoArg7NoInit(rIter, &arg7);
 
     if (arg7) {

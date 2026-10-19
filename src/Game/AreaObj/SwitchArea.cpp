@@ -21,16 +21,16 @@ void SwitchArea::movement() {
         return;
     }
 
-    bool isSwitchBOn = isValidSwitchB() && isOnSwitchB();
+    bool isSwitchBOn = !isValidSwitchB() || isOnSwitchB();
 
     if (isSwitchBOn && isInVolume(*MR::getPlayerPos())) {
         if (mObjArg1 == -1) {
             onSwitchA();
         } else {
             offSwitchA();
-            if (mObjArg0 == 1) {
-                invalidate();
-            }
+        }
+        if (mObjArg0 == 1) {
+            invalidate();
         }
     } else if (mObjArg0 == 0) {
         offSwitchA();

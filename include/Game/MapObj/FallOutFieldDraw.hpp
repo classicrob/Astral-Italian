@@ -19,13 +19,13 @@ public:
     void deactivate();
     void resetEdgeColor();
 
-    /* 0x14 */ u32 _14;
-    /* 0x18 */ u8 _C;
+    /* 0x14 */ u32 mEdgeIndex;
+    /* 0x18 */ u8 mUseTexAlpha;
     /* 0x1C */ union {
         u32 _1C;
         GXColor mEdgeColor;
     };
-    /* 0x20 */ bool _20;
+    /* 0x20 */ bool mIsEdgeColorOverridden;
 };
 
 namespace MR {

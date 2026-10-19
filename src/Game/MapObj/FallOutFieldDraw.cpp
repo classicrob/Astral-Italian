@@ -43,7 +43,7 @@ namespace {
     };
 };  // namespace
 
-FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj("クリップエリア描画"), _14(0), _C(false), _1C(0), _20(false) {
+FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj("クリップエリア描画"), mEdgeIndex(0), mUseTexAlpha(false), _1C(0), mIsEdgeColorOverridden(false) {
     MR::createClipAreaHolder();
     MR::connectToScene(this, MR::MovementType_Environment, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_FallOutFieldDraw);
     MR::createScreenAlphaSceneObj(2, 1.0f);
@@ -55,11 +55,11 @@ FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj("クリップエ
 void FallOutFieldDraw::setUpFillScreen() const {
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_C0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevKColor(GX_KCOLOR0, Color8(0, 0, 0, !_C));
+    GXSetTevKColor(GX_KCOLOR0, Color8(0, 0, 0, !mUseTexAlpha));
     GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_K0_A);
 
-    GXTevAlphaArg alphaA = _C ? GX_CA_TEXA : GX_CA_KONST;
-    GXTevAlphaArg alphaB = _C ? GX_CA_KONST : GX_CA_TEXA;
+    GXTevAlphaArg alphaA = mUseTexAlpha ? GX_CA_TEXA : GX_CA_KONST;
+    GXTevAlphaArg alphaB = mUseTexAlpha ? GX_CA_KONST : GX_CA_TEXA;
 
     GXSetTevAlphaIn(GX_TEVSTAGE0, alphaA, alphaB, GX_CA_A0, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, ::sAlphaTevOperater, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
@@ -98,13 +98,13 @@ void FallOutFieldDraw::movement() {
 
     if (pArea != nullptr) {
         MR::activateClipArea();
-        _C = (pArea->mObjArg0 + 1) == 0;
+        mUseTexAlpha = (pArea->mObjArg0 + 1) == 0;
         u32 idx = pArea->mObjArg1;
         if (idx > 5) {
             idx = 1;
         }
-        _14 = idx;
-        if (!_20) {
+        mEdgeIndex = idx;
+        if (!mIsEdgeColorOverridden) {
             GXColor color;
             GXColor tableColor = ::sEdgeParams[idx].mColor;
             color = tableColor;
@@ -116,9 +116,9 @@ void FallOutFieldDraw::movement() {
 }
 
 void FallOutFieldDraw::resetEdgeColor() {
-    _20 = false;
+    mIsEdgeColorOverridden = false;
     GXColor color;
-    GXColor tableColor = ::sEdgeParams[_14].mColor;
+    GXColor tableColor = ::sEdgeParams[mEdgeIndex].mColor;
     color = tableColor;
     mEdgeColor = color;
 }
@@ -143,14 +143,14 @@ void FallOutFieldDraw::draw() const {
     GXSetTevKColorSel(GX_TEVSTAGE0, GX_TEV_KCSEL_K0_A);
     GXSetTevColor(GX_TEVREG0, Color8(255, 255, 255, 255));
 
-    GXTevColorArg colorA = _C ? GX_CC_TEXA : GX_CC_KONST;
-    GXTevColorArg colorB = _C ? GX_CC_KONST : GX_CC_TEXA;
+    GXTevColorArg colorA = mUseTexAlpha ? GX_CC_TEXA : GX_CC_KONST;
+    GXTevColorArg colorB = mUseTexAlpha ? GX_CC_KONST : GX_CC_TEXA;
 
     GXSetTevColorIn(GX_TEVSTAGE0, colorA, colorB, GX_CC_ZERO, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_COMP_RGB8_GT, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
 
-    GXTevAlphaArg alphaA = _C ? GX_CA_TEXA : GX_CA_KONST;
-    GXTevAlphaArg alphaB = _C ? GX_CA_KONST : GX_CA_TEXA;
+    GXTevAlphaArg alphaA = mUseTexAlpha ? GX_CA_TEXA : GX_CA_KONST;
+    GXTevAlphaArg alphaB = mUseTexAlpha ? GX_CA_KONST : GX_CA_TEXA;
 
     GXSetTevAlphaIn(GX_TEVSTAGE0, alphaA, alphaB, GX_CA_A0, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_COMP_A8_GT, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
@@ -167,7 +167,7 @@ void FallOutFieldDraw::draw() const {
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
 
-    ImageEffectLocalUtil::blurTexture(pScreenAlphaTexture4, 4, 4, 5, ::sEdgeParams[_14].mBlurRadius, 1.0f);
+    ImageEffectLocalUtil::blurTexture(pScreenAlphaTexture4, 4, 4, 5, ::sEdgeParams[mEdgeIndex].mBlurRadius, 1.0f);
     ImageEffectLocalUtil::capture(pScreenAlphaTexture5, 4, 4, GX_CTF_A8, false, 0);
     setUpEdgeAndClearAlpha();
     ImageEffectLocalUtil::drawTexture(pScreenAlphaTexture5, 1, 0, 255, ImageEffectLocalUtil::TexDrawType_2);
@@ -196,7 +196,7 @@ namespace MR {
         if (MR::isExistSceneObj(SceneObj_FallOutFieldDraw)) {
             FallOutFieldDraw* pDraw = MR::getSceneObj< FallOutFieldDraw >(SceneObj_FallOutFieldDraw);
             GXColor color = rColor;
-            pDraw->_20 = true;
+            pDraw->mIsEdgeColorOverridden = true;
             pDraw->mEdgeColor = color;
         }
     }

@@ -56,13 +56,13 @@ void KoopaJrCastleStateBattle4::appear() {
     setNerve(&KoopaJrCastleStateBattle4NrvB::sInstance);
 }
 
-void KoopaJrCastleStateBattle4::exe800D93F0() {
+void KoopaJrCastleStateBattle4::exePushPlayerOff() {
     tryPushPlayerOffCastle(mHost);
-    fn_800D5040(0.4f);
+    turnHeadToPlayer(0.4f);
     if (MR::isGreaterStep(this, 120)) kill();
 }
 
-void KoopaJrCastleStateBattle4::exe800D9450() {
+void KoopaJrCastleStateBattle4::exeDownDemo() {
     if (MR::isFirstStep(this)) startPartsDemoActions("DemoDownKoopaJrCastle");
     resetPlayerToStart();
     if (MR::isStep(this, 320)) getCastle()->mBreakModel->appear();

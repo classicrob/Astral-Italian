@@ -198,7 +198,7 @@ void GorogoroCylinderRock::updateFallOnRail() {
         MR::zeroVelocity(this);
         MR::moveRailToNextPoint(this);
         tryUpdateNerve();
-        if (!(speed >= sCylinderRockMinRollSpeed)) {
+        if (speed >= sCylinderRockMinRollSpeed) {
             // Shift-JIS "着地" (landing) hit reaction
             MR::tryHitReaction(this, "\x92\x85\x92\x6e");
         }

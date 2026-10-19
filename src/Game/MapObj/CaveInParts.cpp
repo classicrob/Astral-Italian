@@ -115,10 +115,9 @@ void CaveInParts::setLifeAndSpeed(s32 life, f32 maxFallSpeed, f32 gravityAccel, 
 }
 
 void CaveInParts::exeFall() {
-    const char* pBase = "Attack";
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
-        MR::tryEmitEffect(this, pBase + 0x8);
+        MR::tryEmitEffect(this, "Fall");
     }
 
     MR::addVelocityToGravity(this, mGravityAccel);
@@ -130,10 +129,10 @@ void CaveInParts::exeFall() {
     MR::normalizeAngleDegree(mRotation.y);
     MR::normalizeAngleDegree(mRotation.z);
 
-    f32 radius = MR::getSensorRadius(this, pBase);
+    f32 radius = MR::getSensorRadius(this, "Attack");
     TVec3f checkVec = mGravity * radius;
     if (MR::isExistMapCollision(mPosition, checkVec)) {
-        MR::emitEffect(this, pBase + 0x10);
+        MR::emitEffect(this, "Explosion");
         kill();
     } else if (MR::isGreaterStep(this, mLife)) {
         kill();

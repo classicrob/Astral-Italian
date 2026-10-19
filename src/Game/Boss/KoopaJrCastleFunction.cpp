@@ -29,8 +29,8 @@ namespace KoopaJrCastleFunction {
     bool isPlayerNearHead();
     void resetBattleParts();
     bool tryPushPlayerOffCastle(LiveActor* pCastle);
-    void fn_800D3F10(TVec3f* pOut, LiveActor* pCastle);
-    bool fn_800D41C0(TVec3f* pPos);
+    void calcPlayerLaunchPos(TVec3f* pOut, LiveActor* pCastle);
+    bool isNearStartPos(TVec3f* pPos);
     bool tryBlowPlayerToStart(LiveActor* pActor, HitSensor* sensor);
     void resetPlayerToStart();
     void resetBodyOffsetAndShadows();
@@ -270,7 +270,7 @@ namespace KoopaJrCastleFunction {
             return false;
         }
         TVec3f out;
-        fn_800D3F10(&out, pCastle);
+        calcPlayerLaunchPos(&out, pCastle);
         const Vec* pPlayerPos = MR::getPlayerPos();
         TVec3f rel(out);
         JMathInlineVEC::PSVECSubtract(&rel, pPlayerPos, &rel);
@@ -285,8 +285,8 @@ namespace KoopaJrCastleFunction {
         return true;
     }
 
-    // fn_800D3F10: player position projected onto the castle surface (plane of gravity) relative to the castle.
-        void fn_800D3F10(TVec3f* pOut, LiveActor* pCastle) {
+    // calcPlayerLaunchPos: player position projected onto the castle surface (plane of gravity) relative to the castle.
+        void calcPlayerLaunchPos(TVec3f* pOut, LiveActor* pCastle) {
         TVec3f v;
         JMathInlineVEC::PSVECSubtract(MR::getPlayerPos(), &pCastle->mPosition, &v);
         TVec3f* gravity = &pCastle->mGravity;
@@ -297,7 +297,7 @@ namespace KoopaJrCastleFunction {
             JGeometry::negateInternal(&v.x, &v.x);
         }
         *pOut = (pCastle->mPosition + v * 3200.0f) - pCastle->mGravity * -10.0f;
-        if (fn_800D41C0(pOut)) {
+        if (isNearStartPos(pOut)) {
             return;
         }
         *pOut = (pCastle->mPosition - v * 3200.0f) - pCastle->mGravity * -10.0f;
@@ -307,7 +307,7 @@ namespace KoopaJrCastleFunction {
     bool tryBlowPlayerToStart(LiveActor* pActor, HitSensor* sensor) {
         KoopaJrCastle* pCastle = CASTLE();
         TVec3f pos(0.0f);
-        fn_800D3F10(&pos, pCastle);
+        calcPlayerLaunchPos(&pos, pCastle);
         pCastle->mDominate->mLaunchSpeed = 0.0f;
         pCastle->mDominate->setPlayerActionNames("Blow", "WaterBulletWait");
         if (pCastle->mDominate->tryBindPlayer(pActor, sensor, &pos, -1)) {
@@ -325,8 +325,8 @@ namespace KoopaJrCastleFunction {
         MR::setPlayerPos(pos);
     }
 
-    // fn_800D41C0: true when pPos is within 5000 units of the castle's start position.
-        bool fn_800D41C0(TVec3f* pPos) {
+    // isNearStartPos: true when pPos is within 5000 units of the castle's start position.
+        bool isNearStartPos(TVec3f* pPos) {
         const TVec3f& start = CASTLE()->mStartPos;
         TVec3f d(*pPos);
         d -= start;
@@ -349,8 +349,8 @@ namespace KoopaJrCastleFunction {
         return MR::isDead(CASTLE()->mWind);
     }
 
-    bool windFn_800D4310() {
-        return CASTLE()->mWind->fn_800D9C40();
+    bool isWindBlowing() {
+        return CASTLE()->mWind->isBlowing();
     }
 
     void bodyStartMove0() {
@@ -433,7 +433,7 @@ namespace KoopaJrCastleFunction {
         }
     }
 
-    bool isHeadFn_800D4790() {
+    bool isHeadPanicOrSpinEnd() {
         return !CASTLE()->mHead->isPanicOrSpin();
     }
 
@@ -605,8 +605,8 @@ namespace KoopaJrCastleFunction {
         return xDir.angle(dir) <= sideAngle;
     }
 
-    // fn_800D5040: turns the castle head's matrix toward the player at the given rate (side/up re-orthonormalized).
-        bool fn_800D5040(f32 farg0) {
+    // turnHeadToPlayer: turns the castle head's matrix toward the player at the given rate (side/up re-orthonormalized).
+        bool turnHeadToPlayer(f32 farg0) {
         f32 turnRate = MR::isNearZero(farg0, 0.001f) ? 0.1f : farg0;
         MtxPtr headMtx = CASTLE()->mHead->mCannonMtx;
         MtxPtr jointMtx = MR::getJointMtx(CASTLE()->mHead, "JointRoot");

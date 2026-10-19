@@ -92,7 +92,7 @@ bool KoopaJrCastleStateBodyMove::getFlag() const {
     return mHasCompletedTurn;
 }
 
-void KoopaJrCastleStateBodyMove::exe800CF2A0() {
+void KoopaJrCastleStateBodyMove::exeSelectMove() {
     mHost->validateCollisionA();
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "MoveStart");
@@ -118,7 +118,7 @@ void KoopaJrCastleStateBodyMove::exe800CF2A0() {
 }
 
 // NONMATCHING: clamp floating-point register/order differences; literal pool ordering reported
-void KoopaJrCastleStateBodyMove::exe800CF3B0() {
+void KoopaJrCastleStateBodyMove::exeTurnToPlayer() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     if (MR::isFirstStep(this)) {
         mTurnRate = 0.0f;
@@ -151,7 +151,7 @@ void KoopaJrCastleStateBodyMove::exe800CF3B0() {
     mHost->validateCollisionA();
 }
 
-void KoopaJrCastleStateBodyMove::exe800CF530() {
+void KoopaJrCastleStateBodyMove::exeMoveStart() {
     if (MR::isFirstStep(this)) {
         startBtkKeepFrame("MoveLR");
     }
@@ -166,7 +166,7 @@ void KoopaJrCastleStateBodyMove::exe800CF530() {
     mHost->validateCollisionA();
 }
 
-void KoopaJrCastleStateBodyMove::exe800CF5E0() {
+void KoopaJrCastleStateBodyMove::exeMoveStraight() {
     setMoveRate(MR::calcNerveEaseOutValue(this, 60, 0.1f, 1.8f));
     mHost->startMoveSound();
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
@@ -200,7 +200,7 @@ static inline void limitSpeed(LiveActor* pActor, f32 lim) {
 }
 
 // NONMATCHING: tail branch layout.
-void KoopaJrCastleStateBodyMove::exe800CF700() {
+void KoopaJrCastleStateBodyMove::exeMoveChase() {
     setMoveRate(MR::calcNerveEaseOutValue(this, 60, 0.1f, 1.8f));
     mHost->startMoveSound();
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
@@ -232,7 +232,7 @@ void KoopaJrCastleStateBodyMove::exe800CF700() {
 }
 
 // NONMATCHING: vector-copy argument load order; literal pool ordering reported
-void KoopaJrCastleStateBodyMove::exe800CF8D0() {
+void KoopaJrCastleStateBodyMove::exeTurnAroundCenter() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     TVec3f target(0.0f);
     calcTargetDir(&target);
@@ -261,7 +261,7 @@ void KoopaJrCastleStateBodyMove::exe800CF8D0() {
 }
 
 // NONMATCHING: stack slot layout of TVec3f temporaries
-void KoopaJrCastleStateBodyMove::exe800CFA70() {
+void KoopaJrCastleStateBodyMove::exeMoveAroundCenter() {
     if (MR::isFirstStep(this)) {
         startBtkKeepFrame("MoveLR");
     }
@@ -294,7 +294,7 @@ void KoopaJrCastleStateBodyMove::exe800CFA70() {
 }
 
 // NONMATCHING: stack slot layout of TVec3f temporaries
-void KoopaJrCastleStateBodyMove::exe800CFC40() {
+void KoopaJrCastleStateBodyMove::exeMoveBackAroundCenter() {
     if (MR::isFirstStep(this)) {
         startBtkKeepFrame("MoveBack");
     }
@@ -320,7 +320,7 @@ void KoopaJrCastleStateBodyMove::exe800CFC40() {
     mHost->validateCollisionA();
 }
 
-void KoopaJrCastleStateBodyMove::exe800CFDD0() {
+void KoopaJrCastleStateBodyMove::exeStop() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     setMoveRate(1.8f * (1.0f - MR::calcNerveEaseOutRate(this, 60)));
     mHost->startMoveSound();

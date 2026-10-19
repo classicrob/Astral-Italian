@@ -8,7 +8,7 @@
 
 DynamicCollisionObj::DynamicCollisionObj(const char* pName)
     : LiveActor(pName), mKCLFile(nullptr), mParts(nullptr), mTriangleNum(0), mPositionNum(0), mPositions(nullptr), mFaceNormals(nullptr),
-      mIndices(nullptr), _A4(0), _A8(0), _AC(0) {}
+      mIndices(nullptr), _A8(0), _AC(0), _B0(0) {}
 
 void DynamicCollisionObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);

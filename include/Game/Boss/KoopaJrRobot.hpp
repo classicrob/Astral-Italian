@@ -256,10 +256,10 @@ public:
     void movementLaunchers();
     void movementKillerPool();
     void appearLaunchers();
-    void fn_800DC9F0();
-    void fn_800DC9C0();
-    void fn_800DC9D0();
-    void fn_800DC9E0();
+    void stopLauncherSequence();
+    void startFastFrontLauncherShots();
+    void startRearLauncherSequence();
+    void startSlowFrontLauncherShots();
     void startMagnumShot();
     void startRearLauncherShots();
     void attackShootableKillers();
@@ -356,8 +356,8 @@ public:
     /* 0xCC */ TVec3f mOffset;
     /* 0xD8 */ f32 mSpeed;
     /* 0xDC */ s32 mLife;
-    /* 0xE0 */ f32 mColorIndex;
-    /* 0xE4 */ f32 mBeamRadius;
+    /* 0xE0 */ f32 mStartRadius;
+    /* 0xE4 */ f32 mMaxRadius;
 };
 
 namespace KoopaJrRobotFunction {
@@ -403,7 +403,7 @@ public:
     bool releaseKiller(LiveActor*, HomingKiller*);      // fn_800DB9A0
     LiveActor* getKillerOwner(HomingKiller*);           // fn_800DBCB0
     bool isKillerShotEnd(HitSensor*);
-    bool fn_800DEB50(const char*, const TVec3f&);
+    bool tryAttackMapSensorsAroundJoint(const char*, const TVec3f&);
     bool isPlayerNearBack(f32);
     bool isWeakPointSensor(HitSensor*);
     bool isArmSensor(HitSensor*);

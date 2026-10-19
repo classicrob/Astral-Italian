@@ -66,15 +66,15 @@ void SimpleClipPartsObj::init(const JMapInfoIter& rrIter) {
     info.setupRotator();
     MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
     MapObjActorUtil::setupInitInfoTypical(&info, mObjectName);
-    setupInitInfo(info);
+    setupInitInfo(info, rrIter);
     MapObjActor::initialize(rrIter, info);
     _D0 = MR::isExistCollisionResource(this, mObjectName);
     if (_D0) {
-        MR::setSensorType(this, "body", ATYPE_CLIP_FIELD_MAP_PARTS);
+        MR::setSensorType(this, "Body", ATYPE_CLIP_FIELD_MAP_PARTS);
     }
 }
 
-void SimpleClipPartsObj::setupInitInfo(const MapObjActorInitInfo& rInfo) {
+void SimpleClipPartsObj::setupInitInfo(const MapObjActorInitInfo& rInfo, const JMapInfoIter&) {
 }
 
 void SimpleClipPartsObj::control() {
@@ -133,7 +133,7 @@ void RailMoveObjClipParts::init(const JMapInfoIter& rIter) {
     }
 }
 
-void RailMoveObjClipParts::setupInitInfo(const MapObjActorInitInfo& rInfo) {
+void RailMoveObjClipParts::setupInitInfo(const MapObjActorInitInfo& rInfo, const JMapInfoIter&) {
     MapObjActorInitInfo& info = const_cast< MapObjActorInitInfo& >(rInfo);
     info.setupRailMover();
     info.setupRailPosture();
@@ -169,7 +169,7 @@ void RotateMoveObjClipParts::init(const JMapInfoIter& rIter) {
     SimpleClipPartsObj::init(rIter);
 }
 
-void RotateMoveObjClipParts::setupInitInfo(const MapObjActorInitInfo& rInfo) {
+void RotateMoveObjClipParts::setupInitInfo(const MapObjActorInitInfo& rInfo, const JMapInfoIter&) {
     MapObjActorInitInfo& info = const_cast< MapObjActorInitInfo& >(rInfo);
     info.setupRotator();
     info.setupBaseMtxFollowTarget();

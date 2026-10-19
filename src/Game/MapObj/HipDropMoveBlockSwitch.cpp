@@ -21,25 +21,19 @@ namespace NrvHipDropMoveBlockSwitch {
 
 HipDropMoveBlockSwitch::HipDropMoveBlockSwitch(const char* pName, HipDropMoveBlock* pBlock, MtxPtr pMtx,
                                                const TVec3f& rOffset, const TVec3f& rRotate)
-    : LiveActor(pName) {
-    mMoveBlock = pBlock;
-    mOffset = rOffset;
-    mRotate = rRotate;
+    : LiveActor(pName), mMoveBlock(pBlock), mOffset(rOffset), mRotate(rRotate) {
     mCollisionParts = nullptr;
     mBaseMtx.set(pMtx);
     MR::setMtxTrans(mBaseMtx, 0.0f, 0.0f, 0.0f);
 }
 
 void HipDropMoveBlockSwitch::init(const JMapInfoIter& rIter) {
-    // pNames + N are offsets into one pooled literal block (target string layout); the substrings are not
-    // separate literals, so they stay as offsets.
-    const char* pNames = "HipDropMoveBlockSwitch";
-    MR::initActor(this, rIter, pNames + 0x0, false);
+    MR::initActor(this, rIter, "HipDropMoveBlockSwitch", false);
     initHitSensor(2);
-    MR::addHitSensorMapObj(this, pNames + 0x18, 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorMapObj(this, "Hit", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::initCollisionParts(this, pNames + 0x0, getSensor(pNames + 0x18), nullptr);
-    mCollisionParts = MR::createCollisionPartsFromLiveActor(this, pNames + 0x20,
+    MR::initCollisionParts(this, "HipDropMoveBlockSwitch", getSensor("Body"), nullptr);
+    mCollisionParts = MR::createCollisionPartsFromLiveActor(this, "Move",
                                                             getSensor("Hit"),
                                                             MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mCollisionParts);

@@ -72,7 +72,7 @@ void KoopaJrCastleRingBeam::setup(LiveActor* host, const TVec3f& trans, const TV
     mFixedPos = new FixedPosition(host, trans, rot);
 }
 
-void KoopaJrCastleRingBeam::exe800D7C00() {
+void KoopaJrCastleRingBeam::exeShoot() {
     for (s32 i = 0; i < 5; i++) {
         if (MR::isDead(mBeams[i])) {
             mBeams[i]->setSpeed(18.0f);

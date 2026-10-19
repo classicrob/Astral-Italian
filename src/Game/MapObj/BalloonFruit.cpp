@@ -139,9 +139,10 @@ void BalloonFruit::exeAppear() {
 void BalloonFruit::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
-        mMtxAC.set(getBaseMtx());
-        MR::addTransMtxLocalY(mMtxAC, 100.0f);
     }
+
+    mMtxAC.set(getBaseMtx());
+    MR::addTransMtxLocalY(mMtxAC, 100.0f);
     tryStartBind();
 }
 

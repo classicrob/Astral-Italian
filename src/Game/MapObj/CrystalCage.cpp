@@ -16,10 +16,10 @@ namespace NrvCrystalCage {
     NEW_NERVE(CrystalCageNrvBreakAfter, CrystalCage, BreakAfter);
 };  // namespace NrvCrystalCage
 CrystalCage::CrystalCage(const char* pName)
-    : LiveActor(pName), mCrystalCageType(0), mBreakObj(nullptr), _C4(1), _C8(0), mRumbleCalc(nullptr), _D0(0.0f, 0.0f, 1.0f), _DC(gZeroVec),
-      _E8(gZeroVec), mDisplayModel(nullptr), _F8(gZeroVec), _104(0), _108(-1), mIsBreakObjVisible(false),
-      mPowerStarState(0), mHasBinding(false), mIsInPlaneModeCube(false), mIsFallType(false), _110(gZeroVec) {
-    _94.identity();
+    : LiveActor(pName), mCrystalCageType(0), mBreakObj(nullptr), mRemainingHits(1), mHitCooldown(0), mRumbleCalc(nullptr), mHitDir(0.0f, 0.0f, 1.0f), mBasePos(gZeroVec),
+      mBodySensorPos(gZeroVec), mDisplayModel(nullptr), mGroundPos(gZeroVec), mIsKillIfClipped(0), mPowerStarId(-1), mIsBreakObjVisible(false),
+      mPowerStarState(0), mHasBinding(false), mIsInPlaneModeCube(false), mIsFallType(false), mBinderOffset(gZeroVec) {
+    mBaseMtx.identity();
 }
 
 namespace {
@@ -58,8 +58,8 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
 
     initMapToolInfo(rIter);
     initModel();
-    _E8.set< f32 >(mPosition);
-    MR::setSensorFollowPos(this, "Body", &_E8);
+    mBodySensorPos.set< f32 >(mPosition);
+    MR::setSensorFollowPos(this, "Body", &mBodySensorPos);
 
     if (mIsInPlaneModeCube || mCrystalCageType == 2) {
         MR::invalidateHitSensors(this);
@@ -67,13 +67,13 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
 
     if (mHasBinding) {
         initBinder(50.0f, 0.0f, 0);
-        MR::setBinderOffsetVec(this, &_110, false);
+        MR::setBinderOffsetVec(this, &mBinderOffset, false);
         MR::setBinderExceptActor(this, this);
     }
 
     if (mCrystalCageType == 2) {
         f32 mult = mScale.x * 250.0f;
-        _C4 = 2;
+        mRemainingHits = 2;
         mDisplayModel = MR::createDummyDisplayModelCrystalItem(this, 7, TVec3f(0.0f, mult, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
     } else {
         TVec3f size;
@@ -108,17 +108,17 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
     }
 
     if (isDisplayModelId(7)) {
-        if (_108 == -1) {
+        if (mPowerStarId == -1) {
             MR::declarePowerStar(this);
         } else {
-            MR::declarePowerStar(this, _108);
+            MR::declarePowerStar(this, mPowerStarId);
         }
     }
 
     MR::startBva(this, obj_name);
     MR::setBvaFrameAndStop(this, 0.0f);
 
-    if (_C4 > 1) {
+    if (mRemainingHits > 1) {
         mRumbleCalc = new RumbleCalculatorCosMultLinear(4.0f, HALF_PI, 50.0f, 0x14);
     }
 
@@ -154,16 +154,16 @@ void CrystalCage::initAfterPlacement() {
         TVec3f stack_20;
         MR::calcUpVec(&up_vec, this);
         // TODO: fix this during .scale pass
-        stack_20.add(_DC, up_vec * (val * mScale.x));
+        stack_20.add(mBasePos, up_vec * (val * mScale.x));
         stack_2C.scale((-(2.0f * val) * mScale.x), up_vec);
 
-        if (!MR::getFirstPolyOnLineToMapExceptActor(&_F8, 0, stack_20, stack_2C, this)) {
-            _F8.set(_DC);
+        if (!MR::getFirstPolyOnLineToMapExceptActor(&mGroundPos, 0, stack_20, stack_2C, this)) {
+            mGroundPos.set(mBasePos);
         }
 
         if (mHasBinding) {
-            _110.sub(_F8, _DC);
-            _110.add(up_vec * 50.0f);
+            mBinderOffset.sub(mGroundPos, mBasePos);
+            mBinderOffset.add(up_vec * 50.0f);
             mVelocity.scale(-2.0f, up_vec);
         }
     }
@@ -180,7 +180,7 @@ void CrystalCage::kill() {
 
 void CrystalCage::forceBreak() {
     if (isNerve(GET_NERVE(CrystalCage, CrystalCageNrvWait))) {
-        if (!_104 || !MR::isClipped(this)) {
+        if (!mIsKillIfClipped || !MR::isClipped(this)) {
             MR::tryRumblePadStrong(this, WPAD_CHAN0);
             MR::invalidateClipping(this);
             MR::invalidateCollisionParts(this);
@@ -222,8 +222,8 @@ bool CrystalCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
         return false;
     }
 
-    if (_C4 > 0 && !_C8) {
-        if (_C4 == 1) {
+    if (mRemainingHits > 0 && !mHitCooldown) {
+        if (mRemainingHits == 1) {
             MR::invalidateClipping(this);
             MR::invalidateCollisionParts(this);
             MR::invalidateHitSensors(this);
@@ -231,13 +231,9 @@ bool CrystalCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
             return true;
         }
 
-        if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::sendMsgReflect(pSender, pReceiver)) {
-            return MR::isMsgPlayerSpinAttackOrSupportTico(msg);
-        }
-
-        {
-            _C8 = 20;
-            _C4 = _C4 - 1;
+        if ((MR::isMsgPlayerSpinAttackOrSupportTico(msg) && MR::sendMsgReflect(pSender, pReceiver)) || !MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
+            mHitCooldown = 20;
+            mRemainingHits = mRemainingHits - 1;
 
             MR::setBvaFrameAndStop(this, 1.0f);
             if (mCrystalCageType == 2) {
@@ -248,8 +244,8 @@ bool CrystalCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
 
             mRumbleCalc->start(0);
             const TVec3f* pReceiverPos = MR::getSensorPos(pReceiver);
-            _D0.sub(*MR::getSensorPos(pSender), *pReceiverPos);
-            MR::normalize(&_D0);
+            mHitDir.sub(*MR::getSensorPos(pSender), *pReceiverPos);
+            MR::normalize(&mHitDir);
 
             return true;
         }
@@ -272,7 +268,7 @@ bool CrystalCage::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* 
 
 void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::calcGravity(this);
-    _DC.set(mPosition);
+    mBasePos.set(mPosition);
 
     if (MR::isEqualObjectName(rIter, "CrystalCageS") || MR::isEqualObjectName(rIter, "CrystalCageForOpening")) {
         mCrystalCageType = 0;
@@ -283,7 +279,7 @@ void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
     }
 
     if (mCrystalCageType == 2) {
-        MR::getJMapInfoArg0NoInit(rIter, &_108);
+        MR::getJMapInfoArg0NoInit(rIter, &mPowerStarId);
     } else {
         if (MR::isValidSwitchA(this)) {
             MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &CrystalCage::forceBreak));
@@ -292,17 +288,17 @@ void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
         MR::getJMapInfoArg0NoInit(rIter, &mIsBreakObjVisible);
         MR::getJMapInfoArg1NoInit(rIter, &mPowerStarState);
         MR::getJMapInfoArg2NoInit(rIter, &mHasBinding);
-        MR::getJMapInfoArg3NoInit(rIter, &_104);
+        MR::getJMapInfoArg3NoInit(rIter, &mIsKillIfClipped);
     }
 }
 
 void CrystalCage::initModel() {
-    MR::makeMtxUpNoSupportPos(&_94, -mGravity, _DC);
+    MR::makeMtxUpNoSupportPos(&mBaseMtx, -mGravity, mBasePos);
 
     if (mCrystalCageType == 2) {
-        mBreakObj = MR::createModelObjMapObjStrongLight("クリスタルケージ[大]壊れモデル", "CrystalCageLBreak", (MtxPtr)&_94);
+        mBreakObj = MR::createModelObjMapObjStrongLight("クリスタルケージ[大]壊れモデル", "CrystalCageLBreak", (MtxPtr)&mBaseMtx);
     } else {
-        mBreakObj = MR::createModelObjMapObjStrongLight("クリスタルケージ[小]壊れモデル", "CrystalCageSBreak", (MtxPtr)&_94);
+        mBreakObj = MR::createModelObjMapObjStrongLight("クリスタルケージ[小]壊れモデル", "CrystalCageSBreak", (MtxPtr)&mBaseMtx);
     }
 
     MR::invalidateClipping(mBreakObj);
@@ -360,9 +356,9 @@ void CrystalCage::exeFall() {
     TVec3f up(0.0f, 1.0f, 0.0f);
     MR::calcUpVec(&up, this);
     TVec3f target(0.0f, 0.0f, 0.0f);
-    JMAVECScaleAdd(&up, &_DC, &target, 4000.0f);
+    JMAVECScaleAdd(&up, &mBasePos, &target, 4000.0f);
     f32 rate = MR::calcNerveEaseInRate(this, 30);
-    MR::vecBlend(&mPosition, target, _DC, rate);
+    MR::vecBlend(&mPosition, target, mBasePos, rate);
     MR::startActionSound(this, "Falling", -1, -1, -1);
 
     if (MR::isStep(this, 30)) {
@@ -374,18 +370,18 @@ void CrystalCage::exeFall() {
 }
 
 void CrystalCage::exeWait() {
-    if (_C8 > 0) {
-        _C8--;
+    if (mHitCooldown > 0) {
+        mHitCooldown--;
     }
 
     if (mRumbleCalc) {
         if (mRumbleCalc->_4 < mRumbleCalc->_8) {
             mRumbleCalc->calc();
             TVec3f v9;
-            v9.scale(mRumbleCalc->_C.y, _D0);
-            mPosition.add(_DC, v9);
+            v9.scale(mRumbleCalc->_C.y, mHitDir);
+            mPosition.add(mBasePos, v9);
         } else {
-            mPosition.set(_DC);
+            mPosition.set(mBasePos);
         }
     }
 
@@ -398,7 +394,7 @@ void CrystalCage::exeWait() {
         TVec3f v5;
         v5.scale(140.0f, up_vec);
         v5.add(mPosition);
-        MR::calcPerpendicFootToLineInside(&_E8, *MR::getPlayerPos(), v6, v5);
+        MR::calcPerpendicFootToLineInside(&mBodySensorPos, *MR::getPlayerPos(), v6, v5);
     }
 
     if (mCrystalCageType != 2) {
@@ -412,7 +408,7 @@ void CrystalCage::exeBreak() {
             MR::hideModel(this);
         } else {
             MR::setBvaFrameAndStop(this, mCrystalCageType == 2 ? 2.0f : 1.0f);
-            mPosition.set(_F8);
+            mPosition.set(mGroundPos);
         }
 
         if (mHasBinding) {
@@ -435,10 +431,10 @@ void CrystalCage::exeBreak() {
         }
 
         if (isDisplayModelId(7)) {
-            if (_108 == -1) {
+            if (mPowerStarId == -1) {
                 MR::requestAppearPowerStar(this, mDisplayModel->mPosition);
             } else {
-                MR::requestAppearPowerStar(this, _108, mDisplayModel->mPosition);
+                MR::requestAppearPowerStar(this, mPowerStarId, mDisplayModel->mPosition);
             }
         }
 

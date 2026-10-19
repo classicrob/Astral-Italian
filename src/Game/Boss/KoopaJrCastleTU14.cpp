@@ -53,25 +53,25 @@ void KoopaJrCastleStateBattle3::control() {
     killRingBeam();
 }
 
-void KoopaJrCastleStateBattle3::exe800D8840() {
+void KoopaJrCastleStateBattle3::exeCannonBallVolleyBeforeMove() {
     if (MR::isFirstStep(this)) startCannonBallVolley();
     if (!tryPlayerOnCastle() && MR::isGreaterEqualStep(this, 90))
         setNerve(&KoopaJrCastleStateBattle3NrvE::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D88B0() {
+void KoopaJrCastleStateBattle3::exeCannonBallVolleyBeforeWind() {
     if (MR::isFirstStep(this)) startCannonBallVolley();
     if (!tryPlayerOnCastle() && MR::isGreaterEqualStep(this, 90))
         setNerve(&KoopaJrCastleStateBattle3NrvG::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8920() {
+void KoopaJrCastleStateBattle3::exeCannonBallVolleyBeforeChase() {
     if (MR::isFirstStep(this)) startCannonBallVolley();
     if (!tryPlayerOnCastle() && MR::isGreaterEqualStep(this, 90))
         setNerve(&KoopaJrCastleStateBattle3NrvE::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8990() {
+void KoopaJrCastleStateBattle3::exeMoveStraight() {
     if (MR::isFirstStep(this)) bodyStartMove0();
     if (!tryPlayerOnCastle() && bodyIsNotMove()) {
         killCannon();
@@ -79,7 +79,7 @@ void KoopaJrCastleStateBattle3::exe800D8990() {
     }
 }
 
-void KoopaJrCastleStateBattle3::exe800D8A00() {
+void KoopaJrCastleStateBattle3::exeMoveChase() {
     if (MR::isFirstStep(this)) {
         bodyStartMove1();
         startCannonBallVolley();
@@ -98,7 +98,7 @@ void KoopaJrCastleStateBattle3::exe800D8A00() {
     }
 }
 
-void KoopaJrCastleStateBattle3::exe800D8AC0() {
+void KoopaJrCastleStateBattle3::exeMoveAroundCenter() {
     if (MR::isFirstStep(this)) {
         bodyStartMove2();
         startCannonBallVolley();
@@ -121,12 +121,12 @@ void KoopaJrCastleStateBattle3::exe800D8AC0() {
     }
 }
 
-void KoopaJrCastleStateBattle3::exe800D8BA0() {
+void KoopaJrCastleStateBattle3::exeWindAndElectric() {
     if (MR::isFirstStep(this)) {
         appearWindFromZeroPower();
         startCannonBallVolley();
     }
-    if (windFn_800D4310()) appearElectric();
+    if (isWindBlowing()) appearElectric();
     if (MR::isStep(this, 120)) startCannonVolley(1, 1);
     else if (MR::isGreaterStep(this, 120) && isCannonDead()) startCannonVolley(1, 1);
     if (isPlayerOnCastle() && isElectricActive()) {
@@ -136,22 +136,22 @@ void KoopaJrCastleStateBattle3::exe800D8BA0() {
     if (windIsDead() && isElectricDead()) setNerve(&KoopaJrCastleStateBattle3NrvH::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8C90() {
+void KoopaJrCastleStateBattle3::exeCannonVolley() {
     if (MR::isFirstStep(this)) startCannonVolley(2, 2);
     if (isCannonDead()) setNerve(&KoopaJrCastleStateBattle3NrvL::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8CF0() {
+void KoopaJrCastleStateBattle3::exeShockSign() {
     if (MR::isFirstStep(this)) startCannonShockVolley();
     if (MR::isGreaterStep(this, 60)) setNerve(&KoopaJrCastleStateBattle3NrvK::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8D50() {
+void KoopaJrCastleStateBattle3::exeShockVolley() {
     if (MR::isFirstStep(this)) startCannonShockVolleyImmediately();
     if (isCannonDead()) setNerve(&KoopaJrCastleStateBattle3NrvL::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8DA0() {
+void KoopaJrCastleStateBattle3::exeSelectAttack() {
     MR::isFirstStep(this);
     if (isPlayerOnCastle()) {
         setNerve(&KoopaJrCastleStateBattle3NrvM::sInstance);
@@ -166,14 +166,14 @@ void KoopaJrCastleStateBattle3::exe800D8DA0() {
     }
 }
 
-void KoopaJrCastleStateBattle3::exe800D8E30() {
+void KoopaJrCastleStateBattle3::exeHeadPanic() {
     if (MR::isFirstStep(this)) startHeadPanic();
-    if (isHeadFn_800D4790()) setNerve(&KoopaJrCastleStateBattle3NrvA::sInstance);
+    if (isHeadPanicOrSpinEnd()) setNerve(&KoopaJrCastleStateBattle3NrvA::sInstance);
 }
 
-void KoopaJrCastleStateBattle3::exe800D8E80() {
+void KoopaJrCastleStateBattle3::exeHeadSpinSign() {
     if (MR::isFirstStep(this)) startHeadSpinSign();
-    if (isHeadFn_800D4790()) setNerve(&KoopaJrCastleStateBattle3NrvA::sInstance);
+    if (isHeadPanicOrSpinEnd()) setNerve(&KoopaJrCastleStateBattle3NrvA::sInstance);
 }
 
 bool KoopaJrCastleStateBattle3::tryPlayerOnCastle() {

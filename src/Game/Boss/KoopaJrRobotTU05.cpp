@@ -42,7 +42,7 @@ void KoopaJrRobotStateDamage::appear() {
 void KoopaJrRobotStateDamage::exeDamageLong() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "DamageLong");
-        mHost->mSeq->fn_800DC9F0();
+        mHost->mSeq->stopLauncherSequence();
         mHost->attackShootableKillers();
         return;
     }

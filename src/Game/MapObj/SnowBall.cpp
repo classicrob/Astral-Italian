@@ -9,57 +9,17 @@
 #include "Game/Util.hpp"
 
 // Unnamed SMG2 helpers used by this unit (owned by other units).
-// ---- nerves (sinit order: Hide, Break, Thaw, Blow, Roll, Fall, Wait) ----
+// Nerve order follows the target singleton addresses; names follow their actual execute bodies.
 
-class SnowBallNrvHide : public Nerve {
+class SnowBallNrvWait : public Nerve {
 public:
     virtual void execute(Spine* pSpine) const {
         SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
-        pBall->exeHide();
+        pBall->exeWait();
     }
-    static SnowBallNrvHide sInstance;
+    static SnowBallNrvWait sInstance;
 };
-SnowBallNrvHide SnowBallNrvHide::sInstance ATTRIBUTE_WEAK;
-
-class SnowBallNrvBreak : public Nerve {
-public:
-    virtual void execute(Spine* pSpine) const {
-        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
-        pBall->exeBreak();
-    }
-    static SnowBallNrvBreak sInstance;
-};
-SnowBallNrvBreak SnowBallNrvBreak::sInstance ATTRIBUTE_WEAK;
-
-class SnowBallNrvThaw : public Nerve {
-public:
-    virtual void execute(Spine* pSpine) const {
-        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
-        pBall->exeThaw();
-    }
-    static SnowBallNrvThaw sInstance;
-};
-SnowBallNrvThaw SnowBallNrvThaw::sInstance ATTRIBUTE_WEAK;
-
-class SnowBallNrvBlow : public Nerve {
-public:
-    virtual void execute(Spine* pSpine) const {
-        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
-        pBall->exeBlow();
-    }
-    static SnowBallNrvBlow sInstance;
-};
-SnowBallNrvBlow SnowBallNrvBlow::sInstance ATTRIBUTE_WEAK;
-
-class SnowBallNrvRoll : public Nerve {
-public:
-    virtual void execute(Spine* pSpine) const {
-        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
-        pBall->exeRoll();
-    }
-    static SnowBallNrvRoll sInstance;
-};
-SnowBallNrvRoll SnowBallNrvRoll::sInstance ATTRIBUTE_WEAK;
+SnowBallNrvWait SnowBallNrvWait::sInstance ATTRIBUTE_WEAK;
 
 class SnowBallNrvFall : public Nerve {
 public:
@@ -71,15 +31,55 @@ public:
 };
 SnowBallNrvFall SnowBallNrvFall::sInstance ATTRIBUTE_WEAK;
 
-class SnowBallNrvWait : public Nerve {
+class SnowBallNrvRoll : public Nerve {
 public:
     virtual void execute(Spine* pSpine) const {
         SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
-        pBall->exeWait();
+        pBall->exeRoll();
     }
-    static SnowBallNrvWait sInstance;
+    static SnowBallNrvRoll sInstance;
 };
-SnowBallNrvWait SnowBallNrvWait::sInstance ATTRIBUTE_WEAK;
+SnowBallNrvRoll SnowBallNrvRoll::sInstance ATTRIBUTE_WEAK;
+
+class SnowBallNrvBlow : public Nerve {
+public:
+    virtual void execute(Spine* pSpine) const {
+        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
+        pBall->exeBlow();
+    }
+    static SnowBallNrvBlow sInstance;
+};
+SnowBallNrvBlow SnowBallNrvBlow::sInstance ATTRIBUTE_WEAK;
+
+class SnowBallNrvThaw : public Nerve {
+public:
+    virtual void execute(Spine* pSpine) const {
+        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
+        pBall->exeThaw();
+    }
+    static SnowBallNrvThaw sInstance;
+};
+SnowBallNrvThaw SnowBallNrvThaw::sInstance ATTRIBUTE_WEAK;
+
+class SnowBallNrvBreak : public Nerve {
+public:
+    virtual void execute(Spine* pSpine) const {
+        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
+        pBall->exeBreak();
+    }
+    static SnowBallNrvBreak sInstance;
+};
+SnowBallNrvBreak SnowBallNrvBreak::sInstance ATTRIBUTE_WEAK;
+
+class SnowBallNrvHide : public Nerve {
+public:
+    virtual void execute(Spine* pSpine) const {
+        SnowBall* pBall = reinterpret_cast<SnowBall*>(pSpine->mExecutor);
+        pBall->exeHide();
+    }
+    static SnowBallNrvHide sInstance;
+};
+SnowBallNrvHide SnowBallNrvHide::sInstance ATTRIBUTE_WEAK;
 
 static f32 calcSensorRadius(f32 radius) NO_INLINE;
 static f32 calcSensorRadius(f32 radius) {
@@ -127,7 +127,7 @@ void SnowBall::init(const JMapInfoIter& rIter) {
     MR::setAllEffectHostMtx(this, mBaseMtx);
     MR::setBinderExceptSensorType(this, SnowStep::getSensorType());
     MR::onCalcGravity(this);
-    initNerve(&SnowBallNrvThaw::sInstance, 0);
+    initNerve(&SnowBallNrvRoll::sInstance, 0);
     makeActorAppeared();
 }
 
@@ -200,7 +200,7 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         }
     }
     if (MR::isMsgFireBallAttack(msg)) {
-        setNerve(&SnowBallNrvFall::sInstance);
+        setNerve(&SnowBallNrvBreak::sInstance);
         return true;
     }
     if (MR::isMsgPlayerHitAll(msg) && isHideBreakOrThawNerve()) {
@@ -250,7 +250,7 @@ bool SnowBall::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 // fn_803020E0
 #pragma dont_inline on
 bool SnowBall::isBlowOrThawNerve() const {
-    if (isNerve(&SnowBallNrvThaw::sInstance) || isNerve(&SnowBallNrvBlow::sInstance)) {
+    if (isNerve(&SnowBallNrvRoll::sInstance) || isNerve(&SnowBallNrvBlow::sInstance)) {
         return true;
     }
     return false;
@@ -258,7 +258,7 @@ bool SnowBall::isBlowOrThawNerve() const {
 
 // fn_80302140
 bool SnowBall::isHideBreakOrThawNerve() const {
-    if (isNerve(&SnowBallNrvHide::sInstance) || isNerve(&SnowBallNrvBreak::sInstance) || isNerve(&SnowBallNrvThaw::sInstance)) {
+    if (isNerve(&SnowBallNrvWait::sInstance) || isNerve(&SnowBallNrvFall::sInstance) || isNerve(&SnowBallNrvRoll::sInstance)) {
         return true;
     }
     return false;
@@ -276,7 +276,7 @@ void SnowBall::breakAndWait() {
     MR::offBind(this);
     MR::offCalcGravity(this);
     MR::zeroVelocity(this);
-    setNerve(&SnowBallNrvWait::sInstance);
+    setNerve(&SnowBallNrvHide::sInstance);
 }
 
 void SnowBall::launch(const TVec3f& rPos, const TVec3f& rVel, bool canRespawn) {
@@ -285,7 +285,7 @@ void SnowBall::launch(const TVec3f& rPos, const TVec3f& rVel, bool canRespawn) {
     resetRoll();
     appear();
     MR::invalidateClipping(this);
-    setNerve(&SnowBallNrvBreak::sInstance);
+    setNerve(&SnowBallNrvFall::sInstance);
     MR::setVelocity(this, rVel);
 }
 
@@ -296,7 +296,7 @@ void SnowBall::resetRoll() {
     MR::showModel(this);
     MR::resetPosition(this, mBasePos);
     mPrevPos.set(mPosition);
-    setNerve(&SnowBallNrvThaw::sInstance);
+    setNerve(&SnowBallNrvRoll::sInstance);
     MR::zeroVelocity(this);
     mRadius = 100.0f * mBaseRadius;
     mSpeedTarget = mRadius;
@@ -378,7 +378,7 @@ void SnowBall::exeWait() {
     }
     MR::killVelocityOnGroundH(this);
     if (mStopCount <= 0) {
-        setNerve(&SnowBallNrvThaw::sInstance);
+        setNerve(&SnowBallNrvRoll::sInstance);
     }
     MR::attachSupportTicoToTarget(this);
 }
@@ -390,7 +390,7 @@ void SnowBall::exeFall() {
     TVec3f up(-mGravity);
     MR::rotateQuatRollBall(&mQuat, mVelocity, up, mRadius);
     if (MR::isGreaterStep(this, 10) && MR::isBindedGround(this)) {
-        setNerve(&SnowBallNrvThaw::sInstance);
+        setNerve(&SnowBallNrvRoll::sInstance);
         return;
     }
     if (MR::isGreaterStep(this, 300)) {
@@ -405,12 +405,12 @@ void SnowBall::exeRoll() {
     }
     bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"));
     if (updateBindedGroundRoll(bindHit)) {
-        setNerve(&SnowBallNrvRoll::sInstance);
+        setNerve(&SnowBallNrvThaw::sInstance);
         return;
     }
     if (mStopCount > 60) {
         if (MR::isBindedGround(this) && !MR::isBindedGroundDamageFire(this)) {
-            setNerve(&SnowBallNrvHide::sInstance);
+            setNerve(&SnowBallNrvWait::sInstance);
             return;
         }
     }
@@ -428,19 +428,19 @@ void SnowBall::exeBlow() {
     }
     bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"));
     if (MR::sendMsgEnemyAttackRollToBindedSensor(this, getSensor("Body")) && !bindHit) {
-        setNerve(&SnowBallNrvFall::sInstance);
+        setNerve(&SnowBallNrvBreak::sInstance);
         return;
     }
     if (updateBindedGroundRoll(bindHit)) {
-        setNerve(&SnowBallNrvRoll::sInstance);
+        setNerve(&SnowBallNrvThaw::sInstance);
         return;
     }
     if (MR::sendMsgToBindedSensor(0x12, this, getSensor("Body"))) {
-        setNerve(&SnowBallNrvThaw::sInstance);
+        setNerve(&SnowBallNrvRoll::sInstance);
         return;
     }
     if (MR::isGreaterStep(this, 30)) {
-        setNerve(&SnowBallNrvThaw::sInstance);
+        setNerve(&SnowBallNrvRoll::sInstance);
     }
 }
 
@@ -469,8 +469,8 @@ void SnowBall::exeBreak() {
 
 void SnowBall::exeHide() {
     if (MR::isFirstStep(this)) {
-        MR::hideModel(this);
         MR::zeroVelocity(this);
+        MR::hideModel(this);
     }
     if (MR::isJudgedToClipFrustum50m(mBasePos, 100.0f * mBaseRadius)) {
         resetRoll();

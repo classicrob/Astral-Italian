@@ -1079,6 +1079,7 @@ void ItemDrillMovementLimitPos::control() {
 }
 
 // NONMATCHING: stack layout matches; negate() stays an out-of-line negateInternal call (target inlines ps_neg), tail bool is materialized (cror/mfcr) instead of bge/li, fmuls operand order.
+// NONMATCHING: target inlines negate() (ps_neg) and branches `bge` to the true block; ours calls negateInternal out of line and lays the final return blocks out the other way (same `!(dist < 100.0f)` condition).
 bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3f& rPos, const TVec3f* pDir) {
     u32 count = Collision::checkStrikeBallToMapWithThickness(rPos, 130.0f, 140.0f,
                                                              mCollisionPartsFilter, nullptr);
@@ -1138,14 +1139,14 @@ bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3
     TVec3f newPos;
     TVec3f n0(*pInfo0->mParentTriangle.getNormal(0));
     JMathInlineVEC::PSVECAdd(&rPos, pOut, &newPos);
-    TVec3f negN(-n0);
+    TVec3f negN;
+    negN.negate(n0);
     if (MR::checkHitSemilinePlane(&hit, newPos, negN, *pInfo0->mParentTriangle.getPos(0), n0)) {
-        if (PSVECDistance(&newPos, &hit) >= 100.0f) {
+        if (!(PSVECDistance(&newPos, &hit) < 100.0f)) {
             return true;
-        } else {
-            return false;
         }
     }
+
     return false;
 }
 

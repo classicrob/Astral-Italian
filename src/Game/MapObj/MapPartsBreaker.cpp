@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/MapObj/MapPartsBreaker.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"

@@ -34,7 +34,7 @@ void WaterPressureBullet::init(const JMapInfoIter& rIter) {
     MR::initActor(this, "WaterBullet", false);
     MR::connectToSceneMapObjStrongLight(this);
     initHitSensor(2);
-    MR::addHitSensor(this, "body", 0x1C /* ATYPE_WATER_PRESSURE_BULLET */, 4, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensor(this, "Body", 0x1C /* ATYPE_WATER_PRESSURE_BULLET */, 4, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensor(this, "binder", 0x64 /* ATYPE_WATER_PRESSURE_BULLET_BIND */, 4, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initBinder(100.0f, 0.0f, 0);
     initEffectKeeper(0, nullptr, false);
@@ -271,7 +271,7 @@ bool WaterPressureBullet::inviteMario(HitSensor* pSensor) {
                 mVelocity.killElement(mVelocity, mGravity);
             } else {
                 kill();
-                MR::sendMsgEnemyAttackFlipVeryWeak(pSensor, getSensor("body"));
+                MR::sendMsgEnemyAttackFlipVeryWeak(pSensor, getSensor("Body"));
 
                 return false;
             }

@@ -464,7 +464,7 @@ void AreaPolygon::init(const JMapInfoIter& rIter) {
     setSurface(0);
 
     initHitSensor(1);
-    MR::addHitSensorEye(this, "body", 0, 1.0f, TVec3f(0.0f, 0.0f));
+    MR::addHitSensorEye(this, "body", 0, 0.0f, TVec3f(0.0f, 0.0f));
 
     mIndices = new TriangleIndexing[mTriangleNum];
     mFaceNormals = new TVec3f[mTriangleNum];

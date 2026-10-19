@@ -115,7 +115,7 @@ void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     TVec3f toTarget;
     KoopaBattle* host = mHost;
     MR::calcVecToTargetPosH(&toTarget, host, *MR::getPlayerPos(), &toActor);
-    MR::turnQuatYDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, toTarget, 0.01745329f * (2.5f * rate));
+    MR::turnQuatYDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, toTarget, 0.017453292f * (2.5f * rate));
     TVec3f negActor = -toActor;
     MR::turnQuatZDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, negActor, 0.10471976f);
     TVec3f up;

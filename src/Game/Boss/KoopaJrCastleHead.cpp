@@ -145,7 +145,7 @@ bool KoopaJrCastleHead::isPanicOrSpin() const {
 
 // fn_800D5960: first-step setup of the head's 'Wait' state (castle capsule and body follow).
 // NONMATCHING: string table addressing: target uses lbl_80674E30 + offset (addi r4,r30,52), literals here
-void KoopaJrCastleHead::exe800D5960() {
+void KoopaJrCastleHead::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::deleteEffect(this, "Spin");
@@ -157,7 +157,7 @@ void KoopaJrCastleHead::exe800D5960() {
 }
 
 // fn_800D59F0: first-step setup of the head's 1st damage state.
-void KoopaJrCastleHead::exe800D59F0() {
+void KoopaJrCastleHead::exeFirstDamage() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "1stDamage");
         KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
@@ -169,7 +169,7 @@ void KoopaJrCastleHead::exe800D59F0() {
 }
 
 // fn_800D5A80: first-step setup of the head's 2nd damage state.
-void KoopaJrCastleHead::exe800D5A80() {
+void KoopaJrCastleHead::exeSecondDamage() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "2ndDamage");
         KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
@@ -182,7 +182,7 @@ void KoopaJrCastleHead::exe800D5A80() {
 
 // fn_800D5B10: 'Wait' phase of the head: animates, tracks the player, and returns to nerve D when the player leaves.
 // NONMATCHING: string table addressing: target uses lbl_80674E30 + offset, literals here
-void KoopaJrCastleHead::exe800D5B10() {
+void KoopaJrCastleHead::exePanic() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -196,7 +196,7 @@ void KoopaJrCastleHead::exe800D5B10() {
         setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
         return;
     }
-    KoopaJrCastleFunction::fn_800D5040(0.4f);
+    KoopaJrCastleFunction::turnHeadToPlayer(0.4f);
     if (MR::isGreaterEqualStep(this, 0x78)) {
         setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvF::sInstance);
     }
@@ -204,7 +204,7 @@ void KoopaJrCastleHead::exe800D5B10() {
 
 // fn_800D5BF0: spin-sign sequence and the F/G/H follow-up of the head's panic phase.
 // NONMATCHING: string table addressing: target uses lbl_80674E30 + offset, literals here
-void KoopaJrCastleHead::exe800D5BF0() {
+void KoopaJrCastleHead::exeSpinSign() {
     if (MR::isFirstStep(this)) {
         KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
         MR::startAction(this, "SpinSign");
@@ -218,7 +218,7 @@ void KoopaJrCastleHead::exe800D5BF0() {
             return;
         }
     }
-    KoopaJrCastleFunction::fn_800D5040(0.4f);
+    KoopaJrCastleFunction::turnHeadToPlayer(0.4f);
     if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvG::sInstance)) {
         if (MR::isGreaterStep(this, 0x59)) {
             setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvH::sInstance);
@@ -231,7 +231,7 @@ void KoopaJrCastleHead::exe800D5BF0() {
 // fn_800D5D20: 'E' phase: eases the head's rest matrix back over the nerve step, with the burst sound.
 // NONMATCHING: rest-matrix and rotation axis not recovered (target passes an unset register to rotateVecDegree)
 // NONMATCHING: register/scheduling only (target keeps &_A4 in r31)
-void KoopaJrCastleHead::exe800D5D20() {
+void KoopaJrCastleHead::exeSpin() {
     if (MR::isFirstStep(this)) {
         KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
         MR::startAction(this, "Spin");

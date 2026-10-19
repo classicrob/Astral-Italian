@@ -141,15 +141,27 @@ void ElectricPressure::shoot() {
         TPos3f mtx(MR::getJointMtx(this, "Cannon1"));
 
         TVec3f axisX(0.0f, 0.0f, 0.0f);
-        axisX.set<f32>(mtx.mMtx[0][0], mtx.mMtx[1][0], mtx.mMtx[2][0]);
+        f32 axisXZ = mtx.mMtx[2][0];
+        f32 axisXY = mtx.mMtx[1][0];
+        f32 axisXX = mtx.mMtx[0][0];
+        axisX.set<f32>(axisXX, axisXY, axisXZ);
         TVec3f pos(0.0f, 0.0f, 0.0f);
-        pos.set<f32>(mtx.mMtx[0][3], mtx.mMtx[1][3], mtx.mMtx[2][3]);
+        f32 posZ = mtx.mMtx[2][3];
+        f32 posY = mtx.mMtx[1][3];
+        f32 posX = mtx.mMtx[0][3];
+        pos.set<f32>(posX, posY, posZ);
         JMAVECScaleAdd(&axisX, &pos, &pos, 200.0f);
 
         TVec3f axisY(0.0f, 0.0f, 0.0f);
         TVec3f axisZ(0.0f, 0.0f, 0.0f);
-        axisY.set<f32>(mtx.mMtx[0][1], mtx.mMtx[1][1], mtx.mMtx[2][1]);
-        axisZ.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+        f32 axisYZ = mtx.mMtx[2][1];
+        f32 axisYY = mtx.mMtx[1][1];
+        f32 axisYX = mtx.mMtx[0][1];
+        axisY.set<f32>(axisYX, axisYY, axisYZ);
+        f32 axisZZ = mtx.mMtx[2][2];
+        f32 axisZY = mtx.mMtx[1][2];
+        f32 axisZX = mtx.mMtx[0][2];
+        axisZ.set<f32>(axisZX, axisZY, axisZZ);
 
         MR::makeMtxFrontUpPos(&mtx, axisX, axisY, pos);
         pBullet->shotElectricBullet(this, mtx, 12.0f, mIsBulletFlag);

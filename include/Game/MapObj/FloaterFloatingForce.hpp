@@ -21,8 +21,8 @@ public:
         return TVec3f(0.0f, 0.0f, 0.0f);
     }
 
-    /* 0x18 */ const char* _18;
-    /* 0x1C */ TVec3f _1C;
-    /* 0x28 */ TVec3f _28;
+    /* 0x18 */ const char* mFloaterName;
+    /* 0x1C */ TVec3f mStartPosition;
+    /* 0x28 */ TVec3f mUpDir;
     /* 0x34 */ f32 mMoveConditionType;
 };

@@ -42,7 +42,7 @@ void FloaterFloatingForceTypeNormal::start() {
 }
 
 void FloaterFloatingForceTypeNormal::updateHostTrans(TVec3f* pDst) const {
-    pDst->set(_1C - (_28 * _40));
+    pDst->set(mStartPosition - (mUpDir * _40));
 }
 
 void FloaterFloatingForceTypeNormal::updateVelocity(bool param1) {
@@ -65,7 +65,7 @@ void FloaterFloatingForceTypeNormal::updateVelocity(bool param1) {
 
     f = _44;
 
-    if (FloaterFunction::isExistImpactOnRide(_18)) {
+    if (FloaterFunction::isExistImpactOnRide(mFloaterName)) {
         if (isNerve(GET_NERVE(FloaterFloatingForceTypeNormal, HostTypeMoveFirst))) {
             f = 10.0f;
 
@@ -75,7 +75,7 @@ void FloaterFloatingForceTypeNormal::updateVelocity(bool param1) {
         }
     }
 
-    if (FloaterFunction::isExistSpeedUpLanding(_18)) {
+    if (FloaterFunction::isExistSpeedUpLanding(mFloaterName)) {
         bool isValidAndOnSwitchA = MR::isValidSwitchA(mHost) && MR::isOnSwitchA(mHost);
 
         if (!isValidAndOnSwitchA) {
@@ -87,7 +87,7 @@ void FloaterFloatingForceTypeNormal::updateVelocity(bool param1) {
         }
     }
 
-    mVelocity.set(-_28 * f);
+    mVelocity.set(-mUpDir * f);
 
     f32 maxDepth = mMoveConditionType;
     _40 += f;
@@ -95,18 +95,18 @@ void FloaterFloatingForceTypeNormal::updateVelocity(bool param1) {
 }
 
 void FloaterFloatingForceTypeNormal::soundMoveSE() {
-    if (_18 == nullptr) {
+    if (mFloaterName == nullptr) {
         return;
     }
 
     if (_44 > 0.1f) {
-        const char* seMoveDown = FloaterFunction::getSeMoveDown(_18);
+        const char* seMoveDown = FloaterFunction::getSeMoveDown(mFloaterName);
 
         if (seMoveDown != nullptr) {
             MR::startLevelSound(mHost, seMoveDown);
         }
     } else if (_44 < -0.1f) {
-        const char* seMoveUp = FloaterFunction::getSeMoveUp(_18);
+        const char* seMoveUp = FloaterFunction::getSeMoveUp(mFloaterName);
 
         if (seMoveUp != nullptr) {
             MR::startLevelSound(mHost, seMoveUp);
@@ -130,13 +130,13 @@ void FloaterFloatingForceTypeNormal::exeWait() {
 
 void FloaterFloatingForceTypeNormal::exeMoveFirst() {
     if (isFirstStep()) {
-        const char* seGroundOn = FloaterFunction::getSeGroundOn(_18);
+        const char* seGroundOn = FloaterFunction::getSeGroundOn(mFloaterName);
 
         if (seGroundOn != nullptr) {
             MR::startSound(mHost, seGroundOn);
         }
 
-        if (FloaterFunction::isExistImpactOnRide(_18)) {
+        if (FloaterFunction::isExistImpactOnRide(mFloaterName)) {
             MR::shakeCameraWeak();
         }
     }
@@ -152,7 +152,7 @@ void FloaterFloatingForceTypeNormal::exeMoveFirst() {
 void FloaterFloatingForceTypeNormal::exeMove() {
     bool isOnPlayer = MR::isOnPlayer(MR::getBodySensor(mHost));
 
-    if (isOnPlayer && MR::isNearZero(_40) && !FloaterFunction::isExistSpeedUpLanding(_18)) {
+    if (isOnPlayer && MR::isNearZero(_40) && !FloaterFunction::isExistSpeedUpLanding(mFloaterName)) {
         MapPartsFunction::setNerve(GET_NERVE(FloaterFloatingForceTypeNormal, HostTypeMoveFirst));
     }
 

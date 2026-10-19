@@ -23,7 +23,7 @@ s32 PostFogArea::getMinRange() const {
 
 s32 PostFogArea::getMaxRange() const {
     if (mObjArg1 < 0) {
-        return 0;
+        return 0x2710;
     }
 
     if (mObjArg1 > 0x2710) {
@@ -35,7 +35,7 @@ s32 PostFogArea::getMaxRange() const {
 
 u8 PostFogArea::getAlpha() const {
     if (mObjArg2 < 0) {
-        return 0;
+        return 0xFF;
     }
 
     if (mObjArg2 > 0xFF) {
@@ -47,7 +47,7 @@ u8 PostFogArea::getAlpha() const {
 
 u8 PostFogArea::getRed() const {
     if (mObjArg3 < 0) {
-        return 0;
+        return 0xFF;
     }
 
     if (mObjArg3 > 0xFF) {
@@ -59,7 +59,7 @@ u8 PostFogArea::getRed() const {
 
 u8 PostFogArea::getGreen() const {
     if (mObjArg4 < 0) {
-        return 0;
+        return 0xFF;
     }
 
     if (mObjArg4 > 0xFF) {
@@ -71,7 +71,7 @@ u8 PostFogArea::getGreen() const {
 
 u8 PostFogArea::getBlue() const {
     if (mObjArg5 < 0) {
-        return 0;
+        return 0xFF;
     }
 
     if (mObjArg5 > 0xFF) {

@@ -20,9 +20,9 @@ public:
     /* 0x10 */ GXBlendFactor mFillSrcFactor;
     /* 0x14 */ GXBlendFactor mFillDstFactor;
     /* 0x18 */ GXLogicOp mFillLogicOp;
-    /* 0x1C */ Color8 _1C;
+    /* 0x1C */ Color8 mFillColor;
     /* 0x20 */ Color8 _20;
-    /* 0x24 */ bool _24;
+    /* 0x24 */ bool mIsVolumeDraw;
     /* 0x25 */ bool _25;
 };
 

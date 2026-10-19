@@ -105,11 +105,11 @@ void Fluff::initAfterPlacement() {
     TVec3f windDir(0.0f, 0.0f, 0.0f);
     if (FluffFunction::calcFluffWindInfo(mPosition, &windDir, &windDistance)) {
         mFront.set(windDir);
-        MR::makeAxisUpFront(&mSide, &mFront, mUp, mFront);
-        MR::setMtxAxisXYZ(mBaseMtx, mSide, mUp, mFront);
-        mBaseMtx.setTrans(mPosition);
-        MR::resetPosition(this);
     }
+    MR::makeAxisUpFront(&mSide, &mFront, mUp, mFront);
+    MR::setMtxAxisXYZ(mBaseMtx, mSide, mUp, mFront);
+    mBaseMtx.setTrans(mPosition);
+    MR::resetPosition(this);
 }
 
 void Fluff::exeFreeBloom() {

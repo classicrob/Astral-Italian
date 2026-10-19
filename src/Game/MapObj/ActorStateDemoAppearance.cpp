@@ -12,7 +12,7 @@ namespace NrvActorStateDemoAppearance {
 }
 
 ActorStateDemoAppearance::ActorStateDemoAppearance(LiveActor* pHost, const JMapInfoIter& rIter, const char* pActionName)
-    : ActorStateBase< LiveActor >("デモ出現状態", pHost), mCameraInfo(), mActionName(pActionName), mCameraTime(-1), _1C(-1), mIsInitCamera(), _21() {
+    : ActorStateBase< LiveActor >("デモ出現状態", pHost), mCameraInfo(), mActionName(pActionName), mCameraTime(-1), _1C(-1), mIsInitCamera(), mIsWaitActionEnd() {
     initNerve(GET_NERVE(ActorStateDemoAppearance, ActorStateDemoAppearanceNrvAppear));
     mIsInitCamera = MR::initMultiActorCamera(mHost, rIter, &mCameraInfo, "出現デモカメラ");
 }
@@ -59,7 +59,7 @@ void ActorStateDemoAppearance::exeWait() {
 }
 
 bool ActorStateDemoAppearance::isDemoEnd() const {
-    if (_21) {
+    if (mIsWaitActionEnd) {
         return MR::isActionEnd(mHost);
     }
 

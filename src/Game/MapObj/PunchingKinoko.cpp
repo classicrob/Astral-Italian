@@ -57,7 +57,7 @@ void PunchingKinoko::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvWait), 1);
     MR::initActorState(this, mBindStarPointer, GET_NERVE(PunchingKinoko, PunchingKinokoNrvPointSnaped), "SupportFreeze");
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
         MR::listenStageSwitchOnB(this, MR::Functor_Inline(this, &PunchingKinoko::kill));
     }
 
@@ -182,8 +182,10 @@ bool PunchingKinoko::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSens
     }
 
     if (MR::isMsgInvincibleAttack(msg) || MR::isMsgRockAttack(msg)) {
-        if (mInvincibleHitCoolDown < 0 && isEnableBlowed()) {
-            MR::startBlowHitSound(this);
+        if (mInvincibleHitCoolDown < 0) {
+            if (isEnableBlowed()) {
+                MR::startBlowHitSound(this);
+            }
             mInvincibleHitCoolDown = 10;
         }
 
@@ -243,7 +245,7 @@ bool PunchingKinoko::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSenso
 }
 
 bool PunchingKinoko::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isCrushedOrPointSnaped()) {
+    if (!isEnablePush()) {
         return false;
     }
 
@@ -305,8 +307,8 @@ bool PunchingKinoko::requestEnemyBlow(HitSensor* pOtherSensor, HitSensor* pMySen
     mGroundChecker->mVelocity.add(stack_14 * 25.0f);
     if (stack_14.length() >= 0.5f) {
         MR::startActionSound(this, "OjPncKinokoHitSelf");
-        setNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvWait));
     }
+    setNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvWait));
 
     return true;
 }
@@ -589,14 +591,15 @@ bool PunchingKinoko::isEnableBlowed() const {
     return isNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvWait));
 }
 
-bool PunchingKinoko::isCrushedOrPointSnaped() const {
+// Legacy symbol name is inverted: this predicate returns whether pushing is allowed.
+bool PunchingKinoko::isEnablePush() const {
     if (isNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvCrushed)) || isNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvCrushedShrink)) ||
         isNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvCrushedFlat)) || isNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvPointSnaped)) ||
         isNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvCrushedRecover))) {
-        return true;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 bool PunchingKinoko::isCrushed() const {

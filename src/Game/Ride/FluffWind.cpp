@@ -61,8 +61,8 @@ void FluffWindEffect::exeBrowWind() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, mEffectName);
         mTimer = MR::getRandom(::sStepBrowWindMin, ::sStepBrowWindMax);
-        MR::startActionSound(this, "OjLvFluffwindeffWind", -1, -1, -1);
     }
+    MR::startActionSound(this, "OjLvFluffwindeffWind", -1, -1, -1);
 
     if (MR::isStep(this, ::sStepToValidateClipping)) {
         MR::validateClipping(this);

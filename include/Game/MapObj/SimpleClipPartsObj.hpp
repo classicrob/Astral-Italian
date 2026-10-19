@@ -13,7 +13,7 @@ public:
     virtual void initCaseNoUseSwitchA(const MapObjActorInitInfo&);
     virtual void initCaseUseSwitchB(const MapObjActorInitInfo&);
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo&);
-    virtual void setupInitInfo(const MapObjActorInitInfo&);
+    virtual void setupInitInfo(const MapObjActorInitInfo&, const JMapInfoIter&);
 
     void exeWait();
 
@@ -28,7 +28,7 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     virtual void initCaseUseSwitchB(const MapObjActorInitInfo&);
-    virtual void setupInitInfo(const MapObjActorInitInfo&);
+    virtual void setupInitInfo(const MapObjActorInitInfo&, const JMapInfoIter&);
 
     /* 0xD4 */ TVec3f mRailClipPos;
 };
@@ -39,5 +39,5 @@ public:
 
     virtual ~RotateMoveObjClipParts();
     virtual void init(const JMapInfoIter&);
-    virtual void setupInitInfo(const MapObjActorInitInfo&);
+    virtual void setupInitInfo(const MapObjActorInitInfo&, const JMapInfoIter&);
 };

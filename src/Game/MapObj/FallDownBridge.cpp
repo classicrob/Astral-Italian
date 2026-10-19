@@ -130,7 +130,10 @@ bool FallDownBridge::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSens
         mtx60.set(getBaseMtx());
 
         TVec3f vec78;
-        vec78.set(mtx60.mMtx[0][1], mtx60.mMtx[1][1], mtx60.mMtx[2][1]);
+        f32 vz = mtx60.mMtx[2][1];
+        f32 vy = mtx60.mMtx[1][1];
+        f32 vx = mtx60.mMtx[0][1];
+        vec78.set< f32 >(vx, vy, vz);
 
         f32 dot = vec78.dot(vec6C);
 
@@ -169,7 +172,10 @@ bool FallDownBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
         mtx60.set(getBaseMtx());
 
         TVec3f vec78;
-        vec78.set(mtx60.mMtx[0][0], mtx60.mMtx[1][0], mtx60.mMtx[2][0]);
+        f32 vz = mtx60.mMtx[2][0];
+        f32 vy = mtx60.mMtx[1][0];
+        f32 vx = mtx60.mMtx[0][0];
+        vec78.set< f32 >(vx, vy, vz);
 
         f32 dot = vec78.dot(vec6C);
 

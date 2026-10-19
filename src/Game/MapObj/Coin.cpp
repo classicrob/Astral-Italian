@@ -239,7 +239,10 @@ void Coin::calcAndSetBaseMtx() {
         } else {
             MR::makeMtxTR(pos.toMtxPtr(), this);
         }
-        another_vec.set< f32 >(pos.mMtx[0][1], pos.mMtx[1][1], pos.mMtx[2][1]);
+        f32 vz = pos.mMtx[2][1];
+        f32 vy = pos.mMtx[1][1];
+        f32 vx = pos.mMtx[0][1];
+        another_vec.set< f32 >(vx, vy, vz);
     } else {
         MR::makeMtxUpNoSupportPos(&pos, another_vec, mPosition);
     }

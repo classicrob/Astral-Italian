@@ -70,13 +70,12 @@ DrillHoleHolder::DrillHoleHolder(const char* pName) : NameObj(pName) {
 }
 
 void DrillHoleHolder::init(const JMapInfoIter&) {
-    const char* pBase = "DrillHoleIn";
     mHoles1 = new DrillHole*[8];
     mHoles2 = new DrillHole*[8];
     for (s32 i = 0; i < 8; i++) {
-        mHoles1[i] = new DrillHole(pBase + 0x0, pBase + 0xC);
+        mHoles1[i] = new DrillHole("DrillHoleIn", "\203h\203\212\203\213\202\314\214\212");
         mHoles1[i]->initWithoutIter();
-        mHoles2[i] = new DrillHole(pBase + 0x18, pBase + 0xC);
+        mHoles2[i] = new DrillHole("DrillHoleOut", "\203h\203\212\203\213\202\314\214\212");
         mHoles2[i]->initWithoutIter();
     }
 }

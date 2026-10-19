@@ -149,9 +149,6 @@ namespace Collision {
     u32 getStrikeInfoNumMap();
 };  // namespace Collision
 
-namespace MR {
-    s32 calcMapHitAlongDirection(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
-}
 
 class CollisionParts;
 namespace MR {

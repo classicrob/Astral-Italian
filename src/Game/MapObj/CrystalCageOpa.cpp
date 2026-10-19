@@ -101,19 +101,18 @@ void CrystalCageOpa::exeWait() {
 
 // NONMATCHING: target keeps the "Break" string base in a separate addi (addi r4,r31,0 with reloc); we emit mr r4,r31 (one instruction, 98.2%)
 void CrystalCageOpa::exeBreak() {
-    const char* pBase = "Break";
     if (MR::isFirstStep(this)) {
         mBreakModel->appear();
 
         if (mIsStartAnim) {
-            if (MR::fn_80008F00(this, pBase + 0x8)) {
+            if (MR::fn_80008F00(this, "Move")) {
                 MR::setBckFrameAndStop(this, 0.0f);
             }
         }
 
-        MR::startAction(mBreakModel, pBase);
+        MR::startAction(mBreakModel, "Break");
 
-        if (mIsHideModel || !MR::isExistBva(this, pBase)) {
+        if (mIsHideModel || !MR::isExistBva(this, "Break")) {
             MR::hideModel(this);
         } else {
             MR::setBvaFrameAndStop(this, 1.0f);
@@ -126,7 +125,7 @@ void CrystalCageOpa::exeBreak() {
         }
     }
 
-    if (!MR::isEqualString(mObjName, pBase + 0x10)) {
+    if (!MR::isEqualString(mObjName, "CrystalCageOpaLarge")) {
         if (MR::isStep(this, 2)) {
             MR::stopScene(3);
         }

@@ -17,5 +17,6 @@ public:
     static s32 getMoveStartSignalTimeForRail();
     void initModelAndCollision(const JMapInfoIter&);
 
-    TVec3f _8C;
+    /* 0x90 */ TVec3f _8C;
+    /* 0x9C */ TVec3f _9C;
 };

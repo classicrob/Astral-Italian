@@ -180,10 +180,7 @@ void PlantSlider::exeStart() {
 
     updateSlide();
 
-    if (!MR::isGreaterEqualStep(this, 15)) {
-        return;
-    }
-    if (tryReachGoal()) {
+    if (MR::isGreaterEqualStep(this, 15) && tryReachGoal()) {
         return;
     }
     if (!MR::isActionEnd(mRider)) {
@@ -197,8 +194,8 @@ void PlantSlider::exeSlide() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("PlantSlider", nullptr);
         MR::setRailDirectionToEnd(this);
-        MR::startActionSound(this, "SlideDown", -1, -1, -1);
     }
+    MR::startActionSound(this, "SlideDown", -1, -1, -1);
 
     if (tryReachGoal()) {
         return;

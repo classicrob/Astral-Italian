@@ -61,7 +61,7 @@ void KoopaJrCastleElectric::makeActorDead() {
     LiveActor::makeActorDead();
 }
 
-void KoopaJrCastleElectric::exe800D20F0() {
+void KoopaJrCastleElectric::exeDischargeSign() {
     LiveActor* head = KoopaJrCastleFunction::getCastle()->mHead;
     if (!MR::isEffectValid(head, "LeakSign")) MR::emitEffect(head, "LeakSign");
     MR::startActionSound(head, "EmLvElecbazPreElecLeak");
@@ -71,7 +71,7 @@ void KoopaJrCastleElectric::exe800D20F0() {
     }
 }
 
-void KoopaJrCastleElectric::exe800D21A0() {
+void KoopaJrCastleElectric::exeDischarge() {
     LiveActor* head = KoopaJrCastleFunction::getCastle()->mHead;
     if (!MR::isEffectValid(head, "Leak")) MR::emitEffect(head, "Leak");
     MR::startActionSound(head, "EmLvElecbazElecLeak");

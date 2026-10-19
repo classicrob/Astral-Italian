@@ -190,7 +190,7 @@ void SandBird::exeCruise() {
         if (MR::isPlayerInJumpAction()) {
             TVec3f front(0.0f);
             MR::getPlayerFrontVec(&front);
-            if (MR::diffAngleAbs(front, delta) <= 1.9856194257736206) {
+            if (MR::diffAngleAbs(front, delta) <= 1.884955644607544) {
                 MR::pushPlayer(delta);
             }
         }

@@ -255,22 +255,12 @@ void GliBird::control() {
     MR::startActionSound(this, "FlyRustle", volume, -1, -1);
 
     f32 speedRate = (speed - 10.0f) / (38.0f - 10.0f);
-    if (speedRate < 0.0f) {
-        speedRate = 0.0f;
-    }
-    f32 speedClamp = 1.0f;
-    if (speedRate < speedClamp) {
-        speedClamp = speedRate;
-    }
+    speedRate = speedRate >= 0.0f ? speedRate : 0.0f;
+    f32 speedClamp = speedRate >= 1.0f ? 1.0f : speedRate;
 
     f32 turnRate = (MR::abs(mRollAngle) - 0.0f) / (25.0f - 0.0f);
-    if (turnRate < 0.0f) {
-        turnRate = 0.0f;
-    }
-    f32 turnClamp = 1.0f;
-    if (turnRate < turnClamp) {
-        turnClamp = turnRate;
-    }
+    turnRate = turnRate >= 0.0f ? turnRate : 0.0f;
+    f32 turnClamp = turnRate >= 1.0f ? 1.0f : turnRate;
 
     MR::startActionSound(this, "FlyTurn", 100.0f * (turnClamp * speedClamp), -1, -1);
 }
@@ -659,7 +649,7 @@ void GliBird::restart() {
     setNerve(GET_NERVE(GliBird, GliBirdNrvHide));
 }
 
-// NONMATCHING: vector temporary stack placement and scalar expression scheduling differ.
+// UNRESOLVED(objects): target rounds dot/clamp results with frsp and retains +0.0f additions; bit equivalence needs proof.
 bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     if (updateCollision()) {
         return true;

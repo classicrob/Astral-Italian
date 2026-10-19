@@ -54,16 +54,17 @@ void DashRing::init(const JMapInfoIter& rIter) {
         if (arg3 != -1) {
             mDoTurn = true;
         }
+
+        s32 arg7 = -1;
+        MR::getJMapInfoArg7WithInit(rIter, &arg7);
+
+        if (arg7 > -1) {
+            MR::invalidateShadowAll(this);
+        }
     }
 
-    s32 arg7 = -1;
-    MR::getJMapInfoArg7WithInit(rIter, &arg7);
-
-    if (arg7 > -1) {
-        MR::invalidateShadowAll(this);
-        MR::useStageSwitchSyncAppear(this, rIter);
-        MR::startAction(this, "Loop");
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
+    MR::startAction(this, "Loop");
 
     mInitialPosition = mPosition;
 }

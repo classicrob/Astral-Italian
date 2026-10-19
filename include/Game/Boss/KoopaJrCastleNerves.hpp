@@ -43,7 +43,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CF2A0();
+            a->exeSelectMove();
         }
         static KoopaJrCastleStateBodyMoveNrvSel sInstance;
     };
@@ -51,7 +51,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CF3B0();
+            a->exeTurnToPlayer();
         }
         static KoopaJrCastleStateBodyMoveNrvTurnA sInstance;
     };
@@ -59,7 +59,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CF530();
+            a->exeMoveStart();
         }
         static KoopaJrCastleStateBodyMoveNrvTurnB sInstance;
     };
@@ -67,7 +67,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CF5E0();
+            a->exeMoveStraight();
         }
         static KoopaJrCastleStateBodyMoveNrvMoveA sInstance;
     };
@@ -75,7 +75,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CF8D0();
+            a->exeTurnAroundCenter();
         }
         static KoopaJrCastleStateBodyMoveNrvRotA sInstance;
     };
@@ -83,7 +83,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CFA70();
+            a->exeMoveAroundCenter();
         }
         static KoopaJrCastleStateBodyMoveNrvRotB sInstance;
     };
@@ -91,7 +91,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CFC40();
+            a->exeMoveBackAroundCenter();
         }
         static KoopaJrCastleStateBodyMoveNrvRotC sInstance;
     };
@@ -99,7 +99,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CF700();
+            a->exeMoveChase();
         }
         static KoopaJrCastleStateBodyMoveNrvMoveB sInstance;
     };
@@ -107,7 +107,7 @@ namespace NrvKoopaJrCastleStateBodyMove {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBodyMove* a = reinterpret_cast< KoopaJrCastleStateBodyMove* >(pSpine->mExecutor);
-            a->exe800CFDD0();
+            a->exeStop();
         }
         static KoopaJrCastleStateBodyMoveNrvStop sInstance;
     };
@@ -118,7 +118,7 @@ namespace NrvKoopaJrCastleCannon {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannon* a = reinterpret_cast< KoopaJrCastleCannon* >(pSpine->mExecutor);
-            a->exe800D0640();
+            a->exeAim();
         }
         static KoopaJrCastleCannonNrvA sInstance;
     };
@@ -136,7 +136,7 @@ namespace NrvKoopaJrCastleCannon {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannon* a = reinterpret_cast< KoopaJrCastleCannon* >(pSpine->mExecutor);
-            a->exe800D0720();
+            a->exeAimContinuous();
         }
         static KoopaJrCastleCannonNrvB sInstance;
     };
@@ -144,7 +144,7 @@ namespace NrvKoopaJrCastleCannon {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannon* a = reinterpret_cast< KoopaJrCastleCannon* >(pSpine->mExecutor);
-            a->exe800D07E0();
+            a->exeShoot();
         }
         static KoopaJrCastleCannonNrvC sInstance;
     };
@@ -152,7 +152,7 @@ namespace NrvKoopaJrCastleCannon {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannon* a = reinterpret_cast< KoopaJrCastleCannon* >(pSpine->mExecutor);
-            a->exe800D09B0();
+            a->exeWaitAfterShoot();
         }
         static KoopaJrCastleCannonNrvD sInstance;
     };
@@ -160,7 +160,7 @@ namespace NrvKoopaJrCastleCannon {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannon* a = reinterpret_cast< KoopaJrCastleCannon* >(pSpine->mExecutor);
-            a->exe800D0A10();
+            a->exeShootShock();
         }
         static KoopaJrCastleCannonNrvE sInstance;
     };
@@ -171,7 +171,7 @@ namespace NrvKoopaJrCastleCannonShock {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannonShock* a = reinterpret_cast< KoopaJrCastleCannonShock* >(pSpine->mExecutor);
-            a->exe800D0FA0();
+            a->exeGrow();
         }
         static KoopaJrCastleCannonShockNrvA sInstance;
     };
@@ -179,7 +179,7 @@ namespace NrvKoopaJrCastleCannonShock {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannonShock* a = reinterpret_cast< KoopaJrCastleCannonShock* >(pSpine->mExecutor);
-            a->exe800D10A0();
+            a->exeFly();
         }
         static KoopaJrCastleCannonShockNrvB sInstance;
     };
@@ -187,7 +187,7 @@ namespace NrvKoopaJrCastleCannonShock {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannonShock* a = reinterpret_cast< KoopaJrCastleCannonShock* >(pSpine->mExecutor);
-            a->exe800D1220();
+            a->exeShrink();
         }
         static KoopaJrCastleCannonShockNrvC sInstance;
     };
@@ -198,7 +198,7 @@ namespace NrvKoopaJrCastleCannonBall {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleCannonBall* a = reinterpret_cast< KoopaJrCastleCannonBall* >(pSpine->mExecutor);
-            a->exe800D1830();
+            a->exeMove();
         }
         static KoopaJrCastleCannonBallNrvMove sInstance;
     };
@@ -209,7 +209,7 @@ namespace NrvKoopaJrCastleElectric {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleElectric* a = reinterpret_cast< KoopaJrCastleElectric* >(pSpine->mExecutor);
-            a->exe800D20F0();
+            a->exeDischargeSign();
         }
         static KoopaJrCastleElectricNrvA sInstance;
     };
@@ -217,7 +217,7 @@ namespace NrvKoopaJrCastleElectric {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleElectric* a = reinterpret_cast< KoopaJrCastleElectric* >(pSpine->mExecutor);
-            a->exe800D21A0();
+            a->exeDischarge();
         }
         static KoopaJrCastleElectricNrvB sInstance;
     };
@@ -228,7 +228,7 @@ namespace NrvKoopaJrCastleFireBar {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleFireBar* a = reinterpret_cast< KoopaJrCastleFireBar* >(pSpine->mExecutor);
-            a->exe800D2B50();
+            a->exeExtend();
         }
         static KoopaJrCastleFireBarNrvA sInstance;
     };
@@ -245,7 +245,7 @@ namespace NrvKoopaJrCastleFireBar {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleFireBar* a = reinterpret_cast< KoopaJrCastleFireBar* >(pSpine->mExecutor);
-            a->exe800D2BF0();
+            a->exeScaleUp();
         }
         static KoopaJrCastleFireBarNrvC sInstance;
     };
@@ -256,7 +256,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D5960();
+            a->exeWait();
         }
         static KoopaJrCastleHeadNrvA sInstance;
     };
@@ -264,7 +264,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D59F0();
+            a->exeFirstDamage();
         }
         static KoopaJrCastleHeadNrvB sInstance;
     };
@@ -272,7 +272,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D5A80();
+            a->exeSecondDamage();
         }
         static KoopaJrCastleHeadNrvC sInstance;
     };
@@ -287,7 +287,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D5B10();
+            a->exePanic();
         }
         static KoopaJrCastleHeadNrvE sInstance;
     };
@@ -295,7 +295,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D5BF0();
+            a->exeSpinSign();
         }
         static KoopaJrCastleHeadNrvF sInstance;
     };
@@ -303,7 +303,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D5BF0();
+            a->exeSpinSign();
         }
         static KoopaJrCastleHeadNrvG sInstance;
     };
@@ -311,7 +311,7 @@ namespace NrvKoopaJrCastleHead {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleHead* a = reinterpret_cast< KoopaJrCastleHead* >(pSpine->mExecutor);
-            a->exe800D5D20();
+            a->exeSpin();
         }
         static KoopaJrCastleHeadNrvH sInstance;
     };
@@ -322,7 +322,7 @@ namespace NrvKoopaJrCastleStateBattle {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle* a = reinterpret_cast< KoopaJrCastleStateBattle* >(pSpine->mExecutor);
-            a->exe800D68C0();
+            a->exeBattle1();
         }
         static KoopaJrCastleStateBattleNrvA sInstance;
     };
@@ -330,7 +330,7 @@ namespace NrvKoopaJrCastleStateBattle {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle* a = reinterpret_cast< KoopaJrCastleStateBattle* >(pSpine->mExecutor);
-            a->exe800D6910();
+            a->exeBattle2();
         }
         static KoopaJrCastleStateBattleNrvB sInstance;
     };
@@ -338,7 +338,7 @@ namespace NrvKoopaJrCastleStateBattle {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle* a = reinterpret_cast< KoopaJrCastleStateBattle* >(pSpine->mExecutor);
-            a->exe800D6970();
+            a->exeBattle3();
         }
         static KoopaJrCastleStateBattleNrvC sInstance;
     };
@@ -346,7 +346,7 @@ namespace NrvKoopaJrCastleStateBattle {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle* a = reinterpret_cast< KoopaJrCastleStateBattle* >(pSpine->mExecutor);
-            a->exe800D69D0();
+            a->exeBattle4();
         }
         static KoopaJrCastleStateBattleNrvD sInstance;
     };
@@ -354,7 +354,7 @@ namespace NrvKoopaJrCastleStateBattle {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle* a = reinterpret_cast< KoopaJrCastleStateBattle* >(pSpine->mExecutor);
-            a->exe800D6AD0();
+            a->exePowerUpDemo();
         }
         static KoopaJrCastleStateBattleNrvE sInstance;
     };
@@ -365,7 +365,7 @@ namespace NrvKoopaJrCastleStateOpening {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateOpening* a = reinterpret_cast< KoopaJrCastleStateOpening* >(pSpine->mExecutor);
-            a->exe800D6D80();
+            a->exeWaitSwitch();
         }
         static KoopaJrCastleStateOpeningNrvA sInstance;
     };
@@ -373,7 +373,7 @@ namespace NrvKoopaJrCastleStateOpening {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateOpening* a = reinterpret_cast< KoopaJrCastleStateOpening* >(pSpine->mExecutor);
-            a->exe800D6E00();
+            a->exeStartOpeningDemo();
         }
         static KoopaJrCastleStateOpeningNrvB sInstance;
     };
@@ -381,7 +381,7 @@ namespace NrvKoopaJrCastleStateOpening {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateOpening* a = reinterpret_cast< KoopaJrCastleStateOpening* >(pSpine->mExecutor);
-            a->exe800D6E90();
+            a->exeOpeningDemo();
         }
         static KoopaJrCastleStateOpeningNrvC sInstance;
     };
@@ -392,7 +392,7 @@ namespace NrvKoopaJrCastleDominate {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleDominate* a = reinterpret_cast< KoopaJrCastleDominate* >(pSpine->mExecutor);
-            a->exe800D7570();
+            a->exeBindPlayerFall();
         }
         static KoopaJrCastleDominateNrvA sInstance;
     };
@@ -403,7 +403,7 @@ namespace NrvKoopaJrCastleRingBeam {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleRingBeam* a = reinterpret_cast< KoopaJrCastleRingBeam* >(pSpine->mExecutor);
-            a->exe800D7C00();
+            a->exeShoot();
         }
         static KoopaJrCastleRingBeamNrvA sInstance;
     };
@@ -424,7 +424,7 @@ namespace NrvKoopaJrCastleStateBattle1 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle1* a = reinterpret_cast< KoopaJrCastleStateBattle1* >(pSpine->mExecutor);
-            a->exe800D7F60();
+            a->exeCannonVolley();
         }
         static KoopaJrCastleStateBattle1NrvA sInstance;
     };
@@ -432,7 +432,7 @@ namespace NrvKoopaJrCastleStateBattle1 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle1* a = reinterpret_cast< KoopaJrCastleStateBattle1* >(pSpine->mExecutor);
-            a->exe800D7FE0();
+            a->exeCannonBallVolley();
         }
         static KoopaJrCastleStateBattle1NrvB sInstance;
     };
@@ -440,7 +440,7 @@ namespace NrvKoopaJrCastleStateBattle1 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle1* a = reinterpret_cast< KoopaJrCastleStateBattle1* >(pSpine->mExecutor);
-            a->exe800D8060();
+            a->exeHeadPanic();
         }
         static KoopaJrCastleStateBattle1NrvC sInstance;
     };
@@ -451,7 +451,7 @@ namespace NrvKoopaJrCastleStateBattle2 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle2* a = reinterpret_cast< KoopaJrCastleStateBattle2* >(pSpine->mExecutor);
-            a->exe800D82B0();
+            a->exeCannonVolley();
         }
         static KoopaJrCastleStateBattle2NrvA sInstance;
     };
@@ -459,7 +459,7 @@ namespace NrvKoopaJrCastleStateBattle2 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle2* a = reinterpret_cast< KoopaJrCastleStateBattle2* >(pSpine->mExecutor);
-            a->exe800D8330();
+            a->exeCannonBallVolley();
         }
         static KoopaJrCastleStateBattle2NrvB sInstance;
     };
@@ -467,7 +467,7 @@ namespace NrvKoopaJrCastleStateBattle2 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle2* a = reinterpret_cast< KoopaJrCastleStateBattle2* >(pSpine->mExecutor);
-            a->exe800D83B0();
+            a->exeWindAndElectric();
         }
         static KoopaJrCastleStateBattle2NrvC sInstance;
     };
@@ -475,7 +475,7 @@ namespace NrvKoopaJrCastleStateBattle2 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle2* a = reinterpret_cast< KoopaJrCastleStateBattle2* >(pSpine->mExecutor);
-            a->exe800D8490();
+            a->exeWait();
         }
         static KoopaJrCastleStateBattle2NrvD sInstance;
     };
@@ -483,7 +483,7 @@ namespace NrvKoopaJrCastleStateBattle2 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle2* a = reinterpret_cast< KoopaJrCastleStateBattle2* >(pSpine->mExecutor);
-            a->exe800D8500();
+            a->exeHeadPanic();
         }
         static KoopaJrCastleStateBattle2NrvE sInstance;
     };
@@ -491,7 +491,7 @@ namespace NrvKoopaJrCastleStateBattle2 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle2* a = reinterpret_cast< KoopaJrCastleStateBattle2* >(pSpine->mExecutor);
-            a->exe800D8550();
+            a->exeHeadSpinSign();
         }
         static KoopaJrCastleStateBattle2NrvF sInstance;
     };
@@ -502,7 +502,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8840();
+            a->exeCannonBallVolleyBeforeMove();
         }
         static KoopaJrCastleStateBattle3NrvA sInstance;
     };
@@ -510,7 +510,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D88B0();
+            a->exeCannonBallVolleyBeforeWind();
         }
         static KoopaJrCastleStateBattle3NrvB sInstance;
     };
@@ -518,7 +518,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8920();
+            a->exeCannonBallVolleyBeforeChase();
         }
         static KoopaJrCastleStateBattle3NrvC sInstance;
     };
@@ -526,7 +526,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8990();
+            a->exeMoveStraight();
         }
         static KoopaJrCastleStateBattle3NrvD sInstance;
     };
@@ -534,7 +534,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8A00();
+            a->exeMoveChase();
         }
         static KoopaJrCastleStateBattle3NrvE sInstance;
     };
@@ -542,7 +542,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8AC0();
+            a->exeMoveAroundCenter();
         }
         static KoopaJrCastleStateBattle3NrvF sInstance;
     };
@@ -550,7 +550,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8BA0();
+            a->exeWindAndElectric();
         }
         static KoopaJrCastleStateBattle3NrvG sInstance;
     };
@@ -569,7 +569,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8C90();
+            a->exeCannonVolley();
         }
         static KoopaJrCastleStateBattle3NrvI sInstance;
     };
@@ -577,7 +577,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8CF0();
+            a->exeShockSign();
         }
         static KoopaJrCastleStateBattle3NrvJ sInstance;
     };
@@ -585,7 +585,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8D50();
+            a->exeShockVolley();
         }
         static KoopaJrCastleStateBattle3NrvK sInstance;
     };
@@ -593,7 +593,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8DA0();
+            a->exeSelectAttack();
         }
         static KoopaJrCastleStateBattle3NrvL sInstance;
     };
@@ -601,7 +601,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8E30();
+            a->exeHeadPanic();
         }
         static KoopaJrCastleStateBattle3NrvM sInstance;
     };
@@ -609,7 +609,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
-            a->exe800D8E80();
+            a->exeHeadSpinSign();
         }
         static KoopaJrCastleStateBattle3NrvN sInstance;
     };
@@ -620,7 +620,7 @@ namespace NrvKoopaJrCastleStateBattle4 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle4* a = reinterpret_cast< KoopaJrCastleStateBattle4* >(pSpine->mExecutor);
-            a->exe800D93F0();
+            a->exePushPlayerOff();
         }
         static KoopaJrCastleStateBattle4NrvA sInstance;
     };
@@ -628,7 +628,7 @@ namespace NrvKoopaJrCastleStateBattle4 {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle4* a = reinterpret_cast< KoopaJrCastleStateBattle4* >(pSpine->mExecutor);
-            a->exe800D9450();
+            a->exeDownDemo();
         }
         static KoopaJrCastleStateBattle4NrvC sInstance;
     };
@@ -644,7 +644,7 @@ namespace NrvKoopaJrCastleWind {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleWind* a = reinterpret_cast< KoopaJrCastleWind* >(pSpine->mExecutor);
-            a->exe800D9CF0();
+            a->exeBlowStart();
         }
         static KoopaJrCastleWindNrvA sInstance;
     };
@@ -652,7 +652,7 @@ namespace NrvKoopaJrCastleWind {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleWind* a = reinterpret_cast< KoopaJrCastleWind* >(pSpine->mExecutor);
-            a->exe800D9D60();
+            a->exeVacuum();
         }
         static KoopaJrCastleWindNrvB sInstance;
     };
@@ -660,7 +660,7 @@ namespace NrvKoopaJrCastleWind {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleWind* a = reinterpret_cast< KoopaJrCastleWind* >(pSpine->mExecutor);
-            a->exe800D9E20();
+            a->exeBlowEnd();
         }
         static KoopaJrCastleWindNrvC sInstance;
     };
@@ -668,7 +668,7 @@ namespace NrvKoopaJrCastleWind {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleWind* a = reinterpret_cast< KoopaJrCastleWind* >(pSpine->mExecutor);
-            a->exe800D9EC0();
+            a->exeBlow();
         }
         static KoopaJrCastleWindNrvE sInstance;
     };
@@ -689,7 +689,7 @@ namespace NrvKoopaJrCastleWindUp {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleWindUp* a = reinterpret_cast< KoopaJrCastleWindUp* >(pSpine->mExecutor);
-            a->exe800DA640();
+            a->exeBlow();
         }
         static KoopaJrCastleWindUpNrvA sInstance;
     };
@@ -697,7 +697,7 @@ namespace NrvKoopaJrCastleWindUp {
     public:
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleWindUp* a = reinterpret_cast< KoopaJrCastleWindUp* >(pSpine->mExecutor);
-            a->exe800DA6F0();
+            a->exeStop();
         }
         static KoopaJrCastleWindUpNrvB sInstance;
     };

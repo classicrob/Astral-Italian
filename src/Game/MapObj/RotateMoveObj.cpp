@@ -86,11 +86,11 @@ void RotateMoveObj::exeWait() {
 
 void RotateMoveObj::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "RotateMoveObjStart", -1, -1, -1);
+        MR::startActionSoundAuto(this, "RotateMoveObjStart", -1, -1, -1);
         MR::StageEffect::tryStageEffectStart(this, mObjectName);
     }
 
-    MR::startActionSound(this, "RotateMoveObjMove", -1, -1, -1);
+    MR::startActionSoundAuto(this, "RotateMoveObjMove", -1, -1, -1);
 
     if (!MapObjActorUtil::isRotatorMoving(this)) {
         setNerve(GET_NERVE(RotateMoveObj, HostTypeStop));
@@ -109,7 +109,7 @@ void RotateMoveObj::exeStop() {
     if (MapObjActorUtil::isRotatorMoving(this)) {
         setNerve(GET_NERVE(RotateMoveObj, HostTypeMove));
     } else if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "RotateMoveObjStop", -1, -1, -1);
+        MR::startActionSoundAuto(this, "RotateMoveObjStop", -1, -1, -1);
         MR::StageEffect::tryStageEffectStop(this, mObjectName);
     }
 }

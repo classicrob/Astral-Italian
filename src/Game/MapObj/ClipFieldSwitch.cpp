@@ -8,8 +8,8 @@ ClipFieldSwitch::ClipFieldSwitch(const char* pName) : LiveActor(pName) {
 
 void ClipFieldSwitch::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
-    MR::useStageSwitchWriteA(this, rIter);
-    MR::useStageSwitchWriteB(this, rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
+    MR::initUseStageSwitchWriteB(this, rIter);
     initHitSensor(1);
     MR::addHitSensorEye(this, "Body", 8, 1000.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::invalidateClipping(this);

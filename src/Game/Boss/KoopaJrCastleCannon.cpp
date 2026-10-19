@@ -75,7 +75,7 @@ void KoopaJrCastleCannon::makeActorDead() {
     mHost->mHead->resetWaitUnlessDamaged();
 }
 
-void KoopaJrCastleCannon::exe800D0640() {
+void KoopaJrCastleCannon::exeAim() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(mHost->mHead, "Aim");
     }
@@ -91,7 +91,7 @@ void KoopaJrCastleCannon::exe800D0640() {
     }
 }
 
-void KoopaJrCastleCannon::exe800D0720() {
+void KoopaJrCastleCannon::exeAimContinuous() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(mHost->mHead, "Aim");
     }
@@ -103,7 +103,7 @@ void KoopaJrCastleCannon::exe800D0720() {
     KoopaJrCastleFunction::aimHeadAtPlayer(mAimRate, 15.0f);
 }
 
-void KoopaJrCastleCannon::exe800D07E0() {
+void KoopaJrCastleCannon::exeShoot() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost->mHead, "Shot");
     }
@@ -138,7 +138,7 @@ void KoopaJrCastleCannon::exe800D07E0() {
     }
 }
 
-void KoopaJrCastleCannon::exe800D09B0() {
+void KoopaJrCastleCannon::exeWaitAfterShoot() {
     updateGauge();
     KoopaJrCastleFunction::aimHeadAtPlayer(mAimRate, 15.0f);
     if (MR::isGreaterStep(this, 30)) {
@@ -147,7 +147,7 @@ void KoopaJrCastleCannon::exe800D09B0() {
 }
 
 // NONMATCHING: mShock call: target passes a stale r4 to the 1-arg getCannon3Mtx wrapper in this function (2-arg use in shoot); size matches, 1 insn differs
-void KoopaJrCastleCannon::exe800D0A10() {
+void KoopaJrCastleCannon::exeShootShock() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost->mHead, "Shot");
     }
@@ -265,7 +265,7 @@ void KoopaJrCastleCannonShock::shoot(MtxPtr pMtx, const f32& rSpeed) {
 }
 
 // NONMATCHING: f64 clamp result: target re-stores mScale.x from the unrounded double after frsp (CSE differs)
-void KoopaJrCastleCannonShock::exe800D0FA0() {
+void KoopaJrCastleCannonShock::exeGrow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shot");
         MR::startBtk(this, "ElectricBullet");
@@ -285,7 +285,7 @@ void KoopaJrCastleCannonShock::exe800D0FA0() {
     }
 }
 
-void KoopaJrCastleCannonShock::exe800D10A0() {
+void KoopaJrCastleCannonShock::exeFly() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Move");
         mVelocity.scale(mShotSpeed, mDir);
@@ -312,7 +312,7 @@ void KoopaJrCastleCannonShock::exe800D10A0() {
 }
 
 // NONMATCHING: f64 calcNerveEaseOutValue result: target stores mScale.x unrounded, ours CSEs the frsp copy
-void KoopaJrCastleCannonShock::exe800D1220() {
+void KoopaJrCastleCannonShock::exeShrink() {
     if (MR::isFirstStep(this)) {
         MR::invalidateHitSensors(this);
     }

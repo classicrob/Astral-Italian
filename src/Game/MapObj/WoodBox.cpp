@@ -218,10 +218,12 @@ void WoodBox::exeHit() {
         }
 
         if (mOneUp != nullptr) {
+            TVec3f oneUpDirection;
+            MR::calcUpVec(&oneUpDirection, this);
             Mtx spawnMtx;
             PSMTXCopy(getBaseMtx(), spawnMtx);
 
-            MR::addTransMtx(spawnMtx, upVec * 50.0f);
+            MR::addTransMtx(spawnMtx, oneUpDirection * 50.0f);
 
             MR::appearKinokoOneUpHop(mOneUp, spawnMtx);
         }
@@ -261,7 +263,6 @@ void WoodBox::doHit(HitSensor* pSender, HitSensor* pReceiver) {
         }
 
         mBreakModel->appear();
-        MR::startAction(mBreakModel, "Break");
 
         if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
             MR::emitEffect(mBreakModel, "BreakWater");
@@ -270,7 +271,7 @@ void WoodBox::doHit(HitSensor* pSender, HitSensor* pReceiver) {
         }
 
         if (mIsNoRespawn) {
-            MR::startBva(this, "WoodBox");
+            MR::startBva(this, "Dust");
         } else {
             MR::hideModel(this);
         }

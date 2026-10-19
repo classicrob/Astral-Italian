@@ -7,16 +7,13 @@
 #include "math_types.hpp"
 
 
-namespace NameObjFactory {
-    LiveActor* initChildObj(const JMapInfoIter&, s32);
-};  // namespace NameObjFactory
 
 namespace NrvSecretGateCounter {
     NEW_NERVE(SecretGateCounterNrvCount, SecretGateCounter, Count);
     NEW_NERVE(SecretGateCounterNrvMovementOn, SecretGateCounter, MovementOn);
 };  // namespace NrvSecretGateCounter
 
-SecretGateGroup::SecretGateGroup(const char* pName, int num) : LiveActorGroup(pName, num) {
+inline SecretGateGroup::SecretGateGroup(const char* pName, int num) : LiveActorGroup(pName, num) {
 }
 
 SecretGateGroup::~SecretGateGroup() {
@@ -31,10 +28,10 @@ void SecretGateCounter::init(const JMapInfoIter& rIter) {
     s32 num = MR::getChildObjNum(rIter);
     mGroup = new SecretGateGroup("シークレットゲート監視", num);
     for (s32 i = 0; i < num; i++) {
-        const char* pName;
+        const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
         if (MR::isEqualString(pName, "SecretGate")) {
-            mGroup->registerActor(NameObjFactory::initChildObj(rIter, i));
+            mGroup->registerActor(static_cast<LiveActor*>(NameObjFactory::initChildObj(rIter, i)));
         }
     }
     MR::invalidateClipping(this);

@@ -177,8 +177,8 @@ void Plant::exeSeedWait() {
         MR::startActionSound(this, "OjPlantBud", -1, -1, -1);
         mTopPartsModel->kill();
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
-        MR::attachSupportTicoToTarget(mSeedPartsModel);
     }
+    MR::attachSupportTicoToTarget(mSeedPartsModel);
 }
 
 void Plant::exeWaitDemoWaitGrowUp() {

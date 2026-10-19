@@ -92,7 +92,7 @@ void RollingWater::control() {
     MR::setBckFrameAndStop(this, MR::getBckFrameMax(this) * mSpeedRate);
 
     f32 t = 0.0f;
-    if (mRadius > 1.0f) {
+    if (!(mRadius <= 1.0f)) {
         if (mRadius <= 1.5f) {
             t = MR::normalize(mRadius, 1.0f, 1.5f);
         } else if (mRadius <= 2.0f) {

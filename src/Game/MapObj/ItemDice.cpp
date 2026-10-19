@@ -44,7 +44,10 @@ s32 calcFaceIndex(MtxPtr source, const TVec3f* direction) {
     TRot3f matrix;
     matrix.set(source);
     TVec3f x;
-    x.set<f32>(matrix.mMtx[0][0], matrix.mMtx[1][0], matrix.mMtx[2][0]);
+    f32 xz = matrix.mMtx[2][0];
+    f32 xy = matrix.mMtx[1][0];
+    f32 xx = matrix.mMtx[0][0];
+    x.set<f32>(xx, xy, xz);
     TVec3f y;
     matrix.getYDir(y);
     TVec3f z;
@@ -52,12 +55,25 @@ s32 calcFaceIndex(MtxPtr source, const TVec3f* direction) {
     f32 dx = x.dot(*direction);
     f32 dy = y.dot(*direction);
     f32 dz = z.dot(*direction);
-    if (__fabsf(dx) > __fabsf(dy)) {
-        if (__fabsf(dx) > __fabsf(dz)) return dx < 0.0f ? 0 : 1;
-        return dz < 0.0f ? 4 : 5;
+    s32 result;
+    f32 ay = __fabsf(dy);
+    f32 ax = __fabsf(dx);
+    if (ax > ay) {
+        if (ax > __fabsf(dz)) {
+            if (dx < 0.0f) {
+                result = 0;
+            } else {
+                result = 1;
+            }
+        } else {
+            result = dz < 0.0f ? 4 : 5;
+        }
+    } else if (ay > __fabsf(dz)) {
+        result = dy < 0.0f ? 2 : 3;
+    } else {
+        result = dz < 0.0f ? 4 : 5;
     }
-    if (__fabsf(dy) > __fabsf(dz)) return dy < 0.0f ? 2 : 3;
-    return dz < 0.0f ? 4 : 5;
+    return result;
 }
 // NONMATCHING: matrix/vector helpers inline with the current shared headers.
 void initItemPose(LiveActor* actor, const TVec3f* position, TRot3f* output, f32 angle) {
@@ -513,12 +529,14 @@ bool DiceBase::isSettled() {
     mtx.getQuat(quat);
     f32 sq = reinterpret_cast<const TVec3f*>(&quat)->squared();
 
+    f32 angle;
     if (sq <= 0.000003814697265625f) {
         axis.x = axis.y = axis.z = 0.0f;
+        angle = 0.0f;
     } else {
         axis.scale(JGeometry::TUtil<f32>::inv_sqrt(sq), *reinterpret_cast<const TVec3f*>(&quat));
+        angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
     }
-    f32 angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
     if (__fabsf(angle) < 0.0872664675116539f &&
         PSVECDistance(&trans2, &trans1) < 10.0f) {
         mBounceCount++;
@@ -867,7 +885,6 @@ bool LuckyDice::isGoodResult(u32 result) const {
 
 // unnamed fn_802B5240 (0x268 bytes): spread `count` benefit items around the dice toward the player.
 // NONMATCHING: empty SDK default constructors remain outlined; vector temporary stack placement differs.
-#pragma dont_inline on
 void LuckyDice::shootItems(s32 count) {
     TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
     MR::vecKillElement(toPlayer, mGravity, &toPlayer);
@@ -924,8 +941,6 @@ void LuckyDice::shootItems(s32 count) {
         }
     }
 }
-
-#pragma dont_inline reset
 
 MultipleChoiceDice::~MultipleChoiceDice() {
 }

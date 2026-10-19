@@ -11,7 +11,7 @@ Sun::~Sun() {
 }
 
 void Sun::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("Sun", nullptr, false);
+    MR::initActor(this, "Sun", false);
     MR::connectToSceneSun(this);
     MR::invalidateClipping(this);
     makeActorAppeared();

@@ -192,8 +192,8 @@ void ArrowSwitch::listenOffSwitch() {
         mIsRotPlus = false;
         mRotSpeed = -::sPunchVelocit;
         break;
-    case SwitchType_QuarterMinus:
     case SwitchType_HalfMinus:
+    case SwitchType_QuarterMinus:
         mIsRotPlus = true;
         mRotSpeed = ::sPunchVelocit;
         break;
@@ -222,8 +222,9 @@ void ArrowSwitch::exeRotate() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "OjArrowSwitchOn", -1, -1, -1);
         MR::onCalcShadow(this, nullptr);
-        MR::startActionSound(this, "OjLvArrowSwitchMove", -1, -1, -1);
     }
+
+    MR::startActionSound(this, "OjLvArrowSwitchMove", -1, -1, -1);
 
     mRotAngle += mRotSpeed;
     mRotAngle = MR::repeat(mRotAngle, -180.0f, 360.0f);

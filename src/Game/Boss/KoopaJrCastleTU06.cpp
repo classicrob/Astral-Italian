@@ -137,7 +137,7 @@ void KoopaJrCastleFireBar::control() {
     }
 }
 
-void KoopaJrCastleFireBar::exe800D2B50() {
+void KoopaJrCastleFireBar::exeExtend() {
     mCurrentLength += 25.0f;
     mCurrentLength = MR::clamp(mCurrentLength, 0.0f, mMaxLength);
     MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
@@ -147,7 +147,7 @@ void KoopaJrCastleFireBar::exe800D2B50() {
 }
 
 #pragma dont_inline on
-void KoopaJrCastleFireBar::exe800D2BF0() {
+void KoopaJrCastleFireBar::exeScaleUp() {
     MR::isFirstStep(this);
     mScaleRate = MR::calcNerveEaseInRate(this, 60);
     MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);

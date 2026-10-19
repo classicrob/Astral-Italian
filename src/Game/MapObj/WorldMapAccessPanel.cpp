@@ -297,7 +297,7 @@ bool WorldMapAccessPanel::isPlayerOutOfRange() {
     f32 a = 0.0f;
     MR::func_8003DEF0(&b, &c, MR::getPlayerPos(), &hitPos, &mGravity);
     MR::func_8003DEF0(&a, &c, MR::getPlayerPos(), &hitPos2, &mGravity);
-    return !(b < radius) && a < radius2;
+    return b < radius || a < radius2;
 }
 
 void WorldMapAccessPanel::setWorldIdsAndReset() {

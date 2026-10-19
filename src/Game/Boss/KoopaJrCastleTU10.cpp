@@ -91,7 +91,7 @@ void KoopaJrCastleDominate::setPlayerActionNames(const char* start, const char* 
     mWaitActionName = wait;
 }
 
-void KoopaJrCastleDominate::exe800D7570() {
+void KoopaJrCastleDominate::exeBindPlayerFall() {
     MR::attenuateVelocity(this, 0.98f);
     MR::addVelocityToGravity(this, 0.7f);
     if (MR::isStep(this, 10)) MR::onBind(this);

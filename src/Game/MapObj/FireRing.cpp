@@ -83,7 +83,8 @@ void FireRing::endClipped() {
 
 void FireRing::initBalls(const JMapInfoIter& rIter) {
     mBalls = new FireRingBall*[mBallCount];
-    TVec3f zero(0.0f);
+    f32 zeroF = 0.0f;
+    TVec3f zero(zeroF);
     for (s32 i = 0; i < mBallCount; i++) {
         mBalls[i] = new FireRingBall(this, "\x83\x74\x83\x40\x83\x43\x83\x41\x83\x8A\x83\x93\x83\x4F\x83\x7B\x81\x5B\x83\x8B", "FireRingBall");
     }
@@ -92,7 +93,7 @@ void FireRing::initBalls(const JMapInfoIter& rIter) {
         mBalls[i]->initWithoutIter();
         mBalls[i]->setShadowDropLength((f32)mShadowLength);
         MR::startBtk(mBalls[i], "FireRingBall");
-        MR::setBtkFrame(mBalls[i], 0.0f);
+        MR::setBtkFrame(mBalls[i], zeroF);
         if (mIsShadowDropDirPtr) {
             mBalls[i]->setShadowDropDirectionPtr();
         }

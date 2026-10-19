@@ -295,7 +295,6 @@ void MarioFaceShipAttentionConversationExecutor::initConversation(Param* pParam,
     }
 }
 
-// NONMATCHING: the empty "" literal is emitted as li rN,sym@sda21 (target: addi r4,r31,0xF8 from the string pool)
 bool MarioFaceShipAttentionConversationExecutor::tryStartDemo() {
     if (!isNerve(GET_EXE_NERVE(Wait))) {
         return false;
@@ -314,7 +313,7 @@ bool MarioFaceShipAttentionConversationExecutor::tryStartDemo() {
         }
         return MR::tryStartTimeKeepDemoMarioPuppetable(this, name, nullptr);
     }
-    return MR::requestStartDemoMarioPuppetable(this, "", GET_EXE_NERVE(DemoStart), GET_EXE_NERVE(DemoEnd));
+    return MR::requestStartDemoMarioPuppetable(this, "注目会話デモ", GET_EXE_NERVE(DemoStart), GET_EXE_NERVE(DemoEnd));
 }
 
 bool MarioFaceShipAttentionConversationExecutor::isWaitingNerve() const {

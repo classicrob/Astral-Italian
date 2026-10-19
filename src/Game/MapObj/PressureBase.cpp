@@ -25,8 +25,8 @@ namespace NrvPressureBase {
     NEW_NERVE(PressureBaseNrvWaitStart, PressureBase, Bound);
     NEW_NERVE(PressureBaseNrvRelax, PressureBase, Relax);
     NEW_NERVE(PressureBaseNrvSyncWait, PressureBase, SyncWait);
-    NEW_NERVE(PressureBaseNrvSwitchWait, PressureBase, SwitchWait);
     NEW_NERVE(PressureBaseNrvFirstWait, PressureBase, FirstWait);
+    NEW_NERVE(PressureBaseNrvSwitchWait, PressureBase, SwitchWait);
     NEW_NERVE(PressureBaseNrvWait, PressureBase, Wait);
     NEW_NERVE(PressureBaseNrvPrepareToShot, PressureBase, PrepareToShot);
     NEW_NERVE(PressureBaseNrvShot, PressureBase, Shot);
@@ -107,9 +107,9 @@ void PressureBase::init(const JMapInfoIter& rIter) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &PressureBase::startWait), MR::Functor(this, &PressureBase::startRelax));
         initNerve(GET_NERVE(PressureBase, PressureBaseNrvRelax));
     } else if (MR::isValidSwitchB(this)) {
-        initNerve(GET_NERVE(PressureBase, PressureBaseNrvFirstWait));
-    } else {
         initNerve(GET_NERVE(PressureBase, PressureBaseNrvSwitchWait));
+    } else {
+        initNerve(GET_NERVE(PressureBase, PressureBaseNrvFirstWait));
     }
 
     MR::useStageSwitchSyncAppear(this, rIter);
@@ -206,7 +206,7 @@ void PressureBase::exeSwitchWait() {
 
 void PressureBase::exeWait() {
     if (MR::isValidSwitchB(this) && !MR::isOnSwitchB(this)) {
-        setNerve(GET_NERVE(PressureBase, PressureBaseNrvFirstWait));
+        setNerve(GET_NERVE(PressureBase, PressureBaseNrvSwitchWait));
         return;
     }
 

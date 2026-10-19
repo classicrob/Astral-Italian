@@ -32,7 +32,7 @@ void KoopaJrRobotStateBase::turnToPlayerSlow() {
 s32 KoopaJrRobotStateBase::updateSearch() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Search");
-        mHost->mSeq->fn_800DC9D0();
+        mHost->mSeq->startRearLauncherSequence();
     }
     if (MR::isStep(this, 110)) {
         mHost->mCollisionC->appear();

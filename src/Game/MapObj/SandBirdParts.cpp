@@ -61,7 +61,7 @@ void SandBirdParts::init(const JMapInfoIter& rIter) {
     MR::excludeCalcShadowToActorAll(this, mParent);
     MR::validateClipping(this);
     mConnector = new MapObjConnector(this);
-    mConnector->connect(mParent);
+    mConnector->attachToActor(mParent);
     makeActorAppeared();
 }
 

@@ -40,10 +40,10 @@ public:
     /* 0x9C */ TVec3f* mPositions;
     /* 0xA0 */ TVec3f* mFaceNormals;
     /* 0xA4 */ TriangleIndexing* mIndices;
-    /* 0xA8 */ u32 _A4;
-    /* 0xAC */ u32 _A8;
-    /* 0xB0 */ u32 _AC;
-    /* 0xB4 */ u8 _B0[0x6C];
-    /* 0x120 */ u32 _11C;
+    /* 0xA8 */ u32 _A8;
+    /* 0xAC */ u32 _AC;
+    /* 0xB0 */ u32 _B0;
+    /* 0xB4 */ u8 _B4[0x6C];
+    /* 0x120 */ u32 _120;
     /* 0x124 */ u32 _124;  // SMG2
 };

@@ -61,14 +61,13 @@ void CaveInCube::calcDebrisMtx(CaveInParts* pParts) {
 }
 
 void CaveInCube::initDebris() {
-    const char* pBase = "\227\216\224\325\203p\201[\203c[\221\345]";
     mDebris0 = new CaveInParts*[20];
     mDebris1 = new CaveInParts*[20];
     mDebris2 = new CaveInParts*[20];
     for (s32 i = 0; i < 20; i++) {
-        mDebris0[i] = new CaveInParts(this, pBase + 0x0, pBase + 0x10);
-        mDebris1[i] = new CaveInParts(this, pBase + 0x20, pBase + 0x30);
-        mDebris2[i] = new CaveInParts(this, pBase + 0x44, pBase + 0x54);
+        mDebris0[i] = new CaveInParts(this, "\227\216\224\325\203p\201[\203c[\221\345]", "CaveInPartsBig");
+        mDebris1[i] = new CaveInParts(this, "\227\216\224\325\203p\201[\203c[\222\206]", "CaveInPartsMiddle");
+        mDebris2[i] = new CaveInParts(this, "\227\216\224\325\203p\201[\203c[\217\254]", "CaveInPartsSmall");
     }
     for (s32 i = 0; i < 20; i++) {
         mDebris0[i]->initWithoutIter();
@@ -83,7 +82,7 @@ void CaveInCube::initDebris() {
 
 bool CaveInCube::getUnusedDebris(u32 kind, CaveInParts** ppOut) {
     CaveInParts** pArr = nullptr;
-    switch (kind) {
+    switch (static_cast<s32>(kind)) {
     case 0:
         pArr = mDebris0;
         break;

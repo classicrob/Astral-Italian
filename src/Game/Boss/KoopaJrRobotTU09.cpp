@@ -106,7 +106,7 @@ void KoopaJrRobotStateA::exeWait() {
         }
         KoopaJrRobot* pHost = mHost;
         MR::startAction(pHost, getWaitActionName());
-        mHost->mSeq->fn_800DC9C0();
+        mHost->mSeq->startFastFrontLauncherShots();
     }
     if (!KoopaJrRobotFunction::isPlayerInRushAir()) {
         turnToPlayerSlow();

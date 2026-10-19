@@ -90,7 +90,7 @@ void IceStep::setOn(u32 a1, const TVec3f& rPosition, const TVec3f& rRotation) {
     mRotation = rRotation;
 
     MR::offUpdateCollisionParts(this);
-    MR::onUpdateCollisionPartsOnetimeImmediately(this);
+    MR::onUpdateCollisionPartsOneTimeImmediately(this);
 
     s32 scale = a1 / 2;
     if (a1 % 2) {

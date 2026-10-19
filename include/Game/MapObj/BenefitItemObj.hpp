@@ -88,6 +88,6 @@ public:
     /* 0x138 */ FlashingCtrl* mFlashCtrl;
     /* 0x13C */ ActorCameraInfo* mCameraInfo;
     /* 0x140 */ u32 _140;
-    /* 0x144 */ u32 _144;
+    /* 0x144 */ s32 _144;
     /* 0x148 */ TVec3f _148;
 };

@@ -218,13 +218,12 @@ void FireBar::exeWait() {
         TVec3f up_vec;
         MR::calcUpVec(&up_vec, this);
         MR::rotateVecDegree(&mFrontVec, up_vec, mFireBarSpeed);
-    }
+        fixFireBarBall();
 
-    fixFireBarBall();
-
-    if (isAnyFireBallInNerveB()) {
-        MR::sendMsgToGroupMember(0x7B, this, getSensor("Body"), "Body");
-        setNerve(GET_NERVE(FireBar, FireBarNrvC));
+        if (isAnyFireBallInNerveB()) {
+            MR::sendMsgToGroupMember(0x7B, this, getSensor("Body"), "Body");
+            setNerve(GET_NERVE(FireBar, FireBarNrvC));
+        }
     }
 }
 
@@ -338,6 +337,7 @@ void FireBar::setSensorToNearestFireBall(HitSensor* pSensor) {
 
     f32 minDistance = 0.0f;
     s32 nearest = 0;
+    TVec3f unusedPos(mPosition);
 
     for (s32 i = 0; i < mFireBallCount; i++) {
         f32 distance = MR::calcDistanceToPlayer(mFireBalls[i]);

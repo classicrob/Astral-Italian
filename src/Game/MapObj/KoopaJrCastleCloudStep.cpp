@@ -42,7 +42,7 @@ void KoopaJrCastleCloudStep::init(const JMapInfoIter& rIter) {
     bool useShadow = true;
     MR::getJMapInfoArg0NoInit(rIter, &useShadow);
     mUseShadow = useShadow;
-    if (!mUseShadow) {
+    if (!useShadow) {
         MR::invalidateShadowAll(this);
     }
     initNerve(GET_NERVE(KoopaJrCastleCloudStep, KoopaJrCastleCloudStepNrvWait), 0);
@@ -137,6 +137,7 @@ bool KoopaJrCastleCloudStep::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSen
 
     if (MR::isMsgFloorTouch(msg) || MR::isMsgWallTouch(msg) || MR::isMsgCeilTouch(msg)) {
         tryDie();
+        return false;
     }
     return false;
 }

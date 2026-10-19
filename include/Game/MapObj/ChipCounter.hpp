@@ -36,5 +36,5 @@ public:
     /* 0x24 */ s32 mCount;
     /* 0x28 */ s32 mType;
     /* 0x2C */ s32 mGroupId;
-    /* 0x30 */ f32 _30;
+    /* 0x30 */ f32 mShowRate;  // 0..1 position in the ShowHide anim; drops while a talk balloon is active
 };

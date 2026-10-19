@@ -47,6 +47,7 @@ void BeeFlowerHover::init(const JMapInfoIter& rIter) {
     }
 
     MR::initShadowVolumeCylinder(this, 450.0f);
+    MR::setShadowVolumeStartDropOffset(this, nullptr, 100.0f);
     MR::onShadowFollowHostScale(this, 0);
 
     if (mRailMover == nullptr) {

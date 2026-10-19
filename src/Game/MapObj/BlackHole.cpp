@@ -10,7 +10,7 @@ namespace NrvBlackHole {
     NEW_NERVE(BlackHoleNrvDisappear, BlackHole, Disappear);
 };  // namespace NrvBlackHole
 
-BlackHole::BlackHole(const char* pName) : LiveActor(pName), mBlackHoleModel(), _90(gZeroVec), mModelScale(1.0f), mSensorRadius(500.0f), mCubeBounds(), mCameraInfo() {
+BlackHole::BlackHole(const char* pName) : LiveActor(pName), mBlackHoleModel(), _94(gZeroVec), mModelScale(1.0f), mSensorRadius(500.0f), mCubeBounds(), mCameraInfo() {
     mCubeMtx.identity();
     mEffectMtx.identity();
 }

@@ -112,7 +112,6 @@ void ShootingStar::exePreShooting() {
     }
 }
 
-// NONMATCHING: if/else block layout; target places the Burst arm out of line (bne to a block that branches back before deleteEffect).
 void ShootingStar::exeShooting() {
     if (MR::isFirstStep(this)) {
         mVelocity = -mFallAxis * ::sFallVelScale;
@@ -132,8 +131,6 @@ void ShootingStar::exeShooting() {
 
         if (!MR::appearStarPiece(this, mPosition, mNumBurstStarPiece, 15.0f, ::sLaunchYVel, false)) {
             MR::startActionSound(this, "OjStarPieceNotBurst");
-        } else {
-            MR::startActionSound(this, "OjStarPieceBurst");
         }
 
         MR::deleteEffect(this, "ShootingStarBlur");

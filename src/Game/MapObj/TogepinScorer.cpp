@@ -175,7 +175,7 @@ void TogepinScorer::updateNgArea() {
     bool isEnd = MR::isCurrentRushRockMario();
     if (!isEnd) {
         if (MR::isOnGroundPlayer()) {
-            isEnd = MR::isInAreaObj("\x83\x67\x83\x51\x83\x73\x83\x93\x83\x8A\x83\x58\x83\x67", *MR::getPlayerPos());
+            isEnd = MR::isInAreaObj("TogepinAttackFoulArea", *MR::getPlayerPos());
             mIsEnd = isEnd;
         }
     }

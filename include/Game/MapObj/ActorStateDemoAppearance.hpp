@@ -22,5 +22,5 @@ public:
     /* 0x18 */ s32 mCameraTime;
     /* 0x1C */ s32 _1C;
     /* 0x20 */ bool mIsInitCamera;
-    /* 0x21 */ bool _21;
+    /* 0x21 */ bool mIsWaitActionEnd;
 };

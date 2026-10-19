@@ -27,7 +27,7 @@ void SpinCloudItem::init(const JMapInfoIter& iter) {
     mGravity.x = gravity.x; mGravity.y = gravity.y; mGravity.z = gravity.z;
     initNerve(&NrvSpinCloudItem::SpinCloudItemNrvWait::sInstance, 4);
     ActorStateDemoAppearance* state = new ActorStateDemoAppearance(this, iter, "Appear");
-    state->_21 = true;
+    state->mIsWaitActionEnd = true;
     MR::initActorState(this, state, &NrvSpinCloudItem::SpinCloudItemNrvAppearDemo::sInstance, "AppearFirst");
     if (MR::useStageSwitchSyncAppear(this, iter)) {
         setNerve(&NrvSpinCloudItem::SpinCloudItemNrvAppearDemo::sInstance);

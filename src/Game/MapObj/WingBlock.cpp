@@ -90,10 +90,11 @@ bool WingBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
     if (MR::isMsgPlayerUpperPunch(msg)) {
         if (isNerve(&NrvWingBlock::WingBlockNrvFly::sInstance)) {
             setNerve(&NrvWingBlock::WingBlockNrvHit::sInstance);
-            MR::sendMsgReflectV(pReceiver, pSender);
+            MR::sendMsgReflectV(pSender, pReceiver);
             return true;
         }
-    } else if (MR::isMsgSupportTicoSpin(msg)) {
+    }
+    if (MR::isMsgSupportTicoSpin(msg)) {
         if (isNerve(&NrvWingBlock::WingBlockNrvFly::sInstance)) {
             setNerve(&NrvWingBlock::WingBlockNrvHit::sInstance);
             return true;

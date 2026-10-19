@@ -110,12 +110,12 @@ bool KoopaJrCastleStateBattle::isDemo() const {
     return isNerve(&NrvKoopaJrCastleStateBattle::KoopaJrCastleStateBattleNrvC::sInstance);
 }
 
-void KoopaJrCastleStateBattle::exe800D68C0() {
+void KoopaJrCastleStateBattle::exeBattle1() {
     if (MR::isFirstStep(this)) KoopaJrCastleFunction::resetBattleParts();
     if (!mPhaseState[0]->mIsDead) MR::updateActorState(this);
 }
 
-void KoopaJrCastleStateBattle::exe800D6910() {
+void KoopaJrCastleStateBattle::exeBattle2() {
     if (MR::isFirstStep(this)) {
         KoopaJrCastleFunction::resetBattleParts();
         KoopaJrCastleFunction::appearCapsuleStarPiece();
@@ -123,7 +123,7 @@ void KoopaJrCastleStateBattle::exe800D6910() {
     if (!mPhaseState[1]->mIsDead) MR::updateActorState(this);
 }
 
-void KoopaJrCastleStateBattle::exe800D6970() {
+void KoopaJrCastleStateBattle::exeBattle3() {
     if (MR::isFirstStep(this)) {
         KoopaJrCastleFunction::resetBattleParts();
         KoopaJrCastleFunction::appearCapsuleStarPiece();
@@ -132,7 +132,7 @@ void KoopaJrCastleStateBattle::exe800D6970() {
 }
 
 // NONMATCHING: target switch lowering retains one unreachable branch
-void KoopaJrCastleStateBattle::exe800D69D0() {
+void KoopaJrCastleStateBattle::exeBattle4() {
     using namespace NrvKoopaJrCastleStateBattle;
     if (mPhaseState[3]->mIsDead) {
         switch (mPhase) {
@@ -153,7 +153,7 @@ void KoopaJrCastleStateBattle::exe800D69D0() {
     }
 }
 
-void KoopaJrCastleStateBattle::exe800D6AD0() {
+void KoopaJrCastleStateBattle::exePowerUpDemo() {
     if (MR::isFirstStep(this)) {
         KoopaJrCastleFunction::startPartsDemoActions("DemoPowerUpKoopaJrCastle");
         mHost->mBody->setNerveFall();

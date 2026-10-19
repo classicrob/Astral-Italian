@@ -71,7 +71,7 @@ void KoopaJrCastleWindUp::makeActorDead() {
     LiveActor::makeActorDead();
 }
 
-void KoopaJrCastleWindUp::exe800DA640() {
+void KoopaJrCastleWindUp::exeBlow() {
     if (MR::isFirstStep(this)) {
         for (s32 i = 0; i < mEffectNum; i++) {
             mEffect[i]->makeActorAppeared();
@@ -81,7 +81,7 @@ void KoopaJrCastleWindUp::exe800DA640() {
     MR::startActionSound(this, "Move", -1, -1, -1);
 }
 
-void KoopaJrCastleWindUp::exe800DA6F0() {
+void KoopaJrCastleWindUp::exeStop() {
     if (MR::isFirstStep(this)) {
         for (s32 i = 0; i < mEffectNum; i++) {
             mEffect[i]->makeActorDead();

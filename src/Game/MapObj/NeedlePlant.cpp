@@ -161,11 +161,11 @@ void NeedlePlant::exeEatPull() {
     MR::calcMtxFromGravityAndZAxis(&mtx, this, dir);
 
     f32 m20 = mtx.mMtx[2][0];
-    if (m20 - 1.0f >= -3.8147e-06f) {
+    if (m20 - 1.0f >= -3.814697265625e-06f) {
         mRotation.x = JMath::sAtanTable.atan2_(-mtx.mMtx[0][1], mtx.mMtx[1][1]);
         mRotation.y = -1.5707964f;
         mRotation.z = 0.0f;
-    } else if (m20 + 1.0f <= 3.8147e-06f) {
+    } else if (m20 + 1.0f <= 3.814697265625e-06f) {
         mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[1][1], mtx.mMtx[0][1]);
         mRotation.y = 1.5707964f;
         mRotation.z = 0.0f;
@@ -175,9 +175,9 @@ void NeedlePlant::exeEatPull() {
         mRotation.y = JGeometry::TUtil<f32>::asin(-mtx.mMtx[2][0]);
     }
 
-    mRotation.x *= 57.29578f;
-    mRotation.y *= 57.29578f;
-    mRotation.z *= 57.29578f;
+    mRotation.x *= 57.2957763671875f;
+    mRotation.y *= 57.2957763671875f;
+    mRotation.z *= 57.2957763671875f;
 
     f32 distance = PSVECDistance(&mTargetPos, &mPosition);
     mUnkA8 = distance;

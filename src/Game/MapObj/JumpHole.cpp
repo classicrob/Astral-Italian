@@ -34,9 +34,6 @@ JumpHole::JumpHole(const char* pName)
     mBaseMtx.identity();
 }
 
-// Shift-JIS "発射カメラ" (launch camera): ActorCamera name for the hole.
-static const char sLaunchCameraName[] = "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89";
-
 namespace {
     // Follow validater whose PMF takes no argument; the isValid thunk forwards the id untouched.
     class JumpHoleFollowValidater : public BaseMatrixFollowValidater {
@@ -56,7 +53,7 @@ namespace {
 void JumpHole::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     mCone->setPosition(mPosition);
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, sLaunchCameraName);
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89");
     MR::makeMtxTR(reinterpret_cast< MtxPtr >(&mBaseMtx), this);
     bool (JumpHole::*pFunc)() = &JumpHole::isNerveTypeNotWait;
     MR::addBaseMatrixFollowTarget(this, rIter, &mBaseMtx, new JumpHoleFollowValidater(this, pFunc));
@@ -144,7 +141,7 @@ void JumpHole::exeRailMove() {
         MR::startLevelSoundPlayer("JumpObj", -1, -1);
         MR::startLevelSoundPlayer("JumpLongV", -1, -1);
         MR::sendArbitraryMsg(0xA6 /* ACTMES_SHOOT_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
-        MR::startMultiActorCameraTargetPlayer(this, mCameraInfo, sLaunchCameraName, -1);
+        MR::startMultiActorCameraTargetPlayer(this, mCameraInfo, "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89", -1);
     }
 
     f32 horizontal = mLaunchDistance * mLaunchTime;
@@ -158,7 +155,7 @@ void JumpHole::exeRailMove() {
         MR::getSensorHost(mBoundSensor)->mVelocity.set<f32>(position - previous);
         MR::sendArbitraryMsg(0xA7 /* ACTMES_END_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
         mBoundSensor = nullptr;
-        MR::endMultiActorCamera(this, mCameraInfo, sLaunchCameraName, false, -1);
+        MR::endMultiActorCamera(this, mCameraInfo, "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89", false, -1);
         setNerve(GET_NERVE(JumpHole, JumpHoleNrvWait));
         MR::validateClipping(this);
     }

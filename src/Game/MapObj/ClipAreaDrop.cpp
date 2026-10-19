@@ -74,7 +74,7 @@ void ClipAreaDrop::control() {
     mtx.set(getBaseMtx());
     mtx.setTrans(mPosition);
 
-    mBaseMtx.set(mtx);
+    mBaseMtx.set(mtx.mMtx);
 }
 
 void ClipAreaDrop::exeHold() {

@@ -20,5 +20,5 @@ public:
     void setPosition();
 
     /* 0x2C */ TVec2f mFollowPosition;
-    /* 0x34 */ f32 _34;
+    /* 0x34 */ f32 mRadiusOffset;
 };

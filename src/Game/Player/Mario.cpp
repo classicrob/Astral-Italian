@@ -1042,7 +1042,8 @@ void Mario::setHeadVec(const TVec3f& rHead) {
 void Mario::setFrontVec(const TVec3f& rFront) {
     TVec3f plusMinus6A0;
     TVec3f frontWithout6A0;
-    if (((mMovementStates.mHighWord >> 8) & 1U) && !isStatusActive(MarioStatus_Talk)) {
+    if (((mMovementStates.mHighWord >> 8) & 1U) && !isStatusActive(MarioStatus_Talk) && !isSwimming() &&
+        !((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         if (getCamDirZ().dot(mSwimSideVec694) > 0.0f) {
             plusMinus6A0 = mSwimSideVec694;
         } else {
@@ -4979,6 +4980,8 @@ bool Mario::doNeedleWithInitialDamage(u8 amount) {
             mActor->decLife(0);
         }
 
+        mActor->fn_803BE840(getWallNorm());
+
         if (!mActor->mHealth) {
             mActor->forceGameOverNonStop();
         }
@@ -5001,6 +5004,8 @@ bool Mario::doNeedleWithInitialDamage(const Triangle* pTriangle) {
     bool started = doNeedle(pTriangle);
     if (started) {
         mActor->decLife(0);
+        mActor->fn_803BE840(*MR::getNormal(pTriangle));
+
         if (!mActor->mHealth) {
             mActor->forceGameOverNonStop();
         }

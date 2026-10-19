@@ -1710,7 +1710,7 @@ bool MarioActor::isPunching() const {
     }
 
     if (!mMario->isAnimationTerminate(nullptr) &&
-        (mMario->isAnimationRun("空中ひねり") || mMario->isAnimationRun("アイスひねり") || mMario->isAnimationRun("アイスひねり空中") ||
+        (mMario->isAnimationRun("空中ひねり") || mMario->isAnimationRun("雲スピン空中") || mMario->isAnimationRun("アイスひねり") || mMario->isAnimationRun("アイスひねり空中") ||
          mMario->isAnimationRun("アイスひねり静止") || mMario->isAnimationRun("アイスひねり移動"))) {
         return true;
     }
@@ -5982,7 +5982,7 @@ void MarioActor::updateTornado() {
 
     if (((mMario->getMovementStates().mLowWord >> 16) & 1U) && mMario->_544 > 1) {
         mTornadoMario->show();
-    } else if ((!isAnimationRun("空中ひねり") || mMario->_430 != 8) && !mMario->isStatusActive(MarioStatus_Magic)) {
+    } else if ((!(mMario->isAnimationRun("空中ひねり") || mMario->isAnimationRun("雲スピン空中")) || mMario->_430 != 8) && !mMario->isStatusActive(MarioStatus_Magic)) {
         if (((mMario->getDrawStates().mWord >> 23) & 1U) || _990 != 0) {
             mTornadoMario->hideForce();
         } else {

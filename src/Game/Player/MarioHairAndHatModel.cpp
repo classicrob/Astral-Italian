@@ -57,7 +57,7 @@ void MarioHairAndHatModel::fn_803EC780() {
 bool MarioHairAndHatModel::fn_803EC7F0(const char* name) {
     if (isNerve(&NrvMarioHairAndHatModel::MarioHairAndHatModelNrvNoCap::sInstance)) return false;
     bool started = false;
-    if (MR::fn_80008F00(this, name) && MR::isPlayerDefaultModel()) {
+    if (MR::isExistAnimInKeeper(this, name) && MR::isPlayerDefaultModel()) {
         MR::showModel(this);
         MR::startAction(this, name);
         started = true;

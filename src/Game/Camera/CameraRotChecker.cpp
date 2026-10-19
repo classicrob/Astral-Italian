@@ -20,11 +20,11 @@ void CameraRotChecker::update() {
     mtx.getQuat(rotation);
     f32 vectorLength = rotation.toTvec()->squared();
     if (vectorLength > 0.0f) {
-        f64 inverse = __frsqrte(vectorLength);
-        vectorLength *= inverse;
+        f32 inverse = __frsqrte(vectorLength);
+        vectorLength = inverse * vectorLength;
         f32 correction = vectorLength * inverse;
         correction = -(correction - 3.0f);
-        vectorLength = 0.5f * (correction * vectorLength);
+        vectorLength = (correction * vectorLength) * 0.5f;
     }
     mIsRotatingHard = MR::abs(2.0f * JMAAsinRadian(vectorLength)) > mThreshold;
 

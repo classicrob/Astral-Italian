@@ -97,23 +97,20 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     if (mIsReversed) {
         width *= 2.0f;
     }
-    f32 camDepth = (PSVECMag(&toPos) / width) * 3.1415927f * 0.5f;
-    if (camDepth < 0.0f) {
-        camDepth = -camDepth;
-    }
+    f32 angle = PSVECMag(&toPos) / width;
+    angle *= 3.1415927f;
+    angle *= 0.5f;
+    pInfo->mBottomDepth = width * MR::cos(angle) + depth;
     f32 edgeBase = mIsReversed ? width : 0.0f;
     pInfo->mCamWaterDepth = -depth + edgeBase;
-    {
-        s32 index = (s32)(camDepth * 2607.5945f) & (JMath::TSinCosTable<14, f32>::LEN - 1);
-        pInfo->mBottomDepth = (width * JMath::sSinCosTable.table[index].b1) + depth;
-    }
 
     TVec3f gravity = rGravity;
     MR::calcGravityVector(this, rPos, &gravity, NULL, 0);
     pInfo->mSurfaceNormal.set(-gravity);
 
+    f32 camDepth = pInfo->mCamWaterDepth;
     TVec3f scaled = rGravity;
-    scaled.scale(pInfo->mCamWaterDepth);
+    scaled.scale(camDepth);
     TVec3f surf(rPos);
     surf.sub(scaled);
     pInfo->mSurfacePos.set(surf);

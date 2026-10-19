@@ -8,13 +8,10 @@ SyncBckEffectChecker::SyncBckEffectChecker(XanimePlayer* pPlayer, ActorAnimKeepe
     : mPlayer(pPlayer), mAnimKeeper(keeper), mPrevFrame(), mIsReset(), mIsCreateEnabled(), mCurrentBckName(), mPrevBckName(), mCurrentAnimName(), mPrevAnimName() {
 }
 
-// NONMATCHING: branch lowering/regalloc
 void SyncBckEffectChecker::updateBefore() {
-    bool enabled = false;
-    if (mPlayer->isCurrentBckActive()) {
-        enabled = 0.0f != mPlayer->getFrameCtrl()->getRate() || mPrevFrame != mPlayer->getFrameCtrl()->getFrame() || mIsReset;
-    }
-    mIsCreateEnabled = enabled;
+    mIsCreateEnabled = mPlayer->isCurrentBckActive()
+        ? (0.0f != mPlayer->getFrameCtrl()->getRate() || mPrevFrame != mPlayer->getFrameCtrl()->getFrame() || mIsReset)
+        : false;
     mCurrentBckName = mPlayer->getCurrentBckName();
     mCurrentAnimName = mAnimKeeper ? mAnimKeeper->getCurrentAnimName() : nullptr;
 }
@@ -70,14 +67,18 @@ bool SyncBckEffectChecker::isDelete(const SyncBckEffectInfo* info) const {
             return !mPlayer->isCurrentBckActive();
         }
         if (!MR::Effect::isExistSyncBckDeleteFrame(info)) return false;
-        bool active = mPlayer->isFrameInRange(info->mStartFrame, info->mEndFrame) && mPlayer->isCurrentBckActive();
-        return !active;
+        f32 end = info->mEndFrame;
+        bool active = false;
+        if (mPlayer->isFrameInRange(info->mStartFrame, end)) {
+            if (mPlayer->isCurrentBckActive()) active = true;
+        }
+        return active == false;
     }
     if (info->mContinueAnimEnd) {
         const char* name = mPlayer->getCurrentBckName();
         if (!name) return false;
         if (!info->isRegisteredBck(name)) return mPlayer->isTerminate(name);
-        return MR::Effect::isExistSyncBckDeleteFrame(info);
+        else return MR::Effect::isExistSyncBckDeleteFrame(info);
     }
     if (mIsCreateEnabled) return mCurrentBckName != mPrevBckName || mCurrentAnimName != mPrevAnimName;
     return !mPlayer->isCurrentBckActive();

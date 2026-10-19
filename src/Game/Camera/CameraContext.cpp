@@ -77,7 +77,8 @@ void CameraContext::updateProjectionMtx() {
     f32 near = mNearZ;
     f32 height = MR::getScreenHeight();
     f32 width = MR::getScreenWidth();
-    mProjection.makePerspective(mFovy, width / height, near, far);
+    f32 aspect = width / height;
+    mProjection.makePerspective(mFovy, aspect, near, far);
 
     TProj3f trans;
     trans.makeTrans(mShakeOffset.x, mShakeOffset.y);

@@ -103,8 +103,7 @@ void BrosStateJump::appear() {
 }
 
 // NONMATCHING: sJumpFrames/sSeekTargetStep/sHoldProjectileStep are reloaded from .sdata2 in the target (see top);
-// stack slot order / scheduling of the int->float conversions; the target also keeps a dead
-// `0.5f * angle` compare after the first sqrt (angle = diffAngleSigned) that has no visible source.
+// stack slot order / scheduling of the int->float conversions.
 void BrosStateJump::exeJumpStart() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "JumpStart");

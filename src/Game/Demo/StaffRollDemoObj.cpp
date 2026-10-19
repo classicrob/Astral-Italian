@@ -120,24 +120,27 @@ void StaffRollDemoObj::exeStart() {
     }
 }
 
-// NONMATCHING: equivalent search-result branch folding and regalloc
+namespace {
+    inline bool findPlayerPosition(char* name, s32 page, LiveActor* sky, s32* index) {
+        s32 frameMax = static_cast< s32 >(MR::getBvaFrameMax(sky));
+        TPos3f position;
+        for (s32 i = 0; i < frameMax; i++) {
+            snprintf(name, 0x100, "マリオ位置%02d空%02d", page, i);
+            if (MR::tryFindNamePos(name, position) != 0) {
+                *index = i;
+                return true;
+            }
+        }
+        snprintf(name, 0x100, "マリオ位置%02d空%02d", 0, 0);
+        *index = 0;
+        return false;
+    }
+}
+
+// NONMATCHING: saved registers for the final BVA frame update differ.
 void StaffRollDemoObj::setAndShowPlayer() {
     char name[0x100];
-    s32 page = mStep98;
-    s32 frameMax = static_cast< s32 >(MR::getBvaFrameMax(mChildA));
-    s32 found = 0;
-    TPos3f position;
-    for (s32 i = 0; i < frameMax; i++) {
-        snprintf(name, 0x100, "マリオ位置%02d空%02d", page, i);
-        if (MR::tryFindNamePos(name, position) != 0) {
-            mStep9C = i;
-            found = 1;
-            break;
-        }
-    }
-    if (!found) {
-        snprintf(name, 0x100, "マリオ位置%02d空%02d", 0, 0);
-        mStep9C = 0;
+    if (!findPlayerPosition(name, mStep98, mChildA, &mStep9C)) {
         mStep98 = 0;
         mStep9C = 0;
     }

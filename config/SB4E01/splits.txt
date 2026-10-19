@@ -672,6 +672,7 @@ Game/AudioLib/AudBgmSetting.cpp:
 Game/AudioLib/AudBgmVolumeController.cpp:
 	.text       start:0x80083E50 end:0x800841C0
 	.rodata     start:0x80646C88 end:0x80646CB0
+	.sdata2     start:0x807D7578 end:0x807D7580
 
 Game/AudioLib/AudEffector.cpp:
 	.text       start:0x800841C0 end:0x80084410

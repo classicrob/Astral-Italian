@@ -247,7 +247,11 @@ namespace nw4r {
                     NW4R_NULL_ASSERT_AT(403, p);
                     return *p;
                 }
-                pointer operator->() const {
+                pointer operator->() const
+#ifdef NW4R_LINKLIST_ARROW_NOINLINE
+                    __attribute__((noinline))
+#endif
+                {
                     return GetPointerFromNode(it_.operator->());
                 }
 

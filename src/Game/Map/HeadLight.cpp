@@ -43,7 +43,7 @@ void HeadLight::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
-// NONMATCHING: vector stores and floating-point scheduling differ; calls, fields and scalar values match.
+// NONMATCHING: literal-pool relocations differ; instructions and scalar values match.
 void HeadLight::control() {
     TVec3f upVec;
     MR::getPlayerUpVec(&upVec);
@@ -52,7 +52,9 @@ void HeadLight::control() {
     MR::getPlayerFrontVec(&frontVec);
 
     TVec3f pos = (*MR::getPlayerPos() + upVec * 120.0f) + frontVec * 50.0f;
-    mPosition = pos;
+    mPosition.x = pos.x;
+    mPosition.y = pos.y;
+    mPosition.z = pos.z;
 
     f32 intensity = MR::getLinerValueFromMinMax((f32)mBrightnessLevel, 0.0f, 1000.0f, 0.97f, 1.0f);
     MR::requestPointLight(this, mPosition, mColor, intensity, -1, 15.0f);

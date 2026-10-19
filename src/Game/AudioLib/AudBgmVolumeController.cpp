@@ -11,6 +11,23 @@
 #define FADER_NOTEFAIRY 4
 #define FADER_LEVEL 5
 
+void AudBgmVolumeController::update() {
+    for (s32 i = 0; i < NUM_FADERS; i++) {
+        if (i == FADER_MENU && AudWrap::getSystem()->isMenuOrErrorActive()) {
+            continue;
+        }
+        if (mTimers[i] > 0) {
+            mTimers[i]--;
+            if (mTimers[i] <= 0) {
+                mFaders[i].set(1.0f, mFaderCtrl[i].mRecoverTime);
+                mTimers[i] = -1;
+            }
+        }
+        mFaders[i].update();
+    }
+}
+
+
 AudBgmVolumeController::AudBgmVolumeController() : mIsMuted() {
     for (s32 i = 0; i < NUM_FADERS; i++) {
         mTimers[i] = -1;
@@ -35,21 +52,6 @@ AudBgmVolumeController::AudBgmVolumeController() : mIsMuted() {
     mFaderCtrl[FADER_MENU].mRecoverTime = 5;
 }
 
-void AudBgmVolumeController::update() {
-    for (s32 i = 0; i < NUM_FADERS; i++) {
-        if (i == FADER_MENU && AudWrap::getSystem()->isMenuOrErrorActive()) {
-            continue;
-        }
-        if (mTimers[i] > 0) {
-            mTimers[i]--;
-            if (mTimers[i] <= 0) {
-                mFaders[i].set(1.0f, mFaderCtrl[i].mRecoverTime);
-                mTimers[i] = -1;
-            }
-        }
-        mFaders[i].update();
-    }
-}
 
 f32 AudBgmVolumeController::getVolume() const {
     if (mIsMuted) {

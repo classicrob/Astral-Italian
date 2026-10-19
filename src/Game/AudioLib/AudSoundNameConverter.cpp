@@ -46,7 +46,11 @@ AudSoundNameConverter::AudSoundNameConverter()
 }
 
 JAISoundID AudSoundNameConverter::getSoundID(const char* pName) {
-    return getSoundID(pName, JGadget::getHashCode(pName));
+    return static_cast<const AudSoundNameConverter*>(this)->getSoundID(pName, JGadget::getHashCode(pName));
+}
+
+JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) {
+    return static_cast<const AudSoundNameConverter*>(this)->getSoundID(pName, hash);
 }
 
 JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) const {

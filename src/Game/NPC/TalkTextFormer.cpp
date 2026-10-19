@@ -1,3 +1,4 @@
+#define NW4R_LINKLIST_ARROW_NOINLINE
 #include "Game/NPC/TalkTextFormer.hpp"
 #include "Game/Util.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
@@ -27,7 +28,7 @@ namespace MR {
         return getLanguage() == 0x10 ? 1.0f : 1.25f;
     }
 
-    // NONMATCHING: child-list iterator dereference inlines instead of outlining.
+    // NONMATCHING: 0.0f and 1.25f occupy swapped literal-pool slots.
     void initTagProcessorRecursive(LayoutActor* pActor, const char* pPaneName, s32 mode) {
         nw4r::lyt::TextBox* pTextBox = ::getTextBoxPane(pActor, pPaneName);
         if (pTextBox != nullptr) {
@@ -49,11 +50,10 @@ namespace MR {
 
         nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
-            initTagProcessorRecursive(pActor, (*it).mName, mode);
+            initTagProcessorRecursive(pActor, it->mName, mode);
         }
     }
 
-    // NONMATCHING: child-list iterator dereference inlines instead of outlining.
     void nextStepTagProcessorRecursive(LayoutActor* pActor, const char* pPaneName) {
         nw4r::lyt::TextBox* pTextBox = ::getTextBoxPane(pActor, pPaneName);
         if (pTextBox != nullptr) {
@@ -69,7 +69,6 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: child-list iterator dereference inlines instead of outlining.
     bool isEndStepTagProcessorRecursive(const LayoutActor* pActor, const char* pPaneName, bool isEnd) {
         nw4r::lyt::Pane* pTargetPane = getPane(pActor, pPaneName);
         const nw4r::ut::detail::RuntimeTypeInfo* pTypeInfo = &nw4r::lyt::TextBox::typeInfo;

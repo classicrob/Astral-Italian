@@ -135,8 +135,6 @@ public:
     void walkinClose();
 
     // SMG2-only (original names unknown; named by address)
-    f32 fn_803DD170(const char*, f32);
-    f32 fn_803DD460();
     f32 fn_803DD530();
     void fn_803DDD80(const HitSensor*);
     void fn_803DDF60();

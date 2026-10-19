@@ -13973,7 +13973,11 @@ bool Mario::checkStartSwim() {
         mFlags14.mLowWord &= 0xFEFFFFFFU;
     }
 
-    if (mSwim->checkWaterCube(false)) {
+    if (!fn_803B2950() && isPlayerModeYoshi()) {
+        mActor->fn_803B9830()->fn_8041BD30();
+    }
+
+    if (mSwim->fn_803FD5E0(0)) {
         if (getPlayerMode() == 3) {
             addTrans(-*getGravityVec() * 100.0f);
             if (((getPlayer()->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
@@ -13991,8 +13995,10 @@ bool Mario::checkStartSwim() {
             return false;
         }
 
-        startSwim();
-        return true;
+        if (!fn_803B2950()) {
+            startSwim();
+            return true;
+        }
     }
 
     mSwim->updateUnderWater();

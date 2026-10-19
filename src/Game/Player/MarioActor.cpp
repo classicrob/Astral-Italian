@@ -6149,7 +6149,7 @@ void MarioActor::updateFairyStar() {
         MR::copyJointPos(_994, "Center", &position);
         Color8 color(255, 225, 225, 255);
         f32 power = 0.001f;
-        MR::requestPointLight(_994, position, color, power, 0);
+        MR::requestPointLightPlayer(_994, position, color, power, 0, -1.0f);
         return;
     }
     if (!MR::isDead(_994))

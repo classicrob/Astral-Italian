@@ -6,12 +6,14 @@ proves copy aliases and basic-block scheduling with exact value/effect DAGs.
 Unsupported c-checked opcodes, cyclic CFGs, uncertain aliasing and mismatches
 remain REAL. Literal bytes and referenced strings are resolved before proof.
 Run from the worktree root. --out writes mangled names and certificates.
+--mem additionally tries typed load reuse and bounded word/spill forwarding
+(c-checked+mem). The default proof dispatch is frozen v1.
 """
 import sys, os, re, struct, subprocess, collections
 ROOT = os.getcwd()
 sys.path.insert(0, f"{ROOT}/tools/team")
 import sg  # noqa
-from rdchecked import checked_equal, machine_lines
+from rdchecked import checked_equal, checked_equal_mem, machine_lines
 
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 if '--rows' in sys.argv: args.remove(sys.argv[sys.argv.index('--rows') + 1])
@@ -303,9 +305,14 @@ for unit, fns in sorted(rows.items()):
         lc = machine_lines(L['instructions'], la)
         rc = machine_lines(R['instructions'], ra)
         ok3, why3 = checked_equal(lc, rc)
+        mem_proof = False
+        if not ok3 and '--mem' in sys.argv:
+            ok3, why3 = checked_equal_mem(lc, rc)
+            mem_proof = ok3
         if ok3:
-            benign.append((unit, f, 'c-checked: ' + why3))
-            checked_evidence.append({'unit': unit, 'name': f, 'left': lc, 'right': rc, 'certificate': why3})
+            proof_class = 'c-checked+mem' if mem_proof else 'c-checked'
+            benign.append((unit, f, proof_class + ': ' + why3))
+            checked_evidence.append({'unit': unit, 'name': f, 'left': lc, 'right': rc, 'certificate': why3, **({'class': proof_class} if mem_proof else {})})
             continue
         li = [norm(dfmt(i, 'L'), tval) for i in L['instructions']]
         ri = [norm(dfmt(i, 'R'), oval) for i in R['instructions']]
@@ -318,7 +325,7 @@ for unit, fns in sorted(rows.items()):
             dl = list((cl - cr).elements())[:2]; dr = list((cr - cl).elements())[:2]
             real.append((unit, f, f'target-only {dl} ours-only {dr}'))
 
-lines = [f'{f}  # proof: c-checked: rdclass {u}: {p.removeprefix("c-checked: ")}' if p.startswith('c-checked: ') else f'{f}  # proof: rdclass.py {u}: {p}' for u, f, p in benign]
+lines = [f'{f}  # proof: {p.split(": ", 1)[0]}: rdclass {u}: {p.split(": ", 1)[1]}' if p.startswith(('c-checked: ', 'c-checked+mem: ')) else f'{f}  # proof: rdclass.py {u}: {p}' for u, f, p in benign]
 if out:
     with open(out, 'w') as fh: fh.write('\n'.join(lines) + '\n')
     import json

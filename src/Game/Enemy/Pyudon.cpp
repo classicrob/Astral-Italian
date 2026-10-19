@@ -21,6 +21,7 @@ namespace {
     static const f32 cStepUpSpeed = 0.75f;
     extern const f32 cBlowHorizontal;
     extern const f32 cBlowVertical;
+    extern const f32 cLockOnHeightAcceleration;
 }  // namespace
 
 #define PYUDON_NERVE(Name, Method) \
@@ -190,7 +191,7 @@ void Pyudon::exePyudonLockOn() {
     updateTargetPos();
     if (MR::isLessStep(this, 80)) {
         dampVelocity(this, 0.8f, 0.7f);
-        updateVelocityToTarget(1.1f, 1.1f);
+        updateVelocityToTarget(1.1f, cLockOnHeightAcceleration);
     } else MR::zeroVelocity(this);
     TVec3f camera = MR::getCamZdir();
     MR::vecBlendSphere(&mFront, mFront, -camera, 0.05f);
@@ -759,5 +760,6 @@ Pyudon::~Pyudon() {}
 namespace {
     const f32 cBlowHorizontal = 30.0f;
     const f32 cBlowVertical = 30.0f;
+    const f32 cLockOnHeightAcceleration = 1.1f;
 }  // namespace
 

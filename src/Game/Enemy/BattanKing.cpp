@@ -469,9 +469,8 @@ void BattanKing::exeRise() {
 
 #ifdef __MWERKS__
 #pragma push
-#pragma dont_inline on
+#pragma auto_inline off
 #endif
-// NONMATCHING: scoped no-inlining also emits an empty default TVec3 constructor call (+8 bytes).
 void BattanKing::exeDamage() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Damage"); updateCollisionPartsFootState();

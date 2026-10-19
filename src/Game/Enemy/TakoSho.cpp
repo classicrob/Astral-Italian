@@ -223,7 +223,7 @@ void TakoSho::exeMove() {
         mTargetPos = target;
         TVec3f delta(mTargetPos);
         delta -= mPosition;
-        mShotStep = static_cast<s32>(1.3f * static_cast<s32>(PSVECMag(&delta) / mMoveRange));
+        mShotStep = static_cast<s32>(static_cast<s32>(PSVECMag(&delta) / mMoveRange) * 1.3f);
     }
     f32 gravitySpeed = MR::calcGravitySpeedAbs(this);
     if (MR::isBindedGround(this)) {
@@ -235,8 +235,8 @@ void TakoSho::exeMove() {
     dir -= mPosition;
     MR::vecKillElement(dir, mGravity, &dir);
     MR::normalizeOrZero(&dir);
-    TVec3f gravity = mGravity * gravitySpeed;
     f32 moveSpeed = mMoveRange / 1.3f;
+    TVec3f gravity = mGravity * gravitySpeed;
     TVec3f scaled = dir * moveSpeed;
     TVec3f velocity(scaled);
     velocity -= gravity;

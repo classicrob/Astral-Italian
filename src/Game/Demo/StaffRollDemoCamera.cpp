@@ -94,7 +94,7 @@ void StaffRollDemoCamera::startFromCurrentCamera() {
 
 void StaffRollDemoCamera::updateSpeedUp() {
     mFrame += 0.00005f;
-    mFrame = mFrame < sMaxSpeed ? mFrame : sMaxSpeed;
+    mFrame = mFrame >= sMaxSpeed ? sMaxSpeed : mFrame;
     const TVec3f& up = TVec3f(mUp);
     const TVec3f& target = TVec3f(mTarget);
     MR::setProgrammableCameraParam(getCameraName(), calcCameraPos(), target, up, true);

@@ -493,30 +493,38 @@ void Mario::fn_803ACE60() {
     }
 }
 
-// NONMATCHING: stick/brake speed table selection approximated
+namespace {
+    const f32 cSquatWalkStoppedWeights[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+    const f32 cSquatWalkMovingWeights[4] = {0.0f, 1.0f, 0.0f, 0.0f};
+}
+
+// NONMATCHING: independent maximum/minimum speed loads are scheduled in reverse order.
 void Mario::fn_803ACF70() {
-    void* e = marioCurTableEntry(this);
-    if (this->mWalkSpeed < FLD<f32>(e, 0x380)) {
-        if (this->isStickOn()) {
-            this->mWalkSpeed = FLD<f32>(e, 0x38C);
-            this->fn_803AF2F0(nullptr);
-            this->mTargetWalkSpeedIndex = 1;
-            this->mMovementStates.mHighWord |= 0x02000000;
+    if (mWalkSpeed < mActor->mConst->getTable()->mSpeedSquatWalkLower) {
+        if (isStickOn()) {
+            mWalkSpeed = mActor->mConst->getTable()->mSquatWalkMinSpeed;
+            fn_803AF2F0(cSquatWalkMovingWeights);
+            mTargetWalkSpeedIndex = 1;
+            mMovementStates.mHighWord |= 0x02000000;
+        } else {
+            fn_803AF2F0(cSquatWalkStoppedWeights);
+            mTargetWalkSpeedIndex = 0;
+            mMovementStates.mHighWord &= 0xFDFFFFFF;
         }
-        this->fn_803AF2F0(nullptr);
-        this->mTargetWalkSpeedIndex = 0;
-        this->mMovementStates.mHighWord &= 0xFDFFFFFF;
+        return;
     }
-    if (!this->isStickOn()) {
-        this->fn_803AF2F0(nullptr);
-        this->mTargetWalkSpeedIndex = 0;
+    if (!isStickOn()) {
+        fn_803AF2F0(cSquatWalkStoppedWeights);
+        mTargetWalkSpeedIndex = 0;
+        return;
     }
-    if ((this->mMovementStates.mHighWord >> 25) & 1) {
-        f32 f2 = FLD<f32>(e, 0x38C);
-        f32 f1 = FLD<f32>(e, 0x388) - f2;
-        this->mWalkSpeed = f2 + FLD<f32>(this, 0x1C8) * f1;
-        this->fn_803AF2F0(nullptr);
-        this->mTargetWalkSpeedIndex = 1;
+    if ((mMovementStates.mHighWord >> 25) & 1) {
+        MarioConstTable* table = mActor->mConst->getTable();
+        f32 minSpeed = table->mSquatWalkMinSpeed;
+        f32 speedRange = table->mSquatWalkMaxSpeed - minSpeed;
+        mWalkSpeed = minSpeed + mStickPos.z * speedRange;
+        fn_803AF2F0(cSquatWalkMovingWeights);
+        mTargetWalkSpeedIndex = 1;
     }
 }
 

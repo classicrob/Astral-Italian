@@ -115,7 +115,7 @@ bool MarioActor::fn_803B9920() {
     if (!this->mMario->isPlayerModeYoshi()) {
         return false;
     }
-    if (F(u8, 0xE24) != 0 || this->_38C != 0) {
+    if (_934 != 0 || this->_38C != 0) {
         return false;
     }
     if (F(u8, 0xE2C) != 0) {
@@ -268,23 +268,23 @@ void MarioActor::fn_803BE670() {
 }
 
 void MarioActor::fn_803BE6F0() {
-    if (F(u8, 0xE24) != 0) {
+    if (_934 != 0) {
         HitSensor* s = _924;
         if (s != nullptr && s->isType(0x65)) {
             F(u8, 0xFB9) = 1;
             F(u8, 0xFB8) = 1;
         }
-        if (F(u8, 0xE24) != 0) {
+        if (_934 != 0) {
             if (!_924->receiveMessage(0x95, this->getSensor("Body"))) {
                 _924->receiveMessage(0x96, this->getSensor("Body"));
             }
-            if (F(u8, 0xE24) != 0) {
+            if (_934 != 0) {
                 RushEndInfo info(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
                 this->endRush(&info);
             }
         }
-        F(u8, 0xE24) = 0;
-        F(u8, 0xE25) = 0;
+        _934 = 0;
+        _7E2 = 0;
     }
 }
 
@@ -380,7 +380,7 @@ void MarioActor::fn_803BEB10(s32 a) {
 }
 
 bool MarioActor::fn_803BEBE0() {
-    if (F(u8, 0xE24) == 0) {
+    if (_934 == 0) {
         return false;
     }
     if (_924 == nullptr) {
@@ -435,8 +435,8 @@ void MarioActor::initMember() {
     F(u8, 0x573) = 0;
     F(u8, 0x572) = 0;
     mWallShadow574 = nullptr;
-    F(u32, 0x578) = 0;
-    F(u8, 0x57C) = 0;
+    mExtraWallArea578 = nullptr;
+    mExtraWallAreaKind57C = 0;
     mCollisionShadow580 = nullptr;
     fn_803CA1F0();
     mMario = nullptr;
@@ -451,7 +451,7 @@ void MarioActor::initMember() {
     F(f32, 0x5A4) = 1.0f;
     F(f32, 0x5A8) = 0.0f;
     mGravityInfo = nullptr;
-    F(u8, 0x6A0) = 0;
+    mAxisRotationDisabled6A0 = 0;
     this->mGravityRatio = 0.0f;
     this->_334 = 0;
     F(TVec3f, 0x654).zero();
@@ -571,8 +571,8 @@ void MarioActor::initMember() {
     _928 = nullptr;
     mLastRushEndFrameE1C = 0;
     this->_930 = 0;
-    F(u8, 0xE24) = 0;
-    F(u8, 0xE25) = 0;
+    _934 = 0;
+    _7E2 = 0;
     F(u32, 0xE28) = 0;
     F(u8, 0xE2C) = 0;
     F(TVec3f, 0xE30).zero();
@@ -659,7 +659,7 @@ void MarioActor::initMember() {
     _B4C = nullptr;
     this->_B50 = 0;
     for (s32 i = 0; i < 5; i++) {
-        FP(this, u32, 0xF80 + i * 4) = 0;
+        mFireBalls[i] = nullptr;
     }
     F(u32, 0xF94) = 0;
     this->mBlinkF98 = 0;
@@ -1223,14 +1223,14 @@ void MarioActor::fn_803C2900() {
 }
 
 void MarioActor::fn_803C2AA0() {
-    if (this->mMario->isForceStopRush() && F(u8, 0xE24) != 0 && _924->receiveMessage(0x97, this->getSensor("Body"))) {
+    if (this->mMario->isForceStopRush() && _934 != 0 && _924->receiveMessage(0x97, this->getSensor("Body"))) {
         RushEndInfo info(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
         this->endRush(&info);
     }
 }
 
 void MarioActor::fn_803C2B50() {
-    if (F(u8, 0xE24) != 0 && mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "ハチ回復")) {
+    if (_934 != 0 && mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "ハチ回復")) {
         u32 i = 0;
         do {
             this->mMario->incAirWalkTimer();
@@ -1754,7 +1754,7 @@ void MarioActor::fn_803C56F0() {
 
 bool MarioActor::fn_803C5750() {
     bool r = false;
-    if (F(u8, 0xE24) != 0) {
+    if (_934 != 0) {
         r = _924->receiveMessage(0xA1, this->getSensor("Body"));
     }
     if (F(u8, 0x4E1) != 0) {
@@ -1764,7 +1764,7 @@ bool MarioActor::fn_803C5750() {
         this->fn_803C58D0();
         return true;
     }
-    if (F(u8, 0xE24) != 0) {
+    if (_934 != 0) {
         this->fn_803C5920();
     }
     return false;
@@ -2032,7 +2032,7 @@ bool MarioActor::fn_803BDE10() {
     if (this->mMario->isPlayerModeYoshi() && YoshiParam::fn_8041BD40() == 0) {
         return false;
     }
-    if (F(u8, 0xE24) != 0 || this->_38C != 0) {
+    if (_934 != 0 || this->_38C != 0) {
         return false;
     }
     if (F(u8, 0xE2C) != 0) {
@@ -2083,7 +2083,7 @@ void MarioActor::initCloudMario() {
         MR::hideJoint(F(LiveActor*, 0xEEC), "Cap0");
         MR::hideJoint(F(LiveActor*, 0xEEC), "Face0");
         CloudMarioHat* hat = new CloudMarioHat("雲マリオの帽子");
-        F(CloudMarioHat*, 0xEF0) = hat;
+        mCloudMarioHatEF0 = hat;
         hat->initWithoutIter();
         this->_3D2 |= 0x1000;
     }

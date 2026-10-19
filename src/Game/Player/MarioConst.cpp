@@ -59,7 +59,6 @@ void MarioConst::loadTable(MarioConstTable* table, const char* filename) {
         return;
     if (resource->mFileInfoTable->isExistRes(filename)) {
         const u8* cursor = static_cast<const u8*>(resource->mFileInfoTable->getRes(filename));
-        u8* output = reinterpret_cast<u8*>(table);
         MarioConstBinary::readF32(&cursor, &table->mJumpHeight[0]);
         MarioConstBinary::readF32(&cursor, &table->mJumpHeight[1]);
         MarioConstBinary::readF32(&cursor, &table->mJumpHeight[2]);
@@ -97,7 +96,7 @@ void MarioConst::loadTable(MarioConstTable* table, const char* filename) {
         MarioConstBinary::readF32(&cursor, &table->mMaxDropSpeed[3]);
         MarioConstBinary::readF32(&cursor, &table->mMaxDropSpeed[4]);
         MarioConstBinary::readS16(&cursor, &table->mGrReductionDropTimer);
-        MarioConstBinary::readS16(&cursor, reinterpret_cast<s16*>(output + 0x092));
+        MarioConstBinary::readS16(&cursor, reinterpret_cast<s16*>(&table->mDropWaitTime));
         MarioConstBinary::readF32(&cursor, &table->mJumpFrontReduction);
         MarioConstBinary::readS16(&cursor, &table->mJumpFrontReductionBeginTime);
         MarioConstBinary::readF32(&cursor, &table->mSquatJumpFrontReduction);
@@ -224,7 +223,7 @@ void MarioConst::loadTable(MarioConstTable* table, const char* filename) {
         MarioConstBinary::readF32(&cursor, &table->mGravityGrounding);
         MarioConstBinary::readF32(&cursor, &table->mDashMultiply);
         MarioConstBinary::readF32(&cursor, &table->mCameraAngleLimit);
-        MarioConstBinary::readF32(&cursor, reinterpret_cast<f32*>(output + 0x278));
+        MarioConstBinary::readF32(&cursor, &table->mStartSpinTime);
         MarioConstBinary::readU16(&cursor, &table->mAutoBdashTime);
         MarioConstBinary::readU16(&cursor, &table->mSlowStartTime);
         MarioConstBinary::readU16(&cursor, &table->_280);
@@ -609,7 +608,7 @@ void MarioConst::loadTable(MarioConstTable* table, const char* filename) {
             ++cursor;
             value = (value << 8) | *cursor;
             ++cursor;
-            *reinterpret_cast<u32*>(output + 0x780) = value;
+            *reinterpret_cast<u32*>(&table->mRasterSpeed) = value;
         }
         MarioConstBinary::readF32(&cursor, &table->mRasterRange);
         MarioConstBinary::readU16(&cursor, &table->mRacketHoldTime);
@@ -626,7 +625,7 @@ void MarioConst::loadTable(MarioConstTable* table, const char* filename) {
             ++cursor;
             value = (value << 8) | *cursor;
             ++cursor;
-            *reinterpret_cast<u32*>(output + 0x794) = value;
+            table->mDrillCarryAnimationDelay794 = value;
         }
         MarioConstBinary::readF32(&cursor, &table->mHeadAngleFixMargin);
         MarioConstBinary::readF32(&cursor, &table->mFrontAngleFixMargin);

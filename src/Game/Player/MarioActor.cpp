@@ -1499,26 +1499,26 @@ void MarioActor::calcAnim() {
         }
         if (mPlayerMode == 12) {
             if (mAllModel->mCurrentModel == 7) {
-                if (MR::isDead(mModelEF0)) mModelEF0->appear();
-            } else if (!MR::isDead(mModelEF0)) mModelEF0->kill();
+                if (MR::isDead(mCloudMarioHatEF0)) mCloudMarioHatEF0->appear();
+            } else if (!MR::isDead(mCloudMarioHatEF0)) mCloudMarioHatEF0->kill();
         } else if (mAllModel->mCurrentModel == 7) {
-            if (MR::isDead(mModelEF0)) mModelEF0->appear();
+            if (MR::isDead(mCloudMarioHatEF0)) mCloudMarioHatEF0->appear();
         } else if (_3D6 == 12) {
-            if (!MR::isDead(mModelEF0)) mModelEF0->kill();
+            if (!MR::isDead(mCloudMarioHatEF0)) mCloudMarioHatEF0->kill();
         }
     }
     if (mAllModel->mCurrentModel == 7) {
         if (mMario->isStatusActive(MarioStatus_FpView)) {
             MR::showJoint(mAllModel->getJ3DModel(), "Cap0");
-            MR::hideModel(mModelEF0);
+            MR::hideModel(mCloudMarioHatEF0);
         } else {
             MR::hideJoint(mAllModel->getJ3DModel(), "Cap0");
-            MR::showModel(mModelEF0);
+            MR::showModel(mCloudMarioHatEF0);
         }
     }
     if (mAllModel->mCurrentModel == 7 && (mActorEffectState->mActive || _390)) {
         MR::showJoint(mAllModel->getJ3DModel(), "Cap0");
-        MR::hideModel(mModelEF0);
+        MR::hideModel(mCloudMarioHatEF0);
     }
     if (MR::isHiddenModel(this) && !_482) MR::showModel(this);
     updateRealMtx();
@@ -3066,7 +3066,7 @@ void MarioActor::initDrawAndModel() {
     mModelEE8 = nullptr;
     mModelEEC = nullptr;
     mModelEF4 = nullptr;
-    mModelEF0 = nullptr;
+    mCloudMarioHatEF0 = nullptr;
     initFireMario();
 
     initBeeMario();

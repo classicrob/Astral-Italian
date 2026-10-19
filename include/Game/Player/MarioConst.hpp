@@ -159,8 +159,7 @@ struct MarioConstTable {
     /* 0x26C */ f32 mGravityGrounding;  // SMG2 offset guess
     /* 0x270 */ f32 mDashMultiply;  // SMG2 offset guess
     /* 0x274 */ f32 mCameraAngleLimit;  // SMG2 offset guess
-    /* 0x278 */ u16 mStartSpinTime;  // SMG2 offset guess
-    /* 0x27A */ u16 mDashAfterTime;  // SMG2 offset guess
+    /* 0x278 */ f32 mStartSpinTime;
     /* 0x27C */ u16 mAutoBdashTime;  // SMG2 offset guess
     /* 0x27E */ u16 mSlowStartTime;  // SMG2 offset guess
     /* 0x280 */ u16 _280;

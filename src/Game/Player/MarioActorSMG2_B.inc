@@ -26,12 +26,12 @@ void MarioActor::fn_803CA270(TVec3f* out, s32 isStatic) {
     MR::calcGravityVectorOrZero(this, p, &g2, nullptr, 0);
     TVec3f d(g);
     d -= g2;
-    F(u8, 0x6A0) = MR::isNearZero(d, 0.001f);
+    mAxisRotationDisabled6A0 = MR::isNearZero(d, 0.001f);
     TVec3f hit;
     if (this->mMario->fn_803AA340(&this->mPosition, &hit)) {
         out->set(hit);
         g = hit;
-        F(u8, 0x6A0) = 0;
+        mAxisRotationDisabled6A0 = 0;
     }
     MR::normalizeOrZero(out);
     MR::normalizeOrZero(&g);
@@ -70,7 +70,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
         if ((this->mMario)->_430 == 0xB) {
             (this->mMario)->_430 = 0;
         }
-        if (F(u8, 0xE24) == 0) {
+        if (_934 == 0) {
             if (BITAT(this->mMario, 0xC, 0x14)) {
                 this->mMario->changeAnimation("ショートジャンプ", "落下");
             } else {
@@ -182,7 +182,7 @@ void MarioActor::fn_803CAA00() {
         TVec3f t(blend);
         t.scale(len);
         F(TVec3f, 0x60C) = t;
-    } else if (BITAT(m, 0x18, 0x1C) || F(u8, 0xE24) != 0) {
+    } else if (BITAT(m, 0x18, 0x1C) || _934 != 0) {
         TVec3f neg = -mAppliedGravityVec;
         TVec3f t(neg);
         t.scale(70.0f);
@@ -630,7 +630,7 @@ void MarioActor::fn_803CCF90(HitSensor* sensor) {
 
 
 bool MarioActor::fn_803CD000() {
-    if (F(u8, 0xE24) != 0) {
+    if (_934 != 0) {
         return false;
     }
     if (F(s32, 0x6B0) == 0) {
@@ -646,7 +646,7 @@ bool MarioActor::fn_803CD000() {
 }
 
 bool MarioActor::fn_803CD0A0() {
-    if (F(u8, 0xE24) != 0) {
+    if (_934 != 0) {
         return false;
     }
     if (F(s32, 0x6B0) == 0) {
@@ -722,7 +722,7 @@ bool MarioActor::fn_803CD380() {
 }
 
 bool MarioActor::fn_803CD3C0() {
-    if (F(u8, 0xE24) != 0) {
+    if (_934 != 0) {
         return false;
     }
     if (F(s32, 0x6B0) == 0) {
@@ -923,7 +923,7 @@ void MarioActor::fn_803CEBC0() {
             drill = true;
         }
         if (drill) {
-            if (F(u8, 0xE24) == 0 && F(s32, 0x1054) == 0) {
+            if (_934 == 0 && F(s32, 0x1054) == 0) {
                 _494->calc();
                 TVec3f t;
                 FP(_494, TPos3f, 0x1C).getTrans(t);
@@ -1049,13 +1049,11 @@ void MarioActor::updateFireSpin() {
 
 void MarioActor::killAllFireBall() {
     int i = 0;
-    int off = 0;
     do {
-        if (!MR::isDead(FP(this, LiveActor*, 0xF80 + off))) {
-            FP(this, LiveActor*, 0xF80 + off)->kill();
+        if (!MR::isDead(mFireBalls[i])) {
+            mFireBalls[i]->kill();
         }
         i++;
-        off += 4;
     } while (i < 5);
 }
 
@@ -1387,15 +1385,15 @@ void MarioActor::fn_803D32F0() {
             if (area != nullptr) {
                 MR::calcCubeAxisZ(area, &axis);
                 s32 arg = MR::getAreaObjArg(area, 0);
-                F(AreaObj*, 0x578) = area;
+                mExtraWallArea578 = area;
                 len = arg;
-                F(u8, 0x57C) = 0;
+                mExtraWallAreaKind57C = 0;
             } else {
                 area = MR::getAreaObj("ExtraWallCheckCylinder", F(TVec3f, 0x5F4));
                 if (area != nullptr) {
                     f32 r = this->calcCylinderToCenter(area, &axis);
-                    F(AreaObj*, 0x578) = area;
-                    F(u8, 0x57C) = 1;
+                    mExtraWallArea578 = area;
+                    mExtraWallAreaKind57C = 1;
                     len = (s32)r;
                 }
             }
@@ -1408,13 +1406,13 @@ void MarioActor::fn_803D32F0() {
                     if (mWallShadow574->mDistance >= 1000.0f) {
                         mWallShadow574->mDistance = 1000.0f;
                     }
-                    switch (F(u8, 0x57C)) {
+                    switch (mExtraWallAreaKind57C) {
                     case 0:
-                        MR::calcCubeAxisZ(F(AreaObj*, 0x578), &axis);
-                        len = MR::getAreaObjArg(F(AreaObj*, 0x578), 0);
+                        MR::calcCubeAxisZ(mExtraWallArea578, &axis);
+                        len = MR::getAreaObjArg(mExtraWallArea578, 0);
                         break;
                     case 1:
-                        len = (s32)this->calcCylinderToCenter(F(AreaObj*, 0x578), &axis);
+                        len = (s32)this->calcCylinderToCenter(mExtraWallArea578, &axis);
                         break;
                     }
                     useTimer = true;

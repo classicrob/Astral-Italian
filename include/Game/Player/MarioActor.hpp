@@ -872,8 +872,9 @@ public:
     /* 0x572 */ bool _1E1;
     /* 0x573 */ bool _1E0;
     /* 0x574 */ MarioWallShadow* mWallShadow574;
-    /* 0x578 */ u8 _pad578[4];
-    /* 0x57C */ u16 _1C6;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x578 */ AreaObj* mExtraWallArea578;
+    /* 0x57C */ u8 mExtraWallAreaKind57C;
+    /* 0x57D */ u8 _pad57D;
     /* 0x57E */ bool _3E4;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x57F */ u8 _1D1;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x580 */ CollisionShadow* mCollisionShadow580;
@@ -909,7 +910,8 @@ public:
     /* 0x684 */ TVec3f _354;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x690 */ TVec3f _360;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x69C */ GravityInfo* mGravityInfo;  // SMG2 offset inh
-    /* 0x6A0 */ union { u32 _420; u8 mAxisRotationDisabled6A0; };  // SMG2 offset vote-gap  // SMG2 offset vote-gap  // SMG2 offset vote-gap
+    /* 0x6A0 */ u8 mAxisRotationDisabled6A0;
+    /* 0x6A1 */ u8 _reserved6A1[3];
     /* 0x6A4 */ f32 mGravityRatio;  // SMG2 offset inh-gap  // SMG2 offset vote-gap
     /* 0x6A8 */ u16 _378;
     /* 0x6AA */ bool _370;  // SMG2 offset inh  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -993,11 +995,9 @@ public:
     /* 0xE18 */ HitSensor* _928;
     u32 mLastRushEndFrameE1C;
     /* 0xE20 */ u32 _930;
-    union { u32 mVelocityBlendE24; struct {
     /* 0xE24 */ bool _934;
     /* 0xE25 */ u8 _7E2;
     /* 0xE26 */ u16 _F16;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
-    }; };
     /* 0xE28 */ s32 mAnimationDelayE28;
     /* 0xE2C */ bool _935;  // SMG2 offset guess
     /* 0xE2D */ u8 _padE2D[0x1];
@@ -1048,7 +1048,7 @@ public:
     /* 0xEE4 */ YoshiHolder* mYoshiHolder;
     /* 0xEE8 */ ModelHolder* mModelEE8;
     /* 0xEEC */ ModelHolder* mModelEEC;
-    /* 0xEF0 */ ModelHolder* mModelEF0;
+    /* 0xEF0 */ CloudMarioHat* mCloudMarioHatEF0;
     /* 0xEF4 */ ModelHolder* mModelEF4;
     /* 0xEF8 */ bool mWaterReflectionEF8;
     /* 0xEF9 */ bool mSphereReflectionEF9;

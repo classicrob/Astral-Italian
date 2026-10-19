@@ -78,7 +78,8 @@ void BossBussunSequencer::updateCamera() {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
-    bool isPlayerBelow = mHost->mGravity.dot(*MR::getPlayerGravity()) > 0.0f;
+    const TVec3f& gravity = mHost->mGravity;
+    bool isPlayerBelow = gravity.dot(*MR::getPlayerGravity()) > 0.0f;
     bool isNear = isNearHeight(80.0f);
     TVec3f toPlayer;
     MR::calcVecFromPlayerHorizon(&toPlayer, mHost, &mUpVec);

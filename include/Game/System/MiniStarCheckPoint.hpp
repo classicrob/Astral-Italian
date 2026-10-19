@@ -37,4 +37,4 @@ public:
     bool mIsDone;             // 0xAC
 };
 
-bool isStarCheckPointGrand(const char* pKind);  // was fn_804E5A10 (defined in MiniPlayerRocket.cpp)
+bool isStarCheckPointGrand(const char* pKind);

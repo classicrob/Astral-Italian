@@ -465,6 +465,3 @@ void MiniWorldMapMark::init(const JMapInfoIter&) {
 
 MiniWorldMapMark::~MiniWorldMapMark() {}
 
-bool isStarCheckPointGrand(const char* pName) {
-    return MR::isEqualString(pName, "StarCheckPointGrand");
-}

@@ -8876,12 +8876,13 @@ Game/System/MiniMeister.cpp:
 	.ctors      start:0x80644A68 end:0x80644A6C
 
 Game/System/MiniPlayerRocket.cpp:
-	.text       start:0x804E4530 end:0x804E5A20
+	.text       start:0x804E4530 end:0x804E5A10
 	.ctors      start:0x80644A6C end:0x80644A70
 
 Game/System/MiniStarCheckPoint.cpp:
-	.text       start:0x804E5A20 end:0x804E6300
+	.text       start:0x804E5A10 end:0x804E6300
 	.ctors      start:0x80644A70 end:0x80644A74
+	.data       start:0x807016C0 end:0x80701848
 
 Game/System/MiniStarPieceMine.cpp:
 	.text       start:0x804E6300 end:0x804E66F0
@@ -8913,6 +8914,7 @@ Game/System/WorldMapCameraHolder.cpp:
 
 Game/System/MiniRouteLine.cpp:
 	.text       start:0x804EB450 end:0x804EC230
+	.data       start:0x80702350 end:0x80702440
 
 Game/System/MiniRouteLineList.cpp:
 	.text       start:0x804EC230 end:0x804ECBC0
@@ -8987,6 +8989,8 @@ Game/System/WorldMapResultTU14.cpp:
 Game/System/WorldMapResultTU15.cpp:
 	.text       start:0x804F99E0 end:0x804FA3D0
 	.ctors      start:0x80644AC8 end:0x80644ACC
+	.data       start:0x80703218 end:0x807032F8
+	.sdata      start:0x807D0588 end:0x807D0590
 
 Game/System/WorldMapResultTU16.cpp:
 	.text       start:0x804FA3D0 end:0x804FA6E0

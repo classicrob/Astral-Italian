@@ -56,6 +56,12 @@ namespace {
     TVec3f sZeroOffset(0.0f, 0.0f, 0.0f);
 };  // namespace
 
+#pragma dont_inline on
+bool isStarCheckPointGrand(const char* pName) {
+    return MR::isEqualString(pName, "StarCheckPointGrand");
+}
+#pragma dont_inline reset
+
 MiniStarCheckPoint::MiniStarCheckPoint(const char* pKind, s32 starNum, s32 partsIndex, s32 param1, s32 worldId)
     : LiveActor("スター数のチェックポイント"), mKind(pKind), mStarNum(starNum), mUnk98(partsIndex),
       mUnk9C(param1), mUnkA0(worldId), mChild(nullptr), mIsDone(false) {

@@ -1812,7 +1812,6 @@ bool MarioActor::fn_803C5990() {
 
 void MarioActor::fn_803C59C0() {
     TVec3f front, side, head;
-    this->getBaseMtx();
     TPos3f* bm = (TPos3f*)this->getBaseMtx();
     bm->getZDir(front);
     this->mMario->setFrontVec(front);

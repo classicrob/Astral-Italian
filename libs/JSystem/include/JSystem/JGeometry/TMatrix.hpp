@@ -733,7 +733,11 @@ namespace JGeometry {
             this->mMtx[2][2] = cosX * cosY;
         }
 
-        void mult33(TVec3f& rVec) const {
+        void mult33(TVec3f& rVec) const
+#ifdef JGEOMETRY_ROT3_MULT33_INPLACE_NOINLINE
+            NO_INLINE
+#endif
+        {
             mult33(rVec, rVec);
         }
 
@@ -854,7 +858,11 @@ namespace JGeometry {
             this->mMtx[2][3] = a4.z;
         }
 
-        void makeRotate(const TVec3f& rVec, f32 angle) {
+        void makeRotate(const TVec3f& rVec, f32 angle)
+#ifdef JGEOMETRY_POS3_MAKE_ROTATE_NOINLINE
+            NO_INLINE
+#endif
+        {
             zeroTrans();
             TRotation3< T >::setRotate(rVec, angle);
         }

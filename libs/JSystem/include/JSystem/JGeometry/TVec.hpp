@@ -995,7 +995,11 @@ namespace JGeometry {
             return squared() <= JGeometry::TUtil< f32 >::epsilon();
         }
 
-        f32 setLength(f32 newlength) {
+        f32 setLength(f32 newlength)
+#ifdef JGEOMETRY_VEC3_SET_LENGTH_NOINLINE
+            NO_INLINE
+#endif
+        {
             f32 oldlength = squared();
 
             if (oldlength <= JGeometry::TUtil< f32 >::epsilon()) {

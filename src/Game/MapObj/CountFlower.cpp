@@ -4,7 +4,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 namespace {
-    // PLACEHOLDER(m1): purpose of the original initialized vector is unknown; resolve when its users are identified.
+    // Original startup-only vector (375, 50); no runtime readers or address escape in this game.
     TVec2f sUnidentifiedParams(375.0f, 50.0f);
 }
 namespace NrvCountFlower {

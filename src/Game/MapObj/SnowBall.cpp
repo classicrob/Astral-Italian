@@ -204,7 +204,7 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
     if (MR::isMsgPlayerHitAll(msg) && isHideBreakOrThawNerve()) {
-        MR::addVelocitySeparateHV(this, pSender, pReceiver, 0.0f, 70.0f);
+        MR::addVelocitySeparateHV(this, pSender, pReceiver, 70.0f, 0.0f);
         MR::invalidateClipping(this);
         setNerve(&SnowBallNrvBlow::sInstance);
         mStopCount = 0;

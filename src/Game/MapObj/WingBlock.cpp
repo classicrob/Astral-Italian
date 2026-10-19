@@ -33,7 +33,7 @@ void WingBlock::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mFlySpeed);
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToNearestRailPos(this);
-        MR::initAndSetRailClipping(&mRailPos, this, 1.0f, 1000.0f);
+        MR::initAndSetRailClipping(&mRailPos, this, 100.0f, 500.0f);
     }
     initNerve(&NrvWingBlock::WingBlockNrvFly::sInstance, 0);
     makeActorAppeared();

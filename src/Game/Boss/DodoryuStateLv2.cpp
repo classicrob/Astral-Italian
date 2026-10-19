@@ -1,3 +1,6 @@
+#define JGEOMETRY_VEC3_SET_LENGTH_NOINLINE
+#define JGEOMETRY_POS3_MAKE_ROTATE_NOINLINE
+#define JGEOMETRY_ROT3_MULT33_INPLACE_NOINLINE
 #define JGEOMETRY_OUTLINE_MATRIX_DIRECTION
 #include "Game/Boss/DodoryuStateLv2.hpp"
 #include "Game/Boss/Dodoryu.hpp"
@@ -1014,14 +1017,4 @@ void DodoryuStateLv2::startLeadHillBck(const DodoryuAnimSet& rAnim) {
     } else {
         mHost->startLeadHillBck(rAnim.mLeadHillBckName);
     }
-}
-
-void DodoryuStateLv2_DUMMY() {
-    // NOTE: to emit TPos3f::makeRotate, TVec3f::setLength, TRot3f::mult33
-    TVec3f a;
-    a.setLength(2.0f);
-    TPos3f m;
-    m.makeRotate(a, 3.0f);
-    TVec3f b;
-    m.mult33(b);
 }

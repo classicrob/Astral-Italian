@@ -36,7 +36,7 @@ LiftFlower::LiftFlower(const char* pName) : LiveActor(pName) {
     mHomePos.x = 0.0f;
     mHomePos.y = 0.0f;
     mHomePos.z = 0.0f;
-    mMoveHeight = 100.0f;
+    mMoveHeight = 600.0f;
     mBounceTimer = 0;
     mStopStep = 0;
     mDemoObj = nullptr;

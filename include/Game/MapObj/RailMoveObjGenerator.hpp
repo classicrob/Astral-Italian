@@ -7,7 +7,8 @@ public:
     virtual ~RailMoveObjGenerator();
     virtual void init(const JMapInfoIter&);
     virtual void kill();
-    // PLACEHOLDER(m1): empty extension hooks; resolve names when more derived generators are recovered.
+    // Optional initialization hooks at vtable slots 0x70/0x74, called before argument reads.
+    // Both return immediately; KoopaJrLv2LiftGenerator inherits these implementations.
     virtual void fn_802EB5B0();
     virtual void fn_802EB5C0();
     virtual void initRailMoveObjs(const JMapInfoIter&) = 0;

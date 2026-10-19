@@ -7,7 +7,7 @@ public:
     virtual ~IceMeteor();
     virtual void init(const JMapInfoIter&);
     virtual void attackSensor(HitSensor*, HitSensor*);
-    void initAfterPlacement();
+    static void initPlayerResource(const JMapInfoIter&);
     void exeWait();
     void exeFall();
     void exeSpread();

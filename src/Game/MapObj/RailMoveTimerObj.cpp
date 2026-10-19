@@ -3,8 +3,9 @@
 #include "Game/MapObj/MapPartsRailMover.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
-// PLACEHOLDER(m1): original read-only zero delay pool; resolve its semantic name and owning split.
-extern const s32 lbl_807E30C0;
+namespace {
+    const volatile s32 sAppearMinimumStep = 0;
+}
 namespace NrvRailMoveTimerObj {
     NEW_NERVE(RailMoveTimerObjNrvAppear, RailMoveTimerObj, Appear);
     class RailMoveTimerObjNrvWait : public Nerve {
@@ -45,7 +46,7 @@ void RailMoveTimerObj::init(const JMapInfoIter& iter) {
 }
 void RailMoveTimerObj::exeAppear() {
     if (MR::isFirstStep(this)) MR::tryEmitEffect(this,"Appear");
-    if (MR::isGreaterEqualStep(this,lbl_807E30C0)) {
+    if (MR::isGreaterEqualStep(this,sAppearMinimumStep)) {
         MR::showModel(this);
         MR::validateCollisionParts(this);
         setNerve(&NrvRailMoveTimerObj::RailMoveTimerObjNrvWait::sInstance);

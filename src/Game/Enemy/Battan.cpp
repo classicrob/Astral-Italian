@@ -180,18 +180,13 @@ void Battan::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < 5; i++) {
         const BattanPartsDesc& rDesc = sPartsDesc[i];
         if (i == 0 || i == 3 || i == 4) {
-            LiveActor* pPress = static_cast<LiveActor*>(::operator new(0x98));
-            if (pPress != nullptr) {
-                pPress = MR::fn_8008D920(pPress, this, rDesc.mName, rDesc.mModelName, 0, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
-            }
-            mPressParts[i] = pPress;
+            mPressParts[i] = new BattanKingCollisionPress(this, rDesc.mName, rDesc.mModelName, nullptr, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
             mPressParts[i]->initWithoutIter();
         } else {
             mPressParts[i] = nullptr;
         }
 
-        // the SMG2 ctor takes a BattanKing*, but Battan passes itself
-        LiveActor* pCollision = new BattanKingCollision(reinterpret_cast<BattanKing*>(this), rDesc.mName, rDesc.mModelName, nullptr, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
+        LiveActor* pCollision = new BattanKingCollision(this, rDesc.mName, rDesc.mModelName, nullptr, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
         mCollisionParts[i] = pCollision;
         mCollisionParts[i]->initWithoutIter();
     }

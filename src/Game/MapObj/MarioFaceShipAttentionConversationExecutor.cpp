@@ -1,4 +1,3 @@
-#include "Game/System/MarioFaceShipNpcConversationInfo.hpp"
 #include "Game/MapObj/MarioFaceShipNpcHolder.hpp"
 #include "Game/MapObj/MarioFaceShipAttentionConversationExecutor.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
@@ -159,7 +158,7 @@ void MarioFaceShipAttentionConversationExecutor::exeDemoStart() {
             if (mIsDefaultCamera) {
                 MR::startMultiActorCameraTargetOther(this, mCameraInfoDefault, sDefaultCameraName, CameraTargetArg(mTargetActor), -1);
             } else {
-                MR::startMultiActorCameraTargetSelf(mTargetActor, mCameraInfo, MR::getMarioFaceShipAttentionConversationCameraName(), -1);
+                MR::startMultiActorCameraTargetSelf(mTargetActor, mCameraInfo, MarioFaceShipAttentionConversationDirector::getKindName(), -1);
             }
         } else {
             MR::startMultiActorCameraTargetOther(this, pInfo, pName, CameraTargetArg(mMeister), -1);
@@ -198,7 +197,7 @@ void MarioFaceShipAttentionConversationExecutor::exeCameraEnd() {
         if (mIsDefaultCamera) {
             MR::startMultiActorCameraTargetOther(this, mCameraInfoDefault, sDefaultCameraName, CameraTargetArg(mTargetActor), -1);
         } else {
-            MR::startMultiActorCameraTargetSelf(mTargetActor, mCameraInfo, MR::getMarioFaceShipAttentionConversationCameraName(), -1);
+            MR::startMultiActorCameraTargetSelf(mTargetActor, mCameraInfo, MarioFaceShipAttentionConversationDirector::getKindName(), -1);
         }
     }
     if (MR::isGreaterStep(this, 0x3c)) {
@@ -223,7 +222,7 @@ void MarioFaceShipAttentionConversationExecutor::exeDemoClose() {
         if (mIsDefaultCamera) {
             MR::endMultiActorCamera(this, mCameraInfoDefault, sDefaultCameraName, false, -1);
         } else {
-            MR::endMultiActorCamera(mTargetActor, mCameraInfo, MR::getMarioFaceShipAttentionConversationCameraName(), false, -1);
+            MR::endMultiActorCamera(mTargetActor, mCameraInfo, MarioFaceShipAttentionConversationDirector::getKindName(), false, -1);
         }
         MR::endDemo(this, "注目会話デモ");
         setNerve(GET_EXE_NERVE(ResetPose));
@@ -244,7 +243,7 @@ void MarioFaceShipAttentionConversationExecutor::exeTalkShow() {
         if (mIsDefaultCamera) {
             MR::endMultiActorCamera(this, mCameraInfoDefault, sDefaultCameraName, false, -1);
         } else {
-            MR::endMultiActorCamera(mTargetActor, mCameraInfo, MR::getMarioFaceShipAttentionConversationCameraName(), false, -1);
+            MR::endMultiActorCamera(mTargetActor, mCameraInfo, MarioFaceShipAttentionConversationDirector::getKindName(), false, -1);
         }
         if (mIsItemPlanet) {
             MR::startMultiActorCameraTargetOther(this, mCameraInfoItemPlanet, sItemPlanetCameraName, CameraTargetArg(mMeister), -1);

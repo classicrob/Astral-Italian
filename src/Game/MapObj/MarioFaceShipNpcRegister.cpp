@@ -1,6 +1,6 @@
 #include "Game/MapObj/MarioFaceShipNpcRegister.hpp"
 #include "Game/MapObj/MarioFaceShipNpcHolder.hpp"
-#include "Game/System/MarioFaceShipNpcConversationInfo.hpp"
+#include "Game/System/MarioFaceShipAttentionConversationDirector.hpp"
 #include "Game/Util.hpp"
 
 MarioFaceShipNpcRegister::MarioFaceShipNpcRegister(LiveActor* actor, const char* actorName, const char* name)
@@ -14,19 +14,19 @@ void MarioFaceShipNpcRegister::init(const JMapInfoIter& iter) {
     bool disabled = false;
     MR::getJMapInfoArg2NoInit(iter, &disabled);
     ActorCameraInfo* camera = nullptr;
-    if (!MR::initMultiActorCamera(mActor, iter, &camera, MR::getMarioFaceShipAttentionConversationCameraName()))
+    if (!MR::initMultiActorCamera(mActor, iter, &camera, MarioFaceShipAttentionConversationDirector::getKindName()))
         camera = nullptr;
-    MarioFaceShipNpcConversationInfo info;
+    MarioFaceShipConversationNpcInfo info;
     info.mActor = mActor;
-    info.mActorName = mActorName;
-    info.mTalkIndex = mTalkIndex;
+    info.mDemoName = mActorName;
+    info.mEventNo = mTalkIndex;
     info.mCameraInfo = camera;
-    info.mDemoCastId = MR::getJMapInfoDemoCastID(iter);
-    info.mIsIntro = intro;
-    info.mIsEnabled = !disabled;
+    info.mCastId = MR::getJMapInfoDemoCastID(iter);
+    info.mFlag14 = intro;
+    info.mFlag15 = !disabled;
     MR::createMarioFaceShipNpcHolder();
     MR::registerMarioFaceShipNpcActor(mActor, mTalkIndex, iter);
-    MR::fn_804BFF30(&info, iter);
+    MarioFaceShipAttentionConversationDirector::registerNpcToConversation(&info, iter);
 }
 MarioFaceShipNpcRegister::~MarioFaceShipNpcRegister() {}
 namespace MR {

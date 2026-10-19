@@ -1,5 +1,6 @@
 #define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/MapObj/StarPieceScatter.hpp"
 #include "Game/System/MiniRoutePoint.hpp"
 #include "Game/System/MiniStarCheckPoint.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
@@ -10,6 +11,7 @@
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+
 
 namespace {
     class ScatteredStarPieceGroup : public LiveActorGroup {
@@ -43,7 +45,7 @@ void MiniPlayerRocket::init(const JMapInfoIter& rIter) {
     mStarPieces = new ScatteredStarPieceGroup("ばら撒きスターピースグループ", 10);
     mStarPieces->initWithoutIter();
     for (s32 i = 0; i < 10; i++) {
-        LiveActor* pPiece = new ScatteredStarPiece("ばら撒きスターピース[ダメージ用]");
+        LiveActor* pPiece = new StarPieceScatter("ばら撒きスターピース[ダメージ用]");
         pPiece->initWithoutIter();
         mStarPieces->registerActor(pPiece);
     }
@@ -312,7 +314,7 @@ bool MiniPlayerRocket::updateStarPieceScatter(s32 count) {
         LiveActor* pPiece = mStarPieces->getActor(i);
         if (MR::isDead(pPiece)) {
             TVec3f up(0.0f, 1.0f, 0.0f);
-            static_cast< ScatteredStarPiece* >(pPiece)->scatter(mPosition, up, 5.0f, 100.0f);
+            static_cast<StarPieceScatter*>(pPiece)->scatter(mPosition, up, 5.0f, 100.0f);
             num--;
         }
 

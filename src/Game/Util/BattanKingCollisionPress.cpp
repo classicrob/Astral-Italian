@@ -32,6 +32,20 @@ namespace BattanKingCollisionVec {
     TVec3f sCollisionOrigin(0, 800, 0);
 }
 
+BattanKingCollisionPress::BattanKingCollisionPress(LiveActor* host, const char* name, const char* parts, HitSensor* sensor, MtxPtr mtx, s32 type)
+    : LiveActor(name), mHost(host), mBaseMtx(0) {
+    if (type < -1) type = 29;
+    MR::connectToScene(this, type, -1, -1, -1);
+    if (!sensor) {
+        initHitSensor(1);
+        MR::addBodyMessageSensorMapObjPress(this);
+        sensor = getSensor(0);
+    }
+    mBaseMtx = mtx;
+    if (!mtx) mBaseMtx = host->getBaseMtx();
+    MR::invalidateClipping(this);
+    MR::initCollisionPartsFromResourceHolder(this, parts, sensor, MR::getResourceHolder(host), mtx);
+}
 void BattanKingCollisionPress::init(const JMapInfoIter&) { makeActorAppeared(); }
 void BattanKingCollisionPress::makeActorAppeared() {
     LiveActor::makeActorAppeared();
@@ -48,7 +62,7 @@ void BattanKingCollisionPress::movement() {
 bool BattanKingCollisionPress::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {
     return mHost->receiveMessage(msg, sender, receiver);
 }
-BattanKingCollision::BattanKingCollision(BattanKing* host, const char* name, const char* parts, HitSensor* sensor, MtxPtr mtx, s32 type)
+BattanKingCollision::BattanKingCollision(LiveActor* host, const char* name, const char* parts, HitSensor* sensor, MtxPtr mtx, s32 type)
     : LiveActor(name), mHost(host), mBaseMtx(0) {
     if (type < -1) type = 29;
     MR::connectToScene(this, type, -1, -1, -1);

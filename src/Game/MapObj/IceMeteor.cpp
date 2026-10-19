@@ -35,7 +35,7 @@ void IceMeteor::init(const JMapInfoIter& iter) {
     MR::startAction(mParts, "IceMeteorBall");
     makeActorAppeared();
 }
-void IceMeteor::initAfterPlacement() { MR::enablePlayerResourceFreezeIce(); }
+void IceMeteor::initPlayerResource(const JMapInfoIter&) { MR::enablePlayerResourceFreezeIce(); }
 void IceMeteor::exeWait() {
     if (MR::isFirstStep(this)) resetMeteor();
     if (MR::isGreaterStep(this, mWaitTime)) setNerve(&NrvIceMeteor::IceMeteorNrvFall::sInstance);

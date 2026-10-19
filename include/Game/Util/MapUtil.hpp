@@ -126,8 +126,6 @@ namespace MR {
     bool fn_80038570(const TVec3f*, const TVec3f*);
     bool fn_8008DDC0(MtxPtr, const TVec3f*, f32, f32);
     bool fn_8008E060(const TPos3f*, const TVec3f*);
-    LiveActor* fn_8008D920(LiveActor*, LiveActor*, const char*, const char*, s32, MtxPtr, s32);
-    LiveActor* fn_8008DB20(LiveActor*, LiveActor*, const char*, const char*, s32, MtxPtr, s32);
 };  // namespace MR
 
 namespace Collision {

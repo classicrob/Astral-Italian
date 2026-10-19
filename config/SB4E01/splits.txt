@@ -63,6 +63,9 @@ Game/Util/BgmUtil.cpp:
 	.data       start:0x8065D278 end:0x8065D57C
 	.sdata      start:0x807CF338 end:0x807CF340
 
+Game/Util/BitArray.cpp:
+	.text       start:0x8001C430 end:0x8001C530
+
 Game/Util/CameraUtil.cpp:
 	.text       start:0x8001CC90 end:0x8001ED20
 	.data       start:0x8065D5C4 end:0x8065D658
@@ -757,22 +760,19 @@ Game/AudioLib/OverwriteJAudio.cpp:
 Game/AudioLib/CSSoundNameConverter.cpp:
 	.text       start:0x80089240 end:0x80089470
 
-Game/AudioLib/BattanKing.cpp:
-	.text       start:0x8008A650 end:0x8008AD40
-
-Game/AudioLib/BattanKing2.cpp:
-	.text       start:0x8008ADA0 end:0x8008B150
-
-Game/Util/Color8.cpp:
-	.text       start:0x8008B150 end:0x8008B190
-
-Game/Util/BattanKing.cpp:
-	.text       start:0x8008BFC0 end:0x8008D1F0
-	.rodata     start:0x80646DE8 end:0x80646DF0
-	.sdata2     start:0x807D75EC end:0x807D7608
+Game/Enemy/BattanKing.cpp:
+	.text       start:0x8008A560 end:0x8008D920
+	.ctors      start:0x80643D60 end:0x80643D64
+	.rodata     start:0x80646DA8 end:0x80646DF0
+	.data       start:0x8066C098 end:0x8066C690
+	.bss        start:0x807288F0 end:0x80728A48
+	.sdata      start:0x807CF4E0 end:0x807CF4E8
+	.sbss       start:0x807D0E68 end:0x807D0EB0
+	.sdata2     start:0x807D75D8 end:0x807D76B0
+	.sbss2      start:0x807E2FC8 end:0x807E2FD8
 
 Game/Util/BattanKingCollisionPress.cpp:
-	.text       start:0x8008DA30 end:0x8008E790
+	.text       start:0x8008D920 end:0x8008E790
 	.ctors      start:0x80643D64 end:0x80643D68
 	.data       start:0x8066C690 end:0x8066C788
 	.sdata2     start:0x807D76B0 end:0x807D76C0
@@ -1817,6 +1817,11 @@ Game/Camera/CameraBlackHole.cpp:
 	.text       start:0x8010FA20 end:0x8010FDF0
 	.data       start:0x8067C010 end:0x8067C078
 	.sdata2     start:0x807D8E38 end:0x807D8E50
+
+Game/Camera/CameraCalc.cpp:
+	.text       start:0x8010FDF0 end:0x80110380
+	.rodata     start:0x80647928 end:0x80647938
+	.sdata2     start:0x807D8E50 end:0x807D8E68
 
 Game/Camera/CameraCharmedFix.cpp:
 	.text       start:0x80110380 end:0x801107F0
@@ -5028,6 +5033,7 @@ Game/MapObj/MagmaBoatPlanetIce.cpp:
 Game/MapObj/MagmaMeteor.cpp:
 	.text       start:0x802C5E80 end:0x802C6840
 	.ctors      start:0x806444A8 end:0x806444AC
+	.sbss2      start:0x807E30A8 end:0x807E30B0
 
 Game/MapObj/MagmaMeteorParts.cpp:
 	.text       start:0x802C6840 end:0x802C6BD0
@@ -5266,6 +5272,7 @@ Game/MapObj/RailMoveObjGenerator.cpp:
 Game/MapObj/RailMoveTimerObj.cpp:
 	.text       start:0x802EBAC0 end:0x802EBED0
 	.ctors      start:0x8064454C end:0x80644550
+	.sbss2      start:0x807E30C0 end:0x807E30C8
 
 Game/MapObj/RailPlacementPoleObstacle.cpp:
 	.text       start:0x802EBED0 end:0x802EC170
@@ -5541,6 +5548,13 @@ Game/MapObj/StarPieceMother.cpp:
 	.text       start:0x8031A720 end:0x8031B1F0
 	.ctors      start:0x80644608 end:0x8064460C
 	.data       start:0x806AF670 end:0x806AF720
+
+Game/MapObj/StarPieceScatter.cpp:
+	.text       start:0x8031B1F0 end:0x8031B5E0
+	.ctors      start:0x8064460C end:0x80644610
+	.data       start:0x806AF720 end:0x806AF7F0
+	.sbss       start:0x807D4528 end:0x807D4530
+	.sdata2     start:0x807DEB18 end:0x807DEB38
 
 Game/MapObj/StarPieceSpot.cpp:
 	.text       start:0x8031B5E0 end:0x8031B920

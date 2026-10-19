@@ -15,7 +15,7 @@ void RailPlacementPoleObstacle::init(const JMapInfoIter& iter) {
     mGroup=new PoleObstacleGroup("レール配置ポール障害物",count);
     mGroup->initWithoutIter();
     for (s32 i=0;i<count;i++) {
-        PoleObstacleParts* actor=new PoleObstacleParts("ポール障害物",reinterpret_cast<s32>(this),sModels[mModelType]);
+        PoleObstacleParts* actor=new PoleObstacleParts("ポール障害物",this,sModels[mModelType]);
         actor->initWithoutIter();
         TVec3f pos(0.0f);
         MR::calcRailPosAtCoord(&pos,this,mSpacing*i);

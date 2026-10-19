@@ -2,9 +2,9 @@
 #include "Game/MapObj/PoleObstacleParts.hpp"
 #include "Game/Util.hpp"
 #include "Game/Map/HitInfo.hpp"
-PoleObstacleParts::PoleObstacleParts(const char* name, s32 partsType, const char* modelName) : LiveActor(name), mPartsType(partsType), mModelName(modelName), mAlignToGravity(false) {}
+PoleObstacleParts::PoleObstacleParts(const char* name, const LiveActor* placementActor, const char* modelName) : LiveActor(name), mPlacementActor(placementActor), mModelName(modelName), mAlignToGravity(false) {}
 void PoleObstacleParts::init(const JMapInfoIter& iter) {
-    if (mPartsType && mModelName) mAlignToGravity = true;
+    if (mPlacementActor && mModelName) mAlignToGravity = true;
     if (mAlignToGravity) MR::initActor(this, iter, mModelName, false);
     else MR::initActor(this, iter, false);
     MR::onCalcGravity(this);

@@ -10,15 +10,6 @@ class AnimScaleParam;
 class PlayerRocketSmokeMoveParticleCallBack;
 class PlayerRocketSmokeWaitParticleCallBack;
 
-/// Scattered star piece (LiveActor, 0xA0 bytes, vtable 0x806AF770). Ctor and members are in an unsplit unit (0x8031B1F0..), no source yet.
-class ScatteredStarPiece : public LiveActor {
-public:
-    ScatteredStarPiece(const char*);  // was fn_8031B1F0
-    void scatter(const TVec3f& rPos, const TVec3f& rUp, f32 speed, f32 range);  // was fn_8031B370
-
-    u8 _90[0x10];
-};
-
 /// Rocket the player rides on the world map (0xEC bytes, ctor 0x804E4530).
 class MiniPlayerRocket : public LiveActor {
 public:

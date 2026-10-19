@@ -13,6 +13,8 @@ class Meister;
 
 // Argument block of MarioFaceShipNpcRegister -> director (built on the caller's stack, 0x16 bytes).
 struct MarioFaceShipConversationNpcInfo {
+    MarioFaceShipConversationNpcInfo()
+        : mActor(nullptr), mEventNo(-1), mCastId(-1), mFlag14(false), mFlag15(true) {}
     /* 0x00 */ LiveActor* mActor;
     /* 0x04 */ ActorCameraInfo* mCameraInfo;
     /* 0x08 */ const char* mDemoName;

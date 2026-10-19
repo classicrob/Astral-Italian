@@ -25,9 +25,9 @@ class BattanKing : public LiveActor {
 public:
     BattanKing(const char* pName);
 
-    virtual ~BattanKing();
     virtual void init(const JMapInfoIter&);
     virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void calcAnim();
@@ -36,6 +36,24 @@ public:
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
+    void moveAndTurnToPlayer(const f32* pParam);
+    void exeWaitStand();
+    void exeTurn();
+    void exeFindOrSummon();
+    void exeRun();
+    void exeWaitSummon();
+    void exeQuake();
+    void exeAttackJump();
+    void exeAttackSign();
+    void exeAttack();
+    void exeWaitFall();
+    void exeRiseSign();
+    void exeRise();
+    void exeDamage();
+    void exeWaitSwitch();
+    void exeOpeningDemo();
+    void exeDead();
+    void exeDownDemo();
     void resetVolumes();
     bool isAttackPhaseStart() const NO_INLINE;
     bool tryAdvanceAttack();
@@ -51,8 +69,6 @@ public:
     bool calcPlayerPush(TVec3f*);
     void restoreDemoPose();
     void updateDemoPlayerBaseMtx();
-    // PLACEHOLDER(core): earlier BattanKing TU still installs a triangle filter; migrate it to the collision-parts callback below.
-    bool isInvalidTriangle(const Triangle*);
     bool isInvalidCollisionParts(const CollisionParts*);
     bool isValidCollisionState(s32) const;
     bool isNearDropPoint(const TVec3f& rPoint, f32 radius, f32 height);
@@ -62,9 +78,7 @@ public:
     /* 0x98 */ BreakModel* mBreakModel;
     /* 0x9C */ TMtx34f mMtxBreak;
     /* 0xCC */ VolumeDrawer** mVolumeDrawers;
-    /* 0xD0 */ f32 mUnkD0;
-    /* 0xD4 */ f32 mUnkD4;
-    /* 0xD8 */ f32 mUnkD8;
+    /* 0xD0 */ TVec3f mShake;
     /* 0xDC */ TMtx34f* mVolumeMtxs;
     /* 0xE0 */ VolumeDrawer* mEarthquakeDrawer;
     /* 0xE4 */ TMtx34f mEarthquakeMtx;
@@ -87,10 +101,10 @@ public:
     /* 0x1CE */ u8 mFlagC;
 };
 
-// Collision part of BattanKing (body/arms/legs). 0x98 bytes.
+// Collision part of BattanKing or Battan (body/arms/legs). 0x98 bytes; the host is any LiveActor.
 class BattanKingCollision : public LiveActor {
 public:
-    BattanKingCollision(BattanKing* pHost, const char* pName, const char* pPartsName, HitSensor* pSensor,
+    BattanKingCollision(LiveActor* pHost, const char* pName, const char* pPartsName, HitSensor* pSensor,
                         MtxPtr pBaseMtx, s32 connectType);
 
     virtual ~BattanKingCollision();
@@ -100,14 +114,14 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual MtxPtr getBaseMtx() const;
 
-    /* 0x90 */ BattanKing* mHost;
+    /* 0x90 */ LiveActor* mHost;
     /* 0x94 */ MtxPtr mBaseMtx;
 };
 
-// Press-version collision part of BattanKing. 0x98 bytes.
+// Press-version collision part of BattanKing or Battan. 0x98 bytes; the host is any LiveActor.
 class BattanKingCollisionPress : public LiveActor {
 public:
-    BattanKingCollisionPress(BattanKing* pHost, const char* pName, const char* pPartsName, HitSensor* pSensor,
+    BattanKingCollisionPress(LiveActor* pHost, const char* pName, const char* pPartsName, HitSensor* pSensor,
                              MtxPtr pBaseMtx, s32 connectType);
 
     virtual ~BattanKingCollisionPress();
@@ -118,25 +132,11 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual MtxPtr getBaseMtx() const;
 
-    /* 0x90 */ BattanKing* mHost;
+    /* 0x90 */ LiveActor* mHost;
     /* 0x94 */ MtxPtr mBaseMtx;
 };
 
-// Runtime-initialized .bss constants of the BattanKing TU (set by its __sinit, which is not split yet).
-// Provisional names: lbl_80728914 / lbl_80728920 / lbl_8072892C / lbl_80728938 / lbl_80728944 / lbl_8072895C /
-// lbl_80728968 in the target.
-namespace BattanKingVec {
-    extern TVec3f sOffset914;
-    extern TVec3f sOffset920;
-    extern TVec3f sOffset92C;
-    extern TVec3f sDropPoint938;
-    extern TVec3f sOrigin944;
-    extern TVec3f sRange95C;
-    extern TMtx34f sMtx968[7];
-    extern TVec3f sPushOffset; // lbl_80728968, overlaps the first stored matrix.
-}
-
-// Nerves of BattanKing. Executes are defined in the BattanKing translation unit that owns the sInstance objects.
+// Nerve declaration used by the BattanKing talk state (BattanKingCollisionPress.hpp).
 #define BATTAN_KING_NERVE_DECL(name)                                                                                                 \
     class name : public Nerve {                                                                                                      \
     public:                                                                                                                          \
@@ -144,20 +144,13 @@ namespace BattanKingVec {
         static name sInstance;                                                                                                       \
     }
 
-namespace NrvBattanKing {
-    BATTAN_KING_NERVE_DECL(NrvE68);
-    BATTAN_KING_NERVE_DECL(NrvE6C);
-    BATTAN_KING_NERVE_DECL(NrvE70);
-    BATTAN_KING_NERVE_DECL(NrvE74);
-    BATTAN_KING_NERVE_DECL(NrvE7C);
-    BATTAN_KING_NERVE_DECL(NrvE94);
-    BATTAN_KING_NERVE_DECL(NrvE98);
-    BATTAN_KING_NERVE_DECL(NrvE9C);
-    BATTAN_KING_NERVE_DECL(NrvEA0);
-    BATTAN_KING_NERVE_DECL(NrvEA4);
-    BATTAN_KING_NERVE_DECL(NrvEA8);
-    BATTAN_KING_NERVE_DECL(NrvEAC);
+// One volume drawer of BattanKing: scale and offset applied to its base matrix (0x18 bytes).
+struct BattanKingVolumeParam {
+    /* 0x00 */ TVec3f mScale;
+    /* 0x0C */ TVec3f mOffset;
 };
+
+
 
 // Talk / demo state of a BattanKing (ActorStateBase<BattanKing>, 0x1C bytes).
 class BattanKingTalkState : public ActorStateBase<BattanKing> {
@@ -182,11 +175,17 @@ public:
     }
 };
 
-namespace BattanKingData {
-    extern const char sStringTable[];
-}
-
 namespace BattanKingParam {
-    extern const s32 sInitialPattanCount;
-    extern const s32 sPushStartStep;
+    extern const f32 sRun[4];
+    extern const f32 sDash[4];
+    extern const f32 sTurn[4];
+    extern const f32 sReturn[4];
+    extern const volatile f32 sAttackTurnRate;
+    extern const volatile s32 sInitialPattanCount;
+    extern const volatile s32 sPushStartStep;
+    extern const volatile s32 sAttackSignShakeFrame;
+    extern const volatile s32 sVolumeDrawPasses;
+    extern const volatile s32 sEarthquakeDrawPasses;
+    extern const GXColor sVolumeColor;
+    extern const GXColor sEarthquakeColor;
 }

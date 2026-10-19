@@ -11,8 +11,7 @@ namespace {
     const char* sShadowName = "Body";
     const char* sBodySensor = "Body";
 }
-// PLACEHOLDER(m1): original read-only zero pool has no owned split or semantic name; resolve when MagmaMeteor data splits are recovered.
-extern const f32 lbl_807E30A8;
+namespace { extern const f32 sFireRadiusMin; }
 namespace NrvMagmaMeteor {
     NEW_NERVE(MagmaMeteorNrvFirstWait, MagmaMeteor, FirstWait);
     NEW_NERVE(MagmaMeteorNrvFall, MagmaMeteor, Fall);
@@ -22,7 +21,7 @@ namespace NrvMagmaMeteor {
     NEW_NERVE(MagmaMeteorNrvInterval, MagmaMeteor, Interval);
 }
 MagmaMeteor::MagmaMeteor(const char* name)
-    : LiveActor(name), mFireActive(false), mFireRadius(lbl_807E30A8), mMeteorVelocity(0.0f, 0.0f, 0.0f), mUp(0.0f, 0.0f, 0.0f),
+    : LiveActor(name), mFireActive(false), mFireRadius(sFireRadiusMin), mMeteorVelocity(0.0f, 0.0f, 0.0f), mUp(0.0f, 0.0f, 0.0f),
       mFirstWait(0), mInterval(0), mHeight(2000.0f), mFallTime(180), mMeteor(nullptr) {}
 MagmaMeteor::~MagmaMeteor() {}
 void MagmaMeteor::init(const JMapInfoIter& iter) {
@@ -94,7 +93,7 @@ void MagmaMeteor::resetMeteor() {
     f32 speed = mHeight / mFallTime;
     mMeteorVelocity = -mUp * speed;
     mFireActive = false;
-    mFireRadius = lbl_807E30A8;
+    mFireRadius = sFireRadiusMin;
 }
 void MagmaMeteor::updateMeteor() {
     TVec3f offset(mMeteor->getOffset());
@@ -114,11 +113,15 @@ bool MagmaMeteor::isPlayerInFire(HitSensor* sensor) const {
 }
 void MagmaMeteor::expandFire() {
     s32 duration = 82;
-    mFireRadius += (420.0f - lbl_807E30A8) / duration;
-    mFireRadius = MR::clamp(mFireRadius, lbl_807E30A8, 420.0f);
+    mFireRadius += (420.0f - sFireRadiusMin) / duration;
+    mFireRadius = MR::clamp(mFireRadius, sFireRadiusMin, 420.0f);
 }
 void MagmaMeteor::shrinkFire() {
     s32 duration = 62;
     mFireRadius -= 420.0f / duration;
     mFireRadius = MR::clamp(mFireRadius, 0.0f, 420.0f);
+}
+
+namespace {
+    const f32 sFireRadiusMin = 0.0f;
 }

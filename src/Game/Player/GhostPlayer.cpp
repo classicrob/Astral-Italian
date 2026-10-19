@@ -54,7 +54,7 @@ namespace MR {
     }
     bool fn_8037F7D0(f32 input, s8 shift, s8* output) {
         f32 value = input * getShiftRatio(shift);
-        u8 result = static_cast<s8>(value);
+        u8 result = static_cast<s8>(static_cast<u8>(static_cast<s32>(value)));
         *output = result;
         return static_cast<s8>(result) != static_cast<s32>(value);
     }

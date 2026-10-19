@@ -14,7 +14,7 @@ void MarioActor::fn_803CA270(TVec3f* out, s32 isStatic) {
     TVec3f g;
     MR::calcGravityVectorOrZero(this, this->mPosition, &g, mGravityInfo, 0);
     if (isStatic == 0) {
-        MR::calcGravityVectorOrZero(this, F(TVec3f, 0x5F4), out, mGravityInfo, 0);
+        MR::calcGravityVectorOrZero(this, this->_240, out, mGravityInfo, 0);
     } else {
         out->set(g);
     }
@@ -85,7 +85,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
         r = true;
     }
     this->_334 = 0xF;
-    F(TVec3f, 0x654) = FP(this->mMario, TVec3f, 0x1F0);
+    this->_legacy2AC = FP(this->mMario, TVec3f, 0x1F0);
     if (!MR::isNearZero(b, 0.001f)) {
         if (ang >= 2.0943952f || !BITAT(this->mMario, 0x10, 8)) {
             this->mMario->cutGravityElementFromJumpVec(false);
@@ -128,14 +128,14 @@ void MarioActor::fn_803CA710(TVec3f& a, TVec3f& b) {
             const f32 angle = JMAAcosRadian(cosv);
             Mtx m;
             PSMTXRotAxisRad(m, (Vec*)&axis, angle);
-            PSMTXMultVecSR(m, (Vec*)&F(TVec3f, 0x5AC), (Vec*)&F(TVec3f, 0x5AC));
+            PSMTXMultVecSR(m, (Vec*)&this->_258, (Vec*)&this->_258);
             TVec3f cr;
-            PSVECCrossProduct((Vec*)&F(TVec3f, 0x5AC), (Vec*)&b, (Vec*)&cr);
+            PSVECCrossProduct((Vec*)&this->_258, (Vec*)&b, (Vec*)&cr);
             if (MR::normalizeOrZero(&cr)) {
             } else {
-                PSVECCrossProduct((Vec*)&b, (Vec*)&cr, (Vec*)&F(TVec3f, 0x5AC));
+                PSVECCrossProduct((Vec*)&b, (Vec*)&cr, (Vec*)&this->_258);
             }
-            MR::normalize(&F(TVec3f, 0x5AC));
+            MR::normalize(&this->_258);
         }
     }
 }
@@ -173,7 +173,7 @@ void MarioActor::fn_803CAA00() {
     } else {
         MR::vecBlendSphere(&blend, FP(m, TVec3f, 0x1F0), FP(m, TVec3f, 0x368), this->_984);
     }
-    TVec3f old(F(TVec3f, 0x60C));
+    TVec3f old(this->mVector60C);
     m = this->mMario;
     if (BITAT(m, 0xC, 0x15)) {
         len = 50.0f;
@@ -181,21 +181,21 @@ void MarioActor::fn_803CAA00() {
     if (BITAT(m, 0xC, 0x1E)) {
         TVec3f t(blend);
         t.scale(len);
-        F(TVec3f, 0x60C) = t;
+        this->mVector60C = t;
     } else if (BITAT(m, 0x18, 0x1C) || _934 != 0) {
         TVec3f neg = -mAppliedGravityVec;
         TVec3f t(neg);
         t.scale(70.0f);
         if (this->_334 != 0 || mMario->calcPolygonAngleD(mMario->mGroundPolygon) >= 59.0f) {
-            MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.1f);
+            MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.1f);
         } else {
-            MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.5f);
+            MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.5f);
         }
     } else {
         TVec3f neg = -mAppliedGravityVec;
         TVec3f t(neg);
         t.scale(70.0f);
-        MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.1f);
+        MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.1f);
     }
     u16 c = this->_3AA;
     if (c != 0) {
@@ -203,11 +203,11 @@ void MarioActor::fn_803CAA00() {
         f32 r = (f32)(u16)(c - 1) / 15.0f;
         TVec3f a(old);
         a.scale(r);
-        TVec3f b(F(TVec3f, 0x60C));
+        TVec3f b(this->mVector60C);
         b.scale(1.0f - r);
         TVec3f s(b);
         s += a;
-        F(TVec3f, 0x60C) = s;
+        this->mVector60C = s;
         FP(this->mMario, u32, 0x14) |= 0x10000000;
     }
     if (this->_334 != 0) {
@@ -215,7 +215,7 @@ void MarioActor::fn_803CAA00() {
         if (FP(m2, f32, 0x484) > 160.0f) {
             TVec3f a(FP(m2, TVec3f, 0x1F0));
             a.scale(80.0f);
-            TVec3f b(F(TVec3f, 0x654));
+            TVec3f b(this->_legacy2AC);
             b.scale(80.0f);
             TVec3f c2(b);
             c2 -= a;
@@ -223,7 +223,7 @@ void MarioActor::fn_803CAA00() {
             TVec3f push(mAppliedGravityVec);
             push.scale(k);
             this->mMario->push2(push);
-            F(TVec3f, 0x654) = FP(this->mMario, TVec3f, 0x1F0);
+            this->_legacy2AC = FP(this->mMario, TVec3f, 0x1F0);
         }
         this->_334 = this->_334 - 1;
     }
@@ -331,8 +331,8 @@ void MarioActor::fn_803CB2E0(u16 newMode) {
         if (!this->mMario->isSwimming()) {
             MR::getGameSceneLayoutHolder()->changeLifeMeterModeGround();
         }
-        F(LiveActor*, 0xEC0)->kill();
-        F(LiveActor*, 0xEC4)->kill();
+        _9E4->kill();
+        _9E8->kill();
         break;
     case 3:
         this->stopEffect("アイス中");
@@ -354,9 +354,9 @@ void MarioActor::fn_803CB2E0(u16 newMode) {
             this->mMario->closeStatus(nullptr);
         }
         if (gIsLuigi) {
-            FP(F(void*, 0x590), u32, 0xC) = 1;
+            mConst->changeTable(1);
         } else {
-            FP(F(void*, 0x590), u32, 0xC) = 0;
+            mConst->changeTable(0);
         }
         MR::endStarPointerMode(this);
         if (!mYoshiHolder->mYoshi->fn_8040F0E0()) {
@@ -402,12 +402,12 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         this->_3DC = CTU(0x78C);
         this->playEffect("無敵中");
         MR::startSubBGM("BGM_MUTEKI_A", false);
-        MR::stopBrk(F(LiveActor*, 0xEA4));
-        MR::stopBrk(F(LiveActor*, 0xF2C));
-        MR::stopBrk(F(LiveActor*, 0xF30));
-        MR::startBrk(F(LiveActor*, 0xEA4), "InvincibleMario");
-        MR::startBrk(F(LiveActor*, 0xF2C), "InvincibleMarioHandL");
-        MR::startBrk(F(LiveActor*, 0xF30), "InvincibleMarioHandR");
+        MR::stopBrk(_9C0);
+        MR::stopBrk(mHandModelL);
+        MR::stopBrk(mHandModelR);
+        MR::startBrk(_9C0, "InvincibleMario");
+        MR::startBrk(mHandModelL, "InvincibleMarioHandL");
+        MR::startBrk(mHandModelR, "InvincibleMarioHandR");
         MR::removeAllClingingKarikari();
         break;
     case 0:
@@ -474,22 +474,22 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
     case 4:
         MR::getGameSceneLayoutHolder()->changeLifeMeterModeBee();
         this->rushDropThrowMemoSensor();
-        F(LiveActor*, 0xEC0)->appear();
-        MR::showModel(F(LiveActor*, 0xEC0));
+        _9E4->appear();
+        MR::showModel(_9E4);
         (this->mMario)->_402 = CTU(0xD8);
         (this->mMario)->_42A = 0;
-        F(LiveActor*, 0xEC4)->appear();
+        _9E8->appear();
         this->_9F0 = 0;
-        MR::startAction(F(LiveActor*, 0xEC4), "Wait");
-        MR::startBva(F(LiveActor*, 0xEC4), "Wait");
-        MR::stopBtk(F(LiveActor*, 0xEC4));
+        MR::startAction(_9E8, "Wait");
+        MR::startBva(_9E8, "Wait");
+        MR::stopBtk(_9E8);
         break;
     case 7:
         MR::startStageBGM("BGM_FLYING_A", false);
         this->_3DC = 3600;
         break;
     case 10: {
-        FP(F(void*, 0x590), u32, 0xC) = 2;
+        mConst->changeTable(2);
         LiveActor* ya = mYoshiHolder->mYoshi;
         MR::setPlayerPos(ya->mPosition);
         MtxPtr bm = ya->getBaseMtx();
@@ -747,7 +747,7 @@ void MarioActor::fn_803CD450(HitSensor* s) {
 bool MarioActor::fn_803CD4B0(HitSensor* s, f32 f0, f32 f1) {
     f32 r = FP(s, f32, 0x10);
     TVec3f d(FP(s, TVec3f, 4));
-    d -= F(TVec3f, 0x5F4);
+    d -= this->_240;
     void* h = FP(s, void*, 0x24);
     if (h != nullptr && MR::isEqualString(FP(h, const char*, 4), "ヨッシー")) {
         return this->fn_803CD8A0(&d, r, 40.0f, 10.0f);
@@ -781,7 +781,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             HitSensor* hs = this->getSensor("dummy");
             TVec3f t(mBodyDownDirection);
             t.scale(d);
-            TVec3f q(F(TVec3f, 0x5F4));
+            TVec3f q(this->_240);
             q += t;
             FP(hs, TVec3f, 4).set(q);
             FP(this->getSensor("dummy"), f32, 0x10) = f1;
@@ -796,7 +796,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
                 HitSensor* hs = this->getSensor("dummy");
                 TVec3f t2(mBodyDownDirection);
                 t2.scale(f2);
-                TVec3f q(F(TVec3f, 0x5F4));
+                TVec3f q(this->_240);
                 q += t2;
                 FP(hs, TVec3f, 4).set(q);
                 FP(this->getSensor("dummy"), f32, 0x10) = f1;
@@ -814,7 +814,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             HitSensor* hs = this->getSensor("dummy");
             TVec3f t(mBodyUpDirection);
             t.scale(d2);
-            TVec3f q(F(TVec3f, 0x5F4));
+            TVec3f q(this->_240);
             q += t;
             FP(hs, TVec3f, 4).set(q);
             FP(this->getSensor("dummy"), f32, 0x10) = f1;
@@ -829,7 +829,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
                 HitSensor* hs = this->getSensor("dummy");
                 TVec3f t2(mBodyUpDirection);
                 t2.scale(f2);
-                TVec3f q(F(TVec3f, 0x5F4));
+                TVec3f q(this->_240);
                 q += t2;
                 FP(hs, TVec3f, 4).set(q);
                 FP(this->getSensor("dummy"), f32, 0x10) = f1;
@@ -895,15 +895,15 @@ void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
     if (F(s32, 0x1054) == 0) {
         Mtx tmp;
         PSMTXConcat(this->getBaseMtx(), mMainJointMatrix4A8.mMtx, tmp);
-        PSMTXCopy(tmp, FP(MR::getJ3DModel(F(LiveActor*, 0xFB4)), Mtx, 0x24));
+        PSMTXCopy(tmp, FP(MR::getJ3DModel(mNullAnimation), Mtx, 0x24));
         TVec3f pos, rot;
         if (mNullAnimation->getFramePos(t, &pos, &rot)) {
             this->_B92 = -3;
-            F(LiveActor*, 0xFB4)->kill();
+            mNullAnimation->kill();
             if (s == nullptr) {
                 F(u8, 0x768) = 0;
                 this->_B92 = 0;
-                F(LiveActor*, 0xFB4)->kill();
+                mNullAnimation->kill();
                 return;
             }
             MR::sendArbitraryMsg(50, s, this->getSensor("Body"));
@@ -1188,10 +1188,10 @@ f32 MarioActor::fn_803D1470(HitSensor* s) {
     a -= this->mPosition;
     f32 da = PSVECMag((Vec*)&a);
     TVec3f b(p);
-    b -= F(TVec3f, 0x5F4);
+    b -= this->_240;
     f32 db = PSVECMag((Vec*)&b);
     TVec3f c(p);
-    c -= F(TVec3f, 0x600);
+    c -= this->mCapPosition;
     f32 dc = PSVECMag((Vec*)&c);
     if (da > db) {
         da = db;
@@ -1217,7 +1217,7 @@ void MarioActor::fn_803D1740(HitSensor* s) {
         FP(s, f32, 0x10) = 70.0f;
         return;
     }
-    FP(s, TVec3f, 4).set(F(TVec3f, 0x5F4));
+    FP(s, TVec3f, 4).set(this->_240);
     Mario* m = this->mMario;
     u32 st = FP(m, u32, 0xC);
     if (((st >> 0x14) & 1) && !((st >> 0x1E) & 1)) {
@@ -1228,7 +1228,7 @@ void MarioActor::fn_803D1740(HitSensor* s) {
 
 
 void MarioActor::fn_803D1830(HitSensor* s) {
-    FP(s, TVec3f, 4).set(F(TVec3f, 0x5F4));
+    FP(s, TVec3f, 4).set(this->_240);
     FP(s, f32, 0x10) = this->fn_803D18D0();
     this->fn_803D1940();
     bool r = false;
@@ -1372,6 +1372,7 @@ void MarioActor::fn_803D5A00(u32 idx) {
     }
 }
 
+// NONMATCHING: Equivalent typed-member address reuse and saved-register allocation.
 void MarioActor::fn_803D32F0() {
     mWallShadow574->mActive = 0;
     if (F(u8, 0xEFC) == 0 && F(u8, 0xEF8) == 0) {
@@ -1381,7 +1382,7 @@ void MarioActor::fn_803D32F0() {
         if (this->mBeeWallWalk == 0) {
             s32 len = 0;
             TVec3f axis;
-            AreaObj* area = MR::getAreaObj("ExtraWallCheckArea", F(TVec3f, 0x5F4));
+            AreaObj* area = MR::getAreaObj("ExtraWallCheckArea", this->_240);
             if (area != nullptr) {
                 MR::calcCubeAxisZ(area, &axis);
                 s32 arg = MR::getAreaObjArg(area, 0);
@@ -1389,7 +1390,7 @@ void MarioActor::fn_803D32F0() {
                 len = arg;
                 mExtraWallAreaKind57C = 0;
             } else {
-                area = MR::getAreaObj("ExtraWallCheckCylinder", F(TVec3f, 0x5F4));
+                area = MR::getAreaObj("ExtraWallCheckCylinder", this->_240);
                 if (area != nullptr) {
                     f32 r = this->calcCylinderToCenter(area, &axis);
                     mExtraWallArea578 = area;
@@ -1426,12 +1427,12 @@ void MarioActor::fn_803D32F0() {
                 TVec3f scaled(axis);
                 scaled.scale((f32)len);
                 TVec3f hit;
-                if (this->mMario->fn_803B2770(&hit, &tri, F(TVec3f, 0x5F4), scaled)) {
+                if (this->mMario->fn_803B2770(&hit, &tri, this->_240, scaled)) {
                     mWallShadow574->mPosition.set(hit);
                     mWallShadow574->mNormal.set(*tri.getNormal(0));
                     if (!useTimer) {
                         TVec3f d(hit);
-                        d -= F(TVec3f, 0x5F4);
+                        d -= this->_240;
                         MarioWallShadow* c = mWallShadow574;
                         c->mDistance = 0.1f * PSVECMag((Vec*)&d) + 0.9f * c->mDistance;
                     }

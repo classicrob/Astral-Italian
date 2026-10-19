@@ -585,11 +585,11 @@ void MarioActor::fn_803CBC50() {
         }
     }
     if (MR::isInAreaObj("PlayerMorphLimitArea", this->mPosition)) {
-        F(u8, 0x1065) = 1;
+        this->mWasInMorphLimitArea1065 = 1;
         return;
     }
-    if (F(u8, 0x1065) != 0) {
-        F(u8, 0x1065) = 0;
+    if (this->mWasInMorphLimitArea1065 != 0) {
+        this->mWasInMorphLimitArea1065 = 0;
         this->setPlayerMode(0, true, true);
     }
 }

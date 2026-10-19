@@ -475,7 +475,7 @@ void MarioActor::initMember() {
     mCounter660 = 0;
     mWaterSurfaceCameraTimer662 = 0;
     this->_3C1 = 0;
-    F(u8, 0x666) = 0;
+    this->mFirstTransformCameraLatch666 = 0;
     this->_338 = 0;
     this->_33C.zero();
     this->_348.zero();
@@ -510,7 +510,7 @@ void MarioActor::initMember() {
     this->_3DF = 0;
     _4A4 = nullptr;
     mSensor794 = nullptr;
-    F(u8, 0x1065) = 0;
+    this->mWasInMorphLimitArea1065 = 0;
     this->_3E5 = 0;
     this->_3E6 = 0;
     this->_3E7 = 0;
@@ -833,7 +833,7 @@ void MarioActor::fn_803BF9D0() {
 }
 
 void MarioActor::fn_803BFAE0() {
-    F(s8, 0x666) = 0;
+    this->mFirstTransformCameraLatch666 = 0;
     F(s16, 0x668) = 0;
     mActionHash = new MarioActionHash();
 }
@@ -1412,7 +1412,7 @@ void MarioActor::fn_803C3E40() {
         this->getFrontVec(&front);
     }
     this->mMario->setFrontVecKeepUp(front);
-    if (F(s8, 0x666) == 0) {
+    if (this->mFirstTransformCameraLatch666 == 0) {
         MR::zoomInTargetGameCamera();
         CameraTargetArg arg(this);
         MR::startGlobalEventCamera("変身初出カメラ", arg, 60);
@@ -1441,7 +1441,7 @@ void MarioActor::fn_803C3E40() {
         TVec3f upv = -mAppliedGravityVec;
         MR::setProgrammableCameraParam("変身初出カメラ", eye, tgt, upv, true);
     }
-    F(u8, 0x666) = 1;
+    this->mFirstTransformCameraLatch666 = 1;
 }
 
 void MarioActor::fn_803C4020() {
@@ -1480,9 +1480,9 @@ void MarioActor::fn_803C4020() {
         MR::explainRockMarioIfAtFirst();
         break;
     }
-    if (F(u8, 0x666) != 0) {
+    if (this->mFirstTransformCameraLatch666 != 0) {
         this->_338 = 10;
-        F(u8, 0x666) = 0;
+        this->mFirstTransformCameraLatch666 = 0;
     }
 }
 

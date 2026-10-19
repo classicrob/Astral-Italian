@@ -116,6 +116,7 @@
 #include "Game/MapObj/WarpPod.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Player/Yoshi.hpp"
+#include "Game/Player/YoshiTongueAction.hpp"
 #include "Game/Player/YoshiHolder.hpp"
 #include "Game/Player/MarioMtxPos.hpp"
 #include "Game/Player/MarioYoshiPull.hpp"
@@ -6165,8 +6166,13 @@ bool Mario::isDisableFpViewMode() const {
     if (_97C) {
         return true;
     }
-
-    return isDisableStayHere();
+    if (isDisableStayHere()) {
+        return true;
+    }
+    if (isPlayerModeYoshi() && !mActor->fn_803B9810()->fn_8041F9E0()) {
+        return true;
+    }
+    return false;
 }
 
 

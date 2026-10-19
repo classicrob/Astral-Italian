@@ -902,7 +902,8 @@ public:
     /* 0x660 */ u16 mCounter660;
     /* 0x662 */ u16 mWaterSurfaceCameraTimer662;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x664 */ u16 _334;
-    /* 0x666 */ u16 _336;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
+    /* 0x666 */ bool mFirstTransformCameraLatch666;
+    /* 0x667 */ u8 _pad667;
     /* 0x668 */ u16 _338;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x66A */ u16 _332;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x66C */ TVec3f _33C;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
@@ -1151,7 +1152,7 @@ public:
     /* 0x1054 */ u32 mRushAnimationDelay1054;
     /* 0x1058 */ TVec3f mCarryAnimationPosition1058;
     /* 0x1064 */ u8 mFlag1064;
-    /* 0x1065 */ u8 _pad1065;
+    /* 0x1065 */ u8 mWasInMorphLimitArea1065;
     /* 0x1066 */ bool mInputDisabled1066;
     /* 0x1067 */ bool mBlinkRequested1067;
     /* 0x1068 */ u8 _pad1068[4];

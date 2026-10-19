@@ -4,6 +4,7 @@
 MessageEditorMessageTag::MessageEditorMessageTag(const nw4r::ut::PrintContext< wchar_t >* pContext) : mMessage(pContext->str) {
 }
 
+#ifndef GALAXY_NATIVE
 MessageEditorMessageTag::MessageEditorMessageTag(const wchar_t* pMessage) : mMessage(pMessage) {
 }
 
@@ -39,6 +40,8 @@ wchar_t* MessageEditorMessageTag::getParamPtr(int index) const {
     const u8* pParam = reinterpret_cast< const u8* >(mMessage) + index + 6;
     return const_cast< wchar_t* >(reinterpret_cast< const wchar_t* >(pParam));
 }
+
+#endif
 
 MessageTagSkipTagProcessor::MessageTagSkipTagProcessor() : nw4r::ut::TagProcessorBase< wchar_t >() {
 }

@@ -5,6 +5,9 @@
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/MessageUtil.hpp"
 #include <cstdlib>
+#ifdef GALAXY_NATIVE
+#include <cerrno>
+#endif
 #include <wstring.h>
 
 namespace StaffRollUtil {
@@ -126,8 +129,46 @@ namespace StaffRollUtil {
                 info->mType = 2;
             }
             if (count == 3) {
+#ifdef GALAXY_NATIVE
+                // MSL wtoi uses decimal wcstol with a 32-bit signed result.
+                // Read the game's UTF-16 code units, not the host's wchar_t ABI.
+                f32* positions[] = {&info->mPosition.x, &info->mPosition.y};
+                for (s32 i = 0; i < 2; ++i) {
+                    const wchar_t* cursor = columns[i + 1];
+                    while (*cursor == L' ' || (*cursor >= L'\t' && *cursor <= L'\r')) {
+                        ++cursor;
+                    }
+                    bool negative = *cursor == L'-';
+                    if (*cursor == L'+' || negative) {
+                        ++cursor;
+                    }
+                    const u32 limit = negative ? 0x80000000u : 0x7FFFFFFFu;
+                    u32 value = 0;
+                    bool overflow = false;
+                    while (*cursor >= L'0' && *cursor <= L'9') {
+                        u32 digit = *cursor++ - L'0';
+                        if (value > (limit - digit) / 10) {
+                            overflow = true;
+                        } else if (!overflow) {
+                            value = value * 10 + digit;
+                        }
+                    }
+                    if (overflow) {
+                        errno = ERANGE;
+                        value = limit;
+                    }
+                    s32 result;
+                    if (negative) {
+                        result = value == 0x80000000u ? (-2147483647 - 1) : -static_cast< s32 >(value);
+                    } else {
+                        result = static_cast< s32 >(value);
+                    }
+                    *positions[i] = result;
+                }
+#else
                 info->mPosition.x = wtoi(columns[1]);
                 info->mPosition.y = wtoi(columns[2]);
+#endif
             }
             return true;
         }

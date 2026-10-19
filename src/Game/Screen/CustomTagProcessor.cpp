@@ -641,7 +641,15 @@ CustomTagProcessor::Operation CustomTagProcessor::exeNumberGroup(nw4r::ut::Rect*
 
 CustomTagProcessor::Operation CustomTagProcessor::exeStringGroup(nw4r::ut::Rect* rect, const MessageEditorMessageTag& tag, ContextType* context) {
 
+#ifdef GALAXY_NATIVE
+    const wchar_t* string = tag.getArgString();
+    if (string == nullptr) {
+        return OPERATION_DEFAULT;
+    }
+    writeString(rect, string, context);
+#else
     writeString(rect, *reinterpret_cast< const wchar_t** >(tag.getParamPtr(0)), context);
+#endif
     return OPERATION_DEFAULT;
 }
 

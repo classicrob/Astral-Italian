@@ -20,6 +20,24 @@ public:
     MessageEditorMessageTag(const wchar_t*);
     MessageEditorMessageTag(const nw4r::ut::PrintContext< wchar_t >*);
 
+#ifdef GALAXY_NATIVE
+    // SMG2 tags retain a full 16-bit group, followed by tag and parameter-byte count.
+    s32 getGroup() const {
+        return static_cast< u16 >(mMessage[0]);
+    }
+    int getTag() const {
+        return static_cast< u16 >(mMessage[1]);
+    }
+
+    bool isGroupTagId(int group, int tag) const NO_INLINE {
+        return getGroup() == group && getTag() == tag;
+    }
+
+    // Text buffers store host-string handles in their 32-bit argument slots.
+    void setParam32(int index, u32 value) const;
+    const wchar_t* getArgString() const;
+    void setArgString(const wchar_t* pString) const;
+#else
     s32 getGroup() const {
         return mMessage[0];
     }
@@ -30,6 +48,8 @@ public:
     bool isGroupTagId(int group, int tag) const NO_INLINE {
         return mMessage[0] == group && mMessage[1] == tag;
     }
+
+#endif
 
     u32 getTagLength() const;
     u32 getSkipLength() const;

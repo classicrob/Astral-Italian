@@ -40,11 +40,6 @@ void LayoutActor::calcAnim() {
 }
 
 void LayoutActor::draw() const {
-#ifdef GALAXY_NATIVE
-    if (petariHudHidden(this)) {
-        return;  // HideHud mod / PETARI_HIDE_HUD=1
-    }
-#endif
     if (MR::isExecuteDrawLayout(this)) {
         mLayoutManager->draw();
     }
@@ -121,23 +116,14 @@ MtxPtr LayoutActor::getPaneMtxRef(const char* pParam1) {
 
 void LayoutActor::initLayoutManager(const char* pName, u32 rootPaneAnimLayerNum) {
     mLayoutManager = new LayoutManager(pName, true, rootPaneAnimLayerNum, 0x100);
-#ifdef GALAXY_NATIVE
-    petariNoteHudLayout(this, pName);
-#endif
 }
 
 void LayoutActor::initLayoutManagerNoConvertFilename(const char* pName, u32 rootPaneAnimLayerNum) {
     mLayoutManager = new LayoutManager(pName, false, rootPaneAnimLayerNum, 0x100);
-#ifdef GALAXY_NATIVE
-    petariNoteHudLayout(this, pName);
-#endif
 }
 
 void LayoutActor::initLayoutManagerWithTextBoxBufferLength(const char* pName, u32 textBoxBufferLength, u32 rootPaneAnimLayerNum) {
     mLayoutManager = new LayoutManager(pName, false, rootPaneAnimLayerNum, textBoxBufferLength);
-#ifdef GALAXY_NATIVE
-    petariNoteHudLayout(this, pName);
-#endif
 }
 
 void LayoutActor::initNerve(const Nerve* pNerve) {

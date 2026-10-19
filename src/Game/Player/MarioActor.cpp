@@ -2572,7 +2572,7 @@ bool MarioActor::tryVectorAttackMsg(u32 msg, const TVec3f& rVec) {
     bool out = false;
     switch (msg) {
     case ACTMES_ENEMY_ATTACK_MAXIMUM:
-        out = mMario->damageLarge(rVec);
+        out = mMario->fn_80394550(&rVec);
         break;
 
     case ACTMES_ENEMY_ATTACK_EXPLOSION:
@@ -6554,7 +6554,7 @@ void MarioActorRush_FORCE_MATCH_SDATA2() {
 void MarioActor::settingRush() {
     rushDropThrowMemoSensor();
 
-    switch ((s32)_924->mType) {
+    switch (_924->mType) {
     case ATYPE_WATER_PRESSURE_BULLET_BIND:
         mMario->touchWater();
         break;

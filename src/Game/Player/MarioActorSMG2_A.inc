@@ -1323,7 +1323,7 @@ void MarioActor::fn_803C34F0() {
 }
 
 void MarioActor::fn_803C38D0() {
-    if (this->fn_803C1F30()) {
+    if (this->fn_803C3930()) {
         this->mMario->mPosHolder->fn_80405F90(this->mPosition);
         this->mMario->checkEnforceMove();
         this->mPosition = this->mMario->mPosHolder->mPos;

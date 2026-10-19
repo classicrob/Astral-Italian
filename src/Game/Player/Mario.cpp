@@ -14672,7 +14672,9 @@ void Mario::cancelSquatMode() {
 
         if (!isAnimationRun("サマーソルト") && ((mFlags14.mLowWord >> 16) & 1U)) {
             if (mWalkSpeed > 0.1f) {
-                changeAnimationUpperWeak("しゃがみ終了");
+                if (!isPlayerModeYoshi()) {
+                    fn_803EEC20("しゃがみ終了", nullptr);
+                }
             } else {
                 changeAnimation("しゃがみ終了");
             }
@@ -14690,10 +14692,14 @@ f32 Mario::getTargetWalkSpeed() const {
 
     f32 targetWalkSpeed = ::sWalkTargetTable[mTargetWalkSpeedIndex];
 
+    if (isPlayerModeYoshi()) {
+        targetWalkSpeed *= mActor->fn_803B9810()->fn_8041FB30();
+    }
+
     if (mSinkTimer != 0) {
-        if (checkCurrentFloorCodeSevere(25)) {
+        if (_960 == 25) {
             targetWalkSpeed = 0.0f;
-        } else if (checkCurrentFloorCodeSevere(31)) {
+        } else if (_960 == 31) {
             targetWalkSpeed = 0.0f;
         } else {
             targetWalkSpeed *= 1.0f - static_cast< f32 >(mSinkTimer) / 256.0f;

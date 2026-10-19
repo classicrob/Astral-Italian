@@ -204,7 +204,7 @@ public:
     bool fn_803AA2C0();
     bool fn_803AA340(const TVec3f*, TVec3f*);
     void fn_803AC550();
-    void fn_803AC810();
+    bool fn_803AC810();
     void fn_803ACC40();
     void fn_803ACCE0();
     void fn_803ACD80();

@@ -6965,26 +6965,26 @@ bool MarioActor::isLandEffectRushSensor(const HitSensor* pSensor) const {
 }
 
 
+// NONMATCHING: verified equivalent pooled literal addresses.
 void MarioActor::resetCondition() {
     bool inWater = false;
 
     if (_EA5) {
-        MR::extractMtxTrans(_EA8.mMtx, &mPosition);
+        MR::extractMtxTrans(mRemoteDemoMtx4E4.mMtx, &mPosition);
         mMario->mPosHolder->fn_80405F90(mPosition);
     }
 
-    if (mMario->mSwim->checkWaterCube(true)) {
+    if (mMario->mSwim->fn_803FD5E0(1)) {
         inWater = true;
     }
 
-    mMario->stopAnimationUpper(nullptr);
+    mMario->stopAnimationUpper(nullptr, nullptr);
 
     if (mMario->mMovementStates._A) {
         mMario->cancelSquatMode();
     }
 
-    XanimePlayer* p = mMario->getAnimator()->mXanimePlayer;
-    p->_7E = true;
+    mMarioAnim->setAnimationPaused(true);
     mMario->forceStopTornado();
     updateTornado();
 
@@ -7031,8 +7031,8 @@ void MarioActor::resetCondition() {
     mMario->setFrontVecKeepUp(mMario->mFrontVec);
     updateGravityVec(true, true);
 
-    if (!MR::isNearZero(_24C)) {
-        mMario->setHeadVec(-_24C);
+    if (!MR::isNearZero(mPreviousGravityVec)) {
+        mMario->setHeadVec(-mPreviousGravityVec);
     }
 
     mMario->_1FC = mMario->mHeadVec;
@@ -7042,13 +7042,17 @@ void MarioActor::resetCondition() {
     mMario->mVerticalSpeed = 0.0f;
     mMario->_474->mIdx = -1;
     stopEffect("いい汗");
+    stopEffect("雲尻落ルイージ");
+    stopEffect("雲尻落");
     stopEffect("ホッパー尻落ルイージ");
     stopEffect("ホッパー尻落");
     stopEffect("尻落ルイージ");
     stopEffect("尻落");
 
-    _9C4->kill();
-    MR::offCalcAnim(_9C4);
+    if (_9C4 != nullptr) {
+        _9C4->kill();
+        MR::offCalcAnim(_9C4);
+    }
 
     for (u32 i = 0; i < 11; i++) {
         mMario->_984[i] = nullptr;
@@ -11617,11 +11621,12 @@ void MarioActor::changeTeresaAnimation(const char* pAnimation, s32 interpolation
 }
 
 
+// NONMATCHING: model/constant register allocation, load scheduling and verified string-pool offsets.
 void MarioActor::updateTeresaAnimation() {
     bool canChange = true;
-    if (MR::isBckPlaying(_9A4, "sleep")) {
+    if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
         bool moving = false;
-        if (mMario->mTeresa->isTeresaAccel()) {
+        if (mMario->fn_803AC810()) {
             moving = true;
         }
 
@@ -11635,80 +11640,78 @@ void MarioActor::updateTeresaAnimation() {
 
         if (moving) {
             runTeresaBaseAnimation();
-            MR::deleteEffect(_9A4, "Sleep");
+            MR::deleteEffect(mTeresaModel->mActor, "Sleep");
         }
     }
 
-    if (MR::isBckOneTimeAndStopped(_9A4)) {
+    if (MR::isBckOneTimeAndStopped(mTeresaModel->mActor)) {
         runTeresaBaseAnimation();
     }
 
-    if (MR::isBckPlaying(_9A4, "hit")) {
+    if (MR::isBckPlaying(mTeresaModel->mActor, "hit")) {
         canChange = false;
     }
 
-    if (MR::isBckPlaying(_9A4, "spin") && !mMario->mTeresa->isTeresaAccel()) {
+    if (MR::isBckPlaying(mTeresaModel->mActor, "spin") && !mMario->fn_803AC810()) {
         canChange = false;
     }
 
     if (canChange) {
-        if (mMario->mTeresa->isTeresaAccel()) {
-            if (!MR::isBckPlaying(_9A4, "fly") && !MR::isBckPlaying(_9A4, "spin")) {
+        if (mMario->fn_803AC810()) {
+            if (!MR::isBckPlaying(mTeresaModel->mActor, "fly") && !MR::isBckPlaying(mTeresaModel->mActor, "spin")) {
                 changeTeresaAnimation("fly", 16);
             }
-        } else if (MR::isBckPlaying(_9A4, "fly") || _9B8->isRun("基本")) {
-            if (getLastMove().dot(getGravityVec()) >= 1.0f) {
+        } else if (MR::isBckPlaying(mTeresaModel->mActor, "fly") || mTeresaModel->mPlayer->isRun("基本")) {
+            if (getLastMove().dot(*mMario->getGravityVec()) >= 1.0f) {
                 changeTeresaAnimation("fall", 16);
             } else if (!mMario->mDrawStates._1C) {
-                if (MR::abs(getLastMove().dot(getGravityVec())) < 1.0f) {
+                if (MR::abs(getLastMove().dot(*mMario->getGravityVec())) < 1.0f) {
                     runTeresaBaseAnimation();
                 }
             }
-        } else if (MR::isBckPlaying(_9A4, "fall")) {
-            if (getLastMove().dot(getGravityVec()) < 1.0f) {
+        } else if (MR::isBckPlaying(mTeresaModel->mActor, "fall")) {
+            if (getLastMove().dot(*mMario->getGravityVec()) < 1.0f) {
                 runTeresaBaseAnimation();
             }
         }
 
-        if (_9B8->isRun("基本")) {
-            _9B0 = mMario->mJumpVec.length() / 10.0f;
-            _9B0 = MR::clamp(_9B0, 0.0f, 1.0f);
-            _9B8->changeTrackWeight(0, 1.0f - _9B0);
-            _9B8->changeTrackWeight(1, _9B0);
+        if (mTeresaModel->mPlayer->isRun("基本")) {
+            mTeresaModel->_C = MR::clamp(mMario->mJumpVec.length() / 10.0f, 0.0f, 1.0f);
+            mTeresaModel->mPlayer->changeTrackWeight(0, 1.0f - mTeresaModel->_C);
+            mTeresaModel->mPlayer->changeTrackWeight(1, mTeresaModel->_C);
         }
     }
 
     if (mMario->_418) {
-        if (!MR::isBckPlaying(_9A4, "spin")) {
+        if (!MR::isBckPlaying(mTeresaModel->mActor, "spin")) {
             if (mMario->_418 > getConst().getTable()->mTeresaWallThroughTime - 3) {
                 changeTeresaAnimation("spin", -1);
             }
         }
 
-        if (_9A8 < getConst().getTable()->mTeresaAlphaLevelMax) {
-            _9A8 += getConst().getTable()->mTeresaAlphaLevelInc;
+        if (mTeresaModel->_4 < getConst().getTable()->mTeresaAlphaLevelMax) {
+            mTeresaModel->_4 += getConst().getTable()->mTeresaAlphaLevelInc;
         }
 
         mMario->_418--;
         if (!mMario->_418) {
-            playSound("テレサ現れる", -1);
+            mMario->playSound("テレサ現れる", -1);
         }
     } else {
-        if (_9A8 > 0.0f) {
-            _9A8 -= getConst().getTable()->mTeresaAlphaLevelDec;
-        }
-
-        if (_9A8 > 0.0f && mMario->mTeresa->_46) {
-            _9A8 -= getConst().getTable()->mTeresaAlphaLevelDec;
+        if (mTeresaModel->_4 > 0.0f) {
+            mTeresaModel->_4 -= getConst().getTable()->mTeresaAlphaLevelDec;
+            if (mMario->mTeresa->_46) {
+                mTeresaModel->_4 -= getConst().getTable()->mTeresaAlphaLevelDec;
+            }
         }
     }
 
-    MR::setBrkFrameAndStop(_9A4, _9A8);
-    if (_9B4) {
-        _9B4--;
-        if (!_9B4) {
-            _9B4 = MR::getRandom(90L, 240L);
-            MR::startBtp(_9A4, "blink");
+    MR::setBrkFrameAndStop(mTeresaModel->mActor, mTeresaModel->_4);
+    if (mTeresaModel->_10) {
+        mTeresaModel->_10--;
+        if (!mTeresaModel->_10) {
+            mTeresaModel->_10 = MR::getRandom(90L, 240L);
+            MR::startBtp(mTeresaModel->mActor, "blink");
         }
     }
 }

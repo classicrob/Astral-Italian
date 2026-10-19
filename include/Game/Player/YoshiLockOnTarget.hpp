@@ -25,8 +25,8 @@ public:
     bool isInvalid() const;
     bool isMarkDead() const;
     void copyTargetInfo(YoshiLockOnTargetDesc*) const;
-    void appearMark();
-    void disappearMark();
+    void appearMark() NO_INLINE;
+    void disappearMark() NO_INLINE;
     void update(const TVec3f&, f32);
     void calcScreenPosition();
     void updateMarkPosition();

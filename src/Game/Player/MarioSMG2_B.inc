@@ -30,8 +30,8 @@ void Mario::fn_803AC550() {
     this->mActor->fn_803BB5F0();
 }
 
-void Mario::fn_803AC810() {
-    this->mTeresa->isTeresaAccel();
+bool Mario::fn_803AC810() {
+    return this->mTeresa->isTeresaAccel();
 }
 
 void Mario::fn_803B1710() {

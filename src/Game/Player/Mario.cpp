@@ -11326,6 +11326,7 @@ bool Mario::isEnableSlopeMove() const {
 }
 
 
+// NONMATCHING: independent vector/gravity evaluation order and register scheduling.
 void Mario::slopeMove() {
     if (mActor->mHealth == 0) {
         return;
@@ -11366,8 +11367,6 @@ void Mario::slopeMove() {
             _8F8 = -_2C4 * 2.0f;
             mMovementStates._23 = true;
             _3C4 = 30;
-            _8F0 = 10.0f;
-        } else if (!mMovementStates._23) {
             _8F0 = 10.0f;
         }
     }
@@ -11412,6 +11411,10 @@ void Mario::slopeMove() {
 
             TVec3f stack_158;
             const f32 sideSpeed = MR::vecKillElement(mVelocity, stack_17C, &stack_158);
+
+            if (MR::isInAreaObj("SlopeRunningCancelArea", mPosHolder->mPos)) {
+                _8F0 = 10.0f;
+            }
 
             if (mWalkSpeed < 0.1f) {
                 _8F0 = 10.0f;
@@ -11649,12 +11652,9 @@ void Mario::slopeMove() {
                 stopAnimation("スケーティング");
             }
 
-            if (isStickOn() && _8F0 == 0.0f) {
-                if (isAnimationRun("坂すべり上向き終了")) {
-                    stopAnimation(nullptr);
-                } else if (isAnimationRun("坂すべり下向き終了")) {
-                    stopAnimation(nullptr);
-                }
+            if (isStickOn() && _8F0 == 0.0f &&
+                (isAnimationRun("坂すべり上向き終了") || isAnimationRun("坂すべり下向き終了"))) {
+                stopAnimation(nullptr);
             }
         }
     }
@@ -11674,13 +11674,6 @@ void Mario::slopeMove() {
         mMovementStates._23 = false;
         tryDrop();
         return;
-    }
-
-    if (mMovementStates._8) {
-        TVec3f stack_F8;
-        if (MR::vecKillElement(mVelocity, mFrontVec, &stack_F8) > 0.0f) {
-            mVelocity = stack_F8;
-        }
     }
 
     moveSlopeSlide();

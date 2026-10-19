@@ -421,7 +421,16 @@ def register_flow(elf, function):
             if 0 <= destination < size and destination % 4 == 0:
                 successors.append(destination)
         elif op == 19:
-            successors = []
+            if xo in (16, 528):  # bclr/bcctr (possibly a linking indirect call)
+                if w & 1:
+                    for reg in [0] + list(range(3, 13)):
+                        regs.pop(reg, None)
+                elif (w >> 21) & 0x14 == 0x14:
+                    successors = []  # unconditional return or indirect branch
+                # A conditional return/branch can still fall through.
+            elif xo == 50:  # rfi
+                successors = []
+            # CR logical operations (including crclr) and isync preserve GPR flow.
         elif op == 15:
             regs.pop(rt, None)
             if rel and rel.kind in (5, 6):

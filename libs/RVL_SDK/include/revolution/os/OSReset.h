@@ -23,6 +23,8 @@ extern "C" {
 #define OS_SYSLAUNCH_URL_WC24 "WiiConnect24/Wiiconnect24_index.html"
 #define OS_SYSLAUNCH_URL_UPDATE "Update/Update_index.html"
 
+extern volatile BOOL __OSIsReturnToIdle;
+
 typedef BOOL (*OSShutdownFunction)(BOOL, u32);
 typedef struct OSShutdownFunctionInfo OSShutdownFunctionInfo;
 

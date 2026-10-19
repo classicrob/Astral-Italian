@@ -143,8 +143,16 @@ u8 _WUDGetLinkNumber(void);
 
 BOOL WUDIsLinkedWBC(void);
 
+// Persistent controller history and deferred SC update, owned by WUD.c.
+extern u8 _scFlush;
+void WUDSetDeviceHistory(s32 channel, const u8* address);
+BOOL WUDIsLatestDevice(s32 channel, const u8* address);
+void WUDUpdateSCSetting(void);
+
+
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif

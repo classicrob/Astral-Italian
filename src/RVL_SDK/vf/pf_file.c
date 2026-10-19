@@ -1,4 +1,5 @@
 #include "revolution/vf/pf_file.h"
+#include <stdint.h>
 #include "revolution/vf/pf_cache.h"
 #include "revolution/vf/pf_clib.h"
 #include "revolution/vf/pf_cluster.h"
@@ -551,7 +552,8 @@ static inline u32 VFiPFFILE_CheckUFD(PF_FILE* p_file) {
     u32 is_valid;
 
     is_valid = 1;
-    if (&VFipf_vol_set > (PF_VOLUME_SET*)p_file || &VFipf_vol_set + 1 < (PF_VOLUME_SET*)p_file || (p_file->stat & 0x20000000) != 0x20000000)
+    if ((uintptr_t)&VFipf_vol_set > (uintptr_t)p_file || (uintptr_t)(&VFipf_vol_set + 1) < (uintptr_t)p_file ||
+        (p_file->stat & 0x20000000) != 0x20000000)
         is_valid = 0;
     return is_valid;
 }
@@ -993,8 +995,6 @@ s32 VFiPFFILE_fclose(PF_FILE* p_file) {
                 VFipf_vol_set.last_error = err;
                 p_vol->last_error = err;
             } else if (VFiPFDRV_IsWProtected(p_vol) && p_file->open_mode != 2) {
-                VFipf_vol_set.last_error = 11;
-                p_vol->last_error = 11;
                 return 11;
             } else if (!(p_file && p_file->p_sfd && (p_file->stat & 1) != 0 && (p_file->p_sfd->stat & 1) != 0 && (p_file->p_sfd->stat & 2) != 0)) {
                 VFipf_vol_set.last_error = 10;

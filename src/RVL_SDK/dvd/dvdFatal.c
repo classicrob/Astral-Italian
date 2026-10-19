@@ -1,10 +1,10 @@
 #include "revolution/os.h"
+#include "revolution/os/OSFont.h"
 #include "revolution/gx.h"
 #include "revolution/vi.h"
 #include "revolution/dvd.h"
 #include "revolution/sc.h"
 
-extern u16 OSSetFontEncode(u16);
 
 static void (*FatalFunc)(void) = NULL;
 
@@ -23,9 +23,9 @@ const char* const __DVDErrorMessageDefault[] = {
     "\n"
     "An error has occurred.\n"
     "Press the Eject Button, remove the\n"
-    "Game Disc, and turn the power off.\n"
-    "Please read the Wii Operations Manual\n"
-    "for more information.",
+    "Game Disc, and turn off the power to the\n"
+    "console. Please read the Wii Operations\n"
+    "Manual for further instructions.",
 
     "\n"
     "\n"
@@ -42,16 +42,16 @@ const char* const __DVDErrorMessageDefault[] = {
     "Une erreur est survenue.\n"
     "Appuyez sur le bouton EJECT, retirez\n"
     "le disque et \xE9""teignez la console.\n"
-    "Veuillez vous r\xE9""f\xE9""rer au mode d'emploi\n"
-    "Wii pour plus de d\xE9""tails.",
+    "Veuillez vous r\xE9""f\xE9""rer au Mode d'emploi\n"
+    "de la Wii pour plus de d\xE9""tails.",
 
     "\n"
     "\n"
     "\n"
-    "Se ha producido un error.\n"
-    "Pulsa el Bot\xF3""n EJECT, extrae el disco y\n"
-    "apaga la consola. Consulta el manual de\n"
-    "instrucciones de la consola Wii para\n"
+    "Ocurri\xF3"" un Error.\n"
+    "Oprime el Bot\xF3""n EJECT, saca el disco\n"
+    "y apaga la consola. Consulta el manual\n"
+    "de operaciones de la consola Wii para\n"
     "obtener m\xE1""s informaci\xF3""n.",
 
     "\n"
@@ -69,7 +69,7 @@ const char* const __DVDErrorMessageDefault[] = {
     "Er is een fout opgetreden.\n"
     "Druk op de EJECT-knop, verwijder de\n"
     "disk en zet het Wii-systeem uit. Lees\n"
-    "de handleiding voor meer informatie."
+    "de Wii-handleiding voor meer informatie."
 };
 
 const char* const __DVDErrorMessageEurope[] = {
@@ -86,10 +86,10 @@ const char* const __DVDErrorMessageEurope[] = {
     "\n"
     "\n"
     "An error has occurred.\n"
-    "Press the EJECT Button, remove the\n"
-    "Game Disc, and turn the power off.\n"
-    "Please read the Wii Operations Manual\n"
-    "for more information.",
+    "Press the EJECT Button, remove the Disc,\n"
+    "and turn off the power to the console.\n"
+    "Please refer to the Wii Operations Manual\n"
+    "for details.",
 
     "\n"
     "\n"
@@ -133,7 +133,7 @@ const char* const __DVDErrorMessageEurope[] = {
     "Er is een fout opgetreden.\n"
     "Druk op de EJECT-knop, verwijder de\n"
     "disk en zet het Wii-systeem uit. Lees\n"
-    "de handleiding voor meer informatie."
+    "de Wii-handleiding voor meer informatie."
 };
 
 const char* __DVDErrorMessage104 [] = {
@@ -156,6 +156,7 @@ const char* __DVDErrorMessage104 [] = {
     "for more information."
 };
 
+// NONMATCHING: region-switch lowering and GXColor byte loads versus the target word load.
 void __DVDShowFatalMessage(void) {
     const char* message;
     const char* const* messageList;

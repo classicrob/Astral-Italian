@@ -4,6 +4,7 @@
 #include "revolution/os.h"
 #include "revolution/sc.h"
 #include "revolution/types.h"
+struct WUDDevInfo;
 
 #ifdef __cplusplus
 extern "C" {
@@ -464,12 +465,12 @@ typedef struct WPADControlBlock {
     // PLACEHOLDER(m1): target clears this word at 0xAE4; resolve a nonzero writer/consumer before assigning behavior.
     u32 reservedControllerWord;
     OSTime lastUpdateTime;
-    u16 diffCountDpd;
     u16 diffCountAcc;
+    u16 diffCountDpd;
     u16 diffCountfsAcc;
     u16 diffCountMpls;
-    u16 hystCountDpd;
     u16 hystCountAcc;
+    u16 hystCountDpd;
     u16 hystCountfsAcc;
     u16 hystCountMpls;
     OSTime cmdTimer;
@@ -606,7 +607,8 @@ BOOL WPADiSendSetPort(WPADCmdQueue*, u8, WPADCallback);
 BOOL WPADiSendDPDCSB(WPADCmdQueue*, BOOL, WPADCallback);
 BOOL WPADiSendGetContStat(WPADCmdQueue*, WPADInfo*, WPADCallback);
 
-s32 WPADiRetrieveChannel(u8);
+s32 __wpadRetrieveChannel(struct WUDDevInfo* info);
+void __wpadCalcRecalibration(s32 chan, const WPADStatus* current);
 s32 WPADiSendData(s32, WPADCommand);
 
 BOOL WPADiGetCommand(WPADCmdQueue*, WPADCommand*);

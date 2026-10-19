@@ -1,5 +1,6 @@
 #include "revolution/wpad.h"
 #include "revolution/wpad/lint.h"
+#include "revolution/os/OSReset.h"
 #include "revolution/wbc.h"
 #include "private/flipper.h"
 #include "revolution/dvd.h"
@@ -10,9 +11,7 @@
 #include <cstdio>
 #include <mem.h>
 
-static const char* __WPADVersion = "<< RVL_SDK - WPAD \trelease build: Dec 11 2007 01:35:07 (0x4199_60831) >>";
-
-extern volatile BOOL __OSIsReturnToIdle;
+static const char* __WPADVersion = "<< RVL_SDK - WPAD \trelease build: Dec 11 2009 15:59:48 (0x4302_145) >>";
 
 WPADControlBlock _wpd[WPAD_MAX_CONTROLLERS];
 WPADControlBlock* _wpdcb[WPAD_MAX_CONTROLLERS];
@@ -22,12 +21,12 @@ u8 _dpdSensitivity;
 u8 _sensorBarPos;
 BOOL _rumble;
 u8 _speakerVolume;
-u8 _scFlush;
 u8 _gametype;
 u16 _gameTitle[17];
 const char* _gamecode;
 
-s8 _dev_handle_index[16];
+// Receive accepts handle 16 as well; InitSub initializes only entries 0..15.
+s8 _dev_handle_index[17];
 u8 _chan_active_state[WPAD_MAX_CONTROLLERS];
 OSAlarm _managerAlarm;
 
@@ -52,28 +51,30 @@ static BOOL _startup = FALSE;
 static int _recFlag = -1;
 static int _recCnt = 0;
 
-#define WPAD_DEFAULT_ACC_DIFF_COUNT_THRESHOLD (u16)(6)
-#define WPAD_DEFAULT_ACC_HYST_COUNT_THRESHOLD (u16)(30)
+// Optional no-argument initialization hooks, called in this order when installed.
+void (*__wpadOptionalInitCallback0)(void);
+void (*__wpadOptionalInitCallback1)(void);
+void (*__wpadOptionalInitCallback2)(void);
+void (*__wpadOptionalInitCallback3)(void);
+void (*__wpadOptionalInitCallback4)(void);
+void (*__wpadOptionalInitCallback5)(void);
+void (*__wpadOptionalInitCallback6)(void);
 
-#define WPAD_DEFAULT_DPD_DIFF_COUNT_THRESHOLD (u16)(4)
-#define WPAD_DEFAULT_DPD_HYST_COUNT_THRESHOLD (u16)(30)
 
-static u16 __WPAD_acc_diff_count_threshold = WPAD_DEFAULT_ACC_DIFF_COUNT_THRESHOLD;
-static u16 __WPAD_dpd_diff_count_threshold = WPAD_DEFAULT_DPD_DIFF_COUNT_THRESHOLD;
-
-static u16 __WPAD_acc_hyst_count_threshold = WPAD_DEFAULT_ACC_HYST_COUNT_THRESHOLD;
-static u16 __WPAD_dpd_hyst_count_threshold = WPAD_DEFAULT_DPD_HYST_COUNT_THRESHOLD;
+enum { WPAD_CHANGE_ACC, WPAD_CHANGE_DPD, WPAD_CHANGE_EXTENSION, WPAD_CHANGE_MPLS };
+static u16 __wpadChangeDiffThreshold[4] = {6, 4, 6, 12};
+static u16 __wpadChangeHystThreshold[4] = {30, 30, 30, 30};
 
 extern void DEBUGPrint(const char*, ...);
 
 static void __ClearControlBlock(s32 chan);
 void __wpadCertWork(s32 chan);
 static void setupCallback(s32 chan, s32 result);
-static void abortConnCallback(s32 chan, s32 result);
+static void __wpadAbortConnectionCallback(s32 chan, s32 result);
 static void firmwareCheckCallback(s32 chan, s32 result);
-s32 WPADiRetrieveChannel(u8 dev_handle);
-static void WPADiConnCallback(WUDDevInfo* info, u8 open);
-static void WPADiRecvCallback(u8 dev_handle, u8* p_rpt, u16);
+s32 __wpadRetrieveChannel(WUDDevInfo* info);
+static void __wpadConnectionCallback(WUDDevInfo* info, u8 open);
+static void __wpadReceiveCallback(u8 dev_handle, u8* p_rpt, u16);
 void WPADGetAccGravityUnit(s32 chan, u32 type, WPADAcc* acc);
 static s32 __wpadSendDataSub(s32 chan, WPADCommand cmd);
 BOOL WPADiSendWriteDataCmd(WPADCmdQueue* queue, u8 cmd, u32 addr, WPADCallback callback);
@@ -128,65 +129,37 @@ s32 WBCGetTGCWeight(f64 averageWeight, f64* result, WPADBLStatus* report) {
     return -1;
 }
 
+// NONMATCHING: equivalent default-case lowering adds one instruction.
 BOOL OnShutdown(BOOL final, u32 event) {
-#pragma unused(event)
-
-    s32 status;
-    BOOL ret;
-
-    ret = FALSE;
-    status = WUDGetStatus();
-
-    if (final == FALSE) {
-        if (status == 3) {
-            if (WUDIsBusy()) {
-                WUDCancelSyncDevice();
-                ret = FALSE;
-            } else {
-                switch (event) {
-                case 0:
-                    DEBUGPrint("Deregister allocators because of fatal error.\n");
-                    WPADRegisterAllocator(__wpadNoAlloc, __wpadNoFree);
-
-                case 2:
-                case 3:
-                    __WPADShutdown();
-                    ret = FALSE;
-                    break;
-                case 5:
-                    if (__OSIsReturnToIdle) {
-                        __WPADShutdown();
-                    } else {
-                        __WPADReconnect(TRUE);
-                    }
-                    ret = FALSE;
-                    break;
-                case 1:
-                case 4:
-                    __WPADReconnect(TRUE);
-                    ret = FALSE;
-                    break;
-                case 6:
-                    __WPADReconnect(TRUE);
-                    ret = FALSE;
-                    break;
-                default:
-                    break;
-                }
-            }
-        } else if (status == 5) {
-            WPADStopSimpleSync();
-            ret = FALSE;
-        } else if ((status == 4) || (1 == status) || (2 == status)) {
-            ret = FALSE;
-        } else if (status == 0) {
-            ret = TRUE;
-        }
-    } else {
-        ret = TRUE;
+    BOOL shutdown;
+    s32 status = WUDGetStatus();
+    if (final || status == 0) return TRUE;
+    if (status == 4 || status == 1 || status == 2) return FALSE;
+    if (WUDIsBusy()) {
+        WUDCancelSyncDevice();
+        return FALSE;
     }
-
-    return ret;
+    shutdown = TRUE;
+    switch (event) {
+    case 0:
+        WPADRegisterAllocator(__wpadNoAlloc, __wpadNoFree);
+        // Fall through: fatal errors use immediate shutdown too.
+    case 2:
+    case 3:
+        shutdown = TRUE;
+        break;
+    case 1:
+    case 4:
+    case 6:
+        shutdown = FALSE;
+        break;
+    case 5:
+        shutdown = __OSIsReturnToIdle != FALSE;
+        break;
+    }
+    if (shutdown) __WPADShutdown();
+    else __WPADReconnect(TRUE);
+    return FALSE;
 }
 
 s32 WPADiGetStatus(s32 chan) {
@@ -204,50 +177,26 @@ s32 WPADiGetStatus(s32 chan) {
 s32 WPADiSendData(s32 chan, WPADCommand cmd) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     s32 status;
-    BOOL enable;
-    BOOL getStat;
-    int t;
-
-    status = WPADiGetStatus(chan);
-
-    if (status == WPAD_ERR_NONE) {
-        enable = OSDisableInterrupts();
-        getStat = p_wpd->getStatFlag;
-        OSRestoreInterrupts(enable);
-
-        if (getStat) {
-            status = WPAD_ERR_BUSY;
-        } else {
-            __wpadSendDataSub(chan, cmd);
-        }
-    } else if (status != WPAD_ERR_BUSY) {
-        if (status == WPAD_ERR_TRANSFER) {
-            enable = OSDisableInterrupts();
-            p_wpd->status = WPAD_ERR_NONE;
-            OSRestoreInterrupts(enable);
-        }
-    }
-
-    if (status == WPAD_ERR_BUSY) {
-        t = (int)OSTicksToSeconds(__OSGetSystemTime() - p_wpd->cmdTimer);
-        if (t > 1 && _sleepTime > 0) {
-            if (p_wpd->cmdTimeoutAction == 0) {
-                p_wpd->cmdTimer = __OSGetSystemTime();
-                WPADiDisconnect(chan, FALSE);
-            } else {
-                enable = OSDisableInterrupts();
-                p_wpd->status = WPAD_ERR_TRANSFER;
-                OSRestoreInterrupts(enable);
-            }
+    BOOL enabled = OSDisableInterrupts();
+    if (p_wpd->getStatFlag) status = WPAD_ERR_BUSY;
+    else status = WPADiGetStatus(chan);
+    OSRestoreInterrupts(enabled);
+    if (status == WPAD_ERR_NONE) status = __wpadSendDataSub(chan, cmd);
+    else if (status == WPAD_ERR_BUSY) {
+        if (OSTicksToSeconds(__OSGetSystemTime() - p_wpd->cmdTimer) > 1) {
+            p_wpd->cmdTimer = __OSGetSystemTime();
+            WPADiDisconnect(chan, FALSE);
         }
     }
     return status;
 }
 
-void WPADiRadioSensitivity(s32 chan) {
+void __wpadCalcRadioQuality(s32 chan) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     u32 packet = 2;
     u16 rs;
+
+    if (_senseCnt != 10) return;
 
     rs = (u16)(p_wpd->radioSense * (10 - 1));
     rs += (u16)((p_wpd->packetCnt * 100) / packet);
@@ -314,233 +263,130 @@ static u8 IsAnalogChanged(s32 curr, s32 prev, s32 threshold) {
     return (u8)((diff > threshold) ? 1 : 0);
 }
 
-BOOL IsControllerDataChanged(WPADControlBlock* p_wpd, void* p_curr, void* p_prev) {
-    u32 fmt;
-    u8 mode, result = 0;
-    int i;
-
-    mode = p_wpd->devMode;
-    fmt = p_wpd->dataFormat;
-
-    if (WPADiIsCoreFormat(fmt)) {
-        WPADStatus* curr = (WPADStatus*)p_curr;
-        WPADStatus* prev = (WPADStatus*)p_prev;
-        result |= IsButtonChanged(curr->button, prev->button);
-        if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
-            if (IsAnalogChanged((s32)(curr->accX), (s32)(prev->accX), 12) | IsAnalogChanged((s32)(curr->accY), (s32)(prev->accY), 12) |
-                IsAnalogChanged((s32)(curr->accZ), (s32)(prev->accZ), 12)) {
-                p_wpd->diffCountAcc++;
-                if (p_wpd->diffCountAcc > __WPAD_acc_diff_count_threshold) {
-                    p_wpd->diffCountAcc = 0;
-                    p_wpd->hystCountAcc = 0;
-                    result |= 1;
-                }
-
-            } else {
-                p_wpd->hystCountAcc = (u16)((p_wpd->hystCountAcc + 1) % __WPAD_acc_hyst_count_threshold);
-                if (p_wpd->hystCountAcc == __WPAD_acc_hyst_count_threshold - 1) {
-                    if (p_wpd->diffCountAcc > 0) {
-                        p_wpd->diffCountAcc--;
-                    }
-                }
-            }
-
-            for (i = 0; i < WPAD_DPD_MAX_OBJECTS; i++) {
-                if (IsAnalogChanged((s32)(curr->obj[i].x), (s32)(prev->obj[i].x), 2) |
-                    IsAnalogChanged((s32)(curr->obj[i].y), (s32)(prev->obj[i].y), 2)) {
-                    p_wpd->diffCountDpd++;
-                    if (p_wpd->diffCountDpd > __WPAD_dpd_diff_count_threshold) {
-                        p_wpd->diffCountDpd = 0;
-                        result |= 1;
-                    }
-                } else {
-                    p_wpd->hystCountDpd = (u16)((p_wpd->hystCountDpd + 1) % __WPAD_dpd_hyst_count_threshold);
-                    if (p_wpd->hystCountDpd == __WPAD_dpd_hyst_count_threshold - 1) {
-                        if (p_wpd->diffCountDpd > 0) {
-                            p_wpd->diffCountDpd--;
-                        }
-                    }
-                }
-            }
-        }
-
-    } else if (WPADiIsFsFormat(fmt)) {
-        WPADFSStatus* curr = (WPADFSStatus*)p_curr;
-        WPADFSStatus* prev = (WPADFSStatus*)p_prev;
-
-        result |= IsButtonChanged(curr->button, prev->button);
-        if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
-            if (IsAnalogChanged((s32)(curr->accX), (s32)(prev->accX), 12) | IsAnalogChanged((s32)(curr->accY), (s32)(prev->accY), 12) |
-                IsAnalogChanged((s32)(curr->accZ), (s32)(prev->accZ), 12)) {
-                p_wpd->diffCountAcc++;
-                if (p_wpd->diffCountAcc > __WPAD_acc_diff_count_threshold) {
-                    p_wpd->diffCountAcc = 0;
-                    p_wpd->hystCountAcc = 0;
-                    result |= 1;
-                }
-
-            } else {
-                p_wpd->hystCountAcc = (u16)((p_wpd->hystCountAcc + 1) % __WPAD_acc_hyst_count_threshold);
-                if (p_wpd->hystCountAcc == __WPAD_acc_hyst_count_threshold - 1) {
-                    if (p_wpd->diffCountAcc > 0) {
-                        p_wpd->diffCountAcc--;
-                    }
-                }
-            }
-
-            for (i = 0; i < WPAD_DPD_MAX_OBJECTS; i++) {
-                if (IsAnalogChanged((s32)(curr->obj[i].x), (s32)(prev->obj[i].x), 2) |
-                    IsAnalogChanged((s32)(curr->obj[i].y), (s32)(prev->obj[i].y), 2)) {
-                    p_wpd->diffCountDpd++;
-                    if (p_wpd->diffCountDpd > __WPAD_dpd_diff_count_threshold) {
-                        p_wpd->diffCountDpd = 0;
-                        result |= 1;
-                    }
-                } else {
-                    p_wpd->hystCountDpd = (u16)((p_wpd->hystCountDpd + 1) % __WPAD_dpd_hyst_count_threshold);
-                    if (p_wpd->hystCountDpd == __WPAD_dpd_hyst_count_threshold - 1) {
-                        if (p_wpd->diffCountDpd > 0) {
-                            p_wpd->diffCountDpd--;
-                        }
-                    }
-                }
-            }
-
-            if (IsAnalogChanged((s32)(curr->fsAccX), (s32)(prev->fsAccX), 12) | IsAnalogChanged((s32)(curr->fsAccY), (s32)(prev->fsAccY), 12) |
-                IsAnalogChanged((s32)(curr->fsAccZ), (s32)(prev->fsAccZ), 12)) {
-                p_wpd->diffCountfsAcc++;
-                if (p_wpd->diffCountfsAcc > __WPAD_acc_diff_count_threshold) {
-                    p_wpd->diffCountfsAcc = 0;
-                    p_wpd->hystCountfsAcc = 0;
-                    result |= 1;
-                }
-
-            } else {
-                p_wpd->hystCountfsAcc = (u16)((p_wpd->hystCountfsAcc + 1) % __WPAD_acc_hyst_count_threshold);
-                if (p_wpd->hystCountfsAcc == __WPAD_acc_hyst_count_threshold - 1) {
-                    if (p_wpd->diffCountfsAcc > 0) {
-                        p_wpd->diffCountfsAcc--;
-                    }
-                }
-            }
-
-            result |= IsAnalogChanged((s32)(curr->fsStickX), (s32)(prev->fsStickX), 1);
-            result |= IsAnalogChanged((s32)(curr->fsStickY), (s32)(prev->fsStickY), 1);
-        }
-    } else if (WPADiIsClFormat(fmt)) {
-        WPADCLStatus* curr = (WPADCLStatus*)p_curr;
-        WPADCLStatus* prev = (WPADCLStatus*)p_prev;
-        s32 lstk;
-        s32 rstk;
-        s32 trig;
-
-        switch (mode) {
-        case 1:
-            lstk = 16;
-            rstk = 32;
-            trig = 8;
-            break;
-        case 3:
-            lstk = 4;
-            rstk = 4;
-            trig = 1;
-            break;
-        default:
-            lstk = 1;
-            rstk = 1;
-            trig = 1;
-            break;
-        }
-
-        result |= IsButtonChanged(curr->button, prev->button);
-        if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
-            if (IsAnalogChanged((s32)(curr->accX), (s32)(prev->accX), 12) | IsAnalogChanged((s32)(curr->accY), (s32)(prev->accY), 12) |
-                IsAnalogChanged((s32)(curr->accZ), (s32)(prev->accZ), 12)) {
-                p_wpd->diffCountAcc++;
-                if (p_wpd->diffCountAcc > __WPAD_acc_diff_count_threshold) {
-                    p_wpd->diffCountAcc = 0;
-                    p_wpd->hystCountAcc = 0;
-                    result |= 1;
-                }
-
-            } else {
-                p_wpd->hystCountAcc = (u16)((p_wpd->hystCountAcc + 1) % __WPAD_acc_hyst_count_threshold);
-                if (p_wpd->hystCountAcc == __WPAD_acc_hyst_count_threshold - 1) {
-                    if (p_wpd->diffCountAcc > 0) {
-                        p_wpd->diffCountAcc--;
-                    }
-                }
-            }
-
-            for (i = 0; i < WPAD_DPD_MAX_OBJECTS; i++) {
-                if (IsAnalogChanged((s32)(curr->obj[i].x), (s32)(prev->obj[i].x), 2) |
-                    IsAnalogChanged((s32)(curr->obj[i].y), (s32)(prev->obj[i].y), 2)) {
-                    p_wpd->diffCountDpd++;
-                    if (p_wpd->diffCountDpd > __WPAD_dpd_diff_count_threshold) {
-                        p_wpd->diffCountDpd = 0;
-                        result |= 1;
-                    }
-                } else {
-                    p_wpd->hystCountDpd = (u16)((p_wpd->hystCountDpd + 1) % __WPAD_dpd_hyst_count_threshold);
-                    if (p_wpd->hystCountDpd == __WPAD_dpd_hyst_count_threshold - 1) {
-                        if (p_wpd->diffCountDpd > 0) {
-                            p_wpd->diffCountDpd--;
-                        }
-                    }
-                }
-            }
-            result |= IsButtonChanged(curr->clButton, prev->clButton);
-            result |= IsAnalogChanged((s32)(curr->clLStickX / lstk), (s32)(prev->clLStickX / lstk), 1);
-            result |= IsAnalogChanged((s32)(curr->clLStickY / lstk), (s32)(prev->clLStickY / lstk), 1);
-            result |= IsAnalogChanged((s32)(curr->clRStickX / rstk), (s32)(prev->clRStickX / rstk), 1);
-            result |= IsAnalogChanged((s32)(curr->clRStickY / rstk), (s32)(prev->clRStickY / rstk), 1);
-            result |= IsAnalogChanged((s32)(curr->clTriggerL / trig), (s32)(prev->clTriggerL / trig), 1);
-            result |= IsAnalogChanged((s32)(curr->clTriggerR / trig), (s32)(prev->clTriggerR / trig), 1);
+static u8 __wpadCheckChangeCount(BOOL changed, u16* count, u16* hysteresis, u32 type) {
+    if (changed) {
+        ++*count;
+        if (*count > __wpadChangeDiffThreshold[type]) {
+            *count = 0;
+            *hysteresis = 0;
+            return 1;
         }
     } else {
-        WPADStatusEx* curr = (WPADStatusEx*)p_curr;
-        WPADStatusEx* prev = (WPADStatusEx*)p_prev;
+        *hysteresis = (u16)((*hysteresis + 1) % __wpadChangeHystThreshold[type]);
+        if (*hysteresis == __wpadChangeHystThreshold[type] - 1 && *count > 0) --*count;
+    }
+    return 0;
+}
 
-        result |= IsButtonChanged(curr->button, prev->button);
-        if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
-            if (IsAnalogChanged((s32)(curr->accX), (s32)(prev->accX), 12) | IsAnalogChanged((s32)(curr->accY), (s32)(prev->accY), 12) |
-                IsAnalogChanged((s32)(curr->accZ), (s32)(prev->accZ), 12)) {
-                p_wpd->diffCountAcc++;
-                if (p_wpd->diffCountAcc > __WPAD_acc_diff_count_threshold) {
-                    p_wpd->diffCountAcc = 0;
-                    p_wpd->hystCountAcc = 0;
-                    result |= 1;
-                }
-
-            } else {
-                p_wpd->hystCountAcc = (u16)((p_wpd->hystCountAcc + 1) % __WPAD_acc_hyst_count_threshold);
-                if (p_wpd->hystCountAcc == __WPAD_acc_hyst_count_threshold - 1) {
-                    if (p_wpd->diffCountAcc > 0) {
-                        p_wpd->diffCountAcc--;
-                    }
+// NONMATCHING: compiler boolean/loop lowering, register allocation and scheduling differ.
+BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, const void* p_prev) {
+    const WPADStatus* curr = (const WPADStatus*)p_curr;
+    const WPADStatus* prev = (const WPADStatus*)p_prev;
+    u8 result = 0;
+    int i;
+    if ((curr->err == WPAD_ERR_NONE || curr->err == -7) &&
+        (prev->err == WPAD_ERR_NONE || prev->err == -7)) {
+        BOOL accChanged = IsAnalogChanged(curr->accX, prev->accX, 12) |
+                          IsAnalogChanged(curr->accY, prev->accY, 12) |
+                          IsAnalogChanged(curr->accZ, prev->accZ, 12);
+        BOOL dpdChanged = 0;
+        u8 acc = __wpadCheckChangeCount(accChanged, &p_wpd->diffCountAcc, &p_wpd->hystCountAcc, WPAD_CHANGE_ACC);
+        for (i = 0; i < WPAD_DPD_MAX_OBJECTS; ++i) {
+            dpdChanged |= IsAnalogChanged(curr->obj[i].x, prev->obj[i].x, 2) |
+                          IsAnalogChanged(curr->obj[i].y, prev->obj[i].y, 2);
+        }
+        result = IsButtonChanged(curr->button, prev->button) | acc |
+                 __wpadCheckChangeCount(dpdChanged, &p_wpd->diffCountDpd, &p_wpd->hystCountDpd, WPAD_CHANGE_DPD);
+    }
+    if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
+        switch (p_wpd->dataFormat) {
+        case 3: case 4: case 5: {
+            const WPADFSStatus* fsCurr = (const WPADFSStatus*)p_curr;
+            const WPADFSStatus* fsPrev = (const WPADFSStatus*)p_prev;
+            result |= __wpadCheckChangeCount(
+                IsAnalogChanged(fsCurr->fsAccX, fsPrev->fsAccX, 12) |
+                IsAnalogChanged(fsCurr->fsAccY, fsPrev->fsAccY, 12) |
+                IsAnalogChanged(fsCurr->fsAccZ, fsPrev->fsAccZ, 12),
+                &p_wpd->diffCountfsAcc, &p_wpd->hystCountfsAcc, WPAD_CHANGE_EXTENSION);
+            result |= IsAnalogChanged(fsCurr->fsStickX, fsPrev->fsStickX, 1) |
+                      IsAnalogChanged(fsCurr->fsStickY, fsPrev->fsStickY, 1);
+            break;
+        }
+        case 6: case 7: case 8: case 11: case 15: case 17: case 18: {
+            const WPADCLStatus* clCurr = (const WPADCLStatus*)p_curr;
+            const WPADCLStatus* clPrev = (const WPADCLStatus*)p_prev;
+            s32 left, right, trigger;
+            switch (p_wpd->devMode) {
+            case 1: left = 16; right = 32; trigger = 8; break;
+            case 3: left = right = 4; trigger = 1; break;
+            default: left = right = trigger = 1; break;
+            }
+            result |= IsButtonChanged(clCurr->clButton, clPrev->clButton) |
+                IsAnalogChanged(clCurr->clLStickX / left, clPrev->clLStickX / left, 1) |
+                IsAnalogChanged(clCurr->clLStickY / left, clPrev->clLStickY / left, 1) |
+                IsAnalogChanged(clCurr->clRStickX / right, clPrev->clRStickX / right, 1) |
+                IsAnalogChanged(clCurr->clRStickY / right, clPrev->clRStickY / right, 1) |
+                IsAnalogChanged(clCurr->clTriggerL / trigger, clPrev->clTriggerL / trigger, 1) |
+                IsAnalogChanged(clCurr->clTriggerR / trigger, clPrev->clTriggerR / trigger, 1);
+            break;
+        }
+        case 10: {
+            const WPADPercussionStatus* pc = (const WPADPercussionStatus*)p_curr;
+            const WPADPercussionStatus* pp = (const WPADPercussionStatus*)p_prev;
+            result |= IsButtonChanged(pc->button, pp->button) |
+                      IsAnalogChanged(pc->force[0], pp->force[0], 1) |
+                      IsAnalogChanged(pc->force[1], pp->force[1], 1);
+            break;
+        }
+        case 12: {
+            const WPADBLStatus* bc = (const WPADBLStatus*)p_curr;
+            const WPADBLStatus* bp = (const WPADBLStatus*)p_prev;
+            result |= __wpadCheckChangeCount(
+                IsAnalogChanged(bc->pressure[0], bp->pressure[0], 50) |
+                IsAnalogChanged(bc->pressure[1], bp->pressure[1], 50) |
+                IsAnalogChanged(bc->pressure[2], bp->pressure[2], 50) |
+                IsAnalogChanged(bc->pressure[3], bp->pressure[3], 50),
+                &p_wpd->diffCountfsAcc, &p_wpd->hystCountfsAcc, WPAD_CHANGE_EXTENSION);
+            break;
+        }
+        case 13:
+            if (p_wpd->trnFormatSelector) result |= ((const WPADVSStatus*)p_curr)->button > 200;
+            break;
+        case 16: {
+            const WPADMPStatus* mc = (const WPADMPStatus*)p_curr;
+            const WPADMPStatus* mp = (const WPADMPStatus*)p_prev;
+            result |= __wpadCheckChangeCount(
+                IsAnalogChanged(mc->rotation[0], mp->rotation[0], 64) |
+                IsAnalogChanged(mc->rotation[1], mp->rotation[1], 64) |
+                IsAnalogChanged(mc->rotation[2], mp->rotation[2], 64),
+                &p_wpd->diffCountMpls, &p_wpd->hystCountMpls, WPAD_CHANGE_MPLS);
+            if ((mc->status & 1) && (mp->status & 1)) {
+                if (p_wpd->devMode == 5) {
+                    const WPADFSStatus* fc = (const WPADFSStatus*)p_curr;
+                    const WPADFSStatus* fp = (const WPADFSStatus*)p_prev;
+                    result |= __wpadCheckChangeCount(
+                        IsAnalogChanged(fc->fsAccX, fp->fsAccX, 12) |
+                        IsAnalogChanged(fc->fsAccY, fp->fsAccY, 12) |
+                        IsAnalogChanged(fc->fsAccZ, fp->fsAccZ, 12),
+                        &p_wpd->diffCountfsAcc, &p_wpd->hystCountfsAcc, WPAD_CHANGE_EXTENSION);
+                    result |= IsAnalogChanged(fc->fsStickX, fp->fsStickX, 1) |
+                              IsAnalogChanged(fc->fsStickY, fp->fsStickY, 1);
+                } else if (p_wpd->devMode == 7) {
+                    const WPADCLStatus* cc = (const WPADCLStatus*)p_curr;
+                    const WPADCLStatus* cp = (const WPADCLStatus*)p_prev;
+                    result |= IsButtonChanged(cc->clButton, cp->clButton) |
+                        IsAnalogChanged(cc->clLStickX / 16, cp->clLStickX / 16, 1) |
+                        IsAnalogChanged(cc->clLStickY / 16, cp->clLStickY / 16, 1) |
+                        IsAnalogChanged(cc->clRStickX / 32, cp->clRStickX / 32, 1) |
+                        IsAnalogChanged(cc->clRStickY / 32, cp->clRStickY / 32, 1) |
+                        IsAnalogChanged(cc->clTriggerL / 8, cp->clTriggerL / 8, 1) |
+                        IsAnalogChanged(cc->clTriggerR / 8, cp->clTriggerR / 8, 1);
                 }
             }
-
-            for (i = 0; i < WPAD_DPD_MAX_OBJECTS; i++) {
-                if (IsAnalogChanged((s32)(curr->obj[i].x), (s32)(prev->obj[i].x), 2) |
-                    IsAnalogChanged((s32)(curr->obj[i].y), (s32)(prev->obj[i].y), 2)) {
-                    p_wpd->diffCountDpd++;
-                    if (p_wpd->diffCountDpd > __WPAD_dpd_diff_count_threshold) {
-                        p_wpd->diffCountDpd = 0;
-                        result |= 1;
-                    }
-                } else {
-                    p_wpd->hystCountDpd = (u16)((p_wpd->hystCountDpd + 1) % __WPAD_dpd_hyst_count_threshold);
-                    if (p_wpd->hystCountDpd == __WPAD_dpd_hyst_count_threshold - 1) {
-                        if (p_wpd->diffCountDpd > 0) {
-                            p_wpd->diffCountDpd--;
-                        }
-                    }
-                }
-            }
+            break;
+        }
         }
     }
-
     return result;
 }
 
@@ -551,41 +397,26 @@ void WPADRecalibrate(s32 chan) {
     OSRestoreInterrupts(enable);
 }
 
-void CheckButtonCombination(s32 chan) {
+// NONMATCHING: compiler register allocation and scheduling differ.
+void __wpadCalcRecalibration(s32 chan, const WPADStatus* current) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
-    WPADCLStatus* cp;
-    BOOL enable;
-    u8 index;
-    s8 cnt = -1;
-
-    enable = OSDisableInterrupts();
-    index = (u8)((p_wpd->rxBufIndex) ? 0 : 1);
-    cp = (WPADCLStatus*)(p_wpd->rxBuf + index * WPAD_RX_DATASIZE);
-
-    if (WPADiIsFsFormat(p_wpd->dataFormat)) {
-        if (cp->button == 0x1C10) {
-            cnt = 1;
+    u32 count = 0;
+    u16 classicButtons = 0;
+    if (current->err == WPAD_ERR_NONE || current->err == -7) {
+        if (current->button == 0x1C10 &&
+            ((p_wpd->dataFormat >= 3 && p_wpd->dataFormat <= 8) || p_wpd->dataFormat == 16)) count = 1;
+        if (p_wpd->devType == 2) classicButtons = ((const WPADCLStatus*)current)->clButton;
+        if (p_wpd->devType == 7) classicButtons = ((const WPADCLStatus*)current)->clButton;
+        if (classicButtons == 0x1450 &&
+            ((p_wpd->dataFormat >= 6 && p_wpd->dataFormat <= 8) || p_wpd->dataFormat == 16)) count = 1;
+        p_wpd->recalibrateCount += count;
+        if (p_wpd->recalibrateCount > 600) {
+            WPADControlBlock* controller = _wpdcb[chan];
+            BOOL enabled = OSDisableInterrupts();
+            controller->isSetStickOrigin = 0;
+            controller->recalibrateCount = 0;
+            OSRestoreInterrupts(enabled);
         }
-    }
-    if (WPADiIsClFormat(p_wpd->dataFormat)) {
-        if (cp->button == 0x1C10) {
-            cnt = 1;
-        }
-        if (cp->err != WPAD_ERR_NONE) {
-            cnt = 0;
-        } else if (cp->clButton == 0x1450) {
-            cnt = 1;
-        }
-    }
-    if (cnt < 0) {
-        p_wpd->recalibrateCount = 0;
-    } else {
-        p_wpd->recalibrateCount += cnt;
-    }
-    OSRestoreInterrupts(enable);
-
-    if (p_wpd->recalibrateCount > 600) {
-        WPADRecalibrate(chan);
     }
 }
 
@@ -595,47 +426,30 @@ static void __SetScreenSaverFlag(BOOL flag) {
     }
 }
 
-void WPADiCheckContInputs(s32 chan) {
+void __wpadCalcControllerData(s32 chan) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
-    BOOL diff = FALSE;
-    BOOL enable;
     BOOL screen = FALSE;
-    void* p_data;
-    u8 index;
-
-    if (p_wpd->status == WPAD_ERR_NO_CONTROLLER) {
-        return;
-    }
-
-    enable = OSDisableInterrupts();
-    index = (u8)((p_wpd->rxBufIndex) ? 0 : 1);
-    p_data = (void*)(p_wpd->rxBuf + index * WPAD_RX_DATASIZE);
-    diff = IsControllerDataChanged(p_wpd, p_data, p_wpd->prBuf);
-
-    if (diff) {
-        memcpy(p_wpd->prBuf, p_data, WPAD_RX_DATASIZE);
-    }
-    if (((WPADStatus*)p_wpd->prBuf)->err != WPAD_ERR_NONE) {
-        memset(p_wpd->prBuf, 0, WPAD_RX_DATASIZE);
-    }
-
-    OSRestoreInterrupts(enable);
-    CheckButtonCombination(chan);
-
-    if (diff) {
-        screen = TRUE;
-        p_wpd->lastUpdateTime = __OSGetSystemTime();
-    } else {
-        if (_sleepTime > 0) {
-            int sec = (int)OSTicksToSeconds(__OSGetSystemTime() - p_wpd->lastUpdateTime);
-
-            if (sec > 60 * _sleepTime) {
-                WPADiDisconnect(chan, TRUE);
-            }
+    if (_checkCnt == 5) {
+        BOOL changed;
+        const WPADStatus* previous;
+        BOOL enabled = OSDisableInterrupts();
+        u8 index = (u8)(p_wpd->rxBufIndex ? 0 : 1);
+        const WPADStatus* current = (const WPADStatus*)(p_wpd->rxBuf + index * WPAD_RX_DATASIZE);
+        OSRestoreInterrupts(enabled);
+        changed = __wpadIsControllerDataChanged(p_wpd, current, p_wpd->prBuf);
+        __wpadCalcRecalibration(chan, current);
+        if (changed) {
+            screen = TRUE;
+            p_wpd->lastUpdateTime = __OSGetSystemTime();
+            memcpy(p_wpd->prBuf, current, WPAD_RX_DATASIZE);
+        } else if (_sleepTime > 0) {
+            int seconds = (int)OSTicksToSeconds(__OSGetSystemTime() - p_wpd->lastUpdateTime);
+            if (seconds > 60 * _sleepTime) WPADiDisconnect(chan, FALSE);
         }
+        previous = (const WPADStatus*)p_wpd->prBuf;
+        if (previous->err != WPAD_ERR_NONE && previous->err != -7) memcpy(p_wpd->prBuf, current, WPAD_RX_DATASIZE);
+        __SetScreenSaverFlag(screen);
     }
-
-    __SetScreenSaverFlag(screen);
 }
 
 s8 __GetCmdNumber(WPADCmdQueue* queue) {
@@ -695,10 +509,6 @@ BOOL WPADiSendDPDCSB(WPADCmdQueue* queue, BOOL enable, WPADCallback callback) {
 
 static void WPADiRumbleMotor(s32 chan, BOOL sendCmd) {
     WPADCommand cmd;
-
-    if (_wpdcb[chan]->status == WPAD_ERR_NO_CONTROLLER) {
-        return;
-    }
 
     if (sendCmd == TRUE || __GetCmdNumber(&_wpdcb[chan]->cmdq) > 0) {
         _wpdcb[chan]->rumble = FALSE;
@@ -826,27 +636,15 @@ static void WPADiAfh() {
     u8* channel = (u8*)OSPhysicalToCached(0x31A2);
 
     DCInvalidateRange(channel, 1);
-    DEBUGPrint("Check the update of WiFi using channel\n");
 
     if (_afhChannel != *channel) {
         enable = OSDisableInterrupts();
         _afhChannel = (s8)*channel;
         OSRestoreInterrupts(enable);
-        DEBUGPrint("WiFi uses channel = %d\n", *channel);
         WUDSetDisableChannel(_afhChannel);
     }
 }
 
-static void WPADiContMapTableUpdate() {
-    if (_scFlush) {
-        if (SCCheckStatus() == 0) {
-            if (TRUE == SCSetBtDeviceInfoArray(&_scArray)) {
-                SCFlushAsync(NULL);
-                _scFlush = 0;
-            }
-        }
-    }
-}
 
 static void __reconnect(BOOL exec) {
     DEBUGPrint("Reconnect Start!!\n");
@@ -858,15 +656,12 @@ static BOOL WPADiProcessExtCommand(s32 chan) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     WPADCommand cmd;
     s32 err;
-
-    if (p_wpd->used) {
-        if (WPADiGetCommand(&p_wpd->extq, &cmd)) {
-            if (cmd.command == WPAD_HIDREP_REPTYPE || p_wpd->infos.attach) {
-                err = WPADiSendData(chan, cmd);
-                if (err == WPAD_ERR_NONE) {
-                    WPADiPopCommand(&p_wpd->extq);
-                    return TRUE;
-                }
+    if (WPADiGetCommand(&p_wpd->extq, &cmd)) {
+        if (cmd.command == WPAD_HIDREP_REPTYPE || p_wpd->infos.attach) {
+            err = WPADiSendData(chan, cmd);
+            if (err == WPAD_ERR_NONE) {
+                WPADiPopCommand(&p_wpd->extq);
+                return TRUE;
             }
         }
     }
@@ -901,16 +696,11 @@ BOOL WPADiSendSetPort(WPADCmdQueue* queue, u8 pattern, WPADCallback callback) {
 }
 
 BOOL WPADiGetCommand(WPADCmdQueue* queue, WPADCommand* cmd) {
-    BOOL enable = OSDisableInterrupts();
-
-    if (__GetCmdNumber(queue) == 0) {
-        OSRestoreInterrupts(enable);
-        return FALSE;
-    }
-
+    BOOL enabled;
+    if (__GetCmdNumber(queue) == 0) return FALSE;
+    enabled = OSDisableInterrupts();
     memcpy(cmd, queue->cmd + queue->head, sizeof(WPADCommand));
-
-    OSRestoreInterrupts(enable);
+    OSRestoreInterrupts(enabled);
     return TRUE;
 }
 
@@ -934,83 +724,79 @@ static BOOL WPADiProcessCommand(s32 chan) {
     WPADCommand cmd;
     s32 err;
 
-    if (p_wpd->used) {
-        if (WPADiGetCommand(&p_wpd->cmdq, &cmd)) {
-            err = WPADiSendData(chan, cmd);
-            if (err == WPAD_ERR_NONE) {
-                WPADiPopCommand(&p_wpd->cmdq);
-                return TRUE;
-            }
+    if (WPADiGetCommand(&p_wpd->cmdq, &cmd)) {
+        err = WPADiSendData(chan, cmd);
+        if (err == WPAD_ERR_NONE) {
+            WPADiPopCommand(&p_wpd->cmdq);
+            return TRUE;
         }
     }
     return FALSE;
 }
 
+// NONMATCHING: compiler inlining, save-gpr range and stack scheduling differ.
 void WPADiManageHandler(OSAlarm*, OSContext*) {
     s32 chan;
-    s32 status;
-    BOOL sendCmd;
-
-    status = WPADGetStatus();
-
+    s32 status = WUDGetStatus();
     if (status != WPAD_STATE_SETUP) {
-        if (status == WPAD_STATE_ENABLED) {
-            if (!_initialized) {
-                _initialized = TRUE;
-                WUDSetHidConnCallback(WPADiConnCallback);
-                WUDSetHidRecvCallback(WPADiRecvCallback);
-
-                _recCnt = 50;
-            }
+        if (status == WPAD_STATE_ENABLED && !_initialized) {
+            _initialized = TRUE;
+            _recCnt = 50;
+            WUDSetHidConnCallback(__wpadConnectionCallback);
+            WUDSetHidRecvCallback(__wpadReceiveCallback);
         }
         return;
-    } else {
-        if (_recFlag >= 0) {
-            _recCnt--;
-            if (_recCnt <= 0) {
-                __reconnect((BOOL)_recFlag);
-            }
-            return;
+    }
+    if (_recFlag >= 0) {
+        BOOL reconnect = _recFlag;
+        if (--_recCnt <= 0) {
+            BTA_DmSendHciReset();
+            OSCancelAlarm(&_managerAlarm);
+            WUDSetHidRecvCallback(NULL);
+            WUDShutdown(reconnect);
+        }
+        return;
+    }
+    if (_afhCnt == 60000) WPADiAfh();
+    if (SCCheckStatus() == 0) {
+        WUDUpdateSCSetting();
+        if (_scSetting) {
+            _dpdSensitivity = __GetDpdSensitivity();
+            _sensorBarPos = __GetSensorBarPosition();
+            _rumble = __GetMotorMode();
+            _speakerVolume = __GetSpeakerVolume();
+            _scSetting = 0;
         }
     }
-
-    for (chan = 0; chan < WPAD_MAX_CONTROLLERS; chan++) {
-        sendCmd = FALSE;
-        if (_extCnt[chan] == 5) {
-            sendCmd |= WPADiProcessExtCommand(chan);
-            if (sendCmd) {
-                _extCnt[chan] = 0;
+    for (chan = 0; chan < WPAD_MAX_CONTROLLERS; ++chan) {
+        u8 device;
+        WPADControlBlock* controller = _wpdcb[chan];
+        if (controller->used) {
+            BOOL sent = FALSE;
+            if (_extCnt[chan] == 5) {
+                sent = WPADiProcessExtCommand(chan);
+                if (sent) _extCnt[chan] = 0;
             }
+            _extCnt[chan] = (u8)(_extCnt[chan] == 5 ? _extCnt[chan] : _extCnt[chan] + 1);
+            sent |= sent ? TRUE : WPADiProcessCommand(chan);
+            WPADiRumbleMotor(chan, sent);
+            __wpadCalcControllerData(chan);
+            __wpadCalcRadioQuality(chan);
         }
-        if (!sendCmd) {
-            sendCmd |= WPADiProcessCommand(chan);
+        controller = _wpdcb[chan];
+        if (controller->extensionReconnectPending) {
+            if (controller->extensionReconnectTimer-- < 0) _wpdcb[chan]->extensionReconnectPending = 0;
         }
-
-        WPADiRumbleMotor(chan, sendCmd);
-
-        if (_checkCnt == 5) {
-            WPADiCheckContInputs(chan);
-        }
-
-        if (_senseCnt == 10) {
-            WPADiRadioSensitivity(chan);
-        }
-
-        _extCnt[chan] = (u8)((_extCnt[chan] == 5) ? _extCnt[chan] : _extCnt[chan] + 1);
-
         __wpadCertWork(chan);
+        device = _wpdcb[chan]->devType;
+        if ((u8)(device - 5) <= 2 || device == 250) {
+            controller = _wpdcb[chan];
+            if (controller->mplsInitTicks < 200) ++controller->mplsInitTicks;
+        }
     }
-
-    if (_afhCnt == 60000) {
-        WPADiAfh();
-    }
-
-    _senseCnt = (u16)((_senseCnt == 10) ? 0 : _senseCnt + 1);
-    _checkCnt = (u8)((_checkCnt == 5) ? 0 : _checkCnt + 1);
-    _afhCnt = (u16)((_afhCnt == 60000) ? 0 : _afhCnt + 1);
-
-    WPADiContMapTableUpdate();
-    WPADiGetScSettings();
+    _senseCnt = (u16)(_senseCnt == 10 ? 0 : _senseCnt + 1);
+    _checkCnt = (u8)(_checkCnt == 5 ? 0 : _checkCnt + 1);
+    _afhCnt = (u16)(_afhCnt == 60000 ? 0 : _afhCnt + 1);
     BTA_HhGetAclQueueInfo();
 }
 
@@ -1022,8 +808,6 @@ void WPADiManageHandler0(OSAlarm* alarm, OSContext* context) {
 
 static void __ClearControlBlock(s32 chan) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
-
-    p_wpd->rxBufIndex = 0;
 
     p_wpd->infoBuf = NULL;
     p_wpd->motor = FALSE;
@@ -1045,12 +829,14 @@ static void __ClearControlBlock(s32 chan) {
     p_wpd->dpdFormat = 0;
     p_wpd->dpdCommand = 0;
 
-    p_wpd->diffCountDpd = 0;
-    p_wpd->hystCountDpd = 0;
     p_wpd->diffCountAcc = 0;
     p_wpd->hystCountAcc = 0;
+    p_wpd->diffCountDpd = 0;
+    p_wpd->hystCountDpd = 0;
     p_wpd->diffCountfsAcc = 0;
     p_wpd->hystCountfsAcc = 0;
+    p_wpd->diffCountMpls = 0;
+    p_wpd->hystCountMpls = 0;
 
     p_wpd->lastUpdateTime = __OSGetSystemTime();
     p_wpd->cmdTimer = __OSGetSystemTime();
@@ -1080,17 +866,25 @@ static void __ClearControlBlock(s32 chan) {
     p_wpd->infoCallback = NULL;
 
     p_wpd->pwrSave = 0;
+    p_wpd->boardBatteryLevel = 4;
+    p_wpd->extensionPreviousType = 253;
+    p_wpd->extensionReconnectPending = 0;
+    p_wpd->extensionReconnectTimer = 0;
+    p_wpd->dpdExtendedReportMask = 0;
 
     memset(&p_wpd->infos, 0, sizeof(WPADInfo));
     memset(p_wpd->readBuf, 0, sizeof(p_wpd->readBuf));
-    memset(p_wpd->rxBuf, 0, WPAD_RX_DATASIZE * 2);
-    memset(p_wpd->prBuf, 0, WPAD_RX_DATASIZE);
     memset(&p_wpd->conf, 0, sizeof(WPADConfig));
     memset(&p_wpd->extConf, 0, sizeof(WPADExtConfig));
     memset(&p_wpd->key, 0, sizeof(p_wpd->key));
     memset(&p_wpd->ft, 0, sizeof(p_wpd->ft));
     memset(&p_wpd->sb, 0, sizeof(p_wpd->sb));
     memset(&p_wpd->gameInfo, 0, sizeof(WPADMEMGameInfo));
+    p_wpd->rxBufIndex = 0;
+    memset(p_wpd->rxBuf, 0, WPAD_RX_DATASIZE * 2);
+    ((WPADStatus*)p_wpd->rxBuf)->err = WPAD_ERR_NO_CONTROLLER;
+    ((WPADStatus*)(p_wpd->rxBuf + WPAD_RX_DATASIZE))->err = WPAD_ERR_NO_CONTROLLER;
+    memcpy(p_wpd->prBuf, p_wpd->rxBuf, WPAD_RX_DATASIZE);
 
     p_wpd->gameInfoErr[0] = WPAD_ERR_NO_CONTROLLER;
     p_wpd->gameInfoErr[1] = WPAD_ERR_NO_CONTROLLER;
@@ -1100,6 +894,16 @@ static void __ClearControlBlock(s32 chan) {
     p_wpd->extq.cmdlen = (u32)(sizeof(p_wpd->exts) / sizeof(WPADCommand));
     WPADiClearQueue(&p_wpd->cmdq);
     WPADiClearQueue(&p_wpd->extq);
+
+    p_wpd->mplsReinitPending = 0;
+    p_wpd->mplsControlBusy = 0;
+    p_wpd->mplsModeReadback[0] = 0;
+    p_wpd->mplsModeReadback[1] = 0;
+    p_wpd->mplsRequestedMode = 0;
+    p_wpd->mplsControlRetries = 3;
+    p_wpd->mplsDiscardReports = 5;
+    p_wpd->mplsControlCallback = NULL;
+    p_wpd->mplsInitTicks = 0;
 
     p_wpd->certChallengeBit = -1;
     p_wpd->certBusy = 0;
@@ -1116,7 +920,14 @@ static void __ClearControlBlock(s32 chan) {
     p_wpd->certParamY[0] = 1;
     p_wpd->certParamX[0] = 1;
 
+    p_wpd->extensionErrorCountdown = 0;
+    p_wpd->extensionDataError = -1;
+    p_wpd->extensionDataDeviceType = 253;
+    p_wpd->extensionDataLength = 0;
+    memset(p_wpd->extensionData, 0, sizeof(p_wpd->extensionData));
     WPADiClearMemoryControl(chan);
+    // Meaning remains unknown; the target explicitly clears AE4 here.
+    p_wpd->reservedControllerWord = 0;
 
     _extCnt[chan] = 0;
     _rumbleCnt[chan] = 0;
@@ -1144,6 +955,7 @@ BOOL __SetSensorBarPower(BOOL flag) {
     return result;
 }
 
+// NONMATCHING: BSS/global relocation identities; all nonrelocated instruction words are exact.
 void WPADiInitSub() {
     s32 chan;
     int i;
@@ -1154,14 +966,13 @@ void WPADiInitSub() {
         _dev_handle_index[i] = -1;
     }
 
-    DEBUGPrint("WPADInit()\n");
-
     for (chan = 0; chan < WPAD_MAX_CONTROLLERS; ++chan) {
         _wpdcb[chan] = &_wpd[chan];
         _chan_active_state[chan] = 0;
         _wpdcb[chan]->connectCallback = NULL;
         __ClearControlBlock(chan);
         OSInitThreadQueue(&_wpd[chan].threadq);
+        _wpdcb[chan]->certCachedValidity = 0;
 
         _extCnt[chan] = 0;
         _rumbleCnt[chan] = 0;
@@ -1178,13 +989,20 @@ void WPADiInitSub() {
     _checkCnt = 0;
     _afhCnt = 0;
     _shutdown = 0;
-    _scFlush = 0;
     _scSetting = 1;
     _afhChannel = -1;
 
     _callbackByKPAD = FALSE;
 
     OSRegisterVersion(__WPADVersion);
+    if (__wpadOptionalInitCallback0) __wpadOptionalInitCallback0();
+    if (__wpadOptionalInitCallback1) __wpadOptionalInitCallback1();
+    if (__wpadOptionalInitCallback2) __wpadOptionalInitCallback2();
+    if (__wpadOptionalInitCallback3) __wpadOptionalInitCallback3();
+    if (__wpadOptionalInitCallback4) __wpadOptionalInitCallback4();
+    if (__wpadOptionalInitCallback5) __wpadOptionalInitCallback5();
+    if (__wpadOptionalInitCallback6) __wpadOptionalInitCallback6();
+
     OSCreateAlarm(&_managerAlarm);
     OSSetPeriodicAlarm(&_managerAlarm, OSGetTime(), OSMillisecondsToTicks(1), WPADiManageHandler0);
 }
@@ -1265,15 +1083,11 @@ static void setupCallback(s32 chan, s32 result) {
     }
 }
 
-static void abortConnCallback(s32 chan, s32 result) {
-    WPADControlBlock* p_wpd = _wpdcb[chan];
-
+static void __wpadAbortConnectionCallback(s32 chan, s32 result) {
+    WPADControlBlock* controller = _wpdcb[chan];
     if (result != WPAD_ERR_NONE) {
-        WPADiClearQueue(&p_wpd->cmdq);
-
-        if (result != WPAD_ERR_NO_CONTROLLER) {
-            WPADiDisconnect(chan, FALSE);
-        }
+        WPADiClearQueue(&controller->cmdq);
+        WPADiDisconnect(chan, FALSE);
     }
 }
 
@@ -1297,42 +1111,43 @@ static void firmwareCheckCallback(s32 chan, s32 result) {
     port = (u8)(0x01 << chan);
 
     DEBUGPrint(" ==>this error means that the firmware is for NDEV %s\n", (p_wpd->oldFw) ? "2.0" : "2.1 or later");
-    WPADiSendSetReportType(&p_wpd->cmdq, WPAD_FMT_CORE, p_wpd->pwrSave, abortConnCallback);
-    WPADiSendDPDCSB(&p_wpd->cmdq, FALSE, abortConnCallback);
-    WPADiSendSetPort(&p_wpd->cmdq, port, abortConnCallback);
-    WPADiSendReadData(&p_wpd->cmdq, p_wpd->readBuf, sizeof(WPADMEMGameInfo), 0x2A, abortConnCallback);
-    WPADiSendReadData(&p_wpd->cmdq, p_wpd->readBuf, sizeof(WPADMEMGameInfo), 0x2A + sizeof(WPADMEMGameInfo), abortConnCallback);
+    WPADiSendSetReportType(&p_wpd->cmdq, WPAD_FMT_CORE, p_wpd->pwrSave, __wpadAbortConnectionCallback);
+    WPADiSendDPDCSB(&p_wpd->cmdq, FALSE, __wpadAbortConnectionCallback);
+    WPADiSendSetPort(&p_wpd->cmdq, port, __wpadAbortConnectionCallback);
+    WPADiSendReadData(&p_wpd->cmdq, p_wpd->readBuf, sizeof(WPADMEMGameInfo), 0x2A, __wpadAbortConnectionCallback);
+    WPADiSendReadData(&p_wpd->cmdq, p_wpd->readBuf, sizeof(WPADMEMGameInfo), 0x2A + sizeof(WPADMEMGameInfo), __wpadAbortConnectionCallback);
     WPADiSendReadData(&p_wpd->cmdq, p_wpd->readBuf, size, addr, setupCallback);
     WPADiSendGetContStat(&p_wpd->cmdq, NULL, NULL);
 }
 
-s32 WPADiRetrieveChannel(u8 dev_handle) {
-    u8* devAddr;
-    s32 i;
-
-    devAddr = _WUDGetDevAddr(dev_handle);
-
-    for (i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
-        if (!memcmp(_scArray.info[i + 10].bd_addr, devAddr, 6)) {
-            if (_chan_active_state[i] == 0) {
-                _chan_active_state[i] = 1;
-                return i;
+// NONMATCHING: compiler register allocation and scheduling differ.
+s32 __wpadRetrieveChannel(WUDDevInfo* info) {
+    s32 chan;
+    s32 selected = -1;
+    u8* address = _WUDGetDevAddr(info->devHandle);
+    if (!memcmp(info->conf.devName, "Nintendo RVL-WBC", 16)) {
+        selected = 3;
+        if (_wpdcb[3]->used) {
+            btm_remove_acl(address);
+            return -1;
+        }
+    } else {
+        for (chan = 0; chan < WPAD_MAX_CONTROLLERS; ++chan) {
+            if (WUDIsLatestDevice(chan, address) && !_chan_active_state[chan]) {
+                selected = chan;
+                break;
             }
+            if (!_chan_active_state[chan] && selected < 0) selected = chan;
         }
     }
-    for (i = 0; i < WPAD_MAX_CONTROLLERS; i++) {
-        if (_chan_active_state[i] == 0) {
-            _chan_active_state[i] = 1;
-            memcpy(_scArray.info[i + 10].bd_addr, devAddr, 6);
-            _scFlush = 1;
-            return i;
-        }
-    }
-
-    return -1;
+    if (!WUDIsLatestDevice(selected, address)) WUDSetDeviceHistory(selected, address);
+    // ORIGINAL BUG (SDK): writes active[-1] when no slot is free after a dropped HID-close notification; see PORT-PLAN hazards.
+    _chan_active_state[selected] = 1;
+    return selected;
 }
 
-static void WPADiConnCallback(WUDDevInfo* info, u8 open) {
+// NONMATCHING: compiler register allocation and struct-copy scheduling differ.
+static void __wpadConnectionCallback(WUDDevInfo* info, u8 open) {
     s32 chan = -1;
     WPADControlBlock* p_wpd;
     BOOL isCmdExist;
@@ -1340,28 +1155,32 @@ static void WPADiConnCallback(WUDDevInfo* info, u8 open) {
     u8 dev_handle = info->devHandle;
 
     if (open) {
-        DEBUGPrint("connection is opened\n");
-        chan = WPADiRetrieveChannel(dev_handle);
-        p_wpd = _wpdcb[chan];
+        chan = __wpadRetrieveChannel(info);
+        if (chan < 0) return;
         _dev_handle_index[dev_handle] = (s8)(chan & 0xff);
         __ClearControlBlock(chan);
+        p_wpd = _wpdcb[chan];
 
         if (!memcmp(info->conf.devName, "Nintendo RVL-CNT", 16)) {
             p_wpd->devType = WPAD_DEV_CORE;
+            p_wpd->dataFormat = WPAD_FMT_CORE;
+        } else if (!memcmp(info->conf.devName, "Nintendo RVL-WBC", 16) && WUDIsLinkedWBC()) {
+            p_wpd->devType = 3;
+            p_wpd->dataFormat = 12;
         } else {
             p_wpd->devType = WPAD_DEV_FUTURE;
+            p_wpd->dataFormat = WPAD_FMT_CORE;
         }
         p_wpd->dev_handle = (s8)dev_handle;
-        p_wpd->dataFormat = WPAD_FMT_CORE;
         p_wpd->used = TRUE;
         p_wpd->status = WPAD_ERR_NONE;
         p_wpd->radioSense = 100;
         p_wpd->disconnect = 0;
         p_wpd->extEnc = 0;
+        p_wpd->extensionPreviousType = p_wpd->devType;
         WPADiSendReadData(&p_wpd->cmdq, p_wpd->readBuf, 1, 0x1770, firmwareCheckCallback);
         __SetScreenSaverFlag(TRUE);
     } else {
-        DEBUGPrint("connection is closed\n");
         chan = _dev_handle_index[dev_handle];
         _dev_handle_index[dev_handle] = -1;
 
@@ -1383,7 +1202,6 @@ static void WPADiConnCallback(WUDDevInfo* info, u8 open) {
                     WPADiPopCommand(&p_wpd->cmdq);
                 }
             } while (isCmdExist);
-            DEBUGPrint("clean up command queue\n");
 
             if (p_wpd->samplingBufs_ptr) {
                 WPADSetAutoSamplingBuf(chan, p_wpd->samplingBufs_ptr, p_wpd->bufLength);
@@ -1395,25 +1213,15 @@ static void WPADiConnCallback(WUDDevInfo* info, u8 open) {
             if (p_wpd->connectCallback) {
                 p_wpd->connectCallback(chan, WPAD_ERR_NO_CONTROLLER);
             }
-        } else {
-            DEBUGPrint("WARNING: disconnection for device handle not assigned to channel.\n");
         }
     }
 }
 
-static void WPADiRecvCallback(u8 dev_handle, u8* p_rpt, u16) {
-    u8 chan;
-    s32 err;
-
-    chan = (u8)_dev_handle_index[dev_handle];
-
-    if ((chan >= 0) && (chan <= WPAD_MAX_CONTROLLERS)) {
-        err = WPADiHIDParser(chan, p_rpt);
-        if (err) {
-            DEBUGPrint("HID Parser reports: %d\n", err);
-        }
-    } else {
-        DEBUGPrint("WPADiRecvCallback(): Unknown channel %d\n", chan);
+static void __wpadReceiveCallback(u8 dev_handle, u8* report, u16 length) {
+#pragma unused(length)
+    if (dev_handle <= 16) {
+        u8 chan = (u8)_dev_handle_index[dev_handle];
+        if (chan < WPAD_MAX_CONTROLLERS) WPADiHIDParser(chan, report);
     }
 }
 
@@ -1460,10 +1268,10 @@ static void CloseCallback(s32 chan, s32 result) {
 }
 
 void WPADDisconnect(s32 chan) {
-    WPADControlBlock* p_wpd = _wpdcb[chan];
-    memset(&_scArray.info[chan + 10], 0, sizeof(SCBtDeviceInfoSingle));
-    _scFlush = 1;
-    WPADiDisconnect(chan, TRUE);
+    if (WPADiGetStatus(chan) != WPAD_ERR_NO_CONTROLLER) {
+        WUDSetDeviceHistory(chan, NULL);
+        WPADiDisconnect(chan, TRUE);
+    }
 }
 
 void WPADSetAutoSleepTime(u8 minute) {
@@ -2449,25 +2257,17 @@ void WPADShutdown() {
 }
 
 void __WPADShutdown() {
-    BOOL enable;
-    int i;
-
-    enable = OSDisableInterrupts();
-
+    BOOL enabled = OSDisableInterrupts();
+    int chan;
     if (_shutdown) {
-        OSRestoreInterrupts(enable);
+        OSRestoreInterrupts(enabled);
         return;
     }
-
     _shutdown = 1;
     WUDSetVisibility(0, 0);
-
-    for (i = 10; i < 14; i++) {
-        memset(&_scArray.info[i], 0, sizeof(SCBtDeviceInfoSingle));
-    }
-
+    for (chan = 0; chan < WPAD_MAX_CONTROLLERS; ++chan) WUDSetDeviceHistory(chan, NULL);
     WPADiShutdown(FALSE);
-    OSRestoreInterrupts(enable);
+    OSRestoreInterrupts(enabled);
 }
 
 void __WPADReconnect(BOOL exec) {
@@ -2485,7 +2285,6 @@ void __WPADReconnect(BOOL exec) {
 
     _shutdown = 1;
     _recFlag = (exec) ? 1 : 0;
-    DEBUGPrint("Wait for %d ms until start reconnect!\n", _recCnt);
     OSRestoreInterrupts(enable);
 }
 

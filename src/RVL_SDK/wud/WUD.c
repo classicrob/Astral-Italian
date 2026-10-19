@@ -37,7 +37,7 @@ SCBtDeviceInfoArray _scArray;
 SCBtCmpDevInfoArray _spArray;
 u8 __WUDHandlerStack[0x1000] ATTRIBUTE_ALIGN(32);
 
-extern u8 _scFlush;
+u8 _scFlush;
 
 BD_ADDR_PTR _dev_handle_to_bda[WUD_MAX_DEV_ENTRY];
 u16 _dev_handle_queue_size[WUD_MAX_DEV_ENTRY];
@@ -3215,6 +3215,29 @@ WUDDevInfo* WUDiGetDiscoverDevice(void) {
     return &_work;
 }
 // NONMATCHING: handle-table relocation identity differs; all instruction words match.
+void WUDSetDeviceHistory(s32 channel, const u8* address) {
+    if (address == NULL) {
+        memset(&_scArray.info[channel + 10], 0, sizeof(SCBtDeviceInfoSingle));
+    } else {
+        memcpy(_scArray.info[channel + 10].bd_addr, address, BD_ADDR_LEN);
+    }
+    _scFlush = 1;
+}
+
+BOOL WUDIsLatestDevice(s32 channel, const u8* address) {
+    if (address == NULL) {
+        return FALSE;
+    }
+    return memcmp(_scArray.info[channel + 10].bd_addr, address, BD_ADDR_LEN) == 0;
+}
+
+void WUDUpdateSCSetting(void) {
+    if (_scFlush && SCSetBtDeviceInfoArray(&_scArray)) {
+        SCFlushAsync(NULL);
+        _scFlush = 0;
+    }
+}
+
 void WUDiSetDevAddrForHandle(u8 handle, BD_ADDR_PTR address) {
     _dev_handle_to_bda[handle] = address;
 }

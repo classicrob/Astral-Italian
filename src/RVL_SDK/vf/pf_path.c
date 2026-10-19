@@ -1,12 +1,11 @@
 #include "revolution/vf/pf_path.h"
+#include "revolution/vf/pf_code.h"
 #include "revolution/vf/pf_clib.h"
 #include "revolution/vf/pf_service.h"
 #include "revolution/vf/pf_str.h"
 #include "revolution/vf/pf_volume.h"
 #include "revolution/vf/vf_struct.h"
 
-extern PF_VOLUME_SET VFipf_vol_set;
-extern const u8 VFipf_valid_fn_char[];
 
 s32 VFiPFPATH_DoSplitPath(struct PF_STR* p_path, struct PF_STR* p_dir_path, struct PF_STR* p_filename, u32 wildcard) {
     s8* p;

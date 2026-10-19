@@ -2640,7 +2640,7 @@ Game/Enemy/BegomanBaby.cpp:
 	.sdata2     start:0x807D9D28 end:0x807D9D98
 
 Game/Enemy/BegomanBase.cpp:
-	.text       start:0x8015F290 end:0x80162700
+	.text       start:0x8015F290 end:0x80162830
 	.ctors      start:0x8064409C end:0x806440A0
 	.rodata     start:0x80648040 end:0x806480B8
 	.data       start:0x80683838 end:0x80683AE0
@@ -4272,11 +4272,11 @@ Game/Map/OmoteuLandSky.cpp:
 	.ctors      start:0x806442BC end:0x806442C0
 
 Game/Map/PlanetMap.cpp:
-	.text       start:0x8025FA40 end:0x80260930
+	.text       start:0x8025FA40 end:0x80260CF0
 	.rodata     start:0x80648C70 end:0x80648C88
 	.data       start:0x80698268 end:0x80698850
 	.sdata      start:0x807CFB60 end:0x807CFB68
-	.sdata2     start:0x807DC928 end:0x807DC938
+	.sdata2     start:0x807DC928 end:0x807DC940
 
 Game/Map/PlanetMapCreator.cpp:
 	.text       start:0x80260CF0 end:0x80261CA0

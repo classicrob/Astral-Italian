@@ -80,7 +80,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual f32 getFarClipDistance() const {
-        return mFarClipDistance;
+        return 50.0f;
     }
 
     /* 0xB4 */ f32 mFarClipDistance;

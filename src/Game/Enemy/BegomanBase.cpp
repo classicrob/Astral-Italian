@@ -1132,3 +1132,20 @@ void BegomanAttackPermitter::exePermit() {
         setNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvWait));
     }
 }
+
+#pragma force_active on
+template <>
+void JGeometry::TQuat4<f32>::rotate(TVec3f& v) const NO_INLINE {
+    TQuat4f rotated;
+    rotated.x = this->w * v.x + (this->y * v.z - this->z * v.y);
+    rotated.y = this->w * v.y + (-this->x * v.z + this->z * v.x);
+    rotated.z = this->w * v.z + (this->x * v.y - this->y * v.x);
+    rotated.w = -this->x * v.x - this->y * v.y - this->z * v.z;
+    v.set<f32>(rotated.w * -this->x + (rotated.x * this->w + rotated.y * -this->z - rotated.z * -this->y),
+               rotated.w * -this->y + (rotated.z * -this->x + (-rotated.x * -this->z + rotated.y * this->w)),
+               rotated.w * -this->z + (rotated.z * this->w + (rotated.x * -this->y - rotated.y * -this->x)));
+}
+
+#pragma force_active reset
+
+template void JGeometry::TQuat4<f32>::rotate(TVec3f&) const NO_INLINE;

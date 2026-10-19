@@ -10,6 +10,10 @@ extern "C" {
 void (*VFSysGetTimeStampCallback())(struct VFSysTime*);
 void (*VFSysSetTimeStampCallback(void (*i_callback)(struct VFSysTime*)))(struct VFSysTime*);
 
+s32 VFSysHandleP2Idx(struct VF_HANDLE_TYPE* i_handle_p);
+struct VF_HANDLE_TYPE* VFSysVol2HandleP(struct PF_VOLUME* i_vol_p);
+int VFSysPDMDisk2HandleIdx(const struct PDM_DISK* i_disk_p);
+
 s32 VFSysUnsetDevice(s32 i_handle_idx);
 s32 VFSysCheckExistPrfFile(s32 i_handle_idx, const s8* i_prf_file_name_p, void* i_memory_p);
 s32 VFSysCheckExistPrfFile_nandflash_sub(const s8* i_prf_file_name_p, u32 i_handle_idx);

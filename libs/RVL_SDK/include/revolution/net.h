@@ -3,7 +3,15 @@
 
 #include "revolution.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void* NETMemCpy(void*, const void*, u32);
 void* NETMemSet(void*, int, u32);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // NET_H

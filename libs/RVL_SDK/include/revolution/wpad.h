@@ -265,6 +265,26 @@ typedef struct WPADBLStatus {
     u8 battery;
     u8 reserved[12];
 } WPADBLStatus;
+// VS reports contain two packed sensor samples; physical channel meanings are unknown.
+typedef struct WPADVSSample {
+    u16 sample[5];
+    u8 data;
+    u8 reserved;
+} WPADVSSample;
+typedef struct WPADVSStatus {
+    WPADStatus core;
+    WPADVSSample sample[2];
+    u16 button;
+    u8 selector;
+    u8 reserved;
+} WPADVSStatus;
+
+// Opaque extension bytes copied by raw-device formats; callers provide at most 21.
+typedef struct WPADRawStatus {
+    WPADStatus core;
+    u8 data[21];
+} WPADRawStatus;
+
 typedef struct WPADPercussionStatus {
     WPADStatus core;
     u16 button;
@@ -473,7 +493,7 @@ typedef struct WPADControlBlock {
     u8 infoLocked;
     u8 extEnc;
     u8 pwrSave;
-    u8 padding2;
+    u8 boardBatteryLevel;
     u8 extensionPreviousType;
     u8 extensionReconnectPending;
     s16 extensionReconnectTimer;
@@ -549,6 +569,15 @@ void WPADiCreateKeyFor3rd(s32);
 void WPADiDecode(s32, void*, u16, u16);
 s32 WPADiHIDParser(u8, u8*);
 
+BOOL WPADIsEnabledTRN(void);
+BOOL WPADIsEnabledGTR(void);
+BOOL WPADIsEnabledDRM(void);
+BOOL WPADIsEnabledTKO(void);
+BOOL WPADIsEnabledDevice19(void);
+BOOL WPADIsEnabledDevice20(void);
+BOOL WPADIsEnabledRawReports(void);
+
+BOOL WPADiIsAvailableCmdQueue(WPADCmdQueue* queue, s8 count);
 void WPADiClearQueue(WPADCmdQueue*);
 BOOL WPADiSendSetReportType(WPADCmdQueue*, u32, BOOL, WPADCallback);
 BOOL WPADiSendWriteDataCmd(WPADCmdQueue*, u8, u32, WPADCallback);

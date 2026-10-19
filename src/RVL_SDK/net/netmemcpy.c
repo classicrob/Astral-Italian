@@ -1,4 +1,5 @@
-#include "revolution/types.h"
+#include "revolution/net.h"
+#include <stdint.h>
 
 static inline void NETMemCpy_DstSize32Aligned(register void* dst, register const void* src, unsigned long size) {
     register unsigned long tmp0;
@@ -8,7 +9,7 @@ static inline void NETMemCpy_DstSize32Aligned(register void* dst, register const
     register unsigned long tmp4;
     register unsigned long tmp5;
     register unsigned long loopSize = size >> 5;
-    unsigned long shift = (unsigned long)src & 3;
+    unsigned long shift = (uintptr_t)src & 3;
 
     switch (shift) {
     case 0:
@@ -244,21 +245,24 @@ static inline void NETMemCpy_SimpleRev(void* dst, const void* src, unsigned long
     }
 }
 
-void* NETMemCpy(void* dst, const void* src, unsigned long size) {
+// NONMATCHING: Original destination uses r12 rather than r0; a duplicate return move adds four bytes.
+// Copy operations and control flow otherwise differ only in temporary register allocation.
+void* NETMemCpy(void* dst, const void* src, u32 size) {
+    void* originalDst = dst;
     unsigned long headSize;
     unsigned long accBlkSize;
 
     if (dst == src) {
-        return dst;
+        return originalDst;
     }
 
-    if ((unsigned char*)dst > (const unsigned char*)src && (unsigned char*)dst < (const unsigned char*)src + size) {
+    if ((uintptr_t)dst > (uintptr_t)src && (uintptr_t)dst < (uintptr_t)src + size) {
         NETMemCpy_SimpleRev(dst, src, size);
-        return dst;
+        return originalDst;
     }
 
-    if (((unsigned char*)dst <= (const unsigned char*)src - 0x20 || (unsigned char*)dst >= (const unsigned char*)src) && size >= 0x40) {
-        headSize = (unsigned long)dst & 0x1F;
+    if (((uintptr_t)dst <= (uintptr_t)src - 0x20 || (uintptr_t)dst >= (uintptr_t)src) && size >= 0x40) {
+        headSize = (uintptr_t)dst & 0x1F;
         if (headSize != 0) {
             headSize = 0x20 - headSize;
             NETMemCpy_SimpleFwd(dst, src, headSize);
@@ -275,5 +279,5 @@ void* NETMemCpy(void* dst, const void* src, unsigned long size) {
     }
 
     NETMemCpy_SimpleFwd(dst, src, size);
-    return dst;
+    return originalDst;
 }

@@ -1,4 +1,4 @@
-#include "revolution/types.h"
+#include "revolution/os/OSCrc.h"
 
 static const u32 s_crc32Table[16] = {
     0x00000000, 0x1DB71064, 0x3B6E20C8, 0x26D930AC,
@@ -9,7 +9,7 @@ static const u32 s_crc32Table[16] = {
 
 // NONMATCHING: only the volatile r8/r9 allocation is exchanged; all
 // instructions, branches and the complete 16-entry table agree after renaming.
-u32 fn_805BFF30(const void* data, u32 length) {
+u32 __OSCalcCRC32(const void* data, u32 length) {
     const u8* bytes = data;
     u32 crc = 0xFFFFFFFF;
     while (length) {

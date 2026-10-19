@@ -350,6 +350,7 @@ static u8 rol(u8 src, u8 rol) {
 
 void DEBUGPrint(const char*, ...);
 
+// NONMATCHING: Existing no-op DEBUGPrint calls alter scheduling, GPRs and frame.
 void WPADiCreateKey(s32 chan) {
     BOOL enable;
     WPADControlBlock* p_wpd = _wpdcb[chan];
@@ -426,6 +427,7 @@ void WPADiCreateKey(s32 chan) {
     OSRestoreInterrupts(enable);
 }
 
+// NONMATCHING: Existing no-op DEBUGPrint calls alter scheduling, GPRs and frame.
 void WPADiCreateKeyFor3rd(s32 chan) {
     BOOL enable;
     WPADControlBlock* p_wpd = _wpdcb[chan];
@@ -508,8 +510,10 @@ void WPADiDecode(s32 chan, void* p_buf, u16 len, u16 offset) {
 
     ptr = (u8*)p_buf;
 
-    for (i = 0; i < len; i++) {
-        idx = (u8)((offset + i) % 8);
-        ptr[i] = (u8)((ptr[i] ^ p_wpd->sb[idx]) + p_wpd->ft[idx]);
+    if (p_wpd->extEnc == 2 || p_wpd->extEnc == 3) {
+        for (i = 0; i < len; i++) {
+            idx = (u8)((offset + i) % 8);
+            ptr[i] = (u8)((ptr[i] ^ p_wpd->sb[idx]) + p_wpd->ft[idx]);
+        }
     }
 }

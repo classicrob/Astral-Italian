@@ -20,6 +20,9 @@ extern "C" {
 #define WUD_DEV_NAME_IS_CNT(NAME)                                              \
     WUD_DEV_NAME_IS(NAME, "Nintendo RVL-CNT")
 
+#define WUD_DEV_NAME_IS_WBC(NAME)                                              \
+    WUD_DEV_NAME_IS(NAME, "Nintendo RVL-WBC")
+
 #define WUD_DEV_NAME_IS_CNT_01(NAME)                                           \
     WUD_DEV_NAME_IS(NAME, "Nintendo RVL-CNT-01")
 // clang-format on

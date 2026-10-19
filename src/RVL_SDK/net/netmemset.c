@@ -1,4 +1,5 @@
-#include "revolution/types.h"
+#include "revolution/net.h"
+#include <stdint.h>
 
 static inline void NETMemSet_BufSize32Aligned(register void* buf, register unsigned long fill, unsigned long size) {
     register unsigned long loopSize = size >> 5;
@@ -55,13 +56,15 @@ static inline void NETMemSet_Simple(register void* buf, register unsigned long f
     }
 }
 
-void* NETMemSet(void* buf, int ch, unsigned long size) {
+// NONMATCHING: The original-buffer and head-size temporaries swap volatile r8/r9.
+void* NETMemSet(void* buf, int ch, u32 size) {
+    void* originalBuf = buf;
     unsigned long headSize;
     unsigned long accBlkSize;
     register unsigned long fill = ch;
 
     if (size == 0) {
-        return buf;
+        return originalBuf;
     }
 
     asm {
@@ -70,7 +73,7 @@ void* NETMemSet(void* buf, int ch, unsigned long size) {
     }
 
     if (size >= 0x40) {
-        headSize = (unsigned long)buf & 0x1F;
+        headSize = (uintptr_t)buf & 0x1F;
         if (headSize != 0) {
             headSize = 0x20 - headSize;
             NETMemSet_Simple(buf, fill, headSize);
@@ -85,5 +88,5 @@ void* NETMemSet(void* buf, int ch, unsigned long size) {
     }
 
     NETMemSet_Simple(buf, fill, size);
-    return buf;
+    return originalBuf;
 }

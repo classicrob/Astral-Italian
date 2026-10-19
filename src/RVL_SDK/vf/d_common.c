@@ -1,4 +1,7 @@
 #include "revolution/vf/d_common.h"
+#include "revolution/vf/d_vf_sys.h"
+#include "revolution/vf/nand_drv.h"
+#include <stdint.h>
 #include "revolution/vf/vf_struct.h"
 
 struct VF_DRIVE_INFO l_driveInfo[26];
@@ -9,7 +12,7 @@ static u32 dCommon_getFatTypeFromDisk(struct PDM_DISK* p_disk);
 void dCommon_DevideBuff32(void* i_buf, u32 i_size, u32* i_1st_size_p, void* i_2nd_pp, u32* i_2nd_size_p, void* i_3rd_pp, u32* i_3rd_size_p) {
     u32 align;
 
-    align = ((u32)i_buf) & 0x1f;
+    align = ((uintptr_t)i_buf) & 0x1f;
     *(void**)i_3rd_pp = NULL;
     *(void**)i_2nd_pp = NULL;
     *i_3rd_size_p = 0;
@@ -64,12 +67,6 @@ u32 dCommon_GetPhysicalOffset(u32 startBlock, u32 BPS, u32 reservedSecNum) {
 
 enum FatType dCommon_GetNiceFatType(u32* spf, u32 SPU, u32 SPC, u32 BPS) {
     u32 SPU_div_SPC;
-
-    // TODO: dumb hack to prevent inlining
-    // This prevents dCommon_GetNiceFatType from being inlined in dCommon_MakeBootSector.
-    int i;
-    for (i = 0; i < 1; i++) {
-    }
 
     SPU_div_SPC = SPU / SPC;
     if (SPU_div_SPC < 0xff5) {
@@ -348,15 +345,15 @@ void dCommon_setRootEntNumToDisk(struct PDM_DISK* p_disk, u32 i_rootEntNum) {
 }
 
 static s32 dCommon_flush_from_handle_p(struct VF_HANDLE_TYPE* i_handle_p, int i_setLastDeviceError) {
-    struct VF_HANDLE_DRIVE* vol;
+    struct VF_HANDLE_TYPE* handle;
     s32 err;
     s32 handle_idx;
 
-    vol = (struct VF_HANDLE_DRIVE*)i_handle_p;
+    handle = i_handle_p;
     err = -1;
-    if (vol != NULL && vol->file_p != NULL) {
-        if (((u32*)vol->file_p)[2] == 0) {
-            handle_idx = VFSysHandleP2Idx((struct VF_HANDLE_TYPE*)vol);
+    if (handle != NULL && handle->device_p != NULL) {
+        if (handle->device_p->type == 0) {
+            handle_idx = VFSysHandleP2Idx(handle);
             if (handle_idx != -1) {
                 err = VFi_NandFlushNANDFromHandleIdx(handle_idx, i_setLastDeviceError);
             }
@@ -368,5 +365,5 @@ static s32 dCommon_flush_from_handle_p(struct VF_HANDLE_TYPE* i_handle_p, int i_
 }
 
 s32 dCommon_FlushFromVol(struct PF_VOLUME* i_vol_p, int i_setLastDeviceError) {
-    return dCommon_flush_from_handle_p((struct VF_HANDLE_TYPE*)VFSysVol2HandleP(i_vol_p), i_setLastDeviceError);
+    return dCommon_flush_from_handle_p(VFSysVol2HandleP(i_vol_p), i_setLastDeviceError);
 }

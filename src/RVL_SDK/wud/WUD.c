@@ -2127,6 +2127,7 @@ void WUDiDeleteAllLinkKeys(void) {
     }
 }
 
+// NONMATCHING: Existing no-op DEBUGPrint calls remain absent from target.
 void WUDiRegisterDevice(BD_ADDR addr) {
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
@@ -2139,7 +2140,8 @@ void WUDiRegisterDevice(BD_ADDR addr) {
     status = BTA_DmAddDevice(pInfo->devAddr, pInfo->linkKey, 0, FALSE);
     DEBUGPrint("BTA_DmAddDevice(): %d\n", status);
 
-    if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName)) {
+    if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName) ||
+        (WUD_DEV_NAME_IS_WBC(pInfo->conf.devName) && _linkedWBC)) {
         tBTA_HH_DEV_DESCR desc;
         desc.dl_len = sizeof(descriptor);
         desc.dsc_list = descriptor;
@@ -2157,6 +2159,7 @@ void WUDiRegisterDevice(BD_ADDR addr) {
     OSRestoreInterrupts(enabled);
 }
 
+// NONMATCHING: Existing no-op DEBUGPrint calls and saved-GPR choices differ.
 void WUDiRemoveDevice(BD_ADDR addr) {
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
@@ -2173,7 +2176,8 @@ void WUDiRemoveDevice(BD_ADDR addr) {
 
         DEBUGPrint("remove device info from database.\n");
 
-        if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName)) {
+        if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName) ||
+            (WUD_DEV_NAME_IS_WBC(pInfo->conf.devName) && _linkedWBC)) {
             DEBUGPrint("BTA_HhRemoveDev()\n");
             DEBUGPrint(" handle : %d\n", pInfo->devHandle);
             BTA_HhRemoveDev(pInfo->devHandle);
@@ -2545,6 +2549,7 @@ WUDDevInfo* WUDiGetRemoveStdDevice(void) {
     return _wcb.stdListTail->devInfo;
 }
 
+// NONMATCHING: Cached address/linked-state loads and pointer induction change GPRs/frame.
 void WUDiMoveTopOfDisconnectedStdDevice(WUDDevInfo* pInfo) {
     WUDCB* p = &_wcb;
     int i;
@@ -2564,7 +2569,12 @@ void WUDiMoveTopOfDisconnectedStdDevice(WUDDevInfo* pInfo) {
             }
 
             if (pIt->devInfo->status > 1) {
-                continue;
+                if (WUD_DEV_NAME_IS_CNT(pIt->devInfo->conf.devName)) {
+                    continue;
+                }
+                if (!_linkedWBC) {
+                    continue;
+                }
             }
 
             if (WUD_BDCMP(p->stdListHead->devInfo->devAddr, p->stdList[i].devInfo->devAddr) == 0) {

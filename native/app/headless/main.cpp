@@ -16,6 +16,7 @@
 #include <petari/platform/os_host.hpp>
 #include <revolution/dvd.h>
 #include <revolution/nand.h>
+#include <revolution/vi.h>
 #include <atomic>
 #include <condition_variable>
 #include <cstdlib>

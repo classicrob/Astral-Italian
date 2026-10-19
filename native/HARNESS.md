@@ -8,13 +8,13 @@ hardware. It runs with a fresh isolated NAND directory. Native KPAD results are
 injected after filtering, so input gate A does not test KPAD itself. Loading/title
 frames remain in the trace; unsupported paths fail rather than inventing state.
 
-Status on base `3c133d77`: headless configure passes, and the core/FPCR, SDK
-decoder, and virtual-clock test executables compile with ASan/UBSan. The 20
-Python harness tests and 18 collector contract/observer tests pass. C++ runtime
-checks found that Darwin pthread startup resets FPCR.FZ; worker startup now
-explicitly applies the selected policy. KPAD/virtual-clock/tools CTests pass;
-the FP fix and full build are queued behind the shared build lock. No game
-executable or emulator was run by this lane, and no game data was copied.
+Status: headless configure and seven targeted CTests pass with ASan/UBSan,
+including core/FPCR, SDK decoding, virtual clock, and OS/VI/input regressions.
+All four executable translation units, null GX, and the headless platform adapter
+compile. The full target has not reached link: game, heap, SDK and JSystem/nw4r
+port blockers remain. Verification began at `07e9b809` after the requested
+`3c133d77` base; P1 commits continue arriving in the shared tree. No game executable
+or emulator was run by this lane, and no game data was copied.
 
 ## Targets and source hooks
 

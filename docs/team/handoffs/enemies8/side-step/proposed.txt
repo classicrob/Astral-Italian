@@ -1,0 +1,1 @@
+close__13MarioSideStepFv  # proof: rdclass.py Game/Player/MarioSideStep: a: 37 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 2 full pool spans and relocation identities checked

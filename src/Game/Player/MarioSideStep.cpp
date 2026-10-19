@@ -21,15 +21,6 @@ bool MarioSideStep::start() {
     return true;
 }
 
-bool MarioSideStep::close() {
-    stopAnimation("壁ウエイト");
-    stopAnimation("壁右歩き");
-    stopAnimation("壁左歩き");
-    stopAnimation("壁押し");
-    getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
-    return true;
-}
-
 // NONMATCHING: equivalent vector-helper inlining, saved registers, and string-pool materialization.
 bool MarioSideStep::update() {
     if (!((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
@@ -108,4 +99,13 @@ bool MarioSideStep::update() {
         return false;
     }
     return getPlayer()->fixWallingPosition(false) != false;
+}
+
+bool MarioSideStep::close() {
+    stopAnimation("壁ウエイト");
+    stopAnimation("壁右歩き");
+    stopAnimation("壁左歩き");
+    stopAnimation("壁押し");
+    getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
+    return true;
 }

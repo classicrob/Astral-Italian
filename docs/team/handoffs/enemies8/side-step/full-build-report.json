@@ -1,0 +1,41 @@
+{
+  "base": "384b5b01b4982f15319817e90e1ea34b43e02c7f",
+  "full_ninja_DOL_hash_passed": true,
+  "before": {
+    "fuzzy_match_percent": 97.82537,
+    "total_code": "6269292",
+    "matched_code": "5175196",
+    "matched_code_percent": 82.54833,
+    "total_data": "1702508",
+    "matched_data": "346704",
+    "matched_data_percent": 20.36431,
+    "total_functions": 50354,
+    "matched_functions": 47577,
+    "matched_functions_percent": 94.48505,
+    "complete_code": "94084",
+    "complete_code_percent": 1.5007117,
+    "complete_data": "20356",
+    "complete_data_percent": 1.1956478,
+    "total_units": 3468,
+    "complete_units": 102
+  },
+  "after": {
+    "fuzzy_match_percent": 97.82537,
+    "total_code": "6269292",
+    "matched_code": "5175344",
+    "matched_code_percent": 82.55069,
+    "total_data": "1702508",
+    "matched_data": "346768",
+    "matched_data_percent": 20.368069,
+    "total_functions": 50354,
+    "matched_functions": 47578,
+    "matched_functions_percent": 94.48703,
+    "complete_code": "94084",
+    "complete_code_percent": 1.5007117,
+    "complete_data": "20356",
+    "complete_data_percent": 1.1956478,
+    "total_units": 3468,
+    "complete_units": 102
+  },
+  "per_unit_losses": {}
+}

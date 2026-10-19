@@ -1,0 +1,5 @@
+Game/Player/MarioSideStep: 4 functions, 1444 bytes, 94.5% fuzzy
+  92.9   0x45c  update__13MarioSideStepFv  [petari 0x3e4 Game/Player/MarioSideStep.cpp]
+  99.5    0x94  close__13MarioSideStepFv  [petari 0x94 SAME Game/Player/MarioSideStep.cpp]
+ 100.0    0x40  __ct__13MarioSideStepFP10MarioActor  [petari 0x40 SAME Game/Player/MarioSideStep.cpp]
+ 100.0    0x74  start__13MarioSideStepFv  [petari 0x74 SAME Game/Player/MarioSideStep.cpp]

@@ -1,0 +1,3 @@
+benign 1  real 1
+classes {'a': 1}
+REAL Game/Player/MarioSideStep update__13MarioSideStepFv: unverified string-base pool reach: string base reaches unverified pool store/spill: stfs f0, 0x744(r3)

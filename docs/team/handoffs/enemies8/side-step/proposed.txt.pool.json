@@ -1,0 +1,125 @@
+[
+  {
+    "unit": "Game/Player/MarioSideStep",
+    "name": "close__13MarioSideStepFv",
+    "spans": [
+      {
+        "target_address": "0x806ddcf0",
+        "source_section": ".data",
+        "source_offset": 0,
+        "size": 136,
+        "whole_pool": true,
+        "resolved_relocations": [
+          [
+            76,
+            "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+            0,
+            2151609008
+          ],
+          [
+            80,
+            "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+            0,
+            2151609024
+          ],
+          [
+            72,
+            "getStickY__11MarioModuleCFv",
+            0,
+            2151608272
+          ],
+          [
+            132,
+            "draw3D__10MarioStateCFv",
+            0,
+            2151201248
+          ],
+          [
+            128,
+            "getBlurOffset__10MarioStateCFv",
+            0,
+            2151500496
+          ],
+          [
+            124,
+            "passRing__10MarioStateFPC9HitSensor",
+            0,
+            2151448112
+          ],
+          [
+            120,
+            "hitPoly__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+            0,
+            2151214736
+          ],
+          [
+            116,
+            "hitWall__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+            0,
+            2151214720
+          ],
+          [
+            112,
+            "postureCtrl__10MarioStateFPA4_f",
+            0,
+            2151638720
+          ],
+          [
+            108,
+            "keep__10MarioStateFv",
+            0,
+            2151555536
+          ],
+          [
+            104,
+            "notice__10MarioStateFv",
+            0,
+            2151555552
+          ],
+          [
+            88,
+            "proc__10MarioStateFUl",
+            0,
+            2151638496
+          ],
+          [
+            84,
+            "init__10MarioStateFv",
+            0,
+            2151555568
+          ],
+          [
+            100,
+            "update__13MarioSideStepFv",
+            0,
+            2151630320
+          ],
+          [
+            96,
+            "close__13MarioSideStepFv",
+            0,
+            2151631440
+          ],
+          [
+            92,
+            "start__13MarioSideStepFv",
+            0,
+            2151630192
+          ]
+        ],
+        "target_sha256": "0c5abe9dd55cc1592ae0cc818a1a395f4718d4c8f6316a9e48e4b9c58b01e0ad",
+        "source_relocated_sha256": "0c5abe9dd55cc1592ae0cc818a1a395f4718d4c8f6316a9e48e4b9c58b01e0ad"
+      },
+      {
+        "target_address": "0x806ddcf0",
+        "source_section": ".data",
+        "source_offset": 0,
+        "size": 7,
+        "whole_pool": false,
+        "resolved_relocations": [],
+        "target_sha256": "fa8083b31fcb6134de6fdb0a21afbce4055bc0a464c872d2cb4ed18d2b7eab9a",
+        "source_relocated_sha256": "fa8083b31fcb6134de6fdb0a21afbce4055bc0a464c872d2cb4ed18d2b7eab9a"
+      }
+    ]
+  }
+]

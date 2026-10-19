@@ -6862,7 +6862,7 @@ Game/Player/CollisionShadow.cpp:
 
 Game/Player/MarioSideStep.cpp:
 	.text       start:0x803F4530 end:0x803F4AF0
-	.data       start:0x806DDD30 end:0x806DDD78
+	.data       start:0x806DDCF0 end:0x806DDD78
 
 Game/Player/MarioSkate.cpp:
 	.text       start:0x803F4AF0 end:0x803F56D0

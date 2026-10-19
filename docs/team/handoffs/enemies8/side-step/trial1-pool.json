@@ -1,0 +1,104 @@
+{
+  "size": 136,
+  "all_bytes_equal": true,
+  "source_relocated": "95c7899f82b5000090ba95c7899f82b50000000095c783458347834383670000426f64790000000095c7894595e082ab0000000095c78db695e082ab000000000000000000000000803eefd0803ef2b0803ef2c0803e21f0803f65e0803f4570803f4a50803f45f0803e21e0803e21d0803f66c08038ee808038ee90803c7e30803d4ad08038b9e0",
+  "target": "95c7899f82b5000090ba95c7899f82b50000000095c783458347834383670000426f64790000000095c7894595e082ab0000000095c78db695e082ab000000000000000000000000803eefd0803ef2b0803ef2c0803e21f0803f65e0803f4570803f4a50803f45f0803e21e0803e21d0803f66c08038ee808038ee90803c7e30803d4ad08038b9e0",
+  "relocations": [
+    {
+      "offset": 76,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "destination": "0x803ef2b0"
+    },
+    {
+      "offset": 80,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+      "addend": 0,
+      "destination": "0x803ef2c0"
+    },
+    {
+      "offset": 72,
+      "name": "getStickY__11MarioModuleCFv",
+      "addend": 0,
+      "destination": "0x803eefd0"
+    },
+    {
+      "offset": 132,
+      "name": "draw3D__10MarioStateCFv",
+      "addend": 0,
+      "destination": "0x8038b9e0"
+    },
+    {
+      "offset": 128,
+      "name": "getBlurOffset__10MarioStateCFv",
+      "addend": 0,
+      "destination": "0x803d4ad0"
+    },
+    {
+      "offset": 124,
+      "name": "passRing__10MarioStateFPC9HitSensor",
+      "addend": 0,
+      "destination": "0x803c7e30"
+    },
+    {
+      "offset": 120,
+      "name": "hitPoly__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+      "addend": 0,
+      "destination": "0x8038ee90"
+    },
+    {
+      "offset": 116,
+      "name": "hitWall__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+      "addend": 0,
+      "destination": "0x8038ee80"
+    },
+    {
+      "offset": 112,
+      "name": "postureCtrl__10MarioStateFPA4_f",
+      "addend": 0,
+      "destination": "0x803f66c0"
+    },
+    {
+      "offset": 108,
+      "name": "keep__10MarioStateFv",
+      "addend": 0,
+      "destination": "0x803e21d0"
+    },
+    {
+      "offset": 104,
+      "name": "notice__10MarioStateFv",
+      "addend": 0,
+      "destination": "0x803e21e0"
+    },
+    {
+      "offset": 88,
+      "name": "proc__10MarioStateFUl",
+      "addend": 0,
+      "destination": "0x803f65e0"
+    },
+    {
+      "offset": 84,
+      "name": "init__10MarioStateFv",
+      "addend": 0,
+      "destination": "0x803e21f0"
+    },
+    {
+      "offset": 100,
+      "name": "update__13MarioSideStepFv",
+      "addend": 0,
+      "destination": "0x803f45f0"
+    },
+    {
+      "offset": 96,
+      "name": "close__13MarioSideStepFv",
+      "addend": 0,
+      "destination": "0x803f4a50"
+    },
+    {
+      "offset": 92,
+      "name": "start__13MarioSideStepFv",
+      "addend": 0,
+      "destination": "0x803f4570"
+    }
+  ]
+}

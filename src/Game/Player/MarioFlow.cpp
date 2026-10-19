@@ -5,8 +5,8 @@
 #include "Game/Util/MathUtil.hpp"
 
 bool MarioFlow::start() {
-    _12 = 0;
-    _14 = 0;
+    mFrameCounter = 0;
+    mPhase = Airborne;
 
     changeAnimationNonStop("中ダメージ");
     startPadVib(2);
@@ -16,11 +16,13 @@ bool MarioFlow::start() {
     getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
     getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
 
-    _18 = getFrontVec() * mActor->mConst->getTable()->mJumpDistFlow;
-    _18 += -mActor->mAppliedGravityVec * mActor->mConst->getTable()->mJumpHeightFlow;
-    getPlayer()->mJumpVec = _18;
+    const MarioConstTable* table = mActor->mConst->getTable();
+    const TVec3f& front = getFrontVec();
+    mVelocity = front * table->mJumpDistFlow;
+    mVelocity += -mActor->mAppliedGravityVec * mActor->mConst->getTable()->mJumpHeightFlow;
+    getPlayer()->mJumpVec = mVelocity;
 
-    addVelocity(_18);
+    addVelocity(mVelocity);
 
     getPlayer()->stopWalk();
 
@@ -28,19 +30,19 @@ bool MarioFlow::start() {
 }
 
 bool MarioFlow::update() {
-    _12++;
+    mFrameCounter++;
 
-    switch (_14) {
-    case 0:
-        addVelocity(_18);
+    switch (mPhase) {
+    case Airborne:
+        addVelocity(mVelocity);
 
-        _18 += mActor->mAppliedGravityVec * mActor->getConst().getTable()->mGravityFlow;
+        mVelocity += mActor->mAppliedGravityVec * mActor->getConst().getTable()->mGravityFlow;
 
-        if (_12 == 20) {
+        if (mFrameCounter == 20) {
             changeAnimation("中ダメージ空中");
         }
 
-        if (_12 > 30 && mActor->isRequestRush()) {
+        if (mFrameCounter > 30 && mActor->isRequestRush()) {
             getPlayer()->trySpinJump(0);
 
             return false;
@@ -54,28 +56,28 @@ bool MarioFlow::update() {
             playEffect("共通ダメージ着地");
             playSound("吹っ飛び倒れ");
 
-            MR::vecKillElement(_18, mActor->mAppliedGravityVec, &_18);
+            MR::vecKillElement(mVelocity, mActor->mAppliedGravityVec, &mVelocity);
 
-            _12 = 0;
-            _14++;
+            mFrameCounter = 0;
+            mPhase++;
         }
         break;
-    case 1:
+    case Landed:
         if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U) == false) {
             getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-            _14 = 0;
+            mPhase = Airborne;
         } else {
-            addVelocity(_18);
+            addVelocity(mVelocity);
 
-            _18.x *= 0.95f;
-            _18.y *= 0.95f;
-            _18.z *= 0.95f;
+            mVelocity.x *= 0.95f;
+            mVelocity.y *= 0.95f;
+            mVelocity.z *= 0.95f;
 
             if (!isAnimationRun("中ダメージ着地")) {
                 return false;
             }
 
-            if (_12 > 15 && checkTrgA()) {
+            if (mFrameCounter > 15 && checkTrgA()) {
                 getPlayer()->tryJump();
 
                 return false;
@@ -84,7 +86,7 @@ bool MarioFlow::update() {
         break;
     }
 
-    getPlayer()->mJumpVec = _18;
+    getPlayer()->mJumpVec = mVelocity;
 
     return true;
 }
@@ -96,6 +98,6 @@ bool MarioFlow::close() {
     return true;
 }
 
-MarioFlow::MarioFlow(MarioActor* pActor) : MarioState(pActor, MarioStatus_Flow), _12(), _14() {
-    _18.zero();
+MarioFlow::MarioFlow(MarioActor* pActor) : MarioState(pActor, MarioStatus_Flow), mFrameCounter(), mPhase() {
+    mVelocity.zero();
 }

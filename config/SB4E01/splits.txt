@@ -5626,7 +5626,7 @@ Game/MapObj/SpinCloudItem.cpp:
 Game/MapObj/SpinDriver.cpp:
 	.text       start:0x8030B880 end:0x8030DBE0
 	.ctors      start:0x806445E0 end:0x806445E4
-	.data       start:0x806AE640 end:0x806AE730
+	.data       start:0x806AE390 end:0x806AE730
 
 Game/MapObj/SpinDriverCamera.cpp:
 	.text       start:0x8030DBE0 end:0x8030E1D0

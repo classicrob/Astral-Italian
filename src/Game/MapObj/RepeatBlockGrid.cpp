@@ -45,9 +45,9 @@ void RepeatBlockGrid::calcCell(RepeatBlockCell* pCell, const TVec3f& rPos) const
     pos.x /= mCellSize.x;
     pos.y /= mCellSize.y;
     pos.z /= mCellSize.z;
-    s16 x = pos.x;
-    s16 y = pos.y;
-    s16 z = pos.z;
+    s16 x = static_cast< s16 >(static_cast< s32 >(pos.x));
+    s16 y = static_cast< s16 >(static_cast< s32 >(pos.y));
+    s16 z = static_cast< s16 >(static_cast< s32 >(pos.z));
     pCell->mX = x;
     pCell->mY = y;
     pCell->mZ = z;

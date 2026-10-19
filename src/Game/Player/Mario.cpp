@@ -2167,7 +2167,6 @@ bool Mario::beeMarioOnAir() {
             }
 
             if (!((mMovementStates.mLowWord >> 14) & 1U) && _402) {
-                _406 = 16;
                 if (_76C < 30) {
                     _76C = 30;
                     _770 = 0.0f;
@@ -5547,7 +5546,8 @@ u32 Mario::moveRelativePosition(u32) {
         return 0;
     }
 
-    if (rTri->mSensor != nullptr && MR::isDead(rTri->mSensor->mHost)) {
+    if (rTri->mSensor != nullptr
+        && (MR::isDead(rTri->mSensor->mHost) || MR::isEqualSubString(rTri->mSensor->mHost->mName, "リピートブロック"))) {
         invalidateRelativePosition();
         return 0;
     }

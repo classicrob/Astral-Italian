@@ -245,7 +245,7 @@ static inline void NETMemCpy_SimpleRev(void* dst, const void* src, unsigned long
     }
 }
 
-// NONMATCHING: Original destination uses r12 rather than r0; a duplicate return move adds four bytes.
+// NONMATCHING: Source preserves original destination in r12 versus target r0; a duplicate return move adds four bytes.
 // Copy operations and control flow otherwise differ only in temporary register allocation.
 void* NETMemCpy(void* dst, const void* src, u32 size) {
     void* originalDst = dst;

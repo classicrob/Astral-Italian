@@ -94,10 +94,13 @@ typedef enum {
 
 typedef enum {
     WUD_STATE_INIT_START = 0,
-    WUD_STATE_INIT_WAIT_FOR_INITIALIZATION = 1,
-    WUD_STATE_INIT_GET_DEV_INFO = 2,
-    WUD_STATE_INIT_DONE = 3,
-    WUD_STATE_INIT_INITIALIZED = 4,
+    WUD_STATE_INIT_WAIT_FOR_BLUETOOTH = 1,
+    WUD_STATE_INIT_WAIT_FOR_SC = 2,
+    WUD_STATE_INIT_GET_WIIFIT_INFO = 3,
+    WUD_STATE_INIT_GET_DEV_INFO = 4,
+    WUD_STATE_INIT_WAIT_FOR_FLUSH = 5,
+    WUD_STATE_INIT_ENABLE_BLUETOOTH = 6,
+    WUD_STATE_INIT_INITIALIZED = 7,
     WUD_STATE_INIT_ERROR = 255,
 } WUDInitState;
 
@@ -197,10 +200,12 @@ typedef struct WUDCB {
     u16 bufferStatus0;  // at 0x744
     u16 bufferStatus1;  // at 0x746
 
-    s16 delayCnt;
-    s16 incomeCnt;
+    u8 initPollCountdown;  // at 0x748: decremented while waiting for Bluetooth
+    s8 delayCnt;           // at 0x749: signed synchronization delay
+    s16 incomeCnt;         // at 0x74A: incoming-connection timeout
 } WUDCB;
 
+u8 __wudGetDevInfoFromWiiFit(void);
 WUDDevInfo* WUDiGetDiscoverDevice(void);
 void WUDiSetDevAddrForHandle(u8 handle, BD_ADDR_PTR address);
 BD_ADDR_PTR WUDiGetDevAddrForHandle(u8 handle);

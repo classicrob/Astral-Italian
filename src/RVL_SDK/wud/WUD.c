@@ -24,7 +24,7 @@ void WUDDeviceStatusCallback(tBTM_DEV_STATUS status);
 void WUDStoredLinkKeyCallback(void* p1);
 void WUDPowerManagerCallback(BD_ADDR addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hciStatus);
 
-static void InitCore(void);
+static void ClearControlBlock(void);
 void WUDiResetAuthFailCount(void);
 
 static void WUDiRemovePatch(void);
@@ -45,6 +45,10 @@ u16 _dev_handle_queue_size[WUD_MAX_DEV_ENTRY];
 u16 _dev_handle_notack_num[WUD_MAX_DEV_ENTRY];
 
 static u8 _nandBusy;
+static s32 _nandState;
+
+// Optional board initialization hook: the linked DOL has this reader, but no setter.
+static void (*_wbcInitCallback)(void);
 
 static u8 _discNumResps;
 static s8 _discRssi;
@@ -269,11 +273,8 @@ static void ShutFlushCallback(u32 result) {
 }
 
 static void InitFlushCallback(u32 result) {
-    WUDCB* p_wcb = &_wcb;
-
-    WUD_DEBUGPrint("InitFlushCallback() : %d, Init: %d\n", result, p_wcb->initState);
-
-    p_wcb->initState = 4;
+#pragma unused(result)
+    _wcb.initState = WUD_STATE_INIT_ENABLE_BLUETOOTH;
 }
 
 static void ClearDiscoverResult(void) {
@@ -1136,14 +1137,19 @@ static void EnableStackHandler0(OSAlarm* pAlarm, OSContext* pContext) {
 
 static WUDInitState WUDiWaitSCSetup(void) {
     s32 diff = 0;
-    WUDInitState nextState = WUD_STATE_INIT_WAIT_FOR_INITIALIZATION;
+    WUDInitState nextState = WUD_STATE_INIT_WAIT_FOR_SC;
     s64 time = __OSGetSystemTime();
 
     diff = 500 - OSTicksToMilliseconds(OS_TICKS_DELTA(time, __OSStartTime));
 
     if (diff < 0 && SCCheckStatus() != SC_STATUS_BUSY) {
-        InitCore();
+        ClearControlBlock();
         nextState = WUD_STATE_INIT_GET_DEV_INFO;
+        if (_linkedWBC && SCGetProductGameRegion() == 0) {
+            _nandBusy = 0;
+            _nandState = 0;
+            nextState = WUD_STATE_INIT_GET_WIIFIT_INFO;
+        }
     }
 
     return nextState;
@@ -1161,7 +1167,9 @@ static BOOL WUDiIsDeviceExisted(u8* bd_addr) {
     return FALSE;
 }
 
-static u8 WUDiGetRegisteredDevice() {
+// NONMATCHING: register lifetimes/scheduling and owning BSS/string-pool offsets;
+// target/source1360B, ordered calls and typed record/state effects retained.
+static u8 InitDevInfo(void) {
     int i;
     int j;
     int num;
@@ -1176,8 +1184,6 @@ static u8 WUDiGetRegisteredDevice() {
 
     SCGetBtDeviceInfoArray(&_scArray);
     SCGetBtCmpDevInfoArray(&_spArray);
-    ASSERT(_scArray.num >= 0 && _scArray.num <= 10);
-    ASSERT(_spArray.num >= 0 && _spArray.num <= 6);
 
     _wcb.syncType = 0;
 
@@ -1217,12 +1223,32 @@ static u8 WUDiGetRegisteredDevice() {
         p_info->hhAttrMask = (BTA_HH_BATTERY_POWER | BTA_HH_REMOTE_WAKE | BTA_HH_SUP_TOUT_AVLBL | BTA_HH_SEC_REQUIRED | BTA_HH_RECONN_INIT);
         p_info->appID = 3;
 
-        WUD_DEBUGPrint("addr : %02x:%02x:%02x:%02x:%02x:%02x\n", p_info->devAddr[0], p_info->devAddr[1], p_info->devAddr[2], p_info->devAddr[3],
-                       p_info->devAddr[4], p_info->devAddr[5]);
-        WUD_DEBUGPrint("name : %s\n", p_info->conf.devName);
-
         scNum++;
         num--;
+    }
+
+    if (_linkedWBC && !memcmp(_scArray.info[14].bd_name, "Nintendo RVL-WBC", 16)) {
+        p_info = WUDiGetNewDevInfo();
+        if (p_info == NULL) {
+            BOOL enabled = OSDisableInterrupts();
+            OSRestoreInterrupts(enabled);
+            scNum--;
+            p_info = &_wcb.stdDevs[WUD_MAX_DEV_ENTRY_FOR_STD - 1];
+        }
+        memcpy(p_info->devAddr, _scArray.info[14].bd_addr, BD_ADDR_LEN);
+        memcpy(p_info->conf.devName, _scArray.info[14].bd_name, 19);
+        memcpy(p_info->linkKey, &_scArray.info[14].bd_name[20], 16);
+        p_info->status = 1;
+        p_info->sync_type = 0;
+        p_info->subclass = 2;
+        p_info->hhAttrMask = (BTA_HH_BATTERY_POWER | BTA_HH_REMOTE_WAKE | BTA_HH_SUP_TOUT_AVLBL | BTA_HH_SEC_REQUIRED | BTA_HH_RECONN_INIT);
+        p_info->appID = 3;
+        p_info->UNK_0x5C = 3;
+
+        memset(&_scArray.info[scNum], 0, sizeof(SCBtDeviceInfoSingle));
+        memcpy(_scArray.info[scNum].bd_addr, _scArray.info[14].bd_addr, BD_ADDR_LEN);
+        memcpy(_scArray.info[scNum].bd_name, _scArray.info[14].bd_name, 19);
+        scNum++;
     }
 
     _scArray.num = scNum;
@@ -1255,9 +1281,6 @@ static u8 WUDiGetRegisteredDevice() {
                 p_info->hhAttrMask = (BTA_HH_BATTERY_POWER | BTA_HH_REMOTE_WAKE | BTA_HH_SUP_TOUT_AVLBL | BTA_HH_SEC_REQUIRED | BTA_HH_RECONN_INIT);
                 p_info->appID = 3;
             }
-            WUD_DEBUGPrint("addr : %02x:%02x:%02x:%02x:%02x:%02x\n", p_info->devAddr[0], p_info->devAddr[1], p_info->devAddr[2], p_info->devAddr[3],
-                           p_info->devAddr[4], p_info->devAddr[5]);
-            WUD_DEBUGPrint("name : %s\n", p_info->conf.devName);
 
             WUDiMoveTopSmpDevInfoPtr(p_info);
 
@@ -1267,14 +1290,14 @@ static u8 WUDiGetRegisteredDevice() {
 
     _wcb.syncType = 0;
 
-    _wcb.initState = 3;
+    _wcb.initState = WUD_STATE_INIT_WAIT_FOR_FLUSH;
 
     memset(&_spArray, 0, sizeof(_spArray));
     SCSetBtDeviceInfoArray(&_scArray);
     SCSetBtCmpDevInfoArray(&_spArray);
     SCFlushAsync(InitFlushCallback);
 
-    return 4;
+    return WUD_STATE_INIT_ENABLE_BLUETOOTH;
 }
 
 static WUDInitState WUDiInitComplete(void) {
@@ -1284,25 +1307,39 @@ static WUDInitState WUDiInitComplete(void) {
     p->libStatus = WUD_LIB_STATUS_1;
 
     BTA_EnableBluetooth(WUDSecurityCallback);
-    return 5;
+    return WUD_STATE_INIT_INITIALIZED;
 }
 
 static void InitHandler(void) {
     WUDCB* p = &_wcb;
 
     switch (p->initState) {
-    case WUD_STATE_INIT_WAIT_FOR_INITIALIZATION: {
+    case WUD_STATE_INIT_WAIT_FOR_BLUETOOTH: {
+        WUDInitState nextState = WUD_STATE_INIT_WAIT_FOR_BLUETOOTH;
+        p->initPollCountdown--;
+        if (BTA_DmIsDeviceUp()) {
+            nextState = WUD_STATE_INIT_WAIT_FOR_SC;
+        }
+        p->initState = nextState;
+        break;
+    }
+
+    case WUD_STATE_INIT_WAIT_FOR_SC: {
         p->initState = WUDiWaitSCSetup();
         break;
     }
 
     case WUD_STATE_INIT_GET_DEV_INFO: {
-        WUDiGetRegisteredDevice();
+        InitDevInfo();
         break;
     }
 
-    case 4: {
+    case WUD_STATE_INIT_ENABLE_BLUETOOTH: {
         p->initState = WUDiInitComplete();
+        break;
+    }
+    case WUD_STATE_INIT_GET_WIIFIT_INFO: {
+        p->initState = __wudGetDevInfoFromWiiFit();
         break;
     }
     }
@@ -1356,16 +1393,16 @@ static void ShutdownHandler0(OSAlarm* pAlarm, OSContext* pContext) {
     OSSwitchFiberEx((u32)pAlarm, (u32)pContext, 0, 0, (u32)ShutdownHandler, (u32)__WUDHandlerStack + sizeof(__WUDHandlerStack));
 }
 
-static void InitCore(void) {
+// NONMATCHING: three owning handle-table offsets differ in the BSS pool;
+// target/source900B complete instruction sequence otherwise agrees.
+static void ClearControlBlock(void) {
     WUDCB* p = &_wcb;
     int i;
 
-    DEBUGPrint("InitCore\n");
-
     for (i = 0; i < WUD_MAX_DEV_ENTRY; i++) {
-        _dev_handle_to_bda[i] = NULL;
-        _dev_handle_queue_size[i] = 0;
-        _dev_handle_notack_num[i] = 0;
+        WUDiSetDevAddrForHandle(i, NULL);
+        WUDiSetQueueSizeForHandle(i, 0);
+        WUDiSetNotAckNumForHandle(i, 0);
     }
 
     p->smpListTail = &p->smpList[WUD_MAX_DEV_ENTRY_FOR_SMP - 1];
@@ -1420,14 +1457,10 @@ BOOL WUDInit(void) {
         return FALSE;
     }
 
-    DEBUGPrint("BTA_Init() is started\n");
-
     BTA_Init();
     bta_sys_set_trace_level(__bte_trace_level);
     L2CA_SetTraceLevel(__bte_trace_level);
     SDP_SetTraceLevel(__bte_trace_level);
-
-    DEBUGPrint("BTA_Init() is done\n");
 
     p->syncStdCB = NULL;
     p->syncSmpCB = NULL;
@@ -1436,14 +1469,20 @@ BOOL WUDInit(void) {
     p->hidConnCB = NULL;
     p->hidRecvCB = NULL;
 
-    p->initState = WUD_STATE_INIT_WAIT_FOR_INITIALIZATION;
+    p->initState = WUD_STATE_INIT_WAIT_FOR_BLUETOOTH;
+    p->initPollCountdown = 20;
 
     SCInit();
+
+    if (_linkedWBC && _wbcInitCallback != NULL) {
+        _wbcInitCallback();
+    }
 
     OSCreateAlarm(&p->alarm);
     OSSetPeriodicAlarm(&p->alarm, OSGetTime(), OSMillisecondsToTicks(10), InitHandler0);
 
     _initialized = TRUE;
+    _scFlush = 0;
     return TRUE;
 }
 
@@ -2303,7 +2342,6 @@ WUDDevInfo* WUDiGetNewDevInfo(void) {
     if (p->syncType == WUD_SYNC_TYPE_STANDARD) {
         for (i = 0; i < WUD_MAX_DEV_ENTRY_FOR_STD; i++) {
             if (p->stdDevs[i].status == 0) {
-                DEBUGPrint("new entry index is %d\n", i);
                 pInfo = &p->stdDevs[i];
                 break;
             }
@@ -2663,7 +2701,7 @@ BOOL WUDIsBusy(void) {
     enabled = OSDisableInterrupts();
 
     if (p->syncState == WUD_STATE_SYNC_START && p->deleteState == WUD_STATE_DELETE_START && p->stackState == WUD_STATE_STACK_INITIALIZED &&
-        p->initState == 5) {
+        p->initState == WUD_STATE_INIT_INITIALIZED) {
         OSRestoreInterrupts(enabled);
         return FALSE;
     }
@@ -3324,7 +3362,6 @@ typedef struct WUDWiiFitWorkArea {
 // Preserve the real null-initialized slot and the target's null/alignment assert.
 WUDWiiFitWorkArea* _wiiFitWork;
 static u32 _wiiFitChecksum;
-static s32 _nandState;
 static WUDWiiFitPairingData _wiiFitPairingData ATTRIBUTE_ALIGN(32);
 static NANDFileInfo _wiiFitFileInfo;
 static NANDCommandBlock _wiiFitCommandBlock;

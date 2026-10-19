@@ -5540,7 +5540,8 @@ u32 Mario::moveRelativePosition(u32) {
         return 0;
     }
 
-    if (rTri->mSensor != nullptr && MR::isDead(rTri->mSensor->mHost)) {
+    if (rTri->mSensor != nullptr
+        && (MR::isDead(rTri->mSensor->mHost) || MR::isEqualSubString(rTri->mSensor->mHost->mName, "リピートブロック"))) {
         invalidateRelativePosition();
         return 0;
     }

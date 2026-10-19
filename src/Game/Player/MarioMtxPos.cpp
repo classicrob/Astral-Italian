@@ -10,13 +10,13 @@ MarioMtxPos::MarioMtxPos(const TMtx34f& src) { mMtx.set(src); }
 
 void MarioMtxPos::fn_80409650(const MarioMtxPos& src) { mMtx.concat(src.mMtx); }
 // NONMATCHING: the three component getters load floating-point arguments in a different order.
-void MarioMtxPos::fn_80409660(TVec3f* out) const {
+void MarioMtxPos::getTranslation(TVec3f* out) const {
     out->set<f32>(mMtx.mMtx[0][3], mMtx.mMtx[1][3], mMtx.mMtx[2][3]);
 }
-void MarioMtxPos::fn_80409680(TVec3f* out) const {
+void MarioMtxPos::getYAxis(TVec3f* out) const {
     out->set<f32>(mMtx.mMtx[0][1], mMtx.mMtx[1][1], mMtx.mMtx[2][1]);
 }
-void MarioMtxPos::fn_804096A0(TVec3f* out) const {
+void MarioMtxPos::getZAxis(TVec3f* out) const {
     out->set<f32>(mMtx.mMtx[0][2], mMtx.mMtx[1][2], mMtx.mMtx[2][2]);
 }
 void MarioMtxPos::identity() { mMtx.identity(); }

@@ -6952,7 +6952,7 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
             mMario->stopAnimationUpper(nullptr);
             MarioMtxPos carryMatrix;
             carryMatrix.fn_80409700(MR::getJointMtx(MR::getSensorHost(_428[0]), "DrillPod"));
-            carryMatrix.fn_80409660(&mCarryAnimationPosition1058);
+            carryMatrix.getTranslation(&mCarryAnimationPosition1058);
         }
 
         mMario->_350.zero();

@@ -1414,10 +1414,10 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
         MarioMtxPos mtx;
         mtx.fn_80409700(MR::getJointMtx(this->mActor->fn_803B9830()->mRideModelActor, "Center"));
         TVec3f yAxis;
-        mtx.fn_80409680(&yAxis);
+        mtx.getYAxis(&yAxis);
         TVec3f zAxis;
-        mtx.fn_804096A0(&zAxis);
-        mtx.fn_80409660(pPos);
+        mtx.getZAxis(&zAxis);
+        mtx.getTranslation(pPos);
         TVec3f zOff(zAxis);
         zOff.scale(20.0f);
         TVec3f yOff(yAxis);

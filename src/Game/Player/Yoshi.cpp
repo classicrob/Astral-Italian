@@ -2130,7 +2130,7 @@ void Yoshi::fn_80411740() {
     mBreakModelMtx.fn_80409700(getBaseMtx());
     if (mWaterInfo->isInWater()) {
         TVec3f up;
-        mBreakModelMtx.fn_80409680(&up);
+        mBreakModelMtx.getYAxis(&up);
         MarioMtxPos surface;
         surface.fn_80409710(up, mWaterInfo->mSurfaceNormal);
         mBreakModelMtx.preConcat(surface);

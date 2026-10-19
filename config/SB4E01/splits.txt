@@ -2945,11 +2945,20 @@ Game/Enemy/KameckTurtle.cpp:
 	.sdata2     start:0x807DAAD0 end:0x807DAB08
 
 Game/Enemy/Kanina.cpp:
-	.text       start:0x801A9730 end:0x801ACC90
+	.text       start:0x801A9730 end:0x801ACCF0
 	.ctors      start:0x8064416C end:0x80644170
 	.data       start:0x8068A588 end:0x8068A890
 	.sdata      start:0x807CF878 end:0x807CF884
 	.sdata2     start:0x807DAB08 end:0x807DABB0
+
+Game/Enemy/KaninaYoshiState.cpp:
+	.text       start:0x801ACCF0 end:0x801ADF70 align:16
+	.ctors      start:0x80644170 end:0x80644174
+	.data       start:0x8068A890 end:0x8068A990
+	.bss        start:0x80729050 end:0x80729078
+	.sdata      start:0x807CF888 end:0x807CF890
+	.sbss       start:0x807D2898 end:0x807D28B0
+	.sdata2     start:0x807DABB0 end:0x807DABF0
 
 Game/Enemy/Karikari.cpp:
 	.text       start:0x801ADF70 end:0x801B0960
@@ -5429,6 +5438,13 @@ Game/MapObj/SpinLeverSwitch.cpp:
 	.ctors      start:0x806445E4 end:0x806445E8
 	.data       start:0x806AE968 end:0x806AEA08
 
+Game/MapObj/StageEffectDataTable.cpp:
+	.text       start:0x803105A0 end:0x80310BE0
+	.rodata     start:0x806497F0 end:0x80649810
+	.data       start:0x806AEA08 end:0x806AEA60
+	.sdata      start:0x807CFE08 end:0x807CFE18
+	.sdata2     start:0x807DE940 end:0x807DE948
+
 Game/MapObj/StarLightAreaHolder.cpp:
 	.text       start:0x80310BE0 end:0x80310FB0
 
@@ -5467,6 +5483,13 @@ Game/MapObj/StarPieceGroup.cpp:
 	.text       start:0x80318810 end:0x80319950
 	.ctors      start:0x80644600 end:0x80644604
 	.data       start:0x806AF3D0 end:0x806AF480
+
+Game/MapObj/StarPieceTracking.cpp:
+	.text       start:0x80319950 end:0x8031A720 align:16
+	.ctors      start:0x80644604 end:0x80644608
+	.data       start:0x806AF480 end:0x806AF5C0
+	.sbss       start:0x807D4510 end:0x807D4520
+	.sdata2     start:0x807DEAB0 end:0x807DEAF8
 
 Game/MapObj/StarPieceMother.cpp:
 	.text       start:0x8031A720 end:0x8031B1F0
@@ -5916,10 +5939,7 @@ Game/NPC/MeisterTU05.cpp:
 	.ctors      start:0x806446F8 end:0x806446FC
 
 Game/NPC/MiiDatabase.cpp:
-	.text       start:0x80354580 end:0x80354610
-
-JSystem/JKernel/JKRFileFinder.cpp:
-	.text       start:0x80354610 end:0x80354650 align:16
+	.text       start:0x80354580 end:0x80354650
 
 Game/NPC/MiiDatabaseTU01.cpp:
 	.text       start:0x80354650 end:0x803546B0
@@ -8172,6 +8192,9 @@ Game/System/JKRAram.cpp:
 Game/System/J3DMaterial.cpp:
 	.text       start:0x804C7BF0 end:0x804C7E00
 
+Game/System/OverwriteCharWriter.cpp:
+	.text       start:0x804C7E80 end:0x804C8400 align:16
+
 JSystem/JParticle/JPAResourceManagerInline.cpp:
 	.text       start:0x804C8400 end:0x804C8410
 
@@ -8645,6 +8668,9 @@ JSystem/JKernel/JKRFileLoader.cpp:
 	.bss        start:0x8072BCEC end:0x8072BD10
 	.sbss       start:0x807D61A8 end:0x807D61B0
 
+JSystem/JKernel/JKRFileFinder.cpp:
+	.text       start:0x80507450 end:0x805075E0 align:16
+
 JSystem/JKernel/JKRArchivePub.cpp:
 	.text       start:0x805075E0 end:0x80508000 align:16
 
@@ -8798,7 +8824,7 @@ JSystem/J3DGraphBase/J3DGD.cpp:
 JSystem/J3DGraphBase/J3DSys.cpp:
 	.text       start:0x805195E0 end:0x8051A6C0 align:16
 	.ctors      start:0x80644B20 end:0x80644B24
-	.bss        start:0x8072C360 end:0x8072C39C
+	.bss        start:0x8072C240 end:0x8072C39C
 
 JSystem/J3DGraphBase/J3DVertex.cpp:
 	.text       start:0x8051A6C0 end:0x8051A8C0 align:16
@@ -9503,7 +9529,7 @@ JSystem/JAudio2/JASBasicWaveBank.cpp:
 	.data       start:0x80709C08 end:0x80709C68
 
 JSystem/JAudio2/JASSimpleWaveBank.cpp:
-	.text       start:0x8058CED0 end:0x8058D1F0 align:16
+	.text       start:0x8058CED0 end:0x8058D200 align:16
 	.data       start:0x80709C68 end:0x80709CB0
 
 JSystem/JAudio2/JASInstSense.cpp:
@@ -9574,6 +9600,30 @@ JSystem/JAudio2/JASDriverIF.cpp:
 JSystem/JAudio2/JASSoundParams.cpp:
 	.text       start:0x80592870 end:0x805928E0 align:16
 
+JSystem/JAudio2/dspproc.cpp:
+	.text       start:0x805928E0 end:0x80592BA0 align:16
+	.rodata     start:0x80659A48 end:0x80659A70
+	.sdata      start:0x807D08E8 end:0x807D08F0
+	.sbss       start:0x807D6528 end:0x807D6530
+	.sdata2     start:0x807E2520 end:0x807E2528
+
+JSystem/JAudio2/dsptask.cpp:
+	.text       start:0x80592BA0 end:0x80592F60 align:16
+	.rodata     start:0x80659A70 end:0x80659BE0
+	.data       start:0x80709E00 end:0x8070BD00
+	.bss        start:0x8077C160 end:0x8077E240
+	.sbss       start:0x807D6530 end:0x807D6538
+
+JSystem/JAudio2/osdsp.cpp:
+	.text       start:0x80592F60 end:0x80592FE0 align:16
+	.rodata     start:0x80659BE0 end:0x80659C00
+
+JSystem/JAudio2/osdsp_task.cpp:
+	.text       start:0x80592FE0 end:0x805934D0 align:16
+	.rodata     start:0x80659C00 end:0x80659C88
+	.bss        start:0x8077E240 end:0x8077E258
+	.sbss       start:0x807D6538 end:0x807D6540
+
 JSystem/JAudio2/JAIAudible.cpp:
 	.text       start:0x805934D0 end:0x80593510 align:16
 
@@ -9581,7 +9631,7 @@ JSystem/JAudio2/JAIAudience.cpp:
 	.text       start:0x80593510 end:0x80593550 align:16
 
 JSystem/JAudio2/JAISe.cpp:
-	.text       start:0x80593550 end:0x80593D80 align:16
+	.text       start:0x80593550 end:0x80593E00 align:16
 	.data       start:0x8070BD00 end:0x8070BD58
 
 JSystem/JAudio2/JAISeMgr.cpp:
@@ -9606,11 +9656,8 @@ JSystem/JAudio2/JAISeqMgr.cpp:
 	.data       start:0x8070BDE0 end:0x8070BE08
 	.bss        start:0x8077E2B0 end:0x8077E2C0
 
-JSystem/JAudio2/JAISoundParams.cpp:
-	.text       start:0x80596320 end:0x805964C0 align:16
-
 JSystem/JAudio2/JAISound.cpp:
-	.text       start:0x805964C0 end:0x805968A0 align:16
+	.text       start:0x80596320 end:0x805968A0 align:16
 	.data       start:0x8070BE48 end:0x8070BE78
 
 JSystem/JAudio2/JAISoundChild.cpp:
@@ -9622,6 +9669,9 @@ JSystem/JAudio2/JAISoundHandles.cpp:
 JSystem/JAudio2/JAISoundInfo.cpp:
 	.text       start:0x80596B00 end:0x80596BE0 align:16
 	.data       start:0x8070BE78 end:0x8070BEA0
+
+JSystem/JAudio2/JAISoundParams.cpp:
+	.text       start:0x80596BE0 end:0x80596CB0 align:16
 
 JSystem/JAudio2/JAISoundStarter.cpp:
 	.text       start:0x80596CB0 end:0x80596E70 align:16
@@ -9654,14 +9704,14 @@ JSystem/JAudio2/JAUAudioArcLoader.cpp:
 	.data       start:0x8070BF38 end:0x8070BF80
 
 JSystem/JAudio2/JAUBankTable.cpp:
-	.text       start:0x80598B60 end:0x80598B90 align:16
+	.text       start:0x80598B50 end:0x80598B90 align:16
 
 JSystem/JAudio2/JAUInitializer.cpp:
 	.text       start:0x80598B90 end:0x80598E20 align:16
 	.ctors      start:0x80644B70 end:0x80644B74
 
 JSystem/JAudio2/JAUSectionHeap.cpp:
-	.text       start:0x80598E20 end:0x8059A990 align:16
+	.text       start:0x80598E20 end:0x8059AAC0 align:16
 	.data       start:0x8070BF90 end:0x8070BFF8
 	.sdata      start:0x807D08F0 end:0x807D08F8
 	.sbss       start:0x807D6568 end:0x807D6570
@@ -9689,7 +9739,7 @@ JSystem/JAudio2/JAUSoundTable.cpp:
 	.text       start:0x8059C390 end:0x8059C8F0 align:16
 
 JSystem/JAudio2/JAUStdSoundInfo.cpp:
-	.text       start:0x8059C8F0 end:0x8059CDD0 align:16
+	.text       start:0x8059C8F0 end:0x8059CDE0 align:16
 
 JSystem/JAudio2/JAUStreamFileTable.cpp:
 	.text       start:0x8059CDE0 end:0x8059CF20 align:16
@@ -9699,6 +9749,9 @@ RVL_SDK/aralt/aralt.c:
 	.data       start:0x8070C118 end:0x8070C158
 	.sdata      start:0x807D0900 end:0x807D0908
 	.sbss       start:0x807D6570 end:0x807D65A8
+
+nw4r/ut/ut_List.cpp:
+	.text       start:0x8059D360 end:0x8059D480 align:16
 
 nw4r/ut/ut_LinkList.cpp:
 	.text       start:0x8059D480 end:0x8059D5C0 align:16

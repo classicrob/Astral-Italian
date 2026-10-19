@@ -169,3 +169,21 @@ namespace MR {
         }
     }
 };  // namespace MR
+
+#ifdef __MWERKS__
+#pragma push
+#pragma dont_inline on
+#endif
+void HermiteSpline::fn_80066D40(TVec3f* pOut, f32 t) const {
+    f32 t2 = t * t;
+    f32 t3 = t2 * t;
+    TVec3f position = mP0 * (1.0f + (2.0f * t3 - 3.0f * t2)) + mM0 * (t + (t3 - 2.0f * t2)) +
+            mM1 * (t3 - t2) + mP1 * (-2.0f * t3 + 3.0f * t2);
+    pOut->x = position.x;
+    pOut->y = position.y;
+    pOut->z = position.z;
+}
+
+#ifdef __MWERKS__
+#pragma pop
+#endif

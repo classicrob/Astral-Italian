@@ -1,22 +1,33 @@
 #pragma once
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
+#include "JSystem/J3DGraphBase/J3DStruct.hpp"
 
-// The tracking projectile is allocated with 0xD8 bytes in GliderBalloon::init.
 class StarPieceTrackingPiece : public LiveActor {
 public:
     StarPieceTrackingPiece(const char*);
+    virtual ~StarPieceTrackingPiece();
+    virtual void init(const JMapInfoIter&);
+    virtual void attackSensor(HitSensor*, HitSensor*);
     void appearFromActor(const LiveActor*, const TVec3f&, const TVec3f&, f32, f32, f32);
-    void appearScattered(const TVec3f& rPos, const TVec3f& rUp, f32 randomRadius, f32 distance);  // was fn_80319C80
-    s32 _90;
-    TVec3f mDirection; // 0x94
-    TVec3f mUp; // 0xA0
-    f32 mSpeed; // 0xAC
-    f32 mDistance; // 0xB0
-    TVec3f _B4;
-    TVec3f _C0;
-    TVec3f _CC;
+    void appear(const TVec3f&, const TVec3f&, const TVec3f&, f32, f32, f32);
+    void appearScattered(const TVec3f&, const TVec3f&, f32, f32);
+    void updateTrackingVelocity(bool);
+    void exeFly();
+    void exeFlyWorldMap();
+    void exeTracking();
+    void exeTrackingWorldMap();
+    void calcLaunchVelocity();
+    J3DGXColor mColor;
+    TVec3f mDirection;
+    TVec3f mUp;
+    f32 mSpeed;
+    f32 mDistance;
+    TVec3f mTrackingVelocity;
+    TVec3f mTrackingPosition;
+    TVec3f mTrackingStartPosition;
 };
+
 class StarPieceTracking : public LiveActorGroup {
 public:
     StarPieceTracking(const char* name, s32 count) : LiveActorGroup(name, count) {}

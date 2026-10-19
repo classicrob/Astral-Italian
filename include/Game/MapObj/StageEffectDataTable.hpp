@@ -28,6 +28,7 @@ namespace MR {
 
         static bool tryStageEffectStart(LiveActor* pActor, const char* pObjectName);
         static bool tryStageEffectMoving(LiveActor* pActor, const char* pObjectName);
+        static bool tryStageEffectMoving(LiveActor* pActor, const char* pObjectName, bool isSlow);
         static bool tryStageEffectStop(LiveActor* pActor, const char* pObjectName);
     };
 };  // namespace MR

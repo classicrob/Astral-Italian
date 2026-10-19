@@ -103,8 +103,6 @@ void RotateMoveObj::exeWaitForPlayerOn() {
 void RotateMoveObj::exeWait() {
 }
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80310A40, declared extern "C" so the reloc name matches; resolve when fn_80310A40 gets its real name in symbols.txt
-extern "C" void fn_80310A40(LiveActor*, const char*, bool);
 
 void RotateMoveObj::exeMove() {
     if (MR::isFirstStep(this)) {
@@ -120,7 +118,7 @@ void RotateMoveObj::exeMove() {
         if (MR::isValidSwitchParam(this)) {
             const char* pObjectName = mObjectName;
             bool isOn = MR::isOnSwitchParam(this);
-            fn_80310A40(this, pObjectName, isOn);
+            MR::StageEffect::tryStageEffectMoving(this, pObjectName, isOn);
         } else {
             MR::StageEffect::tryStageEffectMoving(this, mObjectName);
         }

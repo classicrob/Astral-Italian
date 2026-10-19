@@ -136,9 +136,3 @@ public:
     /* 0x0F0 */ s32 mTimer2;
     /* 0x0F4 */ bool mIsNoDig;
 };
-
-// unnamed by address (SMG2 KaninaYoshiState helpers).
-class HitSensor;
-KaninaYoshiState* fn_801ACD60(KaninaYoshiState*, Kanina*, bool);
-bool fn_801AD370(KaninaYoshiState*, u32, HitSensor*, HitSensor*);
-bool fn_801AD4B0(KaninaYoshiState*);

@@ -1,4 +1,5 @@
 #include "Game/Enemy/Kanina.hpp"
+#include "Game/Enemy/KaninaYoshiState.hpp"
 #include "Game/LiveActor/AnimationRandomPlayer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -52,12 +53,7 @@ void Kanina_FORCE_MATCH_SDATA2() {
     (void)1.7f;
 }
 
-class KaninaYoshiState : public ActorStateBaseInterface {
-public:
-    KaninaYoshiState(const char* pName) : ActorStateBaseInterface(pName) {}
-    virtual void attackSensor(HitSensor*, HitSensor*);
-    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
-};
+
 
 
 void* operator new(unsigned long);
@@ -192,11 +188,7 @@ void Kanina::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mIsNoDig);
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, "Body"), TVec3f(0.0f));
     initNerve(GET_NERVE(Kanina, HostTypeAppear), 1);
-    KaninaYoshiState* state = static_cast< KaninaYoshiState* >(::operator new(112));
-    if (state) {
-        state = fn_801ACD60(state, this, true);
-    }
-    mState = state;
+    mState = new KaninaYoshiState(this, true);
     MR::initActorState(this, mState, GET_NERVE(Kanina, HostTypeEaten), nullptr);
 
     if (MR::useStageSwitchSyncAppear(this, rIter)) {
@@ -434,7 +426,7 @@ bool Kanina::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
 
 bool Kanina::receiveMsgYoshi(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
-        return fn_801AD370(mState, msg, pSender, pReceiver);
+        return mState->receiveMsgYoshi(msg, pSender, pReceiver);
     }
 
     if (MR::isMsgYoshiStartTongue(msg)) {
@@ -726,7 +718,7 @@ bool Kanina::isYoshiNerve() const {
         return true;
     }
 
-    return fn_801AD4B0(mState);
+    return mState->isYoshiNerve();
 }
 
 f32 Kanina::getGravityAccel() const {

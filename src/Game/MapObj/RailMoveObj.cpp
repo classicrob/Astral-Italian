@@ -390,8 +390,6 @@ void RailMoveShadowDropYObj::control() {
     mShadowDropDir = negated;
 }
 
-// PLACEHOLDER(objects): fn_80310770 is an unnamed MapObjActor stage-effect helper (reads mStageEffectCamera at 0xC8); resolve when named
-extern "C" void fn_80310770(RailMoveObj*, const char*);
 
 bool RailMoveObjSwitchWarpEnd::tryStartMove() {
     if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
@@ -420,7 +418,7 @@ void RailMoveObjSwitchWarpEnd::move() {
     if (!mRailMover->isStarting()) {
         if (!_DD) {
             MR::StageEffect::rumblePadStart(this, mObjectName);
-            fn_80310770(this, mObjectName);
+            MR::StageEffect::shakeStartCamera(this, mObjectName);
             MR::StageEffect::shakeCameraMoving(this, mObjectName);
             _DD = 1;
         }

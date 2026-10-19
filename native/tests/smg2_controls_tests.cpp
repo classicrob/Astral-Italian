@@ -137,6 +137,7 @@ void testNunchukFlick() {
     key(model, In::Key::H);
     const Report first = tick(model);
     check(first.nunchukAcc[0] > 2 && first.nunchukAcc[2] > 2, "H drives Nunchuk acceleration");
+    check(model.boundState().spin, "logical input recording includes the Nunchuk spin key");
     check(first.acc[0] == 0 && first.acc[1] == -1 && first.acc[2] == 0 && first.buttons == 0, "H leaves Remote acceleration and all buttons alone");
     tick(model, 100);
     const Report held = tick(model);
@@ -231,6 +232,19 @@ void testCoStarIsolation() {
     changed.mouseButtonEvent(In::MouseButton::X1, true);
     key(changed, In::Key::M);
     check(tick(changed).buttons == 0x0C00, "new mouse/key co-star remaps reach A/B");
+    RemoteModel triggers(true);
+    check(remapped.parse("CoStarA=Pad:LeftTrigger\n", &error), "parse co-star trigger remap");
+    triggers.setBindings(remapped);
+    triggers.padAxisEvent(In::PadAxis::LeftTrigger, 0.6f);
+    check(tick(triggers).buttons == 0x0800, "analog trigger can press a remapped co-star button");
+    triggers.padAxisEvent(In::PadAxis::LeftTrigger, 0.5f);
+    check(tick(triggers, 5).buttons == 0x0800, "co-star trigger retains existing hysteresis");
+    triggers.padAxisEvent(In::PadAxis::LeftTrigger, 0.4f);
+    check(tick(triggers, 5).buttons == 0, "co-star trigger releases below existing threshold");
+    triggers.padAxisEvent(In::PadAxis::LeftX, 1.0f);
+    triggers.padAxisEvent(In::PadAxis::RightX, 1.0f);
+    const auto noStick = tick(triggers);
+    check(noStick.stickX == 0 && noStick.stickY == 0, "co-star has no gamepad movement stick");
 }
 }  // namespace
 int main() {

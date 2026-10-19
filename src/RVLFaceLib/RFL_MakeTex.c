@@ -14,7 +14,11 @@ void RFLiSetupCopyTex(GXTexFmt fmt, u16 width, u16 height, void* buffer, GXColor
     GXSetZMode(TRUE, GX_LEQUAL, TRUE);
     GXSetPixelFmt(GX_PF_RGBA6_Z24, GX_ZC_LINEAR);
     GXSetCopyFilter(FALSE, NULL, FALSE, NULL);
+#ifdef GALAXY_NATIVE
+    GXSetCopyClamp(GX_CLAMP_ALL);
+#else
     GXSetCopyClamp(3);
+#endif
     GXSetTexCopySrc(0, 0, width, height);
     GXSetTexCopyDst(width, height, fmt, FALSE);
     GXSetCopyClear(clearColor, 0xFFFFFF);
@@ -264,23 +268,43 @@ void RFLiMakeTexture(const RFLiCharInfo* info, u8** buffers, RFLResolution resol
         }
 
         if (*eyeBuf[i] == NULL) {
+#ifdef GALAXY_NATIVE
+            *eyeBuf[i] = static_cast< u8* >(RFLiAlloc32(eyeSize));
+#else
             *eyeBuf[i] = RFLiAlloc32(eyeSize);
+#endif
         }
 
         if (*mouthBuf[i] == NULL) {
+#ifdef GALAXY_NATIVE
+            *mouthBuf[i] = static_cast< u8* >(RFLiAlloc32(mouthSize));
+#else
             *mouthBuf[i] = RFLiAlloc32(mouthSize);
+#endif
         }
 
         if (eyebrowNormal == NULL) {
+#ifdef GALAXY_NATIVE
+            eyebrowNormal = static_cast< u8* >(RFLiAlloc32(eyebrowSize));
+#else
             eyebrowNormal = RFLiAlloc32(eyebrowSize);
+#endif
         }
 
         if (mustacheNormal == NULL) {
+#ifdef GALAXY_NATIVE
+            mustacheNormal = static_cast< u8* >(RFLiAlloc32(mustacheSize));
+#else
             mustacheNormal = RFLiAlloc32(mustacheSize);
+#endif
         }
 
         if (moleNormal == NULL) {
+#ifdef GALAXY_NATIVE
+            moleNormal = static_cast< u8* >(RFLiAlloc32(moleSize));
+#else
             moleNormal = RFLiAlloc32(moleSize);
+#endif
         }
 
         if (*eyeTex[i] == NULL) {
@@ -451,9 +475,18 @@ void RFLiMakeTexture(const RFLiCharInfo* info, u8** buffers, RFLResolution resol
 void RFLiInitRFLTexture(RFLiTexObj* tobj) {
     RFLiTexture* tex = tobj->texture;
 
+#ifdef GALAXY_NATIVE
+    GXInitTexObj(&tobj->tobj, RFLiGetTexImage(tex), tex->width, tex->height, static_cast< GXTexFmt >(tex->format), GX_CLAMP, GX_CLAMP, FALSE);
+#else
     GXInitTexObj(&tobj->tobj, RFLiGetTexImage(tex), tex->width, tex->height, tex->format, GX_CLAMP, GX_CLAMP, FALSE);
+#endif
+#ifdef GALAXY_NATIVE
+    GXInitTexObjLOD(&tobj->tobj, static_cast< GXTexFilter >(tex->minFilt), static_cast< GXTexFilter >(tex->magFilt), tex->minLOD, tex->maxLOD,
+                    tex->lodBias, tex->enableBiasClamp, tex->enableEdgeLOD, static_cast< GXAnisotropy >(tex->enableMaxAniso));
+#else
     GXInitTexObjLOD(&tobj->tobj, tex->minFilt, tex->magFilt, tex->minLOD, tex->maxLOD, tex->lodBias, tex->enableBiasClamp, tex->enableEdgeLOD,
                     tex->enableMaxAniso);
+#endif
 }
 
 void RFLiSetup2DCameraAndParam(void) {
@@ -478,7 +511,11 @@ void RFLiSetup2DCameraAndParam(void) {
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_S16, 8);
     GXSetNumChans(1);
+#ifdef GALAXY_NATIVE
+    GXSetChanCtrl(GX_COLOR0A0, FALSE, GX_SRC_REG, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+#else
     GXSetChanCtrl(GX_COLOR0A0, FALSE, GX_SRC_REG, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, 2);
+#endif
     GXSetNumTexGens(1);
     GXSetTexCoordScaleManually(GX_TEXCOORD0, FALSE, 1, 1);
     GXSetTexCoordCylWrap(GX_TEXCOORD0, FALSE, FALSE);

@@ -1,4 +1,7 @@
 #include "JSystem/JAudio2/dspproc.hpp"
+#ifdef GALAXY_NATIVE
+#include "JSystem/JAudio2/osdsp_task.hpp"
+#endif
 #include <private/flipper.h>
 #include <revolution/dsp.h>
 
@@ -153,7 +156,11 @@ extern "C" void __DSPHandler(__OSInterrupt interrupt, OSContext* pContext) {
 
 static JASDspAddr sync_stack[5];
 
+#ifdef GALAXY_NATIVE
+void DsyncFrame2(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
+#else
 void DsyncFrame2(u32 param_0, u32 param_1, u32 param_2) {
+#endif
     if (DspRunningStatus != 1) {
         OSReport("Yield中です\n");
         sync_stack[0] = param_0;
@@ -167,7 +174,11 @@ void DsyncFrame2(u32 param_0, u32 param_1, u32 param_2) {
     sPendingFrameMode = 0;
 }
 
+#ifdef GALAXY_NATIVE
+void DsyncFrame3(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr param_3, JASDspAddr param_4) {
+#else
 void DsyncFrame3(u32 param_0, u32 param_1, u32 param_2, u32 param_3, u32 param_4) {
+#endif
     if (DspRunningStatus != 1) {
         sync_stack[0] = param_0;
         sPendingFrameMode = 2;

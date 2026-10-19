@@ -1,4 +1,7 @@
 #include "RVLFaceLibInternal.h"
+#ifdef GALAXY_NATIVE
+#include "rfl_native.h"
+#endif
 #include <revolution/nand.h>
 #include <cstdio>
 

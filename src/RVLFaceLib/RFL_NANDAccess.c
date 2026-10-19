@@ -181,9 +181,17 @@ static void retry_(u32 arg, u8 retryCount, RFLiExCallback callback) {
     RFLiAccessInfo* info;
 
     if (retryCount < MAX_RETRY_COUNT) {
+#ifdef GALAXY_NATIVE
+        info = RFLiGetAccInfo((RFLiFileType)arg);
+#else
         info = RFLiGetAccInfo(arg);
+#endif
         info->retryCallback = callback;
+#ifdef GALAXY_NATIVE
+        info->alarmData = (RFLiFileType)arg;
+#else
         info->alarmData = arg;
+#endif
         info->retryCount = retryCount;
 
         OSCancelAlarm(&info->alarm);
@@ -613,9 +621,21 @@ static void retryWrite_(u32 arg) {
     NANDFileInfo* file;
     s32 reason;
 
+#ifdef GALAXY_NATIVE
+    info = RFLiGetAccInfo((RFLiFileType)arg);
+#else
     info = RFLiGetAccInfo(arg);
+#endif
+#ifdef GALAXY_NATIVE
+    block = RFLiSetCommandBlock((RFLiFileType)arg, RFLiAsyncTag_WriteAsync);
+#else
     block = RFLiSetCommandBlock(arg, RFLiAsyncTag_WriteAsync);
+#endif
+#ifdef GALAXY_NATIVE
+    file = RFLiGetWorkingFile((RFLiFileType)arg);
+#else
     file = RFLiGetWorkingFile(arg);
+#endif
 
     reason = NANDWriteAsync(file, info->writeInfo.src, info->writeInfo.size,
                             writecallback_, block);
@@ -687,9 +707,21 @@ static void retryWriteSeek_(u32 arg) {
     NANDFileInfo* file;
     s32 reason;
 
+#ifdef GALAXY_NATIVE
+    info = RFLiGetAccInfo((RFLiFileType)arg);
+#else
     info = RFLiGetAccInfo(arg);
+#endif
+#ifdef GALAXY_NATIVE
+    block = RFLiSetCommandBlock((RFLiFileType)arg, RFLiAsyncTag_SeekAsync);
+#else
     block = RFLiSetCommandBlock(arg, RFLiAsyncTag_SeekAsync);
+#endif
+#ifdef GALAXY_NATIVE
+    file = RFLiGetWorkingFile((RFLiFileType)arg);
+#else
     file = RFLiGetWorkingFile(arg);
+#endif
 
     reason = NANDSeekAsync(file, info->writeInfo.offset, 0,
                            writeseekcallback_, block);
@@ -718,9 +750,21 @@ static void writeseekcallback_inline(u32 arg) {
     NANDFileInfo* file;
     s32 reason;
 
+#ifdef GALAXY_NATIVE
+    block = RFLiSetCommandBlock((RFLiFileType)arg, RFLiAsyncTag_WriteAsync);
+#else
     block = RFLiSetCommandBlock(arg, RFLiAsyncTag_WriteAsync);
+#endif
+#ifdef GALAXY_NATIVE
+    info = RFLiGetAccInfo((RFLiFileType)arg);
+#else
     info = RFLiGetAccInfo(arg);
+#endif
+#ifdef GALAXY_NATIVE
+    file = RFLiGetWorkingFile((RFLiFileType)arg);
+#else
     file = RFLiGetWorkingFile(arg);
+#endif
     reason = NANDWriteAsync(file, info->writeInfo.src, info->writeInfo.size,
                             writecallback_, block);
     switch (reason) {
@@ -830,8 +874,16 @@ static s32 closecore_(u32 arg) {
     NANDCommandBlock* block;
     NANDFileInfo* info;
 
+#ifdef GALAXY_NATIVE
+    block = RFLiSetCommandBlock((RFLiFileType)arg, RFLiAsyncTag_CloseAsync);
+#else
     block = RFLiSetCommandBlock(arg, RFLiAsyncTag_CloseAsync);
+#endif
+#ifdef GALAXY_NATIVE
+    info = RFLiGetWorkingFile((RFLiFileType)arg);
+#else
     info = RFLiGetWorkingFile(arg);
+#endif
 
     return NANDSafeCloseAsync(info, closecallback_, block);
 }

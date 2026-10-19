@@ -779,7 +779,11 @@ RFL_HEADER_STATIC void RFLiCreateHeaderCRCAsync(RFLiExCallback callback) {
 
     mgr->crcInfo.head = mgr->database;
     mgr->crcInfo.size = sizeof(RFLiDatabase);
+#ifdef GALAXY_NATIVE
+    mgr->crcInfo.current = (u8*)mgr->crcInfo.head;
+#else
     mgr->crcInfo.current = mgr->crcInfo.head;
+#endif
     mgr->crcInfo.count = 0;
     mgr->crcInfo.crc = 0;
     mgr->crcInfo.callback = callback;
@@ -847,7 +851,11 @@ RFL_HEADER_STATIC void RFLiCheckHeaderCRCAsync(RFLiExCallback callback) {
 
     mgr->crcInfo.head = mgr->database;
     mgr->crcInfo.size = sizeof(RFLiDatabase);
+#ifdef GALAXY_NATIVE
+    mgr->crcInfo.current = (u8*)mgr->crcInfo.head;
+#else
     mgr->crcInfo.current = mgr->crcInfo.head;
+#endif
     mgr->crcInfo.count = 0;
     mgr->crcInfo.crc = 0;
     mgr->crcInfo.callback = callback;

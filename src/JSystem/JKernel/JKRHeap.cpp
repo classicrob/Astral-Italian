@@ -75,8 +75,13 @@ bool JKRHeap::initArena(char** memory, u32* size, int maxHeaps) {
 
     arenaStart = OSInitAlloc(arenaLo, arenaHi, maxHeaps);
     OSBootInfo* code = (OSBootInfo*)OSPhysicalToCached(0);
+#ifdef GALAXY_NATIVE
+    ramStart = ROUND_UP_PTR(arenaStart, 32);
+    ramEnd = reinterpret_cast< void* >(reinterpret_cast< uintptr_t >(arenaHi) & ~uintptr_t(31));
+#else
     ramStart = (void*)(((u32)arenaStart + 31) & 0xFFFFFFE0);
     ramEnd = (void*)((u32)arenaHi & 0xFFFFFFE0);
+#endif
 
     JKRHeap::mCodeStart = code;
     JKRHeap::mCodeEnd = ramStart;

@@ -53,6 +53,7 @@ void PSMTXMultVecSR(const Mtx, const Vec*, Vec*);
 void PSMTXMultVecArraySR(const Mtx, const Vec*, Vec*, u32);
 
 u32 PSMTXInverse(const Mtx, Mtx);
+u32 PSMTXInvXpose(const Mtx, Mtx);
 
 void PSMTXMultVec(const Mtx, const Vec*, Vec*);
 

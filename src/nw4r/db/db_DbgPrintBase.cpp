@@ -2,7 +2,11 @@
 #include "nw4r/ut/TextWriterBase.h"
 #include <cstdio>
 #include <cstring>
+#ifdef GALAXY_NATIVE
+#include <petari/utf16.h>
+#else
 #include <wchar_io.h>
+#endif
 #include <revolution/gx.h>
 #include <revolution/mtx.h>
 

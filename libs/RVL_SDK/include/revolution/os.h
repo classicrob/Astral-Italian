@@ -12,6 +12,10 @@ extern "C" {
 
 #define OSHalt(msg) OSPanic(__FILE__, __LINE__, msg)
 
+#ifdef GALAXY_NATIVE
+extern uintptr_t __MEM2End;
+#endif
+
 #ifdef __MWERKS__
 u32 __MEM2End : (0x8000 << 16 | 0x3128);
 #endif

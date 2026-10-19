@@ -5,8 +5,8 @@
 #ifdef GALAXY_NATIVE
 // Host pointers do not fit the DSP's 32-bit mails; the native DSP device
 // (native/platform/audio) hands out 32-bit handles for them.
-extern "C" u32 PetariNativeDspAddressHandle(uintptr_t address);
-#define DSP_MAIL_ADDR(address) PetariNativeDspAddressHandle(address)
+#include <petari/platform/dsp.hpp>
+#define DSP_MAIL_ADDR(address) PetariNative::Platform::DSP::addressHandle(address)
 #else
 #define DSP_MAIL_ADDR(address) (address)
 #endif
@@ -40,10 +40,17 @@ static void setup_callback(u16 param_0) {
 void DsetupTable(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr param_3, JASDspAddr param_4) {
     u32 table[5];
     table[0] = (param_0 & 0xFFFF) | 0x81000000;
+#ifdef GALAXY_NATIVE
+    table[1] = DSP_MAIL_ADDR(param_1);
+    table[2] = DSP_MAIL_ADDR(param_2);
+    table[3] = DSP_MAIL_ADDR(param_3);
+    table[4] = DSP_MAIL_ADDR(param_4);
+#else
     table[1] = param_1;
     table[2] = param_2;
     table[3] = param_3;
     table[4] = param_4;
+#endif
     OSReport("Table Setup\n");
 
     flag = TRUE;
@@ -61,8 +68,13 @@ void DsetMixerLevel(f32 level) {
 void DsyncFrame2ch(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
     u32 msgs[5];
     msgs[0] = (param_0 & 0xff) << 0x10 | 0x82000000 | DSP_MIXERLEVEL;
+#ifdef GALAXY_NATIVE
+    msgs[1] = DSP_MAIL_ADDR(param_1);
+    msgs[2] = DSP_MAIL_ADDR(param_2);
+#else
     msgs[1] = param_1;
     msgs[2] = param_2;
+#endif
     msgs[3] = 0;
     msgs[4] = 0;
     DSPSendCommands2(msgs, 5, 0);
@@ -71,10 +83,17 @@ void DsyncFrame2ch(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
 void DsyncFrame4ch(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr param_3, JASDspAddr param_4) {
     u32 msgs[5];
     msgs[0] = (param_0 & 0xff) << 0x10 | 0x82000000 | DSP_MIXERLEVEL;
+#ifdef GALAXY_NATIVE
+    msgs[1] = DSP_MAIL_ADDR(param_1);
+    msgs[2] = DSP_MAIL_ADDR(param_2);
+    msgs[3] = DSP_MAIL_ADDR(param_3);
+    msgs[4] = DSP_MAIL_ADDR(param_4);
+#else
     msgs[1] = param_1;
     msgs[2] = param_2;
     msgs[3] = param_3;
     msgs[4] = param_4;
+#endif
     DSPSendCommands2(msgs, 5, 0);
 }
 
@@ -86,7 +105,11 @@ static void dummy_callback(u16 param_0) {
 void DsetVARAM(JASDspAddr param_0) {
     u32 msgs[2];
     msgs[0] = 0x8E000000;
+#ifdef GALAXY_NATIVE
+    msgs[1] = DSP_MAIL_ADDR(param_0);
+#else
     msgs[1] = param_0;
+#endif
 
     d_waitflag = TRUE;
     DSPSendCommands2(msgs, 2, dummy_callback);

@@ -43,6 +43,22 @@ namespace nw4r {
             va_end(vlist);
         }
 
+#ifdef GALAXY_NATIVE
+        static void ShowStack_() {
+            Assertion_Printf_("-------------------------------- TRACE\n");
+            void* frames[16];
+            const int count = backtrace(frames, 16);
+            for (int i = 0; i < count; ++i) {
+                Dl_info info = {};
+                if (dladdr(frames[i], &info) != 0 && info.dli_sname != NULL) {
+                    const uintptr_t offset = reinterpret_cast< uintptr_t >(frames[i]) - reinterpret_cast< uintptr_t >(info.dli_saddr);
+                    Assertion_Printf_("%p: %s + 0x%llX\n", frames[i], info.dli_sname, static_cast< unsigned long long >(offset));
+                } else {
+                    Assertion_Printf_("%p\n", frames[i]);
+                }
+            }
+        }
+#else
         static void ShowStack_(u32 sp) {
             Assertion_Printf_("-------------------------------- TRACE\n");
             u32 i;
@@ -64,8 +80,12 @@ namespace nw4r {
             return;
         }
 
+#endif
+
         NW4R_DB_WEAK void VPanic(const char* file, int line, const char* fmt, va_list vlist, bool halt) {
-#ifndef GALAXY_NATIVE
+#ifdef GALAXY_NATIVE
+            ShowStack_();
+#else
             register u32 stackPointer;
             asm {
         mr  stackPointer, r1
@@ -78,7 +98,9 @@ namespace nw4r {
             (void)VISetPreRetraceCallback(NULL);
             (void)VISetPostRetraceCallback(NULL);
 
+#ifndef GALAXY_NATIVE
             ShowStack_(stackPointer);
+#endif
 
             if (sAssertionConsole) {
                 Console_Printf(sAssertionConsole, "%s:%d Panic:", file, line);

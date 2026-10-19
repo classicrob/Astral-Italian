@@ -273,9 +273,17 @@ void J3DAnmFullLoader_v15::setAnmVtxColor(J3DAnmVtxColorFull* dst, const J3DAnmV
     void* indexPtr1 = JSUConvertOffsetToPtr< u16 >(data, data->mVtxColorIndexPointerOffsets[1]);
 
     for (s32 i = 0; i < dst->mAnmTableNum[0]; i++)
+#ifdef GALAXY_NATIVE
+        dst->mAnmVtxColorIndexData[0][i].mpData = static_cast< u16* >(indexPtr0) + reinterpret_cast< uintptr_t >(dst->mAnmVtxColorIndexData[0][i].mpData);
+#else
         dst->mAnmVtxColorIndexData[0][i].mpData = (void*)((s32)indexPtr0 + (s32)dst->mAnmVtxColorIndexData[0][i].mpData * 2);
+#endif
     for (s32 i = 0; i < dst->mAnmTableNum[1]; i++)
+#ifdef GALAXY_NATIVE
+        dst->mAnmVtxColorIndexData[1][i].mpData = static_cast< u16* >(indexPtr1) + reinterpret_cast< uintptr_t >(dst->mAnmVtxColorIndexData[1][i].mpData);
+#else
         dst->mAnmVtxColorIndexData[1][i].mpData = (void*)((s32)indexPtr1 + (s32)dst->mAnmVtxColorIndexData[1][i].mpData * 2);
+#endif
 
     dst->mColorR = JSUConvertOffsetToPtr< u8 >(data, data->mRValuesOffset);
     dst->mColorG = JSUConvertOffsetToPtr< u8 >(data, data->mGValuesOffset);
@@ -471,9 +479,17 @@ void J3DAnmKeyLoader_v15::setAnmVtxColor(J3DAnmVtxColorKey* dst, const J3DAnmVtx
     void* indexPtr1 = JSUConvertOffsetToPtr< u16 >(data, data->mVtxColoIndexPointerOffset[1]);
 
     for (s32 i = 0; i < dst->mAnmTableNum[0]; i++)
+#ifdef GALAXY_NATIVE
+        dst->mAnmVtxColorIndexData[0][i].mpData = static_cast< u16* >(indexPtr0) + reinterpret_cast< uintptr_t >(dst->mAnmVtxColorIndexData[0][i].mpData);
+#else
         dst->mAnmVtxColorIndexData[0][i].mpData = (void*)((s32)indexPtr0 + (s32)dst->mAnmVtxColorIndexData[0][i].mpData * 2);
+#endif
     for (s32 i = 0; i < dst->mAnmTableNum[1]; i++)
+#ifdef GALAXY_NATIVE
+        dst->mAnmVtxColorIndexData[1][i].mpData = static_cast< u16* >(indexPtr1) + reinterpret_cast< uintptr_t >(dst->mAnmVtxColorIndexData[1][i].mpData);
+#else
         dst->mAnmVtxColorIndexData[1][i].mpData = (void*)((s32)indexPtr1 + (s32)dst->mAnmVtxColorIndexData[1][i].mpData * 2);
+#endif
 
     dst->mColorR = JSUConvertOffsetToPtr< s16 >(data, data->mRValOffset);
     dst->mColorG = JSUConvertOffsetToPtr< s16 >(data, data->mGValOffset);

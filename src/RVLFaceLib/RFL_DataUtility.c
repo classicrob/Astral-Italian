@@ -288,7 +288,10 @@ RFLErrcode RFLGetAdditionalInfoWithSanitizedNames(RFLAdditionalInfo* addi, RFLDa
 }
 #pragma dont_inline reset
 
-static BOOL RFLiCheckBirthday(u8 month, u8 day) {
+#ifndef GALAXY_NATIVE
+static
+#endif
+BOOL RFLiCheckBirthday(u8 month, u8 day) {
     // (One-indexed)
     static const u8 scDayMax[12 + 1] = {0,  31, 29, 31, 30, 31, 30,
                                         31, 31, 30, 31, 30, 31};

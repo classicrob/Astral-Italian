@@ -839,14 +839,27 @@ bool JKRExpHeap::dump_sort() {
     } else {
         CMemBlock* previousBlock = nullptr;
         while (true) {
+#ifdef GALAXY_NATIVE
+            CMemBlock* block = reinterpret_cast< CMemBlock* >(UINTPTR_MAX);
+#else
             CMemBlock* block = reinterpret_cast< CMemBlock* >(0xffffffff);
+#endif
             for (CMemBlock* iterBlock = mHeadUsedList; iterBlock; iterBlock = iterBlock->mNext) {
+#ifdef GALAXY_NATIVE
+                if (reinterpret_cast< uintptr_t >(previousBlock) < reinterpret_cast< uintptr_t >(iterBlock) &&
+                    reinterpret_cast< uintptr_t >(iterBlock) < reinterpret_cast< uintptr_t >(block)) {
+#else
                 if (previousBlock < iterBlock && iterBlock < block) {
+#endif
                     block = iterBlock;
                 }
             }
 
+#ifdef GALAXY_NATIVE
+            if (reinterpret_cast< uintptr_t >(block) == UINTPTR_MAX) {
+#else
             if (reinterpret_cast< u32 >(block) == 0xffffffff) {
+#endif
                 break;
             }
 
@@ -961,10 +974,18 @@ void JKRExpHeap::state_register(JKRHeap::TState* p, u32 id) const {
     for (CMemBlock* block = mHeadUsedList; block; block = block->mNext) {
         if (id <= 0xff) {
             if (block->mGroupId == id) {
+#ifdef GALAXY_NATIVE
+                checkCode += static_cast< u32 >(reinterpret_cast< uintptr_t >(block) * 3);
+#else
                 checkCode += reinterpret_cast< u32 >(block) * 3;
+#endif
             }
         } else {
+#ifdef GALAXY_NATIVE
+            checkCode += static_cast< u32 >(reinterpret_cast< uintptr_t >(block) * 3);
+#else
             checkCode += reinterpret_cast< u32 >(block) * 3;
+#endif
         }
     }
     setState_u32CheckCode_(p, checkCode);

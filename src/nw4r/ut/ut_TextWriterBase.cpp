@@ -1,5 +1,9 @@
 #include <cstdio>
+#ifdef GALAXY_NATIVE
+#include <petari/utf16.h>
+#else
 #include <wchar_io.h>
+#endif
 #include "nw4r/math/constant.h"
 #include "nw4r/ut/TextWriterBase.h"
 #include "nw4r/ut/inlines.h"
@@ -258,7 +262,11 @@ namespace nw4r {
 
         template <typename CharType>
         void TextWriterBase<CharType>::CalcVStringRect(Rect* rect, StreamType format, va_list args) const {
+#ifdef GALAXY_NATIVE
+            CharType* buffer = mFormatBuffer != NULL ? mFormatBuffer : static_cast<CharType*>(__builtin_alloca(sizeof(CharType) * mFormatBufferSize));
+#else
             CharType* buffer = mFormatBuffer != NULL ? mFormatBuffer : static_cast<CharType*>(__alloca(mFormatBufferSize));
+#endif
             int length = VSNPrintf(buffer, mFormatBufferSize, format, args);
             length = Min(length, mFormatBufferSize - 1);
             CalcStringRect(rect, buffer, length);
@@ -297,7 +305,11 @@ namespace nw4r {
         }
         template <typename CharType>
         f32 TextWriterBase<CharType>::VPrintf(StreamType format, va_list args) {
+#ifdef GALAXY_NATIVE
+            CharType* buffer = mFormatBuffer != NULL ? mFormatBuffer : static_cast<CharType*>(__builtin_alloca(sizeof(CharType) * mFormatBufferSize));
+#else
             CharType* buffer = mFormatBuffer != NULL ? mFormatBuffer : static_cast<CharType*>(__alloca(mFormatBufferSize));
+#endif
             int length = VSNPrintf(buffer, mFormatBufferSize, format, args);
             return Print(buffer, Min(length, mFormatBufferSize - 1));
         }
@@ -311,7 +323,11 @@ namespace nw4r {
         }
         template <typename CharType>
         f32 TextWriterBase<CharType>::VPrintfMutable(StreamType format, va_list args) {
+#ifdef GALAXY_NATIVE
+            CharType* buffer = mFormatBuffer != NULL ? mFormatBuffer : static_cast<CharType*>(__builtin_alloca(sizeof(CharType) * mFormatBufferSize));
+#else
             CharType* buffer = mFormatBuffer != NULL ? mFormatBuffer : static_cast<CharType*>(__alloca(mFormatBufferSize));
+#endif
             int length = VSNPrintf(buffer, mFormatBufferSize, format, args);
             return PrintMutable(buffer, Min(length, mFormatBufferSize - 1));
         }

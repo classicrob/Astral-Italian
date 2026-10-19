@@ -86,7 +86,11 @@ void JKRAramPiece::startDMA(JKRAMCommand* command) {
         DCStoreRange(reinterpret_cast<void*>(command->mSrc), command->mDataLength);
     }
     ARStartDMA(command->mTransferDirection, command->mSrc, command->mDst, command->mDataLength);
+#ifdef GALAXY_NATIVE
+    doneDMA(reinterpret_cast< uintptr_t >(command));
+#else
     doneDMA(reinterpret_cast<u32>(command));
+#endif
 }
 
 void JKRAramPiece::doneDMA(uintptr_t requestAddress) {

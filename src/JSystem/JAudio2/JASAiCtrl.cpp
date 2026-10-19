@@ -200,7 +200,12 @@ void JASDriver::finishDSPFrame() {
     JASAudioThread::setDSPSyncCount(getSubFrames());
     JASProbe::start(7, "DSP-MAIN");
     u32 r27 = getFrameSamples();
+#ifdef GALAXY_NATIVE
+    JASDsp::syncFrame(getSubFrames(), reinterpret_cast<JASDspAddr>(sDspDacBuffer[sDspDacWriteBuffer]),
+                      reinterpret_cast<JASDspAddr>(sDspDacBuffer[sDspDacWriteBuffer] + r27));
+#else
     JASDsp::syncFrame(getSubFrames(), u32(sDspDacBuffer[sDspDacWriteBuffer]), u32(sDspDacBuffer[sDspDacWriteBuffer] + r27));
+#endif
     sDspStatus = 1;
     updateDSP();
     if (sDspDacCallback) {

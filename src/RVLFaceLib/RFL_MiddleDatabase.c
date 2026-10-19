@@ -99,7 +99,11 @@ static BOOL checkHiddenData_(RFLiHiddenCharData* data) {
     return RFLiCheckValidInfo(&info) ? TRUE : FALSE;
 }
 
+#ifdef GALAXY_NATIVE
+static void updateHDBcallback_(uintptr_t arg) {
+#else
 static void updateHDBcallback_(u32 arg) {
+#endif
     RFLErrcode err;
     HiddenNewOldParam* nparam;
     RFLiMiddleDB* db;
@@ -127,9 +131,15 @@ static void updateHDBcallback_(u32 arg) {
         if (src >= 0 && nparam->dstIdx < db->size) {
             nparam->srcIdx = src;
 
+#ifdef GALAXY_NATIVE
+            err = RFLiLoadHiddenDataAsync(&db->data[db->storedSize],
+                                          nparam->srcIdx, updateHDBcallback_,
+                                          reinterpret_cast<uintptr_t>(db));
+#else
             err = RFLiLoadHiddenDataAsync(&db->data[db->storedSize],
                                           nparam->srcIdx, updateHDBcallback_,
                                           (u32)db);
+#endif
 
             if (err != RFLErrcode_Busy) {
                 RFLiEndWorking(err);
@@ -234,9 +244,15 @@ static void updateHiddenOld_(RFLiMiddleDB* db, BOOL oldIsHead, BOOL cache) {
         if (cache) {
             loadHiddenDataSync_(db);
         } else {
+#ifdef GALAXY_NATIVE
+            RFLErrcode err = RFLiLoadHiddenDataAsync(
+                &db->data[nparam->dstIdx], nparam->srcIdx, updateHDBcallback_,
+                reinterpret_cast<uintptr_t>(db));
+#else
             RFLErrcode err = RFLiLoadHiddenDataAsync(
                 &db->data[nparam->dstIdx], nparam->srcIdx, updateHDBcallback_,
                 (u32)db);
+#endif
 
             if (err != RFLErrcode_Busy) {
                 RFLiEndWorking(err);
@@ -282,7 +298,11 @@ static void loadHiddenRandomSync_(RFLiMiddleDB* db) {
         db->storedSize < db->size ? RFLErrcode_DBNodata : RFLErrcode_Success;
 }
 
+#ifdef GALAXY_NATIVE
+static void updateHDBRandcallback_(uintptr_t arg) {
+#else
 static void updateHDBRandcallback_(u32 arg) {
+#endif
     RFLiMiddleDB* db = (RFLiMiddleDB*)arg;
     HiddenRandomParam* hparam = (HiddenRandomParam*)&db->userData1;
     u32* src;
@@ -303,8 +323,13 @@ static void updateHDBRandcallback_(u32 arg) {
             if (*src < RFLi_HDB_DATA_MAX) {
                 u16 srcIdx = *src - 1;
                 RFLErrcode err =
+#ifdef GALAXY_NATIVE
+                    RFLiLoadHiddenDataAsync(&db->data[db->storedSize], srcIdx,
+                                            updateHDBRandcallback_, reinterpret_cast<uintptr_t>(db));
+#else
                     RFLiLoadHiddenDataAsync(&db->data[db->storedSize], srcIdx,
                                             updateHDBRandcallback_, (u32)db);
+#endif
 
                 if (err != RFLErrcode_Busy) {
                     RFLiEndWorking(err);
@@ -410,8 +435,13 @@ static void updateHiddenRandom_(RFLiMiddleDB* db, BOOL cache) {
                 loadHiddenRandomSync_(db);
             } else {
                 RFLErrcode err =
+#ifdef GALAXY_NATIVE
+                    RFLiLoadHiddenDataAsync(&db->data[hparam->dstIdx], srcIdx,
+                                            updateHDBRandcallback_, reinterpret_cast<uintptr_t>(db));
+#else
                     RFLiLoadHiddenDataAsync(&db->data[hparam->dstIdx], srcIdx,
                                             updateHDBRandcallback_, (u32)db);
+#endif
 
                 if (err != RFLErrcode_Busy) {
                     RFLiEndWorking(err);

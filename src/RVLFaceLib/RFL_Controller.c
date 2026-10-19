@@ -29,15 +29,27 @@ void RFLiInitCtrlBuf(MEMiHeapHead* heap) {
     mgr = RFLiGetCtrlBufManager();
 
     for (i = 0; i < 4; i++) {
+#ifdef GALAXY_NATIVE
+        mgr->buffer[i] = static_cast<RFLiCtrlBuf*>(MEMAllocFromExpHeapEx(heap, sizeof(RFLiCtrlBuf), 32));
+#else
         mgr->buffer[i] = MEMAllocFromExpHeapEx(heap, sizeof(RFLiCtrlBuf), 32);
+#endif
         clearDatabase_(mgr->buffer[i]);
         mgr->loaded[i] = FALSE;
     }
 
+#ifdef GALAXY_NATIVE
+    mgr->replaceBuf[0] = static_cast<RFLiCtrlBuf*>(MEMAllocFromExpHeapEx(heap, sizeof(RFLiCtrlBuf), 32));
+#else
     mgr->replaceBuf[0] = MEMAllocFromExpHeapEx(heap, sizeof(RFLiCtrlBuf), 32);
+#endif
     clearDatabase_(mgr->replaceBuf[0]);
 
+#ifdef GALAXY_NATIVE
+    mgr->replaceBuf[1] = static_cast<RFLiCtrlBuf*>(MEMAllocFromExpHeapEx(heap, sizeof(RFLiCtrlBuf), 32));
+#else
     mgr->replaceBuf[1] = MEMAllocFromExpHeapEx(heap, sizeof(RFLiCtrlBuf), 32);
+#endif
     clearDatabase_(mgr->replaceBuf[1]);
 
     mgr->readBuffer = NULL;
@@ -156,7 +168,11 @@ static void readcallback_(s32 chan, s32 result) {
     switch (result) {
     case WPAD_RESULT_SUCCESS:
         validBuf = NULL;
+#ifdef GALAXY_NATIVE
+        buf = static_cast<RFLiCtrlBuf*>(mgr->tempBuffer);
+#else
         buf = mgr->tempBuffer;
+#endif
 
         // First block
         if (checkCRC_(buf)) {
@@ -221,7 +237,11 @@ static void readbuffer_(s32 chan, RFLiCtrlBuf* dst, BOOL ch) {
         return;
     }
 
+#ifdef GALAXY_NATIVE
+    buf = static_cast<RFLiCtrlBuf*>(RFLiAlloc32(sizeof(RFLiCtrlBuf) * RFLi_CTRL_REPLACE_BUF_NUM));
+#else
     buf = RFLiAlloc32(sizeof(RFLiCtrlBuf) * RFLi_CTRL_REPLACE_BUF_NUM);
+#endif
     mgr->tempBuffer = buf;
     mgr->readBuffer = dst;
     mgr->readIsChMode = ch;

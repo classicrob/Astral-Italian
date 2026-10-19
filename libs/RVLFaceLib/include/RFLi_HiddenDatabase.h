@@ -3,11 +3,17 @@
 #include "RFLi_Format.h"
 #include "RFLi_Types.h"
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include <stdint.h>
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define RFLi_HDB_DATA_MAX 10000
+#ifdef GALAXY_NATIVE
+typedef void (*RFLiHiddenDBCallback)(uintptr_t);
+#endif
 
 // Forward declarations
 typedef struct RFLiCtrlBuf;
@@ -38,8 +44,13 @@ typedef struct RFLiHDBManager {
     s16 formatIndex;              // at 0x1C
     RFLiHiddenCharData* loadDst;  // at 0x20
     void* loadTmp;                // at 0x24
+#ifdef GALAXY_NATIVE
+    uintptr_t loadArg;
+    RFLiHiddenDBCallback loadCb;
+#else
     u32 loadArg;                  // at 0x28
     RFLiExCallback loadCb;        // at 0x2C
+#endif
     u16 loadIndex;                // at 0x30
     RFLiHiddenCharData* cachedDB; // at 0x34
     BOOL cached;                  // at 0x38
@@ -47,8 +58,13 @@ typedef struct RFLiHDBManager {
 } RFLiHDBManager;
 
 void RFLiInitHiddenDatabase(void);
+#ifdef GALAXY_NATIVE
+RFLErrcode RFLiLoadHiddenDataAsync(RFLiHiddenCharData* data, u16 index,
+                                   RFLiHiddenDBCallback cb, uintptr_t arg);
+#else
 RFLErrcode RFLiLoadHiddenDataAsync(RFLiHiddenCharData* data, u16 index,
                                    RFLiExCallback cb, u32 arg);
+#endif
 RFLErrcode RFLiLoadCachedHiddenData(RFLiHiddenCharData* data, u16 index);
 RFLErrcode RFLiWriteCtrlToHiddenDB(const struct RFLiCtrlBuf* buf, BOOL ch);
 s32 RFLiSearchHiddenData(const RFLCreateID* id);

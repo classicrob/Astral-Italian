@@ -195,13 +195,18 @@ void JKRDecomp::decodeSZP(u8* src, u8* dst, u32 srcLength, u32 dstLength) {
 
 // The Yaz0 header is big-endian.
 #ifdef GALAXY_NATIVE
-#define JKR_DECOMP_SZS_HEADER_U32(ptr, offset) READU32_BE(ptr, offset)
+#include <petari/endian.hpp>
+#define JKR_DECOMP_SZS_HEADER_U32(ptr, offset) PetariNative::readU32BE((ptr) + (offset))
 #else
 #define JKR_DECOMP_SZS_HEADER_U32(ptr, offset) (*(u32*)((ptr) + (offset)))
 #endif
 
 void JKRDecomp::decodeSZS(u8* pSrc, u8* pDst, u32 compressedSize, u32 a4) {
+#ifdef GALAXY_NATIVE
+    uintptr_t decompSize = reinterpret_cast< uintptr_t >(pDst) + JKR_DECOMP_SZS_HEADER_U32(pSrc, 4) - a4;
+#else
     u32 decompSize = ((s32)pDst + *(u32*)(pSrc + 4)) - a4;
+#endif
     u8* copySrc;
     s32 validBitCount = 0;
     u32 curBlock;
@@ -210,7 +215,11 @@ void JKRDecomp::decodeSZS(u8* pSrc, u8* pDst, u32 compressedSize, u32 a4) {
         return;
     }
 
+#ifdef GALAXY_NATIVE
+    if (a4 > JKR_DECOMP_SZS_HEADER_U32(pSrc, 0)) {
+#else
     if (a4 > *(u32*)pSrc) {
+#endif
         return;
     }
 

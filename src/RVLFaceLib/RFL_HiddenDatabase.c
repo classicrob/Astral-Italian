@@ -33,7 +33,11 @@ static void loadcallback_(void) {
     RFLiHDBManager* mgr = RFLiGetHDBManager();
 
     if (RFLGetAsyncStatus() == RFLErrcode_Success) {
+#ifdef GALAXY_NATIVE
+        RFLiHiddenCharData* data = static_cast<RFLiHiddenCharData*>(mgr->loadTmp);
+#else
         RFLiHiddenCharData* data = mgr->loadTmp;
+#endif
         RFLiCharInfo info;
 
         if (RFLiIsSameID(
@@ -81,8 +85,13 @@ static void loadopencallback_(void) {
     }
 }
 
+#ifdef GALAXY_NATIVE
+RFLErrcode RFLiLoadHiddenDataAsync(RFLiHiddenCharData* data, u16 index,
+                                   RFLiHiddenDBCallback cb, uintptr_t arg) {
+#else
 RFLErrcode RFLiLoadHiddenDataAsync(RFLiHiddenCharData* data, u16 index,
                                    RFLiExCallback cb, u32 arg) {
+#endif
     RFLiHDBManager* mgr;
 
     if (index >= RFLi_HDB_DATA_MAX) {

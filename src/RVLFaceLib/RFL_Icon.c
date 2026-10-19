@@ -61,7 +61,11 @@ void RFLiMakeIcon(void* buf, RFLiCharInfo* info, RFLExpression expression, const
         resolution = RFLResolution_64;
     }
 
+#ifdef GALAXY_NATIVE
+    expFlag = (RFLExpFlag)(1 << expression);
+#else
     expFlag = 1 << expression;
+#endif
     bufSize = RFLGetModelBufferSize(resolution, expFlag);
     modelBuf = RFLiAlloc32(bufSize);
     RFLiInitCharModel(&model, info, modelBuf, resolution, expFlag);
@@ -70,14 +74,22 @@ void RFLiMakeIcon(void* buf, RFLiCharInfo* info, RFLExpression expression, const
     if (setting->bgType == RFLIconBG_Direct) {
         backColor = setting->bgColor;
     } else {
+#ifdef GALAXY_NATIVE
+        backColor = RFLGetFavoriteColor((RFLFavoriteColor)info->personal.color);
+#else
         backColor = RFLGetFavoriteColor(info->personal.color);
+#endif
     }
     backColor.a = 0;
 
     GXGetScissor(&scissorOffsetX, &scissorOffsetY, &scissorWidth, &scissorHeight);
     GXSetScissor(0, 0, setting->width, setting->height);
 
+#ifdef GALAXY_NATIVE
+    RFLiSetupCopyTex((GXTexFmt)GX_RGBA8, setting->width, setting->height, buf, backColor);
+#else
     RFLiSetupCopyTex(GX_RGBA8, setting->width, setting->height, buf, backColor);
+#endif
 
     GXGetViewportv(vp);
     GXSetViewport(0.0f, 0.0f, setting->width, setting->height, 0.0f, 1.0f);

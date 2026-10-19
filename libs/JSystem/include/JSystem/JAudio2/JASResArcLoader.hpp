@@ -24,7 +24,11 @@ namespace JASResArcLoader {
 
     u32 getResSize(JKRArchive const*, u16);
     static void loadResourceCallback(void*);
+#ifdef GALAXY_NATIVE
+    int loadResourceAsync(JKRArchive*, u16, u8*, u32, LoadCallback, uintptr_t);
+#else
     int loadResourceAsync(JKRArchive*, u16, u8*, u32, void (*)(u32, u32), u32);
+#endif
 }  // namespace JASResArcLoader
 
 enum ResArcMessage {

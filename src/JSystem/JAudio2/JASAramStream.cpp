@@ -119,7 +119,11 @@ bool JASAramStream::prepare(s32 param_0, int param_1) {
     data.stream = this;
     data._4 = _14C;
     data._8 = param_1;
+#ifdef GALAXY_NATIVE
+    if (!sLoadThread->sendCmdMsg(headerLoadTask, &data, sizeof(TaskData))) {
+#else
     if (!sLoadThread->sendCmdMsg(headerLoadTask, &data, 0xc)) {
+#endif
         JASDriver::rejectCallback(channelProcCallback, this);
         return false;
     }
@@ -188,7 +192,11 @@ void JASAramStream::firstLoadTask(void* i_data) {
 
     if (data->_4 != 0) {
         data->_4--;
+#ifdef GALAXY_NATIVE
+        if (!sLoadThread->sendCmdMsg(firstLoadTask, data, sizeof(TaskData))) {
+#else
         if (!sLoadThread->sendCmdMsg(firstLoadTask, data, 0xc)) {
+#endif
             UNK_BOOL_B = true;
         }
 
@@ -281,7 +289,11 @@ bool JASAramStream::headerLoad(u32 param_0, int param_1) {
     data.stream = this;
     data._4 = _108 - 1;
     data._8 = param_1;
+#ifdef GALAXY_NATIVE
+    if (!sLoadThread->sendCmdMsg(firstLoadTask, &data, sizeof(TaskData))) {
+#else
     if (!sLoadThread->sendCmdMsg(firstLoadTask, &data, 0xc)) {
+#endif
         UNK_BOOL_B = true;
         return false;
     }
@@ -622,7 +634,11 @@ void JASAramStream::updateChannel(u32 i_callbackType, JASChannel* i_channel, JAS
 s32 JASAramStream::channelProc() {
     OSMessage msg;
     while (OSReceiveMessage(&_020, &msg, OS_MESSAGE_NOBLOCK)) {
+#ifdef GALAXY_NATIVE
+        switch (reinterpret_cast<uintptr_t>(msg)) {
+#else
         switch ((u32)msg) {
+#endif
         case 4:
             _0AC = true;
             break;
@@ -637,12 +653,20 @@ s32 JASAramStream::channelProc() {
     }
 
     while (OSReceiveMessage(&_000, &msg, OS_MESSAGE_NOBLOCK)) {
+#ifdef GALAXY_NATIVE
+        switch (reinterpret_cast<uintptr_t>(msg) & 0xff) {
+#else
         switch ((u32)msg & 0xff) {
+#endif
         case 0:
             channelStart();
             break;
         case 1:
+#ifdef GALAXY_NATIVE
+            channelStop(static_cast<u16>((reinterpret_cast<uintptr_t>(msg) >> 16) & 0xffff));
+#else
             channelStop(JSUHiHalf((u32)msg));
+#endif
             break;
         case 2:
             _0AE |= 1;

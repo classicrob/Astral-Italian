@@ -5,6 +5,9 @@
 #include "JSystem/JAudio2/JAIStreamMgr.hpp"
 #include "JSystem/JAudio2/JASAramStream.hpp"
 #include <stdint.h>
+#ifdef GALAXY_NATIVE
+#include <revolution/os.h>
+#endif
 
 static void JAIStream_JASAramStreamCallback_(u32 type, JASAramStream* aramStream, void* userData) {
     JAIStream* stream = (JAIStream*)userData;
@@ -55,7 +58,16 @@ bool JAIStream::prepare_prepareStream_() {
 
         streamAramAddr = streamAramMgr->newStreamAram(&local_28);
         if (streamAramAddr != nullptr) {
+#ifdef GALAXY_NATIVE
+            const uintptr_t aramOffset = reinterpret_cast<uintptr_t>(streamAramAddr);
+            if (aramOffset > UINT32_MAX) {
+                OSPanic(__FILE__, __LINE__, "JAIStream: ARAM offset does not fit the stream address space");
+                return false;
+            }
+            inner_.aramStream.init(static_cast<u32>(aramOffset), local_28, &JAIStream_JASAramStreamCallback_, this);
+#else
             inner_.aramStream.init((u32)streamAramAddr, local_28, &JAIStream_JASAramStreamCallback_, this);
+#endif
             mPrepareState = 1;
             mPrepareCount = 0;
         } else {

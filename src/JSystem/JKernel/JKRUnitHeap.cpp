@@ -48,7 +48,11 @@ JKRUnitHeap* JKRUnitHeap::create(u32 unitSize, u32 size, u32 alignment, JKRHeap*
     }
 
     u8* memoryEnd = memory + size;
+#ifdef GALAXY_NATIVE
+    u8* units = static_cast< u8* >(ROUND_UP_PTR(bat + ALIGN_NEXT(unitCount / 8, 4), alignment));
+#else
     u8* units = reinterpret_cast< u8* >(ALIGN_NEXT(reinterpret_cast< u32 >(bat + ALIGN_NEXT(unitCount / 8, 4)), alignment));
+#endif
     unitCount = (memoryEnd - units) / alignedUnitSize;
     JKRUnitHeap* heap = new (memory) JKRUnitHeap(bat, units, alignedUnitSize, unitCount, memoryEnd - units, alignment, parent, errorFlag);
     if (heap == nullptr) {

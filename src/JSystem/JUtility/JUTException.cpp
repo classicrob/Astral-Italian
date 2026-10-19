@@ -189,7 +189,11 @@ void JUTException::panic_f(const char* file, int line, const char* format, ...) 
     va_list args;
     va_start(args, format);
     panic_f_va(file, line, format, args);
+#ifdef GALAXY_NATIVE
+    va_end(args);
+#else
     va_end();
+#endif
 }
 
 // Reads the IEEE sign from the most significant byte.

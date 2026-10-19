@@ -743,6 +743,113 @@ asm void __shr2u(void)
 	blr
 }
 
+asm double __cvt_sll_dbl(long long value)
+{
+    nofralloc
+    stwu r1, -0x10(r1)
+    clrrwi. r5, r3, 31
+    beq normalize
+    subfic r4, r4, 0x0
+    subfze r3, r3
+normalize:
+    or. r7, r3, r4
+    li r6, 0x0
+    beq storeResult
+    cntlzw r7, r3
+    cntlzw r8, r4
+    extlwi r9, r7, 5, 26
+    srawi r9, r9, 31
+    and r9, r9, r8
+    add r7, r7, r9
+    subfic r8, r7, 0x20
+    subic r9, r7, 0x20
+    slw r3, r3, r7
+    srw r10, r4, r8
+    or r3, r3, r10
+    slw r10, r4, r9
+    or r3, r3, r10
+    slw r4, r4, r7
+    subf r6, r7, r6
+    clrlwi r7, r4, 21
+    cmpwi r7, 0x400
+    addi r6, r6, 0x43e
+    blt packResult
+    bgt roundUp
+    rlwinm. r7, r4, 0, 20, 20
+    beq packResult
+roundUp:
+    addic r4, r4, 0x800
+    addze r3, r3
+    addze r6, r6
+packResult:
+    rotrwi r4, r4, 11
+    rlwimi r4, r3, 21, 0, 10
+    extrwi r3, r3, 20, 1
+    slwi r6, r6, 20
+    or r3, r6, r3
+    or r3, r5, r3
+storeResult:
+    stw r3, 0x8(r1)
+    stw r4, 0xc(r1)
+    lfd f1, 0x8(r1)
+    addi r1, r1, 0x10
+    blr
+}
+
+asm float __cvt_sll_flt(long long value)
+{
+    nofralloc
+    stwu r1, -0x10(r1)
+    clrrwi. r5, r3, 31
+    beq normalize
+    subfic r4, r4, 0x0
+    subfze r3, r3
+normalize:
+    or. r7, r3, r4
+    li r6, 0x0
+    beq storeResult
+    cntlzw r7, r3
+    cntlzw r8, r4
+    extlwi r9, r7, 5, 26
+    srawi r9, r9, 31
+    and r9, r9, r8
+    add r7, r7, r9
+    subfic r8, r7, 0x20
+    subic r9, r7, 0x20
+    slw r3, r3, r7
+    srw r10, r4, r8
+    or r3, r3, r10
+    slw r10, r4, r9
+    or r3, r3, r10
+    slw r4, r4, r7
+    subf r6, r7, r6
+    clrlwi r7, r4, 21
+    cmpwi r7, 0x400
+    addi r6, r6, 0x43e
+    blt packResult
+    bgt roundUp
+    rlwinm. r7, r4, 0, 20, 20
+    beq packResult
+roundUp:
+    addic r4, r4, 0x800
+    addze r3, r3
+    addze r6, r6
+packResult:
+    rotrwi r4, r4, 11
+    rlwimi r4, r3, 21, 0, 10
+    extrwi r3, r3, 20, 1
+    slwi r6, r6, 20
+    or r3, r6, r3
+    or r3, r5, r3
+storeResult:
+    stw r3, 0x8(r1)
+    stw r4, 0xc(r1)
+    lfd f1, 0x8(r1)
+    frsp f1, f1
+    addi r1, r1, 0x10
+    blr
+}
+
 asm void __cvt_dbl_usll(void)
 {
 	nofralloc

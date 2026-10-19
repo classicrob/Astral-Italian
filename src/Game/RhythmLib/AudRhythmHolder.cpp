@@ -99,13 +99,12 @@ void AudRhythmHolder::copyInfoFromParserOne(u32 type, u32 velocity, u32 noteOff,
     mInfos[type].mPausedTime = 0;
 }
 
-// PLACEHOLDER(enemies): target does fdivs on the unrounded __cvt_ull_dbl result (no frsp); every u64->f32 spelling tried either calls __cvt_ull_flt or adds frsp; resolve when the original expression is recovered
 f32 AudRhythmHolder::getPlayTimeSec(s32 index) {
-    return (f64)(u64)mInfos[index].mPlayTime / (f32)(OS_BUS_CLOCK >> 2);
+    return (f32)mInfos[index].mPlayTime / (f32)(OS_BUS_CLOCK >> 2);
 }
 
 f32 AudRhythmHolder::getPrevPlayTimeSec(s32 index) {
-    return (f64)(u64)mInfos[index].mPrevPlayTime / (f32)(OS_BUS_CLOCK >> 2);
+    return (f32)mInfos[index].mPrevPlayTime / (f32)(OS_BUS_CLOCK >> 2);
 }
 
 f32 AudRhythmHolder::calcBeatPhase(s32 index) {

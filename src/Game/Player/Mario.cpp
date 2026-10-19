@@ -9467,12 +9467,12 @@ bool Mario::checkLockOnHoming() {
 
 void Mario::doLockOnHoming() {
     TVec3f direction;
-    direction.set(mActor->_470->mPosition - mPosHolder->mPos);
+    direction.set(*MR::getSensorPos(mActor->_470) - mPosHolder->mPos);
     MR::normalize(&direction);
     TVec3f shadowDir;
     calcShadowDir(direction, &shadowDir);
     if (MR::diffAngleAbsHorizontal(mFrontVec, direction, mHeadVec) >= 0.05235988f) {
-        if (getAnimator()->isAnimationStop()) {
+        if (isAnimationStop()) {
             changeAnimation("その場足踏み");
             if (!_750) {
                 setFrontVecKeepUp(direction, 15UL);

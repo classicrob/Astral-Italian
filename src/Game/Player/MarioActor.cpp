@@ -6367,7 +6367,7 @@ bool MarioActor::trySpinPunch() {
 
 
 void MarioActor::printHitMark(HitSensor* pSensor) {
-    TVec3f vec(pSensor->mPosition - _240);
+    TVec3f vec(*MR::getSensorPos(pSensor) - _240);
     vec.setLength(200.0f);
     playEffectTrans("パンチヒット", _240 + vec);
 }
@@ -8909,7 +8909,8 @@ void MarioActor::flushCoinPull() {
 
 
 bool MarioActor::tryCoinPullOne(HitSensor* pSensor) NO_INLINE {
-    tryPullTrans(&pSensor->mHost->mVelocity, pSensor->mPosition);
+    LiveActor* host = MR::getSensorHost(pSensor);
+    tryPullTrans(&host->mVelocity, *MR::getSensorPos(pSensor));
 
     return pSensor->receiveMessage(ACTMES_ITEM_PULL, getSensor("Body"));
 }

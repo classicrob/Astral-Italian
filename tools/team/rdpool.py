@@ -14,6 +14,10 @@ class PoolUnproved(ValueError):
     pass
 
 
+class PoolExtentUnproved(PoolUnproved):
+    pass
+
+
 class PoolELF:
     def __init__(self, path):
         raw = Path(path).read_bytes()
@@ -102,6 +106,7 @@ class PoolComparator:
         self.target_origins, self.source_origins = target_origins, source_origins
         self.target_extents = getattr(catalog, 'extents', {}) if target_extents is None else target_extents
         self.cache, self.active, self.evidence = set(), set(), []
+        self.active_pool_ranges = []
 
     def source(self, sec, offset, size):
         if not 0 <= sec < len(self.elf.data) or self.elf.data[sec] is None:
@@ -144,7 +149,16 @@ class PoolComparator:
             if width not in (1, 2, 4, 8):
                 raise PoolUnproved('unsupported pool load width')
             start, size = offset, width
-        self.compare(delta + start, sec, start, size, {sec: delta}, width is None)
+        self.source(sec, start, size)
+        try:
+            self.compare(delta + start, sec, start, size, {sec: delta}, width is None)
+        except PoolExtentUnproved:
+            # Coarse target labels can group several source literals. A whole
+            # pool match compares those bytes too, rather than discarding a tail.
+            data = self.elf.data[sec]
+            if data is None or not data:
+                raise
+            self.compare(delta, sec, 0, len(data), {sec: delta}, False, True)
         # A loaded internal pointer retains its pool provenance for later reaches.
         if width is not None:
             rels = [(roff, rel) for (rsec, roff), rel in self.elf.relocations.items()
@@ -166,8 +180,8 @@ class PoolComparator:
                     return (pointer_token, 0)
         return None
 
-    def compare(self, address, sec, offset, size, section_deltas, full_object=False):
-        key = (address, sec, offset, size, tuple(sorted(section_deltas.items())), full_object)
+    def compare(self, address, sec, offset, size, section_deltas, full_object=False, whole_pool=False):
+        key = (address, sec, offset, size, tuple(sorted(section_deltas.items())), full_object, whole_pool)
         if key in self.cache or key in self.active:
             return
         if len(self.active) >= 32:
@@ -179,14 +193,32 @@ class PoolComparator:
         if full_object:
             extents = set(self.target_extents.get(address, ()))
             if len(extents) != 1:
-                raise PoolUnproved('missing/ambiguous complete target pool object extent')
+                raise PoolExtentUnproved('missing/ambiguous complete target pool object extent')
             target_size = next(iter(extents))
             if target_size < size:
-                raise PoolUnproved('target pool object is shorter than source object')
+                raise PoolExtentUnproved('target pool object is shorter than source object')
             if target_size > size:
                 padding = self.read_target(address + size, target_size - size)
                 if padding is None or len(padding) != target_size - size or any(padding):
-                    raise PoolUnproved('target pool object extra tail is not zero padding')
+                    raise PoolExtentUnproved('target pool object extra tail is not zero padding')
+        if whole_pool:
+            if len(self.target_extents.get(address, ())) != 1:
+                raise PoolUnproved('missing/ambiguous target pool start boundary')
+            end = address + size
+            known_end = address
+            for start, extents in self.target_extents.items():
+                for extent in extents:
+                    if start < end and address < start + extent:
+                        known_end = max(known_end, start + extent)
+                        if start < address:
+                            raise PoolUnproved('target pool object begins before checked source pool')
+                        if start + extent > end:
+                            extra = self.read_target(end, start + extent - end)
+                            if extra is None or len(extra) != start + extent - end or any(extra):
+                                raise PoolUnproved('target object extends beyond checked source pool')
+            if known_end < end and any(source[known_end - address:]):
+                raise PoolUnproved('source pool has non-padding bytes past known target boundary')
+            self.active_pool_ranges.append((sec, address - offset, offset, offset + size))
         self.active.add(key)
         relocated = []
         try:
@@ -214,18 +246,24 @@ class PoolComparator:
                     objstart, objsize = self.extent(symsec, value + addend)
                     pointee_delta = expected - (value + addend)
                     pointee_deltas = {**section_deltas, symsec: pointee_delta}
-                    self.compare(pointee_delta + objstart, symsec, objstart,
-                                 objsize, pointee_deltas, True)
+                    covered = any(psec == symsec and pdelta == pointee_delta and
+                                  first <= objstart and objstart + objsize <= last
+                                  for psec, pdelta, first, last in self.active_pool_ranges)
+                    if not covered:
+                        self.compare(pointee_delta + objstart, symsec, objstart,
+                                     objsize, pointee_deltas, True)
             if bytes(source) != target:
                 raise PoolUnproved('different referenced pool bytes')
             self.cache.add(key)
             self.evidence.append({'target_address': hex(address), 'source_section': self.elf.names[sec],
-                                  'source_offset': offset, 'size': size,
+                                  'source_offset': offset, 'size': size, 'whole_pool': whole_pool,
                                   'resolved_relocations': relocated,
                                   'target_sha256': hashlib.sha256(target).hexdigest(),
                                   'source_relocated_sha256': hashlib.sha256(source).hexdigest()})
         finally:
             self.active.remove(key)
+            if whole_pool:
+                self.active_pool_ranges.pop()
 
 
 def read_pool_dol(data, address, size):

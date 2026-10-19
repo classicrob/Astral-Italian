@@ -8,8 +8,8 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
 
+// PLACEHOLDER(enemies): Integer TVec3 constructor is called out of line by the target AnimStampController ctor; removing this use suppresses that weak copy and inlines the real call.
 void dummy() {
-    // to emit TVec3f init
     TVec3f a(0, 0, 0);
 }
 

@@ -8,16 +8,7 @@
 #include <algorithm>
 #include <stdint.h>
 
-void KCollision_FORCE_MATCH_SDATA2() {
-    (void)0.001f;
-    (void)1000000000.0f;
-    (void)0.01f;
-}
-f32 KCollision_FORCE_MATCH_CONVERSION(s32 value) {
-    return value;
-}
-
-// trying to get both operator== and operator/ to emit
+// PLACEHOLDER(enemies): Both uses are currently needed to outline the target TVec3 equality/division weak copies; one remaining use is inlined and emits neither copy.
 void DUMMY_KCollision() {
     TVec3f a, b, c;
 
@@ -26,6 +17,7 @@ void DUMMY_KCollision() {
     }
 }
 
+// PLACEHOLDER(enemies): Target owns TVec3 equality/division weak copies at 0x80259670/0x802599C0, called by TicoRail/Mario; no natural emitting use in the reconstructed KCollision source yet.
 void DUMMY_KCollision2() {
     TVec3f a, b, c;
 

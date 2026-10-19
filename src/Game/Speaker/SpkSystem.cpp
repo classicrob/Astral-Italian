@@ -16,8 +16,8 @@ void SpkSystem::setup() {
     SpkSpeakerCtrl::setup();
 }
 
+// PLACEHOLDER(enemies): Target owns JSUList<SpkSound> destructor at 0x804AC020, used by SpkSoundHolder array cleanup; removing this use suppresses that required weak copy.
 void SpkSystem_DUMMY() {
-    // NOTE: JSUList<SpkSound> dtor is being emitted here, as well as JASGlobalInstance<SpkSystem>. Unsure as to exactly why
     SpkSoundHolder dummy;
 }
 

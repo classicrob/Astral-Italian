@@ -487,11 +487,11 @@ void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
     bool shouldStart = false;
 
     // Check if player has a special animation queued
-    if (getPlayer()->_970) {
-        Mario* player = getPlayer();
+    const char* queuedAnimation = getPlayer()->_970;
+    if (queuedAnimation) {
         const char* currentBck = mXanimePlayer->getCurrentBckName();
 
-        if (strcmp(currentBck, player->_970) != 0) {
+        if (strcmp(currentBck, queuedAnimation) != 0) {
             shouldStart = true;
             if (MR::strcasecmp("DamageWait", getPlayer()->_970) == 0) {
                 if (mActor->mHealth == 1) {
@@ -1317,17 +1317,17 @@ bool MarioAnimator::isFrameCtrlAttribute(u32 attribute) const { return mXanimePl
 
 // NONMATCHING: equivalent null-return block ordering.
 XanimePlayer* MarioAnimator::getYoshiAnimationPlayer() const {
-    XanimePlayer* result;
-    if (!mActor->fn_803B97F0()) result = nullptr;
-    else result = mActor->fn_803B97F0()->mXanimePlayer;
-    return result;
+    if (!mActor->fn_803B97F0()) {
+        return nullptr;
+    }
+    return mActor->fn_803B97F0()->mXanimePlayer;
 }
 // NONMATCHING: equivalent null-return block ordering.
 XanimePlayer* MarioAnimator::getYoshiUpperAnimationPlayer() const {
-    XanimePlayer* result;
-    if (!mActor->fn_803B97F0()) result = nullptr;
-    else result = mActor->fn_803B97F0()->mXanimePlayerUpper;
-    return result;
+    if (!mActor->fn_803B97F0()) {
+        return nullptr;
+    }
+    return mActor->fn_803B97F0()->mXanimePlayerUpper;
 }
 f32 XanimePlayer::getAnimationFrame() const {
     if (isTerminate()) return mFrameCtrl->mEnd;

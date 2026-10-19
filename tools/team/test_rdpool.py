@@ -75,6 +75,57 @@ class PoolSpanTests(unittest.TestCase):
         pool.target_extents.clear()
         with self.assertRaises(PoolUnproved):pool.verify(TOKEN,8)
 
+    def test_coarse_target_pool_extent_compares_all_source_bytes(self):
+        pool, _ = fixture()
+        pool.target_extents = {0x1000: {16}}
+        pool.verify(TOKEN, 8)
+        self.assertTrue(pool.evidence[-1]['whole_pool'])
+        self.assertEqual(pool.evidence[-1]['size'], 16)
+
+    def test_coarse_pool_mismatch_outside_requested_object_fails(self):
+        pool, _ = fixture(target=b'Else\0\0\0\0Later\0\0\0')
+        pool.target_extents = {0x1000: {16}}
+        with self.assertRaises(PoolUnproved):
+            pool.verify(TOKEN, 8)
+
+    def test_whole_pool_requires_known_end_for_nonpadding(self):
+        pool, _ = fixture()
+        pool.target_extents = {0x1000: {5}}
+        with self.assertRaises(PoolUnproved):
+            pool.verify(TOKEN, 8)
+
+    def test_coarse_pool_cannot_hide_partial_relocation(self):
+        pool, _ = fixture(b'Same\0\0\0\0' + bytes(4),
+                          relocations={(1, 8): (1, ('callback', 0, 0, 0), 0)},
+                          catalog={'callback': 0})
+        pool.target_extents = {0x1000: {12}}
+        with self.assertRaises(PoolUnproved):
+            pool.verify(TOKEN, 8, 2)
+
+    def test_whole_pool_resolves_internal_data_pointer(self):
+        source = b'Same\0\0\0\0' + bytes(4) + b'Good\0'
+        target = source[:8] + struct.pack('>I', 0x100c) + b'Good\0'
+        pool, _ = fixture(source, target, [(0, 5), (8, 4), (12, 5)],
+                          {(1, 8): (1, ('@later', 12, 5, 1), 0)})
+        pool.target_extents = {0x1000: {17}}
+        pool.verify(TOKEN, 8)
+        self.assertTrue(pool.evidence[-1]['whole_pool'])
+        self.assertEqual(pool.evidence[-1]['resolved_relocations'][0][3], 0x100c)
+
+    def test_whole_pool_checks_unrelated_relocation(self):
+        source = b'Same\0\0\0\0Later\0\0\0' + bytes(4)
+        pool, _ = fixture(source, objects=[(0, 5), (8, 8), (16, 4)],
+                          relocations={(1, 16): (1, ('missing', 0, 0, 0), 0)})
+        pool.target_extents = {0x1000: {20}}
+        with self.assertRaises(PoolUnproved):
+            pool.verify(TOKEN, 8)
+
+    def test_whole_pool_rejects_object_crossing_start(self):
+        pool, _ = fixture()
+        pool.target_extents = {0x1000: {16}, 0xffc: {8}}
+        with self.assertRaises(PoolUnproved):
+            pool.verify(TOKEN, 8)
+
     def test_missing_object_extent(self):
         pool, _ = fixture(objects=[(0,5)])
         with self.assertRaises(PoolUnproved):pool.verify(TOKEN,8)

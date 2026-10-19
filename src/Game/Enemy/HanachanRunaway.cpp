@@ -8,6 +8,10 @@
 #include "Game/Ride/TubeSliderFunction.hpp"
 
 
+namespace {
+    extern const f32 sPassSoundDistance;
+}
+
 namespace NrvHanachanRunaway {
     // Wait: switches to Whistle when the switch A is on.
     class HanachanRunawayNrvWait : public Nerve {
@@ -173,7 +177,7 @@ void HanachanRunaway::control() {
     f32 volume = MR::getLinerValueFromMinMax(relSpeed, 27.0f, 34.0f, 0.0f, maxSpeed);
     s32 offset = -100;
     f32 pitch = offset + 1000.0f * (50.0f / (50.0f + (micDist - mPrevRailCoord)));
-    if (playerDist <= 1000.0f && mIsPointed) {
+    if (playerDist <= sPassSoundDistance && mIsPointed) {
         s32 level = (s32)pitch < 50 ? 50 : ((s32)pitch > 1000 ? 1000 : (s32)pitch);
         MR::startActionSound(this, "MarioPassLvSlider", (s32)volume, level, -1);
     }
@@ -322,4 +326,8 @@ void NrvHanachanRunaway::HanachanRunawayNrvWait::execute(Spine* pSpine) const {
     if (MR::isValidSwitchA(pActor) && MR::isOnSwitchA(pActor)) {
         pActor->setNerve(GET_HANACHAN_RUNAWAY_NERVE(HanachanRunawayNrvWhistle));
     }
+}
+
+namespace {
+    const f32 sPassSoundDistance = 1000.0f;
 }

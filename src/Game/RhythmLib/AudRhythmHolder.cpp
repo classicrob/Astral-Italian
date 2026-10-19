@@ -99,8 +99,7 @@ void AudRhythmHolder::copyInfoFromParserOne(u32 type, u32 velocity, u32 noteOff,
     mInfos[type].mPausedTime = 0;
 }
 
-// PLACEHOLDER(enemies): target uses fdivs after __cvt_ull_dbl; this expression retains the correct conversion call
-// but emits fdiv/frsp. Resolve when the original single-result division lowering is recovered.
+// PLACEHOLDER(enemies): target does fdivs on the unrounded __cvt_ull_dbl result (no frsp); every u64->f32 spelling tried either calls __cvt_ull_flt or adds frsp; resolve when the original expression is recovered
 f32 AudRhythmHolder::getPlayTimeSec(s32 index) {
     return (f64)(u64)mInfos[index].mPlayTime / (f32)(OS_BUS_CLOCK >> 2);
 }

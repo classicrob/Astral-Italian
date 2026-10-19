@@ -421,7 +421,7 @@ namespace MR {
         for (s32 i = 0; i < pRemixNoteGroupData->mTrackCount; i++) {
             RemixNoteTrackData* pRemixNoteTrackData = &pRemixNoteGroupData->mRemixTracks[i];
 
-            pRemixSequencer->addNoteData(pRemixNoteTrackData, &pRemixNoteTrackData->_4[param2]);
+            pRemixSequencer->addNoteData(pRemixNoteTrackData, &pRemixNoteTrackData->mNotes[param2]);
         }
     }
 
@@ -443,7 +443,7 @@ namespace MR {
     void submitTrigSE() {
         AudSystem* pSystem = AudWrap::getSystem();
 
-        pSystem->_82B = 0;
+        pSystem->mIsStartSoundBlocked = 0;
     }
 
 
@@ -452,7 +452,7 @@ namespace MR {
 
 
     bool isPermitSE() {
-        return !AudWrap::getSystem()->_82B && !AudWrap::getSystem()->_82C;
+        return !AudWrap::getSystem()->mIsStartSoundBlocked && !AudWrap::getSystem()->mIsStartLevelSoundBlocked;
     }
 
     void setMicMtx(MtxPtr pMtx, s32 param2) {

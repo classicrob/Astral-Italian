@@ -3,13 +3,13 @@
 #include <cstdio>
 #include <cstring>
 
-DotCamReaderInBin::DotCamReaderInBin(const void* pData) : mVersion(), _8(), mMapInfo() {
+DotCamReaderInBin::DotCamReaderInBin(const void* pData) : mVersion(), mBuffer(), mMapInfo() {
     init(pData);
 }
 
 DotCamReaderInBin::~DotCamReaderInBin() {
-    if (_8 != nullptr) {
-        delete[] _8;
+    if (mBuffer != nullptr) {
+        delete[] mBuffer;
     }
 }
 

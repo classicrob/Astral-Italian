@@ -279,7 +279,7 @@ namespace DemoFunction {
     }
 
     bool isRegisteredDemoActionFunctor(const LiveActor* pActor, const char* pDemoName) {
-        return DemoExecutorFunction::isRegisteredDemoActionFunctor(DemoFunction::findDemoExecutor(pDemoName), pActor);
+        return DemoExecutorFunction::isRegisteredDemoActionNerve(DemoFunction::findDemoExecutor(pDemoName), pActor);
     }
 
     bool isRegisteredDemoActionNerve(const LiveActor* pActor) {

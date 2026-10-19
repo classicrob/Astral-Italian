@@ -163,7 +163,7 @@ public:
     static void setField834(s32 value);
 
     void set830(u32 var) {
-        _830 = var;
+        mSystemSoundOnlyFrames = var;
     }
 
     AudEffector* getAudEffector() const {
@@ -180,12 +180,12 @@ public:
     /* 0x0815 */ bool mIsReset;
     /* 0x0816 */ bool mStopThreads;
     /* 0x0818 */ JASAudioReseter mReseter;
-    /* 0x0828 */ bool _828;
+    /* 0x0828 */ bool mIsSoundMuted;
     /* 0x0829 */ bool mIsPaused;
-    /* 0x082A */ bool _82A;
-    /* 0x082B */ bool _82B;  // blocks startSound
-    /* 0x082C */ bool _82C;  // blocks startLevelSound
-    /* 0x0830 */ s32 _830;
+    /* 0x082A */ bool mIsSceneSoundMuted;
+    /* 0x082B */ bool mIsStartSoundBlocked;  // blocks startSound
+    /* 0x082C */ bool mIsStartLevelSoundBlocked;  // blocks startLevelSound
+    /* 0x0830 */ s32 mSystemSoundOnlyFrames;
     /* 0x0834 */ s32 mRestrictedSoundFrames;  // SMG2; >= 0 enables isRestrictedSound filtering, counts down per frame
     /* 0x0838 */ JAUStdSoundInfo* mSoundInfo;
     /* 0x083C */ JKRHeap* mHeap;  // SMG2; heap the system-lifetime objects are created in (ctor arg)
@@ -213,8 +213,8 @@ public:
     /* 0x0994 */ s32 mPauseMenuToggleTime;
     /* 0x0998 */ bool mIsDvdError;
     /* 0x099C */ AudLimitedSoundInfo* mLimitedSoundInfo;
-    /* 0x09A0 */ s32 _9A0;
-    /* 0x09A4 */ bool _9A4;
+    /* 0x09A0 */ s32 mFanfareHoldFrames;
+    /* 0x09A4 */ bool mIsFanfareProcessEnabled;
     /* 0x09A5 */ bool mIsDestroySceneKeepAllSound;
     /* 0x09A8 */ SpkSystem* mSpkSystem;
     /* 0x09AC */ AudSeLifeTable* mSeLifeTable;

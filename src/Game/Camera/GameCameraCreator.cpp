@@ -12,14 +12,14 @@
 GameCameraCreator::GameCameraCreator(CameraParamChunkHolder* pChunkHolder) {
     mChunkHolder = pChunkHolder;
     mName = nullptr;
-    _8 = -1;
+    mGroupID = -1;
 
     memset(&mCodes[0], 0, sizeof(mCodes));
 }
 
 void GameCameraCreator::initCameraCodeCollection(const char* pName, s32 a2) {
     mName = pName;
-    _8 = a2;
+    mGroupID = a2;
 }
 
 void GameCameraCreator::registerCameraCode(u32 code) {
@@ -36,14 +36,14 @@ void GameCameraCreator::termCameraCodeCollection() {
             mCodes[i] = 0;
 
             CameraParamChunkID_Tmp chunk = CameraParamChunkID_Tmp();
-            chunk.createGroupID(_8, mName, i, 0);
+            chunk.createGroupID(mGroupID, mName, i, 0);
 
             mChunkHolder->createChunk(chunk, nullptr);
         }
     }
 
     mName = nullptr;
-    _8 = -1;
+    mGroupID = -1;
 }
 
 void GameCameraCreator::scanStartPos() {

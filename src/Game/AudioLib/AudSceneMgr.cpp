@@ -156,9 +156,9 @@ void AudSceneMgr::loadScenarioResource(const AudSceneSoundInfo* info, s32 scenar
 
 void AudSceneMgr::resetForScene() {
     _4 = 0;
-    AudWrap::getSystem()->_82A = false;
-    AudWrap::getSystem()->_82B = false;
-    AudWrap::getSystem()->_82C = false;
+    AudWrap::getSystem()->mIsSceneSoundMuted = false;
+    AudWrap::getSystem()->mIsStartSoundBlocked = false;
+    AudWrap::getSystem()->mIsStartLevelSoundBlocked = false;
     AudWrap::getSystem()->initSceneVolume();
     initSceneAudioEffect();
     mIsNewPlayerMode = false;

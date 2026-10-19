@@ -50,7 +50,7 @@ void RandomEffectObj::control() {
         return;
     }
 
-    MR::emitEffect(this, _8C);
+    MR::emitEffect(this, mEffectName);
 
 
     mStep = MR::getRandom(mLifeTime - mRandWidth, mLifeTime + mRandWidth);

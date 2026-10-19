@@ -9,37 +9,37 @@ namespace {
 };  // namespace
 
 CameraCover::CameraCover(const char* pName) : NameObj(pName) {
-    _3C = 0;
-    _40 = 0;
-    _41 = false;
-    _44 = 1;
+    mCoverFrames = 0;
+    mIsCoverDisabled = 0;
+    mIsCoverRequested = false;
+    mCoverDuration = 1;
     mActor = new CaptureScreenActor(MR::DrawType_CaptureScreenCamera, "Camera");
     MR::connectToScene(this, MR::MovementType_CameraCover, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_CameraCover);
     MR::joinToNameObjGroup(this, "IgnorePauseNameObj");
-    _C.identity();
+    mInvViewMtx.identity();
     mActor->initWithoutIter();
 }
 
 void CameraCover::movement() {
     if (isCameraHopping()) {
-        if (!_3C) {
+        if (!mCoverFrames) {
             MR::startToCaptureScreen("Camera");
             CategoryList::execute(MR::DrawType_CaptureScreenCamera);
-            _3C = _44 + 1;
+            mCoverFrames = mCoverDuration + 1;
         }
     }
 
-    if (_3C && !--_3C) {
+    if (mCoverFrames && !--mCoverFrames) {
         MR::endToCaptureScreen("Camera");
     }
 
     copyCamera();
-    _40 = 0;
-    _41 = false;
+    mIsCoverDisabled = 0;
+    mIsCoverRequested = false;
 }
 
 void CameraCover::draw() const {
-    if (_3C) {
+    if (mCoverFrames) {
         JUTTexture texture(MR::getScreenResTIMG(), 0);
 
         ImageEffectLocalUtil::setupDrawTexture();
@@ -48,20 +48,20 @@ void CameraCover::draw() const {
 }
 
 void CameraCover::cover(u32 a1) {
-    _44 = a1;
-    _41 = true;
+    mCoverDuration = a1;
+    mIsCoverRequested = true;
 }
 
 bool CameraCover::isCameraHopping() const {
-    if (_40) {
+    if (mIsCoverDisabled) {
         return false;
     }
 
-    return _41;
+    return mIsCoverRequested;
 }
 
 void CameraCover::copyCamera() {
-    _C.set(MR::getCameraInvViewMtx());
+    mInvViewMtx.set(MR::getCameraInvViewMtx());
 }
 
 CameraCover::~CameraCover() {

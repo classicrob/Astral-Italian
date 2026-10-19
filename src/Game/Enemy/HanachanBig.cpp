@@ -4,6 +4,11 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 
+namespace {
+    extern const f32 sWalkRateMultiplier;
+    extern const f32 sAngryWalkRate;
+}
+
 namespace NrvHanachanBig {
     NEW_NERVE(HanachanBigPartsNrvWalk, HanachanBigParts, Walk);
     NEW_NERVE(HanachanBigNrvWait, HanachanBig, Wait);
@@ -331,7 +336,8 @@ void HanachanBigParts::exeWalk() {
             frame = static_cast<f32>((frameMax + mPartsIndex * 8) % frameMax);
         }
         MR::setBckFrame(this, frame);
-        f32 multiplier = 1.0f; f32 rate = mIsAngry ? 3.0f : 1.0f; MR::setBckRate(this, multiplier * rate);
+        f32 rate = mIsAngry ? sAngryWalkRate : 1.0f;
+        MR::setBckRate(this, sWalkRateMultiplier * rate);
     }
     if (mPartsType != PartsType_Head) {
         return;
@@ -355,3 +361,8 @@ void HanachanBigParts::becomeAngry() {
 HanachanBig::~HanachanBig() {}
 
 HanachanBigParts::~HanachanBigParts() {}
+
+namespace {
+    const f32 sWalkRateMultiplier = 1.0f;
+    const f32 sAngryWalkRate = 3.0f;
+}

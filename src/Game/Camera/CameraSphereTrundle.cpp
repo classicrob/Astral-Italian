@@ -24,9 +24,9 @@ void CameraSphereTrundle::reset() {
     f32 x = sp14.x;
     f32 y = sp14.y;
     f32 z = sp14.z;
-    sp14.set< f32 >(mZoneMatrix.mMtx[0][0] * x + mZoneMatrix.mMtx[0][1] * y + mZoneMatrix.mMtx[0][2] * z,
-             mZoneMatrix.mMtx[1][0] * x + mZoneMatrix.mMtx[1][1] * y + mZoneMatrix.mMtx[1][2] * z,
-             mZoneMatrix.mMtx[2][0] * x + mZoneMatrix.mMtx[2][1] * y + mZoneMatrix.mMtx[2][2] * z);
+    sp14.set< f32 >(x * mZoneMatrix.mMtx[0][0] + y * mZoneMatrix.mMtx[0][1] + z * mZoneMatrix.mMtx[0][2],
+             x * mZoneMatrix.mMtx[1][0] + y * mZoneMatrix.mMtx[1][1] + z * mZoneMatrix.mMtx[1][2],
+             x * mZoneMatrix.mMtx[2][0] + y * mZoneMatrix.mMtx[2][1] + z * mZoneMatrix.mMtx[2][2]);
 
     TVec3f sp8 = CameraLocalUtil::getTarget(this)->getPosition() - sp20;
     mFront = sp8;

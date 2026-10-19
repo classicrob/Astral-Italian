@@ -173,11 +173,11 @@ namespace {
 };  // namespace
 
 AudSystem::AudSystem(JKRHeap* pHeap, JAUSectionHeap* pSectionHeap, AudArchiveSet* pArchives)
-    : mIsResetReady(), mIsReset(), mStopThreads(), _828(), mIsPaused(), _82A(), _82B(), _82C(), _830(-1), mRestrictedSoundFrames(-1), mSoundInfo(),
+    : mIsResetReady(), mIsReset(), mStopThreads(), mIsSoundMuted(), mIsPaused(), mIsSceneSoundMuted(), mIsStartSoundBlocked(), mIsStartLevelSoundBlocked(), mSystemSoundOnlyFrames(-1), mRestrictedSoundFrames(-1), mSoundInfo(),
       mHeap(pHeap), mSectionHeap(pSectionHeap), mStreamAramMgr(), mSoundMode(), mSystemSeObject(), mSystemMeObject(), mSceneMgr(), mBgmMgr(),
       mRhythmMeSystem(), mRemixMgr(), mAudEffector(), mSeStrategyMgr(), mVolumeController(), mInstListMgr(), mMultiBgmInfo(), mBgmParamTable(),
-      mHomeButtonMenuState(), mHomeButtonToggleTime(-1), mPauseMenuState(), mPauseMenuToggleTime(-1), mIsDvdError(), mLimitedSoundInfo(), _9A0(),
-      _9A4(true), mIsDestroySceneKeepAllSound(), mSpkSystem(), mSeLifeTable(), mStageUseResourceList(), mNumSeLimitGroups() {
+      mHomeButtonMenuState(), mHomeButtonToggleTime(-1), mPauseMenuState(), mPauseMenuToggleTime(-1), mIsDvdError(), mLimitedSoundInfo(), mFanfareHoldFrames(),
+      mIsFanfareProcessEnabled(true), mIsDestroySceneKeepAllSound(), mSpkSystem(), mSeLifeTable(), mStageUseResourceList(), mNumSeLimitGroups() {
     msBasic = this;
     mSoundMode = SCGetSoundMode();
     mLimitedSoundInfo = new (mSectionHeap->getHeap(), 0) AudLimitedSoundInfo[2];
@@ -378,10 +378,10 @@ void AudSystem::frameWork() {
         mSpkSystem->framework();
     }
 
-    if (_830 >= 0) {
-        _830--;
-        if (_830 <= 0) {
-            _830 = -1;
+    if (mSystemSoundOnlyFrames >= 0) {
+        mSystemSoundOnlyFrames--;
+        if (mSystemSoundOnlyFrames <= 0) {
+            mSystemSoundOnlyFrames = -1;
         }
     }
 
@@ -422,15 +422,15 @@ bool AudSystem::startSound(JAISoundID soundID, JAISoundHandle* pHandle, const TV
         return false;
     }
 
-    if (_828) {
+    if (mIsSoundMuted) {
         return false;
     }
 
-    if (_82A) {
+    if (mIsSceneSoundMuted) {
         return false;
     }
 
-    if (_830 >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
+    if (mSystemSoundOnlyFrames >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
         return false;
     }
 
@@ -438,7 +438,7 @@ bool AudSystem::startSound(JAISoundID soundID, JAISoundHandle* pHandle, const TV
         return false;
     }
 
-    if (_82B && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
+    if (mIsStartSoundBlocked && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
         return false;
     }
 
@@ -467,15 +467,15 @@ bool AudSystem::startLevelSound(JAISoundID soundID, JAISoundHandle* pHandle, con
         return false;
     }
 
-    if (_828) {
+    if (mIsSoundMuted) {
         return false;
     }
 
-    if (_82A) {
+    if (mIsSceneSoundMuted) {
         return false;
     }
 
-    if (_830 >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
+    if (mSystemSoundOnlyFrames >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
         return false;
     }
 
@@ -483,7 +483,7 @@ bool AudSystem::startLevelSound(JAISoundID soundID, JAISoundHandle* pHandle, con
         return false;
     }
 
-    if (_82C && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
+    if (mIsStartLevelSoundBlocked && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
         return false;
     }
 
@@ -584,9 +584,9 @@ void AudSystem::resumeReset() {
         mVolumeController->init();
     }
 
-    _82A = false;
-    _82B = false;
-    _82C = false;
+    mIsSceneSoundMuted = false;
+    mIsStartSoundBlocked = false;
+    mIsStartLevelSoundBlocked = false;
     mHomeButtonMenuState = MenuState_Off;
     mHomeButtonToggleTime = -1;
     mPauseMenuState = MenuState_Off;
@@ -810,11 +810,11 @@ bool AudSystem::isPauseMenuActive() const {
 }
 
 void AudSystem::setField9A0(s32 value) {
-    _9A0 = value;
+    mFanfareHoldFrames = value;
 }
 
 void AudSystem::setField9A4(bool value) {
-    _9A4 = value;
+    mIsFanfareProcessEnabled = value;
 }
 
 void AudSystem::setField834(s32 value) {
@@ -849,7 +849,7 @@ bool AudSystem::isEnableStartSound(JAISoundID soundID) {
         return false;
     }
 
-    if (_828) {
+    if (mIsSoundMuted) {
         return false;
     }
 
@@ -857,7 +857,7 @@ bool AudSystem::isEnableStartSound(JAISoundID soundID) {
         return false;
     }
 
-    if (_830 >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
+    if (mSystemSoundOnlyFrames >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
         return false;
     }
 
@@ -1056,12 +1056,12 @@ void AudSystem::setMeResource(JKRArchive* pArchive, u16 a1, u16 a2) {
 
 // PLACEHOLDER(core): SMG2 BGM sound-id enum is not recovered (AudSoundId.hpp is the SMG1 table); resolve when the SMG2 ids are named
 void AudSystem::seFanfareProcess() {
-    if (_9A0 > 0) {
-        _9A0--;
+    if (mFanfareHoldFrames > 0) {
+        mFanfareHoldFrames--;
         return;
     }
 
-    if (_9A4) {
+    if (mIsFanfareProcessEnabled) {
         if (mBgmMgr->mBgm[AudBgmMgr::BgmType_Sub] != nullptr) {
             u32 id = mBgmMgr->mBgm[AudBgmMgr::BgmType_Sub]->getSoundID();
             if (id - 0x1000000 <= 1 || id == 0x100002C) {

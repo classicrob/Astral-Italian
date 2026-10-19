@@ -10,6 +10,6 @@ public:
 
     void update(CameraMan*);
 
-    /* 0x0 */ s32 _0;
-    /* 0x4 */ f32 _4;
+    /* 0x0 */ s32 mFrame;
+    /* 0x4 */ f32 mStrength;
 };

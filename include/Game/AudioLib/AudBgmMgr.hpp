@@ -38,6 +38,6 @@ public:
     /* 0x018 */ u32 mLastBGM[2];
     /* 0x020 */ AudBgmKeeper mKeeper;
     /* 0x7FC */ AudBgmVolumeController mVolumeController[2];
-    /* 0x954 */ s32 _954;
-    /* 0x958 */ bool _958;
+    /* 0x954 */ s32 mSubBgmVolDownDelay;
+    /* 0x958 */ bool mIsMuted;
 };

@@ -386,7 +386,7 @@ bool Kanina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     }
 
     if (MR::isMsgStarPieceReflect(msg)) {
-        mGuardTimer = 60;
+        mTimer2 = 60;
         setNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop));
         return true;
     }
@@ -1249,7 +1249,7 @@ void Kanina::exePointing() {
     bool isPointing = MR::isStarPointerPointing2PAttachTarget(this);
     if (isPointing) {
         MR::startDPDFreezeLevelSound(this);
-        MR::emitEffect(this, "Touch");
+        MR::tryEmitEffect(this, "Touch");
     }
 
     YoshiFunction::tryYoshiProjectile(mYoshiLockOn);

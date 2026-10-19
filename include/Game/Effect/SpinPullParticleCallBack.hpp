@@ -9,7 +9,7 @@ public:
 
     virtual void execute(JPABaseEmitter*, JPABaseParticle*);
 
-    f32 _4;
+    /* 0x04 */ f32 mPullScale;
 };
 
 class MerameraParticleCallBack : public SpinPullParticleCallBack {

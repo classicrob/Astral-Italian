@@ -503,7 +503,7 @@ void CameraManGame::createStartAnimCamera() {
         chunk->setCameraType("CAM_TYPE_ANIM", director->mHolder);
 
         chunk->mGeneralParam->mNum1 = reinterpret_cast< intptr_t >(data);
-        chunk->_64 = true;
+        chunk->mIsRuntimeCreated = true;
     }
 }
 
@@ -525,7 +525,7 @@ void CameraManGame::createZoomCamera() {
     chunk->mExParam.mCamInt = 0;
     chunk->mGeneralParam->mNum1 = 1;
     chunk->mGeneralParam->mNum2 = 1;
-    chunk->_64 = 1;
+    chunk->mIsRuntimeCreated = 1;
 }
 
 void CameraManGame::checkStateShift() {

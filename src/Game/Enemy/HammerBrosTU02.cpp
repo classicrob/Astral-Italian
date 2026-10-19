@@ -158,6 +158,7 @@ void BrosStateJump::exeJumpStart() {
                 f32 mag = PSVECMag(&diff);
                 f32 dh = targetHeight - startHeight;
                 f32 horiz = MR::sqrt< f32 >(mag * mag - dh * dh);
+                MR::sin(0.5f * angle);
                 mJumpVelocity.z = 2.0f * MR::sqrt< f32 >(0.5f * (horiz * horiz)) / (f32)sJumpFrames;
             }
         }

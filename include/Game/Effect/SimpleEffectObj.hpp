@@ -36,8 +36,8 @@ public:
     void exeWait();
     void exeMove();
 
-    const char* _8C;
-    TVec3f _90;
+    /* 0x8C */ const char* mEffectName;
+    /* 0x90 */ TVec3f mClippingCenter;
 };
 
 typedef struct {

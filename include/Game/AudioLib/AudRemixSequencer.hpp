@@ -15,10 +15,10 @@ public:
     bool update(f32);
     JAISoundID getFreeSeID();
 
-    f32 _0;
-    f32 _4;
-    const RemixNoteData* _8;
-    const RemixNoteTrackData* _C;
+    /* 0x0 */ f32 mStartDelay;
+    /* 0x4 */ f32 mRemaining;
+    /* 0x8 */ const RemixNoteData* mNote;
+    /* 0xC */ const RemixNoteTrackData* mTrack;
 };
 
 class AudRemixSequencer {
@@ -31,7 +31,7 @@ public:
     AudRmxSeqNoteOnTimer* newNoteOnTimer();
     void addNoteData(const RemixNoteTrackData*, const RemixNoteData*);
 
-    AudRmxSeqNoteOnTimer _0[0x20];
-    f32 _200;
-    f32 _204;
+    /* 0x000 */ AudRmxSeqNoteOnTimer mTimers[0x20];
+    /* 0x200 */ f32 mTempo;
+    /* 0x204 */ f32 mStepPerFrame;
 };

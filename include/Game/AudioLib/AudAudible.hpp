@@ -20,9 +20,9 @@ public:
 
         for (int i = 0; i < SIZE; i++) {
             if ((mask & 1 << i) == 0) {  // TODO: init call?
-                _3C[i].mParams.init();
-                _3C[i].mPitch = 1.0f;
-                mChannels[i] = &_3C[i];
+                mChannelStorage[i].mParams.init();
+                mChannelStorage[i].mPitch = 1.0f;
+                mChannels[i] = &mChannelStorage[i];
             } else {
                 mChannels[i] = nullptr;
             }
@@ -73,7 +73,7 @@ public:
     /* 0x010 */ JAUAudibleParam mAudibleParam;
     /* 0x014 */ U mAbsPos;
     /* 0x02C */ T* mChannels[SIZE];
-    /* 0x03C */ T _3C[SIZE];
+    /* 0x03C */ T mChannelStorage[SIZE];
     /* 0x10C */ f32 mVolume;
     /* 0x110 */ f32 mPan;
     /* 0x114 */ f32 mDolby;

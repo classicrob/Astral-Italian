@@ -3,7 +3,7 @@
 #include "Game/AudioLib/AudBgmKeeper.hpp"
 #include <JSystem/JAudio2/JAISound.hpp>
 
-AudBgmMgr::AudBgmMgr() : _954(0), _958(false) {
+AudBgmMgr::AudBgmMgr() : mSubBgmVolDownDelay(0), mIsMuted(false) {
     for (int idx = 0; idx < 2; idx++) {
         mBgm[idx] = nullptr;
         mNextBGM[idx] = -1;
@@ -13,16 +13,16 @@ AudBgmMgr::AudBgmMgr() : _954(0), _958(false) {
 }
 
 void AudBgmMgr::movement() {
-    if (_954 > 0) {
-        _954--;
+    if (mSubBgmVolDownDelay > 0) {
+        mSubBgmVolDownDelay--;
     }
 
-    if (_954 <= 0) {
+    if (mSubBgmVolDownDelay <= 0) {
         volDownStageBgmWhenSubBgmPlaying();
     }
 
     for (int idx = 0; idx < 2; idx++) {
-        if (_958) {
+        if (mIsMuted) {
             mVolumeController[idx].mIsMuted = true;
         } else {
             mVolumeController[idx].mIsMuted = false;

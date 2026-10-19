@@ -6,22 +6,22 @@
 class JKRHeap;
 
 struct RemixNoteData {
-    s32 _0;
-    s32 _4;
-    s32 _8;
-    s32 _C;
+    /* 0x0 */ s32 mPitch;
+    /* 0x4 */ s32 mVelocity;
+    /* 0x8 */ s32 mLength;
+    /* 0xC */ s32 mStartTime;
 };
 
 struct RemixNoteTrackData {
-    s32 _0;
-    RemixNoteData* _4;
+    /* 0x0 */ s32 mTrackNo;
+    /* 0x4 */ RemixNoteData* mNotes;
 };
 
 struct RemixNoteGroupData {
     /* 0x0  */ s32 mIndex;
     /* 0x4  */ s32 mTrackCount;
     /* 0x8  */ s32 mNoteCount;
-    u32* _C;
+    /* 0xC  */ u32* mNoteTimings;
     /* 0x10 */ RemixNoteTrackData* mRemixTracks;
 };
 

@@ -17,14 +17,14 @@ public:
     void copyCamera();
 
     inline s32 getThing() {
-        return _3C;
+        return mCoverFrames;
     }
 
-    /* 0x0C */ TMtx34f _C;
-    /* 0x3C */ volatile s32 _3C;
-    /* 0x40 */ u8 _40;
-    /* 0x41 */ bool _41;
+    /* 0x0C */ TMtx34f mInvViewMtx;
+    /* 0x3C */ volatile s32 mCoverFrames;
+    /* 0x40 */ u8 mIsCoverDisabled;
+    /* 0x41 */ bool mIsCoverRequested;
     /* 0x42 */ u8 _42[2];
-    /* 0x44 */ u32 _44;
+    /* 0x44 */ u32 mCoverDuration;
     /* 0x48 */ CaptureScreenActor* mActor;
 };

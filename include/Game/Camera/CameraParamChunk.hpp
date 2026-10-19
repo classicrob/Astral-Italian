@@ -124,7 +124,7 @@ public:
     /* 0x08 */ u8 mCameraTypeIndex;
     /* 0x0C */ ExParam mExParam;
     /* 0x60 */ CameraGeneralParam* mGeneralParam;
-    /* 0x64 */ bool _64;
+    /* 0x64 */ bool mIsRuntimeCreated;
 };
 
 class CameraParamChunkGame : public CameraParamChunk {

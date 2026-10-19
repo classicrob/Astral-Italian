@@ -698,7 +698,7 @@ void CameraDirector::createTalkCamera() {
     CameraParamChunkEvent* chunk = getEventParameter(0, ::sTalkCameraName);
     if (chunk != nullptr) {
         chunk->setCameraType("CAM_TYPE_TALK", mHolder);
-        chunk->_64 = true;
+        chunk->mIsRuntimeCreated = true;
     }
 }
 
@@ -910,7 +910,7 @@ void CameraDirector::createSubjectiveCamera() {
     CameraParamChunkEvent* chunk = getEventParameter(0, ::sSubjectiveCameraName);
     if (chunk != nullptr) {
         chunk->setCameraType("CAM_TYPE_SUBJECTIVE", mHolder);
-        chunk->_64 = true;
+        chunk->mIsRuntimeCreated = true;
     }
 }
 

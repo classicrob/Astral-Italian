@@ -16,18 +16,18 @@ public:
 
     void initPoints();
     f32 getAngle() {
-        f32 f = 180.0f / (_9C - 1);
+        f32 f = 180.0f / (mRingPointNum - 1);
         return PI_180 * f;
     }
     inline int calcPointIndex(int i, int j) const {
-        return (i * _9C) + j;
+        return (i * mRingPointNum) + j;
     }
 
     /* 0x8C */ const OceanRing* mOceanRing;
     /* 0x90 */ bool _90;
     /* 0x94 */ u32 _94;
     /* 0x98 */ s32 _98;
-    /* 0x9C */ s32 _9C;
+    /* 0x9C */ s32 mRingPointNum;
     /* 0xA0 */ TVec3f* _A0;
     /* 0xA4 */ TVec3s* _A4;
     /* 0xA8 */ f32 _A8;

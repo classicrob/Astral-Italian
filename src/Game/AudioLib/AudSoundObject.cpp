@@ -89,7 +89,7 @@ JAISoundHandle* AudSoundObject::startSound(JAISoundID soundID) {
         return nullptr;
     }
 
-    if (AudWrap::getSystem()->_82B && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
+    if (AudWrap::getSystem()->mIsStartSoundBlocked && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
         return nullptr;
     }
 
@@ -114,7 +114,7 @@ JAISoundHandle* AudSoundObject::startLevelSound(JAISoundID soundID) {
         return nullptr;
     }
 
-    if (AudWrap::getSystem()->_82C && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
+    if (AudWrap::getSystem()->mIsStartLevelSoundBlocked && soundID.getGroupID() != SE_HOME_BUTTON_MENU && soundID.getGroupID() != SE_SYSTEM) {
         return nullptr;
     }
 

@@ -16,6 +16,6 @@ public:
 
     /* 0x0 */ CameraParamChunkHolder* mChunkHolder;
     /* 0x4 */ const char* mName;
-    /* 0x8 */ s32 _8;
+    /* 0x8 */ s32 mGroupID;
     /* 0xC */ u8 mCodes[0x100];
 };

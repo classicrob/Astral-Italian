@@ -41,7 +41,7 @@ public:
     void initBloomModel(const char*);
 
     /* 0x8C */ const char* mModelName;
-    /* 0x90 */ TVec3f _90;
+    /* 0x90 */ TVec3f mClippingCenter;
     /* 0x9C */ LodCtrl* mLODCtrl;
     /* 0xA0 */ PartsModel* mBloomModel;
     /* 0xA4 */ PartsModel* mWaterModel;

@@ -31,8 +31,8 @@ AudBgmVolumeController::AudBgmVolumeController() : mIsMuted() {
     mFaderCtrl[FADER_NOTEFAIRY].mTime = 5;
     mFaderCtrl[FADER_NOTEFAIRY].mRecoverTime = 5;
     mFaderCtrl[FADER_MENU].mVolume = 0.0f;
-    mFaderCtrl[FADER_MENU].mTime = 0;
-    mFaderCtrl[FADER_MENU].mRecoverTime = 0;
+    mFaderCtrl[FADER_MENU].mTime = 5;
+    mFaderCtrl[FADER_MENU].mRecoverTime = 5;
 }
 
 void AudBgmVolumeController::update() {

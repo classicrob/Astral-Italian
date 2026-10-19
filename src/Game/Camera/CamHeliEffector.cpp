@@ -4,33 +4,33 @@
 #include "Game/Player/MarioActor.hpp"  // DO NOT REMOVE
 #include "Game/Util/MathUtil.hpp"
 
-CamHeliEffector::CamHeliEffector() : _0(), _4() {
+CamHeliEffector::CamHeliEffector() : mFrame(), mStrength() {
 }
 
 // NONMATCHING: vector temporary addresses and register allocation.
 void CamHeliEffector::update(CameraMan* pCamera) {
     if (!CameraLocalUtil::getTarget(pCamera)->isCameraStateOn(1)) {
-        _0 = 0;
-        if (_4 == 0.0f) {
+        mFrame = 0;
+        if (mStrength == 0.0f) {
             return;
         }
 
-        f32 val = _4;
+        f32 val = mStrength;
         val *= 0.98f;
-        _4 = val;
+        mStrength = val;
         if (val < 0.001f) {
-            _4 = 0.0f;
+            mStrength = 0.0f;
         }
     } else {
-        f32 val = _0 / 60.0f;
+        f32 val = mFrame / 60.0f;
         if (val > 1.0f) {
             val = 1.0f;
         }
 
         val *= val;
         val *= val;
-        _4 += (1.0f - _4) * val;
-        _0++;
+        mStrength += (1.0f - mStrength) * val;
+        mFrame++;
     }
 
     TVec3f up = CameraLocalUtil::getTarget(pCamera)->getUpVec();
@@ -50,7 +50,7 @@ void CamHeliEffector::update(CameraMan* pCamera) {
 
     TQuat4f quat;
     const f32 rate = (angle - MR::pi() / 6.0f) / angle;
-    quat.setRotate(direction, up, rate * _4);
+    quat.setRotate(direction, up, rate * mStrength);
     quat.transform(diff);
 
     CameraLocalUtil::setPos(pCamera, diff + CameraLocalUtil::getWatchPos(pCamera));

@@ -2333,7 +2333,7 @@ Game/Demo/DemoTitleAnimSub.cpp:
 Game/Demo/DemoTitleAnim.cpp:
 	.text       start:0x8013CF50 end:0x8013D6E0
 	.ctors      start:0x80644028 end:0x8064402C
-	.data       start:0x8067F5F0 end:0x8067F728
+	.data       start:0x8067F5F0 end:0x8067F768
 	.sdata      start:0x807CF708 end:0x807CF710
 	.sbss       start:0x807D1DA8 end:0x807D1DB8
 
@@ -2903,6 +2903,7 @@ Game/Enemy/HanachanBig.cpp:
 Game/Enemy/HanachanRunaway.cpp:
 	.text       start:0x80193910 end:0x80194AC0
 	.ctors      start:0x80644134 end:0x80644138
+	.data       start:0x80688390 end:0x80688590
 
 Game/Enemy/HomingKiller.cpp:
 	.text       start:0x80194AC0 end:0x80198350

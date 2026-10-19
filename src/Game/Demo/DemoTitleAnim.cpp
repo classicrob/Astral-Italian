@@ -83,15 +83,6 @@ void DemoTitleAnim::exeLoop() {
     }
 }
 
-void DemoTitleAnim::exeSelecting() {
-    if (MR::isFirstStep(this)) {
-        MR::endAnimCamera(this, mCameraInfo, "Loop", -1, true);
-        MR::startAction(this, "Selecting");
-        for (s32 i = 0; i < mSubCount; i++) {
-            mSubs[i]->selectSub();
-        }
-    }
-}
 
 void DemoTitleAnim::endAll() {
     MR::endAnimCamera(this, mCameraInfo, "Loop", -1, true);
@@ -135,3 +126,14 @@ void DemoTitleAnim::createSubs() {
         mSubs[i]->initWithoutIter();
     }
 }
+
+void DemoTitleAnim::exeSelecting() {
+    if (MR::isFirstStep(this)) {
+        MR::endAnimCamera(this, mCameraInfo, "Loop", -1, true);
+        MR::startAction(this, "Selecting");
+        for (s32 i = 0; i < mSubCount; i++) {
+            mSubs[i]->selectSub();
+        }
+    }
+}
+

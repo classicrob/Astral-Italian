@@ -5,7 +5,7 @@
 #include <JSystem/JParticle/JPAParticle.hpp>
 
 SpinPullParticleCallBack::SpinPullParticleCallBack() : MultiEmitterParticleCallBack() {
-    _4 = 1.0f;
+    mPullScale = 1.0f;
 }
 
 void SpinPullParticleCallBack::execute(JPABaseEmitter* pEmitter, JPABaseParticle* pParticle) {
@@ -17,7 +17,7 @@ void SpinPullParticleCallBack::execute(JPABaseEmitter* pEmitter, JPABaseParticle
     baseParticleOffsetPosition.set(pParticle->mOffsetPosition);
 
     f32 time = pParticle->mTime;
-    pParticle->mOffsetPosition.set(baseParticleOffsetPosition + (((pullvel * _4) * time) * (time)));
+    pParticle->mOffsetPosition.set(baseParticleOffsetPosition + (((pullvel * mPullScale) * time) * (time)));
 }
 
 void MerameraParticleCallBack::execute(JPABaseEmitter* pEmitter, JPABaseParticle* pParticle) {
@@ -27,5 +27,5 @@ void MerameraParticleCallBack::execute(JPABaseEmitter* pEmitter, JPABaseParticle
     MR::calcPlayerSpinPullVelocity(&pullvel, baseParticlePosition);
     TVec3f baseParticleOffsetPosition;
     baseParticleOffsetPosition.set(pParticle->mOffsetPosition);
-    pParticle->mOffsetPosition.set(baseParticleOffsetPosition + (pullvel * _4));
+    pParticle->mOffsetPosition.set(baseParticleOffsetPosition + (pullvel * mPullScale));
 }

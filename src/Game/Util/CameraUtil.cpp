@@ -254,7 +254,7 @@ namespace MR {
         if (chunk != nullptr) {
             chunk->setCameraType("CAM_TYPE_EYEPOS_FIX_THERE", MR::getCameraDirector()->mHolder);
             chunk->mGeneralParam->mNum1 = 1;
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 
@@ -302,7 +302,7 @@ namespace MR {
                 chunk->mGeneralParam->mNum1 = 1;
             }
 
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 
@@ -317,7 +317,7 @@ namespace MR {
             chunk->setLOfsErpOff(true);
             chunk->mExParam.setWOffset(TVec3f(0.0f, 0.0f, 0.0f));
             chunk->mExParam.mLOffsetV = 100.0f;
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 
@@ -331,7 +331,7 @@ namespace MR {
             chunk->mGeneralParam->mDist = 1.0f;
             chunk->getGeneralParam()->mNum2 &= 0x80000000;
             chunk->getGeneralParam()->mNum2 |= CameraAnim::getAnimFrame(reinterpret_cast< u8* >(pAnimData));
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 
@@ -384,7 +384,7 @@ namespace MR {
         CameraParamChunkEvent* chunk = getCameraDirector()->getEventParameter(0, pEventName);
         if (chunk != nullptr) {
             chunk->setCameraType("CAM_TYPE_BLACK_HOLE", getCameraDirector()->mHolder);
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
             chunk->mEnableErpFrame = true;
             chunk->mExParam.mCamInt = 240;
             chunk->setCollisionOff(true);
@@ -418,7 +418,7 @@ namespace MR {
             chunk->mGeneralParam->mWPoint.y = 0.99f;
             chunk->mGeneralParam->mUp.zero();
             chunk->mGeneralParam->mNum2 = 0;
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 
@@ -456,7 +456,7 @@ namespace MR {
             chunk->mGeneralParam->mAngleA = 1.4f;
             chunk->mGeneralParam->mAngleB = MR::pi();
             chunk->setCollisionOff(true);
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 
@@ -485,7 +485,7 @@ namespace MR {
         CameraParamChunkEvent* chunk = getCameraDirector()->getEventParameter(0, pEventName);
         if (chunk != nullptr) {
             chunk->setCameraType("CAM_TYPE_POINT_FIX", getCameraDirector()->mHolder);
-            chunk->_64 = true;
+            chunk->mIsRuntimeCreated = true;
         }
     }
 

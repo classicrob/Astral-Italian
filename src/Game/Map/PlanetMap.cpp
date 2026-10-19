@@ -37,7 +37,7 @@ namespace {
 };  // namespace
 
 PlanetMap::PlanetMap(const char* pName, const char* pModelName)
-    : LiveActor(pName), mModelName(pModelName), _90(0.0f, 0.0f, 0.0f), mLODCtrl(), mBloomModel(), mWaterModel(), mIndirectModel(), mEffectNum() {
+    : LiveActor(pName), mModelName(pModelName), mClippingCenter(0.0f, 0.0f, 0.0f), mLODCtrl(), mBloomModel(), mWaterModel(), mIndirectModel(), mEffectNum() {
 }
 
 void PlanetMap::connectToScene() {
@@ -136,8 +136,8 @@ void PlanetMap::initClipping(const JMapInfoIter& rIter) {
 
     if (pInfo != nullptr) {
         radius = pInfo->mRadius;
-        _90.set(mPosition + TVec3f(pInfo->mOffset));
-        MR::setClippingTypeSphere(this, pInfo->mRadius, &_90);
+        mClippingCenter.set(mPosition + TVec3f(pInfo->mOffset));
+        MR::setClippingTypeSphere(this, pInfo->mRadius, &mClippingCenter);
     } else {
         if (radius <= 0.0f) {
             MR::calcModelBoundingRadius(&radius, this);

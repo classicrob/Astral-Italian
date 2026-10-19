@@ -46,15 +46,15 @@ namespace {
 };  // namespace
 
 SimpleEffectObj::SimpleEffectObj(const char* pName) : LiveActor(pName) {
-    _8C = nullptr;
+    mEffectName = nullptr;
 }
 
 void SimpleEffectObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneMapObjMovement(this);
-    MR::getObjectName(&_8C, rIter);
-    initEffectKeeper(0, _8C, false);
-    initSound(4, _8C, nullptr, TVec3f(0.0f));
+    MR::getObjectName(&mEffectName, rIter);
+    initEffectKeeper(0, mEffectName, false);
+    initSound(4, mEffectName, nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(SimpleEffectObj, HostTypeWait));
 
     if (MR::initUseStageSwitchReadA(this, rIter)) {
@@ -77,8 +77,8 @@ void SimpleEffectObj::init(const JMapInfoIter& rIter) {
         MR::registerDemoSimpleCastAll(this);
     }
 
-    _90.set(mPosition + *getClippingCenterOffset());
-    MR::setClippingTypeSphere(this, getClippingRadius(), &_90);
+    mClippingCenter.set(mPosition + *getClippingCenterOffset());
+    MR::setClippingTypeSphere(this, getClippingRadius(), &mClippingCenter);
     MR::setGroupClipping(this, rIter, 0x40);
     MR::setClippingFar(this, getFarClipDistance());
     MR::joinToGroupArray(this, rIter, mName, 0x20);
@@ -102,12 +102,12 @@ void SimpleEffectObj::endClipped() {
     LiveActor::endClipped();
 
     if (isSyncClipping() && isNerve(GET_NERVE(SimpleEffectObj, HostTypeMove))) {
-        MR::emitEffect(this, _8C);
+        MR::emitEffect(this, mEffectName);
     }
 }
 
 void SimpleEffectObj::setStateWait() {
-    MR::deleteEffect(this, _8C);
+    MR::deleteEffect(this, mEffectName);
     setNerve(GET_NERVE(SimpleEffectObj, HostTypeWait));
 }
 
@@ -121,8 +121,8 @@ void SimpleEffectObj::exeWait() {
 void SimpleEffectObj::exeMove() {
     const s_effectDataTable* v1;
     if (MR::isFirstStep(this)) {
-        MR::emitEffect(this, _8C);
-        v1 = ::findDataElement(_8C);
+        MR::emitEffect(this, mEffectName);
+        v1 = ::findDataElement(mEffectName);
         s32 v4;
         if (v1 != nullptr) {
             v4 = v1->_C;
@@ -137,7 +137,7 @@ void SimpleEffectObj::exeMove() {
         }
         MR::startActionSoundAuto(this, "EffectEmitStart", -1, -1, -1);
 
-        v1 = ::findDataElement(_8C);
+        v1 = ::findDataElement(mEffectName);
         const char* Sound;
         if (v1 != nullptr) {
             Sound = v1->_4;
@@ -149,8 +149,8 @@ void SimpleEffectObj::exeMove() {
             MR::startSound(this, Sound);
         }
     }
-    if (MR::isEffectValid(this, _8C)) MR::startActionSoundAuto(this, "EffectEmitting", -1, -1, -1);
-    v1 = ::findDataElement(_8C);
+    if (MR::isEffectValid(this, mEffectName)) MR::startActionSoundAuto(this, "EffectEmitting", -1, -1, -1);
+    v1 = ::findDataElement(mEffectName);
     const char* levelSound;
     if (v1 != nullptr) {
         levelSound = v1->_8;
@@ -162,7 +162,7 @@ void SimpleEffectObj::exeMove() {
         MR::startLevelSound(this, levelSound);
     }
 
-    v1 = ::findDataElement(_8C);
+    v1 = ::findDataElement(mEffectName);
     s32 v13;
     if (v1 != nullptr) {
         v13 = v1->_14;
@@ -175,7 +175,7 @@ void SimpleEffectObj::exeMove() {
     }
 
     if (MR::isStep(this, v13)) {
-        v1 = ::findDataElement(_8C);
+        v1 = ::findDataElement(mEffectName);
         const char* v15;
         if (v1 != nullptr) {
             v15 = v1->_10;

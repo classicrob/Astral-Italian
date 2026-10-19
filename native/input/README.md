@@ -9,6 +9,42 @@ original code, and the game's `WPad*` classes read real KPAD output.
 The public API is `native/include/petari/input.hpp`. The optional SDL3 adapter
 is `include/petari/input_sdl3.hpp`.
 
+## Super Mario Galaxy 2 additions
+
+The imported defaults remain unchanged. [../CONTROLS.md](../CONTROLS.md)
+is the SMG2 player guide; [SMG2_ACTIONS.md](SMG2_ACTIONS.md) records the
+source predicates and reconstruction limits for its action table.
+
+- `NunchukShake` (H) drives the extension accelerometer independently of
+  `Shake` (F). SMG2 sets a 2 g extension swing threshold, and KPAD clamps
+  each extension axis to 2.1 g. H uses a 50 ms diagonal impulse followed by
+  a 200 ms return; at least 250 ms separates starts. One pending flick can
+  wait after C/Z's button lockout. Holding H does not repeat. The existing
+  Remote flick, A/B delay, and stalled-frame replay are unchanged; extension
+  flicks do not implement the Remote's stalled-frame replay.
+- `CoStarToggle` (F2) connects/disconnects channel 1 through the existing
+  WPAD connection lifecycle. It starts disabled. `CoStarA` (U), `CoStarB`
+  (Y), and `CoStarShake` (N) feed a second `RemoteModel`, using that channel's
+  own KPAD calibration and read counter. Mouse position/viewport/focus
+  reach both models; only explicitly bound co-star buttons affect the
+  second one. Its non-trigger gamepad axes are ignored. No existing
+  gamepad button is reassigned. This is shared-mouse assist input, not
+  independent two-pointer hardware.
+- New actions append to `Action` and the text-name table. They use the same
+  Home-menu capture, conflict, reset and `controls.txt` path. Old partial
+  files acquire the new defaults without changing their existing actions.
+- The KPAD replay seam still bypasses host-generated reports. Headless
+  replay is not combined with live co-star input.
+
+`native/tests/smg2_controls_tests.cpp` covers the complete imported-default
+snapshot, new names/conflicts, editor remaps, file save/reload, gesture
+isolation/timing/focus, co-star isolation, pointer sharing and remaps.
+`input_tests.cpp` adds SDK KPAD + game WPad cases for H's stronger threshold
+at three report/frame phases, C/Z lockouts, channel 1 connection, buttons,
+pointer, shake, disconnect and live remapping. Run the normal standalone
+CTest suite below; integration results depend on the current native SDK
+headers compiling, not on the pure report model alone.
+
 ## How game input is produced
 
 The virtual remote sends a report every 5 ms, as a Wii Remote does. Timing

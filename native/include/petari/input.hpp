@@ -113,6 +113,13 @@ enum class Action : std::uint8_t {
     // a tap enters Edit mode or leaves it. Tab by default, which also tilts the remote while
     // held (TiltHold): only a short tap with nothing else pressed toggles.
     LevelEditor,
+    // SMG2: separate Nunchuk motion and optional second Remote. Append to
+    // preserve all imported action identities and controls.txt names.
+    NunchukShake,
+    CoStarToggle,
+    CoStarA,
+    CoStarB,
+    CoStarShake,
     Count
 };
 

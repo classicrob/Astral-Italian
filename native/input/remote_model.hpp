@@ -34,7 +34,9 @@ enum : std::uint32_t {
     kBitTiltHold = 1u << 21,
     kBitPostureToggle = 1u << 22,
     kBitWalk = 1u << 23,
-    kBitCount = 24,
+    kBitNunchukShake = 1u << 24,
+    kBitCoStarToggle = 1u << 25,
+    kBitCount = 26,
 };
 std::uint32_t actionBits(Action action);
 
@@ -76,7 +78,7 @@ std::int8_t rawStickAxis(float value);
 
 class RemoteModel {
 public:
-    RemoteModel();
+    explicit RemoteModel(bool coStar = false);
 
     void setBindings(const Bindings& bindings);
     const Bindings& bindings() const { return mBindings; }
@@ -107,6 +109,8 @@ public:
 
     // A bound input went down since the last call (reconnects a remote).
     bool takeActivity();
+    // A remappable request to connect/disconnect the second remote.
+    bool takeCoStarToggle();
     // An input bound to the action is down now (and the window has focus).
     bool actionHeld(Action action) const;
     // How many times the game has read the remote (KPADRead's WPADProbe, every
@@ -133,6 +137,7 @@ public:
     }
 
 private:
+    std::uint32_t bitsForAction(Action action) const;
     std::uint32_t heldBits() const;
     // Recomputes the held bits and counts rising ones as presses; returns them.
     std::uint32_t refreshRaw();
@@ -147,6 +152,8 @@ private:
 
     Bindings mBindings;
     Settings mSettings;
+    bool mCoStar = false;
+    bool mCoStarToggle = false;
     std::array<bool, Key::Max> mKeys{};
     std::array<bool, static_cast<int>(MouseButton::Count)> mMouse{};
     std::array<bool, static_cast<int>(PadButton::Count)> mPad{};
@@ -189,6 +196,13 @@ private:
     bool mShakeSeen = false;              // the game read within kShakeSeenReports of the flick
     bool mShakeReplay = false;            // the last flick went unread: play it again
     int mShakeReplays = 0;                // replays of the current press so far
+    // A Nunchuk flick is independent of the Remote flick. C/Z have the same
+    // ten-frame exclusion in MarioActor::updateControllerSwingLeft as A/B do
+    // for the Remote, so its pending start uses the same configurable delay.
+    int mNunchukShakeReport = -1;
+    std::uint64_t mNunchukShakeStart = 0;
+    std::uint64_t mLastNunchukShakeStart = 0;
+    std::uint64_t mLastNunchukButtonReport = 0;
     std::uint64_t mTitlePromptReport = 0;  // report of the last titlePromptShown (0: none)
     std::uint64_t mMotionReport = 0;       // report of the last motionControlShown (0: none)
     Steering mSteering = Steering::Ball;

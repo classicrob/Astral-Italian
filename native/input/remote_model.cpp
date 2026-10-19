@@ -64,6 +64,19 @@ constexpr std::uint64_t kShakeGapReports = 7;  // after a shake ends, before its
 constexpr int kShakeReplays = 3;
 static_assert(kShakeSpacingReports >= kShakeFlickReports + kShakeReturnReports - 1, "flicks must not overlap");
 
+// SMG2 gives the Nunchuk a 2 g distance threshold (Remote: 1 g), and KPAD
+// clamps each Nunchuk axis at 2.1 g. A diagonal 50 ms impulse crosses that
+// threshold after KPAD's 0.15 filter; the Remote's shorter one-axis impulse
+// cannot. Return slowly so the 20-report comparison does not retrigger.
+constexpr int kNunchukFlickReports = 10;
+float nunchukShakeAcceleration(int report) {
+    if (report < kNunchukFlickReports) return 2.1f;
+    const int n = report - kNunchukFlickReports + 1;
+    return kShakeReturnStartG * (1.0f - static_cast<float>(n) / kShakeReturnReports);
+}
+constexpr int kNunchukShakeReports = kNunchukFlickReports + kShakeReturnReports - 1;
+static_assert(kShakeSpacingReports >= kNunchukShakeReports, "Nunchuk flicks must not overlap");
+
 float approach(float value, float target, float step) {
     if (value < target) {
         return std::min(value + step, target);
@@ -101,6 +114,11 @@ std::uint32_t actionBits(Action action) {
     case Action::NunchukC: return 0x4000;
     case Action::NunchukZ: return 0x2000;
     case Action::Shake: return kBitShake;
+    case Action::NunchukShake: return kBitNunchukShake;
+    case Action::CoStarToggle: return kBitCoStarToggle;
+    case Action::CoStarA:
+    case Action::CoStarB:
+    case Action::CoStarShake: return 0;  // routed only to the second Remote
     case Action::TiltHold: return kBitTiltHold;
     case Action::PostureToggle: return kBitPostureToggle;
     case Action::Walk: return kBitWalk;
@@ -170,8 +188,18 @@ std::int8_t rawStickAxis(float value) {
     return static_cast<std::int8_t>(value < 0.0f ? -raw : raw);
 }
 
-RemoteModel::RemoteModel() : mBindings(Bindings::defaults()) {
+RemoteModel::RemoteModel(bool coStar) : mBindings(Bindings::defaults()), mCoStar(coStar) {
     mOutputAge.fill(1 << 20);
+}
+
+std::uint32_t RemoteModel::bitsForAction(Action action) const {
+    if (!mCoStar) return actionBits(action);
+    switch (action) {
+    case Action::CoStarA: return actionBits(Action::A);
+    case Action::CoStarB: return actionBits(Action::B);
+    case Action::CoStarShake: return kBitShake;
+    default: return 0;
+    }
 }
 
 void RemoteModel::setBindings(const Bindings& bindings) {
@@ -190,7 +218,7 @@ std::uint32_t RemoteModel::heldBits() const {
     // Shake and the cap throw (RB by default) throws only.
     const bool cappyClaims = Mods::enabled(Mods::Mod::Cappy) && Mods::enabled(Mods::Mod::OdysseyMovement);
     // Point to move mod: a left press it claimed steers Mario and is not B (or anything else).
-    const bool pointClaims = PointMove::claimsLeft();
+    const bool pointClaims = !mCoStar && PointMove::claimsLeft();
     for (int i = 0; i < static_cast<int>(Action::Count); ++i) {
         const Action action = static_cast<Action>(i);
         for (const Binding& input : mBindings.inputs(action)) {
@@ -206,8 +234,8 @@ std::uint32_t RemoteModel::heldBits() const {
             case Binding::Device::Pad: held = input.code < mPad.size() && mPad[input.code]; break;
             }
             if (held) {
-                bits |= actionBits(action);
-                if (action == Action::Start && titlePromptActive()) {
+                bits |= bitsForAction(action);
+                if (!mCoStar && action == Action::Start && titlePromptActive()) {
                     bits |= actionBits(Action::B);
                 }
                 break;
@@ -250,7 +278,7 @@ void RemoteModel::inputChanged(Binding input, bool down) {
     case Binding::Device::Mouse: mMouse[input.code] = down; break;
     case Binding::Device::Pad: mPad[input.code] = down; break;
     }
-    if (input == Binding::mouse(MouseButton::Left)) {
+    if (!mCoStar && input == Binding::mouse(MouseButton::Left)) {
         PointMove::leftButton(down);
     }
     if (refreshRaw() != 0) {
@@ -300,7 +328,7 @@ void RemoteModel::padButtonEvent(PadButton button, bool down) {
     if (index < 0 || index >= static_cast<int>(mPad.size()) || mPad[index] == down || (down && !mFocused)) {
         return;
     }
-    if (button == PadButton::RightStick && down) {
+    if (!mCoStar && button == PadButton::RightStick && down) {
         // R3 brings the controller's Star Pointer to the middle of the image.
         mPadPointer = true;
         mPadPointerX = 0.0f;
@@ -315,6 +343,7 @@ void RemoteModel::padAxisEvent(PadAxis axis, float value) {
         return;
     }
     const bool trigger = axis == PadAxis::LeftTrigger || axis == PadAxis::RightTrigger;
+    if (mCoStar && !trigger) return;  // mouse aims co-star; triggers can still be remapped as buttons
     value = trigger ? std::clamp(value, 0.0f, 1.0f) : std::clamp(value, -1.0f, 1.0f);
     if (!mFocused) {
         return;
@@ -409,6 +438,8 @@ void RemoteModel::releaseAll() {
     mShakeStart = 0;
     mShakeReplay = false;
     mShakeReplays = 0;
+    mNunchukShakeStart = 0;
+    mCoStarToggle = false;
 }
 
 void RemoteModel::focusChanged(bool focused) {
@@ -422,6 +453,12 @@ bool RemoteModel::takeActivity() {
     const bool activity = mActivity;
     mActivity = false;
     return activity;
+}
+
+bool RemoteModel::takeCoStarToggle() {
+    const bool toggle = mCoStarToggle;
+    mCoStarToggle = false;
+    return toggle;
 }
 
 void RemoteModel::updateOutput() {
@@ -451,6 +488,10 @@ void RemoteModel::updateOutput() {
 }
 
 void RemoteModel::stickVector(float* x, float* y) const {
+    if (mCoStar) {
+        *x = *y = 0.0f;  // co-star has its own buttons and a shared mouse, no movement stick
+        return;
+    }
     auto axis = [this](std::uint32_t positive, std::uint32_t negative) {
         const bool p = (mOutput & positive) != 0;
         const bool n = (mOutput & negative) != 0;
@@ -514,12 +555,29 @@ Report RemoteModel::nextReport(const PointerCalibration& calibration) {
     const std::uint32_t previous = mOutput;
     updateOutput();
     const std::uint32_t rising = mOutput & ~previous;
+    if ((rising & kBitCoStarToggle) != 0) mCoStarToggle = true;
     if ((rising & kBitPostureToggle) != 0) {
         mPosture = mPosture == Posture::Pointing ? Posture::Upright : Posture::Pointing;
     }
     constexpr std::uint32_t kButtonAorB = 0x0800 | 0x0400;
     if ((rising & kButtonAorB) != 0) {
         mLastButtonReport = mReportIndex;
+    }
+    constexpr std::uint32_t kButtonCorZ = 0x4000 | 0x2000;
+    if ((rising & kButtonCorZ) != 0) mLastNunchukButtonReport = mReportIndex;
+    if ((rising & kBitNunchukShake) != 0 && mNunchukShakeStart == 0) {
+        std::uint64_t start = mReportIndex;
+        if (mLastNunchukButtonReport != 0) {
+            start = std::max(start, mLastNunchukButtonReport +
+                                     static_cast<std::uint64_t>(std::max(mSettings.shakeDelayAfterButtonReports, 0)));
+        }
+        if (mLastNunchukShakeStart != 0) start = std::max(start, mLastNunchukShakeStart + kShakeSpacingReports);
+        mNunchukShakeStart = start;
+    }
+    if (mNunchukShakeStart != 0 && mReportIndex >= mNunchukShakeStart && mNunchukShakeReport < 0) {
+        mNunchukShakeStart = 0;
+        mNunchukShakeReport = 0;
+        mLastNunchukShakeStart = mReportIndex;
     }
     static const bool traceShake = std::getenv("PETARI_SHAKE_TRACE") != nullptr;
     if (traceShake && (rising & kBitShake) != 0) {
@@ -589,6 +647,12 @@ Report RemoteModel::nextReport(const PointerCalibration& calibration) {
     report.acc[0] = sr;
     report.acc[1] = -cp * cr;
     report.acc[2] = -sp * cr;
+    if (mNunchukShakeReport >= 0) {
+        const float flick = nunchukShakeAcceleration(mNunchukShakeReport);
+        report.nunchukAcc[0] += flick;
+        report.nunchukAcc[2] += flick;
+        if (++mNunchukShakeReport >= kNunchukShakeReports) mNunchukShakeReport = -1;
+    }
     if (mShakeReport >= 0) {
         report.acc[0] += shakeAcceleration(mShakeReport);
         if (++mShakeReport >= shakeReports()) {

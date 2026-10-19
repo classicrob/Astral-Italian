@@ -18,7 +18,7 @@ const char* const kActionNames[kActionCount] = {
     "Two",     "DpadUp",    "DpadDown",  "DpadLeft",   "DpadRight", "NunchukC", "NunchukZ", "Shake",     "TiltHold",
     "PostureToggle", "Walk",   "Start", "ModCollectStarBits", "ModShootEnemy", "CameraOrbitHold", "CameraZoomIn",
     "CameraZoomOut", "CameraOrbitLeft", "CameraOrbitRight", "CameraPitchUp", "CameraPitchDown", "PhotoMode", "PhotoShot",
-    "ModCappyThrow", "LevelEditor",
+    "ModCappyThrow", "LevelEditor", "NunchukShake", "CoStarToggle", "CoStarA", "CoStarB", "CoStarShake",
 };
 
 const char* const kMouseNames[static_cast<int>(MouseButton::Count)] = {"Left", "Middle", "Right", "X1", "X2"};
@@ -240,6 +240,10 @@ std::vector<ControlsLine> controlsSummary(const Bindings& b) {
         {"Jump / confirm", joined(inputsOf(b, {Action::A}), " / "), padText(b, {Action::A})},
         {"Start (title: A and B)", joined(inputsOf(b, {Action::Start}), " / "), padText(b, {Action::Start})},
         {"Spin", joined(inputsOf(b, {Action::Shake}), " / "), padText(b, {Action::Shake})},
+        {"Shake Nunchuk", joined(inputsOf(b, {Action::NunchukShake}), " / "), padText(b, {Action::NunchukShake})},
+        {"Co-star (toggle / A / B / shake)",
+         firstOfEach(b, {Action::CoStarToggle, Action::CoStarA, Action::CoStarB, Action::CoStarShake}, " / "),
+         padText(b, {Action::CoStarToggle, Action::CoStarA, Action::CoStarB, Action::CoStarShake})},
         {"Cap throw (Cappy mod)", joined(inputsOf(b, {Action::ModCappyThrow}), " / "), padText(b, {Action::ModCappyThrow})},
         {"Crouch / ground pound", joined(inputsOf(b, {Action::NunchukZ}), " / "), padText(b, {Action::NunchukZ})},
         {"Star Pointer", "Mouse", "right stick (R3: center)"},
@@ -252,7 +256,7 @@ std::vector<ControlsLine> controlsSummary(const Bindings& b) {
          padText(b, {Action::DpadUp}, "", padLeave.empty() ? "" : " (leave: " + padLeave + ")")},
         {"Walk slowly", hold({Action::Walk}, ""), "push the stick part way"},
         {"Pause", joined(inputsOf(b, {Action::Plus, Action::Minus}), " / "), padText(b, {Action::Plus, Action::Minus})},
-        {"Star Ball / Ray", move + " tilt while riding", "left stick tilts while riding"},
+        {"Star Ball", move + " tilt while riding", "left stick tilts while riding"},
         {"Tilt the remote by hand", hold({Action::TiltHold}, " + " + move), ""},
         {"This menu", joined(inputsOf(b, {Action::Home}), " / "), padText(b, {Action::Home})},
     };
@@ -362,6 +366,13 @@ Bindings Bindings::defaults() {
     // Cappy mod: RB, Spin's second button; while the mod is active RB throws and
     // does not spin (setCappyClaimsShake). The left button still spins.
     b.bind(Action::ModCappyThrow, Binding::pad(PadButton::RightShoulder));
+    // SMG2 additions. Append actions/defaults so every imported binding and
+    // serialized action name keeps its meaning. These keys were unassigned.
+    b.bind(Action::NunchukShake, Binding::key(Key::H));
+    b.bind(Action::CoStarToggle, Binding::key(Key::F2));
+    b.bind(Action::CoStarA, Binding::key(Key::U));
+    b.bind(Action::CoStarB, Binding::key(Key::Y));
+    b.bind(Action::CoStarShake, Binding::key(Key::N));
     return b;
 }
 

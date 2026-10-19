@@ -1,210 +1,176 @@
-# Native controls
+# Super Mario Galaxy 2 native controls
 
-These main defaults were approved for the native Mac port (MacioGalaxy). The native input layer
-and text-file remapping are implemented. Opening movement, jumping and menu
-selection have been exercised in the full game; later controls remain unverified.
+The keyboard and mouse defaults match MacioGalaxy. SMG2's power-ups reuse the
+same Wii buttons and gestures; they do not get separate jump, spin, or tongue
+keys. The input layer sends WPAD reports through the SDK's KPAD processing.
+These mappings describe the input path, not a claim that every action has
+been exercised in a running SMG2 stage.
 
-| Input | Action |
-| --- | --- |
-| WASD | Move |
-| Space | Jump / confirm |
-| Return | Start / confirm (the title's "press A and B") |
-| F | Spin |
-| Shift | Crouch / ground pound |
-| Mouse motion | Move the Star Pointer / collect Star Bits |
-| Left mouse button | Shoot Star Bits. With the Point to move mod on: hold to run toward the pointer (native/MODS.md) |
-| B | Shoot Star Bits (the Wii B, like the left mouse button; hold it to stroke pointer objects) |
-| Hold right mouse button | Interact with pointer targets / Pull Stars |
-| Q / E | Rotate camera |
-| C | Recenter camera |
-| Escape | Pause; tap again to resume |
-| Backspace | Back in menus |
+## Mario, menus, and the Star Pointer
 
-Every control can be changed in the game: F1 (or `, the key under Escape),
-then Controls (see "Changing controls" below). Changes are saved in
-`controls.txt` in the app's user directory (normally
-`~/Library/Application Support/Petari`, overridden by `--user`), loaded at
-startup. Mouse motion controls the Star Pointer by default. While the title
-screen asks for A and B, a bar at the top of the screen names the keys
-("Keyboard: Return starts | F1: all controls").
+The last column is the action name used by `controls.txt` and the Controls
+page. A game action can share a Wii button with other actions.
+
+| Action | Wii input | Default keyboard / mouse | Remappable name |
+| --- | --- | --- | --- |
+| Move / steer / navigate | Nunchuk stick | WASD | `StickUp`, `StickLeft`, `StickDown`, `StickRight` |
+| Jump / confirm / advance text | A | Space | `A` |
+| Start; confirm elsewhere | A+B at the title prompt; A elsewhere | Return / keypad Enter | `Start` |
+| Spin / shake the Remote | Remote acceleration | F | `Shake` |
+| Shake the Nunchuk separately | Nunchuk acceleration | H | `NunchukShake` |
+| Crouch; ground pound in the air | Nunchuk Z | Left or Right Shift | `NunchukZ` |
+| Move Star Pointer; collect Star Bits | Remote IR pointing | Mouse motion | Pointer motion is positional, not a button binding |
+| Shoot Star Bits; B in menus | B | Left mouse / B / Backspace | `B` |
+| Hold a pointer target / Pull Star | Point and hold A | Hold right mouse (or Space) | `A` |
+| Rotate camera | Remote D-pad left / right | Q / E; Left / Right arrows | `DpadLeft`, `DpadRight` |
+| Recenter camera | Nunchuk C | C | `NunchukC` |
+| First-person view; leave it | D-pad up; down (or A) | Up; Down (or Space) | `DpadUp`, `DpadDown`, `A` |
+| Pause / resume | + or − | Escape / Minus | `Plus`, `Minus` |
+| Back / cancel | B | Backspace | `B` |
+| Native Home menu / remapping | HOME | F1 or grave (`) | `Home` |
+| Remote 1 / 2 | 1 / 2 | 1 / 2 | `One`, `Two` |
+| Walk slowly | Partial stick | Hold Left Alt + WASD | `Walk` |
+| Manually tilt the Remote | Remote orientation | Hold Tab + WASD | `TiltHold`, movement actions |
+| Manually toggle upright posture | Remote orientation | T | `PostureToggle` |
+
+A right mouse press is also A: away from an interactive target it can jump.
+Likewise B and Backspace are real B inputs, not menu-only shortcuts.
+Return adds B only while the title's A+B prompt is reported by the game;
+it stays plain A elsewhere so that it does not cancel a menu selection.
+
+## SMG2 actions and power-ups
+
+Use the power-up or item first. The original game still decides when a
+button is allowed, whether a target is valid, and whether energy or charges
+remain. A press does not bypass those checks.
+
+| Action | Wii input | Keyboard / mouse | Remappable name |
+| --- | --- | --- | --- |
+| Mount Yoshi / Yoshi spin action | Shake Remote or Nunchuk | F (or H) | `Shake`, `NunchukShake` |
+| Aim Yoshi's tongue | Point at the target | Mouse motion | Pointer position |
+| Extend tongue / eat / grab; spit a held target | B, with pointing when required | Left mouse or B | `B` |
+| Keep a tongue grab | Hold B where the target permits it | Hold left mouse or B | `B` |
+| Yoshi jump / flutter | A; hold A for flutter | Space; hold Space | `A` |
+| Dismount Yoshi | Z+A | Shift+Space | `NunchukZ` + `A` |
+| Balloon Yoshi: brake flight | Hold A | Hold Space | `A` |
+| Spin Drill: start drilling while carrying | Shake (the player's rush/spin request) | F (or H) | `Shake`, `NunchukShake` |
+| Spin Drill: surface / finish drilling | Item state and collision, not a separate button | Automatic emergence | None |
+| Cloud Mario: spin / create a cloud when allowed | Shake | F (or H) | `Shake`, `NunchukShake` |
+| Rock Mario: enter roll / spin | Shake | F (or H) | `Shake`, `NunchukShake` |
+| Rock Mario: steer / jump | Stick / A | WASD / Space | Movement actions / `A` |
+| Rock Mario: end roll during its jump state | Z | Shift | `NunchukZ` |
+| Bee Mario: fly | Hold A | Hold Space | `A` |
+| Bee Mario: steer / spin | Stick / shake | WASD / F (or H) | Movement actions / `Shake`, `NunchukShake` |
+| Boo Mario: rise / move | A / stick | Space / WASD | `A` / movement actions |
+| Boo Mario: turn transparent | Shake | F (or H) | `Shake`, `NunchukShake` |
+| Spring Mario: high bounce / ground pound | A at the bounce / Z | Space / Shift | `A`, `NunchukZ` |
+| Fire Mario: fireball | Shake | F (or H) | `Shake`, `NunchukShake` |
+| Star Ball | Hold Remote upright and tilt; A jumps | WASD tilt while the ride hint is active; Space jumps | Movement actions, `A` |
+| Vines, plants, Launch Stars, other shake prompts | Remote or Nunchuk shake, as read by the object | F (or H) | `Shake`, `NunchukShake` |
+
+The reconstructed Spin Drill code receives `ItemRushBegin` and `RushCancel`
+messages. The start uses the shared player rush input; normal emergence
+runs at the end of the drill animation. A separate manual drill-cancel key
+is **not established by the current source trace**, so none is invented.
+Boo's state code is present, but this table does not assert that the form is
+available in an ordinary SMG2 stage.
+
+The main spin configuration accepts either device's shake, but the two
+accelerometers remain separate. F keeps its existing Remote flick. H emits
+a Nunchuk flick and can satisfy a reader of `isSubPadSwing(0)` specifically.
+Holding either key is one flick, not automatic repeat. A pending Nunchuk
+flick waits after C/Z; a pending Remote flick waits after A/B, matching
+Mario's respective button lockouts. Focus loss cancels waiting flicks.
+
+## Co-star Luma (player 2)
+
+F2 connects or disconnects a second virtual Wii Remote (WPAD channel 1).
+It starts disconnected, so the original single-player setup is unchanged.
+Allow about 200 ms for its connection before using it. The two pointers
+share the mouse position; this is a single-mouse assist mode, not two
+independent cursors. Player 1's mouse buttons keep their original actions.
+
+| Co-star action | Wii input | Default | Remappable name |
+| --- | --- | --- | --- |
+| Enable / disable the second Remote | Connect / disconnect Remote 2 | F2 | `CoStarToggle` |
+| Aim / collect pointer items | Remote 2 IR pointing | Mouse motion | Shared pointer position |
+| Grab / hold / assist on a valid target | Remote 2 A | U (hold where required) | `CoStarA` |
+| Shoot Star Bits / B on Remote 2 | Remote 2 B | Y | `CoStarB` |
+| Shake / spin a grabbed target when supported | Remote 2 acceleration | N | `CoStarShake` |
+
+These are channel 1 reports, never extra channel 0 A/B presses. Actual
+co-star interactions remain gated by the original game's target and state
+checks. Enablement is session state, not saved in `controls.txt`; its keys
+and buttons are saved. Co-star keys have no controller defaults but can be
+assigned on the same Controls page.
+
+## Starship Mario and world-map navigation
+
+| Action | Wii input | Default | Remappable name |
+| --- | --- | --- | --- |
+| Walk on Starship Mario / select directions on the map | Nunchuk stick | WASD | Movement actions |
+| Talk / confirm / travel to a selected destination | A | Space or Return; right mouse when pointing | `A`, `Start` |
+| Point at a map destination / button | IR pointing | Mouse motion | Pointer position |
+| Confirm a pointed destination | A | Space / right mouse | `A` |
+| Up as a world-map decide shortcut | D-pad up | Up arrow | `DpadUp` |
+| Back / cancel; zoom controls that present a B prompt | B | Backspace / B / left mouse | `B` |
+| Down as a map zoom shortcut where offered | D-pad down | Down arrow | `DpadDown` |
+
+In particular, the map's A path uses the same buttons as gameplay. Return
+must not send A+B on the world map. Camera and movement restrictions in a
+map event or cutscene are still the game's restrictions.
 
 ## Changing controls
 
-F1 → Controls lists every action with four slots: two for keyboard keys or
-mouse buttons, two for controller buttons. The Wii button each action stands
-for is shown as the game's own icon.
+Open **F1 → Controls**, select a slot, then press the desired key, mouse
+button, or controller button. Each action has two keyboard/mouse slots and
+two controller slots. Conflicts offer Swap, Keep both, or Cancel. Escape
+cancels capture; Reset action and Reset all restore defaults. The menu
+protects its last keyboard/mouse binding, so it remains reachable.
 
-- The list scrolls: the mouse wheel or a two-finger trackpad swipe, the
-  scrollbar on the right (drag its thumb, click the track to page, or click
-  its arrows), Page Up / Page Down, the controller's LB / LT, or moving past
-  the first or last shown row.
-- Move to a slot (arrow keys, WASD, the controller's stick or D-pad, or point
-  at it with the mouse) and press A (Space), or click it. Then press the key,
-  mouse button or controller button you want there. A click that starts the
-  wait is not taken as the new input; the next press is. A controller button pressed for
-  a keyboard slot goes to the controller slot of the same number, and the
-  other way round. That press is not sent to the game.
-- Escape cancels, and so do 10 seconds without a press. Escape itself cannot
-  be put in a slot this way (Reset puts it back on Pause).
-- If another action already has that input (for example Cap throw on F, which
-  is Spin), the page asks: **Swap** (the other action gets this slot's old
-  input, or loses it if the slot was empty), **Keep both** (the input does
-  both), or **Cancel**. Slots shared with another action are outlined in
-  orange; the defaults' own sharing (RB: Spin and the Cappy mod's throw) is not
-  marked. Actions changed from the default are named in gold.
-- Under the table: **Clear slot**, **Reset action** (that action's default
-  inputs; other actions are not touched), **Reset all** (press A twice), and
-  **Back**.
-- This menu always keeps a keyboard or mouse input: a change that would take
-  the last one away from it is refused with a message.
-- Changes apply at once and are saved to `controls.txt` immediately.
+Changes apply immediately and are saved to `controls.txt` in the app's
+user directory (normally `~/Library/Application Support/Petari`, overridden
+by `--user`). A partial file preserves defaults for omitted actions. For
+example, these remap only the new controls:
 
-`controls.txt` is the same text form the input layer reads
-(`Action=Input,Input`, one line per action, `#` comments). It can still be
-edited by hand: a file naming only some actions keeps the defaults for the
-rest. Without the file the defaults apply, and the game does not create one
-until something is changed. A file that cannot be read or has an error is
-ignored: the game starts with the default controls, prints the reason
-(`petari: controls: ...`) and shows it on the Controls page. The first change
-made in the game then replaces the file and keeps the old one as
-`controls.txt.bad`. A file that leaves this menu without a keyboard or mouse
-input gets F1 and ` back.
+```text
+NunchukShake=Key:H
+CoStarToggle=Key:F2
+CoStarA=Key:U,Mouse:X1
+CoStarB=Key:Y,Mouse:X2
+CoStarShake=Key:N
+```
 
-Additional development defaults provide the remaining remote controls. These
-have input-component tests but have not been approved through gameplay:
+The names in the tables are the exact serialized names. Pointer position
+itself is not a remappable button. An invalid file is reported and ignored;
+the first successful save preserves it as `controls.txt.bad`.
 
-| Input | Action |
-| --- | --- |
-| Arrow keys | D-pad; Up enters first-person view where supported, Down or Space leaves it |
-| F1 or ` | Native Home menu: Resume, Controls (every control, remappable), Mods (with Level Select, native/LEVEL_SELECT.md), Restart from Title, Quit |
-| G / V | Optional mods (off by default; F1 → Mods): collect visible Star Bits / fire a Star Bit at the nearest enemy. See native/MODS.md |
-| Hold left mouse | Only with the Point to move mod on (F1 → Mods): Mario runs toward the pointer; keys still jump, spin and crouch; B shoots Star Bits. See native/MODS.md |
-| R | Cap throw, only with the Cappy mod on (F1 → Mods; it needs Odyssey movement). Hold to keep Cappy out. See native/MODS.md |
-| J / L, I / K, Z / X, Command or middle mouse + mouse, trackpad scroll and pinch, right stick | Only with the Odyssey camera mod on (F1 → Mods → Odyssey camera): orbit, pitch, zoom. C recentres. See native/MODS.md |
-| P | Only with Photo mode on (F1 → Mods → Odyssey camera → Photo mode): freeze the game and fly a free camera (WASD, Space/Shift, mouse drag); O saves a screenshot; P or Escape returns. See native/MODS.md |
-| Minus | Remote Minus (also pauses) |
-| 1 / 2 | Remote 1 / 2 (the game never needs them) |
-| Keypad Enter | Same as Return |
-| Hold Tab + WASD | Tilt the remote by hand (rarely needed; see Star Ball and Ray) |
-| T | Toggle upright remote posture by hand |
-| Hold Left Alt | Walk (half-strength stick) |
+## Controllers and optional native controls
 
-## Game controllers
+Existing gamepad defaults are unchanged: left stick moves, right stick
+points (R3 recenters it), bottom=A, right or RT=B, left or RB=Shake,
+LT=Z, LB=C, D-pad=camera, top=Start, Start=Plus, Back=Minus, Guide=Home.
+Buttons can be remapped using their layout-neutral names such as
+`Pad:West` and `Pad:RightShoulder`. No existing gamepad input is reassigned
+to one of the new actions.
 
-A connected game controller works alongside the keyboard and mouse, as
-reported by SDL3's standard layout (Xbox, PlayStation, Switch Pro and similar).
-Buttons are named by position. Component tests cover it; it has not been
-played with a physical controller yet.
+Imported optional controls keep their defaults: G/V collect/shoot mods,
+R cap throw, J/L and I/K orbit/pitch, Z/X zoom, middle mouse or Command
+orbit drag, P photo mode, O screenshot, and a short Tab tap for the editor.
+They act only when their corresponding native feature is enabled; see
+[MODS.md](MODS.md). Their presence is not a claim that each imported mod
+has been validated in SMG2. Do not repurpose these keys for a power-up.
 
-| Controller | Action |
-| --- | --- |
-| Left stick | Move (analog; also tilts on the Star Ball and the Ray) |
-| Right stick | Move the Star Pointer; click it (R3) to center it. Moving the mouse takes the pointer back |
-| Bottom button | Jump / confirm (A) |
-| Right button | Back (B) |
-| RT | Shoot Star Bits (B) |
-| Left button, RB | Spin |
-| Top button | Start (A and B on the title screen) |
-| LT | Crouch / ground pound (Z) |
-| LB | Recenter camera (C) |
-| D-pad | Rotate camera (left/right); first-person view (up, down to leave) |
-| Start | Pause |
-| Back | Minus |
-| Guide | Home menu |
-| L3 (left stick click) | Collect visible Star Bits mod (off by default; native/MODS.md) |
-| RB with the Cappy mod on | Cap throw instead of Spin (the left button still spins; with the mod off RB spins as before) |
+## Input limits and source trace
 
-Controller buttons remap on the Controls page or in `controls.txt` like keys: for example
-`Shake=Pad:West,Pad:RightShoulder,Key:F`. The names are:
-South, East, West, North, Back, Guide, Start, LeftStick, RightStick,
-LeftShoulder, RightShoulder, DpadUp, DpadDown, DpadLeft, DpadRight,
-LeftTrigger and RightTrigger.
+Focus loss releases held controls and hides both pointers. macOS shortcuts
+using Command stay with macOS. Tilt hides the pointer when the virtual
+Remote is upright, as on Wii. The imported distance-to-screen camera zoom
+(`CameraDPD`, Z plus moving the Remote in depth) has no keyboard equivalent.
+The Star Ball hint drives tilt; the inherited Ray steering mode is retained
+for compatibility but is not presented as an SMG2 ride.
 
-## Wii Remote moves on a keyboard
-
-Every action the game asks for can be done with a single key or a natural
-hold:
-
-| The game asks you to | On the keyboard |
-| --- | --- |
-| Press A and B (title screen) | Return. Or hold Space, then press B (or Backspace) |
-| Press any button (strap warning, 60 Hz prompt) | Space |
-| Shake the remote (spin; climb vines; swing from plants; jump off the Ray; launch from slingshots) | F |
-| Point at and grab a Pull Star or a pointer target | Put the mouse on it and hold the right button; release to let go |
-| Hold B and stroke the pointer (turning platforms, pointer-steered rings, snow tiles) | Hold the left button and move the mouse |
-| Hold the remote upright and tilt it (Star Ball) | Nothing extra: while you ride, WASD tilt it. Space jumps; holding it brakes |
-| Hold the remote level and twist it (Ray surfing) | Nothing extra: while you ride, A and D turn. W and S do nothing. Space speeds up, F jumps |
-| Press Z | Shift |
-| Hold C and press Z (a developer camera; not reachable in normal play) | Hold C, then press Shift |
-| Hold A to skip a movie or speed up text | Hold Space |
-| Press + to pause | Tap Escape |
-
-One Wii move is not available: holding Z and moving the remote toward or away
-from the screen to zoom (`CameraDPD`).
-
-## How the game treats these, in ways that can surprise
-
-- **Return.**
-  - It sends A and B together only while the title screen's "press A and B"
-    prompt is showing (the title reports the prompt every frame, and the
-    report lapses 100 ms after it stops).
-  - Everywhere else it is plain A, like Space. It never sends the B that backs
-    out of menus: on star select and the galaxy map, B wins over A when both
-    arrive on the same frame.
-- **Spin (F).**
-  - Mario ignores a swing that starts within 10 frames of pressing A or B. A
-    spin pressed that soon after Space, Return, or a Star Bit shot is
-    therefore delayed until the window has passed, up to 13 frames after the
-    jump.
-  - Each F press is one shake, and shakes are at least 250 ms apart:
-    - mashing F shakes about four times a second, and Mario's own spin
-      timing decides how many of those become spins;
-    - a press during a shake waits its turn (at most one waits);
-    - holding F does not repeat;
-    - switching away from the window cancels a waiting shake.
-- **C.** A tap recenters the camera. While C is held, Mario does not move:
-  the game zeroes the stick (`Mario` sets a draw state that
-  `MarioActor::getStickValue` checks).
-- **Q / E.**
-  - They rotate the camera one step per press, and only where that area's
-    camera allows rotation. Many areas use a fixed camera: there the game
-    plays a short "can't" sound and the view stays put, as it does with a Wii
-    remote. That sound means the key worked.
-  - They are ignored during cutscenes and in first-person view.
-  - Their directions swap while the camera is upside down.
-- **First-person view (Up arrow).**
-  - Up looks through Mario's eyes where the area allows it. Elsewhere the game
-    plays the same "can't" sound.
-  - W A S D look around (the game reads the stick, not the pointer). Holding
-    Left Alt looks more slowly.
-  - Down arrow or Space returns to the normal camera. Backspace does not.
-- **Collecting Star Bits.** Point at them with the mouse; no click is needed
-  (a left click shoots one instead). A newly scattered Star Bit becomes
-  collectable after a moment, then flies to Mario before the counter goes up.
-- **Right mouse button.** It is the remote's A button, so pressing it while
-  the pointer is not on a Pull Star or another target makes Mario jump.
-  A Pull Star keeps pulling while the button is held and lets go shortly
-  after it is released.
-- **Pause (Escape or Minus).**
-  - The game pauses only after + or - has been held for 12 frames. Each
-    Escape or Minus press is therefore held for at least 250 ms, so a tap
-    pauses; holding longer does not pause again.
-  - The game refuses to pause while A or B is held, or while the remote is
-    moving (just after a spin, or while tilting). Let go of Space and the
-    mouse buttons, then tap Escape.
-  - Escape sends only Plus, and Backspace sends B separately.
-- **Star Ball and Ray surfing.** While Mario rides, the game reports that it
-  steers by tilt, and the keys adapt without Tab or T:
-  - Star Ball: the remote stands upright and WASD tilt it.
-  - Ray: the remote stays level, A and D twist it, and W and S are ignored,
-    because tipping it forward would stop the surfing lesson from accepting
-    "straight".
-  - The Star Pointer is hidden while the remote is upright, as on the Wii.
-  - When the ride ends, WASD move Mario again within 100 ms.
-- **Tab and T** still work by hand for anything else that reads the remote's
-  tilt. T toggles the upright posture; the Star Pointer is hidden while it is
-  upright.
-
-Keys pressed while Command is held go to macOS, not the game, so Cmd+Q and
-Ctrl+Cmd+F (fullscreen) do not turn the camera or spin. Focus loss releases all held controls and hides the pointer. Key repeats come
-from the game's KPAD logic, not from the operating system.
+The code trace for the action tables is recorded in
+[input/SMG2_ACTIONS.md](input/SMG2_ACTIONS.md), including gaps in the
+reconstructed source. Native input tests cover reports, remapping, and
+channel separation; they are not a full gameplay or visual test.

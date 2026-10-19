@@ -163,6 +163,14 @@ Detail::RemoteModel& model() {
     return *instance;
 }
 
+Detail::RemoteModel& coStarModel() {
+    static Detail::RemoteModel* instance = [] {
+        HostAllocationScope scope;
+        return new Detail::RemoteModel(true);
+    }();
+    return *instance;
+}
+
 [[noreturn]] void misuse(const char* function, const char* message) {
     std::fprintf(stderr, "%s: %s\n", function, message);
     std::fflush(stderr);
@@ -390,7 +398,7 @@ void buildReport(Channel& ch, const Report& input) {
 // the reports at the next KPADRead, before KPAD next uses the dots.
 // Game reads of the remote (WPADProbe from KPADRead, once a frame), for the
 // shake's hold (RemoteModel::setGameReads).
-std::atomic<std::uint64_t> gGameReads{0};
+std::atomic<std::uint64_t> gGameReads[kChannels]{};
 // True on a thread while it runs the report tick: KPAD's sampling callback
 // probes from there too, and that is not the game reading (the test clock runs
 // the tick on the game's own thread).
@@ -400,8 +408,8 @@ void snapshotCalibration(s32 chan, Channel& ch) {
     if (std::this_thread::get_id() != gKpadThread) {
         return;  // the report tick (KPAD's sampling callback) or another thread
     }
-    if (chan == 0 && !gInReportTick) {
-        gGameReads.fetch_add(1, std::memory_order_relaxed);
+    if (!gInReportTick) {
+        gGameReads[chan].fetch_add(1, std::memory_order_relaxed);
     }
     const KPADInsideStatus& kp = inside_kpads[chan];
     Detail::PointerCalibration c;
@@ -458,10 +466,16 @@ void tickChannel(s32 chan) {
         std::lock_guard<std::mutex> lock(gHostMutex);
         sink = gSpeakerSink;
         sinkUser = gSpeakerUser;
-        if (chan == 0) {
-            model().setGameReads(gGameReads.load(std::memory_order_relaxed));
-            input = model().nextReport(ch.calibration);
-            activity = model().takeActivity();
+        if (chan == 0 || chan == 1) {
+            auto& remote = chan == 0 ? model() : coStarModel();
+            remote.setGameReads(gGameReads[chan].load(std::memory_order_relaxed));
+            input = remote.nextReport(ch.calibration);
+            activity = remote.takeActivity();
+            if (chan == 0 && remote.takeCoStarToggle()) {
+                gWantConnected[1] = !gWantConnected[1].load();
+                // Enabling after WPADDisconnect is also an explicit power-on.
+                if (gWantConnected[1]) gChannels[1].poweredOff = false;
+            }
         }
     }
 
@@ -551,6 +565,7 @@ void setBindings(const Bindings& value) {
     HostAllocationScope scope;
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().setBindings(value);
+    coStarModel().setBindings(value);
 }
 
 Bindings bindings() {
@@ -562,6 +577,7 @@ Bindings bindings() {
 void setSettings(const Settings& value) {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().setSettings(value);
+    coStarModel().setSettings(value);
 }
 
 Settings settings() {
@@ -703,6 +719,8 @@ bool photoInput(Binding input, bool down, bool repeat) {
         // Entering: whatever the game saw held is let go, as on a focus loss.
         model().focusChanged(false);
         model().focusChanged(true);
+        coStarModel().focusChanged(false);
+        coStarModel().focusChanged(true);
         gGameReleased = true;
     }
     if (repeat) return true;
@@ -759,6 +777,8 @@ bool editorInput(Binding input, bool down, bool repeat) {
         // Entering: whatever the game saw held is let go, as on a focus loss.
         model().focusChanged(false);
         model().focusChanged(true);
+        coStarModel().focusChanged(false);
+        coStarModel().focusChanged(true);
         releaseCameraInput();
         gEditorGameReleased = true;
     }
@@ -871,6 +891,7 @@ void keyEvent(KeyCode code, bool down, bool repeat) {
     if (photoInput(Binding::key(code), down, repeat)) return;
     if (!repeat) cameraInput(Binding::key(code), down);
     model().keyEvent(code, down, repeat);
+    coStarModel().keyEvent(code, down, repeat);
 }
 
 void mouseButtonEvent(MouseButton button, bool down) {
@@ -886,6 +907,7 @@ void mouseButtonEvent(MouseButton button, bool down) {
     if (photoInput(Binding::mouse(button), down, false)) return;
     cameraInput(Binding::mouse(button), down);
     model().mouseButtonEvent(button, down);
+    coStarModel().mouseButtonEvent(button, down);
 }
 
 void padButtonEvent(PadButton button, bool down) {
@@ -901,6 +923,7 @@ void padButtonEvent(PadButton button, bool down) {
     if (photoInput(Binding::pad(button), down, false)) return;
     cameraInput(Binding::pad(button), down);
     model().padButtonEvent(button, down);
+    coStarModel().padButtonEvent(button, down);
 }
 
 void padAxisEvent(PadAxis axis, float value) {
@@ -917,6 +940,7 @@ void padAxisEvent(PadAxis axis, float value) {
         publishPhotoHolds();
         return;
     }
+    coStarModel().padAxisEvent(axis, value);
     if (CameraSettings::enabled() && (axis == PadAxis::RightX || axis == PadAxis::RightY)) {
         // The right stick orbits the camera instead of moving the Star Pointer.
         (axis == PadAxis::RightX ? gRightX : gRightY) = value;
@@ -930,6 +954,7 @@ void padAxisEvent(PadAxis axis, float value) {
 void padDisconnected() {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().padDisconnected();
+    coStarModel().padDisconnected();
 }
 
 void mouseMoved(float x, float y) {
@@ -956,6 +981,7 @@ void mouseMoved(float x, float y) {
     gHaveMouse = true;
     if (drag) return;  // the pointer stays put while the hold-to-orbit input is down
     model().mouseMoved(x, y);
+    coStarModel().mouseMoved(x, y);
 }
 
 void mouseWheel(float x, float y) {
@@ -1015,11 +1041,13 @@ void pinch(float scale) {
 void mouseLeft() {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().mouseLeft();
+    coStarModel().mouseLeft();
 }
 
 void setViewport(const Viewport& viewport) {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().setViewport(viewport);
+    coStarModel().setViewport(viewport);
 }
 
 void focusChanged(bool focused) {
@@ -1029,6 +1057,7 @@ void focusChanged(bool focused) {
         releasePhotoInput();
     }
     model().focusChanged(focused);
+    coStarModel().focusChanged(focused);
 }
 
 void setPosture(Posture value) {
@@ -1152,6 +1181,8 @@ void resetForTesting() {
     HostAllocationScope scope;
     std::lock_guard<std::mutex> lock(gHostMutex);
     model() = Detail::RemoteModel();
+    coStarModel() = Detail::RemoteModel(true);
+    for (auto& reads : gGameReads) reads.store(0, std::memory_order_relaxed);
     gSpeakerSink = nullptr;
     gSpeakerUser = nullptr;
 }

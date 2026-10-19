@@ -244,6 +244,8 @@ void testControlsSummary() {
         {"Jump / confirm", "Space / Right mouse", "bottom"},
         {"Start (title: A and B)", "Return / Keypad Enter", "top"},
         {"Spin", "F", "left / RB"},
+        {"Shake Nunchuk", "H", ""},
+        {"Co-star (toggle / A / B / shake)", "F2 / U / Y / N", ""},
         {"Cap throw (Cappy mod)", "R", "RB"},
         {"Crouch / ground pound", "Shift", "LT"},
         {"Star Pointer", "Mouse", "right stick (R3: center)"},
@@ -254,7 +256,7 @@ void testControlsSummary() {
         {"First-person view", "Up arrow (leave: Down arrow)", "D-pad up (leave: D-pad down)"},
         {"Walk slowly", "Hold Left Alt", "push the stick part way"},
         {"Pause", "Escape / -", "Start / Back"},
-        {"Star Ball / Ray", "W A S D tilt while riding", "left stick tilts while riding"},
+        {"Star Ball", "W A S D tilt while riding", "left stick tilts while riding"},
         {"Tilt the remote by hand", "Hold Tab + W A S D", ""},
         {"This menu", "F1 / `", "Guide"},
     };
@@ -901,6 +903,99 @@ void testPointer() {
     KPADSetSensorHeight(0, 0.35f);
     const KPADStatus& high = pointAt(rig, 960.0f, 540.0f);
     check(near(high.pos.x, 0.5f, tolerance) && near(high.pos.y, 0.5f, tolerance), "sensor bar above the screen");
+}
+
+// SMG2 Nunchuk gestures reach the actual SDK filter and game swing reader.
+void testSmg2Nunchuk() {
+    for (const auto button : {In::KeyCode(0), In::Key::C, In::Key::LeftShift}) {
+        for (int phase = 0; phase < 3; ++phase) {
+            Rig rig;
+            rig.frames_(30 + phase);  // acceleration history, every report/frame phase
+            int requests = 0, edges = 0, coreEdges = 0, cooldown = 0;
+            bool previous = false, previousCore = false;
+            if (button != 0) press(button);
+            for (int frame = 0; frame < 90; ++frame) {
+                if (frame == 1) press(In::Key::H);  // keep held: one flick
+                rig.frame();
+                const auto* buttons = rig.pad->mButton;
+                if (buttons->testTriggerC() || buttons->testTriggerZ()) cooldown = 10;
+                const bool swing = rig.pad->mSubPadSwing->mIsSwing;
+                if (cooldown != 0) --cooldown;
+                else if (swing && !previous) ++requests;
+                edges += swing && !previous;
+                previous = swing;
+                const bool core = rig.pad->mCorePadSwing->mIsSwing;
+                coreEdges += core && !previousCore;
+                previousCore = core;
+            }
+            check(edges == 1 && requests == 1 && coreEdges == 0,
+                  "H: one Nunchuk swing and Mario left-spin request, no Remote swing, including C/Z delay");
+        }
+    }
+}
+
+void testSmg2CoStar() {
+    Rig rig;
+    WPad second(1);
+    second.setReadInfo(&rig.info[1]);
+    second.mPointer->setSensorBarLevel(-0.15f);
+    auto frame = [&] { rig.frame(); second.update(); };
+    check(WPADProbe(1, nullptr) == WPAD_ERR_NO_CONTROLLER, "co-star starts disconnected");
+    press(In::Key::F2);
+    frame();
+    lift(In::Key::F2);
+    for (int i = 0; i < 40; ++i) frame();
+    check(WPADProbe(1, nullptr) == WPAD_ERR_NONE, "F2 connects the actual second WPAD channel");
+    In::mouseMoved(640, 360);
+    for (int i = 0; i < 20; ++i) frame();
+    check(rig.pad->mPointer->mIsPointInScreen && second.mPointer->mIsPointInScreen,
+          "KPAD/game pointer readers see both pointers at the shared mouse position");
+    press(In::Key::U);
+    frame();
+    check(second.mButton->testButtonA() && !rig.pad->mButton->testButtonA(), "co-star U is A on channel 1 only");
+    press(In::Key::Y);
+    frame();
+    check(second.mButton->testButtonB() && !rig.pad->mButton->testButtonB(), "co-star Y is B on channel 1 only");
+    lift(In::Key::U);
+    lift(In::Key::Y);
+    for (int i = 0; i < 20; ++i) frame();
+    press(In::Key::Space);
+    frame();
+    check(rig.pad->mButton->testButtonA() && !second.mButton->testButtonA(), "Space stays exclusively player 1 A");
+    lift(In::Key::Space);
+    press(In::Key::N);
+    int edges = 0, coreEdges = 0;
+    bool previous = false, previousCore = false;
+    for (int i = 0; i < 60; ++i) {
+        frame();
+        const bool swing = second.mCorePadSwing->mIsSwing;
+        edges += swing && !previous;
+        previous = swing;
+        const bool core = rig.pad->mCorePadSwing->mIsSwing;
+        coreEdges += core && !previousCore;
+        previousCore = core;
+    }
+    check(edges == 1 && coreEdges == 0, "co-star N shakes only the second Remote through KPAD");
+    In::focusChanged(false);
+    for (int i = 0; i < 10; ++i) frame();
+    check(!second.mButton->testButtonA() && !second.mPointer->mIsPointInScreen, "focus loss clears co-star input");
+    In::focusChanged(true);
+    press(In::Key::F2);
+    frame();
+    check(WPADProbe(1, nullptr) == WPAD_ERR_NO_CONTROLLER, "second F2 press disconnects co-star");
+    lift(In::Key::F2);
+    auto remapped = In::Bindings::defaults();
+    std::string error;
+    check(remapped.parse("CoStarToggle=Key:M\nCoStarA=Mouse:X1\n", &error), "co-star live remap parses");
+    In::setBindings(remapped);
+    press(In::Key::M);
+    frame();
+    lift(In::Key::M);
+    for (int i = 0; i < 40; ++i) frame();
+    In::mouseButtonEvent(In::MouseButton::X1, true);
+    frame();
+    check(second.mButton->testButtonA() && !rig.pad->mButton->testButtonA(), "remapped mouse button is co-star A only");
+    In::mouseButtonEvent(In::MouseButton::X1, false);
 }
 
 // --- Shake (spin) ---------------------------------------------------------
@@ -2826,6 +2921,8 @@ int main() {
     testStick();
     testFocusLoss();
     testPointer();
+    testSmg2Nunchuk();
+    testSmg2CoStar();
     testShake();
     testShakeTapsAlwaysSwing();
     testShakeSurvivesStall();

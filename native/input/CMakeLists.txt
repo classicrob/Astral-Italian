@@ -175,6 +175,10 @@ if(BUILD_TESTING)
     target_link_libraries(petari_input_remap_tests PRIVATE petari_input)
     add_test(NAME native_input_remap COMMAND petari_input_remap_tests)
 
+    add_executable(petari_smg2_controls_tests ${PETARI_REPO_ROOT}/native/tests/smg2_controls_tests.cpp)
+    target_link_libraries(petari_smg2_controls_tests PRIVATE petari_input)
+    add_test(NAME native_smg2_controls COMMAND petari_smg2_controls_tests)
+
     # OdysseyMovement mod: the SMO movement model alone (header-only).
     add_executable(petari_odyssey_move_tests ${PETARI_REPO_ROOT}/native/tests/odyssey_move_tests.cpp)
     target_include_directories(petari_odyssey_move_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)

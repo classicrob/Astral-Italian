@@ -181,7 +181,7 @@ void MultiEmitter::forceScaleOn() {
 }
 
 void MultiEmitter::initSyncBck(XanimePlayer* pPlayer, const char* pName, s32 capacity, f32 startFrame) {
-    mSyncBckInfo = new SyncBckEffectInfo("エフェクト", pPlayer, 0, pName, capacity, 0.0f, -1.0f, false);
+    mSyncBckInfo = new SyncBckEffectInfo("エフェクト", pPlayer, nullptr, pName, capacity, 0.0f, -1.0f, false);
     mSyncBckInfo->mStartFrame = startFrame;
 }
 
@@ -190,7 +190,7 @@ void MultiEmitter::onDeleteSyncBck(bool deleteOnEnd, f32 endFrame) {
 }
 
 void MultiEmitter::addSyncBck(const XanimePlayer* pPlayer, const char* pName) {
-    mSyncBckInfo->addBck(pName, pPlayer, 0, "エフェクト");
+    mSyncBckInfo->addBck(pName, pPlayer, nullptr, "エフェクト");
 }
 
 void MultiEmitter::setContinueBckEnd(bool continueAnimEnd) {

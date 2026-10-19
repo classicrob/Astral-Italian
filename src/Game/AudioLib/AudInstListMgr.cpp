@@ -322,7 +322,7 @@ s32 AudInstListMgr::findInstrumentWave(u16 bank, u8 program, u32 waveBankId) {
     s32 count = 0;
     switch (inst->getType()) {
     case 'BSIC': {
-        JASBasicInst* basic = static_cast< JASBasicInst* >(inst);
+        const JASBasicInst* basic = static_cast< const JASBasicInst* >(inst);
         s32 n = basic->getKeyRegionCount();
         for (s32 i = 0; i < n; ++i) {
             const JASBasicInst::TKeymap* km = basic->getKeyRegion(i);
@@ -335,10 +335,10 @@ s32 AudInstListMgr::findInstrumentWave(u16 bank, u8 program, u32 waveBankId) {
     case 'PERC': {
         JASDrumSet* drums = static_cast< JASDrumSet* >(inst);
         for (u32 i = 0; i < 128; ++i) {
-            JASDrumSet::TPerc* perc = drums->getPerc(i);
+            const JASDrumSet::TPerc* perc = drums->getPerc(i);
             if (perc)
                 for (u32 j = 0; j < perc->getVeloRegionCount(); ++j) {
-                    JASDrumSet::TVelomap* velo = perc->getVeloRegion(j);
+                    const JASDrumSet::TVelomap* velo = perc->getVeloRegion(j);
                     if (velo)
                         waves[count++] = velo->_4;
                 }

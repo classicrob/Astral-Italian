@@ -107,7 +107,11 @@ public:
     JSUList(bool thing) : JSUPtrList(thing) {
     }
 
+#ifdef JSU_LIST_DEFER_DTOR_INLINE
+    ~JSUList() NO_INLINE;
+#else
     ~JSUList() {};
+#endif
 
     JSULink< T >* getFirst() const {
         return (JSULink< T >*)getFirstLink();

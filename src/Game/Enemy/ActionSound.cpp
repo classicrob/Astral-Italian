@@ -48,8 +48,8 @@ f32 ActionSound::getVolumeArg(s32 index) const { return mInfo->mVolumeArgs[index
 ActionSound::ActionSound(const ActionSoundInfo* info, AudSoundObject* object)
     : mInfo(info), mParam(nullptr), mSoundObject(object), mHandle(nullptr), mUnk10(false) {}
 
-void ActionSound::createSyncBckParam(XanimePlayer* player, s32 index) {
-    mParam = new SyncBckEffectInfo("サウンド", player, index, mInfo->mName, 1, 0.0f, -1.0f, false);
+void ActionSound::createSyncBckParam(XanimePlayer* player, ActorAnimKeeper* animKeeper) {
+    mParam = new SyncBckEffectInfo("サウンド", player, animKeeper, mInfo->mName, 1, 0.0f, -1.0f, false);
     mParam->mStartFrame = mInfo->mStartFrame;
     mParam->mEndFrame = mInfo->mEndFrame;
 }

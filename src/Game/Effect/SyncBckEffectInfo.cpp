@@ -1,7 +1,7 @@
 #include "Game/Effect/SyncBckEffectInfo.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-SyncBckEffectInfo::SyncBckEffectInfo(const char* pGroupName, const XanimePlayer* pPlayer, s32 index, const char* pName, s32 capacity,
+SyncBckEffectInfo::SyncBckEffectInfo(const char* pGroupName, const XanimePlayer* pPlayer, ActorAnimKeeper* pAnimKeeper, const char* pName, s32 capacity,
                                      f32 startFrame, f32 endFrame, bool continueAnimEnd)
     : mBckResources(), mCapacity(), mCount(), mStartFrame(startFrame), mEndFrame(endFrame), mContinueAnimEnd(continueAnimEnd) {
     mBckResources = new BckResourceInfo*[capacity];
@@ -38,6 +38,6 @@ namespace MR {
     };  // namespace Effect
 };  // namespace MR
 
-void SyncBckEffectInfo::addBck(const char* pName, const XanimePlayer* pPlayer, s32 index, const char* pGroupName) {
+void SyncBckEffectInfo::addBck(const char* pName, const XanimePlayer* pPlayer, ActorAnimKeeper* pAnimKeeper, const char* pGroupName) {
     addBck(pName);
 }

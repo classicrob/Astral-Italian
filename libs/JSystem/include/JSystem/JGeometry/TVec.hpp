@@ -480,6 +480,9 @@ namespace JGeometry {
         }
 
         template < typename T >
+#ifdef JGEOMETRY_VEC3_TEMPLATE_CTOR_NOINLINE
+        NO_INLINE
+#endif
         TVec3(T _x, T _y, T _z) {
             x = _x;
             y = _y;
@@ -673,12 +676,16 @@ namespace JGeometry {
             return ret;
         }
 
+#ifdef JGEOMETRY_VEC3_COLLISION_OPERATORS_DEFER_INLINE
+        TVec3 operator/(f32 div) const NO_INLINE;
+#else
         TVec3 operator/(f32 div) const {
             TVec3 ret(*this);
             f32 reciprocal = 1.0f / div;
             ret *= reciprocal;
             return ret;
         }
+#endif
 
 #ifdef JGEOMETRY_VEC3_MULASSIGN_NOINLINE
         void operator*=(f32 scalar) NO_INLINE {
@@ -757,11 +764,15 @@ namespace JGeometry {
             JMAVECLerp(&a, &b, this, t);
         }
 
+#ifdef JGEOMETRY_VEC3_COLLISION_OPERATORS_DEFER_INLINE
+        bool operator==(const TVec3& rVec) const NO_INLINE;
+#else
         bool operator==(const TVec3& rVec) const {
             return TUtil< f32 >::epsilonEquals(x, rVec.x, JGeometry::TUtil< f32 >::epsilon()) &&
                    TUtil< f32 >::epsilonEquals(y, rVec.y, JGeometry::TUtil< f32 >::epsilon()) &&
                    TUtil< f32 >::epsilonEquals(z, rVec.z, JGeometry::TUtil< f32 >::epsilon());
         }
+#endif
 
         bool operator!=(const TVec3& rVec) const {
             return !(*this == rVec);

@@ -3,6 +3,7 @@
 #include <revolution/types.h>
 
 class XanimePlayer;
+class ActorAnimKeeper;
 
 class SyncBckEffectInfo {
 public:
@@ -13,10 +14,10 @@ public:
         /* 0x00 */ const char* mName;
     };
 
-    SyncBckEffectInfo(const char* pGroupName, const XanimePlayer* pPlayer, s32 index, const char* pName, s32 capacity,
+    SyncBckEffectInfo(const char* pGroupName, const XanimePlayer* pPlayer, ActorAnimKeeper* pAnimKeeper, const char* pName, s32 capacity,
                       f32 startFrame, f32 endFrame, bool continueAnimEnd);
     void addBck(const char* pName);
-    void addBck(const char* pName, const XanimePlayer* pPlayer, s32 index, const char* pGroupName);
+    void addBck(const char* pName, const XanimePlayer* pPlayer, ActorAnimKeeper* pAnimKeeper, const char* pGroupName);
     bool isRegisteredBck(const char* pName) const;
 
     /* 0x00 */ BckResourceInfo** mBckResources;

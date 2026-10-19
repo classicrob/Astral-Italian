@@ -7,12 +7,13 @@ class SyncBckEffectInfo;
 class XanimePlayer;
 class JAISoundHandle;
 class AudSoundObject;
+class ActorAnimKeeper;
 
 class ActionSound {
 public:
     ActionSound(const ActionSoundInfo* pInfo, AudSoundObject* pSoundObject);
 
-    void createSyncBckParam(XanimePlayer*, s32);
+    void createSyncBckParam(XanimePlayer*, ActorAnimKeeper*);
     void markStartPending();
     void startSoundNow();
     void stopSoundFrames(u32);

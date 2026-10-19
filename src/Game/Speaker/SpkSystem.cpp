@@ -1,3 +1,4 @@
+#define JSU_LIST_DEFER_DTOR_INLINE
 #include "Game/Speaker/SpkSystem.hpp"
 #include "Game/Speaker/SpkSpeakerCtrl.hpp"
 
@@ -16,10 +17,11 @@ void SpkSystem::setup() {
     SpkSpeakerCtrl::setup();
 }
 
-// PLACEHOLDER(enemies): Target owns JSUList<SpkSound> destructor at 0x804AC020, used by SpkSoundHolder array cleanup; removing this use suppresses that required weak copy.
-void SpkSystem_DUMMY() {
-    SpkSoundHolder dummy;
-}
+#pragma force_active on
+template < typename T >
+JSUList< T >::~JSUList() {}
+template JSUList< SpkSound >::~JSUList();
+#pragma force_active reset
 
 void SpkSystem::setResource(JKRArchive* pArchive, u16 tableOffset, u16 waveOffset) {
     mData = new (mHeap, 0) SpkData(pArchive);

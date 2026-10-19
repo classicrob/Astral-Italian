@@ -85,6 +85,10 @@ JASDrumSet::TVelomap* JASDrumSet::TPerc::getVeloRegion(int index) {
     return &mVelomap[index];
 }
 
+const JASDrumSet::TVelomap* JASDrumSet::TPerc::getVeloRegion(int index) const {
+    return &mVelomap[index];
+}
+
 void JASDrumSet::TPerc::appendEffect(JASPtrListAdaptor< JASInstEffect >* p) {
     if (mEffects.isEmpty()) {
         mEffects.mList = p;

@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_COLLISION_OPERATORS_DEFER_INLINE
 #include "Game/Map/KCollision.hpp"
 #include "Game/Camera/CameraPolygonCodeUtil.hpp"
 #include "Game/Map/CollisionCode.hpp"
@@ -8,23 +9,20 @@
 #include <algorithm>
 #include <stdint.h>
 
-// PLACEHOLDER(enemies): Both uses are currently needed to outline the target TVec3 equality/division weak copies; one remaining use is inlined and emits neither copy.
-void DUMMY_KCollision() {
-    TVec3f a, b, c;
-
-    if (a == b) {
-        c = a / b.x;
-    }
+#pragma force_active on
+__attribute__((weak)) bool JGeometry::TVec3< f32 >::operator==(const TVec3& rVec) const {
+    return TUtil< f32 >::epsilonEquals(x, rVec.x, JGeometry::TUtil< f32 >::epsilon()) &&
+           TUtil< f32 >::epsilonEquals(y, rVec.y, JGeometry::TUtil< f32 >::epsilon()) &&
+           TUtil< f32 >::epsilonEquals(z, rVec.z, JGeometry::TUtil< f32 >::epsilon());
 }
 
-// PLACEHOLDER(enemies): Target owns TVec3 equality/division weak copies at 0x80259670/0x802599C0, called by TicoRail/Mario; no natural emitting use in the reconstructed KCollision source yet.
-void DUMMY_KCollision2() {
-    TVec3f a, b, c;
-
-    if (a == b) {
-        c = a / b.x;
-    }
+__attribute__((weak)) TVec3f JGeometry::TVec3< f32 >::operator/(f32 div) const {
+    TVec3 ret(*this);
+    f32 reciprocal = 1.0f / div;
+    ret *= reciprocal;
+    return ret;
 }
+#pragma force_active reset
 
 KCollisionServer::KCollisionServer() : mFile(), mapInfo(new JMapInfo()), mMaxVertexDistance(1.0f) {
 }

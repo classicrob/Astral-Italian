@@ -45,10 +45,10 @@ ActorActionSoundKeeper::ActorActionSoundKeeper(LiveActor* actor, AudSoundObject*
         }
         mSounds[i] = new ActionSound(info, object);
         if (mSounds[i]->getId() == 0) {
-            s32 index = 0;
-            if (actor->mActionKeeper) index = reinterpret_cast<s32>(actor->mActionKeeper->mAnimKeeper); // PLACEHOLDER(core): SyncBckEffectChecker/ActionSound still declare this pointer as s32; resolve when effect/audio owners migrate their APIs.
-            if (!mChecker) mChecker = new SyncBckEffectChecker(actor->mModelManager->mXanimePlayer, reinterpret_cast<ActorAnimKeeper*>(index));
-            mSounds[i]->createSyncBckParam(actor->mModelManager->mXanimePlayer, index);
+            ActorAnimKeeper* animKeeper = nullptr;
+            if (actor->mActionKeeper) animKeeper = actor->mActionKeeper->mAnimKeeper;
+            if (!mChecker) mChecker = new SyncBckEffectChecker(actor->mModelManager->mXanimePlayer, animKeeper);
+            mSounds[i]->createSyncBckParam(actor->mModelManager->mXanimePlayer, animKeeper);
         }
     }
     MR::requestActionSoundWaves(mData, false);

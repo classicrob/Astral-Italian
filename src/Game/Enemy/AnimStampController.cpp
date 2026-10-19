@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_TEMPLATE_CTOR_NOINLINE
 #include "Game/Enemy/AnimStampController.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -7,11 +8,6 @@
 #include "Game/Util/NerveUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
-
-// PLACEHOLDER(enemies): Integer TVec3 constructor is called out of line by the target AnimStampController ctor; removing this use suppresses that weak copy and inlines the real call.
-void dummy() {
-    TVec3f a(0, 0, 0);
-}
 
 namespace NrvAnimStampController {
     NEW_NERVE(HostNrvAnim, AnimStampController, Anim);

@@ -189,11 +189,12 @@ NWC24Err NWC24iMBoxOpenNewMsg(NWC24MsgBoxId id, NWC24File* pFile, u32* pMsgId) {
     pPath = NWC24WorkP->pathWork;
 
     result = MakeMailPath(id, *pMsgId, pPath, NWC24i_PATH_WORK_SIZE);
-    if (result != NWC24_OK) {
-        return result;
+    if (result == NWC24_OK) {
+        result = NWC24FOpen(pFile, pPath, NWC24_OPEN_VF_WBUFF);
     }
-
-    result = NWC24FOpen(pFile, pPath, NWC24_OPEN_VF_WBUFF);
+    if (result != NWC24_OK) {
+        UnmountVFMBox();
+    }
     return result;
 }
 

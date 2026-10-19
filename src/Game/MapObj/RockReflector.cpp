@@ -31,3 +31,11 @@ bool RockReflector::receiveOtherMsg(u32 msg, HitSensor* sender, HitSensor*) {
 }
 void RockReflector::exeReflect() { if (MR::isFirstStep(this)) MR::startAction(this, "Reflect"); if (MR::isActionEnd(this)) setNerve(&NrvRockReflector::RockReflectorNrvWait::sInstance); }
 RockReflector::~RockReflector() {}
+
+// Recovered target constant storage; keep definitions after their call sites.
+// Target first rebound coefficient; retain parameter identity, no guessed semantic API name.
+extern const f32 lbl_807DE3B8 = 1.0f;
+// Target third rebound coefficient, separate original storage despite equal value.
+extern const f32 lbl_807DE3BC = 1.0f;
+// Read-only second rebound coefficient in target .sbss2.
+extern const f32 lbl_807E30D0 = 0.0f;

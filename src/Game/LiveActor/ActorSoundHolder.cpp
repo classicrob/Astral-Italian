@@ -1,3 +1,5 @@
+#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Util/SoundUtil.hpp"
 #include "Game/LiveActor/ActorSoundHolder.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
 
@@ -33,3 +35,21 @@ void ActorSoundHolder::update() {
         mActionSoundKeeper->updateSounds();
     }
 }
+
+void ActorSoundHolder::startAction(const char* name) {
+    if (mActionSoundKeeper)
+        mActionSoundKeeper->startSoundByName(name);
+}
+namespace MR {
+    AudAnmSoundObject* getActorSoundObject(const LiveActor* actor) {
+        return actor->mSoundHolder == nullptr ? nullptr : actor->mSoundHolder->getSoundObj();
+    }
+    s32 getActorSoundObjectCount(const LiveActor* actor) {
+        if (!actor->mSoundHolder || !actor->mSoundHolder->mActionSoundKeeper)
+            return 0;
+        return actor->mSoundHolder->mActionSoundKeeper->mJointCount;
+    }
+    AudSoundObject* getActorSoundObjectAt(const LiveActor* actor, s32 index) {
+        return actor->mSoundHolder->mActionSoundKeeper->mJoints[index].mSoundObject;
+    }
+}  // namespace MR

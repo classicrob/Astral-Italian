@@ -17,6 +17,7 @@ NWC24Err NWC24SetMsgFaceData(NWC24MsgObj* pMsg, const RFLCharData* pData);
 NWC24Err NWC24SetMsgAttached(NWC24MsgObj* pMsg, const char* data, u32 size, NWC24MIMEType type);
 NWC24Err NWC24SetMsgTag(NWC24MsgObj* pMsg, u16 tag);
 NWC24Err NWC24SetMsgLedPattern(NWC24MsgObj* pMsg, u16 pattern);
+NWC24Err NWC24SetMsgLedPatternRaw(NWC24MsgObj* pMsg, u16 pattern);
 NWC24Err NWC24SetMsgDesignatedTime(NWC24MsgObj* pMsg, s32 delay);
 NWC24Err NWC24GetMsgSize(const NWC24MsgObj* pMsg, u32* size);
 NWC24Err NWC24SetMsgMBDelay(NWC24MsgObj* pMsg, u8 delay);

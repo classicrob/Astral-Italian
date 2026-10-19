@@ -478,17 +478,17 @@ void AudMultiBgmInfo::load() {
     mNumEntries = 0;
     for (JMapInfoIter it = info.begin(); it != info.end(); it.mIndex++) {
         AudMultiBgmEntry* e = &mEntries[mNumEntries];
-        const char* multiName = it.fn_800896B0("MultiBgmName");
-        const char* bgmName = it.fn_800896B0("BgmName");
-        const char* streamName = it.fn_800896B0("StreamName");
+        const char* multiName = it.getValueString("MultiBgmName");
+        const char* bgmName = it.getValueString("BgmName");
+        const char* streamName = it.getValueString("StreamName");
         e->mID = converter->getSoundID(multiName);
         e->mSeqID = converter->getSoundID(bgmName);
         e->mStreamID = converter->getSoundID(streamName);
-        e->mBeatMul = it.fn_80089850("BeatRatio");
-        e->mIntroBeats = it.fn_80089720("IntoBeat");
-        e->mLoopBeats = it.fn_80089720("LoopBeat");
-        e->mLoopStartSamples = it.fn_80089720("LoopStartSample");
-        e->mLoopEndSamples = it.fn_80089720("LoopEndSample");
+        e->mBeatMul = it.getValueFloat("BeatRatio");
+        e->mIntroBeats = it.getValueS32("IntoBeat");
+        e->mLoopBeats = it.getValueS32("LoopBeat");
+        e->mLoopStartSamples = it.getValueS32("LoopStartSample");
+        e->mLoopEndSamples = it.getValueS32("LoopEndSample");
         mNumEntries++;
     }
 }

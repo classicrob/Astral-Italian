@@ -67,3 +67,7 @@ void MagmaSeaWave::exeMove() {
     ++mSoundFrame;
 }
 MagmaSeaWave::~MagmaSeaWave() {}
+
+// Recovered target constant storage; keep definitions after their call sites.
+// Positive half-width used as both signs for the lateral player projection segment.
+extern const f32 lbl_807DDBF8 = 3250.0f;

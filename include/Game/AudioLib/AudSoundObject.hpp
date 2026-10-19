@@ -71,13 +71,10 @@ public:
     void setMapCodeToPort(JAISoundHandle*, JAISoundID);
     void setCutoffToPort(JAISoundHandle*, JAISoundID);
     JAISoundID convertSoundIdFromSeVersion(JAISoundID) const;
-    void modifySe_Kawamura(JAISoundHandle*, s32);
     void modifySe_Kawamura(JAISoundHandle*, f32*, u32*, f32*, u32*, s32);
     bool modifyLimitedSound_Kawamura(JAISoundID);
-    void modifySe_Takezawa(JAISoundHandle*, s32, s32);
     void modifySe_Takezawa(JAISoundHandle*, f32*, u32*, f32*, u32*, s32, s32);
     bool modifyLimitedSound_Takezawa(JAISoundID);
-    void modifySe_Gohara(JAISoundHandle*, s32, s32);
     void modifySe_Gohara(JAISoundHandle*, f32*, u32*, f32*, u32*, s32, s32);
 
     bool isEnableStartSound(JAISoundID soundID) {

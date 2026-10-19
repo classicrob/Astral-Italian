@@ -98,8 +98,6 @@ void NWC24SendThread::initMsgSendStatus() {
     mMsgSendStatus.mDelayHours = 0;
 }
 
-// PLACEHOLDER(enemies): target calls the SDK LED-pattern validator at 0x8055E934;
-// resolve when the SDK owner supplies its declaration, definition, and target symbol name.
 NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSize) {
     NWC24Err err;
     NWC24MsgObj msgObj;

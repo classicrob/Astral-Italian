@@ -1,56 +1,72 @@
 #pragma once
-
 #include <revolution/types.h>
-
+#include <JSystem/JAudio2/JAISound.hpp>
 class JAUSectionHeap;
 class JKRArchive;
-class JAISoundID;
-
-// One bank-program wave slot; 0x14 bytes, set up by the (still unnamed) slot ctor fn_800871A0.
+class JMapInfo;
+class ActionSoundData;
 struct AudInstWaveSlot {
-    /* 0x00 */ u8 _0[0x14];
+    AudInstWaveSlot();
+    AudInstWaveSlot(s32 bank, s32 wave, bool protect) {
+        reset();
+        set(bank, wave, protect);
+    }
+    void reset() NO_INLINE;
+    void set(s32, s32, bool) NO_INLINE;
+    s32 advanceAge();
+    s32 addRequest();
+    bool load(JAUSectionHeap*, bool);
+    bool isLoadDone(JAUSectionHeap*);
+    bool isRequestLoadDone(JAUSectionHeap*);
+    AudInstWaveSlot& operator=(const AudInstWaveSlot&);
+    s32 mBankId, mWaveArc, mAge, mRequestCount;
+    bool mProtected, mLoadRequested, mTailLoaded;
 };
-
 struct AudInstWaveSlotTable {
-    AudInstWaveSlotTable();  // fn_80087500
-
-    /* 0x0000 */ AudInstWaveSlot mSlots[256];
-    /* 0x1400 */ s32 mNumSlots;
+    AudInstWaveSlotTable();
+    AudInstWaveSlot mSlots[256];
+    s32 mNumSlots;
 };
-
 struct AudInstEntry {
-    /* 0x00 */ void* mData;
-    /* 0x04 */ u16 mBankProgNo;
+    u32 mSoundId;
+    u16 mBankProgNo;
 };
-
-// Loads SoundIdToInstList.bcsv (BankProgNo/SoundId columns) from /AudioRes/Info/SoundIdToInstList.arc and tracks
-// which instrument waves are loaded.
 class AudInstListMgr {
 public:
-    AudInstListMgr(JAUSectionHeap*, JKRArchive*);  // fn_80087490
+    AudInstListMgr(JAUSectionHeap*, JKRArchive*);
     static void requestInstrumentRefresh();
-    static void requestStageInstrumentRefresh();  // fn_80088600: sets the stage instrument refresh flag (+0x10)
-    void fn_80087940(const char*, bool);
+    static void requestStageInstrumentRefresh();
+    void requestSound(const char*, bool);
     void fn_802204A0(const char*, bool);
     void requestWave(s32, s32, bool);
-    void requestSoundWaves(JAISoundID, bool);  // fn_800879A0: request instruments referenced by a sound ID
     void requestWaveForSystem(s32, s32, bool);
     void loadRequestedWaves(bool, bool);
     bool isLoadDone();
-    bool isLoadDoneSystemWaves();
+    void loadInstList();
+    void requestStageUseInstList(const char*);
+    void requestInstList(const JMapInfo*);
     void resetStageWaveSlots();
-    void clearWaveRequests();
     void clearStageWaveResources();
     void resetStageResources();
-    void loadInstList();                           // fn_80087560
-    void requestStageUseInstList(const char*);     // original name unknown; named by behaviour: requests instrument lists from stage use-resources (0x80087740).
-
-    /* 0x0000 */ JAUSectionHeap* mSectionHeap;
-    /* 0x0004 */ JKRArchive* mArchive;
-    /* 0x0008 */ AudInstEntry* mEntries;
-    /* 0x000C */ s32 mNumEntries;
-    /* 0x0010 */ bool _10;
-    /* 0x0011 */ bool _11;
-    /* 0x0014 */ AudInstWaveSlotTable mTables[2];
-    /* 0x281C */ bool _281C;
+    void requestSoundWaves(JAISoundID, bool);
+    void requestWaveBank(s32, s32, bool);
+    void requestWaveArc(s32, s32, bool);
+    AudInstWaveSlot* findRequestedWave(s32, s32);
+    AudInstWaveSlot* findLoadedWave(s32, s32);
+    void loadWaves();
+    bool isLoadDoneSystemWaves();
+    void clearWaveRequests();
+    s32 findInstrumentWave(u16, u8, u32);
+    u32 getWaveArcSize(JAUSectionHeap*, u32, s32);
+    void requestActionSounds(const ActionSoundData*, bool);
+    s32 findSoundIndex(JAISoundID);
+    s32 findFirstSoundIndex(JAISoundID);
+    JAUSectionHeap* mSectionHeap;
+    JKRArchive* mArchive;
+    AudInstEntry* mEntries;
+    s32 mNumEntries;
+    bool _10, _11;
+    AudInstWaveSlotTable mRequestedWaves;
+    AudInstWaveSlotTable mLoadedWaves;
+    bool _281C;
 };

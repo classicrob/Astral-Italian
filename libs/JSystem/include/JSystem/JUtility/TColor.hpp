@@ -6,7 +6,11 @@
 namespace JUtility {
     struct TColor : public GXColor {
     public:
+#ifdef JUTILITY_TCOLOR_RGBA_CTOR_NOINLINE
+        TColor(u8 r, u8 g, u8 b, u8 a) NO_INLINE;
+#else
         TColor(u8 r, u8 g, u8 b, u8 a);
+#endif
         TColor() {
             set(0xffffffff);
         }

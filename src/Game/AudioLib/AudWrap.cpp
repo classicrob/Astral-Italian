@@ -12,8 +12,6 @@ namespace AudWrap {
         return AudSystem::msBasic;
     }
 
-    AudMultiBgmInfo* getMultiBgmInfo() { return AudSystem::msBasic->mMultiBgmInfo; }
-
     bool hasSystem() {
         return getSystem() != nullptr;
     }
@@ -24,6 +22,10 @@ namespace AudWrap {
 
     AudSceneMgr* getSceneMgr() {
         return getSystem()->mSceneMgr;
+    }
+
+    AudInstListMgr* getInstListMgr() {
+        return getSystem()->mInstListMgr;
     }
 
     AudBgmMgr* getBgmMgr() {
@@ -38,9 +40,8 @@ namespace AudWrap {
         return getBgmMgr()->mBgm[AudBgmMgr::BgmType_Sub];
     }
 
-    // NONMATCHING: target takes a 3rd (fade) arg; header declares the 2-arg form used by callers. Fade passed as 0.
-    JAISoundHandle* startStageBgm(u32 soundID, bool lock) {
-        return getBgmMgr()->start(AudBgmMgr::BgmType_Stage, soundID, lock, 0);
+    JAISoundHandle* startStageBgm(u32 soundID, bool lock, s32 fadeTime) {
+        return getBgmMgr()->start(AudBgmMgr::BgmType_Stage, soundID, lock, fadeTime);
     }
 
     JAISoundHandle* startSubBgm(u32 soundID, bool lock) {
@@ -55,6 +56,14 @@ namespace AudWrap {
         return getBgmMgr()->startLastBGM(AudBgmMgr::BgmType_Stage);
     }
 
+    AudMultiBgmInfo* getMultiBgmInfo() {
+        return getSystem()->mMultiBgmInfo;
+    }
+
+    AudBgmParamTable* getBgmParamTable() {
+        return getSystem()->mBgmParamTable;
+    }
+
     AudSoundObject* getSystemSeObject() {
         return getSystem()->mSystemSeObject;
     }
@@ -65,6 +74,10 @@ namespace AudWrap {
 
     AudSoundObjHolder* getSoundObjHolder() {
         return getSystem()->mSoundObjHolder;
+    }
+
+    AudStageUseResourceList* getStageUseResourceList() {
+        return getSystem()->mStageUseResourceList;
     }
 
     AudRhythmMeSystem* getRhythmMeSystem() {
@@ -85,9 +98,5 @@ namespace AudWrap {
 
     AudSoundObject* getRemixSeqObject() {
         return getRemixMgr()->mSoundObj;
-    }
-
-    AudSoundNameConverter* getSoundNameConverter() {
-        return AudSoundNameConverter::get();
     }
 };  // namespace AudWrap

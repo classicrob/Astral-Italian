@@ -1206,19 +1206,19 @@ s32 KPADRead(s32 chan, KPADStatus samplingBufs[], u32 length) {
 
         idx = (s32)(kp->bufIdx - copy_ct);
         if (idx < 0) {
-            idx += 120;
+            idx += KPAD_INTERNAL_RING_LENGTH + kp->externalRingLength;
         }
 
         --tp;
         while (--copy_ct) {
             --tp;
-            tp->w = kp->uniRingBuf[idx];
+            tp->w = idx < KPAD_INTERNAL_RING_LENGTH ? kp->uniRingBuf[idx] : kp->externalRingBuf[idx - KPAD_INTERNAL_RING_LENGTH];
             idx++;
-            if (idx >= 120) {
+            if (idx >= KPAD_INTERNAL_RING_LENGTH + kp->externalRingLength) {
                 idx = 0;
             }
         }
-        uwStatus = kp->uniRingBuf[idx];
+        uwStatus = idx < KPAD_INTERNAL_RING_LENGTH ? kp->uniRingBuf[idx] : kp->externalRingBuf[idx - KPAD_INTERNAL_RING_LENGTH];
 
         OSRestoreInterrupts(enabled);
         {
@@ -1386,7 +1386,7 @@ void KPADInit(void) {
         idx = 0;
         do {
             kp->uniRingBuf[idx].u.core.err = WPAD_ERR_NO_CONTROLLER;
-        } while (++idx < 120);
+        } while (++idx < KPAD_INTERNAL_RING_LENGTH);
 
     } while (++i < WPAD_MAX_CONTROLLERS);
 
@@ -1427,16 +1427,16 @@ static void KPADiSamplingCallback(s32 chan) {
     }
 
     idx = kp->bufIdx;
-    if (idx >= 120) {
+    if (idx >= KPAD_INTERNAL_RING_LENGTH + kp->externalRingLength) {
         idx = 0;
     }
 
-    uwp = &kp->uniRingBuf[idx];
+    uwp = idx < KPAD_INTERNAL_RING_LENGTH ? &kp->uniRingBuf[idx] : &kp->externalRingBuf[idx - KPAD_INTERNAL_RING_LENGTH];
     WPADRead(chan, &uwp->u);
     uwp->fmt = (u8)WPADGetDataFormat(chan);
 
     kp->bufIdx = (u8)(idx + 1);
-    if (kp->bufCount < 120) {
+    if (kp->bufCount < KPAD_INTERNAL_RING_LENGTH + kp->externalRingLength) {
         kp->bufCount++;
     }
 
@@ -1515,5 +1515,6 @@ void KPADiControlDpdCallback(s32 chan, s32 result) {
             kp->dpdPreCallbackDone = FALSE;
         }
     }
+    kp->dpdEnabled = WPADIsDpdEnabled(chan);
     kp->dpdIssued = FALSE;
 }

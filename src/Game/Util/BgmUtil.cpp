@@ -583,3 +583,62 @@ namespace MR {
     }
 
 };  // namespace MR
+
+#pragma auto_inline off
+#include "Game/Util/BgmUtil.hpp"
+#include "Game/AudioLib/AudSoundNameConverter.hpp"
+#include "Game/AudioLib/AudBgm.hpp"
+#include "Game/AudioLib/AudWrap.hpp"
+#include "Game/MapObj/ExterminationWoodBoxFlagHolder.hpp"
+#include "Game/Util/SceneUtil.hpp"
+#include "Game/Scene/SceneObjHolder.hpp"
+namespace MR {
+    bool isSandyBossBGMPlaying() {
+        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_SMG2_BOSS_04A");
+        return isPlayingStageBgmID(id);
+    }
+    bool isPorterBGMPlaying() {
+        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_SMG2_EV_PORTER");
+        return isPlayingStageBgmID(id);
+    }
+    // NONMATCHING: name-address setup and hidden-return-pointer setup are scheduled in reverse order.
+    void startPlayFireMorphBGM() {
+        if ((!isExistSceneObj(0x92) || !getExterminationWoodBoxFlagHolder()) && !isSandyBossBGMPlaying()) {
+            JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_FIRE_A");
+            AudWrap::startSubBgm(id, false);
+        }
+    }
+    void fn_8001C280() {
+        AudBgm* bgm = AudWrap::getSubBgm();
+        if (bgm) bgm->stop(30);
+    }
+    void adjustSandyBossFireMorphBGM(s32 step, s32 endStep) {
+        if (isSandyBossBGMPlaying()) {
+            AudBgm* bgm = AudWrap::getStageBgm();
+            if (bgm) {
+                setStageBGMStateBit(0x20);
+                f32 tempo = 0.0f;
+                s32 frames = 0;
+                s32 left = endStep - step;
+                if (left == 0) { tempo = 142.0f; frames = 30; }
+                else if (left == 650) { tempo = 171.0f; frames = 250; }
+                else if (left == 900) { tempo = 200.0f; frames = 160; }
+                else if (left == 1060) { tempo = 225.0f; frames = 130; }
+                if (tempo > 0.0f && frames >= 0) bgm->moveTempo(tempo / 142.0f, frames);
+            }
+        }
+    }
+    void adjustPorterBGGM(s32 step, s32 endStep) {
+        if (endStep >= step && isPorterBGMPlaying()) {
+            AudBgm* bgm = AudWrap::getStageBgm();
+            if (bgm) {
+                f32 tempo = 0.0f;
+                s32 frames = 0;
+                if (step == 180) { tempo = 210.0f; frames = 960; }
+                if (tempo > 0.0f) bgm->moveTempo(tempo / 152.0f, frames);
+            }
+        }
+    }
+}
+
+#pragma auto_inline reset

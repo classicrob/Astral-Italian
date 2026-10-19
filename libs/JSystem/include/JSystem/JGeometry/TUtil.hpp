@@ -15,6 +15,9 @@ namespace JGeometry {
             return 1.0f / value;
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        static int epsilonEquals(T a1, T a2, T a3);
+#else
         static int epsilonEquals(T a1, T a2, T a3) {
             int ret = 0;
 
@@ -26,7 +29,11 @@ namespace JGeometry {
 
             return ret;
         }
+#endif
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        static T sqrt(T val) NO_INLINE;
+#else
         static T sqrt(T val) NO_INLINE {
             if (val <= 0.0f) {
                 return val;
@@ -35,6 +42,7 @@ namespace JGeometry {
             float outVal = __frsqrte(val);
             return (val * (0.5f * outVal * (3.0f - (val * (outVal * outVal)))));
         }
+#endif
 
         static f32 sqrtInline(f32 val) {
             if (val <= 0.0f) {

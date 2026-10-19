@@ -60,3 +60,9 @@ void CrescentSeesawPlanet::move() {
     }
 }
 CrescentSeesawPlanet::~CrescentSeesawPlanet() {}
+
+// Recovered target constant storage; keep definitions after their call sites.
+// Angle limit in degrees; target explicitly negates this positive pool value.
+extern const f32 lbl_807DD17C = 45.0f;
+// Positive rebound multiplier; target explicitly negates it.
+extern const f32 lbl_807DD198 = 1.0f;

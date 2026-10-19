@@ -32,12 +32,8 @@ JKRArchive::JKRArchive(s32 entryNum, EMountMode mountMode) {
 JKRArchive::~JKRArchive() {
 }
 
-bool JKRArchive::isSameName(CArcName& rName, u32 nameOffset, u16 hash) const {
-    if (rName.mHash != hash) {
-        return false;
-    }
-
-    return strcmp(mStringTable + nameOffset, rName.mName) == 0;
+inline bool JKRArchive::isSameName(CArcName& rName, u32 nameOffset, u16) const {
+    return strcasecmp(mStringTable + nameOffset, rName.mName) == 0;
 }
 
 JKRArchive::SDIDirEntry* JKRArchive::findResType(u32 a1) const {

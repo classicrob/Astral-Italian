@@ -99,6 +99,7 @@ NWC24Err NWC24CommitMsgInternal(NWC24iMsgObj* pMsg, NWC24MsgBoxId id) {
         NWC24Data_Init(&attachment[i]);
     }
 
+    Mail_memset(&file, 0, sizeof(file));
     NWC24iSetErrorCode(NWC24_OK);
 
     err = CorrectHeadersForMBDelay(pMsg);
@@ -119,7 +120,7 @@ NWC24Err NWC24CommitMsgInternal(NWC24iMsgObj* pMsg, NWC24MsgBoxId id) {
     result = NWC24iMBoxOpenNewMsg(id, &file, &msgId);
     if (result != NWC24_OK) {
         err = result;
-        goto _error_break;
+        goto _exit;
     }
 
     pMsg->id = msgId;
@@ -290,7 +291,7 @@ _error_break:
 
 _exit:
     if (err == NWC24_ERR_FULL || (err <= NWC24_ERR_FILE_OPEN && err >= NWC24_ERR_FILE_OTHER) || err == NWC24_ERR_NAND_CORRUPT ||
-        err == NWC24_ERR_FILE_EXISTS || err == NWC24_ERR_INTERNAL_VF || err == NWC24_ERR_FILE_BROKEN) {
+        err == NWC24_ERR_FILE_EXISTS || err == NWC24_ERR_INTERNAL_VF || err == NWC24_ERR_FILE_BROKEN || err == NWC24_ERR_BROKEN) {
         NWC24iSetErrorCode(err - NWC24i_MSG_ERROR_CODE_BASE);
     }
 

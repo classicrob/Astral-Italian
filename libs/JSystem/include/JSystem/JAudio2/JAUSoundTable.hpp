@@ -81,17 +81,20 @@ struct JAUSoundTable_ {
         return (Group*)((u8*)mData + offset);
     }
 
-    Item* getItem(const Group* group, int index) const {
-        u32 offset = group->getItemOffset(index);
-        if (offset == 0) {
-            return nullptr;
-        }
-        return (Item*)((u8*)mData + offset);
-    }
+    Item* getItem(const Group* group, int index) const;
 
     /* 0x00 */ const void* mData;
     /* 0x04 */ Root* mRoot;
 };
+
+template <typename Root, typename Section, typename Group, typename Item>
+Item* JAUSoundTable_<Root, Section, Group, Item>::getItem(const Group* group, int index) const {
+    u32 offset = group->getItemOffset(index);
+    if (offset == 0) {
+        return nullptr;
+    }
+    return (Item*)((u8*)mData + offset);
+}
 
 struct JAUSoundTableRoot {
     static inline u32 magicNumber() {
@@ -207,6 +210,9 @@ struct JAUSoundNameTableGroup {
     /* 0x04 */ u32 mCategoryNameOffset;
     /* 0x08 */ u32 mItemOffsets[0];
 };
+
+template <>
+char* JAUSoundTable_<JAUSoundNameTableRoot, JAUSoundNameTableSection, JAUSoundNameTableGroup, char>::getItem(const JAUSoundNameTableGroup*, int) const NO_INLINE;
 
 struct JAUSoundNameTable : public JASGlobalInstance< JAUSoundNameTable > {
     JAUSoundNameTable(bool setInstance) : JASGlobalInstance< JAUSoundNameTable >(setInstance) {

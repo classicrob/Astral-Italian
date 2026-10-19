@@ -39,8 +39,10 @@ static struct {
     u32 wcount;
     u32 rptr;
     u32 wptr;
-    IOSResourceRequest *buf[16];
+    IOSResourceRequest *buf[48];
 } __responses;
+
+static OSAlarm __timeout_alarm;
 
 static IOSHeapId hid = -1;
 
@@ -217,7 +219,7 @@ IOSError IPCCltInit(void) {
 
     IPCInit();
 
-    i = ROUNDUP(32 * (ROUNDUP(sizeof(IOSRpcRequest)) + 64));
+    i = 0x2000;
     bufferLo = IPCGetBufferLo();
 
     if ((void*)((u8*)bufferLo + i) > IPCGetBufferHi()) {
@@ -233,6 +235,7 @@ IOSError IPCCltInit(void) {
 
     IPCWriteReg(1, (1 << 5 | 1<< 4 | 1 << 3));
     IPCiProfInit();
+    OSCreateAlarm(&__timeout_alarm);
 
 out:
     return ret;

@@ -1,18 +1,33 @@
 #pragma once
-
 #include <revolution/types.h>
-
-struct AudBgmParamGroup {
-    AudBgmParamGroup();  // fn_800899D0
-
-    /* 0x00 */ void* mParams;  // 11 entries of 0x10 bytes
+struct AudBgmParam {
+    AudBgmParam();
+    void reset() NO_INLINE;
+    u32 mSoundId;
+    s32 mStartType, mStartFrame;
+    bool mIsPrepare;
 };
-
-// BgmParam.bcsv table (/AudioRes/Info/BgmParam.arc)
+struct AudBgmParamGroup {
+    AudBgmParamGroup();
+    void reset() NO_INLINE;
+    AudBgmParam* getParam(s32);
+    u32 getSoundId(s32, s32);
+    u32 getScenarioSoundId(s32);
+    AudBgmParam* mParams;
+    const char* mStageName;
+    u32 mChangeSoundIds[5];
+    s32 mChangeStates[5];
+};
 class AudBgmParamTable {
 public:
-    AudBgmParamTable();  // fn_80089B60
-
-    /* 0x00 */ AudBgmParamGroup* mGroups;  // 80 groups of 0x30 bytes
-    /* 0x04 */ s32 _4;
+    AudBgmParamTable();
+    void reset() NO_INLINE;
+    void load();
+    AudBgmParamGroup* findGroup(const char*) NO_INLINE;
+    AudBgmParam* getParam(const char*, s32);
+    u32 getSoundId(const char*, s32, s32);
+    s32 getChangeState(const char*, s32);
+    u32 getScenarioSoundId(const char*, s32);
+    AudBgmParamGroup* mGroups;
+    s32 mGroupCount;
 };

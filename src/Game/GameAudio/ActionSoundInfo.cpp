@@ -7,15 +7,15 @@
 
 ActionSoundInfo::ActionSoundInfo(JMapInfoIter iter, const ActionSoundData*) {
     setDefault();
-    mTriggerType = iter.fn_80089720("TriggerType");
-    mName = iter.fn_800896B0("TriggerName");
-    mSoundType = iter.fn_80089720("SoundType");
-    mSoundLabel = iter.fn_800896B0("SoundLabel");
-    mStartFrame = iter.fn_80089720("StartFrame");
-    mEndFrame = iter.fn_80089720("EndFrame");
-    mJointName = iter.fn_800896B0("JointName");
-    mPitchType = iter.fn_80089720("PitchChangeType");
-    mVolumeType = iter.fn_80089720("VolumeChangeType");
+    mTriggerType = iter.getValueS32("TriggerType");
+    mName = iter.getValueString("TriggerName");
+    mSoundType = iter.getValueS32("SoundType");
+    mSoundLabel = iter.getValueString("SoundLabel");
+    mStartFrame = iter.getValueS32("StartFrame");
+    mEndFrame = iter.getValueS32("EndFrame");
+    mJointName = iter.getValueString("JointName");
+    mPitchType = iter.getValueS32("PitchChangeType");
+    mVolumeType = iter.getValueS32("VolumeChangeType");
     if (mJointName != nullptr && *mJointName == '\0') {
         mJointName = nullptr;
     }
@@ -24,11 +24,11 @@ ActionSoundInfo::ActionSoundInfo(JMapInfoIter iter, const ActionSoundData*) {
     char buf[0x40];
     for (s32 i = 0; i < 4; i++) {
         snprintf(buf, 0x40, "PitchChangeArg%d", i + 1);
-        mPitchArgs[i] = iter.fn_80089850(buf);
+        mPitchArgs[i] = iter.getValueFloat(buf);
     }
     for (s32 i = 0; i < 4; i++) {
         snprintf(buf, 0x40, "VolumeChangeArg%d", i + 1);
-        mVolumeArgs[i] = iter.fn_80089850(buf);
+        mVolumeArgs[i] = iter.getValueFloat(buf);
     }
 }
 

@@ -4,7 +4,8 @@ void JAUBankTableDictionary::appendBankTable(JSULink< JAUBankTable >* bankTableL
     append(bankTableList);
 }
 
-// Needed to make the inline function JAUBankTable::getBank appear in this TU
-const JASBank* JAUBankTable_DUMMY(const JAUBankTable* table) {
-    return table->getBank(0);
+
+// NONMATCHING data: the canonical key function owns this vtable here; retail linked its weak copy with JAUSectionHeap.
+JASBank* JAUBankTable::getBank(u32 bank) const {
+    return mBankPtrTable.get(bank);
 }

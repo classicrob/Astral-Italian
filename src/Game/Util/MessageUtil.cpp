@@ -301,3 +301,72 @@ namespace MR {
     }
 
 };  // namespace MR
+
+#pragma auto_inline off
+#include "Game/Util/MessageUtil.hpp"
+#include "Game/NPC/TalkMessageInfo.hpp"
+#include "Game/System/MessageHolder.hpp"
+#include "Game/System/GalaxyStatusAccessor.hpp"
+#include "Game/System/GameDataConst.hpp"
+#include "Game/Util/EventUtil.hpp"
+#include "Game/Util/StringUtil.hpp"
+
+namespace MR {
+    s32 makeGalaxyStarList(wchar_t* dst, s32 capacity, const char* galaxy, bool padNormal, bool fillMissing) {
+        GalaxyStatusAccessor status = makeGalaxyStatusAccessor(galaxy);
+        wchar_t* end = dst;
+        for (s32 star = 1; star <= status.getNormalPowerStarNumWithoutComet(); ++star) {
+            if (status.hasPowerStar(star)) {
+                if (status.isOwnBronzeStar(star)) {
+                    if (GameDataConst::isGrandStar(galaxy, star)) end = addPictureFontCode(end, 0x75);
+                    else end = addPictureFontCode(end, 0x72);
+                } else if (GameDataConst::isGrandStar(galaxy, star)) end = addPictureFontCode(end, 0x4B);
+                else end = addPictureFontCode(end, 0x37);
+            } else if (status.isOpenScenario(star)) end = addPictureFontCode(end, 0x6E);
+            else if (fillMissing) end = addPictureFontCode(end, 0x52);
+        }
+        for (s32 star = status.getNormalPowerStarNumWithoutComet() + 1; star <= status.getPowerStarNum(); ++star) {
+            if (!status.isGreenStar(star)) {
+                if (status.hasPowerStar(star)) {
+                    if (status.isValidComet(star)) {
+                        if (status.isOwnBronzeStar(star)) end = addPictureFontCode(end, 0x7D);
+                        else end = addPictureFontCode(end, 0x65);
+                    } else if (status.isOwnBronzeStar(star)) end = addPictureFontCode(end, 0x72);
+                    else end = addPictureFontCode(end, 0x37);
+                } else if (status.isHiddenStar(star)) {
+                    if (hasAllNormalPowerStarWithoutComet(galaxy)) {
+                        if (status.isOpenScenario(star)) end = addPictureFontCode(end, 0x71);
+                        else if (fillMissing) end = addPictureFontCode(end, 0x52);
+                    } else if (fillMissing) end = addPictureFontCode(end, 0x52);
+                } else if (status.isValidComet(star)) {
+                    if (getGalaxyStarTotalNum(galaxy)) end = addPictureFontCode(end, 0x70);
+                    else if (fillMissing) end = addPictureFontCode(end, 0x52);
+                } else if (status.isOpenScenario(star)) end = addPictureFontCode(end, 0x6E);
+                else if (fillMissing) end = addPictureFontCode(end, 0x52);
+            }
+        }
+        if (padNormal) {
+            s32 count = status.getPowerStarNum() - status.getGreenStarNum();
+            for (; count < 3; ++count) end = addPictureFontCode(end, 0x52);
+        }
+        for (s32 star = 1; star <= status.getPowerStarNum(); ++star) {
+            if (status.isGreenStar(star) && status.isOpenScenario(star)) {
+                if (isOnGameEventFlagPowerStarSuccess(galaxy, star)) end = addPictureFontCode(end, 0x4F);
+                else end = addPictureFontCode(end, 0x70);
+            }
+        }
+        *end = 0;
+        return end - dst;
+    }
+    s32 makeGalaxyCompletionMark(wchar_t* dst, s32 capacity, const char* galaxy, bool fillMissing) {
+        GalaxyStatusAccessor status = makeGalaxyStatusAccessor(galaxy);
+        wchar_t* end = dst;
+        if (status.isCompletedNoGreen()) end = addPictureFontCode(dst, 0x50);
+        else if (status.isCompletedWithGreen()) end = addPictureFontCode(dst, 0x6B);
+        else if (fillMissing) end = addPictureFontCode(dst, 0x52);
+        else *dst = 0;
+        return end - dst;
+    }
+}
+
+#pragma auto_inline reset

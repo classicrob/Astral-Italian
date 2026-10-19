@@ -502,8 +502,6 @@ s32 VFiPFCACHE_DoWriteNumSectorAndFreeIfNeeded(PF_VOLUME* p_vol, PF_CACHE_PAGE**
     err = VFiPFDRV_lwrite(p_vol, p_buf, sector, num_sector, p_num_success);
     if (err)
         return err;
-    if (dCommon_FlushFromVol(p_vol, 1))
-        return 17;
 LABEL_37:
     if ((p_vol->cache.mode & 1) != 0 && num_sector != num_rest_sector)
         VFiPFCACHE_ClearModified(p_vol, p_vol->cache.p_current_data);

@@ -35,7 +35,11 @@ public:
     virtual J2DGrafType getGrafType() const;
     virtual void setLookat();
 
-    void setColor(JUtility::TColor c) {
+    void setColor(JUtility::TColor c)
+#ifdef J2D_GRAF_CONTEXT_OUTLINE_COLOR
+        NO_INLINE
+#endif
+    {
         setColor(c, c, c, c);
     }
 

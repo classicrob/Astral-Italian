@@ -113,10 +113,12 @@ const bool JMapInfo::getValue(int entryIndex, const char* pKey, T* pValueOut) co
 
 class JMapInfoIter {
 public:
-    const char* fn_800896B0(const char*) const;
-    s32 fn_80089720(const char*) const;
-    // SMG2 fn_80089850 (address-named; symbol fn_80089850__12JMapInfoIterCFPCc)
-    f32 fn_80089850(const char*) const;
+    const char* getValueString(const char*) const;
+    u32 getValueU32(const char*) const;
+    bool getValueBool(const char*) const;
+    u16 getValueU16(const char*) const;
+    s32 getValueS32(const char*) const;
+    f32 getValueFloat(const char*) const;
     JMapInfoIter() : mInfo(), mIndex(-1) {
     }
 

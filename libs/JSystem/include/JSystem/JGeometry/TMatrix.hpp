@@ -59,6 +59,9 @@ namespace JGeometry {
             JMath::gekko_ps_copy12(this, rSrc);
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void set(T xx, T xy, T xz, T tx, T yx, T yy, T yz, T ty, T zx, T zy, T zz, T tz) NO_INLINE;
+#else
         void set(T xx, T xy, T xz, T tx, T yx, T yy, T yz, T ty, T zx, T zy, T zz, T tz) NO_INLINE {
             mMtx[0][0] = xx;
             mMtx[0][1] = xy;
@@ -73,6 +76,7 @@ namespace JGeometry {
             mMtx[2][2] = zz;
             mMtx[2][3] = tz;
         }
+#endif
 
         void scale(T scale) {
             mMtx[0][0] *= scale;
@@ -182,12 +186,19 @@ namespace JGeometry {
     template < typename T >
     struct TMatrix34 : public T {
     public:
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void identity() NO_INLINE;
+#else
         void identity() NO_INLINE {
             this->mMtx[1][0] = this->mMtx[2][0] = this->mMtx[0][1] = this->mMtx[2][1] = this->mMtx[0][2] = this->mMtx[1][2] = this->mMtx[0][3] =
                 this->mMtx[1][3] = this->mMtx[2][3] = 0.0f;
             this->mMtx[0][0] = this->mMtx[1][1] = this->mMtx[2][2] = 1.0f;
         }
+#endif
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void concat(const T& rSrcA, const T& rSrcB) NO_INLINE;
+#else
         void concat(const T& rSrcA, const T& rSrcB) NO_INLINE {
             this->set(rSrcA(0, 2) * rSrcB(2, 0) + (rSrcA(0, 0) * rSrcB(0, 0) + rSrcA(0, 1) * rSrcB(1, 0)),
                       rSrcA(0, 2) * rSrcB(2, 1) + (rSrcA(0, 0) * rSrcB(0, 1) + rSrcA(0, 1) * rSrcB(1, 1)),
@@ -202,7 +213,11 @@ namespace JGeometry {
                       rSrcA(2, 2) * rSrcB(2, 2) + (rSrcA(2, 0) * rSrcB(0, 2) + rSrcA(2, 1) * rSrcB(1, 2)),
                       rSrcA(2, 3) + (rSrcA(2, 2) * rSrcB(2, 3) + (rSrcA(2, 0) * rSrcB(0, 3) + rSrcA(2, 1) * rSrcB(1, 3))));
         }
+#endif
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void concat(const T& rSrc) NO_INLINE;
+#else
         void concat(const T& rSrc) NO_INLINE {
             this->set((*this)(0, 2) * rSrc(2, 0) + ((*this)(0, 0) * rSrc(0, 0) + (*this)(0, 1) * rSrc(1, 0)),
                       (*this)(0, 2) * rSrc(2, 1) + ((*this)(0, 0) * rSrc(0, 1) + (*this)(0, 1) * rSrc(1, 1)),
@@ -217,6 +232,7 @@ namespace JGeometry {
                       (*this)(2, 2) * rSrc(2, 2) + ((*this)(2, 0) * rSrc(0, 2) + (*this)(2, 1) * rSrc(1, 2)),
                       (*this)(2, 3) + ((*this)(2, 2) * rSrc(2, 3) + ((*this)(2, 0) * rSrc(0, 3) + (*this)(2, 1) * rSrc(1, 3))));
         }
+#endif
 
         f32 determinant33() const {
             return (*this)(0, 0) * ((*this)(1, 1) * (*this)(2, 2) - (*this)(1, 2) * (*this)(2, 1)) -
@@ -224,6 +240,9 @@ namespace JGeometry {
                    (*this)(0, 2) * ((*this)(1, 0) * (*this)(2, 1) - (*this)(1, 1) * (*this)(2, 0));
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        bool invert(const TMatrix34< T >& rSrc) NO_INLINE;
+#else
         bool invert(const TMatrix34< T >& rSrc) NO_INLINE {
             f32 determinant = rSrc.determinant33();
 
@@ -266,13 +285,21 @@ namespace JGeometry {
             this->mMtx[2][3] = translation.z;
             return true;
         }
+#endif
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void mult(const TVec3f& rSrc, TVec3f& rDest) const NO_INLINE;
+#else
         void mult(const TVec3f& rSrc, TVec3f& rDest) const NO_INLINE {
             rDest.set< f32 >((*this)(0, 3) + (rSrc.z * (*this)(0, 2) + (rSrc.x * (*this)(0, 0) + rSrc.y * (*this)(0, 1))),
                              (*this)(1, 3) + (rSrc.z * (*this)(1, 2) + (rSrc.x * (*this)(1, 0) + rSrc.y * (*this)(1, 1))),
                              (*this)(2, 3) + (rSrc.z * (*this)(2, 2) + (rSrc.x * (*this)(2, 0) + rSrc.y * (*this)(2, 1))));
         }
+#endif
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void multTranspose(const TVec3f& rSrc, TVec3f& rDest) const NO_INLINE;
+#else
         void multTranspose(const TVec3f& rSrc, TVec3f& rDest) const NO_INLINE {
             TVec3f translated;
             translated.x = rSrc.x - (*this)(0, 3);
@@ -283,6 +310,7 @@ namespace JGeometry {
                              translated.z * (*this)(2, 1) + (translated.x * (*this)(0, 1) + translated.y * (*this)(1, 1)),
                              translated.z * (*this)(2, 2) + (translated.x * (*this)(0, 2) + translated.y * (*this)(1, 2)));
         }
+#endif
 
         void scale(f32 scalar) {
             this->mMtx[0][0] *= scalar;
@@ -510,6 +538,9 @@ namespace JGeometry {
             this->mMtx[0][2] = 0.0f;
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void getQuat(TQuat4f& rDest) const NO_INLINE;
+#else
         void getQuat(TQuat4f& rDest) const NO_INLINE {
             if ((*this)(0, 0) + (*this)(1, 1) + (*this)(2, 2) >= 0.0f) {
                 f32 root = (*this)(0, 0) + (*this)(1, 1) + (*this)(2, 2);
@@ -547,6 +578,7 @@ namespace JGeometry {
                 }
             }
         }
+#endif
 
         void setQuat(const TQuat4f& q)
 #ifdef JGEOMETRY_OUTLINE_MATRIX_ROTATION
@@ -757,7 +789,11 @@ namespace JGeometry {
     template < class T >
     struct TPosition3 : public TRotation3< T > {
     public:
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        TPosition3();
+#else
         TPosition3() {};
+#endif
 
         TPosition3(MtxPtr rSrc) {
             JMath::gekko_ps_copy12(this, rSrc);

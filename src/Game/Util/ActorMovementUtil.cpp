@@ -1,3 +1,6 @@
+#include "Game/Util/AreaObjUtil.hpp"
+#include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Animation/Xanimecore.hpp"
 #include "Game/LiveActor/Binder.hpp"
@@ -1780,4 +1783,99 @@ namespace MR {
         pActor->mVelocity.add(vel);
     }
 
+};  // namespace MR
+
+
+namespace MR {
+    // Rotates the PlaneModeCube front toward rDir by scale / 90 of the angle; adjusts its sign using camera Z.
+    void fn_800140B0(TVec3f* pOut, const TVec3f& rDir, const TVec3f& rPos, f32 scale) {
+        AreaObj* pArea = getAreaObj("PlaneModeCube", rPos);
+        if (pArea == nullptr) {
+            return;
+        }
+
+        TVec3f center(0.0f, 0.0f, 0.0f);
+        TVec3f front(0.0f, 0.0f, 0.0f);
+        getAreaCenterPos(&center, pArea);
+        getAreaFrontVec(&front, pArea, center);
+        if (front.dot(getCamZdir()) > 0.0f) {
+            front.negate(front);
+        }
+
+        TVec3f dir;
+        if (normalizeOrZero(&dir, rDir)) {
+            return;
+        }
+
+        if (dir.dot(front) < 0.0f) {
+            dir.negate(dir);
+        }
+
+        TQuat4f rotate;
+        rotate.setRotate(front, dir, scale / 90.0f);
+        rotate.transform(front, *pOut);
+    }
+
+    void fn_80014360(TVec3f* pOut, LiveActor* pActor, f32 scale) {
+        calcVecToTargetPosH(pOut, pActor, *getPlayerPos(), nullptr);
+        fn_800140B0(pOut, *pOut, pActor->mPosition, scale);
+    }
+
+#pragma dont_inline on
+    // Moves pPos onto the plane of the PlaneModeCube area, or onto the inner wall (radius - 200) of the TowerModeCylinder area.
+    // NONMATCHING: stack slot order only (target places the copy/scale/add temporaries below the cylinder locals)
+    void fn_800143D0(TVec3f* pPos) {
+        AreaObj* pArea = getAreaObj("PlaneModeCube", *pPos);
+        if (pArea != nullptr) {
+            TVec3f center(0.0f, 0.0f, 0.0f);
+            TVec3f front(0.0f, 0.0f, 0.0f);
+            getAreaCenterPos(&center, pArea);
+            getAreaFrontVec(&front, pArea, center);
+            vecKillElement(*pPos, front, pPos);
+            f32 depth = front.dot(center);
+            TVec3f offset(front);
+            offset.scale(depth);
+            pPos->add(offset);
+        } else {
+            pArea = getAreaObj("TowerModeCylinder", *pPos);
+            if (pArea != nullptr) {
+                TVec3f center(0.0f, 0.0f, 0.0f);
+                TVec3f up(0.0f, 0.0f, 0.0f);
+                calcCylinderCenterPos(&center, pArea);
+                calcCylinderUpVec(&up, pArea);
+                f32 radius = getCylinderRadius(pArea);
+                TVec3f diff(*pPos);
+                JMathInlineVEC::PSVECSubtract(&diff, &center, &diff);
+                f32 height = vecKillElement(diff, up, &diff);
+                diff.setLength(radius - 200.0f);
+                TVec3f upOffset(up);
+                upOffset.scale(height);
+                diff.add(upOffset);
+                TVec3f pos(center);
+                pos.add(diff);
+                *pPos = pos;
+            }
+        }
+    }
+
+#pragma dont_inline reset
+
+    void fn_800145C0(LiveActor* pActor) {
+        fn_800143D0(&pActor->mPosition);
+    }
+
+    void restrictVelocityToPlaneModeArea(TVec3f* pVelocity, const TVec3f& rPos) {
+        AreaObj* pArea = getAreaObj("PlaneModeCube", rPos);
+        if (pArea != nullptr) {
+            TVec3f center(0.0f, 0.0f, 0.0f);
+            TVec3f front(0.0f, 0.0f, 0.0f);
+            getAreaCenterPos(&center, pArea);
+            getAreaFrontVec(&front, pArea, center);
+            vecKillElement(*pVelocity, front, pVelocity);
+        }
+    }
+
+    void fn_80014670(LiveActor* pActor) {
+        restrictVelocityToPlaneModeArea(&pActor->mVelocity, pActor->mPosition);
+    }
 };  // namespace MR

@@ -1182,7 +1182,3 @@ void AudSystem::setVolumeZeroForce(s32 menuType) {
 }
 
 JAIStreamAramMgr::~JAIStreamAramMgr() {}
-
-f32 AudAudience_withSetting::getCameraRate() const {
-    return mCameraRate;
-}

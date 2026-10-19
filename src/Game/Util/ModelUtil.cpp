@@ -1,3 +1,78 @@
+#pragma auto_inline off
+#include "Game/Util/ModelUtil.hpp"
+#include "Game/Animation/XanimePlayer.hpp"
+#include "Game/Animation/XanimeResource.hpp"
+#include "Game/Util/ObjUtil.hpp"
+#include "Game/Util/JMapUtil.hpp"
+
+namespace {
+#pragma dont_inline on
+    XanimeBckTable1* createSingleBlendTable(ResourceHolder* holder, s32* count) {
+        MR::tryCreateCsvParser(holder, "AnimBlendSingle.bcsv");
+        return nullptr;
+    }
+    XanimeBckTable2* createDoubleBlendTable(ResourceHolder* holder, s32* count) {
+        MR::tryCreateCsvParser(holder, "AnimBlendDouble.bcsv");
+        return nullptr;
+    }
+    XanimeBckTable3* createTripleBlendTable(ResourceHolder* holder, s32* count) {
+        JMapInfo* csv = MR::tryCreateCsvParser(holder, "AnimBlendTriple.bcsv");
+        if (!csv) { *count = 0; return nullptr; }
+        s32 num = MR::getCsvDataElementNum(csv);
+        if (num <= 0) { *count = 0; return nullptr; }
+        XanimeBckTable3* table = new XanimeBckTable3[num + 1];
+        for (s32 i = 0; i < num; ++i) {
+            XanimeBckTable3* entry = &table[i];
+            entry->init();
+            MR::getCsvDataStr(&entry->mParent.mAnimationName, csv, "ActionName", i);
+            MR::getCsvDataStr(&entry->mEntries[0].mFileName, csv, "BckName1st", i);
+            MR::getCsvDataStr(&entry->mEntries[1].mFileName, csv, "BckName2nd", i);
+            MR::getCsvDataStr(&entry->mEntries[2].mFileName, csv, "BckName3rd", i);
+        }
+        XanimeBckTable3* entry = &table[num];
+        entry->init();
+        entry->mParent.mAnimationName = "";
+        *count = num;
+        return table;
+    }
+    XanimeBckTable4* createQuadBlendTable(ResourceHolder* holder, s32* count) {
+        MR::tryCreateCsvParser(holder, "AnimBlendQuad.bcsv");
+        return nullptr;
+    }
+}
+#pragma dont_inline reset
+namespace MR {
+    XanimePlayer* newXanimePlayer(const ResourceHolder* modelHolder, const char* name, const ResourceHolder* unused,
+                                  J3DMdlFlag flags, XanimeResourceTable* table) {
+        J3DModel* model = newJ3DModel(modelHolder, name, flags);
+        return new XanimePlayer(model, table);
+    }
+    XanimeResourceTable* newXanimeResourceTable(ResourceHolder* holder) {
+        s32 singleCount = 0;
+        s32 doubleCount = 0;
+        s32 tripleCount = 0;
+        s32 quadCount = 0;
+        XanimeBckTable1* singles = createSingleBlendTable(holder, &singleCount);
+        XanimeBckTable2* doubles = createDoubleBlendTable(holder, &doubleCount);
+        XanimeBckTable3* triples = createTripleBlendTable(holder, &tripleCount);
+        XanimeBckTable4* quads = createQuadBlendTable(holder, &quadCount);
+        s32 total = quadCount + tripleCount + (singleCount + doubleCount);
+        if (total == 0) return new XanimeResourceTable(holder);
+        XanimeGroupInfo* groups = new XanimeGroupInfo[total + 1];
+        for (s32 i = 0; i < tripleCount; ++i) {
+            XanimeGroupInfo* group = &groups[i];
+            group->init();
+            group->mParent.mAnimationName = triples[i].mParent.mAnimationName;
+            group->mRate = 1.0f;
+        }
+        XanimeGroupInfo* terminator = &groups[total];
+        terminator->init();
+        terminator->mParent.mAnimationName = "";
+        return new XanimeResourceTable(holder, groups, nullptr, singles, doubles, triples, quads, nullptr);
+    }
+}
+
+#pragma auto_inline reset
 #define MODELUTIL_OUTLINE_TEXTURE_COUNT
 #define J3D_TEVBLOCK_BASE_GETTERS_OUTLINE
 #include "Game/Util/ModelUtil.hpp"

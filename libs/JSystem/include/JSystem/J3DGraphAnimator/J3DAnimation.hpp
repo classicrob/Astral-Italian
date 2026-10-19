@@ -348,7 +348,11 @@ public:
         mFrame = 0.0f;
     }
 
+#ifdef J3D_ANM_BASE_CTOR_NOINLINE
+    J3DAnmBase(s16 frameMax) NO_INLINE {
+#else
     J3DAnmBase(s16 frameMax) {
+#endif
         mAttribute = 0;
         field_0x5 = 0;
         mFrameMax = frameMax;

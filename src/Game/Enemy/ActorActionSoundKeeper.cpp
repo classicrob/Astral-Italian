@@ -51,7 +51,7 @@ ActorActionSoundKeeper::ActorActionSoundKeeper(LiveActor* actor, AudSoundObject*
             mSounds[i]->createSyncBckParam(actor->mModelManager->mXanimePlayer, index);
         }
     }
-    MR::fn_800885B0(mData, false);
+    MR::requestActionSoundWaves(mData, false);
 }
 
 #pragma dont_inline on

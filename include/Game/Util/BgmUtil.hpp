@@ -72,3 +72,11 @@ namespace MR {
 };  // namespace MR
 
 namespace MR { void requestStageBGMVolumeDown(s32, bool); }
+
+namespace MR {
+    bool isSandyBossBGMPlaying();
+    bool isPorterBGMPlaying();
+    void startPlayFireMorphBGM();
+    void adjustSandyBossFireMorphBGM(s32, s32);
+    void adjustPorterBGGM(s32, s32);
+}

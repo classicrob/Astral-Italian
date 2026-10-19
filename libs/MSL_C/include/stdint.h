@@ -1,3 +1,6 @@
+#ifndef __MWERKS__
+#include_next <stdint.h>
+#else
 #ifndef __STDC_STDINT_H__
 #define __STDC_STDINT_H__
 
@@ -23,3 +26,5 @@ typedef uint32_t uintptr_t;
 typedef int32_t intptr_t;
 
 #endif  // __STDC_STDINT_H__
+
+#endif  // __MWERKS__

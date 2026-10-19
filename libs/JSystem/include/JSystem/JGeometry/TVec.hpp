@@ -492,9 +492,13 @@ namespace JGeometry {
             z = xz;
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        TVec3(f32 val) NO_INLINE;
+#else
         TVec3(f32 val) NO_INLINE {
             set(val, val, val);
         }
+#endif
 
         template < typename T >
         inline TVec3(const TVec2< T >& rVec) {
@@ -552,11 +556,15 @@ namespace JGeometry {
         }
 
         template < typename T >
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void set(T _x, T _y, T _z) NO_INLINE;
+#else
         void set(T _x, T _y, T _z) NO_INLINE {
             x = _x;
             y = _y;
             z = _z;
         }
+#endif
 
         void set(f32 x_, f32 y_, f32 z_) {
             x = x_;
@@ -1111,12 +1119,16 @@ namespace JGeometry {
         }
 
         template < typename A >
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void set(A _x, A _y, A _z, A _w) NO_INLINE;
+#else
         void set(A _x, A _y, A _z, A _w) NO_INLINE {
             x = _x;
             y = _y;
             z = _z;
             w = _w;
         }
+#endif
 
         void scale(T val) NO_INLINE {
             x *= val;
@@ -1184,6 +1196,9 @@ namespace JGeometry {
             TVec4< T >::scale(lengthinv);
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void normalize(const TQuat4< T >& rSrc) NO_INLINE;
+#else
         void normalize(const TQuat4< T >& rSrc) NO_INLINE {
             f32 length = rSrc.squared();
 
@@ -1205,6 +1220,7 @@ namespace JGeometry {
                 this->w = rSrc.w * inverse;
             }
         }
+#endif
 
         void getXDir(TVec3< T >& rDest) const
 #ifdef JGEOMETRY_QUAT_DIRECTION_NOINLINE
@@ -1233,6 +1249,9 @@ namespace JGeometry {
                                     1.0f - this->x * this->x * 2.0f - this->y * this->y * 2.0f);
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void getEuler(TVec3< T >& rDest) const NO_INLINE;
+#else
         void getEuler(TVec3< T >& rDest) const NO_INLINE {
             f32 m20 = 2.0f * (this->x * this->z - this->w * this->y);
 
@@ -1256,7 +1275,11 @@ namespace JGeometry {
                 rDest.z = JMAATan2(m10, m00);
             }
         }
+#endif
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void setEuler(T _x, T _y, T _z) NO_INLINE;
+#else
         void setEuler(T _x, T _y, T _z) NO_INLINE {
             f32 cx = cos(0.5f * _x);
             f32 cy = cos(0.5f * _y);
@@ -1273,6 +1296,7 @@ namespace JGeometry {
             this->z = cysz * cx - sycz * sx;
             this->w = cycz * cx + sysz * sx;
         }
+#endif
 
         void setEuler(const TVec3< T >& rpy) {
             setEuler(rpy.x, rpy.y, rpy.z);
@@ -1343,6 +1367,9 @@ namespace JGeometry {
             }
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void setRotate(const TVec3< T >& rA, const TVec3< T >& rB) NO_INLINE;
+#else
         void setRotate(const TVec3< T >& rA, const TVec3< T >& rB) NO_INLINE {
             TVec3< T > dir = rA.cross(rB);
             f32 crossPart = dir.length();
@@ -1359,6 +1386,7 @@ namespace JGeometry {
                 this->w = cos(halfAngle);
             }
         }
+#endif
 
         void setRotate(const TVec3< T >& pVec, f32 pAngle) {
             f32 halfAngle = pAngle * 0.5f;
@@ -1388,6 +1416,9 @@ namespace JGeometry {
             TVec3< T >::scale(scalar, rVec);
         }
 
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        void slerp(const TQuat4< T >& rOther, T ratio) NO_INLINE;
+#else
         void slerp(const TQuat4< T >& rOther, T ratio) NO_INLINE {
             TQuat4< T > a;
             TQuat4< T > b;
@@ -1420,6 +1451,7 @@ namespace JGeometry {
 
             this->template set< f32 >(weight * a.x + ratio * b.x, weight * a.y + ratio * b.y, weight * a.z + ratio * b.z, weight * a.w + ratio * b.w);
         }
+#endif
 
 #ifdef JGEOMETRY_QUAT_TRANSFORM_NOINLINE
         NO_INLINE
@@ -1493,6 +1525,9 @@ namespace JGeometry {
         }
 
         /* Operators */
+#ifdef JGEOMETRY_EXPLICIT_INSTANTIATIONS
+        TQuat4< T >& operator=(const TQuat4< T >& rSrc) NO_INLINE;
+#else
 #ifdef JGEOMETRY_QUAT_ASSIGN_NOINLINE
         TQuat4< T >& operator=(const TQuat4< T >& rSrc) NO_INLINE {
 #else
@@ -1504,6 +1539,7 @@ namespace JGeometry {
             this->w = rSrc.w;
             return *this;
         }
+#endif
     };
 
 };  // namespace JGeometry

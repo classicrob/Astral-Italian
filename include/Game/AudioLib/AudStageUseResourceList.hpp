@@ -16,7 +16,8 @@ public:
     static const char* getFaceShipResourceName();
     static const char* getPeachCastleResourceName();
     void loadStaticSound();
-    void load();                // fn_8008A390
+    void loadResource(const JMapInfo*, bool, bool);
+    void load();  // fn_8008A390
 
     /* 0x00 */ const JMapInfo* mParsers[5];
 };

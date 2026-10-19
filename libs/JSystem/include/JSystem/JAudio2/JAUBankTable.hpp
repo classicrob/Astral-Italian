@@ -12,9 +12,7 @@ public:
         field_0xc = param_0;
     }
 
-    JASBank* getBank(u32 bank) const {
-        return mBankPtrTable.get(bank);
-    }
+    JASBank* getBank(u32 bank) const;
 
     JASBank* getBank(u32 bank) {
         return mBankPtrTable.get(bank);

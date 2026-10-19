@@ -447,6 +447,56 @@ void AudSoundObject::setCutoffToPort(JAISoundHandle* pHandle, JAISoundID soundID
 }
 
 
+JAISoundID AudSoundObject::convertSoundIdFromSeVersion(JAISoundID soundID) const {
+    if (mSeVersion != 0) {
+        switch (soundID) {
+        case 0x902DF:
+            if (mSeVersion == 1) {
+                return 0x902E1;
+            }
+            break;
+        case 0x902E0:
+            if (mSeVersion == 1) {
+                return 0x902E2;
+            }
+            break;
+        case 0x4024C:
+            if (mSeVersion == 1) {
+                return 0x4024E;
+            }
+            break;
+        case 0x4024D:
+            if (mSeVersion == 1) {
+                return 0x4024F;
+            }
+            break;
+        }
+    }
+
+    s32 mapCode = getMapCode();
+    switch (soundID) {
+    case 0x20023:
+        if (mapCode == 11) {
+            return 0x200C0;
+        }
+        break;
+    case 0x200A1:
+        if (mapCode == 7 || mapCode == 16 || mapCode == 4 || mapCode == 9) {
+            return 0x200A3;
+        }
+        if (mapCode == 14 || mapCode == 15) {
+            return 0x200A2;
+        }
+        break;
+    }
+
+    if (soundID == 0x6004D && MR::isStageMarioFaceShipAfterGrandStar()) {
+        return 0x6004C;
+    }
+
+    return soundID;
+}
+
 AudSoundObjHashData::AudSoundObjHashData() {
     init();
 }

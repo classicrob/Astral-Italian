@@ -3,11 +3,19 @@
 
 typedef signed char s8;
 typedef signed short s16;
+#ifdef __MWERKS__
 typedef signed long s32;
+#else
+typedef __INT32_TYPE__ s32;
+#endif
 typedef signed long long s64;
 typedef unsigned char u8;
 typedef unsigned short u16;
+#ifdef __MWERKS__
 typedef unsigned long u32;
+#else
+typedef __UINT32_TYPE__ u32;
+#endif
 typedef unsigned long long u64;
 
 typedef volatile u8 vu8;

@@ -26,6 +26,7 @@ extern "C" {
 #define KPAD_DPD_RESO_CY (KPAD_DPD_RESO_WY / 2)
 
 #define KPAD_USE_OBJECTS 2
+#define KPAD_INTERNAL_RING_LENGTH 16
 
 typedef struct Vec2 {
     f32 x;
@@ -146,7 +147,10 @@ typedef struct {
     s16 valid_objs;
     u8 bufIdx;
     u8 bufCount;
-    KPADUnifiedWpadStatus uniRingBuf[120];
+    /* 0x17C */ KPADStatus* mplsWritePos;
+    /* 0x180 */ KPADUnifiedWpadStatus uniRingBuf[KPAD_INTERNAL_RING_LENGTH];
+    /* 0x5A0 */ KPADUnifiedWpadStatus* externalRingBuf;
+    /* 0x5A4 */ u32 externalRingLength;
     f32 sec_length;
     Vec2 sec_nrm;
     f32 sec_dist;
@@ -154,10 +158,11 @@ typedef struct {
     Vec hard_acc;
     Vec2 obj_horizon;
     Vec2 acc_horizon;
-    Vec2 ah_circle_pos;
+    /* 0x5D8 */ Vec2 rawPos;
+    /* 0x5E0 */ Vec2 ah_circle_pos;
     u16 ah_circle_ct;
     u8 dpd_valid2_ct;
-    s8 _fg_4;
+    /* 0x5EB */ u8 readLocked;
     u16 btn_repeat_time;
     u16 btn_repeat_next;
     u16 btn_repeat_delay;
@@ -178,12 +183,13 @@ typedef struct {
     f32 ah_circle_radius2;
     f32 dist_vv1;
     f32 err_dist_min;
-    WPADSamplingCallback appSamplingCallback;
-    u8 readLocked;
-    u8 resetReq;
-    u8 exResetReq;
-    u8 dpdIssued;
-    u8 dpdEnabled;
+    /* 0x638 */ WPADSamplingCallback appSamplingCallback;
+    /* 0x63C */ WPADConnectCallback appConnectCallback;
+    /* 0x640 */ u8 resetReq;
+    /* 0x641 */ u8 exResetReq;
+    /* 0x642 */ u8 _642;
+    /* 0x643 */ u8 dpdEnabled;
+    /* 0x644 */ u8 dpdIssued;
     u8 dpdCmd;
     u8 dpdPreCallbackDone;
     u8 dpdPostCallbackDone;
@@ -195,7 +201,23 @@ typedef struct {
     KPADPlayMode hori_play_mode;
     KPADPlayMode dist_play_mode;
     KPADPlayMode acc_play_mode;
-
+    /* 0x65C */ WPADDeviceType deviceType;
+    /* 0x660 */ u32 readTicks[3];
+    /* 0x66C */ u32 previousSampleTick;
+    /* 0x670 */ u32 sampleTick;
+    /* 0x674 */ u8 _674;
+    /* 0x675 */ u8 _675;
+    /* 0x676 */ u8 _676;
+    /* 0x677 */ u8 _677;
+    /* 0x678 */ u8 _678;
+    /* 0x679 */ u8 _679;
+    /* 0x67A */ u8 _67A;
+    /* 0x67B */ u8 _67B;
+    /* 0x67C */ u8 _67C;
+    /* 0x67D */ u8 _67D;
+    /* 0x67E */ u8 _67E;
+    /* 0x67F */ u8 _67F;
+    /* 0x680 */ KPADControlDpdCallback mpls_ctrl_callback;
 } KPADInsideStatus;
 
 void KPADInit();

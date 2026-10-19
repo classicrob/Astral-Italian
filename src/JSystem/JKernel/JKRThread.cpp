@@ -1,3 +1,4 @@
+#define JUTILITY_TCOLOR_RGBA_CTOR_NOINLINE
 #include "JSystem/JKernel/JKRThread.hpp"
 #include "JSystem/JKernel/JKRHeap.hpp"
 #include "JSystem/JUtility/TColor.hpp"
@@ -105,10 +106,3 @@ JSUList< JKRTask > JKRTask::sTaskList = JSUList< JKRTask >();
 u8 JKRTask::sEndMesgQueue[32];
 JKRThreadSwitch* JKRThreadSwitch::sManager;
 u32 JKRThreadSwitch::sTotalCount;
-
-void JKRThread_FORCE_MATCH(JUtility::TColor* pColor, u8 r, u8 g, u8 b, u8 a) {
-    *pColor = JUtility::TColor(r, g, b, a);
-    *pColor = JUtility::TColor(r, g, b, a);
-    *pColor = JUtility::TColor(r, g, b, a);
-    *pColor = JUtility::TColor(r, g, b, a);
-}

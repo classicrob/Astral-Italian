@@ -1,3 +1,4 @@
+#define J3D_ANM_BASE_CTOR_NOINLINE
 #include "JSystem/J3DGraphAnimator/J3DAnimation.hpp"
 #include "JSystem/J3DGraphAnimator/J3DMaterialAttach.hpp"
 #include "JSystem/J3DGraphAnimator/J3DModelData.hpp"
@@ -548,6 +549,8 @@ inline f32 J3DHermiteInterpolation(__REGISTER f32 pp1, __REGISTER s16 const* pp2
     }
 
     return value;
+#else
+    return JMAHermiteInterpolation(pp1, *pp2, *pp3, *pp4, *pp5, *pp6, *pp7);
 #endif
 }
 
@@ -1360,8 +1363,4 @@ void J3DAnmTevRegKey::searchUpdateMaterialID(J3DMaterialTable* pMatTable) {
 
 void J3DAnmTevRegKey::searchUpdateMaterialID(J3DModelData* pModelData) {
     searchUpdateMaterialID(&pModelData->getMaterialTable());
-}
-
-void J3DAnimation_FORCE_EMIT(s16 frameMax, f32* pWeight) {
-    J3DAnmCluster cluster(frameMax, pWeight);
 }

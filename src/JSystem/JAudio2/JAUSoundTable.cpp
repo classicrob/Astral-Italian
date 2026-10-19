@@ -1,9 +1,16 @@
 #include "JSystem/JAudio2/JAUSoundTable.hpp"
 
-void JAUSoundTable_DUMMY() {
-    JAUSoundNameTable table(false);
-    table.getItem(0, 0);
+template <>
+char* JAUSoundTable_<JAUSoundNameTableRoot, JAUSoundNameTableSection, JAUSoundNameTableGroup, char>::getItem(const JAUSoundNameTableGroup* group, int index) const {
+    u32 offset = group->getItemOffset(index);
+    if (offset == 0) {
+        return nullptr;
+    }
+    return (char*)((u8*)mData + offset);
 }
+
+
+
 
 void JAUSoundTable::init(void const* pData) {
     if (pData != nullptr) {

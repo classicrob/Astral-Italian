@@ -58,10 +58,10 @@ void AudInstListMgr::fn_802204A0(const char* name, bool async) {
     s32 count = range->mCount;
     for (s32 i = 0; i < count; i++) {
         JMapInfoIter iter(&csv, range->mStartIndex + i);
-        iter.fn_800896B0("ObjName");
-        s32 type = iter.fn_80089720("SoundType");
+        iter.getValueString("ObjName");
+        s32 type = iter.getValueS32("SoundType");
         if (ActionSoundInfo::fn_802208A0(type)) {
-            fn_80087940(iter.fn_800896B0("SoundLabel"), async);
+            requestSound(iter.getValueString("SoundLabel"), async);
         }
     }
 }

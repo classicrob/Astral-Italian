@@ -1,3 +1,4 @@
+#define J2D_GRAF_CONTEXT_OUTLINE_COLOR
 #include "JSystem/J2DGraph/J2DGrafContext.hpp"
 #include <revolution/gx/GXVert.h>
 
@@ -147,11 +148,4 @@ void J2DGrafContext::setLookat() {
 
 J2DGrafType J2DGrafContext::getGrafType() const {
     return J2DGraf_Base;
-}
-
-void J2DGrafContext_FORCE_MATCH(J2DGrafContext* pContext, JUtility::TColor color) {
-    pContext->setColor(color);
-    pContext->setColor(color);
-    pContext->setColor(color);
-    pContext->setColor(color);
 }

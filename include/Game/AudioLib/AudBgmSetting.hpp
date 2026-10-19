@@ -2,7 +2,11 @@
 
 #include <JSystem/JAudio2/JAISound.hpp>
 
+struct JAUSoundTableItem;
+
 namespace AudBgmSetting {
+    // Returns mutable sound-table data only when the entry type carries bit 0x40.
+    JAUSoundTableItem* getSoundData(JAISoundID);
     const char* getBgmParamResourceName();
     void loadBgmParamResource();
     const char* getMultiBgmResourceName();

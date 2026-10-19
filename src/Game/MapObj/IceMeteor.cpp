@@ -101,3 +101,7 @@ bool IceMeteor::isPlayerOutsideIce(HitSensor* sensor) {
 void IceMeteor::spreadIce() { s32 duration = 82; mIceRadius += (420.0f - lbl_807E30A0) / duration; mIceRadius = MR::clamp(mIceRadius, lbl_807E30A0, 420.0f); }
 void IceMeteor::shrinkIce() { s32 duration = 90; mIceRadius -= 420.0f / duration; mIceRadius = MR::clamp(mIceRadius, 0.0f, 420.0f); }
 IceMeteor::~IceMeteor() {}
+
+// Recovered target constant storage; keep definitions after their call sites.
+// Read-only initial/minimum ice radius in target .sbss2.
+extern const f32 lbl_807E30A0 = 0.0f;

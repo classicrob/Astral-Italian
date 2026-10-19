@@ -247,6 +247,7 @@ namespace MR {
 
 namespace MR {
     // SMG2 unnamed helper at 0x80014360 (owner split not assigned; used by the Buzz/SMG2-only lane), named by address.
+    void fn_800140B0(TVec3f*, const TVec3f&, const TVec3f&, f32);
     void fn_80014360(TVec3f* pOut, LiveActor* pActor, f32 scale);
 };  // namespace MR
 

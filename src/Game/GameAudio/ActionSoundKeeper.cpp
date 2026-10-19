@@ -19,7 +19,7 @@ ActionSoundKeeper::ActionSoundKeeper(s32 pId, const char* pName, TVec3f* pPos)
         for (s32 i = 0; i < mSoundCount; i++) {
             mSounds[i] = new ActionSound(mInfo->getInfo(i), mSoundObject);
         }
-        MR::fn_800885B0(mInfo, false);
+        MR::requestActionSoundWaves(mInfo, false);
     }
 }
 
@@ -42,4 +42,24 @@ s32 ActionSoundKeeper::playSounds(s32 mode, const char* pName, s32 pitch, s32 ve
         }
     }
     return playCount;
+}
+
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
+#include "Game/Enemy/ActionSoundData.hpp"
+#include "Game/AudioLib/AudSoundObject.hpp"
+
+s32 ActionSoundKeeper::startLevelSound(const char* name, s32 pitch, s32 velocity, s32 volume) {
+    return playSounds(2, name, pitch, velocity, volume);
+}
+
+void ActionSoundKeeper::startSoundOneShot(const char* name, s32 pitch, s32 velocity) {
+    playSounds(1, name, pitch, velocity, -1);
+}
+
+ActionSoundInfo* ActionSoundKeeper::getSoundInfo(const char* name) const {
+    return mInfo->findInfoByName(name);
+}
+
+void ActionSoundKeeper::update() {
+    if (mSoundObject) mSoundObject->process();
 }

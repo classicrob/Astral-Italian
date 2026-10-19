@@ -10,50 +10,6 @@
 #include <revolution/types.h>
 
 
-bool Mario::doFlipWeak(const TVec3f& rVec) {
-    if (((mMovementStates.mLowWord >> 4) & 1U)) {
-        return false;
-    }
-
-    mFaint->mNoDamage = true;
-
-    if (faint(rVec)) {
-        if (isStatusActive(MarioStatus_Swim)) {
-            mSwim->fn_803F7C10();
-            mFaint->mNoDamage = false;
-        }
-
-        return true;
-    }
-
-    mFaint->mNoDamage = false;
-    forceStopTornado();
-    return false;
-}
-
-bool Mario::faint(const TVec3f& rVec) {
-    _7C4 = rVec;
-    if (!isEnableAddDamage()) {
-        return false;
-    }
-
-    if (getCurrentStatus() == MarioStatus_Damage) {
-        return false;
-    }
-
-    mFaint->setVec(rVec);
-    stopWalk();
-    forceStopTornado();
-    mActor->damageDropThrowMemoSensor();
-
-    if (getCurrentStatus() != MarioStatus_Faint) {
-        mMovementStates.mHighWord |= 0x01000000U;
-        return true;
-    }
-
-    return ((mMovementStates.mHighWord >> 24) & 1U);
-}
-
 MarioFaint::MarioFaint(MarioActor* pActor) : MarioState(pActor, MarioStatus_Faint), mTimer(), _14(), _16() {
     _18.x = 0.0f;
     _18.y = 0.0f;

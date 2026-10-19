@@ -949,7 +949,7 @@ void MarioActor::fn_803C1940() {
     TVec3f c(mBinderDirection5DC);
     mBinderDirection5DC = b;
     this->fn_803C1AF0(&mBinderDirection5DC, &c);
-    if (PSVECMag((Vec*)&b) > 0.1f) {
+    if (!(PSVECMag((Vec*)&b) <= 0.1f)) {
         if (!((this->mMario->mMovementStates.mLowWord >> (0x15)) & 1) && !MR::isNearZero(mVelocity, 0.001f)) {
             TVec3f d(this->mPreviousPosition);
             d -= this->_1FC;

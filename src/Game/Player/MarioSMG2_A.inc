@@ -716,19 +716,22 @@ void Mario::fn_803A10D0(s32 arg) {
 void Mario::fn_803A1C90() {
     TVec3f sp8;
     PSVECCrossProduct(&this->_214, &this->_22C, &sp8);
-    if (sp8.dot(this->_3D8) < 0.0f) {
+    bool negative = sp8.dot(this->_3D8) < 0.0f;
+    if (negative) {
         if (!this->fn_803A19C0()) {
-            if (!(this->_214.dot(this->_22C) < 0.0f)) {
+            bool frontNegative = this->_214.dot(this->_22C) < 0.0f;
+            if (!frontNegative) {
                 this->_3D4 = 0;
             }
         }
     } else {
+        const MarioConstTable* table = marioCurTableEntry(this);
         u16 v = this->_3D4;
-        if (v < marioCurTableEntry(this)->mWeakTurnTime) {
+        if (v < table->mWeakTurnTime) {
             this->_3D4 = v + 1;
-            this->fn_803A1D60();
         }
     }
+    this->fn_803A1D60();
 }
 
 bool Mario::fn_803A1920() {

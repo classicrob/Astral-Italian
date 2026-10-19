@@ -15294,6 +15294,7 @@ bool Mario::isWalling() const {
 }
 
 
+// NONMATCHING: independent stack-vector argument address setup order.
 void Mario::checkWallStick() {
     if (getPlayerMode() == PlayerMode_Bee) {
         checkBeeStick();
@@ -15303,9 +15304,9 @@ void Mario::checkWallStick() {
     if (!checkWallJumpCode() && isEnableStickWall()) {
         if (mActor->_334) {
             TVec3f horizontal;
-            f32 vertical = MR::vecKillElement(mJumpVec, mActor->_240, &horizontal);
+            f32 vertical = MR::vecKillElement(mJumpVec, mActor->mAppliedGravityVec, &horizontal);
             horizontal.setLength(-0.25f);
-            mJumpVec = mActor->_240 * vertical + horizontal;
+            mJumpVec = mActor->mAppliedGravityVec * vertical + horizontal;
             return;
         }
 

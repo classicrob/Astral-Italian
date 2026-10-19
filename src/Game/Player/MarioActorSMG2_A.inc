@@ -2130,8 +2130,11 @@ bool MarioActor::fn_803C9300() {
         bool r = false;
         if (((m->mDrawStates.mWord >> (0xA)) & 1)) {
             r = true;
-        } else if (MR::getWallCodeString(m->_4C8) != nullptr && strcmp(MR::getWallCodeString(m->_4C8), "Fur") == 0) {
-            r = true;
+        } else {
+            const char* wallCode = MR::getWallCodeString(m->_4C8);
+            if (wallCode != nullptr && strcmp(wallCode, "Fur") == 0) {
+                r = true;
+            }
         }
         if (r) {
             Triangle tri;

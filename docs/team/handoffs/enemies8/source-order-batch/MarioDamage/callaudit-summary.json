@@ -1,0 +1,58 @@
+{
+  "stats": {
+    "units": 1,
+    "paired_registered_unit_functions": 40,
+    "ordered_direct_call_mismatches": 2,
+    "multiset_mismatches": 2,
+    "unpaired_functions": 0,
+    "missing_units": 0,
+    "error_units": 0,
+    "unstable_units": 0
+  },
+  "HEAD_stable": true,
+  "mismatches": [
+    {
+      "function": "fn_803E48F0__11MarioDamageFv",
+      "target_only": [
+        {
+          "callee": "_savegpr_29",
+          "addend": 0,
+          "count": 1
+        },
+        {
+          "callee": "_restgpr_29",
+          "addend": 0,
+          "count": 1
+        }
+      ],
+      "source_only": []
+    },
+    {
+      "function": "start__11MarioDamageFv",
+      "target_only": [
+        {
+          "callee": "_savegpr_28",
+          "addend": 0,
+          "count": 1
+        },
+        {
+          "callee": "_restgpr_28",
+          "addend": 0,
+          "count": 1
+        }
+      ],
+      "source_only": [
+        {
+          "callee": "_savegpr_29",
+          "addend": 0,
+          "count": 1
+        },
+        {
+          "callee": "_restgpr_29",
+          "addend": 0,
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

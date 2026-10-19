@@ -1,0 +1,46 @@
+{
+  "full_ninja_original_DOL_hash_passed": true,
+  "before": {
+    "fuzzy_match_percent": 97.82537,
+    "total_code": "6269292",
+    "matched_code": "5175344",
+    "matched_code_percent": 82.55069,
+    "total_data": "1702508",
+    "matched_data": "346768",
+    "matched_data_percent": 20.368069,
+    "total_functions": 50354,
+    "matched_functions": 47578,
+    "matched_functions_percent": 94.48703,
+    "complete_code": "94084",
+    "complete_code_percent": 1.5007117,
+    "complete_data": "20356",
+    "complete_data_percent": 1.1956478,
+    "total_units": 3468,
+    "complete_units": 102
+  },
+  "after": {
+    "fuzzy_match_percent": 97.82543,
+    "total_code": "6269292",
+    "matched_code": "5180020",
+    "matched_code_percent": 82.62528,
+    "total_data": "1702508",
+    "matched_data": "347932",
+    "matched_data_percent": 20.43644,
+    "total_functions": 50354,
+    "matched_functions": 47587,
+    "matched_functions_percent": 94.504906,
+    "complete_code": "94084",
+    "complete_code_percent": 1.5007117,
+    "complete_data": "20356",
+    "complete_data_percent": 1.1956478,
+    "total_units": 3470,
+    "complete_units": 102
+  },
+  "per_unit_losses": {},
+  "per_unit_matched_code_changes": {
+    "main/Game/MapObj/MorphItemObjNeo": 2960,
+    "main/Game/Player/MarioDamage": 1300,
+    "main/Game/Player/MarioHang": 136,
+    "main/Game/Player/YoshiHolder": 280
+  }
+}

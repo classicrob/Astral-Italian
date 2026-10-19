@@ -5,6 +5,7 @@
 #include "Game/Map/CollisionCode.hpp"
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Player/Mario.hpp"
+#include "Game/Player/MarioFireDamage.hpp"
 #include "Game/Player/MarioAbyssDamage.hpp"
 #include "Game/Player/MarioAccess.hpp"
 #include "Game/Player/MarioActor.hpp"
@@ -12,9 +13,8 @@
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Player/MarioDarkDamage.hpp"
 #include "Game/Player/MarioFaint.hpp"
-#include "Game/Player/MarioFireDamage.hpp"
-#include "Game/Player/MarioFireDance.hpp"
 #include "Game/Player/MarioFireRun.hpp"
+#include "Game/Player/MarioFireDance.hpp"
 #include "Game/Player/MarioFreeze.hpp"
 #include "Game/Player/MarioMapCode.hpp"
 #include "Game/Player/MarioParalyze.hpp"
@@ -382,17 +382,6 @@ bool MarioAbyssDamage::update() {
 
 bool MarioAbyssDamage::close() {
     return true;
-}
-
-const char* MarioDamage_FORCE_MATCH_DATA(u32 index) {
-    switch (index) {
-    case 0:
-        return "炎ダメージ";
-    case 1:
-        return "炎ダメージ青煙";
-    default:
-        return "炎ダメージ煙";
-    }
 }
 
 MarioFireRun::MarioFireRun(MarioActor* pActor) : MarioState(pActor, MarioStatus_FireRun) {

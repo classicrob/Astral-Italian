@@ -1,0 +1,14 @@
+{
+  "stats": {
+    "units": 1,
+    "paired_registered_unit_functions": 54,
+    "ordered_direct_call_mismatches": 0,
+    "multiset_mismatches": 0,
+    "unpaired_functions": 0,
+    "missing_units": 0,
+    "error_units": 0,
+    "unstable_units": 0
+  },
+  "HEAD_stable": true,
+  "mismatches": []
+}

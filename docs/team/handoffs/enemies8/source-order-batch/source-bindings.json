@@ -1,0 +1,7 @@
+{
+  "src/Game/MapObj/MorphItemObjNeo.cpp": "91fd0ed64767bf61f03372f19973802c10db0208861a1ed3360e0c5b05d8ab2e",
+  "src/Game/Player/MarioDamage.cpp": "abf37711d845561b6471e12f2607702e55620208b02a7b852c058a2f2f69b5ac",
+  "src/Game/Player/MarioHang.cpp": "0bef7ad7e55850c6ab8dc2ccc1869a5b7d58f78861ded2a9a12b1543a052b955",
+  "src/Game/Player/YoshiHolder.cpp": "2e0a87a7d9e54790730c755cde5e7b74a5966fef98125b2ce5b6ad741115ace5",
+  "config/SB4E01/splits.txt": "9b1a3968acc6bda4c0b504deb141c9235d1afed967d8247935377efc29b2b4d0"
+}

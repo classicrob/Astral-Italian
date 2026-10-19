@@ -86,11 +86,6 @@ void YoshiHolder::fn_8041B9C0(){if(mCurrentEgg){mCurrentEgg->fn_80416EE0();mCurr
 void YoshiHolder::fn_8041BA10(){mFruitCounter->increment();}
 void YoshiHolder::fn_8041BAE0(){mCountdown=60;}
 void YoshiHolder::fn_8041BAF0(){mCountdown=0;}
-// NONMATCHING: only verified sound string relocation labels differ.
-void YoshiHolder::fn_8041BB00(){
-    if (mCountdown > 0) --mCountdown;
-    MR::startActionSound(mYoshi,"Flutter",-1,-1,-1);
-}
 bool YoshiHolder::fn_8041BB30()const{return mCountdown>0;}
 f32 YoshiHolder::fn_8041BB50()const{return mCountdown/60.0f;}
 void YoshiHolder::fn_8041BB90(){mTimer=38;}
@@ -126,6 +121,10 @@ void YoshiHolder::fn_8041B700(LiveActor* actor){
         static_cast<PartsModel*>(mRideModelActor)->initFixedPosition(TVec3f(0.0f,0.0f,0.0f),TVec3f(0.0f,0.0f,0.0f),nullptr);
         MR::initShadowFromCSVWithInitShadowVolumeSphere(mRideModelActor,"Shadow");MR::offCalcAnim(mRideModelActor);MR::onCalcGravity(mRideModelActor);
     }
+}
+void YoshiHolder::fn_8041BB00(){
+    if (mCountdown > 0) --mCountdown;
+    MR::startActionSound(mYoshi,"Flutter",-1,-1,-1);
 }
 void YoshiHolder::fn_8041BA20(MtxPtr matrix,LiveActor* egg){
     mCurrentEgg=static_cast<YoshiEgg*>(egg);

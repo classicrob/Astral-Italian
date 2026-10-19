@@ -244,40 +244,6 @@ bool MarioHang::update() {
     return true;
 }
 
-bool MarioHang::close() {
-    stopAnimation("崖つかまり開始");
-    stopAnimation("崖つかまり中");
-    stopAnimation("崖つかまり終了");
-    stopAnimation("崖つかまり終了坂");
-    if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-        changeAnimation(nullptr, "基本");
-    } else {
-        changeAnimation(nullptr, "落下");
-    }
-
-    getPlayer()->setWallCancel();
-    mHangTimer = 120;
-    if (_1A) {
-        getPlayer()->tryHangSlipUp();
-    } else {
-        getPlayer()->mFlags14.mLowWord |= 0x00010000U;
-    }
-
-    mActor->_F44 = 1;
-    return true;
-}
-
-// NONMATCHING: literal relocation labels only.
-bool MarioHang::notice() {
-    if (getNoticedStatus() == MarioStatus_Faint) {
-        getPlayer()->addTrans(getPlayer()->mFrontVec * -150.0f);
-        mActor->setBlendMtxTimer(16);
-        stopAnimation("崖つかまり中", "基本");
-    }
-
-    return false;
-}
-
 // NONMATCHING: literal relocation labels only.
 void MarioHang::tryClimb(bool jump) {
     if (_12) {
@@ -325,6 +291,41 @@ void MarioHang::tryClimb(bool jump) {
     _12 = 1;
     _14 = 0;
 }
+
+bool MarioHang::close() {
+    stopAnimation("崖つかまり開始");
+    stopAnimation("崖つかまり中");
+    stopAnimation("崖つかまり終了");
+    stopAnimation("崖つかまり終了坂");
+    if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
+        changeAnimation(nullptr, "基本");
+    } else {
+        changeAnimation(nullptr, "落下");
+    }
+
+    getPlayer()->setWallCancel();
+    mHangTimer = 120;
+    if (_1A) {
+        getPlayer()->tryHangSlipUp();
+    } else {
+        getPlayer()->mFlags14.mLowWord |= 0x00010000U;
+    }
+
+    mActor->_F44 = 1;
+    return true;
+}
+
+// NONMATCHING: literal relocation labels only.
+bool MarioHang::notice() {
+    if (getNoticedStatus() == MarioStatus_Faint) {
+        getPlayer()->addTrans(getPlayer()->mFrontVec * -150.0f);
+        mActor->setBlendMtxTimer(16);
+        stopAnimation("崖つかまり中", "基本");
+    }
+
+    return false;
+}
+
 // NONMATCHING: register scheduling differs around the outlined vector addition.
 bool MarioHang::postureCtrl(MtxPtr pMatrix) {
     TVec3f up;

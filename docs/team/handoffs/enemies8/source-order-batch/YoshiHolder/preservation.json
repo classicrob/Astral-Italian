@@ -1,0 +1,2193 @@
+{
+  "trials": 1,
+  "before": {
+    "total": 59,
+    "strict": [
+      "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "fn_8041B6F0__11YoshiHolderFv",
+      "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "fn_8041B920__11YoshiHolderFv",
+      "fn_8041B970__11YoshiHolderFv",
+      "fn_8041B9C0__11YoshiHolderFv",
+      "fn_8041BA10__11YoshiHolderFv",
+      "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "fn_8041BAE0__11YoshiHolderFv",
+      "fn_8041BAF0__11YoshiHolderFv",
+      "fn_8041BB30__11YoshiHolderCFv",
+      "fn_8041BB90__11YoshiHolderFv",
+      "fn_8041BBA0__11YoshiHolderFv",
+      "fn_8041BBB0__11YoshiHolderFv",
+      "fn_8041BBD0__11YoshiHolderCFv",
+      "fn_8041BD30__11YoshiHolderFv",
+      "fn_8041BD40__10YoshiParamFv",
+      "fn_8041BD50__10YoshiParamFv",
+      "fn_8041BD60__10YoshiParamFv",
+      "fn_8041BD70__10YoshiParamFv",
+      "fn_8041BDF0__10YoshiParamFv",
+      "fn_8041C120__17YoshiTongueTargetCFv",
+      "fn_8041C140__17YoshiTongueTargetCFv",
+      "fn_8041C1B0__17YoshiTongueTargetCFv",
+      "fn_8041C1E0__17YoshiTongueTargetCFv",
+      "fn_8041C210__17YoshiTongueTargetCFv",
+      "fn_8041C440__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "getCurrentTargetActor__17YoshiTongueTargetCFv",
+      "getCurrentTargetMatrix__17YoshiTongueTargetCFv",
+      "hasMultipleRemainingTargets__17YoshiTongueTargetCFv",
+      "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "sendLoopTongueMessage__17YoshiTongueTargetFv",
+      "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "sendReleaseEatenMessage__17YoshiTongueTargetFv",
+      "sendStartEatenMessage__17YoshiTongueTargetFv",
+      "sendStartTongueMessage__17YoshiTongueTargetFv",
+      "takeLockOnTargets__17YoshiTongueTargetFv"
+    ],
+    "strict_bytes": 1944,
+    "masked": [
+      "__ct__11YoshiHolderFP5Mario",
+      "__ct__21YoshiLockOnTargetDescFv",
+      "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "fn_8041B6F0__11YoshiHolderFv",
+      "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "fn_8041B920__11YoshiHolderFv",
+      "fn_8041B970__11YoshiHolderFv",
+      "fn_8041B9C0__11YoshiHolderFv",
+      "fn_8041BA10__11YoshiHolderFv",
+      "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "fn_8041BAE0__11YoshiHolderFv",
+      "fn_8041BAF0__11YoshiHolderFv",
+      "fn_8041BB00__11YoshiHolderFv",
+      "fn_8041BB30__11YoshiHolderCFv",
+      "fn_8041BB50__11YoshiHolderCFv",
+      "fn_8041BB90__11YoshiHolderFv",
+      "fn_8041BBA0__11YoshiHolderFv",
+      "fn_8041BBB0__11YoshiHolderFv",
+      "fn_8041BBD0__11YoshiHolderCFv",
+      "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "fn_8041BD30__11YoshiHolderFv",
+      "fn_8041BD40__10YoshiParamFv",
+      "fn_8041BD50__10YoshiParamFv",
+      "fn_8041BD60__10YoshiParamFv",
+      "fn_8041BD70__10YoshiParamFv",
+      "fn_8041BD80__10YoshiParamFv",
+      "fn_8041BD90__10YoshiParamFv",
+      "fn_8041BDA0__10YoshiParamFv",
+      "fn_8041BDB0__10YoshiParamFv",
+      "fn_8041BDC0__10YoshiParamFv",
+      "fn_8041BDD0__10YoshiParamFv",
+      "fn_8041BDE0__10YoshiParamFv",
+      "fn_8041BDF0__10YoshiParamFv",
+      "fn_8041C120__17YoshiTongueTargetCFv",
+      "fn_8041C140__17YoshiTongueTargetCFv",
+      "fn_8041C1B0__17YoshiTongueTargetCFv",
+      "fn_8041C1E0__17YoshiTongueTargetCFv",
+      "fn_8041C210__17YoshiTongueTargetCFv",
+      "fn_8041C440__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "getCurrentTargetActor__17YoshiTongueTargetCFv",
+      "getCurrentTargetMatrix__17YoshiTongueTargetCFv",
+      "hasMultipleRemainingTargets__17YoshiTongueTargetCFv",
+      "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "sendLoopTongueMessage__17YoshiTongueTargetFv",
+      "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "sendReleaseEatenMessage__17YoshiTongueTargetFv",
+      "sendStartEatenMessage__17YoshiTongueTargetFv",
+      "sendStartTongueMessage__17YoshiTongueTargetFv",
+      "takeLockOnTargets__17YoshiTongueTargetFv"
+    ]
+  },
+  "after": {
+    "total": 59,
+    "strict": [
+      "__ct__11YoshiHolderFP5Mario",
+      "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "fn_8041B6F0__11YoshiHolderFv",
+      "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "fn_8041B920__11YoshiHolderFv",
+      "fn_8041B970__11YoshiHolderFv",
+      "fn_8041B9C0__11YoshiHolderFv",
+      "fn_8041BA10__11YoshiHolderFv",
+      "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "fn_8041BAE0__11YoshiHolderFv",
+      "fn_8041BAF0__11YoshiHolderFv",
+      "fn_8041BB00__11YoshiHolderFv",
+      "fn_8041BB30__11YoshiHolderCFv",
+      "fn_8041BB90__11YoshiHolderFv",
+      "fn_8041BBA0__11YoshiHolderFv",
+      "fn_8041BBB0__11YoshiHolderFv",
+      "fn_8041BBD0__11YoshiHolderCFv",
+      "fn_8041BD30__11YoshiHolderFv",
+      "fn_8041BD40__10YoshiParamFv",
+      "fn_8041BD50__10YoshiParamFv",
+      "fn_8041BD60__10YoshiParamFv",
+      "fn_8041BD70__10YoshiParamFv",
+      "fn_8041BDF0__10YoshiParamFv",
+      "fn_8041C120__17YoshiTongueTargetCFv",
+      "fn_8041C140__17YoshiTongueTargetCFv",
+      "fn_8041C1B0__17YoshiTongueTargetCFv",
+      "fn_8041C1E0__17YoshiTongueTargetCFv",
+      "fn_8041C210__17YoshiTongueTargetCFv",
+      "fn_8041C440__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "getCurrentTargetActor__17YoshiTongueTargetCFv",
+      "getCurrentTargetMatrix__17YoshiTongueTargetCFv",
+      "hasMultipleRemainingTargets__17YoshiTongueTargetCFv",
+      "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "sendLoopTongueMessage__17YoshiTongueTargetFv",
+      "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "sendReleaseEatenMessage__17YoshiTongueTargetFv",
+      "sendStartEatenMessage__17YoshiTongueTargetFv",
+      "sendStartTongueMessage__17YoshiTongueTargetFv",
+      "takeLockOnTargets__17YoshiTongueTargetFv"
+    ],
+    "strict_bytes": 2376,
+    "masked": [
+      "__ct__11YoshiHolderFP5Mario",
+      "__ct__21YoshiLockOnTargetDescFv",
+      "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "fn_8041B6F0__11YoshiHolderFv",
+      "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "fn_8041B920__11YoshiHolderFv",
+      "fn_8041B970__11YoshiHolderFv",
+      "fn_8041B9C0__11YoshiHolderFv",
+      "fn_8041BA10__11YoshiHolderFv",
+      "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "fn_8041BAE0__11YoshiHolderFv",
+      "fn_8041BAF0__11YoshiHolderFv",
+      "fn_8041BB00__11YoshiHolderFv",
+      "fn_8041BB30__11YoshiHolderCFv",
+      "fn_8041BB50__11YoshiHolderCFv",
+      "fn_8041BB90__11YoshiHolderFv",
+      "fn_8041BBA0__11YoshiHolderFv",
+      "fn_8041BBB0__11YoshiHolderFv",
+      "fn_8041BBD0__11YoshiHolderCFv",
+      "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "fn_8041BD30__11YoshiHolderFv",
+      "fn_8041BD40__10YoshiParamFv",
+      "fn_8041BD50__10YoshiParamFv",
+      "fn_8041BD60__10YoshiParamFv",
+      "fn_8041BD70__10YoshiParamFv",
+      "fn_8041BD80__10YoshiParamFv",
+      "fn_8041BD90__10YoshiParamFv",
+      "fn_8041BDA0__10YoshiParamFv",
+      "fn_8041BDB0__10YoshiParamFv",
+      "fn_8041BDC0__10YoshiParamFv",
+      "fn_8041BDD0__10YoshiParamFv",
+      "fn_8041BDE0__10YoshiParamFv",
+      "fn_8041BDF0__10YoshiParamFv",
+      "fn_8041C120__17YoshiTongueTargetCFv",
+      "fn_8041C140__17YoshiTongueTargetCFv",
+      "fn_8041C1B0__17YoshiTongueTargetCFv",
+      "fn_8041C1E0__17YoshiTongueTargetCFv",
+      "fn_8041C210__17YoshiTongueTargetCFv",
+      "fn_8041C440__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "getCurrentTargetActor__17YoshiTongueTargetCFv",
+      "getCurrentTargetMatrix__17YoshiTongueTargetCFv",
+      "hasMultipleRemainingTargets__17YoshiTongueTargetCFv",
+      "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "sendLoopTongueMessage__17YoshiTongueTargetFv",
+      "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "sendReleaseEatenMessage__17YoshiTongueTargetFv",
+      "sendStartEatenMessage__17YoshiTongueTargetFv",
+      "sendStartTongueMessage__17YoshiTongueTargetFv",
+      "takeLockOnTargets__17YoshiTongueTargetFv"
+    ]
+  },
+  "new_strict": [
+    "__ct__11YoshiHolderFP5Mario",
+    "fn_8041BB00__11YoshiHolderFv"
+  ],
+  "all70_function_names_sizes_preserved": true,
+  "changed_instruction_words": [
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 68,
+      "before_word": "38be0024",
+      "after_word": "38be001c",
+      "complete_NUL_string": "838883628356815b836f838b815b839300"
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 72,
+      "before_word": "38de0038",
+      "after_word": "38de0030",
+      "complete_NUL_string": "596f73686942616c6c6f6f6e00"
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 232,
+      "before_word": "389e0048",
+      "after_word": "389e0040",
+      "complete_NUL_string": "536861646f7700"
+    }
+  ],
+  "effective_relocations_preserved": [
+    {
+      "function": "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+      "offset": 56,
+      "identity": [
+        10,
+        "getTargetCapacity__18YoshiLockOnManagerCFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+      "offset": 76,
+      "identity": [
+        10,
+        "__nwa__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+      "offset": 80,
+      "identity": [
+        6,
+        "__ct__21YoshiLockOnTargetDescFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+      "offset": 88,
+      "identity": [
+        4,
+        "__ct__21YoshiLockOnTargetDescFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+      "offset": 100,
+      "identity": [
+        10,
+        "__construct_new_array",
+        0
+      ]
+    },
+    {
+      "function": "__ct__21YoshiLockOnTargetDescFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "00000000",
+        0
+      ]
+    },
+    {
+      "function": "takeLockOnTargets__17YoshiTongueTargetFv",
+      "offset": 32,
+      "identity": [
+        10,
+        "takeActiveTargets__18YoshiLockOnManagerFP21YoshiLockOnTargetDescUl",
+        0
+      ]
+    },
+    {
+      "function": "sendStartTongueMessage__17YoshiTongueTargetFv",
+      "offset": 4,
+      "identity": [
+        10,
+        "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+        0
+      ]
+    },
+    {
+      "function": "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_29",
+        0
+      ]
+    },
+    {
+      "function": "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "offset": 44,
+      "identity": [
+        10,
+        "getMessageSensor__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "offset": 84,
+      "identity": [
+        10,
+        "_restgpr_29",
+        0
+      ]
+    },
+    {
+      "function": "sendLoopTongueMessage__17YoshiTongueTargetFv",
+      "offset": 4,
+      "identity": [
+        10,
+        "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+        0
+      ]
+    },
+    {
+      "function": "sendStartEatenMessage__17YoshiTongueTargetFv",
+      "offset": 4,
+      "identity": [
+        10,
+        "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+        0
+      ]
+    },
+    {
+      "function": "sendReleaseEatenMessage__17YoshiTongueTargetFv",
+      "offset": 4,
+      "identity": [
+        10,
+        "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+        0
+      ]
+    },
+    {
+      "function": "cancelTargetAndAdvance__17YoshiTongueTargetFv",
+      "offset": 24,
+      "identity": [
+        10,
+        "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_29",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 28,
+      "identity": [
+        10,
+        "getCurrentTargetMatrix__17YoshiTongueTargetCFv",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 68,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>_v",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 92,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 120,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 140,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 160,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 300,
+      "identity": [
+        10,
+        "getXDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 312,
+      "identity": [
+        10,
+        "getYDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 324,
+      "identity": [
+        10,
+        "getZDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 352,
+      "identity": [
+        10,
+        "makeMtxTR__2MRFPA4_fPC9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 364,
+      "identity": [
+        10,
+        "getXDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 376,
+      "identity": [
+        10,
+        "getYDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 388,
+      "identity": [
+        10,
+        "getZDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 416,
+      "identity": [
+        10,
+        "scale__Q29JGeometry8TVec3<f>Ff",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 428,
+      "identity": [
+        10,
+        "scale__Q29JGeometry8TVec3<f>Ff",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 440,
+      "identity": [
+        10,
+        "scale__Q29JGeometry8TVec3<f>Ff",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 456,
+      "identity": [
+        10,
+        "__pl__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 472,
+      "identity": [
+        10,
+        "__pl__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 484,
+      "identity": [
+        10,
+        "add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 492,
+      "identity": [
+        10,
+        "_restgpr_29",
+        0
+      ]
+    },
+    {
+      "function": "getXDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+      "offset": 20,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "getYDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+      "offset": 20,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "getZDir__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry8TVec3<f>",
+      "offset": 20,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "__pl__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+      "offset": 28,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "__pl__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+      "offset": 40,
+      "identity": [
+        10,
+        "add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041C440__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "offset": 72,
+      "identity": [
+        10,
+        "set<f>__Q29JGeometry8TVec3<f>Ffff_v",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_28",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "offset": 60,
+      "identity": [
+        10,
+        "fn_80416FC0__8YoshiEggFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "offset": 88,
+      "identity": [
+        10,
+        "_restgpr_28",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_28",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "offset": 64,
+      "identity": [
+        10,
+        "fn_80416F60__8YoshiEggFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "offset": 92,
+      "identity": [
+        10,
+        "_restgpr_28",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B920__11YoshiHolderFv",
+      "offset": 36,
+      "identity": [
+        10,
+        "fn_80416D30__8YoshiEggFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B970__11YoshiHolderFv",
+      "offset": 36,
+      "identity": [
+        10,
+        "fn_80416E60__8YoshiEggFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B9C0__11YoshiHolderFv",
+      "offset": 36,
+      "identity": [
+        10,
+        "fn_80416EE0__8YoshiEggFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA10__11YoshiHolderFv",
+      "offset": 4,
+      "identity": [
+        10,
+        "increment__17YoshiFruitCounterFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BB00__11YoshiHolderFv",
+      "offset": 20,
+      "identity": [
+        6,
+        ".data",
+        8,
+        "466c757474657200",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BB00__11YoshiHolderFv",
+      "offset": 28,
+      "identity": [
+        4,
+        ".data",
+        8,
+        "466c757474657200",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BB00__11YoshiHolderFv",
+      "offset": 44,
+      "identity": [
+        10,
+        "startActionSound__2MRFPC9LiveActorPCclll",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BB50__11YoshiHolderCFv",
+      "offset": 4,
+      "identity": [
+        6,
+        ".rodata",
+        8,
+        "4330000080000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BB50__11YoshiHolderCFv",
+      "offset": 16,
+      "identity": [
+        4,
+        ".rodata",
+        8,
+        "4330000080000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BB50__11YoshiHolderCFv",
+      "offset": 28,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "42700000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BD30__11YoshiHolderFv",
+      "offset": 4,
+      "identity": [
+        10,
+        "fn_80415DA0__17YoshiHistory15C50Fv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BD80__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "41d00000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BD90__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "40600000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BDA0__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "41500000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BDB0__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "3f266666",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BDC0__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "42700000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BDD0__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "42200000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BDE0__10YoshiParamFv",
+      "offset": 0,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "3f7fbe77",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 20,
+      "identity": [
+        10,
+        "getPlayerGravity__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 24,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "42200000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 36,
+      "identity": [
+        10,
+        "__ml__Q29JGeometry8TVec3<f>CFf",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 40,
+      "identity": [
+        10,
+        "getPlayerVelocity__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 44,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "40000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 56,
+      "identity": [
+        10,
+        "__ml__Q29JGeometry8TVec3<f>CFf",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "offset": 68,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "__ml__Q29JGeometry8TVec3<f>CFf",
+      "offset": 28,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "__ml__Q29JGeometry8TVec3<f>CFf",
+      "offset": 40,
+      "identity": [
+        10,
+        "scale__Q29JGeometry8TVec3<f>Ff",
+        0
+      ]
+    },
+    {
+      "function": "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "offset": 20,
+      "identity": [
+        10,
+        "isPlayerInRush__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "offset": 32,
+      "identity": [
+        10,
+        "isDemoActive__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "offset": 44,
+      "identity": [
+        10,
+        "isSystemTalking__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 116,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 128,
+      "identity": [
+        6,
+        ".data",
+        9,
+        "838883628356815b00",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 132,
+      "identity": [
+        4,
+        ".data",
+        9,
+        "838883628356815b00",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 136,
+      "identity": [
+        10,
+        "__ct__5YoshiFPCc",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 144,
+      "identity": [
+        10,
+        "initWithoutIter__7NameObjFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 152,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 168,
+      "identity": [
+        10,
+        "__ct__18YoshiLockOnManagerFP5Yoshi",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 176,
+      "identity": [
+        10,
+        "initWithoutIter__7NameObjFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 184,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 200,
+      "identity": [
+        10,
+        "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 212,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 224,
+      "identity": [
+        6,
+        ".data",
+        15,
+        "838883628356815b8341838d815b00",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 228,
+      "identity": [
+        4,
+        ".data",
+        15,
+        "838883628356815b8341838d815b00",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 232,
+      "identity": [
+        10,
+        "__ct__10YoshiArrowFPCc",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 240,
+      "identity": [
+        10,
+        "initWithoutIter__7NameObjFv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 248,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 280,
+      "identity": [
+        10,
+        "__ct__17YoshiTongueActionFP5YoshiP11YoshiTongueP5MarioP17YoshiTongueTargetP10YoshiArrow",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 292,
+      "identity": [
+        10,
+        "__nwa__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 312,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 324,
+      "identity": [
+        10,
+        "__ct__17YoshiHistory15C50Fv",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 336,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "__ct__11YoshiHolderFP5Mario",
+      "offset": 348,
+      "identity": [
+        10,
+        "__ct__17YoshiFruitCounterFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_29",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 20,
+      "identity": [
+        6,
+        "validated-pool-base"
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 32,
+      "identity": [
+        4,
+        "validated-pool-base"
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 36,
+      "identity": [
+        10,
+        "isCreatePlayerResourceYoshiBalloon__2MRFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 52,
+      "identity": [
+        10,
+        "__nw__FUl",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 88,
+      "identity": [
+        10,
+        "__ct__10PartsModelFP9LiveActorPCcPCcPA4_fib",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 100,
+      "identity": [
+        10,
+        "initDLMakerFog__2MRFP9LiveActorb",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 108,
+      "identity": [
+        10,
+        "newDifferedDLBuffer__2MRFP9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 116,
+      "identity": [
+        10,
+        "getLightNumMax__2MRFPC9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 132,
+      "identity": [
+        10,
+        "initLightCtrl__2MRFP9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 140,
+      "identity": [
+        10,
+        "initWithoutIter__7NameObjFv",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 164,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "00000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 180,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>Ffff",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 184,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "00000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 204,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>Ffff",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 224,
+      "identity": [
+        10,
+        "initFixedPosition__10PartsModelFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PCc",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 236,
+      "identity": [
+        10,
+        "initShadowFromCSVWithInitShadowVolumeSphere__2MRFP9LiveActorPCc",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 244,
+      "identity": [
+        10,
+        "offCalcAnim__2MRFP9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 252,
+      "identity": [
+        10,
+        "onCalcGravity__2MRFP9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "offset": 260,
+      "identity": [
+        10,
+        "_restgpr_29",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_29",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 52,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>Ffff",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 64,
+      "identity": [
+        10,
+        "setPosition__2MRFP9LiveActorRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 80,
+      "identity": [
+        10,
+        "setPosition__2MRFP9LiveActorRCQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 92,
+      "identity": [
+        10,
+        "setTransformFromMtx__5YoshiFPA4_Cf",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 144,
+      "identity": [
+        10,
+        "showModel__2MRFP9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 156,
+      "identity": [
+        10,
+        "showModel__2MRFP9LiveActor",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 160,
+      "identity": [
+        109,
+        ".sdata",
+        4,
+        "00000001",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "offset": 172,
+      "identity": [
+        10,
+        "_restgpr_29",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 16,
+      "identity": [
+        10,
+        "_savegpr_29",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 44,
+      "identity": [
+        10,
+        "PSVECCrossProduct",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 52,
+      "identity": [
+        10,
+        "normalizeOrZero__2MRFPQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 80,
+      "identity": [
+        10,
+        "__ct__Q29JGeometry8TVec3<f>Ffff",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 96,
+      "identity": [
+        10,
+        "PSVECCrossProduct",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 104,
+      "identity": [
+        10,
+        "normalize__2MRFPQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 120,
+      "identity": [
+        10,
+        "PSVECCrossProduct",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 128,
+      "identity": [
+        10,
+        "normalizeOrZero__2MRFPQ29JGeometry8TVec3<f>",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 156,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "40000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 168,
+      "identity": [
+        10,
+        "__ml__Q29JGeometry8TVec3<f>CFf",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 196,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "40000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 208,
+      "identity": [
+        10,
+        "__ml__Q29JGeometry8TVec3<f>CFf",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 236,
+      "identity": [
+        109,
+        ".sdata2",
+        4,
+        "40000000",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 248,
+      "identity": [
+        10,
+        "__ml__Q29JGeometry8TVec3<f>CFf",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 284,
+      "identity": [
+        10,
+        "fn_80415CF0__17YoshiHistory15C50FPA4_f",
+        0
+      ]
+    },
+    {
+      "function": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 292,
+      "identity": [
+        10,
+        "_restgpr_29",
+        0
+      ]
+    }
+  ],
+  "other_ALLOC_sections_identical": [
+    [
+      ".rodata",
+      1,
+      2,
+      8,
+      "4330000080000000"
+    ],
+    [
+      ".sdata",
+      1,
+      3,
+      4,
+      "00000001"
+    ],
+    [
+      ".sdata2",
+      1,
+      2,
+      36,
+      "000000004270000041d0000040600000415000003f266666422000003f7fbe7740000000"
+    ]
+  ],
+  "data": {
+    "address": "0x806EB128",
+    "end": "0x806EB178",
+    "size": 80,
+    "bytes": "838883628356815b00000000838883628356815b8341838d815b0000838883628356815b836f838b815b839300000000596f73686942616c6c6f6f6e00000000536861646f770000466c757474657200",
+    "ADDR32_count": 0,
+    "actual_DOL_exact": true
+  },
+  "target_bindings": [
+    {
+      "name": "takeLockOnTargets__17YoshiTongueTargetFv",
+      "target_address": "0x8041bfd0",
+      "size": 68,
+      "actual_DOL_body_sha256": "cd5493d73ab4371143adf5bfb8bac8759b7f3b69683a2c9bd777d7bdbe66a2bd",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BB30__11YoshiHolderCFv",
+      "target_address": "0x8041bb30",
+      "size": 20,
+      "actual_DOL_body_sha256": "0c595522e01bea232c351a66ccac0b231b987ee5e7559530c70875d0f8cebee9",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C1E0__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c1e0",
+      "size": 36,
+      "actual_DOL_body_sha256": "a2b6a045f14c2a2875c855d0ba72888d2786bdb79534d87b1bc460704b5be886",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041B6F0__11YoshiHolderFv",
+      "target_address": "0x8041b6f0",
+      "size": 12,
+      "actual_DOL_body_sha256": "1003b06de72d8047656fa5f1d2d07d3f03e475bac0c2ea7f73b0333a9c4a07c5",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "cancelTargetAndAdvance__17YoshiTongueTargetFv",
+      "target_address": "0x8041c080",
+      "size": 60,
+      "actual_DOL_body_sha256": "6d37f93dd402f69d97acb4bf69c1af48459d47e094bed755b4330e1a7086d8f1",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "sendReleaseEatenMessage__17YoshiTongueTargetFv",
+      "target_address": "0x8041c050",
+      "size": 8,
+      "actual_DOL_body_sha256": "6afef6bb5cee9848611da41ab16f8fff1a74cdfb5fbde9774763b899d47b7748",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C440__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "target_address": "0x8041c440",
+      "size": 96,
+      "actual_DOL_body_sha256": "e934218a935756b68c19c36dd4aa439905249a5eb900e8b08d2bccb6acb1825c",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "getCurrentTargetActor__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c4a0",
+      "size": 20,
+      "actual_DOL_body_sha256": "8f7ccdedebdd6ca3830dac11ea3323dfa620c7a08a6d09d93974c68cb3b0f6c3",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "hasMultipleRemainingTargets__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c0c0",
+      "size": 32,
+      "actual_DOL_body_sha256": "ce6afc5bf19faf13a461724869e11cf4a61c17c3d8eb448f77c14e6a8661e65f",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BB90__11YoshiHolderFv",
+      "target_address": "0x8041bb90",
+      "size": 12,
+      "actual_DOL_body_sha256": "bd06755a52a383522bc266c412698e03689e902f09151b43ed3e027290882819",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "__ct__17YoshiTongueTargetFP18YoshiLockOnManager",
+      "target_address": "0x8041bf10",
+      "size": 132,
+      "actual_DOL_body_sha256": "8b5e030810134b363958754747ad38799fe21d50ec30b19bc98ceb5471b066b6",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BBD0__11YoshiHolderCFv",
+      "target_address": "0x8041bbd0",
+      "size": 20,
+      "actual_DOL_body_sha256": "c3320274d8e5285ec5465248779a2a7b69f97beb0415d59127a1114fe85db331",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "__ct__11YoshiHolderFP5Mario",
+      "target_address": "0x8041b570",
+      "size": 384,
+      "actual_DOL_body_sha256": "a12381dac5422a47bd246dddb2c915f5b163a1d322171f3e02c923a05bc40dad",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041B970__11YoshiHolderFv",
+      "target_address": "0x8041b970",
+      "size": 68,
+      "actual_DOL_body_sha256": "5c1710d7639287cecf206c8399ae190ddcb273483aedc2329342918ad7ddbebb",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C210__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c210",
+      "size": 36,
+      "actual_DOL_body_sha256": "ab4d635c589b3990f6de030ffe5481949b46f49fad781053c3101df03293d282",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BD40__10YoshiParamFv",
+      "target_address": "0x8041bd40",
+      "size": 8,
+      "actual_DOL_body_sha256": "d4e9e7520ef19698837e384bfe1708ac4b91fcf26b16ec098ec21c1e344ad3db",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BDD0__10YoshiParamFv",
+      "target_address": "0x8041bdd0",
+      "size": 8,
+      "actual_DOL_body_sha256": "aa014cf1d607c62227ab3e75104078435bf3e6dd83f8b16bfb2713298599264f",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e078c"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041B840__11YoshiHolderFP9LiveActor",
+      "target_address": "0x8041b840",
+      "size": 108,
+      "actual_DOL_body_sha256": "b74c5e61a83ceb4820dbdd6c5218287379235281f0c3437f57e9f880255ebb85",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BDE0__10YoshiParamFv",
+      "target_address": "0x8041bde0",
+      "size": 8,
+      "actual_DOL_body_sha256": "317e69a8173e9f49d98cd38efac53520e1172bd7be1171c770c3ab3de5ae594e",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e0790"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BDF0__10YoshiParamFv",
+      "target_address": "0x8041bdf0",
+      "size": 8,
+      "actual_DOL_body_sha256": "e22833416766df6e6fcd90810ef50461abddf683b4de1ee5338ba34b64559ce3",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "sendStartEatenMessage__17YoshiTongueTargetFv",
+      "target_address": "0x8041c040",
+      "size": 8,
+      "actual_DOL_body_sha256": "cd12c2e798f0aad5ce43eef8bd78f6eb915922e59594348bb1c947fe7d0871cc",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BBA0__11YoshiHolderFv",
+      "target_address": "0x8041bba0",
+      "size": 12,
+      "actual_DOL_body_sha256": "6272b3e27ac543f0674c6a99f60ddcc6a76963c827d6a71b359918e72b57be61",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041B8B0__11YoshiHolderFP9LiveActor",
+      "target_address": "0x8041b8b0",
+      "size": 112,
+      "actual_DOL_body_sha256": "f2c3b9dfd381215c92496198d8143cd23a335ff4668bf34d5d9d8049b1fd0623",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "isPlayerInRushOrDemoOrTalk__2MRFv",
+      "target_address": "0x8041beb0",
+      "size": 84,
+      "actual_DOL_body_sha256": "310055984fb7e917f90061629cd8c10ef23e1605a132b6e34e90ef7487f35afb",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BA20__11YoshiHolderFPA4_fP9LiveActor",
+      "target_address": "0x8041ba20",
+      "size": 192,
+      "actual_DOL_body_sha256": "137ff9f43abae450995e623d2d6dde565d6c83ad95b76db8af2809dc93f7a971",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 160,
+          "base": 13,
+          "address": "0x807d00f8"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BB50__11YoshiHolderCFv",
+      "target_address": "0x8041bb50",
+      "size": 56,
+      "actual_DOL_body_sha256": "cc8bdc51ba1ee048dd5daef14cdf5ca8f38001d22d343e6b2623c650a7aeccd1",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 28,
+          "base": 2,
+          "address": "0x807e0778"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BD60__10YoshiParamFv",
+      "target_address": "0x8041bd60",
+      "size": 8,
+      "actual_DOL_body_sha256": "2bf7a94759a252fd0d2af700ff876c19ab13998fb28ac5b0db3c70cdbc9ef8d6",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BDC0__10YoshiParamFv",
+      "target_address": "0x8041bdc0",
+      "size": 8,
+      "actual_DOL_body_sha256": "bbb99540f5d1e4217a2d20d95279f0f98c051a084dfa88b1a5c80d4b53850917",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e0778"
+        }
+      ]
+    },
+    {
+      "name": "__ct__21YoshiLockOnTargetDescFv",
+      "target_address": "0x8041bfa0",
+      "size": 36,
+      "actual_DOL_body_sha256": "f4232c064d06c637d57230ca61036c5a0ab72c119d4c3c8088a7cf09103b1db3",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e0798"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BB00__11YoshiHolderFv",
+      "target_address": "0x8041bb00",
+      "size": 48,
+      "actual_DOL_body_sha256": "d4d8e8f9b2a1ebcb1fc68e76a9060760faee122e0b37636c8a01e0f2e2684f25",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "sendMessageToCurrentTarget__17YoshiTongueTargetFUl",
+      "target_address": "0x8041c4e0",
+      "size": 104,
+      "actual_DOL_body_sha256": "0e31c123a864a0ee69f0797663dc8753718df70d1b1ed7d4b269d39dcc7e6a9d",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BBB0__11YoshiHolderFv",
+      "target_address": "0x8041bbb0",
+      "size": 24,
+      "actual_DOL_body_sha256": "92ad92c8a13fb2049324513fc7d66bc5fd1eb1c9874e88eee56fec62fded0e40",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041B820__11YoshiHolderFP9LiveActor",
+      "target_address": "0x8041b820",
+      "size": 28,
+      "actual_DOL_body_sha256": "f346e404c0f9521fcaf8fa287256ec3b06f31bc63403b3b457a7ede7d4dc14e0",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BAE0__11YoshiHolderFv",
+      "target_address": "0x8041bae0",
+      "size": 12,
+      "actual_DOL_body_sha256": "d61664fa0d7b325535be1efbc7920d10a441703e6d79a09f47510c064cd2a224",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "hasNextTarget__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c100",
+      "size": 28,
+      "actual_DOL_body_sha256": "68bdab0d2cc5f37a16257aa1b68a46ff84f185763c7236d3ef5fa2fc5d8e54b6",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "advanceTargetIfMore__17YoshiTongueTargetFv",
+      "target_address": "0x8041c060",
+      "size": 32,
+      "actual_DOL_body_sha256": "0d1009ea5ea0200481ade70238db516a0ec14d81d437c6eca4727b9520354afe",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "calcCurrentTargetPosition__17YoshiTongueTargetCFPQ29JGeometry8TVec3<f>",
+      "target_address": "0x8041c240",
+      "size": 512,
+      "actual_DOL_body_sha256": "5abb793e5644c352f869d1a0299449f9399a95954c48fcf6256df8de2470c7c5",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "getCurrentTargetMatrix__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c4c0",
+      "size": 24,
+      "actual_DOL_body_sha256": "37bb4d3c691e064fbaea77a9d63a1d2ea82e75138bcc434483629b51e6b1dadc",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BE00__10YoshiParamFPQ29JGeometry8TVec3<f>",
+      "target_address": "0x8041be00",
+      "size": 164,
+      "actual_DOL_body_sha256": "c2a01059fa8f2eddefe5f861ff9231563b0efec5fc2c6ec9fdb7f0828a3487a5",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 28,
+          "base": 2,
+          "address": "0x807e078c"
+        },
+        {
+          "offset": 52,
+          "base": 2,
+          "address": "0x807e0774"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BD90__10YoshiParamFv",
+      "target_address": "0x8041bd90",
+      "size": 8,
+      "actual_DOL_body_sha256": "184ae09cbefe5ec9f5fa33ad482c33cb98089d1d4382dcfe277cef6e13767e71",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e0780"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BD70__10YoshiParamFv",
+      "target_address": "0x8041bd70",
+      "size": 8,
+      "actual_DOL_body_sha256": "d4e9e7520ef19698837e384bfe1708ac4b91fcf26b16ec098ec21c1e344ad3db",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C170__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c170",
+      "size": 52,
+      "actual_DOL_body_sha256": "e1551e1593f83072e5f3b1179c69a930185f81674a5a47e18cc2c8f4ccff5239",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041B700__11YoshiHolderFP9LiveActor",
+      "target_address": "0x8041b700",
+      "size": 280,
+      "actual_DOL_body_sha256": "9e2d2fa61360dc51cdf24bfa10d5519e8f97410f79d82811b91b4476b5b6dcf6",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 164,
+          "base": 2,
+          "address": "0x807e0770"
+        },
+        {
+          "offset": 184,
+          "base": 2,
+          "address": "0x807e0770"
+        }
+      ]
+    },
+    {
+      "name": "sendStartTongueMessage__17YoshiTongueTargetFv",
+      "target_address": "0x8041c020",
+      "size": 8,
+      "actual_DOL_body_sha256": "000d1ce496f8c0c370eeb9885bc08a287b917eca996f7974a0d169145980abde",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "sendLoopTongueMessage__17YoshiTongueTargetFv",
+      "target_address": "0x8041c030",
+      "size": 8,
+      "actual_DOL_body_sha256": "adfbf16c49d0166c5a341dc2494727e7727b61103996c7a93fc98a74c1bd7f01",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BD80__10YoshiParamFv",
+      "target_address": "0x8041bd80",
+      "size": 8,
+      "actual_DOL_body_sha256": "dbc9d4a94242de57aec7822f9509edfd59892371e773da825ef8815961fc060d",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e077c"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BDA0__10YoshiParamFv",
+      "target_address": "0x8041bda0",
+      "size": 8,
+      "actual_DOL_body_sha256": "20f0eab650bd12f8d565e816c98704f4223e2c7350bcece7174a397571329309",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e0784"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041B9C0__11YoshiHolderFv",
+      "target_address": "0x8041b9c0",
+      "size": 68,
+      "actual_DOL_body_sha256": "f5d6cf6fd36a3079875bec0347b4ded2b66a814abc773ed87c3905ccff6cc497",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C120__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c120",
+      "size": 32,
+      "actual_DOL_body_sha256": "e9d2b52e633e7413bff62f3a65cd3420a696013859938967009d24b31fee03cd",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BAF0__11YoshiHolderFv",
+      "target_address": "0x8041baf0",
+      "size": 12,
+      "actual_DOL_body_sha256": "dd67a681f84506e546fe3ebea6a1467130514547cbaaf72642b08f626d23fe13",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BD50__10YoshiParamFv",
+      "target_address": "0x8041bd50",
+      "size": 8,
+      "actual_DOL_body_sha256": "2bf7a94759a252fd0d2af700ff876c19ab13998fb28ac5b0db3c70cdbc9ef8d6",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C1B0__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c1b0",
+      "size": 36,
+      "actual_DOL_body_sha256": "b6fa131139e874098ff88df53c2f3adb0257b7147da6fd4e7b93338900e0793f",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BA10__11YoshiHolderFv",
+      "target_address": "0x8041ba10",
+      "size": 8,
+      "actual_DOL_body_sha256": "01e180aeca77ab3ba9e35ce59f4c0c531cfb5f7b707fb9384428099bdc1547a1",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BDB0__10YoshiParamFv",
+      "target_address": "0x8041bdb0",
+      "size": 8,
+      "actual_DOL_body_sha256": "f924f40704cf96dea07663bc80fa1269068b162be50d88f5022a266d5c76933a",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 0,
+          "base": 2,
+          "address": "0x807e0788"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041B920__11YoshiHolderFv",
+      "target_address": "0x8041b920",
+      "size": 68,
+      "actual_DOL_body_sha256": "7255488c53170c658f1ba0baad61fce9d7578591b2be951beb6d72ef603a267e",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041C140__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c140",
+      "size": 36,
+      "actual_DOL_body_sha256": "79e3bafb6b9176c0dc391be8ecd72a3352561be8cccdb721f957f5321bccae49",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "fn_8041BBF0__11YoshiHolderFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "target_address": "0x8041bbf0",
+      "size": 312,
+      "actual_DOL_body_sha256": "30c8d8545af6b56d80991cdb414ed1f168b3fa7b7a26c6f10c52ab4fb4523f01",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": [
+        {
+          "offset": 156,
+          "base": 2,
+          "address": "0x807e0774"
+        },
+        {
+          "offset": 196,
+          "base": 2,
+          "address": "0x807e0774"
+        },
+        {
+          "offset": 236,
+          "base": 2,
+          "address": "0x807e0774"
+        }
+      ]
+    },
+    {
+      "name": "fn_8041BD30__11YoshiHolderFv",
+      "target_address": "0x8041bd30",
+      "size": 8,
+      "actual_DOL_body_sha256": "20f972eeb2656d991d7006e1250bfb16b1c80b1592b5f8994e6bfe626fecde0f",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    },
+    {
+      "name": "hasCurrentTarget__17YoshiTongueTargetCFv",
+      "target_address": "0x8041c0e0",
+      "size": 24,
+      "actual_DOL_body_sha256": "562b8a84445d8d0e1c17121d91aa9236290c4bde93a3b8f9006ba287d706624e",
+      "all_nonrelocated_bits_and_SDA_addresses_checked": true,
+      "sda": []
+    }
+  ],
+  "BB00_body_and_zero_countdown_sound_semantics_unchanged": true,
+  "pins": {
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/src/Game/Player/YoshiHolder.cpp": "2e0a87a7d9e54790730c755cde5e7b74a5966fef98125b2ce5b6ad741115ace5",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/build/SB4E01/src/Game/Player/YoshiHolder.o": "402d61389f60cbe9efc3bb426ef6c8247969d4ef097de9fe895fa45780d76210",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/build/SB4E01/obj/Game/Player/YoshiHolder.o": "a37e8ddc24beb1edca82a88d67e6d6e725df0a84fd1e0ca90dfcf1ba6a291b72",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/orig/SB4E01/sys/main.dol": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/config/SB4E01/symbols.txt": "5b7f7ec55598a3d6a7e12ebda5c25370dd5847efbd5bcbcb3a35fcb2e6c4bb0f",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/config/SB4E01/splits.txt": "9b1a3968acc6bda4c0b504deb141c9235d1afed967d8247935377efc29b2b4d0"
+  }
+}

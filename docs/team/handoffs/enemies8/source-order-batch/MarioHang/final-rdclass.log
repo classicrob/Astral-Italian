@@ -1,0 +1,4 @@
+benign 1  real 2
+classes {'a': 1}
+REAL Game/Player/MarioHang close__9MarioHangFv: unverified string-base pool reach: unknown returned/partial pool pointer offset
+REAL Game/Player/MarioHang update__9MarioHangFv: unverified string-base pool reach: unknown returned/partial pool pointer offset

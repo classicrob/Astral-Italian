@@ -52,6 +52,11 @@ static inline TVec3f makeZeroVec() {
     return v;
 }
 
+const char* MorphItemObjNeo::getMorphModelName(int type) {
+    const char* const names[] = {"-----", "PowerUpHopper", "PowerUpBee", "PowerUpTeresa", "PowerUpIce", "PowerUpFire", "PowerUpFoo", "PowerUpCloud", "PowerUpRock", "END"};
+    return names[type];
+}
+
 namespace MR {
     void enablePlayerResourceMorph(const JMapInfoIter& rIter) {
         if (MR::isEqualObjectName(rIter, "MorphItemNeoHopper")) {
@@ -951,10 +956,6 @@ void MorphItemObjNeo::endHide() {
     }
 }
 
-const char* MorphItemObjNeo::getMorphModelName(int type) {
-    const char* names[] = {"-----", "PowerUpHopper", "PowerUpBee", "PowerUpTeresa", "PowerUpIce", "PowerUpFire", "PowerUpFoo", "PowerUpCloud", "PowerUpRock", "END"};
-    return names[type];
-}
 
 void MorphItemObjNeo::glowEffect(LiveActor* pActor, int type) {
     if (!MR::isHiddenModel(pActor)) {

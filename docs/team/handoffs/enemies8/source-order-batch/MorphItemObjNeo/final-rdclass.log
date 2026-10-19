@@ -1,0 +1,6 @@
+benign 0  real 4
+classes {}
+REAL Game/MapObj/MorphItemObjNeo init__15MorphItemObjNeoFRC12JMapInfoIter: unverified string-base pool reach: target object extends beyond checked source pool
+REAL Game/MapObj/MorphItemObjNeo glowEffect__15MorphItemObjNeoFP9LiveActori: unverified string-base pool reach: target object extends beyond checked source pool
+REAL Game/MapObj/MorphItemObjNeo exeSwitchAppear__15MorphItemObjNeoFv: unverified string-base pool reach: unknown returned/partial pool pointer offset
+REAL Game/MapObj/MorphItemObjNeo tryGetItem__15MorphItemObjNeoFP9HitSensorP9HitSensor: unverified string-base pool reach: target object extends beyond checked source pool

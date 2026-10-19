@@ -1,0 +1,115 @@
+[
+  {
+    "unit": "Game/Player/MarioHang",
+    "name": "fn_803EDE40__9MarioHangFv",
+    "spans": [
+      {
+        "target_address": "0x806dd550",
+        "source_section": ".data",
+        "source_offset": 0,
+        "size": 224,
+        "whole_pool": true,
+        "resolved_relocations": [
+          [
+            164,
+            "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+            0,
+            2151609008
+          ],
+          [
+            168,
+            "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+            0,
+            2151609024
+          ],
+          [
+            160,
+            "getStickY__11MarioModuleCFv",
+            0,
+            2151608272
+          ],
+          [
+            220,
+            "draw3D__10MarioStateCFv",
+            0,
+            2151201248
+          ],
+          [
+            216,
+            "getBlurOffset__10MarioStateCFv",
+            0,
+            2151500496
+          ],
+          [
+            212,
+            "passRing__10MarioStateFPC9HitSensor",
+            0,
+            2151448112
+          ],
+          [
+            208,
+            "hitPoly__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+            0,
+            2151214736
+          ],
+          [
+            204,
+            "hitWall__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+            0,
+            2151214720
+          ],
+          [
+            196,
+            "keep__10MarioStateFv",
+            0,
+            2151555536
+          ],
+          [
+            176,
+            "proc__10MarioStateFUl",
+            0,
+            2151638496
+          ],
+          [
+            172,
+            "init__10MarioStateFv",
+            0,
+            2151555568
+          ],
+          [
+            200,
+            "postureCtrl__9MarioHangFPA4_f",
+            0,
+            2151601744
+          ],
+          [
+            192,
+            "notice__9MarioHangFv",
+            0,
+            2151601600
+          ],
+          [
+            188,
+            "update__9MarioHangFv",
+            0,
+            2151599680
+          ],
+          [
+            184,
+            "close__9MarioHangFv",
+            0,
+            2151601328
+          ],
+          [
+            180,
+            "start__9MarioHangFv",
+            0,
+            2151599488
+          ]
+        ],
+        "target_sha256": "c67c0b24ef1ce1621cf28b904fc37fa9cc3e223b6b04d486adc9ef430f8cfe2b",
+        "source_relocated_sha256": "c67c0b24ef1ce1621cf28b904fc37fa9cc3e223b6b04d486adc9ef430f8cfe2b"
+      }
+    ]
+  }
+]

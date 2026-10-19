@@ -2433,7 +2433,7 @@ void MarioActor::bodyClap() {
         TVec3f stack_14(mTornadoSensors[i]->mPosition);
         TVec3f stack_8(stack_14 - _2A0);
         if (stack_8.length() < 100.0f) {
-            mTornadoSensors[i]->receiveMessage(ACTMES_ITEM_GET, getSensor("body"));
+            mTornadoSensors[i]->receiveMessage(ACTMES_ITEM_GET, getSensor("Body"));
         }
     }
 }
@@ -5299,7 +5299,7 @@ bool MarioActor::checkAndTryTrampleAttack(HitSensor* pSensor, f32 distance, bool
             attacked = true;
         }
 
-        if (mPlayerMode == PlayerMode_Invincible && MR::sendArbitraryMsg(ACTMES_INVINCIBLE_ATTACK, pSensor, getSensor("body"))) {
+        if (mPlayerMode == PlayerMode_Invincible && MR::sendArbitraryMsg(ACTMES_INVINCIBLE_ATTACK, pSensor, getSensor("Body"))) {
             mMario->startPadVib(2);
             printHitMark(pSensor);
         }
@@ -5430,7 +5430,7 @@ bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width,
 
 
 void MarioActor::attackOrPushPolygons() {
-    HitSensor* bodySensor = getSensor("body");
+    HitSensor* bodySensor = getSensor("Body");
 
     _FCC = true;
 
@@ -5464,7 +5464,7 @@ void MarioActor::attackOrPushPolygons() {
 
                     if (groundSensor != nullptr && !MR::isDead(groundSensor->mHost)) {
                         HitSensor* hitSensor = mMario->mGroundPolygon->mSensor;
-                        if (!hitSensor->receiveMessage(ACTMES_PLAYER_HIP_DROP_FLOOR, getSensor("body"))) {
+                        if (!hitSensor->receiveMessage(ACTMES_PLAYER_HIP_DROP_FLOOR, getSensor("Body"))) {
                             _3E8 = false;
                         }
                     }
@@ -8889,7 +8889,7 @@ void MarioActor::flushCoinPull() {
 bool MarioActor::tryCoinPullOne(HitSensor* pSensor) NO_INLINE {
     tryPullTrans(&pSensor->mHost->mVelocity, pSensor->mPosition);
 
-    return pSensor->receiveMessage(ACTMES_ITEM_PULL, getSensor("body"));
+    return pSensor->receiveMessage(ACTMES_ITEM_PULL, getSensor("Body"));
 }
 
 
@@ -9029,7 +9029,7 @@ void MarioActor::tryReleaseWithMsg(u32 msg) {
     }
 
     for (s32 idx = 0; idx < maxIdx; idx++) {
-        if (!_428[idx]->receiveMessage(msg, getSensor("body"))) {
+        if (!_428[idx]->receiveMessage(msg, getSensor("Body"))) {
             if (idx == 0) {
                 continue;
             }

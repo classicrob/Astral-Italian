@@ -81,7 +81,7 @@ bool MarioWait::start() {
 }
 
 bool MarioWait::update() {
-    if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestJump2P()) {
+    if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->fn_803BE0C0()) {
         stopAnimation(nullptr);
         getPlayer()->fn_803A0BE0();
         return false;

@@ -486,6 +486,7 @@ Mario::Mario(MarioActor* pActor)
 void Mario::updateAndClearStrideParameter() {
     _43C = mFrontVec;
     _16C = mVelocity;
+    mPosHolder->fn_80405F90(mActor->mPosition);
     mVelocityAfter.zero();
     mVelocity.zero();
     mFlags24.mLowWord = mMovementStates.mLowWord;
@@ -5314,6 +5315,7 @@ void Mario::checkEnforceMoveInner() {
 
             if (v11) {
                 if (calcDistToCeil(false) < 200.0f) {
+                    mPosHolder->fn_80405F90(v14);
                     mFlags20.mWord |= 0x00008000U;
                 }
             }

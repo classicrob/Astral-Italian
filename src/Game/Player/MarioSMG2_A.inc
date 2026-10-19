@@ -1178,13 +1178,13 @@ void Mario::fn_8039A480() {
             this->changeAnimationInterpoleFrame(1);
             this->mMovementStates.mHighWord |= 0x800000;
             this->playSound("声小ジャンプ", -1);
-            if (this->_410 != 0) {
+            if (this->_42A != 0) {
                 this->playEffect("スピンライト消去");
             }
         } else {
             this->mMovementStates.mLowWord &= 0xFFFFBFFF;
         }
-        if (this->_410 != 0) {
+        if (this->_42A != 0) {
             u16 t = this->_402;
             if (t != 0) {
                 this->_402 = t - 1;

@@ -8,11 +8,11 @@ hardware. It runs with a fresh isolated NAND directory. Native KPAD results are
 injected after filtering, so input gate A does not test KPAD itself. Loading/title
 frames remain in the trace; unsupported paths fail rather than inventing state.
 
-Status: implementation and unit-test sources added; 20 Python harness tests and
-18 collector contract/observer tests pass. **No harness C++ configure, compile,
-link, or run has been performed yet.**
-The full executable is expected to reach the remaining SMG2 source/library port
-blockers. No game data was copied or used while implementing it.
+Status on base `3c133d77`: headless configure passes, and the core/FPCR, SDK
+decoder, and virtual-clock test executables compile with ASan/UBSan. The 20
+Python harness tests and 18 collector contract/observer tests pass. C++ runtime
+checks and the full target are queued behind the shared build lock. No game
+executable or emulator was run by this lane, and no game data was copied.
 
 ## Targets and source hooks
 
@@ -34,10 +34,10 @@ The lead must land these unapplied proposals from
 | Patch | Seam |
 | --- | --- |
 | `04-kpad-replay-hook.patch` | `KPADReadEx` delegates to the installed replay before returning SDK data; inactive replay retains its original path |
-| `05-headless-game-loop.patch` | After the existing endFrame/seam, headless advances one virtual frame instead of waiting in the display pacing implementation |
+| `05-headless-game-loop.patch` | Native game entry point and after-endFrame observation seam; headless advances one virtual frame instead of waiting in display pacing |
 | `06-headless-framework-wait.patch` | Startup/blanking waits use the virtual retrace driver instead of real-time tick sleeps or a display message queue |
 
-The proposals were made against the stable `ht4/overlay`, checked with
+The proposals were rebased against worktree commit `3c133d77`, checked with
 `git apply --check`, and compared with `unifdef -UGALAXY_NATIVE
 -UGALAXY_HEADLESS -D__MWERKS__`: Wii output is unchanged. This is a preprocessing
 check, not the lead's Wii object/DOL proof. No game/library/header files were

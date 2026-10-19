@@ -146,17 +146,19 @@ The installed app is actually Ishiiruka FM v5.8.7 BETA (2017), x86_64, revision
 `419e77f3e2767debc521d56626c375379df78a6b`. Its binary has MemoryWatcher/debugger
 strings but no `GDBPort`/`GDBSocket` strings. It has not been used as the oracle.
 A separate official [Dolphin 2609a](https://dolphin-emu.org/download/), revision
-`409881c34357d0f105fd473167d15ab0bd9c1628`, was downloaded to scratch, leaving
+`409881c34357d0f105fd473167d15ab0bd9c1628`, is kept at
+`~/MacioGalaxy2-gamedata/Dolphin-2609a.app`, leaving
 the installed app unchanged. Its private GDB socket accepted the collector and
 reported startup PC `80004050`. This first stop is `T0f` (SIGTERM), unlike the
 SIGTRAP required for subsequent breakpoint/step stops. This is successful stub
-qualification, not yet an M0 replay pass.
+qualification; the separately qualified M0 result follows below.
 
 Fresh profiles pin interpreter CPU core 0 (ARM64 JIT 4 separately), dual core
 off, fixed RTC 946684800, DSP HLE, no audio output, cheats/SD/real Wiimotes off,
 one emulated Wiimote/Nunchuk without host bindings. Preserve generated SYSCONF
-and the private user directory with each fixture; the GameCube language setting
-does not establish Wii SYSCONF language. The collector records exact binary/disc
+outside the team tree when a save/checkpoint is required; the GameCube language
+setting does not establish Wii SYSCONF language. M0 used fresh generated profiles,
+pruned after the successful repeats and archiving of initial INIs. The collector records exact binary/disc
 hashes and initial INIs in each private run bundle.
 **Required debugger setting:** `Interface/DebugModeEnabled=True`. The initial
 interpreter attempt timed out despite accepted `Z0` packets because this was
@@ -177,13 +179,25 @@ and the state stack was empty: this is the FileSelect background player, not a
 playable-galaxy physics qualification. Actor and simulation positions can differ
 during the first background-player initialization frames; they agree at the end.
 
-Private numeric bundles are
-`scratch-port/solc/capture-m0-jit-01/` and `capture-m0-jit-02/` under the team
-directory, with `M0-QUALIFICATION.json` and `m0-repeat.json` beside them.
-Their user directories are `~/MacioGalaxy2-gamedata/dolphin-user-j01` and `-j02`;
-no game content is stored in the numeric bundles. This establishes original
+Accepted numeric bundles `capture-m0-jit-01/` and `capture-m0-jit-02/`,
+`M0-QUALIFICATION.json` and `m0-repeat.json` are members of the single archive
+`~/MacioGalaxy2-team/scratch-port/solc/accepted-evidence.tgz`. The original run
+directories and their fresh profiles were pruned after archive verification.
+The pinned movie remains outside the team tree at
+`~/MacioGalaxy2-gamedata/accepted-input-m0.dtm`; no game content is stored in
+the numeric bundles. This establishes original
 oracle repeatability for this prefix only. Interpreter capture, playable-galaxy
-idle/jump, KPAD export and native equality remain unqualified.
+idle/jump, KPAD export and native equality remain unqualified. Batch collection
+retains the single-instruction resume used by these accepted runs. Experimental
+GUI collection uses a temporary breakpoint at seam+4 to avoid competing GUI
+single-step state; it needs its own full repeat qualification. A shorter-movie
+GUI experiment matched the first 1545 M0 rows before its input prefix ended.
+
+Galaxy navigation remains pending: generated pointer/button inputs reached file
+selection but did not select a file. Record the route without GDB, then replay
+that boot movie in two fresh collector profiles. Dolphin requires the disc to be
+selected in its main game list before Movie / Start Recording Input is enabled.
+An idle setup GUI must not hold the shared emulator/build lock.
 
 Independent original-DOL checks also confirmed `getUpVec` uses actor `+0x618`,
 `getFrontVec` uses Mario `+0x208`, `getRandom` loads GameSystem `+0x20` then seed

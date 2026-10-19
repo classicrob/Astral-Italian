@@ -9,7 +9,7 @@ movie polls, and the debugger's single steps are separate clocks.
 Use Python 3.10+ and macOS `lockf`. No additional Python packages are required.
 The installed 2017 Ishiiruka app lacks the GDB configuration strings. Initial
 qualification uses a separate official **Dolphin 2609a**, revision
-`409881c34357d0f105fd473167d15ab0bd9c1628`, in the team scratch directory.
+`409881c34357d0f105fd473167d15ab0bd9c1628`, in `~/MacioGalaxy2-gamedata/`.
 The app in `/Applications` is read-only. See `docs/port/REPLAY_DIFF.md` for the
 layout evidence, validation status, and remaining replay qualifications.
 
@@ -34,7 +34,7 @@ python3 tools/port/replaydiff/dolphin_collect.py prepare \
   --user ~/MacioGalaxy2-gamedata/dolphin-user-run01
 
 python3 tools/port/replaydiff/dolphin_collect.py collect \
-  --dolphin ~/MacioGalaxy2-team/scratch-port/solc/Dolphin-2609a.app/Contents/MacOS/Dolphin \
+  --dolphin ~/MacioGalaxy2-gamedata/Dolphin-2609a.app/Contents/MacOS/Dolphin \
   --user ~/MacioGalaxy2-gamedata/dolphin-user-run01 \
   --disc ~/MacioGalaxy2-gamedata/SB4E01.iso \
   --output ~/MacioGalaxy2-team/scratch-port/solc/run01 \
@@ -66,7 +66,10 @@ Dolphin's TCP implementation binds all interfaces. The first stop can report
 SIGTERM (`T0f`); subsequent continue/step operations must report SIGTRAP.
 The collector verifies the original caller's `bl` instruction before running.
 It removes the breakpoint, steps one instruction, then reinstalls it to avoid
-recounting a stopped instruction. Unexpected stops, invalid nonnull pointers,
+recounting a stopped instruction. Experimental `--gui` instead continues to a
+temporary execute breakpoint at seam+4; its full repeat qualification is pending.
+Record a new TAS movie without GDB first, then replay it in batch mode for collection.
+Unexpected stops, invalid nonnull pointers,
 bad counts/strings/booleans, cycles, and nonfinite floats fail the capture.
 
 Dolphin can leave its Unix socket after exiting. Confirm no emulator owns it
@@ -75,7 +78,7 @@ Connection timeout defaults to 600 seconds **after acquiring the shared slot**;
 per-stop timeout is 120 seconds; capture wall timeout is 900 seconds. All can
 be set on the command line. Exit 0 means the requested rows were captured,
 not that determinism or native equivalence passed. Exit 2 means an incomplete
-run. Partial rows and their error fields remain available for diagnosis.
+run. Partial rows and the manifest/log error remain available for diagnosis.
 
 ## CSV schema v1
 
@@ -130,8 +133,10 @@ On observer failure the CSV remains `oracle.csv.partial`; errors appear in
 the log and manifest, not an extra column that would break the shared schema.
 Only compare successful runs, after checking their manifests. Never treat two
 matching partial files as a passing replay.
-Preserve the user directory alongside the run. Never label a run qualified
-until a second fresh-save run with the same movie matches every semantic row.
+Keep required save/checkpoint fixtures outside the team tree. Fresh M0 profiles
+can be regenerated; their accepted traces and initial INIs are archived before
+pruning. Never label a run qualified until a second fresh-save run with the same
+movie matches every semantic row.
 
 ## Deterministic input movies
 
@@ -285,10 +290,10 @@ example, after preparing a private `writer-user` with socket `writer.sock`:
 ```sh
 python3 tools/port/replaydiff/watchwriter.py \
   --diff ~/MacioGalaxy2-team/scratch-port/first-divergence.json --field vx \
-  --dolphin ~/MacioGalaxy2-team/scratch-port/solc/Dolphin-2609a.app/Contents/MacOS/Dolphin \
-  --user ~/MacioGalaxy2-team/scratch-port/writer-user \
+  --dolphin ~/MacioGalaxy2-gamedata/Dolphin-2609a.app/Contents/MacOS/Dolphin \
+  --user ~/MacioGalaxy2-gamedata/writer-user \
   --socket ~/MacioGalaxy2-team/scratch-port/writer.sock \
-  --movie ~/MacioGalaxy2-team/scratch-port/input.dtm \
+  --movie ~/MacioGalaxy2-gamedata/accepted-input-m0.dtm \
   --output ~/MacioGalaxy2-team/scratch-port/writers.json
 ```
 

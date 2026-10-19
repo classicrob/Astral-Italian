@@ -9,6 +9,10 @@
 #include <execinfo.h>
 #include <unistd.h>
 
+extern "C" {
+uintptr_t __MEM2End;
+}
+
 namespace {
 constexpr std::size_t mem1Size = 128 * 1024 * 1024;
 constexpr std::size_t mem2Size = 256 * 1024 * 1024;
@@ -60,7 +64,6 @@ void setHigh(Arena& arena, void* pointer) {
 }
 
 extern "C" {
-uintptr_t __MEM2End;
 void* OSGetArenaLo() { init(); std::lock_guard<std::mutex> lock(arenaMutex); return reinterpret_cast<void*>(mem1.low); }
 void* OSGetArenaHi() { init(); std::lock_guard<std::mutex> lock(arenaMutex); return reinterpret_cast<void*>(mem1.high); }
 void OSSetArenaLo(void* p) { init(); std::lock_guard<std::mutex> lock(arenaMutex); setLow(mem1, p); }

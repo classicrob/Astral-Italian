@@ -4700,6 +4700,10 @@ bool Mario::damageFloorCheck() {
         return false;
     }
 
+    if (mActor->mFlag1064 != 0) {
+        return doFireDanceWithInitialDamage(1);
+    }
+
     switch (_960) {
     case CollisionFloorCode_Needle:
         if (checkCurrentFloorCodeSevere(CollisionFloorCode_Needle) && doNeedleWithInitialDamage(mGroundPolygon)) {

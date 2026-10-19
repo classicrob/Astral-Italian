@@ -769,7 +769,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
     TVec3f p(*v);
     if (((this->mMario->mFlags14.mLowWord >> (0x19)) & 1)) {
         f32 k = MR::vecKillElement(p, mCameraBasisZ, &p);
-        if (k == 250.0f || k == -250.0f) {
+        if (k >= 250.0f || k <= -250.0f) {
             return false;
         }
     }
@@ -786,7 +786,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             (this->getSensor("dummy"))->mRadius = f1;
             return true;
         }
-        if (d == f2) {
+        if (d >= f2) {
             TVec3f t(mBodyDownDirection);
             t.scale(f2);
             TVec3f e(p);
@@ -819,7 +819,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             (this->getSensor("dummy"))->mRadius = f1;
             return true;
         }
-        if (d2 == f2) {
+        if (d2 >= f2) {
             TVec3f t(mBodyUpDirection);
             t.scale(f2);
             TVec3f e(p);

@@ -601,32 +601,17 @@ void Mario::fn_803A0D90(TVec3f* arg) {
 
 
 bool Mario::fn_803A0E10() {
-    if (this->mTargetWalkSpeedIndex == 0) {
-        return false;
+    bool result = false;
+    if ((this->mTargetWalkSpeedIndex == 0 || this->_71D == 0) &&
+        !this->isAnimationRun("ブレーキ") && !this->isAnimationRun("ターンブレーキ") &&
+        !((this->mMovementStates.mLowWord >> 15) & 1) &&
+        !((this->mMovementStates.mLowWord >> 16) & 1) &&
+        this->mWalkSpeed < 0.05f && !((this->mDrawStates.mWord >> 26) & 1)) {
+        result = true;
     }
-    if (this->_71D != 0) {
-        return false;
-    }
-    if (this->isAnimationRun("ブレーキ")) {
-        return false;
-    }
-    if (this->isAnimationRun("ターンブレーキ")) {
-        return false;
-    }
-    if ((this->mMovementStates.mLowWord >> 15) & 1) {
-        return false;
-    }
-    if ((this->mMovementStates.mLowWord >> 16) & 1) {
-        return false;
-    }
-    if (this->mWalkSpeed >= 0.05f) {
-        return false;
-    }
-    if ((this->mDrawStates.mWord >> 26) & 1) {
-        return false;
-    }
-    return true;
+    return result;
 }
+
 
 void Mario::fn_8039AB50() {
     if (this->_430 == 13 && ((this->mMovementStates.mHighWord >> 31) & 1)) {

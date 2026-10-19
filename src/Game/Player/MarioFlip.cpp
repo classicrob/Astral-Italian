@@ -67,6 +67,7 @@ bool MarioFlip::start() {
     return true;
 }
 
+// NONMATCHING: timer/table GPR allocation and literal-pool offsets.
 bool MarioFlip::update() {
     if (_12 == 0) {
         changeAnimationNonStop("はねとばされ");

@@ -1292,18 +1292,24 @@ void MarioActor::fn_803D1940() {
     }
 }
 
+// NONMATCHING: boolean materialization, equivalent constant conversion and loop register allocation.
 void MarioActor::fn_803D26F0() {
     Mario* m = this->mMario;
-    if (BITAT(m, 0xC, 0x1D) && !m->fn_803AA2C0() && !this->mMario->isStatusActive(0x12) &&
-        (FP(this->mMario, u16, 0x966) == 0xE || FP(this->mMario, u16, 0x966) == 0x21) &&
-        (this->mMario->getGravityVec()->dot(MR::getCamZdir()) == 0.0f)) {
+    bool reflect = BITAT(m, 0xC, 0x1D) && !m->fn_803AA2C0() && !mMario->isStatusActive(0x12) &&
+        (FP(mMario, u16, 0x966) == 0xE || FP(mMario, u16, 0x966) == 0x21);
+    if (reflect) {
+        const TVec3f* gravity = mMario->getGravityVec();
+        TVec3f camera = MR::getCamZdir();
+        reflect = !(gravity->dot(camera) >= 0.0f);
+    }
+    if (reflect) {
         this->fn_803CA1F0();
         F(u8, 0xEFC) = 1;
         f32 v = FP(this->mMario, f32, 0x484) / 500.0f;
-        if (v > 0.75f) {
+        if (!(v >= 0.75f)) {
             v = 0.75f;
         }
-        s32 target = (s32)((f32)0x40 * (1.0f - v));
+        s32 target = (s32)((f32)0x40U * (1.0f - v));
         int n = 4;
         do {
             u8 c = F(u8, 0xEFD);

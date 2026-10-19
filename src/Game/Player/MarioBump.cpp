@@ -62,12 +62,14 @@ void Mario::startBump(const TVec3f& rVec) {
     }
 }
 
+// NONMATCHING: zero scalar relocation label.
 MarioBump::MarioBump(MarioActor* pActor) : MarioState(pActor, MarioStatus_Bump) {
     _12 = 0;
     _14 = 0.0f;
-    _18.zero();
+    _18.x = _18.y = _18.z = 0.0f;
 }
 
+// NONMATCHING: equivalent front-vector assignment helper remains out of line.
 bool MarioBump::start() {
     _14 = getPlayer()->mWalkSpeed;
 

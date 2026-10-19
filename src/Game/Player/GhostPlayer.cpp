@@ -39,11 +39,11 @@ namespace MR {
     bool fn_8037F6F0(const TVec3f& input, s8 shift, TVec3Sc* output) {
         f32 factor = getShiftRatio(shift);
         f32 x = input.x * factor, y = input.y * factor, z = input.z * factor;
-        u8 ix = static_cast<s8>(x), iy = static_cast<s8>(y), iz = static_cast<s8>(z);
+        s32 ix = static_cast<s32>(x), iy = static_cast<s32>(y), iz = static_cast<s32>(z);
         output->x = ix;
         output->y = iy;
         output->z = iz;
-        if (static_cast<s8>(ix) != static_cast<s32>(x) || static_cast<s8>(iy) != static_cast<s32>(y) || static_cast<s8>(iz) != static_cast<s32>(z)) return true;
+        if (static_cast<s8>(static_cast<u8>(ix)) != static_cast<s32>(x) || static_cast<s8>(static_cast<u8>(iy)) != static_cast<s32>(y) || static_cast<s8>(static_cast<u8>(iz)) != static_cast<s32>(z)) return true;
         return false;
     }
     bool fn_8037F680(f32 input, s8 shift, s16* output) {

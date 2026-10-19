@@ -6424,7 +6424,9 @@ Game/Player/MarioActionTable.cpp:
 
 Game/Player/MarioScreenStrip.cpp:
 	.text       start:0x803DB740 end:0x803DBDE0
+	.rodata     start:0x8064BDA8 end:0x8064BDB8
 	.data       start:0x806C86E8 end:0x806C8700
+	.sdata2     start:0x807DFDD0 end:0x807DFDF8
 
 Game/Player/MarioModelDL.cpp:
 	.text       start:0x803DBDE0 end:0x803DC0F0
@@ -6548,7 +6550,9 @@ Game/Player/MarioMove.cpp:
 
 Game/Player/MarioNullBck.cpp:
 	.text       start:0x803EFB40 end:0x803EFE20
-	.data       start:0x806DD8C0 end:0x806DD930
+	.rodata     start:0x8064BE50 end:0x8064BE60
+	.data       start:0x806DD898 end:0x806DD930
+	.sdata2     start:0x807E00C0 end:0x807E00C8
 
 Game/Player/MarioParts.cpp:
 	.text       start:0x803EFE20 end:0x803F0090
@@ -6805,8 +6809,10 @@ Game/Player/YoshiHolder.cpp:
 Game/Player/YoshiTongue.cpp:
 	.text       start:0x8041C550 end:0x8041DE20
 	.ctors      start:0x806447F0 end:0x806447F4
+	.rodata     start:0x8064BF08 end:0x8064BF38
 	.data       start:0x806EB178 end:0x806EB2C8
 	.sbss       start:0x807D4F68 end:0x807D4F88
+	.sdata2     start:0x807E07A0 end:0x807E07E0
 
 Game/Player/YoshiTongueAction.cpp:
 	.text       start:0x8041DE20 end:0x80421D40

@@ -2021,15 +2021,20 @@ void Mario::fn_8038CE40() {
 }
 
 
+// NONMATCHING: equivalent status boolean materialization and branch lowering.
 void Mario::stick2DadjustGround(f32& rX, f32& rY) {
-    if (isStageCameraRotate2D()) {
+    bool cameraRotate = false;
+    if (MR::isEqualStageName("HellProminenceGalaxy") && MR::getCurrentScenarioNo() == 3) {
+        cameraRotate = true;
+    }
+    if (cameraRotate) {
         return;
     }
 
     if (_10.turning && mMovementStates._1 && !mMovementStates.jumping) {
         _10.turning = false;
         clear2DStick();
-        _66C = false;
+        if (_66C) { _66C = false; }
     }
 
     mSide2D.set(1.0f, 0.0f, 0.0f);
@@ -2059,16 +2064,22 @@ void Mario::stick2DadjustGround(f32& rX, f32& rY) {
 
     if (_66C) {
         if (MR::isNearZero(mStickPos.z)) {
-            _66C = false;
+            if (_66C) { _66C = false; }
             return;
         }
 
         if (MR::diffAngleAbs(stickDir2D, _670) > 0.3f) {
-            _66C = false;
+            if (_66C) { _66C = false; }
             return;
         }
 
-        PSMTXMultVecSR(MR::tmpMtxRotZRad(-MR::diffAngleSignedHorizontal(_67C, _660, _6A0)), stickDir2D, stickDir2D);
+        f32 angle = MR::diffAngleSignedHorizontal(_67C, _660, _6A0);
+        TVec3f cameraZ;
+        MR::getCameraInvViewMtx().getZDir(cameraZ);
+        if (cameraZ.dot(_6A0) > 0.0f) {
+            angle = -angle;
+        }
+        PSMTXMultVecSR(MR::tmpMtxRotZRad(-angle), stickDir2D, stickDir2D);
         rX = stickDir2D.x;
         rY = stickDir2D.y;
         return;
@@ -2083,10 +2094,10 @@ void Mario::stick2DadjustGround(f32& rX, f32& rY) {
     vec2.y = _660.dot(getCamDirY());
     vec2.z = 0.0f;
 
+    MR::normalizeOrZero(&vec2);
     f32 diff = MR::diffAngleAbs(stickDir2D, vec2);
 
-    // explicit conversions to radian instead of calling MR::toRadian()
-    if (diff < 30.0f * MR::pi() / 180.0f || diff > 150.0f * MR::pi() / 180.0f) {
+    if (getCurrentStatus() != 39 && !isSwimming() && (diff < 0.5235988f || diff > 2.617994f)) {
         rX = 0.0f;
         rY = 0.0f;
         mStickPos.z = 0.0f;
@@ -2095,7 +2106,7 @@ void Mario::stick2DadjustGround(f32& rX, f32& rY) {
 
     _670 = stickDir2D;
     _67C = _660;
-    _66C = true;
+    if (_66C != true) { _66C = true; }
 }
 
 
@@ -16382,6 +16393,7 @@ bool Mario::isEnableStickWall() {
 }
 
 
+// NONMATCHING: stack allocation and unused debug-tag argument setup.
 bool Mario::fixWallingDist() {
     if (mMovementStates._19 & mMovementStates._8) {
         return true;
@@ -16390,21 +16402,23 @@ bool Mario::fixWallingDist() {
     if (mMovementStates._19) {
         TVec3f position(_4F4 + *mBackWallTriangle->getNormal(0) * 79.0f);
         f32 distance = MR::vecKillElement(position - mPosHolder->mPos, *mBackWallTriangle->getNormal(0), &position);
+        mPosHolder->fn_80406010(*mBackWallTriangle->getNormal(0) * distance);
         if (!fixWallingTop()) {
             return false;
         }
+        mPosHolder->fn_80405F90(_4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
 
     } else if (mMovementStates._8) {
         if (!fixWallingTop()) {
             return false;
         }
 
-        if (MR::isExistMapCollision(mPosHolder->mPos, mFrontVec * 100.0f) && mFrontVec.dot(*mFrontWallTriangle->getNormal(0)) < -0.999f) {
+        if (fn_803B2880(mPosHolder->mPos, mFrontVec * 100.0f) && mFrontVec.dot(*mFrontWallTriangle->getNormal(0)) < -0.999f) {
             TVec3f position(_4E8 + *mFrontWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
             TVec3f correction;
             MR::vecKillElement(position - mPosHolder->mPos, *getGravityVec(), &correction);
             if (!MR::isNearZero(correction)) {
-                TVec3f relative(correction + mActor->_288);
+                TVec3f relative(correction + mActor->mBinderDirection5DC);
                 if (MR::abs(relative.x) < MR::abs(correction.x)) {
                     correction.x = relative.x;
                 }
@@ -16417,7 +16431,7 @@ bool Mario::fixWallingDist() {
                     correction.z = relative.z;
                 }
 
-                addTrans(correction, "壁補正");
+                addTrans(correction, nullptr);
             }
         }
     }

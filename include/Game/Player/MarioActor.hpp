@@ -1303,7 +1303,7 @@ public:
         };
         struct { ModelHolder* mModelF24; ModelHolder* mModelF28; };
         struct { u8 _padModelF24[0x14]; ModelHolder* mModelF38; };
-        struct { u8 _padHandFlagsF24[0x11]; u8 mHandFlagF35; u8 mHandFlagF36; };
+        struct { u8 _padHandFlagsF24[0x10]; u8 mShadowHideHandsF34; u8 mHandFlagF35; u8 mHandFlagF36; };
         struct { u8 _padReflectionF24[0x20]; TVec3f mReflectionPositionF44; };
         struct { u8 _padHandF24[8]; ModelHolder* mHandModelL; ModelHolder* mHandModelR; };
         struct { u8 _padEffectF24[0x1C]; MarioActorEffectState* mActorEffectState; };

@@ -127,6 +127,7 @@ bool MarioSlider::start() {
     return true;
 }
 
+// NONMATCHING: temporary stack slots, GPR allocation and repeated integer-abs CSE.
 bool MarioSlider::update() {
     if (!getPlayer()->checkSliderMode()) {
         if (getPlayer()->mMovementStates._1 != 0) {

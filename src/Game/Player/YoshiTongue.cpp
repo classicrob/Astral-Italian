@@ -9,6 +9,7 @@
 #pragma auto_inline off
 
 namespace {
+    const char sTonguePos[] = "TonguePos";
     const f32 sJointLengths[] = {37.16f, 47.83f, 47.35f, 39.48f};
 }
 
@@ -79,7 +80,7 @@ void YoshiTongue::init(const JMapInfoIter& iter) {
     initSound(2, nullptr, &mTipPosition, TVec3f(0.0f));
     MR::connectToScene(this, 40, 11, 17, -1);
     MR::startAction(this, "YoshiTongueWait");
-    mFixedPosition = new FixedPosition(mYoshi, "TonguePos", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
+    mFixedPosition = new FixedPosition(mYoshi, sTonguePos, TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
     mMouthMtx = mFixedPosition->mMtx.toMtxPtr();
     for (s32 index = 0; index < 4; ++index) {
         char name[64];
@@ -314,6 +315,7 @@ bool YoshiTongue::fn_8041D3C0() const {
     return inactive;
 }
 
+// NONMATCHING: inline quaternion-to-matrix scheduling and temporary FPR allocation.
 void YoshiTongue::fn_8041CD10(TPos3f* output) const {
     TVec3f position;
     TVec3f ahead;

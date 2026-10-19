@@ -74,10 +74,14 @@ MarioFrontHistory::MarioFrontHistory(Mario* mario) {
     }
 }
 
+// NONMATCHING: source and destination pointer registers are swapped.
+#pragma opt_common_subs off
 void MarioFrontHistory::update() {
     mValues[mIndex] = mMario->mFrontVec;
     mIndex = static_cast<u16>(mIndex + 1) % mCount;
 }
+
+#pragma opt_common_subs reset
 
 void MarioFrontHistory::getFront(TVec3f* out) const {
     out->set(mValues[mIndex]);

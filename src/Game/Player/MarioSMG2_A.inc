@@ -1281,33 +1281,60 @@ void Mario::fn_803882A0() {
 }
 
 // NONMATCHING: 0x274 bookkeeping approximated
+// NONMATCHING: equivalent early-exit branch orientation and stack allocation.
 void Mario::fn_803886B0() {
-    if (!((FLD<u32>(this, 0x1C) >> 19) & 1)) {
-        TVec3f* a = &FLD<TVec3f>(this->mActor, 0x5DC);
-        f32 d = a->dot(FLD<TVec3f>(this, 0x368));
-        if (MR::isNearZero(*a, d)) {
-        }
-        TVec3f sp38(*a);
-        MR::normalizeOrZero(&sp38);
-        TVec3f sp2C;
-        f32 t1 = MR::vecKillElement(FLD<TVec3f>(this, 0x160), sp38, &sp2C);
-        if (t1 != 0.0f) {
-            TVec3f n(FLD<TVec3f>(this, 0x160));
-            MR::normalizeOrZero(&n);
-            f32 dd = n.dot(this->mFrontVec);
-            f32 w = 1.0f - MR::clamp(1.4285715f * (-dd - 0.3f), 0.0f, 1.0f);
-            if (!((FLD<u32>(this, 0xC) >> 23) & 1) && w < 0.1f) {
-                if ((FLD<u32>(this, 0xC) >> 5) & 1) {
-                    TVec3f sp14(this->getSideWallNorm());
-                    sp14 *= -t1;
-                    FLD<TVec3f>(this, 0x160) += sp14;
-                } else {
+    if ((_1C_WORD >> 19) & 1) {
+        return;
+    }
+    if (mActor->mBinderDirection5DC.dot(_368) >= 0.707f) {
+        return;
+    }
+    if (MR::isNearZero(mActor->mBinderDirection5DC, 1.0f)) {
+        return;
+    }
+    TVec3f direction(mActor->mBinderDirection5DC);
+    MR::normalizeOrZero(&direction);
+    TVec3f horizontal;
+    f32 component = MR::vecKillElement(mVelocity, direction, &horizontal);
+    if (component >= 0.0f) {
+        return;
+    }
+    mVelocity = horizontal;
+    MR::normalizeOrZero(&direction);
+    f32 dot = direction.dot(mFrontVec);
+    f32 weight = 1.0f - MR::clamp(1.4285715f * (-dot - 0.3f), 0.0f, 1.0f);
+    if (!mMovementStates._8 && weight < 0.1f) {
+        if (mMovementStates._1A) {
+            TVec3f correction(getSideWallNorm());
+            correction *= -component;
+            mVelocity += correction;
+        } else {
+            s32 count = mActor->mBinder->mPlaneNum;
+            if (count != 0) {
+                f32 bestDot = 0.0f;
+                u32 bestIndex = 0;
+                for (u32 i = 0; i < count; i++) {
+                    f32 facing = mActor->mBinder->getPlane(i)->mParentTriangle.getNormal(0)->dot(mFrontVec);
+                    if (facing < bestDot) {
+                        bestIndex = i;
+                        bestDot = facing;
+                    }
+                }
+                const TVec3f& contact = mActor->mBinder->getPlane(bestIndex)->_64;
+                TVec3f delta(mPosHolder->mPos);
+                delta -= contact;
+                TVec3f correction;
+                MR::vecKillElement(delta, *getGravityVec(), &correction);
+                MR::vecKillElement(correction, direction, &correction);
+                if (!MR::isNearZero(correction)) {
+                    correction.setLength(-component);
+                    mVelocity += correction;
                 }
             }
-            this->mTargetWalkSpeedIndex = 0;
-            FLD<f32>(this, 0x278) *= w;
         }
     }
+    mTargetWalkSpeedIndex = 0;
+    mWalkSpeed *= weight;
 }
 
 // NONMATCHING: gate chain from the draft, state transitions approximated

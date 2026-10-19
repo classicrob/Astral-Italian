@@ -3892,48 +3892,42 @@ void MarioActor::drawIndirectModel() const {
 }
 
 
+// NONMATCHING: verified equivalent pooled literal addresses.
 void MarioActor::drawReflectModel() const {
     if (isAllHidden()) {
         return;
     }
 
-    if (_A08 >= 6 && _A24 < 2) {
-        return;
-    }
-
-    if (_A08 == 3 && _A25 < 2) {
-        return;
-    }
-
-    if (!(_A08 & 2)) {
-        return;
-    }
+    if (mInputDisabled1066) return;
+    if (!mWaterReflectionEF8 && !mSphereReflectionEF9 && !mGroundReflectionEFC) return;
+    if (mSphereReflectionEF9 && mFlagF18 < 2) return;
+    if (mWaterReflectionEF8 && mFlagF19 < 2) return;
 
     if (isUseScreenBox()) {
         captureScreenBox();
     }
 
-    J3DModelX* model = getJ3DModel();
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
 
     MR::showJoint(model, "HandR0");
     MR::showJoint(model, "HandL0");
     MR::showJoint(model, "Face0");
 
-    if (static_cast< s8 >(mCurrModel) != 1U) {
+    if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) {
         MR::hideMaterial(model, "EyeLid_v");
     }
 
-    if ((_468 == 0 ? nullptr : _428[0]) != nullptr) {
+    if (getCarrySensor() != nullptr) {
         if (isUseScreenBox()) {
-            mDLchanger->addDL(static_cast< J3DModelX* >(MR::getJ3DModel(_9A0)));
+            mDLchanger->addDL(static_cast< J3DModelX* >(MR::getJ3DModel(mJetTurtleShadowE94)));
         }
 
-        _9A0->drawType0();
+        mJetTurtleShadowE94->drawType0();
     }
 
     model->mFlags.clear();
 
-    if (_A08 == 2) {
+    if (mGroundReflectionEFC) {
         GXSetZScaleOffset(1.0f, 0.00001f);
         model->mFlags._1A = true;
         model->setDrawView(3);
@@ -3957,11 +3951,11 @@ void MarioActor::drawReflectModel() const {
     MR::hideJoint(model, "HandR0");
     MR::hideJoint(model, "HandL0");
 
-    if (static_cast< s8 >(mCurrModel) != 4U) {
+    if (mAllModel->mCurrentModel != 4) {
         MR::hideJoint(model, "Face0");
     }
 
-    if (static_cast< s8 >(mCurrModel) != 1U) {
+    if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) {
         MR::showMaterial(model, "EyeLid_v");
     }
 
@@ -8295,13 +8289,14 @@ void MarioActor::calcViewWallShadowModel() {
 }
 
 
+// NONMATCHING: register allocation and verified pooled string address hoisting.
 void MarioActor::drawShadow() const {
     bool hidden = _482 || _481;
     if (hidden) {
         return;
     }
 
-    if (!(_A08 & 1)) {
+    if (!mScreenBoxSuppressed) {
         return;
     }
 
@@ -8309,15 +8304,11 @@ void MarioActor::drawShadow() const {
         return;
     }
 
-    if (mBeeWallWalk && mMario->mMovementStates._1) {
+    if (mMario->isStatusActive(MarioStatus_FpView) && mFirstPersonDrawHidden1A5) {
         return;
     }
 
-    if (mMario->isStatusActive(MarioStatus_FpView) && _1A1) {
-        return;
-    }
-
-    if (_924 != nullptr && selectNoShadow(_924)) {
+    if (_924 != nullptr && mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "影を消す")) {
         return;
     }
 
@@ -8325,12 +8316,12 @@ void MarioActor::drawShadow() const {
         return;
     }
 
-    J3DModelX* pSimple = getSimpleModel();
+    J3DModelX* pSimple = mSimpleModelF08;
     TPos3f matrix;
     PSMTXScale(matrix.toMtxPtr(), mScale.x, mScale.y, mScale.z);
-    PSMTXConcat(matrix.toMtxPtr(), _BC8.mMtx, matrix.toMtxPtr());
-    PSMTXConcat(getJ3DModel()->getBaseTRMtx(), matrix.toMtxPtr(), pSimple->getBaseTRMtx());
-    _214->calcView(pSimple, 2, getJ3DModel());
+    PSMTXConcat(matrix.toMtxPtr(), mReflectionBaseMtx264.mMtx, matrix.toMtxPtr());
+    PSMTXConcat(mAllModel->getJ3DModel()->getBaseTRMtx(), matrix.toMtxPtr(), pSimple->getBaseTRMtx());
+    mCollisionShadow580->calcView(pSimple, 2, static_cast<J3DModelX*>(mAllModel->getJ3DModel()));
     if (mMario->mSinkTimer > 180) {
         return;
     }
@@ -8344,20 +8335,20 @@ void MarioActor::drawShadow() const {
         MR::hideJointAndChildren(pSimple, "ShoulderR");
     }
 
-    if (_A58 || mMario->mSinkTimer > 120) {
+    if (mShadowHideHandsF34 || mMario->mSinkTimer > 120) {
         MR::hideJoint(pSimple, "HandL0");
         MR::hideJoint(pSimple, "HandR0");
     }
 
-    _214->drawAndCaptureTex(pSimple, mPosition);
-    _214->clearAlphaBuffer();
+    mCollisionShadow580->drawAndCaptureTex(pSimple, mPosition);
+    mCollisionShadow580->clearAlphaBuffer();
     if (mBeeWallWalk) {
-        _214->_307 = 0;
+        mCollisionShadow580->_307 = 0;
     } else {
-        _214->_307 = 1;
+        mCollisionShadow580->_307 = 1;
     }
 
-    _214->draw();
+    mCollisionShadow580->draw();
     MR::showJointAndChildren(pSimple, "JointRoot");
 }
 
@@ -8418,10 +8409,11 @@ void MarioActor::decideShadowMode() {
 }
 
 
+// NONMATCHING: model register allocation, load scheduling and verified pooled literals.
 void MarioActor::calcViewSilhouetteModel() {
-    J3DModelX* pModel = getJ3DModel();
-    J3DModelX* pSimple = getSimpleModel();
-    TVec3f direction(mPosition - mCamPos);
+    J3DModelX* pSimple = mSimpleModelF08;
+    J3DModelX* pModel = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+    TVec3f direction(mPosition - mCameraDirY1014);
     MR::normalizeOrZero(&direction);
     PSMTXCopy(pModel->getBaseTRMtx(), pSimple->getBaseTRMtx());
     TPos3f& matrix = *reinterpret_cast< TPos3f* >(pSimple->getBaseTRMtx());
@@ -8440,14 +8432,18 @@ void MarioActor::calcViewSilhouetteModel() {
     TVec3f root;
     TVec3f translation;
     if (_EA4) {
-        getRealPos("All_Root", &root);
+        TPos3f rootMatrix;
+        getRealMtx(rootMatrix.toMtxPtr(), "All_Root");
+        MR::extractMtxTrans(rootMatrix.toMtxPtr(), &root);
         translation = root - direction * getConst().getTable()->mSilhouetteZoffset;
+    } else if (mMario->isPlayerModeYoshi()) {
+        MR::copyJointPos(mYoshiHolder->mYoshi, "MarioPos", &translation);
     } else {
         translation = mPosition;
     }
 
     MR::setMtxTrans(matrix.toMtxPtr(), translation.x, translation.y, translation.z);
-    PSMTXConcat(matrix.toMtxPtr(), _BC8.mMtx, matrix.toMtxPtr());
+    PSMTXConcat(matrix.toMtxPtr(), mReflectionBaseMtx264.mMtx, matrix.toMtxPtr());
     pSimple->viewCalcRef(1, pModel);
 }
 

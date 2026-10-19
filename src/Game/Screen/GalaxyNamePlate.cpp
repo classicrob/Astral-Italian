@@ -9,9 +9,7 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
-#ifndef GALAXY_NATIVE
 #include <runtime.h>
-#endif
 
 namespace {
     const s32 cAppearReadyFrame = 40;

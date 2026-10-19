@@ -7,7 +7,6 @@
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Screen/ButtonPaneController.hpp"
 #include "Game/Util/LayoutUtil.hpp"
-#include "Game/Util/NativeUiObserve.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include <nw4r/lyt/texMap.h>
@@ -160,13 +159,7 @@ nw4r::lyt::TexMap* MiiSelectIcon::getTexMap() {
     if (mIconID->isFellow()) {
         GXTexObj texObj;
 
-#ifdef GALAXY_NATIVE
-        nw4r::lyt::TexMap* source = MR::getLytTexMap(this, "PicMario", 0);
-        if (!source || !mFellowTexMap) return nullptr;
-        source->Get(&texObj);
-#else
         MR::getLytTexMap(this, "PicMario", 0)->Get(&texObj);
-#endif
         mFellowTexMap->Set(texObj);
 
         return mFellowTexMap;
@@ -251,13 +244,7 @@ void MiiSelectIcon::createFaceImageObj() {
     mIcon->initWithoutIter();
 
     GXTexObj texObj;
-#ifdef GALAXY_NATIVE
-    nw4r::lyt::TexMap* source = MR::getLytTexMap(this, "PicMario", 0);
-    if (!source) return;
-    source->Get(&texObj);
-#else
     MR::getLytTexMap(this, "PicMario", 0)->Get(&texObj);
-#endif
 
     mFellowTexMap = new nw4r::lyt::TexMap(texObj);
     mMiiTexMap = MR::createLytTexMap(reinterpret_cast< ResTIMG* >(mIcon->mImageBuffer));

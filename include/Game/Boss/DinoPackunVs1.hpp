@@ -30,10 +30,6 @@ public:
     void exeBattleLv2();
     void exeBattleLv3();
     void exeDownDemo();
-#ifdef GALAXY_NATIVE
-    // For the smoke run's actor observation (Game/Util/NativeActorObserve.hpp, "DinoPiranha").
-    s32 nativeObservePhase() const;
-#endif
 
     /* 0x10 */ DinoPackunDemo* mDemo;
     /* 0x14 */ DinoPackunBattleEgg* mEgg;

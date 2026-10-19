@@ -85,7 +85,7 @@ static const GXColor cFavoriteColor[RFLFavoriteColor_Max] = {
 
 static const GXColor cWhite = {255, 255, 255, 255};
 
-RFL_HEADER_STATIC void RFLSetCoordinate(RFLCoordinateType u, RFLCoordinateType f) {
+static void RFLSetCoordinate(RFLCoordinateType u, RFLCoordinateType f) {
     RFLiCoordinateData* coordinateData = RFLiGetCoordinateData();
     RFLCoordinateType r;
 
@@ -140,7 +140,7 @@ RFL_HEADER_STATIC void RFLSetCoordinate(RFLCoordinateType u, RFLCoordinateType f
     coordinateData->rRev = (r & RFLCoordinateType_RevMask) != 0;
 }
 
-RFL_HEADER_STATIC u32 RFLiGetExpressionNum(u32 exprFlags) {
+static u32 RFLiGetExpressionNum(u32 exprFlags) {
     int i;
     u32 num = 0;
 
@@ -264,7 +264,7 @@ void RFLSetExpression(RFLCharModel* model, RFLExpression expr) {
     imodel->expression = expr;
 }
 
-RFL_HEADER_STATIC RFLExpression RFLGetExpression(const RFLCharModel* model) {
+static RFLExpression RFLGetExpression(const RFLCharModel* model) {
     RFLiCharModel* imodel = (RFLiCharModel*)model;
     return imodel->expression;
 }
@@ -777,11 +777,6 @@ void RFLiInitShapeRes(RFLiShapeRes* shape) {
     u32 fileSize = RFLiGetShapeSize(shape->part, shape->file);
     res = RFLiAlloc32(fileSize);
     RFLiLoadShape(shape->part, shape->file, res);
-#ifdef GALAXY_NATIVE
-    // Vertex data is big-endian in RFL_Res.dat; the parser below reads host
-    // values. The resource was validated by RFLInitResAsync.
-    RFLiNativeShapeToHost(res, fileSize);
-#endif
 
     ptr8 = (u8*)res;
     ptr8 += sizeof(u32);
@@ -974,14 +969,14 @@ void RFLiInitTexRes(GXTexObj* texObj, RFLiPartsShpTex part, u16 file, void* buff
     RFLiFree(tex);
 }
 
-RFL_HEADER_STATIC void RFLiTransformCoordinate(s16* to, const s16* from) {
+static void RFLiTransformCoordinate(s16* to, const s16* from) {
     RFLiCoordinateData* coordinateData = &RFLiGetManager()->coordinateData;
     to[coordinateData->rOff] = coordinateData->rRev ? -from[0] : from[0];
     to[coordinateData->uOff] = coordinateData->uRev ? -from[1] : from[1];
     to[coordinateData->fOff] = coordinateData->fRev ? -from[2] : from[2];
 }
 
-RFL_HEADER_STATIC void RFLDrawShape(const RFLCharModel* model) {
+static void RFLDrawShape(const RFLCharModel* model) {
     GXCullMode cullMode;
     RFLiCharModel* imodel = (RFLiCharModel*)model;
     RFLiCharModelRes* res = imodel->res;

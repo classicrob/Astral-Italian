@@ -5,7 +5,6 @@
 #include "JSystem/JAudio2/JASHeapCtrl.hpp"
 #include "JSystem/JAudio2/JAUStreamFileTable.hpp"
 #include <bitset>
-#include <stdint.h>
 
 template < int N >
 class JAUStreamAramMgrBase_ : public JAIStreamAramMgr {
@@ -26,7 +25,7 @@ public:
     }
 
     virtual void* newStreamAram(u32*) = 0;
-    virtual bool deleteStreamAram(uintptr_t) = 0;
+    virtual bool deleteStreamAram(u32) = 0;
 
     void alloc(JASHeap* pHeap, u32 size) {
         for (int i = 0; i < N; i++) {
@@ -61,9 +60,9 @@ public:
         return nullptr;
     }
 
-    virtual bool deleteStreamAram(uintptr_t addr) {
+    virtual bool deleteStreamAram(u32 addr) {
         for (s32 i = 0; i < Base::mSize; i++) {
-            if (Base::mBits.test(i) && addr == (uintptr_t)Base::mHeaps[i].mBase) {
+            if (Base::mBits.test(i) && addr == (u32)Base::mHeaps[i].mBase) {
                 Base::mBits.reset(i);
                 return true;
             }

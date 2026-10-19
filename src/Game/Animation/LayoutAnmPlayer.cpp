@@ -20,10 +20,6 @@ void LayoutAnmPlayer::reflectFrame() {
 void LayoutAnmPlayer::start(const char* pAnimName) {
     nw4r::lyt::AnimTransform* pAnimTransform = mManager->getAnimTransform(pAnimName);
 
-#ifdef GALAXY_NATIVE
-    if (!pAnimTransform) return;
-#endif
-
     if (pAnimTransform != mAnimTransform) {
         mAnimTransform = pAnimTransform;
     }

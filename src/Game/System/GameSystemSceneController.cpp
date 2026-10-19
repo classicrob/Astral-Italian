@@ -258,16 +258,10 @@ bool GameSystemSceneController::isSceneInitializeState(SceneInitializeState stat
 }
 
 void GameSystemSceneController::startScenarioSelectScene() {
-#ifdef GALAXY_NATIVE
-    petari_gx_pipeline_stage_begin("ScenarioSelect", nullptr);
-#endif
     mScenarioSelectScene->start();
 }
 
 void GameSystemSceneController::startScenarioSelectSceneBackground() {
-#ifdef GALAXY_NATIVE
-    petari_gx_pipeline_stage_begin("ScenarioSelect", nullptr);
-#endif
     mScenarioSelectScene->startBackground();
 }
 
@@ -360,9 +354,6 @@ void GameSystemSceneController::exeChangeWaveBank() {
 void GameSystemSceneController::exeInitializeScene() {
     if (mSpine->mStep == 0) {
         mIntermissionScene->setCurrentSceneControllerState("[initialize Scene: %s]", mNextSceneControlInfo.mScene);
-#ifdef GALAXY_NATIVE
-        petari_gx_pipeline_stage_begin(mNextSceneControlInfo.mStage, nullptr);
-#endif
         MR::startFunctionAsyncExecute(MR::Functor(this, &GameSystemSceneController::initializeScene), 17, "シーン初期化");
     }
 

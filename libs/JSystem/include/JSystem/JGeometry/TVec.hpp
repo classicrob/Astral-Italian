@@ -104,13 +104,7 @@ namespace JGeometry {
         }
 
 #ifdef __MWERKS__
-        // These returned references to locals on the Wii (MWCC tolerated it). Native
-        // builds return by value; callers bind the result or copy it.
-#ifdef GALAXY_NATIVE
-        inline TVec2 addInline(const TVec2< T >& other) const {
-#else
         inline TVec2& addInline(const TVec2< T >& other) const {
-#endif
 #else
         inline TVec2 addInline(const TVec2< T >& other) const {
 #endif
@@ -120,11 +114,7 @@ namespace JGeometry {
         }
 
 #ifdef __MWERKS__
-#ifdef GALAXY_NATIVE
-        inline const TVec2 addOperatorInline(const TVec2& rOther) const {
-#else
         inline const TVec2& addOperatorInline(const TVec2& rOther) const {
-#endif
 #else
         inline TVec2 addOperatorInline(const TVec2& rOther) const {
 #endif
@@ -197,11 +187,7 @@ namespace JGeometry {
         }
 
 #ifdef __MWERKS__
-#ifdef GALAXY_NATIVE
-        inline TVec2 subInline(const TVec2< T >& other) const {
-#else
         inline TVec2& subInline(const TVec2< T >& other) const {
-#endif
 #else
         inline TVec2 subInline(const TVec2< T >& other) const {
 #endif
@@ -211,11 +197,7 @@ namespace JGeometry {
         }
 
 #ifdef __MWERKS__
-#ifdef GALAXY_NATIVE
-        inline const TVec2 subOperatorInline(const TVec2& rOther) const {
-#else
         inline const TVec2& subOperatorInline(const TVec2& rOther) const {
-#endif
 #else
         inline TVec2 subOperatorInline(const TVec2& rOther) const {
 #endif
@@ -335,20 +317,12 @@ namespace JGeometry {
         T x, y;
     };
 
-    // Header definitions of explicit specializations need inline to link from
-    // more than one host translation unit.
-#ifdef GALAXY_NATIVE
-    template <>
-    inline TVec2< f32 >::TVec2() {
-    }
-#else
     template <>
 #ifndef __MWERKS__
     inline
 #endif
     TVec2< f32 >::TVec2() {
     }
-#endif
 
     template < typename T >
     struct TVec3 {
@@ -398,9 +372,7 @@ namespace JGeometry {
         s16 x, y, z;
 
         TVec3() {
-#ifndef GALAXY_NATIVE
             x = x;  // TODO: This shouldn't be here, but it's the only way to get a Ctor generated in OceanRingPipe.cpp
-#endif
         }
 
         template < typename J >
@@ -628,11 +600,7 @@ namespace JGeometry {
 
         void setTrans(MtxPtr mtx) {
 #ifdef __MWERKS__
-#ifdef GALAXY_NATIVE
-            set< f32 >(mtx[0][3], mtx[1][3], mtx[2][3]);
-#else
             set< f32 >((*mtx)[3], (*mtx)[7], (*mtx)[11]);
-#endif
 #else
             set< f32 >(mtx[0][3], mtx[1][3], mtx[2][3]);
 #endif

@@ -1,22 +1,12 @@
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/MathUtil.hpp"
-#ifdef GALAXY_NATIVE
-namespace {
-    // MSL's "C" locale lower-case map: only 'A'-'Z' change; other values, including
-    // negative (non-ASCII) chars, are returned unchanged.
-    inline int mslToLower(int c) {
-        return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c;
-    }
-}  // namespace
-#else
 #include <locale.h>
 
 // needed here for inlining reasons
 inline int tolower(int c) {
     return ((c < 0) || (c >= 0x100)) ? c : (int)(_current_locale.ctype_cmpt_ptr->lower_map_ptr[c]);
 }
-#endif
 
 HashSortTable::HashSortTable(u32 cnt) {
     mHashCodes = new u32[cnt];
@@ -193,11 +183,7 @@ namespace MR {
         u32 hash;
 
         for (hash = 0; *pStr != '\0'; pStr++) {
-#ifdef GALAXY_NATIVE
-            hash = mslToLower(*pStr) + hash * 31;
-#else
             hash = tolower(*pStr) + hash * 31;
-#endif
         }
 
         return hash;

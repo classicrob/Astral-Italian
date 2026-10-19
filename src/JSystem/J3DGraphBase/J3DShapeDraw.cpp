@@ -3,9 +3,6 @@
 #include <cstring>
 #include <revolution/gx/GXDispList.h>
 #include <stdint.h>
-#ifdef GALAXY_NATIVE
-#include <petari/endian.hpp>
-#endif
 
 u32 J3DShapeDraw::countVertex(u32 stride) {
     u32 count = 0;
@@ -16,12 +13,7 @@ u32 J3DShapeDraw::countVertex(u32 stride) {
         dl++;
         if (cmd != GX_TRIANGLEFAN && cmd != GX_TRIANGLESTRIP)
             break;
-#ifdef GALAXY_NATIVE
-        // Display lists are big-endian GX command streams.
-        int vtxNum = PetariNative::readU16BE(dl);
-#else
         int vtxNum = *reinterpret_cast< u16* >(dl);
-#endif
         dl += 2;
         count += vtxNum;
         dl = static_cast< u8* >(dl) + stride * vtxNum;
@@ -47,16 +39,9 @@ void J3DShapeDraw::addTexMtxIndexInDL(u32 stride, u32 attrOffs, u32 valueBase) {
             break;
 
         // Copy count
-#ifdef GALAXY_NATIVE
-        int vtxNum = PetariNative::readU16BE(oldDL);
-        oldDL += 2;
-        newDL[0] = static_cast< u8 >(vtxNum >> 8);
-        newDL[1] = static_cast< u8 >(vtxNum);
-#else
         int vtxNum = *reinterpret_cast< u16* >(oldDL);
         oldDL += 2;
         *reinterpret_cast< u16* >(newDL) = vtxNum;
-#endif
         newDL += 2;
 
         for (int i = 0; i < vtxNum; i++) {

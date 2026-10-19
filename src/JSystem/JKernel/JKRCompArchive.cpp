@@ -46,13 +46,6 @@ JKRCompArchive::~JKRCompArchive() {
         mInfoBlock = NULL;
     }
 
-#ifdef GALAXY_NATIVE
-    if (mRawInfoBlock != NULL) {
-        JKRFreeToHeap(mHeap, mRawInfoBlock);
-        mRawInfoBlock = NULL;
-    }
-#endif
-
     if (mAramPart != NULL) {
         delete mAramPart;
     }
@@ -96,14 +89,6 @@ bool JKRCompArchive::open(s32 entryNum) {
 
         JKRDvdToMainRam(entryNum, (u8*)arcHeader, EXPAND_SWITCH_UNKNOWN1, 32, NULL, JKRDvdRipper::ALLOC_DIRECTION_FORWARD, 0, &_5C, NULL);
         DCInvalidateRange(arcHeader, 32);
-
-#ifdef GALAXY_NATIVE
-        // arcHeader is a private copy, so decode it in place.
-        if (!readNativeHeader(arcHeader, arcHeader)) {
-            mMountMode = 0;
-            goto cleanup;
-        }
-#endif
 
         mSizeOfMemPart = arcHeader->mMRamDataSize;
         mSizeOfAramPart = arcHeader->mARamDataSize;
@@ -158,10 +143,6 @@ bool JKRCompArchive::open(s32 entryNum) {
                     arcHeader = (RarcHeader*)mem;
                     JKRDecompress((u8*)buf, (u8*)mem, expandSize, 0);
                     JKRFreeToSysHeap(buf);
-#ifdef GALAXY_NATIVE
-                    // mem is this archive's private decompressed copy.
-                    readNativeHeader(arcHeader, arcHeader);
-#endif
 
                     mInfoBlock = (RarcInfoBlock*)JKRAllocFromHeap(mHeap, arcHeader->mFileDataOffset + mSizeOfMemPart, alignment);
                     if (mInfoBlock == NULL) {
@@ -189,24 +170,6 @@ bool JKRCompArchive::open(s32 entryNum) {
             break;
         }
 
-#ifdef GALAXY_NATIVE
-        // The serialized block stays alive: field_0x64 addresses the preloaded
-        // MRAM file data stored after the info block.
-        if (mMountMode != 0 && mInfoBlock != NULL) {
-            mRawInfoBlock = mInfoBlock;
-            if (!setupNativeTables(mRawInfoBlock, arcHeader->mFileDataOffset, arcHeader->mTotalDataSize, alignment)) {
-                JKRFreeToHeap(mHeap, mRawInfoBlock);
-                mRawInfoBlock = NULL;
-                mInfoBlock = NULL;
-                mMountMode = 0;
-                goto cleanup;
-            }
-        } else {
-            mMountMode = 0;
-            goto cleanup;
-        }
-#endif
-
         mExpandSizes = NULL;
         u8 compressedFiles = 0;
         SDIFileEntry* fileEntry = mFiles;
@@ -229,9 +192,6 @@ bool JKRCompArchive::open(s32 entryNum) {
         }
     }
 
-#ifdef GALAXY_NATIVE
-cleanup:
-#endif
     if (arcHeader != NULL) {
         JKRFreeToSysHeap(arcHeader);
     }

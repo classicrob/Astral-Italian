@@ -9,12 +9,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "revolution/types.h"
 #include <algorithm>
-#ifdef GALAXY_NATIVE
-#include <petari/editor/runtime_hooks.hpp>
-#include <petari/game_compat.hpp>
-#else
 #include <functional.hpp>
-#endif
 
 AreaObj::AreaObj(const char* pName)
     : NameObj(pName), mForm(nullptr), mFormType(-1), mIsValid(true), mIsFollowValid(true), mObjArg0(-1), mObjArg1(-1), mObjArg2(-1), mObjArg3(-1), mObjArg4(-1),

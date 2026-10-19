@@ -65,13 +65,7 @@ public:
         /* 0x12 */ u8 mNoteRangeStart;
     };
 
-    // -offsetof(AudMeTrack, mNode). AudMeTrack is incomplete here, so the native
-    // value is spelled out and checked after the class.
-#ifdef GALAXY_NATIVE
-    struct TList : JGadget::TLinkList< AudMeTrack, -552 > {
-#else
     struct TList : JGadget::TLinkList< AudMeTrack, -384 > {
-#endif
         TList() : mCallbackRegistered(false) {
         }
 
@@ -305,8 +299,3 @@ public:
     /* 0x16C */ TTrackInfo mTrackInfo;
     /* 0x180 */ JGadget::TLinkListNode mNode;
 };
-
-#ifdef GALAXY_NATIVE
-#include <cstddef>
-static_assert(offsetof(AudMeTrack, mNode) == 552, "AudMeTrack::TList node offset");
-#endif

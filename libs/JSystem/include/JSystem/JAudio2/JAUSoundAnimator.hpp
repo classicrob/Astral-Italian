@@ -3,7 +3,6 @@
 #include "JSystem/JAudio2/JAISound.hpp"
 #include "JSystem/JAudio2/JAISoundHandles.hpp"
 #include "JSystem/JGeometry.hpp"
-#include "JSystem/JSupport/JSUBigEndian.hpp"
 #include <revolution.h>
 
 class JASSoundParams;
@@ -94,15 +93,6 @@ public:
         return mSoundID;
     }
 
-#ifdef GALAXY_NATIVE
-    /* 0x00 */ JSU_BE(u32) mSoundID;
-    /* 0x04 */ JSU_BE(f32) mNoteOnTime;
-    /* 0x08 */ JSU_BE(f32) mNoteOffTime;
-    /* 0x0C */ JSU_BE(f32) mBasePitch;
-    // Read through the numeric masks above. The Wii bitfield view below allocates
-    // bits in MWCC order and is not declared natively.
-    /* 0x10 */ JSU_BE(u32) mFlags;
-#else
     /* 0x00 */ JAISoundID mSoundID;
     /* 0x04 */ f32 mNoteOnTime;
     /* 0x08 */ f32 mNoteOffTime;
@@ -121,7 +111,6 @@ public:
         };
         /* 0x10 */ u32 mFlags;
     };
-#endif
     /* 0x14 */ u8 mBaseVolume;
     /* 0x15 */ s8 mPitchDelta;
     /* 0x16 */ u8 mPlayTime;
@@ -129,7 +118,7 @@ public:
     /* 0x18 */ s8 mVolumeDelta;
     /* 0x19 */ u8 mRepeatInterval;
     /* 0x1A */ s8 _1A;
-    /* 0x1C */ JSU_BE(u32) _1C;
+    /* 0x1C */ u32 _1C;
 };
 
 class JAUSoundAnimation;
@@ -145,21 +134,6 @@ class JAUSoundAnimation {
 public:
     u32 getStartSoundIndex(f32) const;
     u32 getEndSoundIndex(f32) const;
-#ifdef GALAXY_NATIVE
-    // The control slot is a 32-bit field in disc data and holds 0 there, so
-    // native builds always use the embedded sound records.
-    u16 getNumSounds() const {
-        return mNumSounds;
-    }
-
-    const JAUSoundAnimationSound* getSound(int i_index) const {
-        return &mSounds + i_index;
-    }
-
-    /* 0x0 */ JSU_BE(u16) mNumSounds;
-    /* 0x4 */ JSU_BE(u32) mControlSlot;
-    /* 0x8 */ JAUSoundAnimationSound mSounds;
-#else
     u16 getNumSounds() const {
         if (mControl != nullptr) {
             return mControl->getNumSounds(this);
@@ -179,7 +153,6 @@ public:
     /* 0x0 */ u16 mNumSounds;
     /* 0x4 */ JAUSoundAnimationControl* mControl;
     /* 0x8 */ JAUSoundAnimationSound mSounds;
-#endif
 };
 
 class JAUSoundAnimator {

@@ -2,7 +2,6 @@
 
 #include "JSystem/JAudio2/JAISound.hpp"
 #include "JSystem/JGeometry/TVec.hpp"
-#include <stdint.h>
 
 class JAISeqDataUser;
 
@@ -31,7 +30,7 @@ public:
 
     JAISoundHandle* getHandleSoundID(JAISoundID);
     JAISoundHandle* getFreeHandle();
-    JAISoundHandle* getHandleUserData(uintptr_t);
+    JAISoundHandle* getHandleUserData(u32);
 
     bool hasActiveSound() const;
     void setPos(const TVec3f&);

@@ -13,9 +13,6 @@
 
 #define JGADGET_LINK_LIST(type, node) JGadget::TLinkList< type, -offsetof(type, node) >
 
-#ifdef GALAXY_NATIVE
-#include <iterator>
-#else
 namespace std {
 
     struct input_iterator_tag {};
@@ -36,7 +33,6 @@ namespace std {
     };
 
 }  // namespace std
-#endif
 
 namespace JGadget {
 

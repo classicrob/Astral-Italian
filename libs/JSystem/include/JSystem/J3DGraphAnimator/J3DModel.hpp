@@ -7,7 +7,6 @@
 #include "JSystem/J3DGraphBase/J3DPacket.hpp"
 #include "JSystem/J3DGraphBase/J3DVertex.hpp"
 #include <revolution.h>
-#include <stdint.h>
 
 class J3DModelData;
 class J3DMtxBuffer;

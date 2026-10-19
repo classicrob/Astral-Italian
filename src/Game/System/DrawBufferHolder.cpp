@@ -2,9 +2,6 @@
 #include "Game/System/DrawBufferGroup.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <algorithm>
-#ifdef GALAXY_NATIVE
-#include <petari/game_compat.hpp>
-#endif
 
 namespace {
     // static const char* sDrawTypeCameraName = ;

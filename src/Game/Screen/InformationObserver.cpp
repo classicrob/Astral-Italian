@@ -89,7 +89,6 @@ void InformationObserver::exeWait() {
 
 void InformationObserver::exeDisp() {
     if (MR::isFirstStep(this)) {
-        NATIVE_MILESTONE(sAttr[mType].mMessageId);  // the notice shown ("InformationObserverOneUp", ...)
         if (mType == Type_LifeUp && MR::isPlayerLuigi()) {
             MR::appearInformationMessageUp("InformationObserverLifeUpLuigi", true);
         } else {

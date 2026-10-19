@@ -482,7 +482,7 @@ static void startUpdateDB_(RFLiMiddleDB* db) {
     }
 }
 
-RFL_HEADER_STATIC RFLErrcode RFLUpdateMiddleDBAsync(RFLMiddleDB* db) {
+static RFLErrcode RFLUpdateMiddleDBAsync(RFLMiddleDB* db) {
     if (db == NULL) {
         return RFLErrcode_WrongParam;
     }
@@ -494,7 +494,7 @@ RFL_HEADER_STATIC RFLErrcode RFLUpdateMiddleDBAsync(RFLMiddleDB* db) {
     return RFLErrcode_NotAvailable;
 }
 
-RFL_HEADER_STATIC RFLErrcode RFLiUpdateMiddleDBAsync(RFLMiddleDB* db, RFLiCallback cb,
+static RFLErrcode RFLiUpdateMiddleDBAsync(RFLMiddleDB* db, RFLiCallback cb,
                                    BOOL cache) {
     RFLiMiddleDB* idb = (RFLiMiddleDB*)db;
 
@@ -527,11 +527,11 @@ RFL_HEADER_STATIC RFLErrcode RFLiUpdateMiddleDBAsync(RFLMiddleDB* db, RFLiCallba
     return RFLGetAsyncStatus();
 }
 
-RFL_HEADER_STATIC RFLMiddleDBType RFLGetMiddleDBType(const RFLMiddleDB* db) {
+static RFLMiddleDBType RFLGetMiddleDBType(const RFLMiddleDB* db) {
     return ((RFLiMiddleDB*)db)->type;
 }
 
-RFL_HEADER_STATIC u16 RFLGetMiddleDBStoredSize(const RFLMiddleDB* db) {
+static u16 RFLGetMiddleDBStoredSize(const RFLMiddleDB* db) {
     return ((RFLiMiddleDB*)db)->storedSize;
 }
 
@@ -561,7 +561,7 @@ BOOL RFLiGetCharInfoMiddleDB(RFLiCharInfo* info, const RFLMiddleDB* db,
     return TRUE;
 }
 
-RFL_HEADER_STATIC void RFLSetMiddleDBRandomMask(RFLMiddleDB* db, RFLSex sex, RFLAge age,
+static void RFLSetMiddleDBRandomMask(RFLMiddleDB* db, RFLSex sex, RFLAge age,
                               RFLRace race) {
     RandomParam* rparam;
     RFLiMiddleDB* idb = (RFLiMiddleDB*)db;
@@ -576,7 +576,7 @@ RFL_HEADER_STATIC void RFLSetMiddleDBRandomMask(RFLMiddleDB* db, RFLSex sex, RFL
     rparam->race = race;
 }
 
-RFL_HEADER_STATIC void RFLSetMiddleDBHiddenMask(RFLMiddleDB* db, RFLSex sex) {
+static void RFLSetMiddleDBHiddenMask(RFLMiddleDB* db, RFLSex sex) {
     HiddenRandomParam* hparam;
     HiddenNewOldParam* nparam;
     RFLiMiddleDB* idb = (RFLiMiddleDB*)db;
@@ -594,7 +594,7 @@ RFL_HEADER_STATIC void RFLSetMiddleDBHiddenMask(RFLMiddleDB* db, RFLSex sex) {
     }
 }
 
-RFL_HEADER_STATIC RFLErrcode RFLiAddMiddleDBUserData(RFLMiddleDB* db, RFLiCharData* raw) {
+static RFLErrcode RFLiAddMiddleDBUserData(RFLMiddleDB* db, RFLiCharData* raw) {
     RFLiHiddenCharData hraw;
     RFLiCharInfo info;
     RFLiMiddleDB* idb = (RFLiMiddleDB*)db;
@@ -636,7 +636,7 @@ RFL_HEADER_STATIC RFLErrcode RFLiAddMiddleDBUserData(RFLMiddleDB* db, RFLiCharDa
     return RFLErrcode_Success;
 }
 
-RFL_HEADER_STATIC RFLErrcode RFLAddMiddleDBStoreData(RFLMiddleDB* db, const RFLStoreData* data) {
+static RFLErrcode RFLAddMiddleDBStoreData(RFLMiddleDB* db, const RFLStoreData* data) {
     RFLiStoreData* idata = (RFLiStoreData*)data;
 
     if (db == NULL) {

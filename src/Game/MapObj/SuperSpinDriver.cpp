@@ -272,26 +272,6 @@ void SuperSpinDriver::appear() {
 }
 
 void SuperSpinDriver::control() {
-#ifdef GALAXY_NATIVE
-    {
-        s32 state = 0;
-        if (isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvWait))) {
-            state = 1;
-        } else if (isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvCapture))) {
-            state = 2;
-        } else if (isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvShootStart))) {
-            state = 3;
-        } else if (isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvShoot))) {
-            state = 4;
-        } else if (isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvCoolDown))) {
-            state = 5;
-        } else if (isNerve(GET_NERVE(SuperSpinDriver, SuperSpinDriverNrvAppear))) {
-            state = 6;
-        }
-        MR::Native::publishActor("LaunchStar", mPosition, _100, state,
-                                 (isNerveEnableBind() ? PETARI_ACTOR_READY : 0u) | (mBindActor != nullptr ? PETARI_ACTOR_BOUND : 0u));
-    }
-#endif
     if (!_174 && isFarPlayer()) {
         _174 = true;
     }

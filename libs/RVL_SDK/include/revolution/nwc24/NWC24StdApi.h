@@ -2,11 +2,7 @@
 #define NWC24STDAPI_H
 
 #include "revolution.h"
-#if defined(GALAXY_NATIVE) && !defined(__cplusplus)
-#include <stdio.h>
-#else
 #include <cstdio>
-#endif
 
 #ifdef __cplusplus
 extern "C" {

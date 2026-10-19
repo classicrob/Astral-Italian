@@ -1,7 +1,6 @@
 #include "revolution/mtx.h"
 #include <cmath>
 
-#ifndef GALAXY_NATIVE
 // clang-format off
 
 #define RET_REG fp1
@@ -115,7 +114,6 @@ void PSVECNormalize
 }
 
 // clang-format on
-#endif
 
 f32 C_VECSquareMag(const Vec* v) {
     f32 sqmag;
@@ -127,7 +125,6 @@ f32 C_VECMag(const Vec* v) {
     return sqrt(C_VECSquareMag(v));
 }
 
-#ifndef GALAXY_NATIVE
 // clang-format off
 
 f32 PSVECMag ( const register Vec *v )
@@ -253,5 +250,3 @@ f32 PSVECDistance( const register Vec *a, const register Vec *b )
     
     return sqdist;
 }
-
-#endif

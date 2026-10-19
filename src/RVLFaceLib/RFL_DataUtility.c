@@ -1,9 +1,5 @@
 #include "RVLFaceLibInternal.h"
-#if defined(GALAXY_NATIVE)
-#include <stdio.h>
-#else
 #include <cstdio>
-#endif
 
 // For masking out padding when comparing fields
 #define PADMASK(t, size) ((t)(~((1 << size) - 1)))
@@ -293,7 +289,7 @@ RFLErrcode RFLGetAdditionalInfoWithSanitizedNames(RFLAdditionalInfo* addi, RFLDa
 }
 #pragma dont_inline reset
 
-RFL_HEADER_STATIC BOOL RFLiCheckBirthday(u8 month, u8 day) {
+static BOOL RFLiCheckBirthday(u8 month, u8 day) {
     // (One-indexed)
     static const u8 scDayMax[12 + 1] = {0,  31, 29, 31, 30, 31, 30,
                                         31, 31, 30, 31, 30, 31};

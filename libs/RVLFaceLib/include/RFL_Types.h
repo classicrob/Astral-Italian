@@ -1,23 +1,6 @@
 #ifndef RVL_FACE_LIBRARY_TYPES_H
 #define RVL_FACE_LIBRARY_TYPES_H
 #include <revolution/types.h>
-
-#ifdef GALAXY_NATIVE
-#include <stddef.h>
-// Some functions are declared in RFL headers but defined static in their source.
-// MWCC accepts this; C compilers for the host require matching linkage.
-#define RFL_HEADER_STATIC
-#else
-#define RFL_HEADER_STATIC static
-#endif
-
-// Inline helpers defined in headers. In C99 a plain `inline` definition
-// emits no symbol, so an unoptimized native C build would not link.
-#if defined(GALAXY_NATIVE) && !defined(__cplusplus)
-#define RFL_HEADER_INLINE static inline
-#else
-#define RFL_HEADER_INLINE inline
-#endif
 #ifdef __cplusplus
 extern "C" {
 #endif

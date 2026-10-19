@@ -281,9 +281,6 @@ namespace nw4r {
                         const char* const fileName = detail::ConvertOffsToPtr< char >(textures, textures[pResTexMap[si].texIdx].nameStrOffset);
 
                         void* const pTplRes = resBlockSet.pResAccessor->GetResource(0x74696D67, fileName, nullptr);
-#ifdef GALAXY_NATIVE
-                        petari_generic_world_layout_texture(pTplRes, fileName);
-#endif
                         texMaps[di].ReplaceImage(static_cast< TPLPalettePtr >(pTplRes), 0);
                         texMaps[di].SetWrapMode(pResTexMap[si].GetWarpModeS(), pResTexMap[si].GetWarpModeT());
                         texMaps[di].SetFilter(pResTexMap[si].GetMinFilter(), pResTexMap[si].GetMagFilter());
@@ -759,19 +756,9 @@ namespace nw4r {
                 }
             }
 
-#ifdef GALAXY_NATIVE
-            for (int i = 0; i < 3; ++i) {
-                GXColorS10 c = mTevCols[i];
-                if (petari_generic_world_grey_particles()) {  // the Generic world mod: no hue
-                    c.r = c.g = c.b = static_cast< s16 >(PetariNative::Grey::luma(c.r, c.g, c.b));
-                }
-                GXSetTevColorS10(static_cast< GXTevRegID >(GX_TEVREG0 + i), c);
-            }
-#else
             GXSetTevColorS10(GX_TEVREG0, mTevCols[0]);
             GXSetTevColorS10(GX_TEVREG1, mTevCols[1]);
             GXSetTevColorS10(GX_TEVREG2, mTevCols[2]);
-#endif
 
             GXSetTevKColor(GX_KCOLOR0, mTevKCols[GX_KCOLOR0]);
             GXSetTevKColor(GX_KCOLOR1, mTevKCols[GX_KCOLOR1]);

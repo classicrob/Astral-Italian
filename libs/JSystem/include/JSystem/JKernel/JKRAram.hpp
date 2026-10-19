@@ -5,13 +5,7 @@
 #include "JSystem/JKernel/JKRThread.hpp"
 #include <revolution.h>
 
-#ifdef GALAXY_NATIVE
-// JKRDecompExpandSize is inline in JKRDecomp.hpp; a plain declaration here would
-// reference an out-of-line definition that native builds never emit.
-#include "JSystem/JKernel/JKRDecomp.hpp"
-#else
 u32 JKRDecompExpandSize(u8*);
-#endif
 
 class JKRAMCommand;
 

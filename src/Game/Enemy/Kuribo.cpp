@@ -25,7 +25,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
-#include "Game/Util/NativeActorObserve.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/VectorUtil.hpp"
 #include <revolution/mtx.h>
@@ -207,9 +206,6 @@ void Kuribo::kill() {
 
 // NONMATCHING: instruction-order residual with identical semantics: target uses beq body/b epilogue; MWCC folds it to bne epilogue.
 void Kuribo::control() {
-#ifdef GALAXY_NATIVE
-    MR::Native::publishActor("Goomba", mPosition, -mGravity, 0, PETARI_ACTOR_HOSTILE);
-#endif
     mScaleController->updateNerve();
     if (mNoGravitySupport) {
         MR::calcGravityOrZero(this);

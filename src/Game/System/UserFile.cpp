@@ -4,9 +4,6 @@
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <RVLFaceLib.h>
-#ifdef GALAXY_NATIVE
-#include <petari/editor/runtime.hpp>
-#endif
 
 #define USER_NAME_SIZE (RFL_NAME_LEN + 1)
 

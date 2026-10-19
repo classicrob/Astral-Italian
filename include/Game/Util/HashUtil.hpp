@@ -7,14 +7,6 @@
 // either indices or object pointers; use addPtr/searchPtr for pointers instead of casting.
 class HashSortTable {
 public:
-#ifdef GALAXY_NATIVE
-    /// @brief Payload stored next to each hash. Some tables store object pointers, so the
-    /// native payload is pointer-sized. Hash codes remain `u32` to match serialized data.
-    typedef uintptr_t Value;
-#else
-    typedef u32 Value;
-#endif
-
     HashSortTable(u32);
 
     bool add(const char*, uintptr_t, bool);

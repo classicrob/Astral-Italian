@@ -5,9 +5,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/JMapIdInfo.hpp"
 #include <algorithm>
-#ifdef GALAXY_NATIVE
-#include <petari/game_compat.hpp>
-#endif
 #include <cstdio>
 
 MsgSharedGroup::MsgSharedGroup(const char* pName, s32 maxActor, const JMapInfoIter& rIter) : LiveActorGroup(pName, maxActor) {

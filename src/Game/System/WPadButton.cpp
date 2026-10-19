@@ -28,27 +28,7 @@ void WPadButton::update() {
     if ((pStatus->hold & KPAD_BUTTON_RPT) != 0) {
         mRepeat |= mHold;
     }
-
-#ifdef GALAXY_NATIVE
-    // Once per game frame on the first remote: the skip counts the raw hold of
-    // A and hides it from the game while a skip swallows it.
-    if (mPad->mChannel == WPAD_CHAN0) {
-        const u32 hidden = petari_skip_pad(pStatus->hold);
-        mHold &= ~hidden;
-        mTrigger &= ~hidden;
-        mRelease &= ~hidden;
-        mRepeat &= ~hidden;
-    }
-#endif
 }
-
-#ifdef GALAXY_NATIVE
-void WPadButton::clearEdges() {
-    mTrigger = 0;
-    mRelease = 0;
-    mRepeat = 0;
-}
-#endif
 
 bool WPadButton::testButtonUp() const {
     return (mHold & WPAD_BUTTON_UP) != 0;

@@ -1,9 +1,6 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
-#ifdef GALAXY_NATIVE
-#include "Game/Util/NativeOverload.hpp"
-#endif
 
 class Mario;
 class MarioActor;
@@ -73,11 +70,6 @@ public:
     f32 getAnimationTrackWeight(u32);
     TVec3f& getCamPos() const;
     void changeAnimation(const char*, u32);
-#ifdef GALAXY_NATIVE
-    // Wii u32 is unsigned long; `0UL` must select the u32 overload rather than const char*.
-    template < typename T, PETARI_WII_LONG_ARGS(T) >
-    void changeAnimation(const char* pName, T attr) { changeAnimation(pName, static_cast< u32 >(attr)); }
-#endif
     bool isAnimationRun(const char*, u32);
     void stopAnimation(const char*, u32);
     void setJointGlobalMtx(u16, MtxPtr);
@@ -108,10 +100,6 @@ public:
     TVec3f& getCamDirY() const;
     TVec3f& getCamDirZ() const;
     void startPadVib(u32);
-#ifdef GALAXY_NATIVE
-    template < typename T, PETARI_WII_LONG_ARGS(T) >
-    void startPadVib(T vib) { startPadVib(static_cast< u32 >(vib)); }
-#endif
     void startPadVib(const char*);
     f32 getStickX() const;
     f32 getStickP() const;

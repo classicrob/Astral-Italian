@@ -17,11 +17,6 @@ public:
 
     TVec3f getTrans();
     void init(const TPos3f&, HitSensor*, const void*, const void*, s32, bool);
-#ifdef GALAXY_NATIVE
-    // Generated collision (host KCLFile, see KCollisionServer::initWithFile).
-    void init(const TPos3f&, HitSensor*, KCLFile*, const void*, s32, bool);
-    void initAfterServerData(const TPos3f&, HitSensor*, s32, bool);
-#endif
     void addToBelongZone();
     void removeFromBelongZone();
     void resetBelongZone();  // was fn_8024A060

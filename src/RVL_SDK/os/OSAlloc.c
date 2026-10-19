@@ -1,12 +1,7 @@
 #include "revolution.h"
 
-#ifdef GALAXY_NATIVE
-#define TRUNC(n, a) (((uintptr_t)(n)) & ~((uintptr_t)(a) - 1))
-#define ROUND(n, a) (((uintptr_t)(n) + (a) - 1) & ~((uintptr_t)(a) - 1))
-#else
 #define TRUNC(n, a) (((u32)(n)) & ~((a) - 1))
 #define ROUND(n, a) (((u32)(n) + (a) - 1) & ~((a) - 1))
-#endif
 
 volatile int __OSCurrHeap = -1;
 typedef struct Cell Cell;
@@ -102,9 +97,6 @@ void* OSAllocFromHeap(int heap, u32 size) {
     Cell* cell;
     Cell* newCell;
     long leftSize;
-#ifdef GALAXY_NATIVE
-    if (heap < 0 || heap >= NumHeaps || HeapArray[heap].size < 0 || size > 0xFFFFFFC0) return 0;
-#endif
 
     desc = &HeapArray[heap];
     size += 32;
@@ -168,17 +160,8 @@ int OSSetCurrentHeap(int heap) {
 void* OSInitAlloc(void* arenaStart, void* arenaEnd, int max) {
     u32 size;
     int i;
-#ifdef GALAXY_NATIVE
-    if (max <= 0 || (uintptr_t)arenaStart >= (uintptr_t)arenaEnd ||
-        ((uintptr_t)arenaStart & 31) != 0 ||
-        (uintptr_t)max > ((uintptr_t)arenaEnd - (uintptr_t)arenaStart) / sizeof(HeapDesc)) return 0;
-    size = max * sizeof(HeapDesc);
-    if (ROUND((uintptr_t)arenaStart + size, 32) > (uintptr_t)arenaEnd) return 0;
-    HeapArray = (HeapDesc*)arenaStart;
-#else
     size = max * 0xC;
     HeapArray = arenaStart;
-#endif
     NumHeaps = max;
 
     for (i = 0; i < NumHeaps; i++) {
@@ -201,10 +184,6 @@ int OSCreateHeap(void* start, void* end) {
     Cell* cell;
     start = (void*)ROUND(start, 0x20);
     end = (void*)TRUNC(end, 0x20);
-#ifdef GALAXY_NATIVE
-    if (!HeapArray || (uintptr_t)start < (uintptr_t)ArenaStart || (uintptr_t)end > (uintptr_t)ArenaEnd ||
-        (uintptr_t)start >= (uintptr_t)end || (uintptr_t)end - (uintptr_t)start < 64) return -1;
-#endif
 
     for (heap = 0; heap < NumHeaps; heap++) {
         desc = &HeapArray[heap];

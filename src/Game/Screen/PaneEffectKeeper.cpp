@@ -8,9 +8,6 @@
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Util/SystemUtil.hpp"
 #include <algorithm>
-#ifdef GALAXY_NATIVE
-#include <petari/game_compat.hpp>
-#endif
 
 PaneEffectKeeper::PaneEffectKeeper(LayoutActor* pActor, const LayoutManager* pManager, int myInt, const char* pName)
     : mHost(pActor), mName(pName), mEmitters() {
@@ -40,13 +37,10 @@ void PaneEffectKeeper::init(const LayoutActor* pActor, const EffectSystem* pSyst
 }
 
 void PaneEffectKeeper::add(const char* pName1, const char* pName2, const char* pName3) {
-    if (mHost->getLayoutManager()->isExistPaneMtxRef(pName1) == false) {
+    if (mHost->getLayoutManager()->isExistPaneMtxRef(pName1) == nullptr) {
         mHost->createPaneMtxRef(pName1);
     }
 
-#ifdef GALAXY_NATIVE
-    if (!mHost->getPaneMtxRef(pName1)) return;
-#endif
     MultiEmitter* pEmitter = new MultiEmitter(pName2, mHost->getPaneMtxRef(pName1), TVec3f(0.0f, 0.0f, 0.0f));
 
     registerEffect(pEmitter, pName3);

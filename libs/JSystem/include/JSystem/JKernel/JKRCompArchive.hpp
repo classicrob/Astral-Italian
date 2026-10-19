@@ -7,7 +7,7 @@ class JKRDvdFile;
 
 class JKRCompArchive : public JKRArchive {
 public:
-    JKRCompArchive(s32, EMountDirection);
+    JKRCompArchive(long, EMountDirection);
     virtual ~JKRCompArchive(void);
 
     virtual void removeResourceAll();

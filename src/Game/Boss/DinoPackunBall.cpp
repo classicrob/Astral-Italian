@@ -8,7 +8,6 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
-#include "Game/Util/NativeActorObserve.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
@@ -51,12 +50,6 @@ void DinoPackunBall::init(const JMapInfoIter& rIter) {
 }
 
 void DinoPackunBall::control() {
-#ifdef GALAXY_NATIVE
-    {
-        const bool wait = isNerve(GET_NERVE(DinoPackunBall, DinoPackunBallNrvWait));
-        MR::Native::publishActor("DinoBall", mPosition, -mGravity, wait ? 1 : 0, wait ? PETARI_ACTOR_READY : 0u);
-    }
-#endif
     MR::makeMtxUpNoSupport(&_D4, -mGravity);
     _D4.setTrans(mPosition + mGravity * 135.0f);
 

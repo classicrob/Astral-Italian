@@ -186,21 +186,13 @@ namespace MR {
                 if (tag.getGroup() == 3) {
                     count++;
                 } else if (tag.getGroup() == 6) {
-#ifdef GALAXY_NATIVE
-                    count += countMessageFigure(tag.getParam32(0));
-#else
                     count += countMessageFigure(*reinterpret_cast< const s32* >(tag.getParamPtr(0)));
-#endif
                 } else if (tag.getGroup() == 5) {
                     count += 3;
                 }
 
                 else if (tag.getGroup() == 7) {
-#ifdef GALAXY_NATIVE
-                    count += countMessageChar(tag.getArgString());
-#else
                     count += countMessageChar(*reinterpret_cast< const wchar_t* const* >(tag.getParamPtr(0)));
-#endif
                 } else if (tag.isGroupTagId(1, 1)) {
                     break;
                 } else if (tag.getGroup() == 10) {

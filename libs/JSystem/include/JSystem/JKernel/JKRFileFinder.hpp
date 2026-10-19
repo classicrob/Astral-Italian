@@ -23,7 +23,7 @@ public:
 
 class JKRArcFinder : public JKRFileFinder {
 public:
-    JKRArcFinder(JKRArchive*, s32, s32);
+    JKRArcFinder(JKRArchive*, long, long);
     virtual ~JKRArcFinder();
 
     virtual bool findNextFile();

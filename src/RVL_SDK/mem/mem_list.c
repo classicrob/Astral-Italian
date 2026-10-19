@@ -2,12 +2,7 @@
 
 
 // I've tried inlines but only a macro seems to work
-#ifdef GALAXY_NATIVE
-#include <stdint.h>
-#define GetLink(parent_list, obj) ((MEMLink*)(((uintptr_t)(obj))+(parent_list)->offs))
-#else
 #define GetLink(parent_list, obj) ((MEMLink*)(((u32)(obj))+(parent_list)->offs))
-#endif
 
 void MEMInitList(MEMList *pList, u16 offs) {
     pList->head = NULL;

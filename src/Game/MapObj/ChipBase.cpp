@@ -15,10 +15,6 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
-#include "Game/Util/NativeActorObserve.hpp"
-#ifdef GALAXY_NATIVE
-#include <petari/milestone.hpp>
-#endif
 
 namespace {
     static const f32 sBubbleHitRadius = 150.0f;

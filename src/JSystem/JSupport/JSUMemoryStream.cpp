@@ -1,7 +1,6 @@
 #include "JSystem/JSupport/JSUMemoryInputStream.hpp"
 #include "JSystem/JSupport/JSUMemoryOutputStream.hpp"
 #include <cstring>
-#include <stdint.h>
 
 void JSUMemoryInputStream::setBuffer(const void* pBuffer, s32 length) {
     mBuffer = pBuffer;

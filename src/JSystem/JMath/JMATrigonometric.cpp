@@ -36,12 +36,7 @@ namespace JMath {
         if (x == 0.0f) {
             return 0.0f;
         }
-#ifdef GALAXY_NATIVE
-        const s32 index = static_cast< s32 >(0.5f + Len * y / x);
-        return index == Len ? _1000 : mTable[index];
-#else
         return mTable[static_cast< s32 >(0.5f + Len * y / x)];
-#endif
     }
 
     template < int Bits, typename T >

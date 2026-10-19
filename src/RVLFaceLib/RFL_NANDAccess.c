@@ -1,11 +1,7 @@
 #include "RVLFaceLibInternal.h"
 #include <revolution/mem/expHeap.h>
 #include <revolution/os.h>
-#if defined(GALAXY_NATIVE)
-#include <stdio.h>
-#else
 #include <cstdio>
-#endif
 
 #define ACC_SAFE_BUFFER_SIZE 0x2000
 #define MAX_RETRY_COUNT 30

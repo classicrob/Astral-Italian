@@ -180,9 +180,3 @@ void CameraHolder::createCameras() {
 Camera* CameraHolder::getCameraInner(s32 index) const {
     return mCameras[index];
 }
-
-#ifdef GALAXY_NATIVE
-Camera* CameraHolder::createPreviewCamera(s32 index) const {
-    return index >= 0 && index < getNum() ? ::sCameraTable[index].mCreateFunc() : nullptr;
-}
-#endif

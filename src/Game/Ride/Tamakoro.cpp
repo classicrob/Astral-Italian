@@ -28,9 +28,6 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include <revolution/mtx.h>
-#ifdef GALAXY_NATIVE
-#include "Game/Util/NativeActorObserve.hpp"
-#endif
 #include <revolution/wpad.h>
 
 
@@ -206,14 +203,6 @@ void Tamakoro::control() {
     }
     mBgmCtrl->control(speed, mControlDisabled, ::sBgmStateChangeFrames);
     mControlDisabled = false;
-#ifdef GALAXY_NATIVE
-    {
-        const bool riding = !isNerve(GET_NERVE(Tamakoro, TamakoroNrvStandByBind)) && !isNerve(GET_NERVE(Tamakoro, TamakoroNrvStandByTutorial)) &&
-                            !isNerve(GET_NERVE(Tamakoro, TamakoroNrvBindEnd));
-        MR::Native::publishActor("StarBall", mPosition, -mGravity, riding ? 1 : 0, riding ? PETARI_ACTOR_BOUND : PETARI_ACTOR_READY);
-        MR::Native::publishActor("StarBallInput", mPosition, mAccelDir * mAccelRate, MR::isBindedGround(this) ? 1 : 0, 0);
-    }
-#endif
 }
 
 void Tamakoro::calcAndSetBaseMtx() {

@@ -31,9 +31,7 @@ namespace nw4r {
         class DrawInfo;
         class Pane;
 
-// The node offset must be the real member offset (the zero fallback is for
-// tooling builds only; natively it made list links overwrite the vtable pointer).
-#if defined(__MWERKS__) || defined(GALAXY_NATIVE)
+#ifdef __MWERKS__
         typedef ut::LinkList< Pane, offsetof(detail::PaneBase, mLink) > PaneList;
 #else
         typedef ut::LinkList< Pane, 0 > PaneList;

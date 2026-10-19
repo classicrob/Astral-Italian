@@ -27,9 +27,6 @@ public:
     void connectToDraw();
     void disconnectToDraw();
 
-#ifdef GALAXY_NATIVE
-    friend class NameObjExecuteHolder;  // nativeLateConnect
-#endif
 private:
     /* 0x0 */ NameObj* mExecutedObj;
     /* 0x4 */ s8 _4;
@@ -60,14 +57,6 @@ public:
     void requestMovementOn(int);
     void requestMovementOff(int);
     NameObjExecuteInfo* getConnectToSceneInfo(const NameObj*) const;
-#ifdef GALAXY_NATIVE
-    // The level editor (TECH.md 2.2): entries registered after the scene's load-time
-    // initConnectting (index >= from) get room in the load-sized lists and are connected
-    // the way load connects them.
-    s32 nativeExecuteCount() const { return mExecuteArraySize; }
-    s32 nativeExecuteCapacity() const { return mExecuteArrayMaxSize; }
-    void nativeLateConnect(s32 from);
-#endif
 
 private:
     /* 0x0C */ NameObjExecuteInfo* mExecuteArray;

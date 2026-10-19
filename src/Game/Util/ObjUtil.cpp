@@ -52,11 +52,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TUtil.hpp>
 #include <cstdio>
-#ifdef GALAXY_NATIVE
-#include <cstdarg>
-#else
 #include <va_list.h>
-#endif
 
 
 

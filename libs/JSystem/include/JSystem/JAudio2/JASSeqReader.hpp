@@ -1,9 +1,6 @@
 #pragma once
 
 #include <revolution/types.h>
-#ifdef GALAXY_NATIVE
-#include <petari/endian.hpp>
-#endif
 
 class JASSeqReader {
 public:
@@ -28,22 +25,14 @@ public:
     }
 
     u32 get24(u32 param_0) const {
-#ifdef GALAXY_NATIVE
-        return PetariNative::readU24BE(mSeqBuff + param_0);
-#else
         return (*(u32*)(mSeqBuff + param_0 - 1)) & 0xffffff;
-#endif
     }
 
     u32* getBase() {
         return (u32*)mSeqBuff;
     }
     u32 getOffset() {
-#ifdef GALAXY_NATIVE
-        return static_cast<u32>(mSeqCursor - mSeqBuff);
-#else
         return (u32)mSeqCursor - (u32)mSeqBuff;
-#endif
     }
     u8* getAddr(u32 param_0) {
         return mSeqBuff + param_0;
@@ -52,18 +41,10 @@ public:
         return *(mSeqBuff + param_0);
     }
     u16 get16(u32 param_0) const {
-#ifdef GALAXY_NATIVE
-        return PetariNative::readU16BE(mSeqBuff + param_0);
-#else
         return *(u16*)(mSeqBuff + param_0);
-#endif
     }
     u32 get32(u32 param_0) const {
-#ifdef GALAXY_NATIVE
-        return PetariNative::readU32BE(mSeqBuff + param_0);
-#else
         return *(u32*)(mSeqBuff + param_0);
-#endif
     }
     u8* getCur() {
         return mSeqCursor;
@@ -74,10 +55,6 @@ public:
     u32 read16() {
 #ifdef __MWERKS__
         return *((u16*)mSeqCursor)++;
-#elif defined(GALAXY_NATIVE)
-        const u16 value = PetariNative::readU16BE(mSeqCursor);
-        mSeqCursor += 2;
-        return value;
 #else
         u16* value = (u16*)mSeqCursor;
         mSeqCursor += 2;
@@ -85,11 +62,6 @@ public:
 #endif
     }
     u32 read24() {
-#ifdef GALAXY_NATIVE
-        const u32 value = PetariNative::readU24BE(mSeqCursor);
-        mSeqCursor += 3;
-        return value;
-#else
         mSeqCursor--;
 #ifdef __MWERKS__
         return (*((u32*)mSeqCursor)++) & 0x00ffffff;
@@ -97,7 +69,6 @@ public:
         u32* value = (u32*)mSeqCursor;
         mSeqCursor += 4;
         return *value & 0x00ffffff;
-#endif
 #endif
     }
     u16 getLoopCount() const {

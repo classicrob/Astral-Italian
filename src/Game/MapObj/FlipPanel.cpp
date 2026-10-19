@@ -7,9 +7,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
-#ifdef GALAXY_NATIVE
-#include "Game/Util/NativeActorObserve.hpp"
-#endif
 
 
 namespace NrvFlipPanel {
@@ -191,10 +188,6 @@ void FlipPanel::calcAndSetBaseMtx() {
     if (_CC) {
         mDelegator->registerCallBack();
     }
-#ifdef GALAXY_NATIVE
-    // state: 1 flipped to the back (the side the puzzle wants), 0 front.
-    MR::Native::publishActor("FlipPanel", mPosition, -mGravity, _CD ? 1 : 0, 0);
-#endif
 }
 
 bool FlipPanel::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {

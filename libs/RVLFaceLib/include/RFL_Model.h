@@ -24,13 +24,7 @@ typedef enum {
 } RFLCoordinateType;
 
 typedef struct RFLCharModel {
-#ifdef GALAXY_NATIVE
-    // Holds an RFLiCharModel, which has host pointers (checked in
-    // native/resource/rfl/rfl_native.cpp).
-    u64 dummy[21];
-#else
     u8 dummy[0x88];
-#endif
 } RFLCharModel;
 
 typedef struct RFLDrawSetting {

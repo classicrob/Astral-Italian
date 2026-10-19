@@ -68,9 +68,6 @@ void FileSelectButton::shiftSelect() {
 }
 
 void FileSelectButton::exeSelect() {
-#ifdef GALAXY_NATIVE
-    mButtonCtrl[0]->publishUiTarget("FileSelect.Start", 0);
-#endif
     for (int i = 0; i < ARRAY_SIZE(mButtonCtrl); i++) {
         if (mButtonCtrl[i]->isPointingTrigger()) {
             MR::startSystemSE("SE_SY_BUTTON_CURSOR_ON");

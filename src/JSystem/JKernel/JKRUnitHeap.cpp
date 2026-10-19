@@ -1,16 +1,6 @@
 #include "JSystem/JKernel/JKRUnitHeap.hpp"
 #include "JSystem/JUtility/JUTConsole.hpp"
 #include <new>
-#include <stdint.h>
-
-// The allocation table is written one byte at a time, with unit 0 in the high bit
-// of byte 0. Word scans must read those bytes in big-endian order.
-#ifdef GALAXY_NATIVE
-#include <petari/endian.hpp>
-#define JKR_UNIT_HEAP_BAT_WORD(p) PetariNative::readU32BE(p)
-#else
-#define JKR_UNIT_HEAP_BAT_WORD(p) (*(p))
-#endif
 
 static const u8 bitTable[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 
@@ -96,7 +86,7 @@ void JKRUnitHeap::clearBatArea() {
         ++bat;
     }
 
-    while (reinterpret_cast< uintptr_t >(bat) & 3) {
+    while (reinterpret_cast< u32 >(bat) & 3) {
         *bat++ = 0xFF;
     }
 }

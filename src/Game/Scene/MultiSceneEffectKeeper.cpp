@@ -8,9 +8,6 @@
 #include "Game/Util/SystemUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 #include <algorithm>
-#ifdef GALAXY_NATIVE
-#include <petari/game_compat.hpp>
-#endif
 
 MultiSceneEffectKeeper::MultiSceneEffectKeeper(const char*, ModelManager* pModelManager, int a3, const char* pResName)
     : mEmitter(), mResName(pResName) {

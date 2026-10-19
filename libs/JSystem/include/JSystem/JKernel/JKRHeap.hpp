@@ -4,11 +4,6 @@
 #include "JSystem/JKernel/JKRDisposer.hpp"
 #include "JSystem/JSupport/JSUList.hpp"
 #include <revolution.h>
-#include <stdint.h>
-
-#ifdef GALAXY_NATIVE
-#include <petari/host_allocation.hpp>
-#endif
 
 typedef void (*JKRErrorHandler)(void*, u32, int);
 void JKRDefaultMemoryErrorRoutine(void*, u32, int);
@@ -87,7 +82,7 @@ public:
 
     JKRHeap* find(void*) const;
     JKRHeap* findAllHeap(void*) const;
-    void dispose_subroutine(uintptr_t, uintptr_t);
+    void dispose_subroutine(u32, u32);
     s32 getTotalFreeSize();
 
     u32 getMaxAllocatableSize(int alignment);
@@ -200,19 +195,10 @@ public:
         sCurrentHeap = pHeap;
     }
 
-    static void setAltAramStartAdr(uintptr_t);
-    static uintptr_t getAltAramStartAdr();
+    static void setAltAramStartAdr(u32);
+    static u32 getAltAramStartAdr();
 
     static JKRHeap* sGameHeap;     // 0x806B70A8
-#ifdef GALAXY_NATIVE
-    // See petari/host_allocation.hpp.
-    typedef PetariNative::HostAllocationScope HostAllocationScope;
-
-    static bool isHostAllocationActive() {
-        return PetariNative::isHostAllocationActive();
-    }
-#endif
-
     static JKRHeap* sCurrentHeap;  // 0x806B70AC
     static JKRHeap* sRootHeap;     // 0x806B70B0
     static JKRHeap* sSystemHeap;
@@ -247,15 +233,7 @@ public:
     u8 _69;
 };
 
-#ifdef GALAXY_NATIVE
-#include <cstddef>
-#include <new>
-void* operator new(std::size_t, int);
-void* operator new(std::size_t, JKRHeap*);
-void* operator new(std::size_t, JKRHeap*, int);
-void* operator new[](std::size_t, int);
-void* operator new[](std::size_t, JKRHeap*, int);
-#elif defined(__MWERKS__)
+#ifdef __MWERKS__
 void* operator new(u32, int);
 void* operator new(u32, JKRHeap*);
 void* operator new(u32, JKRHeap*, int);

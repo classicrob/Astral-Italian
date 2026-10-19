@@ -8,12 +8,6 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
-#ifdef GALAXY_NATIVE
-#include <petari/editor/runtime_hooks.hpp>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#endif
 
 namespace {
     static bool isPrioPlacementObjInfo(const char* pName) {

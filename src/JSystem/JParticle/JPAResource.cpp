@@ -12,14 +12,6 @@
 #include "JSystem/JParticle/JPAParticle.hpp"
 #include "JSystem/JParticle/JPAResourceManager.hpp"
 
-// Size and alignment of one entry in the calc/draw function lists. Native function
-// pointers are 8 bytes; a list sized with 4 bytes per entry overruns its block.
-#ifdef GALAXY_NATIVE
-#define JPA_FUNC_LIST_ENTRY sizeof(EmitterFunc)
-#else
-#define JPA_FUNC_LIST_ENTRY 4
-#endif
-
 JPAResource::JPAResource() {
     mpDrawEmitterChildFuncList = NULL;
     mpDrawEmitterFuncList = NULL;
@@ -110,7 +102,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpCalcEmitterFuncListNum != 0) {
-        mpCalcEmitterFuncList = (EmitterFunc*)JKRAllocFromHeap(heap, mpCalcEmitterFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpCalcEmitterFuncList = (EmitterFunc*)JKRAllocFromHeap(heap, mpCalcEmitterFuncListNum * 4, 4);
     }
 
     int func_no = 0;
@@ -206,7 +198,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpCalcParticleFuncListNum != 0) {
-        mpCalcParticleFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpCalcParticleFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpCalcParticleFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpCalcParticleFuncListNum * 4, 4);
     }
 
     func_no = 0;
@@ -324,7 +316,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpCalcParticleChildFuncListNum != 0) {
-        mpCalcParticleChildFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpCalcParticleChildFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpCalcParticleChildFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpCalcParticleChildFuncListNum * 4, 4);
     }
 
     func_no = 0;
@@ -367,7 +359,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpDrawEmitterFuncListNum != 0) {
-        mpDrawEmitterFuncList = (EmitterFunc*)JKRAllocFromHeap(heap, mpDrawEmitterFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpDrawEmitterFuncList = (EmitterFunc*)JKRAllocFromHeap(heap, mpDrawEmitterFuncListNum * 4, 4);
     }
 
     func_no = 0;
@@ -463,7 +455,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpDrawEmitterChildFuncListNum != 0) {
-        mpDrawEmitterChildFuncList = (EmitterFunc*)JKRAllocFromHeap(heap, mpDrawEmitterChildFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpDrawEmitterChildFuncList = (EmitterFunc*)JKRAllocFromHeap(heap, mpDrawEmitterChildFuncListNum * 4, 4);
     }
 
     func_no = 0;
@@ -509,7 +501,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpDrawParticleFuncListNum != 0) {
-        mpDrawParticleFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpDrawParticleFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpDrawParticleFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpDrawParticleFuncListNum * 4, 4);
     }
 
     func_no = 0;
@@ -611,7 +603,7 @@ void JPAResource::init(JKRHeap* heap) {
     }
 
     if (mpDrawParticleChildFuncListNum != 0) {
-        mpDrawParticleChildFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpDrawParticleChildFuncListNum * JPA_FUNC_LIST_ENTRY, JPA_FUNC_LIST_ENTRY);
+        mpDrawParticleChildFuncList = (ParticleFunc*)JKRAllocFromHeap(heap, mpDrawParticleChildFuncListNum * 4, 4);
     }
 
     func_no = 0;

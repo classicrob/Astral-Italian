@@ -6,7 +6,7 @@
 
 void CamAnmDataAccessor::set(void* pInfo, void* pValues) {
     mInfo = reinterpret_cast< CanmFrameInfo* >(pInfo);
-    mValues = reinterpret_cast< CanmValue* >(pValues);
+    mValues = reinterpret_cast< f32* >(pValues);
 }
 
 void CamAnmDataAccessor::getPos(TVec3f* pPos, f32 key) const {
@@ -49,7 +49,7 @@ f32 CamAnmDataAccessor::get(f32 key, u32 offset, u32 count) const {
 
 void KeyCamAnmDataAccessor::set(void* pInfo, void* pValues) {
     mInfo = reinterpret_cast< CanmKeyFrameInfo* >(pInfo);
-    mValues = reinterpret_cast< CanmValue* >(pValues);
+    mValues = reinterpret_cast< f32* >(pValues);
 }
 
 void KeyCamAnmDataAccessor::getPos(TVec3f* pPos, f32 key) const {
@@ -250,11 +250,7 @@ bool CameraAnim::loadBin(u8* pFile) {
 
     u32 valueOffset = pHeader->mValueOffset;
 
-#ifdef GALAXY_NATIVE
-    mNrValues = PetariNative::readU32BE(&pEntry[valueOffset]) / sizeof(f32);
-#else
     mNrValues = *(reinterpret_cast< u32* >(&pEntry[valueOffset])) / sizeof(f32);
-#endif
 
     mFileDataAccessor->set(pEntry, pEntry + valueOffset + 4);
 

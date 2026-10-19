@@ -2,7 +2,6 @@
 
 #include "JSystem/JKernel/JKRCompression.hpp"
 #include "JSystem/JKernel/JKRThread.hpp"
-#include <stdint.h>
 
 class JKRAMCommand;
 
@@ -17,7 +16,7 @@ public:
     u8* mDst;               // 0x8
     u32 mCompressedSize;    // 0xC
     u32 mDecompressedSize;  // 0x10
-    void (*_14)(uintptr_t);
+    void (*_14)(u32);
     JKRDecompCommand* mThis;  // 0x18
     OSMessageQueue* _1C;
     s32 _20;
@@ -28,18 +27,18 @@ public:
 
 class JKRDecomp : public JKRThread {
 public:
-    JKRDecomp(s32);
+    JKRDecomp(long);
     virtual ~JKRDecomp();
 
     virtual void* run();
 
-    static JKRDecomp* create(s32);
-    static JKRDecompCommand* prepareCommand(unsigned char*, unsigned char*, u32, u32, void (*)(uintptr_t));
+    static JKRDecomp* create(long);
+    static JKRDecompCommand* prepareCommand(unsigned char*, unsigned char*, unsigned long, unsigned long, void (*)(unsigned long));
     static void sendCommand(JKRDecompCommand*);
     static bool sync(JKRDecompCommand*, int);
-    static bool orderSync(unsigned char*, unsigned char*, u32, u32);
-    static void decode(unsigned char*, unsigned char*, u32, u32);
-    static void decodeSZP(unsigned char*, unsigned char*, u32, u32);
+    static bool orderSync(unsigned char*, unsigned char*, unsigned long, unsigned long);
+    static void decode(unsigned char*, unsigned char*, unsigned long, unsigned long);
+    static void decodeSZP(unsigned char*, unsigned char*, unsigned long, unsigned long);
     static void decodeSZS(u8*, u8*, u32, u32);
     static EJKRCompression checkCompressed(unsigned char*);
 

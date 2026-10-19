@@ -5,7 +5,6 @@
 #include "JSystem/JAudio2/JASTrack.hpp"
 #include "JSystem/JMath/random.hpp"
 #include "JSystem/JSupport/JSupport.hpp"
-#include <stdint.h>
 
 JASSeqParser::Command JASSeqParser::sCmdInfo[0x60] = {{nullptr},
                                                       {nullptr},
@@ -737,8 +736,7 @@ s32 JASSeqParser::cmdDump(JASTrack* track, u32* args) {
 // NONMATCHING: the compiler hoists an equivalent empty-loop check before the argument loop.
 s32 JASSeqParser::cmdPrintf(JASTrack* track, u32* args) {
     char formatString[0x80];
-    // %s arguments are sequence-data addresses, so values hold pointer-width data.
-    uintptr_t values[4];
+    u32 values[4];
     u8 formatTypes[4];
     u32 numValues = 0, i;
     for (i = 0; i < sizeof(formatString); i++) {
@@ -793,7 +791,7 @@ s32 JASSeqParser::cmdPrintf(JASTrack* track, u32* args) {
         values[i] = track->getSeqCtrl()->readByte();
         switch (formatTypes[i]) {
         case 2:
-            values[i] = (uintptr_t)track->getSeqCtrl()->getAddr(values[i]);
+            values[i] = (u32)track->getSeqCtrl()->getAddr(values[i]);
             break;
         case 3:
         case 4:

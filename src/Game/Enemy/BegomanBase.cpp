@@ -956,7 +956,7 @@ void BegomanBase::dampingVerticalAndParallelVelocity(f32 f1, f32 f2) {
 
 bool BegomanBase::isInWaterAndSetWaterNerve(const Nerve* pWaterNerve, TPos3f* pPos) {
     WaterInfo info;
-    if (MR::getWaterAreaObj(&info, mPosition) != false) {
+    if (MR::getWaterAreaObj(&info, mPosition) != nullptr) {
         MR::getWaterAreaInfo(&info, mPosition, mGravity, false);
         setNerve(pWaterNerve);
         MR::makeMtxUpNoSupportPos(pPos, info.mSurfaceNormal, info.mSurfacePos);

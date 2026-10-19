@@ -245,13 +245,6 @@ void WarpPod::glowEffect() {
 void WarpPod::initPair() {
     mPairPod = MR::getWarpPodManager()->getPairPod(this);
 
-#ifdef GALAXY_NATIVE
-    // Exactly one of a non-coincident pair owns the connection drawing.
-    const bool someBool = mPairPod->mPosition.x > mPosition.x ||
-                          (mPairPod->mPosition.x == mPosition.x &&
-                           (mPairPod->mPosition.y < mPosition.y ||
-                            (mPairPod->mPosition.y == mPosition.y && mPairPod->mPosition.z < mPosition.z)));
-#else
     bool someBool;
 
     if (mPairPod->mPosition.x > mPosition.x) {
@@ -267,8 +260,6 @@ void WarpPod::initPair() {
     } else if (mPairPod->mPosition.z < mPosition.z) {
         someBool = false;
     }
-
-#endif
 
     if (mPairPod->mArg7 != true && mArg7 != true) {
         if (!mArg3) {

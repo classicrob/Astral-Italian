@@ -963,7 +963,7 @@ namespace MR {
 
     LiveActor* getTalkingActor() {
         if (isExistSceneObj(SceneObj_TalkDirector) == false) {
-            return nullptr;
+            return false;
         }
 
         return ::getTalkDirector()->getTalkingActor();

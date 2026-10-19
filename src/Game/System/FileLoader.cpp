@@ -91,7 +91,7 @@ void FileLoader::getMountedArchiveAndHeap(const char* pName, JKRArchive** pArchi
 }
 
 void FileLoader::clearRequestFileInfo(bool) {
-    mRequestedFileCount = 0;
+    mRequestedFileCount = nullptr;
 }
 
 void FileLoader::removeHolderIfIsEqualHeap(JKRHeap* pHeap) {

@@ -2,9 +2,6 @@
 #include "Game/Util.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 #include <JSystem/JKernel/JKRArchive.hpp>
-#ifdef GALAXY_NATIVE
-#include <petari/endian.hpp>
-#endif
 
 void AudScaleData::initScaleData(uintptr_t base) {
     up = reinterpret_cast<u8*>(reinterpret_cast<uintptr_t>(up) + base);
@@ -12,9 +9,6 @@ void AudScaleData::initScaleData(uintptr_t base) {
 }
 
 AudChordTable::AudChordTable() : mLoaded(false), mChordCount(0), mScaleCount(0), mChordPtr(nullptr), mScalePtr(nullptr) {
-#ifdef GALAXY_NATIVE
-    mNativeScales = nullptr;
-#endif
 }
 
 bool AudChordTable::setChordTable(s32 id, JKRArchive* pArchive) {
@@ -29,63 +23,6 @@ bool AudChordTable::setChordTable(s32 id, JKRArchive* pArchive) {
     return loaded;
 }
 
-#ifdef GALAXY_NATIVE
-// Resource layout (big-endian): s32 relocated flag, "CITS", u32 size, u16 chord count,
-// u16 scale count, u32 chord offsets[chord count], u32 scale offsets[scale count]. Each scale record holds
-// two u32 offsets (up, down). Offsets are relative to the resource start. The resource is
-// left untouched; pointer tables are built on the host.
-bool AudChordTable::setChordTableResource(void* pRes) {
-    u8* res = static_cast< u8* >(pRes);
-
-    if (res[4] != 'C' || res[5] != 'I' || res[6] != 'T' || res[7] != 'S') {
-        return false;
-    }
-
-    // Reject offsets outside the resource before building pointers from them.
-    const u32 size = PetariNative::readU32BE(res + 8);
-    const u32 chordCount = PetariNative::readU16BE(res + 12);
-    const u32 scaleCount = PetariNative::readU16BE(res + 14);
-    const u8* chordOffsets = res + 16;
-    const u8* scaleOffsets = chordOffsets + chordCount * 4;
-    if (16 + (chordCount + scaleCount) * 4 > size) {
-        return false;
-    }
-    for (u32 i = 0; i < chordCount; i++) {
-        if (PetariNative::readU32BE(chordOffsets + i * 4) > size - sizeof(AudChordData)) {
-            return false;
-        }
-    }
-    for (u32 i = 0; i < scaleCount; i++) {
-        const u32 scale = PetariNative::readU32BE(scaleOffsets + i * 4);
-        if (scale > size - 8 || PetariNative::readU32BE(res + scale) >= size || PetariNative::readU32BE(res + scale + 4) >= size) {
-            return false;
-        }
-    }
-
-    mChordCount = chordCount;
-    mScaleCount = scaleCount;
-
-    delete[] mChordPtr;
-    delete[] mScalePtr;
-    delete[] mNativeScales;
-    mChordPtr = new AudChordData*[mChordCount];
-    mScalePtr = new AudScaleData*[mScaleCount];
-    mNativeScales = new AudScaleData[mScaleCount];
-
-    for (s32 i = 0; i < mChordCount; i++) {
-        mChordPtr[i] = reinterpret_cast< AudChordData* >(res + PetariNative::readU32BE(chordOffsets + i * 4));
-    }
-
-    for (s32 i = 0; i < mScaleCount; i++) {
-        const u8* scale = res + PetariNative::readU32BE(scaleOffsets + i * 4);
-        mNativeScales[i].up = res + PetariNative::readU32BE(scale);
-        mNativeScales[i].down = res + PetariNative::readU32BE(scale + 4);
-        mScalePtr[i] = &mNativeScales[i];
-    }
-
-    return true;
-}
-#else
 bool AudChordTable::setChordTableResource(void* pRes) {
     s32* cursor = (s32*)pRes;
 
@@ -127,7 +64,6 @@ bool AudChordTable::setChordTableResource(void* pRes) {
 
     return true;
 }
-#endif
 
 AudChordInfo::AudChordInfo()
     : JASGlobalInstance< AudChordInfo >(true), mArchive(nullptr), mCurChord(nullptr), mCurScale(nullptr), mFlags(0), _2C(0), mCurChordIndex(0),

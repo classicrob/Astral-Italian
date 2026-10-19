@@ -10,7 +10,6 @@
 #include "JSystem/JKernel/JKRHeap.hpp"
 #include "JSystem/JSupport/JSUFileStream.hpp"
 #include <cstring>
-#include <stdint.h>
 
 int JKRDecompressFromDVDToAram(JKRDvdFile*, u32, u32, u32, u32, u32, u32*);
 static inline u8* firstSrcData();
@@ -46,7 +45,7 @@ JKRAramBlock* JKRDvdAramRipper::loadToAram(JKRDvdFile* dvdFile, u32 address, JKR
     return result;
 }
 
-JKRADCommand* JKRDvdAramRipper::loadToAram_Async(JKRDvdFile* dvdFile, u32 address, JKRExpandSwitch expandSwitch, void (*callback)(uintptr_t), u32 param_4,
+JKRADCommand* JKRDvdAramRipper::loadToAram_Async(JKRDvdFile* dvdFile, u32 address, JKRExpandSwitch expandSwitch, void (*callback)(u32), u32 param_4,
                                                  u32 param_5, u32* param_6) {
     JKRADCommand* command = new (JKRGetSystemHeap(), -4) JKRADCommand();
     command->mDvdFile = dvdFile;
@@ -94,7 +93,7 @@ JKRADCommand* JKRDvdAramRipper::callCommand_Async(JKRADCommand* command) {
         fileSize = ALIGN_NEXT(fileSize, 0x20);
         if (command->mExpandSwitch == 1) {
             u8 buffer[0x40];
-            u8* bufPtr = reinterpret_cast< u8* >(ALIGN_NEXT(reinterpret_cast< uintptr_t >(&buffer), 0x20));
+            u8* bufPtr = reinterpret_cast< u8* >(ALIGN_NEXT(reinterpret_cast< u32 >(&buffer), 0x20));
             while (true) {
                 s32 result = DVDReadPrio(dvdFile->getFileInfo(), bufPtr, 0x20, 0, 2);
                 if (result >= 0) {
@@ -173,7 +172,7 @@ JKRADCommand* JKRDvdAramRipper::callCommand_Async(JKRADCommand* command) {
         if (!command->mCallback) {
             sDvdAramAsyncList.append(&command->mLink);
         } else {
-            command->mCallback(reinterpret_cast< uintptr_t >(command));
+            command->mCallback(reinterpret_cast< u32 >(command));
         }
     }
 
@@ -460,7 +459,7 @@ static u32 dmaBufferFlush(u32 param_1) {
         return 0;
     }
     u32 size = ALIGN_NEXT(dmaCurrent - dmaBuf, 0x20);
-    JKRAramPcs(0, reinterpret_cast< uintptr_t >(dmaBuf), param_1, size, nullptr);
+    JKRAramPcs(0, reinterpret_cast< u32 >(dmaBuf), param_1, size, nullptr);
     dmaCurrent = dmaBuf;
     return size;
 }

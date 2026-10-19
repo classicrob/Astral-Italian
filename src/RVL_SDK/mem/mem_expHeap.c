@@ -1,14 +1,6 @@
 #include "revolution/mem/expHeap.h"
 
 #define FillFreeMemory(pHeapHd, address, size) ((void)0)
-
-// Block headers hold pointers, so native heaps keep 8-byte granularity for heap
-// bounds, block sizes and alignment. The Wii uses 4.
-#ifdef GALAXY_NATIVE
-#define MEM_EXP_HEAP_MIN_ALIGN 8
-#else
-#define MEM_EXP_HEAP_MIN_ALIGN 4
-#endif
 #define FillNoUseMemory(pHeapHd, address, size) ((void)0)
 
 typedef struct MemRegion MemRegion;
@@ -301,11 +293,11 @@ static BOOL RecycleRegion_(MEMiExpHeapHead* pEHHead, const MemRegion* pRegion) {
 MEMHeapHandle MEMCreateExpHeapEx(void* startAddress, u32 size, u16 optFlag) {
     void* endAddress;
 
-    endAddress = RoundDownPtr(AddU32ToPtr(startAddress, size), MEM_EXP_HEAP_MIN_ALIGN);
-    startAddress = RoundUpPtr(startAddress, MEM_EXP_HEAP_MIN_ALIGN);
+    endAddress = RoundDownPtr(AddU32ToPtr(startAddress, size), 4);
+    startAddress = RoundUpPtr(startAddress, 4);
 
     if (GetUIntPtr(startAddress) > GetUIntPtr(endAddress) ||
-        GetOffsetFromPtr(startAddress, endAddress) < sizeof(MEMiHeapHead) + sizeof(MEMiExpHeapHead) + sizeof(MEMiExpHeapMBlockHead) + MEM_EXP_HEAP_MIN_ALIGN) {
+        GetOffsetFromPtr(startAddress, endAddress) < sizeof(MEMiHeapHead) + sizeof(MEMiExpHeapHead) + sizeof(MEMiExpHeapMBlockHead) + 4) {
         return 0;
     }
 
@@ -327,15 +319,7 @@ void* MEMAllocFromExpHeapEx(MEMHeapHandle heap, u32 size, int alignment) {
         size = 1;
     }
 
-    size = RoundUp(size, MEM_EXP_HEAP_MIN_ALIGN);
-
-#ifdef GALAXY_NATIVE
-    if (alignment >= 0 && alignment < MEM_EXP_HEAP_MIN_ALIGN) {
-        alignment = MEM_EXP_HEAP_MIN_ALIGN;
-    } else if (alignment < 0 && alignment > -MEM_EXP_HEAP_MIN_ALIGN) {
-        alignment = -MEM_EXP_HEAP_MIN_ALIGN;
-    }
-#endif
+    size = RoundUp(size, 4);
 
     LockHeap(heap);
 
@@ -380,11 +364,7 @@ void MEMFreeToExpHeap(MEMHeapHandle heap, void* memBlock) {
 }
 
 u32 MEMGetAllocatableSizeForExpHeapEx(MEMHeapHandle heap, int alignment) {
-#ifdef GALAXY_NATIVE
-    alignment = alignment < 0 ? -alignment : alignment;
-#else
     alignment = __abs(alignment);
-#endif
 
     LockHeap(heap);
 

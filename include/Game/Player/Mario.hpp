@@ -6,9 +6,6 @@
 #include "Game/Player/MarioPosHolder.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
-#ifdef GALAXY_NATIVE
-#include "Game/Util/NativeOverload.hpp"
-#endif
 
 class AreaObj;
 class CubeCameraArea;
@@ -326,11 +323,6 @@ public:
     void setFrontVec(const TVec3f&);
     void setFrontVecKeepUp(const TVec3f&, f32);
     void setFrontVecKeepUp(const TVec3f&, u32);
-#ifdef GALAXY_NATIVE
-    // Wii u32 is unsigned long; `1UL` must select the u32 overload rather than f32.
-    template < typename T, PETARI_WII_LONG_ARGS(T) >
-    void setFrontVecKeepUp(const TVec3f& rVec, T step) { setFrontVecKeepUp(rVec, static_cast< u32 >(step)); }
-#endif
     void setFrontVecKeepUp(const TVec3f&);
     void setFrontVecKeepUpAngle(const TVec3f&, f32);
     void setFrontVecKeepSide(const TVec3f&);

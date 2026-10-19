@@ -1,7 +1,6 @@
 #include "revolution/mtx.h"
 #include <cmath>
 
-#ifndef GALAXY_NATIVE
 // clang-format off
 
 void PSQUATMultiply
@@ -63,7 +62,6 @@ f32 PSQUATDotProduct( const register Quaternion *p, const register Quaternion *q
 }
 
 // clang-format on
-#endif
 
 static const f32 one[] = {1.0f};
 

@@ -1,11 +1,4 @@
 #include "RVLFaceLibInternal.h"
-#ifdef GALAXY_NATIVE
-#include "rfl_native.h"
-// A create ID is 8 bytes whose words the Wii tests as big-endian u32s, from
-// byte arrays with no 4-byte alignment. Natively the words are loaded
-// explicitly (RFLCreateID keeps its stored byte order everywhere).
-#define RFLi_ID_WORD(id, i) RFLiNativeLoadU32((id)->data + 4 * (i))
-#endif
 
 #define ASYNC_CRC_STEP 0x1400
 
@@ -72,19 +65,6 @@ static void bootloadDBopencallback_(void) {
 
     switch (RFLGetAsyncStatus()) {
     case RFLErrcode_Success:
-#ifdef GALAXY_NATIVE
-        // A Mii Channel database from a console is stored in the Wii layout
-        // (big-endian bitfield records, CRC over stored bytes), which the
-        // native database does not convert yet. Refuse it as RFL refuses a
-        // database that fails its CRC check (bootloadCheckCRCCb_): no official
-        // Miis, and the file is left untouched.
-        OSReport("RFL: %s is in the Wii layout, which is not supported natively yet; "
-                 "continuing without its Miis\n", "/shared2/menu/FaceLib/RFL_DB.dat");
-        RFLiGetManager()->lastErrCode = RFLErrcode_Loadfail;
-        RFLiSetFileBroken(RFLiFileBrokenType_DBBroken);
-        RFLiCloseAsync(RFLiFileType_Database, mgr->bootloadCb);
-        break;
-#endif
         switch (RFLiReadAsync(RFLiFileType_Database, mgr->database,
                               sizeof(RFLiDatabase), bootloadDBcallback_, 0)) {
         case RFLErrcode_Success:
@@ -222,7 +202,7 @@ static void saveDatabase_(u32 arg) {
     }
 }
 
-RFL_HEADER_STATIC RFLErrcode RFLiSaveDatabaseAsync(RFLiCallback callback) {
+static RFLErrcode RFLiSaveDatabaseAsync(RFLiCallback callback) {
     RFLiDBManager* mgr;
 
     if (!RFLAvailable()) {
@@ -421,25 +401,25 @@ static void convertInfo2RawCore_(const RFLiCharInfo* info, RFLiCharData* data) {
     data->localonly = info->personal.localOnly;
 }
 
-RFL_HEADER_STATIC void RFLiConvertInfo2Raw(const RFLiCharInfo* info, RFLiCharData* out) {
+static void RFLiConvertInfo2Raw(const RFLiCharInfo* info, RFLiCharData* out) {
     convertInfo2RawCore_(info, out);
     memcpy(out->creatorName, info->personal.creator,
            RFL_CREATOR_LEN * sizeof(wchar_t));
 }
 
-RFL_HEADER_STATIC void RFLiConvertInfo2HRaw(const RFLiCharInfo* info, RFLiHiddenCharData* out) {
+static void RFLiConvertInfo2HRaw(const RFLiCharInfo* info, RFLiHiddenCharData* out) {
     convertInfo2RawCore_(info, (RFLiCharData*)out);
     out->birthPadding = 0;
 }
 
-RFL_HEADER_STATIC void RFLiConvertRaw2HRaw(const RFLiCharData* data, RFLiHiddenCharData* out) {
+static void RFLiConvertRaw2HRaw(const RFLiCharData* data, RFLiHiddenCharData* out) {
     memset(out, 0, sizeof(RFLiHiddenCharData));
     // Copy everything that also exists in hidden (just no creator name)
     memcpy(out, data, sizeof(RFLiCharData) - RFL_CREATOR_LEN * sizeof(wchar_t));
     out->birthPadding = 0;
 }
 
-RFL_HEADER_STATIC RFLErrcode RFLiGetCharRawData(RFLiCharData* out, u16 index) {
+static RFLErrcode RFLiGetCharRawData(RFLiCharData* out, u16 index) {
     RFLiCharData* data;
 
     if (out == NULL) {
@@ -492,19 +472,10 @@ BOOL RFLIsAvailableOfficialData(u16 index) {
     return RFLiGetCharData(index) != NULL;
 }
 
-RFL_HEADER_STATIC void RFLiSetTemporaryID(RFLiCharInfo* info) {
-#ifdef GALAXY_NATIVE
-    const u32 mask = RFLi_CREATE_ID_MASK_TEMPORARY;
-    memset(info->createID.data, 0, sizeof(info->createID.data));
-    info->createID.data[0] = (u8)(mask >> 24);
-    info->createID.data[1] = (u8)(mask >> 16);
-    info->createID.data[2] = (u8)(mask >> 8);
-    info->createID.data[3] = (u8)mask;
-#else
+static void RFLiSetTemporaryID(RFLiCharInfo* info) {
     u32* dst = (u32*)&info->createID.data;
     dst[0] = RFLi_CREATE_ID_MASK_TEMPORARY;
     dst[1] = 0;
-#endif
 }
 
 BOOL RFLiIsSameID(const RFLCreateID* id1, const RFLCreateID* id2) {
@@ -535,11 +506,6 @@ BOOL RFLiIsSameID(const RFLCreateID* id1, const RFLCreateID* id2) {
         return FALSE;
     }
 
-#ifdef GALAXY_NATIVE
-    (void)ptr1;
-    (void)ptr2;
-    return memcmp(id1->data, id2->data, RFL_CREATEID_LEN) == 0 ? TRUE : FALSE;
-#else
     if (ptr1[0] != ptr2[0]) {
         return FALSE;
     }
@@ -549,17 +515,9 @@ BOOL RFLiIsSameID(const RFLCreateID* id1, const RFLCreateID* id2) {
     }
 
     return TRUE;
-#endif
 }
 
 BOOL RFLiIsValidID(const RFLCreateID* id) {
-#ifdef GALAXY_NATIVE
-    if (id == NULL) {
-        return FALSE;
-    }
-
-    return RFLi_ID_WORD(id, 0) != 0 || RFLi_ID_WORD(id, 1) != 0;
-#else
     const u32* ptr = (u32*)id->data;
 
     if (id == NULL) {
@@ -567,7 +525,6 @@ BOOL RFLiIsValidID(const RFLCreateID* id) {
     }
 
     return ptr[0] != 0 || ptr[1] != 0;
-#endif
 }
 
 BOOL RFLiIsSpecialID(const RFLCreateID* id) {
@@ -585,12 +542,7 @@ BOOL RFLiIsSpecialID(const RFLCreateID* id) {
         return FALSE;
     }
 
-#ifdef GALAXY_NATIVE
-    (void)ptr;
-    return (RFLi_ID_WORD(id, 0) & RFLi_CREATE_ID_MASK_NOT_SPECIAL) == 0 ? TRUE : FALSE;
-#else
     return (*ptr & RFLi_CREATE_ID_MASK_NOT_SPECIAL) == 0 ? TRUE : FALSE;
-#endif
 }
 
 BOOL RFLiIsTemporaryID(const RFLCreateID* id) {
@@ -604,12 +556,7 @@ BOOL RFLiIsTemporaryID(const RFLCreateID* id) {
         return FALSE;
     }
 
-#ifdef GALAXY_NATIVE
-    (void)ptr;
-    return (RFLi_ID_WORD(id, 0) & RFLi_CREATE_ID_MASK_TEMPORARY) != 0 ? TRUE : FALSE;
-#else
     return (*ptr & RFLi_CREATE_ID_MASK_TEMPORARY) != 0 ? TRUE : FALSE;
-#endif
 }
 
 BOOL RFLSearchOfficialData(const RFLCreateID* id, u16* index) {
@@ -649,7 +596,7 @@ BOOL RFLSearchOfficialData(const RFLCreateID* id, u16* index) {
     return success;
 }
 
-RFL_HEADER_STATIC BOOL RFLiIsValidName(const RFLiCharData* data) {
+static BOOL RFLiIsValidName(const RFLiCharData* data) {
     if (data == NULL) {
         return FALSE;
     }
@@ -668,11 +615,11 @@ BOOL RFLiIsValidName2(const RFLiCharInfo* info) {
     return RFLiIsValidName(&data);
 }
 
-RFL_HEADER_STATIC BOOL RFLiGetIsolation(void) {
+static BOOL RFLiGetIsolation(void) {
     return !RFLiDBIsLoaded() ? TRUE : RFLiGetDBManager()->database->isolation;
 }
 
-RFL_HEADER_STATIC RFLiHiddenDB* RFLiGetHiddenHeader(void) {
+static RFLiHiddenDB* RFLiGetHiddenHeader(void) {
     if (!RFLiDBIsLoaded()) {
         return NULL;
     }
@@ -680,7 +627,7 @@ RFL_HEADER_STATIC RFLiHiddenDB* RFLiGetHiddenHeader(void) {
     return &RFLiGetDBManager()->database->hidden;
 }
 
-RFL_HEADER_STATIC BOOL RFLiDBIsLoaded(void) {
+static BOOL RFLiDBIsLoaded(void) {
     if (!RFLAvailable()) {
         return FALSE;
     }
@@ -692,7 +639,7 @@ RFL_HEADER_STATIC BOOL RFLiDBIsLoaded(void) {
     return !RFLiNeedRepairError() && !RFLiNotFoundError();
 }
 
-RFL_HEADER_STATIC u16 RFLiCalculateCRC(const void* p, u32 len) {
+static u16 RFLiCalculateCRC(const void* p, u32 len) {
     int i = 0;
     u16 crc = 0;
     const u8* current = (u8*)p;
@@ -768,7 +715,7 @@ static void alarmCreateCb_(OSAlarm* alarm, OSContext* ctx) {
     mgr->database->hidden.crc = crc;
 }
 
-RFL_HEADER_STATIC void RFLiCreateHeaderCRCAsync(RFLiExCallback callback) {
+static void RFLiCreateHeaderCRCAsync(RFLiExCallback callback) {
     RFLiDBManager* mgr = RFLiGetDBManager();
 
     if (!RFLiIsWorking()) {
@@ -838,7 +785,7 @@ static void alarmCheckCb_(OSAlarm* alarm, OSContext* ctx) {
     mgr->crcInfo.callback(crc);
 }
 
-RFL_HEADER_STATIC void RFLiCheckHeaderCRCAsync(RFLiExCallback callback) {
+static void RFLiCheckHeaderCRCAsync(RFLiExCallback callback) {
     RFLiDBManager* mgr = RFLiGetDBManager();
 
     if (!RFLiIsWorking()) {

@@ -8,7 +8,7 @@
 namespace DemoCameraFunction {
     bool isCameraTargetMario(const DemoCameraInfo* pInfo) {
         if (pInfo->mCameraTargetName == nullptr) {
-            return false;
+            return nullptr;
         }
 
         return MR::isEqualString(pInfo->mCameraTargetName, MR::getPlayerDemoActor()->mName);

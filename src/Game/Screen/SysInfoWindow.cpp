@@ -88,11 +88,6 @@ void SysInfoWindow::appear() {
 }
 
 void SysInfoWindow::appear(const char* pMessageId, SysInfoType type, SysInfoTextPos textPos, SysInfoMessageType messageType) {
-    // Type: 0 key wait, 1 blocking, 2 yes/no (SysInfoType).
-    NATIVE_TRACE_BOOT("[prompt] %s: message %s, type %d, message type %d\n", mName, pMessageId, type, messageType);
-#ifdef GALAXY_NATIVE
-    petari_ui_prompt(pMessageId, type);
-#endif
     mType = type;
 
     switch (type) {

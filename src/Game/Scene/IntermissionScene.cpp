@@ -6,11 +6,7 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include <JSystem/JUtility/JUTVideo.hpp>
 #include <cstdio>
-#ifdef GALAXY_NATIVE
-#include <cstdarg>
-#else
 #include <va_list.h>
-#endif
 
 IntermissionScene::IntermissionScene() : Scene("IntermissionScene") {
     _54 = 0;

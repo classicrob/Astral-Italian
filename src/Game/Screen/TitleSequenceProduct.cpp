@@ -14,18 +14,6 @@
 #include "Game/Util/SystemUtil.hpp"
 #include "Game/Util/TriggerChecker.hpp"
 
-#ifdef GALAXY_NATIVE
-// Progress telemetry and the automated smoke run (native/app); observation only.
-#include <petari/milestone.hpp>
-#define TITLE_SEQUENCE_MILESTONE(name) petari_milestone(name)
-// Tells the keyboard layer the A+B prompt is up, so Return can press both.
-#include <petari/input.hpp>
-#define TITLE_SEQUENCE_AB_PROMPT() PetariNative::Input::titlePromptShown()
-#else
-#define TITLE_SEQUENCE_MILESTONE(name)
-#define TITLE_SEQUENCE_AB_PROMPT()
-#endif
-
 namespace {
     static const s32 sPressABAppearFrame = 25;
 };  // namespace
@@ -138,7 +126,6 @@ void TitleSequenceProduct::exeLogoWait() {
 
 void TitleSequenceProduct::exeLogoDisplay() {
     if (MR::isFirstStep(this)) {
-        TITLE_SEQUENCE_MILESTONE("TitleSequence.LogoDisplay");
         mPressStartLayout->appear();
         MR::startAnim(mPressStartLayout, "Appear", 0);
     }
@@ -147,7 +134,6 @@ void TitleSequenceProduct::exeLogoDisplay() {
         MR::startAnim(mPressStartLayout, "Wait", 0);
     }
 
-    TITLE_SEQUENCE_AB_PROMPT();
     mAButtonChecker->update(MR::testCorePadButtonA(WPAD_CHAN0));
     mBButtonChecker->update(MR::testCorePadButtonB(WPAD_CHAN0));
 

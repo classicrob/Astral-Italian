@@ -3,25 +3,6 @@
 #include "JSystem/J3DGraphBase/J3DTevs.hpp"
 #include <revolution/gx/GXGeometry.h>
 #include <revolution/os/OSFastCast.h>
-#ifdef GALAXY_NATIVE
-#include "JSystem/J3DGraphAnimator/J3DModel.hpp"
-#include <petari/j3d_overrides.hpp>
-
-void J3DSys::setModelDrawMtx(Mtx* matrices) {
-    mModelDrawMtx = matrices;
-    auto* data = mModel->getModelData();
-    auto* buffers = mModel->getMtxBuffer();
-    u32 count = data->getDrawMtxNum();
-    if (matrices == buffers->mpUserAnmMtx) count = data->getJointNum();
-    else if (matrices == buffers->mpWeightEvlpMtx) count = data->getWEvlpMtxNum();
-    GXSetArray(GX_POS_MTX_ARRAY, matrices, count * sizeof(Mtx), sizeof(Mtx), true);
-}
-
-void J3DSys::setModelNrmMtx(Mtx33* matrices) {
-    mModelNrmMtx = matrices;
-    GXSetArray(GX_NRM_MTX_ARRAY, matrices, mModel->getModelData()->getDrawMtxNum() * sizeof(Mtx33), sizeof(Mtx33), true);
-}
-#endif
 
 J3DSys j3dSys;
 
@@ -81,22 +62,10 @@ J3DSys::J3DSys() {
 }
 
 void J3DSys::loadPosMtxIndx(int addr, u16 indx) const {
-#ifdef GALAXY_NATIVE
-    if (PetariNative::J3D::immediateMatrixLoads()) {
-        J3DFifoLoadPosMtxImm(mModelDrawMtx[indx], addr * 3);
-        return;
-    }
-#endif
     J3DFifoLoadIndx(0x20, indx, 0xB000 | ((u16)(addr * 0x0C)));
 }
 
 void J3DSys::loadNrmMtxIndx(int addr, u16 indx) const {
-#ifdef GALAXY_NATIVE
-    if (PetariNative::J3D::immediateMatrixLoads()) {
-        J3DFifoLoadNrmMtxImm3x3(mModelNrmMtx[indx], addr * 3);
-        return;
-    }
-#endif
     J3DFifoLoadNrmMtxIndx3x3(indx, addr * 3);
 }
 

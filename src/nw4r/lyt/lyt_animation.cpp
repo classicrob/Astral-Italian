@@ -217,9 +217,6 @@ namespace nw4r {
                     for (int i = 0; i < mpRes->fileNum; i++) {
                         const char* const name = detail::GetStrTableStr(fileNameOffs, i);
                         mpFileResAry[i] = pResAccessor->GetResource('timg', name, 0);
-#ifdef GALAXY_NATIVE
-                        petari_generic_world_layout_texture(mpFileResAry[i], name);
-#endif
                     }
                 }
             }
@@ -359,9 +356,6 @@ namespace nw4r {
         }
 
         void AnimResource::Set(const void* anmResBuf) {
-#ifdef GALAXY_NATIVE
-            detail::NativeNormalizeResource(const_cast< void* >(anmResBuf), res::FILESIGNATURE_RLAN);
-#endif
             Init();
 
             const res::BinaryFileHeader* const pFileHeader = static_cast< const res::BinaryFileHeader* >(anmResBuf);

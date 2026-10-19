@@ -120,11 +120,7 @@ public:
 
     static JUTConsoleManager* createManager(JKRHeap*);
 
-// The node offset must be the real member offset (the zero fallback is for
-// tooling builds only; natively it made list links overwrite the vtable pointer).
-#if defined(GALAXY_NATIVE)
-    typedef JGadget::TLinkList< JUTConsole, -static_cast< int >(offsetof(JUTConsole, mListNode)) > ConsoleList;
-#elif defined(__MWERKS__)
+#ifdef __MWERKS__
     typedef JGadget::TLinkList< JUTConsole, -offsetof(JUTConsole, mListNode) > ConsoleList;
 #else
     typedef JGadget::TLinkList< JUTConsole, 0 > ConsoleList;

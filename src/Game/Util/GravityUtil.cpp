@@ -42,9 +42,9 @@ namespace {
     }
 
     bool calcGravityVectorOrZero(const NameObj* pActor, const TVec3f& rPosition, u32 typeFlags, TVec3f* pDest, GravityInfo* pInfo,
-                                 GravityHostID host) NO_INLINE {
+                                 u32 host) NO_INLINE {
         if (host == 0) {
-            host = (GravityHostID)pActor;
+            host = (u32)pActor;
         }
 
         return getGravityManager()->calcTotalGravityVector(pDest, pInfo, rPosition, typeFlags, host, pActor);
@@ -56,53 +56,53 @@ namespace MR {
         ::getGravityManager()->registerGravity(pGravity);
     }
 
-    bool calcGravityVector(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcGravityVector(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_NORMAL;
         return ::calcGravityVectorOrZero(pActor, pActor->mPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcGravityVector(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcGravityVector(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_NORMAL;
         return ::calcGravityVectorOrZero(pActor, rPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcDropShadowVector(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcDropShadowVector(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_SHADOW;
         return ::calcGravityVectorOrZero(pActor, pActor->mPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcDropShadowVector(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcDropShadowVector(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_SHADOW;
         return ::calcGravityVectorOrZero(pActor, rPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcGravityAndDropShadowVector(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcGravityAndDropShadowVector(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_NORMAL | GRAVITY_TYPE_SHADOW;
         return ::calcGravityVectorOrZero(pActor, pActor->mPosition, typeFlags, pDest, pInfo, host);
     }
 
 
-    bool calcGravityVectorOrZero(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcGravityVectorOrZero(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_NORMAL;
         return ::calcGravityVectorOrZero(pActor, pActor->mPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcGravityVectorOrZero(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcGravityVectorOrZero(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_NORMAL;
         return ::calcGravityVectorOrZero(pActor, rPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcDropShadowVectorOrZero(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcDropShadowVectorOrZero(const NameObj* pActor, const TVec3f& rPosition, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_SHADOW;
         return ::calcGravityVectorOrZero(pActor, rPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcGravityAndDropShadowVectorOrZero(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcGravityAndDropShadowVectorOrZero(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_NORMAL | GRAVITY_TYPE_SHADOW;
         return ::calcGravityVectorOrZero(pActor, pActor->mPosition, typeFlags, pDest, pInfo, host);
     }
 
-    bool calcAttractMarioLauncherOrZero(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, GravityHostID host) {
+    bool calcAttractMarioLauncherOrZero(const LiveActor* pActor, TVec3f* pDest, GravityInfo* pInfo, u32 host) {
         u32 typeFlags = GRAVITY_TYPE_MARIO_LAUNCHER;
         return ::calcGravityVectorOrZero(pActor, pActor->mPosition, typeFlags, pDest, pInfo, host);
     }

@@ -1,11 +1,7 @@
 #ifndef AXFX_H
 #define AXFX_H
 
-#if defined(GALAXY_NATIVE) && !defined(__cplusplus)
-#include <stdio.h>
-#else
 #include <cstdio>
-#endif
 #include "revolution.h"
 
 #ifdef __cplusplus

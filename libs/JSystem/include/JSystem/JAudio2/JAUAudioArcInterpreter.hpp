@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef GALAXY_NATIVE
-#include <petari/endian.hpp>
-#endif
-
 #include <revolution/types.h>
 
 class JAUAudioArcInterpreter {
@@ -32,12 +28,7 @@ public:
     }
 
     u32 readU32_() {
-#ifdef GALAXY_NATIVE
-        // The audio archive command stream is big-endian.
-        u32 temp = PetariNative::readU32BE(mReadPtr);
-#else
         u32 temp = *(u32*)mReadPtr;
-#endif
         mReadPtr += 4;
         return temp;
     }

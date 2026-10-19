@@ -9,34 +9,16 @@ extern "C" void __DSP_remove_task(DSPTaskInfo* pTask);
 
 void Dsp_Update_Request();
 
-#ifdef GALAXY_NATIVE
-// Shared with the DSP interrupt handler, which natively runs on another host
-// thread: acquire/release accesses instead of plain volatile ones.
-#define DSP_SHARED_LOAD(v) __atomic_load_n(&(v), __ATOMIC_ACQUIRE)
-#define DSP_SHARED_STORE(v, x) __atomic_store_n(&(v), (x), __ATOMIC_RELEASE)
-#else
-#define DSP_SHARED_LOAD(v) (v)
-#define DSP_SHARED_STORE(v, x) ((v) = (x))
-#endif
-
 static vu8 DspRunningStatus;
 static u8 sPendingFrameMode;
 
 DSPTaskInfo* DSP_prior_task;
 
 extern "C" void __DSPHandler(__OSInterrupt interrupt, OSContext* pContext) {
-#ifdef GALAXY_NATIVE
-    // The native DSP device acknowledges its own interrupt and calls this on
-    // its interrupt thread; there is no DSP control register or exception
-    // context to switch.
-    (void)interrupt;
-    (void)pContext;
-#else
     OSContext funcContext;
     __DSPRegs[5] = ((u16)(__DSPRegs[5]) & ~0x28) | 0x80;
     OSClearContext(&funcContext);
     OSSetCurrentContext(&funcContext);
-#endif
 
     if (DspRunningStatus == 1 || DspRunningStatus == 0) {
         __DSP_curr_task = DSP_prior_task;
@@ -145,13 +127,11 @@ extern "C" void __DSPHandler(__OSInterrupt interrupt, OSContext* pContext) {
         break;
     }
 
-#ifndef GALAXY_NATIVE
     OSClearContext(&funcContext);
     OSSetCurrentContext(pContext);
-#endif
 }
 
-static JASDspAddr sync_stack[5];
+static u32 sync_stack[5];
 
 void DsyncFrame2(u32 param_0, u32 param_1, u32 param_2) {
     if (DspRunningStatus != 1) {

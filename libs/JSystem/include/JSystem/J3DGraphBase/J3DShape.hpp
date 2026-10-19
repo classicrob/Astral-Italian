@@ -111,11 +111,7 @@ public:
         initialize();
     }
 
-#ifdef GALAXY_NATIVE
-    static const int kVcdVatDLSize = 0x180;
-#else
     static const int kVcdVatDLSize = 0xC0;
-#endif
 
     void initialize();
     void addTexMtxIndexInDL(_GXAttr, u32);

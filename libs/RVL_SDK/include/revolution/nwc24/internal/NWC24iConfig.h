@@ -1,11 +1,7 @@
 #ifndef RVL_SDK_NWC24_INTERNAL_CONFIG_H
 #define RVL_SDK_NWC24_INTERNAL_CONFIG_H
 #include "revolution/types.h"
-#if defined(GALAXY_NATIVE) && !defined(__cplusplus)
-#include <stdlib.h>
-#else
 #include <cstdlib>
-#endif
 
 #include "revolution/nwc24/NWC24Types.h"
 #ifdef __cplusplus

@@ -33,39 +33,6 @@ namespace {
     NEW_NERVE(SaveDataHandleSequenceErrorHandling, SaveDataHandleSequence, ErrorHandling);
 };  // namespace
 
-#ifdef GALAXY_NATIVE
-namespace {
-    const char* getSaveSequenceNerveName(const SaveDataHandleSequence* pSequence) {
-        static const struct {
-            const Nerve* mNerve;
-            const char* mName;
-        } cNerves[] = {
-            {GET_NERVE_ANON(SaveDataHandleSequenceNoOperation), "NoOperation"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceCheckEnableToCreate), "CheckEnableToCreate"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSaveConfirm), "SaveConfirm"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSave), "Save"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSaveWindowDisappear), "SaveWindowDisappear"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSaveDoneKeyWait), "SaveDoneKeyWait"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWait), "SaveAllWithoutKeyWait"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWaitDisappear), "SaveAllWithoutKeyWaitDisappear"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutWindow), "SaveAllWithoutWindow"},
-            {GET_NERVE_ANON(SaveDataHandleSequencePreLoad), "PreLoad"},
-            {GET_NERVE_ANON(SaveDataHandleSequencePreLoadDone), "PreLoadDone"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceNoSaveConfirmRemind), "NoSaveConfirmRemind"},
-            {GET_NERVE_ANON(SaveDataHandleSequenceErrorHandling), "ErrorHandling"},
-        };
-
-        for (u32 i = 0; i < sizeof(cNerves) / sizeof(cNerves[0]); i++) {
-            if (pSequence->isNerve(cNerves[i].mNerve)) {
-                return cNerves[i].mName;
-            }
-        }
-
-        return "?";
-    }
-}  // namespace
-#endif
-
 SaveDataHandleSequence::SaveDataHandleSequence()
     : NerveExecutor("セーブ/ロード"), mSysConfigFile(), mCurrentUserFile(), _10(1), mBackupUserFile(), mSaveDataHandler(), mNANDErrorSequence(),
       mSysInfoWindowConfirm(), mSysInfoWindowSave(), _24(), _2C_new(), mIsConfirmRemind(), mIsSaveAndQuitMsg(), _2A(), _2B(), _2C(), _32(),

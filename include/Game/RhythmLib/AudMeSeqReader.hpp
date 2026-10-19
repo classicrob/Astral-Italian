@@ -1,9 +1,6 @@
 #pragma once
 
 #include <JSystem/JAudio2/JASSeqReader.hpp>
-#ifdef GALAXY_NATIVE
-#include <petari/endian.hpp>
-#endif
 
 class AudMeSeqReader {
 public:
@@ -41,20 +38,6 @@ public:
         return *(mSeqBuff + addr);
     }
 
-#ifdef GALAXY_NATIVE
-    // Sequence data is big-endian and not always aligned.
-    u16 get16(u32 addr) const {
-        return PetariNative::readU16BE(mSeqBuff + addr);
-    }
-
-    u32 get24(u32 addr) const {
-        return PetariNative::readU24BE(mSeqBuff + addr);
-    }
-
-    u32 get32(u32 addr) const {
-        return PetariNative::readU32BE(mSeqBuff + addr);
-    }
-#else
     u16 get16(u32 addr) const {
         return *(u16*)(mSeqBuff + addr);
     }
@@ -66,7 +49,6 @@ public:
     u32 get32(u32 addr) const {
         return *(u32*)(mSeqBuff + addr);
     }
-#endif
 
     u8* getCur() {
         return mSeqCursor;

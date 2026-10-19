@@ -15,11 +15,5 @@ struct JASInstEffect {
 
     JASInstEffect() {};
 
-#ifdef GALAXY_NATIVE
-    // Only JASInstRand and JASInstSense are instantiated, and the base effect has
-    // no definition, so natively it is pure virtual to emit the base vtable.
-    virtual void effect(int, int, JASInstParam*) const = 0;
-#else
     virtual void effect(int, int, JASInstParam*) const;
-#endif
 };

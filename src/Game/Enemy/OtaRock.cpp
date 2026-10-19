@@ -7,12 +7,6 @@
 #include "Game/MapObj/CocoNut.hpp"
 #include "Game/NameObj/NameObjArchiveListCollector.hpp"
 #include "Game/Util.hpp"
-#ifdef GALAXY_NATIVE
-#include <petari/host_allocation.hpp>
-#include <cstdio>
-#include <cstdlib>
-#include <dlfcn.h>
-#endif
 
 namespace {
     const Vec cSensorOffset = {0.0f, 180.0f, 0.0f};

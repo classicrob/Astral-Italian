@@ -251,19 +251,10 @@ void DspBoot(void (*pCallback)(void*)) {
     DspInitWork();
     OSReport("Dsp をブートします\n");
     audiotask.priority = 0xf0;
-#ifdef GALAXY_NATIVE
-    // Host pointers: no cached-to-physical address arithmetic.
-    audiotask.iram_mmem_addr = jdsp;
-#else
     audiotask.iram_mmem_addr = (u16*)((u8*)jdsp + 0x80000000);
-#endif
     audiotask.iram_length = sizeof(jdsp);
     audiotask.iram_addr = 0;
-#ifdef GALAXY_NATIVE
-    audiotask.dram_mem_addr = AUDIO_YIELD_BUFFER;
-#else
     audiotask.dram_mem_addr = (u16*)((u8*)AUDIO_YIELD_BUFFER + 0x80000000);
-#endif
     audiotask.dram_len = sizeof(AUDIO_YIELD_BUFFER);
     audiotask.dram_addr = 0;
     audiotask.dsp_vector = 0;
@@ -280,12 +271,7 @@ void DspBoot(void (*pCallback)(void*)) {
 int DSPSendCommands2(u32* pMessages, u32 param_2, void (*pCallback)(u16)) {
     s32 i;
     BOOL interruptFlag;
-#ifdef GALAXY_NATIVE
-    s32 startWorkStatus = 0;  // No callback means no work-queue entry was allocated.
-#else
     s32 startWorkStatus;
-#endif
-
 #ifndef __MWERKS__
     // No callback schedules no work ticket. Original callers discard this result.
     startWorkStatus = 0;

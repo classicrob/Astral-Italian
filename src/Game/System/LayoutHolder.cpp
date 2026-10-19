@@ -123,13 +123,7 @@ u32 LayoutHolder::count(const char* pExtension, const char* pRoot) {
         if (pFinder->mFileIsFolder) {
             if (pFinder->mName[0] != '.') {
                 char path[128];
-#ifdef GALAXY_NATIVE
-                const int length = snprintf(path, sizeof(path), "%s/%s", pRoot ? pRoot : "", pFinder->mName);
-                if (length < 0 || static_cast<size_t>(length) >= sizeof(path))
-                    OSPanic(__FILE__, __LINE__, "Layout archive path is too long");
-#else
                 sprintf(path, "%s%s%s", pRoot, "/", pFinder->mName);
-#endif
                 resCount += count(pExtension, path);
             }
         } else {
@@ -152,13 +146,7 @@ void LayoutHolder::mount(char* pRoot) {
         if (pFinder->mFileIsFolder) {
             if (pFinder->mName[0] != '.') {
                 char path[128];
-#ifdef GALAXY_NATIVE
-                const int length = snprintf(path, sizeof(path), "%s/%s", pRoot ? pRoot : "", pFinder->mName);
-                if (length < 0 || static_cast<size_t>(length) >= sizeof(path))
-                    OSPanic(__FILE__, __LINE__, "Layout archive path is too long");
-#else
                 snprintf(path, 128, "%s/%s", pRoot, pFinder->mName);
-#endif
                 mount(path);
             }
         } else {

@@ -230,11 +230,7 @@ void AudAnmSoundObject::startAnimSound(const TVec3f& rPos, f32 speed, JAISoundSt
         mLoopSoundIndex++;
     }
 
-#ifdef GALAXY_NATIVE
-    JAISoundHandle* handle = getAnimatorHandles()->getHandleUserData(reinterpret_cast< uintptr_t >(sound));
-#else
     JAISoundHandle* handle = getAnimatorHandles()->getHandleUserData((u32)sound);
-#endif
     if (handle == nullptr) {
         handle = getFreeHandle(sound);
     }
@@ -261,11 +257,7 @@ void AudAnmSoundObject::startAnimSound(const TVec3f& rPos, f32 speed, JAISoundSt
     }
 
     handle->getSound()->setAnimationState(1);
-#ifdef GALAXY_NATIVE
-    handle->getSound()->setUserData(reinterpret_cast< uintptr_t >(sound));
-#else
     handle->getSound()->setUserData((u32)sound);
-#endif
 
     setMapCodeToPort(handle, soundID);
     setCutoffToPort(handle, soundID);

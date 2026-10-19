@@ -85,12 +85,6 @@ struct J3DTextureSRTInfo {
             psq_st xy, 0(dst), 0, 0
         }
         ;
-#else
-        mScaleX = other.mScaleX;
-        mScaleY = other.mScaleY;
-        mRotation = other.mRotation;
-        mTranslationX = other.mTranslationX;
-        mTranslationY = other.mTranslationY;
 #endif
     }
 };  // Size: 0x14

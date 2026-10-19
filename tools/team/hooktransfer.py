@@ -50,7 +50,8 @@ PP_CLOSE = re.compile(r"^\s*#\s*endif")
 # Deferred MacioGalaxy features (P3 mods, level editor, test server); their hooks are not transferred.
 FEATURE_RE = re.compile(r"Editor|TestServer|ClassSweep|Odyssey|Cappy|GenericFigure|PhotoCamera|CutsceneSkip|"
                         r"NativeUnlockedSave|PointMove|GenericWorld|GenericShapes|PETARI_MODS|petari::mods|"
-                        r"\bmods?::|ModSettings|OVERWRITE_EMIT|PETARI_OVERWRITE")
+                        r"\bmods?::|ModSettings|OVERWRITE_EMIT|PETARI_OVERWRITE|petari_?[Mm]od|ModGalax|mod_galaxy|"
+                        r"\b[sk]Mod[A-Z]|\b[Mm]ods\b|modGalaxies")
 NATIVE_ADDED_RE = re.compile(r"Native|native|BigEndian")
 FUNC_RE = re.compile(r"^(?!\s)(?!(?:if|for|while|switch|return|else|do|case|namespace|class|struct|enum|typedef|#)\b)"
                      r"[\w:<>,\*&~ ]*?\b([\w]+(?:::[~\w]+)*)\s*\([^;]*$")
@@ -73,8 +74,24 @@ def lines_of(text):
     return text.splitlines(keepends=True)
 
 
+_NATIVE_TERM = r"!\s*defined\s*\(?\s*%s\s*\)?" % MACRO_TO
+_NATIVE_POS = r"defined\s*\(?\s*%s\s*\)?" % MACRO_TO
+_PP_IF_RE = re.compile(r"^(\s*#\s*(?:el)?if\b)(.*)$", re.M)
+
+
+def _drop_native_terms(m):
+    expr = m.group(2)
+    # unifdef leaves `X && !defined(GALAXY_NATIVE)` / `X || defined(GALAXY_NATIVE)` unsimplified.
+    expr = re.sub(r"\s*&&\s*" + _NATIVE_TERM, "", expr)
+    expr = re.sub(_NATIVE_TERM + r"\s*&&\s*", "", expr)
+    expr = re.sub(r"\s*\|\|\s*" + _NATIVE_POS, "", expr)
+    expr = re.sub(_NATIVE_POS + r"\s*\|\|\s*", "", expr)
+    return m.group(1) + expr
+
+
 def wii_side(text):
     """The text the Wii (MWCC) build sees: GALAXY_NATIVE undefined, __MWERKS__ defined."""
+    text = _PP_IF_RE.sub(_drop_native_terms, text)
     r = subprocess.run(["unifdef", "-U" + MACRO_TO, "-D__MWERKS__"], input=encode(text), capture_output=True)
     if r.returncode not in (0, 1):
         return None
@@ -96,10 +113,17 @@ def normalize(text):
 # JASAllocationSize -> u32), adds `this->`/`template`/`typename` that MWCC does not need, or widens
 # u32 to uintptr_t (identical on the Wii). canon() compares Wii sides modulo those rewrites.
 _TOKEN_RE = re.compile(r"[A-Za-z_]\w*|\d[\w.]*|::|->|\S")
-_NEUTRAL_INCLUDE_RE = re.compile(r"^\s*#\s*include\s*<(stdint\.h|cstdint|stddef\.h|cstddef|cstring|string\.h)>")
+_NEUTRAL_INCLUDE_RE = re.compile(r"^\s*#\s*include\s*(<(stdint\.h|cstdint|stddef\.h|cstddef|cstring|string\.h)>|"
+                                 r"\"[\w/]*(Native\w*|BigEndian)\.hpp\")")
 _TYPE_CLASSES = {"U32": [["u32"], ["unsigned", "long"], ["uintptr_t"], ["size_t"], ["uint32_t"], ["std", "::", "size_t"],
                          ["std", "::", "uintptr_t"], ["unsigned", "long", "int"]],
                  "S32": [["s32"], ["long"], ["signed", "long"], ["intptr_t"], ["int32_t"], ["std", "::", "intptr_t"]]}
+# Petari defines nullptr as 0 for MWCC, so MacioGalaxy's nullptr -> false/0 corrections are Wii-neutral; likewise
+# -1 vs 0xFFFFFFFF in u32 initializers and `0f` vs `0.0f`. Final proof: identical objects (tools/team/hookproof.sh).
+_ZERO = {"nullptr", "NULL", "false", "0", "0x0", "0x00"}
+_MINUS_ONE = {"0xFFFFFFFF", "0xffffffff", "0xFFFF", "0xffff"}
+_FLOAT_RE = re.compile(r"^(\d+(?:\.\d*)?|\.\d+)[fF]$")
+_PP_SPELL = (re.compile(r"^\s*#\s*ifdef\s+(\w+)"), re.compile(r"^\s*#\s*ifndef\s+(\w+)"))
 ALIASES = {}  # name -> (params or None, body tokens), learned from MacioGalaxy's Wii-side definitions
 _DEF_RE = re.compile(r"^\s*#\s*define\s+([A-Za-z_]\w*)(\(([^)]*)\))?\s*(.*?)\s*$")
 _TYPEDEF_RE = re.compile(r"^\s*typedef\s+([^;{}()]+?)\s+([A-Za-z_]\w*)\s*;\s*$")
@@ -182,8 +206,11 @@ def _expand(toks, depth=0):
                 sub += args[params.index(bt)]
             else:
                 sub.append(bt)
-        out += _expand(sub, depth + 1)
+        expanded = _expand(sub, depth + 1)
+        out += expanded
         i = j + 1
+        if not expanded and i < len(toks) and toks[i] == ";":
+            i += 1  # an empty statement left by a Wii-side no-op macro (milestones, traces)
     return out
 
 
@@ -192,7 +219,8 @@ def canon(text):
     wii = wii_side(text)
     if wii is None:
         return None
-    lines = [l for l in wii.splitlines() if not _NEUTRAL_INCLUDE_RE.match(l) and not _is_alias_def(l)]
+    lines = [_PP_SPELL[1].sub(r"#if !defined(\1)", _PP_SPELL[0].sub(r"#if defined(\1)", l))
+             for l in wii.splitlines() if not _NEUTRAL_INCLUDE_RE.match(l) and not _is_alias_def(l)]
     toks = _expand(tokens("\n".join(lines)))
     out, i = [], 0
     while i < len(toks):
@@ -204,6 +232,24 @@ def canon(text):
             i += 1
             continue
         if t == "typename":
+            i += 1
+            continue
+        if t == "static_cast" and i + 1 < len(toks) and toks[i + 1] == "<":
+            close = toks.index(">", i + 2) if ">" in toks[i + 2:i + 12] else -1
+            if close > 0:  # an explicit cast to the type the implicit conversion already produced
+                i = close + 1
+                continue
+        if t in _ZERO:
+            out.append("0")
+            i += 1
+            continue
+        if t in _MINUS_ONE:
+            out += ["-", "1"]
+            i += 1
+            continue
+        fm = _FLOAT_RE.match(t)
+        if fm:
+            out.append(repr(float(fm.group(1))) + "f")
             i += 1
             continue
         matched = False
@@ -335,6 +381,11 @@ def process_file(rel, base, theirs, tree, index):
         else:
             merged, conflicts = merge3(acc, base, theirs_g)
             if merged is None or conflicts != 0:
+                # SMG2 may differ only in blank lines/comments around the hunk: patch by unique context.
+                patched = patch_by_context(acc, base_lines, theirs_lines, g)
+                if patched is not None and wii_equal(cls, patched, acc):
+                    merged, conflicts = patched, 0
+            if merged is None or conflicts != 0:
                 entry["kind"] = "manual"
                 entry["reason"] = "conflict" if conflicts > 0 else "merge error"
             elif not wii_equal(cls, merged, acc):
@@ -423,6 +474,29 @@ def relocate(rec, base, theirs, files_state, line_index):
             entry.pop("reason", None)
             break
     finish(rec, False)
+
+
+def patch_by_context(text, base_lines, theirs_lines, g):
+    """Apply group g to text where its Petari lines (plus context) occur exactly once, comparing lines
+    modulo whitespace and comments and skipping blank lines. None if there is no unique match."""
+    i1, i2 = g[0][1], g[-1][2]
+    lines = lines_of(text)
+    for ctx in (3, 2, 1, 0):
+        pre, post = base_lines[max(0, i1 - ctx):i1], base_lines[i2:i2 + ctx]
+        key = [k for k in (norm_line(l) for l in pre + base_lines[i1:i2] + post) if k]
+        if len(key) < 2 and not (key and ctx == 0 and len(key[0]) >= 40):
+            continue
+        hits = find_block(lines, key)
+        if len(hits) != 1:
+            continue
+        s0, s1 = hits[0]
+        body, pos = [], i1
+        for tag, a1, a2, b1, b2 in g:
+            body += base_lines[pos:a1] + theirs_lines[b1:b2]
+            pos = a2
+        body += base_lines[pos:i2]
+        return "".join(lines[:s0]) + "".join(pre + body + post) + "".join(lines[s1:])
+    return None
 
 
 def norm_line(l):

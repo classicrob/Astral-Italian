@@ -213,7 +213,7 @@ void TakoSho::exeWait() {
     }
 }
 
-// NONMATCHING: stack slot order of TVec3f temporaries and fdivs scheduling differ.
+// NONMATCHING: TVec3f stack slots and finite integer-derived multiply operand order differ.
 void TakoSho::exeMove() {
     if (MR::isFirstStep(this)) {
         f32 sign = mIsRight ? 1.0f : -1.0f;

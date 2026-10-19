@@ -162,7 +162,7 @@ bool BrosProjectileBase::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor*
 void BrosProjectileBase::exeEaten() {
     TPos3f mtx;
     MR::calcYoshiTongueTipMtx(&mtx);
-    mPosition.set<f32>(mtx[0][2], mtx[1][2], mtx[2][2]);
-    mFront.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
+    mtx.getTrans(mPosition);
+    mtx.getZDir(mFront);
 }
 

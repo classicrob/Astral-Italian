@@ -7769,26 +7769,32 @@ void MarioActor::drawShadow() const {
 
 
 
-// NONMATCHING: model register allocation, load scheduling and verified pooled literals.
+// NONMATCHING: native-safe raw matrix column access, register allocation and pooled literals.
 void MarioActor::calcViewSilhouetteModel() {
-    J3DModelX* pSimple = mSimpleModelF08;
     J3DModelX* pModel = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+    J3DModelX* pSimple = mSimpleModelF08;
     TVec3f direction(mPosition - mCameraPosition);
     MR::normalizeOrZero(&direction);
     PSMTXCopy(pModel->getBaseTRMtx(), pSimple->getBaseTRMtx());
-    TPos3f& matrix = *reinterpret_cast< TPos3f* >(pSimple->getBaseTRMtx());
+    MtxPtr matrix = pSimple->getBaseTRMtx();
     TVec3f x;
-    matrix.getXDir(x);
+    x.set<f32>(matrix[0][0], matrix[1][0], matrix[2][0]);
     MR::vecKillElement(x, direction, &x);
     TVec3f y;
-    matrix.getYDir(y);
+    y.set<f32>(matrix[0][1], matrix[1][1], matrix[2][1]);
     MR::vecKillElement(y, direction, &y);
     TVec3f z;
-    matrix.getZDir(z);
+    z.set<f32>(matrix[0][2], matrix[1][2], matrix[2][2]);
     MR::vecKillElement(z, direction, &z);
-    matrix.setXDir(x);
-    matrix.setYDir(y);
-    matrix.setZDir(z);
+    matrix[0][0] = x.x;
+    matrix[1][0] = x.y;
+    matrix[2][0] = x.z;
+    matrix[0][1] = y.x;
+    matrix[1][1] = y.y;
+    matrix[2][1] = y.z;
+    matrix[0][2] = z.x;
+    matrix[1][2] = z.y;
+    matrix[2][2] = z.z;
     TVec3f root;
     TVec3f translation;
     if (_EA4) {
@@ -7802,8 +7808,8 @@ void MarioActor::calcViewSilhouetteModel() {
         translation = mPosition;
     }
 
-    MR::setMtxTrans(matrix.toMtxPtr(), translation.x, translation.y, translation.z);
-    PSMTXConcat(matrix.toMtxPtr(), mReflectionBaseMtx264.mMtx, matrix.toMtxPtr());
+    MR::setMtxTrans(matrix, translation.x, translation.y, translation.z);
+    PSMTXConcat(matrix, mReflectionBaseMtx264.mMtx, matrix);
     pSimple->viewCalcRef(1, pModel);
 }
 
@@ -8230,23 +8236,23 @@ void MarioActor::updateReflectAlphaDL(u8 alpha) {
 }
 
 
-// NONMATCHING: equivalent packed RGBA word copies versus target byte copies; stack and instruction order.
+// NONMATCHING: register allocation and scheduling of display-list buffer bookkeeping.
 void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, const Color8& rFog, f32 strength) {
     u8 buffer[512] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
     MR::ProhibitSchedulerAndInterrupts lock(false);
     GDInitGDLObj(&displayList, buffer, sizeof(buffer));
     __GDCurrentDL = &displayList;
-    GXColor ambientColor = rAmbient.mGXColor;
+    GXColor ambientColor = {rAmbient.r, rAmbient.g, rAmbient.b, rAmbient.a};
     GDSetChanAmbColor(GX_COLOR0A0, ambientColor);
-    GXColor materialColor = rMaterial.mGXColor;
+    GXColor materialColor = {rMaterial.r, rMaterial.g, rMaterial.b, rMaterial.a};
     GDSetChanMatColor(GX_COLOR0A0, materialColor);
     GDSetChanCtrl(GX_COLOR1, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
 
     if (!MR::isNearZero(strength)) {
         f32 nearZ = MR::getNearZ();
         f32 farZ = MR::getFarZ();
-        GXColor color = rFog.mGXColor;
+        GXColor color = {rFog.r, rFog.g, rFog.b, rFog.a};
         f32 start;
         f32 end;
         MR::calcFogStartEnd(mPosition, strength, &start, &end);
@@ -8255,8 +8261,8 @@ void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, 
 
     GDPadCurr32();
     u32 length = displayList.ptr - displayList.start;
-    mCurrDL = 1 - mCurrDL;
     mCurrentDLSize1A0 = length;
+    mCurrDL = 1 - mCurrDL;
     u32 size = (length + 31) & ~31;
     MR::copyMemory(mDL[mCurrDL], buffer, size);
     DCStoreRange(mDL[mCurrDL], size);

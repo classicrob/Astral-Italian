@@ -1284,15 +1284,15 @@ void MarioActor::fn_803D1940() {
     }
 }
 
-// NONMATCHING: boolean materialization, equivalent constant conversion and loop register allocation.
+// NONMATCHING: boolean materialization, constant conversion and stack allocation.
 void MarioActor::fn_803D26F0() {
     Mario* m = this->mMario;
-    bool reflect = ((m->mMovementStates.mLowWord >> (0x1D)) & 1) && !m->fn_803AA2C0() && !mMario->isStatusActive(0x12) &&
-        ((mMario)->_962 == 0xE || (mMario)->_962 == 0x21);
-    if (reflect) {
+    bool reflect = false;
+    if (((m->mMovementStates.mLowWord >> 0x1D) & 1) && !m->fn_803AA2C0() && !mMario->isStatusActive(0x12) &&
+        (mMario->_962 == 0xE || mMario->_962 == 0x21)) {
         const TVec3f* gravity = mMario->getGravityVec();
         TVec3f camera = MR::getCamZdir();
-        reflect = !(gravity->dot(camera) >= 0.0f);
+        reflect = gravity->dot(camera) >= 0.0f;
     }
     if (reflect) {
         this->fn_803CA1F0();
@@ -1302,16 +1302,14 @@ void MarioActor::fn_803D26F0() {
             v = 0.75f;
         }
         s32 target = (s32)((f32)0x40U * (1.0f - v));
-        int n = 4;
-        do {
+        for (u32 i = 0; i < 4; ++i) {
             u8 c = this->mGroundReflectionAlphaEFD;
             if (c < (u8)target) {
                 this->mGroundReflectionAlphaEFD = c + 1;
             } else if (c > (u8)target) {
                 this->mGroundReflectionAlphaEFD = c - 1;
             }
-            n--;
-        } while (n != 0);
+        }
     } else {
         u8 c = this->mGroundReflectionAlphaEFD;
         if (c != 0) {

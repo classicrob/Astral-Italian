@@ -1040,6 +1040,7 @@ config.libs = [
             Object(NonMatching, "Runtime/runtime.c"),
             Object(NonMatching, "Runtime/global_destructor_chain.c"),
             Object(NonMatching, "Runtime/__init_cpp_exceptions.cpp"),
+            Object(NonMatching, "Runtime/NMWException.cpp", cflags=[*cflags_runtime, "-Cpp_exceptions on"]),
             Object(NonMatching, "Runtime/__mem.c"),
             Object(NonMatching, "Runtime/__va_arg.c"),
             Object(NonMatching, "Runtime/Gecko_ExceptionPPC.cpp"),

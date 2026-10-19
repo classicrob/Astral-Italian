@@ -23,8 +23,8 @@ void JetTurtleShadow::calcType0(MtxPtr pMtx) {
 void JetTurtleShadow::drawType0() const {
     J3DModelX* pModel = static_cast< J3DModelX* >(MR::getJ3DModel(this));
 
-    pModel->mFlags.clear();
-    pModel->mFlags._14 = true;
+    pModel->mDisplayListMask = 0;
+    pModel->mDisplayListMask |= (1U << 11);
 
     GXSetZScaleOffset(1.0f, 0.0f);
 
@@ -34,8 +34,8 @@ void JetTurtleShadow::drawType0() const {
 void JetTurtleShadow::drawType1() const {
     J3DModelX* pModel = static_cast< J3DModelX* >(MR::getJ3DModel(this));
 
-    pModel->mFlags.clear();
-    pModel->mFlags._19 = true;
+    pModel->mDisplayListMask = 0;
+    pModel->mDisplayListMask |= (1U << 6);
 
     pModel->directDraw(nullptr);
 }

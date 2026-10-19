@@ -1144,7 +1144,7 @@ public:
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93;
     /* 0xA94 */ AudSeLifeEntry* mLifeAlertCounter;
-    /* 0xA98 */ u32 _A98;
+    /* 0xA98 */ s32 _A98;
 };
 
 // SMG2-only free helpers of the Mario unit (set one axis column of a 3x4 matrix; original names unknown)

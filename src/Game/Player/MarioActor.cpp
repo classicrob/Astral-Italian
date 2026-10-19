@@ -3307,7 +3307,7 @@ void MarioActor::changeDisplayMode() {
 void MarioActor::calcViewAndEntry() {
     fn_803D26F0();
     J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-    model->mFlags._1C = false;
+    model->mDisplayListMask &= ~(1U << 3);
     model->swapDrawBuffer(4);
     mSimpleModelF08->swapDrawBuffer(4);
     fn_803C8AA0();
@@ -3367,11 +3367,11 @@ void MarioActor::drawMarioModel() const {
     J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
 
     if (res) {
-        model->mFlags._10 = true;
+        model->mDisplayListMask |= (1U << 15);
     }
 
     if (!mFlags.mIsNoEntryDrawBuffer) {
-        model->mFlags._1C = false;
+        model->mDisplayListMask &= ~(1U << 3);
         if (mMario->isStatusActive(MarioStatus_FpView)) {
             if (mFirstPersonDrawHidden1A5) {
                 return;
@@ -3397,7 +3397,7 @@ void MarioActor::drawMarioModel() const {
 
         model->setDrawView(0);
         model->directDraw(nullptr);
-        model->mFlags.clear();
+        model->mDisplayListMask = 0;
     }
 
     if (mMario->isStatusActive(MarioStatus_FpView)) {
@@ -3576,7 +3576,7 @@ void MarioActor::drawIndirectModel() const {
 
     J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
     if (!mFlags.mIsNoEntryDrawBuffer) {
-        model->mFlags._1C = false;
+        model->mDisplayListMask &= ~(1U << 3);
         if (mMario->isStatusActive(MarioStatus_FpView)) {
             if (mFirstPersonDrawHidden1A5) {
                 return;
@@ -3590,14 +3590,14 @@ void MarioActor::drawIndirectModel() const {
         MR::showJoint(model, "Face0");
         model->setDrawView(0);
         model->directDraw(nullptr);
-        model->mFlags.clear();
+        model->mDisplayListMask = 0;
     }
 
     drawIndirectHand();
 }
 
 
-// NONMATCHING: verified equivalent pooled literal addresses.
+// NONMATCHING: equivalent pooled literals and r29/r30 allocation.
 void MarioActor::drawReflectModel() const {
     if (isAllHidden()) {
         return;
@@ -3630,28 +3630,28 @@ void MarioActor::drawReflectModel() const {
         mJetTurtleShadowE94->drawType0();
     }
 
-    model->mFlags.clear();
+    model->mDisplayListMask = 0;
 
     if (mGroundReflectionEFC) {
         GXSetZScaleOffset(1.0f, 0.00001f);
-        model->mFlags._1A = true;
+        model->mDisplayListMask |= (1U << 5);
         model->setDrawView(3);
         model->directDraw(nullptr);
-        model->mFlags._1A = false;
-        model->mFlags._1D = true;
+        model->mDisplayListMask &= ~(1U << 5);
+        model->mDisplayListMask |= (1U << 2);
         mDLchanger->addDL(model);
     } else {
         if (isUseScreenBox()) {
             mDLchanger->addDL(model);
         }
 
-        model->mFlags._14 = true;
+        model->mDisplayListMask |= (1U << 11);
     }
 
     GXSetZScaleOffset(1.0f, 0.0f);
     model->setDrawView(3);
     model->directDraw(nullptr);
-    model->mFlags.clear();
+    model->mDisplayListMask = 0;
 
     MR::hideJoint(model, "HandR0");
     MR::hideJoint(model, "HandL0");
@@ -3686,7 +3686,7 @@ void MarioActor::drawModelBlur() const {
         return;
     }
 
-    model->mFlags._13 = true;
+    model->mDisplayListMask |= (1U << 12);
 
     Mtx inv;
     PSMTXInverse(mPreviousViewMatrix.mMtx, inv);
@@ -3707,7 +3707,7 @@ void MarioActor::drawModelBlur() const {
         model->directDraw(nullptr);
     }
 
-    model->mFlags._13 = false;
+    model->mDisplayListMask &= ~(1U << 12);
 }
 
 
@@ -4155,6 +4155,7 @@ u8 MarioActor::getGravityLevel() const {
 }
 
 
+// NONMATCHING: equivalent Mario pointer reload and verified Fur string pool.
 bool MarioActor::checkBeeWallStick(TVec3f& rVec) {
     if (((getMovementStates().mLowWord >> 23) & 1U) && mMario->checkWallCode("Fur", false) && mBeeWallWalk == 0 && !_9F2) {
         TVec3f head = mMario->mHeadVec;
@@ -4169,7 +4170,7 @@ bool MarioActor::checkBeeWallStick(TVec3f& rVec) {
         mMario->stopAnimation(nullptr);
         mMario->stopWalk();
 
-        _240 = rVec;
+        mAppliedGravityVec = rVec;
         mMario->setGravityVec(rVec);
         mMario->setHeadVec(-rVec);
         mMario->setFrontVecKeepUp(head, 1UL);
@@ -4177,7 +4178,7 @@ bool MarioActor::checkBeeWallStick(TVec3f& rVec) {
 
         _38C = 5;
         mMario->mMovementStates.mHighWord &= 0xFFFFFF7FU;
-        _214->_305 = true;
+        mCollisionShadow580->_305 = true;
 
         return true;
     }
@@ -5776,22 +5777,22 @@ void MarioActor::getStickValue(f32* pStickX, f32* pStickY) {
 
 
 void MarioActor::updateActionTrigger() {
-    _EED = false;
-    _EEE = false;
+    mActionTriggered = false;
+    mJumpButtonHeld = false;
 
     if (checkButtonType(3, false) || _F00 != 0) {
-        if (_EEC) {
+        if (mActionButtonHeld) {
             return;
         }
 
-        _EEC = true;
-        _EED = true;
+        mActionButtonHeld = true;
+        mActionTriggered = true;
     } else {
-        _EEC = false;
+        mActionButtonHeld = false;
     }
 
     if (mMario->checkLvlA()) {
-        _EEE = true;
+        mJumpButtonHeld = true;
     }
 }
 
@@ -7953,10 +7954,10 @@ void MarioActor::drawSilhouette() const {
 
     J3DModelX* pModel = mSimpleModelF08;
     pModel->setDrawView(1);
-    pModel->mFlags.clear();
-    pModel->mFlags._1C = true;
+    pModel->mDisplayListMask = 0;
+    pModel->mDisplayListMask |= (1U << 3);
     pModel->directDraw(nullptr);
-    pModel->mFlags._1C = false;
+    pModel->mDisplayListMask &= ~(1U << 3);
     GXSetAlphaUpdate(GX_TRUE);
     GXSetColorUpdate(GX_TRUE);
     GXSetDstAlpha(GX_TRUE, 0);
@@ -9346,6 +9347,7 @@ HitSensor* MarioActor::getLookTargetSensor() const {
 // ---- MarioBee.cpp ----
 
 
+// NONMATCHING: explicit null for setTrans argument ignored by the target callee.
 void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal) {
     if (mBeeWallWalk) {
         return;
@@ -9354,7 +9356,7 @@ void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal)
     if (!_9F2) {
         mBeeWallWalk = 5;
         TVec3f gravity(-normal);
-        _240 = gravity;
+        mAppliedGravityVec = gravity;
         mPosition = position;
         mMario->setTrans(position, nullptr);
         mMario->stopJump();
@@ -9367,7 +9369,7 @@ void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal)
         setBlendMtxTimer(2);
         _38C = 5;
         mMario->mMovementStates.mHighWord &= 0xFFFFFF7FU;
-        _214->_305 = true;
+        mCollisionShadow580->_305 = true;
     }
 }
 

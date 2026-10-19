@@ -879,7 +879,7 @@ bool Mario::fn_803B28E0(const TVec3f& rStart, const TVec3f& rEnd, const LiveActo
 
 s32 Mario::fn_803B2950() {
     s32 var_r31 = 0;
-    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
+    if (this->isPlayerModeYoshi() && this->mActor->fn_803B97F0()->mDashTimer > 0) {
         var_r31 = 1;
     }
     return var_r31;

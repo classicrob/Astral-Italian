@@ -1156,8 +1156,7 @@ void MarioAnimator::switchMirrorMode() {
     f32 scale = 1.0f;
     J3DModelX* model = static_cast< J3DModelX* >(MR::getJ3DModel(mActor));
     if (isMirrorAnimation()) {
-        u32* modelFlags = (u32*)&model->mFlags;
-        *modelFlags |= 1;
+        model->mDisplayListMask |= 1U;
         XjointTransform* jt = mXanimePlayer->mCore->getJointTransform(0);
         TVec3f mirrorScale;
         mirrorScale.x = scale;
@@ -1175,8 +1174,7 @@ void MarioAnimator::switchMirrorMode() {
 
         jt->mWorldRotationMtx = _DC;
     } else {
-        u32* modelFlags = (u32*)&model->mFlags;
-        *modelFlags &= ~1;
+        model->mDisplayListMask &= ~1U;
         XjointTransform* jt = mXanimePlayer->mCore->getJointTransform(0);
         TVec3f normalScale;
         normalScale.x = scale;

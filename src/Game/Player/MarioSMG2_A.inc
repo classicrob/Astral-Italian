@@ -696,19 +696,20 @@ f32 Mario::fn_8039AC10() {
 
 bool Mario::fn_8039A100() {
     if (this->_430 == 8 && this->_42A == 0) {
-        s16 v = FLD<s16>(this, 0x422);
-        if (v != 0) {
-            return v > (s16)(FLD<u16>(marioCurTableEntry(this), 0x3F0) - 16);
+        u16 timer = this->_426;
+        if (timer != 0) {
+            return timer > this->mActor->mConst->getTable()->mTornadoBoostTimer - 16;
         }
+        return true;
     }
     if ((this->mMovementStates.mLowWord >> 12) & 1) {
-        return false;
+        return true;
     }
     if ((this->mMovementStates.mLowWord >> 17) & 1) {
-        return false;
+        return true;
     }
     if (!this->isRising()) {
-        return false;
+        return true;
     }
     return this->_430 == 2;
 }
@@ -913,7 +914,7 @@ void Mario::fn_803A2570(f32 x, TVec3f* arg) {
         s *= this->fn_803A26C0(d);
     }
     if (this->isPlayerModeYoshi()) {
-        if (FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
+        if (this->mActor->fn_803B97F0()->mDashTimer > 0) {
             s *= 0.5f;
         }
     }
@@ -1409,7 +1410,7 @@ void Mario::fn_8038C620(s32) {
         MR::startLevelSoundPlayer("JumpFromYoshi", -1, -1);
     } else if (this->mStateFlags._0 != 0) {
         if (this->isPlayerModeYoshi()) {
-            if (FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
+            if (this->mActor->fn_803B97F0()->mDashTimer > 0) {
                 MR::startActionSound(this->mActor->fn_803B97F0(), "DashJump", -1, -1, -1);
             } else {
                 MR::startActionSound(this->mActor->fn_803B97F0(), "JumpS", -1, -1, -1);
@@ -1423,7 +1424,7 @@ void Mario::fn_8038C620(s32) {
         if (MR::isPlayerElementModeYoshiDash() && !MR::fn_804225C0()) {
             s32 v28 = MR::clamp((s32)(500.0f * MarioAccess::fn_803B57A0()), 0, 1000);
             s32 v3 = MR::clamp((s32)(400.0f * MarioAccess::fn_803B57A0()) + 200, 400, 1000);
-            s32 t5 = FLD<s32>(this, 0xA98);
+            s32 t5 = this->_A98;
             s32 d = v3 - t5;
             s32 var_r31;
             if ((d < 0 ? -d : d) > 150) {
@@ -1431,16 +1432,16 @@ void Mario::fn_8038C620(s32) {
             } else {
                 var_r31 = MR::clamp(v3, t5 - 22, t5 + 22);
             }
-            s32 temp_r29 = FLD<s32>(this->mActor->fn_803B97F0(), 0x134);
+            s32 temp_r29 = this->mActor->fn_803B97F0()->mDashTimer;
             MR::startActionSoundPlayer("DashLV", v28, var_r31);
             MR::startActionSoundPlayer("DashLVWind", v28, -1);
             MR::startActionSoundPlayer("DashLVFire", temp_r29, -1);
             this->fn_803B2950();
-            FLD<s32>(this, 0xA98) = var_r31;
+            this->_A98 = var_r31;
         } else {
-            FLD<s32>(this, 0xA98) = 0x226;
+            this->_A98 = 0x226;
         }
-        if (PSVECMag(&FLD<TVec3f>(this, 0x160)) >= 2.0f && this->isAnimationRun("口に含む") && this->isAnimationRun("基本")) {
+        if (PSVECMag(&this->mVelocity) >= 2.0f && this->isAnimationRun("口に含む") && this->isAnimationRun("基本")) {
             if (this->getAnimator()->fn_803DF0E0() >= 2.5f) {
                 MR::startActionSoundPlayer("RunMouthFull", -1, -1);
             }

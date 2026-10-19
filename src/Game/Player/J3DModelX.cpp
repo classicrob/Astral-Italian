@@ -212,7 +212,7 @@ void J3DModelX::drawIn(J3DMaterial* material, bool fog, MtxPtr base, J3DModel* m
     }
 
     for (u32 i = 0; i <= 15; i++) {
-        if (*reinterpret_cast< u32* >(&mFlags) & (1 << i)) {
+        if (mDisplayListMask & (1U << i)) {
             GXCallDisplayList(mDisplayLists[i], mDisplayListSizes[i]);
         }
     }
@@ -455,7 +455,7 @@ J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(
     _1E0 = -1;
     _1DC = 0x32323232;
     _1D8 = 0xFF0000FF;
-    mFlags.clear();
+    mDisplayListMask = 0;
     _1D4 = 0.0f;
     _1D0 = 0;
     _1B4 = nullptr;

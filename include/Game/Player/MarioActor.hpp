@@ -892,24 +892,8 @@ public:
     /* 0x5AC */ TVec3f _258;  // SMG2 offset guess-gap
     /* 0x5B8 */ TVec3f mLastMove;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5C4 */ TVec3f _1FC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    union {
-        struct {
-    /* 0x5D0 */ const AreaObj* _20C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5D4 */ u8 _210;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5D5 */ u8 _211;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5D6 */ u16 _330;  // a timer  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5D8 */ CollisionShadow* _214;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        };
-        TVec3f mBinderMotion5D0;
-    };
-    union {
-        struct {
-    /* 0x5DC */ DrawAdaptor* _218;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5E0 */ DrawAdaptor* _21C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5E4 */ DrawAdaptor* _220;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        };
-        TVec3f mBinderDirection5DC;
-    };
+    /* 0x5D0 */ TVec3f mBinderMotion5D0;
+    /* 0x5DC */ TVec3f mBinderDirection5DC;
     /* 0x5E8 */ TVec3f mPreviousPosition;
     /* 0x5F4 */ TVec3f _240;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x600 */ union { TVec3f _24C; TVec3f mCapPosition; TVec3f _2AC; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1041,21 +1025,7 @@ public:
     /* 0xE44 */ u16 _94C;
     /* 0xE46 */ bool _950;
     /* 0xE47 */ bool _F21;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
-    union {
-        HitSensor* _954[8];
-        struct {
-    /* 0xE48 */ u16 _94A;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
-    /* 0xE4A */ u16 _F12;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
-    /* 0xE4C */ u8 _padE4C[0x5];
-    /* 0xE51 */ u8 _A24;  // SMG2 offset guess  // SMG2 offset guess  // SMG2 offset guess
-    /* 0xE52 */ u8 _A25;  // SMG2 offset guess  // SMG2 offset guess  // SMG2 offset guess
-    /* 0xE53 */ u8 _padE53[0x5];
-    /* 0xE58 */ TVec3f _9F4;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset guess
-    /* 0xE64 */ u8 _padE64[0x2];
-    /* 0xE66 */ bool _EEE;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
-    /* 0xE67 */ u8 _951;  // SMG2 offset vote-gap  // SMG2 offset vote-gap  // SMG2 offset vote-gap
-        };
-    };
+    /* 0xE48 */ HitSensor* _954[8];
     /* 0xE68 */ u8 _974;  // _954 count
     /* 0xE69 */ u8 _F0D;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xE6A */ u8 _padE6A[0x2];
@@ -1164,8 +1134,9 @@ public:
     /* 0xFD0 */ TVec3f mEffectTranslationFD0;
     /* 0xFDC */ TVec3f mEffectRotationFDC;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xFE8 */ bool _EEB;
-    /* 0xFE9 */ bool _EEC;  // SMG2 offset guess  // SMG2 offset inh  // SMG2 offset inh
-    /* 0xFEA */ u16 _B70;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
+    /* 0xFE9 */ bool mActionButtonHeld;
+    /* 0xFEA */ bool mActionTriggered;
+    /* 0xFEB */ bool mJumpButtonHeld;
     /* 0xFEC */ u16 _EF0;
     /* 0xFEE */ u16 _EF2;
     /* 0xFF0 */ u16 _EF4;

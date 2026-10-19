@@ -33,45 +33,6 @@ public:
     void directDraw(J3DModel*);
     void drawIn(J3DMaterial*, bool, MtxPtr, J3DModel*);
 
-    struct Flags {
-        inline void clear() {
-            *(u32*)this = 0;
-        }
-
-        unsigned _0 : 1;
-        unsigned _1 : 1;
-        unsigned _2 : 1;
-        unsigned _3 : 1;
-        unsigned _4 : 1;
-        unsigned _5 : 1;
-        unsigned _6 : 1;
-        unsigned _7 : 1;
-        unsigned _8 : 1;
-        unsigned _9 : 1;
-        unsigned _A : 1;
-        unsigned _B : 1;
-        unsigned _C : 1;
-        unsigned _D : 1;
-        unsigned _E : 1;
-        unsigned _F : 1;
-        unsigned _10 : 1;
-        unsigned _11 : 1;
-        unsigned _12 : 1;
-        unsigned _13 : 1;
-        unsigned _14 : 1;
-        unsigned _15 : 1;
-        unsigned _16 : 1;
-        unsigned _17 : 1;
-        unsigned _18 : 1;
-        unsigned _19 : 1;
-        unsigned _1A : 1;
-        unsigned _1B : 1;
-        unsigned _1C : 1;
-        unsigned _1D : 1;
-        unsigned _1E : 1;
-        unsigned _1F : 1;
-    };
-
     /* 0xDC */ u8 _DC;
     /* 0xDD */ u8 _DD;
     /* 0xE0 */ Mtx* mExtraMtxBuffer[16];
@@ -81,7 +42,7 @@ public:
     /* 0x12C */ J3DModel* _12C;
     /* 0x130 */ u8* mDisplayLists[16];
     /* 0x170 */ u32 mDisplayListSizes[16];
-    /* 0x1B0 */ Flags mFlags;
+    /* 0x1B0 */ u32 mDisplayListMask;
     /* 0x1B4 */ u8* _1B4;
     /* 0x1B8 */ u8* _1B8;
     /* 0x1BC */ u32 _1BC;

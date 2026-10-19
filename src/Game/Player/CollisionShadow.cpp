@@ -419,9 +419,9 @@ void CollisionShadow::drawAndCaptureTex(J3DModelX* pModel, const TVec3f& rPositi
             s32 left = 608 - _2FC;
             GXSetScissor(left + 1, 1, _2FC - 2, _2FE - 2);
             pModel->setDrawView(2);
-            pModel->mFlags.clear();
-            pModel->mFlags._11 = true;
-            pModel->mFlags._1E = true;
+            pModel->mDisplayListMask = 0;
+            pModel->mDisplayListMask |= (1U << 14);
+            pModel->mDisplayListMask |= (1U << 1);
             pModel->directDraw(nullptr);
         }
 
@@ -429,10 +429,10 @@ void CollisionShadow::drawAndCaptureTex(J3DModelX* pModel, const TVec3f& rPositi
         s32 left = 608 - _2FC;
         GXSetScissor(left + 1, 1, _2FC - 2, _2FE - 2);
         pModel->setDrawView(2);
-        pModel->mFlags.clear();
-        pModel->mFlags._1E = true;
+        pModel->mDisplayListMask = 0;
+        pModel->mDisplayListMask |= (1U << 1);
         pModel->directDraw(nullptr);
-        pModel->mFlags._1E = false;
+        pModel->mDisplayListMask &= ~(1U << 1);
     }
 
     if (!(_308 & 4)) {
@@ -651,8 +651,8 @@ void CollisionShadow::drawVolume() const {
     _340->setDrawView(2);
     TVec3f position(_2F0 - _24 * _30C);
     drawVolumeBox(position, _24 * _20);
-    _340->mFlags.clear();
-    _340->mFlags._15 = true;
+    _340->mDisplayListMask = 0;
+    _340->mDisplayListMask |= (1U << 10);
     _340->directDraw(nullptr);
     GXSetDstAlpha(GX_FALSE, 0);
 }

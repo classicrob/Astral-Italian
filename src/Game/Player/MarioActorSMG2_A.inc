@@ -460,8 +460,8 @@ void MarioActor::initMember() {
     F(f32, 0x5B4) = 1.0f;
     mLastMove.zero();
     F(TVec3f, 0x5C4).zero();
-    F(TVec3f, 0x5D0).zero();
-    F(TVec3f, 0x5DC).zero();
+    mBinderMotion5D0.zero();
+    mBinderDirection5DC.zero();
     mPreviousPosition.zero();
     F(TVec3f, 0x5F4).zero();
     F(TVec3f, 0x600).zero();
@@ -586,7 +586,7 @@ void MarioActor::initMember() {
     for (s32 i = 0; i < 8; i++) {
         _954[i] = nullptr;
     }
-    F(u8, 0xE68) = 0;
+    _974 = 0;
     F(TVec3f, 0xE6C).zero();
     F(f32, 0xE78) = 0.0f;
     F(u8, 0xE7C) = 0;
@@ -709,9 +709,9 @@ void MarioActor::initMember() {
     F(u8, 0x515) = 0;
     F(u8, 0x516) = 0;
     F(u8, 0xFE8) = 0;
-    F(u8, 0xFE9) = 0;
-    F(u8, 0xFEA) = 0;
-    F(u8, 0xFEB) = 0;
+    mActionButtonHeld = 0;
+    mActionTriggered = 0;
+    mJumpButtonHeld = 0;
     F(u16, 0xFEC) = 0;
     F(u16, 0xFEE) = 0;
     F(u16, 0xFF0) = 0;
@@ -828,8 +828,8 @@ void MarioActor::fn_803BF9D0() {
     F(u8, 0x51E) = 1;
     F(f32, 0xE78) = 0.0f;
     F(TVec3f, 0xE6C).zero();
-    F(TVec3f, 0x5D0).zero();
-    F(TVec3f, 0x5DC).zero();
+    mBinderMotion5D0.zero();
+    mBinderDirection5DC.zero();
 }
 
 void MarioActor::fn_803BFAE0() {
@@ -902,10 +902,10 @@ void MarioActor::fn_803C0E60() {
     if (this->fn_803D9430()) {
         J3DModelX* m = mSimpleModelF08;
         m->setDrawView(1);
-        m->mFlags.clear();
-        m->mFlags._1C = true;
+        m->mDisplayListMask = 0;
+        m->mDisplayListMask |= (1U << 3);
         m->directDraw(nullptr);
-        m->mFlags._1C = false;
+        m->mDisplayListMask &= ~(1U << 3);
         GXSetAlphaUpdate(GX_TRUE);
         GXSetColorUpdate(GX_TRUE);
         GXSetDstAlpha(GX_TRUE, 0);
@@ -951,10 +951,10 @@ void MarioActor::fn_803C1940() {
     a -= F(TVec3f, 0x5E8);
     TVec3f b(a);
     b -= F(TVec3f, 0x38);
-    F(TVec3f, 0x5D0) = a;
-    TVec3f c(F(TVec3f, 0x5DC));
-    F(TVec3f, 0x5DC) = b;
-    this->fn_803C1AF0(&F(TVec3f, 0x5DC), &c);
+    mBinderMotion5D0 = a;
+    TVec3f c(mBinderDirection5DC);
+    mBinderDirection5DC = b;
+    this->fn_803C1AF0(&mBinderDirection5DC, &c);
     if (PSVECMag((Vec*)&b) > 0.1f) {
         if (!BITAT(this->mMario, 0xC, 0x15) && !MR::isNearZero(F(TVec3f, 0x38), 0.001f)) {
             TVec3f d(F(TVec3f, 0x5E8));

@@ -1017,7 +1017,7 @@ public:
     /* 0x7B0 */ TVec3f _438[4];  // SMG2 offset inh-gap  // SMG2 offset guess-gap  // SMG2 offset inh
         };
         struct { HitSensor* mNearestUnderSensor798; f32 mNearestUnderAngle79C; f32 mBodyRadius7A0; f32 mBodyHeight7A4; };
-        struct { u8 _padBody798To7A8[0x10]; union { TVec3f mBodyUpDirection; TVec3f _4B8; }; union { TVec3f mBodyDownDirection; TVec3f _4C4; }; };
+        struct { u8 _padBody798To7A8[0x10]; TVec3f mBodyUpDirection; TVec3f mBodyDownDirection; };
     };
     /* 0x7E0 */ TVec3f _318;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x7EC */ TVec3f _324;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1225,7 +1225,7 @@ public:
     /* 0x100E */ union { u16 _legacyB12; struct { u8 mFlag100E; u8 mFlag100F; }; };  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x1010 */ u8 mSwimSurfaceState1010;
     /* 0x1011 */ u8 _pad1011[3];
-    /* 0x1014 */ TVec3f mCameraDirY1014;
+    /* 0x1014 */ TVec3f mCameraPosition;
     /* 0x1020 */ TVec3f mCameraBasisX;
     /* 0x102C */ TVec3f mCameraBasisY;
     /* 0x1038 */ TVec3f mCameraBasisZ;

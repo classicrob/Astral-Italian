@@ -165,7 +165,7 @@ static const s32 ACTMES_REFLECT = 0x3F;  // Petari value, SMG2 unverified
 static const s32 ACTMES_REFLECT_V = 0x40;  // Petari value, SMG2 unverified
 static const s32 ACTMES_REQUEST_CLAP = 0xB7;  // Petari value, SMG2 unverified
 static const s32 ACTMES_RUSH_FORCE_CANCEL = 0x94;  // Petari value, SMG2 unverified
-static const s32 ACTMES_RUSH_PLAYER_TOUCH = 0x45;  // Petari value, SMG2 unverified
+static const s32 ACTMES_RUSH_PLAYER_TOUCH = 0x4E;
 static const s32 ACTMES_SHAKE_OFF_BEE = 0x27;  // Petari value, SMG2 unverified
 static const s32 ACTMES_START_DEMO = 0x6F;  // Petari value, SMG2 unverified
 static const s32 ACTMES_TAKE_TOUCH = 0x28;  // Petari value, SMG2 unverified
@@ -1139,18 +1139,18 @@ void MarioActor::updateRealMtx() {
     TVec3f stack_44, stack_38;
     MR::extractMtxTrans(mCapMatrix.toMtxPtr(), &stack_44);
     MR::extractMtxTrans(mHipMatrix.toMtxPtr(), &stack_38);
-    _4B8 = stack_44 - stack_38;
-    _4C4 = stack_38 - stack_44;
-    if (MR::normalizeOrZero(&_4B8)) {
-        _4B8 = mMario->mHeadVec;
+    mBodyUpDirection = stack_44 - stack_38;
+    mBodyDownDirection = stack_38 - stack_44;
+    if (MR::normalizeOrZero(&mBodyUpDirection)) {
+        mBodyUpDirection = mMario->mHeadVec;
     }
 
-    if (MR::normalizeOrZero(&_4C4)) {
-        _4C4 = -mMario->mHeadVec;
+    if (MR::normalizeOrZero(&mBodyDownDirection)) {
+        mBodyDownDirection = -mMario->mHeadVec;
     }
 
     if (((mMario->getMovementStates().mLowWord >> 21) & 1U) && ((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
-        _4C4 = -mMario->mHeadVec;
+        mBodyDownDirection = -mMario->mHeadVec;
     }
 
     _2AC = stack_44;
@@ -1913,7 +1913,7 @@ void MarioActor::calcCenterPos() {
         }
 
         if (mMario->isSwimming()) {
-            vec24 = _4B8;
+            vec24 = mBodyUpDirection;
         } else {
             vec24 = -*mMario->getGravityVec();
         }
@@ -2122,7 +2122,7 @@ void MarioActor::updateCameraInfo() {
         mSwimSurfaceState1010 = true;
     }
 
-    if ((mCameraDirY1014 - MR::getCamPos()).length() > 500.0f) {
+    if ((mCameraPosition - MR::getCamPos()).length() > 500.0f) {
         mSwimSurfaceState1010 = true;
     }
 
@@ -2132,7 +2132,7 @@ void MarioActor::updateCameraInfo() {
         mBlendMtxTimer = 0;
     }
 
-    mCameraDirY1014 = MR::getCamPos();
+    mCameraPosition = MR::getCamPos();
     mCameraBasisX = MR::getCamXdir();
     mCameraBasisY = MR::getCamYdir();
     mPostureReference1044 = mCameraBasisZ;
@@ -2171,7 +2171,7 @@ void MarioActor::initBlackHoleOut() {
     mPosRelativeToBlackHole = mPosition - mBlackHolePosition528;
 
     TVec3f normalisedRelativePos(mPosRelativeToBlackHole);
-    TVec3f normalisedRelativeCameraPos = mCameraDirY1014 - mBlackHolePosition528;
+    TVec3f normalisedRelativeCameraPos = mCameraPosition - mBlackHolePosition528;
 
     MR::normalizeOrZero(&normalisedRelativeCameraPos);
     MR::normalizeOrZero(&normalisedRelativePos);
@@ -2183,7 +2183,7 @@ void MarioActor::initBlackHoleOut() {
 
     f32 mag = mPosRelativeToBlackHole.length();
     TVec3f killed;
-    f32 flt = MR::vecKillElement(mCameraDirY1014 - mPosition, mCameraBasisZ, &killed);
+    f32 flt = MR::vecKillElement(mCameraPosition - mPosition, mCameraBasisZ, &killed);
     flt *= mConst->getTable()->mBlackHoleFirstRadius;
 
     PSMTXRotAxisRad(rotation, &rotateAxis, atan(flt / mag));
@@ -2980,17 +2980,17 @@ bool MarioActor::receiveMsgTaken(HitSensor* pSender, HitSensor* pReceiver) {
 bool MarioActor::cylinderHitCheck(const HitSensor* pSensor, TVec3f* pPush) {
     Mario* pMario = mMario;
     f32 radius = pSensor->mRadius;
-    TVec3f delta = pSensor->mPosition - (_2A0 + pMario->_350 + pMario->_35C + mVelocity);
+    TVec3f delta = pSensor->mPosition - (_240 + pMario->_350 + pMario->_35C + mVelocity);
     TVec3f radial;
-    f32 axial = MR::vecKillElement(delta, _4C4, &radial);
+    f32 axial = MR::vecKillElement(delta, mBodyDownDirection, &radial);
     f32 spherePenetration = 100.0f + radius - delta.length();
     if (spherePenetration < 0.0f) {
         return false;
     }
 
     if (axial > -radius) {
-        f32 radialPenetration = radius + _4B0 - radial.length();
-        f32 axialPenetration = radius + _4B4 - axial;
+        f32 radialPenetration = radius + mBodyRadius7A0 - radial.length();
+        f32 axialPenetration = radius + mBodyHeight7A4 - axial;
         if (radialPenetration > 0.0f && axialPenetration > 0.0f) {
             if (pPush != nullptr) {
                 MR::normalizeOrZero(&radial);
@@ -3001,7 +3001,7 @@ bool MarioActor::cylinderHitCheck(const HitSensor* pSensor, TVec3f* pPush) {
                 } else if (radialPenetration < axialPenetration) {
                     pPush->add(-radial * radialPenetration);
                 } else {
-                    pPush->add(-_4C4 * axialPenetration);
+                    pPush->add(-mBodyDownDirection * axialPenetration);
                     pPush->add(-radial);
                 }
             }
@@ -3014,13 +3014,13 @@ bool MarioActor::cylinderHitCheck(const HitSensor* pSensor, TVec3f* pPush) {
         return false;
     }
 
-    axial = MR::vecKillElement(delta, _4B8, &radial);
+    axial = MR::vecKillElement(delta, mBodyUpDirection, &radial);
     if (axial < -radius) {
         return false;
     }
 
-    f32 radialPenetration = radius + _4B0 - radial.length();
-    f32 axialPenetration = radius + _4B4 - axial;
+    f32 radialPenetration = radius + mBodyRadius7A0 - radial.length();
+    f32 axialPenetration = radius + mBodyHeight7A4 - axial;
     if (radialPenetration > 0.0f && axialPenetration > 0.0f) {
         if (pPush != nullptr) {
             MR::normalizeOrZero(&radial);
@@ -3031,7 +3031,7 @@ bool MarioActor::cylinderHitCheck(const HitSensor* pSensor, TVec3f* pPush) {
             } else if (radialPenetration < axialPenetration) {
                 pPush->add(-radial * radialPenetration);
             } else {
-                pPush->add(-_4B8 * axialPenetration);
+                pPush->add(-mBodyUpDirection * axialPenetration);
                 pPush->add(-radial);
             }
         }
@@ -3953,9 +3953,10 @@ void MarioActor::exeGameOver() {
 }
 
 
+// NONMATCHING: verified equal string-pool base offsets.
 void MarioActor::exeGameOverAbyss() {
-    mVelocity = getLastMove() * 0.99f + mCamDirZ * 35.0f * 0.01f;
-    mVector60C = mVelocity;
+    mVelocity = getLastMove() * 0.99f + mCameraBasisZ * 35.0f * 0.01f;
+    mLastMove = mVelocity;
 
     if (!MR::isFirstStep(this)) {
         return;
@@ -5225,17 +5226,18 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
 }
 
 
+// NONMATCHING: equivalent fadds operand order and verified equal scalar pools.
 void MarioActor::attackOrPushSensorInRush(HitSensor* pSensor, f32 radius) {
-    f32 sensorRadius = pSensor->mRadius;
+    f32 sensorRadius = MR::getSensorRadius(pSensor);
     if (radius < sensorRadius + mSensorRadiusAttack) {
-        f32 width = 20.0f + _4B0;
-        f32 height = _4B4;
-        if (cylinderPushCheck(pSensor->mPosition - _2A0, sensorRadius, width, height)) {
+        f32 width = 20.0f + mBodyRadius7A0;
+        f32 height = mBodyHeight7A4;
+        if (fn_803CD4B0(pSensor, width, height)) {
             if (mConditionGroup->tryGetItem(pSensor)) {
                 return;
             }
 
-            sendMsgToSensor(pSensor, ACTMES_RUSH_PLAYER_TOUCH);
+            pSensor->receiveMessage(ACTMES_RUSH_PLAYER_TOUCH, getSensor("Body"));
         }
 
         addRushSensor(pSensor, false);
@@ -5359,17 +5361,17 @@ bool MarioActor::tryTrampleAttack(HitSensor* pSensor) {
 
 bool MarioActor::cylinderHorizontalCheck(HitSensor* pSensor) {
     f32 radius = pSensor->mRadius;
-    TVec3f diff = pSensor->mPosition - (_2A0 + mMario->_350 + mMario->_35C + mVelocity);
+    TVec3f diff = pSensor->mPosition - (_240 + mMario->_350 + mMario->_35C + mVelocity);
     TVec3f vec;
     MR::vecKillElement(diff, getGravityVector(), &vec);
 
-    if (radius + _4B0 - vec.length() > 0.0f) {
+    if (radius + mBodyRadius7A0 - vec.length() > 0.0f) {
         return true;
     }
 
-    MR::vecKillElement(diff, _4C4, &vec);
+    MR::vecKillElement(diff, mBodyDownDirection, &vec);
 
-    return radius + _4B0 - vec.length() > 0.0f;
+    return radius + mBodyRadius7A0 - vec.length() > 0.0f;
 }
 
 
@@ -5401,13 +5403,13 @@ bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width,
         if (depth >= 250.0f || depth <= -250.0f) return false;
     }
     TVec3f radial;
-    f32 axial = MR::vecKillElement(offset, _4C4, &radial);
+    f32 axial = MR::vecKillElement(offset, mBodyDownDirection, &radial);
     if (axial > -radius) {
         f32 radialPenetration = radius + width - radial.length();
         f32 axialPenetration = radius + height - axial;
         if (radialPenetration > 0.0f && axialPenetration > 0.0f) {
             if (radialPenetration > 0.0f) {
-                getDummySensor(this)->mPosition.set(_240 + _4C4 * axial);
+                getDummySensor(this)->mPosition.set(_240 + mBodyDownDirection * axial);
                 getSensor("dummy")->mRadius = width;
             } else {
                 HitSensor* dummy = getSensor("dummy");
@@ -5423,7 +5425,7 @@ bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width,
         return false;
     }
 
-    axial = MR::vecKillElement(offset, _4B8, &radial);
+    axial = MR::vecKillElement(offset, mBodyUpDirection, &radial);
     if (axial < -radius) {
         return false;
     }
@@ -5432,7 +5434,7 @@ bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width,
     f32 axialPenetration = radius + height - axial;
     if (radialPenetration > 0.0f && axialPenetration > 0.0f) {
         if (radialPenetration > 0.0f) {
-            getDummySensor(this)->mPosition.set(_240 + _4B8 * axial);
+            getDummySensor(this)->mPosition.set(_240 + mBodyUpDirection * axial);
             getSensor("dummy")->mRadius = width;
         } else {
             HitSensor* dummy = getSensor("dummy");
@@ -7779,7 +7781,7 @@ void MarioActor::drawShadow() const {
 void MarioActor::calcViewSilhouetteModel() {
     J3DModelX* pSimple = mSimpleModelF08;
     J3DModelX* pModel = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-    TVec3f direction(mPosition - mCameraDirY1014);
+    TVec3f direction(mPosition - mCameraPosition);
     MR::normalizeOrZero(&direction);
     PSMTXCopy(pModel->getBaseTRMtx(), pSimple->getBaseTRMtx());
     TPos3f& matrix = *reinterpret_cast< TPos3f* >(pSimple->getBaseTRMtx());
@@ -8140,7 +8142,7 @@ void MarioActor::writeBackScreenBox() const {
 
 
 void MarioActor::calc1stPersonView() {
-    f32 length = (mCamPos - mPosition).length();
+    f32 length = (mCameraPosition - mPosition).length();
     f32 minVal = 300.0f;
     f32 maxVal = 1000.0f;
     f32 val;
@@ -8156,10 +8158,10 @@ void MarioActor::calc1stPersonView() {
     u8 compareVal = 255.0f * val;
 
     if (compareVal == 0) {
-        _1A1 = true;
+        mFirstPersonDrawHidden1A5 = true;
         hideBeeFur();
     } else {
-        _1A1 = false;
+        mFirstPersonDrawHidden1A5 = false;
         updateAlphaDL(compareVal);
     }
 }
@@ -8996,7 +8998,7 @@ void MarioActor::tryPullTrans(TVec3f* pVelocity, const TVec3f& rPosition) {
     TVec3f ground;
     getGroundPos(&ground);
     if (IsMarioSwimming()) {
-        ground = center - _4B8 * 600.0f;
+        ground = center - mBodyUpDirection * 600.0f;
     } else if (((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
         TVec3f offset = ground - center;
         f32 height = MR::vecKillElement(offset, mMario->_368, &offset);
@@ -9180,7 +9182,7 @@ void MarioActor::tryTornadoPull(HitSensor* pSensor) {
             TVec3f ground;
             ground = mMario->mGroundPos;
             if (IsMarioSwimming()) {
-                ground = center - _4B8 * 600.0f;
+                ground = center - mBodyUpDirection * 600.0f;
             }
 
             center += mMario->mHeadVec * 200.0f;

@@ -413,7 +413,7 @@ bool Mario::fn_803A4210() {
 
 void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {
     if (FLD<u32>(this->mActor, 0x6C) != 0) {
-        MR::startBas(this->mActor, pName, loop, startFrame, speed);
+        MR::startBas(this->mActor, pName, loop, startFrame, speed, false);
         this->_970 = pName;
     }
 }

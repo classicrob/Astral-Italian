@@ -612,7 +612,7 @@ bool MarioModule::isSlipPolygon(const Triangle* triangle) const {
     }
 }
 
-TVec3f& MarioModule::getCamPos() const { return mActor->mCameraDirY1014; }
+TVec3f& MarioModule::getCamPos() const { return mActor->mCameraPosition; }
 
 Triangle* MarioModule::fn_803EFA20() const {
     return mActor->mMario->mTmpPolygon;

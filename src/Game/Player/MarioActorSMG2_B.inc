@@ -1334,7 +1334,7 @@ void MarioActor::fn_803D26F0() {
             F(u8, 0xEFA) = 1;
         }
     }
-    if (this->mMario->isSwimming() && MR::isInWater(mCameraDirY1014)) {
+    if (this->mMario->isSwimming() && MR::isInWater(mCameraPosition)) {
         if (F(u8, 0xF19) != 0 || mCameraBasisZ.dot(-*this->mMario->getGravityVec()) > 0.0f) {
             this->fn_803CA1F0();
             F(u8, 0xEF8) = 1;
@@ -1849,13 +1849,13 @@ bool MarioActor::fn_803D9430() {
     }
     if (this->mMario->isStatusActive(0x1B)) {
         TVec3f a(this->mPosition);
-        a -= mCameraDirY1014;
-        if (!this->mMario->fn_803B2880(mCameraDirY1014, a)) {
+        a -= mCameraPosition;
+        if (!this->mMario->fn_803B2880(mCameraPosition, a)) {
             return false;
         }
         TVec3f b(F(TVec3f, 0x600));
-        b -= mCameraDirY1014;
-        if (!this->mMario->fn_803B2880(mCameraDirY1014, b)) {
+        b -= mCameraPosition;
+        if (!this->mMario->fn_803B2880(mCameraPosition, b)) {
             return false;
         }
     }
@@ -1865,8 +1865,8 @@ bool MarioActor::fn_803D9430() {
     }
     if (t != 0) {
         TVec3f c(F(TVec3f, 0x600));
-        c -= mCameraDirY1014;
-        if (!this->mMario->fn_803B2880(mCameraDirY1014, c)) {
+        c -= mCameraPosition;
+        if (!this->mMario->fn_803B2880(mCameraPosition, c)) {
             return false;
         }
     }

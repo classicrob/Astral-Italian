@@ -206,7 +206,7 @@ void YoshiEgg::fn_804165D0() {
         MR::validateClipping(mShell);
         MR::startAction(this, "Wait");
     }
-    if (PSVECDistance(&mPosition, MR::getPlayerPos()) < 500.0f) {
+    if (PSVECDistance(MR::getPlayerPos(), &mPosition) < 500.0f) {
         setNerve(&NrvYoshiEgg::State2::sInstance);
         return;
     }
@@ -214,7 +214,7 @@ void YoshiEgg::fn_804165D0() {
 }
 void YoshiEgg::fn_80416680() {
     if (MR::isFirstStep(this)) MR::startAction(this, "WaitNear");
-    if (PSVECDistance(&mPosition, MR::getPlayerPos()) > 800.0f) {
+    if (PSVECDistance(MR::getPlayerPos(), &mPosition) > 800.0f) {
         setNerve(&NrvYoshiEgg::State1::sInstance);
         return;
     }

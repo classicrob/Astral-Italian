@@ -443,12 +443,10 @@ void Mario::fn_8039A020() {
 }
 
 void Mario::fn_8039A090() {
-    if (!this->checkTrgA()) {
-        if (this->mActor->fn_803BE0C0() != nullptr) {
-            this->_558 = FLD<u32>(this->mActor, 0x6AC);
-            if (this->isEnableFutureJump()) {
-                this->mMovementStates.mHighWord |= 0x80;
-            }
+    if (this->checkTrgA() || this->mActor->fn_803BE0C0() != nullptr) {
+        this->_558 = FLD<u32>(this->mActor, 0x6AC);
+        if (this->isEnableFutureJump()) {
+            this->mMovementStates.mHighWord |= 0x80;
         }
     }
 }

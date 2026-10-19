@@ -739,7 +739,7 @@ void MarioActor::initMember() {
     mBlackHoleRotateAxis.zero();
     mPosRelativeToBlackHole.zero();
     mSwimSurfaceState1010 = 0;
-    mCameraDirY1014.zero();
+    mCameraPosition.zero();
     mCameraBasisX.zero();
     mCameraBasisY.zero();
     mCameraBasisZ.zero();

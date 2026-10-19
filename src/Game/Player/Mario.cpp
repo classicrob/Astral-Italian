@@ -11101,9 +11101,9 @@ bool Mario::checkGroundOnSlope() {
 // ---- MarioSound.cpp ----
 
 struct SoundList {
-    union SoundFlags {
-        u32 _0;
-        u8 _4[4];
+    struct SoundFlags {
+        u8 mPolicy;
+        u8 _pad[3];
     };
 
     const char* name;
@@ -11121,7 +11121,7 @@ SoundList soundlist[] = {
     {
         "声小ジャンプ",  // name
         SE_PV_JUMP_S,    // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11129,7 +11129,7 @@ SoundList soundlist[] = {
     {
         "声中ジャンプ",  // name
         SE_PV_JUMP_M,    // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11137,7 +11137,7 @@ SoundList soundlist[] = {
     {
         "声大ジャンプ",  // name
         SE_PV_JUMP_L,    // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11145,7 +11145,7 @@ SoundList soundlist[] = {
     {
         "声後ジャンプ",   // name
         SE_PV_JUMP_TURN,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -11153,7 +11153,7 @@ SoundList soundlist[] = {
     {
         "声幅ジャンプ",   // name
         SE_PV_JUMP_LONG,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -11161,7 +11161,7 @@ SoundList soundlist[] = {
     {
         "声物ジャンプ",  // name
         SE_PV_JUMP_JOY,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11169,15 +11169,23 @@ SoundList soundlist[] = {
     {
         "声高飛び込み",   // name
         SE_PV_HIGH_DIVE,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
     },
     {
+        "声ミスジャンプ",
+        0x10059,
+        {0x00, {0, 0, 0}},
+        0,
+        0,
+        0,
+    },
+    {
         "声尻ドロップ",  // name
         SE_PV_HIP_DROP,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11185,7 +11193,7 @@ SoundList soundlist[] = {
     {
         "声尻ドロップ着地",   // name
         SE_PV_HIP_DROP_LAND,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -11193,7 +11201,7 @@ SoundList soundlist[] = {
     {
         "声着地停止",  // name
         SE_PV_LAND,    // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11201,7 +11209,7 @@ SoundList soundlist[] = {
     {
         "声ステージイン着地",  // name
         SE_PV_LAND_COOL,       // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11209,7 +11217,7 @@ SoundList soundlist[] = {
     {
         "声小ダメージ",  // name
         SE_PV_DAMAGE_S,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11217,7 +11225,7 @@ SoundList soundlist[] = {
     {
         "声大ダメージ",  // name
         SE_PV_DAMAGE_L,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11225,7 +11233,7 @@ SoundList soundlist[] = {
     {
         "声最終ダメージ",   // name
         SE_PV_LAST_DAMAGE,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11233,7 +11241,7 @@ SoundList soundlist[] = {
     {
         "声炎ダメージ",  // name
         SE_PV_BURN,      // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11241,7 +11249,7 @@ SoundList soundlist[] = {
     {
         "声電気ダメージ",   // name
         SE_PV_ELEC_DAMAGE,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11249,7 +11257,7 @@ SoundList soundlist[] = {
     {
         "声電気ダメージ終了",       // name
         SE_PV_ELEC_DAMAGE_RECOVER,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -11257,7 +11265,7 @@ SoundList soundlist[] = {
     {
         "声倒れ",    // name
         SE_PV_DOWN,  // 0x4
-        0,           // 0x8
+        {0x00, {0, 0, 0}},           // 0x8
         0,           // 0xC
         0,           // 0x10
         0,           // 0x14
@@ -11265,15 +11273,15 @@ SoundList soundlist[] = {
     {
         "声落下死亡",    // name
         SE_PV_FALL_DIE,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
     },
     {
         "声しびれ",      // name
-        SE_PV_DAMAGE_S,  // 0x4
-        0,               // 0x8
+        0x1005F,  // 0x4
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11281,7 +11289,7 @@ SoundList soundlist[] = {
     {
         "声氷ダメージ",  // name
         SE_PV_FREEZE,    // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11289,7 +11297,7 @@ SoundList soundlist[] = {
     {
         "声つぶれダメージ",    // name
         SE_PV_DIE_ROCK_CRASH,  // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11297,7 +11305,7 @@ SoundList soundlist[] = {
     {
         "声スピン",  // name
         SE_PV_SPIN,  // 0x4
-        0,           // 0x8
+        {0x00, {0, 0, 0}},           // 0x8
         0,           // 0xC
         0,           // 0x10
         0,           // 0x14
@@ -11305,7 +11313,7 @@ SoundList soundlist[] = {
     {
         "声スピンキャンセル",  // name
         SE_PV_SPIN_CANCEL,     // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11313,7 +11321,7 @@ SoundList soundlist[] = {
     {
         "声パンチ",   // name
         SE_PV_PUNCH,  // 0x4
-        0,            // 0x8
+        {0x00, {0, 0, 0}},            // 0x8
         0,            // 0xC
         0,            // 0x10
         0,            // 0x14
@@ -11321,7 +11329,7 @@ SoundList soundlist[] = {
     {
         "声踏み",     // name
         SE_PV_STOMP,  // 0x4
-        0,            // 0x8
+        {0x00, {0, 0, 0}},            // 0x8
         0,            // 0xC
         0,            // 0x10
         0,            // 0x14
@@ -11329,7 +11337,7 @@ SoundList soundlist[] = {
     {
         "声蹴り",    // name
         SE_PV_KICK,  // 0x4
-        0,           // 0x8
+        {0x00, {0, 0, 0}},           // 0x8
         0,           // 0xC
         0,           // 0x10
         0,           // 0x14
@@ -11337,7 +11345,7 @@ SoundList soundlist[] = {
     {
         "声トルネード",     // name
         SE_PV_TWIST_START,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11345,7 +11353,7 @@ SoundList soundlist[] = {
     {
         "声壁反射",   // name
         SE_PV_GUARD,  // 0x4
-        0,            // 0x8
+        {0x00, {0, 0, 0}},            // 0x8
         0,            // 0xC
         0,            // 0x10
         0,            // 0x14
@@ -11353,7 +11361,7 @@ SoundList soundlist[] = {
     {
         "声投げ",     // name
         SE_PV_THROW,  // 0x4
-        0,            // 0x8
+        {0x00, {0, 0, 0}},            // 0x8
         0,            // 0xC
         0,            // 0x10
         0,            // 0x14
@@ -11361,7 +11369,7 @@ SoundList soundlist[] = {
     {
         "声壁押し",     // name
         SE_PV_LIFT_UP,  // 0x4
-        0,              // 0x8
+        {0x00, {0, 0, 0}},              // 0x8
         0,              // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -11369,7 +11377,7 @@ SoundList soundlist[] = {
     {
         "声壁体当たり",       // name
         SE_PV_WALL_HIT_BODY,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -11377,7 +11385,7 @@ SoundList soundlist[] = {
     {
         "声スピン尻ドロップ",  // name
         SE_PV_PUNCH,           // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11385,7 +11393,7 @@ SoundList soundlist[] = {
     {
         "声軽い力み",  // name
         SE_PV_CATCH,   // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11393,7 +11401,7 @@ SoundList soundlist[] = {
     {
         "声崖つかまり",         // name
         SE_PV_CLIFF_FALL_HANG,  // 0x4
-        0,                      // 0x8
+        {0x00, {0, 0, 0}},                      // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -11401,7 +11409,7 @@ SoundList soundlist[] = {
     {
         "声崖つかまり終了",  // name
         SE_PV_CLIFF_CLIMB,   // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -11409,7 +11417,7 @@ SoundList soundlist[] = {
     {
         "声炎ダメージ中",  // name
         SE_PV_BURN_RUN,    // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11417,7 +11425,7 @@ SoundList soundlist[] = {
     {
         "声炎ダメージ終了",  // name
         SE_PV_BURN_RECOVER,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -11425,7 +11433,7 @@ SoundList soundlist[] = {
     {
         "声氷ダメージ終了",    // name
         SE_PV_FREEZE_RECOVER,  // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11433,7 +11441,7 @@ SoundList soundlist[] = {
     {
         "声針ダメージ",       // name
         SE_PV_NEEDLE_DAMAGE,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -11441,7 +11449,7 @@ SoundList soundlist[] = {
     {
         "声針ダメージ中",         // name
         SE_PV_NEEDLE_DAMAGE_RUN,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11449,7 +11457,7 @@ SoundList soundlist[] = {
     {
         "声針ダメージ終了",           // name
         SE_PV_NEEDLE_DAMAGE_RECOVER,  // 0x4
-        0,                            // 0x8
+        {0x00, {0, 0, 0}},                            // 0x8
         0,                            // 0xC
         0,                            // 0x10
         0,                            // 0x14
@@ -11457,7 +11465,7 @@ SoundList soundlist[] = {
     {
         "声水中ダメージ",      // name
         SE_PV_DAMAGE_S_WATER,  // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11465,7 +11473,7 @@ SoundList soundlist[] = {
     {
         "声水中最終ダメージ",     // name
         SE_PV_LAST_DAMAGE_WATER,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11473,7 +11481,7 @@ SoundList soundlist[] = {
     {
         "声冷水ダメージ",         // name
         SE_PV_COLD_WATER_DAMAGE,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11481,7 +11489,7 @@ SoundList soundlist[] = {
     {
         "声スケキヨ開始",  // name
         SE_PV_BURY_HEAD,   // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11489,7 +11497,7 @@ SoundList soundlist[] = {
     {
         "声スケキヨ終了",         // name
         SE_PV_BURY_HEAD_RECOVER,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11497,7 +11505,7 @@ SoundList soundlist[] = {
     {
         "声足埋まり開始",  // name
         SE_PV_BURY_FOOT,   // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11505,7 +11513,7 @@ SoundList soundlist[] = {
     {
         "声足埋まり終了",         // name
         SE_PV_BURY_FOOT_RECOVER,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11513,7 +11521,7 @@ SoundList soundlist[] = {
     {
         "声あくび",  // name
         SE_PV_YAWN,  // 0x4
-        0,           // 0x8
+        {0x00, {0, 0, 0}},           // 0x8
         0,           // 0xC
         0,           // 0x10
         0,           // 0x14
@@ -11521,7 +11529,7 @@ SoundList soundlist[] = {
     {
         "声いびき１",   // name
         SE_PV_SLEEP_1,  // 0x4
-        0,              // 0x8
+        {0x00, {0, 0, 0}},              // 0x8
         0,              // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -11529,7 +11537,7 @@ SoundList soundlist[] = {
     {
         "声いびき２",   // name
         SE_PV_SLEEP_2,  // 0x4
-        0,              // 0x8
+        {0x00, {0, 0, 0}},              // 0x8
         0,              // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -11537,7 +11545,7 @@ SoundList soundlist[] = {
     {
         "声噴水ジャンプ",  // name
         SE_PV_UPSET,       // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11545,7 +11553,7 @@ SoundList soundlist[] = {
     {
         "声ランニングキック",  // name
         SE_PV_KICK,            // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11553,7 +11561,7 @@ SoundList soundlist[] = {
     {
         "声砂脱出",     // name
         SE_PV_LIFT_UP,  // 0x4
-        0,              // 0x8
+        {0x00, {0, 0, 0}},              // 0x8
         0,              // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -11561,7 +11569,7 @@ SoundList soundlist[] = {
     {
         "声投げられ",  // name
         SE_PV_THROWN,  // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11569,7 +11577,7 @@ SoundList soundlist[] = {
     {
         "声慌て",     // name
         SE_PV_UPSET,  // 0x4
-        0,            // 0x8
+        {0x00, {0, 0, 0}},            // 0x8
         0,            // 0xC
         0,            // 0x10
         0,            // 0x14
@@ -11577,7 +11585,7 @@ SoundList soundlist[] = {
     {
         "声しゃがむ",  // name
         SE_PV_SQUAT,   // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11585,7 +11593,7 @@ SoundList soundlist[] = {
     {
         "声砂沈み",     // name
         SE_PV_DIE_MUD,  // 0x4
-        0,              // 0x8
+        {0x00, {0, 0, 0}},              // 0x8
         0,              // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -11593,7 +11601,7 @@ SoundList soundlist[] = {
     {
         "声砂沈み死亡",  // name
         SE_PV_MUD_SINK,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11601,7 +11609,7 @@ SoundList soundlist[] = {
     {
         "声沼沈み",     // name
         SE_PV_DIE_MUD,  // 0x4
-        0,              // 0x8
+        {0x00, {0, 0, 0}},              // 0x8
         0,              // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -11609,7 +11617,7 @@ SoundList soundlist[] = {
     {
         "声沼沈み死亡",  // name
         SE_PV_MUD_SINK,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11617,7 +11625,7 @@ SoundList soundlist[] = {
     {
         "足音左",          // name
         SE_PM_FOOTNOTE_L,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11625,7 +11633,7 @@ SoundList soundlist[] = {
     {
         "足音右",          // name
         SE_PM_FOOTNOTE_R,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11633,7 +11641,7 @@ SoundList soundlist[] = {
     {
         "ジャンプ踏切",    // name
         SE_PM_JUMP,        // 0x4
-        0x4000000,         // 0x8
+        {0x04, {0, 0, 0}},         // 0x8
         "水跳ねジャンプ",  // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11641,7 +11649,7 @@ SoundList soundlist[] = {
     {
         "着地",        // name
         SE_PM_LAND,    // 0x4
-        0x4000000,     // 0x8
+        {0x04, {0, 0, 0}},     // 0x8
         "水跳ね着地",  // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11649,7 +11657,7 @@ SoundList soundlist[] = {
     {
         "重い着地",        // name
         SE_PM_LAND_HEAVY,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11657,7 +11665,7 @@ SoundList soundlist[] = {
     {
         "掴み",          // name
         SE_PM_GRAB_OBJ,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11665,7 +11673,7 @@ SoundList soundlist[] = {
     {
         "ぶらさがり",  // name
         SE_PM_HAND,    // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11673,7 +11681,7 @@ SoundList soundlist[] = {
     {
         "尻ドロップ回転",   // name
         SE_PM_PRE_HIPDROP,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11681,7 +11689,7 @@ SoundList soundlist[] = {
     {
         "尻ドロップ着地",  // name
         SE_PM_HIPDROP,     // 0x4
-        0x4000000,         // 0x8
+        {0x04, {0, 0, 0}},         // 0x8
         "水跳ね着地",      // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11689,7 +11697,7 @@ SoundList soundlist[] = {
     {
         "スピン尻ドロップ回転",    // name
         SE_PM_SPIN_HIP_DROP_TURN,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11697,7 +11705,7 @@ SoundList soundlist[] = {
     {
         "スピン尻ドロップ落下",       // name
         SE_PM_LV_SPIN_HIP_DROP_FALL,  // 0x4
-        0x1000000,                    // 0x8
+        {0x01, {0, 0, 0}},                    // 0x8
         0,                            // 0xC
         0,                            // 0x10
         0,                            // 0x14
@@ -11705,7 +11713,7 @@ SoundList soundlist[] = {
     {
         "中ジャンプ",  // name
         SE_PM_JUMP_M,  // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11713,7 +11721,7 @@ SoundList soundlist[] = {
     {
         "大ジャンプ",  // name
         SE_PM_JUMP_L,  // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11721,7 +11729,7 @@ SoundList soundlist[] = {
     {
         "後ジャンプ",     // name
         SE_PM_JUMP_TURN,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -11729,7 +11737,7 @@ SoundList soundlist[] = {
     {
         "幅ジャンプ",     // name
         SE_PM_JUMP_LONG,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -11737,7 +11745,7 @@ SoundList soundlist[] = {
     {
         "トルネードジャンプ",  // name
         SE_PM_TWIST_JUMP,      // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11745,7 +11753,7 @@ SoundList soundlist[] = {
     {
         "スピンジャンプ",   // name
         SE_PM_SPIN_ATTACK,  // 0x4
-        0x4000000,          // 0x8
+        {0x04, {0, 0, 0}},          // 0x8
         "水跳ねジャンプ",   // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11753,7 +11761,7 @@ SoundList soundlist[] = {
     {
         "トランポリンジャンプ小",  // name
         SE_OJ_TRAMPOLINE_BOUND_S,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11761,7 +11769,7 @@ SoundList soundlist[] = {
     {
         "トランポリンジャンプ大",  // name
         SE_OJ_TRAMPOLINE_BOUND_L,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11769,7 +11777,7 @@ SoundList soundlist[] = {
     {
         "スリップアップ",  // name
         SE_PM_SLIP_UP,     // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11777,7 +11785,7 @@ SoundList soundlist[] = {
     {
         "ダメージ",      // name
         SE_PM_DAMAGE_S,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -11785,7 +11793,7 @@ SoundList soundlist[] = {
     {
         "炎ダメージ",  // name
         SE_PM_BURN,    // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -11793,7 +11801,7 @@ SoundList soundlist[] = {
     {
         "針ダメージ",         // name
         SE_PM_NEEDLE_DAMAGE,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -11801,7 +11809,7 @@ SoundList soundlist[] = {
     {
         "電気ダメージ",     // name
         SE_PM_ELEC_DAMAGE,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11809,7 +11817,7 @@ SoundList soundlist[] = {
     {
         "壁反射",             // name
         SE_PM_SPIN_HIT_WALL,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -11817,7 +11825,7 @@ SoundList soundlist[] = {
     {
         "プレスダメージ",      // name
         SE_PM_DAMAGE_STOMPED,  // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -11825,7 +11833,7 @@ SoundList soundlist[] = {
     {
         "氷ダメージ",      // name
         SE_PM_ICE_DAMAGE,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11833,7 +11841,7 @@ SoundList soundlist[] = {
     {
         "倒れ",            // name
         SE_PM_FALLDOWN_S,  // 0x4
-        0x4000000,         // 0x8
+        {0x04, {0, 0, 0}},         // 0x8
         "水跳ね左足",      // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11841,7 +11849,7 @@ SoundList soundlist[] = {
     {
         "吹っ飛び倒れ",    // name
         SE_PM_FALLDOWN_M,  // 0x4
-        0x4000000,         // 0x8
+        {0x04, {0, 0, 0}},         // 0x8
         "水跳ね着地",      // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -11849,7 +11857,7 @@ SoundList soundlist[] = {
     {
         "坂滑り",                 // name
         SE_PM_LV_SLIP_SLIP_CODE,  // 0x4
-        0x9000000,                // 0x8
+        {0x09, {0, 0, 0}},                // 0x8
         "水面滑り",               // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11857,7 +11865,7 @@ SoundList soundlist[] = {
     {
         "ルイージ滑り",            // name
         SE_PM_LV_LUIGI_WALK_SLIP,  // 0x4
-        0x9000000,                 // 0x8
+        {0x09, {0, 0, 0}},                 // 0x8
         "水面滑り",                // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11865,7 +11873,7 @@ SoundList soundlist[] = {
     {
         "パンチ風切り",     // name
         SE_PM_PUNCH_SHOOT,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -11873,7 +11881,7 @@ SoundList soundlist[] = {
     {
         "炎ダメージ復帰バウンド",  // name
         SE_PM_BURN_JUMP,           // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11881,7 +11889,7 @@ SoundList soundlist[] = {
     {
         "炎ダメージ炎上中",  // name
         SE_PM_LV_BURNING,    // 0x4
-        0x1000000,           // 0x8
+        {0x01, {0, 0, 0}},           // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -11889,7 +11897,7 @@ SoundList soundlist[] = {
     {
         "氷ダメージ終了",          // name
         SE_PM_ICE_DAMAGE_RECOVER,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11897,7 +11905,7 @@ SoundList soundlist[] = {
     {
         "引き戻し基本",           // name
         SE_PM_LV_PULL_BACK_BASE,  // 0x4
-        0x1000000,                // 0x8
+        {0x01, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -11905,7 +11913,7 @@ SoundList soundlist[] = {
     {
         "引き戻し浮遊",          // name
         SE_PM_LV_PULL_BACK_FLY,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -11913,7 +11921,7 @@ SoundList soundlist[] = {
     {
         "引き戻し泡破裂",        // name
         SE_OJ_GCAPTURE_RELEASE,  // 0x4
-        0,                       // 0x8
+        {0x00, {0, 0, 0}},                       // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -11921,7 +11929,7 @@ SoundList soundlist[] = {
     {
         "はねとばされ",             // name
         SE_PM_LV_FLIP_DAMAGE_TURN,  // 0x4
-        0x1000000,                  // 0x8
+        {0x01, {0, 0, 0}},                  // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -11929,7 +11937,7 @@ SoundList soundlist[] = {
     {
         "結界ヒット",                // name
         SE_PM_KAMECK_BARRIER_BOUND,  // 0x4
-        0,                           // 0x8
+        {0x00, {0, 0, 0}},                           // 0x8
         0,                           // 0xC
         0,                           // 0x10
         0,                           // 0x14
@@ -11937,7 +11945,7 @@ SoundList soundlist[] = {
     {
         "壁衝突",             // name
         SE_PM_WALL_HIT_BODY,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -11945,7 +11953,7 @@ SoundList soundlist[] = {
     {
         "投げられ",       // name
         SE_PM_FLIP_AWAY,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -11953,7 +11961,7 @@ SoundList soundlist[] = {
     {
         "ヘリコプタージャンプ",  // name
         SE_PM_HELI_JUMP,         // 0x4
-        0,                       // 0x8
+        {0x00, {0, 0, 0}},                       // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -11961,7 +11969,7 @@ SoundList soundlist[] = {
     {
         "滞空開始",                 // name
         SE_PM_HELI_JUMP_AIR_START,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -11969,7 +11977,7 @@ SoundList soundlist[] = {
     {
         "滞空中",                // name
         SE_PM_LV_HELI_JUMP_AIR,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -11977,7 +11985,7 @@ SoundList soundlist[] = {
     {
         "ホッパー跳ね返り",  // name
         SE_PM_HOPPER_BOUND,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -11985,7 +11993,7 @@ SoundList soundlist[] = {
     {
         "ホッパージャンプ溜め",    // name
         SE_PM_LV_HOPPER_PRE_JUMP,  // 0x4
-        0x1000000,                 // 0x8
+        {0x01, {0, 0, 0}},                 // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -11993,7 +12001,7 @@ SoundList soundlist[] = {
     {
         "ホッパージャンプ",  // name
         SE_PM_HOPPER_JUMP,   // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12001,7 +12009,7 @@ SoundList soundlist[] = {
     {
         "テレサ浮遊",               // name
         SE_PM_LV_TERESA_MARIO_FLY,  // 0x4
-        0x1000000,                  // 0x8
+        {0x01, {0, 0, 0}},                  // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12009,7 +12017,7 @@ SoundList soundlist[] = {
     {
         "テレサ踏ん張り",   // name
         SE_PM_LV_AIR_WALK,  // 0x4
-        0x1000000,          // 0x8
+        {0x01, {0, 0, 0}},          // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -12017,7 +12025,7 @@ SoundList soundlist[] = {
     {
         "テレサ壁反射",            // name
         SE_PM_TERESA_MARIO_BOUND,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -12025,7 +12033,7 @@ SoundList soundlist[] = {
     {
         "テレサ消える",             // name
         SE_PM_TERESA_MARIO_VANISH,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12033,7 +12041,7 @@ SoundList soundlist[] = {
     {
         "テレサ現れる",             // name
         SE_PM_TERESA_MARIO_APPEAR,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12041,7 +12049,7 @@ SoundList soundlist[] = {
     {
         "テレサ風に乗る",            // name
         SE_PM_LV_T_MARIO_RIDE_WIND,  // 0x4
-        0x1000000,                   // 0x8
+        {0x01, {0, 0, 0}},                   // 0x8
         0,                           // 0xC
         0,                           // 0x10
         0,                           // 0x14
@@ -12049,7 +12057,7 @@ SoundList soundlist[] = {
     {
         "ハチ飛行中",            // name
         SE_PM_LV_BEE_MARIO_FLY,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12057,7 +12065,7 @@ SoundList soundlist[] = {
     {
         "スケキヨ開始",    // name
         SE_PM_BURY_START,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -12065,7 +12073,7 @@ SoundList soundlist[] = {
     {
         "スケキヨ終了",  // name
         SE_PM_BURY_END,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -12073,7 +12081,7 @@ SoundList soundlist[] = {
     {
         "スケキヨ終了スピン",  // name
         SE_PM_BURY_END_SPIN,   // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -12081,7 +12089,7 @@ SoundList soundlist[] = {
     {
         "スケート足",  // name
         SE_PM_SKATE,   // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -12089,7 +12097,7 @@ SoundList soundlist[] = {
     {
         "スケート滑り",       // name
         SE_PM_LV_SKATE_SLIP,  // 0x4
-        0x1000000,            // 0x8
+        {0x01, {0, 0, 0}},            // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12097,7 +12105,7 @@ SoundList soundlist[] = {
     {
         "スケートジャンプ",  // name
         SE_PM_SKATE_JUMP,    // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12105,7 +12113,7 @@ SoundList soundlist[] = {
     {
         "スケート着地",    // name
         SE_PM_SKATE_LAND,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -12113,7 +12121,7 @@ SoundList soundlist[] = {
     {
         "スケートスピン",  // name
         SE_PM_SKATE_SPIN,  // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -12121,7 +12129,7 @@ SoundList soundlist[] = {
     {
         "ハチ壁くっつき",     // name
         SE_PM_BEE_WALL_LAND,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12129,7 +12137,7 @@ SoundList soundlist[] = {
     {
         "ハチ壁歩き左",         // name
         SE_PM_BEE_WALL_WALK_L,  // 0x4
-        0,                      // 0x8
+        {0x00, {0, 0, 0}},                      // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12137,7 +12145,7 @@ SoundList soundlist[] = {
     {
         "ハチ壁歩き右",         // name
         SE_PM_BEE_WALL_WALK_R,  // 0x4
-        0,                      // 0x8
+        {0x00, {0, 0, 0}},                      // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12145,7 +12153,7 @@ SoundList soundlist[] = {
     {
         "ハチ壁ジャンプ",     // name
         SE_PM_BEE_WALL_JUMP,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12153,7 +12161,7 @@ SoundList soundlist[] = {
     {
         "砂沈み",            // name
         SE_PM_LV_SAND_SINK,  // 0x4
-        0x1000000,           // 0x8
+        {0x01, {0, 0, 0}},           // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12161,7 +12169,7 @@ SoundList soundlist[] = {
     {
         "砂脱出",        // name
         SE_PM_SAND_OUT,  // 0x4
-        0,               // 0x8
+        {0x00, {0, 0, 0}},               // 0x8
         0,               // 0xC
         0,               // 0x10
         0,               // 0x14
@@ -12169,7 +12177,7 @@ SoundList soundlist[] = {
     {
         "砂強制沈み",              // name
         SE_PM_LV_SAND_SINK_FORCE,  // 0x4
-        0x1000000,                 // 0x8
+        {0x01, {0, 0, 0}},                 // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -12177,7 +12185,7 @@ SoundList soundlist[] = {
     {
         "砂死亡",           // name
         SE_PM_LV_SAND_DIE,  // 0x4
-        0x1000000,          // 0x8
+        {0x01, {0, 0, 0}},          // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -12185,7 +12193,7 @@ SoundList soundlist[] = {
     {
         "沼強制沈み",             // name
         SE_PM_LV_MUD_SINK_FORCE,  // 0x4
-        0x1000000,                // 0x8
+        {0x01, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12193,7 +12201,7 @@ SoundList soundlist[] = {
     {
         "沼死亡",          // name
         SE_PM_LV_MUD_DIE,  // 0x4
-        0x1000000,         // 0x8
+        {0x01, {0, 0, 0}},         // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -12201,7 +12209,7 @@ SoundList soundlist[] = {
     {
         "毒沼脱出",            // name
         SE_PM_POISON_MUD_OUT,  // 0x4
-        0,                     // 0x8
+        {0x00, {0, 0, 0}},                     // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -12209,7 +12217,7 @@ SoundList soundlist[] = {
     {
         "毒沼ダメージ",           // name
         SE_PM_POISON_MUD_DAMAGE,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12217,7 +12225,7 @@ SoundList soundlist[] = {
     {
         "ダークマター沈み",       // name
         SE_PM_LV_DARK_MATTER_IN,  // 0x4
-        0x1000000,                // 0x8
+        {0x01, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12225,7 +12233,7 @@ SoundList soundlist[] = {
     {
         "惑星貫通中",            // name
         SE_PM_LV_WARP_STRAIGHT,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12233,7 +12241,7 @@ SoundList soundlist[] = {
     {
         "惑星貫通終了",           // name
         SE_PM_WARP_STRAIGHT_END,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12241,7 +12249,7 @@ SoundList soundlist[] = {
     {
         "フー滞空中",           // name
         SE_PM_LV_FOO_FLY_WAIT,  // 0x4
-        0x1000000,              // 0x8
+        {0x01, {0, 0, 0}},              // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12249,7 +12257,7 @@ SoundList soundlist[] = {
     {
         "フー加速",       // name
         SE_PM_FOO_ACCEL,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -12257,7 +12265,7 @@ SoundList soundlist[] = {
     {
         "フー飛行中",         // name
         SE_PM_LV_FOO_FLYING,  // 0x4
-        0x1000000,            // 0x8
+        {0x01, {0, 0, 0}},            // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12265,7 +12273,7 @@ SoundList soundlist[] = {
     {
         "フーブレーキ",   // name
         SE_PM_FOO_BRAKE,  // 0x4
-        0,                // 0x8
+        {0x00, {0, 0, 0}},                // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
@@ -12273,7 +12281,7 @@ SoundList soundlist[] = {
     {
         "ワープポッド入り",  // name
         SE_PM_WARP_POD_IN,   // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12281,7 +12289,7 @@ SoundList soundlist[] = {
     {
         "ワープポッド出",    // name
         SE_PM_WARP_POD_OUT,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12289,7 +12297,7 @@ SoundList soundlist[] = {
     {
         "ワープポッド移動",      // name
         SE_PM_LV_WARP_POD_MOVE,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12297,7 +12305,7 @@ SoundList soundlist[] = {
     {
         "スペシャルダッシュ強",   // name
         SE_PM_RACE_START_DASH_L,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12305,7 +12313,7 @@ SoundList soundlist[] = {
     {
         "スペシャルダッシュ弱",   // name
         SE_PM_RACE_START_DASH_S,  // 0x4
-        0,                        // 0x8
+        {0x00, {0, 0, 0}},                        // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12313,7 +12321,7 @@ SoundList soundlist[] = {
     {
         "ダッシュ加速強成功",  // name
         SE_SY_GET_DASH_RING,   // 0x4
-        0x2000000,             // 0x8
+        {0x02, {0, 0, 0}},             // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -12321,7 +12329,7 @@ SoundList soundlist[] = {
     {
         "ブラックホール吸い込まれ",  // name
         SE_PM_BLACK_HOLE_IN,         // 0x4
-        0,                           // 0x8
+        {0x00, {0, 0, 0}},                           // 0x8
         0,                           // 0xC
         0,                           // 0x10
         0,                           // 0x14
@@ -12329,7 +12337,7 @@ SoundList soundlist[] = {
     {
         "水歩行突入",        // name
         SE_PM_WALK_TO_SWIM,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12337,7 +12345,7 @@ SoundList soundlist[] = {
     {
         "水歩行脱出",        // name
         SE_PM_SWIM_TO_WALK,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12345,7 +12353,7 @@ SoundList soundlist[] = {
     {
         "水面ウエイト",       // name
         SE_PM_WAIT_ON_WATER,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12353,7 +12361,7 @@ SoundList soundlist[] = {
     {
         "水中ウエイト",          // name
         SE_PM_WAIT_UNDER_WATER,  // 0x4
-        0,                       // 0x8
+        {0x00, {0, 0, 0}},                       // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12361,15 +12369,23 @@ SoundList soundlist[] = {
     {
         "水落下突入",         // name
         SE_PM_DIVE_TO_WATER,  // 0x4
-        0,                    // 0x8
+        {0x00, {0, 0, 0}},                    // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
     },
     {
+        "水落下突入高",
+        0x200C5,
+        {0x00, {0, 0, 0}},
+        0,
+        0,
+        0,
+    },
+    {
         "水ジャンプ脱出",       // name
         SE_PM_JUMP_FROM_WATER,  // 0x4
-        0,                      // 0x8
+        {0x00, {0, 0, 0}},                      // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12377,7 +12393,7 @@ SoundList soundlist[] = {
     {
         "水面一掻き",               // name
         SE_PM_SWIM_ACCEL_ON_WATER,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12385,7 +12401,7 @@ SoundList soundlist[] = {
     {
         "水中一掻き",               // name
         SE_PM_SWIM_ACCEL_IN_WATER,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12393,7 +12409,7 @@ SoundList soundlist[] = {
     {
         "水面バタ足",            // name
         SE_PM_LV_SWIM_ON_WATER,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12401,7 +12417,7 @@ SoundList soundlist[] = {
     {
         "水中バタ足",            // name
         SE_PM_LV_SWIM_IN_WATER,  // 0x4
-        0x1000000,               // 0x8
+        {0x01, {0, 0, 0}},               // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12409,7 +12425,7 @@ SoundList soundlist[] = {
     {
         "水面潜り",                // name
         SE_PM_DIVE_WATER_ROLLING,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -12417,7 +12433,7 @@ SoundList soundlist[] = {
     {
         "水中潜り",                // name
         SE_PM_DIVE_FAST_IN_WATER,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -12425,7 +12441,7 @@ SoundList soundlist[] = {
     {
         "水面スピン開始",           // name
         SE_PM_TORNADE_ON_WATER_ST,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12433,7 +12449,7 @@ SoundList soundlist[] = {
     {
         "水面スピン",               // name
         SE_PM_LV_TORNADE_ON_WATER,  // 0x4
-        0x1000000,                  // 0x8
+        {0x01, {0, 0, 0}},                  // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12441,7 +12457,7 @@ SoundList soundlist[] = {
     {
         "水中スピン開始",           // name
         SE_PM_TORNADE_IN_WATER_ST,  // 0x4
-        0,                          // 0x8
+        {0x00, {0, 0, 0}},                          // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12449,7 +12465,7 @@ SoundList soundlist[] = {
     {
         "水中スピン",               // name
         SE_PM_LV_TORNADE_IN_WATER,  // 0x4
-        0x1000000,                  // 0x8
+        {0x01, {0, 0, 0}},                  // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12457,7 +12473,7 @@ SoundList soundlist[] = {
     {
         "水面ダメージ",         // name
         SE_PM_DAMAGE_ON_WATER,  // 0x4
-        0,                      // 0x8
+        {0x00, {0, 0, 0}},                      // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12465,7 +12481,7 @@ SoundList soundlist[] = {
     {
         "水中ダメージ",         // name
         SE_PM_DAMAGE_IN_WATER,  // 0x4
-        0,                      // 0x8
+        {0x00, {0, 0, 0}},                      // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12473,7 +12489,7 @@ SoundList soundlist[] = {
     {
         "亀ジェット泳ぎ",          // name
         SE_OJ_LV_TURTLE_JET_SWIM,  // 0x4
-        0x1000000,                 // 0x8
+        {0x01, {0, 0, 0}},                 // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -12481,7 +12497,7 @@ SoundList soundlist[] = {
     {
         "水底接触",                 // name
         SE_PM_LV_TURTLE_SEA_SMOKE,  // 0x4
-        0x1000000,                  // 0x8
+        {0x01, {0, 0, 0}},                  // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12489,7 +12505,7 @@ SoundList soundlist[] = {
     {
         "亀壁ヒット",              // name
         SE_OJ_TURTLE_JET_BOUND_W,  // 0x4
-        0,                         // 0x8
+        {0x00, {0, 0, 0}},                         // 0x8
         0,                         // 0xC
         0,                         // 0x10
         0,                         // 0x14
@@ -12497,7 +12513,7 @@ SoundList soundlist[] = {
     {
         "亀ブレーキ",        // name
         SE_PM_TURTLE_BRAKE,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12505,7 +12521,7 @@ SoundList soundlist[] = {
     {
         "亀加速",            // name
         SE_PM_TURTLE_ACCEL,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12513,7 +12529,7 @@ SoundList soundlist[] = {
     {
         "水跳ね左足",        // name
         SE_PM_FOOTNOTE_L_W,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12521,7 +12537,7 @@ SoundList soundlist[] = {
     {
         "水跳ね右足",        // name
         SE_PM_FOOTNOTE_R_W,  // 0x4
-        0,                   // 0x8
+        {0x00, {0, 0, 0}},                   // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12529,7 +12545,7 @@ SoundList soundlist[] = {
     {
         "水跳ね左足小",          // name
         SE_PM_FOOTNOTE_SUB_L_W,  // 0x4
-        0,                       // 0x8
+        {0x00, {0, 0, 0}},                       // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12537,7 +12553,7 @@ SoundList soundlist[] = {
     {
         "水跳ね右足小",          // name
         SE_PM_FOOTNOTE_SUB_R_W,  // 0x4
-        0,                       // 0x8
+        {0x00, {0, 0, 0}},                       // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12545,7 +12561,7 @@ SoundList soundlist[] = {
     {
         "水跳ねジャンプ",  // name
         SE_PM_JUMP_W,      // 0x4
-        0,                 // 0x8
+        {0x00, {0, 0, 0}},                 // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -12553,7 +12569,7 @@ SoundList soundlist[] = {
     {
         "水跳ね着地",  // name
         SE_PM_LAND_W,  // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -12561,7 +12577,7 @@ SoundList soundlist[] = {
     {
         "水跳ね手",    // name
         SE_PM_HAND_W,  // 0x4
-        0,             // 0x8
+        {0x00, {0, 0, 0}},             // 0x8
         0,             // 0xC
         0,             // 0x10
         0,             // 0x14
@@ -12569,7 +12585,7 @@ SoundList soundlist[] = {
     {
         "水弾かれ",         // name
         SE_PM_WATER_BOUND,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -12577,7 +12593,7 @@ SoundList soundlist[] = {
     {
         "水面滑り",           // name
         SE_PM_LV_SLIP_WATER,  // 0x4
-        0x1000000,            // 0x8
+        {0x01, {0, 0, 0}},            // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12585,7 +12601,7 @@ SoundList soundlist[] = {
     {
         "トルネード風",       // name
         SE_PM_LV_TWIST_WIND,  // 0x4
-        0x1000000,            // 0x8
+        {0x01, {0, 0, 0}},            // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12593,7 +12609,7 @@ SoundList soundlist[] = {
     {
         "スリップ",     // name
         SE_PM_LV_SLIP,  // 0x4
-        0x9000000,      // 0x8
+        {0x09, {0, 0, 0}},      // 0x8
         "水面滑り",     // 0xC
         0,              // 0x10
         0,              // 0x14
@@ -12601,15 +12617,23 @@ SoundList soundlist[] = {
     {
         "最後の一撃",       // name
         SE_PM_LAST_DAMAGE,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
     },
     {
+        "ターンブレーキ",
+        0x200A1,
+        {0x00, {0, 0, 0}},
+        0,
+        0,
+        0,
+    },
+    {
         "空中ふんばり",     // name
         SE_PM_LV_AIR_WALK,  // 0x4
-        0x1000000,          // 0x8
+        {0x01, {0, 0, 0}},          // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -12617,7 +12641,7 @@ SoundList soundlist[] = {
     {
         "スピン許可",       // name
         SE_PM_SPIN_ENABLE,  // 0x4
-        0,                  // 0x8
+        {0x00, {0, 0, 0}},                  // 0x8
         0,                  // 0xC
         0,                  // 0x10
         0,                  // 0x14
@@ -12625,7 +12649,7 @@ SoundList soundlist[] = {
     {
         "スピン回復終了",        // name
         SE_PM_SPIN_RECOVER_END,  // 0x4
-        0,                       // 0x8
+        {0x00, {0, 0, 0}},                       // 0x8
         0,                       // 0xC
         0,                       // 0x10
         0,                       // 0x14
@@ -12633,7 +12657,7 @@ SoundList soundlist[] = {
     {
         "トルネード飛行",         // name
         SE_PM_LV_TORNADE_FLYING,  // 0x4
-        0x1000000,                // 0x8
+        {0x01, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12641,7 +12665,7 @@ SoundList soundlist[] = {
     {
         "ライフ警告",         // name
         SE_SY_LV_LIFE_ALERT,  // 0x4
-        0x3000000,            // 0x8
+        {0x03, {0, 0, 0}},            // 0x8
         0,                    // 0xC
         0,                    // 0x10
         0,                    // 0x14
@@ -12649,7 +12673,7 @@ SoundList soundlist[] = {
     {
         "ライフ回復",        // name
         SE_SY_LIFE_RECOVER,  // 0x4
-        0x2000000,           // 0x8
+        {0x02, {0, 0, 0}},           // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12657,7 +12681,7 @@ SoundList soundlist[] = {
     {
         "水中ライフ減少",      // name
         SE_SY_WATER_LIFE_DEC,  // 0x4
-        0x2000000,             // 0x8
+        {0x02, {0, 0, 0}},             // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -12665,7 +12689,7 @@ SoundList soundlist[] = {
     {
         "酸素減少警告",      // name
         SE_SY_OXYGEN_ALERT,  // 0x4
-        0x2000000,           // 0x8
+        {0x02, {0, 0, 0}},           // 0x8
         0,                   // 0xC
         0,                   // 0x10
         0,                   // 0x14
@@ -12673,7 +12697,7 @@ SoundList soundlist[] = {
     {
         "無酸素警告",             // name
         SE_SY_OXYGEN_ZERO_ALERT,  // 0x4
-        0x2000000,                // 0x8
+        {0x02, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12681,7 +12705,7 @@ SoundList soundlist[] = {
     {
         "酸素回復",            // name
         SE_SY_INC_OXYGEN_ONE,  // 0x4
-        0x2000000,             // 0x8
+        {0x02, {0, 0, 0}},             // 0x8
         0,                     // 0xC
         0,                     // 0x10
         0,                     // 0x14
@@ -12689,7 +12713,7 @@ SoundList soundlist[] = {
     {
         "酸素完全回復",         // name
         SE_SY_INC_OXYGEN_FULL,  // 0x4
-        0x2000000,              // 0x8
+        {0x02, {0, 0, 0}},              // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12697,7 +12721,7 @@ SoundList soundlist[] = {
     {
         "水面酸素回復",           // name
         SE_SY_LV_RECOVER_OXYGEN,  // 0x4
-        0x3000000,                // 0x8
+        {0x03, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12705,7 +12729,7 @@ SoundList soundlist[] = {
     {
         "水面酸素完全回復",         // name
         SE_SY_RECOVER_OXYGEN_FULL,  // 0x4
-        0x2000000,                  // 0x8
+        {0x02, {0, 0, 0}},                  // 0x8
         0,                          // 0xC
         0,                          // 0x10
         0,                          // 0x14
@@ -12713,7 +12737,7 @@ SoundList soundlist[] = {
     {
         "無酸素ダメージ",  // name
         SE_SY_NO_OXYGEN,   // 0x4
-        0x2000000,         // 0x8
+        {0x02, {0, 0, 0}},         // 0x8
         0,                 // 0xC
         0,                 // 0x10
         0,                 // 0x14
@@ -12721,7 +12745,7 @@ SoundList soundlist[] = {
     {
         "ハチ体力回復",               // name
         SE_SY_LV_INC_AIR_WALK_TIMER,  // 0x4
-        0x3000000,                    // 0x8
+        {0x03, {0, 0, 0}},                    // 0x8
         0,                            // 0xC
         0,                            // 0x10
         0,                            // 0x14
@@ -12729,7 +12753,7 @@ SoundList soundlist[] = {
     {
         "ハチ体力完全回復",          // name
         SE_SY_INC_AIR_WALK_TIMER_F,  // 0x4
-        0x2000000,                   // 0x8
+        {0x02, {0, 0, 0}},                   // 0x8
         0,                           // 0xC
         0,                           // 0x10
         0,                           // 0x14
@@ -12737,7 +12761,7 @@ SoundList soundlist[] = {
     {
         "ハチ体力切れ",           // name
         SE_SY_NO_AIR_WALK_TIMER,  // 0x4
-        0x2000000,                // 0x8
+        {0x02, {0, 0, 0}},                // 0x8
         0,                        // 0xC
         0,                        // 0x10
         0,                        // 0x14
@@ -12745,15 +12769,23 @@ SoundList soundlist[] = {
     {
         "変身解除",       // name
         SE_SY_MORPH_END,  // 0x4
-        0x2000000,        // 0x8
+        {0x02, {0, 0, 0}},        // 0x8
         0,                // 0xC
         0,                // 0x10
         0,                // 0x14
     },
     {
+        "変身解除ＢＧＭ維持",
+        0xEB,
+        {0x02, {0, 0, 0}},
+        0,
+        0,
+        0,
+    },
+    {
         "呪い解除",             // name
         SE_SY_MORPH_TO_NORMAL,  // 0x4
-        0x2000000,              // 0x8
+        {0x02, {0, 0, 0}},              // 0x8
         0,                      // 0xC
         0,                      // 0x10
         0,                      // 0x14
@@ -12761,7 +12793,7 @@ SoundList soundlist[] = {
     {
         "",  // name
         0,   // 0x4
-        0,   // 0x8
+        {0x00, {0, 0, 0}},   // 0x8
         0,   // 0xC
         0,   // 0x10
         0,   // 0x14
@@ -12838,7 +12870,7 @@ void Mario::initSound() {
 void Mario::playSoundJ(const char* pSoundName, s32 timing) {
     uintptr_t index;
     if (_96C->search(pSoundName, &index)) {
-        switch (soundlist[index]._8._4[0] & 0x3) {
+        switch (soundlist[index]._8.mPolicy & 0x3) {
         case 0:
             MR::startSound(mActor, soundlist[index]._14, timing);
             break;
@@ -12856,7 +12888,7 @@ void Mario::playSoundJ(const char* pSoundName, s32 timing) {
             break;
         }
 
-        switch (soundlist[index]._8._4[0] & ~0x3) {
+        switch (soundlist[index]._8.mPolicy & ~0x3) {
         case 0x4:
         case 0x8:
             if (((mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13) || ((mDrawStates.mWord >> 12) & 1U)) {
@@ -12876,7 +12908,7 @@ void Mario::playSoundJ(const char* pSoundName, s32 timing) {
 void Mario::stopSoundJ(const char* pSoundName, u32 delay) {
     uintptr_t index;
     if (_96C->search(pSoundName, &index)) {
-        switch (soundlist[index]._8._4[0] & 0x3) {
+        switch (soundlist[index]._8.mPolicy & 0x3) {
         case 0:
             MR::stopSound(mActor, soundlist[index]._14, delay);
             break;

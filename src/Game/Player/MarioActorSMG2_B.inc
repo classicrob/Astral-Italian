@@ -81,7 +81,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
     }
     FP(this->mMario, u32, 0x14) &= 0xFFDFFFFF;
     FP(this->mMario, u32, 0xC) &= 0xFFEFFFFF;
-    if (F(u8, 0x1010) != 0) {
+    if (mSwimSurfaceState1010 != 0) {
         r = true;
     }
     F(u16, 0x664) = 0xF;
@@ -769,7 +769,7 @@ void MarioActor::sendWallTouch(u32 msg, HitSensor* a, HitSensor* b) {
 bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
     TVec3f p(*v);
     if (BITAT(this->mMario, 0x14, 0x19)) {
-        f32 k = MR::vecKillElement(p, F(TVec3f, 0x1038), &p);
+        f32 k = MR::vecKillElement(p, mCameraBasisZ, &p);
         if (k == 250.0f || k == -250.0f) {
             return false;
         }
@@ -1334,8 +1334,8 @@ void MarioActor::fn_803D26F0() {
             F(u8, 0xEFA) = 1;
         }
     }
-    if (this->mMario->isSwimming() && MR::isInWater(F(TVec3f, 0x1014))) {
-        if (F(u8, 0xF19) != 0 || F(TVec3f, 0x1038).dot(-*this->mMario->getGravityVec()) > 0.0f) {
+    if (this->mMario->isSwimming() && MR::isInWater(mCameraDirY1014)) {
+        if (F(u8, 0xF19) != 0 || mCameraBasisZ.dot(-*this->mMario->getGravityVec()) > 0.0f) {
             this->fn_803CA1F0();
             F(u8, 0xEF8) = 1;
         }
@@ -1849,13 +1849,13 @@ bool MarioActor::fn_803D9430() {
     }
     if (this->mMario->isStatusActive(0x1B)) {
         TVec3f a(this->mPosition);
-        a -= F(TVec3f, 0x1014);
-        if (!this->mMario->fn_803B2880(F(TVec3f, 0x1014), a)) {
+        a -= mCameraDirY1014;
+        if (!this->mMario->fn_803B2880(mCameraDirY1014, a)) {
             return false;
         }
         TVec3f b(F(TVec3f, 0x600));
-        b -= F(TVec3f, 0x1014);
-        if (!this->mMario->fn_803B2880(F(TVec3f, 0x1014), b)) {
+        b -= mCameraDirY1014;
+        if (!this->mMario->fn_803B2880(mCameraDirY1014, b)) {
             return false;
         }
     }
@@ -1865,8 +1865,8 @@ bool MarioActor::fn_803D9430() {
     }
     if (t != 0) {
         TVec3f c(F(TVec3f, 0x600));
-        c -= F(TVec3f, 0x1014);
-        if (!this->mMario->fn_803B2880(F(TVec3f, 0x1014), c)) {
+        c -= mCameraDirY1014;
+        if (!this->mMario->fn_803B2880(mCameraDirY1014, c)) {
             return false;
         }
     }

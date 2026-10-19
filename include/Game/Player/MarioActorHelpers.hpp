@@ -153,10 +153,7 @@ public:
         LiveActor* mActor;
     };
 
-    union {
-        /* 0x00 */ u8 _0[0x80];
-        /* 0x00 */ Slot mSlots[16];
-    };
+    /* 0x00 */ Slot mSlots[16];
     /* 0x80 */ s32 mCount;
 };
 

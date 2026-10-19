@@ -108,7 +108,6 @@ public:
     const TVec3f& fn_803B8520();
     u32 fn_803B89E0();
     bool fn_803B8A80();
-    u8* fn_803B9020();
     void fn_803B9270();
     bool fn_803B93E0();
     void fn_803B94E0();
@@ -318,7 +317,6 @@ public:
     virtual void getLastMove(TVec3f*) const;
     virtual void getFrontVec(TVec3f*) const;
 
-    void init2(const TVec3f&, const TVec3f&, s32);
     void initAfterOpeningDemo();
     void calcBaseFrontVec(const TVec3f&);
     void playSound(const char*, s32);
@@ -632,7 +630,6 @@ public:
     void drawWallShade(const TVec3f&, const TVec3f&, f32) const;
     void drawColdWaterDamage() const;
     void setRasterScroll(s32, s32, s32);
-    void updateRasterScroll();
     void drawRasterScroll(f32, s16, f32) const;
     void drawMosaic() const;
     void drawLifeUp() const;
@@ -812,53 +809,24 @@ public:
     /* 0x1B0 */ u8 _B68;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1B1 */ u8 _A6E;  // SMG2 offset guess-gap
     /* 0x1B2 */ u16 _F42;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    union {
+    /* 0x1B4 */ Mtx* mBlurMatrices[2][8];
+    /* 0x1F4 */ TMtx34f mPreviousViewMatrix;
+    /* 0x224 */ TMtx34f mCurrentViewMatrix;
+    /* 0x254 */ u16 mBlurBufferIndex;
+    /* 0x256 */ u16 mBlurHistoryIndex;
+    /* 0x258 */ u16 mBlurJointCount;
+    /* 0x25A */ u8 _pad25A[2];
+    /* 0x25C */ union {
+        u32 mEffectFlagsWord;
         struct {
-    union {
-        struct {
-    /* 0x1B4 */ TMtx34f _legacyD7C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1E4 */ TMtx34f _legacyD4C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x214 */ TMtx34f _legacyD1C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        };
-        Mtx* mBlurMatrices[2][8];
-    };
-    union {  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-        /* 0x244 */ u32 _B98;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-        struct {  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-            unsigned mSmoke : 1;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-            unsigned mSnow : 1;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-            unsigned _2 : 1;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-            unsigned mSlopeSlip : 1;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-            unsigned mIsStationary : 1;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-            unsigned mBeeWind : 1;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-        } mLegacyEffectFlags;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    };  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x248 */ u16 _B9C;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x24A */ u16 _B9E;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x24C */ SmokeEffectEntry** _BA0;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x250 */ u8 _pad250[4];  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-        };
-        struct { u8 _padBlur1B4To1F4[0x40]; union { TMtx34f mPreviousViewMatrix; TMtx34f _AB0; }; union { TMtx34f mCurrentViewMatrix; TMtx34f _AE0; }; };
-    };
-    /* 0x254 */ union { ModelObj* _legacyBA8; struct { union { u16 mBlurBufferIndex; u16 _B10; }; union { u16 mBlurHistoryIndex; u16 _B12; }; }; };  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x258 */ union {
-        u8 _pad258[0x8];
-        struct { union { u16 mBlurJointCount; u16 _B14; }; u8 _padBlur25A[6]; };
-        struct {
-            u8 _padEffect258[4];
-            union {
-                u32 mEffectFlagsWord;
-                struct {
-                    unsigned mSmoke : 1;
-                    unsigned mSnow : 1;
-                    unsigned _2 : 1;
-                    unsigned mSlopeSlip : 1;
-                    unsigned mIsStationary : 1;
-                    unsigned mBeeWind : 1;
-                    unsigned mSpecialSmoke : 1;
-                } mEffectFlags;
-            };
-        };
+            unsigned mSmoke : 1;
+            unsigned mSnow : 1;
+            unsigned _2 : 1;
+            unsigned mSlopeSlip : 1;
+            unsigned mIsStationary : 1;
+            unsigned mBeeWind : 1;
+            unsigned mSpecialSmoke : 1;
+        } mEffectFlags;
     };
     /* 0x260 */ u16 _BC4;
     /* 0x262 */ u8 _pad262[0x2];
@@ -879,10 +847,6 @@ public:
     /* 0x2DC */ Mtx* _C28;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x2E0 */ TMtx34f _legacyC2C;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x310 */ TMtx34f _legacyC5C;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x340 */ TVec3f mBlackHoleRotateAxis;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x34C */ DLchanger* _legacy94[0x40];  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x44C */ u8 _pad44C[0x50];
-    /* 0x49C */ TMtx34f _legacyCEC;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
         };
         struct {
             u8 _padJoint27CTo2C8[0x4C];
@@ -898,7 +862,6 @@ public:
             union { TMtx34f mSpine2Matrix; TMtx34f _DDC; };
         };
     };
-    /* 0x4CC */ TVec3f mBlackHolePosition;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
         };
         struct { u8 _padJointMatrix27C[0x22C]; TMtx34f mMainJointMatrix4A8; };
         struct { u8 _padJointCache27C[0x48]; Mtx* mJointMatrices2C4; };
@@ -934,15 +897,9 @@ public:
     /* 0x51F */ u8 _pad51F[0x1];
     /* 0x520 */ HitSensor* _F48;  // SMG2 offset guess-gap
     /* 0x524 */ BlackHole* mBlackHole;
-    union { TVec3f mBlackHolePosition528; struct {
-    /* 0x528 */ const char* _EE4;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
-    /* 0x52C */ f32 _1E4;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x530 */ u8 _pad530[0x2];
-    /* 0x532 */ u8 _1E2;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x533 */ u8 _F38;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    }; };
-    /* 0x534 */ TVec3f _ED8;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
-    /* 0x540 */ TVec3f _2C4;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
+    /* 0x528 */ TVec3f mBlackHolePosition528;
+    /* 0x534 */ TVec3f mBlackHoleRotateAxis;
+    /* 0x540 */ TVec3f mPosRelativeToBlackHole;
     /* 0x54C */ const Nerve* _FB4;  // SMG2 offset guess-gap
     /* 0x550 */ u16 _FB8;  // a timer  // SMG2 offset guess-gap
     /* 0x552 */ u16 _1A8;  // SMG2 offset guess  // SMG2 offset guess  // SMG2 offset inh
@@ -1021,10 +978,11 @@ public:
     /* 0x618 */ TVec3f _270;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x624 */ TVec3f _27C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x630 */ TVec3f _288;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x63C */ TVec3f _294;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x63C */ TVec3f mCameraTrans;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x648 */ TVec3f _2A0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x654 */ TVec3f _legacy2AC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x660 */ MatrixControl* _FBC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x660 */ u16 mCounter660;
+    /* 0x662 */ u16 mWaterSurfaceCameraTimer662;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x664 */ u16 _334;
     /* 0x666 */ u16 _336;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x668 */ u16 _338;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
@@ -1102,7 +1060,7 @@ public:
     /* 0x769 */ u8 _481;
     /* 0x76A */ bool _482;
     /* 0x76B */ bool _483;
-    /* 0x76C */ TVec3f mCameraTrans;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
+    /* 0x76C */ TVec3f mThrowProbePosition76C;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x778 */ FixedPosition* _498;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x77C */ FixedPosition* _494;  // SMG2 offset guess-gap
     /* 0x780 */ union { TVec3f _300; struct { FixedPosition* mCarryFixedPosition780; FixedPosition* mTurnipFixedPosition784; FixedPosition* mDrillFixedPosition788; }; };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
@@ -1132,7 +1090,7 @@ public:
     /* 0x85C */ TMtx34f _E3C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x88C */ TMtx34f _E6C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x8BC */ TMtx34f _EA8;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x8EC */ TVec3f mPosRelativeToBlackHole;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x8EC */ TVec3f mVector8EC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x8F8 */ TVec3f mCamPos;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x904 */ TVec3f mCamDirX;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x910 */ TVec3f mCamDirY;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1329,44 +1287,13 @@ public:
     /* 0x100A */ u16 _F1C;
     /* 0x100C */ u16 _F1E;
     /* 0x100E */ union { u16 _legacyB12; struct { u8 mFlag100E; u8 mFlag100F; }; };  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
-    union {
-        struct {
-    union {
-        struct {
-    union {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-        /* 0x1010 */ u8 mSwimSurfaceState1010;
-        /* 0x1010 */ TVec2f mScreenBoxMin;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-        struct {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-            /* 0x1010 */ f32 _B24;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-            /* 0x1014 */ f32 _B28;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-        };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-    };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-    /* 0x1018 */ u16 _legacyB14;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
-    /* 0x101A */ u16 _B74;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
-    /* 0x101C */ u16 _F10;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x101E */ u16 _F0E;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1020 */ u32 _pad1020;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1024 */ JetTurtleShadow* _9A0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1028 */ u32 _pad1028;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x102C */ u32 _pad102C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        };
-        struct { u8 _padCamera1010[4]; TVec3f mCameraDirY1014; TVec3f mCameraDirX1020; };
-    };
-    /* 0x1030 */ u8 _pad1030[0x10];
-    /* 0x1040 */ u32 _pad1040;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        };
-        struct { u8 _padBasis1010[0x10]; TVec3f mCameraBasisX; TVec3f mCameraBasisY; TVec3f mCameraBasisZ; };
-    };
-    union { TVec3f mPostureReference1044; struct {
-    /* 0x1044 */ DLholder* _B6C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    union {  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        /* 0x1048 */ TVec2f mScreenBoxSize;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        struct {  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-            /* 0x1048 */ f32 _B3C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-            /* 0x104C */ f32 _B40;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-        };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    }; };
+    /* 0x1010 */ u8 mSwimSurfaceState1010;
+    /* 0x1011 */ u8 _pad1011[3];
+    /* 0x1014 */ TVec3f mCameraDirY1014;
+    /* 0x1020 */ TVec3f mCameraBasisX;
+    /* 0x102C */ TVec3f mCameraBasisY;
+    /* 0x1038 */ TVec3f mCameraBasisZ;
+    /* 0x1044 */ TVec3f mPostureReference1044;
     /* 0x1050 */ bool _FCC;
     /* 0x1051 */ bool _FCD;
     /* 0x1052 */ union { u16 _B88; struct { union { u8 _pad1052; u8 mFlag1052; }; u8 mDashWallHit1053; }; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess

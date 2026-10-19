@@ -36,6 +36,8 @@ public:
     const TVec3f& getDrawPos(u32, u32) const;
     const TVec2f& getDrawTx(u32, u32) const;
 
+    const JUTTexture* getTexture() const { return mTexture; }
+
     /* 0x00C */ u8 _C;
     /* 0x00E */ u16 _E;
     /* 0x010 */ f32 _10;
@@ -61,7 +63,7 @@ public:
     /* 0x2F0 */ TVec3f _2F0;
     /* 0x2FC */ u16 _2FC;
     /* 0x2FE */ u16 _2FE;
-    /* 0x300 */ union { JUTTexture* _300; const JUTTexture* mTexture308; };
+    /* 0x300 */ JUTTexture* mTexture;
     /* 0x304 */ u8 _304;
     /* 0x305 */ bool _305;
     /* 0x306 */ u8 _306;

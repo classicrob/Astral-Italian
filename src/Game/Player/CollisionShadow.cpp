@@ -55,7 +55,7 @@ CollisionShadow::CollisionShadow(f32 radius, f32 length) : NameObj("投影シャ
     _2F0.zero();
     _2FC = 0;
     _2FE = 0;
-    _300 = nullptr;
+    mTexture = nullptr;
     _305 = false;
     _30C = 0.0f;
     _310 = 0.0f;
@@ -279,7 +279,7 @@ void CollisionShadow::draw1() const {
     TDDraw::setup(1, 1, 0);
     GXSetZMode(GX_TRUE, GX_GEQUAL, GX_FALSE);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
-    _300->load(GX_TEXMAP0);
+    mTexture->load(GX_TEXMAP0);
     GXSetAlphaUpdate(GX_TRUE);
     GXSetAlphaCompare(GX_GREATER, 1, GX_AOP_AND, GX_ALWAYS, 0);
     GXSetDstAlpha(GX_TRUE, 64);
@@ -341,16 +341,16 @@ void CollisionShadow::initCaptureTex() {
     _2FE = 160;
     {
         MR::CurrentHeapRestorer restorer(MR::getSceneHeapGDDR3());
-        _300 = new JUTTexture(_2FC, _2FE, GX_TF_I8);
-        MR::zeroMemory(_300->mImage, _2FC * _2FE);
-        MR::setMarioShadowTex(_300);
+        mTexture = new JUTTexture(_2FC, _2FE, GX_TF_I8);
+        MR::zeroMemory(mTexture->mImage, _2FC * _2FE);
+        MR::setMarioShadowTex(mTexture);
     }
 
-    _300->mWrapS = GX_CLAMP;
-    _300->mWrapT = GX_CLAMP;
-    _300->mMinType = GX_LINEAR;
-    _300->mMagType = GX_LINEAR;
-    _300->init();
+    mTexture->mWrapS = GX_CLAMP;
+    mTexture->mWrapT = GX_CLAMP;
+    mTexture->mMinType = GX_LINEAR;
+    mTexture->mMagType = GX_LINEAR;
+    mTexture->init();
 }
 
 void CollisionShadow::setViewMtx(const TVec3f& rDirection) {
@@ -448,7 +448,7 @@ void CollisionShadow::drawAndCaptureTex(J3DModelX* pModel, const TVec3f& rPositi
         TDDraw::drawFillCircle(center, _2FC / 2, 0xFFFFFFC0, 0, 16);
     }
 
-    const ResTIMG* image = _300->getTexInfo();
+    const ResTIMG* image = mTexture->getTexInfo();
     void* destination = const_cast<u8*>(reinterpret_cast<const u8*>(image) + image->mImageDataOffset);
     GXRenderModeObj* mode = JUTVideo::getManager()->getRenderMode();
     GXSetCopyFilter(GX_FALSE, mode->sample_pattern, GX_FALSE, mode->vfilter);
@@ -536,7 +536,7 @@ void CollisionShadow::draw2() const {
     GXSetAlphaCompare(GX_GREATER, 1, GX_AOP_AND, GX_ALWAYS, 0);
     GXSetDstAlpha(GX_TRUE, 0);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
-    _300->load(GX_TEXMAP0);
+    mTexture->load(GX_TEXMAP0);
     sendVtx();
     GXSetDstAlpha(GX_FALSE, 0);
 }
@@ -556,7 +556,7 @@ void CollisionShadow::draw3() const {
     GXSetBlendMode(GX_BM_NONE, GX_BL_ZERO, GX_BL_ZERO, GX_LO_NOOP);
     GXSetAlphaCompare(GX_EQUAL, 0, GX_AOP_AND, GX_EQUAL, 0);
     GXSetDstAlpha(GX_TRUE, 0);
-    _300->load(GX_TEXMAP0);
+    mTexture->load(GX_TEXMAP0);
     GXColor shadowColor = MR::calcShadowColor(255);
     GXSetTevColor(GX_TEVREG0, shadowColor);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_C0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);

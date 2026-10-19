@@ -74,27 +74,7 @@ public:
 
     /* 0xDC */ u8 _DC;
     /* 0xDD */ u8 _DD;
-    union {
-        struct {
-            /* 0xE0 */ Mtx* _E0;
-            /* 0xE4 */ Mtx* _E4;
-            /* 0xE8 */ Mtx* _E8;
-            /* 0xEC */ Mtx* _EC;
-            /* 0xF0 */ Mtx* _F0;
-            /* 0xF4 */ Mtx* _F4;
-            /* 0xF8 */ Mtx* _F8;
-            /* 0xFC */ Mtx* _FC;
-            /* 0x100 */ Mtx* _100;
-            /* 0x104 */ Mtx* _104;
-            /* 0x108 */ Mtx* _108;
-            /* 0x10C */ Mtx* _10C;
-            /* 0x110 */ Mtx* _110;
-            /* 0x114 */ Mtx* _114;
-            /* 0x118 */ Mtx* _118;
-            /* 0x11C */ Mtx* _11C;
-        };
-        Mtx* mExtraMtxBuffer[16];
-    };
+    /* 0xE0 */ Mtx* mExtraMtxBuffer[16];
     /* 0x120 */ void (*_120)(void*, u16);
     /* 0x124 */ void (*mShapeCallback)(J3DShape*);
     /* 0x128 */ void* _128;

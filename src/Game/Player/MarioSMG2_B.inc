@@ -353,9 +353,9 @@ void Mario::fn_803A2EF0() {
 
 // NONMATCHING: drop/wall-slide counter gating approximated
 s32 Mario::fn_803A3030() {
-    if (!((FLD<u32>(this, 0xC) >> 30) & 1)) {
-        if (FLD<u16>(this, 0x3C0) != 0 && !((FLD<u32>(this, 0x10) >> 28) & 1) && MR::isNearZero(FLD<TVec3f>(this, 0x8F8), 0.001f)) {
-            FLD<u16>(this, 0x3C0) -= 1;
+    if (!((this->mMovementStates.mLowWord >> 30) & 1)) {
+        if (this->_3C0 != 0 && !((this->mMovementStates.mHighWord >> 28) & 1) && MR::isNearZero(FLD<TVec3f>(this, 0x8F8), 0.001f)) {
+            this->_3C0 -= 1;
         }
         if (FLD<u32>(this->mActor, 0x4E0) == 0) {
             this->tryDrop();
@@ -364,13 +364,13 @@ s32 Mario::fn_803A3030() {
     }
     void* ent = marioCurTableEntry(this);
     if (FLD<f32>(this, 0x1C8) < FLD<f32>(ent, 0x488)) {
-        FLD<u16>(this, 0x3C0) = 0;
-    } else if ((FLD<u32>(this, 0x1C) >> 21) & 1) {
-        FLD<u16>(this, 0x3C0) = 0;
+        this->_3C0 = 0;
+    } else if ((this->mDrawStates.mWord >> 21) & 1) {
+        this->_3C0 = 0;
     } else {
         u16 t = FLD<u16>(ent, 0x92);
-        if (FLD<u16>(this, 0x3C0) < t) {
-            FLD<u16>(this, 0x3C0) = t;
+        if (this->_3C0 < t) {
+            this->_3C0 = t;
         }
     }
     return 0;
@@ -433,8 +433,8 @@ bool Mario::taskOnHipDropBlurHopper(u32) {
 
 // NONMATCHING: the per-frame reset chain is approximated from the draft
 void Mario::fn_803ACC40() {
-    FLD<f32>(this, 0x3F4) = 0.0f;
-    if (!((FLD<u32>(this, 0xC) >> 21) & 1)) {
+    this->_3F4 = 0.0f;
+    if (!((this->mMovementStates.mLowWord >> 21) & 1)) {
         this->fn_803ACD80();
     }
     if (this->isAnimationRun("壁押し")) {
@@ -472,7 +472,7 @@ void Mario::fn_803ACD80() {
     } else {
         this->changeAnimation("しゃがみ終了", "基本");
     }
-    FLD<u32>(this, 0x10) &= 0xFDFFFFFF;
+    this->mMovementStates.mHighWord &= 0xFDFFFFFF;
 }
 
 // NONMATCHING: squat-end transition approximated
@@ -484,12 +484,12 @@ void Mario::fn_803ACE60() {
     this->changeAnimation((const char*)nullptr, "基本");
     this->stopAnimation("サマーソルト", (const char*)nullptr);
     this->fn_803AF2F0(nullptr);
-    FLD<u32>(this, 0x10) &= 0xFDFFFFFF;
+    this->mMovementStates.mHighWord &= 0xFDFFFFFF;
     if (this->isPlayerModeYoshi()) {
-        if (!((FLD<u32>(this, 0x20) >> 21) & 1)) {
+        if (!((this->mFlags20.mWord >> 21) & 1)) {
             MR::startActionSound(reinterpret_cast<const LiveActor*>(this->mActor->fn_803B97F0()), "声しゃがむ", -1, -1, -1);
         }
-    } else if (((FLD<u32>(this, 0xC) >> 31) == 0) && !this->isAnimationRun("ヨッシー泥移動")) {
+    } else if (((this->mMovementStates.mLowWord >> 31) == 0) && !this->isAnimationRun("ヨッシー泥移動")) {
         this->playSound("声しゃがむ", -1);
     }
 }
@@ -502,17 +502,17 @@ void Mario::fn_803ACF70() {
             this->mWalkSpeed = FLD<f32>(e, 0x38C);
             this->fn_803AF2F0(nullptr);
             this->mTargetWalkSpeedIndex = 1;
-            FLD<u32>(this, 0x10) |= 0x02000000;
+            this->mMovementStates.mHighWord |= 0x02000000;
         }
         this->fn_803AF2F0(nullptr);
         this->mTargetWalkSpeedIndex = 0;
-        FLD<u32>(this, 0x10) &= 0xFDFFFFFF;
+        this->mMovementStates.mHighWord &= 0xFDFFFFFF;
     }
     if (!this->isStickOn()) {
         this->fn_803AF2F0(nullptr);
         this->mTargetWalkSpeedIndex = 0;
     }
-    if ((FLD<u32>(this, 0x10) >> 25) & 1) {
+    if ((this->mMovementStates.mHighWord >> 25) & 1) {
         f32 f2 = FLD<f32>(e, 0x38C);
         f32 f1 = FLD<f32>(e, 0x388) - f2;
         this->mWalkSpeed = f2 + FLD<f32>(this, 0x1C8) * f1;
@@ -552,7 +552,7 @@ void Mario::fn_803AD9C0() {
 // NONMATCHING: animator speed setter selected by the walk-speed table
 void Mario::fn_803AF2F0(const f32* pSpeedTable) {
     f32 var_f31;
-    if (FLD<u16>(this, 0x3FA) != 0) {
+    if (this->_3FA != 0) {
         var_f31 = 0.5f;
     } else {
         var_f31 = FLD<f32>(marioCurTableEntry(this), 0x358);
@@ -609,18 +609,18 @@ void Mario::fn_803A6BE0() {
 
 // NONMATCHING: timer decay and slope handling approximated
 void Mario::fn_803A7540() {
-    if (!((FLD<u32>(this, 0x10) >> 28) & 1)) {
+    if (!((this->mMovementStates.mHighWord >> 28) & 1)) {
         FLD<TVec3f>(this, 0x1A8) = FLD<TVec3f>(this, 0x160);
-        FLD<u16>(this, 0x3C2) = 0;
-        FLD<f32>(this, 0x280) = 0.0f;
+        this->_3C2 = 0;
+        this->_280 = 0.0f;
         FLD<TVec3f>(this, 0x284).zero();
     } else {
-        FLD<u16>(this, 0x3C2) += 1;
+        this->_3C2 += 1;
     }
-    if (FLD<u16>(this, 0x3C4) != 0) {
-        FLD<u16>(this, 0x3C4) -= 1;
+    if (this->_3C4 != 0) {
+        this->_3C4 -= 1;
     }
-    if (((FLD<u32>(this, 0xC) >> 30) & 1) && ((FLD<u32>(this, 0xC) >> 31) == 0)) {
+    if (((this->mMovementStates.mLowWord >> 30) & 1) && ((this->mMovementStates.mLowWord >> 31) == 0)) {
         if (this->isEnableSlopeMove()) {
             this->slopeMove();
         }
@@ -643,7 +643,7 @@ void Mario::fn_803B0E60() {
 void Mario::fn_803B0EF0() {
     Mario* m = reinterpret_cast<Mario*>(this);
     if (this->isPlayerModeYoshi()) {
-        FLD<u16>(this, 0x412) = 0;
+        this->mMorphResetTimer = 0;
         m->mMovementStates.mHighWord |= 0x40000;
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD00();
@@ -676,8 +676,8 @@ void Mario::fn_803B0EF0() {
 // NONMATCHING: yoshi dismount/landing helpers, rough from the draft (vector math simplified)
 void Mario::fn_803B1100() {
     if (this->isPlayerModeYoshi()) {
-        FLD<u16>(this, 0x412) = 0;
-        FLD<u32>(this, 0x10) |= 0x40000000;
+        this->mMorphResetTimer = 0;
+        this->mMovementStates.mHighWord |= 0x40000000;
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD80();
     }
@@ -1014,14 +1014,14 @@ void Mario::fn_803B3CE0() {
 }
 
 void Mario::fn_803B4280() {
-    if (FLD<u8>(this, 0xA7E) != 0) {
+    if (this->_A7E != 0) {
         if (this->fn_803B41F0() == 0) {
             this->stopEffect("流砂足元砂煙");
-            FLD<u8>(this, 0xA7E) = 0;
+            this->_A7E = 0;
         }
     } else if (this->fn_803B41F0() != 0) {
         this->playEffect("流砂足元砂煙");
-        FLD<u8>(this, 0xA7E) = 1;
+        this->_A7E = 1;
     }
 }
 
@@ -1201,17 +1201,17 @@ f32 Mario::fn_803B2CC0(TVec3f* arg1) {
 bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     TVec3f start;
     TVec3f dir;
-    if (((FLD<u32>(this, 0xC) >> 23) & 1) && FLD<Triangle*>(this, 0x4C8) != nullptr) {
+    if (((this->mMovementStates.mLowWord >> 23) & 1) && this->mFrontWallTriangle != nullptr) {
         pOutPos->set(FLD<TVec3f>(this, 0x4E4));
         start = FLD<TVec3f>(this->mActor, 0x5F4);
-        *pOutTri = *FLD<Triangle*>(this, 0x4C8);
+        *pOutTri = *this->mFrontWallTriangle;
         return true;
     }
     if (this->isPlayerModeYoshi()) {
         TVec3f up(FLD<TVec3f>(this, 0x208));
         up.scale(115.0f);
         dir = up;
-    } else if (((FLD<u32>(this, 0xC) >> 16) & 1) && !MR::isNearZero(FLD<TVec3f>(this, 0x328).dot(*this->getGravityVec()), 0.001f)) {
+    } else if (((this->mMovementStates.mLowWord >> 16) & 1) && !MR::isNearZero(FLD<TVec3f>(this, 0x328).dot(*this->getGravityVec()), 0.001f)) {
         MR::vecKillElement(FLD<TVec3f>(this, 0x328), *this->getGravityVec(), &dir);
         dir.setLength(200.0f);
     } else {
@@ -1233,7 +1233,7 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     }
     TVec3f diff(*pOutPos);
     diff -= start;
-    FLD<f32>(this, 0x4E0) = diff.dot(FLD<TVec3f>(this, 0x208));
+    this->_4E4 = diff.dot(FLD<TVec3f>(this, 0x208));
     return true;
 }
 
@@ -1254,27 +1254,27 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     dir.scale(210.0f);
     TVec3f hit;
     if (!this->fn_803B2B50(start, dir, &hit, &tri)) {
-        FLD<f32>(this, 0x4DC) = 400.0f;
+        this->_4E0 = 400.0f;
         return;
     }
     MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
     if (FLD<TVec3f>(this, 0x1D8).dot(*tri.getNormal(0)) > -0.9f) {
-        FLD<f32>(this, 0x4DC) = 400.0f;
+        this->_4E0 = 400.0f;
         return;
     }
     MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
     TVec3f diff(rPos);
     diff -= hit;
     f32 dist = diff.dot(FLD<TVec3f>(this, 0x1D8));
-    FLD<f32>(this, 0x4DC) = dist;
+    this->_4E0 = dist;
     if (dist > 0.0f) {
-        FLD<u32>(this, 0xC) |= 0x400;
+        this->mMovementStates.mLowWord |= 0x400;
     }
     f32 offset = 0.0f;
     MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
     f32 angle = this->marioAcos(-FLD<TVec3f>(this, 0x1D8).dot(*tri.getNormal(0)));
     if (angle < 1.5707964f && angle != 0.0f) {
-        offset = FLD<f32>(this, 0x4DC) / (JMASinRadian(angle) / JMACosRadian(angle));
+        offset = this->_4E0 / (JMASinRadian(angle) / JMACosRadian(angle));
     }
     TVec3f savedHit(hit);
     TVec3f lift(FLD<TVec3f>(this, 0x208));
@@ -1289,14 +1289,14 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     rayDir.scale(10.0f);
     if (!this->fn_803B2880(rayStart, rayDir)) {
         hit.set(savedHit);
-        *FLD<Triangle*>(this, 0x478) = tri;
+        *this->_47C = tri;
         return;
     }
     FLD<TVec3f>(this, 0x4A0) = hit;
-    if (!((FLD<u32>(this, 0xC) >> 30) & 1) || this->calcAngleD(FLD<TVec3f>(this, 0x368)) < 25.0f) {
-        FLD<u32>(this, 0x10) |= 0x40;
+    if (!((this->mMovementStates.mLowWord >> 30) & 1) || this->calcAngleD(FLD<TVec3f>(this, 0x368)) < 25.0f) {
+        this->mMovementStates.mHighWord |= 0x40;
     }
-    *FLD<Triangle*>(this, 0x478) = tri;
+    *this->_47C = tri;
 }
 
 // NONMATCHING: float register allocation / constant pool labels
@@ -1309,7 +1309,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
     if (count != 0) {
         for (u32 i = 0; i < count; i++) {
             const HitInfo* pInfo = this->fn_803B2AA0(i);
-            if (((FLD<u32>(this, 0x10) >> 8) & 1) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(FLD<TVec3f>(this, 0x694))) > ref) {
+            if (((this->mMovementStates.mHighWord >> 8) & 1) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(FLD<TVec3f>(this, 0x694))) > ref) {
                 continue;
             }
             f32 angle = this->calcAngleD(*pInfo->mParentTriangle.getNormal(0));
@@ -1322,7 +1322,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
                 maxIdx = i;
             }
         }
-        if ((FLD<u32>(this, 0xC) >> 30) & 1) {
+        if ((this->mMovementStates.mLowWord >> 30) & 1) {
             ref = this->calcAngleD(FLD<TVec3f>(this, 0x368));
             if (ref < minAngle) {
                 minAngle = ref;
@@ -1333,19 +1333,19 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
         }
         f32 range = maxAngle - minAngle;
         if (range < 60.0f && range > 5.0f && maxAngle < 80.0f) {
-            FLD<u32>(this, 0x1C) |= 0x10000;
+            this->mDrawStates.mWord |= 0x10000;
             if (maxAngle > ref) {
                 FLD<TVec3f>(this, 0x380) = *this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0);
             } else if (minAngle < ref) {
                 FLD<TVec3f>(this, 0x380) = *this->fn_803B2AA0(minIdx)->mParentTriangle.getNormal(0);
             }
         }
-        if (((FLD<u32>(this, 0xC) >> 30) & 1) && maxAngle > 60.0f && maxAngle != ref && maxAngle < 80.0f) {
+        if (((this->mMovementStates.mLowWord >> 30) & 1) && maxAngle > 60.0f && maxAngle != ref && maxAngle < 80.0f) {
             TVec3f hitPos(this->fn_803B2AA0(maxIdx)->_64);
             TVec3f toPos(rPos);
             toPos -= hitPos;
             if (!MR::normalizeOrZero(&toPos)) {
-                FLD<u32>(this, 0x1C) |= 0x100;
+                this->mDrawStates.mWord |= 0x100;
                 MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
                 TVec3f side;
                 PSVECCrossProduct(this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0), &FLD<TVec3f>(this, 0x1D8), &side);
@@ -1362,7 +1362,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
 // NONMATCHING: constant pool labels
 void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
     f32 offset = 110.0f;
-    if ((FLD<u32>(this, 0xC) >> 21) & 1) {
+    if ((this->mMovementStates.mLowWord >> 21) & 1) {
         offset = 50.0f;
     }
     *pHeight = 40.0f;
@@ -1378,7 +1378,7 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
             *pHeight = 50.0f;
         }
     }
-    if ((FLD<u32>(this, 0x10) & 3) != 0) {
+    if ((this->mMovementStates.mHighWord & 3) != 0) {
         this->mActor->calcHeadPos();
         TVec3f side(FLD<TVec3f>(this, 0x16C));
         side.scale(2.0f);
@@ -1422,7 +1422,7 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
     f32 limit;
     if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(FLD<LiveActor*>(this->mActor->fn_803B9830(), 0x18))) {
         limit = 0.707f;
-    } else if ((FLD<u32>(this, 0xC) >> 31) != 0) {
+    } else if ((this->mMovementStates.mLowWord >> 31) != 0) {
         limit = 0.0f;
     } else {
         limit = -0.707f;
@@ -1438,7 +1438,7 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
         if (this->isThroughWall(&pInfo->mParentTriangle)) {
             continue;
         }
-        if (!this->isSwimming() && (FLD<u32>(this, 0x10) & 3) == 0 && pNrm->dot(*this->getGravityVec()) < limit) {
+        if (!this->isSwimming() && (this->mMovementStates.mHighWord & 3) == 0 && pNrm->dot(*this->getGravityVec()) < limit) {
             continue;
         }
         TVec3f rest;

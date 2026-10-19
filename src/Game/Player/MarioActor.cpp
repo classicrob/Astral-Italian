@@ -256,7 +256,7 @@ namespace MarioAccess {
         if (MR::getMarioHolder()->mActor == nullptr) return 0;
         MarioActor* actor = MR::getMarioHolder()->getMarioActor();
         if (actor != nullptr && actor->mCollisionShadow580 != nullptr) {
-            return actor->mCollisionShadow580->mTexture308;
+            return actor->mCollisionShadow580->getTexture();
         }
         return 0;
     }
@@ -319,7 +319,7 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName) {
     _481 = 0;
     _482 = false;
     _483 = false;
-    mCameraTrans.zero();
+    mThrowProbePosition76C.zero();
     _B92 = 0;
     mPlayerMode = 0;
     _3D6 = 0;
@@ -343,8 +343,8 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName) {
     mWallShadow574 = new MarioWallShadow();
     mBlackHole = nullptr;
     mBlackHolePosition528.zero();
-    _ED8.zero();
-    _2C4.zero();
+    mBlackHoleRotateAxis.zero();
+    mPosRelativeToBlackHole.zero();
     _B48 = nullptr;
     _934 = false;
     _7E2 = 0;
@@ -468,158 +468,25 @@ struct DUMMY {
 };
 
 
-void MarioActor::init2(const TVec3f& rA, const TVec3f& rB, s32 initialAnimation) {
-    _8C = 1;
-    gIsLuigi = false;
-    if (MR::isPlayerLuigi()) {
-        gIsLuigi = true;
-    }
 
-    mPosition.set(rA);
-    mRotation.set(rB);
-    mScale.set(TVec3f(1.0f, 1.0f, 1.0f));
-    mMario->setHeadAndFrontVecFromRotate(mRotation);
-    mMario->_290 = mMario->mSideVec;
-    updateBaseScaleMtx();
-    _A18 = mRotation;
-    initDrawAndModel();
-
-    mJointMatrices2C4 = new Mtx[MR::getJointNum(this)];
-
-    MR::connectToScene(this, MR::MovementType_Player, MR::CalcAnimType_Player, MR::DrawBufferType_Player, MR::DrawType_Player);
-    MR::initLightCtrlForPlayer(this);
-    mMarioAnim = new MarioAnimator(this);
-    mMarioEffect = new MarioEffect(this);
-    _214 = new CollisionShadow(100.0f, 40.0f);
-    mConst = new MarioConst();
-    if (gIsLuigi) {
-        mConst->changeTable(1);
-    }
-
-    mMario->initAfterConst();
-    mGravityInfo = new GravityInfo();
-    mGravityRatio = 1.0f;
-    initNerve(GET_NERVE(MarioActor, MarioActorNrvWait));
-    _FB4 = 0;
-    _FB8 = 0;
-    mActionTable1080 = new MarioActionTable(this);
-    initBinder(60.0f, 0.0f, 8);
-    _2C4.x = 0.0f;
-    _2C4.y = 70.0f;
-    _2C4.z = 0.0f;
-    mBinder->_1EC._0 = false;
-    MR::setBinderOffsetVec(this, &_2C4, false);
-
-    mBinder->setTriangleFilter(MR::createTriangleFilterDelegator(this, &MarioActor::binderFilter));
-
-    mBinder->_1EC._3 = true;
-    initEffect();
-    MR::invalidateClipping(this);
-
-    _240.set(0.0f, -1.0f, 0.0f);
-
-    _24C = _240;
-    _334 = 0;
-    _336 = 0;
-    _338 = 0;
-
-    mVector60C.zero();
-    _270 = mPosition;
-    calcCenterPos();
-    initSound(0x10, "Mario", nullptr, TVec3f(0.0f));
-    // addToSoundObjHolder();  // SMG2: gone
-    initParts();
-    initMorphStringTable();
-    MR::declareGlobalEventCameraAbyss("奈落カメラ");
-    MR::declareBlackHoleCamera("ブラックホール");
-    MR::declareGlobalEventCameraDead("昇天カメラ", 0.35f, 0x78, 0x3C);
-    MR::declareGlobalEventCamera("水中フォロー");
-    MR::declareGlobalEventCamera("水中プラネット");
-    MR::declareGlobalEventCamera("水上フォロー");
-    MR::declareGlobalEventCamera("引き戻し");
-    MR::declareEventCameraProgrammable("変身初出カメラ");
-    _2B8 = mPosition;
-    _33C = mPosition;
-    _348.zero();
-    _354.zero();
-    setupSensors();
-    MR::getMarioHolder()->setMarioActor(this);
-    _1BC = new MarioMessenger(getSensor("dummy"));
-    _300 = mMario->mHeadVec;
-    mUpVec = _300;
-    _330 = 0;
-    _332 = 0;
-    MR::setGameCameraTargetToPlayer();
-    _A0C = 0;
-    _B48 = new FootPrint("足跡", 0x100, -1);
-    _B48->setTexture(MR::getTexFromArc("Footprint.bti", this));
-    switch (initialAnimation) {
-    case 1:
-        mMario->changeAnimation("基本");
-        break;
-    case 2:
-        mMario->changeAnimationNonStop("ウォークイン");
-        break;
-    default:
-        mMario->changeAnimation("ステージインA");
-        break;
-    }
-
-    updateTransForCamera();
-    _F44 = 1;
-    _984 = 0.0f;
-    _978.zero();
-    _27C.zero();
-    _288.zero();
-    _498 = new FixedPosition(this, "HandR", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
-    _49C = new FixedPosition(this, "HandR", TVec3f(1.8f, 52.51f, 39.58f), TVec3f(76.33f, 15.69f, 88.99f));
-    _494 = 0;
-    _4B0 = 35.0f;
-    _4B4 = 60.0f;
-    _4B8.set(0.0f, 1.0f, 0.0f);
-    _4C4 = -_4B8;
-    _482 = true;
-    appear();
-    _482 = false;  // do we change this to control appearances?
-    _1C6 = 0;
-    _1C8 = 0.0f;
-    _1CC = 0.0f;
-    _1D0 = 0;
-    _1D1 = 0;
-    _A24 = 0;
-    _A25 = 0;
-    _1D8 = new (0x20) FBO[MR::getFrameBufferWidth()];
-    _1DC = new (0x20) FBO[MR::getFrameBufferWidth()];
-    _1E4 = 0.0f;
-    _1E8 = 0;
-    _1EC = 0.0f;
-    _F3CVec = new TVec3f[30];
-    mCurrDL = 0;
-    mFirstPersonDrawHidden1A5 = 0;
-    _F42 = 1;
-    for (int i = 0; i < 30; i++) {
-        _F3CVec[i].set(1.0f, 0.0f, 0.0f);
-    }
-
-    _8C = 0;  // is this to indicate that we are in the process of initialization?
-}
 
 
 void MarioActor::initAfterPlacement() {
     updateGravityVec(true, true);
-    mMario->mAirGravityVec = _240;
-    mMario->mHeadVec = -_240;
-    mMario->_1FC = -_240;
-    _300 = mMario->mHeadVec;
-    mUpVec = _300;
-    _2C4 = _240 * -70.0f;
+    mMario->mAirGravityVec = mAppliedGravityVec;
+    mMario->mHeadVec = -mAppliedGravityVec;
+    mMario->_1FC = -mAppliedGravityVec;
+    _2A0 = mMario->mHeadVec;
+    _270 = _2A0;
+    mVector60C = mAppliedGravityVec * -70.0f;
     calcCenterPos();
     MR::updateHitSensorsAll(this);
     _360 = getGravityVector();
     _1C0 = true;
+    // PLACEHOLDER(astra): the target ED0 gravity copy awaits canonical Teresa storage.
     _9F4 = getGravityVector();
     updateCameraInfo();
-    calcBaseFrontVec(-_240);
+    calcBaseFrontVec(-mAppliedGravityVec);
 }
 
 
@@ -1570,15 +1437,15 @@ void MarioActor::calcAnimInMovement() {
 void MarioActor::forceSetBaseMtx(MtxPtr pMtx) {
     _EA5 = true;
     _1C0 = true;
-    PSMTXCopy(pMtx, _EA8);
+    PSMTXCopy(pMtx, mRemoteDemoMtx4E4.toMtxPtr());
     MR::extractMtxTrans(pMtx, &mCameraTrans);
     if (_482) {
         MR::extractMtxTrans(pMtx, &mPosition);
     }
 
-    ((TRot3f*)pMtx)->getZDir(_2DC);
-    ((TRot3f*)pMtx)->getYDir(mUpVec);
-    ((TRot3f*)pMtx)->getXDir(_2E8);
+    ((TRot3f*)pMtx)->getZDir(_27C);
+    ((TRot3f*)pMtx)->getYDir(_270);
+    ((TRot3f*)pMtx)->getXDir(_288);
     MR::updateHitSensorsAll(this);
     mMario->invalidateRelativePosition();
     mMario->_8F8.zero();
@@ -2302,10 +2169,10 @@ void MarioActor::setPunchHitTimer(u8 punchHitTime) {
 // ---- MarioActorBlackHole.cpp ----
 
 void MarioActor::initBlackHoleOut() {
-    mPosRelativeToBlackHole = mPosition - mBlackHolePosition;
+    mPosRelativeToBlackHole = mPosition - mBlackHolePosition528;
 
     TVec3f normalisedRelativePos(mPosRelativeToBlackHole);
-    TVec3f normalisedRelativeCameraPos = mCamPos - mBlackHolePosition;
+    TVec3f normalisedRelativeCameraPos = mCameraDirY1014 - mBlackHolePosition528;
 
     MR::normalizeOrZero(&normalisedRelativeCameraPos);
     MR::normalizeOrZero(&normalisedRelativePos);
@@ -2317,7 +2184,7 @@ void MarioActor::initBlackHoleOut() {
 
     f32 mag = mPosRelativeToBlackHole.length();
     TVec3f killed;
-    f32 flt = MR::vecKillElement(mCamPos - mPosition, mCamDirZ, &killed);
+    f32 flt = MR::vecKillElement(mCameraDirY1014 - mPosition, mCameraBasisZ, &killed);
     flt *= mConst->getTable()->mBlackHoleFirstRadius;
 
     PSMTXRotAxisRad(rotation, &rotateAxis, atan(flt / mag));
@@ -2335,7 +2202,7 @@ void MarioActor::exeGameOverBlackHole2() {
         MR::clearBgmQueue();
 
         if (!(mBlackHole->tryStartDemoCamera()) && !((mMario->getMovementStates().mHighWord >> 8) & 1U)) {
-            MR::startBlackHoleCamera("ブラックホール", mBlackHolePosition, mPosition);
+            MR::startBlackHoleCamera("ブラックホール", mBlackHolePosition528, mPosition);
         }
 
         _F44 = false;
@@ -2349,7 +2216,7 @@ void MarioActor::exeGameOverBlackHole2() {
         mMario->mMovementStates.mHighWord |= 0x00000008U;
 
         MR::startStarPointerModeDemoMarioDeath(this);
-        MR::deactivateDefaultGameLayout();
+        MR::endGalaxyCometEvent();
     }
 
     if (getNerveStep() == 60) {
@@ -2363,7 +2230,7 @@ void MarioActor::exeGameOverBlackHole2() {
     if (getNerveStep() == mConst->getTable()->mBlackHoleHideTime) {
         _482 = true;
 
-        MR::hidePlayer();
+        MR::hidePlayerTryDeleteEffect();
         MR::emitEffect(this, "ブラックホール消滅");
     }
 
@@ -2386,7 +2253,7 @@ void MarioActor::exeGameOverBlackHole2() {
     PSMTXRotAxisRad(rotationMatrix, &mBlackHoleRotateAxis, angle);
     PSMTXMultVec(rotationMatrix, &mPosRelativeToBlackHole, &mPosRelativeToBlackHole);
 
-    MR::vecBlendSphere(mBlackHoleRotateAxis, -mCamDirZ, &mBlackHoleRotateAxis, 0.01f);
+    MR::vecBlendSphere(mBlackHoleRotateAxis, -mCameraBasisZ, &mBlackHoleRotateAxis, 0.01f);
 
     f32 distChangeFactor = 180 - getNerveStep();
 
@@ -2407,7 +2274,7 @@ void MarioActor::exeGameOverBlackHole2() {
 
     mScale.set(scale);
 
-    mPosition = mBlackHolePosition + mPosRelativeToBlackHole;
+    mPosition = mBlackHolePosition528 + mPosRelativeToBlackHole;
 
     mVelocity.zero();
 }
@@ -2532,7 +2399,7 @@ void MarioActor::updateTransForCamera() {
     }
 
     if (isNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverBlackHole))) {
-        mCameraTrans = mBlackHolePosition * 0.1f + mCameraTrans * 0.9f;
+        mCameraTrans = mBlackHolePosition528 * 0.1f + mCameraTrans * 0.9f;
         return;
     }
 
@@ -2544,14 +2411,14 @@ void MarioActor::updateTransForCamera() {
     mCameraTrans = mPosition + TVec3f(mMario->_13C);  // matches now. result of getter?
 
     if (mMario->isSwimming() && mMario->mSwim->isOnWaterSurface()) {
-        if (_332 < 100) {
-            _332++;
+        if (mWaterSurfaceCameraTimer662 < 100) {
+            mWaterSurfaceCameraTimer662++;
         }
-    } else if (_332 != 0) {
-        _332--;
+    } else if (mWaterSurfaceCameraTimer662 != 0) {
+        mWaterSurfaceCameraTimer662--;
     }
 
-    mCameraTrans += mMario->mHeadVec * _332;
+    mCameraTrans += mMario->mHeadVec * mWaterSurfaceCameraTimer662;
 }
 
 
@@ -3839,7 +3706,7 @@ void MarioActor::drawModelBlur() const {
     model->mFlags._13 = true;
 
     Mtx inv;
-    PSMTXInverse(const_cast< TMtx34f& >(_AB0).toMtxPtr(), inv);
+    PSMTXInverse(mPreviousViewMatrix.mMtx, inv);
     MR::multMtx(inv, inv, MR::getCameraViewMtx());
     for (u32 i = 1; i < 8; i++) {
         const u32 idx = static_cast< u32 >(i + mBlurHistoryIndex) & 7;
@@ -6347,12 +6214,12 @@ void MarioActor::updateThrowVector() {
     if (((getDrawStates().mWord >> 26) & 1U)) return;
     if (sensor && _468) {
         if (_470 && _46C != _470) _470 = nullptr;
-        if (!_47C) mCameraTrans = _240;
+        if (!_47C) mThrowProbePosition76C = _240;
         ++_47C;
-        TVec3f direction = _46C->mPosition - mCameraTrans;
+        TVec3f direction = _46C->mPosition - mThrowProbePosition76C;
         f32 radius = _46C->mRadius;
         if (direction.length() <= 40.0f + radius) {
-            mCameraTrans = _46C->mPosition;
+            mThrowProbePosition76C = _46C->mPosition;
             _470 = _46C;
             if (MR::isSensorEnemy(_46C)) {
                 _47C = 60;
@@ -6362,8 +6229,8 @@ void MarioActor::updateThrowVector() {
             return;
         }
         MR::normalize(&direction);
-        mCameraTrans += direction * 40.0f;
-        if (mMario->fn_803B2AF0(mCameraTrans, nullptr)) {
+        mThrowProbePosition76C += direction * 40.0f;
+        if (mMario->fn_803B2AF0(mThrowProbePosition76C, nullptr)) {
             _47C = 0;
             _470 = nullptr;
         }
@@ -8866,23 +8733,7 @@ void MarioActor::setRasterScroll(s32 i1, s32 i2, s32 i3) {
 }
 
 
-void MarioActor::updateRasterScroll() {
-    if (_1E2) {
-        _1E2 = 0;
-        return;
-    }
 
-    _1E4 *= 0.9f;
-
-    if (_1E4 < 1.0f) {
-        _1E8 = 0;
-        _1E4 = 0.0f;
-    }
-
-    if (_1EC < 1.0f) {
-        _1EC = 0.0f;
-    }
-}
 
 
 void MarioActor::drawRasterScroll(f32 amplitude, s16 period, f32 wavelength) const {

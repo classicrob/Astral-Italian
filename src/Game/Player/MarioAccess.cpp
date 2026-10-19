@@ -284,7 +284,7 @@ namespace MarioAccess {
 
         getPlayerActor()->_1C0 = true;
 
-        getPlayerActor()->_294 = rTrans;
+        getPlayerActor()->mCameraTrans = rTrans;
         MR::updateHitSensorsAll(getPlayerActor());
     }
 

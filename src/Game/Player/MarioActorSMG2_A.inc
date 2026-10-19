@@ -31,10 +31,6 @@ bool MarioActor::fn_803B8A80() {
     return this->mMario->fn_80393C40();
 }
 
-u8* MarioActor::fn_803B9020() {
-    return (u8*)this + 0x63C;
-}
-
 void MarioActor::fn_803B9270() {
     this->decLife(0);
 }
@@ -474,10 +470,10 @@ void MarioActor::initMember() {
     F(TVec3f, 0x618).zero();
     F(TVec3f, 0x624).zero();
     F(TVec3f, 0x630).zero();
-    F(TVec3f, 0x63C).zero();
+    mCameraTrans.zero();
     F(TVec3f, 0x648).zero();
-    F(u16, 0x660) = 0;
-    F(u16, 0x662) = 0;
+    mCounter660 = 0;
+    mWaterSurfaceCameraTimer662 = 0;
     F(u8, 0x6E5) = 0;
     F(u8, 0x666) = 0;
     F(u16, 0x668) = 0;
@@ -531,7 +527,7 @@ void MarioActor::initMember() {
     F(f32, 0x760) = 0.0f;
     F(u32, 0x764) = 0;
     F(u8, 0x768) = 0;
-    mCameraTrans.zero();
+    mThrowProbePosition76C.zero();
     F(f32, 0x778) = 0.0f;
     _494 = nullptr;
     mCarryFixedPosition780 = nullptr;
@@ -645,11 +641,11 @@ void MarioActor::initMember() {
         mBlurMatrices[0][i] = nullptr;
         mBlurMatrices[1][i] = nullptr;
     }
-    PSMTXIdentity(F(TMtx34f, 0x1F4).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x224).toMtxPtr());
-    F(u16, 0x254) = 0;
-    F(u16, 0x256) = 0;
-    F(u16, 0x258) = 0;
+    PSMTXIdentity(mPreviousViewMatrix.toMtxPtr());
+    PSMTXIdentity(mCurrentViewMatrix.toMtxPtr());
+    mBlurBufferIndex = 0;
+    mBlurHistoryIndex = 0;
+    mBlurJointCount = 0;
     F(TVec3f, 0xF44).zero();
     F(f32, 0xF54) = 0.0f;
     F(f32, 0xF50) = 0.0f;
@@ -739,15 +735,15 @@ void MarioActor::initMember() {
     F(u8, 0x51E) = 0;
     _F48 = nullptr;
     mBlackHole = nullptr;
-    F(TVec3f, 0x528).zero();
-    F(TVec3f, 0x534).zero();
-    F(TVec3f, 0x540).zero();
-    F(u8, 0x1010) = 0;
-    F(TVec3f, 0x1014).zero();
-    F(TVec3f, 0x1020).zero();
-    F(TVec3f, 0x102C).zero();
-    F(TVec3f, 0x1038).zero();
-    F(TVec3f, 0x1044).zero();
+    mBlackHolePosition528.zero();
+    mBlackHoleRotateAxis.zero();
+    mPosRelativeToBlackHole.zero();
+    mSwimSurfaceState1010 = 0;
+    mCameraDirY1014.zero();
+    mCameraBasisX.zero();
+    mCameraBasisY.zero();
+    mCameraBasisZ.zero();
+    mPostureReference1044.zero();
     _FB4 = nullptr;
     F(u16, 0x550) = 0;
     mActionTable1080 = nullptr;
@@ -857,8 +853,8 @@ void MarioActor::fn_803BFB30() {
 void MarioActor::fn_803BFBB0() {
     F(TVec3f, 0x648) = FP(this->mMario, TVec3f, 0x1F0);
     F(TVec3f, 0x618) = F(TVec3f, 0x648);
-    F(s16, 0x660) = 0;
-    F(s16, 0x662) = 0;
+    mCounter660 = 0;
+    mWaterSurfaceCameraTimer662 = 0;
     MR::setGameCameraTargetToPlayer();
 }
 
@@ -2225,8 +2221,8 @@ void MarioActor::movement() {
     mLifeDecreasedThisFrame = 0;
     F(f32, 0x79C) = 0.7853981852531433f;
     mNearestUnderSensor798 = nullptr;
-    PSMTXCopy(F(TMtx34f, 0x224).toMtxPtr(), F(TMtx34f, 0x1F4).toMtxPtr());
-    PSMTXCopy(MR::getCameraViewMtx(), F(TMtx34f, 0x224).toMtxPtr());
+    PSMTXCopy(mCurrentViewMatrix.toMtxPtr(), mPreviousViewMatrix.toMtxPtr());
+    PSMTXCopy(MR::getCameraViewMtx(), mCurrentViewMatrix.toMtxPtr());
     updateCameraInfo();
     mMarioAnim->fn_803DFAC0();
     mMarioAnim->fn_803DFB70();

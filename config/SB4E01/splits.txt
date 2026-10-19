@@ -740,7 +740,7 @@ Game/AudioLib/AudTrackController.cpp:
 	.sdata2     start:0x807D75B0 end:0x807D75B8
 
 Game/AudioLib/AudUtil.cpp:
-	.text       start:0x80087030 end:0x80087190
+	.text       start:0x80087030 end:0x800871A0
 	.rodata     start:0x80646DA0 end:0x80646DA8
 	.sdata2     start:0x807D75B8 end:0x807D75C0
 
@@ -6162,7 +6162,7 @@ Game/NPC/Pichan.cpp:
 Game/NPC/PichanRacer.cpp:
 	.text       start:0x803599F0 end:0x8035A720
 	.ctors      start:0x80644718 end:0x8064471C
-	.data       start:0x806BBEA8 end:0x806BBF68
+	.data       start:0x806BBC58 end:0x806BBF68
 	.sdata      start:0x807CFEF8 end:0x807CFF00
 
 Game/NPC/PlayAttackMan.cpp:

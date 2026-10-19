@@ -1,3 +1,4 @@
+#include <JSystem/JAudio2/JASBasicWaveBank.hpp>
 #include "Game/AudioLib/AudUtil.hpp"
 
 namespace AudUtil {
@@ -41,3 +42,7 @@ namespace AudUtil {
         return true;
     }
 };  // namespace AudUtil
+
+u32 JASBasicWaveBank::getArcCount() const {
+    return mGroupCount;
+}

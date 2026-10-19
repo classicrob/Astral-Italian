@@ -1116,10 +1116,10 @@ void Jugem::calcJugemPickupPosition(TVec3f* pOut, s32 index) {
             MR::normalizeOrZero(&dir);
         }
     }
-    TVec3f up3(-dir);
-    TVec3f up4(up3);
-    up4 *= 1500.0f;
-    pos += up4;
+    TVec3f retreat(-dir);
+    TVec3f retreatOffset(retreat);
+    retreatOffset *= 1500.0f;
+    pos += retreatOffset;
     const TVec3f& player = *MR::getPlayerPos();
     TVec3f diff(pos);
     diff -= player;

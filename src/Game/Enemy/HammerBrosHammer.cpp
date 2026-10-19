@@ -146,6 +146,7 @@ void HammerBrosHammer::v70(const TVec3f& pos, const TVec3f& target) {
     f32 heightDifference = playerHeight - height;
     distance = MR::sqrt<f32>(distance * distance - heightDifference * heightDifference);
     distance = MR::clamp(distance, 200.0f, 2500.0f);
+    MR::sin(0.5f * angle);
     f32 speed = MR::sqrt<f32>(0.5f * (distance * distance));
     speed = 2.0f * speed;
     f32 time = MR::clamp(speed / 18.0f, 0.0f, 100.0f);

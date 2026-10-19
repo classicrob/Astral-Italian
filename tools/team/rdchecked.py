@@ -224,7 +224,7 @@ def reject_partial_paired_reads(graph):
         outgoing[bi] = partial
 
 
-def reject_derived_string_bases(lines):
+def reject_derived_string_bases(lines, verify_pool=None):
     """A compared first C string cannot certify later pool objects reached from it."""
     anchor = re.compile(r'STR\[[0-9a-f]+\]')
     if not any(anchor.search(line) for line in lines):
@@ -244,6 +244,24 @@ def reject_derived_string_bases(lines):
         'mulhw', 'mulhwu', 'divw', 'divwu', 'sraw', 'srawi', 'rlwimi',
         'rlwnm', 'extrwi', 'insrwi', 'rotlwi', 'not', 'la'}
     branches = COND | {'bdnz', 'bdz'}
+    def reach(tags, offset, width=None):
+        if verify_pool is None:
+            raise Unproved('string base reaches unverified pool offset/memory')
+        results = set()
+        for token, stage, origin in tags:
+            if stage != 'full' or origin is None:
+                raise Unproved('unknown returned/partial pool pointer offset')
+            try:
+                pointer = verify_pool(token, origin + offset, width)
+            except ValueError as error:
+                raise Unproved(str(error))
+            if pointer:
+                ptoken, displacement = pointer
+                if displacement is None:
+                    raise Unproved('pool relocation loaded through an opaque value')
+                results.add((ptoken, 'full', displacement))
+        return frozenset(results)
+
     while pending:
         pc = pending.popleft()
         state = dict(states[pc])
@@ -287,20 +305,20 @@ def reject_derived_string_bases(lines):
                     state.pop(r, None)
                 if returned:
                     # Unknown callees may return an argument pointer (e.g. strchr).
-                    state['r3'] = state['r4'] = returned
+                    state['r3'] = state['r4'] = frozenset((token, 'unknown', None) for token, _, _ in returned)
         elif op.startswith('b'):
             if not re.fullmatch(r'b(?:eq|ne|lt|le|gt|ge|so|ns)lr[+-]?', op):
                 raise Unproved('unknown control flow in string-base analysis')
         elif literal:
             token = literal[0]
             if op == 'lis' and len(args) == 2 and args[1] == token + '@ha':
-                state[args[0]] = frozenset({(token, 'ha')})
+                state[args[0]] = frozenset({(token, 'ha', 0)})
             elif op in ('li', 'la') and len(args) == 2 and args[1] == token + '@sda21':
-                state[args[0]] = frozenset({(token, 'full')})
+                state[args[0]] = frozenset({(token, 'full', 0)})
             elif op == 'addi' and len(args) == 3 and args[2] == token + '@l':
-                if state.get(args[1]) != frozenset({(token, 'ha')}):
+                if state.get(args[1]) != frozenset({(token, 'ha', 0)}):
                     raise Unproved('unmatched string-base ha/lo construction')
-                state[args[0]] = frozenset({(token, 'full')})
+                state[args[0]] = frozenset({(token, 'full', 0)})
             else:
                 raise Unproved('unsupported string-base construction/access')
         elif op == 'mr' and len(args) == 2:
@@ -315,19 +333,50 @@ def reject_derived_string_bases(lines):
                 state[args[0]] = source
         elif op.startswith(('cmp', 'cmpl', 'fcmp', 'cr')) or op == 'nop':
             pass
-        elif op.startswith(('st', 'l')) and (op.startswith('st') or op.startswith(('lb', 'lh', 'lw', 'lf', 'psq_l'))):
-            # Pointer spills/escapes must fail too: a later reload loses provenance.
+        elif op.startswith(('st', 'l', 'psq_')) and (op.startswith(('st', 'psq_')) or op.startswith(('lb', 'lh', 'lw', 'lf'))):
             sources = set(re.findall(r'\br(?:[0-9]|[12][0-9]|3[01])\b', ','.join(args[1:])))
-            if op.startswith('st') and args and args[0].startswith('r'):
+            store = op.startswith('st') or op.startswith('psq_st')
+            if store and args and args[0].startswith('r'):
                 sources.add(args[0])
-            if sources.intersection(state):
-                raise Unproved('string base reaches unverified pool memory/spill: ' + line)
-            if op.startswith('l') and registers and args[0] == registers[0]:
-                state.pop(registers[0], None)
+            touched = sources.intersection(state)
+            pointer = None
+            if touched:
+                if store:
+                    raise Unproved('string base reaches unverified pool store/spill: ' + line)
+                match = re.fullmatch(r'(-?(?:0x[0-9a-f]+|[0-9]+))\((r\d+)\)', args[1]) if len(args) > 1 else None
+                baseop = op[:-1] if op.endswith('u') else op
+                width = WIDTH.get(baseop)
+                if op in ('psq_l', 'psq_lu') and len(args) == 4 and args[2] in ('0', '1'):
+                    width = 4 if args[2] == '1' else 8
+                if match is None or width is None or touched != {match[2]} or op.endswith('u'):
+                    raise Unproved('unknown/indexed pool memory reach: ' + line)
+                displacement = int(match[1], 0)
+                if 0x8000 <= displacement <= 0xffff:
+                    displacement -= 0x10000
+                pointer = reach(state[match[2]], displacement, width)
+                if pointer and not args[0].startswith('r'):
+                    raise Unproved('pool pointer loaded into an opaque FPR')
+            if not store and args and re.fullmatch(r'r\d+', args[0]):
+                state.pop(args[0], None)
+                if pointer:
+                    state[args[0]] = pointer
         elif plain in pure_gpr or op in ('mflr', 'mfctr', 'mfxer'):
-            if set(registers[1:]).intersection(state) or plain == 'rlwimi' and used:
-                raise Unproved('string base reaches unverified pool offset: ' + line)
-            if registers:
+            source_taint = set(registers[1:]).intersection(state)
+            if source_taint or plain == 'rlwimi' and used:
+                if plain not in ('addi', 'subi') or len(args) != 3 or source_taint != {args[1]}:
+                    raise Unproved('string base reaches unverified pool offset: ' + line)
+                try:
+                    displacement = int(args[2], 0)
+                except ValueError:
+                    raise Unproved('unknown pool arithmetic displacement')
+                if 0x8000 <= displacement <= 0xffff:
+                    displacement -= 0x10000
+                if plain == 'subi':
+                    displacement = -displacement
+                tags = state[args[1]]
+                reach(tags, displacement)
+                state[args[0]] = frozenset((token, stage, off + displacement) for token, stage, off in tags)
+            elif registers:
                 state.pop(registers[0], None)
         elif used:
             raise Unproved('unsupported use of compared string base: ' + line)
@@ -338,26 +387,28 @@ def reject_derived_string_bases(lines):
             merged = dict(incoming or {})
             for r, values in state.items():
                 merged[r] = merged.get(r, frozenset()) | values
+                if len(merged[r]) > 16:
+                    raise Unproved('unbounded pool pointer offsets at CFG join')
             if incoming is None or incoming != merged:
                 states[nxt] = merged
                 pending.append(nxt)
 
 
-def checked_literal_bases(left, right):
+def checked_literal_bases(left, right, verify_pool=None):
     """Shared guard for strict, rebind, and DAG proof dispatch."""
     try:
-        reject_derived_string_bases(left)
-        reject_derived_string_bases(right)
+        reject_derived_string_bases(left, verify_pool)
+        reject_derived_string_bases(right, verify_pool)
         return True, ''
     except Unproved as error:
         return False, str(error)
 
 
-def checked_equal(left, right):
+def checked_equal(left, right, verify_pool=None):
     """Return proof only if both exact value/effect DAGs and live boundaries agree."""
     try:
-        reject_derived_string_bases(left)
-        reject_derived_string_bases(right)
+        reject_derived_string_bases(left, verify_pool)
+        reject_derived_string_bases(right, verify_pool)
         L, R = blocks(left), blocks(right)
         reject_partial_paired_reads(L)
         reject_partial_paired_reads(R)
@@ -668,11 +719,11 @@ def mark_private_spills_mem(graph):
         if safe:
             d['private_spill'] = True
 
-def checked_equal_mem(left, right):
+def checked_equal_mem(left, right, verify_pool=None):
     """Return proof only if both exact value/effect DAGs and live boundaries agree."""
     try:
-        reject_derived_string_bases(left)
-        reject_derived_string_bases(right)
+        reject_derived_string_bases(left, verify_pool)
+        reject_derived_string_bases(right, verify_pool)
         L, R = blocks_mem(left), blocks_mem(right)
         reject_partial_paired_reads(L)
         reject_partial_paired_reads(R)

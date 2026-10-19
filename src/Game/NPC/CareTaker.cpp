@@ -72,8 +72,8 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     mPointingAction="BTalkHelp";
     mParam._14="BWaitStand";
     mParam._18="BWaitStand";
-    mRailMoveAction="BWaitRun";
     mRailTalkAction="BRunTalk";
+    mRailMoveAction="BWaitRun";
     mParam._0=0;
     mParam._1=1;
     mParam._8=3.0f;

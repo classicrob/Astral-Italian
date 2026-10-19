@@ -74,9 +74,7 @@ struct JASBasicWaveBank : public JASWaveBank {
     JASWaveArc* getWaveArc(u32 param_0) {
         return getWaveGroup(param_0);
     }
-    u32 getArcCount() const {
-        return mGroupCount;
-    }
+    u32 getArcCount() const;
 
     /* 0x04 */ OSMutex mMutex;
     /* 0x1C */ TWaveInfo** mWaveTable;

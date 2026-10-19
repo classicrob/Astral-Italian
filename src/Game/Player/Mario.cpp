@@ -6385,7 +6385,7 @@ bool Mario::fixHangDir(const TVec3f& rPosition, TVec3f* pDirection) {
     MR::vecKillElement(horizontal, *getGravityVec(), &horizontal);
     MR::normalizeOrZero(&horizontal);
     Triangle pTriangle;
-    if (MR::getFirstPolyOnLineToMap(nullptr, &pTriangle, mPosHolder->mPos, horizontal * 150.0f)) {
+    if (fn_803B2770(nullptr, &pTriangle, mPosHolder->mPos, horizontal * 150.0f)) {
         *pDirection = -*pTriangle.getNormal(0);
         mHang->recordWallPolygon(&pTriangle);
         return true;

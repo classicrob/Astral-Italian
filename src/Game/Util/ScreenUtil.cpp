@@ -263,7 +263,7 @@ namespace MR {
         ::getSystemWipeHolder()->wipe(nullptr, frame);
     }
 
-    void forceOpenSystemWipeWhiteFade(s32) {
+    void forceOpenSystemWipeWhiteFade() {
         ::getSystemWipeHolder()->forceOpen(::sWipeWhiteFade);
     }
 

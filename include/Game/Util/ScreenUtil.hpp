@@ -63,7 +63,7 @@ namespace MR {
     void openSystemWipeWhiteFade(s32 frame = -1);
     void closeSystemWipeWhiteFade(s32 frame = -1);
     void forceCloseSystemWipeWhiteFade();
-    void forceOpenSystemWipeWhiteFade(s32);
+    void forceOpenSystemWipeWhiteFade();
     void forceCloseSystemWipeFade();
     void forceCloseSystemWipeCircle();
     bool isSystemWipeActive();

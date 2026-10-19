@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/Effect/EffectSystemUtil.hpp"
 #include "Game/Effect/MultiEmitter.hpp"
+#include "Game/Effect/AutoEffectInfo.hpp"
 #include "Game/Effect/MultiEmitterParticleCallBack.hpp"
 #include "Game/LiveActor/EffectKeeper.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -13,16 +14,24 @@
 #include "Game/Util/MtxUtil.hpp"
 
 namespace {
+    const s32 sAttributeEffectCodes[] = {0x17, 0xD, 5, 0xA, 0x20, 0x1A, 0};
     EffectKeeper* getEffectKeeper(const LiveActor* pActor) {
         return pActor->mEffectKeeper;
     }
 
-    bool isExistEffect(const LiveActor* pActor, const char* pEffectName) {
-        return MR::isExistEffectKeeper(pActor) && MR::isRegisteredEffect(pActor, pEffectName);
-    }
 };  // namespace
 
 namespace MR {
+    bool isExistEffect(const LiveActor*, const char*) NO_INLINE;
+    bool isExistEffect(const LiveActor* pActor, const char* pEffectName) {
+        return isExistEffectKeeper(pActor) && isRegisteredEffect(pActor, pEffectName);
+    }
+
+    void requestEffectStopSceneStartAndDelete() {
+        Effect::forceDeleteAllOneTimeEmitter();
+        Effect::requestMovementOffAllEmitters();
+    }
+
     void requestEffectStopSceneStart() {
         Effect::requestMovementOffAllLoopEmitters();
     }
@@ -84,13 +93,43 @@ namespace MR {
     }
 
 
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    MultiEmitter* tryEmitEffect(LiveActor* pActor, const char* pEffectName) {
+        if (!isExistEffect(pActor, pEffectName)) {
+            return nullptr;
+        }
+        return ::getEffectKeeper(pActor)->createEmitter(pEffectName);
+    }
+
     bool tryDeleteEffect(LiveActor* pActor, const char* pEffectName) {
-        if (::isExistEffect(pActor, pEffectName) == false) {
+        if (isExistEffect(pActor, pEffectName) == false) {
             return false;
         }
 
         ::getEffectKeeper(pActor)->deleteEmitter(pEffectName);
 
+        return true;
+    }
+
+    bool tryForceDeleteEffect(LiveActor* pActor, const char* pEffectName) {
+        if (!isExistEffect(pActor, pEffectName)) {
+            return false;
+        }
+        ::getEffectKeeper(pActor)->forceDeleteEmitter(pEffectName);
+        return true;
+    }
+
+    bool tryDeleteEffectAll(LiveActor* pActor) {
+        EffectKeeper* keeper = ::getEffectKeeper(pActor);
+        if (!keeper) return false;
+        keeper->deleteEmitterAll();
+        return true;
+    }
+
+    bool tryForceDeleteEffectAll(LiveActor* pActor) {
+        EffectKeeper* keeper = ::getEffectKeeper(pActor);
+        if (!keeper) return false;
+        keeper->forceDeleteEmitterAll();
         return true;
     }
 
@@ -136,8 +175,26 @@ namespace MR {
         ::getEffectKeeper(pActor)->offDraw();
     }
 
+    void onCalcEmitter(LiveActor* pActor) {
+        ::getEffectKeeper(pActor)->onCalcEmitter();
+    }
+
+    void offCalcEmitter(LiveActor* pActor) {
+        ::getEffectKeeper(pActor)->offCalcEmitter();
+    }
+
     void pauseOffEffectAll(LiveActor* pActor) {
         Effect::requestMovementOn(::getEffectKeeper(pActor));
+    }
+
+    void setAllEffectDrawOrder(LiveActor* pActor, s32 order) {
+        EffectKeeper* keeper = ::getEffectKeeper(pActor);
+        if (keeper) {
+            s32 count = keeper->_C.size();
+            for (s32 i = 0; i < count; i++) {
+                keeper->getEmitter(i)->setDrawOrder(order);
+            }
+        }
     }
 
     void onEmitEffectSyncClipping(LiveActor* pActor, const char* pEffectName) {
@@ -153,11 +210,36 @@ namespace MR {
     }
 
     void setEffectHostSRT(LiveActor* pActor, const char* pEffectName, const TVec3f* pScale, const TVec3f* pRotate, const TVec3f* pTranslate) {
-        getEffect(pActor, pEffectName)->setHostSRT(pScale, pRotate, pTranslate);
+        if (!::getEffectKeeper(pActor)->isTypeAttributeEffect(pEffectName)) {
+            getEffect(pActor, pEffectName)->setHostSRT(pScale, pRotate, pTranslate);
+        } else {
+            for (u32 i = 0; i < 7; i++) {
+                MultiEmitter* emitter = static_cast<const EffectKeeper*>(::getEffectKeeper(pActor))->getEmitter(pEffectName, sAttributeEffectCodes[i]);
+                if (emitter) emitter->setHostSRT(pScale, pRotate, pTranslate);
+            }
+        }
     }
 
     void setEffectHostMtx(LiveActor* pActor, const char* pEffectName, MtxPtr pMtx) {
-        getEffect(pActor, pEffectName)->setHostMtx(pMtx);
+        if (!::getEffectKeeper(pActor)->isTypeAttributeEffect(pEffectName)) {
+            getEffect(pActor, pEffectName)->setHostMtx(pMtx);
+        } else {
+            for (u32 i = 0; i < 7; i++) {
+                MultiEmitter* emitter = static_cast<const EffectKeeper*>(::getEffectKeeper(pActor))->getEmitter(pEffectName, sAttributeEffectCodes[i]);
+                if (emitter) emitter->setHostMtx(pMtx);
+            }
+        }
+    }
+
+    void setAllEffectHostMtx(LiveActor* pActor, MtxPtr pMtx) {
+        EffectKeeper* keeper = ::getEffectKeeper(pActor);
+        if (keeper) {
+            s32 count = keeper->_C.size();
+            for (s32 i = 0; i < count; i++) {
+                MultiEmitter* emitter = keeper->getEmitter(i);
+                if (!emitter->_28->mJointName) emitter->setHostMtx(pMtx);
+            }
+        }
     }
 
     void setEffectBaseScale(LiveActor* pActor, const char* pEffectName, f32 scale) {
@@ -214,14 +296,17 @@ namespace MR {
         emitEffectHit(pActor, vecBetween, pEffectName);
     }
 
-    void initEffectAfterPlacement(LiveActor* pActor) {
-        ::getEffectKeeper(pActor)->initAfterPlacementForAttributeEffect(pActor->getBaseMtx());
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    void initEffectAfterPlacement(LiveActor* pActor, MtxPtr pMtx) {
+        if (!pMtx) pMtx = pActor->getBaseMtx();
+        ::getEffectKeeper(pActor)->initAfterPlacementForAttributeEffect(pMtx);
     }
 
     void updateEffectFloorCode(LiveActor* pActor, const Triangle* pTriangle) {
         ::getEffectKeeper(pActor)->updateFloorCode(pTriangle);
     }
 
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
     void updateEffectFloorCodeLineToMap(LiveActor* pActor, const TVec3f& rPosition, const TVec3f& rDirection) {
         Triangle triangle = Triangle();
 
@@ -232,6 +317,7 @@ namespace MR {
         }
     }
 
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
     void updateEffectFloorCodeLineToMap(LiveActor* pActor, f32 a2, f32 a3) {
         TVec3f gravity = pActor->mGravity;
         TVec3f sumPosScaledGrav = pActor->mPosition + gravity * a3;

@@ -30,7 +30,7 @@ namespace MR {
     bool needStageSwitchWriteA(LiveActor* pActor, const JMapInfoIter& rIter);
     bool needStageSwitchWriteB(LiveActor* pActor, const JMapInfoIter& rIter);
     bool needStageSwitchWriteDead(LiveActor* pActor, const JMapInfoIter& rIter);
-    bool needStageSwitchWriteAutoDead(LiveActor* pActor, const JMapInfoIter& rIter);
+    void needStageSwitchWriteAutoDead(LiveActor* pActor, const JMapInfoIter& rIter);
 
     bool isValidSwitchA(const LiveActor* pActor);
     bool isValidSwitchB(const LiveActor* pActor);

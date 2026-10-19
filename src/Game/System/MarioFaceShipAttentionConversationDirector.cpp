@@ -117,6 +117,7 @@ void MarioFaceShipAttentionConversationDirector::registerNpc(const MarioFaceShip
     }
 }
 
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void MarioFaceShipAttentionConversationDirector::registerMeister(Meister* pMeister, const JMapInfoIter& rIter) {
     mMeister = pMeister;
 
@@ -337,6 +338,7 @@ void MarioFaceShipNormalConversationDirector::initAfterPlacement() {
     }
 }
 
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void MarioFaceShipNormalConversationDirector::registerMeister(Meister* pMeister, const JMapInfoIter& rIter) {
     mMeister = pMeister;
 
@@ -388,7 +390,7 @@ bool MarioFaceShipNormalConversationDirector::getSatisfiedParam(Param** ppParam,
 bool MarioFaceShipNormalConversationDirector::getSpecialParam(Param** ppParam) {
     for (s32 i = 0; i < mParamNum; i++) {
         Param* pParam = mParams[i];
-        if (MarioFaceShipEventDataHolder::isKindCometOpen(pParam->mFlagType) && MR::isCometExplainPendingWithStarGalaxy()) {
+        if (MarioFaceShipEventDataHolder::isKindCometOpen(pParam->mFlagType) && MR::isAnyGalaxyAvailableWithStars()) {
             *ppParam = pParam;
             return true;
         }

@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_APL_OUTLINE
 #include "Game/Camera/CameraSphereTrundle.hpp"
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Camera/CameraTargetObj.hpp"

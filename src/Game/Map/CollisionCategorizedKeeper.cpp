@@ -26,13 +26,13 @@ void CollisionCategorizedKeeper::movement() {
                     pParts->updateMtx();
                 }
 
-                if (mUpdateZoneBounds) {
-                    (*pZone)->calcMinMaxAndRadius();
-                } else if (pParts->_D4 == 0) {
+                if (pParts->_D4 == 0 || pParts->_CD) {
                     (*pZone)->calcMinMaxAndRadiusIfMoveOuter(pParts);
+                    pParts->_CD = false;
                 }
             }
         }
+        if (mUpdateZoneBounds) (*pZone)->calcMinMaxAndRadius();
     }
 
     mUpdateZoneBounds = false;
@@ -58,7 +58,7 @@ void CollisionCategorizedKeeper::removeFromGlobal(CollisionParts* pParts) {
     mPartsCount--;
 }
 
-s32 CollisionCategorizedKeeper::checkStrikePoint(const TVec3f& rPosition, HitInfo* pHitInfo) {
+s32 CollisionCategorizedKeeper::checkStrikePoint(const TVec3f& rPosition, HitInfo* pHitInfo, const CollisionPartsFilterBase* partsFilter, const TriangleFilterBase* triangleFilter) {
     MR::getCollisionDirector();
     _10 = 0;
 
@@ -87,6 +87,8 @@ s32 CollisionCategorizedKeeper::checkStrikePoint(const TVec3f& rPosition, HitInf
                 continue;
             }
 
+            if (partsFilter && partsFilter->isInvalidParts(pParts)) continue;
+
             f32 radius = pParts->_D8;
             TVec3f offset;
             offset.x = MR::abs(pParts->getTrans().x - rPosition.x);
@@ -111,7 +113,7 @@ s32 CollisionCategorizedKeeper::checkStrikePoint(const TVec3f& rPosition, HitInf
                 continue;
             }
 
-            if (pParts->checkStrikePoint(pHitInfo, rPosition)) {
+            if (pParts->checkStrikePoint(pHitInfo, rPosition, triangleFilter)) {
                 _10 = 1;
                 return 1;
             }
@@ -617,4 +619,11 @@ TVec3f CollisionParts::getTrans() {
     TVec3f translation;
     mBaseMatrix.getTrans(translation);
     return translation;
+}
+
+bool CollisionZone::contains(const CollisionParts* parts) const {
+    for (s32 i = 0; i < mParts.size(); ++i) {
+        if (mParts[i] == parts) return true;
+    }
+    return false;
 }

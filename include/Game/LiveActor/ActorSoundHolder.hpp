@@ -4,11 +4,16 @@
 #include <revolution.h>
 
 class AudAnmSoundObject;
+class LiveActor;
+#include <JSystem/JGeometry/TVec.hpp>
 
 class ActorSoundHolder {
 public:
+    ActorSoundHolder(LiveActor*, s32, const char*, const TVec3f*, const TVec3f&);
     /* 0x00 */ u8 _0[4];
     /* 0x04 */ ActorActionSoundKeeper* mActionSoundKeeper;
+
+    /* 0x08 */ u8 mUnk08[0xC];
 
     void resetSyncBck();
     void resetSyncBckFrame();

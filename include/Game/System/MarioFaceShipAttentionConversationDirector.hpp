@@ -38,7 +38,7 @@ public:
     void registerMeister(Meister*, const JMapInfoIter&);                                  // fn_804BFAB0
     bool getSatisfiedParam(Param**, s32);                                                 // fn_804BFBE0
     void calcSatisfiedNum();                                                              // fn_804BFCC0
-    s32 getTalkIndex(s32) const;                                                          // fn_804BFD80
+    s32 getTalkIndex(s32) const NO_INLINE;                                                          // fn_804BFD80
     bool makeTalkMessageId(s32, char*, u32);                                                   // fn_804BFDA0
     bool isParamSatisfied(const Param*, const char*, s32, s32) const;                     // fn_804BFE20
 
@@ -73,7 +73,7 @@ public:
     bool getSatisfiedParam(Param**, s32);                                                 // fn_804C06A0
     bool getSpecialParam(Param**);                                                        // fn_804C0780
     void calcSatisfiedNum();                                                              // fn_804C0810
-    s32 getTalkIndex(s32) const;                                                          // fn_804C08D0
+    s32 getTalkIndex(s32) const NO_INLINE;                                                          // fn_804C08D0
     bool makeTalkMessageId(s32, char*, u32);                                                   // fn_804C08F0
     bool makeSpecialTalkMessageId(s32, char*, u32);                                            // fn_804C0970
     bool isParamSatisfied(const Param*, const char*, s32, s32) const;                     // fn_804C09F0

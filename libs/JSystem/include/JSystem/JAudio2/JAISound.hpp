@@ -511,7 +511,11 @@ public:
         mStatus.mState.flags.flag1 = 1;
     }
 
+#ifdef JAISOUND_STOPPING_NOINLINE
+    bool isStopping() const NO_INLINE {
+#else
     bool isStopping() const {
+#endif
         return mStatus.mState.flags.flag1 && (!mStatus.mState.flags.flag5 || mFader.isOut());
     }
 

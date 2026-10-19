@@ -70,7 +70,7 @@ namespace MR {
     void loadAsyncToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir);
     JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap, bool);
     void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap);
-    void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap, bool, bool allocFromTail);   // SMG2 0x80025AF0 (3rd arg unused)
+    void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap, bool, s32 allocDirection);   // SMG2 0x80025AF0 (3rd arg unused)
     void mountAsyncArchiveByObjectOrLayoutName(const char* pFilePrefix, JKRHeap* pHeap);
     void removeFileConsideringLanguage(const char* pFilePath);
     void removeResourceAndFileHolderIfIsEqualHeap(JKRHeap* pHeap);

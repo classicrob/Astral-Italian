@@ -47,7 +47,7 @@ namespace {
             host = (u32)pActor;
         }
 
-        return getGravityManager()->calcTotalGravityVector(pDest, pInfo, rPosition, typeFlags, host);
+        return getGravityManager()->calcTotalGravityVector(pDest, pInfo, rPosition, typeFlags, host, pActor);
     }
 };  // namespace
 

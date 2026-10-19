@@ -20,11 +20,13 @@ AudSingleBgm::AudSingleBgm() : AudBgm(), mHandle(), mSoundID(-1) {
 }
 
 void AudSingleBgm::init() {
+    AudBgm::reset();
     mSoundID.setAnonymous();
     initTrackController();
 }
 
 void AudSingleBgm::movement() {
+    updatePauseFrames();
     updateTrackControl();
     if (!mHandle.isSoundAttached()) {
         resetAuxVolume();
@@ -38,6 +40,7 @@ void AudSingleBgm::movement() {
 
 JAISoundHandle* AudSingleBgm::start(u32 soundID, bool lock) {
     JAISoundID id = soundID;
+    clearPauseFrames();
     mSoundID = soundID;
 
     if (mHandle.isSoundAttached()) {
@@ -53,7 +56,8 @@ JAISoundHandle* AudSingleBgm::start(u32 soundID, bool lock) {
         AudWrap::getSystem()->getSeqMgr().startSound(id, &mHandle, nullptr);
         if (mHandle.isSoundAttached()) {
             startTrackControl();
-            changeTrackMuteState(0, 0);
+            initTrackMuteState(mSoundID);
+            tryChangeTrackMuteState(0, 0);
         }
     }
 
@@ -189,15 +193,7 @@ void AudSingleBgm::changeTrackMuteState(s32 track, s32 time) {
     bool isRhythm = info->isRhythmBgm(mSoundID);
 
     const AudBgmSetting::MuteState* muteState = AudBgmSetting::getMuteState(mSoundID, track);
-    if (muteState == nullptr) {
-        for (s32 i = 0; i < mNumTracks; i++) {
-            if (i != 0 || !isRhythm) {
-                mTrackController[i].setMuteState(AudFader::FadeState_FadeIn, time, false);
-            }
-        }
-
-        return;
-    }
+    if (muteState == nullptr) return;
 
     for (s32 i = 0; i < mNumTracks; i++) {
         u8 state = muteState->mMuteStates[i / 2];
@@ -212,6 +208,7 @@ void AudSingleBgm::changeTrackMuteState(s32 track, s32 time) {
 
         mTrackController[i].setMuteState(state & 0x7, time, autoMute);
     }
+    mMuteStateIndex = track;
 }
 
 void AudSingleBgm::moveTrackVolume(f32 volume, s32 track, s32 time) {

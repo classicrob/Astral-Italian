@@ -87,7 +87,7 @@ void WorldMapResultStateLeaveHome::appear() {
         MR::forceCloseSystemWipeWhiteFade();
         break;
     case 5:
-        MR::forceOpenSystemWipeWhiteFade(type);
+        MR::forceOpenSystemWipeWhiteFade();
         MR::forceCloseSystemWipeFade();
         break;
     case 6:

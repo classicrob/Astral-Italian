@@ -5,6 +5,8 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
+#include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/GravityUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MapUtil.hpp"
@@ -17,6 +19,7 @@ namespace {
     const s32 sGravityCountLimit = 1;
 };  // namespace
 
+// NONMATCHING: register scheduling
 ShadowControllerHolder::ShadowControllerHolder() : NameObj("影管理"), _C(), _18(), mIsFarClipEnabled(false), mIsDefaultFarClipEnabled(false) {
     mFarClip = 7000.0f;
     mDefaultFarClip = 7000.0f;
@@ -63,7 +66,24 @@ void ShadowControllerHolder::initAfterPlacement() {
     }
 }
 
+// NONMATCHING: equivalent bool lowering/regalloc
+void ShadowControllerHolder::updateFarClipParam() {
+    AreaObj* area = MR::getAreaObjAtPlayerPos("ShadowFarClipCtrlArea");
+    if (area) {
+        s32 distance = MR::getAreaObjArg(area, 0);
+        s32 enabled = MR::getAreaObjArg(area, 1);
+        mFarClip = distance != -1 ? f32(distance) : mDefaultFarClip;
+        mIsFarClipEnabled = enabled == -1;
+    } else {
+        mIsFarClipEnabled = mIsDefaultFarClipEnabled;
+        mFarClip = mDefaultFarClip;
+    }
+    area = MR::getAreaObjAtPlayerPos("ViewGroupCtrlArea");
+    if (area && MR::getAreaObjArg(area, 2) != -1 && mIsFarClipEnabled) mIsFarClipEnabled = false;
+}
+
 void ShadowControllerHolder::updateController() {
+    updateFarClipParam();
     int size = _18.size();
 
     for (u32 i = 0; i < size; i++) {
@@ -87,6 +107,10 @@ void ShadowControllerList::addController(ShadowController* pController) {
     mShadowList.push_back(pController);
 }
 
+
+u32 ShadowControllerList::getControllerCount() const {
+    return mShadowList.size();
+}
 
 ShadowController* ShadowControllerList::getController(u32 idx) const {
     return mShadowList[idx];
@@ -225,6 +249,20 @@ void ShadowController::getDropDir(TVec3f* pOut) const {
     }
 }
 
+void ShadowController::calcBaseMtx(TPos3f* out) const {
+    if (!MR::isNearZero(_60Vec, 0.001f)) {
+        out->identity();
+        MR::makeMtxRotate(out->toMtxPtr(), _60Vec);
+    } else {
+        out->identity();
+    }
+    if (_18) {
+        PSMTXConcat(_18, out->toMtxPtr(), out->toMtxPtr());
+    } else if (mActor->getBaseMtx()) {
+        PSMTXConcat(mActor->getBaseMtx(), out->toMtxPtr(), out->toMtxPtr());
+    }
+}
+
 f32 ShadowController::getDropLength() const {
     return mDropLength;
 }
@@ -246,7 +284,7 @@ void ShadowController::getProjectionNormal(TVec3f* pOut) const {
 }
 
 f32 ShadowController::getProjectionLength() const {
-    if (!_63) {
+    if (!isProjected()) {
         return -1.0f;
     }
 
@@ -265,7 +303,7 @@ f32 ShadowController::getProjectionLength() const {
 }
 
 bool ShadowController::isProjected() const {
-    return _63 != 0;
+    return _63 != 0 && _71 != 0;
 }
 
 bool ShadowController::isDraw() const {
@@ -301,7 +339,7 @@ bool ShadowController::isCalcGravity() const {
         return false;
     }
 
-    if (_61 == 0 || _61 == 3) {
+    if (_61 == 2 || _61 == 5) {
         return _66 < ::sGravityCountLimit;
     }
 
@@ -327,6 +365,10 @@ void ShadowController::setDropPosMtxPtr(MtxPtr pMtx, const TVec3f& rOffset) {
     mDropPos = nullptr;
     _1C = pMtx;
     _30.set(rOffset);
+}
+
+void ShadowController::setLocalRotate(const TVec3f& rotate) {
+    _60Vec.set(rotate);
 }
 
 void ShadowController::setDropPosFix(const TVec3f& rPos) {

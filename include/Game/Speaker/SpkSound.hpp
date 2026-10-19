@@ -92,6 +92,8 @@ public:
     SpkSoundHolder();
 
     bool startSound(s32, s32, SpkSoundHandle*);
+    bool startSound(s32, s32, SpkSoundHandle*, s32, f32);
+    bool startLevelSound(s32, s32, SpkSoundHandle*);
     bool update(s32);
     bool updateEachSound(s32);
     void freeDeadSound(s32);

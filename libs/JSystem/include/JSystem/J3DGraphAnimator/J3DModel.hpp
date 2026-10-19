@@ -130,7 +130,11 @@ public:
         return mMtxBuffer->getDrawMtxPtr()[index];
     }
 
+#ifdef J3DMODEL_BASE_SCALE_NOINLINE
+    void setBaseScale(const Vec& scale) NO_INLINE {
+#else
     void setBaseScale(const Vec& scale) {
+#endif
         mBaseScale = scale;
     }
 

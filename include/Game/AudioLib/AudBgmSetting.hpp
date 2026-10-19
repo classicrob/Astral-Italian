@@ -10,8 +10,9 @@ namespace AudBgmSetting {
     const char* getStageBgmResourceName();
     void loadStageBgmResource();
     struct BgmSettingInfo {
-        /* 0x0 */ s32 mMuteStateIndex;
-        /* 0x4 */ s32 mExtraChordIndex;
+        /* 0x0 */ u32 mSoundID;
+        /* 0x4 */ s32 mMuteStateIndex;
+        /* 0x8 */ s32 mExtraChordIndex;
     };
 
     struct MuteState {
@@ -30,15 +31,9 @@ namespace AudBgmSetting {
         /* 0x18 */ u32 mLoopEndSamples;    // time (sec) = val / 48000
     };
 
+    const BgmSettingInfo* findSettingInfo(u32);
     const MuteState* getMuteState(JAISoundID, s32);
     u16 getExtraChordNum(JAISoundID, s32);
     bool hasMuteState(JAISoundID);
-    u32 getSeqIdForMultiBgm(u32);
-    u32 getStreamIdForMultiBgm(u32);
-    f32 getBeatMulForMultiBgm(u32);
-    u32 getIntroBeatsForMultiBgm(u32);
-    u32 getLoopBeatsForMultiBgm(u32);
-    u32 getLoopStartSamplesForMultiBgm(u32);
-    u32 getLoopEndSamplesForMultiBgm(u32);
 
 };  // namespace AudBgmSetting

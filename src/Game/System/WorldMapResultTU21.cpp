@@ -1,3 +1,6 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_VEC3_MUL_NOINLINE
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -95,10 +98,9 @@ void WorldMapResultStateTicoRouteCreate::exeZoomIn() {
     }
 }
 
-// NONMATCHING: NameObj vtable slot: target calls the 0x2C entry, our header maps endMovement to 0x28
 void WorldMapResultStateTicoRouteCreate::exeWait() {
     if (MR::isFirstStep(this)) {
-        mLayout->endMovement();
+        mLayout->appear();
     }
 
     if (mLayout->isSelectionComplete() && mLayout->isSelectedYes()) {

@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #pragma auto_inline off
 #include "Game/Gravity/BarrelGravity.hpp"
 #include "Game/Util/MathUtil.hpp"

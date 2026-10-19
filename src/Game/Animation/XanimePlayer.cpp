@@ -372,25 +372,7 @@ bool XanimePlayer::changeTrackWeight(u32 track, f32 weight) {
 }
 
 void XanimePlayer::calcAnm(u16 arg) {
-    if (!_80) {
-        f32 currentFrame;
-        if (_20->checkState(1) != 0) {
-            currentFrame = _20->getEnd();
-        } else if (_88) {
-            currentFrame = _84;
-        } else {
-            currentFrame = _20->getFrame();
-        }
-
-        if (mCurrentAnimation != nullptr && mCurrentAnimation->_20[0] != nullptr) {
-            s16 maxFrame = static_cast< J3DAnmTransform* >(mCurrentAnimation->_20[0])->getFrameMax();
-            if (static_cast< J3DAnmTransform* >(mCurrentAnimation->_20[0])->getFrameMax() == 0) {
-                maxFrame = 1;
-            }
-
-            mCore->mFrameRatio = currentFrame / maxFrame;
-        }
-    }
+    if (!_80) updateFrameRatio();
 
     mCore->updateFrame();
     mModelData->mJointTree.mJointNodePointer[arg]->mMtxCalc = mCore;
@@ -498,6 +480,11 @@ void XanimePlayer::getMainAnimationTrans(u32 arg1, TVec3f* pOut) const {
     pOut->set(info.mTranslate);
 }
 
+bool XanimePlayer::isExistAnimation(const char* name) const {
+    if (mResourceTable->getGroupInfo(name)) return true;
+    return mResourceTable->findResMotion(name) != nullptr;
+}
+
 bool XanimePlayer::isRun(const char* pName) const {
     if (mCurrentAnimation == nullptr) {
         return false;
@@ -587,6 +574,18 @@ const char* XanimePlayer::getNameStringPointer(const char* pName) const {
     return nullptr;
 }
 
+f32 XanimePlayer::getEffectiveAnimationFrame() const {
+    if (_20->checkState(1)) return _20->getEnd();
+    if (_88) return _84;
+    return _20->getFrame();
+}
+
+bool XanimePlayer::isFrameInRange(f32 begin, f32 end) const {
+    f32 frame = _20->getFrame();
+    if (_89) frame = _84;
+    return begin <= frame && frame < end;
+}
+
 bool XanimePlayer::checkPass(f32 arg) const {
     if (!_89) {
         return _20->checkPass(arg);
@@ -615,8 +614,16 @@ void XanimePlayer::duplicateSimpleGroup() {
     mSimpleGroup->mRate = 1.0f;
     mSimpleGroup->_8 = 1;
     mSimpleGroup->mBckTableVariant = 1;
-    mSimpleGroup->_1D = 0;
 }
 
 XanimeFrameCtrl::XanimeFrameCtrl() : _14(0) {
+}
+
+void XanimePlayer::updateFrameRatio() {
+    f32 currentFrame = getEffectiveAnimationFrame();
+    if (mCurrentAnimation && mCurrentAnimation->_20[0]) {
+        s16 maxFrame = static_cast<J3DAnmTransform*>(mCurrentAnimation->_20[0])->getFrameMax();
+        if (!maxFrame) maxFrame = 1;
+        mCore->mFrameRatio = currentFrame / maxFrame;
+    }
 }

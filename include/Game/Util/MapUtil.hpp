@@ -3,6 +3,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 
+class CollisionParts;
 class CollisionPartsFilterBase;
 class HitInfo;
 class HitSensor;
@@ -12,6 +13,13 @@ class Triangle;
 class TriangleFilterBase;
 
 namespace MR {
+    bool isGroundCodeSnowIter(const JMapInfoIter&);
+    bool isGroundCodePressIter(const JMapInfoIter&);
+    bool isGroundCodeSlip(const Triangle*);
+    bool isGroundCodeWaterBottomL(const Triangle*);
+    bool isGroundCodeGlassIce(const Triangle*);
+    CollisionParts* findMoveLimitCollision(const TVec3f&, const TVec3f&) NO_INLINE;
+    bool isBindedWallNoActionWithoutGroundOrRoof(const LiveActor*);
     const TVec3f* getNormal(const Triangle*);
     bool isWallPolygon(const TVec3f&, const TVec3f&);
     bool isFloorPolygon(const TVec3f&, const TVec3f&);
@@ -77,7 +85,7 @@ namespace MR {
     s32 getWallCodeIndex(const Triangle*);
     bool isGroundCodeWater(const Triangle*);
     bool isGroundCodeWet(const Triangle*);
-    bool isGroundCodeWaterIter(const JMapInfoIter&);
+    bool isGroundCodeWaterIter(const JMapInfoIter&) NO_INLINE;
     bool isGroundCodeIceIter(const JMapInfoIter&);
     bool isGroundCodeDeath(const Triangle*);
     bool isGroundCodeDamage(const Triangle*);
@@ -114,8 +122,6 @@ namespace MR {
     s32 fn_80038770(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
     // PLACEHOLDER(core): unnamed ray-cast helper (same decl as BellyDragonTU02.cpp); resolve when its owner names it
     s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
-    // PLACEHOLDER(core): unnamed gravity-probe helper (takes LiveActor, pos out); resolve when its owner names it
-    bool fn_800389C0(TVec3f*, LiveActor*);
     bool fn_800382E0(const TVec3f&, const TVec3f&);
     bool fn_800384C0(const TVec3f&, const TVec3f&, const LiveActor*);
     bool fn_800386E0(const TVec3f&, HitInfo*);

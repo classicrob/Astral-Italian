@@ -1,16 +1,15 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Demo/PrepareKoopaFinalDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/Functor.hpp"
-#include "Game/Demo/UnnamedDemoCallee.hpp"
+#include "Game/Demo/StoryBookDemo.hpp"
 #include "Game/System/GalaxyWorldMapInfo.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
 
 // Data table (demo object params, 0x18 bytes of names per object) and names.
-extern "C" char lbl_80680750[];
-extern "C" const char* lbl_807CF768;
-extern "C" const char* lbl_807CF76C;
 extern "C" f32 lbl_807D9810;
 extern "C" f32 lbl_807D9814;
 extern "C" f32 lbl_807D9818;
@@ -52,28 +51,34 @@ namespace NrvPrepareKoopaFinalDemoObj {
 PrepareKoopaFinalDemoObj::PrepareKoopaFinalDemoObj(const char* pName) : LiveActor(pName), mKoopaSign(nullptr), mTalkActor(nullptr), mFinalKoopa(nullptr) {
 }
 
-// NONMATCHING: functor temporary layout differs
+// NONMATCHING: functor/register scheduling
 void PrepareKoopaFinalDemoObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneMapObjMovement(this);
     MR::invalidateClipping(this);
     if (MR::tryRegisterDemoCast(this, rIter)) {
-        MR::FunctorV0M< PrepareKoopaFinalDemoObj*, void (PrepareKoopaFinalDemoObj::*)() > functor(this, *reinterpret_cast< void (PrepareKoopaFinalDemoObj::**)() >(lbl_80680750 + 0x28));
+        MR::FunctorV0M< PrepareKoopaFinalDemoObj*, void (PrepareKoopaFinalDemoObj::*)() > functor(this, &PrepareKoopaFinalDemoObj::requestWorldMapAfterWipe);
         MR::registerDemoActionFunctor(this, functor, nullptr);
     }
-    mKoopaSign = MR::createDemoObjWithAnimArc(lbl_80680750 + 0x34, lbl_80680750 + 0x40, lbl_80680750 + 0x48, lbl_80680750 + 0x54, nullptr);
-    MR::tryInitDemoSheetAnim(mKoopaSign, rIter, lbl_807CF768, lbl_807CF76C);
+    mKoopaSign = MR::createDemoObjWithAnimArc("マイスター", "Meister", "MeisterAnim", "Demo", nullptr);
+    MR::tryInitDemoSheetAnim(mKoopaSign, rIter, "クッパ最終戦突入", "DemoKoopaCastle");
     MR::invalidateClipping(mKoopaSign);
     mKoopaSign->makeActorAppeared();
-    mTalkActor = MR::createDemoObjWithAnimArc(lbl_80680750 + 0x5C, lbl_80680750 + 0x68, lbl_80680750 + 0x74, nullptr);
-    MR::initTalkAnimDemoCast(mTalkActor, rIter, lbl_807CF768, lbl_807CF76C);
+    mTalkActor = MR::createDemoObjWithAnimArc("ベビチコ", "TicoBaby", "TicoBabyAnim", nullptr);
+    MR::initTalkAnimDemoCast(mTalkActor, rIter, "クッパ最終戦突入", "DemoKoopaCastle");
     MR::invalidateClipping(mTalkActor);
     mTalkActor->makeActorAppeared();
-    mFinalKoopa = MR::createDemoObj(lbl_80680750 + 0x84, lbl_80680750 + 0x90, lbl_80680750 + 0x54, nullptr);
+    mFinalKoopa = MR::createDemoObj("クッパ城", "MiniVsKoopaLv3Galaxy", "Demo", nullptr);
     MR::invalidateClipping(mFinalKoopa);
     mFinalKoopa->makeActorAppeared();
     initNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvWait), 0);
     makeActorAppeared();
+}
+
+void PrepareKoopaFinalDemoObj::exeStopShakeEnd() {
+    bool shake = false;
+    if (MR::isStep(this, 360) || (MR::isGreaterEqualStep(this, 240) && MR::getRandom(s32(0), s32(10)) == 0)) shake = true;
+    if (shake) setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvShake));
 }
 
 void PrepareKoopaFinalDemoObj::exeShake() {
@@ -99,33 +104,39 @@ void PrepareKoopaFinalDemoObj::exeStopShake() {
     if (MR::isFirstStep(this)) {
         MR::stopShakingCamera(this);
     }
-    if (UnnamedDemoCallee::fn_801476E0() != 0) {
+    if (MR::isStoryBookTurnPageEnd() != 0) {
         setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvShake));
     }
 }
 
-// NONMATCHING: matrix/vector setup is written with plain TVec3/TMatrix34 calls; target uses inline ps ops
+// NONMATCHING: FP/register load scheduling
 void PrepareKoopaFinalDemoObj::initAfterPlacement() {
-    UnnamedDemoCallee::fn_80011F80(lbl_807D9818, lbl_807D9818);
+    MR::fn_80011F80(this, lbl_807D9818, lbl_807D9818);
     mKoopaSign->mPosition.set(mPosition);
     mTalkActor->mPosition.set(mPosition);
     JGeometry::TMatrix34< JGeometry::SMatrix34C< f32 > > mtx;
     mtx.identity();
     MR::makeMtxRotate(mtx.mMtx, mRotation);
     TVec3f offset;
-    offset.set(lbl_807D9814, lbl_807D9814, lbl_807D9810);
+    offset.x = lbl_807D9814;
+    offset.y = lbl_807D9814;
+    offset.z = lbl_807D9810;
+    offset.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
     JMAVECScaleAdd(&offset, &mPosition, &mFinalKoopa->mPosition, lbl_807D9820);
     mFinalKoopa->mPosition.y += lbl_807D9824;
-    mFinalKoopa->mRotation.set(lbl_807D9828, lbl_807D982C, lbl_807D9814);
+    mFinalKoopa->mRotation.x = lbl_807D9828;
+    mFinalKoopa->mRotation.y = lbl_807D982C;
+    mFinalKoopa->mRotation.z = lbl_807D9814;
 }
 
+// NONMATCHING: equivalent branch layout
 void PrepareKoopaFinalDemoObj::control() {
     if (isNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvStopShakeEnd)) || isNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvShake))) {
-        if (!MR::isDemoActive(lbl_807CF768)) {
+        if (!MR::isDemoActive("クッパ最終戦突入")) {
             setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvEnd));
             return;
         }
-        if (MR::isStoryBookDemoActive() != 0 && UnnamedDemoCallee::fn_801476E0() == 0) {
+        if (MR::isStoryBookDemoActive() != 0 && MR::isStoryBookTurnPageEnd() == 0) {
             setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvStartPuppet));
         }
     }
@@ -134,8 +145,8 @@ void PrepareKoopaFinalDemoObj::control() {
 PrepareKoopaFinalDemoObj::~PrepareKoopaFinalDemoObj() {
 }
 
-void PrepareKoopaFinalDemoObj::requestWorldMapAfterWipe(s32 arg) {
-    MR::closeSystemWipeFadeWithCaptureScreen(arg);
+void PrepareKoopaFinalDemoObj::requestWorldMapAfterWipe() {
+    MR::closeSystemWipeFadeWithCaptureScreen(0);
     GameSequenceFunction::requestChangeStageWorldMap();
 }
 
@@ -153,7 +164,7 @@ namespace NrvPrepareKoopaFinalDemoObj {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeShake();
     }
     void PrepareKoopaFinalDemoObjNrvStopShakeEnd::execute(Spine* pSpine) const {
-        reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShake();
+        reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShakeEnd();
     }
     void PrepareKoopaFinalDemoObjNrvStartPuppet::execute(Spine* pSpine) const {
         PrepareKoopaFinalDemoObj* pActor = reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor);

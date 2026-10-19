@@ -67,10 +67,11 @@ Game/Util/BitArray.cpp:
 	.text       start:0x8001C430 end:0x8001C530
 
 Game/Util/CameraUtil.cpp:
-	.text       start:0x8001CC90 end:0x8001ED20
-	.data       start:0x8065D5C4 end:0x8065D658
+	.text       start:0x8001C530 end:0x8001ED20
+	.rodata     start:0x80645148 end:0x80645150
+	.data       start:0x8065D5B0 end:0x8065D658
 	.sdata      start:0x807CF340 end:0x807CF348
-	.sdata2     start:0x807D6DC0 end:0x807D6DF0
+	.sdata2     start:0x807D6DB0 end:0x807D6DF0
 
 Game/Util/CSSoundUtil.cpp:
 	.text       start:0x8001EDD0 end:0x8001F0C0
@@ -190,7 +191,7 @@ Game/Util/MathUtil.cpp:
 	.sdata2     start:0x807D6F78 end:0x807D7068
 
 Game/Util/MemoryUtil.cpp:
-	.text       start:0x80040C60 end:0x80041370
+	.text       start:0x80040C60 end:0x80041378
 	.sbss       start:0x807D0DA8 end:0x807D0DAC
 
 Game/Util/MessageUtil.cpp:
@@ -433,7 +434,7 @@ Game/Animation/XanimeCore.cpp:
 	.sdata2     start:0x807D72A8 end:0x807D72B0
 
 Game/Animation/XanimePlayer.cpp:
-	.text       start:0x8006CF60 end:0x8006E420
+	.text       start:0x8006CF60 end:0x8006E4B0
 	.rodata     start:0x806452D0 end:0x806452D8
 	.data       start:0x80669F58 end:0x80669F78
 	.sdata      start:0x807CF448 end:0x807CF450
@@ -2351,7 +2352,7 @@ Game/Demo/PrepareKoopaFinalDemoObj.cpp:
 	.ctors      start:0x80644044 end:0x80644048
 
 Game/Demo/ReturnDemoRailMove.cpp:
-	.text       start:0x80142350 end:0x80142900
+	.text       start:0x80142350 end:0x80142950
 	.data       start:0x806808D8 end:0x80680950
 
 Game/Demo/ScenarioStarter.cpp:
@@ -3567,7 +3568,7 @@ Game/GameAudio/AudTalkSoundData.cpp:
 	.bss        start:0x807295A8 end:0x807298B0
 
 Game/GameAudio/AudTamakoroBgmCtrl.cpp:
-	.text       start:0x80222390 end:0x80222750
+	.text       start:0x80222390 end:0x80222860
 	.rodata     start:0x80648978 end:0x806489F0
 	.sdata      start:0x807CF9C8 end:0x807CF9F0
 	.sdata2     start:0x807DC238 end:0x807DC240

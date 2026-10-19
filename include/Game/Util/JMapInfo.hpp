@@ -115,6 +115,8 @@ class JMapInfoIter {
 public:
     const char* fn_800896B0(const char*) const;
     s32 fn_80089720(const char*) const;
+    // PLACEHOLDER(core): unnamed f32 field getter (fn_80089850, JMapInfo area); resolve when named
+    f32 fn_80089850(const char*) const;
     JMapInfoIter() : mInfo(), mIndex(-1) {
     }
 

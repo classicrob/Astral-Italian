@@ -47,7 +47,9 @@ extern const char sJaiInstListArc[];
 // Archives handed to AudNewAudSystem (AudSystemWrapper keeps one). SMG2 only; SMG1 passed them as separate arguments.
 struct AudArchiveSet {
     AudArchiveSet() {
+#ifndef AUD_ARCHIVE_SET_MANUAL_RESET
         reset();
+#endif
     }
 
     void reset() NO_INLINE {

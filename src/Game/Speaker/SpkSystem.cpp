@@ -32,8 +32,20 @@ void SpkSystem::framework() {
     mSoundHolder->framework();
 }
 
-void SpkSystem::startSound(s32 padChannel, s32 waveID, SpkSoundHandle* pHandle) {
-    mSoundHolder->startSound(padChannel, waveID, pHandle);
+void SpkSystem::startSound(s32 padChannel, s32 waveID, SpkSoundHandle* pHandle, s32 mode, f32 volume) {
+    mSoundHolder->startSound(padChannel, waveID, pHandle, mode, volume);
+}
+
+void SpkSystem::startLevelSound(s32 padChannel, s32 waveID, SpkSoundHandle* pHandle) {
+    mSoundHolder->startLevelSound(padChannel, waveID, pHandle);
+}
+
+void SpkSystem::stopSound(s32 padChannel, s32 frames) {
+    if (padChannel < 0) {
+        for (s32 i = 0; i < 4; i++) mSoundHolder->stopEachSound(i, frames);
+    } else {
+        mSoundHolder->stopEachSound(padChannel, frames);
+    }
 }
 
 void SpkSystem::newSoundMemPool(s32 n) {

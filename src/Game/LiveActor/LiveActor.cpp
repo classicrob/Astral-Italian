@@ -1,3 +1,5 @@
+#define JGEOMETRY_VEC3_COPY_NOINLINE
+#define J3DMODEL_BASE_SCALE_NOINLINE
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/HitSensorKeeper.hpp"
@@ -10,6 +12,7 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/CameraUtil.hpp"
 #include "Game/LiveActor/ShadowController.hpp"
 #include "Game/LiveActor/ActorLightCtrl.hpp"
 #include "Game/LiveActor/Binder.hpp"
@@ -41,7 +44,13 @@ void LiveActor::appear() {
 
 // J3DModel::setBaseScale
 // LiveActor::calcViewAndEntry
-// LiveActor::receiveMessage
+// NONMATCHING: equivalent range-check lowering
+bool LiveActor::receiveMessage(u32 msg, HitSensor* sender, HitSensor* receiver) {
+    if (msg == 0x33) return receiveMsgPush(sender, receiver);
+    if (msg != 0 && msg < 0x26) return receiveMsgPlayerAttack(msg, sender, receiver);
+    if (msg > 0x59 && msg < 0x75) return receiveMsgEnemyAttack(msg, sender, receiver);
+    return receiveOtherMsg(msg, sender, receiver);
+}
 // LiveActor::calcAndSetBaseMtx
 // LiveActor::getTakingMtx
 
@@ -68,7 +77,14 @@ HitSensor* LiveActor::getSensor(const char* pSensorName) const {
 // LiveActor::getBaseMtx
 // LiveActor::startClipped
 // LiveActor::endClipped
-// LiveActor::initModelManagerWithAnm
+void LiveActor::initModelManagerWithAnm(const char* model, const char* anim, const char* action, bool flag) {
+    mModelManager = new ModelManager(MR::getCameraProjectionMtx());
+    mModelManager->init(model, anim, flag);
+    MR::getJ3DModel(this)->setBaseScale(mScale);
+    LiveActor::calcAndSetBaseMtx();
+    MR::calcJ3DModel(this);
+    mActionKeeper = ActorActionKeeper::tryCreate(this, action);
+}
 
 void LiveActor::initNerve(const Nerve* pNerve, s32 numStates) {
     mSpine = new Spine(this, pNerve, numStates);
@@ -80,8 +96,16 @@ void LiveActor::initHitSensor(s32 numSensors) {
 
 // LiveActor::initBinder
 // LiveActor::initRailRider
-// LiveActor::initEffectKeeper
-// LiveActor::initSound
+// NONMATCHING: argument load ordering/regalloc
+void LiveActor::initEffectKeeper(s32 count, const char* name, bool sort) {
+    mEffectKeeper = new EffectKeeper(mName, MR::getModelResourceHolder(this), count, name);
+    if (sort) mEffectKeeper->enableSort();
+    mEffectKeeper->init(this);
+    if (mBinder != nullptr) mEffectKeeper->setBinder(mBinder);
+}
+void LiveActor::initSound(s32 count, const char* name, const TVec3f* position, const TVec3f& offset) {
+    mSoundHolder = new ActorSoundHolder(this, count, name, position, TVec3f(offset));
+}
 // LiveActor::initShadowControllerList
 // LiveActor::initActorCollisionParts
 
@@ -233,19 +257,12 @@ void LiveActor::calcAnim() {
     MR::setCollisionMtx(this);
 }
 
-namespace {
-    // PLACEHOLDER(core): SMG2 calls J3DModel::setBaseScale out of line, but libs/JSystem J3DModel.hpp defines it inline; resolve when that header marks it NO_INLINE
-    NO_INLINE void setBaseScaleNI(J3DModel* pModel, const TVec3f& rScale) {
-        pModel->setBaseScale(rScale);
-    }
-}  // namespace
-
 void LiveActor::calcAnmMtx() {
     if (mModelManager == nullptr) {
         return;
     }
 
-    setBaseScaleNI(MR::getJ3DModel(this), mScale);
+    MR::getJ3DModel(this)->setBaseScale(mScale);
     calcAndSetBaseMtx();
     mModelManager->calcAnim();
 }
@@ -354,6 +371,7 @@ void LiveActor::initShadowControllerList(u32 shadowNum) {
     mShadowControllerList = new ShadowControllerList(this, shadowNum);
 }
 
+// NONMATCHING: matrix/argument register scheduling
 void LiveActor::initActorCollisionParts(const char* pParam1, HitSensor* pParam2, ResourceHolder* pParam3, MtxPtr pParam4, bool param5, bool param6) {
     MR::CollisionScaleType scaleType;
 
@@ -407,7 +425,7 @@ void LiveActor::updateBinder() {
 
 LiveActor::LiveActor(const char* pName)
     : NameObj(pName), mPosition(0.0f, 0.0f, 0.0f), mRotation(0.0f, 0.0f, 0.0f), mScale(1.0f, 1.0f, 1.0f), mVelocity(0.0f, 0.0f, 0.0f),
-      mGravity(0.0f, -1.0f, 0.0f), mModelManager(), mSpine(), mSensorKeeper(), mBinder(), mRailRider(), mEffectKeeper(),
+      mGravity(0.0f, -1.0f, 0.0f), mActionKeeper(), mModelManager(), mSpine(), mSensorKeeper(), mBinder(), mRailRider(), mEffectKeeper(),
       mSoundHolder(), mShadowControllerList(), mCollisionParts(), mStageSwitchCtrl(), mStarPointerTarget(), mActorLightCtrl()  {
     MR::getAllLiveActorGroup()->registerActor(this);
     MR::getClippingDirector()->registerActor(this);

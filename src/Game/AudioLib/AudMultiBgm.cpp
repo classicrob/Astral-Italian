@@ -1,3 +1,5 @@
+#include "Game/AudioLib/AudMultiBgmInfo.hpp"
+#define JAISOUND_STOPPING_NOINLINE
 #include "Game/AudioLib/AudBgm.hpp"
 #include "Game/AudioLib/AudBgmMgr.hpp"
 #include "Game/AudioLib/AudBgmSetting.hpp"
@@ -20,6 +22,7 @@ AudMultiBgm::AudMultiBgm() : AudBgm(), mHandle(), mRhythmHandle(), mSyncState(),
 }
 
 void AudMultiBgm::init() {
+    AudBgm::reset();
     initTrackController();
     for (s32 i = 0; i < mNumFaders; i++) {
         mFader[i].set(1.0f, 0);
@@ -71,11 +74,11 @@ void AudMultiBgm::sendToSyncStream() {
     s32 idx = mRhythmStrategy.mBgmIdx;
     if (idx >= 0) {
         AudBgmTempoAdjuster* adjuster = meSystem->getSeqParser(idx)->getTempoAdjuster();
-        f32 beatMul = AudBgmSetting::getBeatMulForMultiBgm(mBgmId);
-        u32 introBeats = AudBgmSetting::getIntroBeatsForMultiBgm(mBgmId);
-        u32 loopBeats = AudBgmSetting::getLoopBeatsForMultiBgm(mBgmId);
-        u32 loopStartSamples = AudBgmSetting::getLoopStartSamplesForMultiBgm(mBgmId);
-        u32 loopEndSamples = AudBgmSetting::getLoopEndSamplesForMultiBgm(mBgmId);
+        f32 beatMul = AudWrap::getMultiBgmInfo()->getBeatMulForMultiBgm(mBgmId);
+        u32 introBeats = AudWrap::getMultiBgmInfo()->getIntroBeatsForMultiBgm(mBgmId);
+        u32 loopBeats = AudWrap::getMultiBgmInfo()->getLoopBeatsForMultiBgm(mBgmId);
+        u32 loopStartSamples = AudWrap::getMultiBgmInfo()->getLoopStartSamplesForMultiBgm(mBgmId);
+        u32 loopEndSamples = AudWrap::getMultiBgmInfo()->getLoopEndSamplesForMultiBgm(mBgmId);
         JAIStream* stream = mHandle->asStream();
 
         JASCriticalSection crit;
@@ -95,6 +98,7 @@ void AudMultiBgm::rejectFromSyncStream() {
 }
 
 void AudMultiBgm::movement() {
+    updatePauseFrames();
     updateSyncProcess();
     updateTrackControl();
 
@@ -195,28 +199,8 @@ void AudMultiBgm::changeTrackMuteState(s32 track, s32 time) {
         return;
     }
 
-    AudSoundInfo* info = AudWrap::getSoundInfo();
-    bool isRhythm = info->isRhythmBgm(soundID);
-
     const AudBgmSetting::MuteState* muteState = AudBgmSetting::getMuteState(soundID, track);
-    if (muteState == nullptr) {
-        for (s32 i = 0; i < mNumTracks; i++) {
-            if (i != 0 || !isRhythm) {
-                mTrackController[i].setMuteState(AudFader::FadeState_FadeIn, time, false);
-            }
-        }
-
-        return;
-    }
-
-    switch (soundID) {
-    case BGM_GALAXY_01:
-        if (track == 1) {
-            time *= 3;
-        }
-
-        break;
-    }
+    if (muteState == nullptr) return;
 
     for (s32 i = 0; i < mNumTracks; i++) {
         u8 state = muteState->mMuteStates[i / 2];
@@ -248,6 +232,7 @@ void AudMultiBgm::changeTrackMuteState(s32 track, s32 time) {
             AudWrap::getSystem()->getChordInfo()->loadChordInfo(extraChordNum, true);
         }
     }
+    mMuteStateIndex = track;
 }
 
 void AudMultiBgm::moveTrackVolume(f32 volume, s32 track, s32 time) {

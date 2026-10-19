@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MUL_NOINLINE
 #include "Game/Util/BossBussun.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"

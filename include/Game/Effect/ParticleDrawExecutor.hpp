@@ -17,10 +17,12 @@ public:
     void drawFor2DModel() const;
     void drawForBloomEffect() const;
     void drawAfterImageEffect() const;
+    void drawForWorldMap() const;
     void drawWithViewMtx3D(const TPos3f&) const;
     void drawWithViewMtxAfterIndirect(const TPos3f&) const;
     void drawWithViewMtxForBloomEffect(const TPos3f&) const;
     void drawWithViewMtxAfterImageEffect(const TPos3f&) const;
+    void drawWithViewMtxForWorldMap(const TPos3f&) const;
     void initDrawAdaptor();
 
     /* 0x00 */ const EffectSystem* mHost;

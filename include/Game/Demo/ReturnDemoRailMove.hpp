@@ -20,6 +20,7 @@ public:
     void setupPathDrawForGraneStarReturnDemo();
     void start();
     void update(s32, s32);
+    void makeEndMtx(TPos3f*, const TVec3f&) const NO_INLINE;
 
     inline TPos3f* getMtx() {
         return mTransform;

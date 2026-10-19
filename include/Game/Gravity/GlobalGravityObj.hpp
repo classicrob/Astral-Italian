@@ -21,6 +21,7 @@ public:
 };
 
 namespace MR {
+    NameObj* createGlobalBarrelGravityObj(const char* pName);
     NameObj* createGlobalCubeGravityObj(const char* pName);
     NameObj* createGlobalConeGravityObj(const char* pName);
     NameObj* createGlobalDiskGravityObj(const char* pName);
@@ -31,4 +32,7 @@ namespace MR {
     NameObj* createGlobalPointGravityObj(const char* pName);
     NameObj* createGlobalSegmentGravityObj(const char* pName);
     NameObj* createGlobalWireGravityObj(const char* pName);
+    NameObj* createZeroGravitySphereObj(const char* pName);
+    NameObj* createZeroGravityBoxObj(const char* pName);
+    NameObj* createZeroGravityCylinderObj(const char* pName);
 };  // namespace MR

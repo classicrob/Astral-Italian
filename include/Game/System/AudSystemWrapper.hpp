@@ -13,6 +13,12 @@ class AudSystemWrapper {
 public:
     AudSystemWrapper(JKRSolidHeap*, JKRHeap*, JKRHeap*);
 
+    void loadSystemWaveData();
+    void requestWaveResource();
+    bool isLoadDoneRequestedWaves() const NO_INLINE;
+    bool isLoadDoneSystemWaves() const;
+    void clearStageWaveResources();
+    void loadStageUseResources();
     void requestResourceForInitialize();
     void createAudioSystem();
     void createSoundNameConverter();

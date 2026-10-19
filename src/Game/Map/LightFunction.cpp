@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_VEC_COPY_NOINLINE
 #include "Game/Map/LightFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/AreaObj/LightAreaHolder.hpp"
@@ -6,6 +7,7 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/FileUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include <cstdio>
 
@@ -40,6 +42,13 @@ ResourceHolder* LightFunction::loadLightArchive() {
     return MR::createAndAddResourceHolder(buf);
 }
 
+ResourceHolder* LightFunction::loadZoneLightArchive(const char* zone) {
+    char path[256];
+    snprintf(path, sizeof(path), "/StageData/%s/%sLight.arc", zone, zone);
+    if (MR::isFileExistOnDisc(path, false)) return MR::createAndAddResourceHolderStationed(path);
+    return nullptr;
+}
+
 s32 LightFunction::createLightDataParser(JMapInfo** pOut) {
     ResourceHolder* holder = MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mResourceHolder;
     JMapInfo* info = MR::tryCreateCsvParser(holder, "LightData.bcsv");
@@ -52,8 +61,9 @@ s32 LightFunction::createLightDataParser(JMapInfo** pOut) {
 }
 
 s32 LightFunction::createZoneDataParser(const char* pZone, JMapInfo** pOut) {
-    ResourceHolder* holder = MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mResourceHolder;
-    JMapInfo* info = MR::tryCreateCsvParser(holder, "Light%s.bcsv", pZone);
+    ResourceHolder* holder = MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->getZoneLightResourceHolder(pZone);
+    if (holder == nullptr) return 0;
+    JMapInfo* info = MR::tryCreateCsvParser(holder, "%sLight.bcsv", pZone);
     *pOut = info;
 
     if (info != nullptr) {
@@ -67,8 +77,7 @@ s32 LightFunction::createZoneDataParser(const char* pZone, JMapInfo** pOut) {
     return 0;
 }
 
-namespace {
-    void getDataLightInfo(JMapInfo* pInfo, int id, LightInfo* pLightInfo, const char* pName) {
+void LightFunction::getDataLightInfo(JMapInfo* pInfo, int id, LightInfo* pLightInfo, const char* pName) {
         char colorBuf[256];
         snprintf(colorBuf, sizeof(colorBuf), "%sColor", pName);
         MR::getCsvDataColor(&pLightInfo->mColor, pInfo, colorBuf, id);
@@ -80,12 +89,13 @@ namespace {
         MR::getCsvDataBool(&pLightInfo->mIsFollowCamera, pInfo, camBuf, id);
     }
 
+namespace {
     void getDataActorLightInfo(JMapInfo* pInfo, int lightID, ActorLightInfo* pActorInfo, const char* pName) {
         char lightBuf[256];
         snprintf(lightBuf, sizeof(lightBuf), "%sLight%d", pName, 0);
-        getDataLightInfo(pInfo, lightID, &pActorInfo->mInfo0, lightBuf);
+        LightFunction::getDataLightInfo(pInfo, lightID, &pActorInfo->mInfo0, lightBuf);
         snprintf(lightBuf, sizeof(lightBuf), "%sLight%d", pName, 1);
-        getDataLightInfo(pInfo, lightID, &pActorInfo->mInfo1, lightBuf);
+        LightFunction::getDataLightInfo(pInfo, lightID, &pActorInfo->mInfo1, lightBuf);
         char alphaBuf[256];
         snprintf(alphaBuf, sizeof(alphaBuf), "%sAlpha2", pName);
         MR::getCsvDataU8(&pActorInfo->mAlpha2, pInfo, alphaBuf, lightID);
@@ -132,21 +142,25 @@ AreaLightInfo* LightFunction::getAreaLightInfo(const ZoneLightID& rId) {
 
 namespace {
     void blendActorLightPos(const LightInfo& rFrom, const LightInfo& rTo, LightInfo* pResult, f32 rate) {
+        TVec3f result;
         if (pResult->mIsFollowCamera) {
             if (rFrom.mIsFollowCamera) {
-                MR::blendVec(&pResult->mPos, rFrom.mPos, rTo.mPos, rate);
+                MR::vecBlend(&result, TVec3f(rFrom.mPos), TVec3f(rTo.mPos), rate);
             } else {
                 TVec3f pos(rFrom.mPos);
                 MR::getCameraViewMtx().mult(pos, pos);
-                MR::blendVec(&pResult->mPos, pos, rTo.mPos, rate);
+                MR::vecBlend(&result, pos, TVec3f(rTo.mPos), rate);
             }
         } else if (rFrom.mIsFollowCamera) {
             TVec3f pos(rFrom.mPos);
             MR::getCameraInvViewMtx().mult(pos, pos);
-            MR::blendVec(&pResult->mPos, pos, rTo.mPos, rate);
+            MR::vecBlend(&result, pos, TVec3f(rTo.mPos), rate);
         } else {
-            MR::blendVec(&pResult->mPos, rFrom.mPos, rTo.mPos, rate);
+            MR::vecBlend(&result, TVec3f(rFrom.mPos), TVec3f(rTo.mPos), rate);
         }
+        pResult->mPos.x = result.x;
+        pResult->mPos.y = result.y;
+        pResult->mPos.z = result.z;
     }
 };  // namespace
 
@@ -187,13 +201,17 @@ namespace {
     }
 };  // namespace
 
+// NONMATCHING: register scheduling
 void LightFunction::loadActorLightInfo(const ActorLightInfo* pInfo) {
     ::loadLightInfoDiffuse(pInfo->mInfo0, GX_LIGHT0);
     ::loadLightInfoDiffuse(pInfo->mInfo1, GX_LIGHT1);
 
     u8 alpha = pInfo->mAlpha2;
-    GXColor c = {0, 0, 0, alpha};
-    ::loadLightDiffuse(c, TVec3f(0.0f, 0.0f, 0.0f), GX_LIGHT2);
+    GXColor c = {};
+    c.a = alpha;
+    TVec3f origin;
+    origin.x = origin.y = origin.z = 0.0f;
+    ::loadLightDiffuse(c, origin, GX_LIGHT2);
     GXSetChanAmbColor(GX_COLOR0A0, GXColor(pInfo->mColor));
 }
 

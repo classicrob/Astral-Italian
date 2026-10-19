@@ -3,32 +3,50 @@
 #include "Game/AudioLib/AudSystem.hpp"
 #include "Game/AudioLib/AudWrap.hpp"
 #include <JSystem/JAudio2/JAISoundChild.hpp>
+#include <JSystem/JAudio2/JASCriticalSection.hpp>
+#include "Game/Util/StringUtil.hpp"
+#include <cmath>
 
 namespace {
     f32 sSpeedMin = 2.0f;
     f32 sSpeedMax = 22.0f;
     f32 sSpeedLowThreshold = 7.0f;
     f32 sSpeedMidThreshold = 12.0f;
-    f32 sTempoRateMin = 0.55f;
-    f32 sTempoRateMax = 1.22f;
-    f32 sTempoRateVeryHigh = 1.478f;
-    f32 sPitchRateNormal = 1.0f;
-    f32 sPitchRateVeryHigh = 1.189f;
-    s32 sFirstBarSteps = 107;
     s32 sStateNumLow = 1;
     s32 sStateNumMid = 2;
     s32 sStateNumHigh = 3;
     s32 sStateNumVeryHigh = 4;
-    s32 sPercTrack = 14;
+    const TamakoroBgmInfo sBgmInfo[] = {
+        {"BGM_TAMAKORO",107,30,30,134.0f,73.70000457763672f,163.48001098632812f,198.052001953125f,0.0f,0.0f,2.9969849586486816f,{14,-1}},
+        {"BGM_TAMAKORO_2",202,30,15,84.0f,80.0f,92.0f,112.0f,0.0f,0.0f,4.996984958648682f,{14,15}},
+    };
+    s32 sBgmInfoCount = 2;
 };  // namespace
 
-AudTamakoroBgmCtrl::AudTamakoroBgmCtrl() : mSteps(0) {
+AudTamakoroBgmCtrl::AudTamakoroBgmCtrl()
+    : mSteps(0), mTempoRateMin(0.0f), mTempoRateMax(0.0f), mTempoRateVeryHigh(0.0f), mPitchRateNormal(0.0f), mPitchRateVeryHigh(0.0f),
+      mFirstBarSteps(0), mPercTracks(nullptr), mInfo(nullptr), mState(-1), mPitchFrames(0) {
 }
 
-void AudTamakoroBgmCtrl::init() {
+// NONMATCHING: equivalent table-search loop layout/regalloc
+void AudTamakoroBgmCtrl::init(const char* name) {
     mSteps = 0;
+    const TamakoroBgmInfo* info = nullptr;
+    for (s32 i = 0; i < sBgmInfoCount; ++i) {
+        if (MR::isEqualString(sBgmInfo[i].mName, name)) { info = &sBgmInfo[i]; break; }
+    }
+    mInfo = info;
+    mTempoRateMin = info->mMinTempo / info->mBaseTempo;
+    mTempoRateMax = info->mMaxTempo / info->mBaseTempo;
+    mTempoRateVeryHigh = info->mVeryHighTempo / info->mBaseTempo;
+    mPitchRateNormal = ::pow(2.0, info->mPitchSemitones / 12.0f);
+    mPitchRateVeryHigh = ::pow(2.0, info->mVeryHighPitchSemitones / 12.0f);
+    mPitchFrames = info->mPitchRiseFrames;
+    mFirstBarSteps = info->mFirstBarSteps;
+    mPercTracks = info->mPercTracks;
 }
 
+// NONMATCHING: register scheduling
 void AudTamakoroBgmCtrl::control(f32 speed, bool disabled, s32 frames) {
     AudBgm* bgm = AudWrap::getStageBgm();
     if (bgm != nullptr) {
@@ -36,7 +54,7 @@ void AudTamakoroBgmCtrl::control(f32 speed, bool disabled, s32 frames) {
         if (handle != nullptr && handle->isSoundAttached()) {
             JAISoundID id = handle->getSound()->getID();
             if (id == BGM_TAMAKORO || id == BGM_TAMAKORO_2) {
-                if (mSteps > ::sFirstBarSteps) {
+                if (mSteps > mFirstBarSteps) {
                     if (speed < ::sSpeedMin) {
                         speed = ::sSpeedMin;
                     }
@@ -50,8 +68,8 @@ void AudTamakoroBgmCtrl::control(f32 speed, bool disabled, s32 frames) {
                     f32 pitchRate;
                     if (disabled) {
                         stateNum = ::sStateNumVeryHigh;
-                        tempoRate = ::sTempoRateVeryHigh;
-                        pitchRate = ::sPitchRateVeryHigh;
+                        tempoRate = mTempoRateVeryHigh;
+                        pitchRate = mPitchRateVeryHigh;
                     } else {
                         if (speed < ::sSpeedLowThreshold) {
                             stateNum = ::sStateNumLow;
@@ -63,12 +81,17 @@ void AudTamakoroBgmCtrl::control(f32 speed, bool disabled, s32 frames) {
 
                         t0 = speed - ::sSpeedMin;
                         t1 = ::sSpeedMax - ::sSpeedMin;
-                        tempoRate = ::sTempoRateMin + (t0 / t1) * (::sTempoRateMax - ::sTempoRateMin);
-                        pitchRate = ::sPitchRateNormal;
+                        tempoRate = mTempoRateMin + (t0 / t1) * (mTempoRateMax - mTempoRateMin);
+                        pitchRate = mPitchRateNormal;
+                    }
+                    if (mState != stateNum) {
+                        if (mState < stateNum) mPitchFrames = mInfo->mPitchRiseFrames;
+                        else mPitchFrames = mInfo->mPitchFallFrames;
+                        mState = stateNum;
                     }
                     bgm->changeTrackMuteState(stateNum, frames);
                     modifyTempo(handle, tempoRate);
-                    modifyPitch(handle, pitchRate);
+                    modifyPitch(handle, pitchRate, mPitchFrames);
                 }
                 mSteps++;
             }
@@ -85,17 +108,23 @@ void AudTamakoroBgmCtrl::modifyTempo(JAISoundHandle* pHandle, f32 tempo) {
     }
 }
 
-void AudTamakoroBgmCtrl::modifyPitch(JAISoundHandle* pHandle, f32 pitch) {
+void AudTamakoroBgmCtrl::modifyPitch(JAISoundHandle* pHandle, f32 pitch, u32 frames) {
     if (pHandle != nullptr && pHandle->isSoundAttached()) {
         for (s32 i = 0; i < 16; i++) {
-            if (i == ::sPercTrack) {
+            if (isPercussionTrack(i)) {
                 continue;
             }
+            JASCriticalSection crit;
             JAISoundChild* child = pHandle->getSound()->getChild(i);
             if (child == nullptr) {
                 continue;
             }
-            child->mMove.movePitch(pitch, 30);
+            child->mMove.movePitch(pitch, frames);
         }
     }
+}
+
+bool AudTamakoroBgmCtrl::isPercussionTrack(s32 track) const {
+    for (s32 i = 0; i < 2; ++i) if (mPercTracks[i] == track) return true;
+    return false;
 }

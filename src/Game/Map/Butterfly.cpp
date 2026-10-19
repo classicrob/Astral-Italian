@@ -82,11 +82,13 @@ void Butterfly::init(const JMapInfoIter& rIter) {
 
     // Colors are stored in an animation for the purposes of easy indexing
     MR::getJMapInfoArg0NoInit(rIter, &mColorIndex);
-    MR::startBrk(this, "Butterfly");
-    MR::setBrkFrameAndStop(this, mColorIndex);
 
     initHitSensor(1);
-    MR::addHitSensorMtxAnimal(this, "body", 8, ::sRadius, MR::getJointMtx(this, "buttBody"), TVec3f(0.0f, 0.0f, 0.0f));
+    TVec3f bodyOffset;
+    bodyOffset.x = 0.0f;
+    bodyOffset.y = 0.0f;
+    bodyOffset.z = 0.0f;
+    MR::addHitSensorMtxAnimal(this, "body", 8, ::sRadius, MR::getJointMtx(this, "buttBody"), bodyOffset);
     initBinder(::sRadius, 0.0f, 0);
     initSound(2, "Butterfly", nullptr, TVec3f(0.0f));
 
@@ -98,27 +100,24 @@ void Butterfly::init(const JMapInfoIter& rIter) {
         mStarPieceAppeared = true;
     }
 
-    MR::initStarPointerTarget(this, ::sDpdPointRadiusFast);
+    TVec3f starOffset;
+    starOffset.x = 0.0f;
+    starOffset.y = 0.0f;
+    starOffset.z = 0.0f;
+    MR::initStarPointerTarget(this, ::sDpdPointRadiusFast, starOffset);
     MR::setClippingTypeSphere(this, ::sRadius);
     MR::setClippingFar50m(this);
     initNerve(GET_NERVE(Butterfly, HostTypeWait));
-    makeActorAppeared();
     MR::startAction(this, "Butterfly");
     MR::setBckFrameAtRandom(this);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    }
+    MR::setBrkFrameAndStop(this, mColorIndex);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void Butterfly::initAfterPlacement() {
-    if (MR::isEqualStageName("HeavensDoorGalaxy")) {
-        TVec3f gravity;
-        MR::calcGravityVector(this, &gravity, nullptr, 0);
-        MR::makeQuatUpNoSupport(&mQuat, -gravity);
-    } else {
-        mQuat.setEuler(DEG_TO_RAD(mRotation));
-    }
+    TVec3f gravity;
+    MR::calcGravityVector(this, &gravity, nullptr, 0);
+    MR::makeQuatUpNoSupport(&mQuat, -gravity);
 }
 
 void Butterfly::control() {
@@ -314,7 +313,6 @@ bool Butterfly::tryAppearStarPeace(s32 port) {
         return false;
     }
 
-    MR::startActionSound(this, "OjStarPieceBurst");
     mStarPieceAppeared = true;
     return true;
 }

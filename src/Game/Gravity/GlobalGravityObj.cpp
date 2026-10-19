@@ -63,6 +63,12 @@ PlanetGravity* GlobalGravityObj::getGravity() {
 }
 
 namespace MR {
+    NameObj* createGlobalBarrelGravityObj(const char* pName) {
+        GlobalGravityObj* ret = new GlobalGravityObj(pName);
+        ret->mGravityCreator = new BarrelGravityCreator();
+        return ret;
+    }
+
     NameObj* createGlobalCubeGravityObj(const char* pName) {
         GlobalGravityObj* ret = new GlobalGravityObj(pName);
         ret->mGravityCreator = new CubeGravityCreator();
@@ -120,6 +126,24 @@ namespace MR {
     NameObj* createGlobalWireGravityObj(const char* pName) {
         GlobalGravityObj* ret = new GlobalGravityObj(pName);
         ret->mGravityCreator = new WireGravityCreator();
+        return ret;
+    }
+
+    NameObj* createZeroGravitySphereObj(const char* pName) {
+        GlobalGravityObj* ret = new GlobalGravityObj(pName);
+        ret->mGravityCreator = new PlaneZeroGravityCreator();
+        return ret;
+    }
+
+    NameObj* createZeroGravityBoxObj(const char* pName) {
+        GlobalGravityObj* ret = new GlobalGravityObj(pName);
+        ret->mGravityCreator = new PlaneZeroInBoxGravityCreator();
+        return ret;
+    }
+
+    NameObj* createZeroGravityCylinderObj(const char* pName) {
+        GlobalGravityObj* ret = new GlobalGravityObj(pName);
+        ret->mGravityCreator = new PlaneZeroInCylinderGravityCreator();
         return ret;
     }
 };  // namespace MR

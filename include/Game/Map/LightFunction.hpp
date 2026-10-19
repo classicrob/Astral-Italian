@@ -17,6 +17,7 @@ public:
     static ResourceHolder* loadZoneLightArchive(const char* pZoneName);
     static s32 createLightDataParser(JMapInfo**);
     static s32 createZoneDataParser(const char*, JMapInfo**);
+    static void getDataLightInfo(JMapInfo*, int, LightInfo*, const char*);
     static void getAreaLightLightData(JMapInfo*, int, AreaLightInfo*);
     static const char* getDefaultAreaLightName();
     static s32 getDefaultStepInterpolate();

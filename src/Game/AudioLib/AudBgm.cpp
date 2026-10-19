@@ -1,3 +1,4 @@
+#include "Game/AudioLib/AudMultiBgmInfo.hpp"
 #include "Game/AudioLib/AudBgm.hpp"
 #include "Game/AudioLib/AudBgmMgr.hpp"
 #include "Game/AudioLib/AudBgmSetting.hpp"
@@ -314,11 +315,11 @@ void AudMultiBgm::sendToSyncStream() {
     s32 idx = mRhythmStrategy.mBgmIdx;
     if (idx >= 0) {
         AudBgmTempoAdjuster* adjuster = meSystem->getSeqParser(idx)->getTempoAdjuster();
-        f32 beatMul = AudBgmSetting::getBeatMulForMultiBgm(mBgmId);
-        u32 introBeats = AudBgmSetting::getIntroBeatsForMultiBgm(mBgmId);
-        u32 loopBeats = AudBgmSetting::getLoopBeatsForMultiBgm(mBgmId);
-        u32 loopStartSamples = AudBgmSetting::getLoopStartSamplesForMultiBgm(mBgmId);
-        u32 loopEndSamples = AudBgmSetting::getLoopEndSamplesForMultiBgm(mBgmId);
+        f32 beatMul = AudWrap::getMultiBgmInfo()->getBeatMulForMultiBgm(mBgmId);
+        u32 introBeats = AudWrap::getMultiBgmInfo()->getIntroBeatsForMultiBgm(mBgmId);
+        u32 loopBeats = AudWrap::getMultiBgmInfo()->getLoopBeatsForMultiBgm(mBgmId);
+        u32 loopStartSamples = AudWrap::getMultiBgmInfo()->getLoopStartSamplesForMultiBgm(mBgmId);
+        u32 loopEndSamples = AudWrap::getMultiBgmInfo()->getLoopEndSamplesForMultiBgm(mBgmId);
         JAIStream* stream = mHandle->asStream();
 
         JASCriticalSection crit;
@@ -572,8 +573,8 @@ void AudMultiBgm::updateTrackControl() {
 JAISoundHandle* AudMultiBgm::prepare(u32 id) {
     u32 bgmId = id & ~(0x01010000);
 
-    u32 seqID = AudBgmSetting::getSeqIdForMultiBgm(bgmId);
-    u32 streamID = AudBgmSetting::getStreamIdForMultiBgm(bgmId);
+    u32 seqID = AudWrap::getMultiBgmInfo()->getSeqIdForMultiBgm(bgmId);
+    u32 streamID = AudWrap::getMultiBgmInfo()->getStreamIdForMultiBgm(bgmId);
 
     AudWrap::getSystem()->getSeqMgr().startSound(seqID, &mRhythmHandle, nullptr);
     if (mRhythmHandle.isSoundAttached()) {

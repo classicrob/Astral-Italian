@@ -34,6 +34,11 @@ public:
     void requestWaveForSystem(s32, s32, bool);
     void loadRequestedWaves(bool, bool);
     bool isLoadDone();
+    bool isLoadDoneSystemWaves();
+    void resetStageWaveSlots();
+    void clearWaveRequests();
+    void clearStageWaveResources();
+    void resetStageResources();
     void loadInstList();                           // fn_80087560
     void requestStageUseInstList(const char*);     // fn_80087740; PLACEHOLDER(core) name
 

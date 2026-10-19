@@ -34,6 +34,26 @@ namespace MR {
     JKRHeap* becomeCurrentHeap(JKRHeap* pHeap) NO_INLINE;  // returns the previous current heap
     bool isEqualCurrentHeap(JKRHeap* pHeap);
     void adjustHeapSize(JKRExpHeap* pHeap);
+    bool tryGetHeapSizeExceptEntry(u32*, const char*, const char*);
+    bool existsWorldMapHeapGalaxy(const char*);
+    bool tryGetHeapSizeExceptForGalaxy(u32*, const char*, const char*, const char*, s32);
+    bool isUseWorldMapHeapForGalaxy(const char*, const char*, s32);
+    // PLACEHOLDER(core): unnamed fn_80040EA0 (u32 >> 31 helper, used by KCollisionServer::isBinaryInitialized); resolve when named
+    u32 fn_80040EA0(u32);
+
+    template < int N >
+    class JKRHeapAllocator;
+
+    template <>
+    class JKRHeapAllocator< 0 > {
+    public:
+        static void* alloc(MEMAllocator* pAllocator, u32 size);
+        static void free(MEMAllocator* pAllocator, void* pPtr);
+
+        static MEMAllocator sAllocator;
+        static MEMAllocatorFunc sAllocatorFunc;
+        static JKRHeap* sHeap;
+    };
 
     /// @brief Copies `size` bytes from `pSrc` to `pDst`.
     /// @param pDst The pointer to the memory to copy to.

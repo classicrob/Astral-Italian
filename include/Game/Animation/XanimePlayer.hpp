@@ -44,6 +44,8 @@ public:
     void changeInterpoleFrame(s32);
     bool changeTrackWeight(u32, f32);
     void calcAnm(u16);
+    void updateFrameRatio() NO_INLINE;
+    f32 getEffectiveAnimationFrame() const NO_INLINE;
     void setModel(J3DModel*);
     void overWriteMtxCalc(u16);
     void clearMtxCalc(u16);
@@ -63,6 +65,8 @@ public:
     const char* getDefaultAnimationName() const;
     const char* getCurrentBckName() const;
     const char* getNameStringPointer(const char*) const;
+    bool isCurrentBckActive() const NO_INLINE;
+    bool isFrameInRange(f32, f32) const;
     bool checkPass(f32) const;
     f32 tellAnimationFrame() const;
     XanimeGroupInfo* getSimpleGroup() const;

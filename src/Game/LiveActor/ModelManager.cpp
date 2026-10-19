@@ -58,6 +58,32 @@ void ModelManager::update() {
 void ModelManager::calcAnim() {
     calc();
     updateDL(true);
+
+    XanimePlayer* pXanimePlayer = mXanimePlayer;
+    if (pXanimePlayer != nullptr) {
+        pXanimePlayer->_88 = false;
+        pXanimePlayer->_89 = false;
+    }
+
+    if (mBtkPlayer != nullptr) {
+        mBtkPlayer->clearUpdateSkipFlag();
+    }
+
+    if (mBrkPlayer != nullptr) {
+        mBrkPlayer->clearUpdateSkipFlag();
+    }
+
+    if (mBtpPlayer != nullptr) {
+        mBtpPlayer->clearUpdateSkipFlag();
+    }
+
+    if (mBpkPlayer != nullptr) {
+        mBpkPlayer->clearUpdateSkipFlag();
+    }
+
+    if (mBvaPlayer != nullptr) {
+        mBvaPlayer->clearUpdateSkipFlag();
+    }
 }
 
 void ModelManager::calcView() {
@@ -196,6 +222,40 @@ void ModelManager::stopBpk() {
 void ModelManager::stopBva() {
     if (mBvaPlayer->mAnmRes != nullptr) {
         mBvaPlayer->stop();
+    }
+}
+
+void ModelManager::resumeBtk() {
+    if (mBtkPlayer->mAnmRes != nullptr && mBtkPlayer->isStop()) {
+        mDisplayListMaker->onCurFlagBtk(mBtkPlayer->mAnmRes, "");
+        mBtkPlayer->fn_80069450();
+    }
+}
+
+void ModelManager::resumeBrk() {
+    if (mBrkPlayer->mAnmRes != nullptr && mBrkPlayer->isStop()) {
+        mDisplayListMaker->onCurFlagBrk(mBrkPlayer->mAnmRes, "");
+        mBrkPlayer->fn_80069450();
+    }
+}
+
+void ModelManager::resumeBtp() {
+    if (mBtpPlayer->mAnmRes != nullptr && mBtpPlayer->isStop()) {
+        mDisplayListMaker->onCurFlagBtp(mBtpPlayer->mAnmRes, "");
+        mBtpPlayer->fn_80069450();
+    }
+}
+
+void ModelManager::resumeBpk() {
+    if (mBpkPlayer->mAnmRes != nullptr && mBpkPlayer->isStop()) {
+        mDisplayListMaker->onCurFlagBpk(mBpkPlayer->mAnmRes, "");
+        mBpkPlayer->fn_80069450();
+    }
+}
+
+void ModelManager::resumeBva() {
+    if (mBvaPlayer->mAnmRes != nullptr && mBvaPlayer->isStop()) {
+        mBvaPlayer->fn_80069450();
     }
 }
 

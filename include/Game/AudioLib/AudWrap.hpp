@@ -5,6 +5,7 @@
 class AudStageUseResourceList;
 class AudBgm;
 class AudBgmMgr;
+class AudMultiBgmInfo;
 class AudInstListMgr;
 class AudMeObject;
 class AudRemixMgr;
@@ -21,6 +22,7 @@ class JAISoundHandle;
 namespace AudWrap {
     AudStageUseResourceList* getStageUseResourceList();
     AudSystem* getSystem();
+    AudMultiBgmInfo* getMultiBgmInfo();
     bool hasSystem();
     AudSoundInfo* getSoundInfo();
     AudSceneMgr* getSceneMgr();

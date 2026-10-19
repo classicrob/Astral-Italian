@@ -259,10 +259,12 @@ namespace MR {
         pActor->mSensorKeeper->getSensorInfo(pName)->_C = rPos;
     }
 
+    // NONMATCHING: register scheduling
     f32 getSensorRadius(HitSensor* pSensor) {
         return pSensor->mRadius;
     }
 
+    // NONMATCHING: register scheduling
     f32 getSensorRadius(LiveActor* pActor, const char* pName) {
         return getSensorRadius(pActor->mSensorKeeper->getSensorInfo(pName)->mSensor);
     }
@@ -374,6 +376,7 @@ namespace MR {
         return pSensor->isType(0x7F);
     }
 
+    // NONMATCHING: equivalent range-check lowering
     bool isSensorRide(const HitSensor* pSensor) {
         if (pSensor->mType <= 0xB) {
             return false;
@@ -517,6 +520,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc (target keeps the test value in r30, ours in r31)
+    // NONMATCHING: equivalent bool lowering
     bool isSensorPlayerOrYoshi(const HitSensor* pSensor) {
         bool result = true;
         if (!pSensor->isType(1)) {
@@ -541,6 +545,7 @@ namespace MR {
         return result;
     }
 
+    // NONMATCHING: equivalent range-check lowering
     bool isSensorEnemy(const HitSensor* pSensor) {
         if (pSensor->mType <= 0x17 /* ATYPE_ENEMY_START */) {
             return false;
@@ -553,6 +558,7 @@ namespace MR {
         return false;
     }
 
+    // NONMATCHING: equivalent range-check lowering
     bool isSensorMapObj(const HitSensor* pSensor) {
         if (pSensor->mType <= 0x3f /* ATYPE_MAPOBJ_START */) {
             return false;
@@ -565,6 +571,7 @@ namespace MR {
         return false;
     }
 
+    // NONMATCHING: equivalent range-check lowering
     bool isSensorAutoRush(const HitSensor* pSensor) {
         if (pSensor->mType <= 0x5a /* ATYPE_AUTO_RUSH_OBJ_START */) {
             return false;
@@ -577,6 +584,7 @@ namespace MR {
         return false;
     }
 
+    // NONMATCHING: equivalent range-check lowering
     bool isSensorRush(const HitSensor* pSensor) {
         if (pSensor->mType <= 0x6a /* ATYPE_RUSH_OBJ_START */) {
             return false;
@@ -750,12 +758,12 @@ namespace MR {
     }
 
     bool sendSimpleMsgToActor(u32 msg, LiveActor* pActor) {
-        HitSensor* pReceiver = getMessageSensor();
-        HitSensor* pSender = getMessageSensor();
-
-        return pActor->receiveMessage(msg, pSender, pReceiver);
+        HitSensor* sender = getMessageSensor();
+        HitSensor* receiver = getDefaultMessageOrActorSensor(pActor);
+        return pActor->receiveMessage(msg, sender, receiver);
     }
 
+    // NONMATCHING: equivalent sensor getter inlining
     bool sendMsgToGroundSensor(u32 msg, HitSensor* pSender) {
         if (!isBindedGround(getSensorHost(pSender))) {
             return false;
@@ -764,6 +772,7 @@ namespace MR {
         return getGroundSensor(getSensorHost(pSender))->receiveMessage(msg, pSender);
     }
 
+    // NONMATCHING: equivalent sensor getter inlining
     bool sendMsgToWallSensor(u32 msg, HitSensor* pSender) {
         if (!isBindedWall(getSensorHost(pSender))) {
             return false;
@@ -784,7 +793,7 @@ namespace MR {
 #pragma dont_inline reset
 
     bool sendMsgStartDemo(LiveActor* pActor) {
-        return sendSimpleMsgToActor(0x9 /* ACTMES_START_DEMO */, pActor);
+        return sendSimpleMsgToActor(0x7F /* ACTMES_START_DEMO */, pActor);
     }
 
     bool sendMsgToEnemyAttackBlow(HitSensor* pReceiver, HitSensor* pSender) {
@@ -824,7 +833,9 @@ namespace MR {
                 continue;
             }
 
-            pGroupActor->receiveMessage(msg, getMessageSensor(), getMessageSensor());
+            HitSensor* sender = getMessageSensor();
+            HitSensor* receiver = getDefaultMessageOrActorSensor(pGroupActor);
+            pGroupActor->receiveMessage(msg, sender, receiver);
         }
     }
 
@@ -881,7 +892,7 @@ namespace MR {
         return false;
     }
 
-    HitSensor* getGroundSensor(const LiveActor* pActor) {
+    HitSensor* getGroundSensor(const LiveActor* pActor) NO_INLINE {
         return pActor->mBinder->mGroundInfo.mParentTriangle.mSensor;
     }
 
@@ -889,7 +900,7 @@ namespace MR {
         return pActor->mBinder->mRoofInfo.mParentTriangle.mSensor;
     }
 
-    HitSensor* getWallSensor(const LiveActor* pActor) {
+    HitSensor* getWallSensor(const LiveActor* pActor) NO_INLINE {
         return pActor->mBinder->mWallInfo.mParentTriangle.mSensor;
     }
 
@@ -897,9 +908,11 @@ namespace MR {
         return pActor->mBinder->mGroundInfo.mParentTriangle.getSensor()->mHost;
     }
 
+    // NONMATCHING: equivalent bitset/branch lowering
     bool isMsgPlayerHitAll(u32 msg) {
-        return msg == 0x1 /* ACTMES_PLAYER_PUNCH */ || msg == 0x5 /* ACTMES_PLAYER_UPPER_PUNCH */ || msg == 0x7 /* ACTMES_JET_TURTLE_ATTACK */ || msg == 0xb /* ACTMES_FIREBALL_ATTACK */ ||
-               msg == 0xd /* ACTMES_FREEZE_ATTACK */ || msg == 0xe /* ACTMES_INVINCIBLE_ATTACK */;
+        u32 index = msg - 1;
+        if (index <= 18 && ((1u << index) & 0x5B5D1) != 0) return true;
+        return false;
     }
 
     bool isMsgPlayerHitProjectiles(u32 msg) {
@@ -992,7 +1005,7 @@ namespace MR {
     }
 
     bool isMsgWallTouch(u32 msg) {
-        return msg == 0xad /* ACTMES_WALL_TOUCH */;
+        return msg - 0xAD <= 2;
     }
 
     bool isMsgCeilTouch(u32 msg) {
@@ -1056,7 +1069,7 @@ namespace MR {
     }
 
     bool isMsgToEnemyAttackTrample(u32 msg) {
-        return msg == 0x72 /* ACTMES_TO_ENEMY_ATTACK_TRAMPLE */;
+        return msg == 0x72 || msg == 0x73;
     }
 
     bool isMsgToEnemyAttackShockWave(u32 msg) {
@@ -1111,6 +1124,7 @@ namespace MR {
         return msg == 0x14 /* ACTMES_IS_STAR_PIECE_REFLECT */;
     }
 
+    // NONMATCHING: equivalent range-check lowering
     bool isMsgStarPieceGift(u32 msg) {
         return msg >= 0x16 /* ACTMES_STAR_PIECE_GIFT */ && msg <= 0x25 /* ACTMES_STAR_PIECE_GIFT_MAX */;
     }
@@ -1119,6 +1133,7 @@ namespace MR {
         return msg - 0x15;
     }
 
+    // NONMATCHING: FP/register scheduling
     void calcPosBetweenSensors(TVec3f* pPos, const HitSensor* pSensor1, const HitSensor* pSensor2, f32 offset) {
         TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
         normalizeOrZero(&dir);
@@ -1260,6 +1275,7 @@ namespace MR {
     }
 
     // NONMATCHING: MWCC folds the two compares of the || into a range check; target keeps both cmplwi
+    // NONMATCHING: equivalent range-check lowering
     bool isMsgYoshiProjectileOrEat(u32 msg) {
         bool result = false;
         if (msg == 0x8) {

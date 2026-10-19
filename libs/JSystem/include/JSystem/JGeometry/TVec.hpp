@@ -410,7 +410,11 @@ namespace JGeometry {
     template <>
     struct TVec3< f32 > : public Vec {
 #ifdef __MWERKS__
+#ifdef JGEOMETRY_VEC3_VEC_COPY_NOINLINE
+        TVec3(const Vec& vec) NO_INLINE {
+#else
         TVec3(const Vec& vec) {
+#endif
             const register Vec* v_a = &vec;
             register Vec* v_b = this;
 
@@ -435,7 +439,11 @@ namespace JGeometry {
 #endif
 #ifdef __MWERKS__
         // Used inlined and non-inlined?
+#ifdef JGEOMETRY_VEC3_COPY_NOINLINE
+        TVec3(const TVec3< f32 >& vec) NO_INLINE {
+#else
         TVec3(const TVec3< f32 >& vec) JGEOMETRY_WMR_NOINLINE {
+#endif
             const register Vec* v_a = &vec;
             register Vec* v_b = this;
 
@@ -729,7 +737,15 @@ namespace JGeometry {
             return !(*this == rVec);
         }
 
+#ifdef JGEOMETRY_VEC3_UNARY_NEG_NOINLINE
+        TVec3 operator-() const NO_INLINE {
+#else
+#ifdef JGEOMETRY_VEC3_NEGATE_OPERATOR_NOINLINE
+        TVec3 operator-() const NO_INLINE {
+#else
         TVec3 operator-() const {
+#endif
+#endif
             TVec3 ret;
 #ifdef JGEOMETRY_VEC3_SUB_NEG_NOINLINE
             JGeometry::negateInternal(&this->x, &ret.x);

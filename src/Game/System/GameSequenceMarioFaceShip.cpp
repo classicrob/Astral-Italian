@@ -80,7 +80,7 @@ void GameSequenceMarioFaceShip::exeStart() {
         } else {
             if (isRetry) {
                 MR::forceOpenWipeCircle();
-                MR::forceOpenSystemWipeWhiteFade(0);
+                MR::forceOpenSystemWipeWhiteFade();
             } else {
                 MR::openWipeCircle(-1);
             }

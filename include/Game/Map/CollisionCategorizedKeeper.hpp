@@ -22,7 +22,8 @@ public:
     void addToGlobal(CollisionParts*);
     void removeFromGlobal(CollisionParts*);
 
-    s32 checkStrikePoint(const TVec3f&, HitInfo*);
+    s32 checkStrikePoint(const TVec3f& pos, HitInfo* info) { return checkStrikePoint(pos, info, nullptr, nullptr); }
+    s32 checkStrikePoint(const TVec3f&, HitInfo*, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeBall(const TVec3f&, f32, bool, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeBallWithThickness(const TVec3f&, f32, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeLine(const TVec3f&, const TVec3f&, s32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
@@ -51,6 +52,7 @@ public:
     void calcMinMaxAndRadiusIfMoveOuter(CollisionParts*);
     void addAndUpdateMinMax(TVec3f, TVec3f);
     void eraseParts(CollisionParts*);
+    bool contains(const CollisionParts*) const;
 
     /* 0x000 */ s32 mZoneID;
     /* 0x004 */ MR::Vector< MR::FixedArray< CollisionParts*, 512 > > mParts;

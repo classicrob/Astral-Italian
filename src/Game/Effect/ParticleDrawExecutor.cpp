@@ -35,6 +35,7 @@ void ParticleDrawExecutor::draw3D() const {
     drawWithViewMtx3D(MR::getCameraViewMtx());
 }
 
+// NONMATCHING: FP/register scheduling
 void ParticleDrawExecutor::draw2D() const {
     if (_20) {
         TPos3f cameraMtx;
@@ -47,7 +48,7 @@ void ParticleDrawExecutor::draw2D() const {
         width *= 0.5f;
 
         Mtx44 projection;
-        C_MTXOrtho(projection, -height, height, -width, width, -1000.0f, 1000.0f);
+        C_MTXOrtho(projection, -height, height, -width, width, -10000.0f, 10000.0f);
         GXSetProjection(projection, GX_ORTHOGRAPHIC);
         GXSetCullMode(GX_CULL_NONE);
         GXSetZMode(GX_FALSE, GX_NEVER, GX_FALSE);
@@ -87,6 +88,10 @@ void ParticleDrawExecutor::drawAfterImageEffect() const {
     drawWithViewMtxAfterImageEffect(MR::getCameraViewMtx());
 }
 
+void ParticleDrawExecutor::drawForWorldMap() const {
+    drawWithViewMtxForWorldMap(MR::getCameraViewMtx());
+}
+
 void ParticleDrawExecutor::drawWithViewMtx3D(const TPos3f& rViewMtx) const {
     if (_20) {
         JPADrawInfo drawInfo(rViewMtx);
@@ -121,6 +126,14 @@ void ParticleDrawExecutor::drawWithViewMtxAfterImageEffect(const TPos3f& rViewMt
     }
 }
 
+void ParticleDrawExecutor::drawWithViewMtxForWorldMap(const TPos3f& view) const {
+    if (_20) {
+        JPADrawInfo info(view);
+        mHost->mEmitterManager->draw(&info, 9);
+        GXSetClipMode(GX_CLIP_ENABLE);
+    }
+}
+
 void ParticleDrawExecutor::initDrawAdaptor() {
     _4 = new NameObjAdaptor("3Dパーティクル");
     ::connectToSceneDrawAdaptor(_4, MR::Functor(this, &ParticleDrawExecutor::draw3D), MR::DrawType_EffectDraw3D);
@@ -142,4 +155,15 @@ void ParticleDrawExecutor::initDrawAdaptor() {
 
     _1C = new NameObjAdaptor("イメージエフェクト後パーティクル");
     ::connectToSceneDrawAdaptor(_1C, MR::Functor(this, &ParticleDrawExecutor::drawAfterImageEffect), MR::DrawType_EffectDrawAfterImageEffect);
+
+    _SMG2_20 = new NameObjAdaptor("ワールドマップアイコン用パーティクル");
+    ::connectToSceneDrawAdaptor(_SMG2_20, MR::Functor(this, &ParticleDrawExecutor::drawForWorldMap), MR::DrawType_EffectDrawWorldMapMiniIcon);
+}
+
+void MR::FunctorV0F::operator()() const {
+    reinterpret_cast<void (*)()>(mFunc)();
+}
+
+MR::FunctorBase* MR::FunctorV0F::clone(JKRHeap* heap) const {
+    return new (heap, 0) FunctorV0F(*this);
 }

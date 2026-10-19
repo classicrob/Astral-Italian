@@ -4,10 +4,11 @@
 
 class SyncBckEffectInfo;
 class XanimePlayer;
+class ActorAnimKeeper;
 
 class SyncBckEffectChecker {
 public:
-    SyncBckEffectChecker(XanimePlayer* pPlayer, s32 index);
+    SyncBckEffectChecker(XanimePlayer* pPlayer, ActorAnimKeeper* keeper);
 
     void updateBefore();
     void updateAfter();
@@ -20,7 +21,7 @@ public:
     bool checkPassIfRate0(f32 frame) const;
 
     /* 0x00 */ XanimePlayer* mPlayer;
-    /* 0x04 */ s32 mIndex;
+    /* 0x04 */ ActorAnimKeeper* mAnimKeeper;
     /* 0x08 */ f32 mPrevFrame;
     /* 0x0C */ bool mIsReset;
     /* 0x0D */ bool mIsCreateEnabled;

@@ -37,11 +37,13 @@ const TPos3f& CameraContext::getInvViewMtx() const {
 }
 
 f32 CameraContext::getAspect() const {
-    if (MR::isScreen16Per9()) {
-        return 16.0f / 9.0f;
-    } else {
-        return static_cast< f32 >(MR::getScreenWidth()) / MR::getScreenHeight();
-    }
+    f32 height = MR::getScreenHeight();
+    f32 width = MR::getScreenWidth();
+    return width / height;
+}
+
+f32 CameraContext::getScreenScale() const {
+    return 812.0f / MR::getScreenHeight();
 }
 
 void CameraContext::setViewMtx(const TPos3f& rMtx, bool b1, bool b2, const TVec3f& rVec) {
@@ -69,8 +71,13 @@ void CameraContext::setShakeOffset(f32 x, f32 y) {
     updateProjectionMtx();
 }
 
+// NONMATCHING: FP/register scheduling
 void CameraContext::updateProjectionMtx() {
-    mProjection.makePerspective(mFovy, getAspect(), mNearZ, mFarZ);
+    f32 far = mFarZ;
+    f32 near = mNearZ;
+    f32 height = MR::getScreenHeight();
+    f32 width = MR::getScreenWidth();
+    mProjection.makePerspective(mFovy, width / height, near, far);
 
     TProj3f trans;
     trans.makeTrans(mShakeOffset.x, mShakeOffset.y);

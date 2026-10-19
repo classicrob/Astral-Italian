@@ -35,7 +35,7 @@ public:
     void updateBoundingSphereRangePrivate(f32);
     const char* getHostName() const;
     s32 getPlacementZoneID() const;
-    bool checkStrikePoint(HitInfo*, const TVec3f&);
+    bool checkStrikePoint(HitInfo*, const TVec3f&, const TriangleFilterBase* = nullptr);
     u32 checkStrikeBall(HitInfo*, u32, const TVec3f&, f32, bool, const TriangleFilterBase*);
     u32 checkStrikeBallCore(HitInfo*, u32, const TVec3f&, const TVec3f&, f32, f32, f32, KC_PrismData**, f32*, u8*, const TriangleFilterBase*,
                             const TVec3f*);

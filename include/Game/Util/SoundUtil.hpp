@@ -181,6 +181,13 @@ namespace MR {
 }
 
 namespace MR {
+    u32 getCSSoundID(const char*);
+    JAISoundID fn_8005ADD0(const char*);
+    // PLACEHOLDER(core): unnamed in auto_03_80041BE0 (wraps AudMeNameConverter::getMeID); resolve when named
+    u32 fn_80042230(const char*);
+}
+
+namespace MR {
     void startStarGetJingle();
     void startGrandStarGetJingle();
 }

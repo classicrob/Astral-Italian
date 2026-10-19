@@ -154,3 +154,51 @@ public:
     /* 0x4 */ RailRider* mRailRider;
     /* 0x8 */ WireGravity* mGravityInstance;
 };
+
+class BarrelGravity;
+
+class BarrelGravityCreator : public GravityCreator {
+public:
+    inline BarrelGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    }
+
+    virtual PlanetGravity* getGravity();
+    virtual PlanetGravity* createInstance();
+
+    /* 0x4 */ BarrelGravity* mGravityInstance;
+};
+
+// PLACEHOLDER(core): zero-gravity creators are only constructed by GlobalGravityObj.cpp here; their member
+// and virtual layout is inferred from the vtables. Resolve when the PlaneZero*GravityCreator units are sourced.
+class PlaneZeroGravityCreator : public GravityCreator {
+public:
+    inline PlaneZeroGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    }
+
+    virtual PlanetGravity* getGravity();
+    virtual PlanetGravity* createInstance();
+
+    /* 0x4 */ PlanetGravity* mGravityInstance;
+};
+
+class PlaneZeroInBoxGravityCreator : public GravityCreator {
+public:
+    inline PlaneZeroInBoxGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    }
+
+    virtual PlanetGravity* getGravity();
+    virtual PlanetGravity* createInstance();
+
+    /* 0x4 */ PlanetGravity* mGravityInstance;
+};
+
+class PlaneZeroInCylinderGravityCreator : public GravityCreator {
+public:
+    inline PlaneZeroInCylinderGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    }
+
+    virtual PlanetGravity* getGravity();
+    virtual PlanetGravity* createInstance();
+
+    /* 0x4 */ PlanetGravity* mGravityInstance;
+};

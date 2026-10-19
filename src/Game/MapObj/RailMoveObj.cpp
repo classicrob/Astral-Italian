@@ -1,3 +1,4 @@
+#include "Game/Util/MapUtil.hpp"
 #include "Game/MapObj/RailMoveObj.hpp"
 #include "Game/Util.hpp"
 #include "Game/Demo/DemoCtrlBase.hpp"
@@ -510,8 +511,6 @@ RailMoveLavaProjmapObj::RailMoveLavaProjmapObj(const char* pName) : RailMoveObj(
     _F0 = 0.0f;
 }
 
-// PLACEHOLDER(objects): fn_800389C0 (TVec3f* out, LiveActor*) is an unnamed MapUtil helper (calcGravityVector, calcModelBoundingRadius); resolve when named
-extern "C" void fn_800389C0(TVec3f*, const LiveActor*);
 
 // NONMATCHING: same ops and calls; target keeps extra f32/TVec3f stack temporaries (frame 0x60, gravity at 0x44) and PS-register allocation differs
 void RailMoveLavaProjmapObj::initAfterPlacement() {
@@ -520,7 +519,7 @@ void RailMoveLavaProjmapObj::initAfterPlacement() {
     gravity *= 1000.0f;
 
     if (!MR::getFirstPolyOnLineToMapExceptActor(&_E0, 0, mPosition, gravity, this)) {
-        fn_800389C0(&_E0, this);
+        MR::calcMapGroundUpper(&_E0, this);
     }
 
     _EC = PSVECDistance(&mPosition, &_E0);

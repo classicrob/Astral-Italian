@@ -22,6 +22,7 @@ class SingleEmitter;
 namespace MR {
     namespace Effect {
         void requestMovementOnAllEmitters();
+        void requestMovementOffAllEmitters();
         void requestMovementOffAllLoopEmitters();
         void checkEffectSceneUpdate(const EffectSystem* pSystem);
         void movementEffectNormal(const EffectSystem* pSystem);

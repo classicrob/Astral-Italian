@@ -12,6 +12,8 @@ namespace AudWrap {
         return AudSystem::msBasic;
     }
 
+    AudMultiBgmInfo* getMultiBgmInfo() { return AudSystem::msBasic->mMultiBgmInfo; }
+
     bool hasSystem() {
         return getSystem() != nullptr;
     }

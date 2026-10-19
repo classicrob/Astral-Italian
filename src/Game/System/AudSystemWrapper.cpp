@@ -1,3 +1,4 @@
+#define AUD_ARCHIVE_SET_MANUAL_RESET
 #include "Game/System/AudSystemWrapper.hpp"
 #include "Game/Util.hpp"
 #include "Game/AudioLib/AudMeNameConverter.hpp"
@@ -6,6 +7,9 @@
 #include "Game/AudioLib/AudSoundNameConverter.hpp"
 #include "Game/AudioLib/AudSpeakerWrap.hpp"
 #include "Game/AudioLib/AudSystem.hpp"
+#include "Game/AudioLib/AudInstListMgr.hpp"
+#include "Game/AudioLib/AudStageUseResourceList.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/AudioLib/CSSoundNameConverter.hpp"
 #include "Game/Util/FileUtil.hpp"
 #include "Game/Util/SingletonHolder.hpp"
@@ -27,18 +31,18 @@ AudSystemWrapper::AudSystemWrapper(JKRSolidHeap* pSolidHeap, JKRHeap* pHeap, JKR
     mSpkRes = nullptr;
     _28 = false;
     mDisableReset = false;
-    mSpkHeap = JKRExpHeap::create(AudSpeakerWrap::getRequiredHeapSize(), pSystemHeap, false);
+    mArchives.reset();
+    mSpkHeap = JKRExpHeap::create(0x50000, pSystemHeap, false);
 }
 
 void AudSystemWrapper::requestResourceForInitialize() {
     MR::loadAsyncToMainRAM(sAudioResFile, nullptr, mHeap, JKRDvdRipper::ALLOC_DIRECTION_BACKWARD);
-    MR::mountAsyncArchive(sJaiSeqArc, mSolidHeap);
-    MR::mountAsyncArchive(sJaiChordArc, mSolidHeap);
-    MR::mountAsyncArchive(sJaiMeArc, mSolidHeap);
-    MR::mountAsyncArchive(AudSpeakerWrap::getResName(), mSpkHeap);
-    MR::mountAsyncArchive(sJaiRemixArc, mSolidHeap);
-    // PLACEHOLDER(core): SMG2 MR::mountAsyncArchive takes two more arguments (1, 2 here; 1, 1 above); resolve when FileUtil's signature is recovered
-    MR::mountAsyncArchive(sJaiInstListArc, mHeap);
+    MR::mountAsyncArchive(sJaiSeqArc, mSolidHeap, true, true);
+    MR::mountAsyncArchive(sJaiChordArc, mSolidHeap, true, true);
+    MR::mountAsyncArchive(sJaiMeArc, mSolidHeap, true, true);
+    MR::mountAsyncArchive("/AudioRes/Info/JaiRemixSeq.arc", mSolidHeap, true, true);
+    MR::mountAsyncArchive(AudSpeakerWrap::getResName(), mSpkHeap, true, true);
+    MR::mountAsyncArchive("/AudioRes/Info/SoundIdToInstList.arc", mHeap, true, 2);
 }
 
 void AudSystemWrapper::createAudioSystem() {
@@ -53,7 +57,9 @@ void AudSystemWrapper::createAudioSystem() {
     mDisableReset = false;
 
     MR::removeFileConsideringLanguage(sAudioResFile);
-    mArchives.reset();
+    mArchives.mSmrRes = nullptr;
+    MR::removeFileConsideringLanguage("/AudioRes/Info/SoundIdToInstList.arc");
+    mArchives.mInstListArchive = nullptr;
 
     mAudSystem->setSpeakerResource(mSpkRes);
     createSoundNameConverter();
@@ -61,7 +67,6 @@ void AudSystemWrapper::createAudioSystem() {
 }
 
 void AudSystemWrapper::createSoundNameConverter() {
-    AudSingletonHolder< AudSoundNameConverter >::init();
     AudSingletonHolder< AudMeNameConverter >::init();
     AudSingletonHolder< CSSoundNameConverter >::init();
 }
@@ -83,7 +88,7 @@ void AudSystemWrapper::movement() {
 }
 
 void AudSystemWrapper::stopAllSound(u32 time) {
-    mAudSystem->stop(time);
+    if (mAudSystem) mAudSystem->stopAllSounds(time);
 }
 
 bool AudSystemWrapper::isLoadDoneWaveDataAtSystemInit() const {
@@ -152,6 +157,7 @@ bool AudSystemWrapper::isLoadDoneStageWaveData() const {
     return mAudSystem->mSceneMgr->isLoadDoneStageResource();
 }
 
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void AudSystemWrapper::loadScenarioWaveData(const char* pSceneName, const char* pStageName, s32 scenarioNo) {
     if (mAudSystem == nullptr) {
         return;
@@ -164,16 +170,61 @@ void AudSystemWrapper::loadScenarioWaveData(const char* pSceneName, const char* 
     mAudSystem->mSceneMgr->loadScenarioResource(pSceneName, pStageName, scenarioNo);
 }
 
+void AudSystemWrapper::setStageResourceLoading(bool flag) {
+    if (mAudSystem) mAudSystem->mInstListMgr->loadRequestedWaves(flag, true);
+}
+
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+void AudSystemWrapper::loadScenarioWaveData(const char* scene, const char* stage, s32 scenario, bool flag) {
+    if (!mAudSystem || !mAudSystem->mSceneMgr) return;
+    mAudSystem->mSceneMgr->loadScenarioResource(scene, stage, scenario);
+    AudInstListMgr* mgr = mAudSystem->mInstListMgr;
+    if (GameSequenceFunction::isGreenStarEventOnly()) mgr->requestWave(0x34, 30, false);
+    mgr->loadRequestedWaves(flag, true);
+    mgr->resetStageWaveSlots();
+    mgr->_281C = false;
+}
+
 bool AudSystemWrapper::isLoadDoneScenarioWaveData() const {
-    if (mAudSystem == nullptr) {
-        return false;
-    }
+    return isLoadDoneRequestedWaves();
+}
 
-    if (mAudSystem->mSceneMgr == nullptr) {
-        return false;
-    }
+void AudSystemWrapper::finishStageResourceLoading() {
+    mAudSystem->mInstListMgr->clearWaveRequests();
+}
 
-    return mAudSystem->mSceneMgr->isLoadDoneScenarioResource();
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+bool AudSystemWrapper::isLoadDoneRequestedWaves() const {
+    if (!mAudSystem) return false;
+    return mAudSystem->mInstListMgr->isLoadDone() != 0;
+}
+
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+bool AudSystemWrapper::isLoadDoneSystemWaves() const {
+    if (!mAudSystem) return false;
+    return mAudSystem->mInstListMgr->isLoadDoneSystemWaves() != 0;
+}
+
+void AudSystemWrapper::clearStageWaveResources() {
+    if (mAudSystem) mAudSystem->mInstListMgr->clearStageWaveResources();
+}
+
+void AudSystemWrapper::resetStageResources() {
+    if (mAudSystem) mAudSystem->mInstListMgr->resetStageResources();
+}
+
+void AudSystemWrapper::loadStageUseResources() {
+    mAudSystem->mStageUseResourceList->load();
+}
+
+void AudSystemWrapper::loadSystemWaveData() {
+    mAudSystem->mSceneMgr->loadSystemResource();
+}
+
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+void AudSystemWrapper::requestWaveResource() {
+    if (!mAudSystem || !mAudSystem->mSceneMgr) return;
+    mAudSystem->mSceneMgr->requestResource();
 }
 
 bool AudSystemWrapper::isPermitToReset() const {
@@ -193,7 +244,7 @@ void AudSystemWrapper::requestReset(bool stopThreads) {
         mIsResetDone = true;
     } else {
         mAudSystem->resetAudio(10, stopThreads);
-        mAudSystem->stop(10);
+        if (mAudSystem) mAudSystem->stopAllSounds(10);
     }
 }
 
@@ -227,7 +278,7 @@ void AudSystemWrapper::receiveResourceForInitialize() {
     mArchives.mSeqArchive = MR::receiveArchive(sJaiSeqArc);
     mArchives.mChordArchive = MR::receiveArchive(sJaiChordArc);
     mArchives.mMeArchive = MR::receiveArchive(sJaiMeArc);
+    mArchives.mRemixArchive = MR::receiveArchive("/AudioRes/Info/JaiRemixSeq.arc");
+    mArchives.mInstListArchive = MR::receiveArchive("/AudioRes/Info/SoundIdToInstList.arc");
     mSpkRes = MR::receiveArchive(AudSpeakerWrap::getResName());
-    mArchives.mRemixArchive = MR::receiveArchive(sJaiRemixArc);
-    mArchives.mInstListArchive = MR::receiveArchive(sJaiInstListArc);
 }

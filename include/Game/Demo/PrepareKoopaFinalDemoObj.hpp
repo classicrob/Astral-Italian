@@ -13,7 +13,8 @@ public:
 
     void exeShake();
     void exeStopShake();
-    void requestWorldMapAfterWipe(s32);
+    void exeStopShakeEnd();
+    void requestWorldMapAfterWipe();
     void setRandomBckFrame(s32);
 
     /* 0x90 */ LiveActor* mKoopaSign;

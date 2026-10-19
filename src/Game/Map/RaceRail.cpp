@@ -32,15 +32,13 @@ void PlayerRacer::appear() {
 void PlayerRacer::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     initRailRider(rIter);
+    s32 radius = -1;
+    MR::getRailArg7WithInit(this, &radius);
+    if (radius >= 0) _C0 = radius;
     mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::initActorCamera(this, rIter, &mCameraInfo);
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 
     MR::invalidateClipping(this);
 }
@@ -49,41 +47,33 @@ void PlayerRacer::startRacer() {
     MR::endActorCamera(this, mCameraInfo, true);
 }
 
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 bool PlayerRacer::updateRacer(const RaceManager* pRaceManager) {
+    if (_C4) return true;
     PlayerRacer* racer = pRaceManager->mPlayerRacer;
     f32 railCoord = MR::calcNearestRailCoord(racer, *MR::getPlayerCenterPos());
-    f32 railLength = MR::getRailTotalLength(racer);
-
-    mPrevPosition.set(mCurrPosition);
-    mCurrPosition.set(*MR::getPlayerCenterPos());
-
+    f32 railLength = MR::getRailTotalLength(pRaceManager->mPlayerRacer);
+    mPrevPosition.set<f32>(mCurrPosition);
+    mCurrPosition.set<f32>(*MR::getPlayerCenterPos());
     TVec3f railPos;
-    MR::calcNearestRailPos(&railPos, racer, *MR::getPlayerCenterPos());
-
-    if ((railPos - *MR::getPlayerCenterPos()).length() > ::sRaceJudgeLength) {
-        return false;
-    }
-    if (MR::fabs(mRailCoord - railCoord) < ::sRaceJudgeLength) {
-        mRailCoord = railCoord;
-    }
-
-    s32 a1, a2;
-    MR::getCurrentRailPointArg0WithInit(this, &a1);
+    MR::calcNearestRailPos(&railPos, pRaceManager->mPlayerRacer, *MR::getPlayerCenterPos());
     MR::setRailCoord(this, mRailCoord);
-    MR::getCurrentRailPointArg0WithInit(this, &a2);
-
-    if (a1 != -1 && a1 == a2) {
-        mRailCoord = railCoord;
-    }
-
-    if (MR::fabs(mRailCoord - railLength) < 100.0f) {
-        if (pRaceManager->isGoal(this)) {
+    mRailCoord = railCoord;
+    TVec3f endPos(0.0f, 0.0f, 0.0f);
+    MR::calcRailEndPointPos(&endPos, this);
+    if (MR::fabs(mRailCoord - railLength) < 1000.0f) {
+        TVec3f end(0.0f, 0.0f, 0.0f);
+        MR::calcRailEndPointPos(&end, this);
+        if (MR::calcDistanceToPlayer(end) < _C0 && pRaceManager->isGoal(this)) {
             MR::tryRumblePadVeryStrong(this, WPAD_CHAN0);
+            _C4 = true;
             return true;
         }
+    }
+    if (!_C4 && mCurrPosition.z < endPos.z - 1000.0f) {
+        MR::forceKillPlayerByAbyss();
         return false;
     }
-
     return false;
 }
 
@@ -111,6 +101,7 @@ void RaceRail::init(const JMapInfoIter& rIter) {
 
 void PlayerRacer::initRacer() {
     AbstractRacer::initRacer();
+    _C4 = false;
     MR::startBckPlayer("Watch");
 }
 
@@ -124,30 +115,9 @@ void PlayerRacer::prepRacer(const RaceManager* pRaceManager) {
     TPos3f mtx;
     TVec3f pos;
 
-    switch (pRaceManager->mCurrentRace) {
-    case RaceID_Penguin: {
-        TVec3f s = mPosition - grav * 500.f;
-        TVec3f pos(mPosition);
-        MR::getFirstPolyOnLineToWaterSurface(&pos, nullptr, s, grav * 1000.0f);
-        pos -= grav * 15.0f;
+    if (static_cast<u32>(pRaceManager->mCurrentRace) <= 1) {
+        MR::findNamePos("レース開始時マリオ位置", &pos, nullptr);
         MR::makeMtxFrontUpPos(&mtx, MR::getRailDirection(this), -grav, pos);
-        MR::startBckPlayer("SwimDrift", nullptr);
-        break;
-    }
-    case RaceID_TeresaPhantom: {
-        pos = mPosition;
-        MR::convertPosOnGround(&pos, grav * 1000.0f);
-        MR::makeMtxFrontUpPos(&mtx, MR::getRailDirection(this), -grav, pos);
-        MR::startBckPlayer("BattleWait", nullptr);
-        break;
-    }
-    case RaceID_TeresaDeathPromenade: {
-        pos = mPosition;
-        MR::makeMtxFrontUpPos(&mtx, MR::getRailDirection(this), -grav, pos);
-        MR::startBckPlayer("Wait", nullptr);
-        MR::onFollowDemoEffect();
-        break;
-    }
     }
 
     MR::tryPlayerKillTakingActor();
@@ -159,21 +129,8 @@ void PlayerRacer::resetRacer(const RaceManager* pRaceManager) {
     MR::tryPlayerKillTakingActor();
     MR::setPlayerPosOnGround("レース終了後位置");
 
-    switch (pRaceManager->mCurrentRace) {
-    case RaceID_Penguin:
-    case RaceID_TeresaPhantom:
-    case RaceID_SurfingTrial:
-    case RaceID_SurfingChallenge:
+    if (static_cast<u32>(pRaceManager->mCurrentRace) <= 1) {
         MR::startBckPlayer("Watch", nullptr);
-        break;
-    case RaceID_TeresaDeathPromenade:
-        MR::onFollowDemoEffect();
-        if (pRaceManager->mRank != 1) {
-            MR::startBckPlayer("Sad", nullptr);
-        } else {
-            MR::startBckPlayer("Wait", nullptr);
-        }
-        break;
     }
 
     MR::progressPlayerBckOnPause();

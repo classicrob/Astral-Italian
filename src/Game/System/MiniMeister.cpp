@@ -1,11 +1,16 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_VEC3_MI_NOINLINE
+#define JGEOMETRY_VEC3_MUL_NOINLINE
 #include "Game/System/MiniMeister.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
 
 namespace {
-    const TVec2f sTalkScreenPos(140.0f, 0.0f);
-    const TVec3f sTalkOffset(0.0f, 2000.0f, -500.0f);
+    extern const TVec2f sTalkScreenPos;
+    extern const TVec3f sTalkOffset;
 }  // namespace
 
 namespace NrvMiniMeister {
@@ -18,12 +23,8 @@ namespace NrvMiniMeister {
     NEW_NERVE(MiniMeisterNrvDisappear, MiniMeister, Disappear);
 };  // namespace NrvMiniMeister
 
-MiniMeister::MiniMeister() : LiveActor("\x83\x7E\x83\x6A\x83\x7D\x83\x43\x83\x58\x83\x5E\x81\x5B"), mScreenPos(sTalkScreenPos) {
-    mUnk90 = 0.0f;
-    mUnk94 = 0.0f;
-    mUnk98 = 1.0f;
-    // NONMATCHING: the target stores an uninitialized register (r4) into mOwner.
-    mOwner = NULL;
+MiniMeister::MiniMeister(MiniMeisterOwner* pOwner) : LiveActor("ミニマイスター"), mUnk90(0.0f), mUnk94(0.0f), mUnk98(1.0f), mScreenPos(sTalkScreenPos) {
+    mOwner = pOwner;
 }
 
 MiniMeister::~MiniMeister() {}
@@ -50,7 +51,8 @@ void MiniMeister::appear() {
 
 void MiniMeister::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    MR::showModel((LiveActor*)MR::emitEffect(this, "HeadLight"));
+    MR::emitEffect(this, "HeadLight");
+    MR::showModel(this);
 }
 
 void MiniMeister::makeActorDead() {
@@ -59,7 +61,7 @@ void MiniMeister::makeActorDead() {
 }
 
 void MiniMeister::calcAndSetBaseMtx() {
-    MR::calcTalkBaseMtx(&mUnk90);
+    MR::fn_8000F880(this, reinterpret_cast<TVec3f*>(&mUnk90));
 }
 
 void MiniMeister::control() {
@@ -106,56 +108,52 @@ s32 MiniMeister::isTalkEnding() const {
     return result;
 }
 
-// NONMATCHING: the vector arithmetic is approximated from the draft.
 void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
-    MiniMeister* pActor = this;
     TVec3f root;
     TVec3f center;
-    MR::extractMtxTrans(MR::getJointMtx(pActor, "All_Root"), &root);
-    MR::extractMtxTrans(MR::getJointMtx(pActor, "Center"), &center);
-    TVec3f diff = root - center;
-    TVec3f camPos = MR::getCamPos();
-    TVec3f toCam = camPos - (diff + rPos);
-    TVec3f dir;
-    MR::normalizeOrZero(&dir, toCam);
-    if (!MR::isSameDirection(dir, pActor->mGravity, 0.01f)) {
-        TVec3f negDir;
-        negDir.set(-dir.x, -dir.y, -dir.z);
-        if (!MR::isSameDirection(negDir, pActor->mGravity, 0.01f)) {
-            pActor->mPosition.set(dir);
+    MR::extractMtxTrans(MR::getJointMtx(this, "All_Root"), &root);
+    MR::extractMtxTrans(MR::getJointMtx(this, "Center"), &center);
+    TVec3f offset = root - center;
+    TVec3f pos = offset + rPos;
+    MR::setPosition(this, pos);
+    TVec3f direction = MR::getCamPos() - mPosition;
+    MR::normalizeOrZero(&direction);
+    if (!MR::isSameDirection(direction, mGravity, 0.01f)) {
+        TVec3f negative;
+        negative.negate(direction);
+        if (!MR::isSameDirection(negative, mGravity, 0.01f)) {
+            reinterpret_cast<TVec3f*>(&mUnk90)->set<f32>(direction);
         }
     }
 }
 
-// NONMATCHING: the screen/world math is approximated from the draft.
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void MiniMeister::updateTalkScreenPos(f32 ratio) {
-    MiniMeister* pActor = this;
-    f32 fovy = MR::getFovy();
-    f32 halfTan = MR::tan(0.017453292f * (fovy * 0.5f));
+    TVec2f screen;
+    screen.x = mScreenPos.x;
+    screen.y = mScreenPos.y;
+    f32 halfTan = MR::tan(0.017453292f * (0.5f * MR::getFovy()));
     TVec3f worldPos;
-    MR::calcWorldPositionFromCenterScreen(&worldPos, pActor->mScreenPos, (875.0f * MR::tan(0.3926991f)) / halfTan);
-
-    TVec3f anchor = *pActor->mOwner->mTalkActor->getPosition();
-    TVec3f anchorScreen;
+    MR::calcWorldPositionFromCenterScreen(&worldPos, screen, (875.0f * MR::tan(0.3926991f)) / halfTan);
+    TVec3f anchor;
+    anchor.set<f32>(mOwner->mTalkActor->mPosition + sTalkOffset);
+    TVec2f anchorScreen;
     MR::calcScreenPosition(&anchorScreen, anchor);
-    TVec2f anchorScreen2(anchorScreen.x, anchorScreen.y);
-    TVec2f worldScreen2(worldPos.x, worldPos.y);
-
-    TVec3f camPos = MR::getCamPos();
-    TVec3f d1 = anchorScreen - worldPos;
-    f32 distA = PSVECMag(&d1);
-    TVec3f d2 = worldPos - camPos;
-    f32 distB = PSVECMag(&d2);
+    TVec2f worldScreen;
+    MR::calcScreenPosition(&worldScreen, worldPos);
+    f32 distA = (anchor - MR::getCamPos()).length();
+    f32 distB = (worldPos - MR::getCamPos()).length();
     f32 scale = distB / distA;
     f32 blend = scale + (ratio * (1.0f - scale));
-
-    TVec2f sp30 = worldScreen2 * blend;
-    TVec2f sp38 = anchorScreen2 * (1.0f - blend);
-    TVec2f mix = sp30 + sp38;
+    TVec2f a = worldScreen * blend;
+    TVec2f b = anchorScreen * (1.0f - blend);
+    TVec2f mix = a + b;
     TVec3f dir;
     MR::calcWorldRayDirectionFromScreen(&dir, mix);
     MR::normalize(&dir);
-    TVec3f pos = camPos + dir * (distB);
+    TVec3f scaled = dir * (1.0f / blend);
+    TVec3f delta = scaled * distB;
+    TVec3f pos = MR::getCamPos() + delta;
     calcPositionFromCamera(pos);
 }
 
@@ -207,6 +205,7 @@ void MiniMeister::exeWait() {
 }
 
 // fn_804E40F0: turns the meister toward the camera.
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void MiniMeister::exeTalk() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Talk");
@@ -243,7 +242,7 @@ void MiniMeister::exeTalkEnd() {
     updateTalkScreenPos(1.0f - ease);
     if (MR::isGreaterEqualStep(this, 30)) {
         MR::tryRumblePadMiddle(mOwner->mTalkActor, 0);
-        MR::stopTalkEffect(mOwner->mTalkActor);
+        static_cast<MiniPlayerRocket*>(mOwner->mTalkActor)->startBounce();
         setNerve(&NrvMiniMeister::MiniMeisterNrvDisappear::sInstance);
     }
 }
@@ -258,3 +257,8 @@ void MiniMeister::exeDisappear() {
     }
 }
 
+
+namespace {
+    const TVec2f sTalkScreenPos(140.0f, 0.0f);
+    const TVec3f sTalkOffset(0.0f, 2000.0f, -500.0f);
+}

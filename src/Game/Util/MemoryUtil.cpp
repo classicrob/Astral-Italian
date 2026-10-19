@@ -7,6 +7,7 @@
 #include <JSystem/JKernel/JKRExpHeap.hpp>
 #include <JSystem/JKernel/JKRSolidHeap.hpp>
 #include <mem.h>
+#include <cstdio>
 
 namespace MR {
     CurrentHeapRestorer::CurrentHeapRestorer(JKRHeap* pHeap) {
@@ -37,6 +38,12 @@ namespace MR {
     MEMAllocator NewDeleteAllocator::sAllocator = {&sAllocatorFunc};
 
 
+    MEMAllocator* getHomeButtonLayoutAllocator() {
+        JKRHeapAllocator< 0 >::sHeap = SingletonHolder< HeapMemoryWatcher >::get()->mHomeButtonLayoutHeap;
+
+        return &JKRHeapAllocator< 0 >::sAllocator;
+    }
+
     JKRHeap* getCurrentHeap() {
         return JKRHeap::sCurrentHeap;
     }
@@ -63,6 +70,18 @@ namespace MR {
         return SingletonHolder< HeapMemoryWatcher >::get()->mSceneHeapGDDR;
     }
 
+    JKRHeap* getWorldMapHeap() {
+        return SingletonHolder< HeapMemoryWatcher >::get()->mWorldMapHeap;
+    }
+
+    JKRHeap* getFileCacheHeap() {
+        return SingletonHolder< HeapMemoryWatcher >::get()->mFileCacheHeap;
+    }
+
+    JKRHeap* getUseResourceHeap() {
+        return SingletonHolder< HeapMemoryWatcher >::get()->_18;
+    }
+
     JKRHeap* getHeapNapa(const JKRHeap* pHeap) {
         return SingletonHolder< HeapMemoryWatcher >::get()->getHeapNapa(pHeap);
     }
@@ -80,8 +99,54 @@ namespace MR {
         return JKRHeap::sCurrentHeap == pHeap;
     }
 
-    void adjustHeapSize(JKRExpHeap* pHeap, const char* pParam2) {
+    void adjustHeapSize(JKRExpHeap* pHeap) {
         pHeap->adjustSize();
+    }
+
+    u32 fn_80040EA0(u32 value) {
+        return value >> 31;
+    }
+
+    u32 getFileCacheSizeForGalaxy(const char* pScene, const char* pStage, s32 scenario) {
+        u32 size = 0xB80000;
+        tryGetHeapSizeExceptForGalaxy(&size, "FileCacheSize", pScene, pStage, scenario);
+        if (isUseWorldMapHeapForGalaxy(pScene, pStage, scenario)) {
+            size -= 0x840000;
+        }
+        return size;
+    }
+
+    bool tryGetHeapSizeExceptForGalaxy(u32* pSize, const char* pHeapName, const char* pScene, const char* pStage,
+                                       s32 scenario) {
+        if (!isEqualString(pScene, "Game")) {
+            return false;
+        }
+
+        if (scenario > 0) {
+            char buf[0x40];
+            snprintf(buf, 0x40, "%s%d", pStage, scenario);
+            if (tryGetHeapSizeExceptEntry(pSize, pHeapName, buf)) {
+                return true;
+            }
+        }
+
+        return tryGetHeapSizeExceptEntry(pSize, pHeapName, pStage);
+    }
+
+    bool isUseWorldMapHeapForGalaxy(const char* pScene, const char* pStage, s32 scenario) {
+        if (!isEqualString(pScene, "Game")) {
+            return false;
+        }
+
+        if (scenario > 0) {
+            char buf[0x40];
+            snprintf(buf, 0x40, "%s%d", pStage, scenario);
+            if (existsWorldMapHeapGalaxy(buf)) {
+                return true;
+            }
+        }
+
+        return existsWorldMapHeapGalaxy(pStage);
     }
 
     void copyMemory(void* pDst, const void* pSrc, u32 size) {
@@ -183,7 +248,7 @@ namespace MR {
 
     u32 calcCheckSum(const void* pPtr, u32 size) {
         u16 sum;
-        u16 invSum;
+        u32 invSum;
 
         invSum = 0;
         sum = 0;
@@ -193,10 +258,10 @@ namespace MR {
 
         for (int i = 0; i < checkSize; i++, p++) {
             sum += *p;
-            invSum += ~(*p);
+            invSum += static_cast< u16 >(~(*p));
         }
 
-        return (sum << 16) | invSum;
+        return (sum << 16) | static_cast< u16 >(invSum);
     }
 
     void* allocFromWPadHeap(u32 size) {
@@ -208,4 +273,21 @@ namespace MR {
 
         return 1;
     }
+
+    void* JKRHeapAllocator< 0 >::alloc(MEMAllocator* pAllocator, u32 size) {
+        return sHeap->alloc(size, 0);
+    }
+
+    void JKRHeapAllocator< 0 >::free(MEMAllocator* pAllocator, void* pPtr) {
+        sHeap->free(pPtr);
+    }
+
+    MEMAllocatorFunc JKRHeapAllocator< 0 >::sAllocatorFunc = {
+        JKRHeapAllocator< 0 >::alloc,
+        JKRHeapAllocator< 0 >::free,
+    };
+
+    MEMAllocator JKRHeapAllocator< 0 >::sAllocator = {&sAllocatorFunc, nullptr, 4, 0};
+
+    JKRHeap* JKRHeapAllocator< 0 >::sHeap;
 };  // namespace MR

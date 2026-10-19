@@ -3,7 +3,7 @@
 #include "Game/NameObj/NameObj.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util/Array.hpp"
-#include <JSystem/JGeometry/TVec.hpp>
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class CollisionPartsFilterBase;
 class HitSensor;
@@ -34,6 +34,7 @@ public:
     virtual void initAfterPlacement() override;
     virtual void movement() override;
 
+    void updateFarClipParam();
     void updateController();
 
     /* 0x14 */ MR::Vector< MR::AssignableArray< ShadowController* > > _C;
@@ -97,6 +98,7 @@ public:
     void validate();
     void invalidate();
 
+    void calcBaseMtx(TPos3f*) const;
     void updateProjection();
 
     inline void appendToHolder() {

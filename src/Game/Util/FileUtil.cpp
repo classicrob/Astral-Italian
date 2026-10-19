@@ -85,10 +85,10 @@ namespace MR {
 
 
 
-    void mountAsyncArchive(const char* path, JKRHeap* heap, bool, bool tail) {
+    void mountAsyncArchive(const char* path, JKRHeap* heap, bool, s32 allocDirection) {
         char filePath[256];
         makeFileNameConsideringLanguage(filePath, sizeof(filePath), path, false);
-        SingletonHolder<FileLoader>::get()->requestMountArchive(filePath, heap, static_cast<JKRDvdRipper::EAllocDirection>(tail), false);
+        SingletonHolder<FileLoader>::get()->requestMountArchive(filePath, heap, static_cast<JKRDvdRipper::EAllocDirection>(allocDirection), false);
     }
 
     void* receiveFile(const char* pFilePath) {

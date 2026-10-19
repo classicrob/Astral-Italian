@@ -47,7 +47,7 @@ ActorActionSoundKeeper::ActorActionSoundKeeper(LiveActor* actor, AudSoundObject*
         if (mSounds[i]->getId() == 0) {
             s32 index = 0;
             if (actor->mActionKeeper) index = reinterpret_cast<s32>(actor->mActionKeeper->mAnimKeeper); // PLACEHOLDER(core): SyncBckEffectChecker/ActionSound still declare this pointer as s32; resolve when effect/audio owners migrate their APIs.
-            if (!mChecker) mChecker = new SyncBckEffectChecker(actor->mModelManager->mXanimePlayer, index);
+            if (!mChecker) mChecker = new SyncBckEffectChecker(actor->mModelManager->mXanimePlayer, reinterpret_cast<ActorAnimKeeper*>(index));
             mSounds[i]->createSyncBckParam(actor->mModelManager->mXanimePlayer, index);
         }
     }

@@ -1,5 +1,5 @@
+#define JGEOMETRY_VEC3_COPY_NOINLINE
 #include "Game/Map/CollisionParts.hpp"
-#include "Game/Util.hpp"
 #include "Game/Camera/CameraPolygonCodeUtil.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -8,33 +8,28 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Map/KCollision.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
+#include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 
-void CollisionParts_FORCE_MATCH_SDATA2() {
-    1.0f;
-    0.0f;
-    3.0f;
-    -1.0f;
-    2.0f;
-    0.001f;
-    20.0f;
-    1.0f / 35.0f;
-}
-
-void CollisionParts_FORCE_MATCH_GET_SCALE(const TPos3f& rMatrix, TVec3f& rScale) {
-    rMatrix.getScale(rScale);
-}
-
 CollisionParts::CollisionParts()
-    : _0(), mHitSensor(), _CC(), _CD(), _CE(true), _CF(), _D0(), _D1(), _D4(), _D8(-1.0f), _DC(1.0f), mKeeperIndex(-1), mZone() {
+    : _0(), mHitSensor(), _CC(), _CE(true), _CF(), _D0(), _D1(), _D4(), _D8(-1.0f), _DC(1.0f), mKeeperIndex(-1), mZone() {
     mServer = new KCollisionServer();
 
     mPrevBaseMatrix.identity();
     mBaseMatrix.identity();
     mMatrix.identity();
     PSMTXInverse(mBaseMatrix.toMtxPtr(), mInvBaseMatrix.toMtxPtr());
+}
+
+void CollisionParts::resetBelongZone() {
+    CollisionCategorizedKeeper* keeper = MR::getCollisionDirector()->getCategoryKeeper(mKeeperIndex);
+    if (mZone->contains(this)) removeFromBelongZone();
+    mZone = keeper->getZone(0);
+    if (_CC) addToBelongZone();
 }
 
 void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
@@ -245,45 +240,30 @@ s32 CollisionParts::getPlacementZoneID() const {
     return mZone->mZoneID;
 }
 
-bool CollisionParts::checkStrikePoint(HitInfo* pHitInfo, const TVec3f& rPos) {
+bool CollisionParts::checkStrikePoint(HitInfo* pHitInfo, const TVec3f& rPos, const TriangleFilterBase* filter) {
     TVec3f localPos;
     mInvBaseMatrix.mult(rPos, localPos);
     TVec3f scale;
     mInvBaseMatrix.getScale(scale);
-    f32 averageScale = (scale.x + scale.y + scale.z) / 3.0f;
+    f32 inverseScale = 3.0f / (MR::abs(scale.x) + MR::abs(scale.y) + MR::abs(scale.z));
     Fxyz point;
     point.x = localPos.x;
     point.y = localPos.y;
     point.z = localPos.z;
     f32 distance;
-    KC_PrismData* prism = nullptr;
-    u8 classification;
-
-    if (1.0f < averageScale) {
-        f32 radius = 20.0f * averageScale;
-        mServer->checkSphereWithThickness(&point, radius, averageScale, 1, &prism, &distance, &classification, 2.0f * radius);
-        if (prism == nullptr) {
-            return false;
-        }
-
-        TVec3f offset(localPos);
-        offset -= mServer->getPos(prism, 0);
-        TVec3f normal(*mServer->getFaceNormal(prism));
-        distance = -offset.x * normal.x - offset.y * normal.y - offset.z * normal.z;
-    } else {
-        prism = mServer->checkPoint(&point, averageScale, &distance);
-        if (prism == nullptr) {
-            return false;
-        }
+    KC_PrismData* prism = mServer->checkPoint(&point, inverseScale, &distance);
+    if (prism == nullptr) return false;
+    if (filter != nullptr) {
+        Triangle triangle;
+        triangle.fillData(this, mServer->toIndex(prism), mHitSensor);
+        if (filter != nullptr && filter->isInvalidTriangle(&triangle)) return false;
     }
-
     if (pHitInfo != nullptr) {
         pHitInfo->mParentTriangle.fillData(this, mServer->toIndex(prism), mHitSensor);
-        f32 worldDistance = distance / averageScale;
+        f32 worldDistance = distance * inverseScale;
         pHitInfo->_60 = worldDistance;
         pHitInfo->_64 = rPos + *pHitInfo->mParentTriangle.getNormal(0) * worldDistance;
     }
-
     return true;
 }
 

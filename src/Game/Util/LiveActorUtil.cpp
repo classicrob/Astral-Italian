@@ -932,6 +932,14 @@ namespace MR {
         pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo.mColor = rColor;
     }
 
+    void setFogColorWithAlpha(LiveActor* pActor, const GXColor& rColor, bool) {
+        J3DFogInfo& rFogInfo = pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo;
+        rFogInfo.mColor.r = rColor.r;
+        rFogInfo.mColor.g = rColor.g;
+        rFogInfo.mColor.b = rColor.b;
+        rFogInfo.mColor.a = rColor.a;
+    }
+
     void setFogType(LiveActor* pActor, u8 type) {
         pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo.mType = type;
     }
@@ -964,7 +972,12 @@ namespace MR {
             return nullptr;
         }
 
-        return pActor->mActionKeeper->mHitReactionCtrl;
+        ActorHitReactionCtrl* pCtrl = pActor->mActionKeeper->mHitReactionCtrl;
+        if (pCtrl != nullptr) {
+            return pCtrl;
+        }
+
+        return nullptr;
     }
 
     void tryHitReaction(const LiveActor* pActor, const char* pName) {
@@ -1004,6 +1017,14 @@ namespace MR {
         }
     }
 
+    void fn_80034760(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver) {
+        const char* pName = "吹き飛びヒット";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, pSender, pReceiver);
+        }
+    }
+
     void tryHitReactionBlow(const LiveActor* pActor, const TVec3f* pPos) {
         const char* pName = "吹き飛びヒット";
         ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
@@ -1013,6 +1034,14 @@ namespace MR {
     }
 
     void tryHitReactionBlow(LiveActor* pActor) {
+        const char* pName = "吹き飛びヒット";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
+        }
+    }
+
+    void fn_80034820(LiveActor* pActor) {
         const char* pName = "吹き飛びヒット";
         ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
         if (pCtrl != nullptr) {
@@ -1320,6 +1349,23 @@ namespace MR {
         for (s32 i = 0; i < 5; i++) {
             if (pFrameCtrls[i] != nullptr) {
                 BckCtrlFunction::reflectBckCtrlDataToFrameCtrl(rBck, pFrameCtrls[i]);
+            }
+        }
+    }
+
+    void fn_800328A0(LiveActor* pActor, const char* pName, const BckCtrlData& rBck) {
+        reflectBckCtrlData(pActor, rBck);
+
+        J3DFrameCtrl* pCtrls[5];
+        pCtrls[0] = isExistBtk(pActor, pName) ? getBtkCtrl(pActor) : nullptr;
+        pCtrls[1] = isExistBpk(pActor, pName) ? getBpkCtrl(pActor) : nullptr;
+        pCtrls[2] = isExistBtp(pActor, pName) ? getBtpCtrl(pActor) : nullptr;
+        pCtrls[3] = isExistBrk(pActor, pName) ? getBrkCtrl(pActor) : nullptr;
+        pCtrls[4] = isExistBva(pActor, pName) ? getBvaCtrl(pActor) : nullptr;
+
+        for (u32 i = 0; i < 5; i++) {
+            if (pCtrls[i] != nullptr) {
+                BckCtrlFunction::reflectBckCtrlDataToFrameCtrl(rBck, pCtrls[i]);
             }
         }
     }
@@ -2252,15 +2298,13 @@ namespace MR {
         pActor->mActionKeeper->mFootPrintHolder->mFootPrint->clearForce();
     }
 
-    LiveActor* getLinkedActor(const LiveActor* pActor) {
+    LiveActor* getLinkedActor(const JMapLinkInfo* pLink) {
         AllLiveActorGroup* pGroup = getAllLiveActorGroup();
 
         for (s32 i = 0; i < pGroup->getObjNum(); i++) {
             LiveActor* pLinked = pGroup->getActor(i);
 
-            // asm passes pActor itself (no +0xC) to the JMapLinkInfo comparison
-            const JMapLinkInfo* pInfo = &pLinked->mLinkInfo;
-            if (*pInfo == *reinterpret_cast< const JMapLinkInfo* >(pActor)) {
+            if (pLinked->mLinkInfo == *pLink) {
                 return pLinked;
             }
         }

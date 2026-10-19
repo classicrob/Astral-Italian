@@ -1,3 +1,6 @@
+#define JGEOMETRY_VEC3_UNARY_NEG_NOINLINE
+#define JGEOMETRY_OUTLINE_MATRIX_DIRECTION
+#define JGEOMETRY_VEC3_VEC_COPY_NOINLINE
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Camera/CameraAnim.hpp"
 #include "Game/Camera/CameraCalc.hpp"
@@ -21,28 +24,6 @@
 #include <cstdio>
 
 // TODO: mismatch in .data order likely due to a stripped function containing "CAM_TYPE_DPD"
-
-void CameraUtil_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)-1.0f;
-    (void)MR::pi();
-}
-
-void CameraUtil_DUMMY() {
-    TVec4f a(1.0f, 0.0f, 0.0f, 0.0f);
-    TVec3f b;
-    TVec3f c = -b;
-    f32 f1 = MR::tan(1.0f);
-    c = b;
-    TVec3f e = b - c;
-
-    TPos3f m;
-    m.getXDir(b);
-    m.getYDir(b);
-    m.getZDir(b);
-}
 
 namespace {
     static const char* sLauncherCameraName = "大砲";
@@ -282,6 +263,23 @@ namespace MR {
     }
 
 
+    s32 getCameraParamId(const char* first, const char* second) {
+        return getCameraDirector()->setCameraParamId(first, second);
+    }
+
+    void declareEventCameraById(s32 id, const char* name) {
+        getCameraDirector()->declareGlobalEvent(id, name);
+    }
+
+    void startEventCameraById(s32 id, const char* name, const CameraTargetArg& target, s32 frames) {
+        getCameraDirector()->startGlobalEvent(id, name, target, frames);
+    }
+
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    void endEventCameraById(s32 id, const char* name, s32 reset, s32 frames) {
+        getCameraDirector()->endGlobalEvent(id, name, reset, frames);
+    }
+
     void declareGlobalEventCamera(const char* pEventName) {
         getCameraDirector()->declareEvent(0, pEventName);
     }
@@ -327,7 +325,8 @@ namespace MR {
             CameraGeneralParam* param = chunk->mGeneralParam;
             chunk->mGeneralParam->mNum1 = reinterpret_cast< s32 >(pAnimData);
             chunk->mGeneralParam->mDist = 1.0f;
-            chunk->getGeneralParam()->mNum2 = CameraAnim::getAnimFrame(reinterpret_cast< u8* >(pAnimData));
+            chunk->getGeneralParam()->mNum2 &= 0x80000000;
+            chunk->getGeneralParam()->mNum2 |= CameraAnim::getAnimFrame(reinterpret_cast< u8* >(pAnimData));
             chunk->_64 = true;
         }
     }
@@ -337,7 +336,7 @@ namespace MR {
     }
 
 
-    inline bool isGlobalEventCameraActive(const char* pEventName) {
+    bool isGlobalEventCameraActive(const char* pEventName) {
         return getCameraDirector()->isEventCameraActive(0, pEventName);
     }
 
@@ -357,11 +356,15 @@ namespace MR {
         CameraParamChunkEvent* chunk = getCameraDirector()->getEventParameter(pCamInfo->mZoneID, pAnimName);
         if (chunk != nullptr) {
             if (isCameraType(chunk, "CAM_TYPE_ANIM")) {
-                return chunk->mGeneralParam->mNum2;
+                return chunk->mGeneralParam->mNum2 & 0x7FFFFFFF;
             }
         }
 
         return 0;
+    }
+
+    void setAnimCameraFrame(const ActorCameraInfo* info, const char* name, f32 frame) {
+        getCameraDirector()->setAnimCameraFrame(info->mZoneID, name, frame);
     }
 
     void pauseOnAnimCamera(const ActorCameraInfo* pInfo, const char* pName) {
@@ -601,6 +604,10 @@ namespace MR {
         return ret;
     }
 
+    bool fn_8001E6A0() {
+        return getCameraDirector()->isInterpolationStateReady();
+    }
+
     void startTalkCamera(const TVec3f& rPosition, const TVec3f& rUp, f32 axisX, f32 axisY, s32 frame) {
         getCameraDirector()->startTalkCamera(rPosition, rUp, axisX, axisY, frame);
     }
@@ -645,6 +652,14 @@ namespace MR {
         return getCameraDirector()->mSubjectiveFrame > 0;
     }
 
+    f32 convertDepthForProjection(f32 depth, f32 nearA, f32 farA, f32 nearB, f32 farB) {
+        f32 value = depth * (nearA - farA) + farA;
+        f32 scale = farB / (farB - nearB);
+        f32 distance = nearA * (farA / value);
+        f32 offset = -scale * nearB;
+        return scale + offset / distance;
+    }
+
     void setGameCameraTargetToPlayer() {
         CameraTargetArg camTarget = CameraTargetArg();
         setCameraTargetToPlayer(&camTarget);
@@ -682,10 +697,12 @@ namespace MR {
         getCameraDirector()->startEvent(0, pName, rCamTarget, frame);
     }
 
-    void startEventCameraAnim(const ActorCameraInfo* pInfo, const char* pEventName, const CameraTargetArg& rCamTarget, s32 frame, f32 speed) {
+    void startEventCameraAnim(const ActorCameraInfo* pInfo, const char* pEventName, const CameraTargetArg& rCamTarget, s32 frame, f32 speed, bool reverse) {
         CameraParamChunkEvent* pChunk = getCameraDirector()->getEventParameter(pInfo->mZoneID, pEventName);
         if (pChunk != nullptr) {
             pChunk->mGeneralParam->mDist = speed;
+            if (reverse) pChunk->mGeneralParam->mNum2 |= 0x80000000;
+            else pChunk->mGeneralParam->mNum2 &= 0x7FFFFFFF;
         }
 
         startEventCamera(pInfo, pEventName, rCamTarget, frame);
@@ -696,7 +713,10 @@ namespace MR {
     }
 
     void startLauncherFlightCamera(s32 time) {
-        startGlobalEventCameraTargetPlayer(::sLauncherFlightCameraName, time);
+        const char* name = ::sLauncherFlightCameraName;
+        CameraTargetArg target;
+        setCameraTargetToPlayer(&target);
+        getCameraDirector()->startEvent(0, name, target, time);
     }
 
     void cleanEventCameraTarget_temporally() {
@@ -706,6 +726,3 @@ namespace MR {
     }
 };  // namespace MR
 
-void CameraUtil_DUMMY2() {
-    TVec2f d(1.0f, 0.0f);
-}

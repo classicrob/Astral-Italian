@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Map/RailPart.hpp"
 #include "Game/Map/BezierRail.hpp"
 #include <JSystem/JMath.hpp>

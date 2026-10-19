@@ -8,11 +8,7 @@
 #include "Game/Screen/GalaxyConfirmLayout.hpp"
 #include "Game/System/WorldMapResultStateEnterHome.hpp"
 
-extern "C" {
-    void fn_800592A0();
-    void fn_800591E0();
-    void fn_8001C030(s32);
-}
+
 
 namespace MR {
     void setImageEffectControlAuto();
@@ -41,6 +37,7 @@ WorldMapResultStateEnterHome::WorldMapResultStateEnterHome(WorldMapOwner* pHost)
     mLayout = nullptr;
 }
 
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void WorldMapResultStateEnterHome::init() {
     mHost->declareCamera("接近（ホーム）");
     mHost->declareCamera("突入（ホーム）");
@@ -52,7 +49,7 @@ void WorldMapResultStateEnterHome::init() {
     LiveActor* pActor = mHost->getCamera()->mCameraTarget;
     MR::initAnimCamera(pActor, mCamInfo, lbl_807D0570, MR::getResourceHolder(mHost->getRocket()));
     MR::createDepthOfFieldBlur();
-    mIsDead = false;
+    mIsDead = true;
 }
 
 void WorldMapResultStateEnterHome::appear() {
@@ -94,7 +91,7 @@ void WorldMapResultStateEnterHome::exeApproach() {
 
 void WorldMapResultStateEnterHome::exeWait() {
     if (MR::isFirstStep(this)) {
-        mLayout->endMovement();
+        mLayout->appear();
     }
 
     if (mLayout->isSelectionComplete() && mLayout->isSelectedYes()) {
@@ -111,7 +108,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
         MR::setImageEffectControlAuto();
         LiveActor* pActor = mHost->getCamera()->mCameraTarget;
         MR::startAnimCameraTargetSelf(pActor, mCamInfo, lbl_807D0570, -1, false, 1.0f);
-        fn_8001C030(30);
+        MR::stopStageAndSubBGM(30);
         mHost->startDemo();
     }
 
@@ -124,9 +121,9 @@ void WorldMapResultStateEnterHome::exeEnter() {
 
     if (MR::isStep(this, 38)) {
         if (WorldMapFunction::isWorldNoMid(mHost->getWorldId())) {
-            fn_800592A0();
+            MR::startSpaceWipeForward();
         } else {
-            fn_800591E0();
+            MR::startCloudWipeForward();
         }
     }
 
@@ -136,6 +133,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
     }
 }
 
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void WorldMapResultStateEnterHome::exeExit() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();
@@ -159,7 +157,7 @@ WorldMapResultStateEnterHome::~WorldMapResultStateEnterHome() {
 
 namespace NrvWorldMapResultStateEnterHome {
     WMR_NERVE_DEF(WorldMapResultStateEnterHomeApproach, WorldMapResultStateEnterHome, Approach);
-    WMR_NERVE_DEF(WorldMapResultStateEnterHomeWait, WorldMapResultStateEnterHome, Enter);
+    WMR_NERVE_DEF(WorldMapResultStateEnterHomeWait, WorldMapResultStateEnterHome, Wait);
     WMR_NERVE_DEF(WorldMapResultStateEnterHomeEnter, WorldMapResultStateEnterHome, Enter);
     WMR_NERVE_DEF(WorldMapResultStateEnterHomeExit, WorldMapResultStateEnterHome, Exit);
 };  

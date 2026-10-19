@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/Util/BellyDragon.hpp"
 #include "Game/LiveActor/Nerve.hpp"

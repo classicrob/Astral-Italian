@@ -54,17 +54,25 @@ void SimpleEffectObj::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     MR::getObjectName(&_8C, rIter);
     initEffectKeeper(0, _8C, false);
-    initSound(4, "SimpleEffectObj", nullptr, TVec3f(0.0f));
+    initSound(4, _8C, nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(SimpleEffectObj, HostTypeWait));
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &SimpleEffectObj::setStateMove), MR::Functor(this, &SimpleEffectObj::setStateWait));
     } else {
         setNerve(GET_NERVE(SimpleEffectObj, HostTypeMove));
     }
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
-        MR::tryRegisterDemoActionFunctor(this, MR::Functor(this, &SimpleEffectObj::setStateMove), nullptr);
+        bool move = false;
+        MR::getJMapInfoArg0NoInit(rIter, &move);
+        if (move) {
+            setNerve(GET_NERVE(SimpleEffectObj, HostTypeMove));
+            MR::tryRegisterDemoActionFunctor(this, MR::Functor(this, &SimpleEffectObj::setStateWait), nullptr);
+        } else {
+            setNerve(GET_NERVE(SimpleEffectObj, HostTypeWait));
+            MR::tryRegisterDemoActionFunctor(this, MR::Functor(this, &SimpleEffectObj::setStateMove), nullptr);
+        }
     } else {
         MR::registerDemoSimpleCastAll(this);
     }
@@ -73,7 +81,8 @@ void SimpleEffectObj::init(const JMapInfoIter& rIter) {
     MR::setClippingTypeSphere(this, getClippingRadius(), &_90);
     MR::setGroupClipping(this, rIter, 0x40);
     MR::setClippingFar(this, getFarClipDistance());
-    MR::joinToGroupArray(this, rIter, nullptr, 0x20);
+    MR::joinToGroupArray(this, rIter, mName, 0x20);
+    MR::useStageSwitchAwake(this, rIter);
     makeActorAppeared();
 }
 
@@ -121,15 +130,12 @@ void SimpleEffectObj::exeMove() {
             v4 = -1;
         }
 
-        if (v4 != -1 && v4 != -1) {
-            if (v4 == 0) {
-                MR::shakeCameraStrong();
-            } else if (v4 == 1) {
-                MR::shakeCameraNormal();
-            } else if (v4 == 2) {
-                MR::shakeCameraWeak();
-            }
+        switch (v4) {
+        case 0: MR::shakeCameraStrong(); break;
+        case 1: MR::shakeCameraNormal(); break;
+        case 2: MR::shakeCameraWeak(); break;
         }
+        MR::startActionSoundAuto(this, "EffectEmitStart", -1, -1, -1);
 
         v1 = ::findDataElement(_8C);
         const char* Sound;
@@ -143,6 +149,7 @@ void SimpleEffectObj::exeMove() {
             MR::startSound(this, Sound);
         }
     }
+    if (MR::isEffectValid(this, _8C)) MR::startActionSoundAuto(this, "EffectEmitting", -1, -1, -1);
     v1 = ::findDataElement(_8C);
     const char* levelSound;
     if (v1 != nullptr) {

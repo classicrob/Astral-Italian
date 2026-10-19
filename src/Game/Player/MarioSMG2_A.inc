@@ -571,7 +571,7 @@ void Mario::fn_803A1A60(TVec3f* arg) {
     TVec3f s;
     this->mActor->getStickValue(&s.x, &s.y);
     s.z = 0.0f;
-    PSVECCrossProduct(&s, arg, &this->_250);
+    PSVECCrossProduct(&this->_250, &s, arg);
 }
 
 bool Mario::fn_803A19C0() {

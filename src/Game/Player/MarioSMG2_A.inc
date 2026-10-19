@@ -352,7 +352,7 @@ void Mario::fn_803A2530(TVec3f* out) {
 
 void Mario::fn_803A23F0(TVec3f* out) {
     if ((this->mMovementStates.mHighWord >> 28) & 1) {
-        *out = this->mFrontVec;
+        out->set(this->mFrontVec);
     } else {
         *out = this->_22C;
     }
@@ -486,12 +486,10 @@ void Mario::fn_803A2450(const TVec3f* arg) {
 }
 
 void Mario::fn_803A2860() {
-    if (!this->isAnimationRun("その場足踏み")) {
-        if (this->_214.dot(this->_22C) > 0.99f) {
-            this->mMovementStates.mLowWord &= 0xEFFFFFFF;
-        } else {
-            this->mMovementStates.mLowWord |= 0x10000000;
-        }
+    if (!this->isAnimationRun("その場足踏み") && this->_214.dot(this->_22C) > 0.99f) {
+        this->mMovementStates.mLowWord &= 0xEFFFFFFF;
+    } else {
+        this->mMovementStates.mLowWord |= 0x10000000;
     }
 }
 

@@ -232,7 +232,7 @@ bool Unbaba::receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) {
     return false;
 }
 
-// NONMATCHING: scalar expression scheduling and float-register assignment differ.
+// NONMATCHING: one commuted multiply and FPR allocation; grouping and single-precision boundaries match.
 f32 calcUnbabaHermiteSegment(f32 t, f32 start, f32 value, f32 slope, f32 end, f32 endValue, f32 endSlope) {
     f32 dt = t - start;
     f32 rate = dt / (end - start);

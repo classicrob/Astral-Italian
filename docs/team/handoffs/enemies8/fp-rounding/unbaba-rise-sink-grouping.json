@@ -1,0 +1,36 @@
+[
+  {
+    "function": "updateUnbabaRise",
+    "instruction_count": 37,
+    "only_normalized_differences": [
+      [
+        28,
+        "fadds f0, f3, f2",
+        "fadds f3, f3, f2"
+      ],
+      [
+        29,
+        "stfs f0, 0x118(r31)",
+        "stfs f3, 0x118(r31)"
+      ]
+    ],
+    "grouping_conclusion": "Full normalized streams identical except final sum destination f0/f3 and immediately consuming STFS. Identical ordered operands/rounding and no intervening use. All other constants, comparisons, conversion/FP opcodes and direct call identities retained. Default REAL due checker unsupported mfcr/xoris. No classifier relaxation or global certificate."
+  },
+  {
+    "function": "updateUnbabaSink",
+    "instruction_count": 45,
+    "only_normalized_differences": [
+      [
+        36,
+        "fadds f0, f3, f2",
+        "fadds f3, f3, f2"
+      ],
+      [
+        37,
+        "stfs f0, 0x118(r31)",
+        "stfs f3, 0x118(r31)"
+      ]
+    ],
+    "grouping_conclusion": "Full normalized streams identical except final sum destination f0/f3 and immediately consuming STFS. Identical ordered operands/rounding and no intervening use. All other constants, comparisons, conversion/FP opcodes and direct call identities retained. Default REAL due checker unsupported mfcr/xoris. No classifier relaxation or global certificate."
+  }
+]

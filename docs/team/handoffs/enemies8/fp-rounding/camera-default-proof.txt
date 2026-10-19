@@ -1,0 +1,1 @@
+update__16CameraRotCheckerFv  # proof: rdclass.py Game/Camera/CameraRotChecker: a: 60 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal

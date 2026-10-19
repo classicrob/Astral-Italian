@@ -1,0 +1,1526 @@
+{
+  "source_frozen": true,
+  "inputs_sha256": {
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/units/Camera/CameraRotChecker/source.cpp": "d877594def133120f51c16ad9536bfe3c970167f68aa4b399c8d020fa1ed6a88",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/units/Camera/CameraRotChecker/source.o": "a25b50e16af886fd90e8ef484cd18f7246f8ea070ff2329e158a5b79e3669d1e",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/CameraRotChecker/trial2/source.cpp": "256677d072b158310a68c69424780197c665dbb2b043c3ab9b6a4212bd7afce7",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/CameraRotChecker/trial2/source.o": "6aed6e1e87615bfc9d8a596dd38235dc92213fac007d9b1332e1bf7675f0a8dc",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/CameraRotChecker/trial2/target.o": "098eae122d2f15a127fe548064dfb0a957dc4b78a63bd12e63f2695e5b4e3e8e",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/CameraRotChecker/trial2/objdiff.json": "0294082fa4439ad7a33cf783f4545c3eb9e395dfd33e1c7befd0b6f6547e255d",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/config/SB4E01/symbols.txt": "41357e917e1d241f5854cdb29adb3443beeaf288b5b4bbd417e703df60506ba8",
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/orig/SB4E01/sys/main.dol": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/fp-label-audit/CameraRotChecker/default-proofs.txt": "1b81df6711260d6d0ea22f92d97d82c22d533e86599c114303b1770c030eb4a1"
+  },
+  "unchanged_compiler_header_inputs_sha256": {
+    "include/Game/Camera/CameraRotChecker.hpp": "9a040f04bfcf1cb0c9ee58b6ed141d5b76285bc051cf984b41c98edd36b71692",
+    "libs/JSystem/include/JSystem/JGeometry/TMatrix.hpp": "fb34ebc38a58e80043da7abec7f23a447ae7c4001a9e9c085b13cfe33a4113a1",
+    "libs/JSystem/include/JSystem/JGeometry/TQuat.hpp": "1ee76586e4b5d9616f5fcb7dfe4681288e1b7290c8aa88a1058e7623628dacb4",
+    "libs/JSystem/include/JSystem/JGeometry/TVec.hpp": "d9a08f2627ae2916f70669b6ed9be49f749a301653419fcf10724a3c3582b0b5",
+    "include/Inline.hpp": "a61020d22acd53459421d3878de6b39fdb779d6320a9dd5e829c3491adae48fb",
+    "libs/JSystem/include/JSystem/JGeometry/TUtil.hpp": "3d2c77a998ced4c388d49a062e964f82d3dbe492256541b46147d1bf7317c04a",
+    "libs/JSystem/include/JSystem/JMath/JMATrigonometric.hpp": "209425281ff0ebce79984aa973121c0e913eee44a062edb83944552e5d85bf87",
+    "include/math_types.hpp": "a6721d80456cc9249d58be466b40d38e9142f29d355174562e691b45076e43e2",
+    "libs/MSL_C/include/cmath": "7dc603d0fb885ff7ce12f0ffc3e40181452b64752858f4fbca091aab48d9ad97",
+    "libs/MSL_C/include/size_t.h": "2eff35722aaf7f41b79fab47037321b011620f56cf1ac0671f1feae12b1dffa0",
+    "libs/MSL_C/include/ansi_parms.h": "8dbef568a7004397c30bcd2a81d31a44cb98aed1e685ae84fb5df43ba1b1c50b",
+    "libs/RVL_SDK/include/revolution/mtx.h": "a4ccbbb0ab57ad57a8ebb581ce1ca0871074725a8c2a2808aac52aa590476651",
+    "libs/RVL_SDK/include/revolution/types.h": "95b06f75611079cc3fccb143338ef417e8ace9f3112de4e326446eaac36fee3b",
+    "libs/JSystem/include/JSystem/JMath/JMath.hpp": "f14e94d536704a290f212cef2a6eae329eed206cbeb0c2992cbe872c26e3f9c3",
+    "include/Game/Util/CameraUtil.hpp": "5aef091bb673e4084be2bae73b1f4966a3ff1306914d16547468a9a5aff1c850",
+    "include/Game/Util/ActorCameraUtil.hpp": "733d9fde6cb7fda2f7cf6b8fa1abc805cba8ab763fed1e62a22dbf9c3f9961d8",
+    "libs/RVL_SDK/include/revolution.h": "054c9cb5859b34cbe31c79d9a66548ce124cd0d6fefd579f1434c2351ddfb985",
+    "libs/RVL_SDK/include/revolution/ai.h": "97d7460ee1c70cd7de17aafdf6e78e8530c75275670a5d9de6149e1276b77e69",
+    "libs/RVL_SDK/include/revolution/arc.h": "bb6183bcd3cfa225368745bc0841aa65274b8bb0571b43b660c35c6974d073df",
+    "libs/RVL_SDK/include/revolution/dvd.h": "3fb6811f0a41cd9a0d9231446ed4fdf64a468200a27e0c8e509804a7abe0a55c",
+    "libs/RVL_SDK/include/revolution/esp.h": "1b14ad0d63e4a46befa0a3095c31e4b8d5544f27d088f2be199bd4c7cb0a7271",
+    "libs/RVL_SDK/include/private/iostypes.h": "bde40fbd8b1ff911bf5367035287e963dc76613f94a8b429fad69f96788dfa80",
+    "libs/RVL_SDK/include/revolution/os.h": "32baf80dca6ffd8d308fda254e358040d0a5046f481ef497fe018ae452044e5e",
+    "libs/MSL_C/include/cstdarg": "dd97080249905a61474604f3f3fd3b697f231e3c96beaefc81a00d94e486e857",
+    "libs/MSL_C/include/va_list.h": "74b1e6277b369b2ea8ecfcb939fab477eba2ebfb76590b65fb3f87ac3c83d4aa",
+    "libs/MSL_C/include/stdint.h": "6ce6ec275d2751603cf3580c55de11863b1bfe3da99394ea27f71233a266f09e",
+    "libs/RVL_SDK/include/revolution/base/PPCArch.h": "6600fe38af18912ec7e4b55abce591cfe63130d20b519b1a426b8817ef6f3d5d",
+    "libs/RVL_SDK/include/revolution/gx.h": "261730340434786faa5f57c75bbf174df25bc185d7676de0359627e327aaa7d9",
+    "libs/RVL_SDK/include/revolution/gx/GXBump.h": "864ffd34dceca7db6d11179eaa090f25ab5c4bf529c7e280d82ce66683389a34",
+    "libs/RVL_SDK/include/revolution/gx/GXEnum.h": "2f32fbbfb39ee30eb28b1b3895d102c15cdf7200e44052f9cef990b5dd46de2f",
+    "libs/RVL_SDK/include/revolution/gx/GXCpu2Efb.h": "156a6dee584eab86fd5f5ebca48be55f67ef054fda2233cadf501496cfff7437",
+    "libs/RVL_SDK/include/revolution/gx/GXCull.h": "194a8a9551ba7c3ae14afd8eea4d33a32c00f228d5d225606f5f510653140371",
+    "libs/RVL_SDK/include/revolution/gx/GXDispList.h": "979b2287fa4bdd2b9b10671d935e51b31372dbdb5202cb022e9c7e44b03520bd",
+    "libs/RVL_SDK/include/revolution/gx/GXFifo.h": "94fb4caddefc6518531c1840bedfb8eec24f99a74e0a8679c6b539a46bbe96a7",
+    "libs/RVL_SDK/include/revolution/gx/GXStruct.h": "cf75cd464fac26c4c7b0c371e88d0efbf1c674f805a40d85c5e82370a64f895c",
+    "libs/RVL_SDK/include/revolution/vi/vitypes.h": "31a9d5b4482f4b2d95465e4e118779e3545b79490f9fe7312e467e2410e5f1c4",
+    "libs/RVL_SDK/include/revolution/gx/GXFrameBuf.h": "d989fe77955b73a4bce4d8517f07aeceab63aea07a0aed1cc935f69d60f8b612",
+    "libs/RVL_SDK/include/revolution/gx/GXGeometry.h": "765e150311de8b683ce8b24c72661953a0752d9cb08c2421b3346cbe7d3bb4f0",
+    "libs/RVL_SDK/include/revolution/gx/GXGet.h": "d00958d0d4a70c542b90582157c444313dae86335ff40bb3837b27f5440d794d",
+    "libs/RVL_SDK/include/revolution/gx/GXInit.h": "f5751b7c3134b82c23bd78737277096cd1fa5a0f0d87ce04c27f9298a5690955",
+    "libs/RVL_SDK/include/revolution/gx/GXLighting.h": "0411fe56597b85bb0b9e098ad3dfa0f5cfc785ca7a955b9cc9565e123517a463",
+    "libs/RVL_SDK/include/revolution/gx/GXManage.h": "d351c3dd5717d5284392a294de1f808a3b165964397d2d420b9267a7ac922e8f",
+    "libs/RVL_SDK/include/revolution/gx/GXPE.h": "1f0f25c8ab72edf3238757c66801ad2326bcd39180a1a4834aefc3cde53ca6c4",
+    "libs/RVL_SDK/include/revolution/gx/GXPerf.h": "53eebd704244ad8a754cc7b575f651110d7d364a8fca898ac274ca7e39714616",
+    "libs/RVL_SDK/include/revolution/gx/GXPixel.h": "0d3bdfdeb61d41f36301c82b1ea10f39c085adef8d1ad24386bb30e309a7d741",
+    "libs/RVL_SDK/include/revolution/gx/GXTev.h": "1d3f0b58ee42d1a7f06d93e4eaab5fb8a055c9093f37b4d00f2c7f74edb515e0",
+    "libs/RVL_SDK/include/revolution/gx/GXTexture.h": "448966f62a00df7090e46899fa4ec571d115300f85169c830315461002b1d2db",
+    "libs/RVL_SDK/include/revolution/gx/GXTransform.h": "44a176f8e1fad4aa202ab138f4c195bb2887882fdd361c6544ec8b49ace5b6c8",
+    "libs/RVL_SDK/include/revolution/gx/GXTypes.h": "e0b1294f811cd92aef8663d2d5343a31e8c3d0c391e26d8bb704b56c4b70751e",
+    "libs/RVL_SDK/include/revolution/gx/GXVert.h": "50ae56642855fbec6f6fe91f311a6ce06e1363a1986fd6f98aaac51d7eab8de4",
+    "libs/RVL_SDK/include/revolution/base/PPCWGPipe.h": "26eb8ce30c6c23519c2c8e2f2c2bbdd66184d7db68e449476cb8080eb39b76cd",
+    "libs/RVL_SDK/include/revolution/os/OSAlarm.h": "b410520107427e44790e208398c5ac08ccc5f0e12f87a7d42cf18ee266cab013",
+    "libs/RVL_SDK/include/revolution/os/OSContext.h": "3a7f79d2264b1f433f541c909db6515c6072bb31ba16226d6cc84ad144185399",
+    "libs/RVL_SDK/include/revolution/os/OSTime.h": "641fdf34f51cd4a0c9f9392fd047934dd5cbaa50c988a3c8f622b9ee575dce47",
+    "libs/RVL_SDK/include/revolution/os/OSAlloc.h": "2e9f515ac69404cfdc9fe2600e92dc214a25aa94283e1482c0bbfb765bd8aaf4",
+    "libs/RVL_SDK/include/revolution/os/OSCache.h": "c39e2b3d851acc9fae7da8a3462ca5118ad118f03d4b13ab16b483e3f6916707",
+    "libs/RVL_SDK/include/revolution/os/OSError.h": "27a7b79b71fdfcb4c6236bdcfe7f6c43cfa012464a47489f7a87cd842407dc89",
+    "libs/RVL_SDK/include/revolution/os/OSException.h": "eb5e5cf90c7f22e1ee9d9df1b3ef789c8f3df9b1868a8527f50ed1bd3df37f53",
+    "libs/RVL_SDK/include/revolution/os/OSExecParams.h": "06e88fe0f64af285cc4933331af3d015014d62d5414407d8121ca089742cf330",
+    "libs/RVL_SDK/include/revolution/os/OSFastCast.h": "aab96f7949b809e3b1101badaee8e506c1e3220e9c7a9f2319d1a0d42eebb566",
+    "libs/RVL_SDK/include/revolution/os/OSFont.h": "035e330f08dc45747e8ed702aa7188bf09456c4adfa809717c481c74f01cc272",
+    "libs/RVL_SDK/include/revolution/os/OSInterrupt.h": "59c6fda36d256f02208d51da672ac6fa617197aa1dad704b0623a5c9cd2b241b",
+    "libs/RVL_SDK/include/revolution/os/OSMessage.h": "2aac3feee91659924fd96b67385940e7fcb54febfda3ed54457d240909a9244e",
+    "libs/RVL_SDK/include/revolution/os/OSThread.h": "7d87141fb43981f5b42fb9aa3b9233b26385ba8c71d9f0fae416bfd5490bd013",
+    "libs/RVL_SDK/include/revolution/os/OSMutex.h": "3dcbedfcb1e121fcdd7d1fbf04a45769a072849c7ec31728ffbd0d7889be9e7e",
+    "libs/RVL_SDK/include/revolution/os/OSPlayRecord.h": "29934432cf18e4e68589939cd5d419568666c77bbd18ee0895f84c84a57b46be",
+    "libs/RVL_SDK/include/revolution/os/OSPlayTime.h": "6769918ddd3fd1785f3bca910a46f287dd8d70d0b20ad68f1d985ad4d2f40d7a",
+    "libs/RVL_SDK/include/revolution/os/OSReset.h": "9e789853d9d748b1d53221020e6ec8fdbc0b1b5817a2d5f6d5fb403d59bd4e59",
+    "libs/RVL_SDK/include/revolution/os/OSResetSW.h": "0374eefd2889480d4d4f89c295aeaff185519befcd96911fb2919396cbc39b18",
+    "libs/RVL_SDK/include/revolution/os/OSRtc.h": "c3762b839f28647541099727101caa13165594ad21cf908e009f78d7b4421a17",
+    "libs/RVL_SDK/include/revolution/os/OSStateFlags.h": "a0180a15644de4e2f6681309a37cf1620bb6b3e4e3a78db044ba8e08e4a91d4a",
+    "libs/RVL_SDK/include/revolution/os/OSStateTM.h": "5b859b5a9c4c091e36bb5e5493b083b309ad087da2ea36173c38c172fa83547c",
+    "libs/MSL_C/include/stdbool.h": "af369c8fe56ba52d1522219b08d53cd8dbde90f6167145faded67a40a733bd3c",
+    "libs/RVL_SDK/include/revolution/fs.h": "619aba0e4682f6ffe70f3ab902f1ebb75c0ee32974d69003ba70c7a5c8a68bcf",
+    "libs/RVL_SDK/include/revolution/fs/fs.h": "369f5dc7748073a99d44b7b27b659707fc74f9a2bf5af6a5c818b094112f2c96",
+    "libs/RVL_SDK/include/private/iosrestypes.h": "2f296e7a37ca8e83346d7e1508c3c4273d4c3e71fefc3ec64c3b47fcf266fb0e",
+    "libs/RVL_SDK/include/revolution/gd.h": "2349923d12f68e97310a09847e1d4c8dfd59e5228854aa540c01d2cad79ad100",
+    "libs/RVL_SDK/include/revolution/gd/GDBase.h": "c4c6fd0d5318cda16698c78d1b201ffeff6973b3c2862f051b7be82aef23b601",
+    "libs/RVL_SDK/include/revolution/gd/GDGeometry.h": "bf2bfbbbe0f9a2a39579a227f78ad50a1807477f049842e5f2bb55908fad6a04",
+    "libs/RVL_SDK/include/revolution/kpad.h": "d7ebfec4f6d6ec51883e95f72903e331ea7db9c3b0d41a83ef0befd0ceaae3ba",
+    "libs/RVL_SDK/include/revolution/wpad.h": "9f5f18bc0efb28cf949de7fca9202a14bbc1093919a31a333291862c02019994",
+    "libs/RVL_SDK/include/revolution/sc.h": "3d95bad3df06477c6094d5257027d0c7e8cd094c57fac71b8fd23f463bd06ba3",
+    "libs/RVL_SDK/include/revolution/bte.h": "198b3d3c598b3919733ccb3a44c62d0f16d558332a93fc76a55eb95d41e00577",
+    "libs/RVL_SDK/include/revolution/bte/data_types.h": "c9bfcfb9800b3314825279dd76b7bd4c530fc2586dace3118d1628adb9194470",
+    "libs/RVL_SDK/include/revolution/bte/gki.h": "06653e56f74e43bd2b1d060b869fc831501a6893a6405faca01727e832aaa9ce",
+    "libs/RVL_SDK/include/revolution/nand.h": "cad3048e06b4a463343176f0a4c5e3a1fc99789d1105e9b6d830760698f50d1e",
+    "libs/RVL_SDK/include/revolution/nand/nandlogging.h": "c0b814dfdddb850949b706c6bd3830c6028362b1fb4f11503c8a5c5ef621dd1e",
+    "libs/RVL_SDK/include/revolution/vi.h": "99475e4a0898b18158021b45af198bbfb67b4f658c087aceabc0b26eb7924f69",
+    "libs/RVL_SDK/include/revolution/vi/vi3in1.h": "163401be37dd3291a4651b9787ad7691a456cbd0fbd4fbcf60f397da3ccf5e02",
+    "libs/RVL_SDK/include/revolution/vi/vi3in1types.h": "1bbb85060750067f91576426d1cb2781860e5beeea0538f3e3a711e307c8aac0",
+    "libs/RVL_SDK/include/revolution/vi/vifuncs.h": "decf5a023730bbd4791daa09215f3f199af94ef6ba4254a93a9aaa57cd18c66b",
+    "libs/RVL_SDK/include/revolution/wenc.h": "1477d5b58f188c8338cfbcd1d05c4e2f54789d1be9a69da9110de0b6e6bdfe3a",
+    "include/Game/Util/MathUtil.hpp": "cda3fdfe76cc62b1da3b49f103b98410ac34a2c530d3669187df2bcb51ed8150"
+  },
+  "functions": [
+    {
+      "name": "JMAAsinRadian__Ff",
+      "old_bytes": 156,
+      "final_bytes": 156,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          8,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          28,
+          109,
+          [
+            ".sdata2",
+            20
+          ]
+        ],
+        [
+          36,
+          109,
+          [
+            ".sdata2",
+            24
+          ]
+        ],
+        [
+          52,
+          109,
+          [
+            ".sdata2",
+            28
+          ]
+        ],
+        [
+          60,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          76,
+          109,
+          [
+            ".sdata2",
+            32
+          ]
+        ],
+        [
+          84,
+          10,
+          [
+            "__cvt_fp2unsigned",
+            0
+          ]
+        ],
+        [
+          88,
+          6,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ],
+        [
+          96,
+          4,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ],
+        [
+          112,
+          109,
+          [
+            ".sdata2",
+            32
+          ]
+        ],
+        [
+          120,
+          10,
+          [
+            "__cvt_fp2unsigned",
+            0
+          ]
+        ],
+        [
+          124,
+          6,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ],
+        [
+          132,
+          4,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          8,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          28,
+          109,
+          [
+            ".sdata2",
+            20
+          ]
+        ],
+        [
+          36,
+          109,
+          [
+            ".sdata2",
+            24
+          ]
+        ],
+        [
+          52,
+          109,
+          [
+            ".sdata2",
+            28
+          ]
+        ],
+        [
+          60,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          76,
+          109,
+          [
+            ".sdata2",
+            32
+          ]
+        ],
+        [
+          84,
+          10,
+          [
+            "__cvt_fp2unsigned",
+            0
+          ]
+        ],
+        [
+          88,
+          6,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ],
+        [
+          96,
+          4,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ],
+        [
+          112,
+          109,
+          [
+            ".sdata2",
+            32
+          ]
+        ],
+        [
+          120,
+          10,
+          [
+            "__cvt_fp2unsigned",
+            0
+          ]
+        ],
+        [
+          124,
+          6,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ],
+        [
+          132,
+          4,
+          [
+            "sAsinAcosTable__5JMath",
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "PI__Q29JGeometry8TUtil<f>Fv",
+      "old_bytes": 8,
+      "final_bytes": 8,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          0,
+          109,
+          [
+            ".sdata2",
+            44
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          0,
+          109,
+          [
+            ".sdata2",
+            44
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "__ct__16CameraRotCheckerFv",
+      "old_bytes": 60,
+      "final_bytes": 60,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          24,
+          10,
+          [
+            "identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>Fv",
+            0
+          ]
+        ],
+        [
+          28,
+          109,
+          [
+            "sThreshold__30@unnamed@CameraRotChecker_cpp@",
+            0
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          24,
+          10,
+          [
+            "identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>Fv",
+            0
+          ]
+        ],
+        [
+          28,
+          109,
+          [
+            "sThreshold__30@unnamed@CameraRotChecker_cpp@",
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "__sinit_\\CameraRotChecker_cpp",
+      "old_bytes": 52,
+      "final_bytes": 52,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          12,
+          10,
+          [
+            "PI__Q29JGeometry8TUtil<f>Fv",
+            0
+          ]
+        ],
+        [
+          16,
+          109,
+          [
+            ".sdata2",
+            36
+          ]
+        ],
+        [
+          20,
+          109,
+          [
+            ".sdata2",
+            40
+          ]
+        ],
+        [
+          36,
+          109,
+          [
+            "sThreshold__30@unnamed@CameraRotChecker_cpp@",
+            0
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          12,
+          10,
+          [
+            "PI__Q29JGeometry8TUtil<f>Fv",
+            0
+          ]
+        ],
+        [
+          16,
+          109,
+          [
+            ".sdata2",
+            36
+          ]
+        ],
+        [
+          20,
+          109,
+          [
+            ".sdata2",
+            40
+          ]
+        ],
+        [
+          36,
+          109,
+          [
+            "sThreshold__30@unnamed@CameraRotChecker_cpp@",
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+      "old_bytes": 684,
+      "final_bytes": 684,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          520,
+          10,
+          [
+            "set__Q29JGeometry13SMatrix34C<f>Fffffffffffff",
+            0
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          520,
+          10,
+          [
+            "set__Q29JGeometry13SMatrix34C<f>Fffffffffffff",
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+      "old_bytes": 556,
+      "final_bytes": 556,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          28,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          64,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          72,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          76,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          216,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          232,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          236,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          332,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          348,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          352,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          440,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          452,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          456,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          28,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          64,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          72,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          76,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          216,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          232,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          236,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          332,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          348,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          352,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          440,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ],
+        [
+          452,
+          10,
+          [
+            "sqrt__Q29JGeometry8TUtil<f>Ff",
+            0
+          ]
+        ],
+        [
+          456,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>Fv",
+      "old_bytes": 60,
+      "final_bytes": 60,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          0,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          4,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          0,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          4,
+          109,
+          [
+            ".sdata2",
+            4
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "set__Q29JGeometry13SMatrix34C<f>Fffffffffffff",
+      "old_bytes": 68,
+      "final_bytes": 68,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [],
+      "final_refs": []
+    },
+    {
+      "name": "sqrt__Q29JGeometry8TUtil<f>Ff",
+      "old_bytes": 60,
+      "final_bytes": 60,
+      "raw_except_relocation_fields_same": true,
+      "effective_symbol_refs_same": true,
+      "old_refs": [
+        [
+          0,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          20,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          24,
+          109,
+          [
+            ".sdata2",
+            8
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          0,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          20,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          24,
+          109,
+          [
+            ".sdata2",
+            8
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "update__16CameraRotCheckerFv",
+      "old_bytes": 236,
+      "final_bytes": 240,
+      "raw_except_relocation_fields_same": false,
+      "effective_symbol_refs_same": false,
+      "old_refs": [
+        [
+          20,
+          10,
+          [
+            "getCameraViewMtx__2MRFv",
+            0
+          ]
+        ],
+        [
+          36,
+          10,
+          [
+            "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+            0
+          ]
+        ],
+        [
+          48,
+          10,
+          [
+            "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+            0
+          ]
+        ],
+        [
+          64,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          92,
+          109,
+          [
+            ".sdata2",
+            8
+          ]
+        ],
+        [
+          96,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          128,
+          10,
+          [
+            "JMAAsinRadian__Ff",
+            0
+          ]
+        ],
+        [
+          132,
+          109,
+          [
+            ".sdata2",
+            16
+          ]
+        ],
+        [
+          164,
+          10,
+          [
+            "getCameraInvViewMtx__2MRFv",
+            0
+          ]
+        ]
+      ],
+      "final_refs": [
+        [
+          20,
+          10,
+          [
+            "getCameraViewMtx__2MRFv",
+            0
+          ]
+        ],
+        [
+          36,
+          10,
+          [
+            "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+            0
+          ]
+        ],
+        [
+          48,
+          10,
+          [
+            "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+            0
+          ]
+        ],
+        [
+          64,
+          109,
+          [
+            ".sdata2",
+            0
+          ]
+        ],
+        [
+          92,
+          109,
+          [
+            ".sdata2",
+            8
+          ]
+        ],
+        [
+          96,
+          109,
+          [
+            ".sdata2",
+            12
+          ]
+        ],
+        [
+          132,
+          10,
+          [
+            "JMAAsinRadian__Ff",
+            0
+          ]
+        ],
+        [
+          136,
+          109,
+          [
+            ".sdata2",
+            16
+          ]
+        ],
+        [
+          168,
+          10,
+          [
+            "getCameraInvViewMtx__2MRFv",
+            0
+          ]
+        ]
+      ]
+    }
+  ],
+  "all_nontext_ALLOC_sections_preserved": [
+    {
+      "name": ".ctors",
+      "bytes": 4,
+      "raw_and_refs_exact": true,
+      "hex": "00000000"
+    },
+    {
+      "name": ".sdata2",
+      "bytes": 48,
+      "raw_and_refs_exact": true,
+      "hex": "000000003f800000404000003f000000400000003fc90fdbbf800000bfc90fdb447fe0003f19999a4334000040490fdb"
+    }
+  ],
+  "target_whole_text_bytes": 368,
+  "target_whole_text_relocation_restored_equals_actualDOL": true,
+  "target_text_base": "0x80128f00",
+  "target_effective_refs": [
+    {
+      "offset": 24,
+      "kind": 10,
+      "symbol": "identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>Fv",
+      "addend": 0,
+      "actual_address": "0x80006ec0"
+    },
+    {
+      "offset": 28,
+      "kind": 109,
+      "symbol": "sThreshold__30@unnamed@CameraRotChecker_cpp@",
+      "addend": 0,
+      "actual_address": "0x807d1d78"
+    },
+    {
+      "offset": 84,
+      "kind": 10,
+      "symbol": "getCameraViewMtx__2MRFv",
+      "addend": 0,
+      "actual_address": "0x8001cd10"
+    },
+    {
+      "offset": 100,
+      "kind": 10,
+      "symbol": "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+      "addend": 0,
+      "actual_address": "0x80007380"
+    },
+    {
+      "offset": 112,
+      "kind": 10,
+      "symbol": "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+      "addend": 0,
+      "actual_address": "0x80007930"
+    },
+    {
+      "offset": 128,
+      "kind": 109,
+      "symbol": "lbl_807D9410",
+      "addend": 0,
+      "actual_address": "0x807d9410"
+    },
+    {
+      "offset": 156,
+      "kind": 109,
+      "symbol": "lbl_807D9418",
+      "addend": 0,
+      "actual_address": "0x807d9418"
+    },
+    {
+      "offset": 160,
+      "kind": 109,
+      "symbol": "lbl_807D9414",
+      "addend": 0,
+      "actual_address": "0x807d9414"
+    },
+    {
+      "offset": 196,
+      "kind": 10,
+      "symbol": "JMAAsinRadian__Ff",
+      "addend": 0,
+      "actual_address": "0x800e4380"
+    },
+    {
+      "offset": 200,
+      "kind": 109,
+      "symbol": "lbl_807D941C",
+      "addend": 0,
+      "actual_address": "0x807d941c"
+    },
+    {
+      "offset": 232,
+      "kind": 10,
+      "symbol": "getCameraInvViewMtx__2MRFv",
+      "addend": 0,
+      "actual_address": "0x8001cd40"
+    },
+    {
+      "offset": 316,
+      "kind": 10,
+      "symbol": "PI__Q29JGeometry8TUtil<f>Fv",
+      "addend": 0,
+      "actual_address": "0x80111f00"
+    },
+    {
+      "offset": 320,
+      "kind": 109,
+      "symbol": "lbl_807D9420",
+      "addend": 0,
+      "actual_address": "0x807d9420"
+    },
+    {
+      "offset": 324,
+      "kind": 109,
+      "symbol": "lbl_807D9424",
+      "addend": 0,
+      "actual_address": "0x807d9424"
+    },
+    {
+      "offset": 340,
+      "kind": 109,
+      "symbol": "sThreshold__30@unnamed@CameraRotChecker_cpp@",
+      "addend": 0,
+      "actual_address": "0x807d1d78"
+    }
+  ],
+  "SDA_original_DOL": [
+    {
+      "DOL_address": "0x8000428c",
+      "raw": "3c40807d6042eca0",
+      "register": 2,
+      "value": "0x807deca0"
+    },
+    {
+      "DOL_address": "0x80004294",
+      "raw": "3da0807d61ad7320",
+      "register": 13,
+      "value": "0x807d7320"
+    }
+  ],
+  "target_scalar_constants": [
+    {
+      "name": "lbl_807D9410",
+      "address": "0x807d9410",
+      "bits": "00000000"
+    },
+    {
+      "name": "lbl_807D9418",
+      "address": "0x807d9418",
+      "bits": "40400000"
+    },
+    {
+      "name": "lbl_807D9414",
+      "address": "0x807d9414",
+      "bits": "3f000000"
+    },
+    {
+      "name": "lbl_807D941C",
+      "address": "0x807d941c",
+      "bits": "40000000"
+    },
+    {
+      "name": "lbl_807D9420",
+      "address": "0x807d9420",
+      "bits": "3f19999a"
+    },
+    {
+      "name": "lbl_807D9424",
+      "address": "0x807d9424",
+      "bits": "43340000"
+    }
+  ],
+  "final_update240B_all_nonrelocation_raw_words_equal_target": true,
+  "final_update_full60_ordered_formatted_instructions_and_literal_values_equal": true,
+  "streams": {
+    "left": [
+      "stwu r1, -0x50(r1)",
+      "mflr r0",
+      "stw r0, 0x54(r1)",
+      "stw r31, 0x4c(r1)",
+      "mr r31, r3",
+      "bl getCameraViewMtx__2MRFv",
+      "mr r4, r3",
+      "addi r3, r1, 0x18",
+      "addi r5, r31, 0x4",
+      "bl concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+      "addi r3, r1, 0x18",
+      "addi r4, r1, 0x8",
+      "bl getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+      "addi r3, r1, 0x8",
+      "lfs f2, 0x10(r1)",
+      "psq_l f1, 0x0(r3), 0, qr0",
+      "lfs f0, LIT[00000000]@sda21",
+      "ps_mul f1, f1, f1",
+      "ps_madd f3, f2, f2, f1",
+      "ps_sum0 f3, f3, f1, f1",
+      "fcmpo cr0, f3, f0",
+      "ble 0x80",
+      "frsqrte f1, f3",
+      "lfs f2, LIT[40400000]@sda21",
+      "lfs f0, LIT[3f000000]@sda21",
+      "fmuls f3, f1, f3",
+      "fmuls f1, f3, f1",
+      "fsubs f1, f1, f2",
+      "fneg f1, f1",
+      "fmuls f1, f1, f3",
+      "fmuls f1, f1, f0",
+      "b 0x84",
+      "fmr f1, f3",
+      "bl JMAAsinRadian__Ff",
+      "lfs f2, LIT[40000000]@sda21",
+      "lfs f0, 0x0(r31)",
+      "fmuls f1, f2, f1",
+      "fabs f1, f1",
+      "fcmpo cr0, f1, f0",
+      "mfcr r0",
+      "extrwi r0, r0, 1, 1",
+      "stb r0, 0x34(r31)",
+      "bl getCameraInvViewMtx__2MRFv",
+      "psq_l f0, 0x0(r3), 0, qr0",
+      "psq_l f1, 0x8(r3), 0, qr0",
+      "psq_l f2, 0x10(r3), 0, qr0",
+      "psq_l f3, 0x18(r3), 0, qr0",
+      "psq_l f4, 0x20(r3), 0, qr0",
+      "psq_l f5, 0x28(r3), 0, qr0",
+      "psq_st f5, 0x2c(r31), 0, qr0",
+      "psq_st f0, 0x4(r31), 0, qr0",
+      "psq_st f1, 0xc(r31), 0, qr0",
+      "psq_st f2, 0x14(r31), 0, qr0",
+      "psq_st f3, 0x1c(r31), 0, qr0",
+      "psq_st f4, 0x24(r31), 0, qr0",
+      "lwz r31, 0x4c(r1)",
+      "lwz r0, 0x54(r1)",
+      "mtlr r0",
+      "addi r1, r1, 0x50",
+      "blr"
+    ],
+    "right": [
+      "stwu r1, -0x50(r1)",
+      "mflr r0",
+      "stw r0, 0x54(r1)",
+      "stw r31, 0x4c(r1)",
+      "mr r31, r3",
+      "bl getCameraViewMtx__2MRFv",
+      "mr r4, r3",
+      "addi r3, r1, 0x18",
+      "addi r5, r31, 0x4",
+      "bl concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+      "addi r3, r1, 0x18",
+      "addi r4, r1, 0x8",
+      "bl getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+      "addi r3, r1, 0x8",
+      "lfs f2, 0x10(r1)",
+      "psq_l f1, 0x0(r3), 0, qr0",
+      "lfs f0, LIT[00000000]@sda21",
+      "ps_mul f1, f1, f1",
+      "ps_madd f3, f2, f2, f1",
+      "ps_sum0 f3, f3, f1, f1",
+      "fcmpo cr0, f3, f0",
+      "ble 0x80",
+      "frsqrte f1, f3",
+      "lfs f2, LIT[40400000]@sda21",
+      "lfs f0, LIT[3f000000]@sda21",
+      "fmuls f3, f1, f3",
+      "fmuls f1, f3, f1",
+      "fsubs f1, f1, f2",
+      "fneg f1, f1",
+      "fmuls f1, f1, f3",
+      "fmuls f1, f1, f0",
+      "b 0x84",
+      "fmr f1, f3",
+      "bl JMAAsinRadian__Ff",
+      "lfs f2, LIT[40000000]@sda21",
+      "lfs f0, 0x0(r31)",
+      "fmuls f1, f2, f1",
+      "fabs f1, f1",
+      "fcmpo cr0, f1, f0",
+      "mfcr r0",
+      "extrwi r0, r0, 1, 1",
+      "stb r0, 0x34(r31)",
+      "bl getCameraInvViewMtx__2MRFv",
+      "psq_l f0, 0x0(r3), 0, qr0",
+      "psq_l f1, 0x8(r3), 0, qr0",
+      "psq_l f2, 0x10(r3), 0, qr0",
+      "psq_l f3, 0x18(r3), 0, qr0",
+      "psq_l f4, 0x20(r3), 0, qr0",
+      "psq_l f5, 0x28(r3), 0, qr0",
+      "psq_st f5, 0x2c(r31), 0, qr0",
+      "psq_st f0, 0x4(r31), 0, qr0",
+      "psq_st f1, 0xc(r31), 0, qr0",
+      "psq_st f2, 0x14(r31), 0, qr0",
+      "psq_st f3, 0x1c(r31), 0, qr0",
+      "psq_st f4, 0x24(r31), 0, qr0",
+      "lwz r31, 0x4c(r1)",
+      "lwz r0, 0x54(r1)",
+      "mtlr r0",
+      "addi r1, r1, 0x50",
+      "blr"
+    ]
+  },
+  "ordered_calls": {
+    "old_source": [
+      {
+        "offset": 20,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getCameraViewMtx__2MRFv",
+        "addend": 0,
+        "identity": [
+          "getCameraViewMtx__2MRFv",
+          0
+        ],
+        "mapped_destination_hint": "0x8001CD10"
+      },
+      {
+        "offset": 36,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+        "addend": 0,
+        "identity": [
+          "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+          0
+        ],
+        "mapped_destination_hint": "0x80007380"
+      },
+      {
+        "offset": 48,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+        "addend": 0,
+        "identity": [
+          "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+          0
+        ],
+        "mapped_destination_hint": "0x80007930"
+      },
+      {
+        "offset": 128,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "JMAAsinRadian__Ff",
+        "addend": 0,
+        "identity": [
+          "JMAAsinRadian__Ff",
+          0
+        ],
+        "mapped_destination_hint": "0x800E4380"
+      },
+      {
+        "offset": 164,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getCameraInvViewMtx__2MRFv",
+        "addend": 0,
+        "identity": [
+          "getCameraInvViewMtx__2MRFv",
+          0
+        ],
+        "mapped_destination_hint": "0x8001CD40"
+      }
+    ],
+    "final_source": [
+      {
+        "offset": 20,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getCameraViewMtx__2MRFv",
+        "addend": 0,
+        "identity": [
+          "getCameraViewMtx__2MRFv",
+          0
+        ],
+        "mapped_destination_hint": "0x8001CD10"
+      },
+      {
+        "offset": 36,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+        "addend": 0,
+        "identity": [
+          "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+          0
+        ],
+        "mapped_destination_hint": "0x80007380"
+      },
+      {
+        "offset": 48,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+        "addend": 0,
+        "identity": [
+          "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+          0
+        ],
+        "mapped_destination_hint": "0x80007930"
+      },
+      {
+        "offset": 132,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "JMAAsinRadian__Ff",
+        "addend": 0,
+        "identity": [
+          "JMAAsinRadian__Ff",
+          0
+        ],
+        "mapped_destination_hint": "0x800E4380"
+      },
+      {
+        "offset": 168,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getCameraInvViewMtx__2MRFv",
+        "addend": 0,
+        "identity": [
+          "getCameraInvViewMtx__2MRFv",
+          0
+        ],
+        "mapped_destination_hint": "0x8001CD40"
+      }
+    ],
+    "target": [
+      {
+        "offset": 20,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getCameraViewMtx__2MRFv",
+        "addend": 0,
+        "identity": [
+          "getCameraViewMtx__2MRFv",
+          0
+        ],
+        "actual_DOL_site": "0x80128F54",
+        "actual_DOL_word": "4bef3dbd",
+        "actual_DOL_destination": "0x8001CD10",
+        "actual_DOL_identities": [
+          {
+            "callee": "getCameraViewMtx__2MRFv",
+            "addend": 0
+          }
+        ],
+        "relocation_matches_actual_destination": true
+      },
+      {
+        "offset": 36,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+        "addend": 0,
+        "identity": [
+          "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+          0
+        ],
+        "actual_DOL_site": "0x80128F64",
+        "actual_DOL_word": "4bede41d",
+        "actual_DOL_destination": "0x80007380",
+        "actual_DOL_identities": [
+          {
+            "callee": "concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>",
+            "addend": 0
+          }
+        ],
+        "relocation_matches_actual_destination": true
+      },
+      {
+        "offset": 48,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+        "addend": 0,
+        "identity": [
+          "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+          0
+        ],
+        "actual_DOL_site": "0x80128F70",
+        "actual_DOL_word": "4bede9c1",
+        "actual_DOL_destination": "0x80007930",
+        "actual_DOL_identities": [
+          {
+            "callee": "getQuat__Q29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>CFRQ29JGeometry9TQuat4<f>",
+            "addend": 0
+          }
+        ],
+        "relocation_matches_actual_destination": true
+      },
+      {
+        "offset": 132,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "JMAAsinRadian__Ff",
+        "addend": 0,
+        "identity": [
+          "JMAAsinRadian__Ff",
+          0
+        ],
+        "actual_DOL_site": "0x80128FC4",
+        "actual_DOL_word": "4bfbb3bd",
+        "actual_DOL_destination": "0x800E4380",
+        "actual_DOL_identities": [
+          {
+            "callee": "JMAAsinRadian__Ff",
+            "addend": 0
+          }
+        ],
+        "relocation_matches_actual_destination": true
+      },
+      {
+        "offset": 168,
+        "word": "48000001",
+        "relocation_type": 10,
+        "callee": "getCameraInvViewMtx__2MRFv",
+        "addend": 0,
+        "identity": [
+          "getCameraInvViewMtx__2MRFv",
+          0
+        ],
+        "actual_DOL_site": "0x80128FE8",
+        "actual_DOL_word": "4bef3d59",
+        "actual_DOL_destination": "0x8001CD40",
+        "actual_DOL_identities": [
+          {
+            "callee": "getCameraInvViewMtx__2MRFv",
+            "addend": 0
+          }
+        ],
+        "relocation_matches_actual_destination": true
+      }
+    ]
+  },
+  "sqrt_paths": {
+    "predicate": "FCMPO cr0,x,+0 then BO=4 BI=1 BLE: skip positive path unless GT; unordered also skips",
+    "nonpositive_and_NaN": "same fmr f1,f3, same JMAAsin call; input preserved (including -0 and NaN operand bits prior to existing subsequent instructions)",
+    "positive": "same frsqrte f1,f3; fmuls(v=estimate*x); fmuls(v*estimate); fsubs(...,3); fneg; fmuls(correction*v); fmuls(...,0.5), with every operand order and single rounding boundary identical",
+    "positive_infinity": "same positive path including estimate0 * infinity and consequent NaN behavior",
+    "paired_lanes": "full same ps_mul/ps_madd/ps_sum0 and qr0 memory instructions; no independent scalar/paired equivalence assumption"
+  },
+  "finite_witness_scope": "Primary Dolphin model RNE positive-normal scalar window only; not hardware execution or final camera boolean counterexample. See finite-witness.json. Final normal DEFAULT classa requires ordered identity, independent of witness."
+}

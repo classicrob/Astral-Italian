@@ -11,21 +11,14 @@ CameraRotChecker::CameraRotChecker() {
     mThreshold = ::sThreshold;
 }
 
-// NONMATCHING: intrinsic estimate materialization and equivalent branch/register scheduling.
+// Keep the reciprocal estimate at FPR precision until the shared helper multiplies it.
 void CameraRotChecker::update() {
     TPos3f mtx;
     mtx.concat(MR::getCameraViewMtx(), mMtx);
 
     TQuat4f rotation;
     mtx.getQuat(rotation);
-    f32 vectorLength = rotation.toTvec()->squared();
-    if (vectorLength > 0.0f) {
-        f32 inverse = __frsqrte(vectorLength);
-        vectorLength = inverse * vectorLength;
-        f32 correction = vectorLength * inverse;
-        correction = -(correction - 3.0f);
-        vectorLength = (correction * vectorLength) * 0.5f;
-    }
+    f32 vectorLength = MR::fastSqrtf(rotation.toTvec()->squared());
     mIsRotatingHard = MR::abs(2.0f * JMAAsinRadian(vectorLength)) > mThreshold;
 
     mMtx.set(MR::getCameraInvViewMtx());

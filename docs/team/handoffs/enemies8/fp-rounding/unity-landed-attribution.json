@@ -1,0 +1,66 @@
+{
+  "main_report_sha256": "53e6d48027d1dc20c2be362c8750b169541e4d8255769d68ac9f5829314dda75",
+  "report_main": "85ed325311f3845871bacf82ddde543fd59562b9",
+  "source_scope": "Earlier range1/range2 and latest source-only range3/Actor candidates, integrated by Player owner. Original source was nonexact for each row; latest1276 attribution independently supplied by Astra landing500/strike-attribution.json. Mixed2104 wholebatch never attributed to enemies.",
+  "unity_total": 1820,
+  "functions": [
+    {
+      "main_landing": "b2f097ac",
+      "function": "fn_803A1E60__5MarioFf",
+      "matched_code_gain": 244,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "1ad54d38",
+      "function": "updateCameraPolygon__5MarioFv",
+      "matched_code_gain": 300,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "85ed3253",
+      "function": "fn_80394550__5MarioFPCQ29JGeometry8TVec3<f>",
+      "matched_code_gain": 152,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "85ed3253",
+      "function": "fn_803A1C90__5MarioFv",
+      "matched_code_gain": 200,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "85ed3253",
+      "function": "fn_803AF2F0__5MarioFPCf",
+      "matched_code_gain": 116,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "85ed3253",
+      "function": "fn_8039A480__5MarioFv",
+      "matched_code_gain": 300,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "85ed3253",
+      "function": "updateControllerSwing__10MarioActorFv",
+      "matched_code_gain": 272,
+      "actual_fullreport_fuzzy": 100.0
+    },
+    {
+      "main_landing": "85ed3253",
+      "function": "updateControllerSwingLeft__10MarioActorFv",
+      "matched_code_gain": 236,
+      "actual_fullreport_fuzzy": 100.0
+    }
+  ],
+  "own_lane_pre_camera": 4824,
+  "session_landed_total_before_camera": 6644,
+  "camera_candidate": 240,
+  "camera_landed": false,
+  "excluded_residue": {
+    "fn_803A10D0": 99.94,
+    "fn_803A26C0": 98.541664,
+    "fn_803A27A0": 99.021736,
+    "updateSwingTimer": 97.42308
+  }
+}

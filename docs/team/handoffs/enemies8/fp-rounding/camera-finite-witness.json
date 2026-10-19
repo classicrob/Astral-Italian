@@ -1,0 +1,43 @@
+{
+  "status": "finite arithmetic witness in primary Dolphin Gekko model; not hardware execution",
+  "commit": "1822e3859f061c6f81076c94eb4ba7e6e0a3706c",
+  "sources": {
+    "Source/Core/Common/FloatUtils.cpp": {
+      "url": "https://raw.githubusercontent.com/dolphin-emu/dolphin/1822e3859f061c6f81076c94eb4ba7e6e0a3706c/Source/Core/Common/FloatUtils.cpp",
+      "sha256": "e7bcd6a48701a361a84a9c0dfbf2ddb0c5c5219a1370838c05f99a5e8dff9dbb"
+    },
+    "Source/Core/Core/PowerPC/Interpreter/Interpreter_FPUtils.h": {
+      "url": "https://raw.githubusercontent.com/dolphin-emu/dolphin/1822e3859f061c6f81076c94eb4ba7e6e0a3706c/Source/Core/Core/PowerPC/Interpreter/Interpreter_FPUtils.h",
+      "sha256": "a0ad865fc78191a3052ea8d8fd182192833ae242862c7ab1dad904982dc1bee1"
+    },
+    "Source/Core/Core/PowerPC/Interpreter/Interpreter_FloatingPoint.cpp": {
+      "url": "https://raw.githubusercontent.com/dolphin-emu/dolphin/1822e3859f061c6f81076c94eb4ba7e6e0a3706c/Source/Core/Core/PowerPC/Interpreter/Interpreter_FloatingPoint.cpp",
+      "sha256": "413687af3756bde737061cec51f3ac24c217346eba58ef4da9b1cdd44972b423"
+    }
+  },
+  "domain": "positive finite normal f32 x = round32(q*q), q finite in(0,0.5), can form quaternion-vector(q,0,0)",
+  "rounding": "nearest/ties-even; all operands/results normal, no flush/NaN case; Force25Bit(frC) applied in both paths",
+  "attempt": 8,
+  "quaternion_vector_x": 0.007268025539815426,
+  "quaternion_vector_x_f32_bits": "3bee289e",
+  "squared_length": 5.282419442664832e-05,
+  "squared_length_f32_bits": "385d8f8c",
+  "target_without_frsp": {
+    "estimate_f64_bits": "406133074c000000",
+    "first_product_f32_bits": "3bee2b23",
+    "correction_product_f32_bits": "3f8002b6",
+    "subtract3_f32_bits": "bffffd4a",
+    "final_Asin_argument_f32_bits": "3bee289d",
+    "final_Asin_argument": 0.0072680250741541386
+  },
+  "source_with_frsp": {
+    "estimate_f64_bits": "4061330740000000",
+    "first_product_f32_bits": "3bee2b23",
+    "correction_product_f32_bits": "3f8002b5",
+    "subtract3_f32_bits": "bffffd4b",
+    "final_Asin_argument_f32_bits": "3bee289e",
+    "final_Asin_argument": 0.007268025539815426
+  },
+  "scope": "exact scalar sequence between PS squared positive branch and JMAAsinRadian; not a wholefunction or camera-output equivalence certificate",
+  "exactness": "largest multiply significand27+24=51bits, fits53bit double; later24+25=49bits. Explicitf32 rounding at each single op, no FMA."
+}

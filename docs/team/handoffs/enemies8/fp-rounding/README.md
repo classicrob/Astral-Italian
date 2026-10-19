@@ -1,0 +1,11 @@
+# FP precision audit
+
+CameraRotChecker::update used an f32 local for the reciprocal-square-root estimate. This inserted an FRSP before the target's first FMULS and could change its later Asin input. Use the existing MR::fastSqrtf helper, which preserves the target's reciprocal estimate until the single-precision operations consume it. The unchanged default classifier proves all 60 instructions with ordered FP operands, identical full literal payloads and calls. Local full nj/hash passed; all-unit report comparison adds 240 code bytes with zero losses (CameraRotChecker 3/3 report functions, 352/352 code bytes). Data remains partial; the unit stays NonMatching.
+
+The finite witness is a bounded Dolphin Gekko-model arithmetic example, not hardware execution or a separate whole-function certificate. Its model commit and primary source hashes/URLs are pinned. The default full-body proof is independent of that example.
+
+Unbaba's Hermite expression preserves the target's grouping, precision and 19 operation boundaries. Its one multiply operand exchange is commuted-only; no generic finite/native defect is claimed. The bounded script independently decodes all 20 raw words, binds the full target body to the DOL and rejects changed grouping/precision/subtraction direction. Rise/Sink's complete normalized streams differ only in the last sum destination and immediately consuming store. All these rows remain REAL under the default checker; these documents add no checker/benign exemption. Only the Hermite NONMATCHING comment changes.
+
+Full input captures and the remaining audit's open-row ledger are under the shared scratch-enemies/sol8/fp-label-audit directory. Unknown audit rows are not counted as correct or as bugs.
+
+After rebasing onto Player root500 (85ed3253), a fresh Camera single-object compile and unchanged default classifier still accept all 60 instructions. Although object/debug bytes and generated label names changed with the header context, all eight allocated sections, full emitted-function inventory and effective relocation identities exactly match the frozen preservation input. Generated locals are compared by section occurrence, offset and size against the complete section bytes. See camera-post85-binding.json; pre-rebase dependency hashes are not falsely treated as current.

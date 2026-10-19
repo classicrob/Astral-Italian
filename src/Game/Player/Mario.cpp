@@ -1626,7 +1626,7 @@ void Mario::update() {
 
 void Mario::updateGroundInfo() {
     checkMap();
-    if (isEnableCheckGround()) {
+    if (fn_803890B0()) {
         bool b1 = !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 30) & 1U);
 
         { const u32 flagValue = static_cast<u32>(checkGround()); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xBFFFFFFFU) | ((flagValue & 1U) << 30); }
@@ -1654,6 +1654,7 @@ void Mario::updateGroundInfo() {
     updateCameraPolygon();
 
     if (((mMovementStates.mLowWord >> 30) & 1U)) {
+        mJumpFallTimer = 0;
         mMovementStates.mHighWord &= 0xFFBFFFFFU;
         if (_43A == 0 && isSlipPolygon(mGroundPolygon)) {
             mDrawStates.mWord |= 0x00080000U;
@@ -1669,6 +1670,10 @@ void Mario::updateGroundInfo() {
     updateOnSand();
     updateOnWater();
     updateOnPoison();
+
+    if (mHang != nullptr && ((mMovementStates.mLowWord >> 30) & 1U)) {
+        mHang->mHangTimer = 0;
+    }
 }
 
 

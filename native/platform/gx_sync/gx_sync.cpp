@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // GP interrupts and GX synchronisation. See petari/platform/gx_sync.hpp and
 // docs/dev/GX_SYNC_PLAN.md.
 //
@@ -185,6 +186,7 @@ std::deque<Event>::iterator nextDeliverableLocked(State& s) {
 }
 
 void* interruptMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     PetariNative::HostAllocationScope hostAllocations;
     State& s = state();
     std::unique_lock<std::mutex> lock(s.lock);

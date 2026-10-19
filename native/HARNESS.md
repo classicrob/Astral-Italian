@@ -11,7 +11,9 @@ frames remain in the trace; unsupported paths fail rather than inventing state.
 Status on base `3c133d77`: headless configure passes, and the core/FPCR, SDK
 decoder, and virtual-clock test executables compile with ASan/UBSan. The 20
 Python harness tests and 18 collector contract/observer tests pass. C++ runtime
-checks and the full target are queued behind the shared build lock. No game
+checks found that Darwin pthread startup resets FPCR.FZ; worker startup now
+explicitly applies the selected policy. KPAD/virtual-clock/tools CTests pass;
+the FP fix and full build are queued behind the shared build lock. No game
 executable or emulator was run by this lane, and no game data was copied.
 
 ## Targets and source hooks
@@ -79,9 +81,12 @@ DSP renderer/mailbox and OS audio threads still exist: this is not a replacement
 JAudio implementation or a claim of DSP equivalence.
 
 FPCR.FZ is set on the main thread **before** worker/game threads are created.
-`--no-ftz` clears it. The native test multiplies two normal operands to produce a
-denormal, checking gradual underflow with FZ off and zero with FZ on, verifies
-pthread inheritance, and checks restoration of the original FPCR. Explicit FMA
+`--no-ftz` clears it. Darwin resets FPCR when creating pthreads, so OS game
+threads and native VI/DVD/NAND/GX/AI/DSP/alarm workers explicitly apply the selected
+policy at entry. The native test multiplies two normal operands to produce a
+denormal, checks gradual underflow with FZ off and zero with FZ on, tests worker
+startup in both modes, and checks restoration of the original FPCR. A virtual-clock
+integration test also checks real OSCreateThread workers in both modes. Explicit FMA
 operations are not removed; automatic contraction remains disabled with
 `-ffp-contract=off`.
 

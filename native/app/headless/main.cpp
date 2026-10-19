@@ -7,6 +7,7 @@
 #include <petari/app.hpp>
 #include <petari/boot.hpp>
 #include <petari/host_allocation.hpp>
+#include <petari/floating_point.hpp>
 #include <petari/input.hpp>
 #include <petari/kpad_replay.hpp>
 #include <petari/platform/virtual_time.hpp>
@@ -91,6 +92,7 @@ public:
     static void viWait(void* user) { try { static_cast<Driver*>(user)->wait(false); } catch (const std::exception& e) { fail(e.what()); } }
 private:
     void worker() {
+        PetariNative::FloatingPointThreadPolicy::apply();
         try {
             std::unique_lock<std::mutex> lock(mMutex);
             while (true) {
@@ -156,6 +158,7 @@ int main(int argc,char** argv) {
         auto d=args.count("--rate-denominator")?integer(args.at("--rate-denominator")):1001;
         if (!n || !d || n>1000000 || d>1000000) throw H::ReplayError("invalid frame rate");
         H::FloatingPointMode fp(ftz);
+        PetariNative::FloatingPointThreadPolicy threadFp(ftz);
         std::fprintf(stderr,"headless: rate %llu/%llu Hz, epoch %llu ticks, FPCR.FZ=%d\n",
                      static_cast<unsigned long long>(n),static_cast<unsigned long long>(d),
                      static_cast<unsigned long long>(epoch),H::FloatingPointMode::flushToZero());

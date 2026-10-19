@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // Native implementation of the Revolution SDK DVD API over an extracted disc.
 //
 // Replaces src/RVL_SDK/dvd/{dvd,dvdfs,dvdqueue,dvd_broadway,dvderror,dvdFatal,
@@ -361,6 +362,7 @@ void complete(Drive& d, DVDCommandBlock* block, s32 state, s32 result) {
 }
 
 void runDrive() {
+    PetariNative::FloatingPointThreadPolicy::apply();
     // Drive-thread bookkeeping (open files, test hooks) must not come from
     // whichever JKR heap is current on the game side.
     PetariNative::HostAllocationScope hostAllocations;

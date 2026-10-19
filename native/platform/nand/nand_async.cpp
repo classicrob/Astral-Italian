@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // Asynchronous NAND API (the subset RVLFaceLib uses), ported from the SDK's
 // nand.c and NANDOpenClose.c onto the host ISFS.
 //
@@ -55,6 +56,7 @@ Worker& worker() {
 }
 
 void* workerMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     PetariNative::HostAllocationScope hostAllocations;
     Worker& w = worker();
     std::unique_lock<std::mutex> lock(w.lock);

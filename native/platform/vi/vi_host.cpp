@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // Native VI. Replaces src/RVL_SDK/vi/{vi,vi3in1,i2c}.c. Register programming
 // becomes pending/flushed/latched state (see petari/platform/vi.hpp). The
 // retrace handler keeps __VIRetraceHandler's order: count, pre-callback,
@@ -210,6 +211,7 @@ Clock::duration fieldPeriodLocked() {
 // disabled) and delivers one retrace. A stop request is seen at the next
 // deadline, within one field.
 void* viThreadMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     namespace Telemetry = PetariNative::FrameTelemetry;
     OSDisableInterrupts();
     Clock::duration period = fieldPeriodLocked();

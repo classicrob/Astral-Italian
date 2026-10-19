@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // Native OS thread scheduler.
 //
 // Port of src/RVL_SDK/os/OSThread.c. Run queues, priorities, priority
@@ -619,6 +620,7 @@ void requireRunningOsThread(const char* function) {
 }
 
 void* hostEntry(void* arg) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     tHost = *static_cast<std::shared_ptr<HostThread>*>(arg);
     {
         PetariNative::HostAllocationScope hostAllocations;

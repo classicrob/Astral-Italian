@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // OSAlarm on the host.
 //
 // Port of src/RVL_SDK/os/OSAlarm.c. The alarm queue and its ordering are the
@@ -135,6 +136,7 @@ void fireExpired() {
 }
 
 void* timerMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     std::condition_variable& cv = timerCv();
     OSDisableInterrupts();
     std::unique_lock<std::mutex> lock(interruptMutex(), std::adopt_lock);

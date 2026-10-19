@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // Native audio DSP device: mailbox, task boot, and the command/render state
 // machine of the JAudio2 microcode (Zelda ucode family, default protocol,
 // flags NO_ARAM | MAKE_DOLBY_LOUDER | COMBINED_CMD_0D). Replaces
@@ -324,6 +325,7 @@ void handleMail(Device& d, std::uint32_t mail) {
 }
 
 void* workerMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);  // renders each audio frame on demand
     PetariNative::HostAllocationScope hostAllocations;
     Device& d = device();
@@ -342,6 +344,7 @@ void* workerMain(void*) {
 }
 
 void* interruptMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     // Like the AI interrupt thread (ai_host.cpp): each DSP subframe is a round
     // trip through this thread and JAudio2's audio thread, and user-interactive
     // wake-ups were measured up to 24.8 ms late (story-9, while the real-time

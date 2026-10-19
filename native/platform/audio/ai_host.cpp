@@ -1,3 +1,4 @@
+#include <petari/floating_point.hpp>
 // Native audio interface (AI). Replaces src/RVL_SDK/ai/ai.c.
 //
 // Hardware model: the DMA engine plays the registered block; when a block
@@ -133,6 +134,7 @@ bool gSinkStarted;
 // signals: a signal only wakes the thread, so extra or stale wake-ups deliver
 // nothing and every raised interrupt is delivered exactly once.
 void* interruptThreadMain(void*) {
+    PetariNative::FloatingPointThreadPolicy::apply();
     // Audio deadline: the game must see each DMA interrupt well within a
     // block. Ordinary (even user-interactive) threads were measured waking
     // 2-14 ms after the signal; Mach time-constraint (real-time) scheduling,

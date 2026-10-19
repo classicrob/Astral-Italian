@@ -2,6 +2,7 @@
 #include "trace.hpp"
 #include "gx_ledger.hpp"
 #include "fp_mode.hpp"
+#include <petari/floating_point.hpp>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -78,7 +79,10 @@ int main() {
      std::uint32_t smallBits=1;float small;std::memcpy(&small,&smallBits,4);state.real("z",small);
      check(state.fields.at("z_bits")=="0x00000001" && state.fields.at("z")!="0","observer preserves stored denormals under gameplay FZ");
      check(FloatingPointMode::flushToZero(),"observer restores gameplay FZ");
-     bool inherited=false;std::thread child([&]{inherited=FloatingPointMode::flushToZero() && multiply(normal,half)==0;});child.join();check(inherited,"new pthread inherits FZ");}
+     PetariNative::FloatingPointThreadPolicy policy(true);
+     bool applied=false;std::thread child([&]{PetariNative::FloatingPointThreadPolicy::apply();applied=FloatingPointMode::flushToZero() && multiply(normal,half)==0;});child.join();check(applied,"worker startup explicitly applies FZ");
+     {PetariNative::FloatingPointThreadPolicy gradualPolicy(false);
+      std::thread gradual([&]{FloatingPointMode initial(true);PetariNative::FloatingPointThreadPolicy::apply();applied=!FloatingPointMode::flushToZero() && multiply(normal,half)>0;});gradual.join();check(applied,"worker startup applies no-FTZ switch");}}
     check(FloatingPointMode::flushToZero()==original,"FPCR policy restores caller state");
 #endif
     std::printf("headless core: %d checks passed\n",checks);

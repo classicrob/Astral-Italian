@@ -603,7 +603,7 @@ namespace MR {
         return getCollisionDirector()->getCategoryKeeper(0)->createAreaPolygonListArray(pTriangle, param2, pParam3, param4);
     }
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     CollisionParts* findMoveLimitCollision(const TVec3f& rPos, const TVec3f& rGravity) {
         TVec3f start(rPos);
         TVec3f direction(rGravity);
@@ -791,7 +791,7 @@ namespace MR {
         return isGroundCodeSlip(&pActor->mBinder->mGroundInfo.mParentTriangle);
     }
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool isBindedWallNoActionWithoutGroundOrRoof(const LiveActor* pActor) {
         if (!pActor->mBinder) {
             return false;
@@ -1089,7 +1089,7 @@ namespace MR {
 
         return false;
     }
-    // NONMATCHING: register and temporary scheduling.
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool getFirstPolyOnLineBFastToDashYoshiStepAndMap(const TVec3f& rStart, const TVec3f& rDirection, TVec3f* pPos, Triangle* pTriangle) {
         Triangle triangle;
         f32 remaining = rDirection.length();

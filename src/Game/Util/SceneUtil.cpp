@@ -161,7 +161,7 @@ namespace MR {
         return isEqualStageName("CosmosGardenGalaxy") && getCurrentScenarioNo() == 4;
     }
 
-    // NONMATCHING: register allocation of the flag locals only (structure matches the target)
+    // NONMATCHING: register allocation of the flag locals only (structure matches the target) (FP order/grouping checked: no FP instructions).
     bool isStageScoreAttack() {
         bool match = false;
         bool result = true;

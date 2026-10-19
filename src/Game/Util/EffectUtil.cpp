@@ -93,7 +93,7 @@ namespace MR {
     }
 
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
     MultiEmitter* tryEmitEffect(LiveActor* pActor, const char* pEffectName) {
         if (!isExistEffect(pActor, pEffectName)) {
             return nullptr;
@@ -296,7 +296,7 @@ namespace MR {
         emitEffectHit(pActor, vecBetween, pEffectName);
     }
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
     void initEffectAfterPlacement(LiveActor* pActor, MtxPtr pMtx) {
         if (!pMtx) pMtx = pActor->getBaseMtx();
         ::getEffectKeeper(pActor)->initAfterPlacementForAttributeEffect(pMtx);
@@ -306,7 +306,6 @@ namespace MR {
         ::getEffectKeeper(pActor)->updateFloorCode(pTriangle);
     }
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
     void updateEffectFloorCodeLineToMap(LiveActor* pActor, const TVec3f& rPosition, const TVec3f& rDirection) {
         Triangle triangle = Triangle();
 
@@ -317,7 +316,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void updateEffectFloorCodeLineToMap(LiveActor* pActor, f32 a2, f32 a3) {
         TVec3f gravity = pActor->mGravity;
         TVec3f sumPosScaledGrav = pActor->mPosition + gravity * a3;

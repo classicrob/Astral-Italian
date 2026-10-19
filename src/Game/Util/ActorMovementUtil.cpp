@@ -232,7 +232,7 @@ namespace MR {
         pFromTargetHVec->scale(-1.0f);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     f32 calcNearestPointToPlayerOnSideLine(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pOffset, f32 scaleA, f32 scaleB) {
         TVec3f lineA;
         TVec3f lineB;
@@ -612,7 +612,6 @@ namespace MR {
                              frontVecBlendRate);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void resetPosition(LiveActor* pActor) {
         MR::clearHitSensors(pActor);
 
@@ -633,14 +632,13 @@ namespace MR {
         MR::requestCalcActorShadowAppear(pActor);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void resetPosition(LiveActor* pActor, const TVec3f& rPosition) {
         MR::setPosition(pActor, rPosition);
 
         MR::resetPosition(pActor);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void resetPosition(LiveActor* pActor, const char* pA2) {
         TVec3f pos(0.0f, 0.0f, 0.0f);
         TVec3f rot(0.0f, 0.0f, 0.0f);
@@ -652,7 +650,7 @@ namespace MR {
         MR::resetPosition(pActor);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool makeMtxOnMapCollision(TPos3f* pMtx, LiveActor* pActor, f32 length, f32 offset) {
         calcGravity(pActor);
         TVec3f direction(pActor->mGravity);
@@ -962,7 +960,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc/stack (stack slot order only)
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void setPositionToMapGround(LiveActor* pActor, f32 a1, f32 a2) {
         f32 coefDir = a2;
         f32 coefGravity = a1;
@@ -1115,7 +1113,7 @@ namespace MR {
         addVelocityJump(pActor, a3);
     }
 
-    // NONMATCHING: regalloc/stack (stack slot order only)
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void setVelocityDirectionAndJump(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
         f32 gravCoef = pCoef[1];
         TVec3f gravity(pActor->mGravity);
@@ -1128,7 +1126,7 @@ namespace MR {
         pActor->mVelocity.set(vel);
     }
 
-    // NONMATCHING: regalloc/stack (stack slot order only)
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void addVelocityDirectionAndJump(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
         f32 gravCoef = pCoef[1];
         TVec3f gravity(pActor->mGravity);
@@ -1369,7 +1367,7 @@ namespace MR {
         normalize(pA2);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void setRotationFromQuat(LiveActor* pActor, const TQuat4f& rQuat) {
         rQuat.getEuler(pActor->mRotation);
 
@@ -1404,7 +1402,6 @@ namespace MR {
         MR::makeQuatUpFront(pQuat, negGravity, sensorNormal);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void makeQuatFromGravityAndSensorDirection(TQuat4f* pQuat, TVec3f* pNormal, LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
         MR::calcSensorHorizonNormalize(pNormal, pActor->mGravity, pSensor1, pSensor2);
 
@@ -1457,7 +1454,7 @@ namespace MR {
         pActor->mVelocity.add(vel);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     f32 calcHorizontalSpeed(const LiveActor* pActor) {
         const TVec3f& rGravity = pActor->mGravity;
         const TVec3f& rVelocity = pActor->mVelocity;
@@ -1477,7 +1474,7 @@ namespace MR {
         pDst->set(scaled);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void calcVelocityMoveToTarget3D(TVec3f* pDst, LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
         JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
@@ -1592,7 +1589,7 @@ namespace MR {
 };  // namespace MR
 
 namespace MR {
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void calcRotate(LiveActor* pActor, const TVec3f& rA2, f32 a3) {
         TPos3f stack_44;
         TVec3f stack_38;
@@ -1661,7 +1658,7 @@ namespace MR {
         return PSVECMag(&diff);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     f32 calcDistanceToPlayerVGravity(const LiveActor* pActor) {
         if (isExistSceneObj(SceneObj_MarioHolder) == nullptr) {
             return 3.4028235e38f;
@@ -1719,12 +1716,12 @@ namespace MR {
         setBaseTRMtx(pActor, mtx);
     }
 
-    // NONMATCHING: regalloc (constant load order)
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     f32 normalizeAngleDegree(f32 angle) NO_INLINE {
         return MR::repeat(angle, 0.0f, 360.0f);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void killVelocityVertical(LiveActor* pActor) {
         TVec3f& rVelocity = pActor->mVelocity;
         const TVec3f& rGravity = pActor->mGravity;
@@ -1736,7 +1733,6 @@ namespace MR {
         pActor->mVelocity.scale(rGravity.dot(pActor->mVelocity), rGravity);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcGravitySpeedAbs(const LiveActor* pActor) {
         return __fabsf(pActor->mVelocity.dot(pActor->mGravity));
     }

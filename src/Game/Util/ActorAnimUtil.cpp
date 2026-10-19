@@ -366,7 +366,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: register allocation and redundant initial null materialization
+    // NONMATCHING: register allocation and redundant initial null materialization (FP order/grouping checked: no FP instructions).
     bool isAnyAnimPlaying(const LiveActor* pActor, const char* pName) {
         ActorAnimKeeper* pAnimKeeper = nullptr;
         if (pActor->mActionKeeper != nullptr) {

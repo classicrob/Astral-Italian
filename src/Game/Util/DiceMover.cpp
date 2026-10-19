@@ -80,7 +80,7 @@ void DiceMover::update() {
     checkVelocityChange(oldVelocity);
 }
 void DiceMover::updateCollision() {}
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DiceMover::calcMtx(TPos3f* out) {
     for (s32 i = 0; i < 3; ++i) {
         out->mMtx[i][0] = mRotation.mMtx[i][0];
@@ -113,7 +113,7 @@ void DiceMover::setPointArray(void* data, long calc) {
         }
     }
 }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DiceMover::initCollisionPoints(long count, long data) {
     if (!count) {
         mCollisionPoints = 0;
@@ -214,7 +214,7 @@ bool DiceMover::checkMapCollision(const TVec3f& point, HitInfo* info) {
     }
     return false;
 }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DiceMover::integrate() {
     TVec3f previousPosition(mPosition);
     TPos3f oldRotation = mRotation;
@@ -289,7 +289,7 @@ void DiceMover::addGravity() {
     force.scale(0.25f);
     DiceMoverUtil::expandBounds(&mMapResponse->mVelocityMin, &mMapResponse->mVelocityMax, force);
 }
-// NONMATCHING: regalloc
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void DiceMover::applyCollision() {
     mPosition.add((mMapResponse->mPositionMin + mMapResponse->mPositionMax) + (mResponse->mPositionMin + mResponse->mPositionMax));
     mVelocity = (mMapResponse->getVelocity() + mResponse->getVelocity()) + mVelocity * 0.999f;
@@ -306,7 +306,7 @@ void DiceMover::applyCollision() {
     mResponse->clear();
 }
 TVec3f DiceMoverAccumulator::getVelocity() const { return mVelocityMin + mVelocityMax; }
-// NONMATCHING: regalloc
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void DiceMover::checkVelocityChange(TVec3f previous) {
     f32 oldSpeed, newSpeed;
     TVec3f oldDirection, newDirection, difference;
@@ -339,7 +339,7 @@ void DiceMoverRotationBounds::clear() {
     mMin.x = mMin.y = 0.0f;
     mMax.x = mMax.y = 0.0f;
 }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DiceMoverAccumulator::addCollision(const TVec3f* center, const TVec3f* point, const TVec3f* force, f32 radius) {
     f32 inverseRadius = 1.0f / radius;
     f32 magnitude = PSVECMag(force);
@@ -373,7 +373,7 @@ void DiceMoverAccumulator::addCollision(const TVec3f* center, const TVec3f* poin
         addRotation(reinterpret_cast<const TPos3f*>(center), &radial, &tangent);
     }
 }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DiceMoverAccumulator::addRotation(const TPos3f* frame, const TVec3f* direction, const TVec3f* force) {
     TPos3f rotation;
     rotation.identity();

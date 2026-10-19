@@ -18,7 +18,7 @@ ActionScreenBlurCtrl* ActionScreenBlurCtrl::tryCreate(const ModelManager* pModel
     return NULL;
 }
 
-// NONMATCHING: loop index / info pointer swap registers; same instructions otherwise
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionScreenBlurCtrl::update() {
     if (mPlayingBckName != mModelManager->getPlayingBckName()) {
         mPlayingBckName = mModelManager->getPlayingBckName();
@@ -58,7 +58,7 @@ ActionScreenBlurCtrl::ActionScreenBlurCtrl(const ModelManager* pModelManager) : 
     MR::createCenterScreenBlur();
 }
 
-// NONMATCHING: loop index / info pointer swap registers; same instructions otherwise
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionScreenBlurCtrl::updateInfoEnabled() {
     if (mPlayingBckName != NULL) {
         for (s32 i = 0; i < mInfoNum; i++) {

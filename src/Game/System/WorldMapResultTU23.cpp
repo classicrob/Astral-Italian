@@ -59,7 +59,7 @@ void WorldMapResultStateWorldNews::kill() {
     mIsDead = true;
 }
 
-// NONMATCHING: regalloc; equivalent signed range comparison lowering
+// NONMATCHING: regalloc; equivalent signed range comparison lowering (FP order/grouping checked: no FP instructions).
 bool WorldMapResultStateWorldNews::isIndexInRange() const {
     bool inRange = false;
     if (mIndex >= 1 && mIndex <= 5) {
@@ -171,7 +171,7 @@ void WorldMapResultStateWorldNews::setIndexFlag() {
     }
 }
 
-// NONMATCHING: regalloc; equivalent range branch folding
+// NONMATCHING: regalloc; equivalent range branch folding (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateWorldNews::nextTalkNerve() {
     if (mIndex == 0) {
         setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));

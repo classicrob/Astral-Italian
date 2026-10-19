@@ -7,7 +7,7 @@ WorldMapResultStateCometAppear::WorldMapResultStateCometAppear(WorldMapResultCom
       mCurrent(0), mFrom(0.0f, 0.0f, 0.0f), mTo(0.0f, 0.0f, 100.0f) {
 }
 
-// NONMATCHING: regalloc; target retains redundant null check for embedded owned array.
+// NONMATCHING: regalloc; target retains redundant null check for embedded owned array (FP order/grouping checked: no FP instructions).
 WorldMapResultStateCometAppear::~WorldMapResultStateCometAppear() {
 }
 

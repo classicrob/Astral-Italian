@@ -72,7 +72,7 @@ s32 BellyDragonUtil::updateArmState(NerveExecutor* pArm, BellyDragon* pHost) {
     return result;
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonUtil::syncToHead(BellyDragon* pHost) {
     MR::onBind(pHost);
     BellyDragonBodyPart* pBody = pHost->mBody->mHead;
@@ -91,7 +91,7 @@ void BellyDragonUtil::syncToHead(BellyDragon* pHost) {
     pHost->mBody->unfreeze();
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonUtil::setBodyPartMtx(BellyDragonBodyPart* pObj, const f32 (*mtx)[4]) {
     ((TPos3f*)((u8*)pObj + 0xA8))->set(mtx);
     ((TVec3f*)((u8*)pObj + 0x14))->set< f32 >(*(f32*)((u8*)pObj + 0xB4), *(f32*)((u8*)pObj + 0xC4), *(f32*)((u8*)pObj + 0xD4));
@@ -117,7 +117,7 @@ void BellyDragonUtil::startBodyBindB(BellyDragon* pHost) {
     pHost->mBody->startBindB();
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonUtil::calcGroundHillMtx(TPos3f* pOut, NameObj* pObj, const f32 (*mtx)[4], f32 farg0) {
     TVec3f sp5C(mtx[0][0], mtx[1][0], mtx[2][0]);
     TVec3f sp50(mtx[0][2], mtx[1][2], mtx[2][2]);
@@ -171,7 +171,7 @@ void BellyDragonUtil::killPodObjects(BellyDragon* pHost) {
     pHost->mPod->killAll();
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void BellyDragonUtil::killWeakPoints(BellyDragon* pHost) {
     s32 count = BODY_COUNT(pHost->mBody);
     for (s32 i = 0; i < count; i++) {
@@ -217,7 +217,7 @@ bool BellyDragonUtil::isSensorWeakPoint(HitSensor* pSensor) {
     return MR::isSensorType(pSensor, 0x39);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 s32 BellyDragonUtil::isEnoughWeakPointsBroken(BellyDragon* pHost, s32 flag) {
     if (isAttackNerve(pHost)) {
         return 0;
@@ -282,7 +282,7 @@ void BellyDragonUtil::initPodAnimCamera(BellyDragon* pHost, const char* pName) {
     MR::initAnimCamera(pHost, pPod->mCameraInfo, pName);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: callee symbol alias and matrix load scheduling (FP argument order/grouping checked).
 void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
     BellyDragonPod* pPod = pHost->mPod;
     pHost->mBaseMtx.set(pPod->mHostMtx.mMtx);
@@ -393,7 +393,7 @@ void BellyDragonPodActor::appear() {
     setNerve(&NrvBellyDragonPodActor::BellyDragonPodActorNrvWait::sInstance);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonPodActor::exeWait() {
     MR::isFirstStep(this);
     MR::addVelocityToGravity(this, lbl_807D7838);

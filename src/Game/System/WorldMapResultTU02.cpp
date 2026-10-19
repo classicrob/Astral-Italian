@@ -51,7 +51,7 @@ void WorldMapResultCommand::appearRocketAtNode(s32 worldId, s32 nodeIndex) {
     appearRocketAt(TVec3f(pNode->mPos.x + offset.x, pNode->mPos.y + offset.y, pNode->mPos.z + offset.z));
 }
 
-// NONMATCHING: callee-saved register assignment and temp order
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void WorldMapResultCommand::setupTicoRouteCreate() {
     WorldMapResultLinkItem* pItem = getCurrentTicoItem();
     s32 from = pItem->mUnkA4;
@@ -103,7 +103,7 @@ void WorldMapResultCommand::setupRouteOpen(s32 worldId, WorldMapResultRoute* pRo
     getCurrentWorld()->finish();
 }
 
-// NONMATCHING: register copy order at entry
+// NONMATCHING: register copy order at entry (FP order/grouping checked: no FP instructions).
 void WorldMapResultCommand::setupRouteOpenFromSwitchMoveBlock(s32 worldId, WorldMapResultRoute* pRoute) {
     WorldMapResultWorld* pWorld = mWorlds[worldId - 1];
     GalaxyWorldMapInfo* pInfo = pWorld->mWorldData->findByName("SwitchMoveBlockGalaxy");
@@ -154,7 +154,7 @@ void WorldMapResultCommand::clearGalaxyComet(const char* pName) {
     pWorld->mWorldData->findByName(pName)->setComet(false);
 }
 
-// NONMATCHING: scheduling of the sPosOffset address load / actor register
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultCommand::appearCometAtGalaxy(const char* pName, LiveActor* pActor) {
     TVec3f pos = *getGalaxyPosition(pName) + sPosOffset;
     MR::setPosition(pActor, pos);

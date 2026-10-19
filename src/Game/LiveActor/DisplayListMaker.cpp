@@ -26,7 +26,7 @@ void DisplayListMaker::update() {
     std::for_each(mMaterialCtrl.begin(), mMaterialCtrl.end(), std::mem_fun(&MaterialCtrl::update));
 }
 
-// NONMATCHING: regalloc and material-pointer reload scheduling
+// NONMATCHING: regalloc and material-pointer reload scheduling (FP order/grouping checked: no FP instructions).
 void DisplayListMaker::diff() {
     for (u16 i = 0; i < mModel->getModelData()->getMaterialNum(); i++) {
         if (mCurFlag[i]) {

@@ -35,7 +35,7 @@ namespace NrvWorldMapResultStatePointEvent {
     WMR_NERVE_DECL(WorldMapResultStatePointEventEnd);
 };  // namespace NrvWorldMapResultStatePointEvent
 
-// NONMATCHING: regalloc; primitive/vector initialization scheduling.
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass c-checked).
 WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ポイントイベント]", pHost) {
     mIsDead = true;
     mRoute = NULL;
@@ -51,7 +51,7 @@ WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHos
     mTalkCtrls = NULL;
 }
 
-// NONMATCHING: regalloc; same camera/talk/route calls and constants, saved registers and temporary placement differ.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStatePointEvent::init() {
     initNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventStart), 0);
     mHost->declareCamera("イベント（スターチェックポイント：スター足りない）");

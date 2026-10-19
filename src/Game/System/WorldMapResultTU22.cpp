@@ -37,7 +37,7 @@ void WorldMapResultStateWait::kill() {
     mIsDead = true;
 }
 
-// NONMATCHING: timer/count update scheduled in a different order (10 insns differ)
+// NONMATCHING: timer/count update scheduled in a different order (10 insns differ) (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateWait::control() {
     mHost->updateParts();
 

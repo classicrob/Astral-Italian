@@ -101,7 +101,6 @@ void LiveActor::initHitSensor(s32 numSensors) {
 
 // LiveActor::initBinder
 // LiveActor::initRailRider
-// NONMATCHING: argument load ordering/regalloc
 void LiveActor::initEffectKeeper(s32 count, const char* name, bool sort) {
     mEffectKeeper = new EffectKeeper(getName(), MR::getModelResourceHolder(this), count, name);
     if (sort) mEffectKeeper->enableSort();
@@ -376,7 +375,6 @@ void LiveActor::initShadowControllerList(u32 shadowNum) {
     mShadowControllerList = new ShadowControllerList(this, shadowNum);
 }
 
-// NONMATCHING: matrix/argument register scheduling
 void LiveActor::initActorCollisionParts(const char* pParam1, HitSensor* pParam2, ResourceHolder* pParam3, MtxPtr pParam4, bool param5, bool param6) {
     MR::CollisionScaleType scaleType;
 

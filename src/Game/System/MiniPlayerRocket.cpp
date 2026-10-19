@@ -36,7 +36,7 @@ MiniPlayerRocket::MiniPlayerRocket() : LiveActor("プレイヤーロケット") 
     mPlayerMtx.identity();
 }
 
-// NONMATCHING: regalloc; PlayerRocketSmoke*ParticleCallBack ctor args r5/r6 are unset in the asm (passed as nullptr, 0)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniPlayerRocket::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "MiniPlayerRocket", false);
     initNerve(&NrvMiniPlayerRocket::NrvBind::sInstance, 0);
@@ -78,7 +78,7 @@ void MiniPlayerRocket::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniPlayerRocket::calcAndSetBaseMtx() {
     TVec3f scale = mScaleCtrl->mScale * mScale;
     J3DModel* pModel = MR::getJ3DModel(this);
@@ -177,7 +177,7 @@ void MiniPlayerRocket::updateAction() {
     }
 }
 
-// NONMATCHING: regalloc; constructor argument scheduling
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniPlayerRocket::updateMove() {
     if (mWaitCount > 0) {
         mWaitCount--;
@@ -189,7 +189,7 @@ void MiniPlayerRocket::updateMove() {
     mMoveSpeed = 0.25f;
 }
 
-// NONMATCHING: regalloc; vector temporary stack allocation
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniPlayerRocket::updateRotation(const TVec3f& rDir, f32 blendRate) {
     if (MR::isNearZero(rDir, 0.001f)) {
         return;
@@ -301,7 +301,7 @@ bool MiniPlayerRocket::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* p
     return false;
 }
 
-// NONMATCHING: regalloc; constructor argument scheduling
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool MiniPlayerRocket::updateStarPieceScatter(s32 count) {
     s32 num = count;
     if (count < 0) {
@@ -353,7 +353,7 @@ MiniRoutePoint::MiniRoutePoint() : LiveActor("中継点") {
 
 MiniRoutePoint::~MiniRoutePoint() {}
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void MiniRoutePoint::init(const JMapInfoIter&) {
     MR::initActor(this, "MiniRoutePoint", false);
     MR::setClippingFarMax(this);
@@ -398,7 +398,7 @@ bool MiniRoutePoint::tryOpen() {
     return true;
 }
 
-// NONMATCHING: regalloc and store order
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniRoutePoint::setPosition(const TVec3f& rPos) {
     MR::setPosition(this, rPos);
 
@@ -409,7 +409,7 @@ void MiniRoutePoint::setPosition(const TVec3f& rPos) {
     MR::setPosition(mShadow, shadowPos);
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void MiniRoutePoint::setReachable(bool isReachable) {
     if (isReachable) {
         MR::startAction(this, "Open");

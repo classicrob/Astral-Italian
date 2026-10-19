@@ -69,7 +69,7 @@ void BossJugemStateThrowOne::prepareMove() {
     mRailStart = MR::getRailCoord(mHost);
 }
 
-// NONMATCHING: register allocation only (pHost/frameA r30/r31 swapped)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowOne::updateMove() {
     if (!mIsDead) {
         BossJugem* pHost = mHost;
@@ -150,7 +150,7 @@ void BossJugemStateThrowTwo::prepareMove() {
     mRailStart = MR::getRailCoord(mHost);
 }
 
-// NONMATCHING: register allocation only (pHost/frameA r30/r31 swapped)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowTwo::updateMove() {
     if (!mIsDead) {
         BossJugem* pHost = mHost;

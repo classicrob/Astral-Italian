@@ -218,7 +218,7 @@ namespace MR {
         return makeInitActorCsvParser(a1, pSubFile) != nullptr;
     }
 
-    // NONMATCHING: regalloc and stack layout for JMapInfoIter temporaries
+    // NONMATCHING: stack layout and control-flow/call lowering (FP operand order/grouping checked).
     /* https://decomp.me/scratch/xGEnY */
     bool initActor(LiveActor* pActor, const JMapInfoIter& rIter, const char* pArchiveName, const char* a4, const char* a5, bool a6) {
         bool flag = false;
@@ -506,7 +506,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: string-pool offsets +8 from the early literals (TU literal order); base register choice
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void initSensors(LiveActor* pActor, const char* pArchive, const char* pSubFile) {
         JMapInfo* info = createCsvParserFromFile(pArchive, "InitSensor%s.bcsv", pSubFile);
         if (info != nullptr) {
@@ -550,7 +550,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: string-pool offsets +8 from the early literals (TU literal order); register choice in the switch-name loop
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void initSwitches(LiveActor* pActor, const JMapInfoIter& rIter, const char* pArchive, const char* pSubFile) {
         JMapInfo* info = createCsvParserFromFile(pArchive, "InitSwitch%s.bcsv", pSubFile);
         if (info != nullptr) {

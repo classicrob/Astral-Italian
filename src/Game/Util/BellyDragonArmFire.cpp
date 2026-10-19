@@ -86,7 +86,7 @@ void BellyDragonArmFire::exeSign() {
     if (MR::isGreaterStep(this, *mSignTime))
         setNerve(&NrvBellyDragonArmFire::Down::sInstance);
 }
-// NONMATCHING: vector inlining and register allocation.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonArmFire::exeDown() {
     if (MR::isFirstStep(this))
         MR::startAction(mHost, "AttackJawDown");

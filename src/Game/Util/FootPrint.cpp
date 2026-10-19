@@ -198,7 +198,7 @@ namespace {
 }
 
 namespace MR {
-    // NONMATCHING: regalloc and stack layout
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     FootPrint* createFootPrintHandle(LiveActor* actor) {
         ResTIMG* texture = MR::getTexFromArc(sFootPrintTexture, actor);
         JMapInfo* csv = MR::tryCreateCsvParser(actor, "%s.bcsv", sFootPrintControl);
@@ -230,7 +230,7 @@ namespace MR {
         return print;
     }
 
-    // NONMATCHING: regalloc and load scheduling
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     bool addFootPrintOnGround(FootPrint* handle, LiveActor* actor, const TVec3f* pos, const TVec3f* front, bool right, f32 distance) {
         TVec3f groundPos(0.0f);
         TVec3f normal;

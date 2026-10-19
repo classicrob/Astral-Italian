@@ -34,7 +34,7 @@ void BossBussunSequencer::endCamera() {
     MR::endActorCameraProgrammable(mHost, -1, true);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossBussunSequencer::updateCamera() {
     TVec3f rotA;
     TVec3f rotB;
@@ -76,7 +76,7 @@ void BossBussunSequencer::updateCamera() {
     MR::setProgrammableCameraParam(mHost, blendPos, eye, mCamUp);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     bool isPlayerBelow = mHost->mGravity.dot(*MR::getPlayerGravity()) > 0.0f;
     bool isNear = isNearHeight(80.0f);
@@ -130,7 +130,7 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     mIsNear = isNear;
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 f32 BossBussunSequencer::calcPlayerDot() const {
     TVec3f diff(*MR::getPlayerPos());
     diff -= mCenterPos;
@@ -300,7 +300,7 @@ void BossBussunShot::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void BossBussunShot::exeFly() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shot");
@@ -335,7 +335,7 @@ void BossBussunShot::exeFly() {
     }
 }
 
-// NONMATCHING: operator* inlined in our build, regalloc
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void BossBussunShot::exeHold() {
     if (MR::isFirstStep(this)) {
         mHoldVel.set(mVelocity);

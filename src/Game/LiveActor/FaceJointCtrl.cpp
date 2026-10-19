@@ -77,7 +77,7 @@ void FaceJointCtrl::setCallBackFunction() {
     mJointController->registerCallBack();
 }
 
-// NONMATCHING: regalloc and instruction scheduling
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointControllerInfo&) {
     TVec3f scale;
     matrix->getScale(scale);

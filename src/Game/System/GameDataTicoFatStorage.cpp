@@ -9,7 +9,7 @@ TicoCoinFeedList::TicoCoinFeedList(s32 capacity) {
     init(capacity);
 }
 
-// NONMATCHING: regalloc (hash and iterator registers only).
+// NONMATCHING: regalloc (hash and iterator registers only) (FP order/grouping checked: no FP instructions).
 bool TicoCoinFeedList::contains(const char* pName) const {
     u16 hash = MR::getHashCode(pName);
     const u16* p = begin();
@@ -36,7 +36,7 @@ s32 GameDataTicoFatStorage::getValue(int idx) const {
     return mStarPieceAlms[idx];
 }
 
-// NONMATCHING: target reloads mStarPieceAlms after the clamp and keeps the byte index in r7 (register allocation/CSE only)
+// NONMATCHING: target reloads mStarPieceAlms after the clamp and keeps the byte index in r7 (register allocation/CSE only) (FP order/grouping checked: no FP instructions).
 void GameDataTicoFatStorage::addValue(int idx, int add) {
     s32 value = mStarPieceAlms[idx] + add;
     mStarPieceAlms[idx] = MR::clamp(value, 0, 0x7FFF);

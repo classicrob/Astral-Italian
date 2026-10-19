@@ -103,7 +103,7 @@ namespace MR {
         return isScreen16Per9() ? 812 : 608;  // SMG2 16:9 width (0x32C); SMG1 used 832
     }
 
-// NONMATCHING: regalloc (same calls and order; GPR/FPR assignment differs)
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     s32 getSafetyFrameWidth() {
         s32 screenWidth = getScreenWidth();
         f32 screenWidthF = static_cast< f32 >(screenWidth);

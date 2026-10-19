@@ -417,7 +417,7 @@ namespace MR {
         return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("MBGM_MINI_GAME"), false, -1);
     }
 
-    // NONMATCHING: regalloc/order (target hoists li r31,1 above the first getSceneMgr call).
+    // NONMATCHING: regalloc/order (target hoists li r31,1 above the first getSceneMgr call) (FP order/grouping checked: no FP instructions).
     void stopStageBgmForDemo() {
         AudBgm* pStageBgm = AudWrap::getStageBgm();
 
@@ -447,7 +447,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc/order (target keeps the string base in r31 and hoists the sceneMgr store).
+    // NONMATCHING: regalloc/order (target keeps the string base in r31 and hoists the sceneMgr store) (FP order/grouping checked: no FP instructions).
     JAISoundHandle* startStarChanceBGM(bool param1) {
         AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
         clearBgmQueue();
@@ -568,7 +568,7 @@ namespace MR {
         return isPlayingStageBgmID(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("STM_SMG2_GALAXY_03"));
     }
 
-    // NONMATCHING: regalloc/order (target hoists li r31,1 above the getSceneMgr call).
+    // NONMATCHING: regalloc/order (target hoists li r31,1 above the getSceneMgr call) (FP order/grouping checked: no FP instructions).
     void setCubeBgmChangeInvalid() {
         AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
     }
@@ -603,7 +603,7 @@ namespace MR {
         JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_SMG2_EV_PORTER");
         return isPlayingStageBgmID(id);
     }
-    // NONMATCHING: name-address setup and hidden-return-pointer setup are scheduled in reverse order.
+    // NONMATCHING: name-address setup and hidden-return-pointer setup are scheduled in reverse order (FP order/grouping checked: no FP instructions).
     void startPlayFireMorphBGM() {
         if ((!isExistSceneObj(0x92) || !getExterminationWoodBoxFlagHolder()) && !isSandyBossBGMPlaying()) {
             JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_FIRE_A");

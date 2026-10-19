@@ -52,7 +52,7 @@ bool GameSystemStationedArchiveLoader::isDone() const {
     return isNerve(GET_NERVE_ANON(GameSystemStationedArchiveLoaderEnd));
 }
 
-// NONMATCHING: regalloc; equivalent nested short-circuit boolean evaluation.
+// NONMATCHING: regalloc; equivalent nested short-circuit boolean evaluation (FP order/grouping checked: no FP instructions).
 bool GameSystemStationedArchiveLoader::isPreparedReset() const {
     bool result = true;
     bool initialized = true;

@@ -100,7 +100,7 @@ void StationedArchiveLoader::loadScenarioData(JKRHeap* pHeap) {
     DVDCloseDir(&dir);
 }
 
-// NONMATCHING: regalloc (table pointer and count registers).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 bool StationedArchiveLoader::createAndAddResourcesFromTable(const Condition& rCondition, s32 start, s32 end) {
     const MR::StationedFileInfo* pInfo = MR::getStationedFileInfoTable();
     s32 count = 0;

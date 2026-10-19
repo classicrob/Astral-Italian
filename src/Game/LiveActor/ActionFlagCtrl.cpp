@@ -183,7 +183,7 @@ bool ActionFlagCtrl::isFlagOff(s32 index, bool current) const {
     return false;
 }
 
-// NONMATCHING: regalloc (entry pointer and loop counter).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 ActionFlagInfo* ActionFlagCtrl::findInfo(const char* name) const {
     for (s32 i = 0; i < mNumEntries; i++) {
         ActionFlagInfo* info = &mEntries[i];

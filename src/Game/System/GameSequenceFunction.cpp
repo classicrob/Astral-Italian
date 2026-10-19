@@ -517,7 +517,7 @@ namespace GameSequenceFunction {
         return result;
     }
 
-    // NONMATCHING: isGot/isAll swap their callee-saved registers (r31/r29)
+    // NONMATCHING: isGot/isAll swap their callee-saved registers (r31/r29) (FP order/grouping checked: no FP instructions).
     bool isClearedAllPowerStarAtResult() {
         bool result = false;
         bool isGot = true;
@@ -547,7 +547,7 @@ namespace GameSequenceFunction {
         return result;
     }
 
-    // NONMATCHING: holder/result callee-saved registers swapped (r29/r30)
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool isClearedVsKoopaLv3GalaxyFirstTime() {
         PlayResultInStageHolder* pHolder = IN_STAGE_HOLDER;
         bool result = false;
@@ -1135,7 +1135,7 @@ namespace GameSequenceFunction {
         updateGalaxyCometAppearance(pStageName, starId);
     }
 
-    // NONMATCHING: the 64-entry init loop is emitted as a counted (bdnz) loop instead of the target pointer loop, which shifts register allocation; std::sort<> body also differs slightly (MSL __sort132 register choice)
+    // NONMATCHING: the 64-entry init loop is emitted as a counted (bdnz) loop instead of the target pointer loop, which shifts register allocation; std::sort<> body also differs slightly (MSL __sort132 register choice) (FP order/grouping checked: no FP instructions).
     void updateGalaxyCometAppearance(const char* pStageName, s32 starId) {
         GalaxyStatusAccessor stageAccessor = MR::makeGalaxyStatusAccessor(pStageName);
         if (stageAccessor.isValidComet(starId)) {

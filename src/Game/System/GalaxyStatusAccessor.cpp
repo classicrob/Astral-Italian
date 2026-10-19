@@ -97,7 +97,7 @@ const char* GalaxyStatusAccessor::getCometName(s32 scenarioNo) const {
     }
 }
 
-// NONMATCHING: regalloc; equivalent boolean temporary uses a preserved register.
+// NONMATCHING: regalloc; equivalent boolean temporary uses a preserved register (FP order/grouping checked: no FP instructions).
 s32 GalaxyStatusAccessor::getCometLimitTimer(s32 scenario) const {
     s32 timer;
     bool valid = mScenarioData->getValueU32("CometLimitTimer", scenario, &timer);
@@ -115,7 +115,6 @@ bool GalaxyStatusAccessor::isGreenStar(s32 scenario) const {
     return mScenarioData->isPowerStarTypeGreen(scenario);
 }
 
-// NONMATCHING: regalloc; boolean temporary register differs.
 bool GalaxyStatusAccessor::isNotNormalStar(s32 scenario) const {
     bool result = true;
     if (mScenarioData->isPowerStarTypeHidden(scenario) == 0) {
@@ -141,7 +140,7 @@ bool GalaxyStatusAccessor::isOwnBronzeStar(s32 scenario) const {
     return GameDataFunction::hasBronzeStar(mScenarioData->mGalaxyName, scenario);
 }
 
-// NONMATCHING: regalloc; equality operands are reversed.
+// NONMATCHING: regalloc; equality operands are reversed (FP order/grouping checked: no FP instructions).
 bool GalaxyStatusAccessor::isCompletedNoGreen() const {
     if (mScenarioData->getPowerStarNum() == 0) {
         return false;
@@ -166,7 +165,7 @@ bool GalaxyStatusAccessor::isCompletedWithGreen() const {
     return ownedNormal >= total - getGreenStarNum();
 }
 
-// NONMATCHING: regalloc; equality operands are reversed.
+// NONMATCHING: regalloc; equality operands are reversed (FP order/grouping checked: no FP instructions).
 bool GalaxyStatusAccessor::isCompletedGreenStars() const {
     s32 total = getGreenStarNum();
     return total == getGreenStarNumOwned();

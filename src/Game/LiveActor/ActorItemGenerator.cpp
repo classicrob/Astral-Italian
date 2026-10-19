@@ -80,7 +80,7 @@ ActorItemGenerator* ActorItemGenerator::tryCreate(LiveActor* pActor, const char*
     return NULL;
 }
 
-// NONMATCHING: regalloc, string-pool order and equivalent loop branches
+// NONMATCHING: regalloc, string-pool order and equivalent loop branches (FP order/grouping checked: no FP instructions).
 // fn_8022B200
 bool ActorItemGenerator::loadEntries(const char* pName) {
     ResourceHolder* pHolder = MR::getResourceHolder(mActor);

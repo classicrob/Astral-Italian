@@ -79,7 +79,7 @@ namespace {
         return nullptr;
     }
 
-    // NONMATCHING: regalloc (worldId/path share one register in the target)
+    // NONMATCHING: regalloc (worldId/path share one register in the target) (FP order/grouping checked: no FP instructions).
     // fn_8045AA60: mounts every archive named in the "ResourceName" column of the given UseResource list.
     void mountUseResourceList(const char* pListName) {
         void* pData = nullptr;
@@ -178,7 +178,7 @@ JMapInfo* StageDataArchive::createUseResourceJMapInfo(const char* pName) {
 StageDataArchive::StageDataArchive(JKRArchive* pArchive, const char*, const char*) : mArchive(pArchive) {
 }
 
-// NONMATCHING: regalloc (loop variable order) only
+// NONMATCHING: regalloc (loop variable order) only (FP order/grouping checked: no FP instructions).
 void StageDataArchive::initJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir) {
     s32 count = mArchive->countFile(pDir) - 2;
     s32 num = count > 0 ? count : 0;
@@ -228,7 +228,7 @@ namespace {
     };
 };  // namespace
 
-// NONMATCHING: regalloc; equivalent array loops, pooled strings, and local reference slots.
+// NONMATCHING: regalloc; equivalent array loops, pooled strings, and local reference slots (FP order/grouping checked: no FP instructions).
 StageDataArchiveHolder::StageDataArchiveHolder(const char* pStageName) : mMapArchive(), mSoundArchive(), mDesignArchive(), mZoneInfoArchive(), mUseResourceArchive(), mGhostArchive() {
     mMapArchive = mountArchive(pStageName, "Map");
     mSoundArchive = mountArchive(pStageName, "Sound");

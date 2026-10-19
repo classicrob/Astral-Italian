@@ -31,7 +31,7 @@ PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("プレイ結果保
 
 }
 
-// NONMATCHING: regalloc; target retains redundant null checks for embedded list members.
+// NONMATCHING: regalloc; target retains redundant null checks for embedded list members (FP order/grouping checked: no FP instructions).
 PlayResultInStageHolder::~PlayResultInStageHolder() {
 }
 
@@ -250,7 +250,7 @@ void PlayResultInStageHolder::clearPadMode() {
     mPadMode = 0;
 }
 
-// NONMATCHING: regalloc; same element copy and count increment, indexed store selection differs.
+// NONMATCHING: regalloc; same element copy and count increment, indexed store selection differs (FP order/grouping checked: no FP instructions).
 void PlayResultStageList::add(const PlayResultStageEntry& rEntry) {
     PlayResultStageEntry* pDst = &mBase[mCount];
     mCount++;

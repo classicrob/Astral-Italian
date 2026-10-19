@@ -17,7 +17,7 @@
 #include "Game/Util/StringUtil.hpp"
 
 namespace ActorShadow {
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void initShadowFromCSV(LiveActor* actor, const char* name, bool useSphere) {
         JMapInfo* csv = nullptr;
         if (MR::getResourceHolder(actor))
@@ -49,7 +49,7 @@ namespace MR {
     }
 
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
     void initShadowSurfaceCircle(LiveActor* pActor, f32 radius) {
         pActor->initShadowControllerList(1);
         ShadowController* ctrl = ActorShadow::createShadowControllerSuefaceParam(pActor, "水面丸影");
@@ -58,7 +58,7 @@ namespace MR {
         shadow->setRadius(radius);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
     void initShadowVolumeSphere(LiveActor* pActor, f32 radius) {
         pActor->initShadowControllerList(1);
         ShadowController* ctrl = ActorShadow::createShadowControllerVolumeParam(pActor, "ボリューム影(球)");
@@ -124,7 +124,7 @@ namespace MR {
     }
 
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void addShadowVolumeFlatModel(LiveActor* pActor, const char* pName1, const char* pName2, MtxPtr pMtx) {
         ShadowController* pController = ActorShadow::createShadowControllerVolumeParam(pActor, pName1);
         ShadowVolumeFlatModel* pModel = new ShadowVolumeFlatModel(pName2);
@@ -428,7 +428,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     bool calcClippingRangeIncludeShadow(TVec3f* pVecOutput, f32* pF32Output, const LiveActor* pActor, f32 a4) {
         TVec3f projectionPos;
 
@@ -551,7 +551,7 @@ namespace {
 };  // namespace
 
 namespace ActorShadow {
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
     u32 getShadowControllerCount(const LiveActor* pActor) {
         if (!pActor->mShadowControllerList)
             return 0;
@@ -748,7 +748,7 @@ namespace ActorShadow {
         return pShadow;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     ShadowVolumeFlatModel* createShadowVolumeFlatModelFromCSV(LiveActor* pActor, const JMapInfoIter& rIter) {
         ShadowVolumeFlatModel* pShadow = ::createShadowDrawer< ShadowVolumeFlatModel >(pActor, rIter, false);
         setUpShadowVolumeFromCSV(pShadow, rIter);
@@ -760,7 +760,7 @@ namespace ActorShadow {
         return pShadow;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     ShadowVolumeLine* createShadowVolumeLineFromCSV(LiveActor* pActor, const JMapInfoIter& rIter) {
         ShadowVolumeLine* pShadow = ::createShadowDrawer< ShadowVolumeLine >(pActor, rIter, false);
         setUpShadowVolumeFromCSV(pShadow, rIter);
@@ -786,7 +786,7 @@ namespace ActorShadow {
         return pShadow;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
     void setUpShadowControlBaseMtxFromCSV(ShadowController* pCtrl, LiveActor* pActor, const JMapInfoIter& rIter) {
         TVec3f dropOffset;
 
@@ -913,7 +913,7 @@ namespace ActorShadow {
         }
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void setUpShadowVolumeFromCSV(ShadowVolumeDrawer* pDrawer, const JMapInfoIter& rIter) {
         f32 volumeStart = 100.0f;
         f32 volumeEnd = 100.0f;

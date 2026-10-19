@@ -152,7 +152,7 @@ DynamicJointCtrl::DynamicJointCtrl(LiveActor* pActor, const char* pName, const D
     : mActor(pActor), mName(pName), _8(), mCtrlNodes(), mParams(pParam), mControlRate(new JointCtrlRate) {
 }
 
-// NONMATCHING: regalloc and PMF temporary stack order
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DynamicJointCtrl::init() {
     MtxPtr rootMtx = MR::getJointMtx(mActor, mName);
     J3DJoint* joint = MR::getJoint(mActor, mName);

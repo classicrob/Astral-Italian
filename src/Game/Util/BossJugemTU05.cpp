@@ -44,7 +44,7 @@ void BossJugemStateThrowAll::appear() {
     }
 }
 
-// NONMATCHING: instruction/register scheduling differs from the target
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowAll::exeMove() {
     if (MR::isFirstStep(this)) {
         mOriginPos = mHost->mPosition;
@@ -112,7 +112,7 @@ void BossJugemStateThrowAll::exeChance() {
     }
 }
 
-// NONMATCHING: instruction/register scheduling differs from the target
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowAll::exeMoveBack() {
     if (MR::isFirstStep(this)) {
         mOriginPos = mHost->mPosition;

@@ -1027,7 +1027,7 @@ namespace NameObjFactory {
     };
     extern const PostCreationEntry cPostCreationTable[27];
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
     CreatorFuncPtr getCreator(const char* name) {
         if (PlanetMapCreatorFunction::isRegisteredObj(name))
             return PlanetMapCreatorFunction::getPlanetMapCreator(name);

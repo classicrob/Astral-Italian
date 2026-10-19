@@ -52,7 +52,7 @@ void GrandGalaxyMapStateMove::kill() {
     mIsDead = true;
 }
 
-// NONMATCHING: instruction order only (mNext/mHost argument loads before getPath/getPathDistance are swapped)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void GrandGalaxyMapStateMove::exeMove() {
     WorldMapCameraHolder* pCamera = mHost->getCamera();
     MiniPlayerRocket* pRocket = pCamera->mRocket;

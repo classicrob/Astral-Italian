@@ -354,7 +354,7 @@ bool MarioFaceShipEventDataHolder::hasItemEventAtResult() const {
     return false;
 }
 
-// NONMATCHING: initial flag scheduling.
+// NONMATCHING: initial flag scheduling (FP order/grouping checked: no FP instructions).
 bool MarioFaceShipEventDataHolder::isAttentionTalkEvent(const MarioFaceShipEventInfo* pInfo) {
     bool isAttention = false;
     const char* pType = pInfo->mEventType;
@@ -497,7 +497,7 @@ static void freeLMSMemory(void*) {
 }
 
 // Loads every .msbt of an archive as a MessageData.
-static // NONMATCHING: register allocation.
+static // NONMATCHING: register allocation (FP order/grouping checked: no FP instructions).
 void loadMessageDatasFromArchive(MessageData*** pOutDatas, s32* pOutNum, const char* pArchivePath) NO_INLINE;
 
 static void loadMessageDatasFromArchive(MessageData*** pOutDatas, s32* pOutNum, const char* pArchivePath) {
@@ -606,7 +606,6 @@ u16 MessageData::getFlowNodeIndex(const TalkNode* pNode) const {
     return 0;
 }
 
-// NONMATCHING: register liveness.
 MessageHolder::MessageHolder() {
     mSystemMessageData = nullptr;
     mGameMessageDatas = nullptr;

@@ -19,7 +19,7 @@ ActionFootPrintCtrl* ActionFootPrintCtrl::tryCreate(LiveActor* pActor) {
     return NULL;
 }
 
-// NONMATCHING: loop index / bck-ctrl pointer swap registers (r28/r29/r30 vs target r28/r29/r30 order); same instructions otherwise
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionFootPrintCtrl::update() {
     if (mPlayingBckName != MR::getPlayingBckName(mActor)) {
         mPlayingBckName = MR::getPlayingBckName(mActor);
@@ -67,7 +67,7 @@ ActionFootPrintCtrl::ActionFootPrintCtrl(LiveActor* pActor) : mActor(pActor), mP
     }
 }
 
-// NONMATCHING: loop index / info pointer swap registers (target r27 = index, r28 = info); same instructions otherwise
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionFootPrintCtrl::updateInfoEnabled() {
     if (mPlayingBckName != NULL) {
         for (s32 i = 0; i < mInfoNum; i++) {

@@ -175,7 +175,7 @@ namespace MR {
         makeFileNameConsideringLanguage(pDst, size, pFilePath, true);
     }
 
-    // NONMATCHING: the false branch passes its known-false boolean register instead of loading zero.
+    // NONMATCHING: the false branch passes its known-false boolean register instead of loading zero (FP order/grouping checked: no FP instructions).
     void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath, bool checkLocalized) {
         char prefix[256];
         snprintf(prefix, sizeof(prefix), "/LocalizeData/%s", getCurrentLanguagePrefix());

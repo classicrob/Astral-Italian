@@ -221,7 +221,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc (id temp stored after the object call in target)
+    // NONMATCHING: regalloc (id temp stored after the object call in target) (FP order/grouping checked: no FP instructions).
     JAISoundHandle* startSound(const LiveActor* pActor, JAISoundID id, s32 param3, s32 param4) {
         updateMapSoundCodeFoot(pActor);
 
@@ -268,7 +268,7 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc and stack temporaries
+    // NONMATCHING: regalloc and stack temporaries (FP order/grouping checked: no FP instructions).
     void stopSound(const LiveActor* pActor, JAISoundID id, u32 param3) {
         getActorSoundObject(pActor)->stopSound(id, param3);
 

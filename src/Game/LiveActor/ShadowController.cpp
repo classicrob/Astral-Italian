@@ -65,7 +65,7 @@ void ShadowControllerHolder::initAfterPlacement() {
     }
 }
 
-// NONMATCHING: equivalent bool lowering/regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void ShadowControllerHolder::updateFarClipParam() {
     AreaObj* area = MR::getAreaObjAtPlayerPos("ShadowFarClipCtrlArea");
     if (area) {

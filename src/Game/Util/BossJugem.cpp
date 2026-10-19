@@ -404,7 +404,7 @@ void BossJugem::exeAngry() {
     }
 }
 
-// NONMATCHING: mRailCoordStart + 1200.0f loads the constant before the member in ours (fp load scheduling only)
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BossJugem::exeMoveLeft() {
     if (MR::isFirstStep(this)) {
         mRailCoordStart = MR::getRailCoord(this);
@@ -424,7 +424,7 @@ void BossJugem::exeMoveLeft() {
     }
 }
 
-// NONMATCHING: same fp load scheduling difference as exeMoveLeft
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BossJugem::exeMoveRight() {
     if (MR::isFirstStep(this)) {
         mRailCoordStart = MR::getRailCoord(this);

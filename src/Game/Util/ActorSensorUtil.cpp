@@ -259,12 +259,11 @@ namespace MR {
         pActor->mSensorKeeper->getSensorInfo(pName)->_C = rPos;
     }
 
-    // NONMATCHING: register scheduling
     f32 getSensorRadius(HitSensor* pSensor) {
         return pSensor->mRadius;
     }
 
-    // NONMATCHING: register scheduling
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     f32 getSensorRadius(LiveActor* pActor, const char* pName) {
         return getSensorRadius(pActor->mSensorKeeper->getSensorInfo(pName)->mSensor);
     }
@@ -519,8 +518,6 @@ namespace MR {
         return isSensorPlayer(pSensor) || isSensorRide(pSensor);
     }
 
-    // NONMATCHING: regalloc (target keeps the test value in r30, ours in r31)
-    // NONMATCHING: equivalent bool lowering
     bool isSensorPlayerOrYoshi(const HitSensor* pSensor) {
         bool result = true;
         if (pSensor->isType(1) == 0) {
@@ -1135,7 +1132,7 @@ namespace MR {
         return msg - 0x15;
     }
 
-    // NONMATCHING: FP/register scheduling
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void calcPosBetweenSensors(TVec3f* pPos, const HitSensor* pSensor1, const HitSensor* pSensor2, f32 offset) {
         TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
         normalizeOrZero(&dir);

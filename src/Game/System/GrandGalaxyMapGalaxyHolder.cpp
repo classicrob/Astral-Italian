@@ -10,7 +10,7 @@ namespace {
 
 GrandGalaxyMapGalaxyHolder::GrandGalaxyMapGalaxyHolder() : mNum(0), mGalaxies(nullptr) {}
 
-// NONMATCHING: register allocation only (loop counters/totals colored differently)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void GrandGalaxyMapGalaxyHolder::init() {
     JMapInfo* parsers[8];
     s32 num = 0;

@@ -63,7 +63,7 @@ void VolumeDrawer::setScaleDownRate(s32 frames) {
     mScaleStep = -1.0f / (f32)frames;
 }
 
-// NONMATCHING: stack slot order of the TVec3f temps and psq register allocation
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void VolumeDrawer::preScaleDrawPass(s32 pass) const {
     f32 mtx[3][4];
     PSMTXConcat(MR::getCameraViewMtx(), getBaseMtx(), mtx);
@@ -84,7 +84,7 @@ void VolumeDrawer::preScaleDrawPass(s32 pass) const {
     GXLoadPosMtxImm(mtx, 0);
 }
 
-// NONMATCHING: regalloc (GXColor by-value temp copies)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void VolumeDrawer::draw() const {
     if (mScaleRate <= 0.0f) {
         return;

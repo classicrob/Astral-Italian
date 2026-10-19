@@ -984,7 +984,7 @@ BenefitItemOneUp* MR::createKinokoOneUp() {
 }
 
 
-// NONMATCHING: floating register allocation and matrix load ordering
+// NONMATCHING: matrix-copy registers, load order and stack layout (FP operand/argument order and grouping checked).
 void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
     TPos3f mtx(pMtx);
     MtxPtr m = mtx.toMtxPtr();
@@ -994,14 +994,18 @@ void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
         angle.x = JMath::sAtanTable.atan2_(-m[0][1], m[1][1]);
         angle.y = -1.5707964f;
         angle.z = 0.0f;
-    } else if (m[2][0] + 1.0f <= 3.814697265625e-6f) {
-        angle.x = JMath::sAtanTable.atan2_(m[1][1], m[0][1]);
-        angle.y = 1.5707964f;
-        angle.z = 0.0f;
     } else {
-        angle.x = JMath::sAtanTable.atan2_(m[2][2], m[2][1]);
-        angle.z = JMath::sAtanTable.atan2_(m[1][0], m[0][0]);
-        angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
+        f32 pole = m[2][0];
+        pole += 1.0f;
+        if (pole <= 3.814697265625e-6f) {
+            angle.x = JMath::sAtanTable.atan2_(m[0][1], m[1][1]);
+            angle.y = 1.5707964f;
+            angle.z = 0.0f;
+        } else {
+            angle.x = JMath::sAtanTable.atan2_(m[2][1], m[2][2]);
+            angle.z = JMath::sAtanTable.atan2_(m[1][0], m[0][0]);
+            angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
+        }
     }
 
     TVec3f rot(angle);
@@ -1150,7 +1154,7 @@ bool MR::findNamePos(const char* pName, TVec3f* pPosition, TVec3f* pRotation) {
     return getNamePosHolder()->find(pName, pPosition, pRotation);
 }
 
-// NONMATCHING: vector temporary stack slots and register allocation
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MR::findNamePosOnGround(const char* pName, MtxPtr pMtx) {
     Triangle triangle;
     TPos3f mtx;

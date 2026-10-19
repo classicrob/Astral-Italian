@@ -51,7 +51,7 @@ WorldMapResultStateLeaveHome::WorldMapResultStateLeaveHome(WorldMapOwner* pHost)
     mPos.z = 0.0f;
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling) (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateLeaveHome::init() {
     initNerve(GET_NERVE(WorldMapResultStateLeaveHome, WorldMapResultStateLeaveHomeStart), 0);
     mHost->declareCamera("離脱開始（ホーム）");
@@ -153,7 +153,7 @@ void WorldMapResultStateLeaveHome::exeStart() {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::calcCenter() {
     WorldMapResultBox box;
     box.extendByWorld(mHost->getWorld());
@@ -188,7 +188,7 @@ void WorldMapResultStateLeaveHome::exeMove() {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -210,7 +210,7 @@ void WorldMapResultStateLeaveHome::exeZoomIn() {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -232,7 +232,7 @@ void WorldMapResultStateLeaveHome::exeZoomOut() {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::exeZoomOutSub() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -335,7 +335,7 @@ namespace NrvWorldMapResultStateLeaveHome {
     WorldMapResultStateLeaveHomeFovOut WorldMapResultStateLeaveHomeFovOut::sInstance ATTRIBUTE_WEAK;
     WorldMapResultStateLeaveHomeMessageEnd WorldMapResultStateLeaveHomeMessageEnd::sInstance ATTRIBUTE_WEAK;
 };  
-// NONMATCHING: regalloc (static initializer base-load scheduling).
+// NONMATCHING: static initialization order and base-load scheduling (FP argument order/grouping checked).
 TVec3f sCameraTable[4] = {
     TVec3f(-16000.0f, 0.0f, 0.0f),
     TVec3f(-9000.0f, 0.0f, 0.0f),

@@ -113,7 +113,7 @@ namespace {
     };
 }  // namespace
 
-// NONMATCHING: stack copies of the find_if functor (target copies it twice by value) and loop registers
+// NONMATCHING: stack copies of the find_if functor (target copies it twice by value) and loop registers (FP order/grouping checked: no FP instructions).
 MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const {
     MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, IsGroupIdEqual(MR::createJMapIdInfoFromGroupId(rIter)));
 
@@ -124,7 +124,7 @@ MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const 
     return nullptr;
 }
 
-// NONMATCHING: stack copies of the find_if functor and loop registers
+// NONMATCHING: stack copies of the find_if functor and loop registers (FP order/grouping checked: no FP instructions).
 MsgSharedGroup* LiveActorGroupArray::findGroup(const LiveActor* pActor) const {
     MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, HasActor(pActor));
 

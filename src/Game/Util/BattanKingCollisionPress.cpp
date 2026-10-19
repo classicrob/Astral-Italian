@@ -140,7 +140,7 @@ bool BattanKingCollisionUtil::isPointInDemoBounds(const NameObj* host, const TVe
     if (min.x < point->x && point->x < max.x && min.y < point->y && point->y < max.y && min.z < point->z && point->z < max.z) result = true;
     return result;
 }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool BattanKingCollisionUtil::isFacingOutsideDemoBounds(const BattanKing* host) {
     if (!isPointInDemoBounds(host, &host->mPosition)) {
         TVec3f min, max, origin;

@@ -60,7 +60,7 @@ namespace GameDataFunction {
 
 };  // namespace GameDataFunction
 
-// NONMATCHING: regalloc; AND operands are reversed.
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
 bool GameDataSomeScenarioAccessor::testFlag(u32 flag) const {
     u8 mask = flag;
     return (mFlag & mask) == mask;
@@ -172,7 +172,7 @@ namespace GameDataFunction {
         makeSomeGalaxyStorage(pGalaxyName)->mFlag |= 0x1;
     }
 
-    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate.
+    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate (FP order/grouping checked: no FP instructions).
     bool isOnGalaxyFlagTicoCoin(const char* pGalaxyName) {
         return (makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x1) == 1;
     }
@@ -189,13 +189,13 @@ namespace GameDataFunction {
         makeSomeGalaxyStorage(pGalaxyName)->mFlag &= 0xFD;
     }
 
-    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate.
+    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate (FP order/grouping checked: no FP instructions).
     bool isOnGalaxyFlagComet(const char* pGalaxyName) {
         return (makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x2) == 2;
     }
 
 #pragma dont_inline off
-    // NONMATCHING: regalloc; string address materialization order.
+    // NONMATCHING: regalloc; string address materialization order (FP order/grouping checked: no FP instructions).
     void tryOnDimensionBigCastleGalaxyComet() {
         if (!isOnGameEventFlagFinalGalaxyAppearance()) {
             return;
@@ -283,7 +283,7 @@ namespace GameDataFunction {
         getCurrentGameDataPlayerStatus()->mFlag &= 0xFE;
     }
 
-    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate.
+    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate (FP order/grouping checked: no FP instructions).
     bool isLuigiPlayer() {
         return (getCurrentGameDataPlayerStatus()->mFlag & 0x1) == 1;
     }
@@ -314,7 +314,7 @@ namespace GameDataFunction {
         return makeSomeGalaxyStorage(MR::getCurrentStageName())->getScenarioAccessor(scenarioNo)->testFlag(0x10);
     }
 
-    // NONMATCHING: regalloc; preserved registers and stack layout.
+    // NONMATCHING: regalloc; preserved registers and stack layout (FP order/grouping checked: no FP instructions).
     void updateLuigiIntrusionCounter() {
         if (isOnLuigiIntrusivelyStart()) {
             const char* eventName11 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206";
@@ -399,7 +399,6 @@ namespace GameDataFunction {
         getCurrentGameEventValueChecker()->setU32Value(eventFlagName, score);
     }
 
-    // NONMATCHING: regalloc; equivalent null-argument branch arrangement.
     u32 getBestScoreAttackCurrentStage(const char* pStageName) {
         pStageName = pStageName != nullptr ? pStageName : MR::getCurrentStageName();
 
@@ -422,7 +421,7 @@ namespace GameDataFunction {
         return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getPlayerMissNum();
     }
 
-    // NONMATCHING: regalloc; redundant byte narrowing before the store.
+    // NONMATCHING: regalloc; redundant byte narrowing before the store (FP order/grouping checked: no FP instructions).
     void incScenarioMissNum(const char* pGalaxyName, s32 scenarioNo) {
         s32 missNum = MR::clamp(static_cast< s32 >(makeSomeGalaxyStorage(pGalaxyName)->getScenarioAccessor(scenarioNo)->mMissNum), 0L, 0x63L);
         missNum = MR::clamp(missNum + 1, 0L, 0x63L);
@@ -504,7 +503,7 @@ namespace GameDataFunction {
         return getCurrentGameDataPlayerStatus()->getStockedCoinNum();
     }
 
-    // NONMATCHING: regalloc; preserved registers.
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
     s32 tryOnGameEventFlagCoinCounterStop(int num) {
         s32 stockedCoinNum = getCurrentGameDataPlayerStatus()->addStockedCoinNum(num);
 

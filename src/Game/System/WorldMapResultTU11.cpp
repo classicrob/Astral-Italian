@@ -342,7 +342,7 @@ bool WorldMapOwner::isAllNeededForGrandGalaxy() {
     return getInfoHolder()->isAllCompleted();
 }
 
-// NONMATCHING: the target normalizes startOpenSoundAll() (addic/subfe) into a saved register before updateAll(); ours defers it until after the or
+// NONMATCHING: the target normalizes startOpenSoundAll() (addic/subfe) into a saved register before updateAll(); ours defers it until after the or (FP order/grouping checked: no FP instructions).
 bool WorldMapOwner::updateParts() {
     s32 raw = getInfoHolder()->startOpenSoundAll();
     s32 opened = raw != 0;
@@ -404,7 +404,7 @@ void WorldMapOwner::tryTalkPoint(s32 node) {
     }
 }
 
-// NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue)
+// NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue) (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::prepareWorld() {
     WorldMapOwnerContext* pContext = mContext;
     pContext->mWorld->prepare();
@@ -413,7 +413,7 @@ void WorldMapOwner::prepareWorld() {
     }
 }
 
-// NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue)
+// NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue) (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::finishWorld() {
     WorldMapOwnerContext* pContext = mContext;
     pContext->mWorld->finish();
@@ -443,7 +443,7 @@ bool WorldMapOwner::isWorldDataType5AtCurrent() {
     return mContext->mWorld->isWorldDataType5(getCamera()->mCurrent);
 }
 
-// NONMATCHING: register allocation only (galaxy name / node count / path table swap saved registers)
+// NONMATCHING: register allocation only (galaxy name / node count / path table swap saved registers) (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::enterCurrentGalaxy() {
     mContext->mWorld->disappear();
     s32 node = getCamera()->mCurrent;
@@ -643,7 +643,7 @@ void WorldMapOwner::startRocketMoveSound() {
     MR::startActionSound(getCamera()->mRocket, "Move", -1, -1, -1);
 }
 
-// NONMATCHING: float register allocation of the from/to x compare, and the target's `!isVelocityGreaterEqual()` is cntlzw/srwi. instead of cmpwi
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool WorldMapOwner::updateCameraMove(s32 flag) {
     WorldMapCameraHolder* pCamera = getCamera();
     WorldMapResultWorld* pWorld = mContext->mWorld;

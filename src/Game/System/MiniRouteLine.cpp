@@ -116,7 +116,7 @@ void MiniRouteLine::kill() {
     mEffectActor->kill();
 }
 
-// NONMATCHING: register numbers of the paired-single matrix copy (f0..f5 are assigned in reverse)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniRouteLine::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     TPos3f mtx;

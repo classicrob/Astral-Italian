@@ -117,7 +117,7 @@ void MarioFaceShipAttentionConversationDirector::registerNpc(const MarioFaceShip
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MarioFaceShipAttentionConversationDirector::registerMeister(Meister* pMeister, const JMapInfoIter& rIter) {
     mMeister = pMeister;
 
@@ -338,7 +338,7 @@ void MarioFaceShipNormalConversationDirector::initAfterPlacement() {
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MarioFaceShipNormalConversationDirector::registerMeister(Meister* pMeister, const JMapInfoIter& rIter) {
     mMeister = pMeister;
 

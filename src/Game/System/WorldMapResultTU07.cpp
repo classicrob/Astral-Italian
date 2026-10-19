@@ -60,7 +60,7 @@ void WorldMapResultBox::extend(const TVec3f& rPos) {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultBox::getCenter(TVec3f* pDst) const {
     TVec3f sum = mMax + mMin;
     TVec3f center(sum);
@@ -69,7 +69,7 @@ void WorldMapResultBox::getCenter(TVec3f* pDst) const {
     pDst->z -= 2000.0f;
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultBox::getCameraPos(TVec3f* pDst) const {
     f32 dist = calcCameraDistance();
     TVec3f center;
@@ -91,7 +91,7 @@ void WorldMapResultBox::getCameraPos(TVec3f* pDst) const {
     pDst->set<f32>(pos);
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 f32 WorldMapResultBox::calcCameraDistance() const {
     f32 fov = 0.4537856f;
     f32 tanHalf = JMASinRadian(0.5f * fov) / JMACosRadian(0.5f * fov);
@@ -108,7 +108,7 @@ f32 WorldMapResultBox::calcCameraDistance() const {
 
 static const char sMapArcFormat[] = "WorldMap%02d.arc";
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
 JMapInfo* WorldMapResultWorld::createParser(const char* pFile) const {
     char arc[0x40];
     snprintf(arc, 0x40, sMapArcFormat, mWorldId);
@@ -324,7 +324,7 @@ void WorldMapResultWorld::disappear() {
     mUnit14->resetStarCheckPoints();
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
 void WorldMapResultRoute::collect(WorldMapResultWorld* pWorld) {
     mCount = 0;
     WorldMapResultMapData* pMap = pWorld->mMapData;
@@ -344,7 +344,7 @@ void WorldMapResultRoute::collect(WorldMapResultWorld* pWorld) {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node) {
     s32 step = 0;
 
@@ -447,7 +447,7 @@ void WorldMapResultWorld::setupRoute(WorldMapResultRoute* pRoute) {
     mUnit14->resetAll();
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
 void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 node) {
     mLinks->openFrom(0);
     WorldMapResultRoute route;
@@ -476,7 +476,7 @@ void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 no
     mUnit14->resetAll();
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void WorldMapResultBox::extendByRoute(WorldMapResultWorld* pWorld, WorldMapResultRoute* pRoute) {
     s32 i = 0;
     WorldMapResultMapData* pMap = pWorld->mMapData;
@@ -523,7 +523,7 @@ bool WorldMapResultWorld::updateRouteStep(WorldMapResultRoute* pRoute, s32 step,
     return done;
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 bool WorldMapResultWorld::isRouteNotHeld(WorldMapResultRoute* pRoute) const {
     GalaxyWorldMapInfoHolder* pData = mWorldData;
 
@@ -550,7 +550,7 @@ void WorldMapResultBox::extendByWorld(WorldMapResultWorld* pWorld) {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void calcRoutePos(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, s32 step, s32 maxStep) {
     s32 splitStep = (s32)(0.8f * (f32)maxStep);
     f32 rate = MR::getLinerValue(MR::normalizeAndClamp01((f32)step, 0.0f, (f32)splitStep), 0.0f, 1.0f - sRouteTailRate, 1.0f);
@@ -579,7 +579,7 @@ WorldMapResultPathFinder::WorldMapResultPathFinder(WorldMapResultWorld* pWorld) 
     update(0);
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
 void WorldMapResultPathFinder::update(s32 start) {
     s32 num = mWorld->getNodeNum();
 

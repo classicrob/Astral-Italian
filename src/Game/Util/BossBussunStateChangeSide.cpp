@@ -68,7 +68,7 @@ void BossBussunStateChangeSide::exeMoveFromCenter() {
     }
 }
 
-// NONMATCHING: regalloc/stack layout
+// NONMATCHING: stack/vector lowering and STFS scheduling across FRSP (FP order/grouping and stored single value checked).
 void BossBussunStateChangeSide::exeFlip() {
     if (MR::isFirstStep(this)) {
         TVec3f up;

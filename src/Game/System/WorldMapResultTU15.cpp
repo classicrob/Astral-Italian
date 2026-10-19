@@ -31,7 +31,7 @@ WorldMapResultStateGreenStarDemo::WorldMapResultStateGreenStarDemo(WorldMapOwner
     mTalkCtrl = NULL;
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::init() {
     initNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart), 0);
     MR::declareEventCameraProgrammable(sCameraName);
@@ -83,7 +83,7 @@ void WorldMapResultStateGreenStarDemo::showComets() {
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::exeStart() {
     if (MR::isFirstStep(this)) {
         MR::forceOpenSystemWipeWhiteFade();
@@ -114,7 +114,7 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::exeShower() {
     if (MR::isFirstStep(this)) {
         showComets();

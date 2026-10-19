@@ -47,7 +47,7 @@ namespace {
     TVec3f sShadowOffset(0.0f, -250.0f, 0.0f);
 };  // namespace
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 MiniTicoMaster::MiniTicoMaster(WorldMapResultWorld* world, s32 partsIndex, s32* count, s32 pointIndex, s32 nextPoint)
     : LiveActor("ミニチコ（ルート大工）") {
     mUnk90 = world;
@@ -71,7 +71,7 @@ MiniTicoMaster::MiniTicoMaster(WorldMapResultWorld* world, s32 partsIndex, s32* 
 
 MiniTicoMaster::~MiniTicoMaster() {}
 
-// NONMATCHING: regalloc
+// NONMATCHING: scalar/paired vector copy lowering and register/stack layout (FP order/grouping checked).
 void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     TVec3f base(mUnk90->getNode(mUnkA4)->mPos);
     TVec3f pos = base + sPlanetOffset;
@@ -138,7 +138,7 @@ void MiniTicoMaster::makeActorDead() {
     mShadow->makeActorDead();
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniTicoMaster::control() {
     WorldMapFunction::returnScale(this, 0.05f, 1.0f);
     TPos3f joint;
@@ -179,7 +179,7 @@ void MiniTicoMaster::exeGoMarioPlanet() {
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void MiniTicoMaster::setPosOnRoute(f32 t) {
     TVec3f a = mUnk90->getNode(mUnkA4)->mPos;
     TVec3f b = mUnk90->getNode(mUnkA8)->mPos;

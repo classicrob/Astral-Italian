@@ -740,7 +740,7 @@ namespace MR {
         pOut->z = pMtx[2][3];
     }
 
-    // NONMATCHING: regalloc and equivalent vector inlining
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
     void separateMtxScale(MtxPtr rotation, MtxPtr scale, MtxPtr source) {
         f32 sums[3];
         sums[0] = source[0][0] * source[0][0] + source[1][0] * source[1][0] + source[2][0] * source[2][0];

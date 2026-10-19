@@ -425,7 +425,7 @@ namespace MR {
         pActor->mRailRider->calcDirectionAtCoord(pDir, coord);
     }
 
-    // NONMATCHING: regalloc
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void calcRailDirectionAtOffset(TVec3f* pDir, LiveActor* pActor, f32 offset) {
         RailRider* railRider = pActor->mRailRider;
         f32 coord = railRider->mCoord;

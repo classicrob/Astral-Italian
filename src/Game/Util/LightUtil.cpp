@@ -58,7 +58,7 @@ namespace MR {
             ctrl->requestPointLight(pActor, lightPos, lightColor, intensity, duration, distRef);
         }
     }
-    // NONMATCHING: point-controller load is scheduled after the vector copy.
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void requestPointLightPlayer(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {
         MR::getSceneObj<LightDirector>(SceneObj_LightDirector)->mPointCtrl->requestPointLight(pActor, pos, color, intensity, duration, distRef);
     }

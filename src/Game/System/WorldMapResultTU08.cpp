@@ -82,7 +82,7 @@ void WorldMapResultStateEnterGalaxy::init() {
     mIsDead = true;
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateEnterGalaxy::appear() {
     TVec3f* positions = sEnterGalaxyPositions;
     mIsDead = false;
@@ -135,7 +135,7 @@ void WorldMapResultStateEnterGalaxy::control() {
     MR::setDepthOfFieldBlurDistance(*mBlurNear, *mBlurFar);
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(mHost->getRocket(), "ZoomInGalaxy", -1, -1, -1);
@@ -176,7 +176,7 @@ void WorldMapResultStateEnterGalaxy::exeWait() {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void WorldMapResultStateEnterGalaxy::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();
@@ -199,7 +199,7 @@ void WorldMapResultStateEnterGalaxy::exeZoomOut() {
     }
 }
 
-// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateEnterGalaxy::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::showPlayer();
@@ -250,7 +250,7 @@ namespace NrvWorldMapResultStateEnterGalaxy {
     WorldMapResultStateEnterGalaxyZoomOut WorldMapResultStateEnterGalaxyZoomOut::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvWorldMapResultStateEnterGalaxy
 
-// NONMATCHING: regalloc (static initializer base-load scheduling).
+// NONMATCHING: static initialization order and base-load scheduling (FP argument order/grouping checked).
 TVec3f sEnterGalaxyPositions[4] = {
     TVec3f(-770.0f, -60.0f, 290.0f),
     TVec3f(-770.0f, -60.0f, 290.0f),

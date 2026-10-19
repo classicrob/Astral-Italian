@@ -940,7 +940,7 @@ namespace MR {
         MarioAccess::setBaseMtx(pMtx);
     }
 
-    // NONMATCHING: regalloc and matrix-store scheduling; all 12 ordered float expressions proven equal in sol-i/quat-proof.txt
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void setPlayerQuatAndPos(TQuat4f* pQuat, TVec3f* pPos) {
         TPos3f mtx;
         f32 y2 = 2.0f * pQuat->y;
@@ -1056,7 +1056,7 @@ namespace MR {
     }
 
     // Keep the normal displacement; clamp the planar radius to scale - 200.
-    // NONMATCHING: regalloc and stack layout; normal projection and float cutoff audited
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void calcPlayerScaledVec(TVec3f* pDst, const TVec3f& rA, const TVec3f& rB, const TVec3f& rC, f32 scale) {
         TVec3f tmp = rA - rB;
         f32 normalDistance = vecKillElement(tmp, rC, &tmp);

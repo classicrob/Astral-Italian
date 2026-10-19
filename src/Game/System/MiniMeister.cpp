@@ -24,7 +24,7 @@ namespace NrvMiniMeister {
     NEW_NERVE(MiniMeisterNrvDisappear, MiniMeister, Disappear);
 };  // namespace NrvMiniMeister
 
-// NONMATCHING: constructor load/store scheduling.
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 MiniMeister::MiniMeister(WorldMapCameraHolder* pOwner) : LiveActor("ミニマイスター"), mFront(0, 0, 1), mScreenPos(sTalkScreenPos) {
     mOwner = pOwner;
 }
@@ -127,7 +127,7 @@ void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
     }
 }
 
-// NONMATCHING: TVec2 copies use floating loads/stores instead of target word copies; stack scheduling.
+// NONMATCHING: TVec2 word/FP copy lowering and stack layout (FP arithmetic order/grouping checked).
 void MiniMeister::updateTalkScreenPos(f32 ratio) {
     TVec2f screen(mScreenPos);
     f32 halfFovy = MR::getFovy();
@@ -203,7 +203,7 @@ void MiniMeister::exeWait() {
 }
 
 // fn_804E40F0: turns the meister toward the camera.
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void MiniMeister::exeTalk() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Talk");

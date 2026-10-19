@@ -37,7 +37,7 @@ WorldMapResultStateEnterHome::WorldMapResultStateEnterHome(WorldMapOwner* pHost)
     mLayout = nullptr;
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateEnterHome::init() {
     mHost->declareCamera("接近（ホーム）");
     mHost->declareCamera("突入（ホーム）");
@@ -134,7 +134,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateEnterHome::exeExit() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();

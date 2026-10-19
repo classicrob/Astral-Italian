@@ -89,7 +89,7 @@ void GameSequenceEnding::startDemoMessage() {
     setNerve(GET_NERVE_ANON(GameSequenceEndingNrvDemoMessage));
 }
 
-// NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection.
+// NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection (FP order/grouping checked: no FP instructions).
 void GameSequenceEnding::requestSaveDemo() {
     GameSystemFunction::setPermissionToCheckWiiRemoteConnect(true);
     MR::requestStartDemo(this, mNameObj, "セーブ",
@@ -141,7 +141,7 @@ void GameSequenceEnding::exeWipeClose() {
     }
 }
 
-// NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection.
+// NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection (FP order/grouping checked: no FP instructions).
 void GameSequenceEnding::exeDemoMessage() {
     if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
         MR::tryStartTimeKeepDemoMarioPuppetable(mNameObj, "コンプリートエンディング", nullptr);

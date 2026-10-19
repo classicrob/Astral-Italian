@@ -11,7 +11,7 @@ namespace {
 };
 
 namespace MR {
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void initAcosTable() {
         gAcosTable = new f32[0x100];
         u32 i = 0;
@@ -256,7 +256,7 @@ namespace MR {
         return JGeometry::TUtil< f32 >::clamp(normalize(x, min, max), 0.0f, 1.0f);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void turnVecRandomAroundAxis(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rAxis, f32 min, f32 max) {
         f32 degree = repeat(min + (max - min) * getRandom(), 0.0f, 360.0f);
         TPos3f mtx;
@@ -265,7 +265,7 @@ namespace MR {
         mtx.mult(rSrc, *pDst);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
     f32 calcYawDegreeXZ(const TVec3f& rVec) {
         if (rVec.z == 0.0f) {
             if (rVec.x >= 0.0f) {
@@ -332,7 +332,6 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcPerpendicFootToLine(TVec3f* pDst, const TVec3f& rPos, const TVec3f& rPointA, const TVec3f& rPointB) {
         TVec3f offset = rPointB - rPointA;
         f32 ratio = rPos.dot(offset) - rPointA.dot(offset);
@@ -343,7 +342,7 @@ namespace MR {
         return ratio;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     f32 calcPerpendicFootToLineInside(TVec3f* pDst, const TVec3f& rPos, const TVec3f& rPointA, const TVec3f& rPointB) {
         TVec3f offset = rPointB - rPointA;
         f32 ratio = rPos.dot(offset) - rPointA.dot(offset);
@@ -355,7 +354,7 @@ namespace MR {
         return ratio;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool checkHitSegmentSphere(const TVec3f& rSpherePos, const TVec3f& rPointA, const TVec3f& rPointB, f32 radius, TVec3f* pDir) {
         TVec3f pos = rSpherePos;
         TVec3f segment = rPointB;
@@ -399,7 +398,7 @@ namespace MR {
         return false;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool checkHitSemilinePlane(TVec3f* pHitPos, const TVec3f& rPos, const TVec3f& rDir, const TVec3f& rPlanePos, const TVec3f& rPlaneNorm) {
         f32 dot = rDir.dot(rPlaneNorm);
         TVec3f offset = rPlanePos - rPos;
@@ -416,7 +415,7 @@ namespace MR {
         return true;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool calcReboundVelocity(TVec3f* pVel, const TVec3f& rNormal, f32 reboundRate) {
         f32 dot = pVel->dot(rNormal);
         if (dot < 0.0f) {
@@ -430,7 +429,7 @@ namespace MR {
         return false;
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool calcReboundVelocity(TVec3f* pVel, const TVec3f& rNormal, f32 reboundRateV, f32 reboundRateH) {
         f32 dot = pVel->dot(rNormal);
         if (dot < 0.0f) {
@@ -677,7 +676,7 @@ namespace MR {
     }
 
     // unsure if these labels are correct
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void turnQuatXDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f xDir;
         rSrc.getXDir(xDir);
@@ -699,7 +698,7 @@ namespace MR {
         pDst->normalize();
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void turnQuatYDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f yDir;
         rSrc.getYDir(yDir);
@@ -721,7 +720,7 @@ namespace MR {
         pDst->normalize();
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void turnQuatZDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f zDir;
         rSrc.getZDir(zDir);
@@ -1106,7 +1105,7 @@ namespace MR {
         pMoment->set(moment);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool calcReflectionVector(TVec3f* pDir, const TVec3f& rNorm, f32 rate, f32 cosAngleMin) {
         f32 dot = rNorm.dot(*pDir);
         if (dot < -cosAngleMin) {
@@ -1417,7 +1416,6 @@ namespace MR {
         pDst->a = getInterpolateValue(t, rStart.a, rEnd.a);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 turnVecToPlane(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rNorm) {
         TVec3f vec = rSrc;
         f32 length = rSrc.length();
@@ -1759,7 +1757,6 @@ namespace MR {
         PSMTXMultVec(rot, &rAxis, pOut);
     }
 
-    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 getFootPoint(const TVec3f& rPointA, const TVec3f& rPointB, const TVec3f& rPos, TVec3f* pDst) {
         TVec3f segment = rPointB - rPointA;
         f32 length = segment.length();

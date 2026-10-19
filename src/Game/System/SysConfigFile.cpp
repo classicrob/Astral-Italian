@@ -34,7 +34,7 @@ u32 SysConfigChunk::getSignature() const {
     return 'SYSC';
 }
 
-// NONMATCHING: regalloc and argument scheduling
+// NONMATCHING: regalloc and argument scheduling (FP order/grouping checked: no FP instructions).
 s32 SysConfigChunk::deserialize(const u8* buffer, u32 size) {
     BinaryDataContentAccessor accessor(const_cast<u8*>(buffer));
     u32 headerSize = accessor.getHeaderSize();
@@ -135,7 +135,7 @@ void SysConfigFile::loadFromDataBinary(const u8* pBuffer, u32 size) {
     mChunkHolder->loadFromFileBinary(pBuffer, size);
 }
 
-// NONMATCHING: regalloc and argument scheduling
+// NONMATCHING: regalloc and argument scheduling (FP order/grouping checked: no FP instructions).
 s32 SysConfigChunk::serialize(u8* buffer, u32) const {
     void* header = mHeaderSerializer->mStream.mBuffer;
     MR::copyMemory(buffer, header, mHeaderSerializer->getHeaderSize());

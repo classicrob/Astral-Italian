@@ -82,7 +82,7 @@ bool BellyDragonArmShot::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
     }
     return false;
 }
-// NONMATCHING: vector inlining and register allocation.
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BellyDragonArmShot::exeDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "AttackDiveDown");

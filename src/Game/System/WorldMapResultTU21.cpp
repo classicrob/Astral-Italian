@@ -75,7 +75,7 @@ void WorldMapResultStateTicoRouteCreate::updateRoutePosition(f32 pT) {
     MR::setPosition(mHost->getRocket(), pos);
 }
 
-// NONMATCHING: one extra scheduling slot in the scale expression and the position update order (1 insn)
+// NONMATCHING: independent subtraction/FMR scheduling (FP operand order/grouping checked).
 void WorldMapResultStateTicoRouteCreate::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(mHost->getRocket(), "ZoomInTico", -1, -1, -1);
@@ -86,7 +86,12 @@ void WorldMapResultStateTicoRouteCreate::exeZoomIn() {
     updateRoutePosition(eased);
 
     f32 inRate = MR::calcNerveEaseInRate(this, 30);
-    f32 scale = (1.0f - 0.5f) + (1.0f - inRate) * 0.5f;
+    f32 one = 1.0f;
+    f32 half = 0.5f;
+    f32 base = one - half;
+    f32 scale = one - inRate;
+    scale *= half;
+    scale = base + scale;
     MR::setScale(mHost->getRocket(), scale);
 
     if (MR::isStep(this, 20)) {
@@ -110,7 +115,7 @@ void WorldMapResultStateTicoRouteCreate::exeWait() {
     }
 }
 
-// NONMATCHING: the comet-name pointer loads are scheduled differently (target keeps the 0x94 chain first)
+// NONMATCHING: the comet-name pointer loads are scheduled differently (target keeps the 0x94 chain first) (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateTicoRouteCreate::exeReturn() {
     if (MR::isFirstStep(this)) {
         mHost->startDemo();
@@ -134,7 +139,7 @@ void WorldMapResultStateTicoRouteCreate::exeReturn() {
     }
 }
 
-// NONMATCHING: scale expression scheduled with the constant loads in a different order (1 insn)
+// NONMATCHING: literal labels only (FP operand order/grouping proven by default rdclass a).
 void WorldMapResultStateTicoRouteCreate::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();
@@ -147,7 +152,12 @@ void WorldMapResultStateTicoRouteCreate::exeZoomOut() {
     updateRoutePosition(eased);
 
     f32 outRate = MR::calcNerveEaseInOutRate(this, 30);
-    f32 scale = (1.0f - 0.5f) + (1.0f - (1.0f - outRate)) * 0.5f;
+    f32 one = 1.0f;
+    f32 half = 0.5f;
+    f32 base = one - half;
+    f32 scale = one - (one - outRate);
+    scale *= half;
+    scale = base + scale;
     MR::setScale(mHost->getRocket(), scale);
 
     if (MR::isGreaterStep(this, 30)) {

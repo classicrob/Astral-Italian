@@ -295,7 +295,7 @@ void GameScene::initSequences() {
     mPauseSeq->initWindowMenu(MR::Functor_Inline(mPauseCtrl, &GameScenePauseControl::requestPauseMenuOff));
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameScene::initEffect() {
     struct EffectInfo { const char* name; u32 particles; u32 emitters; };
     static const EffectInfo info[] = {

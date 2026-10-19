@@ -98,7 +98,7 @@ void WorldMapOwnerContext::init(s32 world, s32 node) {
     mLayouts->initInfo();
 }
 WorldMapOwner::WorldMapOwner() : NameObj("ワールドマップ"), mContext(0), mSequence(0), mMainLayout(0) {}
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::init(const JMapInfoIter&) {
     bool after = GameDataFunction::isOnGameEventFlag("グランドギャラクシーマップ初プレイ") ? GameSequenceFunction::isWorldMapAfterFileSelect() : false;
     if (MR::isEqualStageName("WorldMap01Galaxy")) GameDataFunction::setCurrentWorldId(1);
@@ -210,7 +210,7 @@ PartsModel* WorldMapFunction::createPartsModel(LiveActor* host, const char* name
     return part;
 }
 MiniPlayerRocket* WorldMapOwner::getRocket() const { return mContext->mCamera->mRocket; }
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::setRocketPosWithTarget(const TVec3f* pos) {
     WorldMapCameraHolder* camera = mContext->mCamera;
     MiniPlayerRocket* rocket = camera->mRocket;
@@ -265,7 +265,7 @@ void WorldMapOwner::endDemo() {
     mContext->mCamera->mRocket->enablePlayerBind();
 }
 #pragma dont_inline on
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void WorldMapOwner::setRocketFrontUpPos(const TVec3f& front, const TVec3f& up, const TVec3f& pos) {
     MiniPlayerRocket* rocket = mContext->mCamera->mRocket;
     if (MR::isSameDirection(front, up, 0.01f) || MR::isSameDirection(front, -up, 0.01f)) return;
@@ -277,7 +277,7 @@ void WorldMapOwner::setRocketFrontUpPos(const TVec3f& front, const TVec3f& up, c
 #pragma dont_inline reset
 s32 WorldMapOwner::getWorldId() const { return mContext->mWorldId; }
 s32 WorldMapFunction::getGalaxyWorldNo(const char* name) { return MR::makeGalaxyStatusAccessor(name).getWorldNo(); }
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool WorldMapFunction::hasIncompleteGreenStar(const char* name) {
     GalaxyStatusAccessor status = MR::makeGalaxyStatusAccessor(name);
     if (!GameDataFunction::isOnGameEventFlagEnding120Stars()) return false;
@@ -296,7 +296,7 @@ void WorldMapFunction::setStatusIconKind(GalaxyStatusIcon* icon, const char* nam
 }
 void MiniStarPieceMine::setGalaxyFlag() { GameSequenceFunction::setWorldMapGalaxyFlag(mWorldId, mPointIndex); }
 bool MiniStarPieceMine::isGalaxyFlag() const { return GameSequenceFunction::isWorldMapGalaxyFlag(mWorldId, mPointIndex); }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapFunction::initDrawFog(LiveActor* actor) {
     MR::initDLMakerFog(actor, true);
     MR::newDifferedDLBuffer(actor);
@@ -315,10 +315,10 @@ void WorldMapFunction::setFogRange(LiveActor* actor, f32 scale) {
 void WorldMapFunction::setFogDrawOn(LiveActor* actor) { MR::setFogType(actor, 2); }
 void WorldMapFunction::setFogDrawOff(LiveActor* actor) { MR::setFogType(actor, 0); }
 bool WorldMapFunction::isPointing(LiveActor* actor) { return MR::isStarPointerPointing1PWithoutCheckZ(actor, "弱", true, false); }
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapFunction::approachScale(LiveActor* actor, f32 speed, f32 max) { f32 scale = speed + actor->mScale.x; if (scale >= max) scale = max; MR::setScale(actor, scale); }
 void WorldMapFunction::returnScale(LiveActor* actor, f32 speed, f32 min) { MR::setScale(actor, actor->mScale.x - speed >= min ? actor->mScale.x - speed : min); }
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool WorldMapOwner::isWorldEventFlagOff() const {
     s32 world = mContext->mWorldId;
     if (world == 1 && !GameDataFunction::isOnGameEventFlag("ワールド1初プレイ")) return true;
@@ -341,9 +341,9 @@ bool WorldMapFunction::isGreenStarDemoReady() {
     }
     return false;
 }
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool WorldMapFunction::isWorldNoMid(s32 world) { s32 result = 0; if (world >= 2) { if (world <= 6) result = 1; } return result; }
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool WorldMapFunction::mountWorldMapResources() {
     if (!GameSequenceFunction::isWorldMapEnterType5()) return false;
     const JMapInfo* parser = MR::tryCreateStageUseResourceCsvParser("MarioFaceShipGalaxy", "scenario_2");

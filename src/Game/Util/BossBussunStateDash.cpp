@@ -47,7 +47,7 @@ void BossBussunStateDash::exeStart() {
     }
 }
 
-// NONMATCHING: regalloc (target keeps host/home/up pointers live across the limit call)
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossBussunStateDash::exeDash() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Dash");

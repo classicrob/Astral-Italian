@@ -142,7 +142,7 @@ void BellyDragonBodyPart::exeWait() {
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonBodyPart::exeFollow() {
     mVelocity.scale(0.75f);
     MR::addVelocityToGravity(this, -1.0f);
@@ -170,7 +170,7 @@ void BellyDragonBodyPart::exeFollow() {
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonBodyPart::exeBindA() {
     mVelocity.scale(0.75f);
     if (isHead()) {
@@ -230,7 +230,7 @@ void BellyDragonBodyPart::exeExitA() {
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BellyDragonBodyPart::exeBindB() {
     TVec3f oldVelocity(mVelocity);
     mVelocity.scale(0.75f);
@@ -268,7 +268,7 @@ void BellyDragonBodyPart::exeBindB() {
     tryBindB();
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BellyDragonBodyPart::exeExitB() {
     TVec3f dir(mVelocity);
     mVelocity.scale(0.75f);
@@ -374,7 +374,7 @@ void BellyDragonBodyPart::startBindB(const TPos3f& rMtx) {
     setNerve(&NrvBellyDragonBodyPart::BellyDragonBodyPartNrvBindB::sInstance);
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool BellyDragonBodyPart::tryBindA() {
     TVec3f bindPos(mBindMtxA.mMtx[0][3], mBindMtxA.mMtx[1][3], mBindMtxA.mMtx[2][3]);
     if (!MR::isBinded(this) || !MR::isNear(this, bindPos, offsetValue(mRadius, 100.0f))) {
@@ -412,7 +412,7 @@ bool BellyDragonBodyPart::tryBindA() {
     return true;
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool BellyDragonBodyPart::tryBindB() {
     if (mNext != nullptr && mNext->isNerve(&NrvBellyDragonBodyPart::BellyDragonBodyPartNrvBindA::sInstance)) {
         return false;
@@ -525,7 +525,7 @@ void BellyDragonBodyPart::resume() {
     setNerve(&NrvBellyDragonBodyPart::BellyDragonBodyPartNrvFollow::sInstance);
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool BellyDragonBodyPart::calcJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     if (mIsFrozen) {
         JMath::gekko_ps_copy12(&mMtx, pMtx);
@@ -678,7 +678,7 @@ void BellyDragonBodyPart::attackSensor(HitSensor* pSender, HitSensor* pReceiver)
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 BellyDragonBody::BellyDragonBody(BellyDragon* pHost, TPos3f* pBaseMtx, bool isLv2) {
     mIsLv2 = isLv2;
     mBaseMtx = pBaseMtx;

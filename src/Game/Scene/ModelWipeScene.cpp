@@ -38,7 +38,7 @@ ModelWipeScene::ModelWipeScene()
 
 ModelWipeScene::~ModelWipeScene() {}
 
-// NONMATCHING: regalloc and constant-pool ordering
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void ModelWipeScene::init() {
     mDrawBufferOpa = createDrawBuffer();
     mDrawBufferXlu = createDrawBuffer();

@@ -17,7 +17,7 @@ ResourceCsvGroupHolder::ResourceCsvGroupHolder():mCount(0),_4(0x500),mGroups(NUL
     mAutoEffectCsv=new JMapInfo();
     reset();
 }
-// NONMATCHING: register allocation in the reset loop.
+// NONMATCHING: register allocation in the reset loop (FP order/grouping checked: no FP instructions).
 void ResourceCsvGroupHolder::reset(){
     for(s32 i=0;i<mCount;++i){ResourceCsvGroupInfo* group=&mGroups[i];group->mCount=0;group->mStartIndex=-1;group->_C=0;group->_10=-1;}
     mCount=0;
@@ -29,12 +29,12 @@ const char* getEffectArchivePath(){
     static char path[]="/ParticleData/Effect.arc";
     return path;
 }
-// NONMATCHING: register allocation in the linear search.
+// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 const ResourceCsvGroupInfo* ResourceCsvGroupHolder::findGroup(const char* name) const {
     for(s32 i=0;i<mCount;++i){const ResourceCsvGroupInfo* group=&mGroups[i];if(MR::isEqualStringCase(group->mName,name))return group;}
     return NULL;
 }
-// NONMATCHING: equivalent grouping branches and register allocation; savegpr24 rather than25.
+// NONMATCHING: equivalent grouping branches and register allocation; savegpr24 rather than25 (FP order/grouping checked: no FP instructions).
 void ResourceCsvGroupHolder::initActionSoundGroups(){
     const char* csv = sActionSoundCsv;
     JKRArchive* archive = MR::receiveArchive(sActionSoundArchive);

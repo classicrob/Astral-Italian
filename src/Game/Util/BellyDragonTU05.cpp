@@ -90,7 +90,7 @@ void BellyDragonPod::updateFireEffect(BellyDragon* pHost) {
     }
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonPod::appearFireGround(s32 isShort, const TVec3f* pVec) {
     if (BellyDragonUtil::isLv2(mHost)) {
         LiveActor* pActor = mGroupA->getDeadActor();
@@ -118,7 +118,7 @@ void BellyDragonPod::killFireGrounds() {
     }
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: scalar/paired vector copy lowering and register/stack layout (FP order/grouping checked).
 void BellyDragonPod::appearSparks(s32 count) {
     if (BellyDragonUtil::isLv2(mHost) == 0) {
         return;
@@ -186,7 +186,7 @@ void BellyDragonPod::stopFlame() {
     mFlameCtrl->killModel();
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonUtil::calcJointGroundMtx(BellyDragon* pHost, TPos3f* pOut, const char* pJoint, s32 flag) {
     TPos3f sp78;
     sp78.set(MR::getJointMtx(pHost, pJoint));
@@ -252,11 +252,11 @@ void BellyDragonPod::createGroups() {
     }
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
 BellyDragonArm::BellyDragonArm(BellyDragon* pHost, s32 side) : ActorStateBase<BellyDragon>("Phase[戦闘]", pHost), mSide(side), mStateA(NULL), mStateB(NULL), mStateC(NULL), mCounter(0) {
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
 void BellyDragonArm::init() {
     initNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance, 0x10);
     mStateA = new BellyDragonArmWait(mHost, mSide);
@@ -285,7 +285,6 @@ void BellyDragonArm::exeWait() {
     }
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonArm::exeFire() {
     if (BellyDragonUtil::updateArmState(this, mHost) != 0) {
         if (mStateB->mIsEnd) {
@@ -332,7 +331,7 @@ void BellyDragonArm::attackSensor(HitSensor* pSensorA, HitSensor* pSensorB) {
     MR::sendMsgPush(pSensorB, pSensorA);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool BellyDragonArm::receiveMessage(u32 msg, HitSensor* pSensorA, HitSensor* pSensorB) {
     if (MR::isMsgStarPieceReflect(msg)) {
         return 1;

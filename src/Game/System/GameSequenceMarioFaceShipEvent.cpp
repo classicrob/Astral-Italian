@@ -109,7 +109,7 @@ void GameSequenceMarioFaceShipEvent::init() {
     initNerve(&GameSequenceMarioFaceShipEventNrvResultDemo::sInstance, 0);
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::appear() {
     bool isGrandStarVsKoopa = false;
     mIsDead = false;
@@ -162,7 +162,7 @@ bool GameSequenceMarioFaceShipEvent::isEmpty() {
     return list.mNum > 0;
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::makeResultEventList(MarioFaceShipEventList& rList) {
     rList.mNum = 0;
     for (s32 i = 0; i < MarioFaceShipEventDataHolder::calcAllTalkNum(); i++) {
@@ -386,7 +386,7 @@ void GameSequenceMarioFaceShipEvent::clearFlags() {
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::finishEvents() {
     if (GameSequenceFunction::isClearedGrandStarVsKoopaLv3GalaxyAtResult()) {
         GameSequenceFunction::setWorldMapCurrentNode(0);
@@ -537,7 +537,7 @@ void GameSequenceMarioFaceShipEvent::exeSave() {
     }
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::exeStartDemo() {
     if (MR::isFirstStep(this)) {
         bool isStartFlow = false;

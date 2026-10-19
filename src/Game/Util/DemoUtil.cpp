@@ -588,7 +588,7 @@ namespace MR {
         return false;
     }
 
-    // NONMATCHING: regalloc and equivalent flag/branch lowering
+    // NONMATCHING: regalloc and equivalent flag/branch lowering (FP order/grouping checked: no FP instructions).
     bool tryStartDemoEndWaitCameraInterpolating(LiveActor* pActor, const char* pName) {
         if (isSystemTalking()) {
             return false;

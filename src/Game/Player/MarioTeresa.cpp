@@ -453,7 +453,7 @@ void MarioTeresa::checkWallCeilReflect() {
     if (ceiling || wall || reflected) {
         if (_5C) {
             _5C--;
-            getPlayer()->addTrans(normal * 10.0f, nullptr);
+            getPlayer()->addTrans(normal * 10.0f);
         } else {
             f32 speed = MR::vecKillElement(_34, normal, &_34);
             if (speed < 0.0f) {

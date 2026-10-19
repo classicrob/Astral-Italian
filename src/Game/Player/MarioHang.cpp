@@ -112,7 +112,7 @@ bool MarioHang::start() {
     return true;
 }
 
-// NONMATCHING: equivalent state increment, stack and ignored addTrans tag setup.
+// NONMATCHING: equivalent state increment and stack allocation.
 bool MarioHang::update() {
     _14++;
     mActor->damageDropThrowMemoSensor();
@@ -217,7 +217,7 @@ bool MarioHang::update() {
         if (isAnimationRun("崖つかまり開始") && getAnimator()->getFrame() < 20.0f) {
             _1D = 1;
         } else {
-            getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
+            getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f);
             mActor->setBlendMtxTimer(16);
             Mario* pPlayer = getPlayer();
             pPlayer->_3C0 = 0;
@@ -267,10 +267,10 @@ bool MarioHang::close() {
     return true;
 }
 
-// NONMATCHING: vector operand scheduling and ignored addTrans tag setup.
+// NONMATCHING: literal relocation labels only.
 bool MarioHang::notice() {
     if (getNoticedStatus() == MarioStatus_Faint) {
-        getPlayer()->addTrans(getPlayer()->mFrontVec * -150.0f, "Module");
+        getPlayer()->addTrans(getPlayer()->mFrontVec * -150.0f);
         mActor->setBlendMtxTimer(16);
         stopAnimation("崖つかまり中", "基本");
     }
@@ -278,7 +278,7 @@ bool MarioHang::notice() {
     return false;
 }
 
-// NONMATCHING: register allocation and ignored addTrans tag setup.
+// NONMATCHING: literal relocation labels only.
 void MarioHang::tryClimb(bool jump) {
     if (_12) {
         return;
@@ -299,9 +299,9 @@ void MarioHang::tryClimb(bool jump) {
             return;
         }
         if (left) {
-            getPlayer()->addTrans(getPlayer()->mSideVec * -15.0f, "Module");
+            getPlayer()->addTrans(getPlayer()->mSideVec * -15.0f);
         } else if (right) {
-            getPlayer()->addTrans(getPlayer()->mSideVec * 15.0f, "Module");
+            getPlayer()->addTrans(getPlayer()->mSideVec * 15.0f);
         } else {
             break;
         }
@@ -373,9 +373,9 @@ bool MarioHang::fn_803ED870() {
     return MR::isSameMtx(_20->getBaseMtx()->toMtxPtr(), _20->getPrevBaseMtx()->toMtxPtr());
 }
 
-// NONMATCHING: vector operand scheduling and ignored addTrans tag setup.
+// NONMATCHING: literal relocation labels only.
 void MarioHang::fn_803ED8C0() {
-    getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f, "Module");
+    getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f);
     mActor->setBlendMtxTimer(16);
     stopAnimation("崖つかまり中", "基本");
 }

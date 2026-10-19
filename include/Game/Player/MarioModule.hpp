@@ -81,7 +81,6 @@ public:
     void addVelocityAfter(const TVec3f&);
     void clearVelocity();
     TVec3f& getVelocity() const;
-    void addTrans(const TVec3f&, const char*);
     f32 cutGravityElementFromJumpVec(bool);
     f32 cutVecElementFromJumpVec(const TVec3f&);
     TVec3f& getJumpVec() const;

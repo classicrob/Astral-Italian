@@ -293,10 +293,6 @@ TVec3f& MarioModule::getVelocity() const {
     return mActor->mMario->mVelocity;
 }
 
-void MarioModule::addTrans(const TVec3f& rShift, const char* pName) {
-    mActor->mMario->addTrans(rShift, pName);
-}
-
 f32 MarioModule::cutGravityElementFromJumpVec(bool useActorGravity) {
     if (useActorGravity) {
         return MR::vecKillElement(mActor->getMario()->mJumpVec, mActor->mAppliedGravityVec, &mActor->getMario()->mJumpVec);

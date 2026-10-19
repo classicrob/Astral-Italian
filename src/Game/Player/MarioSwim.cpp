@@ -864,7 +864,7 @@ bool MarioSwim::notice() {
     return getNoticedStatus() == MarioStatus_Paralyze;
 }
 
-// NONMATCHING: equivalent call-operand scheduling and ignored addTrans tag setup.
+// NONMATCHING: equivalent call-operand scheduling.
 bool MarioSwim::close() {
     if (mIsOnSurface) {
         mIsOnSurface = false;
@@ -930,7 +930,7 @@ bool MarioSwim::close() {
         TVec3f groundPos;
         mActor->getGroundPos(&groundPos);
 
-        getPlayer()->addTrans(groundPos - getTrans(), "Module");
+        getPlayer()->addTrans(groundPos - getTrans());
         Mario* player = getPlayer();
         player->_43A = 60;
     } else {

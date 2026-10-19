@@ -60,7 +60,7 @@ MarioRecovery::MarioRecovery(MarioActor* actor) : MarioState(actor, MarioStatus_
     _88 = 0;
 }
 
-// NONMATCHING: ignored addTrans tag setup and register scheduling.
+// NONMATCHING: literal relocation labels only.
 bool MarioRecovery::calcFirstVector() {
     _40 = getTrans();
     MarioActor* actor = mActor;
@@ -110,13 +110,13 @@ bool MarioRecovery::calcFirstVector() {
     _7C = 0.0f;
     mActor->_F44 = false;
     const TVec3f& position = mActor->mPosition;
-    getPlayer()->addTrans(position - getTrans(), "Module");
+    getPlayer()->addTrans(position - getTrans());
     update();
     _12 = 0;
     return true;
 }
 
-// NONMATCHING: ignored addTrans tag setup.
+// NONMATCHING: literal relocation labels only.
 void MarioRecovery::updateJump() {
     Mtx rotation;
     PSMTXRotAxisRad(rotation, &_64, _7C);
@@ -154,7 +154,7 @@ void MarioRecovery::updateJump() {
         velocity.setLength(30.0f);
     }
     velocity += getGravityVec() * vertical;
-    getPlayer()->addTrans(velocity, "Module");
+    getPlayer()->addTrans(velocity);
 }
 
 bool MarioRecovery::start() {
@@ -188,7 +188,7 @@ bool MarioRecovery::start() {
     return true;
 }
 
-// NONMATCHING: ignored addTrans tag setup and string pool offsets.
+// NONMATCHING: string pool offsets.
 bool MarioRecovery::update() {
     clearVelocity();
     switch (_1A) {
@@ -225,7 +225,7 @@ bool MarioRecovery::update() {
             _16--;
         }
         if (!_16 || (_34 - getTrans()).length() < 20.0f) {
-            getPlayer()->addTrans(_34 - getTrans(), "Module");
+            getPlayer()->addTrans(_34 - getTrans());
             return false;
         }
         updateJump();
@@ -270,11 +270,11 @@ bool MarioRecovery::update() {
             TVec3f horizontal;
             f32 distance = MR::vecKillElement(_34 - getTrans(), _58, &horizontal);
             if (MR::abs(distance) < 10.0f) {
-                getPlayer()->addTrans(_58 * distance, "Module");
+                getPlayer()->addTrans(_58 * distance);
                 _1A = 0;
                 calcFirstVector();
             } else {
-                getPlayer()->addTrans(_58 * MR::clamp(distance, -10.0f, 10.0f), "Module");
+                getPlayer()->addTrans(_58 * MR::clamp(distance, -10.0f, 10.0f));
             }
             playSound("引き戻し基本");
         }

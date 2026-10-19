@@ -118,7 +118,7 @@ void MarioWarp::updateJump() {
 }
 
 
-// NONMATCHING: vector operand scheduling and ignored addTrans tag setup.
+// NONMATCHING: vector operand scheduling.
 bool MarioWarp::start() {
     _52 = 0;
     _58 = 0;
@@ -170,7 +170,7 @@ bool MarioWarp::start() {
     }
 
     mActor->_F44 = 0;
-    getPlayer()->addTrans(mActor->mPosition - getTrans(), "Module");
+    getPlayer()->addTrans(mActor->mPosition - getTrans());
     update();
     if (_45 == 3 && getPlayerMode() != 1) {
         mActor->_A6E = 2;
@@ -188,7 +188,7 @@ bool MarioWarp::start() {
 }
 
 
-// NONMATCHING: ignored addTrans tag setup and string pool offsets.
+// NONMATCHING: string pool offsets.
 bool MarioWarp::update() {
     if (!_44) {
         getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
@@ -207,7 +207,7 @@ bool MarioWarp::update() {
 
         _54--;
         TVec3f displacement = _20 - getTrans();
-        getPlayer()->addTrans(displacement * (1.0f - static_cast< f32 >(_54) / _56), "Module");
+        getPlayer()->addTrans(displacement * (1.0f - static_cast< f32 >(_54) / _56));
         if (_54 == 0) {
             calcAxis();
             if (_45 == 1 && getPlayerMode() != 6) {
@@ -231,7 +231,7 @@ bool MarioWarp::update() {
         TVec3f direction = _14 - _20;
         MR::normalize(&direction);
         f32 distance = MR::vecKillElement(offset, direction, &offset);
-        getPlayer()->addTrans((_20 + direction * distance) - getTrans(), "Module");
+        getPlayer()->addTrans((_20 + direction * distance) - getTrans());
     }
 
     switch (_45) {

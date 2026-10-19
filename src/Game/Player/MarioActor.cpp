@@ -9220,7 +9220,7 @@ HitSensor* MarioActor::getLookTargetSensor() const {
 // ---- MarioBee.cpp ----
 
 
-// NONMATCHING: explicit null for setTrans argument ignored by the target callee.
+
 void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal) {
     if (mBeeWallWalk) {
         return;
@@ -9231,7 +9231,7 @@ void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal)
         TVec3f gravity(-normal);
         mAppliedGravityVec = gravity;
         mPosition = position;
-        mMario->setTrans(position, nullptr);
+        mMario->setTrans(position);
         mMario->stopJump();
         mMario->stopAnimation(nullptr);
         mMario->stopWalk();

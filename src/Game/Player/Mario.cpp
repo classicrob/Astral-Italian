@@ -1233,7 +1233,7 @@ void Mario::draw() const {
 }
 
 
-void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
+void Mario::addTrans(const TVec3f& rShift) {
     mPosHolder->fn_80406010(rShift);
     TVec3f _148shift(_148);
     _148shift -= rShift;
@@ -1252,7 +1252,7 @@ void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
 
 
 // NONMATCHING: saved-register allocation; verified holder write and arithmetic.
-void Mario::setTrans(const TVec3f& rShift, const char* pA2) {
+void Mario::setTrans(const TVec3f& rShift) {
     TVec3f reqShift(rShift);
     reqShift -= mPosHolder->mPos;
     mPosHolder->fn_80405F90(rShift);
@@ -1642,7 +1642,7 @@ void Mario::updateGroundInfo() {
                 mJumpVec.dot(*_45C->getNormal(0)) < 0.0f && _1FC.dot(*getGravityVec()) > 0.0f && mVerticalSpeed < 170.0f) {
                 mMovementStates.mLowWord |= 0x40000000U;
                 setGroundNorm(*_45C->getNormal(0));
-                setTrans(mShadowPos, nullptr);
+                setTrans(mShadowPos);
             }
         }
     }
@@ -2366,7 +2366,7 @@ void Mario::startBump(const TVec3f& rVec) {
         closeStatus(mBump);
     }
 
-    setTrans(rVec, "段差");
+    setTrans(rVec);
     changeStatus(mBump);
     mVelocity.zero();
     _3D0 = 0;
@@ -2811,7 +2811,7 @@ f32 Mario::calcDistToCeilHead() {
 void Mario::fixTransBetweenWall(const TVec3f& rFirst, const TVec3f& rSecond) {
     TVec3f center = (rFirst + rSecond) * 0.5f;
     MR::vecKillElement(center - mPosHolder->mPos, *getGravityVec(), &center);
-    setTrans(mPosHolder->mPos + center, nullptr);
+    setTrans(mPosHolder->mPos + center);
 }
 
 
@@ -3648,7 +3648,7 @@ void Mario::calcShadowPos() {
 }
 
 
-// NONMATCHING: cached actor-vector pointers and unused debug-tag argument setup.
+// NONMATCHING: cached actor-vector pointers.
 bool Mario::updateBinderInfo() {
     s32 count;
     bool firstCeiling = true;
@@ -3772,7 +3772,7 @@ bool Mario::updateBinderInfo() {
                                 mJumpVec += -getAirGravityVec() * 5.0f + getWallNorm() * 2.0f;
 
                                 if (!isCeiling()) {
-                                    addTrans(getAirGravityVec() * -30.0f, nullptr);
+                                    addTrans(getAirGravityVec() * -30.0f);
                                 }
 
                                 pushDirection.zero();
@@ -3866,7 +3866,7 @@ bool Mario::isThroughWall(const Triangle* pTriangle) const {
 }
 
 
-// NONMATCHING: boolean temporaries, register allocation and unused debug-tag argument setup.
+// NONMATCHING: boolean temporaries and register allocation.
 bool Mario::checkGround() {
     if (isStatusActive(MarioStatus_Recovery) || isStatusActive(MarioStatus_Recovery)) {
         return false;
@@ -4062,7 +4062,7 @@ bool Mario::checkGround() {
                 bool moved = false;
 
                 if (!((mMovementStates.mLowWord >> 23) & 1U)) {
-                    addTrans(mFrontVec * 6.0f, nullptr);
+                    addTrans(mFrontVec * 6.0f);
                     moved = true;
                 }
 
@@ -4074,24 +4074,24 @@ bool Mario::checkGround() {
                 } else if (!hit[1]) {
                     if ((((mMovementStates.mLowWord >> 5) & 1U) || ((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U)) && mSideVec.dot(getWallNorm()) < 0.0f) {
                         if (moved) {
-                            addTrans(-mSideVec * 3.0f - mFrontVec * 6.0f, nullptr);
+                            addTrans(-mSideVec * 3.0f - mFrontVec * 6.0f);
                         }
 
                         break;
                     } else {
-                        addTrans(mSideVec * 3.0f, nullptr);
+                        addTrans(mSideVec * 3.0f);
                         moved = true;
                     }
 
                 } else {
                     if ((((mMovementStates.mLowWord >> 5) & 1U) || ((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U)) && -mSideVec.dot(getWallNorm()) < 0.0f) {
                         if (moved) {
-                            addTrans(mSideVec * 3.0f - mFrontVec * 6.0f, nullptr);
+                            addTrans(mSideVec * 3.0f - mFrontVec * 6.0f);
                         }
 
                         break;
                     } else {
-                        addTrans(-mSideVec * 3.0f, nullptr);
+                        addTrans(-mSideVec * 3.0f);
                         moved = true;
                     }
                 }
@@ -4106,19 +4106,19 @@ bool Mario::checkGround() {
 
                 if (_3CE < 24 && mJumpVec.dot(mFrontVec) >= 0.0f && _960 != CollisionFloorCode_Slide) {
                     if (!((mMovementStates.mLowWord >> 23) & 1U) && !((mMovementStates.mHighWord >> 13) & 1U)) {
-                        addTrans(mFrontVec * 3.0f, nullptr);
+                        addTrans(mFrontVec * 3.0f);
                         mDrawStates.mWord |= 0x00200000U;
                     }
 
                 } else {
                     if (!((mMovementStates.mLowWord >> 6) & 1U)) {
                         mDrawStates.mWord |= 0x00000080U;
-                        addTrans(mFrontVec * -6.0f, nullptr);
+                        addTrans(mFrontVec * -6.0f);
                         mDrawStates.mWord |= 0x00200000U;
                     }
 
                     if (_3C6 > 8) {
-                        addTrans(mSideVec * 5.0f, nullptr);
+                        addTrans(mSideVec * 5.0f);
                     }
 
                     return true;
@@ -4126,11 +4126,11 @@ bool Mario::checkGround() {
 
             } else if (_960 == CollisionFloorCode_Slide) {
                 if (!hit[2]) {
-                    addTrans(-mSideVec * 5.0f, nullptr);
+                    addTrans(-mSideVec * 5.0f);
                 } else if (!hit[1]) {
-                    addTrans(mSideVec * 5.0f, nullptr);
+                    addTrans(mSideVec * 5.0f);
                 } else {
-                    addTrans(mFrontVec * 5.0f, nullptr);
+                    addTrans(mFrontVec * 5.0f);
                 }
 
                 mDrawStates.mWord |= 0x00200000U;
@@ -4180,7 +4180,7 @@ bool Mario::checkGround() {
         mMovementStates.mLowWord &= 0xFFFBFFFFU;
         TVec3f direction = mGroundPos - mPosHolder->mPos;
         f32 distance = MR::vecKillElement(direction, *getGravityVec(), &direction);
-        addTrans(*getGravityVec() * distance, nullptr);
+        addTrans(*getGravityVec() * distance);
         return true;
     }
 
@@ -4202,14 +4202,14 @@ bool Mario::checkGround() {
             if (dot > 0.99f) {
                 if (!((mDrawStates.mWord >> 22) & 1U) && !_4D8->isValid()) {
                     if (!isStatusActive(MarioStatus_Talk)) {
-                        addTrans(*getGravityVec() * distance, nullptr);
+                        addTrans(*getGravityVec() * distance);
                     }
 
                     return true;
                 }
 
             } else if (dot > 0.0f && !((mDrawStates.mWord >> 22) & 1U) && ((mMovementStates.mHighWord >> 28) & 1U)) {
-                addTrans(-_368 * distance * dot, nullptr);
+                addTrans(-_368 * distance * dot);
                 return true;
             }
         }
@@ -4237,11 +4237,11 @@ bool Mario::checkGround() {
 
         if (mActor->mBinderDirection5DC.dot(mFrontVec) < 0.0f) {
             if (moveBack) {
-                addTrans(-mFrontVec * 6.0f, nullptr);
+                addTrans(-mFrontVec * 6.0f);
             }
 
         } else if (moveFront) {
-            addTrans(mFrontVec * 6.0f, nullptr);
+            addTrans(mFrontVec * 6.0f);
         }
     }
 
@@ -4277,7 +4277,7 @@ bool Mario::checkGround() {
                 }
 
                 if (distance < maxDistance) {
-                    setTrans(mShadowPos, nullptr);
+                    setTrans(mShadowPos);
                 }
             }
         }
@@ -5135,7 +5135,7 @@ bool Mario::requestCrush() {
 }
 
 
-// NONMATCHING: explicit setup of an unused setTrans debug tag.
+
 bool Mario::tryCrush() {
     if (((mMovementStates.mLowWord >> 0) & 1U)) {
         return false;
@@ -5146,7 +5146,7 @@ bool Mario::tryCrush() {
     }
 
     if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) || !((mMovementStates.mLowWord >> 30) & 1U)) {
-        setTrans(mShadowPos, nullptr);
+        setTrans(mShadowPos);
     }
 
     if (getCurrentStatus() == MarioStatus_Crush) {
@@ -5297,7 +5297,7 @@ void Mario::checkEnforceMoveInner() {
         mDrawStates.mWord |= 0x00100000U;
 
         if (!mActor->_F44) {
-            addTrans(mVelocity, nullptr);
+            addTrans(mVelocity);
         } else {
             bool v11 = false;
             TVec3f v14(mPosHolder->mPos);
@@ -5308,7 +5308,7 @@ void Mario::checkEnforceMoveInner() {
                 }
             }
 
-            addTrans(mVelocity, nullptr);
+            addTrans(mVelocity);
 
             if (v11) {
                 if (calcDistToCeil(false) < 200.0f) {
@@ -6439,7 +6439,7 @@ void Mario::checkHang() {
             mVelocity.zero();
             stopWalk();
             stopJump();
-            setTrans(_4A4, nullptr);
+            setTrans(_4A4);
             setFrontVecKeepUp(-getWallNorm());
             mHang->recordWallPolygon(mFrontWallTriangle);
             mHang->_1E = started;
@@ -6505,7 +6505,7 @@ void Mario::checkHang() {
             stopJump();
             TVec3f hangDirection;
             bool found = fixHangDir(position, &hangDirection);
-            setTrans(position, nullptr);
+            setTrans(position);
             setFrontVecKeepUp(normal);
             mMovementStates.mLowWord |= 0x00000004U;
             if (!found) {
@@ -6564,7 +6564,7 @@ void Mario::checkHang() {
             stopJump();
             TVec3f hangDirection;
             bool found = fixHangDir(position, &hangDirection);
-            setTrans(position, nullptr);
+            setTrans(position);
             setFrontVecKeepUp(normal);
             mMovementStates.mLowWord |= 0x00000004U;
             if (!found) {
@@ -6584,7 +6584,7 @@ void Mario::checkHang() {
                 return;
             }
 
-            addTrans(mFrontVec * 1.0f - getAirGravityVec() * 1.0f, nullptr);
+            addTrans(mFrontVec * 1.0f - getAirGravityVec() * 1.0f);
         }
     }
 }
@@ -7395,7 +7395,7 @@ bool Mario::taskOnTornadoCentering(u32 a1) {
             ratio = 0.1f;
         }
 
-        addTrans(sensorOffset * ratio, nullptr);
+        addTrans(sensorOffset * ratio);
 
         _A34--;
 
@@ -11101,7 +11101,7 @@ bool Mario::checkGroundOnSlope() {
         mMovementStates.mLowWord &= 0xFFFBFFFFU;
         TVec3f offset(mGroundPos - mPosHolder->mPos);
         f32 vertical = MR::vecKillElement(offset, *getGravityVec(), &offset);
-        addTrans(*getGravityVec() * vertical, "force Trans");
+        addTrans(*getGravityVec() * vertical);
         return true;
     }
     if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && isRising()) {
@@ -13174,7 +13174,7 @@ void Mario::updateOnimasu() {
                 localPosition = _600;
                 TVec3f position;
                 PSMTXMultVec(sensor->mHost->mCollisionParts->mBaseMatrix, &localPosition, &position);
-                setTrans(position, nullptr);
+                setTrans(position);
                 mVelocity.zero();
             }
         } else if (previousPosition.y > 400.0f && localPosition.y <= 400.0f) {
@@ -13208,7 +13208,7 @@ void Mario::updateOnimasu() {
                 position = mPosHolder->mPos + displacement;
             }
 
-            setTrans(position, nullptr);
+            setTrans(position);
         }
 
         bool correctX = false;
@@ -13331,7 +13331,7 @@ void Mario::updateOnimasu() {
                 if (getWallNorm().dot(displacement) < 0.0f) {
                     addVelocity(-displacement);
                 } else {
-                    setTrans(position, nullptr);
+                    setTrans(position);
                 }
             }
         }
@@ -13367,7 +13367,7 @@ void Mario::updateOnimasu() {
         if (corrected) {
             TVec3f position;
             PSMTXMultVec(sensor->mHost->mCollisionParts->mBaseMatrix, &_600, &position);
-            setTrans(position, nullptr);
+            setTrans(position);
             localPosition = _600;
         }
     }
@@ -13779,7 +13779,7 @@ void Mario::startStep(const TVec3f& rVec) {
         }
     }
 
-    setTrans(rVec, "階段");
+    setTrans(rVec);
     changeStatus(mStep);
     mVelocity.zero();
     _3D0 = 0;
@@ -13964,7 +13964,7 @@ bool Mario::checkStartSwim() {
 
     if (mSwim->checkWaterCube(false)) {
         if (getPlayerMode() == 3) {
-            addTrans(-*getGravityVec() * 100.0f, nullptr);
+            addTrans(-*getGravityVec() * 100.0f);
             if (((getPlayer()->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
                 stopJump();
             }
@@ -15645,7 +15645,7 @@ bool Mario::isEnableStickWall() {
 }
 
 
-// NONMATCHING: stack allocation and unused debug-tag argument setup.
+// NONMATCHING: stack allocation.
 bool Mario::fixWallingDist() {
     if (((mMovementStates.mLowWord >> 6) & 1U) & ((mMovementStates.mLowWord >> 23) & 1U)) {
         return true;
@@ -15683,7 +15683,7 @@ bool Mario::fixWallingDist() {
                     correction.z = relative.z;
                 }
 
-                addTrans(correction, nullptr);
+                addTrans(correction);
             }
         }
     }

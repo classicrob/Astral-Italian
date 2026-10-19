@@ -354,10 +354,10 @@ bool MarioAbyssDamage::start() {
     return false;
 }
 
-// NONMATCHING: the target omits setup of the ignored addTrans debug tag.
+// NONMATCHING: literal relocation labels only.
 bool MarioAbyssDamage::update() {
     Mario* player = getPlayer();
-    player->addTrans(_18, "Module");
+    player->addTrans(_18);
     switch (_14) {
     case 0:
         _14++;

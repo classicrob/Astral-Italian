@@ -52,7 +52,7 @@ bool MarioStick::postureCtrl(MtxPtr pMtx) {
     return true;
 }
 
-// NONMATCHING: center-reference scheduling and explicit zero for the unused setTrans debug argument.
+// NONMATCHING: center-reference scheduling.
 bool MarioStick::setStickSensor(const HitSensor* pSensor) {
     if (getPlayer()->_3BC < 0x78) {
         return false;
@@ -78,7 +78,7 @@ bool MarioStick::setStickSensor(const HitSensor* pSensor) {
 
         v11.setLength(MR::getSensorRadius(const_cast<HitSensor*>(pSensor)));
         _14 = *MR::getSensorPos(pSensor) + v11 * 0.9f;
-        getPlayer()->setTrans(_14, nullptr);
+        getPlayer()->setTrans(_14);
         clearVelocity();
         MR::normalize(&v11);
         _20 = v11;
@@ -108,7 +108,7 @@ bool MarioStick::start() {
 }
 
 bool MarioStick::update() {
-    getPlayer()->setTrans(_14, nullptr);
+    getPlayer()->setTrans(_14);
 
     if (checkTrgA()) {
         if (!isAnimationRun("ハチ壁くっつき")) {

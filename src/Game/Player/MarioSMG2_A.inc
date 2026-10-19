@@ -7,7 +7,7 @@ inline T& FLD(P* p, u32 off) { return *reinterpret_cast<T*>(reinterpret_cast<u8*
 void Mario::fn_803880D0() {
     if ((this->mFlags20.mWord >> 15) & 1) {
         this->mPosHolder->fn_80406040();
-        this->addTrans(this->mVelocity, nullptr);
+        this->addTrans(this->mVelocity);
         if (this->calcDistToCeil(false) < 200.0f) {
             this->mVelocity.zero();
             this->stopWalk();
@@ -1474,7 +1474,7 @@ void Mario::fn_8038E1A0(const HitInfo* hit, s32 inside) {
                 if (!(offset.dot(this->mHeadVec) < 0.0f)) {
                     TVec3f push(*normal);
                     push *= depth - 1.0f;
-                    this->addTrans(push, nullptr);
+                    this->addTrans(push);
                     u32 flags = this->mMovementStates.mLowWord;
                     if (!((flags >> 30) & 1) && (flags >> 31) != 0 && !this->isRising() && normal->dot(*this->getGravityVec()) < -0.99f) {
                         this->addVelocity(this->mFrontVec, 5.0f);

@@ -68,9 +68,10 @@ void PlayResultInStageHolder::reset() {
     while (!iter.isEnd()) {
         GalaxyStatusAccessor accessor = iter.makeAccessor();
         const char* pName = accessor.getName();
+        s32 galaxyStarTotalNum = MR::getGalaxyStarTotalNum(pName);
         PlayResultStageEntry entry;
         entry.mStageName = pName;
-        entry.mFlag = MR::getGalaxyStarTotalNum(pName) != 0;
+        entry.mGalaxyStarTotalNum = galaxyStarTotalNum;
         mNewStageList.add(entry);
         iter.goNext();
     }
@@ -175,14 +176,14 @@ void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
     PlayResultInStageHolder* pHolder = this;
     for (s32 i = 0; i < pHolder->mNewStageList.mCount; i++) {
         PlayResultStageEntry* pEntry = &pHolder->mNewStageList.mBase[i];
-        if (pEntry->mFlag) {
+        if (pEntry->mGalaxyStarTotalNum) {
             continue;
         }
         const char* pName = pEntry->mStageName;
         if (MR::getGalaxyStarTotalNum(pName) != 0) {
             PlayResultStageEntry added;
             added.mStageName = pName;
-            added.mFlag = true;
+            added.mGalaxyStarTotalNum = 1;
             pHolder->mResultStageList.add(added);
         }
     }
@@ -255,7 +256,7 @@ void PlayResultStageList::add(const PlayResultStageEntry& rEntry) {
     PlayResultStageEntry* pDst = &mBase[mCount];
     mCount++;
     pDst->mStageName = rEntry.mStageName;
-    pDst->mFlag = rEntry.mFlag;
+    pDst->mGalaxyStarTotalNum = rEntry.mGalaxyStarTotalNum;
 }
 
 PlayResultStageList::~PlayResultStageList() {
@@ -266,7 +267,7 @@ PlayResultStageList::~PlayResultStageList() {
 
 PlayResultStageEntry::PlayResultStageEntry() {
     mStageName = 0;
-    mFlag = false;
+    mGalaxyStarTotalNum = 0;
 }
 
 PlayResultStageList::PlayResultStageList() {

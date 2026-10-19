@@ -169,7 +169,6 @@ bool PointPartsHolder::getWorldWarp(s32 pointIndex, WorldMapResultStateWorldWarp
     return true;
 }
 
-// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool PointPartsHolder::getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {
@@ -178,8 +177,10 @@ bool PointPartsHolder::getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     if (!isStarRoadWarpPoint(pPart->mType)) {
         return false;
     }
-    pOut->mParam0 = pPart->mParam0;
-    pOut->mParam1 = pPart->mParam1;
+    const s32 param1 = pPart->mParam1;
+    const s32 param0 = pPart->mParam0;
+    pOut->mParam0 = param0;
+    pOut->mParam1 = param1;
     return true;
 }
 

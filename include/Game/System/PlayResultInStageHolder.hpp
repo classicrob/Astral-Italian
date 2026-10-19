@@ -4,12 +4,12 @@
 
 class JMapIdInfo;
 
-// 8-byte entry used by both lists (value + flag).
+// 8-byte entry used by both lists (stage name + star count or newly-opened flag).
 struct PlayResultStageEntry {
     PlayResultStageEntry();  // fn_804C8D40
 
     /* 0x0 */ const char* mStageName;
-    /* 0x4 */ bool mFlag;
+    /* 0x4 */ u8 mGalaxyStarTotalNum;
 };
 
 // 3-word list header (base, capacity, count) embedded in the holder.

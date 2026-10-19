@@ -31,7 +31,7 @@ bool MarioFlow::start() {
     getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
 
     _18 = getFrontVec() * mActor->mConst->getTable()->mJumpDistFlow;
-    _18 += -mActor->_240 * mActor->mConst->getTable()->mJumpHeightFlow;
+    _18 += -mActor->mAppliedGravityVec * mActor->mConst->getTable()->mJumpHeightFlow;
     getPlayer()->mJumpVec = _18;
 
     addVelocity(_18);
@@ -48,7 +48,7 @@ bool MarioFlow::update() {
     case 0:
         addVelocity(_18);
 
-        _18 += mActor->_240 * mActor->getConst().getTable()->mGravityFlow;
+        _18 += mActor->mAppliedGravityVec * mActor->getConst().getTable()->mGravityFlow;
 
         if (_12 == 20) {
             changeAnimation("中ダメージ空中");
@@ -68,7 +68,7 @@ bool MarioFlow::update() {
             playEffect("共通ダメージ着地");
             playSound("吹っ飛び倒れ");
 
-            MR::vecKillElement(_18, mActor->_240, &_18);
+            MR::vecKillElement(_18, mActor->mAppliedGravityVec, &_18);
 
             _12 = 0;
             _14++;

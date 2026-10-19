@@ -1212,8 +1212,8 @@ void Mario::draw() const {
     if (((mDrawStates.mWord >> 30) & 1U)) {
         TDDraw::cameraInit3D();
         TDDraw::setup(0, 1, 0);
-        TDDraw::drawCylinder(mPosHolder->mPos, mShadowPos - mActor->_2A0, 32.0f, 0xffff0010, 0xff000004, 8);
-        TVec3f diff2A0_31C(mActor->_2A0 - mShadowPos);
+        TDDraw::drawCylinder(mPosHolder->mPos, mShadowPos - mActor->_240, 32.0f, 0xffff0010, 0xff000004, 8);
+        TVec3f diff2A0_31C(mActor->_240 - mShadowPos);
         f32 diffMag = diff2A0_31C.length();
         MR::normalize(&diff2A0_31C);
         TVec3f _31CPlusStuff(mShadowPos);
@@ -5493,7 +5493,7 @@ u32 Mario::moveRelativePosition(u32) {
     _184 = movePos - mPosHolder->mPos;
 
     if (isSwimming()) {
-        TVec3f dist(mActor->_2A0);
+        TVec3f dist(mActor->_240);
         dist -= movePos;
 
         TVec3f normal(*rTri->getNormal(0));
@@ -6279,8 +6279,15 @@ bool Mario::doFrontStep() {
 
     Triangle triangle = Triangle();
     MarioActor* pMario = mActor;
-    TVec3f* vec = &pMario->_2A0;
-    if (!MR::getFirstPolyOnLineToMap(nullptr, &triangle, *vec, mFrontVec * 200.0f)) {
+    TVec3f* vec = &pMario->_240;
+    TVec3f ray(mFrontVec * 200.0f);
+    bool hit;
+    if (fn_803B2950()) {
+        hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(nullptr, &triangle, *vec, ray);
+    } else {
+        hit = MR::getFirstPolyOnLineToMap(nullptr, &triangle, *vec, ray);
+    }
+    if (!hit) {
         return false;
     }
 
@@ -6453,12 +6460,12 @@ void Mario::checkHang() {
         }
 
         TVec3f direction(-mFrontVec);
-        u32 edge = getLastGroundEdgeIndex(mActor->_2A0, direction);
-        direction = _4F4 - mActor->_2A0;
+        u32 edge = getLastGroundEdgeIndex(mActor->_240, direction);
+        direction = _4F4 - mActor->_240;
         MR::normalizeOrZero(&direction);
-        u32 positionEdge = getLastGroundEdgeIndex(mActor->_2A0, direction);
+        u32 positionEdge = getLastGroundEdgeIndex(mActor->_240, direction);
         direction = -*mBackWallTriangle->getNormal(0);
-        u32 normalEdge = getLastGroundEdgeIndex(mActor->_2A0, direction);
+        u32 normalEdge = getLastGroundEdgeIndex(mActor->_240, direction);
         TVec3f normal;
         if (edge == positionEdge && edge == normalEdge) {
             normal = *getLastGroundEdgeNrm(edge);
@@ -6523,9 +6530,9 @@ void Mario::checkHang() {
             return;
         }
 
-        TVec3f direction(_500 - mActor->_2A0);
+        TVec3f direction(_500 - mActor->_240);
         MR::normalizeOrZero(&direction);
-        u32 edge = getLastGroundEdgeIndex(mActor->_2A0, direction);
+        u32 edge = getLastGroundEdgeIndex(mActor->_240, direction);
         TVec3f sideDirection(mSideVec);
         if (sideDirection.dot(direction) < 0.0f) {
             direction = -sideDirection;
@@ -6533,9 +6540,9 @@ void Mario::checkHang() {
             direction = sideDirection;
         }
 
-        u32 sideEdge = getLastGroundEdgeIndex(mActor->_2A0, direction);
+        u32 sideEdge = getLastGroundEdgeIndex(mActor->_240, direction);
         direction = -*mSideWallTriangle->getNormal(0);
-        u32 normalEdge = getLastGroundEdgeIndex(mActor->_2A0, direction);
+        u32 normalEdge = getLastGroundEdgeIndex(mActor->_240, direction);
         TVec3f normal;
         if (edge == sideEdge && edge == normalEdge) {
             normal = *getLastGroundEdgeNrm(edge);
@@ -7818,7 +7825,7 @@ void Mario::tryDrop() {
         if (_16C.length() > 20.0f) {
             mJumpVec += -mActor->getAirGravityVec() * 10.0f;
         } else {
-            f32 gravScale = mActor->_288.length();
+            f32 gravScale = mActor->mBinderDirection5DC.length();
             if (gravScale > 8.0f) {
                 gravScale = 8.0f;
             }
@@ -13240,7 +13247,7 @@ void Mario::updateOnimasu() {
                 bool insideY = MR::isInRange(localPosition.y, -320.0f, 320.0f);
                 bool insideZ = MR::isInRange(localPosition.z, -320.0f, 320.0f);
                 if (insideY && insideZ) {
-                    mActor->mRushFront6E8 = axisX;
+                    mActor->mPressNormal6D8 = axisX;
                     mActor->setPress(0, 0);
                 } else {
                     if (insideZ) {
@@ -13262,7 +13269,7 @@ void Mario::updateOnimasu() {
                 bool insideX = MR::isInRange(localPosition.x, -320.0f, 320.0f);
                 bool insideZ = MR::isInRange(localPosition.z, -320.0f, 320.0f);
                 if (insideX && insideZ) {
-                    mActor->mRushFront6E8 = axisY;
+                    mActor->mPressNormal6D8 = axisY;
                     if (gravityY < 0.0f) {
                         mActor->setPress(0, 0);
                     }
@@ -13286,7 +13293,7 @@ void Mario::updateOnimasu() {
                 bool insideX = MR::isInRange(localPosition.x, -320.0f, 320.0f);
                 bool insideY = MR::isInRange(localPosition.y, -320.0f, 320.0f);
                 if (insideX && insideY) {
-                    mActor->mRushFront6E8 = axisZ;
+                    mActor->mPressNormal6D8 = axisZ;
                     mActor->setPress(0, 0);
                 } else {
                     if (insideY) {

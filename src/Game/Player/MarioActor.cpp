@@ -1339,18 +1339,18 @@ void MarioActor::scaleMtx(MtxPtr pRawMtx) {
     pMtx->getXDir(i);
     pMtx->getYDir(j);
     pMtx->getZDir(k);
-    f32 elementX = MR::vecKillElement(i, mRushFront6E8, &i);
-    f32 elementY = MR::vecKillElement(j, mRushFront6E8, &j);
-    f32 elementZ = MR::vecKillElement(k, mRushFront6E8, &k);
+    f32 elementX = MR::vecKillElement(i, mPressNormal6D8, &i);
+    f32 elementY = MR::vecKillElement(j, mPressNormal6D8, &j);
+    f32 elementZ = MR::vecKillElement(k, mPressNormal6D8, &k);
     elementZ *= _3B0;
     elementX *= _3B0;
     elementY *= _3B0;
     i.scale(scalar);
     j.scale(scalar);
     k.scale(scalar);
-    i += mRushFront6E8 * elementX;
-    j += mRushFront6E8 * elementY;
-    k += mRushFront6E8 * elementZ;
+    i += mPressNormal6D8 * elementX;
+    j += mPressNormal6D8 * elementY;
+    k += mPressNormal6D8 * elementZ;
     pRawMtx[0][0] = i.x;
     pRawMtx[1][0] = i.y;
     pRawMtx[2][0] = i.z;
@@ -5254,7 +5254,7 @@ bool MarioActor::tryTornadoAttack(HitSensor* pSensor) {
 bool MarioActor::isUnderTarget(HitSensor* pSensor) {
     TVec3f down;
     if (mBeeWallWalk != 0) {
-        down = _240;
+        down = mAppliedGravityVec;
     } else {
         MR::calcGravityVectorOrZero(this, pSensor->mPosition, &down, mGravityInfo, 0);
     }
@@ -5984,7 +5984,7 @@ void MarioActor::updateTornado() {
         _990 = 0;
     }
 
-    mTornadoMario->setTrHeight(mPosition, mMario->mFrontVec, mMario->_54C, _240);
+    mTornadoMario->setTrHeight(mPosition, mMario->mFrontVec, mMario->_54C, mAppliedGravityVec);
 }
 void MarioActor::updateTakingPosition() {
     HitSensor* sensor = _424;
@@ -7413,7 +7413,7 @@ void MarioActor::recordScoutingObject(HitSensor* pSensor) {
         return;
     }
 
-    if (MR::diffAngleAbsHorizontal(pSensor->mPosition - (*MR::getSensorPos(this, "ex-eye")), mMario->mFrontVec, _240) >= 1.5707964f) {
+    if (MR::diffAngleAbsHorizontal(pSensor->mPosition - (*MR::getSensorPos(this, "ex-eye")), mMario->mFrontVec, mAppliedGravityVec) >= 1.5707964f) {
         return;
     }
 

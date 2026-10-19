@@ -3392,6 +3392,12 @@ void Mario::saveLastSafetyTrans() {
     }
 
     switch (_960) {
+    case CollisionFloorCode_Ice:
+    case CollisionFloorCode_GlassIce:
+        if (!MR::isInAreaObj("RecoveryFloorControlArea", getTrans())) {
+            return;
+        }
+        break;
     case CollisionFloorCode_Normal:
     case CollisionFloorCode_NoSlip:
     case CollisionFloorCode_Sand:
@@ -3401,6 +3407,7 @@ void Mario::saveLastSafetyTrans() {
     case CollisionFloorCode_WaterBottomL:
     case CollisionFloorCode_Wet:
     case CollisionFloorCode_NoStampSand:
+    case 0x25:  // "Lawn" (SMG2 floor code, CollisionCode.cpp table; no CollisionFloorCode enumerator yet)
         break;
     default:
         return;

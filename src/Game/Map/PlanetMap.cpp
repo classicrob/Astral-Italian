@@ -203,8 +203,6 @@ bool PlanetMap::tryDeleteMyEffect() {
     return PlanetMapFunction::tryForceDeleteEffects(this, mModelName, mEffectNum);
 }
 
-PlanetMap::~PlanetMap() {
-}
 
 FurPlanetMap::~FurPlanetMap() {
 }
@@ -216,9 +214,6 @@ PlanetMapAnimLow::~PlanetMapAnimLow() {
 RailPlanetMap::RailPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
 }
 
-f32 PlanetMap::getFarClipDistance() const {
-    return -1.0f;
-}
 
 PlanetMapFarClippable::PlanetMapFarClippable(const char* pName) : PlanetMap(pName, nullptr), mFarClipDistance(50.0f) {
 }

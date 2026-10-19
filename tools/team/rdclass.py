@@ -13,7 +13,7 @@ import sys, os, re, struct, subprocess, collections
 ROOT = os.getcwd()
 sys.path.insert(0, f"{ROOT}/tools/team")
 import sg  # noqa
-from rdchecked import checked_equal, checked_equal_mem, machine_lines
+from rdchecked import checked_equal, checked_equal_mem, checked_literal_bases, machine_lines
 
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 if '--rows' in sys.argv: args.remove(sys.argv[sys.argv.index('--rows') + 1])
@@ -358,6 +358,12 @@ for unit, fns in sorted(rows.items()):
         la, ra = align_object_literals(la, ra)
         if unresolved_literals:
             real.append((unit, f, 'unresolved literal bytes: ' + str(sorted(unresolved_literals))))
+            continue
+        lc = machine_lines(L['instructions'], la)
+        rc = machine_lines(R['instructions'], ra)
+        safe, reason = checked_literal_bases(lc, rc)
+        if not safe:
+            real.append((unit, f, 'unverified string-base pool reach: ' + reason))
             continue
         ok, why = strict_equal(la, ra)
         if ok:

@@ -35,3 +35,11 @@ void KoopaBattlePlanet::makeActorDead() {
 }
 
 KoopaBattlePlanet::~KoopaBattlePlanet() {}
+
+// Shared PlanetMap methods are emitted with the first derived planet.
+PlanetMap::~PlanetMap() {
+}
+
+f32 PlanetMap::getFarClipDistance() const {
+    return -1.0f;
+}

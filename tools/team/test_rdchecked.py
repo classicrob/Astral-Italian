@@ -513,3 +513,75 @@ class LiteralAndCommutativitySafetyTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class StringPoolReachSafetyTests(unittest.TestCase):
+    def guard(self, text, safe=False):
+        from rdchecked import checked_literal_bases
+        lines = asm(text)
+        ok, reason = checked_literal_bases(lines, lines)
+        self.assertEqual(ok, safe, reason)
+        if not safe:
+            for checker in (checked_equal, checked_equal_mem):
+                self.assertFalse(checker(lines, lines)[0])
+
+    def test_same_first_string_different_later_string(self):
+        target = b'Same\0LaterFoo\0'
+        ours = b'Same\0LaterBar\0'
+        self.assertEqual(target.split(b'\0')[0], ours.split(b'\0')[0])
+        self.assertNotEqual(target[5:], ours[5:])
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; addi r4, r31, 5; bl strcmp; blr')
+
+    def test_same_first_string_different_later_table(self):
+        target = b'Same\0\0\0\0' + bytes.fromhex('11223344')
+        ours = b'Same\0\0\0\0' + bytes.fromhex('55667788')
+        self.assertEqual(target[:8], ours[:8])
+        self.assertNotEqual(target[8:], ours[8:])
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; lwz r3, 8(r31); blr')
+
+    def test_float_memory_uses_base_not_destination(self):
+        for op in ('lfs', 'lfd', 'stfs', 'stfd'):
+            self.guard(f'lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; {op} f0, 8(r31); blr')
+
+    def test_copied_base_and_indexed_load(self):
+        for middle in ('mr r30, r31; lwz r3, 8(r30)',
+                       'or r30, r31, r31; lwzx r3, r30, r4',
+                       'add r30, r31, r4'):
+            self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; '+middle+'; blr')
+
+    def test_spilled_pointer_fails_closed(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; stw r31, 8(r1); lwz r30, 8(r1); addi r4, r30, 8; blr')
+
+    def test_predecessor_union(self):
+        self.guard('cmpwi r3, 0; beq 0x10; lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; lwz r3, 8(r31); blr')
+
+    def test_backward_edge_reconciles_taint(self):
+        self.guard('b 0xc; lwz r3, 8(r31); blr; lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; b 0x4')
+
+    def test_real_overwrite_kills_base(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; li r31, 0; lwz r3, 8(r31); blr', True)
+
+    def test_plain_string_argument_is_allowed(self):
+        self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[53616d65]@l; bl strcmp; blr', True)
+
+    def test_mismatched_high_low_symbols(self):
+        self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[4f74686572]@l; blr')
+
+    def test_call_return_may_alias_argument(self):
+        self.guard('lis r3, STR[53616d65]@ha; addi r3, r3, STR[53616d65]@l; bl strchr; addi r4, r3, 8; blr')
+
+    def test_preserved_base_crosses_call(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; bl other; lwz r3, 8(r31); blr')
+
+    def test_unknown_tainted_use_fails_closed(self):
+        self.guard('lis r31, STR[53616d65]@ha; unknown r3, r31; blr')
+
+    def test_guard_does_not_restrict_functions_without_strings(self):
+        self.guard('unknown r3, r4; blr', True)
+
+
+    def test_known_restore_kills_restored_base(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; bl _restgpr_31; lwz r3, 8(r31); blr', True)
+
+    def test_helper_pointer_spill_fails_closed(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; bl _savegpr_31; bl _restgpr_31; lwz r3, 8(r31); blr')

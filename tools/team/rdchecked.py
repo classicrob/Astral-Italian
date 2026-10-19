@@ -224,9 +224,140 @@ def reject_partial_paired_reads(graph):
         outgoing[bi] = partial
 
 
+def reject_derived_string_bases(lines):
+    """A compared first C string cannot certify later pool objects reached from it."""
+    anchor = re.compile(r'STR\[[0-9a-f]+\]')
+    if not any(anchor.search(line) for line in lines):
+        return
+    program = []
+    for line in lines:
+        fields = line.strip().split(None, 1)
+        if not fields:
+            raise Unproved('undecoded instruction in string-base analysis')
+        op = fields[0]
+        args = [v.strip() for v in fields[1].split(',')] if len(fields) == 2 else []
+        program.append((op, args, line))
+    states = {0: {}}
+    pending = collections.deque([0])
+    pure_gpr = {op for op in PURE if not op.startswith('f')} | {
+        'subi', 'subis', 'addic', 'subic', 'subfe', 'subfc', 'addze', 'adde',
+        'mulhw', 'mulhwu', 'divw', 'divwu', 'sraw', 'srawi', 'rlwimi',
+        'rlwnm', 'extrwi', 'insrwi', 'rotlwi', 'not', 'la'}
+    branches = COND | {'bdnz', 'bdz'}
+    while pending:
+        pc = pending.popleft()
+        state = dict(states[pc])
+        op, args, line = program[pc]
+        plain = op.rstrip('.')
+        registers = re.findall(r'\br(?:[0-9]|[12][0-9]|3[01])\b', line)
+        used = set(registers).intersection(state)
+        successors = [pc + 1]
+        literal = anchor.search(line)
+        if op == 'blr' or op == 'bctr':
+            successors = []
+        elif op == 'b' or op.rstrip('+-') in branches:
+            try:
+                target = int(args[-1], 0)
+            except (ValueError, IndexError):
+                if op != 'b':
+                    raise Unproved('unknown string-base CFG target')
+                successors = []
+            else:
+                if target % 4 or not 0 <= target // 4 < len(program):
+                    raise Unproved('string-base branch outside function')
+                successors = [target // 4] + ([] if op == 'b' else successors)
+        elif op in ('bl', 'bctrl', 'blrl'):
+            if op == 'bl' and args and re.fullmatch(r'-?(0x[0-9a-f]+|[0-9]+)', args[0]):
+                raise Unproved('numeric call in string-base analysis')
+            helper = re.fullmatch(r'_(save|rest)(gpr|fpr)_(1[4-9]|2[0-9]|3[01])', args[0]) if op == 'bl' and args else None
+            if helper:
+                direction, kind, first = helper.groups()
+                affected = {f'r{i}' for i in range(int(first), 32)} if kind == 'gpr' else set()
+                if direction == 'save' and affected.intersection(state):
+                    raise Unproved('string base spills through runtime save helper')
+                if direction == 'rest':
+                    for r in affected:
+                        state.pop(r, None)
+            elif op == 'bl' and args and re.match(r'^_(save|rest)', args[0]):
+                if state:
+                    raise Unproved('string base crosses unknown runtime helper')
+            else:
+                returned = frozenset().union(*(state.get(r, frozenset()) for r in ARGS))
+                for r in CLOBBER:
+                    state.pop(r, None)
+                if returned:
+                    # Unknown callees may return an argument pointer (e.g. strchr).
+                    state['r3'] = state['r4'] = returned
+        elif op.startswith('b'):
+            if not re.fullmatch(r'b(?:eq|ne|lt|le|gt|ge|so|ns)lr[+-]?', op):
+                raise Unproved('unknown control flow in string-base analysis')
+        elif literal:
+            token = literal[0]
+            if op == 'lis' and len(args) == 2 and args[1] == token + '@ha':
+                state[args[0]] = frozenset({(token, 'ha')})
+            elif op in ('li', 'la') and len(args) == 2 and args[1] == token + '@sda21':
+                state[args[0]] = frozenset({(token, 'full')})
+            elif op == 'addi' and len(args) == 3 and args[2] == token + '@l':
+                if state.get(args[1]) != frozenset({(token, 'ha')}):
+                    raise Unproved('unmatched string-base ha/lo construction')
+                state[args[0]] = frozenset({(token, 'full')})
+            else:
+                raise Unproved('unsupported string-base construction/access')
+        elif op == 'mr' and len(args) == 2:
+            source = state.get(args[1])
+            state.pop(args[0], None)
+            if source:
+                state[args[0]] = source
+        elif op == 'or' and len(args) == 3 and args[1] == args[2]:
+            source = state.get(args[1])
+            state.pop(args[0], None)
+            if source:
+                state[args[0]] = source
+        elif op.startswith(('cmp', 'cmpl', 'fcmp', 'cr')) or op == 'nop':
+            pass
+        elif op.startswith(('st', 'l')) and (op.startswith('st') or op.startswith(('lb', 'lh', 'lw', 'lf', 'psq_l'))):
+            # Pointer spills/escapes must fail too: a later reload loses provenance.
+            sources = set(re.findall(r'\br(?:[0-9]|[12][0-9]|3[01])\b', ','.join(args[1:])))
+            if op.startswith('st') and args and args[0].startswith('r'):
+                sources.add(args[0])
+            if sources.intersection(state):
+                raise Unproved('string base reaches unverified pool memory/spill: ' + line)
+            if op.startswith('l') and registers and args[0] == registers[0]:
+                state.pop(registers[0], None)
+        elif plain in pure_gpr or op in ('mflr', 'mfctr', 'mfxer'):
+            if set(registers[1:]).intersection(state) or plain == 'rlwimi' and used:
+                raise Unproved('string base reaches unverified pool offset: ' + line)
+            if registers:
+                state.pop(registers[0], None)
+        elif used:
+            raise Unproved('unsupported use of compared string base: ' + line)
+        for nxt in successors:
+            if nxt >= len(program):
+                raise Unproved('unterminated string-base CFG')
+            incoming = states.get(nxt)
+            merged = dict(incoming or {})
+            for r, values in state.items():
+                merged[r] = merged.get(r, frozenset()) | values
+            if incoming is None or incoming != merged:
+                states[nxt] = merged
+                pending.append(nxt)
+
+
+def checked_literal_bases(left, right):
+    """Shared guard for strict, rebind, and DAG proof dispatch."""
+    try:
+        reject_derived_string_bases(left)
+        reject_derived_string_bases(right)
+        return True, ''
+    except Unproved as error:
+        return False, str(error)
+
+
 def checked_equal(left, right):
     """Return proof only if both exact value/effect DAGs and live boundaries agree."""
     try:
+        reject_derived_string_bases(left)
+        reject_derived_string_bases(right)
         L, R = blocks(left), blocks(right)
         reject_partial_paired_reads(L)
         reject_partial_paired_reads(R)
@@ -540,6 +671,8 @@ def mark_private_spills_mem(graph):
 def checked_equal_mem(left, right):
     """Return proof only if both exact value/effect DAGs and live boundaries agree."""
     try:
+        reject_derived_string_bases(left)
+        reject_derived_string_bases(right)
         L, R = blocks_mem(left), blocks_mem(right)
         reject_partial_paired_reads(L)
         reject_partial_paired_reads(R)

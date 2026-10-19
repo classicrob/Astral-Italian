@@ -1,5 +1,5 @@
 // SMG2-only Mario:: functions (fn_ range A), written from the asm. Included at the end of Mario.cpp (unity TU).
-// PLACEHOLDER(astra): dynamic table index bounds remain unproved; Yoshi views use canonical member offsets.
+// Named Yoshi member views retain canonical compiler-derived offsets.
 template <typename T, typename P>
 inline T& FLD(P* p, u32 off) { return *reinterpret_cast<T*>(reinterpret_cast<u8*>(const_cast<void*>(static_cast<const void*>(p))) + off); }
 
@@ -691,7 +691,7 @@ f32 Mario::fn_8039AC10() {
     }
     MarioConstTable* entry = this->mActor->mConst->getTable();
     u8 level = this->mActor->getGravityLevel();
-    return FLD<f32>(entry, 0x7C + ((level << 2) & 0x3FC));
+    return entry->mMaxDropSpeed[level];
 }
 
 bool Mario::fn_8039A100() {
@@ -1668,7 +1668,7 @@ bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
     return result;
 }
 
-// NONMATCHING: register allocation and boolean lowering.
+// NONMATCHING: explicit typed mode14 storage dispatch, register allocation and boolean lowering.
 f32 Mario::fn_8039A810() {
     u16 timer = this->_76C;
     if (timer != 0) {
@@ -1693,7 +1693,8 @@ f32 Mario::fn_8039A810() {
             gravity = this->mActor->mConst->getTable()->mGravityJumping[9];
         } else {
             MarioConstTable* entry = this->mActor->mConst->getTable();
-            gravity = FLD<f32>(entry, 0x24 + ((mode << 2) & 0xFFFFFFFCU));
+            // Completed mode writers produce 0..14; mode14 selects the adjacent front-speed field.
+            gravity = mode == 14 ? entry->mJumpFrontSpeed : entry->mGravityJumping[mode];
         }
     }
     if (this->isPlayerModeCloud() && !this->isRising()) {

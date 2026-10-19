@@ -199,11 +199,12 @@ bool Mario::fn_803B1B70() const {
 }
 
 
+// Ordinary jump callers establish modes 0..6 or8 before this query.
 f32 Mario::fn_803B1BA0() {
     if (this->isPlayerModeCloud() && this->_430 == 0) {
         return 24.0f;
     }
-    return reinterpret_cast<const f32*>(this->mActor->mConst->getTable())[this->_430];
+    return this->mActor->mConst->getTable()->mJumpHeight[this->_430];
 }
 
 // NONMATCHING: the target keeps the Yoshi flag in a register variable (inlined bool helper); 64%

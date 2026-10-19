@@ -18,7 +18,7 @@ void MarioActor::fn_803CA270(TVec3f* out, s32 isStatic) {
     } else {
         out->set(g);
     }
-    TVec3f up(FP(this->mMario, TVec3f, 0x208));
+    TVec3f up((this->mMario)->mFrontVec);
     up.scale(100.0f);
     TVec3f p(this->mPosition);
     p += up;
@@ -65,7 +65,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
         return false;
     }
     if (!this->isJumping()) {
-        FP(this->mMario, u32, 0x14) |= 0x20;
+        (this->mMario)->mFlags14.mLowWord |= 0x20;
     } else {
         if ((this->mMario)->_430 == 0xB) {
             (this->mMario)->_430 = 0;
@@ -79,19 +79,19 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
         }
         r = true;
     }
-    FP(this->mMario, u32, 0x14) &= 0xFFDFFFFF;
-    FP(this->mMario, u32, 0xC) &= 0xFFEFFFFF;
+    (this->mMario)->mFlags14.mLowWord &= 0xFFDFFFFF;
+    (this->mMario)->mMovementStates.mLowWord &= 0xFFEFFFFF;
     if (mSwimSurfaceState1010 != 0) {
         r = true;
     }
     this->_334 = 0xF;
-    this->_legacy2AC = FP(this->mMario, TVec3f, 0x1F0);
+    this->_legacy2AC = (this->mMario)->mHeadVec;
     if (!MR::isNearZero(b, 0.001f)) {
         if (ang >= 2.0943952f || !BITAT(this->mMario, 0x10, 8)) {
             this->mMario->cutGravityElementFromJumpVec(false);
-            FP(this->mMario, TVec3f, 0x2D4).scale(0.5f);
+            (this->mMario)->mJumpVec.scale(0.5f);
         } else {
-            TVec3f& jv = FP(this->mMario, TVec3f, 0x2D4);
+            TVec3f& jv = (this->mMario)->mJumpVec;
             f32 k = MR::vecKillElement(jv, *this->mMario->getGravityVec(), &jv);
             jv.scale(0.75f);
             TVec3f g(*this->mMario->getGravityVec());
@@ -102,10 +102,10 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
         }
     }
     this->mMario->clear2DStick();
-    FP(this->mMario, u32, 0x14) |= 0x10000000;
+    (this->mMario)->mFlags14.mLowWord |= 0x10000000;
     this->_3AA = 0xF;
     if (!BITAT(this->mMario, 0x10, 8)) {
-        FP(this->mMario, TVec3f, 0x2E0) = -FP(this->mMario, TVec3f, 0x2E0);
+        (this->mMario)->_2E0 = -(this->mMario)->_2E0;
     }
     return r;
 }
@@ -119,7 +119,7 @@ void MarioActor::fn_803CA710(TVec3f& a, TVec3f& b) {
             return;
         }
         if (MR::isNearZero(b, 0.001f) && MR::isNearZero(a, 0.001f)) {
-            this->calcBaseFrontVec(FP(this->mMario, TVec3f, 0x1FC));
+            this->calcBaseFrontVec((this->mMario)->_1FC);
         }
     } else {
         TVec3f axis;
@@ -148,7 +148,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
         if (!BITAT(m, 0xC, 0x1E)) {
             v.set(mAppliedGravityVec);
         } else {
-            TVec3f n = -FP(m, TVec3f, 0x368);
+            TVec3f n = -(m)->_368;
             v.set(n);
         }
     }
@@ -156,7 +156,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
         WaterInfo info;
         MR::getWaterAreaObj(&info, this->mPosition);
         if (BITAT(this->mMario, 0xC, 0x1E) && !info.isInWater()) {
-            TVec3f n = -FP(this->mMario, TVec3f, 0x368);
+            TVec3f n = -(this->mMario)->_368;
             v.set(n);
         }
     }
@@ -169,9 +169,9 @@ void MarioActor::fn_803CAA00() {
     Mario* m = this->mMario;
     TVec3f blend;
     if (BITAT(m, 0x1C, 0x10)) {
-        MR::vecBlendSphere(&blend, FP(m, TVec3f, 0x1F0), FP(m, TVec3f, 0x380), 0.5f * this->_984);
+        MR::vecBlendSphere(&blend, (m)->mHeadVec, (m)->_380, 0.5f * this->_984);
     } else {
-        MR::vecBlendSphere(&blend, FP(m, TVec3f, 0x1F0), FP(m, TVec3f, 0x368), this->_984);
+        MR::vecBlendSphere(&blend, (m)->mHeadVec, (m)->_368, this->_984);
     }
     TVec3f old(this->mVector60C);
     m = this->mMario;
@@ -208,12 +208,12 @@ void MarioActor::fn_803CAA00() {
         TVec3f s(b);
         s += a;
         this->mVector60C = s;
-        FP(this->mMario, u32, 0x14) |= 0x10000000;
+        (this->mMario)->mFlags14.mLowWord |= 0x10000000;
     }
     if (this->_334 != 0) {
         Mario* m2 = this->mMario;
-        if (FP(m2, f32, 0x484) > 160.0f) {
-            TVec3f a(FP(m2, TVec3f, 0x1F0));
+        if ((m2)->mVerticalSpeed > 160.0f) {
+            TVec3f a((m2)->mHeadVec);
             a.scale(80.0f);
             TVec3f b(this->_legacy2AC);
             b.scale(80.0f);
@@ -223,7 +223,7 @@ void MarioActor::fn_803CAA00() {
             TVec3f push(mAppliedGravityVec);
             push.scale(k);
             this->mMario->push2(push);
-            this->_legacy2AC = FP(this->mMario, TVec3f, 0x1F0);
+            this->_legacy2AC = (this->mMario)->mHeadVec;
         }
         this->_334 = this->_334 - 1;
     }
@@ -679,8 +679,8 @@ bool MarioActor::fn_803CD180() {
 }
 
 f32 MarioActor::fn_803CD250(HitSensor* s) {
-    TVec3f a(FP(this->mMario, TVec3f, 0x31C));
-    a -= FP(s, TVec3f, 4);
+    TVec3f a((this->mMario)->mShadowPos);
+    a -= (s)->mPosition;
     TVec3f b;
     return MR::vecKillElement(a, *this->mMario->getGravityVec(), &b);
 }
@@ -745,8 +745,8 @@ void MarioActor::fn_803CD450(HitSensor* s) {
 
 
 bool MarioActor::fn_803CD4B0(HitSensor* s, f32 f0, f32 f1) {
-    f32 r = FP(s, f32, 0x10);
-    TVec3f d(FP(s, TVec3f, 4));
+    f32 r = (s)->mRadius;
+    TVec3f d((s)->mPosition);
     d -= this->_240;
     LiveActor* h = s->mHost;
     if (h != nullptr && MR::isEqualString(h->mName, "ヨッシー")) {
@@ -783,8 +783,8 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             t.scale(d);
             TVec3f q(this->_240);
             q += t;
-            FP(hs, TVec3f, 4).set(q);
-            FP(this->getSensor("dummy"), f32, 0x10) = f1;
+            (hs)->mPosition.set(q);
+            (this->getSensor("dummy"))->mRadius = f1;
             return true;
         }
         if (d == f2) {
@@ -798,8 +798,8 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
                 t2.scale(f2);
                 TVec3f q(this->_240);
                 q += t2;
-                FP(hs, TVec3f, 4).set(q);
-                FP(this->getSensor("dummy"), f32, 0x10) = f1;
+                (hs)->mPosition.set(q);
+                (this->getSensor("dummy"))->mRadius = f1;
                 return true;
             }
         }
@@ -816,8 +816,8 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
             t.scale(d2);
             TVec3f q(this->_240);
             q += t;
-            FP(hs, TVec3f, 4).set(q);
-            FP(this->getSensor("dummy"), f32, 0x10) = f1;
+            (hs)->mPosition.set(q);
+            (this->getSensor("dummy"))->mRadius = f1;
             return true;
         }
         if (d2 == f2) {
@@ -831,8 +831,8 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
                 t2.scale(f2);
                 TVec3f q(this->_240);
                 q += t2;
-                FP(hs, TVec3f, 4).set(q);
-                FP(this->getSensor("dummy"), f32, 0x10) = f1;
+                (hs)->mPosition.set(q);
+                (this->getSensor("dummy"))->mRadius = f1;
                 return true;
             }
         }
@@ -860,7 +860,7 @@ void MarioActor::fn_803CE8A0(HitSensor* s) {
                 MR::explainDrillIfAtFirst();
             }
         } else {
-            u32 t = FP(s, u32, 0);
+            u32 t = (s)->mType;
             if (t - 0x12 > 1) {
                 if (t == 0x1D && this->mMario->isAnimationTerminate("カブ抜き")) {
                     this->mMario->stopAnimation((const char*)nullptr, (const char*)nullptr);
@@ -1025,9 +1025,9 @@ void MarioActor::updateFireSpin() {
             (this->mMario)->mWalkSpeed = 0.0f;
             return;
         }
-        this->mMario->setFrontVecKeepUp(FP(this->mMario, TVec3f, 0x1CC));
+        this->mMario->setFrontVecKeepUp((this->mMario)->mWorldPadDir);
         Mario* m = this->mMario;
-        u16 c = FP(m, u16, 0x428);
+        u16 c = (m)->_42C;
         if (c >= 3) {
             m->changeAnimation("ファイア投げ", (const char*)nullptr);
             return;
@@ -1040,10 +1040,10 @@ void MarioActor::updateFireSpin() {
         this->jumpHop();
         (this->mMario)->_42C += 1;
         f32 k = this->mMario->cutGravityElementFromJumpVec(true);
-        FP(this->mMario, TVec3f, 0x2D4).scale(0.5f);
+        (this->mMario)->mJumpVec.scale(0.5f);
         TVec3f g(mAppliedGravityVec);
         g.scale(k);
-        FP(this->mMario, TVec3f, 0x2D4) += g;
+        (this->mMario)->mJumpVec += g;
     }
 }
 
@@ -1071,7 +1071,7 @@ bool MarioActor::fn_803CFCA0(HitSensor* s) {
         return false;
     }
     f32 c = JMath::sSinCosTable.cosDegree(YoshiParam::fn_8041BDC0());
-    if (d.dot(FP(this->mMario, TVec3f, 0x208)) > c) {
+    if (d.dot((this->mMario)->mFrontVec) > c) {
         return false;
     }
     return true;
@@ -1202,34 +1202,35 @@ f32 MarioActor::fn_803D1470(HitSensor* s) {
     return da;
 }
 
+// NONMATCHING: Typed sensor position uses direct member addresses; saved-register and frame scheduling differ.
 void MarioActor::fn_803D1740(HitSensor* s) {
     if (this->mMario->isStatusActive(5)) {
         Mtx m;
         this->getRealMtx(m, "Spine1");
-        MR::extractMtxTrans(m, &FP(s, TVec3f, 4));
-        FP(s, f32, 0x10) = 60.0f;
+        MR::extractMtxTrans(m, &(s)->mPosition);
+        (s)->mRadius = 60.0f;
         return;
     }
     if (this->mMario->isStatusActive(6)) {
         Mtx m;
         this->getRealMtx(m, "Spine1");
-        MR::extractMtxTrans(m, &FP(s, TVec3f, 4));
-        FP(s, f32, 0x10) = 70.0f;
+        MR::extractMtxTrans(m, &(s)->mPosition);
+        (s)->mRadius = 70.0f;
         return;
     }
-    FP(s, TVec3f, 4).set(this->_240);
+    (s)->mPosition.set(this->_240);
     Mario* m = this->mMario;
-    u32 st = FP(m, u32, 0xC);
+    u32 st = (m)->mMovementStates.mLowWord;
     if (((st >> 0x14) & 1) && !((st >> 0x1E) & 1)) {
-        FP(s, TVec3f, 4) += FP(m, TVec3f, 0x2D4);
+        (s)->mPosition += (m)->mJumpVec;
     }
-    FP(s, f32, 0x10) = 100.0f;
+    (s)->mRadius = 100.0f;
 }
 
 
 void MarioActor::fn_803D1830(HitSensor* s) {
-    FP(s, TVec3f, 4).set(this->_240);
-    FP(s, f32, 0x10) = this->fn_803D18D0();
+    (s)->mPosition.set(this->_240);
+    (s)->mRadius = this->fn_803D18D0();
     this->fn_803D1940();
     bool r = false;
     if (FP(s, u8, 0x21) != 0 && FP(s, u8, 0x20) != 0) {
@@ -1621,7 +1622,7 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
     static const GXColorS10 c0 = {255, 255, 255, 0};
     GXColorS10 c = c0;
-    c.a = (u8)(s32)(f * (f32)FP(mConst->getTable(), u8, 0x765));
+    c.a = (u8)(s32)(f * (f32)(mConst->getTable())->mSearchLightAlphaLevel);
     GXSetTevColorS10(GX_TEVREG0, c);
     GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_1);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_KONST, GX_CA_ZERO, GX_CA_A0, GX_CA_RASA);
@@ -1715,26 +1716,26 @@ void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
                 }
                 TVec3f up = -*this->mMario->getGravityVec();
                 up.scale(v);
-                FP(this->mMario, TVec3f, 0x2D4) += up;
+                (this->mMario)->mJumpVec += up;
             }
         }
     } else {
-        TVec3f n(FP(this->mMario, TVec3f, 0x8FC));
+        TVec3f n((this->mMario)->_8F8);
         MR::normalizeOrZero(&n);
         TVec3f tmp;
         f32 f1 = MR::vecKillElement(*a, n, &tmp);
         f32 f2 = MR::vecKillElement(mVelocity, n, &tmp);
         if (PSVECMag((Vec*)&mVelocity) > 20.0f && f1 < 0.5f * f2) {
             if (this->mMario->isAnimationRun("坂すべり下向きあおむけ")) {
-                TVec3f p(FP(this->mMario, TVec3f, 0x208));
+                TVec3f p((this->mMario)->mFrontVec);
                 p.scale(5.0f);
                 this->mMario->push(p);
             } else if (this->mMario->isAnimationRun("坂すべり上向きうつぶせ")) {
-                TVec3f p(FP(this->mMario, TVec3f, 0x208));
+                TVec3f p((this->mMario)->mFrontVec);
                 p.scale(-5.0f);
                 this->mMario->push(p);
             }
-            FP(this->mMario, u32, 0x18) |= 0x20000000;
+            (this->mMario)->mFlags14.mHighWord |= 0x20000000;
         }
     }
 }
@@ -1756,7 +1757,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
             if (this->mMario->getGravityVec()->dot(d) != -5.0f) {
                 void* h = *(void**)tri;
                 if (h != nullptr && FP(h, s32, 0xD4) == 0) {
-                    if ((FP(this->mMario, u32, 0x10) & 3) == 1) {
+                    if (((this->mMario)->mMovementStates.mHighWord & 3) == 1) {
                         return;
                     }
                     this->mPosition = hit;
@@ -1771,25 +1772,25 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
         if (gt->isValid()) {
             if (MR::isSensorPressObj(gt->getSensor()) || MR::getFloorCodeIndex((this->mMario)->_4C8) == 0x1D ||
                 MR::getFloorCodeIndex((this->mMario)->_4C8) == 0x27) {
-                FP(this->mMario, u32, 0x1C) |= 2;
+                (this->mMario)->mDrawStates.mWord |= 2;
             }
         } else {
             u32 i = 0;
-            u32 n = FP(this->mBinder, u32, 0x28);
+            u32 n = (this->mBinder)->mPlaneNum;
             while (i < n) {
                 const HitInfo* p = this->mBinder->getPlane(i);
                 if (MR::isSensorPressObj(p->mParentTriangle.getSensor())) {
-                    FP(this->mMario, u32, 0x1C) |= 2;
+                    (this->mMario)->mDrawStates.mWord |= 2;
                 }
                 i++;
             }
         }
-        TVec3f d(FP(this->mMario, TVec3f, 0x31C));
+        TVec3f d((this->mMario)->mShadowPos);
         d -= this->mPosition;
         if (d.dot(*this->mMario->getGravityVec()) < 0.0f && !this->fn_803D9370(this->mMario->_45C->mParts, v)) {
-            this->mPosition = FP(this->mMario, TVec3f, 0x31C);
-            FP(this->mMario, TVec3f, 0x2D4).zero();
-            FP(this->mMario, TVec3f, 0x148).zero();
+            this->mPosition = (this->mMario)->mShadowPos;
+            (this->mMario)->mJumpVec.zero();
+            (this->mMario)->_148.zero();
             Mario* m = this->mMario;
             if (FP(m, s32, 0x5FC) == 0 && (BITAT(m, 0x1C, 1) || BITAT(m, 0x34, 1))) {
                 TVec3f nv(*v);
@@ -1803,14 +1804,14 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
 }
 
 void MarioActor::fn_803D9170(TVec3f* v) {
-    u32 n = FP(this->mBinder, u32, 0x28);
+    u32 n = (this->mBinder)->mPlaneNum;
     s32 hit = 0;
     f32 zero = 0.0f;
     u32 i = 0;
     while (i < n) {
         Triangle* tri = (Triangle*)this->mBinder->getPlane(i);
         if (MR::isSensorPressObj(tri->getSensor())) {
-            if (FP(this->mMario, TVec3f, 0x368).dot(*tri->getNormal(0)) > zero) {
+            if ((this->mMario)->_368.dot(*tri->getNormal(0)) > zero) {
                 if ((this->mMario)->_72C < 200.0f) {
                     hit = 1;
                 } else if (tri->getNormal(0)->dot(*v) < zero) {
@@ -1824,8 +1825,8 @@ void MarioActor::fn_803D9170(TVec3f* v) {
                     hit = 1;
                 } else if (FP(this->mMario, s32, 0x5FC) != 0) {
                     if (!MR::isWallCodeNoAction(tri) && !this->mMario->isOnimasuBinderPressSkip()) {
-                        mPressNormal6D8 = FP(this->mMario, TVec3f, 0x368);
-                        FP(this->mMario, u32, 0x14) &= 0xFFFFFFFB;
+                        mPressNormal6D8 = (this->mMario)->_368;
+                        (this->mMario)->mFlags14.mLowWord &= 0xFFFFFFFB;
                         *(this->mMario)->_4C8 = *tri;
                         this->setPress(2, 0);
                         this->_3B0 = 0.1f;
@@ -1838,8 +1839,8 @@ void MarioActor::fn_803D9170(TVec3f* v) {
     }
     if (hit != 0) {
         TVec3f tmp;
-        f32 k = MR::vecKillElement(*v, FP(this->mMario, TVec3f, 0x368), &tmp);
-        TVec3f s(FP(this->mMario, TVec3f, 0x368));
+        f32 k = MR::vecKillElement(*v, (this->mMario)->_368, &tmp);
+        TVec3f s((this->mMario)->_368);
         s.scale(k);
         this->mPosition -= s;
     }
@@ -1853,9 +1854,9 @@ bool MarioActor::fn_803D9370(void* tri, TVec3f* v) {
         return false;
     }
     TVec3f a, b;
-    PSMTXMultVec(FP(tri, Mtx, 0x64), (Vec*)&FP(this->mMario, TVec3f, 0x31C), (Vec*)&a);
+    PSMTXMultVec(FP(tri, Mtx, 0x64), (Vec*)&(this->mMario)->mShadowPos, (Vec*)&a);
     PSMTXMultVec(FP(tri, Mtx, 0x94), (Vec*)&a, (Vec*)&b);
-    TVec3f d(FP(this->mMario, TVec3f, 0x31C));
+    TVec3f d((this->mMario)->mShadowPos);
     d -= b;
     return v->dot(d) > 0.0f;
 }

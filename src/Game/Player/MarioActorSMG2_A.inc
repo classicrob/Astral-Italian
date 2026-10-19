@@ -24,7 +24,7 @@ const TVec3f& MarioActor::fn_803B8520() {
 }
 
 u32 MarioActor::fn_803B89E0() {
-    return (FP(this->mMario, u32, 0xC) >> 0x14) & 1;
+    return ((this->mMario)->mMovementStates.mLowWord >> 0x14) & 1;
 }
 
 bool MarioActor::fn_803B8A80() {
@@ -42,7 +42,7 @@ bool MarioActor::fn_803B93E0() {
 void MarioActor::fn_803B94E0() {
     Mario* m = this->mMario;
     if (FP(m, u8, 0xA7B) == 0) {
-        if ((FP(m, u32, 0xC) >> 0x10) & 1) {
+        if (((m)->mMovementStates.mLowWord >> 0x10) & 1) {
             m->forceStopTornado();
         }
         if (mActionTable1080->isActionOk("ダメージ解除")) {
@@ -122,14 +122,14 @@ bool MarioActor::fn_803B9920() {
         return false;
     }
     Mario* m = this->mMario;
-    u32 r = FP(m, u32, 0x18);
+    u32 r = (m)->mFlags14.mHighWord;
     if ((r >> 0x14) & 1) {
         return false;
     }
     if ((r >> 0x15) & 1) {
         return false;
     }
-    if ((FP(m, u32, 0xC) >> 0x1F) == 1 && !m->isRising() && ((FP(this->mMario, u32, 0xC) >> 0xC) & 1)) {
+    if (((m)->mMovementStates.mLowWord >> 0x1F) == 1 && !m->isRising() && (((this->mMario)->mMovementStates.mLowWord >> 0xC) & 1)) {
         return true;
     }
     return this->checkButtonType(mInputConfig->_8, false);
@@ -444,20 +444,20 @@ void MarioActor::initMember() {
     mMarioEffect = nullptr;
     mConst = nullptr;
     gIsLuigi = false;
-    F(f32, 0x594) = 0.0f;
-    F(f32, 0x598) = 1.0f;
-    F(f32, 0x59C) = 0.0f;
-    F(f32, 0x5A0) = 0.0f;
-    F(f32, 0x5A4) = 1.0f;
-    F(f32, 0x5A8) = 0.0f;
+    this->mAppliedGravityVec.x = 0.0f;
+    this->mAppliedGravityVec.y = 1.0f;
+    this->mAppliedGravityVec.z = 0.0f;
+    this->mPreviousGravityVec.x = 0.0f;
+    this->mPreviousGravityVec.y = 1.0f;
+    this->mPreviousGravityVec.z = 0.0f;
     mGravityInfo = nullptr;
     mAxisRotationDisabled6A0 = 0;
     this->mGravityRatio = 0.0f;
     this->_334 = 0;
     this->_legacy2AC.zero();
-    F(f32, 0x5AC) = 0.0f;
-    F(f32, 0x5B0) = 0.0f;
-    F(f32, 0x5B4) = 1.0f;
+    this->_258.x = 0.0f;
+    this->_258.y = 0.0f;
+    this->_258.z = 1.0f;
     mLastMove.zero();
     this->_1FC.zero();
     mBinderMotion5D0.zero();
@@ -646,14 +646,14 @@ void MarioActor::initMember() {
     mBlurHistoryIndex = 0;
     mBlurJointCount = 0;
     this->mReflectionPositionF44.zero();
-    F(f32, 0xF54) = 0.0f;
-    F(f32, 0xF50) = 0.0f;
-    F(f32, 0xF5C) = 0.0f;
-    F(f32, 0xF58) = 0.0f;
-    F(f32, 0xF64) = 0.0f;
-    F(f32, 0xF60) = 0.0f;
-    F(f32, 0xF6C) = 0.0f;
-    F(f32, 0xF68) = 0.0f;
+    this->mScreenF50.y = 0.0f;
+    this->mScreenF50.x = 0.0f;
+    this->mScreenF58.y = 0.0f;
+    this->mScreenF58.x = 0.0f;
+    this->mScreenF60.y = 0.0f;
+    this->mScreenF60.x = 0.0f;
+    this->mScreenF68.y = 0.0f;
+    this->mScreenF68.x = 0.0f;
     mScreenBuffer = nullptr;
     _B48 = nullptr;
     _B4C = nullptr;
@@ -809,18 +809,18 @@ void MarioActor::fn_803BF8F0() {
 void MarioActor::fn_803BF950() {
     mGravityInfo = new GravityInfo();
     this->mGravityRatio = 1.0f;
-    F(f32, 0x594) = 0.0f;
-    F(f32, 0x598) = -1.0f;
-    F(f32, 0x59C) = 0.0f;
+    this->mAppliedGravityVec.x = 0.0f;
+    this->mAppliedGravityVec.y = -1.0f;
+    this->mAppliedGravityVec.z = 0.0f;
     mPreviousGravityVec = mAppliedGravityVec;
     F(s16, 0x664) = 0;
 }
 
 void MarioActor::fn_803BF9D0() {
     this->initBinder(60.0f, 0.0f, 8);
-    F(f32, 0x60C) = 0.0f;
-    F(f32, 0x610) = 70.0f;
-    F(f32, 0x614) = 0.0f;
+    this->mVector60C.x = 0.0f;
+    this->mVector60C.y = 70.0f;
+    this->mVector60C.z = 0.0f;
     this->mBinder->_1EC._0 = false;
     MR::setBinderOffsetVec(this, &this->mVector60C, false);
     this->mBinder->setTriangleFilter(MR::createTriangleFilterDelegator(this, &MarioActor::binderFilter));
@@ -850,7 +850,7 @@ void MarioActor::fn_803BFB30() {
 }
 
 void MarioActor::fn_803BFBB0() {
-    this->_2A0 = FP(this->mMario, TVec3f, 0x1F0);
+    this->_2A0 = (this->mMario)->mHeadVec;
     this->_270 = this->_2A0;
     mCounter660 = 0;
     mWaterSurfaceCameraTimer662 = 0;
@@ -966,7 +966,7 @@ void MarioActor::fn_803C1940() {
         if (BITAT(this->mMario, 0x10, 0x1C)) {
             this->fn_803D8BD0(&a, &b);
         }
-        if ((FP(this->mMario, u32, 0xC) >> 0x1F) != 0 && this->mBeeWallWalk == 0) {
+        if (((this->mMario)->mMovementStates.mLowWord >> 0x1F) != 0 && this->mBeeWallWalk == 0) {
             this->fn_803D8E30(&b);
             return;
         }
@@ -1046,8 +1046,8 @@ bool MarioActor::fn_803C1E40() {
 }
 
 void MarioActor::fn_803C1E80() {
-    FP(this->mMario, TVec3f, 0x350).zero();
-    FP(this->mMario, TVec3f, 0x35C).zero();
+    (this->mMario)->_350.zero();
+    (this->mMario)->_35C.zero();
     F(s16, 0xCCC) = 0;
     F(s32, 0xE20) = 0;
     mVelocity.zero();
@@ -1151,7 +1151,7 @@ void MarioActor::fn_803C2590() {
 }
 
 void MarioActor::fn_803C2610() {
-    if ((F(s16, 0xE3E) != 0 || BITAT(this->mMario, 0x10, 0x14)) && !this->mMario->isSwimming() && this->_944 == 0 &&
+    if ((_946 != 0 || BITAT(this->mMario, 0x10, 0x14)) && !this->mMario->isSwimming() && this->_944 == 0 &&
         mActionTable1080->selectAction("スピン回復エフェクト") == 1) {
         this->playEffect("スピンリング");
     }
@@ -1159,7 +1159,7 @@ void MarioActor::fn_803C2610() {
 
 void MarioActor::fn_803C26A0() {
     if ((this->isInPunchTimerRange() || !this->mMario->isSwimming())) {
-        u32 t = FP(this->mMario, u32, 0xC);
+        u32 t = (this->mMario)->mMovementStates.mLowWord;
         if (((t >> 0x17) & 1) || ((t >> 5) & 1) || ((t >> 6) & 1)) {
             this->mMario->tryWallPunch();
         }
@@ -1195,20 +1195,20 @@ void MarioActor::fn_803C2900() {
         }
     } else if (!mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "水柱エフェクト")) {
         MarioSwim* sw = this->mMario->mSwim;
-        s32 before = FP(sw, s32, 0xFC);
+        s32 before = (sw)->mSwimState;
         sw->fn_803FD5E0(0);
         s32 after = (this->mMario->mSwim)->mSwimState;
         if (after != before) {
             MarioSwim* sw2 = this->mMario->mSwim;
             if ((u32)after <= 1 && (u32)(before - 2) <= 1) {
-                this->playEffectRT("水面ジャンプ水柱", FP(sw2, TVec3f, 0x11C), FP(sw2, TVec3f, 0x128));
+                this->playEffectRT("水面ジャンプ水柱", (sw2)->mSurfacePos, (sw2)->mSurfaceNorm);
                 MarioSwim* sw3 = this->mMario->mSwim;
-                this->emitEffectWaterColumn(FP(sw3, TVec3f, 0x11C), FP(sw3, TVec3f, 0x128));
+                this->emitEffectWaterColumn((sw3)->mSurfacePos, (sw3)->mSurfaceNorm);
             } else if ((u32)before <= 1 && (u32)(after - 2) <= 1) {
-                TVec3f neg = -FP(this->mMario, TVec3f, 0x328);
-                this->playEffectRT("水面ジャンプ水柱", neg, FP(this->mMario->mSwim, TVec3f, 0x128));
+                TVec3f neg = -(this->mMario)->_328;
+                this->playEffectRT("水面ジャンプ水柱", neg, (this->mMario->mSwim)->mSurfaceNorm);
                 MarioSwim* sw3 = this->mMario->mSwim;
-                this->emitEffectWaterColumn(FP(sw3, TVec3f, 0x11C), FP(sw3, TVec3f, 0x128));
+                this->emitEffectWaterColumn((sw3)->mSurfacePos, (sw3)->mSurfaceNorm);
             }
             switch (after) {
             case 0:
@@ -1425,9 +1425,9 @@ void MarioActor::fn_803C3E40() {
             height = 150.0f;
         }
         Mario* m = this->mMario;
-        u32 st = FP(m, u32, 0xC);
+        u32 st = (m)->mMovementStates.mLowWord;
         if (((st >> 0x14) & 1) && !((st >> 0x1E) & 1)) {
-            base += FP(m, TVec3f, 0x2D4);
+            base += (m)->mJumpVec;
         }
         up.scale(height);
         TVec3f eye(base);
@@ -1611,7 +1611,7 @@ bool MarioActor::fn_803C4FB0() {
     }
     if (a) {
         bool b = false;
-        u32 st = FP(this->mMario, u32, 0xC);
+        u32 st = (this->mMario)->mMovementStates.mLowWord;
         if (((st >> 0x14) & 1) && (st >> 0x1F) != 0) {
             b = true;
         }
@@ -1626,7 +1626,7 @@ bool MarioActor::fn_803C4FB0() {
 
 // NONMATCHING: saved-register allocation, stack slots and equivalent scheduling.
 void MarioActor::fn_803C5090(MtxPtr mtx) {
-    mGravityReferenceED0 = FP(this->mMario, TVec3f, 0x1D8);
+    mGravityReferenceED0 = (this->mMario)->mAirGravityVec;
     f32 k = CT(0x69C);
     TVec3f grav = -*this->mMario->getGravityVec();
     TVec3f t1(grav);
@@ -1642,7 +1642,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     d -= p;
     TVec3f axis;
     if (!MR::normalizeOrZero(&d)) {
-        PSVECCrossProduct((Vec*)&FP(this->mMario, TVec3f, 0x208), (Vec*)&d, (Vec*)&axis);
+        PSVECCrossProduct((Vec*)&(this->mMario)->mFrontVec, (Vec*)&d, (Vec*)&axis);
         if (!MR::normalizeOrZero(&axis)) {
             f32 ang = MR::acosEx(mGravityReferenceED0.dot(d));
             f32 lim = CT(0x688);
@@ -1718,13 +1718,13 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
         sc = CT(0x6AC);
     }
     this->_354.scale(sc);
-    if (!MR::isSameDirection(this->_360, FP(this->mMario, TVec3f, 0x208), 0.01f)) {
+    if (!MR::isSameDirection(this->_360, (this->mMario)->mFrontVec, 0.01f)) {
         TVec3f neg = -this->_360;
-        MR::makeMtxUpFront((TPos3f*)mtx, neg, FP(this->mMario, TVec3f, 0x208));
-    } else if (!MR::isSameDirection(FP(this->mMario, TVec3f, 0x1FC), FP(this->mMario, TVec3f, 0x208), 0.01f)) {
-        MR::makeMtxUpFront((TPos3f*)mtx, FP(this->mMario, TVec3f, 0x1FC), FP(this->mMario, TVec3f, 0x208));
+        MR::makeMtxUpFront((TPos3f*)mtx, neg, (this->mMario)->mFrontVec);
+    } else if (!MR::isSameDirection((this->mMario)->_1FC, (this->mMario)->mFrontVec, 0.01f)) {
+        MR::makeMtxUpFront((TPos3f*)mtx, (this->mMario)->_1FC, (this->mMario)->mFrontVec);
     } else {
-        MR::makeMtxUpFront((TPos3f*)mtx, FP(this->mMario, TVec3f, 0x1F0), FP(this->mMario, TVec3f, 0x208));
+        MR::makeMtxUpFront((TPos3f*)mtx, (this->mMario)->mHeadVec, (this->mMario)->mFrontVec);
     }
     if (mMario->mTargetWalkSpeedIndex > 2 || this->isJumping()) {
         f32 inv = 1.0f - CT(0x6B0);
@@ -1779,7 +1779,7 @@ void MarioActor::fn_803C5820() {
     diff -= old;
     this->_938 = diff;
     if (BITAT(this->mMario, 0x10, 8)) {
-        FP(this->mMario, TVec3f, 0x67C) = this->mPosition;
+        (this->mMario)->_688 = this->mPosition;
     }
     this->updateGravityVec(true, true);
     this->mMario->updateGroundInfo();
@@ -1822,9 +1822,9 @@ void MarioActor::fn_803C59C0() {
     ((TPos3f*)this->getBaseMtx())->getYDir(head);
     this->mMario->forceSetHeadVecKeepSide(head);
     (this->mMario)->mWalkSpeed = 0.0f;
-    FP(this->mMario, u8, 0x714) = 0;
+    (this->mMario)->mTargetWalkSpeedIndex = 0;
     this->mMario->stopJump();
-    FP(this->mMario, TVec3f, 0x334) = FP(this->mMario, TVec3f, 0x208);
+    (this->mMario)->_334 = (this->mMario)->mFrontVec;
     if (this->mMario->isSwimming()) {
         this->mMario->mSwim->resetAndFixPose();
     }
@@ -1989,7 +1989,7 @@ void MarioActor::fn_803BC5C0() {
     Mario* m = this->mMario;
     if (!BITAT(m, 0xC, 0x15) && m->getCurrentStatus() == 0) {
         Mario* m2 = this->mMario;
-        if (BITAT(m2, 0xC, 0x1E) && FP(m2, u16, 0x964) == 0x20 && this->mMarioAnim->fn_803DCB80()) {
+        if (BITAT(m2, 0xC, 0x1E) && (m2)->_960 == 0x20 && this->mMarioAnim->fn_803DCB80()) {
             this->mMarioAnim->fn_803DF0F0();
             this->_B96 = 2;
         }
@@ -2183,7 +2183,7 @@ void MarioActor::fn_803C9920(TVec3f& vec) {
 
 void MarioActor::setPlayerMode(u16 mode, bool a, bool b) {
     if (mode != 3) {
-        FP(this->mMario, u32, 0x18) &= 0xFFBFFFFF;
+        (this->mMario)->mFlags14.mHighWord &= 0xFFBFFFFF;
     }
     if (!this->fn_803CB1A0(mode)) {
         if (this->mMario->isStatusActive(0x18)) {

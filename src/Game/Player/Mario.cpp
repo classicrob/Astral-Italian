@@ -6875,7 +6875,7 @@ void Mario::initMember() {
     _688.zero();
     _694.zero();
 
-    mInitValue6A0 = 0;
+    mPlaneModeArea = nullptr;
     _6C8.y = 0.0f;
     _6C8.x = 0.0f;
     _6D0.zero();
@@ -9667,7 +9667,9 @@ void Mario::check2DMode() {
     mMovementStates.mHighWord &= 0xFFFFFEFFU;
     mFlags14.mLowWord &= 0xFFFFFBFFU;
 
+    AreaObj* previousArea = mPlaneModeArea;
     AreaObj* area = MR::getAreaObj("PlaneModeCube", mPosHolder->mPos);
+    mPlaneModeArea = area;
     if (area != nullptr) {
         mMovementStates.mHighWord |= 0x00000100U;
 
@@ -9675,9 +9677,10 @@ void Mario::check2DMode() {
         MR::calcCubeRotate(area, &rotate);
         MR::makeMtxTR(_F4, 0.0f, 0.0f, 0.0f, rotate.x, rotate.y, rotate.z);
 
-        if (!(((mFlags24.mHighWord >> 8) & 1U))) {
+        if (previousArea != area) {
             _688 = mPosHolder->mPos;
             MR::getRotatedAxisZ(&mSwimSideVec694, rotate);
+            mSwimSideVec694 = -mSwimSideVec694;
             MR::calcCubePos(area, &_694);
         }
     } else {
@@ -9701,6 +9704,8 @@ void Mario::check2DMode() {
     if (area != nullptr) {
         set25Dmode(area);
     }
+    mActor->fn_803D8A30((mMovementStates.mHighWord >> 8) & 1U, mSwimSideVec694);
+
 }
 
 
@@ -14053,15 +14058,24 @@ void Mario::startSwim() {
     if (!isStatusActive(MarioStatus_Swim)) {
         if (getPlayer()->isDamaging()) {
             mSwim->_9D = 4;
-            playSound("水落下突入");
+            if (_3BC >= 75) {
+                playSound("水落下突入高");
+            } else {
+                playSound("水落下突入");
+            }
         } else if (((getPlayer()->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
             mSwim->_9D = 1;
-            playSound("水落下突入");
+            if (_3BC >= 75) {
+                playSound("水落下突入高");
+            } else {
+                playSound("水落下突入");
+            }
         } else {
             mSwim->_9D = 0;
             playSound("水歩行突入");
         }
 
+        mActor->fn_803B9F10();
         changeStatus(mSwim);
         clearSlope();
         stopWalk();
@@ -14085,10 +14099,12 @@ void Mario::startSwim() {
 bool Mario::checkWaterDamage() {
     if (((mMovementStates.mLowWord >> 4) & 1U)) {
         mMovementStates.mLowWord &= 0xFFFFFFEFU;
+        mActor->fn_803BE840(_7C4);
         mSwim->addDamage(_7C4);
         return true;
     } else if (((mMovementStates.mHighWord >> 24) & 1U)) {
         mMovementStates.mHighWord &= 0xFEFFFFFFU;
+        mActor->fn_803BE840(_7C4);
         mSwim->addFaint(_7C4);
         return true;
     } else {

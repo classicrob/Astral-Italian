@@ -988,7 +988,7 @@ public:
     /* 0x67C */ TVec3f _688;
     /* 0x688 */ TVec3f _694;
     /* 0x694 */ TVec3f mSwimSideVec694;
-    /* 0x6A0 */ u32 mInitValue6A0;
+    /* 0x6A0 */ AreaObj* mPlaneModeArea;
     /* 0x6A4 */ u8 mAxisMode6A4;
     /* 0x6A5 */ u8 mCandidateAxisMode6A5;
     /* 0x6A6 */ u8 _padAxis6A6[2];

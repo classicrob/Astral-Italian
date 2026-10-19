@@ -1414,7 +1414,7 @@ void MarioActor::fn_803C3E40() {
     this->mMario->setFrontVecKeepUp(front);
     if (this->mFirstTransformCameraLatch666 == 0) {
         MR::zoomInTargetGameCamera();
-        CameraTargetArg arg(this);
+        CameraTargetArg arg(nullptr, nullptr, nullptr, this);
         MR::startGlobalEventCamera("変身初出カメラ", arg, 60);
         TVec3f up = -*this->mMario->getGravityVec();
         TVec3f base(this->_240);

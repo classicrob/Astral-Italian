@@ -632,7 +632,7 @@ bool MarioActor::fn_803CD000() {
     if (_934 != 0) {
         return false;
     }
-    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
+    if (this->mHealth == 0) {
         return false;
     }
     if (this->mMario->isDamaging()) {
@@ -648,7 +648,7 @@ bool MarioActor::fn_803CD0A0() {
     if (_934 != 0) {
         return false;
     }
-    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
+    if (this->mHealth == 0) {
         return false;
     }
     if (this->_3AC != 0) {
@@ -711,7 +711,7 @@ bool MarioActor::fn_803CD2C0() {
 }
 
 bool MarioActor::fn_803CD380() {
-    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
+    if (this->mHealth == 0) {
         return false;
     }
     if (this->_3D8 != 0) {
@@ -724,7 +724,7 @@ bool MarioActor::fn_803CD3C0() {
     if (_934 != 0) {
         return false;
     }
-    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
+    if (this->mHealth == 0) {
         return false;
     }
     if (this->_3AC != 0) {
@@ -875,7 +875,7 @@ void MarioActor::fn_803CE8A0(HitSensor* s) {
 
 
 void MarioActor::fn_803CE9D0(HitSensor* s) {
-    if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
+    if (this->mRushAnimationDelay1054 == 0) {
         _494->calc();
         TVec3f t, r;
         _494->mMtx.getTrans(t);
@@ -891,7 +891,7 @@ void MarioActor::fn_803CE9D0(HitSensor* s) {
 }
 
 void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
-    if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
+    if (this->mRushAnimationDelay1054 == 0) {
         Mtx tmp;
         PSMTXConcat(this->getBaseMtx(), mMainJointMatrix4A8.mMtx, tmp);
         PSMTXCopy(tmp, MR::getJ3DModel(mNullAnimation)->getBaseTRMtx());
@@ -922,7 +922,7 @@ void MarioActor::fn_803CEBC0() {
             drill = true;
         }
         if (drill) {
-            if (_934 == 0 && reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
+            if (_934 == 0 && this->mRushAnimationDelay1054 == 0) {
                 _494->calc();
                 TVec3f t;
                 _494->mMtx.getTrans(t);
@@ -1081,7 +1081,7 @@ bool MarioActor::fn_803CFCA0(HitSensor* s) {
 
 // NONMATCHING: sensor-loop register allocation and verified constant-pool addresses.
 HitSensor* MarioActor::fn_803D0CE0(s32 a) {
-    if (reinterpret_cast<s32&>(this->mHealth) == 0 || reinterpret_cast<s32&>(this->_930) == 0) {
+    if (this->mHealth == 0 || this->_930 == 0) {
         return nullptr;
     }
     f32 best = 100000.0f;
@@ -1123,7 +1123,7 @@ HitSensor* MarioActor::fn_803D0E40(s32 a) {
         if (!this->mMario->isDamaging()) {
             u32 i = 0;
             s32 off = 0;
-            while (i < (u32)reinterpret_cast<s32&>(this->_930)) {
+            while (i < this->_930) {
                 HitSensor* cur = _7E4[i];
                 if (mActionTable1080->testEffect(MR::getSensorHost(cur)->mName, "HD中ラッシュ")) {
                     return cur;
@@ -1144,7 +1144,7 @@ bool MarioActor::fn_803D0F60(HitSensor* s) {
     if (s == nullptr) {
         return false;
     }
-    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
+    if (this->mHealth == 0) {
         return false;
     }
     if (m->isStatusActive(0x13)) {
@@ -1166,7 +1166,7 @@ bool MarioActor::fn_803D11C0() {
     if (((m->mMovementStates.mLowWord >> (9)) & 1)) {
         return true;
     }
-    if (reinterpret_cast<s32&>(this->mHealth) == 0) {
+    if (this->mHealth == 0) {
         return true;
     }
     if (m->fn_8038CCF0()) {
@@ -1944,10 +1944,10 @@ void MarioActor::fn_803D9730() {
 
 void MarioActor::fn_803D9740() {
     if (gIsLuigi) {
-        if (this->mMaxHealth != 3 && (u32)reinterpret_cast<s32&>(this->mHealth) <= 3) {
+        if (this->mMaxHealth != 3 && this->mHealth <= 3) {
             this->mMaxHealth = 3;
         }
-    } else if (this->mMaxHealth != 3 && (u32)reinterpret_cast<s32&>(this->mHealth) <= 3) {
+    } else if (this->mMaxHealth != 3 && this->mHealth <= 3) {
         this->mMaxHealth = 3;
     }
 }

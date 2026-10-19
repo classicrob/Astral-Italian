@@ -1314,7 +1314,7 @@ void Mario::fn_803886B0() {
     mWalkSpeed *= weight;
 }
 
-// NONMATCHING: equivalent comet-condition boolean lowering and unused pointer argument setup.
+// NONMATCHING: equivalent comet-condition boolean lowering.
 void Mario::fn_80388DB0() {
     if (!((this->mMovementStates.mLowWord >> 9) & 1)) {
         if (this->checkDamage() == false) {
@@ -1383,15 +1383,15 @@ void Mario::fn_80388DB0() {
         this->checkSpecialWaitAnimation();
         this->fn_803B4280();
         if (!((this->mDrawStates.mWord >> 9) & 1)) {
-            this->retainMoveDir(mStickPos.x, mStickPos.y, nullptr);
+            this->retainMoveDir(mStickPos.x, mStickPos.y);
         }
     }
 }
 
 // NONMATCHING: the two-stage neighbourhood test is approximated (returns the matched-triangle flag)
 
-// NONMATCHING: independent loads and register scheduling; unused legacy argument.
-void Mario::fn_8038C620(s32) {
+// NONMATCHING: independent loads and register scheduling.
+void Mario::fn_8038C620() {
     if (this->mStateFlags._1 != 0) {
         MR::startLevelSoundPlayer("JumpFromYoshi", -1, -1);
     } else if (this->mStateFlags._0 != 0) {

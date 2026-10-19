@@ -10,7 +10,7 @@ void MarioActor::exeGameOverNoDemo() {
             MR::startPlayerEvent("ゲームオーバー");
         } else {
             MR::startPlayerEvent("演出なし死");
-            reinterpret_cast<s32&>(this->mHealth) = 0;
+            this->mHealth = 0;
         }
         MR::startStarPointerModeDemoMarioDeath(this);
     }
@@ -570,7 +570,7 @@ void MarioActor::initMember() {
     this->_930 = 0;
     _934 = 0;
     _7E2 = 0;
-    reinterpret_cast<u32&>(this->mAnimationDelayE28) = 0;
+    this->mAnimationDelayE28 = 0;
     this->_935 = 0;
     this->_938.zero();
     this->_944 = 0;
@@ -658,7 +658,7 @@ void MarioActor::initMember() {
     for (s32 i = 0; i < 5; i++) {
         mFireBalls[i] = nullptr;
     }
-    reinterpret_cast<u32&>(this->mFireBallDelay) = 0;
+    this->mFireBallDelay = 0;
     this->mBlinkF98 = 0;
     this->mEyeTextureFrameF9A = 0;
     this->mBlinkF9C = 0;
@@ -761,7 +761,7 @@ void MarioActor::fn_803BF6F0() {
     }
     mDL[0] = nullptr;
     mDL[1] = nullptr;
-    reinterpret_cast<s32&>(this->mCurrentDLSize1A0) = 0;
+    this->mCurrentDLSize1A0 = 0;
     this->mCurrDL = 0;
     this->_1A4 = 0.0f;
     reinterpret_cast<s16&>(this->_1A8) = 0;
@@ -1045,7 +1045,7 @@ void MarioActor::fn_803C1E80() {
     (this->mMario)->_350.zero();
     (this->mMario)->_35C.zero();
     reinterpret_cast<s16&>(this->_7DC) = 0;
-    reinterpret_cast<s32&>(this->_930) = 0;
+    this->_930 = 0;
     mVelocity.zero();
     mLastMove.zero();
     this->_1FC = this->mPosition;
@@ -1106,9 +1106,9 @@ void MarioActor::fn_803C2320() {
     if (this->mAnimationDelayE28 != 0) {
         this->mAnimationDelayE28 -= 1;
     }
-    if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) != 0) {
+    if (this->mRushAnimationDelay1054 != 0) {
         this->mRushAnimationDelay1054 -= 1;
-        if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
+        if (this->mRushAnimationDelay1054 == 0) {
             this->_480 = 1;
             this->mMarioAnim->fn_803DDF60();
         }
@@ -1307,14 +1307,14 @@ bool MarioActor::fn_803C33D0() {
 }
 
 void MarioActor::fn_803C34F0() {
-    if (reinterpret_cast<s32&>(this->_92C) != 0) {
+    if (this->_92C != 0) {
         this->_92C -= 1;
-        if (reinterpret_cast<s32&>(this->_92C) == 0) {
+        if (this->_92C == 0) {
             this->decreaseLifeByOne();
             this->fn_803D9740();
         }
     }
-    if ((u32)reinterpret_cast<s32&>(this->mHealth) <= 1) {
+    if (this->mHealth <= 1) {
         if (!MR::isDemoActive() && !MR::isPowerStarGetDemoActive() && !MR::isGalaxyDarkCometAppearInCurrentStage() && MR::isPermitSE() &&
             this->isEnableNerveChange()) {
             this->mMario->mStateFlags._2 = true;
@@ -1553,7 +1553,7 @@ void MarioActor::calcAnimPlayerMode() {
 void MarioActor::calcAnimHorrorBone() {
     if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
         Mario* m = this->mMario;
-        if (reinterpret_cast<s32&>(m->mCometRestrictions) != 0) {
+        if (m->mCometRestrictions != 0) {
             if ((mAllModel)->mCurrentModel == 6) {
                 mAllModel->fn_803E7B80();
                 this->playEffect("ホラーマリオ解除");
@@ -1576,14 +1576,14 @@ void MarioActor::calcAnimHorrorBone() {
             if (p->mCurrentModel != 1) {
                 p->mPreviousModel = p->mCurrentModel;
             }
-            if ((reinterpret_cast<s32&>(this->_37C) & 3) && (this->isNerve(&NrvMarioActor::MarioActorNrvWait::sInstance) || this->isNerve(&NrvMarioActor::MarioActorNrvNoRush::sInstance))) {
+            if ((this->_37C & 3) && (this->isNerve(&NrvMarioActor::MarioActorNrvWait::sInstance) || this->isNerve(&NrvMarioActor::MarioActorNrvNoRush::sInstance))) {
                 mAllModel->fn_803E7880(1);
                 return;
             }
             mAllModel->fn_803E7B80();
             return;
         }
-        if ((mAllModel)->mCurrentModel == 1 && reinterpret_cast<s32&>(this->mHealth) != 0) {
+        if ((mAllModel)->mCurrentModel == 1 && this->mHealth != 0) {
             mAllModel->fn_803E7B80();
         }
     }
@@ -1828,9 +1828,9 @@ void MarioActor::fn_803C59C0() {
 
 
 void MarioActor::fn_803C5AB0(MtxPtr mtx) {
-    if (reinterpret_cast<s32&>(this->_390) != 0) {
+    if (this->_390 != 0) {
         this->fn_803C5B30(mtx);
-    } else if (reinterpret_cast<s32&>(this->_394) != 0) {
+    } else if (this->_394 != 0) {
         this->fn_803C5E20(mtx);
     } else if (!((this->mMario->mMovementStates.mHighWord >> (3)) & 1)) {
         this->_3B0 = 1.0f;

@@ -1532,7 +1532,7 @@ void Mario::writeBackPhyisicalVector() {
 }
 
 
-// NONMATCHING: register/load scheduling and explicit setup of unused legacy arguments.
+// NONMATCHING: register/load scheduling.
 void Mario::update() {
     if (MR::isInAreaObj("DemoPlayerForbidUpdateArea", mPosHolder->mPos) && MR::isDemoActive()) return;
     OSGetTime();
@@ -1602,7 +1602,7 @@ void Mario::update() {
     inputStick();
     checkLockOnHoming();
     fn_80388DB0();
-    fn_8038C620(-1);
+    fn_8038C620();
     fn_803929A0();
     fn_803897A0();
     tryPushToVelocity();
@@ -9329,7 +9329,7 @@ void Mario::calcShadowDir(const TVec3f& rInput, TVec3f* pShadowDir) {
 }
 
 
-void Mario::retainMoveDir(f32 stickX, f32 stickY, TVec3f* pMoveDir) {
+void Mario::retainMoveDir(f32 stickX, f32 stickY) {
     f32 angle = MR::atan2(stickY, stickX);
     f32 difference = fn_803A3780(angle);
     if (((mFlags14.mLowWord >> 20) & 1) && isStickOn()) {
@@ -9397,7 +9397,7 @@ void Mario::calcMoveDir(float stickX, float stickY, TVec3f* pMoveDir, bool isDis
         return;
     }
     if (isDisableMove) {
-        retainMoveDir(stickX, stickY, pMoveDir);
+        retainMoveDir(stickX, stickY);
     }
     const TVec3f& screenX = getCamDirX();
     const TVec3f& screenY = getCamDirY();

@@ -137,7 +137,7 @@ bool Mario::fn_803ACE10() {
     return ret;
 }
 
-void Mario::fn_803AD120(const Triangle* pTri) {
+void Mario::fn_803AD120() {
     if (this->fn_803EF7C0() == 0x20 && this->mTargetWalkSpeedIndex != 0) {
         this->_3F4 = 0.2f;
     }
@@ -431,7 +431,6 @@ bool Mario::taskOnHipDropBlurHopper(u32) {
     return true;
 }
 
-// NONMATCHING: explicit null materialization for an unused Triangle argument.
 void Mario::fn_803ACC40() {
     this->_3F4 = 0.0f;
     if (!((this->mMovementStates.mLowWord >> 21) & 1)) {
@@ -442,7 +441,7 @@ void Mario::fn_803ACC40() {
         this->stopAnimation((const char*)nullptr, (const char*)nullptr);
     }
     this->fn_803ACCE0();
-    this->fn_803AD120(nullptr);
+    this->fn_803AD120();
     this->decideSquatWalkAnimation();
     this->fn_803AD4F0();
     this->mPrevAnimFrame = this->getAnimator()->getFrame();

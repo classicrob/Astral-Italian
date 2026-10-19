@@ -106,7 +106,7 @@ public:
     void fn_8038AB70();
     void fn_8038B9F0();
     void fn_8038C540();
-    void fn_8038C620(s32 arg3);
+    void fn_8038C620();
     bool fn_8038CCF0() const;
     void fn_8038CE40();
     void fn_8038E1A0(const HitInfo* hit, s32 arg2);
@@ -216,7 +216,7 @@ public:
     void fn_803ACE60();
     void fn_803ACF70();
     void fn_803AD0B0();
-    void fn_803AD120(const Triangle* pTri);
+    void fn_803AD120();
     void fn_803AD4F0();
     void fn_803AD5B0();
     void fn_803AD9C0();
@@ -493,7 +493,7 @@ public:
     f32 decideInertiaOnIce(f32);
     f32 decideInertiaOnSlip(f32);
     void calcShadowDir(const TVec3f&, TVec3f*);
-    void retainMoveDir(f32, f32, TVec3f*);
+    void retainMoveDir(f32, f32);
     void calcMoveDir(f32, f32, TVec3f*, bool);
     bool checkLockOnHoming();
     void doLockOnHoming();

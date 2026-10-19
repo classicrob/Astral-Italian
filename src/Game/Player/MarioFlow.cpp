@@ -4,20 +4,6 @@
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-bool Mario::doFlow() {
-    if (isStatusActive(MarioStatus_Flow)) {
-        return false;
-    }
-
-    if (isAnimationRun("空中ひねり")) {
-        return false;
-    }
-
-    changeStatus(mFlow);
-
-    return true;
-}
-
 bool MarioFlow::start() {
     _12 = 0;
     _14 = 0;

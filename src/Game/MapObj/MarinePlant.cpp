@@ -121,7 +121,7 @@ void MarinePlant::initMember(const JMapInfoIter& rIter) {
     }
 }
 
-// NONMATCHING: loop branch order, anonymous vector temporaries, and saved register allocation differ.
+// NONMATCHING: saved registers, stack slots, and independent setup scheduling differ.
 s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& gravity, const TVec3f& side, const TVec3f& up) {
     pOut->set<int>(0, 0, 0);
     s32 ring = 0;
@@ -172,7 +172,7 @@ s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& gravity, const TVe
     return count;
 }
 
-// NONMATCHING: vector temporary stack placement and multiply operand allocation differ.
+// NONMATCHING: vector temporary stack slots differ; ordered arithmetic matches.
 f32 MarinePlant::calcMemberBounds(const TVec3f& rCenter) {
     TVec3f min(rCenter);
     TVec3f max(rCenter);
@@ -205,14 +205,22 @@ f32 MarinePlant::calcMemberBounds(const TVec3f& rCenter) {
     extent -= min;
     if (extent.x < extent.y) {
         if (extent.y < extent.z) {
-            return extent.z * 0.5f;
+            f32 radius = extent.z;
+            radius *= 0.5f;
+            return radius;
         }
-        return extent.y * 0.5f;
+        f32 radius = extent.y;
+        radius *= 0.5f;
+        return radius;
     }
     if (extent.x < extent.z) {
-        return extent.z * 0.5f;
+        f32 radius = extent.z;
+        radius *= 0.5f;
+        return radius;
     }
-    return extent.x * 0.5f;
+    f32 radius = extent.x;
+    radius *= 0.5f;
+    return radius;
 }
 
 void MarinePlant::makeMemberName(char* pBuf, s32 size, const JMapInfoIter& rIter) {

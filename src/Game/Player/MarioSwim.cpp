@@ -896,10 +896,14 @@ bool MarioSwim::close() {
         if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
             if (isAnimationRun("水泳スピン移動") || isAnimationRun("リングダッシュ") || isAnimationRun("水泳ジェット") || isAnimationRun("水泳スピンジャンプ")) {
                 stopAnimation("水泳基本", "落下");
-            } else if (getPlayer()->mJumpVec.dot(getGravityVec()) > 0.0f) {
-                stopAnimation(nullptr, "落下");
             } else {
-                stopAnimation("水泳基本", "落下");
+                Mario* player = getPlayer();
+                const TVec3f& gravity = getGravityVec();
+                if (player->mJumpVec.dot(gravity) > 0.0f) {
+                    stopAnimation(nullptr, "落下");
+                } else {
+                    stopAnimation("水泳基本", "落下");
+                }
             }
         } else {
             stopAnimation(nullptr, "基本");
@@ -3420,10 +3424,14 @@ bool MarioSwim::fn_803FD5E0(s32) {
             getPlayer()->_738 = depth;
             getPlayer()->_73C = mPreviousWaterInfo.mSurfaceNormal;
         }
-        if (_200 > 0.0f && getPlayer()->mVerticalSpeed + mPreviousWaterInfo.mCamWaterDepth < 120.0f) {
-            fn_80400FC0(getPlayer()->getShadowNorm());
-            mSwimState = 0;
-            return false;
+        if (_200 > 0.0f) {
+            f32 height = getPlayer()->mVerticalSpeed;
+            height += mPreviousWaterInfo.mCamWaterDepth;
+            if (height < 120.0f) {
+                fn_80400FC0(getPlayer()->getShadowNorm());
+                mSwimState = 0;
+                return false;
+            }
         }
         if (_200 < 0.7f) {
             mSwimState = 0;
@@ -3442,11 +3450,14 @@ bool MarioSwim::fn_803FD5E0(s32) {
         }
         TVec3f ground;
         mActor->getGroundPos(&ground);
-        if (PSVECDistance(ground, getTrans()) < 100.0f && _200 > 0.0f
-            && getPlayer()->mVerticalSpeed + mPreviousWaterInfo.mCamWaterDepth < 80.0f) {
-            mSwimState = 0;
-            mNextAction = 5;
-            return false;
+        if (PSVECDistance(ground, getTrans()) < 100.0f && _200 > 0.0f) {
+            f32 height = getPlayer()->mVerticalSpeed;
+            height += mPreviousWaterInfo.mCamWaterDepth;
+            if (height < 80.0f) {
+                mSwimState = 0;
+                mNextAction = 5;
+                return false;
+            }
         }
     }
     switch (mSwimState) {

@@ -1,6 +1,7 @@
 #include "Game/System/UserFile.hpp"
 #include "Game/System/ConfigDataHolder.hpp"
 #include "Game/System/GameDataHolder.hpp"
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <RVLFaceLib.h>
 
@@ -30,6 +31,15 @@ s32 UserFile::getStarPieceNum() const {
 
 s32 UserFile::getPlayerMissNum() const {
     return mGameDataHolder->getPlayerMissNum();
+}
+
+bool UserFile::isComplete() const {
+    s32 max = GameDataFunction::getPowerStarNumMax();
+    return mGameDataHolder->calcCurrentPowerStarNum() == max;
+}
+
+s32 UserFile::calcNormalPowerStarNum() const {
+    return mGameDataHolder->calcNormalPowerStarNum();
 }
 
 bool UserFile::getMiiId(void* pMiiId) const {

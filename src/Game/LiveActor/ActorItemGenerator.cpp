@@ -29,7 +29,6 @@ const ActorItemTableEntry sItemTable[6] = {
 };
 
 const char* sGeneratorPrefix = "ItemGenerator";
-const char* sEmptyName = "";
 const char* sNameA = "ヒット";
 const char* sNameB = "踏み";
 const char* sNameC = "ヨッシー食べる";
@@ -85,7 +84,7 @@ ActorItemGenerator* ActorItemGenerator::tryCreate(LiveActor* pActor, const char*
 // fn_8022B200
 bool ActorItemGenerator::loadEntries(const char* pName) {
     ResourceHolder* pHolder = MR::getResourceHolder(mActor);
-    JMapInfo* pCsv = MR::tryCreateCsvParser(pHolder, "%s%s.bcsv", sGeneratorPrefix, pName != NULL ? pName : sEmptyName);
+    JMapInfo* pCsv = MR::tryCreateCsvParser(pHolder, "%s%s.bcsv", sGeneratorPrefix, pName != NULL ? pName : "");
     if (pCsv == NULL) {
         return false;
     }

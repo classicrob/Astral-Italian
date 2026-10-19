@@ -46,14 +46,11 @@ extern "C" int snprintf(char*, unsigned long, const char*, ...);
 extern "C" void __dl__FPv(void*);
 
 // Pod helpers (TU05)
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 
 // Body (TU02) helpers
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 
 // Misc helpers (other units)
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 
 // BODY_PART indexes the weak points of BellyDragonBody (BellyDragon.hpp).
 #define BODY_COUNT(b) ((b)->mWeakPointNum)

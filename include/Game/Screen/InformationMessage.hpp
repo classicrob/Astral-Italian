@@ -29,11 +29,11 @@ public:
         mIsCenter = isCenter;
     }
 
-    // core4: accessors used by ScreenUtil (names guessed; PLACEHOLDER(core))
-    void setWindowType(s32 windowType) {  // PLACEHOLDER(core): name guessed; writes mWindowType (0x30)
+    // Accessors used by ScreenUtil.
+    void setWindowType(s32 windowType) {  // original name unknown; named by behaviour: selects the message window placement (0x30).
         mWindowType = windowType;
     }
-    void setAButtonPosFlag(bool isOn) {  // PLACEHOLDER(core): name guessed; writes mIsAButtonOpened (0x35)
+    void setAButtonPosFlag(bool isOn) {  // original name unknown; named by behaviour: sets the A-button position flag (0x35).
         mIsAButtonOpened = isOn;
     }
 

@@ -523,7 +523,7 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
         return false;
     }
 
-    if (MR::isPlayerDamaging() && !MR::isPlayerDamageCooldown()) {
+    if (MR::isPlayerDamaging() && !MR::isPlayerFireDamageActive()) {
         return false;
     }
 

@@ -4,8 +4,8 @@
 #include "Game/Util/StringUtil.hpp"
 
 namespace {
-    static const char* sFollowInfoTagName[3] = {"MapParts_ID", "Obj_ID", "ChildObjId"};
-    static const char* sInfoNameTable[3] = {"mappartsinfo", "objinfo", "childobjinfo"};
+    static const char* sFollowInfoTagName[2][3] = {{"MapParts_ID", "ParentId", nullptr}, {"Obj_ID", nullptr, nullptr}};
+    static const char* sInfoNameTable[2] = {"MapPartsInfo", "ObjInfo"};
 
     s32 getInfoType(const JMapInfo* pInfo) {
         const char* pName = pInfo->getName();
@@ -19,6 +19,9 @@ namespace {
         return -1;
     }
 };  // namespace
+
+JMapLinkInfo::JMapLinkInfo() : mFollowID(-1), mZoneID(-1), mContext(-1) {
+}
 
 JMapLinkInfo::JMapLinkInfo(const JMapInfoIter& rIter, bool linked) {
     mFollowID = -1;
@@ -73,14 +76,20 @@ void JMapLinkInfo::setLinkInfo(const JMapInfoIter& rIter) {
         s32 infoType = -1;
         bool found = false;
 
-        for (s32 i = 0; i < 3; i++) {
-            s32 id = -1;
-            rIter.getValue< s32 >(::sFollowInfoTagName[i], &id);
+        for (s32 i = 0; i < 2; i++) {
+            for (s32 j = 0; ; j++) {
+                const char* tag = ::sFollowInfoTagName[i][j];
+                if (tag == nullptr) {
+                    break;
+                }
+                s32 id = -1;
+                rIter.getValue< s32 >(tag, &id);
 
-            if (id >= 0 && !found) {
-                linkId = id;
-                infoType = i;
-                found = true;
+                if (id >= 0 && !found) {
+                    linkId = id;
+                    infoType = i;
+                    found = true;
+                }
             }
         }
 

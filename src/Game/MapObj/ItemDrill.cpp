@@ -368,7 +368,7 @@ bool ItemDrill::startDrill() {
     }
 
     JMath::gekko_ps_copy12(&mMtxFC, MR::getPlayerBaseMtx());
-    MR::resetPlayerFootState();
+    MR::enablePlayerSilhouetteDuringRush();
     mDrillingTime = 0;
     mUnk220 = false;
     setNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveStart));

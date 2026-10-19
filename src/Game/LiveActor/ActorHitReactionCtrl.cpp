@@ -14,6 +14,11 @@ namespace {
 
 }  // namespace
 
+ActorHitReactionCtrlEntry::ActorHitReactionCtrlEntry()
+    : mReactionName(nullptr), mEffectName(nullptr), mEffectBetweenOffset(0.0f), mSoundName(nullptr),
+      mPadRumbleName(nullptr), mCameraShakeName(nullptr), mStopSceneFrame(-1), mIsStopSceneForHitEffect(true) {
+}
+
 ActorHitReactionCtrl* ActorHitReactionCtrl::tryCreate(LiveActor* pActor) {
     ResourceHolder* pHolder = MR::getResourceHolder(pActor);
     if (pHolder == NULL) {

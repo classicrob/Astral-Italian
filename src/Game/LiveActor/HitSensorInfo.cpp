@@ -28,7 +28,6 @@ void HitSensorInfo::update() {
     if (mFollowMtx != nullptr) {
         v20.set< f32 >((*mFollowMtx)[3], (*mFollowMtx)[7], (*mFollowMtx)[11]);
         v20.x += (((*mFollowMtx)[2] * _C.z) + (((*mFollowMtx)[0] * _C.x) + ((*mFollowMtx)[1] * _C.y)));
-        MtxPtr anotherMtx = mFollowMtx;
         v20.y += (((*mFollowMtx)[6] * _C.z) + (((*mFollowMtx)[4] * _C.x) + ((*mFollowMtx)[5] * _C.y)));
         v20.z += (((*mFollowMtx)[10] * _C.z) + (((*mFollowMtx)[8] * _C.x) + ((*mFollowMtx)[9] * _C.y)));
     } else {

@@ -160,9 +160,8 @@ namespace MR {
         ::getCaptureScreenDirector()->captureIfAllow(pParam1);
     }
 
-// NONMATCHING: target inlines a 0x14 pointer load from CaptureScreenDirector; header layout puts the texture pointer at 0x1C and getResTIMG is out of line
     bool isExistCaptureScreenTexture() {
-        return ::getCaptureScreenDirector()->getResTIMG() != nullptr;
+        return ::getCaptureScreenDirector()->hasCurrentTiming();
     }
 
     const ResTIMG* getScreenResTIMG() {

@@ -1,3 +1,4 @@
+#define JGEOMETRY_OUTLINE_MATRIX_SET
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Animation/BckCtrl.hpp"
 #include "Game/Animation/XanimeCore.hpp"
@@ -268,7 +269,7 @@ namespace MR {
 
     void setRotation(LiveActor* pActor, const TPos3f& rMtx) {
         TPos3f mtx;
-        mtx.set(rMtx);
+        mtx.set(static_cast< const f32 (*)[4] >(rMtx));
         mtx.getEuler(pActor->mRotation);
         pActor->mRotation.mult(57.295776f);
     }

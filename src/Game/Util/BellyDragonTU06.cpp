@@ -5,7 +5,6 @@
 #include "Game/Util.hpp"
 
 extern "C" void* __nwa__FUl(u32);
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
 
 namespace JMath {
@@ -45,7 +44,7 @@ BellyDragonState::~BellyDragonState() {
 }
 
 void BellyDragonState::exeWait() {
-    bool isReady = BellyDragonUtil::tryStartDemo(mHost, mStateName, false);
+    s32 isReady = BellyDragonUtil::tryStartDemo(mHost, mStateName, false);
     if (isReady) {
         MR::overlayWithPreviousScreen(2);
         if (mIsDeleteEffect && BellyDragonUtil::isLv2(mHost)) {

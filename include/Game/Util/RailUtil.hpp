@@ -117,6 +117,7 @@ namespace MR {
     bool getRailArg1WithInit(const RailRider*, s32*);
     bool getRailPointArg0WithInit(const LiveActor*, s32, s32*);
     bool getRailPointArg2WithInit(const LiveActor*, s32, s32*);
+    bool getRailPointArg2WithInit(const LiveActor*, s32, f32*);
     bool getRailPointArg0NoInit(const LiveActor*, s32, s32*);
     bool getRailPointArg4NoInit(const LiveActor*, s32, s32*);
     bool getRailPointArg6NoInit(const LiveActor*, s32, s32*);
@@ -161,5 +162,6 @@ namespace MR {
     void calcRailRateToNextPoint(f32*, const LiveActor*);
     bool getRailArg2NoInit(const LiveActor*, s32*);
     bool getRailArg4NoInit(const LiveActor*, s32*);
+    bool getRailArg5NoInit(const LiveActor*, s32*);
     bool getRailPointArg3WithInit(const LiveActor*, s32, f32*);
 };  // namespace MR

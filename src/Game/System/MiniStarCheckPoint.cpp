@@ -56,6 +56,11 @@ namespace {
     TVec3f sZeroOffset(0.0f, 0.0f, 0.0f);
 };  // namespace
 
+MiniStarCheckPoint::MiniStarCheckPoint(const char* pKind, s32 starNum, s32 partsIndex, s32 param1, s32 worldId)
+    : LiveActor("スター数のチェックポイント"), mKind(pKind), mStarNum(starNum), mUnk98(partsIndex),
+      mUnk9C(param1), mUnkA0(worldId), mChild(nullptr), mIsDone(false) {
+}
+
 MiniStarCheckPoint::~MiniStarCheckPoint() {}
 
 void MiniStarCheckPoint::init(const JMapInfoIter& rIter) {
@@ -77,7 +82,7 @@ void MiniStarCheckPoint::init(const JMapInfoIter& rIter) {
 
     mChild = new MiniWorldMapMark(this, "MiniStarCheckPointMark");
 
-    initWithoutIter();
+    mChild->initWithoutIter();
     initNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvClose::sInstance, 0);
 
     if (mStarNum <= MR::getPowerStarNum()) {

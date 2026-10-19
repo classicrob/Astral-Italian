@@ -293,9 +293,10 @@ namespace MR {
             return;
         }
 
-        if (!(AudWrap::getBgmMgr()->mCurrentBGM[0] == id && isPlayingStageBgm())) {
-            AudWrap::startStageBgm(id, false, -1);
+        if (AudWrap::getBgmMgr()->mCurrentBGM[0] == id && isPlayingStageBgm()) {
+            return;
         }
+        AudWrap::startStageBgm(id, false, -1);
 
         if (volumeIndex < 0) {
             return;

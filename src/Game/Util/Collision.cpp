@@ -6,12 +6,6 @@
 #include "Game/Util/CollisionPartsFilter.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 
-namespace {
-    NO_INLINE u32 getStrikeInfoNumCategory(s32 category) {
-        return MR::getCollisionDirector()->getCategoryKeeper(category)->mHitCount;
-    }
-}  // namespace
-
 namespace Collision {
     s32 checkStrikePointToDashYoshiStepAndMap(const TVec3f& rPoint, HitInfo* pHitInfo) {
         // NONMATCHING: target calls checkStrikePoint(vec, info, s32, s32); header only declares the 2-arg form (Map lane)
@@ -89,15 +83,15 @@ namespace Collision {
     }
 
     const HitInfo* getStrikeInfoDashYoshiStepAndMap(u32 index) {
-        if (getStrikeInfoNumCategory(4) > index) {
+        if (MR::getStrikeInfoNumCategory(4) > index) {
             return MR::getCollisionDirector()->getCategoryKeeper(4)->getStrikeInfo(index);
         }
 
-        u32 dashNum = getStrikeInfoNumCategory(4);
+        u32 dashNum = MR::getStrikeInfoNumCategory(4);
         return MR::getCollisionDirector()->getCategoryKeeper(0)->getStrikeInfo(index - dashNum);
     }
 
     u32 getStrikeInfoNumMap() {
-        return getStrikeInfoNumCategory(0);
+        return MR::getStrikeInfoNumCategory(0);
     }
 };  // namespace Collision

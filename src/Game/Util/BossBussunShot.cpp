@@ -115,7 +115,10 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
         if (turn > 0.0f) {
             TVec3f target(mSideVec.dot(toPlayer) > 0.0f ? toPlayer : -toPlayer);
             target *= 1.0f / dist;
-            TVec3f yAxis(0.0f, 1.0f, 0.0f);
+            TVec3f yAxis;
+            yAxis.x = 0.0f;
+            yAxis.y = 1.0f;
+            yAxis.z = 0.0f;
             MR::turnVecToVecDegree(&mSideVec, mSideVec, target, turn, yAxis);
             JMAVECScaleAdd(&mUpVec, &mSideVec, &mSideVec, -mUpVec.dot(mSideVec));
             MR::normalize(&mSideVec);

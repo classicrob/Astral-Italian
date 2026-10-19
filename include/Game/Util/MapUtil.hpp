@@ -13,6 +13,7 @@ class Triangle;
 class TriangleFilterBase;
 
 namespace MR {
+    u32 getStrikeInfoNumCategory(s32 category) NO_INLINE;
     bool isGroundCodeSnowIter(const JMapInfoIter&);
     bool isGroundCodePressIter(const JMapInfoIter&);
     bool isGroundCodeSlip(const Triangle*);

@@ -10,6 +10,14 @@
 #include "Game/Util/SystemUtil.hpp"
 #include <revolution/gd/GDBase.h>
 
+namespace MR {
+    template <>
+    FunctorBase* FunctorV2M< ResourceHolderManager*, void (ResourceHolderManager::*)(const char*, CreateResourceHolderArgs*),
+                           const char*, CreateResourceHolderArgs* >::clone(JKRHeap* pHeap) const {
+        return new (pHeap, 0) FunctorV2M(*this);
+    }
+}
+
 namespace {
     class GDCurrentRestorer {
     public:

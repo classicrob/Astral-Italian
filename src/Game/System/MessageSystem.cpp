@@ -78,7 +78,7 @@ TalkNode* MessageSystem::findNode(const char* pMessageId, const MessageData* pDa
         return nullptr;
     }
 
-    return reinterpret_cast< TalkNode* >(pData->getNodeDataPtr(index));
+    return reinterpret_cast< TalkNode* >(pData->getNodeDataPtr(static_cast< u16 >(index)));
 }
 
 TalkNode* MessageSystem::getNode(u32 index, const MessageData* pData) {

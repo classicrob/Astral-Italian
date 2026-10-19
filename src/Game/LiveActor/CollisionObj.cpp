@@ -8,7 +8,7 @@
 DemoObj::~DemoObj() {}
 CollisionObj::~CollisionObj() {}
 
-CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, int drawType)
+CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, s32 drawType)
     : LiveActor(pName), mBaseMtx(nullptr) {
     if (drawType < -1) {
         drawType = 0x1d;

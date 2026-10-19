@@ -3,7 +3,7 @@
 #include "Game/System/WorldMapResultLocal.hpp"
 
 WorldMapResultStateCometAppear::WorldMapResultStateCometAppear(WorldMapResultCommand* pHost)
-    : ActorStateBase< WorldMapResultCommand >("State[コメット飛来]", pHost), mDone(false), mLayout(nullptr), mComet(nullptr), mNames(), mNum(0),
+    : ActorStateBase< WorldMapResultCommand >("State[コメット飛来]", pHost), mDone(false), mComet(nullptr), mNames(), mNum(0),
       mCurrent(0), mFrom(0.0f, 0.0f, 0.0f), mTo(0.0f, 0.0f, 100.0f) {
 }
 

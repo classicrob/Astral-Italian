@@ -25,6 +25,10 @@ PlayerHeapHolder::PlayerHeapHolder() : mCondition(), mNapaHeap(), mGDDRHeap(), m
     condition->mIsDataMario = mIsDataMario;
 }
 
+ConditionUsePlayerHeap* PlayerHeapHolder::getCondition() const {
+    return mCondition;
+}
+
 void PlayerHeapHolder::adjust() {
     JKRExpHeap* napa = mNapaHeap;
     if (!napa->isEmpty()) {

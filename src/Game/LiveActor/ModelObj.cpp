@@ -28,9 +28,8 @@ ModelObj::ModelObj(const char* pName, const char* pModelName, MtxPtr pMtx, int d
 
         MR::connectToScene(this, movementType, calcAnimType, drawBufferType, MR::DrawType_None);
         initSound(4, nullptr, nullptr, TVec3f(0.0f));
+        initEffectKeeper(8, nullptr, false);
     }
-
-    initEffectKeeper(8, nullptr, false);
 }
 
 void ModelObj::init(const JMapInfoIter& rIter) {

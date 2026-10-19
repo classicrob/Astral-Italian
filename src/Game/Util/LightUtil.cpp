@@ -32,7 +32,17 @@ namespace MR {
         MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->loadLightPlayer();
     }
 
+    void loadPointLightSub() {
+        MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->loadPointLightSub();
+    }
 
+    void initActorLightInfoLightType(LiveActor* pActor, s32 type) {
+        pActor->mActorLightCtrl->setLightType(type);
+    }
+
+    void initActorLightInfoDrawBuffer(LiveActor* pActor, DrawBuffer* pBuffer) {
+        pActor->mActorLightCtrl->_8 = pBuffer;
+    }
 
     void requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {
         MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPointCtrl->requestPointLight(pActor, pos, color, intensity, duration, distRef);

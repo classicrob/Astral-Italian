@@ -106,16 +106,15 @@ namespace MR {
         pMtx[2][3] = tz;
     }
 
-    // NONMATCHING: regalloc
     void rotateMtxLocalX(MtxPtr pMtx, f32 rad) {
         f32 cosAngle = JMACosRadian(rad);
         f32 sinAngle = JMASinRadian(rad);
-        f32 a0 = cosAngle * pMtx[0][1] - sinAngle * pMtx[0][2];
-        f32 a1 = cosAngle * pMtx[1][1] - sinAngle * pMtx[1][2];
-        f32 a2 = cosAngle * pMtx[2][1] - sinAngle * pMtx[2][2];
-        f32 b0 = sinAngle * pMtx[0][1] + cosAngle * pMtx[0][2];
-        f32 b1 = sinAngle * pMtx[1][1] + cosAngle * pMtx[1][2];
-        f32 b2 = sinAngle * pMtx[2][1] + cosAngle * pMtx[2][2];
+        f32 a0 = cosAngle * pMtx[0][1] + sinAngle * pMtx[0][2];
+        f32 a1 = cosAngle * pMtx[1][1] + sinAngle * pMtx[1][2];
+        f32 a2 = cosAngle * pMtx[2][1] + sinAngle * pMtx[2][2];
+        f32 b0 = -sinAngle * pMtx[0][1] + cosAngle * pMtx[0][2];
+        f32 b1 = -sinAngle * pMtx[1][1] + cosAngle * pMtx[1][2];
+        f32 b2 = -sinAngle * pMtx[2][1] + cosAngle * pMtx[2][2];
         pMtx[0][1] = a0;
         pMtx[1][1] = a1;
         pMtx[2][1] = a2;
@@ -141,16 +140,15 @@ namespace MR {
         pMtx[2][2] = b2;
     }
 
-    // NONMATCHING: regalloc
     void rotateMtxLocalZ(MtxPtr pMtx, f32 rad) {
         f32 cosAngle = JMACosRadian(rad);
         f32 sinAngle = JMASinRadian(rad);
-        f32 a0 = cosAngle * pMtx[0][0] - sinAngle * pMtx[0][1];
-        f32 a1 = cosAngle * pMtx[1][0] - sinAngle * pMtx[1][1];
-        f32 a2 = cosAngle * pMtx[2][0] - sinAngle * pMtx[2][1];
-        f32 b0 = sinAngle * pMtx[0][0] + cosAngle * pMtx[0][1];
-        f32 b1 = sinAngle * pMtx[1][0] + cosAngle * pMtx[1][1];
-        f32 b2 = sinAngle * pMtx[2][0] + cosAngle * pMtx[2][1];
+        f32 a0 = cosAngle * pMtx[0][0] + sinAngle * pMtx[0][1];
+        f32 a1 = cosAngle * pMtx[1][0] + sinAngle * pMtx[1][1];
+        f32 a2 = cosAngle * pMtx[2][0] + sinAngle * pMtx[2][1];
+        f32 b0 = -sinAngle * pMtx[0][0] + cosAngle * pMtx[0][1];
+        f32 b1 = -sinAngle * pMtx[1][0] + cosAngle * pMtx[1][1];
+        f32 b2 = -sinAngle * pMtx[2][0] + cosAngle * pMtx[2][1];
         pMtx[0][0] = a0;
         pMtx[1][0] = a1;
         pMtx[2][0] = a2;

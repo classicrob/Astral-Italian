@@ -14,7 +14,7 @@ namespace GameDataFunction {
     void resetSysConfigCounters();
     bool hasBronzeStar(const char*, s32);
     bool existsGameEventFlagOpenScenario(const char*, s32);
-    bool getSysConfigFileEncouragedPal16();
+    u8 getSysConfigFileEncouragedPal16();
     void setSysConfigFileEncouragedPal16();
     u32 getScenarioClearTime(const char*, s32);
     u32 getBestScoreAttackCurrentStage(const char* pStageName = nullptr);  // SMG2 symbol FPCc (core h10)

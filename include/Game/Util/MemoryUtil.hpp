@@ -35,7 +35,7 @@ namespace MR {
     bool isEqualCurrentHeap(JKRHeap* pHeap);
     void adjustHeapSize(JKRExpHeap* pHeap);
     bool tryGetHeapSizeExceptEntry(u32*, const char*, const char*);
-    bool existsWorldMapHeapGalaxy(const char*);
+    bool existsWorldMapHeapGalaxy(const char*) NO_INLINE;
     bool tryGetHeapSizeExceptForGalaxy(u32*, const char*, const char*, const char*, s32);
     bool isUseWorldMapHeapForGalaxy(const char*, const char*, s32);
     // Extracts the initialization flag in a KCollision binary header.

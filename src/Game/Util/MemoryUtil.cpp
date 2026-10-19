@@ -25,7 +25,7 @@ namespace MR {
         return false;
     }
 
-    bool existsWorldMapHeapGalaxy(const char* pStage) {
+    bool existsWorldMapHeapGalaxy(const char* pStage) NO_INLINE {
         return isExistElement(GameSystemDataFunction::getWorldMapHeapGalaxy(), "GalaxyName", pStage);
     }
 

@@ -57,7 +57,7 @@ void MarioHairAndHatModel::fn_803EC780() {
 bool MarioHairAndHatModel::fn_803EC7F0(const char* name) {
     if (isNerve(&NrvMarioHairAndHatModel::MarioHairAndHatModelNrvNoCap::sInstance)) return false;
     bool started = false;
-    if (MR::fn_80008F00(this, name) && MR::isPlayerFootprintBlocked()) {
+    if (MR::fn_80008F00(this, name) && MR::isPlayerDefaultModel()) {
         MR::showModel(this);
         MR::startAction(this, name);
         started = true;
@@ -72,7 +72,7 @@ bool MarioHairAndHatModel::fn_803EC8A0(const char* name, const BckCtrlData& data
 }
 void MarioHairAndHatModel::exeNoCap() {
     if (MR::isFirstStep(this)) { _90 = _94; MR::startAction(this, "NoCap"); MR::startPlayerNormalBva(); }
-    if (MR::isInAreaObj("MarioNoCapArea", *MR::getPlayerPos()) && MR::isPlayerFootprintBlocked()) {
+    if (MR::isInAreaObj("MarioNoCapArea", *MR::getPlayerPos()) && MR::isPlayerDefaultModel()) {
         MR::showModel(this); MR::hidePlayerJoint("Cap0");
     } else { MR::hideModelAndOnCalcAnim(this); MR::showPlayerJoint("Cap0"); }
 }

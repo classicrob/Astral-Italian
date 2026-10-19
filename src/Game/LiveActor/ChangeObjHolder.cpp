@@ -33,11 +33,12 @@ void ChangeObjHolder::init(const JMapInfoIter&) {
 }
 
 void ChangeObjHolder::registerChangeObj(ChangeObj* pObj, const JMapInfoIter& rIter) {
+    s32 count = mCount;
     s32 zoneId = MR::getPlacedZoneId(rIter);
     s32 linkId;
     MR::getJMapInfoLinkID(rIter, &linkId);
 
-    for (s32 i = 0; i < mCount; i++) {
+    for (s32 i = 0; i < count; i++) {
         if (mChangeObjs[i]->tryRegister(pObj, zoneId, linkId)) {
             break;
         }

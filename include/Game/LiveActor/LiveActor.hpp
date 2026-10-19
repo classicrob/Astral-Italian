@@ -41,14 +41,14 @@ public:
     virtual MtxPtr getTakingMtx() const;
     virtual void startClipped();
     virtual void endClipped();
-    virtual void control();
+    virtual void control() {}
     virtual void calcAndSetBaseMtx();
     virtual void updateHitSensor(HitSensor*);
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
-    virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) { return false; }
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*) { return false; }
 
     void setNerve(const Nerve*);
     bool isNerve(const Nerve*) const;

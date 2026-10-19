@@ -744,7 +744,7 @@ bool Pole::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         tryStartTreeAnim("Land");
 
         if (isTree()) {
-            MR::resetPlayerFootState();
+            MR::enablePlayerSilhouetteDuringRush();
         }
 
         return true;

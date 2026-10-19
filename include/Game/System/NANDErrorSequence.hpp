@@ -31,6 +31,7 @@ public:
     void exeNoSaveConfirmLessBlockOrInode();
     void exeLessBlockOrInodeConfirm();
     void exeGoWiiMenu();
+    void exeShutdown();
     void exeCheckEnableToCreateOnPreloading();
     void exeCheckEnableToCreateAfterRemove();
     bool isEnablePointer() const;

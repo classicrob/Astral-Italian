@@ -5,6 +5,10 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
+MiniWorldWarpPoint::MiniWorldWarpPoint(WorldMapResultWorld* pWorld, s32 pointIndex, bool isForward, s32 targetWorld)
+    : LiveActor("ワールドワープポイント"), mWorld(pWorld), mPointIndex(pointIndex), mIsForward(isForward) {
+}
+
 void MiniWorldWarpPoint::init(const JMapInfoIter& rIter) {
     MR::initActor(this, "MiniWorldWarpPoint", "WMap", false);
     makeActorAppeared();

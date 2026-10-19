@@ -63,13 +63,8 @@ namespace NrvLogoScene {
     }
 };  // namespace NrvLogoScene
 
-// NONMATCHING: extra null check + initialize() call sequence after `new` (ours 80%; target has one null test)
 J3DDrawBuffer* ModelWipeScene::createDrawBuffer() {
-    J3DDrawBuffer* pBuffer = new J3DDrawBuffer;
-    if (pBuffer) {
-        pBuffer->initialize();
-        pBuffer->allocBuffer(0x20);
-    }
+    J3DDrawBuffer* pBuffer = new J3DDrawBuffer(0x20);
     pBuffer->mSortMode = 5;
     return pBuffer;
 }

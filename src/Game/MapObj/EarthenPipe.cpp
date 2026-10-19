@@ -493,7 +493,7 @@ void EarthenPipe::launchPlayer(bool quick) {
     else MR::startBckPlayer("EarthenPipeJump", nullptr);
     MR::setPlayerFrontTargetVec(front, 1);
     MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, velocity);
-    MR::setPlayerFootState(5);
+    MR::setPlayerSilhouetteHiddenFrames(5);
     mHostActor = nullptr;
     mTargetPipe->tryHideDown();
     if (!mIsRabbitRunawayWait && MR::isValidSwitchB(this)) MR::onSwitchB(this);

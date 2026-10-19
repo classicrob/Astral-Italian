@@ -41,7 +41,7 @@ public:
     /* 0x20 */ MR::Vector< MR::AssignableArray< ShadowController* > > _18;
     /* 0x2C */ f32 mFarClip;
     /* 0x30 */ f32 mDefaultFarClip;
-    /* 0x34 */ bool mIsFarClipEnabled;
+    /* 0x34 */ u8 mIsFarClipEnabled;
     /* 0x35 */ bool mIsDefaultFarClipEnabled;
 };
 

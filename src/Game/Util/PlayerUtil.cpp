@@ -130,7 +130,7 @@ namespace MR {
         MarioAccess::fn_803B7170(pOut);
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7240 (confront-death ? const : actor 0x724)
+    // original name unknown; named by behaviour: returns Mario+0x724, or a fixed value during confront-death or disabled nerve changes.
     f32 getPlayerConfrontDeathParam() {
         return MarioAccess::fn_803B7240();
     }
@@ -435,7 +435,7 @@ namespace MR {
         return MarioAccess::fn_803B5970() == 1;
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B59A0 (swim/life decrement)
+    // original name unknown; named by behaviour: decrements swim life, otherwise requests a life decrement with timer 20.
     void decrementPlayerSwimLife() {
         MarioAccess::fn_803B59A0();
     }
@@ -472,7 +472,7 @@ namespace MR {
         return MarioAccess::isSwingAction();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B4E40 (jumping && state 0x42C == 5)
+    // original name unknown; named by behaviour: tests jumping and Mario jump action 5.
     bool isPlayerInJumpAction() {
         return MarioAccess::fn_803B4E40();
     }
@@ -498,28 +498,28 @@ namespace MR {
         return MarioAccess::isNeedBrakingCamera();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6010 (actor 0xE25 = 1, 0xE28 = 0)
-    void resetPlayerFootState() {
+    // original name unknown; named by behaviour: sets the rush silhouette override and clears its hidden-frame timer.
+    void enablePlayerSilhouetteDuringRush() {
         MarioAccess::fn_803B6010();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6050 (actor 0xE28 = arg)
-    void setPlayerFootState(s32 pParam1) {
+    // original name unknown; named by behaviour: sets the countdown that suppresses silhouette visibility.
+    void setPlayerSilhouetteHiddenFrames(s32 pParam1) {
         MarioAccess::fn_803B6050(pParam1);
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6090 (footprint clear)
+    // original name unknown; named by behaviour: clears the actor footprint emitter if present.
     void clearPlayerFootprints() {
         MarioAccess::fn_803B6090();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B71E0 (actor 0x1066 = 1)
-    void setPlayerRollingOn() {
+    // original name unknown; named by behaviour: sets the flag that skips reflection drawing and view updates.
+    void disablePlayerReflection() {
         MarioAccess::fn_803B71E0();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7210 (actor 0x1066 = 0)
-    void setPlayerRollingOff() {
+    // original name unknown; named by behaviour: clears the flag that skips reflection drawing and view updates.
+    void enablePlayerReflection() {
         MarioAccess::fn_803B7210();
     }
 
@@ -574,8 +574,8 @@ namespace MR {
         return MarioAccess::getPlayerActor()->isDamaging();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioActor::fn_803B8A80 (returns bool)
-    bool isPlayerDamageCooldown() {
+    // original name unknown; named by behaviour: tests Mario flag 0x80000000 or fire states 8 through 10.
+    bool isPlayerFireDamageActive() {
         return MarioAccess::getPlayerActor()->fn_803B8A80();
     }
 
@@ -1108,8 +1108,8 @@ namespace MR {
         return MarioAccess::isPowerupTransforming();
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B71B0 (actor->fn_803BE800())
-    bool isPlayerFootprintBlocked() {
+    // original name unknown; named by behaviour: compares the selected Mario model with MarioAllModel::getJ3DModel().
+    bool isPlayerDefaultModel() {
         return MarioAccess::fn_803B71B0();
     }
 

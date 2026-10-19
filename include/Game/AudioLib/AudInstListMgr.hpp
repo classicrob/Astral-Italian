@@ -4,6 +4,7 @@
 
 class JAUSectionHeap;
 class JKRArchive;
+class JAISoundID;
 
 // One bank-program wave slot; 0x14 bytes, set up by the (still unnamed) slot ctor fn_800871A0.
 struct AudInstWaveSlot {
@@ -28,9 +29,11 @@ class AudInstListMgr {
 public:
     AudInstListMgr(JAUSectionHeap*, JKRArchive*);  // fn_80087490
     static void requestInstrumentRefresh();
+    static void requestStageInstrumentRefresh();  // fn_80088600: sets the stage instrument refresh flag (+0x10)
     void fn_80087940(const char*, bool);
     void fn_802204A0(const char*, bool);
     void requestWave(s32, s32, bool);
+    void requestSoundWaves(JAISoundID, bool);  // fn_800879A0: request instruments referenced by a sound ID
     void requestWaveForSystem(s32, s32, bool);
     void loadRequestedWaves(bool, bool);
     bool isLoadDone();
@@ -40,7 +43,7 @@ public:
     void clearStageWaveResources();
     void resetStageResources();
     void loadInstList();                           // fn_80087560
-    void requestStageUseInstList(const char*);     // fn_80087740; PLACEHOLDER(core) name
+    void requestStageUseInstList(const char*);     // original name unknown; named by behaviour: requests instrument lists from stage use-resources (0x80087740).
 
     /* 0x0000 */ JAUSectionHeap* mSectionHeap;
     /* 0x0004 */ JKRArchive* mArchive;

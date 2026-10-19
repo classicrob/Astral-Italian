@@ -58,5 +58,15 @@ public:
 };
 
 namespace MR {
-    void* createCollisionPartsFilterDelegator(bool (*)(const CollisionParts*));
+    CollisionPartsFilterBase* createCollisionPartsFilterDelegator(bool (*)(const CollisionParts*));
 };  // namespace MR
+
+class CollisionPartsFilterFunction : public CollisionPartsFilterBase {
+public:
+    typedef bool (*Filter)(const CollisionParts*);
+    CollisionPartsFilterFunction(Filter filter) : mFilter(filter) {
+    }
+    virtual bool isInvalidParts(const CollisionParts*) const;
+
+    Filter mFilter;
+};

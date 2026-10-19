@@ -406,12 +406,6 @@ namespace MR {
     bool isActionStart(const LiveActor*, const char*);
     bool tryStartAction(const LiveActor*, const char*);
     void startAllAnim(const LiveActor*, const char*);
-    bool isBckExist(const LiveActor*, const char*);
-    bool isBtkExist(const LiveActor*, const char*);
-    bool isBrkExist(const LiveActor*, const char*);
-    bool isBpkExist(const LiveActor*, const char*);
-    bool isBtpExist(const LiveActor*, const char*);
-    bool isBvaExist(const LiveActor*, const char*);
     void changeModelDataTexAll(LiveActor*, const char*, const ResTIMG&);
     XjointTransform* getJointTransform(const LiveActor*, const char*);
     void setJointTransformLocalMtx(const LiveActor*, const char*, MtxPtr);

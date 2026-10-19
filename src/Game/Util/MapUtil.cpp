@@ -17,6 +17,10 @@
 #include "Game/Util/TriangleFilter.hpp"
 
 namespace MR {
+    u32 getStrikeInfoNumCategory(s32 category) {
+        return MR::getCollisionDirector()->getCategoryKeeper(category)->mHitCount;
+    }
+
     bool isGroundCodeWaterIter(const JMapInfoIter&) NO_INLINE;
     bool isGroundCodeDamageElectric(const Triangle*) NO_INLINE;
     bool isGroundCodeWaterBottomL(const Triangle*) NO_INLINE;
@@ -28,15 +32,11 @@ static HitInfo mSortBuffer[32];
 static u32 mSortCount;
 
 namespace {
-    u32 getStrikeInfoNumCategory(s32 category) NO_INLINE;
     bool getFirstPolyOnLineCategoryExceptActor(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const LiveActor*, s32) NO_INLINE;
     bool getFirstPolyOnLineToMapAndMoveLimitWithFilter(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const TriangleFilterBase*,
                                                        const CollisionPartsFilterBase*) NO_INLINE;
     bool getFirstPolyOnLineCategoryWithSensorType(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, u32, s32) NO_INLINE;
 
-    u32 getStrikeInfoNumCategory(s32 category) {
-        return MR::getCollisionDirector()->getCategoryKeeper(category)->mHitCount;
-    }
 
     const HitInfo* getStrikeInfoCategory(s32 category, u32 index) {
         return MR::getCollisionDirector()->getCategoryKeeper(category)->getStrikeInfo(index);
@@ -1202,6 +1202,6 @@ namespace Collision {
     }
 
     u32 getStrikeInfoNumMap() {
-        return ::getStrikeInfoNumCategory(0);
+        return MR::getStrikeInfoNumCategory(0);
     }
 };  // namespace Collision

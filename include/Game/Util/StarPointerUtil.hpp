@@ -123,7 +123,7 @@ namespace MR {
     bool requestTicoFatGuidance();
     bool requestYoshiEatGuidance(bool);
     bool requestYoshiCaptureGuidance();
-    // PLACEHOLDER(core): target fn_80422710 (unnamed, auto_03_804219F4) = getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FA40(); owner YoshiTongueAction; resolve when that unit is named
+    // original name unknown; named by behaviour: tests Yoshi tongue eating-ready states 8 and 9 (0x80422710).
     bool isYoshiTongueReadyToEat();
     bool requestFileSelectCopyGuidance();
     bool requestStarPieceLectureGuidance();

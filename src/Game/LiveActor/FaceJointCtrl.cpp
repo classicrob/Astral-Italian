@@ -136,7 +136,10 @@ bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointController
     desired.getQuat(goal);
     previous.getQuat(before);
     TQuat4f current;
-    current.set(before.x, before.y, before.z, before.w);
+    current.x = before.x;
+    current.y = before.y;
+    current.z = before.z;
+    current.w = before.w;
     current.slerp(goal, 0.1f);
     TPos3f result;
     result.setQT(current, position);

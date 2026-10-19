@@ -98,7 +98,7 @@ void LiveActor::initHitSensor(s32 numSensors) {
 // LiveActor::initRailRider
 // NONMATCHING: argument load ordering/regalloc
 void LiveActor::initEffectKeeper(s32 count, const char* name, bool sort) {
-    mEffectKeeper = new EffectKeeper(mName, MR::getModelResourceHolder(this), count, name);
+    mEffectKeeper = new EffectKeeper(getName(), MR::getModelResourceHolder(this), count, name);
     if (sort) mEffectKeeper->enableSort();
     mEffectKeeper->init(this);
     if (mBinder != nullptr) mEffectKeeper->setBinder(mBinder);

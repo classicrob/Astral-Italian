@@ -41,9 +41,7 @@ struct WorldMapOwnerContext {
 };
 
 
-// PLACEHOLDER(core): `WorldMapOwner` is a descriptive name. It is the 0x20-byte NameObj "ワールドマップ" (ctor 0x804E7BC0, created by 0x804E7C20 together with the
-// WorldMapModel scenery) that owns WorldMapSequence and is the host of all WorldMapSequence states; NOT WorldMapResultCommand (a different NameObj, 0x804EE9C0).
-// Resolve when its real class name is known
+// original name unknown; named by behaviour: world-map NameObj owning WorldMapSequence and hosting its states.
 class GrandGalaxyMap;
 class WorldMapOwner : public NameObj {
 public:

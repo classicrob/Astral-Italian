@@ -44,11 +44,11 @@ bool GameScenePauseControl::tryStartPauseMenu() {
         return false;
     }
 
-    mPauseChecker->update();
-
     if (MR::isStageDisablePauseMenu()) {
         return false;
     }
+
+    mPauseChecker->update();
 
     if (mPauseChecker->isPermitToMinusPause()) {
         startPauseMenu();

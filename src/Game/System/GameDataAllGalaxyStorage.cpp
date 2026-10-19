@@ -93,8 +93,7 @@ s32 GameDataAllGalaxyStorage::serialize(u8* pData, u32 dataSize) const {
     BinaryDataContentAccessor accessor((u8*)mHeaderSerializer->getBuffer());
     BinaryDataContentAccessor scenarioAccessor((u8*)mScenarioHeaderSerializer->getBuffer());
 
-    s32 loopCount = getGalaxyNum();
-    for (s32 idx = 0; idx < loopCount; idx++) {
+    for (s32 idx = 0; idx < getGalaxyNum(); idx++) {
         GameDataSomeGalaxyStorage* pStorage = mSomeGalaxyStorages[idx];
         u8* pRecord = pData + writeOffset;
 

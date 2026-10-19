@@ -47,7 +47,11 @@ namespace JGeometry {
     struct SMatrix34C {
     public:
         typedef f32 ArrType[4];
-        void set(const ArrType* pSrc) {
+        void set(const ArrType* pSrc)
+#ifdef JGEOMETRY_OUTLINE_MATRIX_SET
+            NO_INLINE
+#endif
+        {
             JMath::gekko_ps_copy12(this, pSrc);
         }
 

@@ -14,8 +14,6 @@ bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo*
     totalGravity.zero();
 
     PlanetGravity** pGravities = (PlanetGravity**)&mGravities;
-    bool hasCalculated = false;
-
     if (pInfo) {
         pInfo->init();
     }
@@ -50,7 +48,6 @@ bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo*
                 // If same priority, add gravity vector to total result
                 if (priority == largestPriority) {
                     totalGravity += gravityVec;
-                    hasCalculated = true;
 
                     if (largestScalar < scalar) {
                         storeInfo = true;
@@ -59,7 +56,6 @@ bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo*
                 // If larger priority, total gravity gets overriden
                 else if (priority > largestPriority) {
                     largestPriority = priority;
-                    hasCalculated = true;
                     storeInfo = true;
                     totalGravity = gravityVec;
                 }
@@ -78,12 +74,13 @@ bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo*
     }
 
     // Store normalized vector as result if necessary
+    bool isZero = false;
     if (pGravity) {
-        MR::normalizeOrZero(&totalGravity);
+        isZero = MR::normalizeOrZero(&totalGravity);
         *pGravity = totalGravity;
     }
 
-    return hasCalculated;
+    return !isZero;
 }
 
 void PlanetGravityManager::registerGravity(PlanetGravity* pGravity) {

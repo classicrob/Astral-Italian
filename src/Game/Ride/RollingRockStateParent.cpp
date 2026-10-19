@@ -215,7 +215,7 @@ namespace NrvRollingRockStateParent {
     public:
         virtual void execute(Spine* pSpine) const {
             RollingRockStateParent* pState = reinterpret_cast< RollingRockStateParent* >(pSpine->mExecutor);
-            if (!MR::isPlayerDamaging() && !MR::isPlayerDamageCooldown()) {
+            if (!MR::isPlayerDamaging() && !MR::isPlayerFireDamageActive()) {
                 pState->setNerve(&RollingRockStateParentNrvWait::sInstance);
             }
         }
@@ -240,7 +240,7 @@ void RollingRockStateParent::appear() {
     MR::onCalcGravity(mHost);
     MR::onCalcShadow(mHost, nullptr);
     MR::tryRumblePadMiddle(mHost, 0);
-    if (MR::isPlayerDamaging() || MR::isPlayerDamageCooldown()) {
+    if (MR::isPlayerDamaging() || MR::isPlayerFireDamageActive()) {
         setNerve(&NrvRollingRockStateParent::RollingRockStateParentNrvDamage::sInstance);
     } else {
         setNerve(&NrvRollingRockStateParent::RollingRockStateParentNrvWait::sInstance);

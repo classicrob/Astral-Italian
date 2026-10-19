@@ -4,7 +4,7 @@
 
 class CollisionObj : public LiveActor {
 public:
-    CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, int drawType);
+    CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, s32 drawType);
     virtual ~CollisionObj();
 
     virtual void init(const JMapInfoIter&);

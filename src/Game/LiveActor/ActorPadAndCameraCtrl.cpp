@@ -1,4 +1,5 @@
 #include "Game/LiveActor/ActorPadAndCameraCtrl.hpp"
+#include "Game/LiveActor/ActionScreenBlurCtrl.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ActorReactionHelper.hpp"
 #include "Game/LiveActor/ModelManager.hpp"
@@ -98,7 +99,7 @@ void ActorPadAndCameraCtrl::updateInfoBck() {
 }
 
 namespace {
-    bool isDistanceExistAndFar(f32 distance, f32 threshold) {
+    bool isDistanceExistAndFar(f32 distance, f32 threshold) NO_INLINE {
         if (threshold < 0.0f) {
             return false;
         }
@@ -123,4 +124,9 @@ void ActorPadAndCameraCtrl::updatePadAndCamera(const ActorPadAndCameraCtrlInfo* 
         tryRumblePadByName(this, pInfo->mPadRumbleName);
         tryShakeCameraByName(pInfo->mCameraShakeName);
     }
+}
+
+ActionScreenBlurInfo::ActionScreenBlurInfo()
+    : mBckName(nullptr), mStartFrame(0.0f), mTotalStep(60), mOffset(15.0f), mAlpha(80), mFadeInStep(5),
+      mFadeOutStep(30), mIsEnabled(false) {
 }

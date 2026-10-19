@@ -84,7 +84,7 @@ void RollingRockStateRoll::appear() {
     mSpeed = 0.0f;
     mHost->appearBlur();
     mHost->appearBreakStart();
-    MR::setPlayerRollingOn();
+    MR::disablePlayerReflection();
     if (MR::isValidSwitchA(mHost)) {
         MR::onSwitchA(mHost);
     }
@@ -97,7 +97,7 @@ void RollingRockStateRoll::kill() {
         MR::deleteEffect(mHost, "Move");
         MR::forceDeleteEffect(mHost, "MoveBlur");
         mHost->appearBreakEnd();
-        MR::setPlayerRollingOff();
+        MR::enablePlayerReflection();
         MR::offBind(mHost);
         MR::invalidateHitSensors(mHost);
         if (MR::isValidSwitchA(mHost)) {

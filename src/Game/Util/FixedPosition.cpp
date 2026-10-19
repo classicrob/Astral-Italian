@@ -55,16 +55,18 @@ FixedPosition::FixedPosition(const LiveActor* pActor, const char* pResName, cons
         pResActor = pActor;
     }
 
+    const char* jointName = nullptr;
+    TVec3f trans(0.0f);
+    TVec3f rotate(0.0f);
+
     ResourceHolder* resourceHolder = MR::getResourceHolder(pResActor);
     JMapInfo* csv = MR::tryCreateCsvParser(resourceHolder, "%s.bcsv", pResName);
 
-    const char* jointName = nullptr;
-    TVec3f trans(0.0f, 0.0f, 0.0f);
-    TVec3f rotate(0.0f, 0.0f, 0.0f);
-
-    MR::getCsvDataStrOrNULL(&jointName, csv, "JointName", 0);
-    MR::getCsvDataVec(&trans, csv, "Trans", 0);
-    MR::getCsvDataVec(&rotate, csv, "Rotate", 0);
+    if (csv != nullptr) {
+        MR::getCsvDataStrOrNULL(&jointName, csv, "JointName", 0);
+        MR::getCsvDataVec(&trans, csv, "Trans", 0);
+        MR::getCsvDataVec(&rotate, csv, "Rotate", 0);
+    }
 
     if (jointName == nullptr) {
         init(pActor->getBaseMtx(), trans, rotate);

@@ -83,7 +83,7 @@ namespace MR {
     bool isNPCItemFileExist(const char* pName) {
         char path[256];
         snprintf(path, sizeof(path), "/ObjectData/%s.arc", pName);
-        return isFileExist(path, false);
+        return isFileExistOnDisc(path, false);
     }
 
     void initDefaultPose(NPCActor* pActor, const JMapInfoIter& rIter) {

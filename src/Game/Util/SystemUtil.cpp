@@ -14,9 +14,12 @@
 #include "Game/System/GameSystemStationedArchiveLoader.hpp"
 #include "Game/System/AudSystemWrapper.hpp"
 #include "Game/Util/MemoryUtil.hpp"
+#include "Game/Util/FileUtil.hpp"
 #include "Game/System/FunctionAsyncExecutor.hpp"
 #include "Game/System/MessageHolder.hpp"
 #include "Game/System/GameDataFunction.hpp"
+#include "Game/System/HeapMemoryWatcher.hpp"
+#include "Game/AudioLib/AudInstListMgr.hpp"
 #include "Game/System/GameDataTemporaryInGalaxy.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 
@@ -87,6 +90,20 @@ namespace MR {
     const char* getCurrentStageName();
 ResourceCsvGroupHolder* getGameSystemObjHolder3C() {
     return getGameSystemObjHolder()->_3C;
+}
+
+void tryDestroyUseResourceHeap() {
+    if (getUseResourceHeap() != nullptr) {
+        if (GameSystemFunction::isCreatedGameDataHolder()) {
+            bool isLuigi = GameDataFunction::isLuigiPlayer();
+            if (GameSystemFunction::isPlayerArchiveMario() != isLuigi) {
+                return;
+            }
+        }
+        removeResourceAndFileHolderIfIsEqualHeap(getUseResourceHeap());
+        SingletonHolder<HeapMemoryWatcher>::get()->freeAllFileCache();
+        AudInstListMgr::requestStageInstrumentRefresh();
+    }
 }
 
 ParticleResourceHolder* getParticleResourceHolder() {

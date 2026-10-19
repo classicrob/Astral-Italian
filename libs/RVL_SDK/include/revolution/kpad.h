@@ -98,6 +98,8 @@ typedef struct KPADUnifiedWpadStatus {
         WPADStatus core;
         WPADFSStatus fs;
         WPADCLStatus cl;
+        // SMG2's unified report also carries extended controller data.
+        u8 extended[0x40];
     } u;
     u8 fmt;
     u8 padding;

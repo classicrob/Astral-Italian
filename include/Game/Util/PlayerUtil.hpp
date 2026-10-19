@@ -18,7 +18,7 @@ class JAISoundHandle;
 namespace MR {
     JAISoundHandle* startSoundPlayerById(s32, s32, s32);
     JAISoundHandle* startLevelSoundPlayerById(s32, s32);
-    bool isPlayerFootprintBlocked();
+    bool isPlayerDefaultModel();
     void enablePlayerResourceYoshi();
     bool fn_80050020();
     bool isCreatePlayerResourceTornado();
@@ -344,20 +344,20 @@ namespace MR {
 
 namespace MR {
     void startDemoBckPlayer(const char*, const BckCtrlData&);
-    // PLACEHOLDER(core) names below are by behavior (see src/Game/Util/PlayerUtil.cpp); resolve when the owner is named
+    // original name unknown; named by behaviour: Player access, animation, model, and movement helpers (see PlayerUtil.cpp).
     bool startPlayerBvaWithCtrl(const char*, const BckCtrlData&);
     f32 getPlayerConfrontDeathParam();
     void calcYoshiEatItemVelocity(TVec3f*);
     void decrementPlayerSwimLife();
     bool isPlayerInJumpAction();
     bool isPlayerSwingActionStartNow();
-    void resetPlayerFootState();
-    void setPlayerFootState(s32);
+    void enablePlayerSilhouetteDuringRush();
+    void setPlayerSilhouetteHiddenFrames(s32);
     void clearPlayerFootprints();
-    void setPlayerRollingOn();
-    void setPlayerRollingOff();
-    bool isPlayerFootprintBlocked();
-    bool isPlayerDamageCooldown();
+    void disablePlayerReflection();
+    void enablePlayerReflection();
+    bool isPlayerDefaultModel();
+    bool isPlayerFireDamageActive();
     void hidePlayerDeleteEffect();
     void setPlayerQuatAndPos(TQuat4f*, TVec3f*);
     void getPlayerQuatAndPos(TQuat4f*, TVec3f*);

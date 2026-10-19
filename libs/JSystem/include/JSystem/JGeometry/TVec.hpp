@@ -647,7 +647,11 @@ namespace JGeometry {
             JMathInlineVEC::PSVECSubtract(this, &b, this);
         }
 
-        void sub(const TVec3& a, const TVec3& b) {
+        void sub(const TVec3& a, const TVec3& b)
+#ifdef JGEOMETRY_VEC3_SUB2_NOINLINE
+            NO_INLINE
+#endif
+        {
             JMathInlineVEC::PSVECSubtract(&a, &b, this);
         }
 

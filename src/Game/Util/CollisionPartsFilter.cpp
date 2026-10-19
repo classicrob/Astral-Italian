@@ -2,6 +2,14 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 
+CollisionPartsFilterBase* MR::createCollisionPartsFilterDelegator(bool (*filter)(const CollisionParts*)) {
+    return new CollisionPartsFilterFunction(filter);
+}
+
+bool CollisionPartsFilterFunction::isInvalidParts(const CollisionParts* pParts) const {
+    return mFilter(pParts);
+}
+
 bool CollisionPartsFilterSensorType::isInvalidParts(const CollisionParts* pParts) const {
     return pParts->mHitSensor->isType(mSensorType);
 }

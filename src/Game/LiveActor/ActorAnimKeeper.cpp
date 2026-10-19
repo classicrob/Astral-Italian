@@ -54,7 +54,7 @@ bool ActorAnimKeeper::start(const char* pName) {
     const char* BtpName = ::getAnimName(info, info->mBtpInfo);
     const char* BvaName = ::getAnimName(info, info->mBvaInfo);
 
-    if (MR::isBckExist(mActor, BckName) && (!info->mBckInfo.mIsKeepAnim || !MR::isBckPlaying(mActor, BckName))) {
+    if (MR::isExistBck(mActor, BckName) && (!info->mBckInfo.mIsKeepAnim || !MR::isBckPlaying(mActor, BckName))) {
         if (MR::isEqualStringCase(BckName, info->mName)) {
             MR::startBck(mActor, BckName, nullptr);
         } else {
@@ -62,23 +62,23 @@ bool ActorAnimKeeper::start(const char* pName) {
         }
     }
 
-    if (MR::isBtkExist(mActor, BtkName) && (!info->mBtkInfo.mIsKeepAnim || !MR::isBtkPlaying(mActor, BtkName))) {
+    if (MR::isExistBtk(mActor, BtkName) && (!info->mBtkInfo.mIsKeepAnim || !MR::isBtkPlaying(mActor, BtkName))) {
         MR::startBtk(mActor, BtkName);
     }
 
-    if (MR::isBrkExist(mActor, BrkName) && (!info->mBrkInfo.mIsKeepAnim || !MR::isBrkPlaying(mActor, BrkName))) {
+    if (MR::isExistBrk(mActor, BrkName) && (!info->mBrkInfo.mIsKeepAnim || !MR::isBrkPlaying(mActor, BrkName))) {
         MR::startBrk(mActor, BrkName);
     }
 
-    if (MR::isBpkExist(mActor, BpkName) && (!info->mBpkInfo.mIsKeepAnim || !MR::isBpkPlaying(mActor, BpkName))) {
+    if (MR::isExistBpk(mActor, BpkName) && (!info->mBpkInfo.mIsKeepAnim || !MR::isBpkPlaying(mActor, BpkName))) {
         MR::startBpk(mActor, BpkName);
     }
 
-    if (MR::isBtpExist(mActor, BtpName) && (!info->mBtpInfo.mIsKeepAnim || !MR::isBtpPlaying(mActor, BtpName))) {
+    if (MR::isExistBtp(mActor, BtpName) && (!info->mBtpInfo.mIsKeepAnim || !MR::isBtpPlaying(mActor, BtpName))) {
         MR::startBtp(mActor, BtpName);
     }
 
-    if (MR::isBvaExist(mActor, BvaName) && (!info->mBvaInfo.mIsKeepAnim || !MR::isBvaPlaying(mActor, BvaName))) {
+    if (MR::isExistBva(mActor, BvaName) && (!info->mBvaInfo.mIsKeepAnim || !MR::isBvaPlaying(mActor, BvaName))) {
         MR::startBva(mActor, BvaName);
     }
 

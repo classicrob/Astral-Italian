@@ -12,7 +12,7 @@
 MultiSceneEffectKeeper::MultiSceneEffectKeeper(const char*, ModelManager* pModelManager, int a3, const char* pResName)
     : mEmitter(), mResName(pResName) {
     if (mResName == nullptr) {
-        mResName = pModelManager->getModelResourceHolder()->getModelName();
+        mResName = pModelManager->getModelResourceHolder()->mName;
     }
 
     s32 num = a3 + MR::Effect::getAutoEffectNum(mResName);

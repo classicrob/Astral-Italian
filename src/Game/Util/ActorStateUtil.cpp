@@ -9,9 +9,18 @@
 
 namespace MR {
 
+    void initActorState(LiveActor* pActor, ActorStateBaseInterface* pActorState, const Nerve* pNerve, const char* pStateName) {
+        pActorState->init();
+        pActor->mSpine->mStateKeeper->addState(pActorState, pNerve, pStateName);
+    }
+
     void initActorState(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState, const Nerve* pNerve, const char* pStateName) {
         pActorState->init();
         pExecutor->mSpine->mStateKeeper->addState(pActorState, pNerve, pStateName);
+    }
+
+    bool updateActorState(LiveActor* pActor) {
+        return pActor->mSpine->mStateKeeper->updateCurrentState();
     }
 
     bool updateActorState(LiveActor* pActor, ActorStateBaseInterface* pActorState) {
@@ -27,6 +36,14 @@ namespace MR {
             return true;
         }
 
+        return false;
+    }
+
+    bool updateActorStateAndNextNerve(LiveActor* pActor, const Nerve* pNextNerve) {
+        if (updateActorState(pActor)) {
+            pActor->setNerve(pNextNerve);
+            return true;
+        }
         return false;
     }
 
@@ -81,5 +98,12 @@ namespace MR {
         }
 
         return false;
+    }
+    bool isActorStateDead(const NerveExecutor* pExecutor) {
+        return pExecutor->mSpine->mStateKeeper->isStateDead();
+    }
+
+    void endActorState(NerveExecutor* pExecutor) {
+        pExecutor->mSpine->mStateKeeper->endState();
     }
 };  // namespace MR

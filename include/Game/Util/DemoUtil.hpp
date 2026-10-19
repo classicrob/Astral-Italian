@@ -125,15 +125,15 @@ namespace MR {
 }
 
 namespace MR {
-    // PLACEHOLDER(core4): names guessed from the DemoStartRequestUtil::startDemoSystem flags (type, cinema, pointer).
+    // original name unknown; named by behaviour: request demo start with the matching time-keep, puppet, and cinema flags.
     bool tryStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(LiveActor*, const char*);  // SMG2 fn_8001FDD0
     bool requestStartDemo(NerveExecutor*, LiveActor*, const char*, const Nerve*, const Nerve*);  // SMG2 fn_8001FEF0
     bool requestStartDemo(NerveExecutor*, NameObj*, const char*, const Nerve*, const Nerve*);  // SMG2 fn_8001FEB0
     bool requestStartDemoMarioPuppetableWithoutCinemaFrame(NerveExecutor*, LiveActor*, const char*, const Nerve*, const Nerve*);  // SMG2 fn_80020090
     bool requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(NameObj*, const char*, const char*);  // SMG2 fn_80020110
-    bool endDemoAndSetAlreadyDone(LiveActor*, const char*);  // SMG2 fn_800204E0; PLACEHOLDER(core4): name guessed from behaviour
+    bool endDemoAndSetAlreadyDone(LiveActor*, const char*);  // original name unknown; named by behaviour: ends the demo and sets its already-done flag (0x800204E0).
     bool tryEndDemoAndSetAlreadyDone(LiveActor*, const char*);  // SMG2 fn_800205B0
-    bool tryStartDemoEndWaitCameraInterpolating(LiveActor*, const char*);  // SMG2 fn_80020690; PLACEHOLDER(core4): name guessed (sets the director byte 0x13)
+    bool tryStartDemoEndWaitCameraInterpolating(LiveActor*, const char*);  // original name unknown; named by behaviour: starts the demo-end wait and cinema-frame transition (0x80020690).
     bool isDemoEndWaitCinemaFrameStopped();  // SMG2 fn_80020800
     void initDemoSheetAnim(LiveActor*, const JMapInfoIter&, const char*, const char*);  // SMG2 fn_80020860
     bool isPauseTimeKeepDemo(const char*);  // SMG2 fn_80021120

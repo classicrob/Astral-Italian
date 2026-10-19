@@ -74,5 +74,3 @@ void ActionScreenBlurCtrl::updateInfoEnabled() {
     }
 }
 
-ActionScreenBlurInfo::ActionScreenBlurInfo() : mBckName(NULL), mStartFrame(0.0f), mTotalStep(0), mOffset(0.0f), mAlpha(0), mFadeInStep(0), mFadeOutStep(0), mIsEnabled(0) {
-}

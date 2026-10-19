@@ -4,7 +4,7 @@
 
 class ModelManager;
 
-// One row of the ActionScreenBlurCtrl csv (0x20 bytes). Its ctor is the unnamed fn_8022A540 (gap, not split yet).
+// One row of the ActionScreenBlurCtrl csv (0x20 bytes).
 class ActionScreenBlurInfo {
 public:
     ActionScreenBlurInfo();

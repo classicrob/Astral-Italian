@@ -12,7 +12,7 @@ class LayoutActor;
 class ActorCameraInfo;
 
 namespace UnnamedDemoCallee {
-    // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
+    // Legacy address declarations; no implementation is supplied here.
     void fn_8001BFE0();
     void setPositionToMapGround(f32, f32);
     void fn_80020110(LiveActor*, const char*, s32);

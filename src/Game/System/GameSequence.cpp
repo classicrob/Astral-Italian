@@ -54,7 +54,6 @@ GameSequence::GameSequence() : NerveExecutor("\x83Q\x81[\x83\x80\x83V\x81[\x83P\
     mSystemStart = nullptr;
     mTitle = nullptr;
     mInGame = nullptr;
-    mEnding = nullptr;
     mNameEntryTable = nullptr;
     mIsReset = false;
     mIsWipeStarted = false;

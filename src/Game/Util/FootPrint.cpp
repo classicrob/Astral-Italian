@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SUB2_NOINLINE
 #include "Game/Util/FootPrint.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/JMapUtil.hpp"

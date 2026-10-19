@@ -349,7 +349,7 @@ public:
     }
 
     void init();
-    void update();
+    void update() NO_INLINE;
     bool isRouteOpenReady() const NO_INLINE;
     void startResultMapStart() NO_INLINE;
     void startResultMapEnd() NO_INLINE;

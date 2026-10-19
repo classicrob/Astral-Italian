@@ -122,6 +122,21 @@ ActorPoseTQ::ActorPoseTQ() {
     mFront.z = 1.0f;
 }
 
+namespace {
+    struct ActorParamMoveValues {
+        f32 _0, _1, _2, _3;
+    };
+    struct ActorParamSightValues {
+        f32 _0, _1, _2;
+    };
+    struct ActorParamReboundValues {
+        f32 _0, _1, _2;
+    };
+    struct ActorParamJumpValues {
+        f32 _0, _1;
+    };
+}  // namespace
+
 ActorParam::ActorParam(LiveActor* pActor) : mEntryNum(0), mEntries(NULL) {
     JMapInfo* pCsv = MR::tryCreateCsvParser(MR::getResourceHolder(pActor), "%s.bcsv", sFileName);
 
@@ -133,7 +148,6 @@ ActorParam::ActorParam(LiveActor* pActor) : mEntryNum(0), mEntries(NULL) {
     mEntryNum = num;
     mEntries = new ActorParamEntry[mEntryNum];
 
-    f32 tmp = 0.0f;
     for (s32 i = 0; i < mEntryNum; i++) {
         ActorParamEntry* pEntry = &mEntries[i];
         MR::getCsvDataStr(&pEntry->mName, pCsv, "ParamName", i);
@@ -143,7 +157,7 @@ ActorParam::ActorParam(LiveActor* pActor) : mEntryNum(0), mEntries(NULL) {
 
         if (MR::isEqualString(pType, "s32")) {
             pEntry->mType = 0;
-            tmp = 0.0f;
+            f32 tmp = 0.0f;
             MR::getCsvDataF32(&tmp, pCsv, "Param00", i);
             pEntry->mValue.mS32 = (s32)tmp;
         } else if (MR::isEqualString(pType, "f32")) {
@@ -151,31 +165,31 @@ ActorParam::ActorParam(LiveActor* pActor) : mEntryNum(0), mEntries(NULL) {
             MR::getCsvDataF32(&pEntry->mValue.mF32, pCsv, "Param00", i);
         } else if (MR::isEqualString(pType, "ParamMove")) {
             pEntry->mType = 2;
-            f32* pBlock = new f32[4];
-            MR::getCsvDataF32(&pBlock[0], pCsv, "Param00", i);
-            MR::getCsvDataF32(&pBlock[1], pCsv, "Param01", i);
-            MR::getCsvDataF32(&pBlock[2], pCsv, "Param02", i);
-            MR::getCsvDataF32(&pBlock[3], pCsv, "Param03", i);
+            ActorParamMoveValues* pBlock = new ActorParamMoveValues;
+            MR::getCsvDataF32(&pBlock->_0, pCsv, "Param00", i);
+            MR::getCsvDataF32(&pBlock->_1, pCsv, "Param01", i);
+            MR::getCsvDataF32(&pBlock->_2, pCsv, "Param02", i);
+            MR::getCsvDataF32(&pBlock->_3, pCsv, "Param03", i);
             pEntry->mValue.mPtr = pBlock;
         } else if (MR::isEqualString(pType, "ParamSight")) {
             pEntry->mType = 4;
-            f32* pBlock = new f32[3];
-            MR::getCsvDataF32(&pBlock[0], pCsv, "Param00", i);
-            MR::getCsvDataF32(&pBlock[1], pCsv, "Param01", i);
-            MR::getCsvDataF32(&pBlock[2], pCsv, "Param02", i);
+            ActorParamSightValues* pBlock = new ActorParamSightValues;
+            MR::getCsvDataF32(&pBlock->_0, pCsv, "Param00", i);
+            MR::getCsvDataF32(&pBlock->_1, pCsv, "Param01", i);
+            MR::getCsvDataF32(&pBlock->_2, pCsv, "Param02", i);
             pEntry->mValue.mPtr = pBlock;
         } else if (MR::isEqualString(pType, "ParamRebound")) {
             pEntry->mType = 5;
-            f32* pBlock = new f32[3];
-            MR::getCsvDataF32(&pBlock[0], pCsv, "Param00", i);
-            MR::getCsvDataF32(&pBlock[1], pCsv, "Param01", i);
-            MR::getCsvDataF32(&pBlock[2], pCsv, "Param02", i);
+            ActorParamReboundValues* pBlock = new ActorParamReboundValues;
+            MR::getCsvDataF32(&pBlock->_0, pCsv, "Param00", i);
+            MR::getCsvDataF32(&pBlock->_1, pCsv, "Param01", i);
+            MR::getCsvDataF32(&pBlock->_2, pCsv, "Param02", i);
             pEntry->mValue.mPtr = pBlock;
         } else if (MR::isEqualString(pType, "ParamJump")) {
             pEntry->mType = 3;
-            f32* pBlock = new f32[2];
-            MR::getCsvDataF32(&pBlock[0], pCsv, "Param00", i);
-            MR::getCsvDataF32(&pBlock[1], pCsv, "Param01", i);
+            ActorParamJumpValues* pBlock = new ActorParamJumpValues;
+            MR::getCsvDataF32(&pBlock->_0, pCsv, "Param00", i);
+            MR::getCsvDataF32(&pBlock->_1, pCsv, "Param01", i);
             pEntry->mValue.mPtr = pBlock;
         }
     }

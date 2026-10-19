@@ -158,6 +158,27 @@ namespace MR {
 
 
 namespace MR {
+    bool getJMapInfoArgNoInit(const JMapInfoIter& rIter, const char* pKey, s32* pValue) {
+        s32 value;
+        if (!rIter.getValue(pKey, &value)) {
+            return false;
+        }
+        if (value == -1) {
+            return false;
+        }
+        *pValue = value;
+        return true;
+    }
+
+    bool getJMapInfoArgNoInit(const JMapInfoIter& rIter, const char* pKey, f32* pValue) {
+        s32 value;
+        if (!getJMapInfoArgNoInit(rIter, pKey, &value)) {
+            return false;
+        }
+        *pValue = value;
+        return true;
+    }
+
     bool getMapPartsArgMoveConditionType(s32* pValue, const JMapInfoIter& rIter) {
         return MR::getJMapInfoArgNoInit(rIter, "MoveConditionType", pValue);
     }
@@ -214,6 +235,10 @@ namespace MR {
         return getRailArg4NoInit(pActor, pValue);
     }
 
+    bool getMapPartsArgMoveSnap(s32* pValue, const LiveActor* pActor) {
+        return getRailArg5NoInit(pActor, pValue);
+    }
+
     bool getMapPartsArgMoveSpeed(f32* pValue, const LiveActor* pActor) {
         return getCurrentRailPointArg0NoInit(pActor, pValue);
     }
@@ -230,6 +255,10 @@ namespace MR {
         return getCurrentRailPointArg7NoInit(pActor, pValue);
     }
 
+
+    bool getMapPartsArgRailRotateSpeed(f32* pValue, const LiveActor* pActor, s32 point) {
+        return getRailPointArg2WithInit(pActor, point, pValue);
+    }
 
     bool getMapPartsArgRailRotateTime(s32* pValue, const LiveActor* pActor, s32 point) {
         return getRailPointArg2WithInit(pActor, point, pValue);

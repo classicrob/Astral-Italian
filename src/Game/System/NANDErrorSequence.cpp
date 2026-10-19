@@ -1,7 +1,5 @@
 #include "Game/System/NANDErrorSequence.hpp"
 
-// Unnamed SMG2 nerve object (sbss 0x807D5D68, between GoWiiMenu and CheckEnableToCreateOnPreloading)
-extern char lbl_807D5D68[4];
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/SysInfoWindow.hpp"
 #include "Game/System/GameSystemFunction.hpp"
@@ -23,6 +21,7 @@ namespace {
     NEW_NERVE(NANDErrorSequenceNoSaveConfirmLessBlockOrInode, NANDErrorSequence, NoSaveConfirmLessBlockOrInode);
     NEW_NERVE(NANDErrorSequenceLessBlockOrInodeConfirm, NANDErrorSequence, LessBlockOrInodeConfirm);
     NEW_NERVE(NANDErrorSequenceGoWiiMenu, NANDErrorSequence, GoWiiMenu);
+    NEW_NERVE(NANDErrorSequenceShutdown, NANDErrorSequence, Shutdown);
     NEW_NERVE(NANDErrorSequenceCheckEnableToCreateOnPreloading, NANDErrorSequence, CheckEnableToCreateOnPreloading);
     NEW_NERVE(NANDErrorSequenceCheckEnableToCreateAfterRemove, NANDErrorSequence, CheckEnableToCreateAfterRemove);
 };  // namespace
@@ -135,7 +134,7 @@ bool NANDErrorSequence::isPreparedReset() const {
         isNerve(GET_NERVE_ANON(NANDErrorSequenceRemoveConfirm)) || isNerve(GET_NERVE_ANON(NANDErrorSequenceRemoveDoneKeyWait)) ||
         isNerve(GET_NERVE_ANON(NANDErrorSequenceNoSaveConfirmBeforeRemove)) ||
         isNerve(GET_NERVE_ANON(NANDErrorSequenceNoSaveConfirmLessBlockOrInode)) ||
-        isNerve(GET_NERVE_ANON(NANDErrorSequenceLessBlockOrInodeConfirm)) || isNerve(reinterpret_cast< const Nerve* >(&lbl_807D5D68)) ||
+        isNerve(GET_NERVE_ANON(NANDErrorSequenceLessBlockOrInodeConfirm)) || isNerve(GET_NERVE_ANON(NANDErrorSequenceShutdown)) ||
         isNerve(GET_NERVE_ANON(NANDErrorSequenceGoWiiMenu))) {
         return true;
     }
@@ -272,6 +271,16 @@ void NANDErrorSequence::exeGoWiiMenu() {
     kill();
 }
 
+void NANDErrorSequence::exeShutdown() {
+    if (!MR::isDead(mSysInfoWindow)) {
+        return;
+    }
+
+    mResult = 1;
+    GameSystemFunction::requestShutdown(false);
+    kill();
+}
+
 void NANDErrorSequence::exeCheckEnableToCreateOnPreloading() {
     if (!tryCheckEnableToCreate()) {
         return;
@@ -297,7 +306,7 @@ bool NANDErrorSequence::isEnablePointer() const {
         isNerve(GET_NERVE_ANON(NANDErrorSequenceRemoveConfirm)) || isNerve(GET_NERVE_ANON(NANDErrorSequenceRemoveDoneKeyWait)) ||
         isNerve(GET_NERVE_ANON(NANDErrorSequenceNoSaveConfirmBeforeRemove)) ||
         isNerve(GET_NERVE_ANON(NANDErrorSequenceNoSaveConfirmLessBlockOrInode)) ||
-        isNerve(GET_NERVE_ANON(NANDErrorSequenceLessBlockOrInodeConfirm)) || isNerve(reinterpret_cast< const Nerve* >(&lbl_807D5D68)) ||
+        isNerve(GET_NERVE_ANON(NANDErrorSequenceLessBlockOrInodeConfirm)) || isNerve(GET_NERVE_ANON(NANDErrorSequenceShutdown)) ||
         isNerve(GET_NERVE_ANON(NANDErrorSequenceGoWiiMenu))) {
         return true;
     }

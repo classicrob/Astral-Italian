@@ -1,4 +1,7 @@
 #include "Game/System/ScenarioDataParser.hpp"
+#include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemSceneController.hpp"
+#include "Game/Util/SingletonHolder.hpp"
 #include "Game/System/GalaxyStatusAccessor.hpp"
 #include "Game/Util/FileUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
@@ -212,7 +215,9 @@ GalaxyStatusAccessor ScenarioDataParser::makeAccessor(const char* pName) const {
 }
 
 namespace ScenarioDataFunction {
-    // ScenarioDataFunction::getScenarioDataParser
+    ScenarioDataParser* getScenarioDataParser() {
+        return SingletonHolder<GameSystem>::get()->mSceneController->mScenarioParser;
+    }
 
     bool getCurrentCommonLayers(const char* pName) {
         const char* stageName = MR::getCurrentStageName();

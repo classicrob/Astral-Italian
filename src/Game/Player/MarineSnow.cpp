@@ -12,7 +12,10 @@
 MarineSnow::MarineSnow() : mParticleCount(16), mParticlePositions(new (32) TVec3f[mParticleCount]), mCellSize(1000.0f) {
     for (u32 idx = 0; idx < mParticleCount; idx++) {
         TVec3f randVec;
-        randVec.set(MR::getRandom() * mCellSize, MR::getRandom() * mCellSize, MR::getRandom() * mCellSize);
+        const f32 z = mCellSize * MR::getRandom();
+        const f32 y = mCellSize * MR::getRandom();
+        const f32 x = mCellSize * MR::getRandom();
+        randVec.set(x, y, z);
         mParticlePositions[idx] = randVec;
     }
 

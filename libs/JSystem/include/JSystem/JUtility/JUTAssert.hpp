@@ -1,6 +1,9 @@
 #pragma once
 
 #include <revolution.h>
+#ifdef GALAXY_NATIVE
+#include <stdarg.h>
+#endif
 
 namespace JUTAssertion {
     void create();
@@ -14,7 +17,11 @@ namespace JUTAssertion {
 
     u32 getSDevice();
     void showAssert_f(u32 device, const char* file, int line, const char* msg, ...);
+#ifdef GALAXY_NATIVE
+    void showAssert_f_va(u32 device, const char* file, int line, const char* msg, va_list args);
+#else
     void showAssert_f_va(u32 device, const char* file, int line, const char* msg, __va_list args);
+#endif
     void setWarningMessage_f(u32 device, char* file, int line, const char* fmt, ...);
     void setWarningMessage_f_va(u32 device, const char* file, int line, const char* msg, va_list args);
     void setLogMessage_f(u32 device, char* file, int line, const char* fmt, ...);

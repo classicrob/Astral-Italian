@@ -2,7 +2,11 @@
 #define LIBMS_H
 
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include <petari/utf16.h>
+#else
 #include <wchar_t.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

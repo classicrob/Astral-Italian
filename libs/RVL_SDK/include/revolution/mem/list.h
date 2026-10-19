@@ -5,7 +5,11 @@
 extern "C" {
 #endif
 
+#ifdef GALAXY_NATIVE
+#include <stddef.h>
+#else
 #include <cstddef>
+#endif
 #include "revolution/types.h"
 
 

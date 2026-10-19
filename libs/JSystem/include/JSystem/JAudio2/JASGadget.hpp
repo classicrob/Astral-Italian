@@ -71,7 +71,11 @@ public:
 template < typename T, u32 LEN >
 class JASPtrArray : public JASPtrTable< T > {
 public:
+#ifdef GALAXY_NATIVE
+    JASPtrArray() : JASPtrTable< T >(mPtrArray, LEN) {
+#else
     JASPtrArray() : JASPtrTable(mPtrArray, LEN) {
+#endif
     }
 
     T* mPtrArray[LEN];  // 0x8

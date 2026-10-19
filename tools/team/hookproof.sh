@@ -57,7 +57,7 @@ n=$(cat "$out/modified.txt" "$out/added.txt" "$out/deleted.txt" | grep -c .)
 
 clean_build() {  # $1 = phase name
   find build/SB4E01/src -name '*.o' -delete
-  nice -n 10 sh tools/team/nj.sh -k 0 > "$out/build-$1.log" 2>&1; rc=$?
+  nice -n 10 sh tools/team/nj.sh -j 4 -k 0 > "$out/build-$1.log" 2>&1; rc=$?
   find build/SB4E01/src -name '*.o' -print0 | xargs -0 shasum | sed 's|  build/SB4E01/| |' | sort -k2 > "$out/$1.full.sha"
   python3 tools/team/objhash.py build/SB4E01/src > "$out/$1.sha" || echo 99
   echo "$rc"
@@ -75,10 +75,10 @@ ctl=$(grep -E '\.cpp$' "$out/modified.txt" "$out/added.txt" | head -1 | cut -d: 
 if [ -n "$ctl" ]; then
   ctlo="build/SB4E01/${ctl%.cpp}.o"; h0=$(shasum "$ctlo" | cut -d' ' -f1)
   cp "$ctl" "$out/control.bak"; printf '\nextern const int hookproof_control_marker = 0x1234;\n' >> "$ctl"
-  nice -n 10 ninja "$ctlo" > "$out/build-control.log" 2>&1
+  nice -n 10 ninja -j 4 "$ctlo" > "$out/build-control.log" 2>&1
   h1=$(shasum "$ctlo" | cut -d' ' -f1)
   cp "$out/control.bak" "$ctl"; touch "$ctl"
-  nice -n 10 ninja "$ctlo" >> "$out/build-control.log" 2>&1
+  nice -n 10 ninja -j 4 "$ctlo" >> "$out/build-control.log" 2>&1
   h2=$(shasum "$ctlo" | cut -d' ' -f1)
   [ "$h1" != "$h0" ] && [ "$h2" = "$h0" ] && ctl_ok=1
   echo "control $ctl: perturbed object changed=$([ "$h1" != "$h0" ] && echo yes || echo NO), restored identical=$([ "$h2" = "$h0" ] && echo yes || echo NO)"

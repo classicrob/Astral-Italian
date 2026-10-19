@@ -91,7 +91,11 @@ public:
     }
 
     JAISoundID getSoundID() const {
+#ifdef GALAXY_NATIVE
+        return JAISoundID(mSoundID);
+#else
         return mSoundID;
+#endif
     }
 
 #ifdef GALAXY_NATIVE

@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <cstddef>
 #include <revolution/dsp.h>
+#ifdef GALAXY_NATIVE
+#include "JSystem/JAudio2/dspproc.hpp"
+#endif
 
 struct JASWaveInfo;
 
@@ -103,7 +106,11 @@ namespace JASDsp {
     void boot(void (*)(void*));
     void releaseHalt(u32);
     void finishWork(u16);
+#ifdef GALAXY_NATIVE
+    void syncFrame(u32, JASDspAddr, JASDspAddr);
+#else
     void syncFrame(u32, u32, u32);
+#endif
     void setDSPMixerLevel(f32);
     f32 getDSPMixerLevel();
     TChannel* getDSPHandle(int);

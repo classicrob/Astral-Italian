@@ -1,6 +1,9 @@
 #include "JSystem/J2DGraph/J2DPane.hpp"
 #include "JSystem/J2DGraph/J2DAnimation.hpp"
 #include <cmath>
+#ifdef GALAXY_NATIVE
+#include <macros.h>
+#endif
 
 J2DPane::J2DPane() : mBounds(), mGlobalBounds(), mClipRect(), mPaneTree(this) {
     mTransform = NULL;

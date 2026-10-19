@@ -23,32 +23,30 @@ void HitSensorInfo::update() {
         return;
     }
 
-    TVec3f v20;
-
-    if (mFollowMtx != nullptr) {
-        v20.set< f32 >((*mFollowMtx)[3], (*mFollowMtx)[7], (*mFollowMtx)[11]);
-        v20.x += (((*mFollowMtx)[2] * _C.z) + (((*mFollowMtx)[0] * _C.x) + ((*mFollowMtx)[1] * _C.y)));
-        v20.y += (((*mFollowMtx)[6] * _C.z) + (((*mFollowMtx)[4] * _C.x) + ((*mFollowMtx)[5] * _C.y)));
-        v20.z += (((*mFollowMtx)[10] * _C.z) + (((*mFollowMtx)[8] * _C.x) + ((*mFollowMtx)[9] * _C.y)));
+    TVec3f position;
+    if (mFollowMtx) {
+        position.set< f32 >(mFollowMtx[0][3], mFollowMtx[1][3], mFollowMtx[2][3]);
+        position.x += mFollowMtx[0][0] * _C.x + mFollowMtx[0][1] * _C.y + mFollowMtx[0][2] * _C.z;
+        position.y += mFollowMtx[1][0] * _C.x + mFollowMtx[1][1] * _C.y + mFollowMtx[1][2] * _C.z;
+        position.z += mFollowMtx[2][0] * _C.x + mFollowMtx[2][1] * _C.y + mFollowMtx[2][2] * _C.z;
     } else {
-        if (mFollowPos != nullptr) {
-            v20.set< f32 >(mFollowPos->x, mFollowPos->y, mFollowPos->z);
+        if (mFollowPos) {
+            position.set< f32 >(mFollowPos->x, mFollowPos->y, mFollowPos->z);
         } else {
-            v20.set< f32 >(mSensor->mHost->mPosition);
+            position.set(mSensor->mHost->mPosition);
         }
 
-        MtxPtr mtx = mSensor->mHost->getBaseMtx();
-
-        if (mtx != nullptr) {
-            v20.x += (((*mtx)[2] * _C.z) + (((*mtx)[0] * _C.x) + ((*mtx)[1] * _C.y)));
-            v20.y += (((*mtx)[6] * _C.z) + (((*mtx)[4] * _C.x) + ((*mtx)[5] * _C.y)));
-            v20.z += (((*mtx)[10] * _C.z) + (((*mtx)[8] * _C.x) + ((*mtx)[9] * _C.y)));
+        MtxPtr baseMtx = mSensor->mHost->getBaseMtx();
+        if (baseMtx) {
+            position.x += baseMtx[0][0] * _C.x + baseMtx[0][1] * _C.y + baseMtx[0][2] * _C.z;
+            position.y += baseMtx[1][0] * _C.x + baseMtx[1][1] * _C.y + baseMtx[1][2] * _C.z;
+            position.z += baseMtx[2][0] * _C.x + baseMtx[2][1] * _C.y + baseMtx[2][2] * _C.z;
         } else {
-            JMathInlineVEC::PSVECAdd(&v20, &_C, &v20);
+            position.add(_C);
         }
     }
 
-    mSensor->mPosition.set< f32 >(v20);
+    mSensor->mPosition.set(position);
 }
 
 void HitSensorInfo::doObjCol() {

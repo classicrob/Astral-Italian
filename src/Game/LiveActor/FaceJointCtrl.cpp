@@ -96,7 +96,7 @@ bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointController
         MR::calcPlayerJointMtx(&head, "Head");
         head.getTrans(direction);
     }
-    direction -= position;
+    direction.sub(position);
     if (MR::isNearZero(direction, 0.001f)) {
         return false;
     }

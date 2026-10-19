@@ -101,15 +101,10 @@ namespace {
         JMapIdInfo mInfo;
     };
 
-    struct HasActor {
-        HasActor(const LiveActor* pActor) : mActor(pActor) {
+    struct HasActor : std::binary_function< const MsgSharedGroup*, const LiveActor*, bool > {
+        bool operator()(const MsgSharedGroup* pGroup, const LiveActor* pActor) const {
+            return pGroup->hasActor(pActor);
         }
-
-        bool operator()(const MsgSharedGroup* pGroup) const {
-            return pGroup->hasActor(mActor);
-        }
-
-        const LiveActor* mActor;
     };
 }  // namespace
 
@@ -124,9 +119,8 @@ MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const 
     return nullptr;
 }
 
-// NONMATCHING: stack copies of the find_if functor and loop registers (FP order/grouping checked: no FP instructions).
 MsgSharedGroup* LiveActorGroupArray::findGroup(const LiveActor* pActor) const {
-    MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, HasActor(pActor));
+    MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, std::binder2nd< HasActor, const LiveActor* >(HasActor(), pActor));
 
     if (it != mGroups + mNumUsedGroups) {
         return *it;

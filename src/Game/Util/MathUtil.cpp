@@ -72,7 +72,11 @@ namespace MR {
     }
 
     void getRandomVector(TVec3f* pDst, f32 range) {
-        pDst->set< f32 >(getRandom(-range, range), getRandom(-range, range), getRandom(-range, range));
+        // The DOL draws z, then y, then x (MWCC evaluates call arguments right to left); keep that order explicit for native builds.
+        f32 z = getRandom(-range, range);
+        f32 y = getRandom(-range, range);
+        f32 x = getRandom(-range, range);
+        pDst->set< f32 >(x, y, z);
     }
 
     void addRandomVector(TVec3f* pDst, const TVec3f& rSrc, f32 range) {

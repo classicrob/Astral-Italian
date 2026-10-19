@@ -404,16 +404,11 @@ namespace MR {
         return pAnimKeeper->isAnyAnimPlaying(pName);
     }
 
-    // NONMATCHING: equivalent fallback/keeper tail-branch order
     bool isExistAnimInKeeper(const LiveActor* pActor, const char* pName) {
-        if (pActor->mActionKeeper != nullptr) {
-            ActorAnimKeeper* pAnimKeeper = pActor->mActionKeeper->mAnimKeeper;
-            if (pAnimKeeper != nullptr) {
-                return pAnimKeeper->isExistAnim(pName);
-            }
+        if (pActor->mActionKeeper == nullptr || pActor->mActionKeeper->mAnimKeeper == nullptr) {
+            return isExistAnim(pActor, pName);
         }
-
-        return isExistAnim(pActor, pName);
+        return pActor->mActionKeeper->mAnimKeeper->isExistAnim(pName);
     }
 
     bool isAnyAnimStopped(const LiveActor* pActor, const char* pName) {

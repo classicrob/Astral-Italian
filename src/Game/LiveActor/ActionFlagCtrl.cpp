@@ -183,9 +183,11 @@ bool ActionFlagCtrl::isFlagOff(s32 index, bool current) const {
     return false;
 }
 
+// NONMATCHING: regalloc (entry pointer and loop counter).
 ActionFlagInfo* ActionFlagCtrl::findInfo(const char* name) const {
     for (s32 i = 0; i < mNumEntries; i++) {
-        if (MR::isEqualStringCase(mEntries[i].mName, name)) return &mEntries[i];
+        ActionFlagInfo* info = &mEntries[i];
+        if (MR::isEqualStringCase(info->mName, name)) return info;
     }
     return nullptr;
 }

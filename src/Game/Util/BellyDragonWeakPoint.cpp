@@ -96,11 +96,10 @@ void BellyDragonWeakPoint::exeBurn() {
     }
 }
 
-// NONMATCHING: target copies the base matrix with inline paired-single loads and calls an out-of-line TVec3::set; ours uses gekko_ps_copy12 loop and inlines set
 void BellyDragonWeakPoint::updateMtx() {
     TPos3f* pBaseMtx = (TPos3f*)mPart->getBaseMtx();
-    mMtx = *pBaseMtx;
-    mPosition.set(mMtx.mMtx[0][3], mMtx.mMtx[1][3], mMtx.mMtx[2][3]);
+    mMtx.set(pBaseMtx->mMtx);
+    mPosition.set<f32>(mMtx.mMtx[0][3], mMtx.mMtx[1][3], mMtx.mMtx[2][3]);
 }
 
 void BellyDragonWeakPoint::calcAndSetBaseMtx() {

@@ -292,11 +292,11 @@ namespace {
     void updateBoundingBox(const RailRider* pRailRider, TBox3f* pBox) {
         TVec3f pos(pRailRider->mCurPos);
 
-        pBox->i.x = pBox->i.x >= pos.x ? pos.x : pBox->i.x;
+        pBox->i.x = MR::min(pBox->i.x, pos.x);
         pBox->i.y = MR::min(pBox->i.y, pos.y);
         pBox->i.z = MR::min(pBox->i.z, pos.z);
 
-        pBox->f.x = pBox->f.x >= pos.x ? pBox->f.x : pos.x;
+        pBox->f.x = MR::max(pBox->f.x, pos.x);
         pBox->f.y = MR::max(pBox->f.y, pos.y);
         pBox->f.z = MR::max(pBox->f.z, pos.z);
     }

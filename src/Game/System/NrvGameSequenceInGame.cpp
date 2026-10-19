@@ -8,6 +8,17 @@
 #include "Game/System/GameSequenceFunction.hpp"
 
 namespace NrvGameSequenceInGame {
+    GameSequenceInGameNrvOpening::GameSequenceInGameNrvOpening() {
+    }
+    GameSequenceInGameNrvMarioFace::GameSequenceInGameNrvMarioFace() {
+    }
+    GameSequenceInGameNrvWorldMap::GameSequenceInGameNrvWorldMap() {
+    }
+    GameSequenceInGameNrvInStage::GameSequenceInGameNrvInStage() {
+    }
+    GameSequenceInGameNrvBeforeKoopaVs3::GameSequenceInGameNrvBeforeKoopaVs3() {
+    }
+
     void GameSequenceInGameNrvBeforeKoopaVs3::execute(Spine*) const {
         if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
             MR::openWipeFade(-1);

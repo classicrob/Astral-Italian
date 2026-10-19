@@ -14,26 +14,31 @@ class PlayResultMarioFaceShipHolder;
 namespace NrvGameSequenceInGame {
     class GameSequenceInGameNrvOpening : public Nerve {
     public:
+        GameSequenceInGameNrvOpening();
         virtual void execute(Spine*) const;
         static GameSequenceInGameNrvOpening sInstance;
     };
     class GameSequenceInGameNrvMarioFace : public Nerve {
     public:
+        GameSequenceInGameNrvMarioFace();
         virtual void execute(Spine*) const;
         static GameSequenceInGameNrvMarioFace sInstance;
     };
     class GameSequenceInGameNrvWorldMap : public Nerve {
     public:
+        GameSequenceInGameNrvWorldMap();
         virtual void execute(Spine*) const;
         static GameSequenceInGameNrvWorldMap sInstance;
     };
     class GameSequenceInGameNrvInStage : public Nerve {
     public:
+        GameSequenceInGameNrvInStage();
         virtual void execute(Spine*) const;
         static GameSequenceInGameNrvInStage sInstance;
     };
     class GameSequenceInGameNrvBeforeKoopaVs3 : public Nerve {
     public:
+        GameSequenceInGameNrvBeforeKoopaVs3();
         virtual void execute(Spine*) const;
         static GameSequenceInGameNrvBeforeKoopaVs3 sInstance;
     };

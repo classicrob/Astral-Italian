@@ -1,4 +1,5 @@
 #include "Game/System/GameDataWorldMapStorage.hpp"
+#include "Game/System/SysConfigFile.hpp"
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
@@ -58,4 +59,18 @@ void GameDataWorldMapStorage::setPointFlag(s32 index, s32 bit, bool isOn) {
     } else {
         flag = flag & (u8)~(u8)(1 << bit);
     }
+}
+
+void SysConfigCounters::reset() {
+    mBankedStarPiece = 0;
+    mMaxBankedStarPiece = 0;
+    mSharedPlayerLeft = 0;
+    mPlayerLeftHash = 0;
+}
+
+void SysConfigCounters::copyFrom(const SysConfigCounters& other) {
+    mBankedStarPiece = other.mBankedStarPiece;
+    mMaxBankedStarPiece = other.mMaxBankedStarPiece;
+    mSharedPlayerLeft = other.mSharedPlayerLeft;
+    mPlayerLeftHash = other.mPlayerLeftHash;
 }

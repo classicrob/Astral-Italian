@@ -911,43 +911,28 @@ namespace MR {
     }
 
     bool isPostmanTaskInProgressAtStageGroup6To7(const char* pStageName) {
-        if (isPostmanTaskInProgressAtStage(pStageName, 6)) {
-            return true;
+        bool inProgress = false;
+        if (isPostmanTaskInProgressAtStage(pStageName, 6) || isPostmanTaskInProgressAtStage(pStageName, 7)) {
+            inProgress = true;
         }
-
-        if (isPostmanTaskInProgressAtStage(pStageName, 7)) {
-            return true;
-        }
-
-        return false;
+        return inProgress;
     }
 
     bool isPostmanTaskInProgressAtStageGroup8To9(const char* pStageName) {
-        if (isPostmanTaskInProgressAtStage(pStageName, 8)) {
-            return true;
+        bool inProgress = false;
+        if (isPostmanTaskInProgressAtStage(pStageName, 8) || isPostmanTaskInProgressAtStage(pStageName, 9)) {
+            inProgress = true;
         }
-
-        if (isPostmanTaskInProgressAtStage(pStageName, 9)) {
-            return true;
-        }
-
-        return false;
+        return inProgress;
     }
 
     bool isPostmanTaskInProgressAtStageGroup10To12(const char* pStageName) {
-        if (isPostmanTaskInProgressAtStage(pStageName, 10)) {
-            return true;
+        bool inProgress = false;
+        if (isPostmanTaskInProgressAtStage(pStageName, 10) || isPostmanTaskInProgressAtStage(pStageName, 11) ||
+            isPostmanTaskInProgressAtStage(pStageName, 12)) {
+            inProgress = true;
         }
-
-        if (isPostmanTaskInProgressAtStage(pStageName, 11)) {
-            return true;
-        }
-
-        if (isPostmanTaskInProgressAtStage(pStageName, 12)) {
-            return true;
-        }
-
-        return false;
+        return inProgress;
     }
 
     bool isIslandFleetGalaxy1FirstTime() {

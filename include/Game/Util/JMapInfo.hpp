@@ -125,6 +125,12 @@ public:
     JMapInfoIter(const JMapInfo* pInfo, s32 index) : mInfo(pInfo), mIndex(index) {
     }
 
+#ifdef JMAPINFOITER_COPY_NOINLINE
+    // Opt in per translation unit when the original keeps the iterator copy out of line.
+    JMapInfoIter(const JMapInfoIter& rIter) NO_INLINE : mInfo(rIter.mInfo), mIndex(rIter.mIndex) {
+    }
+#endif
+
     bool operator==(const JMapInfoIter& rIter) const {
         return mIndex == rIter.mIndex && mInfo != nullptr && rIter.mInfo != nullptr && *mInfo == *rIter.mInfo;
     }

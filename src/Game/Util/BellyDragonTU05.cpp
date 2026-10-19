@@ -253,7 +253,7 @@ void BellyDragonPod::createGroups() {
 }
 
 // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
-BellyDragonArm::BellyDragonArm(BellyDragon* pHost, s32 side) : ActorStateBaseInterface("Phase[戦闘]"), mHost(pHost), mSide(side), mStateA(NULL), mStateB(NULL), mStateC(NULL), mCounter(0) {
+BellyDragonArm::BellyDragonArm(BellyDragon* pHost, s32 side) : ActorStateBase<BellyDragon>("Phase[戦闘]", pHost), mSide(side), mStateA(NULL), mStateB(NULL), mStateC(NULL), mCounter(0) {
 }
 
 // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
@@ -340,10 +340,13 @@ bool BellyDragonArm::receiveMessage(u32 msg, HitSensor* pSensorA, HitSensor* pSe
     if (!isNerve(&NrvBellyDragonArm::BellyDragonArmNrvAttack::sInstance) && MR::isMsgPlayerSpinAttackOrSupportTico(msg) && BellyDragonUtil::isSensorWeakPoint(pSensorA)) {
         MR::startAction(mHost, "Damage");
         TVec3f sp2C(MR::getSensorHost(pSensorA)->mPosition);
-        TVec3f sp20(lbl_807D7878, lbl_807D787C, lbl_807D7878);
+        TVec3f sp20;
+        sp20.set(lbl_807D7878, lbl_807D787C, lbl_807D7878);
         MR::calcGravityVector(mHost, sp2C, &sp20, NULL, 0);
         TVec3f sp8(sp20);
-        sp8.scale(lbl_807D7880);
+        sp8.x *= lbl_807D7880;
+        sp8.y *= lbl_807D7880;
+        sp8.z *= lbl_807D7880;
         TVec3f sp14(sp2C);
         sp14 -= sp8;
         MR::emitItemBossDamageAtPos(mHost, &sp14);

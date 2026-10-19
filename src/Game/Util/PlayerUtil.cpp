@@ -1060,11 +1060,7 @@ namespace MR {
     void calcPlayerScaledVec(TVec3f* pDst, const TVec3f& rA, const TVec3f& rB, const TVec3f& rC, f32 scale) {
         TVec3f tmp = rA - rB;
         f32 normalDistance = vecKillElement(tmp, rC, &tmp);
-
-        f32 len2 = tmp.squared();
-        if (!(len2 <= 3.8146973e-06f)) {
-            tmp.scale(JGeometry::TUtil<f32>::inv_sqrt(len2) * (scale - 200.0f));
-        }
+        tmp.setLength(scale - 200.0f);
 
         TVec3f add(rC);
         add.scale(normalDistance);

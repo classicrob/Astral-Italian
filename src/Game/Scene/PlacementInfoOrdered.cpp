@@ -1,3 +1,4 @@
+#define JMAPINFOITER_COPY_NOINLINE
 #include "Game/Scene/PlacementInfoOrdered.hpp"
 #include "Game/LiveActor/AllLiveActorGroup.hpp"
 #include "Game/Map/PlanetMapCreator.hpp"
@@ -215,5 +216,6 @@ PlacementInfoOrdered::Index* PlacementInfoOrdered::createIndex(const JMapInfoIte
 }
 
 void PlacementInfoOrdered::addGeneratedIndex(const JMapInfoIter& rIter) {
-    mGeneratedList.append(new MR::BothDirLink< JMapInfoIter >(new JMapInfoIter(rIter)));
+    JMapInfoIter* pIter = new JMapInfoIter(rIter);
+    mGeneratedList.append(new MR::BothDirLink< JMapInfoIter >(pIter));
 }

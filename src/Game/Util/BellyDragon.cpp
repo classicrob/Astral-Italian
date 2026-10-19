@@ -79,7 +79,6 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
 BellyDragon::BellyDragon(const char* pName) : LiveActor(pName) {
     mIsLv2 = false;
     mFront.set(0.0f, 0.0f, 1.0f);
-    mBaseMtx.identity();
     mBody = NULL;
     mPod = NULL;
     mJointCtrl = NULL;
@@ -87,6 +86,7 @@ BellyDragon::BellyDragon(const char* pName) : LiveActor(pName) {
     mArmB = NULL;
     mDemoB = NULL;
     mDemoA = NULL;
+    mBaseMtx.identity();
 }
 
 void BellyDragon::emitFireBodyEffects() {

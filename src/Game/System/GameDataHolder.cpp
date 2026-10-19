@@ -44,7 +44,7 @@ void GameDataHolder::offGameEventFlag(const char* pFlagName) {
     mEventFlagStorage->set(pFlagName, false);
 }
 
-s32 GameDataHolder::getGameEventValue(const char* pName) const {
+u16 GameDataHolder::getGameEventValue(const char* pName) const {
     return mEventValueChecker->getValue(pName);
 }
 

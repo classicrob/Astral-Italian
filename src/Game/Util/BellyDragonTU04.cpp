@@ -362,7 +362,6 @@ s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useF
         TVec3f sp2C(-mtxB[0][0], -mtxB[1][0], -mtxB[2][0]);
         TVec3f sp20(mtxB[0][1], mtxB[1][1], mtxB[2][1]);
         TVec3f sp14(mtxB[0][2], mtxB[1][2], mtxB[2][2]);
-        TVec3f sp8(mtxB[0][3], mtxB[1][3], mtxB[2][3]);
         TPos3f mm;
         mm.mMtx[0][0] = sp14.x;
         mm.mMtx[1][0] = sp14.y;
@@ -373,6 +372,7 @@ s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useF
         mm.mMtx[0][2] = sp2C.x;
         mm.mMtx[1][2] = sp2C.y;
         mm.mMtx[2][2] = sp2C.z;
+        TVec3f sp8(mtxB[0][3], mtxB[1][3], mtxB[2][3]);
         mm.mMtx[0][3] = sp8.x;
         mm.mMtx[1][3] = sp8.y;
         mm.mMtx[2][3] = sp8.z;

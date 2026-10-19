@@ -24,7 +24,7 @@ void BellyDragonBodyHill::appear() {
 }
 
 void BellyDragonBodyHill::calcAndSetBaseMtx() {
-    mPosition.set(mParentMtx[0][3], mParentMtx[1][3], mParentMtx[2][3]);
+    mPosition.set<f32>(mParentMtx[0][3], mParentMtx[1][3], mParentMtx[2][3]);
     MR::setBaseTRMtx(this, mParentMtx);
 }
 

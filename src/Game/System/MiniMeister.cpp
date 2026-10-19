@@ -130,7 +130,7 @@ void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
+// NONMATCHING: TVec2 copies use floating loads/stores instead of target word copies; stack scheduling.
 void MiniMeister::updateTalkScreenPos(f32 ratio) {
     TVec2f screen;
     screen.x = mScreenPos.x;
@@ -150,7 +150,8 @@ void MiniMeister::updateTalkScreenPos(f32 ratio) {
     f32 blend = scale + (ratio * (1.0f - scale));
     TVec2f a = worldScreen * blend;
     TVec2f b = anchorScreen * (1.0f - blend);
-    TVec2f mix = a + b;
+    // Keep the anchor contribution first in the floating-point addition.
+    TVec2f mix = b + a;
     TVec3f dir;
     MR::calcWorldRayDirectionFromScreen(&dir, mix);
     MR::normalize(&dir);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/NameObj/NameObj.hpp"
+#include "Game/Util/Array.hpp"
 
 class ChangeObj;
 
@@ -25,9 +26,7 @@ public:
 
     void registerChangeObj(ChangeObj*, const JMapInfoIter&);
 
-    /* 0x14 */ ChangeObjPair** mChangeObjs;
-    /* 0x18 */ s32 mCapacity;
-    /* 0x1C */ s32 mCount;
+    /* 0x14 */ MR::Vector< MR::AssignableArray< ChangeObjPair* > > mChangeObjs;
 };
 
 namespace MR {

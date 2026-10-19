@@ -74,8 +74,13 @@ namespace MR {
 namespace MR { void requestStageBGMVolumeDown(s32, bool); }
 
 namespace MR {
+#ifdef BGM_UTIL_OUTLINE_PLAYING_HELPERS
+    bool isSandyBossBGMPlaying() NO_INLINE;
+    bool isPorterBGMPlaying() NO_INLINE;
+#else
     bool isSandyBossBGMPlaying();
     bool isPorterBGMPlaying();
+#endif
     void startPlayFireMorphBGM();
     void adjustSandyBossFireMorphBGM(s32, s32);
     void adjustPorterBGGM(s32, s32);

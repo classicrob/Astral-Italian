@@ -177,8 +177,8 @@ public:
     /* 0x7C */ LiveActorGroup* mGroupB;
 };
 
-// TU05: arm (ActorStateBaseInterface with 3 sub-states). Ctor (host, side); side 1 = A, 0 = B.
-class BellyDragonArm : public ActorStateBaseInterface {
+// TU05: arm with 3 sub-states. Ctor (host, side); side 1 = A, 0 = B.
+class BellyDragonArm : public ActorStateBase<BellyDragon> {
 public:
     BellyDragonArm(BellyDragon*, s32);
 
@@ -193,7 +193,6 @@ public:
     void exeShot();
     void exeAttack();
 
-    /* 0x0C */ BellyDragon* mHost;
     /* 0x10 */ u8 mSide;
     /* 0x14 */ BellyDragonArmWait* mStateA;   // 0x28 bytes
     /* 0x18 */ BellyDragonArmFire* mStateB;   // 0x48 bytes
@@ -217,10 +216,10 @@ public:
     /* 0x94 */ TPos3f mBaseMtx;
 };
 
-class BellyDragonState; // TU06, size 0x1C, ActorStateBaseInterface state (ctor BellyDragon*, const char*, const f32*)
+class BellyDragonState; // TU06, size 0x1C (ctor BellyDragon*, const char*, const f32*)
 
-// TU06: ActorStateBaseInterface state. Vtable 0x8 dtor, 0xC init, 0x10 appear, 0x14 kill, 0x18 update, 0x1C control.
-class BellyDragonState : public ActorStateBaseInterface {
+// TU06: Vtable 0x8 dtor, 0xC init, 0x10 appear, 0x14 kill, 0x18 update, 0x1C control.
+class BellyDragonState : public ActorStateBase<BellyDragon> {
 public:
     BellyDragonState(BellyDragon*, const char*, const f32*);
 
@@ -234,7 +233,6 @@ public:
     void exeWait();
     void exePlay();
 
-    /* 0x0C */ BellyDragon* mHost;
     /* 0x10 */ const char* mStateName;
     /* 0x14 */ bool mIsActive;
     /* 0x15 */ bool mIsOverlay;

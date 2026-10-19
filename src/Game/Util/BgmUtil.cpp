@@ -1,3 +1,4 @@
+#define BGM_UTIL_OUTLINE_PLAYING_HELPERS
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
 #include "Game/Util.hpp"
 #include "Game/AudioLib/AudMeNameConverter.hpp"

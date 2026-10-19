@@ -45,8 +45,18 @@ namespace MR {
     }
 
     void requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {
-        MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPointCtrl->requestPointLight(pActor, pos, color, intensity, duration, distRef);
-        MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPointCtrlSub->requestPointLight(pActor, pos, color, intensity, duration, distRef);
+        {
+            Color8 lightColor(color);
+            TVec3f lightPos(pos);
+            LightPointCtrl* ctrl = MR::getSceneObj<LightDirector>(SceneObj_LightDirector)->mPointCtrl;
+            ctrl->requestPointLight(pActor, lightPos, lightColor, intensity, duration, distRef);
+        }
+        {
+            Color8 lightColor(color);
+            TVec3f lightPos(pos);
+            LightPointCtrl* ctrl = MR::getSceneObj<LightDirector>(SceneObj_LightDirector)->mPointCtrlSub;
+            ctrl->requestPointLight(pActor, lightPos, lightColor, intensity, duration, distRef);
+        }
     }
     // NONMATCHING: point-controller load is scheduled after the vector copy.
     void requestPointLightPlayer(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {

@@ -18,22 +18,17 @@ bool ChangeObjPair::tryRegister(ChangeObj* pObj, s32 zoneId, s32 linkId) {
 }
 
 ChangeObjHolder::ChangeObjHolder(const char* pName) : NameObj(pName) {
-    mChangeObjs = nullptr;
-    mCapacity = 0;
-    mCount = 0;
-    mChangeObjs = new ChangeObjPair*[0x40];
-    mCapacity = 0x40;
+    mChangeObjs.init(0x40);
 }
 
 ChangeObjHolder::~ChangeObjHolder() {
-    delete[] mChangeObjs;
 }
 
 void ChangeObjHolder::init(const JMapInfoIter&) {
 }
 
 void ChangeObjHolder::registerChangeObj(ChangeObj* pObj, const JMapInfoIter& rIter) {
-    s32 count = mCount;
+    s32 count = mChangeObjs.size();
     s32 zoneId = MR::getPlacedZoneId(rIter);
     s32 linkId;
     MR::getJMapInfoLinkID(rIter, &linkId);

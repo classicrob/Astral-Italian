@@ -18,7 +18,7 @@ public:
     bool isOnGameEventFlag(const char*) const;
     void onGameEventFlag(const char*);
     void offGameEventFlag(const char*);
-    s32 getGameEventValue(const char*) const;
+    u16 getGameEventValue(const char*) const;
     void setGameEventValue(const char*, u16);
     void incPlayerMissNum();
     s32 getPlayerMissNum() const;

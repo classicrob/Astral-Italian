@@ -45,10 +45,15 @@ void LiveActor::appear() {
 // J3DModel::setBaseScale
 // LiveActor::calcViewAndEntry
 // NONMATCHING: equivalent range-check lowering
+// NONMATCHING: equivalent unsigned enemy-attack range lowering.
 bool LiveActor::receiveMessage(u32 msg, HitSensor* sender, HitSensor* receiver) {
     if (msg == 0x33) return receiveMsgPush(sender, receiver);
-    if (msg != 0 && msg < 0x26) return receiveMsgPlayerAttack(msg, sender, receiver);
-    if (msg > 0x59 && msg < 0x75) return receiveMsgEnemyAttack(msg, sender, receiver);
+    bool isPlayerAttack = false;
+    if (msg != 0 && msg < 0x26) isPlayerAttack = true;
+    if (isPlayerAttack) return receiveMsgPlayerAttack(msg, sender, receiver);
+    bool isEnemyAttack = false;
+    if (msg > 0x59 && msg < 0x75) isEnemyAttack = true;
+    if (isEnemyAttack) return receiveMsgEnemyAttack(msg, sender, receiver);
     return receiveOtherMsg(msg, sender, receiver);
 }
 // LiveActor::calcAndSetBaseMtx

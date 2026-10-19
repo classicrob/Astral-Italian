@@ -3,20 +3,6 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-void SysConfigCounters::reset() {
-    mBankedStarPiece = 0;
-    mMaxBankedStarPiece = 0;
-    mSharedPlayerLeft = 0;
-    mPlayerLeftHash = 0;
-}
-
-void SysConfigCounters::copyFrom(const SysConfigCounters& other) {
-    mBankedStarPiece = other.mBankedStarPiece;
-    mMaxBankedStarPiece = other.mMaxBankedStarPiece;
-    mSharedPlayerLeft = other.mSharedPlayerLeft;
-    mPlayerLeftHash = other.mPlayerLeftHash;
-}
-
 SysConfigChunk::SysConfigChunk() : mBackupCounters(nullptr), mCurrentCounters(nullptr), mHeaderSerializer(nullptr) {
     initializeHeaderSerializer();
     mBackupCounters = new SysConfigCounters;

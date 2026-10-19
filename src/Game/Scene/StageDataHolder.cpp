@@ -1,5 +1,6 @@
 #include "Game/Scene/StageDataHolder.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/Array.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/Scene/PlacementInfoOrdered.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
@@ -583,3 +584,4 @@ namespace MR {
 
 StageDataHolder::~StageDataHolder() {
 }
+template void MR::Vector< MR::FixedArray< const char*, 16 > >::push_back(const char* const&);

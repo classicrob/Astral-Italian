@@ -30,7 +30,7 @@ void BellyDragonState::clearActive() {
 }
 
 BellyDragonState::BellyDragonState(BellyDragon* pHost, const char* pName, const f32* pTime)
-    : ActorStateBaseInterface(pName), mHost(pHost), mStateName(pName), mIsActive(true), mIsOverlay(false), mIsDeleteEffect(false), mpTime(pTime) {
+    : ActorStateBase<BellyDragon>(pName, pHost), mStateName(pName), mIsActive(true), mIsOverlay(false), mIsDeleteEffect(false), mpTime(pTime) {
 }
 
 void BellyDragonState::init() {

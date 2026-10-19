@@ -60,14 +60,6 @@ namespace NrvBellyDragonPodActor {
     NEW_NERVE(BellyDragonPodActorNrvWait, BellyDragonPodActor, Wait);
 };  // namespace NrvBellyDragonPodActor
 
-// Group-B actor (0xC4 bytes). Host at 0x90, base matrix at 0x94.
-BellyDragonPodActor::BellyDragonPodActor(BellyDragon* pHost) : LiveActor("隕石（ドラゴン）"), mHost(pHost) {
-    mBaseMtx.identity();
-}
-
-BellyDragonPodActor::~BellyDragonPodActor() {
-}
-
 // ---------------------------------------------------------------------------------------------
 
 s32 BellyDragonUtil::isLv2(BellyDragon* pHost) {
@@ -81,7 +73,7 @@ s32 BellyDragonUtil::updateArmState(NerveExecutor* pArm, BellyDragon* pHost) {
 }
 
 // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
-void BellyDragonUtil::syncToHead(BellyDragon* pHost, LiveActor*) {
+void BellyDragonUtil::syncToHead(BellyDragon* pHost) {
     MR::onBind(pHost);
     BellyDragonBodyPart* pBody = pHost->mBody->mHead;
     MR::setPosition(pHost, pBody->mPosition);
@@ -335,7 +327,7 @@ s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     return 1;
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: literal symbol names.
 s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useFirst, const f32* pTime, f32 farg0) {
     pHost->mPod->mDecoration->movement();
     pHost->mPod->mDecoration->calcAnim();
@@ -377,12 +369,18 @@ s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useF
         mm.mMtx[1][3] = sp8.y;
         mm.mMtx[2][3] = sp8.z;
         BellyDragonUtil::setBodyPartMtx(pHost->mBody->mHead, mm.mMtx);
-        BellyDragonUtil::syncToHead(pHost, NULL);
+        BellyDragonUtil::syncToHead(pHost);
         MR::startAction(pHost, "FlyWaitNoInterpole");
         return 1;
     }
     return 0;
 }
+
+// Group-B actor (0xC4 bytes). Host at 0x90, base matrix at 0x94.
+BellyDragonPodActor::BellyDragonPodActor(BellyDragon* pHost) : LiveActor("隕石（ドラゴン）"), mHost(pHost) {
+    mBaseMtx.identity();
+}
+
 
 void BellyDragonPodActor::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "BellyDragonMeteor", false);
@@ -425,4 +423,7 @@ void BellyDragonPodActor::calcAndSetBaseMtx() {
 
 void BellyDragonPodActor::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     MR::sendMsgEnemyAttackFire(pReceiver, pSender);
+}
+
+BellyDragonPodActor::~BellyDragonPodActor() {
 }

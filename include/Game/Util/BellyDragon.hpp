@@ -436,7 +436,7 @@ bool isAttackNerve(LiveActor*);  // was fn_8008EDA0
 namespace BellyDragonUtil {
     s32 isLv2(BellyDragon*);                                     // was fn_80093310
     s32 updateArmState(NerveExecutor*, BellyDragon*);            // was fn_80093320
-    void syncToHead(BellyDragon*, LiveActor*);                   // was fn_80093370
+    void syncToHead(BellyDragon*);                   // was fn_80093370
     void setBodyPartMtx(BellyDragonBodyPart*, const f32 (*)[4]); // was fn_80093450
     void updateFront(BellyDragon*, f32);                         // was fn_800934A0
     void pullBindedByFront(BellyDragon*, const f32*);            // was fn_800934B0

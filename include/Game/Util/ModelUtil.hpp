@@ -60,7 +60,7 @@ namespace MR {
 #else
     s32 getTextureNum(const LiveActor*);
 #endif
-    u16 getMaterialNum(const LiveActor*);
+    s32 getMaterialNum(const LiveActor*);
     bool isUseTexMtxEnvMap(J3DMaterial*);
     bool isUseTexMtxProjMap(J3DMaterial*);
     void setShapeVcdVatCmdSelf(J3DShape*);

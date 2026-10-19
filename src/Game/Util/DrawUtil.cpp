@@ -471,12 +471,10 @@ namespace MR {
 
 };  // namespace MR
 
-// NONMATCHING: floating add-zero optimization and box temporary pointer scheduling
 J2DOrthoGraphSimple::J2DOrthoGraphSimple() : J2DOrthoGraph(0.0f, 0.0f, MR::getFrameBufferWidth(), ::getScreenHeightInline(), -30000.0f, 30000.0f) {
     f32 height = MR::getScreenHeight();
     f32 width = MR::getScreenWidth();
-    TBox2f bounds(0.0f, 0.0f, 0.0f + width, 0.0f + height);
-    setOrtho(bounds, -30000.0f, 30000.0f);
+    setOrtho(0.0f, 0.0f, width, height, -30000.0f, 30000.0f);
 }
 
 void J2DOrthoGraphSimple::setPort() {

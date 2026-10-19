@@ -4062,7 +4062,7 @@ Game/LiveActor/SensorHitChecker.cpp:
 Game/LiveActor/ShadowController.cpp:
 	.text       start:0x8023E780 end:0x8023FA70
 	.data       start:0x806959BC end:0x806959E8
-	.sdata      start:0x807CFAEC end:0x807CFAF0
+	.sdata      start:0x807CFAE8 end:0x807CFAF0
 	.sdata2     start:0x807DC500 end:0x807DC518
 
 Game/LiveActor/ShadowDrawer.cpp:

@@ -230,7 +230,7 @@ namespace MR {
         return getJ3DModelData(pActor)->getMaterialNodePointer(idx);
     }
 
-    u16 getMaterialNum(const LiveActor* pActor) {
+    s32 getMaterialNum(const LiveActor* pActor) {
         return getJ3DModelData(pActor)->getMaterialNum();
     }
 

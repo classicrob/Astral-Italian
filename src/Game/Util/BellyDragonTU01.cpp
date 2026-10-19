@@ -14,7 +14,7 @@ BellyDragonBodyHill::BellyDragonBodyHill(const char* pName, MtxPtr pParentMtx, b
 void BellyDragonBodyHill::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "BellyDragonBodyHill", false);
     initNerve(&NrvBellyDragonBodyHill::BellyDragonBodyHillNrvAppear::sInstance, 0);
-    kill();
+    makeActorDead();
 }
 
 void BellyDragonBodyHill::appear() {

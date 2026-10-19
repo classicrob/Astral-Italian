@@ -17,9 +17,9 @@ inline void BellyDragonWeakPoint::exeChance() {
 
 namespace NrvBellyDragonWeakPoint {
     NEW_NERVE(BellyDragonWeakPointNrvWait, BellyDragonWeakPoint, Wait);
-    NEW_NERVE(BellyDragonWeakPointNrvBurn, BellyDragonWeakPoint, Burn);
     NEW_NERVE(BellyDragonWeakPointNrvChance, BellyDragonWeakPoint, Chance);
     NEW_NERVE(BellyDragonWeakPointNrvWaitC, BellyDragonWeakPoint, WaitC);
+    NEW_NERVE(BellyDragonWeakPointNrvBurn, BellyDragonWeakPoint, Burn);
 
     class BellyDragonWeakPointNrvDamage : public Nerve {
     public:
@@ -50,7 +50,7 @@ void BellyDragonWeakPoint::makeActorAppeared() {
 }
 
 void BellyDragonWeakPoint::setNerveChance() {
-    setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvChance::sInstance);
+    setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvWaitC::sInstance);
 }
 
 void BellyDragonWeakPoint::setNerveWaitA() {
@@ -58,7 +58,7 @@ void BellyDragonWeakPoint::setNerveWaitA() {
 }
 
 void BellyDragonWeakPoint::setNerveBurn() {
-    setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvBurn::sInstance);
+    setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvChance::sInstance);
 }
 
 void BellyDragonWeakPoint::setNerveWaitB() {
@@ -66,11 +66,11 @@ void BellyDragonWeakPoint::setNerveWaitB() {
 }
 
 void BellyDragonWeakPoint::setNerveWaitC() {
-    setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvWaitC::sInstance);
+    setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvDamage::sInstance);
 }
 
 bool BellyDragonWeakPoint::isAttackable() {
-    if (MR::isDead(this) || isNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvDamage::sInstance)) {
+    if (MR::isDead(this) || isNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvBurn::sInstance)) {
         return false;
     }
     return true;
@@ -124,7 +124,7 @@ bool BellyDragonWeakPoint::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
         mPart->mWeakPoint = NULL;
         MR::hideModel(this);
         MR::invalidateHitSensors(this);
-        setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvDamage::sInstance);
+        setNerve(&NrvBellyDragonWeakPoint::BellyDragonWeakPointNrvBurn::sInstance);
         return true;
     }
     return false;

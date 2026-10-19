@@ -167,7 +167,6 @@ void BellyDragonFire::loadModelDrawMtx() const {
     MR::getJ3DModel(mModelObj)->getShapePacket(0)->getShape()->loadPreDrawSetting();
 }
 
-// NONMATCHING: redundant zero extension of the u16 material count returned by the callee.
 void BellyDragonFire::drawShape() const {
     s32 materialNum = MR::getMaterialNum(mModelObj);
     for (u16 i = 0; i < materialNum; ++i) {

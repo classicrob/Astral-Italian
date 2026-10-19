@@ -69,7 +69,11 @@ f32 YoshiModelBlend::rate() const { if(mDuration<=0) return 1.0f;return static_c
 
 bool decomposeYoshiModelMtx(const TPos3f& mtx,TVec3f* scale,TVec3f* trans,TQuat4f* quat) {
     TVec3f x,y,z;mtx.getXDir(x);f32 sx=PSVECMag(&x);mtx.getYDir(y);f32 sy=PSVECMag(&y);mtx.getZDir(z);f32 sz=PSVECMag(&z);
-    if(sx==0.0f) {if(sy==0.0f || sz==0.0f) return false;PSVECCrossProduct(&y,&z,&x);}
+    if(sx==0.0f) {
+        if(sy==0.0f) return false;
+        if(sz==0.0f) return false;
+        PSVECCrossProduct(&y,&z,&x);
+    }
     else if(sy==0.0f) {if(sz==0.0f) return false;PSVECCrossProduct(&z,&x,&y);}
     if(MR::normalizeOrZero(&x)) return false;
     if(MR::normalizeOrZero(&y)) return false;
@@ -83,10 +87,13 @@ void setYoshiModelScale(TPos3f* mtx,const TVec3f& scale) {
     mtx->mMtx[2][0]=0.0f;mtx->mMtx[2][1]=0.0f;mtx->mMtx[2][2]=scale.z;
 }
 void blendYoshiModelMtx(TPos3f* out,const TPos3f& input,f32 rate) {
-    TVec3f scale0,trans0,scale1,trans1;TQuat4f quat0,quat1;
+    TQuat4f quat0;
+    TVec3f scale0,trans0;
     if(!decomposeYoshiModelMtx(*out,&scale0,&trans0,&quat0)) {JMath::gekko_ps_copy12(out,&input);return;}
+    TQuat4f quat1;
+    TVec3f scale1,trans1;
     if(decomposeYoshiModelMtx(input,&scale1,&trans1,&quat1)) {
-        TQuat4f quat=quat0;quat.slerp(quat1,rate);
+        TQuat4f quat;quat=quat0;quat.slerp(quat1,rate);
         TVec3f scale=scale0*(1.0f-rate)+scale1*rate;
         TVec3f trans=trans0*(1.0f-rate)+trans1*rate;
         TPos3f scaleMtx;setYoshiModelScale(&scaleMtx,scale);out->makeQuat(quat);out->concat(scaleMtx);out->setTrans(trans);

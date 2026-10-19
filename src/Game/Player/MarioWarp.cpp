@@ -118,7 +118,7 @@ void MarioWarp::updateJump() {
 }
 
 
-// NONMATCHING: vector operand scheduling.
+// NONMATCHING: movement-state bitfield encoding.
 bool MarioWarp::start() {
     _52 = 0;
     _58 = 0;
@@ -170,7 +170,8 @@ bool MarioWarp::start() {
     }
 
     mActor->_F44 = 0;
-    getPlayer()->addTrans(mActor->mPosition - getTrans());
+    const TVec3f& position = mActor->mPosition;
+    getPlayer()->addTrans(position - getTrans());
     update();
     if (_45 == 3 && getPlayerMode() != 1) {
         mActor->_A6E = 2;
@@ -188,7 +189,7 @@ bool MarioWarp::start() {
 }
 
 
-// NONMATCHING: string pool offsets.
+// NONMATCHING: movement-state bitfield encoding.
 bool MarioWarp::update() {
     if (!_44) {
         getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
@@ -240,8 +241,8 @@ bool MarioWarp::update() {
     case 0:
         playSound("惑星貫通中");
         break;
-    case 1:
-    case 3: {
+    case 3:
+    case 1: {
         s32 volume;
         if (_88 == 0) {
             volume = 0;
@@ -301,6 +302,7 @@ bool MarioWarp::update() {
 }
 
 
+// NONMATCHING: movement-state bitfield encoding.
 bool MarioWarp::close() {
     getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
     getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;

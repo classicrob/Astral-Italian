@@ -1,7 +1,11 @@
 #include "Game/Util/BothDirList.hpp"
 
 namespace MR {
-    BothDirPtrLink::BothDirPtrLink(void* pLink) : mValue(pLink), mList(nullptr), mPrevLink(nullptr), mNextLink(nullptr) {
+    BothDirPtrLink::BothDirPtrLink(void* pLink) {
+        mList = nullptr;
+        mValue = pLink;
+        mPrevLink = nullptr;
+        mNextLink = nullptr;
     }
 
     BothDirPtrLink::~BothDirPtrLink() {

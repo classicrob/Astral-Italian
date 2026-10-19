@@ -123,7 +123,7 @@ void BellyDragonArmShot::exeDown() {
     if (MR::isGreaterStep(this, cDiveLimit))
         kill();
 }
-// NONMATCHING: vector inlining and register allocation.
+// NONMATCHING: literal symbol names.
 void BellyDragonArmShot::exeUnderground() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "AttackDiveUnderground");
@@ -137,8 +137,7 @@ void BellyDragonArmShot::exeUnderground() {
     if (!MR::isNearZero(dir, 0.001f)) {
         MR::normalize(&dir);
         BellyDragon* host = mHost;
-        TVec3f up(0, 1, 0);
-        MR::turnVecToVecDegree(&host->mFront, host->mFront, dir, mUndergroundParam[3], up);
+        MR::turnVecToVecDegree(&host->mFront, host->mFront, dir, mUndergroundParam[3], TVec3f(0, 1, 0));
     }
     BellyDragonUtil::pushBindedByFront(mHost, mUndergroundParam[0], mUndergroundParam[2]);
     TVec3f velocity(mHost->mVelocity);
@@ -189,15 +188,14 @@ void BellyDragonArmShot::exeFlyOut() {
         setNerve(&NrvBellyDragonArmShot::End::sInstance);
     }
 }
-// NONMATCHING: vector inlining and register allocation.
+// NONMATCHING: literal symbol names.
 void BellyDragonArmShot::exeEnd() {
     if (MR::isFirstStep(this) && !BellyDragonUtil::isLv2(mHost))
         MR::startAction(mHost, "FlyWaitNormal");
     TVec3f dir(0.0f);
     MR::calcVecToPlayerH(&dir, mHost, NULL);
     BellyDragon* host = mHost;
-    TVec3f up(0, 1, 0);
-    MR::turnVecToVecDegree(&host->mFront, host->mFront, dir, mEndParam[3], up);
+    MR::turnVecToVecDegree(&host->mFront, host->mFront, dir, mEndParam[3], TVec3f(0, 1, 0));
     BellyDragonUtil::pushBindedByFront(mHost, mEndParam[0], mEndParam[2]);
     if (MR::isGreaterStep(this, *mEndTime))
         kill();

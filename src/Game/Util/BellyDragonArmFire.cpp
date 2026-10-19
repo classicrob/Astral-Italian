@@ -96,8 +96,7 @@ void BellyDragonArmFire::exeDown() {
         else
             MR::calcMapHitAlongDirection(*MR::getPlayerPos(), &mTargetPos, *MR::getPlayerGravity(), NULL, NULL, NULL, NULL, 1000.0f);
     }
-    TVec3f dir(mTargetPos);
-    dir -= mHost->mPosition;
+    TVec3f dir = mTargetPos - mHost->mPosition;
     if (!MR::isNearZero(dir, 0.001f)) {
         MR::normalize(&dir);
         MR::turnVecToVecDegree(&mHost->mFront, mHost->mFront, dir, mDownParam[3], TVec3f(0.0f, 1.0f, 0.0f));
@@ -106,7 +105,8 @@ void BellyDragonArmFire::exeDown() {
     BellyDragonUtil::updatePodFireEffect(mHost);
     if (!MR::isNoBind(mHost) && MR::isBinded(mHost)) {
         MR::offBind(mHost);
-        MR::sendMsgEnemyAttackToBindedSensor(mHost, BellyDragonUtil::getBodySensor(mHost));
+        BellyDragon* host = mHost;
+        MR::sendMsgEnemyAttackToBindedSensor(host, BellyDragonUtil::getBodySensor(host));
         MR::tryHitReaction(mHost, "噛み付き攻撃（接地）");
         BellyDragonUtil::appearJawHill(mHost);
         setNerve(&NrvBellyDragonArmFire::Land::sInstance);

@@ -42,7 +42,7 @@ public:
     /* 0x2C */ f32 mFarClip;
     /* 0x30 */ f32 mDefaultFarClip;
     /* 0x34 */ u8 mIsFarClipEnabled;
-    /* 0x35 */ bool mIsDefaultFarClipEnabled;
+    /* 0x35 */ u8 mIsDefaultFarClipEnabled;
 };
 
 class ShadowController {

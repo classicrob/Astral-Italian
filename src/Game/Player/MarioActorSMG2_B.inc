@@ -315,8 +315,8 @@ void MarioActor::fn_803CB2E0(u16 newMode) {
             MR::offCalcAnim(mTeresaModel->mActor);
         } else {
             (mTeresaModel->mActor)->kill();
-            this->_483 = 0;
         }
+        this->_483 = 0;
         this->mMario->resetTeresaMode();
         break;
     case 2:

@@ -1225,30 +1225,33 @@ f32 Mario::fn_803B2CC0(TVec3f* arg1) {
 bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     TVec3f start;
     TVec3f dir;
+    bool hit;
     if (((this->mMovementStates.mLowWord >> 23) & 1) && this->mFrontWallTriangle != nullptr) {
         pOutPos->set(this->_4E8);
         start = this->mActor->_240;
         *pOutTri = *this->mFrontWallTriangle;
-        return true;
-    }
-    if (this->isPlayerModeYoshi()) {
-        TVec3f up(this->mFrontVec);
-        up.scale(115.0f);
-        dir = up;
-    } else if (((this->mMovementStates.mLowWord >> 16) & 1) && !MR::isNearZero(this->_328.dot(*this->getGravityVec()), 0.001f)) {
-        MR::vecKillElement(this->_328, *this->getGravityVec(), &dir);
-        dir.setLength(200.0f);
+        hit = true;
     } else {
-        TVec3f up(this->mFrontVec);
-        up.scale(100.0f);
-        dir = up;
+        if (this->isPlayerModeYoshi()) {
+            TVec3f up(this->mFrontVec);
+            up.scale(115.0f);
+            dir = up;
+        } else if (((this->mMovementStates.mLowWord >> 16) & 1) && !MR::isNearZero(this->_328.dot(*this->getGravityVec()), 0.001f)) {
+            MR::vecKillElement(this->_328, *this->getGravityVec(), &dir);
+            dir.setLength(200.0f);
+        } else {
+            TVec3f up(this->mFrontVec);
+            up.scale(100.0f);
+            dir = up;
+        }
+        TVec3f down(*this->getGravityVec());
+        down.scale(8.0f);
+        TVec3f origin(this->mPosHolder->mPos);
+        origin -= down;
+        start = origin;
+        hit = this->fn_803B2770(pOutPos, pOutTri, start, dir);
     }
-    TVec3f down(*this->getGravityVec());
-    down.scale(8.0f);
-    TVec3f origin(this->mPosHolder->mPos);
-    origin -= down;
-    start = origin;
-    if (!this->fn_803B2770(pOutPos, pOutTri, start, dir)) {
+    if (!hit) {
         return false;
     }
     MR::isNearZero(this->mAirGravityVec, 0.001f);

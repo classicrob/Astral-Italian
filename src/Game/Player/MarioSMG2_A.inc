@@ -533,9 +533,9 @@ void Mario::fn_803A11A0(TVec3f* arg) {
     f32 sp8 = this->mStickPos.y;
     if (!(this->getPlayer()->mFlags14.mLowWord & 0x4000)) {
         this->fn_803A1240(&sp12, &sp8);
-        this->calcMoveDir(sp12, sp8, arg, true);
-        this->calcShadowDir(*arg, &this->_22C);
     }
+    this->calcMoveDir(sp12, sp8, arg, true);
+    this->calcShadowDir(*arg, &this->_22C);
 }
 
 bool Mario::fn_80394550(const TVec3f* arg) {

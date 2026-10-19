@@ -500,7 +500,6 @@ void Mario::updateAndClearStrideParameter() {
     mFlags20.mWord = 0;
     mMovementStates.mHighWord &= 0xFF7FFFFFU;
     if (((mMovementStates.mLowWord >> 30) & 1U)) {
-        mFlags14.mLowWord &= 0xFFFFFFEFU;
         mWall->_1C = 0;
     }
 
@@ -10469,20 +10468,21 @@ bool Mario::checkWallJumpCode() {
             mJumpVec.set(-getPlayer()->getWallNorm() * 10.0f);
             MR::vecKillElement(mJumpVec, getAirGravityVec(), &mJumpVec);
             mJumpVec -= getAirGravityVec() * 10.0f;
-        }
-        mWall->initTriangleJump();
-        u32 jumpType = -1;
-        if (checkWallFloorCode(7)) {
-            jumpType = 1;
-        }
-        if (checkWallFloorCode(6)) {
-            jumpType = 0;
-        }
-        if (checkWallFloorCode(34)) {
-            jumpType = 2;
-        }
-        if (mWall->startBackJump(jumpType)) {
-            return true;
+        } else {
+            mWall->initTriangleJump();
+            u32 jumpType = -1;
+            if (checkWallFloorCode(7)) {
+                jumpType = 1;
+            }
+            if (checkWallFloorCode(6)) {
+                jumpType = 0;
+            }
+            if (checkWallFloorCode(34)) {
+                jumpType = 2;
+            }
+            if (mWall->startBackJump(jumpType)) {
+                return true;
+            }
         }
     }
     return false;

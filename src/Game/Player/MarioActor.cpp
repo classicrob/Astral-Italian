@@ -1220,7 +1220,7 @@ void MarioActor::incLife(u32 amt) {
             mMarioAnim->changeTrackAnim(3, "ノーマルウエイト");
             if (mMario->_970 && strcmp(mMario->_970, "DamageWait")) {
                 mMario->startBas(nullptr, false, 0.0f, 0.0f);
-                setBlink(nullptr);
+                fn_803BBFD0(nullptr);
             }
         }
     }

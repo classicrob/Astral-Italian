@@ -1,6 +1,7 @@
 #pragma auto_inline off
 
 #include "Game/MapObj/JetTurtle.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -11,14 +12,6 @@
 
 
 class YoshiLockOnTarget;
-
-namespace YoshiFunction {
-    void tryYoshiProjectile(YoshiLockOnTarget*);
-};
-
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-};
 
 void JetTurtle_FORCE_MATCH_STRINGS() {
     MR::isEqualString("Koura", "Koura");
@@ -222,7 +215,7 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
         _E1 = true;
     }
 
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f));
     MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::offBind(this);
 }

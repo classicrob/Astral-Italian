@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
 class AnimationRandomPlayer;
 class BenefitItemObj;
@@ -8,17 +9,12 @@ class JointRumbler;
 class YoshiLockOnTarget;
 class KaninaYoshiState;
 
-namespace YoshiFunction {
-    void tryYoshiProjectile(YoshiLockOnTarget*);
-};
-
 namespace MR {
     bool isMsgYoshiStartTongue(u32);
     bool isMsgYoshiLoopTongue(u32);
     bool isMsgYoshiStartEaten(u32);
     bool isMsgYoshiCancelEaten(u32);
     bool isMsgYoshiReleaseEaten(u32);
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
 };  // namespace MR
 
 class Kanina : public LiveActor {

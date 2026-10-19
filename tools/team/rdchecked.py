@@ -7,6 +7,9 @@ Forward CFGs are supported; loops and indirect control flow fail closed.
 """
 import collections
 import re
+import struct
+import hashlib
+from pathlib import Path
 
 REGS = tuple([f'r{i}' for i in range(32)] + [f'f{i}' for i in range(32)] +
              [f'cr{i}' for i in range(8)] + [f'qr{i}' for i in range(8)] + ['lr', 'ctr', 'xer'])
@@ -45,6 +48,189 @@ COND = {'beq', 'bne', 'blt', 'ble', 'bgt', 'bge', 'bso', 'bns'}
 
 class Unproved(Exception):
     pass
+
+
+
+GPR_HELPER = re.compile(r'_(save|rest)gpr_(1[4-9]|2[0-9]|3[01])')
+_GPR_RUNTIME_CACHE = set()
+
+
+def gpr_helper(name):
+    match = GPR_HELPER.fullmatch(name)
+    if match:
+        return match.group(1), int(match.group(2))
+    if re.search(r'(?:save|rest(?:ore)?)_*(?:gpr|fpr)|^_(?:save|rest)f\d', name):
+        raise Unproved('unvalidated save/restore helper name')
+    return None
+
+
+def validate_gpr_runtime(root=None):
+    """Pin the complete standard helper bodies and all permitted entry labels."""
+    root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
+    dp = root / 'orig/SB4E01/sys/main.dol'
+    sp = root / 'config/SB4E01/symbols.txt'
+    try:
+        data, symbol_bytes = dp.read_bytes(), sp.read_bytes()
+        key = hashlib.sha256(data).digest(), hashlib.sha256(symbol_bytes).digest()
+        if key in _GPR_RUNTIME_CACHE:
+            return
+        symbols = symbol_bytes.decode()
+        if len(data) < 0x100:
+            raise Unproved('short helper DOL')
+        offsets = struct.unpack_from('>18I', data, 0)
+        addresses = struct.unpack_from('>18I', data, 0x48)
+        sizes = struct.unpack_from('>18I', data, 0x90)
+        for direction, address, opcode in (('save', 0x8062e130, 36), ('rest', 0x8062e17c, 32)):
+            expected = b''.join(struct.pack('>I', opcode << 26 | n << 21 | 11 << 16 |
+                                           (-4 * (32 - n) & 0xffff)) for n in range(14, 32))
+            expected += bytes.fromhex('4e800020')
+            spans = [data[o + address - a:o + address - a + len(expected)]
+                     for o, a, z in zip(offsets, addresses, sizes)
+                     if z and a <= address and address + len(expected) <= a + z and
+                     o + address - a + len(expected) <= len(data)]
+            if spans != [expected]:
+                raise Unproved('standard helper DOL body mismatch')
+            for n in range(14, 32):
+                name = f'_{direction}gpr_{n}'
+                matches = re.findall(r'^' + re.escape(name) +
+                                     r' = \.text:0x([0-9A-Fa-f]+);', symbols, re.M)
+                if len(matches) != 1 or int(matches[0], 16) != address + 4 * (n - 14):
+                    raise Unproved('standard helper entry mapping mismatch')
+        _GPR_RUNTIME_CACHE.add(key)
+    except OSError as error:
+        raise Unproved('helper runtime unavailable: ' + str(error))
+
+
+def lower_gpr_helpers(graph):
+    """Expand validated helpers only in an unescaped, paired fixed-frame context.
+
+    The validation state proves entry-register restoration, not memory equivalence.
+    Real stores/loads remain in the ordinary effect DAG, with all alias edges.
+    BL's LR result remains side-specific; helpers preserve CR/FPR/volatile GPRs.
+    """
+    if not any(d['kind'] == 'gpr-helper' for body, _ in graph for d in body):
+        return graph
+    validate_gpr_runtime()
+    first = graph[0][0][0]
+    if (first['op'] != 'stwu' or first['args'][0] != 'r1' or first.get('base') != 'r1' or
+            not isinstance(first.get('offset'), int) or first['offset'] >= 0):
+        raise Unproved('helper needs fixed allocated frame')
+    frame = -first['offset']
+    if frame < 16 or frame % 16:
+        raise Unproved('helper frame alignment')
+    entry = {r: ('entry', r) for r in REGS}
+    ends = {}
+    result = []
+    for bi, (body, succ) in enumerate(graph):
+        preds = [i for i in range(bi) if bi in graph[i][1]]
+        if bi and not preds:
+            raise Unproved('unreachable helper block')
+        if preds:
+            incoming = [ends[i] for i in preds]
+            ptrs = {r: v for r, v in incoming[0][0].items()
+                    if all(x[0].get(r) == v for x in incoming)}
+            vals = {r: incoming[0][1][r] if all(x[1][r] == incoming[0][1][r] for x in incoming)
+                    else ('unknown-join', bi, r) for r in REGS}
+            memory = {a: v for a, v in incoming[0][2].items()
+                      if all(x[2].get(a) == v for x in incoming)}
+            active = incoming[0][3].copy()
+            if any(x[3] != active for x in incoming):
+                raise Unproved('uncertain helper pairing at join')
+        else:
+            ptrs, vals, memory, active = {'r1': 0}, dict(entry), {}, {}
+        lowered = []
+        for di, d in enumerate(body):
+            op, kind = d['op'], d['kind']
+            if kind == 'gpr-helper':
+                direction, start = d['helper']
+                base = ptrs.get('r11')
+                if ptrs.get('r1') != -frame or base is None:
+                    raise Unproved('unknown helper frame address')
+                slots = [(f'r{n}', base - 4 * (32 - n)) for n in range(start, 32)]
+                if any(a % 4 or not -frame + 4 <= a <= -4 for _, a in slots):
+                    raise Unproved('helper slot outside private frame')
+                for r, a in slots:
+                    if direction == 'save':
+                        if r in active or vals[r] != entry[r]:
+                            raise Unproved('helper save is not entry register')
+                        active[r] = a
+                        memory[a] = entry[r]
+                    else:
+                        if active.get(r) != a or memory.get(a) != entry[r]:
+                            raise Unproved('uncertain helper restore identity')
+                        del active[r]
+                        vals[r] = entry[r]
+                        ptrs.pop(r, None)
+                    lowered.append(decode(f'{"stw" if direction == "save" else "lwz"} {r}, {a + frame}(r1)'))
+                lowered.append({'op': 'gpr-helper-link', 'args': [], 'use': [], 'def': ['lr'],
+                                'kind': 'helper-link', 'const': (d['args'][0],)})
+                vals['lr'] = ('helper-return-address', bi, di)
+                continue
+            lowered.append(d)
+            oldvals, oldptrs = vals.copy(), ptrs.copy()
+            for r in d['def']:
+                vals[r] = ('unknown', bi, di, r)
+                ptrs.pop(r, None)
+            if kind == 'copy':
+                dst, src = d['def'][0], d['use'][0]
+                vals[dst] = oldvals[src]
+                if src in oldptrs:
+                    ptrs[dst] = oldptrs[src]
+            elif op in ('mflr', 'mtlr'):
+                vals[d['def'][0]] = oldvals[d['use'][0]]
+            elif op == 'addi' and d['args'][1] in oldptrs:
+                if len(d['args']) != 3:
+                    raise Unproved('malformed helper frame address')
+                off = int(d['args'][2], 0)
+                if not -0x8000 <= off <= 0xffff:
+                    raise Unproved('helper frame displacement out of range')
+                if off >= 0x8000:
+                    off -= 0x10000
+                dst = d['args'][0]
+                ptrs[dst] = oldptrs[d['args'][1]] + off
+                if dst == 'r1' and (d['args'][1] != 'r1' or off != frame or ptrs[dst] != 0 or active):
+                    raise Unproved('uncertain helper frame release')
+            elif kind in ('load', 'store'):
+                base = oldptrs.get(d['base'])
+                offset = d['offset']
+                address = base + offset if base is not None and isinstance(offset, int) else None
+                if kind == 'store':
+                    value_reg = d['args'][0]
+                    prologue = bi == 0 and di == 0
+                    if value_reg in oldptrs and not prologue:
+                        raise Unproved('helper frame address escaped by store')
+                    if address is None:
+                        memory.clear()
+                    else:
+                        memory = {a: v for a, v in memory.items()
+                                  if a + 4 <= address or address + d['width'] <= a}
+                        if op in ('stw', 'stwu'):
+                            memory[address] = oldvals[value_reg]
+                elif op == 'lwz' and address in memory:
+                    vals[d['args'][0]] = memory[address]
+                    if memory[address] == entry['r1']:
+                        ptrs[d['args'][0]] = 0
+                if op == 'stwu' and bi == 0 and di == 0:
+                    ptrs['r1'] = -frame
+                elif 'r1' in d['def'] or op.endswith('u'):
+                    raise Unproved('unsupported helper frame update')
+            elif kind == 'call':
+                if any(r in oldptrs for r in ARGS):
+                    raise Unproved('helper frame address escaped to call')
+            elif set(d['use']).intersection(oldptrs) and kind != 'term':
+                raise Unproved('unknown helper frame arithmetic')
+            if 'r1' in d['def'] and op not in ('stwu', 'addi'):
+                raise Unproved('unknown helper stack pointer')
+            if op == 'blr':
+                if active or ptrs.get('r1') != 0 or vals['lr'] != entry['lr']:
+                    raise Unproved('unpaired helper or uncertain return LR/frame')
+                if any(vals[f'r{n}'] != entry[f'r{n}'] for n in range(14, 32)):
+                    raise Unproved('helper nonvolatile return identity')
+                if any(r in ptrs for r in ('r3', 'r4')):
+                    raise Unproved('helper frame address escapes as result')
+        ends[bi] = ptrs, vals, memory, active
+        result.append((lowered, succ))
+    return result
 
 
 def reg(x):
@@ -144,6 +330,13 @@ def decode(line):
     elif op in ('mtlr', 'mtctr', 'mtxer') and len(a) == 1:
         d.update(use=[reg(a[0])], **{'def': [op[2:]]})
     elif op == 'bl' and len(a) == 1:
+        helper = gpr_helper(a[0])
+        if helper:
+            direction, start = helper
+            d.update(kind='gpr-helper', helper=helper, use=['r11'] +
+                     ([f'r{n}' for n in range(start, 32)] if direction == 'save' else []),
+                     **{'def': ['lr'] + ([f'r{n}' for n in range(start, 32)] if direction == 'rest' else [])})
+            return d
         # Numeric intra-function bl is not an ordinary external ABI call.
         if re.fullmatch(r'-?(?:0x[\da-f]+|\d+)', a[0]):
             raise Unproved('numeric call target')
@@ -413,7 +606,7 @@ def checked_equal(left, right, verify_pool=None):
     try:
         reject_derived_string_bases(left, verify_pool)
         reject_derived_string_bases(right, verify_pool)
-        L, R = blocks(left), blocks(right)
+        L, R = lower_gpr_helpers(blocks(left)), lower_gpr_helpers(blocks(right))
         reject_partial_paired_reads(L)
         reject_partial_paired_reads(R)
         if len(L) != len(R):
@@ -497,7 +690,7 @@ def checked_equal(left, right, verify_pool=None):
                     for j, r in enumerate(d['def']):
                         if addr is not None and r == d['base'] and op.endswith('u'):
                             state[r] = value(('address-add', addr[0], addr[1]))
-                        elif kind == 'call' and r not in ('r3', 'r4', 'f1'):
+                        elif kind == 'helper-link' or kind == 'call' and r not in ('r3', 'r4', 'f1'):
                             # Unspecified volatile outputs (including LR's actual
                             # code address) cannot be correlated across binaries.
                             state[r] = value(('call-clobber', side, sig, r))
@@ -612,8 +805,13 @@ def decode_mem(line):
     elif op in ('mtlr', 'mtctr', 'mtxer') and len(a) == 1:
         d.update(use=[reg(a[0])], **{'def': [op[2:]]})
     elif op == 'bl' and len(a) == 1:
-        if re.match(r'^_(?:save|rest)(?:gpr|fpr|f)\d*_', a[0]) or re.match(r'^_(?:save|rest)f\d+$', a[0]):
-            raise Unproved('nonstandard save/restore helper ABI')
+        helper = gpr_helper(a[0])
+        if helper:
+            direction, start = helper
+            d.update(kind='gpr-helper', helper=helper, use=['r11'] +
+                     ([f'r{n}' for n in range(start, 32)] if direction == 'save' else []),
+                     **{'def': ['lr'] + ([f'r{n}' for n in range(start, 32)] if direction == 'rest' else [])})
+            return d
         # Numeric intra-function bl is not an ordinary external ABI call.
         if re.fullmatch(r'-?(?:0x[\da-f]+|\d+)', a[0]):
             raise Unproved('numeric call target')
@@ -728,7 +926,7 @@ def checked_equal_mem(left, right, verify_pool=None):
     try:
         reject_derived_string_bases(left, verify_pool)
         reject_derived_string_bases(right, verify_pool)
-        L, R = blocks_mem(left), blocks_mem(right)
+        L, R = lower_gpr_helpers(blocks_mem(left)), lower_gpr_helpers(blocks_mem(right))
         reject_partial_paired_reads(L)
         reject_partial_paired_reads(R)
         if len(L) != len(R):
@@ -838,7 +1036,7 @@ def checked_equal_mem(left, right, verify_pool=None):
                     for j, r in enumerate(d['def']):
                         if addr is not None and r == d['base'] and op.endswith('u'):
                             state[r] = value(('address-add', addr[0], addr[1]))
-                        elif kind == 'call' and r not in ('r3', 'r4', 'f1'):
+                        elif kind == 'helper-link' or kind == 'call' and r not in ('r3', 'r4', 'f1'):
                             # Unspecified volatile outputs (including LR's actual
                             # code address) cannot be correlated across binaries.
                             state[r] = value(('call-clobber', side, sig, r))

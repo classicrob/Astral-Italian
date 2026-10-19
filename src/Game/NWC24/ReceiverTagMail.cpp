@@ -8,7 +8,7 @@
 #include "Game/Util/MessageUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-ReceiverTagMail::ReceiverTagMail(const char* pTaskName, const char* pSenderID) : mMessage(nullptr), mIsError(false), _18(1) {
+ReceiverTagMail::ReceiverTagMail(const char* pTaskName, const char* pSenderID) : mMessage(nullptr), mIsError(false), mSendComplete(1) {
     mTaskName = pTaskName;
     mSenderID = pSenderID;
     mMessage = new wchar_t[0x200];
@@ -37,11 +37,11 @@ void ReceiverTagMail::send(const char* pMessageId, const u8* pImage, u32 imageSi
         mail.setLedOff();
     }
     mail.send();
-    _18 = 0;
+    mSendComplete = 0;
 }
 
 void ReceiverTagMail::update() {
-    if (_18 != 0) {
+    if (mSendComplete != 0) {
         return;
     }
 
@@ -53,11 +53,11 @@ void ReceiverTagMail::update() {
 
     MR::termMail(mTaskName);
 
-    _18 = 1;
+    mSendComplete = 1;
 }
 
 bool ReceiverTagMail::isDone() const {
-    return _18 - 1 == 0;
+    return mSendComplete - 1 == 0;
 }
 
 bool ReceiverTagMail::isError() const {

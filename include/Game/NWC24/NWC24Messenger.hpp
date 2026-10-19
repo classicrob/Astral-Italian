@@ -37,7 +37,7 @@ public:
     /* 0x18 */ NWC24MessengerSub::SendTask* mBackgroundTaskArray;
     /* 0x1C */ NWC24MessengerSub::SendState* mSendState;
     /* 0x20 */ NWC24System* mSystem;
-    /* 0x24 */ bool _1C;
+    /* 0x24 */ bool mIsResetting;
 };
 
 class SysInfoWindow;
@@ -47,12 +47,12 @@ namespace NWC24MessengerSub {
     public:
         /// @brief Creates a new `SendTask`.
         SendTask()
-            : _0(), mIsBG(), _2(), mIsMsgLedPattern(), mRetryNo(), mErr(NWC24_OK), mErrCode(), mSentSize(), mTaskName(), mMessage(), mAltName() {
+            : mIsActive(), mIsBG(), mIsDone(), mIsMsgLedPattern(), mRetryNo(), mErr(NWC24_OK), mErrCode(), mSentSize(), mTaskName(), mMessage(), mAltName() {
         }
 
-        /* 0x00 */ bool _0;
+        /* 0x00 */ bool mIsActive;
         /* 0x01 */ bool mIsBG;
-        /* 0x02 */ bool _2;
+        /* 0x02 */ bool mIsDone;
         /* 0x03 */ bool mIsMsgLedPattern;
         /* 0x04 */ bool mIsSilent;
         /* 0x08 */ s32 mRetryNo;
@@ -111,7 +111,7 @@ namespace NWC24MessengerSub {
         /* 0x0C */ SendTask* mTask;
         /* 0x10 */ SysInfoWindow* mWindow;
         /* 0x14 */ SysInfoWindow* mMiniWindow;
-        /* 0x18 */ const Nerve* _18;
+        /* 0x18 */ const Nerve* mNerveAfterMiniWindow;
     };
 };  // namespace NWC24MessengerSub
 

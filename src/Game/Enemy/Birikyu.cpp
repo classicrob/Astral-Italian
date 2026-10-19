@@ -36,12 +36,6 @@ namespace NrvBirikyu {
     HostTypeKill HostTypeKill::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBirikyu
 
-void Birikyu_FORCE_MATCH(const TVec3f& rVec) {
-    TVec3f vec(rVec);
-    vec * 1.0f;
-    vec + TVec3f(1.0f);
-}
-
 Birikyu::Birikyu(const char* pName)
     : LiveActor(pName), mParamScale(), mObjectName(), mRailClippingCenter(gZeroVec), mOrbitCenter(gZeroVec), mIsShadowEnabled(), mIsRailMovement(), mOrbitAxis(0.0f, 1.0f, 0.0f), mOrbitFront(0.0f, 0.0f, 1.0f), mOrbitAngle(), mMoveSpeed(10.0f) {
 }

@@ -866,6 +866,3 @@ bool BombTeresa::requestDisperse() {
     return true;
 }
 
-void BombTeresa_FORCE_MATCH(TVec3f* pVec, f32 scale) {
-    *pVec *= scale;
-}

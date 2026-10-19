@@ -21,7 +21,7 @@ public:
     JAISoundID getSoundID(const char*);
     JAISoundID getSoundID(const char*, u32);
     JAISoundID getSoundID(const char*, u32) const;
-    static JAISoundID fn_80086520(const char*);  // singleton lookup by name (called from AudInstListMgr)
+    static JAISoundID getSoundIDFromName(const char*);  // singleton lookup by name (called from AudInstListMgr)
     const char* getSoundNameID(const JAISoundID&) const;
     void init() NO_INLINE;
     void initDataTable(const JAUSoundNameTable*);

@@ -22,5 +22,5 @@ CameraPoseParam::CameraPoseParam() {
 namespace {
     const f32 sUnit = 1.0f;
     const f32 sZero = 0.0f;
-    const f32 sDefaultFovy = 45.0f;
+    const f32 sDefaultFovy = 40.0f;
 }

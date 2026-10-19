@@ -82,8 +82,8 @@ public:
     /* 0x30 */ s32 mLoopStartPos;
     /* 0x34 */ s32 mLoopEndPos;
     /* 0x38 */ s32 mState;
-    /* 0x3C */ s32 _3C;
-    /* 0x40 */ s32 _40;
+    /* 0x3C */ s32 mStopDelayFrames;
+    /* 0x40 */ s32 mLockFramesRemaining;
     /* 0x44 */ SpkSoundVolume mVolume;
 };
 

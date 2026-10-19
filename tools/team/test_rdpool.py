@@ -62,6 +62,13 @@ class PoolSpanTests(unittest.TestCase):
             else:
                 with self.assertRaises(PoolUnproved):pool.verify(TOKEN,8)
 
+    def test_ascii_first_word_table_is_not_a_string_certificate(self):
+        source=b'Same\0\0\0\0AB\0\0'
+        target=source+bytes.fromhex('11223344')
+        pool,_=fixture(source,target)
+        pool.target_extents[0x1008]={8}
+        with self.assertRaises(PoolUnproved):pool.verify(TOKEN,8)
+
     def test_missing_binary_target_extent_fails_closed(self):
         source=b'Same\0\0\0\0'+bytes.fromhex('1122334455667788')
         pool,_=fixture(source)

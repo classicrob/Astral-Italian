@@ -209,7 +209,7 @@ void Bussun::exeTurn() {
 
 void Bussun::exeBussunTurnEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "TurnEnd");
+        MR::startAction(this, "Turn");
     }
     TVec3f dir;
     calcBussunRailDirection(&dir);

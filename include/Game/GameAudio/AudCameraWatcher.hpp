@@ -12,5 +12,5 @@ public:
     void playAtmosphereSE();
 
     u8 _C;
-    f32 _14;
+    /* 0x14 */ f32 mPlayerMicDistance;
 };

@@ -177,20 +177,16 @@ class PoolComparator:
         if target is None or len(target) != size:
             raise PoolUnproved('pool reference is not DOL-backed')
         if full_object:
-            end = source.find(0)
-            string = (end > 0 and all(32 <= b < 127 or b >= 128 for b in source[:end])
-                      and not any(source[end:]))
-            if not string:
-                extents = set(self.target_extents.get(address, ()))
-                if len(extents) != 1:
-                    raise PoolUnproved('missing/ambiguous complete target pool object extent')
-                target_size = next(iter(extents))
-                if target_size < size:
-                    raise PoolUnproved('target pool object is shorter than source object')
-                if target_size > size:
-                    padding = self.read_target(address + size, target_size - size)
-                    if padding is None or len(padding) != target_size - size or any(padding):
-                        raise PoolUnproved('target pool object extra tail is not zero padding')
+            extents = set(self.target_extents.get(address, ()))
+            if len(extents) != 1:
+                raise PoolUnproved('missing/ambiguous complete target pool object extent')
+            target_size = next(iter(extents))
+            if target_size < size:
+                raise PoolUnproved('target pool object is shorter than source object')
+            if target_size > size:
+                padding = self.read_target(address + size, target_size - size)
+                if padding is None or len(padding) != target_size - size or any(padding):
+                    raise PoolUnproved('target pool object extra tail is not zero padding')
         self.active.add(key)
         relocated = []
         try:

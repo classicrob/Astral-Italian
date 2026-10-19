@@ -24,5 +24,5 @@ private:
     /* 0x04 */ const char* mSenderID;
     /* 0x08 */ wchar_t* mMessage;  // 0x400 bytes
     /* 0x0C */ bool mIsError;
-    /* 0x10 */ u32 _18;
+    /* 0x10 */ u32 mSendComplete;
 };

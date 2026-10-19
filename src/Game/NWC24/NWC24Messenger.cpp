@@ -31,7 +31,7 @@ NWC24Messenger::NWC24Messenger(const char* pName) : NameObj(pName) {
     mBackgroundTaskArray = new NWC24MessengerSub::SendTask[BACKGROUND_TASK_NUM];
     mSendState = new NWC24MessengerSub::SendState(this);
     mSystem = new NWC24System(MR::getStationedHeapGDDR3(), 18);
-    _1C = false;
+    mIsResetting = false;
 }
 
 void NWC24Messenger::initAfterResourceLoaded() {
@@ -52,7 +52,7 @@ void NWC24Messenger::draw() const {
 
 void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const wchar_t* pAltName, const u8* pPicture, u32 pictureSize, s32 mode,
                           bool isMsgLedPattern, u16 tag, u8 delayHours) {
-    if (_1C) {
+    if (mIsResetting) {
         return;
     }
 
@@ -63,7 +63,7 @@ void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const 
         int i;
 
         for (i = 0; i < BACKGROUND_TASK_NUM; i++) {
-            if (!mBackgroundTaskArray[i]._0) {
+            if (!mBackgroundTaskArray[i].mIsActive) {
                 break;
             }
         }
@@ -78,9 +78,9 @@ void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const 
     }
 
     if (pTask != nullptr) {
-        pTask->_0 = true;
+        pTask->mIsActive = true;
         pTask->mIsBG = mode == 2;
-        pTask->_2 = false;
+        pTask->mIsDone = false;
         pTask->mIsMsgLedPattern = isMsgLedPattern;
         pTask->mIsSilent = mode == 1;
         pTask->mRetryNo = 0;
@@ -97,7 +97,7 @@ void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const 
 }
 
 void NWC24Messenger::term(const char* pTaskName) {
-    if (_1C) {
+    if (mIsResetting) {
         return;
     }
 
@@ -107,14 +107,14 @@ void NWC24Messenger::term(const char* pTaskName) {
         return;
     }
 
-    pTask->_0 = false;
+    pTask->mIsActive = false;
 }
 
 bool NWC24Messenger::isSent(const char* pTaskName) const {
     NWC24MessengerSub::SendTask* pTask = findTask(pTaskName);
 
     if (pTask != nullptr) {
-        return pTask->_2;
+        return pTask->mIsDone;
     }
 
     return true;
@@ -123,7 +123,7 @@ bool NWC24Messenger::isSent(const char* pTaskName) const {
 bool NWC24Messenger::isError(const char* pTaskName) const {
     NWC24MessengerSub::SendTask* pTask = findTask(pTaskName);
 
-    if (pTask != nullptr && pTask->_2) {
+    if (pTask != nullptr && pTask->mIsDone) {
         return pTask->mErr != NWC24_OK;
     }
 
@@ -131,17 +131,17 @@ bool NWC24Messenger::isError(const char* pTaskName) const {
 }
 
 void NWC24Messenger::prepareReset() {
-    mForegroundTask->_0 = false;
-    mForegroundTask->_2 = true;
+    mForegroundTask->mIsActive = false;
+    mForegroundTask->mIsDone = true;
 
     for (int i = 0; i < BACKGROUND_TASK_NUM; i++) {
-        mBackgroundTaskArray[i]._0 = false;
-        mBackgroundTaskArray[i]._2 = true;
+        mBackgroundTaskArray[i].mIsActive = false;
+        mBackgroundTaskArray[i].mIsDone = true;
     }
 
     mSendState->reset();
 
-    _1C = true;
+    mIsResetting = true;
 }
 
 bool NWC24Messenger::isRunning() const {
@@ -155,16 +155,16 @@ void NWC24Messenger::reset() {
     NWC24Err err;
     mSystem->close(&err);
 
-    _1C = false;
+    mIsResetting = false;
 }
 
 NWC24MessengerSub::SendTask* NWC24Messenger::findTask(const char* pTaskName) const {
-    if (mForegroundTask->mTaskName && MR::isEqualString(mForegroundTask->mTaskName, pTaskName) && mForegroundTask->_0) {
+    if (mForegroundTask->mTaskName && MR::isEqualString(mForegroundTask->mTaskName, pTaskName) && mForegroundTask->mIsActive) {
         return mForegroundTask;
     }
 
     for (int i = 0; i < BACKGROUND_TASK_NUM; i++) {
-        if (mBackgroundTaskArray[i].mTaskName && MR::isEqualString(mBackgroundTaskArray[i].mTaskName, pTaskName) && mBackgroundTaskArray[i]._0) {
+        if (mBackgroundTaskArray[i].mTaskName && MR::isEqualString(mBackgroundTaskArray[i].mTaskName, pTaskName) && mBackgroundTaskArray[i].mIsActive) {
             return &mBackgroundTaskArray[i];
         }
     }
@@ -175,15 +175,15 @@ NWC24MessengerSub::SendTask* NWC24Messenger::findTask(const char* pTaskName) con
 NWC24MessengerSub::SendTask* NWC24Messenger::selectTask() const {
     NWC24MessengerSub::SendTask* pTask = nullptr;
 
-    if (mForegroundTask->_0 && !mForegroundTask->_2) {
+    if (mForegroundTask->mIsActive && !mForegroundTask->mIsDone) {
         pTask = mForegroundTask;
     } else {
         for (int i = 0; i < BACKGROUND_TASK_NUM; i++) {
-            if (!mBackgroundTaskArray[i]._0) {
+            if (!mBackgroundTaskArray[i].mIsActive) {
                 continue;
             }
 
-            if (mBackgroundTaskArray[i]._2) {
+            if (mBackgroundTaskArray[i].mIsDone) {
                 continue;
             }
 
@@ -197,7 +197,7 @@ NWC24MessengerSub::SendTask* NWC24Messenger::selectTask() const {
 
 void NWC24Messenger::clearBackgroundTask() {
     for (int i = 0; i < BACKGROUND_TASK_NUM; i++) {
-        mBackgroundTaskArray[i]._0 = false;
+        mBackgroundTaskArray[i].mIsActive = false;
     }
 }
 
@@ -221,7 +221,7 @@ namespace NWC24MessengerSub {
     };  // namespace
 
     SendState::SendState(NWC24Messenger* pHost)
-        : NerveExecutor("送信状態"), mHost(pHost), mTask(nullptr), mWindow(nullptr), mMiniWindow(nullptr), _18(nullptr) {
+        : NerveExecutor("送信状態"), mHost(pHost), mTask(nullptr), mWindow(nullptr), mMiniWindow(nullptr), mNerveAfterMiniWindow(nullptr) {
         initNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
     }
 
@@ -269,7 +269,7 @@ namespace NWC24MessengerSub {
         setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
 
         mTask = nullptr;
-        _18 = nullptr;
+        mNerveAfterMiniWindow = nullptr;
 
         if (mWindow != nullptr) {
             mWindow->kill();
@@ -609,7 +609,7 @@ namespace NWC24MessengerSub {
         }
 
         if (isEndSysInfoMini()) {
-            setNerve(_18);
+            setNerve(mNerveAfterMiniWindow);
         }
     }
 
@@ -672,10 +672,10 @@ namespace NWC24MessengerSub {
     }
 
     void SendState::doneTask() {
-        mTask->_2 = true;
+        mTask->mIsDone = true;
 
         if (mTask->mIsBG) {
-            mTask->_0 = false;
+            mTask->mIsActive = false;
         }
     }
 
@@ -708,7 +708,7 @@ namespace NWC24MessengerSub {
         if (isEndSysInfoMini()) {
             setNerve(pNerve);
         } else {
-            _18 = pNerve;
+            mNerveAfterMiniWindow = pNerve;
 
             setNerve(GET_NERVE_GLOBAL(SendStateNrvWaitCloseSysInfoMini));
         }

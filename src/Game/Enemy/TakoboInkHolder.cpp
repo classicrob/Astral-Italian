@@ -3,7 +3,7 @@
 
 TakoboInkHolder::TakoboInkHolder(s32 numMax) : DeriveActorGroup< TakoboInk >("タコボー墨管理", numMax) {
     for (s32 i = 0; i < numMax; i++) {
-        TakoboInk* pInk = new TakoboInk("TakoHeiInk");
+        TakoboInk* pInk = new TakoboInk("タコヘイ墨");
         pInk->initWithoutIter();
         registerActor(pInk);
     }

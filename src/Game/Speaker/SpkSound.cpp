@@ -100,7 +100,7 @@ f32 SpkSoundVolume::calc(bool& kill) {
 
 SpkSound::SpkSound()
     : JSULink(this), mSoundHandle(nullptr), mWaveID(-1), mWave(nullptr), mWavePtr(0), mPadChannel(WPAD_CHAN0), _24(100), mReleaseTime(0),
-      mWaveSize(0), mLoopStartPos(-1), mLoopEndPos(-1), mState(0), _3C(-1), _40(0) {
+      mWaveSize(0), mLoopStartPos(-1), mLoopEndPos(-1), mState(0), mStopDelayFrames(-1), mLockFramesRemaining(0) {
 }
 
 SpkSound::~SpkSound() {
@@ -108,8 +108,8 @@ SpkSound::~SpkSound() {
 }
 
 bool SpkSound::decrement40() {
-    if (_40 >= 1) {
-        _40--;
+    if (mLockFramesRemaining >= 1) {
+        mLockFramesRemaining--;
         return true;
     }
     return false;
@@ -213,7 +213,7 @@ bool SpkSound::start(s32 padChannel, s32 waveID) {
 
 bool SpkSound::start(s32 padChannel, s32 waveID, s32 param) {
     mPadChannel = padChannel;
-    _40 = param;
+    mLockFramesRemaining = param;
     if (!setWaveData(waveID)) {
         return false;
     }
@@ -352,7 +352,7 @@ bool SpkSoundHolder::startLevelSound(s32 padChannel, s32 waveID, SpkSoundHandle*
     SpkSound* sound = pHandle->getSound();
     if (sound != nullptr) {
         if (sound->mState != SpkSound::State_STOP && sound->mState != SpkSound::State_DEAD) {
-            sound->_3C = 2;
+            sound->mStopDelayFrames = 2;
         }
         return true;
     }
@@ -363,7 +363,7 @@ bool SpkSoundHolder::startLevelSound(s32 padChannel, s32 waveID, SpkSoundHandle*
 
     sound = pHandle->getSound();
     if (sound != nullptr) {
-        sound->_3C = 2;
+        sound->mStopDelayFrames = 2;
         return true;
     }
     return false;
@@ -421,21 +421,21 @@ void SpkSoundHolder::framework() {
             }
 
             if (sound->getObject()->mState == SpkSound::State_LOCK) {
-                if (sound->getObject()->_40 == 0) {
+                if (sound->getObject()->mLockFramesRemaining == 0) {
                     sound->getObject()->unlock();
                 }
             } else {
-                if (sound->getObject()->_3C >= 0) {
-                    sound->getObject()->_3C--;
+                if (sound->getObject()->mStopDelayFrames >= 0) {
+                    sound->getObject()->mStopDelayFrames--;
 
-                    if (sound->getObject()->_3C <= 0) {
+                    if (sound->getObject()->mStopDelayFrames <= 0) {
                         sound->getObject()->stop(0);
-                        sound->getObject()->_3C = -1;
+                        sound->getObject()->mStopDelayFrames = -1;
                     }
                 }
             }
 
-            if (sound->getObject()->_40 >= 1) {
+            if (sound->getObject()->mLockFramesRemaining >= 1) {
                 sound->getObject()->decrement40();
             }
         }

@@ -12,7 +12,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
-AudCameraWatcher::AudCameraWatcher() : NameObj("AudCameraWatcher"), _C(0), _14(0.0f) {
+AudCameraWatcher::AudCameraWatcher() : NameObj("AudCameraWatcher"), _C(0), mPlayerMicDistance(0.0f) {
 }
 
 void AudCameraWatcher::playAtmosphereSE() {
@@ -37,7 +37,7 @@ namespace {
 void AudCameraWatcher::movement() {
     if (MR::isDemoActive() || MR::isStageStateScenarioOpeningCamera() || MR::isExecScenarioStarter() || MR::isFirstPersonCamera()) {
         MR::setMicMtx(const_cast< TPos3f& >(MR::getCameraViewMtx()), 0);
-        _14 = PSVECDistance(MR::getPlayerCenterPos(), &AudMicWrap::getMicPos());
+        mPlayerMicDistance = PSVECDistance(MR::getPlayerCenterPos(), &AudMicWrap::getMicPos());
         AudWrap::getSystem()->setCameraRate(1.0f);
     } else {
         TPos3f micMtx;
@@ -64,9 +64,9 @@ void AudCameraWatcher::movement() {
         invMtx.mMtx[1][3] = micPos.y;
         invMtx.mMtx[2][3] = micPos.z;
         micMtx.invert(invMtx);
-        _14 = PSVECDistance(&micPos, &playerPos);
+        mPlayerMicDistance = PSVECDistance(&micPos, &playerPos);
         MR::setMicMtx(micMtx, 0);
-        AudWrap::getSystem()->setCameraRate(_14 / 1300.0f);
+        AudWrap::getSystem()->setCameraRate(mPlayerMicDistance / 1300.0f);
     }
 
     playAtmosphereSE();

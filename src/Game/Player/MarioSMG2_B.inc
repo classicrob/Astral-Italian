@@ -211,7 +211,7 @@ f32 Mario::getJumpHeight() {
 bool Mario::fn_803B1C10() {
     bool ret = false;
     bool yoshi = false;
-    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), offsetof(Yoshi, mDashTimer)) > 0) {
+    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->getYoshi(), offsetof(Yoshi, mDashTimer)) > 0) {
         yoshi = true;
     }
     if (yoshi && this->isAnimationRun("基本")) {
@@ -238,7 +238,7 @@ f32 Mario::fn_803B1D00() {
 bool Mario::fn_803B1D60() {
     bool ret = false;
     bool yoshi = false;
-    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), offsetof(Yoshi, mDashTimer)) > 0) {
+    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->getYoshi(), offsetof(Yoshi, mDashTimer)) > 0) {
         yoshi = true;
     }
     if (yoshi && !(this->getPlayer()->mFlags14.mHighWord >> 21 & 1)) {
@@ -493,7 +493,7 @@ void Mario::fn_803ACE60() {
     this->mMovementStates.mHighWord &= 0xFDFFFFFF;
     if (this->isPlayerModeYoshi()) {
         if (!((this->mFlags24.mLowWord >> 21) & 1)) {
-            MR::startActionSound(this->mActor->fn_803B97F0(), "Squat", -1, -1, -1);
+            MR::startActionSound(this->mActor->getYoshi(), "Squat", -1, -1, -1);
         }
     } else if (((this->mMovementStates.mLowWord >> 31) == 0) && !this->isAnimationRun("サマーソルト")) {
         this->playSound("声しゃがむ", -1);
@@ -677,7 +677,7 @@ void Mario::fn_803B0EF0() {
         sp38 += sp5C;
         TVec3f sp44(sp38);
         sp44 += sp2C;
-        actor->fn_803B97F0()->fn_8040CCD0(sp44);
+        actor->getYoshi()->fn_8040CCD0(sp44);
         f32 t31 = YoshiParam::fn_8041BD80();
         TVec3f sp8(*this->getGravityVec());
         sp8 *= t31;
@@ -690,7 +690,7 @@ void Mario::fn_803B0EF0() {
         this->changeAnimation("ヨッシー離脱ジャンプ", "落下");
         this->mActor->setPlayerMode(0, true, true);
         TVec3f jointPosition;
-        MR::copyJointPos(this->mActor->fn_803B97F0(), "MarioPos", &jointPosition);
+        MR::copyJointPos(this->mActor->getYoshi(), "MarioPos", &jointPosition);
         MR::setPlayerPos(jointPosition);
     }
 }
@@ -703,7 +703,7 @@ void Mario::fn_803B1100() {
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD80();
         TVec3f position;
-        MR::copyJointPos(this->mActor->fn_803B97F0(), "MarioPos", &position);
+        MR::copyJointPos(this->mActor->getYoshi(), "MarioPos", &position);
         MR::setPlayerPos(position);
     }
 }
@@ -726,10 +726,10 @@ void Mario::fn_803B1180() {
         sp14 += sp38;
         TVec3f sp20(sp14);
         sp20 += sp8;
-        this->mActor->fn_803B97F0()->fn_8040CCD0(sp20);
+        this->mActor->getYoshi()->fn_8040CCD0(sp20);
         this->mActor->mMarioAnim->fn_803DF9D0();
         TVec3f position;
-        MR::copyJointPos(this->mActor->fn_803B97F0(), "MarioPos", &position);
+        MR::copyJointPos(this->mActor->getYoshi(), "MarioPos", &position);
         MR::setPlayerPos(position);
     }
 }
@@ -910,7 +910,7 @@ bool Mario::fn_803B28E0(const TVec3f& rStart, const TVec3f& rEnd, const LiveActo
 
 s32 Mario::fn_803B2950() const {
     s32 var_r31 = 0;
-    if (this->isPlayerModeYoshi() && this->mActor->fn_803B97F0()->mDashTimer > 0) {
+    if (this->isPlayerModeYoshi() && this->mActor->getYoshi()->mDashTimer > 0) {
         var_r31 = 1;
     }
     return var_r31;
@@ -1014,7 +1014,7 @@ void Mario::fn_803B3BB0(const HitInfo* hit, const TVec3f* origin) {
 
 void Mario::fn_803B3CE0() {
     if (mDashWallCooldown != 0) --mDashWallCooldown;
-    if (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0) {
+    if (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0) {
         if (((mMovementStates.mLowWord >> 23) & 1) && !isAnimationRun("壁はじき")) {
             if (!mActor->sendMsgToSensor(mFrontWallTriangle->mSensor, 0xF7) && mDashWallCooldown == 0) {
                 MR::tryRumblePadStrong(mActor, 0);
@@ -1033,14 +1033,14 @@ void Mario::fn_803B3CE0() {
             mDashWallSoundPlayed = false;
         }
         if (((mMovementStates.mLowWord >> 30) & 1) && mGroundPolygon->isValid() && fn_803B3E90()) {
-            mActor->fn_803B97F0()->fn_8040F320();
+            mActor->getYoshi()->fn_8040F320();
             return;
         }
-        mActor->fn_803B97F0()->fn_8040F370();
+        mActor->getYoshi()->fn_8040F370();
         return;
     }
     mDashWallSoundPlayed = false;
-    if (isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040F370();
+    if (isPlayerModeYoshi()) mActor->getYoshi()->fn_8040F370();
 }
 
 void Mario::fn_803B4280() {

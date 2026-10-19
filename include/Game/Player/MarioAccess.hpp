@@ -33,7 +33,7 @@ namespace MarioAccess {
 
     f32 fn_803B57A0();  // SMG2-only (original name unknown; by address)
     void setWalkingResist(f32);
-    const JUTTexture* fn_803B7370();
+    const JUTTexture* getShadowTexture();
     LiveActor* getPlayerOrYoshiActor();
     bool isPowerupTransforming();
     void prepareForPositionReset();

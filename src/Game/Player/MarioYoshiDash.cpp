@@ -13,7 +13,7 @@ bool MarioYoshiDash::update() {
         return false;
     }
     if(mActor->isRequestRush() || getPlayer()->isStatusActive(MarioStatus_FpView) || ((getPlayer()->mFlags20.mWord >> 26) & 1U)==1 || !MR::isNearZero(getPlayer()->_184,0.001f) ||
-       (getPlayer()->isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer>0)) {
+       (getPlayer()->isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer>0)) {
         stopAnimation(nullptr,static_cast<const char*>(nullptr));
         return false;
     }

@@ -147,7 +147,7 @@ bool MarioWarp::start() {
 
     if (_45 == 2) {
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(mActor->fn_803B97F0(), "JumpS", -1, -1, -1);
+            MR::startActionSound(mActor->getYoshi(), "JumpS", -1, -1, -1);
         } else {
             playSound("声小ジャンプ");
         }

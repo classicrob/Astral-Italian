@@ -43,7 +43,7 @@ bool MarioYoshiPull::exePull() {
         f32 dot=direction.dot(input);
         if(dot<0.0f) {
             if(!isAnimationRun("ヨッシー引っ張り歩き")) changeAnimation("ヨッシー引っ張り歩き",static_cast<const char*>(nullptr));
-            else MR::startActionSound(mActor->fn_803B97F0(),"Pull",-1,-1,-1);
+            else MR::startActionSound(mActor->getYoshi(),"Pull",-1,-1,-1);
             f32 power=YoshiTongueAction::fn_8041FB50();
             addVelocity((direction*dot)*power);
         } else if(!isAnimationRun("ヨッシー引っ張り")) changeAnimation("ヨッシー引っ張り",static_cast<const char*>(nullptr));

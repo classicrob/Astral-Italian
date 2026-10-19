@@ -847,10 +847,10 @@ void MarioSwim::decideEffect(bool isReset) {
         }
     }
     if (isPlayerModeYoshi()) {
-        if (isMainAnimationRun("水泳基本") && getAnimator()->getWalkWeight(1) > 0.5f && !MR::isEffectValid(mActor->fn_803B97F0(), "DogPaddle")) {
-            MR::tryEmitEffect(mActor->fn_803B97F0(), "DogPaddle");
+        if (isMainAnimationRun("水泳基本") && getAnimator()->getWalkWeight(1) > 0.5f && !MR::isEffectValid(mActor->getYoshi(), "DogPaddle")) {
+            MR::tryEmitEffect(mActor->getYoshi(), "DogPaddle");
         } else {
-            MR::tryDeleteEffect(mActor->fn_803B97F0(), "DogPaddle");
+            MR::tryDeleteEffect(mActor->getYoshi(), "DogPaddle");
         }
     }
 
@@ -878,7 +878,7 @@ bool MarioSwim::close() {
     stopEffect("水泳スピン");           // Swim Spin Effect
 
     if (isPlayerModeYoshi())
-        MR::tryDeleteEffect(mActor->fn_803B97F0(), "DogPaddle");
+        MR::tryDeleteEffect(mActor->getYoshi(), "DogPaddle");
 
     if (mActor->getCarrySensor()) {
         LiveActor* shell = mActor->getCarrySensor()->mHost;
@@ -3354,7 +3354,7 @@ void MarioSwim::fn_803FD140() {
     TPos3f base;
     JMath::gekko_ps_copy12(base.toMtxPtr(), MR::getPlayerBaseMtx());
     TVec3f center;
-    if (isPlayerModeYoshi()) MR::copyJointPos(mActor->fn_803B97F0(), "Center", &center);
+    if (isPlayerModeYoshi()) MR::copyJointPos(mActor->getYoshi(), "Center", &center);
     else MR::copyJointPos(mActor, "Center", &center);
     u32 count = 0;
     WaterInfo info;
@@ -4211,7 +4211,7 @@ bool MarioSwim::fn_803FE7E0() {
     stopAnimation(nullptr, static_cast<const char*>(nullptr));
     if (getPlayer()->mMovementStates.mHighWord & 0x100) changeAnimation("水泳一掻き", static_cast<const char*>(nullptr));
     else changeAnimation("水上一掻き", static_cast<const char*>(nullptr));
-    if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "SwimPaddle", -1, -1, -1);
+    if (isPlayerModeYoshi()) MR::startActionSound(mActor->getYoshi(), "SwimPaddle", -1, -1, -1);
     else playSound("水面一掻き", -1);
     mDashTimer = 40;
     return true;
@@ -4290,7 +4290,7 @@ bool MarioSwim::fn_803F8490() {
         changeAnimationNonStop("リングダッシュ");
         return false;
     }
-    if (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0) {
+    if (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0) {
         f32 factor = MR::clamp(mForwardSpeed / mActor->mConst->getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
         getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
         getPlayer()->mWalkSpeed = factor;
@@ -4344,7 +4344,7 @@ void MarioSwim::fn_80402470(f32) {
 void MarioSwim::fn_80402720() {
     if (isMainAnimationRun("水泳基本") && isPlayerModeYoshi() && getAnimationTrackWeight(1) > 0.5f) {
         if (getAnimator()->fn_803DF0E0() >= 0.5f) {
-            if (getStickP() >= 0.2f) MR::startActionSound(mActor->fn_803B97F0(), "SwimV", -1, -1, -1);
+            if (getStickP() >= 0.2f) MR::startActionSound(mActor->getYoshi(), "SwimV", -1, -1, -1);
         }
     }
 }

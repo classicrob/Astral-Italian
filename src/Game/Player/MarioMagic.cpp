@@ -58,7 +58,7 @@ bool MarioMagic::start() {
     }
     playSound("スピンジャンプ");
     if (getPlayer()->isPlayerModeYoshi()) {
-        MR::startActionSound(mActor->fn_803B97F0(), "HeadShake", -1, -1, -1);
+        MR::startActionSound(mActor->getYoshi(), "HeadShake", -1, -1, -1);
     } else {
         playSound("声スピン");
     }

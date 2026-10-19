@@ -14,7 +14,7 @@ bool MarioParalyze::start() {
     playSound("ダメージ");
     playSound("電気ダメージ");
     if (isPlayerModeYoshi()) {
-        MR::startActionSound(mActor->fn_803B97F0(), "DamageElec", -1, -1, -1);
+        MR::startActionSound(mActor->getYoshi(), "DamageElec", -1, -1, -1);
     } else {
         playSound("声電気ダメージ");
     }

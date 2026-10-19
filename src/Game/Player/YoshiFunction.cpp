@@ -62,10 +62,10 @@ namespace YoshiFunction {
     }
 #pragma global_optimizer reset
     void emitGlowEffect() {
-        if (MR::isPlayerElementModeYoshi()) MR::getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F030();
+        if (MR::isPlayerElementModeYoshi()) MR::getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F030();
     }
     void deleteGlowEffect() {
-        if (MR::isPlayerElementModeYoshi()) MR::getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F050();
+        if (MR::isPlayerElementModeYoshi()) MR::getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F050();
     }
 }
 
@@ -73,24 +73,24 @@ namespace MR {
 #pragma global_optimizer off
     bool fn_80422150() {
         if (!isPlayerElementModeYoshi()) return false;
-        return getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F070();
+        return getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F070();
     }
 #pragma global_optimizer reset
     void fn_80422190() {
         if (!isPlayerElementModeYoshi()) return;
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F080();
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F080();
     }
     void fn_804221D0() {
         if (!isPlayerElementModeYoshi()) return;
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F0A0();
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F0A0();
     }
     void fn_80422210() {
         if (!isPlayerElementModeYoshi()) return;
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F0B0();
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F0B0();
     }
     void fn_80422250() {
         if (!isPlayerElementModeYoshi()) return;
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F0D0();
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F0D0();
     }
 #pragma global_optimizer off
     bool fn_80422290() {
@@ -139,13 +139,13 @@ namespace MR {
     }
     void emitYoshiGetEffect() {
         if (!getMarioHolder()->getMarioActor()->fn_803B9840()) return;
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F310();
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F310();
     }
     void calcYoshiTongueTipMtx(TPos3f* out) {
         static_cast<YoshiTongue*>(getMarioHolder()->getMarioActor()->fn_803B9800())->fn_8041CD10(out);
     }
     void fn_804223C0(const JMapInfoIter& iter) {
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F230(iter);
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F230(iter);
     }
     void addYoshiEgg(LiveActor* actor) {
         getMarioHolder()->getMarioActor()->fn_803B9830()->fn_8041B820(actor);
@@ -160,25 +160,25 @@ namespace MR {
         return getMarioHolder()->getMarioActor()->fn_803B9830()->_34;
     }
     void startDashYoshiMode() {
-        getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F110();
+        getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F110();
     }
 #pragma global_optimizer off
     bool isPlayerElementModeYoshiDash() {
         if (!isPlayerElementModeYoshi()) return false;
-        return getMarioHolder()->getMarioActor()->fn_803B97F0()->mDashTimer>0;
+        return getMarioHolder()->getMarioActor()->getYoshi()->mDashTimer>0;
     }
 #pragma global_optimizer reset
 #pragma global_optimizer off
     bool isPlayerElementModeYoshiLight() {
         if (!isPlayerElementModeYoshi()) return false;
-        return getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F070();
+        return getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F070();
     }
 #pragma global_optimizer reset
     const TVec3f& getYoshiPosition() {
-        return getMarioHolder()->getMarioActor()->fn_803B97F0()->mPosition;
+        return getMarioHolder()->getMarioActor()->getYoshi()->mPosition;
     }
     const TVec3f& getYoshiRotation() {
-        return getMarioHolder()->getMarioActor()->fn_803B97F0()->mRotation;
+        return getMarioHolder()->getMarioActor()->getYoshi()->mRotation;
     }
     void fn_80422790(MtxPtr mtx,LiveActor* actor) {
         if (getMarioHolder()->getMarioActor()->fn_803B9840()) getMarioHolder()->getMarioActor()->fn_803B9830()->fn_8041BA20(mtx,actor);
@@ -219,7 +219,7 @@ namespace MR {
 #pragma global_optimizer off
     MtxPtr getYoshiMouthMtx() {
         if (!getMarioHolder()->getMarioActor()->fn_803B9840()) return nullptr;
-        return getMarioHolder()->getMarioActor()->fn_803B97F0()->fn_8040F300();
+        return getMarioHolder()->getMarioActor()->getYoshi()->fn_8040F300();
     }
 #pragma global_optimizer reset
 // NONMATCHING: equivalent final early-return blocks are merged.

@@ -95,7 +95,7 @@ bool MarioDamage::start() {
     _12 = !_11;
     if (_11) {
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(mActor->fn_803B97F0(), "Thrown", -1, -1, -1);
+            MR::startActionSound(mActor->getYoshi(), "Thrown", -1, -1, -1);
         } else {
             playSound("声投げられ");
         }
@@ -104,7 +104,7 @@ bool MarioDamage::start() {
     } else {
         playSound("ダメージ");
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(mActor->fn_803B97F0(), "Damage", -1, -1, -1);
+            MR::startActionSound(mActor->getYoshi(), "Damage", -1, -1, -1);
         } else {
             playSound("声小ダメージ");
         }
@@ -611,7 +611,7 @@ void MarioFireDance::impactEffect() {
     switch (_29) {
     case 0:
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(mActor->fn_803B97F0(), "DamageFire", -1, -1, -1);
+            MR::startActionSound(mActor->getYoshi(), "DamageFire", -1, -1, -1);
         } else {
             playSound("声炎ダメージ");
             playSound("炎ダメージ");
@@ -625,7 +625,7 @@ void MarioFireDance::impactEffect() {
         break;
     case 1:
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(mActor->fn_803B97F0(), "DamageFire", -1, -1, -1);
+            MR::startActionSound(mActor->getYoshi(), "DamageFire", -1, -1, -1);
         } else {
             playSound("声針ダメージ");
             playSound("針ダメージ");

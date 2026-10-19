@@ -24,7 +24,7 @@ u32 MarioActor::fn_803B89E0() {
     return ((this->mMario)->mMovementStates.mLowWord >> 0x14) & 1;
 }
 
-bool MarioActor::fn_803B8A80() {
+bool MarioActor::isFireDamageActive() {
     return this->mMario->fn_80393C40();
 }
 
@@ -54,7 +54,7 @@ void MarioActor::fn_803B9560() {
     }
 }
 
-Yoshi* MarioActor::fn_803B97F0() {
+Yoshi* MarioActor::getYoshi() {
     return mYoshiHolder->mYoshi;
 }
 
@@ -256,7 +256,7 @@ void MarioActor::fn_803BE650(u32 a) {
     }
 }
 
-void MarioActor::fn_803BE670() {
+void MarioActor::requestMovementOn() {
     MR::requestMovementOn(this);
     if (this->mMario->isPlayerModeYoshi()) {
         MR::requestMovementOn(mYoshiHolder->mYoshi);
@@ -356,7 +356,7 @@ void MarioActor::fn_803BEAC0() {
     MR::startPlayerNormalBva();
 }
 
-void MarioActor::fn_803BEAF0() {
+void MarioActor::requestHairAndHatMovementOn() {
     if (mHairAndHat1090 != nullptr) {
         MR::requestMovementOn(mHairAndHat1090);
     }

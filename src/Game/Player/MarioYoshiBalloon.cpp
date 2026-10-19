@@ -54,18 +54,18 @@ bool MarioYoshiBalloon::start() {
 // NONMATCHING: extra saved GPR and stack frame; equivalent comparison materialization.
 bool MarioYoshiBalloon::close() {
     MR::getGameSceneLayoutHolder()->changeLifeMeterModeGround();
-    mActor->fn_803B97F0()->fn_8040EDE0(nullptr);
-    mActor->fn_803B97F0()->fn_8040EFB0();
+    mActor->getYoshi()->fn_8040EDE0(nullptr);
+    mActor->getYoshi()->fn_8040EFB0();
     setJumpVec(fn_803EF300());
     mActor->fn_803B9810()->fn_8041FE80();
     static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->mSuspended = false;
-    mActor->fn_803B97F0()->fn_8040CC00();
+    mActor->getYoshi()->fn_8040CC00();
     mActor->fn_803B9830()->mRideModelActor->kill();
     mActor->mMarioAnim->disableExtraAnimation();
     changeAnimation("落下", "落下");
     MR::startActionSound(mActor->fn_803B9830()->mRideModelActor, "Burst", -1, -1, -1);
     if (!(mAir <= 0.0f)) {
-        MR::emitEffect(mActor->fn_803B97F0(), "BalloonDamage");
+        MR::emitEffect(mActor->getYoshi(), "BalloonDamage");
     }
     return true;
 }
@@ -90,9 +90,9 @@ bool MarioYoshiBalloon::fn_80414580() {
     case 0:
         if (mStateFrame == 0) {
             changeAnimation("バルーン膨らむ", static_cast<const char*>(nullptr));
-            mActor->fn_803B97F0()->fn_8040EF40();
+            mActor->getYoshi()->fn_8040EF40();
         }
-        if (!mActor->fn_803B97F0()->fn_8040F490("バルーン膨らむ")) {
+        if (!mActor->getYoshi()->fn_8040F490("バルーン膨らむ")) {
             fn_80415390(1);
             mRequestedState = 1;
         }
@@ -182,7 +182,7 @@ void MarioYoshiBalloon::fn_80414730() {
             MR::startActionSound(mActor->fn_803B9830()->mRideModelActor, "JetStartV", -1, -1, -1);
         }
         if (mAnimationFrame == 1) {
-            mActor->fn_803B97F0()->fn_8040CC20();
+            mActor->getYoshi()->fn_8040CC20();
         }
         if (MR::isActionEnd(mActor->fn_803B9830()->mRideModelActor)) {
             if (checkLvlA()) fn_80415390(3);

@@ -457,7 +457,7 @@ bool MarioModule::checkSquat(bool a1) {
         return false;
     }
     if (mActor->mMario->mActor->mPlayerMode == 10) {
-        if (mActor->fn_803B97F0()->mDashTimer > 0) {
+        if (mActor->getYoshi()->mDashTimer > 0) {
             return false;
         }
         if (mActor->mMarioAnim->isAnimationRun("空中ひねり")) {
@@ -576,7 +576,7 @@ bool MarioModule::isPlayerModeYoshi() const { return mActor->mPlayerMode == 10; 
 bool MarioModule::isPlayerModeCloud() const { return mActor->mPlayerMode == 12; }
 void MarioModule::fn_803EE8F0(const char* name) {
     if (mActor->mPlayerMode == 10) {
-        mActor->fn_803B97F0()->fn_8040EDA0(name);
+        mActor->getYoshi()->fn_8040EDA0(name);
     }
 }
 bool MarioModule::isAnimationStop() const { return mActor->mMarioAnim->isAnimationStop(); }

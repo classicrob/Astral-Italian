@@ -908,7 +908,7 @@ void Mario::fn_803A2570(f32 x, TVec3f* arg) {
         s *= this->fn_803A26C0(d);
     }
     if (this->isPlayerModeYoshi()) {
-        if (this->mActor->fn_803B97F0()->mDashTimer > 0) {
+        if (this->mActor->getYoshi()->mDashTimer > 0) {
             s *= 0.5f;
         }
     }
@@ -1404,10 +1404,10 @@ void Mario::fn_8038C620(s32) {
         MR::startLevelSoundPlayer("JumpFromYoshi", -1, -1);
     } else if (this->mStateFlags._0 != 0) {
         if (this->isPlayerModeYoshi()) {
-            if (this->mActor->fn_803B97F0()->mDashTimer > 0) {
-                MR::startActionSound(this->mActor->fn_803B97F0(), "DashJump", -1, -1, -1);
+            if (this->mActor->getYoshi()->mDashTimer > 0) {
+                MR::startActionSound(this->mActor->getYoshi(), "DashJump", -1, -1, -1);
             } else {
-                MR::startActionSound(this->mActor->fn_803B97F0(), "JumpS", -1, -1, -1);
+                MR::startActionSound(this->mActor->getYoshi(), "JumpS", -1, -1, -1);
             }
         } else {
             this->playSound("声小ジャンプ", -1);
@@ -1426,7 +1426,7 @@ void Mario::fn_8038C620(s32) {
             } else {
                 var_r31 = MR::clamp(v3, t5 - 22, t5 + 22);
             }
-            s32 temp_r29 = this->mActor->fn_803B97F0()->mDashTimer;
+            s32 temp_r29 = this->mActor->getYoshi()->mDashTimer;
             MR::startActionSoundPlayer("DashLV", v28, var_r31);
             MR::startActionSoundPlayer("DashLVWind", v28, -1);
             MR::startActionSoundPlayer("DashLVFire", temp_r29, -1);
@@ -1710,7 +1710,7 @@ void Mario::fn_803A02F0(s32 keepSlip, s32 hard, s32 blend) {
         if (delta.dot(mJumpVec) < 0.0f) mJumpVec.zero();
         else mJumpVec = delta;
     }
-    if ((mFrontVec.dot(mJumpVec) > 6.0f && keepSlip == 0) || (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0)) {
+    if ((mFrontVec.dot(mJumpVec) > 6.0f && keepSlip == 0) || (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0)) {
         f32 speed = fn_803B1CA0();
         mWalkSpeed = mFrontVec.dot(mJumpVec) / speed;
         mWalkSpeed = MR::clamp(mWalkSpeed, 0.0f, 2.0f);
@@ -1884,7 +1884,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
             this->changeAnimation("ハード着地", "基本");
             this->playSound("重い着地", -1);
             if (this->isPlayerModeYoshi()) {
-                MR::startActionSound(this->mActor->fn_803B97F0(), "Land", -1, -1, -1);
+                MR::startActionSound(this->mActor->getYoshi(), "Land", -1, -1, -1);
             } else {
                 this->playSound("声着地停止", -1);
             }
@@ -2164,7 +2164,7 @@ void Mario::updateWalkSpeed() {
         cancelSquatMode();
     }
     if (isPlayerModeYoshi() && getAnimator()->isAnimationRun("基本")) {
-        if (mActor->fn_803B97F0()->mDashTimer > 0) {
+        if (mActor->getYoshi()->mDashTimer > 0) {
             getAnimator()->changeTrackAnim(0, "ヨッシーダッシュ");
             getAnimator()->changeTrackAnim(1, "ヨッシーダッシュ");
             getAnimator()->changeTrackAnim(2, "ヨッシーダッシュ");

@@ -107,12 +107,12 @@ public:
     void exeGameOverNoDemo();
     const TVec3f& fn_803B8520();
     u32 fn_803B89E0();
-    bool fn_803B8A80();
+    bool isFireDamageActive();
     void fn_803B9270();
     bool fn_803B93E0();
     void fn_803B94E0();
     void fn_803B9560();
-    Yoshi* fn_803B97F0();
+    Yoshi* getYoshi();
     void* fn_803B9800();
     YoshiTongueAction* fn_803B9810();
     void* fn_803B9820();
@@ -149,7 +149,7 @@ public:
     void* fn_803BE0C0() const;
     void* fn_803BE0E0() const;
     void fn_803BE650(u32 a);
-    void fn_803BE670();
+    void requestMovementOn();
     void fn_803BE6D0();
     void fn_803BE6F0();
     bool fn_803BE800();
@@ -162,7 +162,7 @@ public:
     bool fn_803BEA80(const char*);
     bool fn_803BEAA0(const char*, const BckCtrlData&);
     void fn_803BEAC0();
-    void fn_803BEAF0();
+    void requestHairAndHatMovementOn();
     void fn_803BEB10(s32 a);
     bool fn_803BEBE0();
     LiveActor* fn_803BECC0();

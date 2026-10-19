@@ -151,7 +151,7 @@ bool MarioFpView::update() {
     }
 
     if (mFrame == 20 && mDelay == 0) fn_803EE8F0("ヨッシー主観カメラ開始");
-    if (mFrame == 25 && mDelay == 0 && isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040CC20();
+    if (mFrame == 25 && mDelay == 0 && isPlayerModeYoshi()) mActor->getYoshi()->fn_8040CC20();
     mBlurOffset -= 0.5f;
     ++mFrame;
     if (mBlurOffset < 0.0f) {
@@ -170,7 +170,7 @@ bool MarioFpView::update() {
         mDelay = 20;
         mIsActive = false;
         fn_803EE8F0("ヨッシー主観カメラ終了");
-        if (isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040CC00();
+        if (isPlayerModeYoshi()) mActor->getYoshi()->fn_8040CC00();
     }
 
     if (mDelay != 0 && --mDelay == 0) {
@@ -191,7 +191,7 @@ bool MarioFpView::close() {
     if (isPlayerModeCloud()) playEffect("雲マリオ頭煙");
     if (isPlayerModeYoshi()) {
         if (isAnimationRun("ヨッシー主観カメラ開始")) fn_803EE8F0("ヨッシー主観カメラ終了");
-        mActor->fn_803B97F0()->fn_8040CC00();
+        mActor->getYoshi()->fn_8040CC00();
         mActor->fn_803B9810()->fn_80420000();
     }
 

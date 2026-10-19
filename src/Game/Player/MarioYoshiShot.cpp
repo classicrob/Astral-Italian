@@ -9,7 +9,7 @@ MarioYoshiShot::MarioYoshiShot(MarioActor* actor) : MarioState(actor, MarioStatu
 // NONMATCHING: zero float hoisting adds a saved FP register and stack space.
 bool MarioYoshiShot::start() {
     changeAnimation("ヨッシーショット",static_cast<const char*>(nullptr));
-    MR::startActionSound(mActor->fn_803B97F0(),"Shot",-1,-1,-1);
+    MR::startActionSound(mActor->getYoshi(),"Shot",-1,-1,-1);
     MR::startCSSound1P("CS_YOSHI_VELCH_OUT",2,1.0f);
     TVec3f direction;
     direction.set<f32>(mActor->fn_803B9810()->_90);
@@ -35,7 +35,7 @@ bool MarioYoshiShot::close() {
     return true;
 }
 bool MarioYoshiShot::update() {
-    if(!mActor->fn_803B97F0()->fn_8040F490("ヨッシーショット")) return false;
+    if(!mActor->getYoshi()->fn_8040F490("ヨッシーショット")) return false;
     if(mTimer<5) {
         getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
         getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;

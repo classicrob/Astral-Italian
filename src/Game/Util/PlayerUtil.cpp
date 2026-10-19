@@ -576,7 +576,7 @@ namespace MR {
 
     // original name unknown; named by behaviour: tests Mario flag 0x80000000 or fire states 8 through 10.
     bool isPlayerFireDamageActive() {
-        return MarioAccess::getPlayerActor()->fn_803B8A80();
+        return MarioAccess::getPlayerActor()->isFireDamageActive();
     }
 
     bool isPlayerStaggering() {
@@ -985,11 +985,11 @@ namespace MR {
     }
 
     void requestMovementOnPlayer() {
-        MarioAccess::getPlayerActor()->fn_803BE670();
+        MarioAccess::getPlayerActor()->requestMovementOn();
     }
 
     void requestPlayerMovementOnDuringDemo() {
-        MarioAccess::getPlayerActor()->fn_803BEAF0();
+        MarioAccess::getPlayerActor()->requestHairAndHatMovementOn();
     }
 
     void killPlayerFireBalls() {
@@ -1081,7 +1081,7 @@ namespace MR {
 
     // Mario's shadow texture (CollisionShadow+0x308; DisplayListMaker draws it).
     const JUTTexture* getPlayerShadowTexture() {
-        return MarioAccess::fn_803B7370();
+        return MarioAccess::getShadowTexture();
     }
 
     u16 getPlayerMovementTimer() {
@@ -1248,7 +1248,7 @@ namespace MR {
     }
 
     void startActionSoundPlayer(const char* pName, s32 param2, s32 param3) {
-        startActionSound(MarioAccess::getPlayerActor()->fn_803B97F0(), pName, param2, param3, -1);
+        startActionSound(MarioAccess::getPlayerActor()->getYoshi(), pName, param2, param3, -1);
     }
 
     // SMG2 mPlayerMode ids (Fire 2, Yoshi 0xA, Cloud 0xC, Rock 0xD); PlayerMode enum in MarioActor.hpp is SMG1-shaped

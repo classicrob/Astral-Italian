@@ -5955,7 +5955,7 @@ bool Mario::doFlipJump(const TVec3f& rVec) {
     velocity.setLength(mActor->mConst->getTable()->mWallSpinFlipGround);
     TVec3f gravity;
     MR::calcGravityVector(mActor, &gravity, nullptr, 0);
-    if (!isPlayerModeYoshi() || mActor->fn_803B97F0()->mDashTimer <= 0 || MR::abs(getGravityVec()->dot(gravity)) > 0.2f) {
+    if (!isPlayerModeYoshi() || mActor->getYoshi()->mDashTimer <= 0 || MR::abs(getGravityVec()->dot(gravity)) > 0.2f) {
         f32 hop = mActor->mConst->getTable()->mWallSpinHopGround;
         velocity -= *getGravityVec() * hop;
     }
@@ -7131,7 +7131,7 @@ void Mario::tryJump() {
     switch (_430) {
     case 0:
         if ((mMovementStates.mLowWord >> 8) & 1) changeAnimation("壁上昇", "落下");
-        else if (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0) {
+        else if (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0) {
             MR::startCenterScreenBlur(35, 15.0f, 80, 5, 30);
             playEffect("ダッシュジャンプ煙");
             changeAnimation("ヨッシージャンプ", "落下");
@@ -7153,8 +7153,8 @@ void Mario::tryJump() {
         changeAnimationNonStop("ジャンプB");
         changeAnimation(nullptr, "落下");
         if (isPlayerModeYoshi()) {
-            if (mActor->fn_803B97F0()->mDashTimer > 0) MR::startActionSound(mActor->fn_803B97F0(), "DashJumpL", -1, -1, -1);
-            else MR::startActionSound(mActor->fn_803B97F0(), "JumpM", -1, -1, -1);
+            if (mActor->getYoshi()->mDashTimer > 0) MR::startActionSound(mActor->getYoshi(), "DashJumpL", -1, -1, -1);
+            else MR::startActionSound(mActor->getYoshi(), "JumpM", -1, -1, -1);
         } else playSound("声中ジャンプ");
         playSound("中ジャンプ");
         playSound("ジャンプ踏切");
@@ -7173,7 +7173,7 @@ void Mario::tryJump() {
         else {
             if (!isAnimationRun("坂すべり上向きうつぶせ")) changeAnimation("尻滑りジャンプ", "落下");
             else changeAnimation("腹ばいジャンプ", "落下");
-            if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "JumpHardly", -1, -1, -1);
+            if (isPlayerModeYoshi()) MR::startActionSound(mActor->getYoshi(), "JumpHardly", -1, -1, -1);
             else playSound("声ミスジャンプ");
             playSound("ジャンプ踏切");
         }
@@ -7183,7 +7183,7 @@ void Mario::tryJump() {
     if (mSwim->checkUnderWaterFull(mFrontVec) > 500.0f && mStickPos.z == 0.0f) {
         mMovementStates.mLowWord |= 0x20000;
         changeAnimationNonStop("飛び込みジャンプ");
-        if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "PreLandTurn", -1, -1, -1);
+        if (isPlayerModeYoshi()) MR::startActionSound(mActor->getYoshi(), "PreLandTurn", -1, -1, -1);
         else playSound("声高飛び込み");
         playSound("ジャンプ踏切");
         if (mStickPos.z < 0.1f) {
@@ -7245,7 +7245,7 @@ bool Mario::tryTurnJump() {
     playSound("後ジャンプ");
     playSound("ジャンプ踏切");
     playEffect("共通ハイジャンプ");
-    if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "JumpHigh", -1, -1, -1);
+    if (isPlayerModeYoshi()) MR::startActionSound(mActor->getYoshi(), "JumpHigh", -1, -1, -1);
     else playSound("声後ジャンプ");
 
     _3D0 = 0;
@@ -7352,7 +7352,7 @@ void Mario::tryBackJump() {
     playSound("ジャンプ踏切");
     playEffect("共通ハイジャンプ");
     if (isPlayerModeYoshi()) {
-        MR::startActionSound(mActor->fn_803B97F0(), "JumpHigh", -1, -1, -1);
+        MR::startActionSound(mActor->getYoshi(), "JumpHigh", -1, -1, -1);
     } else {
         playSound("声後ジャンプ");
     }
@@ -7393,7 +7393,7 @@ void Mario::tryTornadoJump() {
     changeAnimation("ジャンプ", "落下");
     playSound("トルネードジャンプ");
     if (isPlayerModeYoshi()) {
-        MR::startActionSound(mActor->fn_803B97F0(), "HeadShake", -1, -1, -1);
+        MR::startActionSound(mActor->getYoshi(), "HeadShake", -1, -1, -1);
     } else {
         playSound("声スピン");
     }
@@ -7509,7 +7509,7 @@ void Mario::trySpinJump(u8 a1) {
         }
         playSound("スピンジャンプ");
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(mActor->fn_803B97F0(), "HeadShake", -1, -1, -1);
+            MR::startActionSound(mActor->getYoshi(), "HeadShake", -1, -1, -1);
         } else {
             playSound("声スピン");
         }

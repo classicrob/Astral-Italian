@@ -13,6 +13,7 @@
 
 class YoshiLockOnTarget;
 
+// PLACEHOLDER(objects): preserves original resource-string pool order; resolve when the names have a canonical data table.
 void JetTurtle_FORCE_MATCH_STRINGS() {
     MR::isEqualString("Koura", "Koura");
     MR::isEqualString("KouraShine", "KouraShine");
@@ -113,7 +114,6 @@ void JetTurtle::init(const JMapInfoIter& rIter) {
     init2(rIter, 0);
 }
 
-// NONMATCHING: target builds the zero TVec3f for initStarPointerTarget inline (3 stfs of 0.0f) while the 3-arg ctor is a call elsewhere in this fn; ctor-form variants tried, all worse
 void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     _D8 = 0;
 
@@ -216,7 +216,7 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     }
 
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f));
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f));
     MR::offBind(this);
 }
 

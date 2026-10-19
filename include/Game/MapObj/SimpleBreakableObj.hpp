@@ -81,7 +81,7 @@ public:
 
 class SimpleBreakableCollisionObj : public SimpleBreakableObj {
 public:
-    SimpleBreakableCollisionObj(const char* pName) : SimpleBreakableObj(pName), mBreakCollision(nullptr) {}
+    SimpleBreakableCollisionObj(const char* pName) : SimpleBreakableObj(pName) {}
     virtual ~SimpleBreakableCollisionObj();
     virtual void init(const JMapInfoIter&);
     virtual void controlBreak();

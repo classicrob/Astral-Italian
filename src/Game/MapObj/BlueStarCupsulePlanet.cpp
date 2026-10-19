@@ -61,8 +61,8 @@ void BlueStarCupsulePlanet::init(const JMapInfoIter& rIter) {
 
     TVec3f offset, vec;
     TPos3f mtx;
-    MR::addHitSensorMapObj(this, "body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::initCollisionParts(this, mName, getSensor("body"), nullptr);
+    MR::addHitSensorMapObj(this, "Body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::initCollisionParts(this, mName, getSensor("Body"), nullptr);
     MR::copyJointPos(this, "Root", &vec);
     mtx.set(getBaseMtx());
     mtx.invert(mtx);

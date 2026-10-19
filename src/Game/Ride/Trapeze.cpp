@@ -51,10 +51,10 @@ namespace {
     static const f32 sSpeedToSwingWait = 10.0f;
     static const f32 sAxisToSwingWait = 0.99f;
     static const f32 sJumpSpeedRate = 1.0f;
-    static const f32 sJumpSpeedMinXZ = 15.0f;
-    static const f32 sJumpSpeedMaxXZ = 20.0f;
+    static const f32 sJumpSpeedMinXZ = 10.0f;
+    static const f32 sJumpSpeedMaxXZ = 25.0f;
     static const f32 sJumpSpeedMinY = 20.0f;
-    static const f32 sJumpSpeedMaxY = 50.0f;
+    static const f32 sJumpSpeedMaxY = 45.0f;
     static const f32 sStickPointGravity = 1.0f;
     static const f32 sStickPointFrictionRate = 0.995f;
     static const f32 sPointSpeedMin = 1.0f;
@@ -518,7 +518,7 @@ bool Trapeze::tryJump() {
         jumpVel.y = MR::clamp(jumpVel.y, ::sJumpSpeedMinY, ::sJumpSpeedMaxY);
 
         TVec3f grabVel(jumpVel.x, 0.0f, jumpVel.z);
-        if (grabVel.squared() > 300.0f) {
+        if (grabVel.squared() > ::sJumpSpeedMaxXZ * ::sJumpSpeedMaxXZ) {
             MR::normalize(&grabVel);
             grabVel.scale(::sJumpSpeedMaxXZ);
             jumpVel.x = grabVel.x;

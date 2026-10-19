@@ -120,8 +120,6 @@ void StemFruit::exeComeOff() {
     updateChildState();
 }
 
-#pragma dont_inline on
-// NONMATCHING: target has no out-of-line TPosition3 default ctor call for the local TPos3f (ours calls it under auto_inline off)
 void StemFruit::exePull() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Pull");
@@ -143,7 +141,6 @@ void StemFruit::exePull() {
     mRotation.z *= 57.2957763671875f;
 }
 
-#pragma dont_inline reset
 void StemFruit::exePullEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "PullEnd");
@@ -484,11 +481,11 @@ bool StemFruitChild::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             if (mParent->getParam()->mFlag10 != 0) {
                 setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvNearPlayer));
                 mParent->tryStartPull();
-                return true;
+            } else {
+                setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvGravity));
+                mParent->setNerveGet();
+                MR::startActionSoundAuto(mParent, "PulledOutInstant", -1, -1, -1);
             }
-            setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvGravity));
-            mParent->setNerveGet();
-            MR::startActionSoundAuto(mParent, "PulledOutInstant", -1, -1, -1);
             return true;
         }
         if (mParent->getParam()->mFlag11 != 0) {

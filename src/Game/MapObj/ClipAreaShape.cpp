@@ -122,7 +122,7 @@ void ClipAreaShapeCylinder::calcVolumeMatrix(TPos3f* pVolMtx, const TPos3f& rSrc
     MR::preScaleMtx(pVolMtx->toMtxPtr(), scale);
 }
 
-ClipAreaShapeCone::ClipAreaShapeCone(s32 a1) : ClipAreaShape("ClipVolumeSphere") {
+ClipAreaShapeCone::ClipAreaShapeCone(s32 a1) : ClipAreaShape("VolumeCone") {
     _8 = 500.0f;
     _C = 500.0f;
     _10 = a1;

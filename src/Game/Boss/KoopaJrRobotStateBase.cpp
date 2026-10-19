@@ -47,7 +47,7 @@ s32 KoopaJrRobotStateBase::updateSearch() {
 s32 KoopaJrRobotStateBase::calcTurnDir() {
     MR::calcVecToPlayerH(&_14, mHost, nullptr);
     TVec3f up(-mHost->mGravity);
-    _10 = 57.295776f * MR::diffAngleSigned(_14, mHost->mZAxis, up);
+    _10 = 57.29578f * MR::diffAngleSigned(_14, mHost->mZAxis, up);
     bool positive = 0.0f < _10;
     s32 dir = 2;
     if (positive) dir = 1;

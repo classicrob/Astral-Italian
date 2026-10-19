@@ -175,20 +175,20 @@ void PhantomTorch::soundOrder() {
 
         switch (num) {
         case 1:
-            MR::startActionSound(this, "SyCandleCombo1", -1, -1, -1);
+            MR::startActionSound(this, "SyCandleCombo5", -1, -1, -1);
             break;
         case 2:
-            MR::startActionSound(this, "SyCandleCombo2", -1, -1, -1);
+            MR::startActionSound(this, "SyCandleCombo4", -1, -1, -1);
             break;
         case 3:
             MR::startActionSound(this, "SyCandleCombo3", -1, -1, -1);
             break;
         case 4:
-            MR::startActionSound(this, "SyCandleCombo4", -1, -1, -1);
+            MR::startActionSound(this, "SyCandleCombo2", -1, -1, -1);
             break;
         case 5:
         default:
-            MR::startActionSound(this, "SyCandleCombo5", -1, -1, -1);
+            MR::startActionSound(this, "SyCandleCombo1", -1, -1, -1);
             break;
         }
     }

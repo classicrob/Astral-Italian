@@ -12,12 +12,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
-
-
-namespace MR {
-    // PLACEHOLDER(objects): not declared in any Util header yet (attachSupportTicoToTarget__2MRFPC9LiveActor)
-    void attachSupportTicoToTarget(const LiveActor*);
-};  // namespace MR
+#include "Game/Util/SupportPlayUtil.hpp"
 
 namespace {
     const f32 cCorioriRotSpeed = 1.5f;

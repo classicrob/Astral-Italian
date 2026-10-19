@@ -232,9 +232,9 @@ void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInf
         }
 
         if (rInfo.mHasHitSensorCB) {
-            MR::addHitSensorCallbackMapObj(this, "body", rInfo._1C, radius);
+            MR::addHitSensorCallbackMapObj(this, "Body", rInfo._1C, radius);
         } else {
-            MR::addHitSensorMapObj(this, "body", rInfo._1C, radius, position);
+            MR::addHitSensorMapObj(this, "Body", rInfo._1C, radius, position);
         }
     }
 
@@ -247,12 +247,12 @@ void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInf
         const char* pJointName = ::cFollowJointName;
         if (MR::isExistJoint(this, pJointName)) {
             pJointMtx = MR::getJointMtx(this, pJointName);
-            MR::initCollisionParts(this, mObjectName, getSensor("body"), pJointMtx);
+            MR::initCollisionParts(this, mObjectName, getSensor("Body"), pJointMtx);
         } else {
-            MR::initCollisionParts(this, mObjectName, getSensor("body"), nullptr);
+            MR::initCollisionParts(this, mObjectName, getSensor("Body"), nullptr);
         }
 
-        MR::tryCreateCollisionMoveLimit(this, getSensor("body"));
+        MR::tryCreateCollisionMoveLimit(this, getSensor("Body"));
     }
 
     if (hasRail && !isValidCsv) {

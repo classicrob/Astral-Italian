@@ -60,13 +60,13 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
     mKoopaJr = new PartsModelLodCtrl(mHead, "\x83N\x83""b\x83pJr", "KoopaJr", 0, 0x13, false);
     MR::initShadowFromCSVWithInitShadowVolumeSphere(mKoopaJr, "ShadowKoopaJrCastle");
     MR::validateClipping(mKoopaJr);
-    mKoopaJr->initFixedPosition(MR::getJointMtx(mHead, "Apron"), TVec3f(0.0f, 130.0f, 100.0f), TVec3f(0.0f, 0.0f, 0.0f));
+    mKoopaJr->initFixedPosition(MR::getJointMtx(mHead, "Cockpit"), TVec3f(0.0f, 130.0f, 100.0f), TVec3f(0.0f, 0.0f, 0.0f));
     mKoopaJr->initWithoutIter();
     mKoopaJr->initLightCtrl();
     mKoopaJr->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
     mKoopaJr->getLodCtrl()->setDistanceToMiddle(0.0f);
-    MR::startBva(mKoopaJr->getLodCtrl()->mMiddleModel, "Cockpit");
-    MR::startBva(mKoopaJr->getLodCtrl()->mLowModel, "Cockpit");
+    MR::startBva(mKoopaJr->getLodCtrl()->mMiddleModel, "Apron");
+    MR::startBva(mKoopaJr->getLodCtrl()->mLowModel, "Apron");
     MR::startAction(mKoopaJr, "Wait");
     mBreakModel = new BreakModel(this, "\x83L\x83\x83\x83""b\x83X\x83\x8b\x89\xf3\x82\xea\x83\x82\x83""f\x83\x8b", "KoopaJrCastleBreak", 0, "Break");
     mBreakModel->initWithoutIter();

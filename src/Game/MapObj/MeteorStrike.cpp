@@ -60,7 +60,7 @@ void MeteorStrike::init(const JMapInfoIter& rIter) {
 
     if (mType != MeteorStrikeType_Environment) {
         initHitSensor(1);
-        MR::addHitSensorMapObj(this, "body", 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+        MR::addHitSensorMapObj(this, "Body", 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
     }
 
     initBinder(::cBinderRadius, 0.0f, 0);

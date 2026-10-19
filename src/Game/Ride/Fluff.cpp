@@ -331,7 +331,6 @@ bool Fluff::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     return false;
 }
 
-// NONMATCHING: SMG2 damage path differs (isEqualSensor checks, endBindAndPlayerDamageMsg, offSwitchA, startBrk/deleteEffect); not ported yet.
 bool Fluff::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (mRider != nullptr) {
         if (MR::isEqualSensor(pReceiver, this, "DamageMario") || MR::isEqualSensor(pReceiver, this, "DamageMiddle") ||
@@ -394,7 +393,7 @@ bool Fluff::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         MR::startSoundPlayer("SE_PV_CATCH", -1, -1);
         MR::startSoundPlayer("SE_PM_GRAB_OBJ", -1, -1);
         MR::invalidateHitSensors(this);
-        MR::validateHitSensor(this, "body");
+        MR::validateHitSensor(this, "Body");
         MR::validateHitSensor(this, "DamageMario");
         MR::validateHitSensor(this, "DamageMiddle");
         MR::validateHitSensor(this, "DamageHead");

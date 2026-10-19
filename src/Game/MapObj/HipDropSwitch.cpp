@@ -165,7 +165,7 @@ void HipDropSwitch::exeOff() {
 
     if (!mWasTouched && mIsTouched) {
         mSpringValue->mVelocity += -10.0f;
-        MR::startActionSound(this, "OjPncKinokoBound");
+        MR::startActionSound(this, "Land");
     }
 
     mSpringValue->update();

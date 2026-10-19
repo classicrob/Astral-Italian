@@ -46,10 +46,10 @@ void ArrowSwitch::init(const JMapInfoIter& rIter) {
 
     if (MR::isInPlaneModeCube(mPosition)) {
         initHitSensor(1);
-        MR::addHitSensorMapObj(this, "body", 8, 100.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 250.0f * mScale.x));
+        MR::addHitSensorMapObj(this, "Body", 8, 100.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 250.0f * mScale.x));
     } else {
         initHitSensor(2);
-        MR::addHitSensorMapObj(this, "body", 8, 100.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 250.0f * mScale.x));
+        MR::addHitSensorMapObj(this, "Body", 8, 100.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 250.0f * mScale.x));
         MR::addHitSensorMapObjMoveCollision(this, "collision", 8, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
         MR::initCollisionParts(this, "ArrowSwitch", getSensor("collision"), nullptr);
     }
@@ -108,7 +108,7 @@ bool ArrowSwitch::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool ArrowSwitch::requestPunch(HitSensor* pSender, HitSensor* pReceiver) {
-    if (getSensor("body") != pReceiver) {
+    if (getSensor("Body") != pReceiver) {
         return false;
     }
 

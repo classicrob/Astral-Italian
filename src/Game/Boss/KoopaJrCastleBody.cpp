@@ -183,7 +183,7 @@ void KoopaJrCastleBody::control() {
         MR::addTransMtxLocalY(mMtx, mVerticalOffset);
     }
     if (MR::isBindedWall(this)) {
-        HitSensor* pSensor = getSensor("Collision");
+        HitSensor* pSensor = getSensor("Catepillar");
         MR::sendArbitraryMsg(0xF4, MR::getWallSensor(this), pSensor);
     }
     pBck = MR::getPlayingBckName(this);

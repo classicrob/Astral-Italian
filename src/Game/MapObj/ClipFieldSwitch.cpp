@@ -17,9 +17,14 @@ void ClipFieldSwitch::init(const JMapInfoIter& rIter) {
 }
 
 void ClipFieldSwitch::control() {
-    mPosition = *MR::getPlayerPos();
+    HitSensor* rushSensor;
+    if (MR::isPlayerInRush() && MR::isSensorType(rushSensor = MR::getCurrentRushSensor(), 0x60)) {
+        mPosition.set(*MR::getSensorPos(rushSensor));
+    } else {
+        mPosition.set(*MR::getPlayerPos());
+    }
 
-    if (MR::isInClipArea(*MR::getPlayerPos())) {
+    if (MR::isInClipArea(mPosition)) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }

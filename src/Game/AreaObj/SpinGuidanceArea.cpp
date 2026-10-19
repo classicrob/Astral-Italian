@@ -15,9 +15,9 @@ void SpinGuidanceArea::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
     MR::createSceneObj(SceneObj_PlayerActionGuidance);
 
-    if (MR::isObjectName(rIter, "SpinGuidanceCube")) {
+    if (MR::isObjectName(rIter, "SpinGuidanceArea")) {
         MR::getPlayerActionGuidance()->createSpinLayout();
-    } else if (MR::isObjectName(rIter, "TamakoroMoveGuidanceCube") || MR::isObjectName(rIter, "TamakoroJumpGuidanceCube")) {
+    } else if (MR::isObjectName(rIter, "TamakoroMoveGuidanceArea") || MR::isObjectName(rIter, "TamakoroJumpGuidanceArea")) {
         MR::getPlayerActionGuidance()->createTamakoroLayout();
     }
 }

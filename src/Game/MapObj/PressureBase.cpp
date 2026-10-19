@@ -47,7 +47,7 @@ void PressureMessenger::init(const JMapInfoIter& rIter) {
 
 void PressureMessenger::exeSync() {
     if (mParamScale->isStep(mWaitSyncTime)) {
-        mSharedGroup->sendMsgToGroupMember(0x7A /* ACTMES_GROUP_MOVE_START */, getSensor("body"), "body");
+        mSharedGroup->sendMsgToGroupMember(0x7A /* ACTMES_GROUP_MOVE_START */, getSensor("Body"), "Body");
         setNerve(GET_NERVE(PressureMessenger, PressureMessengerNrvSync));
     }
 }
@@ -65,7 +65,7 @@ void PressureBase::init(const JMapInfoIter& rIter) {
     MR::calcFrontVec(&mFront, this);
     MR::connectToSceneNoShadowedMapObjStrongLight(this);
     initHitSensor(2);
-    MR::addHitSensorMapObj(this, "body", 8, 70.0f, TVec3f(0.0f, 30.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 8, 70.0f, TVec3f(0.0f, 30.0f, 0.0f));
     MR::addHitSensorAtJointMapObjSimple(this, "cannon", "Cannon1", 8, 70.0f, TVec3f(40.0f, 0.0f, 0.0f));
     initEffectKeeper(0, nullptr, false);
     initSound(6, nullptr, nullptr, TVec3f(0.0f));

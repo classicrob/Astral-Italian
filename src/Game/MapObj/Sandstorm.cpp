@@ -538,7 +538,7 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
     MR::startActorCameraTargetSelf(this, mCameraInfo);
     MR::resetPlayerStatus();
     MR::startBckPlayer("StormIn");
-    MR::startSoundPlayer("PvUpset", -1, -1);
+    MR::startSoundPlayer("SE_PV_UPSET", -1, -1);
     MR::invalidateClipping(this);
 
     mSpiralAngle = 0.0f;

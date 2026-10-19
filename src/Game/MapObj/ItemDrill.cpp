@@ -741,6 +741,7 @@ void ItemDrill::exeTake() {
     setNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken));
 }
 
+// NONMATCHING: saved register holding the player-gravity destination differs.
 void ItemDrill::exeTaken() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -1078,8 +1079,7 @@ bool ItemDrillMovementLimitPos::adjustPositionByCollision(const TVec3f& rPos, co
 void ItemDrillMovementLimitPos::control() {
 }
 
-// NONMATCHING: stack layout matches; negate() stays an out-of-line negateInternal call (target inlines ps_neg), tail bool is materialized (cror/mfcr) instead of bge/li, fmuls operand order.
-// NONMATCHING: target inlines negate() (ps_neg) and branches `bge` to the true block; ours calls negateInternal out of line and lays the final return blocks out the other way (same `!(dist < 100.0f)` condition).
+// NONMATCHING: vector negation is outlined; multiply operands and equivalent final-return blocks are reordered.
 bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3f& rPos, const TVec3f* pDir) {
     u32 count = Collision::checkStrikeBallToMapWithThickness(rPos, 130.0f, 140.0f,
                                                              mCollisionPartsFilter, nullptr);

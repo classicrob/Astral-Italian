@@ -214,7 +214,7 @@ void TreasureBoxCracked::initItem(const JMapInfoIter& rIter) {
     }
 
     mItemType = 1;
-    mItem = new BenefitItemOneUp("PtoLmR");
+    mItem = new BenefitItemOneUp("１ＵＰキノコ");
     MR::setPosition(mItem, mPosition);
     MR::setRotation(mItem, mRotation);
     mItem->initWithoutIter();

@@ -50,12 +50,23 @@ void FloaterFloatingForceTypeNormal::updateVelocity(bool param1) {
 
     if (param1 && (MR::isValidSwitchA(mHost) && MR::isOnSwitchA(mHost)) == false) {
         if (mMoveConditionType <= _40) {
-            _44 = MR::converge< f32 >(_44, 0.0f, 0.05f);
+            f32 speed = _44;
+            if (speed < 0.0f) {
+                speed += 0.05f;
+                if (speed > 0.0f) speed = 0.0f;
+            } else {
+                speed -= 0.05f;
+                if (speed < 0.0f) speed = 0.0f;
+            }
+            _44 = speed;
         } else {
             _44 += mRotateSpeed * 0.0001f;
         }
     } else if (_40 <= 0.0f) {
-        _44 = MR::converge< f32 >(_44, 0.0f, 0.05f);
+        if (!MR::isNearZero(_44, 0.001f)) {
+            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUpEnd", -1, -1, -1);
+            _44 = 0.0f;
+        }
     } else {
         _44 -= mRotateAngle * 0.0001f;
     }
@@ -100,17 +111,9 @@ void FloaterFloatingForceTypeNormal::soundMoveSE() {
     }
 
     if (_44 > 0.1f) {
-        const char* seMoveDown = FloaterFunction::getSeMoveDown(mFloaterName);
-
-        if (seMoveDown != nullptr) {
-            MR::startLevelSound(mHost, seMoveDown);
-        }
+        MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveDown", 1000.0f * __fabsf(_44), -1, -1);
     } else if (_44 < -0.1f) {
-        const char* seMoveUp = FloaterFunction::getSeMoveUp(mFloaterName);
-
-        if (seMoveUp != nullptr) {
-            MR::startLevelSound(mHost, seMoveUp);
-        }
+        MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", 1000.0f * __fabsf(_44), -1, -1);
     }
 }
 
@@ -130,11 +133,7 @@ void FloaterFloatingForceTypeNormal::exeWait() {
 
 void FloaterFloatingForceTypeNormal::exeMoveFirst() {
     if (isFirstStep()) {
-        const char* seGroundOn = FloaterFunction::getSeGroundOn(mFloaterName);
-
-        if (seGroundOn != nullptr) {
-            MR::startSound(mHost, seGroundOn);
-        }
+        MR::startActionSoundAuto(mHost, "MapPartsFloaterRidden", -1, -1, -1);
 
         if (FloaterFunction::isExistImpactOnRide(mFloaterName)) {
             MR::shakeCameraWeak();

@@ -239,7 +239,7 @@ void KoopaJrCastleFireBar::createChildren() {
     f32 zeroA = frame;
     f32 zeroB = frame;
     for (s32 i = 0; i < mChildCount; i++) {
-        mChildren[i] = MR::createDemoObj("\x83N\x83\x62\x83p""Jr\x83L\x83\x83\x83\x62\x83X\x83\x8b\x83t\x83""A\x83""C\x83""A\x83{\x81[\x83\x8b", "FireRingBall", "KoopaJrCastle", NULL);
+        mChildren[i] = MR::createDemoObj("クッパJrキャッスルファイアボール", "FireRingBall", "KoopaJrCastle", NULL);
         MR::invalidateClipping(mChildren[i]);
         s32 m = i % perArm;
         if (perArm - 1 != m) {

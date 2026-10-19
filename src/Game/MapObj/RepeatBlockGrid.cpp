@@ -236,7 +236,6 @@ void RepeatBlockShadowDrawer::setDirection(s32 dir) {
     mDirection = dir;
 }
 
-// Target calls the vector multiply-assignment helper; shared vector headers currently outline scale instead.
 void RepeatBlockShadowDrawer::makeVertexBuffer() {
     mPointNum = 0;
     TVec3f axisX, axisY, axisZ;
@@ -244,11 +243,11 @@ void RepeatBlockShadowDrawer::makeVertexBuffer() {
     mGrid->getAxisY(&axisY);
     mGrid->getAxisZ(&axisZ);
     f32 sizeX = mGrid->mCellSize.x;
-    TVec3f X = axisX.scaleInline(0.5f).scaleInline(sizeX);
+    TVec3f X = (axisX * 0.5f) * sizeX;
     f32 sizeY = mGrid->mCellSize.y;
-    TVec3f Y = axisY.scaleInline(0.5f).scaleInline(sizeY);
+    TVec3f Y = (axisY * 0.5f) * sizeY;
     f32 sizeZ = mGrid->mCellSize.z;
-    TVec3f Z = axisZ.scaleInline(0.5f).scaleInline(sizeZ);
+    TVec3f Z = (axisZ * 0.5f) * sizeZ;
     TVec3f c0, c1, c2, c3;
     switch (mDirection) {
     case 0:

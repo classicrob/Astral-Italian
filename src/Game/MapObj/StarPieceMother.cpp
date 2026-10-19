@@ -3,10 +3,6 @@
 #include "Game/MapObj/StarPiece.hpp"
 #include "Game/Util.hpp"
 
-void StarPieceMother_FORCE_SDATA2() {
-    (void)10.0f;
-}
-
 namespace {
     // const f32 hMoveSpeed = _;
     const f32 hAddRandomVectorValue = 0.5f;
@@ -36,9 +32,9 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
         MR::syncStageSwitchAppearAndSync(this, rIter);
     }
 
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &StarPieceMother::onSwitchA), MR::Functor(this, &StarPieceMother::offSwitchA));
     }
 
@@ -170,6 +166,8 @@ void StarPieceMother::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // NONMATCHING: extra saved register for the by-value direction copy and loop stack slots.
+#pragma push
+#pragma opt_loop_invariants off
 void StarPieceMother::emitStarPieces() {
     for (u32 idx = 0; idx < mPieceNum; idx++) {
         TVec3f position;
@@ -190,6 +188,8 @@ void StarPieceMother::emitStarPieces() {
         mStarPieceArray[idx]->goToPlayer(position);
     }
 }
+
+#pragma pop
 
 void StarPieceMother::exeWait() {
 }

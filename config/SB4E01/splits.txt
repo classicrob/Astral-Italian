@@ -5780,6 +5780,7 @@ Game/MapObj/FloaterFloatingForceTypeNormal.cpp:
 
 Game/MapObj/FloaterFunction.cpp:
 	.text       start:0x80330860 end:0x80330930
+	.data       start:0x806B2698 end:0x806B2728
 
 Game/MapObj/LavaHomeSeesawRotator.cpp:
 	.text       start:0x80330930 end:0x80331590

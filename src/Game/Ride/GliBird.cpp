@@ -35,7 +35,12 @@ namespace {
     extern const f32 sReflectRate;
     extern const f32 sCollisionHeadOnThreshold;
     extern const f32 sCollisionPush;
-    f32 sWaterPitchLift;
+    extern const f32 sFrictionMinMagnitude;
+    extern const f32 sPadSideLimit;
+    extern const f32 sYawAccelLimit;
+    extern const f32 sRollAccelLimit;
+    extern const f32 sRollAngleLimit;
+    extern const volatile f32 sWaterPitchLift;
 }
 
 inline void GliBird::exeDeadLava() {
@@ -649,7 +654,7 @@ void GliBird::restart() {
     setNerve(GET_NERVE(GliBird, GliBirdNrvHide));
 }
 
-// UNRESOLVED(objects): target rounds dot/clamp results with frsp and retains +0.0f additions; bit equivalence needs proof.
+// NONMATCHING: vector temporary slots, scalar scheduling and redundant rounding of float dot/clamp results differ.
 bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     if (updateCollision()) {
         return true;
@@ -660,28 +665,28 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     mSpeed += gravityRate * 0.8f;
     mSpeed = MR::clamp(mSpeed, sGlideSpeedMin, sGlideSpeedMax);
 
-    TVec3f yAxis(0, 1, 0);
-    TVec3f negGravity = -mGravity;
-    MR::turnVecToVecDegree(&mUp, mUp, negGravity, 1.0f, yAxis);
+    MR::turnVecToVecDegree(&mUp, mUp, -mGravity, 1.0f, TVec3f(0, 1, 0));
 
     TVec3f upTmp(mDirUp);
     MR::makeAxisFrontUp(&mSide, &upTmp, mFront, mUp);
     MR::vecKillElement(mVelocity, mDirFront, &mVelocity);
     MR::vecKillElement(mVelocity, mSide, &mVelocity);
 
-    mFriction = mVelocity.dot(mUp) * frictionRate - sideRate * (1.0f - MR::abs(gravityRate));
-    mFriction = MR::clamp(mFriction, -3.5f, 30.0f);
+    f32 verticalSpeed = mVelocity.dot(mUp);
+    mFriction = verticalSpeed * frictionRate - sideRate * (1.0f - MR::abs(gravityRate));
+    mFriction = MR::clamp(mFriction, -sFrictionMinMagnitude, 30.0f);
 
     TVec3f pad(0.0f, 0.0f, 0.0f);
     MR::getCorePadAcceleration(&pad, WPAD_CHAN0);
-    pad.y = MR::clamp(pad.y, -0.75f, 0.6f) + 0.42f;
+    f32 padY = MR::clamp(pad.y, -0.75f, 0.6f);
+    pad.y = padY + 0.42f;
 
     mPitchAccel *= 0.95f;
-    f32 pitchAdd;
+    f32 pitchAdd = 0.0f;
     if (pad.y > 0.0f) {
-        pitchAdd = 0.0f + pad.y * sPitchPositiveRate;
+        pitchAdd += pad.y * sPitchPositiveRate;
     } else {
-        pitchAdd = 0.0f + pad.y * sPitchNegativeRate;
+        pitchAdd += pad.y * sPitchNegativeRate;
     }
     mPitchAccel += pitchAdd;
     mPitchAccel = MR::clamp(mPitchAccel, -sPitchLimit, sPitchLimit);
@@ -704,9 +709,9 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
             padX -= padZ * sTurnInputRate;
         }
 
-        padX = MR::clamp(padX, -1.0f, 1.0f);
+        padX = MR::clamp(padX, -sPadSideLimit, sPadSideLimit);
         mYawAccel += padX * 0.3f;
-        mYawAccel = MR::clamp(mYawAccel, -30.0f, 30.0f);
+        mYawAccel = MR::clamp(mYawAccel, -sYawAccelLimit, sYawAccelLimit);
     }
 
     if (MR::abs(mYawAccel) < 0.1f) {
@@ -777,13 +782,13 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
             padX -= padZ * sTurnInputRate;
         }
 
-        padX = MR::clamp(padX, -1.0f, 1.0f);
+        padX = MR::clamp(padX, -sPadSideLimit, sPadSideLimit);
         mRollAccel += padX * 0.3f;
-        mRollAccel = MR::clamp(mRollAccel, -10.0f, 10.0f);
+        mRollAccel = MR::clamp(mRollAccel, -sRollAccelLimit, sRollAccelLimit);
     }
 
     mRollAngle = mRollAngle * 0.8f + mRollAccel;
-    mRollAngle = MR::clamp(mRollAngle, -50.0f, 50.0f);
+    mRollAngle = MR::clamp(mRollAngle, -sRollAngleLimit, sRollAngleLimit);
 
     if (pad.z > -sPadBackLimit || MR::abs(pad.x) > 0.15f) {
         if (pad.x < 0.0f) {
@@ -971,7 +976,7 @@ bool GliBird::tryDeadWall(const TVec3f& rNormal, HitSensor* pSensor, bool isFire
     return false;
 }
 
-// NONMATCHING: floating-point operand order differs.
+// NONMATCHING: vector-copy scheduling and floating-point operand order differ.
 void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
     if (!mIsWaterEffect) {
         MR::emitEffect(this, "NearWater");
@@ -1113,4 +1118,10 @@ namespace {
     const f32 sReflectRate = 1.0f;
     const f32 sCollisionHeadOnThreshold = 0.08f;
     const f32 sCollisionPush = 30.0f;
+    const f32 sFrictionMinMagnitude = 3.5f;
+    const f32 sPadSideLimit = 1.0f;
+    const f32 sYawAccelLimit = 30.0f;
+    const f32 sRollAccelLimit = 10.0f;
+    const f32 sRollAngleLimit = 50.0f;
+    extern const volatile f32 sWaterPitchLift = 0.0f;
 }

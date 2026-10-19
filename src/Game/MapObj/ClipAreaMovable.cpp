@@ -20,7 +20,7 @@ void ClipAreaMovable::init(const JMapInfoIter& rIter) {
     MR::setClippingTypeSphere(this, MR::getMaxAbsElement(mScale) * 1400.0f);
     initMoveFunction(rIter);
     initHitSensor(1);
-    MR::addHitSensorMapObj(this, "body", 0, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 0, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initUseStageSwitchReadB(this, rIter);
     MR::addBaseMatrixFollowTarget(this, rIter, 0, 0);
     makeActorAppeared();

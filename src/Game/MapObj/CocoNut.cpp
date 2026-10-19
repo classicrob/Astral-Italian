@@ -51,8 +51,7 @@ void CocoNut::init(const JMapInfoIter& rIter) {
     }
 
     MR::setShadowDropLength(this, nullptr, 1500.0f);
-    // NONMATCHING: target builds this TVec3f(0) inline (3x stfs), we emit a call to TVec3f(f32)
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f));
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f));
 
     s32 stack_8;
 
@@ -66,9 +65,9 @@ void CocoNut::init(const JMapInfoIter& rIter) {
     MR::tryRegisterDemoCast(this, rIter);
 
     if (!mSphericalShadow) {
-        initNerve(GET_NERVE(CocoNut, CocoNutNrvWaitOnBind));
-    } else {
         initNerve(GET_NERVE(CocoNut, CocoNutNrvWait));
+    } else {
+        initNerve(GET_NERVE(CocoNut, CocoNutNrvWaitOnBind));
     }
 
     MR::useStageSwitchAwake(this, rIter);

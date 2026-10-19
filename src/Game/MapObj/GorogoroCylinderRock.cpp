@@ -209,6 +209,7 @@ void GorogoroCylinderRock::updateFallOnRail() {
     MR::startActionSound(this, "Fall", -1, -1, -1);
 }
 
+// NONMATCHING: integer equality comparison operands are exchanged.
 void GorogoroCylinderRock::updateRotateOnRail() {
     s32 oldPointNo = mRailPointNo;
     if (MR::isFirstStep(this)) {
@@ -232,6 +233,7 @@ void GorogoroCylinderRock::updateRotateOnRail() {
     mRotation.z = MR::normalizeAngleDegree(mRotation.z + mRotateSpeed);
 }
 
+// NONMATCHING: integer equality comparison operands are exchanged.
 void GorogoroCylinderRock::updateRotateNoGravity() {
     s32 oldPointNo = mRailPointNo;
     if (MR::isFirstStep(this)) {
@@ -251,6 +253,7 @@ void GorogoroCylinderRock::updateRotateNoGravity() {
     MR::startActionSound(this, "RotateNoGlavity", -1, -1, -1);
 }
 
+// NONMATCHING: vector temporaries occupy different stack slots.
 bool GorogoroCylinderRock::tryLandOnGround() {
     TVec3f gravityScaled = mGravity * 1010.0f;
     TVec3f gravityOffset = mGravity * 5.0f;

@@ -98,16 +98,15 @@ WoodLogBridge::WoodLogBridge(const char* pName) : LiveActor(pName) {
 // NONMATCHING: loop register assignment (i/part/pos/gravity pointers shuffled) and missing count>0 loop guard
 // NONMATCHING: saved-register assignment in the part loop (pPart/i/pos/grav) and fmuls/fadds operand order
 void WoodLogBridge::init(const JMapInfoIter& rIter) {
-    const char* pStrs = "\212\333\221\276\203v\203\214\201[\203g\225\224\225i";
     const char* objName = nullptr;
     MR::getObjectName(&objName, rIter);
-    if (MR::isEqualString(objName, pStrs + 0x30)) {
+    if (MR::isEqualString(objName, "WoodLogBridgeShort")) {
         mIsShort = true;
         mPtrE4 = &sShortBridgeLength;
         mPtrE8 = &sShortBridgeStep;
     }
 
-    MR::initActor(this, rIter, pStrs + 0x44, false);
+    MR::initActor(this, rIter, "WoodLogBridge", false);
     MR::makeMtxTR(mBaseMtx.toMtxPtr(), this);
     mDirZ.set<f32>(mBaseMtx.mMtx[0][2], mBaseMtx.mMtx[1][2], mBaseMtx.mMtx[2][2]);
     TVec3f upVec(mBaseMtx.mMtx[0][1], mBaseMtx.mMtx[1][1], mBaseMtx.mMtx[2][1]);
@@ -117,7 +116,7 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
 
     s32 count = 0x20;
     MR::getJMapInfoArg0NoInit(rIter, &count);
-    mParts = new LiveActorGroup(pStrs + 0x54, count);
+    mParts = new LiveActorGroup("丸太パーツグループ", count);
     mParts->initWithoutIter();
 
     for (s32 i = 0; i < count; i++) {
@@ -141,7 +140,7 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     f32 w = 50.0f + 2.0f * (50.0f * (f32)half);
     mClipPos.set<f32>(mPosition + mDirZ.scaleInline(w));
     MR::setClippingTypeSphere(this, w + 500.0f, &mClipPos);
-    mTex = MR::loadTexFromArc(this, pStrs + 0x68, pStrs + 0x7C);
+    mTex = MR::loadTexFromArc(this, "WoodLogBridge.arc", "Rope.bti");
     makeActorAppeared();
 }
 

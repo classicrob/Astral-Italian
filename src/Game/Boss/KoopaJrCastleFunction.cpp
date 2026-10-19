@@ -58,7 +58,7 @@ namespace KoopaJrCastleFunction {
                 pCameraName = pName;
             }
             MR::offBind(pCastle);
-            MR::startAnimCameraTargetSelf(pCastle->mBody, pCastle->mCameraInfo, pCameraName, 1, false, 0.0f);
+            MR::startAnimCameraTargetSelf(pCastle->mBody, pCastle->mCameraInfo, pCameraName, 1, false, 1.0f);
             return true;
         }
         return false;
@@ -308,7 +308,7 @@ namespace KoopaJrCastleFunction {
         KoopaJrCastle* pCastle = CASTLE();
         TVec3f pos(0.0f);
         calcPlayerLaunchPos(&pos, pCastle);
-        pCastle->mDominate->mLaunchSpeed = 0.0f;
+        pCastle->mDominate->mLaunchSpeed = 40.0f;
         pCastle->mDominate->setPlayerActionNames("Blow", "WaterBulletWait");
         if (pCastle->mDominate->tryBindPlayer(pActor, sensor, &pos, -1)) {
             killCannon();

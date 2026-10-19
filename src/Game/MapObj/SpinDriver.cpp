@@ -119,7 +119,7 @@ void SpinDriver::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(SpinDriver, SpinDriverNrvWait));
 
-    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "SpinDriverShadow");
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
 
     initParamFromJMapInfo(rIter);
 

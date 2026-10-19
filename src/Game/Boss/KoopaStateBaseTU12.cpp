@@ -249,7 +249,7 @@ bool KoopaStateLastChase::moveToTarget() {
         } else {
             clamped = t;
         }
-        rate += 0.2f * MR::getEaseOutValue(clamped, 0.0f, 1.0f, 1.0f);
+        rate += (1.0f - 0.8f) * MR::getEaseOutValue(clamped, 0.0f, 1.0f, 1.0f);
     }
     MR::vecBlend(&mHost->mPosition, mPosA, mPosB, rate);
     bool res = false;

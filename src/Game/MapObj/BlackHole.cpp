@@ -20,7 +20,7 @@ void BlackHole::init(const JMapInfoIter& rIter) {
     initModel();
     MR::connectToSceneMapObj(this);
     initHitSensor(1);
-    MR::addHitSensorEye(this, "body", 16, mSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorEye(this, "Body", 16, mSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
     initEffectKeeper(0, nullptr, false);
     MR::setEffectHostMtx(this, "BlackHoleSuction", mEffectMtx.toMtxPtr());
     f32 radius = mSensorRadius;

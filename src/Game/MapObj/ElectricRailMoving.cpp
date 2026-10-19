@@ -39,7 +39,7 @@ void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
     }
 
     initHitSensor(1);
-    MR::addHitSensorMapObj(this, "body", 8, 35.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 8, 35.0f, TVec3f(0.0f, 0.0f, 0.0f));
     TVec3f pointerOffset;
     pointerOffset.x = 0.0f;
     pointerOffset.y = 0.0f;
@@ -57,7 +57,7 @@ void ElectricRailMovingPoint::control() {
     } else {
         radius = 35.0f;
     }
-    MR::setSensorRadius(this, "body", radius);
+    MR::setSensorRadius(this, "Body", radius);
 }
 
 void ElectricRailMovingPoint::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

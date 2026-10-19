@@ -375,7 +375,7 @@ void GeneralMapParts::exeMoveStart() {
         }
 
         if (mRailMover != nullptr) {
-            mRailMover->startWithSignalMotion();
+            mRailMover->start();
         }
     }
 
@@ -391,10 +391,6 @@ void GeneralMapParts::exeMoveStart() {
         setNerve(GET_NERVE(GeneralMapParts, HostTypeWaitForPlayerOn));
     } else {
         if (MR::isStep(this, MapParts::getMoveStartSignalTimeForRail())) {
-            if (mRailMover != nullptr) {
-                mRailMover->start();
-            }
-
             if (mRailRotator != nullptr) {
                 mRailRotator->start();
             }

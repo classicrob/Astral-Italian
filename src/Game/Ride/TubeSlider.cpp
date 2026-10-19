@@ -25,6 +25,7 @@
 namespace {
     extern const f32 sCeilingReflectRate;
     extern const f32 sWallReflectRate;
+    extern const volatile f32 sInitialRiderOffset;
     f32 one = 1.0f;
     f32 thirty = 30.0f;
     f32 onefifty = 150.0f;
@@ -67,7 +68,7 @@ namespace NrvTubeSlider {
 
 TubeSlider::TubeSlider(const char* pName)
     : LiveActor(pName), mRider(nullptr), _94(0.0f), _98(0.0f, 0.0f, 1.0f), _A4(0.0f, 1.0f, 0.0f), mForwardSpeed(0.0f), mCameraInfo(nullptr),
-      mPlayerTheta(0.0f), _EC(0.0f), _F0(0.0f), _F4(0.0f), _F8(4.0f), _FC(0.0f), _100(0.0f, 0.0f, 0.0f), mJumpVelocity(0.0f, 0.0f, 0.0f), _118(0),
+      mPlayerTheta(0.0f), _EC(0.0f), _F0(0.0f), _F4(0.0f), _F8(sInitialRiderOffset), _FC(0.0f), _100(0.0f, 0.0f, 0.0f), mJumpVelocity(0.0f, 0.0f, 0.0f), _118(0),
       _11C(0.0f), _120(0), mInfo(500.0f), mRadiusDefault(500.0f), mFloorCodeDefault(0), _148(0.0f, 0.0f, 0.0f),
       mShadowDropPos(0.0f, 0.0f, 0.0f), mShadowDropDir(0.0f, 1.0f, 0.0f), _16C(0.0f, 0.0f, 0.0f), _178(0.0f, 0.0f, 0.0f),
       _184(0.0f, 0.0f, 1.0f), _190(0.0f, 1.0f, 0.0f), _19C(150.0f), _1A0(&thirty), _1A4(&onefifty), _1A8(false) {
@@ -764,7 +765,7 @@ void TubeSlider::updateMarioPos() {
     TVec3f up(_98);
     MR::makeAxisUpFront(&front, &up, _A4, up);
     mRiderMtx.setXYZDir(front, _A4, up);
-    _F8 = MR::lerp(_F8, 0.0f, 0.5f);
+    _F8 = MR::lerp(_F8, sInitialRiderOffset, 0.5f);
     f32 dist = TubeSliderFunction::getRadius(this) - _F4 - _F8;
     TVec3f p = mPosition - _A4.scaleInline(dist);
     mRiderMtx.setTrans(p);
@@ -798,4 +799,5 @@ void TubeSlider::updateCameraAndShadow(const TVec3f& rDir) {
 namespace {
     const f32 sCeilingReflectRate = 0.6f;
     const f32 sWallReflectRate = 0.2f;
+    extern const volatile f32 sInitialRiderOffset = 0.0f;
 }

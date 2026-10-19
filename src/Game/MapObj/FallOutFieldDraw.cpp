@@ -43,7 +43,7 @@ namespace {
     };
 };  // namespace
 
-FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj("クリップエリア描画"), mEdgeIndex(0), mUseTexAlpha(false), _1C(0), mIsEdgeColorOverridden(false) {
+FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj("クリップエリア描画[抜き]"), mEdgeIndex(0), mUseTexAlpha(false), _1C(0), mIsEdgeColorOverridden(false) {
     MR::createClipAreaHolder();
     MR::connectToScene(this, MR::MovementType_Environment, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_FallOutFieldDraw);
     MR::createScreenAlphaSceneObj(2, 1.0f);

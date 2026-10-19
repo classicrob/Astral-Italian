@@ -22,9 +22,9 @@ public:
 
     void initJetTurtle();
     virtual void appearDirection(const TVec3f&, const TVec3f&);
-    virtual bool fn_801A74D0();
-    virtual void fn_801A7180();
-    virtual bool fn_801A78B0() const;
+    virtual bool tryStormProjectile();
+    virtual void resetBeamProjectile();
+    virtual bool isBeamProjectileDead() const;
     void exeRun();
     void exeWait();
     bool isEnableAttack() const;
@@ -32,6 +32,6 @@ public:
 
     /* 0x98 */ JetTurtle* mTurtle;
     /* 0x9C */ TQuat4f mRotateQuat;
-    /* 0xAC */ TVec3f _A4;
-    /* 0xB8 */ TVec3f _B0;
+    /* 0xAC */ TVec3f mFront;
+    /* 0xB8 */ TVec3f mMoveDir;
 };

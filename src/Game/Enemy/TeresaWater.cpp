@@ -26,32 +26,32 @@ namespace NrvTeresaWater {
     TeresaWaterNrvDPDSwoon TeresaWaterNrvDPDSwoon::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvTeresaWater
 
-TeresaWater::TeresaWater(const char* pName) : LiveActor(pName), _8C(), _90() {
-    _94.set(0.0f, 0.0f, 1.0f);
-    _A0.set(0.0f, 0.0f, 0.0f);
-    _AC.set(0.0f, 0.0f, 0.0f);
-    _B8 = nullptr;
-    _C0 = false;
+TeresaWater::TeresaWater(const char* pName) : LiveActor(pName), mScaleController(), mBindStarPointer() {
+    mFront.set(0.0f, 0.0f, 1.0f);
+    mEndPos.set(0.0f, 0.0f, 0.0f);
+    mStartPos.set(0.0f, 0.0f, 0.0f);
+    mTargetPos = nullptr;
+    mIsInWall = false;
 }
 
 void TeresaWater::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "TeresaWater", false);
-    _8C = new AnimScaleController(nullptr);
-    _90 = new WalkerStateBindStarPointer(this, _8C);
+    mScaleController = new AnimScaleController(nullptr);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::declareCoin(this, 1);
-    MR::calcFrontVec(&_94, this);
+    MR::calcFrontVec(&mFront, this);
     f32 arg0 = ::sDefaultMoveLength;
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
-    _AC.set(mPosition);
-    _A0.scaleAdd(arg0, _94, _AC);
-    _B8 = &_A0;
+    mStartPos.set(mPosition);
+    mEndPos.scaleAdd(arg0, mFront, mStartPos);
+    mTargetPos = &mEndPos;
     bool noShadow = false;
     MR::getJMapInfoArg1NoInit(rIter, &noShadow);
     if (noShadow) {
         MR::invalidateShadowAll(this);
     }
     initNerve(GET_NERVE(TeresaWater, TeresaWaterNrvMove), 1);
-    MR::initActorState(this, _90, GET_NERVE(TeresaWater, TeresaWaterNrvDPDSwoon), "SupportFreeze");
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(TeresaWater, TeresaWaterNrvDPDSwoon), "SupportFreeze");
     MR::useStageSwitchSyncAppear(this, rIter);
 }
 
@@ -61,33 +61,33 @@ void TeresaWater::exeMove() {
         MR::startAction(this, "Wait");
     }
 
-    MR::moveAndTurnToTarget(this, &_94, *_B8, ::sMoveParam._0, ::sMoveParam._4, ::sMoveParam._8, ::sMoveParam._C);
-    MR::attenuateVelocityExceptDirection(this, _94, ::sSideFriction);
+    MR::moveAndTurnToTarget(this, &mFront, *mTargetPos, ::sMoveParam._0, ::sMoveParam._4, ::sMoveParam._8, ::sMoveParam._C);
+    MR::attenuateVelocityExceptDirection(this, mFront, ::sSideFriction);
 
-    if (_C0) {
+    if (mIsInWall) {
         TVec3f hit(0.0f);
-        TVec3f start = mPosition - _94 * 240.0f;
-        if (!MR::getFirstPolyOnLineToMap(&hit, nullptr, start, _94 * 360.0f)) {
+        TVec3f start = mPosition - mFront * 240.0f;
+        if (!MR::getFirstPolyOnLineToMap(&hit, nullptr, start, mFront * 360.0f)) {
             MR::showModel(this);
-            _C0 = false;
-            const TVec3f& effectPos = start + _94 * 360.0f;
+            mIsInWall = false;
+            const TVec3f& effectPos = start + mFront * 360.0f;
             MR::emitEffectHit(this, effectPos, "HideWall");
         }
     } else {
         TVec3f hit(0.0f);
-        TVec3f start = mPosition - _94 * 60.0f;
-        if (MR::getFirstPolyOnLineToMap(&hit, nullptr, start, _94 * 120.0f)) {
+        TVec3f start = mPosition - mFront * 60.0f;
+        if (MR::getFirstPolyOnLineToMap(&hit, nullptr, start, mFront * 120.0f)) {
             MR::hideModelAndOnCalcAnim(this);
-            _C0 = true;
+            mIsInWall = true;
             MR::emitEffectHit(this, hit, "HideWall");
         }
     }
 
-    if (MR::isNear(this, *_B8, ::sTargetRadius)) {
-        if (_B8 == &_A0) {
-            _B8 = &_AC;
+    if (MR::isNear(this, *mTargetPos, ::sTargetRadius)) {
+        if (mTargetPos == &mEndPos) {
+            mTargetPos = &mStartPos;
         } else {
-            _B8 = &_A0;
+            mTargetPos = &mEndPos;
         }
     }
 }
@@ -123,7 +123,7 @@ void TeresaWater::kill() {
 }
 
 void TeresaWater::control() {
-    _8C->updateNerve();
+    mScaleController->updateNerve();
     MR::fn_800145C0(this);
 
     if (isNerve(GET_NERVE(TeresaWater, TeresaWaterNrvMove))) {
@@ -141,10 +141,10 @@ void TeresaWater::calcAndSetBaseMtx() {
     up.negate();
 
     TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, up, _94);
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, up, mFront);
     MR::setBaseTRMtx(this, mtx);
 
-    MR::updateBaseScale(this, _8C);
+    MR::updateBaseScale(this, mScaleController);
 }
 
 void TeresaWater::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -193,7 +193,7 @@ bool TeresaWater::tryDPDSwoon() {
         return false;
     }
 
-    if (!_90->tryStartPointBind()) {
+    if (!mBindStarPointer->tryStartPointBind()) {
         return false;
     }
 
@@ -203,9 +203,9 @@ bool TeresaWater::tryDPDSwoon() {
 }
 
 void TeresaWater::endDPDSwoon() {
-    _90->kill();
+    mBindStarPointer->kill();
 }
 
 void TeresaWater::exeDPDSwoon() {
-    MR::updateActorStateAndNextNerve(this, _90, GET_NERVE(TeresaWater, TeresaWaterNrvMove));
+    MR::updateActorStateAndNextNerve(this, mBindStarPointer, GET_NERVE(TeresaWater, TeresaWaterNrvMove));
 }

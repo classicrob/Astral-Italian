@@ -28,23 +28,23 @@ namespace {
     Name Name::sInstance ATTRIBUTE_WEAK;
 
 namespace NrvPyudon {
-    PYUDON_NERVE(PyudonNrvWait, fn_801F3840);
+    PYUDON_NERVE(PyudonNrvWait, exePyudonWait);
     NEW_NERVE(PyudonNrvFind, Pyudon, Find);
-    PYUDON_NERVE(PyudonNrvTrack, fn_801F3A70);
-    PYUDON_NERVE(PyudonNrvLockOn, fn_801F3C30);
-    PYUDON_NERVE(PyudonNrvAttack, fn_801F3D70);
-    PYUDON_NERVE(PyudonNrvJump, fn_801F3DE0);
-    PYUDON_NERVE(PyudonNrvHipDropLand, fn_801F3F00);
-    PYUDON_NERVE(PyudonNrvSwoon, fn_801F3FB0);
-    PYUDON_NERVE(PyudonNrvStarPieceReactionAir, fn_801F4070);
-    PYUDON_NERVE(PyudonNrvStarPieceReaction, fn_801F40F0);
-    PYUDON_NERVE(PyudonNrvStarPieceReaction2, fn_801F40F0);
-    PYUDON_NERVE(PyudonNrvSwoonLand, fn_801F41F0);
+    PYUDON_NERVE(PyudonNrvTrack, exeTrack);
+    PYUDON_NERVE(PyudonNrvLockOn, exePyudonLockOn);
+    PYUDON_NERVE(PyudonNrvAttack, exePyudonAttack);
+    PYUDON_NERVE(PyudonNrvJump, exePyudonHipDrop);
+    PYUDON_NERVE(PyudonNrvHipDropLand, exeHipDropLand);
+    PYUDON_NERVE(PyudonNrvSwoon, exePyudonSwoon);
+    PYUDON_NERVE(PyudonNrvStarPieceReactionAir, exeStarPieceReactionAir);
+    PYUDON_NERVE(PyudonNrvStarPieceReaction, exePyudonStarPieceReaction);
+    PYUDON_NERVE(PyudonNrvStarPieceReaction2, exePyudonStarPieceReaction);
+    PYUDON_NERVE(PyudonNrvSwoonLand, exePyudonSwoonLand);
     NEW_NERVE(PyudonNrvSwoonEnd, Pyudon, SwoonEnd);
-    PYUDON_NERVE(PyudonNrvRecovery, fn_801F4310);
-    PYUDON_NERVE(PyudonNrvRecoveryAir, fn_801F43B0);
+    PYUDON_NERVE(PyudonNrvRecovery, exeRecovery);
+    PYUDON_NERVE(PyudonNrvRecoveryAir, exeRecoveryAir);
     NEW_NERVE(PyudonNrvStepDown, Pyudon, StepDown);
-    PYUDON_NERVE(PyudonNrvBlowDown, fn_801F44E0);
+    PYUDON_NERVE(PyudonNrvBlowDown, exePyudonBlowDown);
     class PyudonNrvNone : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {}
@@ -52,7 +52,7 @@ namespace NrvPyudon {
     };
     PyudonNrvNone PyudonNrvNone::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(PyudonNrvDamage, Pyudon, Damage);
-    PYUDON_NERVE(PyudonNrvDamageAir, fn_801F4610);
+    PYUDON_NERVE(PyudonNrvDamageAir, exeDamageAir);
 };  // namespace NrvPyudon
 
 Pyudon::Pyudon(const char* pName) : LiveActor(pName) {
@@ -101,13 +101,13 @@ void Pyudon::kill() {
     LiveActor::kill();
 }
 
-// fn_801F3840
-void Pyudon::fn_801F3840() {
+// exePyudonWait
+void Pyudon::exePyudonWait() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
-        fn_801F58A0();
+        updatePyudonClipping();
         mSpeedRate = 0.0f;
-        fn_801F5AA0();
+        releaseGroundActor();
     }
     if (MR::isGreaterStep(this, 60)) {
         if (MR::isValidSwitchA(this)) {
@@ -128,9 +128,9 @@ void Pyudon::fn_801F3840() {
         }
     }
     mGroundPos = mStartPos;
-    fn_801F5750();
-    fn_801F5650(MR::isGreaterStep(this, 60) ? 0.75f : 0.0f, 0.6f);
-    fn_801F5920(this, 0.97f, 0.98f);
+    updateTargetPos();
+    updateVelocityToTarget(MR::isGreaterStep(this, 60) ? 0.75f : 0.0f, 0.6f);
+    dampVelocity(this, 0.97f, 0.98f);
     TVec3f camera = MR::getCamZdir();
     MR::vecBlendSphere(&mFront, mFront, -camera, 0.05f);
 }
@@ -146,13 +146,13 @@ void Pyudon::exeFind() {
     }
 }
 
-// fn_801F3A70
+// exeTrack
 // NONMATCHING: stack slot order of the gravity temporary and distance vector.
-void Pyudon::fn_801F3A70() {
+void Pyudon::exeTrack() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
         mCounter = 0;
-        fn_801F58A0();
+        updatePyudonClipping();
     }
     TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
     f32 dot = toPlayer.dot(mGravity);
@@ -168,16 +168,16 @@ void Pyudon::fn_801F3A70() {
     bool far = (*MR::getPlayerPos() - mStartPos).length() > 2500.0f;
     if (far) setNerve(GET_NERVE(Pyudon, PyudonNrvWait));
     MR::getPlayerGroundPos(&mGroundPos);
-    fn_801F5750();
-    fn_801F5650(0.75f, 0.6f);
-    fn_801F5920(this, 0.97f, 0.98f);
+    updateTargetPos();
+    updateVelocityToTarget(0.75f, 0.6f);
+    dampVelocity(this, 0.97f, 0.98f);
     TVec3f camera = MR::getCamZdir();
     MR::vecBlendSphere(&mFront, mFront, -camera, 0.05f);
 }
 
-// fn_801F3C30
+// exePyudonLockOn
 // NONMATCHING: target loads two separate 1.1f literal entries (fmr f2,f1 here).
-void Pyudon::fn_801F3C30() {
+void Pyudon::exePyudonLockOn() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "LockOn");
         mSpeedRate = 0.0f;
@@ -187,17 +187,17 @@ void Pyudon::fn_801F3C30() {
     }
     mSpeedRate = MR::calcNerveEaseOutValue(this, 0, 60, 0.0f, cLockOnEaseEnd);
     if (!MR::isGreaterStep(this, 80)) MR::getPlayerGroundPos(&mGroundPos);
-    fn_801F5750();
+    updateTargetPos();
     if (MR::isLessStep(this, 80)) {
-        fn_801F5920(this, 0.8f, 0.7f);
-        fn_801F5650(1.1f, 1.1f);
+        dampVelocity(this, 0.8f, 0.7f);
+        updateVelocityToTarget(1.1f, 1.1f);
     } else MR::zeroVelocity(this);
     TVec3f camera = MR::getCamZdir();
     MR::vecBlendSphere(&mFront, mFront, -camera, 0.05f);
 }
 
-// fn_801F3D70
-void Pyudon::fn_801F3D70() {
+// exePyudonAttack
+void Pyudon::exePyudonAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HipDropStart");
         MR::zeroVelocity(this);
@@ -206,8 +206,8 @@ void Pyudon::fn_801F3D70() {
     if (MR::isActionEnd(this)) setNerve(GET_NERVE(Pyudon, PyudonNrvJump));
 }
 
-// fn_801F3DE0
-void Pyudon::fn_801F3DE0() {
+// exePyudonHipDrop
+void Pyudon::exePyudonHipDrop() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HipDrop");
         mBasePos = mPosition;
@@ -217,7 +217,7 @@ void Pyudon::fn_801F3DE0() {
         if (MR::sendMsgToGroundSensor(4, getSensor("Body"))) {
             MR::emitEffect(this, "LandSmokePyudon");
         } else {
-            fn_801F59D0();
+            updateGroundActor();
             setNerve(GET_NERVE(Pyudon, PyudonNrvHipDropLand));
             return;
         }
@@ -229,30 +229,30 @@ void Pyudon::fn_801F3DE0() {
     }
 }
 
-// fn_801F3F00
-void Pyudon::fn_801F3F00() {
+// exeHipDropLand
+void Pyudon::exeHipDropLand() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HipDropLand");
         MR::zeroVelocity(this);
     }
     if (MR::isOnGround(this)) {
-        fn_801F59D0();
+        updateGroundActor();
         MR::zeroVelocity(this);
-    } else if (fn_801F5A20()) MR::addVelocityToGravity(this, 1.2f);
+    } else if (tryReleaseGroundActor()) MR::addVelocityToGravity(this, 1.2f);
     if (MR::isActionEnd(this)) setNerve(GET_NERVE(Pyudon, PyudonNrvSwoon));
 }
 
-// fn_801F3FB0
-void Pyudon::fn_801F3FB0() {
+// exePyudonSwoon
+void Pyudon::exePyudonSwoon() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Swoon");
         MR::zeroVelocity(this);
-        fn_801F5AA0();
+        releaseGroundActor();
     }
     if (MR::isOnGround(this)) {
-        fn_801F59D0();
+        updateGroundActor();
         MR::zeroVelocity(this);
-    } else if (fn_801F5A20()) {
+    } else if (tryReleaseGroundActor()) {
         MR::addVelocityToGravity(this, 1.2f);
     }
     if (MR::isGreaterStep(this, 115)) {
@@ -260,23 +260,23 @@ void Pyudon::fn_801F3FB0() {
     }
 }
 
-// fn_801F4070
-void Pyudon::fn_801F4070() {
+// exeStarPieceReactionAir
+void Pyudon::exeStarPieceReactionAir() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StarPieceReactionAir");
         MR::zeroVelocity(this);
-        fn_801F5AA0();
+        releaseGroundActor();
     }
     if (MR::isGreaterStep(this, 115)) {
         setNerve(GET_NERVE(Pyudon, PyudonNrvWait));
     }
 }
 
-// fn_801F40F0
-void Pyudon::fn_801F40F0() {
+// exePyudonStarPieceReaction
+void Pyudon::exePyudonStarPieceReaction() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StarPieceReaction");
-        fn_801F5AA0();
+        releaseGroundActor();
     }
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startAction(this, "Swoon");
@@ -286,31 +286,31 @@ void Pyudon::fn_801F40F0() {
     }
     MR::attenuateVelocity(this, 0.99f);
     if (MR::isOnGround(this)) {
-        fn_801F59D0();
+        updateGroundActor();
         MR::zeroVelocity(this);
         if (isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReaction2))) {
             setNerve(GET_NERVE(Pyudon, PyudonNrvSwoonLand));
         }
     } else {
-        if (fn_801F5A20()) {
+        if (tryReleaseGroundActor()) {
             MR::addVelocityToGravity(this, 1.2f);
         }
     }
 }
 
-// fn_801F41F0
-void Pyudon::fn_801F41F0() {
+// exePyudonSwoonLand
+void Pyudon::exePyudonSwoonLand() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "SwoonLand");
-        fn_801F5AA0();
+        releaseGroundActor();
     }
     if (MR::isActionEnd(this)) setNerve(GET_NERVE(Pyudon, PyudonNrvSwoon));
     if (MR::isOnGround(this)) {
-        fn_801F59D0();
+        updateGroundActor();
         MR::zeroVelocity(this);
         return;
     }
-    if (fn_801F5A20()) MR::addVelocityToGravity(this, 1.2f);
+    if (tryReleaseGroundActor()) MR::addVelocityToGravity(this, 1.2f);
 }
 
 // fn_801F42A0
@@ -324,30 +324,30 @@ void Pyudon::exeSwoonEnd() {
     MR::isOnGround(this);
 }
 
-// fn_801F4310
-void Pyudon::fn_801F4310() {
+// exeRecovery
+void Pyudon::exeRecovery() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Recovery");
     } else if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Pyudon, PyudonNrvWait));
     }
     MR::getPlayerGroundPos(&mGroundPos);
-    fn_801F5750();
-    fn_801F5650(0.0f, cDamageHeightRate);
-    fn_801F5920(this, 0.97f, 0.98f);
+    updateTargetPos();
+    updateVelocityToTarget(0.0f, cDamageHeightRate);
+    dampVelocity(this, 0.97f, 0.98f);
 }
 
-// fn_801F43B0
-void Pyudon::fn_801F43B0() {
+// exeRecoveryAir
+void Pyudon::exeRecoveryAir() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "RecoveryAir");
     } else if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Pyudon, PyudonNrvWait));
     }
     MR::getPlayerGroundPos(&mGroundPos);
-    fn_801F5750();
-    fn_801F5650(0.0f, cDamageHeightRate);
-    fn_801F5920(this, 0.97f, 0.98f);
+    updateTargetPos();
+    updateVelocityToTarget(0.0f, cDamageHeightRate);
+    dampVelocity(this, 0.97f, 0.98f);
 }
 
 // fn_801F4450
@@ -361,11 +361,11 @@ void Pyudon::exeStepDown() {
     }
 }
 
-// fn_801F44E0
-void Pyudon::fn_801F44E0() {
+// exePyudonBlowDown
+void Pyudon::exePyudonBlowDown() {
     if (MR::isFirstStep(this)) MR::startAction(this, "BlowDown");
     MR::turnDirectionDegree(this, &mFront, -mVelocity, 30.0f);
-    fn_801F5810();
+    updateBlownVelocity();
     if ((MR::isBindedGround(this) && MR::isGreaterStep(this, 15)) || MR::isGreaterStep(this, 35)) {
         MR::emitItemHit(this);
         kill();
@@ -382,9 +382,9 @@ void Pyudon::exeDamage() {
     }
 }
 
-// fn_801F4610
+// exeDamageAir
 // NONMATCHING: target builds both gravity temporaries before the start vector (instruction order only).
-void Pyudon::fn_801F4610() {
+void Pyudon::exeDamageAir() {
     if (MR::isFirstStep(this)) MR::validateHitSensor(this, "Damage");
     if (MR::updateActorState(this)) {
         MR::invalidateHitSensor(this, "Damage");
@@ -414,8 +414,8 @@ bool Pyudon::isAttackNerve() const {
            isNerve(GET_NERVE(Pyudon, PyudonNrvDamageAir));
 }
 
-// fn_801F4E10
-bool Pyudon::fn_801F4E10() const {
+// isStarPointBindable
+bool Pyudon::isStarPointBindable() const {
     bool result = false;
     if (isNerve(GET_NERVE(Pyudon, PyudonNrvWait)) || isNerve(GET_NERVE(Pyudon, PyudonNrvTrack)) ||
         isNerve(GET_NERVE(Pyudon, PyudonNrvLockOn)) || isNerve(GET_NERVE(Pyudon, PyudonNrvAttack)) ||
@@ -435,8 +435,8 @@ bool Pyudon::isBindMapObjNerve() const {
            isNerve(GET_NERVE(Pyudon, PyudonNrvDamageAir));
 }
 
-// fn_801F5000
-bool Pyudon::fn_801F5000(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+// tryStepDown
+bool Pyudon::tryStepDown(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     bool blocked = false;
     if (isNerve(GET_NERVE(Pyudon, PyudonNrvStepDown)) || isNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown))) {
         blocked = true;
@@ -462,7 +462,7 @@ bool Pyudon::fn_801F5000(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // fn_5150
-bool Pyudon::fn_801F5150(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+bool Pyudon::tryBlowDownSpin(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     bool blocked = false;
     if (isNerve(GET_NERVE(Pyudon, PyudonNrvStepDown)) || isNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown))) {
         blocked = true;
@@ -486,7 +486,7 @@ bool Pyudon::fn_801F5150(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // fn_5270
-bool Pyudon::fn_801F5270(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+bool Pyudon::tryBlowDownKick(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isHipDropNerve() || isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReactionAir))) {
         MR::tryHitReaction(this, "\x83L\x83b\x83N\x83q\x83b\x83g");  // lbl_806905F8
         MR::zeroVelocity(this);
@@ -499,7 +499,7 @@ bool Pyudon::fn_801F5270(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // fn_5330
-bool Pyudon::fn_801F5330(HitSensor* pSender, HitSensor* pReceiver) {
+bool Pyudon::tryPyudonStarPieceReaction(HitSensor* pSender, HitSensor* pReceiver) {
     bool approach = false;
     if (isNerve(GET_NERVE(Pyudon, PyudonNrvWait)) || isNerve(GET_NERVE(Pyudon, PyudonNrvFind)) ||
         isNerve(GET_NERVE(Pyudon, PyudonNrvTrack))) approach = true;
@@ -536,8 +536,8 @@ bool Pyudon::receiveMsgYoshiTongue() {
 }
 
 // fn_5540
-bool Pyudon::fn_801F5540() {
-    if (fn_801F4E10()) {
+bool Pyudon::tryStartStarPointBind() {
+    if (isStarPointBindable()) {
         if (isNerve(GET_NERVE(Pyudon, PyudonNrvWait)) || isNerve(GET_NERVE(Pyudon, PyudonNrvFind)) ||
             isNerve(GET_NERVE(Pyudon, PyudonNrvLockOn)) || isNerve(GET_NERVE(Pyudon, PyudonNrvTrack)) ||
             isNerve(GET_NERVE(Pyudon, PyudonNrvRecovery)) || isNerve(GET_NERVE(Pyudon, PyudonNrvRecoveryAir)) ||
@@ -555,7 +555,7 @@ bool Pyudon::fn_801F5540() {
 }
 
 // fn_5650: rebound the velocity away from the target direction.
-void Pyudon::fn_801F5650(f32 farg0, f32 farg1) {
+void Pyudon::updateVelocityToTarget(f32 farg0, f32 farg1) {
     TVec3f toTarget = mTargetPos - mPosition;
     f32 dot = toTarget.dot(mGravity);
     TVec3f horizontal = toTarget - mGravity * dot;
@@ -567,7 +567,7 @@ void Pyudon::fn_801F5650(f32 farg0, f32 farg1) {
 }
 
 // fn_5750: target position = ground position + up * (450) + up * speed rate.
-void Pyudon::fn_801F5750() {
+void Pyudon::updateTargetPos() {
     TVec3f up(0.0f);
     MR::getPlayerUpVec(&up);
     f32 speed = mSpeedRate;
@@ -575,7 +575,7 @@ void Pyudon::fn_801F5750() {
 }
 
 // fn_5810
-void Pyudon::fn_801F5810() {
+void Pyudon::updateBlownVelocity() {
     f32 friction = MR::isOnGround(this) ? 0.93f : 0.99f;
     MR::attenuateVelocity(this, friction);
     if (MR::isOnGround(this) == false) {
@@ -587,7 +587,7 @@ void Pyudon::fn_801F5810() {
 }
 
 // fn_58A0
-void Pyudon::fn_801F58A0() {
+void Pyudon::updatePyudonClipping() {
     if (MR::isValidSwitchA(this)) {
         if (MR::isOnSwitchA(this)) {
             MR::invalidateClipping(this);
@@ -603,7 +603,7 @@ void Pyudon::fn_801F58A0() {
 
 // fn_5920: damps the velocity along gravity and the horizontal plane.
 // NONMATCHING: register allocation and register-save sequence differ; actor argument and vector operations agree.
-void Pyudon::fn_801F5920(LiveActor* actor, f32 farg0, f32 farg1) {
+void Pyudon::dampVelocity(LiveActor* actor, f32 farg0, f32 farg1) {
     TVec3f horizontal;
     TVec3f& velocity = actor->mVelocity;
     TVec3f& gravity = actor->mGravity;
@@ -615,7 +615,7 @@ void Pyudon::fn_801F5920(LiveActor* actor, f32 farg0, f32 farg1) {
 }
 
 // fn_59D0: remembers the ground actor under the pyudon.
-bool Pyudon::fn_801F59D0() {
+bool Pyudon::updateGroundActor() {
     LiveActor* pGround = MR::getGroundActor(this);
     mGroundActor = pGround;
     if (pGround != nullptr) {
@@ -626,7 +626,7 @@ bool Pyudon::fn_801F59D0() {
 }
 
 // fn_5A20
-bool Pyudon::fn_801F5A20() {
+bool Pyudon::tryReleaseGroundActor() {
     if (mGroundActor == nullptr) {
         return true;
     }
@@ -640,7 +640,7 @@ bool Pyudon::fn_801F5A20() {
 }
 
 // fn_5AA0
-bool Pyudon::fn_801F5AA0() {
+bool Pyudon::releaseGroundActor() {
     if (mGroundActor == nullptr) {
         return true;
     }
@@ -655,7 +655,7 @@ void Pyudon::control() {
     if (isAttackNerve()) {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
-    fn_801F5540();
+    tryStartStarPointBind();
 }
 
 // calcAndSetBaseMtx
@@ -666,7 +666,7 @@ void Pyudon::calcAndSetBaseMtx() {
         mConnector->connect();
         return;
     }
-    fn_801F5AA0();
+    releaseGroundActor();
 }
 
 // attackSensor
@@ -697,18 +697,18 @@ void Pyudon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 // receiveMsgPlayerAttack
 bool Pyudon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pReceiver, this, "Damage")) {
-        if (MR::isMsgPlayerTrample(msg)) return fn_801F5000(msg, pSender, pReceiver);
-        if (MR::isMsgPlayerHipDrop(msg)) return fn_801F5000(msg, pSender, pReceiver);
+        if (MR::isMsgPlayerTrample(msg)) return tryStepDown(msg, pSender, pReceiver);
+        if (MR::isMsgPlayerHipDrop(msg)) return tryStepDown(msg, pSender, pReceiver);
         if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-            return fn_801F5150(msg, pSender, pReceiver);
+            return tryBlowDownSpin(msg, pSender, pReceiver);
         }
         if (MR::isMsgLockOnStarPieceShoot(msg)) return true;
         if (MR::isMsgStarPieceAttack(msg)) {
-            return fn_801F5330(pSender, pReceiver);
+            return tryPyudonStarPieceReaction(pSender, pReceiver);
         }
     }
     if (MR::isMsgStarPieceAttack(msg)) {
-        return fn_801F5330(pSender, pReceiver);
+        return tryPyudonStarPieceReaction(pSender, pReceiver);
     }
     return false;
 }
@@ -716,7 +716,7 @@ bool Pyudon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
 // receiveOtherMsg
 bool Pyudon::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pReceiver, this, "Damage") && MR::isMsgPlayerKick(msg)) {
-        return fn_801F5270(msg, pSender, pReceiver);
+        return tryBlowDownKick(msg, pSender, pReceiver);
     }
     if (isAttackNerve()) {
         if (MR::isMsgYoshiStartTongue(msg)) {
@@ -747,7 +747,7 @@ bool Pyudon::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-// fn_801F5AA0-ish: dtor
+// releaseGroundActor-ish: dtor
 Pyudon::~Pyudon() {}
 
 namespace {

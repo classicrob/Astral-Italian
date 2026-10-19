@@ -31,7 +31,7 @@ public:
     void exeNotSelected();
 
     /* 0x08 */ LayoutActor* mHost;
-    /* 0x0C */ bool _C;
+    /* 0x0C */ bool mIsActive;
     /* 0x10 */ ButtonPaneController* mButtonYesPaneCtrl;
     /* 0x14 */ ButtonPaneController* mButtonNoPaneCtrl;
     /* 0x18 */ const char* mCursorSE;

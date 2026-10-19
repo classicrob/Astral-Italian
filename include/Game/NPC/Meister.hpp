@@ -22,7 +22,7 @@ public:
     void exeReaction();
     bool tryReaction() NO_INLINE;
     void updateTalkDistance() NO_INLINE;
-    u8 _164;
+    /* 0x164 */ u8 mWasHitByStarPiece;
     NerveExecutor* mDemoState;
     MeisterTalkHolder* mTalkControl;
 };
@@ -39,21 +39,23 @@ public:
     TalkMessageCtrl* getReactionTalk() NO_INLINE;
     bool isGeneralTalkEnabled(s32) NO_INLINE;
     bool isGeneralTalkInitiallyEnabled(s32);
-    Meister* mHost;
-    TalkMessageCtrl* mMainTalk;
-    TalkMessageCtrl* mReactionTalk;
-    TalkMessageCtrl* mDefaultTalk;
-    TalkMessageCtrl** mGeneralTalks;
-    s32 mGeneralTalkCount;
-    TalkMessageCtrl** mEventTalks;
-    s32 mEventTalkCount;
-    u8* mGeneralTalkFlags;
-    s32 mGeneralFlagCount;
-    s32 mTalkIndex;
-    s32 _2C;
-    s32 _30;
-    s32 mStarCount;
-    bool _38;
+    /* 0x00 */ Meister* mHost;
+    /* 0x04 */ TalkMessageCtrl* mMainTalk;
+    /* 0x08 */ TalkMessageCtrl* mReactionTalk;
+    /* 0x0C */ TalkMessageCtrl* mDefaultTalk;
+    /* 0x10 */ TalkMessageCtrl** mGeneralTalks;
+    /* 0x14 */ s32 mGeneralTalkCount;
+    /* 0x18 */ TalkMessageCtrl** mEventTalks;
+    /* 0x1C */ s32 mEventTalkCount;
+    /* 0x20 */ u8* mGeneralTalkFlags;
+    /* 0x24 */ s32 mGeneralFlagCount;
+    /* 0x28 */ s32 mTalkIndex;
+    /* 0x2C */ s32 mHungryLumaId;
+    /* 0x30 */ s32 mRequiredStarPieces;
+    /* 0x34 */ s32 mStarCount;
+    /* 0x38 */ bool mIsEvenVisit;
 };
 
 extern TVec3f gMeisterTalkOffset;
+
+extern const char* gMeisterGeneralTalkMessages[15];

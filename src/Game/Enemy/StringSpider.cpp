@@ -76,7 +76,7 @@ namespace NrvStringSpider {
 
 StringSpider::StringSpider(const char* pName)
     : LiveActor(pName), mSpinHitController(nullptr), mScaleController(nullptr), mBindState(nullptr), mString(nullptr), mFixedPos(nullptr),
-      mYoshiLockOn(nullptr), _A0(0, 0, 0, 1), _B4v(0, 0, 0, 1), _B0(300.0f), _B4(300.0f) {
+      mYoshiLockOn(nullptr), mPoseQuat(0, 0, 0, 1), mInitPoseQuat(0, 0, 0, 1), mMaxLength(300.0f), mCurrentLength(300.0f) {
 }
 
 void StringSpider::init(const JMapInfoIter& rIter) {
@@ -85,13 +85,13 @@ void StringSpider::init(const JMapInfoIter& rIter) {
         MR::getJMapInfoArg0NoInit(rIter, &length);
         if (length != -1) {
             f32 value = length;
-            _B0 = value;
-            _B4 = 0.333f * value;
+            mMaxLength = value;
+            mCurrentLength = 0.333f * value;
         }
     }
     MR::initActor(this, rIter, "StringSpider", false);
-    MR::makeQuatFromRotate(&_A0, this);
-    _B4v = _A0;
+    MR::makeQuatFromRotate(&mPoseQuat, this);
+    mInitPoseQuat = mPoseQuat;
     MR::addEffectHitNormal(this, nullptr);
     mSpinHitController = new SpinHitController(this);
     mScaleController = new AnimScaleController(nullptr);
@@ -153,7 +153,7 @@ void StringSpider::doSwingAction(f32 a1) {
     MR::normalizeOrZero(&root);
     if (MR::isOppositeDirection(mGravity, root, 1.0f)) {
         TVec3f side;
-        _B4v.getXDir(side);
+        mInitPoseQuat.getXDir(side);
         TVec3f vel;
         MR::vecKillElement(mVelocity, root, &vel);
         if (MR::isNearZero(vel)) {
@@ -181,7 +181,7 @@ void StringSpider::reactStringForce() {
     if (isOverStringLength(&root, &length)) {
         MR::normalizeOrZero(&root);
         MR::calcReflectionVector(&mVelocity, root, 0.25f, 1.0f);
-        mVelocity += root * (length - _B4) * 0.02f;
+        mVelocity += root * (length - mCurrentLength) * 0.02f;
         MR::restrictVelocity(this, 100.0f);
     }
 }
@@ -197,7 +197,7 @@ bool StringSpider::isOverStringLength(TVec3f* a1, f32* a2) {
         *a2 = rootLen;
     }
 
-    return _B4 < rootLen;
+    return mCurrentLength < rootLen;
 }
 
 void StringSpider::control() {
@@ -225,10 +225,10 @@ void StringSpider::calcPosture(f32 a1, bool a2) {
     TVec3f v1;
     TVec3f rootVec = calcToRootVector();
     TVec3f v3, v9;
-    _A0.getYDir(v1);
+    mPoseQuat.getYDir(v1);
     MR::normalizeOrZero(&rootVec);
     if (!MR::isNearZero(rootVec)) {
-        _A0.getZDir(v3);
+        mPoseQuat.getZDir(v3);
 
         if (a2) {
             MR::calcVecToPlayerH(&v9, this, &v1);
@@ -240,7 +240,7 @@ void StringSpider::calcPosture(f32 a1, bool a2) {
             }
         }
 
-        MR::blendQuatUpFront(&_A0, rootVec, v3, a1, 0.03f);
+        MR::blendQuatUpFront(&mPoseQuat, rootVec, v3, a1, 0.03f);
     }
 }
 
@@ -290,12 +290,12 @@ void StringSpider::exeDown() {
     extendString();
     f32 v1;
     bool isOver = isOverStringLength(nullptr, &v1);
-    if ((_B0 - 230.0f) < v1) {
+    if ((mMaxLength - 230.0f) < v1) {
         MR::tryStartBck(this, "PreDownEnd");
     }
 
     doSwingAction(0.2f);
-    if (_B4 == _B0 && isOver) {
+    if (mCurrentLength == mMaxLength && isOver) {
         setNerve(GET_NERVE(StringSpider, HostTypeNrvDownEnd));
     }
 }
@@ -312,7 +312,7 @@ void StringSpider::exeUp() {
         setNerve(GET_NERVE(StringSpider, HostTypeNrvDownStart));
     } else {
         shortenString(5.0f);
-        if (_B4 == (0.333f * _B0)) {
+        if (mCurrentLength == (0.333f * mMaxLength)) {
             setNerve(GET_NERVE(StringSpider, HostTypeNrvWait));
         }
     }
@@ -355,7 +355,7 @@ void StringSpider::exeHit() {
 
     TQuat4f v14;
     v14.setRotate(TVec3f(0, 1, 0), (-0.4f * nerveRateMinus));
-    PSQUATMultiply(_A0, v14, _A0);
+    PSQUATMultiply(mPoseQuat, v14, mPoseQuat);
     calcPosture(0.25f, false);
 
     if (MR::isGreaterStep(this, 480)) {
@@ -388,19 +388,19 @@ void StringSpider::exeBlow() {
 }
 
 void StringSpider::extendString() {
-    _B4 += 100.0f;
-    _B4 = MR::clamp(_B4, 0.333f * _B0, _B0);
+    mCurrentLength += 100.0f;
+    mCurrentLength = MR::clamp(mCurrentLength, 0.333f * mMaxLength, mMaxLength);
 }
 
 void StringSpider::shortenString(f32 a1) {
-    _B4 -= a1;
-    _B4 = MR::clamp(_B4, 0.333f * _B0, _B0);
+    mCurrentLength -= a1;
+    mCurrentLength = MR::clamp(mCurrentLength, 0.333f * mMaxLength, mMaxLength);
 }
 
 void StringSpider::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _A0);
+    MR::setBaseTRMtx(this, mPoseQuat);
     MR::updateBaseScale(this, mScaleController);
-    MR::fn_8002D5C0(&mString->_9C, TVec3f(-80.0f, 0.0f, 0.0f), this, "Hip");
+    MR::fn_8002D5C0(&mString->mEndPos, TVec3f(-80.0f, 0.0f, 0.0f), this, "Hip");
     mString->calcAndSetBaseMtx();
 }
 
@@ -578,7 +578,7 @@ void StringSpider::endWait() {
     MR::invalidateClipping(this);
 }
 
-StringSpiderString::StringSpiderString(const char* pName) : LiveActor(pName), _8C(0, 0, 0, 1), _9C(0, 0, 0) {
+StringSpiderString::StringSpiderString(const char* pName) : LiveActor(pName), mRotation(0, 0, 0, 1), mEndPos(0, 0, 0) {
     MR::initActor(this, "StringSpiderString", false);
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_MapObjDecoration, MR::DrawBufferType_Enemy, MR::DrawType_None);
     MR::invalidateClipping(this);
@@ -587,18 +587,18 @@ StringSpiderString::StringSpiderString(const char* pName) : LiveActor(pName), _8
 void StringSpiderString::calcAndSetBaseMtx() {
     TVec3f v10(mScale);
     TVec3f v9(mPosition);
-    v9.sub(_9C);
+    v9.sub(mEndPos);
     MR::separateScalarAndDirection(&v10.y, &v9, v9);
     v10.y *= 0.063f;
 
     if (MR::isOppositeDirection(TVec3f(0, 1, 0), v9)) {
-        _8C.setRotate(TVec3f(1, 0, 0), MR::pi());
+        mRotation.setRotate(TVec3f(1, 0, 0), MR::pi());
     } else {
-        _8C.setRotate(TVec3f(0, 1, 0), v9);
+        mRotation.setRotate(TVec3f(0, 1, 0), v9);
     }
 
     TPos3f v12;
-    v12.makeQuat(_8C);
+    v12.makeQuat(mRotation);
     v12.setTrans(mPosition);
     MR::setBaseTRMtx(this, v12);
     MR::setBaseScale(this, v10);

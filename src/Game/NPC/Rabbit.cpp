@@ -75,7 +75,7 @@ void Rabbit::init(const JMapInfoIter& rIter) {
     case 2: mBehavior = Behavior_UpJump; setNerve(GET_NERVE(Rabbit, RabbitNrvTalk)); break;
     case 3: mBehavior = Behavior_LongJump; setNerve(GET_NERVE(Rabbit, RabbitNrvTalk)); break;
     }
-    _168 = 0.0f;
+    mJumpHeight = 0.0f;
     if (MR::isValidSwitchAppear(this)) {
         makeActorDead();
         pushNerve(GET_NERVE(Rabbit, RabbitNrvAppear));
@@ -117,10 +117,10 @@ void Rabbit::exeAppear() {
     v8.set(0.0f, ::cAppearHeight, 0.0f);
     path.initFromUpVector(v8, TVec3f(0.0f, 0.0f, 0.0f), up, ::cAppearHop);
     path.calcPosition(&v9, getNerveStep() / MR::getBckFrameMax(this));
-    _168 = -v9.y;
+    mJumpHeight = -v9.y;
 
     if (MR::isBckOneTimeAndStopped(this)) {
-        _168 = 0.0f;
+        mJumpHeight = 0.0f;
         setNerve(GET_NERVE(Rabbit, RabbitNrvAppearLand));
     }
 }
@@ -137,7 +137,7 @@ void Rabbit::exeAppearLand() {
 
 void Rabbit::calcAndSetBaseMtx() {
     TVec3f pos(mPosition);
-    mPosition += mGravity * _168;
+    mPosition += mGravity * mJumpHeight;
     NPCActor::calcAndSetBaseMtx();
     mPosition = pos;
 }

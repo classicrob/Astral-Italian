@@ -15,8 +15,7 @@
 // NOTE: the unit's split ends at 0x80205390 but the nerve ctors/executes (0x80205390..0x80205548) and the
 // leading strings/.data (0x80691CA8..) belong to it too.
 
-// PLACEHOLDER(enemies): unnamed .sbss2 int (lbl_807E3070, step of the ink spurt); resolve when its owner names it.
-const volatile s32 lbl_807E3070 = 0;
+extern const volatile s32 gTakoboInkSpurtStep;
 
 namespace NrvTakobo {
     NEW_NERVE(TakoboNrvWaitAfter, Takobo, Idle);
@@ -42,7 +41,7 @@ namespace NrvTakobo {
     class TakoboNrvSupportFreeze : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            Takobo* actor = reinterpret_cast< Takobo* >(pSpine->mExecutor);
+            Takobo* actor = static_cast< Takobo* >(pSpine->mExecutor);
             MR::updateActorStateAndNextNerve(actor, &TakoboNrvWaitAfter::sInstance);
         };
         static TakoboNrvSupportFreeze sInstance;
@@ -241,7 +240,7 @@ void Takobo::exeMove() {
     if (MR::isGreaterStep(this, mMoveStep)) {
         mIsRight = !mIsRight;
         MR::zeroVelocity(this);
-        if (fn_80204B90()) {
+        if (isTakoboPlayerInAttackRange()) {
             setNerve(&NrvTakobo::TakoboNrvAttackSign::sInstance);
             return;
         }
@@ -271,7 +270,7 @@ void Takobo::exeAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
     }
-    if (MR::isStep(this, lbl_807E3070)) {
+    if (MR::isStep(this, gTakoboInkSpurtStep)) {
         TVec3f pos(mPosition);
         TVec3f up;
         MR::calcUpVec(&up, this);
@@ -456,7 +455,7 @@ bool Takobo::isMoving() const {
     return mSpeed > 0.0f;
 }
 
-bool Takobo::fn_80204B90() const {
+bool Takobo::isTakoboPlayerInAttackRange() const {
     TVec3f offset = mGravity * 75.0f;
     TVec3f pos(mPosition);
     pos -= offset;
@@ -607,3 +606,5 @@ void Takobo::calcAndSetBaseMtx() {
 }
 
 Takobo::~Takobo() {}
+
+extern const volatile s32 gTakoboInkSpurtStep = 0;

@@ -17,7 +17,7 @@ namespace NrvElectricPressureBullet {
     NEW_NERVE(ElectricPressureBulletNrvFly, ElectricPressureBullet, Fly);
 };  // namespace NrvElectricPressureBullet
 
-ElectricPressureBullet::ElectricPressureBullet(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 0.0f), _98(), _9C(0.0f), _A4(false) {
+ElectricPressureBullet::ElectricPressureBullet(const char* pName) : LiveActor(pName), mFront(0.0f, 0.0f, 0.0f), mOwner(), mSpeed(0.0f), mTargetPlayer(false) {
 }
 
 void ElectricPressureBullet::init(const JMapInfoIter& rIter) {
@@ -33,20 +33,25 @@ void ElectricPressureBullet::kill() {
     LiveActor::kill();
 }
 
+namespace {
+    char sLongBreakReaction[] = "破壊（余韻あり）";
+    char sLongBreakEffect[] = "BreakLong";
+}
+
 static inline void killLong(LiveActor* pActor) {
-    MR::tryHitReaction(pActor, "破壊（余韻あり）");
-    MR::emitEffect(pActor, "BreakLong");
+    MR::tryHitReaction(pActor, sLongBreakReaction);
+    MR::emitEffect(pActor, sLongBreakEffect);
     MR::startActionSound(pActor, "EmElecbublletBreak");
     pActor->LiveActor::kill();
 }
 
 void ElectricPressureBullet::shotElectricBullet(LiveActor* actor, const TPos3f& pos, const f32& value, bool flag) {
-    _98 = actor;
-    _9C = value;
-    _A4 = flag;
-    pos.getZDir(_8C);
-    MR::normalize(&_8C);
-    mVelocity.scale(_9C, _8C);
+    mOwner = actor;
+    mSpeed = value;
+    mTargetPlayer = flag;
+    pos.getZDir(mFront);
+    MR::normalize(&mFront);
+    mVelocity.scale(mSpeed, mFront);
     pos.getTrans(mPosition);
     mRotation.zero();
     makeActorAppeared();
@@ -70,7 +75,7 @@ void ElectricPressureBullet::exeFly() {
             s32 v2 = getNerveStep();
             if (!(v2 % 5)) {
                 TVec3f target(0.0f, 0.0f, 0.0f);
-                if (_A4) {
+                if (mTargetPlayer) {
                     TVec3f up(0.0f, 1.0f, 0.0f);
                     MR::getPlayerUpVec(&up);
                     JMAVECScaleAdd(&up, MR::getPlayerPos(), &target, 120.0f);
@@ -80,8 +85,8 @@ void ElectricPressureBullet::exeFly() {
                 TVec3f v3;
                 v3.sub(target, mPosition);
                 MR::normalize(&v3);
-                MR::turnVecToVecDegree(&_8C, _8C, v3, 4.0f, TVec3f(0, 1, 0));
-                mVelocity.scale(_9C, _8C);
+                MR::turnVecToVecDegree(&mFront, mFront, v3, 4.0f, TVec3f(0, 1, 0));
+                mVelocity.scale(mSpeed, mFront);
             }
         }
     }

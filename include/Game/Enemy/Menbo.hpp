@@ -30,10 +30,10 @@ public:
     void exeWait();
     void exeMove();
     void exeTurn();
-    NO_INLINE void fn_801C43C0();
+    NO_INLINE void exeMenboTurnBack();
     void exeFind();
     void exeAttack();
-    NO_INLINE void fn_801C4720();
+    NO_INLINE void exeMenboAttackEnd();
     void exeSwoonStart();
     void exeSwoon();
     void exeSwoonEnd();
@@ -43,25 +43,25 @@ public:
     void exeBreak();
 
     // Helpers (unnamed in the SMG2 symbol table; named by role).
-    NO_INLINE bool fn_801C53A0() const;
-    NO_INLINE bool fn_801C5430() const;
-    NO_INLINE bool fn_801C54D0() const;
-    NO_INLINE bool fn_801C55B0(HitSensor*, HitSensor*);
-    NO_INLINE bool fn_801C5680(HitSensor* pSender, HitSensor* pReceiver);
+    NO_INLINE bool isMenboActive() const;
+    NO_INLINE bool canMenboStartSwoon() const;
+    NO_INLINE bool canMenboBindStarPointer() const;
+    NO_INLINE bool tryMenboPressDown(HitSensor*, HitSensor*);
+    NO_INLINE bool tryMenboBlowDown(HitSensor* pSender, HitSensor* pReceiver);
     void updateWaterInfo();
     void blendUpVec();
     void updateGravityWater();
-    NO_INLINE void fn_801C58E0(f32 rate);
-    NO_INLINE void fn_801C5A50();
-    NO_INLINE void fn_801C5AB0();
-    NO_INLINE void fn_801C5B10();
-    NO_INLINE bool fn_801C5BD0() const;
-    NO_INLINE bool fn_801C5C30(f32 angle);
+    NO_INLINE void accelerateMenboForward(f32 rate);
+    NO_INLINE void updateMenboTurn();
+    NO_INLINE void turnMenboTowardWetPlayer();
+    NO_INLINE void updateMenboBlownVelocity();
+    NO_INLINE bool isMenboFarFromHome() const;
+    NO_INLINE bool isMenboFacingAwayFromHome(f32 angle);
     bool isGroundIceEdge();
     bool isPlayerInSightWet();
-    NO_INLINE f32 fn_801C5E60(f32 rate);
-    NO_INLINE f32 fn_801C5E90();
-    NO_INLINE void fn_801C5EF0(TPos3f* pMtx, const LiveActor* actor, const TVec3f& rUp, const TVec3f& rFront);
+    NO_INLINE f32 calcMenboMoveImpulse(f32 rate);
+    NO_INLINE f32 calcMenboTurnImpulse();
+    NO_INLINE void makeMenboSurfaceMatrix(TPos3f* pMtx, const LiveActor* actor, const TVec3f& rUp, const TVec3f& rFront);
 
 public:
     /* 0x90 */ AnimScaleController* mAnimScaleCtrl;

@@ -17,70 +17,70 @@ void SubMeterLayout::init(const JMapInfoIter& rIter) {
     MR::setPaneAnimFrameAndStop(this, "Count", 0.0f, 0);
     appear();
     MR::hideLayout(this);
-    _20 = 0;
-    _26 = 0;
+    mState = State_Hidden;
+    mFullLifeFrames = 0;
 }
 
 void SubMeterLayout::setLifeRatio(f32 ratio) {
     f32 mult = 128.0f * ratio;
-    _22 = mult;
-    MR::setPaneAnimFrameAndStop(this, "Count", 0x80 - _22, 0);
+    mLife = mult;
+    MR::setPaneAnimFrameAndStop(this, "Count", 0x80 - mLife, 0);
 }
 
 void SubMeterLayout::requestDeactivate() {
     MR::hideLayout(this);
-    _20 = 0;
+    mState = State_Hidden;
 }
 
 void SubMeterLayout::requestAppear() {
     MR::showLayout(this);
     MR::startAnim(this, "Appear", nullptr);
-    _20 = 1;
+    mState = State_Appear;
     control();
 }
 
 void SubMeterLayout::requestFrameIn() {
     MR::showLayout(this);
     MR::startAnim(this, "Appear", 0);
-    _20 = 1;
+    mState = State_Appear;
     control();
 }
 
 void SubMeterLayout::requestFrameOut() {
     MR::startAnim(this, "End", 0);
-    _20 = 4;
+    mState = State_FrameOut;
 }
 
 void SubMeterLayout::control() {
-    switch (_20) {
-    case 0:
+    switch (mState) {
+    case State_Hidden:
         break;
-    case 1:
+    case State_Appear:
         if (MR::isAnimStopped(this, 0)) {
             MR::startAnim(this, "Wait", 0);
-            _26 = 0;
-            _20 += 1;
+            mFullLifeFrames = 0;
+            mState += 1;
         }
         break;
-    case 2:
-        if (_22 < 0x40) {
+    case State_Wait:
+        if (mLife < 0x40) {
             MR::startAnim(this, "Danger", 0);
-            _20 = 3;
+            mState = State_Danger;
         }
         break;
-    case 3:
-        if (_22 > 0x40) {
+    case State_Danger:
+        if (mLife > 0x40) {
             MR::startAnim(this, "Wait", 0);
             MR::setAnimRate(this, 1.0f, 0);
-            _20 = 2;
+            mState = State_Wait;
         } else {
-            MR::setAnimRate(this, ((0x40 - _22) * 1.0f / 32.0f) + 1.0f, 0);
+            MR::setAnimRate(this, ((0x40 - mLife) * 1.0f / 32.0f) + 1.0f, 0);
         }
         break;
-    case 4:
+    case State_FrameOut:
         if (MR::isAnimStopped(this, 0)) {
             MR::hideLayout(this);
-            _20 = 0;
+            mState = State_Hidden;
         }
         break;
     }
@@ -96,15 +96,15 @@ void SubMeterLayout::control() {
     }
 
     if (flag) {
-        if (((_20 + 0xFE) & 0xFF) <= 1u && _22 == 0x80) {
-            if (++_26 == 60) {
+        if (((mState + 0xFE) & 0xFF) <= 1u && mLife == 0x80) {
+            if (++mFullLifeFrames == 60) {
                 MR::startAnim(this, "End", 0);
-                _20 = 5;
+                mState = State_AutoHide;
             }
         }
-    } else if (_20 == 5) {
-        _20 = 1;
-        _26 = 0;
+    } else if (mState == State_AutoHide) {
+        mState = State_Appear;
+        mFullLifeFrames = 0;
         MR::startAnim(this, "Appear", 0);
     }
 

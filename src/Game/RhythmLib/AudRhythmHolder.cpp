@@ -99,32 +99,26 @@ void AudRhythmHolder::copyInfoFromParserOne(u32 type, u32 velocity, u32 noteOff,
     mInfos[type].mPausedTime = 0;
 }
 
-// NONMATCHING: target divides the u64->double value with fdivs (no frsp); our f64/f32 expression emits fdiv + frsp
-f32 AudRhythmHolder::fn_8042A170(s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
-    u64 time = ((u64)*(const u32*)(pRec + 0x28) << 32) | *(const u32*)(pRec + 0x2C);
-    return (f64)time / (f32)(OS_BUS_CLOCK >> 2);
+// PLACEHOLDER(enemies): target uses fdivs after __cvt_ull_dbl; this expression retains the correct conversion call
+// but emits fdiv/frsp. Resolve when the original single-result division lowering is recovered.
+f32 AudRhythmHolder::getPlayTimeSec(s32 index) {
+    return (f64)(u64)mInfos[index].mPlayTime / (f32)(OS_BUS_CLOCK >> 2);
 }
 
-// NONMATCHING: same fdivs vs fdiv+frsp difference as fn_8042A170
-f32 AudRhythmHolder::fn_8042A1D0(s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
-    u64 time = ((u64)*(const u32*)(pRec + 0x30) << 32) | *(const u32*)(pRec + 0x34);
-    return (f64)time / (f32)(OS_BUS_CLOCK >> 2);
+f32 AudRhythmHolder::getPrevPlayTimeSec(s32 index) {
+    return (f64)(u64)mInfos[index].mPrevPlayTime / (f32)(OS_BUS_CLOCK >> 2);
 }
 
-f32 AudRhythmHolder::fn_8042A230(s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
-    if (0.0f == *(const f32*)(pRec + 0x1C)) {
+f32 AudRhythmHolder::calcBeatPhase(s32 index) {
+    if (0.0f == mInfos[index]._C) {
         return 0.0f;
     }
-    return fn_8042A170(index) / *(const f32*)(pRec + 0x1C);
+    return getPlayTimeSec(index) / mInfos[index]._C;
 }
 
-f32 AudRhythmHolder::fn_8042A280(s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
-    if (0.0f == *(const f32*)(pRec + 0x1C)) {
+f32 AudRhythmHolder::calcPrevBeatPhase(s32 index) {
+    if (0.0f == mInfos[index]._C) {
         return 0.0f;
     }
-    return fn_8042A1D0(index) / *(const f32*)(pRec + 0x1C);
+    return getPrevPlayTimeSec(index) / mInfos[index]._C;
 }

@@ -20,7 +20,7 @@ namespace FileSelectNumberSub {
 
     private:
         /* 0x8 */ LayoutActor* mHost;
-        /* 0xC */ Nerve* _C;
+        /* 0xC */ Nerve* mPendingNerve;
     };
 };  // namespace FileSelectNumberSub
 

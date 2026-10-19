@@ -37,22 +37,22 @@ public:
     bool isNearPlayerFromRail() const;
 
     bool isSmall() {
-        return _E8 == SnakeheadType_SmallWait || _E8 == SnakeheadType_SmallMove;
+        return mType == SnakeheadType_SmallWait || mType == SnakeheadType_SmallMove;
     }
 
     bool isMove() {
-        return _E8 == SnakeheadType_SmallMove || _E8 == SnakeheadType_BigMove;
+        return mType == SnakeheadType_SmallMove || mType == SnakeheadType_BigMove;
     }
 
     /* 0x8C */ AnimScaleController* mController;
     /* 0x90 */ WalkerStateBindStarPointer* mStarPointer;
     /* 0x94 */ TPos3f mBodyMtx;
-    /* 0xC4 */ TVec3f _C4;
+    /* 0xC4 */ TVec3f mEffectPos;
     /* 0xD0 */ f32 mForwardSpeed;
     /* 0xD4 */ f32 mBackwardSpeed;
     /* 0xD8 */ f32 mActivationRadius;
     /* 0xDC */ TVec3f mRailCenter;
-    /* 0xE8 */ SnakeheadType _E8;
+    /* 0xE8 */ SnakeheadType mType;
     /* 0xEC */ BenefitItemOneUp* mItem;
     /* 0xF0 */ bool mIsValidateShadow;
 };

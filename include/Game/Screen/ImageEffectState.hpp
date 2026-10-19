@@ -64,15 +64,15 @@ namespace ImageEffectStateImpl {
         void setIntensity2Default();
 
     private:
-        /* 0x08 */ bool _8;
+        /* 0x08 */ bool mSnapToTarget;
         /* 0x0C */ u32 _C;
-        /* 0x10 */ f32 _10;
+        /* 0x10 */ f32 mCurBloomIntensity;
         /* 0x14 */ u8 mBloomIntensity;
-        /* 0x18 */ f32 _18;
+        /* 0x18 */ f32 mCurThreshold;
         /* 0x1C */ u8 mThreshold;
-        /* 0x20 */ f32 _20;
+        /* 0x20 */ f32 mCurIntensity1;
         /* 0x24 */ s32 mIntensity1;
-        /* 0x28 */ f32 _28;
+        /* 0x28 */ f32 mCurIntensity2;
         /* 0x2C */ s32 mIntensity2;
     };
 

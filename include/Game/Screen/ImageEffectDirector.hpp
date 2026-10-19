@@ -53,8 +53,8 @@ public:
 
     /* 0x12 */ bool mIsAuto;
     /* 0x13 */ bool mIsPlayerSync;
-    /* 0x14 */ bool _E;
-    /* 0x15 */ bool _F;
+    /* 0x14 */ bool mWasDOFSuppressed;
+    /* 0x15 */ bool mIsDOFSuppressed;
     /* 0x18 */ s32 mPlayerSyncIntensity;
     /* 0x1C */ f32 mDepthOfFieldIntensity;
     /* 0x20 */ ImageEffectStateImpl::StateNull* mStateNull;

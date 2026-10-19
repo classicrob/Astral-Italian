@@ -1,3 +1,5 @@
+#define JGEOMETRY_VEC2_SET2_NOINLINE
+#define JGEOMETRY_VEC2_MI_NOINLINE
 #include "Game/Screen/StaffRollPart.hpp"
 #include "Game/Screen/StaffRollLine.hpp"
 #include "Game/Screen/StaffRollUtil.hpp"
@@ -35,9 +37,9 @@ namespace {
 StaffRollPart::StaffRollPart(const wchar_t* message, u32* line)
     : NerveExecutor("スタッフブロック"), mType(3), mPosition(TVec2f(0.0f, 0.0f)), mLineCount(0), mMessage(message),
       mScrollSpeed(30.0f), mWaitFrames(30), mHasEndMarker(false), mElapsedFrames(0), mDuration(0), mScrollFrames(0), mIsAlive(false) {
-    u32 index = 0;
     u32 lineCount = MR::countMessageLine(message);
-    StaffRollPartInfo info = {0, cDefaultPosition};
+    u32 index = 0;
+    StaffRollPartInfo info(0, cDefaultPosition);
     if (StaffRollUtil::readPartInfo(&info, mMessage, *line)) {
         index = 1;
         (*line)++;
@@ -52,9 +54,7 @@ StaffRollPart::StaffRollPart(const wchar_t* message, u32* line)
             (*line)++;
             break;
         }
-        TVec2f positionY = getPosition();
-        TVec2f positionX = getPosition();
-        actor->mPosition.set(positionX.x, index * mScrollSpeed + positionY.y);
+        actor->mPosition.set(getPosition().x, index * mScrollSpeed + getPosition().y);
         s32 i = mLineCount++;
         mLines[i] = actor;
         index++;
@@ -66,6 +66,7 @@ StaffRollPart::StaffRollPart(const wchar_t* message, u32* line)
 StaffRollPart::~StaffRollPart() {
 }
 
+// NONMATCHING: target keeps `this` in r3 across setNerve; ours emits an extra mr r3, r31.
 void StaffRollPart::appear() {
     const Nerve* nerve = GET_NERVE(StaffRollPart, StaffRollPartNrvPart);
     if (mWaitFrames > 0) {
@@ -115,24 +116,29 @@ void StaffRollPart::alignLines(s32 type) {
         calcTextRect(&rect);
         TVec2f center;
         getRectCenter(rect, &center);
-        addLinePosition(negatePosition(center - getPosition()));
+        TVec2f diff = center - getPosition();
+        addLinePosition(negatePosition(diff));
     } else if (type == 0) {
         JGeometry::TBox2<f32> rect;
         calcTextRect(&rect);
         TVec2f center;
         getRectCenter(rect, &center);
+        f32 x = center.x - getPosition().x;
+        f32 y = rect.i.y - getPosition().y;
         TVec2f offset;
-        offset.x = center.x - getPosition().x;
-        offset.y = rect.i.y - getPosition().y;
+        offset.x = x;
+        offset.y = y;
         addLinePosition(negatePosition(offset));
     } else if (type == 2) {
         JGeometry::TBox2<f32> rect;
         calcTextRect(&rect);
         TVec2f center;
         getRectCenter(rect, &center);
+        f32 x = center.x - getPosition().x;
+        f32 y = rect.f.y - getPosition().y;
         TVec2f offset;
-        offset.x = center.x - getPosition().x;
-        offset.y = rect.f.y - getPosition().y;
+        offset.x = x;
+        offset.y = y;
         addLinePosition(negatePosition(offset));
     }
 }
@@ -142,7 +148,7 @@ TVec2f StaffRollPart::getPosition() const {
         return mPosition;
     }
     TVec2f position;
-    position.x = mPosition.x * 0.7487684488296509f;
+    position.x = 0.7487684488296509f * mPosition.x;
     position.y = mPosition.y;
     return position;
 }
@@ -174,11 +180,13 @@ bool StaffRollPart::isAllLinesDead() const {
     return true;
 }
 
+// NONMATCHING: begin/it iterator registers are swapped (r30/r31).
 void StaffRollPart::calcTextRect(JGeometry::TBox2<f32>* result) const {
     JGeometry::TBox2<f32> rect;
     StaffRollLine* const* begin = mLines;
-    for (StaffRollLine* const* it = begin; it != mLines + mLineCount; ++it) {
-        if (it == begin) {
+    StaffRollLine* const* it = begin;
+    for (; it != mLines + mLineCount; ++it) {
+        if (begin == it) {
             MR::calcTextBoxRectRecursive(&rect, *it, (*it)->getPaneName());
         } else {
             JGeometry::TBox2<f32> part;
@@ -189,7 +197,9 @@ void StaffRollPart::calcTextRect(JGeometry::TBox2<f32>* result) const {
             if (rect.f.y <= part.f.y) rect.f.y = part.f.y;
         }
     }
-    result->set(rect);
+    result->i.x = rect.i.x;
+    result->i.y = rect.i.y;
+    result->f.set(rect.f);
 }
 
 void StaffRollPart::exeWait() {

@@ -36,35 +36,35 @@ public:
     virtual void updateHitSensor(HitSensor* pSensor);
 
     void exeWait();
-    void fn_801597E0();
+    void exeBattanWalk();
     void exeTurn();
-    void fn_80159980();
-    void fn_80159A00();
-    void fn_80159B20();
-    void fn_80159BF0();
+    void exeBattanTurnEnd();
+    void exeBattanHalfTurn();
+    void exeBattanFind();
+    void exeBattanRun();
     void exeAttackSign();
-    void fn_80159DE0();
+    void exeBattanAttack();
     void exeWaitFall();
-    void fn_80159F60();
-    void fn_8015A000();
-    void fn_8015A0F0();
+    void exeBattanRiseSign();
+    void exeBattanRise();
+    void exeBattanDown();
 
-    void fn_8015A310();
-    void fn_8015A410();
-    void fn_8015A500();
-    void fn_8015A600();
+    void setBattanStandingParts();
+    void setBattanPressingParts();
+    void setBattanFallenParts();
+    void setBattanRisingParts();
     void killPartsAll();
     void onCollisionPartsAll();
     void offCollisionPartsAll();
-    bool fn_8015A850(const CollisionParts* pParts) const;
+    bool isBattanOwnCollisionParts(const CollisionParts* pParts) const;
     bool tryRailEndTurn();
-    bool fn_8015AB40() const;
-    bool fn_8015ABD0();
-    void fn_8015ACE0(f32 speed);
+    bool isBattanVulnerable() const;
+    bool tryBattanKnockDown();
+    void moveBattanOnRail(f32 speed);
     bool isRailEndReached() const;
-    void fn_8015AEE0();
-    bool fn_8015B130(TVec3f* pPos, s32 index);
-    bool fn_8015B2D0(TVec3f* pDir, const TVec3f* pRange);
+    void appearBattanBreakParts();
+    bool calcBattanBreakPartPosition(TVec3f* pPos, s32 index);
+    bool calcBattanPlayerPushDirection(TVec3f* pDir, const TVec3f* pRange);
 
 public:
     /* 0x90 */ SupportTicoStop* mTicoStop;

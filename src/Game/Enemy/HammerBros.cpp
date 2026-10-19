@@ -64,7 +64,7 @@ namespace NrvHammerBros {
         virtual void execute(Spine* pSpine) const {
             HammerBros* pActor = reinterpret_cast< HammerBros* >(pSpine->mExecutor);
             if (MR::updateActorStateAndNextNerve(pActor, &HammerBrosNrvSwoon::sInstance)) {
-                pActor->mStateSwoon->fn_8018AFF0();
+                pActor->mStateSwoon->requestBrosSwoonRecovery();
             }
         }
         static HammerBrosNrvFreezeSwoon sInstance;
@@ -283,7 +283,7 @@ void HammerBros::exeGuard() {
 
 bool HammerBros::isVulnerable() const {
     bool r = false;
-    if (isNormalNerve() || (isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B000()) || isNerve(NRV(FreezeSwoon))) {
+    if (isNormalNerve() || (isNerve(NRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(NRV(FreezeSwoon))) {
         r = true;
     }
     return r;
@@ -316,7 +316,7 @@ bool HammerBros::isAliveNerve() const {
 
 bool HammerBros::isStarPointerBindable() const {
     if (isNerve(NRV(Wait)) || isNerve(NRV(Interval)) || isNerve(NRV(Jump)) || isNerve(NRV(Attack)) ||
-        (isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B080())) {
+        (isNerve(NRV(Swoon)) && mStateSwoon->isBrosSwoonRecoveryComplete())) {
         return true;
     }
     if (isNerve(NRV(Guard)) && MR::isGreaterStep(this, 60)) {
@@ -382,7 +382,7 @@ bool HammerBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
     bool vuln = false;
-    if ((isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B000()) || isNerve(NRV(FreezeSwoon))) {
+    if ((isNerve(NRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(NRV(FreezeSwoon))) {
         vuln = true;
     }
     if (vuln) {
@@ -409,7 +409,7 @@ bool HammerBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
 bool HammerBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNormalNerve()) {
         bool ok = false;
-        if ((isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B000()) || isNerve(NRV(FreezeSwoon))) {
+        if ((isNerve(NRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(NRV(FreezeSwoon))) {
             ok = true;
         }
         if (!ok && !isNerve(NRV(FreezeSwoon))) {
@@ -431,7 +431,7 @@ failure:
 
 bool HammerBros::tryStomp() {
     bool vuln = false;
-    if ((isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B000()) || isNerve(NRV(FreezeSwoon))) {
+    if ((isNerve(NRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(NRV(FreezeSwoon))) {
         vuln = true;
     }
     if (vuln) {
@@ -494,7 +494,7 @@ bool HammerBros::tryBindStarPointer() {
         return false;
     }
     bool swoon = false;
-    if (isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B0E0()) {
+    if (isNerve(NRV(Swoon)) && mStateSwoon->canBrosSwoonBindStarPointer()) {
         swoon = true;
     }
     if (swoon) {

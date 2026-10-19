@@ -28,7 +28,7 @@ public:
     bool isCurrentAlive() const;
 
 private:
-    /* 0x1C */ bool _1C;
+    /* 0x1C */ bool mIsCapturingScreen;
 };
 
 namespace MR {

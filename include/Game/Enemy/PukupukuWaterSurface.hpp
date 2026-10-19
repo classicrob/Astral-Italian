@@ -25,21 +25,21 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void fn_801F21B0();
-    void fn_801F2300();
-    void fn_801F23B0();
-    void fn_801F24D0();
-    void fn_801F2610();
-    void fn_801F2740();
-    s32 fn_801F2E10();
-    s32 fn_801F2EC0();
-    void fn_801F2F80(HitSensor*, HitSensor*);
-    void fn_801F2FF0();
-    void fn_801F3040();
-    void fn_801F30D0();
-    void fn_801F3150(TPos3f* pMtx, LiveActor* pActor, const TVec3f& up, const TVec3f& front);
-    void fn_801F32A0(f32 speed, f32 turn);
-    f32 fn_801F33A0();
+    void exePukuMoveRail();
+    void exeMoveReverse();
+    void exePukuBlownOff();
+    void exePukuTrampled();
+    void exePukuLanding();
+    void exePukupukuDead();
+    s32 canBeEaten();
+    s32 probeSurfaceBelow();
+    void setBlowVelocity(HitSensor*, HitSensor*);
+    void updatePukuWaterInfo();
+    void updateUpVecFromWater();
+    void snapToWaterSurface();
+    void calcSurfaceMtx(TPos3f* pMtx, LiveActor* pActor, const TVec3f& up, const TVec3f& front);
+    void updateRailMove(f32 speed, f32 turn);
+    f32 getWaterScale();
 
     /* 0x90 */ PartsModel* mPartsModel;
     /* 0x94 */ WaterInfo* mWaterInfo;

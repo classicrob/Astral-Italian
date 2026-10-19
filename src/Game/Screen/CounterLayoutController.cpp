@@ -27,7 +27,7 @@ namespace NrvCounterLayoutController {
 };  // namespace NrvCounterLayoutController
 
 CounterLayoutController::CounterLayoutController()
-    : LayoutActor("カウンタ系レイアウト制御", true), mPlayerNotMovingFrame(), _24(), mCoinCounter(), mStarPieceCounter(), mPlayerLeft(),
+    : LayoutActor("カウンタ系レイアウト制御", true), mPlayerNotMovingFrame(), mIsTicoEatRequested(), mCoinCounter(), mStarPieceCounter(), mPlayerLeft(),
       mStarCounter(), mHPMeter(), mCometMedalCounter() {
 }
 
@@ -50,7 +50,7 @@ void CounterLayoutController::init(const JMapInfoIter& rIter) {
 }
 
 void CounterLayoutController::appear() {
-    if (_24) {
+    if (mIsTicoEatRequested) {
         mStarPieceCounter->appear();
     } else {
         appearAllCounterWithoutStar();
@@ -85,7 +85,7 @@ void CounterLayoutController::requestedTicoEat(bool param1) {
         mCometMedalCounter->kill();
     }
 
-    _24 = true;
+    mIsTicoEatRequested = true;
 }
 
 bool CounterLayoutController::isWaitToDisappearCounter(const LayoutActor* pActor) {
@@ -93,11 +93,11 @@ bool CounterLayoutController::isWaitToDisappearCounter(const LayoutActor* pActor
 }
 
 void CounterLayoutController::control() {
-    _24 = false;
+    mIsTicoEatRequested = false;
 }
 
 void CounterLayoutController::showAllLayout() {
-    if (!_24) {
+    if (!mIsTicoEatRequested) {
         mCoinCounter->forceAppear(false);
         mStarPieceCounter->forceAppear(false);
         mPlayerLeft->forceAppear();
@@ -107,7 +107,7 @@ void CounterLayoutController::showAllLayout() {
 }
 
 void CounterLayoutController::hideAllLayout() {
-    if (!_24) {
+    if (!mIsTicoEatRequested) {
         mCoinCounter->disappear(false);
         mStarPieceCounter->disappear(false);
         mPlayerLeft->disappear();
@@ -170,7 +170,7 @@ void CounterLayoutController::killAllCoounter() {
 }
 
 bool CounterLayoutController::tryEndTicoEatStarPiece() {
-    if (mStarPieceCounter->mMode != 0 && !_24) {
+    if (mStarPieceCounter->mMode != 0 && !mIsTicoEatRequested) {
         if (mStarPieceCounter->tryOffModeTicoEat()) {
             mCoinCounter->appear();
             mPlayerLeft->appear();

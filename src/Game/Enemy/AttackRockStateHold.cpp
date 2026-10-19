@@ -17,99 +17,99 @@
 
 AttackRockRide::AttackRockRide(LiveActor* pHost)
     : mHost(pHost), mQuat0(0.0f, 0.0f, 0.0f, 1.0f), mQuat1(0.0f, 0.0f, 0.0f, 1.0f), mQuat2(0.0f, 0.0f, 0.0f, 1.0f) {
-    this->_34.set(0.0f, 0.0f, 1.0f);
-    this->_40.set(0.0f, 0.0f, 0.0f);
-    this->_4C.set(0.0f, 0.0f, 0.0f);
-    this->_58.set(0.0f, 0.0f, 0.0f);
-    this->_64.set(0.0f, 0.0f, 1.0f);
-    this->_70.set(0.0f, 0.0f, 1.0f);
-    this->_7C.set(0.0f, 0.0f, 1.0f);
-    this->_88 = 0.0f;
-    this->_8C = 0.0f;
-    this->_90 = 0.0f;
-    this->_94 = 0;
-    this->_98 = 0;
+    this->mHostZDir.set(0.0f, 0.0f, 1.0f);
+    this->mRidePos.set(0.0f, 0.0f, 0.0f);
+    this->mPlayerMove.set(0.0f, 0.0f, 0.0f);
+    this->mDrift.set(0.0f, 0.0f, 0.0f);
+    this->mStartDir.set(0.0f, 0.0f, 1.0f);
+    this->mTargetDir.set(0.0f, 0.0f, 1.0f);
+    this->mRotAxis.set(0.0f, 0.0f, 1.0f);
+    this->mRotAngle = 0.0f;
+    this->mRotAngleSum = 0.0f;
+    this->mStartDistance = 0.0f;
+    this->mRushFrames = 0;
+    this->mRushStep = 0;
     this->mIsRush = false;
     this->mIsEnable = false;
 }
 
-void AttackRockRide::fn_801529E0(const TVec3f* pVec) {
-    this->_34 = *pVec;
+void AttackRockRide::setHostZDir(const TVec3f* pVec) {
+    this->mHostZDir = *pVec;
 }
 
-// NONMATCHING: Vector temporary stack slots, load order and GPR allocation differ.
-void AttackRockRide::fn_80152A00() {
-    MR::fn_800514B0(&mQuat0, &_40);
+// NONMATCHING: Only stack temporary slot offsets differ (calls, operands and registers match).
+void AttackRockRide::initRush() {
+    MR::fn_800514B0(&mQuat0, &mRidePos);
     TVec3f tmp(*MR::getPlayerLastMove());
     tmp.scale(0.9f);
-    this->_4C.set(tmp);
-    this->_58.set(this->_4C);
-    MR::calcDirToPlayer(&this->_64, this->mHost);
+    this->mPlayerMove.set(tmp);
+    this->mDrift.set(this->mPlayerMove);
+    MR::calcDirToPlayer(&this->mStartDir, this->mHost);
     TVec3f playerMove = *MR::getPlayerLastMove();
-    TVec3f sum(this->_40);
+    const TVec3f& hostPos = this->mHost->mPosition;
+    TVec3f sum(this->mRidePos);
     sum.add(playerMove);
-    TVec3f dir = sum - this->mHost->mPosition;
+    TVec3f dir = sum - hostPos;
     MR::normalizeOrZero(&dir);
-    this->_88 = MR::diffAngleAbs(this->_64, dir);
-    this->_8C = 0.0f;
-    TVec3f cross;
-    PSVECCrossProduct(&this->_64, &dir, &this->_7C);
-    if (MR::normalizeOrZero(&this->_7C)) {
-        MR::makeAxisVerticalZX(&this->_7C, this->_64);
+    this->mRotAngle = MR::diffAngleAbs(this->mStartDir, dir);
+    this->mRotAngleSum = 0.0f;
+    PSVECCrossProduct(&this->mStartDir, &dir, &this->mRotAxis);
+    if (MR::normalizeOrZero(&this->mRotAxis)) {
+        MR::makeAxisVerticalZX(&this->mRotAxis, this->mStartDir);
     }
-    this->_98 = 0;
+    this->mRushStep = 0;
     this->mQuat1.set(this->mQuat0);
-    MR::rotateVecRadian(&dir, this->_64, this->_7C, 10.0f * this->_88);
+    MR::rotateVecRadian(&dir, this->mStartDir, this->mRotAxis, 10.0f * this->mRotAngle);
     TVec3f up;
     up.x = 0.0f;
     up.y = 1.0f;
     up.z = 0.0f;
-    MR::turnVecToVecDegree(&this->_70, this->_34, dir, 45.0f, up);
-    TVec3f side = this->_70 - this->_64;
+    MR::turnVecToVecDegree(&this->mTargetDir, this->mHostZDir, dir, 45.0f, up);
+    TVec3f side = this->mTargetDir - this->mStartDir;
     if (MR::isNearZero(side, 0.001f)) {
-        MR::makeAxisVerticalZX(&side, this->_70);
+        MR::makeAxisVerticalZX(&side, this->mTargetDir);
     }
-    MR::makeQuatUpFront(&this->mQuat2, this->_70, side);
-    f32 angle = 57.29578f * MR::diffAngleAbs(this->_64, this->_70);
+    MR::makeQuatUpFront(&this->mQuat2, this->mTargetDir, side);
+    f32 angle = 57.29578f * MR::diffAngleAbs(this->mStartDir, this->mTargetDir);
     s32 frames = (s32)(angle / 3.0f);
-    this->_94 = frames + 15;
-    this->_90 = PSVECDistance(&this->_40, &this->mHost->mPosition);
+    this->mRushFrames = frames + 15;
+    this->mStartDistance = PSVECDistance(&this->mRidePos, &this->mHost->mPosition);
     MR::startBckPlayer("Fall", "SpinDriverFall");
 }
 
-// NONMATCHING: Floating-point register allocation and scheduling differ.
-void AttackRockRide::fn_80152C00() {
+// NONMATCHING: Store/load scheduling of mRotAngleSum/mRotAngle and FPR allocation differ (same calls and operands).
+void AttackRockRide::updateRush() {
     if (this->mIsRush) {
-        f32 a = this->_88;
-        f32 sum = this->_8C + a;
-        this->_8C = sum;
-        f32 t = (f32)this->_98 / (f32)this->_94;
-        this->_88 = a * 0.95f;
+        f32 a = this->mRotAngle;
+        f32 sum = this->mRotAngleSum + a;
+        this->mRotAngleSum = sum;
+        f32 t = (f32)this->mRushStep / (f32)this->mRushFrames;
+        this->mRotAngle = a * 0.95f;
         f32 invT = 1.0f - t;
         TVec3f rotated;
-        MR::rotateVecRadian(&rotated, this->_64, this->_7C, sum * invT);
+        MR::rotateVecRadian(&rotated, this->mStartDir, this->mRotAxis, sum * invT);
         TVec3f blend;
-        MR::vecBlendSphere(&blend, this->_64, this->_70, t);
+        MR::vecBlendSphere(&blend, this->mStartDir, this->mTargetDir, t);
         MR::normalizeOrZero(&blend);
-        f32 len = MR::lerp(this->_90, 300.0f, t);
+        f32 len = MR::lerp(this->mStartDistance, 300.0f, t);
         TVec3f pos(blend);
         pos.x *= len;
         pos.y *= len;
         pos.z *= len;
-        this->_40.set(pos);
-        this->_40.add(this->mHost->mPosition);
-        TVec3f drift(this->_58);
+        this->mRidePos.set(pos);
+        this->mRidePos.add(this->mHost->mPosition);
+        TVec3f drift(this->mDrift);
         drift.scale(invT);
-        this->_40.add(drift);
+        this->mRidePos.add(drift);
         this->mQuat0.set(this->mQuat1);
         this->mQuat0.slerp(this->mQuat2, t);
-        this->_4C.x *= 0.9f;
-        this->_98 += 1;
-        this->_4C.y *= 0.9f;
-        this->_4C.z *= 0.9f;
-        this->_58.add(this->_4C);
-        if (this->_98 > this->_94) {
-            TVec3f jump(this->_70);
+        this->mPlayerMove.x *= 0.9f;
+        this->mRushStep += 1;
+        this->mPlayerMove.y *= 0.9f;
+        this->mPlayerMove.z *= 0.9f;
+        this->mDrift.add(this->mPlayerMove);
+        if (this->mRushStep > this->mRushFrames) {
+            TVec3f jump(this->mTargetDir);
             jump.scale(-20.0f);
             MR::endBindAndPlayerJump(this->mHost, jump, 0);
             this->mIsRush = false;
@@ -118,15 +118,15 @@ void AttackRockRide::fn_80152C00() {
     }
 }
 
-bool AttackRockRide::fn_80152E20(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+bool AttackRockRide::tryReceiveRideMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgAutoRushBegin(msg) && !MR::isOnGroundPlayer() && this->mIsEnable) {
-        this->fn_80152A00();
+        this->initRush();
         this->mIsRush = true;
         this->mIsEnable = false;
         return true;
     }
     if (MR::isMsgUpdateBaseMtx(msg) && this->mIsRush) {
-        MR::fn_800513C0(&this->mQuat0, &this->_40);
+        MR::fn_800513C0(&this->mQuat0, &this->mRidePos);
         return true;
     }
     if (MR::isMsgRushCancel(msg)) {
@@ -139,11 +139,11 @@ bool AttackRockRide::fn_80152E20(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     return false;
 }
 
-void AttackRockRide::fn_80152F10() {
+void AttackRockRide::enableRide() {
     this->mIsEnable = true;
 }
 
-void AttackRockRide::fn_80152F20() {
+void AttackRockRide::endRide() {
     if (this->mIsRush) {
         MR::endBindAndPlayerWait(this->mHost);
         this->mIsRush = false;
@@ -181,7 +181,7 @@ namespace NrvAttackRockStateHold {
 };  // namespace NrvAttackRockStateHold
 
 
-// NONMATCHING: String-pool base, host reload and GPR allocation differ.
+// NONMATCHING: Target addresses the four ctor strings as one 0x40-byte object lbl_806825F0 (base+0/0x18/0x24/0x38); ours uses the anonymous .data base (+0x18 start) and pRock/rockNum callee-saved registers are swapped.
 AttackRockStateHold::AttackRockStateHold(AttackRock* pRock, s32 rockNum)
     : ActorStateBase< AttackRock >("\215U\214\202\212\342\225\202\202\251\202\361\202\305\202\242\202\351\217\363\221\324", pRock), mRide(nullptr), mBreakModel(nullptr) {
     mStartPos.x = 0.0f;
@@ -202,16 +202,16 @@ AttackRockStateHold::~AttackRockStateHold() {
 }
 
 #pragma auto_inline off
-// NONMATCHING: Vector temporary stack slots and GPR allocation differ; calls and operators match.
+// NONMATCHING: Only vector temporary stack slot offsets differ (calls, operands and registers match).
 void AttackRockStateHold::appear() {
     mIsDead = false;
     TVec3f up;
     MR::calcUpVec(&up, mHost);
     TVec3f dir;
     MR::getKoopaBattlePos(&dir);
-    TVec3f offset = up * 700.0f;
+    const TVec3f& hostPos = mHost->mPosition;
     TVec3f target;
-    target.set(mHost->mPosition + offset);
+    target.set(hostPos + up * 700.0f);
     TVec3f toTarget = target - dir;
     MR::normalizeOrZero(&dir, toTarget);
     TVec3f scaled = dir * (0.5f * up.dot(dir));
@@ -227,7 +227,7 @@ void AttackRockStateHold::appear() {
 
 void AttackRockStateHold::kill() {
     mIsDead = true;
-    mRide->fn_80152F20();
+    mRide->endRide();
 }
 
 // NONMATCHING: Quaternion-copy temporary placement and floating-point scheduling differ.
@@ -240,8 +240,8 @@ void AttackRockStateHold::control() {
     TVec3f zdir;
     TQuat4f quat(mHost->mQuat100);
     quat.getZDir(zdir);
-    mRide->fn_801529E0(&zdir);
-    mRide->fn_80152C00();
+    mRide->setHostZDir(&zdir);
+    mRide->updateRush();
 }
 
 bool AttackRockStateHold::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -254,13 +254,13 @@ bool AttackRockStateHold::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
         setNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFallBreak::sInstance);
         return true;
     }
-    if (mRide->fn_80152E20(msg, pSender, pReceiver)) {
+    if (mRide->tryReceiveRideMsg(msg, pSender, pReceiver)) {
         return true;
     }
     return false;
 }
 
-bool AttackRockStateHold::fn_80153400() {
+bool AttackRockStateHold::isPowerOrFloatEnd() {
     if (this->isNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvPower::sInstance) ||
         this->isNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFloatEnd::sInstance)) {
         return true;
@@ -268,7 +268,7 @@ bool AttackRockStateHold::fn_80153400() {
     return false;
 }
 
-bool AttackRockStateHold::fn_80153460() {
+bool AttackRockStateHold::isFloating() {
     if (this->isNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFloat::sInstance) ||
         this->isNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvPower::sInstance) ||
         this->isNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFloatEnd::sInstance)) {
@@ -278,22 +278,22 @@ bool AttackRockStateHold::fn_80153460() {
 }
 
 #pragma dont_inline on
-void AttackRockStateHold::fn_801534D0() {
+void AttackRockStateHold::updateHoldPosition() {
     AttackRock* pHost = this->mHost;
     TVec3f pos(this->mStartPos + this->mUpVec * this->mRate);
     MR::setPosition(pHost, pos);
 }
 #pragma dont_inline off
 
-void AttackRockStateHold::fn_80153530() {
+void AttackRockStateHold::exeHoldFloat() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this->mHost, "Float");
         MR::validateShadow(this->mHost, nullptr);
-        this->mRide->fn_80152F10();
+        this->mRide->enableRide();
     }
     MR::startActionSound(this->mHost, "Power", -1, -1, -1);
     this->mRate = MR::calcNerveEaseOutValue(this, 0, 40, 0.0f, 700.0f);
-    this->fn_801534D0();
+    this->updateHoldPosition();
     AttackRock* pHost = this->mHost;
     f32 max = MR::getBrkFrameMax(pHost);
     MR::setBrkFrameAndStop(pHost, this->mRate * max / 700.0f);
@@ -303,16 +303,16 @@ void AttackRockStateHold::fn_80153530() {
     }
 }
 
-void AttackRockStateHold::fn_80153620() {
+void AttackRockStateHold::exeHoldPower() {
     if (MR::isFirstStep(this)) {
         MR::validateShadow(this->mHost, nullptr);
         this->mRate = 700.0f;
-        this->mRide->fn_80152F10();
+        this->mRide->enableRide();
     }
     MR::startActionSound(this->mHost, "Power", -1, -1, -1);
-    this->fn_801534D0();
+    this->updateHoldPosition();
     if (MR::isOnGroundPlayer() && !MR::isActorOnPlayer(this->mHost)) {
-        this->mRide->fn_80152F10();
+        this->mRide->enableRide();
     }
     MR::setStageBGMStateBit(0x80);
     s32 step;
@@ -335,7 +335,7 @@ void AttackRockStateHold::fn_80153620() {
     }
 }
 
-void AttackRockStateHold::fn_80153720() {
+void AttackRockStateHold::exeHoldFloatEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this->mHost, "FloatEnd");
     }
@@ -349,17 +349,17 @@ void AttackRockStateHold::fn_80153720() {
 }
 
 // NONMATCHING: Commutative floating-point multiply operand order differs.
-void AttackRockStateHold::fn_801537D0() {
+void AttackRockStateHold::exeHoldFallBreak() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this->mHost, "FallBreak");
         this->mBreakModel->appear();
         MR::invalidateCollisionParts(this->mHost);
         MR::invalidateHitSensors(this->mHost);
         MR::zeroVelocity(this->mHost);
-        this->mRide->fn_80152F20();
+        this->mRide->endRide();
     }
     AttackRock* pHost = this->mHost;
-    f32 base = pHost->fn_801510C0() * pHost->mScale.y;
+    f32 base = pHost->getRockBaseRadius() * pHost->mScale.y;
     MR::setShadowVolumeSphereRadius(this->mHost, nullptr, MR::calcNerveValue(this, 30, 0.95f * base, 0.05f * base));
     if (MR::isStep(this, 1)) {
         MR::hideModelAndOnCalcAnim(this->mHost);
@@ -372,16 +372,16 @@ void AttackRockStateHold::fn_801537D0() {
 
 namespace NrvAttackRockStateHold {
     inline void AttackRockStateHoldNrvFloat::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->fn_80153530();
+        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->exeHoldFloat();
     }
     inline void AttackRockStateHoldNrvPower::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->fn_80153620();
+        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->exeHoldPower();
     }
     inline void AttackRockStateHoldNrvFloatEnd::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->fn_80153720();
+        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->exeHoldFloatEnd();
     }
     inline void AttackRockStateHoldNrvFallBreak::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->fn_801537D0();
+        (reinterpret_cast< AttackRockStateHold* >(pSpine->mExecutor))->exeHoldFallBreak();
     }
 };  // namespace NrvAttackRockStateHold
 

@@ -26,7 +26,7 @@ public:
     void exeWhistle();
     void exeBindStarPointer();
     bool isStarPointerPointing();
-    void fn_80194540();
+    void updateTubeSliderParts();
 
 public:
     /* 0x90 */ TubeSlider* mTubeSlider;

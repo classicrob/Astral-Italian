@@ -17,7 +17,7 @@
 
 // Unnamed SMG2 helpers (DiceBase/BenefitItem unit, not ours to name here).
 // PLACEHOLDER(objects): Kuribo appear-from-box pose helper; awaiting the enemies owner declaration.
-extern "C" void fn_801B9BD0(Kuribo*, const TVec3f*, const TQuat4f*);
+extern "C" void appearKuriboFromBox(Kuribo*, const TVec3f*, const TQuat4f*);
 
 namespace {
     inline const char* diceName(const char* pLabel) {
@@ -108,7 +108,7 @@ void ItemDice::placeMainItem() {
     ItemDiceFunction::initItemPose(mMainItem, &mPosition, &rot, 0.0f);
     TQuat4f quat;
     rot.getQuat(quat);
-    fn_801B9BD0(mMainItem, &mPosition, &quat);
+    appearKuriboFromBox(mMainItem, &mPosition, &quat);
 }
 
 // unnamed fn_802B4BB0: pop the sub item out of the dice with a random speed

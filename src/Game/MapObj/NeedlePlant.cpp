@@ -14,10 +14,8 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 #include "Game/Enemy/SearchBeamer.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
-namespace YoshiFunction {
-    void tryYoshiPull(YoshiLockOnTarget*);
-};
 
 // PLACEHOLDER(objects): unnamed target symbol fn_804222D0, declared extern "C" so the reloc name matches; resolve when fn_804222D0 gets its real name in symbols.txt
 extern "C" void fn_804222D0();

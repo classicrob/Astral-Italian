@@ -22,11 +22,11 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void initWithParamScale(const JMapInfoIter&, const ActorStateParamScale*);
-    void fn_801F6990(const char*);
-    void fn_801F69E0(f32);
-    void fn_801F6A80(f32);
-    void fn_801F6DB0(f32);
-    void fn_801F6DC0(f64);
+    void startSpreadBck(const char*);
+    void setRingBckFrame(f32);
+    void setColorFrame(f32);
+    void setStartRadius(f32);
+    void setMaxRadius(f64);
     void setSpeed(f32 speed);
     void setLife(s32 life);
     void setColor(f32 color);
@@ -66,5 +66,5 @@ public:
     virtual bool isDraw() const;
 
     const LiveActor* _1c;
-    f32 _20;
+    /* 0x20 */ f32 mRadius;
 };

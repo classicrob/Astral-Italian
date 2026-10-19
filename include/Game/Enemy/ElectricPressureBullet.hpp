@@ -18,8 +18,8 @@ public:
     void shotElectricBullet(LiveActor*, const TPos3f&, const f32&, bool);
     void exeFly();
 
-    /* 0x90 */ TVec3f _8C;
-    /* 0x9C */ LiveActor* _98;
-    /* 0xA0 */ f32 _9C;
-    /* 0xA4 */ bool _A4;
+    /* 0x90 */ TVec3f mFront;
+    /* 0x9C */ LiveActor* mOwner;
+    /* 0xA0 */ f32 mSpeed;
+    /* 0xA4 */ bool mTargetPlayer;
 };

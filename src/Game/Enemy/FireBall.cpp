@@ -40,7 +40,7 @@ namespace NrvFireBall {
 
 inline void FireBall::exeFreeze() {
     if (MR::updateActorStateAndNextNerve(this, GET_NERVE(FireBall, FireBallNrvThrow))) {
-        mVelocity = _9C;
+        mVelocity = mReflectDir;
     }
 }
 namespace NrvFireBall {
@@ -48,7 +48,7 @@ namespace NrvFireBall {
     NEW_NERVE(FireBallNrvReflect, FireBall, Reflect);
 }
 
-FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), _94(0), _98(0), _9C(0.0f, 1.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), _B4(1.0f) {
+FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), mScaleController(0), mBindStarPointer(0), mReflectDir(0.0f, 1.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), _B4(1.0f) {
 }
 
 inline void FireBall::initHitSensors(const char* const hitSensor) {
@@ -60,9 +60,9 @@ void FireBall::init(const JMapInfoIter&) {
     MR::initActor(this, "FireBall", false);
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(FireBall, FireBallNrvThrow), 1);
-    _94 = new AnimScaleController(nullptr);
-    _98 = new WalkerStateBindStarPointer(this, _94);
-    MR::initActorState(this, _98, GET_NERVE(FireBall, FireBallNrvFreeze), "SupportFreeze");
+    mScaleController = new AnimScaleController(nullptr);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(FireBall, FireBallNrvFreeze), "SupportFreeze");
     makeActorDead();
 }
 
@@ -190,7 +190,7 @@ bool FireBall::tryToKill() {
     return false;
 }
 
-// NONMATCHING: PSVECAdd remains out of line instead of target paired-single addition.
+// NONMATCHING: equivalent vector addition remains an out-of-line JMath helper.
 void FireBall::setVelocityToPlayer(f32 magnitude) {
     TVec3f target;
     target.scale(::cThrowOffsetY, mUp);
@@ -236,8 +236,8 @@ void FireBall::exeThrow() {
     }
 
     MR::startActionSound(this, "Fly");
-    if (MR::isGreaterStep(this, ::cReflectFrame) && _98->tryStartPointBind()) {
-        _9C = mVelocity;
+    if (MR::isGreaterStep(this, ::cReflectFrame) && mBindStarPointer->tryStartPointBind()) {
+        mReflectDir = mVelocity;
         setNerve(GET_NERVE(FireBall, FireBallNrvFreeze));
         return;
     }
@@ -269,9 +269,9 @@ void FireBall::fn_8017DA20(const TVec3f& pos, const TVec3f& velocity) {
 }
 
 void FireBall::fn_8017DF50() {
-    if (MR::isNearZero(_9C)) {
-        _9C.set<f32>(mUp);
+    if (MR::isNearZero(mReflectDir)) {
+        mReflectDir.set<f32>(mUp);
     }
-    MR::turnVecRandomAroundAxis(&mVelocity, mUp, _9C, -20.0f, 20.0f);
+    MR::turnVecRandomAroundAxis(&mVelocity, mUp, mReflectDir, -20.0f, 20.0f);
     mVelocity *= 100.0f;
 }

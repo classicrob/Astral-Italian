@@ -21,11 +21,11 @@ public:
     s32 calcNoRescuedCount() const;
     void startAppearPowerStar();
 
-    ActorCameraInfo* mCameraInfo;
+    /* 0x90 */ ActorCameraInfo* mCameraInfo;
     /* 0x94 */ StrayTico** mStrayTicos;
-    /* 0x90 */ s32 mTicoNum;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA8 */ u8 _A0;
+    /* 0x98 */ s32 mTicoNum;
+    /* 0x9C */ TVec3f mDemoCenter;
+    /* 0xA8 */ u8 mHasAppearDemo;
     bool mHasCamera;
     bool mUsePlacedPosition;
 };

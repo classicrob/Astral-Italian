@@ -34,8 +34,8 @@ namespace NrvStrayTico {
 };  // namespace NrvStrayTico
 
 StrayTico::StrayTico(const char* pName, CollectTico* pHost)
-    : LiveActor(pName), mHost(pHost), mItemBubbleModel(), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), mFrontVec(0.0f, 0.0f, 1.0f), _B0(0.0f, 0.0f, 0.0f),
-      _BC(0.0f, 0.0f, 0.0f), _C8(0.0f, 1.0f, 0.0f), _D4(0.0f, 0.0f, 1.0f), _EC(), _F0() {
+    : LiveActor(pName), mHost(pHost), mItemBubbleModel(), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), mFrontVec(0.0f, 0.0f, 1.0f), mWarpPosition(0.0f, 0.0f, 0.0f),
+      mCompleteCenter(0.0f, 0.0f, 0.0f), mCompleteUp(0.0f, 1.0f, 0.0f), mCompleteFront(0.0f, 0.0f, 1.0f), mCompleteStartAngle(), mCompleteOriginalAngle() {
 }
 
 void StrayTico::init(const JMapInfoIter& rIter) {
@@ -43,7 +43,7 @@ void StrayTico::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "StrayTico", false);
     MR::connectToSceneNpc(this);
     MR::makeQuatAndFrontFromRotate(&mRotateQuat, &mFrontVec, this);
-    _B0.set(mPosition);
+    mWarpPosition.set(mPosition);
     MR::calcGravity(this);
     initNerve(GET_NERVE(StrayTico, StrayTicoNrvWait));
     initSensor();
@@ -115,6 +115,57 @@ void StrayTico::startGlad() {
     setNerve(GET_NERVE(StrayTico, StrayTicoNrvGlad));
 }
 
+void StrayTico::launch(const TPos3f& mtx) {
+    if(isNerve(GET_NERVE(StrayTico,StrayTicoNrvChase))) {
+        TVec3f position;
+        TVec3f up;
+        mtx.getTrans(position);
+        mtx.getYDir(up);
+        MR::resetPosition(this,position);
+        MR::setVelocity(this,up*10.0f);
+    }
+}
+
+void StrayTico::updateWarp() {
+    bool isNotNearPlayer = !MR::isNearPlayerAnyTime(this, ::sWarpTryDistance);
+
+    if (!isNotNearPlayer) {
+        return;
+    }
+
+    bool isNotNearPlayer2 = !MR::isNearPlayer(mWarpPosition, ::sUpdateWarpDistance);
+
+    if (isNotNearPlayer2) {
+        mWarpPosition.set(*MR::getPlayerCenterPos());
+    }
+
+    if (MR::isJudgedToClipFrustum(mPosition, 200.0f) && MR::isJudgedToClipFrustum(mWarpPosition, 200.0f)) {
+        MR::resetPosition(this, mWarpPosition);
+    }
+}
+
+void StrayTico::updateChase() {
+    bool isNotNearPlayer = !MR::isNearPlayerAnyTime(this, ::sChaseDistance);
+
+    if (isNotNearPlayer) {
+        MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 0.5f);
+        MR::tryStartBck(this, "Chase");
+    } else if (MR::isNearPlayerAnyTime(this, ::sAwayDistance)) {
+        MR::addVelocityAwayFromTarget(this, *MR::getPlayerPos(), 0.5f);
+        MR::tryStartBck(this, "Chase");
+    } else {
+        MR::tryStartBck(this, "Wait");
+    }
+
+    TVec3f playerFrontVec;
+    MR::getPlayerFrontVec(&playerFrontVec);
+
+    MR::turnDirectionDegree(this, &mFrontVec, playerFrontVec, ::sChaseTurnDegree);
+    MR::addVelocityKeepHeight(this, *MR::getPlayerPos(), 150.0f, 0.5f, 200.0f);
+    MR::attenuateVelocity(this, ::sChaseFric);
+    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+}
+
 void StrayTico::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(GET_NERVE(StrayTico, StrayTicoNrvWait)) && MR::isSensorNpc(pReceiver) && MR::sendMsgPush(pReceiver, pSender)) {
         MR::addVelocityAwayFromTarget(this, *MR::getSensorPos(pReceiver), ::sPushAccel);
@@ -173,23 +224,54 @@ bool StrayTico::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     return false;
 }
 
-bool StrayTico::requestCompleteDemo(const TVec3f& rParam1, const TVec3f& rParam2, f32 param3) {
-    _E0 = mPosition;
-    _BC = rParam1;
-    _C8 = rParam2;
-    _EC = param3;
+bool StrayTico::tryStartBindMove() {
+    if (isNigeroTakeable()) {
+        MR::invalidateClipping(this);
+        setNerve(GET_NERVE(StrayTico,StrayTicoNrvBindMove));
+        return true;
+    }
+    return false;
+}
 
-    MR::normalize(&_C8);
-    MR::makeAxisVerticalZX(&_D4, _C8);
+bool StrayTico::tryEndBindMove() {
+    if (isNerve(GET_NERVE(StrayTico, StrayTicoNrvBindMove))) {
+        MR::zeroVelocity(this);
+        MR::offCalcGravity(this);
+        MR::offCalcShadow(this, nullptr);
+        MR::offCalcGravity(mItemBubbleModel);
+        MR::offCalcShadow(mItemBubbleModel, nullptr);
+        setNerve(GET_NERVE(StrayTico, StrayTicoNrvWait));
+        return true;
+    }
+    return false;
+}
+
+bool StrayTico::tryNigeroDrop() {
+    if(isNerve(GET_NERVE(StrayTico,StrayTicoNrvBindMove))) {
+        MR::onBind(this);
+        setNerve(GET_NERVE(StrayTico,StrayTicoNrvBindEnd));
+        return true;
+    }
+    return false;
+}
+
+bool StrayTico::requestCompleteDemo(const TVec3f& rParam1, const TVec3f& rParam2, f32 param3) {
+    mCompleteStartPosition = mPosition;
+    mCompleteCenter = rParam1;
+    mCompleteUp = rParam2;
+    mCompleteStartAngle = param3;
+
+    MR::normalize(&mCompleteUp);
+    MR::makeAxisVerticalZX(&mCompleteFront, mCompleteUp);
 
     TVec3f vec;
-    vec.killElement2(rParam1 - mPosition, _C8);
+    vec.killElement2(rParam1 - mPosition, mCompleteUp);
 
     if (MR::normalizeOrZero(&vec)) {
-        vec = _D4;
+        vec = mCompleteFront;
     }
 
-    _F0 = _180_PI * MR::diffAngleSigned(vec, _D4, _C8);
+    mCompleteOriginalAngle = _180_PI * MR::diffAngleSigned(vec, mCompleteFront, mCompleteUp);
 
     setNerve(GET_NERVE(StrayTico, StrayTicoNrvCompleteDemo));
 
@@ -237,7 +319,7 @@ void StrayTico::exeChase() {
         MR::invalidateHitSensor(this, "Bubble");
         MR::onBind(this);
         MR::tryStartBck(this, "Chase");
-        _B0.set(*MR::getPlayerCenterPos());
+        mWarpPosition.set(*MR::getPlayerCenterPos());
     }
 
     updateWarp();
@@ -272,44 +354,27 @@ void StrayTico::exeLauncherCamera() {
     setNerve(GET_NERVE(StrayTico, StrayTicoNrvChase));
 }
 
-void StrayTico::updateWarp() {
-    bool isNotNearPlayer = !MR::isNearPlayerAnyTime(this, ::sWarpTryDistance);
-
-    if (!isNotNearPlayer) {
-        return;
+void StrayTico::exeBindMove() {
+    if(MR::isFirstStep(this)) {
+        MR::onCalcGravity(this);
+        MR::onCalcShadow(this,nullptr);
+        MR::onCalcGravity(mItemBubbleModel);
+        MR::onCalcShadow(mItemBubbleModel,nullptr);
     }
-
-    bool isNotNearPlayer2 = !MR::isNearPlayer(_B0, ::sUpdateWarpDistance);
-
-    if (isNotNearPlayer2) {
-        _B0.set(*MR::getPlayerCenterPos());
-    }
-
-    if (MR::isJudgedToClipFrustum(mPosition, 200.0f) && MR::isJudgedToClipFrustum(_B0, 200.0f)) {
-        MR::resetPosition(this, _B0);
-    }
+    MR::zeroVelocity(this);
 }
 
-void StrayTico::updateChase() {
-    bool isNotNearPlayer = !MR::isNearPlayerAnyTime(this, ::sChaseDistance);
-
-    if (isNotNearPlayer) {
-        MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 0.5f);
-        MR::tryStartBck(this, "Chase");
-    } else if (MR::isNearPlayerAnyTime(this, ::sAwayDistance)) {
-        MR::addVelocityAwayFromTarget(this, *MR::getPlayerPos(), 0.5f);
-        MR::tryStartBck(this, "Chase");
-    } else {
-        MR::tryStartBck(this, "Wait");
+void StrayTico::exeBindEnd() {
+    MR::addVelocityToGravity(this,1.0f);
+    MR::attenuateVelocity(this,0.995f);
+    if(MR::isBindedGround(this)) {
+        MR::zeroVelocity(this);
+        MR::offCalcGravity(this);
+        MR::offCalcShadow(this,nullptr);
+        MR::offCalcGravity(mItemBubbleModel);
+        MR::offCalcShadow(mItemBubbleModel,nullptr);
+        setNerve(GET_NERVE(StrayTico,StrayTicoNrvWait));
     }
-
-    TVec3f playerFrontVec;
-    MR::getPlayerFrontVec(&playerFrontVec);
-
-    MR::turnDirectionDegree(this, &mFrontVec, playerFrontVec, ::sChaseTurnDegree);
-    MR::addVelocityKeepHeight(this, *MR::getPlayerPos(), 150.0f, 0.5f, 200.0f);
-    MR::attenuateVelocity(this, ::sChaseFric);
-    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
 }
 
 void StrayTico::exeCompleteDemo() {
@@ -322,20 +387,22 @@ void StrayTico::exeCompleteDemo() {
 
     if (MR::isLessStep(this, ::sCompletePlacementTime)) {
         TVec3f vec;
-        MR::rotateVecDegree(&vec, _D4 * ::sCompleteStartRadius, _C8, _EC);
-        vec.add(_BC);
-        MR::vecBlend(_E0, vec, &mPosition, MR::calcNerveEaseInOutRate(this, ::sCompletePlacementTime));
+        MR::rotateVecDegree(&vec, mCompleteFront * ::sCompleteStartRadius, mCompleteUp, mCompleteStartAngle);
+        vec.add(mCompleteCenter);
+        MR::vecBlend(mCompleteStartPosition, vec, &mPosition, MR::calcNerveEaseInOutRate(this, ::sCompletePlacementTime));
     } else if (MR::isGreaterStep(this, ::sCompleteRotateStartTime)) {
-        MR::rotateVecDegree(&mPosition, _D4 * MR::calcNerveValue(this, ::sCompleteRotateStartTime, ::sCompleteDemoTime, ::sCompleteStartRadius, 0.0f),
-                            _C8,
-                            MR::repeatDegree(_EC + MR::calcNerveEaseInValue(this, ::sCompleteRotateStartTime, ::sCompleteDemoTime, 0.0f, 900.0f)));
-        mPosition.add(_BC);
+        MR::rotateVecDegree(&mPosition, mCompleteFront * MR::calcNerveValue(this, ::sCompleteRotateStartTime, ::sCompleteDemoTime, ::sCompleteStartRadius, 0.0f),
+                            mCompleteUp,
+                            MR::repeatDegree(mCompleteStartAngle + MR::calcNerveEaseInValue(this, ::sCompleteRotateStartTime, ::sCompleteDemoTime, 0.0f, 900.0f)));
+        mPosition.add(mCompleteCenter);
     }
 
     TVec3f vec;
     MR::getPlayerFrontVec(&vec);
     MR::turnDirectionDegree(this, &mFrontVec, vec, ::sCompleteDemoRotate);
 }
+
+bool StrayTico::isNigeroTakeable() const { return isNerve(GET_NERVE(StrayTico,StrayTicoNrvWait)); }
 
 bool StrayTico::isEnableSpin() const {
     if (isNerve(GET_NERVE(StrayTico, StrayTicoNrvWait)) || isNerve(GET_NERVE(StrayTico, StrayTicoNrvGlad)) ||
@@ -365,60 +432,5 @@ bool StrayTico::isCompleteDemoEnd() const {
 void StrayTico::noticeEnd() {
     if (MR::isValidSwitchA(this)) {
         MR::onSwitchA(this);
-    }
-}
-
-void StrayTico::launch(const TPos3f& mtx) {
-    if(isNerve(GET_NERVE(StrayTico,StrayTicoNrvChase))) {
-        TVec3f position;
-        TVec3f up;
-        mtx.getTrans(position);
-        mtx.getYDir(up);
-        MR::resetPosition(this,position);
-        MR::setVelocity(this,up*10.0f);
-    }
-}
-bool StrayTico::isNigeroTakeable() const { return isNerve(GET_NERVE(StrayTico,StrayTicoNrvWait)); }
-bool StrayTico::tryStartBindMove() {
-    if(!isNigeroTakeable()) return false;
-    MR::invalidateClipping(this);
-    setNerve(GET_NERVE(StrayTico,StrayTicoNrvBindMove));
-    return true;
-}
-bool StrayTico::tryEndBindMove() {
-    if(!isNerve(GET_NERVE(StrayTico,StrayTicoNrvBindMove))) return false;
-    MR::zeroVelocity(this);
-    MR::offCalcGravity(this);
-    MR::offCalcShadow(this,nullptr);
-    MR::offCalcGravity(mItemBubbleModel);
-    MR::offCalcShadow(mItemBubbleModel,nullptr);
-    setNerve(GET_NERVE(StrayTico,StrayTicoNrvWait));
-    return true;
-}
-bool StrayTico::tryNigeroDrop() {
-    if(!isNerve(GET_NERVE(StrayTico,StrayTicoNrvBindMove))) return false;
-    MR::onBind(this);
-    setNerve(GET_NERVE(StrayTico,StrayTicoNrvBindEnd));
-    return true;
-}
-void StrayTico::exeBindMove() {
-    if(MR::isFirstStep(this)) {
-        MR::onCalcGravity(this);
-        MR::onCalcShadow(this,nullptr);
-        MR::onCalcGravity(mItemBubbleModel);
-        MR::onCalcShadow(mItemBubbleModel,nullptr);
-    }
-    MR::zeroVelocity(this);
-}
-void StrayTico::exeBindEnd() {
-    MR::addVelocityToGravity(this,1.0f);
-    MR::attenuateVelocity(this,0.995f);
-    if(MR::isBindedGround(this)) {
-        MR::zeroVelocity(this);
-        MR::offCalcGravity(this);
-        MR::offCalcShadow(this,nullptr);
-        MR::offCalcGravity(mItemBubbleModel);
-        MR::offCalcShadow(mItemBubbleModel,nullptr);
-        setNerve(GET_NERVE(StrayTico,StrayTicoNrvWait));
     }
 }

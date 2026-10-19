@@ -117,9 +117,9 @@ namespace FileSelectNumberSub {
         if (isNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOut))) {
             setNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectInStart));
 
-            _C = nullptr;
+            mPendingNerve = nullptr;
         } else if (isNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOutStart))) {
-            _C = GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectIn);
+            mPendingNerve = GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectIn);
         }
     }
 
@@ -127,9 +127,9 @@ namespace FileSelectNumberSub {
         if (isNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectIn))) {
             setNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOutStart));
 
-            _C = nullptr;
+            mPendingNerve = nullptr;
         } else if (isNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectInStart))) {
-            _C = GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOut);
+            mPendingNerve = GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOut);
         }
     }
 
@@ -139,13 +139,13 @@ namespace FileSelectNumberSub {
         }
 
         if (MR::isAnimStopped(mHost, 0)) {
-            if (_C == GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOut)) {
+            if (mPendingNerve == GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOut)) {
                 setNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOutStart));
             } else {
                 setNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectIn));
             }
 
-            _C = nullptr;
+            mPendingNerve = nullptr;
         }
     }
 
@@ -158,13 +158,13 @@ namespace FileSelectNumberSub {
         }
 
         if (MR::isAnimStopped(mHost, 0)) {
-            if (_C == GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectIn)) {
+            if (mPendingNerve == GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectIn)) {
                 setNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectInStart));
             } else {
                 setNerve(GET_NERVE_GLOBAL(SelectAnimControllerNrvSelectOut));
             }
 
-            _C = nullptr;
+            mPendingNerve = nullptr;
         }
     }
 

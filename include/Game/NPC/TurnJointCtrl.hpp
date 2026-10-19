@@ -44,9 +44,9 @@ public:
     /* 0x3C */ f32 mPositiveDegreeMax;
     /* 0x40 */ f32 mNegativeDegreeMax;
     /* 0x44 */ TVec3f mStarePos;
-    /* 0x50 */ TVec3f _50;
-    /* 0x5C */ f32 _5C;
-    /* 0x60 */ f32 _60;
+    /* 0x50 */ TVec3f mUnusedDirection;
+    /* 0x5C */ f32 mStareDistanceLimit;
+    /* 0x60 */ f32 mStareBlendRate;
     /* 0x64 */ s32 mCtrlFrames;
     /* 0x68 */ bool mEnabled;
 };

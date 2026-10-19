@@ -26,7 +26,7 @@ namespace NrvRingBeam {
 
 RingBeamShadowDrawer::RingBeamShadowDrawer(const LiveActor* unk0) : ShadowVolumeDrawer("影描画[リングビーム]") {
     _1c = unk0;
-    _20 = 0.0f;
+    mRadius = 0.0f;
 }
 
 void RingBeamShadowDrawer::drawShape() const {
@@ -52,7 +52,7 @@ void RingBeamShadowDrawer::drawShape() const {
     baseMtxCopy.getYDir(YDir);
     baseMtxCopy.getTrans(Trans);
     PSMTXRotAxisRad(mtx, &YDir, f1);
-    XDirScaled.scale(_20, XDir);
+    XDirScaled.scale(mRadius, XDir);
     f32 f2 = 0.0f;
     for (int i = 0; i < 32; i++) {
         temp.add(Trans, XDirScaled);
@@ -232,15 +232,15 @@ void RingBeam::startBrk(const char* pchar) {
     }
 }
 
-void RingBeam::fn_801F6990(const char* name) {
+void RingBeam::startSpreadBck(const char* name) {
     MR::startBckNoInterpole(this, name);
     if (mBloomModel) MR::startBckNoInterpole(mBloomModel, name);
 }
-void RingBeam::fn_801F69E0(f32 frame) {
+void RingBeam::setRingBckFrame(f32 frame) {
     MR::setBckFrameAndStop(this, frame);
     if (mBloomModel) MR::setBckFrameAndStop(mBloomModel, frame);
 }
-void RingBeam::fn_801F6A80(f32 color) {
+void RingBeam::setColorFrame(f32 color) {
     if (_9f) {
         MR::startBtp(this, "ColorChange");
         MR::setBtpFrameAndStop(this, color);
@@ -259,12 +259,12 @@ void RingBeam::setRadius(f32 radius) {
         radius = mMaxRadius;
     }
     if (_a0) {
-        _a0->_20 = radius;
+        _a0->mRadius = radius;
     }
     MR::setSensorRadius(this, "Beam", radius);
-    fn_801F6990("Spread");
-    fn_801F69E0((radius / mMaxRadius) * MR::getBckFrameMax(this));
-    fn_801F6A80(mColor);
+    startSpreadBck("Spread");
+    setRingBckFrame((radius / mMaxRadius) * MR::getBckFrameMax(this));
+    setColorFrame(mColor);
     if (_a4) {
         Triangle triangle;
         MR::extractMtxYDir(_8c->getBaseMtx(), &Ydir);
@@ -330,8 +330,8 @@ void RingBeam::exeSpread() {
             MR::startActionSound(this, "EmJumpringAppear");
         }
         char* str = "Spread";
-        fn_801F6990(str);
-        fn_801F6A80(mColor);
+        startSpreadBck(str);
+        setColorFrame(mColor);
         startBrk("Erase");
         MR::setBrkFrameAndStop(this, 0.0f);
         if (_a4) {
@@ -403,9 +403,9 @@ void RingBeam::makeActorDead() {
     LiveActor::makeActorDead();
     if (mBloomModel) mBloomModel->makeActorDead();
 }
-void RingBeam::fn_801F6DB0(f32 radius) { mStartRadius = radius; }
+void RingBeam::setStartRadius(f32 radius) { mStartRadius = radius; }
 // NONMATCHING: Remaining FP register allocation and store scheduling differ.
-void RingBeam::fn_801F6DC0(f64 radius) {
+void RingBeam::setMaxRadius(f64 radius) {
     f32 scale = (f32)radius / 2000.0f;
     mMaxRadius = radius;
     mScale.x *= scale;

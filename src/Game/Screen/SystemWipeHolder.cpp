@@ -7,7 +7,7 @@
 #include <JSystem/J2DGraph/J2DPicture.hpp>
 #include <JSystem/JUtility/JUTVideo.hpp>
 
-SystemWipeHolder::SystemWipeHolder() : WipeHolderBase(4, "システムワイプ保持"), _1C(false) {
+SystemWipeHolder::SystemWipeHolder() : WipeHolderBase(4, "システムワイプ保持"), mIsCapturingScreen(false) {
 }
 
 void SystemWipeHolder::init(const JMapInfoIter& rIter) {
@@ -22,9 +22,9 @@ bool SystemWipeHolder::isCurrentAlive() const {
 }
 
 void SystemWipeHolder::movement() {
-    if (_1C) {
+    if (mIsCapturingScreen) {
         if (!isCurrentAlive() || !getCurrent()->isWipeOut()) {
-            _1C = false;
+            mIsCapturingScreen = false;
             MR::endToCaptureScreen("SystemWipe");
         }
     }
@@ -54,12 +54,12 @@ void SystemWipeHolder::setWipeRingCenter(const TVec3f& rCenter) {
 }
 
 void SystemWipeHolder::startGameScreenCapture() {
-    _1C = true;
+    mIsCapturingScreen = true;
     MR::startToCaptureScreen("SystemWipe");
 }
 
 void SystemWipeHolder::drawGameScreenCapture() const {
-    if (!_1C) {
+    if (!mIsCapturingScreen) {
         return;
     }
 
@@ -77,7 +77,7 @@ void SystemWipeHolder::drawGameScreenCapture() const {
 }
 
 void SystemWipeHolder::updateWipe(const char* pWipeName) {
-    _1C = false;
+    mIsCapturingScreen = false;
     MR::endToCaptureScreen("SystemWipe");
     WipeHolderBase::updateWipe(pWipeName);
 }

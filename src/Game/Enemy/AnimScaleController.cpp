@@ -50,18 +50,18 @@ AnimScaleParam::AnimScaleParam() {
 }
 
 AnimScaleController::AnimScaleController(AnimScaleParam* pScaleParam) : NerveExecutor("スケールアニメコントロール\00") {
-    _8 = pScaleParam;
+    mParam = pScaleParam;
     _C.set(1.0f);
-    _18 = 0.0f;
+    mScaleVelocityY = 0.0f;
 
     if (pScaleParam == nullptr) {
-        _8 = &::sStaticAnimParam;
+        mParam = &::sStaticAnimParam;
     }
     initNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
 }
 
 void AnimScaleController::setParamTight() {
-    _8 = &::sStaticAnimParam.tightParam;
+    mParam = &::sStaticAnimParam.tightParam;
 }
 
 void AnimScaleController::startAnim() {
@@ -77,12 +77,12 @@ void AnimScaleController::startHitReaction() {
 }
 
 void AnimScaleController::startScaleVelocityY(f32 f1) {
-    _18 = f1;
+    mScaleVelocityY = f1;
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvAnim));
 }
 
 void AnimScaleController::startAndAddScaleVelocityY(f32 f1) {
-    _18 += f1;
+    mScaleVelocityY += f1;
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvAnim));
 }
 
@@ -92,13 +92,13 @@ void AnimScaleController::startCrush() {
 
 void AnimScaleController::stopAndReset() {
     resetScale();
-    // resetScale already sets _18 to 0, so this is completely unnecessary
-    _18 = 0.0f;
+    // resetScale already sets mScaleVelocityY to 0, so this is completely unnecessary
+    mScaleVelocityY = 0.0f;
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
 }
 
 void AnimScaleController::stop(const TVec3f& rScale) {
-    _18 = 0.0f;
+    mScaleVelocityY = 0.0f;
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
     _C.x = rScale.x;
     _C.y = rScale.y;
@@ -106,12 +106,12 @@ void AnimScaleController::stop(const TVec3f& rScale) {
 }
 
 void AnimScaleController::resetScale() {
-    _18 = 0.0f;
+    mScaleVelocityY = 0.0f;
     _C.set(1.0f);
 }
 
 void AnimScaleController::exeAnim() {
-    updateScale(_8->_0, _8->_4);
+    updateScale(mParam->_0, mParam->_4);
     if (tryStop()) {
         return;
     }
@@ -123,10 +123,10 @@ void AnimScaleController::exeStop() {
 void AnimScaleController::exeHitReaction() {
     if (MR::isFirstStep(this)) {
         resetScale();
-        _18 = _8->_20;
+        mScaleVelocityY = mParam->_20;
     }
 
-    updateScale(_8->_24, _8->_28);
+    updateScale(mParam->_24, mParam->_28);
     if (tryStop()) {
         return;
     }
@@ -134,7 +134,7 @@ void AnimScaleController::exeHitReaction() {
 
 void AnimScaleController::exeDpdVibration() {
     f32 nerveStep = getNerveStep();
-    f32 dpdVibrationValue = MR::getReduceVibrationValue(nerveStep, _8->_10, _8->_14, _8->_18, _8->_1C);
+    f32 dpdVibrationValue = MR::getReduceVibrationValue(nerveStep, mParam->_10, mParam->_14, mParam->_18, mParam->_1C);
 
     _C.y = dpdVibrationValue;
     _C.x = MR::sqrt(1.0f / _C.y);
@@ -142,16 +142,16 @@ void AnimScaleController::exeDpdVibration() {
 }
 
 void AnimScaleController::exeCrush() {
-    _18 = 0.0f;
+    mScaleVelocityY = 0.0f;
 
-    f32 nerveRate = MR::calcNerveRate(this, _8->_2C);
-    f32 crushValue = MR::getConvergeVibrationValue(nerveRate, 1.0f, _8->_30, 0.3f, 4.0f);
+    f32 nerveRate = MR::calcNerveRate(this, mParam->_2C);
+    f32 crushValue = MR::getConvergeVibrationValue(nerveRate, 1.0f, mParam->_30, 0.3f, 4.0f);
 
     _C.y = crushValue;
     _C.x = MR::sqrt(1.0f / _C.y);
     _C.z = _C.x;
 
-    if (MR::isGreaterStep(this, _8->_2C)) {
+    if (MR::isGreaterStep(this, mParam->_2C)) {
         setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
     }
 }
@@ -174,7 +174,7 @@ bool AnimScaleController::isHitReaction(s32 a1) const {
 }
 
 bool AnimScaleController::tryStop() {
-    if (MR::abs(1.0f - _C.y) < 0.001f && MR::abs(_18) < 0.001f) {
+    if (MR::abs(1.0f - _C.y) < 0.001f && MR::abs(mScaleVelocityY) < 0.001f) {
         resetScale();
         setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
         return true;
@@ -187,15 +187,15 @@ void AnimScaleController::update() {
 }
 
 void AnimScaleController::updateScale(f32 f1, f32 f2) {
-    f32 updateValue = ((1.0f - _C.y) * f1 + _18);
+    f32 updateValue = ((1.0f - _C.y) * f1 + mScaleVelocityY);
     updateValue = updateValue * f2;
-    _18 = updateValue;
+    mScaleVelocityY = updateValue;
     _C.y += updateValue;
 
     f32 updateValue2 = _C.y;
 
-    f32 clampMin = _8->_8;
-    f32 clampMax = _8->_C;
+    f32 clampMin = mParam->_8;
+    f32 clampMax = mParam->_C;
     if (_C.y < clampMin) {
         updateValue2 = clampMin;
     } else if (_C.y > clampMax) {

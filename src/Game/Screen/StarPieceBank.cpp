@@ -42,15 +42,15 @@ StarPieceBank::StarPieceBank(const char* name)
     MR::createAndAddPaneCtrl(this, "TradeUpButton", 2);
     MR::createAndAddPaneCtrl(this, "TradeDownButton", 2);
     mWithdrawButton = new ButtonPaneController(this, "TradeUpButton", "BoxUButton", 0, true);
-    mWithdrawButton->_22 = false;
+    mWithdrawButton->mDisappearOnDecide = false;
     mWithdrawButton->setPointingAnimIndex(1);
     mDepositButton = new ButtonPaneController(this, "TradeDownButton", "BoxDButton", 0, true);
-    mDepositButton->_22 = false;
+    mDepositButton->mDisappearOnDecide = false;
     mDepositButton->setPointingAnimIndex(1);
     mConfirmButton = new ButtonPaneController(this, "RightButton", "BoxRight", 0, true);
-    mConfirmButton->_22 = false;
+    mConfirmButton->mDisappearOnDecide = false;
     mCancelButton = new ButtonPaneController(this, "LeftButton", "BoxLeft", 0, true);
-    mCancelButton->_22 = false;
+    mCancelButton->mDisappearOnDecide = false;
     MR::connectToSceneLayoutTemporarily(this);
     mExplanation = new SimpleTalkBalloon("銀行説明バルーン", "TalkBalloonEvent", 1);
     mExplanation->kill();
@@ -92,68 +92,6 @@ void StarPieceBank::exeAppear() {
     }
 }
 
-void StarPieceBank::exeDisappear() {
-    if (MR::isFirstStep(this)) {
-        MR::startAnim(this, "End", 0);
-        mExplanation->disappear();
-        MR::endStarPointerMode(this);
-    }
-    if (mConfirmButton->mIsSelected || mCancelButton->mIsSelected) {
-        if (MR::isAnimStopped(this, 0)) {
-            MR::decrementPauseBlurDelay();
-            if (mConfirmButton->mIsSelected) {
-                GameDataFunction::setBankedStarPieceNum(mBankedStarPieces);
-                GameDataFunction::tryOnGameEventFlagStarPieceCounterStop(mStockedStarPieces - GameDataFunction::getStockedStarPieceNum());
-            }
-            MR::tryScreenToFrameCinemaFrame();
-            kill();
-        }
-    }
-}
-
-void StarPieceBank::control() {
-    mWithdrawButton->update();
-    mDepositButton->update();
-    mConfirmButton->update();
-    mCancelButton->update();
-    MR::setSeVolumeSetLevelForMenu();
-}
-
-void StarPieceBank::exeDecided() {
-    bool decided = false;
-    if ((isNerve(&NrvStarPieceBank::StarPieceBankNrvConfirm::sInstance) && mConfirmButton->isDecidedWait()) ||
-        (isNerve(&NrvStarPieceBank::StarPieceBankNrvCancel::sInstance) && mCancelButton->isDecidedWait())) {
-        decided = true;
-    }
-    if (decided) {
-        setNerve(&NrvStarPieceBank::StarPieceBankNrvDisappear::sInstance);
-    }
-}
-
-void StarPieceBank::updateCounters() {
-    mBankedStarPieces = MR::clamp(mBankedStarPieces, 0, 9999);
-    mStockedStarPieces = MR::clamp(mStockedStarPieces, 0, 9999);
-    MR::setTextBoxFormatRecursive(this, "ShaPieceUNum", L"%04d", mBankedStarPieces);
-    MR::setTextBoxFormatRecursive(this, "ShaPieceDNum", L"%04d", mStockedStarPieces);
-    bool noWithdraw = false;
-    if (mStockedStarPieces <= 0 || mBankedStarPieces >= 9999) noWithdraw = true;
-    if (noWithdraw) mWithdrawButton->_25 = true;
-    else mWithdrawButton->_25 = false;
-    bool noDeposit = false;
-    if (mBankedStarPieces <= 0 || mStockedStarPieces >= 9999) noDeposit = true;
-    if (noDeposit) mDepositButton->_25 = true;
-    else mDepositButton->_25 = false;
-}
-
-StarPieceBank::~StarPieceBank() {}
-
-void NrvStarPieceBank::StarPieceBankNrvWait::execute(Spine* spine) const {
-    StarPieceBank* actor = reinterpret_cast<StarPieceBank*>(spine->mExecutor);
-    if (MR::isStep(actor, 60)) {
-        actor->setNerve(&StarPieceBankNrvAppear::sInstance);
-    }
-}
-
 void StarPieceBank::exeSelect() {
     updatePointer();
     bool trade = false;
@@ -180,18 +118,6 @@ void StarPieceBank::exeSelect() {
         MR::startCSSound("CS_CLICK_CLOSE", 0, 0, 0, 1.0f);
         setNerve(&NrvStarPieceBank::StarPieceBankNrvCancel::sInstance);
     }
-}
-
-void StarPieceBank::updatePointer() {
-    if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
-        StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxLeft", StarPointerUtil::getDefaultButtonOffsetVec2());
-        StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxRight", StarPointerUtil::getDefaultButtonOffsetVec2());
-        StarPointerUtil::setFirstMovePosition("BoxLeft");
-        StarPointerUtil::setLastMovePosition("BoxRight");
-        StarPointerUtil::setConnectionMovePositionRight("BoxLeft", "BoxRight");
-    }
-    StarPointerUtil::refreshMovePositionsFromLayout(this);
-    StarPointerUtil::endMovePositionRegistration(this);
 }
 
 void StarPieceBank::exeTrade() {
@@ -248,5 +174,79 @@ void StarPieceBank::exeTrade() {
         mBankedStarPieces += count;
         MR::startPaneAnim(this, "StarPieceCounter", "UpCount", 0);
         updateCounters();
+    }
+}
+
+void StarPieceBank::exeDecided() {
+    bool decided = false;
+    if ((isNerve(&NrvStarPieceBank::StarPieceBankNrvConfirm::sInstance) && mConfirmButton->isDecidedWait()) ||
+        (isNerve(&NrvStarPieceBank::StarPieceBankNrvCancel::sInstance) && mCancelButton->isDecidedWait())) {
+        decided = true;
+    }
+    if (decided) {
+        setNerve(&NrvStarPieceBank::StarPieceBankNrvDisappear::sInstance);
+    }
+}
+
+void StarPieceBank::exeDisappear() {
+    if (MR::isFirstStep(this)) {
+        MR::startAnim(this, "End", 0);
+        mExplanation->disappear();
+        MR::endStarPointerMode(this);
+    }
+    if (mConfirmButton->mIsSelected || mCancelButton->mIsSelected) {
+        if (MR::isAnimStopped(this, 0)) {
+            MR::decrementPauseBlurDelay();
+            if (mConfirmButton->mIsSelected) {
+                GameDataFunction::setBankedStarPieceNum(mBankedStarPieces);
+                GameDataFunction::tryOnGameEventFlagStarPieceCounterStop(mStockedStarPieces - GameDataFunction::getStockedStarPieceNum());
+            }
+            MR::tryScreenToFrameCinemaFrame();
+            kill();
+        }
+    }
+}
+
+void StarPieceBank::control() {
+    mWithdrawButton->update();
+    mDepositButton->update();
+    mConfirmButton->update();
+    mCancelButton->update();
+    MR::setSeVolumeSetLevelForMenu();
+}
+
+void StarPieceBank::updateCounters() {
+    mBankedStarPieces = MR::clamp(mBankedStarPieces, 0, 9999);
+    mStockedStarPieces = MR::clamp(mStockedStarPieces, 0, 9999);
+    MR::setTextBoxFormatRecursive(this, "ShaPieceUNum", L"%04d", mBankedStarPieces);
+    MR::setTextBoxFormatRecursive(this, "ShaPieceDNum", L"%04d", mStockedStarPieces);
+    bool noWithdraw = false;
+    if (mStockedStarPieces <= 0 || mBankedStarPieces >= 9999) noWithdraw = true;
+    if (noWithdraw) mWithdrawButton->mIsDisabled = true;
+    else mWithdrawButton->mIsDisabled = false;
+    bool noDeposit = false;
+    if (mBankedStarPieces <= 0 || mStockedStarPieces >= 9999) noDeposit = true;
+    if (noDeposit) mDepositButton->mIsDisabled = true;
+    else mDepositButton->mIsDisabled = false;
+}
+
+void StarPieceBank::updatePointer() {
+    if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
+        StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxLeft", StarPointerUtil::getDefaultButtonOffsetVec2());
+        StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxRight", StarPointerUtil::getDefaultButtonOffsetVec2());
+        StarPointerUtil::setFirstMovePosition("BoxLeft");
+        StarPointerUtil::setLastMovePosition("BoxRight");
+        StarPointerUtil::setConnectionMovePositionRight("BoxLeft", "BoxRight");
+    }
+    StarPointerUtil::refreshMovePositionsFromLayout(this);
+    StarPointerUtil::endMovePositionRegistration(this);
+}
+
+StarPieceBank::~StarPieceBank() {}
+
+void NrvStarPieceBank::StarPieceBankNrvWait::execute(Spine* spine) const {
+    StarPieceBank* actor = reinterpret_cast<StarPieceBank*>(spine->mExecutor);
+    if (MR::isStep(actor, 60)) {
+        actor->setNerve(&StarPieceBankNrvAppear::sInstance);
     }
 }

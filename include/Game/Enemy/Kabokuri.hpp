@@ -69,8 +69,8 @@ public:
     /* 0x8C */ Kuribo* mKuribo;
     /* 0x90 */ ModelObj* mBreakModel;
     /* 0x94 */ ModelObj* mHeadModel;
-    /* 0x9C */ TMtx34f _9C;
-    /* 0xCC */ TMtx34f _CC;
+    /* 0x9C */ TMtx34f mHeadMtx;
+    /* 0xCC */ TMtx34f mHeadInvMtx;
     /* 0xFC */ AnimScaleController* mAnimeScale;
     /* 0x100 */ WalkerStateBindStarPointer* mStateBindStartPointer;
     /* 0x104 */ YoshiLockOnTarget* mYoshiLockOn;

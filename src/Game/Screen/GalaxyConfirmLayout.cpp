@@ -140,9 +140,9 @@ void GalaxyConfirmLayout::exeSelected() {
 }
 
 void GalaxyConfirmBackButton::control() {
-    if (_25 && (MR::testCorePadTriggerB(0) || MR::testCorePadTriggerDown(0)) && !_24 && mPaneCtrl->trySelectImmediately()) {
+    if (mIsEnabled && (MR::testCorePadTriggerB(0) || MR::testCorePadTriggerDown(0)) && !mIsPressed && mPaneCtrl->trySelectImmediately()) {
         MR::startSystemSE("SE_SY_GALAXY_DECIDE_CANCEL");
-        _24 = true;
+        mIsPressed = true;
     }
     BackButton::control();
 }

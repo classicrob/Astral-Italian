@@ -211,7 +211,7 @@ void KuriboChief::control() {
 
     MR::blendQuatFromGroundAndFront(&_AC, this, _BC, ::sUpVecBlendRate, ::sFrontVecBlendRate);
     MR::changeShowModelFlagSyncNearClipping(this, 900.0f);
-    fn_801BC140();
+    tryDieInHazard();
 }
 
 void KuriboChief::calcAndSetBaseMtx() {
@@ -310,7 +310,7 @@ bool KuriboChief::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
-    bool isDwn = fn_801BC910() == false;
+    bool isDwn = isBlowDownNerve() == false;
     if (!isDwn) {
         return false;
     }
@@ -323,7 +323,7 @@ bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // NONMATCHING: floating-point register allocation differs; instructions and field accesses agree.
-void KuriboChief::fn_801BBEC0(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {
+void KuriboChief::setPositionRotationVelocity(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {
     MR::setPosition(this, position);
     f32 x = rotation.x;
     f32 y = rotation.y;
@@ -344,15 +344,15 @@ void KuriboChief::fn_801BBEC0(const TVec3f& position, const TQuat4f& rotation, c
                  (1.0f - 2.0f * (x * x)) - 2.0f * (y * y));
 }
 
-void KuriboChief::fn_801BBFB0(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {
-    fn_801BBEC0(position, rotation, velocity);
+void KuriboChief::appearAndWander(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {
+    setPositionRotationVelocity(position, rotation, velocity);
     setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander));
     appear();
 }
 
-void KuriboChief::fn_801BC000(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity,
+void KuriboChief::appearAndStagger(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity,
                            HitSensor* sender, HitSensor* receiver) {
-    fn_801BBEC0(position, rotation, velocity);
+    setPositionRotationVelocity(position, rotation, velocity);
     if (sender != nullptr) {
         mStateStagger->setPunchDirection(receiver, receiver);
     }
@@ -381,7 +381,7 @@ bool KuriboChief::tryPointBind() {
     return false;
 }
 
-bool KuriboChief::fn_801BC140() {
+bool KuriboChief::tryDieInHazard() {
     TVec3f offset(0.0f, 0.0f, 0.0f);
     if (MR::isInDeath(this, offset) || MR::isBindedGroundDamageFire(this) || MR::isInWater(mPosition)) {
         kill();
@@ -556,7 +556,7 @@ bool KuriboChief::isDown() const {
 
 #pragma push
 #pragma dont_inline on
-bool KuriboChief::fn_801BC910() const {
+bool KuriboChief::isBlowDownNerve() const {
     if (isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDown)) ||
         isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDownLand))) {
         return true;

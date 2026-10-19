@@ -9,7 +9,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual MtxPtr getBaseMtx() const {
-        return const_cast< TPos3f* >(&_8C)->toMtxPtr();
+        return const_cast< TPos3f* >(&mBaseMtx)->toMtxPtr();
     }
     virtual void control();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
@@ -19,5 +19,5 @@ public:
     void exeWait();
 
 private:
-    /* 0x8C */ TPos3f _8C;
+    /* 0x8C */ TPos3f mBaseMtx;
 };

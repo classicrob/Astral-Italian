@@ -63,18 +63,18 @@ void MameMuimui::setTypeSpike() {
     mPoints = 0;
 }
 
-void MameMuimui::fn_801BF570(MameMuimuiListener* pListener) {
+void MameMuimui::setMuimuiListener(MameMuimuiListener* pListener) {
     mListener = pListener;
 }
 
-void MameMuimui::fn_801BF580() {
+void MameMuimui::notifyScoreEvent() {
     if (mListener != NULL) {
-        mListener->fn_801BF5F0(this);
-        mListener->fn_801C19C0(mPoints, this);
+        mListener->onActorEventEmpty(this);
+        mListener->scoreHit(mPoints, this);
     }
 }
 
-void MameMuimui::fn_801BF610(const TVec3f& rPos, s32 waitTime) {
+void MameMuimui::respawnAt(const TVec3f& rPos, s32 waitTime) {
     if (MR::isDead(this)) {
         mWaitTime = waitTime;
         MR::resetPosition(this, rPos);
@@ -84,17 +84,17 @@ void MameMuimui::fn_801BF610(const TVec3f& rPos, s32 waitTime) {
     }
 }
 
-void MameMuimui::fn_801BF6A0() {
+void MameMuimui::tryHideMuimui() {
     if (MR::isDead(this) == false) {
-        if (fn_801C0250()) {
+        if (isHideableNerve()) {
             MR::invalidateHitSensors(this);
             setNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide));
         }
     }
 }
 
-bool MameMuimui::fn_801BF700(HitSensor* pSender, HitSensor* pReceiver) {
-    if (fn_801C02D0() == false) {
+bool MameMuimui::tryBlowAttack(HitSensor* pSender, HitSensor* pReceiver) {
+    if (canBeAttacked() == false) {
         return false;
     }
     MR::fn_80010180(&mQuat, this, pReceiver, pSender);
@@ -103,8 +103,8 @@ bool MameMuimui::fn_801BF700(HitSensor* pSender, HitSensor* pReceiver) {
     return true;
 }
 
-bool MameMuimui::fn_801BF790() {
-    if (fn_801C02D0() == false) {
+bool MameMuimui::tryPressAttack() {
+    if (canBeAttacked() == false) {
         return false;
     }
     MR::invalidateHitSensors(this);
@@ -112,11 +112,11 @@ bool MameMuimui::fn_801BF790() {
     return true;
 }
 
-void MameMuimuiListener::fn_801BF5F0(MameMuimui* pActor) {}
+void MameMuimuiListener::onActorEventEmpty(MameMuimui* pActor) {}
 
-void MameMuimuiListener::fn_801BF600() {}
+void MameMuimuiListener::onListenerEmpty() {}
 
-void MameMuimuiListener::fn_801BFB00() {}
+void MameMuimuiListener::onUpdateEmpty() {}
 
 void MameMuimui::init(const JMapInfoIter& rIter) {
     const char* pName = "MameMuimuiGreen";
@@ -159,7 +159,7 @@ void MameMuimui::kill() {
 
 void MameMuimui::control() {
     mAnimScaleCtrl->updateNerve();
-    if (fn_801C0180() && mStarPointBind->tryStartPointBind()) {
+    if (isWaitOrAppearNerve() && mStarPointBind->tryStartPointBind()) {
         setNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance);
     }
 }
@@ -176,7 +176,7 @@ void MameMuimui::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             if (MR::sendMsgEnemyAttackFlipJump(pReceiver, pSender)) {
                 MR::startActionSound(this, "SpikeAttack", -1, -1, -1);
                 if (mListener != NULL) {
-                    mListener->fn_801C19B0(this);
+                    mListener->breakCombo(this);
                 }
             }
         } else {
@@ -187,7 +187,7 @@ void MameMuimui::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool MameMuimui::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgToEnemyAttackBlow(msg)) {
-        return fn_801BF700(pSender, pReceiver);
+        return tryBlowAttack(pSender, pReceiver);
     }
     return false;
 }
@@ -197,7 +197,7 @@ bool MameMuimui::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
         return true;
     }
     if (MR::isMsgStarPieceReflect(msg)) {
-        if (fn_801C0180()) {
+        if (isWaitOrAppearNerve()) {
             mAnimScaleCtrl->startHitReaction();
             setNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait));
             return true;
@@ -207,10 +207,10 @@ bool MameMuimui::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
         return false;
     }
     if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
-        return fn_801BF790();
+        return tryPressAttack();
     }
     if (MR::isMsgPlayerHitAll(msg)) {
-        return fn_801BF700(pSender, pReceiver);
+        return tryBlowAttack(pSender, pReceiver);
     }
     return false;
 }
@@ -221,15 +221,15 @@ bool MameMuimui::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool MameMuimui::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerKick(msg)) {
-        return fn_801BF700(pSender, pReceiver);
+        return tryBlowAttack(pSender, pReceiver);
     }
     if (MR::isMsgYoshiStartTongue(msg)) {
-        if (fn_801C01E0()) {
+        if (isTongueTargetNerve()) {
             if (mType == 3) {
                 MR::fn_80422290();
                 MR::startActionSound(this, "SpikeAttack", -1, -1, -1);
                 if (mListener != NULL) {
-                    mListener->fn_801C19B0(this);
+                    mListener->breakCombo(this);
                 }
                 return false;
             }
@@ -304,7 +304,7 @@ void MameMuimui::exeHide() {
 void MameMuimui::exePress() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Press");
-        fn_801BF580();
+        notifyScoreEvent();
     }
     if (MR::isActionEnd(this)) {
         MR::tryHitReactionDead(this);
@@ -316,7 +316,7 @@ void MameMuimui::exeBlow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Blow");
         MR::tryHitReactionBlow(this, &mPosition);
-        fn_801BF580();
+        notifyScoreEvent();
     }
     MR::addVelocityToGravity(this, 0.0f);
     MR::attenuateVelocity(this, 0.96f);
@@ -329,25 +329,25 @@ void MameMuimui::exeBlow() {
 
 void MameMuimui::exeEaten() {
     if (MR::isFirstStep(this)) {
-        fn_801BF580();
+        notifyScoreEvent();
     }
 }
 
-bool MameMuimui::fn_801C0180() const {
+bool MameMuimui::isWaitOrAppearNerve() const {
     return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear));
 }
 
-bool MameMuimui::fn_801C01E0() const {
+bool MameMuimui::isTongueTargetNerve() const {
     return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) ||
            isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide));
 }
 
-bool MameMuimui::fn_801C0250() const {
+bool MameMuimui::isHideableNerve() const {
     return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppearSign)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) ||
            isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) || isNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance);
 }
 
-bool MameMuimui::fn_801C02D0() const {
+bool MameMuimui::canBeAttacked() const {
     if (mType == 3) {
         return false;
     }
@@ -355,7 +355,7 @@ bool MameMuimui::fn_801C02D0() const {
            isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide)) || isNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance);
 }
 
-bool MameMuimui::fn_801C0370() const {
+bool MameMuimui::isYellowType() const {
     return mType == 2;
 }
 

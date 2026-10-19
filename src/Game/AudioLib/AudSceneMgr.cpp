@@ -59,7 +59,7 @@ void AudSceneMgr::requestResource() {
     JKRHeap* heap = MR::getStationedHeapGDDR3();
     MR::mountArchive(AudBgmSetting::getBgmParamResourceName(), heap, true);
     MR::mountArchive(AudBgmSetting::getMultiBgmResourceName(), heap, true);
-    MR::mountArchive(fn_80220490(), heap, true);
+    MR::mountArchive(getArchivePath(), heap, true);
     MR::mountArchive(AudBgmSetting::getStageBgmResourceName(), heap, true);
     MR::mountArchive(AudStageUseResourceList::getFileSelectResourceName(), heap, true);
     MR::mountArchive(AudStageUseResourceList::getFaceShipResourceName(), heap, true);

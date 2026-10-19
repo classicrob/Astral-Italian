@@ -11,7 +11,7 @@ PostFog::PostFog(const char* name) : ImageEffectBase(name), mDepthTexture(nullpt
     MR::connectToSceneImageEffect(this);
     MR::createImageEffectSystemHolder();
     MR::getImageEffectResource()->createFogTexture();
-    mDepthTexture = MR::getImageEffectResource()->_24;
+    mDepthTexture = MR::getImageEffectResource()->mDepthTexture;
     mRed = 255;
     mGreen = 255;
     mBlue = 255;
@@ -21,14 +21,14 @@ void PostFog::draw() const {
     if (!isSomething()) return;
     captureScreen();
     ImageEffectLocalUtil::setupDrawTexture();
-    ImageEffectLocalUtil::drawTexture(MR::getImageEffectResource()->_4, 2, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
+    ImageEffectLocalUtil::drawTexture(MR::getImageEffectResource()->mHalfTexture, 2, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
     drawFog(0, 0, MR::getFrameBufferWidth(), MR::getFrameBufferHeight(), false);
 }
 
 void PostFog::captureScreen() const {
     CopyFilterNegater negater;
     GXSetCopyClamp(static_cast<GXFBClamp>(GX_CLAMP_TOP | GX_CLAMP_BOTTOM));
-    ImageEffectLocalUtil::capture(MR::getImageEffectResource()->_4, 1, 0, GX_TF_RGB565, false, 0);
+    ImageEffectLocalUtil::capture(MR::getImageEffectResource()->mHalfTexture, 1, 0, GX_TF_RGB565, false, 0);
     ImageEffectLocalUtil::capture(mDepthTexture, 1, 0, GX_TF_Z16, false, 0);
 }
 
@@ -117,7 +117,7 @@ void PostFog::drawFog(s16 left, s16 top, s16 right, s16 bottom, bool replaceColo
     GXSetIndTexMtx(GX_ITM_0, indirectMatrix, exponent - 1);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
     GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_K0_A);
-    u8 intensity = static_cast<s32>(mAlpha * get_10());
+    u8 intensity = static_cast<s32>(mAlpha * getFadeRate());
     GXSetTevKColor(GX_KCOLOR0, Color8(intensity, intensity, intensity, intensity));
     if (replaceColor) {
         GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_CLEAR);

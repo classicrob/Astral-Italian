@@ -10,7 +10,7 @@
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 
-Wanwan::Wanwan(f32 speed, const char* pName) : LiveActor(pName), _90(nullptr), mType(0), mModel(nullptr), mSpeed(speed), mBreakAtGoal(false), mInitPos(gZeroVec), mRadius(225.0f), mRotSpeed(0.0f), mFallVel(gZeroVec), _F4(1.5f), mRailPointNo(-1), mLastFront(gZeroVec), mFront(0.0f, 0.0f, 1.0f), mLandCount(0), _118(false), mZeroGravity(false), mVoiceTimer(0), mFreezeReturnNerve(nullptr), _124(0), mAppearStep(8), mMoveStep(45), mRotateOffs(0.0f), mRollSoundTimer(0), mGoalPos(gZeroVec), _144(false), mRequestedPowerStar(false), mHideAtStart(false), mScaleParam(nullptr), mScaleCtrl(nullptr), _150(false), mKeySwitch(nullptr) {
+Wanwan::Wanwan(f32 speed, const char* pName) : LiveActor(pName), mItemSource(nullptr), mType(0), mModel(nullptr), mSpeed(speed), mBreakAtGoal(false), mInitPos(gZeroVec), mRadius(225.0f), mRotSpeed(0.0f), mFallVel(gZeroVec), mGravityAcceleration(1.5f), mRailPointNo(-1), mLastFront(gZeroVec), mFront(0.0f, 0.0f, 1.0f), mLandCount(0), mHasBeenAirborne(false), mZeroGravity(false), mVoiceTimer(0), mFreezeReturnNerve(nullptr), mInvalidBindMoveStep(0), mAppearStep(8), mMoveStep(45), mRotateOffs(0.0f), mRollSoundTimer(0), mGoalPos(gZeroVec), mIsAtGoal(false), mRequestedPowerStar(false), mHideAtStart(false), mScaleParam(nullptr), mScaleCtrl(nullptr), mIsInLava(false), mKeySwitch(nullptr) {
     mBaseMtx.identity();
     mLavaMtx.identity();
 }
@@ -93,12 +93,12 @@ void Wanwan::init(const JMapInfoIter& rIter) {
 
 void Wanwan::appear() {
     mFallVel.zero();
-    _F4 = 1.5f;
+    mGravityAcceleration = 1.5f;
     mLandCount = 0;
     mRailPointNo = -1;
-    _124 = 0;
-    _144 = false;
-    _150 = mType == 2;
+    mInvalidBindMoveStep = 0;
+    mIsAtGoal = false;
+    mIsInLava = mType == 2;
     mScaleCtrl->stopAndReset();
     mPosition.set(mInitPos);
     mLastFront.set(mInitPos);
@@ -145,7 +145,7 @@ void Wanwan::kill() {
 }
 
 bool Wanwan::isGoalIn() const {
-    return _144;
+    return mIsAtGoal;
 }
 
 s32 Wanwan::getGoalStayStep() {
@@ -215,7 +215,7 @@ void Wanwan::control() {
             JMathInlineVEC::PSVECSubtract(&toRail, &mPosition, &toRail);
             MR::vecKillElement(toRail, mGravity, &mVelocity);
             TVec3f g(mGravity);
-            g.scale(_F4);
+            g.scale(mGravityAcceleration);
             JMathInlineVEC::PSVECAdd(&mFallVel, &g, &mFallVel);
             JMathInlineVEC::PSVECAdd(&mVelocity, &mFallVel, &mVelocity);
             if (MR::isOnGround(this)) {
@@ -435,8 +435,8 @@ bool Wanwan::move(f32 speed) {
         s32 arg;
         MR::getCurrentRailPointArg0WithInit(this, &arg);
         if (arg >= 0) {
-            _F4 = 0.2f;
-            _118 = false;
+            mGravityAcceleration = 0.2f;
+            mHasBeenAirborne = false;
         }
         MR::getCurrentRailPointArg1WithInit(this, &arg);
         if (arg >= 0) {
@@ -521,7 +521,7 @@ void Wanwan::startRollLevelSound(bool onGround) {
 }
 
 bool Wanwan::tryFreeze(const Nerve* pNerve) {
-    if (_150) {
+    if (mIsInLava) {
         return false;
     }
     if (MR::isStarPointerPointing2PAttachTarget(this)) {
@@ -575,7 +575,7 @@ void Wanwan::updateRotateX(f32 v) {
 void Wanwan::appearStarPiece() {
     TVec3f dir(mGravity);
     dir.negate();
-    MR::appearStarPieceToDirection(_90, mPosition, dir, getAppearStarPieceNum((Rock::Type)mType), 10.0f, 40.0f, false);
+    MR::appearStarPieceToDirection(mItemSource, mPosition, dir, getAppearStarPieceNum((Rock::Type)mType), 10.0f, 40.0f, false);
 }
 
 // NONMATCHING: vector temporary stack slots.
@@ -721,8 +721,8 @@ void Wanwan::exeAppearMoveInvalidBind() {
     startSoundWanwanVoice();
     if (!tryFreeze(&NrvWanwan::WanwanNrvAppearMoveInvalidBind::sInstance)) {
         moveOnRail(mSpeed, mRotSpeed, force);
-        _124++;
-        if (!force && mMoveStep < _124) {
+        mInvalidBindMoveStep++;
+        if (!force && mMoveStep < mInvalidBindMoveStep) {
             MR::onBind(this);
             setNerve(&NrvWanwan::WanwanNrvMove::sInstance);
         }
@@ -753,11 +753,11 @@ void Wanwan::exeMove() {
     startRollLevelSound(MR::isOnGround(this));
     startSoundWanwanVoice();
     if (MR::isOnGround(this)) {
-        if (_118 && _F4 != 1.5f) {
-            _F4 = 1.5f;
+        if (mHasBeenAirborne && mGravityAcceleration != 1.5f) {
+            mGravityAcceleration = 1.5f;
         }
-    } else if (!_118) {
-        _118 = true;
+    } else if (!mHasBeenAirborne) {
+        mHasBeenAirborne = true;
     }
     if (isBreakByWall()) {
         setNerve(&NrvWanwan::WanwanNrvBreak::sInstance);
@@ -791,7 +791,7 @@ void Wanwan::exeMoveLava() {
         mVelocity.zero();
         MR::offBind(this);
         MR::deleteEffect(this, "Smoke");
-        if (_150) {
+        if (mIsInLava) {
             MR::emitEffect(this, "AppearLava");
         }
     }
@@ -806,7 +806,7 @@ void Wanwan::exeMoveLava() {
         JMathInlineVEC::PSVECAdd(&mPosition, &off, &mPosition);
         updateRotateX(mRotation.x + (15.0f * mRotSpeed) / mSpeed);
         mFront.set(MR::getRailDirection(this));
-        if (_150) {
+        if (mIsInLava) {
             Triangle tri;
             TVec3f a;
             a.scale(1000.0f, mGravity);
@@ -824,7 +824,7 @@ void Wanwan::exeMoveLava() {
             MR::makeMtxUpFrontPos(&mLavaMtx, up, mFront, hit);
             MR::startActionSound(this, "AppearLava", -1, -1, -1);
             if (found && !MR::isGroundCodeDamageFire(&tri)) {
-                _150 = false;
+                mIsInLava = false;
             }
         }
         if (!tryFreeze(&NrvWanwan::WanwanNrvMoveLava::sInstance)) {
@@ -866,7 +866,7 @@ void Wanwan::exeMoveToGoal() {
 
 void Wanwan::exeGoalIn() {
     if (MR::isFirstStep(this)) {
-        _144 = true;
+        mIsAtGoal = true;
         MR::startActionSound(this, "GoalIn", -1, -1, -1);
     }
     if (MR::isStep(this, 30)) {
@@ -877,7 +877,7 @@ void Wanwan::exeGoalIn() {
 // NONMATCHING: Euler-angle fp register allocation (f0..f3)
 void Wanwan::exeBreak() {
     if (MR::isFirstStep(this)) {
-        if (mType != 2 && !_144 && (mModel == nullptr || isInClippingRange())) {
+        if (mType != 2 && !mIsAtGoal && (mModel == nullptr || isInClippingRange())) {
             kill();
             return;
         }
@@ -907,12 +907,12 @@ void Wanwan::exeBreak() {
             setBtkForEnvironmentMap(mModel, "WanwanRollingBreak");
         }
         rumblePadAndCamera();
-        if (_144) {
+        if (mIsAtGoal) {
             tryOnSwitchDead();
         }
     }
     bool star = false;
-    if (_144 && mType == 2) {
+    if (mIsAtGoal && mType == 2) {
         star = true;
     }
     if (star) {

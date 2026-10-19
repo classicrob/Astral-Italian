@@ -16,7 +16,7 @@ class YoshiLockOnTarget;
 class PatakuriBigWing : public PartsModel {
 public:
     PatakuriBigWing(const char*);
-    void fn_801E6474();
+    void startBigWingDamage();
 
     virtual ~PatakuriBigWing();
     virtual void calcAndSetBaseMtx();
@@ -36,16 +36,16 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    bool fn_801E6370();
-    void fn_801E6510();
-    void fn_801E6730();
-    void fn_801E67B0();
-    void fn_801E6810();
-    void fn_801E68B0();
-    void fn_801E6930();
-    void fn_801E6980();
-    void fn_801E69E0();
-    static TVec3f fn_801E6280(PatakuriBig* pPatakuri);
+    bool tryStartBigBindStar();
+    void exeBigRail();
+    void exeBigBlow();
+    void exeBigSwoonLand();
+    void exeBigStaggerEnd();
+    void exeBigHipDropDown();
+    void exeBigWingHide();
+    void exeBigBind();
+    void exeBigDead();
+    static TVec3f calcBigBodyOffsetPos(PatakuriBig* pPatakuri);
 
     /* 0x90 */ KuriboChief* mBody;
     /* 0x94 */ TQuat4f mQuat;

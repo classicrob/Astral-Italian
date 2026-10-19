@@ -9,9 +9,9 @@ public:
     virtual void control();
     virtual void kill();
     virtual void attackSensor(HitSensor*, HitSensor*);
-    void fn_8017F450(const TVec3f&);
-    void fn_8017F540();
-    void fn_8017F5C0();
+    void landAt(const TVec3f&);
+    void exeLavaAppear();
+    void exeLavaShrink();
     void exeWait();
     void exeHold();
     /* 0x90 */ LiveActor* mHost;

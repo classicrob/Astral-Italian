@@ -52,9 +52,9 @@ public:
     void exeHitReaction();
     void exeCrush();
 
-    AnimScaleParam* _8;
+    /* 0x8 */ AnimScaleParam* mParam;
     TVec3f _C;
-    f32 _18;
+    /* 0x18 */ f32 mScaleVelocityY;
 };
 
 class LiveActor;

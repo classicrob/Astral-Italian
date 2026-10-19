@@ -3,14 +3,12 @@
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
 };  // namespace MR
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers (not in this unit).
 
@@ -35,7 +33,7 @@ namespace NrvTerebo {
 };  // namespace NrvTerebo
 
 Terebo::Terebo(const char* pName) : LiveActor(pName), mAnimScaleController(nullptr), mBindStarPointer(nullptr), mFrontVec(0.0f, 0.0f, 1.0f), mRailSpeed(5.0f), mIsGroupMoveStop(false) {
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
 }
 
 void Terebo::init(const JMapInfoIter& rIter) {

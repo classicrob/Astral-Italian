@@ -8,6 +8,8 @@
 #include <JSystem/J3DGraphAnimator/J3DModel.hpp>
 #include <cstdio>
 
+extern const char lbl_807CFEB0[4], lbl_807CF430[4];
+
 namespace NrvGhostAttackGhost {
     NEW_NERVE(GhostAttackGhostNrvStart, GhostAttackGhost, Start);
     NEW_NERVE(GhostAttackGhostNrvAppear, GhostAttackGhost, Appear);
@@ -50,7 +52,7 @@ void GhostAttackGhost::init(const JMapInfoIter& iter) {
         MR::initActor(this, iter, "GhostAttackGhost", "2DWater", false);
         MR::startAction(this, "Irregular");
     } else {
-        MR::initActor(this, iter, "GhostAttackGhost", "", false);
+        MR::initActor(this, iter, "GhostAttackGhost", lbl_807CFEB0, false);
     }
     mHandJointCtrl = MR::createJointController(this, "HandL0", &GhostAttackGhost::calcHandJoint);
     mHeadJointCtrl = MR::createJointController(this, "HandR0", &GhostAttackGhost::calcHandJoint);
@@ -98,12 +100,16 @@ const char* GhostAttackGhost::getCurrentAnimationName() const {
 // NONMATCHING: scale component load scheduling.
 bool GhostAttackGhost::calcHandJoint(TPos3f* mtx, const JointControllerInfo&) {
     TVec3f scale(1.0f);
-    (*mtx)[0][0] = scale.x; (*mtx)[0][1] = 0.0f; (*mtx)[0][2] = 0.0f;
-    (*mtx)[1][0] = 0.0f; (*mtx)[1][1] = scale.y; (*mtx)[1][2] = 0.0f;
-    (*mtx)[2][0] = 0.0f; (*mtx)[2][1] = 0.0f; (*mtx)[2][2] = scale.z;
+    f32 z = scale.z, y = scale.y, x = scale.x;
+    (*mtx)[0][0] = x; (*mtx)[0][1] = 0.0f; (*mtx)[0][2] = 0.0f;
+    (*mtx)[1][0] = 0.0f; (*mtx)[1][1] = y; (*mtx)[1][2] = 0.0f;
+    (*mtx)[2][0] = 0.0f; (*mtx)[2][1] = 0.0f; (*mtx)[2][2] = z;
     return true;
 }
-// NONMATCHING: matrix component load ordering and string placement.
+char sGhostHopperAnimationTag[] = "Hopper";
+char sGhostHopperJapaneseAnimationTag[] = "ホッパー";
+
+// NONMATCHING: string relocation grouping differs.
 void GhostAttackGhost::calcAndSetBaseMtx() {
     if (mHostSensor != nullptr) {
         TPos3f hostMtx(MR::getSensorHost(mHostSensor)->getBaseMtx());
@@ -112,8 +118,8 @@ void GhostAttackGhost::calcAndSetBaseMtx() {
     }
     const char* name = getCurrentAnimationName();
     bool hopper;
-    if (MR::isEqualSubString(name, "Hopper")) hopper = true;
-    else hopper = MR::isEqualSubString(name, "ホッパー");
+    if (MR::isEqualSubString(name, sGhostHopperAnimationTag)) hopper = true;
+    else hopper = MR::isEqualSubString(name, sGhostHopperJapaneseAnimationTag);
     if (hopper) {
         mHandJointCtrl->registerCallBack();
         mHeadJointCtrl->registerCallBack();
@@ -124,7 +130,8 @@ void GhostAttackGhost::calcAndSetBaseMtx() {
         TVec3f front(mMovementDelta);
         TVec3f up(0.0f, 1.0f, 0.0f);
         TVec3f position(0.0f);
-        up.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
+        f32 upZ=mtx[2][1], upY=mtx[1][1], upX=mtx[0][1];
+        up.set<f32>(upX, upY, upZ);
         mtx.getTrans(position);
         MR::vecKillElement(front, up, &front);
         if (!MR::isNearZero(front, 0.001f) && !MR::isNearZero(up, 0.001f)) {
@@ -172,13 +179,15 @@ bool GhostAttackGhost::tryStartRace(HitSensor*, HitSensor* receiver) {
 void GhostAttackGhost::startSleep() {
     mRaceDataReader->startActionName("SleepLie");
     MR::startBtp(this, "Sleep");
+    XanimePlayer* player = mRaceDataReader->mXanimePlayer;
     BckCtrlData data;
+    data.mName = lbl_807CF430;
     data.mStartFrame = 0;
     data.mLoopMode = 2;
     data.mRepeatFrame = 134;
     data.mEndFrame = 254;
     data.mInterpole = 20;
-    BckCtrlFunction::reflectBckCtrlData(data, mRaceDataReader->mXanimePlayer);
+    BckCtrlFunction::reflectBckCtrlData(data, player);
     MR::invalidateShadow(this, nullptr);
 }
 void GhostAttackGhost::exeStart() {

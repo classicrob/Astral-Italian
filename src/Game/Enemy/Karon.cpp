@@ -52,11 +52,11 @@ namespace NrvKaron {
     NEW_NERVE(HostTypeNrvStarPieceHitWait, Karon, Wait);
     NEW_NERVE(HostTypeNrvWalk, Karon, Walk);
     NEW_NERVE(HostTypeNrvTurn, Karon, Turn);
-    KARON_NERVE(HostTypeNrvRailTurn, fn_801B1670);
+    KARON_NERVE(HostTypeNrvRailTurn, exeTurnOnRail);
     NEW_NERVE(HostTypeNrvWalkOnRail, Karon, WalkOnRail);
     NEW_NERVE(HostTypeNrvSearch, Karon, Search);
     NEW_NERVE_ONEND(HostTypeNrvPursue, Karon, Pursue, Pursue);
-    KARON_NERVE_END(HostTypeNrvRailPursue, fn_801B1A10);
+    KARON_NERVE_END(HostTypeNrvRailPursue, exePursueOnRail);
     NEW_NERVE(HostTypeNrvBroken, Karon, Broken);
     NEW_NERVE(HostTypeNrvStepBroken, Karon, StepBroken);
     NEW_NERVE(HostTypeNrvRecover, Karon, Recover);
@@ -78,8 +78,8 @@ Karon::Karon(const char* pName) : LiveActor(pName) {
     mTerritoryMover = nullptr;
     mYoshiLockOn = nullptr;
     mStopSwAnim = false;
-    _95 = false;
-    _98 = 80.0f;
+    mIsRailConstrained = false;
+    mSearchAngle = 80.0f;
     mRailDirection.set(0.0f);
     mScaleController = nullptr;
     mStateStarPointer = nullptr;
@@ -96,9 +96,9 @@ void Karon::init(const JMapInfoIter& rIter) {
         mStopSwAnim = true;
     }
 
-    MR::getJMapInfoArg1NoInit(rIter, &_95);
-    if (_95) {
-        _98 = 20.0f;
+    MR::getJMapInfoArg1NoInit(rIter, &mIsRailConstrained);
+    if (mIsRailConstrained) {
+        mSearchAngle = 20.0f;
     }
     mTerritoryMover = new TerritoryMover(500.0f);
     mTerritoryMover->mCenter.set(mPosition);
@@ -146,7 +146,7 @@ void Karon::exeFixWait() {
 void Karon::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
-        if (_95) {
+        if (mIsRailConstrained) {
             TVec3f direction(MR::getRailDirection(this));
             TVec3f front(0.0f);
             MR::calcFrontVec(&front, this);
@@ -171,8 +171,8 @@ void Karon::exeWait() {
     }
 
     f32 range = 700.0f;
-    if (_95) range = 1500.0f;
-    if (MR::calcDistanceToPlayer(this) < range && MR::isFaceToPlayerDegree(this, _98) && fn_801B27C0()) {
+    if (mIsRailConstrained) range = 1500.0f;
+    if (MR::calcDistanceToPlayer(this) < range && MR::isFaceToPlayerDegree(this, mSearchAngle) && isRailPursueAllowed()) {
         setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
     } else if (MR::isGreaterStep(this, step)) {
         if (mRailRider != nullptr) {
@@ -195,7 +195,7 @@ void Karon::exeWalk() {
         setNerve(GET_NERVE(Karon, HostTypeNrvWait));
     } else if (isFallNextMove(true)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvTurn));
-    } else if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, _98)) {
+    } else if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, mSearchAngle)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
     }
 }
@@ -208,7 +208,7 @@ void Karon::exeTurn() {
 
     MR::moveAndTurnToTarget(this, mTerritoryMover->mTarget, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C);
 
-    if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, _98)) {
+    if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, mSearchAngle)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvPursue));
     } else {
         TVec3f frontVec;
@@ -223,10 +223,10 @@ void Karon::exeTurn() {
     }
 }
 
-void Karon::fn_801B1670() {
+void Karon::exeTurnOnRail() {
     if (MR::isFirstStep(this)) mRailDirection = MR::getRailDirection(this);
     MR::moveAndTurnAlongRail(this, 600.0f, hRailTurnParam._0, hRailTurnParam._4, hRailTurnParam._8, hRailTurnParam._C, nullptr);
-    if (fn_801B27C0()) {
+    if (isRailPursueAllowed()) {
         TVec3f front(0.0f);
         MR::calcFrontVec(&front, this);
         if (mRailDirection.dot(front) < -0.9f) setNerve(GET_NERVE(Karon, HostTypeNrvWalkOnRail));
@@ -236,7 +236,7 @@ void Karon::fn_801B1670() {
 void Karon::exeWalkOnRail() {
     if (MR::isFirstStep(this)) MR::startAction(this, "Walk");
     f32 range = 700.0f;
-    if (_95) {
+    if (mIsRailConstrained) {
         range = 1500.0f;
         if (MR::isRailReachedNearGoal(this, 50.0f)) {
             setNerve(GET_NERVE(Karon, HostTypeNrvRailTurn));
@@ -247,7 +247,7 @@ void Karon::exeWalkOnRail() {
         MR::moveAndTurnAlongRail(this, 600.0f, hWalkParam._0, hWalkParam._4, hWalkParam._8, hWalkParam._C, nullptr);
     }
     MR::calcDistanceToPlayer(this);
-    if (MR::calcDistanceToPlayer(this) < range && MR::isFaceToPlayerDegree(this, _98) && fn_801B27C0()) setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
+    if (MR::calcDistanceToPlayer(this) < range && MR::isFaceToPlayerDegree(this, mSearchAngle) && isRailPursueAllowed()) setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
 }
 
 void Karon::exeSearch() {
@@ -256,14 +256,14 @@ void Karon::exeSearch() {
         MR::startActionSound(this, "EvKaronFind");
     }
 
-    if (_95) {
+    if (mIsRailConstrained) {
         MR::moveAndTurnAlongRail(this, 600.0f, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C, nullptr);
     } else {
         MR::moveAndTurnToPlayer(this, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C);
     }
 
     if (MR::isActionEnd(this)) {
-        if (_95) { setNerve(GET_NERVE(Karon, HostTypeNrvRailPursue)); return; }
+        if (mIsRailConstrained) { setNerve(GET_NERVE(Karon, HostTypeNrvRailPursue)); return; }
         setNerve(GET_NERVE(Karon, HostTypeNrvPursue));
     }
 }
@@ -277,19 +277,19 @@ void Karon::exePursue() {
 
     MR::moveAndTurnToPlayer(this, ::hPursueParam._0, ::hPursueParam._4, ::hPursueParam._8, ::hPursueParam._C);
 
-    if (1200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, _98)) {
+    if (1200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, mSearchAngle)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvWait));
     }
 }
 
-void Karon::fn_801B1A10() {
+void Karon::exePursueOnRail() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Pursue");
         MR::invalidateClipping(this);
         mVelocity.add(mGravity * -10.0f);
     }
     MR::moveAndTurnAlongRail(this, 600.0f, hRailPursueParam._0, hRailPursueParam._4, hRailPursueParam._8, hRailPursueParam._C, nullptr);
-    if (3200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, _98) || !fn_801B27C0()) setNerve(GET_NERVE(Karon, HostTypeNrvWait));
+    if (3200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, mSearchAngle) || !isRailPursueAllowed()) setNerve(GET_NERVE(Karon, HostTypeNrvWait));
 }
 
 void Karon::exeBroken() {
@@ -302,7 +302,7 @@ void Karon::exeBroken() {
         mScaleController->resetScale();
     }
 
-    if (_95) {
+    if (mIsRailConstrained) {
         MR::offBind(this);
         MR::zeroVelocity(this);
     } else {
@@ -325,7 +325,7 @@ void Karon::exeBroken() {
     }
 
     if (MR::isGreaterStep(this, 300)) {
-        if (_95) MR::onBind(this);
+        if (mIsRailConstrained) MR::onBind(this);
         setNerve(GET_NERVE(Karon, HostTypeNrvRecover));
     }
 }
@@ -339,7 +339,7 @@ void Karon::exeStepBroken() {
         MR::forceBindOnGround(this, 0.0f, 1.0f);
     }
 
-    if (_95) {
+    if (mIsRailConstrained) {
         MR::offBind(this);
         MR::zeroVelocity(this);
     } else {
@@ -362,7 +362,7 @@ void Karon::exeStepBroken() {
     }
 
     if (MR::isGreaterStep(this, 300)) {
-        if (_95) MR::onBind(this);
+        if (mIsRailConstrained) MR::onBind(this);
         setNerve(GET_NERVE(Karon, HostTypeNrvRecover));
     }
 }
@@ -483,7 +483,7 @@ void Karon::exeBindStarPointer() {
 
 void Karon::control() {
     mScaleController->updateNerve();
-    if (fn_801B2840()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
+    if (isKaronYoshiEatEnabled()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isInWater(mPosition) || MR::isInDarkMatter(mPosition)) {
         kill();
@@ -531,14 +531,14 @@ bool Karon::isFallNextMove(bool a1) {
     return MR::isFallOrDangerNextMove(mPosition, frontVec, mGravity, 150.0f, 140.0f, 150.0f);
 }
 
-bool Karon::fn_801B27C0() const {
-    if (!_95) return true;
+bool Karon::isRailPursueAllowed() const {
+    if (!mIsRailConstrained) return true;
     if (!MR::isExistRail(this)) return true;
     if (MR::isLoopRail(this)) return true;
     return !MR::isRailReachedNearGoal(this, 50.0f);
 }
 
-bool Karon::fn_801B2840() const {
+bool Karon::isKaronYoshiEatEnabled() const {
     if (isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) || isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) ||
         isNerve(GET_NERVE(Karon, HostTypeNrvRecover)) || isNerve(GET_NERVE(Karon, HostTypeNrvDeath)) ||
         isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown)) || isNerve(GET_NERVE(Karon, HostTypeNrvLavaDown)) ||
@@ -666,7 +666,7 @@ bool Karon::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         return true;
     }
 
-    if (MR::isMsgYoshiStartTongue(msg) && fn_801B2840()) {
+    if (MR::isMsgYoshiStartTongue(msg) && isKaronYoshiEatEnabled()) {
         MR::stopBck(this);
         MR::invalidateHitSensors(this);
         setNerve(GET_NERVE(Karon, HostTypeNrvEaten));

@@ -23,6 +23,17 @@
 #include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Enemy/PetoPopoParam.hpp"
 
+// Named tuning constants: the target loads equal values from separate .sdata2 slots (e.g. both 30.0f
+// blow-down speeds), so they are objects defined at the end of the TU, not folded literals.
+namespace {
+    extern const f32 sFloatKeepHeight;
+    extern const f32 sFloatPushPower;
+    extern const f32 sFloatPullPower;
+    extern const f32 sFloatMaxPower;
+    extern const f32 sBlowDownH;
+    extern const f32 sBlowDownV;
+}
+
 struct SightParam {
     f32 a;
     f32 b;
@@ -31,7 +42,7 @@ struct SightParam {
 
 static const SightParam sSightParam = {5000.0f, 90.0f, 45.0f};
 
-f32 fn_801ED1F0(f32) NO_INLINE;
+f32 clampRate01(f32) NO_INLINE;
 
 // Nerve helpers whose bodies are inlined into the nerve (defined before NEW_NERVE).
 
@@ -178,21 +189,21 @@ void Popo::exeWalk() {
         TVec3f shadowPos;
         MR::getShadowProjectionPos(this, nullptr, &shadowPos);
         f32 heightRate = 1.0f - PSVECDistance(&shadowPos, &mPosition) / 400.0f;
-        f32 heightScale = fn_801ED1F0(heightRate * heightRate);
+        f32 heightScale = clampRate01(heightRate * heightRate);
         TVec3f horizontal;
         const TVec3f* pPlayerPos = MR::getPlayerPos();
         TVec3f toPlayer(mPosition);
         toPlayer -= *pPlayerPos;
         MR::vecKillElement(toPlayer, mGravity, &horizontal);
         f32 distRate = PSVECMag(&horizontal) / 300.0f;
-        f32 distScale = fn_801ED1F0(distRate * distRate);
+        f32 distScale = clampRate01(distRate * distRate);
         mVelocity.add(-mGravity * 0.05f * heightScale * distScale);
     }
     calcTurnVelocity(0.95f);
     YoshiFunction::tryYoshiLick(mYoshiLockOn);
 }
 
-f32 fn_801ED1F0(f32 x) {
+f32 clampRate01(f32 x) {
     return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x);
 }
 
@@ -446,12 +457,9 @@ void Popo::exeStickCancel() {
         Triangle tri;
         f32 radius = MR::getSensorRadius(this, "Body");
         TVec3f hitPos;
-        TVec3f from;
-        {
-            TVec3f offset = mGravity * radius;
-            from = mPosition;
-            from -= offset;
-        }
+        TVec3f offset = mGravity * radius;
+        TVec3f from(mPosition);
+        from -= offset;
         TVec3f line = mGravity * radius * 2.0f;
         if (MR::getFirstPolyOnLineToMap(&hitPos, &tri, from, line)) {
             TVec3f up = *tri.getNormal(0) * radius;
@@ -668,8 +676,8 @@ void Popo::calcFloatVelocity() {
         return;
     }
     mVelocity.set(vert + mGravity * speed * 0.99f);
-    if (!MR::addVelocityKeepHeightUseShadow(this, 120.0f, 0.1f, 0.1f, 200.0f, "Body")) {
-        mVelocity.add(mGravity * 0.1f);
+    if (!MR::addVelocityKeepHeightUseShadow(this, sFloatKeepHeight, sFloatPushPower, sFloatPullPower, sFloatMaxPower, "Body")) {
+        mVelocity.add(mGravity * sFloatPushPower);
     }
 }
 
@@ -806,10 +814,9 @@ bool Popo::isStarPointerTargetable() const {
     return result;
 }
 
-// NONMATCHING: lfs vs fmr for the second 30.0f argument
 void Popo::startBlowDown(const TVec3f& rDir, bool isMario) {
     mVelocity.zero();
-    MR::setVelocitySeparateHV(this, rDir, 30.0f, 30.0f);
+    MR::setVelocitySeparateHV(this, rDir, sBlowDownH, sBlowDownV);
     setNerve(&NrvPopo::PopoNrvBlowDown::sInstance);
     mIsMarioBlow = isMario;
     if (!MR::isPlayerElementModeYoshi()) {
@@ -924,4 +931,13 @@ void fn_801EFB40() {
     if (MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->tryReaction();
     }
+}
+
+namespace {
+    const f32 sFloatKeepHeight = 120.0f;
+    const f32 sFloatPushPower = 0.1f;
+    const f32 sFloatPullPower = 0.1f;
+    const f32 sFloatMaxPower = 200.0f;
+    const f32 sBlowDownH = 30.0f;
+    const f32 sBlowDownV = 30.0f;
 }

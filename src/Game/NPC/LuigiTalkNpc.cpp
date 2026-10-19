@@ -1,4 +1,3 @@
-// NONMATCHING: callback temporary allocation, registers and literal addressing remain.
 #include "Game/NPC/LuigiTalkNpc.hpp"
 #include "Game/NPC/TalkMessageFunc.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -16,15 +15,16 @@ namespace NrvLuigiTalkNpc {
     NEW_NERVE(LuigiTalkNpcNrvTurnPlayer,LuigiTalkNpc,TurnPlayer);
     NEW_NERVE(LuigiTalkNpcNrvInformation,LuigiTalkNpc,Information);
 }
-LuigiTalkNpc::LuigiTalkNpc(const char* name) : NPCActor(name),_164(0),mHideAfterIntrusiveUnlock(false) {}
+LuigiTalkNpc::LuigiTalkNpc(const char* name) : NPCActor(name),mUnusedCounter(0),mHideAfterIntrusiveUnlock(false) {}
 LuigiTalkNpc::~LuigiTalkNpc() {}
+// NONMATCHING: callback evaluation scheduling and local relocations differ.
 void LuigiTalkNpc::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("LuigiTalkNpc");
     caps.setDefault();
     caps._94=true;
     mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Turn";
     if(MR::isObjectName(iter,"LuigiIntrusively") && !MR::isExistMessageId(iter)) { caps._F=true; caps._10=sIntrusiveMessage; }
-    _130="Spin"; _134="Trampled"; _138="Pointing"; _13C="Reaction";
+    _130 = cNPCSpinDefault; _134 = cNPCTrampledDefault; _138 = cNPCPointingDefault; _13C = cNPCReactionDefault;
     initialize(iter,caps,"LuigiNPC",nullptr,nullptr);
     MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&LuigiTalkNpc::eventFunc));
     if(MR::tryRegisterDemoCast(this,iter) && MR::isDemoCast(this,sIntrusiveDemo)) {

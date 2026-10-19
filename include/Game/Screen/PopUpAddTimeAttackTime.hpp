@@ -18,6 +18,6 @@ public:
     void exeHide();
     void exeDisplay();
 
-    /* 0x2C */ TVec2f _2C;
-    /* 0x34 */ f32 _34;
+    /* 0x2C */ TVec2f mFollowPos;
+    /* 0x34 */ f32 mExtraRadius;
 };

@@ -13,10 +13,10 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/NPCUtil.hpp"
 
-extern "C" const char* lbl_807CFEA0;
-extern "C" const char* lbl_807CFEA4;
-extern "C" const char* lbl_807CFEA8;
-extern "C" s32 lbl_807E30F0;
+const char* gDreamerMessageName = "Dreamer";
+const char* gDreamerLuigiMessageName = "DreamerCommon000";
+const char* gDreamerEndMessageName = "DreamerEnd";
+extern const volatile s32 gDreamerStartHelpDelay;
 
 
 
@@ -24,9 +24,9 @@ Dreamer::Dreamer(const char* pName) : NPCActor(pName) {
     mButtonGuidance = nullptr;
     mStartId = -1;
     mMissNum = -1;
-    _170 = false;
-    _174 = 0;
-    _178 = 0;
+    mHasEndMessage = false;
+    mUnusedCounter0 = 0;
+    mUnusedCounter1 = 0;
     mIsLuigi = false;
 }
 
@@ -52,10 +52,10 @@ void Dreamer::init(const JMapInfoIter& rIter) {
     mParam._1C = "Wait";
     mParam._20 = "Wait";
     mParam._8 = 2.5f;
-    _130 = "Spin";
-    _134 = "Trampled";
-    _138 = "Pointing";
-    _13C = "Reaction";
+    _130 = cNPCSpinDefault;
+    _134 = cNPCTrampledDefault;
+    _138 = cNPCPointingDefault;
+    _13C = cNPCReactionDefault;
 
     if (MR::isPlayerLuigi() ||
         (GameSequenceFunction::isPadMode() && !DreamerFunction::isPadModeDreamerAndStartId(mStartId))) {
@@ -109,7 +109,7 @@ void Dreamer::exeStartHelp() {
         MR::startActionSound(this, "WipeIn");
         MR::stopStageBGM(0x1E);
     }
-    if (MR::isGreaterEqualStep(this, lbl_807E30F0)) {
+    if (MR::isGreaterEqualStep(this, gDreamerStartHelpDelay)) {
         if (mStartId >= 0) {
             GameSequenceFunction::setPadModeDreamer(this, mStartId);
         } else {
@@ -124,7 +124,7 @@ void Dreamer::exeInHelp() {
         mButtonGuidance->forceAppear();
     }
     if (MR::isPadRecorderStopped()) {
-        if (_170) {
+        if (mHasEndMessage) {
             if (MR::tryTalkForceMarioPuppetable(mMsgCtrl)) {
                 setNerve(mTalkNerve);
             }
@@ -148,21 +148,19 @@ void Dreamer::exeEndHelp() {
     }
 }
 
-void Dreamer::initForLuigi(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
-    NPCActorCaps& caps = const_cast< NPCActorCaps& >(rCaps);
+void Dreamer::initForLuigi(const JMapInfoIter& rIter, NPCActorCaps& caps) {
     caps._F = true;
-    caps._10 = lbl_807CFEA4;
+    caps._10 = gDreamerLuigiMessageName;
     initialize(rIter, caps, nullptr, nullptr, nullptr);
     makeActorDead();
     mIsLuigi = true;
 }
 
-void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
-    NPCActorCaps& caps = const_cast< NPCActorCaps& >(rCaps);
+void Dreamer::initForPlaying(const JMapInfoIter& rIter, NPCActorCaps& caps) {
     caps.mWaitNerve = GET_NERVE(Dreamer, DreamerNrvEndHelp);
-    if (MR::isExistMessageId(rIter) && MR::isExistSceneMessage(lbl_807CFEA8, rIter, true)) {
-        caps._10 = lbl_807CFEA8;
-        _170 = true;
+    if (MR::isExistMessageId(rIter) && MR::isExistSceneMessage(gDreamerEndMessageName, rIter, true)) {
+        caps._10 = gDreamerEndMessageName;
+        mHasEndMessage = true;
     } else {
         caps.mMessage = false;
     }
@@ -181,13 +179,12 @@ void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCap
     initButtonGuidance();
 }
 
-void Dreamer::initForNpc(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
-    NPCActorCaps& caps = const_cast< NPCActorCaps& >(rCaps);
-    if (!MR::isExistMessageId(rIter) || !MR::isExistSceneMessage(lbl_807CFEA0, rIter, true)) {
+void Dreamer::initForNpc(const JMapInfoIter& rIter, NPCActorCaps& caps) {
+    if (!MR::isExistMessageId(rIter) || !MR::isExistSceneMessage(gDreamerMessageName, rIter, true)) {
         caps._F = true;
-        caps._10 = lbl_807CFEA4;
+        caps._10 = gDreamerLuigiMessageName;
     } else {
-        caps._10 = lbl_807CFEA0;
+        caps._10 = gDreamerMessageName;
     }
     initialize(rIter, caps, nullptr, nullptr, nullptr);
     MR::registerEventFunc(mMsgCtrl,
@@ -208,6 +205,7 @@ void Dreamer::initButtonGuidance() {
     mButtonGuidance->showDreamer();
 }
 
+// NONMATCHING: equivalent switch-or-miss return paths are laid out differently.
 bool Dreamer::isMakeAppear() const {
     if (DreamerFunction::isPadModeDreamerAndStartId(mStartId)) {
         return true;
@@ -245,3 +243,5 @@ bool Dreamer::eventFunc(u32 event) {
     }
     return true;
 }
+
+extern const volatile s32 gDreamerStartHelpDelay = 0;

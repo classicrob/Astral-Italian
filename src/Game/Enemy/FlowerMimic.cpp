@@ -17,12 +17,12 @@ namespace {
     };                                                                                                                                           \
     name name::sInstance ATTRIBUTE_WEAK;
 
-    FLOWER_MIMIC_NERVE(FlowerMimicNrvWait, fn_801810D0);
-    FLOWER_MIMIC_NERVE(FlowerMimicNrvAttackSign, fn_80181150);
-    FLOWER_MIMIC_NERVE(FlowerMimicNrvAttack, fn_801811C0);
-    FLOWER_MIMIC_NERVE(FlowerMimicNrvAttackEnd, fn_80181250);
-    FLOWER_MIMIC_NERVE(FlowerMimicNrvEat, fn_801812C0);
-    FLOWER_MIMIC_NERVE(FlowerMimicNrvEatEnd, fn_80181320);
+    FLOWER_MIMIC_NERVE(FlowerMimicNrvWait, exeMimicWait);
+    FLOWER_MIMIC_NERVE(FlowerMimicNrvAttackSign, exeMimicAttackSign);
+    FLOWER_MIMIC_NERVE(FlowerMimicNrvAttack, exeMimicAttack);
+    FLOWER_MIMIC_NERVE(FlowerMimicNrvAttackEnd, exeMimicAttackEnd);
+    FLOWER_MIMIC_NERVE(FlowerMimicNrvEat, exeMimicEat);
+    FLOWER_MIMIC_NERVE(FlowerMimicNrvEatEnd, exeMimicEatEnd);
 
     class FlowerMimicNrvBind : public Nerve {
     public:
@@ -61,7 +61,7 @@ void FlowerMimic::init(const JMapInfoIter& rIter) {
 
     mScaleCtrl = new AnimScaleController(nullptr);
 
-    mJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &FlowerMimic::fn_80180DE0, "LeafCenter");
+    mJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &FlowerMimic::rotateJointByAngle, "LeafCenter");
 
     mSpring = new SpringValue();
     mSpring->setParam(0.0f, 0.0f, 0.05f, 0.88f, 0.0f);
@@ -98,7 +98,7 @@ void FlowerMimic::control() {
     }
     mFloorTouchFlag = false;
 
-    if (fn_80181060()) {
+    if (isNotEatingNerve()) {
         if (mBindStarPointer->tryStartPointBind()) {
             MR::validateCollisionParts(this);
             setNerve(&FlowerMimicNrvBind::sInstance);
@@ -123,7 +123,7 @@ void FlowerMimic::calcAndSetBaseMtx() {
     }
 }
 
-bool FlowerMimic::fn_80180DE0(TPos3f* pMtx, const JointControllerInfo&) {
+bool FlowerMimic::rotateJointByAngle(TPos3f* pMtx, const JointControllerInfo&) {
     MR::rotateMtxLocalYDegree(pMtx->mMtx, mAngle);
     return true;
 }
@@ -181,14 +181,14 @@ bool FlowerMimic::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     return false;
 }
 
-bool FlowerMimic::fn_80181060() const {
+bool FlowerMimic::isNotEatingNerve() const {
     if (isNerve(&FlowerMimicNrvEat::sInstance) || isNerve(&FlowerMimicNrvEatEnd::sInstance) || isNerve(&FlowerMimicNrvBind::sInstance)) {
         return false;
     }
     return true;
 }
 
-void FlowerMimic::fn_801810D0() {
+void FlowerMimic::exeMimicWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::validateClipping(this);
@@ -200,7 +200,7 @@ void FlowerMimic::fn_801810D0() {
     }
 }
 
-void FlowerMimic::fn_80181150() {
+void FlowerMimic::exeMimicAttackSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackSign");
     }
@@ -209,7 +209,7 @@ void FlowerMimic::fn_80181150() {
     }
 }
 
-void FlowerMimic::fn_801811C0() {
+void FlowerMimic::exeMimicAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
         mTimer = 0;
@@ -222,7 +222,7 @@ void FlowerMimic::fn_801811C0() {
     }
 }
 
-void FlowerMimic::fn_80181250() {
+void FlowerMimic::exeMimicAttackEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackEnd");
         MR::validateCollisionParts(this);
@@ -232,7 +232,7 @@ void FlowerMimic::fn_80181250() {
     }
 }
 
-void FlowerMimic::fn_801812C0() {
+void FlowerMimic::exeMimicEat() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Eat");
         MR::hidePlayer();
@@ -243,7 +243,7 @@ void FlowerMimic::fn_801812C0() {
 }
 
 // NONMATCHING: register allocation only (target keeps the inlined operator- operand addresses in callee-saved registers)
-void FlowerMimic::fn_80181320() {
+void FlowerMimic::exeMimicEatEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "EatEnd");
         mPrevOffset.set(mOffset);

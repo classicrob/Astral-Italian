@@ -37,7 +37,7 @@ namespace NrvBombBirdBomb {
     NEW_NERVE(HostTypeNrvBindStarPointer, BombBirdBomb, BindStarPointer);
 };  // namespace NrvBombBirdBomb
 
-BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), mBindStarPtr(), _94(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 0.0f), _B4(0) {
+BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), mBindStarPtr(), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mMoment(0.0f, 0.0f, 0.0f), mSpinCooldown(0) {
 }
 
 void BombBirdBomb::init(const JMapInfoIter& rIter) {
@@ -58,12 +58,12 @@ void BombBirdBomb::kill() {
 }
 
 void BombBirdBomb::control() {
-    _A4.mult(::sMomentFric);
-    MR::rotateQuatMoment(&_94, _A4);
+    mMoment.mult(::sMomentFric);
+    MR::rotateQuatMoment(&mPoseQuat, mMoment);
 }
 
 void BombBirdBomb::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _94);
+    MR::setBaseTRMtx(this, mPoseQuat);
     MR::setBaseScale(this, mScale);
 }
 
@@ -82,8 +82,8 @@ void BombBirdBomb::start(const TVec3f& rTrans, const TVec3f& rVelocity) {
     setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait));
     mVelocity.set(rVelocity);
     MR::emitEffect(this, "LocusSmoke");
-    _B0 = 150;
-    _B4 = 0;
+    mExplodeCountdown = 150;
+    mSpinCooldown = 0;
 }
 
 void BombBirdBomb::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -124,9 +124,9 @@ bool BombBirdBomb::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
         return true;
     }
 
-    if (MR::isMsgSupportTicoSpin(msg) && _B4 == 0 && !isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
+    if (MR::isMsgSupportTicoSpin(msg) && mSpinCooldown == 0 && !isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
         MR::fn_80012B80(this, 18.0f, 18.0f, pSender, pReceiver, 4);
-        _B4 = 30;
+        mSpinCooldown = 30;
         setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait));
         return true;
     }
@@ -149,9 +149,9 @@ bool BombBirdBomb::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
 
 void BombBirdBomb::exeBindStarPointer() {
     MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBirdBomb, HostTypeNrvWait));
-    _B4 = _B4 - 1;
-    if (_B4 < 0) {
-        _B4 = 0;
+    mSpinCooldown = mSpinCooldown - 1;
+    if (mSpinCooldown < 0) {
+        mSpinCooldown = 0;
     }
 }
 
@@ -187,14 +187,14 @@ void BombBirdBomb::exeWait() {
         }
     }
 
-    if (_B4 == 0 && mBindStarPtr->tryStartPointBind()) {
+    if (mSpinCooldown == 0 && mBindStarPtr->tryStartPointBind()) {
         setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvBindStarPointer));
         return;
     }
-    if (--_B4 < 0) {
-        _B4 = 0;
+    if (--mSpinCooldown < 0) {
+        mSpinCooldown = 0;
     }
-    if (--_B0 < 0) {
+    if (--mExplodeCountdown < 0) {
         setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion));
     }
 }

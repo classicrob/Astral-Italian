@@ -14,7 +14,7 @@ namespace NrvInformationMessage {
 };  // namespace NrvInformationMessage
 
 InformationMessage::InformationMessage(bool isCenter)
-    : LayoutActor("インフォメーションメッセージ", true), mAButtonIcon(nullptr), mWindowType(0), mIsCenter(isCenter), _35(false) {
+    : LayoutActor("インフォメーションメッセージ", true), mAButtonIcon(nullptr), mWindowType(0), mIsCenter(isCenter), mIsAButtonOpened(false) {
 }
 
 void InformationMessage::init(const JMapInfoIter& rIter) {
@@ -78,7 +78,7 @@ void InformationMessage::appear() {
     MR::startAnim(this, "Appear", 0);
     MR::startAnim(this, "Line", 1);
     MR::setAnimFrameAndStopAdjustTextHeight(this, getInfConfirmName(), 1);
-    _35 = false;
+    mIsAButtonOpened = false;
     setNerve(GET_NERVE(InformationMessage, InformationMessageNrvAppear));
     LayoutActor::appear();
 }
@@ -96,7 +96,7 @@ void InformationMessage::setAButtonPos() {
     }
     mAButtonIcon->setFollowActorPane(this, pane);
     mAButtonIcon->openWithoutMessage();
-    _35 = true;
+    mIsAButtonOpened = true;
     MR::requestMovementOn(mAButtonIcon);
 }
 
@@ -133,7 +133,7 @@ void InformationMessage::exeAppear() {
 void InformationMessage::exeWait() {
     MR::startAnimAtFirstStep(this, "Wait", 0);
 
-    if (!_35) {
+    if (!mIsAButtonOpened) {
         return;
     }
 

@@ -106,15 +106,15 @@ Metbo::Metbo(const char* pName) : LiveActor(pName) {
     mAnimScaleController = nullptr;
     mStarPointerBind = nullptr;
     mStateDPDSwoon = nullptr;
-    _98.x = 0.0f;
-    _98.y = 0.0f;
-    _98.z = 0.0f;
-    _A4.x = 0.0f;
-    _A4.y = 0.0f;
-    _A4.z = 1.0f;
-    _B0.x = 0.0f;
-    _B0.y = 0.0f;
-    _B0.z = 0.0f;
+    mHomePos.x = 0.0f;
+    mHomePos.y = 0.0f;
+    mHomePos.z = 0.0f;
+    mFront.x = 0.0f;
+    mFront.y = 0.0f;
+    mFront.z = 1.0f;
+    mWalkDir.x = 0.0f;
+    mWalkDir.y = 0.0f;
+    mWalkDir.z = 0.0f;
     mIsClipped = false;
 }
 
@@ -131,9 +131,9 @@ void Metbo::init(const JMapInfoIter& rIter) {
     mStateDPDSwoon = new WalkerStateBindStarPointer(this, mAnimScaleController);
 
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, getBaseMtx(), TVec3f(0.0f, 80.0f, 0.0f));
-    MR::calcFrontVec(&_A4, this);
+    MR::calcFrontVec(&mFront, this);
     mSpinHitController = new SpinHitController(this, 20, 4, 0.2f, 40.0f, 20.0f);
-    _98.set(mPosition);
+    mHomePos.set(mPosition);
     initNerve(GET_NERVE(Metbo, MetboNrvWait), 2);
     MR::initActorState(this, mStarPointerBind, GET_NERVE(Metbo, MetboNrvDPDSwoon), "SupportFreezeStand");
     MR::initActorState(this, mStateDPDSwoon, GET_NERVE(Metbo, MetboNrvDPDSwoonSwoon), "SupportFreezeSwoon");
@@ -186,9 +186,9 @@ void Metbo::exeWalkAround() {
         MR::startAction(this, "Walk");
     }
 
-    bool isNear = MR::isNear(this, _98, ::sWalkAroundRadius) == false;
-    if (isNear || MR::isBindedWallOfMoveLimit(this) || MR::isFallNextMove(mPosition, _A4, mGravity, 200.0f, 100.0f, 300.0f, nullptr)) {
-        _B0.sub(_98, mPosition);
+    bool isNear = MR::isNear(this, mHomePos, ::sWalkAroundRadius) == false;
+    if (isNear || MR::isBindedWallOfMoveLimit(this) || MR::isFallNextMove(mPosition, mFront, mGravity, 200.0f, 100.0f, 300.0f, nullptr)) {
+        mWalkDir.sub(mHomePos, mPosition);
     } else if (!(getNerveStep() % 10)) {
         TVec3f upVec;
         f32 angle;
@@ -198,11 +198,11 @@ void Metbo::exeWalkAround() {
         } else {
             angle = 1.0f;
         }
-        MR::rotateVecDegree(&_B0, upVec, (::sWalkAroundTurn * angle));
+        MR::rotateVecDegree(&mWalkDir, upVec, (::sWalkAroundTurn * angle));
     }
 
     TVec3f v;
-    v.add(_B0, mPosition);
+    v.add(mWalkDir, mPosition);
     moveOrFall(::sWalkAroundParam, &v);
     if (!trySearch() && MR::isStep(this, ::sStepForWalkAround)) {
         if (MR::getRandom(0l, 2l)) {
@@ -250,7 +250,7 @@ void Metbo::exeChase() {
     }
 
     moveOrFall(::sChaseParam, nullptr);
-    if (MR::isFallNextMove(mPosition, _A4, mGravity, 200.0f, 100.0f, 300.0f, nullptr)) {
+    if (MR::isFallNextMove(mPosition, mFront, mGravity, 200.0f, 100.0f, 300.0f, nullptr)) {
         setNerve(GET_NERVE(Metbo, MetboNrvRest));
         return;
     }
@@ -266,7 +266,7 @@ void Metbo::exeChase() {
 }
 
 void Metbo::endChase() {
-    _98.set(mPosition);
+    mHomePos.set(mPosition);
 }
 
 void Metbo::exeGuard() {
@@ -334,7 +334,7 @@ void Metbo::exeSwoonStart() {
         MR::startAction(this, "SwoonStart");
         MR::startActionSound(this, "EmCrashS");
     } else {
-        MR::moveAndTurnToPlayer(this, &_A4, ::sFallParam._0, ::sFallParam._4, ::sFallParam._8, ::sFallParam._C);
+        MR::moveAndTurnToPlayer(this, &mFront, ::sFallParam._0, ::sFallParam._4, ::sFallParam._8, ::sFallParam._C);
         if (MR::isBindedGround(this)) {
             setNerve(GET_NERVE(Metbo, MetboNrvSwoonLand));
         }
@@ -406,7 +406,7 @@ void Metbo::makeActorAppeared() {
 
 void Metbo::calcAndSetBaseMtx() {
     TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, _A4);
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
     MR::blendMtx(getBaseMtx(), mtx, 0.3f, mtx);
     MR::setBaseTRMtx(this, mtx);
     MR::updateBaseScale(this, mAnimScaleController);
@@ -598,9 +598,9 @@ void Metbo::moveOrFall(const MR::ActorMoveParam& a1, const TVec3f* a2) {
     TVec3f v;
     v = a2 ? *a2 : *MR::getPlayerPos();
     if (MR::isBindedGround(this)) {
-        MR::moveAndTurnToTarget(this, &_A4, v, a1._0, a1._4, a1._8, a1._C);
+        MR::moveAndTurnToTarget(this, &mFront, v, a1._0, a1._4, a1._8, a1._C);
     } else {
-        MR::moveAndTurnToTarget(this, &_A4, v, ::sFallParam._0, ::sFallParam._4, ::sFallParam._8, ::sFallParam._C);
+        MR::moveAndTurnToTarget(this, &mFront, v, ::sFallParam._0, ::sFallParam._4, ::sFallParam._8, ::sFallParam._C);
     }
 }
 
@@ -613,9 +613,9 @@ void Metbo::startSwoon(bool isFromPlayer) {
     mVelocity.scale(45.0f, v);
 
     if (isFromPlayer) {
-        MR::turnDirectionFromPlayerDegree(this, &_A4, 180.0f);
+        MR::turnDirectionFromPlayerDegree(this, &mFront, 180.0f);
     } else {
-        MR::turnDirectionToPlayerDegree(this, &_A4, 180.0f);
+        MR::turnDirectionToPlayerDegree(this, &mFront, 180.0f);
     }
     MR::invalidateClipping(this);
     setNerve(GET_NERVE(Metbo, MetboNrvSwoonStart));

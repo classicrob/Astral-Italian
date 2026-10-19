@@ -77,7 +77,7 @@ void OnimasuJump::updatePoseInner() {
     TVec3f gravityDir;
     calcGravityDir(&gravityDir);
 
-    _90->calcHostVelocity(gravityDir * getGravityScalar());
+    mStateParam->calcHostVelocity(gravityDir * getGravityScalar());
 }
 
 s32 OnimasuJump::getNextPointNo() const {

@@ -120,11 +120,11 @@ public:
     /* 0x9C */ TVec3f mFaceVec;
     /* 0xA8 */ TVec3f mTargetVec;
 
-    /* 0xB4 */ TVec3f _A8;
-    /* 0xC0 */ TVec3f _B4;
+    /* 0xB4 */ TVec3f mPreviousGravity;
+    /* 0xC0 */ TVec3f mHeadScale;
 
-    /* 0xCC */ TQuat4f _C0;
-    /* 0xDC */ TQuat4f _D0;
+    /* 0xCC */ TQuat4f mBaseRotation;
+    /* 0xDC */ TQuat4f mSpinRotation;
 
     /* 0xEC */ s32 mTiredCounter;
     /* 0xF0 */ s32 mElectricCounter;
@@ -152,10 +152,10 @@ public:
     void exeReceive();
     inline void exePermit();
 
-    /* 0x8C */ BegomanBase* _8C;
-    /* 0x90 */ BegomanBase* mBegoman;
+    /* 0x90 */ BegomanBase* mPermittedBegoman;
+    /* 0x94 */ BegomanBase* mBegoman;
 
-    /* 0x94 */ f32 mDistToPlayer;
+    /* 0x98 */ f32 mDistToPlayer;
 
-    /* 0x98 */ bool _98;
+    /* 0x9C */ bool mHasAttackRequest;
 };

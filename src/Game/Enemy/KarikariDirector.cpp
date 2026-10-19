@@ -23,7 +23,7 @@ namespace {
 };  // namespace
 
 KarikariDirector::KarikariDirector(const char* pName)
-    : LiveActorGroup(pName, 128), mClingNum(0), mClingJointMtxs(nullptr), mClingPositions(nullptr), mClingingKarikari(nullptr) {
+    : LiveActorGroup(pName, 128), mClingNum(0), mClingJointMtxs(nullptr), mClingPositions(nullptr) {
     MR::connectToSceneEnemyMovement(this);
     mClingJointMtxs = new TPos3f[5];
     mClingPositions = new FixedPosition*[::hKarikariHoldingMax];

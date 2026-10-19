@@ -33,13 +33,13 @@ namespace NrvOtaRock {
     NEW_NERVE(OtaRockNrvShow, OtaRock, Show);
     class OtaRockNrvOpeningDemo : public Nerve {
     public:
-        virtual void execute(Spine* spine) const { static_cast<OtaRock*>(spine->mExecutor)->fn_801DD210(); }
+        virtual void execute(Spine* spine) const { static_cast<OtaRock*>(spine->mExecutor)->exeOtaRockOpeningDemo(); }
         static OtaRockNrvOpeningDemo sInstance;
     };
     OtaRockNrvOpeningDemo OtaRockNrvOpeningDemo::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvOtaRock
 
-void OtaRock::fn_801DC550(const JMapInfoIter& rIter) {
+void OtaRock::initOtaRockPlacement(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initUseStageSwitchReadA(this, rIter);
     MR::initUseStageSwitchWriteDead(this, rIter);
@@ -52,7 +52,7 @@ void OtaRock::fn_801DC550(const JMapInfoIter& rIter) {
     }
 }
 
-void OtaRock::fn_801DCC50() {
+void OtaRock::chooseWaitNerve() {
     if (this->mNoThrowCocoNut) {
         this->setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
     } else {
@@ -61,7 +61,7 @@ void OtaRock::fn_801DCC50() {
 }
 
 
-void OtaRock::fn_801DD210() {
+void OtaRock::exeOtaRockOpeningDemo() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
     }
@@ -69,11 +69,11 @@ void OtaRock::fn_801DD210() {
     this->updateBaseMtx();
 
     if (!MR::isStageStateScenarioOpeningCamera()) {
-        this->fn_801DCC50();
+        this->chooseWaitNerve();
     }
 }
 
-bool OtaRock::fn_801DCC00() {
+bool OtaRock::tryStartOpeningDemo() {
     if (MR::isStageStateScenarioOpeningCamera()) {
         this->setNerve(GET_NERVE(OtaRock, OtaRockNrvOpeningDemo));
         return true;
@@ -83,12 +83,12 @@ bool OtaRock::fn_801DCC00() {
 
 OtaRock::OtaRock(const char* pName)
     : LiveActor(pName), mNoThrowCocoNut(false), mCocoNutArray(nullptr), mFireBallArray(nullptr), mFixedPosition(nullptr),
-      mThrowCocoNutCounter(1), mWaitFrame(0), _A4(), _D4(0.0f, 0.0f, 1.0f), mAnimScaleController(nullptr) {
-    _A4.identity();
+      mThrowCocoNutCounter(1), mWaitFrame(0), mBaseMtx(), mFront(0.0f, 0.0f, 1.0f), mAnimScaleController(nullptr) {
+    mBaseMtx.identity();
 }
 
 void OtaRock::init(const JMapInfoIter& rIter) {
-    this->fn_801DC550(rIter);
+    this->initOtaRockPlacement(rIter);
     MR::calcGravity(this);
     initModel();
     MR::connectToSceneEnemy(this);
@@ -99,7 +99,7 @@ void OtaRock::init(const JMapInfoIter& rIter) {
     MR::addToAttributeGroupSearchTurtle(this);
     mAnimScaleController = new AnimScaleController(nullptr);
     initNerve(GET_NERVE(OtaRock, OtaRockNrvWait), 0);
-    this->fn_801DCC50();
+    this->chooseWaitNerve();
 
     if (MR::isExistStageSwitchAwake(rIter)) {
         makeActorDead();
@@ -140,7 +140,7 @@ void OtaRock::control() {
 }
 
 void OtaRock::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _A4);
+    MR::setBaseTRMtx(this, mBaseMtx);
     TVec3f scale = mAnimScaleController->_C * mScale;
     MR::setBaseScale(this, scale);
 }
@@ -199,7 +199,7 @@ void OtaRock::initModel() {
 
     TPos3f mtxTR;
     MR::makeMtxTR(mtxTR.toMtxPtr(), this);
-    mtxTR.getZDir(_D4);
+    mtxTR.getZDir(mFront);
 }
 
 void OtaRock::initSensor() {
@@ -211,12 +211,12 @@ void OtaRock::updateBaseMtx() {
     TVec3f up = -mGravity;
     TVec3f front;
     if (MR::isStageStateScenarioOpeningCamera()) {
-        front.set(_D4);
+        front.set(mFront);
     } else {
         front.sub(*MR::getPlayerPos(), mPosition);
         MR::normalize(&front);
     }
-    MR::makeMtxUpFrontPos(&_A4, up, front, mPosition);
+    MR::makeMtxUpFrontPos(&mBaseMtx, up, front, mPosition);
 }
 
 CocoNutBall* OtaRock::getDisappearedCocoNut() {
@@ -310,7 +310,7 @@ void OtaRock::exeWait() {
         }
     }
     updateBaseMtx();
-    if (!this->fn_801DCC00() && !tryToHide() && MR::isGreaterStep(this, mWaitFrame)) {
+    if (!this->tryStartOpeningDemo() && !tryToHide() && MR::isGreaterStep(this, mWaitFrame)) {
         if (!mNoThrowCocoNut && mThrowCocoNutCounter < 1) {
             if (isValidThrowCocoNut()) {
                 setNerve(GET_NERVE(OtaRock, OtaRockNrvThrowCocoNut));
@@ -403,7 +403,7 @@ void OtaRock::exeHideWait() {
     }
     updateBaseMtx();
 
-    if (this->fn_801DCC00()) {
+    if (this->tryStartOpeningDemo()) {
         return;
     }
 

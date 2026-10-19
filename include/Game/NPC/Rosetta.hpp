@@ -22,6 +22,6 @@ public:
 
 private:
     /* 0x164 */ TurnJointCtrl* mTurnJointCtrl;
-    /* 0x168 */ bool _168;
+    /* 0x168 */ bool mShouldGivePowerStar;
     /* 0x16C */ TakeOutStar* mTakeOutStar;
 };

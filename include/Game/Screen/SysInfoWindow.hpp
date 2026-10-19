@@ -71,7 +71,7 @@ public:
     /* 0x2C */ IconAButton* mIconAButton;
     /* 0x30 */ const char* mTextParentPaneName;
     /* 0x34 */ const char* mWindowParentPaneName;
-    /* 0x38 */ bool _38;
+    /* 0x38 */ bool mIsExecuteChildren;
 };
 
 namespace MR {

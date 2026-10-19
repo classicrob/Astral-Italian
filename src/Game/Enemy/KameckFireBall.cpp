@@ -75,7 +75,6 @@ void KameckFireBall::makeActorAppeared() {
 
 void KameckFireBall::makeActorDead() {
     LiveActor::makeActorDead();
-    mEventListener = nullptr;
 }
 
 void KameckFireBall::control() {
@@ -90,9 +89,7 @@ void KameckFireBall::calcAndSetBaseMtx() {
 void KameckFireBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(BossKameckBeamFire, KameckFireBallNrvWait))) {
         if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
-            if (mEventListener != nullptr) {
-                mEventListener->hitBeam();
-            }
+            KameckBeamProjectile::notifyBeamHit();
 
             kill();
         }
@@ -166,10 +163,10 @@ void KameckFireBall::exeSweep() {
     }
 }
 
-void KameckFireBall::fn_801A7180() {
+void KameckFireBall::resetBeamProjectile() {
     kill();
 }
 
-bool KameckFireBall::fn_801A78B0() const {
+bool KameckFireBall::isBeamProjectileDead() const {
     return MR::isDead(this);
 }

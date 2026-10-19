@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/NPC/SignBoard.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -15,10 +16,11 @@ namespace NrvSignBoard {
 };  // namespace NrvSignBoard
 
 SignBoard::SignBoard(const char* pName) : NPCActor(pName) {
-    _164 = -1;
-    _168 = 0;
+    mSupportPlayMode = -1;
+    mSupportPlayActive = 0;
 }
 
+// NONMATCHING: initialization scheduling and scalar-pool relocations differ.
 void SignBoard::init(const JMapInfoIter& rIter) {
     const char* name;
     MR::getObjectName(&name, rIter);
@@ -28,24 +30,23 @@ void SignBoard::init(const JMapInfoIter& rIter) {
     caps._95 = false;
     caps._10 = "SignBoard";
 
-    MR::getJMapInfoArg0NoInit(rIter, &_164);
-    if (_164 == 0) {
+    MR::getJMapInfoArg0NoInit(rIter, &mSupportPlayMode);
+    if (mSupportPlayMode == 0) {
         MR::joinSupportPlayGroup(this);
-        MR::isExistStageSwitchAppear(rIter);
+        if (MR::isExistStageSwitchAppear(rIter)) {
+            caps.mSwitchAppear = true;
+        }
     }
 
     initialize(rIter, caps, name, nullptr, nullptr);
 
     TVec3f up;
-    f32 ux = 1.0f - 2.0f * (_A0.y * _A0.y) - 2.0f * (_A0.w * _A0.w);
-    f32 uy = 2.0f * _A0.y * _A0.z - 2.0f * _B0.x * _A0.w;
-    f32 uz = 2.0f * _A0.z * _A0.w + 2.0f * _B0.x * _A0.y;
-    up.set(ux, uy, uz);
+    _A0.getYDir(up);
 
     MR::setShadowProjection(this, nullptr, mPosition, up, true);
     MR::offCalcShadow(this, nullptr);
 
-    if (_164 == 0 || MR::isValidSwitchAppear(this)) {
+    if (mSupportPlayMode == 0 || MR::isValidSwitchAppear(this)) {
         makeActorDead();
     } else {
         makeActorAppeared();
@@ -56,9 +57,10 @@ void SignBoard::exeWait() {
     MR::tryTalkNearPlayer(getMsgCtrl());
 }
 
+// NONMATCHING: equivalent base-appear calls share one return block.
 void SignBoard::appear() {
-    if (_164 == 0) {
-        if (_168 == 0) {
+    if (mSupportPlayMode == 0) {
+        if (mSupportPlayActive == 0) {
             return;
         }
         if (MR::isDead(this)) {
@@ -73,9 +75,10 @@ void SignBoard::kill() {
     NPCActor::kill();
 }
 
+// NONMATCHING: equivalent base-dead calls share one return block.
 void SignBoard::makeActorDead() {
-    if (_164 == 0 && MR::isValidSwitchAppear(this)) {
-        if (!MR::isDead(this) && _168 != 0) {
+    if (mSupportPlayMode == 0 && MR::isValidSwitchAppear(this)) {
+        if (!MR::isDead(this) && mSupportPlayActive != 0) {
             MR::tryHitReaction(this, "煙");
         }
     }
@@ -87,12 +90,12 @@ bool SignBoard::receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) {
 }
 
 bool SignBoard::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (_164 != 0) {
+    if (mSupportPlayMode != 0) {
         return false;
     }
 
     if (MR::isMsgSupportPlayGroupStart(msg)) {
-        _168 = 1;
+        mSupportPlayActive = 1;
         if (!MR::isValidSwitchAppear(this) || MR::isOnSwitchAppear(this)) {
             appear();
         }
@@ -100,7 +103,7 @@ bool SignBoard::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     }
 
     if (MR::isMsgSupportPlayGroupStop(msg)) {
-        _168 = 0;
+        mSupportPlayActive = 0;
         if (!MR::isDead(this)) {
             kill();
         }

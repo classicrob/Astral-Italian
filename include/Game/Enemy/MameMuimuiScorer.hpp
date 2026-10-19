@@ -10,7 +10,7 @@ class MameMuimuiGroup : public LiveActorGroup {
 public:
     MameMuimuiGroup(const char*, int);
     virtual ~MameMuimuiGroup();
-    MameMuimui* fn_801C1610();  // a dead actor of the group or null
+    MameMuimui* findDeadActor();  // a dead actor of the group or null
 };
 
 class BombTimerLayout;
@@ -51,8 +51,8 @@ public:
     virtual ~MameMuimuiScorer();
     virtual void init(const JMapInfoIter&);
     virtual void control();
-    virtual void fn_801C19C0(s32 points, MameMuimui* pActor);  // body: fn_801C0F80 (score a hit)
-    virtual void fn_801C19B0(MameMuimui* pActor);              // body: fn_801C1050 (combo break)
+    virtual void scoreHit(s32 points, MameMuimui* pActor);  // body: fn_801C0F80 (score a hit)
+    virtual void breakCombo(MameMuimui* pActor);              // body: fn_801C1050 (combo break)
     void registerEndCallback(const MR::FunctorBase&);
     void start();
     bool isPlaying() const;
@@ -63,18 +63,18 @@ public:
     s32 getTargetScore() const;
 
     // SMG2-only members (original names unknown; named by address)
-    void fn_801C0BD0(ResourceHolder* pHolder);  // read the PositionList CSV, create the hole decorations
-    void fn_801C0E30(ResourceHolder* pHolder);  // read the Sequence CSV
-    void fn_801C10A0();                         // nerve: ResetPlayerStart
-    void fn_801C1120();                         // nerve: countdown
-    void fn_801C11B0();                         // nerve: start the timer
-    void fn_801C1220();                         // nerve: time up
-    void fn_801C1350();                         // nerve: playing
-    void fn_801C13F0();                         // nerve: ResetPlayerEnd
-    void fn_801C1470();                         // reset the game state
-    void fn_801C14C0();                         // spawn the next wave
-    void fn_801C1660();                         // retreat every green/spike/yellow muimui
-    bool fn_801C1720();                         // no living muimui left
+    void loadPositionList(ResourceHolder* pHolder);  // read the PositionList CSV, create the hole decorations
+    void loadSequence(ResourceHolder* pHolder);  // read the Sequence CSV
+    void exeResetStart();                         // nerve: ResetPlayerStart
+    void exeMuimuiCountdown();                         // nerve: countdown
+    void exeMuimuiReady();                         // nerve: start the timer
+    void exeMuimuiTimeUp();                         // nerve: time up
+    void exeMuimuiPlay();                         // nerve: playing
+    void exeResetEnd();                         // nerve: ResetPlayerEnd
+    void resetGameState();                         // reset the game state
+    void spawnNextWave();                         // spawn the next wave
+    void retreatAll();                         // retreat every green/spike/yellow muimui
+    bool isNoneAlive();                         // no living muimui left
 
     MameMuimuiGroup* mGroups[3];
     MameMuimuiPlacementSet* mPlacements;

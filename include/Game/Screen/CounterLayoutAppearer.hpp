@@ -31,5 +31,5 @@ private:
     /* 0x08 */ LayoutActor* mLayout;
     /* 0x0C */ TVec2f mAppearOffset;
     /* 0x14 */ TVec2f mFollowPos;
-    /* 0x1C */ TVec2f _1C;
+    /* 0x1C */ TVec2f mExtraOffset;
 };

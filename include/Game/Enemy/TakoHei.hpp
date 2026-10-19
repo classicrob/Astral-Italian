@@ -76,18 +76,18 @@ public:
     bool isFallNextMove() const;
     bool isInSightMario() const;
 
-    /* 0x8C */ AnimScaleController* _8C;
-    /* 0x90 */ WalkerStateBindStarPointer* _90;
+    /* 0x8C */ AnimScaleController* mScaleController;
+    /* 0x90 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x98 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0x94 */ TQuat4f _94;
+    /* 0x94 */ TQuat4f mPoseQuat;
     /* 0xA4 */ TVec3f _A4;
-    /* 0xB0 */ TVec3f _B0;
-    /* 0xBC */ TVec3f _BC;
+    /* 0xB0 */ TVec3f mFront;
+    /* 0xBC */ TVec3f mWalkTarget;
     /* 0xC8 */ TVec3f _C8;
-    /* 0xD4 */ TVec3f _D4;
-    /* 0xE0 */ s32 _E0;
+    /* 0xD4 */ TVec3f mHomePos;
+    /* 0xE0 */ s32 mNoPushStep;
     /* 0xE4 */ s32 _E4;
-    /* 0xE8 */ s32 _E8;
+    /* 0xE8 */ s32 mAirStep;
     /* 0xEC */ u8 _EC;
-    /* 0xED */ u8 _ED;
+    /* 0xED */ u8 mHasMoveLimitCollision;
 };

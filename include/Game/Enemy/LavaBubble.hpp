@@ -21,9 +21,9 @@ public:
     void initPose();
     void resetPose();
     // SMG2-only helpers (original names unknown; named by address)
-    void fn_801BF0A0();
-    void fn_801BF1C0();
-    bool fn_801BF290();
+    void updateUpVecFromVelocity();
+    void launchBubble();
+    bool tryBounceOnGround();
     TVec3f getFallDir() const;
 
 public:

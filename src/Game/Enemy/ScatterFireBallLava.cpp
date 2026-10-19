@@ -21,9 +21,9 @@ namespace {
 
 namespace NrvScatterFireBallLava {
     NEW_NERVE(ScatterFireBallLavaNrvWait, ScatterFireBallLava, Wait);
-    ADDRESS_NERVE(ScatterFireBallLavaNrvAppear, ScatterFireBallLava, fn_8017F540);
+    ADDRESS_NERVE(ScatterFireBallLavaNrvAppear, ScatterFireBallLava, exeLavaAppear);
     NEW_NERVE(ScatterFireBallLavaNrvHold, ScatterFireBallLava, Hold);
-    ADDRESS_NERVE(ScatterFireBallLavaNrvShrink, ScatterFireBallLava, fn_8017F5C0);
+    ADDRESS_NERVE(ScatterFireBallLavaNrvShrink, ScatterFireBallLava, exeLavaShrink);
 }
 
 ScatterFireBallLava::ScatterFireBallLava(LiveActor* host, const char* name) : LiveActor(name), mHost(host), mClipArea(nullptr), mRadius(0.0f) {}
@@ -64,7 +64,7 @@ void ScatterFireBallLava::attackSensor(HitSensor* sender, HitSensor* receiver) {
     }
 }
 
-void ScatterFireBallLava::fn_8017F450(const TVec3f& pos) {
+void ScatterFireBallLava::landAt(const TVec3f& pos) {
     mPosition = pos;
     mRotation.x = 0.0f;
     mRotation.y = 0.0f;
@@ -81,13 +81,13 @@ void ScatterFireBallLava::fn_8017F450(const TVec3f& pos) {
     clip->appear();
 }
 
-void ScatterFireBallLava::fn_8017F540() {
+void ScatterFireBallLava::exeLavaAppear() {
     s32 size = cBaseSize;
     mRadius = size * MR::calcNerveRate(this, 60);
     if (MR::isGreaterEqualStep(this, 60)) setNerve(GET_NERVE(ScatterFireBallLava, ScatterFireBallLavaNrvHold));
 }
 
-void ScatterFireBallLava::fn_8017F5C0() {
+void ScatterFireBallLava::exeLavaShrink() {
     if (MR::isFirstStep(this)) MR::startActionSound(this, "Shrink", -1, -1, -1);
     s32 size = cBaseSize;
     mRadius = size * (1.0f - MR::calcNerveRate(this, 60));

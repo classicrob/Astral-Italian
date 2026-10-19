@@ -99,8 +99,8 @@ namespace NrvBegomanAttackPermitter {
 };  // namespace NrvBegomanAttackPermitter
 
 BegomanBase::BegomanBase(const char* pName)
-    : LiveActor(pName), ChangeObj(this), mBaseDelegator(), mFaceVec(0, 0, 1), mTargetVec(0, 0, 1), _A8(0, 0, -1), _B4(1, 1, 1),
-      _C0(0, 0, 0, 1), _D0(0, 0, 0, 1), mTiredCounter(), mElectricCounter(), mInitPos(0, 0, 0), mScaleControler(), mStarPointBind(),
+    : LiveActor(pName), ChangeObj(this), mBaseDelegator(), mFaceVec(0, 0, 1), mTargetVec(0, 0, 1), mPreviousGravity(0, 0, -1), mHeadScale(1, 1, 1),
+      mBaseRotation(0, 0, 0, 1), mSpinRotation(0, 0, 0, 1), mTiredCounter(), mElectricCounter(), mInitPos(0, 0, 0), mScaleControler(), mStarPointBind(),
       mCanTrySetReturn() {
 }
 
@@ -142,8 +142,8 @@ void BegomanBase::initCore(const JMapInfoIter& rIter, const char* pModelArcName,
     MR::onCalcGravity(this);
     MR::initLightCtrl(this);
 
-    _C0.setEulerDegree(mRotation.x, mRotation.y, mRotation.z);
-    _C0.getZDir(mFaceVec);
+    mBaseRotation.setEulerDegree(mRotation.x, mRotation.y, mRotation.z);
+    mBaseRotation.getZDir(mFaceVec);
     MR::setRotation(this, 0.0f);
 }
 
@@ -246,13 +246,13 @@ void BegomanBase::control() {
         blendVec.set(upVec);
     }
 
-    MR::makeQuatUpFront(&_C0, blendVec, mFaceVec);
-    _A8.set(mGravity);
+    MR::makeQuatUpFront(&mBaseRotation, blendVec, mFaceVec);
+    mPreviousGravity.set(mGravity);
 
     f32 rotY = mRotation.y;
     TVec3f yAxis(0, 1, 0);
     yRotationQuat.setRotate(yAxis, rotY);
-    PSQUATMultiply(&yRotationQuat, &_D0, &_D0);
+    PSQUATMultiply(&yRotationQuat, &mSpinRotation, &mSpinRotation);
 }
 
 void BegomanBase::startClipped() {
@@ -918,7 +918,7 @@ void BegomanBase::pushedFromElectricRail(HitSensor* pSensor, const TVec3f& rVec1
 
 void BegomanBase::preventSwingby(f32 f1) {
     if (!MR::isOnGround(this)) {
-        f32 mag = (mGravity - _A8).length();
+        f32 mag = (mGravity - mPreviousGravity).length();
         mag *= 0.5f;
         dampingVerticalAndParallelVelocity(f1, mag);
     }
@@ -1004,7 +1004,7 @@ void BegomanBase::calcAnimCore(TPos3f* pPos) {
 
 bool BegomanBase::calcJointLocator1(TPos3f* pPos, const JointControllerInfo& rJointInfo) {
     TPos3f v9;
-    TQuat4f rotation(_D0);
+    TQuat4f rotation(mSpinRotation);
     v9.makeQuat(rotation);
     pPos->concat(*pPos, v9);
     return true;
@@ -1012,13 +1012,13 @@ bool BegomanBase::calcJointLocator1(TPos3f* pPos, const JointControllerInfo& rJo
 
 // NONMATCHING: pointer register allocation.
 void BegomanBase::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _C0);
+    MR::setBaseTRMtx(this, mBaseRotation);
 
     if (mScaleControler != nullptr) {
         TVec3f scale;
 
         scale.set(mScaleControler->_C);
-        _B4.set(scale);
+        mHeadScale.set(scale);
         scale *= mScale;
         MR::setBaseScale(this, scale);
     }
@@ -1035,11 +1035,11 @@ void BegomanBase::doChange(ChangeObj* pOther) {
     TVec3f zDir;
     MR::extractMtxYDir(pMtx, &yDir);
     MR::extractMtxZDir(pMtx, &zDir);
-    MR::makeQuatUpFront(&_C0, yDir, zDir);
+    MR::makeQuatUpFront(&mBaseRotation, yDir, zDir);
 
-    _C0.getZDir(mFaceVec);
+    mBaseRotation.getZDir(mFaceVec);
     mTargetVec = mFaceVec;
-    _A8 = mGravity;
+    mPreviousGravity = mGravity;
     MR::setRotation(this, 0.0f);
 
     TVec3f gravityOffset(TVec3f(-mGravity));
@@ -1054,7 +1054,7 @@ bool BegomanBase::requestAttack() {
     return MR::getSceneObj< BegomanAttackPermitter* >(SceneObj_BegomanAttackPermitter)->requestAttack(this);
 }
 
-BegomanAttackPermitter::BegomanAttackPermitter(const char* pName) : LiveActor(pName), _8C(), mBegoman(), mDistToPlayer(99999.0f), _98() {
+BegomanAttackPermitter::BegomanAttackPermitter(const char* pName) : LiveActor(pName), mPermittedBegoman(), mBegoman(), mDistToPlayer(99999.0f), mHasAttackRequest() {
 }
 
 void BegomanAttackPermitter::init(const JMapInfoIter& rIter) {
@@ -1065,7 +1065,7 @@ void BegomanAttackPermitter::init(const JMapInfoIter& rIter) {
 }
 
 void BegomanAttackPermitter::control() {
-    _98 = false;
+    mHasAttackRequest = false;
 }
 
 bool BegomanAttackPermitter::requestAttack(BegomanBase* pBegoman) {
@@ -1077,7 +1077,7 @@ bool BegomanAttackPermitter::requestAttack(BegomanBase* pBegoman) {
         return !isNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvPermit));
     }
 
-    _98 = true;
+    mHasAttackRequest = true;
 
     if (isNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvReceive)) || isNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvWait))) {
         if (mBegoman == nullptr) {
@@ -1097,7 +1097,7 @@ bool BegomanAttackPermitter::requestAttack(BegomanBase* pBegoman) {
     }
 
     if (isNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvPermit))) {
-        _8C = mBegoman;
+        mPermittedBegoman = mBegoman;
         if (mBegoman == pBegoman) {
             // nerve is already HostTypeNrvPermit if code gets here??
             setNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvPermit));
@@ -1110,14 +1110,14 @@ bool BegomanAttackPermitter::requestAttack(BegomanBase* pBegoman) {
 
 void BegomanAttackPermitter::exeWait() {
     if (MR::isFirstStep(this)) {
-        _8C = nullptr;
+        mPermittedBegoman = nullptr;
         mBegoman = nullptr;
         mDistToPlayer = 99999.0f;
     }
 }
 
 void BegomanAttackPermitter::exeReceive() {
-    if (!_98) {
+    if (!mHasAttackRequest) {
         setNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvWait));
     } else if (MR::isGreaterStep(this, ::hReceiveLimitTime)) {
         setNerve(GET_NERVE(BegomanAttackPermitter, HostTypeNrvPermit));

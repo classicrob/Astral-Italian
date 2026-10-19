@@ -65,8 +65,8 @@ Kabokuri::Kabokuri(const char* pName)
     : LiveActor(pName), mKuribo(), mBreakModel(), mHeadModel(), mAnimeScale(), mStateBindStartPointer(), mYoshiLockOn(), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
       mFrontVec(0.0f, 0.0f, 1.0f), _B8(-1), mCounter(0), mIsValidDropFire() {
     KabokuriFireHolderFunc::createHolder();
-    _9C.identity();
-    _CC.identity();
+    mHeadMtx.identity();
+    mHeadInvMtx.identity();
 }
 
 void Kabokuri::init(const JMapInfoIter& rIter) {
@@ -113,7 +113,7 @@ void Kabokuri::init(const JMapInfoIter& rIter) {
     mBreakModel = MR::createModelObjMapObjStrongLight("壊れモデル", "KabokuriBreak", getBaseMtx());
     mBreakModel->kill();
     // "Eaten model"
-    mHeadModel = MR::createModelObjMapObjStrongLight("食べられモデル", "KabokuriHead", _9C);
+    mHeadModel = MR::createModelObjMapObjStrongLight("食べられモデル", "KabokuriHead", mHeadMtx);
     mHeadModel->kill();
 
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Head", TVec3f(0.0f));
@@ -162,8 +162,8 @@ void Kabokuri::exeEaten() {
         MR::hideModel(this);
     }
 
-    MR::makeMtxTR(_9C, mPosition, mRotation);
-    _9C.concat(_CC);
+    MR::makeMtxTR(mHeadMtx, mPosition, mRotation);
+    mHeadMtx.concat(mHeadInvMtx);
     MR::setScale(mHeadModel, mScale);
 }
 
@@ -172,10 +172,10 @@ bool Kabokuri::requestEaten() {
         return false;
     }
 
-    mKuribo->fn_801B9BD0(mPosition, mRotationQuat);
+    mKuribo->appearKuriboFromBox(mPosition, mRotationQuat);
     mKuribo->mGravity.set(mGravity);
-    _9C.set(*reinterpret_cast< TMtx34f* >(MR::getJointMtx(this, "Head")));
-    MR::inverseConcatMtx(getBaseMtx(), MR::getJointMtx(this, "Head"), &_CC);
+    mHeadMtx.set(*reinterpret_cast< TMtx34f* >(MR::getJointMtx(this, "Head")));
+    MR::inverseConcatMtx(getBaseMtx(), MR::getJointMtx(this, "Head"), &mHeadInvMtx);
     MR::copyTransRotateScale(this, mHeadModel);
     mHeadModel->appear();
     MR::invalidateHitSensors(this);
@@ -450,7 +450,7 @@ void Kabokuri::exeStarPieceHitted() {
 void Kabokuri::exeHipDropped() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "EmStompedS");
-        mKuribo->fn_801B9C60(mPosition, mRotationQuat);
+        mKuribo->appearKuriboHipDroppedWithoutBind(mPosition, mRotationQuat);
         mKuribo->mGravity.set(mGravity);
         MR::invalidateClipping(this);
         setNerve(GET_NERVE(Kabokuri, KabokuriNrvBreak));

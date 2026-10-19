@@ -10,7 +10,7 @@ namespace NrvBeeEater {
     class BeeEaterNrvHit : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015C9E0();
+            static_cast<BeeEater*>(pSpine->mExecutor)->exeBeeEaterWaitAfterHit();
         }
         static BeeEaterNrvHit sInstance;
     };
@@ -18,7 +18,7 @@ namespace NrvBeeEater {
     class BeeEaterNrvFind : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CA50();
+            static_cast<BeeEater*>(pSpine->mExecutor)->exeBeeEaterFind();
         }
         static BeeEaterNrvFind sInstance;
     };
@@ -35,7 +35,7 @@ namespace NrvBeeEater {
     class BeeEaterNrvAttack : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CAD0();
+            static_cast<BeeEater*>(pSpine->mExecutor)->exeBeeEaterAttackSign();
         }
         static BeeEaterNrvAttack sInstance;
     };
@@ -43,7 +43,7 @@ namespace NrvBeeEater {
     class BeeEaterNrvAttackEnd : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CC00();
+            static_cast<BeeEater*>(pSpine->mExecutor)->exeBeeEaterAttack();
         }
         static BeeEaterNrvAttackEnd sInstance;
     };
@@ -51,7 +51,7 @@ namespace NrvBeeEater {
     class BeeEaterNrvAttackSuccess : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CCB0();
+            static_cast<BeeEater*>(pSpine->mExecutor)->exeBeeEaterAttackEnd();
         }
         static BeeEaterNrvAttackSuccess sInstance;
     };
@@ -59,7 +59,7 @@ namespace NrvBeeEater {
     class BeeEaterNrvAttackDash : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CDC0();
+            static_cast<BeeEater*>(pSpine->mExecutor)->exeBeeEaterAttackSuccess();
         }
         static BeeEaterNrvAttackDash sInstance;
     };
@@ -72,17 +72,17 @@ static const char* sJointNames[] = {"Body1", "Body2", "Body3", "Body4", "Body5"}
 
 BeeEaterJointControl::BeeEaterJointControl(LiveActor* pHost, const char* pJointName)
     : mController(nullptr), mPos(0.0f, 0.0f, 0.0f), mDir(0.0f, 1.0f, 0.0f) {
-    mController = MR::createJointController<BeeEaterJointControl>(this, pHost, pJointName, &BeeEaterJointControl::fn_8015BB90, 0);
+    mController = MR::createJointController<BeeEaterJointControl>(this, pHost, pJointName, &BeeEaterJointControl::calcBeeEaterJointMatrix, 0);
 }
 
-void BeeEaterJointControl::fn_8015BB30(const TVec3f* pDir) {
+void BeeEaterJointControl::setBeeEaterJointDirection(const TVec3f* pDir) {
     TVec3f old(mDir);
     if (MR::normalizeOrZero(&mDir, *pDir)) {
         mDir.set(old);
     }
 }
 
-bool BeeEaterJointControl::fn_8015BB90(TPos3f* pMtx, const JointControllerInfo&) {
+bool BeeEaterJointControl::calcBeeEaterJointMatrix(TPos3f* pMtx, const JointControllerInfo&) {
     MR::turnMtxToXDirRate(pMtx, mDir, 1.0f);
     pMtx->setTrans(mPos);
     return true;
@@ -227,12 +227,12 @@ void BeeEater::calcAndSetBaseMtx() {
         TVec3f pos = p0 + p1 + p2 + p3;
         mBody->mJointCtrls[i]->mPos.set(pos);
     }
-    mBody->mJointCtrls[0]->fn_8015BB30(&mUpVec);
+    mBody->mJointCtrls[0]->setBeeEaterJointDirection(&mUpVec);
     for (s32 i = 1; i < count - 1; i++) {
         TVec3f dir = mBody->mJointCtrls[i + 1]->mPos - mBody->mJointCtrls[i]->mPos;
-        mBody->mJointCtrls[i]->fn_8015BB30(&dir);
+        mBody->mJointCtrls[i]->setBeeEaterJointDirection(&dir);
     }
-    mBody->mJointCtrls[count - 1]->fn_8015BB30(&endUp);
+    mBody->mJointCtrls[count - 1]->setBeeEaterJointDirection(&endUp);
 }
 
 void BeeEater::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -264,14 +264,14 @@ bool BeeEater::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
-bool BeeEater::fn_8015C690() const {
+bool BeeEater::isPlayerInBeeEaterAimRange() const {
     if (MR::isNearPlayer(mBasePos, 120.0f)) {
         return false;
     }
     return MR::isNearAngleDegree(*MR::getPlayerPos() - mBasePos, mUpVec, 100.0f);
 }
 
-bool BeeEater::fn_8015C700() const {
+bool BeeEater::isPlayerBehindBeeEaterRotation() const {
     TVec3f toPlayer;
     MR::calcVecToPlayer(&toPlayer, this);
     if (mUpVec.dot(toPlayer) >= 0.0f) {
@@ -286,7 +286,7 @@ bool BeeEater::fn_8015C700() const {
     return !(c1.dot(c2) >= 0.0f);
 }
 
-void BeeEater::fn_8015C7B0() {
+void BeeEater::updateBeeEaterHover() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
         MR::validateClipping(this);
@@ -295,8 +295,8 @@ void BeeEater::fn_8015C7B0() {
     MR::fn_80010E30(this, mBasePos, 0.0f, 2.0f, 100.0f, 200.0f);
     MR::attenuateVelocity(this, 0.85f);
     MR::turnQuatXDirRad(&mRot, mRot, mSideVec, 0.03490658476948738f);
-    if (fn_8015C690()) {
-        if (fn_8015C700()) {
+    if (isPlayerInBeeEaterAimRange()) {
+        if (isPlayerBehindBeeEaterRotation()) {
             mTargetVec.set(mUpVec);
         } else {
             MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
@@ -307,7 +307,7 @@ void BeeEater::fn_8015C7B0() {
 }
 
 // NONMATCHING: dash/direction temporary stack allocation.
-bool BeeEater::fn_8015C8C0() {
+bool BeeEater::updateBeeEaterDash() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
         mRot.getYDir(mFaceVec);
@@ -327,7 +327,7 @@ bool BeeEater::fn_8015C8C0() {
     return false;
 }
 
-void BeeEater::fn_8015C9E0() {
+void BeeEater::exeBeeEaterWaitAfterHit() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::zeroVelocity(this);
@@ -337,8 +337,8 @@ void BeeEater::fn_8015C9E0() {
     }
 }
 
-void BeeEater::fn_8015CA50() {
-    fn_8015C7B0();
+void BeeEater::exeBeeEaterFind() {
+    updateBeeEaterHover();
     TVec3f up;
     MR::calcUpVec(&up, this);
     if (MR::isFaceToPlayerDegree(this, up, 20.0f) && MR::isNearPlayer(this, 1000.0f)) {
@@ -347,12 +347,12 @@ void BeeEater::fn_8015CA50() {
     }
 }
 
-void BeeEater::fn_8015CAD0() {
+void BeeEater::exeBeeEaterAttackSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackSign");
     }
     if (MR::isLessEqualStep(this, 80)) {
-        if (fn_8015C690()) {
+        if (isPlayerInBeeEaterAimRange()) {
             MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
             MR::turnQuatYDirRad(&mRot, mRot, mTargetVec, 0.008726646192371845f);
         }
@@ -371,8 +371,8 @@ void BeeEater::fn_8015CAD0() {
     }
 }
 
-void BeeEater::fn_8015CC00() {
-    if (fn_8015C8C0()) {
+void BeeEater::exeBeeEaterAttack() {
+    if (updateBeeEaterDash()) {
         setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttackSuccess));
         return;
     }
@@ -384,7 +384,7 @@ void BeeEater::fn_8015CC00() {
     }
 }
 
-void BeeEater::fn_8015CCB0() {
+void BeeEater::exeBeeEaterAttackEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackEnd");
     }
@@ -395,8 +395,8 @@ void BeeEater::fn_8015CCB0() {
         retreat.scale(-2.5f);
         MR::addVelocity(this, retreat);
         MR::attenuateVelocity(this, 0.85f);
-        if (fn_8015C690()) {
-            if (fn_8015C700()) {
+        if (isPlayerInBeeEaterAimRange()) {
+            if (isPlayerBehindBeeEaterRotation()) {
                 mTargetVec.set(mUpVec);
             } else {
                 MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
@@ -409,7 +409,7 @@ void BeeEater::fn_8015CCB0() {
     }
 }
 
-void BeeEater::fn_8015CDC0() {
+void BeeEater::exeBeeEaterAttackSuccess() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackSuccess");
     }
@@ -420,7 +420,7 @@ void BeeEater::fn_8015CDC0() {
 }
 
 void BeeEater::exeWait() {
-    fn_8015C7B0();
+    updateBeeEaterHover();
     if (MR::isGreaterStep(this, 120)) {
         setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvFind));
     }

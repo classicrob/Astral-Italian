@@ -4,10 +4,11 @@
 class TicoFatStarPiece;
 class ActorCameraInfo;
 class JMapInfoIter;
-class TicoFatStarPieceState : public ActorStateBase<TicoFatStarPiece> {
+class TicoFatStarPieceState : public ActorStateBaseInterface {
 public:
-    TicoFatStarPieceState(const char* name, TicoFatStarPiece* host) : ActorStateBase<TicoFatStarPiece>(name, host) {}
-    virtual ~TicoFatStarPieceState();
+    TicoFatStarPieceState(const char* name, TicoFatStarPiece* host) : ActorStateBaseInterface(name), mHost(host) {}
+    virtual ~TicoFatStarPieceState() NO_INLINE;
+    TicoFatStarPiece* mHost;
 };
 class TicoFatStarPieceTransformation : public TicoFatStarPieceState {
 public:

@@ -7,10 +7,10 @@ class ActionSoundData {
 public:
     ActionSoundData(const char*, const ResourceCsvGroupInfo*);
     ActionSoundInfo* getInfo(s32) const;
-    ActionSoundInfo* fn_80220410(const char*) const;
+    ActionSoundInfo* findInfoByName(const char*) const;
     const char* mName;
     ActionSoundInfo** mInfos;
     s32 mCount;
 };
-ActionSoundData* fn_80220250(const char*);
-const char* fn_80220490();
+ActionSoundData* createActionSoundData(const char*);
+const char* getArchivePath();

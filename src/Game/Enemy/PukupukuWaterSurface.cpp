@@ -23,42 +23,42 @@ extern const f32 sWaterGravity;
 namespace NrvPukupukuWaterSurface {
     class NrvMoveRail : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->fn_801F21B0(); }
+        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->exePukuMoveRail(); }
         static NrvMoveRail sInstance;
     };
     NrvMoveRail NrvMoveRail::sInstance ATTRIBUTE_WEAK;
 
     class NrvMoveReverse : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->fn_801F2300(); }
+        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->exeMoveReverse(); }
         static NrvMoveReverse sInstance;
     };
     NrvMoveReverse NrvMoveReverse::sInstance ATTRIBUTE_WEAK;
 
     class NrvBlownOff : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->fn_801F23B0(); }
+        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->exePukuBlownOff(); }
         static NrvBlownOff sInstance;
     };
     NrvBlownOff NrvBlownOff::sInstance ATTRIBUTE_WEAK;
 
     class NrvTrampled : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->fn_801F24D0(); }
+        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->exePukuTrampled(); }
         static NrvTrampled sInstance;
     };
     NrvTrampled NrvTrampled::sInstance ATTRIBUTE_WEAK;
 
     class NrvLanding : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->fn_801F2610(); }
+        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->exePukuLanding(); }
         static NrvLanding sInstance;
     };
     NrvLanding NrvLanding::sInstance ATTRIBUTE_WEAK;
 
     class NrvDead : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->fn_801F2740(); }
+        virtual void execute(Spine* pSpine) const { static_cast< PukupukuWaterSurface* >(pSpine->mExecutor)->exePukupukuDead(); }
         static NrvDead sInstance;
     };
     NrvDead NrvDead::sInstance ATTRIBUTE_WEAK;
@@ -135,7 +135,7 @@ void PukupukuWaterSurface::calcAndSetBaseMtx() {
     if (!isMoveNerve) {
         TPos3f sp8;
         sp8.identity();
-        fn_801F3150(&sp8, this, mUpVec, mFrontVec);
+        calcSurfaceMtx(&sp8, this, mUpVec, mFrontVec);
         MR::setBaseTRMtx(this, sp8);
         MR::updateBaseScale(this, mScaleCtrl);
         return;
@@ -146,7 +146,7 @@ void PukupukuWaterSurface::calcAndSetBaseMtx() {
 
 void PukupukuWaterSurface::control() {
     mScaleCtrl->updateNerve();
-    if (fn_801F2E10() != 0) {
+    if (canBeEaten() != 0) {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
     bool isRailNerve = isNerve(WS_NRV(NrvMoveRail)) || isNerve(WS_NRV(NrvMoveReverse));
@@ -160,7 +160,7 @@ void PukupukuWaterSurface::control() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F21B0() {
+void PukupukuWaterSurface::exePukuMoveRail() {
     if (MR::isFirstStep(this)) {
         mNerveBlendRate = 0.0f;
         if (!MR::isAnyAnimPlaying(this, "Swim")) {
@@ -172,13 +172,13 @@ void PukupukuWaterSurface::fn_801F21B0() {
     }
     f32 rate = MR::calcNerveRate(this, 10);
     mNerveBlendRate = MR::getLinerValue(rate, 0.5f, 5.0f, 1.0f);
-    fn_801F32A0(mNerveBlendRate, 5.0f);
+    updateRailMove(mNerveBlendRate, 5.0f);
     if (MR::isEqualStringCase(MR::getPlayingBckName(this), "BodyAttack") && MR::isActionEnd(this)) {
         const char* eye = "OpenEye";
         MR::startAction(this, "Swim");
         MR::startBtp(this, eye);
     }
-    if (fn_801F2EC0() != 0) {
+    if (probeSurfaceBelow() != 0) {
         setNerve(WS_NRV(NrvLanding));
         return;
     }
@@ -188,9 +188,9 @@ void PukupukuWaterSurface::fn_801F21B0() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F2300() {
-    fn_801F32A0(0.5f, 5.0f);
-    if (fn_801F2EC0() != 0) {
+void PukupukuWaterSurface::exeMoveReverse() {
+    updateRailMove(0.5f, 5.0f);
+    if (probeSurfaceBelow() != 0) {
         setNerve(WS_NRV(NrvLanding));
         return;
     }
@@ -204,7 +204,7 @@ void PukupukuWaterSurface::fn_801F2300() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F23B0() {
+void PukupukuWaterSurface::exePukuBlownOff() {
     if (MR::isFirstStep(this)) {
         const char* eye = "CloseEye";
         MR::startAction(this, "Rotate");
@@ -213,7 +213,7 @@ void PukupukuWaterSurface::fn_801F23B0() {
         MR::startBlowHitSound(this);
     } else if (!MR::isBinded(this)) {
         TVec3f grav(mGravity);
-        grav.scale(sWaterGravity * fn_801F33A0());
+        grav.scale(sWaterGravity * getWaterScale());
         mVelocity.add(grav);
     }
     MR::stopSceneAtStep(this, 2, 4);
@@ -224,7 +224,7 @@ void PukupukuWaterSurface::fn_801F23B0() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F24D0() {
+void PukupukuWaterSurface::exePukuTrampled() {
     if (MR::isFirstStep(this)) {
         TVec3f vel(mGravity);
         vel.scale(10.0f);
@@ -244,7 +244,7 @@ void PukupukuWaterSurface::fn_801F24D0() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F2610() {
+void PukupukuWaterSurface::exePukuLanding() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Freeze");
         MR::zeroVelocity(this);
@@ -256,8 +256,8 @@ void PukupukuWaterSurface::fn_801F2610() {
         mPartsModel->appear();
         MR::startBva(mPartsModel, "Normal");
     }
-    fn_801F2FF0();
-    if (fn_801F2EC0() == 0) {
+    updatePukuWaterInfo();
+    if (probeSurfaceBelow() == 0) {
         mLandingCount++;
         if (mLandingCount > 3) {
             setNerve(WS_NRV(NrvMoveRail));
@@ -272,7 +272,7 @@ void PukupukuWaterSurface::fn_801F2610() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F2740() {
+void PukupukuWaterSurface::exePukupukuDead() {
     if (MR::isFirstStep(this)) {
         MR::stopScene(3);
         MR::tryRumblePadMiddle(this, 0);
@@ -319,7 +319,7 @@ void PukupukuWaterSurface::attackSensor(HitSensor* pSender, HitSensor* pReceiver
     }
     if (isNerve(WS_NRV(NrvBindStarPointer))) {
         if (MR::isSensorType(pReceiver, 0x27) && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-            fn_801F2F80(pReceiver, pSender);
+            setBlowVelocity(pReceiver, pSender);
             setNerve(WS_NRV(NrvBlownOff));
             return;
         }
@@ -354,7 +354,7 @@ bool PukupukuWaterSurface::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
         return true;
     }
     if (MR::isMsgPlayerHitAll(msg) || MR::isMsgYoshiProjectile(msg)) {
-        fn_801F2F80(pSender, pReceiver);
+        setBlowVelocity(pSender, pReceiver);
         setNerve(WS_NRV(NrvBlownOff));
         return true;
     }
@@ -365,7 +365,7 @@ bool PukupukuWaterSurface::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
 bool PukupukuWaterSurface::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     bool isMoveNerve = isNerve(WS_NRV(NrvEaten)) || isNerve(WS_NRV(NrvBlownOff)) || isNerve(WS_NRV(NrvTrampled)) || isNerve(WS_NRV(NrvDead));
     if (!isMoveNerve && MR::isSensorType(pSender, 0x27)) {
-        fn_801F2F80(pSender, pReceiver);
+        setBlowVelocity(pSender, pReceiver);
         setNerve(WS_NRV(NrvBlownOff));
         return true;
     }
@@ -378,7 +378,7 @@ bool PukupukuWaterSurface::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSenso
         return true;
     }
     if (MR::isMsgYoshiStartTongue(msg)) {
-        if (fn_801F2E10() == 0) {
+        if (canBeEaten() == 0) {
             return false;
         }
         MR::stopBck(this);
@@ -401,7 +401,7 @@ bool PukupukuWaterSurface::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSenso
     return false;
 }
 
-s32 PukupukuWaterSurface::fn_801F2E10() {
+s32 PukupukuWaterSurface::canBeEaten() {
     if (isNerve(WS_NRV(NrvEaten))) {
         bool isMoveNerve = isNerve(WS_NRV(NrvEaten)) || isNerve(WS_NRV(NrvBlownOff)) || isNerve(WS_NRV(NrvTrampled)) || isNerve(WS_NRV(NrvDead));
         if (isMoveNerve) {
@@ -411,7 +411,7 @@ s32 PukupukuWaterSurface::fn_801F2E10() {
     return 1;
 }
 
-s32 PukupukuWaterSurface::fn_801F2EC0() {
+s32 PukupukuWaterSurface::probeSurfaceBelow() {
     if (MR::isBindedGroundIce(this)) {
         return 1;
     }
@@ -427,20 +427,20 @@ s32 PukupukuWaterSurface::fn_801F2EC0() {
 }
 
 #pragma dont_inline on
-void PukupukuWaterSurface::fn_801F2F80(HitSensor* pSender, HitSensor* pReceiver) {
-    f32 scale = fn_801F33A0();
+void PukupukuWaterSurface::setBlowVelocity(HitSensor* pSender, HitSensor* pReceiver) {
+    f32 scale = getWaterScale();
     MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * scale, 20.0f * scale, 4);
 }
 
 #pragma dont_inline off
 
-void PukupukuWaterSurface::fn_801F2FF0() {
+void PukupukuWaterSurface::updatePukuWaterInfo() {
     if (MR::getWaterAreaObj(mWaterInfo, mPosition)) {
         MR::getWaterAreaInfo(mWaterInfo, mPosition, mGravity, false);
     }
 }
 
-void PukupukuWaterSurface::fn_801F3040() {
+void PukupukuWaterSurface::updateUpVecFromWater() {
     TVec3f to(0.0f);
     if (mWaterInfo->isInWater()) {
         to = mWaterInfo->mSurfaceNormal;
@@ -451,7 +451,7 @@ void PukupukuWaterSurface::fn_801F3040() {
 }
 
 // NONMATCHING: vector locals occupy reversed stack slots; calls and field offsets match.
-void PukupukuWaterSurface::fn_801F30D0() {
+void PukupukuWaterSurface::snapToWaterSurface() {
     if (mWaterInfo->isInWater()) {
         TVec3f sp8(mUpVec);
         sp8.scale(-60.0f);
@@ -461,7 +461,7 @@ void PukupukuWaterSurface::fn_801F30D0() {
     }
 }
 
-void PukupukuWaterSurface::fn_801F3150(TPos3f* pMtx, LiveActor* pActor, const TVec3f& up, const TVec3f& front) {
+void PukupukuWaterSurface::calcSurfaceMtx(TPos3f* pMtx, LiveActor* pActor, const TVec3f& up, const TVec3f& front) {
     TPos3f base;
     base.set(pActor->getBaseMtx());
     TVec3f upDir;
@@ -486,7 +486,7 @@ void PukupukuWaterSurface::fn_801F3150(TPos3f* pMtx, LiveActor* pActor, const TV
     MR::makeMtxUpFrontPos(pMtx, upDir, frontDir, pActor->mPosition);
 }
 
-void PukupukuWaterSurface::fn_801F32A0(f32 speed, f32 turn) {
+void PukupukuWaterSurface::updateRailMove(f32 speed, f32 turn) {
     if (MR::isExistRail(this)) {
         MR::moveCoordAndFollowTrans(this, speed);
         TVec3f dir;
@@ -496,12 +496,12 @@ void PukupukuWaterSurface::fn_801F32A0(f32 speed, f32 turn) {
         }
         MR::turnDirection(this, &mFrontVec, dir, MR::cosDegree(turn));
     }
-    fn_801F2FF0();
-    fn_801F3040();
-    fn_801F30D0();
+    updatePukuWaterInfo();
+    updateUpVecFromWater();
+    snapToWaterSurface();
 }
 
-f32 PukupukuWaterSurface::fn_801F33A0() {
+f32 PukupukuWaterSurface::getWaterScale() {
     TVec3f offset;
     offset.x = 0.0f;
     offset.y = 0.0f;

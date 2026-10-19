@@ -315,12 +315,12 @@ void Mogucchi::createMogucchiHill() {
     mHill = new MogucchiHill(this, railLength, "モグッチ塚");
     mHill->initWithoutIter();
     if (railLength > 5) {
-        mHill->setAppearNum(mHill->_94 - 5);
+        mHill->setAppearNum(mHill->mPieceCount - 5);
     }
 
     MogucchiHill* hill = mHill;
-    hill->_D0 = 80.0f;
-    hill->_D4 = 100.0f;
+    hill->mAppearDistance = 80.0f;
+    hill->mReserveDistance = 100.0f;
 }
 
 void Mogucchi::updateStrollSpeed() {

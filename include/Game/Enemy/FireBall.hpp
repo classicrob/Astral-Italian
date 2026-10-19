@@ -32,9 +32,9 @@ public:
     void fn_8017DF50();
 
     /* 0x8C */ LiveActor* mHost;
-    /* 0x94 */ AnimScaleController* _94;
-    /* 0x98 */ WalkerStateBindStarPointer* _98;
-    /* 0x9C */ TVec3f _9C;
+    /* 0x94 */ AnimScaleController* mScaleController;
+    /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0x9C */ TVec3f mReflectDir;
     /* 0xA8 */ TVec3f mUp;
     f32 _B4;
 };

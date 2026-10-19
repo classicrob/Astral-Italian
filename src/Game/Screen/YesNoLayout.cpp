@@ -48,7 +48,7 @@ void YesNoLayout::control() {
 }
 
 void YesNoLayout::exeSelecting() {
-    if (!mController->_C) {
+    if (!mController->mIsActive) {
         kill();
     }
 }

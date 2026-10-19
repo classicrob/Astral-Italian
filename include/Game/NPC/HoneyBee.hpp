@@ -5,16 +5,16 @@
 class HoneyBee : public NPCActor {
 public:
     enum InitAction {
-        /* 0x00 */ InitAction_Wait,
-        /* 0x01 */ InitAction_JumpLecture,
-        /* 0x02 */ InitAction_Fly,
-        /* 0x03 */ InitAction_Sleep,
-        /* 0x04 */ InitAction_Stick,
-        /* 0x05 */ InitAction_Gatekeeper,
-        /* 0x06 */ InitAction_DropLecture,
-        /* 0x07 */ InitAction_Flustered,
-        /* 0x08 */ InitAction_FlyLectureA,
-        /* 0x09 */ InitAction_FlyLectureB,
+        /* 0x8 */ InitAction_Wait,
+        /* 0x9 */ InitAction_JumpLecture,
+        /* 0xA */ InitAction_Fly,
+        /* 0xB */ InitAction_Sleep,
+        /* 0xC */ InitAction_Stick,
+        /* 0xD */ InitAction_Gatekeeper,
+        /* 0xE */ InitAction_DropLecture,
+        /* 0xF */ InitAction_Flustered,
+        /* 0x10 */ InitAction_FlyLectureA,
+        /* 0x11 */ InitAction_FlyLectureB,
     };
 
     /// @brief Creates a new `HoneyBee`.
@@ -32,9 +32,9 @@ public:
     void exeFly();
     void exeJumpLecture();
 
-    /* 0x15C */ s32 _15C;
-    /* 0x160 */ TMtx34f _160;
-    /* 0x190 */ TVec3f _190;
-    /* 0x19C */ s32 mArg0;
-    /* 0x1A0 */ f32 _1A0;
+    /* 0x164 */ s32 mCurrentRailPoint;
+    /* 0x168 */ TMtx34f mSmoothedCenterMtx;
+    /* 0x198 */ TVec3f mCenterPosition;
+    /* 0x1A4 */ s32 mArg0;
+    /* 0x1A8 */ f32 mFloatOffset;
 };

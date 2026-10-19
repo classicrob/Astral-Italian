@@ -10,7 +10,6 @@
 
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
-void fn_80154B60(AttackRockTutorial*);
 void fn_800346F0(LiveActor*, const char*, const TPos3f*);
 extern const char* lbl_807CF5F8;
 }
@@ -105,7 +104,7 @@ void KoopaSealField::init(const JMapInfoIter& rIter) {
                 mGravityLightRoad->appear();
             }
             if (mAttackRockTutorial != nullptr) {
-                fn_80154B60(mAttackRockTutorial);
+                mAttackRockTutorial->startDead();
             }
             breakAllSeals();
         }
@@ -179,7 +178,7 @@ void KoopaSealField::exeOpen() {
             MR::updateAlreadyDoneFlag(mAlreadyDoneFlag);
         }
         if (mAttackRockTutorial != nullptr) {
-            fn_80154B60(mAttackRockTutorial);
+            mAttackRockTutorial->startDead();
         }
         MR::startAction(this, "Open");
     }

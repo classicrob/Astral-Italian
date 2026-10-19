@@ -403,7 +403,7 @@ void Dodoryu::notifyOnSwitchA() {
     MR::invalidateClipping(mLeadHill);
     MR::invalidateClipping(mBank);
     _144 = 1;
-    mHill->setAppearNum(mHill->_94);
+    mHill->setAppearNum(mHill->mPieceCount);
 }
 
 void Dodoryu::nextState() {
@@ -622,11 +622,11 @@ void Dodoryu::killAllHillPieces() {
 }
 
 void Dodoryu::setHillAppearNumHalf() {
-    mHill->setAppearNum(mHill->_94 / 2);
+    mHill->setAppearNum(mHill->mPieceCount / 2);
 }
 
 void Dodoryu::setHillAppearNumMax() {
-    mHill->setAppearNum(mHill->_94 - 10);
+    mHill->setAppearNum(mHill->mPieceCount - 10);
 }
 
 void Dodoryu::startLeadHillBck(const char* pBckName) {

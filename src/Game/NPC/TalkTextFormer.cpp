@@ -27,6 +27,7 @@ namespace MR {
         return getLanguage() == 0x10 ? 1.0f : 1.25f;
     }
 
+    // NONMATCHING: child-list iterator dereference inlines instead of outlining.
     void initTagProcessorRecursive(LayoutActor* pActor, const char* pPaneName, s32 mode) {
         nw4r::lyt::TextBox* pTextBox = ::getTextBoxPane(pActor, pPaneName);
         if (pTextBox != nullptr) {
@@ -48,10 +49,11 @@ namespace MR {
 
         nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
-            initTagProcessorRecursive(pActor, it->mName, mode);
+            initTagProcessorRecursive(pActor, (*it).mName, mode);
         }
     }
 
+    // NONMATCHING: child-list iterator dereference inlines instead of outlining.
     void nextStepTagProcessorRecursive(LayoutActor* pActor, const char* pPaneName) {
         nw4r::lyt::TextBox* pTextBox = ::getTextBoxPane(pActor, pPaneName);
         if (pTextBox != nullptr) {
@@ -63,10 +65,11 @@ namespace MR {
 
         nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
-            nextStepTagProcessorRecursive(pActor, it->mName);
+            nextStepTagProcessorRecursive(pActor, (*it).mName);
         }
     }
 
+    // NONMATCHING: child-list iterator dereference inlines instead of outlining.
     bool isEndStepTagProcessorRecursive(const LayoutActor* pActor, const char* pPaneName, bool isEnd) {
         nw4r::lyt::Pane* pTargetPane = getPane(pActor, pPaneName);
         const nw4r::ut::detail::RuntimeTypeInfo* pTypeInfo = &nw4r::lyt::TextBox::typeInfo;
@@ -83,22 +86,22 @@ namespace MR {
 
         nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
-            isEnd &= isEndStepTagProcessorRecursive(pActor, it->mName, true);
+            isEnd &= isEndStepTagProcessorRecursive(pActor, (*it).mName, true);
         }
 
         return isEnd;
     }
 };  // namespace MR
 
-TalkTextFormer::TalkTextFormer(LayoutActor* pActor, const char* pPaneName) : mHostActor(pActor), mMsg(), _8(), mPaneName(pPaneName) {
+TalkTextFormer::TalkTextFormer(LayoutActor* pActor, const char* pPaneName) : mHostActor(pActor), mMsg(), mMessageMode(), mPaneName(pPaneName) {
 }
 
 void TalkTextFormer::formMessage(const wchar_t* pMessage, s32 mode) {
     mMsg = pMessage;
-    _8 = mode;
+    mMessageMode = mode;
 
     MR::setTextBoxMessageRecursive(mHostActor, mPaneName, mMsg);
-    MR::initTagProcessorRecursive(mHostActor, mPaneName, _8);
+    MR::initTagProcessorRecursive(mHostActor, mPaneName, mMessageMode);
 }
 
 void TalkTextFormer::setArg(const CustomTagArg& rTag, s32 argIndex) {
@@ -108,14 +111,14 @@ void TalkTextFormer::setArg(const CustomTagArg& rTag, s32 argIndex) {
         MR::setTextBoxArgStringRecursive(mHostActor, mPaneName, rTag.mCharArg, argIndex);
     }
 
-    MR::initTagProcessorRecursive(mHostActor, mPaneName, _8);
+    MR::initTagProcessorRecursive(mHostActor, mPaneName, mMessageMode);
 }
 
 bool TalkTextFormer::nextPage() {
     const wchar_t* pMessage = MR::getNextMessagePage(mMsg);
     if (pMessage != nullptr) {
         mMsg = pMessage;
-        formMessage(pMessage, _8);
+        formMessage(pMessage, mMessageMode);
         return true;
     }
 
@@ -135,7 +138,7 @@ void TalkTextFormer::updateTalking() {
 }
 
 bool TalkTextFormer::isTextAppearedAll() const {
-    if (_8 == 2) {
+    if (mMessageMode == 2) {
         return true;
     }
 

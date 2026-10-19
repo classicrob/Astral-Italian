@@ -35,3 +35,6 @@ public:
     TVec3f mTargetPosition;
     bool mThrowUp;
 };
+
+extern const char* const sMonteThrowTargetPositionName;
+extern const char* const sMonteThrowPlayerAnimation;

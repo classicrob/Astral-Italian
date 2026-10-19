@@ -39,6 +39,6 @@ public:
     /* 0x2C */ CounterLayoutAppearer* mLayoutAppearer;
     /* 0x30 */ CountUpPaneRumbler* mPaneRumbler;
     /* 0x34 */ TVec2f mFollowPos;
-    /* 0x38 */ s32 _3C;
+    /* 0x38 */ s32 mForceAppearMode;
     /* 0x3C */ int mMode;
 };

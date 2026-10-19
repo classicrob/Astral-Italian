@@ -73,7 +73,7 @@ void DisplayInformationForResult::exeAppear() {
 
 StageResultInformer::StageResultInformer()
     : LayoutActor("リザルト画面", true), mInformationDisplayer(0), mIconAButton(0), mClearedStarPieceNum(0),
-      _30(false), mOneUpLayout(0), mCoinOneUps(0), mResultPaneVisible(false) {
+      mIsDecided(false), mOneUpLayout(0), mCoinOneUps(0), mResultPaneVisible(false) {
     mInformationDisplayer = new DisplayInformationForResult(this);
 }
 
@@ -151,7 +151,7 @@ void StageResultInformer::exeCountUpPowerStar() {
     }
 
     if (MR::testSystemPadTriggerDecide()) {
-        _30 = true;
+        mIsDecided = true;
     }
 
     MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetPowerStar::sInstance, 0);
@@ -193,7 +193,7 @@ void StageResultInformer::exeAppearGetCometMedal() {
 void StageResultInformer::exeCountUpGetCometMedal() {
     MR::isFirstStep(this);
     if (MR::testSystemPadTriggerDecide()) {
-        _30 = true;
+        mIsDecided = true;
     }
     MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetCometMedal::sInstance, 0);
 }
@@ -310,7 +310,7 @@ void StageResultInformer::exeDisplayGetCoin() {
     if (MR::isAnimStopped(this, 0)) MR::startAnim(this, "Flash", 0);
     updateCoinCount();
     if (tryDecideResult()) {
-        _30 = true;
+        mIsDecided = true;
         mIconAButton->term();
         if (mCoinOneUps < GameSequenceFunction::getResultCoinOneUpCount()) setNerve(&NrvStageResultInformer::StageResultInformerNrvWaitBeforeDisappearGetCoin::sInstance);
         else {
@@ -340,15 +340,15 @@ void StageResultInformer::exeWaitBeforeDisappearGetCoin() {
         MR::emitEffect(mOneUpLayout, "OneUpGet");
         MR::startSystemSE("SE_SY_1UP");
     }
-    if (!_30 && tryDecideResult()) {
-        _30 = true;
+    if (!mIsDecided && tryDecideResult()) {
+        mIsDecided = true;
         mIconAButton->term();
         mClearedStarPieceNum = 0;
         updateCoinCount();
     }
     if (MR::isAnimStopped(mOneUpLayout, 0)) {
         ++mCoinOneUps;
-        if (_30 && mCoinOneUps < GameSequenceFunction::getResultCoinOneUpCount()) {
+        if (mIsDecided && mCoinOneUps < GameSequenceFunction::getResultCoinOneUpCount()) {
             setNerve(&NrvStageResultInformer::StageResultInformerNrvWaitBeforeDisappearGetCoin::sInstance);
             return;
         }
@@ -357,7 +357,7 @@ void StageResultInformer::exeWaitBeforeDisappearGetCoin() {
             setNerve(&NrvStageResultInformer::StageResultInformerNrvDisplayGetCoin::sInstance);
             return;
         }
-        if (_30) {
+        if (mIsDecided) {
             setNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCoin::sInstance);
             return;
         }
@@ -494,15 +494,15 @@ const Nerve* StageResultInformer::getNextNerve() const {
 }
 
 void StageResultInformer::decideNextNerve() {
-    _30 = false;
+    mIsDecided = false;
     const Nerve* next = getNextNerve();
     if (next) setNerve(next);
     else kill();
 }
 
 bool StageResultInformer::tryWaitSystemPadTriggerDecide(const Nerve* pNerve) {
-    if (MR::testSystemPadTriggerDecide() || _30) {
-        _30 = false;
+    if (MR::testSystemPadTriggerDecide() || mIsDecided) {
+        mIsDecided = false;
 
         setNerve(pNerve);
         MR::startSystemSE("SE_SY_TALK_OK");
@@ -515,7 +515,7 @@ bool StageResultInformer::tryWaitSystemPadTriggerDecide(const Nerve* pNerve) {
 
 bool StageResultInformer::tryWaitIntervalBeforeKeyWait(const Nerve* pNerve, int step) {
     if (MR::testSystemPadTriggerDecide()) {
-        _30 = true;
+        mIsDecided = true;
     }
 
     if (MR::isStep(this, step)) {

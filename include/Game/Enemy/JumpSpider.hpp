@@ -1,13 +1,11 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
 class SpinHitController;
 class YoshiLockOnTarget;
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};
 
 namespace MR {
     bool isMsgYoshiStartTongue(u32);
@@ -56,7 +54,7 @@ public:
 
     /* 0x8C */ SpinHitController* mSpinHitController;
     /* 0x90 */ AnimScaleController* mScaleController;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ TVec3f _A0;
+    /* 0x94 */ TVec3f mFront;
+    /* 0xA0 */ TVec3f mRespawnPos;
     /* 0xAC */ YoshiLockOnTarget* mYoshiLockOn;  // SMG2 offset 0xB0
 };

@@ -8,7 +8,7 @@ public:
     virtual void init(const JMapInfoIter&);
     bool branchFunc(u32);
     bool eventFunc(u32);
-    TakeOutStar* mTakeOutStar;
-    bool mAllCometsComplete;
-    s32 mFaceIndex;
+    /* 0x164 */ TakeOutStar* mTakeOutStar;
+    /* 0x168 */ bool mAllCometsComplete;
+    /* 0x16C */ s32 mFaceIndex;
 };

@@ -15,7 +15,7 @@
 namespace {
     ButtonPaneController* createPageButton(LayoutActor* host, const char* pane, const char* box) NO_INLINE {
         ButtonPaneController* button = new ButtonPaneController(host, pane, box, 0, true);
-        button->_22 = false;
+        button->mDisappearOnDecide = false;
         button->forceToHide();
         return button;
     }
@@ -91,15 +91,15 @@ bool LayoutPager::isNextSelected() const {
 
 void LayoutPager::refreshButtons() {
     if (mCanShowNext) {
-        if (!mNextButton->_24 || mNextButton->isHidden()) mNextButton->appear();
-        if (mCanShowTwoNext) mNextButton->_22 = false;
-        else mNextButton->_22 = true;
+        if (!mNextButton->mIsActive || mNextButton->isHidden()) mNextButton->appear();
+        if (mCanShowTwoNext) mNextButton->mDisappearOnDecide = false;
+        else mNextButton->mDisappearOnDecide = true;
     } else mNextButton->forceToHide();
     if (mCanShowPrevious) {
-        if (!mPreviousButton->_24 || mPreviousButton->isHidden()) mPreviousButton->appear();
+        if (!mPreviousButton->mIsActive || mPreviousButton->isHidden()) mPreviousButton->appear();
         else mPreviousButton->forceToWait();
-        if (mCanShowTwoPrevious) mPreviousButton->_22 = false;
-        else mPreviousButton->_22 = true;
+        if (mCanShowTwoPrevious) mPreviousButton->mDisappearOnDecide = false;
+        else mPreviousButton->mDisappearOnDecide = true;
     } else mPreviousButton->forceToHide();
 }
 
@@ -184,11 +184,11 @@ void LayoutPager::exeWait() {
         return;
     }
     if (MR::testSystemTriggerLeft()) {
-        if (mPreviousButton->_24) mPreviousButton->trySelectImmediately();
+        if (mPreviousButton->mIsActive) mPreviousButton->trySelectImmediately();
         else setNerve(&NrvLayoutPager::PreviousInvalid::sInstance);
     }
     if (MR::testSystemTriggerRight()) {
-        if (mNextButton->_24) mNextButton->trySelectImmediately();
+        if (mNextButton->mIsActive) mNextButton->trySelectImmediately();
         else setNerve(&NrvLayoutPager::NextInvalid::sInstance);
     }
     bool selected = false;

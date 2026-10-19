@@ -49,9 +49,9 @@ void AllStarList::init(const JMapInfoIter&) {
         MR::connectToScene(this, 14, 13, -1, 72);
     }
     mRightButton = new ButtonPaneController(this, "Right", "BoxArrowR", 0, true);
-    mRightButton->_22 = false;
+    mRightButton->mDisappearOnDecide = false;
     mLeftButton = new ButtonPaneController(this, "Left", "BoxArrowL", 0, true);
-    mLeftButton->_22 = false;
+    mLeftButton->mDisappearOnDecide = false;
     mBackButton = new BackButtonCancelB("オールスターリスト戻るボタン", false);
     if (mOnPause) {
         MR::connectToSceneLayoutOnPause(mBackButton);
@@ -129,7 +129,7 @@ void AllStarList::exeWait() {
         return;
     }
     if (MR::testSystemTriggerLeft()) {
-        if (mLeftButton->_24) {
+        if (mLeftButton->mIsActive) {
             if (mLeftButton->trySelectImmediately()) MR::startSystemSE("SE_SY_STAR_RESULT_PANEL_SLIDE", -1, -1);
         } else {
             setNerve(GET_NERVE(AllStarList, AllStarListNrvPreviousPageOver));
@@ -137,7 +137,7 @@ void AllStarList::exeWait() {
         }
     }
     if (MR::testSystemTriggerRight()) {
-        if (mRightButton->_24) {
+        if (mRightButton->mIsActive) {
             if (mRightButton->trySelectImmediately()) MR::startSystemSE("SE_SY_STAR_RESULT_PANEL_SLIDE", -1, -1);
         } else {
             setNerve(GET_NERVE(AllStarList, AllStarListNrvNextPageOver));
@@ -236,19 +236,19 @@ void AllStarList::updatePageButtons(s32 world) {
     bool next = false;
     if (world + 1 >= 1 && world + 1 <= GameDataFunction::calcLastEnteredWorldNo()) next = true;
     if (next) {
-        if (!mRightButton->_24 || mRightButton->isHidden()) mRightButton->appear();
+        if (!mRightButton->mIsActive || mRightButton->isHidden()) mRightButton->appear();
         bool more = false;
         if (world + 2 >= 1 && world + 2 <= GameDataFunction::calcLastEnteredWorldNo()) more = true;
-        if (more) mRightButton->_22 = false; else mRightButton->_22 = true;
+        if (more) mRightButton->mDisappearOnDecide = false; else mRightButton->mDisappearOnDecide = true;
     } else mRightButton->forceToHide();
     bool previous = false;
     if (world - 1 >= 1 && world - 1 <= GameDataFunction::calcLastEnteredWorldNo()) previous = true;
     if (previous) {
-        if (!mLeftButton->_24 || mLeftButton->isHidden()) mLeftButton->appear();
+        if (!mLeftButton->mIsActive || mLeftButton->isHidden()) mLeftButton->appear();
         else mLeftButton->forceToWait();
         bool more = false;
         if (world >= 1 && world <= GameDataFunction::calcLastEnteredWorldNo()) more = true;
-        if (more) mLeftButton->_22 = false; else mLeftButton->_22 = true;
+        if (more) mLeftButton->mDisappearOnDecide = false; else mLeftButton->mDisappearOnDecide = true;
     } else mLeftButton->forceToHide();
 }
 

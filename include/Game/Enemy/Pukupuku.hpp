@@ -32,7 +32,7 @@ public:
 
     /* 0x10 */ ParabolicPath* mPath;
     /* 0x14 */ ValueControl* mValueCtrl;
-    /* 0x18 */ u8 _18;
+    /* 0x18 */ u8 mHasEmittedWaterColumn;
 };
 
 class Pukupuku : public LiveActor {
@@ -89,16 +89,16 @@ public:
     }
 
     /* 0x8C */ PukupukuStateLanding* mStateLanding;
-    /* 0x90 */ TVec3f _90;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ TQuat4f _A8;
+    /* 0x90 */ TVec3f mRailClipPos;
+    /* 0x9C */ TVec3f mHeadOffset;
+    /* 0xA8 */ TQuat4f mPoseQuat;
     /* 0xB8 */ AnimScaleController* mScaleCtrl;
     /* 0xBC */ WalkerStateBindStarPointer* mStarPointer;
     /* 0xC0 */ YoshiLockOnTarget* mYoshiLockOn;  // SMG2 extra field
-    /* 0xC0 */ const char* _C0;
-    /* 0xC4 */ Nerve* _C4;
-    /* 0xC8 */ f32 _C8;
-    /* 0xCC */ f32 _CC;
+    /* 0xC0 */ const char* mSavedBckName;
+    /* 0xC4 */ Nerve* mSavedNerve;
+    /* 0xC8 */ f32 mSavedBckFrame;
+    /* 0xCC */ f32 mSavedBtpFrame;
     /* 0xD0 */ u8 _D0;
     /* 0xD1 */ u8 _D1;
     /* 0xD2 */ u8 _D2;

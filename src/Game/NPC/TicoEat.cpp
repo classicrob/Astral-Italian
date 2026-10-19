@@ -52,7 +52,7 @@ TicoEat::TicoEat(const char* pName) : Tico(pName) {
 void TicoEat::init(const JMapInfoIter& rIter) {
     mScaleController = new AnimScaleController(&::sParam);
     mReactionNerve = GET_NERVE(TicoEat, TicoEatNrvReaction);
-    _178 = MR::getJointMtx(this, "Center");
+    mBodyJointMtx = MR::getJointMtx(this, "Center");
     mParam.setMoveAction("Wait", "Wait");
     mParam.setTalkAction("Talk", "Talk");
     mParam._4 = 3000.0f;

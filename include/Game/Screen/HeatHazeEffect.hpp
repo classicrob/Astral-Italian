@@ -15,7 +15,7 @@ public:
     virtual void control();
 
 private:
-    /* 0x8C */ f32 _8C;
+    /* 0x8C */ f32 mHazeDistance;
 };
 
 class HeatHazeDirector : public NameObj {

@@ -25,14 +25,14 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    bool fn_80180DE0(TPos3f*, const JointControllerInfo&);
-    bool fn_80181060() const;
-    void fn_801810D0();
-    void fn_80181150();
-    void fn_801811C0();
-    void fn_80181250();
-    void fn_801812C0();
-    void fn_80181320();
+    bool rotateJointByAngle(TPos3f*, const JointControllerInfo&);
+    bool isNotEatingNerve() const;
+    void exeMimicWait();
+    void exeMimicAttackSign();
+    void exeMimicAttack();
+    void exeMimicAttackEnd();
+    void exeMimicEat();
+    void exeMimicEatEnd();
 
     /* 0x90 */ TQuat4f mQuat;
     /* 0xA0 */ TVec3f mOffset;

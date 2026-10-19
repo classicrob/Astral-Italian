@@ -118,7 +118,7 @@ void LavaBubble::control() {
     } else if (MR::isEffectValid(this, "Sign")) {
         MR::forceDeleteEffect(this, "Sign");
     }
-    fn_801BF0A0();
+    updateUpVecFromVelocity();
 }
 
 void LavaBubble::startClipped() {
@@ -136,7 +136,7 @@ void LavaBubble::exeWait() {
     if (MR::isGreaterStep(this, mLaunchDelay)) {
         resetPose();
         setNerve(GET_LAVABUBBLE_NERVE(LavaBubbleNrvLaunch));
-        fn_801BF1C0();
+        launchBubble();
     }
 }
 
@@ -156,7 +156,7 @@ void LavaBubble::exeLaunch() {
     f32 speed = mSpeed;
     mVelocity.add(getFallDir() * speed);
     mSavedVel.set(mVelocity);
-    fn_801BF290();
+    tryBounceOnGround();
     if (mLaunchCount == mLaunchDuration - 14) {
         MR::startActionSound(this, "BackInMagma", -1, -1, -1);
     }
@@ -188,7 +188,7 @@ void LavaBubble::resetPose() {
     mBounceCooldown = 0;
 }
 
-void LavaBubble::fn_801BF0A0() {
+void LavaBubble::updateUpVecFromVelocity() {
     if (isNerve(GET_LAVABUBBLE_NERVE(LavaBubbleNrvWait))) {
         return;
     }
@@ -211,7 +211,7 @@ void LavaBubble::fn_801BF0A0() {
     MR::normalize(&mUp, mUp);
 }
 
-void LavaBubble::fn_801BF1C0() {
+void LavaBubble::launchBubble() {
     s32 step = 40;
     f32 size = step;
     mSpeed = 2.0f * (mRange / (size * size));
@@ -229,7 +229,7 @@ void LavaBubble::fn_801BF1C0() {
     MR::invalidateClipping(this);
 }
 
-bool LavaBubble::fn_801BF290() {
+bool LavaBubble::tryBounceOnGround() {
     mBounceCooldown -= 1;
     if (mBounceCooldown > 0) {
         return false;

@@ -85,25 +85,25 @@ public:
     }
 
     void clearPage() {
-        _1EC = 0;
+        mPageStartIndex = 0;
     }
 
 private:
-    /* 0x02C */ ButtonPaneController* _20[2];
-    /* 0x034 */ MR::BitArray* _28;
+    /* 0x02C */ ButtonPaneController* mPageButtons[2];
+    /* 0x034 */ MR::BitArray* mFellowAvailableFlags;
     /* 0x038 */ u16 mFellowIconNum;
     /* 0x03A */ u16 mFavoriteMiiNum;
     /* 0x03C */ u32 mFavoriteMiiIndices[10];
     /* 0x064 */ u16 mMiiNum;
     /* 0x068 */ u32 mMiiIndices[10];
     /* 0x090 */ u8 _84[360];
-    /* 0x1F8 */ s32 _1EC;
-    /* 0x1FC */ s32 _1F0;
-    /* 0x200 */ nw4r::lyt::TexMap* _1F4;
-    /* 0x204 */ MiiSelectSub::Page* _1F8;
-    /* 0x208 */ MiiSelectSub::Page* _1FC;
-    /* 0x20C */ u8 _200;
-    /* 0x210 */ FileSelectIconID* _204;
+    /* 0x1F8 */ s32 mPageStartIndex;
+    /* 0x1FC */ s32 mSelectedIconIndex;
+    /* 0x200 */ nw4r::lyt::TexMap* mSelectedMiiTexMap;
+    /* 0x204 */ MiiSelectSub::Page* mFrontPage;
+    /* 0x208 */ MiiSelectSub::Page* mBackPage;
+    /* 0x20C */ u8 mIsIconProhibited;
+    /* 0x210 */ FileSelectIconID* mProhibitedIconID;
 };
 
 namespace MiiSelectSub {
@@ -121,7 +121,7 @@ namespace MiiSelectSub {
         void prohibitIcon(const FileSelectIconID&);
 
         /* 0x00 */ MiiSelectIcon* mIconArray[8];
-        /* 0x20 */ bool _20;
+        /* 0x20 */ bool mIsGroupA;
         /* 0x24 */ MiiSelect* mHost;
         /* 0x28 */ s32 mBaseIndex;
     };

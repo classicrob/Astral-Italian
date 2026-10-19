@@ -4,10 +4,10 @@
 #include "Game/NPC/TurnJointCtrl.hpp"
 #include "Game/Util.hpp"
 
-extern "C" const char lbl_806B7AEC[];
-extern "C" const char lbl_806B7AE0[];
-extern "C" const char lbl_806B7AD4[];
-extern "C" const char lbl_806B7AC8[];
+
+
+
+
 
 namespace NrvRosetta {
     class RosettaNrvWait : public Nerve {
@@ -19,7 +19,7 @@ namespace NrvRosetta {
 };  // namespace NrvRosetta
 
 Rosetta::Rosetta(const char* pName) : NPCActor(pName) {
-    _168 = false;
+    mShouldGivePowerStar = false;
     mTakeOutStar = nullptr;
 }
 
@@ -34,10 +34,10 @@ void Rosetta::init(const JMapInfoIter& rIter) {
     mParam._14 = "WaitA";
     mParam._18 = turnAction;
     mParam._1C = mParam._20 = "TalkA";
-    _130 = lbl_806B7AEC;
-    _134 = lbl_806B7AE0;
-    _138 = lbl_806B7AD4;
-    _13C = lbl_806B7AC8;
+    _130 = cNPCSpinDefault;
+    _134 = cNPCTrampledDefault;
+    _138 = cNPCPointingDefault;
+    _13C = cNPCReactionDefault;
     _12C = 1500.0f;
     NPCActor::initialize(rIter, caps, "Rosetta", nullptr, nullptr);
 
@@ -55,7 +55,7 @@ void Rosetta::init(const JMapInfoIter& rIter) {
         MR::setDistanceToTalk(mMsgCtrl, 200.0f);
     }
 
-    if (_168) {
+    if (mShouldGivePowerStar) {
         mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStar", &NrvRosetta::RosettaNrvWait::sInstance, nullptr);
         MR::declarePowerStar(this);
     }

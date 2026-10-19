@@ -48,12 +48,12 @@ public:
 private:
     /* 0x8C */ AnimScaleController* mScaleController;
     /* 0x90 */ WalkerStateBindStarPointer* mStateBindStarPointer;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ TVec3f _A0;
-    /* 0xAC */ TVec3f _AC;
-    /* 0xB8 */ TVec3f _B8;
-    /* 0xC4 */ s32 _C4;
-    /* 0xC8 */ TVec3f _C8;
+    /* 0x94 */ TVec3f mHomePos;
+    /* 0xA0 */ TVec3f mFront;
+    /* 0xAC */ TVec3f mUp;
+    /* 0xB8 */ TVec3f mTargetUp;
+    /* 0xC4 */ s32 mHomeResetStep;
+    /* 0xC8 */ TVec3f mPushVelocity;
     /* 0xD4 */ bool mIsMarioLeft;
     /* 0xD5 */ bool mIsHighSpeedMode;
 };

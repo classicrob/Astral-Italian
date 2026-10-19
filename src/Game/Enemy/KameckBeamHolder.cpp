@@ -29,11 +29,11 @@ KameckBeamHolder::~KameckBeamHolder() {}
 
 KameckBeamProjectile::KameckBeamProjectile() : mEventListener(nullptr) {}
 
-void KameckBeamProjectile::fn_801A7E30(KameckBeamEventListener* listener) {
+void KameckBeamProjectile::setProjectileEventListener(KameckBeamEventListener* listener) {
     mEventListener = listener;
 }
 
-void KameckBeamProjectile::fn_801A7E40() {
+void KameckBeamProjectile::notifyBeamHit() {
     if (mEventListener != nullptr) {
         mEventListener->hitBeam();
     }
@@ -55,23 +55,23 @@ void KameckBeamKuriboMini::control() {
         --mStep;
         if (mStep == 0) {
             MR::emitEffectHit(this, mEnemy->mPosition, "BeamEnemyVanish");
-            fn_801A7180();
+            resetBeamProjectile();
         }
     }
 }
 
 void KameckBeamKuriboMini::appearDirection(const TVec3f& position, const TVec3f& direction) {
     appear();
-    mEnemy->fn_801BDB60(position, direction);
+    mEnemy->resetAndAppearAt(position, direction);
     mStep = 600;
 }
 
-void KameckBeamKuriboMini::fn_801A7180() {
+void KameckBeamKuriboMini::resetBeamProjectile() {
     kill();
     mEnemy->makeActorDead();
 }
 
-bool KameckBeamKuriboMini::fn_801A78B0() const {
+bool KameckBeamKuriboMini::isBeamProjectileDead() const {
     return MR::isDead(mEnemy);
 }
 
@@ -93,7 +93,7 @@ void KameckBeamMeramera::control() {
         --mStep;
         if (mStep == 0) {
             MR::emitEffectHit(this, mEnemy->mPosition, "BeamEnemyVanish");
-            fn_801A7180();
+            resetBeamProjectile();
         }
     }
 }
@@ -104,12 +104,12 @@ void KameckBeamMeramera::appearDirection(const TVec3f& position, const TVec3f& d
     mStep = 600;
 }
 
-void KameckBeamMeramera::fn_801A7180() {
+void KameckBeamMeramera::resetBeamProjectile() {
     kill();
     mEnemy->makeActorDead();
 }
 
-bool KameckBeamMeramera::fn_801A78B0() const {
+bool KameckBeamMeramera::isBeamProjectileDead() const {
     return MR::isDead(mEnemy);
 }
 

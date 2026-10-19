@@ -19,6 +19,6 @@ public:
 
     void exeWait();
 
-    /* 0x164 */ s32 _164;
-    /* 0x168 */ s32 _168;
+    /* 0x164 */ s32 mSupportPlayMode;
+    /* 0x168 */ s32 mSupportPlayActive;
 };

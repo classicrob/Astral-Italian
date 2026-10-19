@@ -34,8 +34,8 @@ public:
 
 private:
     /* 0x8C */ TYPE mType;
-    /* 0x90 */ bool _90;
-    /* 0x94 */ LiveActor* _94;
+    /* 0x90 */ bool mIsPausingDemo;
+    /* 0x94 */ LiveActor* mPauseDemoActor;
     /* 0x98 */ s32 mDisplayFrame;
 };
 

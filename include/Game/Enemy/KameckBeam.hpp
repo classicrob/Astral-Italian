@@ -10,18 +10,18 @@ class KameckBeamProjectile {
 public:
     KameckBeamProjectile() NO_INLINE;
     virtual void appearDirection(const TVec3f&, const TVec3f&);
-    virtual bool fn_801A74D0();
-    virtual void fn_801A7180();
-    virtual bool fn_801A78B0() const;
-    void fn_801A7E30(KameckBeamEventListener*);
-    void fn_801A7E40();
+    virtual bool tryStormProjectile();
+    virtual void resetBeamProjectile();
+    virtual bool isBeamProjectileDead() const;
+    void setProjectileEventListener(KameckBeamEventListener*);
+    void notifyBeamHit();
     KameckBeamEventListener* mEventListener;
 };
 
 class KameckBeam : public LiveActor {
 public:
-    bool fn_801A7590();  // enemies lane: unnamed by address
-    void fn_801A79D0();
+    bool tryFireProjectiles();
+    void emitBeamBreakEffect();
     enum BeamType {
         BeamType_None = 0,
         BeamType_FireBall1 = 1,
@@ -54,8 +54,8 @@ public:
     void exeFollowWand();
     void exeShoot();
     void exeExplosion();
-    void fn_801A7810();
-    bool fn_801A78C0(HitSensor*, HitSensor*);
+    void exeProjectileFlight();
+    bool sendBeamAttack(HitSensor*, HitSensor*);
     void startBeamLevelSound();
     void emitBeamReadyEffect();
     void emitBeamEffect();
@@ -63,7 +63,7 @@ public:
     /* 0x90 */ KameckBeamEventListener* mEventListener;
     /* 0x94 */ KameckBeamProjectile* mProjectiles[3];
     /* 0xA0 */ MtxPtr mFollowMtx;
-    /* 0xA4 */ TVec3f _A4;
+    /* 0xA4 */ TVec3f mShootDirection;
     /* 0xB0 */ TVec3f mWandLocalPosition;
     /* 0xBC */ s32 mBeamKind;
     /* 0xC0 */ s32 mProjectileCount;
@@ -83,7 +83,7 @@ public:
 
     virtual bool isInvalidParts(const CollisionParts*) const;
 
-    /* 0x04 */ const TVec3f* _4;
+    /* 0x04 */ const TVec3f* mBeamPosition;
 };
 
 namespace MR {

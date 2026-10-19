@@ -48,8 +48,8 @@ public:
     virtual ~KameckBeamKuriboMini();
     virtual void control();
     virtual void appearDirection(const TVec3f&, const TVec3f&);
-    virtual void fn_801A7180();
-    virtual bool fn_801A78B0() const;
+    virtual void resetBeamProjectile();
+    virtual bool isBeamProjectileDead() const;
     KuriboMini* mEnemy;
     s32 mStep;
 };
@@ -59,8 +59,8 @@ public:
     virtual ~KameckBeamMeramera();
     virtual void control();
     virtual void appearDirection(const TVec3f&, const TVec3f&);
-    virtual void fn_801A7180();
-    virtual bool fn_801A78B0() const;
+    virtual void resetBeamProjectile();
+    virtual bool isBeamProjectileDead() const;
     Meramera* mEnemy;
     s32 mStep;
 };

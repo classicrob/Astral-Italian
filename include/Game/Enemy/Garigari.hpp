@@ -16,8 +16,8 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
 
-    void fn_80182140();
-    void fn_801821A0();
+    void startRotateOnSwitch();
+    void alignUpToRail();
     void exeWait();
     void exeRotateSign();
     void exeRotate();

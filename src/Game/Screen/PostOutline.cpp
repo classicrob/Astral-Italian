@@ -113,7 +113,7 @@ void PostOutline::drawOutline(s16 left, s16 top, s16 right, s16 bottom, bool use
         GXSetTevKAlphaSel(GX_TEVSTAGE2, GX_TEV_KASEL_8_8);
     }
     GXSetTevColor(GX_TEVREG0, Color8(mThreshold, mThreshold, mThreshold, mThreshold));
-    u8 intensity = static_cast<s32>(255.0f * get_10());
+    u8 intensity = static_cast<s32>(255.0f * getFadeRate());
     GXSetTevColor(GX_TEVREG1, Color8(intensity, intensity, intensity, intensity));
     mBlurTexture->load(GX_TEXMAP0);
     mOriginalTexture->load(GX_TEXMAP1);

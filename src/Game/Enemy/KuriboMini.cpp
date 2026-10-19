@@ -300,7 +300,7 @@ bool KuriboMini::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C8 = fn_801BE5A0();
+    _C8 = isFlippedState();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvHipDropDown));
     MR::offBind(this);
     return true;
@@ -311,7 +311,7 @@ bool KuriboMini::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C8 = fn_801BE5A0();
+    _C8 = isFlippedState();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvFlatDown));
     MR::offBind(this);
     return true;
@@ -322,7 +322,7 @@ bool KuriboMini::requestPressDown() {
         return false;
     }
 
-    _C8 = fn_801BE5A0();
+    _C8 = isFlippedState();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvPressDown));
     MR::offBind(this);
     return true;
@@ -383,7 +383,7 @@ bool KuriboMini::tryFind() {
 
 bool KuriboMini::tryPointBind() {
     if (mStateBindStarPointer->tryStartPointBind()) {
-        _C8 = fn_801BE5A0();
+        _C8 = isFlippedState();
         setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer));
         return true;
     }
@@ -400,7 +400,7 @@ bool KuriboMini::tryDeadMap() {
     return false;
 }
 
-bool KuriboMini::fn_801BDAA0() {
+bool KuriboMini::tryTrampolineBounce() {
     TVec3f normal;
     if (DrumTrampoline::tryGetGroundNormal(&normal, this, getSensor("Body"))) {
         MR::tryHitReaction(this, "トランポリン");
@@ -411,7 +411,7 @@ bool KuriboMini::fn_801BDAA0() {
     return false;
 }
 
-void KuriboMini::fn_801BDB60(const TVec3f& pos, const TVec3f& front) {
+void KuriboMini::resetAndAppearAt(const TVec3f& pos, const TVec3f& front) {
     if (MR::isDead(this)) {
         MR::resetPosition(this, pos);
         MR::calcGravity(this);
@@ -426,7 +426,7 @@ void KuriboMini::fn_801BDB60(const TVec3f& pos, const TVec3f& front) {
 void KuriboMini::exeWander() {
     MR::updateActorState(this, mStateWander);
     if (!tryFind() && !tryDeadMap() && !tryPointBind()) {
-        if (fn_801BDAA0()) return;
+        if (tryTrampolineBounce()) return;
     }
 }
 
@@ -437,7 +437,7 @@ void KuriboMini::exeFindPlayer() {
         }
 
         if (!tryDeadMap() && !tryPointBind()) {
-            if (fn_801BDAA0()) return;
+            if (tryTrampolineBounce()) return;
         }
     }
 }
@@ -452,7 +452,7 @@ void KuriboMini::exeChase() {
     }
 
     if (!tryDeadMap() && !tryPointBind()) {
-        if (fn_801BDAA0()) return;
+        if (tryTrampolineBounce()) return;
     }
 }
 
@@ -501,7 +501,7 @@ void KuriboMini::exeAttackSuccess() {
     calcPassiveMovement();
 
     if (!tryDeadMap() && !tryPointBind()) {
-        if (fn_801BDAA0()) {
+        if (tryTrampolineBounce()) {
             return;
         } else {
             if (MR::isGreaterStep(this, 60)) {
@@ -630,7 +630,7 @@ void KuriboMini::exeTrampoline() {
     if (tryPointBind()) return;
 }
 
-bool KuriboMini::fn_801BE5A0() {
+bool KuriboMini::isFlippedState() {
     if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvStagger))) return mStateStagger->isUpsideDown();
     if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer))) return _C8;
     return false;

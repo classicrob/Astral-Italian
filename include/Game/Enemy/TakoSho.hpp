@@ -49,6 +49,7 @@ public:
     NO_INLINE bool tryStartSpinHit(u32, HitSensor*, HitSensor*);
     NO_INLINE void startBrkDamage();
     NO_INLINE void updateFallVelocity();
+    static void turnFrontToPlayerNearby(TVec3f*, LiveActor*, f32);
 
     /* 0x90 */ TVec3f mFrontVec;
     /* 0x9C */ TVec3f mStartPos;
@@ -67,5 +68,3 @@ public:
     /* 0xE4 */ MapObjConnector* mConnector;
 };
 
-// unnamed by address (fn_80208970).
-void fn_80208970(TVec3f*, LiveActor*, f32);

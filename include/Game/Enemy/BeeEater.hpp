@@ -13,8 +13,8 @@ class WalkerStateBindStarPointer;
 class BeeEaterJointControl {
 public:
     BeeEaterJointControl(LiveActor*, const char*);
-    void fn_8015BB30(const TVec3f*) NO_INLINE;
-    bool fn_8015BB90(TPos3f*, const JointControllerInfo&) NO_INLINE;
+    void setBeeEaterJointDirection(const TVec3f*) NO_INLINE;
+    bool calcBeeEaterJointMatrix(TPos3f*, const JointControllerInfo&) NO_INLINE;
 
     JointController* mController;
     TVec3f mPos;
@@ -44,16 +44,16 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void exeWait();
-    bool fn_8015C690() const NO_INLINE;
-    bool fn_8015C700() const NO_INLINE;
-    void fn_8015C7B0() NO_INLINE;
-    bool fn_8015C8C0() NO_INLINE;
-    void fn_8015C9E0() NO_INLINE;
-    void fn_8015CA50() NO_INLINE;
-    void fn_8015CAD0() NO_INLINE;
-    void fn_8015CC00() NO_INLINE;
-    void fn_8015CCB0() NO_INLINE;
-    void fn_8015CDC0() NO_INLINE;
+    bool isPlayerInBeeEaterAimRange() const NO_INLINE;
+    bool isPlayerBehindBeeEaterRotation() const NO_INLINE;
+    void updateBeeEaterHover() NO_INLINE;
+    bool updateBeeEaterDash() NO_INLINE;
+    void exeBeeEaterWaitAfterHit() NO_INLINE;
+    void exeBeeEaterFind() NO_INLINE;
+    void exeBeeEaterAttackSign() NO_INLINE;
+    void exeBeeEaterAttack() NO_INLINE;
+    void exeBeeEaterAttackEnd() NO_INLINE;
+    void exeBeeEaterAttackSuccess() NO_INLINE;
 
 public:
     /* 0x90 */ TQuat4f mRot;

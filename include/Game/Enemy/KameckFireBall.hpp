@@ -21,8 +21,8 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     virtual void appearDirection(const TVec3f&, const TVec3f&);
-    virtual void fn_801A7180();
-    virtual bool fn_801A78B0() const;
+    virtual void resetBeamProjectile();
+    virtual bool isBeamProjectileDead() const;
     void setEventListener(KameckBeamEventListener*);
 
     void exeWait();

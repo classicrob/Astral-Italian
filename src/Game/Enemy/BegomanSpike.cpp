@@ -165,7 +165,7 @@ void BegomanSpike::init(const JMapInfoIter& rIter) {
     MR::initActorState(this, mStarPointBind, GET_NERVE(BegomanSpike, HostTypeNrvBindStarPointer), "SupportFreeze");
     mHead = new BegomanHead(this, "トゲ頭", "BegomanSpikeHead", mHeadMatrix, MR::DrawBufferType_Enemy, false);
     MR::initLightCtrl(mHead);
-    mHead->_9C = &_B4;
+    mHead->mScaleSource = &mHeadScale;
     mHead->initWithoutIter();
     mBrokenModel = new ModelObj("ベーゴマン壊れモデル", "BegomanBrokenPiece", getBaseMtx(), MR::DrawBufferType_Enemy, -2, -2, false);
     MR::setScale(mBrokenModel, mScale);

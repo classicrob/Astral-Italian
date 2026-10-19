@@ -106,15 +106,15 @@ namespace NrvKarikari {
 };  // namespace NrvKarikari
 
 Karikari::Karikari(const char* pName)
-    : LiveActor(pName), mFront(0.0f, 0.0f, 1.0f), _9C(0.0f, 0.0f, 0.0f, 1.0f), mClingPosition(nullptr), mAnimScale(nullptr), mStarPointer(nullptr),
-      _9E(true), mIsPushable(true), mFrozenTime(0) {
+    : LiveActor(pName), mFront(0.0f, 0.0f, 1.0f), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mClingPosition(nullptr), mAnimScale(nullptr), mStarPointer(nullptr),
+      mIsAttackEnabled(true), mIsPushable(true), mFrozenTime(0) {
 }
 
 void Karikari::init(const JMapInfoIter& rIter) {
     MR::createSceneObj(SceneObj_KarikariDirector);
     MR::joinToGroup(this, "カリカリディレクター");
     MR::initActor(this, rIter, "Karipon", false);
-    MR::makeQuatAndFrontFromRotate(&_9C, &mFront, this);
+    MR::makeQuatAndFrontFromRotate(&mPoseQuat, &mFront, this);
     initNerve(GET_NERVE(Karikari, HostTypeNrvFall), 1);
 
     mAnimScale = new AnimScaleController(nullptr);
@@ -161,7 +161,7 @@ void Karikari::killedInFrozenState() {
 
 void Karikari::control() {
     mAnimScale->updateNerve();
-    MR::blendQuatFromGroundAndFront(&_9C, this, mFront, 0.05f, 0.5f);
+    MR::blendQuatFromGroundAndFront(&mPoseQuat, this, mFront, 0.05f, 0.5f);
 
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isInWater(mPosition)) {
         kill();
@@ -171,7 +171,7 @@ void Karikari::control() {
 void Karikari::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
         MR::onBind(this);
         MR::onCalcShadow(this, nullptr);
@@ -199,7 +199,7 @@ void Karikari::exeLand() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Land");
         MR::startBtp(this, "Land");
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
         MR::onBind(this);
         MR::onCalcShadow(this, nullptr);
@@ -241,7 +241,7 @@ void Karikari::exeNoCalcWait() {
         MR::offBind(this);
         MR::offCalcShadow(this, nullptr);
         MR::offCalcGravity(this);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = false;
     }
 
@@ -267,7 +267,7 @@ void Karikari::exeWait() {
         MR::startAction(this, "Wait");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
-        _9E = true;
+        mIsAttackEnabled = true;
         mIsPushable = true;
     }
 
@@ -297,7 +297,7 @@ void Karikari::exePrePursue() {
         MR::startAction(this, "Search");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
-        _9E = true;
+        mIsAttackEnabled = true;
         mIsPushable = false;
     }
 
@@ -335,7 +335,7 @@ void Karikari::exePursue() {
         MR::setBckRate(this, ::sJumpAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
-        _9E = true;
+        mIsAttackEnabled = true;
         mIsPushable = true;
     }
 
@@ -391,7 +391,7 @@ void Karikari::exeWatchFor() {
         MR::startAction(this, "Glad");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
     }
 
@@ -433,7 +433,7 @@ void Karikari::exePreCling() {
         MR::startAction(this, "Wait");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = false;
     }
 
@@ -459,7 +459,7 @@ void Karikari::exeCling() {
         MR::invalidateShadow(this, nullptr);
         MR::offCalcGravity(this);
         MR::validateHitSensors(this);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = false;
         MR::setBckRate(this, 1.0f);
         MR::startAction(this, "Bite");
@@ -500,7 +500,7 @@ void Karikari::exeSpinAttacked() {
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         MR::startSystemME("ME_MAGIC");
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
     }
 
@@ -523,7 +523,7 @@ void Karikari::exeDPDAttacked() {
         MR::setBckRate(this, ::sSpinXAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
         MR::startActionSound(this, "EmKarikariRelease");
         MR::emitEffect(this, "Touch");
@@ -544,7 +544,7 @@ void Karikari::exeFrozen() {
         MR::offCalcShadow(this, nullptr);
         MR::offCalcGravity(this);
         MR::validateHitSensors(this);
-        _9E = true;
+        mIsAttackEnabled = true;
         mIsPushable = false;
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -572,7 +572,7 @@ void Karikari::exeFrozenRecover() {
         MR::onCalcGravity(this);
         MR::validateShadow(this, nullptr);
         MR::validateHitSensors(this);
-        _9E = true;
+        mIsAttackEnabled = true;
         mIsPushable = true;
 
         mVelocity = (-mGravity) * ::sJumpToFrozenRecoverVel;
@@ -602,7 +602,7 @@ void Karikari::exeBlowOut() {
         MR::onCalcGravity(this);
         MR::validateShadow(this, nullptr);
         MR::validateHitSensors(this);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
         MR::startActionSound(this, "EmKarikariBlow");
         MR::startAction(this, "SpinX");
@@ -670,7 +670,7 @@ void Karikari::exePress() {
         MR::onCalcShadow(this, nullptr);
         MR::offCalcGravity(this);
         MR::validateHitSensors(this);
-        _9E = false;
+        mIsAttackEnabled = false;
         mIsPushable = true;
     }
 
@@ -763,7 +763,7 @@ void Karikari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (_9E && MR::isSensorPlayer(pReceiver)) {
+    if (mIsAttackEnabled && MR::isSensorPlayer(pReceiver)) {
         if (isNerve(GET_NERVE(Karikari, HostTypeNrvFrozen))) {
             killedInFrozenState();
             return;
@@ -913,7 +913,7 @@ void Karikari::calcAndSetBaseMtx() {
         return;
     }
 
-    MR::setBaseTRMtx(this, _9C);
+    MR::setBaseTRMtx(this, mPoseQuat);
 }
 
 Karikari::~Karikari() {

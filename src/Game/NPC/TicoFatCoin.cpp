@@ -8,12 +8,9 @@
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
-extern "C" {
-extern char lbl_806BE390[], lbl_806BE410[], lbl_806BE434[], lbl_806BE43C[], lbl_806BE498[], lbl_806BE4B0[];
-extern char lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[], lbl_806B7AC8[];
-extern const char lbl_807CFF48[4];
-extern const s32 lbl_807CFE90, lbl_807CFE94, lbl_807CFE98, lbl_807CFE9C;
-}
+
+char sTicoFatCoinFlyAction[4] = "Fly";
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace NrvTicoFatCoin {
     NEW_NERVE(TicoFatCoinNrvWait, TicoFatCoin, Wait);
@@ -36,44 +33,43 @@ TicoFatCoin::TicoFatCoin(const char* name) : NPCActor(name), mRequiredCoins(5), 
 TicoFatCoin::~TicoFatCoin() {}
 // NONMATCHING: register allocation and member-pointer table addressing differ.
 void TicoFatCoin::init(const JMapInfoIter& iter) {
-    const char* strings = lbl_806BE390;
-    NPCActorCaps caps(strings + 0x18);
+    NPCActorCaps caps("TicoFatCoin");
     caps.setDefault();
     caps.mMessage = false;
     caps.mNerveStep = 1;
     caps.mSwitchDead = false;
-    initialize(iter, caps, strings+0x18, 0, 0);
-    mParam._14=strings+0x24;
-    mParam._18=strings+0x24;
-    mParam._1C=strings+0x2C;
-    mParam._20=strings+0x2C;
-    _130=lbl_806B7AEC;
-    _134=lbl_806B7AE0;
-    _138=lbl_806B7AD4;
-    _13C=lbl_806B7AC8;
+    initialize(iter, caps, "TicoFatCoin", 0, 0);
+    mParam._14="Wait";
+    mParam._18="Wait";
+    mParam._1C="Talk";
+    mParam._20="Talk";
+    _130=cNPCSpinDefault;
+    _134=cNPCTrampledDefault;
+    _138=cNPCPointingDefault;
+    _13C=cNPCReactionDefault;
     _12C=1000.0f;
     mTalkNerve=GET_NERVE(TicoFatCoin, TicoFatCoinNrvWait);
     MR::getJMapInfoArg1NoInit(iter,&mRequiredCoins);
     mEatState = new TicoStateEatCoin(this,mRequiredCoins);
-    MR::initActorState(this,mEatState,GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat),strings+0x38);
+    MR::initActorState(this,mEatState,GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat),"EatDemo");
     NPCActorItem item;
-    item.mActor=strings+0x18;
-    item.mGoods0=reinterpret_cast<const char*>(&lbl_807CFE9C);
-    item.mGoodsJoint0=reinterpret_cast<const char*>(&lbl_807CFE98);
-    item.mGoods1=reinterpret_cast<const char*>(&lbl_807CFE94);
-    item.mGoodsJoint1=reinterpret_cast<const char*>(&lbl_807CFE90);
+    item.mActor="TicoFatCoin";
+    item.mGoods0=lbl_807CFE9C;
+    item.mGoodsJoint0=lbl_807CFE98;
+    item.mGoods1=lbl_807CFE94;
+    item.mGoodsJoint1=lbl_807CFE90;
     MR::getNPCItemData(&item,0);
     equipment(item,false);
-    MR::startAction(_94,strings+0x40);
-    MR::startAction(_98,strings+0x54);
-    initTalkCtrlDirect(iter,strings+0x68,TVec3f(0.0f,150.0f,0.0f),0);
+    MR::startAction(_94,"TicoFatGoodsCoinL");
+    MR::startAction(_98,"TicoFatGoodsCoinR");
+    initTalkCtrlDirect(iter,"TicoFatCoin_Request000",TVec3f(0.0f,150.0f,0.0f),0);
     MR::registerBranchFunc(getMsgCtrl(),TalkMessageFunc(this,&TicoFatCoin::branchFunc));
     MR::registerEventFunc(getMsgCtrl(),TalkMessageFunc(this,&TicoFatCoin::eventFunc));
     MR::setMessageArg(getMsgCtrl(),mRequiredCoins);
-    MR::initMultiActorCamera(this,iter,&mCameraInfo,strings+0x80);
-    MR::startBrk(this,strings+0x88);
-    MR::startBva(this,strings+0x90);
-    MR::joinToGroupArray(this,iter,strings+0x98,32);
+    MR::initMultiActorCamera(this,iter,&mCameraInfo,"飛行");
+    MR::startBrk(this,"Normal");
+    MR::startBva(this,"Small0");
+    MR::joinToGroupArray(this,iter,"惑星出現",32);
     bool useTalkCamera=false;
     MR::getJMapInfoArg7NoInit(iter,&useTalkCamera);
     if(useTalkCamera) MR::initTalkCamera(getMsgCtrl(),iter);
@@ -84,7 +80,7 @@ void TicoFatCoin::exeWait() {
     if(!MR::tryStartReactionAndPushNerve(this,mReactionNerve) && MR::tryTalkNearPlayerAtEndAndStartTalkAction(this)) setNerve(mWaitNerve);
 }
 void TicoFatCoin::exeMetamorphosis() {
-    if(MR::isFirstStep(this)) MR::startAction(this,lbl_806BE434);
+    if(MR::isFirstStep(this)) MR::startAction(this,"Demo");
     if(MR::isStep(this,90)) { _94->kill(); _98->kill(); }
     if(MR::isActionEnd(this)) {
         if(MR::isExistRail(this)) { setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvMove)); return; }
@@ -96,27 +92,26 @@ void TicoFatCoin::exeMove() {
         MR::tryRumblePadMiddle(this,0);
         MR::hideModelAndOnCalcAnim(this);
         MR::invalidateShadowAll(this);
-        MR::startAction(this,lbl_807CFF48);
-        MR::startActionSound(this,lbl_807CFF48,-1,-1,-1);
-        MR::startMultiActorCameraTargetSelf(this,mCameraInfo,lbl_806BE410,-1);
+        MR::startAction(this,sTicoFatCoinFlyAction);
+        MR::startActionSound(this,sTicoFatCoinFlyAction,-1,-1,-1);
+        MR::startMultiActorCameraTargetSelf(this,mCameraInfo,"飛行",-1);
     }
-    MR::startActionSound(this,lbl_806BE43C,-1,-1,-1);
+    MR::startActionSound(this,"VolDownBgm",-1,-1,-1);
     MR::setRailCoord(this,MR::calcNerveEaseOutValue(this,90,0.0f,MR::getRailTotalLength(this)));
     MR::moveTransToCurrentRailPos(this);
     if(MR::isStep(this,90)) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransform));
 }
 // NONMATCHING: temporary vector stack layout and register allocation differ.
 void TicoFatCoin::exeTransform() {
-    const char* strings=lbl_806BE390;
     if(MR::isFirstStep(this)) {
         MR::closeWipeWhiteFade(60);
         MR::tryRumblePadVeryStrong(this,0);
         MR::shakeCameraNormal();
-        MR::startActionSound(this,strings+0xB8,-1,-1,-1);
-        MR::emitEffect(this,strings+0xD0)->setHostMtx(mEffectMtx.toMtxPtr());
-        MR::emitEffect(this,strings+0xE0)->setHostMtx(mSmokeMtx.toMtxPtr());
+        MR::startActionSound(this,"DmTicofatMorphWipeOut",-1,-1,-1);
+        MR::emitEffect(this,"ScreenEffect")->setHostMtx(mEffectMtx.toMtxPtr());
+        MR::emitEffect(this,"ScreenEffectLight")->setHostMtx(mSmokeMtx.toMtxPtr());
     }
-    MR::startActionSound(this,strings+0xAC,-1,-1,-1);
+    MR::startActionSound(this,"VolDownBgm",-1,-1,-1);
     TVec3f dir(mPosition-MR::getCamPos());
     MR::normalizeOrZero(&dir);
     TVec3f position(MR::getCamPos()+dir*500.0f);
@@ -124,27 +119,27 @@ void TicoFatCoin::exeTransform() {
     MR::makeMtxFrontUpPos(&mSmokeMtx,-MR::getCamZdir(),MR::getCamYdir(),mPosition);
     if(!MR::isWipeActive()) {
         MR::stopBck(this);
-        MR::emitEffect(this,strings+0xF8)->setHostMtx(mEffectMtx.toMtxPtr());
-        MR::deleteEffect(this,strings+0xD0);
+        MR::emitEffect(this,"ScreenEffectFog")->setHostMtx(mEffectMtx.toMtxPtr());
+        MR::deleteEffect(this,"ScreenEffect");
         setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransformEnd));
     }
 }
 void TicoFatCoin::exeTransformEnd() {
-    if(MR::isFirstStep(this)) MR::startActionSound(this,lbl_806BE498,-1,-1,-1);
-    MR::startActionSound(this,lbl_806BE43C,-1,-1,-1);
+    if(MR::isFirstStep(this)) MR::startActionSound(this,"DmTicofatMorphWipeIn",-1,-1,-1);
+    MR::startActionSound(this,"VolDownBgm",-1,-1,-1);
     if(MR::isStep(this,90)) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvWipe));
 }
 void TicoFatCoin::exeWipe() {
     if(MR::isFirstStep(this)) { MR::onSwitchA(this); MR::openWipeWhiteFade(60); }
-    if(MR::isLessStep(this,46)) MR::startActionSound(this,lbl_806BE43C,-1,-1,-1);
+    if(MR::isLessStep(this,46)) MR::startActionSound(this,"VolDownBgm",-1,-1,-1);
     if(!MR::isWipeActive()) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvInformation));
 }
 void TicoFatCoin::exeInformation() {
-    if(MR::isFirstStep(this)) { MR::startAppearPlanetJingle(); MR::appearInformationMessage(MR::getGameMessageDirect(lbl_806BE4B0),true); }
+    if(MR::isFirstStep(this)) { MR::startAppearPlanetJingle(); MR::appearInformationMessage(MR::getGameMessageDirect("InformationPlanet"),true); }
     if(MR::isDeadInformationMessage()) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvDelayEnd));
 }
 void TicoFatCoin::exeEnd() {
-    if(MR::isFirstStep(this)) MR::endMultiActorCamera(this,mCameraInfo,lbl_806BE410,false,-1);
+    if(MR::isFirstStep(this)) MR::endMultiActorCamera(this,mCameraInfo,"飛行",false,-1);
     if(MR::isStep(this,60)) { appearPlanet(true); setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvDone)); }
 }
 void TicoFatCoin::initAfterPlacement() {

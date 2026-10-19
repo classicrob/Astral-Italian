@@ -35,16 +35,16 @@ public:
     void exeStopPointing();
     void endStopPointing();
 
-    ActorStateParamScale* mParamScale;
-    const char* _8C;
-    TVec3f _90;
-    TVec3f _9C;
-    bool _A8;
-    bool _A9;
-    TVec3f _AC;
-    TVec3f _B8;
-    f32 _C4;
-    f32 _C8;
+    /* 0x90 */ ActorStateParamScale* mParamScale;
+    /* 0x94 */ const char* mObjectName;
+    /* 0x98 */ TVec3f mRailClippingCenter;
+    /* 0xA4 */ TVec3f mOrbitCenter;
+    /* 0xB0 */ bool mIsShadowEnabled;
+    /* 0xB1 */ bool mIsRailMovement;
+    /* 0xB4 */ TVec3f mOrbitAxis;
+    /* 0xC0 */ TVec3f mOrbitFront;
+    /* 0xCC */ f32 mOrbitAngle;
+    /* 0xD0 */ f32 mMoveSpeed;
 };
 
 class BirikyuWithFace : public Birikyu {
@@ -57,6 +57,6 @@ public:
     f32 getHitRadius() const;
     char* getCenterJointName() const;
 
-    bool _CC;
-    s32 _D8;
+    /* 0xD4 */ bool mIsFaceReversed;
+    /* 0xD8 */ s32 mOrientationMode;
 };

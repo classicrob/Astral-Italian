@@ -47,10 +47,10 @@ void Buzz::init(const JMapInfoIter& rIter) {
 
 void Buzz::control() {
     mAnimScaleController->updateNerve();
-    if (fn_80176410()) {
+    if (isActiveBuzzNerve()) {
         YoshiFunction::tryYoshiEat(mYoshiLockOnTarget);
     }
-    if (fn_80176280() && mBindState->tryStartPointBind()) {
+    if (isBindableNerve() && mBindState->tryStartPointBind()) {
         setNerve(&NrvBuzz::BuzzNrvFreeze::sInstance);
     }
 }
@@ -62,11 +62,11 @@ void Buzz::calcAndSetBaseMtx() {
 }
 
 void Buzz::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && fn_80176300() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+    if (MR::isSensorPlayer(pReceiver) && isWaitNerve() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         setNerve(&NrvBuzz::BuzzNrvAttackSuccess::sInstance);
         return;
     }
-    if (fn_80176310()) {
+    if (isHittableBuzzNerve()) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -75,7 +75,7 @@ bool Buzz::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return true;
     }
-    if (MR::isMsgStarPieceAttack(msg) && fn_80176390()) {
+    if (MR::isMsgStarPieceAttack(msg) && isStarPieceTargetNerve()) {
         setNerve(&NrvBuzz::BuzzNrvStarPieceHit::sInstance);
         return true;
     }
@@ -90,7 +90,7 @@ bool Buzz::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
 
 bool Buzz::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
-        if (fn_80176410()) {
+        if (isActiveBuzzNerve()) {
             setNerve(&NrvBuzz::BuzzNrvEaten::sInstance);
             MR::zeroVelocity(this);
             return true;
@@ -114,7 +114,7 @@ bool Buzz::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-bool Buzz::fn_80176280() const {
+bool Buzz::isBindableNerve() const {
     if (isNerve(&NrvBuzz::BuzzNrvWait::sInstance) || isNerve(&NrvBuzz::BuzzNrvAttackSuccess::sInstance)) {
         return true;
     }
@@ -125,26 +125,26 @@ bool Buzz::fn_80176280() const {
 }
 
 #pragma dont_inline on
-bool Buzz::fn_80176300() const {
+bool Buzz::isWaitNerve() const {
     return isNerve(&NrvBuzz::BuzzNrvWait::sInstance);
 }
 #pragma dont_inline off
 
-bool Buzz::fn_80176310() const {
+bool Buzz::isHittableBuzzNerve() const {
     if (isNerve(&NrvBuzz::BuzzNrvWait::sInstance) || isNerve(&NrvBuzz::BuzzNrvAttackSuccess::sInstance) || isNerve(&NrvBuzz::BuzzNrvStarPieceHit::sInstance) || isNerve(&NrvBuzz::BuzzNrvFreeze::sInstance)) {
         return true;
     }
     return false;
 }
 
-bool Buzz::fn_80176390() const {
+bool Buzz::isStarPieceTargetNerve() const {
     if (isNerve(&NrvBuzz::BuzzNrvWait::sInstance) || isNerve(&NrvBuzz::BuzzNrvAttackSuccess::sInstance) || isNerve(&NrvBuzz::BuzzNrvStarPieceHit::sInstance) || isNerve(&NrvBuzz::BuzzNrvFreeze::sInstance)) {
         return true;
     }
     return false;
 }
 
-bool Buzz::fn_80176410() const {
+bool Buzz::isActiveBuzzNerve() const {
     if (isNerve(&NrvBuzz::BuzzNrvWait::sInstance) || isNerve(&NrvBuzz::BuzzNrvAttackSuccess::sInstance) || isNerve(&NrvBuzz::BuzzNrvStarPieceHit::sInstance) || isNerve(&NrvBuzz::BuzzNrvFreeze::sInstance)) {
         return true;
     }

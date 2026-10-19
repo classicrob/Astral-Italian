@@ -17,16 +17,16 @@ public:
     void createFogGradationTextures();
     static JUTTexture* createTexture(f32, GXTexFmt, GXTexWrapMode, GXTexFilter);
 
-    /* 0x00 */ JUTTexture* _0;
-    /* 0x04 */ JUTTexture* _4;
-    /* 0x08 */ JUTTexture* _8;
-    /* 0x0C */ JUTTexture* _C;
-    /* 0x10 */ JUTTexture* _10;
-    /* 0x14 */ JUTTexture* _14;
-    /* 0x18 */ JUTTexture* _18;
-    /* 0x1C */ JUTTexture* _1C;
-    /* 0x20 */ JUTTexture* _20;
-    /* 0x24 */ JUTTexture* _24;
+    /* 0x00 */ JUTTexture* mScreenTexture;
+    /* 0x04 */ JUTTexture* mHalfTexture;
+    /* 0x08 */ JUTTexture* mHalfIntensityTexture;
+    /* 0x0C */ JUTTexture* mQuarterTextureA;
+    /* 0x10 */ JUTTexture* mQuarterTextureB;
+    /* 0x14 */ JUTTexture* mEighthTextureA;
+    /* 0x18 */ JUTTexture* mEighthTextureB;
+    /* 0x1C */ JUTTexture* mQuarterIntensityTexture;
+    /* 0x20 */ JUTTexture* mQuarterTextureC;
+    /* 0x24 */ JUTTexture* mDepthTexture;
     /* 0x28 */ JUTTexture** mFogTextures;
     /* 0x2C */ s32 mFogTextureCount;
     /* 0x30 */ ResourceHolder* mFogResource;

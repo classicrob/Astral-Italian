@@ -60,6 +60,27 @@ namespace {
     const s32 cFirstLetterId = 0;
 }
 
+void PostManLetter::setLetterMessage(s32 id) {
+    char toMessage[256];
+    char fromMessage[256];
+    char bodyMessage[256];
+    MR::hidePane(this, "To");
+    MR::hidePane(this, "From");
+    const LetterInfo* info = &cLetterInfo[id];
+    if (!MR::isNullOrEmptyString(info->mTo)) {
+        snprintf(toMessage, sizeof(toMessage), "PostmanLetter%s_To", info->mTo);
+        MR::showPane(this, "To");
+        MR::setTextBoxGameMessageRecursive(this, "To", toMessage);
+    }
+    if (!MR::isNullOrEmptyString(info->mFrom)) {
+        snprintf(fromMessage, sizeof(fromMessage), "PostmanLetter%s_From", info->mFrom);
+        MR::showPane(this, "From");
+        MR::setTextBoxGameMessageRecursive(this, "From", fromMessage);
+    }
+    snprintf(bodyMessage, sizeof(bodyMessage), "PostmanLetter%s_Body", info->mBody);
+    MR::setTextBoxGameMessageRecursive(this, "Body", bodyMessage);
+}
+
 PostManLetter::PostManLetter(s32 newLetter)
     : LayoutActor("郵便屋さんの手紙", true), mPager(0), mLetters(), mHasUnreadLetter(false), mHasReadNewLetter(false) {
     if (newLetter != 18 && isNewLetter(newLetter)) mHasUnreadLetter = true;
@@ -100,6 +121,14 @@ void PostManLetter::control() {
     MR::setSeVolumeSetLevelForMenu();
 }
 
+void PostManLetter::updateLetter() {
+    s32 id = *mCurrentLetter;
+    MR::startAnim(this, "Color", 1);
+    MR::setAnimFrameAndStop(this, cLetterInfo[id].mColorFrame - 1.0f, 1);
+    setLetterMessage(*mCurrentLetter);
+    mPager->setPageAvailability(canShowTwoPrevious(), canShowPrevious(), canShowNext(), canShowTwoNext());
+}
+
 bool PostManLetter::canShowTwoPrevious() const {
     if (isUnreadLetter(*mCurrentLetter)) return false;
     if (mLetters.mCount < 3) return false;
@@ -125,9 +154,9 @@ bool PostManLetter::canShowNext() const {
 bool PostManLetter::canShowTwoNext() const {
     if (isUnreadLetter(*mCurrentLetter)) return false;
     if (mLetters.mCount < 3) return false;
-    const s32* current = mCurrentLetter;
     bool result = false;
     const s32* end = mLetters.mIds + mLetters.mCount;
+    const s32* current = mCurrentLetter;
     bool next = false;
     if (current != end && current + 1 != end) next = true;
     if (next && current + 2 != end) result = true;
@@ -172,31 +201,23 @@ s32 PostManLetter::getCurrentLetterId() const {
     return *mCurrentLetter;
 }
 
-void PostManLetter::exeDisappear() {
+// NONMATCHING: letter-table index and base use interchanged registers.
+void PostManLetter::exeAppear() {
     if (MR::isFirstStep(this)) {
-        MR::startAnim(this, "End", 0);
+        MR::showScreen(this);
+        MR::requestPauseBlurMovementOn();
+        MR::incrementPauseBlurDelay();
+        updateLetter();
+        MR::startAnim(this, "Appear", 0);
+        MR::startActionSound(this, "LetterAppear", -1, -1);
     }
     if (MR::isAnimStopped(this, 0)) {
-        mHasReadNewLetter = true;
-        MR::tryScreenToFrameCinemaFrame();
-        MR::decrementPauseBlurDelay();
-        MR::getGameSceneLayoutHolder()->activateDefaultGameLayout();
-        setNerve(&NrvPostManLetter::PostManLetterNrvEnd::sInstance);
-    }
-}
-
-void PostManLetterList::push_back(const s32& id) {
-    s32 index = mCount;
-    mCount = index + 1;
-    mIds[index] = id;
-}
-
-PostManLetter::~PostManLetter() {}
-
-void NrvPostManLetter::PostManLetterNrvDelay::execute(Spine* spine) const {
-    PostManLetter* actor = reinterpret_cast<PostManLetter*>(spine->mExecutor);
-    if (MR::isGreaterEqualStep(actor, 30)) {
-        actor->setNerve(&PostManLetterNrvAppear::sInstance);
+        s32 id = *mCurrentLetter;
+        if (isUnreadLetter(id)) {
+            MR::startActionSound(this, cLetterInfo[id].mVoice, -1, -1);
+        }
+        mPager->appear();
+        setNerve(&NrvPostManLetter::PostManLetterNrvWait::sInstance);
     }
 }
 
@@ -217,51 +238,31 @@ void PostManLetter::exeWait() {
     }
 }
 
-void PostManLetter::setLetterMessage(s32 id) {
-    char toMessage[256];
-    char fromMessage[256];
-    char bodyMessage[256];
-    MR::hidePane(this, "To");
-    MR::hidePane(this, "From");
-    const LetterInfo* info = &cLetterInfo[id];
-    if (!MR::isNullOrEmptyString(info->mTo)) {
-        snprintf(toMessage, sizeof(toMessage), "PostmanLetter%s_To", info->mTo);
-        MR::showPane(this, "To");
-        MR::setTextBoxGameMessageRecursive(this, "To", toMessage);
-    }
-    if (!MR::isNullOrEmptyString(info->mFrom)) {
-        snprintf(fromMessage, sizeof(fromMessage), "PostmanLetter%s_From", info->mFrom);
-        MR::showPane(this, "From");
-        MR::setTextBoxGameMessageRecursive(this, "From", fromMessage);
-    }
-    snprintf(bodyMessage, sizeof(bodyMessage), "PostmanLetter%s_Body", info->mBody);
-    MR::setTextBoxGameMessageRecursive(this, "Body", bodyMessage);
-}
-
-void PostManLetter::updateLetter() {
-    s32 id = *mCurrentLetter;
-    MR::startAnim(this, "Color", 1);
-    MR::setAnimFrameAndStop(this, cLetterInfo[id].mColorFrame - 1.0f, 1);
-    setLetterMessage(*mCurrentLetter);
-    mPager->setPageAvailability(canShowTwoPrevious(), canShowPrevious(), canShowNext(), canShowTwoNext());
-}
-
-// NONMATCHING: letter-table index and base use interchanged registers.
-void PostManLetter::exeAppear() {
+void PostManLetter::exeDisappear() {
     if (MR::isFirstStep(this)) {
-        MR::showScreen(this);
-        MR::requestPauseBlurMovementOn();
-        MR::incrementPauseBlurDelay();
-        updateLetter();
-        MR::startAnim(this, "Appear", 0);
-        MR::startActionSound(this, "LetterAppear", -1, -1);
+        MR::startAnim(this, "End", 0);
     }
     if (MR::isAnimStopped(this, 0)) {
-        s32 id = *mCurrentLetter;
-        if (isUnreadLetter(id)) {
-            MR::startActionSound(this, cLetterInfo[id].mVoice, -1, -1);
-        }
-        mPager->appear();
-        setNerve(&NrvPostManLetter::PostManLetterNrvWait::sInstance);
+        mHasReadNewLetter = true;
+        MR::tryScreenToFrameCinemaFrame();
+        MR::decrementPauseBlurDelay();
+        MR::getGameSceneLayoutHolder()->activateDefaultGameLayout();
+        setNerve(&NrvPostManLetter::PostManLetterNrvEnd::sInstance);
+    }
+}
+
+void PostManLetterList::push_back(const s32& id) {
+    s32 index = mCount;
+    mCount = index + 1;
+    mIds[index] = id;
+}
+
+PostManLetter::~PostManLetter() {
+}
+
+void NrvPostManLetter::PostManLetterNrvDelay::execute(Spine* spine) const {
+    PostManLetter* actor = reinterpret_cast<PostManLetter*>(spine->mExecutor);
+    if (MR::isGreaterEqualStep(actor, 30)) {
+        actor->setNerve(&PostManLetterNrvAppear::sInstance);
     }
 }

@@ -15,7 +15,7 @@ namespace {
     const char* sTablePath = "ActionSound.bcsv";
 }
 
-ActionSoundData* fn_80220250(const char* name) {
+ActionSoundData* createActionSoundData(const char* name) {
     const ResourceCsvGroupInfo* range = MR::getGameSystemObjHolder3C()->fn_804CC650(name);
     if (!range || range->mCount <= 0) return nullptr;
     return new ActionSoundData(name, range);
@@ -38,7 +38,7 @@ ActionSoundInfo* ActionSoundData::getInfo(s32 index) const {
     return mInfos[index];
 }
 
-ActionSoundInfo* ActionSoundData::fn_80220410(const char* name) const {
+ActionSoundInfo* ActionSoundData::findInfoByName(const char* name) const {
     ActionSoundInfo* info;
     for (s32 i = 0; i < mCount; i++) {
         info = mInfos[i];
@@ -47,7 +47,7 @@ ActionSoundInfo* ActionSoundData::fn_80220410(const char* name) const {
     return nullptr;
 }
 
-const char* fn_80220490() {
+const char* getArchivePath() {
     return sArchivePath;
 }
 

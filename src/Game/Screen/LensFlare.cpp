@@ -28,7 +28,7 @@ namespace {
 };  // namespace
 
 LensFlareModel::LensFlareModel(const char* pName, const char* pArcName)
-    : LiveActor(pName), _8C(), _90(), _94(), _98(new TriggerChecker()), _9C(new TriggerChecker()) {
+    : LiveActor(pName), mBrightRate(), mFadeLevel(), mFadeSpeed(), mAreaTrigger(new TriggerChecker()), mBrightTrigger(new TriggerChecker()) {
     MR::initActor(this, pArcName, false);
 
     MR::connectToScene3DModelFor2D(this);
@@ -41,21 +41,21 @@ LensFlareModel::LensFlareModel(const char* pName, const char* pArcName)
 }
 
 void LensFlareModel::update(bool param1, bool param2) {
-    _98->update(param1);
+    mAreaTrigger->update(param1);
 
-    if (_98->getOnTrigger()) {
+    if (mAreaTrigger->getOnTrigger()) {
         notifyInArea();
-    } else if (_98->getOffTrigger()) {
+    } else if (mAreaTrigger->getOffTrigger()) {
         setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeOut));
     }
 
-    _9C->update(param2 && param1);
+    mBrightTrigger->update(param2 && param1);
 
-    if (_9C->getOnTrigger()) {
+    if (mBrightTrigger->getOnTrigger()) {
         if (isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvHide))) {
             setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow));
         }
-    } else if (_9C->getOffTrigger() && (isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow)) || isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeIn)))) {
+    } else if (mBrightTrigger->getOffTrigger() && (isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow)) || isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeIn)))) {
         setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvHide));
     }
 }
@@ -70,14 +70,14 @@ void LensFlareModel::exeKill() {
 void LensFlareModel::exeHide() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
-        _90 = 0.0f;
+        mFadeLevel = 0.0f;
     }
 }
 
 void LensFlareModel::exeShow() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        _90 = 1.0f;
+        mFadeLevel = 1.0f;
     }
 }
 
@@ -86,19 +86,19 @@ void LensFlareModel::exeFadeIn() {
         MR::showModel(this);
     }
 
-    _90 += _94;
+    mFadeLevel += mFadeSpeed;
 
-    if (_90 >= 1.0f) {
-        _90 = 1.0f;
+    if (mFadeLevel >= 1.0f) {
+        mFadeLevel = 1.0f;
         setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow));
     }
 }
 
 void LensFlareModel::exeFadeOut() {
-    _90 -= _94;
+    mFadeLevel -= mFadeSpeed;
 
-    if (_90 <= 0.0f) {
-        _90 = 0.0f;
+    if (mFadeLevel <= 0.0f) {
+        mFadeLevel = 0.0f;
         setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvKill));
     }
 }
@@ -117,18 +117,18 @@ void LensFlareModel::notifyInArea() {
         appear();
     }
 
-    if (_9C->getLevel() > 0.0f) {
+    if (mBrightTrigger->getLevel() > 0.0f) {
         setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeIn));
     } else {
         setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvHide));
     }
 }
 
-LensFlareRing::LensFlareRing() : LensFlareModel("レンズフレアリング", "LensFlare"), _A0() {
+LensFlareRing::LensFlareRing() : LensFlareModel("レンズフレアリング", "LensFlare"), mRingFrame() {
     mScale.x = 0.135f;
     mScale.y = 0.135f;
     mScale.z = 0.135f;
-    _94 = 0.05f;
+    mFadeSpeed = 0.05f;
 }
 
 void LensFlareRing::appearAnim() {
@@ -138,18 +138,18 @@ void LensFlareRing::appearAnim() {
 void LensFlareRing::controlAnim() {
     MR::startBrk(this, "LensFlare");
     MR::setBrkRate(this, 0.0f);
-    MR::setBrkFrame(this, (1.0f - _8C * _90) * MR::getBrkCtrl(this)->getEnd());
+    MR::setBrkFrame(this, (1.0f - mBrightRate * mFadeLevel) * MR::getBrkCtrl(this)->getEnd());
 
     if (MR::isActionEnd(this)) {
         MR::startBckWithInterpole(this, "LensFlare", 0);
     }
 
-    f32 frame = _A0 * MR::getBckCtrl(this)->getEnd();
+    f32 frame = mRingFrame * MR::getBckCtrl(this)->getEnd();
     MR::setBckFrameAndStop(this, frame);
 }
 
 LensFlareGlow::LensFlareGlow() : LensFlareModel("グレア（円形）", "GlareGlow") {
-    _94 = 0.05f;
+    mFadeSpeed = 0.05f;
 }
 
 void LensFlareGlow::appearAnim() {
@@ -159,11 +159,11 @@ void LensFlareGlow::appearAnim() {
 void LensFlareGlow::controlAnim() {
     MR::startBrk(this, "GlareGlow");
     MR::setBrkRate(this, 0.0f);
-    MR::setBrkFrame(this, (1.0f - _8C * _90) * MR::getBrkCtrl(this)->getEnd());
+    MR::setBrkFrame(this, (1.0f - mBrightRate * mFadeLevel) * MR::getBrkCtrl(this)->getEnd());
 }
 
 LensFlareLine::LensFlareLine() : LensFlareModel("グレア（ライン）", "GlareLine") {
-    _94 = 0.05f;
+    mFadeSpeed = 0.05f;
 }
 
 void LensFlareLine::appearAnim() {
@@ -172,13 +172,13 @@ void LensFlareLine::appearAnim() {
 void LensFlareLine::controlAnim() {
     MR::startBrk(this, "GlareLine");
     MR::setBrkRate(this, 0.0f);
-    MR::setBrkFrame(this, (1.0f - _8C * _90) * MR::getBrkCtrl(this)->getEnd());
+    MR::setBrkFrame(this, (1.0f - mBrightRate * mFadeLevel) * MR::getBrkCtrl(this)->getEnd());
 }
 
 LensFlareDirector::LensFlareDirector()
-    : NameObj("レンズフレア管理"), mRing(), mGlow(), mLine(), mBrightObjCount(), _60(0.0f, 0.0f), _68(), _6C(0.0f, 0.0f), _74(0.0f, 0.0f), _7C(),
+    : NameObj("レンズフレア管理"), mRing(), mGlow(), mLine(), mBrightObjCount(), mBrightCenter(0.0f, 0.0f), mBright(), mCenter(0.0f, 0.0f), mNowCenter(0.0f, 0.0f), mDrawSyncId(),
       mDrawSyncTokenIndex(), mBrightCamInfo() {
-    _7C = DrawSyncManager::sInstance->setCallback(3, 2, this);
+    mDrawSyncId = DrawSyncManager::sInstance->setCallback(3, 2, this);
 }
 
 LensFlareDirector::~LensFlareDirector() {
@@ -202,7 +202,7 @@ void LensFlareDirector::movement() {
 
 void LensFlareDirector::drawSyncCallback(u16 val) {
     u32 i;
-    s32 val2 = val - _7C;
+    s32 val2 = val - mDrawSyncId;
     for (i = 0; i < mBrightObjCount; i++) {
         mBrightObjArray[i]->calcBrightInfo(val2, *mBrightCamInfo);
     }
@@ -218,7 +218,7 @@ void LensFlareDirector::pauseOff() {
 void LensFlareDirector::setDrawSyncToken() {
     DrawSyncManager::sInstance->pushBreakPoint();
 
-    GXSetDrawSync(_7C + mDrawSyncTokenIndex);
+    GXSetDrawSync(mDrawSyncId + mDrawSyncTokenIndex);
 
     mDrawSyncTokenIndex = mDrawSyncTokenIndex ^ 0x1;
 }
@@ -254,10 +254,10 @@ bool LensFlareDirector::checkBrightObj(bool b1) {
         if (index >= 0) {
             ret = true;
 
-            _60.set(*mBrightObjArray[index]->getBrightCenter());
-            _68 = mBrightObjArray[index]->getBright();
-            _6C.set(*mBrightObjArray[index]->getCenter());
-            mBrightObjArray[index]->getNowCenter(&_74);
+            mBrightCenter.set(*mBrightObjArray[index]->getBrightCenter());
+            mBright = mBrightObjArray[index]->getBright();
+            mCenter.set(*mBrightObjArray[index]->getCenter());
+            mBrightObjArray[index]->getNowCenter(&mNowCenter);
         }
 
         for (u32 i = 0; i < mBrightObjCount; i++) {
@@ -277,8 +277,8 @@ void LensFlareDirector::controlFlare(s32 area, bool hasBrightObj) {
         return;
     }
 
-    TVec2f position(_60 - _6C);
-    position += _74;
+    TVec2f position(mBrightCenter - mCenter);
+    position += mNowCenter;
     TVec3f flarePos(position.x, -position.y, 0.0f);
     MR::setPosition(mRing, flarePos);
     MR::setPosition(mGlow, flarePos);
@@ -306,10 +306,10 @@ void LensFlareDirector::controlFlare(s32 area, bool hasBrightObj) {
         ringFrame = 1.0f;
     }
 
-    mRing->_A0 = ringFrame;
-    mRing->_8C = MR::clamp((1.0f - distanceRate) * _68, 0.0f, 1.0f);
-    mGlow->_8C = MR::clamp((1.0f - distanceRate) * _68, 0.0f, 1.0f);
-    mLine->_8C = MR::clamp((1.0f - distanceRate) * _68, 0.0f, 1.0f);
+    mRing->mRingFrame = ringFrame;
+    mRing->mBrightRate = MR::clamp((1.0f - distanceRate) * mBright, 0.0f, 1.0f);
+    mGlow->mBrightRate = MR::clamp((1.0f - distanceRate) * mBright, 0.0f, 1.0f);
+    mLine->mBrightRate = MR::clamp((1.0f - distanceRate) * mBright, 0.0f, 1.0f);
 }
 
 namespace MR {

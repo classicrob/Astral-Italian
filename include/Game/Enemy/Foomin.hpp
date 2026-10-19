@@ -8,11 +8,11 @@ class SupportTicoStop;
 class Foomin : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    void fn_80181940();
-    void fn_801819D0();
-    void fn_80181A80();
-    void fn_80181B00();
-    void fn_80181C80();
+    void exeFoominWait();
+    void exeFoominWaitTouch();
+    void exeFoominAttackSign();
+    void exeFoominAttack();
+    void updateRailSpeed();
     Foomin(const char* pName);
 
     virtual ~Foomin();

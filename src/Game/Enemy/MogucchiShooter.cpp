@@ -31,56 +31,56 @@
 namespace NrvMogucchiShooter {
     class Nrv2C00 : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CE710(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterWaitSwitch(); }
         static Nrv2C00 sInstance;
     };
     Nrv2C00 Nrv2C00::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C04 : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CE820(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterHide(); }
         static Nrv2C04 sInstance;
     };
     Nrv2C04 Nrv2C04::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C08 : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CE7C0(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterAppear(); }
         static Nrv2C08 sInstance;
     };
     Nrv2C08 Nrv2C08::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C0C : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CE8C0(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterBreak(); }
         static Nrv2C0C sInstance;
     };
     Nrv2C0C Nrv2C0C::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C10 : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CE9F0(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterShotWait(); }
         static Nrv2C10 sInstance;
     };
     Nrv2C10 Nrv2C10::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C14 : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CEA90(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterShotSign(); }
         static Nrv2C14 sInstance;
     };
     Nrv2C14 Nrv2C14::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C18 : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CEB10(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterShotSignWait(); }
         static Nrv2C18 sInstance;
     };
     Nrv2C18 Nrv2C18::sInstance ATTRIBUTE_WEAK;
 
     class Nrv2C1C : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->fn_801CEB60(); }
+        virtual void execute(Spine* pSpine) const { static_cast< MogucchiShooter* >(pSpine->mExecutor)->exeShooterShotStart(); }
         static Nrv2C1C sInstance;
     };
     Nrv2C1C Nrv2C1C::sInstance ATTRIBUTE_WEAK;
@@ -89,7 +89,7 @@ namespace NrvMogucchiShooter {
     public:
         virtual void execute(Spine* pSpine) const {
             MogucchiShooter* pActor = static_cast< MogucchiShooter* >(pSpine->mExecutor);
-            if (MR::updateActorState(pActor) && !pActor->fn_801CF070()) {
+            if (MR::updateActorState(pActor) && !pActor->tryHideShooterNearPlayer()) {
                 pActor->setNerve(&Nrv2C10::sInstance);
             }
         }
@@ -112,14 +112,14 @@ MogucchiShooter::MogucchiShooter(const char* pName) : LiveActor(pName) {
     mHomePos.set(0.0f, 0.0f, 0.0f);
     mFront.set(0.0f, 0.0f, 0.0f);
     mFront.z = 1.0f;
-    mRot.set(0.0f, 0.0f, 1.0f);
-    mTimer = 0;
-    mCounter = 0;
-    mStep = 0;
-    mLimit = 90;
-    mSwitchKind = 0;
-    mFlag = 1;
-    mDelay = 0;
+    mAimDirection.set(0.0f, 0.0f, 1.0f);
+    mSwayTimer = 0;
+    mShotTimer = 0;
+    mPropellerStep = 0;
+    mShotInterval = 90;
+    mProjectileKind = 0;
+    mUnusedFlag = 1;
+    mHideDelay = 0;
     mSpike = nullptr;
     mBreakModel = nullptr;
     mHomingKiller = nullptr;
@@ -130,31 +130,31 @@ MogucchiShooter::~MogucchiShooter() {}
 
 // NONMATCHING: callback stack placement and string-pool address-load scheduling; calls, literals and field offsets verified.
 void MogucchiShooter::init(const JMapInfoIter& rIter) {
-    MR::initRotation(&mRot, rIter);
+    MR::initRotation(&mAimDirection, rIter);
     MR::initActor(this, rIter, "GliderBazooka", false);
     const char* objectName;
     MR::getObjectName(&objectName, rIter);
-    MR::getJMapInfoArg0NoInit(rIter, &mLimit);
+    MR::getJMapInfoArg0NoInit(rIter, &mShotInterval);
     if (MR::isEqualObjectName(rIter, "KillerShooter")) {
-        mSwitchKind = 1;
+        mProjectileKind = 1;
         mHomingKiller = new HomingKiller("ホーミングキラー");
         mHomingKiller->initWithoutIter();
         mHomingKiller->makeActorDead();
         if (MR::isValidSwitchA(this)) {
-            MR::listenStageSwitchOnOffA(this, MR::Functor(this, &MogucchiShooter::fn_801CE460), MR::Functor(this, &MogucchiShooter::fn_801CE470));
+            MR::listenStageSwitchOnOffA(this, MR::Functor(this, &MogucchiShooter::invalidateShooterClipping), MR::Functor(this, &MogucchiShooter::validateShooterClipping));
         }
     } else {
-        mSwitchKind = 0;
+        mProjectileKind = 0;
         MR::createSceneObj(0x8D);
     }
-    bool (MogucchiShooter::*callback)(TPos3f*, const JointControllerInfo&) = &MogucchiShooter::fn_801CE3A0;
+    bool (MogucchiShooter::*callback)(TPos3f*, const JointControllerInfo&) = &MogucchiShooter::calcShooterPropellerJoint;
     const char* jointName = "Propeller";
     JointControlDelegator< MogucchiShooter >* pJoint = new JointControlDelegator< MogucchiShooter >(this, callback, nullptr);
     MR::setJointControllerParam(pJoint, this, jointName);
     mJointCtrl = pJoint;
     MogucchiSpike* spike = new MogucchiSpike(this, MR::getJointMtx(this, "Cockpit"));
     spike->initWithoutIter();
-    reinterpret_cast<u8*>(spike)[0x9D] = 1;
+    spike->mCheckHiddenHost = true;
     mSpike = spike;
     mBreakModel = MR::createModelObjEnemy("壊れモデル", "GliderBazookaBreak", getBaseMtx());
     mBreakModel->makeActorDead();
@@ -166,9 +166,9 @@ void MogucchiShooter::init(const JMapInfoIter& rIter) {
     mBindStarPointer = new WalkerStateBindStarPointer(this, mSpike->mScaleCtrl);
     MR::initActorState(this, mBindStarPointer, MS_NRV(Nrv2C20), "SupportFreeze");
     MR::startAction(this, "ShotSign");
-    mLimit -= MR::getBckFrameMax(this);
+    mShotInterval -= MR::getBckFrameMax(this);
     MR::startAction(this, "ShotStart");
-    mLimit -= MR::getBckFrameMax(this);
+    mShotInterval -= MR::getBckFrameMax(this);
     MR::startAction(this, "ShotWait");
     MR::startAction(mSpike, "ShotWait");
     makeActorAppeared();
@@ -180,11 +180,11 @@ void MogucchiShooter::init(const JMapInfoIter& rIter) {
 #pragma auto_inline on
 // NONMATCHING: integer and boolean register allocation differs; branch structure matches.
 void MogucchiShooter::control() {
-    mStep++;
+    mPropellerStep++;
     if (!isNerve(MS_NRV(Nrv2C14)) && !isNerve(MS_NRV(Nrv2C18)) && !isNerve(MS_NRV(Nrv2C1C)) && !isNerve(MS_NRV(Nrv2C0C))) {
-        mTimer++;
+        mSwayTimer++;
     }
-    f32 phase = 360.0f * (mTimer % sSwingPeriod) / sSwingPeriod;
+    f32 phase = 360.0f * (mSwayTimer % sSwingPeriod) / sSwingPeriod;
     mPosition = mHomePos + mUpVec * (20.0f * MR::sinDegree(phase));
     bool v1 = true;
     bool v2 = true;
@@ -200,16 +200,16 @@ void MogucchiShooter::control() {
 
 void MogucchiShooter::endClipped() {
     LiveActor::endClipped();
-    if (mSwitchKind != 1 && !isNerve(MS_NRV(Nrv2C0C))) {
-        fn_801CE480(&mRot, nullptr);
-        mRot.sub(mPosition);
-        MR::normalize(&mRot);
+    if (mProjectileKind != 1 && !isNerve(MS_NRV(Nrv2C0C))) {
+        getShooterTargetMotion(&mAimDirection, nullptr);
+        mAimDirection.sub(mPosition);
+        MR::normalize(&mAimDirection);
     }
 }
 
 void MogucchiShooter::calcAndSetBaseMtx() {
     mJointCtrl->registerCallBack();
-    MR::fn_8000F880(this, &mRot);
+    MR::fn_8000F880(this, &mAimDirection);
 }
 
 void MogucchiShooter::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -220,10 +220,10 @@ void MogucchiShooter::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool MogucchiShooter::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiProjectileOrEat(msg)) {
-        return fn_801CED80(pSender->mPosition);
+        return tryBreakShooterAtPosition(pSender->mPosition);
     }
     if (MR::isMsgStarPieceReflect(msg) || MR::isMsgStarPieceAttack(msg)) {
-        fn_801CEFC0();
+        tryHideShooterOnDamage();
         return true;
     }
     return false;
@@ -231,14 +231,14 @@ bool MogucchiShooter::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
 
 bool MogucchiShooter::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg)) {
-        return fn_801CED80(pSender->mPosition);
+        return tryBreakShooterAtPosition(pSender->mPosition);
     }
     return false;
 }
 
-bool MogucchiShooter::fn_801CE3A0(TPos3f* pMtx, const JointControllerInfo&) {
+bool MogucchiShooter::calcShooterPropellerJoint(TPos3f* pMtx, const JointControllerInfo&) {
     s32 period = 20;
-    TVec3f angle(sPropellerAxis * (360.0f * (mStep % period) / period));
+    TVec3f angle(sPropellerAxis * (360.0f * (mPropellerStep % period) / period));
     TPos3f rot;
     PSMTXIdentity(rot.mMtx);
     MR::makeMtxRotate(rot.mMtx, angle);
@@ -247,15 +247,15 @@ bool MogucchiShooter::fn_801CE3A0(TPos3f* pMtx, const JointControllerInfo&) {
 
 }
 
-void MogucchiShooter::fn_801CE460() {
+void MogucchiShooter::invalidateShooterClipping() {
     MR::invalidateClipping(this);
 }
 
-void MogucchiShooter::fn_801CE470() {
+void MogucchiShooter::validateShooterClipping() {
     MR::validateClipping(this);
 }
 
-void MogucchiShooter::fn_801CE480(TVec3f* pPos, TVec3f* pVel) {
+void MogucchiShooter::getShooterTargetMotion(TVec3f* pPos, TVec3f* pVel) {
     if (MR::getCurrentRushActor()) {
         if (pPos) pPos->set(MR::getCurrentRushActor()->mPosition);
         if (pVel) pVel->set(MR::getCurrentRushActor()->mVelocity);
@@ -267,10 +267,10 @@ void MogucchiShooter::fn_801CE480(TVec3f* pPos, TVec3f* pVel) {
 }
 
 // NONMATCHING: vector temporary stack slots and f29/f30 allocation differ; calls, constants and branches match.
-void MogucchiShooter::fn_801CE530(TVec3f* pFront, const TVec3f& rPos) {
+void MogucchiShooter::aimShooterAtPredictedTarget(TVec3f* pFront, const TVec3f& rPos) {
     TVec3f origin(0.0f);
     TVec3f velocity(0.0f);
-    fn_801CE480(&origin, &velocity);
+    getShooterTargetMotion(&origin, &velocity);
     TVec3f best(rPos);
     TVec3f muzzle(rPos + *pFront * 800.0f);
     f32 bestDist = 3.4028234663852886e+38f;
@@ -295,23 +295,23 @@ void MogucchiShooter::fn_801CE530(TVec3f* pFront, const TVec3f& rPos) {
 
 }
 
-void MogucchiShooter::fn_801CE710() {
+void MogucchiShooter::exeShooterWaitSwitch() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::startAction(mSpike, "Wait");
     }
-    if (fn_801CEF20()) {
-        fn_801CE530(&mRot, mPosition);
+    if (isShooterTargetInView()) {
+        aimShooterAtPredictedTarget(&mAimDirection, mPosition);
     }
     if (MR::isOnSwitchA(this)) {
-        if (mSwitchKind == 1) {
+        if (mProjectileKind == 1) {
             MR::validateClipping(this);
         }
         setNerve(MS_NRV(Nrv2C10));
     }
 }
 
-void MogucchiShooter::fn_801CE7C0() {
+void MogucchiShooter::exeShooterAppear() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mSpike, "Appear");
     }
@@ -320,7 +320,7 @@ void MogucchiShooter::fn_801CE7C0() {
     }
 }
 
-void MogucchiShooter::fn_801CE820() {
+void MogucchiShooter::exeShooterHide() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::setBckFrameEndAndStop(this);
@@ -329,10 +329,10 @@ void MogucchiShooter::fn_801CE820() {
             MR::startAction(mSpike, "Hide");
         }
     }
-    fn_801CF120();
+    tryAppearShooterAfterDelay();
 }
 
-void MogucchiShooter::fn_801CE8C0() {
+void MogucchiShooter::exeShooterBreak() {
     if (MR::isFirstStep(this)) {
         MR::emitItemHit(this);
         MR::tryHitReactionBreak(this);
@@ -353,25 +353,25 @@ void MogucchiShooter::fn_801CE8C0() {
     }
 }
 
-void MogucchiShooter::fn_801CE9F0() {
-    s32 fn = fn_801CEF20();
+void MogucchiShooter::exeShooterShotWait() {
+    s32 fn = isShooterTargetInView();
     if (fn != 0) {
-        fn_801CE530(&mRot, mPosition);
+        aimShooterAtPredictedTarget(&mAimDirection, mPosition);
     }
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "ShotWait");
         MR::startAction(mSpike, "ShotWait");
     }
-    if (fn_801CF0C0() == 0 && fn_801CF070() == 0) {
-        if (fn_801CF1A0()) return;
+    if (tryWaitShooterSwitchOff() == 0 && tryHideShooterNearPlayer() == 0) {
+        if (tryStartShooterShotSign()) return;
     }
 }
 
-void MogucchiShooter::fn_801CEA90() {
+void MogucchiShooter::exeShooterShotSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "ShotSign");
         MR::startAction(mSpike, "ShotSign");
-        fn_801CEBE0();
+        appearShooterHomingKiller();
     }
     if (MR::isActionEnd(this)) {
         setNerve(MS_NRV(Nrv2C18));
@@ -379,26 +379,26 @@ void MogucchiShooter::fn_801CEA90() {
 }
 
 // NONMATCHING: epilogue restores LR and r31 in reverse order.
-void MogucchiShooter::fn_801CEB10() {
+void MogucchiShooter::exeShooterShotSignWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mSpike, "ShotSignWait");
     }
-    fn_801CF220();
+    tryStartShooterShot();
 }
 
-void MogucchiShooter::fn_801CEB60() {
+void MogucchiShooter::exeShooterShotStart() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "ShotStart");
         MR::startAction(mSpike, "ShotStart");
-        fn_801CECD0();
+        fireShooterBullet();
     }
     if (MR::isActionEnd(mSpike)) {
         setNerve(MS_NRV(Nrv2C10));
     }
 }
 
-void MogucchiShooter::fn_801CEBE0() {
-    if (mSwitchKind == 1) {
+void MogucchiShooter::appearShooterHomingKiller() {
+    if (mProjectileKind == 1) {
         TPos3f mtx;
         mtx.set(MR::getJointMtx(this, "Bazooka"));
         TVec3f direction;
@@ -414,8 +414,8 @@ void MogucchiShooter::fn_801CEBE0() {
 
 }
 
-void MogucchiShooter::fn_801CECD0() {
-    if (mSwitchKind == 0) {
+void MogucchiShooter::fireShooterBullet() {
+    if (mProjectileKind == 0) {
         MtxPtr mtx = MR::getJointMtx(this, "Bazooka");
         TVec3f direction;
         TVec3f trans;
@@ -433,7 +433,7 @@ void MogucchiShooter::fn_801CECD0() {
 
 }
 
-bool MogucchiShooter::fn_801CED80(const TVec3f& rPos) {
+bool MogucchiShooter::tryBreakShooterAtPosition(const TVec3f& rPos) {
     TPos3f mtx;
     TVec3f dir;
     TVec3f up;
@@ -445,7 +445,7 @@ bool MogucchiShooter::fn_801CED80(const TVec3f& rPos) {
     MR::normalizeOrZero(&dir, difference);
     MR::makeMtxUpFront(&mtx, up, dir);
     mtx.getEuler(rotation);
-    reinterpret_cast<u8*>(mSpike)[0x9C] = 0;
+    mSpike->mCalcOwnMatrix = false;
     MR::setRotation(mSpike, 57.295780181884766f * rotation.x, 57.295780181884766f * rotation.y, 57.295780181884766f * rotation.z);
     MR::invalidateHitSensors(mSpike);
     setNerve(MS_NRV(Nrv2C0C));
@@ -453,30 +453,30 @@ bool MogucchiShooter::fn_801CED80(const TVec3f& rPos) {
 
 }
 
-s32 MogucchiShooter::fn_801CEF20() {
-    if (mSwitchKind == 0) {
+s32 MogucchiShooter::isShooterTargetInView() {
+    if (mProjectileKind == 0) {
         return 1;
     }
     TVec3f up;
     MR::extractMtxYDir(getBaseMtx(), &up);
     TVec3f origin;
-    fn_801CE480(&origin, nullptr);
+    getShooterTargetMotion(&origin, nullptr);
     TVec3f sp8(origin);
     sp8.sub(mPosition);
     return MR::isNearAngleDegreeHV(sp8, mFront, up, sViewAngle * sViewHalf, 360.0f);
 }
 
-s32 MogucchiShooter::fn_801CEFC0() {
+s32 MogucchiShooter::tryHideShooterOnDamage() {
     bool allowed = isNerve(MS_NRV(Nrv2C00)) || isNerve(MS_NRV(Nrv2C08)) || isNerve(MS_NRV(Nrv2C04)) || isNerve(MS_NRV(Nrv2C10));
     if (allowed) {
-        mDelay = 70;
+        mHideDelay = 70;
         setNerve(MS_NRV(Nrv2C04));
         return 1;
     }
     return 0;
 }
 
-s32 MogucchiShooter::fn_801CF070() {
+s32 MogucchiShooter::tryHideShooterNearPlayer() {
     if (MR::isNearPlayer(this, 1000.0f)) {
         setNerve(MS_NRV(Nrv2C04));
         return 1;
@@ -484,7 +484,7 @@ s32 MogucchiShooter::fn_801CF070() {
     return 0;
 }
 
-s32 MogucchiShooter::fn_801CF0C0() {
+s32 MogucchiShooter::tryWaitShooterSwitchOff() {
     bool isValid = MR::isValidSwitchA(this);
     if (isValid && !MR::isOnSwitchA(this)) {
         setNerve(MS_NRV(Nrv2C00));
@@ -493,10 +493,10 @@ s32 MogucchiShooter::fn_801CF0C0() {
     return 0;
 }
 
-s32 MogucchiShooter::fn_801CF120() {
-    if (mDelay > 0) {
-        mDelay -= 1;
-        if (mDelay > 0) {
+s32 MogucchiShooter::tryAppearShooterAfterDelay() {
+    if (mHideDelay > 0) {
+        mHideDelay -= 1;
+        if (mHideDelay > 0) {
             return 0;
         }
     }
@@ -507,21 +507,21 @@ s32 MogucchiShooter::fn_801CF120() {
     return 0;
 }
 
-s32 MogucchiShooter::fn_801CF1A0() {
-    if (mSwitchKind != 1 || MR::isDead(mHomingKiller)) {
-        mCounter += 1;
+s32 MogucchiShooter::tryStartShooterShotSign() {
+    if (mProjectileKind != 1 || MR::isDead(mHomingKiller)) {
+        mShotTimer += 1;
     }
-    if (mCounter >= mLimit) {
-        mCounter = 0;
+    if (mShotTimer >= mShotInterval) {
+        mShotTimer = 0;
         setNerve(MS_NRV(Nrv2C14));
         return 1;
     }
     return 0;
 }
 
-s32 MogucchiShooter::fn_801CF220() {
+s32 MogucchiShooter::tryStartShooterShot() {
     bool done;
-    if (mSwitchKind == 1) {
+    if (mProjectileKind == 1) {
         done = !mHomingKiller->isNerveAppear();
     } else {
         done = MR::isBckLooped(mSpike);

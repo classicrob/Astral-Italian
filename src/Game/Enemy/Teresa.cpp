@@ -59,24 +59,24 @@ namespace NrvTeresa {
 };  // namespace NrvTeresa
 
 Teresa::Teresa(const char* pName)
-    : LiveActor(pName), mDisplayModel(), mKeySwitch(), mClipAreaDrop(), mScaleController(), mBindStarPointer(), _94(0.0f, 0.0f, 0.0f, 1.0f), mWallNormal(0, 0, 1), mWallHitPos(0, 0, 0), _BC(0, 0, 1),
-      _C8(0, 0, 0), _D4(1, 1, 1), _E0(0, 0, 0) {
+    : LiveActor(pName), mDisplayModel(), mKeySwitch(), mClipAreaDrop(), mScaleController(), mBindStarPointer(), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mWallNormal(0, 0, 1), mWallHitPos(0, 0, 0), mHitNormal(0, 0, 1),
+      mHomePos(0, 0, 0), mSquashScale(1, 1, 1), mTargetPos(0, 0, 0) {
     _EC = 3000.0f;
-    _F0 = 600.0f;
-    _F4 = 1.0f;
+    mMoveDistance = 600.0f;
+    mTransparency = 1.0f;
     mAppearanceType = -1;
-    _FC = 1;
-    _FD = 0;
-    _FE = 0;
+    mHasCoin = 1;
+    mIsChief = 0;
+    mHitGhostThroughWall = 0;
     mLockOnTarget = nullptr;
 }
 
 void Teresa::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "Teresa", false);
     initFromJMapParam(rIter);
-    _C8.set(mPosition);
+    mHomePos.set(mPosition);
     mWallHitPos.set(mPosition);
-    MR::makeQuatAndFrontFromRotate(&_94, &mWallNormal, this);
+    MR::makeQuatAndFrontFromRotate(&mPoseQuat, &mWallNormal, this);
     MR::setBindTriangleFilter(this, MR::createTriangleFilterDelegator(this, &Teresa::filterBind));
     initDummyModel(rIter);
 
@@ -92,13 +92,13 @@ void Teresa::init(const JMapInfoIter& rIter) {
 
     if (MR::isObjectName(rIter, "TeresaChief")) {
         MR::declarePowerStar(this);
-        _FC = 0;
-        _FD = 1;
+        mHasCoin = 0;
+        mIsChief = 1;
         MR::invalidateClipping(this);
         MR::setShadowDropLength(this, nullptr, 3000.0f);
     }
 
-    if (_FC) {
+    if (mHasCoin) {
         MR::declareCoin(this, 1);
     }
 
@@ -117,7 +117,7 @@ void Teresa::initDummyModel(const JMapInfoIter& rIter) {
             if (MR::getDummyDisplayModelId(rIter, -1) == 6) {
                 mKeySwitch = new KeySwitch("鍵スイッチ");
                 mKeySwitch->initKeySwitchByOwner(rIter);
-                _FC = 0;
+                mHasCoin = 0;
             }
             MR::tryStartAllAnim(mDisplayModel, "InTeresa");
         }
@@ -172,11 +172,11 @@ void Teresa::kill() {
         mKeySwitch->appearKeySwitch(mPosition);
     }
 
-    if (_FD) {
+    if (mIsChief) {
         MR::requestAppearPowerStar(this, mPosition);
     }
 
-    if (_FC) {
+    if (mHasCoin) {
         MR::appearCoinPop(this, mPosition, 1);
     }
 }
@@ -190,15 +190,15 @@ namespace {
 void Teresa::control() {
     mScaleController->updateNerve();
     if (!isNerve(GET_NERVE(Teresa, TeresaNrvDrift)) && !isNerve(GET_NERVE(Teresa, TeresaNrvAscension))) {
-        _D4.x = 1.0f + (0.95f * (_D4.x - 1.0f));
-        _D4.z = 1.0f / _D4.x;
+        mSquashScale.x = 1.0f + (0.95f * (mSquashScale.x - 1.0f));
+        mSquashScale.z = 1.0f / mSquashScale.x;
     }
 
     tryHideWater();
     this->fn_8020E640();
-    _FE = 0;
+    mHitGhostThroughWall = 0;
 
-    if (_F4 > 0.9f) {
+    if (mTransparency > 0.9f) {
         MR::requestPointLight(this, TVec3f(mPosition), ::sPointLightColor, 1.0f, -1);
     }
 
@@ -212,9 +212,9 @@ void Teresa::control() {
 }
 
 void Teresa::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _94);
+    MR::setBaseTRMtx(this, mPoseQuat);
     TVec3f scale(mScale);
-    scale.mul(_D4);
+    scale.mul(mSquashScale);
     scale.mul(mScaleController->_C);
     MR::setBaseScale(this, scale);
 }
@@ -297,8 +297,8 @@ bool Teresa::filterBind(const Triangle* pTriangle) {
     }
 
     if (MR::isWallCodeGhostThrough(pTriangle)) {
-        _FE = 1;
-        _BC.set(*pTriangle->getNormal(0));
+        mHitGhostThroughWall = 1;
+        mHitNormal.set(*pTriangle->getNormal(0));
         return isNerve(GET_NERVE(Teresa, TeresaNrvDrift));
     }
 
@@ -404,8 +404,8 @@ bool Teresa::tryWalk() {
         MR::getRandomVector(&v6, 1.0f);
         MR::normalizeOrZero(&v6);
         v6.orthogonalize(mGravity);
-        v6 *= _F0;
-        _E0 = v6 + _C8;
+        v6 *= mMoveDistance;
+        mTargetPos = v6 + mHomePos;
         setNerve(GET_NERVE(Teresa, TeresaNrvWalk));
         return true;
     }
@@ -414,7 +414,7 @@ bool Teresa::tryWalk() {
 }
 
 bool Teresa::tryWalkEnd() {
-    if (MR::isGreaterStep(this, 300) || _E0.distance(mPosition) <= 200.0f) {
+    if (MR::isGreaterStep(this, 300) || mTargetPos.distance(mPosition) <= 200.0f) {
         setStartNerve();
         return true;
     }
@@ -633,7 +633,7 @@ bool Teresa::tryAscension() {
 }
 
 void Teresa::endAppear() {
-    if (!_FD) {
+    if (!mIsChief) {
         MR::validateClipping(this);
     }
 
@@ -649,7 +649,7 @@ void Teresa::endDrift() {
 
 void Teresa::exeAppearFromWall() {
     TVec3f v4;
-    _94.getZDir(v4);
+    mPoseQuat.getZDir(v4);
 
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
@@ -674,7 +674,7 @@ void Teresa::exeAppearFromWall() {
 
 void Teresa::exeAppearFromGround() {
     TVec3f v4;
-    _94.getYDir(v4);
+    mPoseQuat.getYDir(v4);
 
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
@@ -718,7 +718,7 @@ void Teresa::exeWalk() {
         MR::startBtp(this, "Normal");
     }
 
-    MR::turnDirectionToTarget(this, &mWallNormal, _E0, 0.9995f);
+    MR::turnDirectionToTarget(this, &mWallNormal, mTargetPos, 0.9995f);
     MR::addVelocityMoveToDirection(this, mWallNormal, 0.2f);
     updateNormalTransparency();
     updateNormalVelocity();
@@ -859,7 +859,7 @@ void Teresa::exeShay() {
         MR::zeroVelocity(this);
     }
 
-    if (_FD) {
+    if (mIsChief) {
         MR::startActionSound(this, "OjLvPowStarExist");
     }
 
@@ -912,9 +912,9 @@ void Teresa::exeDrift() {
         MR::forceDeleteEffectAll(this);
         MR::startAction(this, "Drift");
         MR::emitEffect(this, "SpinBlur");
-        _D4.x = 1.0f;
-        _D4.y = 1.0f;
-        _D4.z = 1.0f;
+        mSquashScale.x = 1.0f;
+        mSquashScale.y = 1.0f;
+        mSquashScale.z = 1.0f;
         MR::startActionSound(this, "EmTeresaTornade");
 
         if (mDisplayModel != nullptr) {
@@ -950,7 +950,7 @@ void Teresa::exeHideWater() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hide");
         MR::setShadowVolumeSphereRadius(this, nullptr, 0.0f);
-        mWallHitPos.set(_C8);
+        mWallHitPos.set(mHomePos);
     }
 
     if (MR::isGreaterStep(this, 60)) {
@@ -963,9 +963,9 @@ void Teresa::exeHideWater() {
 
 void Teresa::exeAscension() {
     if (MR::isFirstStep(this)) {
-        _D4.x = 1.0f;
-        _D4.y = 1.0f;
-        _D4.z = 1.0f;
+        mSquashScale.x = 1.0f;
+        mSquashScale.y = 1.0f;
+        mSquashScale.z = 1.0f;
         MR::setBaseScale(this, mScale);
         MR::startActionSound(this, "EmTeresaDead");
         MR::startActionSound(this, "EvTeresaDead");
@@ -1007,7 +1007,7 @@ inline void Teresa::endAppearFromWall() {
 void Teresa::fn_8020E640() {
     TVec3f up;
     up.negate(this->mGravity);
-    MR::blendQuatUpFront(&this->_94, up, this->mWallNormal, 0.1f, 0.2f);
+    MR::blendQuatUpFront(&this->mPoseQuat, up, this->mWallNormal, 0.1f, 0.2f);
 }
 
 void Teresa::updateNormalVelocity() {
@@ -1030,37 +1030,37 @@ void Teresa::addDriftVelocity() {
 
 void Teresa::updateDriftAnimScale() {
     TVec3f v4;
-    _94.getXDir(v4);
+    mPoseQuat.getXDir(v4);
     f32 v2 = v4.dot(mVelocity);
-    _D4.x = 1.0f + 0.5f * MR::normalize(MR::abs(v2), 3.0f, 53.0f);
-    _D4.z = 1.0f / _D4.x;
+    mSquashScale.x = 1.0f + 0.5f * MR::normalize(MR::abs(v2), 3.0f, 53.0f);
+    mSquashScale.z = 1.0f / mSquashScale.x;
 }
 
 void Teresa::updateDriftTransparency() {
     f32 v2 = MR::calcNerveRate(this, 50);
     f32 v3 = ((4.0f * v2) * (v2 - 1.0f));
     f32 v4 = (1.0f - (v3 * v3));
-    f32 v5 = MR::calcNerveValue(this, 25, _F4, v4);
+    f32 v5 = MR::calcNerveValue(this, 25, mTransparency, v4);
     setTransparency(v5);
     MR::setShadowVolumeSphereRadius(this, nullptr, (80.0f * v4));
 }
 
 void Teresa::updateNormalTransparency() {
-    if (_F4 < 1.0f) {
-        _F4 += 0.02f;
-        f32 v1 = _F4;
+    if (mTransparency < 1.0f) {
+        mTransparency += 0.02f;
+        f32 v1 = mTransparency;
 
         if (v1 > 1.0f) {
-            _F4 = 1.0f;
+            mTransparency = 1.0f;
         }
     }
 
-    setTransparency(_F4);
+    setTransparency(mTransparency);
 }
 
 void Teresa::fn_8020E910() {
     if (this->mDisplayModel != nullptr) {
-        this->setTransparency(MR::calcNerveEaseInOutValue(this, 60, this->_F4, 0.5f));
+        this->setTransparency(MR::calcNerveEaseInOutValue(this, 60, this->mTransparency, 0.5f));
     } else {
         this->updateNormalTransparency();
     }
@@ -1079,7 +1079,7 @@ void Teresa::setTransparency(f32 val) {
         }
     }
 
-    _F4 = val;
+    mTransparency = val;
 }
 
 bool Teresa::canAttack() const {

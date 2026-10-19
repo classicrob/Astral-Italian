@@ -54,11 +54,11 @@ public:
     bool inClingNerve() const;
 
     /* 0x8C */ TVec3f mFront;
-    /* 0x9C */ TQuat4f _9C;
+    /* 0x9C */ TQuat4f mPoseQuat;
     /* 0xAC */ FixedPosition* mClingPosition;
     /* 0xB0 */ AnimScaleController* mAnimScale;
     /* 0xB4 */ WalkerStateBindStarPointer* mStarPointer;
-    /* 0xB8 */ bool _9E;
+    /* 0xB8 */ bool mIsAttackEnabled;
     /* 0xB9 */ bool mIsPushable;
     /* 0xBC */ s32 mFrozenTime;
     /* 0xC0 */ u32 _C0;

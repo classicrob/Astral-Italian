@@ -63,7 +63,7 @@ namespace NrvJumpSpider {
     NEW_NERVE(HostTypeNrvEaten, JumpSpider, Eaten);
 };  // namespace NrvJumpSpider
 
-JumpSpider::JumpSpider(const char* pName) : LiveActor(pName), mSpinHitController(), mScaleController(), _94(0, 0, 1), _A0(0, 0, 0), mYoshiLockOn(nullptr) {
+JumpSpider::JumpSpider(const char* pName) : LiveActor(pName), mSpinHitController(), mScaleController(), mFront(0, 0, 1), mRespawnPos(0, 0, 0), mYoshiLockOn(nullptr) {
 }
 
 void JumpSpider::init(const JMapInfoIter& rIter) {
@@ -76,7 +76,7 @@ void JumpSpider::init(const JMapInfoIter& rIter) {
 
     TPos3f pos;
     pos.setInline(getBaseMtx());
-    pos.getZDir(_94);
+    pos.getZDir(mFront);
     initNerve(GET_NERVE(JumpSpider, HostTypeNrvWait), 0);
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, "Hip"), TVec3f(0.0f));
     mSpinHitController = new SpinHitController(this);
@@ -92,7 +92,7 @@ void JumpSpider::initAfterPlacement() {
     TVec3f v1, v2;
 
     if (MR::getFirstPolyNormalOnLineToMap(&v1, v15, mGravity * 300.0f, &v2, nullptr)) {
-        _A0.set(v2);
+        mRespawnPos.set(v2);
         MR::setPosition(this, v2);
         mGravity.set(-v1);
     } else {
@@ -174,7 +174,7 @@ void JumpSpider::exePreJump() {
 
     TVec3f heightVec;
     MR::calcVecToPlayerH(&heightVec, this, nullptr);
-    MR::turnVecToVecRadian(&_94, _94, heightVec, 0.05f, mGravity);
+    MR::turnVecToVecRadian(&mFront, mFront, heightVec, 0.05f, mGravity);
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(JumpSpider, HostTypeNrvJump));
@@ -191,11 +191,11 @@ void JumpSpider::exeJump() {
     MR::applyVelocityDampAndGravity(this, 0.3f, ::hGroundDamp, ::hAirDampH, ::hAirDampV, ::hJumpVelV);
     TVec3f heightVec;
     MR::calcVecToPlayerH(&heightVec, this, nullptr);
-    MR::turnVecToVecRadian(&_94, _94, heightVec, 0.02f, mGravity);
+    MR::turnVecToVecRadian(&mFront, mFront, heightVec, 0.02f, mGravity);
 
     if (MR::isOnGround(this)) {
         MR::startActionSound(this, "EmJumpspiderLand");
-        MR::setPosition(this, _A0);
+        MR::setPosition(this, mRespawnPos);
         MR::zeroVelocity(this);
         MR::startAction(this, "JumpEnd");
         setNerve(GET_NERVE(JumpSpider, HostTypeNrvJumpEnd));
@@ -206,7 +206,7 @@ void JumpSpider::exeJumpEnd() {
     if (MR::isFirstStep(this)) {
     }
 
-    MR::setPosition(this, _A0);
+    MR::setPosition(this, mRespawnPos);
 
     if (MR::isActionEnd(this)) {
         if (1000.0f < MR::calcDistanceToPlayer(this)) {
@@ -230,7 +230,7 @@ void JumpSpider::exeHitToPlayer() {
     if (MR::isGreaterStep(this, 58)) {
         TVec3f heightVec;
         MR::calcVecToPlayerH(&heightVec, this, nullptr);
-        MR::turnVecToVecRadian(&_94, _94, heightVec, 0.05f, mGravity);
+        MR::turnVecToVecRadian(&mFront, mFront, heightVec, 0.05f, mGravity);
     }
 
     if (MR::isActionEnd(this)) {
@@ -246,7 +246,7 @@ void JumpSpider::exeStampFall() {
 
     if (MR::isOnGround(this)) {
         MR::zeroVelocity(this);
-        MR::setPosition(this, _A0);
+        MR::setPosition(this, mRespawnPos);
         setNerve(GET_NERVE(JumpSpider, HostTypeNrvStampDeath));
     }
 }
@@ -263,7 +263,7 @@ void JumpSpider::exeStampDeath() {
         MR::zeroVelocity(this);
     }
 
-    MR::setPosition(this, _A0);
+    MR::setPosition(this, mRespawnPos);
 
     if (MR::isGreaterStep(this, ::hStampDeathTime)) {
         MR::startActionSound(this, "EmExplodeS");
@@ -325,11 +325,11 @@ void JumpSpider::exeNoPowerStart() {
     MR::applyVelocityDampAndGravity(this, 0.8f, 0.8f, 0.98f, 0.98f, 1.0f);
 
     if (MR::isOnGround(this) && MR::isActionEnd(this)) {
-        MR::setPosition(this, _A0);
+        MR::setPosition(this, mRespawnPos);
         MR::startActionSound(this, "EmJumpspiderLand");
 
         if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvStarPieceHit))) {
-            MR::setPosition(this, _A0);
+            MR::setPosition(this, mRespawnPos);
             MR::zeroVelocity(this);
             MR::startAction(this, "NoPowerLand");
             setNerve(GET_NERVE(JumpSpider, HostTypeNrvStarPieceHitLand));
@@ -345,7 +345,7 @@ void JumpSpider::exeNoPowerLand() {
         MR::zeroVelocity(this);
     }
 
-    MR::setPosition(this, _A0);
+    MR::setPosition(this, mRespawnPos);
 
     if (MR::isActionEnd(this)) {
         if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvStarPieceHitLand))) {
@@ -362,7 +362,7 @@ void JumpSpider::exeNoPowerWait() {
         MR::zeroVelocity(this);
     }
 
-    MR::setPosition(this, _A0);
+    MR::setPosition(this, mRespawnPos);
     MR::startActionSound(this, "EmLvSwoonS");
 
     if (MR::isGreaterStep(this, ::hNoPowerWaitTime)) {
@@ -376,7 +376,7 @@ void JumpSpider::exeNoPowerEnd() {
         MR::startActionSound(this, "EmJumpspiderStep");
     }
 
-    MR::setPosition(this, _A0);
+    MR::setPosition(this, mRespawnPos);
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(JumpSpider, HostTypeNrvWait));
@@ -507,7 +507,7 @@ bool JumpSpider::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
 
 void JumpSpider::calcAndSetBaseMtx() {
     TPos3f pos;
-    MR::calcMtxFromGravityAndZAxis(&pos, this, mGravity, _94);
+    MR::calcMtxFromGravityAndZAxis(&pos, this, mGravity, mFront);
     MR::setBaseTRMtx(this, pos);
     MR::updateBaseScale(this, mScaleController);
 }

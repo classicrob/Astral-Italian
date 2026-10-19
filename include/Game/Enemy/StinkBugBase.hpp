@@ -17,10 +17,10 @@ public:
     bool isPlayerInTerritory(f32, f32, f32, f32) const;
     bool isHitHorn(HitSensor*, HitSensor*, f32) const;
 
-    TVec3f _8C;
-    TVec3f _98;
-    TVec3f _A4;
-    f32 _B0;
+    /* 0x8C */ TVec3f mFront;
+    /* 0x98 */ TVec3f mHomePos;
+    /* 0xA4 */ TVec3f mHomeFront;
+    /* 0xB0 */ f32 mMaxTurnDegree;
     /* 0xB4 */ f32 mRadius;
-    bool _B8;
+    /* 0xB8 */ bool mTurnPositive;
 };

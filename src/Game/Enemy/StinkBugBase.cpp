@@ -14,21 +14,21 @@
 #include <JSystem/JMath/JMath.hpp>
 
 StinkBugBase::StinkBugBase(const char* pName)
-    : LiveActor(pName), _8C(0.0f, 0.0f, 1.0f), _98(0.0f, 0.0f, 0.0f), _A4(0.0f, 0.0f, 1.0f), _B0(180.0f), mRadius(1000.0f), _B8(false) {
+    : LiveActor(pName), mFront(0.0f, 0.0f, 1.0f), mHomePos(0.0f, 0.0f, 0.0f), mHomeFront(0.0f, 0.0f, 1.0f), mMaxTurnDegree(180.0f), mRadius(1000.0f), mTurnPositive(false) {
 }
 
 void StinkBugBase::setDashVelocity(f32 velocity) {
     TVec3f result;
     f32 radius = mRadius;
-    result.scaleAdd(radius, _8C, _98);
+    result.scaleAdd(radius, mFront, mHomePos);
     f32 distance = result.distance(mPosition);
     distance = MR::min(velocity, distance);
-    mVelocity.scale(distance, _8C);
+    mVelocity.scale(distance, mFront);
 }
 
 void StinkBugBase::fixInitPos() {
     mVelocity.zero();
-    MR::setPosition(this, _98);
+    MR::setPosition(this, mHomePos);
 }
 
 void StinkBugBase::init(const JMapInfoIter& rIter) {
@@ -42,9 +42,9 @@ void StinkBugBase::init(const JMapInfoIter& rIter) {
     initEffectKeeper(2, nullptr, false);
     MR::addEffectHitNormal(this, nullptr);
     MR::initUseStageSwitchWriteDead(this, rIter);
-    _98.set(mPosition);
-    MR::calcFrontVec(&_8C, this);
-    _A4.set(_8C);
+    mHomePos.set(mPosition);
+    MR::calcFrontVec(&mFront, this);
+    mHomeFront.set(mFront);
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
     mGravity.negate(upVec);
@@ -79,39 +79,39 @@ bool StinkBugBase::isPlayerInTerritory(f32 arg1, f32 arg2, f32 arg3, f32 arg4) c
         return false;
     }
 
-    if (_B0 == 0.0f) {
-        return v1.dot(_8C) > 0.0f;
+    if (mMaxTurnDegree == 0.0f) {
+        return v1.dot(mFront) > 0.0f;
     }
 
-    if (_B0 == 180.0f) {
+    if (mMaxTurnDegree == 180.0f) {
         return true;
     }
 
-    f32 f1 = MR::abs(MR::sinDegree(_B0));
+    f32 f1 = MR::abs(MR::sinDegree(mMaxTurnDegree));
 
     const TVec3f& rPos2 = mPosition;
     TVec3f scaledAdded;
-    scaledAdded.scaleAdd(-arg4 / f1, _A4, rPos2);
+    scaledAdded.scaleAdd(-arg4 / f1, mHomeFront, rPos2);
 
     TVec3f v3;
     v3.sub(*MR::getPlayerPos(), scaledAdded);
 
     TVec3f v5 = v3.killElement(mGravity);
 
-    return MR::isNearAngleDegree(v5, _A4, _B0);
+    return MR::isNearAngleDegree(v5, mHomeFront, mMaxTurnDegree);
 }
 #pragma pop
 
 bool StinkBugBase::tryTurnSearch(f32 angle) {
-    if (_B8) {
-        MR::rotateVecDegree(&_8C, mGravity, angle);
+    if (mTurnPositive) {
+        MR::rotateVecDegree(&mFront, mGravity, angle);
     } else {
-        MR::rotateVecDegree(&_8C, mGravity, -angle);
+        MR::rotateVecDegree(&mFront, mGravity, -angle);
     }
 
-    if (!MR::isNearAngleDegree(_8C, _A4, _B0)) {
-        MR::clampVecAngleDeg(&_8C, _A4, _B0);
-        _B8 = !_B8;
+    if (!MR::isNearAngleDegree(mFront, mHomeFront, mMaxTurnDegree)) {
+        MR::clampVecAngleDeg(&mFront, mHomeFront, mMaxTurnDegree);
+        mTurnPositive = !mTurnPositive;
         return true;
     }
 
@@ -120,8 +120,8 @@ bool StinkBugBase::tryTurnSearch(f32 angle) {
 
 bool StinkBugBase::tryTurnDashSign(f32 angle) {
     TVec3f* playerPos = MR::getPlayerPos();
-    MR::turnDirectionToTargetUseGroundNormalDegree(this, &_8C, *playerPos, angle);
-    MR::clampVecAngleDeg(&_8C, _A4, _B0);
+    MR::turnDirectionToTargetUseGroundNormalDegree(this, &mFront, *playerPos, angle);
+    MR::clampVecAngleDeg(&mFront, mHomeFront, mMaxTurnDegree);
     return true;
 }
 
@@ -129,7 +129,7 @@ bool StinkBugBase::isHitHorn(HitSensor* pSender, HitSensor* pReceiver, f32 arg3)
     TVec3f toReceiver;
     toReceiver.sub(*MR::getSensorPos(pReceiver), *MR::getSensorPos(pSender));
 
-    if (toReceiver.dot(_8C) < 0.0f) {
+    if (toReceiver.dot(mFront) < 0.0f) {
         return false;
     }
 

@@ -57,10 +57,10 @@ public:
     /* 0xA4 */ HitSensor* mReleasedSensor;
     /* 0xA8 */ SupportTicoExecutor* mExecutor;
     /* 0xAC */ s32 mTargetTimer;
-    /* 0xB0 */ s32 _B0;
+    /* 0xB0 */ s32 mUnusedCounter;
     /* 0xB4 */ f32 mAttachRange;
     /* 0xB8 */ bool mControlOn;
-    /* 0xB9 */ bool _B9;
+    /* 0xB9 */ bool mTargetRefreshed;
     /* 0xBA */ bool mInForbidArea;
     /* 0xBB */ bool mFollowPlayerYDir;
     /* 0xBC */ bool mShow;

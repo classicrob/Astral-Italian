@@ -104,16 +104,16 @@ bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 }
 
 // NONMATCHING: Commutative FP multiply operand order and FP register allocation differ.
-void AttackRockStateFall::fn_80153DE0() {
+void AttackRockStateFall::updateLandSensorRadius() {
     f32 dist = PSVECDistance(&this->mLandPos, &this->mHost->mPosition);
     AttackRock* pHost = this->mHost;
-    f32 fnRadius = pHost->fn_801510C0();
+    f32 fnRadius = pHost->getRockBaseRadius();
     f32 radius = 1.5f + fnRadius * pHost->mScale.y;
     if (dist < radius) {
-        f32 fnBase = pHost->fn_801510C0();
+        f32 fnBase = pHost->getRockBaseRadius();
         f32 base = fnBase * pHost->mScale.y;
         f32 half = 0.5f * base;
-        MR::setSensorRadius(this->mHost, "Land", MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->fn_801510C0() * pHost->mScale.y, half));
+        MR::setSensorRadius(this->mHost, "Land", MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->getRockBaseRadius() * pHost->mScale.y, half));
         this->mIsNear = true;
         return;
     }
@@ -122,7 +122,7 @@ void AttackRockStateFall::fn_80153DE0() {
 
 #pragma auto_inline off
 // NONMATCHING: Vector expression temporaries and inlining differ.
-void AttackRockStateFall::fn_80153EE0() {
+void AttackRockStateFall::updateFallBezierVelocity() {
     TVec3f start(this->mHost->mPosition);
     f32 t = MR::calcNerveRate(this, 110);
     f32 s = 1.0f - t;
@@ -134,12 +134,13 @@ void AttackRockStateFall::fn_80153EE0() {
     TVec3f sum = (p2 + p1) + p0;
     TVec3f pos;
     pos.set(sum);
+    AttackRock* pHost = this->mHost;
     TVec3f vel = pos - start;
-    MR::setVelocity(this->mHost, vel);
+    MR::setVelocity(pHost, vel);
 }
 #pragma auto_inline on
 
-void AttackRockStateFall::fn_80153FE0() {
+void AttackRockStateFall::startLandDemo() {
     AttackRock* pHost = this->mHost;
     LiveActor* pDemo = pHost->mDemoObj;
     MR::setQuatUpNoSupport(pDemo, this->mLandNormal);
@@ -151,7 +152,7 @@ void AttackRockStateFall::fn_80153FE0() {
 
 #pragma auto_inline off
 // NONMATCHING: Commutative floating-point multiply operand order differs.
-void AttackRockStateFall::fn_80154060() {
+void AttackRockStateFall::exeFallAppear() {
     if (MR::isFirstStep(this)) {
         this->mIsNear = false;
         MR::startAction(this->mHost, "Wait");
@@ -180,47 +181,49 @@ void AttackRockStateFall::fn_80154060() {
     MR::showModel(this->mHost);
     MR::validateHitSensors(this->mHost);
     AttackRock* pHost = this->mHost;
-    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, 0.05f * pHost->fn_801510C0() * pHost->mScale.y);
+    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, 0.05f * pHost->getRockBaseRadius() * pHost->mScale.y);
 }
 #pragma auto_inline on
 
-// NONMATCHING: Host reloads, GPR allocation and floating-point scheduling differ.
-void AttackRockStateFall::fn_80154280() {
+// NONMATCHING: Only GPR assignment of the two mHost copies (r30/r31 swapped) differs; calls, operands and fields match.
+void AttackRockStateFall::exeFallWait() {
     if (MR::isFirstStep(this)) {
         const char* pName = "Fall";
+        AttackRock* pHost = this->mHost;
         if (this->mBreakModel != nullptr) {
             pName = "FallWave";
         }
-        MR::startAction(this->mHost, pName);
+        MR::startAction(pHost, pName);
         MR::invalidateShadow(this->mHost, nullptr);
         this->mIsNear = false;
         this->mVolumeDrawer->setScaleUpRate(60);
         MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
     }
     AttackRock* pHost = this->mHost;
-    f32 base = 0.05f * pHost->fn_801510C0() * pHost->mScale.y;
-    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, 0.95f * pHost->fn_801510C0() * pHost->mScale.y);
+    f32 base = 0.05f * pHost->getRockBaseRadius() * pHost->mScale.y;
+    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, 0.95f * this->mHost->getRockBaseRadius() * this->mHost->mScale.y);
     MR::setShadowVolumeSphereRadius(this->mHost, nullptr, radius);
     MR::setScale(this->mVolumeDrawer, TVec3f(1.2f * radius / 100.0f));
-    this->fn_80153EE0();
-    this->fn_80153DE0();
+    this->updateFallBezierVelocity();
+    this->updateLandSensorRadius();
     if (MR::isGreaterEqualStep(this, 110)) {
         MR::setPosition(this->mHost, this->mLandPos);
         MR::zeroVelocity(this->mHost);
         this->mVolumeDrawer->setScaleDownRate(50);
-        this->fn_80153FE0();
+        this->startLandDemo();
         this->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvFall::sInstance);
     }
 }
 
 // NONMATCHING: Host load is scheduled after the action-name selection.
-void AttackRockStateFall::fn_80154400() {
+void AttackRockStateFall::exeFallLanding() {
     if (MR::isFirstStep(this)) {
         const char* pName = "Land";
+        AttackRock* pHost = this->mHost;
         if (this->mBreakModel != nullptr) {
             pName = "LandWave";
         }
-        MR::startAction(this->mHost, pName);
+        MR::startAction(pHost, pName);
         MR::setPosition(this->mHost, this->mLandPos);
         MR::zeroVelocity(this->mHost);
         MR::invalidateShadow(this->mHost, nullptr);
@@ -237,13 +240,13 @@ void AttackRockStateFall::fn_80154400() {
 
 namespace NrvAttackRockStateFall {
     inline void AttackRockStateFallNrvAppear::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->fn_80154060();
+        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->exeFallAppear();
     }
     inline void AttackRockStateFallNrvWait::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->fn_80154280();
+        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->exeFallWait();
     }
     inline void AttackRockStateFallNrvFall::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->fn_80154400();
+        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->exeFallLanding();
     }
 };  // namespace NrvAttackRockStateFall
 

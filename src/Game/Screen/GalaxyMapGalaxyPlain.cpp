@@ -8,14 +8,10 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <JSystem/JKernel/JKRSolidHeap.hpp>
+#include <wstring.h>
 
 #define GALAXY_NAME_BUFFER_SIZE 128
 
-#ifdef __cplusplus
-extern "C" {
-extern int swprintf(wchar_t*, size_t, const wchar_t*, ...);
-};
-#endif
 
 GalaxyMapGalaxyPlain::GalaxyMapGalaxyPlain(const LayoutActor* pHost)
     : LayoutActor("Galaxy情報簡易表示", true), mHost(pHost), mPaneName(), mNamePlate(), mGalaxyName(), mIsShow() {

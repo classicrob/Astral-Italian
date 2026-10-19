@@ -26,7 +26,7 @@ namespace NrvKameckTurtle {
 };  // namespace NrvKameckTurtle
 
 KameckTurtle::KameckTurtle(const char* pName)
-    : LiveActor(pName), mTurtle(), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 1.0f), _B0(0.0f, 0.0f, 1.0f) {
+    : LiveActor(pName), mTurtle(), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), mFront(0.0f, 0.0f, 1.0f), mMoveDir(0.0f, 0.0f, 1.0f) {
 }
 
 void KameckTurtle::init(const JMapInfoIter& rIter) {
@@ -73,7 +73,7 @@ void KameckTurtle::makeActorDead() {
 }
 
 void KameckTurtle::control() {
-    MR::blendQuatFromGroundAndFront(&mRotateQuat, this, _A4, ::sUpVecBlendRate, ::sFrontVecBlendRate);
+    MR::blendQuatFromGroundAndFront(&mRotateQuat, this, mFront, ::sUpVecBlendRate, ::sFrontVecBlendRate);
 }
 
 void KameckTurtle::calcAndSetBaseMtx() {
@@ -87,10 +87,10 @@ void KameckTurtle::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             MR::reflectVelocityH(this, pSender, pReceiver, 0.8f);
 
             if (!MR::isNearZero(mVelocity)) {
-                MR::normalize(mVelocity, &_B0);
+                MR::normalize(mVelocity, &mMoveDir);
             }
 
-            KameckBeamProjectile::fn_801A7E40();
+            KameckBeamProjectile::notifyBeamHit();
         }
     } else if (!isNerve(GET_NERVE(KameckTurtle, KameckTurtleNrvWait))) {
         appearJetTurtle(false);
@@ -128,10 +128,10 @@ void KameckTurtle::appearDirection(const TVec3f& rPos, const TVec3f& rDir) {
     MR::setPosition(this, rPos);
     MR::calcGravity(this);
     mVelocity.set(rDir);
-    _B0.killElement(rDir, mGravity);
+    mMoveDir.killElement(rDir, mGravity);
 
-    if (MR::normalizeOrZero(&_B0)) {
-        MR::makeAxisVerticalZX(&_B0, mGravity);
+    if (MR::normalizeOrZero(&mMoveDir)) {
+        MR::makeAxisVerticalZX(&mMoveDir, mGravity);
     }
 
     setNerve(GET_NERVE(KameckTurtle, KameckTurtleNrvRun));
@@ -143,10 +143,10 @@ void KameckTurtle::exeRun() {
         MR::startAction(this, "Wait");
     }
 
-    _B0.orthogonalize(mGravity);
+    mMoveDir.orthogonalize(mGravity);
 
-    if (MR::normalizeOrZero(&_B0)) {
-        MR::makeAxisVerticalZX(&_B0, mGravity);
+    if (MR::normalizeOrZero(&mMoveDir)) {
+        MR::makeAxisVerticalZX(&mMoveDir, mGravity);
     }
 
     if (MR::isBindedGround(this)) {
@@ -163,16 +163,16 @@ void KameckTurtle::exeRun() {
         easeInOut = 1.0f - MR::calcNerveEaseInOutRate(this, ::sDeccelStartTime, ::sDeccelEndTime);
     }
 
-    MR::addVelocityMoveToDirection(this, _B0, easeInOut * 0.5f);
-    MR::rotateDirectionGravityDegree(this, &_A4, ::sRunSpinDegree * easeInOut);
-    MR::turnDirectionToGround(this, &_A4);
+    MR::addVelocityMoveToDirection(this, mMoveDir, easeInOut * 0.5f);
+    MR::rotateDirectionGravityDegree(this, &mFront, ::sRunSpinDegree * easeInOut);
+    MR::turnDirectionToGround(this, &mFront);
     MR::attenuateVelocity(this, ::sRunFric);
 
     if (MR::isBindedWall(this) && MR::calcReboundVelocity(&mVelocity, MR::getWallNormal(this), 0.5f)) {
         TVec3f dir = MR::getVelocityHorizon(this);
 
         if (!MR::normalizeOrZero(&dir)) {
-            _B0.set(dir);
+            mMoveDir.set(dir);
         }
 
         MR::addVelocityJump(this, ::sRunSpeed);
@@ -225,15 +225,15 @@ void KameckTurtle::appearJetTurtle(bool tryTaken) {
     }
 }
 
-void KameckTurtle::fn_801A7180() {
+void KameckTurtle::resetBeamProjectile() {
     kill();
 }
 
-bool KameckTurtle::fn_801A78B0() const {
+bool KameckTurtle::isBeamProjectileDead() const {
     return MR::isDead(this);
 }
 
-bool KameckTurtle::fn_801A74D0() {
+bool KameckTurtle::tryStormProjectile() {
     appear();
     appearJetTurtle(true);
     return true;

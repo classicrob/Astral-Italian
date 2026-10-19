@@ -88,7 +88,7 @@ void Foomin::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFront);
 }
 
-void Foomin::fn_80181940() {
+void Foomin::exeFoominWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::validateClipping(this);
@@ -99,7 +99,7 @@ void Foomin::fn_80181940() {
     }
 }
 
-void Foomin::fn_801819D0() {
+void Foomin::exeFoominWaitTouch() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::validateClipping(this);
@@ -109,25 +109,25 @@ void Foomin::fn_801819D0() {
         if ((!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) && MR::isGreaterStep(this, 120)) {
             this->setNerve(GET_FOOMIN_NERVE(FoominNrvAttackSign));
         }
-        this->fn_80181C80();
+        this->updateRailSpeed();
     }
 }
 
-void Foomin::fn_80181A80() {
+void Foomin::exeFoominAttackSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackSign");
         MR::invalidateClipping(this);
     }
 
     if (this->mSupportTico->tryAttachTouch() == 0) {
-        this->fn_80181C80();
+        this->updateRailSpeed();
         if (MR::isActionEnd(this)) {
             this->setNerve(GET_FOOMIN_NERVE(FoominNrvAttack));
         }
     }
 }
 
-void Foomin::fn_80181B00() {
+void Foomin::exeFoominAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
     }
@@ -144,14 +144,14 @@ void Foomin::fn_80181B00() {
         MR::invalidateCollisionParts(this);
     }
 
-    this->fn_80181C80();
+    this->updateRailSpeed();
     if (MR::isActionEnd(this)) {
         MR::validateCollisionParts(this);
         this->setNerve(GET_FOOMIN_NERVE(FoominNrvWaitTouch));
     }
 }
 
-void Foomin::fn_80181C80() {
+void Foomin::updateRailSpeed() {
     if (MR::isExistRail(this)) {
         s32 speed = this->mArg1;
         f32 rate = 0.009999999776482582f * (f32)speed;
@@ -163,17 +163,17 @@ Foomin::~Foomin() {
 }
 
 void NrvFoomin::FoominNrvWait::execute(Spine* pSpine) const {
-    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_80181940();
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominWait();
 }
 
 void NrvFoomin::FoominNrvWaitTouch::execute(Spine* pSpine) const {
-    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_801819D0();
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominWaitTouch();
 }
 
 void NrvFoomin::FoominNrvAttackSign::execute(Spine* pSpine) const {
-    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_80181A80();
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominAttackSign();
 }
 
 void NrvFoomin::FoominNrvAttack::execute(Spine* pSpine) const {
-    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_80181B00();
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominAttack();
 }

@@ -64,7 +64,7 @@ void Grapyon::init(const JMapInfoIter& rIter) {
     initNerve(NRV(Wait), 1);
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mBindStar = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
-    MR::initActorState(this, mBindStar, reinterpret_cast< const Nerve* >(NRV(SupportFreeze)), "SupportFreeze");
+    MR::initActorState(this, mBindStar, NRV(SupportFreeze), "SupportFreeze");
     makeActorAppeared();
 }
 

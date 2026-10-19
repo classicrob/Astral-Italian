@@ -20,5 +20,5 @@ public:
     void exeJumpV();
     void exeJumpH();
     /* 0x164 */ s32 mBehavior;
-    /* 0x168 */ f32 _168;
+    /* 0x168 */ f32 mJumpHeight;
 };

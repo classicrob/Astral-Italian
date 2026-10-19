@@ -171,8 +171,8 @@ void TamakoroTutorial::exeWaitRide() {
 void TamakoroTutorial::exeWaitRaiseTalk() {
     PlayerActionGuidance* pPlayerActionGuidance = MR::getPlayerActionGuidance();
 
-    pPlayerActionGuidance->mGuidanceState = 0;
-    pPlayerActionGuidance->_36 = true;
+    pPlayerActionGuidance->mGuidanceState = PlayerActionGuidance::GuidanceState_Raise;
+    pPlayerActionGuidance->mForceTamakoroGuidance = true;
 
     MR::tryTalkForceWithoutDemo(mTalkCtrl);
 
@@ -187,8 +187,8 @@ void TamakoroTutorial::exeWaitRaiseTalk() {
 void TamakoroTutorial::exeWaitRaiseStable() {
     PlayerActionGuidance* pPlayerActionGuidance = MR::getPlayerActionGuidance();
 
-    pPlayerActionGuidance->mGuidanceState = 1;
-    pPlayerActionGuidance->_36 = true;
+    pPlayerActionGuidance->mGuidanceState = PlayerActionGuidance::GuidanceState_RaiseHold;
+    pPlayerActionGuidance->mForceTamakoroGuidance = true;
 
     MR::tryTalkForceWithoutDemoAtEnd(mTalkCtrl);
 
@@ -208,8 +208,8 @@ void TamakoroTutorial::exeWaitRaiseStable() {
 void TamakoroTutorial::exeRaiseOk() {
     PlayerActionGuidance* pPlayerActionGuidance = MR::getPlayerActionGuidance();
 
-    pPlayerActionGuidance->mGuidanceState = 2;
-    pPlayerActionGuidance->_36 = true;
+    pPlayerActionGuidance->mGuidanceState = PlayerActionGuidance::GuidanceState_RaiseOK;
+    pPlayerActionGuidance->mForceTamakoroGuidance = true;
 
     if (MR::isGreaterStep(this, 60)) {
         setNerve(GET_NERVE(TamakoroTutorial, HostTypeNrvRaiseOkTalk));
@@ -219,8 +219,8 @@ void TamakoroTutorial::exeRaiseOk() {
 void TamakoroTutorial::exeRaiseOkTalk() {
     PlayerActionGuidance* pPlayerActionGuidance = MR::getPlayerActionGuidance();
 
-    pPlayerActionGuidance->mGuidanceState = 2;
-    pPlayerActionGuidance->_36 = true;
+    pPlayerActionGuidance->mGuidanceState = PlayerActionGuidance::GuidanceState_RaiseOK;
+    pPlayerActionGuidance->mForceTamakoroGuidance = true;
 
     if (MR::isFirstStep(this)) {
         MR::forwardNode(mTalkCtrl);
@@ -234,8 +234,8 @@ void TamakoroTutorial::exeRaiseOkTalk() {
 void TamakoroTutorial::exeFinalTalk() {
     PlayerActionGuidance* pPlayerActionGuidance = MR::getPlayerActionGuidance();
 
-    pPlayerActionGuidance->mGuidanceState = 3;
-    pPlayerActionGuidance->_36 = true;
+    pPlayerActionGuidance->mGuidanceState = PlayerActionGuidance::GuidanceState_Rotation;
+    pPlayerActionGuidance->mForceTamakoroGuidance = true;
 
     if (MR::isFirstStep(this)) {
         MR::forwardNode(mTalkCtrl);

@@ -14,6 +14,6 @@ public:
     bool branchFuncTalkNpc(u32);
     bool branchFuncIntrusively(u32);
     void pushTurnPlayer();
-    s32 _164;
-    bool mHideAfterIntrusiveUnlock;
+    /* 0x164 */ s32 mUnusedCounter;
+    /* 0x168 */ bool mHideAfterIntrusiveUnlock;
 };

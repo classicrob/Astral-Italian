@@ -14,7 +14,7 @@ namespace NrvPopUpAddTimeAttackTime {
     NEW_NERVE(PopUpAddTimeAttackTimeNrvDisplay, PopUpAddTimeAttackTime, Display);
 }  // namespace NrvPopUpAddTimeAttackTime
 
-PopUpAddTimeAttackTime::PopUpAddTimeAttackTime(const char* pName, f32 arg2) : LayoutActor(pName, true), _2C(0.0f, 0.0f), _34(arg2) {
+PopUpAddTimeAttackTime::PopUpAddTimeAttackTime(const char* pName, f32 arg2) : LayoutActor(pName, true), mFollowPos(0.0f, 0.0f), mExtraRadius(arg2) {
 }
 
 void PopUpAddTimeAttackTime::appear() {
@@ -31,7 +31,7 @@ void PopUpAddTimeAttackTime::init(const JMapInfoIter& rIter) {
     MR::connectToSceneLayout(this);
     initLayoutManager("CollectCounter", 1);
     initNerve(GET_NERVE(PopUpAddTimeAttackTime, PopUpAddTimeAttackTimeNrvHide));
-    MR::setFollowPos(&_2C, this, nullptr);
+    MR::setFollowPos(&mFollowPos, this, nullptr);
     kill();
 }
 
@@ -59,12 +59,12 @@ bool PopUpAddTimeAttackTime::tryHide() {
 }
 
 void PopUpAddTimeAttackTime::calcPos() {
-    f32 pointRadius2D = MR::calcPointRadius2D(*MR::getPlayerCenterPos(), 75.0f + _34);
+    f32 pointRadius2D = MR::calcPointRadius2D(*MR::getPlayerCenterPos(), 75.0f + mExtraRadius);
 
     TVec2f PlayerCenterScreenPos;
     MR::calcScreenPosition(&PlayerCenterScreenPos, *MR::getPlayerCenterPos());
     PlayerCenterScreenPos.y -= pointRadius2D;
-    _2C = PlayerCenterScreenPos;
+    mFollowPos = PlayerCenterScreenPos;
 }
 
 void PopUpAddTimeAttackTime::exeHide() {

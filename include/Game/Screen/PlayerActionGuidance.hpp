@@ -6,6 +6,14 @@ class SimpleLayout;
 
 class PlayerActionGuidance : public LayoutActor {
 public:
+    enum GuidanceState {
+        GuidanceState_Raise = 0,
+        GuidanceState_RaiseHold = 1,
+        GuidanceState_RaiseOK = 2,
+        GuidanceState_Rotation = 3,
+        GuidanceState_AButton = 4,
+    };
+
     /// @brief Creates a new `PlayerActionGuidance`.
     PlayerActionGuidance();
 
@@ -32,10 +40,10 @@ public:
     /* 0x28 */ LayoutActor* mCurrentLayout;
     /* 0x2C */ s32 mGuidanceState;
     /* 0x30 */ s32 mGuidancePrevState;
-    /* 0x34 */ bool _34;
-    /* 0x35 */ bool _35;
-    /* 0x36 */ bool _36;
-    /* 0x37 */ bool _37;
+    /* 0x34 */ bool mIsVolumeCheckDisabled;
+    /* 0x35 */ bool mIsInGuidanceArea;
+    /* 0x36 */ bool mForceTamakoroGuidance;
+    /* 0x37 */ bool mPrevForceTamakoroGuidance;
 };
 
 namespace MR {

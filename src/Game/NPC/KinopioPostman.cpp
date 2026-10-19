@@ -16,26 +16,21 @@
 #include "Game/Util.hpp"
 
 // Data of this unit (strings and nerve instances in the target's .data/.sbss).
-extern "C" const char lbl_806B97E0[];
-extern "C" const char lbl_806B8EE0[];
-extern "C" const char lbl_806B8EE8[];
-extern "C" const char lbl_806B7AEC[];
-extern "C" const char lbl_806B7AE0[];
-extern "C" const char lbl_806B7AD4[];
-extern "C" const char lbl_806B7AC8[];
-extern "C" const char lbl_806B99AC[];
-extern "C" const char lbl_806B99C0[];
-extern "C" const char lbl_806B9918[];
-extern "C" const char lbl_806B9908[];
-extern "C" const char lbl_806B9A18[];
-extern "C" const char lbl_807CFE90[];
-extern "C" const char lbl_807CFE94[];
-extern "C" const char lbl_807CFE98[];
-extern "C" const char lbl_807CFE9C[];
-extern "C" const char* const lbl_8064B9C0[9];
-extern "C" s32 lbl_807E3100;
 
-#define KP_STR(ofs) (lbl_806B97E0 + (ofs))
+
+
+
+
+
+extern const char lbl_807CFE90[1];
+extern const char lbl_807CFE94[1];
+extern const char lbl_807CFE98[1];
+extern const char lbl_807CFE9C[1];
+static const char* const sMarioPosName = "\203}\203\212\203I\210\312\222u[\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g]";
+
+extern const volatile s32 gKinopioPostmanLetterStartDelay;
+
+
 
 
 namespace NrvKinopioPostman {
@@ -59,13 +54,13 @@ KinopioPostman::KinopioPostman(const char* pName) : NPCActor(pName) {
 
 // NONMATCHING: callback member-pointer copies, item construction and stack/register allocation differ.
 void KinopioPostman::init(const JMapInfoIter& rIter) {
-    NPCActorCaps caps(KP_STR(0x128));
+    NPCActorCaps caps("Kinopio");
     caps.setDefault();
     caps.mMessage = false;
     caps.mWaitNerve = GET_NERVE(KinopioPostman, KinopioPostmanNrvTalk);
     caps.mReactionNerve = GET_NERVE(KinopioPostman, KinopioPostmanNrvReaction);
-    initialize(rIter, caps, KP_STR(0x128), nullptr, nullptr);
-    MR::invalidateHitSensor(this, KP_STR(0x130));
+    initialize(rIter, caps, "Kinopio", nullptr, nullptr);
+    MR::invalidateHitSensor(this, "Pickel");
     setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
 
     TVec3f rot(mRotation);
@@ -76,32 +71,48 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
     MR::setScale(this, 1.2f);
     bool isTalkReady = this->initTalkCtrl();
 
+    _130 = cNPCSpinDefault;
+    _134 = cNPCTrampledDefault;
+    _138 = cNPCPointingDefault;
+    _13C = cNPCReactionDefault;
     _12C = 450.0f;
-    _130 = lbl_806B7AEC;
-    _134 = lbl_806B7AE0;
-    _138 = lbl_806B7AD4;
-    _13C = lbl_806B7AC8;
-    mParam._14 = lbl_806B8EE8;
-    mParam._18 = lbl_806B8EE0;
-    mParam._1C = lbl_806B97E0 + 0x138;
-    mParam._20 = lbl_806B97E0 + 0x138;
-    _11C = lbl_806B97E0 + 0x140;
-    _120 = lbl_806B97E0 + 0x140;
+    mParam._14 = cNPCWaitDefault;
+    mParam._18 = cNPCTurnDefault;
+    mParam._1C = "Talk";
+    mParam._20 = "Talk";
+    _11C = "Walk";
+    _120 = "Walk";
     _124 = 1;
-    MR::startBrk(this, KP_STR(0x148));
+    MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, 2.0f);
 
-    NPCActorItem item("Kinopio");
+    NPCActorItem item;
+    item.mActor = "Kinopio";
+    item.mGoods0 = lbl_807CFE9C;
+    item.mGoodsJoint0 = lbl_807CFE98;
+    item.mGoods1 = lbl_807CFE94;
+    item.mGoodsJoint1 = lbl_807CFE90;
     MR::getNPCItemData(&item, 3);
     equipment(item, false);
     MR::onCalcGravity(this);
     MR::initUseStageSwitchReadA(this, rIter);
     this->initChildObj(rIter);
 
-    MR::listenStageSwitchOnA(this, MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()>(this, &KinopioPostman::onSwitchA));
+    MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()> onSwitch(this, &KinopioPostman::onSwitchA);
+    MR::listenStageSwitchOnA(this, onSwitch);
 
-    const char* const* pNames = lbl_8064B9C0;
-    for (s32 i = 0; i < 9; ++i) {
+    const char* pNames[9] = {
+        "\203t\203@\203C\203\213\203Z\203\214\203N\203g\202\251\202\347\202\314\212J\216n",
+        "\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g[\203^\203X\203N]",
+        "\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g[\203\215\203[\203b\203^]",
+        "\203O\203\211\203\223\203h\203X\203^\201[\213A\212\322[\202Q\211\361\226\332\210\310\215~]",
+        "\203p\203\217\201[\203X\203^\201[\213A\212\322",
+        "\203p\203\217\201[\203X\203^\201[\213A\212\322[NPC\217\320\211\356]",
+        "\203p\203\217\201[\203X\203^\201[\213A\212\322[\203A\203C\203e\203\200\230f\220\257]",
+        "\203p\203\217\201[\203X\203^\201[\213A\212\322[\217\211\211\361]",
+        "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217I\227\271"
+    };
+    for (u32 i = 0; i < 9; ++i) {
         this->tryRegisterDemo(pNames[i], rIter);
     }
     mIsReplyFlag = PostmanEvent::isCurrentReplyEvent();
@@ -125,52 +136,141 @@ void KinopioPostman::control() {
     }
 }
 
-// fn_8034FAB0
+// NONMATCHING: callback constant-table relocations differ despite equal offsets and member identities.
+bool KinopioPostman::initTalkCtrl() {
+
+
+    if (!PostmanEvent::isAvailable()) {
+        return false;
+    }
+    for (TalkMessageCtrl** ctrl = mTalkCtrls; ctrl != mTalkCtrls + 7; ++ctrl) {
+        *ctrl = PostmanEvent::createTalkCtrl(this, ctrl - mTalkCtrls);
+    }
+
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        MR::registerEventFunc(this->mTalkCtrls[3], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::branchImportant);
+        MR::registerBranchFunc(this->mTalkCtrls[3], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventRead);
+        MR::registerEventFunc(this->mTalkCtrls[2], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        MR::registerEventFunc(this->mTalkCtrls[4], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::branchLuigi);
+        MR::registerBranchFunc(this->mTalkCtrls[4], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        MR::registerEventFunc(this->mTalkCtrls[5], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventReply);
+        MR::registerEventFunc(this->mTalkCtrls[6], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        MR::registerEventFunc(this->mTalkCtrls[1], callback);
+    }
+    {
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventRead);
+        MR::registerEventFunc(this->mTalkCtrls[0], callback);
+    }
+
+    this->mMsgCtrl = this->mTalkCtrls[0];
+    this->mLayout = PostmanEvent::createLetter();
+    this->mStepNum = PostmanEvent::getTalkType(this->mLayout);
+    this->mIsEventFlag = (this->mStepNum - 2) != 0;
+    this->mMsgCtrl = this->mTalkCtrls[this->mStepNum];
+    return true;
+}
+
+bool KinopioPostman::tryRegisterDemo(const char* pName, const JMapInfoIter& rIter) {
+
+
+    bool hasLetter = this->mLayout != nullptr;
+    if (MR::tryRegisterDemoCast(this, pName, rIter)) {
+        if (hasLetter) {
+            DemoFunction::registerDemoTalkMessageCtrlDirect(this, this->mMsgCtrl, pName);
+        }
+        MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()> action(this, &KinopioPostman::startDemo);
+        MR::registerDemoActionFunctorDirect(this, action, pName, nullptr);
+        return true;
+    }
+    return false;
+}
+
+void KinopioPostman::initChildObj(const JMapInfoIter& rIter) {
+
+
+    for (s32 i = 0; i < MR::getChildObjNum(rIter); ++i) {
+        const char* pChildName = nullptr;
+        MR::getChildObjName(&pChildName, rIter, i);
+        if (MR::isEqualString(pChildName, "Kinopio")) {
+            this->mChildObj = static_cast<LiveActor*>(NameObjFactory::initChildObj(rIter, i));
+            break;
+        }
+    }
+    this->mChildObj->makeActorDead();
+}
+
+void KinopioPostman::onSwitchA() {
+
+
+    if (!PostmanEvent::isAvailable()) {
+        this->mChildObj->makeActorAppeared();
+    }
+}
+
 bool KinopioPostman::eventRead(u32 step) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
+
+
     if (step == 0) {
-        if (pThis->tryEndLetter()) {
+        if (this->tryEndLetter()) {
             return true;
         }
-        pThis->tryStartLetter();
+        this->tryStartLetter();
         return false;
     }
     return true;
 }
 
-// fn_8034FB10
-// NONMATCHING: equivalent return branches and store scheduling differ.
 bool KinopioPostman::eventGive(u32 step) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
+
+
     if (step == 0) {
-        if (pThis->tryEndLetter()) {
+        if (this->tryEndLetter()) {
             return true;
         }
-        pThis->tryStartLetter();
+        this->tryStartLetter();
         return false;
     }
     if (step == 2) {
-        PostmanEvent::receiveLetter(pThis, pThis->mLayout->getCurrentLetterId());
-        pThis->mStepNum = 2;
-        pThis->mMsgCtrl = pThis->mTalkCtrls[2];
-        pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvFinish));
+        PostmanEvent::receiveLetter(this, this->mLayout->getCurrentLetterId());
+        this->mStepNum = 2;
+        this->mMsgCtrl = this->mTalkCtrls[this->mStepNum];
+        this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvFinish));
         return true;
     }
     return true;
 }
 
-// fn_8034FBB0
 // NONMATCHING: equivalent false-return branch layout differs.
 bool KinopioPostman::branchImportant(u32 step) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
+
+
     if (step == 0) {
-        if (MR::isValidPostmanImportantEvent(pThis->mLayout->getCurrentLetterId())) {
-            s32 count = MR::getPostmanImportantEventReward(pThis->mLayout->getCurrentLetterId());
+        if (MR::isValidPostmanImportantEvent(this->mLayout->getCurrentLetterId())) {
+            s32 count = MR::getPostmanImportantEventReward(this->mLayout->getCurrentLetterId());
             if (count > 0) {
-                MR::setMessageArg(pThis->mTalkCtrls[3], count);
+                MR::setMessageArg(this->mTalkCtrls[3], count);
                 return true;
             }
         }
@@ -179,176 +279,104 @@ bool KinopioPostman::branchImportant(u32 step) {
     if (step == 1) {
         if (!MR::isPlayerLuigi()) {
             return false;
+        } else {
+            return (this->mLayout->getCurrentLetterId() - 1) == 0;
         }
-        return (pThis->mLayout->getCurrentLetterId() - 1) == 0;
     }
     return false;
 }
 
-// fn_8034FC60
-// NONMATCHING: equivalent false-return branch layout differs.
+#pragma global_optimizer off
 bool KinopioPostman::branchLuigi(u32 step) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
+
+
     if (step == 0) {
         if (!MR::isPlayerLuigi()) {
             return false;
+        } else {
+            return (this->mLayout->getCurrentLetterId() - 2) == 0;
         }
-        return (pThis->mLayout->getCurrentLetterId() - 2) == 0;
     }
     return false;
 }
 
-// fn_8034FCC0
-// NONMATCHING: equivalent return branches and store scheduling differ.
+
+#pragma global_optimizer reset
 bool KinopioPostman::eventReply(u32 step) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
+
+
     if (step == 0) {
-        if (pThis->tryEndLetter()) {
+        if (this->tryEndLetter()) {
             return true;
         }
-        pThis->tryStartLetter();
+        this->tryStartLetter();
         return false;
     }
     if (step == 2) {
-        PostmanEvent::receiveLetter(pThis, pThis->mLayout->getCurrentLetterId());
-        MR::startActionSound(pThis, lbl_806B99AC, -1, -1, -1);
-        pThis->mStepNum = 2;
-        pThis->mMsgCtrl = pThis->mTalkCtrls[2];
-        pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvFinish));
+        PostmanEvent::receiveLetter(this, this->mLayout->getCurrentLetterId());
+        MR::startActionSound(this, "AddMailStarPiece", -1, -1, -1);
+        this->mStepNum = 2;
+        this->mMsgCtrl = this->mTalkCtrls[this->mStepNum];
+        this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvFinish));
         return true;
     }
     return true;
 }
 
 
-// fn_8034F600
-// NONMATCHING: callback table addressing and pointer/index loop allocation differ.
-bool KinopioPostman::initTalkCtrl() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (!PostmanEvent::isAvailable()) {
-        return false;
-    }
-    for (s32 i = 0; i < 7; ++i) {
-        pThis->mTalkCtrls[i] = PostmanEvent::createTalkCtrl(pThis, i);
-    }
-
-    MR::registerEventFunc(pThis->mTalkCtrls[3], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventGive));
-    MR::registerBranchFunc(pThis->mTalkCtrls[3], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::branchImportant));
-    MR::registerEventFunc(pThis->mTalkCtrls[2], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventRead));
-    MR::registerEventFunc(pThis->mTalkCtrls[4], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventGive));
-    MR::registerBranchFunc(pThis->mTalkCtrls[4], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::branchLuigi));
-    MR::registerEventFunc(pThis->mTalkCtrls[5], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventGive));
-    MR::registerEventFunc(pThis->mTalkCtrls[6], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventReply));
-    MR::registerEventFunc(pThis->mTalkCtrls[1], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventGive));
-    MR::registerEventFunc(pThis->mTalkCtrls[0], TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)>(pThis, &KinopioPostman::eventRead));
-
-    pThis->mMsgCtrl = pThis->mTalkCtrls[0];
-    pThis->mLayout = PostmanEvent::createLetter();
-    pThis->mStepNum = PostmanEvent::getTalkType(pThis->mLayout);
-    pThis->mIsEventFlag = (pThis->mStepNum - 2) != 0;
-    pThis->mMsgCtrl = pThis->mTalkCtrls[pThis->mStepNum];
-    return true;
-}
-
-// fn_8034F900
-bool KinopioPostman::tryRegisterDemo(const char* pName, const JMapInfoIter& rIter) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    bool hasLetter = pThis->mLayout != nullptr;
-    if (MR::tryRegisterDemoCast(pThis, pName, rIter)) {
-        if (hasLetter) {
-            DemoFunction::registerDemoTalkMessageCtrlDirect(pThis, pThis->mMsgCtrl, pName);
-        }
-        MR::registerDemoActionFunctorDirect(this, MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()>(this, &KinopioPostman::startDemo), pName, nullptr);
-        return true;
-    }
-    return false;
-}
-
-// fn_8034F9B0
-void KinopioPostman::initChildObj(const JMapInfoIter& rIter) {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    for (s32 i = 0; i < MR::getChildObjNum(rIter); ++i) {
-        const char* pChildName = nullptr;
-        MR::getChildObjName(&pChildName, rIter, i);
-        if (MR::isEqualString(pChildName, lbl_806B9908)) {
-            pThis->mChildObj = static_cast<LiveActor*>(NameObjFactory::initChildObj(rIter, i));
-            break;
-        }
-    }
-    pThis->mChildObj->makeActorDead();
-}
-
-// fn_8034FA60
-void KinopioPostman::onSwitchA() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (!PostmanEvent::isAvailable()) {
-        pThis->mChildObj->makeActorAppeared();
-    }
-}
-
-// fn_8034FDE0
 bool KinopioPostman::trySelectDefaultTalk() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (!pActor->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait))) {
+
+
+    if (!this->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait))) {
         return false;
     }
-    if (!pThis->mIsEventFlag) {
+    if (!this->mIsEventFlag) {
         return false;
     }
-    pThis->mMsgCtrl = pThis->mTalkCtrls[0];
+    this->mMsgCtrl = this->mTalkCtrls[0];
     return true;
 }
 
-// fn_8034FE40
 bool KinopioPostman::trySelectEventTalk() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (!pActor->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait))) {
+
+
+    if (!this->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait))) {
         return false;
     }
-    if (!pThis->mIsEventFlag) {
+    if (!this->mIsEventFlag) {
         return false;
     }
-    pThis->mMsgCtrl = pThis->mTalkCtrls[pThis->mStepNum];
+    this->mMsgCtrl = this->mTalkCtrls[this->mStepNum];
     return true;
 }
 
-// fn_8034FEB0
 bool KinopioPostman::tryEndLetter() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (!MR::isDead(pThis->mLayout) && pThis->mLayout->isEnd()) {
-        if (pThis->mWaitTimer < 0) {
-            pThis->mWaitTimer = 0x23;
+
+
+    if (!MR::isDead(this->mLayout) && this->mLayout->isEnd()) {
+        if (this->mWaitTimer < 0) {
+            this->mWaitTimer = 0x23;
         }
-        pThis->mWaitTimer -= 1;
-        if (pThis->mWaitTimer < 0) {
-            pThis->mIsEventFlag = false;
-            pThis->mLayout->kill();
+        this->mWaitTimer -= 1;
+        if (this->mWaitTimer < 0) {
+            this->mIsEventFlag = false;
+            this->mLayout->kill();
             return true;
         }
     }
     return false;
 }
 
-// fn_8034FF50
 bool KinopioPostman::tryStartLetter() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (MR::isDead(pThis->mLayout)) {
-        if (pThis->mWaitTimer < 0) {
-            pThis->mWaitTimer = lbl_807E3100;
+
+
+    if (MR::isDead(this->mLayout)) {
+        if (this->mWaitTimer < 0) {
+            this->mWaitTimer = gKinopioPostmanLetterStartDelay;
         }
-        pThis->mWaitTimer -= 1;
-        if (pThis->mWaitTimer < 0) {
-            pThis->mLayout->appear();
+        this->mWaitTimer -= 1;
+        if (this->mWaitTimer < 0) {
+            this->mLayout->appear();
             return true;
         }
     }
@@ -356,18 +384,14 @@ bool KinopioPostman::tryStartLetter() {
 }
 
 // KinopioPostmanFunction::turnQuaternion: turns the quaternion's facing toward rTo around its up axis, then blends up/front.
-// NONMATCHING: quaternion component reloads and float/register scheduling differ.
+// NONMATCHING: local floating-point pool relocations differ.
 void KinopioPostmanFunction::turnQuaternion(TQuat4f* pQuat, const TVec3f& rUp, const TVec3f& rTo, f32 rate) {
     TVec3f sp2C(rTo);
     TVec3f sp20(rUp);
-    f32 x = pQuat->x;
-    f32 y = pQuat->y;
-    f32 z = pQuat->z;
-    f32 w = pQuat->w;
     TVec3f sp14;
-    sp14.set<f32>(2.0f * (x * y) - 2.0f * (w * z), (1.0f - 2.0f * (x * x)) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
+    pQuat->getYDir(sp14);
     TVec3f sp8;
-    sp8.set<f32>(2.0f * (x * z) + 2.0f * (w * y), 2.0f * (y * z) - 2.0f * (w * x), (1.0f - 2.0f * (x * x)) - 2.0f * (y * y));
+    pQuat->getZDir(sp8);
     MR::turnVecToVecCosOnPlane(&sp8, sp2C, sp14, rate);
     MR::blendQuatUpFront(pQuat, sp20, sp8, 1.0f, 1.0f);
 }
@@ -376,139 +400,134 @@ void KinopioPostmanFunction::turnQuaternion(TQuat4f* pQuat, const TVec3f& rUp, c
 
 
 
-// fn_80350120
 void KinopioPostman::exeTalk() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    (void)pActor;
-    if (MR::isFirstStep(pThis)) {
-        MR::startAction(pThis, lbl_806B99C0);
+
+
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
     }
-    TVec3f sp14 = *MR::getPlayerPos() - pThis->mPosition;
-    TVec3f sp8 = -pThis->mGravity;
-    KinopioPostmanFunction::turnQuaternion(&pThis->_A0, sp8, sp14, 0.997f);
-    if (!MR::tryStartReactionAndPushNerve(pThis, GET_NERVE(KinopioPostman, KinopioPostmanNrvReaction))) {
-        MR::tryTalkNearPlayerAndStartMoveTalkAction(pThis);
+    TVec3f sp14 = *MR::getPlayerPos() - this->mPosition;
+    TVec3f sp8 = -this->mGravity;
+    KinopioPostmanFunction::turnQuaternion(&this->_A0, sp8, sp14, 0.997f);
+    if (!MR::tryStartReactionAndPushNerve(this, GET_NERVE(KinopioPostman, KinopioPostmanNrvReaction))) {
+        MR::tryTalkNearPlayerAndStartMoveTalkAction(this);
     }
 }
 
-// fn_803501C0
 void KinopioPostman::exeReaction() {
-    const char* data = lbl_806B97E0;
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
 
-    if (pThis->_D8 != 0) {
-        MR::startActionSound(pThis, data + 0x1E8, -1, -1, -1);
-        MR::startActionSound(pThis, data + 0x1F8, -1, -1, -1);
+
+
+    if (this->_D8 != 0) {
+        MR::startActionSound(this, "SmNpcTrampled", -1, -1, -1);
+        MR::startActionSound(this, "SvKinopioTrampled", -1, -1, -1);
     }
-    if (pThis->isPointingSe()) {
+    if (this->isPointingSe()) {
         MR::startDPDHitSound();
-        MR::startActionSound(pThis, data + 0x20C, -1, -1, -1);
+        MR::startActionSound(this, "SvKinopioPointing", -1, -1, -1);
     }
-    if (pThis->_DB != 0) {
-        MR::startActionSound(pThis, data + 0x220, -1, -1, -1);
+    if (this->_DB != 0) {
+        MR::startActionSound(this, "SvKinopioStarPieceHit", -1, -1, -1);
     }
-    MR::tryStartReactionAndPopNerve(pThis);
+    MR::tryStartReactionAndPopNerve(this);
 }
 
-// fn_80350290
 void KinopioPostman::exeWait() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (MR::isFirstStep(pActor)) {
-        if (!MR::isExistRail(pActor)) {
-            MR::onCalcShadowOneTime(pActor, nullptr);
+
+
+    if (MR::isFirstStep(this)) {
+        if (!MR::isExistRail(this)) {
+            MR::onCalcShadowOneTime(this, nullptr);
         }
-        pThis->trySelectDefaultTalk();
+        this->trySelectDefaultTalk();
     }
-    if (!MR::tryStartReactionAndPushNerve(pThis, GET_NERVE(KinopioPostman, KinopioPostmanNrvReaction))) {
+    if (!MR::tryStartReactionAndPushNerve(this, GET_NERVE(KinopioPostman, KinopioPostmanNrvReaction))) {
         if (MR::isMarioFaceShipNpcTalkAllowed()) {
-            TalkMessageCtrl* pCtrl = pThis->mMsgCtrl;
+            TalkMessageCtrl* pCtrl = this->mMsgCtrl;
             if (MR::tryTalkNearPlayerAtEnd(pCtrl)) {
-                MR::startAction(pThis, lbl_806B9A18);
+                MR::startAction(this, "Notice");
             }
         }
-        if (MR::isActionContinuous(pThis)) {
-            if (pThis->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear))) {
-                if (MR::isAnyAnimPlaying(pThis, lbl_806B9A18)) {
-                    TVec3f sp14 = *MR::getPlayerPos() - pThis->mPosition;
-                    TVec3f sp8 = -pThis->mGravity;
-                    KinopioPostmanFunction::turnQuaternion(&pThis->_A0, sp8, sp14, 0.997f);
+        if (MR::isActionContinuous(this)) {
+            if (this->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear))) {
+                if (MR::isAnyAnimPlaying(this, "Notice")) {
+                    TVec3f sp14 = *MR::getPlayerPos() - this->mPosition;
+                    TVec3f sp8 = -this->mGravity;
+                    KinopioPostmanFunction::turnQuaternion(&this->_A0, sp8, sp14, 0.997f);
                 }
             }
         } else {
-            if (pThis->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait))) {
-                if (MR::isNearPlayer(pThis, 200.0f)) {
-                    MR::startAction(pThis, lbl_806B9A18);
-                    pThis->trySelectEventTalk();
-                    pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
+            if (this->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait))) {
+                if (MR::isNearPlayer(this, 200.0f)) {
+                    MR::startAction(this, "Notice");
+                    this->trySelectEventTalk();
+                    this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
                     return;
                 }
-                MR::tryStartMoveTalkAction(pThis);
+                MR::tryStartMoveTalkAction(this);
                 return;
             }
-            if (pThis->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear))) {
-                if (!MR::isNearPlayer(pThis, 300.0f)) {
-                    pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait));
+            if (this->isNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear))) {
+                bool far = !MR::isNearPlayer(this, 300.0f);
+                if (far) {
+                    this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWait));
                 }
-                MR::tryStartTalkAction(pThis);
+                MR::tryStartTalkAction(this);
             }
         }
     }
 }
 
-// fn_80350440
 void KinopioPostman::exeFinish() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pThis, lbl_806B9A18);
+
+
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Notice");
     }
-    if (MR::isActionEnd(pThis)) {
-        if (pThis->mIsReplyFlag) {
-            pThis->mPostmanEvent->makeActorDead();
+    if (MR::isActionEnd(this)) {
+        if (this->mIsReplyFlag) {
+            this->mPostmanEvent->makeActorDead();
         }
-        pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
+        this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
     }
 }
 
-// fn_803504C0
 // NONMATCHING: local vector stack offsets differ.
 void KinopioPostman::exeDemo() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    if (MR::isFirstStep(pActor)) {
-        if (!MR::isExistRail(pActor)) {
-            MR::onCalcShadowOneTime(pActor, nullptr);
+
+
+    if (MR::isFirstStep(this)) {
+        if (!MR::isExistRail(this)) {
+            MR::onCalcShadowOneTime(this, nullptr);
         }
-        pThis->trySelectDefaultTalk();
+        this->trySelectDefaultTalk();
         TVec3f sp8;
-        MR::findNamePos(lbl_806B97E0, &sp8, nullptr);
-        TVec3f sp20 = sp8 - pThis->mPosition;
-        TVec3f sp14 = -pThis->mGravity;
-        KinopioPostmanFunction::turnQuaternion(&pThis->_A0, sp14, sp20, -1.0f);
-        MR::startAction(pThis, lbl_806B9918);
+        MR::findNamePos(sMarioPosName, &sp8, nullptr);
+        TVec3f sp20 = sp8 - this->mPosition;
+        TVec3f sp14 = -this->mGravity;
+        KinopioPostmanFunction::turnQuaternion(&this->_A0, sp14, sp20, -1.0f);
+        MR::startAction(this, "Talk");
     }
     if (!MR::isTimeKeepDemoActive()) {
-        MR::startAction(pThis, lbl_806B9A18);
-        if (pThis->mIsReplyFlag) {
+        MR::startAction(this, "Notice");
+        if (this->mIsReplyFlag) {
             MR::startPlayerNormalBva();
         }
-        pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
+        this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvWaitNear));
     }
 }
 
-// fn_803505A0
 void KinopioPostman::startDemo() {
-    KinopioPostman* pThis = this;
-    LiveActor* pActor = this;
-    MR::moveCoordAndTransToRailStartPoint(pActor);
-    MR::followRailPoseOnGround(pThis, 1.0f);
-    if (pThis->mIsReplyFlag) {
-        pThis->mPostmanEvent->makeActorAppeared();
+
+
+    MR::moveCoordAndTransToRailStartPoint(this);
+    MR::followRailPoseOnGround(this, 1.0f);
+    if (this->mIsReplyFlag) {
+        this->mPostmanEvent->makeActorAppeared();
     }
-    pThis->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvDemo));
+    this->setNerve(GET_NERVE(KinopioPostman, KinopioPostmanNrvDemo));
 }
 
 KinopioPostman::~KinopioPostman() {}
+
+extern const volatile s32 gKinopioPostmanLetterStartDelay = 0;

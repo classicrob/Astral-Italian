@@ -76,6 +76,14 @@ public:
     /* 0x4 */ TagType mArgType;
 };
 
+enum TalkMessageState {
+    TalkMessageState_Entry = 0,
+    TalkMessageState_None = 1,
+    TalkMessageState_EnableStart = 2,
+    TalkMessageState_Talking = 3,
+    TalkMessageState_EnableEnd = 4
+};
+
 class TalkMessageCtrl : public NameObj {
 public:
     TalkMessageCtrl(LiveActor*, const TVec3f&, MtxPtr);
@@ -126,22 +134,22 @@ public:
     /* 0x14 */ LiveActor* mHostActor;
     /* 0x18 */ TalkNodeCtrl* mNodeCtrl;
     /* 0x1C */ s32 mZoneID;
-    /* 0x20 */ s32 _18;
-    /* 0x24 */ TVec3f _1C;
+    /* 0x20 */ s32 mTalkState;
+    /* 0x24 */ TVec3f mBalloonScreenPosition;
     /* 0x30 */ MtxPtr mMtx;
     /* 0x34 */ TVec3f mMsgBalloonFollowOffs;
     /* 0x40 */ f32 mTalkDistance;
-    /* 0x44 */ bool _3C;
+    /* 0x44 */ bool mIsAlreadyDone;
     /* 0x48 */ int mAlreadyDoneFlags;
     /* 0x4C */ bool mIsOnRootNodeAuto;
     /* 0x4D */ bool mIsOnReadNodeAuto;
     /* 0x4E */ bool mIsStartOnlyFront;
-    /* 0x4F */ bool _SMG2_4F;
-    /* 0x50 */ bool _SMG2_50;  // init true
-    /* 0x51 */ bool _SMG2_51;
-    /* 0x52 */ bool _SMG2_52;
-    /* 0x53 */ bool _SMG2_53;
-    /* 0x54 */ bool _SMG2_54;
+    /* 0x4F */ bool mHasMessage;
+    /* 0x50 */ bool mUseCinemaFrame;  // init true
+    /* 0x51 */ bool mHideBalloonBeak;
+    /* 0x52 */ bool mCenterBalloonBeak;
+    /* 0x53 */ bool mUseCustomCamera;
+    /* 0x54 */ bool mCameraDisabled;
     /* 0x58 */ ActorCameraInfo* mCameraInfo;
     /* 0x5C */ TalkMessageFuncBase* mBranchFunc;
     /* 0x60 */ TalkMessageFuncBase* mEventFunc;

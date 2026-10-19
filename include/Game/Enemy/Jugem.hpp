@@ -6,7 +6,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 
-extern const volatile s32 lbl_807E3038;
+extern const volatile s32 gJugemFollowDuration;
 
 class AnimScaleController;
 class WalkerStateBindStarPointer;
@@ -31,7 +31,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     typedef bool (Jugem::*JointCalcFunc)(TPos3f*, const JointControllerInfo&);
-    JointController* fn_8019B4A0(const char*, JointCalcFunc);
+    JointController* createJugemJointController(const char*, JointCalcFunc);
 
     void initBinder();       // fn_8019EC60
     void initBinderFall();   // fn_8019ECC0
@@ -62,52 +62,52 @@ public:
     void exeLandPressDown();   // fn_8019CC10
     void exeSupportFreeze();   // fn_8019CC80
 
-    // Unnamed helpers, named by address.
-    bool fn_8019D1D0();
-    bool fn_8019D280();
-    bool fn_8019D2F0();
-    bool fn_8019D390();
-    bool fn_8019D450();
-    bool fn_8019D520();
-    bool fn_8019D5B0();
-    bool fn_8019D650();
-    bool fn_8019D6C0();
-    bool fn_8019D7E0(HitSensor*, HitSensor*);
-    bool fn_8019D8A0(HitSensor*, HitSensor*);
-    bool fn_8019D940(HitSensor*, HitSensor*);
-    bool fn_8019D9E0(HitSensor*, HitSensor*);
-    bool fn_8019DA80(HitSensor*, HitSensor*);
-    bool fn_8019DB20(HitSensor*, HitSensor*);
-    bool fn_8019DBE0();
-    void fn_8019DC40(const TVec3f&);
-    bool fn_8019DDE0();
-    bool fn_8019DF90();
-    void fn_8019DFE0(TVec3f*, s32);
-    void fn_8019E250(TVec3f*, f32);
-    LiveActor* fn_8019E560();
-    void fn_8019E5C0(LiveActor*);
-    void fn_8019E600();
-    void fn_8019E8D0();
-    bool fn_8019EB20();
-    void fn_8019EB90();
+    // Cloud movement, held Togezo, and damage transitions.
+    bool canJugemAttackPlayer();
+    bool isJugemGroundedWithoutCloud();
+    bool isJugemRidingCloud();
+    bool canJugemBindStarPointer();
+    bool isJugemDefeated();
+    bool isJugemFallen();
+    bool tryJugemHitReaction();
+    bool tryJugemLoseCloud();
+    bool tryJugemStarPieceReaction();
+    bool tryJugemBlowDown(HitSensor*, HitSensor*);
+    bool tryJugemFallFromYoshiTongue(HitSensor*, HitSensor*);
+    bool tryJugemPressDown(HitSensor*, HitSensor*);
+    bool tryJugemFallFromTrample(HitSensor*, HitSensor*);
+    bool tryJugemFallFromHipDrop(HitSensor*, HitSensor*);
+    bool tryJugemKickBlowDown(HitSensor*, HitSensor*);
+    bool tryJugemDead();
+    void throwJugemHeldTogezo(const TVec3f&);
+    bool tryJugemPickTogezo();
+    bool killJugemHeldTogezo();
+    void calcJugemPickupPosition(TVec3f*, s32);
+    void calcJugemFollowPosition(TVec3f*, f32);
+    LiveActor* getJugemDeadChild();
+    void selectJugemChildSlot(LiveActor*);
+    void updateJugemMoveAnimation();
+    void updateJugemCloudSway();
+    bool isJugemGroundActorValid();
+    void updateJugemGroundActor();
 
-    /* 0x090 */ JointController* mJointCtrlA;
-    /* 0x094 */ JointController* mJointCtrlB;
+    /* 0x090 */ JointController* mRootJointController;
+    /* 0x094 */ JointController* mWristJointController;
     /* 0x098 */ AnimScaleController* mAnimScaleCtrl;
     /* 0x09C */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x0A0 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x0A4 */ YoshiLockOnTarget* mYoshiLockOn2;
     /* 0x0A8 */ TPos3f mBaseMtx;
-    /* 0x0D8 */ TPos3f mSubMtx;
+    /* 0x0D8 */ TPos3f mHeldTogezoMatrix;
     /* 0x108 */ JugemCloud* mCloud;
     /* 0x10C */ Togezo* mHoldTogezo;
     /* 0x110 */ Togezo** mChildObjs;
     /* 0x114 */ LiveActor** mChildren;
     /* 0x118 */ TVec3f* mChildPoses;
-    /* 0x11C */ s32* mChildFlags;
+    /* 0x11C */ s32* mChildRebirthTimers;
     /* 0x120 */ TVec3f mFrontVec;
     /* 0x12C */ TVec3f mBasePos;
-    /* 0x138 */ f32 _138;
+    /* 0x138 */ f32 mBinderRadius;
     /* 0x13C */ s32 mChildNum;
     /* 0x140 */ s32 mChildNumPlusOne;
     /* 0x144 */ s32 mChildIndex;
@@ -115,14 +115,14 @@ public:
     /* 0x14C */ s32 mChildCount;
     /* 0x150 */ s32 mWaitTime;
     /* 0x154 */ LiveActor* mGroundActor;
-    /* 0x158 */ u8 _158[0xC];
-    /* 0x164 */ TVec3f _164;
-    /* 0x170 */ s32 _170;
-    /* 0x174 */ s32 _174;
-    /* 0x178 */ f32 _178;
+    /* 0x158 */ u8 mUnusedPadding[0xC];
+    /* 0x164 */ TVec3f mCloudSwayOffset;
+    /* 0x170 */ s32 mHorizontalSwayStep;
+    /* 0x174 */ s32 mVerticalSwayStep;
+    /* 0x178 */ f32 mCloudSwayWeight;
     /* 0x17C */ s32 mTimer;
-    /* 0x180 */ u8 mIsActive;
-    /* 0x181 */ bool mIsHitDone;
+    /* 0x180 */ u8 mNeedsCarryOffset;
+    /* 0x181 */ bool mPointBindWithCloud;
 };
 
 /// @brief Cloud model that the Jugem stands on.

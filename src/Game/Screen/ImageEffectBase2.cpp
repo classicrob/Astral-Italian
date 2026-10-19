@@ -1,17 +1,17 @@
 #include "Game/Screen/ImageEffectBase.hpp"
 
-ImageEffectBase::ImageEffectBase(const char* name) : NameObj(name), _C(false), _D(false), _10(0.0f) {}
+ImageEffectBase::ImageEffectBase(const char* name) : NameObj(name), mIsTurnedOn(false), mIsVisible(false), mFadeRate(0.0f) {}
 
 void ImageEffectBase::calcAnim() {
-    if (_C) {
-        _D = true;
-        _10 += 0.06666667f;
-        if (_10 > 1.0f) _10 = 1.0f;
+    if (mIsTurnedOn) {
+        mIsVisible = true;
+        mFadeRate += 0.06666667f;
+        if (mFadeRate > 1.0f) mFadeRate = 1.0f;
     } else if (isSomething()) {
-        _10 -= 0.06666667f;
-        if (_10 < 0.0f) {
-            _10 = 0.0f;
-            _D = false;
+        mFadeRate -= 0.06666667f;
+        if (mFadeRate < 0.0f) {
+            mFadeRate = 0.0f;
+            mIsVisible = false;
         }
     }
     calcAnimSub();

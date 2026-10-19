@@ -330,19 +330,19 @@ namespace MR {
     }
 
     bool isTalkNone(const TalkMessageCtrl* pCtrl) {
-        return pCtrl->_18 == 0;
+        return pCtrl->mTalkState == TalkMessageState_Entry;
     }
 
     bool isTalkEntry(const TalkMessageCtrl* pCtrl) {
-        return pCtrl->_18 == 1;
+        return pCtrl->mTalkState == TalkMessageState_None;
     }
 
     bool isTalkTalking(const TalkMessageCtrl* pCtrl) {
-        return pCtrl->_18 == 3;
+        return pCtrl->mTalkState == TalkMessageState_Talking;
     }
 
     bool isTalkEnableEnd(const TalkMessageCtrl* pCtrl) {
-        return pCtrl->_18 == 4;
+        return pCtrl->mTalkState == TalkMessageState_EnableEnd;
     }
 
     void clearTalkState(TalkMessageCtrl* pCtrl) {
@@ -359,7 +359,7 @@ namespace MR {
     }
 
     bool isMessageRead(const TalkMessageCtrl* pCtrl) {
-        return pCtrl->_3C;
+        return pCtrl->mIsAlreadyDone;
     }
 
     void forwardNode(TalkMessageCtrl* pCtrl) {
@@ -480,25 +480,25 @@ namespace MR {
 
     void offTalkCinemaFrame(TalkMessageCtrl* pCtrl) {
         if (pCtrl != nullptr) {
-            pCtrl->_SMG2_50 = false;
+            pCtrl->mUseCinemaFrame = false;
         }
     }
 
     void hideBubbleBeak(TalkMessageCtrl* pCtrl) {
         if (pCtrl != nullptr) {
-            pCtrl->_SMG2_51 = true;
+            pCtrl->mHideBalloonBeak = true;
         }
     }
 
     void showBubbleBeak(TalkMessageCtrl* pCtrl) {
         if (pCtrl != nullptr) {
-            pCtrl->_SMG2_51 = false;
+            pCtrl->mHideBalloonBeak = false;
         }
     }
 
     void onTalkSmg2Flag52(TalkMessageCtrl* pCtrl) {
         if (pCtrl != nullptr) {
-            pCtrl->_SMG2_52 = true;
+            pCtrl->mCenterBalloonBeak = true;
         }
     }
 

@@ -15,7 +15,7 @@ KoopaJrRobotBeam::KoopaJrRobotBeam(const char* pName, LiveActor* pHost, MtxPtr p
     mBaseMtx.set(pMtx);
 }
 
-// NONMATCHING: target calls fn_801F6DB0 and fn_801F6DC0; pending RingBeam declarations from enemies lane
+// NONMATCHING: target calls setStartRadius and setMaxRadius; pending RingBeam declarations from enemies lane
 void KoopaJrRobotBeam::init(const JMapInfoIter& rIter) {
     MR::connectToSceneEnemyMovement(this);
     mRingBeam = new RingBeam("\x83r\x81[\x83\x80", this, false, false, false, false, "JrRobotBeam");

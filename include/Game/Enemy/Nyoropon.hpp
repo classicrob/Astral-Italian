@@ -24,34 +24,34 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
 
-    void exeSleep();         // fn_801D8370
-    void exeWait();          // fn_801D8460
-    void exeFind();          // fn_801D8520
-    void exeRecover();       // fn_801D8640
-    void exeStarPiece();     // fn_801D8730
-    void exeDownStretch();   // fn_801D8830
-    void exeSpin();          // fn_801D8910
-    void exeSearchLight();   // fn_801D89F0
-    void exeDownSpin();      // fn_801D8AD0
-    void exeSupportFreeze(); // fn_801D8BB0
+    void exeSleep();
+    void exeWait();
+    void exeFind();
+    void exeRecover();
+    void exeStarPiece();
+    void exeDownStretch();
+    void exeSpin();
+    void exeSearchLight();
+    void exeDownSpin();
+    void exeSupportFreeze();
 
-    bool isHittableNerve() const;       // fn_801D8130
-    bool isLightTargetNerve() const;    // fn_801D81E0
-    bool isIdleNerve() const;           // fn_801D8260
-    bool isStretchedNerve() const;      // fn_801D82D0
-    f32 fn_801D8350() const;       // fn_801D8350
-    void setFaceSleep();                // fn_801D8C80
-    void setFaceNormal();               // fn_801D8CF0
-    void setFaceAttack();               // fn_801D8D60
-    void fn_801D8DD0();        // fn_801D8DD0
-    void fn_801D8EE0();                    // fn_801D8EE0
-    void fn_801D9070();                // fn_801D9070
-    void fn_801D91A0();              // fn_801D91A0
-    void fn_801D93A0(f32, f32, f32);     // fn_801D93A0
-    void fn_801D9C60(f32);         // fn_801D9C60
-    bool calcJointMatrix(TPos3f*, const JointControllerInfo&);  // fn_801DA150
-    bool fn_801DA300(s32);            // fn_801DA300
-    void playIdleSound();               // fn_801DA370
+    bool isHittableNerve() const;
+    bool isLightTargetNerve() const;
+    bool isIdleNerve() const;
+    bool isStretchedNerve() const;
+    f32 calcBodyStretchScale() const;
+    void setFaceSleep();
+    void setFaceNormal();
+    void setFaceAttack();
+    void initBodyJointControllers();
+    void resetBodySegments();
+    void updateWanderTarget();
+    void updatePlayerTarget();
+    void updateBodySegments(f32, f32, f32);
+    void updateBodyWaveMatrices(f32);
+    bool calcJointMatrix(TPos3f*, const JointControllerInfo&);
+    bool updateStretchTransition(s32);
+    void playIdleSound();
 
     /* 0x90 */ JointController** mJointCtrls;
     /* 0x94 */ AnimScaleController* mAnimScaleCtrl;
@@ -60,7 +60,7 @@ public:
     /* 0xA0 */ TPos3f* mMtxs;
     /* 0xA4 */ TPos3f mRootMtx;
     /* 0xD4 */ TPos3f mRootInvMtx;
-    /* 0x104 */ u8 _104[0xC];
+    /* 0x104 */ u8 mUnusedTransformData[0xC];
     /* 0x110 */ TVec3f* mPoints;
     /* 0x114 */ TVec3f* mDirs;
     /* 0x118 */ f32* mLengths;

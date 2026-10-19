@@ -4,7 +4,7 @@
 
 namespace {
     inline void setHillTable(MogucchiHill* pHill, const char** pModelNames, u32 count) {
-        pHill->_D8 = count;
+        pHill->mModelCount = count;
         pHill->mModelNameTable = pModelNames;
     }
     inline void setHillNames(MogucchiHill* pHill, const char* pJointName, const char* pEffectName) {

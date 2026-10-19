@@ -26,11 +26,11 @@ public:
     void exeBlowDown();
     void exeStepDown();
 
-    bool fn_80176280() const;
-    bool fn_80176300() const;
-    bool fn_80176310() const;
-    bool fn_80176390() const;
-    bool fn_80176410() const;
+    bool isBindableNerve() const;
+    bool isWaitNerve() const;
+    bool isHittableBuzzNerve() const;
+    bool isStarPieceTargetNerve() const;
+    bool isActiveBuzzNerve() const;
 
     /* 0x90 */ TVec3f mRailPos;
     /* 0x9C */ TVec3f mFront;

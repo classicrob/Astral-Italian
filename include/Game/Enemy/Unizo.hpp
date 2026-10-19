@@ -75,7 +75,7 @@ public:
     /* 0x118 */ AnimScaleController* mAnimScaleController;
     /* 0x11C */ WalkerStateBindStarPointer* mBindStarPointerState;
     /* 0x120 */ s32 mJumpCount;
-    /* 0x124 */ s32 _124;
+    /* 0x124 */ s32 mUnusedJumpState;
     /* 0x128 */ f32 mGravityRate;
     /* 0x12C */ f32 mRollHeight;
     /* 0x130 */ s32 mRollSoundTimer;

@@ -34,7 +34,7 @@ public:
     /* 0x90 */ const char* mModelName;
     /* 0x94 */ const char* mJointName;
     /* 0x98 */ const char* mAutoEffectName;
-    /* 0x9C */ TPos3f _9C;
+    /* 0x9C */ TPos3f mBaseMtx;
     /* 0xCC */ bool _CC;
     /* 0xCD */ bool _CD;
     /* 0xCE */ bool mHasLightCtrl;
@@ -73,19 +73,19 @@ public:
     void exeWait();
 
     /* 0x8C */ LiveActor* mHost;
-    /* 0x90 */ MogucchiHillPiece* _90;
-    /* 0x94 */ s32 _94;
-    /* 0x98 */ s32 _98;
+    /* 0x90 */ MogucchiHillPiece* mPieces;
+    /* 0x94 */ s32 mPieceCount;
+    /* 0x98 */ s32 mNextPieceIndex;
     /* 0x9C */ TPos3f mReserveMtx;
-    /* 0xCC */ bool _CC;
-    /* 0xD0 */ f32 _D0;
-    /* 0xD4 */ f32 _D4;
-    /* 0xD8 */ u32 _D8;
+    /* 0xCC */ bool mCanAppearPiece;
+    /* 0xD0 */ f32 mAppearDistance;
+    /* 0xD4 */ f32 mReserveDistance;
+    /* 0xD8 */ u32 mModelCount;
     /* 0xDC */ const char** mModelNameTable;
     /* 0xE0 */ const char* mJointName;
     /* 0xE4 */ const char* mAutoEffectName;
     /* 0xE8 */ bool mHasLightCtrl;
-    /* 0xEC */ s32 _EC;
-    /* 0xF0 */ s32 _F0;
+    /* 0xEC */ s32 mNaturalMode;
+    /* 0xF0 */ s32 mGrowStep;
     /* 0xF4 */ s32 mAppearNum;
 };

@@ -22,7 +22,7 @@ namespace NrvCoinCounter {
 
 CoinCounter::CoinCounter(const char* pName)
     : LayoutActor(pName, true), mCoinNum(0), mCoinDisplayNum(0), mInvalidCountUpFrame(0), mLayoutAppearer(nullptr), mPaneRumbler(nullptr),
-      mIsForceAppear(false), mFollowPos(0.0f, 0.0f), _4C(false) {
+      mIsForceAppear(false), mFollowPos(0.0f, 0.0f), mIsDispCenter(false) {
 }
 
 void CoinCounter::init(const JMapInfoIter& rIter) {
@@ -53,7 +53,7 @@ void CoinCounter::appear() {
 
     mInvalidCountUpFrame = 0;
     mIsForceAppear = false;
-    _4C = false;
+    mIsDispCenter = false;
 
     MR::hideLayout(this);
     forceSync();
@@ -69,14 +69,14 @@ void CoinCounter::forceAppear(bool param) {
     }
 
     mIsForceAppear = true;
-    _4C = param;
+    mIsDispCenter = param;
 }
 
 void CoinCounter::disappear(bool param) {
     mIsForceAppear = false;
 
     setNerve(GET_NERVE(CoinCounter, CoinCounterNrvDisappear));
-    _4C = param;
+    mIsDispCenter = param;
 }
 
 void CoinCounter::forceSync() {
@@ -101,7 +101,7 @@ void CoinCounter::updateCounter() {
     else if (mCoinDisplayNum < mCoinNum) changeDisplayCount(1);
     else if (mCoinNum < mCoinDisplayNum) changeDisplayCount(-1);
     const char* pane;
-    if (_4C) {
+    if (mIsDispCenter) {
         if (mCoinDisplayNum >= 1000) pane = "TPosition1000";
         else if (mCoinDisplayNum >= 100) pane = "TPosition0100";
         else if (mCoinDisplayNum >= 10) pane = "TPosition0010";

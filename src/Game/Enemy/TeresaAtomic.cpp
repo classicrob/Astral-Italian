@@ -155,7 +155,7 @@ void TeresaAtomic::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFrontVec);
 }
 
-bool TeresaAtomic::fn_8020F940() {
+bool TeresaAtomic::isPlayerFacingTeresa() {
     TVec3f front;
     MR::getPlayerFrontVec(&front);
     TVec3f* pPlayerPos = MR::getPlayerPos();
@@ -188,10 +188,10 @@ bool TeresaAtomic::isEnableStarPieceAttack() const {
     return false;
 }
 
-bool TeresaAtomic::fn_8020FB50() {
+bool TeresaAtomic::tryBecomeShy() {
     bool isShay = false;
     if (!MR::isPlayerSquat()) {
-        if (this->fn_8020F940() && MR::isNearPlayer(this, 3500.0f)) {
+        if (this->isPlayerFacingTeresa() && MR::isNearPlayer(this, 3500.0f)) {
             isShay = true;
         }
     }
@@ -247,7 +247,7 @@ void TeresaAtomic::exeWait() {
         setNerve(NRV(Chase));
         return;
     }
-    if (!this->fn_8020FB50() && !tryDead()) {
+    if (!this->tryBecomeShy() && !tryDead()) {
         tryDisappear();
     }
 }
@@ -272,7 +272,7 @@ void TeresaAtomic::exeChase() {
         TVec3f vel = mFrontVec * mSpeed;
         MR::setVelocity(this, vel);
     }
-    if (!this->fn_8020FB50() && !tryDead()) {
+    if (!this->tryBecomeShy() && !tryDead()) {
         tryDisappear();
     }
 }
@@ -288,7 +288,7 @@ void TeresaAtomic::exeShay() {
     }
     bool isShay = false;
     if (!MR::isPlayerSquat()) {
-        if (this->fn_8020F940() && MR::isNearPlayer(this, 3500.0f)) {
+        if (this->isPlayerFacingTeresa() && MR::isNearPlayer(this, 3500.0f)) {
             isShay = true;
         }
     }
@@ -313,7 +313,7 @@ void TeresaAtomic::exeAggressive() {
         setNerve(NRV(Chase));
         return;
     }
-    if (!this->fn_8020FB50()) {
+    if (!this->tryBecomeShy()) {
         tryDead();
     }
 }

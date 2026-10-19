@@ -208,7 +208,7 @@ void BegomanLauncher::exeDisappear() {
     }
 }
 
-bool BegomanLauncher::fn_801631C0(const LiveActor* actor) const {
+bool BegomanLauncher::isLaunchedBegoman(const LiveActor* actor) const {
     for (s32 i = 0; i < mBegomanCount; ++i) {
         if (mBegomanArray[i] == actor) {
             return true;
@@ -217,6 +217,6 @@ bool BegomanLauncher::fn_801631C0(const LiveActor* actor) const {
     return false;
 }
 
-LiveActor* BegomanLauncher::fn_80163200(s32 index) const {
+LiveActor* BegomanLauncher::getLaunchedBegoman(s32 index) const {
     return mBegomanArray[index];
 }

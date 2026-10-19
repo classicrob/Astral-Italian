@@ -35,10 +35,10 @@ public:
     void copyInfoFromParserOne(u32, u32, u32, s64);
 
     // SMG2 unnamed helpers: index the 0x40-byte record table that starts at the holder (named by address).
-    f32 fn_8042A170(s32 index);
-    f32 fn_8042A1D0(s32 index);
-    f32 fn_8042A230(s32 index);
-    f32 fn_8042A280(s32 index);
+    f32 getPlayTimeSec(s32 index);
+    f32 getPrevPlayTimeSec(s32 index);
+    f32 calcBeatPhase(s32 index);
+    f32 calcPrevBeatPhase(s32 index);
 
     /* 0x000 */ f32 mModifiedTempo;
     /* 0x004 */ f32 mTempo;

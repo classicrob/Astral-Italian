@@ -35,8 +35,8 @@ private:
     /* 0x24 */ s32 mPageNum;
     /* 0x28 */ ButtonPaneController* mLeftPaneCtrl;
     /* 0x2C */ ButtonPaneController* mRightPaneCtrl;
-    /* 0x30 */ bool _30;
-    /* 0x31 */ bool _31;
+    /* 0x30 */ bool mIsLeftEnabled;
+    /* 0x31 */ bool mIsRightEnabled;
     /* 0x34 */ BackButton* mBackButton;
     J3DFrameCtrl* mButtonFrameCtrl;
 };

@@ -9,9 +9,9 @@ class Hanachan;
 class HanachanParts : public LiveActor {
 public:
     enum PartsType {
-        /* 0x0 */ PartsType_Head,
-        /* 0x1 */ PartsType_Body,
-        /* 0x2 */ PartsType_BodyS,
+        /* 0x4 */ PartsType_Head,
+        /* 0x5 */ PartsType_Body,
+        /* 0x6 */ PartsType_BodyS,
     };
 
     HanachanParts(Hanachan*, s32, const char*);
@@ -50,22 +50,21 @@ public:
     void changeHeadAngry();
     void changeHeadCalmDown();
 
-    /* 0x8C */ Hanachan* mHost;
-    /* 0x90 */ TVec3f mPushVelocity;
-    /* 0x9C */ TVec3f mFallVelocity;
-    /* 0xA8 */ PartsType mPartsType;
-    /* 0xAC */ TQuat4f mRotationQuat;
-    /* 0xBC */ s32 mPartsIndex;
-    /* 0xC0 */ s32 mActionStartStep;
-    /* 0xC4 */ bool mIsLanded;
+    /* 0x90 */ Hanachan* mHost;
+    /* 0x94 */ TVec3f mPushVelocity;
+    /* 0xA0 */ TVec3f mFallVelocity;
+    /* 0xAC */ PartsType mPartsType;
+    /* 0xB0 */ TQuat4f mRotationQuat;
+    /* 0xC0 */ s32 mPartsIndex;
+    /* 0xC4 */ s32 mActionStartStep;
+    /* 0xC8 */ bool mIsLanded;
 };
 
 class Hanachan : public LiveActor {
 public:
     Hanachan(const char*);
 
-    // SMG2-only functions (original names unknown; named by address)
-    void fn_801905E0();
+    void killAllHanachanParts();
 
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
@@ -102,9 +101,9 @@ public:
     TVec3f calcSensorDirection(const HitSensor*, const HitSensor*) const;
     void moveBodyAlongHead();
 
-    /* 0x8C */ MR::FixedArray< HanachanParts*, 5 > mBodyParts;
-    /* 0xA0 */ TVec3f mAttackPos;
-    /* 0xAC */ TVec3f mFrontDir;
-    /* 0xB8 */ bool mIsChasePlayer;
-    /* 0xBC */ AnimScaleController* mScaleController;
+    /* 0x90 */ MR::FixedArray< HanachanParts*, 5 > mBodyParts;
+    /* 0xA4 */ TVec3f mAttackPos;
+    /* 0xB0 */ TVec3f mFrontDir;
+    /* 0xBC */ bool mIsChasePlayer;
+    /* 0xC0 */ AnimScaleController* mScaleController;
 };

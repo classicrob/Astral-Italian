@@ -8,18 +8,18 @@
 #include <wstring.h>
 
 namespace StaffRollUtil {
+    // NONMATCHING: tag-skip copy loop schedules the src/counter increments in a different order.
     StaffRollLine* createLine(const wchar_t* message, u32 line, s32 index, bool* endMarker) {
         wchar_t text[256];
         MR::getMessageLine(text, 256, message, line);
         wchar_t work[256] = {};
-        wchar_t columns[2][256] = {};
         const wchar_t* src = text;
-        wchar_t* dst = columns[0];
         s32 count = 0;
+        wchar_t columns[2][256] = {};
+        wchar_t* dst = columns[0];
         bool title = false;
         while (true) {
-            wchar_t c = *src;
-            if (c == 0xE) {
+            if (*src == 0xE) {
                 *dst++ = *src++;
                 MessageEditorMessageTag tag(src);
                 for (s32 i = 0; i < static_cast<s32>(tag.getSkipLength()); i++) {
@@ -27,28 +27,28 @@ namespace StaffRollUtil {
                 }
                 continue;
             }
-            if (c == L'^') {
+            if (*src == L'^') {
                 if (src[1] == L'^' && endMarker) {
                     *endMarker = true;
                 }
                 return nullptr;
             }
-            if (c == L'$') {
+            if (*src == L'$') {
                 title = true;
                 src++;
                 continue;
             }
-            if (c == L'|' || c == 0) {
+            if (*src != L'|' && *src != 0) {
+                *dst++ = *src;
+            } else {
                 count++;
                 *dst = 0;
-                if (c == 0) {
+                if (*src == 0) {
                     break;
                 }
                 dst = columns[count];
-                src++;
-                continue;
             }
-            *dst++ = *src++;
+            src++;
         }
         StaffRollLine* actor;
         if (title) {
@@ -59,20 +59,23 @@ namespace StaffRollUtil {
             actor->appear();
             return actor;
         } else if (count == 1) {
+            wchar_t* name = columns[0];
             actor = new StaffRollLine(1, index);
             actor->initWithoutIter();
             MR::setTextBoxMessageRecursive(actor, "Title", L"");
             MR::setTextBoxMessageRecursive(actor, "LeftName", L"");
             MR::setTextBoxMessageRecursive(actor, "RightName", L"");
-            MR::setTextBoxMessageRecursive(actor, "NameSingle", columns[0]);
+            MR::setTextBoxMessageRecursive(actor, "NameSingle", name);
             actor->appear();
             return actor;
         } else if (count == 2) {
+            wchar_t* left = columns[0];
+            wchar_t* right = columns[1];
             actor = new StaffRollLine(1, index);
             actor->initWithoutIter();
             MR::setTextBoxMessageRecursive(actor, "Title", L"");
-            MR::setTextBoxMessageRecursive(actor, "LeftName", columns[0]);
-            MR::setTextBoxMessageRecursive(actor, "RightName", columns[1]);
+            MR::setTextBoxMessageRecursive(actor, "LeftName", left);
+            MR::setTextBoxMessageRecursive(actor, "RightName", right);
             MR::setTextBoxMessageRecursive(actor, "NameSingle", L"");
             actor->appear();
             return actor;
@@ -85,16 +88,16 @@ namespace StaffRollUtil {
         return new StaffRollPart(message, line);
     }
 
+    // NONMATCHING: dst and inner-loop counter swap registers (r25/r28).
     bool readPartInfo(StaffRollPartInfo* info, const wchar_t* message, u32 line) {
         wchar_t text[256];
         MR::getMessageLine(text, 256, message, line);
         wchar_t columns[3][256] = {};
-        const wchar_t* src = text;
         wchar_t* dst = columns[0];
         s32 count = 0;
+        const wchar_t* src = text;
         while (true) {
-            wchar_t c = *src;
-            if (c == 0xE) {
+            if (*src == 0xE) {
                 *dst++ = *src++;
                 MessageEditorMessageTag tag(src);
                 for (s32 i = 0; i < static_cast<s32>(tag.getSkipLength()); i++) {
@@ -102,31 +105,33 @@ namespace StaffRollUtil {
                 }
                 continue;
             }
-            if (c == L',' || c == 0) {
+            if (*src != L',' && *src != 0) {
+                *dst++ = *src;
+            } else {
                 count++;
                 *dst = 0;
-                if (c == 0) {
+                if (*src == 0) {
                     break;
                 }
                 dst = columns[count];
-                src++;
-                continue;
             }
-            *dst++ = *src++;
+            src++;
         }
-        if (columns[0][0] != L'#') {
-            return false;
+        if (columns[0][0] == L'#') {
+            if (columns[0][1] == L'T') {
+                info->mType = 0;
+            } else if (columns[0][1] == L'C') {
+                info->mType = 1;
+            } else if (columns[0][1] == L'B') {
+                info->mType = 2;
+            }
+            if (count == 3) {
+                info->mPosition.x = wtoi(columns[1]);
+                info->mPosition.y = wtoi(columns[2]);
+            }
+            return true;
         }
-        switch (columns[0][1]) {
-        case L'T': info->mType = 0; break;
-        case L'C': info->mType = 1; break;
-        case L'B': info->mType = 2; break;
-        }
-        if (count == 3) {
-            info->mPosition.x = wtoi(columns[1]);
-            info->mPosition.y = wtoi(columns[2]);
-        }
-        return true;
+        return false;
     }
 
     void initPane(LayoutActor* actor, TVec2f* position, const char* pane) {

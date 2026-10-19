@@ -5,85 +5,88 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <cstdio>
 
-extern "C" const char* lbl_807D0218;
+namespace {
+    // Stage that renders the screen texture as RGB565 instead of RGBA8.
+    const char* sRGB565ScreenStageName = "AndoYoshiStage";
+}
 
 // NONMATCHING: zero initializer register differs (r4 versus r5).
 ImageEffectResource::ImageEffectResource()
-    : _0(nullptr), _4(nullptr), _8(nullptr), _C(nullptr), _10(nullptr), _14(nullptr), _18(nullptr), _1C(nullptr), _20(nullptr), _24(nullptr), mFogTextures(nullptr), mFogTextureCount(0), mFogResource(nullptr), mScreenFormat(GX_TF_RGBA8) {
-    if (MR::isEqualStageName(lbl_807D0218)) mScreenFormat = GX_TF_RGB565;
+    : mScreenTexture(nullptr), mHalfTexture(nullptr), mHalfIntensityTexture(nullptr), mQuarterTextureA(nullptr), mQuarterTextureB(nullptr), mEighthTextureA(nullptr), mEighthTextureB(nullptr), mQuarterIntensityTexture(nullptr), mQuarterTextureC(nullptr), mDepthTexture(nullptr), mFogTextures(nullptr), mFogTextureCount(0), mFogResource(nullptr), mScreenFormat(GX_TF_RGBA8) {
+    if (MR::isEqualStageName(sRGB565ScreenStageName)) mScreenFormat = GX_TF_RGB565;
 }
 
 void ImageEffectResource::createBloomTexture() {
-    if (_0 == nullptr) {
-        _0 = createTexture(1.0f, mScreenFormat, GX_CLAMP, GX_LINEAR);
+    if (mScreenTexture == nullptr) {
+        mScreenTexture = createTexture(1.0f, mScreenFormat, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_4 == nullptr) {
-        _4 = createTexture(0.5f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mHalfTexture == nullptr) {
+        mHalfTexture = createTexture(0.5f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_C == nullptr) {
-        _C = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mQuarterTextureA == nullptr) {
+        mQuarterTextureA = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_10 == nullptr) {
-        _10 = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mQuarterTextureB == nullptr) {
+        mQuarterTextureB = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_14 == nullptr) {
-        _14 = createTexture(0.125f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mEighthTextureA == nullptr) {
+        mEighthTextureA = createTexture(0.125f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_18 == nullptr) {
-        _18 = createTexture(0.125f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mEighthTextureB == nullptr) {
+        mEighthTextureB = createTexture(0.125f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_1C == nullptr) {
-        _1C = createTexture(0.25f, GX_TF_I8, GX_CLAMP, GX_LINEAR);
+    if (mQuarterIntensityTexture == nullptr) {
+        mQuarterIntensityTexture = createTexture(0.25f, GX_TF_I8, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_20 == nullptr) {
-        _20 = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mQuarterTextureC == nullptr) {
+        mQuarterTextureC = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 }
 
 void ImageEffectResource::createBlurTexture() {
-    if (_0 == nullptr) {
-        _0 = createTexture(1.0f, mScreenFormat, GX_CLAMP, GX_LINEAR);
+    if (mScreenTexture == nullptr) {
+        mScreenTexture = createTexture(1.0f, mScreenFormat, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_8 == nullptr) {
-        _8 = createTexture(0.5f, GX_TF_I8, GX_CLAMP, GX_LINEAR);
+    if (mHalfIntensityTexture == nullptr) {
+        mHalfIntensityTexture = createTexture(0.5f, GX_TF_I8, GX_CLAMP, GX_LINEAR);
     }
 }
 
 void ImageEffectResource::createDOFTexture() {
-    if (_0 == nullptr) {
-        _0 = createTexture(1.0f, mScreenFormat, GX_CLAMP, GX_LINEAR);
+    if (mScreenTexture == nullptr) {
+        mScreenTexture = createTexture(1.0f, mScreenFormat, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_4 == nullptr) {
-        _4 = createTexture(0.5f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mHalfTexture == nullptr) {
+        mHalfTexture = createTexture(0.5f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_C == nullptr) {
-        _C = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mQuarterTextureA == nullptr) {
+        mQuarterTextureA = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_10 == nullptr) {
-        _10 = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mQuarterTextureB == nullptr) {
+        mQuarterTextureB = createTexture(0.25f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
     }
 
-    if (_24 == nullptr) {
-        _24 = createTexture(1.0f, GX_TF_IA8, GX_CLAMP, GX_NEAR);
+    if (mDepthTexture == nullptr) {
+        mDepthTexture = createTexture(1.0f, GX_TF_IA8, GX_CLAMP, GX_NEAR);
     }
     createFogGradationTextures();
 }
 
 
 void ImageEffectResource::createFogTexture() {
-    if (_4 == nullptr) _4 = createTexture(0.5f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
-    if (_24 == nullptr) _24 = createTexture(1.0f, GX_TF_IA8, GX_CLAMP, GX_NEAR);
+    if (mHalfTexture == nullptr) mHalfTexture = createTexture(0.5f, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    if (mDepthTexture == nullptr) mDepthTexture = createTexture(1.0f, GX_TF_IA8, GX_CLAMP, GX_NEAR);
     createFogGradationTextures();
 }
 

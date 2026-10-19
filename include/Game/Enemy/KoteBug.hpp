@@ -26,11 +26,11 @@ public:
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void fn_801B6650();
-    bool fn_801B7B40() const;
-    bool fn_801B7BE0() const;
-    bool fn_801B7CF0() const;
-    bool fn_801B7D60();
+    void exeKotePreEscape();
+    bool isOverturnedPosture() const;
+    bool isKoteStarBindable() const;
+    bool isRecoveringOverturn() const;
+    bool tryStartKoteStarBind();
     void exeNoCalcWait();
     void endNoCalcWait();
     void exeWait();
@@ -60,7 +60,7 @@ public:
     /* 0x9C */ TVec3f mFront;
     /* 0xA8 */ TQuat4f mPosture;
     /* 0xBC */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0xC0 */ s32 _C0;
-    /* 0xC4 */ bool _C4;
+    /* 0xC0 */ s32 mOverturnCooldown;
+    /* 0xC4 */ bool mIsRecoverBind;
     /* 0xC8 */ JointController* mJointController;
 };

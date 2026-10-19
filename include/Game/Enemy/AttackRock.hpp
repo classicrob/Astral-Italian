@@ -21,42 +21,40 @@ class KoopaJrRobotShockWave;
 
 // Helper that lets the player ride the rock ("AutoRush" handling).
 // ---- unit-local free helpers (AttackRock family; defined in the .cpp files) ----
-void fn_801552A0(LiveActor* pActor) NO_INLINE;
-f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat) NO_INLINE;
-void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed) NO_INLINE;
-void fn_801553D0(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed) NO_INLINE;
-void fn_801554D0(TPos3f* pMtx, LiveActor* pActor) NO_INLINE;
-void fn_80155540(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos) NO_INLINE;
-ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor) NO_INLINE;
+void setupRockBinder(LiveActor* pActor) NO_INLINE;
+f32 calcVelocityAngle(LiveActor* pActor, TQuat4f* pQuat) NO_INLINE;
+void calcBoundVelocity(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed) NO_INLINE;
+void bouncePlayerAndCalcVelocity(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed) NO_INLINE;
+void updateBaseMtxFromVelocity(TPos3f* pMtx, LiveActor* pActor) NO_INLINE;
+void updateProjmapEffectMtx(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos) NO_INLINE;
+ProjmapEffectMtxSetter* createProjmapEffectMtxSetter(LiveActor* pActor) NO_INLINE;
 
 class AttackRockRide {
 public:
-    // SMG2-only functions (original names unknown; named by address)
     AttackRockRide(LiveActor* pHost);
-    void fn_801529E0(const TVec3f* pVec);
-    void fn_80152A00();
-    void fn_80152C00();
-    bool fn_80152E20(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    void fn_80152F10() NO_INLINE;
-    void fn_80152F20() NO_INLINE;
-    // SMG2-only functions (original names unknown; named by address)
+    void setHostZDir(const TVec3f* pVec);
+    void initRush();
+    void updateRush();
+    bool tryReceiveRideMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    void enableRide() NO_INLINE;
+    void endRide() NO_INLINE;
 
     /* 0x00 */ LiveActor* mHost;
     /* 0x04 */ TQuat4f mQuat0;
     /* 0x14 */ TQuat4f mQuat1;
     /* 0x24 */ TQuat4f mQuat2;
-    /* 0x34 */ TVec3f _34;
-    /* 0x40 */ TVec3f _40;
-    /* 0x4C */ TVec3f _4C;
-    /* 0x58 */ TVec3f _58;
-    /* 0x64 */ TVec3f _64;
-    /* 0x70 */ TVec3f _70;
-    /* 0x7C */ TVec3f _7C;
-    /* 0x88 */ f32 _88;
-    /* 0x8C */ f32 _8C;
-    /* 0x90 */ f32 _90;
-    /* 0x94 */ s32 _94;
-    /* 0x98 */ s32 _98;
+    /* 0x34 */ TVec3f mHostZDir;
+    /* 0x40 */ TVec3f mRidePos;
+    /* 0x4C */ TVec3f mPlayerMove;
+    /* 0x58 */ TVec3f mDrift;
+    /* 0x64 */ TVec3f mStartDir;
+    /* 0x70 */ TVec3f mTargetDir;
+    /* 0x7C */ TVec3f mRotAxis;
+    /* 0x88 */ f32 mRotAngle;
+    /* 0x8C */ f32 mRotAngleSum;
+    /* 0x90 */ f32 mStartDistance;
+    /* 0x94 */ s32 mRushFrames;
+    /* 0x98 */ s32 mRushStep;
     /* 0x9C */ bool mIsRush;
     /* 0x9D */ bool mIsEnable;
 };
@@ -64,14 +62,13 @@ public:
 // State of the rock while it is held/floating by Koopa.
 class AttackRockStateHold : public ActorStateBase< AttackRock > {
 public:
-    // SMG2-only functions (original names unknown; named by address)
-    bool fn_80153400();
-    bool fn_80153460();
-    void fn_801534D0();
-    void fn_80153530();
-    void fn_80153620();
-    void fn_80153720();
-    void fn_801537D0();
+    bool isPowerOrFloatEnd();
+    bool isFloating();
+    void updateHoldPosition();
+    void exeHoldFloat();
+    void exeHoldPower();
+    void exeHoldFloatEnd();
+    void exeHoldFallBreak();
     AttackRockStateHold(AttackRock*, s32);
     virtual ~AttackRockStateHold();
 
@@ -92,13 +89,12 @@ public:
 // State of the rock while it falls and creates the shockwave.
 class AttackRockStateFall : public ActorStateBase< AttackRock > {
 public:
-    // SMG2-only functions (original names unknown; named by address)
-    void fn_80153DE0();
-    void fn_80153EE0();
-    void fn_80153FE0();
-    void fn_80154060();
-    void fn_80154280();
-    void fn_80154400();
+    void updateLandSensorRadius();
+    void updateFallBezierVelocity();
+    void startLandDemo();
+    void exeFallAppear();
+    void exeFallWait();
+    void exeFallLanding();
     AttackRockStateFall(AttackRock*, s32);
     virtual ~AttackRockStateFall();
 
@@ -119,12 +115,12 @@ public:
 
 class AttackRock : public LiveActor {
 public:
-    f32 fn_801510C0() const NO_INLINE;
-    bool fn_801510D0() const NO_INLINE;
-    bool fn_801517C0(s32) const;
-    void fn_80151160();
-    void fn_80151510();
-    void fn_801516E0();
+    f32 getRockBaseRadius() const NO_INLINE;
+    bool isOuterState() const NO_INLINE;
+    bool isRockFollowValid(s32) const;
+    void startRockBreak();
+    void exeRockBound();
+    void exeRockBreak();
     AttackRock(const char* pName);
 
     virtual ~AttackRock();
@@ -154,13 +150,13 @@ public:
 
 class AttackRockFinal : public LiveActor {
 public:
-    bool fn_80152700(s32) const;
-    void fn_801521F0(f32 a, f32 b);
-    void fn_80152280();
-    void fn_801522F0();
-    void fn_80152400();
-    void fn_801524F0();
-    void fn_80152620();
+    bool isFollowValidFinal(s32) const;
+    void setPositionFromAxes(f32 a, f32 b);
+    void exeFinalWait();
+    void exeFinalFall();
+    void exeFinalFloat();
+    void exeFinalBound();
+    void exeFinalBreak();
     AttackRockFinal(const char*);
 
     virtual ~AttackRockFinal();
@@ -187,13 +183,13 @@ public:
 
 class AttackRockTutorial : public LiveActor {
 public:
-    bool fn_80155090(s32) const;
-    void fn_80154B60();
-    void fn_80154BB0();
-    void fn_80154C60();
-    void fn_80154D40();
-    void fn_80154E90();
-    void fn_80154F90();
+    bool isFollowValidTutorial(s32) const;
+    void startDead();
+    void exeTutorialWait();
+    void exeTutorialFloatUp();
+    void exeTutorialFloat();
+    void exeTutorialBound();
+    void exeTutorialBreak();
     AttackRockTutorial(const char*);
 
     virtual ~AttackRockTutorial();

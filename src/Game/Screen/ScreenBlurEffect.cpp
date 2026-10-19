@@ -14,21 +14,21 @@ namespace {
     static const f32 sScale = 10000.0f;
 };  // namespace
 
-ScreenBlurEffect::ScreenBlurEffect(const char* pName) : ImageEffectBase(pName), _14(), _18(), mScale(::sScale), _20(true), mIntensity(1.0f) {
+ScreenBlurEffect::ScreenBlurEffect(const char* pName) : ImageEffectBase(pName), mScreenTexture(), mBlurTexture(), mScale(::sScale), mSkipDraw(true), mIntensity(1.0f) {
     MR::connectToSceneImageEffect(this);
     MR::createImageEffectSystemHolder();
     MR::getImageEffectResource()->createBlurTexture();
 
-    _14 = MR::getImageEffectResource()->_0;
-    _18 = MR::getImageEffectResource()->_8;
+    mScreenTexture = MR::getImageEffectResource()->mScreenTexture;
+    mBlurTexture = MR::getImageEffectResource()->mHalfIntensityTexture;
 }
 
 void ScreenBlurEffect::calcAnimSub() {
-    _20 = false;
+    mSkipDraw = false;
 }
 
 void ScreenBlurEffect::notifyTurnOn() {
-    _20 = true;
+    mSkipDraw = true;
 }
 
 void ScreenBlurEffect::draw() const {
@@ -39,7 +39,7 @@ void ScreenBlurEffect::draw() const {
 }
 
 void ScreenBlurEffect::drawBlur() const {
-    if (_20) {
+    if (mSkipDraw) {
         return;
     }
 
@@ -85,13 +85,13 @@ void ScreenBlurEffect::drawBlur() const {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetZCompLoc(GX_TRUE);
     GXSetDither(GX_FALSE);
-    GXSetChanMatColor(GX_COLOR0A0, Color8(255, 255, 255, static_cast< s32 >(get_10() * 220.0f * mIntensity)));
+    GXSetChanMatColor(GX_COLOR0A0, Color8(255, 255, 255, static_cast< s32 >(getFadeRate() * 220.0f * mIntensity)));
     GXSetChanAmbColor(GX_COLOR0A0, Color8(255, 255, 255, 255));
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     GXSetTevKColor(GX_KCOLOR0, Color8(240, 240, 240, 240));
 
-    _14->load(GX_TEXMAP0);
-    _18->load(GX_TEXMAP1);
+    mScreenTexture->load(GX_TEXMAP0);
+    mBlurTexture->load(GX_TEXMAP1);
 
     f32 y = MR::tanDegree(MR::getFovy() * 0.5f) * mScale;
     f32 x = MR::getAspect() * y;
@@ -118,6 +118,6 @@ void ScreenBlurEffect::drawBlur() const {
 void ScreenBlurEffect::captureBlur() const {
     CopyFilterNegater copyFilterNegater = CopyFilterNegater();
 
-    _14->capture(0, 0, static_cast<GXTexFmt>(_14->getFormat()), false, 0);
-    _18->capture(0, 0, GX_TF_Z8, true, 0);
+    mScreenTexture->capture(0, 0, static_cast<GXTexFmt>(mScreenTexture->getFormat()), false, 0);
+    mBlurTexture->capture(0, 0, GX_TF_Z8, true, 0);
 }

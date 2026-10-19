@@ -86,7 +86,7 @@ void NokonokoLandBig::init(const JMapInfoIter& rIter) {
     MR::declareCoin(this, 1);
     MR::initUseStageSwitchReadA(this, rIter);
     if (MR::isValidSwitchA(this)) {
-        MR::FunctorV0M<NokonokoLandBig*, void (NokonokoLandBig::*)()> callback(this, &NokonokoLandBig::fn_801D6BE0);
+        MR::FunctorV0M<NokonokoLandBig*, void (NokonokoLandBig::*)()> callback(this, &NokonokoLandBig::updateRailPoseOnSwitch);
         MR::listenStageSwitchOnA(this, callback);
     }
     MR::useStageSwitchSyncAppear(this, rIter);
@@ -134,7 +134,7 @@ void NokonokoLandBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
     if (MR::isSensorEnemyAttack(pSender)) {
-        if (MR::isSensorPlayerOrRide(pReceiver) && !fn_801D73E0(pSender, pReceiver)) {
+        if (MR::isSensorPlayerOrRide(pReceiver) && !tryPushEnemyAttack(pSender, pReceiver)) {
             MR::sendMsgPush(pReceiver, pSender);
         }
         return;
@@ -216,7 +216,7 @@ bool NokonokoLandBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
 
 // NONMATCHING: Remaining GPR assignment and vector temporary scheduling differ.
 bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver == getSensor("DrillDamage") && fn_801D7290()) {
+    if (pReceiver == getSensor("DrillDamage") && isMovingOrBindNerve()) {
         MR::tryHitReaction(this, "ドリルダメージ");
         const TVec3f* hostVelocity = &MR::getSensorHost(pSender)->mVelocity;
         TVec3f velocity(*hostVelocity);
@@ -235,7 +235,7 @@ bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool NokonokoLandBig::tryBodyTouch(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver == getSensor("Body") && this->fn_801D7290()) {
+    if (pReceiver == getSensor("Body") && this->isMovingOrBindNerve()) {
         return true;
     }
     return false;
@@ -373,7 +373,7 @@ bool NokonokoLandBig::isAlignedToRail() const {
     return false;
 }
 
-bool NokonokoLandBig::fn_801D7290() {
+bool NokonokoLandBig::isMovingOrBindNerve() {
     bool result = false;
     if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvWalk)) ||
         isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvHitRecovery)) ||
@@ -389,7 +389,7 @@ bool NokonokoLandBig::fn_801D7290() {
 // Sensor-driven helper: a hit from an enemy-attack sensor while walking is answered with an attack push.
 #pragma push
 #pragma global_optimizer off
-bool NokonokoLandBig::fn_801D73E0(HitSensor* pSender, HitSensor* pReceiver) {
+bool NokonokoLandBig::tryPushEnemyAttack(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorEnemyAttack(pSender)) {
         return false;
     }
@@ -400,7 +400,7 @@ bool NokonokoLandBig::fn_801D73E0(HitSensor* pSender, HitSensor* pReceiver) {
 }
 #pragma pop
 
-void NokonokoLandBig::fn_801D6BE0() {
+void NokonokoLandBig::updateRailPoseOnSwitch() {
     MR::setBaseTRMtx(this, mBaseQuat);
     MR::setRailCoord(this, mRailCoord);
 }

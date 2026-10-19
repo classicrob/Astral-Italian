@@ -16,7 +16,7 @@ namespace NrvBegomanSpringHead {
 
 void BegomanHead::calcAndSetBaseMtx() {
     PartsModel::calcAndSetBaseMtx();
-    TVec3f scale = *_9C * mScale;
+    TVec3f scale = *mScaleSource * mScale;
     MR::setBaseScale(this, scale);
 }
 

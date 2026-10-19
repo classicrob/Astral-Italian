@@ -66,7 +66,7 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc(this, &TicoShop::branchFunc));
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc(this, &TicoShop::eventFunc));
     MR::setDistanceToTalk(mMsgCtrl, 350.0f);
-    _180 = GET_NERVE(TicoShop, TicoShopNrvDemo);
+    mMetaNerve = GET_NERVE(TicoShop, TicoShopNrvDemo);
     mOneUp = MR::createKinokoOneUp();
     mLifeUp = MR::createKinokoSuper();
     MR::setShadowDropLength(mOneUp, nullptr, ::sShadowLength);
@@ -79,7 +79,7 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg7NoInit(rIter,&useTalkCamera);
     if(useTalkCamera) MR::initTalkCamera(mMsgCtrl,rIter);
     TicoEat::init(rIter);
-    _17C.set(0, 0xE6, 0xFF, 0xFF);
+    mPointLightColor.set(0, 0xE6, 0xFF, 0xFF);
 }
 
 bool TicoShop::branchFunc(u32) {

@@ -59,10 +59,10 @@ SupportTico::SupportTico(const char* pName) : LiveActor(pName) {
     mReleasedSensor = nullptr;
     mExecutor = nullptr;
     mTargetTimer = 0;
-    _B0 = 0;
+    mUnusedCounter = 0;
     mAttachRange = 2500.0f;
     mControlOn = true;
-    _B9 = false;
+    mTargetRefreshed = false;
     mInForbidArea = false;
     mFollowPlayerYDir = false;
     mShow = true;
@@ -177,7 +177,7 @@ void SupportTico::exeDisappear() {
 // NONMATCHING: register allocation and floating-point load order.
 bool SupportTico::tryAttachToTarget(const LiveActor* pActor) {
     if (mTarget != nullptr && mTarget == pActor) {
-        _B9 = true;
+        mTargetRefreshed = true;
     }
     if (!isNerve(&NrvSupportTico::SupportTicoNrvBehavior::sInstance)) {
         return false;
@@ -277,13 +277,13 @@ void SupportTico::updateTarget() {
     if (pNearest != nullptr && mTarget == nullptr) {
         mTarget = pNearest;
         mTargetTimer = 40;
-        _B9 = true;
+        mTargetRefreshed = true;
         return;
     }
     const LiveActor* pTarget = mTarget;
     mTargetTimer--;
     if (pTarget != nullptr) {
-        if (!_B9 || MR::isDead(pTarget) || MR::isStarPointerTargetClipped(mTarget) ||
+        if (!mTargetRefreshed || MR::isDead(pTarget) || MR::isStarPointerTargetClipped(mTarget) ||
             MR::isNearPlayerAnyTime(mTarget, 1.2f * mAttachRange) == false) {
             mAttachGroup->clear();
             mNearTarget = nullptr;
@@ -294,7 +294,7 @@ void SupportTico::updateTarget() {
             mTargetTimer = 0;
         }
     }
-    _B9 = false;
+    mTargetRefreshed = false;
 }
 
 bool SupportTico::isTargeting() const {

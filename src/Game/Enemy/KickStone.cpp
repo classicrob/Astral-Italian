@@ -18,7 +18,7 @@ namespace NrvKickStone {
     };
     KickStoneNrvAttachTico KickStoneNrvAttachTico::sInstance ATTRIBUTE_WEAK;
 
-    // Nerve 0x294C: rolling move (fn_801B38B0).
+    // Nerve 0x294C: rolling move (exeRollTowardPlayer).
     class KickStoneNrvMoveRoll : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
@@ -29,7 +29,7 @@ namespace NrvKickStone {
     NEW_NERVE(KickStoneNrvBreak, KickStone, Break);
     NEW_NERVE(KickStoneNrvBreakSub, KickStone, Break);
 
-    // Nerve 0x2958: falling / bound (fn_801B3B60).
+    // Nerve 0x2958: falling / bound (exeFallAfterRoll).
     class KickStoneNrvDead : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
@@ -45,12 +45,12 @@ KickStone::KickStone(const char* pName) : LiveActor(pName) {
     mBreakModel = nullptr;
     mIsCoin = false;
     mLockOnTarget = nullptr;
-    _9C = 0.0f;
-    _A0 = false;
-    mArg1 = false;
-    mArg2 = false;
+    mUnusedRollSpeed = 0.0f;
+    mUnusedRollFlag = false;
+    mUsePlacedUp = false;
+    mKeepPlacedPosition = false;
     mUp.set(0.0f, 1.0f, 0.0f);
-    _BC.set(0.0f, 0.0f, 1.0f);
+    mRollAxis.set(0.0f, 0.0f, 1.0f);
     mOffset.set(0.0f, 0.0f, 0.0f);
     mMtx.identity();
 }
@@ -58,7 +58,7 @@ KickStone::KickStone(const char* pName) : LiveActor(pName) {
 // NONMATCHING: MWCC removes a redundant integer conversion before getBaseMtx, changing stack allocation.
 void KickStone::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
-    mBreakModel = MR::tryCreateBreakModel(this, reinterpret_cast<MtxPtr>(&mMtx));
+    mBreakModel = MR::tryCreateBreakModel(this, mMtx.toMtxPtr());
     mMtx.set(getBaseMtx());
     mOffset = mPosition;
 
@@ -69,8 +69,8 @@ void KickStone::init(const JMapInfoIter& rIter) {
         MR::declareStarPiece(this, 1);
     }
 
-    MR::getJMapInfoArg1NoInit(rIter, &mArg1);
-    MR::getJMapInfoArg2NoInit(rIter, &mArg2);
+    MR::getJMapInfoArg1NoInit(rIter, &mUsePlacedUp);
+    MR::getJMapInfoArg2NoInit(rIter, &mKeepPlacedPosition);
 
     s32 count = 6;
     f32 rotDegree = 360.0f / count;
@@ -93,8 +93,8 @@ void KickStone::init(const JMapInfoIter& rIter) {
 }
 
 void KickStone::initAfterPlacement() {
-    if (!mArg2) {
-        fn_801B3420(&mUp, this, mArg1);
+    if (!mKeepPlacedPosition) {
+        snapKickStoneToGround(&mUp, this, mUsePlacedUp);
     }
 }
 
@@ -109,7 +109,7 @@ void KickStone::calcAndSetBaseMtx() {
     mMtx.set(getBaseMtx());
     if (isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreakSub)) || isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak)) ||
         isNerve(GET_KICKSTONE_NERVE(KickStoneNrvDead))) {
-        MR::setMtxTrans(reinterpret_cast<MtxPtr>(&mMtx), mOffset.x, mOffset.y, mOffset.z);
+        MR::setMtxTrans(mMtx.toMtxPtr(), mOffset.x, mOffset.y, mOffset.z);
     }
 }
 
@@ -123,7 +123,7 @@ void KickStone::exeBreak() {
         MR::stopBck(this);
         MR::startAction(this, "Break");
         mOffset = mPosition;
-        fn_801B3420(&mUp, this, 0);
+        snapKickStoneToGround(&mUp, this, 0);
         MR::forceDeleteEffect(this, "KickStoneLight");
         MR::invalidateShadowAll(this);
         MR::zeroVelocity(this);
@@ -204,31 +204,31 @@ KickStone::~KickStone() {
 }
 
 void NrvKickStone::KickStoneNrvAttachTico::execute(Spine* pSpine) const {
-    MR::attachSupportTicoToTarget(reinterpret_cast<LiveActor*>(pSpine->mExecutor));
+    MR::attachSupportTicoToTarget(static_cast<LiveActor*>(pSpine->mExecutor));
 }
 
 void NrvKickStone::KickStoneNrvMoveRoll::execute(Spine* pSpine) const {
-    (reinterpret_cast<KickStone*>(pSpine->mExecutor))->fn_801B38B0();
+    (static_cast<KickStone*>(pSpine->mExecutor))->exeRollTowardPlayer();
 }
 
 void NrvKickStone::KickStoneNrvDead::execute(Spine* pSpine) const {
-    (reinterpret_cast<KickStone*>(pSpine->mExecutor))->fn_801B3B60();
+    (static_cast<KickStone*>(pSpine->mExecutor))->exeFallAfterRoll();
 }
 
-void KickStone::fn_801B38B0() {
+void KickStone::exeRollTowardPlayer() {
     if (MR::isFirstStep(this)) {
         MR::calcGravity(this);
         TVec3f velocity(0.0f);
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayerH(&toPlayer, this, nullptr);
-        PSVECCrossProduct(&mUp, &toPlayer, &_BC);
-        if (MR::isNearZero(_BC, 0.001f)) {
-            _BC.set(mFront);
+        PSVECCrossProduct(&mUp, &toPlayer, &mRollAxis);
+        if (MR::isNearZero(mRollAxis, 0.001f)) {
+            mRollAxis.set(mFront);
         }
         velocity = toPlayer * 4.0f - mGravity * 25.0f;
         MR::setVelocity(this, velocity);
     }
-    MR::rotateVecDegree(&mUp, _BC, 4.0f);
+    MR::rotateVecDegree(&mUp, mRollAxis, 4.0f);
     MR::addVelocityToGravity(this, 1.4f);
     if (!MR::isLessStep(this, 10) && (MR::isBinded(this) || MR::isStep(this, 120))) {
         MR::zeroVelocity(this);
@@ -237,7 +237,7 @@ void KickStone::fn_801B38B0() {
     }
 }
 
-void KickStone::fn_801B3B60() {
+void KickStone::exeFallAfterRoll() {
     if (!MR::isNoBind(this)) {
         if (MR::isBinded(this)) {
             MR::zeroVelocity(this);
@@ -248,7 +248,7 @@ void KickStone::fn_801B3B60() {
     }
 }
 
-bool fn_801B3420(TVec3f* pUp, KickStone* pStone, s32 useCurrentUp) {
+bool KickStone::snapKickStoneToGround(TVec3f* pUp, KickStone* pStone, s32 useCurrentUp) {
     MR::calcGravity(pStone);
     TVec3f gravity(pStone->mGravity);
     if (useCurrentUp) {

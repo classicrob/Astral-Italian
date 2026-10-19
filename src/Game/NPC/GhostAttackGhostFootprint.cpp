@@ -5,6 +5,18 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Util.hpp"
 
+struct GhostSpaceFlyAnimationNames {
+    char end[12];
+    char loop[16];
+    char shortFly[16];
+    char shortStart[20];
+    char start[16];
+};
+
+GhostSpaceFlyAnimationNames sSpaceFlyAnimationNames = {
+    "SpaceFlyEnd", "SpaceFlyLoop", "SpaceFlyShort", "SpaceFlyShortStart", "SpaceFlyStart"
+};
+
 namespace NrvGhostAttackGhostFootprint {
     class GhostAttackGhostFootprintNrvStop : public Nerve {
     public:
@@ -39,15 +51,17 @@ void GhostAttackGhostFootprint::appear() {
     mJointMtx.set(MR::getJointMtx(mHost, "Center"));
     setNerve(PRINT_NERVE(Follow));
 }
+char sNonGroupAnimationName[] = "dup-non-group";
+
 void GhostAttackGhostFootprint::stop() {
     if (isNerve(PRINT_NERVE(Follow))) setNerve(PRINT_NERVE(Stop));
 }
 // NONMATCHING: zero constant placement and store scheduling.
 void GhostAttackGhostFootprint::initPrintParameters() {
-    mFootPrint->_2C = 0.0f;
-    mFootPrint->_30 = 50.0f;
-    mFootPrint->_34 = 50.0f;
-    mFootPrint->mMinPrintDistance = 480.0f;
+    mFootPrint->_2C = sGhostFootprintOpacity;
+    mFootPrint->_30 = sGhostPrintWidth;
+    mFootPrint->_34 = sGhostPrintHeight;
+    mFootPrint->mMinPrintDistance = sGhostPrintDistance;
 }
 // NONMATCHING: Euler conversion register and load ordering.
 void GhostAttackGhostFootprint::control() {
@@ -147,3 +161,7 @@ bool GhostAttackGhostFootprint::tryAddPrintInWater() {
 }
 MtxPtr GhostAttackGhostFootprint::getBaseMtx() const { return (MtxPtr)&mBaseMtx; }
 GhostAttackGhostFootprint::~GhostAttackGhostFootprint() {}
+
+const f32 sGhostPrintWidth = 50.0f;
+const f32 sGhostPrintHeight = 50.0f;
+const f32 sGhostPrintDistance = 480.0f;

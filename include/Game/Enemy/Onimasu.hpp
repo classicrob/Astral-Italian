@@ -49,17 +49,17 @@ public:
     void exeMove();
     void exeStamp();
 
-    /* 0x90 */ ActorStateParamScale* _90;
-    s32 _94;
-    s32 _98;
-    s32 _9C;
-    s32 _A0;
-    /* 0xA4 */ TPos3f _A4;
-    /* 0xD4 */ TVec3f _D4;
-    /* 0xE0 */ TQuat4f _E0;
-    /* 0xF0 */ TQuat4f _F0;
-    /* 0x100 */ TQuat4f _100;
-    /* 0x110 */ TVec3f _110;
+    /* 0x90 */ ActorStateParamScale* mStateParam;
+    /* 0x94 */ s32 mWaitTime;
+    /* 0x98 */ s32 mTimeToNextPoint;
+    /* 0x9C */ s32 mWaitTimeQuick;
+    /* 0xA0 */ s32 mTimeToNextPointQuick;
+    /* 0xA4 */ TPos3f mPointMtx;
+    /* 0xD4 */ TVec3f mRotateAxis;
+    /* 0xE0 */ TQuat4f mStartQuat;
+    /* 0xF0 */ TQuat4f mTargetQuat;
+    /* 0x100 */ TQuat4f mCurrentQuat;
+    /* 0x110 */ TVec3f mRailClipPos;
 };
 
 namespace OnimasuFunction {

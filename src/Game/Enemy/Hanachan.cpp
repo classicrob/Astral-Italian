@@ -163,7 +163,7 @@ void HanachanParts::init(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: host/iterator register allocation.
-void Hanachan::fn_801905E0() {
+void Hanachan::killAllHanachanParts() {
     this->kill();
 
     HanachanParts** pEnd = &this->mBodyParts[5];
@@ -181,13 +181,13 @@ void HanachanParts::control() {
     zero.z = 0.0f;
 
     if (MR::isInDeath(this, zero) || MR::isBindedGroundDamageFire(this) || MR::isInWater(mPosition)) {
-        mHost->fn_801905E0();
+        mHost->killAllHanachanParts();
     }
 }
 
 bool HanachanParts::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgInhaleBlackHole(msg)) {
-        mHost->fn_801905E0();
+        mHost->killAllHanachanParts();
         return true;
     }
 

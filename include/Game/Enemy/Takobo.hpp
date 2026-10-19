@@ -48,7 +48,7 @@ public:
     NO_INLINE bool isDamaging() const;                            // fn_80204A90
     NO_INLINE void startBrkDamage();                              // fn_80204B00
     NO_INLINE bool isMoving() const;                              // fn_80204B70
-    NO_INLINE bool fn_80204B90() const;
+    NO_INLINE bool isTakoboPlayerInAttackRange() const;
     NO_INLINE void updateFallVelocity();                          // fn_80204C20
 
     /* 0x90 */ TVec3f mFrontVec;

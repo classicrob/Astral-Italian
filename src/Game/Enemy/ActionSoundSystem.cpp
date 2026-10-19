@@ -20,7 +20,7 @@ ActionSoundData* ActionSoundSystem::fn_80220970(const char* name) {
     for (s32 i = 0; i < mCount; i++) {
         if (MR::isEqualStringCase(mData[i]->mName, name)) return mData[i];
     }
-    ActionSoundData* data = fn_80220250(name);
+    ActionSoundData* data = createActionSoundData(name);
     if (!data) return nullptr;
     mData[mCount] = data;
     mCount++;

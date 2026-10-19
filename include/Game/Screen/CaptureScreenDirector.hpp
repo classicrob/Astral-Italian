@@ -28,10 +28,10 @@ public:
     const TimingInfo* findFromName(const char* pName) const;
 
 private:
-    /* 0x0C */ const char* _C;
+    /* 0x0C */ const char* mCurrentTimingName;
     /* 0x10 */ const char* mTimingType;
     /* 0x14 */ JUTTexture* mTexture;
-    /* 0x18 */ bool _18;
+    /* 0x18 */ bool mIsCaptureRequested;
 };
 
 class CaptureScreenActor : public NameObj {

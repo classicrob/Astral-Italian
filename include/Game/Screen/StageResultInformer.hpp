@@ -83,7 +83,7 @@ private:
     /* 0x2C */ DisplayInformationForResult* mInformationDisplayer;
     /* 0x30 */ IconAButton* mIconAButton;
     /* 0x34 */ s32 mClearedStarPieceNum;
-    /* 0x38 */ bool _30;
+    /* 0x38 */ bool mIsDecided;
     /* 0x3C */ SimpleEffectLayout* mOneUpLayout;
     /* 0x40 */ s32 mCoinOneUps;
     /* 0x44 */ bool mResultPaneVisible;

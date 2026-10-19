@@ -27,8 +27,8 @@ namespace NrvMissSelectIcon {
 }
 
 MiiSelectIcon::MiiSelectIcon(int movementType, int calcAnimType, int drawType, const char* pName)
-    : LayoutActor(pName, true), _20(), _24(), _28(), mIcon(), mMiiTexMap(), mFellowTexMap(), mIconID(new FileSelectIconID()), mIsMiiDummy(),
-      _3D(true) {
+    : LayoutActor(pName, true), mCurrentButton(), mFellowButton(), mMiiButton(), mIcon(), mMiiTexMap(), mFellowTexMap(), mIconID(new FileSelectIconID()), mIsMiiDummy(),
+      mIsValid(true) {
     initLayoutManager("MiiIcon", 1);
     MR::createAndAddPaneCtrl(this, "MarioIcon", 3);
     MR::createAndAddPaneCtrl(this, "MiiIcon", 3);
@@ -66,7 +66,7 @@ void MiiSelectIcon::appear(const FileSelectIconID& rIconID) {
         MR::startPaneAnim(this, "MarioIcon", "Character", 1);
         MR::setPaneAnimFrameAndStop(this, "MarioIcon", ::sCharacterTexFrame[rIconID.getFellowID()], 1);
 
-        _20 = _24;
+        mCurrentButton = mFellowButton;
 
         MR::hidePane(this, "MiiIcon");
         MR::showPane(this, "MarioIcon");
@@ -81,7 +81,7 @@ void MiiSelectIcon::appear(const FileSelectIconID& rIconID) {
         MR::replacePaneTexture(this, "PicMii", pTexMap, 0);
         MR::replacePaneTexture(this, "PicMiiShine", pTexMap, 0);
 
-        _20 = _28;
+        mCurrentButton = mMiiButton;
 
         MR::hidePane(this, "MarioIcon");
         MR::showPane(this, "MiiIcon");
@@ -106,7 +106,7 @@ void MiiSelectIcon::appearMiiDummy() {
     MR::setAnimFrameAndStop(this, 7.0f, 0);
     MR::startPaneAnim(this, "MarioIcon", "Character", 1);
     MR::setPaneAnimFrameAndStop(this, "MarioIcon", 7.0f, 1);
-    _20 = _24;
+    mCurrentButton = mFellowButton;
     MR::hidePane(this, "MiiIcon");
     MR::showPane(this, "MarioIcon");
     setNerve(GET_NERVE_DIRECT(NrvMissSelectIcon, MissSelectIconNrvWait));
@@ -119,12 +119,12 @@ void MiiSelectIcon::appearMiiDummy() {
 
 void MiiSelectIcon::validate() {
     if (isNerve(GET_NERVE_DIRECT(NrvMissSelectIcon, MissSelectIconNrvSelected)) || isNerve(GET_NERVE_DIRECT(NrvMissSelectIcon, MissSelectIconNrvInvalid))) {
-        _24->forceToWait();
-        _28->forceToWait();
+        mFellowButton->forceToWait();
+        mMiiButton->forceToWait();
         setNerve(GET_NERVE_DIRECT(NrvMissSelectIcon, MissSelectIconNrvWait));
     }
 
-    _3D = true;
+    mIsValid = true;
 }
 
 void MiiSelectIcon::invalidate() {
@@ -132,7 +132,7 @@ void MiiSelectIcon::invalidate() {
         setNerve(GET_NERVE_DIRECT(NrvMissSelectIcon, MissSelectIconNrvInvalid));
     }
 
-    _3D = false;
+    mIsValid = false;
 }
 
 void MiiSelectIcon::prohibit() {
@@ -169,7 +169,7 @@ nw4r::lyt::TexMap* MiiSelectIcon::getTexMap() {
 }
 
 bool MiiSelectIcon::isPointing() const {
-    return _20->isPointing();
+    return mCurrentButton->isPointing();
 }
 
 void MiiSelectIcon::exeCreate() {
@@ -185,18 +185,18 @@ void MiiSelectIcon::exeCreate() {
 void MiiSelectIcon::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::showLayout(this);
-        _20->appear();
+        mCurrentButton->appear();
     }
 
-    if (_3D) {
-        _20->trySelect();
+    if (mIsValid) {
+        mCurrentButton->trySelect();
     }
 
-    if (_20->isPointingTrigger()) {
+    if (mCurrentButton->isPointingTrigger()) {
         MR::startSystemSE("SE_SY_BUTTON_CURSOR_ON");
     }
 
-    if (_20->mIsSelected) {
+    if (mCurrentButton->mIsSelected) {
         setNerve(GET_NERVE_DIRECT(NrvMissSelectIcon, MissSelectIconNrvSelected));
     }
 }
@@ -205,11 +205,11 @@ void MiiSelectIcon::exeSelected() {
 }
 
 void MiiSelectIcon::exeDisappear() {
-    if (_20->isHidden()) {
-        if (_20 == _24) {
-            _28->forceToHide();
+    if (mCurrentButton->isHidden()) {
+        if (mCurrentButton == mFellowButton) {
+            mMiiButton->forceToHide();
         } else {
-            _24->forceToHide();
+            mFellowButton->forceToHide();
         }
 
         kill();
@@ -224,16 +224,16 @@ void MiiSelectIcon::appear() {
 }
 
 void MiiSelectIcon::control() {
-    _24->update();
-    _28->update();
+    mFellowButton->update();
+    mMiiButton->update();
 }
 
 void MiiSelectIcon::createButton() {
-    _24 = new ButtonPaneController(this, "MarioIcon", "BoxMario", 0, true);
-    _24->_22 = false;
+    mFellowButton = new ButtonPaneController(this, "MarioIcon", "BoxMario", 0, true);
+    mFellowButton->mDisappearOnDecide = false;
 
-    _28 = new ButtonPaneController(this, "MiiIcon", "BoxMii", 0, true);
-    _28->_22 = false;
+    mMiiButton = new ButtonPaneController(this, "MiiIcon", "BoxMii", 0, true);
+    mMiiButton->mDisappearOnDecide = false;
 }
 
 void MiiSelectIcon::createFaceImageObj() {

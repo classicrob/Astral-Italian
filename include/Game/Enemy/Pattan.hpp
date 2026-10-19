@@ -23,25 +23,25 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    bool fn_801E7A80();
-    bool fn_801E7B00();
-    bool fn_801E7B90();
-    bool fn_801E7C20();
-    bool fn_801E7C70();
-    bool fn_801E7D10(HitSensor*, HitSensor*);
-    void fn_801E77A0();
-    void fn_801E7030();
-    void fn_801E70D0();
-    void fn_801E7160();
-    void fn_801E71D0();
+    bool isPattanAliveState();
+    bool canPattanPushMove();
+    bool canPattanBindStarPointer();
+    bool tryPattanPop();
+    bool tryPattanPressDown();
+    bool tryPattanGuard(HitSensor*, HitSensor*);
+    void tryPattanJump();
+    void exePattanAppear();
+    void exePattanWait();
+    void exePattanFind();
+    void exePattanChase();
     void exeAttackSign();
     void exeAttack();
-    void fn_801E73B0();
-    void fn_801E7470();
-    void fn_801E7530();
-    void fn_801E75B0();
-    void fn_801E7670();
-    void fn_801E7710();
+    void exePattanDown();
+    void exePattanJump();
+    void exePattanGuard();
+    void exePattanDead();
+    void exePattanPush();
+    void exePattanPop();
     void exeFreeze();
 
 public:

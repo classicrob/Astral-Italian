@@ -27,8 +27,8 @@ void PenguinCoach::init(const JMapInfoIter& rIter) {
     mTurnJointCtrl = new TurnJointCtrl(this);
     mTurnJointCtrl->init(90.0f, 10.0f, 40.0f);
     mTurnJointCtrl->addFace("Head", 1.0f, TurnJointCtrl::X, TurnJointCtrl::Y, TurnJointCtrl::Z);
-    mTurnJointCtrl->_60 = 0.1f;
-    mTurnJointCtrl->_5C = 800.0f;
+    mTurnJointCtrl->mStareBlendRate = 0.1f;
+    mTurnJointCtrl->mStareDistanceLimit = 800.0f;
     mParam.setMoveAction("Wait", "Turn");
     mParam.setTalkAction("Talk", "TalkTurn");
     mParam._8 = 1.0f;

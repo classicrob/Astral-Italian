@@ -30,11 +30,11 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) override;
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*) override;
 
-    void fn_8016A6C0();
-    void fn_8016A730();
-    bool fn_8016A9F0() const;
-    bool fn_8016AAA0() const;
-    void fn_8016AB40(HitSensor*, HitSensor*);
+    void exeBombBirdBindStarPointer();
+    void exeBombBirdBindStarPointerGround();
+    bool isFlyingNerve() const;
+    bool isGroundSwoonNerve() const;
+    void startSpinBlow(HitSensor*, HitSensor*);
     void exeFlyOnRail();
     void exeFlyOnRailSearch();
     void doFly();

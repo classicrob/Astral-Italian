@@ -46,9 +46,9 @@ public:
     void exeFlow();
     bool tryReleaseTurtle();
 
-    /* 0x15C */ s32 mBehavior;
-    /* 0x160 */ s32 mStepToDive;
-    /* 0x164 */ RemovableTurtle* mTurtle;
+    /* 0x164 */ s32 mBehavior;
+    /* 0x168 */ s32 mStepToDive;
+    /* 0x16C */ RemovableTurtle* mTurtle;
 };
 
 class TurtlePartsModel : public PartsModel {

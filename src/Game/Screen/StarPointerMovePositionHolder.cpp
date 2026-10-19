@@ -84,7 +84,11 @@ bool StarPointerMovePositionHolder::selectPosition(StarPointerMovePosition* posi
     return true;
 }
 
-// NONMATCHING: negative threshold constants fold instead of emitting fneg.
+namespace {
+    extern const f32 cStickThresholdVertical;
+    extern const f32 cStickThresholdHorizontal;
+}
+
 void StarPointerMovePositionHolder::updateStickRepeat() {
 #define UPDATE_REPEAT(axis, test, threshold, frames, flag) \
     if (MR::axis(0) test threshold) { \
@@ -93,10 +97,10 @@ void StarPointerMovePositionHolder::updateStickRepeat() {
         else flag = false; \
         frames++; \
     } else { frames = 0; flag = false; }
-    UPDATE_REPEAT(getSubPadStickY, >, 0.72f, mStickUpFrames, mStickUp)
-    UPDATE_REPEAT(getSubPadStickY, <, -0.72f, mStickDownFrames, mStickDown)
-    UPDATE_REPEAT(getSubPadStickX, <, -0.85f, mStickLeftFrames, mStickLeft)
-    UPDATE_REPEAT(getSubPadStickX, >, 0.85f, mStickRightFrames, mStickRight)
+    UPDATE_REPEAT(getSubPadStickY, >, cStickThresholdVertical, mStickUpFrames, mStickUp)
+    UPDATE_REPEAT(getSubPadStickY, <, -cStickThresholdVertical, mStickDownFrames, mStickDown)
+    UPDATE_REPEAT(getSubPadStickX, <, -cStickThresholdHorizontal, mStickLeftFrames, mStickLeft)
+    UPDATE_REPEAT(getSubPadStickX, >, cStickThresholdHorizontal, mStickRightFrames, mStickRight)
 #undef UPDATE_REPEAT
 }
 
@@ -209,3 +213,8 @@ const TVec2f& StarPointerMovePositionHolder::getNextPastPosition(s32) const { re
 const TVec3f& StarPointerMovePositionHolder::getWorldPosition() const { return TVec3f(gZeroVec); }
 bool StarPointerMovePositionHolder::isInScreen() const { return true; }
 bool StarPointerMovePositionHolder::isOutScreenLong() const { return false; }
+
+namespace {
+    const f32 cStickThresholdVertical = 0.72f;
+    const f32 cStickThresholdHorizontal = 0.85f;
+}

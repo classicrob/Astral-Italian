@@ -32,11 +32,11 @@ public:
 
     void notifyInArea();
 
-    /* 0x8C */ f32 _8C;
-    /* 0x90 */ f32 _90;
-    /* 0x94 */ f32 _94;
-    /* 0x98 */ TriggerChecker* _98;
-    /* 0x9C */ TriggerChecker* _9C;
+    /* 0x8C */ f32 mBrightRate;
+    /* 0x90 */ f32 mFadeLevel;
+    /* 0x94 */ f32 mFadeSpeed;
+    /* 0x98 */ TriggerChecker* mAreaTrigger;
+    /* 0x9C */ TriggerChecker* mBrightTrigger;
 };
 
 class LensFlareRing : public LensFlareModel {
@@ -47,7 +47,7 @@ public:
     virtual void appearAnim();
     virtual void controlAnim();
 
-    /* 0xA0 */ f32 _A0;
+    /* 0xA0 */ f32 mRingFrame;
 };
 
 class LensFlareGlow : public LensFlareModel {
@@ -93,11 +93,11 @@ public:
     /* 0x18 */ LensFlareLine* mLine;
     /* 0x1C */ BrightObjBase* mBrightObjArray[16];
     /* 0x5C */ u32 mBrightObjCount;
-    /* 0x60 */ TVec2f _60;
-    /* 0x68 */ f32 _68;
-    /* 0x6C */ TVec2f _6C;
-    /* 0x74 */ TVec2f _74;
-    /* 0x7C */ u16 _7C;
+    /* 0x60 */ TVec2f mBrightCenter;
+    /* 0x68 */ f32 mBright;
+    /* 0x6C */ TVec2f mCenter;
+    /* 0x74 */ TVec2f mNowCenter;
+    /* 0x7C */ u16 mDrawSyncId;
     /* 0x7E */ u16 mDrawSyncTokenIndex;
     /* 0x80 */ BrightCamInfo* mBrightCamInfo;
 };

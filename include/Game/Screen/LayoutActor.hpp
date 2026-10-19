@@ -50,5 +50,5 @@ public:
     /* 0x1C */ PaneEffectKeeper* mEffectKeeper;
     /* 0x20 */ StarPointerLayoutTargetKeeper* mPointingTarget;
     /* 0x24 */ LayoutActorFlag mFlag;
-    /* 0x28 */ ActionSoundKeeper* _28;
+    /* 0x28 */ ActionSoundKeeper* mActionSoundKeeper;
 };

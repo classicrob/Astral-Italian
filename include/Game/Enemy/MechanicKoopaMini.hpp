@@ -25,8 +25,8 @@ public:
 
     void onAppearSwitchOn();
     void exeWaterBreak();
-    bool fn_801C34F0();
-    bool fn_801C3590();
+    bool tryFindPlayerForPursuit();
+    bool tryJumpAgainstWall();
     void exeWait();
     void exeWalkOnRail();
     void exeTurn();
@@ -45,9 +45,9 @@ public:
     void exeHipDropped();
     void exeBindStarPointer();
 
-    /* 0x8C */ bool mIsAppearJumping;
-    /* 0x8D */ bool mIsForbidPause;
-    /* 0x8E */ bool _8E;
+    /* 0x90 */ bool mIsAppearJumping;
+    /* 0x91 */ bool mIsForbidPause;
+    /* 0x92 */ bool mResumeFireAfterBind;
     /* 0x94 */ KeySwitch* mKeySwitch;
     /* 0x98 */ AnimScaleController* mScaleController;
     /* 0x9C */ WalkerStateBindStarPointer* mBindStarPointer;

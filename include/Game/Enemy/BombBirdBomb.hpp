@@ -28,8 +28,8 @@ public:
     void exeBindStarPointer();
 
     /* 0x90 */ WalkerStateBindStarPointer* mBindStarPtr;
-    /* 0x94 */ TQuat4f _94;
-    /* 0xA4 */ TVec3f _A4;
-    /* 0xB0 */ s32 _B0;
-    /* 0xB4 */ s32 _B4;
+    /* 0x94 */ TQuat4f mPoseQuat;
+    /* 0xA4 */ TVec3f mMoment;
+    /* 0xB0 */ s32 mExplodeCountdown;
+    /* 0xB4 */ s32 mSpinCooldown;
 };

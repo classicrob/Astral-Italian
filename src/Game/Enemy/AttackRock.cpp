@@ -59,12 +59,12 @@ AttackRock::AttackRock(const char* pName)
 void AttackRock::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "AttackRock", true);
     MR::makeQuatFromRotate(&mQuatF0, this);
-    mProjmapEffectMtxSetter = fn_80155660(this);
+    mProjmapEffectMtxSetter = createProjmapEffectMtxSetter(this);
     MR::setEffectHostMtx(this, "Attack", mMtxC0.toMtxPtr());
     MR::addKoopaBattleReceiverSensor(getSensor("Body"));
-    BaseMatrixFollowValidater* pValidater = MR::createBaseMatrixFollowValidateDelegator(this, &AttackRock::fn_801517C0);
+    BaseMatrixFollowValidater* pValidater = MR::createBaseMatrixFollowValidateDelegator(this, &AttackRock::isRockFollowValid);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, pValidater);
-    fn_801552A0(this);
+    setupRockBinder(this);
     MR::excludeCalcShadowToMyCollision(this, nullptr);
     mBreakModel = MR::createBreakModel(this, getBaseMtx());
     mDemoObj = reinterpret_cast< LiveActor* >(MR::createDemoObj("\220\267\202\350\223y\203\202\203f\203\213", "AttackRockHill", nullptr));
@@ -100,12 +100,12 @@ void AttackRock::control() {
             mIsOnPlayer = false;
         }
     }
-    fn_801554D0(&mMtxC0, this);
+    updateBaseMtxFromVelocity(&mMtxC0, this);
 }
 
 void AttackRock::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mQuatF0);
-    fn_80155540(mProjmapEffectMtxSetter, &mQuat100, &mPosition);
+    updateProjmapEffectMtx(mProjmapEffectMtxSetter, &mQuat100, &mPosition);
 }
 
 void AttackRock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -113,7 +113,7 @@ void AttackRock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         isNerve(&NrvAttackRock::AttackRockNrvBound::sInstance)) {
         MR::sendMsgKoopaPunchAttack(pReceiver, pSender);
         if (MR::sendMsgAttackRockReflect(pReceiver, pSender)) {
-            this->fn_80151160();
+            this->startRockBreak();
             return;
         }
     }
@@ -122,23 +122,23 @@ void AttackRock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-f32 AttackRock::fn_801510C0() const {
+f32 AttackRock::getRockBaseRadius() const {
     return 300.0f;
 }
 
-bool AttackRock::fn_801510D0() const {
+bool AttackRock::isOuterState() const {
     const AttackRock* pActor = this;
     if (pActor->isNerve(&NrvAttackRock::AttackRockNrvFall::sInstance) || pActor->isNerve(&NrvAttackRock::AttackRockNrvWait::sInstance)) {
         return true;
     }
-    if (pActor->isNerve(&NrvAttackRock::AttackRockNrvHold::sInstance) && !(pActor->mStateHold)->fn_80153400()) {
+    if (pActor->isNerve(&NrvAttackRock::AttackRockNrvHold::sInstance) && !(pActor->mStateHold)->isPowerOrFloatEnd()) {
         return true;
     }
     return false;
 }
 
-void AttackRock::fn_80151160() {
-    bool outer = fn_801510D0();
+void AttackRock::startRockBreak() {
+    bool outer = isOuterState();
     const char* pName = "Inner";
     if (outer) {
         pName = "Outer";
@@ -148,8 +148,8 @@ void AttackRock::fn_80151160() {
 }
 
 bool AttackRock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerHipDropFloor(msg) && isNerve(&NrvAttackRock::AttackRockNrvHold::sInstance) && mStateHold->fn_80153400()) {
-        fn_80155360(&mVelocity, &mQuat100, pSender, pReceiver, 120.0f);
+    if (MR::isMsgPlayerHipDropFloor(msg) && isNerve(&NrvAttackRock::AttackRockNrvHold::sInstance) && mStateHold->isPowerOrFloatEnd()) {
+        calcBoundVelocity(&mVelocity, &mQuat100, pSender, pReceiver, 120.0f);
         setNerve(&NrvAttackRock::AttackRockNrvBound::sInstance);
         return true;
     }
@@ -182,7 +182,7 @@ bool AttackRock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
         return true;
     }
     if (MR::isMsgKoopaBB(msg) && isNerve(&NrvAttackRock::AttackRockNrvFall::sInstance)) {
-        this->fn_80151160();
+        this->startRockBreak();
         return true;
     }
     if (isNerve(&NrvAttackRock::AttackRockNrvFall::sInstance)) {
@@ -194,7 +194,7 @@ bool AttackRock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     if (MR::isMsgKoopaPunchAttack(msg) && MR::isEqualSensor(pReceiver, this, "Body") &&
         !isNerve(&NrvAttackRock::AttackRockNrvBreak::sInstance)) {
         MR::appearCoinPopKoopaBattle(mPosition);
-        this->fn_80151160();
+        this->startRockBreak();
         return true;
     }
     if (MR::isMsgKoopaReleaseAttackRock(msg) && isNerve(&NrvAttackRock::AttackRockNrvWait::sInstance)) {
@@ -220,7 +220,7 @@ namespace NrvAttackRock {
 }
 
 // NONMATCHING: String-pool addends differ; resolved strings and instructions otherwise agree.
-void AttackRock::fn_80151510() {
+void AttackRock::exeRockBound() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
         MR::onBind(this);
@@ -230,7 +230,7 @@ void AttackRock::fn_80151510() {
         MR::sendMsgToBindedAttackRockReflect(this, getSensor("Body"));
         if (!MR::sendMsgToBindedKoopaC7(this, this->getSensor("Body"))) {
             MR::appearCoinPopKoopaBattle(mPosition);
-            this->fn_80151160();
+            this->startRockBreak();
             return;
         }
     }
@@ -247,11 +247,11 @@ void AttackRock::fn_80151510() {
         MR::attenuateVelocity(this, 0.7f);
     }
     if (MR::isGreaterStep(this, 120)) {
-        this->fn_80151160();
+        this->startRockBreak();
     }
 }
 
-void AttackRock::fn_801516E0() {
+void AttackRock::exeRockBreak() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Break");
         this->mBreakModel->appear();
@@ -269,7 +269,7 @@ void AttackRock::fn_801516E0() {
     }
 }
 
-bool AttackRock::fn_801517C0(s32 arg) const {
+bool AttackRock::isRockFollowValid(s32 arg) const {
     const AttackRock* pActor = this;
     if (pActor->isNerve(&NrvAttackRock::AttackRockNrvWait::sInstance)) {
         return arg != 0;
@@ -279,7 +279,7 @@ bool AttackRock::fn_801517C0(s32 arg) const {
         if (arg == 0 && !pRock->mIsOnPlayer) {
             return false;
         }
-        return pRock->mStateHold->fn_80153460();
+        return pRock->mStateHold->isFloating();
     }
     return false;
 }
@@ -295,10 +295,10 @@ namespace NrvAttackRock {
         }
     }
     inline void AttackRockNrvBound::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRock* >(pSpine->mExecutor))->fn_80151510();
+        (reinterpret_cast< AttackRock* >(pSpine->mExecutor))->exeRockBound();
     }
     inline void AttackRockNrvBreak::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRock* >(pSpine->mExecutor))->fn_801516E0();
+        (reinterpret_cast< AttackRock* >(pSpine->mExecutor))->exeRockBreak();
     }
 };  // namespace NrvAttackRock
 

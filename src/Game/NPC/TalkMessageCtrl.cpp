@@ -30,13 +30,11 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/mtx.h>
 
-extern "C" const char lbl_806C0338[];
-extern "C" const char lbl_806C0344[];
 
 TalkMessageCtrl::TalkMessageCtrl(LiveActor* pHost, const TVec3f& rArg2, MtxPtr pArg3)
-    : NameObj("会話制御"), mHostActor(pHost), mNodeCtrl(), mZoneID(-1), _1C(0.0f, 0.0f, 0.0f), mMsgBalloonFollowOffs(rArg2), mTalkDistance(240.0f),
-      _3C(), mIsOnReadNodeAuto(true), mAlreadyDoneFlags(-1), mIsStartOnlyFront(), _SMG2_4F(false), _SMG2_50(true), _SMG2_51(false), _SMG2_52(false), _SMG2_53(false), _SMG2_54(false), mCameraInfo(), mBranchFunc(), mEventFunc(), mAnimeFunc(), mKillFunc(),
-      mMtx(pArg3), mIsOnRootNodeAuto(), _18(), mTagArg(nullptr, CustomTagArg::Type_Uninitialized) {
+    : NameObj("会話制御"), mHostActor(pHost), mNodeCtrl(), mZoneID(-1), mBalloonScreenPosition(0.0f, 0.0f, 0.0f), mMsgBalloonFollowOffs(rArg2), mTalkDistance(240.0f),
+      mIsAlreadyDone(), mIsOnReadNodeAuto(true), mAlreadyDoneFlags(-1), mIsStartOnlyFront(), mHasMessage(false), mUseCinemaFrame(true), mHideBalloonBeak(false), mCenterBalloonBeak(false), mUseCustomCamera(false), mCameraDisabled(false), mCameraInfo(), mBranchFunc(), mEventFunc(), mAnimeFunc(), mKillFunc(),
+      mMtx(pArg3), mIsOnRootNodeAuto(), mTalkState(), mTagArg(nullptr, CustomTagArg::Type_Uninitialized) {
     mTagArg.mArgType = CustomTagArg::Type_Uninitialized;
     mTagArg.mIntArg = 0;
     MR::createSceneObj(SceneObj_TalkDirector);
@@ -64,17 +62,17 @@ bool TalkMessageCtrl::inMessageArea() const {
 
 void TalkMessageCtrl::startCamera(s32 a1) {
     TalkMessageInfo* inf = &mNodeCtrl->mMessageInfo;
-    if (_SMG2_54) {
+    if (mCameraDisabled) {
         return;
     }
-    if (_SMG2_53) {
-        MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, lbl_806C0338, a1);
+    if (mUseCustomCamera) {
+        MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, "独自会話", a1);
     } else if (inf->isCameraNormal()) {
         MR::startNPCTalkCamera(this, mHostActor->getBaseMtx(), 1.0f, a1);
     } else if (inf->isCameraEvent()) {
         if (inf->mCameraSetID) {
             mCameraInfo->mCameraSetID = inf->mCameraSetID;
-            MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, lbl_806C0344, a1);
+            MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, "会話", a1);
         }
     }
 }
@@ -90,12 +88,12 @@ bool TalkMessageCtrl::createMessage(const JMapInfoIter& rIter, const char* pName
     }
 
     if (mNodeCtrl->mCurrentNode != nullptr) {
-        _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
+        mIsAlreadyDone = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
     } else {
-        _3C = 1;
+        mIsAlreadyDone = 1;
     }
 
-    _SMG2_4F = 1;
+    mHasMessage = 1;
     return true;
 }
 
@@ -107,53 +105,12 @@ bool TalkMessageCtrl::createMessageDirect(const JMapInfoIter& rIter, const char*
     }
 
     if (MR::isValidInfo(rIter) && mNodeCtrl->mCurrentNode != nullptr) {
-        _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
+        mIsAlreadyDone = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
     } else {
-        _3C = 1;
+        mIsAlreadyDone = 1;
     }
 
-    _SMG2_4F = 1;
-    return true;
-}
-
-bool TalkMessageCtrl::rootNodeEve() {
-    TalkNodeCtrl* nodeCtrl = mNodeCtrl;
-    TalkNode* nodeEvent = nodeCtrl->getCurrentNodeEvent();
-    if (nodeEvent == nullptr) {
-        return true;
-    }
-
-    switch (nodeEvent->mEventType) {
-    case 0:
-    case 1:
-        if (!mEventFunc) return true;
-        if (!mEventFunc->operator()(nodeEvent->mUnknown)) return false;
-        break;
-    case 4:
-        if (!mAnimeFunc) return true;
-        if (!mAnimeFunc->operator()(nodeEvent->mUnknown)) return false;
-        break;
-    case 3:
-        rootNodePst();
-        return true;
-    case 5: MR::onSwitchA(mHostActor); break;
-    case 6: MR::onSwitchB(mHostActor); break;
-    case 7:
-        if (!mKillFunc->operator()(nodeEvent->mUnknown)) return false;
-        break;
-    case 8: MR::offSwitchA(mHostActor); break;
-    case 9: MR::offSwitchB(mHostActor); break;
-    case 10: MR::hideBubbleBeak(this); break;
-    case 11: MR::showBubbleBeak(this); break;
-    }
-
-    bool cond = nodeCtrl->isExistNextNode();
-    rootNodePst();
-
-    if (cond && nodeCtrl->getCurrentNodeEvent()) {
-        return false;
-    }
-
+    mHasMessage = 1;
     return true;
 }
 
@@ -211,7 +168,7 @@ void TalkMessageCtrl::rootNodePre(bool arg) {
             cond = MR::isStageStatePowerStarAppeared();
             break;
         case 9: cond = !GameDataFunction::isOnGameEventFlagEnding120Stars(); break;
-        case 10: cond = _3C; break;
+        case 10: cond = mIsAlreadyDone; break;
         case 11: cond = MR::isPlayerLuigi(); break;
         case 12: cond = MR::isTimeKeepDemoActive(); break;
         case 13: cond = GameDataFunction::isOnMessageAlreadyRead(branch->mNextIdx); break;
@@ -227,6 +184,47 @@ void TalkMessageCtrl::rootNodePre(bool arg) {
 
         control->forwardCurrentBranchNode(false);
     }
+}
+
+bool TalkMessageCtrl::rootNodeEve() {
+    TalkNodeCtrl* nodeCtrl = mNodeCtrl;
+    TalkNode* nodeEvent = nodeCtrl->getCurrentNodeEvent();
+    if (nodeEvent == nullptr) {
+        return true;
+    }
+
+    switch (nodeEvent->mEventType) {
+    case 0:
+    case 1:
+        if (!mEventFunc) return true;
+        if (!mEventFunc->operator()(nodeEvent->mUnknown)) return false;
+        break;
+    case 4:
+        if (!mAnimeFunc) return true;
+        if (!mAnimeFunc->operator()(nodeEvent->mUnknown)) return false;
+        break;
+    case 3:
+        rootNodePst();
+        return true;
+    case 5: MR::onSwitchA(mHostActor); break;
+    case 6: MR::onSwitchB(mHostActor); break;
+    case 7:
+        if (!mKillFunc->operator()(nodeEvent->mUnknown)) return false;
+        break;
+    case 8: MR::offSwitchA(mHostActor); break;
+    case 9: MR::offSwitchB(mHostActor); break;
+    case 10: MR::hideBubbleBeak(this); break;
+    case 11: MR::showBubbleBeak(this); break;
+    }
+
+    bool cond = nodeCtrl->isExistNextNode();
+    rootNodePst();
+
+    if (cond && nodeCtrl->getCurrentNodeEvent()) {
+        return false;
+    }
+
+    return true;
 }
 
 void TalkMessageCtrl::rootNodePst() {
@@ -284,7 +282,7 @@ void TalkMessageCtrl::readMessage() {
         mNodeCtrl->readMessage();
     }
 
-    if (!_3C) {
+    if (!mIsAlreadyDone) {
         MR::updateAlreadyDoneFlag(mAlreadyDoneFlags);
     }
 }
@@ -414,23 +412,23 @@ bool TalkFunction::isEventNode(const TalkMessageCtrl* pCtrl) {
 }
 
 void TalkFunction::onTalkStateNone(TalkMessageCtrl* pCtrl) {
-    pCtrl->_18 = 0;
+    pCtrl->mTalkState = TalkMessageState_Entry;
 }
 
 void TalkFunction::onTalkStateEntry(TalkMessageCtrl* pCtrl) {
-    pCtrl->_18 = 1;
+    pCtrl->mTalkState = TalkMessageState_None;
 }
 
 void TalkFunction::onTalkStateEnableStart(TalkMessageCtrl* pCtrl) {
-    pCtrl->_18 = 2;
+    pCtrl->mTalkState = TalkMessageState_EnableStart;
 }
 
 void TalkFunction::onTalkStateTalking(TalkMessageCtrl* pCtrl) {
-    pCtrl->_18 = 3;
+    pCtrl->mTalkState = TalkMessageState_Talking;
 }
 
 void TalkFunction::onTalkStateEnableEnd(TalkMessageCtrl* pCtrl) {
-    pCtrl->_18 = 4;
+    pCtrl->mTalkState = TalkMessageState_EnableEnd;
 }
 
 TalkMessageInfo* TalkFunction::getMessageInfo(const TalkMessageCtrl* pCtrl) {
@@ -453,7 +451,7 @@ bool TalkMessageCtrl::isNearPlayer(f32 distance) const {
 
     if (distance <= 0.0f) {
         distance = mTalkDistance;
-        if (_18 == 2) {
+        if (mTalkState == TalkMessageState_EnableStart) {
             distance = mTalkDistance + 50.0f;
         }
     }
@@ -509,28 +507,28 @@ void TalkMessageCtrl::updateBalloonPos() {
 
     v3.set< f32 >(pos[0][3], pos[1][3], pos[2][3]);
     v3.add(TVec3f(tPos[0][3], tPos[1][3], tPos[2][3]));
-    MR::calcScreenPosition(&_1C, v3);
+    MR::calcScreenPosition(&mBalloonScreenPosition, v3);
 }
 
 void TalkMessageCtrl::initCamera(const JMapInfoIter& iter) {
-    _SMG2_53 = true;
-    MR::initMultiActorCamera(mHostActor, iter, &mCameraInfo, lbl_806C0338);
+    mUseCustomCamera = true;
+    MR::initMultiActorCamera(mHostActor, iter, &mCameraInfo, "独自会話");
 }
 
 void TalkMessageCtrl::disableCamera() {
-    _SMG2_54 = true;
+    mCameraDisabled = true;
 }
 
 void TalkMessageCtrl::endCamera(const TalkMessageInfo& info, s32 step) {
-    if (_SMG2_54) {
+    if (mCameraDisabled) {
         return;
     }
-    if (_SMG2_53) {
-        MR::endMultiActorCamera(mHostActor, mCameraInfo, lbl_806C0338, false, step);
+    if (mUseCustomCamera) {
+        MR::endMultiActorCamera(mHostActor, mCameraInfo, "独自会話", false, step);
     } else if (info.isCameraNormal()) {
         MR::endNPCTalkCamera(false, step);
     } else if (info.isCameraEvent()) {
-        MR::endMultiActorCamera(mHostActor, mCameraInfo, lbl_806C0344, false, step);
+        MR::endMultiActorCamera(mHostActor, mCameraInfo, "会話", false, step);
     }
 }
 

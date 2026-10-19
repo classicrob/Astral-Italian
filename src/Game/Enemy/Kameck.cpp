@@ -7,14 +7,12 @@
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
 };  // namespace MR
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
 
 namespace {
     static const f32 sDefaultActiveDistance = 3000.0f;
@@ -86,7 +84,7 @@ void Kameck::init(const JMapInfoIter& rIter) {
     mAnimScaleController = new AnimScaleController(nullptr);
     mAnimScaleController->setParamTight();
 
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
 
     MR::addToAttributeGroupSearchTurtle(this);
 

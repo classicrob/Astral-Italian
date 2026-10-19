@@ -79,13 +79,13 @@ bool Gesso::isMarioLeft() const {
 }
 
 Gesso::Gesso(const char* pName)
-    : LiveActor(pName), mScaleController(), mStateBindStarPointer(), _94(0.0f, 0.0f, 0.0f), _A0(0.0f, 0.0f, 1.0f), _AC(0.0f, 1.0f, 0.0f),
-      _B8(0.0f, 1.0f, 0.0f), _C4(), _C8(0.0f, 0.0f, 0.0f), mIsMarioLeft(), mIsHighSpeedMode() {
+    : LiveActor(pName), mScaleController(), mStateBindStarPointer(), mHomePos(0.0f, 0.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mUp(0.0f, 1.0f, 0.0f),
+      mTargetUp(0.0f, 1.0f, 0.0f), mHomeResetStep(), mPushVelocity(0.0f, 0.0f, 0.0f), mIsMarioLeft(), mIsHighSpeedMode() {
 }
 
 void Gesso::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    _94 = mPosition;
+    mHomePos = mPosition;
     MR::initActor(this, rIter, "Gesso", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
@@ -107,9 +107,9 @@ void Gesso::init(const JMapInfoIter& rIter) {
     mScaleController = new AnimScaleController(nullptr);
     mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::initShadowVolumeSphere(this, 90.0f);
-    MR::calcFrontVec(&_A0, this);
-    MR::calcUpVec(&_AC, this);
-    _B8.set(_AC);
+    MR::calcFrontVec(&mFront, this);
+    MR::calcUpVec(&mUp, this);
+    mTargetUp.set(mUp);
     MR::addToAttributeGroupSearchTurtle(this);
     initNerve(GET_NERVE(Gesso, GessoNrvWait), 1);
     MR::initActorState(this, mStateBindStarPointer, GET_NERVE(Gesso, GessoNrvDPDSwoon), "SupportFreeze");
@@ -148,16 +148,16 @@ void Gesso::control() {
     TVec3f up;
     TVec3f offset;
     MR::calcDirToPlayer(&playerDirection, this);
-    MR::turnVecToVecCosOnPlane(&_AC, _B8, _A0, MR::cosDegree(0.5f));
-    if (mVelocity.dot(_C8) < 0.0f) {
+    MR::turnVecToVecCosOnPlane(&mUp, mTargetUp, mFront, MR::cosDegree(0.5f));
+    if (mVelocity.dot(mPushVelocity) < 0.0f) {
         const TVec3f& rVelocity = mVelocity;
-        mVelocity.scaleAdd(-_C8.dot(rVelocity), _C8, rVelocity);
+        mVelocity.scaleAdd(-mPushVelocity.dot(rVelocity), mPushVelocity, rVelocity);
     }
 
-    mVelocity.add(_C8);
-    _C8 *= 0.7f;
-    if (MR::isNearZero(_C8)) {
-        _C8.zero();
+    mVelocity.add(mPushVelocity);
+    mPushVelocity *= 0.7f;
+    if (MR::isNearZero(mPushVelocity)) {
+        mPushVelocity.zero();
     }
 
     up.negate(mGravity);
@@ -170,7 +170,7 @@ void Gesso::control() {
 
 void Gesso::calcAndSetBaseMtx() {
     TPos3f mtx;
-    MR::makeMtxUpFrontPos(&mtx, _AC, _A0, mPosition);
+    MR::makeMtxUpFrontPos(&mtx, mUp, mFront, mPosition);
     MR::setBaseTRMtx(this, mtx);
     MR::updateBaseScale(this, mScaleController);
 }
@@ -181,9 +181,9 @@ void Gesso::exeComeFromBox() {
         MR::startActionSound(this, "EmGessoSwimL");
         MR::invalidateHitSensors(this);
         mPosition.scaleAdd(-100.0f, mGravity, mPosition);
-        _B8.set(0.0f, 1.0f, 0.3f);
-        MR::normalize(&_B8);
-        _AC.set(_B8);
+        mTargetUp.set(0.0f, 1.0f, 0.3f);
+        MR::normalize(&mTargetUp);
+        mUp.set(mTargetUp);
     }
 
     if (MR::isLessStep(this, 10)) {
@@ -210,7 +210,7 @@ void Gesso::exeWait() {
     }
 
     mVelocity.scale(1.5f * (MR::sinDegree(45.0f + (2.0f * getNerveStep()))), mGravity);
-    MR::rotateVecDegree(&_A0, mGravity, 0.3f);
+    MR::rotateVecDegree(&mFront, mGravity, 0.3f);
     if (MR::isNearPlayer(this, 1400.0f) && MR::isPlayerInWaterMode()) {
         MR::validateClipping(this);
         setNerve(GET_NERVE(Gesso, GessoNrvSearch));
@@ -225,8 +225,8 @@ void Gesso::exeSearch() {
     }
 
     mVelocity.scale(1.5f * (MR::sinDegree(45.0f + (2.0f * getNerveStep()))), mGravity);
-    MR::turnDirectionToPlayerDegree(this, &_A0, 1.5f);
-    if (MR::isFaceToPlayerHorizontalDegree(this, _A0, 1.5f) && MR::isActionEnd(this)) {
+    MR::turnDirectionToPlayerDegree(this, &mFront, 1.5f);
+    if (MR::isFaceToPlayerHorizontalDegree(this, mFront, 1.5f) && MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Gesso, GessoNrvWalkCharge));
     }
 }
@@ -235,12 +235,12 @@ void Gesso::exeWalkCharge() {
     if (MR::isFirstStep(this)) {
         if (tryChangeHighSpeedMode()) {
             MR::startAction(this, "WalkFast");
-            _B8.set(0.0f, 1.0f, 1.0f);
-            MR::normalize(&_B8);
+            mTargetUp.set(0.0f, 1.0f, 1.0f);
+            MR::normalize(&mTargetUp);
         } else {
             MR::startAction(this, "Walk");
-            _B8.set(0.0f, 1.0f, 1.0f);
-            MR::normalize(&_B8);
+            mTargetUp.set(0.0f, 1.0f, 1.0f);
+            MR::normalize(&mTargetUp);
         }
     }
 
@@ -256,7 +256,7 @@ void Gesso::exeWalk() {
         MR::startActionSound(this, "EmGessoSwimL");
     }
 
-    MR::turnDirectionToTargetDegree(this, &_A0, *MR::getPlayerPos(), 1.5f);
+    MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), 1.5f);
     if (calcWalkMove(getNerveStep())) {
         selectNextNerve();
     }
@@ -271,7 +271,7 @@ void Gesso::exeSink() {
         }
     }
 
-    MR::turnDirectionToTargetDegree(this, &_A0, *MR::getPlayerPos(), 1.5f);
+    MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), 1.5f);
     if (MR::isBindedGround(this)) {
         setNerve(GET_NERVE(Gesso, GessoNrvWalkCharge));
     } else if (calcSinkMove(getNerveStep())) {
@@ -322,7 +322,7 @@ void Gesso::exePunchDown() {
         MR::startBlowHitSound(this);
     }
 
-    MR::turnDirectionToTargetDegree(this, &_A0, *MR::getPlayerPos(), 1.5f);
+    MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), 1.5f);
     if (MR::isStep(this, 20) || MR::isBinded(this)) {
         MR::startActionSound(this, "EmGessoDead");
         MR::emitItemHit(this);
@@ -345,11 +345,11 @@ void Gesso::exeComeBack() {
         if (MR::isPlayerInWaterMode()) {
             setNerve(GET_NERVE(Gesso, GessoNrvWait));
         } else {
-            MR::turnDirectionToTargetDegree(this, &_A0, *MR::getPlayerPos(), 1.5f);
+            MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), 1.5f);
             TVec3f stack_14;
-            MR::fn_8000E960(&stack_14, this, &_94);
+            MR::fn_8000E960(&stack_14, this, &mHomePos);
             mVelocity.scale(3.0f, stack_14);
-            if (MR::isNear(this, _94, 100.0f)) {
+            if (MR::isNear(this, mHomePos, 100.0f)) {
                 setNerve(GET_NERVE(Gesso, GessoNrvWait));
             }
         }
@@ -380,7 +380,7 @@ void Gesso::knockOut(HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f dir;
     MR::calcSensorDirectionNormalize(&dir, pSender, pReceiver);
     mVelocity.scale(30.0f, dir);
-    MR::turnDirectionToTarget(this, &_A0, *MR::getSensorPos(pSender), -1.0f);
+    MR::turnDirectionToTarget(this, &mFront, *MR::getSensorPos(pSender), -1.0f);
     setNerve(GET_NERVE(Gesso, GessoNrvPunchDown));
 }
 
@@ -451,7 +451,7 @@ bool Gesso::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
         TVec3f stack_08;
         stack_08.sub(mPosition, MR::getSensorHost(pSender)->mPosition);
         MR::normalizeOrZero(&stack_08);
-        _C8.scaleAdd(0.2f, _C8, stack_08);
+        mPushVelocity.scaleAdd(0.2f, mPushVelocity, stack_08);
         return true;
     }
 
@@ -472,19 +472,19 @@ void Gesso::selectNextNerve() {
 
 bool Gesso::clipAndInitPos() {
     if (!MR::isNearPlayer(this, 10000.0f) || MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(getSensor(nullptr)))) {
-        if (_C4 >= 300) {
-            MR::setPosition(this, _94);
+        if (mHomeResetStep >= 300) {
+            MR::setPosition(this, mHomePos);
             setNerve(GET_NERVE(Gesso, GessoNrvWait));
             MR::validateClipping(this);
-            _C4 = 0;
+            mHomeResetStep = 0;
             return true;
         }
 
-        _C4++;
+        mHomeResetStep++;
         return false;
     }
 
-    _C4 = 0;
+    mHomeResetStep = 0;
     return false;
 }
 
@@ -509,7 +509,7 @@ bool Gesso::calcWalkMove(s32 step) {
         MR::calcSideVec(&sideVec, this);
         mVelocity.scale(verticalSpeed, upVec);
         vel->scaleAdd((sideSign * 3.0f) / 5.0f, sideVec, *vel);
-        vel->scaleAdd(2.3f, _A0, *vel);
+        vel->scaleAdd(2.3f, mFront, *vel);
     } else {
         verticalSpeed = MR::cosDegree(angle);
         TVec3f* vel = &mVelocity;
@@ -520,7 +520,7 @@ bool Gesso::calcWalkMove(s32 step) {
         MR::calcSideVec(&sideVec, this);
         mVelocity.scale(verticalSpeed, upVec);
         vel->scaleAdd(sideSign * 3.0f, sideVec, *vel);
-        vel->scaleAdd(2.3f, _A0, *vel);
+        vel->scaleAdd(2.3f, mFront, *vel);
     }
 
     if (MR::isFirstStep(this)) {
@@ -532,8 +532,8 @@ bool Gesso::calcWalkMove(s32 step) {
     }
 
     if (angle >= 70.0f) {
-        _B8.set(0.0f, 1.0f, 1.0f);
-        MR::normalize(&_B8);
+        mTargetUp.set(0.0f, 1.0f, 1.0f);
+        MR::normalize(&mTargetUp);
     }
 
     return angle >= 100.0f;
@@ -562,9 +562,9 @@ bool Gesso::calcSinkMove(s32 step) {
 
     mVelocity.scale(verticalSpeed, upVec);
     vel->scaleAdd(sideSign * 3.0f, sideVec, *vel);
-    vel->scaleAdd(2.3f, _A0, *vel);
-    _B8.set(0.0f, 1.0f, 1.0f);
-    MR::normalize(&_B8);
+    vel->scaleAdd(2.3f, mFront, *vel);
+    mTargetUp.set(0.0f, 1.0f, 1.0f);
+    MR::normalize(&mTargetUp);
 
     return angle >= 180.0f;
 }
@@ -577,17 +577,17 @@ void Gesso::calcAndSetVelocity(f32 f1, f32 f2, f32 f3) {
     MR::calcSideVec(&sideVec, this);
     mVelocity.scale(f2, upVec);
     vel->scaleAdd(f1, sideVec, *vel);
-    vel->scaleAdd(f3, _A0, *vel);
+    vel->scaleAdd(f3, mFront, *vel);
 }
 
 void Gesso::calcAndSetUpVecTarget(f32 f1, f32 f2, f32 f3) {
     if (f1 == 0.0f && f2 == 0.0f && f3 == 0.0f) {
-        _B8.set(0.0f, 1.0f, 0.0f);
+        mTargetUp.set(0.0f, 1.0f, 0.0f);
         return;
     }
 
-    _B8.set(f1, f2, f3);
-    MR::normalize(&_B8);
+    mTargetUp.set(f1, f2, f3);
+    MR::normalize(&mTargetUp);
     return;
 }
 

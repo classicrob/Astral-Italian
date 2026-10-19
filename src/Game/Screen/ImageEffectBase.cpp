@@ -17,8 +17,8 @@
 
 namespace {
     struct RadAndOfs {
-        /* 0x00 */ f32 _0;
-        /* 0x04 */ f32 _4;
+        /* 0x00 */ f32 mRadius;
+        /* 0x04 */ f32 mOffset;
     };
 
     static const RadAndOfs sL1RadAndOfs[] = {
@@ -41,29 +41,29 @@ namespace {
     // static const s32 sFadeCounterMax = _;
 };  // namespace
 
-BloomEffect::BloomEffect(const char* pName) : ImageEffectBase(pName), _14(255), _18(1.0f / ::sL1RoundPoints), _1C(1.0f / ::sL2RoundPoints), _20(128) {
+BloomEffect::BloomEffect(const char* pName) : ImageEffectBase(pName), mBloomIntensity(255), mBlurIntensity1(1.0f / ::sL1RoundPoints), mBlurIntensity2(1.0f / ::sL2RoundPoints), mThreshold(128) {
     MR::connectToSceneNormalBloom(this);
     MR::createImageEffectSystemHolder();
     MR::getImageEffectResource()->createBloomTexture();
 
-    _24 = MR::getImageEffectResource()->_0;
-    _28 = MR::getImageEffectResource()->_4;
-    _2C = MR::getImageEffectResource()->_C;
-    _30 = MR::getImageEffectResource()->_10;
-    _34 = MR::getImageEffectResource()->_14;
-    _38 = MR::getImageEffectResource()->_18;
-    _3C = _2C;
-    _40 = MR::getImageEffectResource()->_1C;
-    _44 = MR::getImageEffectResource()->_20;
-    _48 = new Mtx[::sL1RoundPoints * ARRAY_SIZE(::sL1RadAndOfs)];
-    _4C = new Mtx[::sL2RoundPoints * ARRAY_SIZE(::sL2RadAndOfs)];
+    mScreenTexture = MR::getImageEffectResource()->mScreenTexture;
+    mHalfTexture = MR::getImageEffectResource()->mHalfTexture;
+    mQuarterTextureA = MR::getImageEffectResource()->mQuarterTextureA;
+    mQuarterTextureB = MR::getImageEffectResource()->mQuarterTextureB;
+    mEighthTextureA = MR::getImageEffectResource()->mEighthTextureA;
+    mEighthTextureB = MR::getImageEffectResource()->mEighthTextureB;
+    mCompositeTexture = mQuarterTextureA;
+    mQuarterIntensityTexture = MR::getImageEffectResource()->mQuarterIntensityTexture;
+    mQuarterTextureC = MR::getImageEffectResource()->mQuarterTextureC;
+    mBlurMtx1 = new Mtx[::sL1RoundPoints * ARRAY_SIZE(::sL1RadAndOfs)];
+    mBlurMtx2 = new Mtx[::sL2RoundPoints * ARRAY_SIZE(::sL2RadAndOfs)];
 
     for (u32 i = 0; i < ARRAY_SIZE(::sL1RadAndOfs); i++) {
-        initBlurMtx(&_48[i * ::sL1RoundPoints], ::sL1RoundPoints, ::sL1RadAndOfs[i]._0, ::sL1RadAndOfs[i]._4);
+        initBlurMtx(&mBlurMtx1[i * ::sL1RoundPoints], ::sL1RoundPoints, ::sL1RadAndOfs[i].mRadius, ::sL1RadAndOfs[i].mOffset);
     }
 
     for (u32 i = 0; i < ARRAY_SIZE(::sL2RadAndOfs); i++) {
-        initBlurMtx(&_4C[i * ::sL2RoundPoints], ::sL2RoundPoints, ::sL2RadAndOfs[i]._0, ::sL2RadAndOfs[i]._4);
+        initBlurMtx(&mBlurMtx2[i * ::sL2RoundPoints], ::sL2RoundPoints, ::sL2RadAndOfs[i].mRadius, ::sL2RadAndOfs[i].mOffset);
     }
 
     PPCSync();
@@ -76,7 +76,7 @@ void BloomEffect::preDraw() const {
 
     {
         CopyFilterNegater copyFilterNegator;
-        ImageEffectLocalUtil::capture(_24, 1, 0, GX_TF_RGBA8, false, 0);
+        ImageEffectLocalUtil::capture(mScreenTexture, 1, 0, GX_TF_RGBA8, false, 0);
     }
 
     MR::fillScreen(Color8(0, 0, 0, 0xFF).mGXColor);
@@ -93,42 +93,42 @@ void BloomEffect::postDraw() const {
     GXRenderModeObj* pRenderObj = JUTVideo::getManager()->getRenderMode();
     GXSetCopyFilter(GX_FALSE, pRenderObj->sample_pattern, GX_FALSE, pRenderObj->vfilter);
 
-    ImageEffectLocalUtil::capture(_28, 1, 0, GX_TF_RGB565, true, 0);
+    ImageEffectLocalUtil::capture(mHalfTexture, 1, 0, GX_TF_RGB565, true, 0);
     initDraw();
     GXSetCopyClear(Color8(0, 0, 0, 0xFF), 0xFFFFFF);
-    drawTexture(_28, 4, 0, 0xFF, DrawType_0);
+    drawTexture(mHalfTexture, 4, 0, 0xFF, DrawType_0);
 
-    ImageEffectLocalUtil::capture(_2C, 4, 0, GX_TF_RGB565, false, 0);
-    ImageEffectLocalUtil::capture(_40, 4, 0, GX_TF_I8, false, 0);
-    drawTexture(_2C, 4, 2, 0xFF, DrawType_0);
+    ImageEffectLocalUtil::capture(mQuarterTextureA, 4, 0, GX_TF_RGB565, false, 0);
+    ImageEffectLocalUtil::capture(mQuarterIntensityTexture, 4, 0, GX_TF_I8, false, 0);
+    drawTexture(mQuarterTextureA, 4, 2, 0xFF, DrawType_0);
 
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_TEXC, GX_CC_RASC, GX_CC_ONE, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_COMP_R8_GT, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    drawTexture(_40, 4, 2, _20, DrawType_2);
+    drawTexture(mQuarterIntensityTexture, 4, 2, mThreshold, DrawType_2);
 
     GXSetBlendMode(GX_BM_NONE, GX_BL_ZERO, GX_BL_ZERO, GX_LO_CLEAR);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevOp(GX_TEVSTAGE0, GX_MODULATE);
-    ImageEffectLocalUtil::capture(_44, 4, 2, GX_TF_RGB565, false, 0);
-    blurTexture(_44, _48, 4, 3, 6, _18, 2, &::sL1RadAndOfs[0]._0);
+    ImageEffectLocalUtil::capture(mQuarterTextureC, 4, 2, GX_TF_RGB565, false, 0);
+    blurTexture(mQuarterTextureC, mBlurMtx1, 4, 3, 6, mBlurIntensity1, 2, &::sL1RadAndOfs[0].mRadius);
 
-    ImageEffectLocalUtil::capture(_30, 4, 3, GX_TF_RGB565, false, 0);
-    ImageEffectLocalUtil::capture(_34, 4, 3, GX_TF_RGB565, true, 0);
-    blurTexture(_34, _4C, 8, 20, 12, _1C, 3, &::sL2RadAndOfs[0]._0);
+    ImageEffectLocalUtil::capture(mQuarterTextureB, 4, 3, GX_TF_RGB565, false, 0);
+    ImageEffectLocalUtil::capture(mEighthTextureA, 4, 3, GX_TF_RGB565, true, 0);
+    blurTexture(mEighthTextureA, mBlurMtx2, 8, 20, 12, mBlurIntensity2, 3, &::sL2RadAndOfs[0].mRadius);
 
-    ImageEffectLocalUtil::capture(_38, 8, 20, GX_TF_RGB565, false, 0);
-    const u8 intensity = _14 * get_10();
-    drawTexture(_30, 4, 7, intensity, DrawType_0);
-    drawTexture(_38, 4, 7, intensity, DrawType_1);
+    ImageEffectLocalUtil::capture(mEighthTextureB, 8, 20, GX_TF_RGB565, false, 0);
+    const u8 intensity = mBloomIntensity * getFadeRate();
+    drawTexture(mQuarterTextureB, 4, 7, intensity, DrawType_0);
+    drawTexture(mEighthTextureB, 4, 7, intensity, DrawType_1);
 
-    ImageEffectLocalUtil::capture(_3C, 4, 7, GX_TF_RGB565, false, 0);
+    ImageEffectLocalUtil::capture(mCompositeTexture, 4, 7, GX_TF_RGB565, false, 0);
     GXSetCopyFilter(GX_FALSE, pRenderObj->sample_pattern, GX_TRUE, pRenderObj->vfilter);
 
-    drawTexture(_24, 1, 0, 0xFF, DrawType_0);
-    drawTexture(_3C, 1, 0, 0xFF, DrawType_1);
+    drawTexture(mScreenTexture, 1, 0, 0xFF, DrawType_0);
+    drawTexture(mCompositeTexture, 1, 0, 0xFF, DrawType_1);
 }
 
 u8 BloomEffect::getIntensity1Default() const {

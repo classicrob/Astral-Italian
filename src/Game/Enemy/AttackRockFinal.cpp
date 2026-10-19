@@ -67,9 +67,9 @@ void AttackRockFinal::init(const JMapInfoIter& rIter) {
     mStartPos.set(mPosition);
     mQuatDC.getXDir(mAxisF8);
     mQuatDC.getYDir(mAxis104);
-    mProjmapEffectMtxSetter = fn_80155660(this);
+    mProjmapEffectMtxSetter = createProjmapEffectMtxSetter(this);
     MR::invalidateShadowAll(this);
-    fn_801552A0(this);
+    setupRockBinder(this);
     MR::setEffectHostMtx(this, "Attack", mMtx9C.toMtxPtr());
     MR::setSensorFollowPos(this, "Land", &mPosition);
     mBreakModel = MR::createBreakModel(this, nullptr);
@@ -77,7 +77,7 @@ void AttackRockFinal::init(const JMapInfoIter& rIter) {
     MR::declareCoin(this, 16);
     MR::getJMapInfoArg0NoInit(rIter, &mWaitStep);
     mRide = new AttackRockRide(this);
-    BaseMatrixFollowValidater* pValidater = MR::createBaseMatrixFollowValidateDelegator(this, &AttackRockFinal::fn_80152700);
+    BaseMatrixFollowValidater* pValidater = MR::createBaseMatrixFollowValidateDelegator(this, &AttackRockFinal::isFollowValidFinal);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, pValidater);
     MR::addKoopaBattleReceiverSensor(getSensor("Body"));
     initNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance, 0);
@@ -86,11 +86,12 @@ void AttackRockFinal::init(const JMapInfoIter& rIter) {
 
 void AttackRockFinal::makeActorDead() {
     LiveActor::makeActorDead();
-    mRide->fn_80152F20();
+    mRide->endRide();
     mIsOnPlayer = false;
 }
 
 // NONMATCHING: Vector temporary stack slots and GPR allocation differ.
+// NONMATCHING: Target keeps this/dir/toPlayer in r29/r30/r31 (out-of-line _savegpr_29 prologue); ours saves two registers and the copy temporary lifetimes differ.
 void AttackRockFinal::control() {
     TVec3f dir;
     MR::getKoopaBattleTargetPos(&dir);
@@ -99,13 +100,13 @@ void AttackRockFinal::control() {
     MR::turnQuatZDirRate(&mQuatCC, mQuatCC, dir, 0.3f);
     TVec3f zdir;
     mQuatCC.getZDir(zdir);
-    mRide->fn_801529E0(&zdir);
-    mRide->fn_80152C00();
+    mRide->setHostZDir(&zdir);
+    mRide->updateRush();
 }
 
 void AttackRockFinal::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
-    fn_80155540(mProjmapEffectMtxSetter, &mQuatCC, &mPosition);
+    updateProjmapEffectMtx(mProjmapEffectMtxSetter, &mQuatCC, &mPosition);
 }
 
 void AttackRockFinal::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -118,7 +119,7 @@ void AttackRockFinal::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool AttackRockFinal::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg) && isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFloat::sInstance)) {
-        fn_80155360(&mVelocity, &mQuatCC, pSender, pReceiver, 250.0f);
+        calcBoundVelocity(&mVelocity, &mQuatCC, pSender, pReceiver, 250.0f);
         setNerve(&NrvAttackRockFinal::AttackRockFinalNrvBound::sInstance);
         return true;
     }
@@ -136,7 +137,7 @@ bool AttackRockFinal::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
         makeActorDead();
         return true;
     }
-    if (mRide->fn_80152E20(msg, pSender, pReceiver)) {
+    if (mRide->tryReceiveRideMsg(msg, pSender, pReceiver)) {
         return true;
     }
     if (MR::isMsgKoopaPunchAttack(msg) && MR::isEqualSensor(pReceiver, this, "Body") &&
@@ -149,7 +150,7 @@ bool AttackRockFinal::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
-void AttackRockFinal::fn_801521F0(f32 a, f32 b) {
+void AttackRockFinal::setPositionFromAxes(f32 a, f32 b) {
     this->mPosition.set(this->mStartPos);
     TVec3f va = this->mAxisF8 * a;
     this->mPosition.add(va);
@@ -157,9 +158,9 @@ void AttackRockFinal::fn_801521F0(f32 a, f32 b) {
     this->mPosition.add(vb);
 }
 
-void AttackRockFinal::fn_80152280() {
+void AttackRockFinal::exeFinalWait() {
     if (MR::isFirstStep(this)) {
-        this->fn_801521F0(800.0f, 2000.0f);
+        this->setPositionFromAxes(800.0f, 2000.0f);
     }
     this->mIsOnPlayer = false;
     if (MR::isGreaterStep(this, this->mWaitStep)) {
@@ -167,10 +168,10 @@ void AttackRockFinal::fn_80152280() {
     }
 }
 
-void AttackRockFinal::fn_801522F0() {
+void AttackRockFinal::exeFinalFall() {
     f32 y = MR::calcNerveEaseOutValue(this, 100, 2000.0f, -1000.0f);
     f32 x = MR::calcNerveEaseInValue(this, 100, 800.0f, 400.0f);
-    this->fn_801521F0(x, y);
+    this->setPositionFromAxes(x, y);
     if (MR::isFirstStep(this)) {
         MR::offBind(this);
         MR::startAction(this, "FinalWait");
@@ -188,31 +189,31 @@ void AttackRockFinal::fn_801522F0() {
     }
 }
 
-void AttackRockFinal::fn_80152400() {
+void AttackRockFinal::exeFinalFloat() {
     f32 y = MR::calcNerveEaseInOutValue(this, 150, -1000.0f, 0.0f);
     f32 x = MR::calcNerveEaseOutValue(this, 150, 400.0f, 0.0f);
-    this->fn_801521F0(x, y);
+    this->setPositionFromAxes(x, y);
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "FinalFloat");
-        this->mRide->fn_80152F10();
+        this->mRide->enableRide();
     }
     if (MR::isOnGroundPlayer()) {
         this->mIsOnPlayer = MR::isActorOnPlayer(this);
     }
     MR::startActionSound(this, "FinalPower", -1, -1, 18);
     if (MR::isOnGroundPlayer() && !MR::isActorOnPlayer(this)) {
-        this->mRide->fn_80152F10();
+        this->mRide->enableRide();
     }
 }
 
-void AttackRockFinal::fn_801524F0() {
+void AttackRockFinal::exeFinalBound() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
         MR::onBind(this);
-        this->mRide->fn_80152F20();
+        this->mRide->endRide();
         this->mIsOnPlayer = false;
     }
-    fn_801554D0(&this->mMtx9C, this);
+    updateBaseMtxFromVelocity(&this->mMtx9C, this);
     if (MR::isBinded(this)) {
         MR::sendMsgToBindedAttackRockReflect(this, getSensor("Body"));
     }
@@ -226,7 +227,7 @@ void AttackRockFinal::fn_801524F0() {
     }
 }
 
-void AttackRockFinal::fn_80152620() {
+void AttackRockFinal::exeFinalBreak() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Break");
         MR::startActionSound(this, "FinalBreak", -1, -1, -1);
@@ -237,14 +238,14 @@ void AttackRockFinal::fn_80152620() {
         MR::invalidateHitSensors(this);
         MR::zeroVelocity(this);
         MR::offBind(this);
-        this->mRide->fn_80152F20();
+        this->mRide->endRide();
     }
     if (MR::isDead(this->mBreakModel)) {
         this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance);
     }
 }
 
-bool AttackRockFinal::fn_80152700(s32) const {
+bool AttackRockFinal::isFollowValidFinal(s32) const {
     const AttackRockFinal* pActor = this;
     if (pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance) ||
         pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFloat::sInstance)) {
@@ -258,19 +259,19 @@ AttackRockFinal::~AttackRockFinal() {
 
 namespace NrvAttackRockFinal {
     inline void AttackRockFinalNrvWait::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_80152280();
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->exeFinalWait();
     }
     inline void AttackRockFinalNrvFall::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_801522F0();
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->exeFinalFall();
     }
     inline void AttackRockFinalNrvFloat::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_80152400();
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->exeFinalFloat();
     }
     inline void AttackRockFinalNrvBound::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_801524F0();
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->exeFinalBound();
     }
     inline void AttackRockFinalNrvBreak::execute(Spine* pSpine) const {
-        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_80152620();
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->exeFinalBreak();
     }
 };  // namespace NrvAttackRockFinal
 

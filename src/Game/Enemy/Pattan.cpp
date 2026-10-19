@@ -14,28 +14,27 @@
     Name Name::sInstance ATTRIBUTE_WEAK;
 
 namespace NrvPattan {
-    BATCH_NERVE(PattanNrvAppear, fn_801E7030);
-    BATCH_NERVE(PattanNrvWait, fn_801E70D0);
-    BATCH_NERVE(PattanNrvFind, fn_801E7160);
-    BATCH_NERVE(PattanNrvChase, fn_801E71D0);
+    BATCH_NERVE(PattanNrvAppear, exePattanAppear);
+    BATCH_NERVE(PattanNrvWait, exePattanWait);
+    BATCH_NERVE(PattanNrvFind, exePattanFind);
+    BATCH_NERVE(PattanNrvChase, exePattanChase);
     NEW_NERVE(PattanNrvAttackSign, Pattan, AttackSign);
     NEW_NERVE(PattanNrvAttack, Pattan, Attack);
-    BATCH_NERVE(PattanNrvDown, fn_801E73B0);
-    BATCH_NERVE(PattanNrvJump, fn_801E7470);
-    BATCH_NERVE(PattanNrvGuard, fn_801E7530);
-    BATCH_NERVE(PattanNrvDead, fn_801E75B0);
-    BATCH_NERVE(PattanNrvPush, fn_801E7670);
-    BATCH_NERVE(PattanNrvPop, fn_801E7710);
+    BATCH_NERVE(PattanNrvDown, exePattanDown);
+    BATCH_NERVE(PattanNrvJump, exePattanJump);
+    BATCH_NERVE(PattanNrvGuard, exePattanGuard);
+    BATCH_NERVE(PattanNrvDead, exePattanDead);
+    BATCH_NERVE(PattanNrvPush, exePattanPush);
+    BATCH_NERVE(PattanNrvPop, exePattanPop);
     NEW_NERVE(PattanNrvFreeze, Pattan, Freeze);
 };  // namespace NrvPattan
 
 #define GET_PATTAN_NERVE(name) (&NrvPattan::name::sInstance)
 
-// PLACEHOLDER(enemies): unnamed sbss2 tuning values; resolve when the owning data is named.
-extern s32 lbl_807E3050;
-extern s32 lbl_807E3054;
-extern f32 lbl_807E3058;
-extern f32 lbl_807E305C;
+extern const volatile s32 gPattanWaitMaximum;
+extern const volatile s32 gPattanAttackSignDuration;
+extern const volatile f32 gPattanAppearJumpSpeed;
+extern const volatile f32 gPattanJumpSpeed;
 
 static const MR::ActorMoveParam sMove = {1.6f, 2.0f, 0.9f, 1.5f};
 static const MR::ActorMoveParam sJumpMove = {0.0f, 2.0f, 0.9f, 1.5f};
@@ -92,10 +91,10 @@ void Pattan::control() {
         return;
     }
     if (MR::isPressedRoofAndGround(this)) {
-        fn_801E7C20();
+        tryPattanPop();
         return;
     }
-    if (fn_801E7B90() && mStarPointBind->tryStartPointBind()) {
+    if (canPattanBindStarPointer() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_PATTAN_NERVE(PattanNrvFreeze));
         return;
     }
@@ -105,10 +104,10 @@ void Pattan::control() {
     }
 }
 
-void Pattan::fn_801E7030() {
+void Pattan::exePattanAppear() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Appear");
-        MR::setVelocityJump(this, lbl_807E3058);
+        MR::setVelocityJump(this, gPattanAppearJumpSpeed);
     }
     MR::attenuateVelocity(this, sMove._8);
     MR::addVelocityToGravity(this, sMove._4);
@@ -117,9 +116,9 @@ void Pattan::fn_801E7030() {
     }
 }
 
-void Pattan::fn_801E70D0() {
+void Pattan::exePattanWait() {
     if (MR::isFirstStep(this)) {
-        mTimer = MR::getRandom(60, lbl_807E3050);
+        mTimer = MR::getRandom(60, gPattanWaitMaximum);
         MR::startAction(this, "Wait");
         MR::onBind(this);
         MR::zeroVelocity(this);
@@ -129,7 +128,7 @@ void Pattan::fn_801E70D0() {
     }
 }
 
-void Pattan::fn_801E7160() {
+void Pattan::exePattanFind() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Find");
         MR::onBind(this);
@@ -139,7 +138,7 @@ void Pattan::fn_801E7160() {
     }
 }
 
-void Pattan::fn_801E71D0() {
+void Pattan::exePattanChase() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Run");
     }
@@ -163,7 +162,7 @@ void Pattan::exeAttackSign() {
         MR::startAction(this, "AttackSign");
         MR::offBind(this);
     }
-    if (MR::isGreaterEqualStep(this, lbl_807E3054)) {
+    if (MR::isGreaterEqualStep(this, gPattanAttackSignDuration)) {
         setNerve(GET_PATTAN_NERVE(PattanNrvAttack));
     }
 }
@@ -177,7 +176,7 @@ void Pattan::exeAttack() {
     }
 }
 
-void Pattan::fn_801E73B0() {
+void Pattan::exePattanDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackEnd");
     }
@@ -191,10 +190,10 @@ void Pattan::fn_801E73B0() {
     }
 }
 
-void Pattan::fn_801E7470() {
+void Pattan::exePattanJump() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Jump");
-        MR::setVelocityJump(this, lbl_807E305C);
+        MR::setVelocityJump(this, gPattanJumpSpeed);
     }
     MR::attenuateVelocity(this, sMove._8);
     MR::addVelocityToGravity(this, sMove._4);
@@ -204,7 +203,7 @@ void Pattan::fn_801E7470() {
     }
 }
 
-void Pattan::fn_801E7530() {
+void Pattan::exePattanGuard() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Guard");
     }
@@ -214,7 +213,7 @@ void Pattan::fn_801E7530() {
     }
 }
 
-void Pattan::fn_801E75B0() {
+void Pattan::exePattanDead() {
     if (MR::isFirstStep(this)) {
         PSMTXCopy(MR::getJointMtx(this, "Root"), mBaseMtx.toMtxPtr());
         mBreakModel->mAnimName = "BreakPress";
@@ -229,7 +228,7 @@ void Pattan::fn_801E75B0() {
     }
 }
 
-void Pattan::fn_801E7670() {
+void Pattan::exePattanPush() {
     if (MR::isFirstStep(this)) {
         MR::tryHitReactionBreak(this);
         PSMTXCopy(MR::getJointMtx(this, "Root"), mBaseMtx.toMtxPtr());
@@ -240,7 +239,7 @@ void Pattan::fn_801E7670() {
     }
 }
 
-void Pattan::fn_801E7710() {
+void Pattan::exePattanPop() {
     if (MR::isFirstStep(this)) {
         MR::tryHitReactionBreak(this);
         PSMTXCopy(MR::getJointMtx(this, "Root"), mBaseMtx.toMtxPtr());
@@ -250,7 +249,7 @@ void Pattan::fn_801E7710() {
     }
 }
 
-void Pattan::fn_801E77A0() {
+void Pattan::tryPattanJump() {
     if (isNerve(GET_PATTAN_NERVE(PattanNrvWait)) || isNerve(GET_PATTAN_NERVE(PattanNrvFind)) ||
         isNerve(GET_PATTAN_NERVE(PattanNrvChase)) || isNerve(GET_PATTAN_NERVE(PattanNrvAttackSign))) {
         setNerve(GET_PATTAN_NERVE(PattanNrvJump));
@@ -265,7 +264,7 @@ void Pattan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayerOrRide(pReceiver)) {
         if (isNerve(GET_PATTAN_NERVE(PattanNrvAttack))) {
             if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-                fn_801E7C20();
+                tryPattanPop();
             }
         } else {
             MR::sendMsgPush(pReceiver, pSender);
@@ -278,7 +277,7 @@ void Pattan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Pattan::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
-    if (fn_801E7B00()) {
+    if (canPattanPushMove()) {
         MR::addVelocityFromPush(this, 1.5f, pSender, pReceiver);
         return true;
     }
@@ -287,11 +286,11 @@ bool Pattan::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool Pattan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDrop(msg) || MR::isMsgPlayerTrample(msg)) {
-        fn_801E7C70();
+        tryPattanPressDown();
         return true;
     }
     if (MR::isMsgPlayerHitAll(msg)) {
-        if (fn_801E7D10(pSender, pReceiver)) {
+        if (tryPattanGuard(pSender, pReceiver)) {
             return true;
         }
     }
@@ -303,50 +302,50 @@ bool Pattan::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
     (void)pSender;
     (void)pReceiver;
     if (msg == 0xF4) {
-        fn_801E7C20();
+        tryPattanPop();
         return true;
     }
     if (MR::isMsgInhaleBlackHole(msg)) {
-        fn_801E7C20();
+        tryPattanPop();
     }
     return false;
 }
 
-bool Pattan::fn_801E7A80() {
+bool Pattan::isPattanAliveState() {
     bool result = false;
     if (!isNerve(GET_PATTAN_NERVE(PattanNrvDown)) && !isNerve(GET_PATTAN_NERVE(PattanNrvDead)) &&
     !isNerve(GET_PATTAN_NERVE(PattanNrvPop))) result = true;
     return result;
 }
 
-bool Pattan::fn_801E7B00() {
+bool Pattan::canPattanPushMove() {
     bool result = false;
     if (!isNerve(GET_PATTAN_NERVE(PattanNrvAttack)) && !isNerve(GET_PATTAN_NERVE(PattanNrvDown)) &&
     !isNerve(GET_PATTAN_NERVE(PattanNrvPop)) && !isNerve(GET_PATTAN_NERVE(PattanNrvDead))) result = true;
     return result;
 }
 
-bool Pattan::fn_801E7B90() {
+bool Pattan::canPattanBindStarPointer() {
     bool result = false;
     if (!isNerve(GET_PATTAN_NERVE(PattanNrvDown)) && !isNerve(GET_PATTAN_NERVE(PattanNrvDead)) &&
     !isNerve(GET_PATTAN_NERVE(PattanNrvPop)) && !isNerve(GET_PATTAN_NERVE(PattanNrvFreeze))) result = true;
     return result;
 }
 
-bool Pattan::fn_801E7C20() {
-    if (fn_801E7A80()) {
+bool Pattan::tryPattanPop() {
+    if (isPattanAliveState()) {
         this->setNerve(GET_PATTAN_NERVE(PattanNrvPop));
         return true;
     }
     return false;
 }
 
-bool Pattan::fn_801E7C70() {
+bool Pattan::tryPattanPressDown() {
     if (isNerve(GET_PATTAN_NERVE(PattanNrvAttack)) && MR::isGreaterStep(this, 0xA)) {
         this->setNerve(GET_PATTAN_NERVE(PattanNrvPush));
         return true;
     }
-    if (fn_801E7A80()) {
+    if (isPattanAliveState()) {
         MR::tryHitReaction(this, "踏み");
         this->setNerve(GET_PATTAN_NERVE(PattanNrvDead));
         return true;
@@ -354,8 +353,8 @@ bool Pattan::fn_801E7C70() {
     return false;
 }
 
-bool Pattan::fn_801E7D10(HitSensor* pSender, HitSensor* pReceiver) {
-    if (fn_801E7A80() && !isNerve(GET_PATTAN_NERVE(PattanNrvGuard))) {
+bool Pattan::tryPattanGuard(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isPattanAliveState() && !isNerve(GET_PATTAN_NERVE(PattanNrvGuard))) {
         MR::tryHitReaction(this, "ガード");
         MR::addVelocityFromPushHorizon(this, 15.0f, pSender, pReceiver);
         this->setNerve(GET_PATTAN_NERVE(PattanNrvGuard));
@@ -371,3 +370,11 @@ void Pattan::exeFreeze() {
     MR::updateActorStateAndNextNerve(this, GET_PATTAN_NERVE(PattanNrvWait));
 }
 
+
+extern const volatile s32 gPattanWaitMaximum = 0;
+
+extern const volatile s32 gPattanAttackSignDuration = 0;
+
+extern const volatile f32 gPattanAppearJumpSpeed = 0.0f;
+
+extern const volatile f32 gPattanJumpSpeed = 0.0f;

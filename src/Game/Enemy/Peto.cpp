@@ -18,27 +18,27 @@
 
 // Nerve instances (sbss 0x807D2F28..0x807D2F64). Names are provisional.
 namespace NrvPeto {
-    PETO_NERVE(PetoNrvHidden, fn_801EB600);
-    PETO_NERVE(PetoNrvFall, fn_801EB690);
-    PETO_NERVE(PetoNrvLand, fn_801EB740);
-    PETO_NERVE(PetoNrvExtendsSign, fn_801EB7C0);
-    PETO_NERVE(PetoNrvExtends, fn_801EB850);
-    PETO_NERVE(PetoNrvExtendsKeep, fn_801EB900);
+    PETO_NERVE(PetoNrvHidden, exePetoHidden);
+    PETO_NERVE(PetoNrvFall, exePetoFall);
+    PETO_NERVE(PetoNrvLand, exePetoLand);
+    PETO_NERVE(PetoNrvExtendsSign, exeExtendsSign);
+    PETO_NERVE(PetoNrvExtends, exeExtends);
+    PETO_NERVE(PetoNrvExtendsKeep, exeExtendsKeep);
     NEW_NERVE(PetoNrvShrink, Peto, Shrink);
-    PETO_NERVE(PetoNrvShrinkEnd, fn_801EB9F0);
-    PETO_NERVE(PetoNrvJumpSign, fn_801EBA70);
-    PETO_NERVE(PetoNrvJump, fn_801EBB30);
+    PETO_NERVE(PetoNrvShrinkEnd, exeShrinkEnd);
+    PETO_NERVE(PetoNrvJumpSign, exeJumpSign);
+    PETO_NERVE(PetoNrvJump, exeJumpArc);
     class PetoNrvNone : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const { static_cast<Peto*>(pSpine->mExecutor)->updateScale(40.0f); }
         static PetoNrvNone sInstance;
     };
     PetoNrvNone PetoNrvNone::sInstance ATTRIBUTE_WEAK;
-    PETO_NERVE(PetoNrvWait, fn_801EBCE0);
-    PETO_NERVE(PetoNrvSwoon, fn_801EBD50);
-    PETO_NERVE(PetoNrvYoshiEaten, fn_801EBE00);
+    PETO_NERVE(PetoNrvWait, exePetoIdle);
+    PETO_NERVE(PetoNrvSwoon, exeSwoonFall);
+    PETO_NERVE(PetoNrvYoshiEaten, exeYoshiEaten);
     NEW_NERVE(PetoNrvDown, Peto, Down);
-    PETO_NERVE(PetoNrvPress, fn_801EBF10);
+    PETO_NERVE(PetoNrvPress, exePetoPress);
 };  // namespace NrvPeto
 
 Peto::Peto(const char* pName) : LiveActor(pName) {
@@ -89,7 +89,7 @@ void Peto::control() {
     f32 scale = mScale / 100.0f;
     MR::preScaleMtx(mMtx.toMtxPtr(), TVec3f(scale, 0.25f * scale, scale));
     MR::setSensorRadius(this, "Attack", mScale);
-    if (fn_801EC1D0() && mBindStar->tryStartPointBind()) {
+    if (isBindStarEnabled() && mBindStar->tryStartPointBind()) {
         setNerve(GET_NERVE(Peto, PetoNrvWait));
         return;
     }
@@ -109,7 +109,7 @@ void Peto::calcAndSetBaseMtx() {
 }
 
 void Peto::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (fn_801EBF90()) {
+    if (isExtending()) {
         if (MR::isEqualSensor(pSender, this, "Attack")) {
             if (MR::isSensorPlayer(pReceiver) && MR::isOnGroundPlayer()) {
                 TVec3f dir;
@@ -126,7 +126,7 @@ void Peto::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             }
         }
     }
-    if (MR::isEqualSensor(pSender, this, "Body") && fn_801EC150()) {
+    if (MR::isEqualSensor(pSender, this, "Body") && isBodySensorActive()) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -134,32 +134,32 @@ void Peto::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 bool Peto::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isEqualSensor(pReceiver, this, "Body")) return false;
     if (MR::isMsgLockOnStarPieceShoot(msg)) return true;
-    if (MR::isMsgStarPieceAttack(msg) && fn_801EC2A0()) {
+    if (MR::isMsgStarPieceAttack(msg) && isStarPieceHittable()) {
         setNerve(GET_NERVE(Peto, PetoNrvSwoon));
         MR::tryHitReaction(this, "スターピースヒット");
         return true;
     }
-    if (MR::isMsgPlayerHitProjectiles(msg) && fn_801EC0D0()) return fn_801EB4F0(pSender, pReceiver);
-    if (MR::isMsgPlayerHitAll(msg) && fn_801EC000()) return fn_801EB4F0(pSender, pReceiver);
-    if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) return fn_801EB5A0();
+    if (MR::isMsgPlayerHitProjectiles(msg) && isPetoDamageable()) return startPetoBlowDown(pSender, pReceiver);
+    if (MR::isMsgPlayerHitAll(msg) && isTrampleTarget()) return startPetoBlowDown(pSender, pReceiver);
+    if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) return tryStartPetoPress();
     return false;
 }
 
 bool Peto::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isEqualSensor(pReceiver, this, "Body")) return false;
-    if (MR::isMsgExplosionAttack(msg) && fn_801EC0D0()) return fn_801EB4F0(pSender, pReceiver);
+    if (MR::isMsgExplosionAttack(msg) && isPetoDamageable()) return startPetoBlowDown(pSender, pReceiver);
     return false;
 }
 
 bool Peto::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isEqualSensor(pReceiver, this, "Body")) return false;
-    if ((MR::isSensorEnemy(pSender) || MR::isSensorRide(pSender) || (!fn_801EBF90() && MR::isSensorPlayer(pSender))) && fn_801EC150()) return true;
+    if ((MR::isSensorEnemy(pSender) || MR::isSensorRide(pSender) || (!isExtending() && MR::isSensorPlayer(pSender))) && isBodySensorActive()) return true;
     return false;
 }
 
 bool Peto::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
-        if (fn_801EBF90()) {
+        if (isExtending()) {
             MR::sendMsgEnemyAttackElectric(MR::getPlayerBodySensor(), pReceiver);
             return false;
         }
@@ -171,16 +171,16 @@ bool Peto::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
     if (MR::isMsgYoshiLoopTongue(msg)) return true;
-    if (MR::isMsgYoshiReleaseOrCancelEaten(msg)) { fn_801EC3B0(false); return true; }
+    if (MR::isMsgYoshiReleaseOrCancelEaten(msg)) { resetToHidden(false); return true; }
     if (MR::isMsgPlayerKick(msg) && isNerve(GET_NERVE(Peto, PetoNrvYoshiEaten))) {
-        fn_801EB4F0(pSender, pReceiver);
+        startPetoBlowDown(pSender, pReceiver);
         return true;
     }
     return false;
 }
 
-// fn_801EB4F0: damage reaction (shared by attack paths).
-bool Peto::fn_801EB4F0(HitSensor* pSender, HitSensor* pReceiver) {
+// startPetoBlowDown: damage reaction (shared by attack paths).
+bool Peto::startPetoBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
     MR::onBind(this);
     MR::invalidateClipping(this);
     MR::setVelocityBlowAttack(this, pSender, pReceiver, 40.0f, 40.0f, 4);
@@ -191,9 +191,9 @@ bool Peto::fn_801EB4F0(HitSensor* pSender, HitSensor* pReceiver) {
     return true;
 }
 
-// fn_801EB5A0
-bool Peto::fn_801EB5A0() {
-    if (fn_801EC000()) {
+// tryStartPetoPress
+bool Peto::tryStartPetoPress() {
+    if (isTrampleTarget()) {
         MR::onBind(this);
         MR::invalidateClipping(this);
         setNerve(GET_NERVE(Peto, PetoNrvPress));
@@ -202,8 +202,8 @@ bool Peto::fn_801EB5A0() {
     return false;
 }
 
-// fn_801EC3B0: reset to hidden.
-void Peto::fn_801EC3B0(bool bShowSwitch) {
+// resetToHidden: reset to hidden.
+void Peto::resetToHidden(bool bShowSwitch) {
     MR::hideModel(this);
     MR::setPosition(this, mJumpPos);
     MR::setScale(this, 1.0f);
@@ -215,8 +215,8 @@ void Peto::fn_801EC3B0(bool bShowSwitch) {
     if (MR::isValidSwitchDead(this)) MR::onSwitchDead(this);
 }
 
-// fn_801EB600
-void Peto::fn_801EB600() {
+// exePetoHidden
+void Peto::exePetoHidden() {
     if (mStateParam->isFirstStep()) {
         MR::hideModel(this);
     }
@@ -228,8 +228,8 @@ void Peto::fn_801EB600() {
     }
 }
 
-// fn_801EB690
-void Peto::fn_801EB690() {
+// exePetoFall
+void Peto::exePetoFall() {
     if (mStateParam->isFirstStep()) {
         MR::showModel(this);
         MR::startAction(this, "Fall");
@@ -245,8 +245,8 @@ void Peto::fn_801EB690() {
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
 }
 
-// fn_801EB740
-void Peto::fn_801EB740() {
+// exePetoLand
+void Peto::exePetoLand() {
     if (mStateParam->isFirstStep()) {
         MR::zeroVelocity(this);
         MR::startAction(this, "Land");
@@ -258,8 +258,8 @@ void Peto::fn_801EB740() {
     }
 }
 
-// fn_801EB7C0
-void Peto::fn_801EB7C0() {
+// exeExtendsSign
+void Peto::exeExtendsSign() {
     if (mStateParam->isFirstStep()) {
         MR::invalidateClipping(this);
         MR::startAction(this, "ExtendsSign");
@@ -271,8 +271,8 @@ void Peto::fn_801EB7C0() {
     }
 }
 
-// fn_801EB850
-void Peto::fn_801EB850() {
+// exeExtends
+void Peto::exeExtends() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "Extends");
         mScale = 100.0f;
@@ -281,21 +281,21 @@ void Peto::fn_801EB850() {
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
     f32 speed = 4.0f * mStateParam->getSpeed();
     mScale += speed;
-    fn_801EC790();
+    updateDustEffect();
     if (mScale >= 500.0f) {
         mScale = 500.0f;
         setNerve(GET_NERVE(Peto, PetoNrvExtendsKeep));
     }
 }
 
-// fn_801EB900
-void Peto::fn_801EB900() {
+// exeExtendsKeep
+void Peto::exeExtendsKeep() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "ExtendsKeep");
         mIsDustEmit = 0;
     }
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
-    fn_801EC790();
+    updateDustEffect();
     if (mStateParam->isGreaterStep(40)) {
         setNerve(GET_NERVE(Peto, PetoNrvShrink));
     }
@@ -312,8 +312,8 @@ void Peto::exeShrink() {
     }
 }
 
-// fn_801EB9F0
-void Peto::fn_801EB9F0() {
+// exeShrinkEnd
+void Peto::exeShrinkEnd() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "ShurinkEnd");
         mScale = 1.0f;
@@ -324,13 +324,13 @@ void Peto::fn_801EB9F0() {
     }
 }
 
-// fn_801EBA70
-void Peto::fn_801EBA70() {
+// exeJumpSign
+void Peto::exeJumpSign() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "JumpSign");
         mIsOnceFlag = 0;
     }
-    fn_801EC460();
+    updateJumpTarget();
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, 4.0f);
     if (MR::isActionEnd(this)) {
@@ -343,8 +343,8 @@ void Peto::fn_801EBA70() {
     }
 }
 
-// fn_801EBB30
-void Peto::fn_801EBB30() {
+// exeJumpArc
+void Peto::exeJumpArc() {
     if (mStateParam->isFirstStep()) MR::startAction(this, "Jump");
     TVec3f toJump = mWalkPos - mRailPos;
     f32 dot = -mGravity.dot(toJump);
@@ -367,8 +367,8 @@ void Peto::fn_801EBB30() {
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
 }
 
-// fn_801EBCE0
-void Peto::fn_801EBCE0() {
+// exePetoIdle
+void Peto::exePetoIdle() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "Wait");
     }
@@ -377,8 +377,8 @@ void Peto::fn_801EBCE0() {
     MR::updateActorStateAndNextNerve(this, GET_NERVE(Peto, PetoNrvFall));
 }
 
-// fn_801EBD50
-void Peto::fn_801EBD50() {
+// exeSwoonFall
+void Peto::exeSwoonFall() {
     if (mStateParam->isFirstStep()) {
         mAnimScale->startHitReaction();
         MR::startAction(this, "Swoon");
@@ -394,8 +394,8 @@ void Peto::fn_801EBD50() {
     }
 }
 
-// fn_801EBE00
-void Peto::fn_801EBE00() {
+// exeYoshiEaten
+void Peto::exeYoshiEaten() {
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
     updateScale(40.0f);
     if (mStateParam->isGreaterStep(180)) {
@@ -413,31 +413,31 @@ void Peto::exeDown() {
     MR::attenuateVelocity(this, 0.97f);
     if (mStateParam->isGreaterStep(40) || MR::isBinded(this)) {
         MR::emitItemHit(this);
-        fn_801EC3B0(true);
+        resetToHidden(true);
     }
 }
 
-// fn_801EBF10
-void Peto::fn_801EBF10() {
+// exePetoPress
+void Peto::exePetoPress() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "Press");
         MR::zeroVelocity(this);
     }
     if (mStateParam->isGreaterStep(40)) {
         MR::emitItemStomp(this);
-        fn_801EC3B0(true);
+        resetToHidden(true);
     }
 }
 
-// fn_801EBF90
-bool Peto::fn_801EBF90() const {
+// isExtending
+bool Peto::isExtending() const {
     if (isNerve(GET_NERVE(Peto, PetoNrvExtends)) || isNerve(GET_NERVE(Peto, PetoNrvExtendsKeep)) ||
            isNerve(GET_NERVE(Peto, PetoNrvShrink))) return true;
     return false;
 }
 
-// fn_801EC000
-bool Peto::fn_801EC000() const {
+// isTrampleTarget
+bool Peto::isTrampleTarget() const {
     if (isNerve(GET_NERVE(Peto, PetoNrvLand)) || isNerve(GET_NERVE(Peto, PetoNrvExtendsSign)) ||
            isNerve(GET_NERVE(Peto, PetoNrvShrinkEnd)) || isNerve(GET_NERVE(Peto, PetoNrvJumpSign)) ||
            isNerve(GET_NERVE(Peto, PetoNrvJump)) || isNerve(GET_NERVE(Peto, PetoNrvWait)) ||
@@ -445,15 +445,15 @@ bool Peto::fn_801EC000() const {
     return false;
 }
 
-// fn_801EC0D0
-bool Peto::fn_801EC0D0() const {
+// isPetoDamageable
+bool Peto::isPetoDamageable() const {
     if (isNerve(GET_NERVE(Peto, PetoNrvHidden)) || isNerve(GET_NERVE(Peto, PetoNrvNone)) ||
              isNerve(GET_NERVE(Peto, PetoNrvDown)) || isNerve(GET_NERVE(Peto, PetoNrvPress))) return false;
     return true;
 }
 
-// fn_801EC1D0
-bool Peto::fn_801EC1D0() const {
+// isBindStarEnabled
+bool Peto::isBindStarEnabled() const {
     if (isNerve(GET_NERVE(Peto, PetoNrvHidden)) || isNerve(GET_NERVE(Peto, PetoNrvNone)) ||
         isNerve(GET_NERVE(Peto, PetoNrvDown)) || isNerve(GET_NERVE(Peto, PetoNrvWait)) ||
         isNerve(GET_NERVE(Peto, PetoNrvSwoon)) || isNerve(GET_NERVE(Peto, PetoNrvPress))) return false;
@@ -471,9 +471,9 @@ bool Peto::updateScale(f32 rate) {
     return false;
 }
 
-// fn_801EC790: jump/extend dust.
-void Peto::fn_801EC790() {
-    if (mIsDustEmit == 0 && fn_801EC5E0(&mDustPos)) {
+// updateDustEffect: jump/extend dust.
+void Peto::updateDustEffect() {
+    if (mIsDustEmit == 0 && tryFindDustPoint(&mDustPos)) {
         mIsDustEmit = 1;
     }
     if (MR::isIntervalStep(this, 5)) {
@@ -484,20 +484,20 @@ void Peto::fn_801EC790() {
     }
 }
 
-bool Peto::fn_801EC150() const {
+bool Peto::isBodySensorActive() const {
     if (isNerve(GET_NERVE(Peto, PetoNrvHidden)) || isNerve(GET_NERVE(Peto, PetoNrvNone)) ||
              isNerve(GET_NERVE(Peto, PetoNrvDown)) || isNerve(GET_NERVE(Peto, PetoNrvPress))) return false;
     return true;
 }
 
-bool Peto::fn_801EC2A0() const {
+bool Peto::isStarPieceHittable() const {
     if (isNerve(GET_NERVE(Peto, PetoNrvHidden)) || isNerve(GET_NERVE(Peto, PetoNrvNone)) ||
              isNerve(GET_NERVE(Peto, PetoNrvDown)) || isNerve(GET_NERVE(Peto, PetoNrvSwoon)) ||
              isNerve(GET_NERVE(Peto, PetoNrvPress))) return false;
     return true;
 }
 
-void Peto::fn_801EC460() {
+void Peto::updateJumpTarget() {
     if (mIsOnceFlag == 0) {
         if (MR::isExistRail(this)) {
             if (MR::isRailReachedGoal(this)) MR::reverseRailDirection(this);
@@ -506,11 +506,11 @@ void Peto::fn_801EC460() {
             mIsOnceFlag = 1;
             return;
         }
-        fn_801EC4F0();
+        updateRandomJumpTarget();
     }
 }
 
-void Peto::fn_801EC4F0() {
+void Peto::updateRandomJumpTarget() {
     TVec3f random;
     TVec3f hit;
     MR::getRandomVector(&random, 400.0f);
@@ -527,7 +527,7 @@ void Peto::fn_801EC4F0() {
 }
 
 // NONMATCHING: instruction scheduling only (r3/r4 argument setup order around three TVec3 calls).
-bool Peto::fn_801EC5E0(TVec3f* out) {
+bool Peto::tryFindDustPoint(TVec3f* out) {
     if (MR::isJudgedToClipFrustum50m(mPosition, mScale)) return false;
     TVec3f front;
     MR::calcFrontVec(&front, this);

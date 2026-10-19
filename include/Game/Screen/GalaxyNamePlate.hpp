@@ -25,10 +25,10 @@ public:
     void exeWait();
 
     /* 0x20 */ const char* mGalaxyName;
-    /* 0x24 */ bool _24;
-    /* 0x25 */ bool _25;
+    /* 0x24 */ bool mIsRequested;
+    /* 0x25 */ bool mStartAppear;
     /* 0x26 */ bool mShowBalloonNozzle;
     /* 0x28 */ GalaxyNamePlatePrioritied* mDrawerEntry;
-    /* 0x2C */ s32 _2C;
-    /* 0x30 */ bool _30;
+    /* 0x2C */ s32 mNameAnimFrame;
+    /* 0x30 */ bool mPlayNewSe;
 };

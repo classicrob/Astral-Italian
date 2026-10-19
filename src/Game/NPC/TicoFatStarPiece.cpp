@@ -13,13 +13,11 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
-extern "C" {
+extern s32 sStarPieceTicoEatSpeedStartStep;
+extern f32 sStarPieceTicoCameraEyeSide, sStarPieceTicoCameraTargetSide, sStarPieceTicoCameraTargetFront;
 
-extern char lbl_806BE848[], lbl_806BE858[];
-extern const char* lbl_807CFF50;
-extern s32 lbl_807E3110;
-extern f32 lbl_807E3114, lbl_807E3118, lbl_807E311C;
-}
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
+namespace { const char* sEventCamera = "デブチコカメラ"; }
 namespace NrvTicoFatStarPiece {
     NEW_NERVE(TicoFatStarPieceNrvReaction, TicoFatStarPiece, Reaction);
     NEW_NERVE(TicoFatStarPieceNrvWait, TicoFatStarPiece, Wait);
@@ -39,36 +37,80 @@ namespace NrvTicoFatStarPiece {
 }
 
 TicoFatStarPiece::TicoFatStarPiece(const char* name) : NPCActor(name), mFullnessMeter(0), mEatTalkCtrl(0), mStarPieceCount(0), mRemainingStarPieceCount(0), mPendingStarPieceCount(0), mNearPlayerTimer(0), mPointingTimer(0), mEventRequested(false), mTicoFatId(-1), mEatEndSoundTimer(0), mEatSoundTimer(0), mTransformation(0) {}
-TicoFatStarPiece::~TicoFatStarPiece() {}
-bool TicoFatStarPiece::eventFunc(u32) {
-    mEventRequested = true;
-    setNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvPoint));
-    return true;
-}
-s32 TicoFatStarPiece::calcEatSoundPitch() {
-    s32 divisor = 50;
-    s32 pitch = (mStarPieceCount - mRemainingStarPieceCount - 1) / divisor;
-    if (pitch < 0) pitch = 0;
-    if (pitch > 32) pitch = 32;
-    return pitch;
-}
-void TicoFatStarPiece::startEatSound() {
-    if (mEatSoundTimer <= 0) {
-        MR::startActionSound(this, lbl_806BE848, -1, -1, -1);
-        mEatSoundTimer = 5;
+
+
+// NONMATCHING: register allocation, clamp instruction choice, and literal addressing differ.
+void TicoFatStarPiece::init(const JMapInfoIter& iter) {
+    NPCActorCaps caps("TicoFatStarPiece");
+    caps.setDefault();
+    caps.mWaitNerve = GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvWait);
+    caps.mNerveStep = 1;
+    caps.mMessage = false;
+    caps._95 = false;
+    initialize(iter, caps, "TicoFatStarPiece", nullptr, nullptr);
+    if (!GameSequenceFunction::isTicoFatStarPieceActive()) {
+        MR::tryRegisterDemoCast(this, "ハラペコスターピースチコ紹介", iter);
+        makeActorDead();
+        return;
     }
-}
-void TicoFatStarPiece::startEatCompleteSound() {
-    s32 pitch = calcEatSoundPitch();
-    MR::startActionSound(this, lbl_806BE858, pitch, -1, -1);
-}
-bool TicoFatStarPiece::tryEndEventCamera() {
-    if (MR::isGlobalEventCameraActive(lbl_807CFF50)) {
-        MR::endGlobalEventCamera(lbl_807CFF50, 120, true);
-        return true;
+    MR::moveCoordToStartPos(this);
+    MR::onCalcShadowAll(this);
+    mTransformation = new TicoFatStarPieceTransformation(this, iter);
+    MR::initActorState(this, mTransformation, GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvTransform), "Demo");
+    if (GameSequenceFunction::isTicoFatStarPieceActive()) {
+        mTicoFatId = GameSequenceFunction::getTicoFatStarPieceId();
+        mStarPieceCount = GameSequenceFunction::getTicoFatStarPieceRequirement();
+        s32 alreadyEaten = GameDataFunction::getTicoFatStarPieceAlms(mTicoFatId);
+        mPendingStarPieceCount = 0;
+        mRemainingStarPieceCount = (mStarPieceCount - alreadyEaten <= 0 ? 0 : mStarPieceCount - alreadyEaten);
+        MR::declareStarPieceReceiver(this, mRemainingStarPieceCount);
     }
-    return false;
+    TVec3f requestOffset;
+    requestOffset.x = 0.0f; requestOffset.y = 220.0f; requestOffset.z = 0.0f;
+    initTalkCtrlDirect(iter, "TicoFat_Request000", requestOffset, nullptr);
+    TVec3f eatOffset;
+    eatOffset.x = 0.0f; eatOffset.y = 220.0f; eatOffset.z = 0.0f;
+    mEatTalkCtrl = MR::createTalkCtrlDirect(this, iter, "TicoFat_StarPiece000", eatOffset, nullptr);
+    MR::setDistanceToTalk(mMsgCtrl, 280.0f);
+    MR::setDistanceToTalk(mEatTalkCtrl, 280.0f);
+    MR::onStartOnlyFront(mMsgCtrl);
+    MR::onStartOnlyFront(mEatTalkCtrl);
+    MR::onRootNodeAutomatic(mMsgCtrl);
+    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &TicoFatStarPiece::eventFunc));
+    MR::setMessageArg(mMsgCtrl, mRemainingStarPieceCount);
+    MR::declareEventCameraProgrammable(sEventCamera);
+    AnimScaleParam param;
+    param._20 = 0.12f;
+    param._24 = 0.12f;
+    param._28 = 0.9f;
+    mScaleController = new AnimScaleController(nullptr);
+    _130 = cNPCSpinDefault; _134 = cNPCTrampledDefault; _138 = cNPCPointingDefault; _13C = cNPCReactionDefault;
+    _12C = 1000.0f;
+    mParam._14 = getActionName("Wait");
+    mParam._18 = mParam._14;
+    mParam._1C = getActionName("Talk");
+    mParam._20 = mParam._1C;
+    NPCActorItem item;
+    item.mActor = "TicoFatStarPiece";
+    item.mGoods0 = lbl_807CFE9C; item.mGoodsJoint0 = lbl_807CFE98;
+    item.mGoods1 = lbl_807CFE94; item.mGoodsJoint1 = lbl_807CFE90;
+    MR::getNPCItemData(&item, 0);
+    equipment(item, false);
+    MR::startAction(_94, "TicoFatGoodsStarPiece");
+    MR::startAction(_98, "TicoFatGoodsStarPiece");
+    MR::setBpkFrame(_94, 0.0f);
+    MR::setBpkFrame(_98, 100.0f);
+    MR::startBva(this, "Small0");
+    MR::startBrk(this, "Normal");
+    MR::setBrkFrameAndStop(this, 0.0f);
+    updateScale(calcScale());
+    mFullnessMeter = new FullnessMeter(this, mStarPieceCount, mStarPieceCount - mRemainingStarPieceCount);
+    mFullnessMeter->initWithoutIter();
+    mFullnessMeter->setNumber(mStarPieceCount - mRemainingStarPieceCount);
+    MR::tryRegisterDemoCast(this, "ハラペコスターピースチコ紹介", iter);
+    if (!GameSequenceFunction::isTicoFatStarPieceActive()) makeActorDead();
 }
+
 
 const char* TicoFatStarPiece::getActionName(const char* name) {
     f32 scale = calcScale();
@@ -94,6 +136,7 @@ const char* TicoFatStarPiece::getActionName(const char* name) {
     return name;
 }
 
+
 void TicoFatStarPiece::selectEatMessage(s32 mode) {
     MR::resetNode(mEatTalkCtrl);
     s32 count = 0;
@@ -107,6 +150,7 @@ void TicoFatStarPiece::selectEatMessage(s32 mode) {
     } else if (mode == 2) count = 6;
     for (s32 i = 0; i < count; i++) MR::forwardNode(mEatTalkCtrl);
 }
+
 
 void TicoFatStarPiece::exeReaction() {
     if (MR::isFirstStep(this) && !_D9) mScaleController->startHitReaction();
@@ -123,12 +167,14 @@ void TicoFatStarPiece::exeReaction() {
     MR::tryStartReactionAndPopNerve(this);
 }
 
+
 void TicoFatStarPiece::exeWait() {
     if (MR::isFirstStep(this)) MR::startAction(this, getActionName("Wait"));
     if (!MR::tryStartReactionAndPushNerve(this, GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvReaction))) {
         if (!MR::isPlayerElementModeInvincible()) MR::tryTalkNearPlayerAndStartTalkAction(this);
     }
 }
+
 
 void TicoFatStarPiece::exePoint() {
     if (MR::isFirstStep(this)) {
@@ -149,6 +195,7 @@ void TicoFatStarPiece::exePoint() {
     }
 }
 
+
 void TicoFatStarPiece::exeEatWait() {
     if (MR::isFirstStep(this)) { MR::startAction(this, getActionName("Excite")); selectEatMessage(0); }
     if (!MR::tryStartReactionAndPushNerve(this, GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvReaction))) {
@@ -158,6 +205,7 @@ void TicoFatStarPiece::exeEatWait() {
     }
 }
 
+
 void TicoFatStarPiece::exeEat() {
     if (MR::isFirstStep(this)) MR::startAction(this, getActionName("EatStart"));
     if (MR::tryStartActionNotPlaying(this, getActionName("Eat"))) MR::setBckFrame(this, MR::getBckFrame(this));
@@ -165,11 +213,13 @@ void TicoFatStarPiece::exeEat() {
     if (mPendingStarPieceCount <= 0) setNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvChem));
 }
 
+
 void TicoFatStarPiece::exeChem() {
     if (MR::isFirstStep(this)) { mEatEndSoundTimer = 5; MR::startAction(this, getActionName("Chem")); }
     if (mEatEndSoundTimer > 0) { mEatEndSoundTimer--; MR::startActionSound(this, "SmLvTicofatEating", calcEatSoundPitch(), -1, -1); }
     if (MR::isBckLooped(this)) setNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvEatWait));
 }
+
 
 void TicoFatStarPiece::control() {
     if (isNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvTransform))) { updatePointing(); return; }
@@ -186,39 +236,13 @@ void TicoFatStarPiece::control() {
     }
 }
 
+
 bool TicoFatStarPiece::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {
     if (MR::isMsgStarPieceAttack(msg)) { _E5 = true; return true; }
     if (MR::isMsgStarPieceGift(msg)) { receiveStarPiece(MR::getStarPieceGiftCount(msg)); return true; }
     return NPCActor::receiveMsgPlayerAttack(msg, sender, receiver);
 }
 
-// NONMATCHING: floating arithmetic scheduling and register allocation differ.
-f32 TicoFatStarPiece::calcScale() {
-    f32 minScale = 1.0f;
-    f32 maxScale = 1.9f;
-    f32 scaleRange = maxScale - minScale;
-    f32 eatenRatio = static_cast<f32>(mStarPieceCount - mRemainingStarPieceCount) / static_cast<f32>(mStarPieceCount);
-    return minScale + scaleRange * eatenRatio;
-}
-
-// NONMATCHING: constant subtraction folding and literal addressing differ.
-void TicoFatStarPiece::updateScale(f32 scale) {
-    f32 previous = mScale.x;
-    mScale.setAll<f32>(scale);
-    bool hitReaction = false;
-    if ((previous <= 1.3f && 1.3f < scale) || (previous <= 1.6f && 1.6f < scale)) hitReaction = true;
-    if (hitReaction) mScaleController->startHitReaction();
-    MR::startBrk(this, "FatRed");
-    f32 fraction = (scale - 1.0f) / (1.9f - 1.0f);
-    fraction = 1.0f >= fraction ? fraction : 1.0f;
-    MR::setBrkFrameAndStop(this, fraction * MR::getBrkFrameMax(this));
-    MR::setSensorRadius(this, "Body", scale * 100.0f);
-    MR::setStarPointerTargetRadius3d(this, scale * 110.0f);
-    MR::setDistanceToTalk(mMsgCtrl, 280.0f * (scale >= 1.5f ? 1.5f : scale));
-    MR::setDistanceToTalk(mEatTalkCtrl, 280.0f * (scale >= 1.5f ? 1.5f : scale));
-    MR::setMessageBalloonFollowOffset(mMsgCtrl, TVec3f(0.0f, scale * 220.0f, 0.0f));
-    MR::setMessageBalloonFollowOffset(mEatTalkCtrl, TVec3f(0.0f, scale * 220.0f, 0.0f));
-}
 
 void TicoFatStarPiece::receiveStarPiece(s32 count) {
     s32 received = mStarPieceCount;
@@ -232,13 +256,22 @@ void TicoFatStarPiece::receiveStarPiece(s32 count) {
     mFullnessMeter->setNumber(mStarPieceCount - mRemainingStarPieceCount);
     MR::setMessageArg(mMsgCtrl, mRemainingStarPieceCount);
     if (isNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvEat))) {
-        MR::setBckRate(this, MR::calcNerveValue(this, lbl_807E3110, 180, 1.0f, 1.6f));
+        MR::setBckRate(this, MR::calcNerveValue(this, sStarPieceTicoEatSpeedStartStep, 180, 1.0f, 1.6f));
         return;
     }
     if (!isEmptyNerve()) { popNerve(); return; }
     setNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvEat));
 }
 
+
+bool TicoFatStarPiece::eventFunc(u32) {
+    mEventRequested = true;
+    setNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvPoint));
+    return true;
+}
+
+
+// NONMATCHING: optimizer folds a redundant jump to the common epilogue.
 void TicoFatStarPiece::updateStarPieceGift() {
     if (mPointingTimer <= 0) { mFullnessMeter->requestDisappear(); return; }
     mFullnessMeter->requestAppear();
@@ -257,7 +290,7 @@ void TicoFatStarPiece::updateStarPieceGift() {
     }
 }
 
-// NONMATCHING: equivalent nonnegative clamp instruction choice differs.
+
 void TicoFatStarPiece::updatePointing() {
     if (mRemainingStarPieceCount == 0 || MR::isPlayerElementModeInvincible() || MR::isPlayerFlying()) {
         mNearPlayerTimer = 0; mPointingTimer = 0; return;
@@ -266,93 +299,25 @@ void TicoFatStarPiece::updatePointing() {
         if (MR::requestTicoFatGuidance()) MR::requestCounterLayoutAppearanceForTicoEat(false);
         mNearPlayerTimer = 8;
     } else {
-        mNearPlayerTimer = MAX(mNearPlayerTimer - 1, 0);
+        mNearPlayerTimer = (mNearPlayerTimer - 1 <= 0 ? 0 : mNearPlayerTimer - 1);
     }
     if (mNearPlayerTimer <= 0) { mPointingTimer = 0; return; }
     bool pointing;
     if (isNerve(GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvEat))) pointing = MR::isStarPointerPointing1PWithoutCheckZ(this, nullptr, false, false);
     else pointing = MR::isStarPointerPointing(this, 0, false, nullptr);
     if (pointing) { mPointingTimer = 4; return; }
-    mPointingTimer = MAX(mPointingTimer - 1, 0);
+    mPointingTimer = (mPointingTimer - 1 <= 0 ? 0 : mPointingTimer - 1);
 }
 
-// NONMATCHING: register allocation, clamp instruction choice, and literal addressing differ.
-void TicoFatStarPiece::init(const JMapInfoIter& iter) {
-    NPCActorCaps caps("TicoFatStarPiece");
-    caps.setDefault();
-    caps.mWaitNerve = GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvWait);
-    caps.mNerveStep = 1;
-    caps.mMessage = false;
-    caps._95 = false;
-    initialize(iter, caps, "TicoFatStarPiece", nullptr, nullptr);
-    if (!GameSequenceFunction::isTicoFatStarPieceActive()) {
-        MR::tryRegisterDemoCast(this, "ハラペコスターピースチコ紹介", iter);
-        makeActorDead();
-        return;
-    }
-    MR::moveCoordToStartPos(this);
-    MR::onCalcShadowAll(this);
-    mTransformation = new TicoFatStarPieceTransformation(this, iter);
-    MR::initActorState(this, mTransformation, GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvTransform), "Demo");
-    if (GameSequenceFunction::isTicoFatStarPieceActive()) {
-        mTicoFatId = GameSequenceFunction::getTicoFatStarPieceId();
-        mStarPieceCount = GameSequenceFunction::getTicoFatStarPieceRequirement();
-        s32 alreadyEaten = GameDataFunction::getTicoFatStarPieceAlms(mTicoFatId);
-        mPendingStarPieceCount = 0;
-        mRemainingStarPieceCount = MAX(mStarPieceCount - alreadyEaten, 0);
-        MR::declareStarPieceReceiver(this, mRemainingStarPieceCount);
-    }
-    TVec3f requestOffset;
-    requestOffset.x = 0.0f; requestOffset.y = 220.0f; requestOffset.z = 0.0f;
-    initTalkCtrlDirect(iter, "TicoFat_Request000", requestOffset, nullptr);
-    TVec3f eatOffset;
-    eatOffset.x = 0.0f; eatOffset.y = 220.0f; eatOffset.z = 0.0f;
-    mEatTalkCtrl = MR::createTalkCtrlDirect(this, iter, "TicoFat_StarPiece000", eatOffset, nullptr);
-    MR::setDistanceToTalk(mMsgCtrl, 280.0f);
-    MR::setDistanceToTalk(mEatTalkCtrl, 280.0f);
-    MR::onStartOnlyFront(mMsgCtrl);
-    MR::onStartOnlyFront(mEatTalkCtrl);
-    MR::onRootNodeAutomatic(mMsgCtrl);
-    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &TicoFatStarPiece::eventFunc));
-    MR::setMessageArg(mMsgCtrl, mRemainingStarPieceCount);
-    MR::declareEventCameraProgrammable(lbl_807CFF50);
-    AnimScaleParam param;
-    param._20 = 0.12f;
-    param._24 = 0.12f;
-    param._28 = 0.9f;
-    mScaleController = new AnimScaleController(nullptr);
-    _130 = "Spin"; _134 = "Trampled"; _138 = "Pointing"; _13C = "Reaction";
-    _12C = 1000.0f;
-    mParam._14 = getActionName("Wait");
-    mParam._18 = mParam._14;
-    mParam._1C = getActionName("Talk");
-    mParam._20 = mParam._1C;
-    NPCActorItem item("TicoFatStarPiece");
-    MR::getNPCItemData(&item, 0);
-    equipment(item, false);
-    MR::startAction(_94, "TicoFatGoodsStarPiece");
-    MR::startAction(_98, "TicoFatGoodsStarPiece");
-    MR::setBpkFrame(_94, 0.0f);
-    MR::setBpkFrame(_98, 100.0f);
-    MR::startBva(this, "Small0");
-    MR::startBrk(this, "Normal");
-    MR::setBrkFrameAndStop(this, 0.0f);
-    updateScale(calcScale());
-    mFullnessMeter = new FullnessMeter(this, mStarPieceCount, mStarPieceCount - mRemainingStarPieceCount);
-    mFullnessMeter->initWithoutIter();
-    mFullnessMeter->setNumber(mStarPieceCount - mRemainingStarPieceCount);
-    MR::tryRegisterDemoCast(this, "ハラペコスターピースチコ紹介", iter);
-    if (!GameSequenceFunction::isTicoFatStarPieceActive()) makeActorDead();
-}
 
 // NONMATCHING: temporary vector stack allocation and literal addressing differ.
 void TicoFatStarPiece::updateEventCamera() {
     if (mNearPlayerTimer <= 0 && mRemainingStarPieceCount != 0 && tryEndEventCamera()) return;
     bool start = false;
-    if (mNearPlayerTimer > 0 && !MR::isGlobalEventCameraActive(lbl_807CFF50)) start = true;
+    if (mNearPlayerTimer > 0 && !MR::isGlobalEventCameraActive(sEventCamera)) start = true;
     if (!start) return;
     CameraTargetArg cameraTarget(this);
-    MR::startGlobalEventCamera(lbl_807CFF50, cameraTarget, 120);
+    MR::startGlobalEventCamera(sEventCamera, cameraTarget, 120);
     TVec3f x, y, z, position;
     MR::extractMtxXYZDir(getBaseMtx(), &x, &y, &z);
     MR::extractMtxTrans(getBaseMtx(), &position);
@@ -360,7 +325,73 @@ void TicoFatStarPiece::updateEventCamera() {
     y.set<f32>(2.0f * (_B0.x * _B0.y) - 2.0f * (_B0.w * _B0.z), (1.0f - 2.0f * (_B0.x * _B0.x)) - 2.0f * (_B0.z * _B0.z), 2.0f * (_B0.y * _B0.z) + 2.0f * (_B0.w * _B0.x));
     z.set<f32>(2.0f * (_B0.x * _B0.z) + 2.0f * (_B0.w * _B0.y), 2.0f * (_B0.y * _B0.z) - 2.0f * (_B0.w * _B0.x), (1.0f - 2.0f * (_B0.x * _B0.x)) - 2.0f * (_B0.y * _B0.y));
     position = _C0;
-    TVec3f eye = ((position + x * lbl_807E3114) + y * 100.0f) + z * MR::getLinerValueFromMinMax(calcScale(), 1.0f, 1.9f, 1300.0f, 1700.0f);
-    TVec3f target = ((position + x * lbl_807E3118) + y * 150.0f) + z * lbl_807E311C;
-    MR::setProgrammableCameraParam(lbl_807CFF50, target, eye, y, false);
+    TVec3f eye = ((position + x * sStarPieceTicoCameraEyeSide) + y * 100.0f) + z * MR::getLinerValueFromMinMax(calcScale(), 1.0f, 1.9f, 1300.0f, 1700.0f);
+    TVec3f target = ((position + x * sStarPieceTicoCameraTargetSide) + y * 150.0f) + z * sStarPieceTicoCameraTargetFront;
+    MR::setProgrammableCameraParam(sEventCamera, target, eye, y, false);
 }
+
+
+// NONMATCHING: floating arithmetic scheduling and register allocation differ.
+f32 TicoFatStarPiece::calcScale() {
+    f32 maxScale = 1.9f;
+    f32 minScale = 1.0f;
+    f32 scaleRange = maxScale - minScale;
+    f32 eatenRatio = static_cast<f32>(mStarPieceCount - mRemainingStarPieceCount) / static_cast<f32>(mStarPieceCount);
+    return minScale + scaleRange * eatenRatio;
+}
+
+
+// NONMATCHING: floating multiply operand register order differs.
+void TicoFatStarPiece::updateScale(f32 scale) {
+    f32 previous = mScale.x;
+    mScale.setAll<f32>(scale);
+    bool hitReaction = false;
+    if ((previous <= 1.3f && 1.3f < scale) || (previous <= 1.6f && 1.6f < scale)) hitReaction = true;
+    if (hitReaction) mScaleController->startHitReaction();
+    MR::startBrk(this, "FatRed");
+    f32 minScale = 1.0f, maxScale = 1.9f;
+    f32 fraction = (scale - minScale) / (maxScale - minScale);
+    fraction = 1.0f >= fraction ? fraction : 1.0f;
+    MR::setBrkFrameAndStop(this, fraction * MR::getBrkFrameMax(this));
+    MR::setSensorRadius(this, "Body", 100.0f * scale);
+    MR::setStarPointerTargetRadius3d(this, 110.0f * scale);
+    MR::setDistanceToTalk(mMsgCtrl, 280.0f * (scale >= 1.5f ? 1.5f : scale));
+    MR::setDistanceToTalk(mEatTalkCtrl, 280.0f * (scale >= 1.5f ? 1.5f : scale));
+    MR::setMessageBalloonFollowOffset(mMsgCtrl, TVec3f(0.0f, 220.0f * scale, 0.0f));
+    MR::setMessageBalloonFollowOffset(mEatTalkCtrl, TVec3f(0.0f, 220.0f * scale, 0.0f));
+}
+
+
+s32 TicoFatStarPiece::calcEatSoundPitch() {
+    s32 divisor = 50;
+    s32 pitch = (mStarPieceCount - mRemainingStarPieceCount - 1) / divisor;
+    if (pitch < 0) pitch = 0;
+    if (pitch > 32) pitch = 32;
+    return pitch;
+}
+
+
+void TicoFatStarPiece::startEatSound() {
+    if (mEatSoundTimer <= 0) {
+        MR::startActionSound(this, "SmTicofatAbsorb", -1, -1, -1);
+        mEatSoundTimer = 5;
+    }
+}
+
+
+void TicoFatStarPiece::startEatCompleteSound() {
+    s32 pitch = calcEatSoundPitch();
+    MR::startActionSound(this, "SmLvTicofatGlad", pitch, -1, -1);
+}
+
+
+bool TicoFatStarPiece::tryEndEventCamera() {
+    if (MR::isGlobalEventCameraActive(sEventCamera)) {
+        MR::endGlobalEventCamera(sEventCamera, 120, true);
+        return true;
+    }
+    return false;
+}
+
+
+TicoFatStarPiece::~TicoFatStarPiece() {}

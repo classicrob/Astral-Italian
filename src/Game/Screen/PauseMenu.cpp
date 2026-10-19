@@ -46,8 +46,8 @@ namespace {
 }
 
 PauseMenu::PauseMenu()
-    : LayoutActor("ポーズメニュー", true), _20(), _24(), _38(), mAllStarList(), mUpButtonPos(0.0f, 0.0f),
-      mDownButtonPos(0.0f, 0.0f), mListButtonPos(0.0f, 0.0f), _30(), _54(true), mNoPowerStars(false), mSelectedResult() {
+    : LayoutActor("ポーズメニュー", true), mUpButton(), mDownButton(), mListButton(), mAllStarList(), mUpButtonPos(0.0f, 0.0f),
+      mDownButtonPos(0.0f, 0.0f), mListButtonPos(0.0f, 0.0f), mSysInfoWindow(), mWasDefaultLayoutActive(true), mNoPowerStars(false), mSelectedResult() {
 }
 
 void PauseMenu::init(const JMapInfoIter& iter) {
@@ -67,20 +67,20 @@ void PauseMenu::init(const JMapInfoIter& iter) {
         else { showDown = true; showList = true; }
     }
     if (isRestrictedStage()) { showDown = false; showList = false; }
-    _20 = new ButtonPaneController(this, "NBackUp", "BoxButton1", 0, true);
-    _20->_22 = false;
+    mUpButton = new ButtonPaneController(this, "NBackUp", "BoxButton1", 0, true);
+    mUpButton->mDisappearOnDecide = false;
     MR::setFollowPos(&mUpButtonPos, this, "UpButton");
     MR::setFollowTypeReplace(this, "UpButton");
     if (showDown) {
-        _24 = new ButtonPaneController(this, "NBackDown", "BoxButton2", 0, true);
-        _24->_22 = false;
+        mDownButton = new ButtonPaneController(this, "NBackDown", "BoxButton2", 0, true);
+        mDownButton->mDisappearOnDecide = false;
         MR::setFollowPos(&mDownButtonPos, this, "DownButton");
         MR::setFollowTypeReplace(this, "DownButton");
         MR::setTextBoxGameMessageRecursive(this, "NBackDown", isInvalidBackMarioFaceShipOrWorldMap() ? "PauseMenu_ButtonEndGame" : "PauseMenu_ButtonBackWorldMap");
     } else MR::hidePaneRecursive(this, "DownButton");
     if (showList) {
-        _38 = new ButtonPaneController(this, "StarListButton", "BoxButton3", 0, true);
-        _38->_22 = false;
+        mListButton = new ButtonPaneController(this, "StarListButton", "BoxButton3", 0, true);
+        mListButton->mDisappearOnDecide = false;
         MR::setFollowPos(&mListButtonPos, this, "ListButton");
         MR::setFollowTypeReplace(this, "ListButton");
     } else MR::hidePaneRecursive(this, "ListButton");
@@ -99,8 +99,8 @@ void PauseMenu::init(const JMapInfoIter& iter) {
         if (world == 8) world = 1;
         MR::setTextBoxMessageRecursive(this, "World", MR::getWorldNameOnCurrentLanguage(world));
     }
-    _30 = MR::createSysInfoWindow();
-    MR::connectToSceneLayoutOnPause(_30);
+    mSysInfoWindow = MR::createSysInfoWindow();
+    MR::connectToSceneLayoutOnPause(mSysInfoWindow);
     initNerve(GET_NERVE(PauseMenu, PauseMenuNrvSelecting));
     mAllStarList = new AllStarList("オールスターリスト", true);
     mAllStarList->initWithoutIter();
@@ -110,8 +110,8 @@ void PauseMenu::appear() {
     s32 coinNum = MR::getCoinNum();
     s32 starPieceNum = MR::getStarPieceNum();
     s32 medalNum = GameDataFunction::calcTicoCoinNum();
-    _54 = MR::isActiveDefaultGameLayout();
-    if (_54) MR::deactivateDefaultGameLayout();
+    mWasDefaultLayoutActive = MR::isActiveDefaultGameLayout();
+    if (mWasDefaultLayoutActive) MR::deactivateDefaultGameLayout();
     MR::hideWorldMapInfoLayout();
     if (MR::isStageNoPauseMenuStars()) {
         MR::hidePaneRecursive(this, "ShaStar");
@@ -138,7 +138,7 @@ void PauseMenu::appear() {
 void PauseMenu::kill() {
     LayoutActor::kill();
 
-    if (_54) {
+    if (mWasDefaultLayoutActive) {
         MR::activateDefaultGameLayout();
     }
 }
@@ -147,9 +147,9 @@ void PauseMenu::control() {
     MR::copyPaneTrans(&mUpButtonPos, this, "UpButtonPos");
     MR::copyPaneTrans(&mDownButtonPos, this, "DownButtonPos");
     MR::copyPaneTrans(&mListButtonPos, this, "ListButtonPos");
-    _20->update();
-    if (_24 != nullptr) _24->update();
-    if (_38 != nullptr) _38->update();
+    mUpButton->update();
+    if (mDownButton != nullptr) mDownButton->update();
+    if (mListButton != nullptr) mListButton->update();
 }
 
 // NONMATCHING: buffer and output pointer register allocation differ.
@@ -187,42 +187,42 @@ bool PauseMenu::isPaneAnimStoppedWithoutButton() const {
 }
 
 void PauseMenu::forceToWaitAllButton() {
-    _20->forceToWait();
+    mUpButton->forceToWait();
 
-    if (_24 != nullptr) {
-        _24->forceToWait();
+    if (mDownButton != nullptr) {
+        mDownButton->forceToWait();
     }
 
-    if (_38 != nullptr) {
-        _38->forceToWait();
+    if (mListButton != nullptr) {
+        mListButton->forceToWait();
     }
 }
 
 void PauseMenu::restartSelecting() {
     startPaneAnimWithoutButton("Appear");
-    _20->appear();
-    if (_24) _24->appear();
-    if (_38) _38->appear();
+    mUpButton->appear();
+    if (mDownButton) mDownButton->appear();
+    if (mListButton) mListButton->appear();
     setNerve(GET_NERVE(PauseMenu, PauseMenuNrvSelecting));
     mSelectedResult = 0;
 }
 
 void PauseMenu::exeSelecting() {
     registerPointer();
-    bool isPointingTrigger = _20->isPointingTrigger() || (_24 != nullptr && _24->isPointingTrigger()) ||
-                             (_38 != nullptr && _38->isPointingTrigger());
+    bool isPointingTrigger = mUpButton->isPointingTrigger() || (mDownButton != nullptr && mDownButton->isPointingTrigger()) ||
+                             (mListButton != nullptr && mListButton->isPointingTrigger());
 
     if (isPointingTrigger) {
         MR::startSystemSE("SE_SY_SELECT_PAUSE_ITEM");
     }
 
-    if (_20->trySelect() || (_24 != nullptr && _24->trySelect()) || (_38 != nullptr && _38->trySelect())) {
+    if (mUpButton->trySelect() || (mDownButton != nullptr && mDownButton->trySelect()) || (mListButton != nullptr && mListButton->trySelect())) {
         setNerve(GET_NERVE(PauseMenu, PauseMenuNrvDecided));
         return;
     }
 
-    bool isAnimStopped = isPaneAnimStoppedWithoutButton() && !_20->isAppearing() && (_24 == nullptr || !_24->isAppearing()) &&
-                         (_38 == nullptr || !_38->isAppearing());
+    bool isAnimStopped = isPaneAnimStoppedWithoutButton() && !mUpButton->isAppearing() && (mDownButton == nullptr || !mDownButton->isAppearing()) &&
+                         (mListButton == nullptr || !mListButton->isAppearing());
 
     if (isAnimStopped && (MR::testCorePadTriggerPlus(0) || MR::testCorePadTriggerMinus(0))) {
         MR::startSystemSE("SE_SY_PAUSE_OFF");
@@ -232,23 +232,23 @@ void PauseMenu::exeSelecting() {
 }
 
 void PauseMenu::exeDecided() {
-    if (_20->mIsSelected) {
-        if (_20->isTimingForSelectedSe()) {
+    if (mUpButton->mIsSelected) {
+        if (mUpButton->isTimingForSelectedSe()) {
             MR::startSystemSE("SE_SY_PAUSE_OFF");
             MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
         }
 
-        if (_20->isDecidedWait()) {
+        if (mUpButton->isDecidedWait()) {
             mSelectedResult = 0;
             setNerve(GET_NERVE(PauseMenu, PauseMenuNrvDisappear));
         }
-    } else if (_24 != nullptr && _24->mIsSelected) {
-        if (_24->isTimingForSelectedSe()) {
+    } else if (mDownButton != nullptr && mDownButton->mIsSelected) {
+        if (mDownButton->isTimingForSelectedSe()) {
             MR::startSystemSE("SE_SY_PAUSE_OFF");
             MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
         }
 
-        if (_24->isDecidedWait()) {
+        if (mDownButton->isDecidedWait()) {
             if (isInvalidBackMarioFaceShipOrWorldMap()) {
                 setNerve(GET_NERVE(PauseMenu, PauseMenuNrvGameDataSave));
             } else {
@@ -256,13 +256,13 @@ void PauseMenu::exeDecided() {
             }
         }
     } else {
-        if (_38 != nullptr && _38->mIsSelected) {
-            if (_38->isTimingForSelectedSe()) {
+        if (mListButton != nullptr && mListButton->mIsSelected) {
+            if (mListButton->isTimingForSelectedSe()) {
                 MR::startSystemSE("SE_SY_PAUSE_DECIDE_S_RESULT");
                 MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
             }
 
-            if (_38->isDecidedWait()) {
+            if (mListButton->isDecidedWait()) {
                 mSelectedResult = 1;
                 setNerve(GET_NERVE(PauseMenu, PauseMenuNrvDisappear));
             }
@@ -274,18 +274,18 @@ void PauseMenu::exeDisappear() {
     if (MR::isFirstStep(this)) {
         if (mSelectedResult != 1) MR::decrementPauseBlurDelay();
         startPaneAnimWithoutButton("End");
-        _20->disappear();
+        mUpButton->disappear();
 
-        if (_24 != nullptr) {
-            _24->disappear();
+        if (mDownButton != nullptr) {
+            mDownButton->disappear();
         }
 
-        if (_38 != nullptr) {
-            _38->disappear();
+        if (mListButton != nullptr) {
+            mListButton->disappear();
         }
     }
 
-    if (isPaneAnimStoppedWithoutButton() && _20->isHidden() && (_24 == nullptr || _24->isHidden()) && (_38 == nullptr || _38->isHidden())) {
+    if (isPaneAnimStoppedWithoutButton() && mUpButton->isHidden() && (mDownButton == nullptr || mDownButton->isHidden()) && (mListButton == nullptr || mListButton->isHidden())) {
         if (mSelectedResult == 1) setNerve(GET_NERVE(PauseMenu, PauseMenuNrvLuigiLetter));
         else kill();
     }
@@ -295,11 +295,11 @@ void PauseMenu::exeConfirm() {
     if (MR::isFirstStep(this)) {
         const char* pMessageId = isInvalidBackMarioFaceShipOrWorldMap() ? "PauseMenu_ConfirmEndGame" : "PauseMenu_ConfirmBackWorldMap";
 
-        _30->appear(pMessageId, SysInfoWindow::Type_YesNo, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        mSysInfoWindow->appear(pMessageId, SysInfoWindow::Type_YesNo, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
     }
 
-    if (MR::isDead(_30)) {
-        if (!_30->isSelectedYes()) {
+    if (MR::isDead(mSysInfoWindow)) {
+        if (!mSysInfoWindow->isSelectedYes()) {
             forceToWaitAllButton();
             setNerve(GET_NERVE(PauseMenu, PauseMenuNrvSelecting));
             return;
@@ -339,13 +339,13 @@ void PauseMenu::exeAllStarList() {
 void PauseMenu::registerPointer() {
     if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
         StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxButton1", StarPointerUtil::getDefaultButtonOffsetVec2());
-        if (_24) StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxButton2", StarPointerUtil::getDefaultButtonOffsetVec2());
-        if (_38) StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxButton3", StarPointerUtil::getDefaultButtonOffsetVec2());
-        if (_24) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton1", "BoxButton2");
-        else if (_38) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton1", "BoxButton3");
-        if (_38) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton3", "BoxButton1");
-        else if (_24) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton2", "BoxButton1");
-        if (_24 && _38) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton2", "BoxButton3");
+        if (mDownButton) StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxButton2", StarPointerUtil::getDefaultButtonOffsetVec2());
+        if (mListButton) StarPointerUtil::addStarPointerMovePositionFromPane(this, "BoxButton3", StarPointerUtil::getDefaultButtonOffsetVec2());
+        if (mDownButton) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton1", "BoxButton2");
+        else if (mListButton) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton1", "BoxButton3");
+        if (mListButton) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton3", "BoxButton1");
+        else if (mDownButton) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton2", "BoxButton1");
+        if (mDownButton && mListButton) StarPointerUtil::setConnectionMovePositionDown2Way("BoxButton2", "BoxButton3");
         StarPointerUtil::setDefaultAllMovePosition("BoxButton1");
     }
     StarPointerUtil::refreshMovePositionsFromLayout(this);

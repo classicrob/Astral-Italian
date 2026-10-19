@@ -36,7 +36,7 @@ namespace NrvFireBubble {
 };  // namespace NrvFireBubble
 
 FireBubble::FireBubble(const char* pName)
-    : LiveActor(pName), mIsValidInfo(), _90(gZeroVec), _9C(0.0f, 0.0f, 1.0f), _A8(::cAppearVelocity), _B4(0.0f, 0.0f, 1.0f), mActFrame(),
+    : LiveActor(pName), mIsValidInfo(), mInitPos(gZeroVec), mInitFront(0.0f, 0.0f, 1.0f), mInitVelocity(::cAppearVelocity), mFront(0.0f, 0.0f, 1.0f), mActFrame(),
       mChaseCounter() {
 }
 
@@ -67,17 +67,17 @@ void FireBubble::init(const JMapInfoIter& rIter) {
 }
 
 void FireBubble::appear() {
-    mPosition.set(_90);
-    _B4.set(_9C);
+    mPosition.set(mInitPos);
+    mFront.set(mInitFront);
     MR::calcGravity(this);
     LiveActor::appear();
     setNerve(GET_NERVE(FireBubble, FireBubbleNrvAppear));
 }
 
 void FireBubble::appear(const TVec3f& rVec1, const TVec3f& rVec2, const TVec3f& rVec3) {
-    _90.set(rVec1);
-    _9C.set(rVec2);
-    _A8.set(rVec3);
+    mInitPos.set(rVec1);
+    mInitFront.set(rVec2);
+    mInitVelocity.set(rVec3);
     appear();
 }
 
@@ -96,11 +96,11 @@ void FireBubble::calcAndSetBaseMtx() {
     TPos3f baseMtx;
     minusGravity.negate(mGravity);
 
-    if (MR::isSameDirection(_B4, minusGravity)) {
+    if (MR::isSameDirection(mFront, minusGravity)) {
         baseMtx.set(getBaseMtx());
         baseMtx.setTrans(mPosition);
     } else {
-        MR::makeMtxUpFrontPos(&baseMtx, minusGravity, _B4, mPosition);
+        MR::makeMtxUpFrontPos(&baseMtx, minusGravity, mFront, mPosition);
     }
 
     MR::setBaseTRMtx(this, baseMtx);
@@ -139,7 +139,7 @@ void FireBubble::initMapToolInfo(const JMapInfoIter& rIter) {
 
     MR::initDefaultPos(this, rIter);
     MR::syncStageSwitchAppearAndSync(this, rIter);
-    _90.set(mPosition);
+    mInitPos.set(mPosition);
     MR::calcGravity(this);
 
     TPos3f Mtx;
@@ -151,7 +151,7 @@ void FireBubble::initMapToolInfo(const JMapInfoIter& rIter) {
     Mtx.getZDir(rotateZDir);
 
     MR::makeMtxUpFront(&Mtx, minusGravity, rotateZDir);
-    Mtx.getZDir(_9C);
+    Mtx.getZDir(mInitFront);
 }
 
 #pragma push
@@ -180,9 +180,9 @@ void FireBubble::updateChaseFrontVec(f32 flt) {
             MR::vecKillElement(vec2, vec3, &vec2);
             MR::normalize(&vec2);
 
-            TVec3f copy(_B4);
+            TVec3f copy(mFront);
 
-            MR::turnVecToVecCos(&_B4, copy, vec2, MR::cosDegree(flt), vec3);
+            MR::turnVecToVecCos(&mFront, copy, vec2, MR::cosDegree(flt), vec3);
         }
     }
 }
@@ -190,7 +190,7 @@ void FireBubble::updateChaseFrontVec(f32 flt) {
 
 void FireBubble::updateChaseFrontVecAndVelocity(f32 flt) {
     updateChaseFrontVec(flt);
-    mVelocity.set(_B4);
+    mVelocity.set(mFront);
     mVelocity.mult(::cChaseSpeed);
 }
 
@@ -256,7 +256,7 @@ void FireBubble::exeAppear() {
         calcAndSetBaseMtx();
         TPos3f baseMtx;
         baseMtx.set(getBaseMtx());
-        baseMtx.mult33(_A8, mVelocity);
+        baseMtx.mult33(mInitVelocity, mVelocity);
 
         mChaseCounter = 0;
     }
@@ -384,9 +384,9 @@ void FireBubble::exeWaitToAppear() {
     }
 
     if (MR::isStep(this, ::cAppearInterval)) {
-        mPosition.set(_90);
-        _B4.set(_9C);
-        _A8.set(::cAppearVelocity);
+        mPosition.set(mInitPos);
+        mFront.set(mInitFront);
+        mInitVelocity.set(::cAppearVelocity);
         MR::calcGravity(this);
         setNerve(GET_NERVE(FireBubble, FireBubbleNrvAppear));
     }

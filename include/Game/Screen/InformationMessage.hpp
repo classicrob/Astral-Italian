@@ -33,13 +33,13 @@ public:
     void setWindowType(s32 windowType) {  // PLACEHOLDER(core): name guessed; writes mWindowType (0x30)
         mWindowType = windowType;
     }
-    void setAButtonPosFlag(bool isOn) {  // PLACEHOLDER(core): name guessed; writes _35 (0x35)
-        _35 = isOn;
+    void setAButtonPosFlag(bool isOn) {  // PLACEHOLDER(core): name guessed; writes mIsAButtonOpened (0x35)
+        mIsAButtonOpened = isOn;
     }
 
 private:
     /* 0x2C */ IconAButton* mAButtonIcon;
     /* 0x30 */ s32 mWindowType;
     /* 0x34 */ bool mIsCenter;
-    /* 0x35 */ bool _35;
+    /* 0x35 */ bool mIsAButtonOpened;
 };

@@ -20,10 +20,8 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-}
 
 
 namespace MR {
@@ -98,7 +96,7 @@ void Petari::init(const JMapInfoIter& rIter) {
     MR::onCalcGravity(this);
     initStarPiece(rIter);
     MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 70.0f, 0.0f));
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
     MR::initUseStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
 }

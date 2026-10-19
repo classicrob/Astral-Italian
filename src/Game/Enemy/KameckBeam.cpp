@@ -38,7 +38,7 @@ bool KameckBeamCollisionFilter::isInvalidParts(const CollisionParts* pCollisionP
     }
 
     if (sensorType != 67) return false;
-    return !MR::isInClipArea(*_4);
+    return !MR::isInClipArea(*mBeamPosition);
 }
 
 namespace NrvKameckBeam {
@@ -47,14 +47,14 @@ namespace NrvKameckBeam {
     NEW_NERVE(KameckBeamNrvExplosion, KameckBeam, Explosion);
     class KameckBeamNrvFire : public Nerve {
     public:
-        virtual void execute(Spine* spine) const { static_cast<KameckBeam*>(spine->mExecutor)->fn_801A7810(); }
+        virtual void execute(Spine* spine) const { static_cast<KameckBeam*>(spine->mExecutor)->exeProjectileFlight(); }
         static KameckBeamNrvFire sInstance;
     };
     KameckBeamNrvFire KameckBeamNrvFire::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKameckBeam
 
 KameckBeam::KameckBeam(const char* pName, s32 kind, s32 count)
-    : LiveActor(pName), mEventListener(), mFollowMtx(), _A4(0, 0, 1), mWandLocalPosition(0, 0, 0), mBeamKind(kind), mProjectileCount(count) {
+    : LiveActor(pName), mEventListener(), mFollowMtx(), mShootDirection(0, 0, 1), mWandLocalPosition(0, 0, 0), mBeamKind(kind), mProjectileCount(count) {
     for (u32 i = 0; i < ARRAY_SIZE(mProjectiles); i++) {
         mProjectiles[i] = nullptr;
     }
@@ -66,13 +66,13 @@ namespace MR {
     }
 };  // namespace MR
 
-KameckBeamCollisionFilter::KameckBeamCollisionFilter(const TVec3f* pVec) : _4(pVec) {
+KameckBeamCollisionFilter::KameckBeamCollisionFilter(const TVec3f* pVec) : mBeamPosition(pVec) {
 }
 
-void KameckBeamProjectile::fn_801A7180() {}
-bool KameckBeamProjectile::fn_801A74D0() { return false; }
+void KameckBeamProjectile::resetBeamProjectile() {}
+bool KameckBeamProjectile::tryStormProjectile() { return false; }
 void KameckBeamProjectile::appearDirection(const TVec3f&, const TVec3f&) {}
-bool KameckBeamProjectile::fn_801A78B0() const { return false; }
+bool KameckBeamProjectile::isBeamProjectileDead() const { return false; }
 
 void KameckBeam::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
@@ -133,7 +133,7 @@ void KameckBeam::calcAnim() {
 }
 
 void KameckBeam::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if ((MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) && fn_801A78C0(pSender, pReceiver)) {
+    if ((MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) && sendBeamAttack(pSender, pReceiver)) {
         if (mEventListener != nullptr) mEventListener->hitBeam();
         kill();
     }
@@ -162,7 +162,7 @@ void KameckBeam::setEventListener(KameckBeamEventListener* pEventListener) {
 }
 
 void KameckBeam::resetBeam() {
-    for (u32 i = 0; i < mProjectileCount; i++) mProjectiles[i]->fn_801A7180();
+    for (u32 i = 0; i < mProjectileCount; i++) mProjectiles[i]->resetBeamProjectile();
 }
 
 bool KameckBeam::requestFollowWand(MtxPtr pMtx, f32 scale) {
@@ -201,7 +201,7 @@ void KameckBeam::requestShoot(const TVec3f& rDir, f32 speed) {
     MR::validateShadow(this, nullptr);
     mFollowMtx = nullptr;
     setNerve(GET_NERVE(KameckBeam, KameckBeamNrvShoot));
-    _A4.set(rDir);
+    mShootDirection.set(rDir);
     mVelocity.set(rDir * speed);
 }
 
@@ -209,7 +209,7 @@ bool KameckBeam::requestStorm(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::getSensorPos(pSender)->distance(*MR::getSensorPos(pReceiver)) >= 500.0f) return false;
     if (!isNerve(GET_NERVE(KameckBeam, KameckBeamNrvShoot))) return false;
     for (u32 i = 0; i < mProjectileCount; i++) {
-        if (mProjectiles[i]->fn_801A74D0()) {
+        if (mProjectiles[i]->tryStormProjectile()) {
             kill();
             return true;
         }
@@ -236,13 +236,13 @@ bool KameckBeam::tryShootEnd() {
     return false;
 }
 
-bool KameckBeam::fn_801A7590() {
+bool KameckBeam::tryFireProjectiles() {
     TVec3f direction;
-    direction.killElement(_A4, mGravity);
+    direction.killElement(mShootDirection, mGravity);
     if (MR::isNearZero(direction)) MR::makeAxisVerticalZX(&direction, mGravity);
     else MR::normalize(&direction);
     for (u32 i = 0; i < mProjectileCount; i++) {
-        mProjectiles[i]->fn_801A7E30(mEventListener);
+        mProjectiles[i]->setProjectileEventListener(mEventListener);
         TVec3f rotated;
         MR::rotateVecDegree(&rotated, direction, mGravity, sFireAngleList[mProjectileCount][i]);
         mProjectiles[i]->appearDirection(mPosition, rotated);
@@ -258,7 +258,7 @@ bool KameckBeam::fn_801A7590() {
 void KameckBeam::exeShoot() {
     if (MR::isFirstStep(this)) MR::startActionSound(this, "BmKameckFireShoot");
     if (MR::isInWater(mPosition) || MR::isBindedGroundSinkDeath(this)) {
-        fn_801A79D0();
+        emitBeamBreakEffect();
         kill();
         return;
     }
@@ -269,24 +269,24 @@ void KameckBeam::exeShoot() {
 }
 
 void KameckBeam::exeExplosion() {
-    if (fn_801A7590()) {
+    if (tryFireProjectiles()) {
         MR::shakeCameraNormalWeak();
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
-        fn_801A79D0();
+        emitBeamBreakEffect();
         return;
     }
     kill();
 }
 
-void KameckBeam::fn_801A7810() {
+void KameckBeam::exeProjectileFlight() {
     bool dead = true;
     for (u32 i = 0; i < mProjectileCount; i++) {
-        if (!mProjectiles[i]->fn_801A78B0()) { dead = false; break; }
+        if (!mProjectiles[i]->isBeamProjectileDead()) { dead = false; break; }
     }
     if (dead) kill();
 }
 
-bool KameckBeam::fn_801A78C0(HitSensor* sender, HitSensor* receiver) {
+bool KameckBeam::sendBeamAttack(HitSensor* sender, HitSensor* receiver) {
     switch (mBeamKind) {
     case BeamType_Turtle: return MR::sendMsgEnemyAttackStrong(receiver, sender);
     case BeamType_FireBall1: return MR::sendMsgEnemyAttackFire(receiver, sender);
@@ -318,7 +318,7 @@ void KameckBeam::emitBeamEffect() {
     }
 }
 
-void KameckBeam::fn_801A79D0() {
+void KameckBeam::emitBeamBreakEffect() {
     switch (mBeamKind) {
     case BeamType_Turtle: MR::emitEffect(this, "BeamTurtleBreak"); return;
     case BeamType_FireBall1:

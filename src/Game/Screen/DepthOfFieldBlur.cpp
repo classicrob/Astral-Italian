@@ -16,11 +16,11 @@ DepthOfFieldBlur::DepthOfFieldBlur(const char* name)
     MR::connectToSceneImageEffect(this);
     MR::createImageEffectSystemHolder();
     MR::getImageEffectResource()->createDOFTexture();
-    mScreenTexture = MR::getImageEffectResource()->_0;
-    mOriginalTexture = MR::getImageEffectResource()->_10;
-    mReducedTexture = MR::getImageEffectResource()->_4;
-    mBlurTexture = MR::getImageEffectResource()->_C;
-    mDepthTexture = MR::getImageEffectResource()->_24;
+    mScreenTexture = MR::getImageEffectResource()->mScreenTexture;
+    mOriginalTexture = MR::getImageEffectResource()->mQuarterTextureB;
+    mReducedTexture = MR::getImageEffectResource()->mHalfTexture;
+    mBlurTexture = MR::getImageEffectResource()->mQuarterTextureA;
+    mDepthTexture = MR::getImageEffectResource()->mDepthTexture;
 }
 
 void DepthOfFieldBlur::draw() const {
@@ -39,7 +39,7 @@ void DepthOfFieldBlur::draw() const {
 void DepthOfFieldBlur::createBlurTexture() const {
     ImageEffectLocalUtil::drawTexture(mReducedTexture, 4, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
     ImageEffectLocalUtil::capture(mBlurTexture, 4, 0, GX_TF_RGB565, false, 0);
-    blurTexture(mBlurTexture, 4, 0, 0.005f * (mIntensity * get_10()));
+    blurTexture(mBlurTexture, 4, 0, 0.005f * (mIntensity * getFadeRate()));
     ImageEffectLocalUtil::capture(mBlurTexture, 4, 0, GX_TF_RGB565, false, 0);
 }
 
@@ -198,7 +198,7 @@ void DepthOfFieldBlur::drawFinal() const {
     mBlurTexture->load(GX_TEXMAP0);
     getFogTexture()->load(GX_TEXMAP1);
     mDepthTexture->load(GX_TEXMAP2);
-    GXSetChanMatColor(GX_COLOR0A0, Color8(255, 255, 255, 255.0f * (mIntensity * get_10())));
+    GXSetChanMatColor(GX_COLOR0A0, Color8(255, 255, 255, 255.0f * (mIntensity * getFadeRate())));
     GXSetChanAmbColor(GX_COLOR0A0, Color8(0, 0, 0, 255));
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT1, 4);

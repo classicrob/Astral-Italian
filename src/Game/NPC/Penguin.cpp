@@ -43,10 +43,10 @@ namespace NrvPenguin {
 RemovableTurtle::RemovableTurtle(LiveActor* pHost, bool isGolden) {
     if (isGolden) {
         mShellModel = new TurtlePartsModel(pHost, "ペンギン用ゴールデンコウラ", "KouraShine", nullptr,
-                                           MR::DrawBufferType_NPC, false);
+                                           MR::DrawBufferType_NoSilhouettedMapObjStrongLight, false);
         mJetTurtle = new GoldenTurtle("ゴールデン甲羅");
     } else {
-        mShellModel = new PartsModel(pHost, "ペンギン用コウラ", "Koura", nullptr, MR::DrawBufferType_NPC, false);
+        mShellModel = new PartsModel(pHost, "ペンギン用コウラ", "Koura", nullptr, MR::DrawBufferType_NoSilhouettedMapObjStrongLight, false);
         mJetTurtle = new JetTurtle("ジェット亀さん");
         MR::startBrk(mShellModel, "Color");
         MR::setBrkFrameAndStop(mShellModel, 0.0f);
@@ -123,7 +123,8 @@ void Penguin::init(const JMapInfoIter& rIter) {
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, color);
 
-    setDefaults();
+    _130=cNPCSpinDefault; _134=cNPCTrampledDefault;
+    _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
     _128 = false;
     _12C = ::sDistanceCall;
 

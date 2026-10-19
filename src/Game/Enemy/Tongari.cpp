@@ -160,7 +160,7 @@ void Tongari::exeWait() {
         return;
     }
 
-    fn_80215090(0.5f);
+    rotateOnRail(0.5f);
     if (mIs2D) {
         fn_80214610(&mFront, this);
     }
@@ -215,7 +215,7 @@ void Tongari::exeFreeze() {
     }
 }
 
-void Tongari::fn_80215090(f32 angle) {
+void Tongari::rotateOnRail(f32 angle) {
     TVec3f dir;
     MR::calcRailDirection(&dir, this);
     if (!MR::isRailGoingToEnd(this)) {

@@ -15,7 +15,7 @@ namespace MR {
     void startActionSound(const LiveActor* pActor, const char* pName, s32 pitch, s32 velocity, s32 volume) {
         const ActorActionSoundKeeper* soundInfo = getActionSoundInfo(pActor);
         if (soundInfo != nullptr) {
-            soundInfo->fn_8021F470(pName, pitch, velocity, volume);
+            soundInfo->playActionSoundKeeper(pName, pitch, velocity, volume);
         }
     }
 }  // namespace MR

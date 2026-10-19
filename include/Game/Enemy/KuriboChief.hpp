@@ -13,8 +13,8 @@ class KeySwitch;
 
 class KuriboChief : public LiveActor {
 public:
-    bool fn_801BC910() const;
-    bool fn_801BC140();
+    bool isBlowDownNerve() const;
+    bool tryDieInHazard();
     KuriboChief(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -47,9 +47,9 @@ public:
     bool isEnableAttack() const;
     bool isEnableKick() const;
     bool isDown() const;
-    void fn_801BBEC0(const TVec3f&, const TQuat4f&, const TVec3f&);
-    void fn_801BBFB0(const TVec3f&, const TQuat4f&, const TVec3f&);
-    void fn_801BC000(const TVec3f&, const TQuat4f&, const TVec3f&, HitSensor*, HitSensor*);
+    void setPositionRotationVelocity(const TVec3f&, const TQuat4f&, const TVec3f&);
+    void appearAndWander(const TVec3f&, const TQuat4f&, const TVec3f&);
+    void appearAndStagger(const TVec3f&, const TQuat4f&, const TVec3f&, HitSensor*, HitSensor*);
 
     /* 0x90 */ AnimScaleController* mScaleController;
     /* 0x94 */ WalkerStateWander* mStateWander;

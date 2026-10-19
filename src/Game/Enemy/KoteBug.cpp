@@ -59,7 +59,7 @@ namespace NrvKoteBug {
     NEW_NERVE_ONEND(HostTypeNrvWait, KoteBug, Wait, Wait);
     class HostTypeNrvAppear : public Nerve {
     public:
-        virtual void execute(Spine* spine) const { static_cast<KoteBug*>(spine->mExecutor)->fn_801B6650(); }
+        virtual void execute(Spine* spine) const { static_cast<KoteBug*>(spine->mExecutor)->exeKotePreEscape(); }
         static HostTypeNrvAppear sInstance;
     };
     HostTypeNrvAppear HostTypeNrvAppear::sInstance ATTRIBUTE_WEAK;
@@ -88,7 +88,7 @@ namespace NrvKoteBug {
 
 KoteBug::KoteBug(const char* pName)
     : LiveActor(pName), mScaleController(), mStampController(), mSpinHitController(), mStarPointer(), mFront(0, 0, 1), mPosture(0, 0, 0, 1),
-      mYoshiLockOn(), _C0(0), _C4(false), mJointController() {
+      mYoshiLockOn(), mOverturnCooldown(0), mIsRecoverBind(false), mJointController() {
 }
 
 void KoteBug::init(const JMapInfoIter& rIter) {
@@ -127,8 +127,8 @@ void KoteBug::control() {
 
     mScaleController->updateNerve();
     mStampController->updateNerve();
-    if (_C0 > 0) _C0--;
-    if (fn_801B7B40()) {
+    if (mOverturnCooldown > 0) mOverturnCooldown--;
+    if (isOverturnedPosture()) {
         TQuat4f rotation;
         rotation.setRotate(TVec3f(1, 0, 0), 3.1415927f);
         mPosture.slerp(rotation, ::hOverturnRotateRate);
@@ -140,10 +140,10 @@ void KoteBug::control() {
         mPosture.slerp(TQuat4f(0, 0, 0, 1), ::hRecoverRotateRate);
     }
 
-    if (fn_801B7D60()) return;
+    if (tryStartKoteStarBind()) return;
 }
 
-void KoteBug::fn_801B6650() {
+void KoteBug::exeKotePreEscape() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "PreEscape");
         MR::startActionSound(this, "EmKotebugFind");
@@ -439,7 +439,7 @@ void KoteBug::exeBindStarPointer() {
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (MR::updateActorState(this)) {
-        if (_C4) {
+        if (mIsRecoverBind) {
             setNerve(GET_NERVE(KoteBug, HostTypeNrvRecover));
         } else {
             setNerve(GET_NERVE(KoteBug, HostTypeNrvWait));
@@ -464,7 +464,7 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return false;
         }
 
-        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && _C4)) {
+        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && mIsRecoverBind)) {
             MR::startActionSound(this, "EmStompedS");
             ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
             setNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath));
@@ -503,8 +503,8 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && _C4)) {
-            if (_C0 == 0) {
+        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && mIsRecoverBind)) {
+            if (mOverturnCooldown == 0) {
                 mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
                 ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
                 setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
@@ -513,7 +513,7 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return false;
         }
 
-        _C0 = 30;
+        mOverturnCooldown = 30;
         setOverturnFall(pSender, pReceiver);
         return true;
     }
@@ -535,7 +535,7 @@ bool KoteBug::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
         }
 
         if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) ||
-            isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && _C4)) {
+            isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && mIsRecoverBind)) {
             mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
             ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
             setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
@@ -550,25 +550,25 @@ bool KoteBug::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
     return false;
 }
 
-bool KoteBug::fn_801B7B40() const {
+bool KoteBug::isOverturnedPosture() const {
     if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) return true;
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer))) return _C4;
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer))) return mIsRecoverBind;
     return false;
 }
 
-bool KoteBug::fn_801B7BE0() const {
+bool KoteBug::isKoteStarBindable() const {
     if (isNerve(GET_NERVE(KoteBug, HostTypeNrvNoCalcWait)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvWait)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvSearch)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvEscapeSearch)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreEscape)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyEscape)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) return true;
     return false;
 }
 
-bool KoteBug::fn_801B7CF0() const {
+bool KoteBug::isRecoveringOverturn() const {
     if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) return true;
     return false;
 }
 
-bool KoteBug::fn_801B7D60() {
-    if (fn_801B7BE0() && mStarPointer->tryStartPointBind()) {
-        _C4 = fn_801B7CF0();
+bool KoteBug::tryStartKoteStarBind() {
+    if (isKoteStarBindable() && mStarPointer->tryStartPointBind()) {
+        mIsRecoverBind = isRecoveringOverturn();
         setNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer));
         return true;
     }
@@ -662,7 +662,7 @@ bool KoteBug::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 void KoteBug::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
-    TPos3f stampMtx(mStampController->_14);
+    TPos3f stampMtx(mStampController->mScaleMtx);
     mtx.concat(stampMtx, mtx);
     mtx.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx);

@@ -46,14 +46,14 @@ public:
     void setUp(const TVec3f&, const TQuat4f&, const TVec3f&);
     void appearBlowed(const TVec3f&, const TQuat4f&, const TVec3f&);
     void appearHipDropped(const TVec3f&, const TQuat4f&);
-    void fn_801B9B10(const TVec3f&, const TQuat4f&, const TVec3f&);
-    bool fn_801B9880(HitSensor*, HitSensor*);
-    void fn_801B9BD0(const TVec3f&, const TQuat4f&);
-    void fn_801B9C60(const TVec3f&, const TQuat4f&);
-    void fn_801BA420();
-    bool fn_801BACC0() const;
-    bool fn_801BAD90() const;
-    bool fn_801BAF60() const;
+    void appearKuriboWandering(const TVec3f&, const TQuat4f&, const TVec3f&);
+    bool requestKuriboStaggerWithoutRecovery(HitSensor*, HitSensor*);
+    void appearKuriboFromBox(const TVec3f&, const TQuat4f&);
+    void appearKuriboHipDroppedWithoutBind(const TVec3f&, const TQuat4f&);
+    void exeKuriboLaunch();
+    bool canKuriboStartStagger() const;
+    bool canKuriboReceiveStagger() const;
+    bool canKuriboBeEatenByYoshi() const;
     bool tryNonActive();
     bool tryActive();
     bool tryEndBlow();
@@ -86,19 +86,19 @@ public:
     bool isEnablePanch() const;
     bool isEnablePushMove() const;
 
-    /* 0x8C */ AnimScaleController* mScaleController;
-    /* 0x90 */ WalkerStateWander* mStateWander;
-    /* 0x94 */ WalkerStateFindPlayer* mStateFindPlayer;
-    /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
-    /* 0x9C */ WalkerStateStagger* mStateStagger;
-    /* 0xA0 */ WalkerStateChase* mStateChase;
-    /* 0xA4 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0xA8 */ TQuat4f _A8;
-    /* 0xB8 */ TVec3f _B8;
-    /* 0xC4 */ s32 _C8;
-    /* 0xC8 */ bool _C4;
-    /* 0xC9 */ u8 _C5;
-    /* 0xCA */ bool _CE;
+    /* 0x90 */ AnimScaleController* mScaleController;
+    /* 0x94 */ WalkerStateWander* mStateWander;
+    /* 0x98 */ WalkerStateFindPlayer* mStateFindPlayer;
+    /* 0x9C */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0xA0 */ WalkerStateStagger* mStateStagger;
+    /* 0xA4 */ WalkerStateChase* mStateChase;
+    /* 0xA8 */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0xAC */ TQuat4f mOrientation;
+    /* 0xBC */ TVec3f mFrontDirection;
+    /* 0xC8 */ s32 mAppearState;
+    /* 0xCC */ bool mNoGravitySupport;
+    /* 0xCD */ u8 mItemDropsEnabled;
+    /* 0xCE */ bool mWasUpsideDown;
 };
 
 namespace MR {

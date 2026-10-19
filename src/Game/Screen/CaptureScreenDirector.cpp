@@ -14,7 +14,7 @@ namespace {
                                       {"WipeMap", 5, true, 1},     {"SystemWipe", 20, false, 1}, {"Unused", 16, false, 0}};
 };  // namespace
 
-CaptureScreenDirector::CaptureScreenDirector() : NameObj("画面キャプチャ"), _C(nullptr), mTimingType("Indirect"), mTexture(nullptr), _18(false) {
+CaptureScreenDirector::CaptureScreenDirector() : NameObj("画面キャプチャ"), mCurrentTimingName(nullptr), mTimingType("Indirect"), mTexture(nullptr), mIsCaptureRequested(false) {
     MR::CurrentHeapRestorer heapRestorer(MR::getStationedHeapGDDR3());
 
     mTexture = new JUTTexture(JUTVideo::getManager()->getRenderMode()->fbWidth, JUTVideo::getManager()->getRenderMode()->efbHeight, GX_TF_RGB565);
@@ -23,10 +23,10 @@ CaptureScreenDirector::CaptureScreenDirector() : NameObj("画面キャプチャ"
 void CaptureScreenDirector::captureIfAllow(const char* pName) {
     const TimingInfo* pInfo = findFromName(pName);
 
-    if (getUsingTiming() == pInfo && (getUsingTiming()->_C == 0 || _18)) {
+    if (getUsingTiming() == pInfo && (getUsingTiming()->_C == 0 || mIsCaptureRequested)) {
         capture();
 
-        _18 = false;
+        mIsCaptureRequested = false;
     }
 }
 
@@ -42,8 +42,8 @@ void CaptureScreenDirector::requestCaptureTiming(const char* pName) {
     const TimingInfo* pInfo = findFromName(pName);
 
     if (getCurrentTiming() == nullptr || getCurrentTiming()->mTiming < pInfo->mTiming) {
-        _C = pName;
-        _18 = true;
+        mCurrentTimingName = pName;
+        mIsCaptureRequested = true;
     }
 }
 
@@ -52,7 +52,7 @@ void CaptureScreenDirector::invalidateCaptureTiming(const char* pName) {
 
     if (pInfo != nullptr) {
         if (strcmp(pInfo->mName, pName) == 0) {
-            _C = nullptr;
+            mCurrentTimingName = nullptr;
         }
     }
 }
@@ -66,16 +66,16 @@ u8* CaptureScreenDirector::getTexImage() const {
 }
 
 const TimingInfo* CaptureScreenDirector::getUsingTiming() const {
-    if (_C != nullptr) {
-        return findFromName(_C);
+    if (mCurrentTimingName != nullptr) {
+        return findFromName(mCurrentTimingName);
     }
 
     return findFromName(mTimingType);
 }
 
 const TimingInfo* CaptureScreenDirector::getCurrentTiming() const {
-    if (_C != nullptr) {
-        return findFromName(_C);
+    if (mCurrentTimingName != nullptr) {
+        return findFromName(mCurrentTimingName);
     }
 
     return nullptr;

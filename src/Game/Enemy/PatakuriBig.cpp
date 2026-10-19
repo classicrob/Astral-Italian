@@ -21,13 +21,13 @@ namespace {
     };                                                                                                                                           \
     name name::sInstance ATTRIBUTE_WEAK;
 
-    PATAKURI_NERVE(PatakuriNrvRail, Patakuri, fn_801E52A0);
-    PATAKURI_NERVE(PatakuriNrvBlow, Patakuri, fn_801E54C0);
-    PATAKURI_NERVE(PatakuriNrvSwoonLand, Patakuri, fn_801E5540);
-    PATAKURI_NERVE(PatakuriNrvStaggerEnd, Patakuri, fn_801E55A0);
-    PATAKURI_NERVE(PatakuriNrvHipDropDown, Patakuri, fn_801E5640);
-    PATAKURI_NERVE(PatakuriNrvCoinPop, Patakuri, fn_801E5730);
-    PATAKURI_NERVE(PatakuriNrvHitStep, Patakuri, fn_801E57D0);
+    PATAKURI_NERVE(PatakuriNrvRail, Patakuri, exeRail);
+    PATAKURI_NERVE(PatakuriNrvBlow, Patakuri, exePatakuriBlow);
+    PATAKURI_NERVE(PatakuriNrvSwoonLand, Patakuri, exeLandSwoon);
+    PATAKURI_NERVE(PatakuriNrvStaggerEnd, Patakuri, exePatakuriStaggerEnd);
+    PATAKURI_NERVE(PatakuriNrvHipDropDown, Patakuri, exePatakuriHipDropDown);
+    PATAKURI_NERVE(PatakuriNrvCoinPop, Patakuri, exeCoinPop);
+    PATAKURI_NERVE(PatakuriNrvHitStep, Patakuri, exeHitStep);
 
     class PatakuriNrvBind : public Nerve {
     public:
@@ -39,7 +39,7 @@ namespace {
     };
     PatakuriNrvBind PatakuriNrvBind::sInstance ATTRIBUTE_WEAK;
 
-    PATAKURI_NERVE(PatakuriNrvDead, Patakuri, fn_801E5830);
+    PATAKURI_NERVE(PatakuriNrvDead, Patakuri, exePatakuriDead);
 
     class PatakuriWingNrvWait : public Nerve {
     public:
@@ -74,7 +74,7 @@ PatakuriWing::PatakuriWing(LiveActor* pHost)
 
 PatakuriWing::~PatakuriWing() {}
 
-void PatakuriWing::fn_801E4A20() {
+void PatakuriWing::startWingDamage() {
     MR::startAction(this, "Damage");
     mCalcOwnMatrix = false;
     mCheckHiddenHost = true;
@@ -164,41 +164,41 @@ void Patakuri::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-bool Patakuri::fn_801E58C0() const {
+bool Patakuri::isRailOrBind() const {
     if (isNerve(&PatakuriNrvRail::sInstance) || isNerve(&PatakuriNrvBind::sInstance)) {
         return true;
     }
     return false;
 }
 
-bool Patakuri::fn_801E4E50() {
-    if (!fn_801E58C0()) {
+bool Patakuri::tryTrampleDefeat() {
+    if (!isRailOrBind()) {
         return false;
     }
 
-    mWing->fn_801E4A20();
+    mWing->startWingDamage();
     setNerve(&PatakuriNrvDead::sInstance);
 
-    TVec3f pos = fn_801E4F40(this);
+    TVec3f pos = calcBodyDropPos(this);
     mBody->appearHipDropped(pos, mQuat);
     ScoreAttackFunction::scoreTrample(this);
     return true;
 }
 
-bool Patakuri::fn_801E4ED0() {
-    if (!fn_801E58C0()) {
+bool Patakuri::tryStartHipDropDown() {
+    if (!isRailOrBind()) {
         return false;
     }
 
     MR::offBind(this);
     MR::zeroVelocity(this);
     MR::invalidateHitSensors(this);
-    mWing->fn_801E4A20();
+    mWing->startWingDamage();
     setNerve(&PatakuriNrvHipDropDown::sInstance);
     return true;
 }
 
-TVec3f Patakuri::fn_801E4F40(Patakuri* pPatakuri) {
+TVec3f Patakuri::calcBodyDropPos(Patakuri* pPatakuri) {
     TVec3f bodyRoot;
     TVec3f bodyBody;
     TVec3f actorRoot;
@@ -217,17 +217,17 @@ bool Patakuri::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
     if (MR::isMsgPlayerTrample(msg)) {
-        return fn_801E4E50();
+        return tryTrampleDefeat();
     }
     if (MR::isMsgPlayerHipDrop(msg)) {
-        return fn_801E4ED0();
+        return tryStartHipDropDown();
     }
     if (MR::isMsgPlayerHitAll(msg) || MR::isMsgStarPieceAttack(msg)) {
-        mWing->fn_801E4A20();
+        mWing->startWingDamage();
         setNerve(&PatakuriNrvDead::sInstance);
 
-        TVec3f pos = fn_801E4F40(this);
-        mBody->fn_801B9B10(pos, mQuat, mVelocity);
+        TVec3f pos = calcBodyDropPos(this);
+        mBody->appearKuriboWandering(pos, mQuat, mVelocity);
         mBody->receiveMsgPlayerAttack(msg, pSender, pReceiver);
         MR::invalidateClipping(mBody);
         MR::invalidateClipping(this);
@@ -244,7 +244,7 @@ bool Patakuri::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver
         TVec3f up = -mGravity;
         MR::makeQuatUpFront(&quat, up, toPlayer);
 
-        mBody->fn_801B9B10(fn_801E4F40(this), quat, mGravity * -30.0f);
+        mBody->appearKuriboWandering(calcBodyDropPos(this), quat, mGravity * -30.0f);
         setNerve(&PatakuriNrvHitStep::sInstance);
         return true;
     }
@@ -261,7 +261,7 @@ bool Patakuri::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver
     return false;
 }
 
-void Patakuri::fn_801E52A0() {
+void Patakuri::exeRail() {
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startAction(mWing, "Wait");
         MR::startAction(this, "PatakuriWait");
@@ -296,7 +296,7 @@ void Patakuri::fn_801E52A0() {
     }
 }
 
-void Patakuri::fn_801E54C0() {
+void Patakuri::exePatakuriBlow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Blow");
     }
@@ -306,7 +306,7 @@ void Patakuri::fn_801E54C0() {
     }
 }
 
-void Patakuri::fn_801E5540() {
+void Patakuri::exeLandSwoon() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "SwoonLand");
     }
@@ -315,24 +315,24 @@ void Patakuri::fn_801E5540() {
     }
 }
 
-void Patakuri::fn_801E55A0() {
+void Patakuri::exePatakuriStaggerEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StaggerEnd");
     }
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriNrvDead::sInstance);
-        mBody->fn_801B9B10(fn_801E4F40(this), mQuat, TVec3f(0.0f, 0.0f, 0.0f));
+        mBody->appearKuriboWandering(calcBodyDropPos(this), mQuat, TVec3f(0.0f, 0.0f, 0.0f));
     }
 }
 
-void Patakuri::fn_801E5640() {
+void Patakuri::exePatakuriHipDropDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HipDropDown");
     }
     MR::setPosition(this, *MR::getPlayerPos());
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriNrvDead::sInstance);
-        TVec3f pos = fn_801E4F40(this);
+        TVec3f pos = calcBodyDropPos(this);
         MR::setPosition(mBody, pos);
         MR::appearCoinPop(mBody, mBody->mPosition, 1);
         mBody->calcAndSetBaseMtx();
@@ -345,10 +345,10 @@ void Patakuri::fn_801E5640() {
     }
 }
 
-void Patakuri::fn_801E5730() {
+void Patakuri::exeCoinPop() {
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriNrvDead::sInstance);
-        TVec3f pos = fn_801E4F40(this);
+        TVec3f pos = calcBodyDropPos(this);
         MR::setPosition(mBody, pos);
         MR::appearCoinPop(mBody, mBody->mPosition, 1);
         mBody->calcAndSetBaseMtx();
@@ -357,7 +357,7 @@ void Patakuri::fn_801E5730() {
     }
 }
 
-void Patakuri::fn_801E57D0() {
+void Patakuri::exeHitStep() {
     if (MR::isStep(this, 1)) {
         mWing->mCheckHiddenHost = true;
         MR::hideModelAndOnCalcAnim(this);
@@ -365,7 +365,7 @@ void Patakuri::fn_801E57D0() {
     }
 }
 
-void Patakuri::fn_801E5830() {
+void Patakuri::exePatakuriDead() {
     if (MR::isFirstStep(this)) {
         MR::invalidateHitSensors(this);
     }

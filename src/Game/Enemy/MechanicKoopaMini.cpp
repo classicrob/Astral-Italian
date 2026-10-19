@@ -71,7 +71,7 @@ namespace {
 MechanicKoopaMini::MechanicKoopaMini(const char* pName) : LiveActor(pName) {
     mIsAppearJumping = false;
     mIsForbidPause = false;
-    _8E = false;
+    mResumeFireAfterBind = false;
     mKeySwitch = nullptr;
     mScaleController = nullptr;
     mBindStarPointer = nullptr;
@@ -147,7 +147,7 @@ void MechanicKoopaMini::exeWait() {
 
     MR::moveAndTurnToPlayer(this, ::hNoMoveNoTurnParam._0, ::hNoMoveNoTurnParam._4, ::hNoMoveNoTurnParam._8, ::hNoMoveNoTurnParam._C);
 
-    if (!fn_801C34F0() && MR::isGreaterStep(this, 120)) {
+    if (!tryFindPlayerForPursuit() && MR::isGreaterStep(this, 120)) {
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail));
     }
 }
@@ -162,8 +162,8 @@ void MechanicKoopaMini::exeWalkOnRail() {
         MR::moveAndTurnAlongRail(this, 600.0f, ::hWalkParam._0, ::hWalkParam._4, ::hWalkParam._8, ::hWalkParam._C, &canTurn);
         TVec3f frontVec;
         MR::calcFrontVec(&frontVec, this);
-        if (fn_801C3590()) return;
-        if (fn_801C34F0()) return;
+        if (tryJumpAgainstWall()) return;
+        if (tryFindPlayerForPursuit()) return;
     } else {
         MR::moveAndTurnAlongRail(this, 600.0f, ::hOnAirMoveParam._0, ::hOnAirMoveParam._4, ::hOnAirMoveParam._8, ::hOnAirMoveParam._C, &canTurn);
     }
@@ -259,7 +259,7 @@ void MechanicKoopaMini::exePursue() {
 
     if (MR::isOnGround(this)) {
         MR::moveAndTurnToPlayer(this, ::hPursueParam._0, ::hPursueParam._4, ::hPursueParam._8, ::hPursueParam._C);
-        if (fn_801C3590()) return;
+        if (tryJumpAgainstWall()) return;
     } else {
         MR::moveAndTurnToPlayer(this, hOnAirMoveParam._0, hOnAirMoveParam._4, hOnAirMoveParam._8, hOnAirMoveParam._C);
     }
@@ -435,7 +435,7 @@ void MechanicKoopaMini::exeHipDropped() {
 
 void MechanicKoopaMini::exeBindStarPointer() {
     if (MR::updateActorState(this)) {
-        if (_8E) {
+        if (mResumeFireAfterBind) {
             setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind));
         } else {
             setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail));
@@ -458,13 +458,13 @@ void MechanicKoopaMini::control() {
         isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPursue)) ||
         isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvTrample)) ||
         isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttackEnd))) && mBindStarPointer->tryStartPointBind()) {
-        _8E = false;
+        mResumeFireAfterBind = false;
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer));
         return;
     }
 
     if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttack)) && mBindStarPointer->tryStartPointBind()) {
-        _8E = false;
+        mResumeFireAfterBind = false;
         MR::startAction(this, "FireEnd");
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer));
         return;
@@ -472,7 +472,7 @@ void MechanicKoopaMini::control() {
 
     if (((isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) && MR::isGreaterStep(this, 60)) ||
         isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind))) && mBindStarPointer->tryStartPointBind()) {
-        _8E = true;
+        mResumeFireAfterBind = true;
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer));
     }
 }
@@ -532,7 +532,7 @@ bool MechanicKoopaMini::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitS
         } else {
             MR::startActionSound(this, "EmMkoopaminiTrample");
             if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) ||
-                (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer)) && _8E) ||
+                (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer)) && mResumeFireAfterBind) ||
                 isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind))) {
                 return true;
             }
@@ -626,7 +626,7 @@ void MechanicKoopaMini::exeWaterBreak() {
         MR::emitItemStomp(this);
     }
 }
-bool MechanicKoopaMini::fn_801C34F0() {
+bool MechanicKoopaMini::tryFindPlayerForPursuit() {
     if (MR::calcDistanceToPlayer(this) < 900.0f && MR::isFaceToPlayerDegree(this, 120.0f)) {
         bool enabled = false;
         if (!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) enabled = true;
@@ -637,7 +637,7 @@ bool MechanicKoopaMini::fn_801C34F0() {
     }
     return false;
 }
-bool MechanicKoopaMini::fn_801C3590() {
+bool MechanicKoopaMini::tryJumpAgainstWall() {
     TVec3f front;
     MR::calcFrontVec(&front, this);
     if (MR::isBindedWall(this)) {

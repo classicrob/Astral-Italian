@@ -42,7 +42,7 @@ void WanwanCreator::init(const JMapInfoIter& rIter) {
     }
     mWanwans = new Wanwan[mCount];
     for (s32 i = 0; i < mCount; i++) {
-        mWanwans[i]._90 = this;
+        mWanwans[i].mItemSource = this;
         mWanwans[i].mSpeed = mSpeed;
         mWanwans[i].init(rIter);
         if (mBreakAtGoal) {

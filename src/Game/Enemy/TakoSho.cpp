@@ -46,6 +46,16 @@ namespace NrvTakoSho {
     TakoShoNrvSupportFreeze TakoShoNrvSupportFreeze::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvTakoSho
 
+void TakoSho::turnFrontToPlayerNearby(TVec3f* pFront, LiveActor* pActor, f32 angle) {
+    TVec3f direction(*MR::getPlayerPos());
+    direction -= pActor->mPosition;
+    if (PSVECMag(&direction) < 800.0f) {
+        MR::vecKillElement(direction, pActor->mGravity, &direction);
+        MR::normalizeOrZero(&direction);
+        MR::turnVecToVecDegree(pFront, *pFront, direction, angle, pActor->mGravity);
+    }
+}
+
 TakoSho::TakoSho(const char* pName)
     : LiveActor(pName), mFrontVec(0, 0, 1), mSideVec(1, 0, 0), mIsReverse(false), mIsRight(false), mMoveRange(5.0f),
       mSpeed(500.0f), mTargetPos(0.0f, 0.0f, 0.0f), mShotStep(0), mScaleController(nullptr), mBindStarPointer(nullptr),
@@ -189,7 +199,7 @@ void TakoSho::exeWait() {
         }
     }
     updateFallVelocity();
-    fn_80208970(&mFrontVec, this, 2.865f);
+    turnFrontToPlayerNearby(&mFrontVec, this, 2.865f);
     if (MR::calcDistanceToPlayer(this) < 750.0f) {
         setNerve(&NrvTakoSho::TakoShoNrvAttackSign::sInstance);
         return;
@@ -240,7 +250,7 @@ void TakoSho::exeMove() {
             setNerve(&NrvTakoSho::TakoShoNrvWaitAfter::sInstance);
         }
     } else {
-        fn_80208970(&mFrontVec, this, 2.865f);
+        turnFrontToPlayerNearby(&mFrontVec, this, 2.865f);
     }
 }
 
@@ -251,7 +261,7 @@ void TakoSho::exeAttackSign() {
         MR::startBrk(this, "GreenToRed");
     }
     if (MR::isLessStep(this, 20)) {
-        fn_80208970(&mFrontVec, this, 2.865f);
+        turnFrontToPlayerNearby(&mFrontVec, this, 2.865f);
     }
     if (MR::isGreaterStep(this, 60)) {
         setNerve(&NrvTakoSho::TakoShoNrvAttack1st::sInstance);
@@ -280,7 +290,7 @@ void TakoSho::exeAttack1st() {
     }
     updateFallVelocity();
     if (MR::isGreaterStep(this, shotStep + 20)) {
-        fn_80208970(&mFrontVec, this, 4.8f);
+        turnFrontToPlayerNearby(&mFrontVec, this, 4.8f);
     }
     if (MR::isGreaterStep(this, 35)) {
         setNerve(&NrvTakoSho::TakoShoNrvAttack2nd::sInstance);
@@ -318,7 +328,7 @@ void TakoSho::exeRecover() {
         MR::startBrk(this, "RedToGreen");
     }
     updateFallVelocity();
-    fn_80208970(&mFrontVec, this, 2.865f);
+    turnFrontToPlayerNearby(&mFrontVec, this, 2.865f);
     if (MR::isGreaterStep(this, 60)) {
         if (isMoving()) {
             setNerve(&NrvTakoSho::TakoShoNrvMove::sInstance);

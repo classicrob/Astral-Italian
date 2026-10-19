@@ -61,7 +61,7 @@ namespace NrvKiraira {
 };  // namespace NrvKiraira
 
 Kiraira::Kiraira(const char* pName)
-    : LiveActor(pName), mRailCoordSpeed(5.0f), mRailVec(0.0f, 0.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), _A8(0.0f), mIsRail(false),
+    : LiveActor(pName), mRailCoordSpeed(5.0f), mRailVec(0.0f, 0.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mDriftPhase(0.0f), mIsRail(false),
       mIsForceDetonated(false), mEyesOpen(true), mSharedGroup(nullptr), mChain(nullptr), mScaleController(nullptr), mStateBindStarPointer(nullptr) {
 }
 
@@ -348,10 +348,10 @@ void Kiraira::drift() {
             mPosition.set(*mChain->getCutPos());
         }
     } else {
-        mVelocity.scale(1.5f * MR::sinDegree(45.0f + 2.0f * _A8), mGravity);
+        mVelocity.scale(1.5f * MR::sinDegree(45.0f + 2.0f * mDriftPhase), mGravity);
     }
 
-    _A8++;
+    mDriftPhase++;
 }
 #pragma pop
 

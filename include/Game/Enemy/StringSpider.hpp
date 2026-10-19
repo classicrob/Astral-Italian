@@ -62,10 +62,10 @@ public:
     /* 0x9C */ WalkerStateBindStarPointer* mBindState;
     /* 0xA0 */ FixedPosition* mFixedPos;
     /* 0xA4 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0xA8 */ TQuat4f _A0;
-    /* 0xB8 */ TQuat4f _B4v;
-    /* 0xC8 */ f32 _B0;
-    /* 0xCC */ f32 _B4;
+    /* 0xA8 */ TQuat4f mPoseQuat;
+    /* 0xB8 */ TQuat4f mInitPoseQuat;
+    /* 0xC8 */ f32 mMaxLength;
+    /* 0xCC */ f32 mCurrentLength;
 };
 
 class StringSpiderString : public LiveActor {
@@ -74,6 +74,6 @@ public:
 
     virtual void calcAndSetBaseMtx();
 
-    /* 0x90 */ TQuat4f _8C;
-    /* 0xA0 */ TVec3f _9C;
+    /* 0x90 */ TQuat4f mRotation;
+    /* 0xA0 */ TVec3f mEndPos;
 };

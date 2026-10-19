@@ -33,14 +33,14 @@ namespace {
     };                                                                                                                                           \
     name name::sInstance ATTRIBUTE_WEAK;
 
-    PATAKURI_BIG_NERVE(PatakuriBigNrvRail, PatakuriBig, fn_801E6510);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvBlow, PatakuriBig, fn_801E6730);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvSwoonLand, PatakuriBig, fn_801E67B0);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvStaggerEnd, PatakuriBig, fn_801E6810);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvHipDropDown, PatakuriBig, fn_801E68B0);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvWingHide, PatakuriBig, fn_801E6930);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvBind, PatakuriBig, fn_801E6980);
-    PATAKURI_BIG_NERVE(PatakuriBigNrvDead, PatakuriBig, fn_801E69E0);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvRail, PatakuriBig, exeBigRail);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvBlow, PatakuriBig, exeBigBlow);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvSwoonLand, PatakuriBig, exeBigSwoonLand);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvStaggerEnd, PatakuriBig, exeBigStaggerEnd);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvHipDropDown, PatakuriBig, exeBigHipDropDown);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvWingHide, PatakuriBig, exeBigWingHide);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvBind, PatakuriBig, exeBigBind);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvDead, PatakuriBig, exeBigDead);
 
     class PatakuriBigWingNrvWait : public Nerve {
     public:
@@ -81,7 +81,7 @@ void PatakuriBigWing::calcAndSetBaseMtx() {
     PartsModel::calcAndSetBaseMtx();
 }
 
-void PatakuriBigWing::fn_801E6474() {
+void PatakuriBigWing::startBigWingDamage() {
     MR::startAction(this, "Damage");
     mCheckHiddenHost = true;
     setNerve(&PatakuriBigWingNrvKill::sInstance);
@@ -150,7 +150,7 @@ void PatakuriBig::makeActorAppeared() {
 void PatakuriBig::control() {
     mScaleCtrl->updateNerve();
     MR::fn_800104F0(&mQuat, this, &mFront, 0.05f, 0.2f);
-    fn_801E6370();
+    tryStartBigBindStar();
 }
 
 void PatakuriBig::calcAndSetBaseMtx() {
@@ -175,7 +175,7 @@ void PatakuriBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-bool PatakuriBig::fn_801E6370() {
+bool PatakuriBig::tryStartBigBindStar() {
     if (isNerve(&PatakuriBigNrvRail::sInstance) && mBindStarPointer->tryStartPointBind()) {
         setNerve(&PatakuriBigNrvBind::sInstance);
         return true;
@@ -199,11 +199,11 @@ bool PatakuriBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
     }
     if (MR::isMsgPlayerHitAll(msg)) {
         PatakuriBigWing* pWing = mWing;
-        pWing->fn_801E6474();
+        pWing->startBigWingDamage();
         setNerve(&PatakuriBigNrvDead::sInstance);
 
-        TVec3f pos = fn_801E6280(this);
-        mBody->fn_801BC000(pos, mQuat, mVelocity, pSender, pReceiver);
+        TVec3f pos = calcBigBodyOffsetPos(this);
+        mBody->appearAndStagger(pos, mQuat, mVelocity, pSender, pReceiver);
         return true;
     }
     return false;
@@ -214,7 +214,7 @@ bool PatakuriBig::receiveOtherMsg(u32, HitSensor*, HitSensor*) {
 }
 
 // NONMATCHING: stack slot order of the TVec3f temporaries (only stack offsets differ)
-TVec3f PatakuriBig::fn_801E6280(PatakuriBig* pPatakuri) {
+TVec3f PatakuriBig::calcBigBodyOffsetPos(PatakuriBig* pPatakuri) {
     TVec3f bodyRoot;
     TVec3f bodyBody;
     TVec3f actorRoot;
@@ -234,7 +234,7 @@ TVec3f PatakuriBig::fn_801E6280(PatakuriBig* pPatakuri) {
 }
 
 // NONMATCHING: stack offsets of revDir/toPlayer/axis temporaries only
-void PatakuriBig::fn_801E6510() {
+void PatakuriBig::exeBigRail() {
     TVec3f toPlayer;
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startAction(mWing, "Wait");
@@ -271,7 +271,7 @@ void PatakuriBig::fn_801E6510() {
     }
 }
 
-void PatakuriBig::fn_801E6730() {
+void PatakuriBig::exeBigBlow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Blow");
     }
@@ -281,7 +281,7 @@ void PatakuriBig::fn_801E6730() {
     }
 }
 
-void PatakuriBig::fn_801E67B0() {
+void PatakuriBig::exeBigSwoonLand() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "SwoonLand");
     }
@@ -290,7 +290,7 @@ void PatakuriBig::fn_801E67B0() {
     }
 }
 
-void PatakuriBig::fn_801E6810() {
+void PatakuriBig::exeBigStaggerEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StaggerEnd");
     }
@@ -298,29 +298,29 @@ void PatakuriBig::fn_801E6810() {
         setNerve(&PatakuriBigNrvDead::sInstance);
         TVec3f pos;
         TVec3f* zero = &(TVec3f(0.0f, 0.0f, 0.0f));
-        pos = fn_801E6280(this);
-        mBody->fn_801BBFB0(pos, mQuat, *zero);
+        pos = calcBigBodyOffsetPos(this);
+        mBody->appearAndWander(pos, mQuat, *zero);
     }
 }
 
-void PatakuriBig::fn_801E68B0() {
+void PatakuriBig::exeBigHipDropDown() {
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriBigNrvDead::sInstance);
-        TVec3f pos = fn_801E6280(this);
+        TVec3f pos = calcBigBodyOffsetPos(this);
         MR::setPosition(mBody, pos);
         mBody->calcAndSetBaseMtx();
         mBody->kill();
     }
 }
 
-void PatakuriBig::fn_801E6930() {
+void PatakuriBig::exeBigWingHide() {
     if (MR::isStep(this, 1)) {
         mWing->mCheckHiddenHost = true;
         MR::hideModelAndOnCalcAnim(this);
     }
 }
 
-void PatakuriBig::fn_801E6980() {
+void PatakuriBig::exeBigBind() {
     if (MR::isFirstStep(this)) {
         MR::setBckRate(mWing, 0.0f);
     }
@@ -329,7 +329,7 @@ void PatakuriBig::fn_801E6980() {
     }
 }
 
-void PatakuriBig::fn_801E69E0() {
+void PatakuriBig::exeBigDead() {
     if (MR::isFirstStep(this)) {
         MR::invalidateHitSensors(this);
     }

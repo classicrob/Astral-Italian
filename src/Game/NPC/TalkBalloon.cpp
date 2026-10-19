@@ -46,11 +46,11 @@ namespace NrvTalkBalloonSign {
     NEW_NERVE(TalkBalloonSignNrvNextPage, TalkBalloonSign, NextPage);
 }
 
-TalkBalloon::TalkBalloon(const char* pName) : LayoutActor(pName, true), mMessageCtrl(), mTextFormer(), _28(), _29(), _36(0xFF) {
+TalkBalloon::TalkBalloon(const char* pName) : LayoutActor(pName, true), mMessageCtrl(), mTextFormer(), mHasBeak(), mIsBeakTurning(), mDisableTalkSound(0xFF) {
 }
 
 void TalkBalloon::create(const char* pLayoutName, bool arg2, bool isTalkLayout) {
-    _28 = arg2;
+    mHasBeak = arg2;
 
     if (isTalkLayout) {
         MR::connectToSceneTalkLayout(this);
@@ -61,7 +61,7 @@ void TalkBalloon::create(const char* pLayoutName, bool arg2, bool isTalkLayout) 
     if (pLayoutName != nullptr) {
         initLayoutManager(pLayoutName, 2);
 
-        if (_28) {
+        if (mHasBeak) {
             MR::createAndAddPaneCtrl(this, "Balloon", 1);
         }
 
@@ -84,12 +84,12 @@ void TalkBalloon::open(TalkMessageCtrl* pCtrl) {
     MR::startAnim(this, "Appear", 0);
     // Host actor named "モック" (Shift-JIS bytes) clears the flag at 0x36, which enables the talk SE in updateTalking.
     if (MR::isEqualString(mMessageCtrl->mHostActor->getName(), "\x83\x82\x83\x62\x83\x4E")) {
-        _36 = 0;
+        mDisableTalkSound = 0;
     } else {
-        _36 = 0xFF;
+        mDisableTalkSound = 0xFF;
     }
 
-    if (_28) {
+    if (mHasBeak) {
         MR::startPaneAnim(this, "Balloon", "Beak", 0);
     }
 }
@@ -109,12 +109,12 @@ inline f32 fmax(f32 a, f32 b) {
 // NONMATCHING: equivalent multiplication operands are allocated in reverse order.
 void TalkBalloon::updateBalloon() {
     mMessageCtrl->updateBalloonPos();
-    if (_28) {
+    if (mHasBeak) {
         TVec2f paneTrans;
         MR::copyPaneTrans(&paneTrans, this, "PicBeak");
 
-        TVec2f position(mMessageCtrl->_1C.x, mMessageCtrl->_1C.y);
-        if (mMessageCtrl->_SMG2_52) {
+        TVec2f position(mMessageCtrl->mBalloonScreenPosition.x, mMessageCtrl->mBalloonScreenPosition.y);
+        if (mMessageCtrl->mCenterBalloonBeak) {
             f32 halfHeight = 0.5f * MR::getScreenHeight();
             position.set(0.5f * MR::getScreenWidth(), halfHeight);
         }
@@ -137,12 +137,12 @@ void TalkBalloon::updateBalloon() {
             paneAnimFrameMax = fmax(0.0f, paneAnimFrameMax * half - cosine);
         }
 
-        if (!_29) {
+        if (!mIsBeakTurning) {
             if (MR::fabs(paneAnimFrame - paneAnimFrameMax) < 10.0f) {
                 return;
             }
 
-            _29 = true;
+            mIsBeakTurning = true;
         }
 
         if (paneAnimFrame > paneAnimFrameMax) {
@@ -152,7 +152,7 @@ void TalkBalloon::updateBalloon() {
         }
 
         if (MR::abs(paneAnimFrame - paneAnimFrameMax) < 2.0f) {
-            _29 = false;
+            mIsBeakTurning = false;
         }
 
         MR::setPaneAnimFrameAndStop(this, "Balloon", paneAnimFrameMax, 0);
@@ -161,7 +161,7 @@ void TalkBalloon::updateBalloon() {
 
 void TalkBalloon::updateTalking() {
     updateBalloon();
-    if (!isTextAppearedAll() && _36 == 0) {
+    if (!isTextAppearedAll() && mDisableTalkSound == 0) {
         MR::startSystemLevelSE("SE_SY_LV_TALK_MESSAGE", -1, -1);
     }
     mTextFormer->updateTalking();
@@ -233,13 +233,13 @@ void TalkBalloonShort::close() {
 
 void TalkBalloonShort::updateBalloon() {
     TalkBalloon::updateBalloon();
-    if (mMessageCtrl->_1C.z > 0.0f) {
+    if (mMessageCtrl->mBalloonScreenPosition.z > 0.0f) {
         MR::hideScreen(this);
     } else {
         MR::showScreen(this);
     }
 
-    setTrans(TVec2f(mMessageCtrl->_1C.x, mMessageCtrl->_1C.y));
+    setTrans(TVec2f(mMessageCtrl->mBalloonScreenPosition.x, mMessageCtrl->mBalloonScreenPosition.y));
 }
 
 void TalkBalloonShort::exeClose() {
@@ -256,7 +256,7 @@ void TalkBalloonShort::exeOpen() {
     }
 }
 
-TalkBalloonEvent::TalkBalloonEvent(const char* pName) : TalkBalloon(pName), _2C(1), mAButton() {
+TalkBalloonEvent::TalkBalloonEvent(const char* pName) : TalkBalloon(pName), mTextFormatType(1), mAButton() {
     initNerve(GET_NERVE(TalkBalloonEvent, TalkBalloonEventNrvWait));
 }
 
@@ -269,7 +269,7 @@ void TalkBalloonEvent::open(TalkMessageCtrl* pCtrl) {
     mMessageCtrl = pCtrl;
     LayoutActor::appear();
     TalkMessageInfo* info = TalkFunction::getMessageInfo(pCtrl);
-    mTextFormer->formMessage(reinterpret_cast< const wchar_t* >(info->_0), _2C);
+    mTextFormer->formMessage(reinterpret_cast< const wchar_t* >(info->_0), mTextFormatType);
     mTextFormer->setArg(pCtrl->mTagArg, 0);
     mAButton->kill();
     mAButton->setFollowActorPane(this, "AButtonPosition");
@@ -295,18 +295,18 @@ void TalkBalloonEvent::close() {
 }
 
 void TalkBalloonEvent::updateBeak() {
-    if (!_28) {
+    if (!mHasBeak) {
         return;
     }
 
     mMessageCtrl->updateBalloonPos();
     TalkMessageCtrl* messageCtrl = mMessageCtrl;
-    if (messageCtrl->_SMG2_51) {
+    if (messageCtrl->mHideBalloonBeak) {
         MR::hidePane(this, "ShaBeak");
         MR::hidePane(this, "PicBeak");
         return;
     }
-    TVec2f v1(messageCtrl->_1C.x, messageCtrl->_1C.y);
+    TVec2f v1(messageCtrl->mBalloonScreenPosition.x, messageCtrl->mBalloonScreenPosition.y);
 
     if (0.0f <= v1.x && v1.x < MR::getScreenWidth() && 120.0f <= v1.y &&
         v1.y < MR::getScreenHeight()) {
@@ -381,7 +381,7 @@ void TalkBalloonEvent::exeClose() {
 }
 
 TalkBalloonSign::TalkBalloonSign(const char* pName) : TalkBalloonEvent(pName) {
-    _2C = 2;
+    mTextFormatType = 2;
 }
 
 void TalkBalloonSign::init(const JMapInfoIter& rIter) {

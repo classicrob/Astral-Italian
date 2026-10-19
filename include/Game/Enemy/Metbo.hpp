@@ -58,9 +58,9 @@ public:
     /* 0x90 */ AnimScaleController* mAnimScaleController;
     /* 0x94 */ WalkerStateBindStarPointer* mStarPointerBind;
     /* 0x98 */ WalkerStateBindStarPointer* mStateDPDSwoon;
-    /* 0x9C */ TVec3f _98;
-    /* 0xA8 */ TVec3f _A4;
-    /* 0xB4 */ TVec3f _B0;
+    /* 0x9C */ TVec3f mHomePos;
+    /* 0xA8 */ TVec3f mFront;
+    /* 0xB4 */ TVec3f mWalkDir;
     /* 0xC0 */ bool mIsClipped;
     /* 0xC4 */ YoshiLockOnTarget* mYoshiLockOn;
 };

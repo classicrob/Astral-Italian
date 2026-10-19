@@ -6,9 +6,8 @@ class PartsModel;
 
 class TeresaAtomic : public LiveActor {
 public:
-    // SMG2-only functions (original names unknown; named by address)
-    bool fn_8020F940();
-    bool fn_8020FB50();
+    bool isPlayerFacingTeresa();
+    bool tryBecomeShy();
     TeresaAtomic(const char*);
 
     virtual void init(const JMapInfoIter&);

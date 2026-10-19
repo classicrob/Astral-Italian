@@ -48,17 +48,17 @@ ActorActionSoundKeeper::ActorActionSoundKeeper(LiveActor* actor, AudSoundObject*
             s32 index = 0;
             if (actor->mActionKeeper) index = actor->mActionKeeper->mActionIndex;
             if (!mChecker) mChecker = new SyncBckEffectChecker(actor->mModelManager->mXanimePlayer, index);
-            mSounds[i]->fn_8021F970(actor->mModelManager->mXanimePlayer, index);
+            mSounds[i]->createSyncBckParam(actor->mModelManager->mXanimePlayer, index);
         }
     }
     MR::fn_800885B0(mData, false);
 }
 
 #pragma dont_inline on
-void ActorActionSoundKeeper::fn_8021F2D0() {
+void ActorActionSoundKeeper::updateSounds() {
     if (mChecker) {
         mChecker->updateBefore();
-        for (s32 i = 0; i < mSoundCount; i++) fn_8021F3B0(mSounds[i]);
+        for (s32 i = 0; i < mSoundCount; i++) updateSoundState(mSounds[i]);
         mChecker->updateAfter();
     }
     JointSoundInfo* joint;
@@ -73,31 +73,31 @@ void ActorActionSoundKeeper::fn_8021F2D0() {
 
 #pragma dont_inline off
 
-void ActorActionSoundKeeper::fn_8021F3B0(ActionSound* sound) {
+void ActorActionSoundKeeper::updateSoundState(ActionSound* sound) {
     SyncBckEffectInfo* info = sound->mParam;
     if (info) {
         bool create = mChecker->isCreate(info, true);
         bool createNoFrame = mChecker->isCreate(info, false);
-        if (create) sound->fn_8021FA80();
-        if (createNoFrame) sound->fn_8021FA40();
-        sound->fn_8021FC10(mChecker->fn_8006F510());
+        if (create) sound->startSoundNow();
+        if (createNoFrame) sound->markStartPending();
+        sound->restartSoundWithRate(mChecker->fn_8006F510());
         if (mChecker->isDelete(info)) sound->mUnk10 = false;
     }
 }
 
-void ActorActionSoundKeeper::fn_8021F470(const char* name, s32 pitch, s32 velocity, s32 volume) const {
-    fn_8021F4D0(0, -2, name, pitch, velocity, volume);
+void ActorActionSoundKeeper::playActionSoundKeeper(const char* name, s32 pitch, s32 velocity, s32 volume) const {
+    tryPlaySound(0, -2, name, pitch, velocity, volume);
 }
 
-void ActorActionSoundKeeper::fn_8021F490(s32 mode, const char* name, s32 pitch, s32 velocity, s32 volume) const {
-    fn_8021F4D0(mode, -2, name, pitch, velocity, volume);
+void ActorActionSoundKeeper::playSoundWithMode(s32 mode, const char* name, s32 pitch, s32 velocity, s32 volume) const {
+    tryPlaySound(mode, -2, name, pitch, velocity, volume);
 }
 
-void ActorActionSoundKeeper::fn_8021F4B0(const char* name) const {
-    fn_8021F4D0(0, 1, name, -1, -1, -1);
+void ActorActionSoundKeeper::startSoundByName(const char* name) const {
+    tryPlaySound(0, 1, name, -1, -1, -1);
 }
 
-bool ActorActionSoundKeeper::fn_8021F4D0(s32 mode, s32 id, const char* name, s32 pitch, s32 velocity, s32 volume) const {
+bool ActorActionSoundKeeper::tryPlaySound(s32 mode, s32 id, const char* name, s32 pitch, s32 velocity, s32 volume) const {
     ActionSound* sound;
     bool played = false;
     for (s32 i = 0; i < mSoundCount; i++) {
@@ -110,26 +110,26 @@ bool ActorActionSoundKeeper::fn_8021F4D0(s32 mode, s32 id, const char* name, s32
     return played;
 }
 
-void ActorActionSoundKeeper::fn_8021F5A0(const char* name, u32 frames) {
+void ActorActionSoundKeeper::stopActionSoundKeeper(const char* name, u32 frames) {
     ActionSound* sound;
     for (s32 i = 0; i < mSoundCount; i++) {
         sound = mSounds[i];
-        if (MR::isEqualString(sound->getName(), name)) sound->fn_8021FAE0(frames);
+        if (MR::isEqualString(sound->getName(), name)) sound->stopSoundFrames(frames);
     }
 }
 
-void ActorActionSoundKeeper::fn_8021F630(const char* name) {
+void ActorActionSoundKeeper::releaseActionSoundKeeper(const char* name) {
     ActionSound* sound;
     for (s32 i = 0; i < mSoundCount; i++) {
         sound = mSounds[i];
-        if (MR::isEqualString(sound->getName(), name)) sound->fn_8021FB80();
+        if (MR::isEqualString(sound->getName(), name)) sound->releaseActionSoundHandle();
     }
 }
 
-void ActorActionSoundKeeper::fn_8021F6B0() {
+void ActorActionSoundKeeper::resetChecker() {
     if (mChecker) mChecker->reset();
 }
 
-void ActorActionSoundKeeper::fn_8021F6D0() {
+void ActorActionSoundKeeper::updateChecker() {
     if (mChecker) mChecker->fn_8006F1F0();
 }

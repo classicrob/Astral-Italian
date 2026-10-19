@@ -20,7 +20,7 @@ public:
     virtual ~PatakuriWing();
 
     // 0x801E4A20: start the damage action and kill the wing when it ends.
-    void fn_801E4A20();
+    void startWingDamage();
 };
 
 /// SMG2-only Yoshi-edible walker that carries a Kuribo body (TU00).
@@ -36,18 +36,18 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    bool fn_801E4E50();
-    bool fn_801E4ED0();
-    static TVec3f fn_801E4F40(Patakuri* pPatakuri);
-    bool fn_801E58C0() const;
-    void fn_801E52A0();
-    void fn_801E54C0();
-    void fn_801E5540();
-    void fn_801E55A0();
-    void fn_801E5640();
-    void fn_801E5730();
-    void fn_801E57D0();
-    void fn_801E5830();
+    bool tryTrampleDefeat();
+    bool tryStartHipDropDown();
+    static TVec3f calcBodyDropPos(Patakuri* pPatakuri);
+    bool isRailOrBind() const;
+    void exeRail();
+    void exePatakuriBlow();
+    void exeLandSwoon();
+    void exePatakuriStaggerEnd();
+    void exePatakuriHipDropDown();
+    void exeCoinPop();
+    void exeHitStep();
+    void exePatakuriDead();
 
     /* 0x90 */ Kuribo* mBody;
     /* 0x94 */ TQuat4f mQuat;

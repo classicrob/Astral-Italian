@@ -88,8 +88,8 @@ namespace NrvSnakehead {
 };  // namespace NrvSnakehead
 
 Snakehead::Snakehead(const char* pName)
-    : LiveActor(pName), mController(), mStarPointer(), _C4(0.0f, 0.0f, 0.0f), mForwardSpeed(::sDefaultForwardSpeed),
-      mBackwardSpeed(::sDefaultBackSpeed), mActivationRadius(1000.0f), mRailCenter(0.0f, 0.0f, 0.0f), _E8(), mItem(), mIsValidateShadow(true) {
+    : LiveActor(pName), mController(), mStarPointer(), mEffectPos(0.0f, 0.0f, 0.0f), mForwardSpeed(::sDefaultForwardSpeed),
+      mBackwardSpeed(::sDefaultBackSpeed), mActivationRadius(1000.0f), mRailCenter(0.0f, 0.0f, 0.0f), mType(), mItem(), mIsValidateShadow(true) {
     mBodyMtx.identity();
 }
 
@@ -108,7 +108,7 @@ void Snakehead::init(const JMapInfoIter& rIter) {
     s32 arg3 = 0;
     MR::getJMapInfoArg3NoInit(rIter, &arg3);
 
-    _E8 = static_cast< SnakeheadType >(MR::isEqualString(objectName, "SnakeheadSmall") + arg3 * 2);
+    mType = static_cast< SnakeheadType >(MR::isEqualString(objectName, "SnakeheadSmall") + arg3 * 2);
 
     bool arg4 = false;
     MR::getJMapInfoArg4NoInit(rIter, &arg4);
@@ -132,9 +132,9 @@ void Snakehead::init(const JMapInfoIter& rIter) {
 
     initEffectKeeper(1, nullptr, false);
 
-    if (::getParam(_E8)->_18 != nullptr) {
-        _C4 = mPosition;
-        MR::setEffectHostSRT(this, ::getParam(_E8)->_18, &_C4, nullptr, nullptr);
+    if (::getParam(mType)->_18 != nullptr) {
+        mEffectPos = mPosition;
+        MR::setEffectHostSRT(this, ::getParam(mType)->_18, &mEffectPos, nullptr, nullptr);
     }
 
     initSound(4, "Snakehead", nullptr, TVec3f(0.0f));
@@ -206,7 +206,7 @@ void Snakehead::initAfterPlacement() {
 
     TVec3f v7;
     v7.scaleAdd(-50.0f, mGravity, headPos);
-    MR::getFirstPolyOnLineToMapExceptSensor(&_C4, nullptr, v7, mGravity * 1000.0f, getSensor("Body"));
+    MR::getFirstPolyOnLineToMapExceptSensor(&mEffectPos, nullptr, v7, mGravity * 1000.0f, getSensor("Body"));
 
     mBodyMtx.set(MR::getJointMtx(this, "Body04"));
 }
@@ -296,7 +296,7 @@ void Snakehead::exeWait() {
         choiceAndStartBck("Wait");
     }
 
-    if (MR::isGreaterEqualStep(this, *::getParam(_E8)->_0) && (isMove() || isNearPlayerFromRail())) {
+    if (MR::isGreaterEqualStep(this, *::getParam(mType)->_0) && (isMove() || isNearPlayerFromRail())) {
         setNerve(GET_NERVE(Snakehead, SnakeheadNrvMoveForward));
     }
 }
@@ -322,7 +322,7 @@ void Snakehead::exeMoveForward() {
 }
 
 void Snakehead::exeRest() {
-    if (MR::isStep(this, *::getParam(_E8)->_4)) {
+    if (MR::isStep(this, *::getParam(mType)->_4)) {
         setNerve(GET_NERVE(Snakehead, SnakeheadNrvMoveBack));
     }
 }
@@ -355,7 +355,7 @@ void Snakehead::exeTurtleDown() {
         MR::startActionSound(this, "EvSnakeheadDamage");
     }
 
-    f32 coord = *::getParam(_E8)->_8;
+    f32 coord = *::getParam(mType)->_8;
     if (MR::isRailReachedNearGoal(this, ::sStartCoord + coord)) {
         MR::setRailCoord(this, ::sStartCoord);
         MR::moveTransToCurrentRailPos(this);
@@ -445,13 +445,13 @@ bool Snakehead::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
 void Snakehead::choiceAndStartBck(const char* pBck) {
     const char* v1 = nullptr;
     if (MR::isEqualString(pBck, "Forward")) {
-        v1 = ::getParam(_E8)->_14;
+        v1 = ::getParam(mType)->_14;
     } else if (MR::isEqualString(pBck, "Back")) {
-        v1 = ::getParam(_E8)->_1C;
+        v1 = ::getParam(mType)->_1C;
     } else if (MR::isEqualString(pBck, "Waylay")) {
-        v1 = ::getParam(_E8)->_C;
+        v1 = ::getParam(mType)->_C;
     } else if (MR::isEqualString(pBck, "Wait")) {
-        v1 = ::getParam(_E8)->_10;
+        v1 = ::getParam(mType)->_10;
     }
 
     if (v1 != nullptr) {

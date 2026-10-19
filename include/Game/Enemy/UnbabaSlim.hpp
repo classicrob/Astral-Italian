@@ -28,9 +28,9 @@ public:
     void exeEatEnd();
 
     // Unnamed SMG2 helpers of this unit, named by address (members of UnbabaSlim).
-    bool fn_80216200(const TVec3f* pOffset);
-    void fn_802168F0();
-    void fn_802169A0();
+    bool probeGroundAt(const TVec3f* pOffset);
+    void updateRotatingBaseMtx();
+    void calcHeadDrawMtx();
 
     /* 0x90 */ MapPartsRotator* mRotator;
     /* 0x94 */ f32 mRotateSpeed;

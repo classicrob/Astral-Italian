@@ -23,3 +23,6 @@ public:
     TVec3f mDirection;
     TPos3f mJointMtx;
 };
+
+extern f32 sGhostFootprintOpacity;
+extern const f32 sGhostPrintWidth, sGhostPrintHeight, sGhostPrintDistance;

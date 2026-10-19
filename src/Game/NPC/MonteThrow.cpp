@@ -5,11 +5,8 @@
 #include "Game/Util.hpp"
 #include "Game/Util/FixedPosition.hpp"
 #include "Game/Util/ParabolicPath.hpp"
-extern "C" {
-extern char lbl_806BB1D0[], lbl_806BB1DC[], lbl_806BB1E8[], lbl_806BB1F0[], lbl_806BB1FC[];
-extern const char* lbl_807DF2BC;
-extern const char* lbl_807DF2C0;
-}
+const char* const sMonteThrowTargetPositionName = "モンテ投げターゲット位置";
+const char* const sMonteThrowPlayerAnimation = "JumpBack";
 namespace NrvMonteThrow {
 NEW_NERVE(Wait, MonteThrow, Wait);
 NEW_NERVE(Throw, MonteThrow, Throw);
@@ -29,15 +26,15 @@ namespace { const TVec3f sBindOffset(0.0f, 0.0f, 100.0f); const TVec3f sBindRota
 inline f32 defaultThrowHeight() ALWAYS_INLINE { s32 n = 700; return n; }
 inline f32 defaultThrowSpeed() ALWAYS_INLINE { s32 n = 50; return n; }
 // NONMATCHING: floating conversion temporaries use different registers.
-MonteThrow::MonteThrow(Monte* host) : LiveActor(lbl_806BB1D0), mHost(host), mBoundActor(0), mBindPosition(0), mCameraInfo(0), mPath(new ParabolicPath), mThrowHeight(defaultThrowHeight()), mThrowSpeed(defaultThrowSpeed()), mThrowTime(0), mTargetPosition(TVec3f(0.0f)), mThrowUp(false) {}
+MonteThrow::MonteThrow(Monte* host) : LiveActor("モンテ投げ"), mHost(host), mBoundActor(0), mBindPosition(0), mCameraInfo(0), mPath(new ParabolicPath), mThrowHeight(defaultThrowHeight()), mThrowSpeed(defaultThrowSpeed()), mThrowTime(0), mTargetPosition(TVec3f(0.0f)), mThrowUp(false) {}
 MonteThrow::~MonteThrow() {}
 // NONMATCHING: register allocation and arithmetic scheduling differ.
 void MonteThrow::init(const JMapInfoIter& iter) {
     MR::connectToSceneNpcMovement(this);
     initBinder(100.0f, 0.0f, 0);
     initHitSensor(2);
-    MR::addHitSensorBinder(this, lbl_806BB1DC, 4, 110.0f, TVec3f(0.0f,90.0f,0.0f));
-    MR::addHitSensorNpc(this, lbl_806BB1E8, 4, 100.0f, TVec3f(0.0f,90.0f,0.0f));
+    MR::addHitSensorBinder(this, "Body", 4, 110.0f, TVec3f(0.0f,90.0f,0.0f));
+    MR::addHitSensorNpc(this, "ItemGet", 4, 100.0f, TVec3f(0.0f,90.0f,0.0f));
     mPosition.set(mHost->mPosition);
     mRotation.set(mHost->mRotation);
     initNerve(&NrvMonteThrow::Wait::sInstance, 0);
@@ -50,7 +47,7 @@ void MonteThrow::init(const JMapInfoIter& iter) {
     s32 speed = 50;
     MR::getJMapInfoArg3NoInit(iter, &speed);
     mThrowSpeed = speed;
-    const char* targetName = lbl_807DF2BC;
+    const char* targetName = sMonteThrowTargetPositionName;
     if (MR::tryRegisterNamePosLinkObj(mHost, iter, targetName)) {
         MR::tryFindLinkNamePos(mHost, targetName, &mTargetPosition, 0);
     } else {
@@ -81,14 +78,14 @@ void MonteThrow::startThrow() {
     const Nerve* nrv = &NrvMonteThrow::Throw::sInstance;
     if (mThrowUp) nrv = &NrvMonteThrow::ThrowUp::sInstance;
     setNerve(nrv);
-    MR::startLevelSoundPlayer(lbl_806BB1F0, -1, -1);
+    MR::startLevelSoundPlayer("JumpLongV", -1, -1);
 }
 bool MonteThrow::tryBind(HitSensor* sensor) {
     if (mBoundActor) return false;
     if (!isNerve(&NrvMonteThrow::Wait::sInstance)) return false;
     if (mHost->_E4) return false;
     MR::invalidateClipping(this);
-    MR::invalidateHitSensor(this, lbl_806BB1DC);
+    MR::invalidateHitSensor(this, "Body");
     mBoundActor = MR::getSensorHost(sensor);
     setNerve(&NrvMonteThrow::Prepare::sInstance);
     return true;
@@ -99,13 +96,13 @@ void MonteThrow::endThrow() {
     mBoundActor = 0;
     setNerve(&NrvMonteThrow::Wait::sInstance);
     if (MR::isPlayerInRush()) MR::endBindAndSpinDriverJump(this, mVelocity);
-    MR::invalidateHitSensor(this, lbl_806BB1E8);
+    MR::invalidateHitSensor(this, "ItemGet");
     MR::zeroVelocity(this);
 }
 void MonteThrow::releasePlayer() {
     mBoundActor = 0;
     if (MR::isPlayerInRush()) MR::endBindAndPlayerJump(this, mVelocity, 0);
-    MR::invalidateHitSensor(this, lbl_806BB1E8);
+    MR::invalidateHitSensor(this, "ItemGet");
     MR::zeroVelocity(this);
 }
 void MonteThrow::updatePlayerMtx() {
@@ -127,7 +124,7 @@ void MonteThrow::initThrowPath(const TVec3f& start, const TVec3f& end) {
 void MonteThrow::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
-        MR::validateHitSensor(this, lbl_806BB1DC);
+        MR::validateHitSensor(this, "Body");
         mPosition.set(mHost->mPosition);
     }
 }
@@ -142,10 +139,10 @@ void MonteThrow::exePrepare() {
 void MonteThrow::exeThrow() {
     if (MR::isFirstStep(this)) {
         MR::startActorCameraNoTarget(mHost, mCameraInfo, -1);
-        MR::startBckPlayer(lbl_807DF2C0, 0);
-        MR::validateHitSensor(this, lbl_806BB1E8);
+        MR::startBckPlayer(sMonteThrowPlayerAnimation, 0);
+        MR::validateHitSensor(this, "ItemGet");
     }
-    if (MR::isStep(this, 25)) MR::startLevelSoundPlayer(lbl_806BB1FC, -1, -1);
+    if (MR::isStep(this, 25)) MR::startLevelSoundPlayer("JumpStandAuto", -1, -1);
     TVec3f position;
     mPath->calcPosition(&position, MR::calcNerveRate(this, mThrowTime));
     TVec3f velocity(position);
@@ -160,11 +157,11 @@ void MonteThrow::exeThrow() {
 void MonteThrow::exeThrowUp() {
     if (MR::isFirstStep(this)) {
         MR::startActorCameraNoTarget(mHost, mCameraInfo, -1);
-        MR::startBckPlayer(lbl_807DF2C0, 0);
+        MR::startBckPlayer(sMonteThrowPlayerAnimation, 0);
         MR::setVelocity(this, -mGravity * mThrowSpeed);
-        MR::validateHitSensor(this, lbl_806BB1E8);
+        MR::validateHitSensor(this, "ItemGet");
     }
-    if (MR::isStep(this, 25)) MR::startLevelSoundPlayer(lbl_806BB1FC, -1, -1);
+    if (MR::isStep(this, 25)) MR::startLevelSoundPlayer("JumpStandAuto", -1, -1);
     if (MR::isStep(this, 10)) releasePlayer();
     bool airborne;
     if (MR::isOnGroundPlayer()) airborne = false;

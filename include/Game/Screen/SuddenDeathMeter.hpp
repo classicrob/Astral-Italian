@@ -35,7 +35,7 @@ public:
 
     /* 0x20 */ CountUpPaneRumbler* mCountUpPaneRumbler;
     /* 0x24 */ TVec2f mFollowPosW;
-    /* 0x2C */ TVec2f _2C;
+    /* 0x2C */ TVec2f mMoveStartPosW;
     /* 0x34 */ s32 mCount;
     /* 0x38 */ f32 mAlpha;
     /* 0x3C */ f32 mShowHideRate;

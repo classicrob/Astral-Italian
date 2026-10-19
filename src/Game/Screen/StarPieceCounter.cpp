@@ -29,12 +29,12 @@ namespace NrvStarPieceCounter {
 };  // namespace NrvStarPieceCounter
 
 bool StarPieceCounter::isDispCenter() const {
-    return mMode != 0 || _3C == 2;
+    return mMode != 0 || mForceAppearMode == 2;
 }
 
 StarPieceCounter::StarPieceCounter(const char* pName)
     : LayoutActor(pName, true), mStarPieceNum(0), mStarPieceDisplayNum(0), mInvalidCountUpFrame(0), mLayoutAppearer(nullptr), mPaneRumbler(nullptr),
-      mFollowPos(0.0f, 0.0f), _3C(0), mMode(0) {
+      mFollowPos(0.0f, 0.0f), mForceAppearMode(0), mMode(0) {
 }
 
 void StarPieceCounter::init(const JMapInfoIter& rIter) {
@@ -63,7 +63,7 @@ void StarPieceCounter::appear() {
     mPaneRumbler->reset();
 
     mInvalidCountUpFrame = 0;
-    _3C = 0;
+    mForceAppearMode = 0;
 
     MR::hideLayout(this);
     forceSync();
@@ -84,7 +84,7 @@ void StarPieceCounter::forceAppear(bool param1) {
         v5 = 2;
     }
 
-    _3C = v5;
+    mForceAppearMode = v5;
 }
 
 void StarPieceCounter::disappear(bool param1) {
@@ -93,7 +93,7 @@ void StarPieceCounter::disappear(bool param1) {
     }
 
     if (!param1) {
-        _3C = 0;
+        mForceAppearMode = 0;
     }
 }
 
@@ -297,7 +297,7 @@ void StarPieceCounter::exeAppear() {
 
         if (mMode != 0) {
             y = ::cBaseOffsetTicoFatY;
-        } else if (_3C == 2) {
+        } else if (mForceAppearMode == 2) {
             y = ::cBaseOffsetEatTicoY;
         }
 
@@ -314,7 +314,7 @@ void StarPieceCounter::exeWait() {
         return;
     }
 
-    if (mMode != 0 || (_3C == 0 && mStarPieceDisplayNum == mStarPieceNum && CounterLayoutController::isWaitToDisappearCounter(this))) {
+    if (mMode != 0 || (mForceAppearMode == 0 && mStarPieceDisplayNum == mStarPieceNum && CounterLayoutController::isWaitToDisappearCounter(this))) {
         setNerve(GET_NERVE(StarPieceCounter, StarPieceCounterNrvDisappear));
     }
 }
@@ -325,8 +325,8 @@ void StarPieceCounter::exeDisappear() {
     }
 
     if (mLayoutAppearer->isDisappeared()) {
-        if (_3C == 2) {
-            _3C = 0;
+        if (mForceAppearMode == 2) {
+            mForceAppearMode = 0;
         }
 
         setNerve(GET_NERVE(StarPieceCounter, StarPieceCounterNrvHide));
@@ -335,5 +335,5 @@ void StarPieceCounter::exeDisappear() {
 
 void StarPieceCounter::forceDisappear() {
     setNerve(&NrvStarPieceCounter::StarPieceCounterNrvDisappear::sInstance);
-    _3C = 0;
+    mForceAppearMode = 0;
 }

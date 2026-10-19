@@ -8,7 +8,7 @@
 #include "Game/Screen/StarPointerTarget.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 
-LayoutActor::LayoutActor(const char* pName, bool) : NameObj(pName), mLayoutManager(), mSpine(), mEffectKeeper(), mPointingTarget(), _28() {
+LayoutActor::LayoutActor(const char* pName, bool) : NameObj(pName), mLayoutManager(), mSpine(), mEffectKeeper(), mPointingTarget(), mActionSoundKeeper() {
 }
 
 void LayoutActor::movement() {
@@ -22,8 +22,8 @@ void LayoutActor::movement() {
         return;
     }
 
-    if (_28 != nullptr) {
-        _28->update();
+    if (mActionSoundKeeper != nullptr) {
+        mActionSoundKeeper->update();
     }
 
     control();
@@ -141,7 +141,7 @@ void LayoutActor::initActionSound(int numHandles, const char* pName, TVec3f* pPo
         pName = mLayoutManager->mLayoutName;
     }
 
-    _28 = new ActionSoundKeeper(numHandles, pName, pPos);
+    mActionSoundKeeper = new ActionSoundKeeper(numHandles, pName, pPos);
 }
 
 void LayoutActor::updateSpine() {

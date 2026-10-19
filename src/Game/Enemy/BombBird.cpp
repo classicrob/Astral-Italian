@@ -481,7 +481,7 @@ void BombBird::exeSinkDown() {
 }
 
 // NONMATCHING: The epilogue restores LR and the saved GPR in a different order.
-void BombBird::fn_8016A6C0() {
+void BombBird::exeBombBirdBindStarPointer() {
     if (MR::isFirstStep(this)) MR::invalidateClipping(this);
     if (mHeldBomb) {
         mHeldBomb->kill();
@@ -490,7 +490,7 @@ void BombBird::fn_8016A6C0() {
     MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvFlyOnRail));
 }
 // NONMATCHING: The epilogue restores LR and the saved GPR in a different order.
-void BombBird::fn_8016A730() {
+void BombBird::exeBombBirdBindStarPointerGround() {
     if (MR::isFirstStep(this)) MR::invalidateClipping(this);
     if (mHeldBomb) {
         mHeldBomb->kill();
@@ -501,7 +501,7 @@ void BombBird::fn_8016A730() {
 
 bool BombBird::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {
     if (MR::isMsgLockOnStarPieceShoot(msg)) return true;
-    if (fn_8016AAA0()) {
+    if (isGroundSwoonNerve()) {
         if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
             setNerve(GET_NERVE(BombBird, HostTypeNrvTrample));
             return true;
@@ -517,15 +517,15 @@ bool BombBird::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* rec
             return true;
         }
         if (MR::isMsgPlayerHitAll(msg)) {
-            fn_8016AB40(sender, receiver);
+            startSpinBlow(sender, receiver);
             return true;
         }
         return false;
     }
-    if (fn_8016A9F0()) {
+    if (isFlyingNerve()) {
         if (MR::isMsgPlayerHitProjectiles(msg)) {
             if (mHeldBomb) { mHeldBomb->kill(); mHeldBomb = nullptr; }
-            fn_8016AB40(sender, receiver);
+            startSpinBlow(sender, receiver);
             return true;
         }
         if (MR::isMsgPlayerHitAll(msg) || MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg) || MR::isMsgStarPieceAttack(msg)) {
@@ -538,19 +538,19 @@ bool BombBird::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* rec
     } else if (MR::isMsgStarPieceAttack(msg)) return true;
     return false;
 }
-bool BombBird::fn_8016A9F0() const {
+bool BombBird::isFlyingNerve() const {
     if (isNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail)) || isNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRailSearch)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvFlyWithAttack)) || isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointer)) ||
         (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) && MR::isGreaterEqualStep(this, 30))) return true;
     return false;
 }
-bool BombBird::fn_8016AAA0() const {
+bool BombBird::isGroundSwoonNerve() const {
     if (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) ||
         (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) && MR::isLessStep(this, 30)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround))) return true;
     return false;
 }
-void BombBird::fn_8016AB40(HitSensor* sender, HitSensor* receiver) {
+void BombBird::startSpinBlow(HitSensor* sender, HitSensor* receiver) {
     mSpinHitController->start(this, *MR::getSensorPos(sender), *MR::getSensorPos(receiver));
     MR::calcSensorHorizonNormalize(&mFront, mGravity, receiver, sender);
     MR::invalidateClipping(this);
@@ -559,7 +559,7 @@ void BombBird::fn_8016AB40(HitSensor* sender, HitSensor* receiver) {
 bool BombBird::receiveOtherMsg(u32 msg, HitSensor* sender, HitSensor* receiver) {
     if (MR::isMsgPlayerKick(msg) && (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) || isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround)))) {
-        fn_8016AB40(sender, receiver);
+        startSpinBlow(sender, receiver);
         return true;
     }
     if (MR::isMsgInhaleBlackHole(msg) && !isNerve(GET_NERVE(BombBird, HostTypeNrvBlow)) &&
@@ -587,8 +587,8 @@ void BombBird::calcAndSetBaseMtx() {
 }
 
 void NrvBombBird::HostTypeNrvBindStarPointer::execute(Spine* spine) const {
-    static_cast<BombBird*>(spine->mExecutor)->fn_8016A6C0();
+    static_cast<BombBird*>(spine->mExecutor)->exeBombBirdBindStarPointer();
 }
 void NrvBombBird::HostTypeNrvBindStarPointerGround::execute(Spine* spine) const {
-    static_cast<BombBird*>(spine->mExecutor)->fn_8016A730();
+    static_cast<BombBird*>(spine->mExecutor)->exeBombBirdBindStarPointerGround();
 }

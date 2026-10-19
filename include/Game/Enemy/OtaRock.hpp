@@ -12,10 +12,10 @@ class NameObjArchiveListCollector;
 class OtaRock : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    void fn_801DC550(const JMapInfoIter& rIter);
-    bool fn_801DCC00();
-    void fn_801DCC50();
-    void fn_801DD210();
+    void initOtaRockPlacement(const JMapInfoIter& rIter);
+    bool tryStartOpeningDemo();
+    void chooseWaitNerve();
+    void exeOtaRockOpeningDemo();
     /// @brief Creates a new `OtaRock`.
     /// @param pName A pointer to the null-terminated name of the object.
     OtaRock(const char* pName);
@@ -60,7 +60,7 @@ public:
     /* 0x9C */ FixedPosition* mFixedPosition;
     /* 0xA0 */ s32 mThrowCocoNutCounter;
     /* 0xA4 */ u32 mWaitFrame;
-    /* 0xA8 */ TPos3f _A4;
-    /* 0xD8 */ TVec3f _D4;
+    /* 0xA8 */ TPos3f mBaseMtx;
+    /* 0xD8 */ TVec3f mFront;
     /* 0xE4 */ AnimScaleController* mAnimScaleController;
 };

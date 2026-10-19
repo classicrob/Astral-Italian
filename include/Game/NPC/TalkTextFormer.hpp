@@ -18,7 +18,7 @@ public:
 
     /* 0x0 */ LayoutActor* mHostActor;
     /* 0x4 */ const wchar_t* mMsg;
-    /* 0x8 */ s32 _8;
+    /* 0x8 */ s32 mMessageMode;
     /* 0xC */ const char* mPaneName;
 };
 

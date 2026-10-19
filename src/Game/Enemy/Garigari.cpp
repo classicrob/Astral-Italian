@@ -62,7 +62,7 @@ void Garigari::init(const JMapInfoIter& rIter) {
         if (hasGravity) {
             MR::calcGravity(this);
         }
-        fn_801821A0();
+        alignUpToRail();
     }
 
     MR::getJMapInfoArg0WithInit(rIter, &mType);
@@ -71,7 +71,7 @@ void Garigari::init(const JMapInfoIter& rIter) {
     MR::initActorState(this, mBindState, &NrvGarigari::GarigariNrvSupportFreeze::sInstance, "SupportFreeze");
     MR::initUseStageSwitchWriteA(this, rIter);
     if (MR::initUseStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOnB(this, MR::FunctorV0M< Garigari*, void (Garigari::*)() >(this, &Garigari::fn_80182140));
+        MR::listenStageSwitchOnB(this, MR::FunctorV0M< Garigari*, void (Garigari::*)() >(this, &Garigari::startRotateOnSwitch));
     } else {
         if (mRailMover != nullptr) {
             mRailMover->start();
@@ -83,14 +83,14 @@ void Garigari::init(const JMapInfoIter& rIter) {
 
 void Garigari::control() {}
 
-void Garigari::fn_80182140() {
+void Garigari::startRotateOnSwitch() {
     if (isNerve(&NrvGarigari::GarigariNrvWait::sInstance)) {
         MR::invalidateClipping(this);
         setNerve(&NrvGarigari::GarigariNrvRotateSign::sInstance);
     }
 }
 
-void Garigari::fn_801821A0() {
+void Garigari::alignUpToRail() {
     TVec3f sp14(MR::getRailDirection(this));
     TVec3f sp8 = -mGravity;
     if (MR::isSameDirection(sp14, sp8, 0.01f)) {
@@ -173,7 +173,7 @@ void Garigari::exeRotate() {
     }
     if (mRailMover != nullptr) {
         TVec3f sp14(MR::getRailDirection(this));
-        fn_801821A0();
+        alignUpToRail();
         mRailMover->movement();
         MR::setPosition(this, mRailMover->_28);
         if (MR::isRailReachedGoal(this)) {

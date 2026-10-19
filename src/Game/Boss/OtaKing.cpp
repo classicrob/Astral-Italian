@@ -260,7 +260,7 @@ bool OtaKing::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         a1 = MR::max(a1, 1);
     }
 
-    bool b1 = rallyBall->_9C <= a1;
+    bool b1 = rallyBall->mHitBackCount <= a1;
 
     bool isReceiverBody = pReceiver == getSensor("Body");
 
@@ -343,17 +343,17 @@ void OtaKing::initModel(const JMapInfoIter& rIter) {
     for (int i = 0; i < 3; i++) {
         mCocoNutBallArray[i].initWithoutIter();
         mCocoNutBallArray[i]._8C = this;
-        mCocoNutBallArray[i]._BE = true;
-        mCocoNutBallArray[i]._D8 = true;
-        mCocoNutBallArray[i]._D4 = 5000.0f;
+        mCocoNutBallArray[i].mIsBoundedByHost = true;
+        mCocoNutBallArray[i].mIsRallyBall = true;
+        mCocoNutBallArray[i].mKillDistance = 5000.0f;
 
         float arg;
         if (MR::getJMapInfoArg0NoInit(rIter, &arg)) {
-            mCocoNutBallArray[i]._C0 = arg;
+            mCocoNutBallArray[i].mMaxHeightOffset = arg;
         }
 
         if (MR::getJMapInfoArg2NoInit(rIter, &arg)) {
-            mCocoNutBallArray[i]._C4 = arg;
+            mCocoNutBallArray[i].mMinHeightOffset = arg;
         }
     }
 

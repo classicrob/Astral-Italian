@@ -40,7 +40,7 @@ namespace {
 };  // namespace
 
 Manual2P::Manual2P(const char* pName)
-    : LayoutActor(pName, true), mPageIndex(), mPageNum(), mLeftPaneCtrl(), mRightPaneCtrl(), _30(true), _31(true), mBackButton(), mButtonFrameCtrl() {
+    : LayoutActor(pName, true), mPageIndex(), mPageNum(), mLeftPaneCtrl(), mRightPaneCtrl(), mIsLeftEnabled(true), mIsRightEnabled(true), mBackButton(), mButtonFrameCtrl() {
 }
 
 void Manual2P::init(const JMapInfoIter& rIter) {
@@ -49,12 +49,12 @@ void Manual2P::init(const JMapInfoIter& rIter) {
     MR::createAndAddPaneCtrl(this, "LeftButton", 2);
 
     mLeftPaneCtrl = new ButtonPaneController(this, "LeftButton", "BoxLButton", 0, true);
-    mLeftPaneCtrl->_22 = 0;
+    mLeftPaneCtrl->mDisappearOnDecide = 0;
 
     MR::createAndAddPaneCtrl(this, "RightButton", 2);
 
     mRightPaneCtrl = new ButtonPaneController(this, "RightButton", "BoxRButton", 0, true);
-    mRightPaneCtrl->_22 = 0;
+    mRightPaneCtrl->mDisappearOnDecide = 0;
 
     mBackButton = new BackButtonCancelB("マニュアルの戻るボタン", true);
     mBackButton->initWithoutIter();
@@ -104,7 +104,7 @@ void Manual2P::exeAppear() {
 
 void Manual2P::exeWait() {
     if (MR::isFirstStep(this)) MR::startAnim(this, "Wait", 0);
-    if (_30) {
+    if (mIsLeftEnabled) {
         mLeftPaneCtrl->trySelect();
         if (MR::testSubPadStickTriggerLeft(WPAD_CHAN0) || MR::testCorePadTriggerLeft(WPAD_CHAN0)) mLeftPaneCtrl->trySelectImmediately();
         if (mLeftPaneCtrl->mIsSelected) {
@@ -116,7 +116,7 @@ void Manual2P::exeWait() {
         setNerve(MANUAL_NERVE(Manual2PNrvNextPageOver));
         return;
     }
-    if (_31) {
+    if (mIsRightEnabled) {
         mRightPaneCtrl->trySelect();
         if (MR::testSubPadStickTriggerRight(WPAD_CHAN0) || MR::testCorePadTriggerRight(WPAD_CHAN0)) mRightPaneCtrl->trySelectImmediately();
         if (mRightPaneCtrl->mIsSelected) {
@@ -151,7 +151,7 @@ void Manual2P::exeScrollRightAfter() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        mRightPaneCtrl->_24 = true;
+        mRightPaneCtrl->mIsActive = true;
         mRightPaneCtrl->forceToWait();
         setNerve(MANUAL_NERVE(Manual2PNrvWait));
     }
@@ -186,7 +186,7 @@ void Manual2P::exeScrollLeftAfter() {
     }
 
     if (MR::getAnimCtrl(this, 0)->getFrame() - MR::getAnimCtrl(this, 0)->getRate() <= 0.0f) {
-        mLeftPaneCtrl->_24 = true;
+        mLeftPaneCtrl->mIsActive = true;
         mLeftPaneCtrl->forceToWait();
         setNerve(MANUAL_NERVE(Manual2PNrvWait));
     }
@@ -259,24 +259,24 @@ void Manual2P::reflectPageIndex() {
         ButtonPaneController* pPaneCtrl = mLeftPaneCtrl;
         MR::startPaneAnim(this, pPaneCtrl->mPaneName, "ButtonOff", 1);
         MR::setPaneAnimFrameAndStop(this, pPaneCtrl->mPaneName, 1.0f, 1);
-        _30 = false;
+        mIsLeftEnabled = false;
     } else {
         ButtonPaneController* pPaneCtrl = mLeftPaneCtrl;
         MR::startPaneAnim(this, pPaneCtrl->mPaneName, "ButtonOff", 1);
         MR::setPaneAnimFrameAndStop(this, pPaneCtrl->mPaneName, 0.0f, 1);
-        _30 = true;
+        mIsLeftEnabled = true;
     }
 
     if (mPageIndex == (mPageNum - 1)) {
         ButtonPaneController* pPaneCtrl = mRightPaneCtrl;
         MR::startPaneAnim(this, pPaneCtrl->mPaneName, "ButtonOff", 1);
         MR::setPaneAnimFrameAndStop(this, pPaneCtrl->mPaneName, 1.0f, 1);
-        _31 = false;
+        mIsRightEnabled = false;
     } else {
         ButtonPaneController* pPaneCtrl = mRightPaneCtrl;
         MR::startPaneAnim(this, pPaneCtrl->mPaneName, "ButtonOff", 1);
         MR::setPaneAnimFrameAndStop(this, pPaneCtrl->mPaneName, 0.0f, 1);
-        _31 = true;
+        mIsRightEnabled = true;
     }
 }
 

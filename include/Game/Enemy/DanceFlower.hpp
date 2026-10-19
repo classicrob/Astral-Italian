@@ -11,18 +11,18 @@ class YoshiLockOnTarget;
 class DanceFlower : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    virtual bool fn_8017A520();
-    void fn_8017A5B0(HitSensor*, HitSensor*);
-    void fn_8017A660();
-    bool fn_8017A720() const;
-    s32 fn_8017A7F0() const;
-    bool fn_8017A850() const;
-    bool fn_8017A920() const;
-    bool fn_8017A980() const;
-    bool fn_8017AA50() const;
-    bool fn_8017AB10() const;
-    bool fn_8017ABE0() const;
-    bool fn_8017AC90() const;
+    virtual bool tryStartPressDown();
+    void startBlowDownReaction(HitSensor*, HitSensor*);
+    void snapToFloorPos();
+    bool isPressableNerve() const;
+    s32 isPressDownOpen() const;
+    bool isSwoonStartableNerve() const;
+    bool isAttackActiveNerve() const;
+    bool isProjectileHittableNerve() const;
+    bool isBlowHittableNerve() const;
+    bool isEatableNerve() const;
+    bool isStarPointBindableNerve() const;
+    bool isSwoonNerve() const;
     DanceFlower(const char* pName);
 
     virtual ~DanceFlower();
@@ -36,9 +36,9 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void fn_8017AD00();
+    void exeDanceFlowerWait();
     void exeAttackSign();
-    void fn_8017ADE0();
+    void exeDanceFlowerAttack();
     void exeAttackEnd();
     void exeSwoonStart();
     void exeSwoon();

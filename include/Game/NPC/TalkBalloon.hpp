@@ -26,11 +26,11 @@ public:
 
     void create(const char*, bool, bool);
 
-    /* 0x20 */ TalkMessageCtrl* mMessageCtrl;
-    /* 0x24 */ TalkTextFormer* mTextFormer;
-    bool _28;
-    bool _29;
-    /* 0x36 */ u8 _36;
+    /* 0x2C */ TalkMessageCtrl* mMessageCtrl;
+    /* 0x30 */ TalkTextFormer* mTextFormer;
+    /* 0x34 */ bool mHasBeak;
+    /* 0x35 */ bool mIsBeakTurning;
+    /* 0x36 */ u8 mDisableTalkSound;
 };
 
 class TalkBalloonShort : public TalkBalloon {
@@ -64,8 +64,8 @@ public:
     void updateBeak();
     void exeClose();
 
-    u32 _2C;
-    /* 0x30 */ IconAButton* mAButton;
+    /* 0x38 */ u32 mTextFormatType;
+    /* 0x3C */ IconAButton* mAButton;
 };
 
 class TalkBalloonSign : public TalkBalloonEvent {
@@ -119,7 +119,3 @@ public:
     /* 0x14 */ IconAButton* mAButton;
 };
 
-namespace MR {
-    void recoverSoundVolumeSetting(u32);
-    bool isCameraInterpolatingNearlyEnd();
-};  // namespace MR

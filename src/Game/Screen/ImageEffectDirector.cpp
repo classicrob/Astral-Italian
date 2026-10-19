@@ -20,7 +20,7 @@ namespace {
 };  // namespace
 
 ImageEffectDirector::ImageEffectDirector(const char* pName)
-    : NameObj(pName), mIsAuto(true), mIsPlayerSync(), _E(), _F(), mPlayerSyncIntensity(), mDepthOfFieldIntensity(::sDOFIntensity),
+    : NameObj(pName), mIsAuto(true), mIsPlayerSync(), mWasDOFSuppressed(), mIsDOFSuppressed(), mPlayerSyncIntensity(), mDepthOfFieldIntensity(::sDOFIntensity),
       mStateNull(new ImageEffectStateImpl::StateNull(this)), mStateBloomNormal(new ImageEffectStateImpl::StateBloomNormal(this)),
       mStateScreenBlur(new ImageEffectStateImpl::StateScreenBlur(this)),
       mStateDepthOfField(new ImageEffectStateImpl::StateDepthOfField(this)),
@@ -35,9 +35,9 @@ void ImageEffectDirector::movement() {
         updateManual();
     }
 
-    bool isDOF = _F && mState == mStateDepthOfField;
+    bool isDOF = mIsDOFSuppressed && mState == mStateDepthOfField;
 
-    if (_E) {
+    if (mWasDOFSuppressed) {
         if (!isDOF) {
             mState->onChange();
         }
@@ -52,7 +52,7 @@ void ImageEffectDirector::movement() {
         mState->update();
     }
 
-    _E = isDOF;
+    mWasDOFSuppressed = isDOF;
 }
 
 void ImageEffectDirector::setCurrentEffect(ImageEffectBase* pEffect) {
@@ -91,11 +91,11 @@ void ImageEffectDirector::setAuto() {
 }
 
 void ImageEffectDirector::turnOffDOFInSubjective() {
-    _F = true;
+    mIsDOFSuppressed = true;
 }
 
 void ImageEffectDirector::turnOnDOFInSubjective() {
-    _F = false;
+    mIsDOFSuppressed = false;
 }
 
 void ImageEffectDirector::setNormalBloomIntensity(u8 bloomIntensity) {

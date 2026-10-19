@@ -42,7 +42,7 @@ BombTeresaHolder::BombTeresaHolder() : DeriveActorGroup< BombTeresa >("ボムテ
         bombTeresa = new BombTeresa("ポルタ用ボムテレサ");
         bombTeresa->initWithoutIter();
         bombTeresa->makeActorDead();
-        bombTeresa->_EF = true;
+        bombTeresa->mCanWander = true;
         registerActor(bombTeresa);
     }
 }

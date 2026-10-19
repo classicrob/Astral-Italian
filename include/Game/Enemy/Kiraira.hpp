@@ -40,7 +40,7 @@ private:
     /* 0x90 */ f32 mRailCoordSpeed;
     /* 0x94 */ TVec3f mRailVec;
     /* 0xA0 */ TVec3f mFront;
-    /* 0xAC */ f32 _A8;
+    /* 0xAC */ f32 mDriftPhase;
     /* 0xB0 */ bool mIsRail;
     /* 0xB1 */ bool mIsForceDetonated;
     /* 0xB2 */ bool mEyesOpen;

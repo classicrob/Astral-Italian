@@ -158,7 +158,7 @@ void BegomanSpring::init(const JMapInfoIter& rIter) {
     MR::initActorState(this, mStarPointBind, GET_NERVE(BegomanSpring, HostTypeNrvBindStarPointer), "SupportFreeze");
     MR::setEffectHostMtx(this, "WaterColumn", mWaterColumnMatrix);
     mHead = new BegomanSpringHead(this, mHeadMatrix);
-    mHead->_9C = &_B4;
+    mHead->mScaleSource = &mHeadScale;
     mHead->initWithoutIter();
     initSensor(1, 70.0f, 140.0f, "Center");
     MR::addHitSensorMtx(this, "trample", 0x23 /* ATYPE_PLAYER_AUTO_JUMP */, 8, 130.0f * mScale.y, MR::getJointMtx(mHead, "SpringJoint5"),
@@ -688,7 +688,8 @@ bool BegomanSpring::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
     }
 
     if (MR::isSensorEnemy(pSender)) {
-        TVec3f direction((*MR::getSensorPos(pReceiver)) - (*MR::getSensorPos(pSender)));
+        TVec3f direction(*MR::getSensorPos(pReceiver));
+        direction.sub(*MR::getSensorPos(pSender));
         MR::normalizeOrZero(&direction);
         if (MR::isNearZero(direction)) {
             return false;

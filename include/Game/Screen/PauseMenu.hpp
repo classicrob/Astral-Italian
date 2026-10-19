@@ -32,15 +32,15 @@ public:
     void restartSelecting();
     void registerPointer();
 
-    ButtonPaneController* _20;
-    ButtonPaneController* _24;
-    ButtonPaneController* _38;
+    ButtonPaneController* mUpButton;
+    ButtonPaneController* mDownButton;
+    ButtonPaneController* mListButton;
     AllStarList* mAllStarList;
     TVec2f mUpButtonPos;
     TVec2f mDownButtonPos;
     TVec2f mListButtonPos;
-    SysInfoWindow* _30;
-    bool _54;
+    SysInfoWindow* mSysInfoWindow;
+    bool mWasDefaultLayoutActive;
     bool mNoPowerStars;
     s32 mSelectedResult;
 };

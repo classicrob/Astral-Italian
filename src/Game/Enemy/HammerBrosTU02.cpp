@@ -2,17 +2,10 @@
 #include "Game/Enemy/BrosState.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-// PLACEHOLDER(enemies): unnamed .sbss2 static (owner/initialiser unknown); resolve when the owner unit names it.
-extern s32 lbl_807E3030;
+extern const volatile s32 gBrosAttackReleaseFrame;
 
-// NOTE: the .data (strings, vtables, nerve vtables), .sdata2 and .sbss ranges of this unit are not split yet.
-
-// Jump frame constants (.sdata2 ints loaded at run time by the target).
-
-// PLACEHOLDER(enemies): the target keeps these three ints in .sdata2 and loads them at run time; a `const` here would be
-// constant-folded by the compiler, so they are plain statics (.sdata); resolve when .sdata2 of this unit is split and a
-// non-folding spelling is found. Tried: static const + address table (folded, 75.8%), static const volatile (partly folded,
-// 81.3%), static volatile (82.1%); plain statics are the best found (84.4%).
+// PLACEHOLDER(enemies): target jump-frame ints use runtime loads from .sdata2; keep mutable until a non-folding
+// const spelling is found. The requested single attempt with late extern-const definitions still folded the loads.
 static s32 sHoldProjectileStep = 8;
 static s32 sSeekTargetStep = 6;
 static s32 sJumpFrames = 48;
@@ -276,7 +269,7 @@ void HammerBrosStateAttack::exeAttack() {
         MR::startAction(mHost, "Attack");
     }
     if (mHost->_B9) {
-        if (MR::getBckFrame(mHost) >= (f32)lbl_807E3030) {
+        if (MR::getBckFrame(mHost) >= (f32)gBrosAttackReleaseFrame) {
             if (MR::getBckFrame(mHost) < (f32)throwFrame) {
                 mHost->tryHoldProjectile();
             }
@@ -312,7 +305,7 @@ void HammerBrosStateAttack::exeAttackSecond() {
         MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
         MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, 0.43f);
     }
-    if (MR::getBckFrame(mHost) >= (f32)lbl_807E3030) {
+    if (MR::getBckFrame(mHost) >= (f32)gBrosAttackReleaseFrame) {
         if (MR::getBckFrame(mHost) < (f32)throwFrame) {
             mHost->tryHoldProjectile();
         }
@@ -367,7 +360,7 @@ void BoomerangBrosStateAttack::exeAttack() {
         MR::startAction(mHost, "Attack");
     }
     if (mHost->_B9) {
-        if (MR::getBckFrame(mHost) >= (f32)lbl_807E3030) {
+        if (MR::getBckFrame(mHost) >= (f32)gBrosAttackReleaseFrame) {
             if (MR::getBckFrame(mHost) < (f32)throwFrame) {
                 mHost->tryHoldProjectile();
             }
@@ -470,7 +463,7 @@ bool BoomerangBrosStateAttack::isAttackEnd() const {
 }
 
 // Swoon: lies on the ground, gets up after a while.
-BrosStateSwoon::BrosStateSwoon(BrosBase* pHost) : ActorStateBase< BrosBase >("State[\202\320\202\351\202\335]", pHost), mTimer(0), _14(false) {}
+BrosStateSwoon::BrosStateSwoon(BrosBase* pHost) : ActorStateBase< BrosBase >("State[\202\320\202\351\202\335]", pHost), mTimer(0), mStartWithRecovery(false) {}
 
 void BrosStateSwoon::init() {
     initNerve(&sNrvSwoonStart, 0);
@@ -480,13 +473,13 @@ void BrosStateSwoon::init() {
 void BrosStateSwoon::appear() {
     mHost->endFaceCtrl();
     ActorStateBaseInterface::appear();
-    if (_14) {
+    if (mStartWithRecovery) {
         setNerve(&sNrvSwoonEnd);
     } else {
         setNerve(&sNrvSwoonStart);
     }
     mTimer = 0;
-    _14 = false;
+    mStartWithRecovery = false;
 }
 
 void BrosStateSwoon::control() {
@@ -499,11 +492,11 @@ void BrosStateSwoon::control() {
     }
 }
 
-void BrosStateSwoon::fn_8018AFF0() {
-    _14 = true;
+void BrosStateSwoon::requestBrosSwoonRecovery() {
+    mStartWithRecovery = true;
 }
 
-bool BrosStateSwoon::fn_8018B000() const {
+bool BrosStateSwoon::isBrosSwoonVulnerable() const {
     bool ret = false;
     if ((isNerve(&sNrvSwoonStart) && mTimer > 24) || isNerve(&sNrvSwoon) || isNerve(&sNrvSwoonEnd)) {
         ret = true;
@@ -511,7 +504,7 @@ bool BrosStateSwoon::fn_8018B000() const {
     return ret;
 }
 
-bool BrosStateSwoon::fn_8018B080() const {
+bool BrosStateSwoon::isBrosSwoonRecoveryComplete() const {
     bool ret = false;
     if (isNerve(&sNrvSwoonEnd) && MR::isGreaterStep(this, 60)) {
         ret = true;
@@ -519,7 +512,7 @@ bool BrosStateSwoon::fn_8018B080() const {
     return ret;
 }
 
-bool BrosStateSwoon::fn_8018B0E0() const {
+bool BrosStateSwoon::canBrosSwoonBindStarPointer() const {
     bool ret = false;
     if (isNerve(&sNrvSwoon) || (isNerve(&sNrvSwoonEnd) && MR::isLessStep(this, 60))) {
         ret = true;
@@ -600,3 +593,5 @@ void NrvBrosStateJump::execute(Spine* pSpine) const {
 void NrvBrosStateJumpStart::execute(Spine* pSpine) const {
     reinterpret_cast< BrosStateJump* >(pSpine->mExecutor)->exeJumpStart();
 }
+
+extern const volatile s32 gBrosAttackReleaseFrame = 0;

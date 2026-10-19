@@ -9,9 +9,8 @@ class YoshiLockOnTarget;
 // SMG2-only unit (KickStone: kickable rock that breaks into star pieces or coins). LiveActor = 0x90 bytes.
 class KickStone : public LiveActor {
 public:
-    // SMG2-only functions (original names unknown; named by address)
-    void fn_801B38B0();
-    void fn_801B3B60();
+    void exeRollTowardPlayer();
+    void exeFallAfterRoll();
     KickStone(const char* pName);
 
     virtual ~KickStone();
@@ -24,21 +23,20 @@ public:
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void exeBreak();
+    static bool snapKickStoneToGround(TVec3f*, KickStone*, s32);
 
 public:
     /* 0x90 */ BreakModel* mBreakModel;
     /* 0x94 */ bool mIsCoin;
     /* 0x98 */ YoshiLockOnTarget* mLockOnTarget;
-    /* 0x9C */ f32 _9C;
-    /* 0xA0 */ bool _A0;
-    /* 0xA1 */ bool mArg1;
-    /* 0xA2 */ bool mArg2;
+    /* 0x9C */ f32 mUnusedRollSpeed;
+    /* 0xA0 */ bool mUnusedRollFlag;
+    /* 0xA1 */ bool mUsePlacedUp;
+    /* 0xA2 */ bool mKeepPlacedPosition;
     /* 0xA4 */ TVec3f mUp;
     /* 0xB0 */ TVec3f mFront;
-    /* 0xBC */ TVec3f _BC;
+    /* 0xBC */ TVec3f mRollAxis;
     /* 0xC8 */ TPos3f mMtx;
     /* 0xF8 */ TVec3f mOffset;
 };
 
-// unnamed by address (fn_801B3420), r3 is a TVec3f output.
-bool fn_801B3420(TVec3f*, KickStone*, s32);

@@ -1,4 +1,4 @@
-// NONMATCHING: NPCActorItem constructor outlining and literal aliases.
+// NONMATCHING: target data-symbol boundaries differ for matching literal offsets.
 #include "Game/NPC/HoneyBee.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
@@ -17,6 +17,9 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
+extern const char cNPCTalkDefault[], cNPCTalkTurnDefault[];
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
+
 namespace {
     static const s32 sFlyLectureWaitStep = 120;
     static const s32 sHipLectureWaitStep = 120;
@@ -31,9 +34,9 @@ namespace NrvHoneyBee {
     NEW_NERVE(HoneyBeeNrvJumpLecture, HoneyBee, JumpLecture);
 };  // namespace NrvHoneyBee
 
-HoneyBee::HoneyBee(const char* pName) : NPCActor(pName), _15C(-1), mArg0(), _1A0() {
-    _160.identity();
-    _190.zero();
+HoneyBee::HoneyBee(const char* pName) : NPCActor(pName), mCurrentRailPoint(-1), mArg0(), mFloatOffset() {
+    mSmoothedCenterMtx.identity();
+    mCenterPosition.zero();
 }
 
 void HoneyBee::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
@@ -58,7 +61,10 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
     s32 action=0;
     MR::getJMapInfoArg0NoInit(rIter,&action);
     mArg0=action;
-    setDefaultsParam();
+    mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault;
+    mParam._1C=cNPCTalkDefault; mParam._20=cNPCTalkTurnDefault;
+    _130=cNPCSpinDefault; _134=cNPCTrampledDefault;
+    _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
     _128=false;
     _12C=450.0f;
     switch(mArg0) {
@@ -70,7 +76,9 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
     case 5: mParam.setSingleAction("GatekeeperWait"); _128=true; break;
     }
     initialize(rIter,caps,"HoneyBee",nullptr,nullptr);
-    NPCActorItem item("HoneyBee");
+    NPCActorItem item;
+    item.mActor="HoneyBee"; item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
+    item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
     MR::getNPCItemData(&item,mArg0);
     equipment(item,false);
     MR::initFur(this);
@@ -79,7 +87,7 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
 }
 
 void HoneyBee::calcAndSetBaseMtx() {
-    MR::calcAndSetFloatBaseMtx(this, _1A0);
+    MR::calcAndSetFloatBaseMtx(this, mFloatOffset);
 }
 
 void HoneyBee::control() {
@@ -102,13 +110,13 @@ void HoneyBee::control() {
     }
 
     NPCActor::control();
-    f32 a = _160[1][3] - 80.0f;
-    _160.set(MR::getJointMtx(this, "Center"));
-    MR::extractMtxTrans(_160, &_190);
-    _160[1][3] = 80.0f + (((9.0f * a) + _160[1][3]) / 10.0f);
+    f32 a = mSmoothedCenterMtx[1][3] - 80.0f;
+    mSmoothedCenterMtx.set(MR::getJointMtx(this, "Center"));
+    MR::extractMtxTrans(mSmoothedCenterMtx, &mCenterPosition);
+    mSmoothedCenterMtx[1][3] = 80.0f + (((9.0f * a) + mSmoothedCenterMtx[1][3]) / 10.0f);
 
     if (mArg0 != InitAction_Sleep && mArg0 != InitAction_Stick) {
-        _1A0 = MR::calcFloatOffset(this, _1A0, 120.0f);
+        mFloatOffset = MR::calcFloatOffset(this, mFloatOffset, 120.0f);
     }
 }
 
@@ -135,10 +143,10 @@ void HoneyBee::exeFly() {
 
     MR::moveCoordAndFollowTrans(this, ::sFlyMoveSpeed);
 
-    if (_15C != MR::getCurrentRailPointNo(this)) {
+    if (mCurrentRailPoint != MR::getCurrentRailPointNo(this)) {
         s32 arg0 = 0;
-        _15C = MR::getCurrentRailPointNo(this);
-        MR::getRailPointArg0WithInit(this, _15C, &arg0);
+        mCurrentRailPoint = MR::getCurrentRailPointNo(this);
+        MR::getRailPointArg0WithInit(this, mCurrentRailPoint, &arg0);
 
         if (arg0 == 0) {
             if (!MR::isBckPlaying(this, "WalkWait")) {

@@ -25,28 +25,28 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
 
-    void exeWait();       // fn_80184F10
-    void exeJump();       // fn_80184FF0
-    void exeFall();       // fn_801851C0
-    void exeLand();       // fn_80185370
-    void exeGuard();      // fn_801854A0
-    void exeAttackHit();  // fn_80185560
-    void exeDown();       // fn_80185620
-    void exeBlowDown();   // fn_801856D0
-    void exeDead();       // inlined in nerve (fn_80186360)
-    void exeSupportFreeze();  // inlined in nerve (fn_80186310)
+    void exeWait();
+    void exeJump();
+    void exeFall();
+    void exeLand();
+    void exeGuard();
+    void exeAttackHit();
+    void exeDown();
+    void exeBlowDown();
+    void exeDead();
+    void exeSupportFreeze();
 
-    void calcMove();                // fn_80185C70
-    bool isNormalNerve() const;     // fn_80185D10
-    bool isSwitchChanged() const;   // fn_80185DC0
-    bool isJumpStartNerve() const;  // fn_80185E20
-    bool trySwitchFall();           // fn_80185E80
-    void updateHeadBtp();           // fn_80185ED0
-    bool tryGuard(HitSensor*, HitSensor*);  // fn_80185F10
-    bool tryAttackHit();            // fn_80185FB0
-    bool tryDown();                 // fn_80186050
-    bool tryElectric();             // fn_801860C0
-    bool tryBlowDown(HitSensor*, HitSensor*);  // fn_80186120
+    void calcMove();
+    bool isNormalNerve() const;
+    bool isSwitchChanged() const;
+    bool isJumpStartNerve() const;
+    bool trySwitchFall();
+    void updateHeadBtp();
+    bool tryGuard(HitSensor*, HitSensor*);
+    bool tryAttackHit();
+    bool tryDown();
+    bool tryElectric();
+    bool tryBlowDown(HitSensor*, HitSensor*);
 
     /* 0x90 */ PartsModel* mHead;
     /* 0x94 */ TPos3f mMtx;

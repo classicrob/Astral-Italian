@@ -126,8 +126,8 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
     const char* pObjName;
     MR::getObjectName(&pObjName, rIter);
     ResourceHolder* pHolder = MR::createAndAddResourceHolder(pObjName);
-    fn_801C0BD0(pHolder);
-    fn_801C0E30(pHolder);
+    loadPositionList(pHolder);
+    loadSequence(pHolder);
     if (MR::isObjectName(rIter, "MameMuimuiScorerLv2")) {
         mLevel = 2;
         mTargetScore = 600;
@@ -140,7 +140,7 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < num; i++) {
         MameMuimui* pMuimui = new MameMuimui("\227\316\203}\203\201\203\200\203C");
         pMuimui->setTypeGreen();
-        pMuimui->fn_801BF570(this);
+        pMuimui->setMuimuiListener(this);
         pMuimui->initWithoutIter();
         mGroups[0]->registerActor(pMuimui);
     }
@@ -148,7 +148,7 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < num; i++) {
         MameMuimui* pMuimui = new MameMuimui("\211\251\203}\203\201\203\200\203C");
         pMuimui->setTypeYellow();
-        pMuimui->fn_801BF570(this);
+        pMuimui->setMuimuiListener(this);
         pMuimui->initWithoutIter();
         mGroups[1]->registerActor(pMuimui);
     }
@@ -156,7 +156,7 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < num; i++) {
         MameMuimui* pMuimui = new MameMuimui("\203g\203Q\203\200\203C");
         pMuimui->setTypeSpike();
-        pMuimui->fn_801BF570(this);
+        pMuimui->setMuimuiListener(this);
         pMuimui->initWithoutIter();
         mGroups[2]->registerActor(pMuimui);
     }
@@ -195,7 +195,7 @@ MameMuimuiGroup::MameMuimuiGroup(const char* pName, int num) : LiveActorGroup(pN
 
 #pragma push
 #pragma opt_loop_invariants off
-void MameMuimuiScorer::fn_801C0BD0(ResourceHolder* pHolder) {
+void MameMuimuiScorer::loadPositionList(ResourceHolder* pHolder) {
     JMapInfo* pCsv = MR::createCsvParser(pHolder, "PositionList");
     s32 num = MR::getCsvDataElementNum(pCsv);
     mPlacements = new MameMuimuiPlacementSet(num);
@@ -252,7 +252,7 @@ s32 MameMuimuiScorer::getTargetScore() const {
     return mScoreLayout->mTargetScore;
 }
 
-void MameMuimuiScorer::fn_801C0E30(ResourceHolder* pHolder) {
+void MameMuimuiScorer::loadSequence(ResourceHolder* pHolder) {
     JMapInfo* pCsv = MR::createCsvParser(pHolder, "Sequence");
     mWaveCount = MR::getCsvDataElementNum(pCsv);
     mWaves = new MameMuimuiWave[mWaveCount];
@@ -269,20 +269,20 @@ void MameMuimuiScorer::fn_801C0E30(ResourceHolder* pHolder) {
 
 void MameMuimuiScorer::control() {
     if (!MR::isDead(mTimerLayout) && mTimerLayout->isReadyToTimeUp()) {
-        fn_801C1660();
+        retreatAll();
         mTimerLayout->kill();
         setNerve(&sNrvTimeUp);
     }
 }
 
-void MameMuimuiScorer::fn_801C19C0(s32 points, MameMuimui* pActor) {
+void MameMuimuiScorer::scoreHit(s32 points, MameMuimui* pActor) {
     if (isNerve(&sNrvPlay)) {
         s32 score = points * mScoreMultiplier;
         MR::appearScoreResult(score, pActor);
         if (mScoreMultiplier < 1) {
             mScoreMultiplier++;
         }
-        if (pActor->fn_801C0370()) {
+        if (pActor->isYellowType()) {
             MR::startActionSound(this, "AddScoreL", mScoreMultiplier, -1, -1);
         } else {
             MR::startActionSound(this, "AddScore", mScoreMultiplier, -1, -1);
@@ -291,12 +291,12 @@ void MameMuimuiScorer::fn_801C19C0(s32 points, MameMuimui* pActor) {
     }
 }
 
-void MameMuimuiScorer::fn_801C19B0(MameMuimui*) {
+void MameMuimuiScorer::breakCombo(MameMuimui*) {
     MR::startActionSound(this, "TogeFailure", -1, -1, -1);
     mScoreMultiplier = 1;
 }
 
-void MameMuimuiScorer::fn_801C10A0() {
+void MameMuimuiScorer::exeResetStart() {
     if (MR::isFirstStep(this)) {
         MR::curePlayerElementMode();
     }
@@ -310,9 +310,9 @@ void MameMuimuiScorer::fn_801C10A0() {
     }
 }
 
-void MameMuimuiScorer::fn_801C1120() {
+void MameMuimuiScorer::exeMuimuiCountdown() {
     if (MR::isFirstStep(this)) {
-        fn_801C1470();
+        resetGameState();
         MR::stopStageBGM(20);
         mCountdownLayout->appear();
         mScoreLayout->show();
@@ -323,16 +323,16 @@ void MameMuimuiScorer::fn_801C1120() {
     }
 }
 
-void MameMuimuiScorer::fn_801C11B0() {
+void MameMuimuiScorer::exeMuimuiReady() {
     if (MR::isGreaterStep(this, 30)) {
         mTimerLayout->setTimeLimit(2400);
         mTimerLayout->mDangerTransFrame = 600;
         mTimerLayout->appear();
-        fn_801C14C0();
+        spawnNextWave();
     }
 }
 
-void MameMuimuiScorer::fn_801C1220() {
+void MameMuimuiScorer::exeMuimuiTimeUp() {
     if (MR::isFirstStep(this)) {
         mTimerLayout->kill();
         mTimeUpLayout->appear();
@@ -358,19 +358,19 @@ void MameMuimuiScorer::fn_801C1220() {
     }
 }
 
-void MameMuimuiScorer::fn_801C1350() {
+void MameMuimuiScorer::exeMuimuiPlay() {
     if (mGroups[1]->getLivingActorNum() == 0 && mGroups[0]->getLivingActorNum() == 0) {
         s32 num = mGroups[2]->getObjectCount();
         for (s32 i = 0; i < num; i++) {
-            static_cast< MameMuimui* >(mGroups[2]->getActor(i))->fn_801BF6A0();
+            static_cast< MameMuimui* >(mGroups[2]->getActor(i))->tryHideMuimui();
         }
     }
-    if (fn_801C1720()) {
-        fn_801C14C0();
+    if (isNoneAlive()) {
+        spawnNextWave();
     }
 }
 
-void MameMuimuiScorer::fn_801C13F0() {
+void MameMuimuiScorer::exeResetEnd() {
     if (MR::updateActorState(this)) {
         MR::offPlayerControl();
         MR::deactivateDefaultGameLayout();
@@ -384,14 +384,14 @@ void MameMuimuiScorer::fn_801C13F0() {
     }
 }
 
-void MameMuimuiScorer::fn_801C1470() {
+void MameMuimuiScorer::resetGameState() {
     mScoreMultiplier = 1;
     mScoreLayout->resetScore();
     mWaveIndex = 0;
     mWavePattern = MR::getRandom((s32)0, (s32)3);
 }
 
-void MameMuimuiScorer::fn_801C14C0() {
+void MameMuimuiScorer::spawnNextWave() {
     if (mWaves[mWaveIndex].mTypes[0] < 0) {
         mWaveIndex = 13;
     }
@@ -414,17 +414,17 @@ void MameMuimuiScorer::fn_801C14C0() {
             MameMuimui* pMuimui = nullptr;
             switch (type) {
             case 1:
-                pMuimui = mGroups[0]->fn_801C1610();
+                pMuimui = mGroups[0]->findDeadActor();
                 break;
             case 2:
-                pMuimui = mGroups[1]->fn_801C1610();
+                pMuimui = mGroups[1]->findDeadActor();
                 break;
             case 3:
-                pMuimui = mGroups[2]->fn_801C1610();
+                pMuimui = mGroups[2]->findDeadActor();
                 break;
             }
             if (pMuimui != nullptr) {
-                pMuimui->fn_801BF610(pos, time);
+                pMuimui->respawnAt(pos, time);
             }
         }
     }
@@ -432,31 +432,31 @@ void MameMuimuiScorer::fn_801C14C0() {
     mWaveIndex++;
 }
 
-MameMuimui* MameMuimuiGroup::fn_801C1610() {
+MameMuimui* MameMuimuiGroup::findDeadActor() {
     if (getDeadActor() != nullptr) {
         return static_cast< MameMuimui* >(getDeadActor());
     }
     return nullptr;
 }
 
-void MameMuimuiScorer::fn_801C1660() {
+void MameMuimuiScorer::retreatAll() {
     s32 i;
     s32 n;
     n = mGroups[0]->getObjectCount();
     for (i = 0; i < n; i++) {
-        static_cast< MameMuimui* >(mGroups[0]->getActor(i))->fn_801BF6A0();
+        static_cast< MameMuimui* >(mGroups[0]->getActor(i))->tryHideMuimui();
     }
     n = mGroups[2]->getObjectCount();
     for (i = 0; i < n; i++) {
-        static_cast< MameMuimui* >(mGroups[2]->getActor(i))->fn_801BF6A0();
+        static_cast< MameMuimui* >(mGroups[2]->getActor(i))->tryHideMuimui();
     }
     n = mGroups[1]->getObjectCount();
     for (i = 0; i < n; i++) {
-        static_cast< MameMuimui* >(mGroups[1]->getActor(i))->fn_801BF6A0();
+        static_cast< MameMuimui* >(mGroups[1]->getActor(i))->tryHideMuimui();
     }
 }
 
-bool MameMuimuiScorer::fn_801C1720() {
+bool MameMuimuiScorer::isNoneAlive() {
     if (mGroups[1]->getLivingActorNum() == 0 && mGroups[0]->getLivingActorNum() == 0 && mGroups[2]->getLivingActorNum() == 0) {
         return true;
     }
@@ -471,27 +471,27 @@ void MameMuimuiScorerNrvEnd::execute(Spine* pSpine) const {
 }
 
 void MameMuimuiScorerNrvResetEnd::execute(Spine* pSpine) const {
-    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->fn_801C13F0();
+    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->exeResetEnd();
 }
 
 void MameMuimuiScorerNrvPlay::execute(Spine* pSpine) const {
-    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->fn_801C1350();
+    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->exeMuimuiPlay();
 }
 
 void MameMuimuiScorerNrvTimeUp::execute(Spine* pSpine) const {
-    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->fn_801C1220();
+    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->exeMuimuiTimeUp();
 }
 
 void MameMuimuiScorerNrvReady::execute(Spine* pSpine) const {
-    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->fn_801C11B0();
+    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->exeMuimuiReady();
 }
 
 void MameMuimuiScorerNrvCountdown::execute(Spine* pSpine) const {
-    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->fn_801C1120();
+    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->exeMuimuiCountdown();
 }
 
 void MameMuimuiScorerNrvResetStart::execute(Spine* pSpine) const {
-    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->fn_801C10A0();
+    reinterpret_cast< MameMuimuiScorer* >(pSpine->mExecutor)->exeResetStart();
 }
 
 void MameMuimuiScorerNrvWait::execute(Spine* pSpine) const {

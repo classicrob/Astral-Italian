@@ -14,10 +14,13 @@ class PartsModel;
 class Triangle;
 class TalkMessageCtrl;
 
-static const char* ReactionDefault = "Reaction";
-static const char* PointingDefault = "Pointing";
-static const char* TrampledDefault = "Trampled";
-static const char* SpinDefault = "Spin";
+
+extern const char cNPCReactionDefault[];
+extern const char cNPCPointingDefault[];
+extern const char cNPCTrampledDefault[];
+extern const char cNPCSpinDefault[];
+extern const char cNPCTurnDefault[];
+extern const char cNPCWaitDefault[];
 
 class NPCActorCaps {
 public:

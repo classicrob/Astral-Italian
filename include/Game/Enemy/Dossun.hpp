@@ -27,8 +27,8 @@ public:
     void exeRising();
 
     /* 0x90 */ ActorStateParamScale* mState;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ TVec3f _A0;
+    /* 0x94 */ TVec3f mEndPos;
+    /* 0xA0 */ TVec3f mStartPos;
     /* 0xAC */ s32 mFallingTime;
     /* 0xB0 */ s32 mHoldTime;
     /* 0xB4 */ f32 mMovementDist;

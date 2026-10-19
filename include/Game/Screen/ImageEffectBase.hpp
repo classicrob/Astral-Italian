@@ -26,14 +26,14 @@ public:
     }
 
     bool isSomething() const {
-        return _C || _D;
+        return mIsTurnedOn || mIsVisible;
     }
 
-    f32 get_10() const {
-        return _10;
+    f32 getFadeRate() const {
+        return mFadeRate;
     }
 
-    /* 0x12 */ bool _C;
-    /* 0x13 */ bool _D;
-    /* 0x14 */ f32 _10;
+    /* 0x0C */ bool mIsTurnedOn;
+    /* 0x0D */ bool mIsVisible;
+    /* 0x10 */ f32 mFadeRate;
 };

@@ -19,7 +19,7 @@ namespace {
 };  // namespace
 
 KabokuriFire::KabokuriFire(const char* pName) : LiveActor(pName) {
-    _8C.identity();
+    mBaseMtx.identity();
 }
 
 void KabokuriFire::init(const JMapInfoIter& rIter) {
@@ -41,8 +41,8 @@ void KabokuriFire::start(const TVec3f& rPosition, bool gravitySet) {
         MR::calcGravity(this);
     }
 
-    MR::makeMtxUpNoSupport(&_8C, -mGravity);
-    _8C.setTrans(mPosition);
+    MR::makeMtxUpNoSupport(&mBaseMtx, -mGravity);
+    mBaseMtx.setTrans(mPosition);
     setNerve(GET_NERVE(KabokuriFire, KabokuriFireNrvWait));
     appear();
 }

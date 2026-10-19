@@ -1,4 +1,4 @@
-// NONMATCHING: init callback temporary lifetime and stack layout; other residuals are literal aliases.
+// NONMATCHING: target data-symbol boundaries differ for matching literal offsets.
 #include "Game/NPC/CollectTico.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -25,7 +25,7 @@ CollectTico::CollectTico(const char* pName) : LiveActor(pName) {
     mCameraInfo=nullptr;
     mStrayTicos = nullptr;
     mTicoNum = 0;
-    _A0 = 0;
+    mHasAppearDemo = 0;
     mHasCamera=false;
     mUsePlacedPosition=false;
     MR::registerCollectTico(this);
@@ -45,8 +45,8 @@ void CollectTico::init(const JMapInfoIter& rIter) {
     initSound(2, "CollectTico", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(CollectTico, CollectTicoNrvWait));
     if (MR::tryRegisterDemoCast(this, rIter)) {
-        MR::registerDemoActionFunctor(this, MR::Functor(this, &CollectTico::startAppearPowerStar), "集めチコスター出現");
-        _A0 = 1;
+        MR::registerDemoActionFunctor(this, MR::Functor_Inline(this, &CollectTico::startAppearPowerStar), "集めチコスター出現");
+        mHasAppearDemo = 1;
     }
 
     mHasCamera=MR::initMultiActorCamera(this,rIter,&mCameraInfo,"集めデモカメラ");
@@ -75,19 +75,19 @@ void CollectTico::exeWait() {
 void CollectTico::exeCompleteDemo() {
     if (MR::isFirstStep(this)) {
         if(!mUsePlacedPosition) {
-            _94.set(*MR::getPlayerPos());
-            MR::setPosition(this,_94);
+            mDemoCenter.set(*MR::getPlayerPos());
+            MR::setPosition(this,mDemoCenter);
             MR::calcGravity(this);
-            _94.scaleAdd(300.0f,-mGravity,_94);
-            MR::setPosition(this,_94);
+            mDemoCenter.scaleAdd(300.0f,-mGravity,mDemoCenter);
+            MR::setPosition(this,mDemoCenter);
         } else {
             MR::rotateAroundActor(mGravity,TVec3f(0.0f,-1.0f,0.0f),this);
-            _94.set(mPosition);
+            mDemoCenter.set(mPosition);
         }
 
         for (s32 i = 0; i < mTicoNum; i++) {
             MR::requestMovementOn(mStrayTicos[i]);
-            mStrayTicos[i]->requestCompleteDemo(_94, mGravity, 360.0f * ((f32)i / mTicoNum));
+            mStrayTicos[i]->requestCompleteDemo(mDemoCenter, mGravity, 360.0f * ((f32)i / mTicoNum));
         }
         if(mHasCamera) MR::startMultiActorCameraTargetSelf(this,mCameraInfo,"集めデモカメラ",-1);
     }
@@ -119,7 +119,7 @@ void CollectTico::exeFlash() {
     }
 
     if (MR::isStep(this, 60)) {
-        if (!_A0) {
+        if (!mHasAppearDemo) {
             startAppearPowerStar();
             if(!mHasCamera) MR::endDemo(this,"チコ集めコンプリート");
         }
@@ -160,8 +160,8 @@ s32 CollectTico::calcNoRescuedCount() const {
 }
 
 void CollectTico::startAppearPowerStar() {
-    if(mHasCamera) MR::appearPowerStarContinueCurrentDemo(this,_94);
-    else MR::requestAppearPowerStar(this, _94);
+    if(mHasCamera) MR::appearPowerStarContinueCurrentDemo(this,mDemoCenter);
+    else MR::requestAppearPowerStar(this, mDemoCenter);
     setNerve(GET_NERVE(CollectTico, CollectTicoNrvAppearPowerStar));
 }
 

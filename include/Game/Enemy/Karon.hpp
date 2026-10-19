@@ -24,10 +24,10 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     bool isFallNextMove(bool);
-    void fn_801B1670();
-    void fn_801B1A10();
-    bool fn_801B27C0() const;
-    bool fn_801B2840() const;
+    void exeTurnOnRail();
+    void exePursueOnRail();
+    bool isRailPursueAllowed() const;
+    bool isKaronYoshiEatEnabled() const;
     void exeLavaDown();
 
     void exeFixWait();
@@ -47,11 +47,11 @@ public:
     void exeBindStarPointer() NO_INLINE;
     void endBindStarPointer();
 
-    /* 0x8C */ TerritoryMover* mTerritoryMover;
-    /* 0x90 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0x94 */ bool mStopSwAnim;
-    /* 0x95 */ bool _95;
-    /* 0x98 */ f32 _98;
+    /* 0x90 */ TerritoryMover* mTerritoryMover;
+    /* 0x94 */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0x98 */ bool mStopSwAnim;
+    /* 0x99 */ bool mIsRailConstrained;
+    /* 0x9C */ f32 mSearchAngle;
     /* 0xA0 */ TVec3f mRailDirection;
     /* 0xA8 */ AnimScaleController* mScaleController;
     /* 0xAC */ WalkerStateBindStarPointer* mStateStarPointer;

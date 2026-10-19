@@ -13,6 +13,10 @@
 #include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 
+
+
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
+
 namespace NrvKinopio {
     NEW_NERVE(KinopioNrvReaction, Kinopio, Reaction);
     NEW_NERVE(KinopioNrvTakeOutStar, Kinopio, TakeOutStar);
@@ -65,8 +69,8 @@ namespace {
 };  // namespace
 
 Kinopio::Kinopio(const char* pName)
-    : NPCActor(pName), mObjArg0(), mBehavior(-1), mAppearBehavior(-1), mGoodsIndex(-1), _17C(), mTakeOutStar(), mIsSpawnPowerStarMode(), _185() {
-    _16C.set(0.0f, 0.0f, 0.0f, 1.0f);
+    : NPCActor(pName), mObjArg0(), mBehavior(-1), mAppearBehavior(-1), mGoodsIndex(-1), mMapObjConnector(), mTakeOutStar(), mIsSpawnPowerStarMode(), mHasStartedStarTalk() {
+    mMountRotation.set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void Kinopio::init(const JMapInfoIter& rIter) {
@@ -82,7 +86,8 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg4NoInit(rIter, &mAppearBehavior);
     MR::getJMapInfoArg7NoInit(rIter, &mGoodsIndex);
     MR::initActor(this,rIter,"Kinopio",false);
-    mScale=TVec3f(::sDefaultScale);
+    TVec3f scale(::sDefaultScale);
+    mScale.x=scale.x; mScale.y=scale.y; mScale.z=scale.z;
     MR::invalidateHitSensor(this, "Pickel");
     s32 isInvalidateSensor = -1;
     MR::getJMapInfoArg6NoInit(rIter, &isInvalidateSensor);
@@ -96,8 +101,8 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     mMsgCtrl = MR::createTalkCtrl(this, rIter, "Kinopio", TVec3f(0.0f, 122.0f * ::sDefaultScale, 0.0f), nullptr);
     MR::setDistanceToTalk(mMsgCtrl, ::sDistancePlayerIsNear);
     MR::onRootNodeAutomatic(mMsgCtrl);
-    MR::registerEventFunc(mMsgCtrl, TalkMessageFuncM< Kinopio*, bool (Kinopio::*)(u32) >(this, &Kinopio::eventFunc));
-    MR::registerBranchFunc(mMsgCtrl, TalkMessageFuncM< Kinopio*, bool (Kinopio::*)(u32) >(this, &Kinopio::branchFunc));
+    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &Kinopio::eventFunc));
+    MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &Kinopio::branchFunc));
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToRailStartPoint(this);
         MR::onCalcShadow(this, nullptr);
@@ -114,16 +119,18 @@ void Kinopio::init(const JMapInfoIter& rIter) {
         mLodCtrl->setDistanceToMiddleAndLow(::sDistanceLodMiddle, ::sDistanceLodLow);
     }
 
-    NPCActorItem item("Kinopio");
+    NPCActorItem item;
+    item.mActor="Kinopio"; item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
+    item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
     MR::getNPCItemData(&item, mGoodsIndex);
     equipment(item, false);
     mScaleController = new AnimScaleController(&::sParam);
     mDelegator = MR::createJointDelegatorWithNullChildFunc< Kinopio >(this, &Kinopio::calcJointScale, "body");
 
     MR::tryRegisterDemoCast(this, rIter);
-    setDefaults();
+    _130=cNPCSpinDefault; _134=cNPCTrampledDefault; _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
     _12C = ::sDistancePlayerIsEvent;
-    mParam.setDefaultAction();
+    mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault;
     mParam.setTalkAction("Talk", "Talk");
     setTalkAction("Walk");
     _124 = true;
@@ -194,7 +201,7 @@ void Kinopio::init(const JMapInfoIter& rIter) {
         MR::validateHitSensor(this, "Pickel");
         break;
     case 4:
-        _17C = new MapObjConnector(this);
+        mMapObjConnector = new MapObjConnector(this);
         MR::invalidateClipping(this);
         mParam._0 = false;
         mParam._1 = false;
@@ -416,10 +423,10 @@ void Kinopio::exeEscape() {
 }
 
 void Kinopio::exeMount() {
-    if (MR::isFirstStep(this) && _17C->mParts == nullptr) {
+    if (MR::isFirstStep(this) && mMapObjConnector->mParts == nullptr) {
         MR::calcGravity(this);
         MR::setBaseTRMtx(this, _A0);
-        _17C->attachToUnder();
+        mMapObjConnector->attachToUnder();
         _B0.set(0.0f, 0.0f, 0.0f, 1.0f);
         _A0.set(0.0f, 0.0f, 0.0f, 1.0f);
     }
@@ -435,8 +442,8 @@ void Kinopio::exeMount() {
 
 void Kinopio::exeStarWait() {
     exeWait();
-    if (MR::isTalkTalking(mMsgCtrl) && !_185) {
-        _185 = true;
+    if (MR::isTalkTalking(mMsgCtrl) && !mHasStartedStarTalk) {
+        mHasStartedStarTalk = true;
     }
 }
 
@@ -489,13 +496,13 @@ void Kinopio::calcAndSetBaseMtx() {
         return;
     }
 
-    if (_17C != nullptr) {
-        _17C->connect();
+    if (mMapObjConnector != nullptr) {
+        mMapObjConnector->connect();
         TPos3f mtx(getBaseMtx());
-        mtx.getQuat(_16C);
+        mtx.getQuat(mMountRotation);
 
         TQuat4f rotation;
-        rotation.mult(_16C, _A0);
+        rotation.mult(mMountRotation, _A0);
         rotation.normalize();
         MR::setBaseTRMtx(this, rotation);
     } else {
@@ -556,15 +563,15 @@ void Kinopio::faceToVector(const TVec3f& rDirection, f32 turnLimit) {
     TVec3f currentUp;
     TVec3f currentFront;
     TQuat4f inverse;
-    f32 length = _16C.squared();
+    f32 length = mMountRotation.squared();
 
     if (length <= JGeometry::TUtil< f32 >::epsilon()) {
         inverse.set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
     } else {
-        inverse.x = -_16C.x / length;
-        inverse.y = -_16C.y / length;
-        inverse.z = -_16C.z / length;
-        inverse.w = _16C.w / length;
+        inverse.x = -mMountRotation.x / length;
+        inverse.y = -mMountRotation.y / length;
+        inverse.z = -mMountRotation.z / length;
+        inverse.w = mMountRotation.w / length;
     }
 
     _A0.getYDir(currentUp);

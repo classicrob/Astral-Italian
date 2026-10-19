@@ -3,14 +3,12 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/JointController.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 
 class AnimScaleController;
 class WalkerStateBindStarPointer;
 class YoshiLockOnTarget;
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};
 
 namespace MR {
     bool isMsgYoshiStartTongue(u32);
@@ -68,18 +66,18 @@ public:
     /* 0x08C */ AnimScaleController* mScaleController;
     /* 0x090 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x098 */ YoshiLockOnTarget* mYoshiLockOn;  // SMG2 extra field
-    /* 0x094 */ TVec3f _94;
-    /* 0x0A0 */ TVec3f _A0;
-    /* 0x0AC */ f32 _AC;
-    /* 0x0B0 */ f32 _B0;
+    /* 0x094 */ TVec3f mFront;
+    /* 0x0A0 */ TVec3f mUp;
+    /* 0x0AC */ f32 mFaceRotateDegree;
+    /* 0x0B0 */ f32 mFaceRotateSpeed;
     /* 0x0B4 */ JointController* mPropellerJointCtrl;
-    /* 0x0B8 */ TMtx34f _B8;
+    /* 0x0B8 */ TMtx34f mCollisionMtx;
     /* 0x0E8 */ TMtx34f _E8;
     /* 0x118 */ JointController* mBeanStartJointCtrl;
     /* 0x11C */ JointController* mBeamEndJointCtrl;
     /* 0x120 */ TVec3f mBeamStart;
     /* 0x12C */ TVec3f mBeamEnd;
-    /* 0x138 */ f32 _138;
-    /* 0x13C */ f32 _13C;
-    /* 0x140 */ f32 _140;
+    /* 0x138 */ f32 mBeamTargetOffset;
+    /* 0x13C */ f32 mSearchDistance;
+    /* 0x140 */ f32 mDetectDistance;
 };

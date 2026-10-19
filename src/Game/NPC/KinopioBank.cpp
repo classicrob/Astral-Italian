@@ -12,6 +12,10 @@
 #include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/Util.hpp"
 
+
+
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
+
 namespace NrvKinopioBank {
     class WaitSelect : public Nerve {
     public:
@@ -64,9 +68,9 @@ void KinopioBank::init(const JMapInfoIter& iter) {
     MR::setScale(this,1.2f);
     MR::invalidateHitSensor(this,"Pickel");
     MR::offBind(this);
-    mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Talk";
+    mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault; mParam._1C="Talk"; mParam._20="Talk";
     _11C="Walk"; _120="Walk";
-    _130="Spin"; _134="Trampled"; _138="Pointing"; _13C="Reaction";
+    _130=cNPCSpinDefault; _134=cNPCTrampledDefault; _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
     _12C=450.0f;
     initTalkCtrlDirect(iter,"KinopioBank",TVec3f(0.0f,150.0f,0.0f),nullptr);
     MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::branchFunc));
@@ -121,7 +125,10 @@ void KinopioBank::exeEnd() {
 void KinopioBank::createGoodsTables() {
     mGoodsA=new PartsModel*[6]; mGoodsB=new PartsModel*[6];
     for(s32 i=0;i<6;i++) {
-        NPCActorItem item("KinopioBank");
+        NPCActorItem item;
+        item.mActor="KinopioBank";
+        item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
+        item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
         MR::getNPCItemData(&item,i);
         mGoodsA[i]=MR::createNPCGoods(this,item.mGoods0,item.mGoodsJoint0);
         mGoodsB[i]=MR::createNPCGoods(this,item.mGoods1,item.mGoodsJoint1);

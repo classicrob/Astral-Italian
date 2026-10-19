@@ -26,6 +26,8 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
+
+
 namespace NrvTico {
     NEW_NERVE(TicoNrvNoReaction, Tico, NoReaction);
     NEW_NERVE(TicoNrvReaction, Tico, Reaction);
@@ -60,18 +62,15 @@ namespace {
                                    Color8(0xFF, 0, 0, 0xFF),    Color8(0x78, 0, 0xFF, 0xFF), Color8(0xFF, 0x64, 0x64, 0xFF), Color8(0xFF, 0x80, 0, 0xFF)};
 };  // namespace
 
-namespace MR {
-    bool branchFuncGameProgress(u32);
-    bool isStageMarioFaceShip();
-}  // namespace MR
 
 const f32 Tico::sFloatSeMinVolume = 0.2f;
 
 Tico::Tico(const char* pName)
-    : NPCActor(pName), _15C(), _160(0.0f, 0.0f, 0.0f), _16C(), mDemoGetPower(), _174(), _178Ctrl(), _178(), _17C(255, 255, 255, 255), _180(),
-      mDemoStarter(this), _19C(false), _19D(false), _19E(false), mCameraInfo(nullptr), mDemoObj(nullptr) {
+    : NPCActor(pName), mBehavior(), mFloatBasePosition(0.0f, 0.0f, 0.0f), mFloatOffset(), mDemoGetPower(), mStarPieceTalkCtrl(), mReactionTalkCtrl(), mBodyJointMtx(), mPointLightColor(255, 255, 255, 255), mMetaNerve(),
+      mDemoStarter(this), mWasHitByStarPiece(false), mIsReactionTalkEnabled(false), mFollowGravity(false), mCameraInfo(nullptr), mDemoObj(nullptr) {
 }
 
+// NONMATCHING: equivalent initialization uses different temporary registers and literal relocations.
 void Tico::initBase(const JMapInfoIter& rIter, s32 color) {
     NPCActorCaps caps("Tico");
     caps.setDefault();
@@ -79,7 +78,7 @@ void Tico::initBase(const JMapInfoIter& rIter, s32 color) {
     caps._94 = true;
     caps.mWaitNerve = GET_NERVE(Tico, TicoNrvWait);
 
-    setDefaults2();
+    _130=cNPCSpinDefault; _134=cNPCTrampledDefault; _138=cNPCPointingDefault;
     _13C = "Spin";
     _12C = 1000.0f;
     mParam._14 = "Wait";
@@ -95,14 +94,15 @@ void Tico::initBase(const JMapInfoIter& rIter, s32 color) {
     initialize(rIter, caps, "Tico", nullptr, nullptr);
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, color);
-    _17C = ::hPointLight[color];
-    _180 = GET_NERVE(Tico, TicoNrvMeta);
-    _160.set(mPosition);
+    mPointLightColor = ::hPointLight[color];
+    mMetaNerve = GET_NERVE(Tico, TicoNrvMeta);
+    mFloatBasePosition.set(mPosition);
     MR::startAction(this, "Wait");
     MR::setBckFrameAtRandom(this);
-    _178 = MR::getJointMtx(this, "Body");
+    mBodyJointMtx = MR::getJointMtx(this, "Body");
 }
 
+// NONMATCHING: callback register lifetimes and local stack allocation differ.
 void Tico::initMessage(const JMapInfoIter& rIter, const char* pMessageId) {
     if (initTalkCtrl(rIter, pMessageId, TVec3f(0.0f, 120.0f, 0.0f), nullptr)) {
         MR::registerKillFunc(getMsgCtrl(), TalkMessageFunc< Tico >(this, &Tico::killFunc));
@@ -120,9 +120,9 @@ void Tico::initMessage(const JMapInfoIter& rIter, const char* pMessageId) {
     MR::getJMapInfoArg4NoInit(rIter, &num);
     char buf[0x80];
     snprintf(buf, 0x80, "Tico_StarPiece%d", num);
-    _174 = MR::createTalkCtrlDirect(this, rIter, buf, TVec3f(0.0f, 120.0f, 0.0f), nullptr);
-    if (_174) {
-        MR::offRootNodeAutomatic(_174);
+    mStarPieceTalkCtrl = MR::createTalkCtrlDirect(this, rIter, buf, TVec3f(0.0f, 120.0f, 0.0f), nullptr);
+    if (mStarPieceTalkCtrl) {
+        MR::offRootNodeAutomatic(mStarPieceTalkCtrl);
     }
 }
 
@@ -134,9 +134,9 @@ void Tico::initMessage(const char* pMessageId) {
         MR::setDistanceToTalk(mMsgCtrl, 350.0f);
     }
 
-    _174 = MR::createTalkCtrlDirect(this, iter, "Tico_StarPiece0", TVec3f(0.0f, 120.0f, 0.0f), nullptr);
-    if (_174) {
-        MR::offRootNodeAutomatic(_174);
+    mStarPieceTalkCtrl = MR::createTalkCtrlDirect(this, iter, "Tico_StarPiece0", TVec3f(0.0f, 120.0f, 0.0f), nullptr);
+    if (mStarPieceTalkCtrl) {
+        MR::offRootNodeAutomatic(mStarPieceTalkCtrl);
     }
 }
 
@@ -145,12 +145,12 @@ void Tico::initRail(const JMapInfoIter& rIter) {
     if (MR::isExistRail(this) && MR::isValidSwitchDead(this)) {
         s32 speed;
         if (MR::getRailArg0NoInit(this, &speed)) {
-            _1A0 = speed;
+            mRailSpeed = speed;
         } else {
-            _1A0 = 8.0f;
+            mRailSpeed = 8.0f;
         }
 
-        _10C = _1A0;
+        _10C = mRailSpeed;
         mParam._C = 0.0f;
         mParam._10 = 0.0f;
         MR::onCalcGravity(this);
@@ -159,7 +159,7 @@ void Tico::initRail(const JMapInfoIter& rIter) {
         MR::invalidateClipping(this);
 
         if (MR::isValidSwitchAppear(this)) {
-            if (_15C == 6) {
+            if (mBehavior == 6) {
                 setNerve(GET_NERVE(Tico, TicoNrvMoveRail));
             } else {
                 setNerve(GET_NERVE(Tico, TicoNrvMoveRailForceTalk));
@@ -179,26 +179,26 @@ void Tico::init(const JMapInfoIter& rIter) {
     s32 behavior = 0;
     s32 clr = color;
     MR::getJMapInfoArg1NoInit(rIter, &behavior);
-    _15C = behavior;
+    mBehavior = behavior;
     initBase(rIter, clr);
 
     bool calcGravity = false;
     MR::getJMapInfoArg5NoInit(rIter, &calcGravity);
     if (calcGravity) {
-        _19E = true;
+        mFollowGravity = true;
         MR::onCalcGravity(this);
         MR::onCalcShadowAll(this);
     }
 
     bool noMessage = false;
     MR::getJMapInfoArg2NoInit(rIter, &noMessage);
-    if (!noMessage && _15C != 2) {
+    if (!noMessage && mBehavior != 2) {
         initMessage(rIter, "Tico");
     }
 
     MR::joinToGroupArray(this, rIter, mName, 32);
 
-    if (_15C == 2) {
+    if (mBehavior == 2) {
         const char* castName = "スピンドライバ初出";
         if (MR::getJMapInfoDemoCastID(rIter)) {
             MR::initTalkAnimDemoCast(this, rIter, castName, "DemoRideSpinDriverBlue");
@@ -220,7 +220,7 @@ void Tico::init(const JMapInfoIter& rIter) {
         MR::registerDemoSimpleCastAll(this);
     }
 
-    switch (_15C) {
+    switch (mBehavior) {
     case 1:
         setNerve(GET_NERVE(Tico, TicoNrvFall));
         break;
@@ -265,7 +265,7 @@ bool Tico::isReactionNerve() const {
 }
 
 void Tico::initAfterPlacement() {
-    if (_15C == 1) {
+    if (mBehavior == 1) {
         TVec3f pos(mPosition);
         TVec3f dir(mGravity);
         dir.scale(1000.0f);
@@ -277,19 +277,20 @@ void Tico::initAfterPlacement() {
 }
 
 void Tico::calcAndSetBaseMtx() {
-    MR::calcAndSetFloatBaseMtx(this, _16C);
+    MR::calcAndSetFloatBaseMtx(this, mFloatOffset);
 }
 
+// NONMATCHING: local vector stack slots and floating load scheduling differ.
 void Tico::control() {
-    _19C = false;
+    mWasHitByStarPiece = false;
 
-    if (_178) {
+    if (mBodyJointMtx) {
         TVec3f trans;
-        MR::extractMtxTrans(_178, &trans);
-        MR::requestPointLight(this, trans, _17C, 0.998646f, -1.0f, -1);
+        MR::extractMtxTrans(mBodyJointMtx, &trans);
+        MR::requestPointLight(this, trans, mPointLightColor, 0.998646f, -1.0f, -1);
     }
 
-    if (isNerve(_180)) {
+    if (isNerve(mMetaNerve)) {
         NPCActor::control();
     } else {
         if (!MR::isTimeKeepDemoActive()) {
@@ -298,16 +299,12 @@ void Tico::control() {
             MR::startActionSound(this, "WaitVolDown");
         }
 
-        _160.set(mPosition);
-        _16C = MR::calcFloatOffset(this, _16C, 150.0f);
+        mFloatBasePosition.set(mPosition);
+        mFloatOffset = MR::calcFloatOffset(this, mFloatOffset, 150.0f);
 
-        if (_19E) {
-            f32 qx = _A0.x;
-            f32 qy = _A0.y;
-            f32 qz = _A0.z;
-            f32 qw = _A0.w;
+        if (mFollowGravity) {
             TVec3f front;
-            front.set< f32 >(2.0f * (qx * qz) + 2.0f * (qw * qy), 2.0f * (qy * qz) - 2.0f * (qw * qx), 1.0f - 2.0f * (qx * qx) - 2.0f * (qy * qy));
+            _A0.getZDir(front);
             TVec3f up;
             up.negate(mGravity);
             MR::blendQuatUpFront(&_B0, up, front, 1.0f, 0.0f);
@@ -324,7 +321,7 @@ bool Tico::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
 
     if (MR::isMsgStarPieceAttack(msg)) {
         MR::limitedStarPieceHitSound();
-        _19C = true;
+        mWasHitByStarPiece = true;
 
         return true;
     }
@@ -333,13 +330,13 @@ bool Tico::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
 }
 
 bool Tico::tryReaction() {
-    if (_19C && _174) {
+    if (mWasHitByStarPiece && mStarPieceTalkCtrl) {
         pushNerve(GET_NERVE(Tico, TicoNrvDelight));
 
         return true;
     }
 
-    if (_19D && _178Ctrl && isSpinAttackedStart()) {
+    if (mIsReactionTalkEnabled && mReactionTalkCtrl && isSpinAttackedStart()) {
         pushNerve(GET_NERVE(Tico, TicoNrvReactionTalk));
 
         return true;
@@ -349,13 +346,13 @@ bool Tico::tryReaction() {
 }
 
 bool Tico::killFunc(u32) {
-    setNerve(_180);
+    setNerve(mMetaNerve);
 
     return true;
 }
 
 bool Tico::eventFunc(u32) {
-    _19D = true;
+    mIsReactionTalkEnabled = true;
 
     return true;
 }
@@ -399,10 +396,10 @@ void Tico::exeReaction() {
 void Tico::exeDelight() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, _13C);
-        MR::resetAndForwardNode(_174, MR::getRandom(0l, 5l));
+        MR::resetAndForwardNode(mStarPieceTalkCtrl, MR::getRandom(0l, 5l));
     }
 
-    MR::tryTalkForce(_174);
+    MR::tryTalkForce(mStarPieceTalkCtrl);
 
     if (MR::isActionEnd(this)) {
         popNerve();
@@ -414,10 +411,10 @@ void Tico::exeReactionTalk() {
         MR::startAction(this, _13C);
     }
 
-    MR::tryTalkForce(_178Ctrl);
+    MR::tryTalkForce(mReactionTalkCtrl);
 
     if (MR::isActionEnd(this)) {
-        MR::forwardNode(_178Ctrl);
+        MR::forwardNode(mReactionTalkCtrl);
         popNerve();
     }
 }
@@ -426,7 +423,7 @@ void Tico::exeAppearRail() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Appear");
 
-        if (_15C == 6) {
+        if (mBehavior == 6) {
             s32 arg1;
             if (!MR::getRailArg1NoInit(this, &arg1)) {
                 MR::moveCoordToNearestPos(this, *MR::getPlayerPos());
@@ -540,9 +537,9 @@ void Tico::exeFallRecover() {
     MR::tryTalkForce(mMsgCtrl);
 
     if (MR::isActionEnd(this)) {
-        mVelocity.x = 0.0f;
-        mVelocity.y = 0.0f;
         mVelocity.z = 0.0f;
+        mVelocity.y = 0.0f;
+        mVelocity.x = 0.0f;
         MR::setDefaultPose(this);
         setNerve(GET_NERVE(Tico, TicoNrvWait));
     }
@@ -556,7 +553,7 @@ void Tico::exeWaitSwitchABeforeRail() {
     if (MR::isOnSwitchA(this)) {
         MR::invalidateClipping(this);
 
-        if (_15C == 8) {
+        if (mBehavior == 8) {
             setNerve(GET_NERVE(Tico, TicoNrvMoveRailForceTalk));
         } else {
             setNerve(GET_NERVE(Tico, TicoNrvWaitBeforeRail));
@@ -583,7 +580,7 @@ void Tico::exeMoveRail() {
 
     f32 diff = MR::calcDifferenceRailCoord(this, MR::calcNearestRailCoord(this, *MR::getPlayerPos()));
     TVec3f railPos;
-    MR::calcRailPosAtCoord(&railPos, this, 10.0f * _1A0 + MR::getRailCoord(this));
+    MR::calcRailPosAtCoord(&railPos, this, 10.0f * mRailSpeed + MR::getRailCoord(this));
     TVec2f screenPos;
     bool onScreen = true;
     if (!MR::calcScreenPosition(&screenPos, railPos) && !MR::calcScreenPosition(&screenPos, mPosition)) {
@@ -599,7 +596,7 @@ void Tico::exeMoveRail() {
         speedScale = 10.0f;
     }
 
-    _10C = _1A0 * speedScale;
+    _10C = mRailSpeed * speedScale;
     if ((f32)__fabs((f64)(MR::getRailCoordSpeed(this) - _10C)) > 5.0f) {
         MR::setRailCoordSpeed(this, _10C);
     }

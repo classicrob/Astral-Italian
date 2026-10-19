@@ -126,11 +126,11 @@ void HanachanRunaway::initAfterPlacement() {
     mRailCoord -= dRail;
     mRotation -= dRot;
     MR::repeatDegree(&mRotation);
-    fn_80194540();
+    updateTubeSliderParts();
     mRailCoord += dRail;
     mRotation += dRot;
     MR::repeatDegree(&mRotation);
-    fn_80194540();
+    updateTubeSliderParts();
 }
 
 void HanachanRunaway::startClipped() {
@@ -186,7 +186,7 @@ void HanachanRunaway::exeWhistle() {
     mRailCoord += 0.1f * static_cast<f32>(-mSpeedA);
     mRotation += 0.1f * static_cast<f32>(mSpeedB);
     MR::repeatDegree(&mRotation);
-    fn_80194540();
+    updateTubeSliderParts();
     if (mIsStrong && MR::calcDistanceToPlayer(this) <= 1000.0f) {
         MR::startActionSound(this, "Whistle", -1, -1, 5);
     }
@@ -260,7 +260,7 @@ bool HanachanRunaway::isStarPointerPointing() {
 }
 
 // NONMATCHING: Remaining FP/GPR allocation, matrix-copy scheduling and temporary slots differ.
-void HanachanRunaway::fn_80194540() {
+void HanachanRunaway::updateTubeSliderParts() {
     f32 railStep;
     f32 rotationStep;
     f32 railSpeed = 0.1f * (f32)-mSpeedA;

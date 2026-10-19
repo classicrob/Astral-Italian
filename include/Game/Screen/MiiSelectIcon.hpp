@@ -38,13 +38,13 @@ public:
     void createFaceImageObj();
 
 private:
-    /* 0x20 */ ButtonPaneController* _20;
-    /* 0x24 */ ButtonPaneController* _24;
-    /* 0x28 */ ButtonPaneController* _28;
+    /* 0x20 */ ButtonPaneController* mCurrentButton;
+    /* 0x24 */ ButtonPaneController* mFellowButton;
+    /* 0x28 */ ButtonPaneController* mMiiButton;
     /* 0x2C */ MiiFaceIcon* mIcon;
     /* 0x30 */ nw4r::lyt::TexMap* mMiiTexMap;
     /* 0x34 */ nw4r::lyt::TexMap* mFellowTexMap;
     /* 0x38 */ FileSelectIconID* mIconID;
     /* 0x3C */ bool mIsMiiDummy;
-    /* 0x3D */ bool _3D;
+    /* 0x3D */ bool mIsValid;
 };

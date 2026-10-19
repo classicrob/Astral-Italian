@@ -36,7 +36,7 @@ void NrvUnbabaSlim::UnbabaSlimNrvEatEnd::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeEatEnd();
 }
 
-bool UnbabaSlim::fn_80216200(const TVec3f* pOffset) {
+bool UnbabaSlim::probeGroundAt(const TVec3f* pOffset) {
     TVec3f hit(0.0f);
     TPos3f mtx;
     PSMTXCopy(getBaseMtx(), mtx);
@@ -85,11 +85,11 @@ void UnbabaSlim::control() {
     if (diff.length() < f32(distance)) scaleUp = true;
     if (scaleUp) mVolumeDrawer->setScaleUpRate(120);
     else mVolumeDrawer->setScaleDownRate(120);
-    fn_802169A0();
+    calcHeadDrawMtx();
 }
 
 void UnbabaSlim::calcAndSetBaseMtx() {
-    fn_802168F0();
+    updateRotatingBaseMtx();
 }
 
 void UnbabaSlim::makeActorAppeared() {
@@ -109,7 +109,7 @@ void UnbabaSlim::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "UnbabaSlim");
     }
-    if (fn_80216200(&sUnbabaVec[0])) {
+    if (probeGroundAt(&sUnbabaVec[0])) {
         setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEatStart::sInstance);
     }
 }
@@ -131,7 +131,7 @@ void UnbabaSlim::exeEat() {
     if (MR::isGreaterStep(this, 15)) {
         TVec3f sp8(sUnbabaVec[0]);
         sp8.z = -sp8.z;
-        if (!fn_80216200(&sp8)) {
+        if (!probeGroundAt(&sp8)) {
             if (mEatCount == 0) {
                 MR::tryHitReaction(this, "小惑星抜け");
                 MR::startActionSound(this, "EatEnd", -1, -1, -1);
@@ -170,7 +170,7 @@ bool UnbabaSlim::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
 }
 
 // NONMATCHING: field/constant load order and multiply operand registers differ.
-void UnbabaSlim::fn_802168F0() {
+void UnbabaSlim::updateRotatingBaseMtx() {
     TPos3f mtx;
     mtx.identity();
     if (mRotator != nullptr) mtx.concat(mRotator->getRotateMtx(), mtx);
@@ -180,7 +180,7 @@ void UnbabaSlim::fn_802168F0() {
 }
 
 // NONMATCHING: matrix copy and Color8 init stay out-of-line in this TU while the target inlines them (paired-single copy)
-void UnbabaSlim::fn_802169A0() {
+void UnbabaSlim::calcHeadDrawMtx() {
     mMtx.setInline(MR::getJointMtx(this, "Head"));
     MR::addTransMtxLocal(mMtx, sUnbabaVec[2]);
     MR::preScaleMtx(mMtx, sUnbabaVec[1] * 5.0f);

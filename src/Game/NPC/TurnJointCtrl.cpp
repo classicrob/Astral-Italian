@@ -22,7 +22,7 @@ namespace {
 
 TurnJointCtrl::TurnJointCtrl(LiveActor* pActor)
     : mActor(pActor), mCtrlRate(new JointCtrlRate()), mHorizontalDegreeMax(45.0f), mPositiveDegreeMax(22.5f), mNegativeDegreeMax(22.5f),
-      mStarePos(0.0f, 0.0f, 0.0f), _5C(1000.0f), _60(0.04f), mCtrlFrames(60), mEnabled(true) {
+      mStarePos(0.0f, 0.0f, 0.0f), mStareDistanceLimit(1000.0f), mStareBlendRate(0.04f), mCtrlFrames(60), mEnabled(true) {
     mFace.mEnabled = false;
     mFace.mBlendRate = 0.0f;
     mFace.mJointController = nullptr;
@@ -85,7 +85,7 @@ void TurnJointCtrl::setStarePos(const TVec3f& rPos) {
         return;
     }
 
-    if (MR::isNear(mActor, rPos, _5C)) {
+    if (MR::isNear(mActor, rPos, mStareDistanceLimit)) {
         if (MR::isNearZero(mCtrlRate->_0)) {
             mCtrlRate->startCtrl(mCtrlFrames);
         }
@@ -95,7 +95,7 @@ void TurnJointCtrl::setStarePos(const TVec3f& rPos) {
         }
     }
 
-    MR::vecBlendSphere(mStarePos, rPos, &mStarePos, _60);
+    MR::vecBlendSphere(mStarePos, rPos, &mStarePos, mStareBlendRate);
 }
 
 void TurnJointCtrl::update() {
@@ -140,6 +140,7 @@ void TurnJointCtrl::getMtxDir(TVec3f* pDir, const TPos3f* pMtx, AXIS axis) {
     MR::normalizeOrZero(pDir);
 }
 
+// NONMATCHING: vector temporary stack slots and constant-pool relocations differ.
 bool TurnJointCtrl::updateJointMtxCallBack(TPos3f* pMtx, const Ctrl& rCtrl) {
     if (!mEnabled && MR::isNearZero(mCtrlRate->_0)) {
         return false;
@@ -156,7 +157,9 @@ bool TurnJointCtrl::updateJointMtxCallBack(TPos3f* pMtx, const Ctrl& rCtrl) {
 
     TPos3f result = *pMtx;
     TPos3f rotation;
-    result.setTrans(TVec3f(0.0f));
+    TVec3f zeroTranslation;
+    zeroTranslation.x = 0.0f; zeroTranslation.y = 0.0f; zeroTranslation.z = 0.0f;
+    result.setTrans(zeroTranslation);
 
     TVec3f verticalAxis;
     TVec3f horizontalAxis;

@@ -1,4 +1,3 @@
-// NONMATCHING: Remaining nonmatches are register allocation, stack layout, literal/nerve addressing, and base-destructor outlining.
 #include "Game/NPC/TicoFatStarPieceTransformation.hpp"
 #include "Game/NPC/TicoFatStarPiece.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -17,7 +16,9 @@ namespace NrvTicoFatStarPieceTransformation {
     NEW_NERVE(CreateRoute, TicoFatStarPieceTransformation, CreateRoute);
 }
 
+#pragma auto_inline on
 TicoFatStarPieceState::~TicoFatStarPieceState() {}
+#pragma auto_inline reset
 TicoFatStarPieceTransformation::~TicoFatStarPieceTransformation() {}
 
 TicoFatStarPieceTransformation::TicoFatStarPieceTransformation(TicoFatStarPiece* host, const JMapInfoIter& iter)
@@ -30,7 +31,8 @@ TicoFatStarPieceTransformation::TicoFatStarPieceTransformation(TicoFatStarPiece*
 void TicoFatStarPieceTransformation::exeWaitDemo() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(mHost);
-        MR::tryStartActionNotPlaying(mHost, mHost->getActionName("Excite"));
+        TicoFatStarPiece* host = mHost;
+        MR::tryStartActionNotPlaying(host, host->getActionName("Excite"));
     }
     if (MR::tryStartDemo(mHost, "変身")) {
         MR::invalidateHitSensors(mHost);
@@ -51,7 +53,8 @@ void TicoFatStarPieceTransformation::exeWaitTalk() {
 
 void TicoFatStarPieceTransformation::exeFullness() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(mHost, mHost->getActionName("Joy"));
+        TicoFatStarPiece* host = mHost;
+        MR::tryStartActionNotPlaying(host, host->getActionName("Joy"));
         MR::startActionSound(mHost, "SmTicofatMax", -1, -1, -1);
         mHost->tryEndEventCamera();
     }
@@ -59,10 +62,12 @@ void TicoFatStarPieceTransformation::exeFullness() {
     if (MR::tryTalkForceWithoutDemoAtEnd(mHost->mEatTalkCtrl)) setNerve(&NrvTicoFatStarPieceTransformation::Transform::sInstance);
 }
 
+// NONMATCHING: remaining differences are local literal relocation identities.
 void TicoFatStarPieceTransformation::exeTransform() {
     if (MR::isFirstStep(this)) {
         MR::startMultiActorCameraTargetSelf(mHost, mCameraInfo, "変身", -1);
-        MR::startAction(mHost, mHost->getActionName("Demo"));
+        TicoFatStarPiece* host = mHost;
+        MR::startAction(host, host->getActionName("Demo"));
     }
     MR::startActionSound(mHost, "VolDownBgm", -1, -1, -1);
     if (MR::isActionEnd(mHost)) {
@@ -73,6 +78,7 @@ void TicoFatStarPieceTransformation::exeTransform() {
     }
 }
 
+// NONMATCHING: remaining differences are local literal relocation identities.
 void TicoFatStarPieceTransformation::exeFly() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(mHost);
@@ -89,7 +95,8 @@ void TicoFatStarPieceTransformation::exeFly() {
     }
     MR::startActionSound(mHost, "VolDownBgm", -1, -1, -1);
     f32 rate = MR::calcNerveRate(this, 120);
-    MR::setPosition(mHost, mStartPos * (1.0f - rate) + mEndPos * rate);
+    TicoFatStarPiece* host = mHost;
+    MR::setPosition(host, mStartPos * (1.0f - rate) + mEndPos * rate);
     if (MR::isStep(this, 120)) {
         MR::turnPlayerToActor(mHost, 180.0f);
         setNerve(&NrvTicoFatStarPieceTransformation::CreateRoute::sInstance);
@@ -98,6 +105,7 @@ void TicoFatStarPieceTransformation::exeFly() {
     }
 }
 
+// NONMATCHING: remaining differences are local literal relocation identities.
 void TicoFatStarPieceTransformation::exeCreateRoute() {
     if (MR::isFirstStep(this)) {
         MR::getSceneObj<WorldMapResultCommand>(SceneObj_WorldMapResultCommand)->startRouteCreateTico();
@@ -106,7 +114,8 @@ void TicoFatStarPieceTransformation::exeCreateRoute() {
         TVec3f direction = mEndPos - mStartPos;
         MR::normalizeOrZero(&direction);
         s32 frames = 120;
-        MR::setPosition(mHost, mEndPos + direction * (50000.0f / static_cast<f32>(frames)));
+        TicoFatStarPiece* host = mHost;
+        MR::setPosition(host, mEndPos + direction * (50000.0f / static_cast<f32>(frames)));
         MR::startActionSound(mHost, "VolDownBgm", -1, -1, -1);
     }
     MR::getSceneObj<WorldMapResultCommand>(SceneObj_WorldMapResultCommand)->updateController();

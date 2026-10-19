@@ -9,6 +9,9 @@ class StaffRollLine;
 struct StaffRollPartInfo {
     s32 mType;
     TVec2f mPosition;
+
+    StaffRollPartInfo(s32 type, const TVec2f& position) : mType(type), mPosition(position) {
+    }
 };
 
 namespace StaffRollUtil {

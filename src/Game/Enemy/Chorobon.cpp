@@ -54,7 +54,7 @@ void Chorobon::init(const JMapInfoIter& rIter) {
 
 void Chorobon::control() {
     mAnimScaleCtrl->updateNerve();
-    if (this->fn_80176E60() && mStarPointBind->tryStartPointBind()) {
+    if (this->isStarBindableNerve() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvFreeze));
     }
 }
@@ -64,14 +64,14 @@ void Chorobon::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
-// NONMATCHING: the SMG2 body inlines the fn_80176D90/E00 nerve checks and branches differently (~51%).
+// NONMATCHING: the SMG2 body inlines the isAttackableChorobonNerve/E00 nerve checks and branches differently (~51%).
 void Chorobon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && this->fn_80176D90() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+    if (MR::isSensorPlayer(pReceiver) && this->isAttackableChorobonNerve() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvAttack));
         return;
     }
 
-    if (this->fn_80176E00()) {
+    if (this->isAliveChorobonNerve()) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -81,12 +81,12 @@ bool Chorobon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
 
-    if (MR::isMsgStarPieceAttack(msg) && this->fn_80176E30()) {
+    if (MR::isMsgStarPieceAttack(msg) && this->isNotKillNerve()) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvReaction));
         return true;
     }
 
-    if (MR::isMsgPlayerHitProjectiles(msg) && this->fn_80176E30()) {
+    if (MR::isMsgPlayerHitProjectiles(msg) && this->isNotKillNerve()) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
         return true;
     }
@@ -94,7 +94,7 @@ bool Chorobon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
-bool Chorobon::fn_80176D90() {
+bool Chorobon::isAttackableChorobonNerve() {
     if (this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvWait)) || this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvMove)) ||
         this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvFreeze))) {
         return true;
@@ -102,15 +102,15 @@ bool Chorobon::fn_80176D90() {
     return false;
 }
 
-bool Chorobon::fn_80176E00() {
+bool Chorobon::isAliveChorobonNerve() {
     return !this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
 }
 
-bool Chorobon::fn_80176E30() {
+bool Chorobon::isNotKillNerve() {
     return !this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
 }
 
-bool Chorobon::fn_80176E60() {
+bool Chorobon::isStarBindableNerve() {
     if (this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvWait)) || this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvMove)) ||
         this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvAttack))) {
         return true;

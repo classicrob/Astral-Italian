@@ -11,11 +11,11 @@ class HitSensor;
 class BakuBaku : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    void fn_80155D10();
-    void fn_80155DC0();
-    void fn_80155E60();
-    bool fn_80155F00();
-    bool fn_80155F60();
+    void playBiteOrEatSound();
+    void updateBakuRailMove();
+    void updateFreeMove();
+    bool isMoveOrTurnNerve();
+    bool isMoveTurnOrSuccessNerve();
     BakuBaku(const char* pName);
 
     virtual ~BakuBaku();

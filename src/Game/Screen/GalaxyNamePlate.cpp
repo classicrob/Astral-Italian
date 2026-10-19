@@ -22,8 +22,8 @@ namespace NrvGalaxyNamePlate {
 };  // namespace NrvGalaxyNamePlate
 
 GalaxyNamePlate::GalaxyNamePlate(const char* pGalaxyName, bool param2)
-    : LayoutActor("ギャラクシー名プレート", true), mGalaxyName(pGalaxyName), _24(false), _25(false), mShowBalloonNozzle(true), mDrawerEntry(nullptr),
-      _2C(0), _30(true) {
+    : LayoutActor("ギャラクシー名プレート", true), mGalaxyName(pGalaxyName), mIsRequested(false), mStartAppear(false), mShowBalloonNozzle(true), mDrawerEntry(nullptr),
+      mNameAnimFrame(0), mPlayNewSe(true) {
     initLayoutManager("GalaxyNamePlate", 3);
 
     if (param2) {
@@ -73,7 +73,7 @@ void GalaxyNamePlate::setShowBalloonNozzle(bool showBalloonNozzle) {
 }
 
 void GalaxyNamePlate::control() {
-    _24 = false;
+    mIsRequested = false;
 }
 
 void GalaxyNamePlate::show(const wchar_t* pName, s32 a2, bool a3, bool a4) {
@@ -89,7 +89,7 @@ void GalaxyNamePlate::show(const wchar_t* pName, s32 a2, bool a3, bool a4) {
             if (isNerve(GET_NERVE(GalaxyNamePlate, GalaxyNamePlateNrvAppearReady))) {
                 setNerve(GET_NERVE(GalaxyNamePlate, GalaxyNamePlateNrvAppear));
             }
-        } else if (_25) {
+        } else if (mStartAppear) {
             setNerve(GET_NERVE(GalaxyNamePlate, GalaxyNamePlateNrvAppearReady));
         }
 
@@ -118,9 +118,9 @@ void GalaxyNamePlate::show(const wchar_t* pName, s32 a2, bool a3, bool a4) {
 
     MR::startAnim(this, "Unknown", 1);
     MR::setAnimFrameAndStop(this, a2, 1);
-    _25 = a4;
-    _24 = true;
-    _2C = a2;
+    mStartAppear = a4;
+    mIsRequested = true;
+    mNameAnimFrame = a2;
 }
 
 void GalaxyNamePlate::exeAppearReady() {
@@ -128,7 +128,7 @@ void GalaxyNamePlate::exeAppearReady() {
         MR::hideLayout(this);
     }
 
-    if (!_24) {
+    if (!mIsRequested) {
         kill();
     } else {
         MR::setNerveAtStep(this, GET_NERVE(GalaxyNamePlate, GalaxyNamePlateNrvAppear), ::cAppearReadyFrame);
@@ -141,7 +141,7 @@ void GalaxyNamePlate::exeAppear() {
         MR::showLayout(this);
     }
 
-    if (!_24) {
+    if (!mIsRequested) {
         kill();
     } else {
         MR::setNerveAtAnimStopped(this, GET_NERVE(GalaxyNamePlate, GalaxyNamePlateNrvWait), 0);
@@ -152,18 +152,18 @@ void GalaxyNamePlate::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAnim(this, "Wait", 0);
 
-        if (_2C == 1) {
+        if (mNameAnimFrame == 1) {
             MR::emitEffect(this, "GalaxyNamePlateNew");
 
-            if (_30) {
+            if (mPlayNewSe) {
                 MR::startSystemSE("SE_SY_ASTRO_GALAXY_NEW_EFF");
             }
         }
 
-        _30 = false;
+        mPlayNewSe = false;
     }
 
-    if (!_24) {
+    if (!mIsRequested) {
         kill();
     }
 }

@@ -47,7 +47,7 @@ public:
     bool isLostMessage(const TalkMessageCtrl*) const;
     bool isSelfInterrupt(const TalkMessageCtrl*) const;
 
-    TalkMessageCtrl* _04;
+    /* 0x04 */ TalkMessageCtrl* mTalkCtrl;
     /* 0x08 */ TalkBalloon* mBalloon;
     /* 0x0C */ u32 mMessageID;
 };
@@ -74,13 +74,13 @@ public:
     virtual bool term(const TalkMessageCtrl*);
     virtual u32 getPageCount() const;
 
-    s32 _10;
-    s32 _14;
-    s32 mTalkSoundDelay;
-    TalkSupportPlayerWatcher* _18;
-    u8 _1C;
-    bool _1D;
-    /* 0x20 */ u32 mPageCount;
+    /* 0x10 */ s32 mHeldButtonFrames;
+    /* 0x14 */ s32 mCloseDelayFrames;
+    /* 0x18 */ s32 mTalkSoundDelay;
+    /* 0x1C */ TalkSupportPlayerWatcher* mPlayerWatcher;
+    /* 0x20 */ u8 mIsAButtonHeld;
+    /* 0x21 */ bool mUnusedFlag;
+    /* 0x24 */ u32 mPageCount;
 };
 
 class TalkStateNormal : public TalkStateEvent {
@@ -93,7 +93,7 @@ public:
     virtual bool term(const TalkMessageCtrl*);
     void updateButton();
 
-    /* 0x24 */ IconAButton* mAButton;
+    /* 0x28 */ IconAButton* mAButton;
 };
 
 class TalkStateHolder {
@@ -104,12 +104,12 @@ public:
     void pauseOff();
     TalkState* getState(const TalkMessageCtrl*);
 
-    TalkSupportPlayerWatcher* _00;
+    /* 0x00 */ TalkSupportPlayerWatcher* mPlayerWatcher;
     /* 0x04 */ IconAButton* mAButton;
     /* 0x08 */ TalkStateShort* mTalkShort;
     /* 0x0C */ TalkStateNormal* mTalkNormal;
     /* 0x10 */ TalkStateEvent* mTalkEvent;
-    /* 0x18 */ TalkState* mTalk;
+    /* 0x14 */ TalkState* mTalk;
 };
 
 namespace MR {

@@ -44,7 +44,7 @@ StinkBugSmall::StinkBugSmall(const char* pName) : StinkBugBase(pName), mScaleCon
 
 void StinkBugSmall::init(const JMapInfoIter& rIter) {
     StinkBugBase::init(rIter);
-    MR::getJMapInfoArg0NoInit(rIter, &_B0);
+    MR::getJMapInfoArg0NoInit(rIter, &mMaxTurnDegree);
     MR::getJMapInfoArg1NoInit(rIter, &mRadius);
     MR::getJMapInfoArg7NoInit(rIter, &_C4);
     initSound(4, "StinkBugSmall", nullptr, TVec3f(0.0f));
@@ -91,14 +91,14 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
 }
 
 void StinkBugSmall::exeWait() {
-    if (MR::isFirstStep(this) && _B0 == 0.0f) {
+    if (MR::isFirstStep(this) && mMaxTurnDegree == 0.0f) {
         MR::tryStartBck(this, "Search");
     }
 
     fixInitPos();
     if (isPlayerInTerritory(400.0f, 600.0f, 200.0f, 200.0f)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvDashSign));
-    } else if (_B0 != 0.0f) {
+    } else if (mMaxTurnDegree != 0.0f) {
         if (MR::isGreaterStep(this, 1)) {
             setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSearch));
         }
@@ -145,7 +145,7 @@ void StinkBugSmall::exeDash() {
     }
 
     MR::startActionSound(this, "EmLvStinkbugSDash");
-    if (!MR::isNear(this, _98, mRadius) || MR::isBindedWall(this)) {
+    if (!MR::isNear(this, mHomePos, mRadius) || MR::isBindedWall(this)) {
         mVelocity.zero();
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvDashEnd));
         MR::startActionSound(this, "EmStinkbugSDashEnd");
@@ -173,13 +173,13 @@ void StinkBugSmall::exeBack() {
     }
 
     MR::startActionSound(this, "EmLvStinkbugSBack");
-    if (MR::isNear(this, _98, 10.0f)) {
+    if (MR::isNear(this, mHomePos, 10.0f)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvWait));
         return;
     }
 
     TVec3f tvf;
-    tvf.sub(_98, mPosition);
+    tvf.sub(mHomePos, mPosition);
     MR::normalize(&tvf);
     MR::turnVecToPlane(&tvf, tvf, mGravity);
     mVelocity.scale(5.0f, tvf);
@@ -324,8 +324,8 @@ void StinkBugSmall::initAfterPlacement() {
     MR::calcUpVec(&up, this);
     up.scale(-200.0f);
     HitSensor* pSensor = getSensor("Body");
-    MR::getFirstPolyOnLineToMapExceptSensor(&_98, nullptr, v7, up, pSensor);
-    MR::resetPosition(this, _98);
+    MR::getFirstPolyOnLineToMapExceptSensor(&mHomePos, nullptr, v7, up, pSensor);
+    MR::resetPosition(this, mHomePos);
 }
 
 void StinkBugSmall::control() {
@@ -358,14 +358,14 @@ void StinkBugSmall::control() {
         mVelocity.killElement(rVelocity, rGravity);
         mVelocity.scaleAdd(2.0f, mGravity, mVelocity);
         TVec3f a;
-        a = _8C;
-        MR::turnVecToPlane(&_8C, a, mGravity);
+        a = mFront;
+        MR::turnVecToPlane(&mFront, a, mGravity);
     }
 }
 
 void StinkBugSmall::calcAndSetBaseMtx() {
     TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, _8C);
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
     MR::blendMtx(getBaseMtx(), mtx, 0.3f, mtx);
     MR::setBaseTRMtx(this, mtx);
     MR::updateBaseScale(this, mScaleController);

@@ -19,9 +19,9 @@ public:
     void exeInHelp();
     void exeEndHelp();
 
-    void initForLuigi(const JMapInfoIter&, const NPCActorCaps&);
-    void initForPlaying(const JMapInfoIter&, const NPCActorCaps&);
-    void initForNpc(const JMapInfoIter&, const NPCActorCaps&);
+    void initForLuigi(const JMapInfoIter&, NPCActorCaps&);
+    void initForPlaying(const JMapInfoIter&, NPCActorCaps&);
+    void initForNpc(const JMapInfoIter&, NPCActorCaps&);
     void initButtonGuidance();
     bool isMakeAppear() const;
     bool eventFunc(u32);
@@ -29,8 +29,8 @@ public:
     /* 0x164 */ DreamerButtonGuidance* mButtonGuidance;
     /* 0x168 */ s32 mStartId;
     /* 0x16C */ s32 mMissNum;
-    /* 0x170 */ bool _170;
-    /* 0x174 */ s32 _174;
-    /* 0x178 */ s32 _178;
+    /* 0x170 */ bool mHasEndMessage;
+    /* 0x174 */ s32 mUnusedCounter0;
+    /* 0x178 */ s32 mUnusedCounter1;
     /* 0x17C */ bool mIsLuigi;
 };

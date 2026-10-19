@@ -7,18 +7,8 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
 
-extern const char lbl_806B8010[];
-extern const char lbl_806B8170[];
-extern const char lbl_806B8288[];
-extern const char lbl_806B8098[];
-extern const char lbl_806B8210[];
-extern const char lbl_806B8184[];
-extern const char lbl_806B805C[];
-extern const char lbl_806B808C[];
-extern const char lbl_806B8220[];
 
-// Raw string/pointer slots inside lbl_806B8010 (the unit's rodata table).
-#define LBL(off) (data + (off))
+
 
 
 namespace NrvCareTakerHunter {
@@ -44,11 +34,9 @@ namespace NrvCareTakerHunter {
     CareTakerHunterNrvWaitEnd CareTakerHunterNrvWaitEnd::sInstance;
 }
 
-extern "C" {
-    TVec3f lbl_80729AB0(60.0f, 250.0f, 0.0f);
-    TVec3f lbl_80729ABC(60.0f, 250.0f, 0.0f);
-    TVec3f lbl_80729AC8(180.0f, 0.0f, 90.0f);
-}
+TVec3f sHunterSingleEnemyOffset(60.0f, 250.0f, 0.0f);
+TVec3f sHunterPairEnemyOffset(60.0f, 250.0f, 0.0f);
+TVec3f sHunterEnemyModelRotation(180.0f, 0.0f, 90.0f);
 
 CareTakerHunter::CareTakerHunter(const char* pName) : NPCActor(pName) {
     mTakeOutStar = NULL;
@@ -72,28 +60,29 @@ CareTakerHunter::CareTakerHunter(const char* pName) : NPCActor(pName) {
 
 // NONMATCHING: callback member-pointer copies and local stack allocation differ.
 void CareTakerHunter::init(const JMapInfoIter& rIter) {
-    const char* data = lbl_806B8010;
     s32 arg0 = -1;
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
     mObjArg0 = arg0;
 
-    NPCActorCaps caps(LBL(0x18));
+    NPCActorCaps caps("CareTakerHunter");
     caps.setDefault();
-    initialize(rIter, caps, LBL(0x18), NULL, nullptr);
+    caps.mWaitNerve = GET_NERVE(CareTakerHunter, CareTakerHunterNrvWaitDefault);
+    caps.mReactionNerve = GET_NERVE(CareTakerHunter, CareTakerHunterNrvReaction);
+    initialize(rIter, caps, "CareTakerHunter", NULL, nullptr);
 
     s32 arg3 = 0;
     MR::getJMapInfoArg3NoInit(rIter, &arg3);
     mBodyColorFrame = arg3;
 
-    MR::startBrk(this, LBL(0x28));
+    MR::startBrk(this, "BodyColor");
     MR::setBrkFrameAndStop(this, (f32)mBodyColorFrame);
 
-    _134 = LBL(0x34);
-    _130 = LBL(0x40);
-    _13C = LBL(0x40);
-    _138 = LBL(0x4C);
-    mParam._14 = LBL(0x58);
-    mParam._18 = LBL(0x58);
+    _134 = "BTrampled";
+    _130 = "BSpinHit";
+    _13C = "BSpinHit";
+    _138 = "BTalkHelp";
+    mParam._14 = "BWaitStand";
+    mParam._18 = "BWaitStand";
     mParam._0 = 0;
     mParam._1 = 1;
     mParam._8 = 3.0f;
@@ -102,7 +91,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
     _114 = 0.05f;
     _124 = 1;
 
-    MR::startBckNoInterpole(this, LBL(0x58));
+    MR::startBckNoInterpole(this, "BWaitStand");
     MR::calcAnimDirect(this);
 
     s32 arg4 = 0;
@@ -111,21 +100,21 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
     setTalkStrings(mObjArg4);
 
     if (getMsgCtrl() != NULL) {
-        MR::registerBranchFunc(getMsgCtrl(), TalkMessageFuncM<CareTakerHunter*, bool (CareTakerHunter::*)(u32)>(this, &CareTakerHunter::branchFunc));
-        MR::registerEventFunc(getMsgCtrl(), TalkMessageFuncM<CareTakerHunter*, bool (CareTakerHunter::*)(u32)>(this, &CareTakerHunter::eventFunc));
+        MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this, &CareTakerHunter::branchFunc));
+        MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this, &CareTakerHunter::eventFunc));
     }
 
     if (mObjArg0 == 0) {
-        if (!MR::isScenarioOpenInCurrentStageWithDeclarer(LBL(0x64))) {
+        if (!MR::isScenarioOpenInCurrentStageWithDeclarer("パマタリアンハンター")) {
             makeActorDead();
         }
-        MR::initMultiActorCamera(this, rIter, &mCameraInfo0, LBL(0x7C));
-        MR::initMultiActorCamera(this, rIter, &mCameraInfo1, LBL(0x88));
-        MR::initMultiActorCamera(this, rIter, &mCameraInfo2, LBL(0x94));
-        MR::initMultiActorCamera(this, rIter, &mCameraInfo3, LBL(0xA8));
+        MR::initMultiActorCamera(this, rIter, &mCameraInfo0, "敵集め開始");
+        MR::initMultiActorCamera(this, rIter, &mCameraInfo1, "敵集め終了");
+        MR::initMultiActorCamera(this, rIter, &mCameraInfo2, "敵集めスター登場");
+        MR::initMultiActorCamera(this, rIter, &mCameraInfo3, "スター登場");
         MR::declarePowerStar(this);
 
-        TakeOutStar* pTakeOut = new TakeOutStar(this, LBL(0xB4), LBL(0xB4), GET_NERVE(CareTakerHunter, CareTakerHunterNrvTakeOutStar), nullptr);
+        TakeOutStar* pTakeOut = new TakeOutStar(this, "TakeOutStarCaretakerHunter", "TakeOutStarCaretakerHunter", GET_NERVE(CareTakerHunter, CareTakerHunterNrvTakeOutStar), nullptr);
         mTakeOutStar = pTakeOut;
 
         s32 numChild = MR::getChildObjNum(rIter);
@@ -136,7 +125,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
         for (s32 i = 0; i < numChild; i++) {
             const char* pName = NULL;
             MR::getChildObjName(&pName, rIter, i);
-            if (MR::isEqualString(pName, LBL(0xD0))) {
+            if (MR::isEqualString(pName, "BringEnemy")) {
                 NameObj* pObj = NameObjFactory::initChildObj(rIter, i);
                 mBringEnemy = static_cast< BringEnemy* >(pObj);
                 MR::setPosition(mBringEnemy, mPosition);
@@ -150,16 +139,16 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
 
         switch (mBringEnemy->getEnemyType()) {
         case 1: {
-            mActorGroup = new LiveActorGroup(LBL(0xDC), 1);
-            LiveActor* pModel = static_cast< LiveActor* >(MR::createModelObjEnemy(LBL(0xEC), LBL(0xFC), NULL));
+            mActorGroup = new LiveActorGroup("デモ用アクター", 1);
+            LiveActor* pModel = static_cast< LiveActor* >(MR::createModelObjEnemy("デモ用クリボー", "Kuribo", NULL));
             MR::invalidateClipping(pModel);
             mActorGroup->registerActor(pModel);
             break;
         }
         case 2: {
-            mActorGroup = new LiveActorGroup(LBL(0xDC), 2);
-            LiveActor* pModel1 = static_cast< LiveActor* >(MR::createModelObjEnemy(LBL(0x104), LBL(0x118), NULL));
-            LiveActor* pModel2 = static_cast< LiveActor* >(MR::createModelObjEnemy(LBL(0x128), LBL(0x138), MR::getJointMtx(pModel1, LBL(0x14C))));
+            mActorGroup = new LiveActorGroup("デモ用アクター", 2);
+            LiveActor* pModel1 = static_cast< LiveActor* >(MR::createModelObjEnemy("デモ用ベーゴマン", "BegomanSpike", NULL));
+            LiveActor* pModel2 = static_cast< LiveActor* >(MR::createModelObjEnemy("デモ用ベーゴ頭", "BegomanSpikeHead", MR::getJointMtx(pModel1, "Center")));
             mActorGroup->registerActor(pModel1);
             mActorGroup->registerActor(pModel2);
             MR::initLightCtrl(pModel1);
@@ -170,7 +159,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
         }
         }
 
-        MR::setEffectHostMtx(this, LBL(0x154), mActorGroup->getActor(0)->getBaseMtx());
+        MR::setEffectHostMtx(this, "GetLight", mActorGroup->getActor(0)->getBaseMtx());
 
         for (s32 i = 0; i < mActorGroup->getObjNum(); i++) {
             LiveActor* pActor = mActorGroup->getActor(i);
@@ -184,7 +173,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
 }
 
 void CareTakerHunter::control() {
-    MR::startActionSound(this, lbl_806B8170, -1, -1, -1);
+    MR::startActionSound(this, "SmLvCaretakerWait", -1, -1, -1);
     NPCActor::control();
 }
 
@@ -235,18 +224,17 @@ bool CareTakerHunter::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
 
 
 
-// NONMATCHING: Euler math matches; zero arithmetic folds and matrix-offset pointer uses an extra saved register.
+// NONMATCHING: floating temporary lifetimes, load scheduling, and register allocation differ.
 void CareTakerHunter::updateRotation() {
     if (mActorGroup != nullptr) {
         LiveActor* actor = mActorGroup->getActor(0);
         mRotAngle += mTimer;
-        mRotAngle = 0.0f + (f32)fmod(360.0f + (mRotAngle - 0.0f), 360.0);
+        f32 minimum = 0.0f;
+        f32 period = 360.0f;
+        mRotAngle = minimum + (f32)fmod(period + (mRotAngle - minimum), 360.0);
         TPos3f mtx;
         PSMTXCopy(getBaseMtx(), mtx.toMtxPtr());
-        const TVec3f* offset = &lbl_80729ABC;
-        if (mBringEnemy->getEnemyType() == 1)
-            offset = &lbl_80729AB0;
-        MR::addTransMtxLocal(mtx.toMtxPtr(), *offset);
+        MR::addTransMtxLocal(mtx.toMtxPtr(), mBringEnemy->getEnemyType() == 1 ? sHunterSingleEnemyOffset : sHunterPairEnemyOffset);
         MR::extractMtxTrans(mtx.toMtxPtr(), &actor->mPosition);
         MR::rotateMtxLocalYDegree(mtx.toMtxPtr(), mRotAngle);
         TVec3f direction;
@@ -260,28 +248,27 @@ void CareTakerHunter::updateRotation() {
 
 void CareTakerHunter::setTalkStrings(s32 arg) {
     if (arg == 0) {
-        mParam._1C = lbl_806B8184;
-        mParam._20 = lbl_806B8184;
+        mParam._1C = "BTalkNormal";
+        mParam._20 = "BTalkNormal";
     }
 }
 
 void CareTakerHunter::exeReaction() {
-    const char* data = lbl_806B8010;
     if (_D8 != 0) {
-        MR::startActionSound(this, LBL(0x180), -1, -1, -1);
-        MR::startActionSound(this, LBL(0x194), -1, -1, -1);
+        MR::startActionSound(this, "SmNpcTrampledMetal", -1, -1, -1);
+        MR::startActionSound(this, "SvCareTakerTrample", -1, -1, -1);
     }
     if (_D9 != 0) {
-        MR::startActionSound(this, LBL(0x1A8), -1, -1, -1);
-        MR::startActionSound(this, LBL(0x1BC), -1, -1, -1);
+        MR::startActionSound(this, "SmCaretakerSpinHit", -1, -1, -1);
+        MR::startActionSound(this, "SvCareTakerSpinHit", -1, -1, -1);
     }
     if (isPointingSe()) {
-        MR::startActionSound(this, LBL(0x1D0), -1, -1, -1);
+        MR::startActionSound(this, "SvCareTakerPointed2p", -1, -1, -1);
         MR::startDPDHitSound();
     }
     if (_DB != 0) {
-        MR::startActionSound(this, LBL(0x1A8), -1, -1, -1);
-        MR::startActionSound(this, LBL(0x1E8), -1, -1, -1);
+        MR::startActionSound(this, "SmCaretakerSpinHit", -1, -1, -1);
+        MR::startActionSound(this, "SvCareTakerStarPiece", -1, -1, -1);
     }
     MR::tryStartReactionAndPopNerve(this);
 }
@@ -289,19 +276,18 @@ void CareTakerHunter::exeReaction() {
 void CareTakerHunter::exeTalk() {
     if (!MR::tryStartReactionAndPushNerve(this, GET_NERVE(CareTakerHunter, CareTakerHunterNrvReaction))) {
         if (MR::isShortTalk(getMsgCtrl())) {
-            mParam._1C = lbl_806B805C;
+            mParam._1C = "BTalkHelp";
         } else {
-            mParam._1C = lbl_806B8184;
+            mParam._1C = "BTalkNormal";
         }
         if (MR::tryTalkNearPlayerAndStartMoveTalkAction(this)) {
-            mParam._1C = lbl_806B8184;
+            mParam._1C = "BTalkNormal";
         }
     }
 }
 
 // NONMATCHING: pooled camera string keeps an extra saved register.
 void CareTakerHunter::exeTalkBegin() {
-    const char* data = lbl_806B8010;
     if (MR::isFirstStep(this)) {
         mBringEnemy->appear();
         for (s32 i = 0; i < mChildCount; i++) {
@@ -309,7 +295,7 @@ void CareTakerHunter::exeTalkBegin() {
                 mChildObjs[i]->appear();
             }
         }
-        MR::startMultiActorCameraTargetSelf(this, mCameraInfo0, LBL(0x7C), -1);
+        MR::startMultiActorCameraTargetSelf(this, mCameraInfo0, "敵集め開始", -1);
     }
     if (MR::isGreaterStep(this, 120)) {
         setNerve(GET_NERVE(CareTakerHunter, CareTakerHunterNrvTalkEnd));
@@ -318,7 +304,7 @@ void CareTakerHunter::exeTalkBegin() {
 
 void CareTakerHunter::exeTalkEnd() {
     if (MR::tryTalkForceWithoutDemoAtEnd(getMsgCtrl())) {
-        MR::endMultiActorCamera(this, mCameraInfo0, lbl_806B808C, false, -1);
+        MR::endMultiActorCamera(this, mCameraInfo0, "敵集め開始", false, -1);
         setNerve(GET_NERVE(CareTakerHunter, CareTakerHunterNrvWait));
     }
 }
@@ -350,7 +336,7 @@ void CareTakerHunter::exeWait() {
 }
 
 void CareTakerHunter::exeGrab() {
-    if (MR::tryStartDemoMarioPuppetable(this, lbl_806B8210)) {
+    if (MR::tryStartDemoMarioPuppetable(this, "敵集め成功")) {
         if (MR::isPlayerCarryAny()) {
             LiveActor* carried = MR::getPlayerCarrySensorActor();
             MR::tryPlayerKillTakingActor();
@@ -362,7 +348,7 @@ void CareTakerHunter::exeGrab() {
 
 void CareTakerHunter::exeGrabWait() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, lbl_806B8220, -1, -1, -1);
+        MR::startActionSound(this, "GetEnemySuccess", -1, -1, -1);
     }
     MR::requestStageBGMVolumeDown(0, 0);
     if (MR::isGreaterStep(this, 90)) {
@@ -372,10 +358,10 @@ void CareTakerHunter::exeGrabWait() {
 
 void CareTakerHunter::exeHide() {
     if (MR::isFirstStep(this)) {
-        MR::endDemo(this, lbl_806B8210);
+        MR::endDemo(this, "敵集め成功");
     }
     MR::requestStageBGMVolumeDown(0, false);
-    if (MR::tryStartDemoMarioPuppetable(this, lbl_806B8098)) {
+    if (MR::tryStartDemoMarioPuppetable(this, "敵集め終了")) {
         setNerve(GET_NERVE(CareTakerHunter, CareTakerHunterNrvHideWait));
     }
 }
@@ -393,27 +379,26 @@ void CareTakerHunter::exeHideWait() {
 }
 
 void CareTakerHunter::exeAppear() {
-    const char* data = lbl_806B8010;
     if (MR::isFirstStep(this)) {
         mBringEnemy->getNearestEnemy()->makeActorDead();
         MR::preparePlayerForPositionReset();
-        MR::startSubBGM(LBL(0x220), false);
+        MR::startSubBGM("BGM_SMG2_JG_PAMATA", false);
         MR::openWipeFade(-1);
-        MR::startMultiActorCameraTargetSelf(this, mCameraInfo1, LBL(0x88), -1);
-        MR::setPlayerPosOnGroundAndWait(LBL(0x234), true);
-        MR::startBckPlayer(LBL(0x250), nullptr);
+        MR::startMultiActorCameraTargetSelf(this, mCameraInfo1, "敵集め終了", -1);
+        MR::setPlayerPosOnGroundAndWait("パマタリアンハンターデモ用", true);
+        MR::startBckPlayer("Watch", nullptr);
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayerH(&toPlayer, this, nullptr);
         MR::setNPCActorPose(this, toPlayer, -mGravity, mPosition);
         mActorGroup->appearAll();
-        MR::startAction(this, LBL(0x258));
+        MR::startAction(this, "GetEnemy");
         switch (mBringEnemy->getEnemyType()) {
         case 1:
             for (s32 i = 0; i < mActorGroup->getObjNum(); i++)
-                MR::startAction(mActorGroup->getActor(i), LBL(0x264));
+                MR::startAction(mActorGroup->getActor(i), "Wait");
             break;
         case 2:
-            MR::startAction(mActorGroup->getActor(0), LBL(0x26C));
+            MR::startAction(mActorGroup->getActor(0), "SignRotate");
             break;
         }
         mTimer = 0.0f;
@@ -431,7 +416,7 @@ void CareTakerHunter::exeAppear() {
 
 void CareTakerHunter::exeAppeared() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, lbl_806B8288);
+        MR::tryStartActionNotPlaying(this, "GetEnemyWait");
     }
     MR::requestStageBGMVolumeDown(2, false);
     updateRotation();
@@ -452,15 +437,14 @@ void CareTakerHunter::exeWipeIn() {
 }
 
 void CareTakerHunter::exeLeave() {
-    const char* data = lbl_806B8010;
     if (MR::isFirstStep(this)) {
         MR::openWipeFade(-1);
-        MR::startBckPlayer(LBL(0x250));
-        MR::endMultiActorCamera(this, mCameraInfo1, LBL(0x88), false, -1);
+        MR::startBckPlayer("Watch");
+        MR::endMultiActorCamera(this, mCameraInfo1, "敵集め終了", false, -1);
         mActorGroup->makeAllDead();
-        MR::startMultiActorCameraTargetSelf(this, mCameraInfo2, LBL(0x94), -1);
-        MR::startAction(this, LBL(0x174));
-        MR::forceDeleteEffect(this, LBL(0x154));
+        MR::startMultiActorCameraTargetSelf(this, mCameraInfo2, "敵集めスター登場", -1);
+        MR::startAction(this, "BTalkNormal");
+        MR::forceDeleteEffect(this, "GetLight");
     }
     MR::requestStageBGMVolumeDown(2, 0);
     if (!MR::isWipeActive()) {
@@ -471,7 +455,7 @@ void CareTakerHunter::exeLeave() {
 void CareTakerHunter::exeEnd() {
     MR::requestStageBGMVolumeDown(0, false);
     if (MR::tryTalkForceWithoutDemoAtEnd(getMsgCtrl())) {
-        MR::endDemo(this, lbl_806B8098);
+        MR::endDemo(this, "敵集め終了");
         setNerve(GET_NERVE(CareTakerHunter, CareTakerHunterNrvWaitEnd));
     }
 }

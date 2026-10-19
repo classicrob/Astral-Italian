@@ -54,11 +54,11 @@ public:
 
     /* 0x8C */ PartsModel* mLeafModel;
     /* 0x90 */ s32 mImmunityTime;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ TVec3f _A0;
-    /* 0xAC */ TVec3f _AC;
+    /* 0x94 */ TVec3f mUp;
+    /* 0xA0 */ TVec3f mFront;
+    /* 0xAC */ TVec3f mTargetFront;
     /* 0xB8 */ JointRumbler* mJointRumbler;
     /* 0xBC */ s32 mNumbTime;
-    /* 0xC0 */ bool _C4;
-    /* 0xC1 */ bool _C5;
+    /* 0xC0 */ bool mIsSpike;
+    /* 0xC1 */ bool mDropsStarPiece;
 };

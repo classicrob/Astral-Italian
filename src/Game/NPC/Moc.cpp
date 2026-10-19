@@ -1,4 +1,3 @@
-// NONMATCHING: callback temporary allocation, iterator locals, and literal addressing remain.
 #include "Game/NPC/Moc.hpp"
 #include "Game/NPC/TalkMessageFunc.hpp"
 #include "Game/System/ScenarioDataParser.hpp"
@@ -15,12 +14,13 @@ namespace NrvMoc {
 }
 Moc::Moc(const char* name) : NPCActor(name),mTakeOutStar(nullptr),mAllCometsComplete(false),mFaceIndex(-1) {}
 Moc::~Moc() {}
+// NONMATCHING: callback evaluation and iterator-local lifetimes differ.
 void Moc::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("Moc");
     caps.setDefault();
     initialize(iter,caps,"Moc",nullptr,nullptr);
     mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Turn";
-    _130="Spin"; _134="Trampled"; _138="Pointing"; _13C="Reaction";
+    _130 = cNPCSpinDefault; _134 = cNPCTrampledDefault; _138 = cNPCPointingDefault; _13C = cNPCReactionDefault;
     _12C=450.0f;
     MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&Moc::branchFunc));
     MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&Moc::eventFunc));

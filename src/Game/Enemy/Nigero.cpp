@@ -4,17 +4,13 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Player/YoshiFunction.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
 
 class ParabolicPath;
 class YoshiLockOnTarget;
 
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-};  // namespace MR
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers.
 
@@ -75,7 +71,7 @@ void Nigero::init(const JMapInfoIter& rIter) {
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mBindStar = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
     MR::initActorState(this, mBindStar, NRV(SupportFreeze), "SupportFreeze");
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
     MR::resetPosition(this);
     MR::useStageSwitchAwake(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);

@@ -34,5 +34,5 @@ private:
     /* 0x3C */ CountUpPaneRumbler* mPaneRumbler;
     /* 0x40 */ bool mIsForceAppear;
     /* 0x44 */ TVec2f mFollowPos;
-    /* 0x4C */ bool _4C;
+    /* 0x4C */ bool mIsDispCenter;
 };

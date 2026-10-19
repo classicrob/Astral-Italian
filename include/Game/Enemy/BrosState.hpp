@@ -78,11 +78,11 @@ public:
     void exeSwoonStart();  // fn_8018B160
     void exeSwoon();       // inlined into the nerve (fn_8018B520)
     void exeSwoonEnd();    // fn_8018B1C0
-    void fn_8018AFF0();
-    bool fn_8018B000() const;
-    bool fn_8018B080() const;
-    bool fn_8018B0E0() const;
+    void requestBrosSwoonRecovery();
+    bool isBrosSwoonVulnerable() const;
+    bool isBrosSwoonRecoveryComplete() const;
+    bool canBrosSwoonBindStarPointer() const;
 
     /* 0x10 */ s32 mTimer;
-    /* 0x14 */ bool _14;
+    /* 0x14 */ bool mStartWithRecovery;
 };

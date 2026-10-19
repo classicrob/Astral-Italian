@@ -14,7 +14,7 @@ namespace NrvBattan {
     class BattanNrvWalk : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_801597E0();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanWalk();
         }
         static BattanNrvWalk sInstance;
     };
@@ -23,7 +23,7 @@ namespace NrvBattan {
     class BattanNrvTurnEnd : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_80159980();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanTurnEnd();
         }
         static BattanNrvTurnEnd sInstance;
     };
@@ -31,7 +31,7 @@ namespace NrvBattan {
     class BattanNrvHalfTurn : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_80159A00();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanHalfTurn();
         }
         static BattanNrvHalfTurn sInstance;
     };
@@ -39,7 +39,7 @@ namespace NrvBattan {
     class BattanNrvFind : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_80159B20();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanFind();
         }
         static BattanNrvFind sInstance;
     };
@@ -47,7 +47,7 @@ namespace NrvBattan {
     class BattanNrvRun : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_80159BF0();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanRun();
         }
         static BattanNrvRun sInstance;
     };
@@ -56,7 +56,7 @@ namespace NrvBattan {
     class BattanNrvAttack : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_80159DE0();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanAttack();
         }
         static BattanNrvAttack sInstance;
     };
@@ -65,7 +65,7 @@ namespace NrvBattan {
     class BattanNrvRiseSign : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_80159F60();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanRiseSign();
         }
         static BattanNrvRiseSign sInstance;
     };
@@ -73,7 +73,7 @@ namespace NrvBattan {
     class BattanNrvRise : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_8015A000();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanRise();
         }
         static BattanNrvRise sInstance;
     };
@@ -81,7 +81,7 @@ namespace NrvBattan {
     class BattanNrvDown : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Battan*>(pSpine->mExecutor)->fn_8015A0F0();
+            static_cast<Battan*>(pSpine->mExecutor)->exeBattanDown();
         }
         static BattanNrvDown sInstance;
     };
@@ -113,7 +113,7 @@ struct BattanPartsDesc {
     const char* mJointName;
 };
 
-static const BattanPartsDesc sPartsDesc[5] = {
+static BattanPartsDesc sPartsDesc[5] = {
     {"コリジョン[体　]", "Battan", "Root"},
     {"コリジョン[左腕]", "BattanArmL", "ArmL"},
     {"コリジョン[右腕]", "BattanArmR", "ArmR"},
@@ -122,8 +122,10 @@ static const BattanPartsDesc sPartsDesc[5] = {
 };
 
 // Unnamed SMG2 helpers used by Battan.
-// PLACEHOLDER(enemies): unnamed sbss2 threshold; resolve when the data symbol is named.
-extern s32 lbl_807E3020;
+// Zero-valued tuning constant the target reads from .sbss2 at run time (defined at the end of the TU).
+namespace {
+    extern const volatile s32 sRisePushStartStep;
+}
 
 // Joint-controller delegate built in fn_8015BA20 (layout from the ctor stores).
 
@@ -216,7 +218,7 @@ void Battan::init(const JMapInfoIter& rIter) {
         mBreakParts[i]->makeActorDead();
     }
 
-    bool (Battan::*callback)(const CollisionParts*) const = &Battan::fn_8015A850;
+    bool (Battan::*callback)(const CollisionParts*) const = &Battan::isBattanOwnCollisionParts;
     BattanPartsFilter* pFilter = new BattanPartsFilter(this, callback);
     MR::setBinderCollisionPartsFilter(this, pFilter);
     MR::declareStarPiece(this, 7);
@@ -242,7 +244,7 @@ void Battan::makeActorAppeared() {
     setNerve(GET_BATTAN_NERVE(BattanNrvWait));
     LiveActor::makeActorAppeared();
     mRailPassNo = -1;
-    fn_8015A310();
+    setBattanStandingParts();
     mIsPlayerFront = false;
     mIsPlayerSide = false;
 }
@@ -269,7 +271,7 @@ void Battan::calcAnim() {
 }
 
 // Sets the body/press parts to the standing pose (body 0,3,4 visible; press all hidden).
-void Battan::fn_8015A310() {
+void Battan::setBattanStandingParts() {
     mCollisionParts[0]->appear();
     mCollisionParts[1]->kill();
     mCollisionParts[2]->kill();
@@ -284,7 +286,7 @@ void Battan::fn_8015A310() {
     MR::validateHitSensor(this, "HandR");
 }
 
-void Battan::fn_8015A410() {
+void Battan::setBattanPressingParts() {
     for (s32 i = 0; i < 5; i++) {
         if (mPressParts[i] != nullptr) {
             mPressParts[i]->appear();
@@ -299,7 +301,7 @@ void Battan::fn_8015A410() {
     MR::validateHitSensor(this, "HandR");
 }
 
-void Battan::fn_8015A500() {
+void Battan::setBattanFallenParts() {
     mCollisionParts[0]->appear();
     mCollisionParts[1]->appear();
     mCollisionParts[2]->appear();
@@ -314,7 +316,7 @@ void Battan::fn_8015A500() {
     MR::invalidateHitSensor(this, "HandR");
 }
 
-void Battan::fn_8015A600() {
+void Battan::setBattanRisingParts() {
     for (s32 i = 0; i < 5; i++) {
         if (mPressParts[i] != nullptr) {
             if (i == 0) {
@@ -360,7 +362,7 @@ void Battan::offCollisionPartsAll() {
 }
 
 // True when pParts belongs to one of this Battan's body parts.
-bool Battan::fn_8015A850(const CollisionParts* pParts) const {
+bool Battan::isBattanOwnCollisionParts(const CollisionParts* pParts) const {
     LiveActor* host = pParts->mHitSensor->mHost;
     for (s32 i = 0; i < 5; i++) {
         if (mCollisionParts[i] == host) {
@@ -373,8 +375,8 @@ bool Battan::fn_8015A850(const CollisionParts* pParts) const {
     return false;
 }
 
-// Nerves in which an incoming attack is treated as a hit (fn_8015AB40).
-bool Battan::fn_8015AB40() const {
+// Nerves in which an incoming attack is treated as a hit (isBattanVulnerable).
+bool Battan::isBattanVulnerable() const {
     bool result = false;
     if (isNerve(GET_BATTAN_NERVE(BattanNrvWaitFall)) || isNerve(GET_BATTAN_NERVE(BattanNrvRiseSign)) ||
         (isNerve(GET_BATTAN_NERVE(BattanNrvRise)) && MR::isLessStep(this, 30))) {
@@ -397,7 +399,7 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     } else if (MR::isEqualSensor(pSender, this, "Push")) {
         if (isNerve(GET_BATTAN_NERVE(BattanNrvAttack)) && MR::isGreaterEqualStep(this, 0x2A) && MR::isLessStep(this, 0x33)) {
             TVec3f dir(0.0f);
-            if (fn_8015B2D0(&dir, &sVector6)) {
+            if (calcBattanPlayerPushDirection(&dir, &sVector6)) {
                 if (mIsPlayerFront && MR::isGreaterEqualStep(this, 0x32)) {
                     MR::fn_800515E0();
                 }
@@ -405,9 +407,9 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 push.scale(1.0f);
                 MR::pushPlayer(push);
             }
-        } else if (isNerve(GET_BATTAN_NERVE(BattanNrvRise)) && MR::isGreaterEqualStep(this, lbl_807E3020) && MR::isLessStep(this, 0x6E)) {
+        } else if (isNerve(GET_BATTAN_NERVE(BattanNrvRise)) && MR::isGreaterEqualStep(this, sRisePushStartStep) && MR::isLessStep(this, 0x6E)) {
             TVec3f dir(0.0f);
-            if (fn_8015B2D0(&dir, &sVector5)) {
+            if (calcBattanPlayerPushDirection(&dir, &sVector5)) {
                 TVec3f push(dir);
                 push.scale(1.0f);
                 MR::pushPlayer(push);
@@ -422,16 +424,16 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 bool Battan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg)) {
         if (MR::isPlayerInCollisionCylinder(MR::getJointMtx(this, "Root"), &sVector4, 200.0f, 400.0f)) {
-            return fn_8015ABD0();
+            return tryBattanKnockDown();
         }
         return false;
     }
     return false;
 }
 
-// Hip-drop / attack kill check (fn_8015ABD0). Returns true when the Battan was knocked down.
-bool Battan::fn_8015ABD0() {
-    if (fn_8015AB40()) {
+// Hip-drop / attack kill check (tryBattanKnockDown). Returns true when the Battan was knocked down.
+bool Battan::tryBattanKnockDown() {
+    if (isBattanVulnerable()) {
         MR::tryHitReaction(this, "ヒップドロップ");
         mTicoStop->tryTouch();
         setNerve(GET_BATTAN_NERVE(BattanNrvDown));
@@ -457,8 +459,8 @@ bool Battan::tryRailEndTurn() {
     return true;
 }
 
-// Steps along the rail and applies gravity-aligned velocity (fn_8015ACE0).
-void Battan::fn_8015ACE0(f32 speed) {
+// Steps along the rail and applies gravity-aligned velocity (moveBattanOnRail).
+void Battan::moveBattanOnRail(f32 speed) {
     mRailPassNo = MR::moveCoordAndCheckPassPointNo(this, speed);
     if (mRailPassNo == -1) {
         MR::vecKillElement(MR::getRailDirection(this), mGravity, &mFront);
@@ -492,13 +494,13 @@ bool Battan::isRailEndReached() const {
     return mRailPassNo != -1 || MR::isRailReachedGoal(this);
 }
 
-// Repositions the four break parts around the body (fn_8015AEE0).
+// Repositions the four break parts around the body (appearBattanBreakParts).
 // NONMATCHING: Euler degree-conversion floating-point register allocation.
-void Battan::fn_8015AEE0() {
+void Battan::appearBattanBreakParts() {
     mBreakModel->appear();
     for (s32 i = 0; i < 4; i++) {
         TVec3f pos(0.0f);
-        if (fn_8015B130(&pos, i)) {
+        if (calcBattanBreakPartPosition(&pos, i)) {
             TVec3f rot(0.0f);
             TPos3f mtx;
             mtx.identity();
@@ -516,7 +518,7 @@ void Battan::fn_8015AEE0() {
 }
 
 // Ray-casts a break-part position from the body base matrix.
-bool Battan::fn_8015B130(TVec3f* pPos, s32 index) {
+bool Battan::calcBattanBreakPartPosition(TVec3f* pPos, s32 index) {
     TPos3f mtx;
     mtx.set(getBaseMtx());
     TVec3f offs(0.0f);
@@ -553,7 +555,7 @@ bool Battan::fn_8015B130(TVec3f* pPos, s32 index) {
 }
 
 // NONMATCHING: floating-point register allocation in range comparisons.
-bool Battan::fn_8015B2D0(TVec3f* pDir, const TVec3f* pRange) {
+bool Battan::calcBattanPlayerPushDirection(TVec3f* pDir, const TVec3f* pRange) {
     bool prevFront = mIsPlayerFront;
     bool prevSide = mIsPlayerSide;
     TPos3f inverse;
@@ -634,7 +636,7 @@ void Battan::updateHitSensor(HitSensor* pSensor) {
 
 void Battan::exeWait() {
     if (MR::isFirstStep(this)) {
-        fn_8015A310();
+        setBattanStandingParts();
         MR::startAction(this, "WaitStand");
         MR::validateClipping(this);
         MR::offBind(this);
@@ -650,7 +652,7 @@ void Battan::exeWait() {
 }
 
 // NONMATCHING: float load/multiply instruction scheduling.
-void Battan::fn_801597E0() {
+void Battan::exeBattanWalk() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Walk");
         MR::onBind(this);
@@ -668,7 +670,7 @@ void Battan::fn_801597E0() {
             setNerve(GET_BATTAN_NERVE(BattanNrvFind));
             return;
         }
-        fn_8015ACE0(mWalkSpeed * 0.01f);
+        moveBattanOnRail(mWalkSpeed * 0.01f);
         if (isRailEndReached()) {
             tryRailEndTurn();
         }
@@ -688,7 +690,7 @@ void Battan::exeTurn() {
     }
 }
 
-void Battan::fn_80159980() {
+void Battan::exeBattanTurnEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "TurnEnd");
         MR::offBind(this);
@@ -699,7 +701,7 @@ void Battan::fn_80159980() {
     setNerve(GET_BATTAN_NERVE(BattanNrvWalk));
 }
 
-void Battan::fn_80159A00() {
+void Battan::exeBattanHalfTurn() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HalfTurn");
         MR::offBind(this);
@@ -723,7 +725,7 @@ void Battan::fn_80159A00() {
     }
 }
 
-void Battan::fn_80159B20() {
+void Battan::exeBattanFind() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Find");
         MR::invalidateClipping(this);
@@ -742,7 +744,7 @@ void Battan::fn_80159B20() {
 }
 
 // NONMATCHING: float load/multiply instruction scheduling.
-void Battan::fn_80159BF0() {
+void Battan::exeBattanRun() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Run");
         MR::invalidateClipping(this);
@@ -761,7 +763,7 @@ void Battan::fn_80159BF0() {
                 setNerve(GET_BATTAN_NERVE(BattanNrvAttackSign));
                 return;
             }
-            fn_8015ACE0(mRunSpeed * 0.01f);
+            moveBattanOnRail(mRunSpeed * 0.01f);
             if (isRailEndReached()) {
                 mIsTurnBack = true;
                 MR::zeroVelocity(this);
@@ -785,24 +787,24 @@ void Battan::exeAttackSign() {
     }
 }
 
-void Battan::fn_80159DE0() {
+void Battan::exeBattanAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
         MR::invalidateClipping(this);
     }
     if (MR::isLessStep(this, 0x2E) && mTicoStop->tryAttachTouch()) {
         if (mTicoStop->mIsTouchStarted) {
-            fn_8015A500();
+            setBattanFallenParts();
         }
     } else {
         if (mTicoStop->mIsTouching && MR::isGreaterStep(this, 0x23)) {
-            fn_8015A410();
+            setBattanPressingParts();
         }
         if (MR::isStep(this, 0x23)) {
-            fn_8015A410();
+            setBattanPressingParts();
         }
         if (MR::isActionEnd(this)) {
-            fn_8015A500();
+            setBattanFallenParts();
             setNerve(GET_BATTAN_NERVE(BattanNrvWaitFall));
         }
     }
@@ -818,7 +820,7 @@ void Battan::exeWaitFall() {
     }
 }
 
-void Battan::fn_80159F60() {
+void Battan::exeBattanRiseSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "RiseSign");
         offCollisionPartsAll();
@@ -826,26 +828,26 @@ void Battan::fn_80159F60() {
     }
     if (!mTicoStop->tryAttachTouch() && MR::isGreaterEqualStep(this, 0x3C)) {
         onCollisionPartsAll();
-        fn_8015A310();
+        setBattanStandingParts();
         setNerve(GET_BATTAN_NERVE(BattanNrvRise));
     }
 }
 
-void Battan::fn_8015A000() {
+void Battan::exeBattanRise() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Rise");
         MR::invalidateClipping(this);
     }
     if (MR::isGreaterStep(this, 0x3C) && mTicoStop->tryAttachTouch()) {
         if (mTicoStop->mIsTouchStarted) {
-            fn_8015A310();
+            setBattanStandingParts();
         }
     } else {
         if (mTicoStop->mIsTouching && MR::isGreaterStep(this, 0xC)) {
-            fn_8015A600();
+            setBattanRisingParts();
         }
         if (MR::isStep(this, 0xC)) {
-            fn_8015A600();
+            setBattanRisingParts();
         }
         if (MR::isActionEnd(this)) {
             setNerve(GET_BATTAN_NERVE(BattanNrvWait));
@@ -854,7 +856,7 @@ void Battan::fn_8015A000() {
 }
 
 // NONMATCHING: temporary vector stack allocation.
-void Battan::fn_8015A0F0() {
+void Battan::exeBattanDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Down");
         MR::invalidateClipping(this);
@@ -864,7 +866,7 @@ void Battan::fn_8015A0F0() {
     }
     if (MR::isGreaterEqualStep(this, 3) || MR::isOnPlayer(this) || MR::isHiddenModel(this)) {
         if (!MR::isHiddenModel(this)) {
-            fn_8015AEE0();
+            appearBattanBreakParts();
             if (mIsDropStarPiece) {
                 TVec3f off(mFront);
                 off.scale(400.0f);
@@ -882,3 +884,6 @@ void Battan::fn_8015A0F0() {
     }
 }
 
+namespace {
+    extern const volatile s32 sRisePushStartStep = 0;
+}

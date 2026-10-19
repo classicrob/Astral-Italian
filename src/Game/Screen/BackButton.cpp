@@ -5,7 +5,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-BackButton::BackButton(const char* pName, bool param2) : LayoutActor(pName, true), mPaneCtrl(), _24(), _25(true), mWaitForSelection(false) {
+BackButton::BackButton(const char* pName, bool param2) : LayoutActor(pName, true), mPaneCtrl(), mIsPressed(), mIsEnabled(true), mWaitForSelection(false) {
     if (param2) {
         MR::connectToSceneLayoutFileSelect(this);
     }
@@ -15,7 +15,7 @@ void BackButton::appear() {
     LayoutActor::appear();
     mPaneCtrl->appear();
 
-    _24 = false;
+    mIsPressed = false;
 }
 
 void BackButton::disappear() {
@@ -53,12 +53,12 @@ void BackButton::control() {
         MR::startSystemSE("SE_SY_BUTTON_CURSOR_ON");
     }
 
-    if (_25 && mPaneCtrl->trySelect()) {
-        if (!_24) {
+    if (mIsEnabled && mPaneCtrl->trySelect()) {
+        if (!mIsPressed) {
             MR::startSystemSE("SE_SY_GALAXY_DECIDE_CANCEL");
         }
 
-        _24 = true;
+        mIsPressed = true;
     }
 
     mPaneCtrl->update();
@@ -67,16 +67,16 @@ void BackButton::control() {
 bool BackButton::isSelected() const {
     if (mWaitForSelection) {
         bool selected = false;
-        if (_24 && mPaneCtrl->isDecidedWait()) {
+        if (mIsPressed && mPaneCtrl->isDecidedWait()) {
             selected = true;
         }
         return selected;
     }
-    return _24;
+    return mIsPressed;
 }
 
 void BackButton::waitForSelection() {
-    mPaneCtrl->_22 = false;
+    mPaneCtrl->mDisappearOnDecide = false;
     mWaitForSelection = true;
 }
 

@@ -18,9 +18,9 @@
     Name Name::sInstance ATTRIBUTE_WEAK;
 
 namespace NrvDanceFlower {
-    BATCH_NERVE(DanceFlowerNrvWait, fn_8017AD00);
+    BATCH_NERVE(DanceFlowerNrvWait, exeDanceFlowerWait);
     NEW_NERVE(DanceFlowerNrvAttackSign, DanceFlower, AttackSign);
-    BATCH_NERVE(DanceFlowerNrvAttack, fn_8017ADE0);
+    BATCH_NERVE(DanceFlowerNrvAttack, exeDanceFlowerAttack);
     NEW_NERVE(DanceFlowerNrvAttackEnd, DanceFlower, AttackEnd);
     NEW_NERVE(DanceFlowerNrvSwoonStart, DanceFlower, SwoonStart);
     NEW_NERVE(DanceFlowerNrvSwoon, DanceFlower, Swoon);
@@ -70,7 +70,7 @@ void DanceFlower::init(const JMapInfoIter& rIter) {
 
 void DanceFlower::initAfterPlacement() {
     if (MR::isExistRail(this)) {
-        this->fn_8017A660();
+        this->snapToFloorPos();
     }
 }
 
@@ -82,11 +82,11 @@ void DanceFlower::kill() {
 void DanceFlower::control() {
     mAnimScaleCtrl->updateNerve();
     MR::fn_80010600(mPose, this, 0.05f, 0.5f);
-    if (this->fn_8017AB10()) {
+    if (this->isEatableNerve()) {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
-    if (this->fn_8017ABE0() && mStarPointBind->tryStartPointBind()) {
-        mIsSwoonStep = this->fn_8017A7F0();
+    if (this->isStarPointBindableNerve() && mStarPointBind->tryStartPointBind()) {
+        mIsSwoonStep = this->isPressDownOpen();
         setNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvFreeze));
     }
 }
@@ -105,12 +105,12 @@ void DanceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         f32 dot = dir.dot(up);
         if (dot < -MR::getSensorRadius(pReceiver)) return;
     }
-    if (MR::isSensorPlayer(pReceiver) && fn_8017A920()) {
+    if (MR::isSensorPlayer(pReceiver) && isAttackActiveNerve()) {
         if (MR::isEqualSensor(pSender, this, "Body")) {
             if (MR::sendMsgEnemyAttack(pReceiver, pSender)) return;
         } else if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) return;
     }
-    if (MR::isSensorEnemy(pReceiver) && fn_8017A920() && MR::isEqualSensor(pSender, this, "Attack") &&
+    if (MR::isSensorEnemy(pReceiver) && isAttackActiveNerve() && MR::isEqualSensor(pSender, this, "Attack") &&
     MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
         MR::tryHitReactionBetweenSensors(this, "攻撃ヒット", pSender, pReceiver);
     }
@@ -118,8 +118,8 @@ void DanceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool DanceFlower::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgToEnemyAttackBlow(msg) && this->fn_8017AA50()) {
-        fn_8017A5B0(pSender, pReceiver);
+    if (MR::isMsgToEnemyAttackBlow(msg) && this->isBlowHittableNerve()) {
+        startBlowDownReaction(pSender, pReceiver);
         return true;
     }
     return false;
@@ -129,7 +129,7 @@ bool DanceFlower::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return true;
     }
-    if (MR::isMsgStarPieceAttack(msg) && this->fn_8017A850()) {
+    if (MR::isMsgStarPieceAttack(msg) && this->isSwoonStartableNerve()) {
         MR::invalidateClipping(this);
         setNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart));
         return true;
@@ -137,21 +137,21 @@ bool DanceFlower::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
 
     if (MR::isEqualSensor(pReceiver, this, "Body")) {
         if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
-            return fn_8017A520();
+            return tryStartPressDown();
         }
         if (MR::isMsgJetTurtleAttack(msg)) {
-            if (this->fn_8017A980()) {
-                fn_8017A5B0(pSender, pReceiver);
+            if (this->isProjectileHittableNerve()) {
+                startBlowDownReaction(pSender, pReceiver);
             }
             return false;
         }
         bool hitProjectiles = MR::isMsgPlayerHitProjectiles(msg);
-        if (hitProjectiles && this->fn_8017A980()) {
-            fn_8017A5B0(pSender, pReceiver);
+        if (hitProjectiles && this->isProjectileHittableNerve()) {
+            startBlowDownReaction(pSender, pReceiver);
             return true;
         }
-        if (MR::isMsgPlayerHitAll(msg) && this->fn_8017AA50()) {
-            fn_8017A5B0(pSender, pReceiver);
+        if (MR::isMsgPlayerHitAll(msg) && this->isBlowHittableNerve()) {
+            startBlowDownReaction(pSender, pReceiver);
             return true;
         }
     }
@@ -160,7 +160,7 @@ bool DanceFlower::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
 
 bool DanceFlower::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
-        if (this->fn_8017AB10()) {
+        if (this->isEatableNerve()) {
             if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvAttack))) {
                 setNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart));
                 return false;
@@ -182,16 +182,16 @@ bool DanceFlower::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
         makeActorDead();
         return true;
     }
-    if (MR::isMsgPlayerKick(msg) && this->fn_8017AC90()) {
-        fn_8017A5B0(pSender, pReceiver);
+    if (MR::isMsgPlayerKick(msg) && this->isSwoonNerve()) {
+        startBlowDownReaction(pSender, pReceiver);
         return true;
     }
     return false;
 }
 
-bool DanceFlower::fn_8017A520() {
-    if (this->fn_8017A720()) {
-        if (this->fn_8017A7F0()) {
+bool DanceFlower::tryStartPressDown() {
+    if (this->isPressableNerve()) {
+        if (this->isPressDownOpen()) {
             MR::startAction(this, "PressDownOpen");
         } else {
             MR::startAction(this, "PressDownClose");
@@ -203,7 +203,7 @@ bool DanceFlower::fn_8017A520() {
     return false;
 }
 
-void DanceFlower::fn_8017A5B0(HitSensor* pSender, HitSensor* pReceiver) {
+void DanceFlower::startBlowDownReaction(HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f dir;
     MR::calcVecToTargetPosH(&dir, this, *MR::getSensorPos(pSender), nullptr);
     ActorPoseTQ* pose = mPose;
@@ -217,13 +217,13 @@ void DanceFlower::fn_8017A5B0(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // NONMATCHING: argument setup order differs for the copied probe position.
-void DanceFlower::fn_8017A660() {
+void DanceFlower::snapToFloorPos() {
     TVec3f pos = mPosition + mGravity * -250.0f;
     TVec3f hit(0.0f, 0.0f, 0.0f);
     if (MR::getFirstPolyOnLineToMap(&hit, nullptr, pos, mGravity * 500.0f)) MR::setPosition(this, hit);
 }
 
-bool DanceFlower::fn_8017A720() const {
+bool DanceFlower::isPressableNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
@@ -235,7 +235,7 @@ bool DanceFlower::fn_8017A720() const {
     return false;
 }
 
-s32 DanceFlower::fn_8017A7F0() const {
+s32 DanceFlower::isPressDownOpen() const {
     if (this->isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvAttack))) {
         return true;
     }
@@ -245,7 +245,7 @@ s32 DanceFlower::fn_8017A7F0() const {
     return false;
 }
 
-bool DanceFlower::fn_8017A850() const {
+bool DanceFlower::isSwoonStartableNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
@@ -257,13 +257,13 @@ bool DanceFlower::fn_8017A850() const {
     return false;
 }
 
-bool DanceFlower::fn_8017A920() const {
+bool DanceFlower::isAttackActiveNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvAttack)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvAttackEnd))) return true;
     return false;
 }
 
-bool DanceFlower::fn_8017A980() const {
+bool DanceFlower::isProjectileHittableNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
@@ -275,7 +275,7 @@ bool DanceFlower::fn_8017A980() const {
     return false;
 }
 
-bool DanceFlower::fn_8017AA50() const {
+bool DanceFlower::isBlowHittableNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
@@ -286,7 +286,7 @@ bool DanceFlower::fn_8017AA50() const {
     return false;
 }
 
-bool DanceFlower::fn_8017AB10() const {
+bool DanceFlower::isEatableNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
@@ -298,7 +298,7 @@ bool DanceFlower::fn_8017AB10() const {
     return false;
 }
 
-bool DanceFlower::fn_8017ABE0() const {
+bool DanceFlower::isStarPointBindableNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonEnd)) ||
@@ -308,14 +308,14 @@ bool DanceFlower::fn_8017ABE0() const {
     return false;
 }
 
-bool DanceFlower::fn_8017AC90() const {
+bool DanceFlower::isSwoonNerve() const {
     if (isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonStart)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoon)) ||
     isNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvSwoonEnd))) return true;
     return false;
 }
 
-void DanceFlower::fn_8017AD00() {
+void DanceFlower::exeDanceFlowerWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::startAction(this, "Wait");
@@ -336,7 +336,7 @@ void DanceFlower::exeAttackSign() {
 }
 
 // NONMATCHING: the rail-turn flag initialization is scheduled before the direction-pointer setup.
-void DanceFlower::fn_8017ADE0() {
+void DanceFlower::exeDanceFlowerAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
     }
@@ -350,7 +350,7 @@ void DanceFlower::fn_8017ADE0() {
             MR::reverseRailDirection(this);
             moved = true;
         }
-        this->fn_8017A660();
+        this->snapToFloorPos();
         if (moved) {
             setNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvAttackEnd));
         }

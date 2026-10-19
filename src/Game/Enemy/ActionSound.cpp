@@ -7,7 +7,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-JAISoundHandle* fn_8021F6F0(AudSoundObject* object, s32 type, u32 id, s32 pitch, s32 velocity) {
+JAISoundHandle* playSoundByType(AudSoundObject* object, s32 type, u32 id, s32 pitch, s32 velocity) {
     JAISoundHandle* handle = nullptr;
     switch (type) {
     case 0: handle = MR::startSoundObjectParam(object, JAISoundID(id), pitch, velocity); break;
@@ -20,7 +20,7 @@ JAISoundHandle* fn_8021F6F0(AudSoundObject* object, s32 type, u32 id, s32 pitch,
     return handle;
 }
 
-JAISoundHandle* fn_8021F7E0(AudSoundObject* object, s32 type, u32 id, s32 pitch, s32 velocity, s32 volume) {
+JAISoundHandle* playSoundByTypeWithVolume(AudSoundObject* object, s32 type, u32 id, s32 pitch, s32 velocity, s32 volume) {
     JAISoundHandle* handle = nullptr;
     switch (type) {
     case 1: handle = MR::startSoundObjectLevelParam(object, JAISoundID(id), pitch, velocity, volume); break;
@@ -32,7 +32,7 @@ JAISoundHandle* fn_8021F7E0(AudSoundObject* object, s32 type, u32 id, s32 pitch,
     return handle;
 }
 
-void fn_8021F8C0(f32* value, f32 min, f32 max) {
+void clampValueRange(f32* value, f32 min, f32 max) {
     if (*value < min) *value = min;
     if (*value > max) *value = max;
 }
@@ -40,32 +40,32 @@ void fn_8021F8C0(f32* value, f32 min, f32 max) {
 s32 ActionSound::getId() const { return mInfo->mTriggerType; }
 const char* ActionSound::getName() const { return mInfo->mName; }
 #pragma dont_inline on
-f32 ActionSound::fn_8021F910(s32 index) const { return mInfo->mPitchArgs[index]; }
-f32 ActionSound::fn_8021F930(s32 index) const { return mInfo->mVolumeArgs[index]; }
+f32 ActionSound::getPitchArg(s32 index) const { return mInfo->mPitchArgs[index]; }
+f32 ActionSound::getVolumeArg(s32 index) const { return mInfo->mVolumeArgs[index]; }
 
 #pragma dont_inline off
 
 ActionSound::ActionSound(const ActionSoundInfo* info, AudSoundObject* object)
     : mInfo(info), mParam(nullptr), mSoundObject(object), mHandle(nullptr), mUnk10(false) {}
 
-void ActionSound::fn_8021F970(XanimePlayer* player, s32 index) {
+void ActionSound::createSyncBckParam(XanimePlayer* player, s32 index) {
     mParam = new SyncBckEffectInfo("サウンド", player, index, mInfo->mName, 1, 0.0f, -1.0f, false);
     mParam->mStartFrame = mInfo->mStartFrame;
     mParam->mEndFrame = mInfo->mEndFrame;
 }
 
-void ActionSound::fn_8021FA40() {
+void ActionSound::markStartPending() {
     if (mInfo->fn_80220830()) mUnk10 = true;
 }
 
-void ActionSound::fn_8021FA80() {
+void ActionSound::startSoundNow() {
     if (!mInfo->fn_80220830()) {
-        mHandle = fn_8021F6F0(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, -1, -1);
+        mHandle = playSoundByType(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, -1, -1);
         mUnk10 = false;
     }
 }
 
-void ActionSound::fn_8021FAE0(u32 frames) {
+void ActionSound::stopSoundFrames(u32 frames) {
     if (mInfo->fn_80220830()) {
         mUnk10 = false;
         return;
@@ -75,7 +75,7 @@ void ActionSound::fn_8021FAE0(u32 frames) {
     if (sound && (type == 0 || type == 2 || type == 4 || type == 10) && mHandle) sound->stop(frames);
 }
 
-void ActionSound::fn_8021FB80() {
+void ActionSound::releaseActionSoundHandle() {
     if (mInfo->fn_80220830()) {
         mUnk10 = false;
         return;
@@ -88,10 +88,10 @@ void ActionSound::fn_8021FB80() {
     }
 }
 
-void ActionSound::fn_8021FC10(f32 rate) {
+void ActionSound::restartSoundWithRate(f32 rate) {
     if (mUnk10) {
-        mHandle = fn_8021F7E0(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, -1, -1, -1);
-        fn_8021FD50(rate);
+        mHandle = playSoundByTypeWithVolume(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, -1, -1, -1);
+        applyRateToSound(rate);
     }
 }
 
@@ -99,36 +99,36 @@ bool ActionSound::play(s32 mode, s32 pitch, s32 velocity, s32 volume) {
     bool played = false;
     if (mInfo->fn_80220830()) {
         if (mode == 0 || mode == 2) {
-            mHandle = fn_8021F7E0(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, pitch, velocity, volume);
+            mHandle = playSoundByTypeWithVolume(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, pitch, velocity, volume);
             played = true;
         }
     } else if (mode == 0 || mode == 1) {
-        mHandle = fn_8021F6F0(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, pitch, velocity);
+        mHandle = playSoundByType(mSoundObject, mInfo->mSoundType, mInfo->mSoundId, pitch, velocity);
         played = true;
     }
-    fn_8021FF00(pitch, velocity);
+    applyPitchVolumeArgs(pitch, velocity);
     return played;
 }
 
-void ActionSound::fn_8021FD50(f32 rate) {
+void ActionSound::applyRateToSound(f32 rate) {
     if (mHandle) {
         if (mInfo->mPitchType == 0) {
-            f32 scale = fn_8021F910(0);
-            f32 offset = fn_8021F910(1);
-            f32 min = fn_8021F910(2);
-            f32 max = fn_8021F910(3);
+            f32 scale = getPitchArg(0);
+            f32 offset = getPitchArg(1);
+            f32 min = getPitchArg(2);
+            f32 max = getPitchArg(3);
             f32 pitch = 1.0f + (offset + (rate - 1.0f) * scale);
-            fn_8021F8C0(&pitch, min, max);
+            clampValueRange(&pitch, min, max);
             MR::clampBoth(&pitch, 0.01f, 10.0f);
             mHandle->mSound->mParams.mMove.mParams.mPitch *= pitch;
         }
         if (mInfo->mVolumeType == 0) {
-            f32 scale = fn_8021F930(0);
-            f32 offset = fn_8021F930(1);
-            f32 min = fn_8021F930(2);
-            f32 max = fn_8021F930(3);
+            f32 scale = getVolumeArg(0);
+            f32 offset = getVolumeArg(1);
+            f32 min = getVolumeArg(2);
+            f32 max = getVolumeArg(3);
             f32 volume = 1.0f + (offset + (rate - 1.0f) * scale);
-            fn_8021F8C0(&volume, min, max);
+            clampValueRange(&volume, min, max);
             MR::clampBoth(&volume, 0.0f, 2.0f);
             mHandle->mSound->mParams.mMove.mParams.mVolume *= volume;
         }
@@ -137,7 +137,7 @@ void ActionSound::fn_8021FD50(f32 rate) {
 
 // NONMATCHING: optimizer-disabled stack-base register and epilogue scheduling differ; branch graph and arithmetic match.
 #pragma global_optimizer off
-void ActionSound::fn_8021FF00(s32 pitchArg, s32 volumeArg) {
+void ActionSound::applyPitchVolumeArgs(s32 pitchArg, s32 volumeArg) {
     if (mHandle && mHandle->mSound) {
         f32 pitch = 0.0f;
         s32 pitchType = mInfo->mPitchType;
@@ -146,23 +146,23 @@ void ActionSound::fn_8021FF00(s32 pitchArg, s32 volumeArg) {
         if (pitchType == 2) goto pitch2;
         goto volume;
     pitch1: {
-        f32 scale = fn_8021F910(0);
-        f32 offset = fn_8021F910(1);
-        f32 min = fn_8021F910(2);
-        f32 max = fn_8021F910(3);
+        f32 scale = getPitchArg(0);
+        f32 offset = getPitchArg(1);
+        f32 min = getPitchArg(2);
+        f32 max = getPitchArg(3);
         pitch = offset + pitchArg * scale;
-        fn_8021F8C0(&pitch, min, max);
+        clampValueRange(&pitch, min, max);
         MR::clampBoth(&pitch, 0.01f, 10.0f);
         mHandle->mSound->mParams.mMove.mParams.mPitch *= pitch;
         goto volume;
     }
     pitch2: {
-        f32 scale = fn_8021F910(0);
-        f32 offset = fn_8021F910(1);
-        f32 min = fn_8021F910(2);
-        f32 max = fn_8021F910(3);
+        f32 scale = getPitchArg(0);
+        f32 offset = getPitchArg(1);
+        f32 min = getPitchArg(2);
+        f32 max = getPitchArg(3);
         pitch = offset + volumeArg * scale;
-        fn_8021F8C0(&pitch, min, max);
+        clampValueRange(&pitch, min, max);
         MR::clampBoth(&pitch, 0.01f, 10.0f);
         mHandle->mSound->mParams.mMove.mParams.mPitch *= pitch;
         goto volume;
@@ -175,23 +175,23 @@ void ActionSound::fn_8021FF00(s32 pitchArg, s32 volumeArg) {
         if (volumeType == 2) goto volume2;
         goto done;
     volume1: {
-        f32 scale = fn_8021F930(0);
-        f32 offset = fn_8021F930(1);
-        f32 min = fn_8021F930(2);
-        f32 max = fn_8021F930(3);
+        f32 scale = getVolumeArg(0);
+        f32 offset = getVolumeArg(1);
+        f32 min = getVolumeArg(2);
+        f32 max = getVolumeArg(3);
         volume = offset + pitchArg * scale;
-        fn_8021F8C0(&volume, min, max);
+        clampValueRange(&volume, min, max);
         MR::clampBoth(&volume, 0.0f, 2.0f);
         mHandle->mSound->mParams.mMove.mParams.mVolume *= volume;
         goto done;
     }
     volume2: {
-        f32 scale = fn_8021F930(0);
-        f32 offset = fn_8021F930(1);
-        f32 min = fn_8021F930(2);
-        f32 max = fn_8021F930(3);
+        f32 scale = getVolumeArg(0);
+        f32 offset = getVolumeArg(1);
+        f32 min = getVolumeArg(2);
+        f32 max = getVolumeArg(3);
         volume = offset + volumeArg * scale;
-        fn_8021F8C0(&volume, min, max);
+        clampValueRange(&volume, min, max);
         MR::clampBoth(&volume, 0.0f, 2.0f);
         mHandle->mSound->mParams.mMove.mParams.mVolume *= volume;
     }

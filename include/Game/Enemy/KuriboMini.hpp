@@ -12,8 +12,8 @@ class WalkerStateBindStarPointer;
 
 class KuriboMini : public LiveActor {
 public:
-    bool fn_801BE5A0();
-    bool fn_801BDAA0();
+    bool isFlippedState();
+    bool tryTrampolineBounce();
     KuriboMini(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -38,7 +38,7 @@ public:
     bool tryFind();
     bool tryPointBind();
     bool tryDeadMap();
-    void fn_801BDB60(const TVec3f&, const TVec3f&);
+    void resetAndAppearAt(const TVec3f&, const TVec3f&);
     void exeTrampoline();
     void exeWander();
     void exeFindPlayer();

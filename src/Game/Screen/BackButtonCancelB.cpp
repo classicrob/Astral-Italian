@@ -6,9 +6,9 @@
 BackButtonCancelB::~BackButtonCancelB() {}
 
 void BackButtonCancelB::control() {
-    if (_25 && MR::testCorePadTriggerB(0) && !_24 && mPaneCtrl->trySelectImmediately()) {
+    if (mIsEnabled && MR::testCorePadTriggerB(0) && !mIsPressed && mPaneCtrl->trySelectImmediately()) {
         MR::startSystemSE("SE_SY_GALAXY_DECIDE_CANCEL", -1, -1);
-        _24 = true;
+        mIsPressed = true;
     }
     BackButton::control();
 }

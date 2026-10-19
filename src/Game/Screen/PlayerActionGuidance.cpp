@@ -30,8 +30,8 @@ namespace MR {
 };  // namespace MR
 
 PlayerActionGuidance::PlayerActionGuidance()
-    : LayoutActor("プレイヤーアクションガイダンス", true), mSpinLayout(), mTamakoroLayout(), mCurrentLayout(), mGuidanceState(3),
-      mGuidancePrevState(3), _34(), _35(), _36(), _37() {
+    : LayoutActor("プレイヤーアクションガイダンス", true), mSpinLayout(), mTamakoroLayout(), mCurrentLayout(), mGuidanceState(GuidanceState_Rotation),
+      mGuidancePrevState(GuidanceState_Rotation), mIsVolumeCheckDisabled(), mIsInGuidanceArea(), mForceTamakoroGuidance(), mPrevForceTamakoroGuidance() {
 }
 
 void PlayerActionGuidance::control() {
@@ -39,21 +39,21 @@ void PlayerActionGuidance::control() {
 
     if (mSpinLayout != nullptr && isInVolumePlayer("SpinGuidanceCube", false)) {
         mCurrentLayout = mSpinLayout;
-        _35 = true;
-    } else if (mTamakoroLayout != nullptr && (_36 || isInVolumePlayer("TamakoroMoveGuidanceArea", true))) {
+        mIsInGuidanceArea = true;
+    } else if (mTamakoroLayout != nullptr && (mForceTamakoroGuidance || isInVolumePlayer("TamakoroMoveGuidanceArea", true))) {
         mCurrentLayout = mTamakoroLayout;
-        mGuidanceState = 3;
-        _35 = true;
-    } else if (mTamakoroLayout != nullptr && (_36 || isInVolumePlayer("TamakoroJumpGuidanceArea", true))) {
+        mGuidanceState = GuidanceState_Rotation;
+        mIsInGuidanceArea = true;
+    } else if (mTamakoroLayout != nullptr && (mForceTamakoroGuidance || isInVolumePlayer("TamakoroJumpGuidanceArea", true))) {
         mCurrentLayout = mTamakoroLayout;
-        mGuidanceState = 4;
-        _35 = true;
+        mGuidanceState = GuidanceState_AButton;
+        mIsInGuidanceArea = true;
     } else {
-        _35 = false;
+        mIsInGuidanceArea = false;
     }
 
-    _37 = _36;
-    _36 = false;
+    mPrevForceTamakoroGuidance = mForceTamakoroGuidance;
+    mForceTamakoroGuidance = false;
 }
 
 void PlayerActionGuidance::init(const JMapInfoIter& rIter) {
@@ -98,7 +98,7 @@ void PlayerActionGuidance::exeWaitFocusIn() {
         hideAllLayout();
     }
 
-    if (_35) {
+    if (mIsInGuidanceArea) {
         setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvSuspend));
     }
 }
@@ -127,19 +127,19 @@ void PlayerActionGuidance::startWaitAnimTamakoro() {
     }
 
     switch (mGuidanceState) {
-    case 0:
+    case GuidanceState_Raise:
         MR::startAnim(mTamakoroLayout, "WaitRaise", 0);
         break;
-    case 1:
+    case GuidanceState_RaiseHold:
         MR::startAnim(mTamakoroLayout, "WaitRaiseHold", 0);
         break;
-    case 2:
+    case GuidanceState_RaiseOK:
         MR::startAnim(mTamakoroLayout, "RaiseOK", 0);
         break;
-    case 3:
+    case GuidanceState_Rotation:
         MR::startAnim(mTamakoroLayout, "WaitRotation", 0);
         break;
-    case 4:
+    case GuidanceState_AButton:
         MR::startAnim(mTamakoroLayout, "WaitAButton", 0);
         break;
     }
@@ -153,12 +153,12 @@ void PlayerActionGuidance::exeDisplay() {
             MR::startCSSound("CS_NOTICE_USE_DPD", "SE_SY_CS_NOTICE_USE_DPD", 0, 0, 1.0f);
         }
 
-        if (mTamakoroLayout != nullptr && mGuidanceState == 0) {
+        if (mTamakoroLayout != nullptr && mGuidanceState == GuidanceState_Raise) {
             MR::startSystemSE("SE_SY_CTRL_GUIDE_APPEAR");
         }
     }
 
-    if (mGuidanceState == 0) {
+    if (mGuidanceState == GuidanceState_Raise) {
         if (!MR::isFirstStep(this) && MR::getAnimFrame(mCurrentLayout, 0) == 0.0f) {
             MR::startSystemSE("SE_SY_CTRL_GUIDE_CHANGE", 500);
         }
@@ -172,14 +172,14 @@ void PlayerActionGuidance::exeDisplay() {
         startWaitAnimTamakoro();
     }
 
-    if (MR::isAnimStopped(mCurrentLayout, 0) || !_35) {
+    if (MR::isAnimStopped(mCurrentLayout, 0) || !mIsInGuidanceArea) {
         setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvFadeout));
     }
 }
 
 void PlayerActionGuidance::exeSuspend() {
     if (MR::isStep(this, ::sSuspendFrame)) {
-        if (!_35) {
+        if (!mIsInGuidanceArea) {
             hideAllLayout();
             setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvWaitFocusIn));
         } else {
@@ -194,7 +194,7 @@ void PlayerActionGuidance::exeFadeout() {
     }
 
     if (MR::isAnimStopped(mCurrentLayout, 0)) {
-        if (_35) {
+        if (mIsInGuidanceArea) {
             setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvSuspend));
         } else {
             hideAllLayout();
@@ -244,7 +244,7 @@ void PlayerActionGuidance::hideAllLayout() {
 }
 
 bool PlayerActionGuidance::isInVolumePlayer(const char* pObjName, bool param2) const {
-    if (_34) {
+    if (mIsVolumeCheckDisabled) {
         return false;
     }
 
@@ -283,7 +283,7 @@ bool PlayerActionGuidance::isInVolumePlayer(const char* pObjName, bool param2) c
 
 void PlayerActionGuidance::showCurrentLayout() {
     hideAllLayout();
-    if (_35) MR::showLayout(mCurrentLayout);
+    if (mIsInGuidanceArea) MR::showLayout(mCurrentLayout);
 }
 namespace MR {
 void hidePlayerActionGuidance() { getPlayerActionGuidance()->hideAllLayout(); }

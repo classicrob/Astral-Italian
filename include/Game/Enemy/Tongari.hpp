@@ -28,7 +28,7 @@ public:
     void exeTurn();
     void exeGuard();
     void exeFreeze();
-    void fn_80215090(f32);
+    void rotateOnRail(f32);
 
     /* 0x90 */ TVec3f mFront;
     /* 0x9C */ TVec3f mUp;

@@ -6,7 +6,7 @@
 #include "Game/Util/MessageUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <cstdio>
-extern "C" int swprintf(wchar_t*, size_t, const wchar_t*, ...);
+#include <wstring.h>
 
 namespace ReplaceTagProcessor {
     namespace Impl {

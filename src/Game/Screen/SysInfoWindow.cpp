@@ -23,7 +23,7 @@ namespace NrvSysInfoWindow {
 
 SysInfoWindow::SysInfoWindow(SysInfoWindowType windowType, SysInfoExecuteType executeType)
     : LayoutActor("システム用インフォメーションウィンドウ", true), mWindowType(windowType), mType(Type_Key), mYesNoSelector(nullptr),
-      mIconAButton(nullptr), mTextParentPaneName(nullptr), mWindowParentPaneName(nullptr), _38(executeType == ExecuteType_Children) {
+      mIconAButton(nullptr), mTextParentPaneName(nullptr), mWindowParentPaneName(nullptr), mIsExecuteChildren(executeType == ExecuteType_Children) {
     switch (windowType) {
     case WindowType_Normal:
         mTextParentPaneName = "InfoWindow";
@@ -49,7 +49,7 @@ void SysInfoWindow::init(const JMapInfoIter& rIter) {
         MR::setTextBoxGameMessageRecursive(this, "Right", "System_Save00_Yes");
     }
 
-    mIconAButton = MR::createAndSetupIconAButton(this, !_38, false);
+    mIconAButton = MR::createAndSetupIconAButton(this, !mIsExecuteChildren, false);
 
     initNerve(GET_NERVE(SysInfoWindow, SysInfoWindowNrvAppear));
 }
@@ -57,7 +57,7 @@ void SysInfoWindow::init(const JMapInfoIter& rIter) {
 void SysInfoWindow::movement() {
     LayoutActor::movement();
 
-    if (_38) {
+    if (mIsExecuteChildren) {
         mIconAButton->movement();
     }
 }
@@ -65,7 +65,7 @@ void SysInfoWindow::movement() {
 void SysInfoWindow::calcAnim() {
     LayoutActor::calcAnim();
 
-    if (_38) {
+    if (mIsExecuteChildren) {
         mIconAButton->calcAnim();
     }
 }
@@ -73,7 +73,7 @@ void SysInfoWindow::calcAnim() {
 void SysInfoWindow::draw() const {
     LayoutActor::draw();
 
-    if (_38) {
+    if (mIsExecuteChildren) {
         mIconAButton->draw();
     }
 }
@@ -228,7 +228,7 @@ void SysInfoWindow::exeDisappear() {
     }
 
     if (MR::isPaneAnimStopped(this, mTextParentPaneName, 0)) {
-        if (mType == Type_Key || mType == Type_Blocking || mYesNoSelector != nullptr && !mYesNoSelector->_C) {
+        if (mType == Type_Key || mType == Type_Blocking || mYesNoSelector != nullptr && !mYesNoSelector->mIsActive) {
             kill();
         }
     }

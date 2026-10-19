@@ -819,12 +819,13 @@ void Mario::fn_803A1240(f32* a, f32* b) {
 }
 
 
+// NONMATCHING: staged boolean materialization and Const-table load reuse.
 s32 Mario::fn_803A1E60(f32 f) {
     MarioConstTable* e = marioCurTableEntry(this);
     f32 v = JMACosRadian(e->mTurnSlipAngle);
     s32 r31 = 0;
-    if (f < v && !((this->mMovementStates.mLowWord >> 26) & 1)) {
-        if (this->mWalkSpeed > e->mTurnSlipNeutral) {
+    if (f >= v && !((this->mMovementStates.mLowWord >> 27) & 1)) {
+        if (this->mWalkSpeed > e->mSlipSpeed) {
             if (this->_38 > this->mStickPos.z) {
                 if (!((this->mDrawStates.mWord >> 18) & 1)) {
                     r31 = 1;

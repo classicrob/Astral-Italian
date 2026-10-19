@@ -1,5 +1,4 @@
 // SMG2-only MarioActor functions (part B, fn_803CA000 and up), written from the asm. Included at the end of MarioActor.cpp (unity TU).
-// Uses the BITAT()/CT() helpers defined in MarioActorSMG2_A.inc.
 
 
 void MarioActor::fn_803CA1F0() {
@@ -42,7 +41,7 @@ void MarioActor::fn_803CA270(TVec3f* out, s32 isStatic) {
             out->set(g);
         }
     }
-    if (BITAT(this->mMario, 0xC, 0x14) && MR::isNearZero(*out, 0.001f)) {
+    if (((this->mMario->mMovementStates.mLowWord >> (0x14)) & 1) && MR::isNearZero(*out, 0.001f)) {
         out->set(this->mMario->getAirGravityVec());
     }
 }
@@ -71,7 +70,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
             (this->mMario)->_430 = 0;
         }
         if (_934 == 0) {
-            if (BITAT(this->mMario, 0xC, 0x14)) {
+            if (((this->mMario->mMovementStates.mLowWord >> (0x14)) & 1)) {
                 this->mMario->changeAnimation("ショートジャンプ", "落下");
             } else {
                 this->mMario->changeAnimation("ショートジャンプ", (const char*)nullptr);
@@ -87,7 +86,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
     this->_334 = 0xF;
     this->_legacy2AC = (this->mMario)->mHeadVec;
     if (!MR::isNearZero(b, 0.001f)) {
-        if (ang >= 2.0943952f || !BITAT(this->mMario, 0x10, 8)) {
+        if (ang >= 2.0943952f || !((this->mMario->mMovementStates.mHighWord >> (8)) & 1)) {
             this->mMario->cutGravityElementFromJumpVec(false);
             (this->mMario)->mJumpVec.scale(0.5f);
         } else {
@@ -104,7 +103,7 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
     this->mMario->clear2DStick();
     (this->mMario)->mFlags14.mLowWord |= 0x10000000;
     this->_3AA = 0xF;
-    if (!BITAT(this->mMario, 0x10, 8)) {
+    if (!((this->mMario->mMovementStates.mHighWord >> (8)) & 1)) {
         (this->mMario)->_2E0 = -(this->mMario)->_2E0;
     }
     return r;
@@ -145,7 +144,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
         MR::normalize(&v);
     } else {
         Mario* m = this->mMario;
-        if (!BITAT(m, 0xC, 0x1E)) {
+        if (!((m->mMovementStates.mLowWord >> (0x1E)) & 1)) {
             v.set(mAppliedGravityVec);
         } else {
             TVec3f n = -(m)->_368;
@@ -155,7 +154,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
     if (this->mMario->isPlayerModeYoshi() && (mYoshiHolder->mYoshi)->mDashTimer > 0 && mDashWallHit1053 == 0) {
         WaterInfo info;
         MR::getWaterAreaObj(&info, this->mPosition);
-        if (BITAT(this->mMario, 0xC, 0x1E) && !info.isInWater()) {
+        if (((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && !info.isInWater()) {
             TVec3f n = -(this->mMario)->_368;
             v.set(n);
         }
@@ -168,21 +167,21 @@ void MarioActor::fn_803CAA00() {
     f32 len = 70.0f;
     Mario* m = this->mMario;
     TVec3f blend;
-    if (BITAT(m, 0x1C, 0x10)) {
+    if (((m->mDrawStates.mWord >> (0x10)) & 1)) {
         MR::vecBlendSphere(&blend, (m)->mHeadVec, (m)->_380, 0.5f * this->_984);
     } else {
         MR::vecBlendSphere(&blend, (m)->mHeadVec, (m)->_368, this->_984);
     }
     TVec3f old(this->mVector60C);
     m = this->mMario;
-    if (BITAT(m, 0xC, 0x15)) {
+    if (((m->mMovementStates.mLowWord >> (0x15)) & 1)) {
         len = 50.0f;
     }
-    if (BITAT(m, 0xC, 0x1E)) {
+    if (((m->mMovementStates.mLowWord >> (0x1E)) & 1)) {
         TVec3f t(blend);
         t.scale(len);
         this->mVector60C = t;
-    } else if (BITAT(m, 0x18, 0x1C) || _934 != 0) {
+    } else if (((m->mFlags14.mHighWord >> (0x1C)) & 1) || _934 != 0) {
         TVec3f neg = -mAppliedGravityVec;
         TVec3f t(neg);
         t.scale(70.0f);
@@ -229,7 +228,6 @@ void MarioActor::fn_803CAA00() {
     }
 }
 
-#define CTU(off) FP(mConst->getTable(), u16, off)
 
 void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData* d) {
     const char* bck = b;
@@ -281,19 +279,19 @@ bool MarioActor::fn_803CB1A0(u16 mode) {
         return false;
     }
     if (mode == 1) {
-        this->_3DC = CTU(0x78C);
+        this->_3DC = mConst->getTable()->mMetalHoldTime;
         MR::startSubBGM("BGM_MUTEKI_A", false);
     } else if (mode == 9) {
-        this->_3DC = CTU(0x78A);
+        this->_3DC = mConst->getTable()->mTornadoHoldTime;
     } else if (mode == 3) {
-        if (BITAT(this->mMario, 0x18, 0x16)) {
+        if (((this->mMario->mFlags14.mHighWord >> (0x16)) & 1)) {
             this->_3DC = 0;
         } else {
-            this->_3DC = CTU(0x790);
+            this->_3DC = mConst->getTable()->mIceModeTime;
         }
         MR::startSubBGM("BGM_ICE_A", false);
     } else if (mode == 2) {
-        this->_3DC = CTU(0x78E);
+        this->_3DC = mConst->getTable()->mFireModeTime;
         MR::startPlayFireMorphBGM();
     } else if (mode == 7) {
         this->_3DC = 0xE10;
@@ -390,7 +388,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
     mSensor794 = nullptr;
     switch (mode) {
     case 9:
-        this->_3DC = CTU(0x78A);
+        this->_3DC = mConst->getTable()->mTornadoHoldTime;
         MR::startBtp(this, "TornadoElement");
         if (this->isJumping()) {
             this->mMario->changeAnimation("エレメントゲット", (const char*)nullptr);
@@ -399,7 +397,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         }
         break;
     case 1:
-        this->_3DC = CTU(0x78C);
+        this->_3DC = mConst->getTable()->mMetalHoldTime;
         this->playEffect("無敵中");
         MR::startSubBGM("BGM_MUTEKI_A", false);
         MR::stopBrk(_9C0);
@@ -460,15 +458,15 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         break;
     case 2:
         MR::startPlayFireMorphBGM();
-        this->_3DC = CTU(0x78E);
+        this->_3DC = mConst->getTable()->mFireModeTime;
         break;
     case 3:
         this->playEffect("アイス中");
         MR::startSubBGM("BGM_ICE_A", false);
-        if (BITAT(this->mMario, 0x18, 0x16)) {
+        if (((this->mMario->mFlags14.mHighWord >> (0x16)) & 1)) {
             this->_3DC = 0;
         } else {
-            this->_3DC = CTU(0x790);
+            this->_3DC = mConst->getTable()->mIceModeTime;
         }
         break;
     case 4:
@@ -476,7 +474,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         this->rushDropThrowMemoSensor();
         _9E4->appear();
         MR::showModel(_9E4);
-        (this->mMario)->_402 = CTU(0xD8);
+        (this->mMario)->_402 = mConst->getTable()->mAirWalkTime;
         (this->mMario)->_42A = 0;
         _9E8->appear();
         this->_9F0 = 0;
@@ -575,7 +573,7 @@ void MarioActor::fn_803CBB30(bool b) {
 
 void MarioActor::fn_803CBC50() {
     if (mPlayerMode == 2) {
-        MR::adjustSandyBossFireMorphBGM(this->_3DC, CTU(0x78E));
+        MR::adjustSandyBossFireMorphBGM(this->_3DC, mConst->getTable()->mFireModeTime);
     }
     u16 t = this->_3DC;
     if (t != 0) {
@@ -597,12 +595,12 @@ void MarioActor::fn_803CBC50() {
 void MarioActor::fn_803CCE60(HitSensor* a, s16 b) {
     this->mMarioAnim->fn_803DDD80(a);
     if (!this->mMario->isSwimming()) {
-        if (BITAT(this->mMario, 0xC, 0x1E) && this->_B92 != -3) {
+        if (((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && this->_B92 != -3) {
             reinterpret_cast<s16&>(this->_38C) = b;
         }
         mVelocity.zero();
         (this->mMario)->mWalkSpeed = 0.0f;
-        if (BITAT(this->mMario, 0xC, 0x1E)) {
+        if (((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1)) {
             this->mMario->stopJump();
             (this->mMario)->mVerticalSpeed = 0.0f;
         }
@@ -665,7 +663,7 @@ bool MarioActor::fn_803CD0A0() {
     if (static_cast<s32>(_468) != 0) {
         return false;
     }
-    if (BITAT(this->mMario, 0xC, 0x14) && this->fn_803CD180()) {
+    if (((this->mMario->mMovementStates.mLowWord >> (0x14)) & 1) && this->fn_803CD180()) {
         return false;
     }
     return true;
@@ -673,7 +671,7 @@ bool MarioActor::fn_803CD0A0() {
 
 bool MarioActor::fn_803CD180() {
     bool r = false;
-    if (!this->mMario->isSwimming() && !BITAT(this->mMario, 0xC, 0x1E) && _424 == nullptr) {
+    if (!this->mMario->isSwimming() && !((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && _424 == nullptr) {
         r = true;
     }
     return r;
@@ -706,7 +704,7 @@ bool MarioActor::fn_803CD2C0() {
     if (static_cast<s32>(_468) != 0) {
         return false;
     }
-    if (BITAT(this->mMario, 0xC, 0x14) && this->fn_803CD180()) {
+    if (((this->mMario->mMovementStates.mLowWord >> (0x14)) & 1) && this->fn_803CD180()) {
         return false;
     }
     return true;
@@ -760,7 +758,7 @@ void MarioActor::sendWallTouch(u32 msg, HitSensor* a, HitSensor* b) {
     if (a != nullptr) {
         if (!MR::isDead(MR::getSensorHost(a))) {
             a->receiveMessage(msg, b);
-            if (BITAT(this->mMario, 0xC, 0x10)) {
+            if (((this->mMario->mMovementStates.mLowWord >> (0x10)) & 1)) {
                 a->receiveMessage(0x3A, b);
             }
         }
@@ -769,7 +767,7 @@ void MarioActor::sendWallTouch(u32 msg, HitSensor* a, HitSensor* b) {
 
 bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
     TVec3f p(*v);
-    if (BITAT(this->mMario, 0x14, 0x19)) {
+    if (((this->mMario->mFlags14.mLowWord >> (0x19)) & 1)) {
         f32 k = MR::vecKillElement(p, mCameraBasisZ, &p);
         if (k == 250.0f || k == -250.0f) {
             return false;
@@ -806,7 +804,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
         }
     }
     Mario* m = this->mMario;
-    if (BITAT(m, 0xC, 0x15) && BITAT(m, 0xC, 0x1E)) {
+    if (((m->mMovementStates.mLowWord >> (0x15)) & 1) && ((m->mMovementStates.mLowWord >> (0x1E)) & 1)) {
         return false;
     }
     f32 d2 = MR::vecKillElement(p, mBodyUpDirection, &perp);
@@ -1007,7 +1005,7 @@ void MarioActor::updateBaseMtxTeresa(MtxPtr mtx) {
 void MarioActor::updateFireSpin() {
     if (!this->mMario->isAnimationRun("ファイア投げ") && !this->mMario->isAnimationRun("ファイアスピン空中") &&
         (!this->mMario->isAnimationRun("ファイアスピン") || !this->fn_803CB010())) {
-        if (BITAT(this->mMario, 0xC, 0x17)) {
+        if (((this->mMario->mMovementStates.mLowWord >> (0x17)) & 1)) {
             const Triangle* tri = this->mMario->getWallPolygon();
             LiveActor* h = MR::getSensorHost(tri->getSensor());
             if (!MR::isEqualString(h->mName, "木箱") && !MR::isEqualString(h->mName, "タイムアタック用木箱")) {
@@ -1140,7 +1138,7 @@ HitSensor* MarioActor::fn_803D0E40(s32 a) {
 
 bool MarioActor::fn_803D0F60(HitSensor* s) {
     Mario* m = this->mMario;
-    if (BITAT(m, 0xC, 9)) {
+    if (((m->mMovementStates.mLowWord >> (9)) & 1)) {
         return false;
     }
     if (s == nullptr) {
@@ -1165,7 +1163,7 @@ bool MarioActor::fn_803D0F60(HitSensor* s) {
 
 bool MarioActor::fn_803D11C0() {
     Mario* m = this->mMario;
-    if (BITAT(m, 0xC, 9)) {
+    if (((m->mMovementStates.mLowWord >> (9)) & 1)) {
         return true;
     }
     if (reinterpret_cast<s32&>(this->mHealth) == 0) {
@@ -1253,7 +1251,7 @@ f32 MarioActor::fn_803D18D0() {
     if (static_cast<s32>(_468) != 0) {
         return 2000.0f;
     }
-    if (BITAT(this->mMario, 0xC, 0x10)) {
+    if (((this->mMario->mMovementStates.mLowWord >> (0x10)) & 1)) {
         return 1000.0f;
     }
     return 600.0f;
@@ -1289,7 +1287,7 @@ void MarioActor::fn_803D1940() {
 // NONMATCHING: boolean materialization, equivalent constant conversion and loop register allocation.
 void MarioActor::fn_803D26F0() {
     Mario* m = this->mMario;
-    bool reflect = BITAT(m, 0xC, 0x1D) && !m->fn_803AA2C0() && !mMario->isStatusActive(0x12) &&
+    bool reflect = ((m->mMovementStates.mLowWord >> (0x1D)) & 1) && !m->fn_803AA2C0() && !mMario->isStatusActive(0x12) &&
         ((mMario)->_962 == 0xE || (mMario)->_962 == 0x21);
     if (reflect) {
         const TVec3f* gravity = mMario->getGravityVec();
@@ -1793,7 +1791,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
             (this->mMario)->mJumpVec.zero();
             (this->mMario)->_148.zero();
             Mario* m = this->mMario;
-            if (m->_5FC == nullptr && (BITAT(m, 0x1C, 1) || BITAT(m, 0x34, 1))) {
+            if (m->_5FC == nullptr && (((m->mDrawStates.mWord >> (1)) & 1) || ((m->mPrevDrawStates.mWord >> (1)) & 1))) {
                 TVec3f nv(*v);
                 MR::normalizeOrZero(&nv);
                 mPressNormal6D8 = nv;

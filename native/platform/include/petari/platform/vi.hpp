@@ -74,6 +74,15 @@ void setClock(Clock clock);
 // unless the clock is External and VIInit() has run.
 void signalRetrace();
 
+// Optional synchronous external-clock driver. VIWaitForRetrace releases the
+// OS CPU before calling it; the driver must signal a retrace on a host thread.
+// Install before VIInit. There is no window or display-link dependency.
+struct WaitDriver {
+    void (*wait)(void* user) = nullptr;
+    void* user = nullptr;
+};
+void setWaitDriver(const WaitDriver& driver);
+
 // TV mode (VITVMode) the console "booted" in, latched by VIInit(). Defaults to
 // VI_TVMODE_NTSC_INT; PAL discs need VI_TVMODE_PAL_INT or EuRGB60.
 void setBootTvMode(std::uint32_t viTvMode);

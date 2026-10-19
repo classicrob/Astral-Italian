@@ -20,6 +20,15 @@
         "CMAKE_BUILD_TYPE": "Release",
         "PETARI_SANITIZERS": "OFF"
       }
+    },
+    {
+      "name": "macos-arm64-headless",
+      "inherits": "macos-arm64",
+      "binaryDir": "${sourceDir}/build/macos-arm64-headless",
+      "cacheVariables": {
+        "PETARI_BUILD_HEADLESS": "ON",
+        "PETARI_BUILD_GX_PROBE": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -32,6 +41,14 @@
       "name": "macos-arm64-release",
       "configurePreset": "macos-arm64-release",
       "jobs": 6
+    },
+    {
+      "name": "macos-arm64-headless",
+      "configurePreset": "macos-arm64-headless",
+      "jobs": 6,
+      "targets": [
+        "petari_headless"
+      ]
     }
   ],
   "testPresets": [
@@ -45,6 +62,18 @@
     {
       "name": "macos-arm64-release",
       "configurePreset": "macos-arm64-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-arm64-headless",
+      "configurePreset": "macos-arm64-headless",
+      "filter": {
+        "include": {
+          "name": "^native_headless_"
+        }
+      },
       "output": {
         "outputOnFailure": true
       }

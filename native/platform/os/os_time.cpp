@@ -7,6 +7,10 @@
 
 #include <chrono>
 #include <ctime>
+#include <atomic>
+#include <limits>
+#include "os_internal.hpp"
+#include "petari/platform/virtual_time.hpp"
 
 #include <revolution/os.h>
 
@@ -15,6 +19,9 @@ namespace {
 // OS_TIMER_CLOCK: the 243 MHz bus clock / 4.
 constexpr s64 kTicksPerSecond = 60750000;
 constexpr s64 kUnixTo2000 = 946684800;
+std::atomic<bool> gVirtual{false};
+std::atomic<s64> gVirtualTicks{0};
+s64 gVirtualEpoch = 0;
 
 struct TimeBase {
     std::chrono::steady_clock::time_point origin;
@@ -80,6 +87,23 @@ void GetDates(s32 days, OSCalendarTime* pTime) {
 
 namespace PetariNative::Platform::OS {
 
+void prepareVirtualClock();
+void enableVirtualTime(std::int64_t epochTicks) {
+    if (epochTicks < 0 || gVirtual.load()) fatal("invalid or repeated virtual clock initialization");
+    prepareVirtualClock();
+    gVirtualEpoch = epochTicks;
+    gVirtualTicks.store(0);
+    gVirtual.store(true, std::memory_order_release);
+    setForcedPreemption(false, 0.5);
+}
+bool virtualTimeEnabled() { return gVirtual.load(std::memory_order_acquire); }
+std::int64_t virtualSystemTime() { return gVirtualTicks.load(std::memory_order_acquire); }
+void setVirtualSystemTime(std::int64_t ticks) {
+    if (!virtualTimeEnabled() || ticks < virtualSystemTime() || ticks > std::numeric_limits<s64>::max() - gVirtualEpoch)
+        fatal("virtual time must advance monotonically without overflow");
+    gVirtualTicks.store(ticks, std::memory_order_release);
+}
+
 // Host deadline for a system-time tick value (for the alarm timer).
 std::chrono::steady_clock::time_point systemTimeToHost(OSTime systemTime) {
     const s64 ns = static_cast<s64>(static_cast<__int128>(systemTime) * 4000 / 243);
@@ -91,6 +115,8 @@ std::chrono::steady_clock::time_point systemTimeToHost(OSTime systemTime) {
 extern "C" {
 
 OSTime OSGetTime(void) {
+    if (PetariNative::Platform::OS::virtualTimeEnabled())
+        return gVirtualEpoch + PetariNative::Platform::OS::virtualSystemTime();
     return timeBase().bootTime + ticksSinceOrigin();
 }
 
@@ -99,10 +125,12 @@ OSTick OSGetTick(void) {
 }
 
 OSTime __OSGetSystemTime(void) {
+    if (PetariNative::Platform::OS::virtualTimeEnabled()) return PetariNative::Platform::OS::virtualSystemTime();
     return ticksSinceOrigin();
 }
 
 OSTime __OSTimeToSystemTime(OSTime time) {
+    if (PetariNative::Platform::OS::virtualTimeEnabled()) return time - gVirtualEpoch;
     return time - timeBase().bootTime;
 }
 

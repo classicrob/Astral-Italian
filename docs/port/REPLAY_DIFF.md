@@ -1,6 +1,6 @@
 # SB4E01 replay differential gate
 
-Design, 2026-10-19; implementation and live replay validation remain outstanding. Use the user's original SB4E01 disc/DOL as the Dolphin oracle, with its disc files
+Design and collector work, 2026-10-19; native replay validation remains outstanding. Use the user's original SB4E01 disc/DOL as the Dolphin oracle, with its disc files
 available to both runs. No game data, saves, movies, or savestates enter git.
 `M/` below means the read-only model `/Users/roberthaisfield/MacioGalaxy/`; unprefixed source paths are in this SMG2 checkout. All offsets below are **Wii
 32-bit offsets**, not arm64 layouts. Native observers use typed member access.
@@ -23,6 +23,8 @@ Count accepted stops as `frame` (u64, zero-based); record VI/tick counts separat
 Do not treat a rendered frame, retrace, or Mario update as this loop counter.
 `frameLoop__10GameSystemFv` is **0x804B6A70** and `update__10GameSystemFv`
 **0x804B6BA0** (`config/SB4E01/symbols.txt:40920`, `:40922`).
+Original DOL inspection confirms the call instruction `480077c1` at
+**0x804B6AC0**, so the accepted LR is exactly **0x804B6AC4**.
 Log every loop, including loading/title/pause; attach `scene_epoch` and validity bits. Never silently drop invalid frames or realign after a death/divergence.
 
 ## State extraction map
@@ -112,11 +114,99 @@ Anchors `getAllLiveActorGroup__2MRFv` **0x8022D950** and
 store is capped at 256 and conditional on observation (`M/native/app/actor_observe.cpp:22`,
 `:30`); its length cannot stand in for all registered/living actors.
 
-## Dolphin choices and deterministic capture
+## Collector implementation and qualification
+
+The implementation is [tools/port/replaydiff/dolphin_collect.py](../../tools/port/replaydiff/dolphin_collect.py);
+its [README](../../tools/port/replaydiff/README.md) defines CSV v1 and commands.
+It uses a private Unix GDB socket, validated SIGTRAP stops, the exact caller LR,
+bounded big-endian reads, float32 bits, explicit validity, and failure manifests
+with partial traces. It preserves title/loading loops. Player/group reads require `Game`
+and initialization state 6. It does not yet export KPAD, VI, or guest ticks.
+Its exact column order is tested against the new native
+`native/app/headless/trace_fields.inc`. Validity names are `scene_valid`,
+`player_valid`, `actor_count_valid`, `rng_valid`, `animation_valid`; bool state
+bytes use semicolon-separated `state_flags3`, counts use `actor_registered` and
+`actor_living`, float bits use `0x` prefixes. Epoch starts at 0 and increments
+on scene pointer or scene/stage/scenario changes, matching `observe.cpp`.
+`vi_count` and `ticks` are reserved blank columns on both sides. The inherited
+route writer is a different format, not schema-compatible. Observer failures
+leave `oracle.csv.partial` and an incomplete manifest, never a successful
+`oracle.csv`; check manifests before passing traces to the comparator.
+
+**Team-lead corrections:** the disc copy belongs in
+`~/MacioGalaxy2-gamedata/`, outside both the repository and the team upload tree.
+Dolphin user dirs, caches, saves, extracted data and screenshots of game content
+also belong there. Numeric field traces and text manifests/logs may stay in
+team scratch. Never commit or upload game data or traces containing it.
+Every heavy job/emulator shares
+`lockf -k ~/MacioGalaxy2-team/slots/native.lock nice -n 10 <cmd>`; the collector
+holds this lock across hashing, launch, capture and emulator termination.
+
+The installed app is actually Ishiiruka FM v5.8.7 BETA (2017), x86_64, revision
+`419e77f3e2767debc521d56626c375379df78a6b`. Its binary has MemoryWatcher/debugger
+strings but no `GDBPort`/`GDBSocket` strings. It has not been used as the oracle.
+A separate official [Dolphin 2609a](https://dolphin-emu.org/download/), revision
+`409881c34357d0f105fd473167d15ab0bd9c1628`, was downloaded to scratch, leaving
+the installed app unchanged. Its private GDB socket accepted the collector and
+reported startup PC `80004050`. This first stop is `T0f` (SIGTERM), unlike the
+SIGTRAP required for subsequent breakpoint/step stops. This is successful stub
+qualification, not yet an M0 replay pass.
+
+Fresh profiles pin interpreter CPU core 0 (ARM64 JIT 4 separately), dual core
+off, fixed RTC 946684800, DSP HLE, no audio output, cheats/SD/real Wiimotes off,
+one emulated Wiimote/Nunchuk without host bindings. Preserve generated SYSCONF
+and the private user directory with each fixture; the GameCube language setting
+does not establish Wii SYSCONF language. The collector records exact binary/disc
+hashes and initial INIs in each private run bundle.
+**Required debugger setting:** `Interface/DebugModeEnabled=True`. The initial
+interpreter attempt timed out despite accepted `Z0` packets because this was
+missing. Dolphin's interpreter only checks execute breakpoints when
+`Config::IsDebuggingEnabled()` is true. A listening GDB stub and an `OK` reply
+to `Z0` do not prove breakpoints work. The collector now validates this setting.
+
+**Measured M0 result:** two fresh-profile ARM64 JIT captures, each 1800 game-loop
+frames, produced byte-identical CSVs (SHA256
+`ab83e2716468324f33b5f1da955d15154b976e24a817e943eae460505b7265b1`).
+Both started without an SB4E save. Loading rows were preserved; `Logo` appeared
+at frame 30, `Game / FileSelect / scenario 1` at 485, and initialization reached
+6 at frame 532. The UI reached the three-file planet selection screen using the
+pinned scripted movie. There were zero rejected seam callers and zero observer
+errors. Each capture has 1268 player-valid rows; HP was 3, registered actors 135,
+and living actors varied from 15 to 22. The main animation was `StageStartGround`
+and the state stack was empty: this is the FileSelect background player, not a
+playable-galaxy physics qualification. Actor and simulation positions can differ
+during the first background-player initialization frames; they agree at the end.
+
+Private numeric bundles are
+`scratch-port/solc/capture-m0-jit-01/` and `capture-m0-jit-02/` under the team
+directory, with `M0-QUALIFICATION.json` and `m0-repeat.json` beside them.
+Their user directories are `~/MacioGalaxy2-gamedata/dolphin-user-j01` and `-j02`;
+no game content is stored in the numeric bundles. This establishes original
+oracle repeatability for this prefix only. Interpreter capture, playable-galaxy
+idle/jump, KPAD export and native equality remain unqualified.
+
+Independent original-DOL checks also confirmed `getUpVec` uses actor `+0x618`,
+`getFrontVec` uses Mario `+0x208`, `getRandom` loads GameSystem `+0x20` then seed
+`+0x34`, and `getCurrentAnimationName` loads Xanime `+0x60` then the group's first
+pointer. To match the native observer, `anim_name` reads actor `+0x588` ->
+MarioAnimator's cached `mCurrBck` at `+0x114`, rather than the Xanime group name.
+Original `MarioAnimator::change` stores that cache with instruction `93fd0114`
+at `0x803DCD7C`, independently confirming `+0x114`. These paths still require
+live gameplay sanity checks. The underlying Xanime group name is a different
+possible field.
+
+`make_movie.py` encodes a poll-indexed Wiimote/Nunchuk script using **only the
+pinned 2609a** desired-state format. This is an actual Dolphin movie input path,
+not a guest-memory input override. Polls are distinct from game-loop frames and
+filtered KPAD samples; no KPAD equivalence is claimed. See pinned upstream
+[serialization](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/Core/HW/WiimoteEmu/DesiredWiimoteState.cpp)
+and [movie header](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/Core/Movie.h).
+
+## Dolphin choices and deterministic capture (design background)
 
 Local inspection found `/Applications/Dolphin.app`, executable `Contents/MacOS/Dolphin`, Info.plist short version `v5.8-9`, bundle version `5.0`; `dolphin-emu` is absent
 from PATH. This does not establish its upstream revision or GDB/scripting support.
-Nothing was installed, launched, or configured for this design.
+That initial inspection preceded the implementation/qualification above.
 
 | Option | Per-game-frame reads and decision |
 | --- | --- |
@@ -144,7 +234,8 @@ Run the oracle twice and require identical semantic dumps before comparing nativ
 
 ## Input interchange and native hooks (proposed)
 
-Create `tools/port/replaydiff/` later with `capture_dolphin.py`, `schema.json`, `compare.py`, and a revision-specific DTM adapter. Store fixtures outside git;
+The collector and revision-specific movie adapter now live in `tools/port/replaydiff/`;
+`schema.json`, `compare.py`, and KPAD export remain future work. Store fixtures outside git;
 store only schema/tests/manifests without game data in the repository.
 
 Canonical bundle: `manifest.json`, original `input.dtm`, `inputs.jsonl`, `oracle.csv`, `native.csv`. Each input row has `frame,read_ordinal,channel`,

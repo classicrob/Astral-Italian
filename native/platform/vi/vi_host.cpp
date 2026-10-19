@@ -29,6 +29,7 @@
 #include "petari/host_allocation.hpp"
 #include "petari/present_pacing.hpp"
 #include "petari/platform/vi.hpp"
+#include "petari/platform/os_host.hpp"
 
 namespace OS = PetariNative::Platform::OS;
 namespace VIN = PetariNative::Platform::VI;
@@ -298,6 +299,13 @@ void setClock(Clock clock) {
     gClock = clock;
 }
 
+namespace { WaitDriver gWaitDriver; }
+void setWaitDriver(const WaitDriver& driver) {
+    OS::InterruptGuard guard;
+    if (gInitialized) OS::fatal("VI wait driver must be chosen before VIInit()");
+    gWaitDriver = driver;
+}
+
 void signalRetrace() {
     if (OS::boundThread() != nullptr) {
         OS::fatal("signalRetrace() called from an OS thread; retraces are interrupts and need a host thread");
@@ -338,6 +346,7 @@ void shutdown() {
     gStopRequested = false;
     gInitialized = false;
     gClock = Clock::Internal;
+    gWaitDriver = {};
     gPending = gFlushed = gLatched = Pending{};
     gFlushFlag = false;
     gRetraceCount = 0;
@@ -411,6 +420,22 @@ void VIFlush(void) {
 }
 
 void VIWaitForRetrace(void) {
+    VIN::WaitDriver driver;
+    u32 before = 0;
+    {
+        OS::InterruptGuard guard;
+        if (gClock == VIN::Clock::External) driver = VIN::gWaitDriver;
+        before = gRetraceCount;
+    }
+    if (driver.wait) {
+        const int released = petari_os_try_begin_host_blocking();
+        if (OS::boundThread() && !released) OS::fatal("virtual VI wait needs an interruptible game thread");
+        driver.wait(driver.user);
+        if (released) petari_os_end_host_blocking();
+        OS::InterruptGuard guard;
+        if (before == gRetraceCount) OS::fatal("virtual VI wait returned without a retrace");
+        return;
+    }
     BOOL enabled = OSDisableInterrupts();
     const u32 count = gRetraceCount;
     do {

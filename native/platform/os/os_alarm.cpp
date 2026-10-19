@@ -14,6 +14,7 @@
 
 #include "os_internal.hpp"
 #include "petari/host_allocation.hpp"
+#include "petari/platform/virtual_time.hpp"
 
 namespace PetariNative::Platform::OS {
 std::chrono::steady_clock::time_point systemTimeToHost(OSTime systemTime);
@@ -43,6 +44,10 @@ void* timerMain(void*);
 
 // Lock held. Replaces programming the decrementer.
 void SetTimer(OSAlarm*) {
+    if (virtualTimeEnabled()) {
+        if (gTimerStarted) fatal("virtual clock selected after alarm timer startup");
+        return;
+    }
     if (!gTimerStarted) {
         gTimerStarted = true;
         PetariNative::HostAllocationScope hostAllocations;
@@ -58,14 +63,14 @@ void SetTimer(OSAlarm*) {
     timerCv().notify_all();
 }
 
-void InsertAlarm(OSAlarm* alarm, OSTime fire, OSAlarmHandler handler) {
+void InsertAlarm(OSAlarm* alarm, OSTime fire, OSAlarmHandler handler, bool reschedule = false) {
     OSAlarm* next;
     OSAlarm* prev;
 
     if (0 < alarm->period) {
         OSTime time = __OSGetSystemTime();
         fire = alarm->start;
-        if (alarm->start < time) {
+        if (alarm->start < time || (reschedule && alarm->start == time)) {
             fire += alarm->period * ((time - alarm->start) / alarm->period + 1);
         }
     }
@@ -117,7 +122,7 @@ void fireExpired() {
         OSAlarmHandler handler = alarm->handler;
         alarm->handler = nullptr;
         if (0 < alarm->period) {
-            InsertAlarm(alarm, 0, handler);
+            InsertAlarm(alarm, 0, handler, true);
         }
 
         OSThread* interrupted = OSGetCurrentThread();
@@ -159,6 +164,25 @@ void* timerMain(void*) {
 }  // namespace
 
 namespace PetariNative::Platform::OS {
+
+void setVirtualSystemTime(std::int64_t ticks);
+void prepareVirtualClock() {
+    InterruptGuard guard;
+    if (gTimerStarted || AlarmQueue.head) fatal("virtual time must be selected before alarms are installed");
+}
+void advanceVirtualTimeTo(std::int64_t target) {
+    if (boundThread() != nullptr || !virtualTimeEnabled() || target < virtualSystemTime())
+        fatal("virtual alarms require a monotonic host interrupt driver");
+    InterruptGuard guard;
+    unsigned dispatched = 0;
+    while (AlarmQueue.head && AlarmQueue.head->fire <= target) {
+        const auto fire = AlarmQueue.head->fire;
+        setVirtualSystemTime(fire < virtualSystemTime() ? virtualSystemTime() : fire);
+        fireExpired();
+        if (++dispatched > 1000000) fatal("virtual alarm queue does not make progress");
+    }
+    setVirtualSystemTime(target);
+}
 
 void dumpAlarms(std::FILE* out) {
     const OSTime now = __OSGetSystemTime();

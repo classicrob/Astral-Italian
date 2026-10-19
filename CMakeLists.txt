@@ -13,10 +13,14 @@ if(DEFINED CACHE{_PETARI_BUILD_TESTING_SAVED})
     set(BUILD_TESTING "${_PETARI_BUILD_TESTING_SAVED}" CACHE BOOL "Build tests" FORCE)
 endif()
 option(PETARI_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
+option(PETARI_BUILD_HEADLESS "Build the strict CPU-only SMG2 replay harness" OFF)
 include(native/cmake/LegacySources.cmake)
 
 add_library(petari_native_config INTERFACE)
 target_compile_definitions(petari_native_config INTERFACE GALAXY_NATIVE=1)
+if(PETARI_BUILD_HEADLESS)
+    target_compile_definitions(petari_native_config INTERFACE GALAXY_HEADLESS=1)
+endif()
 target_include_directories(petari_native_config INTERFACE
     "${PETARI_LEGACY_ROOT}/include"
     "${PETARI_LEGACY_ROOT}/libs/RVL_SDK/include"
@@ -178,6 +182,9 @@ if(BUILD_TESTING)
 endif()
 
 option(PETARI_BUILD_GX_PROBE "Build the native GX/Metal integration probe (downloads Aurora dependencies)" OFF)
+if(PETARI_BUILD_HEADLESS AND PETARI_BUILD_GX_PROBE)
+    message(FATAL_ERROR "Use separate build directories for the headless and Aurora/Metal modes")
+endif()
 if(PETARI_BUILD_GX_PROBE)
     # Aurora's extern forces BUILD_TESTING OFF in the cache. Keep the saved value in the
     # cache too, so a configure that fails inside native/gx is repaired by the next one.
@@ -188,6 +195,8 @@ if(PETARI_BUILD_GX_PROBE)
     set(BUILD_TESTING "${_PETARI_BUILD_TESTING_SAVED}" CACHE BOOL "Build tests" FORCE)
     unset(_PETARI_BUILD_TESTING_SAVED CACHE)
 endif()
+
+add_subdirectory(native/app/headless)
 
 add_subdirectory(native/home_menu)
 # Editor deferred for the SMG2 port.

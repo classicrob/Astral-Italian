@@ -16,6 +16,7 @@
 //    the Wii (see noteActivity).
 
 #include <revolution/kpad.h>
+#include <petari/kpad_replay.hpp>
 #include <revolution/kpad/KPADInternal.h>
 
 extern KPADInsideStatus inside_kpads[4];
@@ -103,6 +104,8 @@ struct Channel {
     WPADConnectCallback connectCallback = nullptr;
     WPADExtensionCallback extensionCallback = nullptr;
     WPADSamplingCallback samplingCallback = nullptr;
+    WPADConnectCallback replayConnectDelivered = nullptr;
+    WPADExtensionCallback replayExtensionDelivered = nullptr;
     Command commands[kCommandCapacity];
     int commandHead = 0;
     int commandCount = 0;
@@ -117,6 +120,8 @@ struct Channel {
 
 // Device and SDK state: guarded by the interrupt lock.
 Channel gChannels[kChannels];
+PetariNative::Input::KpadReplayHooks gReplayHooks;
+s32 gReplayProbeErrors[kChannels] = {WPAD_ERR_NO_CONTROLLER, WPAD_ERR_NO_CONTROLLER, WPAD_ERR_NO_CONTROLLER, WPAD_ERR_NO_CONTROLLER};
 bool gInitialized = false;
 OSAlarm gAlarm;
 bool gAlarmRunning = false;
@@ -522,6 +527,7 @@ void tickChannel(s32 chan) {
 }
 
 void tick() {
+    if (gReplayHooks.read) return;
     for (s32 chan = 0; chan < kChannels; ++chan) {
         tickChannel(chan);
     }
@@ -1118,6 +1124,8 @@ void resetForTesting() {
             ch = Channel{};
         }
         gInitialized = false;
+        gReplayHooks = {};
+        for (auto& error : gReplayProbeErrors) error = WPAD_ERR_NO_CONTROLLER;
         for (auto& presses : gModPresses) {
             presses.store(0, std::memory_order_relaxed);
         }
@@ -1146,9 +1154,57 @@ void resetForTesting() {
     gSpeakerUser = nullptr;
 }
 
+void setKpadReplayHooks(const KpadReplayHooks& hooks) {
+    Interrupts guard;
+    if (gInitialized) misuse("setKpadReplayHooks", "install before WPADInit");
+    gReplayHooks = hooks;
+}
+
+void replayConnection(s32 chan, s32 error, u32 device) {
+    if (PetariNative::isGameAllocationThread()) misuse("replayConnection", "requires a host interrupt thread");
+    Interrupts guard;
+    Channel& ch = channel("replayConnection", chan);
+    if (!gReplayHooks.read || device > 255) misuse("replayConnection", "invalid replay connection");
+    const bool connected = error != WPAD_ERR_NO_CONTROLLER;
+    const bool changed = connected != ch.connected || (connected && ch.connectCallback != ch.replayConnectDelivered);
+    const bool extension = connected && (device != ch.devType || ch.extensionCallback != ch.replayExtensionDelivered);
+    ch.connected = connected;
+    ch.devType = static_cast<u8>(device);
+    ch.extensionPresent = connected && device != WPAD_DEV_CORE;
+    ch.connectCountdown = ch.extensionCountdown = -1;
+    gReplayProbeErrors[chan] = error;
+    if (changed && ch.connectCallback) {
+        ch.replayConnectDelivered = ch.connectCallback;
+        ch.connectCallback(chan, connected ? WPAD_ERR_NONE : WPAD_ERR_NO_CONTROLLER);
+    }
+    if (extension && ch.extensionCallback) {
+        ch.replayExtensionDelivered = ch.extensionCallback;
+        ch.extensionCallback(chan, ch.devType);
+    }
+}
+
+void serviceReplayCommands() {
+    if (PetariNative::isGameAllocationThread()) misuse("serviceReplayCommands", "requires a host interrupt thread");
+    Interrupts guard;
+    if (!gInitialized || !gReplayHooks.read) return;
+    for (s32 chan=0;chan<kChannels;++chan) {
+        replayConnection(chan,gReplayProbeErrors[chan],gChannels[chan].devType);
+        if (gChannels[chan].connected) completeCommand(chan,gChannels[chan]);
+    }
+}
+
 }  // namespace PetariNative::Input
 
 using namespace PetariNative::Input;
+
+extern "C" BOOL petari_kpad_replay_read(s32 chan, KPADStatus* buffer, u32 capacity, s32* error, s32* returned) {
+    KpadReplayHooks hooks;
+    { Interrupts guard; hooks = gReplayHooks; }
+    if (!hooks.read) return FALSE;
+    if (!returned) misuse("petari_kpad_replay_read", "missing return-count destination");
+    *returned = hooks.read(chan, buffer, capacity, error, hooks.user);
+    return TRUE;
+}
 
 // --- SDK API ---
 
@@ -1203,6 +1259,10 @@ u8 WPADGetDpdSensitivity(void) {
 s32 WPADProbe(s32 chan, u32* type) {
     Interrupts guard;
     Channel& ch = channel("WPADProbe", chan);
+    if (gReplayHooks.read) {
+        if (type) *type = ch.devType;
+        return gReplayProbeErrors[chan];
+    }
     snapshotCalibration(chan, ch);
     if (type != nullptr) {
         *type = ch.devType;

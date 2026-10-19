@@ -2,104 +2,105 @@
 
 MacioGalaxy e5bc761c0..HEAD onto .. Macro mapping: PETARI_NATIVE -> GALAXY_NATIVE.
 
-Hook groups: clean 384, adapted 564, relocated 8, manual 289, unconditional 201, feature 119, missing 255, comment 14, applied-guarded 543, applied-neutral 413
+Hook groups: clean 379, adapted 508, relocated 8, excluded 46, manual 284, unconditional 191, feature 149, missing 255, comment 14, applied-guarded 496, applied-neutral 399
 
-Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
+Files: applied 293, excluded 9, missing 65, partial 56, relocated 6, unchanged 109
 
 - clean/adapted: applied (Wii side verified unchanged with unifdef -UGALAXY_NATIVE -D__MWERKS__).
   `applied-guarded` hooks change nothing on the Wii side; `applied-neutral` ones rewrite Wii code into a form that expands to the same tokens (JSU_BE(T) -> T, `this->`, u32 -> uintptr_t, ...); the DOL hash check at landing is the final proof.
+- excluded: would apply, but the file failed the MWCC compile gate (tools/team/hookgate.py); port by hand.
 - relocated: hook from a Petari file that SMG2 merged into another TU, applied by unique context match.
 - manual: guarded hook that conflicts with SMG2 changes; port by hand (manual/<path>.diff).
 - unconditional: MacioGalaxy changed Wii-visible code (bug fix or clang syntax fix); not applied; port natively behind GALAXY_NATIVE where clang needs it.
 - feature: hook for a deferred MacioGalaxy feature (editor, test server, mods); P3.
 - missing: no SMG2 file at that path or with that unique basename.
 
-| dir | clean | adapted | relocated | manual | unconditional | feature | missing | comment |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| include/Game/Animation | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
-| include/Game/AudioLib | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/Game/Boss | 1 | 1 | 0 | 0 | 1 | 0 | 0 | 0 |
-| include/Game/Camera | 1 | 5 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/Game/Effect | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/Game/Gravity | 0 | 1 | 0 | 1 | 1 | 0 | 0 | 0 |
-| include/Game/LiveActor | 0 | 3 | 0 | 0 | 1 | 0 | 0 | 0 |
-| include/Game/Map | 0 | 3 | 0 | 0 | 1 | 0 | 0 | 0 |
-| include/Game/MapObj | 0 | 1 | 0 | 3 | 0 | 0 | 0 | 0 |
-| include/Game/NWC24 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/Game/NameObj | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/Game/Player | 0 | 7 | 0 | 5 | 0 | 0 | 0 | 0 |
-| include/Game/RhythmLib | 2 | 5 | 0 | 1 | 0 | 0 | 0 | 1 |
-| include/Game/Scene | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 0 |
-| include/Game/Screen | 0 | 4 | 0 | 1 | 0 | 0 | 0 | 1 |
-| include/Game/Speaker | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/Game/System | 1 | 9 | 0 | 4 | 1 | 3 | 0 | 0 |
-| include/Game/Util | 3 | 11 | 0 | 7 | 0 | 0 | 0 | 0 |
-| include/Inline.hpp | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| include/math_types.hpp | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/JSystem/include/Inline.hpp | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/JSystem/include/JSystem | 143 | 57 | 0 | 18 | 13 | 0 | 0 | 8 |
-| libs/RVLFaceLib/include/RFL_DataUtility.h | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/RVLFaceLib/include/RFL_MiddleDatabase.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/RVLFaceLib/include/RFL_Model.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/RVLFaceLib/include/RFL_Types.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/RVLFaceLib/include/RFLi_Model.h | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 0 |
-| libs/RVLFaceLib/include/RFLi_Texture.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| libs/RVL_SDK/include/revolution | 48 | 12 | 0 | 5 | 10 | 0 | 0 | 0 |
-| libs/nw4r/include/nw4r | 6 | 4 | 0 | 1 | 1 | 0 | 0 | 0 |
-| src/Game/Animation | 0 | 1 | 0 | 0 | 0 | 0 | 4 | 0 |
-| src/Game/AreaObj | 0 | 2 | 0 | 0 | 0 | 1 | 3 | 0 |
-| src/Game/AudioLib | 0 | 6 | 0 | 5 | 4 | 4 | 1 | 0 |
-| src/Game/Boss | 0 | 5 | 0 | 5 | 1 | 0 | 3 | 0 |
-| src/Game/Camera | 2 | 8 | 0 | 3 | 2 | 5 | 0 | 0 |
-| src/Game/Demo | 0 | 2 | 0 | 2 | 0 | 2 | 5 | 0 |
-| src/Game/Effect | 0 | 5 | 0 | 0 | 0 | 0 | 1 | 0 |
-| src/Game/Enemy | 0 | 10 | 0 | 5 | 0 | 0 | 4 | 0 |
-| src/Game/GameAudio | 0 | 0 | 0 | 0 | 0 | 0 | 27 | 0 |
-| src/Game/Gravity | 0 | 2 | 0 | 1 | 0 | 0 | 0 | 0 |
-| src/Game/LiveActor | 0 | 5 | 0 | 5 | 0 | 0 | 0 | 0 |
-| src/Game/Map | 0 | 17 | 0 | 13 | 7 | 0 | 8 | 0 |
-| src/Game/MapObj | 0 | 17 | 0 | 11 | 0 | 8 | 10 | 0 |
-| src/Game/NPC | 0 | 8 | 1 | 8 | 3 | 2 | 3 | 0 |
-| src/Game/NWC24 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/Game/NameObj | 0 | 3 | 0 | 1 | 0 | 1 | 0 | 0 |
-| src/Game/Player | 0 | 2 | 4 | 16 | 14 | 16 | 58 | 3 |
-| src/Game/RhythmLib | 0 | 5 | 0 | 1 | 0 | 0 | 0 | 0 |
-| src/Game/Ride | 0 | 4 | 0 | 2 | 0 | 0 | 6 | 0 |
-| src/Game/Scene | 0 | 5 | 0 | 15 | 5 | 22 | 0 | 0 |
-| src/Game/Screen | 0 | 62 | 1 | 11 | 10 | 6 | 81 | 0 |
-| src/Game/Speaker | 2 | 3 | 0 | 2 | 0 | 0 | 0 | 0 |
-| src/Game/System | 3 | 67 | 1 | 21 | 10 | 42 | 34 | 0 |
-| src/Game/Util | 5 | 51 | 1 | 99 | 5 | 3 | 5 | 1 |
-| src/JSystem/J2DGraph | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
-| src/JSystem/J3DGraphAnimator | 1 | 2 | 0 | 1 | 9 | 1 | 0 | 0 |
-| src/JSystem/J3DGraphBase | 20 | 1 | 0 | 0 | 4 | 0 | 0 | 0 |
-| src/JSystem/J3DGraphLoader | 7 | 1 | 0 | 0 | 4 | 0 | 0 | 0 |
-| src/JSystem/JAudio2 | 16 | 33 | 0 | 0 | 35 | 0 | 0 | 0 |
-| src/JSystem/JKernel | 74 | 22 | 0 | 2 | 20 | 0 | 0 | 0 |
-| src/JSystem/JMath | 1 | 0 | 0 | 3 | 0 | 0 | 0 | 0 |
-| src/JSystem/JParticle | 5 | 9 | 0 | 0 | 2 | 0 | 0 | 0 |
-| src/JSystem/JSupport | 1 | 0 | 0 | 0 | 2 | 0 | 0 | 0 |
-| src/JSystem/JUtility | 0 | 3 | 0 | 0 | 7 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_Controller.c | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_DataUtility.c | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_Database.c | 0 | 19 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_DefaultDatabase.c | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_Format.c | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_HiddenDatabase.c | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_MakeRandomFace.c | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 |
-| src/RVLFaceLib/RFL_MakeTex.c | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_MiddleDatabase.c | 0 | 8 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_Model.c | 0 | 6 | 0 | 1 | 15 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_NANDAccess.c | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_NANDLoader.c | 0 | 5 | 0 | 1 | 0 | 0 | 0 | 0 |
-| src/RVLFaceLib/RFL_System.c | 0 | 9 | 0 | 1 | 0 | 0 | 0 | 0 |
-| src/RVL_SDK/arc | 8 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVL_SDK/mem | 1 | 5 | 0 | 2 | 2 | 0 | 0 | 0 |
-| src/RVL_SDK/mtx | 5 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/RVL_SDK/os | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| src/nw4r/db | 0 | 3 | 0 | 2 | 0 | 0 | 0 | 0 |
-| src/nw4r/lyt | 2 | 6 | 0 | 0 | 6 | 2 | 1 | 0 |
-| src/nw4r/ut | 0 | 8 | 0 | 0 | 4 | 0 | 0 | 0 |
+| dir | clean | adapted | relocated | excluded | manual | unconditional | feature | missing | comment |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| include/Game/Animation | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| include/Game/AudioLib | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/Game/Boss | 1 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| include/Game/Camera | 1 | 5 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/Game/Effect | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/Game/Gravity | 0 | 1 | 0 | 0 | 1 | 1 | 0 | 0 | 0 |
+| include/Game/LiveActor | 0 | 3 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| include/Game/Map | 0 | 3 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| include/Game/MapObj | 0 | 1 | 0 | 0 | 3 | 0 | 0 | 0 | 0 |
+| include/Game/NWC24 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/Game/NameObj | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/Game/Player | 0 | 7 | 0 | 0 | 5 | 0 | 0 | 0 | 0 |
+| include/Game/RhythmLib | 2 | 5 | 0 | 0 | 1 | 0 | 0 | 0 | 1 |
+| include/Game/Scene | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 0 |
+| include/Game/Screen | 0 | 4 | 0 | 0 | 1 | 0 | 0 | 0 | 1 |
+| include/Game/Speaker | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/Game/System | 1 | 9 | 0 | 0 | 4 | 1 | 3 | 0 | 0 |
+| include/Game/Util | 3 | 11 | 0 | 0 | 7 | 0 | 0 | 0 | 0 |
+| include/Inline.hpp | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| include/math_types.hpp | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/JSystem/include/Inline.hpp | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/JSystem/include/JSystem | 143 | 56 | 0 | 1 | 18 | 13 | 0 | 0 | 8 |
+| libs/RVLFaceLib/include/RFL_DataUtility.h | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/RVLFaceLib/include/RFL_MiddleDatabase.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/RVLFaceLib/include/RFL_Model.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/RVLFaceLib/include/RFL_Types.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/RVLFaceLib/include/RFLi_Model.h | 0 | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 0 |
+| libs/RVLFaceLib/include/RFLi_Texture.h | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| libs/RVL_SDK/include/revolution | 48 | 12 | 0 | 0 | 5 | 10 | 0 | 0 | 0 |
+| libs/nw4r/include/nw4r | 6 | 4 | 0 | 0 | 1 | 1 | 0 | 0 | 0 |
+| src/Game/Animation | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 4 | 0 |
+| src/Game/AreaObj | 0 | 1 | 0 | 0 | 0 | 0 | 2 | 3 | 0 |
+| src/Game/AudioLib | 0 | 5 | 0 | 1 | 4 | 5 | 4 | 1 | 0 |
+| src/Game/Boss | 0 | 5 | 0 | 0 | 5 | 1 | 0 | 3 | 0 |
+| src/Game/Camera | 2 | 8 | 0 | 0 | 3 | 2 | 5 | 0 | 0 |
+| src/Game/Demo | 0 | 2 | 0 | 0 | 2 | 0 | 2 | 5 | 0 |
+| src/Game/Effect | 0 | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 |
+| src/Game/Enemy | 0 | 10 | 0 | 0 | 5 | 0 | 0 | 4 | 0 |
+| src/Game/GameAudio | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 27 | 0 |
+| src/Game/Gravity | 0 | 0 | 0 | 2 | 1 | 0 | 0 | 0 | 0 |
+| src/Game/LiveActor | 0 | 5 | 0 | 0 | 5 | 0 | 0 | 0 | 0 |
+| src/Game/Map | 0 | 12 | 0 | 5 | 13 | 7 | 0 | 8 | 0 |
+| src/Game/MapObj | 0 | 17 | 0 | 0 | 11 | 0 | 8 | 10 | 0 |
+| src/Game/NPC | 0 | 8 | 1 | 0 | 8 | 3 | 2 | 3 | 0 |
+| src/Game/NWC24 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/Game/NameObj | 0 | 3 | 0 | 0 | 0 | 0 | 2 | 0 | 0 |
+| src/Game/Player | 0 | 2 | 4 | 0 | 16 | 14 | 16 | 58 | 3 |
+| src/Game/RhythmLib | 0 | 5 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| src/Game/Ride | 0 | 4 | 0 | 0 | 2 | 0 | 0 | 6 | 0 |
+| src/Game/Scene | 0 | 4 | 0 | 0 | 14 | 5 | 24 | 0 | 0 |
+| src/Game/Screen | 0 | 37 | 1 | 25 | 11 | 10 | 6 | 81 | 0 |
+| src/Game/Speaker | 2 | 3 | 0 | 0 | 2 | 0 | 0 | 0 | 0 |
+| src/Game/System | 1 | 56 | 1 | 9 | 20 | 10 | 47 | 34 | 0 |
+| src/Game/Util | 5 | 51 | 1 | 0 | 98 | 4 | 5 | 5 | 1 |
+| src/JSystem/J2DGraph | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| src/JSystem/J3DGraphAnimator | 1 | 0 | 0 | 0 | 1 | 9 | 3 | 0 | 0 |
+| src/JSystem/J3DGraphBase | 20 | 1 | 0 | 0 | 0 | 4 | 0 | 0 | 0 |
+| src/JSystem/J3DGraphLoader | 7 | 1 | 0 | 0 | 0 | 4 | 0 | 0 | 0 |
+| src/JSystem/JAudio2 | 13 | 33 | 0 | 3 | 0 | 35 | 0 | 0 | 0 |
+| src/JSystem/JKernel | 74 | 22 | 0 | 0 | 2 | 20 | 0 | 0 | 0 |
+| src/JSystem/JMath | 1 | 0 | 0 | 0 | 3 | 0 | 0 | 0 | 0 |
+| src/JSystem/JParticle | 5 | 9 | 0 | 0 | 0 | 2 | 0 | 0 | 0 |
+| src/JSystem/JSupport | 1 | 0 | 0 | 0 | 0 | 2 | 0 | 0 | 0 |
+| src/JSystem/JUtility | 0 | 3 | 0 | 0 | 0 | 7 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_Controller.c | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_DataUtility.c | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_Database.c | 0 | 19 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_DefaultDatabase.c | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_Format.c | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_HiddenDatabase.c | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_MakeRandomFace.c | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 |
+| src/RVLFaceLib/RFL_MakeTex.c | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_MiddleDatabase.c | 0 | 8 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_Model.c | 0 | 6 | 0 | 0 | 1 | 15 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_NANDAccess.c | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_NANDLoader.c | 0 | 5 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| src/RVLFaceLib/RFL_System.c | 0 | 9 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| src/RVL_SDK/arc | 8 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVL_SDK/mem | 1 | 5 | 0 | 0 | 2 | 2 | 0 | 0 | 0 |
+| src/RVL_SDK/mtx | 5 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/RVL_SDK/os | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| src/nw4r/db | 0 | 3 | 0 | 0 | 2 | 0 | 0 | 0 | 0 |
+| src/nw4r/lyt | 2 | 2 | 0 | 0 | 0 | 0 | 12 | 1 | 0 |
+| src/nw4r/ut | 0 | 5 | 0 | 0 | 0 | 0 | 7 | 0 | 0 |
 
 ## Added files
 
@@ -227,7 +228,7 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - libs/nw4r/include/nw4r/ut/LinkList.h: manual 1, unconditional 0
 - src/Game/Animation/XanimeResource.cpp: missing in SMG2 (4 groups)
 - src/Game/AreaObj/ChangeBgmCube.cpp: missing in SMG2 (3 groups)
-- src/Game/AudioLib/AudBgmSetting.cpp: manual 1, unconditional 0
+- src/Game/AudioLib/AudBgmSetting.cpp: manual 0, unconditional 1
 - src/Game/AudioLib/AudParams.cpp: missing in SMG2 (1 groups)
 - src/Game/AudioLib/AudSoundNameConverter.cpp: manual 3, unconditional 0
 - src/Game/AudioLib/AudSoundObject.cpp: manual 0, unconditional 2
@@ -292,7 +293,6 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - src/Game/NPC/TalkMessageCtrl.cpp: manual 3, unconditional 1
 - src/Game/NPC/TalkState.cpp: manual 3, unconditional 0
 - src/Game/NPC/Tico.cpp: manual 1, unconditional 1
-- src/Game/NameObj/NameObjCategoryList.cpp: manual 1, unconditional 0
 - src/Game/Player/GhostPacket.cpp: manual 2, unconditional 0
 - src/Game/Player/J3DModelX.cpp: manual 0, unconditional 1
 - src/Game/Player/MarineSnow.cpp: manual 0, unconditional 1
@@ -320,7 +320,7 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - src/Game/Scene/LogoScene.cpp: manual 2, unconditional 0
 - src/Game/Scene/PlacementInfoOrdered.cpp: manual 1, unconditional 0
 - src/Game/Scene/SceneNameObjListExecutor.cpp: manual 4, unconditional 4
-- src/Game/Scene/StageDataHolder.cpp: manual 6, unconditional 0
+- src/Game/Scene/StageDataHolder.cpp: manual 5, unconditional 0
 - src/Game/Screen/BloomEffect.cpp: manual 0, unconditional 1
 - src/Game/Screen/BrosButton.cpp: missing in SMG2 (1 groups)
 - src/Game/Screen/CustomTagProcessor.cpp: manual 1, unconditional 0
@@ -359,7 +359,7 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - src/Game/System/FileHolder.cpp: manual 1, unconditional 0
 - src/Game/System/FileRipper.cpp: manual 1, unconditional 0
 - src/Game/System/GalaxyCometScheduler.cpp: missing in SMG2 (1 groups)
-- src/Game/System/GameDataFunction.cpp: manual 2, unconditional 0
+- src/Game/System/GameDataFunction.cpp: manual 1, unconditional 0
 - src/Game/System/GameDataGalaxyStorage.cpp: missing in SMG2 (4 groups)
 - src/Game/System/GameEventFlagChecker.cpp: missing in SMG2 (10 groups)
 - src/Game/System/GameSequenceProgress.cpp: missing in SMG2 (4 groups)
@@ -377,7 +377,6 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - src/Game/System/StorySequenceExecutor.cpp: missing in SMG2 (6 groups)
 - src/Game/System/WPadButton.cpp: manual 1, unconditional 0
 - src/Game/Util/CameraUtil.cpp: manual 1, unconditional 0
-- src/Game/Util/FileUtil.cpp: manual 1, unconditional 0
 - src/Game/Util/GravityUtil.cpp: manual 1, unconditional 0
 - src/Game/Util/HashUtil.cpp: manual 6, unconditional 0
 - src/Game/Util/JMapInfo.cpp: manual 0, unconditional 3
@@ -385,7 +384,6 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - src/Game/Util/LiveActorUtil.cpp: manual 1, unconditional 0
 - src/Game/Util/MathUtil.cpp: manual 1, unconditional 0
 - src/Game/Util/MemoryUtil.cpp: manual 1, unconditional 0
-- src/Game/Util/PlayerUtil.cpp: manual 0, unconditional 1
 - src/Game/Util/StarPointerUtil.cpp: manual 2, unconditional 0
 - src/Game/Util/StringUtil.cpp: manual 0, unconditional 1
 - src/Game/Util/SystemUtil.cpp: manual 1, unconditional 0
@@ -428,12 +426,9 @@ Files: applied 302, missing 65, partial 65, relocated 6, unchanged 100
 - src/RVL_SDK/mem/mem_expHeap.c: manual 2, unconditional 0
 - src/nw4r/db/db_assert.cpp: manual 2, unconditional 0
 - src/nw4r/lyt/lyt_arcResourceAccessor.cpp: missing in SMG2 (1 groups)
-- src/nw4r/lyt/lyt_common.cpp: manual 0, unconditional 4
-- src/nw4r/lyt/lyt_material.cpp: manual 0, unconditional 2
-- src/nw4r/ut/ut_CharWriter.cpp: manual 0, unconditional 4
 
-## Landing note
+## Landing note (redo)
 
-Landed 373 files (one commit per lane). Deferred to a follow-up pass (not in the 16:45 heads-up lists): include/Game/Player/MarioActor.hpp include/Game/Player/RushEndInfo.hpp include/Game/System/HeapMemoryWatcher.hpp src/Game/Enemy/RingBeam.cpp src/Game/Map/CollisionParts.cpp src/Game/System/ArchiveHolder.cpp src/Game/Util/SystemUtil.cpp .
-Proof: tools/team/hookproof.sh rebuilt all 2,423 Wii objects without and with the transfer: 0 differ; nj.sh DOL hash passes in land.sh.
-Unapplied groups: docs/port/hooks-manual/<path>.diff (manual, unconditional, missing).
+Compile-gate exclusions (tools/team/hookgate.py; their hooks need hand porting): see `excluded` rows above.
+Also left for P1: files with native-semantics divergences (MessageTagSkipTagProcessor.hpp, AudRemixMgr.cpp/.hpp, RingBeam.cpp, FileSelector.cpp, HeapMemoryWatcher.cpp, MarioActor.hpp; corrections in scratch-port/solb/NATIVE-SEMANTICS.md), files that changed on main during the redo (ResourceHolder.cpp, RFL_DataUtility.c) and enemies-deferred files (AudSystem.cpp, MogucchiShooter.cpp, ParticleDrawExecutor.cpp, Popo.cpp, LayoutManager.cpp, SuddenDeathMeter.cpp).
+Proof: tools/team/hookproof.sh, two clean Wii object builds, identical code/data/relocations/symbols for all 2,423 objects.

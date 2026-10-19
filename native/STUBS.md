@@ -43,8 +43,10 @@ that path can work. `native_smg2_sdk` checks absent-device queries and loud fail
 
 `WPADSetCallbackByKPAD` records KPAD's callback ownership and the normal WPAD
 callback setters warn before overwriting it, matching the SDK's diagnostic role.
-The `native_smg2_sdk` test also initializes the real SMG2 KPAD and reads native
-Nunchuk reports without invoking unsupported extension operations.
+The `native_smg2_sdk` test also attempts real SMG2 KPAD startup. Its latest run
+connects the native Nunchuk but fails the first report assertion: KPAD's initial
+connection reset clears its buffered samples. Servicing that reset and reading
+subsequent reports still needs verification; startup is not yet a passing test.
 
 ## Imported SMG1 inventory
 

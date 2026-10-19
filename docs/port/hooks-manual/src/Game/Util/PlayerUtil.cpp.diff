@@ -1,6 +1,0 @@
-@@ unconditional petari line 21 in ?
-+#include "Game/Util/StringUtil.hpp"
-+#ifdef GALAXY_NATIVE
-+#include <petari/editor/runtime.hpp>
-+#endif
-

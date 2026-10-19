@@ -51,7 +51,7 @@ PP_CLOSE = re.compile(r"^\s*#\s*endif")
 FEATURE_RE = re.compile(r"Editor|TestServer|ClassSweep|Odyssey|Cappy|GenericFigure|PhotoCamera|CutsceneSkip|"
                         r"NativeUnlockedSave|PointMove|GenericWorld|GenericShapes|PETARI_MODS|petari::mods|"
                         r"\bmods?::|ModSettings|OVERWRITE_EMIT|PETARI_OVERWRITE|petari_?[Mm]od|ModGalax|mod_galaxy|"
-                        r"\b[sk]Mod[A-Z]|\b[Mm]ods\b|modGalaxies")
+                        r"\b[sk]Mod[A-Z]|\b[Mm]ods\b|modGalaxies|petari/editor/|petari_generic|generic_grey|PETARI_GREY")
 NATIVE_ADDED_RE = re.compile(r"Native|native|BigEndian")
 FUNC_RE = re.compile(r"^(?!\s)(?!(?:if|for|while|switch|return|else|do|case|namespace|class|struct|enum|typedef|#)\b)"
                      r"[\w:<>,\*&~ ]*?\b([\w]+(?:::[~\w]+)*)\s*\([^;]*$")
@@ -75,7 +75,7 @@ def lines_of(text):
 
 
 _NATIVE_TERM = r"!\s*defined\s*\(?\s*%s\s*\)?" % MACRO_TO
-_NATIVE_POS = r"defined\s*\(?\s*%s\s*\)?" % MACRO_TO
+_NATIVE_POS = r"(?<![!\w])defined\s*\(?\s*%s\s*\)?" % MACRO_TO
 _PP_IF_RE = re.compile(r"^(\s*#\s*(?:el)?if\b)(.*)$", re.M)
 
 
@@ -101,9 +101,18 @@ def wii_side(text):
 _COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
 
 
+class _Unequal:
+    """Result for text unifdef could not process: compares unequal to everything (fail closed)."""
+    def __eq__(self, other):
+        return False
+
+    def __ne__(self, other):
+        return True
+
+
 def normalize(text):
     if text is None:
-        return None
+        return _Unequal()
     text = _COMMENT_RE.sub(" ", text)
     return [re.sub(r"\s+", " ", l).strip() for l in text.splitlines() if l.strip()]
 
@@ -121,7 +130,7 @@ _TYPE_CLASSES = {"U32": [["u32"], ["unsigned", "long"], ["uintptr_t"], ["size_t"
 # Petari defines nullptr as 0 for MWCC, so MacioGalaxy's nullptr -> false/0 corrections are Wii-neutral; likewise
 # -1 vs 0xFFFFFFFF in u32 initializers and `0f` vs `0.0f`. Final proof: identical objects (tools/team/hookproof.sh).
 _ZERO = {"nullptr", "NULL", "false", "0", "0x0", "0x00"}
-_MINUS_ONE = {"0xFFFFFFFF", "0xffffffff", "0xFFFF", "0xffff"}
+_MINUS_ONE = {"0xFFFFFFFF", "0xffffffff"}
 _FLOAT_RE = re.compile(r"^(\d+(?:\.\d*)?|\.\d+)[fF]$")
 _PP_SPELL = (re.compile(r"^\s*#\s*ifdef\s+(\w+)"), re.compile(r"^\s*#\s*ifndef\s+(\w+)"))
 ALIASES = {}  # name -> (params or None, body tokens), learned from MacioGalaxy's Wii-side definitions
@@ -333,10 +342,27 @@ def enclosing_function(base_lines, line):
     return ""
 
 
+def real_case(tree, rel):
+    """rel with the on-disk spelling of each component (macOS is case-insensitive: MacioGalaxy's
+    JASDspInterface.hpp is SMG2's JASDSPInterface.hpp), or None if it does not exist."""
+    cur, parts = tree, []
+    for part in rel.split("/"):
+        try:
+            names = os.listdir(cur)
+        except OSError:
+            return None
+        hit = part if part in names else next((n for n in names if n.lower() == part.lower()), None)
+        if hit is None:
+            return None
+        parts.append(hit)
+        cur = cur / hit
+    return "/".join(parts)
+
+
 def find_ours(tree, rel, index):
-    p = tree / rel
-    if p.exists():
-        return rel
+    real = real_case(tree, rel)
+    if real is not None:
+        return real
     top = rel.split("/", 1)[0]
     cands = [c for c in index.get(Path(rel).name, []) if c.startswith(top + "/")]
     if len(cands) == 1:
@@ -568,6 +594,7 @@ def main():
     ap.add_argument("--overlay", action="store_true", help="write a full hooked copy of the tree to OUT/overlay")
     ap.add_argument("--apply", action="store_true", help="write merged files into --tree")
     ap.add_argument("--only", action="append", default=[], help="path prefix filter (repeatable)")
+    ap.add_argument("--exclude-file", type=Path, help="file listing SMG2 paths to leave untouched (compile-gate failures)")
     args = ap.parse_args()
     tree = args.tree.resolve()
     out = args.out.resolve()
@@ -591,7 +618,7 @@ def main():
         if st == "A":
             kind = "deferred-feature" if FEATURE_RE.search(rel) else (
                 "copy" if NATIVE_ADDED_RE.search(rel) else "deferred-review")
-            exists = (tree / rel).exists()
+            exists = real_case(tree, rel) is not None
             added.append({"path": rel, "kind": "exists" if exists else kind})
             text = MACRO_RE.sub(MACRO_TO, decode(git(args.macio, "show", f"{args.head}:{rel}")))
             if Path(rel).suffix in SOURCE_EXTS and kind != "deferred-feature":
@@ -642,6 +669,22 @@ def main():
         for g in rec.get("groups", []):
             g.pop("_group", None)
 
+    excluded = set()
+    if args.exclude_file and args.exclude_file.exists():
+        excluded = {l.strip() for l in args.exclude_file.read_text().splitlines() if l.strip()}
+        for rel in list(merged_files):
+            if rel in excluded:
+                del merged_files[rel]
+        for rec in files:
+            if rec.get("smg2_path") in excluded or rec["path"] in excluded:
+                rec["status"] = "excluded"
+                for g in rec.get("groups", []):
+                    if g["kind"] in ("clean", "adapted"):
+                        g["kind"] = "excluded"
+        for rec in files:  # relocated groups into excluded files
+            for g in rec.get("groups", []):
+                if g["kind"] == "relocated" and g.get("target") in excluded:
+                    g["kind"] = "excluded"
     if args.overlay:
         ov = out / "overlay"
         if ov.exists():
@@ -700,7 +743,7 @@ def write_report(out, files, added, args):
     report = {"macro": {MACRO_FROM: MACRO_TO}, "macio_base": args.base, "macio_head": args.head,
               "file_status": status_total, "group_kinds": kinds_total, "added": added, "files": files}
     (out / "report.json").write_text(json.dumps(report, indent=1, default=dict) + "\n")
-    cols = ["clean", "adapted", "relocated", "manual", "unconditional", "feature", "missing", "comment"]
+    cols = ["clean", "adapted", "relocated", "excluded", "manual", "unconditional", "feature", "missing", "comment"]
     md = ["# Hook transfer report", "",
           f"MacioGalaxy {args.base}..{args.head} onto {args.tree}. Macro mapping: {MACRO_FROM} -> {MACRO_TO}.", "",
           "Hook groups: " + ", ".join(f"{k} {kinds_total[k]}" for k in cols + ["applied-guarded", "applied-neutral"]), "",
@@ -709,6 +752,7 @@ def write_report(out, files, added, args):
           "  `applied-guarded` hooks change nothing on the Wii side; `applied-neutral` ones rewrite Wii code into"
           " a form that expands to the same tokens (JSU_BE(T) -> T, `this->`, u32 -> uintptr_t, ...); the DOL"
           " hash check at landing is the final proof.",
+          "- excluded: would apply, but the file failed the MWCC compile gate (tools/team/hookgate.py); port by hand.",
           "- relocated: hook from a Petari file that SMG2 merged into another TU, applied by unique context match.",
           "- manual: guarded hook that conflicts with SMG2 changes; port by hand (manual/<path>.diff).",
           "- unconditional: MacioGalaxy changed Wii-visible code (bug fix or clang syntax fix); not applied;"

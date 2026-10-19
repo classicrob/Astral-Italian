@@ -1,9 +1,9 @@
 #include "Game/AreaObj/AreaObj.hpp"
 #include "Game/AreaObj/AreaForm.hpp"
-// #include "Game/AreaObj/AreaObjFollower.hpp"
-// #include "Game/Map/SleepControllerHolder.hpp"
+#include "Game/AreaObj/AreaObjFollower.hpp"
+#include "Game/Map/AwakeControllerHolder.hpp"
 #include "Game/Map/StageSwitch.hpp"
-// #include "Game/Util/AreaObjUtil.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
@@ -23,7 +23,7 @@ AreaObj::AreaObj(int formType, const char* pName)
 
 void AreaObj::init(const JMapInfoIter& rIter) {
     initForm(rIter);
-    // MR::addBaseMatrixFollowerAreaObj(this, rIter);
+    MR::addBaseMatrixFollowerAreaObj(this, rIter);
     MR::getJMapInfoArg0WithInit(rIter, &mObjArg0);
     MR::getJMapInfoArg1WithInit(rIter, &mObjArg1);
     MR::getJMapInfoArg2WithInit(rIter, &mObjArg2);
@@ -47,9 +47,9 @@ void AreaObj::init(const JMapInfoIter& rIter) {
         setName(name);
     }
 
-    // MR::getAreaObjManager(getManagerName())->entry(this);
-    // MR::getAreaObjManager(getManagerName());
-    // SleepControlFunc::addSleepControl(this, rIter);
+    MR::getAreaObjManager(getManagerName())->entry(this);
+    MR::getAreaObjManager(getManagerName());
+    AwakeControlFunc::addAwakeControl(this, rIter);
 }
 
 void AreaObj::initForm(const JMapInfoIter& rIter) {

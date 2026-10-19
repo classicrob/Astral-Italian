@@ -788,13 +788,13 @@ f32 YoshiTongueAction::fn_80420A20() const {
 }
 
 bool YoshiTongueAction::sendAutoEatSensorMessage(u32 message, HitSensor* sender, HitSensor* receiver) {
-    mPlayer->mActor->_pad1052 = true;
+    mPlayer->mActor->mFlag1052 = true;
     bool result = MR::sendArbitraryMsg(message, sender, receiver);
-    mPlayer->mActor->_pad1052 = false;
+    mPlayer->mActor->mFlag1052 = false;
     return result;
 }
-void YoshiTongueAction::fn_80421790() { mPlayer->mActor->_pad1052 = true; }
-void YoshiTongueAction::fn_804217B0() { mPlayer->mActor->_pad1052 = false; }
+void YoshiTongueAction::fn_80421790() { mPlayer->mActor->mFlag1052 = true; }
+void YoshiTongueAction::fn_804217B0() { mPlayer->mActor->mFlag1052 = false; }
 void YoshiTongueAction::fn_804217D0() {
     if (MR::isEqualString(mTarget->getCurrentTargetActor()->mName, "ホーミングキラー")) MR::emitEffect(mYoshi, "KeepMouthKiller");
 }

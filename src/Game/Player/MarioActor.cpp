@@ -800,8 +800,8 @@ void MarioActor::controlMain() {
     updateControllerSwing();
     updateControllerSwingLeft();
     update2D();
-    if (_A61) {
-        _A6C++;
+    if (mActorEffectState->mActive) {
+        mActorEffectState->mTimer++;
     }
 
     if (!isEnableMoveMario()) {
@@ -1194,21 +1194,7 @@ void MarioActor::decLifeSmall() {
 
 
 
-void MarioActor::updateLife() {
-    if (!_388) {
-        return;
-    }
 
-    if (--_388 != 0) {
-        return;
-    }
-
-    if (!mHealth) {
-        return;
-    }
-
-    mHealth--;
-}
 
 
 const char* MarioActor_FORCE_MATCH_DATA() {
@@ -3076,7 +3062,7 @@ void MarioActor::initDrawAndModel() {
     _9C0 = nullptr;
     mModelEDC = nullptr;
     mModelEE0 = nullptr;
-    _1BC = nullptr;
+    mTornadoMario = nullptr;
     mModelEE8 = nullptr;
     mModelEEC = nullptr;
     mModelEF4 = nullptr;
@@ -5378,9 +5364,7 @@ bool MarioActor::tryJetAttack(HitSensor* pReceiver) {
 }
 
 
-void MarioActor::tryCounterJetAttack(HitSensor* pReceiver) {
-    _1BC->addRequest(pReceiver, MR::MovementType_MsgSharedGroup);
-}
+
 
 
 
@@ -8465,48 +8449,7 @@ namespace {
   // namespace
 #pragma push
 #pragma global_optimizer off
-void MarioActor::drawWallShade(const TVec3f& rPosition, const TVec3f& rNormal, f32 unused) const {
-    f32 radius = 100.0f;
-    TDDraw::setup(1, 1, 0);
-    GXSetZMode(GX_TRUE, GX_GREATER, GX_FALSE);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    mMaskTextures[_B88]->load(GX_TEXMAP0);
-    GXClearVtxDesc();
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    Mtx rotation;
-    TVec3f tangent(0.0f, rNormal.z, -rNormal.y);
 
-    if (MR::isNearZero(tangent)) {
-        tangent.set< f32 >(rNormal.z, 0.0f, rNormal.x);
-    }
-
-    MR::normalizeOrZero(&tangent);
-    PSMTXRotAxisRad(rotation, &rNormal, 0.3926991f);
-    GXBegin(GX_TRIANGLEFAN, GX_VTXFMT0, 18);
-    GXPosition3f32(rPosition.x - 5.0f * rNormal.x, rPosition.y - 5.0f * rNormal.y, rPosition.z - 5.0f * rNormal.z);
-    GXColor1u32(128);
-    GXTexCoord2f32(0.0f, 0.0f);
-
-    for (u32 i = 0; i <= 16; i++) {
-        f32 angle = 2.0f * ((i / 16.0f) * JGeometry::TUtil< f32 >::PI());
-        TVec3f point = subtractOffset(rPosition, rNormal * 5.0f) + tangent * radius;
-        GXPosition3f32(point.x, point.y, point.z);
-        GXColor1u32(1);
-        GXTexCoord2f32(10.0f * JMACosRadian(angle), 10.0f * MR::sin(angle));
-        PSMTXMultVecSR(rotation, &tangent, &tangent);
-    }
-
-    GXEnd();
-}
 #pragma pop
 
 
@@ -9275,24 +9218,7 @@ void MarioActor::tryReleaseBombTeresa() {
 
 // ---- MarioActorWipe.cpp ----
 
-void MarioActor::drawPreWipe() const {
-    if (!_1C3) {
-        if (!_A61) {
-            return;
-        }
-        f32 width = MR::getScreenWidth();
-        f32 height = static_cast< s32 >(JUTVideo::getManager()->getEfbHeight());
-        TDDraw::setup(0, 1, 2);
-        TVec3f origin(0.0f, 0.0f, 0.0f);
-        TVec3f size(width, height, 0.0f);
-        TDDraw::drawFillBox(origin, size, _A6C > 128 ? 224 : (_A6C + (_A6C >> 1)) + (_A6C >> 2));
-    }
-    MR::loadViewMtx();
-    MR::loadProjectionMtx();
-    MR::loadActorLight(this);
-    drawMarioModel();
-    MR::drawInitFor2DModel();
-}
+
 
 // ---- MarioAnimator.cpp ----
 

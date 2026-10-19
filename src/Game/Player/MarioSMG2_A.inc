@@ -344,7 +344,7 @@ void Mario::fn_803A1A20(f32* out) {
 
 void Mario::fn_803A2530(TVec3f* out) {
     if (this->_524 == this->_528) {
-        *out = FLD<TVec3f>(this, 0x22C);
+        *out = this->_22C;
     } else {
         *out = this->mFrontVec;
     }
@@ -354,7 +354,7 @@ void Mario::fn_803A23F0(TVec3f* out) {
     if ((this->mMovementStates.mHighWord >> 28) & 1) {
         *out = this->mFrontVec;
     } else {
-        *out = FLD<TVec3f>(this, 0x22C);
+        *out = this->_22C;
     }
 }
 
@@ -375,9 +375,9 @@ void Mario::fn_8039A5B0() {
 }
 
 void Mario::fn_803A1D60() {
-    PSVECCrossProduct(&FLD<TVec3f>(this, 0x214), &FLD<TVec3f>(this, 0x22C), &FLD<TVec3f>(this, 0x3D8));
-    this->fn_803A1A60(&FLD<TVec3f>(this, 0x244));
-    FLD<TVec3f>(this, 0x238) = FLD<TVec3f>(this, 0x22C);
+    PSVECCrossProduct(&this->_214, &this->_22C, &this->_3D8);
+    this->fn_803A1A60(&this->_244);
+    this->_238 = this->_22C;
 }
 
 bool Mario::fn_803902B0() {
@@ -487,7 +487,7 @@ void Mario::fn_803A2450(const TVec3f* arg) {
 
 void Mario::fn_803A2860() {
     if (!this->isAnimationRun("その場足踏み")) {
-        if (FLD<TVec3f>(this, 0x214).dot(FLD<TVec3f>(this, 0x22C)) > 0.99f) {
+        if (this->_214.dot(this->_22C) > 0.99f) {
             this->mMovementStates.mLowWord &= 0xEFFFFFFF;
         } else {
             this->mMovementStates.mLowWord |= 0x10000000;
@@ -497,22 +497,22 @@ void Mario::fn_803A2860() {
 
 
 void Mario::fn_803A2720() {
-    if ((FLD<u32>(this->getPlayer(), 0x14) >> 13) & 1) {
-        f32 d = MR::diffAngleAbs(this->mFrontVec, FLD<TVec3f>(this, 0x22C));
+    if ((this->getPlayer()->mFlags14.mLowWord >> 13) & 1) {
+        f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);
         f32 c = MR::clamp(d / 3.1415927f, 0.0f, 1.0f);
         this->mWalkSpeed = this->mWalkSpeed * (1.0f - 0.1f * c);
     }
 }
 
 void Mario::fn_803A2C40(const TVec3f* arg) {
-    FLD<TVec3f>(this, 0x328) = *arg;
+    this->_328 = *arg;
     if ((this->mMovementStates.mLowWord >> 21) & 1) {
         if (this->mTargetWalkSpeedIndex != 0) {
-            FLD<TVec3f>(this, 0x334) = *arg;
+            this->_334 = *arg;
         }
     } else {
         if (this->_3D2 == 0) {
-            FLD<TVec3f>(this, 0x334) = *arg;
+            this->_334 = *arg;
         }
     }
 }
@@ -575,22 +575,22 @@ void Mario::fn_803A1A60(TVec3f* arg) {
     TVec3f s;
     this->mActor->getStickValue(&s.x, &s.y);
     s.z = 0.0f;
-    PSVECCrossProduct(&s, arg, &FLD<TVec3f>(this, 0x250));
+    PSVECCrossProduct(&s, arg, &this->_250);
 }
 
 bool Mario::fn_803A19C0() {
     TVec3f s;
     this->mActor->getStickValue(&s.x, &s.y);
     s.z = 0.0f;
-    return s.dot(FLD<TVec3f>(this, 0x244)) > 0.0f;
+    return s.dot(this->_244) > 0.0f;
 }
 
 bool Mario::fn_803A1050() {
     if ((this->mMovementStates.mHighWord >> 8) & 1) {
-        f32 d = MR::diffAngleAbsHorizontal(FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), FLD<TVec3f>(this, 0x694));
+        f32 d = MR::diffAngleAbsHorizontal(this->_214, this->_22C, this->mSwimSideVec694);
         return d > 1.5707964f;
     }
-    f32 d2 = MR::diffAngleAbsHorizontal(FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), *this->getGravityVec());
+    f32 d2 = MR::diffAngleAbsHorizontal(this->_214, this->_22C, *this->getGravityVec());
     return d2 > 0.17453293f;
 }
 
@@ -1611,14 +1611,14 @@ void Mario::fn_8038A600() {
         sensor = mActor->_924;
     }
     if (sensor == nullptr) {
-        fn_8038A840(nullptr, 0.8f * FLD<f32>(this, 0x60), 0.0f, 0.8f * FLD<f32>(this, 0x68));
-        if (FLD<s32>(this, 0x134) != 0) {
-            FLD<s32>(this, 0x134)--;
+        fn_8038A840(nullptr, 0.8f * this->_58.x, 0.0f, 0.8f * this->_58.z);
+        if (this->_12C != 0) {
+            this->_12C--;
         }
     } else {
-        TVec3f previous(FLD<TVec3f>(this, 0x310));
-        TVec3f up(FLD<TVec3f>(this, 0x1FC));
-        TVec3f front(FLD<TVec3f>(this, 0x208));
+        TVec3f previous(this->mSideVec);
+        TVec3f up(this->_1FC);
+        TVec3f front(this->mFrontVec);
         const TVec3f& origin = mPosHolder->mPos;
         TVec3f direction(*MR::getSensorPos(sensor));
         direction -= origin;
@@ -1645,7 +1645,7 @@ void Mario::fn_8038A600() {
                 }
                 f32 clamped = MR::clamp(angle, -limit, limit);
                 fn_8038A840(nullptr, clamped, 0.0f, zero);
-                FLD<s32>(this, 0x134) = 0x10;
+                this->_12C = 0x10;
             }
         }
     }

@@ -17,9 +17,15 @@ public:
     /* 0x20 */ union {
         u32 _20;
         struct {
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+            u32 _8 : 24;
+            u32 mDamageType : 4;
+            u32 _0 : 4;
+#else
             u32 _0 : 4;
             u32 mDamageType : 4;
             u32 _8 : 24;
+#endif
         } mFlags;
     };
 };

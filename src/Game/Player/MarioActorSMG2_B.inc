@@ -152,7 +152,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
             v.set(n);
         }
     }
-    if (this->mMario->isPlayerModeYoshi() && FP(mYoshiHolder->mYoshi, s32, 0x134) > 0 && F(u8, 0x1053) == 0) {
+    if (this->mMario->isPlayerModeYoshi() && FP(mYoshiHolder->mYoshi, s32, 0x134) > 0 && mDashWallHit1053 == 0) {
         WaterInfo info;
         MR::getWaterAreaObj(&info, this->mPosition);
         if (BITAT(this->mMario, 0xC, 0x1E) && !info.isInWater()) {
@@ -160,7 +160,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
             v.set(n);
         }
     }
-    F(u8, 0x1053) = 0;
+    mDashWallHit1053 = 0;
 }
 
 // NONMATCHING: saved registers, stack slots and equivalent reuse of the 70.0f scalar.
@@ -1774,7 +1774,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
             if (FP(m, s32, 0x5FC) == 0 && (BITAT(m, 0x1C, 1) || BITAT(m, 0x34, 1))) {
                 TVec3f nv(*v);
                 MR::normalizeOrZero(&nv);
-                F(TVec3f, 0x6D8) = nv;
+                mPressNormal6D8 = nv;
                 this->setPress(0, 0);
                 F(f32, 0x6D4) = 0.1f;
             }
@@ -1804,7 +1804,7 @@ void MarioActor::fn_803D9170(TVec3f* v) {
                     hit = 1;
                 } else if (FP(this->mMario, s32, 0x5FC) != 0) {
                     if (!MR::isWallCodeNoAction(tri) && !this->mMario->isOnimasuBinderPressSkip()) {
-                        F(TVec3f, 0x6D8) = FP(this->mMario, TVec3f, 0x368);
+                        mPressNormal6D8 = FP(this->mMario, TVec3f, 0x368);
                         FP(this->mMario, u32, 0x14) &= 0xFFFFFFFB;
                         *FP(this->mMario, Triangle*, 0x4C4) = *tri;
                         this->setPress(2, 0);

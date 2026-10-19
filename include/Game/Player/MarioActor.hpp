@@ -182,7 +182,6 @@ public:
     void fn_803BFCE0();
     void fn_803BFE50();
     void fn_803C0E60();
-    void fn_803C0EF0();
     void fn_803C1940();
     void fn_803C1AF0(TVec3f* a, TVec3f* b);
     bool fn_803C1C60();
@@ -347,7 +346,6 @@ public:
     void decLifeLarge();
     void decLifeMiddle();
     void decLifeSmall();
-    void updateLife();
     void incLife(u32);
     void changeMaxLife(s32);
     bool doPressing();
@@ -621,7 +619,6 @@ public:
     void createRainbowDL();
     void drawScreenBlend() const;
     void updateRandomTexture(f32);
-    void drawWallShade(const TVec3f&, const TVec3f&, f32) const;
     void setRasterScroll(s32, s32, s32);
     void drawMosaic() const;
     void drawLifeUp() const;
@@ -682,7 +679,6 @@ public:
     bool tryTrampleAttack(HitSensor*);
     bool cylinderHorizontalCheck(HitSensor*);
     bool tryJetAttack(HitSensor*);
-    void tryCounterJetAttack(HitSensor*);
     bool cylinderPushCheck(HitSensor* pSensor, f32 radius, f32 width, f32 height);
     bool cylinderPushCheck(const TVec3f&, f32, f32, f32);
     void attackOrPushPolygons();
@@ -928,19 +924,14 @@ public:
     /* 0x6BC */ u32 _390;
     /* 0x6C0 */ u32 _394;  // SMG2 offset vote-TAIL
     /* 0x6C4 */ u32 _398;
-    /* 0x6C8 */ union { u8 _pad6C8[0x4]; u32 mCounter6C8; };
+    /* 0x6C8 */ u32 mCounter6C8;
     /* 0x6CC */ u8 _39D;
     /* 0x6CD */ u8 _39C;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6CE */ u16 _3A8;
     /* 0x6D0 */ u16 _3AA;
     /* 0x6D2 */ u16 _3AC;
     /* 0x6D4 */ f32 _3B0;
-    union { TVec3f mPressNormal6D8; struct {
-    /* 0x6D8 */ u32 _388;  // SMG2 offset inh-gap  // SMG2 offset inh  // SMG2 offset inh
-    /* 0x6DC */ u8 _39E;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
-    /* 0x6DD */ u8 _pad6DD[0x3];
-    /* 0x6E0 */ f32 _490;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
-    }; };
+    TVec3f mPressNormal6D8;
     /* 0x6E4 */ bool _3C0;
     /* 0x6E5 */ bool _3C1;
     /* 0x6E6 */ u8 _pad6E6[0x2];
@@ -1002,10 +993,7 @@ public:
     /* 0xDD4 */ bool mRushTouchingDD4[64];
     /* 0xE14 */ HitSensor* _924;
     /* 0xE18 */ HitSensor* _928;
-    union { u32 mLastRushEndFrameE1C; struct {
-    /* 0xE1C */ u16 _F1A;
-    /* 0xE1E */ u16 _F18;
-    }; };
+    u32 mLastRushEndFrameE1C;
     /* 0xE20 */ u32 _930;
     union { u32 mVelocityBlendE24; struct {
     /* 0xE24 */ bool _934;
@@ -1035,7 +1023,7 @@ public:
     /* 0xE7D */ u8 _989;
     /* 0xE7E */ bool _1B5;  // SMG2 offset vote-gap  // SMG2 offset vote-gap
     /* 0xE7F */ u8 _1D0;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset guess
-    /* 0xE80 */ union { MarioMessenger* _1BC; TornadoMario* mTornadoMario; };  // SMG2 offset inh  // SMG2 offset guess-gap  // SMG2 offset guess
+    /* 0xE80 */ TornadoMario* mTornadoMario;  // SMG2 offset inh  // SMG2 offset guess-gap  // SMG2 offset guess
     /* 0xE84 */ u8 _990;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset guess
     /* 0xE85 */ u8 _padE85[0x3];
     /* 0xE88 */ LiveActor* _994;  // probably some subclass of LiveActor  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
@@ -1112,12 +1100,9 @@ public:
     /* 0xF9E */ u16 mBlinkF9E;
     /* 0xFA0 */ J3DAnmTexPattern* mEyeRes;
     /* 0xFA4 */ JUTTexture* _B7C;
-    union {
-        JUTTexture* mMaskTextures[2];
-        struct { JUTTexture* _B80; JUTTexture* _B84; };
-        struct { ModelHolder* _A5C; bool _A61; bool _A62; u16 _A6C; };
-    };
-    /* 0xFB0 */ union { u32 _A64; struct { u16 mRandomTextureIndex; u16 _padFB2; }; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    JUTTexture* mMaskTextures[2];
+    /* 0xFB0 */ u16 mRandomTextureIndex;
+    u16 _padFB2;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0xFB4 */ MarioNullBck* mNullAnimation;
     /* 0xFB8 */ bool _B90;
     /* 0xFB9 */ bool _B91;
@@ -1128,7 +1113,7 @@ public:
     /* 0xFBF */ bool _EED;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xFC0 */ u16 mCommonEffectCount;
     /* 0xFC2 */ u16 mTimedCommonEffectCount;
-    /* 0xFC4 */ union { SmokeEffectEntry** mTimedCommonEffects; struct { u16 _B60; u8 _padFC6[0x2]; }; };
+    /* 0xFC4 */ SmokeEffectEntry** mTimedCommonEffects;
     /* 0xFC8 */ HashSortTable* mMaterialEffectsFC8;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xFCC */ ModelObj* mWaterColumn;
     /* 0xFD0 */ TVec3f mEffectTranslationFD0;
@@ -1152,7 +1137,8 @@ public:
     /* 0x1009 */ bool _F20;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x100A */ u16 _F1C;
     /* 0x100C */ u16 _F1E;
-    /* 0x100E */ union { u16 _legacyB12; struct { u8 mFlag100E; u8 mFlag100F; }; };  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
+    /* 0x100E */ u8 mFlag100E;
+    u8 mFlag100F;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x1010 */ u8 mSwimSurfaceState1010;
     /* 0x1011 */ u8 _pad1011[3];
     /* 0x1014 */ TVec3f mCameraPosition;
@@ -1162,7 +1148,8 @@ public:
     /* 0x1044 */ TVec3f mPostureReference1044;
     /* 0x1050 */ bool _FCC;
     /* 0x1051 */ bool _FCD;
-    /* 0x1052 */ union { u16 _B88; struct { union { u8 _pad1052; u8 mFlag1052; }; u8 mDashWallHit1053; }; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
+    /* 0x1052 */ u8 mFlag1052;
+    u8 mDashWallHit1053;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
     /* 0x1054 */ u32 mRushAnimationDelay1054;
     /* 0x1058 */ TVec3f mCarryAnimationPosition1058;
     /* 0x1064 */ u8 mFlag1064;

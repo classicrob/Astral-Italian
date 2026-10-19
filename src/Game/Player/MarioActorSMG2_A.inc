@@ -374,7 +374,7 @@ void MarioActor::fn_803BEB10(s32 a) {
     TVec3f dir(*this->mMario->getGravityVec());
     dir.scale(100.0f);
     if (this->mMario->fn_803B2880(from, dir)) {
-        F(TVec3f, 0x6D8) = -*this->mMario->getGravityVec();
+        mPressNormal6D8 = -*this->mMario->getGravityVec();
         this->setPress(4, a);
     }
 }
@@ -492,9 +492,9 @@ void MarioActor::initMember() {
     F(u32, 0x6BC) = 0;
     F(u32, 0x6C0) = 0;
     F(u32, 0x6C4) = 0;
-    F(u32, 0x6C8) = 0;
+    mCounter6C8 = 0;
     F(f32, 0x6D4) = 0.0f;
-    F(TVec3f, 0x6D8).zero();
+    mPressNormal6D8.zero();
     F(u16, 0x6CE) = 0;
     F(u16, 0x6D2) = 0;
     F(u8, 0x6E4) = 0;
@@ -569,7 +569,7 @@ void MarioActor::initMember() {
     }
     _924 = nullptr;
     _928 = nullptr;
-    F(u32, 0xE1C) = 0;
+    mLastRushEndFrameE1C = 0;
     F(u32, 0xE20) = 0;
     F(u8, 0xE24) = 0;
     F(u8, 0xE25) = 0;
@@ -668,9 +668,9 @@ void MarioActor::initMember() {
     F(u16, 0xF9E) = 0;
     mEyeRes = nullptr;
     _B7C = nullptr;
-    _B80 = nullptr;
-    _B84 = nullptr;
-    F(u16, 0xFB0) = 0;
+    mMaskTextures[0] = nullptr;
+    mMaskTextures[1] = nullptr;
+    mRandomTextureIndex = 0;
     mNullAnimation = nullptr;
     F(u8, 0xFB8) = 0;
     F(u8, 0xFB9) = 0;
@@ -726,8 +726,8 @@ void MarioActor::initMember() {
     mInputConfig = nullptr;
     F(u16, 0x100A) = 0;
     F(u16, 0x100C) = 0;
-    F(u8, 0x100E) = 0;
-    F(u8, 0x100F) = 0;
+    mFlag100E = 0;
+    mFlag100F = 0;
     _F24 = nullptr;
     F(u16, 0x51C) = 0;
     mFrontHistory = nullptr;
@@ -748,7 +748,7 @@ void MarioActor::initMember() {
     mActionTable1080 = nullptr;
     F(u8, 0x1050) = 0;
     F(u8, 0x1051) = 0;
-    F(u8, 0x1052) = 0;
+    mFlag1052 = 0;
     mPunchTriangle106C = nullptr;
     mLifeDecreasedThisFrame = 0;
     F(u8, 0x1064) = 0;
@@ -915,35 +915,32 @@ void MarioActor::fn_803C0E60() {
 #define BITAT(p, off, n) ((FP(p, u32, off) >> (n)) & 1)
 
 
-void MarioActor::fn_803C0EF0() {
-    if (!this->mMario->isPlayerModeYoshi()) {
-        if (F(u8, 0x56E) == 0) {
-            if (FP(F(void*, 0xF40), u8, 0) != 0) {
-                f32 w = MR::getScreenWidth();
-                f32 h = MR::getScreenHeight();
-                TDDraw::setup(0, 1, 2);
-                TVec3f pos(0.0f, 0.0f, 0.0f);
-                TVec3f size(w, h, 0.0f);
-                u16 a = FP(F(void*, 0xF40), u16, 0xC);
-                u32 alpha = 0xE0;
-                if (a <= 0x80) {
-                    alpha = (a >> 1) + ((s32)a >> 2) + a;
-                }
-                TDDraw::drawFillBox(pos, size, alpha | 0x28280000 | 0x2800);
-                MR::loadViewMtx();
-                MR::loadProjectionMtx();
-                MR::loadActorLight(this);
-                this->drawMarioModel();
-                MR::drawInitFor2DModel();
-            }
-        } else {
-            MR::loadViewMtx();
-            MR::loadProjectionMtx();
-            MR::loadActorLight(this);
-            this->drawMarioModel();
-            MR::drawInitFor2DModel();
-        }
+// NONMATCHING: equivalent nonnegative timer shifts and argument-address scheduling.
+void MarioActor::drawPreWipe() const {
+    if (mMario->isPlayerModeYoshi()) {
+        return;
     }
+    if (!_1C3) {
+        if (!mActorEffectState->mActive) {
+            return;
+        }
+        f32 width = MR::getScreenWidth();
+        f32 height = MR::getScreenHeight();
+        TDDraw::setup(0, 1, 2);
+        TVec3f position(0.0f, 0.0f, 0.0f);
+        TVec3f size(width, height, 0.0f);
+        u16 timer = mActorEffectState->mTimer;
+        u32 alpha = 0xE0;
+        if (timer <= 0x80) {
+            alpha = (timer >> 1) + (static_cast<s32>(timer) >> 2) + timer;
+        }
+        TDDraw::drawFillBox(position, size, alpha | 0x28282800);
+    }
+    MR::loadViewMtx();
+    MR::loadProjectionMtx();
+    MR::loadActorLight(this);
+    drawMarioModel();
+    MR::drawInitFor2DModel();
 }
 
 void MarioActor::fn_803C1940() {
@@ -1849,7 +1846,7 @@ void MarioActor::fn_803C5AB0(MtxPtr mtx) {
 }
 
 void MarioActor::fn_803C5B30(MtxPtr mtx) {
-    s32 mode = F(s32, 0x6C8);
+    s32 mode = static_cast<s32>(mCounter6C8);
     F(s32, 0x6C0) = 0x1E;
     switch (mode) {
     case 0:
@@ -1952,7 +1949,7 @@ void* MarioActor::fn_803BBA20() {
 }
 
 void MarioActor::fn_803BBAD0() {
-    FP(F(void*, 0xF40), u8, 0) = 1;
+    mActorEffectState->mActive = 1;
 }
 
 void MarioActor::fn_803BBDD0(const TVec3f& a, const TVec3f& b, const TVec3f& c) {

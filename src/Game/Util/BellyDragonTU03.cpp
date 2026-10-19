@@ -38,7 +38,7 @@ void BellyDragonFireGround::appear() {
 }
 
 void BellyDragonFireGround::kill() {
-    makeActorDead();
+    LiveActor::makeActorDead();
     mBloom->makeActorDead();
 }
 

@@ -42,7 +42,7 @@ f32 CameraContext::getAspect() const {
     return width / height;
 }
 
-f32 CameraContext::getScreenScale() const {
+f32 CameraContext::getScreenScale() {
     return 812.0f / MR::getScreenHeight();
 }
 

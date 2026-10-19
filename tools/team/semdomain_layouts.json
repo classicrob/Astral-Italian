@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "layouts": [
+    {
+      "path": "include/Game/NameObj/NameObj.hpp",
+      "header_sha256": "949ae83a9228868ea939c222576307fc5f9d4c6ab13ab1a6e5b24ac3926247c1",
+      "prerequisite_sha256": {
+        "libs/RVL_SDK/include/revolution/types.h": "95b06f75611079cc3fccb143338ef417e8ace9f3112de4e326446eaac36fee3b"
+      },
+      "name": "mFlags",
+      "qualified_name": "NameObj::mFlags",
+      "offset": 8,
+      "width": 2,
+      "evidence": "MWCC43_145 scratch sizeof/offsetof probe returns 8/2 (386000084e800020,386000024e800020); Opus independent NameObj member/writer closure, 2026-10-19. Changed header/prerequisite invalidates layout and defaults unit strict."
+    }
+  ],
+  "conversion_qualifier_exceptions": [
+    {
+      "path": "libs/RVL_SDK/include/revolution/os/OSFastCast.h",
+      "header_sha256": "aab96f7949b809e3b1101badaee8e506c1e3220e9c7a9f2319d1a0d42eebb566",
+      "prerequisite_sha256": {
+        "libs/RVL_SDK/include/revolution/types.h": "95b06f75611079cc3fccb143338ef417e8ace9f3112de4e326446eaac36fee3b"
+      },
+      "evidence": "Opus adversary 2026-10-19: exact header OSf32tou16 has one volatile out store per call, fixed internal psq_st/lhz private temp. Kernel preserves every store; no unit-wide ordering obligation is added. Changed header/prerequisite defaults strict."
+    }
+  ]
+}

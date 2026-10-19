@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "scope": "Bounded operand-role projections from independently DOL-bound full historical objects. These are negative regression controls, not whole-function equivalence proofs. CALLEE tokens are declared distinct or identical logical identities, not unresolved names. Full frozen objects are a separate optional integration oracle.",
+  "cases": [
+    {
+      "id": "kanina-field-ec-f0",
+      "unit": "Game/Enemy/Kanina",
+      "symbol": "receiveMsgPlayerAttack__6KaninaFUlP9HitSensorP9HitSensor",
+      "target": [
+        "stw r0,0xf0(r3)",
+        "blr"
+      ],
+      "source": [
+        "stw r0,0xec(r3)",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "StarPieceReflect writes timer EC instead of required F0; these are distinct owning actor fields."
+    },
+    {
+      "id": "meramera-callee",
+      "unit": "Game/Enemy/Meramera",
+      "symbol": "execute__Q211NrvMeramera26MerameraNrvBindStarPointerCFP5Spine",
+      "target": [
+        "bl CALLEE_updateActorStateAndNextNerve_registered",
+        "blr"
+      ],
+      "source": [
+        "bl CALLEE_updateActorStateAndNextNerve_explicit_state",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "Missing first-step Wait action and wrong three-argument explicit-state overload instead of actual registered-state overload."
+    },
+    {
+      "id": "footprint-ray-sign",
+      "unit": "Game/Util/FootPrint",
+      "symbol": "addFootPrintOnGround__2MRFP9FootPrintP9LiveActorPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>bf",
+      "target": [
+        "fmr f1,f2",
+        "bl CALLEE_ray_cast",
+        "blr"
+      ],
+      "source": [
+        "fneg f1,f2",
+        "bl CALLEE_ray_cast",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "Ray uses negated gravity instead of original gravity; finite witness reverses down/up ray."
+    },
+    {
+      "id": "mini-fmod-signed-zero",
+      "unit": "Game/System/MiniStarWorldPoint",
+      "symbol": "control__18MiniStarWorldPointFv",
+      "target": [
+        "fsubs f1,f1,f3",
+        "bl CALLEE_fmod",
+        "fadds f1,f3,f1",
+        "blr"
+      ],
+      "source": [
+        "bl CALLEE_fmod",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "Dropped zero subtract/add around fmod changes signed-zero output; original100B versus old84B."
+    },
+    {
+      "id": "camera-early-frsp",
+      "unit": "Game/Camera/CameraRotChecker",
+      "symbol": "update__16CameraRotCheckerFv",
+      "target": [
+        "frsqrte f3,f2",
+        "fmul f1,f3,f2",
+        "blr"
+      ],
+      "source": [
+        "frsqrte f3,f2",
+        "frsp f3,f3",
+        "fmul f1,f3,f2",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "Old handwritten sqrt refinement inserts early FRSP after FRSQRTE, changing the subsequent single-operation inputs."
+    },
+    {
+      "id": "bros-matrix-column",
+      "unit": "Game/Enemy/BrosProjectileBase",
+      "symbol": "exeEaten__18BrosProjectileBaseFv",
+      "target": [
+        "lfs f1,12(r3)",
+        "blr"
+      ],
+      "source": [
+        "lfs f1,8(r3)",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "Output matrix comes from opaque calcYoshiTongueTipMtx; old code selects column2/1 rather than translation3/forward2. Stack-slot remapping must retain the 48B out-parameter producer.",
+      "projection": "Input r3 denotes the 48B matrix produced by the actual opaque matrix API; target translation column3 versus old column2. Producer ABI is not invented or waived by this bounded memory-role projection."
+    },
+    {
+      "id": "atan2-argument-order",
+      "unit": "Game/Util/ObjUtil",
+      "symbol": "appearKinokoOneUp__2MRFP14BenefitItemObjPA4_f",
+      "target": [
+        "fmr f1,f3",
+        "fmr f2,f4",
+        "bl CALLEE_atan2",
+        "blr"
+      ],
+      "source": [
+        "fmr f1,f4",
+        "fmr f2,f3",
+        "bl CALLEE_atan2",
+        "blr"
+      ],
+      "expected": "SEMANTIC",
+      "context": {
+        "referents_bound": true
+      },
+      "historical_contract": "Two ordered atan2 arguments are reversed, not an FP commutation. Second-pole X and ordinary X calls are asymmetric."
+    },
+    {
+      "id": "jet-indexed-constants",
+      "unit": "Game/MapObj/JetTurtle",
+      "symbol": "exeThrowing__9JetTurtleFv",
+      "kind": "object-backed-portable-semdata",
+      "expected": "SEMANTIC",
+      "literal_facts": {
+        "kind": "actual-indexed-array-data-negative",
+        "target_region_address": "0x806494d8",
+        "target_region_extent": 48,
+        "target_region_hex": "41f0000041f0000041f0000041c0000041c0000041c000003b03126f3b03126f3bb43958012c01e0012c000000000000",
+        "source_region_hex": "41f0000041a0000041f0000041c0000041a0000041c000003c8b43963c23d70a3bb43958012c01e0012c000000000000",
+        "changed_reachable_slots": [
+          {
+            "target_address": "0x806494dc",
+            "source_section": ".rodata",
+            "source_offset": 4,
+            "target_hex": "41f00000",
+            "source_hex": "41a00000",
+            "target_f32": 30.0,
+            "source_f32": 20.0
+          },
+          {
+            "target_address": "0x806494e8",
+            "source_section": ".rodata",
+            "source_offset": 16,
+            "target_hex": "41c00000",
+            "source_hex": "41a00000",
+            "target_f32": 24.0,
+            "source_f32": 20.0
+          },
+          {
+            "target_address": "0x806494f0",
+            "source_section": ".rodata",
+            "source_offset": 24,
+            "target_hex": "3b03126f",
+            "source_hex": "3c8b4396",
+            "target_f32": 0.0020000000949949026,
+            "source_f32": 0.017000000923871994
+          },
+          {
+            "target_address": "0x806494f4",
+            "source_section": ".rodata",
+            "source_offset": 28,
+            "target_hex": "3b03126f",
+            "source_hex": "3c23d70a",
+            "target_f32": 0.0020000000949949026,
+            "source_f32": 0.009999999776482582
+          }
+        ],
+        "consumers": {
+          "symbol": "exeThrowing__9JetTurtleFv",
+          "profile_field": "u16 actor+0x96",
+          "documented_profile_domain": [
+            0,
+            1,
+            2
+          ],
+          "straight": {
+            "load_instruction_offset": 832,
+            "base_offset": 0,
+            "element_size": 4,
+            "extent": 12
+          },
+          "homing": {
+            "load_instruction_offset": 764,
+            "base_offset": 12,
+            "element_size": 4,
+            "extent": 12
+          },
+          "gravity": {
+            "load_instruction_offset": 1540,
+            "base_offset": 24,
+            "element_size": 4,
+            "extent": 12
+          },
+          "reset": {
+            "load_instruction_offset": 452,
+            "base_offset": 36,
+            "element_size": 2,
+            "extent": 6
+          }
+        },
+        "control": {
+          "object": "source-correct-control.o",
+          "all_source_text_bytes_identical": true,
+          "complete_corrected_48B_region_equals_original_DOL": true,
+          "source_section_total_size": 64,
+          "limitation": "Source rodata has16B additional compiler conversion constants beyond this independently bound48B region. Control is evidence for isolated scalar changes, not an assertion that the entire function/unit is ABI-only."
+        },
+        "limitation": "No fake differing instruction row. Array-index domain is established by historical owning initialization/map contract; absent general domain recovery a gate must report data-semantic/unknown rather than assume an indexed extent."
+      },
+      "test": "test_portable_historical_Jet_four_values_identical_code_bound_DOL"
+    }
+  ]
+}

@@ -1,4 +1,7 @@
 #include "Game/System/NANDManagerThread.hpp"
+#ifdef GALAXY_NATIVE
+#include <cstdio>
+#endif
 #include "Game/System/NANDManager.hpp"
 
 NANDManagerThread::NANDManagerThread(int priority, int msgCount, JKRHeap* pHeap) : OSThreadWrapper(0x8000, msgCount, priority, pHeap) {

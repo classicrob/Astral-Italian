@@ -4,7 +4,9 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
+#ifndef GALAXY_NATIVE
 template <>
+#endif
 template <>
 void JGeometry::TVec3<f32>::setAll<f32>(f32 value) {
     x = value;
@@ -35,9 +37,11 @@ f32 DiceMoverUtil::averageNormalComponents(f32* x, f32* y, f32* z, f32* nx, f32*
 }
 
 namespace {
+#ifndef GALAXY_NATIVE
     typedef char DiceMoverSizeCheck[sizeof(DiceMover) == 0xF0 ? 1 : -1];
     typedef char DiceMoverAccumulatorSizeCheck[sizeof(DiceMoverAccumulator) == 0x60 ? 1 : -1];
     typedef char DiceMoverRotationBoundsSizeCheck[sizeof(DiceMoverRotationBounds) == 0x10 ? 1 : -1];
+#endif
 }
 
 DiceMover::DiceMover(long count, long points) {

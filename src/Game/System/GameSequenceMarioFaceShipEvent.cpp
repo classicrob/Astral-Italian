@@ -85,15 +85,51 @@ namespace {
         static GameSequenceMarioFaceShipEventNrvStartDemo sInstance;
     };
 
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvGrandStarReturn GameSequenceMarioFaceShipEventNrvGrandStarReturn::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvGrandStarReturn GameSequenceMarioFaceShipEventNrvGrandStarReturn::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvResultDemo GameSequenceMarioFaceShipEventNrvResultDemo::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvResultDemo GameSequenceMarioFaceShipEventNrvResultDemo::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvEventStartWait GameSequenceMarioFaceShipEventNrvEventStartWait::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvEventStartWait GameSequenceMarioFaceShipEventNrvEventStartWait::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvBgmPrepare GameSequenceMarioFaceShipEventNrvBgmPrepare::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvBgmPrepare GameSequenceMarioFaceShipEventNrvBgmPrepare::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvDemoEnd GameSequenceMarioFaceShipEventNrvDemoEnd::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvDemoEnd GameSequenceMarioFaceShipEventNrvDemoEnd::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvTalkWait GameSequenceMarioFaceShipEventNrvTalkWait::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvTalkWait GameSequenceMarioFaceShipEventNrvTalkWait::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvWipeWait GameSequenceMarioFaceShipEventNrvWipeWait::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvWipeWait GameSequenceMarioFaceShipEventNrvWipeWait::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvSave GameSequenceMarioFaceShipEventNrvSave::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvSave GameSequenceMarioFaceShipEventNrvSave::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipEventNrvStartDemo GameSequenceMarioFaceShipEventNrvStartDemo::sInstance;
+#else
     GameSequenceMarioFaceShipEventNrvStartDemo GameSequenceMarioFaceShipEventNrvStartDemo::sInstance ATTRIBUTE_WEAK;
+#endif
 };  // namespace
 
 GameSequenceMarioFaceShipEvent::GameSequenceMarioFaceShipEvent(GameSequenceMarioFaceShip* pHost)

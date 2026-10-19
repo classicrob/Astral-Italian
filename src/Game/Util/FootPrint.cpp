@@ -21,10 +21,14 @@
 #include <revolution/gx/GXStruct.h>
 #include <JSystem/JGeometry/TPartition3.hpp>
 
+#ifndef GALAXY_NATIVE
 template void TVec3f::negate(const TVec3f&);
+#endif
 template void TPos3f::getTrans(TVec3f&) const;
 template void JGeometry::TPartition3<f32>::set(const TVec3f&, const TVec3f&, const TVec3f&);
+#ifndef GALAXY_NATIVE
 template void TVec3f::sub(const TVec3f&, const TVec3f&);
+#endif
 
 namespace {
     static const s32 sFadeBufferCount = 10;

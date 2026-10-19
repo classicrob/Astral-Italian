@@ -1,5 +1,8 @@
 #include "Game/System/MainLoopFramework.hpp"
 #include "Game/Util/SystemUtil.hpp"
+#ifdef GALAXY_NATIVE
+extern "C" void petari_os_preemption_point(void);
+#endif
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemFontHolder.hpp"
 #include "Game/System/RenderMode.hpp"

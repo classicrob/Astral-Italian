@@ -723,6 +723,18 @@ namespace MR {
         return x;
     }
 
+#elif defined(GALAXY_NATIVE)
+    inline f32 fastSqrtf(f32 x) {
+        if (x > 0.0f) {
+            f32 recip = __frsqrte(x);
+            f32 v = recip * x;
+            recip = -(v * recip - 3.0f);
+            recip = (recip * v);
+            recip *= 0.5f;
+            return recip;
+        }
+        return x;
+    }
 #else
     f32 fastSqrtf(f32);
 #endif
@@ -732,8 +744,12 @@ namespace MR {
         return fastSqrtf(x);
     }
 
+#ifdef GALAXY_NATIVE
+    template <> f32 sqrt<f32>(f32) NO_INLINE;
+#else
 #ifdef MR_SQRT_F32_OUTLINE
     template <> f32 sqrt<f32>(f32) NO_INLINE;
+#endif
 #endif
 
 };  // namespace MR

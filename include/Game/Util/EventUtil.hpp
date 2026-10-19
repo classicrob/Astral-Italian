@@ -125,8 +125,13 @@ namespace MR {
     bool hasAllNormalPowerStarWithoutComet(const char* pStageName);
 
     void setRaceBestTime(int raceId, s32 bestTime);
+#ifdef GALAXY_NATIVE
+    u32 getRaceBestTime(int raceId);
+    u32 getRaceCurrentTime();
+#else
     unsigned long getRaceBestTime(int raceId);
     unsigned long getRaceCurrentTime();
+#endif
 
     s32 registerStorageSpinDriverPathDrawRange(const NameObj*, const JMapInfoIter&, int, f32*);  // useless
     void updateStorageSpinDriverPathDrawRange(int, f32);                                         // useless

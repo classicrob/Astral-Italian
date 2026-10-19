@@ -18,7 +18,11 @@
 #include <cstdio>
 
 namespace {
+#ifdef GALAXY_NATIVE
+    struct IsEqualNameCase {
+#else
     struct IsEqualNameCase : std::binary_function< const char*, const char*, bool > {
+#endif
         bool operator()(const char* pValue, const char* pName) const {
             return MR::isEqualStringCase(pValue, pName);
         }
@@ -210,7 +214,13 @@ bool StageDataArchive::isNameListed(const char* pName) const {
         return true;
     }
 
+#ifdef GALAXY_NATIVE
+    return std::find_if(mNameList0.begin(), mNameList0.end(), [pName](const char* value) {
+        return IsEqualNameCase()(value, pName);
+    }) != mNameList0.end();
+#else
     return std::find_if(mNameList0.begin(), mNameList0.end(), std::binder2nd< IsEqualNameCase, const char* >(IsEqualNameCase(), pName)) != mNameList0.end();
+#endif
 }
 
 // SMG2 0x8045B050

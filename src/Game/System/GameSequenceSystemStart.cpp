@@ -18,7 +18,11 @@ namespace {
         }
         static GameSequenceSystemStartNrvStart sInstance;
     };
+#ifdef GALAXY_NATIVE
+    GameSequenceSystemStartNrvStart GameSequenceSystemStartNrvStart::sInstance;
+#else
     GameSequenceSystemStartNrvStart GameSequenceSystemStartNrvStart::sInstance ATTRIBUTE_WEAK;
+#endif
 };  // namespace
 
 GameSequenceSystemStart::GameSequenceSystemStart(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]起動～ロゴ", pHost) {

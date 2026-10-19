@@ -58,6 +58,9 @@ bool JMapInfo::getValueFast(int entryIndex, int itemIndex, const char** pValueOu
 
     switch (item->mType) {
     case JMAP_VALUE_TYPE_STRING_PTR:
+#ifdef GALAXY_NATIVE
+    {
+#endif
         const char* pStringTable = getEntryAddress(mData, mData->mDataOffset, getNumEntries());
 #ifdef GALAXY_NATIVE
         *pValueOut = pStringTable + readJMapU32(valuePtr);
@@ -65,6 +68,9 @@ bool JMapInfo::getValueFast(int entryIndex, int itemIndex, const char** pValueOu
         *pValueOut = pStringTable + *reinterpret_cast< const u32* >(valuePtr);
 #endif
         break;
+#ifdef GALAXY_NATIVE
+    }
+#endif
     default:
         *pValueOut = valuePtr;
         break;
@@ -108,7 +114,11 @@ bool JMapInfo::getValueFast(int entryIndex, int itemIndex, u32* pValueOut) const
 bool JMapInfo::getValueFast(int entryIndex, int itemIndex, s32* pValueOut) const {
     const JMapItem* item = &mData->mItems[itemIndex];
     if (item->mShift != 0) {
+#ifdef GALAXY_NATIVE
+        return false;
+#else
         goto FAIL;
+#endif
     }
     const char* valuePtr = getEntryAddress(mData, mData->mDataOffset, entryIndex) + item->mOffsData;
 

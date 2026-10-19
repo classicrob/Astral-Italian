@@ -14,9 +14,11 @@
 #include "JSystem/J2DGraph/J2DPicture.hpp"
 
 namespace {
+#ifndef GALAXY_NATIVE
     typedef char BattanKingCollisionSizeCheck[sizeof(BattanKingCollision) == 0x98 ? 1 : -1];
     typedef char BattanKingCollisionPressSizeCheck[sizeof(BattanKingCollisionPress) == 0x98 ? 1 : -1];
     typedef char BattanKingTalkStateSizeCheck[sizeof(BattanKingTalkState) == 0x1C ? 1 : -1];
+#endif
 
 }
 

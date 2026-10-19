@@ -18,7 +18,9 @@
 #include "Game/Util/StringUtil.hpp"
 #include <JSystem/J3DGraphBase/J3DMatBlock.hpp>
 
+#ifndef GALAXY_NATIVE
 template void TVec3f::operator*=(f32);
+#endif
 
 namespace MR {
     const char* selectNPCTalkAction(NPCActor* pActor) {

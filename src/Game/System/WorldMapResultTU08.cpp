@@ -152,7 +152,14 @@ void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     mHost->setRocketPosWithTarget(&merged);
     f32 ease = MR::calcNerveEaseInRate(this, 30);
     WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+    {
+        TVec3f rocketScale((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - ease) * mRate));
+        host->setRocketScale(&rocketScale);
+    }
+#else
     host->setRocketScale(&TVec3f((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - ease) * mRate)));
+#endif
     if (MR::isStep(this, 16)) {
         MR::turnOnDepthOfField(false);
     }
@@ -190,7 +197,14 @@ void WorldMapResultStateEnterGalaxy::exeZoomOut() {
     TVec3f merged = rest + scaled;
     mHost->setRocketPosWithTarget(&merged);
     WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+    {
+        TVec3f rocketScale((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - (lbl_807E1D00 - rate)) * mRate));
+        host->setRocketScale(&rocketScale);
+    }
+#else
     host->setRocketScale(&TVec3f((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - (lbl_807E1D00 - rate)) * mRate)));
+#endif
     WorldMapOwner* infoHost = mHost;
     infoHost->showGalaxyInfo(infoHost->getCurrentGalaxyName());
     if (MR::isGreaterEqualStep(this, 30)) {

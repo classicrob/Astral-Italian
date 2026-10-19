@@ -731,7 +731,17 @@ namespace MR {
     void getDreamerPadData(void** out, s32* size) {
         char name[64];
         snprintf(name, sizeof(name), "Dreamer%d.pad", getCurrentMarioStartIdInfo()._0);
+#ifdef GALAXY_NATIVE
+        const void* data;
+        u32 length;
+        getGhostData(&data, size != nullptr ? &length : nullptr, name, 0);
+        *out = const_cast<void*>(data);
+        if (size != nullptr) {
+            *size = static_cast<s32>(length);
+        }
+#else
         getGhostData(reinterpret_cast<const void**>(out), reinterpret_cast<u32*>(size), name, 0);
+#endif
     }
 
     bool isPlacementLocalStage() {

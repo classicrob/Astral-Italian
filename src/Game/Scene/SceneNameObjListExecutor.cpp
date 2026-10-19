@@ -55,7 +55,11 @@ namespace {
         {0x2E, 1},
         {0x2F, 256},
         {0x30, 128},
+#ifdef GALAXY_NATIVE
+        {0xFFFFFFFFu, 0},
+#else
         {-1, 0},
+#endif
     };
     const CategoryListInitialTable cCalcAnimListInitTable[] = {
         {MR::CalcAnimType_ClippedMapParts, 1280},
@@ -81,7 +85,11 @@ namespace {
         {MR::CalcAnimType_WorldMapMini, 256},
         {MR::CalcAnimType_WorldMapIcon, 128},
         {MR::CalcAnimType_UNK_0x16, 1},
+#ifdef GALAXY_NATIVE
+        {0xFFFFFFFFu, 0},
+#else
         {-1, 0},
+#endif
     };
     const DrawBufferInitialTable cDrawBufferListInitTable[] = {
         {0x00, 32, 3, 0},
@@ -122,15 +130,35 @@ namespace {
         {0x23, 8, 3, 0},
         {0x24, 1, 3, 0},
         {0x25, 4, 3, 0},
+#ifdef GALAXY_NATIVE
+        {0x26, 1, 0xFFFFFFFFu, 0},
+#else
         {0x26, 1, -1, 0},
+#endif
         {0x27, 64, 3, 3},
         {0x28, 128, 3, 4},
+#ifdef GALAXY_NATIVE
+        {0x29, 16, 0xFFFFFFFFu, 1},
+#else
         {0x29, 16, -1, 1},
+#endif
+#ifdef GALAXY_NATIVE
+        {0x2A, 16, 0xFFFFFFFFu, 1},
+#else
         {0x2A, 16, -1, 1},
+#endif
+#ifdef GALAXY_NATIVE
+        {0x2B, 16, 0xFFFFFFFFu, 1},
+#else
         {0x2B, 16, -1, 1},
+#endif
         {0x2C, 256, 3, 2},
         {0x2D, 64, 3, 0},
+#ifdef GALAXY_NATIVE
+        {0xFFFFFFFFu, 0, 0xFFFFFFFFu, 0},
+#else
         {-1, 0, -1, 0},
+#endif
     };
     const CategoryListInitialTable cDrawListInitTable[] = {
         {0x00, 256},
@@ -226,7 +254,11 @@ namespace {
         {0x5A, 1},
         {0x5B, 1},
         {0x5C, 1},
+#ifdef GALAXY_NATIVE
+        {0xFFFFFFFFu, 0},
+#else
         {-1, 0},
+#endif
     };
     static bool sVar = true;
 };  // namespace

@@ -37,7 +37,11 @@ ActorSoundHolder::ActorSoundHolder(LiveActor* pActor, s32 count, const char* pNa
         for (u32 i = 0; i < table->mCount; i++) {
             const JAUSoundAnimation* animation = static_cast<const JAUSoundAnimation*>(table->getRes(i));
             for (s32 j = 0; j < animation->mNumSounds; j++) {
+#ifdef GALAXY_NATIVE
+                instList->requestSoundWaves((&animation->mSounds)[j].getSoundID(), false);
+#else
                 instList->requestSoundWaves((&animation->mSounds)[j].mSoundID, false);
+#endif
             }
         }
     }

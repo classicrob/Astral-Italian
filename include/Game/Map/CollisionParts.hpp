@@ -13,6 +13,9 @@ struct KCLFile;
 #endif
 class Triangle;
 class TriangleFilterBase;
+#ifdef GALAXY_NATIVE
+struct KCLFile;
+#endif
 
 class CollisionParts {
 public:

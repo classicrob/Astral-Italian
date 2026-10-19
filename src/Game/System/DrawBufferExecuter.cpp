@@ -3,6 +3,9 @@
 #include "Game/System/DrawBuffer.hpp"
 #include "Game/Util/LightUtil.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <functional>
+#endif
 
 DrawBufferExecuter::DrawBufferExecuter(const char* pName, J3DModel* pModel, s32 a1)
     : mActors(nullptr), mMaxNumActors(0), mNumActors(0), mName(pName), mDrawBuffer(nullptr), mLightType(-1), mDrawBufferCount(0) {
@@ -44,7 +47,11 @@ void DrawBufferExecuter::offExecuteLight() {
 }
 
 void DrawBufferExecuter::calcViewAndEntry() {
+#ifdef GALAXY_NATIVE
+    std::for_each(&mActors[0], &mActors[mNumActors], std::mem_fn(&LiveActor::calcViewAndEntry));
+#else
     std::for_each(&mActors[0], &mActors[mNumActors], std::mem_func(&LiveActor::calcViewAndEntry));
+#endif
 }
 
 void DrawBufferExecuter::drawOpa() const {

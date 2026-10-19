@@ -42,9 +42,21 @@ namespace {
         static GameSequenceMarioFaceShipNrvEnd sInstance;
     };
 
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipNrvStart GameSequenceMarioFaceShipNrvStart::sInstance;
+#else
     GameSequenceMarioFaceShipNrvStart GameSequenceMarioFaceShipNrvStart::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipNrvEvent GameSequenceMarioFaceShipNrvEvent::sInstance;
+#else
     GameSequenceMarioFaceShipNrvEvent GameSequenceMarioFaceShipNrvEvent::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceMarioFaceShipNrvEnd GameSequenceMarioFaceShipNrvEnd::sInstance;
+#else
     GameSequenceMarioFaceShipNrvEnd GameSequenceMarioFaceShipNrvEnd::sInstance ATTRIBUTE_WEAK;
+#endif
 };  // namespace
 
 GameSequenceMarioFaceShip::GameSequenceMarioFaceShip(GameSequenceInGame* pHost) : ActorStateBase< GameSequenceInGame >("[シーケンス]マリオ顔惑星", pHost) {

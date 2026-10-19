@@ -368,5 +368,16 @@ void WorldMapFunction::initRocketOffsets() {
     new ((void*)&sOffset7) TVec3f(0.0f, 1000.0f, 0.0f);
 }
 
+#ifdef GALAXY_NATIVE
+namespace {
+    struct WorldMapStaticInit {
+        WorldMapStaticInit() {
+            WorldMapFunction::initMiniCamera();
+            WorldMapFunction::initRocketOffsets();
+        }
+    } sWorldMapStaticInit;
+}
+#else
 __declspec(section ".ctors") void (*sInitMiniCamera)() = WorldMapFunction::initMiniCamera;
 __declspec(section ".ctors") void (*sInitRocketOffsets)() = WorldMapFunction::initRocketOffsets;
+#endif

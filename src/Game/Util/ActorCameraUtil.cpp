@@ -225,7 +225,11 @@ namespace MR {
         return false;
     }
 
+#ifdef GALAXY_NATIVE
+    void endActorCameraProgrammable(const LiveActor* pActor, s32 frame, bool resetView) {
+#else
     bool endActorCameraProgrammable(const LiveActor* pActor, s32 frame, bool resetView) {
+#endif
         endGlobalEventCamera(pActor->getName(), frame, resetView);
     }
 

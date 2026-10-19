@@ -1,7 +1,9 @@
 #include <cstdio>
 
 #include <JSystem/JGeometry/TVec.hpp>
+#ifndef GALAXY_NATIVE
 template TVec3f::TVec3();
+#endif
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"

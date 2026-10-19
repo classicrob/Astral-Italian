@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Game/NameObj/NameObj.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/GravityUtil.hpp"
+#endif
 #include <JSystem/JGeometry/TVec.hpp>
 
 class GravityInfo;
@@ -32,7 +35,11 @@ public:
     /// @param rPosition The position in space to calculate the gravity at.
     /// @param gravityType The affected gravity context (normal, shadow, magnet, etc.)
     /// @param requester The pointer of the object requesting the gravity vector.
+#ifdef GALAXY_NATIVE
+    bool calcTotalGravityVector(TVec3f* pGravity, GravityInfo* pInfo, const TVec3f& rPosition, u32 gravityType, GravityHostID requester,
+#else
     bool calcTotalGravityVector(TVec3f* pGravity, GravityInfo* pInfo, const TVec3f& rPosition, u32 gravityType, u32 requester,
+#endif
                                 const NameObj* pNameObj) const;
 
     /// @brief Registers a PlanetGravity instance to the array of gravities. The higher the gravity's priority is, the

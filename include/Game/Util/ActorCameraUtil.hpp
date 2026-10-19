@@ -50,7 +50,11 @@ namespace MR {
     bool endActorCamera(const LiveActor* pActor, const ActorCameraInfo* pInfo, bool, s32 = -1);
     bool endMultiActorCamera(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pClassifier, bool, s32 = -1);
     bool endActorCameraAtLanding(const LiveActor* pActor, const ActorCameraInfo* pInfo, s32 = -1);
+#ifdef GALAXY_NATIVE
+    void endActorCameraProgrammable(const LiveActor* pActor, s32, bool);
+#else
     bool endActorCameraProgrammable(const LiveActor* pActor, s32, bool);
+#endif
 
     bool isActiveActorCamera(const LiveActor* pActor, const ActorCameraInfo* pInfo);
     bool isActiveMultiActorCamera(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pClassifier);

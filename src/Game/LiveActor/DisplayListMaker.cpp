@@ -8,6 +8,9 @@
 #include <JSystem/J3DGraphBase/J3DMaterial.hpp>
 #include <JSystem/J3DGraphBase/J3DSys.hpp>
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <functional>
+#endif
 #include "Game/Util/MutexHolder.hpp"
 #include "Game/Screen/TimeStopScreenEffect.hpp"
 #include "Game/Util/DrawUtil.hpp"
@@ -23,7 +26,11 @@ DisplayListMaker::DisplayListMaker(J3DModel* pModel, const f32 (*pArr)[4], const
 }
 
 void DisplayListMaker::update() {
+#ifdef GALAXY_NATIVE
+    std::for_each(mMaterialCtrl.begin(), mMaterialCtrl.end(), std::mem_fn(&MaterialCtrl::update));
+#else
     std::for_each(mMaterialCtrl.begin(), mMaterialCtrl.end(), std::mem_fun(&MaterialCtrl::update));
+#endif
 }
 
 // NONMATCHING: regalloc and material-pointer reload scheduling (FP order/grouping checked: no FP instructions).

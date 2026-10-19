@@ -58,8 +58,14 @@ void* FileRipper::loadToMainRAM(const char* fpath, u8* dest, bool decompress, JK
     u8 buf[0x60];
 #endif
     if (decompress) {
+#ifndef GALAXY_NATIVE
         u8 buf[0x60];
+#endif
+#ifdef GALAXY_NATIVE
+        copySrc = reinterpret_cast<u8*>(reinterpret_cast<uintptr_t>(buf + 0x3B) / 0x40 * 0x40);
+#else
         copySrc = (u8*)((u32)(buf + 0x3B) / 0x40 * 0x40);
+#endif
         while (true) {
             s32 result = DVDReadPrio(&fileInfo, copySrc, 0x20, 0, 2);
             if (result >= 0) {

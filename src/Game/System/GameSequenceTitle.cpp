@@ -26,9 +26,21 @@ namespace {
         static GameSequenceTitleNrvEnd sInstance;
     };
 
+#ifdef GALAXY_NATIVE
+    GameSequenceTitleNrvWait GameSequenceTitleNrvWait::sInstance;
+#else
     GameSequenceTitleNrvWait GameSequenceTitleNrvWait::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceTitleNrvOpen GameSequenceTitleNrvOpen::sInstance;
+#else
     GameSequenceTitleNrvOpen GameSequenceTitleNrvOpen::sInstance ATTRIBUTE_WEAK;
+#endif
+#ifdef GALAXY_NATIVE
+    GameSequenceTitleNrvEnd GameSequenceTitleNrvEnd::sInstance;
+#else
     GameSequenceTitleNrvEnd GameSequenceTitleNrvEnd::sInstance ATTRIBUTE_WEAK;
+#endif
 };  // namespace
 
 namespace {

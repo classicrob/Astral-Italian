@@ -32,12 +32,20 @@ ConditionUsePlayerHeap* PlayerHeapHolder::getCondition() const {
 void PlayerHeapHolder::adjust() {
     JKRExpHeap* napa = mNapaHeap;
     if (!napa->isEmpty()) {
+#ifdef GALAXY_NATIVE
+        napa->alloc(0x10000, 0);
+#else
         napa->alloc(0x10000, nullptr);
+#endif
     }
 
     JKRExpHeap* gddr = mGDDRHeap;
     if (!gddr->isEmpty()) {
+#ifdef GALAXY_NATIVE
+        gddr->alloc(0x10000, 0);
+#else
         gddr->alloc(0x10000, nullptr);
+#endif
     }
 
     MR::adjustHeapSize(mNapaHeap);

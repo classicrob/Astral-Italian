@@ -17,6 +17,17 @@ HBMSelectBtnNum (*HBMGetSelectBtnNumRSO)(void);
 void (*HBMSetAdjustFlagRSO)(int);
 void (*HBMStartBlackOutRSO)(void);
 
+#ifdef GALAXY_NATIVE
+void RSO::setupRsoHomeButtonMenu() {
+    HBMCreateRSO = &PetariNative::HomeMenu::Hbm::create;
+    HBMInitRSO = &PetariNative::HomeMenu::Hbm::init;
+    HBMCalcRSO = &PetariNative::HomeMenu::Hbm::calc;
+    HBMDrawRSO = &PetariNative::HomeMenu::Hbm::draw;
+    HBMGetSelectBtnNumRSO = &PetariNative::HomeMenu::Hbm::getSelectBtnNum;
+    HBMSetAdjustFlagRSO = &PetariNative::HomeMenu::Hbm::setAdjustFlag;
+    HBMStartBlackOutRSO = &PetariNative::HomeMenu::Hbm::startBlackOut;
+}
+#else
 static RSOExportFuncTable exp_tbl[] = {{"HBMCreateRSO", (u32*)&HBMCreateRSO},
                                        {"HBMInitRSO", (u32*)&HBMInitRSO},
                                        {"HBMCalcRSO", (u32*)&HBMCalcRSO},
@@ -62,6 +73,8 @@ void RSO::setupRsoHomeButtonMenu() {
         }
     }
 }
+
+#endif
 
 void RSO::HBMCreate(const HBMDataInfo* pHBInfo) {
     (*HBMCreateRSO)(pHBInfo);

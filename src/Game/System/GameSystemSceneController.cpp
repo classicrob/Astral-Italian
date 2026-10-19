@@ -1,5 +1,8 @@
 #define JMAPIDINFO_NOINLINE_ASSIGN
 #include "Game/System/GameSystemSceneController.hpp"
+#ifdef GALAXY_NATIVE
+extern "C" void petari_gx_pipeline_stage_begin(const char* stage, const char* seed_db_path);
+#endif
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NameObj/NameObjHolder.hpp"

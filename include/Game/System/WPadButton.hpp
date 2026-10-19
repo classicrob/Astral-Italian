@@ -13,6 +13,9 @@ public:
 
     /// @brief Updates the state of the Wii Remote's buttons.
     void update();
+#ifdef GALAXY_NATIVE
+    void clearEdges();
+#endif
 
     /// @brief Determines if up on the +Control Pad is pressed.
     /// @return `true` if up is pressed, `false` otherwise.

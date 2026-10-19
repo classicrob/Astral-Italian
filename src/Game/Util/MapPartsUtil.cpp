@@ -20,7 +20,9 @@
 #include "Game/Util/RailUtil.hpp"
 #include <cstdio>
 
+#ifndef GALAXY_NATIVE
 template TVec3f TVec3f::operator-(const TVec3f&) const;
+#endif
 
 
 

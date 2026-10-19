@@ -48,7 +48,11 @@ namespace NrvGameSystem {
     NEW_NERVE(GameSystemNormal, GameSystem, Normal);
 };  // namespace NrvGameSystem
 
+#ifdef GALAXY_NATIVE
+extern "C" void petari_game_main(void) {
+#else
 void main(void) {
+#endif
     OSInitFastCast();
     DVDInit();
     VIInit();

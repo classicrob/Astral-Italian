@@ -41,8 +41,10 @@ namespace MR {
     void extractMtxTrans(MtxPtr, TVec3f*);
     void separateMtxScale(MtxPtr rotation, MtxPtr scale, MtxPtr source);
 
+#ifndef GALAXY_NATIVE
     template < typename T >
     f32 sqrt(f32);
+#endif
 
     bool isSameMtxRot(MtxPtr, MtxPtr);
 

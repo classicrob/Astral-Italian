@@ -1660,7 +1660,11 @@ namespace MR {
 
     // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     f32 calcDistanceToPlayerVGravity(const LiveActor* pActor) {
+#ifdef GALAXY_NATIVE
+        if (!isExistSceneObj(SceneObj_MarioHolder)) {
+#else
         if (isExistSceneObj(SceneObj_MarioHolder) == nullptr) {
+#endif
             return 3.4028235e38f;
         }
 

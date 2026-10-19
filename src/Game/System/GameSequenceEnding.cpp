@@ -38,7 +38,11 @@ namespace {
         }
         static GameSequenceEndingNrvBlank sInstance;
     };
+#ifdef GALAXY_NATIVE
+    GameSequenceEndingNrvBlank GameSequenceEndingNrvBlank::sInstance;
+#else
     GameSequenceEndingNrvBlank GameSequenceEndingNrvBlank::sInstance ATTRIBUTE_WEAK;
+#endif
 
     NEW_NERVE(GameSequenceEndingNrvDemoMessage, GameSequenceEnding, DemoMessage);
     NEW_NERVE(GameSequenceEndingNrvMessage, GameSequenceEnding, Message);

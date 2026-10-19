@@ -126,6 +126,9 @@ void MarioFaceShipAttentionConversationDirector::registerMeister(Meister* pMeist
         char talkName[0x100];
         snprintf(talkName, 0x100, "Meister_%dEventNotice", mParams[i]->mTalkIndex);
         // The target copies the talk offset with the paired-single copy inline.
+#ifdef GALAXY_NATIVE
+        offset = mMeister->getTalkOffset();
+#else
         const register Vec* v_a = &mMeister->getTalkOffset();
         register Vec* v_b = &offset;
         register f32 a_x;
@@ -136,6 +139,7 @@ void MarioFaceShipAttentionConversationDirector::registerMeister(Meister* pMeist
             psq_st a_x, 0(v_b), 0, 0
             stfs b_x, 8(v_b)
         }
+#endif
         mParams[i]->mTalkCtrl = MR::createTalkCtrlDirectOnRootNodeAutomatic(mMeister, rIter, talkName, offset, nullptr);
 
         if (mParams[i]->mIsArg5) {
@@ -347,6 +351,9 @@ void MarioFaceShipNormalConversationDirector::registerMeister(Meister* pMeister,
         char talkName[0x100];
         snprintf(talkName, 0x100, "Meister_%dEventTalk", mParams[i]->mTalkIndex);
         // The target copies the talk offset with the paired-single copy inline.
+#ifdef GALAXY_NATIVE
+        offset = mMeister->getTalkOffset();
+#else
         const register Vec* v_a = &mMeister->getTalkOffset();
         register Vec* v_b = &offset;
         register f32 a_x;
@@ -357,6 +364,7 @@ void MarioFaceShipNormalConversationDirector::registerMeister(Meister* pMeister,
             psq_st a_x, 0(v_b), 0, 0
             stfs b_x, 8(v_b)
         }
+#endif
         mParams[i]->mTalkCtrl = MR::createTalkCtrlDirectOnRootNodeAutomatic(mMeister, rIter, talkName, offset, nullptr);
         MR::disableTalkCamera(mParams[i]->mTalkCtrl);
     }

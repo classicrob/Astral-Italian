@@ -182,7 +182,14 @@ void WorldMapResultStateLeaveHome::exeMove() {
     moveCamera(getNerveStep());
     if (MR::isGreaterEqualStep(this, 0x14A)) {
         WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+        {
+            TVec3f rocketDirection(1.0f, 0.0f, 0.0f);
+            host->faceRocketInstant(&rocketDirection);
+        }
+#else
         host->faceRocketInstant(&TVec3f(1.0f, 0.0f, 0.0f));
+#endif
         mHost->showRocket();
         setNerve(GET_NERVE(WorldMapResultStateLeaveHome, WorldMapResultStateLeaveHomeZoomOut));
     }
@@ -193,7 +200,14 @@ void WorldMapResultStateLeaveHome::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
         WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+        {
+            TVec3f rocketDirection(1.0f, 0.0f, 0.0f);
+            host->faceRocketInstant(&rocketDirection);
+        }
+#else
         host->faceRocketInstant(&TVec3f(1.0f, 0.0f, 0.0f));
+#endif
         MR::tryForceDeleteEffectAll(mHost->getRocket());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x5A);
@@ -215,7 +229,14 @@ void WorldMapResultStateLeaveHome::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
         WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+        {
+            TVec3f rocketDirection(1.0f, 0.0f, 0.0f);
+            host->faceRocketInstant(&rocketDirection);
+        }
+#else
         host->faceRocketInstant(&TVec3f(1.0f, 0.0f, 0.0f));
+#endif
         MR::tryForceDeleteEffectAll(mHost->getRocket());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x1E);
@@ -237,7 +258,14 @@ void WorldMapResultStateLeaveHome::exeZoomOutSub() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
         WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+        {
+            TVec3f rocketDirection(-1.0f, 0.0f, 0.0f);
+            host->faceRocketInstant(&rocketDirection);
+        }
+#else
         host->faceRocketInstant(&TVec3f(-1.0f, 0.0f, 0.0f));
+#endif
         MR::tryForceDeleteEffectAll(mHost->getRocket());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x1E);
@@ -261,7 +289,14 @@ void WorldMapResultStateLeaveHome::exeMessage() {
     }
     if (MR::isLessStep(this, 0x32)) {
         WorldMapOwner* host = mHost;
+#ifdef GALAXY_NATIVE
+        {
+            TVec3f rocketDirection(0.0f, 0.0f, -1.0f);
+            host->faceRocketInstant(&rocketDirection);
+        }
+#else
         host->faceRocketInstant(&TVec3f(0.0f, 0.0f, -1.0f));
+#endif
     } else {
         mHost->setRocketSpeed(0.08f);
     }

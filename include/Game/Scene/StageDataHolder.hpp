@@ -4,6 +4,9 @@
 #include "Game/Util/Array.hpp"
 #include "Game/Util/BothDirList.hpp"
 #include <JSystem/JGeometry.hpp>
+#ifdef GALAXY_NATIVE
+#include <cstdint>
+#endif
 
 class JKRArchive;
 class JMapIdInfo;
@@ -68,8 +71,13 @@ public:
     /* 0x80 */ TPos3f mPlacementMtx;
     /* 0xB0 */ s32 mZoneID;
     /* 0xB4 */ bool mLoadCommon;
+#ifdef GALAXY_NATIVE
+    uintptr_t mDataStart;
+    uintptr_t mDataEnd;
+#else
     /* 0xB8 */ u32 mDataStart;
     /* 0xBC */ u32 mDataEnd;
+#endif
     /* 0xC0 */ PlacementInfoOrderedHolder* mPlacementInfoOrdered;
     /* 0xC4 */ StageDataArchiveHolder* mArchiveHolder;
     /* 0xC8 */ MR::BothDirList< JMapInfo > mPlacementObjs;

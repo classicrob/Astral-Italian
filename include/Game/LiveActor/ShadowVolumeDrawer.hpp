@@ -19,8 +19,13 @@ public:
     }
 
     virtual void draw() const override;
+#ifdef GALAXY_NATIVE
+    virtual void loadModelDrawMtx() const;
+    virtual void drawShape() const;
+#else
     virtual void loadModelDrawMtx() const override;
     virtual void drawShape() const override;
+#endif
     virtual bool isDraw() const;
 
     void setStartDrawShepeOffset(f32);

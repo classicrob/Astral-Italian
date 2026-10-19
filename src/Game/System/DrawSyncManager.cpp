@@ -1,6 +1,9 @@
 #include "Game/System/DrawSyncManager.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/Util/SingletonHolder.hpp"
+#ifdef GALAXY_NATIVE
+#include <cstdint>
+#endif
 
 DrawSyncManager* DrawSyncManager::sInstance;
 
@@ -78,14 +81,22 @@ void* DrawSyncManager::threadFunc(void* pArg) {
         OSMessage message;
         OSReceiveMessage(&pManager->mQueue, &message, OS_MESSAGE_BLOCK);
 
+#ifdef GALAXY_NATIVE
+        if (reinterpret_cast<uintptr_t>(message) >= 0x80000000) {
+#else
         if (reinterpret_cast< u32 >(message) >= 0x80000000) {
+#endif
             pManager->mFifo->push(message);
             const bool aborted = pManager->mAborted;
 
             if (pManager->mFifo->getCount() == 2) {
                 GXEnableBreakPt(message);
             }
+#ifdef GALAXY_NATIVE
+        } else if (reinterpret_cast<uintptr_t>(message) < 0x10000) {
+#else
         } else if (reinterpret_cast< u32 >(message) < 0x10000) {
+#endif
             pManager->mFifo->pop();
             const bool aborted = pManager->mAborted;
 

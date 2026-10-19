@@ -1,6 +1,11 @@
 #include "Game/System/FileHolder.hpp"
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Util/MemoryUtil.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/StringUtil.hpp"
+#include <revolution/dvd.h>
+#include <cstring>
+#endif
 
 #define FILE_HOLDER_STATE_NONE 0
 #define FILE_HOLDER_STATE_READING 1
@@ -11,7 +16,7 @@ FileHolderFileEntry::FileHolderFileEntry(const char* pFilePath, JKRHeap* pHeap, 
     OSInitMessageQueue(&mQueue, &mMessage, 1);
 #ifdef GALAXY_NATIVE
     mNativePath = nullptr;
-    if (mEntryNum < 0 && pFilePath != nullptr) {
+    if (pFilePath != nullptr && DVDConvertPathToEntrynum(pFilePath) < 0) {
         const s32 length = strlen(pFilePath) + 1;
         mNativePath = new (pHeap, 0) char[length];
         MR::copyString(mNativePath, pFilePath, length);

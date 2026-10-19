@@ -7,6 +7,9 @@
 #include <JSystem/JKernel/JKRSolidHeap.hpp>
 #include <revolution/os.h>
 #include <revolution/wpad.h>
+#ifdef GALAXY_NATIVE
+#include <cstdint>
+#endif
 
 JKRExpHeap* HeapMemoryWatcher::sRootHeapGDDR3;
 
@@ -138,6 +141,17 @@ void HeapMemoryWatcher::destroySceneHeap() {
 void HeapMemoryWatcher::createRootHeap() {
     JKRExpHeap* pHeap;
     void* newHi;
+#ifdef GALAXY_NATIVE
+    uintptr_t arenaHi, arenaLo;
+
+    JKRExpHeap::createRoot(1, true);
+    arenaLo = reinterpret_cast<uintptr_t>(OSGetMEM2ArenaLo());
+    arenaHi = reinterpret_cast<uintptr_t>(OSGetMEM2ArenaHi());
+    newHi = reinterpret_cast<void*>(arenaLo + ARGetBaseAddress() + 0xDB0000);
+    OSSetMEM2ArenaHi(newHi);
+    JKRHeap::setAltAramStartAdr(arenaLo);
+    pHeap = JKRExpHeap::create(newHi, arenaHi - reinterpret_cast<uintptr_t>(newHi), JKRHeap::sRootHeap, true);
+#else
     u32 arenaHi, arenaLo;
 
     JKRExpHeap::createRoot(1, true);
@@ -147,6 +161,7 @@ void HeapMemoryWatcher::createRootHeap() {
     OSSetMEM2ArenaHi(newHi);
     JKRHeap::setAltAramStartAdr(arenaLo);
     pHeap = JKRExpHeap::create(newHi, arenaHi - reinterpret_cast< u32 >(newHi), JKRHeap::sRootHeap, true);
+#endif
 
     if (MR::isEqualCurrentHeap(pHeap)) {
         JKRHeap::sRootHeap->becomeCurrentHeap();

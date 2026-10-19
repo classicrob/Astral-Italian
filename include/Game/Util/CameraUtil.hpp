@@ -42,7 +42,11 @@ namespace MR {
     void setProgrammableCameraParamFovy(const char*, f32);
     s32 getAnimCameraFrame(const ActorCameraInfo*, const char*);
     bool isAnimCameraEnd(const ActorCameraInfo*, const char*);
+#ifdef GALAXY_NATIVE
+    u32 getEventCameraFrames(const ActorCameraInfo*, const char*);
+#else
     unsigned long getEventCameraFrames(const ActorCameraInfo*, const char*);
+#endif
 
     void declareEventCameraAnim(const ActorCameraInfo*, const char*, void*);
     bool endMultiActorCameraAtLanding(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char*, s32 = -1);

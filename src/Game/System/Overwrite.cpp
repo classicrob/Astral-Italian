@@ -41,6 +41,8 @@
 
 
 
+#if !defined(GALAXY_NATIVE) || !defined(PETARI_OVERWRITE_PARTICLES)
+#ifndef GALAXY_NATIVE
 namespace {
     const u8 sUnitMask[] = {0x80, 0x40, 0x20, 0x10, 8, 4, 2, 1};
 };  // namespace
@@ -158,6 +160,8 @@ u32 JKRHeap::getMaxAllocatableSize(int alignment) {
     return ~(alignment - 1) & (getFreeSize() - ((alignment - 1) & (alignment - (address & 0xF))));
 }
 
+#endif
+
 extern "C" void JUTWarningConsole_f(const char* pFormat, ...) {
     va_list args;
     va_start(args, pFormat);
@@ -181,6 +185,7 @@ void JUTTexture::captureDolTexture(void* pBuffer, int width, int height, int x, 
     GXPixModeSync();
 }
 
+#ifndef GALAXY_NATIVE
 JSUOutputStream::~JSUOutputStream() {
 }
 
@@ -192,6 +197,8 @@ extern "C" void PSMTXRotRad(Mtx pMtx, char axis, f32 radians) {
     f32 cos = JMACosRadian(radians);
     PSMTXRotTrig(pMtx, axis, sin, cos);
 }
+
+#endif
 
 bool JUTException::readPad(u32* pTrigger, u32* pHold) {
     OSTime startTime = OSGetTime();
@@ -217,6 +224,7 @@ bool JUTException::queryMapAddress_single(char* pMap, u32 address, s32 section, 
     return false;
 }
 
+#ifndef GALAXY_NATIVE
 void J3DShapeMtx::loadMtxIndx_PNGP(int slot, u16 index) const {
     J3DFifoLoadIndx(0x20, index, 0xB000 | static_cast< u16 >(slot * 12));
     J3DFifoLoadNrmMtxIndx3x3(index, slot * 3);
@@ -226,6 +234,10 @@ void J3DShapeMtx::loadMtxIndx_PNGP(int slot, u16 index) const {
     }
 }
 
+#endif
+#endif
+
+#if !defined(GALAXY_NATIVE) || defined(PETARI_OVERWRITE_PARTICLES)
 namespace {
     static void noLoadPrj(JPAEmitterWorkData const* pWork, const Mtx pSrt) {
     }
@@ -1041,6 +1053,9 @@ void JPADrawRotYBillboard(JPAEmitterWorkData* pWork, JPABaseParticle* pParticle)
     GXCallDisplayList(jpa_dl, 32);
 }
 
+#endif
+
+#if !defined(GALAXY_NATIVE) || !defined(PETARI_OVERWRITE_PARTICLES)
 void JAU_JASInitializer::initJASystem(JKRSolidHeap* pHeap) {
     if (JASAudioThread::getThreadPointer() == nullptr && JASDvd::getThreadPointer() == nullptr) {
         JASKernel::setupRootHeap(pHeap, heapSize_);
@@ -1104,6 +1119,7 @@ JASAudioThread::JASAudioThread(int priority, int, u32)
     OSInitThreadQueue(&sThreadQueue);
 }
 
+#ifndef GALAXY_NATIVE
 JKRAram::JKRAram(u32 audioSize, u32 graphSize, s32 priority) : JKRThread(::sAramThreadStackSize, ::sAramThreadMsgSize, priority) {
     u32 reserved = ARInit(mStackArray, 3);
     ARQInit();
@@ -1127,3 +1143,5 @@ JKRAram::JKRAram(u32 audioSize, u32 graphSize, s32 priority) : JKRThread(::sAram
 
     mAramHeap = new (JKRGetSystemHeap(), 0) JKRAramHeap(mGraphMemoryPtr, mGraphMemorySize);
 }
+#endif
+#endif

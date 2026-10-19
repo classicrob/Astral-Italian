@@ -35,6 +35,10 @@ void IntermissionScene::setCurrentSceneControllerState(const char* pState, ...) 
     va_list list;
     va_start(list, pState);
     vsnprintf(mState, sizeof(mState), pState, list);
+#ifdef GALAXY_NATIVE
+    va_end(list);
+#else
     va_end();
+#endif
     _54 = 0;
 }

@@ -1,4 +1,7 @@
 #include "Game/Util/BgmUtil.hpp"
+#ifdef GALAXY_NATIVE
+extern "C" void petari_os_preemption_point(void);
+#endif
 #include "Game/Util/PadRecorder.hpp"
 #include "Game/AudioLib/AudStageUseResourceList.hpp"
 #include "Game/System/AudSystemWrapper.hpp"

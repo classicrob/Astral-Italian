@@ -106,13 +106,23 @@ void ResourceHolderManager::clearResourceHolderSceneData() {
 }
 
 void ResourceHolderManager::startCreateResourceHolderOnMainThread(const char* pParam1, CreateResourceHolderArgs* pArgs) {
+#ifdef GALAXY_NATIVE
+    MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(SingletonHolder< ResourceHolderManager >::get(), &ResourceHolderManager::createResourceHolder, pParam1, pArgs),
+                                              pParam1);
+#else
     MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(SingletonHolder< ResourceHolderManager >::get(), createResourceHolder, pParam1, pArgs),
                                               pParam1);
+#endif
 }
 
 void ResourceHolderManager::startCreateLayoutHolderOnMainThread(const char* pParam1, CreateResourceHolderArgs* pArgs) {
+#ifdef GALAXY_NATIVE
+    MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(SingletonHolder< ResourceHolderManager >::get(), &ResourceHolderManager::createLayoutHolder, pParam1, pArgs),
+                                              pParam1);
+#else
     MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(SingletonHolder< ResourceHolderManager >::get(), createLayoutHolder, pParam1, pArgs),
                                               pParam1);
+#endif
 }
 
 ResourceHolderManagerName2Resource* ResourceHolderManager::createAndAddInner(const char* pArcName,

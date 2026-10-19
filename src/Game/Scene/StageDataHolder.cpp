@@ -297,7 +297,12 @@ JMapInfoIter StageDataHolder::getChildObjInfoFromDataIndex(const JMapInfoIter& r
 }
 
 const StageDataHolder* StageDataHolder::findPlacedStageDataHolder(const JMapInfoIter& rIter) const {
+#ifdef GALAXY_NATIVE
+    uintptr_t data = reinterpret_cast<uintptr_t>(rIter.mInfo->mData) + rIter.mInfo->mData->mDataOffset +
+                     rIter.mInfo->mData->mEntrySize * rIter.mIndex;
+#else
     u32 data = (s32)rIter.mInfo->mData + rIter.mInfo->mData->mDataOffset + rIter.mInfo->mData->mEntrySize * rIter.mIndex;
+#endif
 
     if (mDataStart <= data && data < mDataEnd) {
         return this;
@@ -530,11 +535,19 @@ void StageDataHolder::calcDataAddress() {
 
 void StageDataHolder::updateDataAddress(const MR::BothDirList< JMapInfo >* pList) {
     for (MR::BothDirList< JMapInfo >::iterator it = pList->begin(); !it.isEnd(); it++) {
+#ifdef GALAXY_NATIVE
+        const uintptr_t start = reinterpret_cast<uintptr_t>(it->mData);
+        if (start < mDataStart) {
+            mDataStart = start;
+        }
+        uintptr_t addr = (it->mData->mEntrySize * it->mData->mNumEntries) + (start + it->mData->mDataOffset);
+#else
         if ((u32)it->mData < mDataStart) {
             mDataStart = (u32)it->mData;
         }
 
         u32 addr = (it->mData->mEntrySize * it->mData->mNumEntries) + ((s32)it->mData + it->mData->mDataOffset);
+#endif
 
         if (mDataEnd < addr) {
             mDataEnd = addr;

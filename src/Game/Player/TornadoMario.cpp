@@ -12,8 +12,8 @@ TornadoMario::TornadoMario(const char* pName) : LiveActor(pName), mUp(0.0f, 1.0f
 }
 
 void TornadoMario::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm(mName, nullptr, true);
-    initSound(4, "TornadoMario", nullptr, TVec3f(0.0f));
+    MR::initActor(this, mName, true);
+    initSound(4, nullptr, nullptr, TVec3f(0.0f));
     MR::connectToScene(this, MR::MovementType_Player, MR::CalcAnimType_Player, MR::DrawBufferType_PlayerDecoration, MR::DrawType_None);
     MR::initDLMakerFog(this, true);
     MR::newDifferedDLBuffer(this);

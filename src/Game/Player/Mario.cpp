@@ -3374,7 +3374,7 @@ void Mario::saveLastSafetyTrans() {
         return;
     }
 
-    if (mGroundPolygon->mSensor->isType(0x48)) {
+    if (mGroundPolygon->mSensor->isType(ATYPE_MAP_OBJ_MOVE_COLLISION)) {
         return;
     }
 
@@ -13492,8 +13492,8 @@ void Mario::forceStopTornado() {
 
 
 void Mario::doSpinWallEffect() {
-    if ((!((mMovementStates.mLowWord >> 23) & 1U) || !mFrontWallTriangle->mSensor->isType(0x55)) && (!((mMovementStates.mLowWord >> 6) & 1U) || !mBackWallTriangle->mSensor->isType(0x55)) &&
-        (!((mMovementStates.mLowWord >> 5) & 1U) || !mSideWallTriangle->mSensor->isType(0x55))) {
+    if ((!((mMovementStates.mLowWord >> 23) & 1U) || !mFrontWallTriangle->mSensor->isType(0x4F)) && (!((mMovementStates.mLowWord >> 6) & 1U) || !mBackWallTriangle->mSensor->isType(0x4F)) &&
+        (!((mMovementStates.mLowWord >> 5) & 1U) || !mSideWallTriangle->mSensor->isType(0x4F))) {
         playSound("壁反射");
         playSound("声スピンキャンセル");
         playEffect("壁スパーク");
@@ -15564,7 +15564,7 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 10) & 1U) && _4E0 < mActor->getConst().getTable()->mWallStickFrHeight && !getWallPolygon()->mSensor->isType(0x57)) {
+    if (((mMovementStates.mLowWord >> 10) & 1U) && _4E0 < mActor->getConst().getTable()->mWallStickFrHeight && !getWallPolygon()->mSensor->isType(0x51)) {
         return false;
     }
 
@@ -15615,7 +15615,7 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    if ((getPlayerMode() != PlayerMode_Ice || !getWallPolygon()->mSensor->isType(0x57)) && isRising()) {
+    if ((getPlayerMode() != PlayerMode_Ice || !getWallPolygon()->mSensor->isType(0x51)) && isRising()) {
         return false;
     }
 

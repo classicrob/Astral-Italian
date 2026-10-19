@@ -914,6 +914,7 @@ void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
     }
 }
 
+// NONMATCHING: vector temporary stack slots and literal identities.
 void MarioActor::fn_803CEBC0() {
     if (static_cast<s32>(_468) != 0) {
         HitSensor* cs = (HitSensor*)this->getCarrySensor();
@@ -926,9 +927,10 @@ void MarioActor::fn_803CEBC0() {
                 _494->calc();
                 TVec3f t;
                 _494->mMtx.getTrans(t);
+                LiveActor* host = MR::getSensorHost(cs);
                 TVec3f p(t);
                 p += mVelocity;
-                MR::getSensorHost(cs)->mPosition = p;
+                host->mPosition = p;
                 _494->copyRotate(&MR::getSensorHost(cs)->mRotation);
             }
         } else {
@@ -936,9 +938,10 @@ void MarioActor::fn_803CEBC0() {
                 _494->calc();
                 TVec3f t;
                 _494->mMtx.getTrans(t);
+                LiveActor* host = MR::getSensorHost(cs);
                 TVec3f p(t);
                 p += mVelocity;
-                MR::getSensorHost(cs)->mPosition = p;
+                host->mPosition = p;
                 _494->copyRotate(&MR::getSensorHost(cs)->mRotation);
                 return;
             }
@@ -948,13 +951,14 @@ void MarioActor::fn_803CEBC0() {
             PSMTXMultVec(this->getBaseMtx(), (Vec*)&lp, (Vec*)&lp);
             f32 sp = (this->mMario)->mWalkSpeed;
             f32 amp = 10.0f * (sp * sp);
-            f32 sn = JMASinRadian(mCarryWobblePhase778);
+            amp *= JMASinRadian(mCarryWobblePhase778);
             mCarryWobblePhase778 += MR::getRandom(0.1f, 1.0f);
-            lp.y += amp * sn;
+            lp.y += amp;
             MR::getSensorHost(cs)->mPosition = lp;
+            LiveActor* host = MR::getSensorHost(cs);
             TVec3f r(mThrowMemoRotations[0]);
             r += mRotation;
-            MR::getSensorHost(cs)->mRotation = r;
+            host->mRotation = r;
         }
     }
 }
@@ -1509,32 +1513,28 @@ void MarioActor::drawSearchLight() const {
     }
 }
 
+// NONMATCHING: vector temporary stack slots and literal identities.
 void MarioActor::fn_803D82C0(TVec2f* a, TVec2f* b) const {
     TVec3f thr;
     this->getThrowVec(&thr);
     TDDraw::project2D(a, this->mPosition);
-    TVec3f s(thr);
-    s.scale(10000.0f);
-    TVec3f p(this->mPosition);
-    p += s;
-    TDDraw::project2D(b, p);
-    f32 minx, maxx, miny, maxy;
+    TDDraw::project2D(b, mPosition + thr * 10000.0f);
+    TVec2f lo;
+    TVec2f hi;
     if (a->x >= b->x) {
-        minx = b->x;
-        maxx = a->x;
+        lo.x = b->x;
+        hi.x = a->x;
     } else {
-        minx = a->x;
-        maxx = b->x;
+        lo.x = a->x;
+        hi.x = b->x;
     }
     if (a->y >= b->y) {
-        miny = b->y;
-        maxy = a->y;
+        lo.y = b->y;
+        hi.y = a->y;
     } else {
-        miny = a->y;
-        maxy = b->y;
+        lo.y = a->y;
+        hi.y = b->y;
     }
-    TVec2f lo(minx, miny);
-    TVec2f hi(maxx, maxy);
     TVec2f m1(-10.0f, -10.0f);
     *a = lo + m1;
     TVec2f m2(10.0f, 10.0f);

@@ -5284,15 +5284,19 @@ bool MarioActor::tryHipDropAttack(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: floating-point register allocation and trample-margin literal identity.
 bool MarioActor::checkAndTryTrampleAttack(HitSensor* pSensor, f32 distance, bool force) {
-    f32 radius = pSensor->mRadius;
+    f32 radius = MR::getSensorRadius(pSensor);
     bool trample = ((getMovementStates().mLowWord >> 20) & 1U) != true;
     bool falling = false;
     if (isJumping() && !mMario->isRising()) {
         falling = true;
     }
 
-    bool near = distance < radius + mSensorRadiusTrampleAttack + 1.5f * mMario->mJumpVec.dot(getGravityVector());
+    f32 speedMargin = 1.5f * mMario->mJumpVec.dot(getGravityVector());
+    f32 trampleRadius = mSensorRadiusTrampleAttack;
+    trampleRadius += radius;
+    bool near = distance < trampleRadius + speedMargin;
     if (force) {
         falling = isJumping();
     }

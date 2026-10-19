@@ -7239,14 +7239,14 @@ void Mario::trySquatJump() {
     if (!MR::isNearZero(stickVec)) {
         addVelocity(-stickVec);
 
-        MR::vecKillElement(stickVec, mActor->_240, &stickVec);
+        MR::vecKillElement(stickVec, mActor->mAppliedGravityVec, &stickVec);
         cutGravityElementFromJumpVec(true);
 
         mJumpVec += stickVec * 1.0f;
     }
 
     const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
-    mJumpVec += -mActor->_240 * jumpHeight;
+    mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mFlags14.mLowWord &= 0xFFFFFEFFU;
     if (((mDrawStates.mWord >> 20) & 1U)) {
@@ -7307,7 +7307,7 @@ void Mario::tryBackJump() {
     mJumpVec = -getAirFrontVec() * backSpeed;
 
     const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
-    mJumpVec += -mActor->_240 * jumpHeight;
+    mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mFlags14.mLowWord &= 0xFFFFFEFFU;
     if (((mDrawStates.mWord >> 20) & 1U)) {
@@ -7349,7 +7349,7 @@ void Mario::tryTornadoJump() {
     mJumpVec = mFrontVec * frontSpeed * tornadoSpeed;
 
     const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
-    mJumpVec += -mActor->_240 * jumpHeight;
+    mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mMovementStates.mLowWord &= 0xFFFDFFFFU;
     mMovementStates.mLowWord |= 0x00010000U;
@@ -8154,7 +8154,7 @@ bool Mario::jumpToHipDrop() {
         return false;
     }
 
-    if (MR::isNearZero(mActor->_240)) {
+    if (MR::isNearZero(mActor->mAppliedGravityVec)) {
         return false;
     }
 
@@ -15576,7 +15576,7 @@ bool Mario::isEnableStickWall() {
 
     TVec3f horizontal;
     if (((mMovementStates.mLowWord >> 6) & 1U)) {
-        MR::vecKillElement(mJumpVec, mActor->_240, &horizontal);
+        MR::vecKillElement(mJumpVec, mActor->mAppliedGravityVec, &horizontal);
         if (mBackWallTriangle->getNormal(0)->dot(horizontal) > 0.0f) {
             return false;
         }

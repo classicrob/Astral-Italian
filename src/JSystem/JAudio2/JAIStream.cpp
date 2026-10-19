@@ -4,6 +4,7 @@
 #include "JSystem/JAudio2/JAIStreamDataMgr.hpp"
 #include "JSystem/JAudio2/JAIStreamMgr.hpp"
 #include "JSystem/JAudio2/JASAramStream.hpp"
+#include <stdint.h>
 
 static void JAIStream_JASAramStreamCallback_(u32 type, JASAramStream* aramStream, void* userData) {
     JAIStream* stream = (JAIStream*)userData;

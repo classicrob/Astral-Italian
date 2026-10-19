@@ -7,7 +7,8 @@ extern "C" {
 
 #include "revolution/base/PPCWGPipe.h"
 
-#ifdef __MWERKS__
+#if defined(GALAXY_NATIVE)
+#elif defined(__MWERKS__)
 volatile PPCWGPipe GXWGFifo : 0xCC008000;
 #else
 volatile PPCWGPipe GXWGFifo;
@@ -16,6 +17,12 @@ volatile PPCWGPipe GXWGFifo;
 #define __GXCDEF(prfx, n, t) __GXCDEF##n(prfx##n##t, t, t)
 #define __GXCDEFX(func, n, t) __GXCDEF##n(func, t, t)
 
+#ifdef GALAXY_NATIVE
+#define __GXCDEF1(func, ts, td) void func(ts x);
+#define __GXCDEF2(func, ts, td) void func(ts x, ts y);
+#define __GXCDEF3(func, ts, td) void func(ts x, ts y, ts z);
+#define __GXCDEF4(func, ts, td) void func(ts x, ts y, ts z, ts w);
+#else
 #define __GXCDEF1(func, ts, td)                                                                                                                      \
     static void func(const ts x) {                                                                                                                   \
         GXWGFifo.td = (td)x;                                                                                                                         \
@@ -45,6 +52,8 @@ volatile PPCWGPipe GXWGFifo;
         GXWGFifo.td = (td)w;                                                                                                                         \
         return;                                                                                                                                      \
     }
+
+#endif
 
 __GXCDEF(GXCmd, 1, u8)
 __GXCDEF(GXCmd, 1, u16)

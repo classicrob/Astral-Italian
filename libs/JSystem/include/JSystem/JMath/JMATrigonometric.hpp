@@ -4,7 +4,11 @@
 #include <revolution/types.h>
 
 #ifdef __MWERKS__
+#ifdef GALAXY_NATIVE
+namespace JMath {
+#else
 namespace std {
+#endif
     template < typename A1, typename B1 >
     struct pair {
         A1 a1;
@@ -178,6 +182,9 @@ namespace JMath {
         T _1000;
     };
 
+#ifdef GALAXY_NATIVE
+    template <> f32 TAtanTable<1024, f32>::atan2_(f32, f32) const;
+#endif
     extern TSinCosTable< 14, f32 > sSinCosTable;
     extern TAtanTable< 1024, f32 > sAtanTable;
     extern TAsinAcosTable< 1024, f32 > sAsinAcosTable;

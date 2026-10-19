@@ -5,6 +5,9 @@
 #include "JSystem/J3DGraphBase/J3DSys.hpp"
 #include "JSystem/J3DGraphBase/J3DTransform.hpp"
 #include <revolution/gx/GXEnum.h>
+#ifdef GALAXY_NATIVE
+#include <petari/endian.hpp>
+#endif
 
 static void J3DGDLoadTexMtxImm(f32 (*)[4], u32, GXTexMtxType);
 static void J3DGDLoadPostTexMtxImm(f32 (*)[4], u32);
@@ -261,7 +264,12 @@ bool isTexNoReg(void* pDL) {
 }
 
 u16 getTexNoReg(void* pDL) {
+#ifdef GALAXY_NATIVE
+    // Display lists are big-endian GX command streams.
+    u32 var_r31 = PetariNative::readU32BE((u8*)pDL + 1);
+#else
     u32 var_r31 = *(u32*)((u8*)pDL + 1);
+#endif
     return var_r31 & 0xFFFFFF;
 }
 

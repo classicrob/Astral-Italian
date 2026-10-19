@@ -6,18 +6,41 @@ namespace nw4r {
         namespace {
             template < typename T >
             inline void ResolveOffset(T*& rpPtr, void* pBase) {
-                rpPtr = reinterpret_cast< T* >(static_cast< char* >(pBase) + reinterpret_cast< s32 >(rpPtr));
+                rpPtr = reinterpret_cast< T* >(static_cast< char* >(pBase) + reinterpret_cast< intptr_t >(rpPtr));
             }
 
         }  // namespace
 
         ResFont::ResFont() {
+#ifdef GALAXY_NATIVE
+            mNativeFontData = nullptr;
+#endif
         }
 
         ResFont::~ResFont() {
+#ifdef GALAXY_NATIVE
+            ::operator delete(mNativeFontData);
+#endif
         }
 
         bool ResFont::SetResource(void* brfnt) {
+#ifdef GALAXY_NATIVE
+            if (!IsManaging(NULL)) {
+                return false;
+            }
+
+            void* nativeData = nullptr;
+            FontInformation* nativeInfo = BuildNativeFont(brfnt, &nativeData);
+            if (nativeInfo == NULL) {
+                return false;
+            }
+
+            mNativeFontData = nativeData;
+            SetResourceBuffer(brfnt, nativeInfo);
+            InitReaderFunc(GetEncoding());
+            return true;
+#endif
+
             FontInformation* pFontInfo = NULL;
             BinaryFileHeader* fileHeader = reinterpret_cast< BinaryFileHeader* >(brfnt);
 
@@ -64,6 +87,10 @@ namespace nw4r {
 
         void ResFont::RemoveResource() {
             RemoveResourceBuffer();
+#ifdef GALAXY_NATIVE
+            ::operator delete(mNativeFontData);
+            mNativeFontData = nullptr;
+#endif
         }
 
         FontInformation* ResFont::Rebuild(BinaryFileHeader* fileHeader) {

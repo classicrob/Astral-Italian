@@ -356,6 +356,9 @@ namespace nw4r {
         }
 
         void AnimResource::Set(const void* anmResBuf) {
+#ifdef GALAXY_NATIVE
+            detail::NativeNormalizeResource(const_cast< void* >(anmResBuf), res::FILESIGNATURE_RLAN);
+#endif
             Init();
 
             const res::BinaryFileHeader* const pFileHeader = static_cast< const res::BinaryFileHeader* >(anmResBuf);

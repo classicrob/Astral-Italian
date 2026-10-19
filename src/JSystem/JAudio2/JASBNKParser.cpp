@@ -11,6 +11,16 @@
 #include "JSystem/JKernel/JKRSolidHeap.hpp"
 #include "JSystem/JSupport/JSupport.hpp"
 
+#ifdef GALAXY_NATIVE
+// These structures overlay disc data and must keep the Wii layout.
+static_assert(sizeof(JASBNKParser::Ver1::TOsc) == 0x1C, "Ver1::TOsc layout");
+static_assert(sizeof(JASBNKParser::Ver1::TPercData) == 0x10, "Ver1::TPercData layout");
+static_assert(sizeof(JASBNKParser::Ver1::TVeloData) == 0x10, "Ver1::TVeloData layout");
+static_assert(sizeof(JASBNKParser::Ver0::TInst) == 0x2C, "Ver0::TInst layout");
+static_assert(sizeof(JASBNKParser::Ver0::TPerc) == 0x408, "Ver0::TPerc layout");
+static_assert(sizeof(JASBNKParser::Ver0::THeader) == 0x3E4, "Ver0::THeader layout");
+#endif
+
 template < typename T >
 inline T readStream(void const* stream, u32 offset) {
     return *(T*)((intptr_t)stream + offset);
@@ -97,7 +107,7 @@ JASBasicBank* JASBNKParser::Ver1::createBasicBank(void const* stream, JKRHeap* h
     u8* envt = new (heap, 2) u8[envt_chunk->mSize];
     JASCalc::bcopy(envt_chunk->mData, envt, envt_chunk->mSize);
 
-    u32* ptr = &osc_chunk->mCount;
+    JSU_BE(u32)* ptr = &osc_chunk->mCount;
     u32 count = *ptr++;
     JASOscillator::Data* osc_data = new (heap, 0) JASOscillator::Data[count];
     for (int i = 0; i < count; i++, ptr += sizeof(TOsc) >> 2) {
@@ -114,7 +124,7 @@ JASBasicBank* JASBNKParser::Ver1::createBasicBank(void const* stream, JKRHeap* h
     TListChunk* list = list_chunk;
     for (int i = 0; i < list->count; i++) {
         if (list->mOffsets[i] != 0) {
-            u32* data = (u32*)((intptr_t)stream + list->mOffsets[i]);
+            JSU_BE(u32)* data = (JSU_BE(u32)*)((intptr_t)stream + list->mOffsets[i]);
             switch (*data++) {
             case 'Inst': {
                 JASBasicInst* instp = new (heap, 0) JASBasicInst();
@@ -163,7 +173,7 @@ JASBasicBank* JASBNKParser::Ver1::createBasicBank(void const* stream, JKRHeap* h
                     u32 offset = *data++;
                     if (offset != 0) {
                         JASDrumSet::TPerc* percp = new (heap, 0) JASDrumSet::TPerc();
-                        u32* ptr = (u32*)((intptr_t)stream + offset);
+                        JSU_BE(u32)* ptr = (JSU_BE(u32)*)((intptr_t)stream + offset);
                         TPercData* perc_data = (TPercData*)(ptr + 1);
                         percp->setVolume(perc_data->mVolume);
                         percp->setPitch(perc_data->mPitch);

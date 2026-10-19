@@ -6,10 +6,11 @@
 #include "JSystem/JKernel/JKRHeap.hpp"
 #include "JSystem/JUtility/JUTException.hpp"
 #include <mem.h>
+#include <stdint.h>
 
 extern "C" int abs(int);
 
-JKRAramArchive::JKRAramArchive(long entryNum, EMountDirection mountDir) : JKRArchive(entryNum, MOUNT_MODE_ARAM) {
+JKRAramArchive::JKRAramArchive(s32 entryNum, EMountDirection mountDir) : JKRArchive(entryNum, MOUNT_MODE_ARAM) {
     mMountDir = mountDir;
 
     if (!open(entryNum)) {
@@ -79,6 +80,13 @@ bool JKRAramArchive::open(s32 entryNum) {
                         NULL);
         DCInvalidateRange(mem, 32);
         int alignment = mMountDir == MOUNT_DIRECTION_1 ? 32 : -32;
+#ifdef GALAXY_NATIVE
+        // mem is a private copy, so decode it in place.
+        if (!readNativeHeader(mem, mem)) {
+            mMountMode = 0;
+            goto cleanup;
+        }
+#endif
         u32 alignedSize = ALIGN_NEXT(mem->mFileDataOffset, 32);
         mInfoBlock = static_cast< RarcInfoBlock* >(JKRAllocFromHeap(mHeap, alignedSize, alignment));
         if (mInfoBlock == NULL) {
@@ -87,6 +95,19 @@ bool JKRAramArchive::open(s32 entryNum) {
             JKRDvdToMainRam(entryNum, reinterpret_cast< u8* >(mInfoBlock), EXPAND_SWITCH_UNKNOWN1, alignedSize, NULL,
                             JKRDvdRipper::ALLOC_DIRECTION_FORWARD, 32, NULL, NULL);
             DCInvalidateRange(mInfoBlock, alignedSize);
+
+#ifdef GALAXY_NATIVE
+            {
+                void* rawInfoBlock = mInfoBlock;
+                bool converted = setupNativeTables(rawInfoBlock, mem->mFileDataOffset, mem->mTotalDataSize, alignment);
+                JKRFreeToHeap(mHeap, rawInfoBlock);
+                if (!converted) {
+                    mInfoBlock = NULL;
+                    mMountMode = 0;
+                    goto cleanup;
+                }
+            }
+#endif
 
             mDirs = reinterpret_cast< SDIDirEntry* >(reinterpret_cast< u8* >(mInfoBlock) + mInfoBlock->mDirOffset);
             mFiles = reinterpret_cast< SDIFileEntry* >(reinterpret_cast< u8* >(mInfoBlock) + mInfoBlock->mFileOffset);

@@ -2,6 +2,10 @@
 
 #include <revolution/mtx.h>
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include <cmath>
+#include <cstring>
+#endif
 
 #ifndef __MWERKS__
 #include <cmath>

@@ -1332,13 +1332,13 @@ bool MarioActor::doStun() {
 }
 
 
+// NONMATCHING: native-safe matrix column access and register scheduling.
 void MarioActor::scaleMtx(MtxPtr pRawMtx) {
     TVec3f i, j, k;
-    const TRot3f* pMtx = (TRot3f*)pRawMtx;
     f32 scalar = 0.35f * (1.0f - _3B0) + 1.0f;
-    pMtx->getXDir(i);
-    pMtx->getYDir(j);
-    pMtx->getZDir(k);
+    i.set<f32>(pRawMtx[0][0], pRawMtx[1][0], pRawMtx[2][0]);
+    j.set<f32>(pRawMtx[0][1], pRawMtx[1][1], pRawMtx[2][1]);
+    k.set<f32>(pRawMtx[0][2], pRawMtx[1][2], pRawMtx[2][2]);
     f32 elementX = MR::vecKillElement(i, mPressNormal6D8, &i);
     f32 elementY = MR::vecKillElement(j, mPressNormal6D8, &j);
     f32 elementZ = MR::vecKillElement(k, mPressNormal6D8, &k);
@@ -9038,6 +9038,7 @@ bool MarioActor::releaseThrowMemoSensor() {
 }
 
 
+// NONMATCHING: literal symbol identities; instruction words match after relocation masking.
 void MarioActor::tryReleaseWithMsg(u32 msg) {
     u32 maxIdx = _468;
     if (maxIdx == 0) {
@@ -9052,18 +9053,7 @@ void MarioActor::tryReleaseWithMsg(u32 msg) {
 
     for (s32 idx = 0; idx < maxIdx; idx++) {
         if (!_428[idx]->receiveMessage(msg, getSensor("Body"))) {
-            if (idx == 0) {
-                continue;
-            }
-
-            for (u32 innerIdx = 0; innerIdx < idx; innerIdx++) {
-                if (_428[innerIdx] == nullptr) {
-                    _428[innerIdx] = _428[idx];
-                    _428[idx] = nullptr;
-
-                    break;
-                }
-            }
+            fn_803D5A00(idx);
         } else {
             _428[idx] = nullptr;
             _468--;

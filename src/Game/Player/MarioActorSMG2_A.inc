@@ -2210,6 +2210,7 @@ void J3DModelX::setDynamicDL(u8* dl, u32 size) {
 }
 
 // NONMATCHING: Matrix-address reuse, equivalent bit tests, and boolean-store scheduling.
+// NONMATCHING: initial zero-register reuse, load scheduling and literal identities.
 void MarioActor::movement() {
     _46C = nullptr;
     ++_378;
@@ -2224,7 +2225,7 @@ void MarioActor::movement() {
     mMarioAnim->fn_803DFB70();
     LiveActor::movement();
     fn_803C1940();
-    if (mMario->mDrawStates.mWord & 0x20) {
+    if ((mMario->mDrawStates.mWord >> 5) & 1U) {
         mMario->mDrawStates.mWord &= ~0x20;
         mMarioAnim->update();
     }
@@ -2234,6 +2235,12 @@ void MarioActor::movement() {
     _935 = false;
     mMario->_2D0 = 0.0f;
     mFrontHistory->update();
-    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->mRideModelVisible = isSilhouetteVisible() != 0;
+    if (mMario->isPlayerModeYoshi()) {
+        if (isSilhouetteVisible()) {
+            mYoshiHolder->mYoshi->mRideModelVisible = true;
+        } else {
+            mYoshiHolder->mYoshi->mRideModelVisible = false;
+        }
+    }
     mSensorSlots108C->fn_803DAB90();
 }

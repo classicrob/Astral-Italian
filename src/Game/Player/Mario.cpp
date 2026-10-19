@@ -14478,6 +14478,7 @@ bool Mario::taskOnFreezeEnd(u32) {
 }
 
 
+// NONMATCHING: vector temporary slots, registers and literal/callback identities.
 void Mario::startHipDropSlide(const HitSensor* pSensor) {
     if (isActiveTaskID(0x100)) {
         return;
@@ -14489,7 +14490,7 @@ void Mario::startHipDropSlide(const HitSensor* pSensor) {
 
     pushTask(&Mario::taskOnHipDropSlide, 0x100);
 
-    TVec3f dir(mPosHolder->mPos - pSensor->mPosition);
+    TVec3f dir(mPosHolder->mPos - *MR::getSensorPos(pSensor));
 
     if (MR::isSameDirection(dir, getAirGravityVec(), sSameDirEpsilon) || MR::isNearZero(dir, sNearZeroEpsilon)) {
         dir = -mFrontVec;
@@ -14501,14 +14502,15 @@ void Mario::startHipDropSlide(const HitSensor* pSensor) {
     MR::normalizeOrZero(&_A58);
 
     _A68 = const_cast< HitSensor* >(pSensor);
-    _A4C = pSensor->mPosition;
-    _A64 = pSensor->mRadius;
+    _A4C = *MR::getSensorPos(pSensor);
+    _A64 = MR::getSensorRadius(const_cast< HitSensor* >(pSensor));
     _70C = getAirGravityVec();
 
     changeAnimation("ヒップドロップ滑り");
 }
 
 
+// NONMATCHING: vector temporary slots, registers and literal/callback identities.
 void Mario::startJumpDropSlide(const HitSensor* pSensor) {
     if (isActiveTaskID(0x100)) {
         return;
@@ -14518,7 +14520,7 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
         return;
     }
 
-    TVec3f dir(mPosHolder->mPos - pSensor->mPosition);
+    TVec3f dir(mPosHolder->mPos - *MR::getSensorPos(pSensor));
     MR::normalizeOrZero(&dir);
 
     f32 dot = dir.dot(-getAirGravityVec());
@@ -14528,7 +14530,7 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
 
     pushTask(&Mario::taskOnHipDropSlide, 0x200);
 
-    TVec3f slideDir(mPosHolder->mPos - pSensor->mPosition);
+    TVec3f slideDir(mPosHolder->mPos - *MR::getSensorPos(pSensor));
 
     if (MR::isSameDirection(slideDir, getAirGravityVec(), sSameDirEpsilon) || MR::isNearZero(slideDir, sNearZeroEpsilon)) {
         slideDir = -mFrontVec;
@@ -14540,8 +14542,8 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
     MR::normalizeOrZero(&_A58);
 
     _A68 = const_cast< HitSensor* >(pSensor);
-    _A4C = pSensor->mPosition;
-    _A64 = pSensor->mRadius;
+    _A4C = *MR::getSensorPos(pSensor);
+    _A64 = MR::getSensorRadius(const_cast< HitSensor* >(pSensor));
     _70C = getAirGravityVec();
 
     if (mActor->_468 == 0 && !isPlayerModeHopper() && dot > sHopperJumpSlideDotMin) {

@@ -450,7 +450,8 @@ void Mario::fn_8039A090() {
 }
 
 f32 Mario::fn_803A26C0(f32 x) {
-    MarioConstTable* e = marioCurTableEntry(this);
+    // NONMATCHING: floating-point register allocation only.
+    MarioConstTable* e = this->mActor->mConst->getTable();
     f32 f4 = e->mStickHeavyMaxAngle;
     f32 f3 = e->mStickHeavyMinRatio;
     f32 f0 = e->mStickHeavyMinAngle;
@@ -696,7 +697,8 @@ bool Mario::fn_8039A100() {
 }
 
 void Mario::fn_803A10D0(s32 arg) {
-    MarioConstTable* e = marioCurTableEntry(this);
+    // NONMATCHING: literal-pool placement; complete string identities preserved.
+    MarioConstTable* e = this->mActor->mConst->getTable();
     u32 dur = e->mStandingTurnTime;
     if (this->mActor->mBeeWallWalk != 0) {
         dur = 30;
@@ -809,21 +811,25 @@ void Mario::fn_803A1240(f32* a, f32* b) {
 }
 
 
-// NONMATCHING: staged boolean materialization and Const-table load reuse.
 s32 Mario::fn_803A1E60(f32 f) {
-    MarioConstTable* e = marioCurTableEntry(this);
-    f32 v = JMACosRadian(e->mTurnSlipAngle);
-    s32 r31 = 0;
-    if (f >= v && !((this->mMovementStates.mLowWord >> 27) & 1)) {
-        if (this->mWalkSpeed > e->mSlipSpeed) {
-            if (this->_38 > this->mStickPos.z) {
-                if (!((this->mDrawStates.mWord >> 18) & 1)) {
-                    r31 = 1;
-                }
-            }
-        }
+    bool result = false;
+    bool stick = false;
+    bool speed = false;
+    bool angle = false;
+    if (f >= JMACosRadian(this->mActor->mConst->getTable()->mTurnSlipAngle) &&
+        !((this->mMovementStates.mLowWord >> 27) & 1)) {
+        angle = true;
     }
-    return r31;
+    if (angle && this->mWalkSpeed > this->mActor->mConst->getTable()->mSlipSpeed) {
+        speed = true;
+    }
+    if (speed && this->_38 > this->mStickPos.z) {
+        stick = true;
+    }
+    if (stick && !((this->mDrawStates.mWord >> 18) & 1)) {
+        result = true;
+    }
+    return result;
 }
 
 // NONMATCHING: branch shape of the 0x3D4 == 0 block approximated
@@ -1136,25 +1142,24 @@ void Mario::fn_803A0ED0(TVec3f* arg1, s32 arg2) {
     }
 }
 
-// NONMATCHING: table lookups follow the draft; the speed-band selection is approximated
+// NONMATCHING: literal symbol identity; instruction words match after relocation masking.
 f32 Mario::fn_803A1800() {
-    MarioConstTable* e = marioCurTableEntry(this);
     if ((this->mMovementStates.mLowWord >> 16) & 1) {
-        return e->mTurnAngleSpeedTornado;
+        return mActor->mConst->getTable()->mTurnAngleSpeedTornado;
     }
     if ((this->mMovementStates.mHighWord >> 28) & 1) {
-        return e->mTurnAngleSpeedSlowWalk;
+        return mActor->mConst->getTable()->mTurnAngleSpeedSlowWalk;
     }
-    if (this->mWalkSpeed > e->mFastTurnSpeed) {
+    if (this->mWalkSpeed > mActor->mConst->getTable()->mFastTurnSpeed) {
         if (this->isStatusActive(0x1F)) {
-            return 0.5f * e->mTurnAngleSpeed3;
+            return 0.5f * mActor->mConst->getTable()->mTurnAngleSpeed3;
         }
         if (this->mTargetWalkSpeedIndex < 5) {
-            return e->mGravityStandard;
+            return mActor->mConst->getTable()->mGravityStandard;
         }
-        return e->mTurnAngleSpeed3;
+        return mActor->mConst->getTable()->mTurnAngleSpeed3;
     }
-    return e->mTurnAngleSpeed2;
+    return mActor->mConst->getTable()->mTurnAngleSpeed2;
 }
 
 // NONMATCHING: the reset/timer chain is approximated from the draft

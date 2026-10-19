@@ -1,0 +1,3383 @@
+{
+  "scope": "READONLY POST-ROOT-SPLIT; distinct from pre-split trial1 target snapshot. No SG/build/source edits.",
+  "input_sha256": {
+    "target_current": "12f59a1ba12721b912a932989bf43744b0343a6b3e7e09cd86898ef526682c70",
+    "source_frozen": "4b218d63137c67bcbb77fa6cf73b7c7328c09caf5b55d6f0c4b757a54054f3fa",
+    "cpp_frozen": "ffd304b592ce0dfa91b7525bb2cee933ac790efc1e59aa6cda14e29d765fe447",
+    "cpp_current": "ffd304b592ce0dfa91b7525bb2cee933ac790efc1e59aa6cda14e29d765fe447",
+    "source_current": "4b218d63137c67bcbb77fa6cf73b7c7328c09caf5b55d6f0c4b757a54054f3fa",
+    "DOL": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+    "symbols": "41357e917e1d241f5854cdb29adb3443beeaf288b5b4bbd417e703df60506ba8",
+    "splits": "fc11b4aba8955002697b7ff45ec5fe6d369babf4c33b7cebf1a7f2a2dc5a5263",
+    "target_presplit": "fa8a159926a4df1c8edbc4337b93ab044558f7c2e1c764dad15d3fbe8b212221",
+    "move_source_current": "b4bb26f7db31b75d5cd677777442d1e2a92e5e0e0d717054a27695f4735541de",
+    "messenger_target_current": "34065bf42325370b47b48245b614f7d8fbc761a7965964e9c9e47571a40c2313"
+  },
+  "post_target_has_data452": true,
+  "old_target_had_no_data": true,
+  "target_data_resolved_full452_equal_actualDOL": true,
+  "frozen_source448_plus4zero_alignment_equal_actualDOL": true,
+  "all91_target_ADDR32_equal": true,
+  "all91_source_ADDR32_equal": true,
+  "source_target_all91_reference_words_same": true,
+  "target_data_refs": [
+    {
+      "offset": 76,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd708",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 80,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd70c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 84,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 104,
+      "canonical_address": "0x803ef6d8",
+      "DOL_address": "0x806dd710",
+      "DOL_word": "803ef6d8",
+      "equal": true
+    },
+    {
+      "offset": 88,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd714",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 92,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd718",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 96,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd71c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 100,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd720",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 104,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd724",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 108,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd728",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 112,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd72c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 116,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd730",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 120,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd734",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 124,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd738",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 128,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd73c",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 132,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd740",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 136,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd744",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 140,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd748",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 144,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd74c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 148,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd750",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 152,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd754",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 156,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd758",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 160,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd75c",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 164,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd760",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 168,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd764",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 172,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd768",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 176,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd76c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 180,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd770",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 184,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd774",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 188,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd778",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 192,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd77c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 196,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd780",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 200,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd784",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 204,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd788",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 208,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd78c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 212,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd790",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 216,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd794",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 220,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd798",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 224,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd79c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 228,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7a0",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 232,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd7a4",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 236,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7a8",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 240,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7ac",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 244,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7b0",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 248,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd7b4",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 252,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7b8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 256,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7bc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 260,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 32,
+      "canonical_address": "0x803ef7a0",
+      "DOL_address": "0x806dd7c0",
+      "DOL_word": "803ef7a0",
+      "equal": true
+    },
+    {
+      "offset": 264,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd7c4",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 268,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7c8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 272,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7cc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 276,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7d0",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 280,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7d4",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 284,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7d8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 288,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7dc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 292,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7e0",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 296,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7e4",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 300,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7e8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 304,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd7ec",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 308,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7f0",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 312,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7f4",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 316,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7f8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 320,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7fc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 324,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd800",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 328,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd804",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 332,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd808",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 336,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd80c",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 340,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd810",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 344,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd814",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 348,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd818",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 352,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd81c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 356,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd820",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 360,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd824",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 364,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd828",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 368,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd82c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 372,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd830",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 376,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd834",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 380,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd838",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 384,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd83c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 388,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd840",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 392,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd844",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 396,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd848",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 400,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd84c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 404,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd850",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 408,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd854",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 412,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd858",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 416,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd85c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 420,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd860",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 424,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd864",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 436,
+      "name": "getStickY__11MarioModuleCFv",
+      "addend": 0,
+      "canonical_address": "0x803eefd0",
+      "DOL_address": "0x806dd870",
+      "DOL_word": "803eefd0",
+      "equal": true
+    },
+    {
+      "offset": 440,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803ef2b0",
+      "DOL_address": "0x806dd874",
+      "DOL_word": "803ef2b0",
+      "equal": true
+    },
+    {
+      "offset": 444,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+      "addend": 0,
+      "canonical_address": "0x803ef2c0",
+      "DOL_address": "0x806dd878",
+      "DOL_word": "803ef2c0",
+      "equal": true
+    }
+  ],
+  "source_data_refs": [
+    {
+      "offset": 76,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd708",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 80,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd70c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 84,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 104,
+      "canonical_address": "0x803ef6d8",
+      "DOL_address": "0x806dd710",
+      "DOL_word": "803ef6d8",
+      "equal": true
+    },
+    {
+      "offset": 88,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd714",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 92,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd718",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 96,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd71c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 100,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd720",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 104,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd724",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 108,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd728",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 112,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd72c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 116,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd730",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 120,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd734",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 124,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd738",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 128,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd73c",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 132,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd740",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 136,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd744",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 140,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd748",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 144,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd74c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 148,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd750",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 152,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd754",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 156,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd758",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 160,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd75c",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 164,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd760",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 168,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd764",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 172,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd768",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 176,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd76c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 180,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd770",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 184,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd774",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 188,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd778",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 192,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd77c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 196,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd780",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 200,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd784",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 204,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd788",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 208,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd78c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 212,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd790",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 216,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd794",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 220,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd798",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 224,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd79c",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 228,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7a0",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 232,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd7a4",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 236,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7a8",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 240,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7ac",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 244,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical_address": "0x803ef718",
+      "DOL_address": "0x806dd7b0",
+      "DOL_word": "803ef718",
+      "equal": true
+    },
+    {
+      "offset": 248,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical_address": "0x803ef710",
+      "DOL_address": "0x806dd7b4",
+      "DOL_word": "803ef710",
+      "equal": true
+    },
+    {
+      "offset": 252,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7b8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 256,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7bc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 260,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 32,
+      "canonical_address": "0x803ef7a0",
+      "DOL_address": "0x806dd7c0",
+      "DOL_word": "803ef7a0",
+      "equal": true
+    },
+    {
+      "offset": 264,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd7c4",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 268,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7c8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 272,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7cc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 276,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7d0",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 280,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7d4",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 284,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7d8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 288,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7dc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 292,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7e0",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 296,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7e4",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 300,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7e8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 304,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd7ec",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 308,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7f0",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 312,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7f4",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 316,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7f8",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 320,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd7fc",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 324,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd800",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 328,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd804",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 332,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd808",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 336,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd80c",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 340,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd810",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 344,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd814",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 348,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd818",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 352,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd81c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 356,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd820",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 360,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd824",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 364,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd828",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 368,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd82c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 372,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd830",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 376,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd834",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 380,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd838",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 384,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd83c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 388,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd840",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 392,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd844",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 396,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd848",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 400,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd84c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 404,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd850",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 408,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd854",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 412,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd858",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 416,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd85c",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 420,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical_address": "0x803ef7b0",
+      "DOL_address": "0x806dd860",
+      "DOL_word": "803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 424,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical_address": "0x803ef7a8",
+      "DOL_address": "0x806dd864",
+      "DOL_word": "803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 436,
+      "name": "getStickY__11MarioModuleCFv",
+      "addend": 0,
+      "canonical_address": "0x803eefd0",
+      "DOL_address": "0x806dd870",
+      "DOL_word": "803eefd0",
+      "equal": true
+    },
+    {
+      "offset": 440,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803ef2b0",
+      "DOL_address": "0x806dd874",
+      "DOL_word": "803ef2b0",
+      "equal": true
+    },
+    {
+      "offset": 444,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+      "addend": 0,
+      "canonical_address": "0x803ef2c0",
+      "DOL_address": "0x806dd878",
+      "DOL_word": "803ef2c0",
+      "equal": true
+    }
+  ],
+  "data_DOL_hex": "8bf3928682d082cb82e80000836e815b83689285926e00009286835f8381815b83579285926e000092868ce3835f8381815b83579285926e0000000083588365815b83578343839342000000803ef718803ef718803ef6d8803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef710803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef710803ef7b0803ef7b0803ef7a0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7a8803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7a80000000000000000803eefd0803ef2b0803ef2c000000000",
+  "data_resolved_target_sha256": "471d8db5a8228a4fa67100623cdab940aa81325ef02c854f1033ec027f00bae7",
+  "data_resolved_frozen_source448_sha256": "0a5b440839146fa9a653d6789318add2987ca2e202614da449e6bd3e72ce4131",
+  "target_text4944_relocation_restored_full_equal_actualDOL": true,
+  "target_text_raw_equal_presplit": true,
+  "target_text_relocation_counts": {
+    "10": 121,
+    "109": 25,
+    "6": 4,
+    "4": 4
+  },
+  "target_text_refs": [
+    {
+      "offset": 396,
+      "type": 10,
+      "name": "changeDefault__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcf00",
+      "DOL_instruction": "4bfee645",
+      "restored_instruction": "4bfee645",
+      "equal": true
+    },
+    {
+      "offset": 420,
+      "type": 10,
+      "name": "change__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcc90",
+      "DOL_instruction": "4bfee3bd",
+      "restored_instruction": "4bfee3bd",
+      "equal": true
+    },
+    {
+      "offset": 484,
+      "type": 10,
+      "name": "getYoshi__10MarioActorFv",
+      "addend": 0,
+      "canonical_address": "0x803b97f0",
+      "DOL_instruction": "4bfcaedd",
+      "restored_instruction": "4bfcaedd",
+      "equal": true
+    },
+    {
+      "offset": 492,
+      "type": 10,
+      "name": "fn_8040EDA0__5YoshiFPCc",
+      "addend": 0,
+      "canonical_address": "0x8040eda0",
+      "DOL_instruction": "48020485",
+      "restored_instruction": "48020485",
+      "equal": true
+    },
+    {
+      "offset": 576,
+      "type": 10,
+      "name": "changeAnimation__11MarioModuleFPCcPCc",
+      "addend": 0,
+      "canonical_address": "0x803ee880",
+      "DOL_instruction": "4bffff11",
+      "restored_instruction": "4bffff11",
+      "equal": true
+    },
+    {
+      "offset": 592,
+      "type": 10,
+      "name": "isFrameCtrlAttribute__13MarioAnimatorCFUl",
+      "addend": 0,
+      "canonical_address": "0x803df400",
+      "DOL_instruction": "4bff0a81",
+      "restored_instruction": "4bff0a81",
+      "equal": true
+    },
+    {
+      "offset": 616,
+      "type": 10,
+      "name": "setAnimationFrameCtrlAttribute__13MarioAnimatorFUc",
+      "addend": 0,
+      "canonical_address": "0x803df420",
+      "DOL_instruction": "4bff0a89",
+      "restored_instruction": "4bff0a89",
+      "equal": true
+    },
+    {
+      "offset": 696,
+      "type": 10,
+      "name": "changeAnimation__11MarioModuleFPCcPCc",
+      "addend": 0,
+      "canonical_address": "0x803ee880",
+      "DOL_instruction": "4bfffe99",
+      "restored_instruction": "4bfffe99",
+      "equal": true
+    },
+    {
+      "offset": 712,
+      "type": 10,
+      "name": "setAnimationFrameCtrlAttribute__13MarioAnimatorFUc",
+      "addend": 0,
+      "canonical_address": "0x803df420",
+      "DOL_instruction": "4bff0a29",
+      "restored_instruction": "4bff0a29",
+      "equal": true
+    },
+    {
+      "offset": 760,
+      "type": 10,
+      "name": "setAnimationInterpoleFrame__13MarioAnimatorFl",
+      "addend": 0,
+      "canonical_address": "0x803df540",
+      "DOL_instruction": "4bff0b18",
+      "restored_instruction": "4bff0b18",
+      "equal": true
+    },
+    {
+      "offset": 788,
+      "type": 10,
+      "name": "stopAnimation__13MarioAnimatorFPCcPCc",
+      "addend": 0,
+      "canonical_address": "0x803df490",
+      "DOL_instruction": "4bff0a4c",
+      "restored_instruction": "4bff0a4c",
+      "equal": true
+    },
+    {
+      "offset": 808,
+      "type": 10,
+      "name": "isAnimationStop__13MarioAnimatorCFv",
+      "addend": 0,
+      "canonical_address": "0x803dcb80",
+      "DOL_instruction": "4bfee128",
+      "restored_instruction": "4bfee128",
+      "equal": true
+    },
+    {
+      "offset": 824,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df5b0",
+      "DOL_instruction": "4bff0b48",
+      "restored_instruction": "4bff0b48",
+      "equal": true
+    },
+    {
+      "offset": 840,
+      "type": 10,
+      "name": "isMainAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df6e0",
+      "DOL_instruction": "4bff0c68",
+      "restored_instruction": "4bff0c68",
+      "equal": true
+    },
+    {
+      "offset": 856,
+      "type": 10,
+      "name": "isAnimationTerminate__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df770",
+      "DOL_instruction": "4bff0ce8",
+      "restored_instruction": "4bff0ce8",
+      "equal": true
+    },
+    {
+      "offset": 872,
+      "type": 10,
+      "name": "isUpperAnimationTerminated__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df7f0",
+      "DOL_instruction": "4bff0d58",
+      "restored_instruction": "4bff0d58",
+      "equal": true
+    },
+    {
+      "offset": 888,
+      "type": 10,
+      "name": "getAnimationStringPointer__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df810",
+      "DOL_instruction": "4bff0d68",
+      "restored_instruction": "4bff0d68",
+      "equal": true
+    },
+    {
+      "offset": 924,
+      "type": 10,
+      "name": "isAnimationRunSimple__13MarioAnimatorCFv",
+      "addend": 0,
+      "canonical_address": "0x803df070",
+      "DOL_instruction": "4bff05a5",
+      "restored_instruction": "4bff05a5",
+      "equal": true
+    },
+    {
+      "offset": 944,
+      "type": 10,
+      "name": "fn_803DF0D0__13MarioAnimatorCFv",
+      "addend": 0,
+      "canonical_address": "0x803df0d0",
+      "DOL_instruction": "4bff05f1",
+      "restored_instruction": "4bff05f1",
+      "equal": true
+    },
+    {
+      "offset": 1000,
+      "type": 10,
+      "name": "getFrame__13MarioAnimatorCFv",
+      "addend": 0,
+      "canonical_address": "0x803dd460",
+      "DOL_instruction": "4bfee948",
+      "restored_instruction": "4bfee948",
+      "equal": true
+    },
+    {
+      "offset": 1016,
+      "type": 10,
+      "name": "getAnimationTrackWeight__13MarioAnimatorFUl",
+      "addend": 0,
+      "canonical_address": "0x803dfcd0",
+      "DOL_instruction": "4bff11a8",
+      "restored_instruction": "4bff11a8",
+      "equal": true
+    },
+    {
+      "offset": 1088,
+      "type": 10,
+      "name": "changeDefaultUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcf90",
+      "DOL_instruction": "4bfee421",
+      "restored_instruction": "4bfee421",
+      "equal": true
+    },
+    {
+      "offset": 1112,
+      "type": 10,
+      "name": "changeUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcdb0",
+      "DOL_instruction": "4bfee229",
+      "restored_instruction": "4bfee229",
+      "equal": true
+    },
+    {
+      "offset": 1204,
+      "type": 10,
+      "name": "changeDefaultUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcf90",
+      "DOL_instruction": "4bfee3ad",
+      "restored_instruction": "4bfee3ad",
+      "equal": true
+    },
+    {
+      "offset": 1220,
+      "type": 10,
+      "name": "stopUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dce20",
+      "DOL_instruction": "4bfee22d",
+      "restored_instruction": "4bfee22d",
+      "equal": true
+    },
+    {
+      "offset": 1260,
+      "type": 10,
+      "name": "stopUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dce20",
+      "DOL_instruction": "4bfee204",
+      "restored_instruction": "4bfee204",
+      "equal": true
+    },
+    {
+      "offset": 1280,
+      "type": 10,
+      "name": "_savegpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e16c",
+      "DOL_instruction": "4823f53d",
+      "restored_instruction": "4823f53d",
+      "equal": true
+    },
+    {
+      "offset": 1304,
+      "type": 10,
+      "name": "isUpperAnimationActive__13MarioAnimatorCFv",
+      "addend": 0,
+      "canonical_address": "0x803dda30",
+      "DOL_instruction": "4bfeede9",
+      "restored_instruction": "4bfeede9",
+      "equal": true
+    },
+    {
+      "offset": 1340,
+      "type": 10,
+      "name": "changeDefaultUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcf90",
+      "DOL_instruction": "4bfee325",
+      "restored_instruction": "4bfee325",
+      "equal": true
+    },
+    {
+      "offset": 1364,
+      "type": 10,
+      "name": "changeUpper__13MarioAnimatorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dcdb0",
+      "DOL_instruction": "4bfee12d",
+      "restored_instruction": "4bfee12d",
+      "equal": true
+    },
+    {
+      "offset": 1372,
+      "type": 10,
+      "name": "_restgpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e1b8",
+      "DOL_instruction": "4823f52d",
+      "restored_instruction": "4823f52d",
+      "equal": true
+    },
+    {
+      "offset": 1440,
+      "type": 10,
+      "name": "changeAnimation__11MarioModuleFPCcPCc",
+      "addend": 0,
+      "canonical_address": "0x803ee880",
+      "DOL_instruction": "4bfffbb1",
+      "restored_instruction": "4bfffbb1",
+      "equal": true
+    },
+    {
+      "offset": 1456,
+      "type": 10,
+      "name": "setAnimationFlag__13MarioAnimatorFUl",
+      "addend": 0,
+      "canonical_address": "0x803df820",
+      "DOL_instruction": "4bff0b41",
+      "restored_instruction": "4bff0b41",
+      "equal": true
+    },
+    {
+      "offset": 1496,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorFPCcUl",
+      "addend": 0,
+      "canonical_address": "0x803df680",
+      "DOL_instruction": "4bff0978",
+      "restored_instruction": "4bff0978",
+      "equal": true
+    },
+    {
+      "offset": 1520,
+      "type": 10,
+      "name": "_savegpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e16c",
+      "DOL_instruction": "4823f44d",
+      "restored_instruction": "4823f44d",
+      "equal": true
+    },
+    {
+      "offset": 1560,
+      "type": 10,
+      "name": "isAnimationFlag__13MarioAnimatorCFUl",
+      "addend": 0,
+      "canonical_address": "0x803df840",
+      "DOL_instruction": "4bff0af9",
+      "restored_instruction": "4bff0af9",
+      "equal": true
+    },
+    {
+      "offset": 1584,
+      "type": 10,
+      "name": "stopAnimation__11MarioModuleFPCcPCc",
+      "addend": 0,
+      "canonical_address": "0x803eea30",
+      "DOL_instruction": "4bfffcd1",
+      "restored_instruction": "4bfffcd1",
+      "equal": true
+    },
+    {
+      "offset": 1600,
+      "type": 10,
+      "name": "resetAnimationFlag__13MarioAnimatorFUl",
+      "addend": 0,
+      "canonical_address": "0x803df830",
+      "DOL_instruction": "4bff0ac1",
+      "restored_instruction": "4bff0ac1",
+      "equal": true
+    },
+    {
+      "offset": 1608,
+      "type": 10,
+      "name": "_restgpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e1b8",
+      "DOL_instruction": "4823f441",
+      "restored_instruction": "4823f441",
+      "equal": true
+    },
+    {
+      "offset": 1640,
+      "type": 10,
+      "name": "isDefaultAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803dd010",
+      "DOL_instruction": "4bfee278",
+      "restored_instruction": "4bfee278",
+      "equal": true
+    },
+    {
+      "offset": 1656,
+      "type": 10,
+      "name": "setMainJointMatrix__13MarioAnimatorFUlPA4_f",
+      "addend": 0,
+      "canonical_address": "0x803dedd0",
+      "DOL_instruction": "4bff0028",
+      "restored_instruction": "4bff0028",
+      "equal": true
+    },
+    {
+      "offset": 1696,
+      "type": 109,
+      "name": "lbl_807E00A0",
+      "addend": 0,
+      "canonical_address": "0x807e00a0",
+      "DOL_instruction": "c0421400",
+      "restored_instruction": "c0421400",
+      "equal": true
+    },
+    {
+      "offset": 1708,
+      "type": 10,
+      "name": "isNearZero__2MRFff",
+      "addend": 0,
+      "canonical_address": "0x8003f170",
+      "DOL_instruction": "4bc50395",
+      "restored_instruction": "4bc50395",
+      "equal": true
+    },
+    {
+      "offset": 1748,
+      "type": 109,
+      "name": "lbl_807E00A4",
+      "addend": 0,
+      "canonical_address": "0x807e00a4",
+      "DOL_instruction": "c0021404",
+      "restored_instruction": "c0021404",
+      "equal": true
+    },
+    {
+      "offset": 1824,
+      "type": 10,
+      "name": "_savegpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e16c",
+      "DOL_instruction": "4823f31d",
+      "restored_instruction": "4823f31d",
+      "equal": true
+    },
+    {
+      "offset": 1852,
+      "type": 10,
+      "name": "zero__Q29JGeometry8TVec3<f>Fv",
+      "addend": 0,
+      "canonical_address": "0x8000dbb0",
+      "DOL_instruction": "4bc1ed45",
+      "restored_instruction": "4bc1ed45",
+      "equal": true
+    },
+    {
+      "offset": 1860,
+      "type": 109,
+      "name": "lbl_807E00A0",
+      "addend": 0,
+      "canonical_address": "0x807e00a0",
+      "DOL_instruction": "c0421400",
+      "restored_instruction": "c0421400",
+      "equal": true
+    },
+    {
+      "offset": 1864,
+      "type": 10,
+      "name": "isNearZero__2MRFff",
+      "addend": 0,
+      "canonical_address": "0x8003f170",
+      "DOL_instruction": "4bc502f9",
+      "restored_instruction": "4bc502f9",
+      "equal": true
+    },
+    {
+      "offset": 1880,
+      "type": 109,
+      "name": "lbl_807E00A0",
+      "addend": 0,
+      "canonical_address": "0x807e00a0",
+      "DOL_instruction": "c0421400",
+      "restored_instruction": "c0421400",
+      "equal": true
+    },
+    {
+      "offset": 1884,
+      "type": 10,
+      "name": "isNearZero__2MRFff",
+      "addend": 0,
+      "canonical_address": "0x8003f170",
+      "DOL_instruction": "4bc502e5",
+      "restored_instruction": "4bc502e5",
+      "equal": true
+    },
+    {
+      "offset": 1972,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c3c213f4",
+      "restored_instruction": "c3c213f4",
+      "equal": true
+    },
+    {
+      "offset": 1980,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c00213f4",
+      "restored_instruction": "c00213f4",
+      "equal": true
+    },
+    {
+      "offset": 1992,
+      "type": 109,
+      "name": "lbl_807E0090",
+      "addend": 0,
+      "canonical_address": "0x807e0090",
+      "DOL_instruction": "c00213f0",
+      "restored_instruction": "c00213f0",
+      "equal": true
+    },
+    {
+      "offset": 2012,
+      "type": 109,
+      "name": "lbl_807E0090",
+      "addend": 0,
+      "canonical_address": "0x807e0090",
+      "DOL_instruction": "c00213f0",
+      "restored_instruction": "c00213f0",
+      "equal": true
+    },
+    {
+      "offset": 2060,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c3e213f4",
+      "restored_instruction": "c3e213f4",
+      "equal": true
+    },
+    {
+      "offset": 2068,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c00213f4",
+      "restored_instruction": "c00213f4",
+      "equal": true
+    },
+    {
+      "offset": 2080,
+      "type": 109,
+      "name": "lbl_807E0090",
+      "addend": 0,
+      "canonical_address": "0x807e0090",
+      "DOL_instruction": "c00213f0",
+      "restored_instruction": "c00213f0",
+      "equal": true
+    },
+    {
+      "offset": 2100,
+      "type": 109,
+      "name": "lbl_807E0090",
+      "addend": 0,
+      "canonical_address": "0x807e0090",
+      "DOL_instruction": "c00213f0",
+      "restored_instruction": "c00213f0",
+      "equal": true
+    },
+    {
+      "offset": 2132,
+      "type": 10,
+      "name": "calcMoveDir__5MarioFffPQ29JGeometry8TVec3<f>b",
+      "addend": 0,
+      "canonical_address": "0x803a3ab0",
+      "DOL_instruction": "4bfb4b2d",
+      "restored_instruction": "4bfb4b2d",
+      "equal": true
+    },
+    {
+      "offset": 2160,
+      "type": 10,
+      "name": "_restgpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e1b8",
+      "DOL_instruction": "4823f219",
+      "restored_instruction": "4823f219",
+      "equal": true
+    },
+    {
+      "offset": 2252,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfcec94",
+      "restored_instruction": "4bfcec94",
+      "equal": true
+    },
+    {
+      "offset": 2268,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfcec84",
+      "restored_instruction": "4bfcec84",
+      "equal": true
+    },
+    {
+      "offset": 2284,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfcec74",
+      "restored_instruction": "4bfcec74",
+      "equal": true
+    },
+    {
+      "offset": 2300,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfcec64",
+      "restored_instruction": "4bfcec64",
+      "equal": true
+    },
+    {
+      "offset": 2316,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfcec54",
+      "restored_instruction": "4bfcec54",
+      "equal": true
+    },
+    {
+      "offset": 2332,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfcec44",
+      "restored_instruction": "4bfcec44",
+      "equal": true
+    },
+    {
+      "offset": 2364,
+      "type": 10,
+      "name": "getKarikariClingNum__2MRFv",
+      "addend": 0,
+      "canonical_address": "0x801b0e00",
+      "DOL_instruction": "4bdc1d95",
+      "restored_instruction": "4bdc1d95",
+      "equal": true
+    },
+    {
+      "offset": 2468,
+      "type": 10,
+      "name": "getYoshi__10MarioActorFv",
+      "addend": 0,
+      "canonical_address": "0x803b97f0",
+      "DOL_instruction": "4bfca71d",
+      "restored_instruction": "4bfca71d",
+      "equal": true
+    },
+    {
+      "offset": 2498,
+      "type": 6,
+      "name": "lbl_806DD6BC",
+      "addend": 0,
+      "canonical_address": "0x806dd6bc",
+      "DOL_instruction": "3c80806e",
+      "restored_instruction": "3c80806e",
+      "equal": true
+    },
+    {
+      "offset": 2502,
+      "type": 4,
+      "name": "lbl_806DD6BC",
+      "addend": 0,
+      "canonical_address": "0x806dd6bc",
+      "DOL_instruction": "3884d6bc",
+      "restored_instruction": "3884d6bc",
+      "equal": true
+    },
+    {
+      "offset": 2508,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df5b0",
+      "DOL_instruction": "4bff04b5",
+      "restored_instruction": "4bff04b5",
+      "equal": true
+    },
+    {
+      "offset": 2572,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfceb55",
+      "restored_instruction": "4bfceb55",
+      "equal": true
+    },
+    {
+      "offset": 2624,
+      "type": 109,
+      "name": "lbl_807E00A8",
+      "addend": 0,
+      "canonical_address": "0x807e00a8",
+      "DOL_instruction": "c0021408",
+      "restored_instruction": "c0021408",
+      "equal": true
+    },
+    {
+      "offset": 2652,
+      "type": 10,
+      "name": "checkButtonType__10MarioActorCFUsb",
+      "addend": 0,
+      "canonical_address": "0x803bdc90",
+      "DOL_instruction": "4bfceb05",
+      "restored_instruction": "4bfceb05",
+      "equal": true
+    },
+    {
+      "offset": 2710,
+      "type": 6,
+      "name": "lbl_806DD6B0",
+      "addend": 0,
+      "canonical_address": "0x806dd6b0",
+      "DOL_instruction": "3fe0806e",
+      "restored_instruction": "3fe0806e",
+      "equal": true
+    },
+    {
+      "offset": 2714,
+      "type": 4,
+      "name": "lbl_806DD6B0",
+      "addend": 0,
+      "canonical_address": "0x806dd6b0",
+      "DOL_instruction": "3bffd6b0",
+      "restored_instruction": "3bffd6b0",
+      "equal": true
+    },
+    {
+      "offset": 2752,
+      "type": 10,
+      "name": "isStatusActive__5MarioCFUl",
+      "addend": 0,
+      "canonical_address": "0x803aabd0",
+      "DOL_instruction": "4bfbb9e1",
+      "restored_instruction": "4bfbb9e1",
+      "equal": true
+    },
+    {
+      "offset": 2784,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df5b0",
+      "DOL_instruction": "4bff03a1",
+      "restored_instruction": "4bff03a1",
+      "equal": true
+    },
+    {
+      "offset": 2816,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df5b0",
+      "DOL_instruction": "4bff0381",
+      "restored_instruction": "4bff0381",
+      "equal": true
+    },
+    {
+      "offset": 2848,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df5b0",
+      "DOL_instruction": "4bff0361",
+      "restored_instruction": "4bff0361",
+      "equal": true
+    },
+    {
+      "offset": 2880,
+      "type": 10,
+      "name": "isAnimationRun__13MarioAnimatorCFPCc",
+      "addend": 0,
+      "canonical_address": "0x803df5b0",
+      "DOL_instruction": "4bff0341",
+      "restored_instruction": "4bff0341",
+      "equal": true
+    },
+    {
+      "offset": 2956,
+      "type": 10,
+      "name": "__apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x80026550",
+      "DOL_instruction": "4bc37294",
+      "restored_instruction": "4bc37294",
+      "equal": true
+    },
+    {
+      "offset": 3052,
+      "type": 10,
+      "name": "__apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x80026550",
+      "DOL_instruction": "4bc37234",
+      "restored_instruction": "4bc37234",
+      "equal": true
+    },
+    {
+      "offset": 3068,
+      "type": 10,
+      "name": "zero__Q29JGeometry8TVec3<f>Fv",
+      "addend": 0,
+      "canonical_address": "0x8000dbb0",
+      "DOL_instruction": "4bc1e884",
+      "restored_instruction": "4bc1e884",
+      "equal": true
+    },
+    {
+      "offset": 3116,
+      "type": 10,
+      "name": "vecKillElement__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x80040830",
+      "DOL_instruction": "4bc514d5",
+      "restored_instruction": "4bc514d5",
+      "equal": true
+    },
+    {
+      "offset": 3136,
+      "type": 10,
+      "name": "getGravityVec__10MarioActorCFv",
+      "addend": 0,
+      "canonical_address": "0x803b8510",
+      "DOL_instruction": "4bfc91a1",
+      "restored_instruction": "4bfc91a1",
+      "equal": true
+    },
+    {
+      "offset": 3152,
+      "type": 10,
+      "name": "vecKillElement__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x80040830",
+      "DOL_instruction": "4bc514b1",
+      "restored_instruction": "4bc514b1",
+      "equal": true
+    },
+    {
+      "offset": 3200,
+      "type": 10,
+      "name": "vecKillElement__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x80040830",
+      "DOL_instruction": "4bc51480",
+      "restored_instruction": "4bc51480",
+      "equal": true
+    },
+    {
+      "offset": 3300,
+      "type": 10,
+      "name": "playEffect__10MarioActorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803bcd80",
+      "DOL_instruction": "4bfcd96c",
+      "restored_instruction": "4bfcd96c",
+      "equal": true
+    },
+    {
+      "offset": 3316,
+      "type": 10,
+      "name": "playEffectTrans__10MarioActorFPCcRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803bd0c0",
+      "DOL_instruction": "4bfcdc9c",
+      "restored_instruction": "4bfcdc9c",
+      "equal": true
+    },
+    {
+      "offset": 3332,
+      "type": 10,
+      "name": "playEffectRT__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803bd140",
+      "DOL_instruction": "4bfcdd0c",
+      "restored_instruction": "4bfcdd0c",
+      "equal": true
+    },
+    {
+      "offset": 3348,
+      "type": 10,
+      "name": "playEffectRTZ__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803bd210",
+      "DOL_instruction": "4bfcddcc",
+      "restored_instruction": "4bfcddcc",
+      "equal": true
+    },
+    {
+      "offset": 3364,
+      "type": 10,
+      "name": "playEffectRTW__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803bd2e0",
+      "DOL_instruction": "4bfcde8c",
+      "restored_instruction": "4bfcde8c",
+      "equal": true
+    },
+    {
+      "offset": 3380,
+      "type": 10,
+      "name": "playEffectSRT__10MarioActorFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803bd390",
+      "DOL_instruction": "4bfcdf2c",
+      "restored_instruction": "4bfcdf2c",
+      "equal": true
+    },
+    {
+      "offset": 3396,
+      "type": 10,
+      "name": "stopEffect__10MarioActorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803bd480",
+      "DOL_instruction": "4bfce00c",
+      "restored_instruction": "4bfce00c",
+      "equal": true
+    },
+    {
+      "offset": 3412,
+      "type": 10,
+      "name": "stopEffectForce__10MarioActorFPCc",
+      "addend": 0,
+      "canonical_address": "0x803bd530",
+      "DOL_instruction": "4bfce0ac",
+      "restored_instruction": "4bfce0ac",
+      "equal": true
+    },
+    {
+      "offset": 3432,
+      "type": 10,
+      "name": "playSoundJ__5MarioFPCcl",
+      "addend": 0,
+      "canonical_address": "0x803a9390",
+      "DOL_instruction": "4bfb9ef8",
+      "restored_instruction": "4bfb9ef8",
+      "equal": true
+    },
+    {
+      "offset": 3448,
+      "type": 10,
+      "name": "stopSoundJ__5MarioFPCcUl",
+      "addend": 0,
+      "canonical_address": "0x803a9540",
+      "DOL_instruction": "4bfba098",
+      "restored_instruction": "4bfba098",
+      "equal": true
+    },
+    {
+      "offset": 3500,
+      "type": 10,
+      "name": "shakeCameraWeak__2MRFv",
+      "addend": 0,
+      "canonical_address": "0x8004e3e0",
+      "DOL_instruction": "4bc5ef04",
+      "restored_instruction": "4bc5ef04",
+      "equal": true
+    },
+    {
+      "offset": 3504,
+      "type": 10,
+      "name": "shakeCameraWeak__2MRFv",
+      "addend": 0,
+      "canonical_address": "0x8004e3e0",
+      "DOL_instruction": "4bc5ef00",
+      "restored_instruction": "4bc5ef00",
+      "equal": true
+    },
+    {
+      "offset": 3508,
+      "type": 10,
+      "name": "shakeCameraNormal__2MRFv",
+      "addend": 0,
+      "canonical_address": "0x8004e380",
+      "DOL_instruction": "4bc5ee9c",
+      "restored_instruction": "4bc5ee9c",
+      "equal": true
+    },
+    {
+      "offset": 3512,
+      "type": 10,
+      "name": "shakeCameraNormalStrong__2MRFv",
+      "addend": 0,
+      "canonical_address": "0x8004e350",
+      "DOL_instruction": "4bc5ee68",
+      "restored_instruction": "4bc5ee68",
+      "equal": true
+    },
+    {
+      "offset": 3516,
+      "type": 10,
+      "name": "shakeCameraStrong__2MRFv",
+      "addend": 0,
+      "canonical_address": "0x8004e320",
+      "DOL_instruction": "4bc5ee34",
+      "restored_instruction": "4bc5ee34",
+      "equal": true
+    },
+    {
+      "offset": 3580,
+      "type": 10,
+      "name": "tryRumblePadVeryWeak__2MRFPCvl",
+      "addend": 0,
+      "canonical_address": "0x8004e1c0",
+      "DOL_instruction": "4bc5ec94",
+      "restored_instruction": "4bc5ec94",
+      "equal": true
+    },
+    {
+      "offset": 3592,
+      "type": 10,
+      "name": "tryRumblePadWeak__2MRFPCvl",
+      "addend": 0,
+      "canonical_address": "0x8004e180",
+      "DOL_instruction": "4bc5ec48",
+      "restored_instruction": "4bc5ec48",
+      "equal": true
+    },
+    {
+      "offset": 3604,
+      "type": 10,
+      "name": "tryRumblePadMiddle__2MRFPCvl",
+      "addend": 0,
+      "canonical_address": "0x8004e140",
+      "DOL_instruction": "4bc5ebfc",
+      "restored_instruction": "4bc5ebfc",
+      "equal": true
+    },
+    {
+      "offset": 3616,
+      "type": 10,
+      "name": "tryRumblePadStrong__2MRFPCvl",
+      "addend": 0,
+      "canonical_address": "0x8004e100",
+      "DOL_instruction": "4bc5ebb0",
+      "restored_instruction": "4bc5ebb0",
+      "equal": true
+    },
+    {
+      "offset": 3640,
+      "type": 10,
+      "name": "tryRumblePad__2MRFPCvPCcl",
+      "addend": 0,
+      "canonical_address": "0x8004e070",
+      "DOL_instruction": "4bc5eb08",
+      "restored_instruction": "4bc5eb08",
+      "equal": true
+    },
+    {
+      "offset": 3736,
+      "type": 10,
+      "name": "getGravityVec__5MarioCFv",
+      "addend": 0,
+      "canonical_address": "0x8038c940",
+      "DOL_instruction": "4bf9d378",
+      "restored_instruction": "4bf9d378",
+      "equal": true
+    },
+    {
+      "offset": 3752,
+      "type": 10,
+      "name": "getAirGravityVec__5MarioCFv",
+      "addend": 0,
+      "canonical_address": "0x8038cbc0",
+      "DOL_instruction": "4bf9d5e8",
+      "restored_instruction": "4bf9d5e8",
+      "equal": true
+    },
+    {
+      "offset": 3784,
+      "type": 10,
+      "name": "isStatusActive__5MarioCFUl",
+      "addend": 0,
+      "canonical_address": "0x803aabd0",
+      "DOL_instruction": "4bfbb5d8",
+      "restored_instruction": "4bfbb5d8",
+      "equal": true
+    },
+    {
+      "offset": 3804,
+      "type": 10,
+      "name": "isStatusActive__5MarioCFUl",
+      "addend": 0,
+      "canonical_address": "0x803aabd0",
+      "DOL_instruction": "4bfbb5c4",
+      "restored_instruction": "4bfbb5c4",
+      "equal": true
+    },
+    {
+      "offset": 3860,
+      "type": 10,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 0,
+      "canonical_address": "0x803ef670",
+      "DOL_instruction": "4800002d",
+      "restored_instruction": "4800002d",
+      "equal": true
+    },
+    {
+      "offset": 3936,
+      "type": 10,
+      "name": "isValid__8TriangleCFv",
+      "addend": 0,
+      "canonical_address": "0x80256ca0",
+      "DOL_instruction": "4be67611",
+      "restored_instruction": "4be67611",
+      "equal": true
+    },
+    {
+      "offset": 3972,
+      "type": 10,
+      "name": "getCode__9FloorCodeFPC8Triangle",
+      "addend": 0,
+      "canonical_address": "0x803ee530",
+      "DOL_instruction": "4bffee7d",
+      "restored_instruction": "4bffee7d",
+      "equal": true
+    },
+    {
+      "offset": 3986,
+      "type": 6,
+      "name": "jumptable_806DD708",
+      "addend": 0,
+      "canonical_address": "0x806dd708",
+      "DOL_instruction": "3c80806e",
+      "restored_instruction": "3c80806e",
+      "equal": true
+    },
+    {
+      "offset": 3994,
+      "type": 4,
+      "name": "jumptable_806DD708",
+      "addend": 0,
+      "canonical_address": "0x806dd708",
+      "DOL_instruction": "3884d708",
+      "restored_instruction": "3884d708",
+      "equal": true
+    },
+    {
+      "offset": 4016,
+      "type": 10,
+      "name": "getNormal__8TriangleCFi",
+      "addend": 0,
+      "canonical_address": "0x80256cc0",
+      "DOL_instruction": "4be675e1",
+      "restored_instruction": "4be675e1",
+      "equal": true
+    },
+    {
+      "offset": 4028,
+      "type": 10,
+      "name": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803ef8b0",
+      "DOL_instruction": "480001c5",
+      "restored_instruction": "480001c5",
+      "equal": true
+    },
+    {
+      "offset": 4032,
+      "type": 109,
+      "name": "lbl_807E009C",
+      "addend": 0,
+      "canonical_address": "0x807e009c",
+      "DOL_instruction": "c00213fc",
+      "restored_instruction": "c00213fc",
+      "equal": true
+    },
+    {
+      "offset": 4080,
+      "type": 10,
+      "name": "getNormal__8TriangleCFi",
+      "addend": 0,
+      "canonical_address": "0x80256cc0",
+      "DOL_instruction": "4be675a1",
+      "restored_instruction": "4be675a1",
+      "equal": true
+    },
+    {
+      "offset": 4092,
+      "type": 10,
+      "name": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803ef8b0",
+      "DOL_instruction": "48000185",
+      "restored_instruction": "48000185",
+      "equal": true
+    },
+    {
+      "offset": 4100,
+      "type": 109,
+      "name": "lbl_807E0098",
+      "addend": 0,
+      "canonical_address": "0x807e0098",
+      "DOL_instruction": "c00213f8",
+      "restored_instruction": "c00213f8",
+      "equal": true
+    },
+    {
+      "offset": 4186,
+      "type": 6,
+      "name": "jumptable_806DD7B8",
+      "addend": 0,
+      "canonical_address": "0x806dd7b8",
+      "DOL_instruction": "3c60806e",
+      "restored_instruction": "3c60806e",
+      "equal": true
+    },
+    {
+      "offset": 4194,
+      "type": 4,
+      "name": "jumptable_806DD7B8",
+      "addend": 0,
+      "canonical_address": "0x806dd7b8",
+      "DOL_instruction": "3863d7b8",
+      "restored_instruction": "3863d7b8",
+      "equal": true
+    },
+    {
+      "offset": 4276,
+      "type": 10,
+      "name": "getCode__9FloorCodeFPC8Triangle",
+      "addend": 0,
+      "canonical_address": "0x803ee530",
+      "DOL_instruction": "4bffed4d",
+      "restored_instruction": "4bffed4d",
+      "equal": true
+    },
+    {
+      "offset": 4368,
+      "type": 10,
+      "name": "isValid__8TriangleCFv",
+      "addend": 0,
+      "canonical_address": "0x80256ca0",
+      "DOL_instruction": "4be67461",
+      "restored_instruction": "4be67461",
+      "equal": true
+    },
+    {
+      "offset": 4380,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c02213f4",
+      "restored_instruction": "c02213f4",
+      "equal": true
+    },
+    {
+      "offset": 4396,
+      "type": 10,
+      "name": "getNormal__8TriangleCFi",
+      "addend": 0,
+      "canonical_address": "0x80256cc0",
+      "DOL_instruction": "4be67465",
+      "restored_instruction": "4be67465",
+      "equal": true
+    },
+    {
+      "offset": 4400,
+      "type": 109,
+      "name": "lbl_807E00A0",
+      "addend": 0,
+      "canonical_address": "0x807e00a0",
+      "DOL_instruction": "c0221400",
+      "restored_instruction": "c0221400",
+      "equal": true
+    },
+    {
+      "offset": 4404,
+      "type": 10,
+      "name": "isNearZero__2MRFRCQ29JGeometry8TVec3<f>f",
+      "addend": 0,
+      "canonical_address": "0x8003f1a0",
+      "DOL_instruction": "4bc4f93d",
+      "restored_instruction": "4bc4f93d",
+      "equal": true
+    },
+    {
+      "offset": 4416,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c02213f4",
+      "restored_instruction": "c02213f4",
+      "equal": true
+    },
+    {
+      "offset": 4432,
+      "type": 10,
+      "name": "getNormal__8TriangleCFi",
+      "addend": 0,
+      "canonical_address": "0x80256cc0",
+      "DOL_instruction": "4be67441",
+      "restored_instruction": "4be67441",
+      "equal": true
+    },
+    {
+      "offset": 4444,
+      "type": 10,
+      "name": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x803ef8b0",
+      "DOL_instruction": "48000025",
+      "restored_instruction": "48000025",
+      "equal": true
+    },
+    {
+      "offset": 4516,
+      "type": 10,
+      "name": "getAirGravityVec__5MarioCFv",
+      "addend": 0,
+      "canonical_address": "0x8038cbc0",
+      "DOL_instruction": "4bf9d2ed",
+      "restored_instruction": "4bf9d2ed",
+      "equal": true
+    },
+    {
+      "offset": 4524,
+      "type": 10,
+      "name": "dot__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical_address": "0x8000d750",
+      "DOL_instruction": "4bc1de75",
+      "restored_instruction": "4bc1de75",
+      "equal": true
+    },
+    {
+      "offset": 4532,
+      "type": 10,
+      "name": "acosEx__2MRFf",
+      "addend": 0,
+      "canonical_address": "0x8003b350",
+      "DOL_instruction": "4bc4ba6d",
+      "restored_instruction": "4bc4ba6d",
+      "equal": true
+    },
+    {
+      "offset": 4536,
+      "type": 109,
+      "name": "lbl_807E00B0",
+      "addend": 0,
+      "canonical_address": "0x807e00b0",
+      "DOL_instruction": "c0421410",
+      "restored_instruction": "c0421410",
+      "equal": true
+    },
+    {
+      "offset": 4540,
+      "type": 109,
+      "name": "lbl_807E00AC",
+      "addend": 0,
+      "canonical_address": "0x807e00ac",
+      "DOL_instruction": "c002140c",
+      "restored_instruction": "c002140c",
+      "equal": true
+    },
+    {
+      "offset": 4548,
+      "type": 109,
+      "name": "lbl_807E0090",
+      "addend": 0,
+      "canonical_address": "0x807e0090",
+      "DOL_instruction": "c04213f0",
+      "restored_instruction": "c04213f0",
+      "equal": true
+    },
+    {
+      "offset": 4560,
+      "type": 10,
+      "name": "isNearZero__2MRFff",
+      "addend": 0,
+      "canonical_address": "0x8003f170",
+      "DOL_instruction": "4bc4f871",
+      "restored_instruction": "4bc4f871",
+      "equal": true
+    },
+    {
+      "offset": 4572,
+      "type": 109,
+      "name": "lbl_807E0094",
+      "addend": 0,
+      "canonical_address": "0x807e0094",
+      "DOL_instruction": "c3e213f4",
+      "restored_instruction": "c3e213f4",
+      "equal": true
+    },
+    {
+      "offset": 4576,
+      "type": 109,
+      "name": "lbl_807E00B4",
+      "addend": 0,
+      "canonical_address": "0x807e00b4",
+      "DOL_instruction": "c0021414",
+      "restored_instruction": "c0021414",
+      "equal": true
+    },
+    {
+      "offset": 4580,
+      "type": 109,
+      "name": "lbl_807E0090",
+      "addend": 0,
+      "canonical_address": "0x807e0090",
+      "DOL_instruction": "c04213f0",
+      "restored_instruction": "c04213f0",
+      "equal": true
+    },
+    {
+      "offset": 4588,
+      "type": 10,
+      "name": "isNearZero__2MRFff",
+      "addend": 0,
+      "canonical_address": "0x8003f170",
+      "DOL_instruction": "4bc4f855",
+      "restored_instruction": "4bc4f855",
+      "equal": true
+    },
+    {
+      "offset": 4600,
+      "type": 109,
+      "name": "lbl_807E00B4",
+      "addend": 0,
+      "canonical_address": "0x807e00b4",
+      "DOL_instruction": "c3e21414",
+      "restored_instruction": "c3e21414",
+      "equal": true
+    },
+    {
+      "offset": 4656,
+      "type": 10,
+      "name": "_savegpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e16c",
+      "DOL_instruction": "4823e80d",
+      "restored_instruction": "4823e80d",
+      "equal": true
+    },
+    {
+      "offset": 4688,
+      "type": 10,
+      "name": "sendPunch__10MarioActorFP9HitSensorPC8Triangleb",
+      "addend": 0,
+      "canonical_address": "0x803ba950",
+      "DOL_instruction": "4bfcafd1",
+      "restored_instruction": "4bfcafd1",
+      "equal": true
+    },
+    {
+      "offset": 4712,
+      "type": 10,
+      "name": "reactionPunch__10MarioActorFP9HitSensor",
+      "addend": 0,
+      "canonical_address": "0x803bacc0",
+      "DOL_instruction": "4bfcb329",
+      "restored_instruction": "4bfcb329",
+      "equal": true
+    },
+    {
+      "offset": 4724,
+      "type": 10,
+      "name": "_restgpr_29",
+      "addend": 0,
+      "canonical_address": "0x8062e1b8",
+      "DOL_instruction": "4823e815",
+      "restored_instruction": "4823e815",
+      "equal": true
+    },
+    {
+      "offset": 4776,
+      "type": 10,
+      "name": "isValid__8TriangleCFv",
+      "addend": 0,
+      "canonical_address": "0x80256ca0",
+      "DOL_instruction": "4be672c9",
+      "restored_instruction": "4be672c9",
+      "equal": true
+    },
+    {
+      "offset": 4832,
+      "type": 10,
+      "name": "acosEx__2MRFf",
+      "addend": 0,
+      "canonical_address": "0x8003b350",
+      "DOL_instruction": "4bc4b940",
+      "restored_instruction": "4bc4b940",
+      "equal": true
+    },
+    {
+      "offset": 4896,
+      "type": 10,
+      "name": "getSensorHost__2MRFPC9HitSensor",
+      "addend": 0,
+      "canonical_address": "0x80015880",
+      "DOL_instruction": "4bc25e31",
+      "restored_instruction": "4bc25e31",
+      "equal": true
+    },
+    {
+      "offset": 4916,
+      "type": 10,
+      "name": "testEffect__16MarioActionTableCFPCcPCc",
+      "addend": 0,
+      "canonical_address": "0x803db380",
+      "DOL_instruction": "4bfeb91d",
+      "restored_instruction": "4bfeb91d",
+      "equal": true
+    }
+  ],
+  "SDA_base_original_DOL_evidence": [
+    {
+      "address": "0x8000428c",
+      "raw8": "3c40807d6042eca0",
+      "register": 2,
+      "value": "0x807deca0"
+    },
+    {
+      "address": "0x80004294",
+      "raw8": "3da0807d61ad7320",
+      "register": 13,
+      "value": "0x807d7320"
+    }
+  ],
+  "neighbor_claims": [
+    {
+      "unit": "Game/Player/MarioMessenger.cpp",
+      "start": "0x806dd680",
+      "end": "0x806dd6b0"
+    },
+    {
+      "unit": "Game/Player/MarioModule.cpp",
+      "start": "0x806dd6bc",
+      "end": "0x806dd880"
+    },
+    {
+      "unit": "Game/Player/MarioNullBck.cpp",
+      "start": "0x806dd898",
+      "end": "0x806dd930"
+    }
+  ],
+  "prefix12": {
+    "start": "0x806dd6b0",
+    "end": "0x806dd6bc",
+    "hex": "505f506c616e65744d617000",
+    "same_as_before": true,
+    "outside_module": true
+  },
+  "move24": {
+    "start": "0x806dd880",
+    "end": "0x806dd898",
+    "hex": "0000000000000000803eefd0803ef2b0803ef2c000000000",
+    "same_as_before": true,
+    "outside_module": true,
+    "current_source20_plus4_alignment_equal": true,
+    "all3refs": [
+      {
+        "offset": 8,
+        "name": "getStickY__11MarioModuleCFv",
+        "addend": 0,
+        "canonical_address": "0x803eefd0",
+        "DOL_address": "0x806dd888",
+        "DOL_word": "803eefd0",
+        "equal": true
+      },
+      {
+        "offset": 12,
+        "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+        "addend": 0,
+        "canonical_address": "0x803ef2b0",
+        "DOL_address": "0x806dd88c",
+        "DOL_word": "803ef2b0",
+        "equal": true
+      },
+      {
+        "offset": 16,
+        "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+        "addend": 0,
+        "canonical_address": "0x803ef2c0",
+        "DOL_address": "0x806dd890",
+        "DOL_word": "803ef2c0",
+        "equal": true
+      }
+    ]
+  },
+  "messenger48": {
+    "start": "0x806dd680",
+    "end": "0x806dd6b0",
+    "hex": "0000000000000000803ee6d0803396c0803396d0803ee620803396f08033970080339710800269f0800269e000000000",
+    "target_resolved_full_equal_DOL": true,
+    "refs": [
+      {
+        "offset": 8,
+        "name": "__dt__14MarioMessengerFv",
+        "addend": 0,
+        "canonical_address": "0x803ee6d0",
+        "DOL_address": "0x806dd688",
+        "DOL_word": "803ee6d0",
+        "equal": true
+      },
+      {
+        "offset": 12,
+        "name": "init__7NameObjFRC12JMapInfoIter",
+        "addend": 0,
+        "canonical_address": "0x803396c0",
+        "DOL_address": "0x806dd68c",
+        "DOL_word": "803396c0",
+        "equal": true
+      },
+      {
+        "offset": 16,
+        "name": "initAfterPlacement__7NameObjFv",
+        "addend": 0,
+        "canonical_address": "0x803396d0",
+        "DOL_address": "0x806dd690",
+        "DOL_word": "803396d0",
+        "equal": true
+      },
+      {
+        "offset": 20,
+        "name": "movement__14MarioMessengerFv",
+        "addend": 0,
+        "canonical_address": "0x803ee620",
+        "DOL_address": "0x806dd694",
+        "DOL_word": "803ee620",
+        "equal": true
+      },
+      {
+        "offset": 24,
+        "name": "draw__7NameObjCFv",
+        "addend": 0,
+        "canonical_address": "0x803396f0",
+        "DOL_address": "0x806dd698",
+        "DOL_word": "803396f0",
+        "equal": true
+      },
+      {
+        "offset": 28,
+        "name": "calcAnim__7NameObjFv",
+        "addend": 0,
+        "canonical_address": "0x80339700",
+        "DOL_address": "0x806dd69c",
+        "DOL_word": "80339700",
+        "equal": true
+      },
+      {
+        "offset": 32,
+        "name": "calcViewAndEntry__7NameObjFv",
+        "addend": 0,
+        "canonical_address": "0x80339710",
+        "DOL_address": "0x806dd6a0",
+        "DOL_word": "80339710",
+        "equal": true
+      },
+      {
+        "offset": 36,
+        "name": "startMovement__7NameObjFv",
+        "addend": 0,
+        "canonical_address": "0x800269f0",
+        "DOL_address": "0x806dd6a4",
+        "DOL_word": "800269f0",
+        "equal": true
+      },
+      {
+        "offset": 40,
+        "name": "endMovement__7NameObjFv",
+        "addend": 0,
+        "canonical_address": "0x800269e0",
+        "DOL_address": "0x806dd6a8",
+        "DOL_word": "800269e0",
+        "equal": true
+      }
+    ]
+  },
+  "input_hashes_unchanged_during_capture": true
+}

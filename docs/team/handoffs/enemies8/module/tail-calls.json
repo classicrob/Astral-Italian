@@ -1,0 +1,441 @@
+{
+  "baseline": [
+    [
+      "MarioModule_FORCE_EMIT_STRING__Fv",
+      "b OSReport"
+    ],
+    [
+      "getGravityVec__11MarioModuleCFv",
+      "b getGravityVec__5MarioCFv"
+    ],
+    [
+      "getAirGravityVec__11MarioModuleCFv",
+      "b getAirGravityVec__5MarioCFv"
+    ],
+    [
+      "isStatusActiveID__11MarioModuleCFUl",
+      "b isStatusActive__5MarioCFUl"
+    ],
+    [
+      "isStatusActiveS__11MarioModuleCFP10MarioState",
+      "b isStatusActive__5MarioCFUl"
+    ],
+    [
+      "stopAnimation__11MarioModuleFPCcPCc",
+      "b stopAnimation__13MarioAnimatorFPCcPCc"
+    ],
+    [
+      "isDefaultAnimationRun__11MarioModuleCFPCc",
+      "b isDefaultAnimationRun__13MarioAnimatorCFPCc"
+    ],
+    [
+      "changeAnimationInterpoleFrame__11MarioModuleFUl",
+      "b setAnimationInterpoleFrame__13MarioAnimatorFl"
+    ],
+    [
+      "isAnimationRun__11MarioModuleCFPCc",
+      "b isAnimationRun__13MarioAnimatorCFPCc"
+    ],
+    [
+      "isAnimationTerminate__11MarioModuleCFPCc",
+      "b isAnimationTerminate__13MarioAnimatorCFPCc"
+    ],
+    [
+      "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "b isTerminate__12XanimePlayerCFPCc"
+    ],
+    [
+      "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "b isTerminate__12XanimePlayerCFv"
+    ],
+    [
+      "getAnimationStringPointer__11MarioModuleCFPCc",
+      "b getAnimationStringPointer__13MarioAnimatorCFPCc"
+    ],
+    [
+      "stopAnimationUpperForce__11MarioModuleFv",
+      "b stopUpper__13MarioAnimatorFPCc"
+    ],
+    [
+      "getAnimationFrame__11MarioModuleCFv",
+      "b getFrame__13MarioAnimatorCFv"
+    ],
+    [
+      "isAnimationRun__11MarioModuleFPCcUl",
+      "b isAnimationRun__13MarioAnimatorFPCcUl"
+    ],
+    [
+      "setJointGlobalMtx__11MarioModuleFUsPA4_f",
+      "b setMainJointMatrix__13MarioAnimatorFUlPA4_f"
+    ],
+    [
+      "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "b __apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "addVelocityAfter__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "b __apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "clearVelocity__11MarioModuleFv",
+      "b zero__Q29JGeometry8TVec3<f>Fv"
+    ],
+    [
+      "cutVecElementFromJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "b vecKillElement__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffect__11MarioModuleFPCc",
+      "b playEffect__10MarioActorFPCc"
+    ],
+    [
+      "playEffectTrans__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>",
+      "b playEffectTrans__10MarioActorFPCcRCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectRT__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectRT__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectRTZ__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectRTZ__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectRTW__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectRTW__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectSRT__11MarioModuleFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectSRT__10MarioActorFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "stopEffect__11MarioModuleFPCc",
+      "b stopEffect__10MarioActorFPCc"
+    ],
+    [
+      "stopEffectForce__11MarioModuleFPCc",
+      "b stopEffectForce__10MarioActorFPCc"
+    ],
+    [
+      "playSound__11MarioModuleFPCcl",
+      "b playSoundJ__5MarioFPCcl"
+    ],
+    [
+      "stopSound__11MarioModuleFPCcUl",
+      "b stopSoundJ__5MarioFPCcUl"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraWeak__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraWeak__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraNormal__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraNormalStrong__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraStrong__2MRFv"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadVeryWeak__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadWeak__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadMiddle__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadStrong__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFPCc",
+      "b tryRumblePad__2MRFPCvPCcl"
+    ],
+    [
+      "checkTrgA__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkLvlA__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkTrgZ__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkLvlZ__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkPreLvlZ__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "getFloorCode__11MarioModuleCFv",
+      "b getCode__9FloorCodeFPC8Triangle"
+    ],
+    [
+      "marioAcos__11MarioModuleCFf",
+      "b acosEx__2MRFf"
+    ],
+    [
+      "isAnimationStop__11MarioModuleCFv",
+      "b isAnimationStop__13MarioAnimatorCFv"
+    ],
+    [
+      "isMainAnimationRun__11MarioModuleCFPCc",
+      "b isMainAnimationRun__13MarioAnimatorCFPCc"
+    ],
+    [
+      "fn_803EEA90__11MarioModuleCFPCc",
+      "b isUpperAnimationTerminated__13MarioAnimatorCFPCc"
+    ],
+    [
+      "getFrame__11MarioModuleCFv",
+      "b getFrame__13MarioAnimatorCFv"
+    ],
+    [
+      "getAnimationTrackWeight__11MarioModuleFUl",
+      "b getAnimationTrackWeight__13MarioAnimatorFUl"
+    ],
+    [
+      "fn_803EF000__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ]
+  ],
+  "trial1": [
+    [
+      "getGravityVec__11MarioModuleCFv",
+      "b getGravityVec__5MarioCFv"
+    ],
+    [
+      "getAirGravityVec__11MarioModuleCFv",
+      "b getAirGravityVec__5MarioCFv"
+    ],
+    [
+      "isStatusActiveID__11MarioModuleCFUl",
+      "b isStatusActive__5MarioCFUl"
+    ],
+    [
+      "isStatusActiveS__11MarioModuleCFP10MarioState",
+      "b isStatusActive__5MarioCFUl"
+    ],
+    [
+      "stopAnimation__11MarioModuleFPCcPCc",
+      "b stopAnimation__13MarioAnimatorFPCcPCc"
+    ],
+    [
+      "isDefaultAnimationRun__11MarioModuleCFPCc",
+      "b isDefaultAnimationRun__13MarioAnimatorCFPCc"
+    ],
+    [
+      "changeAnimationInterpoleFrame__11MarioModuleFUl",
+      "b setAnimationInterpoleFrame__13MarioAnimatorFl"
+    ],
+    [
+      "isAnimationRun__11MarioModuleCFPCc",
+      "b isAnimationRun__13MarioAnimatorCFPCc"
+    ],
+    [
+      "isAnimationTerminate__11MarioModuleCFPCc",
+      "b isAnimationTerminate__13MarioAnimatorCFPCc"
+    ],
+    [
+      "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "b isTerminate__12XanimePlayerCFPCc"
+    ],
+    [
+      "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "b isTerminate__12XanimePlayerCFv"
+    ],
+    [
+      "getAnimationStringPointer__11MarioModuleCFPCc",
+      "b getAnimationStringPointer__13MarioAnimatorCFPCc"
+    ],
+    [
+      "stopAnimationUpperForce__11MarioModuleFv",
+      "b stopUpper__13MarioAnimatorFPCc"
+    ],
+    [
+      "getAnimationFrame__11MarioModuleCFv",
+      "b getFrame__13MarioAnimatorCFv"
+    ],
+    [
+      "isAnimationRun__11MarioModuleFPCcUl",
+      "b isAnimationRun__13MarioAnimatorFPCcUl"
+    ],
+    [
+      "setJointGlobalMtx__11MarioModuleFUsPA4_f",
+      "b setMainJointMatrix__13MarioAnimatorFUlPA4_f"
+    ],
+    [
+      "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "b __apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "addVelocityAfter__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "b __apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "clearVelocity__11MarioModuleFv",
+      "b zero__Q29JGeometry8TVec3<f>Fv"
+    ],
+    [
+      "cutVecElementFromJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "b vecKillElement__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffect__11MarioModuleFPCc",
+      "b playEffect__10MarioActorFPCc"
+    ],
+    [
+      "playEffectTrans__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>",
+      "b playEffectTrans__10MarioActorFPCcRCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectRT__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectRT__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectRTZ__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectRTZ__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectRTW__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectRTW__10MarioActorFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "playEffectSRT__11MarioModuleFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "b playEffectSRT__10MarioActorFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>"
+    ],
+    [
+      "stopEffect__11MarioModuleFPCc",
+      "b stopEffect__10MarioActorFPCc"
+    ],
+    [
+      "stopEffectForce__11MarioModuleFPCc",
+      "b stopEffectForce__10MarioActorFPCc"
+    ],
+    [
+      "playSound__11MarioModuleFPCcl",
+      "b playSoundJ__5MarioFPCcl"
+    ],
+    [
+      "stopSound__11MarioModuleFPCcUl",
+      "b stopSoundJ__5MarioFPCcUl"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraWeak__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraWeak__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraNormal__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraNormalStrong__2MRFv"
+    ],
+    [
+      "startCamVib__11MarioModuleFUl",
+      "b shakeCameraStrong__2MRFv"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadVeryWeak__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadWeak__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadMiddle__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFUl",
+      "b tryRumblePadStrong__2MRFPCvl"
+    ],
+    [
+      "startPadVib__11MarioModuleFPCc",
+      "b tryRumblePad__2MRFPCvPCcl"
+    ],
+    [
+      "checkTrgA__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkLvlA__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkTrgZ__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkLvlZ__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "checkPreLvlZ__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ],
+    [
+      "getFloorCode__11MarioModuleCFv",
+      "b getCode__9FloorCodeFPC8Triangle"
+    ],
+    [
+      "marioAcos__11MarioModuleCFf",
+      "b acosEx__2MRFf"
+    ],
+    [
+      "isAnimationStop__11MarioModuleCFv",
+      "b isAnimationStop__13MarioAnimatorCFv"
+    ],
+    [
+      "isMainAnimationRun__11MarioModuleCFPCc",
+      "b isMainAnimationRun__13MarioAnimatorCFPCc"
+    ],
+    [
+      "fn_803EEA90__11MarioModuleCFPCc",
+      "b isUpperAnimationTerminated__13MarioAnimatorCFPCc"
+    ],
+    [
+      "getFrame__11MarioModuleCFv",
+      "b getFrame__13MarioAnimatorCFv"
+    ],
+    [
+      "getAnimationTrackWeight__11MarioModuleFUl",
+      "b getAnimationTrackWeight__13MarioAnimatorFUl"
+    ],
+    [
+      "fn_803EF000__11MarioModuleCFv",
+      "b checkButtonType__10MarioActorCFUsb"
+    ]
+  ],
+  "removed_only_source_dummy_OSReport_tailcall": [
+    [
+      "MarioModule_FORCE_EMIT_STRING__Fv",
+      "b OSReport"
+    ]
+  ],
+  "all53_surviving_ordered_identities_equal": true
+}

@@ -1,0 +1,12 @@
+{
+  "removed_only_function": "MarioModule_FORCE_EMIT_STRING",
+  "moved_complete_verbatim_functions": [
+    "checkSquat__11MarioModuleFb",
+    "isSlipPolygon__11MarioModuleCFPC8Triangle"
+  ],
+  "all_other_text_exact": true,
+  "new_strings_tables_consumers": false,
+  "source_current_still_baseline": true,
+  "baseline_sha256": "eb6536b5a0cf4456608d81c848dfd9bd65fe3a93a04e5239adda369520ddf3b9",
+  "proposed_sha256": "ffd304b592ce0dfa91b7525bb2cee933ac790efc1e59aa6cda14e29d765fe447"
+}

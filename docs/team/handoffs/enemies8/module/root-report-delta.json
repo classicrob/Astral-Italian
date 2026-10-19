@@ -1,0 +1,22 @@
+{
+  "module_gain": 0,
+  "other_main_rebase_changes": {
+    "main/Game/Util/DrawUtil": 260,
+    "main/Game/Util/BothDirList": 24,
+    "main/Game/Util/BellyDragonTU01": 92,
+    "main/Game/Util/BellyDragonTU04": 604,
+    "main/Game/Util/BellyDragonTU06": 128,
+    "main/Game/Util/BellyDragonArmShot": 784,
+    "main/Game/LiveActor/ShadowController": 276,
+    "main/Game/Player/Mario": 328,
+    "main/Game/Player/YoshiModelCtrl": 776,
+    "main/RVL_SDK/nwc24/NWC24FileAPI": 144,
+    "main/RVL_SDK/vf/pdm_partition": 28,
+    "main/RVL_SDK/vf/pf_fat": 1400,
+    "main/RVL_SDK/vf/d_vf_sys": 136,
+    "main/RVL_SDK/vi/i2c": 2308,
+    "main/RVL_SDK/gx/GXTexture": 200,
+    "main/RVL_SDK/mem/mem_expHeap": 80
+  },
+  "losses": {}
+}

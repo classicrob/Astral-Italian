@@ -1,0 +1,558 @@
+{
+  "functions": [
+    {
+      "name": "__apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "addVelocityAfter__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimationInterpoleFrame__11MarioModuleFUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimationNonStop__11MarioModuleFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimationUpperWeak__11MarioModuleFPCcPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimationUpper__11MarioModuleFPCcPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimationWithAttr__11MarioModuleFPCcUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimation__11MarioModuleFPCcPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "changeAnimation__11MarioModuleFPCcUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "checkLvlA__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "checkLvlZ__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "checkPreLvlZ__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "checkSquat__11MarioModuleFb",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "checkTrgA__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "checkTrgZ__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "clearVelocity__11MarioModuleFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "cutGravityElementFromJumpVec__11MarioModuleFb",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "cutVecElementFromJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "dot__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EE8F0__11MarioModuleFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EEA90__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EF000__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EF300__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EF5B0__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EF7C0__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EFA20__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "fn_803EFA30__11MarioModuleCFPC9HitSensorPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getAirGravityVec__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getAnimationFrame__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getAnimationStringPointer__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getAnimationTrackWeight__11MarioModuleFUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getAnimator__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getCamDirX__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getCamDirY__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getCamDirZ__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getCamPos__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getCurrentBckName__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getFloorCode__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getFrame__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getFrontVec__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getGravityVec__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getGroundPolygon__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getJumpVec__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getPlayerMode__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getPlayer__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getSensor__11MarioModuleCFPC8Triangle",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getShadowPos__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getStickP__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getStickX__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getStickY__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getTmpPolygon__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getTrans__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getVelocity__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "getWorldPadDir__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isAnimationRun__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isAnimationRun__11MarioModuleFPCcUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isAnimationStop__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isAnimationTerminate__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isDefaultAnimationRun__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isInputDisable__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isMainAnimationRun__11MarioModuleCFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isOnSlipGround__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeBee__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeCloud__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeFire__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeFoo__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeHopper__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeIce__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeInvincible__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeTeresa__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isPlayerModeYoshi__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isStatusActiveID__11MarioModuleCFUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isStatusActiveS__11MarioModuleCFP10MarioState",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isStickFull__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "isStickOn__11MarioModuleCFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "marioAcos__11MarioModuleCFf",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playEffectRTW__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playEffectRTZ__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playEffectRT__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playEffectSRT__11MarioModuleFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playEffectTrans__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playEffect__11MarioModuleFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "playSound__11MarioModuleFPCcl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "setJointGlobalMtx__11MarioModuleFUsPA4_f",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "setJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "setYangleOffset__11MarioModuleFf",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "startCamVib__11MarioModuleFUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "startPadVib__11MarioModuleFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "startPadVib__11MarioModuleFUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopAnimationUpperForce__11MarioModuleFv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopAnimationUpper__11MarioModuleFPCcPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopAnimation__11MarioModuleFPCcPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopAnimation__11MarioModuleFPCcUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopEffectForce__11MarioModuleFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopEffect__11MarioModuleFPCc",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "stopSound__11MarioModuleFPCcUl",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    },
+    {
+      "name": "zero__Q29JGeometry8TVec3<f>Fv",
+      "full_nonrelocation_code_bytes_equal": true,
+      "exact_relocation_sites_types_equal": true
+    }
+  ],
+  "all_complete_code_bytes_equal": true,
+  "all_exact_relocation_sites_types_equal": true,
+  "relocation_counts_before": {
+    "6": 5,
+    "4": 5,
+    "10": 128,
+    "109": 26
+  },
+  "relocation_counts_after": {
+    "10": 127,
+    "6": 4,
+    "4": 4,
+    "109": 26
+  },
+  "removed": [
+    "MarioModule_FORCE_EMIT_STRING__Fv"
+  ],
+  "added": [],
+  "scope": "all complete emitted source function bodies; only explicit relocation bitfields masked; actual pool91ref and calls/scalars checked separately"
+}

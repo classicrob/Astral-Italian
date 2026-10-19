@@ -1,0 +1,1507 @@
+{
+  "advisory_only_no_bug_or_equivalence_claims": true,
+  "root": "/Users/roberthaisfield/MacioGalaxy2-wt/enemies",
+  "HEAD_before": "df47bad552ff0073084a83191e626980bdb91792",
+  "HEAD_after": "df47bad552ff0073084a83191e626980bdb91792",
+  "HEAD_stable": true,
+  "metadata_sha256": {
+    "objdiff.json": "0bc5f038f1c2d9cbb8a0a2dbfd6475167de5e3ed9da7e93c5aff49983bba5920",
+    "config/SB4E01/symbols.txt": "41357e917e1d241f5854cdb29adb3443beeaf288b5b4bbd417e703df60506ba8",
+    "orig/SB4E01/sys/main.dol": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281"
+  },
+  "unstable_metadata": [],
+  "tool_dependencies_sha256": {
+    "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/tools/team/callaudit.py": "c48462f8c2575e95befc5dfa54ce13467d284f6dc6b7d57d69cf32bc9f8f1ec9"
+  },
+  "stats": {
+    "units": 1,
+    "paired_registered_unit_functions": 98,
+    "ordered_direct_call_mismatches": 0,
+    "multiset_mismatches": 0,
+    "unpaired_functions": 0,
+    "missing_units": 0,
+    "error_units": 0,
+    "unstable_units": 0
+  },
+  "ambiguous_catalog_names": {
+    "GXPosition3f32": [
+      {
+        "address": 2147622304,
+        "size": 20
+      },
+      {
+        "address": 2147893024,
+        "size": 20
+      },
+      {
+        "address": 2147900592,
+        "size": 20
+      },
+      {
+        "address": 2149541008,
+        "size": 20
+      },
+      {
+        "address": 2149930640,
+        "size": 20
+      },
+      {
+        "address": 2150024736,
+        "size": 20
+      },
+      {
+        "address": 2150212752,
+        "size": 20
+      },
+      {
+        "address": 2150224944,
+        "size": 20
+      },
+      {
+        "address": 2150268464,
+        "size": 20
+      },
+      {
+        "address": 2150565120,
+        "size": 20
+      },
+      {
+        "address": 2150665360,
+        "size": 20
+      },
+      {
+        "address": 2151498832,
+        "size": 20
+      },
+      {
+        "address": 2151624320,
+        "size": 20
+      },
+      {
+        "address": 2151710480,
+        "size": 20
+      },
+      {
+        "address": 2151912864,
+        "size": 20
+      },
+      {
+        "address": 2151985584,
+        "size": 20
+      },
+      {
+        "address": 2152490448,
+        "size": 20
+      },
+      {
+        "address": 2152806608,
+        "size": 20
+      },
+      {
+        "address": 2152818288,
+        "size": 20
+      },
+      {
+        "address": 2152985648,
+        "size": 20
+      }
+    ],
+    "swap__10J2DPictureFRfRf": [
+      {
+        "address": 2147736176,
+        "size": 20
+      },
+      {
+        "address": 2152821072,
+        "size": 20
+      }
+    ],
+    "fastReciprocal__5JMathFf": [
+      {
+        "address": 2147768688,
+        "size": 8
+      },
+      {
+        "address": 2147926784,
+        "size": 8
+      }
+    ],
+    "GXTexCoord2f32": [
+      {
+        "address": 2147900624,
+        "size": 16
+      },
+      {
+        "address": 2149970544,
+        "size": 16
+      },
+      {
+        "address": 2150224976,
+        "size": 16
+      },
+      {
+        "address": 2151624352,
+        "size": 16
+      }
+    ],
+    "__arraydtor": [
+      {
+        "address": 2148035520,
+        "size": 28
+      },
+      {
+        "address": 2148035552,
+        "size": 28
+      },
+      {
+        "address": 2148035584,
+        "size": 28
+      }
+    ],
+    "GDOverflowCheck": [
+      {
+        "address": 2149968640,
+        "size": 32
+      },
+      {
+        "address": 2150208256,
+        "size": 32
+      },
+      {
+        "address": 2150224416,
+        "size": 32
+      },
+      {
+        "address": 2152824208,
+        "size": 32
+      },
+      {
+        "address": 2152860816,
+        "size": 32
+      },
+      {
+        "address": 2152889680,
+        "size": 32
+      }
+    ],
+    "GDWrite_f32": [
+      {
+        "address": 2149970400,
+        "size": 136
+      },
+      {
+        "address": 2150208368,
+        "size": 136
+      },
+      {
+        "address": 2150224528,
+        "size": 136
+      }
+    ],
+    "GDPosition3f32": [
+      {
+        "address": 2150208288,
+        "size": 72
+      },
+      {
+        "address": 2150224448,
+        "size": 72
+      }
+    ],
+    "J3DGDWrite_u16__FUs": [
+      {
+        "address": 2152496704,
+        "size": 48
+      },
+      {
+        "address": 2152824624,
+        "size": 48
+      },
+      {
+        "address": 2152855008,
+        "size": 48
+      },
+      {
+        "address": 2152860944,
+        "size": 48
+      },
+      {
+        "address": 2152890064,
+        "size": 48
+      }
+    ],
+    "J3DGDWriteBPCmd__FUl": [
+      {
+        "address": 2152824240,
+        "size": 28
+      },
+      {
+        "address": 2152864384,
+        "size": 28
+      }
+    ],
+    "J3DGDWrite_u32__FUl": [
+      {
+        "address": 2152824272,
+        "size": 96
+      },
+      {
+        "address": 2152860992,
+        "size": 96
+      },
+      {
+        "address": 2152890112,
+        "size": 96
+      }
+    ],
+    "J3DGDWriteXFCmdHdr__FUsUc": [
+      {
+        "address": 2152824528,
+        "size": 84
+      },
+      {
+        "address": 2152860848,
+        "size": 84
+      },
+      {
+        "address": 2152889968,
+        "size": 84
+      }
+    ],
+    "OSf32tou8": [
+      {
+        "address": 2152915264,
+        "size": 32
+      },
+      {
+        "address": 2152988000,
+        "size": 32
+      }
+    ],
+    "Callback": [
+      {
+        "address": 2153475664,
+        "size": 12
+      },
+      {
+        "address": 2153605584,
+        "size": 12
+      }
+    ],
+    "OnShutdown": [
+      {
+        "address": 2153489616,
+        "size": 60
+      },
+      {
+        "address": 2153525824,
+        "size": 408
+      },
+      {
+        "address": 2153675840,
+        "size": 428
+      }
+    ],
+    "entryToPath": [
+      {
+        "address": 2153584704,
+        "size": 276
+      },
+      {
+        "address": 2153657568,
+        "size": 464
+      }
+    ],
+    "parse_format": [
+      {
+        "address": 2153978064,
+        "size": 1468
+      },
+      {
+        "address": 2153987472,
+        "size": 1684
+      },
+      {
+        "address": 2154002704,
+        "size": 1424
+      }
+    ],
+    "long2str": [
+      {
+        "address": 2153979532,
+        "size": 576
+      },
+      {
+        "address": 2154004128,
+        "size": 580
+      }
+    ],
+    "longlong2str": [
+      {
+        "address": 2153980108,
+        "size": 688
+      },
+      {
+        "address": 2154004708,
+        "size": 700
+      }
+    ],
+    "double2hex": [
+      {
+        "address": 2153980796,
+        "size": 968
+      },
+      {
+        "address": 2154005408,
+        "size": 1108
+      }
+    ],
+    "round_decimal": [
+      {
+        "address": 2153981764,
+        "size": 296
+      },
+      {
+        "address": 2154006516,
+        "size": 296
+      }
+    ],
+    "float2str": [
+      {
+        "address": 2153982060,
+        "size": 1948
+      },
+      {
+        "address": 2154006812,
+        "size": 1936
+      }
+    ]
+  },
+  "rows": [],
+  "units": [
+    {
+      "unit": "main/Game/Player/MarioModule",
+      "function_bindings": [
+        {
+          "function": "addVelocityAfter__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF310",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "19ede692e98f6b3a2eac6009277fccb2ab12e105917902f342f5491d225af46b",
+          "source_body_sha256": "19ede692e98f6b3a2eac6009277fccb2ab12e105917902f342f5491d225af46b",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF2B0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "4594718b6c5789c7d2d7c9df049e43b3033723bbc81742599df342c25b591a7d",
+          "source_body_sha256": "4594718b6c5789c7d2d7c9df049e43b3033723bbc81742599df342c25b591a7d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+          "registered_address": "0x803EF2C0",
+          "target_size": 44,
+          "source_size": 44,
+          "target_body_sha256": "1a72735443a63ace63950f5020259f63a128fb93f455a8c54ce264390d1a2ecb",
+          "source_body_sha256": "1a72735443a63ace63950f5020259f63a128fb93f455a8c54ce264390d1a2ecb",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF8B0",
+          "target_size": 156,
+          "source_size": 156,
+          "target_body_sha256": "f8bbf8fc8989cd6804345f55a3f331fa44048ecd87f9405357cb45239f2b42ba",
+          "source_body_sha256": "f8bbf8fc8989cd6804345f55a3f331fa44048ecd87f9405357cb45239f2b42ba",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+          "registered_address": "0x803EF820",
+          "target_size": 136,
+          "source_size": 136,
+          "target_body_sha256": "0120b4e12e5e81d364a2f02602b162a7d58eaa414803b182f5fec117169002d2",
+          "source_body_sha256": "0120b4e12e5e81d364a2f02602b162a7d58eaa414803b182f5fec117169002d2",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+          "registered_address": "0x803EEE30",
+          "target_size": 388,
+          "source_size": 388,
+          "target_body_sha256": "9cbfedd06a40c18695dd2c6065492da56c05d958e59719c94b945181bc362564",
+          "source_body_sha256": "9cbfedd06a40c18695dd2c6065492da56c05d958e59719c94b945181bc362564",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "changeAnimationInterpoleFrame__11MarioModuleFUl",
+          "registered_address": "0x803EEA20",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "changeAnimationNonStop__11MarioModuleFPCc",
+          "registered_address": "0x803EE940",
+          "target_size": 112,
+          "source_size": 112,
+          "target_body_sha256": "1091ba1ec21ca0109dd4bd86f7eb943ac7501e547cb7d2a81198b6364631c34c",
+          "source_body_sha256": "1091ba1ec21ca0109dd4bd86f7eb943ac7501e547cb7d2a81198b6364631c34c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "changeAnimationUpper__11MarioModuleFPCcPCc",
+          "registered_address": "0x803EEB30",
+          "target_size": 116,
+          "source_size": 116,
+          "target_body_sha256": "321232ad7607ee2ee56c58b55e2f3c504c8e11916695523ee9f7d35be2252715",
+          "source_body_sha256": "321232ad7607ee2ee56c58b55e2f3c504c8e11916695523ee9f7d35be2252715",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "changeAnimationWithAttr__11MarioModuleFPCcUl",
+          "registered_address": "0x803EE9B0",
+          "target_size": 100,
+          "source_size": 100,
+          "target_body_sha256": "f789dbe56c57e63dad42e55aa27f5ff88dcd9d9efb9858517c3260c45370b605",
+          "source_body_sha256": "f789dbe56c57e63dad42e55aa27f5ff88dcd9d9efb9858517c3260c45370b605",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "changeAnimation__11MarioModuleFPCcPCc",
+          "registered_address": "0x803EE880",
+          "target_size": 112,
+          "source_size": 112,
+          "target_body_sha256": "eefed16bc63c56374bb7ef823c57b1260d6826bc062d1cbc29a0659217d04df7",
+          "source_body_sha256": "eefed16bc63c56374bb7ef823c57b1260d6826bc062d1cbc29a0659217d04df7",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "changeAnimation__11MarioModuleFPCcUl",
+          "registered_address": "0x803EECA0",
+          "target_size": 92,
+          "source_size": 92,
+          "target_body_sha256": "9736e75b89565f405d4e959de2c167912f72d7e2a1e4cfd272f96ce98275a96f",
+          "source_body_sha256": "9736e75b89565f405d4e959de2c167912f72d7e2a1e4cfd272f96ce98275a96f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "checkLvlA__11MarioModuleCFv",
+          "registered_address": "0x803EF010",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "3509c3ab409db0f2cbba0915247fed35aad5f885c1e1335424f5f6395ed1d6e4",
+          "source_body_sha256": "3509c3ab409db0f2cbba0915247fed35aad5f885c1e1335424f5f6395ed1d6e4",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "checkLvlZ__11MarioModuleCFv",
+          "registered_address": "0x803EF030",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "33193dd57bb82e90f4aa1168a23ca36853558b23f9d14f245e52ae0b0a51a920",
+          "source_body_sha256": "33193dd57bb82e90f4aa1168a23ca36853558b23f9d14f245e52ae0b0a51a920",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "checkPreLvlZ__11MarioModuleCFv",
+          "registered_address": "0x803EF040",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "5f52463ebea11ffe13d2f19fd3ba6973be87f4ec9b09a0c063ea45ce825ce02b",
+          "source_body_sha256": "5f52463ebea11ffe13d2f19fd3ba6973be87f4ec9b09a0c063ea45ce825ce02b",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "checkSquat__11MarioModuleFb",
+          "registered_address": "0x803EF050",
+          "target_size": 344,
+          "source_size": 344,
+          "target_body_sha256": "46207d2df9b171d68ee5d4d4275821a388b9b69c573d579de020168e94e9b8a4",
+          "source_body_sha256": "aba89d927935e55a7d8af86c1429d43be3e0bc27c8adecdeaec2c7ab22240c7f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "checkTrgA__11MarioModuleCFv",
+          "registered_address": "0x803EEFF0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "c3aeb57f7e6ae9f273d746f6ddc8a5ed1bf888473e822aa591d5b40317c844cc",
+          "source_body_sha256": "c3aeb57f7e6ae9f273d746f6ddc8a5ed1bf888473e822aa591d5b40317c844cc",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "checkTrgZ__11MarioModuleCFv",
+          "registered_address": "0x803EF020",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "78a415546cdb38c82f4f324cb3ea957568a3d92fa0786e5b96ef57e755c7ccdf",
+          "source_body_sha256": "78a415546cdb38c82f4f324cb3ea957568a3d92fa0786e5b96ef57e755c7ccdf",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "clearVelocity__11MarioModuleFv",
+          "registered_address": "0x803EF320",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "4594718b6c5789c7d2d7c9df049e43b3033723bbc81742599df342c25b591a7d",
+          "source_body_sha256": "4594718b6c5789c7d2d7c9df049e43b3033723bbc81742599df342c25b591a7d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "cutGravityElementFromJumpVec__11MarioModuleFb",
+          "registered_address": "0x803EF330",
+          "target_size": 104,
+          "source_size": 104,
+          "target_body_sha256": "e43b76c158ffbc686c48d9bef1cf1dd940b8fa3922628666117f50bce1d5db0d",
+          "source_body_sha256": "e43b76c158ffbc686c48d9bef1cf1dd940b8fa3922628666117f50bce1d5db0d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "cutVecElementFromJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF3A0",
+          "target_size": 20,
+          "source_size": 20,
+          "target_body_sha256": "340d7fd5bd93948dd2b718a89c0a03ba57c262cc9c01ed529c8afe16aa989e7f",
+          "source_body_sha256": "340d7fd5bd93948dd2b718a89c0a03ba57c262cc9c01ed529c8afe16aa989e7f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EE8F0__11MarioModuleFPCc",
+          "registered_address": "0x803EE8F0",
+          "target_size": 68,
+          "source_size": 68,
+          "target_body_sha256": "903e16e4b740067a3e163ff859ac5fde5364bdfcb61fba961f7055e9659095cc",
+          "source_body_sha256": "903e16e4b740067a3e163ff859ac5fde5364bdfcb61fba961f7055e9659095cc",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EEA90__11MarioModuleCFPCc",
+          "registered_address": "0x803EEA90",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EEC20__11MarioModuleFPCcPCc",
+          "registered_address": "0x803EEC20",
+          "target_size": 128,
+          "source_size": 128,
+          "target_body_sha256": "9d84e3e5500aad4878f42a575668720876575ccb75bbcf087edaefbb886832b2",
+          "source_body_sha256": "9d84e3e5500aad4878f42a575668720876575ccb75bbcf087edaefbb886832b2",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EF000__11MarioModuleCFv",
+          "registered_address": "0x803EF000",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "66aa2c7f7dc40dfdc353e7efa39fe316d95e33f79b47da58af007fdf493cdebf",
+          "source_body_sha256": "66aa2c7f7dc40dfdc353e7efa39fe316d95e33f79b47da58af007fdf493cdebf",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EF300__11MarioModuleCFv",
+          "registered_address": "0x803EF300",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "31521e8a79e235ab519ad349faf17dedd798081dbaa72b5a7bc0d2eea5f96651",
+          "source_body_sha256": "31521e8a79e235ab519ad349faf17dedd798081dbaa72b5a7bc0d2eea5f96651",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EF5B0__11MarioModuleCFv",
+          "registered_address": "0x803EF5B0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "b86ccc215957cf610faa5183147a7b86d7cd812580caa03c44f91e8bbd462933",
+          "source_body_sha256": "b86ccc215957cf610faa5183147a7b86d7cd812580caa03c44f91e8bbd462933",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EF7C0__11MarioModuleCFv",
+          "registered_address": "0x803EF7C0",
+          "target_size": 88,
+          "source_size": 88,
+          "target_body_sha256": "b3984e9fc539c140251e6ea2405abdeba59aad648a8a9b1419d1a91527895098",
+          "source_body_sha256": "b3984e9fc539c140251e6ea2405abdeba59aad648a8a9b1419d1a91527895098",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EFA20__11MarioModuleCFv",
+          "registered_address": "0x803EFA20",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "144f4579164a994d0e7aef42da2d2aaf851b1a5cf1c6c6bd94ebd4adb81747cf",
+          "source_body_sha256": "144f4579164a994d0e7aef42da2d2aaf851b1a5cf1c6c6bd94ebd4adb81747cf",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "fn_803EFA30__11MarioModuleCFPC9HitSensorPCc",
+          "registered_address": "0x803EFA30",
+          "target_size": 80,
+          "source_size": 80,
+          "target_body_sha256": "85056461c05f8da8e4efe8ba9a4dcb6ebe49b2d512d0ee169e7fa5789620fc1f",
+          "source_body_sha256": "85056461c05f8da8e4efe8ba9a4dcb6ebe49b2d512d0ee169e7fa5789620fc1f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getAirGravityVec__11MarioModuleCFv",
+          "registered_address": "0x803EF5D0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "source_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getAnimationStringPointer__11MarioModuleCFPCc",
+          "registered_address": "0x803EEAA0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getAnimationTrackWeight__11MarioModuleFUl",
+          "registered_address": "0x803EEB20",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getAnimator__11MarioModuleCFv",
+          "registered_address": "0x803EE730",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "7e3b8399133467c4117a230a69023943cae4936d4e9003a3b3987646a7237dd5",
+          "source_body_sha256": "7e3b8399133467c4117a230a69023943cae4936d4e9003a3b3987646a7237dd5",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getCamDirX__11MarioModuleCFv",
+          "registered_address": "0x803EF580",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "8657cf91863a23b1802d38fad38d7852cea2a8661cfcb66acc5d6cb693d13e95",
+          "source_body_sha256": "8657cf91863a23b1802d38fad38d7852cea2a8661cfcb66acc5d6cb693d13e95",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getCamDirY__11MarioModuleCFv",
+          "registered_address": "0x803EF590",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "74365f3f0e2a4e5382835222816a0bcc38c79836050e0638f9b175f51d6e993a",
+          "source_body_sha256": "74365f3f0e2a4e5382835222816a0bcc38c79836050e0638f9b175f51d6e993a",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getCamDirZ__11MarioModuleCFv",
+          "registered_address": "0x803EF5A0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "002fb769225cc7e8a5f1cad5f0bea5eb874fe5994ebe7250eeb2ebea741e48e6",
+          "source_body_sha256": "002fb769225cc7e8a5f1cad5f0bea5eb874fe5994ebe7250eeb2ebea741e48e6",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getCamPos__11MarioModuleCFv",
+          "registered_address": "0x803EF570",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "be219c961638eb5d081fff65d3d03bf164d2bf58a3fcd63dff0971444073ef91",
+          "source_body_sha256": "be219c961638eb5d081fff65d3d03bf164d2bf58a3fcd63dff0971444073ef91",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getCurrentBckName__11MarioModuleCFv",
+          "registered_address": "0x803EEAB0",
+          "target_size": 88,
+          "source_size": 88,
+          "target_body_sha256": "1ad6b3de09424ff737ae51af19357d620d63425ce262088e2f0137560c526a63",
+          "source_body_sha256": "1ad6b3de09424ff737ae51af19357d620d63425ce262088e2f0137560c526a63",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getFrame__11MarioModuleCFv",
+          "registered_address": "0x803EEB10",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getFrontVec__11MarioModuleCFv",
+          "registered_address": "0x803EF5E0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "127dfe1111673eb35f5e24a1f0e6fed52cf50a648a9e28c2cab966957d6bd608",
+          "source_body_sha256": "127dfe1111673eb35f5e24a1f0e6fed52cf50a648a9e28c2cab966957d6bd608",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getGravityVec__11MarioModuleCFv",
+          "registered_address": "0x803EF5C0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "source_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getGroundPolygon__11MarioModuleCFv",
+          "registered_address": "0x803EF610",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "48dea25d6610d68ed3f56c7612c5c4e933cbf6b840a6b2dd85e7a2d5bfcfbd75",
+          "source_body_sha256": "48dea25d6610d68ed3f56c7612c5c4e933cbf6b840a6b2dd85e7a2d5bfcfbd75",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getJumpVec__11MarioModuleCFv",
+          "registered_address": "0x803EF3C0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "ac13aa7cddfcd5101ff973993c7ab6338c341d8ddd7fa4622eb14ca19ed3ab0d",
+          "source_body_sha256": "ac13aa7cddfcd5101ff973993c7ab6338c341d8ddd7fa4622eb14ca19ed3ab0d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getPlayerMode__11MarioModuleCFv",
+          "registered_address": "0x803EE750",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "0b9242a751d67a1bee4f6726ca76dc5c83d02a814ec37a356b25cddccfcc8b3c",
+          "source_body_sha256": "0b9242a751d67a1bee4f6726ca76dc5c83d02a814ec37a356b25cddccfcc8b3c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getPlayer__11MarioModuleCFv",
+          "registered_address": "0x803EE740",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "e471f2b2ce522ac429645349cf7588f071aa2d7abcfbb41dd1aced6f92f6e54f",
+          "source_body_sha256": "e471f2b2ce522ac429645349cf7588f071aa2d7abcfbb41dd1aced6f92f6e54f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getSensor__11MarioModuleCFPC8Triangle",
+          "registered_address": "0x803EF9C0",
+          "target_size": 68,
+          "source_size": 68,
+          "target_body_sha256": "06dbe16bb344e9f48c8f45bcfdb91b20a8e0b0cb133cc2c5fa7b22edf40ee9a2",
+          "source_body_sha256": "06dbe16bb344e9f48c8f45bcfdb91b20a8e0b0cb133cc2c5fa7b22edf40ee9a2",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getStickP__11MarioModuleCFv",
+          "registered_address": "0x803EEFE0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "28b85764c77599fce14bdd4dd2a073257c8d545fdae15ab5040004ffb51c5cc4",
+          "source_body_sha256": "28b85764c77599fce14bdd4dd2a073257c8d545fdae15ab5040004ffb51c5cc4",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getStickX__11MarioModuleCFv",
+          "registered_address": "0x803EEFC0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "e18b8ce2c4c715c6e687ad05a9dd3c0c85477e72d57fa96de1e85baff617bf4e",
+          "source_body_sha256": "e18b8ce2c4c715c6e687ad05a9dd3c0c85477e72d57fa96de1e85baff617bf4e",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getStickY__11MarioModuleCFv",
+          "registered_address": "0x803EEFD0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "586aab4bef38532af3f3b966a1dc8c85d4be739d37e173376a21ce27f000cf9b",
+          "source_body_sha256": "586aab4bef38532af3f3b966a1dc8c85d4be739d37e173376a21ce27f000cf9b",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getTrans__11MarioModuleCFv",
+          "registered_address": "0x803EF3F0",
+          "target_size": 20,
+          "source_size": 20,
+          "target_body_sha256": "1aae1ac2c09d47a9426f411c31c2fb44a0ab339d830d06e3471bed02d5efb9fc",
+          "source_body_sha256": "1aae1ac2c09d47a9426f411c31c2fb44a0ab339d830d06e3471bed02d5efb9fc",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getVelocity__11MarioModuleCFv",
+          "registered_address": "0x803EF2F0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "9b3db1f2d43748007e87b87e07ea5813a261f9ad7c2471bb67f4574b40d04ad6",
+          "source_body_sha256": "9b3db1f2d43748007e87b87e07ea5813a261f9ad7c2471bb67f4574b40d04ad6",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "getWorldPadDir__11MarioModuleCFv",
+          "registered_address": "0x803EEE20",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "ac7cfac0d9252483a9d7f199990d4c28db54a93f750df27d8a9c33f41deafe22",
+          "source_body_sha256": "ac7cfac0d9252483a9d7f199990d4c28db54a93f750df27d8a9c33f41deafe22",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isAnimationRun__11MarioModuleCFPCc",
+          "registered_address": "0x803EEA60",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isAnimationRun__11MarioModuleFPCcUl",
+          "registered_address": "0x803EED00",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isAnimationStop__11MarioModuleCFv",
+          "registered_address": "0x803EEA50",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isAnimationTerminate__11MarioModuleCFPCc",
+          "registered_address": "0x803EEA80",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isDefaultAnimationRun__11MarioModuleCFPCc",
+          "registered_address": "0x803EED90",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isInputDisable__11MarioModuleCFv",
+          "registered_address": "0x803EF1B0",
+          "target_size": 244,
+          "source_size": 244,
+          "target_body_sha256": "e7ef74692ac0255a4b5f96854004fcb4b01fdba3bc5a951927ed630c54423312",
+          "source_body_sha256": "91c9a627762bd5b91d8bc3b3eab01b11bb4e59d9a475c02a6b4fdca7fd536b4d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isMainAnimationRun__11MarioModuleCFPCc",
+          "registered_address": "0x803EEA70",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isOnSlipGround__11MarioModuleCFv",
+          "registered_address": "0x803EF620",
+          "target_size": 76,
+          "source_size": 76,
+          "target_body_sha256": "b8366c172ba1edc825e48a83af1246cd8a54485981225ff99dcb59d6c23b7049",
+          "source_body_sha256": "b8366c172ba1edc825e48a83af1246cd8a54485981225ff99dcb59d6c23b7049",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeBee__11MarioModuleCFv",
+          "registered_address": "0x803EE760",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "b6fdab18925bc5fba650f46a2ef17fcc789bacc76c3a7cfcea971d2d9972a4ac",
+          "source_body_sha256": "b6fdab18925bc5fba650f46a2ef17fcc789bacc76c3a7cfcea971d2d9972a4ac",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeCloud__11MarioModuleCFv",
+          "registered_address": "0x803EE860",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "d64390ab53fdd7c1a1c8db701813573b5f9408a46258b92afb202c9e8279edb1",
+          "source_body_sha256": "d64390ab53fdd7c1a1c8db701813573b5f9408a46258b92afb202c9e8279edb1",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeFire__11MarioModuleCFv",
+          "registered_address": "0x803EE780",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "78416ef9fb3cbbde5ba1c03f49ba383c399e592ba9a4cef5377c615b3110014f",
+          "source_body_sha256": "78416ef9fb3cbbde5ba1c03f49ba383c399e592ba9a4cef5377c615b3110014f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeFoo__11MarioModuleCFv",
+          "registered_address": "0x803EE820",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "5a0f61c174e45dcbae13f19fae37f0c5d1ce5c68f781b46f251121d45d77e47a",
+          "source_body_sha256": "5a0f61c174e45dcbae13f19fae37f0c5d1ce5c68f781b46f251121d45d77e47a",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeHopper__11MarioModuleCFv",
+          "registered_address": "0x803EE7E0",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "0578e8456cf7756ed9d8b8d56986f34acf99b4ca78ec9622af005255bf53cd4f",
+          "source_body_sha256": "0578e8456cf7756ed9d8b8d56986f34acf99b4ca78ec9622af005255bf53cd4f",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeIce__11MarioModuleCFv",
+          "registered_address": "0x803EE7A0",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "8d7dae908e2f204eb47cbcebfd7ca46bb4dae8b60072d4d6093c8cc1b7fc4efc",
+          "source_body_sha256": "8d7dae908e2f204eb47cbcebfd7ca46bb4dae8b60072d4d6093c8cc1b7fc4efc",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeInvincible__11MarioModuleCFv",
+          "registered_address": "0x803EE800",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "97355140b4d165e3702c4c05794355c54048f897f030a67c8034357b19237ca3",
+          "source_body_sha256": "97355140b4d165e3702c4c05794355c54048f897f030a67c8034357b19237ca3",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeTeresa__11MarioModuleCFv",
+          "registered_address": "0x803EE7C0",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "2f84aa7d87962c7ae71714d7cac5ca52abd016db4f74326b3635759564ea6f38",
+          "source_body_sha256": "2f84aa7d87962c7ae71714d7cac5ca52abd016db4f74326b3635759564ea6f38",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isPlayerModeYoshi__11MarioModuleCFv",
+          "registered_address": "0x803EE840",
+          "target_size": 24,
+          "source_size": 24,
+          "target_body_sha256": "6451326cef7d7a18931f2ce8228cdd94244e6a76ad8996f2dc91640b64bc8bec",
+          "source_body_sha256": "6451326cef7d7a18931f2ce8228cdd94244e6a76ad8996f2dc91640b64bc8bec",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isSlipFloorCode__11MarioModuleCFl",
+          "registered_address": "0x803EF780",
+          "target_size": 56,
+          "source_size": 56,
+          "target_body_sha256": "adfa3a43e99413aa3548c9c4e80031faeea1cf715e8356420d26f40e19adb40c",
+          "source_body_sha256": "adfa3a43e99413aa3548c9c4e80031faeea1cf715e8356420d26f40e19adb40c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+          "registered_address": "0x803EF670",
+          "target_size": 264,
+          "source_size": 264,
+          "target_body_sha256": "cf4015141360200fd414e9b68315ba9b13fee174bac6cccbf0c87569950f370d",
+          "source_body_sha256": "cf4015141360200fd414e9b68315ba9b13fee174bac6cccbf0c87569950f370d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isStatusActiveID__11MarioModuleCFUl",
+          "registered_address": "0x803EF5F0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "source_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isStatusActiveS__11MarioModuleCFP10MarioState",
+          "registered_address": "0x803EF600",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "cb5766dba007813f6ac615757bb8319212ef15b7f6d8ef8c93ff43625c0b47a2",
+          "source_body_sha256": "cb5766dba007813f6ac615757bb8319212ef15b7f6d8ef8c93ff43625c0b47a2",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isStickFull__11MarioModuleCFv",
+          "registered_address": "0x803EEE00",
+          "target_size": 32,
+          "source_size": 32,
+          "target_body_sha256": "c525dafd46a25454d19afa2c27ef31c9819dac88d877c90504b541a809097e5d",
+          "source_body_sha256": "c525dafd46a25454d19afa2c27ef31c9819dac88d877c90504b541a809097e5d",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "isStickOn__11MarioModuleCFv",
+          "registered_address": "0x803EEDC0",
+          "target_size": 56,
+          "source_size": 56,
+          "target_body_sha256": "6844455a4c4e403630933df300db78f09d7b9f931bcde3da4a93c267159a93c9",
+          "source_body_sha256": "6844455a4c4e403630933df300db78f09d7b9f931bcde3da4a93c267159a93c9",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "marioAcos__11MarioModuleCFf",
+          "registered_address": "0x803EFA10",
+          "target_size": 4,
+          "source_size": 4,
+          "target_body_sha256": "97f3f29734d22b764958054cf0fcce9cb81a679be081fb982af63bf246237d49",
+          "source_body_sha256": "97f3f29734d22b764958054cf0fcce9cb81a679be081fb982af63bf246237d49",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playEffectRTW__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF450",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playEffectRTZ__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF440",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playEffectRT__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF430",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playEffectSRT__11MarioModuleFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF460",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playEffectTrans__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF420",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playEffect__11MarioModuleFPCc",
+          "registered_address": "0x803EF410",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "playSound__11MarioModuleFPCcl",
+          "registered_address": "0x803EF490",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "source_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+          "registered_address": "0x803EF950",
+          "target_size": 104,
+          "source_size": 104,
+          "target_body_sha256": "e23b4a14b7e48dc9cba1cc6b99224b39a8c2b0c9c1171cf3c5259d749cb336ff",
+          "source_body_sha256": "e23b4a14b7e48dc9cba1cc6b99224b39a8c2b0c9c1171cf3c5259d749cb336ff",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "setJointGlobalMtx__11MarioModuleFUsPA4_f",
+          "registered_address": "0x803EEDA0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "source_body_sha256": "cb43ebc81c4ab31bdd6d8a62b207d9d7fc5d6839cb8322ffbaab53f20b9e9616",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "setJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+          "registered_address": "0x803EF3D0",
+          "target_size": 28,
+          "source_size": 28,
+          "target_body_sha256": "12fc6bd0a8864dd2b0d9fec383661384f31dae00a9bc73114e09c85e976567e8",
+          "source_body_sha256": "12fc6bd0a8864dd2b0d9fec383661384f31dae00a9bc73114e09c85e976567e8",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "setYangleOffset__11MarioModuleFf",
+          "registered_address": "0x803EEDB0",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "2d3b7d768ff52f4e8f7ef1c9a392748f28ebf666c2472bf617c49bb67e96e54c",
+          "source_body_sha256": "2d3b7d768ff52f4e8f7ef1c9a392748f28ebf666c2472bf617c49bb67e96e54c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "startCamVib__11MarioModuleFUl",
+          "registered_address": "0x803EF4B0",
+          "target_size": 68,
+          "source_size": 68,
+          "target_body_sha256": "7f461dc882549cea9d9e08295fe6810e04e36bc5241f13ccb7e9833fb940a59e",
+          "source_body_sha256": "7f461dc882549cea9d9e08295fe6810e04e36bc5241f13ccb7e9833fb940a59e",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "startPadVib__11MarioModuleFPCc",
+          "registered_address": "0x803EF560",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "bbdb1ba2f3b9a5d699c2c2775f6a40bf334d5d080271630df005bb634588f7d0",
+          "source_body_sha256": "bbdb1ba2f3b9a5d699c2c2775f6a40bf334d5d080271630df005bb634588f7d0",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "startPadVib__11MarioModuleFUl",
+          "registered_address": "0x803EF500",
+          "target_size": 88,
+          "source_size": 88,
+          "target_body_sha256": "34e97ae216524e746748172ec0f340aadc0c76d2f67b1ba0e21155354c083e5e",
+          "source_body_sha256": "34e97ae216524e746748172ec0f340aadc0c76d2f67b1ba0e21155354c083e5e",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopAnimationUpperForce__11MarioModuleFv",
+          "registered_address": "0x803EEC10",
+          "target_size": 16,
+          "source_size": 16,
+          "target_body_sha256": "1573285e9217eb05324ab4de470ee4fe60f2a254a434931336c21b9ea0c25e49",
+          "source_body_sha256": "1573285e9217eb05324ab4de470ee4fe60f2a254a434931336c21b9ea0c25e49",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopAnimationUpper__11MarioModuleFPCcPCc",
+          "registered_address": "0x803EEBB0",
+          "target_size": 96,
+          "source_size": 96,
+          "target_body_sha256": "2210f6be2aa6196d2b67301586db35395377cede2981b011ef0403488957763e",
+          "source_body_sha256": "2210f6be2aa6196d2b67301586db35395377cede2981b011ef0403488957763e",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopAnimation__11MarioModuleFPCcPCc",
+          "registered_address": "0x803EEA30",
+          "target_size": 28,
+          "source_size": 28,
+          "target_body_sha256": "c53117749027db548a58052095887271b33a27876083dcd03b008a6027e7c019",
+          "source_body_sha256": "c53117749027db548a58052095887271b33a27876083dcd03b008a6027e7c019",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopAnimation__11MarioModuleFPCcUl",
+          "registered_address": "0x803EED10",
+          "target_size": 124,
+          "source_size": 124,
+          "target_body_sha256": "d8c5e5483a620d81bea524c4ed89c92326735b3b93abceb4c00c5ca444506426",
+          "source_body_sha256": "d8c5e5483a620d81bea524c4ed89c92326735b3b93abceb4c00c5ca444506426",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopEffectForce__11MarioModuleFPCc",
+          "registered_address": "0x803EF480",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopEffect__11MarioModuleFPCc",
+          "registered_address": "0x803EF470",
+          "target_size": 8,
+          "source_size": 8,
+          "target_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "source_body_sha256": "96162ade3e59824aae794e16fd741d495af9e9580e4d457573a1e5c829e92f4c",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        },
+        {
+          "function": "stopSound__11MarioModuleFPCcUl",
+          "registered_address": "0x803EF4A0",
+          "target_size": 12,
+          "source_size": 12,
+          "target_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "source_body_sha256": "8f74567fd33f7dc6d1a681227a0fb47c4d4dadff82b72a5539afe95e61a4d986",
+          "ordered_identity_comparison_complete": true,
+          "ordered_direct_calls_equal": true,
+          "direct_call_multisets_equal": true
+        }
+      ],
+      "missing": [],
+      "unpaired": [],
+      "object_sha256": {
+        "build/SB4E01/obj/Game/Player/MarioModule.o": "12f59a1ba12721b912a932989bf43744b0343a6b3e7e09cd86898ef526682c70",
+        "build/SB4E01/src/Game/Player/MarioModule.o": "4b218d63137c67bcbb77fa6cf73b7c7328c09caf5b55d6f0c4b757a54054f3fa"
+      },
+      "source_inputs_sha256": {
+        "include/Game/Animation/XanimeCore.hpp": "b7d14ae466a5e28346f794aa2a571ba2aef7b4cd250a42457138fbc799df5933",
+        "include/Game/Enemy/KarikariDirector.hpp": "8f7c9f80b912a9c01595cb43099adeb3ca9515ee5fc0cf7c4ad3107b94e9916f",
+        "include/Game/Map/HitInfo.hpp": "cbe5c43011c052ba26cb25cceb951340e8b8a80cbcb333ee89e823101b7b02c8",
+        "include/Game/Player/MarioActor.hpp": "236042ad636d3ed3d317f49421fbe9677670a68f7a8225bab721e4de49d2e5b8",
+        "include/Game/Player/MarioActorHelpers.hpp": "9a6c6eb9660fd29e448b0b0de68203068059db923a5f1a822721424711bc0915",
+        "include/Game/Player/MarioAnimator.hpp": "b6dc738f0dc2a7bd5586a28e9b4188e4dc0a866129bac3101fff2d1c040c0fde",
+        "include/Game/Player/MarioConst.hpp": "87acc28fd357d3949557a1ac89db8c9af2f5c633b653b5a49945f2af9bb7d681",
+        "include/Game/Player/MarioMapCode.hpp": "9fef0f852708275d9cd6990536d826d44811b71680c0e40f001f24e16064f519",
+        "include/Game/Player/MarioModule.hpp": "49a9c8d22fc76d297a8bc5d70c4c4324e6b1efc6ef14f75dc60b2c0a8bfced3a",
+        "include/Game/Player/MarioState.hpp": "4aca14c07c1ae470c76378a7ef66a425eb0744be1d48c5841f214c3130871d98",
+        "include/Game/Player/Yoshi.hpp": "4701b438af5180e903dd8ff1e78547234ce2a5e6ab6c7657096b1cee6d2e2f86",
+        "include/Game/Util.hpp": "51d84496d8acb61f2e1c697fc27e854ef71348c8691a1484168bac083b46daa5",
+        "include/Game/Util/MathUtil.hpp": "cda3fdfe76cc62b1da3b49f103b98410ac34a2c530d3669187df2bcb51ed8150",
+        "include/Game/Util/ObjUtil.hpp": "d15cc82427125200b4cad16bab2aee614923d5725f9087861a516195a5517c00",
+        "src/Game/Player/MarioModule.cpp": "ffd304b592ce0dfa91b7525bb2cee933ac790efc1e59aa6cda14e29d765fe447"
+      },
+      "source_input_status": "captured-own-and-first-level-inputs",
+      "registered_target_functions": 98,
+      "source_only_registered_functions": [
+        "zero__Q29JGeometry8TVec3<f>Fv",
+        "__apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+        "dot__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>"
+      ],
+      "unstable_inputs": []
+    }
+  ],
+  "limitations": [
+    "No report/score/masked100 exclusion; zero-call pairs included in bindings.",
+    "Raw ordered direct BL identities and multiplicities only, not call-local arguments/CFG/coverage or equivalence.",
+    "Names/addends are not normalized: aliases, save/restore helpers, inlining and harmless reordering are common false positives.",
+    "Tail branches, indirect linked calls and unreachable paths are not semantically compared; indirect sites explicitly inventoried.",
+    "Registered names come from symbols.txt function records; unit-local registered occurrences may repeat across units, not unique game-function coverage.",
+    "Actual DOL destinations are mapped conservatively; ambiguity/missing metadata explicitly unresolved.",
+    "Per-unit before/after source/object bytes and metadata pinned; not global atomic snapshot or compiler/header freshness proof.",
+    "ELF duplicate-name/parser errors are coverage gaps, never silently skipped; NOBITS bytes not read."
+  ]
+}

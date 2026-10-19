@@ -1,0 +1,1416 @@
+{
+  "source_size": 448,
+  "target_owned_size": 452,
+  "full_owned_with_4B_alignment_equal": true,
+  "source_resolved_hex": "8bf3928682d082cb82e80000836e815b83689285926e00009286835f8381815b83579285926e000092868ce3835f8381815b83579285926e0000000083588365815b83578343839342000000803ef718803ef718803ef6d8803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef710803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef710803ef7b0803ef7b0803ef7a0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7a8803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7a80000000000000000803eefd0803ef2b0803ef2c0",
+  "DOL_hex": "8bf3928682d082cb82e80000836e815b83689285926e00009286835f8381815b83579285926e000092868ce3835f8381815b83579285926e0000000083588365815b83578343839342000000803ef718803ef718803ef6d8803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef710803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef718803ef710803ef718803ef718803ef718803ef710803ef7b0803ef7b0803ef7a0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7a8803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7b0803ef7a8803ef7b0803ef7b0803ef7b0803ef7a80000000000000000803eefd0803ef2b0803ef2c000000000",
+  "all91_ADDR32": [
+    {
+      "offset": 76,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 80,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 84,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 104,
+      "canonical": "0x803ef6d8",
+      "DOL_word": "0x803ef6d8",
+      "equal": true
+    },
+    {
+      "offset": 88,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 92,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 96,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 100,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 104,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 108,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 112,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 116,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 120,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 124,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 128,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 132,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 136,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 140,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 144,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 148,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 152,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 156,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 160,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 164,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 168,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 172,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 176,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 180,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 184,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 188,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 192,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 196,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 200,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 204,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 208,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 212,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 216,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 220,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 224,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 228,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 232,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 236,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 240,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 244,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 168,
+      "canonical": "0x803ef718",
+      "DOL_word": "0x803ef718",
+      "equal": true
+    },
+    {
+      "offset": 248,
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "addend": 160,
+      "canonical": "0x803ef710",
+      "DOL_word": "0x803ef710",
+      "equal": true
+    },
+    {
+      "offset": 252,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 256,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 260,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 32,
+      "canonical": "0x803ef7a0",
+      "DOL_word": "0x803ef7a0",
+      "equal": true
+    },
+    {
+      "offset": 264,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 268,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 272,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 276,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 280,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 284,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 288,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 292,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 296,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 300,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 304,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 308,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 312,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 316,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 320,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 324,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 328,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 332,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 336,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 340,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 344,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 348,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 352,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 356,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 360,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 364,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 368,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 372,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 376,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 380,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 384,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 388,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 392,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 396,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 400,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 404,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 408,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 412,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 416,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 420,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 48,
+      "canonical": "0x803ef7b0",
+      "DOL_word": "0x803ef7b0",
+      "equal": true
+    },
+    {
+      "offset": 424,
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "addend": 40,
+      "canonical": "0x803ef7a8",
+      "DOL_word": "0x803ef7a8",
+      "equal": true
+    },
+    {
+      "offset": 436,
+      "name": "getStickY__11MarioModuleCFv",
+      "addend": 0,
+      "canonical": "0x803eefd0",
+      "DOL_word": "0x803eefd0",
+      "equal": true
+    },
+    {
+      "offset": 440,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "addend": 0,
+      "canonical": "0x803ef2b0",
+      "DOL_word": "0x803ef2b0",
+      "equal": true
+    },
+    {
+      "offset": 444,
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+      "addend": 0,
+      "canonical": "0x803ef2c0",
+      "DOL_word": "0x803ef2c0",
+      "equal": true
+    }
+  ],
+  "padding_hex": "00000000",
+  "excluded_prefix": {
+    "address": "0x806dd6b0",
+    "size": 12,
+    "hex": "505f506c616e65744d617000"
+  },
+  "preserved_move": {
+    "address": "0x806dd880",
+    "size": 24,
+    "hex": "0000000000000000803eefd0803ef2b0803ef2c000000000",
+    "equal_before": true
+  },
+  "preservation": [
+    {
+      "name": "__apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "addVelocityAfter__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>f",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimationInterpoleFrame__11MarioModuleFUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimationNonStop__11MarioModuleFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimationUpperWeak__11MarioModuleFPCcPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimationUpper__11MarioModuleFPCcPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimationWithAttr__11MarioModuleFPCcUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimation__11MarioModuleFPCcPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "changeAnimation__11MarioModuleFPCcUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "checkLvlA__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "checkLvlZ__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "checkPreLvlZ__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "checkSquat__11MarioModuleFb",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "checkTrgA__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "checkTrgZ__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "clearVelocity__11MarioModuleFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "cutGravityElementFromJumpVec__11MarioModuleFb",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "cutVecElementFromJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "dot__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EE8F0__11MarioModuleFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EEA90__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EF000__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EF300__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EF5B0__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EF7C0__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EFA20__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "fn_803EFA30__11MarioModuleCFPC9HitSensorPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getAirGravityVec__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getAnimationFrame__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getAnimationStringPointer__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getAnimationTrackWeight__11MarioModuleFUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getAnimator__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getCamDirX__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getCamDirY__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getCamDirZ__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getCamPos__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getCurrentBckName__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getFloorCode__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getFrame__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getFrontVec__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getGravityVec__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getGroundPolygon__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getJumpVec__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getPlayerMode__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getPlayer__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getSensor__11MarioModuleCFPC8Triangle",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getShadowPos__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getStickP__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getStickX__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getStickY__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getTmpPolygon__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getTrans__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getVelocity__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "getWorldPadDir__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isAnimationRun__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isAnimationRun__11MarioModuleFPCcUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isAnimationStop__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isAnimationTerminate__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isDefaultAnimationRun__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isInputDisable__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isMainAnimationRun__11MarioModuleCFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isOnSlipGround__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeBee__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeCloud__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeFire__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeFoo__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeHopper__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeIce__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeInvincible__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeTeresa__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isPlayerModeYoshi__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isSlipFloorCode__11MarioModuleCFl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isStatusActiveID__11MarioModuleCFUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isStatusActiveS__11MarioModuleCFP10MarioState",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isStickFull__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "isStickOn__11MarioModuleCFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "marioAcos__11MarioModuleCFf",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playEffectRTW__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playEffectRTZ__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playEffectRT__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playEffectSRT__11MarioModuleFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playEffectTrans__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playEffect__11MarioModuleFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "playSound__11MarioModuleFPCcl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "setJointGlobalMtx__11MarioModuleFUsPA4_f",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "setJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "setYangleOffset__11MarioModuleFf",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "startCamVib__11MarioModuleFUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "startPadVib__11MarioModuleFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "startPadVib__11MarioModuleFUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopAnimationUpperForce__11MarioModuleFv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopAnimationUpper__11MarioModuleFPCcPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopAnimation__11MarioModuleFPCcPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopAnimation__11MarioModuleFPCcUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopEffectForce__11MarioModuleFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopEffect__11MarioModuleFPCc",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "stopSound__11MarioModuleFPCcUl",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    },
+    {
+      "name": "zero__Q29JGeometry8TVec3<f>Fv",
+      "size_equal": true,
+      "ordered_calls_equal": true,
+      "ordered_scalar_values_equal": true
+    }
+  ],
+  "removed_functions": [
+    "MarioModule_FORCE_EMIT_STRING__Fv"
+  ],
+  "added_functions": [],
+  "strict_anchors_lost": [],
+  "strict_anchors_added": [],
+  "counts": {
+    "left": {
+      "owned_functions": 98,
+      "all_emitted_functions": 98,
+      "direct_calls_owned": 72,
+      "indirect_calls_owned": 0,
+      "scalars_owned": 25
+    },
+    "right": {
+      "owned_functions": 98,
+      "all_emitted_functions": 107,
+      "direct_calls_owned": 72,
+      "indirect_calls_owned": 0,
+      "scalars_owned": 25
+    }
+  },
+  "all_actual_target_scalars_equal": true
+}

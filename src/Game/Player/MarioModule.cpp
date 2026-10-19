@@ -14,8 +14,40 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "revolution/os.h"
 
-void MarioModule_FORCE_EMIT_STRING() {
-    OSReport("P_PlanetMap");
+bool MarioModule::checkSquat(bool a1) {
+    if (MR::getKarikariClingNum() < 1 == false) {
+        return false;
+    }
+    if (mActor->_468) {
+        return false;
+    }
+    if (mActor->_B94 != 0) {
+        return false;
+    }
+    if (mActor->mBeeWallWalk != 0) {
+        return false;
+    }
+    if (mActor->mMario->mActor->mPlayerMode == 10) {
+        if (mActor->getYoshi()->mDashTimer > 0) {
+            return false;
+        }
+        if (mActor->mMarioAnim->isAnimationRun("空中ひねり")) {
+            return false;
+        }
+    }
+    if (((mActor->mMario->mMovementStates.mHighWord >> 28) & 1U)) {
+        return false;
+    }
+    if (((mActor->mMario->mMovementStates.mHighWord >> 30) & 1U)) {
+        if (!mActor->checkButtonType(9, false)) {
+            mActor->mMario->mMovementStates.mHighWord &= 0xBFFFFFFFU;
+        }
+        return false;
+    }
+    if (!a1 && mActor->mMario->mVerticalSpeed > 100.0f) {
+        return false;
+    }
+    return mActor->checkButtonType(9, false);
 }
 
 bool MarioModule::isInputDisable() const {
@@ -443,42 +475,6 @@ bool MarioModule::checkPreLvlZ() const {
     return mActor->checkButtonType(9, true);
 }
 
-bool MarioModule::checkSquat(bool a1) {
-    if (MR::getKarikariClingNum() < 1 == false) {
-        return false;
-    }
-    if (mActor->_468) {
-        return false;
-    }
-    if (mActor->_B94 != 0) {
-        return false;
-    }
-    if (mActor->mBeeWallWalk != 0) {
-        return false;
-    }
-    if (mActor->mMario->mActor->mPlayerMode == 10) {
-        if (mActor->getYoshi()->mDashTimer > 0) {
-            return false;
-        }
-        if (mActor->mMarioAnim->isAnimationRun("空中ひねり")) {
-            return false;
-        }
-    }
-    if (((mActor->mMario->mMovementStates.mHighWord >> 28) & 1U)) {
-        return false;
-    }
-    if (((mActor->mMario->mMovementStates.mHighWord >> 30) & 1U)) {
-        if (!mActor->checkButtonType(9, false)) {
-            mActor->mMario->mMovementStates.mHighWord &= 0xBFFFFFFFU;
-        }
-        return false;
-    }
-    if (!a1 && mActor->mMario->mVerticalSpeed > 100.0f) {
-        return false;
-    }
-    return mActor->checkButtonType(9, false);
-}
-
 TVec3f& MarioModule::getTrans() const {
     return mActor->mMario->mPosHolder->mPos;
 }
@@ -493,6 +489,19 @@ bool MarioModule::isOnSlipGround() const {
         return true;
     }
     return false;
+}
+
+bool MarioModule::isSlipPolygon(const Triangle* triangle) const {
+    if (!triangle->isValid()) { return false; }
+    switch (mActor->mMario->_95C->getCode(triangle)) {
+    case 2:
+        return !(calcAngleD(*triangle->getNormal(0)) <= 3.0f);
+    case 3: case 13: case 20: case 21: case 22: case 30: case 39: case 43:
+        return false;
+    default:
+        f32 angle = calcAngleD(*triangle->getNormal(0));
+        return angle >= mActor->getConst().getTable()->mFlatAngle - 0.5f;
+    }
 }
 
 bool MarioModule::isSlipFloorCode(s32 a1) const {
@@ -595,19 +604,6 @@ void MarioModule::fn_803EEC20(const char* name, const char* defaultName) {
 s32 MarioModule::fn_803EF000() const { return mActor->checkButtonType(4, false); }
 const TVec3f& MarioModule::fn_803EF300() const { return mActor->mMario->_16C; }
 const TVec3f& MarioModule::fn_803EF5B0() const { return mActor->mMario->mShadowPos; }
-bool MarioModule::isSlipPolygon(const Triangle* triangle) const {
-    if (!triangle->isValid()) { return false; }
-    switch (mActor->mMario->_95C->getCode(triangle)) {
-    case 2:
-        return !(calcAngleD(*triangle->getNormal(0)) <= 3.0f);
-    case 3: case 13: case 20: case 21: case 22: case 30: case 39: case 43:
-        return false;
-    default:
-        f32 angle = calcAngleD(*triangle->getNormal(0));
-        return angle >= mActor->getConst().getTable()->mFlatAngle - 0.5f;
-    }
-}
-
 TVec3f& MarioModule::getCamPos() const { return mActor->mCameraPosition; }
 
 Triangle* MarioModule::fn_803EFA20() const {

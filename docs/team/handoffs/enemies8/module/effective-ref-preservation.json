@@ -1,0 +1,1162 @@
+{
+  "all_reference_identities_or_complete_payloads_equal": true,
+  "references": [
+    {
+      "function": "addVelocityAfter__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "addVelocity__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 36,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 44,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 52,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 56,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 60,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 68,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 80,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 92,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 96,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 100,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 108,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcAngleD__11MarioModuleCFRCQ29JGeometry8TVec3<f>",
+      "offset": 120,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 32,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 44,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 60,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 64,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 68,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 80,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 96,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcPolygonAngleD__11MarioModuleCFPC8Triangle",
+      "offset": 108,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 32,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 60,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 68,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 72,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 88,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 92,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 180,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 188,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 200,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 220,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 268,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 276,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 288,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 308,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 340,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "calcWorldPadDir__11MarioModuleFPQ29JGeometry8TVec3<f>ffb",
+      "offset": 368,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationInterpoleFrame__11MarioModuleFUl",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationNonStop__11MarioModuleFPCc",
+      "offset": 48,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationNonStop__11MarioModuleFPCc",
+      "offset": 64,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationNonStop__11MarioModuleFPCc",
+      "offset": 88,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationUpperWeak__11MarioModuleFPCcPCc",
+      "offset": 64,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationUpperWeak__11MarioModuleFPCcPCc",
+      "offset": 88,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationUpper__11MarioModuleFPCcPCc",
+      "offset": 64,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationUpper__11MarioModuleFPCcPCc",
+      "offset": 88,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationWithAttr__11MarioModuleFPCcUl",
+      "offset": 56,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimationWithAttr__11MarioModuleFPCcUl",
+      "offset": 72,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimation__11MarioModuleFPCcPCc",
+      "offset": 60,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimation__11MarioModuleFPCcPCc",
+      "offset": 84,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimation__11MarioModuleFPCcUl",
+      "offset": 48,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "changeAnimation__11MarioModuleFPCcUl",
+      "offset": 64,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkLvlA__11MarioModuleCFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkLvlZ__11MarioModuleCFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkPreLvlZ__11MarioModuleCFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 28,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 132,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 160,
+      "type": 6,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 164,
+      "type": 4,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 172,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 236,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 288,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "checkSquat__11MarioModuleFb",
+      "offset": 316,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkTrgA__11MarioModuleCFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "checkTrgZ__11MarioModuleCFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "clearVelocity__11MarioModuleFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "cutGravityElementFromJumpVec__11MarioModuleFb",
+      "offset": 44,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "cutGravityElementFromJumpVec__11MarioModuleFb",
+      "offset": 64,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "cutGravityElementFromJumpVec__11MarioModuleFb",
+      "offset": 80,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "cutVecElementFromJumpVec__11MarioModuleFRCQ29JGeometry8TVec3<f>",
+      "offset": 16,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EE8F0__11MarioModuleFPCc",
+      "offset": 36,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EE8F0__11MarioModuleFPCc",
+      "offset": 44,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EEA90__11MarioModuleCFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "offset": 16,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "offset": 40,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "offset": 76,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "offset": 100,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EEC20__11MarioModuleFPCcPCc",
+      "offset": 108,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EF000__11MarioModuleCFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EF7C0__11MarioModuleCFv",
+      "offset": 36,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EFA30__11MarioModuleCFPC9HitSensorPCc",
+      "offset": 32,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "fn_803EFA30__11MarioModuleCFPC9HitSensorPCc",
+      "offset": 52,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getAirGravityVec__11MarioModuleCFv",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getAnimationFrame__11MarioModuleCFv",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getAnimationStringPointer__11MarioModuleCFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getAnimationTrackWeight__11MarioModuleFUl",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getCurrentBckName__11MarioModuleCFv",
+      "offset": 28,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getCurrentBckName__11MarioModuleCFv",
+      "offset": 48,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getFloorCode__11MarioModuleCFv",
+      "offset": 16,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getFrame__11MarioModuleCFv",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getGravityVec__11MarioModuleCFv",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "getSensor__11MarioModuleCFPC8Triangle",
+      "offset": 24,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isAnimationRun__11MarioModuleCFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isAnimationRun__11MarioModuleFPCcUl",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isAnimationStop__11MarioModuleCFv",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "offset": 20,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isAnimationTerminateUpper__11MarioModuleCFPCc",
+      "offset": 36,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isAnimationTerminate__11MarioModuleCFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isDefaultAnimationRun__11MarioModuleCFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 64,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 96,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 128,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 160,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 192,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isMainAnimationRun__11MarioModuleCFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isOnSlipGround__11MarioModuleCFv",
+      "offset": 36,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipFloorCode__11MarioModuleCFl",
+      "offset": 8,
+      "type": 6,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isSlipFloorCode__11MarioModuleCFl",
+      "offset": 16,
+      "type": 4,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 32,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 68,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 80,
+      "type": 6,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 88,
+      "type": 4,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 112,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 124,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 128,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 176,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 188,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isSlipPolygon__11MarioModuleCFPC8Triangle",
+      "offset": 196,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isStatusActiveID__11MarioModuleCFUl",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isStatusActiveS__11MarioModuleCFP10MarioState",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "isStickFull__11MarioModuleCFv",
+      "offset": 4,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isStickOn__11MarioModuleCFv",
+      "offset": 16,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    },
+    {
+      "function": "isStickOn__11MarioModuleCFv",
+      "offset": 28,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "marioAcos__11MarioModuleCFf",
+      "offset": 0,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playEffectRTW__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playEffectRTZ__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playEffectRT__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playEffectSRT__11MarioModuleFPCcfRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playEffectTrans__11MarioModuleFPCcRCQ29JGeometry8TVec3<f>",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playEffect__11MarioModuleFPCc",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "playSound__11MarioModuleFPCcl",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+      "offset": 16,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+      "offset": 48,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+      "offset": 72,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "sendPunch__11MarioModuleFP9HitSensorPC8Triangleb",
+      "offset": 84,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "setJointGlobalMtx__11MarioModuleFUsPA4_f",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startCamVib__11MarioModuleFUl",
+      "offset": 44,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startCamVib__11MarioModuleFUl",
+      "offset": 48,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startCamVib__11MarioModuleFUl",
+      "offset": 52,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startCamVib__11MarioModuleFUl",
+      "offset": 56,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startCamVib__11MarioModuleFUl",
+      "offset": 60,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startPadVib__11MarioModuleFPCc",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startPadVib__11MarioModuleFUl",
+      "offset": 44,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startPadVib__11MarioModuleFUl",
+      "offset": 56,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startPadVib__11MarioModuleFUl",
+      "offset": 68,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "startPadVib__11MarioModuleFUl",
+      "offset": 80,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimationUpperForce__11MarioModuleFv",
+      "offset": 12,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimationUpper__11MarioModuleFPCcPCc",
+      "offset": 52,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimationUpper__11MarioModuleFPCcPCc",
+      "offset": 68,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimation__11MarioModuleFPCcPCc",
+      "offset": 20,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimation__11MarioModuleFPCcUl",
+      "offset": 16,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimation__11MarioModuleFPCcUl",
+      "offset": 56,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimation__11MarioModuleFPCcUl",
+      "offset": 80,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimation__11MarioModuleFPCcUl",
+      "offset": 96,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopAnimation__11MarioModuleFPCcUl",
+      "offset": 104,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopEffectForce__11MarioModuleFPCc",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopEffect__11MarioModuleFPCc",
+      "offset": 4,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "stopSound__11MarioModuleFPCcUl",
+      "offset": 8,
+      "type": 10,
+      "identity": "exact symbol name/addend",
+      "equal": true
+    },
+    {
+      "function": "zero__Q29JGeometry8TVec3<f>Fv",
+      "offset": 0,
+      "type": 109,
+      "identity": "complete data-object bytes+all ADDR32 canonical identities",
+      "equal": true
+    }
+  ],
+  "intentional_two_base_seed_changes": [
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 20,
+      "before_first_literal": "P_PlanetMap",
+      "after_first_literal": "\u7a7a\u4e2d\u3072\u306d\u308a",
+      "four_actual_reaches_checked_separately": true
+    },
+    {
+      "function": "isInputDisable__11MarioModuleCFv",
+      "offset": 24,
+      "before_first_literal": "P_PlanetMap",
+      "after_first_literal": "\u7a7a\u4e2d\u3072\u306d\u308a",
+      "four_actual_reaches_checked_separately": true
+    }
+  ],
+  "four_actual_string_reaches": [
+    {
+      "source_displacement": 12,
+      "complete_terminated_literal_before": "836e815b83689285926e00",
+      "complete_terminated_literal_after": "836e815b83689285926e00",
+      "equal": true
+    },
+    {
+      "source_displacement": 24,
+      "complete_terminated_literal_before": "9286835f8381815b83579285926e00",
+      "complete_terminated_literal_after": "9286835f8381815b83579285926e00",
+      "equal": true
+    },
+    {
+      "source_displacement": 40,
+      "complete_terminated_literal_before": "92868ce3835f8381815b83579285926e00",
+      "complete_terminated_literal_after": "92868ce3835f8381815b83579285926e00",
+      "equal": true
+    },
+    {
+      "source_displacement": 60,
+      "complete_terminated_literal_before": "83588365815b8357834383934200",
+      "complete_terminated_literal_after": "83588365815b8357834383934200",
+      "equal": true
+    }
+  ],
+  "all_actual_string_reaches_equal": true,
+  "scope": "107 complete surviving functions; all other code bytes/calls/scalars verified separately; no output alias/purity/equivalence rule introduced"
+}

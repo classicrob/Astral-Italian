@@ -230,7 +230,6 @@ public:
     void fn_803C5E20(MtxPtr mtx);
     void fn_803C5ED0(MtxPtr m1, MtxPtr m2);
     void fn_803C8AA0();
-    void fn_803C8E40(void* pk, u16 idx, s32 which);
     bool fn_803C9300();
     void fn_803C9920(TVec3f& vec);
     void fn_803CA1F0();
@@ -1302,8 +1301,9 @@ public:
         };
         struct { ModelHolder* mModelF24; ModelHolder* mModelF28; };
         struct { u8 _padModelF24[0x14]; ModelHolder* mModelF38; };
-        struct { u8 _padHandFlagsF24[0x10]; u8 mShadowHideHandsF34; u8 mHandFlagF35; u8 mHandFlagF36; };
+        struct { u8 _padHandFlagsF24[0x10]; u8 mShadowHideHandsF34; u8 mHandFlagF35; u8 mHandFlagF36; u8 mFaceJointCountF37; };
         struct { u8 _padReflectionF24[0x20]; TVec3f mReflectionPositionF44; };
+        struct { u8 _padFaceF24[0x18]; u8 mFaceJointIndexF3C; };
         struct { u8 _padHandF24[8]; ModelHolder* mHandModelL; ModelHolder* mHandModelR; };
         struct { u8 _padEffectF24[0x1C]; MarioActorEffectState* mActorEffectState; };
         struct { u8 _padF24[0x2C]; TVec2f mScreenF50; TVec2f mScreenF58; TVec2f mScreenF60; TVec2f mScreenF68; u8* mScreenBuffer; };

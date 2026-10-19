@@ -87,18 +87,20 @@ void Mario::fn_803897A0() {
     u32 temp_r4 = this->mMovementStates_HIGH_WORD;
     if ((temp_r4 >> 28) & 1) {
         if (!((this->mMovementStates_LOW_WORD >> 30) & 1)) {
+            return;
         }
         if ((temp_r4 >> 27) & 1) {
-            if (!this->isSlipPolygon(this->mGroundPolygon)) {
+            if (!this->isSlipPolygon(this->_460)) {
+                return;
             }
-            const TVec3f* nrm = this->mGroundPolygon->getNormal(0);
+            const TVec3f* nrm = this->_460->getNormal(0);
             f32 temp_f31 = MR::vecKillElement(this->mVelocity, *nrm, &this->mVelocity);
-            nrm = this->mGroundPolygon->getNormal(0);
-            TVec3f sp14(FLD<TVec3f>(this, 0x368));
+            nrm = this->_460->getNormal(0);
+            TVec3f sp14(this->_368);
             sp14 -= *nrm;
             TVec3f sp20(sp14);
             sp20 *= 0.5f;
-            f32 temp_f31_2 = temp_f31 < 0.0f ? -temp_f31 : temp_f31;
+            f32 temp_f31_2 = MR::abs(temp_f31);
             TVec3f sp8(sp20);
             sp8 *= temp_f31_2;
             this->mVelocity += sp8;
@@ -456,11 +458,13 @@ f32 Mario::fn_803A26C0(f32 x) {
 }
 
 void Mario::fn_803A24C0(TVec3f* arg) {
-    if (FLD<u8>(this, 0x274) == 0) {
-        TMtx34f sp8;
-        PSMTXRotAxisRad(sp8, &this->mHeadVec, -0.12f);
-        PSMTXMultVecSR(sp8, &FLD<TVec3f>(this, 0x214), arg);
+    f32 angle = 0.12f;
+    if (this->_274 == 0) {
+        angle = -0.12f;
     }
+    TMtx34f matrix;
+    PSMTXRotAxisRad(matrix, &this->mHeadVec, angle);
+    PSMTXMultVecSR(matrix, &this->_214, arg);
 }
 
 void Mario::fn_803A2450(const TVec3f* arg) {

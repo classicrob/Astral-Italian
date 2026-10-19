@@ -147,12 +147,18 @@ bool YoshiModelCtrl::calcSpine(TPos3f* mtx,const JointControllerInfo&) {
     }
     TPos3f rot;rot.makeQuat(quat);mtx->concat(rot,*mtx);mtx->setTrans(trans);return true;
 }
+// NONMATCHING: vector stack slots, floating-point register allocation and scheduling differ.
 void YoshiModelState::calcJoint(TPos3f* mtx,const JointControllerInfo& info) {
     const J3DTransformInfo& t=info.mJoint->getTransformInfo();TPos3f local;local.identity();
     TVec3f trans(t.mTranslate.x,t.mTranslate.y,t.mTranslate.z);
     TVec3f angles(static_cast<f32>(t.mRotation.x)/32768.0f,static_cast<f32>(t.mRotation.y)/32768.0f,static_cast<f32>(t.mRotation.z)/32768.0f);
     TVec3f scale(t.mScale.x,t.mScale.y,t.mScale.z);
-    f32 sx=sin(angles.x),sy=sin(angles.y),sz=sin(angles.z),cx=cos(angles.x),cy=cos(angles.y),cz=cos(angles.z);
+    double sxResult=sin(angles.x);f32 syArg=angles.y;f32 sx=sxResult;
+    double syResult=sin(syArg);f32 szArg=angles.z;f32 sy=syResult;
+    double szResult=sin(szArg);f32 cxArg=angles.x;f32 sz=szResult;
+    double cxResult=cos(cxArg);f32 cyArg=angles.y;f32 cx=cxResult;
+    double cyResult=cos(cyArg);f32 czArg=angles.z;f32 cy=cyResult;
+    f32 cz=cos(czArg);
     f32 sxy=sx*sy,cxz=cx*sz,cxc=cx*cz;
     local.mMtx[0][0]=scale.x*(cy*cz);local.mMtx[1][0]=scale.x*(cy*sz);local.mMtx[2][0]=scale.x*-sy;
     local.mMtx[0][1]=scale.y*(sxy*cz-cxz);local.mMtx[1][1]=scale.y*(cxc+sxy*sz);local.mMtx[2][1]=scale.y*(sx*cy);

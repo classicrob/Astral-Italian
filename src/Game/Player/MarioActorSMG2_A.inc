@@ -2136,32 +2136,7 @@ void J3DModelX::swapDrawBuffer(u32 a) {
     FP(this, u8, 0xDC) = (u8)a;
 }
 
-void MarioActor::fn_803C8E40(void* pk, u16 idx, s32 which) {
-    void* data = FP(mAllModel->getJ3DModel(), void*, 4);
-    void* obj = FP(data, void**, 0x28)[idx];
-    void* t3 = FP(obj, void*, 0x58);
-    if (t3 != nullptr) {
-        u16 lo, hi;
-        if (which == -1) {
-            lo = 0;
-            hi = 7;
-        } else {
-            lo = (u16)which;
-            hi = lo;
-        }
-        s32 off = FP(t3, u16, 0x14) * 4;
-        while (lo <= hi) {
-            J3DMatPacket* mp = (J3DMatPacket*)(FP(pk, u8*, 0xC0) + (lo << 6));
-            FP(mp, void*, 0x30) = *(void**)(FP(data, u8*, 0x60) + off);
-            J3DShapePacket* sp = (J3DShapePacket*)(FP(pk, u8*, 0xC4) + lo * 0x3C);
-            FP(mp, void*, 0x28) = sp;
-            mp->addShapePacket(sp);
-            lo++;
-            FP(mp, void*, 0x38) = FP(data, void*, 0x6C);
-            FP(mp, void*, 0x20) = FP(*(void**)(FP(data, u8*, 0x60) + off), void*, 0x48);
-        }
-    }
-}
+
 
 
 bool MarioActor::fn_803C9300() {

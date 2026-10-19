@@ -116,7 +116,8 @@ void CloudMarioHat::initDynamics() {
     }
 }
 
-// NONMATCHING: point-table address CSE and GPR allocation.
+#pragma push
+#pragma opt_common_subs off
 void CloudMarioHat::resetDynamics() {
     MarioMtxPos matrix(mHatMatrix);
     for (u32 i = 0; i < 5; ++i) {
@@ -129,6 +130,8 @@ void CloudMarioHat::resetDynamics() {
     }
     for (u32 i = 0; i < 4; ++i) mSprings[i]->reset();
 }
+
+#pragma pop
 
 void CloudMarioHat::updateDynamics() {
     mHatMatrix.getTrans(mPoints[0]->mPosition);

@@ -764,7 +764,8 @@ bool Yoshi::fn_80412310() const {
     return result;
 }
 
-// NONMATCHING: string pool base and register allocation differ.
+// NONMATCHING: verified string relocation labels only.
+#pragma pool_data off
 void Yoshi::fn_8040CA10() {
     fn_804103F0();
     fn_80411A30();
@@ -789,6 +790,7 @@ void Yoshi::fn_8040CA10() {
         MR::startActionSound(this, "DashWater", -1, -1, 6);
     }
 }
+#pragma pool_data reset
 
 bool Yoshi::fn_8040F0E0() const {
     return !isNerve(&NrvYoshi::YoshiNrv80413840::sInstance);
@@ -826,7 +828,8 @@ void Yoshi::fn_8040CC40() {
     MR::changePlayerModeYoshi();
 }
 
-// NONMATCHING: string pool base, register allocation and equality lowering differ.
+// NONMATCHING: pointer equality lowers to direct compares; verified string relocation labels differ.
+#pragma pool_data off
 bool Yoshi::receiveMsgPlayerAttack(u32 message, HitSensor* sender, HitSensor* receiver) {
     if (MR::isMsgStarPieceReflect(message)) {
         if (fn_80411960()) {
@@ -857,6 +860,7 @@ bool Yoshi::receiveMsgPlayerAttack(u32 message, HitSensor* sender, HitSensor* re
     }
     return false;
 }
+#pragma pool_data reset
 
 // NONMATCHING: getZDir is inlined; pointer comparison lowering differs.
 bool Yoshi::receiveMsgPush(HitSensor* sender, HitSensor* receiver) {
@@ -1249,7 +1253,7 @@ void Yoshi::fn_8040FE30() {
     MR::setEffectHostSRT(this, "水波紋", NULL, NULL, NULL);
 }
 
-// NONMATCHING: getTrans is inlined and return branches are ordered differently.
+// NONMATCHING: verified scalar relocation labels only.
 bool YoshiPlayerFacingCtrl::fn_80413040() {
     TVec3f position;
     mBaseMtx->getTrans(position);
@@ -1263,10 +1267,11 @@ bool YoshiPlayerFacingCtrl::fn_80413040() {
     }
     if (front.angle(toPlayer) > 0.785398185f) {
         mTimer++;
-        return mTimer > 15;
+    } else {
+        mTimer = 0;
+        return false;
     }
-    mTimer = 0;
-    return false;
+    return mTimer > 15;
 }
 
 bool YoshiPlayerFacingCtrl::fn_804131C0(const TVec3f& direction) {
@@ -1519,10 +1524,11 @@ bool Yoshi::fn_80410810(TVec3f* slope) const {
     return !MR::normalizeOrZero(slope);
 }
 
-// NONMATCHING: gravity address is recomputed instead of retained in a saved register.
+// NONMATCHING: verified scalar relocation labels only.
 void Yoshi::fn_80411630() {
+    const TVec3f* gravity = &mGravity;
     TVec3f velocity;
-    JMAVECScaleAdd(&mGravity, &mMovementVelocity, &velocity, -mGravity.dot(mMovementVelocity));
+    JMAVECScaleAdd(gravity, &mMovementVelocity, &velocity, -gravity->dot(mMovementVelocity));
     JGeometry::negateInternal(&velocity.x, &velocity.x);
     velocity.scale(2.0f);
     mMovementVelocity.add(velocity);
@@ -2137,7 +2143,8 @@ bool Yoshi::fn_80411CB0() const {
     TVec3f hit;
     return MR::getFirstPolyOnLineToMap(&hit, &triangle, _14C, ray);
 }
-// NONMATCHING: string pool address hoisting, temporary stack slots and register allocation differ.
+// NONMATCHING: vector temporary stack slots and verified string relocation labels differ.
+#pragma pool_data off
 void Yoshi::fn_8040DC20() {
     if (MR::isFirstStep(this)) fn_8040EDA0("水中泳ぎ（Ｎｐｃ）");
     if (!fn_8040F490("水面泳ぎ（Ｎｐｃ）") && !fn_8040F490("水中泳ぎ（Ｎｐｃ）")) {
@@ -2166,6 +2173,7 @@ void Yoshi::fn_8040DC20() {
         setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
     }
 }
+#pragma pool_data reset
 void Yoshi::fn_80410890() {
     TVec3f center;
     MR::copyJointPos(this, "Center", &center);
@@ -2295,12 +2303,13 @@ void Yoshi::fn_804109E0() {
         } else mMovementVelocity.zero();
     }
 }
-// NONMATCHING: position address lifetime and saved register allocation differ.
+// NONMATCHING: verified scalar relocation labels only.
 void Yoshi::fn_80410AC0() {
     YoshiGroundChecker* ground = mGroundChecker;
+    const TVec3f& position = mPosition;
     TVec3f movement;
     if (!ground->isGrounded()) movement.zero();
-    else ground->mGroundHit.mParentTriangle.calcForceMovePower(&movement, mPosition);
+    else ground->mGroundHit.mParentTriangle.calcForceMovePower(&movement, position);
     f32 vertical = mGravity.dot(movement);
     if (vertical < 0.0f) {
         TVec3f offset(mGravity);
@@ -2383,13 +2392,15 @@ void Yoshi::fn_8040DDA0(){
     if(MR::isFirstStep(this)){fn_8040EDA0("乗り捨て（Ｎｐｃ）");YoshiGroundChecker* ground=mGroundChecker;ground->mAirborneFrames=4;ground->mUpdated=false;}
     if(fn_8040F590(nullptr))fn_80410280();
 }
-// NONMATCHING: String-pool address hoisting and register allocation differ.
+// NONMATCHING: verified string relocation labels only.
+#pragma pool_data off
 void Yoshi::fn_8040DE20(){
     if(MR::isFirstStep(this)){YoshiGroundChecker* ground=mGroundChecker;ground->mAirborneFrames=4;ground->mUpdated=false;MR::startActionSound(this,"YoshiDamageRunAway",-1,-1,-1);}
     if(fn_8040F590(nullptr)){if(_130)fn_8040EDA0("空中後方ダメージ落下（Ｎｐｃ）");else fn_8040EDA0("空中前方ダメージ落下（Ｎｐｃ）");}
     if(mGroundChecker->isGrounded()){setNerve(&NrvYoshi::YoshiNrv80413940::sInstance);return;}
     if(MR::isGreaterEqualStep(this,120))setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
 }
+#pragma pool_data reset
 void Yoshi::fn_8040DF10(){
     if(MR::isFirstStep(this)){if(_130)fn_8040EDA0("空中後方ダメージ着地（Ｎｐｃ）");else fn_8040EDA0("空中前方ダメージ着地（Ｎｐｃ）");}
     if(mGroundChecker->isAirborne()){setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);return;}

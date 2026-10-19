@@ -50,6 +50,8 @@
 #include "Game/Player/MarioWarp.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/GravityUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include "math_types.hpp"
 #include "Game/Player/MarioShadow.hpp"
@@ -6022,24 +6024,24 @@ bool Mario::faint(const TVec3f& rVec) {
 // ---- MarioFlip.cpp ----
 
 bool Mario::doFlipJump(const TVec3f& rVec) {
-    // FIXME: regswap
     if (isAnimationRun("壁はじき")) {
         return false;
     }
-
     stopWalk();
-    TVec3f vec(rVec);
-    vec.setLength(mActor->mConst->getTable()->mWallSpinFlipGround);
-    vec -= getGravityVec()->scaleInline(mActor->mConst->getTable()->mWallSpinHopGround);
-    tryForcePowerJump(vec, true);
-
+    TVec3f velocity(rVec);
+    velocity.setLength(mActor->mConst->getTable()->mWallSpinFlipGround);
+    TVec3f gravity;
+    MR::calcGravityVector(mActor, &gravity, nullptr, 0);
+    if (!isPlayerModeYoshi() || mActor->fn_803B97F0()->mDashTimer <= 0 || MR::abs(getGravityVec()->dot(gravity)) > 0.2f) {
+        f32 hop = mActor->mConst->getTable()->mWallSpinHopGround;
+        velocity -= *getGravityVec() * hop;
+    }
+    tryForcePowerJump(velocity, true);
     changeAnimation("壁はじき");
-
     stopPunch();
-    mMovementStates._2B = true;
     _430 = 3;
+    mMovementStates_HIGH_WORD |= 0x100000;
     startPadVib(2);
-
     return true;
 }
 
@@ -10109,75 +10111,59 @@ bool Mario::retainMoveDir(f32 stickX, f32 stickY, TVec3f* pMoveDir) {
 
 
 void Mario::calcMoveDir(float stickX, float stickY, TVec3f* pMoveDir, bool isDisableMove) {
-    if (mMovementStates._37) {
+    if ((mMovementStates_HIGH_WORD >> 8) & 1) {
         calcDir2D(stickX, stickY, pMoveDir);
-    } else if (_10._15) {
+        return;
+    }
+    if ((_10_LOW_WORD >> 10) & 1) {
         calcMoveDir2D(stickX, stickY, pMoveDir);
-    } else if (mMovementStates._3A) {
+        return;
+    }
+    if ((mMovementStates_HIGH_WORD >> 5) & 1) {
         calcMoveDir25D(stickX, stickY, pMoveDir);
-    } else if (!isDisableMove || !retainMoveDir(stickX, stickY, pMoveDir)) {
-        const TVec3f& screenXDir = getCamDirX();
-        const TVec3f& screenYDir = getCamDirY();
-        TVec3f screenZDir = -getCamDirZ();
-        TVec3f groundXDir;
-        TVec3f groundYDir;
-        TVec3f groundYDirOrtho;
-
-        TVec3f marioUpDir = -*getGravityVec();
-        if (!MR::isNearZero(marioUpDir)) {
-            float dot = _398.dot(marioUpDir);
-            if (dot <= 0.0f) {
-                _398 = marioUpDir;
-            } else {
-                MR::vecBlendSphere(_398, marioUpDir, &_398, 0.1f);
-            }
-
-            MR::normalizeOrZero(&_398);
-        }
-
-        f32 movementDirScreenY = screenYDir.dot(_398);
-        f32 movementDirScreenZ = screenZDir.dot(_398);
-        f32 absMovementDirScreenY = MR::abs(movementDirScreenY);
-        f32 absMovementDirScreenZ = MR::abs(movementDirScreenZ);
-
-        if (absMovementDirScreenZ > absMovementDirScreenY) {
-            groundYDirOrtho = screenYDir;
-            if (movementDirScreenZ < 0.0f) {
-                groundYDirOrtho = -groundYDirOrtho;
-            }
-
-            groundXDir.cross(groundYDirOrtho, _398);
+        return;
+    }
+    if (isDisableMove) {
+        retainMoveDir(stickX, stickY, pMoveDir);
+    }
+    const TVec3f& screenX = getCamDirX();
+    const TVec3f& screenY = getCamDirY();
+    TVec3f screenZ = -getCamDirZ();
+    TVec3f groundX;
+    TVec3f groundY;
+    TVec3f selectedBasis;
+    TVec3f up = -*getGravityVec();
+    if (!MR::isNearZero(up, 0.001f)) {
+        if (_398.dot(up) <= 0.0f) {
+            _398 = up;
         } else {
-            groundYDirOrtho = -screenZDir;
-            if (movementDirScreenY < 0.0f) {
-                groundYDirOrtho = -groundYDirOrtho;
-                groundXDir.cross(screenZDir, _398);
-            } else {
-                groundXDir.cross(-screenZDir, _398);
-            }
+            MR::vecBlendSphere(&_398, _398, up, 0.1f);
         }
-
-        groundYDir.cross(screenXDir, _398);
-
-        MR::normalizeOrZero(&groundXDir);
-        if (MR::isNearZero(groundXDir)) {
-            groundXDir = screenXDir;
+        MR::normalizeOrZero(&_398);
+    }
+    f32 yAlignment = screenY.dot(_398);
+    f32 zAlignment = screenZ.dot(_398);
+    if (MR::abs(zAlignment) > MR::abs(yAlignment)) {
+        selectedBasis = screenY;
+        if (zAlignment < 0.0f) {
+            selectedBasis = -selectedBasis;
         }
-
-        MR::normalizeOrZero(&groundYDir);
-        if (MR::isNearZero(groundYDir)) {
-            groundYDir = groundYDirOrtho;
+        groundX.cross(selectedBasis, _398);
+    } else {
+        selectedBasis = -screenZ;
+        if (yAlignment < 0.0f) {
+            selectedBasis = -selectedBasis;
         }
-
-        *pMoveDir = groundXDir * stickX - groundYDir * stickY;
-
-        if (_10._13) {
-            TVec3f radialDir = mPosHolder->mPos - _6F4;
-            MR::vecKillElement(radialDir, _700, &radialDir);
-            MR::normalizeOrZero(&radialDir);
-            MR::vecKillElement(*pMoveDir, _700, pMoveDir);
-            MR::vecKillElement(*pMoveDir, radialDir, pMoveDir);
-        }
+        groundX.cross(selectedBasis, _398);
+    }
+    groundY = -selectedBasis;
+    MR::normalizeOrZero(&groundX);
+    if (MR::isNearZero(groundX, 0.001f)) {
+        groundX = screenX;
+    }
+    *pMoveDir = groundX * stickX - groundY * stickY;
+    if ((_10_LOW_WORD >> 12) & 1) {
+        MR::calcPlayerKillVecOnPlane(pMoveDir, *pMoveDir, mPosHolder->mPos, _6F4, _700);
     }
 }
 
@@ -11201,7 +11187,7 @@ bool Mario::doSideStep() {
     if (mActor->_468) {
         return false;
     }
-    if (_1C._5) {
+    if ((_1C_WORD >> 26) & 1) {
         return false;
     }
     if (_72C < 200.0f) {
@@ -11210,11 +11196,14 @@ bool Mario::doSideStep() {
     if (getPlayerMode() == PlayerMode_Hopper) {
         return false;
     }
+    if (isPlayerModeYoshi()) {
+        return false;
+    }
     if (calcPolygonAngleD(mFrontWallTriangle) > 91.0f) {
         return false;
     }
     f32 angle = MR::diffAngleAbs(getFrontWallNorm(), _368);
-    if (angle >= 1.6534699f || angle < 1.4959966f) {
+    if (MR::abs(angle - 1.5707964f) >= 0.5235988f) {
         return false;
     }
     bool cannotSideStep = !isSlipFloorCode(_960);
@@ -11224,7 +11213,7 @@ bool Mario::doSideStep() {
     if (_960 == 2) {
         return false;
     }
-    if (!getPlayer()->mMovementStates._8) {
+    if (!((getPlayer()->mMovementStates_LOW_WORD >> 23) & 1)) {
         return false;
     }
     const Triangle* wall = getPlayer()->getWallPolygon();

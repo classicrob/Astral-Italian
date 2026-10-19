@@ -1921,8 +1921,8 @@ bool MarioActor::isSleeping() const {
 }
 
 
+// NONMATCHING: equivalent short-circuit return normalization and saved register.
 bool MarioActor::isRefuseTalk() const {
-    // FIXME: isPlayerModeTeresa() is giving issues
     if (!isEnableNerveChange()) {
         return true;
     }
@@ -1982,7 +1982,10 @@ bool MarioActor::isRefuseTalk() const {
         return true;
     }
 
-    return _480;
+    if (_480) {
+        return true;
+    }
+    return mMario->isPlayerModeYoshi() && !mYoshiHolder->mTongueAction->fn_8041FA30();
 }
 
 
@@ -3694,25 +3697,26 @@ void MarioActor::swapTextureInit() {
 }
 
 
+// NONMATCHING: verified pooled literal offsets only.
 void MarioActor::initFace() {
-    _A5B = 8;
-    MR::hideJoint(mModels[0], "Face0");
-    _A60 = 0;
+    mFaceJointCountF37 = 8;
+    MR::hideJoint(mAllModel->mModels[0], "Face0");
+    mFaceJointIndexF3C = 0;
 
     if (gIsLuigi) {
-        _A5C = new ModelHolder("LuigiFace", true);
+        mModelF38 = new ModelHolder("LuigiFace", true);
     } else {
-        _A5C = new ModelHolder("MarioFace", true);
+        mModelF38 = new ModelHolder("MarioFace", true);
     }
 
-    MR::initDLMakerFog(_A5C, true);
-    MR::newDifferedDLBuffer(_A5C);
+    MR::initDLMakerFog(mModelF38, true);
+    MR::newDifferedDLBuffer(mModelF38);
 
-    MR::getJ3DModelData(_A5C)->mMaterialTable.mTexture = MR::getJ3DModelData(this)->mMaterialTable.mTexture;
-    MR::getJ3DModelData(_A5C)->mMaterialTable.mTextureName = MR::getJ3DModelData(this)->mMaterialTable.mTextureName;
+    MR::getJ3DModelData(mModelF38)->mMaterialTable.mTexture = MR::getJ3DModelData(this)->mMaterialTable.mTexture;
+    MR::getJ3DModelData(mModelF38)->mMaterialTable.mTextureName = MR::getJ3DModelData(this)->mMaterialTable.mTextureName;
 
-    for (u32 i = 0; i < _A5B; i++) {
-        copyMaterial(MR::getJ3DModel(_A5C), MR::getJointIndex(this, "Face0"), i);
+    for (u32 i = 0; i < mFaceJointCountF37; i++) {
+        copyMaterial(MR::getJ3DModel(mModelF38), MR::getJointIndex(this, "Face0"), i);
     }
 }
 
@@ -3722,43 +3726,31 @@ void MarioActorDraw_FORCE_MATCH_SDATA2_2() {
 }
 
 
+// NONMATCHING: equivalent model switch lowering, Animator receiver load scheduling, and verified literal.
 void MarioActor::updateFace() {
-    switch (mCurrModel) {
+    switch (mAllModel->mCurrentModel) {
     case 1:
     case 3:
     case 4:
-        MR::hideModel(_A5C);
+    case 6:
+        MR::hideModel(mModelF38);
         return;
     }
-
     if (mMario->isStatusActive(MarioStatus_FpView)) {
-        MR::hideModel(_A5C);
+        MR::hideModel(mModelF38);
         return;
     }
-
     if (MR::isHiddenModel(this) || is481or482On() || mMario->mMovementStates._F || _1C3) {
-        MR::hideModel(_A5C);
+        MR::hideModel(mModelF38);
         return;
     }
-
-    MR::showModel(_A5C);
-
+    MR::showModel(mModelF38);
     TVec3f partsControl;
-    if (mMarioAnim->_6C) {
-        XanimePlayer* player = mMarioAnim->mXanimePlayerUpper;
-        const s32 partsControlJoint = MR::getJointIndex(this, "PartsControl");
-        player->getMainAnimationTrans(static_cast< u32 >(partsControlJoint), &partsControl);
-    } else {
-        XanimePlayer* player = mMarioAnim->mXanimePlayer;
-        const s32 partsControlJoint = MR::getJointIndex(this, "PartsControl");
-        player->getMainAnimationTrans(static_cast< u32 >(partsControlJoint), &partsControl);
-    }
-
-    _A60 = MR::clamp(static_cast< s32 >(0.49f + partsControl.x / 10.0f), 0, _A5B - 1);
-
-    for (u16 i = 0; i < _A5B; i++) {
-        J3DJoint* eyeJoint = MR::getJoint(_A5C, i + 1);
-        if (_A60 == i) {
+    mMarioAnim->fn_803DEFD0(MR::getJointIndex(this, "PartsControl"), &partsControl);
+    mFaceJointIndexF3C = MR::clamp(static_cast<s32>(0.49f + partsControl.x / 10.0f), 0, mFaceJointCountF37 - 1);
+    for (u16 i = 0; i < mFaceJointCountF37; ++i) {
+        J3DJoint* eyeJoint = MR::getJoint(mModelF38, i + 1);
+        if (mFaceJointIndexF3C == i) {
             MR::showJoint(eyeJoint);
         } else {
             MR::hideJoint(eyeJoint);
@@ -4062,7 +4054,7 @@ void MarioActor::swapTexture(const char* pMaterialName, u8 texNo) const {
 
 
 void MarioActor::copyMaterial(J3DModel* pModel, u16 materialNo, s32 packetIndex) {
-    J3DModelData* modelData = getJ3DModel()->getModelData();
+    J3DModelData* modelData = mAllModel->getJ3DModel()->getModelData();
     J3DMaterial* material = modelData->getJointNodePointer(materialNo)->getMesh();
     if (material == nullptr) {
         return;
@@ -4781,8 +4773,8 @@ void MarioActor::initHand() {
     }
 
     for (u32 idx = 0; idx < MR::getJointNum(mModelF24) - 1; idx++) {
-        fn_803C8E40(MR::getJ3DModel(mModelF24), MR::getJointIndex(this, "HandL0"), idx);
-        fn_803C8E40(MR::getJ3DModel(mModelF28), MR::getJointIndex(this, "HandR0"), idx);
+        copyMaterial(MR::getJ3DModel(mModelF24), MR::getJointIndex(this, "HandL0"), idx);
+        copyMaterial(MR::getJ3DModel(mModelF28), MR::getJointIndex(this, "HandR0"), idx);
     }
 
     updateHandAtMorph();
@@ -6736,6 +6728,7 @@ void MarioActor::printHitMark(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::reactionPunch(HitSensor* pSensor) {
     if (mPlayerMode == 1) {
         return;
@@ -6755,7 +6748,7 @@ void MarioActor::reactionPunch(HitSensor* pSensor) {
         jumpHop();
     }
 
-    if (!MR::sendArbitraryMsg(ACTMES_HITMARK_EMIT, pSensor, getSensor("body"))) {
+    if (!MR::sendArbitraryMsg(ACTMES_HITMARK_EMIT, pSensor, getSensor("Body"))) {
         printHitMark(pSensor);
     }
 
@@ -6764,14 +6757,14 @@ void MarioActor::reactionPunch(HitSensor* pSensor) {
     if (pSensor->isType(ATYPE_BEGOMAN)) {
         mMario->stopWalk();
 
-        TVec3f reactDir(_2A0 - pSensor->mPosition);
-        MR::vecKillElement(reactDir, getGravityVector(), &reactDir);
+        TVec3f reactDir(_240 - *MR::getSensorPos(pSensor));
+        MR::vecKillElement(reactDir, *mMario->getGravityVec(), &reactDir);
         reactDir.setLength(20.0f);
         mMario->addReaction(reactDir);
     }
 
     if (mMario->isSwimming()) {
-        TVec3f punchDir(_2A0 - pSensor->mPosition);
+        TVec3f punchDir(_240 - *MR::getSensorPos(pSensor));
         punchDir.setLength(5.0f);
         mMario->mSwim->hitPunch(punchDir);
     }

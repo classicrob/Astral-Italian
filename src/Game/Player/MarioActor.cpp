@@ -5260,10 +5260,10 @@ bool MarioActor::isUnderTarget(HitSensor* pSensor) {
     if (mBeeWallWalk != 0) {
         down = mAppliedGravityVec;
     } else {
-        MR::calcGravityVectorOrZero(this, pSensor->mPosition, &down, mGravityInfo, 0);
+        MR::calcGravityVectorOrZero(this, *MR::getSensorPos(pSensor), &down, mGravityInfo, 0);
     }
 
-    if (down.dot(mPosition - pSensor->mPosition) <= 0.0f && mMario->_424 == 0) {
+    if (down.dot(mPosition - *MR::getSensorPos(pSensor)) <= 0.0f && mMario->_424 == 0) {
         return true;
     }
 
@@ -7428,12 +7428,12 @@ void MarioActor::recordScoutingObject(HitSensor* pSensor) {
         return;
     }
 
-    if (MR::diffAngleAbsHorizontal(pSensor->mPosition - (*MR::getSensorPos(this, "ex-eye")), mMario->mFrontVec, mAppliedGravityVec) >= 1.5707964f) {
+    if (MR::diffAngleAbsHorizontal(*MR::getSensorPos(pSensor) - getSensor("ex-eye")->mPosition, mMario->mFrontVec, mAppliedGravityVec) >= 1.5707964f) {
         return;
     }
 
     _9D4 = pSensor;
-    _9D8 = (*MR::getSensorPos(this, "ex-eye"));
+    _9D8 = getSensor("ex-eye")->mPosition;
     _9CC = _9D0;
     _9D0 = 60.0f;
 }

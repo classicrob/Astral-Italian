@@ -2923,6 +2923,7 @@ f32 Mario::calcDistWidth() {
 
 
 void Mario::updateCameraPolygon() {
+    // NONMATCHING: scalar pool relocations; instructions and referenced values match.
     HitSensor* sensor;
     const Triangle* triangle;
 
@@ -2936,11 +2937,13 @@ void Mario::updateCameraPolygon() {
 
     if (triangle->isValid()) {
         if (sensor == nullptr) {
-            setCameraPolygon(triangle);
+            *_468 = *triangle;
+            *_46C = *triangle;
             return;
         }
 
-        setCameraPolygon(triangle);
+        *_468 = *triangle;
+        *_46C = *triangle;
         return;
     }
 
@@ -2948,7 +2951,8 @@ void Mario::updateCameraPolygon() {
     const Triangle* cameraTriangle = MR::getCameraPolyFast(start, *getGravityVec() * 5000.0f, nullptr);
 
     if (cameraTriangle != nullptr) {
-        setCameraPolygon(cameraTriangle);
+        *_468 = *cameraTriangle;
+        *_46C = *cameraTriangle;
     }
 }
 
@@ -13117,15 +13121,16 @@ void Mario::setSeVersion(u32 version) {
 
 // ---- MarioSpecial.cpp ----
 
+// NONMATCHING: literal symbol identity; instruction words match after relocation masking.
 void Mario::checkOnimasu(const HitSensor* pSensor) {
-    if (strstr(pSensor->mHost->mName, "オニマス") == nullptr) {
+    if (strstr(MR::getSensorHost(pSensor)->mName, "オニマス") == nullptr) {
         return;
     }
 
     if (_5FC == nullptr) {
         _5FC = pSensor;
         _60C = 1;
-    } else if (_5FC != pSensor && (pSensor->mPosition - mPosHolder->mPos).length() < (_5FC->mPosition - mPosHolder->mPos).length()) {
+    } else if (_5FC != pSensor && (*MR::getSensorPos(pSensor) - mPosHolder->mPos).length() < (_5FC->mPosition - mPosHolder->mPos).length()) {
         _5FC = pSensor;
         _60C = 1;
     }

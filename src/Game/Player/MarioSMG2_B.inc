@@ -53,41 +53,41 @@ void fn_803B21B0(MarioRotationMatrix* pMtx, const TVec3f& rVec) {
     pMtx->mMtx[2][2] = rVec.z;
 }
 
-// NONMATCHING: floating-point register allocation and independent load scheduling only.
+// NONMATCHING: scalar literal symbol identities; instruction words match after relocation masking.
 void fn_803B21D0(const MarioRotationMatrix* matrix, TQuat4f& rDest) {
-    if (matrix->mMtx[0][0] + matrix->mMtx[1][1] + matrix->mMtx[2][2] >= 0.0f) {
-        f32 root = matrix->mMtx[0][0] + matrix->mMtx[1][1] + matrix->mMtx[2][2];
+    if ((*matrix)(0, 0) + (*matrix)(1, 1) + (*matrix)(2, 2) >= 0.0f) {
+        f32 root = (*matrix)(0, 0) + (*matrix)(1, 1) + (*matrix)(2, 2);
         root += 1.0f;
         root = JGeometry::TUtil< f32 >::sqrt(root);
         f32 scale = 0.5f / root;
         rDest.w = 0.5f * root;
-        rDest.x = scale * (matrix->mMtx[2][1] - matrix->mMtx[1][2]);
-        rDest.y = scale * (matrix->mMtx[0][2] - matrix->mMtx[2][0]);
-        rDest.z = scale * (matrix->mMtx[1][0] - matrix->mMtx[0][1]);
+        rDest.x = scale * ((*matrix)(2, 1) - (*matrix)(1, 2));
+        rDest.y = scale * ((*matrix)(0, 2) - (*matrix)(2, 0));
+        rDest.z = scale * ((*matrix)(1, 0) - (*matrix)(0, 1));
     } else {
-        f32 maximum = fn_80386D30(matrix->mMtx[0][0], matrix->mMtx[1][1], matrix->mMtx[2][2]);
+        f32 maximum = fn_80386D30((*matrix)(0, 0), (*matrix)(1, 1), (*matrix)(2, 2));
 
-        if (maximum == matrix->mMtx[0][0]) {
-            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + (matrix->mMtx[0][0] - (matrix->mMtx[1][1] + matrix->mMtx[2][2])));
+        if (maximum == (*matrix)(0, 0)) {
+            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + ((*matrix)(0, 0) - ((*matrix)(1, 1) + (*matrix)(2, 2))));
             f32 scale = 0.5f / root;
             rDest.x = 0.5f * root;
-            rDest.y = scale * (matrix->mMtx[0][1] + matrix->mMtx[1][0]);
-            rDest.z = scale * (matrix->mMtx[2][0] + matrix->mMtx[0][2]);
-            rDest.w = scale * (matrix->mMtx[2][1] - matrix->mMtx[1][2]);
-        } else if (maximum == matrix->mMtx[1][1]) {
-            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + (matrix->mMtx[1][1] - (matrix->mMtx[2][2] + matrix->mMtx[0][0])));
+            rDest.y = scale * ((*matrix)(0, 1) + (*matrix)(1, 0));
+            rDest.z = scale * ((*matrix)(2, 0) + (*matrix)(0, 2));
+            rDest.w = scale * ((*matrix)(2, 1) - (*matrix)(1, 2));
+        } else if (maximum == (*matrix)(1, 1)) {
+            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + ((*matrix)(1, 1) - ((*matrix)(2, 2) + (*matrix)(0, 0))));
             f32 scale = 0.5f / root;
             rDest.y = 0.5f * root;
-            rDest.z = scale * (matrix->mMtx[1][2] + matrix->mMtx[2][1]);
-            rDest.x = scale * (matrix->mMtx[0][1] + matrix->mMtx[1][0]);
-            rDest.w = scale * (matrix->mMtx[0][2] - matrix->mMtx[2][0]);
+            rDest.z = scale * ((*matrix)(1, 2) + (*matrix)(2, 1));
+            rDest.x = scale * ((*matrix)(0, 1) + (*matrix)(1, 0));
+            rDest.w = scale * ((*matrix)(0, 2) - (*matrix)(2, 0));
         } else {
-            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + (matrix->mMtx[2][2] - (matrix->mMtx[0][0] + matrix->mMtx[1][1])));
+            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + ((*matrix)(2, 2) - ((*matrix)(0, 0) + (*matrix)(1, 1))));
             f32 scale = 0.5f / root;
             rDest.z = 0.5f * root;
-            rDest.x = scale * (matrix->mMtx[2][0] + matrix->mMtx[0][2]);
-            rDest.y = scale * (matrix->mMtx[1][2] + matrix->mMtx[2][1]);
-            rDest.w = scale * (matrix->mMtx[1][0] - matrix->mMtx[0][1]);
+            rDest.x = scale * ((*matrix)(2, 0) + (*matrix)(0, 2));
+            rDest.y = scale * ((*matrix)(1, 2) + (*matrix)(2, 1));
+            rDest.w = scale * ((*matrix)(1, 0) - (*matrix)(0, 1));
         }
     }
 }

@@ -2124,6 +2124,7 @@ void J3DModelX::swapDrawBuffer(u32 a) {
 
 
 
+// NONMATCHING: scalar literal symbol identities; instruction words match after relocation masking.
 bool MarioActor::fn_803C9300() {
     bool c = this->mMario->isCeiling();
     if ((c || ((this->mMario->mDrawStates.mWord >> (0xA)) & 1)) && this->mBeeWallWalk == 0 && this->_9F2 == 0) {
@@ -2139,10 +2140,10 @@ bool MarioActor::fn_803C9300() {
         }
         if (r) {
             Triangle tri;
-            Mario* m2 = this->mMario;
-            TVec3f dir = -mAppliedGravityVec;
-            dir.scale(200.0f);
             TVec3f hit;
+            Mario* m2 = this->mMario;
+            TVec3f dir(TVec3f(-mAppliedGravityVec));
+            dir.scale(200.0f);
             if (m2->fn_803B2770(&hit, &tri, this->mPosition, dir)) {
                 this->entryWallWalkMode(hit, *tri.getNormal(0));
             }

@@ -1149,7 +1149,11 @@ public:
 };
 
 // SMG2-only free helpers of the Mario unit (set one axis column of a 3x4 matrix; original names unknown)
-struct MarioRotationMatrix { f32 mMtx[3][3]; };
+struct MarioRotationMatrix {
+    f32 get(int x, int y) const { return mMtx[x][y]; }
+    f32 operator()(int x, int y) const { return get(x, y); }
+    f32 mMtx[3][3];
+};
 f32 fn_80386D30(f32, f32, f32);
 void fn_803B21D0(const MarioRotationMatrix*, TQuat4f&);
 void fn_803B2170(MarioRotationMatrix* pMtx, const TVec3f& rVec);

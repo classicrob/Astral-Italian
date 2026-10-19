@@ -1374,126 +1374,113 @@ void MarioActor::fn_803D5A00(u32 idx) {
     }
 }
 
-// NONMATCHING: Equivalent typed-member address reuse and saved-register allocation.
+// NONMATCHING: inline matrix-column access replaces the target direction-helper calls; frame and register allocation differ.
 void MarioActor::fn_803D32F0() {
     mWallShadow574->mActive = 0;
-    if (this->mGroundReflectionEFC == 0 && this->mWaterReflectionEF8 == 0) {
-        if (this->mSphereReflectionEF9 != 0) {
-            return;
-        }
-        if (this->mBeeWallWalk == 0) {
-            s32 len = 0;
-            TVec3f axis;
-            AreaObj* area = MR::getAreaObj("ExtraWallCheckArea", this->_240);
-            if (area != nullptr) {
-                MR::calcCubeAxisZ(area, &axis);
-                s32 arg = MR::getAreaObjArg(area, 0);
-                mExtraWallArea578 = area;
-                len = arg;
-                mExtraWallAreaKind57C = 0;
-            } else {
-                area = MR::getAreaObj("ExtraWallCheckCylinder", this->_240);
-                if (area != nullptr) {
-                    f32 r = this->calcCylinderToCenter(area, &axis);
-                    mExtraWallArea578 = area;
-                    mExtraWallAreaKind57C = 1;
-                    len = (s32)r;
-                }
-            }
-            bool useTimer = false;
-            bool run = false;
-            if (area == nullptr || (f32)len < 0.0f) {
-                f32 f = mWallShadow574->mDistance;
-                if (!(f >= 1000.0f)) {
-                    mWallShadow574->mDistance = 10.0f + f;
-                    if (mWallShadow574->mDistance >= 1000.0f) {
-                        mWallShadow574->mDistance = 1000.0f;
-                    }
-                    switch (mExtraWallAreaKind57C) {
-                    case 0:
-                        MR::calcCubeAxisZ(mExtraWallArea578, &axis);
-                        len = MR::getAreaObjArg(mExtraWallArea578, 0);
-                        break;
-                    case 1:
-                        len = (s32)this->calcCylinderToCenter(mExtraWallArea578, &axis);
-                        break;
-                    }
-                    useTimer = true;
-                    run = true;
-                }
-            } else {
-                run = true;
-            }
-            if (run) {
-                Triangle tri;
-                TVec3f scaled(axis);
-                scaled.scale((f32)len);
-                TVec3f hit;
-                if (this->mMario->fn_803B2770(&hit, &tri, this->_240, scaled)) {
-                    mWallShadow574->mPosition.set(hit);
-                    mWallShadow574->mNormal.set(*tri.getNormal(0));
-                    if (!useTimer) {
-                        TVec3f d(hit);
-                        d -= this->_240;
-                        MarioWallShadow* c = mWallShadow574;
-                        c->mDistance = 0.1f * PSVECMag((Vec*)&d) + 0.9f * c->mDistance;
-                    }
-                    this->updateRandomTexture(mWallShadow574->mDistance);
-                    TVec3f nrm(axis);
-                    MR::normalizeOrZero(&nrm);
-                    J3DModel* mdl = mAllModel->getJ3DModel();
-                    J3DModelX* mx = mSimpleModelF08;
-                    PSMTXCopy(mdl->getBaseTRMtx(), mx->getBaseTRMtx());
-                    MtxPtr rot = mx->getBaseTRMtx();
-                    TVec3f x, y, z;
-                    {
-                        f32 vz = rot[2][0];
-                        f32 vy = rot[1][0];
-                        f32 vx = rot[0][0];
-                        x.set<f32>(vx, vy, vz);
-                    }
-                    MR::vecKillElement(x, nrm, &x);
-                    {
-                        f32 vz = rot[2][1];
-                        f32 vy = rot[1][1];
-                        f32 vx = rot[0][1];
-                        y.set<f32>(vx, vy, vz);
-                    }
-                    MR::vecKillElement(y, nrm, &y);
-                    {
-                        f32 vz = rot[2][2];
-                        f32 vy = rot[1][2];
-                        f32 vx = rot[0][2];
-                        z.set<f32>(vx, vy, vz);
-                    }
-                    MR::vecKillElement(z, nrm, &z);
-                    rot[0][0] = x.x;
-                    rot[1][0] = x.y;
-                    rot[2][0] = x.z;
-                    rot[0][1] = y.x;
-                    rot[1][1] = y.y;
-                    rot[2][1] = y.z;
-                    rot[0][2] = z.x;
-                    rot[1][2] = z.y;
-                    rot[2][2] = z.z;
-                    const TVec3f* g = this->mMario->getGravityVec();
-                    TVec3f off(this->mPosition);
-                    off -= hit;
-                    TVec3f perp;
-                    MR::vecKillElement(off, *g, &perp);
-                    f32 m = PSVECMag((Vec*)&perp);
-                    TVec3f t(nrm);
-                    t.scale(10.0f + m);
-                    TVec3f p(this->mPosition);
-                    p += t;
-                    MR::setMtxTrans(rot, p.x, p.y, p.z);
-                    PSMTXConcat(rot, mReflectionBaseMtx264.mMtx, rot);
-                    mx->viewCalcRef(3, mdl);
-                    mWallShadow574->mActive = 1;
-                }
-            }
+    if (this->mGroundReflectionEFC || this->mWaterReflectionEF8 || this->mSphereReflectionEF9) {
+        return;
+    }
+    if (this->mBeeWallWalk) {
+        return;
+    }
+
+    TVec3f axis;
+    s32 len = 0;
+    AreaObj* area = MR::getAreaObj("ExtraWallCheckArea", this->_240);
+    if (area != nullptr) {
+        MR::calcCubeAxisZ(area, &axis);
+        len = MR::getAreaObjArg(area, 0);
+        mExtraWallArea578 = area;
+        mExtraWallAreaKind57C = 0;
+    } else {
+        area = MR::getAreaObj("ExtraWallCheckCylinder", this->_240);
+        if (area != nullptr) {
+            len = this->calcCylinderToCenter(area, &axis);
+            mExtraWallArea578 = area;
+            mExtraWallAreaKind57C = 1;
         }
     }
+
+    bool fading = false;
+    if (area == nullptr || (f32)len < 0.0f) {
+        f32 f = mWallShadow574->mDistance;
+        if (f >= 1000.0f) {
+            return;
+        }
+        mWallShadow574->mDistance = 10.0f + f;
+        if (mWallShadow574->mDistance >= 1000.0f) {
+            mWallShadow574->mDistance = 1000.0f;
+        }
+        switch (mExtraWallAreaKind57C) {
+        case 0:
+            MR::calcCubeAxisZ(mExtraWallArea578, &axis);
+            len = MR::getAreaObjArg(mExtraWallArea578, 0);
+            break;
+        case 1:
+            len = this->calcCylinderToCenter(mExtraWallArea578, &axis);
+            break;
+        }
+        fading = true;
+    }
+
+    Triangle tri;
+    TVec3f hit;
+    if (!this->mMario->fn_803B2770(&hit, &tri, this->_240, axis * (f32)len)) {
+        return;
+    }
+
+    mWallShadow574->mPosition.set(hit);
+    mWallShadow574->mNormal.set(*tri.getNormal(0));
+    if (!fading) {
+        mWallShadow574->mDistance = 0.9f * mWallShadow574->mDistance + 0.1f * (hit - this->_240).length();
+    }
+    this->updateRandomTexture(mWallShadow574->mDistance);
+    TVec3f nrm(axis);
+    MR::normalizeOrZero(&nrm);
+    J3DModel* mdl = mAllModel->getJ3DModel();
+    J3DModelX* mx = mSimpleModelF08;
+    PSMTXCopy(mdl->getBaseTRMtx(), mx->getBaseTRMtx());
+    MtxPtr rot = mx->getBaseTRMtx();
+    TVec3f x, y, z;
+    {
+        f32 vz = rot[2][0];
+        f32 vy = rot[1][0];
+        f32 vx = rot[0][0];
+        x.set<f32>(vx, vy, vz);
+    }
+    MR::vecKillElement(x, nrm, &x);
+    {
+        f32 vz = rot[2][1];
+        f32 vy = rot[1][1];
+        f32 vx = rot[0][1];
+        y.set<f32>(vx, vy, vz);
+    }
+    MR::vecKillElement(y, nrm, &y);
+    {
+        f32 vz = rot[2][2];
+        f32 vy = rot[1][2];
+        f32 vx = rot[0][2];
+        z.set<f32>(vx, vy, vz);
+    }
+    MR::vecKillElement(z, nrm, &z);
+    rot[0][0] = x.x;
+    rot[1][0] = x.y;
+    rot[2][0] = x.z;
+    rot[0][1] = y.x;
+    rot[1][1] = y.y;
+    rot[2][1] = y.z;
+    rot[0][2] = z.x;
+    rot[1][2] = z.y;
+    rot[2][2] = z.z;
+    const TVec3f* gravity = this->mMario->getGravityVec();
+    TVec3f perp;
+    MR::vecKillElement(this->mPosition - hit, *gravity, &perp);
+    f32 dist = perp.length();
+    TVec3f trans = this->mPosition + nrm * (10.0f + dist);
+    MR::setMtxTrans(rot, trans.x, trans.y, trans.z);
+    PSMTXConcat(rot, mReflectionBaseMtx264.mMtx, rot);
+    mx->viewCalcRef(3, mdl);
+    mWallShadow574->mActive = 1;
 }
 
 

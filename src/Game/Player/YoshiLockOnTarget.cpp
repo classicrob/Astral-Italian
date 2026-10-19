@@ -116,7 +116,9 @@ void YoshiLockOnTargetControl::invalidate() {
     if (mTarget) mTarget->mEligibleThisFrame = false;
 }
 
+#ifndef GALAXY_NATIVE
 #include "../src/Game/Player/YoshiLockOnManager.cpp"
+#endif
 
 // NONMATCHING: copy load/store scheduling and FPR allocation differ.
 YoshiLockOnTarget::YoshiLockOnTarget(LiveActor* actor, MtxPtr mtx, const TVec3f& offset) : mActor(actor), mMtx(mtx) {

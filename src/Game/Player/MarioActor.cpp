@@ -8702,12 +8702,17 @@ void MarioActor::memorizeSensorThrow(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: Reloads the unchanged Mario receiver instead of reusing its cached value.
 bool MarioActor::tryThrow() {
     if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::DebugMode) >> 9)) {
         return false;
     }
 
     if (_468 == 0) {
+        return false;
+    }
+
+    if (_480) {
         return false;
     }
 
@@ -8725,12 +8730,16 @@ bool MarioActor::tryThrow() {
 
     HitSensor* pSensor = _428[_468 - 1];
 
+    if (fn_803D0F60(pSensor)) {
+        return true;
+    }
+
     if (releaseThrowMemoSensor()) {
         mMario->mSwim->resetJet();
         mMarioAnim->changeThrowAnimation(pSensor);
 
-        _F1C = 30;
         mVelocity.zero();
+        _F1C = 30;
 
         if (isJumping()) {
             _38C = 1;
@@ -8739,6 +8748,7 @@ bool MarioActor::tryThrow() {
             _38C = 15;
         }
 
+        mMario->playSound("声投げ", -1);
         offTakingFlag();
 
         return true;

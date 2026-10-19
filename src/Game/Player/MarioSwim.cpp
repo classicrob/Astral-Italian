@@ -1438,7 +1438,7 @@ void MarioSwim::addFaint(const TVec3f& rFaintDir) {
     playSound("ダメージ");
 
     startPadVib(2);
-    mDamage->mVelocity = rFaintDir;
+    mDamage->mVelocity.set(rFaintDir);
     mDamage->mVelocity.setLength(mActor->getConst().getTable()->mSwimFaintSpeed);
     mActionLockTimer = 0;
     forceStopSpin();
@@ -1501,7 +1501,7 @@ void MarioSwim::addDamage(const TVec3f& rDamageDir) {
         mDamage->mTimer = mActor->getConst().getTable()->mWaterInnerDamageTime;
         changeAnimation("水泳ダメージ中");
 
-        mDamage->mVelocity = rDamageDir;
+        mDamage->mVelocity.set(rDamageDir);
         mDamage->mVelocity.setLength(mActor->getConst().getTable()->mSwimDamageSpeed);
 
         playSound("水中ダメージ");
@@ -2589,9 +2589,11 @@ void MarioSwimJet::update(f32 factor) {
         mSwim->getPlayer()->mFlags20.mWord |= 0x00400000U;
         f32 speed = mSwim->mForwardSpeed;
         if (speed > targetSpeed) {
-            mSwim->mForwardSpeed = 0.95f * speed;
+            speed *= 0.95f;
+            mSwim->mForwardSpeed = speed;
         } else if (speed > (0.1f * targetSpeed)) {
-            mSwim->mForwardSpeed = 0.96f * speed;
+            speed *= 0.96f;
+            mSwim->mForwardSpeed = speed;
         } else {
             updateVelocity(targetSpeed);
         }
@@ -2680,7 +2682,8 @@ void MarioSwimTilt::update() {
             MarioSwim* swim = mSwim;
             f32 dot = swim->mFrontVec.dot(swim->getWorldPadDir());
             f32 scale = MR::clamp(1.0f - dot, 0.0f, 1.0f);
-            targetTiltX = scale * MR::abs((mSwim->getStickX() * JGeometry::TUtil<f32>::PI()) / 6.0f);
+            targetTiltX = MR::abs((mSwim->getStickX() * JGeometry::TUtil<f32>::PI()) / 6.0f);
+            targetTiltX *= scale;
             TVec3f cross;
             PSVECCrossProduct(&mSwim->mFrontVec, &mSwim->getWorldPadDir(), &cross);
             if (cross.dot(mSwim->mUpVec) > 0.0f) {
@@ -2696,14 +2699,16 @@ void MarioSwimTilt::update() {
         targetTiltX = (mSwim->getStickX() * JGeometry::TUtil<f32>::PI()) / 5.0f;
     }
     if (mSwim->isSwimTurnAnimation()) {
-        targetTiltX = 0.125f * (MR::clamp(mSwim->getStickX() / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil<f32>::PI());
+        targetTiltX = MR::clamp(mSwim->getStickX() / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil<f32>::PI();
+        targetTiltX *= 0.125f;
     }
     f32 targetTiltY = 0.0f;
     if (!mSwim->isOnWaterSurface()) {
         if (mSwim->mIdleWaitTimer == 0) {
             targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / 12.0f;
             if (mSwim->getStickY() > 0.0f && mSwim->mVerticalAngle <= 2.09439516068f) {
-                targetTiltY = 0.125f * (mSwim->getStickY() * JGeometry::TUtil<f32>::PI());
+                targetTiltY = mSwim->getStickY() * JGeometry::TUtil<f32>::PI();
+                targetTiltY *= 0.125f;
             }
         } else if (mSwim->getStickY() < 0.0f) {
             const MarioConstTable* table = mSwim->mActor->getConst().getTable();
@@ -2712,7 +2717,9 @@ void MarioSwimTilt::update() {
             const MarioConstTable* table = mSwim->mActor->getConst().getTable();
             targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / table->mSwimTiltZdown;
         } else {
-            targetTiltY = targetTiltY - (0.314159274101f * mSwim->fn_80402160());
+            f32 recovery = mSwim->fn_80402160();
+            recovery *= 0.314159274101f;
+            targetTiltY -= recovery;
         }
     }
     mTiltX = (blendX * targetTiltX) + ((1.0f - blendX) * mTiltX);
@@ -2959,7 +2966,10 @@ void MarioSwim::fn_803FA450() {
             mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[2];
             break;
         }
-        mVerticalAngle = cLimitAngleSink * (1.0f - factor) + factor * 1.74532938f;
+        f32 diveAngle = factor * 1.74532938f;
+        f32 sinkAngle = cLimitAngleSink * (1.0f - factor);
+        sinkAngle += diveAngle;
+        mVerticalAngle = sinkAngle;
         const TVec3f& gravity = getAirGravityVec();
         getPlayer()->forceSetHeadVecKeepSide(gravity);
         return;
@@ -3582,9 +3592,13 @@ void MarioSwim::fn_803F8F60(f32) {
         bool input = false;
         if (!_18) {
             f32 x = getStickX();
-            f32 xx = getStickX() * x;
+            f32 xx = getStickX();
+            xx *= x;
             f32 y = getStickY();
-            if (getStickY() * y + xx > 0.2f) input = true;
+            f32 yy = getStickY();
+            yy *= y;
+            yy += xx;
+            if (yy > 0.2f) input = true;
         }
         if (input) {
             f32 angle = JMAAcosRadian(mUpVec.dot(getWorldPadDir()));
@@ -3699,20 +3713,22 @@ void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immedi
             } else {
                 f32 angle = ratio * (0.5f * JMath::sAtanTable.atan2_(magnitude, oldSide.dot(side)));
                 f32 factor = static_cast<f32>(sin(angle)) / magnitude;
-                rotation.x = axis.x * factor;
-                rotation.y = axis.y * factor;
-                rotation.z = axis.z * factor;
+                rotation.toTvec()->scale(factor, axis);
                 rotation.w = static_cast<f32>(cos(angle));
             }
         } else {
             TQuat4f alignSide;
-            alignSide.setRotate(oldFront, -MR::diffAngleSigned(oldSide, projectedSide, oldFront) * ratio);
+            f32 alignAngle = -MR::diffAngleSigned(oldSide, projectedSide, oldFront);
+            alignAngle *= ratio;
+            alignSide.setRotate(oldFront, alignAngle);
             TQuat4f turn;
             if (getCamDirZ().dot(side) < 0.0f) turn.setRotate(mUpVec, ratio * -projectedSide.angle(side));
             else turn.setRotate(mUpVec, ratio * projectedSide.angle(side));
             f32 oldAngle = JMAAcosRadian(mUpVec.dot(head));
             TQuat4f tilt;
-            tilt.setRotate(oldSide, (JMAAcosRadian(mUpVec.dot(desiredHead)) - oldAngle) * ratio);
+            f32 tiltAngle = JMAAcosRadian(mUpVec.dot(desiredHead)) - oldAngle;
+            tiltAngle *= ratio;
+            tilt.setRotate(oldSide, tiltAngle);
             PSQUATMultiply(&turn, &tilt, &rotation);
             PSQUATMultiply(&rotation, &alignSide, &rotation);
         }
@@ -3807,8 +3823,10 @@ void MarioSwim::fn_803F9350() {
     mVerticalAngle = mVerticalAngle * (1.0f - ratio) + angle * ratio;
     if (mIdleWaitTimer && !mDamage->mTimer && !mZSinkTimer && getStickY() > 0.0f && !isPlayerModeYoshi()) {
         f32 max = 3.1415927f / mActor->mConst->getTable()->mSwimTiltReal;
+        f32 contribution = getStickY();
         f32 current = mVerticalAngle;
-        f32 target = 0.5235988f + getStickY() * (max - 0.5235988f);
+        contribution *= max - 0.5235988f;
+        f32 target = 0.5235988f + contribution;
         if (current < target) {
             f32 blend = mActor->mConst->getTable()->mSwimTiltSpd;
             mVerticalAngle = current * blend + target * (1.0f - blend);
@@ -4046,9 +4064,13 @@ bool MarioSwim::fn_803FB9C0() {
     } else {
         f32 xx;
         f32 yy = getStickY();
-        yy = getStickY() * yy;
+        f32 nextY = getStickY();
+        nextY *= yy;
+        yy = nextY;
         xx = getStickX();
-        xx = getStickX() * xx;
+        f32 nextX = getStickX();
+        nextX *= xx;
+        xx = nextX;
         if (xx + yy > 0.2f) {
             const MarioConstTable* table = mActor->mConst->getTable();
             f32 stick = getStickP();
@@ -4092,7 +4114,12 @@ bool MarioSwim::fn_803FC020() {
     f32 threshold = 0.75f * (1.0f - 0.3f * MR::abs(getStickX()));
     if (mVerticalAngle < 1.5707964f && getStickY() > threshold && !mActionLockTimer && _1E) {
         f32 input = (getStickY() - threshold) / (1.0f - threshold);
-        mVerticalAngle = (1.0f - input) * 2.0943952f + input * 2.6179938f;
+        f32 upperAngle = input;
+        upperAngle *= 2.6179938f;
+        f32 lowerAngle = 1.0f - input;
+        lowerAngle *= 2.0943952f;
+        lowerAngle += upperAngle;
+        mVerticalAngle = lowerAngle;
     } else if (mVerticalAngle < 1.5707964f && MR::abs(getStickY()) < 0.1f && !mActionLockTimer && _1E) {
         mVerticalAngle = 1.5707964f;
     }
@@ -4159,10 +4186,15 @@ void MarioSwim::fn_803FB570() {
             if (timer < 40) {
                 f32 acceleration = cFrontAcc[40 - timer];
                 const MarioConstTable* table = mActor->mConst->getTable();
+                f32 maximum = fn_803FA8E0();
                 f32 speed = mForwardSpeed;
                 f32 minimum = table->mSwimAccMinRatio;
-                const MarioConstTable* table2 = mActor->mConst->getTable();
-                mForwardSpeed = speed + (minimum + speed / fn_803FA8E0() * (1.0f - minimum)) * (acceleration * table2->mSwimAccRatio);
+                f32 weight = speed / maximum;
+                weight *= 1.0f - minimum;
+                weight = minimum + weight;
+                f32 scaledAcceleration = acceleration * mActor->mConst->getTable()->mSwimAccRatio;
+                weight *= scaledAcceleration;
+                mForwardSpeed = speed + weight;
             }
         }
         mDashTimer--;

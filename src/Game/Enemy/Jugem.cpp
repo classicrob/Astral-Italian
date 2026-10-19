@@ -1241,7 +1241,7 @@ void Jugem::updateJugemMoveAnimation() {
         }
         {
             MR::tryStartActionNotPlaying(this, pName);
-            if (MR::fn_80008F00(mCloud, pName)) {
+            if (MR::isExistAnimInKeeper(mCloud, pName)) {
                 MR::tryStartActionNotPlaying(mCloud, pName);
             }
         }
@@ -1259,7 +1259,7 @@ void Jugem::updateJugemMoveAnimation() {
         if (pName != nullptr) {
             f32 frame = MR::getBckFrame(this);
             if (MR::tryStartActionNotPlaying(this, pName)) {
-                if (MR::fn_80008F00(mCloud, pName)) {
+                if (MR::isExistAnimInKeeper(mCloud, pName)) {
                     MR::tryStartActionNotPlaying(mCloud, pName);
                 }
                 MR::setAllAnimFrame(this, pName, frame);

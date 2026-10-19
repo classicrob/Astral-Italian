@@ -290,7 +290,7 @@ void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
     MR::setPosition(pHost, sp8);
     MR::zeroVelocity(pHost);
     pHost->mBody->freeze();
-    if (MR::fn_80008F00(pHost, pName)) {
+    if (MR::isExistAnimInKeeper(pHost, pName)) {
         MR::startAction(pHost, pName);
     }
     MR::calcAnimDirect(pHost);

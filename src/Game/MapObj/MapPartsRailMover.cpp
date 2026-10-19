@@ -449,7 +449,7 @@ void MapPartsRailMover::exeMoveStart() {
         if (!mDisableSignMotionAnimation) MR::tryStartAllAnim(mHost, "RailMoveSign");
     }
     MR::startActionSoundAuto(mHost, "RailMoverSignLoop", -1, -1, -1);
-    if (!mDisableSignMotionAnimation && MR::fn_80008F00(mHost, "RailMoveSign")) {
+    if (!mDisableSignMotionAnimation && MR::isExistAnimInKeeper(mHost, "RailMoveSign")) {
         if (MR::isActionEnd(mHost)) {
             MR::setRailCoord(mHost, mSignMotionRailCoord);
             if (MR::isExistCollisionParts(mHost)) MR::onUpdateCollisionParts(mHost);

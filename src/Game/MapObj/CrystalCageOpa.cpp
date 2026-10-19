@@ -105,7 +105,7 @@ void CrystalCageOpa::exeBreak() {
         mBreakModel->appear();
 
         if (mIsStartAnim) {
-            if (MR::fn_80008F00(this, "Move")) {
+            if (MR::isExistAnimInKeeper(this, "Move")) {
                 MR::setBckFrameAndStop(this, 0.0f);
             }
         }

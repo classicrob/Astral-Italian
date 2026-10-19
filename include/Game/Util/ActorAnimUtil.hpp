@@ -6,7 +6,6 @@ class LiveActor;
 class J3DFrameCtrl;
 
 namespace MR {
-    bool fn_80008F00(const LiveActor*, const char*);
     void startBck(const LiveActor*, const char*, const char* = nullptr);
     bool isBckStopped(const LiveActor*);
     bool tryStartAllAnim(const LiveActor*, const char*);
@@ -96,7 +95,6 @@ namespace MR {
     bool isBvaPlayingIfExist(const LiveActor*, const char*);
     bool isPlayingAnim(const LiveActor*, const char*);
     bool isExistAnim(const LiveActor*, const char*);
-    bool fn_80008F00(const LiveActor*, const char*);  // enemies lane: by address
     bool isExistBck(const LiveActor*, const char*);
     bool isExistBtk(const LiveActor*, const char*);
     bool isExistBrk(const LiveActor*, const char*);
@@ -120,7 +118,7 @@ namespace MR {
     void copyBckBlendWeights(f32*, u32, const LiveActor*);
     bool setBckTrackWeight(const LiveActor*, u32, f32);
     bool isAnyAnimPlaying(const LiveActor*, const char*);
-    bool isExistAnimInKeeper(const LiveActor*, const char*);  // was fn_80008F00
+    bool isExistAnimInKeeper(const LiveActor*, const char*);
     bool startAnimIfExistAll(const LiveActor*, const char*);  // SMG2 fn_80008740
     void changeTrackWeights(const LiveActor*, const f32*);  // SMG2 fn_80009570
     void setTrackWeights(const LiveActor*, f32, f32, f32);  // SMG2 fn_800095D0

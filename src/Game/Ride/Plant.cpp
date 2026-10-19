@@ -1,5 +1,8 @@
 #include "Game/Ride/Plant.hpp"
 #include "Game/Util.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/NativeActorObserve.hpp"
+#endif
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/LiveActor/HitSensor.hpp"

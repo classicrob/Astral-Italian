@@ -34,7 +34,11 @@ void TwoLegsStateOpening::kill() {
 void TwoLegsStateOpening::exeWaitDemo() {
     if (MR::tryStartDemo(mHost, sOpeningDemoName)) {
         MR::stopStageBGM(30);
+#ifdef GALAXY_NATIVE
+        MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Opening", 0, 0, 1.0f);
+#else
         MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Opening", nullptr, 0, 1.0f);
+#endif
         MR::overlayWithPreviousScreen(2);
         setNerve(&NrvTwoLegsStateOpening::TwoLegsStateOpeningNrvDemo::sInstance);
     }

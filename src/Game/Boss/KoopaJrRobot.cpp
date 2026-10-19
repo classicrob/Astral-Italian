@@ -6,7 +6,11 @@
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#else
 #include <functional.hpp>
+#endif
 
 namespace NrvKoopaJrRobot {
     // the six phases chain through updateActorStateAndNextNerve (see execute bodies)

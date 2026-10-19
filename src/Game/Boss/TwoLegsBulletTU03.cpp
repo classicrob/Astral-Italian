@@ -356,7 +356,9 @@ void TwoLegsReflectCtrl::setIK(f32 rate) {
 
 TwoLegsReflectCtrl::~TwoLegsReflectCtrl() {}
 
+#ifndef GALAXY_NATIVE
 namespace NrvTwoLegsReflectCtrl {
+#endif
     // the exe bodies are inlined into the nerve execute stubs below (the target has no standalone exeX symbols)
 
     // Wait: releases the IK control on the first step
@@ -378,6 +380,9 @@ namespace NrvTwoLegsReflectCtrl {
         MR::setNerveAtStep(this, &NrvTwoLegsReflectCtrl::TwoLegsReflectCtrlNrvWait::sInstance, 10);
     }
 
+#ifdef GALAXY_NATIVE
+namespace NrvTwoLegsReflectCtrl {
+#endif
     TwoLegsReflectCtrlNrvWait TwoLegsReflectCtrlNrvWait::sInstance ATTRIBUTE_WEAK;
     TwoLegsReflectCtrlNrvReflect TwoLegsReflectCtrlNrvReflect::sInstance ATTRIBUTE_WEAK;
     TwoLegsReflectCtrlNrvReturn TwoLegsReflectCtrlNrvReturn::sInstance ATTRIBUTE_WEAK;

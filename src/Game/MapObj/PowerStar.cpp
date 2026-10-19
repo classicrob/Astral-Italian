@@ -329,7 +329,8 @@ void PowerStar::control() {
         if (isNerve(GET_NERVE(PowerStar, PowerStarNrvWait))) {
             state = 1;
         } else if (isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoRise)) || isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoMove)) ||
-                   isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoKoopa))) {
+                   isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoBossFormer)) ||
+                   isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoBossLatter))) {
             state = 2;
         } else if (isNerve(GET_NERVE(PowerStar, PowerStarNrvStageClearDemo))) {
             state = 3;

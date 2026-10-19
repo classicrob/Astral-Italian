@@ -117,6 +117,40 @@ void YoshiBlock::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(YoshiBlock, YoshiBlockNrvWait), 0);
 
     mCollision = new DiceMover(8, 0);
+#ifdef GALAXY_NATIVE
+    {
+        const TVec3f point(0.5f * -mSize.x, 0.5f * mSize.y, 0.5f * mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * mSize.x, 0.5f * mSize.y, 0.5f * mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * mSize.x, 0.5f * mSize.y, 0.5f * -mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * -mSize.x, 0.5f * mSize.y, 0.5f * -mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * -mSize.x, 0.5f * -mSize.y, 0.5f * mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * mSize.x, 0.5f * -mSize.y, 0.5f * mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * mSize.x, 0.5f * -mSize.y, 0.5f * -mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+    {
+        const TVec3f point(0.5f * -mSize.x, 0.5f * -mSize.y, 0.5f * -mSize.z);
+        mCollision->addCollisionPoint(&point);
+    }
+#else
     mCollision->addCollisionPoint(&TVec3f(0.5f * -mSize.x, 0.5f * mSize.y, 0.5f * mSize.z));
     mCollision->addCollisionPoint(&TVec3f(0.5f * mSize.x, 0.5f * mSize.y, 0.5f * mSize.z));
     mCollision->addCollisionPoint(&TVec3f(0.5f * mSize.x, 0.5f * mSize.y, 0.5f * -mSize.z));
@@ -125,6 +159,7 @@ void YoshiBlock::init(const JMapInfoIter& rIter) {
     mCollision->addCollisionPoint(&TVec3f(0.5f * mSize.x, 0.5f * -mSize.y, 0.5f * mSize.z));
     mCollision->addCollisionPoint(&TVec3f(0.5f * mSize.x, 0.5f * -mSize.y, 0.5f * -mSize.z));
     mCollision->addCollisionPoint(&TVec3f(0.5f * -mSize.x, 0.5f * -mSize.y, 0.5f * -mSize.z));
+#endif
     mCollision->calcRadius();
     mCollision->mRadius = 1.5f * mCollision->mRadius;
     updateCollisionMtx();
@@ -185,7 +220,12 @@ void YoshiBlock::appear() {
 void YoshiBlock::exeDashed() {
     TVec3f sp44;
     MR::calcGravityVector(this, &sp44, nullptr, 0);
+#ifdef GALAXY_NATIVE
+    const TVec3f gravity = sp44.multInLine(0.4f);
+    mCollision->setGravity(&gravity);
+#else
     mCollision->setGravity(&sp44.multInLine(0.4f));
+#endif
     mCollision->update();
     TPos3f sp50;
     mCollision->calcMtx(&sp50);

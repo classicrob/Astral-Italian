@@ -17,6 +17,12 @@
 // Single-use inline copy of JGeometry::mulInternal (CW size mode only inlines functions with one call site; the target
 // had each of these in its own translation unit).
 static inline void mulScaleMini(register const f32* a, register const f32* b, register f32* d) {
+#ifdef GALAXY_NATIVE
+    const f32 x = a[0] * b[0];
+    const f32 y = a[1] * b[1];
+    d[0] = x;
+    d[1] = y;
+#else
     register f32 xy1, xy2, res;
     __asm {
         psq_l xy1, 0(a), 0, 0
@@ -24,6 +30,7 @@ static inline void mulScaleMini(register const f32* a, register const f32* b, re
         ps_mul res, xy1, xy2
         psq_st res, 0(d), 0, 0
     }
+#endif
     d[2] = a[2] * b[2];
 }
 
@@ -47,10 +54,15 @@ static inline void calcEulerMini(const TPos3f& rMtx, TVec3f& rDest) {
         const register f32* a = &rDest.x;
         register f32* b = &tmp.x;
         register f32 xy;
+#ifdef GALAXY_NATIVE
+        tmp.x = rDest.x;
+        tmp.y = rDest.y;
+#else
         __asm {
             psq_l xy, 0(a), 0, 0
             psq_st xy, 0(b), 0, 0
         }
+#endif
         f32 k = 57.29578f;
         f32 px = tmp.x;
         f32 py = tmp.y;
@@ -61,10 +73,15 @@ static inline void calcEulerMini(const TPos3f& rMtx, TVec3f& rDest) {
         const register f32* c = &tmp.x;
         register f32* d = &rDest.x;
         register f32 xy2;
+#ifdef GALAXY_NATIVE
+        rDest.x = tmp.x;
+        rDest.y = tmp.y;
+#else
         __asm {
             psq_l xy2, 0(c), 0, 0
             psq_st xy2, 0(d), 0, 0
         }
+#endif
         rDest.z = tmp.z;
     }
 }

@@ -54,7 +54,11 @@ void TwoLegsStateExplosion::exeDemo() {
     if (MR::isFirstStep(this)) {
         mHost->resetToInitPos();
         MR::startAction(mHost, "Explosion");
+#ifdef GALAXY_NATIVE
+        MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Explosion", 0, 0, 1.0f);
+#else
         MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, "Explosion", nullptr, 0, 1.0f);
+#endif
         MR::overlayWithPreviousScreen(2);
         MR::hidePlayer();
         LiveActor* pCarry = MR::getPlayerCarrySensorActor();

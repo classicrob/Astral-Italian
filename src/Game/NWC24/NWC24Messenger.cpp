@@ -628,7 +628,7 @@ namespace NWC24MessengerSub {
 
         return err == NWC24_ERR_MUTEX || err == NWC24_ERR_BUSY || err == NWC24_ERR_INPROGRESS;
     }
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
+#if !defined(GALAXY_NATIVE) && (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
     bool SendState::send() {
         if (!mHost->mSystem->send(reinterpret_cast< const u16* >(mTask->mMessage), reinterpret_cast< const u16* >(mTask->mAltName), nullptr, 0,
                                   mTask->mPicture, mTask->mPictureSize)) {

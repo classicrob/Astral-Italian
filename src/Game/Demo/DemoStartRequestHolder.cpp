@@ -7,7 +7,7 @@
 #ifdef GALAXY_NATIVE
 // Clang requires explicit specializations to be declared before their first use.
 template <>
-MR::FixedRingBuffer< const DemoStartInfo*, 16 >::iterator::iterator(const DemoStartInfo** pHead, const DemoStartInfo** pTail);
+MR::FixedRingBuffer< const DemoStartInfo*, 16 >::iterator::iterator(const DemoStartInfo** pHead, const DemoStartInfo** pTail, const DemoStartInfo** pEnd);
 template <>
 void MR::FixedRingBuffer< const DemoStartInfo*, 16 >::push_back(const DemoStartInfo* const& rValue);
 template <>

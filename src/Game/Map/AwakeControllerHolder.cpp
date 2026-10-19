@@ -4,6 +4,9 @@
 #include "Game/Map/SwitchWatcher.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#endif
 
 AwakeController::AwakeController(const JMapInfoIter& rIter, SwitchEventListener* pListener) {
     mSwitchEventListener = pListener;

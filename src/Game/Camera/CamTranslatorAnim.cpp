@@ -6,7 +6,11 @@ void CamTranslatorAnim::setParam(const CameraParamChunk* pChunk) {
     CameraAnim* camera = mCamera;
 
     // mNum1 is used to store the pointer to the data
+#ifdef GALAXY_NATIVE
+    camera->setParam(static_cast<u8*>(pChunk->mGeneralParam->mAnimData), pChunk->mGeneralParam->mDist, pChunk->mGeneralParam->mNum2 < 0);
+#else
     camera->setParam(reinterpret_cast< u8* >(pChunk->mGeneralParam->mNum1), pChunk->mGeneralParam->mDist, pChunk->mGeneralParam->mNum2 < 0);
+#endif
 }
 
 Camera* CamTranslatorAnim::CamTranslatorAnim::getCamera() const {

@@ -3,6 +3,9 @@
 #include "Game/Screen/YoshiTargetMark.hpp"
 #include "Game/Util.hpp"
 #include <cstdio>
+#ifdef GALAXY_NATIVE
+using namespace YoshiLockOnParams;
+#endif
 class YoshiLockOnIterator {
 public:
     YoshiLockOnIterator(MR::BothDirPtrLink* link) : mLink(link) {

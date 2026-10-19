@@ -49,6 +49,12 @@ AudSoundNameConverter::AudSoundNameConverter()
 }
 
 JAISoundID AudSoundNameConverter::getSoundID(const char* pName) {
+#ifdef GALAXY_NATIVE
+    if (pName == nullptr) {
+        PetariNative::reportMissingSoundReference(pName);
+        return -1;
+    }
+#endif
     return static_cast<const AudSoundNameConverter*>(this)->getSoundID(pName, JGadget::getHashCode(pName));
 }
 
@@ -57,12 +63,25 @@ JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) {
 }
 
 JAISoundID AudSoundNameConverter::getSoundID(const char* pName, u32 hash) const {
+#ifdef GALAXY_NATIVE
+    if (pName == nullptr || strlen(pName) < 5) {
+        PetariNative::reportMissingSoundReference(pName);
+        return -1;
+    }
+    const s32 category = isSeName(pName) ? getSeSoundCategory(pName) : getOtherSoundCategory(pName);
+    if (category < 0 || mGroupItemOffsets == nullptr) {
+        PetariNative::reportMissingSoundReference(pName);
+        return -1;
+    }
+    const s32 startingOffset = mGroupItemOffsets[category];
+#else
     s32 startingOffset;
     if (isSeName(pName)) {
         startingOffset = mGroupItemOffsets[getSeSoundCategory(pName)];
     } else {
         startingOffset = mGroupItemOffsets[getOtherSoundCategory(pName)];
     }
+#endif
 
     for (s32 i = startingOffset; i < mNumItems; i++) {
         const AudSoundNameData& data = mSoundNameData[i];

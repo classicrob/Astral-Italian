@@ -14,7 +14,11 @@ namespace {
         virtual void execute(Spine*) const {}
         static DemoTitleAnimNrvWait sInstance;
     };
+#ifdef GALAXY_NATIVE
+    DemoTitleAnimNrvWait DemoTitleAnimNrvWait::sInstance;
+#else
     DemoTitleAnimNrvWait DemoTitleAnimNrvWait::sInstance ATTRIBUTE_WEAK;
+#endif
 
     NEW_NERVE(DemoTitleAnimNrvStart, DemoTitleAnim, Start);
     NEW_NERVE(DemoTitleAnimNrvLoop, DemoTitleAnim, Loop);

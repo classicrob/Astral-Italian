@@ -45,6 +45,10 @@
 #include <JSystem/JKernel/JKRMemArchive.hpp>
 #include <cstdio>
 #include <nw4r/ut/ResFont.h>
+#ifdef GALAXY_NATIVE
+#include <petari/player_launch.hpp>
+#include <petari/milestone.hpp>
+#endif
 
 #define USER_FILE_NUM 3
 
@@ -900,8 +904,17 @@ void FileSelector::updatePointingGuidanceSelect() {
     StarPointerUtil::endMovePositionRegistration(this);
 }
 
+#ifdef GALAXY_NATIVE
+bool FileSelector::isUserFileCorrupted(s32 id) const {
+    return mUserFile[id - 1].mIsGameDataCorrupted || mUserFile[id - 1].mIsConfigDataCorrupted;
+}
+#endif
+
 void FileSelector::exeTitle() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.Title");
+#endif
         mTitle->appear();
         MR::deactivateDefaultGameLayout();
         MR::startStarPointerModeTitle(this);
@@ -910,7 +923,15 @@ void FileSelector::exeTitle() {
         mIsTitleBgmRhythmEnabled = false;
     }
 
+#ifdef GALAXY_NATIVE
+    if (PetariNative::PlayerLaunch::openFile > 0) {
+        mTitle->kill();
+    } else {
+        mTitle->updateNerve();
+    }
+#else
     mTitle->updateNerve();
+#endif
 
     if (mTitle->isBgmStartStep()) {
         mIsTitleBgmRhythmEnabled = true;
@@ -933,6 +954,9 @@ void FileSelector::exeTitle() {
 
 void FileSelector::exeTitleEnd() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.TitleEnd");
+#endif
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }
@@ -955,6 +979,9 @@ void FileSelector::exeTitleEnd() {
 
 void FileSelector::exeRFLError() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.RFLError");
+#endif
         mSysInfoWindowMini->appear("System_FileSelect018", SysInfoWindow::Type_Key, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
         MR::showPaneRecursive(mSysInfoWindowMini, "BG");
         stopMovementForLayout();
@@ -992,6 +1019,9 @@ void FileSelector::exeRFLWaitEnd() {
 
 void FileSelector::exeFileSelectStart() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.FileSelectStart");
+#endif
         mCameraController->goToFarPoint();
         calcBasePos(0.0f);
         validateRotateAllItems();
@@ -1004,9 +1034,26 @@ void FileSelector::exeFileSelectStart() {
 
 void FileSelector::exeFileSelect() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.FileSelect");
+#endif
         validateSelectAll();
         appearAllIndex();
         MR::activeStarPointerGuidance();
+#ifdef GALAXY_NATIVE
+        const s32 openFile = PetariNative::PlayerLaunch::openFile;
+        PetariNative::PlayerLaunch::openFile = 0;
+        const int openIndex = openFile > 0 ? ::getItemArrayIndex(openFile) : -1;
+        FileSelectItem* pOpen = openIndex >= 0 ? static_cast<FileSelectItem*>(mItems->getActor(openIndex)) : nullptr;
+        if (pOpen != nullptr && !pOpen->isNew() && !isUserFileCorrupted(openFile) && !pOpen->mHasInvalidMiiId) {
+            petari_milestone("FileSelector.OpenFile");
+            mSelectedItem = pOpen;
+            MR::requestFileSelectGuidance();
+            updatePointingGuidance();
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvDemoStartWait));
+            return;
+        }
+#endif
     } else {
         updateFileInfo();
     }
@@ -1101,6 +1148,9 @@ void FileSelector::exeFileConfirm() {
 
 void FileSelector::exeDemoStartWait() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.DemoStartWait");
+#endif
         disappearAllLayout();
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM", 30);
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM_RHYTHM", 30);
@@ -1174,6 +1224,9 @@ void FileSelector::exeCreateConfirm() {
 
 void FileSelector::exeCreate() {
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        petari_milestone("FileSelector.Create");
+#endif
         GameSequenceFunction::startCreateUserFileSequence(mSelectedItem->mFileIndex);
     }
 
@@ -1240,6 +1293,11 @@ void FileSelector::exeMiiSelectStart() {
 }
 
 void FileSelector::exeMiiSelect() {
+#ifdef GALAXY_NATIVE
+    if (MR::isFirstStep(this)) {
+        petari_milestone("FileSelector.MiiSelect");
+    }
+#endif
     if (MR::isFirstStep(this) && !mIsMiiSelectStartFirst) {
         mBackButton->appear();
     }

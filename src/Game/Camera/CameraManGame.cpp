@@ -502,7 +502,12 @@ void CameraManGame::createStartAnimCamera() {
         CameraDirector* director = CameraLocalUtil::getCameraDirector();
         chunk->setCameraType("CAM_TYPE_ANIM", director->mHolder);
 
+#ifdef GALAXY_NATIVE
+        chunk->mGeneralParam->mNum1 = 0;
+        chunk->mGeneralParam->mAnimData = data;
+#else
         chunk->mGeneralParam->mNum1 = reinterpret_cast< intptr_t >(data);
+#endif
         chunk->mIsRuntimeCreated = true;
     }
 }

@@ -5,7 +5,11 @@
 #include "Game/Util.hpp"
 #include "Game/Util/YoshiLockOnUtil.hpp"
 
+#ifdef GALAXY_NATIVE
+namespace YoshiLockOnParams {
+#else
 namespace {
+#endif
     const char* sParamFile = "lockonparams";
     s32 sTimer = 30;
     f32 sDistance0 = 1250.0f;
@@ -15,6 +19,10 @@ namespace {
     f32 sDistance5 = 1250.0f;
     s32 sTargetMax = 3;
 }
+
+#ifdef GALAXY_NATIVE
+using namespace YoshiLockOnParams;
+#endif
 
 f32 getYoshiLockOnDistance(s32 type) {
     if (static_cast<u32>(type - YoshiLockOnTargetType::Capture) <= 1) return sDistance2;

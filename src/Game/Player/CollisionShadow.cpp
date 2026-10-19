@@ -449,7 +449,11 @@ void CollisionShadow::drawAndCaptureTex(J3DModelX* pModel, const TVec3f& rPositi
     }
 
     const ResTIMG* image = mTexture->getTexInfo();
+#ifdef GALAXY_NATIVE
+    void* destination = const_cast<u8*>(reinterpret_cast<const u8*>(image) + JUT_RESTIMG_OFFSET(image->mImageDataOffset));
+#else
     void* destination = const_cast<u8*>(reinterpret_cast<const u8*>(image) + image->mImageDataOffset);
+#endif
     GXRenderModeObj* mode = JUTVideo::getManager()->getRenderMode();
     GXSetCopyFilter(GX_FALSE, mode->sample_pattern, GX_FALSE, mode->vfilter);
     JUTTexture::captureDolTexture(destination, _2FC, _2FE, 608 - _2FC, 0, false, GX_CTF_A8);

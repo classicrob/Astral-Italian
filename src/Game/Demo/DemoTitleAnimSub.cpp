@@ -10,7 +10,11 @@ namespace {
         }
         static DemoTitleAnimModelNrvAction sInstance;
     };
+#ifdef GALAXY_NATIVE
+    DemoTitleAnimModelNrvAction DemoTitleAnimModelNrvAction::sInstance;
+#else
     DemoTitleAnimModelNrvAction DemoTitleAnimModelNrvAction::sInstance ATTRIBUTE_WEAK;
+#endif
 };  // namespace
 
 DemoTitleAnimParam::DemoTitleAnimParam() : mArcName(nullptr), mJointName(nullptr), mActionName(nullptr) {

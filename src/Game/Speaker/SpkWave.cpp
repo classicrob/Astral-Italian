@@ -47,6 +47,11 @@ s16* SpkWave::getWave(s32 wave) const {
 }
 
 WaveData* SpkWave::getWaveData(s32 wave) const {
+#ifdef GALAXY_NATIVE
+    u8* resource = static_cast<u8*>(mResource);
+    return reinterpret_cast<WaveData*>(resource + PetariNative::readU32BE(resource + wave * 4 + 8));
+#else
     return reinterpret_cast< WaveData* >(reinterpret_cast< uintptr_t >(mResource) +
                                          *reinterpret_cast< u32* >(reinterpret_cast< uintptr_t >(mResource) + wave * 4 + 8));
+#endif
 }

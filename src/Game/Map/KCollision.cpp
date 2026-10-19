@@ -8,6 +8,10 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include <algorithm>
 #include <stdint.h>
+#ifdef GALAXY_NATIVE
+#include <petari/kcl_collision.hpp>
+#include <revolution/os.h>
+#endif
 
 #pragma force_active on
 __attribute__((weak)) bool JGeometry::TVec3< f32 >::operator==(const TVec3& rVec) const {
@@ -1227,7 +1231,12 @@ edgeFinish: {
 }
 
 finish:
+#ifdef GALAXY_NATIVE
+    f32 distance;
+    distance = MR::sqrt(*pDist);
+#else
     f32 distance = MR::sqrt(*pDist);
+#endif
 
     if (distances[0] + distance < 0.0f) {
         *pFlag = 0;

@@ -6,7 +6,12 @@ bool EffectObj10x10x10SyncClipping::isSyncClipping() const {
 }
 
 TVec3f* EffectObj10x10x10SyncClipping::getClippingCenterOffset() const {
+#ifdef GALAXY_NATIVE
+    static TVec3f offset(0.0f, 580.0f, 0.0f);
+    return &offset;
+#else
     return &TVec3f(0.0f, 580.0f, 0.0f);
+#endif
 }
 
 f32 EffectObj10x10x10SyncClipping::getFarClipDistance() const {

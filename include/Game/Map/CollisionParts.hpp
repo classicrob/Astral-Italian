@@ -8,6 +8,9 @@ class HitInfo;
 class HitSensor;
 class KC_PrismData;
 class KCollisionServer;
+#ifdef GALAXY_NATIVE
+struct KCLFile;
+#endif
 class Triangle;
 class TriangleFilterBase;
 

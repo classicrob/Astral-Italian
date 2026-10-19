@@ -804,6 +804,16 @@ public:
     /* 0x25C */ union {
         u32 mEffectFlagsWord;
         struct {
+#ifdef GALAXY_NATIVE
+            unsigned : 25;
+            unsigned mSpecialSmoke : 1;
+            unsigned mBeeWind : 1;
+            unsigned mIsStationary : 1;
+            unsigned mSlopeSlip : 1;
+            unsigned _2 : 1;
+            unsigned mSnow : 1;
+            unsigned mSmoke : 1;
+#else
             unsigned mSmoke : 1;
             unsigned mSnow : 1;
             unsigned _2 : 1;
@@ -811,6 +821,7 @@ public:
             unsigned mIsStationary : 1;
             unsigned mBeeWind : 1;
             unsigned mSpecialSmoke : 1;
+#endif
         } mEffectFlags;
     };
     /* 0x260 */ u16 _BC4;

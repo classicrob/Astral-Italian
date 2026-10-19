@@ -12,7 +12,11 @@ public:
 
     Triangle& operator=(const Triangle&);
 
+#ifdef GALAXY_NATIVE
+    void fillData(CollisionParts*, u32, HitSensor*);
+#else
     void fillData(CollisionParts*, unsigned long, HitSensor*);
+#endif
     const char* getHostName() const;
     s32 getHostPlacementZoneID() const;
     bool isHostMoved() const;

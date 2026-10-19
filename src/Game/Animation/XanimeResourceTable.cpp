@@ -1,4 +1,7 @@
 #include "Game/Animation/XanimeResource.hpp"
+#ifdef GALAXY_NATIVE
+#include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
+#endif
 #include "Game/System/ResourceHolder.hpp"
 #include "Game/System/ResourceInfo.hpp"
 #include "Game/Util/HashUtil.hpp"
@@ -207,9 +210,16 @@ u32 XanimeResourceTable::initGroupInfo(ResourceHolder* pResourceHolder, XanimeGr
             entry->mLoop = 0.0f;
             entry->mAttribute = 0;
         } else {
+#ifdef GALAXY_NATIVE
+            const J3DAnmBase* animation = static_cast<const J3DAnmBase*>(entry->mAnimations[0]);
+            entry->mAttribute = animation->getAttribute();
+            entry->mLoop = 0.0f;
+            entry->mEnd = static_cast<f32>(animation->getFrameMax());
+#else
             entry->mAttribute = static_cast< u8* >(entry->mAnimations[0])[4];
             entry->mLoop = 0.0f;
             entry->mEnd = static_cast< f32 >(reinterpret_cast< const s16* >(entry->mAnimations[0])[3]);
+#endif
         }
 
         XanimeBckTable* ofsTables[1];
@@ -343,11 +353,17 @@ u32 XanimeResourceTable::getGroupIndex(const char* pTarget) const {
     case 0:
         return -1;
     case 1:
+#ifdef GALAXY_NATIVE
+    {
+#endif
         uintptr_t position = -1;
         if (mSortTable->search(hash, &position)) {
             return position;
         }
 
+#ifdef GALAXY_NATIVE
+    }
+#endif
     case 2:
         break;
     }

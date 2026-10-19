@@ -2,15 +2,27 @@
 
 #include "Game/AudioLib/AudRemixSequencer.hpp"
 #include "Game/AudioLib/AudSoundObject.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/BigEndian.hpp"
+#endif
 
 class JKRHeap;
 
+#ifdef GALAXY_NATIVE
+struct RemixNoteData {
+    BigEndianValue<s32> mPitch;
+    BigEndianValue<s32> mVelocity;
+    BigEndianValue<s32> mLength;
+    BigEndianValue<s32> mStartTime;
+};
+#else
 struct RemixNoteData {
     /* 0x0 */ s32 mPitch;
     /* 0x4 */ s32 mVelocity;
     /* 0x8 */ s32 mLength;
     /* 0xC */ s32 mStartTime;
 };
+#endif
 
 struct RemixNoteTrackData {
     /* 0x0 */ s32 mTrackNo;

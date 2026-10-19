@@ -16,6 +16,9 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#endif
 #include "Game/Demo/StoryBookDemo.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/LightUtil.hpp"

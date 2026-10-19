@@ -276,10 +276,26 @@ WaterPlantDrawInit::WaterPlantDrawInit()
     : NameObj("水草の描画初期化"), mAngleOffset(), mSwingPosTable(), mPlantATex(), mPlantBTex(), mPlantCTex(), mPlantDTex() {
     MR::connectToScene(this, MR::MovementType_MapObj, -1, -1, -1);
 
+#ifdef GALAXY_NATIVE
+    mPlantATex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantA.bti", nullptr), 0);
+#else
     mPlantATex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantA.bti", nullptr), nullptr);
+#endif
+#ifdef GALAXY_NATIVE
+    mPlantBTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantB.bti", nullptr), 0);
+#else
     mPlantBTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantB.bti", nullptr), nullptr);
+#endif
+#ifdef GALAXY_NATIVE
+    mPlantCTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantC.bti", nullptr), 0);
+#else
     mPlantCTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantC.bti", nullptr), nullptr);
+#endif
+#ifdef GALAXY_NATIVE
+    mPlantDTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantD.bti", nullptr), 0);
+#else
     mPlantDTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantD.bti", nullptr), nullptr);
+#endif
 
     MR::registerPreDrawFunction(MR::FunctorV0M<const WaterPlantDrawInit*, void (WaterPlantDrawInit::*)() const>(this, &WaterPlantDrawInit::initDraw), MR::DrawType_WaterPlant);
 
@@ -354,7 +370,11 @@ void WaterPlantDrawInit::initDraw() const {
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxDesc(GX_VA_TEX0, GX_INDEX8);
+#ifdef GALAXY_NATIVE
+    GXSETARRAY(GX_VA_TEX0, &::gxArray, sizeof(::gxArray), sizeof(TVec2f), true);
+#else
     GXSetArray(GX_VA_TEX0, &::gxArray, sizeof(TVec2f));
+#endif
     GXLoadPosMtxImm(MR::getCameraViewMtx(), 0);
     GXSetCurrentMtx(0);
     GXSetNumChans(1);

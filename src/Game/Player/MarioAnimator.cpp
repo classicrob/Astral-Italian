@@ -521,6 +521,9 @@ void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
 
     // Start or continue animation
 startBas:
+#ifdef GALAXY_NATIVE
+    {
+#endif
     switch (_14) {
     case 0:
         getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
@@ -532,6 +535,9 @@ startBas:
 
     f32 frame = getFrame();
     getPlayer()->fn_803A96D0(frame);
+#ifdef GALAXY_NATIVE
+    }
+#endif
 
 updatePrevState:
     _15 = _14;

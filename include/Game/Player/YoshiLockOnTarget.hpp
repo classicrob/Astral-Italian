@@ -6,6 +6,19 @@
 class LiveActor;
 class YoshiTargetMark;
 
+#ifdef GALAXY_NATIVE
+namespace YoshiLockOnParams {
+    extern const char* sParamFile;
+    extern s32 sTimer;
+    extern f32 sDistance0;
+    extern f32 sDistance1;
+    extern f32 sDistance2;
+    extern f32 sDistance4;
+    extern f32 sDistance5;
+    extern s32 sTargetMax;
+}
+#endif
+
 namespace YoshiLockOnTargetType {
     enum Value {
         Eat = 0,

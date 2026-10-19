@@ -362,6 +362,9 @@ bool MarioWarp::close() {
     }
 
     case 3:
+#ifdef GALAXY_NATIVE
+    {
+#endif
         MR::endGlobalEventCamera("引き戻し", -1, true);
         if (getPlayerMode() != 1) {
             mActor->_A6E = 0;
@@ -377,6 +380,9 @@ bool MarioWarp::close() {
         player->_42A = 0;
         player->_430 = 0;
         break;
+#ifdef GALAXY_NATIVE
+    }
+#endif
     case 1:
         if (getPlayerMode() != 1) {
             mActor->_A6E = 0;

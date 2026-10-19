@@ -107,14 +107,22 @@ u32 KeyCamAnmDataAccessor::searchKeyFrameIndex(f32 key, u32 offset, u32 count, u
 
 f32 KeyCamAnmDataAccessor::get3f(f32 key, u32 offset, u32 count) const {
     u32 index = searchKeyFrameIndex(key, offset, count, 3);
+#ifdef GALAXY_NATIVE
+    const CanmValue* values = mValues + offset + index * 3;
+#else
     f32* values = mValues + offset + index * 3;
+#endif
 
     return calcHermite(key, values[0], values[1], values[2], values[3], values[4], values[5]);
 }
 
 f32 KeyCamAnmDataAccessor::get4f(f32 key, u32 offset, u32 count) const {
     u32 index = searchKeyFrameIndex(key, offset, count, 4);
+#ifdef GALAXY_NATIVE
+    const CanmValue* values = mValues + offset + index * 4;
+#else
     f32* values = mValues + offset + index * 4;
+#endif
 
     return calcHermite(key, values[0], values[1], values[3], values[4], values[5], values[6]);
 }

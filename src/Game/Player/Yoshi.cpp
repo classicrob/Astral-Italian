@@ -406,9 +406,9 @@ const TVec3f& Yoshi::getAutoEatSensorPosition() const {
 }
 
 // NONMATCHING: Euler extraction is inlined; matrix copy scheduling differs.
-void Yoshi::fn_8040F630(const TPos3f& matrix) {
+void Yoshi::setTransformFromMtx(const f32 (*matrix)[4]) {
     mBaseMtx.set(matrix);
-    MR::setPosition(this, matrix.mMtx[0][3], matrix.mMtx[1][3], matrix.mMtx[2][3]);
+    MR::setPosition(this, matrix[0][3], matrix[1][3], matrix[2][3]);
     TVec3f rotation;
     mBaseMtx.getEulerXYZ(rotation);
     MR::setRotation(this, rotation);

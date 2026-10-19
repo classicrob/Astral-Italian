@@ -1637,7 +1637,7 @@ void MarioActor::calcAndSetBaseMtx() {
     fn_803C5AB0(matrix.toMtxPtr());
     fn_803C5ED0(matrix.toMtxPtr(), previous.toMtxPtr());
     if (_3B0 != 1.0f) scaleMtx(matrix.toMtxPtr());
-    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->fn_8040F630(matrix);
+    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->setTransformFromMtx(matrix.toMtxPtr());
     else {
         PSMTXCopy(matrix.toMtxPtr(), mAllModel->getJ3DModel()->getBaseTRMtx());
         J3DModel* model = mAllModel->getJ3DModel();

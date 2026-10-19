@@ -132,7 +132,7 @@ void YoshiHolder::fn_8041BA20(MtxPtr matrix,LiveActor* egg){
     Yoshi* yoshi = mYoshi;
     MR::setPosition(yoshi,TVec3f(matrix[0][3],matrix[1][3],matrix[2][3]));
     MR::setPosition(mYoshi->mTongue,mYoshi->mPosition);
-    mYoshi->fn_8040F630(*reinterpret_cast<TPos3f*>(matrix));
+    mYoshi->setTransformFromMtx(matrix);
     mYoshi->appear();mYoshi->mTongue->appear();MR::showModel(mYoshi);MR::showModel(mYoshi->mTongue);_38=sAppearValue;
 }
 // NONMATCHING: only verified scale literal relocation labels differ.

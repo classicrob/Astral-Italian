@@ -254,7 +254,7 @@ public:
     void fn_8040F320();
     bool fn_8040F5B0(const char*);
     f32 fn_8040F620() const;
-    void fn_8040F630(const TPos3f&);
+    void setTransformFromMtx(const f32 (*)[4]);
     void fn_80410570(f32);
     bool fn_80410810(TVec3f*) const;
     void fn_80411630();

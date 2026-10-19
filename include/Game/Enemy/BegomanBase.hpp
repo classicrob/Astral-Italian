@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/ChangeObj.hpp"
+#include "Game/LiveActor/ChangeObjHolder.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class AnimScaleController;
@@ -19,21 +21,6 @@ struct BegomanSound {
     const char* mSound;
 };
 
-class ChangeObj {
-public:
-    ChangeObj(LiveActor* pActor) : mActor(pActor) {}
-    virtual ~ChangeObj() {}
-    virtual void doChange(ChangeObj*) {}
-
-    void changeTRSVGFromOther(const ChangeObj*);
-
-    /* 0x04 */ LiveActor* mActor;
-};
-
-namespace MR {
-    void registerChangeObj(ChangeObj*, const JMapInfoIter&);
-};  // namespace MR
-
 class BegomanBase : public LiveActor, public ChangeObj {
 public:
     BegomanBase(const char*);
@@ -45,6 +32,7 @@ public:
     virtual void startClipped();
     virtual void control();
     virtual void calcAndSetBaseMtx();
+    virtual void doChange(ChangeObj*);
     virtual u32 getKind() const = 0;
     virtual bool onTouchElectric(const TVec3f&, const TVec3f&);
     virtual bool setNerveReturn() = 0;
@@ -52,7 +40,6 @@ public:
     virtual const Nerve* getNerveWait() = 0;
     virtual void addVelocityOnPushedFromElectricRail(const TVec3f&, const TVec3f&);
     virtual bool requestAttack();
-    virtual void doChange(ChangeObj*);
 
     const BegomanSound* getSoundBaby();
     const BegomanSound* getSoundNormal();

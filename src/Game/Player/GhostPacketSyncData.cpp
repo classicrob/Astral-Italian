@@ -40,9 +40,9 @@ void GhostPacketSyncData::syncWithActor(const LiveActor* actor, bool syncAction)
         }
     }
     f32 frame;
-    if (player->isTerminate()) frame = player->_20->mEnd;
-    else frame = player->_20->mFrame;
+    if (player->isTerminate()) frame = player->mFrameCtrl->mEnd;
+    else frame = player->mFrameCtrl->mFrame;
     MR::fn_8037FC50(&mBckFrame, frame);
-    MR::fn_8037FC70(&mBckRate, player->_20->mRate);
+    MR::fn_8037FC70(&mBckRate, player->mFrameCtrl->mRate);
     for (u32 index = 0; index < 4; ++index) MR::fn_8037FC60(&mTrackWeights[index], player->mWeights[index]);
 }

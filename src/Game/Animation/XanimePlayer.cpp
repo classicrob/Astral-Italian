@@ -19,11 +19,11 @@ XanimePlayer::XanimePlayer(J3DModel* pModel, XanimeResourceTable* pRessource) {
     u8 flags = pModel->mModelData->mFlags & 0xF;
     mResourceTable = pRessource;
 
-    _0C = 0.0f;
+    mFrameBlendRatio = 0.0f;
 
     mDefaultAnimation = nullptr;
     mCurrentAnimation = nullptr;
-    _68 = nullptr;
+    mNextAnimation = nullptr;
 
     mCore = new XanimeCore(mResourceTable->mMaxGroupInfoTableSize, mModelData->mJointTree.mJointNum, flags);
 
@@ -32,18 +32,18 @@ XanimePlayer::XanimePlayer(J3DModel* pModel, XanimeResourceTable* pRessource) {
         mWeights[i] = 0.0f;
     }
 
-    _7C = false;
-    _7D = false;
-    _7F = false;
-    _7E = true;
+    mHasAnimation = false;
+    mHasDefaultAnimation = false;
+    mNextAnimationReady = false;
+    mAutoRunDefaultAnimation = true;
 
-    _24[0].init(0);
-    _24[1].init(0);
+    mFrameCtrls[0].init(0);
+    mFrameCtrls[1].init(0);
 
-    _54 = 0;
-    _55 = 0;
+    mCurrentFrameCtrlIndex = 0;
+    mNextFrameCtrlIndex = 0;
 
-    _20 = _24;
+    mFrameCtrl = mFrameCtrls;
 
     mCore->initT(mModelData);
 }
@@ -54,13 +54,13 @@ XanimePlayer::XanimePlayer(J3DModel* pModel, XanimeResourceTable* pRessource, Xa
     mModelData = pModel->mModelData;
     mResourceTable = pRessource;
 
-    _0C = 0.0f;
+    mFrameBlendRatio = 0.0f;
 
     mDefaultAnimation = nullptr;
     mCurrentAnimation = nullptr;
     mPrevAnimation = nullptr;
 
-    _68 = nullptr;
+    mNextAnimation = nullptr;
 
     mCore = new XanimeCore(mResourceTable->mMaxGroupInfoTableSize, pPlayer->mCore);
 
@@ -69,18 +69,18 @@ XanimePlayer::XanimePlayer(J3DModel* pModel, XanimeResourceTable* pRessource, Xa
         mWeights[i] = 0.0f;
     }
 
-    _7C = false;
-    _7D = false;
-    _7F = false;
-    _7E = true;
+    mHasAnimation = false;
+    mHasDefaultAnimation = false;
+    mNextAnimationReady = false;
+    mAutoRunDefaultAnimation = true;
 
-    _24[0].init(0);
-    _24[1].init(0);
+    mFrameCtrls[0].init(0);
+    mFrameCtrls[1].init(0);
 
-    _54 = 0;
-    _55 = 0;
+    mCurrentFrameCtrlIndex = 0;
+    mNextFrameCtrlIndex = 0;
 
-    _20 = _24;
+    mFrameCtrl = mFrameCtrls;
 
     mCore->initT(mModelData);
 }
@@ -89,36 +89,36 @@ void XanimePlayer::init() {
     mModel = nullptr;
     mModelData = nullptr;
     mCurrentBckName = nullptr;
-    _68 = nullptr;
+    mNextAnimation = nullptr;
     mPrevAnimation = nullptr;
     mCurrentAnimation = nullptr;
     mCurrentAnimation = nullptr;
     mDefaultAnimation = nullptr;
     mCore = nullptr;
     mResourceTable = nullptr;
-    _20 = nullptr;
-    _55 = 0;
-    _54 = 0;
+    mFrameCtrl = nullptr;
+    mNextFrameCtrlIndex = 0;
+    mCurrentFrameCtrlIndex = 0;
 
-    f32 f1 = _54;
-    _0C = f1;
-    _08 = f1;
+    f32 f1 = mCurrentFrameCtrlIndex;
+    mFrameBlendRatio = f1;
+    mInterpoleRatio = f1;
 
-    _78 = 0;
-    _7F = false;
-    _7E = false;
-    _7D = false;
-    _7C = false;
-    _88 = false;
-    _89 = false;
-    _80 = false;
+    mDefaultAnimationDelay = 0;
+    mNextAnimationReady = false;
+    mAutoRunDefaultAnimation = false;
+    mHasDefaultAnimation = false;
+    mHasAnimation = false;
+    mHasUpdatedFrame = false;
+    mAnimationChanged = false;
+    mKeepFrameRatio = false;
 
     for (int i = 0; i < ARRAY_SIZE(mWeights); i++) {
         mWeights[i] = 0.0f;
     }
 
     mSimpleGroup = nullptr;
-    _84 = 0.0f;
+    mCachedFrame = 0.0f;
 }
 
 void XanimePlayer::setDefaultAnimation(const char* pAnimationName) {
@@ -129,7 +129,7 @@ void XanimePlayer::setDefaultAnimation(const char* pAnimationName) {
     }
 
     mDefaultAnimation = pDefaultAnimation;
-    _7D = true;
+    mHasDefaultAnimation = true;
 }
 
 void XanimePlayer::changeCurrentAnimation(const XanimeGroupInfo* pAnimation) {
@@ -215,24 +215,24 @@ void XanimePlayer::swapFrameCtrl(const XanimeGroupInfo* pInfo) {
         return;
     }
 
-    if (pInfo->_20[0] == nullptr) {
+    if (pInfo->mAnimations[0] == nullptr) {
         return;
     }
 
-    _55 = 1 - _54;
+    mNextFrameCtrlIndex = 1 - mCurrentFrameCtrlIndex;
 
-    _20 = &_24[_55];
-    _20->init(reinterpret_cast< J3DAnmTransform* >(pInfo->_20[0])->getFrameMax());
-    _20->setRate(pInfo->mRate);
-    _20->setStart(pInfo->mStart);
-    _20->setFrame(pInfo->mStart);
-    _20->setLoop(pInfo->mLoop);
-    _20->setEnd(pInfo->mEnd);
-    _20->setAttribute(pInfo->mAttribute);
-    _20->_14 = pInfo->_8;
+    mFrameCtrl = &mFrameCtrls[mNextFrameCtrlIndex];
+    mFrameCtrl->init(reinterpret_cast< J3DAnmTransform* >(pInfo->mAnimations[0])->getFrameMax());
+    mFrameCtrl->setRate(pInfo->mRate);
+    mFrameCtrl->setStart(pInfo->mStart);
+    mFrameCtrl->setFrame(pInfo->mStart);
+    mFrameCtrl->setLoop(pInfo->mLoop);
+    mFrameCtrl->setEnd(pInfo->mEnd);
+    mFrameCtrl->setAttribute(pInfo->mAttribute);
+    mFrameCtrl->mInterpoleFrames = pInfo->mInterpoleFrame;
 
-    _84 = pInfo->mStart;
-    _88 = false;
+    mCachedFrame = pInfo->mStart;
+    mHasUpdatedFrame = false;
 }
 
 void XanimePlayer::changeAnimation(const XanimeGroupInfo* pInfo) {
@@ -245,8 +245,8 @@ void XanimePlayer::changeAnimation(const XanimeGroupInfo* pInfo) {
     }
 
     swapFrameCtrl(pInfo);
-    _89 = true;
-    _68 = pInfo;
+    mAnimationChanged = true;
+    mNextAnimation = pInfo;
     changeCurrentAnimation(pInfo);
     mCurrentBckName = pInfo->mBckName;
 }
@@ -258,7 +258,7 @@ void XanimePlayer::prepareAnimation(const XanimeGroupInfo* pInfo) {
 
     mCore->doFreeze();
     changeCurrentAnimation(pInfo);
-    _7F = true;
+    mNextAnimationReady = true;
     runNextAnimation();
 }
 
@@ -269,16 +269,16 @@ void XanimePlayer::setModel(J3DModel* pModel) {
 }
 
 void XanimePlayer::runNextAnimation() {
-    if (!_7F) {
+    if (!mNextAnimationReady) {
         return;
     }
 
-    _7F = false;
+    mNextAnimationReady = false;
 
     const XanimeGroupInfo* curAnim = mCurrentAnimation;
     u32 i;
     for (i = 0; i < curAnim->mBckTableVariant; i++) {
-        mCore->setBck(i & 0xFF, static_cast< J3DAnmTransform* >(curAnim->_20[i]));
+        mCore->setBck(i & 0xFF, static_cast< J3DAnmTransform* >(curAnim->mAnimations[i]));
         mWeights[i] = curAnim->mWeights[i];
     }
 
@@ -287,29 +287,29 @@ void XanimePlayer::runNextAnimation() {
         mWeights[j] = 0.0f;
     }
 
-    const bool cond = _7C;
+    const bool cond = mHasAnimation;
 
-    _54 = _55;
+    mCurrentFrameCtrlIndex = mNextFrameCtrlIndex;
 
-    _08 = 0.0f;
-    _0C = 1.0f;
+    mInterpoleRatio = 0.0f;
+    mFrameBlendRatio = 1.0f;
 
-    _78 = 0;
-    _7C = true;
+    mDefaultAnimationDelay = 0;
+    mHasAnimation = true;
 
     if (!cond) {
-        _24[_55]._14 = 0;
-        _08 = 1.0f;
+        mFrameCtrls[mNextFrameCtrlIndex].mInterpoleFrames = 0;
+        mInterpoleRatio = 1.0f;
         updateBeforeMovement();
         calcAnm(0);
     }
 }
 
 void XanimePlayer::changeAnimationSimple(J3DAnmTransform* pAnm) {
-    _68 = nullptr;
+    mNextAnimation = nullptr;
 
-    if (_54 != _55) {
-        _54 = _55;
+    if (mCurrentFrameCtrlIndex != mNextFrameCtrlIndex) {
+        mCurrentFrameCtrlIndex = mNextFrameCtrlIndex;
     }
 
     mCore->doFreeze();
@@ -323,38 +323,38 @@ void XanimePlayer::changeAnimationSimple(J3DAnmTransform* pAnm) {
     }
 
     XanimeGroupInfo* info = getSimpleGroup();
-    info->_20[0] = pAnm;
-    J3DAnmTransform* transform = static_cast< J3DAnmTransform* >(info->_20[0]);
-    _20->init(transform->getFrameMax());
-    _20->setAttribute(transform->getAttribute());
-    _20->setFrame(0.0f);
+    info->mAnimations[0] = pAnm;
+    J3DAnmTransform* transform = static_cast< J3DAnmTransform* >(info->mAnimations[0]);
+    mFrameCtrl->init(transform->getFrameMax());
+    mFrameCtrl->setAttribute(transform->getAttribute());
+    mFrameCtrl->setFrame(0.0f);
 
-    _08 = 0.0f;
-    _0C = 1.0f;
-    _78 = 0;
-    _20->_14 = 1;
-    _7C = true;
-    _7F = false;
-    _68 = nullptr;
-    _84 = 0.0f;
-    _88 = false;
-    _89 = true;
+    mInterpoleRatio = 0.0f;
+    mFrameBlendRatio = 1.0f;
+    mDefaultAnimationDelay = 0;
+    mFrameCtrl->mInterpoleFrames = 1;
+    mHasAnimation = true;
+    mNextAnimationReady = false;
+    mNextAnimation = nullptr;
+    mCachedFrame = 0.0f;
+    mHasUpdatedFrame = false;
+    mAnimationChanged = true;
 }
 
 void XanimePlayer::changeSpeed(f32 speed) {
-    _20->mRate = speed;
+    mFrameCtrl->mRate = speed;
 }
 
 void XanimePlayer::changeInterpoleFrame(s32 frame) {
-    _20->_14 = frame;
+    mFrameCtrl->mInterpoleFrames = frame;
     if (frame == 0) {
-        _08 = 1.0f;
-        mCore->_1C = 1.0f;
+        mInterpoleRatio = 1.0f;
+        mCore->mInterpoleRatio = 1.0f;
         return;
     }
 
-    _08 = 0.0f;
-    mCore->_1C = 0.0f;
+    mInterpoleRatio = 0.0f;
+    mCore->mInterpoleRatio = 0.0f;
     updateInterpoleRatio();
 }
 
@@ -372,11 +372,11 @@ bool XanimePlayer::changeTrackWeight(u32 track, f32 weight) {
 }
 
 void XanimePlayer::calcAnm(u16 arg) {
-    if (!_80) updateFrameRatio();
+    if (!mKeepFrameRatio) updateFrameRatio();
 
     mCore->updateFrame();
     mModelData->mJointTree.mJointNodePointer[arg]->mMtxCalc = mCore;
-    _88 = false;
+    mHasUpdatedFrame = false;
 }
 
 void XanimePlayer::overWriteMtxCalc(u16 arg) {
@@ -388,7 +388,7 @@ void XanimePlayer::clearMtxCalc(u16 arg) {
 }
 
 void XanimePlayer::clearAnm(u16 arg) {
-    if (!_7C) {
+    if (!mHasAnimation) {
         return;
     }
 
@@ -396,38 +396,38 @@ void XanimePlayer::clearAnm(u16 arg) {
 }
 
 void XanimePlayer::updateBeforeMovement() {
-    if (!_7C) {
+    if (!mHasAnimation) {
         return;
     }
 
-    if ((_20->getState() & 1) == 1 && _7E && (_20->getAttribute() == 0 || _20->getAttribute() == 3)) {
+    if ((mFrameCtrl->getState() & 1) == 1 && mAutoRunDefaultAnimation && (mFrameCtrl->getAttribute() == 0 || mFrameCtrl->getAttribute() == 3)) {
         runDefaultAnimation();
     }
 
-    if (_78 != 0 && (_78 -= 0x1) == 0) {
+    if (mDefaultAnimationDelay != 0 && (mDefaultAnimationDelay -= 0x1) == 0) {
         runDefaultAnimation();
     }
 }
 
 void XanimePlayer::updateAfterMovement() {
-    prepareAnimation(_68);
-    _68 = nullptr;
+    prepareAnimation(mNextAnimation);
+    mNextAnimation = nullptr;
 
-    if (!_7C) {
+    if (!mHasAnimation) {
         return;
     }
 
-    if (_20->checkState(1) != 0) {
-        f32 unusedCast = _20->getEnd();
-    } else if (!_88 && !_89) {
-        f32 rate = _20->getRate();
+    if (mFrameCtrl->checkState(1) != 0) {
+        f32 unusedCast = mFrameCtrl->getEnd();
+    } else if (!mHasUpdatedFrame && !mAnimationChanged) {
+        f32 rate = mFrameCtrl->getRate();
 
-        _20->update();
-        _84 = _20->getFrame();
-        _88 = true;
+        mFrameCtrl->update();
+        mCachedFrame = mFrameCtrl->getFrame();
+        mHasUpdatedFrame = true;
 
-        if (_20->checkState(1) != 0) {
-            _20->setRate(rate);
+        if (mFrameCtrl->checkState(1) != 0) {
+            mFrameCtrl->setRate(rate);
         }
     }
 
@@ -437,24 +437,24 @@ void XanimePlayer::updateAfterMovement() {
         mCore->setWeight(i, mWeights[i]);
     }
 
-    mCore->_1C = _08;
-    mCore->_20 = _0C;
+    mCore->mInterpoleRatio = mInterpoleRatio;
+    mCore->mFrameBlendRatio = mFrameBlendRatio;
 }
 
 void XanimePlayer::updateInterpoleRatio() {
-    if (_20->getRate() != 0.0f || _20->getAttribute() == 1) {
-        if (_20->_14 != 0) {
-            _08 += (1.0f - _08) / _20->_14;
-            _20->_14 -= 1;
+    if (mFrameCtrl->getRate() != 0.0f || mFrameCtrl->getAttribute() == 1) {
+        if (mFrameCtrl->mInterpoleFrames != 0) {
+            mInterpoleRatio += (1.0f - mInterpoleRatio) / mFrameCtrl->mInterpoleFrames;
+            mFrameCtrl->mInterpoleFrames -= 1;
         } else {
-            _08 = 1.0f;
+            mInterpoleRatio = 1.0f;
         }
 
         return;
     }
 
-    _08 = 1.0f;
-    _20->_14 = 0;
+    mInterpoleRatio = 1.0f;
+    mFrameCtrl->mInterpoleFrames = 0;
 }
 
 void XanimePlayer::getMainAnimationTrans(u32 arg1, TVec3f* pOut) const {
@@ -464,19 +464,19 @@ void XanimePlayer::getMainAnimationTrans(u32 arg1, TVec3f* pOut) const {
     f32 f2 = pTracks[0].getWeight() + 0.01f;
     for (u8 i = 1; i < trackCount; i++) {
         const XanimeTrack& rTrack = mCore->mTrackList[i];
-        if (rTrack._0 != nullptr && rTrack.getWeight() > f2) {
+        if (rTrack.mAnimation != nullptr && rTrack.getWeight() > f2) {
             f2 = rTrack.getWeight() + 0.01f;
             index = i;
         }
     }
 
-    if (pTracks[index]._0 == nullptr) {
+    if (pTracks[index].mAnimation == nullptr) {
         pOut->zero();
         return;
     }
 
     J3DTransformInfo info;
-    pTracks[index]._0->getTransform(arg1, &info);
+    pTracks[index].mAnimation->getTransform(arg1, &info);
     pOut->set(info.mTranslate);
 }
 
@@ -492,7 +492,7 @@ bool XanimePlayer::isRun(const char* pName) const {
 
     XanimeGroupInfo* group = getSimpleGroup();
     if (mCurrentAnimation == group) {
-        return mResourceTable->findResMotion(pName) == getSimpleGroup()->_20[0];
+        return mResourceTable->findResMotion(pName) == getSimpleGroup()->mAnimations[0];
     }
 
     return mCurrentAnimation == mResourceTable->getGroupInfo(pName);
@@ -503,7 +503,7 @@ bool XanimePlayer::isTerminate(const char* pName) const {
         return true;
     }
 
-    if ((_24[_54].checkState(0x1) != 0)) {
+    if ((mFrameCtrls[mCurrentFrameCtrlIndex].checkState(0x1) != 0)) {
         return true;
     }
 
@@ -511,7 +511,7 @@ bool XanimePlayer::isTerminate(const char* pName) const {
 }
 
 bool XanimePlayer::isTerminate() const {
-    if (_24[_54].checkState(0x1) != 0) {
+    if (mFrameCtrls[mCurrentFrameCtrlIndex].checkState(0x1) != 0) {
         return true;
     }
 
@@ -519,11 +519,11 @@ bool XanimePlayer::isTerminate() const {
 }
 
 void XanimePlayer::runDefaultAnimation() {
-    if (_68 != nullptr) {
-        _68 = nullptr;
+    if (mNextAnimation != nullptr) {
+        mNextAnimation = nullptr;
     }
 
-    if (!_7D) {
+    if (!mHasDefaultAnimation) {
         return;
     }
 
@@ -532,7 +532,7 @@ void XanimePlayer::runDefaultAnimation() {
     }
 
     swapFrameCtrl(mDefaultAnimation);
-    _68 = mDefaultAnimation;
+    mNextAnimation = mDefaultAnimation;
     changeCurrentAnimation(mDefaultAnimation);
     mCurrentBckName = mDefaultAnimation->mBckName;
 }
@@ -575,26 +575,26 @@ const char* XanimePlayer::getNameStringPointer(const char* pName) const {
 }
 
 f32 XanimePlayer::getEffectiveAnimationFrame() const {
-    if (_20->checkState(1)) return _20->getEnd();
-    if (_88) return _84;
-    return _20->getFrame();
+    if (mFrameCtrl->checkState(1)) return mFrameCtrl->getEnd();
+    if (mHasUpdatedFrame) return mCachedFrame;
+    return mFrameCtrl->getFrame();
 }
 
 bool XanimePlayer::isFrameInRange(f32 begin, f32 end) const {
-    f32 frame = _20->getFrame();
-    if (_89) frame = _84;
+    f32 frame = mFrameCtrl->getFrame();
+    if (mAnimationChanged) frame = mCachedFrame;
     return begin <= frame && frame < end;
 }
 
 bool XanimePlayer::checkPass(f32 arg) const {
-    if (!_89) {
-        return _20->checkPass(arg);
+    if (!mAnimationChanged) {
+        return mFrameCtrl->checkPass(arg);
     }
 
-    f32 oldFrame = _20->getFrame();
-    _20->setFrame(_84);
-    bool res = _20->checkPass(arg);
-    _20->setFrame(oldFrame);
+    f32 oldFrame = mFrameCtrl->getFrame();
+    mFrameCtrl->setFrame(mCachedFrame);
+    bool res = mFrameCtrl->checkPass(arg);
+    mFrameCtrl->setFrame(oldFrame);
 
     return res;
 }
@@ -604,7 +604,7 @@ XanimeGroupInfo* XanimePlayer::getSimpleGroup() const {
         return mSimpleGroup;
     }
 
-    return &mResourceTable->_1C;
+    return &mResourceTable->mDefaultGroup;
 }
 
 void XanimePlayer::duplicateSimpleGroup() {
@@ -612,17 +612,17 @@ void XanimePlayer::duplicateSimpleGroup() {
     mSimpleGroup->init();
     mSimpleGroup->mParent.mAnimationName = "dup-non-group";
     mSimpleGroup->mRate = 1.0f;
-    mSimpleGroup->_8 = 1;
+    mSimpleGroup->mInterpoleFrame = 1;
     mSimpleGroup->mBckTableVariant = 1;
 }
 
-XanimeFrameCtrl::XanimeFrameCtrl() : _14(0) {
+XanimeFrameCtrl::XanimeFrameCtrl() : mInterpoleFrames(0) {
 }
 
 void XanimePlayer::updateFrameRatio() {
     f32 currentFrame = getEffectiveAnimationFrame();
-    if (mCurrentAnimation && mCurrentAnimation->_20[0]) {
-        s16 maxFrame = static_cast<J3DAnmTransform*>(mCurrentAnimation->_20[0])->getFrameMax();
+    if (mCurrentAnimation && mCurrentAnimation->mAnimations[0]) {
+        s16 maxFrame = static_cast<J3DAnmTransform*>(mCurrentAnimation->mAnimations[0])->getFrameMax();
         if (!maxFrame) maxFrame = 1;
         mCore->mFrameRatio = currentFrame / maxFrame;
     }

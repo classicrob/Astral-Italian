@@ -80,7 +80,7 @@ void Gorogoro::init(const JMapInfoIter& rIter) {
 
     mSavedPos = mPosition;
     JMath::gekko_ps_copy12(&mCollisionMtx, getBaseMtx());
-    mCollisionParts->_0 = &mCollisionMtx;
+    mCollisionParts->mFollowMtx = &mCollisionMtx;
     MR::useStageSwitchSyncAppear(this, rIter);
 }
 

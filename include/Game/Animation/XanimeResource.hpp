@@ -19,26 +19,26 @@ public:
 class XanimeOfsInfo {
 public:
     /* 0x00 */ XanimeBckTable mParent;
-    f32 _4;
-    f32 _8;
-    f32 _C;
-    u32 _10;
+    /* 0x04 */ f32 mStartFrame;
+    /* 0x08 */ f32 mEndFrame;
+    /* 0x0C */ f32 mLoopFrame;
+    /* 0x10 */ u32 mAttribute;
 };
 
 class XanimeGroupInfo {
 public:
     /* 0x00 */ XanimeBckTable mParent;
     /* 0x04 */ f32 mRate;
-    u32 _8;
+    /* 0x08 */ u32 mInterpoleFrame;
     /* 0x0C */ f32 mStart;
     /* 0x10 */ f32 mEnd;
     /* 0x14 */ f32 mLoop;
-    /* 0x18 */ s32 mAttribute;
+   /* 0x18 */ s32 mAttribute;
     /* 0x1C */ u8 mBckTableVariant;
-    u8 _1D;
-    void* _20[4];
+    /* 0x1D */ u8 mReserved;
+    /* 0x20 */ void* mAnimations[4];
     /* 0x30 */ f32 mWeights[4];
-    /* 0x40 */ u32 _40;
+   /* 0x40 */ u32 mAnimationHash;
     /* 0x44 */ const char* mBckName;
 
     void init();
@@ -56,15 +56,15 @@ public:
 };
 
 struct XanimeBckTableEntry {
-    /* 0x0 */ const char* mFileName;
-    f32 _4;
+    /* 0x00 */ const char* mFileName;
+    /* 0x04 */ f32 mWeight;
 };
 
 class XanimeBckTable1 {
 public:
     /* 0x0 */ XanimeBckTable mParent;
     /* 0x4 */ const char* mFileName;
-    /* 0x8 */ u32 mAnimationHash;
+   /* 0x40 */ u32 mAnimationHash;
     /* 0xC */ u32 mFileHash;
 };
 
@@ -90,11 +90,11 @@ public:
 class XanimeAuxInfo {
 public:
     /* 0x0 */ XanimeBckTable mParent;
-    u8 _4;
-    XanimeOfsInfo* _8;
+    /* 0x04 */ u8 mUnusedFlag;
+    /* 0x08 */ XanimeOfsInfo* mUnusedOfsInfo;
 
     // Unreferenced members
-    u8 _C[12];
+    /* 0x1D */ u8 mReserved[12];
 };
 
 class XanimeResourceTable {
@@ -118,14 +118,14 @@ public:
     bool search(XanimeBckTable**, const char*, u32) const;
     void init();
 
-    u8 _0;
+    /* 0x00 */ u8 mHasGroupTable;
     /* 0x01 */ u8 mMaxGroupInfoTableSize;
     /* 0x04 */ u32 mAmountOfGroupInfos;
     /* 0x08 */ u32 mAmountOfBckTables;
     /* 0x0C */ u32 mAmountOfSimpleGroupInfos;
     /* 0x10 */ XanimeGroupInfo* mGroupInfos;
     /* 0x14 */ XanimeBckTable1* mBckTables;
-    /* 0x18 */ XanimeGroupInfo _1C;
+   /* 0x18 */ XanimeGroupInfo mDefaultGroup;
     /* 0x60 */ XanimeGroupInfo* mSimpleGroupInfos;
     /* 0x64 */ ResourceHolder* mResourceHolder;
     /* 0x68 */ HashSortTable* mSortTable;

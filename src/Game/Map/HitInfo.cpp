@@ -62,7 +62,7 @@ s32 Triangle::getHostPlacementZoneID() const {
 }
 
 bool Triangle::isHostMoved() const {
-    return mParts->_D4 == 0;
+    return mParts->mStationaryFrames == 0;
 }
 
 bool Triangle::isValid() const {

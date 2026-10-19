@@ -6741,7 +6741,7 @@ void MarioActor::settingRush() {
     _934 = 1;
     resetCondition();
     XanimePlayer* p = mMario->getAnimator()->mXanimePlayer;
-    p->_7E = false;
+    p->mAutoRunDefaultAnimation = false;
 }
 
 

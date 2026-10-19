@@ -544,11 +544,11 @@ void MarioAnimator::setHand() {
     XanimeCore* core = mXanimePlayer->mCore;
     u8 armR = MR::getJointIndex(mActor, "ArmR1");
     XjointTransform* armRJoint = core->getJointTransform(armR);
-    armRJoint->_14 = scale;
+    armRJoint->mScaleModifier = scale;
     core = mXanimePlayer->mCore;
     u8 armL = MR::getJointIndex(mActor, "ArmL1");
     XjointTransform* armLJoint = core->getJointTransform(armL);
-    armLJoint->_14 = scale;
+    armLJoint->mScaleModifier = scale;
 }
 
 extern const char* jname_chest;
@@ -614,7 +614,7 @@ void MarioAnimator::setTilt() {
     XanimeCore* core = mXanimePlayer->mCore;
     u8 chestIdx = MR::getJointIndex(mActor, jname_chest);
     XjointTransform* jt = core->getJointTransform(chestIdx);
-    jt->_64 = _28.toMtxPtr();
+    jt->mLocalRotationMtx = _28.toMtxPtr();
 }
 
 void MarioAnimator::resetTilt() {
@@ -712,7 +712,7 @@ void MarioAnimator::setHoming() {
         XanimeCore* core = mXanimePlayer->getCore();
         u8 headIdx = MR::getJointIndex(mActor, "Head");
         XjointTransform* jt = core->getJointTransform(headIdx);
-        jt->_64 = _7C.toMtxPtr();
+        jt->mLocalRotationMtx = _7C.toMtxPtr();
     } else {
         Mtx identMtx;
         PSMTXIdentity(identMtx);
@@ -739,11 +739,11 @@ void MarioAnimator::setHoming() {
 
     XanimeCore* core = mXanimePlayer->getCore();
     u8 leftIdx = MR::getJointIndex(mActor, "ShoulderL");
-    core->getJointTransform(leftIdx)->_2C.x = leftShoulderRot;
+    core->getJointTransform(leftIdx)->mLocalTranslationOffset.x = leftShoulderRot;
 
     core = mXanimePlayer->getCore();
     u8 rightIdx = MR::getJointIndex(mActor, "ShoulderR");
-    core->getJointTransform(rightIdx)->_2C.x = rightShoulderRot;
+    core->getJointTransform(rightIdx)->mLocalTranslationOffset.x = rightShoulderRot;
 }
 
 void MarioAnimator::setHipSlidingTilt(f32 stickX, f32 stickY) {
@@ -983,11 +983,11 @@ void MarioAnimator::updateJointRumble() {
     MarioActor* actor = mActor;
     XanimeCore* core = mXanimePlayer->mCore;
     XjointTransform* larmJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(actor, "ArmL1")));
-    larmJt->_2C.y = sineVal * power;
+    larmJt->mLocalTranslationOffset.y = sineVal * power;
 
     core = mXanimePlayer->mCore;
     XjointTransform* rarmJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ArmR2")));
-    rarmJt->_2C.y = sineVal * power;
+    rarmJt->mLocalTranslationOffset.y = sineVal * power;
 
     f32 hipRot = 0.7f * ((f32)_74 / 60.0f);
 
@@ -1014,7 +1014,7 @@ void MarioAnimator::updateJointRumble() {
 
     core = mXanimePlayer->mCore;
     XjointTransform* hipJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Spine2")));
-    hipJt->_64 = _AC.toMtxPtr();
+    hipJt->mLocalRotationMtx = _AC.toMtxPtr();
 }
 #pragma pop
 
@@ -1030,63 +1030,63 @@ void MarioAnimator::setUpperRotateY(f32 angle) {
     PSMTXRotRad(_AC.toMtxPtr(), 'X', angle);
     XanimeCore* core = mXanimePlayer->mCore;
     XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Spine2")));
-    jt->_64 = _AC.toMtxPtr();
+    jt->mLocalRotationMtx = _AC.toMtxPtr();
 }
 
 void MarioAnimator::clearAllJointTransform() {
     {
         XanimeCore* core = mXanimePlayer->mCore;
         XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ShoulderL")));
-        jt->_64 = nullptr;
+        jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ShoulderR")));
-        jt->_64 = nullptr;
+        jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Head")));
-        jt->_64 = nullptr;
+        jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Spine2")));
-        jt->_64 = nullptr;
+        jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ArmL1")));
-        jt->_2C.y = 0.0f;
+        jt->mLocalTranslationOffset.y = 0.0f;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ArmR2")));
-        jt->_2C.y = 0.0f;
+        jt->mLocalTranslationOffset.y = 0.0f;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         u8 chestIdx = MR::getJointIndex(mActor, jname_chest);
         XjointTransform* jt = core->getJointTransform(chestIdx);
-        jt->_64 = nullptr;
+        jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
         u8 hipIdx = MR::getJointIndex(mActor, "Hip");
         XjointTransform* jt = core->getJointTransform(hipIdx);
-        jt->_64 = nullptr;
+        jt->mLocalRotationMtx = nullptr;
     }
 
     TVec3f zeroVec(0.0f, 0.0f, 0.0f);
     XjointTransform* jt = mXanimePlayer->mCore->getJointTransform(0);
-    jt->_38 = zeroVec;
+    jt->mWorldTranslationOffset = zeroVec;
 
     _74 = 0;
     _70 = 0.0f;
@@ -1163,7 +1163,7 @@ void MarioAnimator::switchMirrorMode() {
         mirrorScale.x = scale;
         mirrorScale.y = scale;
         mirrorScale.z = -scale;
-        jt->_14 = mirrorScale;
+        jt->mScaleModifier = mirrorScale;
 
         Mtx invBase;
         MtxPtr base = mActor->getBaseMtx();
@@ -1173,7 +1173,7 @@ void MarioAnimator::switchMirrorMode() {
         base = mActor->getBaseMtx();
         MR::multMtx(_DC, _DC, base);
 
-        jt->_6C = _DC;
+        jt->mWorldRotationMtx = _DC;
     } else {
         u32* modelFlags = (u32*)&model->mFlags;
         *modelFlags &= ~1;
@@ -1182,8 +1182,8 @@ void MarioAnimator::switchMirrorMode() {
         normalScale.x = scale;
         normalScale.y = scale;
         normalScale.z = scale;
-        jt->_14 = normalScale;
-        jt->_6C = 0;
+        jt->mScaleModifier = normalScale;
+        jt->mWorldRotationMtx = 0;
     }
 }
 
@@ -1342,7 +1342,7 @@ void MarioAnimator::changeExtraAnimation(const char* name) {
 }
 XanimePlayer* MarioAnimator::fn_803DFBF0() const { return mXanimePlayerExtra; }
 const char* MarioAnimator::fn_803DF0D0() const { return mXanimePlayer->getCurrentBckName(); }
-f32 MarioAnimator::fn_803DF0E0() const { return mXanimePlayer->_20->mRate; }
+f32 MarioAnimator::fn_803DF0E0() const { return mXanimePlayer->mFrameCtrl->mRate; }
 const char* MarioAnimator::getUpperAnimationName() const { return mXanimePlayerUpper->getCurrentAnimationName(); }
 const char* MarioAnimator::getAnimationStringPointer(const char* name) const { return mXanimePlayer->getNameStringPointer(name); }
 bool MarioAnimator::isUpperAnimationTerminated(const char* name) const {
@@ -1350,8 +1350,8 @@ bool MarioAnimator::isUpperAnimationTerminated(const char* name) const {
     return mXanimePlayerUpper->isTerminate();
 }
 f32 MarioAnimator::getWalkWeight(u32 index) const { return (&_18)[index]; }
-f32 MarioAnimator::getAnimationInterpoleRatio() const { return mXanimePlayer->_0C; }
-bool MarioAnimator::isFrameCtrlAttribute(u32 attribute) const { return mXanimePlayer->_20->getAttribute() == attribute; }
+f32 MarioAnimator::getAnimationInterpoleRatio() const { return mXanimePlayer->mFrameBlendRatio; }
+bool MarioAnimator::isFrameCtrlAttribute(u32 attribute) const { return mXanimePlayer->mFrameCtrl->getAttribute() == attribute; }
 
 // NONMATCHING: equivalent null-return block ordering.
 XanimePlayer* MarioAnimator::getYoshiAnimationPlayer() const {
@@ -1368,12 +1368,12 @@ XanimePlayer* MarioAnimator::getYoshiUpperAnimationPlayer() const {
     return result;
 }
 f32 XanimePlayer::getAnimationFrame() const {
-    if (isTerminate()) return _20->mEnd;
-    return _20->mFrame;
+    if (isTerminate()) return mFrameCtrl->mEnd;
+    return mFrameCtrl->mFrame;
 }
 // NONMATCHING: redundant rounding instruction and pointer-load scheduling.
 void XanimePlayer::setAnimationFrame(f32 frame) {
-    _20->mFrame = _84 = frame;
+    mFrameCtrl->mFrame = mCachedFrame = frame;
 }
 void MarioAnimator::changeTrackAnim(u8 index, const char* name) {
     mXanimePlayer->changeTrackAnimation(index, name);
@@ -1383,17 +1383,17 @@ void MarioAnimator::changeTrackAnim(u8 index, const char* name) {
     }
 }
 void MarioAnimator::setAnimationPaused(bool paused) {
-    mXanimePlayer->_7E = paused;
+    mXanimePlayer->mAutoRunDefaultAnimation = paused;
     if (getPlayer()->isPlayerModeYoshi()) {
-        getYoshiAnimationPlayer()->_7E = paused;
-        mXanimePlayerExtra->_7E = paused;
+        getYoshiAnimationPlayer()->mAutoRunDefaultAnimation = paused;
+        mXanimePlayerExtra->mAutoRunDefaultAnimation = paused;
     }
 }
 void MarioAnimator::setAnimationFrameCtrlAttribute(u8 attribute) {
-    mXanimePlayer->_20->mAttribute = attribute;
+    mXanimePlayer->mFrameCtrl->mAttribute = attribute;
     if (getPlayer()->isPlayerModeYoshi()) {
-        getYoshiAnimationPlayer()->_20->mAttribute = attribute;
-        mXanimePlayerExtra->_20->mAttribute = attribute;
+        getYoshiAnimationPlayer()->mFrameCtrl->mAttribute = attribute;
+        mXanimePlayerExtra->mFrameCtrl->mAttribute = attribute;
     }
 }
 void MarioAnimator::setAnimationInterpoleFrame(s32 frame) {
@@ -1413,21 +1413,21 @@ void MarioAnimator::setAnimationFrame(f32 frame) {
 }
 void MarioAnimator::resetAnimationUpdateFlags() {
     XanimePlayer* player = mXanimePlayer;
-    player->_88 = false;
-    player->_89 = false;
+    player->mHasUpdatedFrame = false;
+    player->mAnimationChanged = false;
     player = mXanimePlayerUpper;
-    player->_88 = false;
-    player->_89 = false;
+    player->mHasUpdatedFrame = false;
+    player->mAnimationChanged = false;
     if (getPlayer()->isPlayerModeYoshi()) {
         XanimePlayer* player = getYoshiAnimationPlayer();
-        player->_88 = false;
-        player->_89 = false;
+        player->mHasUpdatedFrame = false;
+        player->mAnimationChanged = false;
         player = getYoshiUpperAnimationPlayer();
-        player->_88 = false;
-        player->_89 = false;
+        player->mHasUpdatedFrame = false;
+        player->mAnimationChanged = false;
         player = mXanimePlayerExtra;
-        player->_88 = false;
-        player->_89 = false;
+        player->mHasUpdatedFrame = false;
+        player->mAnimationChanged = false;
     }
 }
 f32 MarioAnimator::getAnimationTrackWeight(u32 index) {
@@ -1436,23 +1436,23 @@ f32 MarioAnimator::getAnimationTrackWeight(u32 index) {
 }
 
 void MarioAnimator::setMainJointMatrix(u32 index, MtxPtr matrix) {
-    mXanimePlayer->mCore->getJointTransform(index)->_64 = matrix;
+    mXanimePlayer->mCore->getJointTransform(index)->mLocalRotationMtx = matrix;
 }
 void MarioAnimator::setYoshiJointMatrix(const char* joint, MtxPtr matrix) {
     if (getPlayer()->isPlayerModeYoshi()) {
         Yoshi* actor = mActor->fn_803B97F0();
         XanimeCore* core = getYoshiAnimationPlayer()->mCore;
-        core->getJointTransform(MR::getJointIndex(actor, joint))->_64 = matrix;
+        core->getJointTransform(MR::getJointIndex(actor, joint))->mLocalRotationMtx = matrix;
     }
 }
 void MarioAnimator::setMainJointOffset(u32 index, const TVec3f& offset) {
-    mXanimePlayer->mCore->getJointTransform(index)->_2C = offset;
+    mXanimePlayer->mCore->getJointTransform(index)->mLocalTranslationOffset = offset;
 }
 void MarioAnimator::setYoshiJointOffset(const char* joint, const TVec3f& offset) {
     if (getPlayer()->isPlayerModeYoshi()) {
         Yoshi* actor = mActor->fn_803B97F0();
         XanimeCore* core = getYoshiAnimationPlayer()->mCore;
-        core->getJointTransform(MR::getJointIndex(actor, joint))->_2C = offset;
+        core->getJointTransform(MR::getJointIndex(actor, joint))->mLocalTranslationOffset = offset;
     }
 }
 void MarioAnimator::setAnimationModel(J3DModel* model) {
@@ -1461,10 +1461,10 @@ void MarioAnimator::setAnimationModel(J3DModel* model) {
     if (getPlayer()->isPlayerModeYoshi()) mXanimePlayerExtra->setModel(model);
 }
 void MarioAnimator::setAnimationInterpoleRatio(f32 ratio) {
-    mXanimePlayer->_0C = ratio;
+    mXanimePlayer->mFrameBlendRatio = ratio;
     if (getPlayer()->isPlayerModeYoshi()) {
-        getYoshiAnimationPlayer()->_0C = ratio;
-        mXanimePlayerExtra->_0C = ratio;
+        getYoshiAnimationPlayer()->mFrameBlendRatio = ratio;
+        mXanimePlayerExtra->mFrameBlendRatio = ratio;
     }
 }
 
@@ -1498,8 +1498,8 @@ bool MarioAnimator::isAnimationRun(const char* name, u32 index) {
     return true;
 }
 f32 MarioAnimator::fn_803DD530() {
-    if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->_20->mEnd;
-    return mXanimePlayer->_20->mEnd;
+    if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->mFrameCtrl->mEnd;
+    return mXanimePlayer->mFrameCtrl->mEnd;
 }
 
 #pragma auto_inline off
@@ -1581,7 +1581,7 @@ void MarioAnimator::fn_803E0F80() {
         upper->updateBeforeMovement();
         upper->updateAfterMovement();
         XanimePlayer* player = mXanimePlayerUpper;
-        if ((player->_24[player->_54].mState & 1) && player->_20->mAttribute != 1 && !mUpperDefaultSet) stopUpper(nullptr);
+        if ((player->mFrameCtrls[player->mCurrentFrameCtrlIndex].mState & 1) && player->mFrameCtrl->mAttribute != 1 && !mUpperDefaultSet) stopUpper(nullptr);
     }
 }
 
@@ -1682,9 +1682,9 @@ void MarioAnimator::fn_803E1570() {
 
 void MarioAnimator::fn_803E1620() {
     if (!getPlayer()->isPlayerModeYoshi()) {
-        mXanimePlayer->mCore->_6 = 1;
+        mXanimePlayer->mCore->mCalcMode = 1;
         MR::calcJ3DModel(mActor);
-        mXanimePlayer->mCore->_6 = 2;
+        mXanimePlayer->mCore->mCalcMode = 2;
         MR::calcJ3DModel(mActor);
         return;
     }
@@ -1705,9 +1705,9 @@ void MarioAnimator::fn_803E1620() {
         MtxPtr matrix = MR::getJointMtx(renderActor, "MarioPos");
         PSMTXCopy(matrix, static_cast<J3DModel*>(mActor->fn_803BBA20())->getBaseTRMtx());
     }
-    mXanimePlayerExtra->mCore->_6 = 1;
+    mXanimePlayerExtra->mCore->mCalcMode = 1;
     MR::calcJ3DModel(mActor);
-    mXanimePlayerExtra->mCore->_6 = 2;
+    mXanimePlayerExtra->mCore->mCalcMode = 2;
     MR::calcJ3DModel(mActor);
 }
 
@@ -1726,10 +1726,10 @@ void MarioAnimator::fn_803E17C0() {
 
 void MarioAnimator::fn_803E1890() {
     TVec3f position(getPlayer()->_13C);
-    mXanimePlayer->mCore->getJointTransform(0)->_38 = position;
+    mXanimePlayer->mCore->getJointTransform(0)->mWorldTranslationOffset = position;
     if (getPlayer()->isPlayerModeYoshi()) {
         TVec3f yoshiPosition(getPlayer()->_13C);
-        getYoshiAnimationPlayer()->mCore->getJointTransform(0)->_38 = yoshiPosition;
+        getYoshiAnimationPlayer()->mCore->getJointTransform(0)->mWorldTranslationOffset = yoshiPosition;
     }
 }
 
@@ -1775,7 +1775,7 @@ void MarioAnimator::fn_803DF8E0() {
 }
 void MarioAnimator::fn_803DF9D0() {
     setYoshiJointMatrix("AllRoot",nullptr);setYoshiJointOffset("Center",TVec3f(0.0f,0.0f,0.0f));
-    getYoshiAnimationPlayer()->mCore->getJointTransform(0)->_38=TVec3f(0.0f,0.0f,0.0f);
+    getYoshiAnimationPlayer()->mCore->getJointTransform(0)->mWorldTranslationOffset=TVec3f(0.0f,0.0f,0.0f);
     for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayer->mCore->mJointList[i]=mXanimePlayerExtra->mCore->mJointList[i];
 }
 void MarioAnimator::fn_803DFAC0() {
@@ -1830,7 +1830,7 @@ void MarioAnimator::fn_803DE880() {
 }
 
 XjointInfo& XjointInfo::operator=(const XjointInfo& other) {
-    _0=other._0;_28=other._28;_50=other._50;_5C=other._5C;_60=other._60;return *this;
+    mFrozenTransform=other.mFrozenTransform;mCurrentTransform=other.mCurrentTransform;mUnblendedTranslation=other.mUnblendedTranslation;mInterpoleRatio=other.mInterpoleRatio;mInterpoleStep=other.mInterpoleStep;return *this;
 }
 XjointTransform* MarioAnimator::getJointCtrl(const char* name) const {
     XanimeCore* core=mXanimePlayer->mCore;

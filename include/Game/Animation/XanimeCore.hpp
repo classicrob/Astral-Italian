@@ -10,8 +10,8 @@ class XtransformInfo {
 public:
     XtransformInfo();
 
-    /* 0x00 */ TVec3f _0;
-    /* 0x0C */ TVec3f _C;
+   /* 0x00 */ TVec3f mScale;
+   /* 0x0C */ TVec3f mTranslation;
     /* 0x18 */ Quaternion mRotation;
 };
 
@@ -33,17 +33,17 @@ public:
 #endif
     }
 
-    /* 0x00 */ J3DJoint* _0;
-    /* 0x04 */ u16 _4;
-    /* 0x08 */ TVec3f mScale;
-    /* 0x14 */ TVec3f _14;
-    /* 0x20 */ TVec3f _20;
-    /* 0x2C */ TVec3f _2C;
-    /* 0x38 */ TVec3f _38;
-    /* 0x44 */ J3DTransformInfo _44;
-    /* 0x64 */ MtxPtr _64;
-    /* 0x68 */ union { u32 _68; MtxPtr mPostTransform; };
-    /* 0x6C */ MtxPtr _6C;
+   /* 0x00 */ J3DJoint* mJoint;
+   /* 0x04 */ u16 mParentJointIndex;
+   /* 0x08 */ TVec3f mScale;
+   /* 0x14 */ TVec3f mScaleModifier;
+   /* 0x20 */ TVec3f mOutputTranslationOffset;
+   /* 0x2C */ TVec3f mLocalTranslationOffset;
+   /* 0x38 */ TVec3f mWorldTranslationOffset;
+   /* 0x44 */ J3DTransformInfo mBindTransform;
+   /* 0x64 */ MtxPtr mLocalRotationMtx;
+   /* 0x68 */ MtxPtr mPostTransform;
+   /* 0x6C */ MtxPtr mWorldRotationMtx;
 };
 
 class XjointInfo {
@@ -51,11 +51,11 @@ public:
     XjointInfo();
     XjointInfo& operator=(const XjointInfo&) NO_INLINE;
 
-    /* 0x00 */ XtransformInfo _0;
-    /* 0x28 */ XtransformInfo _28;
-    /* 0x50 */ TVec3f _50;
-    /* 0x5C */ f32 _5C;
-    /* 0x60 */ f32 _60;
+   /* 0x00 */ XtransformInfo mFrozenTransform;
+   /* 0x28 */ XtransformInfo mCurrentTransform;
+   /* 0x50 */ TVec3f mUnblendedTranslation;
+  /* 0x5C */ f32 mInterpoleRatio;
+   /* 0x60 */ f32 mInterpoleStep;
 };
 
 class XanimeTrack {
@@ -65,18 +65,18 @@ public:
 
     void init();
     void setFrame(f32 frame) {
-        _8 = frame;
-        _C = 1;
+        mFrameRatio = frame;
+        mHasFrameRatio = 1;
     }
 
     f32 getWeight() const {
-        return mWeight;
+       /* 0x04 */ return mWeight;
     }
 
-    /* 0x0 */ J3DAnmTransform* _0;
-    /* 0x4 */ f32 mWeight;
-    /* 0x8 */ f32 _8;
-    /* 0xC */ u8 _C;
+   /* 0x00 */ J3DAnmTransform* mAnimation;
+    /* 0x04 */ f32 mWeight;
+   /* 0x08 */ f32 mFrameRatio;
+   /* 0x0C */ u8 mHasFrameRatio;
 };
 
 class XanimeCore : public J3DMtxCalc {
@@ -115,20 +115,20 @@ public:
             return nullptr;
         }
 
-        return &mTransformList[index];
+       /* 0x14 */ return &mTransformList[index];
     }
 
-    /* 0x04 */ u8 _4;
+   /* 0x04 */ u8 mScaleBlendMode;
     /* 0x05 */ u8 mTrackCount;
-    /* 0x06 */ u8 _6;
+   /* 0x06 */ u8 mCalcMode;
     /* 0x08 */ u32 mJointCount;
-    /* 0x0C */ u16 _C;
+   /* 0x0C */ u16 mTranslationJointIndex;
     /* 0x10 */ XjointInfo* mJointList;
     /* 0x14 */ XjointTransform* mTransformList;
     /* 0x18 */ XanimeTrack* mTrackList;
-    /* 0x1C */ f32 _1C;
-    /* 0x20 */ f32 _20;
-    /* 0x24 */ f32 mFrameRatio;
-    /* 0x28 */ u8 _28;
-    /* 0x29 */ u8 _29;
+  /* 0x1C */ f32 mInterpoleRatio;
+   /* 0x20 */ f32 mFrameBlendRatio;
+   /* 0x24 */ f32 mFrameRatio;
+   /* 0x28 */ u8 mFreezeRequested;
+   /* 0x29 */ u8 mUpdateFrozenTransform;
 };

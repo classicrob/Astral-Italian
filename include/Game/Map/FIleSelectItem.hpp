@@ -68,36 +68,36 @@ public:
     void exeExistWait();
     void exeNewWait();
 
-    /* 0x090 */ bool _8C;
-    /* 0x094 */ PartsModel* mPlanetMapObj;
-    /* 0x098 */ FileSelectIconID* mIconID;
-    /* 0x09C */ FileSelectModel** mModels;
-    /* 0x0A0 */ MiiFaceParts* mFaceParts;
-    /* 0x0A4 */ FileSelectNumber* _A0;
-    /* 0x0A8 */ TPos3f _A4;
-    /* 0x0D8 */ TMtx34f _D4;
-    /* 0x108 */ TMtx34f _104;
-    /* 0x138 */ TVec3f _134;
-    /* 0x144 */ s32 _140;
-    /* 0x148 */ u8 _144;
+   /* 0x90 */ bool mIsNew;
+    /* 0x94 */ PartsModel* mPlanetMapObj;
+    /* 0x98 */ FileSelectIconID* mIconID;
+    /* 0x9C */ FileSelectModel** mModels;
+    /* 0xA0 */ MiiFaceParts* mFaceParts;
+   /* 0xA4 */ FileSelectNumber* mNumber;
+   /* 0xA8 */ TPos3f mPlanetMtx;
+   /* 0xD8 */ TMtx34f mFellowMtx;
+   /* 0x108 */ TMtx34f mMiiMtx;
+   /* 0x138 */ TVec3f mUnusedVector;
+   /* 0x144 */ s32 mFileIndex;
+   /* 0x148 */ u8 mIsPointed;
     /* 0x149 */ bool mIsInvalidateSelect;
-    /* 0x14A */ u8 _146;
-    /* 0x14B */ u8 _147;
+   /* 0x14A */ u8 mHasInvalidMiiId;
+   /* 0x14B */ u8 mIsComplete;
     /* 0x14C */ FileSelectItemSub::ScaleController* mScaleCtrl;
     /* 0x150 */ FileSelectItemSub::BlinkController* mBlinkCtrl;
     /* 0x154 */ FileSelectItemDelegatorBase* mDelegator;
-    /* 0x158 */ u8 _154;
-    /* 0x159 */ u8 _155;
-    /* 0x15A */ u8 _156;
-    /* 0x15B */ u8 _157;
-    /* 0x15C */ TVec2f _158;
-    /* 0x164 */ f32 _160;
+   /* 0x158 */ u8 mNeedsPointerReset;
+   /* 0x159 */ u8 mIsDragging;
+   /* 0x15A */ u8 mWasDragging;
+   /* 0x15B */ u8 mReservedDragFlag;
+   /* 0x15C */ TVec2f mPreviousPointerPos;
+   /* 0x164 */ f32 mRotationSpeed;
     /* 0x168 */ bool mIsInvalidRotate;
-    /* 0x169 */ u8 _165;
-    /* 0x16A */ u8 _166;
-    /* 0x16B */ u8 _167;
-    /* 0x16C */ s32 _168;
-    /* 0x170 */ s32 _16C;
+   /* 0x169 */ u8 mUseCopyEffect;
+   /* 0x16A */ u8 mReservedEffectFlag0;
+   /* 0x16B */ u8 mReservedEffectFlag1;
+   /* 0x16C */ s32 mTurnToFrontDuration;
+   /* 0x170 */ s32 mTurnToFrontStep;
 };
 
 namespace FileSelectItemSub {
@@ -111,10 +111,10 @@ namespace FileSelectItemSub {
         void exeBig();
 
         f32 getScale() const {
-            return _8;
+           /* 0x08 */ return mScale;
         }
 
-        f32 _8;
+        /* 0x08 */ f32 mScale;
     };
 
     class BlinkController : public NerveExecutor {
@@ -130,7 +130,7 @@ namespace FileSelectItemSub {
         void sleep();
 
         /* 0x08 */ FileSelectItem* mItem;
-        s32 _C;
-        s32 _10;
+        /* 0x0C */ s32 mBlinkWaitFrames;
+        /* 0x10 */ s32 mSleepFrames;
     };
 };  // namespace FileSelectItemSub

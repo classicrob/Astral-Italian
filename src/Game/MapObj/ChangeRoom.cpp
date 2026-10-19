@@ -205,7 +205,7 @@ void ChangeRoom::startEnterSoundAndPrepareReset() {
 void ChangeRoom::resetCollisionPartsMtx() {
     for (s32 i = 0; i < 2; i++) {
         CollisionParts* parts = mCollisionParts[i];
-        if (parts->_0) {
+        if (parts->mFollowMtx) {
             parts->resetAllMtx();
         } else {
             TPos3f mtx(getBaseMtx());

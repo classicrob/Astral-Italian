@@ -15,7 +15,7 @@ public:
     /// @brief Creates a new `XanimeFrameCtrl`.
     XanimeFrameCtrl();
 
-    /* 0x14 */ s32 _14;
+   /* 0x14 */ s32 mInterpoleFrames;
 };
 
 class XanimePlayer {
@@ -73,40 +73,40 @@ public:
     void duplicateSimpleGroup();
     void changeCurrentAnimation(const XanimeGroupInfo*);
     XanimeFrameCtrl* getFrameCtrl() {
-        return _20;
+       /* 0x20 */ return mFrameCtrl;
     }
 
     inline XanimeCore* getCore() {
-        return mCore;
+       /* 0x6C */ return mCore;
     }
     inline f32 getRate() {
-        return _20->getRate();
+        return mFrameCtrl->getRate();
     }
 
     /* 0x00 */ J3DModel* mModel;
     /* 0x04 */ J3DModelData* mModelData;
-    /* 0x08 */ f32 _08;
-    /* 0x0C */ f32 _0C;
+   /* 0x08 */ f32 mInterpoleRatio;
+   /* 0x0C */ f32 mFrameBlendRatio;
     /* 0x10 */ f32 mWeights[4];
-    /* 0x20 */ XanimeFrameCtrl* _20;
-    /* 0x24 */ XanimeFrameCtrl _24[2];
-    /* 0x54 */ u8 _54;
-    /* 0x55 */ u8 _55;
+   /* 0x20 */ XanimeFrameCtrl* mFrameCtrl;
+   /* 0x24 */ XanimeFrameCtrl mFrameCtrls[2];
+   /* 0x54 */ u8 mCurrentFrameCtrlIndex;
+   /* 0x55 */ u8 mNextFrameCtrlIndex;
     /* 0x58 */ const char* mCurrentBckName;
     /* 0x5C */ const XanimeGroupInfo* mDefaultAnimation;
     /* 0x60 */ const XanimeGroupInfo* mCurrentAnimation;
     /* 0x64 */ const XanimeGroupInfo* mPrevAnimation;
-    /* 0x68 */ const XanimeGroupInfo* _68;
+   /* 0x68 */ const XanimeGroupInfo* mNextAnimation;
     /* 0x6C */ XanimeCore* mCore;
     /* 0x70 */ XanimeResourceTable* mResourceTable;
     /* 0x74 */ XanimeGroupInfo* mSimpleGroup;
-    /* 0x78 */ s32 _78;
-    /* 0x7C */ bool _7C;
-    /* 0x7D */ bool _7D;
-    /* 0x7E */ bool _7E;
-    /* 0x7F */ bool _7F;
-    /* 0x80 */ bool _80;
-    /* 0x84 */ f32 _84;
-    /* 0x88 */ bool _88;
-    /* 0x89 */ bool _89;
+   /* 0x78 */ s32 mDefaultAnimationDelay;
+   /* 0x7C */ bool mHasAnimation;
+   /* 0x7D */ bool mHasDefaultAnimation;
+   /* 0x7E */ bool mAutoRunDefaultAnimation;
+   /* 0x7F */ bool mNextAnimationReady;
+   /* 0x80 */ bool mKeepFrameRatio;
+   /* 0x84 */ f32 mCachedFrame;
+   /* 0x88 */ bool mHasUpdatedFrame;
+   /* 0x89 */ bool mAnimationChanged;
 };

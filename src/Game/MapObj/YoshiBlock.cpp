@@ -74,14 +74,14 @@ void YoshiBlockCollision::init(const JMapInfoIter& rIter) {
 void YoshiBlockCollision::appear() {
     LiveActor::appear();
     CollisionParts* pParts = mParts;
-    pParts->_CC = 1;
-    pParts->_CD = 1;
+    pParts->mIsRegistered = 1;
+    pParts->mNeedsZoneUpdate = 1;
 }
 
 void YoshiBlockCollision::kill() {
     LiveActor::kill();
     CollisionParts* pParts = mParts;
-    pParts->_CC = 0;
+    pParts->mIsRegistered = 0;
 }
 
 bool YoshiBlockCollision::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {

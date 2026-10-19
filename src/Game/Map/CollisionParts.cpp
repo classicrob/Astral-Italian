@@ -16,7 +16,7 @@
 #include "Game/Util/TriangleFilter.hpp"
 
 CollisionParts::CollisionParts()
-    : _0(), mHitSensor(), _CC(), _CE(true), _CF(), _D0(), _D1(), _D4(), _D8(-1.0f), _DC(1.0f), mKeeperIndex(-1), mZone() {
+    : mFollowMtx(), mHitSensor(), mIsRegistered(), mIsUpdateEnabled(true), mForceUpdateOnce(), mUseAutoScale(), mIgnoreScale(), mStationaryFrames(), mBoundingSphereRadius(-1.0f), mEqualScale(1.0f), mKeeperIndex(-1), mZone() {
     mServer = new KCollisionServer();
 
     mPrevBaseMatrix.identity();
@@ -29,7 +29,7 @@ void CollisionParts::resetBelongZone() {
     CollisionCategorizedKeeper* keeper = MR::getCollisionDirector()->getCategoryKeeper(mKeeperIndex);
     if (mZone->contains(this)) removeFromBelongZone();
     mZone = keeper->getZone(0);
-    if (_CC) addToBelongZone();
+    if (mIsRegistered) addToBelongZone();
 }
 
 void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
@@ -67,16 +67,16 @@ void CollisionParts::removeFromBelongZone() {
 
 void CollisionParts::initWithAutoEqualScale(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
                                             bool useAutoScale) {
-    _D0 = true;
-    _D1 = false;
+    mUseAutoScale = true;
+    mIgnoreScale = false;
 
     init(rMatrix, pHitSensor, pKclData, pMapInfo, keeperIndex, useAutoScale);
 }
 
 void CollisionParts::initWithNotUsingScale(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
                                            bool useAutoScale) {
-    _D0 = false;
-    _D1 = true;
+    mUseAutoScale = false;
+    mIgnoreScale = true;
 
     init(rMatrix, pHitSensor, pKclData, pMapInfo, keeperIndex, useAutoScale);
 }
@@ -84,7 +84,7 @@ void CollisionParts::initWithNotUsingScale(const TPos3f& rMatrix, HitSensor* pHi
 void CollisionParts::resetAllMtx(const TPos3f& rMatrix) {
     bool reset = false;
 
-    if (_CE || _CF) {
+    if (mIsUpdateEnabled || mForceUpdateOnce) {
         reset = true;
     }
 
@@ -98,12 +98,12 @@ void CollisionParts::resetAllMtx(const TPos3f& rMatrix) {
 void CollisionParts::resetAllMtx() {
     bool reset = false;
 
-    if (_CE || _CF) {
+    if (mIsUpdateEnabled || mForceUpdateOnce) {
         reset = true;
     }
 
     if (reset) {
-        TPos3f matrix(_0);
+        TPos3f matrix(mFollowMtx);
         makeEqualScale(matrix.toMtxPtr());
 
         resetAllMtxPrivate(matrix);
@@ -123,44 +123,44 @@ void CollisionParts::setMtx(const TPos3f& rMatrix) {
 }
 
 void CollisionParts::setMtx() {
-    mMatrix.setInline(_0);
+    mMatrix.setInline(mFollowMtx);
 }
 
 void CollisionParts::updateMtx() {
     bool update = false;
 
-    if (_CE || _CF) {
+    if (mIsUpdateEnabled || mForceUpdateOnce) {
         update = true;
     }
 
     if (!update) {
         if (MR::isSameMtx(mMatrix.toMtxPtr(), mBaseMatrix.toMtxPtr())) {
-            _D4++;
+            mStationaryFrames++;
         }
     } else {
         if (MR::isSameMtx(mMatrix.toMtxPtr(), mBaseMatrix.toMtxPtr())) {
-            _D4++;
+            mStationaryFrames++;
         } else {
-            if (_CF) {
-                _D4 = 1;
+            if (mForceUpdateOnce) {
+                mStationaryFrames = 1;
             } else {
-                _D4 = 0;
+                mStationaryFrames = 0;
             }
 
             f32 scale = makeEqualScale(mMatrix.toMtxPtr());
-            _E8 = scale;
-            f32 scaleChange = scale - _DC;
-            _EC = scale;
-            _F0 = scale;
+            mScaleX = scale;
+            f32 scaleChange = scale - mEqualScale;
+            mScaleY = scale;
+            mScaleZ = scale;
 
             if (!MR::isNearZero(scaleChange)) {
                 updateBoundingSphereRangePrivate(scale);
             }
         }
 
-        _CF = false;
+        mForceUpdateOnce = false;
 
-        if (_D4 < 2) {
+        if (mStationaryFrames < 2) {
             mPrevBaseMatrix.setInline(mBaseMatrix);
             mBaseMatrix.setInline(mMatrix);
             PSMTXInverse(mBaseMatrix.toMtxPtr(), mInvBaseMatrix.toMtxPtr());
@@ -183,10 +183,10 @@ f32 CollisionParts::makeEqualScale(MtxPtr pMatrix) {
     f32 uniformScale = 1.0f;
     TVec3f invScale;
 
-    if (_D1) {
+    if (mIgnoreScale) {
         invScale.set< f32 >(uniformScale / scale.x, uniformScale / scale.y, uniformScale / scale.z);
         uniformScale = 1.0f;
-    } else if (_D0) {
+    } else if (mUseAutoScale) {
         uniformScale = (scale.x + scale.y + scale.z) / 3.0f;
         invScale.set< f32 >(uniformScale / scale.x, uniformScale / scale.y, uniformScale / scale.z);
     }
@@ -207,7 +207,7 @@ f32 CollisionParts::makeEqualScale(MtxPtr pMatrix) {
 }
 
 void CollisionParts::updateBoundingSphereRange() {
-    TPos3f matrix(_0);
+    TPos3f matrix(mFollowMtx);
     f32 scale = makeEqualScale(matrix.toMtxPtr());
     updateBoundingSphereRangePrivate(scale);
 }
@@ -218,8 +218,8 @@ void CollisionParts::updateBoundingSphereRange(TVec3f scale) {
 }
 
 void CollisionParts::updateBoundingSphereRangePrivate(f32 scale) {
-    _DC = scale;
-    _D8 = scale * mServer->mMaxVertexDistance;
+    mEqualScale = scale;
+    mBoundingSphereRadius = scale * mServer->mMaxVertexDistance;
 }
 
 const char* CollisionParts::getHostName() const {
@@ -282,7 +282,7 @@ u32 CollisionParts::checkStrikeBall(HitInfo* pHitInfo, u32 maxHits, const TVec3f
     radius *= averageScale;
     TVec3f movement(0, 0, 0);
 
-    if (checkMovement && _D4 == 0) {
+    if (checkMovement && mStationaryFrames == 0) {
         PSMTXInverse(mPrevBaseMatrix.toMtxPtr(), inversePrev.toMtxPtr());
         TVec3f prevPos;
         inversePrev.mult(rPos, prevPos);

@@ -156,7 +156,7 @@ namespace MR {
         actor->mModelManager->mXanimePlayer = player;
         XanimeCore* core = player->mCore;
         core->enableJointTransform(getJ3DModelData(actor));
-        player->_20->mRate = 0.33f;
+        player->mFrameCtrl->mRate = 0.33f;
         return player;
     }
     XanimePlayer* fn_80380030(LiveActor* actor, XanimePlayer* main, XanimeResourceTable* resource) {
@@ -167,8 +167,8 @@ namespace MR {
     }
     void fn_803800C0(XanimePlayer* player, const char* name) {
         player->changeAnimationBck(name);
-        if (player->_20->mAttribute == 0) player->_20->mAttribute = 1;
-        if (!fn_8037FEE0(name)) player->_20->mAttribute = 1;
+        if (player->mFrameCtrl->mAttribute == 0) player->mFrameCtrl->mAttribute = 1;
+        if (!fn_8037FEE0(name)) player->mFrameCtrl->mAttribute = 1;
     }
     void fn_80380130(XanimePlayer* player, XanimePlayer* upper, LiveActor* actor, u32 hash, bool* hasTurtle) {
         player->changeAnimationByHash(hash);
@@ -189,7 +189,7 @@ namespace MR {
             }
             if (hasTurtle != nullptr) *hasTurtle = turtle;
         }
-        if (!fn_8037FEE0(name)) player->_20->mAttribute = 1;
+        if (!fn_8037FEE0(name)) player->mFrameCtrl->mAttribute = 1;
     }
 }
 

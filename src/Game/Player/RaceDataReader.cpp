@@ -69,7 +69,7 @@ void RaceDataReader::startActionHash(u32 hash) {
 
 void RaceDataReader::setBckFrame(f32 frame) {
     if (mHasAnimation)
-        mXanimePlayer->_20->mFrame = frame;
+        mXanimePlayer->mFrameCtrl->mFrame = frame;
     else
         MR::setBckFrame(mHost, frame);
 }
@@ -83,7 +83,7 @@ void RaceDataReader::setTrackWeight(u32 index, f32 weight) {
 
 void RaceDataReader::setBckRate(f32 rate) {
     if (mHasAnimation)
-        mXanimePlayer->_20->mRate = rate;
+        mXanimePlayer->mFrameCtrl->mRate = rate;
     else
         MR::setBckRate(mHost, rate);
 }

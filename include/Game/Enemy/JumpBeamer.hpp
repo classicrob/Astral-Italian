@@ -8,7 +8,7 @@ class WalkerStateBindStarPointer;
 
 class JumpBeamer : public JumpEmitter {
 public:
-    void exePointBindWhileLanded();
+    void exePointBindWhileHopping();
     JumpBeamer(const char*);
 
     virtual void init(const JMapInfoIter&);

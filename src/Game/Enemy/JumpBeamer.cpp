@@ -21,7 +21,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-// Unnamed SMG2 bind-star-pointer exe (called from the nerve execute).
 
 namespace NrvJumpBeamer {
     NEW_NERVE(JumpBeamerNrvHide, JumpBeamer, Hide);
@@ -37,11 +36,13 @@ namespace NrvJumpBeamer {
     NEW_NERVE(JumpBeamerNrvClose, JumpBeamer, Close);
     NEW_NERVE(JumpBeamerNrvInter, JumpBeamer, Inter);
 
-    // NONMATCHING: execute bodies are inlined here; SMG2 has them as unnamed fn_801A0C00 / fn_801A0C10
     class JumpBeamerNrvBindStarPointer : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            reinterpret_cast< JumpBeamer* >(pSpine->mExecutor)->exePointBindWhileLanded();
+            JumpBeamer* actor = reinterpret_cast< JumpBeamer* >(pSpine->mExecutor);
+            if (MR::updateActorState(actor)) {
+                actor->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait));
+            }
         };
         static JumpBeamerNrvBindStarPointer sInstance;
     };
@@ -50,10 +51,7 @@ namespace NrvJumpBeamer {
     class JumpBeamerNrvBindStarPointerHop : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            JumpBeamer* actor = reinterpret_cast< JumpBeamer* >(pSpine->mExecutor);
-            if (MR::updateActorState(actor)) {
-                actor->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait));
-            }
+            reinterpret_cast< JumpBeamer* >(pSpine->mExecutor)->exePointBindWhileHopping();
         };
         static JumpBeamerNrvBindStarPointerHop sInstance;
     };
@@ -411,8 +409,7 @@ void JumpBeamer::exeInter() {
     }
 }
 
-// SMG2 unnamed bind-star-pointer exe (exePointBindWhileLanded).
-void JumpBeamer::exePointBindWhileLanded() {
+void JumpBeamer::exePointBindWhileHopping() {
     if (mParamScale->isFirstStep()) {
         MR::stopAllAnim(this->mHeadModel);
         MR::stopAllAnim(this);

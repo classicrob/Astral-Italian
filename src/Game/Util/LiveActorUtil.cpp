@@ -1892,7 +1892,7 @@ namespace MR {
         TPos3f mtx;
         mtx.set(pMtx);
         CollisionParts* pParts = ::createCollisionParts(getResourceHolder(pActor), pName, pSensor, mtx, scaleType, 0);
-        pParts->_0 = reinterpret_cast< TPos3f* >(pMtx);
+        pParts->mFollowMtx = reinterpret_cast< TPos3f* >(pMtx);
         return pParts;
     }
 
@@ -1907,7 +1907,7 @@ namespace MR {
         mtx.set(pMtx);
 
         CollisionParts* parts = createCollisionParts(pResourceHolder, pCollisionName, pBodySensor, mtx, collisionScaleType, 4);
-        parts->_0 = (TPos3f*)pMtx;
+        parts->mFollowMtx = (TPos3f*)pMtx;
         return parts;
     }
 
@@ -1926,7 +1926,7 @@ namespace MR {
         const char* pCollisionName = "MoveLimit";
         mtx.set(pMtx);
         CollisionParts* pParts = ::createCollisionParts(getResourceHolder(pActor), pCollisionName, pSensor, mtx, CollisionScaleType_Unk2, 3);
-        pParts->_0 = reinterpret_cast< TPos3f* >(pMtx);
+        pParts->mFollowMtx = reinterpret_cast< TPos3f* >(pMtx);
 
         if (pParts != nullptr) {
             validateCollisionParts(pParts);
@@ -1950,7 +1950,7 @@ namespace MR {
         const char* pCollisionName = "WaterSurface";
         mtx.set(pMtx);
         CollisionParts* pParts = ::createCollisionParts(getResourceHolder(pActor), pCollisionName, pSensor, mtx, CollisionScaleType_Unk2, 2);
-        pParts->_0 = reinterpret_cast< TPos3f* >(pMtx);
+        pParts->mFollowMtx = reinterpret_cast< TPos3f* >(pMtx);
 
         if (pParts != nullptr) {
             validateCollisionParts(pParts);
@@ -1964,18 +1964,18 @@ namespace MR {
 
 
     f32 getCollisionBoundingSphereRange(const LiveActor* pActor) {
-        return pActor->mCollisionParts->_D8;
+        return pActor->mCollisionParts->mBoundingSphereRadius;
     }
 
     bool isValidCollisionParts(LiveActor* pActor) {
-        return pActor->mCollisionParts->_CC;
+        return pActor->mCollisionParts->mIsRegistered;
     }
 
     void validateCollisionParts(LiveActor* pActor) {
         validateCollisionParts(pActor->mCollisionParts);
         CollisionParts* pParts = pActor->mCollisionParts;
 
-        if (pParts->_0 != nullptr) {
+        if (pParts->mFollowMtx != nullptr) {
             pParts->updateBoundingSphereRange();
         } else {
             pParts->updateBoundingSphereRange(pActor->mScale);
@@ -1985,12 +1985,12 @@ namespace MR {
     }
 
     void validateCollisionParts(CollisionParts* pParts) {
-        if (!pParts->_CC) {
+        if (!pParts->mIsRegistered) {
             pParts->addToBelongZone();
         }
 
-        pParts->_CC = true;
-        pParts->_CD = true;
+        pParts->mIsRegistered = true;
+        pParts->mNeedsZoneUpdate = true;
     }
 
     void invalidateCollisionParts(LiveActor* pActor) {
@@ -1998,11 +1998,11 @@ namespace MR {
     }
 
     void invalidateCollisionParts(CollisionParts* pParts) {
-        if (pParts->_CC) {
+        if (pParts->mIsRegistered) {
             pParts->removeFromBelongZone();
         }
 
-        pParts->_CC = false;
+        pParts->mIsRegistered = false;
     }
 
     void validateExCollisionParts(LiveActor* pActor) {
@@ -2016,21 +2016,21 @@ namespace MR {
     void onUpdateCollisionParts(LiveActor* pActor) {
         CollisionParts* pParts = pActor->mCollisionParts;
 
-        if (!pParts->_CC) {
+        if (!pParts->mIsRegistered) {
             validateCollisionParts(pActor);
         }
 
-        pActor->mCollisionParts->_CE = true;
+        pActor->mCollisionParts->mIsUpdateEnabled = true;
     }
 
 
     void onUpdateCollisionPartsOneTimeImmediately(LiveActor* pActor) {
-        if (!pActor->mCollisionParts->_CC) {
+        if (!pActor->mCollisionParts->mIsRegistered) {
             validateCollisionParts(pActor);
         }
 
         CollisionParts* pParts = pActor->mCollisionParts;
-        pParts->_CF = true;
+        pParts->mForceUpdateOnce = true;
         makeMtxTR(const_cast< MtxPtr >(pActor->getBaseMtx()), pActor);
         setCollisionMtx(pActor, pActor->mCollisionParts);
         pParts->updateMtx();
@@ -2039,11 +2039,11 @@ namespace MR {
     void offUpdateCollisionParts(LiveActor* pActor) {
         CollisionParts* pParts = pActor->mCollisionParts;
 
-        if (!pParts->_CC) {
+        if (!pParts->mIsRegistered) {
             validateCollisionParts(pActor);
         }
 
-        pActor->mCollisionParts->_CE = false;
+        pActor->mCollisionParts->mIsUpdateEnabled = false;
     }
 
     void resetCollisionPartsBelongZone(LiveActor* pActor) {
@@ -2053,7 +2053,7 @@ namespace MR {
     void resetAllCollisionMtx(LiveActor* pActor) {
         CollisionParts* pParts = pActor->mCollisionParts;
 
-        if (pParts->_0 != nullptr) {
+        if (pParts->mFollowMtx != nullptr) {
             pParts->resetAllMtx();
             return;
         }
@@ -2341,11 +2341,11 @@ namespace MR {
     }
 
     void setCollisionMtx(LiveActor* pActor, CollisionParts* pParts) {
-        if (!pParts->_CC) {
+        if (!pParts->mIsRegistered) {
             return;
         }
 
-        if (pParts->_0 != nullptr) {
+        if (pParts->mFollowMtx != nullptr) {
             pParts->setMtx();
             return;
         }

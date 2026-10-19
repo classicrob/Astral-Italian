@@ -5,7 +5,7 @@
 #include "Game/LiveActor/ActorAnimKeeper.hpp"
 
 SyncBckEffectChecker::SyncBckEffectChecker(XanimePlayer* pPlayer, ActorAnimKeeper* keeper)
-    : mPlayer(pPlayer), mAnimKeeper(keeper), mPrevFrame(), mIsReset(), mIsCreateEnabled(), mCurrentBckName(), mPrevBckName(), _18(), _1C() {
+    : mPlayer(pPlayer), mAnimKeeper(keeper), mPrevFrame(), mIsReset(), mIsCreateEnabled(), mCurrentBckName(), mPrevBckName(), mCurrentAnimName(), mPrevAnimName() {
 }
 
 // NONMATCHING: branch lowering/regalloc
@@ -16,17 +16,17 @@ void SyncBckEffectChecker::updateBefore() {
     }
     mIsCreateEnabled = enabled;
     mCurrentBckName = mPlayer->getCurrentBckName();
-    _18 = mAnimKeeper ? mAnimKeeper->getCurrentAnimName() : nullptr;
+    mCurrentAnimName = mAnimKeeper ? mAnimKeeper->getCurrentAnimName() : nullptr;
 }
 
 bool XanimePlayer::isCurrentBckActive() const {
-    if (_24[_54].checkState(1)) return false;
+    if (mFrameCtrls[mCurrentFrameCtrlIndex].checkState(1)) return false;
     return true;
 }
 
 void SyncBckEffectChecker::updateAfter() {
     mPrevBckName = mCurrentBckName;
-    _1C = _18;
+    mPrevAnimName = mCurrentAnimName;
     mIsReset = false;
     mIsCreateEnabled = false;
     mPrevFrame = mPlayer->getFrameCtrl()->getFrame();
@@ -45,7 +45,7 @@ void SyncBckEffectChecker::fn_8006F1F0() {
 // NONMATCHING: regalloc
 bool SyncBckEffectChecker::isCreate(const SyncBckEffectInfo* info, bool checkFrame) const {
     if (!mIsCreateEnabled) return false;
-    if (!info->isRegisteredBck(mCurrentBckName) && !info->isRegisteredBck(_18)) return false;
+    if (!info->isRegisteredBck(mCurrentBckName) && !info->isRegisteredBck(mCurrentAnimName)) return false;
     const J3DFrameCtrl* ctrl = mPlayer->getFrameCtrl();
     if (!checkFrame) {
         f32 end = info->mEndFrame;
@@ -63,7 +63,7 @@ bool SyncBckEffectChecker::isCreate(const SyncBckEffectInfo* info, bool checkFra
 
 // NONMATCHING: equivalent branch layout/regalloc
 bool SyncBckEffectChecker::isDelete(const SyncBckEffectInfo* info) const {
-    bool registered = info->isRegisteredBck(mCurrentBckName) || info->isRegisteredBck(_18);
+    bool registered = info->isRegisteredBck(mCurrentBckName) || info->isRegisteredBck(mCurrentAnimName);
     if (registered) {
         if (!mIsCreateEnabled) {
             if (info->mContinueAnimEnd) return false;
@@ -79,7 +79,7 @@ bool SyncBckEffectChecker::isDelete(const SyncBckEffectInfo* info) const {
         if (!info->isRegisteredBck(name)) return mPlayer->isTerminate(name);
         return MR::Effect::isExistSyncBckDeleteFrame(info);
     }
-    if (mIsCreateEnabled) return mCurrentBckName != mPrevBckName || _18 != _1C;
+    if (mIsCreateEnabled) return mCurrentBckName != mPrevBckName || mCurrentAnimName != mPrevAnimName;
     return !mPlayer->isCurrentBckActive();
 }
 

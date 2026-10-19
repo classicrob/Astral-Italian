@@ -115,9 +115,9 @@ namespace NrvFileSelector {
 
 
 FileSelector::FileSelector(const char* pName)
-    : LiveActor(pName), mCameraController(), mSky(), mItems(), mOperationButton(), mBackButton(), mSysInfoWindow(), _B0(), _B4(), _B8(), _BC(),
-      mUserFile(), _C8(), mTitle(), mMiiSelect(), mMiiId(new RFLCreateID()), mManual(), mIsMiiSelectStartFirst(), mBgmState(), mSelectEffect(),
-      _EC(), _F0(), _F4(), _F8(), _FC(), _100(), _104() {
+    : LiveActor(pName), mCameraController(), mSky(), mItems(), mOperationButton(), mBackButton(), mSysInfoWindow(), mSelectedItem(), mUnusedItem(), mPointedItem(), mPointingCandidate(),
+      mUserFile(), mCompleteFlags(), mTitle(), mMiiSelect(), mMiiId(new RFLCreateID()), mManual(), mIsMiiSelectStartFirst(), mBgmState(), mSelectEffect(),
+      mIsChildMovementStopped(), mChildActors(), mChildActorCount(), mIsTitleBgmRhythmEnabled(), mTitleBgmRhythmVolume(), mTargetTitleBgmRhythmVolume(), mTitleBgmRhythmFadeFrames() {
 }
 
 // NONMATCHING: the two TVec3f temporaries (sensor offset / sound offset) get swapped stack slots
@@ -143,7 +143,7 @@ void FileSelector::init(const JMapInfoIter& rIter) {
     MR::tryRegisterDemoCast(this, rIter);
     initChildObjs(rIter);
     MR::initUseStageSwitchWriteA(this, rIter);
-    _F8 = false;
+    mIsTitleBgmRhythmEnabled = false;
     appear();
 }
 
@@ -194,12 +194,12 @@ void FileSelector::notifyItem(FileSelectItem* pItem, s32 msg) {
 // NONMATCHING: register allocation (i/offset/temp pointer registers swapped in the first loop)
 // NONMATCHING: stack slot/register allocation (named offset/actor locals in the second loop shift the frame; target uses unnamed temps)
 void FileSelector::control() {
-    _BC = nullptr;
+    mPointingCandidate = nullptr;
 
     for (int i = 0; i < mItems->getObjNum(); i++) {
         LiveActor* pActor = mItems->getActor(i);
         TVec3f& rPosition = pActor->mPosition;
-        rPosition = _9C[i] * 0.05f + rPosition * 0.95f;
+        rPosition = mItemPositions[i] * 0.05f + rPosition * 0.95f;
     }
 
     for (int i = 0; i < mItems->getObjNum(); i++) {
@@ -217,7 +217,7 @@ bool FileSelector::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
 
 void FileSelector::initUserFileArray() {
     mUserFile = new UserFile[USER_FILE_NUM]();
-    _C8 = new bool[USER_FILE_NUM];
+    mCompleteFlags = new bool[USER_FILE_NUM];
 
     initUserFile();
 }
@@ -229,7 +229,7 @@ void FileSelector::createCameraController() {
 
 void FileSelector::createFileItems() {
     mItems = new DeriveActorGroup< FileSelectItem >("全ファイルアイテム保持", USER_FILE_NUM);
-    _9C = new TVec3f[USER_FILE_NUM]();
+    mItemPositions = new TVec3f[USER_FILE_NUM]();
 
     calcBasePos(0.0f);
     MR::createSceneObj(SceneObj_MiiFacePartsHolder);
@@ -240,7 +240,7 @@ void FileSelector::createFileItems() {
         FileSelectItem* pItem = createFileItem(::sIndexOrder[i]);
 
         pItem->setSelectDelegator(pDelegator);
-        MR::setPosition(pItem, _9C[i]);
+        MR::setPosition(pItem, mItemPositions[i]);
         mItems->registerActor(pItem);
     }
 }
@@ -297,7 +297,7 @@ void FileSelector::createSelectEffect() {
 
     for (int i = 0; i < USER_FILE_NUM; i++) {
         mSelectEffect[i].initWithoutIter();
-        MR::setPosition(&mSelectEffect[i], _9C[i]);
+        MR::setPosition(&mSelectEffect[i], mItemPositions[i]);
         MR::setScale(&mSelectEffect[i], 0.4f);
     }
 }
@@ -331,22 +331,22 @@ bool FileSelector::isHiddenAllLayout() const {
 }
 
 void FileSelector::updateFileInfo() {
-    if (_BC != nullptr) {
-        if (_B8 != _BC) {
-            if (_B8 != nullptr) {
+    if (mPointingCandidate != nullptr) {
+        if (mPointedItem != mPointingCandidate) {
+            if (mPointedItem != nullptr) {
                 clearPointing();
                 mFileInfo->disappear();
             }
 
-            if (_BC->isExist()) {
-                setFileInfo(_BC->_140);
+            if (mPointingCandidate->isExist()) {
+                setFileInfo(mPointingCandidate->mFileIndex);
                 mFileInfo->appear();
             }
 
-            _B8 = _BC;
-            _B8->onPointing();
+            mPointedItem = mPointingCandidate;
+            mPointedItem->onPointing();
         }
-    } else if (_B8 != nullptr) {
+    } else if (mPointedItem != nullptr) {
         clearPointing();
         mFileInfo->disappear();
     }
@@ -394,18 +394,18 @@ void FileSelector::restoreUserFile() {
 
 void FileSelector::checkAllComplete() {
     for (int i = 0; i < USER_FILE_NUM; i++) {
-        _C8[i] = mUserFile[i].isComplete();
+        mCompleteFlags[i] = mUserFile[i].isComplete();
     }
 }
 
 void FileSelector::onPoint(FileSelectItem* pItem) {
     if (mBackButton->isHidden() || !mBackButton->isPointing()) {
-        if (_BC != nullptr) {
-            if (_BC->_140 > pItem->_140) {
-                _BC = pItem;
+        if (mPointingCandidate != nullptr) {
+            if (mPointingCandidate->mFileIndex > pItem->mFileIndex) {
+                mPointingCandidate = pItem;
             }
         } else {
-            _BC = pItem;
+            mPointingCandidate = pItem;
         }
     }
 }
@@ -421,19 +421,19 @@ void FileSelector::onSelect(FileSelectItem* pItem) {
         return;
     }
 
-    _B0 = pItem;
+    mSelectedItem = pItem;
 
     MR::startActionSound(this, "SyGalaxySelected", -1, -1, -1);
     playSelectedME();
 }
 
 void FileSelector::clearPointing() {
-    if (_B8 == nullptr) {
+    if (mPointedItem == nullptr) {
         return;
     }
 
-    _B8->offPointing();
-    _B8 = nullptr;
+    mPointedItem->offPointing();
+    mPointedItem = nullptr;
 }
 
 namespace {
@@ -472,7 +472,7 @@ void FileSelector::setFileInfo(s32 id) {
     wchar_t timeBuffer[32];
     wchar_t playTimeBuffer[32];
 
-    if (static_cast< FileSelectItem* >(mItems->getActor(::getItemArrayIndex(id)))->_146) {
+    if (static_cast< FileSelectItem* >(mItems->getActor(::getItemArrayIndex(id)))->mHasInvalidMiiId) {
         FileSelectFunc::copyMiiName(nameBuffer, FileSelectIconID());
     } else {
         ::copyIconMiiName(this, nameBuffer, id);
@@ -510,7 +510,7 @@ bool FileSelector::checkSelectedBackButton() {
 
 void FileSelector::goToNearPoint() {
     calcBasePos(-16000.0f);
-    mCameraController->goToNearPoint(_9C[::getItemArrayIndex(_B0->_140)]);
+    mCameraController->goToNearPoint(mItemPositions[::getItemArrayIndex(mSelectedItem->mFileIndex)]);
 }
 
 // NONMATCHING: float constant registers f30/f31 swapped
@@ -521,8 +521,8 @@ void FileSelector::calcBasePos(f32 offset) {
     pos.z = 0.0f;
 
     for (int i = 0; i < USER_FILE_NUM; i++) {
-        if (_B0 == nullptr || _B0 != mItems->getActor(i)) {
-            _9C[i].set(pos);
+        if (mSelectedItem == nullptr || mSelectedItem != mItems->getActor(i)) {
+            mItemPositions[i].set(pos);
         }
 
         TVec3f step;
@@ -544,7 +544,7 @@ FileSelectItem* FileSelector::createFileItem(s32 id) {
 
 namespace {
     inline void initFileItem(FileSelector* pSelector, FileSelectItem* pItem) {
-        s32 id = pItem->_140;
+        s32 id = pItem->mFileIndex;
 
         if (!pSelector->mUserFile[id - 1].isCreated()) {
             return;
@@ -558,17 +558,17 @@ namespace {
             iconId.setFellowID(pSelector->getUserFileFellowID(id));
         } else if (pSelector->mUserFile[id - 1].getMiiId(&tempMiiId)) {
             if (::getMiiFacePartsHolder()->isError()) {
-                pItem->_146 = true;
+                pItem->mHasInvalidMiiId = true;
             } else if (pSelector->isUserFileMiiIdValid(id)) {
                 u32 miiIndex = pSelector->getUserFileMiiIndex(id);
 
                 iconId.setMiiIndex(miiIndex);
             } else {
-                pItem->_146 = true;
+                pItem->mHasInvalidMiiId = true;
             }
         }
 
-        pItem->forceChange(iconId, pSelector->_C8[id - 1]);
+        pItem->forceChange(iconId, pSelector->mCompleteFlags[id - 1]);
     }
 };  // namespace
 
@@ -585,43 +585,43 @@ void FileSelector::validateRotateAllItems() {
 }
 
 void FileSelector::stopMovementForLayout() {
-    if (!_EC) {
+    if (!mIsChildMovementStopped) {
         MR::incrementPauseBlurDelay();
 
         if (mSky != nullptr) {
             MR::requestMovementOff(mSky);
         }
 
-        if (_B0 != nullptr) {
-            MR::requestMovementOff(_B0);
+        if (mSelectedItem != nullptr) {
+            MR::requestMovementOff(mSelectedItem);
         }
 
-        _EC = true;
+        mIsChildMovementStopped = true;
     }
 }
 
 void FileSelector::restartMovementForLayout() {
-    if (_EC) {
+    if (mIsChildMovementStopped) {
         MR::decrementPauseBlurDelay();
 
         if (mSky != nullptr) {
             MR::requestMovementOn(mSky);
         }
 
-        if (_B0 != nullptr) {
-            MR::requestMovementOn(_B0);
+        if (mSelectedItem != nullptr) {
+            MR::requestMovementOn(mSelectedItem);
         }
 
-        _EC = false;
+        mIsChildMovementStopped = false;
     }
 }
 
 void FileSelector::initChildObjs(const JMapInfoIter& rIter) {
-    _F4 = MR::getChildObjNum(rIter);
-    _F0 = new LiveActor*[_F4];
+    mChildActorCount = MR::getChildObjNum(rIter);
+    mChildActors = new LiveActor*[mChildActorCount];
 
-    for (int i = 0; i < _F4; i++) {
-        _F0[i] = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
+    for (int i = 0; i < mChildActorCount; i++) {
+        mChildActors[i] = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
     }
 }
 
@@ -640,16 +640,16 @@ void FileSelector::updateChildObjs() {
     mtxB.setRotate(335.0f * degToRad, 0.0f, 0.0f);
     mtxB.concat(mtxA);
 
-    for (int i = 0; i < _F4; i++) {
+    for (int i = 0; i < mChildActorCount; i++) {
         TPos3f mtx;
         mtx.identity();
 
-        TVec3f rot(_F0[i]->mRotation);
+        TVec3f rot(mChildActors[i]->mRotation);
         rot.scale(degToRad);
         mtx.setRotate(rot.x, rot.y, rot.z);
         mtx.concat(mtxB, mtx);
 
-        LiveActor* pActor = _F0[i];
+        LiveActor* pActor = mChildActors[i];
         mtx.getEulerXYZ(pActor->mRotation);
         pActor->mRotation.scale(radToDeg);
     }
@@ -754,7 +754,7 @@ void FileSelector::getIconId(FileSelectIconID* pIconId, s32 id) const {
 }
 
 s32 FileSelector::getMissCount(s32 id) const {
-    if (!_C8[id - 1]) {
+    if (!mCompleteFlags[id - 1]) {
         return -1;
     }
 
@@ -775,7 +775,7 @@ bool FileSelector::isAllOtherFileNew(FileSelectItem* pItem) {
     for (int i = 0; i < USER_FILE_NUM; i++) {
         FileSelectItem* pOther = static_cast< FileSelectItem* >(mItems->getActor(i));
 
-        if (pOther != pItem && mUserFile[pOther->_140 - 1].isCreated()) {
+        if (pOther != pItem && mUserFile[pOther->mFileIndex - 1].isCreated()) {
             return false;
         }
     }
@@ -805,31 +805,31 @@ void FileSelector::playSelectedME() {
 
 // NONMATCHING: register allocation in the smoothing step
 void FileSelector::updateBgm() {
-    if (_F8) {
+    if (mIsTitleBgmRhythmEnabled) {
         if (mCameraController != nullptr) {
             s32 state = 0;
 
             if (mCameraController->isToOrAtFarPoint()) {
-                _100 = 0;
+                mTargetTitleBgmRhythmVolume = 0;
                 state = 0;
             } else if (mCameraController->isToOrAtNearPoint()) {
-                _100 = 100;
+                mTargetTitleBgmRhythmVolume = 100;
                 state = 1;
             }
 
             if (mBgmState != state) {
-                _104 = 60;
+                mTitleBgmRhythmFadeFrames = 60;
                 mBgmState = state;
             }
 
-            if (_104 > 0) {
-                s32 frame = _104;
-                _104 = frame - 1;
-                _FC += (_100 - _FC) / frame;
+            if (mTitleBgmRhythmFadeFrames > 0) {
+                s32 frame = mTitleBgmRhythmFadeFrames;
+                mTitleBgmRhythmFadeFrames = frame - 1;
+                mTitleBgmRhythmVolume += (mTargetTitleBgmRhythmVolume - mTitleBgmRhythmVolume) / frame;
             }
 
             MR::startSystemLevelSE("SE_SY_LV_TITLE_BGM", -1, -1);
-            MR::startSystemLevelSE("SE_SY_LV_TITLE_BGM_RHYTHM", _FC, -1);
+            MR::startSystemLevelSE("SE_SY_LV_TITLE_BGM_RHYTHM", mTitleBgmRhythmVolume, -1);
         }
     }
 }
@@ -897,13 +897,13 @@ void FileSelector::exeTitle() {
         MR::startStarPointerModeTitle(this);
         MR::resetCameraMan();
         MR::requestLoadStationedArchiveOthers();
-        _F8 = false;
+        mIsTitleBgmRhythmEnabled = false;
     }
 
     mTitle->updateNerve();
 
     if (mTitle->isBgmStartStep()) {
-        _F8 = true;
+        mIsTitleBgmRhythmEnabled = true;
     }
 
     if (!mTitle->isActive()) {
@@ -1010,12 +1010,12 @@ void FileSelector::exeFileConfirmStart() {
         goToNearPoint();
         invalidateSelectAll();
         disappearAllIndex();
-        _B0->turnToFront(40);
-        _B0->invalidateRotate();
+        mSelectedItem->turnToFront(40);
+        mSelectedItem->invalidateRotate();
     }
 
     if (mCameraController->isAtNearPoint()) {
-        if (_B0->_146) {
+        if (mSelectedItem->mHasInvalidMiiId) {
             setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirmMiiDeleteWarningStart));
         } else {
             setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
@@ -1049,11 +1049,11 @@ void FileSelector::exeFileConfirmMiiDeleteWarning() {
 void FileSelector::exeFileConfirmMiiDeleteSave() {
     if (MR::isFirstStep(this)) {
         u32 arg = 1;
-        GameSequenceFunction::storeMiiOrIconIdAndSaveAllUserFileSequence(_B0->_140, nullptr, &arg);
+        GameSequenceFunction::storeMiiOrIconIdAndSaveAllUserFileSequence(mSelectedItem->mFileIndex, nullptr, &arg);
     }
 
     if (!GameSequenceFunction::isActiveSaveDataHandleSequence()) {
-        _B0->_146 = false;
+        mSelectedItem->mHasInvalidMiiId = false;
         restoreUserFile();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
     }
@@ -1065,20 +1065,20 @@ void FileSelector::exeFileConfirm() {
         mBackButton->appear();
 
         if (MR::isDead(mFileInfo)) {
-            setFileInfo(_B0->_140);
+            setFileInfo(mSelectedItem->mFileIndex);
             mFileInfo->appear();
         }
 
         mFileInfo->slide();
-        _B0->requestRotateRefresh();
+        mSelectedItem->requestRotateRefresh();
     }
 
     if (MR::isStep(this, 90)) {
-        _B0->validateRotate();
+        mSelectedItem->validateRotate();
     }
 
     if (checkSelectedBackButton()) {
-        _B0->validateRotate();
+        mSelectedItem->validateRotate();
         disappearAllLayout();
         clearPointing();
         mMiiSelect->clearPage();
@@ -1094,7 +1094,7 @@ void FileSelector::exeDemoStartWait() {
         disappearAllLayout();
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM", 30);
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM_RHYTHM", 30);
-        _F8 = false;
+        mIsTitleBgmRhythmEnabled = false;
     }
 
     if (isHiddenAllLayout()) {
@@ -1104,14 +1104,14 @@ void FileSelector::exeDemoStartWait() {
 
 void FileSelector::exeDemo() {
     if (MR::isFirstStep(this)) {
-        GameSequenceFunction::startLoadUserFileSequence(_B0->_140);
+        GameSequenceFunction::startLoadUserFileSequence(mSelectedItem->mFileIndex);
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM", 30);
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM_RHYTHM", 30);
-        _F8 = false;
+        mIsTitleBgmRhythmEnabled = false;
     }
 
     FileSelectIconID iconId;
-    getIconId(&iconId, _B0->_140);
+    getIconId(&iconId, mSelectedItem->mFileIndex);
     wchar_t name[12];
 
     if (iconId.isMii()) {
@@ -1164,7 +1164,7 @@ void FileSelector::exeCreateConfirm() {
 
 void FileSelector::exeCreate() {
     if (MR::isFirstStep(this)) {
-        GameSequenceFunction::startCreateUserFileSequence(_B0->_140);
+        GameSequenceFunction::startCreateUserFileSequence(mSelectedItem->mFileIndex);
     }
 
     if (GameSequenceFunction::isActiveSaveDataHandleSequence()) {
@@ -1204,7 +1204,7 @@ void FileSelector::exeMiiSelectStart() {
         if (isNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStart))) {
             FileSelectIconID iconId = FileSelectIconID();
 
-            _B0->copyIconID(&iconId);
+            mSelectedItem->copyIconID(&iconId);
             mMiiSelect->prohibitIcon(iconId);
         } else {
             mIsMiiSelectStartFirst = true;
@@ -1214,7 +1214,7 @@ void FileSelector::exeMiiSelectStart() {
 
         mMiiSelect->validateAllSpecialMii();
 
-        if (!mUserFile[_B0->_140 - 1].isView120StarsEnding()) {
+        if (!mUserFile[mSelectedItem->mFileIndex - 1].isView120StarsEnding()) {
             mMiiSelect->invalidateSpecialMii(FileSelectIconID::Rosetta);
         }
 
@@ -1343,7 +1343,7 @@ void FileSelector::exeMiiCreateWait() {
         FileSelectIconID iconId = FileSelectIconID();
 
         mMiiSelect->getSelectedID(&iconId);
-        storeSetMiiIdUserFile(_B0->_140, iconId);
+        storeSetMiiIdUserFile(mSelectedItem->mFileIndex, iconId);
 
         mIsMiiSelectStartFirst = false;
     }
@@ -1359,15 +1359,15 @@ void FileSelector::exeMiiCreateDemo() {
     if (MR::isFirstStep(this)) {
         restoreUserFile();
 
-        s32 id = _B0->_140;
+        s32 id = mSelectedItem->mFileIndex;
         FileSelectIconID iconId = FileSelectIconID();
 
         mMiiSelect->getSelectedID(&iconId);
-        _B0->change(iconId, _C8[id - 1]);
+        mSelectedItem->change(iconId, mCompleteFlags[id - 1]);
         setFileInfo(id);
     }
 
-    if (!_B0->isExist()) {
+    if (!mSelectedItem->isExist()) {
         return;
     }
 
@@ -1460,8 +1460,8 @@ void FileSelector::exeDeleteConfirm() {
 
 void FileSelector::exeDelete() {
     if (MR::isFirstStep(this)) {
-        isAllOtherFileNew(_B0);
-        GameSequenceFunction::startDeleteUserFileSequence(_B0->_140);
+        isAllOtherFileNew(mSelectedItem);
+        GameSequenceFunction::startDeleteUserFileSequence(mSelectedItem->mFileIndex);
     }
 
     if (GameSequenceFunction::isActiveSaveDataHandleSequence()) {
@@ -1478,10 +1478,10 @@ void FileSelector::exeDelete() {
 
 void FileSelector::exeDeleteDemo() {
     if (MR::isFirstStep(this)) {
-        _B0->format();
+        mSelectedItem->format();
     }
 
-    if (_B0->isNew()) {
+    if (mSelectedItem->isNew()) {
         initUserFile();
         clearPointing();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));

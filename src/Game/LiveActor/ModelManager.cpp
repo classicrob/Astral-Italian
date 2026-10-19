@@ -61,8 +61,8 @@ void ModelManager::calcAnim() {
 
     XanimePlayer* pXanimePlayer = mXanimePlayer;
     if (pXanimePlayer != nullptr) {
-        pXanimePlayer->_88 = false;
-        pXanimePlayer->_89 = false;
+        pXanimePlayer->mHasUpdatedFrame = false;
+        pXanimePlayer->mAnimationChanged = false;
     }
 
     if (mBtkPlayer != nullptr) {
@@ -260,7 +260,7 @@ void ModelManager::resumeBva() {
 }
 
 J3DFrameCtrl* ModelManager::getBckCtrl() const {
-    return mXanimePlayer->_20;
+    return mXanimePlayer->mFrameCtrl;
 }
 
 J3DFrameCtrl* ModelManager::getBtkCtrl() const {
@@ -284,7 +284,7 @@ J3DFrameCtrl* ModelManager::getBvaCtrl() const {
 }
 
 bool ModelManager::isBckStopped() const {
-    return mXanimePlayer->_24[mXanimePlayer->_54].checkState(1);
+    return mXanimePlayer->mFrameCtrls[mXanimePlayer->mCurrentFrameCtrlIndex].checkState(1);
 }
 
 bool ModelManager::isBtkStopped() const {

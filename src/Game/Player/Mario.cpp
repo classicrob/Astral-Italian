@@ -14950,7 +14950,7 @@ void Mario::decideWalkAnimation() {
 
 void Mario::doBrakingAnimation() {
     changeAnimation("歩行制動ブレーキ", 1);
-    getAnimator()->getXanimePlayer()->_20->mAttribute = 1;
+    getAnimator()->getXanimePlayer()->mFrameCtrl->mAttribute = 1;
     if (gIsLuigi) {
         getAnimator()->getXanimePlayer()->changeSpeed(0.5f);
     }

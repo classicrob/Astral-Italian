@@ -3,9 +3,6 @@
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 
-ChangeObj::~ChangeObj() {
-}
-
 void ChangeObj::changeTRSVGFromOther(const ChangeObj* pOther) {
     MR::setRotation(mActor, pOther->mActor->mRotation);
     MR::setScale(mActor, pOther->mActor->mScale);

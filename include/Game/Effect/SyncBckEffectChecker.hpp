@@ -27,6 +27,6 @@ public:
     /* 0x0D */ bool mIsCreateEnabled;
     /* 0x10 */ const char* mCurrentBckName;
     /* 0x14 */ const char* mPrevBckName;
-    /* 0x18 */ const char* _18;
-    /* 0x1C */ const char* _1C;
+    /* 0x18 */ const char* mCurrentAnimName;
+    /* 0x1C */ const char* mPrevAnimName;
 };

@@ -61,7 +61,7 @@ bool JointRumbler::isRumbling() const {
 
 void JointRumbler::updateModelScale(f32 scale) {
     if (testFlag(FLAG_1)) {
-        updateScale(&mJointTransform->_14, scale);
+        updateScale(&mJointTransform->mScaleModifier, scale);
     } else {
         updateScale(&mJointTransform->mScale, scale);
     }

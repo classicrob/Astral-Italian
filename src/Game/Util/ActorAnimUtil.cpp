@@ -790,7 +790,7 @@ namespace MR {
     void setBckFrame(const LiveActor* pActor, f32 frame) {
         pActor->mModelManager->getBckCtrl()->setFrame(frame);
         XanimePlayer* player = pActor->mModelManager->mXanimePlayer;
-        player->_84 = player->_20->mFrame;
+        player->mCachedFrame = player->mFrameCtrl->mFrame;
         if (pActor->mEffectKeeper) pActor->mEffectKeeper->resetSyncBckFrame();
         if (pActor->mSoundHolder) pActor->mSoundHolder->resetSyncBckFrame();
     }

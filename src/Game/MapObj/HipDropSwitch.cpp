@@ -43,13 +43,13 @@ void SpringValue::reset() {
 void HipDropSwitch::makeActorAppeared() {
     LiveActor::makeActorAppeared();
     CollisionParts* pParts = mSpringModel;
-    pParts->_CC = true;
-    pParts->_CD = true;
+    pParts->mIsRegistered = true;
+    pParts->mNeedsZoneUpdate = true;
 }
 
 void HipDropSwitch::makeActorDead() {
     LiveActor::makeActorDead();
-    mSpringModel->_CC = false;
+    mSpringModel->mIsRegistered = false;
 }
 
 void HipDropSwitch::init(const JMapInfoIter& rIter) {

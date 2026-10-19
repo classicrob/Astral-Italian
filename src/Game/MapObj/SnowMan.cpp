@@ -49,11 +49,11 @@ void SnowMan::init(const JMapInfoIter& rrIter) {
 }
 
 void SnowMan::control() {
-    if (mHeadCollisionParts->_CC) {
+    if (mHeadCollisionParts->mIsRegistered) {
         mHeadCollisionParts->setMtx();
     }
 
-    if (mBodyCollisionParts->_CC) {
+    if (mBodyCollisionParts->mIsRegistered) {
         mBodyCollisionParts->setMtx();
     }
     mAnimScaleCtrl->updateNerve();

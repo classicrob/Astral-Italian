@@ -6,7 +6,9 @@ class LiveActor;
 
 class ChangeObj {
 public:
-    virtual ~ChangeObj();
+    ChangeObj(LiveActor* pActor) : mActor(pActor) {}
+
+    virtual void doChange(ChangeObj*) = 0;
 
     void changeTRSVGFromOther(const ChangeObj*);
 

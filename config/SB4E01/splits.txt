@@ -2278,7 +2278,7 @@ Game/Demo/DemoSimpleCastHolder.cpp:
 	.text       start:0x80139A60 end:0x80139D40
 
 Game/Demo/DemoSoundKeeper.cpp:
-	.text       start:0x80139D70 end:0x80139F10
+	.text       start:0x80139D70 end:0x8013A1E0
 	.data       start:0x8067F338 end:0x8067F3F0
 	.sdata      start:0x807CF6FC end:0x807CF700
 
@@ -2578,7 +2578,7 @@ Game/Enemy/BeeEater.cpp:
 	.data       start:0x80683210 end:0x80683244
 
 Game/Enemy/BegomanBaby.cpp:
-	.text       start:0x8015D1B0 end:0x8015F280
+	.text       start:0x8015D1B0 end:0x8015F290
 	.ctors      start:0x80644098 end:0x8064409C
 	.rodata     start:0x80647FC8 end:0x80648040
 	.data       start:0x80683450 end:0x80683838
@@ -2612,7 +2612,7 @@ Game/Enemy/BegomanSpike.cpp:
 	.sdata2     start:0x807D9E40 end:0x807D9E98
 
 Game/Enemy/BegomanSpring.cpp:
-	.text       start:0x80165510 end:0x80167AE0
+	.text       start:0x80165510 end:0x80167AF0
 	.ctors      start:0x806440A8 end:0x806440AC
 	.rodata     start:0x80648128 end:0x80648198
 	.data       start:0x80684148 end:0x80684620

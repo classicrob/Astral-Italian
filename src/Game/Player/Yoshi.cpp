@@ -680,17 +680,17 @@ void Yoshi::calcAnim() {
     if (mUpperAnimationActive) {
         mXanimePlayerUpper->clearAnm(MR::getJointIndex(this, "Head"));
     }
-    mXanimePlayer->_88 = false;
-    mXanimePlayer->_89 = false;
-    mXanimePlayerUpper->_88 = false;
-    mXanimePlayerUpper->_89 = false;
+    mXanimePlayer->mHasUpdatedFrame = false;
+    mXanimePlayer->mAnimationChanged = false;
+    mXanimePlayerUpper->mHasUpdatedFrame = false;
+    mXanimePlayerUpper->mAnimationChanged = false;
 }
 
 void Yoshi::fn_8040CB30() {
-    mXanimePlayer->getCore()->_6 = 1;
+    mXanimePlayer->getCore()->mCalcMode = 1;
     MR::calcJ3DModel(this);
     mYoshiModelCtrl->fn_80418020();
-    mXanimePlayer->getCore()->_6 = 2;
+    mXanimePlayer->getCore()->mCalcMode = 2;
     MR::calcJ3DModel(this);
 }
 
@@ -1240,7 +1240,7 @@ void Yoshi::fn_8040FD80() {
     fn_8040EE00("基本");
     mXanimePlayerUpper->changeAnimationBck("基本");
     mXanimePlayerUpper->getCore()->shareJointTransform(mXanimePlayer->getCore());
-    mXanimePlayerUpper->_7E = false;
+    mXanimePlayerUpper->mAutoRunDefaultAnimation = false;
 }
 
 // NONMATCHING: string pool base and register allocation differ.
@@ -2216,29 +2216,29 @@ void Yoshi::fn_80410350(const TVec3f& velocity) {
 void YoshiAnimationSync::fn_80413440() {
     if (_8) {
         if (mActor->mUpperAnimationActive) {
-            MR::setBvaRate(mActor, mActor->mXanimePlayerUpper->_20->mRate);
-            MR::setBvaFrame(mActor, mActor->mXanimePlayerUpper->_20->mFrame);
+            MR::setBvaRate(mActor, mActor->mXanimePlayerUpper->mFrameCtrl->mRate);
+            MR::setBvaFrame(mActor, mActor->mXanimePlayerUpper->mFrameCtrl->mFrame);
         } else {
-            MR::setBvaRate(mActor, mActor->mXanimePlayer->_20->mRate);
-            MR::setBvaFrame(mActor, mActor->mXanimePlayer->_20->mFrame);
+            MR::setBvaRate(mActor, mActor->mXanimePlayer->mFrameCtrl->mRate);
+            MR::setBvaFrame(mActor, mActor->mXanimePlayer->mFrameCtrl->mFrame);
         }
     }
     if (_9) {
         if (mActor->mUpperAnimationActive) {
-            MR::setBtpRate(mActor, mActor->mXanimePlayerUpper->_20->mRate);
-            MR::setBtpFrame(mActor, mActor->mXanimePlayerUpper->_20->mFrame);
+            MR::setBtpRate(mActor, mActor->mXanimePlayerUpper->mFrameCtrl->mRate);
+            MR::setBtpFrame(mActor, mActor->mXanimePlayerUpper->mFrameCtrl->mFrame);
         } else {
-            MR::setBtpRate(mActor, mActor->mXanimePlayer->_20->mRate);
-            MR::setBtpFrame(mActor, mActor->mXanimePlayer->_20->mFrame);
+            MR::setBtpRate(mActor, mActor->mXanimePlayer->mFrameCtrl->mRate);
+            MR::setBtpFrame(mActor, mActor->mXanimePlayer->mFrameCtrl->mFrame);
         }
     }
     if (_A) {
         if (mActor->mUpperAnimationActive) {
-            MR::setBtkRate(mActor, mActor->mXanimePlayerUpper->_20->mRate);
-            MR::setBtkFrame(mActor, mActor->mXanimePlayerUpper->_20->mFrame);
+            MR::setBtkRate(mActor, mActor->mXanimePlayerUpper->mFrameCtrl->mRate);
+            MR::setBtkFrame(mActor, mActor->mXanimePlayerUpper->mFrameCtrl->mFrame);
         } else {
-            MR::setBtkRate(mActor, mActor->mXanimePlayer->_20->mRate);
-            MR::setBtkFrame(mActor, mActor->mXanimePlayer->_20->mFrame);
+            MR::setBtkRate(mActor, mActor->mXanimePlayer->mFrameCtrl->mRate);
+            MR::setBtkFrame(mActor, mActor->mXanimePlayer->mFrameCtrl->mFrame);
         }
     }
 }
@@ -2345,7 +2345,7 @@ bool Yoshi::fn_80411BF0() {
 }
 
 bool XanimePlayer::fn_8040F600() const {
-    return (_24[_54].mState & 1) != 0;
+    return (mFrameCtrls[mCurrentFrameCtrlIndex].mState & 1) != 0;
 }
 bool Yoshi::fn_8040F5F0() const {
     return mXanimePlayerUpper->fn_8040F600();
@@ -2355,7 +2355,7 @@ void Yoshi::fn_80411A30() {
         XanimePlayer* upper = mXanimePlayerUpper;
         upper->updateBeforeMovement();
         upper->updateAfterMovement();
-        if (mXanimePlayerUpper->fn_8040F600() && mXanimePlayerUpper->_20->mAttribute != 1 && !mUpperDefaultAnimationEnabled) fn_8040EE70(nullptr);
+        if (mXanimePlayerUpper->fn_8040F600() && mXanimePlayerUpper->mFrameCtrl->mAttribute != 1 && !mUpperDefaultAnimationEnabled) fn_8040EE70(nullptr);
     }
 }
 bool Yoshi::fn_804113C0() {

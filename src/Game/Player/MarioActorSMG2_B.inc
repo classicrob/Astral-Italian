@@ -1402,7 +1402,7 @@ void MarioActor::fn_803D32F0() {
             bool run = false;
             if (area == nullptr || (f32)len < 0.0f) {
                 f32 f = mWallShadow574->mDistance;
-                if (f < 1000.0f) {
+                if (!(f >= 1000.0f)) {
                     mWallShadow574->mDistance = 10.0f + f;
                     if (mWallShadow574->mDistance >= 1000.0f) {
                         mWallShadow574->mDistance = 1000.0f;
@@ -1754,7 +1754,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
         if (this->mMario->fn_803B2770(&hit, tri, start, dir)) {
             TVec3f d(hit);
             d -= this->mPosition;
-            if (this->mMario->getGravityVec()->dot(d) != -5.0f) {
+            if (!(this->mMario->getGravityVec()->dot(d) >= -5.0f)) {
                 CollisionParts* h = tri->mParts;
                 if (h != nullptr && h->mStationaryFrames == 0) {
                     if (((this->mMario)->mMovementStates.mHighWord & 3) == 1) {

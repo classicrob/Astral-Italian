@@ -910,18 +910,17 @@ void Mario::fn_803A2570(f32 x, TVec3f* arg) {
     }
 }
 
-// NONMATCHING: the wall-normal slide tail is approximated from the asm
 void Mario::fn_803A28D0(TVec3f* arg) {
     this->fn_803A2A70();
     this->fn_803A2C40(arg);
-    if ((this->mMovementStates.mHighWord >> 12) & 1) {
+    if ((this->mMovementStates.mHighWord >> 13) & 1) {
         if (this->_4E0 > 120.0f) {
             const TVec3f* n = this->mFrontWallTriangle->getNormal(0);
             if (this->mVelocity.dot(*n) < 0.0f) {
                 TVec3f sp20(this->mPosHolder->mPos);
                 sp20 -= this->_4E8;
                 TVec3f sp56;
-                MR::vecKillElement(sp20, *n, &sp56);
+                MR::vecKillElement(sp20, *this->mFrontWallTriangle->getNormal(0), &sp56);
                 MR::vecKillElement(sp56, *this->getGravityVec(), &sp56);
                 MR::vecKillElement(sp56, this->mFrontVec, &sp56);
                 MR::normalizeOrZero(&sp56);
@@ -930,19 +929,20 @@ void Mario::fn_803A28D0(TVec3f* arg) {
                     TVec3f a(sp56);
                     a.scale(m);
                     this->mVelocity = a;
-                    TVec3f sp44(this->mVelocity);
-                    f32 m2 = PSVECMag(&sp44);
-                    MR::normalizeOrZero(&sp44);
-                    TVec3f sp32;
-                    PSVECCrossProduct(&this->_368, &sp44, &sp32);
-                    MR::normalizeOrZero(&sp32);
-                    PSVECCrossProduct(&sp32, &this->_368, &sp44);
-                    sp44.setLength(m2);
-                    this->mVelocity = sp44;
                 }
             }
         }
     }
+
+    TVec3f sp44(this->mVelocity);
+    f32 m2 = PSVECMag(&sp44);
+    MR::normalizeOrZero(&sp44);
+    TVec3f sp32;
+    PSVECCrossProduct(&this->_368, &sp44, &sp32);
+    MR::normalizeOrZero(&sp32);
+    PSVECCrossProduct(&sp32, &this->_368, &sp44);
+    sp44.setLength(m2);
+    this->mVelocity = sp44;
 }
 
 

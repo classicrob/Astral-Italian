@@ -110,7 +110,7 @@ void SupportTicoStop::exeDoNothing() {
 
 #pragma push
 #pragma dont_inline on
-void fn_80203850(TVec3f* pDst, const LiveActor* pTarget) {
+void SupportTicoStop::turnDirectionToNearbyPlayer(TVec3f* pDst, const LiveActor* pTarget) {
     TVec3f sp8(*MR::getPlayerPos());
     sp8 -= pTarget->mPosition;
     if (PSVECMag(&sp8) < 800.0f) {

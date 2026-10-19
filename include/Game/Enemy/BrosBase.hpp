@@ -34,7 +34,7 @@ public:
     void initByArg(const JMapInfoIter&);     // fn_80186A20
     void appearStarPiece();                  // fn_80186A80
     void appearCoin();                       // fn_80186AB0
-    void fn_80186AD0();                      // tail-calls fn_8022BAE0
+    void emitBrosYoshiEatItem();                      // tail-calls fn_8022BAE0
     void killProjectiles();                  // fn_80186AE0
     void attachToUnder();                    // fn_80186BA0
 
@@ -42,13 +42,13 @@ public:
     /* 0xA4 */ BrosProjectileBase* mHeld;
     /* 0xA8 */ s32 mProjectileIdx;
     /* 0xAC */ TVec3f mFront;
-    /* 0xB8 */ bool _B8;
-    /* 0xB9 */ bool _B9;
+    /* 0xB8 */ bool mAllowRailJump;
+    /* 0xB9 */ bool mIsInitialAttack;
     /* 0xBC */ s32 mItemType;
     /* 0xC0 */ AnimScaleController* mScaleCtrl;
     /* 0xC4 */ ActorJointCtrl* mJointCtrl;
     /* 0xC8 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0xCC */ s32 _CC;
+    /* 0xCC */ s32 mUnusedCC;
     /* 0xD0 */ MapObjConnector* mConnector;
     /* 0xD4 */ bool mConnected;
 };

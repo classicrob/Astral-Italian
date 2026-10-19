@@ -76,7 +76,7 @@ public:
     /* 0x104 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x108 */ TQuat4f mRotationQuat;
     /* 0x118 */ TVec3f mFrontVec;
-    /* 0x124 */ s32 _B8;
+    /* 0x124 */ s32 mUnusedIndex;
     /* 0x128 */ s32 mCounter;
     /* 0x12C */ bool mIsFloating;
     /// @brief Drops fire on every point of the rail reached, except the first one.

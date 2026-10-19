@@ -24,7 +24,7 @@ namespace NrvScatterFireBall {
 }
 
 ScatterFireBall::ScatterFireBall(const char* name) : LiveActor(name), mHost(nullptr), mScaleCtrl(nullptr), mBindStarPointer(nullptr),
-    mUpVec(0.0f, 1.0f, 0.0f), mStoredVelocity(0.0f, 1.0f, 0.0f), _B4(1.0f), mNoHitTimer(0), mIsFalling(false) {}
+    mUpVec(0.0f, 1.0f, 0.0f), mStoredVelocity(0.0f, 1.0f, 0.0f), mUnusedScale(1.0f), mNoHitTimer(0), mIsFalling(false) {}
 
 void ScatterFireBall::init(const JMapInfoIter&) {
     MR::initActor(this, "FireBall", "Spread", false);

@@ -19,16 +19,13 @@ public:
     virtual void drawSyncCallback(u16);
 
     void setDrawSyncToken();
-
     /* 0x04 */ u16 mDrawSync;
-    /* 0x06 */ u16 _6;
-    /* 0x08 */ u32 _8;
+    /* 0x06 */ u16 mDrawSyncReserved;
+    /* 0x08 */ u32 mDepthValue;
     /* 0x0C */ TVec2f mScreenPos;
-    /* 0x14 */ TVec3f _14;
-    /* 0x20 */ f32 _20;
-    /* 0x24 */ u8 _pad[0x18];
-    /* 0x3C */ f32 _3C;
-    /* 0x40 */ u8 _pad2[0x14];
+    /* 0x14 */ TVec3f mWorldPosition;
+    /* 0x20 */ f32 mProjectionParameters[7];
+    /* 0x3C */ f32 mViewportParameters[6];
 };
 
 class TalkDirector : public LayoutActor {
@@ -60,29 +57,28 @@ public:
     void exeNext();
     void exeTerm();
     void exeWait();
-
-    /* 0x20 */ MR::Vector< MR::AssignableArray< TalkMessageCtrl* > > mMsgControls;
-    /* 0x2C */ TalkPeekZ* mPeekZ;
-    /* 0x30 */ TalkBalloonHolder* mBalloonHolder;
-    /* 0x34 */ TalkStateHolder* mStateHolder;
-    /* 0x38 */ TalkMessageCtrl* mMsgCtrl;
-    /* 0x3C */ TalkMessageCtrl* _3C;
-    /* 0x40 */ TalkMessageCtrl* _40;
-    /* 0x44 */ TalkMessageCtrl* _44;
-    /* 0x48 */ TalkState* mTalkState;
-    /* 0x4C */ bool _4C;
-    /* 0x4D */ bool _4D;
-    /* 0x4E */ bool _4E;
-    /* 0x4F */ bool mIsInvalidClipping;
-    /* 0x50 */ bool _50;
-    /* 0x54 */ s32 mDemoType;
-    /* 0x58 */ bool _58;
-    /* 0x59 */ bool _59;
-    /* 0x5A */ bool _5A;
-    /* 0x5B */ bool _5B;
-    /* 0x5C */ TalkMessageInfo mMessageInfo;
-    /* 0x68 */ ActorCameraInfo* mCameraInfo;
-    /* 0x6C */ LiveActor* mHostActor;
+    /* 0x2C */ MR::Vector< MR::AssignableArray< TalkMessageCtrl* > > mMsgControls;
+    /* 0x38 */ TalkPeekZ* mPeekZ;
+    /* 0x3C */ TalkBalloonHolder* mBalloonHolder;
+    /* 0x40 */ TalkStateHolder* mStateHolder;
+    /* 0x44 */ TalkMessageCtrl* mMsgCtrl;
+    /* 0x48 */ TalkMessageCtrl* mPreviousRequestedCtrl;
+    /* 0x4C */ TalkMessageCtrl* mNextRequestedCtrl;
+    /* 0x50 */ TalkMessageCtrl* mLastTalkCtrl;
+    /* 0x54 */ TalkState* mTalkState;
+    /* 0x58 */ bool mTalkStartedThisFrame;
+    /* 0x59 */ bool mTalkEndedThisFrame;
+    /* 0x5A */ bool mIsTalkDisabled;
+    /* 0x5B */ bool mIsInvalidClipping;
+    /* 0x5C */ bool mContinueMessage;
+    /* 0x60 */ s32 mDemoType;
+    /* 0x64 */ bool mForceTalk;
+    /* 0x65 */ bool mUsePlayerTalk;
+    /* 0x66 */ bool mTalkReserved0;
+    /* 0x67 */ bool mTalkReserved1;
+    /* 0x68 */ TalkMessageInfo mMessageInfo;
+    /* 0x74 */ ActorCameraInfo* mCameraInfo;
+    /* 0x78 */ LiveActor* mHostActor;
 
 };
 

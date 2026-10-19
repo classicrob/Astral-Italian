@@ -6,7 +6,7 @@
 
 
 BrosProjectileBase::BrosProjectileBase(const char* pName)
-    : LiveActor(pName), mOwner(nullptr), mScaleCtrl(nullptr), mFront(0.0f, 0.0f, 1.0f), mLocalVel(0.0f, 0.0f, 0.0f), mState(0), _B4(false) {
+    : LiveActor(pName), mOwner(nullptr), mScaleCtrl(nullptr), mFront(0.0f, 0.0f, 1.0f), mLocalVel(0.0f, 0.0f, 0.0f), mState(0), mIsPointBound(false) {
 }
 
 void BrosProjectileBase::init(const JMapInfoIter& rIter) {
@@ -48,7 +48,7 @@ void BrosProjectileBase::appear() {
     mState = 0;
     MR::calcGravity(this);
     mOwner = nullptr;
-    _B4 = false;
+    mIsPointBound = false;
 }
 
 void BrosProjectileBase::control() {
@@ -58,7 +58,7 @@ void BrosProjectileBase::control() {
     }
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFront);
     MR::calcFrontVec(&mFront, this);
-    if (!_B4) {
+    if (!mIsPointBound) {
         TVec3f vel(0.0f);
         PSMTXMultVecSR(getBaseMtx(), &mLocalVel, &vel);
         MR::setVelocity(this, vel);
@@ -104,14 +104,14 @@ void BrosProjectileBase::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
             }
         }
     } else if (MR::isSensorPlayerOrRide(pReceiver)) {
-        if (!_B4 && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+        if (!mIsPointBound && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
             mState = 3;
             kill();
         } else {
             MR::sendMsgPush(pReceiver, pSender);
         }
     } else if (MR::isSensorYoshi(pReceiver)) {
-        if (!_B4) {
+        if (!mIsPointBound) {
             if (MR::sendMsgPush(pReceiver, pSender)) {
                 mState = 3;
                 kill();

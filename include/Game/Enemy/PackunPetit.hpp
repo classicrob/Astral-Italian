@@ -58,13 +58,13 @@ public:
 
     /* 0x8C */ AnimScaleController* mScaleController;
     /* 0x90 */ WalkerStateBindStarPointer* mStarPointerState;
-    /* 0x94 */ TVec3f _94;
+    /* 0x98 */ TVec3f mFront;
     /* 0xA0 */ ModelObj* mBlownModel;
     /* 0xA8 */ bool mDontTurn;
-    /* 0xA9 */ bool _A9;
-    /* 0xAA */ u8 _AA[2];
+    /* 0xA9 */ bool mUseGroundMovement;
+    /* 0xAA */ u8 mReservedAA[2];
     /* 0xAC */ TPos3f mPullMtx;
     /* 0xDC */ TPos3f mJointMtx;
     /* 0x10C */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0x110 */ TVec3f _110;
+    /* 0x110 */ TVec3f mLastPlayerPos;
 };

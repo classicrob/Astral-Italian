@@ -63,7 +63,7 @@ namespace NrvKabokuri {
 
 Kabokuri::Kabokuri(const char* pName)
     : LiveActor(pName), mKuribo(), mBreakModel(), mHeadModel(), mAnimeScale(), mStateBindStartPointer(), mYoshiLockOn(), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
-      mFrontVec(0.0f, 0.0f, 1.0f), _B8(-1), mCounter(0), mIsValidDropFire() {
+      mFrontVec(0.0f, 0.0f, 1.0f), mUnusedIndex(-1), mCounter(0), mIsValidDropFire() {
     KabokuriFireHolderFunc::createHolder();
     mHeadMtx.identity();
     mHeadInvMtx.identity();

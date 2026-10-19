@@ -9,12 +9,12 @@
 #include <revolution/os/OSTime.h>
 
 AudRhythmSeqParser::AudRhythmSeqParser()
-    : JASSeqParser(), mTempo(120.0f), mModifiedTempo(120.0f), mChordId(), mScaleId(), mTempoAdjuster(), mCallDepth(), _1A4(), mIsUsed(true),
+    : JASSeqParser(), mTempo(120.0f), mModifiedTempo(120.0f), mChordId(), mScaleId(), mTempoAdjuster(), mCallDepth(), mNumNoteOnInfo(), mIsUsed(true),
       mIsActive() {
     for (u32 i = 0; i < MAX_CHANNELS; i++) {
         initNoteInfo(i);
         mNoteOnInfo[i].mChannel = -1;
-        mNoteOnInfo[i]._4 = 0;
+        mNoteOnInfo[i].mKey = 0;
         mNoteOnInfo[i].mNoteOnFunc = nullptr;
         mNoteOnInfo[i].mNoteOffFunc = nullptr;
     }
@@ -27,8 +27,8 @@ AudRhythmSeqParser::AudRhythmSeqParser()
 }
 
 void AudRhythmSeqParser::noteOnProcess(u32 channel, u32 a2, u32 a3, u32 noteOff) {
-    for (s32 i = 0; i < _1A4; i++) {
-        if (mNoteOnInfo[i]._4 == a2) {
+    for (s32 i = 0; i < mNumNoteOnInfo; i++) {
+        if (mNoteOnInfo[i].mKey == a2) {
             mNoteOnInfo[i].mChannel = channel;
             NoteOnFunc func = mNoteOnInfo[i].mNoteOnFunc;
             if (func != nullptr) {
@@ -40,7 +40,7 @@ void AudRhythmSeqParser::noteOnProcess(u32 channel, u32 a2, u32 a3, u32 noteOff)
 }
 
 void AudRhythmSeqParser::noteOffProcess(u32 channel) {
-    for (s32 i = 0; i < _1A4; i++) {
+    for (s32 i = 0; i < mNumNoteOnInfo; i++) {
         if (mNoteOnInfo[i].mChannel == channel) {
             NoteOffFunc func = mNoteOnInfo[i].mNoteOffFunc;
             if (func != nullptr) {

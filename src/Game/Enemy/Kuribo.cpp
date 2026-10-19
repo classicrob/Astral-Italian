@@ -405,7 +405,7 @@ bool Kuribo::requestPressDown() {
 bool Kuribo::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
     if (canKuriboReceiveStagger()) {
         mStateStagger->setPunchDirection(pSender, pReceiver);
-        mStateStagger->_28 = false;
+        mStateStagger->mSkipStaggerStart = false;
         setNerve(GET_NERVE(Kuribo, KuriboNrvStagger));
         return true;
     }
@@ -644,7 +644,7 @@ void Kuribo::exeBindStarPointer() {
     if (MR::updateActorState(this)) {
         if (mWasUpsideDown) {
             // WalkerStateStagger byte at +0x28 (no named field in our header yet)
-            mStateStagger->_28 = true;
+            mStateStagger->mSkipStaggerStart = true;
             setNerve(GET_NERVE(Kuribo, KuriboNrvStagger));
         } else {
             setNerve(GET_NERVE(Kuribo, KuriboNrvWander));
@@ -843,7 +843,7 @@ Kuribo::~Kuribo() {
 bool Kuribo::requestKuriboStaggerWithoutRecovery(HitSensor* sender, HitSensor* receiver) {
     if (canKuriboStartStagger()) {
         mStateStagger->setPunchDirection(sender, receiver);
-        mStateStagger->_28 = false;
+        mStateStagger->mSkipStaggerStart = false;
         setNerve(GET_NERVE(Kuribo, KuriboNrvStagger));
         return true;
     }

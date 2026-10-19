@@ -1005,7 +1005,7 @@ void AudSystem::initVolumeSetting() {
     mSeqMgr.getParams()->moveVolume(AudParams::masterVolBgm, 0);
     mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 0);
     if (mRhythmMeSystem != nullptr) {
-        mRhythmMeSystem->mMeMgr->_50 = 1.0f;
+        mRhythmMeSystem->mMeMgr->mMasterVolume = 1.0f;
     }
 }
 

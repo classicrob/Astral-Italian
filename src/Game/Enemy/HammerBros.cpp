@@ -92,12 +92,12 @@ void HammerBros::init(const JMapInfoIter& rIter) {
     MR::calcFrontVec(&mFront, this);
     MR::getJMapInfoArg0NoInit(rIter, &mWaitCount);
     if (mWaitCount > 0) {
-        _B9 = true;
+        mIsInitialAttack = true;
     }
     bool flag = false;
     MR::getJMapInfoArg2NoInit(rIter, &flag);
     if (flag) {
-        _B8 = false;
+        mAllowRailJump = false;
     }
     initStates();
     initByArg(rIter);
@@ -200,7 +200,7 @@ void HammerBros::exeJump() {
 
 void HammerBros::exeAttack() {
     if (MR::updateActorState(this)) {
-        _B9 = false;
+        mIsInitialAttack = false;
         setNerve(NRV(Jump));
     }
 }

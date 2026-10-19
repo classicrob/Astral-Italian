@@ -11,9 +11,9 @@ class AudMeTrack;
 struct AudMePlayingParams {
     /* 0x0 */ u8 mPriority;
     /* 0x1 */ u8 mChordVolume;
-    /* 0x2 */ u8 _2;
-    /* 0x3 */ u8 _3;
-    /* 0x4 */ u16 _4;
+    /* 0x2 */ u8 mPan;
+    /* 0x3 */ u8 mDolby;
+    /* 0x4 */ u16 mStopTime;
     /* 0x6 */ u8 _6;
     /* 0x7 */ u8 _7;
 };
@@ -72,28 +72,18 @@ public:
     /* 0x18 */ u32 _18;
     /* 0x1C */ const TVec3f* mPos;
     /* 0x20 */ s32 mMeId;
-    /* 0x24 */ s32 _24;     // mStopTime
+    /* 0x24 */ s32 mStopTimer;
     /* 0x28 */ u32 mTimer;  // mTimer
-    /* 0x2C */ union {
-        struct {
-            /* 0x2C */ MoveParam_ mVolumeParam;
-            /* 0x38 */ MoveParam_ mPitchParam;
-            /* 0x44 */ MoveParam_ mFxMixParam;
-            /* 0x50 */ MoveParam_ mPanParam;
-            /* 0x5C */ MoveParam_ mDolbyParam;
-            /* 0x68 */ MoveParam_ mDistFilterParam;
-        };
-        /* 0x2C */ MoveParam_ mMoveParams[TIMED_PARAMS];
-    };
-    /* 0x74 */ s32 _74;
+    /* 0x2C */ MoveParam_ mMoveParams[TIMED_PARAMS];  // indexed by the MoveParam_* enum
+    /* 0x74 */ s32 mStartRequested;
     /* 0x78 */ void* mData;
-    /* 0x7C */ u32 _7C;
-    /* 0x80 */ f32 _80;
+    /* 0x7C */ u32 mSeqStartPos;
+    /* 0x80 */ f32 mMasterVolume;
     /* 0x84 */ f32 mVolume;
-    /* 0x88 */ f32 _88;
-    /* 0x8C */ f32 _8C;
+    /* 0x88 */ f32 mOuterPan;
+    /* 0x8C */ f32 mOuterDolby;
     /* 0x90 */ s32 mPriority;
-    /* 0x94 */ s32 _94;
+    /* 0x94 */ s32 mDefaultStopTime;
 };
 
 struct AudMeTable {
@@ -124,6 +114,6 @@ public:
     /* 0x00 */ AudMeTable* mMeSeq;
     /* 0x04 */ JSUList< AudMe > mMeList;
     /* 0x10 */ u8 _10[64];  // mNotes?
-    /* 0x50 */ f32 _50;
+    /* 0x50 */ f32 mMasterVolume;
     /* 0x54 */ AudMePlayingParamsHolder mParams;
 };

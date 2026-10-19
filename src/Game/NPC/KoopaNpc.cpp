@@ -24,15 +24,15 @@ void KoopaNpc::init(const JMapInfoIter& iter) {
     caps.mMessage = false;
     caps.mReactionNerve = &NrvKoopaNpc::Reaction::sInstance;
     initialize(iter, caps, "DemoKoopa", "KoopaNpc", nullptr);
-    _134 = "Press";
-    _138 = "Press";
-    _13C = "Press";
-    _130 = "Reaction";
-    _11C = "Wait";
-    _120 = nullptr;
+    mTrampledAction = "Press";
+    mPointingAction = "Press";
+    mReactionAction = "Press";
+    mSpinAction = "Reaction";
+    mRailMoveAction = "Wait";
+    mRailTalkAction = nullptr;
     mParam._14 = "SwoonWait";
     mParam._18 = "SwoonWait";
-    _124 = true;
+    mFollowRailOnGround = true;
     mParam._8 = 0.0f;
     appear();
 }
@@ -41,7 +41,7 @@ void KoopaNpc::appear() {
     LiveActor::appear();
 }
 void KoopaNpc::control() {
-    if (_D8) MR::startActionSound(this, "Trampled", -1, -1, -1);
+    if (mTrampledStart) MR::startActionSound(this, "Trampled", -1, -1, -1);
     NPCActor::control();
 }
 bool KoopaNpc::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {

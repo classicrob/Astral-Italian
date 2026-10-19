@@ -90,26 +90,26 @@ KuriboMini::KuriboMini(const char* pName) : LiveActor(pName) {
     mStateStagger = nullptr;
     mStateBindStarPointer = nullptr;
     mYoshiLockOn = nullptr;
-    _A8.x = 0.0f;
-    _A8.y = 0.0f;
-    _A8.z = 0.0f;
-    _A8.w = 1.0f;
-    _B8.set(0.0f, 0.0f, 1.0f);
-    _C8 = false;
+    mUpFrontQuat.x = 0.0f;
+    mUpFrontQuat.y = 0.0f;
+    mUpFrontQuat.z = 0.0f;
+    mUpFrontQuat.w = 1.0f;
+    mFront.set(0.0f, 0.0f, 1.0f);
+    mWasUpsideDown = false;
 }
 
 void KuriboMini::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "KuriboMini", false);
-    MR::makeQuatAndFrontFromRotate(&_A8, &_B8, this);
+    MR::makeQuatAndFrontFromRotate(&mUpFrontQuat, &mFront, this);
     MR::onCalcGravity(this);
 
     mScaleController = new AnimScaleController(nullptr);
     initNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander), 2);
 
-    mStateFindPlayer = new WalkerStateFindPlayer(this, &_B8, &::sParam.mStateParam, &::sParam.mFindPlayerParam);
-    mStateWander = new WalkerStateWander(this, &_B8, &::sParam.mStateParam, &::sParam.mWanderParam);
-    mStateChase = new WalkerStateChase(this, &_B8, &::sParam.mStateParam, &::sParam.mChaseParam);
-    mStateStagger = new WalkerStateStagger(this, &_B8, &::sParam.mStateParam, &::sParam.mStaggerParam);
+    mStateFindPlayer = new WalkerStateFindPlayer(this, &mFront, &::sParam.mStateParam, &::sParam.mFindPlayerParam);
+    mStateWander = new WalkerStateWander(this, &mFront, &::sParam.mStateParam, &::sParam.mWanderParam);
+    mStateChase = new WalkerStateChase(this, &mFront, &::sParam.mStateParam, &::sParam.mChaseParam);
+    mStateStagger = new WalkerStateStagger(this, &mFront, &::sParam.mStateParam, &::sParam.mStaggerParam);
     mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::initActorState(this, mStateBindStarPointer, GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer), "SupportFreeze");
     MR::initActorState(this, mStateStagger, GET_NERVE(KuriboMini, KuriboMiniNrvStagger), "Stagger");
@@ -150,7 +150,7 @@ void KuriboMini::kill() {
 }
 
 void KuriboMini::control() {
-    MR::blendQuatFromGroundAndFront(&_A8, this, _B8, 0.05f, 0.5f);
+    MR::blendQuatFromGroundAndFront(&mUpFrontQuat, this, mFront, 0.05f, 0.5f);
     mScaleController->updateNerve();
 
     bool canEat = isDown() == false;
@@ -164,7 +164,7 @@ void KuriboMini::control() {
 }
 
 void KuriboMini::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _A8);
+    MR::setBaseTRMtx(this, mUpFrontQuat);
     MR::updateBaseScale(this, mScaleController);
 }
 
@@ -300,7 +300,7 @@ bool KuriboMini::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C8 = isFlippedState();
+    mWasUpsideDown = isFlippedState();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvHipDropDown));
     MR::offBind(this);
     return true;
@@ -311,7 +311,7 @@ bool KuriboMini::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C8 = isFlippedState();
+    mWasUpsideDown = isFlippedState();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvFlatDown));
     MR::offBind(this);
     return true;
@@ -322,7 +322,7 @@ bool KuriboMini::requestPressDown() {
         return false;
     }
 
-    _C8 = isFlippedState();
+    mWasUpsideDown = isFlippedState();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvPressDown));
     MR::offBind(this);
     return true;
@@ -351,7 +351,7 @@ bool KuriboMini::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
     bool isDwn = isDown() == false;
     if (isDwn) {
         mStateStagger->setPunchDirection(pSender, pReceiver);
-        mStateStagger->_28 = false;
+        mStateStagger->mSkipStaggerStart = false;
         setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvStagger));
         return true;
     }
@@ -383,7 +383,7 @@ bool KuriboMini::tryFind() {
 
 bool KuriboMini::tryPointBind() {
     if (mStateBindStarPointer->tryStartPointBind()) {
-        _C8 = isFlippedState();
+        mWasUpsideDown = isFlippedState();
         setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer));
         return true;
     }
@@ -416,7 +416,7 @@ void KuriboMini::resetAndAppearAt(const TVec3f& pos, const TVec3f& front) {
         MR::resetPosition(this, pos);
         MR::calcGravity(this);
         MR::onBind(this);
-        MR::makeQuatUpFront(&_A8, -mGravity, front);
+        MR::makeQuatUpFront(&mUpFrontQuat, -mGravity, front);
         appear();
         setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvFindPlayer));
         MR::setVelocitySeparateHV(this, front, 0.0f, 20.0f);
@@ -479,8 +479,8 @@ void KuriboMini::exeStagger() {
 
 void KuriboMini::exeBindStarPointer() {
     if (MR::updateActorState(this)) {
-        if (_C8) {
-            mStateStagger->_28 = true;
+        if (mWasUpsideDown) {
+            mStateStagger->mSkipStaggerStart = true;
             setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvStagger));
         } else {
             setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
@@ -497,7 +497,7 @@ void KuriboMini::exeAttackSuccess() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hit");
     }
-    MR::turnDirectionToPlayerDegree(this, &_B8, 5.0f);
+    MR::turnDirectionToPlayerDegree(this, &mFront, 5.0f);
     calcPassiveMovement();
 
     if (!tryDeadMap() && !tryPointBind()) {
@@ -515,7 +515,7 @@ void KuriboMini::exeHipDropDown() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "EmStompedS", -1, -1, -1);
 
-        MR::startAction(this, _C8 ? "FlatDownReverse" : "FlatDown");
+        MR::startAction(this, mWasUpsideDown ? "FlatDownReverse" : "FlatDown");
         MR::startActionSound(this, "EmCrashS", -1, -1, -1);
         MR::zeroVelocity(this);
     }
@@ -530,7 +530,7 @@ void KuriboMini::exeFlatDown() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "EmStompedS", -1, -1, -1);
 
-        MR::startAction(this, _C8 ? "FlatDownReverse" : "FlatDown");
+        MR::startAction(this, mWasUpsideDown ? "FlatDownReverse" : "FlatDown");
         MR::startActionSound(this, "EmCrashS", -1, -1, -1);
         MR::zeroVelocity(this);
     }
@@ -545,7 +545,7 @@ void KuriboMini::exePressDown() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "EmStompedS", -1, -1, -1);
 
-        MR::startAction(this, _C8 ? "FlatDownReverse" : "FlatDown");
+        MR::startAction(this, mWasUpsideDown ? "FlatDownReverse" : "FlatDown");
         MR::startActionSound(this, "EmCrashS", -1, -1, -1);
         MR::zeroVelocity(this);
     }
@@ -564,7 +564,7 @@ void KuriboMini::exeBlowDown() {
     }
 
     calcPassiveMovement();
-    MR::turnDirectionDegree(this, &_B8, -mVelocity, 30.0f);
+    MR::turnDirectionDegree(this, &mFront, -mVelocity, 30.0f);
 
     if (MR::isGreaterStep(this, 30)) {
         MR::emitItemHit(this);
@@ -605,7 +605,7 @@ bool KuriboMini::isEnableKick() const {
     }
 
     if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer))) {
-        return _C8;
+        return mWasUpsideDown;
     }
 
     return false;
@@ -632,7 +632,7 @@ void KuriboMini::exeTrampoline() {
 
 bool KuriboMini::isFlippedState() {
     if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvStagger))) return mStateStagger->isUpsideDown();
-    if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer))) return _C8;
+    if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer))) return mWasUpsideDown;
     return false;
 }
 

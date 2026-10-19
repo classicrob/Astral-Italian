@@ -11,21 +11,21 @@ template MR::Vector< MR::FixedArray< NPCParameterBase*, 48 > >::~Vector();
 template MR::Vector< MR::FixedArray< NPCParameterBase*, 48 > >::Vector();
 template void MR::Vector< MR::FixedArray< NPCParameterBase*, 48 > >::push_back(NPCParameterBase* const&);
 
-NPCParameterEdit::NPCParameterEdit(const char* pName, const char** pPpChar, bool a3) : NPCParameterBase(pName), _8(pPpChar), _C(a3) {
+NPCParameterEdit::NPCParameterEdit(const char* pName, const char** pPpChar, bool a3) : NPCParameterBase(pName), mValue(pPpChar), mIsResourceName(a3) {
 }
 
 void NPCParameterEdit::read(JMapInfo* pInfo, s32 a2) {
-    pInfo->getValue(a2, mName, _8);
+    pInfo->getValue(a2, mName, mValue);
 }
 
-NPCParameterBool::NPCParameterBool(const char* pName, bool* pBool) : NPCParameterBase(pName), _8(pBool) {
+NPCParameterBool::NPCParameterBool(const char* pName, bool* pBool) : NPCParameterBase(pName), mValue(pBool) {
 }
 
 void NPCParameterBool::read(JMapInfo* pInfo, s32 a2) {
-    pInfo->getValue(a2, mName, _8);
+    pInfo->getValue(a2, mName, mValue);
 }
 
-NPCParameterV3f::NPCParameterV3f(const char* pName, TVec3f* pVec, f32 f1, f32 f2) : NPCParameterBase(pName), _8(pVec), _C(f1), _10(f2) {
+NPCParameterV3f::NPCParameterV3f(const char* pName, TVec3f* pVec, f32 f1, f32 f2) : NPCParameterBase(pName), mValue(pVec), mMinValue(f1), mMaxValue(f2) {
 }
 
 void NPCParameterV3f::read(JMapInfo* pInfo, s32 a2) {
@@ -33,15 +33,15 @@ void NPCParameterV3f::read(JMapInfo* pInfo, s32 a2) {
     MR::copyString(str, mName, sizeof(str));
     *(str + strlen(mName) + 1) = '\0';
     *(str + strlen(mName)) = 'X';
-    pInfo->getValue(a2, str, &_8->x);
+    pInfo->getValue(a2, str, &mValue->x);
     *(str + strlen(mName)) = 'Y';
-    pInfo->getValue(a2, str, &_8->y);
+    pInfo->getValue(a2, str, &mValue->y);
     *(str + strlen(mName)) = 'Z';
-    pInfo->getValue(a2, str, &_8->z);
+    pInfo->getValue(a2, str, &mValue->z);
 }
 
 NPCParameterJoint::NPCParameterJoint(const char* pName, const char* pChar, const char** ppChar)
-    : NPCParameterBase(pName), _8(ppChar), _C(pChar), _10(-1) {
+    : NPCParameterBase(pName), mValue(ppChar), mModelName(pChar), mJointIndex(-1) {
 }
 
 NPCParameterReader::NPCParameterReader(const char* pName) : NPCParameterBase(pName), MR::Vector< MR::FixedArray< NPCParameterBase*, 48 > >() {
@@ -60,7 +60,7 @@ void NPCParameterReader::read(JMapInfo* pInfo, s32 a2) {
 NPCCapsParameterReader::NPCCapsParameterReader(const char* pName) : NPCParameterReader(pName), mActorCaps("") {
     mActorCaps.setDefault();
     mActorCaps.mObjectName = pName;
-    mActorCaps._10 = pName;
+    mActorCaps.mMessageId = pName;
     init();
 }
 
@@ -73,28 +73,28 @@ void NPCItemParameterReader::copy(const NPCActorItem* pItem) {
 }
 
 template <>
-NPCParameterRange< s32 >::NPCParameterRange(const char* pName, s32* pLong, s32 a3, s32 a4) : NPCParameterBase(pName), _8(pLong), _C(a3), _10(a4) {
+NPCParameterRange< s32 >::NPCParameterRange(const char* pName, s32* pLong, s32 a3, s32 a4) : NPCParameterBase(pName), mValue(pLong), mMinValue(a3), mMaxValue(a4) {
 }
 
 template <>
 void NPCParameterRange< s32 >::read(JMapInfo* pInfo, s32 a2) {
-    pInfo->getValue(a2, mName, _8);
+    pInfo->getValue(a2, mName, mValue);
 }
 
 template <>
-NPCParameterRange< f32 >::NPCParameterRange(const char* pName, f32* pLong, f32 a3, f32 a4) : NPCParameterBase(pName), _8(pLong), _C(a3), _10(a4) {
+NPCParameterRange< f32 >::NPCParameterRange(const char* pName, f32* pLong, f32 a3, f32 a4) : NPCParameterBase(pName), mValue(pLong), mMinValue(a3), mMaxValue(a4) {
 }
 
 template <>
 void NPCParameterRange< f32 >::read(JMapInfo* pInfo, s32 a2) {
-    pInfo->getValue(a2, mName, _8);
+    pInfo->getValue(a2, mName, mValue);
 }
 
 void NPCParameterJoint::read(JMapInfo* pInfo, s32 a2) {
-    pInfo->getValue(a2, mName, _8);
+    pInfo->getValue(a2, mName, mValue);
 
-    if (strcmp(*_8, "") == 0) {
-        *_8 = "";
+    if (strcmp(*mValue, "") == 0) {
+        *mValue = "";
     }
 }
 

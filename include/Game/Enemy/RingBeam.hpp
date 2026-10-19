@@ -35,22 +35,22 @@ public:
     void startBrk(const char*);
     void exeSpread();
 
-    /* 0x90 */ LiveActor* _8c;
+    /* 0x90 */ LiveActor* mHost;
     /* 0x94 */ ModelObj* mBloomModel;
     /* 0x98 */ const char* mBeamName;
     /* 0x9C */ f32 mSpeed;
     /* 0xA0 */ s32 mLife;
-    /* 0xA4 */ bool _9c;
-    /* 0xA5 */ bool _9d;
-    /* 0xA6 */ bool _9e;
-    /* 0xA7 */ bool _9f;
-    /* 0xA8 */ RingBeamShadowDrawer* _a0;
-    /* 0xAC */ ModelObj* _a4;
+    /* 0xA4 */ bool mFollowGravity;
+    /* 0xA5 */ bool mUseShadowModel;
+    /* 0xA6 */ bool mUseBloomModel;
+    /* 0xA7 */ bool mUseColorBtp;
+    /* 0xA8 */ RingBeamShadowDrawer* mShadowDrawer;
+    /* 0xAC */ ModelObj* mShadowModel;
     ActorStateParamScale* mParamScale;
-    /* 0xB4 */ TVec3f _a8;
-    /* 0xBC */ TVec3f _b4;
-    /* 0xC8 */ TVec3f _c0;
-    /* 0xD4 */ TVec3f _cc;
+    /* 0xB4 */ TVec3f mFront;
+    /* 0xC0 */ TVec3f mGravityDirection;
+    /* 0xCC */ TVec3f mBeamPos;
+    /* 0xD8 */ TVec3f mSoundPos;
     f32 mColor;
     f32 mStartRadius;
     f32 mMaxRadius;
@@ -65,6 +65,6 @@ public:
     virtual void drawShape() const;
     virtual bool isDraw() const;
 
-    const LiveActor* _1c;
+    /* 0x24 */ const LiveActor* mHost;
     /* 0x20 */ f32 mRadius;
 };

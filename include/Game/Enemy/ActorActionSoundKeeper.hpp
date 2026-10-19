@@ -27,7 +27,7 @@ public:
     void updateChecker();
     LiveActor* mActor;
     const ActionSoundData* mData;
-    s32 _8;
+    s32 mUnused08;
     ActionSound** mSounds;
     SyncBckEffectChecker* mChecker;
     s32 mSoundCount;

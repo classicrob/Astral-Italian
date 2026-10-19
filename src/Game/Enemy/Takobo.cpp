@@ -189,7 +189,7 @@ void Takobo::exeIdle() {
         }
     }
     updateFallVelocity();
-    fn_80203850(&mFrontVec, this);
+    SupportTicoStop::turnDirectionToNearbyPlayer(&mFrontVec, this);
     if (MR::calcDistanceToPlayer(this) < 700.0f) {
         setNerve(&NrvTakobo::TakoboNrvAttackSign::sInstance);
         return;
@@ -247,7 +247,7 @@ void Takobo::exeMove() {
         setNerve(&NrvTakobo::TakoboNrvWaitAfter::sInstance);
         return;
     }
-    fn_80203850(&mFrontVec, this);
+    SupportTicoStop::turnDirectionToNearbyPlayer(&mFrontVec, this);
 }
 
 void Takobo::exeAttackSign() {
@@ -257,7 +257,7 @@ void Takobo::exeAttackSign() {
         MR::startBrk(this, "BlueToRed");
     }
     if (MR::isLessStep(this, 25)) {
-        fn_80203850(&mFrontVec, this);
+        SupportTicoStop::turnDirectionToNearbyPlayer(&mFrontVec, this);
     }
     updateFallVelocity();
     if (MR::isActionEnd(this)) {

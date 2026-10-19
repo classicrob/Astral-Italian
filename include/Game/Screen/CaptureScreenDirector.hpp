@@ -9,7 +9,7 @@ struct TimingInfo {
     /* 0x0 */ const char* mName;
     /* 0x4 */ s32 mTiming;
     /* 0x8 */ bool _8;
-    /* 0xC */ u32 _C;
+    /* 0xC */ u32 mNeedsRequest;
 };
 
 class CaptureScreenDirector : public NameObj {

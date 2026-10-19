@@ -69,10 +69,10 @@ void SuperDreamer::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("HelperWitch");
     caps.setDefault();
     caps.mMessage = false;
-    _130 = cNPCSpinDefault;
-    _134 = cNPCTrampledDefault;
-    _138 = cNPCPointingDefault;
-    _13C = cNPCReactionDefault;
+    mSpinAction = cNPCSpinDefault;
+    mTrampledAction = cNPCTrampledDefault;
+    mPointingAction = cNPCPointingDefault;
+    mReactionAction = cNPCReactionDefault;
     initialize(rIter, caps, "HelperWitch", nullptr, nullptr);
     MR::getJMapInfoArg0NoInit(rIter, &mStartId);
 

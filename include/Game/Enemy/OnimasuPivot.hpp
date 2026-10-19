@@ -25,6 +25,6 @@ public:
 
     /* 0x104 */ s32 mCurNormal;
     /* 0x108 */ MR::AssignableArray< TVec3f > mNormals;
-    /* 0x110 */ TQuat4f _110;
-    /* 0x120 */ TQuat4f _120;
+    /* 0x128 */ TQuat4f mPrevPointQuat;
+    /* 0x138 */ TQuat4f mNextPointQuat;
 };

@@ -53,11 +53,11 @@ void Meister::init(const JMapInfoIter& iter) {
     mParam._1C = "TalkA";
     mParam._20 = "TalkA";
     mParam._8 = 0.7f;
-    _130 = cNPCSpinDefault;
-    _134 = cNPCTrampledDefault;
-    _138 = cNPCPointingDefault;
-    _13C = "Spin";
-    initialize(iter, caps, caps._0, 0, "MeisterAnim");
+    mSpinAction = cNPCSpinDefault;
+    mTrampledAction = cNPCTrampledDefault;
+    mPointingAction = cNPCPointingDefault;
+    mReactionAction = "Spin";
+    initialize(iter, caps, caps.mName, 0, "MeisterAnim");
     MR::onCalcGravity(this);
     MR::tryRegisterDemoCast(this, "ハラペコスターピースチコ紹介", iter);
     MR::tryRegisterDemoCast(this, "マリオ顔惑星変化", iter);
@@ -155,8 +155,8 @@ void Meister::updateTalkDistance() {
     TVec3f dir;
     TVec3f up;
     TVec3f front;
-    _A0.getZDir(front);
-    _A0.getYDir(up);
+    mOrientationQuat.getZDir(front);
+    mOrientationQuat.getYDir(up);
     MR::normalizeOrZero(&dir, *MR::getPlayerPos() - mPosition);
     PSVECCrossProduct(&front, &dir, &cross);
     mParam._8 = MR::getInterpolateValue(MR::abs(cross.dot(up)), 0.7f, 2.0f);

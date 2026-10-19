@@ -126,12 +126,12 @@ KuriboChief::KuriboChief(const char* pName) : LiveActor(pName) {
     mStateStagger = nullptr;
     mStateBindStarPointer = nullptr;
     mKeySwitch = nullptr;
-    _AC.x = 0.0f;
-    _AC.y = 0.0f;
-    _AC.z = 0.0f;
-    _AC.w = 1.0f;
-    _BC.set(0.0f, 0.0f, 1.0f);
-    _C8 = false;
+    mUpFrontQuat.x = 0.0f;
+    mUpFrontQuat.y = 0.0f;
+    mUpFrontQuat.z = 0.0f;
+    mUpFrontQuat.w = 1.0f;
+    mFront.set(0.0f, 0.0f, 1.0f);
+    mWasUpsideDown = false;
 }
 
 void KuriboChief::init(const JMapInfoIter& rIter) {
@@ -165,10 +165,10 @@ void KuriboChief::makeActorAppeared() {
 
 void KuriboChief::initState() {
     initNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander), 2);
-    mStateFindPlayer = new WalkerStateFindPlayer(this, &_BC, &::sParam.mStateParam1, &::sParam.mFindPlayerParam);
-    mStateWander = new WalkerStateWander(this, &_BC, &::sParam.mStateParam1, &::sParam.mWanderParam);
-    mStateChase = new WalkerStateChase(this, &_BC, &::sParam.mStateParam1, &::sParam.mChaseParam);
-    mStateStagger = new WalkerStateStagger(this, &_BC, &::sParam.mStateParam2, &::sParam.mStaggerParam);
+    mStateFindPlayer = new WalkerStateFindPlayer(this, &mFront, &::sParam.mStateParam1, &::sParam.mFindPlayerParam);
+    mStateWander = new WalkerStateWander(this, &mFront, &::sParam.mStateParam1, &::sParam.mWanderParam);
+    mStateChase = new WalkerStateChase(this, &mFront, &::sParam.mStateParam1, &::sParam.mChaseParam);
+    mStateStagger = new WalkerStateStagger(this, &mFront, &::sParam.mStateParam2, &::sParam.mStaggerParam);
     mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::initActorState(this, mStateBindStarPointer, GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer), "SupportFreeze");
     MR::initActorState(this, mStateStagger, GET_NERVE(KuriboChief, KuriboChiefNrvStagger), "Stagger");
@@ -209,13 +209,13 @@ void KuriboChief::control() {
         mScaleController->updateNerve();
     }
 
-    MR::blendQuatFromGroundAndFront(&_AC, this, _BC, ::sUpVecBlendRate, ::sFrontVecBlendRate);
+    MR::blendQuatFromGroundAndFront(&mUpFrontQuat, this, mFront, ::sUpVecBlendRate, ::sFrontVecBlendRate);
     MR::changeShowModelFlagSyncNearClipping(this, 900.0f);
     tryDieInHazard();
 }
 
 void KuriboChief::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _AC);
+    MR::setBaseTRMtx(this, mUpFrontQuat);
     MR::updateBaseScale(this, mScaleController);
 }
 
@@ -301,7 +301,7 @@ bool KuriboChief::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
 bool KuriboChief::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
     if (isDown()) {
         mStateStagger->setPunchDirection(pSender, pReceiver);
-        mStateStagger->_28 = false;
+        mStateStagger->mSkipStaggerStart = false;
         setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger));
         return true;
     }
@@ -335,11 +335,11 @@ void KuriboChief::setPositionRotationVelocity(const TVec3f& position, const TQua
     mVelocity.x = vx;
     mVelocity.y = vy;
     mVelocity.z = vz;
-    _AC.x = x;
-    _AC.y = y;
-    _AC.z = z;
-    _AC.w = w;
-    _BC.set<f32>(2.0f * (x * z) + 2.0f * (w * y),
+    mUpFrontQuat.x = x;
+    mUpFrontQuat.y = y;
+    mUpFrontQuat.z = z;
+    mUpFrontQuat.w = w;
+    mFront.set<f32>(2.0f * (x * z) + 2.0f * (w * y),
                  2.0f * (y * z) - 2.0f * (w * x),
                  (1.0f - 2.0f * (x * x)) - 2.0f * (y * y));
 }
@@ -356,7 +356,7 @@ void KuriboChief::appearAndStagger(const TVec3f& position, const TQuat4f& rotati
     if (sender != nullptr) {
         mStateStagger->setPunchDirection(receiver, receiver);
     }
-    mStateStagger->_28 = false;
+    mStateStagger->mSkipStaggerStart = false;
     setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger));
     MR::startAction(this, "Stagger");
     appear();
@@ -373,7 +373,7 @@ bool KuriboChief::tryFind() {
 
 bool KuriboChief::tryPointBind() {
     if (mStateBindStarPointer->tryStartPointBind()) {
-        _C8 = mStateStagger->isUpsideDown();
+        mWasUpsideDown = mStateStagger->isUpsideDown();
         setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer));
         return true;
     }
@@ -425,7 +425,7 @@ void KuriboChief::exeChase() {
 
 void KuriboChief::exeStagger() {
     if (!MR::updateActorStateAndNextNerve(this, GET_NERVE(KuriboChief, KuriboChiefNrvWander))) {
-        _C8 = mStateStagger->isUpsideDown();
+        mWasUpsideDown = mStateStagger->isUpsideDown();
         if (mStateStagger->isSwooning(20) && tryPointBind()) {
             return;
         }
@@ -465,8 +465,8 @@ void KuriboChief::exeTrample() {
 
 void KuriboChief::exeBindStarPointer() {
     if (MR::updateActorState(this)) {
-        if (_C8) {
-            mStateStagger->_28 = true;
+        if (mWasUpsideDown) {
+            mStateStagger->mSkipStaggerStart = true;
             setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger));
         } else {
             setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander));
@@ -479,7 +479,7 @@ void KuriboChief::exeAttackSuccess() {
         MR::startAction(this, "Hit");
     }
 
-    MR::turnDirectionToPlayerDegree(this, &_BC, ::sTurnLimitDegree);
+    MR::turnDirectionToPlayerDegree(this, &mFront, ::sTurnLimitDegree);
     WalkerStateFunction::calcPassiveMovement(this, &::sParam.mStateParam1);
 
     if (MR::isGreaterStep(this, ::sAttackSuccessTime)) {
@@ -500,7 +500,7 @@ void KuriboChief::exeBlowDown() {
     }
 
     WalkerStateFunction::calcPassiveMovement(this, &::sParam.mStateParam1);
-    MR::turnDirectionDegree(this, &_BC, -mVelocity, 30.0f);
+    MR::turnDirectionDegree(this, &mFront, -mVelocity, 30.0f);
 
     if (MR::isGreaterStep(this, ::sBlowDownLandTime) && MR::isBindedGround(this)) {
         setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDownLand));
@@ -538,7 +538,7 @@ bool KuriboChief::isEnableKick() const {
     }
 
     if (isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer))) {
-        return _C8;
+        return mWasUpsideDown;
     }
 
     return false;

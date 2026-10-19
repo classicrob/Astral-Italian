@@ -295,7 +295,7 @@ public:
     /* 0x15C */ u32 mMeId;
     /* 0x160 */ s16 mChordTableId;
     /* 0x162 */ bool mJumpFlag;
-    /* 0x163 */ u8 _163[MAX_CHILDREN];  // AudMeSeqParser::cmdCmpCI
+    /* 0x163 */ u8 mCmpRegs[MAX_CHILDREN];  // AudMeSeqParser::cmdCmpCI
     /* 0x16C */ TTrackInfo mTrackInfo;
     /* 0x180 */ JGadget::TLinkListNode mNode;
 };

@@ -17,7 +17,7 @@ namespace {
 class StinkBugParent : public StinkBugBase {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    bool fn_801FEDA0() const;
+    bool isPlayerOnShakeBody() const;
     StinkBugParent(const char*);
 
     virtual void init(const JMapInfoIter&);

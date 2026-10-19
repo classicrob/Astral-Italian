@@ -58,7 +58,7 @@ public:
     /* 0xA0 */ WalkerStateStagger* mStateStagger;
     /* 0xA4 */ WalkerStateBindStarPointer* mStateBindStarPointer;
     /* 0xA8 */ KeySwitch* mKeySwitch;
-    /* 0xAC */ TQuat4f _AC;
-    /* 0xBC */ TVec3f _BC;
-    /* 0xC8 */ bool _C8;
+    /* 0xAC */ TQuat4f mUpFrontQuat;
+    /* 0xBC */ TVec3f mFront;
+    /* 0xC8 */ bool mWasUpsideDown;
 };

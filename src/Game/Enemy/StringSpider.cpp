@@ -169,8 +169,8 @@ void StringSpider::doSwingAction(f32 a1) {
     }
 }
 
-void StringSpider::fn_80201450() {
-    if (fn_80202DE0() && mBindState->tryStartPointBind()) {
+void StringSpider::tryStartStringPointBind() {
+    if (canPointBindSpider() && mBindState->tryStartPointBind()) {
         setNerve(GET_NERVE(StringSpider, HostTypeNrvDpdGripped));
     }
 }
@@ -209,7 +209,7 @@ void StringSpider::control() {
     }
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvSpinned))) return;
     mScaleController->updateNerve();
-    fn_80201450();
+    tryStartStringPointBind();
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::addVelocityToGravity(this, 1.5f);
     MR::attenuateVelocity(this, 0.98f);
@@ -474,7 +474,7 @@ bool StringSpider::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
         setNerve(GET_NERVE(StringSpider, HostTypeNrvHit));
         return true;
     }
-    if (MR::isMsgLockOnStarPieceShoot(msg)) return fn_80202B40();
+    if (MR::isMsgLockOnStarPieceShoot(msg)) return canLockOnSpiderWithStarPiece();
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvSpinned)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvBlow))) return false;
     if (MR::isMsgPlayerHipDrop(msg) || MR::isMsgPlayerTrample(msg)) {
         TVec3f v(*MR::getSensorPos(pSender));
@@ -496,7 +496,7 @@ bool StringSpider::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
         setNerve(GET_NERVE(StringSpider, HostTypeNrvBlow));
         return true;
     }
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && fn_80202D00()) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && canSpinHitSpider()) {
         MR::setVelocitySeparateHV(this, pSender, pReceiver, 30.0f, 0.0f);
         setNerve(GET_NERVE(StringSpider, HostTypeNrvHit));
         return true;
@@ -506,7 +506,7 @@ bool StringSpider::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
 
 bool StringSpider::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerKick(msg)) {
-        if (fn_80202D80()) {
+        if (canKickHitSpider()) {
             mSpinHitController->start(this, *MR::getSensorPos(pSender), *MR::getSensorPos(pReceiver));
             setNerve(GET_NERVE(StringSpider, HostTypeNrvBlow));
             return true;
@@ -541,7 +541,7 @@ void StringSpider::startSwingLevelSound() {
     MR::startActionSound(this, "EmLvStrspiderSwing2", liner2);
 }
 
-bool StringSpider::fn_80202B40() const {
+bool StringSpider::canLockOnSpiderWithStarPiece() const {
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvHit)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvSpinned)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvBlow))) return false;
     return true;
 }
@@ -557,18 +557,18 @@ bool StringSpider::isDamaging() const {
     return true;
 }
 
-bool StringSpider::fn_80202D00() const {
+bool StringSpider::canSpinHitSpider() const {
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvHit))) return MR::isGreaterStep(this, 45);
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvBlow)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvSpinned))) return false;
     return true;
 }
 
-bool StringSpider::fn_80202D80() const {
+bool StringSpider::canKickHitSpider() const {
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvHit)) && MR::isGreaterStep(this, 5)) return true;
     return false;
 }
 
-bool StringSpider::fn_80202DE0() const {
+bool StringSpider::canPointBindSpider() const {
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvSpinned)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvBlow)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvEaten)) || isNerve(GET_NERVE(StringSpider, HostTypeNrvDpdGripped))) return false;
     if (isNerve(GET_NERVE(StringSpider, HostTypeNrvHit))) return MR::isGreaterStep(this, 20);
     return true;

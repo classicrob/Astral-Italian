@@ -27,7 +27,7 @@ WalkerStateStaggerParam::WalkerStateStaggerParam()
 
 WalkerStateStagger::WalkerStateStagger(LiveActor* pHost, TVec3f* pDirection, WalkerStateParam* pStateParam, WalkerStateStaggerParam* pStaggerParam)
     : ActorStateBase< LiveActor >("歩行型よろめき状態", pHost), mStateParam(pStateParam), mStaggerParam(pStaggerParam), mVelH(0.0f, 0.0f, 1.0f),
-      mDirection(pDirection), _28(false) {
+      mDirection(pDirection), mSkipStaggerStart(false) {
     if (mStaggerParam == nullptr) {
         mStaggerParam = &::sDefaultStaggerParam;
     }
@@ -38,7 +38,7 @@ WalkerStateStagger::WalkerStateStagger(LiveActor* pHost, TVec3f* pDirection, Wal
 void WalkerStateStagger::appear() {
     mIsDead = false;
     MR::invalidateClipping(getHost());
-    if (_28) {
+    if (mSkipStaggerStart) {
         setNerve(GET_NERVE(WalkerStateStagger, WalkerStateStaggerNrvStaggerEnd));
     } else {
         setNerve(GET_NERVE(WalkerStateStagger, WalkerStateStaggerNrvStagger));

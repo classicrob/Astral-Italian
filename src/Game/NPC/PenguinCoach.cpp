@@ -32,10 +32,10 @@ void PenguinCoach::init(const JMapInfoIter& rIter) {
     mParam.setMoveAction("Wait", "Turn");
     mParam.setTalkAction("Talk", "TalkTurn");
     mParam._8 = 1.0f;
-    _134 = "Trampled";
-    _13C = "Reaction";
-    _130 = "Reaction";
-    _138 = "Pointing";
+    mTrampledAction = "Trampled";
+    mReactionAction = "Reaction";
+    mSpinAction = "Reaction";
+    mPointingAction = "Pointing";
     if (MR::tryRegisterDemoCast(this, rIter)) {
         MR::registerDemoActionFunctor(this, MR::FunctorV0M<PenguinCoach*, void (PenguinCoach::*)()>(this, &PenguinCoach::resetPose), nullptr);
     }
@@ -53,7 +53,7 @@ void PenguinCoach::calcAndSetBaseMtx() {
 
 bool PenguinCoach::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::isMsgSupportTicoSpin(msg)) {
-        _E3 = true;
+        mSpinAttacked = true;
         return true;
     }
     return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);
@@ -76,7 +76,7 @@ void PenguinCoach::exeReaction() {
         mTurnJointCtrl->endCtrl(4);
     }
 
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmPenguinTrampled");
         MR::startActionSound(this, "SvPenguinLTrampled");
     }
@@ -86,12 +86,12 @@ void PenguinCoach::exeReaction() {
         MR::startDPDHitSound();
     }
 
-    if (_D9) {
+    if (mSpinAttackedStart) {
         MR::startActionSound(this, "SvPenguinLSpinHit");
         MR::startActionSound(this, "SmPenguinLSpinHit");
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::startActionSound(this, "SvPenguinLStarPiece");
         MR::startActionSound(this, "SmPenguinLSpinHit");
     }

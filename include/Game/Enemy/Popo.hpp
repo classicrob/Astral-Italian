@@ -82,7 +82,7 @@ public:
     bool isStarPieceReactable() const NO_INLINE;  // fn_801EF310
 
     /* 0x90 */ TVec3f mFrontVec;
-    /* 0x9C */ u8 _9C[0x10];
+    /* 0x9C */ u8 mReserved9C[0x10];
     /* 0xAC */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0xB0 */ PopoAwayCounter* mAwayCounter;
     /* 0xB4 */ TVec3f mHomePos;

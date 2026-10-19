@@ -10,10 +10,10 @@ class SpinHitController;
 class WalkerStateBindStarPointer;
 
 struct BombBirdParam {
-    f32 _0;
-    f32 _4;
-    f32 _8;
-    f32 _C;
+    /* 0x00 */ f32 mMoveAccel;
+    /* 0x04 */ f32 mGravityAccel;
+    /* 0x08 */ f32 mVelocityDamping;
+    /* 0x0C */ f32 mTurnMaxDegree;
 };
 
 class BombBird : public LiveActor {

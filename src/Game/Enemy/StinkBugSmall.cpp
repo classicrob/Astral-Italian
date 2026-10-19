@@ -39,18 +39,18 @@ namespace NrvStinkBugSmall {
     NEW_NERVE(StinkBugSmallNrvForceFall, StinkBugSmall, ForceFall);
 };  // namespace NrvStinkBugSmall
 
-StinkBugSmall::StinkBugSmall(const char* pName) : StinkBugBase(pName), mScaleController(), mBindStarPointer(), _C4() {
+StinkBugSmall::StinkBugSmall(const char* pName) : StinkBugBase(pName), mScaleController(), mBindStarPointer(), mIsSensorOnly() {
 }
 
 void StinkBugSmall::init(const JMapInfoIter& rIter) {
     StinkBugBase::init(rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mMaxTurnDegree);
     MR::getJMapInfoArg1NoInit(rIter, &mRadius);
-    MR::getJMapInfoArg7NoInit(rIter, &_C4);
+    MR::getJMapInfoArg7NoInit(rIter, &mIsSensorOnly);
     initSound(4, "StinkBugSmall", nullptr, TVec3f(0.0f));
     initHitSensor(3);
     TVec3f v9;
-    if (_C4) {
+    if (mIsSensorOnly) {
         v9.y = 10.0f * mScale.x;
         v9.x = 0.0f;
         v9.z = 0.0f;
@@ -64,7 +64,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     v8.x = 0.0f;
     v8.z = 0.0f;
     MR::addHitSensorAtJointEnemyAttack(this, "head", "Face", 8, 100.0f * mScale.x, v8);
-    if (!_C4) {
+    if (!mIsSensorOnly) {
         MR::initCollisionParts(this, "Switch", getSensor("Body"), nullptr);
     }
 
@@ -189,7 +189,7 @@ void StinkBugSmall::exeHipDropDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Death");
         MR::startBrk(this, "Death");
-        if (!_C4) {
+        if (!mIsSensorOnly) {
             MR::invalidateCollisionParts(this);
         }
 
@@ -376,7 +376,7 @@ void StinkBugSmall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (_C4 && pSender == getSensor("Body")) {
+    if (mIsSensorOnly && pSender == getSensor("Body")) {
         MR::sendMsgPush(pReceiver, pSender);
         return;
     }

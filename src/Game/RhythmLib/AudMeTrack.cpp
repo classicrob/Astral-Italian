@@ -66,7 +66,7 @@ void AudMeTrack::init() {
 
     mJumpFlag = false;
     for (s32 i = 0; i < MAX_CHILDREN; i++) {
-        _163[i] = 0;
+        mCmpRegs[i] = 0;
     }
 
     mIsProcStopped = false;
@@ -104,7 +104,7 @@ void AudMeTrack::inherit(AudMeTrack* pTrack) {
     mJumpFlag = pTrack->mJumpFlag;
 
     for (s32 i = 0; i < MAX_CHILDREN; i++) {
-        _163[i] = pTrack->_163[i];
+        mCmpRegs[i] = pTrack->mCmpRegs[i];
     }
 }
 

@@ -69,9 +69,9 @@ void KinopioBank::init(const JMapInfoIter& iter) {
     MR::invalidateHitSensor(this,"Pickel");
     MR::offBind(this);
     mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault; mParam._1C="Talk"; mParam._20="Talk";
-    _11C="Walk"; _120="Walk";
-    _130=cNPCSpinDefault; _134=cNPCTrampledDefault; _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
-    _12C=450.0f;
+    mRailMoveAction="Walk"; mRailTalkAction="Walk";
+    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    mSpinAttackRange=450.0f;
     initTalkCtrlDirect(iter,"KinopioBank",TVec3f(0.0f,150.0f,0.0f),nullptr);
     MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::branchFunc));
     MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::eventFunc));
@@ -102,9 +102,9 @@ void KinopioBank::init(const JMapInfoIter& iter) {
 
 void KinopioBank::control() {
     NPCActor::control();
-    if(_D8) { MR::startActionSound(this,"SmNpcTrampled",-1,-1,-1); MR::startActionSound(this,"SvKinopioTrampled",-1,-1,-1); }
+    if(mTrampledStart) { MR::startActionSound(this,"SmNpcTrampled",-1,-1,-1); MR::startActionSound(this,"SvKinopioTrampled",-1,-1,-1); }
     if(isPointingSe()) { MR::startDPDHitSound(); MR::startActionSound(this,"SvKinopioPointing",-1,-1,-1); }
-    if(_DB) MR::startActionSound(this,"SvKinopioStarPieceHit",-1,-1,-1);
+    if(mReactionStart) MR::startActionSound(this,"SvKinopioStarPieceHit",-1,-1,-1);
 }
 
 void KinopioBank::exeStarPieceWait() {
@@ -147,17 +147,17 @@ u32 KinopioBank::getBankData(PartsModel** a,PartsModel** b) {
 void KinopioBank::updateBank(s32 immediate) {
     PartsModel* a=nullptr; PartsModel* b=nullptr;
     u32 index=getBankData(&a,&b);
-    if(_94==a && _98==b) return;
+    if(mGoods0==a && mGoods1==b) return;
     if(!immediate) { MR::emitEffect(this,"Smoke"); MR::startActionSound(this,"AppearGoodsSmoke",-1,-1,-1); }
-    if(_94) _94->makeActorDead();
-    if(_98) _98->makeActorDead();
-    _94=a; _98=b;
-    if(_94) _94->makeActorAppeared();
-    if(_98) _98->makeActorAppeared();
+    if(mGoods0) mGoods0->makeActorDead();
+    if(mGoods1) mGoods1->makeActorDead();
+    mGoods0=a; mGoods1=b;
+    if(mGoods0) mGoods0->makeActorAppeared();
+    if(mGoods1) mGoods1->makeActorAppeared();
     const BankActions& actions=sActions[index];
     mParam._14=actions.wait; mParam._18=actions.turn; mParam._1C=actions.talk; mParam._20=actions.turn;
-    _130=actions.spin; _13C=actions.reaction; _134=actions.reaction; _138=actions.turn;
-    if(index==0) MR::emitEffect(_94,"KinopioGoodsStarPieceLight");
+    mSpinAction=actions.spin; mReactionAction=actions.reaction; mTrampledAction=actions.reaction; mPointingAction=actions.turn;
+    if(index==0) MR::emitEffect(mGoods0,"KinopioGoodsStarPieceLight");
     MR::startAction(this,mParam._1C);
 }
 bool KinopioBank::branchFunc(u32 id) {
@@ -217,5 +217,5 @@ void KinopioBank::awardBankLives() {
 bool KinopioBank::needsGoodsUpdate() {
     PartsModel* a=nullptr; PartsModel* b=nullptr;
     getBankData(&a,&b);
-    return _94!=a || _98!=b;
+    return mGoods0!=a || mGoods1!=b;
 }

@@ -15,7 +15,7 @@ public:
         mName = pName;
     };
 
-    const char* mName;
+    /* 0x00 */ const char* mName;
 
     virtual void read(JMapInfo*, s32);
 };
@@ -26,8 +26,8 @@ public:
 
     virtual void read(JMapInfo*, s32);
 
-    const char** _8;
-    bool _C;
+    /* 0x08 */ const char** mValue;
+    /* 0x0C */ bool mIsResourceName;
 };
 
 class NPCParameterBool : public NPCParameterBase {
@@ -36,7 +36,7 @@ public:
 
     virtual void read(JMapInfo*, s32);
 
-    bool* _8;
+    /* 0x08 */ bool* mValue;
 };
 
 class NPCParameterV3f : public NPCParameterBase {
@@ -45,9 +45,9 @@ public:
 
     virtual void read(JMapInfo*, s32);
 
-    TVec3f* _8;
-    f32 _C;
-    f32 _10;
+    /* 0x08 */ TVec3f* mValue;
+    /* 0x0C */ f32 mMinValue;
+    /* 0x10 */ f32 mMaxValue;
 };
 
 class NPCParameterJoint : public NPCParameterBase {
@@ -56,9 +56,9 @@ public:
 
     virtual void read(JMapInfo*, s32);
 
-    const char** _8;
-    const char* _C;
-    s32 _10;
+    /* 0x08 */ const char** mValue;
+    /* 0x0C */ const char* mModelName;
+    /* 0x10 */ s32 mJointIndex;
 };
 
 class NPCParameterReader : public NPCParameterBase, public MR::Vector< MR::FixedArray< NPCParameterBase*, 48 > > {
@@ -74,7 +74,7 @@ public:
 
     void init();
 
-    NPCActorCaps mActorCaps;
+    /* 0xCC */ NPCActorCaps mActorCaps;
 };
 
 class NPCItemParameterReader : public NPCParameterReader {
@@ -82,7 +82,7 @@ public:
     NPCItemParameterReader(const char*);
 
     void copy(const NPCActorItem*);
-    NPCActorItem mItem;
+    /* 0xCC */ NPCActorItem mItem;
 };
 
 template < typename T >
@@ -92,7 +92,7 @@ public:
 
     virtual void read(JMapInfo*, s32);
 
-    T* _8;
-    T _C;
-    T _10;
+    /* 0x08 */ T* mValue;
+    /* 0x0C */ T mMinValue;
+    /* 0x10 */ T mMaxValue;
 };

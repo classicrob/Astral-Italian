@@ -77,19 +77,19 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
     MR::startBrk(this, "BodyColor");
     MR::setBrkFrameAndStop(this, (f32)mBodyColorFrame);
 
-    _134 = "BTrampled";
-    _130 = "BSpinHit";
-    _13C = "BSpinHit";
-    _138 = "BTalkHelp";
+    mTrampledAction = "BTrampled";
+    mSpinAction = "BSpinHit";
+    mReactionAction = "BSpinHit";
+    mPointingAction = "BTalkHelp";
     mParam._14 = "BWaitStand";
     mParam._18 = "BWaitStand";
     mParam._0 = 0;
     mParam._1 = 1;
     mParam._8 = 3.0f;
-    _10C = 2.0f;
-    _110 = 0.1f;
-    _114 = 0.05f;
-    _124 = 1;
+    mRailMoveSpeed = 2.0f;
+    mRailMoveAccel = 0.1f;
+    mRailTurnRate = 0.05f;
+    mFollowRailOnGround = 1;
 
     MR::startBckNoInterpole(this, "BWaitStand");
     MR::calcAnimDirect(this);
@@ -215,7 +215,7 @@ bool CareTakerHunter::eventFunc(u32 msg) {
 
 bool CareTakerHunter::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        _E3 = 1;
+        mSpinAttacked = 1;
         return false;
     }
     return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);
@@ -254,11 +254,11 @@ void CareTakerHunter::setTalkStrings(s32 arg) {
 }
 
 void CareTakerHunter::exeReaction() {
-    if (_D8 != 0) {
+    if (mTrampledStart != 0) {
         MR::startActionSound(this, "SmNpcTrampledMetal", -1, -1, -1);
         MR::startActionSound(this, "SvCareTakerTrample", -1, -1, -1);
     }
-    if (_D9 != 0) {
+    if (mSpinAttackedStart != 0) {
         MR::startActionSound(this, "SmCaretakerSpinHit", -1, -1, -1);
         MR::startActionSound(this, "SvCareTakerSpinHit", -1, -1, -1);
     }
@@ -266,7 +266,7 @@ void CareTakerHunter::exeReaction() {
         MR::startActionSound(this, "SvCareTakerPointed2p", -1, -1, -1);
         MR::startDPDHitSound();
     }
-    if (_DB != 0) {
+    if (mReactionStart != 0) {
         MR::startActionSound(this, "SmCaretakerSpinHit", -1, -1, -1);
         MR::startActionSound(this, "SvCareTakerStarPiece", -1, -1, -1);
     }
@@ -319,9 +319,9 @@ void CareTakerHunter::exeWait() {
         if (dist < 1500.0f) {
             mParam._8 = 0.0f;
             TVec3f front(0.0f, 0.0f, 1.0f);
-            _A0.getZDir(front);
+            mOrientationQuat.getZDir(front);
             if (!MR::isOppositeDirection(-front, dir, 0.01f)) {
-                MR::faceToVector(&_A0, dir, 4.0f);
+                MR::faceToVector(&mOrientationQuat, dir, 4.0f);
             }
         } else {
             mParam._8 = 4.0f;

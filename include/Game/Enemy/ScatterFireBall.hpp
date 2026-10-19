@@ -37,7 +37,7 @@ public:
     /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x9C */ TVec3f mUpVec;
     /* 0xA8 */ TVec3f mStoredVelocity;
-    /* 0xB4 */ f32 _B4;
+    /* 0xB4 */ f32 mUnusedScale;
     /* 0xB8 */ ScatterFireBallLava* mLava;
     /* 0xBC */ s32 mNoHitTimer;
     /* 0xC0 */ bool mIsFalling;

@@ -20,7 +20,7 @@ public:
     void exeWait();
     void exeFly();
 
-    TQuat4f _8C;
+    /* 0x90 */ TQuat4f mPoseQuat;
 };
 
 namespace CannonShellUtil {

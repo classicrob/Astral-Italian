@@ -35,5 +35,5 @@ void PlayAttackMan::initialize(NPCActor* actor,const JMapInfoIter& iter,bool mes
     actor->mParam._1C="Talk";
     actor->mParam._20="Turn";
     actor->setDefaults();
-    actor->_12C=450.0f;
+    actor->mSpinAttackRange=450.0f;
 }

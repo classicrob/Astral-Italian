@@ -62,7 +62,7 @@ public:
     /* 0x9C */ WalkerStateStagger* mStateStagger;
     /* 0xA0 */ WalkerStateBindStarPointer* mStateBindStarPointer;
     /* 0xA4 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0xA8 */ TQuat4f _A8;
-    /* 0xB8 */ TVec3f _B8;
-    /* 0xC4 */ bool _C8;
+    /* 0xA8 */ TQuat4f mUpFrontQuat;
+    /* 0xBC */ TVec3f mFront;
+    /* 0xC4 */ bool mWasUpsideDown;
 };

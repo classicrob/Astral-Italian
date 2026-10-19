@@ -67,22 +67,22 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
     rot.x *= 0.017453292f;
     rot.y *= 0.017453292f;
     rot.z *= 0.017453292f;
-    _A0.setEuler(rot);
+    mOrientationQuat.setEuler(rot);
     MR::setScale(this, 1.2f);
     bool isTalkReady = this->initTalkCtrl();
 
-    _130 = cNPCSpinDefault;
-    _134 = cNPCTrampledDefault;
-    _138 = cNPCPointingDefault;
-    _13C = cNPCReactionDefault;
-    _12C = 450.0f;
+    mSpinAction = cNPCSpinDefault;
+    mTrampledAction = cNPCTrampledDefault;
+    mPointingAction = cNPCPointingDefault;
+    mReactionAction = cNPCReactionDefault;
+    mSpinAttackRange = 450.0f;
     mParam._14 = cNPCWaitDefault;
     mParam._18 = cNPCTurnDefault;
     mParam._1C = "Talk";
     mParam._20 = "Talk";
-    _11C = "Walk";
-    _120 = "Walk";
-    _124 = 1;
+    mRailMoveAction = "Walk";
+    mRailTalkAction = "Walk";
+    mFollowRailOnGround = 1;
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, 2.0f);
 
@@ -408,7 +408,7 @@ void KinopioPostman::exeTalk() {
     }
     TVec3f sp14 = *MR::getPlayerPos() - this->mPosition;
     TVec3f sp8 = -this->mGravity;
-    KinopioPostmanFunction::turnQuaternion(&this->_A0, sp8, sp14, 0.997f);
+    KinopioPostmanFunction::turnQuaternion(&this->mOrientationQuat, sp8, sp14, 0.997f);
     if (!MR::tryStartReactionAndPushNerve(this, GET_NERVE(KinopioPostman, KinopioPostmanNrvReaction))) {
         MR::tryTalkNearPlayerAndStartMoveTalkAction(this);
     }
@@ -418,7 +418,7 @@ void KinopioPostman::exeReaction() {
 
 
 
-    if (this->_D8 != 0) {
+    if (this->mTrampledStart != 0) {
         MR::startActionSound(this, "SmNpcTrampled", -1, -1, -1);
         MR::startActionSound(this, "SvKinopioTrampled", -1, -1, -1);
     }
@@ -426,7 +426,7 @@ void KinopioPostman::exeReaction() {
         MR::startDPDHitSound();
         MR::startActionSound(this, "SvKinopioPointing", -1, -1, -1);
     }
-    if (this->_DB != 0) {
+    if (this->mReactionStart != 0) {
         MR::startActionSound(this, "SvKinopioStarPieceHit", -1, -1, -1);
     }
     MR::tryStartReactionAndPopNerve(this);
@@ -453,7 +453,7 @@ void KinopioPostman::exeWait() {
                 if (MR::isAnyAnimPlaying(this, "Notice")) {
                     TVec3f sp14 = *MR::getPlayerPos() - this->mPosition;
                     TVec3f sp8 = -this->mGravity;
-                    KinopioPostmanFunction::turnQuaternion(&this->_A0, sp8, sp14, 0.997f);
+                    KinopioPostmanFunction::turnQuaternion(&this->mOrientationQuat, sp8, sp14, 0.997f);
                 }
             }
         } else {
@@ -505,7 +505,7 @@ void KinopioPostman::exeDemo() {
         MR::findNamePos(sMarioPosName, &sp8, nullptr);
         TVec3f sp20 = sp8 - this->mPosition;
         TVec3f sp14 = -this->mGravity;
-        KinopioPostmanFunction::turnQuaternion(&this->_A0, sp14, sp20, -1.0f);
+        KinopioPostmanFunction::turnQuaternion(&this->mOrientationQuat, sp14, sp20, -1.0f);
         MR::startAction(this, "Talk");
     }
     if (!MR::isTimeKeepDemoActive()) {

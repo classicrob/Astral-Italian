@@ -69,12 +69,12 @@ void BoomerangBros::init(const JMapInfoIter& rIter) {
     MR::calcFrontVec(&mFront, this);
     MR::getJMapInfoArg0NoInit(rIter, &mWaitCount);
     if (mWaitCount > 0) {
-        _B9 = true;
+        mIsInitialAttack = true;
     }
     bool flag = false;
     MR::getJMapInfoArg2NoInit(rIter, &flag);
     if (flag) {
-        _B8 = false;
+        mAllowRailJump = false;
     }
     initStates();
     initByArg(rIter);
@@ -180,7 +180,7 @@ void BoomerangBros::exeJump() {
 
 void BoomerangBros::exeAttack() {
     if (MR::updateActorState(this)) {
-        _B9 = false;
+        mIsInitialAttack = false;
         setNerve(BNRV(Jump));
     }
 }
@@ -594,7 +594,7 @@ bool BoomerangBros::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRec
         return true;
     }
     if (MR::isMsgYoshiReleaseOrCancelEaten(msg)) {
-        fn_80186AD0();
+        emitBrosYoshiEatItem();
         kill();
         return true;
     }

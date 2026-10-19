@@ -59,8 +59,8 @@ public:
     void exeMoveWater();
     void exeMoveWaterAfterJump();
     void exeLanding();
-    bool fn_801F1380() NO_INLINE;
-    bool fn_801F1440(HitSensor*) NO_INLINE;
+    bool tryExplosionAttackBoundMapObj() NO_INLINE;
+    bool tryExplosionAttackMapObj(HitSensor*) NO_INLINE;
     void exeTrampled();
     void exeBlownOff();
     void exeBindStarPointer();
@@ -99,8 +99,8 @@ public:
     /* 0xC4 */ Nerve* mSavedNerve;
     /* 0xC8 */ f32 mSavedBckFrame;
     /* 0xCC */ f32 mSavedBtpFrame;
-    /* 0xD0 */ u8 _D0;
-    /* 0xD1 */ u8 _D1;
-    /* 0xD2 */ u8 _D2;
-    /* 0xD3 */ u8 _D3;
+    /* 0xD8 */ u8 mReservedD8;
+    /* 0xD9 */ u8 mReservedD9;
+    /* 0xDA */ u8 mReservedDA;
+    /* 0xDB */ u8 mReservedDB;
 };

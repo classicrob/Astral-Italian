@@ -23,7 +23,7 @@ CaptureScreenDirector::CaptureScreenDirector() : NameObj("画面キャプチャ"
 void CaptureScreenDirector::captureIfAllow(const char* pName) {
     const TimingInfo* pInfo = findFromName(pName);
 
-    if (getUsingTiming() == pInfo && (getUsingTiming()->_C == 0 || mIsCaptureRequested)) {
+    if (getUsingTiming() == pInfo && (getUsingTiming()->mNeedsRequest == 0 || mIsCaptureRequested)) {
         capture();
 
         mIsCaptureRequested = false;

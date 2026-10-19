@@ -46,7 +46,7 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
     caps.mWaitNerve = GET_NERVE(TicoFatStarPiece, TicoFatStarPieceNrvWait);
     caps.mNerveStep = 1;
     caps.mMessage = false;
-    caps._95 = false;
+    caps.mYoshiInteraction = false;
     initialize(iter, caps, "TicoFatStarPiece", nullptr, nullptr);
     if (!GameSequenceFunction::isTicoFatStarPieceActive()) {
         MR::tryRegisterDemoCast(this, "ハラペコスターピースチコ紹介", iter);
@@ -84,8 +84,8 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
     param.mHitReactionSpringStrength = 0.12f;
     param.mHitReactionDamping = 0.9f;
     mScaleController = new AnimScaleController(nullptr);
-    _130 = cNPCSpinDefault; _134 = cNPCTrampledDefault; _138 = cNPCPointingDefault; _13C = cNPCReactionDefault;
-    _12C = 1000.0f;
+    mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
+    mSpinAttackRange = 1000.0f;
     mParam._14 = getActionName("Wait");
     mParam._18 = mParam._14;
     mParam._1C = getActionName("Talk");
@@ -96,10 +96,10 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
     item.mGoods1 = lbl_807CFE94; item.mGoodsJoint1 = lbl_807CFE90;
     MR::getNPCItemData(&item, 0);
     equipment(item, false);
-    MR::startAction(_94, "TicoFatGoodsStarPiece");
-    MR::startAction(_98, "TicoFatGoodsStarPiece");
-    MR::setBpkFrame(_94, 0.0f);
-    MR::setBpkFrame(_98, 100.0f);
+    MR::startAction(mGoods0, "TicoFatGoodsStarPiece");
+    MR::startAction(mGoods1, "TicoFatGoodsStarPiece");
+    MR::setBpkFrame(mGoods0, 0.0f);
+    MR::setBpkFrame(mGoods1, 100.0f);
     MR::startBva(this, "Small0");
     MR::startBrk(this, "Normal");
     MR::setBrkFrameAndStop(this, 0.0f);
@@ -153,8 +153,8 @@ void TicoFatStarPiece::selectEatMessage(s32 mode) {
 
 
 void TicoFatStarPiece::exeReaction() {
-    if (MR::isFirstStep(this) && !_D9) mScaleController->startHitReaction();
-    if (_D8) {
+    if (MR::isFirstStep(this) && !mSpinAttackedStart) mScaleController->startHitReaction();
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled", -1, -1, -1);
         MR::startActionSound(this, "SvTicofatTrampled", -1, -1, -1);
     }
@@ -162,8 +162,8 @@ void TicoFatStarPiece::exeReaction() {
         MR::startDPDHitSound();
         MR::startActionSound(this, "SvTicofatPoint", -1, -1, -1);
     }
-    if (_D9) MR::startActionSound(this, "SmTicofatSpin", -1, -1, -1);
-    if (_DB) MR::startActionSound(this, "SvTicofatStarPieceHit", -1, -1, -1);
+    if (mSpinAttackedStart) MR::startActionSound(this, "SmTicofatSpin", -1, -1, -1);
+    if (mReactionStart) MR::startActionSound(this, "SvTicofatStarPieceHit", -1, -1, -1);
     MR::tryStartReactionAndPopNerve(this);
 }
 
@@ -238,7 +238,7 @@ void TicoFatStarPiece::control() {
 
 
 bool TicoFatStarPiece::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {
-    if (MR::isMsgStarPieceAttack(msg)) { _E5 = true; return true; }
+    if (MR::isMsgStarPieceAttack(msg)) { mReacting = true; return true; }
     if (MR::isMsgStarPieceGift(msg)) { receiveStarPiece(MR::getStarPieceGiftCount(msg)); return true; }
     return NPCActor::receiveMsgPlayerAttack(msg, sender, receiver);
 }
@@ -321,10 +321,10 @@ void TicoFatStarPiece::updateEventCamera() {
     TVec3f x, y, z, position;
     MR::extractMtxXYZDir(getBaseMtx(), &x, &y, &z);
     MR::extractMtxTrans(getBaseMtx(), &position);
-    x.set<f32>((1.0f - 2.0f * (_B0.y * _B0.y)) - 2.0f * (_B0.z * _B0.z), 2.0f * (_B0.x * _B0.y) + 2.0f * (_B0.w * _B0.z), 2.0f * (_B0.x * _B0.z) - 2.0f * (_B0.w * _B0.y));
-    y.set<f32>(2.0f * (_B0.x * _B0.y) - 2.0f * (_B0.w * _B0.z), (1.0f - 2.0f * (_B0.x * _B0.x)) - 2.0f * (_B0.z * _B0.z), 2.0f * (_B0.y * _B0.z) + 2.0f * (_B0.w * _B0.x));
-    z.set<f32>(2.0f * (_B0.x * _B0.z) + 2.0f * (_B0.w * _B0.y), 2.0f * (_B0.y * _B0.z) - 2.0f * (_B0.w * _B0.x), (1.0f - 2.0f * (_B0.x * _B0.x)) - 2.0f * (_B0.y * _B0.y));
-    position = _C0;
+    x.set<f32>((1.0f - 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.y)) - 2.0f * (mInitOrientationQuat.z * mInitOrientationQuat.z), 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.y) + 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.z), 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.z) - 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.y));
+    y.set<f32>(2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.y) - 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.z), (1.0f - 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.x)) - 2.0f * (mInitOrientationQuat.z * mInitOrientationQuat.z), 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.z) + 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.x));
+    z.set<f32>(2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.z) + 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.y), 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.z) - 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.x), (1.0f - 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.x)) - 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.y));
+    position = mInitPosition;
     TVec3f eye = ((position + x * sStarPieceTicoCameraEyeSide) + y * 100.0f) + z * MR::getLinerValueFromMinMax(calcScale(), 1.0f, 1.9f, 1300.0f, 1700.0f);
     TVec3f target = ((position + x * sStarPieceTicoCameraTargetSide) + y * 150.0f) + z * sStarPieceTicoCameraTargetFront;
     MR::setProgrammableCameraParam(sEventCamera, target, eye, y, false);

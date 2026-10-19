@@ -8,16 +8,16 @@ class AudRhythmSeqParser;
 
 struct RhythmInfo {
     /* 0x00 */ bool mIsActive;
-    /* 0x04 */ u32 _4;
-    /* 0x08 */ u32 _8;
+    /* 0x04 */ u32 mHardHitCount;
+    /* 0x08 */ u32 mSoftHitVelocity;
     /* 0x0C */ f32 mNoteDurationSec;
     /* 0x10 */ s64 mStartTime;
     /* 0x18 */ s64 mPlayTime;
     /* 0x20 */ s64 mPrevPlayTime;
     /* 0x28 */ s64 mLastMeasuredTime;
     /* 0x30 */ s64 mPausedTime;
-    /* 0x38 */ u32 _38;
-    /* 0x3C */ u32 _3C;
+    /* 0x38 */ u32 mBeatCount;
+    /* 0x3C */ u32 mPrevBeatCount;
 };  // 0x40 bytes per record (the holder's mInfos stride)
 
 class AudRhythmHolder {
@@ -44,6 +44,6 @@ public:
     /* 0x010 */ RhythmInfo mInfos[6];
     /* 0x190 */ bool mIsRhythmActive;
     /* 0x194 */ AudRhythmSeqParser* mSeqParser;
-    /* 0x198 */ u32 _168;
-    /* 0x19C */ u32 _16C;
+    /* 0x198 */ u32 _198;
+    /* 0x19C */ u32 _19C;
 };

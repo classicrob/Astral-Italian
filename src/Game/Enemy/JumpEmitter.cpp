@@ -14,7 +14,7 @@ namespace {
 };  // namespace
 
 JumpEmitter::JumpEmitter(const char* pName) : LiveActor(pName) {
-    _90 = 0;
+    mBodyJointMtx = nullptr;
     mHeadModel = nullptr;
     mStartPos.x = 0.0f;
     mStartPos.y = 0.0f;
@@ -22,7 +22,7 @@ JumpEmitter::JumpEmitter(const char* pName) : LiveActor(pName) {
     mIsEventCamera = false;
     mCameraInfo = nullptr;
     mMultEventCamera = nullptr;
-    _94.identity();
+    mHeadHostMtx.identity();
 }
 
 void JumpEmitter::kill() {

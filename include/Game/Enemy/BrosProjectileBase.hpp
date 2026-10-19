@@ -46,6 +46,6 @@ public:
     /* 0x98 */ TVec3f mFront;
     /* 0xA4 */ TVec3f mLocalVel;
     /* 0xB0 */ s32 mState;
-    /* 0xB4 */ bool _B4;
+    /* 0xB4 */ bool mIsPointBound;
     /* 0xB8 */ YoshiLockOnTarget* mYoshiLockOn;
 };

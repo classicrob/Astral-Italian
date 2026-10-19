@@ -26,8 +26,7 @@ public:
     void exeInter();
 
     RingBeam** mBeams;
-    bool _90;
-    // needed to get _98 at correct offset
-    u8 _94[4];  // unused?
-    TMtx34f _98;
+    /* 0x94 */ bool mIsAttackEnabled;
+    /* 0x95 */ u8 mReserved95[4];
+    /* 0x9C */ TMtx34f mHeadMtx;
 };

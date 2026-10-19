@@ -34,7 +34,7 @@ public:
     /* 0x00 */ AudRhythmSeqParser** mSeqParsers;
     /* 0x04 */ u32 mNumSeqParsers;
     /* 0x08 */ s32 mBgmIdx;
-    /* 0x0C */ u32 _C;
+    /* 0x0C */ u32 mChildTrackIndex;
     /* 0x10 */ AudRhythmHolder* mRhythmHolders;
     /* 0x14 */ AudMeMgr* mMeMgr;
     /* 0x18 */ AudChordInfo mChordInfo;

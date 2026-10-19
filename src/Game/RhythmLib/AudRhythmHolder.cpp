@@ -4,7 +4,7 @@
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 #include <revolution/os/OSTime.h>
 
-AudRhythmHolder::AudRhythmHolder() : mIsPaused(), mSeqParser(), _168() {
+AudRhythmHolder::AudRhythmHolder() : mIsPaused(), mSeqParser(), _198() {
     init();
 }
 
@@ -24,7 +24,7 @@ void AudRhythmHolder::copyInfoFromParser() {
     mTempo = mSeqParser->getTempo();
     if (!mIsPaused) {
         for (s32 i = 0; i < 6; i++) {
-            mInfos[i]._3C = mInfos[i]._38;
+            mInfos[i].mPrevBeatCount = mInfos[i].mBeatCount;
         }
     }
 
@@ -67,14 +67,14 @@ void AudRhythmHolder::copyInfoFromParser() {
 void AudRhythmHolder::init() {
     for (s32 i = 0; i < 6; i++) {
         mInfos[i].mIsActive = false;
-        mInfos[i]._4 = 0;
-        mInfos[i]._8 = 0;
+        mInfos[i].mHardHitCount = 0;
+        mInfos[i].mSoftHitVelocity = 0;
         mInfos[i].mNoteDurationSec = 0.0f;
         mInfos[i].mStartTime = 0;
         mInfos[i].mPlayTime = 0;
         mInfos[i].mPrevPlayTime = 0;
-        mInfos[i]._3C = 0;
-        mInfos[i]._38 = 0;
+        mInfos[i].mPrevBeatCount = 0;
+        mInfos[i].mBeatCount = 0;
         mInfos[i].mLastMeasuredTime = 0;
         mInfos[i].mPausedTime = 0;
     }
@@ -88,14 +88,14 @@ void AudRhythmHolder::init() {
 void AudRhythmHolder::copyInfoFromParserOne(u32 type, u32 velocity, u32 noteOff, s64 time) {
     mInfos[type].mIsActive = true;
     if (velocity < 100) {
-        mInfos[type]._8 = velocity - 10;
-        mInfos[type]._4 = 0;
+        mInfos[type].mSoftHitVelocity = velocity - 10;
+        mInfos[type].mHardHitCount = 0;
     } else {
-        mInfos[type]._4++;
+        mInfos[type].mHardHitCount++;
     }
     mInfos[type].mStartTime = time;
     mInfos[type].mNoteDurationSec = noteOff / 120.0f * (60.0f / mModifiedTempo);
-    mInfos[type]._38++;
+    mInfos[type].mBeatCount++;
     mInfos[type].mPausedTime = 0;
 }
 

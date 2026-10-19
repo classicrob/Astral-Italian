@@ -16,6 +16,6 @@ public:
     /* 0x8  */ TVec3f mDirection;
     /* 0x14 */ TPos3f mScaleMtx;
     /* 0x44 */ s32 mDuration;
-    /* 0x50 */ TVec3f _50;  // unused
-    /* 0x5C */ TVec3f _5C;  // unused
+    /* 0x48 */ TVec3f mUnusedVec48;  // unused
+    /* 0x54 */ TVec3f mUnusedVec54;  // unused
 };

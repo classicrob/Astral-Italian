@@ -29,14 +29,14 @@ public:
     void setDefault();
     void setIndirect();
 
-    /* 0x00 */ const char* _0;
+    /* 0x00 */ const char* mName;
     /* 0x04 */ bool mModel;
     /* 0x08 */ const char* mObjectName;
     /* 0x0C */ bool mMakeActor;
     /* 0x0D */ bool mHostIO;
     /* 0x0E */ bool mMessage;
-    /* 0x0F */ bool _F;
-    /* 0x10 */ const char* _10;
+    /* 0x0F */ bool mUseDirectMessage;
+    /* 0x10 */ const char* mMessageId;
     /* 0x14 */ TVec3f mMessageOffset;
     /* 0x20 */ MtxPtr mTalkMtx;
     /* 0x24 */ const char* mTalkJointName;
@@ -65,16 +65,16 @@ public:
     /* 0x6C */ bool mRailRider;
     /* 0x6D */ bool mSwitchDead;
     /* 0x6E */ bool mSwitchAppear;
-    /* 0x6F */ bool _67;
+    /* 0x6F */ bool mStartDead;
     /* 0x70 */ bool mPointer;
-    /* 0x74 */ const char* _6C;
-    /* 0x78 */ const char* _70;
-    /* 0x7C */ bool _7C;  // new in SMG2
+    /* 0x74 */ const char* mStarPointerJointName;
+    /* 0x78 */ const char* mScaleJointName;
+    /* 0x7C */ bool mUseAlternateScaleParam;  // new in SMG2
     /* 0x80 */ TVec3f mStarPointerOffs;
     /* 0x8C */ f32 mPointerSize;
     /* 0x90 */ s32 mSceneConnectionType;
-    /* 0x94 */ bool _94;  // new in SMG2
-    /* 0x95 */ bool _95;  // new in SMG2 (setDefault sets it)
+    /* 0x94 */ bool mDropItemOnSupportTicoSpin;  // new in SMG2
+    /* 0x95 */ bool mYoshiInteraction;  // new in SMG2 (setDefault sets it)
     /* 0x98 */ Nerve* mWaitNerve;
     /* 0x9C */ Nerve* mTalkNerve;
     /* 0xA0 */ Nerve* mReactionNerve;
@@ -124,19 +124,19 @@ public:
     void updateScaleCtrl();
 
     bool isTrampledStart() const {
-        return !_DD && _E2;
+    /* 0xE6 */ return !mWasTrampled && mTrampled;
     }
 
     bool isReactionStart() const {
-        return !_E0 && _E5;
+    /* 0xE9 */ return !mWasReacting && mReacting;
     }
 
     bool isSpinAttackedStart() const {
-        return !_DE && _E3;
+    /* 0xE7 */ return !mWasSpinAttacked && mSpinAttacked;
     }
 
     bool isPointingStart() const {
-        return !_DF && _E4;
+    /* 0xE8 */ return !mWasPointed && mPointed;
     }
 
     bool tryPushNullNerve();
@@ -156,38 +156,38 @@ public:
     void setBaseMtx(MtxPtr);
 
     inline void setDefaults() {
-        _130 = cNPCSpinDefault;
-        _134 = cNPCTrampledDefault;
-        _138 = cNPCPointingDefault;
-        _13C = cNPCReactionDefault;
+        mSpinAction = cNPCSpinDefault;
+        mTrampledAction = cNPCTrampledDefault;
+        mPointingAction = cNPCPointingDefault;
+        mReactionAction = cNPCReactionDefault;
     }
 
     inline void setDefaults(const char* pReaction, const char* pPointing, const char* pTrampled, const char* pSpin) {
-        _130 = pSpin;
-        _134 = pTrampled;
-        _138 = pPointing;
-        _13C = pReaction;
+        mSpinAction = pSpin;
+        mTrampledAction = pTrampled;
+        mPointingAction = pPointing;
+        mReactionAction = pReaction;
     }
 
     inline void setDefaults2(const char* pReaction, const char* pPointing, const char* pSpin, const char* pTrampled) {
-        _134 = pTrampled;
-        _130 = pSpin;
-        _138 = pPointing;
-        _13C = pReaction;
+        mTrampledAction = pTrampled;
+        mSpinAction = pSpin;
+        mPointingAction = pPointing;
+        mReactionAction = pReaction;
     }
 
     inline void setDefaults3(const char* pReaction, const char* pPointing, const char* pSpin, const char* pTrampled) {
-        _134 = pTrampled;
-        _130 = pSpin;
-        _13C = pPointing;
-        _138 = pReaction;
+        mTrampledAction = pTrampled;
+        mSpinAction = pSpin;
+        mReactionAction = pPointing;
+        mPointingAction = pReaction;
     }
 
     inline void setDefaults4(const char* a1, const char* a2, const char* a3, const char* a4) {
-        _130 = a4;
-        _13C = a2;
-        _134 = a3;
-        _138 = a1;
+        mSpinAction = a4;
+        mReactionAction = a2;
+        mTrampledAction = a3;
+        mPointingAction = a1;
     }
 
     inline void setDefaultsParam() {
@@ -195,80 +195,80 @@ public:
         mParam._18 = "Turn";
         mParam._1C = "Talk";
         mParam._20 = "TalkTurn";
-        _130 = cNPCSpinDefault;
-        _134 = cNPCTrampledDefault;
-        _138 = cNPCPointingDefault;
-        _13C = cNPCReactionDefault;
+        mSpinAction = cNPCSpinDefault;
+        mTrampledAction = cNPCTrampledDefault;
+        mPointingAction = cNPCPointingDefault;
+        mReactionAction = cNPCReactionDefault;
     }
 
     inline void setDefaults2() {
-        _130 = cNPCSpinDefault;
-        _134 = cNPCTrampledDefault;
-        _138 = cNPCPointingDefault;
+        mSpinAction = cNPCSpinDefault;
+        mTrampledAction = cNPCTrampledDefault;
+        mPointingAction = cNPCPointingDefault;
     }
 
     inline void setTalkAction(const char* pActionName) {
-        _11C = pActionName;
-        _120 = pActionName;
+        mRailMoveAction = pActionName;
+        mRailTalkAction = pActionName;
     }
 
     inline void setTalkAction(const char* pActionName, const char* pActionName2) {
-        _11C = pActionName;
-        _120 = pActionName2;
+        mRailMoveAction = pActionName;
+        mRailTalkAction = pActionName2;
     }
 
     TalkMessageCtrl* getMsgCtrl() const {
         return mMsgCtrl;
     }
 
-    /* 0x8C */ LodCtrl* mLodCtrl;
-    /* 0x90 */ TalkMessageCtrl* mMsgCtrl;
-    PartsModel* _94;
-    PartsModel* _98;
-    s32 _9C;
-    TQuat4f _A0;
-    TQuat4f _B0;
-    TVec3f _C0;
-    TVec3f _CC;
-    u8 _D8;
-    u8 _D9;
-    u8 _DA;
-    u8 _DB;
-    u8 _DC;
-    u8 _DD;
-    u8 _DE;
-    u8 _DF;
-    u8 _E0;
-    u8 _E1;
-    u8 _E2;
-    u8 _E3;
-    u8 _E4;
-    u8 _E5;
-    u8 _E6;
-    u8 _E7;
-    /* 0xE8 */ MR::ActorTalkParam mParam;
-    f32 _10C;
-    f32 _110;
-    f32 _114;
-    f32 _118;
-    const char* _11C;
-    const char* _120;
-    u8 _124;  // follow rail on ground
-    u8 _125;
-    u8 _126;
-    u8 _127;
-    u8 _128;
-    f32 _12C;
-    const char* _130;
-    const char* _134;
-    const char* _138;
-    const char* _13C;
-    /* 0x140 */ AnimScaleController* mScaleController;
-    /* 0x144 */ JointController* mDelegator;
-    YoshiLockOnTarget* mYoshiTarget;  // 0x14C, new in SMG2 (YoshiLockOnTarget*)
+    /* 0x90 */ LodCtrl* mLodCtrl;
+    /* 0x94 */ TalkMessageCtrl* mMsgCtrl;
+    /* 0x98 */ PartsModel* mGoods0;
+    /* 0x9C */ PartsModel* mGoods1;
+    /* 0xA0 */ s32 mTrampleCooldown;
+    /* 0xA4 */ TQuat4f mOrientationQuat;
+    /* 0xB4 */ TQuat4f mInitOrientationQuat;
+    /* 0xC4 */ TVec3f mInitPosition;
+    /* 0xD0 */ TVec3f mPreviousRotation;
+    /* 0xDC */ u8 mTrampledStart;
+    /* 0xDD */ u8 mSpinAttackedStart;
+    /* 0xDE */ u8 mPointingStart;
+    /* 0xDF */ u8 mReactionStart;
+    /* 0xE0 */ u8 mJetTurtleHitStart;
+    /* 0xE1 */ u8 mWasTrampled;
+    /* 0xE2 */ u8 mWasSpinAttacked;
+    /* 0xE3 */ u8 mWasPointed;
+    /* 0xE4 */ u8 mWasReacting;
+    /* 0xE5 */ u8 mWasHitByJetTurtle;
+    /* 0xE6 */ u8 mTrampled;
+    /* 0xE7 */ u8 mSpinAttacked;
+    /* 0xE8 */ u8 mPointed;
+    /* 0xE9 */ u8 mReacting;
+    /* 0xEA */ u8 mHitByJetTurtle;
+    /* 0xEB */ u8 mDropItemOnSupportTicoSpin;
+    /* 0xEC */ MR::ActorTalkParam mParam;
+    /* 0x110 */ f32 mRailMoveSpeed;
+    /* 0x114 */ f32 mRailMoveAccel;
+    /* 0x118 */ f32 mRailTurnRate;
+    /* 0x11C */ f32 mRailTalkAnimRate;
+    /* 0x120 */ const char* mRailMoveAction;
+    /* 0x124 */ const char* mRailTalkAction;
+    /* 0x128 */ u8 mFollowRailOnGround;  // follow rail on ground
+    /* 0x129 */ u8 mRailFollowReserved0;
+    /* 0x12A */ u8 mRailFollowReserved1;
+    /* 0x12B */ u8 mRailFollowReserved2;
+    /* 0x12C */ u8 mUseReactionActions;
+    /* 0x130 */ f32 mSpinAttackRange;
+    /* 0x134 */ const char* mSpinAction;
+    /* 0x138 */ const char* mTrampledAction;
+    /* 0x13C */ const char* mPointingAction;
+    /* 0x140 */ const char* mReactionAction;
+    /* 0x144 */ AnimScaleController* mScaleController;
+    /* 0x148 */ JointController* mDelegator;
+    /* 0x14C */ YoshiLockOnTarget* mYoshiTarget;  // new in SMG2
     /* 0x150 */ const Nerve* mCurNerve;
-    /* 0x14C */ Nerve* mWaitNerve;
-    /* 0x150 */ Nerve* mTalkNerve;
-    /* 0x154 */ Nerve* mReactionNerve;
-    s32 _158;
+    /* 0x154 */ Nerve* mWaitNerve;
+    /* 0x158 */ Nerve* mTalkNerve;
+    /* 0x15C */ Nerve* mReactionNerve;
+    /* 0x160 */ s32 mFramesSincePointingSound;
 };

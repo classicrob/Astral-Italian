@@ -94,21 +94,21 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     mBodyColorFrame=arg3;
     MR::startBrk(this,"BodyColor");
     MR::setBrkFrameAndStop(this,mBodyColorFrame);
-    _134="BTrampled";
-    _130="BSpinHit";
-    _13C="BSpinHit";
-    _138="BTalkHelp";
+    mTrampledAction="BTrampled";
+    mSpinAction="BSpinHit";
+    mReactionAction="BSpinHit";
+    mPointingAction="BTalkHelp";
     mParam._14="BWaitStand";
     mParam._18="BWaitStand";
-    _11C="BWaitRun";
-    _120="BRunTalk";
+    mRailMoveAction="BWaitRun";
+    mRailTalkAction="BRunTalk";
     mParam._0=0;
     mParam._1=1;
     mParam._8=3.0f;
-    _10C=2.0f;
-    _110=0.1f;
-    _114=0.05f;
-    _124=1;
+    mRailMoveSpeed=2.0f;
+    mRailMoveAccel=0.1f;
+    mRailTurnRate=0.05f;
+    mFollowRailOnGround=1;
     MR::startBtk(this,"Dirt");
     MR::setBtkFrameAndStop(this,0.0f);
     MR::startBckNoInterpole(this,"Wait");
@@ -127,19 +127,19 @@ void Caretaker::init(const JMapInfoIter& rIter) {
         else mTakeOutStar=new TakeOutStar(this,"TakeOutStarCaretaker","TakeOutStarCaretaker",GET_NERVE(Caretaker,CaretakerNrvTakeOutStar),nullptr);
     }
     if(mObjArg0==0) {
-        _130="SpinHit";
-        _13C="SpinHit";
-        _134="Trampled";
-        _138="TalkAngry";
+        mSpinAction="SpinHit";
+        mReactionAction="SpinHit";
+        mTrampledAction="Trampled";
+        mPointingAction="TalkAngry";
         mParam._14="Wait";
         mParam._18="Wait";
         mParam._1C="TalkNormal";
         mParam._20="TalkNormal";
-        _11C="WaitRun";
-        _120="WaitRun";
+        mRailMoveAction="WaitRun";
+        mRailTalkAction="WaitRun";
         MR::getNPCItemData(&item,0);
         equipment(item,false);
-        if(MR::isExistRail(this)) { MR::moveCoordAndFollowTrans(this); _C0.set(mPosition); }
+        if(MR::isExistRail(this)) { MR::moveCoordAndFollowTrans(this); mInitPosition.set(mPosition); }
         MR::needStageSwitchReadA(this,rIter);
         MR::needStageSwitchWriteB(this,rIter);
         MR::getJMapInfoArg1NoInit(rIter,&mTidyTimeLimit);
@@ -189,12 +189,12 @@ void Caretaker::hide() {
     MR::startAction(this, "HideWait");
     MR::invalidateHitSensors(this);
 
-    if (_94 != nullptr) {
-        MR::hideModel(_94);
+    if (mGoods0 != nullptr) {
+        MR::hideModel(mGoods0);
     }
 
-    if (_98 != nullptr) {
-        MR::hideModel(_98);
+    if (mGoods1 != nullptr) {
+        MR::hideModel(mGoods1);
     }
 }
 
@@ -203,12 +203,12 @@ void Caretaker::show() {
     MR::validateHitSensors(this);
     mLodCtrl->validate();
 
-    if (_94 != nullptr) {
-        MR::showModel(_94);
+    if (mGoods0 != nullptr) {
+        MR::showModel(mGoods0);
     }
 
-    if (_98 != nullptr) {
-        MR::showModel(_98);
+    if (mGoods1 != nullptr) {
+        MR::showModel(mGoods1);
     }
 }
 
@@ -222,7 +222,7 @@ bool Caretaker::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
         if (isAttack) {
             MR::sendMsgToEnemyAttackBlow(pSender, pReceiver);
-            _E3=true;
+            mSpinAttacked=true;
             return false;
         }
     }
@@ -252,7 +252,7 @@ void Caretaker::exeTimeUp() {
 
 bool Caretaker::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        _E3 = 1;
+        mSpinAttacked = 1;
 
         return false;
     }
@@ -410,12 +410,12 @@ void Caretaker::exeTakeOutStar() {
 }
 
 void Caretaker::exeReaction() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampledMetal");
         MR::startActionSound(this, "SvCareTakerTrample");
     }
 
-    if (_D9) {
+    if (mSpinAttackedStart) {
         MR::startActionSound(this, "SmCaretakerSpinHit");
         MR::startActionSound(this, "SvCareTakerSpinHit");
     }
@@ -425,7 +425,7 @@ void Caretaker::exeReaction() {
         MR::startDPDHitSound();
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::startActionSound(this, "SmCaretakerSpinHit");
         MR::startActionSound(this, "SvCareTakerStarPiece");
     }

@@ -15,8 +15,8 @@ class Triangle;
 class Teresa : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    void fn_8020E640() NO_INLINE;
-    void fn_8020E910();
+    void updateWallAlignedPose() NO_INLINE;
+    void updateDisplayModelTransparency();
     Teresa(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -118,7 +118,7 @@ public:
     /* 0xD8 */ TVec3f mHomePos;
     /* 0xE4 */ TVec3f mSquashScale;
     /* 0xF0 */ TVec3f mTargetPos;
-    /* 0xFC */ f32 _EC;
+    /* 0xFC */ f32 mUnusedRange;
     /* 0x100 */ f32 mMoveDistance;
     /* 0x104 */ f32 mTransparency;
     /* 0x108 */ s32 mAppearanceType;

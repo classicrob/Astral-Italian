@@ -55,5 +55,5 @@ private:
     /* 0x3C */ JKRExpHeap* mHeap;
     /* 0x40 */ THPSimplePlayerWrapper* mPlayerWrapper;
     /* 0x44 */ bool _44;
-    /* 0x44 */ bool _45;
+    /* 0x45 */ bool _45;
 };

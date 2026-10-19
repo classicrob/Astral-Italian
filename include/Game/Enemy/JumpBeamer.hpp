@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Game/Enemy/JumpGuarder.hpp"
+#include "Game/Enemy/JumpEmitter.hpp"
 
 class RingBeam;
 class AnimScaleController;
@@ -8,7 +8,7 @@ class WalkerStateBindStarPointer;
 
 class JumpBeamer : public JumpEmitter {
 public:
-    void fn_801A0860();
+    void exePointBindWhileLanded();
     JumpBeamer(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -33,7 +33,6 @@ public:
     void exeClose();
     void exeInter();
 
-    /* 0xE0 */ s32 _E0;
     /* 0xE4 */ AnimScaleController* mAnimScaleController;
     /* 0xE8 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0xEC */ RingBeam** mBeams;

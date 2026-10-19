@@ -67,7 +67,7 @@ inline bool Petari::isSwoonAny() const {
 
 Petari::Petari(const char* pName)
     : LiveActor(pName), mAnimScaleCtrl(nullptr), mFootPrint(nullptr), mFootprintYOffs(0.0f), mRequestSmoke(true), mFront(0.0f, 0.0f, 1.0f),
-      mTargetDir(0.0f, 0.0f, 1.0f), mMeanderStep(0), mMeanderAngle(0.0f), mStarPieceTotal(20), mStarPieceRemaining(20), _D0(0) {
+      mTargetDir(0.0f, 0.0f, 1.0f), mMeanderStep(0), mMeanderAngle(0.0f), mStarPieceTotal(20), mStarPieceRemaining(20), mUnusedD8(0) {
     mHeadMtx.identity();
 }
 

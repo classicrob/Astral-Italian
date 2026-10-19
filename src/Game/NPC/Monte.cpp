@@ -34,11 +34,11 @@ void Monte::init(const JMapInfoIter& iter) {
         mThrow=new MonteThrow(this);
         mThrow->init(iter);
     }
-    _130=cNPCSpinDefault;
-    _134=cNPCTrampledDefault;
-    _138=cNPCPointingDefault;
-    _13C=cNPCReactionDefault;
-    _12C=450.0f;
+    mSpinAction=cNPCSpinDefault;
+    mTrampledAction=cNPCTrampledDefault;
+    mPointingAction=cNPCPointingDefault;
+    mReactionAction=cNPCReactionDefault;
+    mSpinAttackRange=450.0f;
     MR::onCalcGravity(this);
     mRumbler=new JointRumbler(this,"Center",3.0f,0.1f,30,true,0);
     makeActorAppeared();
@@ -59,7 +59,7 @@ void Monte::attackSensor(HitSensor* sender,HitSensor* receiver) {
 
 bool Monte::receiveMsgPlayerAttack(u32 msg,HitSensor* sender,HitSensor* receiver) {
     if(mType==0 && (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg))) return false;
-    if(MR::isMsgYoshiProjectile(msg)) { _E5=1; return true; }
+    if(MR::isMsgYoshiProjectile(msg)) { mReacting=1; return true; }
     return NPCActor::receiveMsgPlayerAttack(msg,sender,receiver);
 }
 
@@ -73,7 +73,7 @@ bool Monte::receiveOtherMsg(u32 msg,HitSensor* sender,HitSensor* receiver) {
 bool Monte::tryStartThrow() {
     if(mType!=0) return false;
     if(isNerve(&NrvMonte::Throw::sInstance)) return false;
-    if(_E4) return false;
+    if(mPointed) return false;
     if(!mThrow->isPreparingThrow()) return false;
     if(isNerve(mReactionNerve)) popNerve();
     setNerve(&NrvMonte::Throw::sInstance);

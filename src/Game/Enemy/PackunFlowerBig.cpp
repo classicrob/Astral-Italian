@@ -6,7 +6,7 @@
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-bool fn_801E1C60(HitSensor* pSender, HitSensor* pReceiver, TVec3f* pDir, f32 scale) {
+bool PackunFlowerBig::isSensorInAttackRange(HitSensor* pSender, HitSensor* pReceiver, TVec3f* pDir, f32 scale) {
     TVec3f diff;
     diff.set(0.0f);
     diff.sub(*MR::getSensorPos(pSender), *MR::getSensorPos(pReceiver));
@@ -116,10 +116,10 @@ void PackunFlowerBig::control() {
 void PackunFlowerBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayerOrRide(pReceiver) && !isNerve(&NrvPackunFlowerBig::PackunFlowerBigNrvHidden::sInstance)) {
         if (isNerve(&NrvPackunFlowerBig::PackunFlowerBigNrvFreezeEnd::sInstance)) {
-            if (fn_801E1C60(pSender, pReceiver, &mGravity, 400.0f)) {
+            if (isSensorInAttackRange(pSender, pReceiver, &mGravity, 400.0f)) {
                 MR::sendMsgPush(pReceiver, pSender);
             }
-        } else if (fn_801E1C60(pSender, pReceiver, &mGravity, 300.0f) && MR::sendMsgEnemyAttackOrPush(pReceiver, pSender)) {
+        } else if (isSensorInAttackRange(pSender, pReceiver, &mGravity, 300.0f) && MR::sendMsgEnemyAttackOrPush(pReceiver, pSender)) {
             MR::tryHitReaction(this, "プレイヤー接触");
             if (!isNerve(&NrvPackunFlowerBig::PackunFlowerBigNrvHide::sInstance)) {
                 setNerve(&NrvPackunFlowerBig::PackunFlowerBigNrvFreeze::sInstance);

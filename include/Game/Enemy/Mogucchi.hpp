@@ -8,7 +8,7 @@ class MogucchiHill;
 
 class Mogucchi : public LiveActor {
 public:
-    void fn_801CDAD0() NO_INLINE;
+    void updateSpinCounterCooldown() NO_INLINE;
     Mogucchi(const char*);
     virtual ~Mogucchi();
 
@@ -49,9 +49,9 @@ public:
     /* 0xD4 */ bool mGrounded;
     /* 0xD8 */ f32 mScatterPropulsionSpeed;
     /* 0xDC */ TVec3f mScatterNormal;
-    /* 0xE8 */ f32 _E4;
+    /* 0xE8 */ f32 mUnusedE8;
     /* 0xEC */ f32 mStrollSpeed;
     /* 0xF0 */ f32 mMaxStrollSpeed;
-    /* 0xF4 */ s32 _F4;
+    /* 0xF4 */ s32 mSpinCounterCooldown;
     /* 0xF8 */ bool mIsStoppedByP2;
 };

@@ -16,7 +16,7 @@ void AudMeHandle::releaseMe() {
     }
 }
 
-AudMe::AudMe() : JSULink< AudMe >(this), mHandle(), mTrack(), _18(), mPos(), mMeId(-1), _24(-1), mTimer(), _74(), mData(), _7C(), _80(1.0f) {
+AudMe::AudMe() : JSULink< AudMe >(this), mHandle(), mTrack(), _18(), mPos(), mMeId(-1), mStopTimer(-1), mTimer(), mStartRequested(), mData(), mSeqStartPos(), mMasterVolume(1.0f) {
     initTimed();
 }
 
@@ -26,8 +26,8 @@ AudMe::~AudMe() {
 
 void AudMe::requestStart(void* pData, u32 a1) {
     mData = pData;
-    _7C = a1;
-    _74 = 1;
+    mSeqStartPos = a1;
+    mStartRequested = 1;
 }
 
 bool AudMe::start(void* pData, u32 a1) {
@@ -59,7 +59,7 @@ void AudMe::stop(s32 time) {
     }
 
     if (time == 0) {
-        time = _94;
+        time = mDefaultStopTime;
     }
 
     if (time != 0) {
@@ -104,20 +104,20 @@ void AudMe::releaseHandle() {
 }
 
 void AudMe::update() {
-    if (_74 == 1) {
-        start(mData, _7C);
-        _74 = 0;
+    if (mStartRequested == 1) {
+        start(mData, mSeqStartPos);
+        mStartRequested = 0;
     }
 
-    if (_24 > 0) {
-        _24--;
-        if (_24 <= 0) {
+    if (mStopTimer > 0) {
+        mStopTimer--;
+        if (mStopTimer <= 0) {
             stop(0);
-            _24 = -1;
+            mStopTimer = -1;
         }
     }
 
-    if (mDistFilterParam.mValue <= 0.0f) {
+    if (mMoveParams[MoveParam_DistFilter].mValue <= 0.0f) {
         doneStop();
     }
 
@@ -149,12 +149,12 @@ void AudMe::setTimedParam(s32 param, f32 value, u32 time) {
 }
 
 void AudMe::initTimed() {
-    mVolumeParam.mValue = 1.0f;
-    mPitchParam.mValue = 1.0f;
-    mPanParam.mValue = 0.5f;
-    mFxMixParam.mValue = 0.0f;
-    mDolbyParam.mValue = 0.0f;
-    mDistFilterParam.mValue = 1.0f;
+    mMoveParams[MoveParam_Volume].mValue = 1.0f;
+    mMoveParams[MoveParam_Pitch].mValue = 1.0f;
+    mMoveParams[MoveParam_Pan].mValue = 0.5f;
+    mMoveParams[MoveParam_FxMix].mValue = 0.0f;
+    mMoveParams[MoveParam_Dolby].mValue = 0.0f;
+    mMoveParams[MoveParam_DistFilter].mValue = 1.0f;
 
     for (s32 i = 0; i < TIMED_PARAMS; i++) {
         mMoveParams[i].mDelta = 0.0f;
@@ -186,11 +186,11 @@ void AudMe::updateTimedParams(bool immediate) {
         return;
     }
 
-    f32 volume = _80 * (mVolume * (mVolumeParam.mValue * mDistFilterParam.mValue));
+    f32 volume = mMasterVolume * (mVolume * (mMoveParams[MoveParam_Volume].mValue * mMoveParams[MoveParam_DistFilter].mValue));
     u32 numChannelMgrs = mTrack->mNumChannelMgrs;
-    f32 pan = (mPanParam.mValue - 0.5f) + (_88 - 0.5f);
+    f32 pan = (mMoveParams[MoveParam_Pan].mValue - 0.5f) + (mOuterPan - 0.5f);
     pan += 0.5f;
-    f32 dolby = mDolbyParam.mValue + _8C;
+    f32 dolby = mMoveParams[MoveParam_Dolby].mValue + mOuterDolby;
 
     for (u32 i = 0; i < numChannelMgrs; i++) {
         JASCriticalSection crit;
@@ -200,8 +200,8 @@ void AudMe::updateTimedParams(bool immediate) {
         }
 
         pChannelMgr->mParams.mVolume = volume;
-        pChannelMgr->mParams.mFxMix = mFxMixParam.mValue;
-        pChannelMgr->mParams.mPitch = mPitchParam.mValue;
+        pChannelMgr->mParams.mFxMix = mMoveParams[MoveParam_FxMix].mValue;
+        pChannelMgr->mParams.mPitch = mMoveParams[MoveParam_Pitch].mValue;
         pChannelMgr->mParams.mPan = pan;
         pChannelMgr->mParams.mDolby = dolby;
     }
@@ -209,10 +209,10 @@ void AudMe::updateTimedParams(bool immediate) {
 
 void AudMe::setOuterPlayingParams(f32 volume, f32 f2, f32 f3, s32 priority, s32 a5) {
     mVolume = volume;
-    _88 = f2;
-    _8C = f3;
+    mOuterPan = f2;
+    mOuterDolby = f3;
     mPriority = priority;
-    _94 = a5;
+    mDefaultStopTime = a5;
 }
 
 void AudMe::doneStop() {
@@ -222,7 +222,7 @@ void AudMe::doneStop() {
     }
 
     releaseHandle();
-    _24 = -1;
+    mStopTimer = -1;
 }
 
 void AudMe::setPauseFlag(bool pause) {
@@ -232,7 +232,7 @@ void AudMe::setPauseFlag(bool pause) {
     }
 }
 
-AudMeMgr::AudMeMgr() : JASGlobalInstance< AudMeMgr >(true), mMeSeq(), _50(1.0f) {
+AudMeMgr::AudMeMgr() : JASGlobalInstance< AudMeMgr >(true), mMeSeq(), mMasterVolume(1.0f) {
     for (s32 i = 0; i < 64; i++) {
         _10[i] = 60;
     }
@@ -260,7 +260,7 @@ bool AudMeMgr::startMe(u32 meId, AudMeHandle* pHandle, const TVec3f* pPos) {
     }
 
     if (pHandle != nullptr && pHandle->isMeAttached()) {
-        if (pHandle->getMe()->_24 > -1) {
+        if (pHandle->getMe()->mStopTimer > -1) {
             pHandle->getMe()->stop(0);
         }
     }
@@ -295,7 +295,7 @@ bool AudMeMgr::startMe(u32 meId, AudMeHandle* pHandle, const TVec3f* pPos) {
     setOuterPlayingParam(meId, me);
     me->requestStart(mMeSeq, startPos);
     mMeList.append(me);
-    me->_80 = _50;
+    me->mMasterVolume = mMasterVolume;
     return true;
 }
 
@@ -373,9 +373,9 @@ void AudMeMgr::setOuterPlayingParam(s32 meId, AudMe* pMe) {
     AudMePlayingParams* params = &mParams.mParams[meId];
     f32 vol = params->mChordVolume / 127.0f;
     vol *= vol;
-    f32 f2 = params->_2 / 127.0f;
-    f32 f3 = params->_3 / 127.0f;
-    pMe->setOuterPlayingParams(vol, f2, f3, params->mPriority, params->_4);
+    f32 f2 = params->mPan / 127.0f;
+    f32 f3 = params->mDolby / 127.0f;
+    pMe->setOuterPlayingParams(vol, f2, f3, params->mPriority, params->mStopTime);
 }
 
 void AudMePlayingParamsHolder::setResource(void* pRes) {

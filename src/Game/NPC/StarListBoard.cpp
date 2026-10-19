@@ -18,11 +18,11 @@ void StarListBoard::init(const JMapInfoIter& iter) {
     caps.mSensorSize=100.0f;
     caps.mSensorOffset.set(0.0f,130.0f,0.0f);
     caps.mLightCtrl=false;
-    caps._95=false;
+    caps.mYoshiInteraction=false;
     initialize(iter,caps,nullptr,nullptr,nullptr);
     MR::offTalkCinemaFrame(mMsgCtrl);
     TVec3f up;
-    up.set<f32>(2.0f*(_A0.x*_A0.y)-2.0f*(_A0.w*_A0.z),(1.0f-2.0f*(_A0.x*_A0.x))-2.0f*(_A0.z*_A0.z),2.0f*(_A0.y*_A0.z)+2.0f*(_A0.w*_A0.x));
+    up.set<f32>(2.0f*(mOrientationQuat.x*mOrientationQuat.y)-2.0f*(mOrientationQuat.w*mOrientationQuat.z),(1.0f-2.0f*(mOrientationQuat.x*mOrientationQuat.x))-2.0f*(mOrientationQuat.z*mOrientationQuat.z),2.0f*(mOrientationQuat.y*mOrientationQuat.z)+2.0f*(mOrientationQuat.w*mOrientationQuat.x));
     MR::setShadowProjection(this,nullptr,mPosition,up,true);
     MR::offCalcShadow(this,nullptr);
     MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&StarListBoard::eventFunc));
@@ -44,7 +44,7 @@ bool StarListBoard::eventFunc(u32 id) {
 }
 void StarListBoard::exeWait() {
     MR::tryTalkNearPlayer(mMsgCtrl);
-    if(_D8) MR::startActionSound(this,"Trampled",-1,-1,-1);
+    if(mTrampledStart) MR::startActionSound(this,"Trampled",-1,-1,-1);
 }
 void StarListBoard::exeOpen() {
     if(MR::isFirstStep(this)) { MR::startActionSound(this,"Open",-1,-1,-1); mStarList->appear(); }

@@ -31,7 +31,7 @@ BakuBaku::BakuBaku(const char* pName) : LiveActor(pName) {
     mPose = new ActorPoseTQ();
     mAnimScaleCtrl = nullptr;
     mStarPointBind = nullptr;
-    _9C.set(0.0f, 0.0f, 0.0f);
+    mAnchorPos.set(0.0f, 0.0f, 0.0f);
     mMoveLimit = 5.0f;
     MR::createClipAreaDropHolder();
 }
@@ -123,8 +123,8 @@ void BakuBaku::exeMove() {
     if (MR::isExistRail(this)) updateBakuRailMove();
     else updateFreeMove();
     f32 scale = mScale.x;
-    if (PSVECDistance(&mPosition, &_9C) > 140.0f * scale &&
-    MR::fn_802861E0(mPosition, 120.0f * scale, 5, 250, 300)) _9C.set(mPosition);
+    if (PSVECDistance(&mPosition, &mAnchorPos) > 140.0f * scale &&
+    MR::fn_802861E0(mPosition, 120.0f * scale, 5, 250, 300)) mAnchorPos.set(mPosition);
 }
 
 void BakuBaku::exeSuccess() {

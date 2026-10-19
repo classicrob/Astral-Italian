@@ -61,7 +61,7 @@ namespace NrvTeresa {
 Teresa::Teresa(const char* pName)
     : LiveActor(pName), mDisplayModel(), mKeySwitch(), mClipAreaDrop(), mScaleController(), mBindStarPointer(), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mWallNormal(0, 0, 1), mWallHitPos(0, 0, 0), mHitNormal(0, 0, 1),
       mHomePos(0, 0, 0), mSquashScale(1, 1, 1), mTargetPos(0, 0, 0) {
-    _EC = 3000.0f;
+    mUnusedRange = 3000.0f;
     mMoveDistance = 600.0f;
     mTransparency = 1.0f;
     mAppearanceType = -1;
@@ -195,7 +195,7 @@ void Teresa::control() {
     }
 
     tryHideWater();
-    this->fn_8020E640();
+    this->updateWallAlignedPose();
     mHitGhostThroughWall = 0;
 
     if (mTransparency > 0.9f) {
@@ -863,7 +863,7 @@ void Teresa::exeShay() {
         MR::startActionSound(this, "OjLvPowStarExist");
     }
 
-    this->fn_8020E910();
+    this->updateDisplayModelTransparency();
     updateNormalVelocity();
 
     if (!tryAscension() && !tryFreeze()) {
@@ -1004,7 +1004,7 @@ inline void Teresa::endAppearFromWall() {
     endAppear();
 }
 
-void Teresa::fn_8020E640() {
+void Teresa::updateWallAlignedPose() {
     TVec3f up;
     up.negate(this->mGravity);
     MR::blendQuatUpFront(&this->mPoseQuat, up, this->mWallNormal, 0.1f, 0.2f);
@@ -1058,7 +1058,7 @@ void Teresa::updateNormalTransparency() {
     setTransparency(mTransparency);
 }
 
-void Teresa::fn_8020E910() {
+void Teresa::updateDisplayModelTransparency() {
     if (this->mDisplayModel != nullptr) {
         this->setTransparency(MR::calcNerveEaseInOutValue(this, 60, this->mTransparency, 0.5f));
     } else {

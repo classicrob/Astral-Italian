@@ -24,7 +24,7 @@ namespace MR { class FunctorBase; }
 struct MameMuimuiPlacement {
     MameMuimuiPlacement();  // fn_801C0600
     TVec3f mPos;
-    s32 _C;
+    /* 0x0C */ s32 mUnusedC;
 };
 
 // Position table built from the "PositionList" CSV: 8 bytes (array + count).

@@ -30,11 +30,11 @@ public:
     void exeDown();
     void exeFreeze();
 
-    /* 0x8C */ TQuat4f _8C;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ TVec3f _A8;
-    /* 0xB4 */ s32 _B4;  // Freeze timing?
-    /* 0xB8 */ bool _B8;
+    /* 0x90 */ TQuat4f mPoseQuat;
+    /* 0xA0 */ TVec3f mFreezePos;
+    /* 0xAC */ TVec3f mFreezeVelocity;
+    /* 0xB8 */ s32 mFreezeStep;
+    /* 0xBC */ bool mCanFreeze;
 };
 
 namespace CannonShellUtil {

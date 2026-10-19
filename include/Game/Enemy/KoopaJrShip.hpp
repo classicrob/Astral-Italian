@@ -67,7 +67,7 @@ public:
     inline bool isStateBreak() const;
 
     s32 get_D0() const {
-        return _D0;
+        return mHealth;
     }
 
     /* 0x08C */ CannonShellHolder* mShellHolder;
@@ -76,20 +76,20 @@ public:
     /* 0x098 */ ModelObj* mShipBreakModel;
     /* 0x09C */ ModelObj* mPodModel;
     /* 0x0A0 */ MR::Vector< MR::FixedArray< Kameck*, 2 > > mKamecks;
-    /* 0x0A0 */ MR::Vector< MR::FixedArray< Kameck*, 2 > > _AC;
+    /* 0xB0 */ MR::Vector< MR::FixedArray< Kameck*, 2 > > mActiveKamecks;
     /* 0x0B8 */ MR::FixedArray< HomingKiller*, 6 > mKillers;
-    /* 0x0D0 */ s32 _D0;
-    /* 0x0D4 */ TVec3f _D4;
-    /* 0x0E0 */ TVec3f _E0;
-    /* 0x0EC */ f32 _EC;
+    /* 0xD4 */ s32 mHealth;
+    /* 0xD8 */ TVec3f mDamagePos;
+    /* 0xE4 */ TVec3f mDamageDirection;
+    /* 0xF0 */ f32 mPropellerAngle;
     /* 0x0F0 */ f32 mPropRotateSpeed;
     /* 0x0F4 */ TPos3f mScrew00Mtx;
     /* 0x124 */ TPos3f mScrew01Mtx;
     /* 0x154 */ TRot3f mPropellerMtx;
-    /* 0x184 */ f32 _184;
-    /* 0x188 */ s32 _188;
+    /* 0x188 */ f32 mRailSpeed;
+    /* 0x18C */ s32 mRailSpeedTimer;
     /* 0x18C */ TMtx34f mShipMtx;
     /* 0x1BC */ TMtx34f mPodMtx;
-    /* 0x1EC */ TVec3f _1EC;
-    /* 0x1F8 */ TVec3f _1F8;
+    /* 0x1F0 */ TVec3f mJrOffset;
+    /* 0x1FC */ TVec3f mStoredPosition;
 };

@@ -7,12 +7,12 @@ TicoBig::~TicoBig() {}
 void TicoBig::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("TicoBig");
     caps.setDefault();
-    caps._70="Center";
-    caps._7C=true;
-    caps._95=false;
-    _134="Trampled";
-    _130="Spin";
-    _12C=1500.0f;
+    caps.mScaleJointName="Center";
+    caps.mUseAlternateScaleParam=true;
+    caps.mYoshiInteraction=false;
+    mTrampledAction="Trampled";
+    mSpinAction="Spin";
+    mSpinAttackRange=1500.0f;
     mParam._14="Wait";
     mParam._1C="Talk";
     mParam._4=5000.0f;
@@ -27,8 +27,8 @@ void TicoBig::control() {
     NPCActor::control();
     if(MR::changeShowModelFlagSyncNearClipping(this,1000.0f)) MR::onDrawEffect(this);
     else MR::offDrawEffect(this);
-    if(_E4) MR::startActionSound(this,"Pointing",-1,-1,-1);
-    if(_DB) MR::startActionSound(this,"StarPieceHit",-1,-1,-1);
+    if(mPointed) MR::startActionSound(this,"Pointing",-1,-1,-1);
+    if(mReactionStart) MR::startActionSound(this,"StarPieceHit",-1,-1,-1);
 }
 bool TicoBig::receiveMsgPlayerAttack(u32 msg,HitSensor* sender,HitSensor* receiver) {
     if(MR::isSensorMapObj(receiver)) return false;

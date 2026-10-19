@@ -1,5 +1,4 @@
 #include "Game/Enemy/SamboHead.hpp"
-void fn_801F9370(LiveActor* pActor);
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/SpinHitController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -30,7 +29,7 @@ namespace NrvSamboHead {
 };  // namespace NrvSamboHead
 
 SamboHead::SamboHead(const char* pName) : LiveActor(pName), mSpinCtrl(), mScaleController(), mBindStarPointer(), mFront(0, 0, 1), mHomePos(0, 0, 0) {
-    _B0 = 0;
+    mAlwaysPursue = 0;
 }
 
 void SamboHead::init(const JMapInfoIter& rIter) {
@@ -38,9 +37,9 @@ void SamboHead::init(const JMapInfoIter& rIter) {
         s32 arg0 = -1;
         MR::getJMapInfoArg0NoInit(rIter, &arg0);
         if (arg0 == -1) {
-            _B0 = false;
+            mAlwaysPursue = false;
         } else {
-            _B0 = true;
+            mAlwaysPursue = true;
         }
     }
 
@@ -183,20 +182,20 @@ void SamboHead::exeWait() {
         MR::startAction(this, "Wait");
     }
 
-    fn_801F9370(this);
+    updateBoundVelocity(this);
     f32 dist = MR::calcDistanceToPlayer(this);
 
-    if (800.0f < dist && !_B0) {
+    if (800.0f < dist && !mAlwaysPursue) {
         if (MR::isGreaterStep(this, 120)) {
             setNerve(GET_NERVE(SamboHead, HostTypeNrvHide));
         }
     } else {
-        if (dist < 500.0f || _B0) {
+        if (dist < 500.0f || mAlwaysPursue) {
             TVec3f v4;
             MR::calcVecToPlayerH(&v4, this, nullptr);
 
             if (MR::turnVecToVecRadian(&mFront, mFront, v4, 0.05f, mGravity) < 0.015f) {
-                if (_B0) {
+                if (mAlwaysPursue) {
                     setNerve(GET_NERVE(SamboHead, HostTypeNrvPursue));
                 } else {
                     setNerve(GET_NERVE(SamboHead, HostTypeNrvPrePursue));
@@ -223,7 +222,7 @@ void SamboHead::exePrePursue() {
         setNerve(GET_NERVE(SamboHead, HostTypeNrvPursue));
         MR::startActionSound(this, "EmSamboheadHopLand");
     } else {
-        fn_801F9370(this);
+        updateBoundVelocity(this);
     }
 }
 
@@ -271,7 +270,7 @@ void SamboHead::exeHitToPlayer() {
         MR::startActionSound(this, "EmSamboheadAttack");
     }
 
-    fn_801F9370(this);
+    updateBoundVelocity(this);
 
     if (MR::isGreaterStep(this, 58)) {
         TVec3f v2;
@@ -290,7 +289,7 @@ void SamboHead::exeStarPieceHit() {
     }
 
     MR::startActionSound(this, "EmLvSwoonS");
-    fn_801F9370(this);
+    updateBoundVelocity(this);
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(SamboHead, HostTypeNrvWait));
@@ -365,15 +364,14 @@ void SamboHead::exeBindStarPointerEnd() {
         MR::startAction(this, "Wait");
     }
 
-    fn_801F9370(this);
+    updateBoundVelocity(this);
 
     if (MR::isOnGround(this)) {
         setNerve(GET_NERVE(SamboHead, HostTypeNrvWait));
     }
 }
 
-// SMG2 helper (unnamed in symbols): rebound, bind-ground gravity, damp the velocity.
-void fn_801F9370(LiveActor* pActor) {
+void SamboHead::updateBoundVelocity(LiveActor* pActor) {
     MR::reboundVelocityFromCollision(pActor, 0.0f, 0.0f, 1.0f);
     if (!MR::isBindedGround(pActor)) {
         MR::addVelocityToGravity(pActor, 1.5f);

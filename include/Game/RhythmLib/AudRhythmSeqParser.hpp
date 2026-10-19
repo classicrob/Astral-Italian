@@ -22,7 +22,7 @@ public:
 
     struct NoteOnInfo {
         /* 0x0 */ s32 mChannel;
-        /* 0x4 */ s32 _4;
+        /* 0x4 */ s32 mKey;
         /* 0x8 */ NoteOnFunc mNoteOnFunc;
         /* 0xC */ NoteOffFunc mNoteOffFunc;
     };
@@ -85,7 +85,7 @@ public:
     /* 0x100 */ u32 mCallDepth;
     /* 0x104 */ u8* mCallStack[8];
     /* 0x124 */ NoteOnInfo mNoteOnInfo[8];
-    /* 0x1A4 */ s32 _1A4;
+    /* 0x1A4 */ s32 mNumNoteOnInfo;
     /* 0x1A8 */ bool mIsUsed;
     /* 0x1A9 */ bool mIsActive;
     /* 0x1AC */ u32 _1AC;

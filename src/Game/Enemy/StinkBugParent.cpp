@@ -421,7 +421,7 @@ void StinkBugParent::calcAndSetBaseMtx() {
 }
 
 // SMG2 unnamed helper: the Petari isShakeChance body (used by attackSensor).
-bool StinkBugParent::fn_801FEDA0() const {
+bool StinkBugParent::isPlayerOnShakeBody() const {
     if (this->isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvHipDropDown))) {
         return false;
     }
@@ -459,7 +459,7 @@ void StinkBugParent::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             }
         }
 
-        if (MR::isSensorEye(pSender) && this->fn_801FEDA0() && !MR::isPlayerHipDropFalling()) {
+        if (MR::isSensorEye(pSender) && this->isPlayerOnShakeBody() && !MR::isPlayerHipDropFalling()) {
             MR::sendMsgEnemyAttackFlipToDir(pReceiver, pSender, mFront);
             return;
         }

@@ -50,12 +50,12 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     MR::getNPCItemData(&item, 0);
     equipment(item, false);
 
-    if (_94 != nullptr) {
-        MR::startAction(_94, "Shake");
+    if (mGoods0 != nullptr) {
+        MR::startAction(mGoods0, "Shake");
     }
 
-    if (_98 != nullptr) {
-        MR::startAction(_98, "Shake");
+    if (mGoods1 != nullptr) {
+        MR::startAction(mGoods1, "Shake");
     }
 
     s32 starPieceNeed = ::sStarPieceNeed;
@@ -103,7 +103,7 @@ bool TicoShop::eventFunc(u32 var) {
 }
 
 void TicoShop::startReactionSound() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled");
         MR::startActionSound(this, "SvTicoshopTrampled");
     }
@@ -113,11 +113,11 @@ void TicoShop::startReactionSound() {
         MR::startActionSound(this, "SvTicoshopPoint");
     }
 
-    if (_D9) {
+    if (mSpinAttackedStart) {
         MR::startActionSound(this, "SmTicoshopSpin");
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::startActionSound(this, "SvTicoshopStarPieceHit");
     }
 }

@@ -10,7 +10,7 @@ struct Timing {
     /* 0x4 */ u32 mScaleKeepFrame;
     /* 0x8 */ bool mIsScaleUp;
     /* 0x9 */ bool mIsScaleDown;
-    /* 0xA */ bool _A;
+    /* 0xA */ bool mIsFadeout;
 };
 
 class TimeLimitLayout : public LayoutActor {

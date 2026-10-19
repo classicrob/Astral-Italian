@@ -35,8 +35,8 @@ public:
     /* 0x94 */ const char* mJointName;
     /* 0x98 */ const char* mAutoEffectName;
     /* 0x9C */ TPos3f mBaseMtx;
-    /* 0xCC */ bool _CC;
-    /* 0xCD */ bool _CD;
+    /* 0xD0 */ bool mCanBeDestroyed;
+    /* 0xD1 */ bool mWasAttackedThisFrame;
     /* 0xCE */ bool mHasLightCtrl;
 };
 

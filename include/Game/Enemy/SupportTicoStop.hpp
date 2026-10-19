@@ -5,13 +5,11 @@
 
 class AnimScaleController;
 
-// SMG2 unnamed helper at 0x80203850 (SupportTicoStop.cpp), named by address: turns pDst toward the player when pTarget is near.
-void fn_80203850(TVec3f* pDst, const LiveActor* pTarget);
-
 /// @brief Star pointer touch helper (SMG2 SupportTicoStop): attaches a SupportTico to a target actor while it is touched.
 class SupportTicoStop : public NerveExecutor {
 public:
     SupportTicoStop(LiveActor*, AnimScaleController*);
+    static void turnDirectionToNearbyPlayer(TVec3f*, const LiveActor*);
 
     bool tryAttachTouch();
     bool tryTouch();

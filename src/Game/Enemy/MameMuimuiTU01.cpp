@@ -27,7 +27,7 @@ MameMuimuiPlacement::MameMuimuiPlacement() {
     mPos.x = 0.0f;
     mPos.y = 0.0f;
     mPos.z = 0.0f;
-    _C = 0;
+    mUnusedC = 0;
 }
 
 void MameMuimuiPlacementSet::setPos(s32 idx, const TVec3f& rPos) {

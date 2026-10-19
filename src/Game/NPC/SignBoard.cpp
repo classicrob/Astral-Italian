@@ -27,8 +27,8 @@ void SignBoard::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps(name);
     caps.setDefault();
     caps.mWaitNerve = GET_NERVE(SignBoard, SignBoardNrvWait);
-    caps._95 = false;
-    caps._10 = "SignBoard";
+    caps.mYoshiInteraction = false;
+    caps.mMessageId = "SignBoard";
 
     MR::getJMapInfoArg0NoInit(rIter, &mSupportPlayMode);
     if (mSupportPlayMode == 0) {
@@ -41,7 +41,7 @@ void SignBoard::init(const JMapInfoIter& rIter) {
     initialize(rIter, caps, name, nullptr, nullptr);
 
     TVec3f up;
-    _A0.getYDir(up);
+    mOrientationQuat.getYDir(up);
 
     MR::setShadowProjection(this, nullptr, mPosition, up, true);
     MR::offCalcShadow(this, nullptr);

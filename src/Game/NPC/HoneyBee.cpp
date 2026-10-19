@@ -55,7 +55,7 @@ void HoneyBee::makeArchiveList(NameObjArchiveListCollector* pCollector, const JM
 void HoneyBee::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("HoneyBee");
     caps.setDefault();
-    caps._70="Center";
+    caps.mScaleJointName="Center";
     caps.mWaitNerve=GET_NERVE(HoneyBee,HoneyBeeNrvWait);
     caps.mReactionNerve=GET_NERVE(HoneyBee,HoneyBeeNrvReaction);
     s32 action=0;
@@ -63,17 +63,17 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
     mArg0=action;
     mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault;
     mParam._1C=cNPCTalkDefault; mParam._20=cNPCTalkTurnDefault;
-    _130=cNPCSpinDefault; _134=cNPCTrampledDefault;
-    _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
-    _128=false;
-    _12C=450.0f;
+    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault;
+    mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    mUseReactionActions=false;
+    mSpinAttackRange=450.0f;
     switch(mArg0) {
-    case 0: case 6: case 7: case 8: case 9: _128=true; break;
+    case 0: case 6: case 7: case 8: case 9: mUseReactionActions=true; break;
     case 1: caps.mWaitNerve=GET_NERVE(HoneyBee,HoneyBeeNrvJumpLecture); break;
     case 2: caps.mWaitNerve=GET_NERVE(HoneyBee,HoneyBeeNrvFly); break;
     case 3: mParam.setNoTurnAction("SleepWait"); break;
     case 4: mParam.setNoTurnAction("StickWait"); break;
-    case 5: mParam.setSingleAction("GatekeeperWait"); _128=true; break;
+    case 5: mParam.setSingleAction("GatekeeperWait"); mUseReactionActions=true; break;
     }
     initialize(rIter,caps,"HoneyBee",nullptr,nullptr);
     NPCActorItem item;
@@ -91,7 +91,7 @@ void HoneyBee::calcAndSetBaseMtx() {
 }
 
 void HoneyBee::control() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled");
         MR::startActionSound(this, "SvHoneybeeTrampled");
     }
@@ -101,11 +101,11 @@ void HoneyBee::control() {
         MR::startActionSound(this, "SvHoneybeePoint");
     }
 
-    if (_D9) {
+    if (mSpinAttackedStart) {
         MR::startActionSound(this, "SvHoneybeeSpin");
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::startActionSound(this, "SvHoneybeeStarPieceHit");
     }
 

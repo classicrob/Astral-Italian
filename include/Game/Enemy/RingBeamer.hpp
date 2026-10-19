@@ -28,10 +28,4 @@ public:
     /* 0x90 */ RingBeam** mBeams;
     /* 0x94 */ AnimScaleController* mScaleCtrl;
     /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
-    /*
-    bool _90;
-    // needed to get _98 at correct offset
-    u8 _94[4]; // unused?
-    TMtx34f _98;
-    */
 };

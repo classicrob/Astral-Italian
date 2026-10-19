@@ -80,14 +80,14 @@ public:
     /* 0x90 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x98 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x94 */ TQuat4f mPoseQuat;
-    /* 0xA4 */ TVec3f _A4;
+    /* 0xAC */ TVec3f mUnusedVecAC;
     /* 0xB0 */ TVec3f mFront;
     /* 0xBC */ TVec3f mWalkTarget;
-    /* 0xC8 */ TVec3f _C8;
+    /* 0xD0 */ TVec3f mUnusedFront;
     /* 0xD4 */ TVec3f mHomePos;
     /* 0xE0 */ s32 mNoPushStep;
-    /* 0xE4 */ s32 _E4;
+    /* 0xEC */ s32 mUnusedCounter;
     /* 0xE8 */ s32 mAirStep;
-    /* 0xEC */ u8 _EC;
+    /* 0xF4 */ u8 mUnusedFlag;
     /* 0xED */ u8 mHasMoveLimitCollision;
 };

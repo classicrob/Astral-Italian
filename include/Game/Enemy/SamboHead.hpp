@@ -9,6 +9,7 @@ class SpinHitController;
 class SamboHead : public LiveActor {
 public:
     SamboHead(const char*);
+    static void updateBoundVelocity(LiveActor*);
 
     virtual ~SamboHead();
     virtual void init(const JMapInfoIter&);
@@ -48,5 +49,5 @@ public:
     /* 0x94 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x98 */ TVec3f mFront;
     /* 0xA4 */ TVec3f mHomePos;
-    /* 0xB0 */ bool _B0;
+    /* 0xB4 */ bool mAlwaysPursue;
 };

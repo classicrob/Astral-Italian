@@ -7,7 +7,7 @@ void GliBirdNpc::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("GliBirdNpc");
     caps.setDefault();
     caps.mMessage=false;
-    caps._95=false;
+    caps.mYoshiInteraction=false;
     initialize(iter,caps,"GliBird","Npc",nullptr);
     mParam._14="GroundWait";
     mParam._1C="GroundWait";
@@ -16,7 +16,7 @@ void GliBirdNpc::init(const JMapInfoIter& iter) {
     mParam._0=false;
     mParam._1=false;
     setDefaults();
-    _12C=450.0f;
+    mSpinAttackRange=450.0f;
     MR::registerDemoSimpleCastAll(this);
     makeActorAppeared();
 }

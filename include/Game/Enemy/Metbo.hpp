@@ -48,7 +48,7 @@ public:
     bool trySearch();
     bool tryDPDSwoon();
     bool isNrvNormal() const;
-    bool fn_801CBD00() const;
+    bool isMetboSwoonState() const;
     bool isEatable() const;
 
     inline bool isNrvDown() const;

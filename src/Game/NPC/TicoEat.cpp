@@ -58,7 +58,7 @@ void TicoEat::init(const JMapInfoIter& rIter) {
     mParam.setTalkAction("Talk", "Talk");
     mParam._4 = 3000.0f;
     setDefaults();
-    _12C = 1000.0f;
+    mSpinAttackRange = 1000.0f;
 }
 
 void TicoEat::control() {
@@ -147,7 +147,7 @@ bool TicoEat::eventFunc(u32 event) {
 }
 
 void TicoEat::exeReaction() {
-    if (MR::isFirstStep(this) && (_D8 || _DB)) {
+    if (MR::isFirstStep(this) && (mTrampledStart || mReactionStart)) {
         mScaleController->startHitReaction();
     }
 
@@ -164,7 +164,7 @@ void TicoEat::exeEatPre() {
         MR::startBva(this, "Big0");
     }
 
-    if (MR::faceToVector(&_A0, -MR::getCamZdir(), mParam._8)) {
+    if (MR::faceToVector(&mOrientationQuat, -MR::getCamZdir(), mParam._8)) {
         popAndPushNerve(GET_NERVE(TicoEat, TicoEatNrvEatNow));
     }
 }

@@ -46,8 +46,8 @@ public:
     /* 0x98 */ TVec3f mFrontVec;
     /* 0xA4 */ TVec3f mUpVec;
     /* 0xB0 */ f32 mNerveRate;
-    /* 0xB4 */ f32 _B4;
-    /* 0xB8 */ f32 _B8;
+    /* 0xB4 */ f32 mUnusedB4;
+    /* 0xB8 */ f32 mUnusedB8;
     /* 0xBC */ f32 mNerveBlendRate;
     /* 0xC0 */ s32 mLandingCount;
     /* 0xC4 */ YoshiLockOnTarget* mYoshiLockOn;

@@ -35,6 +35,6 @@ public:
     /* 0x90 */ ActorPoseTQ* mPose;
     /* 0x94 */ AnimScaleController* mAnimScaleCtrl;
     /* 0x98 */ WalkerStateBindStarPointer* mStarPointBind;
-    /* 0x9C */ TVec3f _9C;
+    /* 0x9C */ TVec3f mAnchorPos;
     /* 0xA8 */ f32 mMoveLimit;
 };

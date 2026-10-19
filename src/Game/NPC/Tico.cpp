@@ -75,20 +75,20 @@ void Tico::initBase(const JMapInfoIter& rIter, s32 color) {
     NPCActorCaps caps("Tico");
     caps.setDefault();
     caps.mMessage = false;
-    caps._94 = true;
+    caps.mDropItemOnSupportTicoSpin = true;
     caps.mWaitNerve = GET_NERVE(Tico, TicoNrvWait);
 
-    _130=cNPCSpinDefault; _134=cNPCTrampledDefault; _138=cNPCPointingDefault;
-    _13C = "Spin";
-    _12C = 1000.0f;
+    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault;
+    mReactionAction = "Spin";
+    mSpinAttackRange = 1000.0f;
     mParam._14 = "Wait";
     mParam._18 = "Wait";
     mParam._1C = "Talk";
     mParam._20 = "Talk";
-    _11C = "Fly";
-    _120 = "Fly";
-    _10C = 8.0f;
-    _110 = 0.2f;
+    mRailMoveAction = "Fly";
+    mRailTalkAction = "Fly";
+    mRailMoveSpeed = 8.0f;
+    mRailMoveAccel = 0.2f;
     mParam._C = 0.5f;
     mParam._10 = 12.0f;
     initialize(rIter, caps, "Tico", nullptr, nullptr);
@@ -150,7 +150,7 @@ void Tico::initRail(const JMapInfoIter& rIter) {
             mRailSpeed = 8.0f;
         }
 
-        _10C = mRailSpeed;
+        mRailMoveSpeed = mRailSpeed;
         mParam._C = 0.0f;
         mParam._10 = 0.0f;
         MR::onCalcGravity(this);
@@ -304,10 +304,10 @@ void Tico::control() {
 
         if (mFollowGravity) {
             TVec3f front;
-            _A0.getZDir(front);
+            mOrientationQuat.getZDir(front);
             TVec3f up;
             up.negate(mGravity);
-            MR::blendQuatUpFront(&_B0, up, front, 1.0f, 0.0f);
+            MR::blendQuatUpFront(&mInitOrientationQuat, up, front, 1.0f, 0.0f);
         }
 
         NPCActor::control();
@@ -362,7 +362,7 @@ bool Tico::branchFunc(u32 id) {
 }
 
 void Tico::exeReaction() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled");
         MR::startActionSound(this, "SvTicoTrampled");
     }
@@ -372,7 +372,7 @@ void Tico::exeReaction() {
         MR::startActionSound(this, "SvTicoPoint");
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::limitedStarPieceHitSound();
         MR::startActionSound(this, "SmButlerAbsorb");
     }
@@ -395,7 +395,7 @@ void Tico::exeReaction() {
 
 void Tico::exeDelight() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, _13C);
+        MR::startAction(this, mReactionAction);
         MR::resetAndForwardNode(mStarPieceTalkCtrl, MR::getRandom(0l, 5l));
     }
 
@@ -408,7 +408,7 @@ void Tico::exeDelight() {
 
 void Tico::exeReactionTalk() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, _13C);
+        MR::startAction(this, mReactionAction);
     }
 
     MR::tryTalkForce(mReactionTalkCtrl);
@@ -527,7 +527,7 @@ void Tico::exeFallRecover() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "FallRecover");
         s32 frameMax = MR::getBckFrameMax(this);
-        TVec3f diff(_C0);
+        TVec3f diff(mInitPosition);
         diff.sub(mPosition);
         TVec3f vel(diff);
         vel.scale(1.0f / frameMax);
@@ -596,9 +596,9 @@ void Tico::exeMoveRail() {
         speedScale = 10.0f;
     }
 
-    _10C = mRailSpeed * speedScale;
-    if ((f32)__fabs((f64)(MR::getRailCoordSpeed(this) - _10C)) > 5.0f) {
-        MR::setRailCoordSpeed(this, _10C);
+    mRailMoveSpeed = mRailSpeed * speedScale;
+    if ((f32)__fabs((f64)(MR::getRailCoordSpeed(this) - mRailMoveSpeed)) > 5.0f) {
+        MR::setRailCoordSpeed(this, mRailMoveSpeed);
     }
 
     if (diff > -1200.0f) {
@@ -620,13 +620,13 @@ void Tico::exeWaitAfterRail() {
 
     if (MR::isNear(this, MR::getRailPointPosEnd(this), 10.0f)) {
         if (MR::isNearPlayer(this, 500.0f)) {
-            MR::followRailPose(this, _114, 1.0f);
+            MR::followRailPose(this, mRailTurnRate, 1.0f);
             setNerve(GET_NERVE(Tico, TicoNrvMeta));
             return;
         }
     } else {
-        MR::tryStartActionNotPlaying(this, _11C);
-        MR::followRailPose(this, _114, _114);
+        MR::tryStartActionNotPlaying(this, mRailMoveAction);
+        MR::followRailPose(this, mRailTurnRate, mRailTurnRate);
         return;
     }
 

@@ -21,10 +21,10 @@ LuigiTalkNpc::~LuigiTalkNpc() {}
 void LuigiTalkNpc::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("LuigiTalkNpc");
     caps.setDefault();
-    caps._94=true;
+    caps.mDropItemOnSupportTicoSpin=true;
     mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Turn";
-    if(MR::isObjectName(iter,"LuigiIntrusively") && !MR::isExistMessageId(iter)) { caps._F=true; caps._10=sIntrusiveMessage; }
-    _130 = cNPCSpinDefault; _134 = cNPCTrampledDefault; _138 = cNPCPointingDefault; _13C = cNPCReactionDefault;
+    if(MR::isObjectName(iter,"LuigiIntrusively") && !MR::isExistMessageId(iter)) { caps.mUseDirectMessage=true; caps.mMessageId=sIntrusiveMessage; }
+    mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
     initialize(iter,caps,"LuigiNPC",nullptr,nullptr);
     MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&LuigiTalkNpc::eventFunc));
     if(MR::tryRegisterDemoCast(this,iter) && MR::isDemoCast(this,sIntrusiveDemo)) {

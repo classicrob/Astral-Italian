@@ -5,13 +5,11 @@
 class AnimScaleController;
 class WalkerStateBindStarPointer;
 
-// SMG2 unnamed free helper at 0x801E1C60 (r3/r4 are sensors, not an actor), named by address; used by attackSensor.
-bool fn_801E1C60(HitSensor* pSender, HitSensor* pReceiver, TVec3f* pDir, f32 scale);
-
 /// @brief PackunFlowerBig (SMG2 only, no SMG1 source). A big piranha plant that hides, appears, and can be frozen by a star pointer.
 class PackunFlowerBig : public LiveActor {
 public:
     PackunFlowerBig(const char* pName);
+    static bool isSensorInAttackRange(HitSensor*, HitSensor*, TVec3f*, f32);
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void control();

@@ -64,7 +64,7 @@ namespace NrvPackunPetit {
 };  // namespace NrvPackunPetit
 
 PackunPetit::PackunPetit(const char* pName)
-    : LiveActor(pName), mScaleController(nullptr), mStarPointerState(nullptr), _94(0.0f, 0.0f, 1.0f), mBlownModel(nullptr), mDontTurn(false), _A9(false), mYoshiLockOn(nullptr), _110(0.0f, 0.0f, 0.0f) {
+    : LiveActor(pName), mScaleController(nullptr), mStarPointerState(nullptr), mFront(0.0f, 0.0f, 1.0f), mBlownModel(nullptr), mDontTurn(false), mUseGroundMovement(false), mYoshiLockOn(nullptr), mLastPlayerPos(0.0f, 0.0f, 0.0f) {
 }
 
 namespace {
@@ -85,9 +85,9 @@ void PackunPetit::init(const JMapInfoIter& rIter) {
     mScaleController->setParamTight();
     mStarPointerState = new WalkerStateBindStarPointer(this, mScaleController);
     MR::getJMapInfoArg0NoInit(rIter, &mDontTurn);
-    MR::getJMapInfoArg7NoInit(rIter, &_A9);
-    if (_A9) initBinder(50.0f, 50.0f, 0);
-    MR::calcFrontVec(&_94, this);
+    MR::getJMapInfoArg7NoInit(rIter, &mUseGroundMovement);
+    if (mUseGroundMovement) initBinder(50.0f, 50.0f, 0);
+    MR::calcFrontVec(&mFront, this);
     initBlowModel();
     initNerve(GET_NERVE(PackunPetit, PackunPetitNrvWait), 1);
     MR::initActorState(this, mStarPointerState, GET_NERVE(PackunPetit, PackunPetitNrvDPDSwoon), "SupportFreeze");
@@ -147,10 +147,10 @@ void PackunPetit::exeThreat() {
         }
 
         TVec3f* pos = MR::getPlayerPos();
-        MR::turnDirectionToTargetUseGroundNormalDegree(this, &_94, *pos, 2.0f);
+        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mFront, *pos, 2.0f);
     }
 
-    if (MR::isGreaterStep(this, 50) && MR::isNearPlayer(this, 1100.0f) && (MR::isFaceToPlayerHorizontalDegree(this, _94, 10.0f) || mDontTurn)) {
+    if (MR::isGreaterStep(this, 50) && MR::isNearPlayer(this, 1100.0f) && (MR::isFaceToPlayerHorizontalDegree(this, mFront, 10.0f) || mDontTurn)) {
         setNerve(GET_NERVE(PackunPetit, PackunPetitNrvAttackStart));
     } else if (!MR::isNearPlayer(this, 2000.0f)) {
         setNerve(GET_NERVE(PackunPetit, PackunPetitNrvWait));
@@ -172,7 +172,7 @@ void PackunPetit::exeTurn() {
         step = 2.0f;
     }
     TVec3f* pos = MR::getPlayerPos();
-    MR::turnDirectionToTargetUseGroundNormalDegree(this, &_94, *pos, step);
+    MR::turnDirectionToTargetUseGroundNormalDegree(this, &mFront, *pos, step);
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(PackunPetit, PackunPetitNrvThreat));
     }
@@ -279,7 +279,7 @@ void PackunPetit::exeSwoonToThreat() {
 
 void PackunPetit::exeDPDSwoon() {
     if (MR::isOnGroundPlayer()) {
-        _110.set(*MR::getPlayerPos());
+        mLastPlayerPos.set(*MR::getPlayerPos());
         setNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull));
     }
 }
@@ -290,13 +290,13 @@ void PackunPetit::exeYoshiPull() {
         MR::startAction(this, "Pull");
         MR::invalidateClipping(this);
     }
-    MR::calcVecToPlayerH(&_94, this, nullptr);
-    f32 distance = PSVECDistance(&_110, &mPosition);
+    MR::calcVecToPlayerH(&mFront, this, nullptr);
+    f32 distance = PSVECDistance(&mLastPlayerPos, &mPosition);
     bool isFar = !MR::isNearPlayer(this, 75.0f + distance);
     if (isFar) {
         MR::tryHitReaction(this, "ヨッシー舌引き抜き");
         MR::invalidateClipping(this);
-        MR::setVelocity(mBlownModel, _94 * 15.0f);
+        MR::setVelocity(mBlownModel, mFront * 15.0f);
         MR::addVelocity(mBlownModel, mGravity * -40.0f);
         ScoreAttackFunction::score100Points(this);
         startPunchDown();
@@ -360,7 +360,7 @@ void PackunPetit::kill() {
 }
 
 void PackunPetit::calcAndSetBaseMtx() {
-    MR::fn_8000FA30(this, &_94);
+    MR::fn_8000FA30(this, &mFront);
     MR::updateBaseScale(this, mScaleController);
 }
 
@@ -371,8 +371,8 @@ void PackunPetit::control() {
     mScaleController->updateNerve();
     tryDPDSwoon();
 
-    if (_A9) {
-        MR::moveAndTurnToPlayer(this, &_94, sTurnParam._0, sTurnParam._4, sTurnParam._8, sTurnParam._C);
+    if (mUseGroundMovement) {
+        MR::moveAndTurnToPlayer(this, &mFront, sTurnParam._0, sTurnParam._4, sTurnParam._8, sTurnParam._C);
     }
 
     if (!isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvEaten)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown))) {
@@ -594,7 +594,7 @@ bool PackunPetit::tryTurn() {
         return false;
     }
 
-    if (MR::isFaceToPlayerHorizontalDegree(this, _94, 90.0f)) {
+    if (MR::isFaceToPlayerHorizontalDegree(this, mFront, 90.0f)) {
         return false;
     }
     TVec3f playerDist;

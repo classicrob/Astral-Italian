@@ -49,7 +49,7 @@ public:
     /* 0x24 */ f32* mBlurTexCoords;
     /* 0x28 */ s32 mNumHiddenPoints;
     /* 0x2C */ bool _2C;
-    /* 0x2C */ bool _2D;
+    /* 0x2D */ bool _2D;
     /* 0x30 */ f32 _30;
     /* 0x34 */ f32 _34;
     /* 0x38 */ f32 _38;

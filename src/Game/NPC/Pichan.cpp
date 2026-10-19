@@ -58,9 +58,9 @@ void Pichan::init(const JMapInfoIter& iter) {
     caps.mReactionNerve = PICHAN_NERVE(Wait);
     mParam.setMoveAction("Wait", "Wait");
     mParam.setTalkAction("Talk", "Talk");
-    _130=cNPCSpinDefault; _134=cNPCTrampledDefault;
-    _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
-    _12C = 450.0f;
+    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault;
+    mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    mSpinAttackRange = 450.0f;
     initialize(iter, caps, "Pichan", nullptr, nullptr);
     MR::registerEventFunc(mMsgCtrl, TalkMessageFunc(this, &Pichan::eventFunc));
     MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc(this, &Pichan::branchFunc));
@@ -138,7 +138,7 @@ bool Pichan::isJudgeReady() const { return isNerve(mTalkNerve); }
 void Pichan::exitAudience() { MR::requestMovementOn(this); }
 
 void Pichan::exeWait() {
-    if (!_E4 && MR::isGreaterEqualStep(this, 70) && MR::tryTalkNearPlayer(mMsgCtrl)) {
+    if (!mPointed && MR::isGreaterEqualStep(this, 70) && MR::tryTalkNearPlayer(mMsgCtrl)) {
         popNerve();
         return;
     }

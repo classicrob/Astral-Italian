@@ -77,7 +77,7 @@ public:
     /* 0xCC */ s32 mBehavior;
     /* 0xD0 */ bool mCanDrown;
     /* 0xD4 */ ModelObj* mWaterColumn;
-    /* 0xD8 */ TVec3f _D8;
+    /* 0xDC */ TVec3f mUnusedVecDC;
     /* 0xE4 */ bool mIsActive;
-    /* 0xE5 */ u8 _E5;
+    /* 0xE9 */ u8 mUnusedFlag;
 };

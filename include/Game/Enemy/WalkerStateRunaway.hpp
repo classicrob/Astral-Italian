@@ -13,9 +13,9 @@ public:
     /* 0x08 */ const char* mJumpAction;
     /* 0x0C */ f32 mGroundAccel;
     /* 0x10 */ f32 mAirAccel;
-    /* 0x14 */ f32 _14;  // mGroundFriction? - fric if ._18 <= _1C
-    /* 0x18 */ f32 _18;  // mAirFriction? - fric if ._18 > _1C
-    /* 0x1C */ s32 _1C;  // step?
+    /* 0x14 */ f32 mInitialDamping;
+    /* 0x18 */ f32 mLaterDamping;
+    /* 0x1C */ s32 mInitialMoveStepLimit;
     /* 0x20 */ f32 mTurnMaxRateDegree;
     /* 0x24 */ f32 mRunawayDistance;
     /* 0x28 */ f32 mWaitDistance;
@@ -54,13 +54,12 @@ public:
         return mRunawayParam;
     }
 
-    // TODO: what are these values?
     bool check18() const {
-        return _18 < mRunawayParam->_1C;
+        return mMoveStep < mRunawayParam->mInitialMoveStepLimit;
     }
 
     /* 0x10 */ WalkerStateRunawayParam* mRunawayParam;
     /* 0x14 */ TVec3f* mDirection;
-    /* 0x18 */ s32 _18;
+    /* 0x18 */ s32 mMoveStep;
     /* 0x1C */ f32 mRunawaySpeed;
 };

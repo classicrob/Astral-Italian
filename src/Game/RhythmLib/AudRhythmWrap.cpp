@@ -41,11 +41,11 @@ bool AudRhythmWrap::isBeatTiming(s32 beatPeriod, f32 offset) {
 }
 
 u32 AudRhythmWrap::getBeatCount() {
-    return AudRhythmMeSystem::getInstance()->mRhythmHolders[AudRhythmMeSystem::getInstance()->mBgmIdx].mInfos[0]._38;
+    return AudRhythmMeSystem::getInstance()->mRhythmHolders[AudRhythmMeSystem::getInstance()->mBgmIdx].mInfos[0].mBeatCount;
 }
 
 u32 AudRhythmWrap::getPrevBeatCount() {
-    return AudRhythmMeSystem::getInstance()->mRhythmHolders[AudRhythmMeSystem::getInstance()->mBgmIdx].mInfos[0]._3C;
+    return AudRhythmMeSystem::getInstance()->mRhythmHolders[AudRhythmMeSystem::getInstance()->mBgmIdx].mInfos[0].mPrevBeatCount;
 }
 
 f32 AudRhythmWrap::getBeatPhase() {

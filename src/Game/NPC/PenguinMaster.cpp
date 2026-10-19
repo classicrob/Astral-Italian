@@ -26,10 +26,10 @@ void PenguinMaster::init(const JMapInfoIter& rIter) {
     mParam._20 = nullptr;
     mParam._0 = false;
     mParam._1 = false;
-    _134 = "Trampled";
-    _13C = "Reaction";
-    _130 = "Reaction";
-    _138 = "Pointing";
+    mTrampledAction = "Trampled";
+    mReactionAction = "Reaction";
+    mSpinAction = "Reaction";
+    mPointingAction = "Pointing";
 
     if (mMsgCtrl != nullptr) {
         MR::setDistanceToTalk(mMsgCtrl, 350.0f);
@@ -38,7 +38,7 @@ void PenguinMaster::init(const JMapInfoIter& rIter) {
 
 bool PenguinMaster::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::isMsgSupportTicoSpin(msg)) {
-        _E3 = true;
+        mSpinAttacked = true;
 
         return true;
     }
@@ -48,7 +48,7 @@ bool PenguinMaster::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
 
 // NONMATCHING: saved-register and link-register restoration order differs.
 void PenguinMaster::exeReaction() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SvPenguinOldTrampled");
         MR::startActionSound(this, "SmPenguinTrampled");
     }
@@ -58,11 +58,11 @@ void PenguinMaster::exeReaction() {
         MR::startDPDHitSound();
     }
 
-    if (_D9) {
+    if (mSpinAttackedStart) {
         MR::startActionSound(this, "SvPenguinOldSpinHit");
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::startActionSound(this, "SvPenguinOldStarPiece");
     }
 

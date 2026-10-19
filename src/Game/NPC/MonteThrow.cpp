@@ -83,7 +83,7 @@ void MonteThrow::startThrow() {
 bool MonteThrow::tryBind(HitSensor* sensor) {
     if (mBoundActor) return false;
     if (!isNerve(&NrvMonteThrow::Wait::sInstance)) return false;
-    if (mHost->_E4) return false;
+    if (mHost->mPointed) return false;
     MR::invalidateClipping(this);
     MR::invalidateHitSensor(this, "Body");
     mBoundActor = MR::getSensorHost(sensor);

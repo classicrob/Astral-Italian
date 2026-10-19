@@ -137,9 +137,9 @@ namespace MR {
     void decidePose(NPCActor* pActor, const TVec3f& rUp, const TVec3f& rFront, const TVec3f& rPos, f32 upBlend, f32 frontBlend, f32 posBlend) {
         vecBlend(&pActor->mPosition, pActor->mPosition, rPos, posBlend);
         if (upBlend == 1.0f && frontBlend == 1.0f) {
-            makeQuatUpFront(&pActor->_A0, rUp, rFront);
+            makeQuatUpFront(&pActor->mOrientationQuat, rUp, rFront);
         } else {
-            blendQuatUpFront(&pActor->_A0, rUp, rFront, upBlend, frontBlend);
+            blendQuatUpFront(&pActor->mOrientationQuat, rUp, rFront, upBlend, frontBlend);
         }
     }
 
@@ -248,7 +248,7 @@ namespace MR {
 
     void initDefaultPosAndQuat(NPCActor* pActor, const JMapInfoIter& rIter) {
         initDefaultPos(pActor, rIter);
-        makeQuatRotateDegree(&pActor->_A0, pActor->mRotation);
+        makeQuatRotateDegree(&pActor->mOrientationQuat, pActor->mRotation);
         pActor->setInitPose();
     }
 
@@ -332,12 +332,12 @@ namespace MR {
 
     void startMoveAction(NPCActor* pActor) {
         if (isExistRail(pActor)) {
-            adjustmentRailCoordSpeed(pActor, pActor->_10C, pActor->_110);
+            adjustmentRailCoordSpeed(pActor, pActor->mRailMoveSpeed, pActor->mRailMoveAccel);
             moveRailRider(pActor);
-            if (pActor->_124) {
-                followRailPoseOnGround(pActor, pActor->_114);
+            if (pActor->mFollowRailOnGround) {
+                followRailPoseOnGround(pActor, pActor->mRailTurnRate);
             } else {
-                followRailPose(pActor, pActor->_114, pActor->_114);
+                followRailPose(pActor, pActor->mRailTurnRate, pActor->mRailTurnRate);
             }
 
             if (isRailReachedGoal(pActor)) {
@@ -388,23 +388,23 @@ namespace MR {
                 pAction = pActor->mParam._1C;
             }
         } else {
-            if (isNearZero(pActor->_10C) && isNearZero(getRailCoordSpeed(pActor))) {
+            if (isNearZero(pActor->mRailMoveSpeed) && isNearZero(getRailCoordSpeed(pActor))) {
                 return tryStartTalkAction(pActor);
             }
 
             startMoveAction(pActor);
             if (isTalkTalking(pTalk)) {
-                pAction = pActor->_120;
+                pAction = pActor->mRailTalkAction;
                 movingTalk = true;
             } else {
-                pAction = pActor->_11C;
+                pAction = pActor->mRailMoveAction;
             }
         }
 
         if (!isNullOrEmptyString(pAction)) {
             bool started = tryStartActionNotPlaying(pActor, pAction);
             if (movingTalk) {
-                setBckRate(pActor, pActor->_118);
+                setBckRate(pActor, pActor->mRailTalkAnimRate);
             } else {
                 setBckRate(pActor, 1.0f);
             }
@@ -452,11 +452,11 @@ namespace MR {
         }
 
         startMoveAction(pActor);
-        if (isNullOrEmptyString(pActor->_11C)) {
+        if (isNullOrEmptyString(pActor->mRailMoveAction)) {
             return false;
         }
 
-        return tryStartActionNotPlaying(pActor, pActor->_11C);
+        return tryStartActionNotPlaying(pActor, pActor->mRailMoveAction);
     }
 };  // namespace MR
 
@@ -464,20 +464,20 @@ namespace MR {
     bool tryStartReaction(NPCActor* pActor) {
         const char* pAction = nullptr;
         bool started = false;
-        if (pActor->_128) {
+        if (pActor->mUseReactionActions) {
             bool trampled = pActor->isTrampledStart();
             if (trampled) {
-                pAction = pActor->_134;
+                pAction = pActor->mTrampledAction;
             } else {
                 bool reaction = pActor->isReactionStart();
                 if (reaction) {
-                    pAction = pActor->_13C;
+                    pAction = pActor->mReactionAction;
                 } else {
                     bool spin = pActor->isSpinAttackedStart();
                     if (spin) {
-                        pAction = pActor->_130;
-                    } else if (pActor->_E4) {
-                        pAction = pActor->_138;
+                        pAction = pActor->mSpinAction;
+                    } else if (pActor->mPointed) {
+                        pAction = pActor->mPointingAction;
                     }
                 }
             }
@@ -492,9 +492,9 @@ namespace MR {
                 bool spin = pActor->isSpinAttackedStart();
                 if (spin) {
                     started = tryStartActionNotPlaying(pActor, pAction);
-                } else if (pActor->_E4) {
-                    if (!(pActor->_134 && isAnyAnimPlaying(pActor, pActor->_134)) && !(pActor->_13C && isAnyAnimPlaying(pActor, pActor->_13C)) &&
-                        !(pActor->_130 && isAnyAnimPlaying(pActor, pActor->_130))) {
+                } else if (pActor->mPointed) {
+                    if (!(pActor->mTrampledAction && isAnyAnimPlaying(pActor, pActor->mTrampledAction)) && !(pActor->mReactionAction && isAnyAnimPlaying(pActor, pActor->mReactionAction)) &&
+                        !(pActor->mSpinAction && isAnyAnimPlaying(pActor, pActor->mSpinAction))) {
                         bool pointing = pActor->isPointingStart();
                         if (pointing) {
                             started = tryStartActionNotPlaying(pActor, pAction);
@@ -604,7 +604,7 @@ namespace MR {
     }
 
     void updateNPCGoodsAnimation(NPCActor* actor) {
-        if (actor->_94) updateNPCGoodsAnimation(actor, actor->_94);
+        if (actor->mGoods0) updateNPCGoodsAnimation(actor, actor->mGoods0);
     }
 
     void updateNPCGoodsAnimation(const LiveActor* actor, LiveActor* goods) {
@@ -636,7 +636,7 @@ namespace MR {
     void calcAndSetFloatBaseMtx(NPCActor* pActor, f32 offset) {
         TVec3f up;
         TVec3f pos(pActor->mPosition);
-        pActor->_A0.getYDir(up);
+        pActor->mOrientationQuat.getYDir(up);
         up.scale(offset);
         pActor->mPosition.add(up);
         pActor->NPCActor::calcAndSetBaseMtx();

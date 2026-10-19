@@ -446,7 +446,7 @@ s32 AudMeSeqParser::cmdCmpNI(AudMeTrack* pTrack, u32* pArgs) {
 s32 AudMeSeqParser::cmdCmpCI(AudMeTrack* pTrack, u32* pArgs) {
     u8 reg = pArgs[0];
 
-    if (reg == pTrack->_163[pArgs[0]]) {
+    if (reg == pTrack->mCmpRegs[pArgs[0]]) {
         pTrack->setJumpFlag(true);
     } else {
         pTrack->setJumpFlag(false);

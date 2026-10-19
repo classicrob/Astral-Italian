@@ -39,7 +39,7 @@ void Dreamer::init(const JMapInfoIter& rIter) {
     caps.mUseShadow = true;
     caps.mMakeActor = false;
     caps.mLightCtrl = false;
-    caps._95 = false;
+    caps.mYoshiInteraction = false;
     caps.mStarPointerOffs.x = 0.0f;
     caps.mStarPointerOffs.y = 110.0f;
     caps.mStarPointerOffs.z = 0.0f;
@@ -52,10 +52,10 @@ void Dreamer::init(const JMapInfoIter& rIter) {
     mParam._1C = "Wait";
     mParam._20 = "Wait";
     mParam._8 = 2.5f;
-    _130 = cNPCSpinDefault;
-    _134 = cNPCTrampledDefault;
-    _138 = cNPCPointingDefault;
-    _13C = cNPCReactionDefault;
+    mSpinAction = cNPCSpinDefault;
+    mTrampledAction = cNPCTrampledDefault;
+    mPointingAction = cNPCPointingDefault;
+    mReactionAction = cNPCReactionDefault;
 
     if (MR::isPlayerLuigi() ||
         (GameSequenceFunction::isPadMode() && !DreamerFunction::isPadModeDreamerAndStartId(mStartId))) {
@@ -149,8 +149,8 @@ void Dreamer::exeEndHelp() {
 }
 
 void Dreamer::initForLuigi(const JMapInfoIter& rIter, NPCActorCaps& caps) {
-    caps._F = true;
-    caps._10 = gDreamerLuigiMessageName;
+    caps.mUseDirectMessage = true;
+    caps.mMessageId = gDreamerLuigiMessageName;
     initialize(rIter, caps, nullptr, nullptr, nullptr);
     makeActorDead();
     mIsLuigi = true;
@@ -159,7 +159,7 @@ void Dreamer::initForLuigi(const JMapInfoIter& rIter, NPCActorCaps& caps) {
 void Dreamer::initForPlaying(const JMapInfoIter& rIter, NPCActorCaps& caps) {
     caps.mWaitNerve = GET_NERVE(Dreamer, DreamerNrvEndHelp);
     if (MR::isExistMessageId(rIter) && MR::isExistSceneMessage(gDreamerEndMessageName, rIter, true)) {
-        caps._10 = gDreamerEndMessageName;
+        caps.mMessageId = gDreamerEndMessageName;
         mHasEndMessage = true;
     } else {
         caps.mMessage = false;
@@ -181,10 +181,10 @@ void Dreamer::initForPlaying(const JMapInfoIter& rIter, NPCActorCaps& caps) {
 
 void Dreamer::initForNpc(const JMapInfoIter& rIter, NPCActorCaps& caps) {
     if (!MR::isExistMessageId(rIter) || !MR::isExistSceneMessage(gDreamerMessageName, rIter, true)) {
-        caps._F = true;
-        caps._10 = gDreamerLuigiMessageName;
+        caps.mUseDirectMessage = true;
+        caps.mMessageId = gDreamerLuigiMessageName;
     } else {
-        caps._10 = gDreamerMessageName;
+        caps.mMessageId = gDreamerMessageName;
     }
     initialize(rIter, caps, nullptr, nullptr, nullptr);
     MR::registerEventFunc(mMsgCtrl,

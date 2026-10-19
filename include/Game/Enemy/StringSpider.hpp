@@ -29,7 +29,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void doSwingAction(f32);
-    void fn_80201450();
+    void tryStartStringPointBind();
     void reactStringForce();
     bool isOverStringLength(TVec3f*, f32*);
     TVec3f calcToRootVector() NO_INLINE;
@@ -37,12 +37,12 @@ public:
     void extendString();
     void shortenString(f32);
     void startSwingLevelSound();
-    bool fn_80202B40() const;
+    bool canLockOnSpiderWithStarPiece() const;
     bool isEatable() const;
     bool isDamaging() const;
-    bool fn_80202D00() const;
-    bool fn_80202D80() const;
-    bool fn_80202DE0() const;
+    bool canSpinHitSpider() const;
+    bool canKickHitSpider() const;
+    bool canPointBindSpider() const;
 
     void exeWait();
     void endWait();

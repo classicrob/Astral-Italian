@@ -36,7 +36,7 @@ namespace NrvMogucchiHill {
     NEW_NERVE(MogucchiHillNrvWait, MogucchiHill, Wait);
 };  // namespace NrvMogucchiHill
 
-MogucchiHillPiece::MogucchiHillPiece(const char* pName) : LiveActor(pName), mHost(), mModelName(), mJointName(), mAutoEffectName(), _CC(), _CD() {
+MogucchiHillPiece::MogucchiHillPiece(const char* pName) : LiveActor(pName), mHost(), mModelName(), mJointName(), mAutoEffectName(), mCanBeDestroyed(), mWasAttackedThisFrame() {
     mBaseMtx.identity();
 }
 
@@ -79,7 +79,7 @@ void MogucchiHillPiece::appear() {
     setNerve(GET_NERVE(MogucchiHillPiece, MogucchiHillPieceNrvAppear));
     MR::hideModel(this);
 
-    _CC = false;
+    mCanBeDestroyed = false;
 
     MR::validateClipping(this);
 }
@@ -109,11 +109,11 @@ void MogucchiHillPiece::exeWait() {
         return;
     }
 
-    if (!_CD) {
-        _CC = true;
+    if (!mWasAttackedThisFrame) {
+        mCanBeDestroyed = true;
     }
 
-    _CD = false;
+    mWasAttackedThisFrame = false;
 }
 
 void MogucchiHillPiece::exeCrumble() {
@@ -253,9 +253,9 @@ bool MogucchiHillPiece::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSe
         return false;
     }
 
-    _CD = true;
+    mWasAttackedThisFrame = true;
 
-    if (!_CC) {
+    if (!mCanBeDestroyed) {
         return false;
     }
 

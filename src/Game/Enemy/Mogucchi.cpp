@@ -56,8 +56,8 @@ namespace {
 };  // namespace
 
 Mogucchi::Mogucchi(const char* pName)
-    : LiveActor(pName), mHill(), mHole(), mGrounded(), mScatterPropulsionSpeed(), mScatterNormal(0.0f, 0.0f, 1.0f), _E4(), mStrollSpeed(),
-      mMaxStrollSpeed(5.0f), _F4(), mIsStoppedByP2() {
+    : LiveActor(pName), mHill(), mHole(), mGrounded(), mScatterPropulsionSpeed(), mScatterNormal(0.0f, 0.0f, 1.0f), mUnusedE8(), mStrollSpeed(),
+      mMaxStrollSpeed(5.0f), mSpinCounterCooldown(), mIsStoppedByP2() {
     mNewHolePos.identity();
 }
 
@@ -150,16 +150,16 @@ void Mogucchi::exeStroll() {
         MR::startBtp(this, "EyeOpen");
         MR::startAction(mHole, "Walk");
         mHill->start();
-        _E4 = 0.0f;
+        mUnusedE8 = 0.0f;
         mStrollSpeed = mMaxStrollSpeed;
         mIsStoppedByP2 = false;
-        _F4 = 0;
+        mSpinCounterCooldown = 0;
     }
 
     MR::startActionSound(this, "EmLvMoghillMove", -1, -1, -1);
     updateStrollSpeed();
     reflectStarPointer2P();
-    fn_801CDAD0();
+    updateSpinCounterCooldown();
     MR::moveCoord(this, mStrollSpeed);
     MR::calcGravityVector(this, MR::getRailPos(this), &mRailGravity, nullptr, 0);
     updatePosition();
@@ -407,10 +407,10 @@ bool Mogucchi::receiveAttackBySpinSensor(u32 msg, HitSensor* pSender, HitSensor*
     }
 
     if (isNerve(GET_NERVE(Mogucchi, MogucchiNrvStroll))) {
-        if (_F4 == 0) {
+        if (mSpinCounterCooldown == 0) {
             MR::startActionSound(this, "EmMogucchiRefrect", -1, -1, -1);
             MR::sendMsgEnemyAttackCounterSpin(pSender, pReceiver);
-            _F4 = 30;
+            mSpinCounterCooldown = 30;
             return true;
         }
 
@@ -495,8 +495,8 @@ void Mogucchi::updateReferenceMtx() {
     MR::setPosition(mHole, mPosition);
 }
 
-void Mogucchi::fn_801CDAD0() {
-    if (--_F4 <= 0) {
-        _F4 = 0;
+void Mogucchi::updateSpinCounterCooldown() {
+    if (--mSpinCounterCooldown <= 0) {
+        mSpinCounterCooldown = 0;
     }
 }

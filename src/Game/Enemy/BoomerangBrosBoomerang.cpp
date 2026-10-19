@@ -27,7 +27,7 @@ namespace NrvBoomerangBrosBoomerang {
     public:
         virtual void execute(Spine* pSpine) const {
             BoomerangBrosBoomerang* pActor = reinterpret_cast< BoomerangBrosBoomerang* >(pSpine->mExecutor);
-            pActor->_B4 = true;
+            pActor->mIsPointBound = true;
             MR::updateActorStateAndNextNerve(pActor, &BoomerangBrosBoomerangNrvOut::sInstance);
         }
         static BoomerangBrosBoomerangNrvFreeze sInstance;
@@ -137,7 +137,7 @@ void BoomerangBrosBoomerang::exeFly() {
 void BoomerangBrosBoomerang::exeOut() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Spin");
-        _B4 = false;
+        mIsPointBound = false;
     }
     if (MR::isGreaterStep(this, 10) && MR::isNoBind(this)) {
         MR::onBind(this);
@@ -185,7 +185,7 @@ void BoomerangBrosBoomerang::exeTongue() {
 void BoomerangBrosBoomerang::exeThrown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Spin");
-        _B4 = false;
+        mIsPointBound = false;
         mStep = 0;
         mPathDistance = 2000.0f;
         MR::getPlayerThrowVec(&mFront);

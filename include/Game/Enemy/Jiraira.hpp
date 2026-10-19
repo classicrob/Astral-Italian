@@ -21,6 +21,6 @@ public:
     void exePreRecover();
     void exeRecover();
 
-    CollisionParts* _8C;
-    f32 _90;
+    /* 0x90 */ CollisionParts* mButtonCollisionParts;
+    /* 0x94 */ f32 mExplosionRadius;
 };

@@ -90,6 +90,6 @@ public:
     /* 0xC4 */ f32 mMeanderAngle;
     /* 0xC8 */ s32 mStarPieceTotal;
     /* 0xCC */ s32 mStarPieceRemaining;
-    /* 0xD0 */ u8 _D0;  // unused
+    /* 0xD8 */ u8 mUnusedD8;  // unused
     /* 0xD4 */ TMtx34f mHeadMtx;
 };

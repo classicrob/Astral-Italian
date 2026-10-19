@@ -109,8 +109,8 @@ namespace NrvTakoHei {
 };  // namespace NrvTakoHei
 
 TakoHei::TakoHei(const char* pName)
-    : LiveActor(pName), mScaleController(0), mBindStarPointer(0), mYoshiLockOn(0), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), _A4(0, 0, 0), mFront(0, 0, 1), mWalkTarget(0, 0, 0), _C8(0, 0, 1), mHomePos(0, 0, 0), mNoPushStep(0),
-      _E4(0), mAirStep(0), _EC(0), mHasMoveLimitCollision(0) {
+    : LiveActor(pName), mScaleController(0), mBindStarPointer(0), mYoshiLockOn(0), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mUnusedVecAC(0, 0, 0), mFront(0, 0, 1), mWalkTarget(0, 0, 0), mUnusedFront(0, 0, 1), mHomePos(0, 0, 0), mNoPushStep(0),
+      mUnusedCounter(0), mAirStep(0), mUnusedFlag(0), mHasMoveLimitCollision(0) {
     MR::createTakoHeiInkHolder();
 }
 

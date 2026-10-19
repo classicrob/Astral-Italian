@@ -27,7 +27,7 @@ namespace NrvHammerBrosHammer {
     public:
         virtual void execute(Spine* pSpine) const {
             HammerBrosHammer* pActor = reinterpret_cast< HammerBrosHammer* >(pSpine->mExecutor);
-            pActor->_B4 = true;
+            pActor->mIsPointBound = true;
             MR::updateActorStateAndNextNerve(pActor, &HammerBrosHammerNrvSpin::sInstance);
         }
         static HammerBrosHammerNrvFreeze sInstance;
@@ -171,7 +171,7 @@ void HammerBrosHammer::exeFly() {
 
 void HammerBrosHammer::exeSpin() {
     if (MR::isFirstStep(this)) {
-        _B4 = false;
+        mIsPointBound = false;
         if (MR::tryStartActionNotPlaying(this, "Spin")) {
             s32 frame = 1;
             MR::setBckFrame(this, frame);
@@ -206,7 +206,7 @@ void HammerBrosHammer::exeThrown() {
     if (MR::isFirstStep(this)) {
         MR::tryHitReaction(this, "\x94\xad\x8e\xcb");
         exeEaten();
-        _B4 = false;
+        mIsPointBound = false;
         if (MR::tryStartActionNotPlaying(this, "Spin")) {
             s32 frame = 1;
             MR::setBckFrame(this, frame);

@@ -8,7 +8,7 @@
 
 
 BrosBase::BrosBase(const char* pName)
-    : LiveActor(pName), mHeld(nullptr), mProjectileIdx(0), mFront(0.0f, 0.0f, 1.0f), _B8(true), _B9(false), mItemType(1), mJointCtrl(nullptr), _CC(0), mConnector(nullptr), mConnected(false) {
+    : LiveActor(pName), mHeld(nullptr), mProjectileIdx(0), mFront(0.0f, 0.0f, 1.0f), mAllowRailJump(true), mIsInitialAttack(false), mItemType(1), mJointCtrl(nullptr), mUnusedCC(0), mConnector(nullptr), mConnected(false) {
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
 }
 
@@ -132,7 +132,7 @@ void BrosBase::appearCoin() {
     }
 }
 
-void BrosBase::fn_80186AD0() {
+void BrosBase::emitBrosYoshiEatItem() {
     MR::emitItemYoshiEat(this);
 }
 

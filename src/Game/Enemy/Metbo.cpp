@@ -484,7 +484,7 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     } else if (MR::isMsgStarPieceReflect(msg)) {
         if (isNrvDown()) return true;
         MR::startActionSound(this, "EmMetboTrample");
-        if (!fn_801CBD00() && !isNerve(GET_NERVE(Metbo, MetboNrvRecover))) {
+        if (!isMetboSwoonState() && !isNerve(GET_NERVE(Metbo, MetboNrvRecover))) {
             setNerve(GET_NERVE(Metbo, MetboNrvGuard));
         }
         return true;
@@ -498,7 +498,7 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
             } else if (isNerve(GET_NERVE(Metbo, MetboNrvSwoonStart))) {
                 return false;
             } else {
-                if (fn_801CBD00()) {
+                if (isMetboSwoonState()) {
                     setNerve(GET_NERVE(Metbo, MetboNrvTrampleDown));
                 } else {
                     setNerve(GET_NERVE(Metbo, MetboNrvGuard));
@@ -515,7 +515,7 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
                 return false;
             } else {
                 MR::tryRumbleDefaultHit(this, 0);
-                if (fn_801CBD00()) {
+                if (isMetboSwoonState()) {
                     setNerve(GET_NERVE(Metbo, MetboNrvTrampleDown));
                 } else {
                     setNerve(GET_NERVE(Metbo, MetboNrvGuard));
@@ -665,7 +665,7 @@ bool Metbo::tryDPDSwoon() {
     if (isNerve(GET_NERVE(Metbo, MetboNrvSwoonStart))) return false;
     if (isNrvDown()) return false;
     if (isNerve(GET_NERVE(Metbo, MetboNrvGuard)) && MR::isLessStep(this, 60)) return false;
-    if (fn_801CBD00()) {
+    if (isMetboSwoonState()) {
         if (!mStateDPDSwoon->tryStartPointBind()) return false;
         setNerve(GET_NERVE(Metbo, MetboNrvDPDSwoonSwoon));
         return true;
@@ -695,7 +695,7 @@ inline TVec3f makeZeroVec() {
     return v;
 }
 
-bool Metbo::fn_801CBD00() const {
+bool Metbo::isMetboSwoonState() const {
     bool result = false;
     if (isNerve(GET_NERVE(Metbo, MetboNrvSwoonStart)) || isNerve(GET_NERVE(Metbo, MetboNrvSwoonLand)) ||
         isNerve(GET_NERVE(Metbo, MetboNrvSwoonSpin)) || isNerve(GET_NERVE(Metbo, MetboNrvSwoonWait)) ||

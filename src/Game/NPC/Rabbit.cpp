@@ -61,7 +61,7 @@ void Rabbit::init(const JMapInfoIter& rIter) {
     MR::getObjectName(&name, rIter);
     NPCActorCaps caps("MoonRabbit");
     caps.setDefault();
-    caps._10 = name;
+    caps.mMessageId = name;
     caps.mMessageOffset = TVec3f(0.0f, 160.0f, 0.0f);
     initialize(rIter, caps, "MoonRabbit", nullptr, nullptr);
     s32 colorFrameArg = 0;
@@ -90,7 +90,7 @@ void Rabbit::init(const JMapInfoIter& rIter) {
     mParam._1C = "Talk";
     mParam._20 = turn;
     setDefaults("Reaction", "Pointing", "Press", "Spin");
-    _12C = 450.0f;
+    mSpinAttackRange = 450.0f;
     if (mBehavior == Behavior_LongJump) {
         mParam._0 = false;
         mParam._1 = false;
@@ -98,7 +98,7 @@ void Rabbit::init(const JMapInfoIter& rIter) {
 }
 
 void Rabbit::control() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled");
         MR::startActionSound(this, "SvRabbitTrampled");
     }
@@ -143,7 +143,7 @@ void Rabbit::calcAndSetBaseMtx() {
 }
 
 void Rabbit::exeReaction() {
-    if (_D8) {
+    if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled");
         MR::startActionSound(this, "SvRabbitTrampled");
     }
@@ -152,16 +152,16 @@ void Rabbit::exeReaction() {
         MR::startDPDHitSound();
     }
 
-    if (_E4) {
+    if (mPointed) {
         MR::startActionSound(this, "SmLvRabbitPoint");
     }
 
-    if (_D9) {
+    if (mSpinAttackedStart) {
         MR::startActionSound(this, "SvRabbitSpin");
         MR::startActionSound(this, "SmRabbitSpin");
     }
 
-    if (_DB) {
+    if (mReactionStart) {
         MR::limitedStarPieceHitSound();
         MR::startActionSound(this, "SmRabbitStarPieceHit");
         MR::startActionSound(this, "SvRabbitStarPieceHit");

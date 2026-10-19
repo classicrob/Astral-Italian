@@ -10,7 +10,7 @@ void Peach::init(const JMapInfoIter& rIter) {
     mParam.setMoveAction("Wait", "Turn");
     mParam.setTalkAction("Talk", "Turn");
     setDefaults();
-    _94 = MR::createPartsModelMapObj(this, "ピーチ傘", "PeachUmbrella", getBaseMtx());
+    mGoods0 = MR::createPartsModelMapObj(this, "ピーチ傘", "PeachUmbrella", getBaseMtx());
 }
 
 void Peach::control() {

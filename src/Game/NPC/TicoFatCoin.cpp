@@ -43,11 +43,11 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     mParam._18="Wait";
     mParam._1C="Talk";
     mParam._20="Talk";
-    _130=cNPCSpinDefault;
-    _134=cNPCTrampledDefault;
-    _138=cNPCPointingDefault;
-    _13C=cNPCReactionDefault;
-    _12C=1000.0f;
+    mSpinAction=cNPCSpinDefault;
+    mTrampledAction=cNPCTrampledDefault;
+    mPointingAction=cNPCPointingDefault;
+    mReactionAction=cNPCReactionDefault;
+    mSpinAttackRange=1000.0f;
     mTalkNerve=GET_NERVE(TicoFatCoin, TicoFatCoinNrvWait);
     MR::getJMapInfoArg1NoInit(iter,&mRequiredCoins);
     mEatState = new TicoStateEatCoin(this,mRequiredCoins);
@@ -60,8 +60,8 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     item.mGoodsJoint1=lbl_807CFE90;
     MR::getNPCItemData(&item,0);
     equipment(item,false);
-    MR::startAction(_94,"TicoFatGoodsCoinL");
-    MR::startAction(_98,"TicoFatGoodsCoinR");
+    MR::startAction(mGoods0,"TicoFatGoodsCoinL");
+    MR::startAction(mGoods1,"TicoFatGoodsCoinR");
     initTalkCtrlDirect(iter,"TicoFatCoin_Request000",TVec3f(0.0f,150.0f,0.0f),0);
     MR::registerBranchFunc(getMsgCtrl(),TalkMessageFunc(this,&TicoFatCoin::branchFunc));
     MR::registerEventFunc(getMsgCtrl(),TalkMessageFunc(this,&TicoFatCoin::eventFunc));
@@ -81,7 +81,7 @@ void TicoFatCoin::exeWait() {
 }
 void TicoFatCoin::exeMetamorphosis() {
     if(MR::isFirstStep(this)) MR::startAction(this,"Demo");
-    if(MR::isStep(this,90)) { _94->kill(); _98->kill(); }
+    if(MR::isStep(this,90)) { mGoods0->kill(); mGoods1->kill(); }
     if(MR::isActionEnd(this)) {
         if(MR::isExistRail(this)) { setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvMove)); return; }
         setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransform));

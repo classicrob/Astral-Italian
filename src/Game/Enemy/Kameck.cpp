@@ -42,14 +42,14 @@ namespace NrvKameck {
     NEW_NERVE(KameckNrvAppear, Kameck, Appear);
     NEW_NERVE(KameckNrvWait, Kameck, Wait);
     NEW_NERVE(KameckNrvHide, Kameck, Hide);
-    class KameckNrvfn_801A68C0 : public Nerve {
+    class KameckNrvWaitAfterShot : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            static_cast<Kameck*>(pSpine->mExecutor)->fn_801A5C60();
+            static_cast<Kameck*>(pSpine->mExecutor)->exeWaitAfterShot();
         }
-        static KameckNrvfn_801A68C0 sInstance;
+        static KameckNrvWaitAfterShot sInstance;
     };
-    KameckNrvfn_801A68C0 KameckNrvfn_801A68C0::sInstance ATTRIBUTE_WEAK;
+    KameckNrvWaitAfterShot KameckNrvWaitAfterShot::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(KameckNrvAttackWait, Kameck, AttackWait);
     NEW_NERVE(KameckNrvAttack, Kameck, Attack);
     NEW_NERVE(KameckNrvGuard, Kameck, Guard);
@@ -184,7 +184,7 @@ void Kameck::control() {
 
 bool Kameck::isEnableEat() const {
     if (isNerve(GET_NERVE(Kameck, KameckNrvWait)) || isNerve(GET_NERVE(Kameck, KameckNrvAppear)) ||
-        isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) || isNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0)) ||
+        isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) || isNerve(GET_NERVE(Kameck, KameckNrvWaitAfterShot)) ||
         isNerve(GET_NERVE(Kameck, KameckNrvAttack)) || isNerve(GET_NERVE(Kameck, KameckNrvMoveHide)) ||
         isNerve(GET_NERVE(Kameck, KameckNrvBindStarPointer))) {
         return true;
@@ -411,7 +411,7 @@ bool Kameck::tryAttackWait() {
         }
 
         if (railPoint == 0) {
-            setNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0));
+            setNerve(GET_NERVE(Kameck, KameckNrvWaitAfterShot));
             return true;
         }
 
@@ -560,7 +560,7 @@ void Kameck::exeWait() {
 void Kameck::exeHide() {
 }
 
-void Kameck::fn_801A5C60() {
+void Kameck::exeWaitAfterShot() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::invalidateClipping(this);
@@ -733,7 +733,7 @@ bool Kameck::canNonActive() const {
 
 bool Kameck::isEnableAttack() const {
     if (!(!isNerve(GET_NERVE(Kameck, KameckNrvWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvAppear)) &&
-          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0)) &&
+          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvWaitAfterShot)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvAttack)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvMoveHide)))) {
         return true;
@@ -744,7 +744,7 @@ bool Kameck::isEnableAttack() const {
 
 bool Kameck::isEnableGurad() const {
     if (!(!isNerve(GET_NERVE(Kameck, KameckNrvWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvAppear)) &&
-          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvfn_801A68C0)) &&
+          !isNerve(GET_NERVE(Kameck, KameckNrvAttackWait)) && !isNerve(GET_NERVE(Kameck, KameckNrvWaitAfterShot)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvAttack)) &&
           !isNerve(GET_NERVE(Kameck, KameckNrvGuard)) && !isNerve(GET_NERVE(Kameck, KameckNrvMoveHide)))) {
         return true;

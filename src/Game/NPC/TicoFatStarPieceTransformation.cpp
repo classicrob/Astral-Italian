@@ -37,8 +37,8 @@ void TicoFatStarPieceTransformation::exeWaitDemo() {
     if (MR::tryStartDemo(mHost, "変身")) {
         MR::invalidateHitSensors(mHost);
         MR::stopPlayerFpView();
-        MR::requestMovementOn(mHost->_94);
-        MR::requestMovementOn(mHost->_98);
+        MR::requestMovementOn(mHost->mGoods0);
+        MR::requestMovementOn(mHost->mGoods1);
         mHost->mFullnessMeter->pauseOff();
         setNerve(&NrvTicoFatStarPieceTransformation::WaitTalk::sInstance);
     }
@@ -71,8 +71,8 @@ void TicoFatStarPieceTransformation::exeTransform() {
     }
     MR::startActionSound(mHost, "VolDownBgm", -1, -1, -1);
     if (MR::isActionEnd(mHost)) {
-        MR::hideModelAndOnCalcAnim(mHost->_94);
-        MR::hideModelAndOnCalcAnim(mHost->_98);
+        MR::hideModelAndOnCalcAnim(mHost->mGoods0);
+        MR::hideModelAndOnCalcAnim(mHost->mGoods1);
         MR::endMultiActorCamera(mHost, mCameraInfo, "変身", false, -1);
         setNerve(&NrvTicoFatStarPieceTransformation::Fly::sInstance);
     }
@@ -100,8 +100,8 @@ void TicoFatStarPieceTransformation::exeFly() {
     if (MR::isStep(this, 120)) {
         MR::turnPlayerToActor(mHost, 180.0f);
         setNerve(&NrvTicoFatStarPieceTransformation::CreateRoute::sInstance);
-        mHost->_94->kill();
-        mHost->_98->kill();
+        mHost->mGoods0->kill();
+        mHost->mGoods1->kill();
     }
 }
 

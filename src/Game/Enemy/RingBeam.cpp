@@ -25,7 +25,7 @@ namespace NrvRingBeam {
 };  // namespace NrvRingBeam
 
 RingBeamShadowDrawer::RingBeamShadowDrawer(const LiveActor* unk0) : ShadowVolumeDrawer("影描画[リングビーム]") {
-    _1c = unk0;
+    mHost = unk0;
     mRadius = 0.0f;
 }
 
@@ -47,7 +47,7 @@ void RingBeamShadowDrawer::drawShape() const {
     TVec3f listYDir;
     f32 f1 = 0.2026834f;
 
-    baseMtxCopy.setInline(_1c->getBaseMtx());
+    baseMtxCopy.setInline(mHost->getBaseMtx());
     baseMtxCopy.getXDir(XDir);
     baseMtxCopy.getYDir(YDir);
     baseMtxCopy.getTrans(Trans);
@@ -56,7 +56,7 @@ void RingBeamShadowDrawer::drawShape() const {
     f32 f2 = 0.0f;
     for (int i = 0; i < 32; i++) {
         temp.add(Trans, XDirScaled);
-        MR::calcGravityVectorOrZero(_1c, temp, &temp2, nullptr, 0);
+        MR::calcGravityVectorOrZero(mHost, temp, &temp2, nullptr, 0);
         if (MR::normalizeOrZero(XDirScaled, &temp3)) {
             MtxList[i].setInline(baseMtxCopy);
         } else if (MR::isSameDirection(-temp2, temp3)) {
@@ -147,21 +147,21 @@ void RingBeamShadowDrawer::loadModelDrawMtx() const {
 };
 
 bool RingBeamShadowDrawer::isDraw() const {
-    return MR::isValidDraw(_1c);
+    return MR::isValidDraw(mHost);
 }
 
 RingBeam::RingBeam(const char* pName, LiveActor* arg1, bool arg2, bool arg3, bool arg4, bool arg5, const char* arg6) : LiveActor(pName) {
-    _8c = arg1;
+    mHost = arg1;
     mBloomModel = nullptr;
     mBeamName = arg6 ? arg6 : "JumpBeamerBeam";
     mSpeed = 20.0f;
     mLife = 100;
-    _9c = arg2;
-    _9d = arg3;
-    _9e = arg4;
-    _9f = arg5;
-    _a0 = nullptr;
-    _a4 = nullptr;
+    mFollowGravity = arg2;
+    mUseShadowModel = arg3;
+    mUseBloomModel = arg4;
+    mUseColorBtp = arg5;
+    mShadowDrawer = nullptr;
+    mShadowModel = nullptr;
     mColor = 0.0f;
     mStartRadius = 0.0f;
     mMaxRadius = 2000.0f;
@@ -183,25 +183,25 @@ void RingBeam::init(const JMapInfoIter& rIter) {
     initHitSensor(1);
     MR::addHitSensorEye(this, "Beam", 8, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initEffectKeeper(1, nullptr, false);
-    initSound(2, "RingBeam", &_cc, TVec3f(0.0f));
+    initSound(2, "RingBeam", &mSoundPos, TVec3f(0.0f));
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(RingBeam, RingBeamNrvSpread));
 
     initPos(this);
     mtx.setInline(this->getBaseMtx());
-    mtx.getZDir(_a8);
-    mtx.getTrans(_c0);
-    mtx.getTrans(_cc);
-    if (_9d) {
+    mtx.getZDir(mFront);
+    mtx.getTrans(mBeamPos);
+    mtx.getTrans(mSoundPos);
+    if (mUseShadowModel) {
         char name[256];
         snprintf(name, sizeof(name), "%sShadow", mBeamName);
-        _a4 = new ModelObj("影モデル", name, nullptr, 29, 41, 8, false);
-        _a4->initWithoutIter();
-        MR::copyTransRotateScale(_a4, this);
+        mShadowModel = new ModelObj("影モデル", name, nullptr, 29, 41, 8, false);
+        mShadowModel->initWithoutIter();
+        MR::copyTransRotateScale(mShadowModel, this);
     } else {
-        _a0 = new RingBeamShadowDrawer(this);
+        mShadowDrawer = new RingBeamShadowDrawer(this);
     }
-    if (_9e) {
+    if (mUseBloomModel) {
         char name[256];
         snprintf(name, sizeof(name), "%sBloom", mBeamName);
         mBloomModel = MR::createModelObjBloomModel("リングビームブルーム", name, getBaseMtx(), true);
@@ -212,7 +212,7 @@ void RingBeam::init(const JMapInfoIter& rIter) {
 }
 
 void RingBeam::appear() {
-    initPos(_8c);
+    initPos(mHost);
     LiveActor::appear();
     if (mBloomModel) mBloomModel->appear();
 }
@@ -220,15 +220,15 @@ void RingBeam::appear() {
 
 void RingBeam::kill() {
     setNerve(GET_NERVE(RingBeam, RingBeamNrvSpread));
-    initPos(_8c);
+    initPos(mHost);
     setRadius(0.0f);
     LiveActor::kill();
 }
 
 void RingBeam::startBrk(const char* pchar) {
     MR::startBrk(this, pchar);
-    if (_a4) {
-        MR::startBrk(_a4, pchar);
+    if (mShadowModel) {
+        MR::startBrk(mShadowModel, pchar);
     }
 }
 
@@ -241,7 +241,7 @@ void RingBeam::setRingBckFrame(f32 frame) {
     if (mBloomModel) MR::setBckFrameAndStop(mBloomModel, frame);
 }
 void RingBeam::setColorFrame(f32 color) {
-    if (_9f) {
+    if (mUseColorBtp) {
         MR::startBtp(this, "ColorChange");
         MR::setBtpFrameAndStop(this, color);
     }
@@ -258,27 +258,27 @@ void RingBeam::setRadius(f32 radius) {
     if (radius >= mMaxRadius) {
         radius = mMaxRadius;
     }
-    if (_a0) {
-        _a0->mRadius = radius;
+    if (mShadowDrawer) {
+        mShadowDrawer->mRadius = radius;
     }
     MR::setSensorRadius(this, "Beam", radius);
     startSpreadBck("Spread");
     setRingBckFrame((radius / mMaxRadius) * MR::getBckFrameMax(this));
     setColorFrame(mColor);
-    if (_a4) {
+    if (mShadowModel) {
         Triangle triangle;
-        MR::extractMtxYDir(_8c->getBaseMtx(), &Ydir);
+        MR::extractMtxYDir(mHost->getBaseMtx(), &Ydir);
         Ydir.scale(1000.0f);
 
-        MR::getFirstPolyOnLineToMap(&temp2, &triangle, _c0, _b4 * 500.0f);
+        MR::getFirstPolyOnLineToMap(&temp2, &triangle, mBeamPos, mGravityDirection * 500.0f);
 
-        temp2 -= _b4 * 10.0f;
-        MR::calcPerpendicFootToLine(&temp6, temp2, _8c->mPosition + Ydir, _8c->mPosition - Ydir);
-        MR::setPosition(_a4, temp6);
-        MR::startBckNoInterpole(_a4, "Spread");
+        temp2 -= mGravityDirection * 10.0f;
+        MR::calcPerpendicFootToLine(&temp6, temp2, mHost->mPosition + Ydir, mHost->mPosition - Ydir);
+        MR::setPosition(mShadowModel, temp6);
+        MR::startBckNoInterpole(mShadowModel, "Spread");
         f32 length = (temp2 - temp6).length();
         if (0.0f <= length && length < mMaxRadius) {
-            MR::setBckFrameAndStop(_a4, (length / mMaxRadius) * MR::getBckFrameMax(_a4));
+            MR::setBckFrameAndStop(mShadowModel, (length / mMaxRadius) * MR::getBckFrameMax(mShadowModel));
         }
     }
 }
@@ -334,33 +334,33 @@ void RingBeam::exeSpread() {
         setColorFrame(mColor);
         startBrk("Erase");
         MR::setBrkFrameAndStop(this, 0.0f);
-        if (_a4) {
-            MR::setBrkFrameAndStop(_a4, 0.0f);
+        if (mShadowModel) {
+            MR::setBrkFrameAndStop(mShadowModel, 0.0f);
         }
         TVec3f temp;
-        MR::extractMtxZDir(_8c->getBaseMtx(), &_a8);
-        MR::extractMtxYDir(_8c->getBaseMtx(), &temp);
-        _c0.set(_8c->mPosition + temp * 75.0f);
-        MR::calcGravityVector(this, _c0, &_b4, nullptr, 0);
-        _c0 += _a8 * mStartRadius;
+        MR::extractMtxZDir(mHost->getBaseMtx(), &mFront);
+        MR::extractMtxYDir(mHost->getBaseMtx(), &temp);
+        mBeamPos.set(mHost->mPosition + temp * 75.0f);
+        MR::calcGravityVector(this, mBeamPos, &mGravityDirection, nullptr, 0);
+        mBeamPos += mFront * mStartRadius;
     }
 
     TVec3f ec;
-    if (_9c) {
-        MR::calcGravityVector(this, _c0 + _a8 * mSpeed, &_b4, nullptr, 0);
-        MR::makeMtxUpFront(&mtx, -_b4, _a8);
-        mtx.getZDir(_a8);
+    if (mFollowGravity) {
+        MR::calcGravityVector(this, mBeamPos + mFront * mSpeed, &mGravityDirection, nullptr, 0);
+        MR::makeMtxUpFront(&mtx, -mGravityDirection, mFront);
+        mtx.getZDir(mFront);
         TVec3f temp7;
-        MR::extractMtxYDir(_8c->getBaseMtx(), &temp7);
-        MR::calcPerpendicFootToLine(&ec, _c0, _8c->mPosition + temp7, _8c->mPosition - temp7);
+        MR::extractMtxYDir(mHost->getBaseMtx(), &temp7);
+        MR::calcPerpendicFootToLine(&ec, mBeamPos, mHost->mPosition + temp7, mHost->mPosition - temp7);
         mPosition = ec.copy();
     } else {
         ec = mPosition;
     }
 
     f32 rate = mParamScale->getSpeed();
-    _c0 += (_a8 * mSpeed) * rate;
-    setRadius((_c0 - ec).length());
+    mBeamPos += (mFront * mSpeed) * rate;
+    setRadius((mBeamPos - ec).length());
 
     if (!MR::isPowerStarGetDemoActive()) {
         TVec3f temp12 = MR::getCamPos() - ec;
@@ -368,15 +368,15 @@ void RingBeam::exeSpread() {
             f32 radius;
             f32 float2;
             TVec3f temp13;
-            MR::extractMtxYDir(_8c->getBaseMtx(), &temp13);
+            MR::extractMtxYDir(mHost->getBaseMtx(), &temp13);
             TVec3f temp15 = temp12 - temp13 * (temp12.dot(temp13));
             MR::normalizeOrZero(&temp15);
             MR::normalizeOrZero(&temp12);
             float2 = 1.0f - MR::abs(temp13.dot(temp12));
             radius = MR::getSensorRadius(this, "Beam");
-            _cc = ec + temp15 * radius * float2;
+            mSoundPos = ec + temp15 * radius * float2;
         } else {
-            _cc = ec;
+            mSoundPos = ec;
         }
         MR::startActionSound(this, "EmLvRingbeamMove");
     }

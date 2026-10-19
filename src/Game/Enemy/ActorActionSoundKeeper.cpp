@@ -23,7 +23,7 @@ JointSoundInfo::JointSoundInfo() {
 }
 
 ActorActionSoundKeeper::ActorActionSoundKeeper(LiveActor* actor, AudSoundObject* soundObject, const ActionSoundData* data)
-    : mActor(actor), mData(data), _8(0), mSounds(nullptr), mChecker(nullptr), mSoundCount(0), mJointCount(0), mJoints(nullptr) {
+    : mActor(actor), mData(data), mUnused08(0), mSounds(nullptr), mChecker(nullptr), mSoundCount(0), mJointCount(0), mJoints(nullptr) {
     mSoundCount = data->mCount;
     s32 count = 0;
     for (s32 i = 0; i < mSoundCount; i++) {

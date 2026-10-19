@@ -150,7 +150,7 @@ void OtaRockTank::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < 24; i++) {
         TVec3f& scale = mScatterBalls[i].mScale;
         scale = TVec3f(1.5f, 1.5f, 1.5f);
-        mScatterBalls[i]._B4 = 2.0f;
+        mScatterBalls[i].mUnusedScale = 2.0f;
         mScatterBalls[i].initWithoutIter();
         mScatterBalls[i].mHost = this;
     }

@@ -51,9 +51,9 @@ TalkPeekZ::TalkPeekZ() : mDrawSync(DrawSyncManager::sInstance->setCallback(4, 1,
 }
 
 void TalkPeekZ::setDrawSyncToken() {
-    GXGetProjectionv(&_20);
-    GXGetViewportv(&_3C);
-    _8 = 0;
+    GXGetProjectionv(&mProjectionParameters[0]);
+    GXGetViewportv(&mViewportParameters[0]);
+    mDepthValue = 0;
     DrawSyncManager::sInstance->pushBreakPoint();
     GXSetDrawSync(mDrawSync);
 }
@@ -67,14 +67,14 @@ void TalkPeekZ::drawSyncCallback(u16 arg) {
     TVec2f pos;
     MR::convertScreenPosToFrameBufferPos(&pos, mScreenPos);
 
-    GXPeekZ(pos.x, pos.y, &_8);
+    GXPeekZ(pos.x, pos.y, &mDepthValue);
 
-    TDDraw::invProject(&_14, TVec3f(mScreenPos.x, mScreenPos.y, static_cast< f32 >(_8)), const_cast< MtxPtr >(MR::getCameraViewMtx().mMtx), &_20,
-                       &_3C, false);
+    TDDraw::invProject(&mWorldPosition, TVec3f(mScreenPos.x, mScreenPos.y, static_cast< f32 >(mDepthValue)), const_cast< MtxPtr >(MR::getCameraViewMtx().mMtx), &mProjectionParameters[0],
+                       &mViewportParameters[0], false);
 }
 
 TalkDirector::TalkDirector(const char* pName)
-    : LayoutActor(pName, true), mMsgCtrl(), _3C(), _40(), _44(), mTalkState(), _4C(), _4D(), _4E(), mIsInvalidClipping(), _50(), mDemoType(), _58(), _59() {
+    : LayoutActor(pName, true), mMsgCtrl(), mPreviousRequestedCtrl(), mNextRequestedCtrl(), mLastTalkCtrl(), mTalkState(), mTalkStartedThisFrame(), mTalkEndedThisFrame(), mIsTalkDisabled(), mIsInvalidClipping(), mContinueMessage(), mDemoType(), mForceTalk(), mUsePlayerTalk() {
 }
 
 TalkDirector::~TalkDirector() {
@@ -91,8 +91,8 @@ void TalkDirector::init(const JMapInfoIter& rIter) {
 }
 void TalkDirector::movement() {
     updateMessage();
-    if(_4C && (!MR::isNewNerve(this) || (!isNerve(GET_NERVE(TalkDirector,TalkDirectorNrvTalk)) && !isNerve(GET_NERVE(TalkDirector,TalkDirectorNrvNext))))) _4C=false;
-    if(_4D && (!isNerve(GET_NERVE(TalkDirector,TalkDirectorNrvTerm)) || !MR::isNewNerve(this))) _4D=false;
+    if(mTalkStartedThisFrame && (!MR::isNewNerve(this) || (!isNerve(GET_NERVE(TalkDirector,TalkDirectorNrvTalk)) && !isNerve(GET_NERVE(TalkDirector,TalkDirectorNrvNext))))) mTalkStartedThisFrame=false;
+    if(mTalkEndedThisFrame && (!isNerve(GET_NERVE(TalkDirector,TalkDirectorNrvTerm)) || !MR::isNewNerve(this))) mTalkEndedThisFrame=false;
     LayoutActor::movement();
 }
 
@@ -134,12 +134,12 @@ bool TalkDirector::request(TalkMessageCtrl* pCtrl, bool force) {
 
     if (force) {
         if (TalkFunction::isShortTalk(pCtrl)) {
-            if (pCtrl->isNearPlayer(_40)) {
-                _40 = pCtrl;
+            if (pCtrl->isNearPlayer(mNextRequestedCtrl)) {
+                mNextRequestedCtrl = pCtrl;
             }
         } else {
-            _40 = pCtrl;
-            _3C = pCtrl;
+            mNextRequestedCtrl = pCtrl;
+            mPreviousRequestedCtrl = pCtrl;
             mMsgCtrl = pCtrl;
         }
     } else {
@@ -150,8 +150,8 @@ bool TalkDirector::request(TalkMessageCtrl* pCtrl, bool force) {
             return false;
         }
 
-        if (pCtrl->isNearPlayer(_40)) {
-            _40 = pCtrl;
+        if (pCtrl->isNearPlayer(mNextRequestedCtrl)) {
+            mNextRequestedCtrl = pCtrl;
         }
     }
 
@@ -222,44 +222,44 @@ void TalkDirector::updateMessage() {
     }
 
     if (isNerve(GET_NERVE(TalkDirector, TalkDirectorNrvWait)) || isNerve(GET_NERVE(TalkDirector, TalkDirectorNrvPrep))) {
-        mMsgCtrl = _3C;
-        _3C = _40;
-        _40 = nullptr;
+        mMsgCtrl = mPreviousRequestedCtrl;
+        mPreviousRequestedCtrl = mNextRequestedCtrl;
+        mNextRequestedCtrl = nullptr;
     } else {
-        mMsgCtrl = _40;
-        _3C = mMsgCtrl;
-        _40 = nullptr;
+        mMsgCtrl = mNextRequestedCtrl;
+        mPreviousRequestedCtrl = mMsgCtrl;
+        mNextRequestedCtrl = nullptr;
     }
 
     if (mMsgCtrl != nullptr) {
-        _44 = mMsgCtrl;
+        mLastTalkCtrl = mMsgCtrl;
     }
 
-    if (_3C != nullptr) {
-        _3C->updateBalloonPos();
+    if (mPreviousRequestedCtrl != nullptr) {
+        mPreviousRequestedCtrl->updateBalloonPos();
 
         TalkPeekZ* peek = mPeekZ;
-        TVec2f v1(_3C->mBalloonScreenPosition.x, _3C->mBalloonScreenPosition.y);
+        TVec2f v1(mPreviousRequestedCtrl->mBalloonScreenPosition.x, mPreviousRequestedCtrl->mBalloonScreenPosition.y);
         peek->mScreenPos.set(v1.x, v1.y);
     }
 
     if (MR::isPowerStarGetDemoActive()) {
         mMsgCtrl = nullptr;
-        _4E = true;
+        mIsTalkDisabled = true;
     }
 }
 
 void TalkDirector::prepTalk(TalkMessageCtrl* pCtrl, bool arg2, bool arg3, bool arg4) {
-    _58 = arg2;
-    _4C = true;
-    _59 = arg4;
+    mForceTalk = arg2;
+    mTalkStartedThisFrame = true;
+    mUsePlayerTalk = arg4;
 
     mDemoType = getDemoType(pCtrl, arg3);
     if(!arg2 && TalkFunction::isShortTalk(pCtrl)) mIsInvalidClipping=true;
     else mIsInvalidClipping = MR::isInvalidClipping(pCtrl->mHostActor);
 
     if (mDemoType == 0) {
-        _59 = false;
+        mUsePlayerTalk = false;
     }
 
     MR::invalidateClipping(pCtrl->mHostActor);
@@ -278,14 +278,14 @@ void TalkDirector::prepTalk(TalkMessageCtrl* pCtrl, bool arg2, bool arg3, bool a
         break;
     }
 
-    if (_59) {
+    if (mUsePlayerTalk) {
         MR::startPlayerTalk(pCtrl->mHostActor);
     }
 }
 
 void TalkDirector::termTalk() {
     TalkMessageCtrl* control = mTalkState->mTalkCtrl;
-    _4D = true;
+    mTalkEndedThisFrame = true;
 
     control->endCamera(mMessageInfo,-1);
 
@@ -293,7 +293,7 @@ void TalkDirector::termTalk() {
         MR::validateClipping(control->mHostActor);
     }
 
-    if (_59) {
+    if (mUsePlayerTalk) {
         MR::endPlayerTalk();
     }
 
@@ -307,7 +307,7 @@ void TalkDirector::termTalk() {
     }
 
     mDemoType = 0;
-    _59 = false;
+    mUsePlayerTalk = false;
     mIsInvalidClipping = false;
 }
 
@@ -329,7 +329,7 @@ TalkState* TalkDirector::initState(TalkMessageCtrl* pCtrl) {
 }
 
 bool TalkDirector::isInvalidTalk() const {
-    if (_4E) {
+    if (mIsTalkDisabled) {
         return true;
     }
 
@@ -458,9 +458,9 @@ void TalkDirector::exeTalk() {
 void TalkDirector::exeClose() {
     if(MR::isFirstStep(this)) mTalkState->clos();
     if(mTalkState->isBalloonDead()) {
-        _50=false;
+        mContinueMessage=false;
         TalkMessageCtrl* control=mTalkState->mTalkCtrl;
-        if(control->mIsOnRootNodeAuto && !mTalkState->isSelfInterrupt(_44)) control->rootNodePst();
+        if(control->mIsOnRootNodeAuto && !mTalkState->isSelfInterrupt(mLastTalkCtrl)) control->rootNodePst();
         setNerve(GET_NERVE(TalkDirector,TalkDirectorNrvNext));
         exeNext();
     }
@@ -480,10 +480,10 @@ void TalkDirector::exeSlct() {
         mTalkState->clos();
         if (control->mIsOnRootNodeAuto) {
             control->rootNodeSel(MR::isYesNoSelectedYes());
-            if(!TalkFunction::isForwardNode(control)) _50=true;
+            if(!TalkFunction::isForwardNode(control)) mContinueMessage=true;
             control->rootNodePre(true);
         } else {
-            _50=true;
+            mContinueMessage=true;
         }
 
         setNerve(GET_NERVE(TalkDirector, TalkDirectorNrvNext));
@@ -498,9 +498,9 @@ void TalkDirector::exeNext() {
     TalkFunction::onTalkStateTalking(control);
 
     if (control->rootNodeEve()) {
-        _50 |= cond;
+        mContinueMessage |= cond;
 
-        if (_50) {
+        if (mContinueMessage) {
             if (TalkFunction::isShortTalk(control)) {
                 termTalk();
             }
@@ -520,7 +520,7 @@ void TalkDirector::exeNext() {
 }
 
 void TalkDirector::exeTerm() {
-    if (!_58) {
+    if (!mForceTalk) {
         if (!mTalkState->term(mMsgCtrl)) {
             return;
         }
@@ -548,13 +548,13 @@ bool TalkFunction::endTalkSystem(TalkMessageCtrl* pCtrl) {
 bool TalkFunction::isTalkSystemStart(const TalkMessageCtrl* pCtrl) {
     TalkDirector* pDirector = ::getTalkDirector();
 
-    return pDirector->mMsgCtrl == pCtrl && pDirector->_4C;
+    return pDirector->mMsgCtrl == pCtrl && pDirector->mTalkStartedThisFrame;
 }
 
 bool TalkFunction::isTalkSystemEnd(const TalkMessageCtrl* pCtrl) {
     TalkDirector* pDirector = ::getTalkDirector();
 
-    return pDirector->mMsgCtrl == pCtrl && pDirector->_4D;
+    return pDirector->mMsgCtrl == pCtrl && pDirector->mTalkEndedThisFrame;
 }
 
 void TalkFunction::registerTalkSystem(TalkMessageCtrl* pCtrl) {
@@ -566,11 +566,11 @@ void MR::pauseOffTalkDirector() {
 }
 
 void MR::validateTalkDirector() {
-    ::getTalkDirector()->_4E = false;
+    ::getTalkDirector()->mIsTalkDisabled = false;
 }
 
 void MR::invalidateTalkDirector() {
-    ::getTalkDirector()->_4E = true;
+    ::getTalkDirector()->mIsTalkDisabled = true;
 }
 
 void MR::setTalkDirectorDrawSyncToken() {

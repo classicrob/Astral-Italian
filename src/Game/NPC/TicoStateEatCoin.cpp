@@ -21,7 +21,7 @@ namespace TicoStateEatCoinFunction {
     void calcMouthPosition(TVec3f* position, const NPCActor* actor) {
         MR::copyJointPos(actor, "Mouth", position);
         TVec3f up(0.0f, 1.0f, 0.0f);
-        actor->_A0.getYDir(up);
+        actor->mOrientationQuat.getYDir(up);
         TVec3f offset(-up * 50.0f);
         position->add(offset);
     }
@@ -49,7 +49,7 @@ void TicoStateEatCoin::exeTurn() {
     JMAVECScaleAdd(&MR::getCamXdir(), &MR::getCamPos(), &cameraPosition, 300.0f);
     TVec3f direction(0.0f, 0.0f, 1.0f);
     direction.sub(cameraPosition, mMouthPosition);
-    if (MR::faceToVector(&mActor->_A0, direction, mActor->mParam._8)) setNerve(&TicoStateEatCoinNrvEat::sInstance);
+    if (MR::faceToVector(&mActor->mOrientationQuat, direction, mActor->mParam._8)) setNerve(&TicoStateEatCoinNrvEat::sInstance);
 }
 
 #pragma dont_inline reset

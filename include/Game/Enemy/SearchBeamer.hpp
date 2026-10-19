@@ -72,7 +72,7 @@ public:
     /* 0x0B0 */ f32 mFaceRotateSpeed;
     /* 0x0B4 */ JointController* mPropellerJointCtrl;
     /* 0x0B8 */ TMtx34f mCollisionMtx;
-    /* 0x0E8 */ TMtx34f _E8;
+    /* 0xF0 */ TMtx34f mUnusedMtxF0;
     /* 0x118 */ JointController* mBeanStartJointCtrl;
     /* 0x11C */ JointController* mBeamEndJointCtrl;
     /* 0x120 */ TVec3f mBeamStart;

@@ -88,8 +88,8 @@ PukupukuWaterSurface::PukupukuWaterSurface(const char* pName) : LiveActor(pName)
     mFrontVec.set(0.0f, 0.0f, 0.0f);
     mUpVec.set(0.0f, 0.0f, 0.0f);
     mNerveRate = 0.0f;
-    _B4 = 0.0f;
-    _B8 = 0.0f;
+    mUnusedB4 = 0.0f;
+    mUnusedB8 = 0.0f;
     mNerveBlendRate = 0.0f;
     mLandingCount = 0;
     mYoshiLockOn = nullptr;

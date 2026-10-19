@@ -361,7 +361,7 @@ void Pukupuku::exeMoveWaterAfterJump() {
 
 void Pukupuku::exeLanding() {
     if (!tryBindStarPointer()) {
-        fn_801F1380();
+        tryExplosionAttackBoundMapObj();
         mStateLanding->update();
         if (mStateLanding->mIsDead) {
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvMoveWaterAfterJump));
@@ -605,23 +605,23 @@ bool Pukupuku::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     return false;
 }
 
-bool Pukupuku::fn_801F1380() {
+bool Pukupuku::tryExplosionAttackBoundMapObj() {
     if (!MR::isBinded(this)) {
         return false;
     }
     if (MR::isBindedGround(this)) {
-        return fn_801F1440(MR::getGroundSensor(this));
+        return tryExplosionAttackMapObj(MR::getGroundSensor(this));
     }
     if (MR::isBindedWall(this)) {
-        return fn_801F1440(MR::getWallSensor(this));
+        return tryExplosionAttackMapObj(MR::getWallSensor(this));
     }
     if (MR::isBindedRoof(this)) {
-        return fn_801F1440(MR::getRoofSensor(this));
+        return tryExplosionAttackMapObj(MR::getRoofSensor(this));
     }
     return false;
 }
 
-bool Pukupuku::fn_801F1440(HitSensor* sensor) {
+bool Pukupuku::tryExplosionAttackMapObj(HitSensor* sensor) {
     if (MR::isSensorType(sensor, 64)) {
         return MR::sendMsgEnemyAttackExplosion(sensor, getSensor("Body"));
     }

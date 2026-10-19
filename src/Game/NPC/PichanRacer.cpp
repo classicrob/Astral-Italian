@@ -71,9 +71,9 @@ void PichanRacer::init(const JMapInfoIter& iter) {
     initialize(iter, caps, "PichanRacer", nullptr, nullptr);
     mParam.setMoveAction("Wait", "Wait");
     mParam.setTalkAction("TalkAngry", "TalkAngry");
-    _130=cNPCSpinDefault; _134=cNPCTrampledDefault;
-    _138=cNPCPointingDefault; _13C=cNPCReactionDefault;
-    _12C = 450.0f;
+    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault;
+    mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    mSpinAttackRange = 450.0f;
     MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc(this, &PichanRacer::branchFunc));
     MR::registerEventFunc(mMsgCtrl, TalkMessageFunc(this, &PichanRacer::eventFunc));
     MR::registerNamePosLinkObj(this, iter, cFinishPosition);

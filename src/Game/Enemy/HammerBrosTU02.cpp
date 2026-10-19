@@ -105,7 +105,7 @@ void BrosStateJump::exeJumpStart() {
         mStep = 0;
     }
     if (MR::isStep(this, sHoldProjectileStep)) {
-        if (!mHost->_B9) {
+        if (!mHost->mIsInitialAttack) {
             mHost->tryHoldProjectile();
         }
     }
@@ -201,7 +201,7 @@ void BrosStateJump::exeJumpEnd() {
 void BrosStateJump::selectTarget() {
     mStartPos = mHost->mPosition;
     if (MR::isExistRail(mHost)) {
-        if (mHost->_B8 && MR::getRailPointNum(mHost) >= 3) {
+        if (mHost->mAllowRailJump && MR::getRailPointNum(mHost) >= 3) {
             mTargetPointNo = mCurrentPointNo;
             f32 maxDist = 0.0f;
             for (s32 i = -2; i < 2; i++) {
@@ -268,7 +268,7 @@ void HammerBrosStateAttack::exeAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Attack");
     }
-    if (mHost->_B9) {
+    if (mHost->mIsInitialAttack) {
         if (MR::getBckFrame(mHost) >= (f32)gBrosAttackReleaseFrame) {
             if (MR::getBckFrame(mHost) < (f32)throwFrame) {
                 mHost->tryHoldProjectile();
@@ -359,7 +359,7 @@ void BoomerangBrosStateAttack::exeAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Attack");
     }
-    if (mHost->_B9) {
+    if (mHost->mIsInitialAttack) {
         if (MR::getBckFrame(mHost) >= (f32)gBrosAttackReleaseFrame) {
             if (MR::getBckFrame(mHost) < (f32)throwFrame) {
                 mHost->tryHoldProjectile();

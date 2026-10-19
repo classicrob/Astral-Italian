@@ -59,8 +59,8 @@ void TicoShopDice::init(const JMapInfoIter& iter) {
     item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
     MR::getNPCItemData(&item, 0);
     equipment(item, false);
-    MR::startAction(_94, "Shake");
-    MR::startAction(_98, "Shake");
+    MR::startAction(mGoods0, "Shake");
+    MR::startAction(mGoods1, "Shake");
     mDiceCount = 0;
     s32 childCount = MR::getChildObjNum(iter);
     for (s32 i = 0; i < childCount; i++) {
@@ -102,13 +102,13 @@ void TicoShopDice::exeDisappear() {
     if (MR::isFirstStep(this)) MR::startAction(this, "Demo");
     if (MR::isActionEnd(this)) {
         MR::deleteEffectAll(this);
-        MR::deleteEffectAll(_94);
-        MR::deleteEffectAll(_98);
-        MR::stopBck(_94);
-        MR::stopBck(_98);
+        MR::deleteEffectAll(mGoods0);
+        MR::deleteEffectAll(mGoods1);
+        MR::stopBck(mGoods0);
+        MR::stopBck(mGoods1);
         MR::hideModel(this);
-        MR::hideModel(_94);
-        MR::hideModel(_98);
+        MR::hideModel(mGoods0);
+        MR::hideModel(mGoods1);
         MR::invalidateHitSensors(this);
         MR::invalidateShadowAll(this);
         setNerve(&NrvTicoShopDice::DiceAppear::sInstance);
@@ -126,12 +126,12 @@ void TicoShopDice::exeRecover() {
         MR::emitEffect(this, "Smoke");
         MR::startActionSound(this, "Recover", -1, -1, -1);
         MR::showModel(this);
-        MR::showModel(_94);
-        MR::showModel(_98);
+        MR::showModel(mGoods0);
+        MR::showModel(mGoods1);
         MR::validateHitSensors(this);
         MR::validateShadowAll(this);
-        MR::startAction(_94, "Shake");
-        MR::startAction(_98, "Shake");
+        MR::startAction(mGoods0, "Shake");
+        MR::startAction(mGoods1, "Shake");
         MR::startAction(this, "Wait");
         MR::startBva(this, "Small0");
         mParam._14 = "Wait";

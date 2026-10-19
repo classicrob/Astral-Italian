@@ -24,8 +24,8 @@ public:
     void updateRotate();
 
 public:
-    /* 0x90 */ s32 _90;
-    /* 0x94 */ TPos3f _94;
+    /* 0x90 */ MtxPtr mBodyJointMtx;
+    /* 0x94 */ TPos3f mHeadHostMtx;
     /* 0xC4 */ PartsModel* mHeadModel;
     /* 0xC8 */ ActorStateParamScale* mParamScale;
     /* 0xCC */ TVec3f mStartPos;

@@ -44,5 +44,5 @@ public:
     /* 0xC0 */ WalkerStateBindStarPointer* mBindStarPointer;
 
 private:
-    /* 0xC4 */ bool _C4;
+    /* 0xC8 */ bool mIsSensorOnly;
 };

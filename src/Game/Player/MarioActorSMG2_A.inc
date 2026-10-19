@@ -174,10 +174,10 @@ bool MarioActor::fn_803B9AB0() {
     if (p == nullptr) {
         return false;
     }
-    if (FP(p, LiveActor*, 0x18) == nullptr) {
+    if (p->mRideModelActor == nullptr) {
         return false;
     }
-    return !MR::isDead(FP(p, LiveActor*, 0x18));
+    return !MR::isDead(p->mRideModelActor);
 }
 
 void MarioActor::fn_803B9F10() {
@@ -248,7 +248,7 @@ void MarioActor::fn_803BB510(const TVec3f& a, const TVec3f& b) {
 }
 
 void MarioActor::fn_803BE6D0() {
-    if (F(void*, 0xF74) != nullptr) {
+    if (_B48 != nullptr) {
         this->_B48->clearForce();
     }
 }
@@ -291,7 +291,7 @@ void MarioActor::fn_803BE6F0() {
 
 bool MarioActor::fn_803BE800() {
     MarioAllModel* m = mAllModel;
-    J3DModel* c = FP(m, J3DModel*, 0xC);
+    J3DModel* c = m->mModels[0];
     return m->getJ3DModel() == c;
 }
 
@@ -948,17 +948,17 @@ void MarioActor::fn_803C1940() {
     TVec3f a(this->mPosition);
     a -= this->mPreviousPosition;
     TVec3f b(a);
-    b -= F(TVec3f, 0x38);
+    b -= mVelocity;
     mBinderMotion5D0 = a;
     TVec3f c(mBinderDirection5DC);
     mBinderDirection5DC = b;
     this->fn_803C1AF0(&mBinderDirection5DC, &c);
     if (PSVECMag((Vec*)&b) > 0.1f) {
-        if (!BITAT(this->mMario, 0xC, 0x15) && !MR::isNearZero(F(TVec3f, 0x38), 0.001f)) {
+        if (!BITAT(this->mMario, 0xC, 0x15) && !MR::isNearZero(mVelocity, 0.001f)) {
             TVec3f d(this->mPreviousPosition);
             d -= this->_1FC;
             f32 m1 = PSVECMag((Vec*)&d);
-            f32 m2 = PSVECMag((Vec*)&F(TVec3f, 0x38));
+            f32 m2 = PSVECMag((Vec*)&mVelocity);
             if (PSVECMag((Vec*)&b) > 2.0f * (m1 + m2)) {
                 this->mMario->stopWalk();
             }
@@ -1050,7 +1050,7 @@ void MarioActor::fn_803C1E80() {
     FP(this->mMario, TVec3f, 0x35C).zero();
     F(s16, 0xCCC) = 0;
     F(s32, 0xE20) = 0;
-    F(TVec3f, 0x38).zero();
+    mVelocity.zero();
     mLastMove.zero();
     this->_1FC = this->mPosition;
     if (this->fn_803C1F30()) {
@@ -1064,7 +1064,7 @@ bool MarioActor::fn_803C1F30() {
     Mario* m = this->mMario;
     bool r = false;
     if (BITAT(m, 0xC, 0x1E)) {
-        MtxPtr prev = FP(m, Triangle*, 0x458)->getPrevBaseMtx()->mMtx;
+        MtxPtr prev = m->_45C->getPrevBaseMtx()->mMtx;
         if (!MR::isSameMtx((this->mMario)->_45C->getBaseMtx()->mMtx, prev)) {
             r = true;
         }
@@ -1087,7 +1087,7 @@ void MarioActor::fn_803C2030() {
             MR::onBind(this);
         }
     }
-    this->_978 = F(TVec3f, 0x38);
+    this->_978 = mVelocity;
     if (BITAT(this->mMario, 0x1C, 0x14)) {
         this->mBinder->_1EC._1 = false;
         return;
@@ -1338,7 +1338,7 @@ bool MarioActor::fn_803C3930() {
     Mario* m = this->mMario;
     bool r = false;
     if (BITAT(m, 0xC, 0x1E)) {
-        MtxPtr prev = FP(m, Triangle*, 0x458)->getPrevBaseMtx()->mMtx;
+        MtxPtr prev = m->_45C->getPrevBaseMtx()->mMtx;
         if (!MR::isSameMtx((this->mMario)->_45C->getBaseMtx()->mMtx, prev)) {
             r = true;
         }
@@ -1961,7 +1961,7 @@ void MarioActor::fn_803BBDD0(const TVec3f& a, const TVec3f& b, const TVec3f& c) 
 
 void MarioActor::fn_803BBFD0(const char* name) {
     if (name == nullptr) {
-        F(void*, 0xFA0) = nullptr;
+        mEyeRes = nullptr;
         return;
     }
     char buf[0x80];
@@ -1971,12 +1971,12 @@ void MarioActor::fn_803BBFD0(const char* name) {
     }
     snprintf(buf, 0x80, "%s%s", prefix, name);
     if (MR::getResourceHolder(this)->mBtpResTable->isExistRes(buf)) {
-        void* r = MR::getResourceHolder(this)->mBtpResTable->getRes(buf);
-        F(void*, 0xFA0) = r;
-        FP(r, f32, 8) = 0.0f;
+        J3DAnmTexPattern* r = static_cast<J3DAnmTexPattern*>(MR::getResourceHolder(this)->mBtpResTable->getRes(buf));
+        mEyeRes = r;
+        r->setFrame(0.0f);
         return;
     }
-    F(void*, 0xFA0) = nullptr;
+    mEyeRes = nullptr;
 }
 
 void MarioActor::fn_803BC440(const char* name) {
@@ -2135,7 +2135,7 @@ bool MarioActor::fn_803C9300() {
         bool r = false;
         if (BITAT(m, 0x1C, 0xA)) {
             r = true;
-        } else if (MR::getWallCodeString(FP(m, Triangle*, 0x4C4)) != nullptr && strcmp(MR::getWallCodeString(FP(m, Triangle*, 0x4C4)), "Fur") == 0) {
+        } else if (MR::getWallCodeString(m->_4C8) != nullptr && strcmp(MR::getWallCodeString(m->_4C8), "Fur") == 0) {
             r = true;
         }
         if (r) {
@@ -2206,8 +2206,8 @@ void J3DModelX::setDynamicDL(u8* dl, u32 size) {
     if (dl == nullptr) {
         size = 0;
     }
-    FP(this, u8*, 0x1B8) = dl;
-    FP(this, u32, 0x1BC) = size;
+    _1B8 = dl;
+    _1BC = size;
 }
 
 // NONMATCHING: Matrix-address reuse, equivalent bit tests, and boolean-store scheduling.

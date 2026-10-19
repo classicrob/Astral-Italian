@@ -137,6 +137,7 @@
 #include "Game/Player/MarioTeresa.hpp"
 #include "Game/MapObj/BigFanHolder.hpp"
 #include "Game/Player/Yoshi.hpp"
+#include "Game/Player/YoshiTongueTarget.hpp"
 #include "Game/Player/MarioAllModel.hpp"
 #include "Game/Player/MarioHairAndHatModel.hpp"
 #include "Game/Player/CloudMarioHat.hpp"

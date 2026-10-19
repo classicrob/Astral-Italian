@@ -412,20 +412,20 @@ bool Mario::fn_803A0FF0() {
     if (v == 0) {
         return false;
     }
-    if (FLD<f32>(this, 0x1C8) < 0.75f) {
+    if (this->mStickPos.z < 0.75f) {
         this->_40C = 0;
         return false;
     }
     this->_40C = v - 1;
-    FLD<f32>(this, 0x1C0) = 0.0f;
-    FLD<f32>(this, 0x1C4) = 0.0f;
-    FLD<f32>(this, 0x1C8) = 0.0f;
+    this->mStickPos.x = 0.0f;
+    this->mStickPos.y = 0.0f;
+    this->mStickPos.z = 0.0f;
     return true;
 }
 
 bool Mario::fn_803A2270() {
     TVec3f sp8 = -this->mFrontVec;
-    f32 d = MR::diffAngleAbsHorizontal(FLD<TVec3f>(this, 0x8FC), sp8, *this->getGravityVec());
+    f32 d = MR::diffAngleAbsHorizontal(this->_8F8, sp8, *this->getGravityVec());
     return d < 0.7853982f;
 }
 
@@ -452,10 +452,10 @@ void Mario::fn_8039A090() {
 }
 
 f32 Mario::fn_803A26C0(f32 x) {
-    void* e = marioCurTableEntry(this);
-    f32 f4 = FLD<f32>(e, 0x37C);
-    f32 f3 = FLD<f32>(e, 0x374);
-    f32 f0 = FLD<f32>(e, 0x378);
+    MarioConstTable* e = marioCurTableEntry(this);
+    f32 f4 = e->mStickHeavyMaxAngle;
+    f32 f3 = e->mStickHeavyMinRatio;
+    f32 f0 = e->mStickHeavyMinAngle;
     if (x > f4) {
         return 1.0f;
     }
@@ -1152,23 +1152,23 @@ void Mario::fn_803A0ED0(TVec3f* arg1, s32 arg2) {
 
 // NONMATCHING: table lookups follow the draft; the speed-band selection is approximated
 f32 Mario::fn_803A1800() {
-    void* e = marioCurTableEntry(this);
+    MarioConstTable* e = marioCurTableEntry(this);
     if ((this->mMovementStates.mLowWord >> 16) & 1) {
-        return FLD<f32>(e, 0x3D4);
+        return e->mTurnAngleSpeedTornado;
     }
     if ((this->mMovementStates.mHighWord >> 28) & 1) {
-        return FLD<f32>(e, 0x264);
+        return e->mTurnAngleSpeedSlowWalk;
     }
-    if (this->mWalkSpeed > FLD<f32>(e, 0x2D0)) {
+    if (this->mWalkSpeed > e->mFastTurnSpeed) {
         if (this->isStatusActive(0x1F)) {
-            return 0.5f * FLD<f32>(e, 0x260);
+            return 0.5f * e->mTurnAngleSpeed3;
         }
         if (this->mTargetWalkSpeedIndex < 5) {
-            return FLD<f32>(e, 0x268);
+            return e->mGravityStandard;
         }
-        return FLD<f32>(e, 0x260);
+        return e->mTurnAngleSpeed3;
     }
-    return FLD<f32>(e, 0x25C);
+    return e->mTurnAngleSpeed2;
 }
 
 // NONMATCHING: the reset/timer chain is approximated from the draft

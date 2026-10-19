@@ -569,7 +569,7 @@ void Mario::fn_803AF2F0(const f32* pSpeedTable) {
     if (this->_3FA != 0) {
         var_f31 = 0.5f;
     } else {
-        var_f31 = FLD<f32>(marioCurTableEntry(this), 0x358);
+        var_f31 = marioCurTableEntry(this)->mWeightBlendRatio;
     }
     this->getAnimator()->setBlendWeight(pSpeedTable, var_f31);
 }

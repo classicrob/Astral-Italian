@@ -72,6 +72,38 @@ class CaptureTests(unittest.TestCase):
             self.assertNotIn('range',initializer)
             self.assertFalse(any(f['kind']=='CXXCtorInitializer' for f in facts))
 
+    def test_jasbank_anyinit_preview_preserves_header_fields(self):
+        # Reduced from JASBank.cpp / JASBasicInst.hpp. The real header fields
+        # precede the ctor's location-less anyInit previews in Clang's AST.
+        with tempfile.TemporaryDirectory() as tmp:
+            source='JASInstParam::JASInstParam() : _18(0), _24(false) {}'
+            prefix=self.setup_tree(tmp,source,source)
+            capture.BYFILE={'x.cpp':[{'id':'row','byte_offset':30,'end_byte_offset':33}]}
+            header=str(capture.LEGACY/'libs/JSystem/include/JSystem/JAudio2/JASBasicInst.hpp')
+            fields=[('0x130280370','_18','u32',100),('0x130280578','_24','bool',140)]
+            full=[];initializers=[]
+            for ident,name,typ,offset in fields:
+                preview={'id':ident,'kind':'FieldDecl','name':name,'type':{'qualType':typ}}
+                full.append(dict(preview,loc={'file':header,'offset':offset,'tokLen':3},
+                                 range={'begin':{'offset':offset-4,'tokLen':3},
+                                        'end':{'offset':offset,'tokLen':3}}))
+                initializers.append({'kind':'CXXCtorInitializer','anyInit':preview})
+            record={'id':'record','kind':'CXXRecordDecl','name':'JASInstParam','inner':full}
+            ctor={'id':'0x110392e20','kind':'CXXConstructorDecl','name':'JASInstParam',
+                  'type':{'qualType':'void ()'},
+                  'range':{'begin':{'file':str(capture.LEGACY/'x.cpp'),'offset':prefix,'tokLen':12},
+                           'end':{'offset':prefix+len(source)-1,'tokLen':1}},'inner':initializers}
+            for children in [[record,ctor],[ctor,record]]:
+                _,decls,errors=capture.reduce_ast({'kind':'TranslationUnitDecl','inner':children})
+                self.assertFalse(errors)
+                for ident,name,typ,offset in fields:
+                    field=decls[ident]
+                    self.assertEqual(field['location']['file'],'libs/JSystem/include/JSystem/JAudio2/JASBasicInst.hpp')
+                    self.assertEqual(field['location']['offset'],offset)
+                    self.assertEqual(field['range']['end']['offset'],offset)
+                    self.assertEqual(field['parent']['id'],'record')
+                    self.assertEqual(field['constructor_references'][0]['id'],'0x110392e20')
+
     def test_no_compiler_in_dry_run(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'inventory.json').write_text(json.dumps({'files':{'x.cpp':'fixture'},'rows':[{'id':'x','file':'x.cpp','byte_offset':0}]}))

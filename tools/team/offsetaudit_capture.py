@@ -61,7 +61,7 @@ def name_for(path):
 INTEREST={'ParmVarDecl','FieldDecl','VarDecl','EnumConstantDecl','FunctionDecl','CXXMethodDecl','CXXConstructorDecl','CXXDestructorDecl','CXXRecordDecl','RecordDecl','TypedefDecl','TypeAliasDecl','CXXStaticCastExpr','CXXReinterpretCastExpr','CXXConstCastExpr','CXXDynamicCastExpr','CStyleCastExpr','CXXFunctionalCastExpr','ImplicitCastExpr','BinaryOperator','CompoundAssignOperator','UnaryOperator','ArraySubscriptExpr','MemberExpr','DeclRefExpr','CallExpr','CXXMemberCallExpr','CXXOperatorCallExpr','CXXConstructExpr','IntegerLiteral','FloatingLiteral','UnaryExprOrTypeTraitExpr','ParenExpr','InitListExpr','CXXCtorInitializer'}
 
 def reduce_ast(tree):
- state={'file':None};facts=[];declarations={};mapping_errors=set()
+ state={'file':None};facts=[];declarations={};constructor_references={};mapping_errors=set()
  def loc(raw):
   if not isinstance(raw,dict):return None
   if 'spellingLoc' in raw or 'expansionLoc' in raw:
@@ -87,10 +87,16 @@ def reduce_ast(tree):
     else:
      for child in value:
       if isinstance(child,dict) and 'kind' in child:walk(child,parents)
-   elif isinstance(value,dict) and 'kind' in value:walk(value,parents)
+   elif isinstance(value,dict) and 'kind' in value:
+    if key=='anyInit' and value.get('id'):
+     constructor_references.setdefault(value['id'],[]).append(parents[-1] if parents else None)
+    walk(value,parents)
   if kind not in INTEREST:return
   if kind.endswith('Decl') and n.get('id') and n.get('name'):
-   declarations[n['id']]={'id':n['id'],'kind':kind,'name':n['name'],'type':n.get('type'),'location':ownloc,'bases':n.get('bases'),'parent':parents[-1] if parents else None,'isInvalid':n.get('isInvalid',False)}
+   # anyInit/referencedDecl previews carry an ID/type, not declaration ownership.
+   # A later location-less preview must not erase the full header declaration.
+   if ownloc or not declarations.get(n['id'],{}).get('location'):
+    declarations[n['id']]={'id':n['id'],'kind':kind,'name':n['name'],'type':n.get('type'),'location':ownloc,'range':{'begin':begin,'end':end},'bases':n.get('bases'),'parent':parents[-1] if parents else None,'isInvalid':n.get('isInvalid',False)}
   if not begin or not end or begin['file']!=end['file'] or begin['file'] not in BYFILE:return
   name=begin['file'];start=original_offset(name,begin['offset']);finish=original_offset(name,end['offset']+end['tokLen'],True)
   if start is None or finish is None:
@@ -111,6 +117,8 @@ def reduce_ast(tree):
   if begin.get('macro') or end.get('macro'):fact['macro_provenance']={'begin':begin.get('macro'),'end':end.get('macro')}
   facts.append(fact)
  walk(tree,[])
+ for key,parents in constructor_references.items():
+  if key in declarations:declarations[key]['constructor_references']=parents
  # Keep exact referenced declaration facts needed to interpret the selected nodes.
  refs=set()
  def references(n):

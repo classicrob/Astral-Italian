@@ -179,7 +179,13 @@ void HeapMemoryWatcher::createHeaps() {
     MR::CurrentHeapRestorer heapRestorer = MR::CurrentHeapRestorer(JKRHeap::sRootHeap);
 
     JKRExpHeap* systemHeap = ::createExpHeap(0x40000, JKRHeap::sRootHeap, false);
+#ifdef GALAXY_NATIVE
+    // Native audio objects are larger (64-bit pointers): the SMG2 bank set overflows the Wii's 0x200000 at
+    // bank 45 of the boot audio archive (MacioGalaxy measured about +280 KB over SMG1's 0x1E0000).
+    mAudSystemHeap = ::createSolidHeap(0x400000, JKRHeap::sRootHeap);
+#else
     mAudSystemHeap = ::createSolidHeap(0x200000, JKRHeap::sRootHeap);
+#endif
     systemHeap->becomeSystemHeap();
 
     JKRHeap* pRootHeapGDDR = HeapMemoryWatcher::sRootHeapGDDR3;

@@ -4,6 +4,9 @@
 #include "JSystem/JParticle/JPAEmitter.hpp"
 #include "JSystem/JParticle/JPAEmitterManager.hpp"
 #include "JSystem/JParticle/JPAExtraShape.hpp"
+#ifdef GALAXY_NATIVE
+#include "JSystem/JMath/JMAFloatConversion.hpp"
+#endif
 
 JPAParticleCallBack::~JPAParticleCallBack() {
 }
@@ -108,8 +111,13 @@ void JPABaseParticle::init_p(JPAEmitterWorkData* pWork) {
 
     if (esp != nullptr) {
         if (esp->isEnableRotateAnm()) {
+#ifdef GALAXY_NATIVE
+            mRotateAngle = JMath::truncToS16(esp->getRotateInitAngle() + esp->getRotateRndmAngle() * emtr->mRndm.get_rndm_zh());
+            mRotateSpeed = JMath::truncToU16(esp->getRotateInitSpeed() * (esp->getRotateRndmSpeed() * emtr->get_r_zp() + 1.0f));
+#else
             mRotateAngle = esp->getRotateInitAngle() + esp->getRotateRndmAngle() * emtr->mRndm.get_rndm_zh();
             mRotateSpeed = esp->getRotateInitSpeed() * (esp->getRotateRndmSpeed() * emtr->get_r_zp() + 1.0f);
+#endif
             mRotateSpeed = emtr->get_r_zp() < esp->getRotateDirection() ? s16(mRotateSpeed) : s16(-s16(mRotateSpeed));
         } else {
             mRotateAngle = 0;

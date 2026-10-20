@@ -4,6 +4,12 @@ Your own disc is the source of all game data. It stays private in `~/MacioGalaxy
 (`SB4E01.iso`, extracted to `SB4E01-extracted/`). Nothing from it is in this repository.
 
 
+## Build 5.1
+
+The default frozen build is **5.1**. It includes the native heap/scene-return changes, Home-menu Level Select consumer, corrected paired-single math, and headless loading/synchronization fixes. The freeze records the source, clean app/headless hashes, replay result and twelve fresh/warm lifecycle checks.
+
+The renderer key is shared with build 5. Matching build-keyed shader caches are reused; older or foreign namespaces are preserved. The invited destinations were warmed against the real machine cache during the freeze checks. First-use effects outside that coverage can still compile shaders. Build 5 remains selectable with `--build build5`; build 4 remains selectable with `--build build4`. Cappy remains unavailable.
+
 ## Frozen builds only
 
 The user plays **only frozen builds**. Every player launcher requires a
@@ -18,7 +24,7 @@ native/play/play.sh --list-builds
 native/play/play.sh --build build3 flip-swap
 ```
 
-`--build default` selects `~/MacioGalaxy2-play/build5/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
+`--build default` selects `~/MacioGalaxy2-play/build5.1/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
 select another frozen app under the same tree and is checked by the same rule.
 A marker records the build owner's freeze; it does not isolate saves or caches.
 The versioned [persistent-state inventory](native/play/PERSISTENT-STATE.md)
@@ -42,7 +48,7 @@ Double-click **`Play Astral Italian.command`** in the repository folder. A menu 
 Press a number and Return. The game skips the title, opens file 1 (creating it if needed) and drops you into
 mission 1 of that galaxy. It does not award stars or unlock anything in the file. Quit with Cmd+Q.
 
-It plays frozen build 5 at `~/MacioGalaxy2-play/build5/Petari.app` (see `FROZEN.txt` next to it). Saves, settings and logs go
+It plays frozen build 5.1 at `~/MacioGalaxy2-play/build5.1/Petari.app` (see `FROZEN.txt` next to it). Saves, settings and logs go
 to `~/MacioGalaxy2-play/user`; MacioGalaxy's own folder (`~/Library/Application Support/Petari`) is refused.
 
 ## Odyssey movement: one toggle
@@ -68,7 +74,7 @@ the frozen build 3 does.
 
 ## Something looks or feels off? Press M (or F9) (build 5 and later)
 
-Available in default build 5. On build 4, just tell us what happened and roughly when. From build 5 on:
+Available in default build 5.1. On build 4, just tell us what happened and roughly when. From build 5 on:
 M (or F9) saves a capture to `~/MacioGalaxy2-play/captures/<date-time>/`: the last 5 seconds (300 frames) of your inputs and
 Mario's movement, Mario's state at that moment, and a screenshot. Nothing appears on screen; keep playing. Afterwards,
 write one line about what felt off into that folder's `state.txt` (the last line, "note:"), or just say which capture it
@@ -89,11 +95,12 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 ## Status and known issues
 
 - **Home-menu Level Select does nothing (builds 4 and 5).** Choosing a galaxy and **Go** closes the menu but never
-  warps: the warp it queues is not picked up by the game in this SMG2 port yet (fix planned for build 5.1). To play a
+  warps: the warp it queues is not picked up by the game in those builds (consumer included in build 5.1). To play a
   particular galaxy, use the launcher's galaxy menu or `play.sh <galaxy>` / `--stage` instead.
-Build 5 is the default. Its freeze record is ~/MacioGalaxy2-play/build5/FROZEN.txt.
 
-- Clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617); the fix is scheduled for build 5.1.
+Build 5.1 is the default. Its freeze record is ~/MacioGalaxy2-play/build5.1/FROZEN.txt. Build 5 is preserved and selectable with --build build5.
+
+- On preserved build 5, clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617). Build 5.1 includes the heap changes; its freeze checks the normal scene-return request, not an actual power-star award/cutscene/save-clear sequence.
 - Star Bit mods: confirmed by the player in Fluffy Bluff on build 5 (2026-10-20): G pulls in the Star Bits and V shoots the nearest enemy ("All that seemed to work well!"). The automated M1 check had not seen V fire (no enemy in range).
 - Odyssey movement: the moveset (long jump, dive, wall jump, side flip, backflip) was confirmed by the player in Fluffy Bluff on build 5 (2026-10-20).
 - Build 5 starts with a fresh renderer-build-keyed shader cache and the bundled seed. Old cache files are ignored and preserved, not deleted. New effects outside the seed can still compile on first use.
@@ -110,7 +117,6 @@ Build 5 is the default. Its freeze record is ~/MacioGalaxy2-play/build5/FROZEN.t
   of each galaxy, no clipping, music around -20 dBFS. If it sounds wrong, press `a` in the menu to turn it off.
 - First run: brief hitches the first time new effects appear (shaders compiling); later runs use the cache, which is
   already warm on this Mac for Flip-Swap and Fluffy Bluff.
-- Untested: Sky Station and every other galaxy, power-ups (Cloud Flower), Yoshi, world-map travel, co-star mode, and the
-  Odyssey moves other than the roll.
+- The 5.1 freeze checks bounded Yoshi Star, Flip-Swap, Fluffy Bluff, unlocked-save ship load, WorldMap01 walking/idle and galaxy-to-ship scene return. It does not establish every galaxy, Yoshi gameplay, power-ups, full world-map travel, co-star mode or actual star-clear/save-return coverage.
 - The full list and the measured numbers: [`native/play/PLAY.md`](native/play/PLAY.md), "Status and known issues",
-  and `~/MacioGalaxy2-play/FROZEN.txt`. Older builds: `~/MacioGalaxy2-play/build3/` (last night's), `build2/`, `build1/`.
+  and `~/MacioGalaxy2-play/build5.1/FROZEN.txt`. Older builds: `~/MacioGalaxy2-play/build3/` (last night's), `build2/`, `build1/`.

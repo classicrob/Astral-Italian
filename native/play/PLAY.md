@@ -4,6 +4,12 @@ Astral Italian is the Mac build of the Super Mario Galaxy 2 decompilation. It ru
 machine that holds your extracted disc. Nothing here touches MacioGalaxy (the SMG1 port) or its saves.
 
 
+## Build 5.1
+
+The default frozen build is **5.1**. It includes the native heap/scene-return changes, Home-menu Level Select consumer, corrected paired-single math, and headless loading/synchronization fixes. The freeze records the source, clean app/headless hashes, replay result and twelve fresh/warm lifecycle checks.
+
+The renderer key is shared with build 5. Matching build-keyed shader caches are reused; older or foreign namespaces are preserved. The invited destinations were warmed against the real machine cache during the freeze checks. First-use effects outside that coverage can still compile shaders. Build 5 remains selectable with `--build build5`; build 4 remains selectable with `--build build4`. Cappy remains unavailable.
+
 ## Frozen builds only
 
 The user plays **only frozen builds**. Every player launcher requires a
@@ -18,7 +24,7 @@ native/play/play.sh --list-builds
 native/play/play.sh --build build3 flip-swap
 ```
 
-`--build default` selects `~/MacioGalaxy2-play/build5/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
+`--build default` selects `~/MacioGalaxy2-play/build5.1/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
 select another frozen app under the same tree and is checked by the same rule.
 A marker records the build owner's freeze; it does not isolate saves or caches.
 The versioned [persistent-state inventory](PERSISTENT-STATE.md)
@@ -63,7 +69,7 @@ native/play/play.sh flip-swap --scenario 2 --odyssey --audio off
 | Audio | `a` | `--audio off` | On by default since build 4. Off runs the game's audio through a silent driver. |
 
 Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petari.app`, default
-`~/MacioGalaxy2-play/build5/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
+`~/MacioGalaxy2-play/build5.1/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
 `~/MacioGalaxy2-gamedata/SB4E01-extracted`), `ASTRAL_USER` (saves, settings, controls, logs; default
 `~/MacioGalaxy2-play/user`). The scripts refuse MacioGalaxy's own user folder
 (`~/Library/Application Support/Petari`), so its saves are never read or written.
@@ -176,13 +182,13 @@ native/play/play.sh <InternalName> [--odyssey]     # e.g. native/play/play.sh Is
 - `WanwanFactoryGalaxy`
 - `WhiteSnowGalaxy`
 
-World maps (WorldMap01-08) load without Mario by design. About 7 galaxies currently crash on one shared bug that is being fixed. The full table is in ~/MacioGalaxy2-team/scratch-port/sweep/SUMMARY.md.
+Build 5.1 checks WorldMap01 load, walking and idle. Full world-map travel is not established. WorldMap08 is unsupported direct entry (aggregate data, not a normal playable world) and is excluded from scored coverage. Historical sweep evidence remains separate from the current freeze gates.
 
-## Build 5: default frozen build
+## Build 5: preserved historical build
 
 The app and its clean-build provenance are in ~/MacioGalaxy2-play/build5/. The sibling PERSISTENT-STATE.md inventories saves, settings and keyed cache paths. Build 4 and its saves remain at their original paths; select it with --build build4.
 
-- Clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617); the fix is scheduled for build 5.1.
+- On preserved build 5, clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617). Build 5.1 includes the heap changes; its freeze checks the normal scene-return request, not an actual power-star award/cutscene/save-clear sequence.
 - Star Bit mods: confirmed by the player in Fluffy Bluff on build 5 (2026-10-20): G pulls in the Star Bits and V shoots the nearest enemy ("All that seemed to work well!"). The automated M1 check had not seen V fire (no enemy in range).
 - Odyssey movement: the moveset (long jump, dive, wall jump, side flip, backflip) was confirmed by the player in Fluffy Bluff on build 5 (2026-10-20).
 - Build 5 starts with a fresh renderer-build-keyed shader cache and the bundled seed. Old cache files are ignored and preserved, not deleted. New effects outside the seed can still compile on first use.
@@ -201,7 +207,7 @@ Known issues (honest list):
 - **Home-menu Level Select does nothing** (builds 4 and 5): Go sets `PlayerLaunch::warpPending`
   (native/home_menu/hbm_bridge.cpp), but no SMG2 code consumes it. MacioGalaxy does it in `GameScene::update`
   (once `isPermitToPauseMenu()`, through the game's own galaxy move); that hook was never carried over. Use the
-  launcher's galaxy menu or `--stage` instead. Fix planned for 5.1 (GameScene, GAME lead).
+  launcher's galaxy menu or `--stage` instead. Build 5.1 includes the GameScene consumer.
 - **Build 4 and Yoshi Star Galaxy / poisoned shader cache**: build 4 aborts in Yoshi Star Galaxy ("unhandled tcg src
   21": the alpha-shadow pass draws with zero texgens; fixed for build 5 in the Aurora pipeline layer). Aurora stores a
   pipeline config before compiling it, so the crash leaves that row in the shared cache, and build 4 prebuilds every

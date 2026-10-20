@@ -4,6 +4,13 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
 #include "Game/Player/MarioActor.hpp"
+#ifdef GALAXY_NATIVE
+// OdysseyMovement mod (docs/dev/ODYSSEY_MOVEMENT.md): the Spin button's moves.
+#include <cstdio>
+#include <cstdlib>
+#include <petari/odyssey_move.hpp>
+extern "C" bool petari_mod_enabled(int mod);
+#endif
 #include <revolution/gd.h>
 #include "Game/Util.hpp"
 #include "Game/Animation/XanimeCore.hpp"
@@ -801,6 +808,37 @@ void MarioActor::controlMain() {
     updateActionTrigger();
     updateControllerSwing();
     updateControllerSwingLeft();
+#ifdef GALAXY_NATIVE
+    // OdysseyMovement: the swing's rising edge for the mod's Spin moves, every frame
+    // (updateSwingAction does not run in every action, e.g. a ground pound).
+    if (petari_mod_enabled(2)) {
+        namespace Live = PetariNative::Odyssey::Live;
+        static bool sLastCore = false, sLastSub = false;
+        const bool core = MR::isCorePadSwing(0);
+        const bool sub = MR::isSubPadSwing(0);
+        if ((core && !sLastCore) || (sub && !sLastSub)) {
+            Live::spinBuffer = Live::SpinBufferFrames;
+            static const bool trace = std::getenv("PETARI_ODYSSEY_TRACE") != nullptr;
+            if (trace) {
+                std::fprintf(stderr, "[odyssey] swing edge (core %d sub %d): jumping %d hip drop %d ground %d\n", static_cast< int >(core),
+                             static_cast< int >(sub), static_cast< int >(isJumping()),
+                             static_cast< int >((mMario->mMovementStates.mLowWord >> 20) & 1U),
+                             static_cast< int >((mMario->mMovementStates.mLowWord >> 30) & 1U));
+            }
+        } else if (Live::spinBuffer > 0) {
+            --Live::spinBuffer;
+        }
+        sLastCore = core;
+        sLastSub = sub;
+        static const bool traceSwing = std::getenv("PETARI_ODYSSEY_TRACE_SWING") != nullptr;
+        if (traceSwing && !((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
+            std::fprintf(stderr, "[odyssey] air swing: core %d sub %d F00 %d F0C %d F1C %d buffer %d hip drop %d\n", static_cast< int >(core),
+                         static_cast< int >(sub), static_cast< int >(_F00), static_cast< int >(_F0C), static_cast< int >(_F1C),
+                         Live::spinBuffer, static_cast< int >((mMario->mMovementStates.mLowWord >> 20) & 1U));
+        }
+    }
+    // Cappy mod (separate, not ported): petariCappyInput(this)
+#endif
     update2D();
     if (mActorEffectState->mActive) {
         mActorEffectState->mTimer++;
@@ -981,6 +1019,36 @@ void MarioActor::updateSwingAction() {
         (!mMario->isPlayerModeCloud() || MR::isSpinCloudBlockGroupEmpty())) {
         _946 = 0;
     }
+#ifdef GALAXY_NATIVE
+    // Cappy mod (separate, not ported): petariCappySwingAction(this)
+    // OdysseyMovement: the mod's Spin moves read the swing's rising edge directly,
+    // buffered SpinBufferFrames frames, without Galaxy's spin cooldown (_946) and
+    // swing lockouts (_F1C/_F1E). A press they use starts no Galaxy spin and no
+    // cooldown; Galaxy's Star Spin otherwise keeps its own rules.
+    if (petari_mod_enabled(2) && mPlayerMode == 0 && !mMario->isSwimming()) {
+        namespace Live = PetariNative::Odyssey::Live;
+        const bool grounded = !isJumping() && ((mMario->mMovementStates.mLowWord >> 30) & 1U);
+        if (grounded && Live::roll.rolling) {
+            // Rolling: a buffered press boosts once the 15-frame interval allows it.
+            if (Live::spinBuffer > 0 && Live::roll.sinceBoost + 1 >= PetariNative::Odyssey::Const::SlopeRollingReStartInterval) {
+                Live::rollBoost = true;
+                Live::spinBuffer = 0;
+            }
+            return;
+        }
+        if (Live::spinBuffer > 0 && grounded && (((mMario->mMovementStates.mLowWord >> 21) & 1U) || mMario->checkSquat(false))) {
+            Live::rollStart = true;
+            Live::spinBuffer = 0;
+            return;
+        }
+        if (isJumping() && (((mMario->mMovementStates.mLowWord >> 20) & 1U) || Live::noSpinAir)) {
+            return;  // ground pound: the buffer is the dive's (Mario::procHipDrop); dive/long jump: no spin
+        }
+        if (Live::spinBuffer > 0 && isRequestRush()) {
+            Live::spinBuffer = 0;  // Galaxy's own spin takes this press
+        }
+    }
+#endif
     bool requestRush = isRequestRush();
     if (!requestRush) requestRush = false;
     _1E1 = requestRush;
@@ -989,6 +1057,18 @@ void MarioActor::updateSwingAction() {
         return;
     }
     if (!requestRush) return;
+#ifdef GALAXY_NATIVE
+    if (petari_mod_enabled(2)) {
+        static const bool trace = std::getenv("PETARI_ODYSSEY_TRACE") != nullptr;
+        if (trace) {
+            std::fprintf(stderr, "[odyssey] spin request: ground %d jumping %d squat %d/%d rolling %d cooldown %d mode %d\n",
+                         static_cast< int >((mMario->mMovementStates.mLowWord >> 30) & 1U), static_cast< int >(isJumping()),
+                         static_cast< int >((mMario->mMovementStates.mLowWord >> 21) & 1U), static_cast< int >(mMario->checkSquat(false)),
+                         static_cast< int >(PetariNative::Odyssey::Live::roll.rolling), static_cast< int >(_946),
+                         static_cast< int >(mPlayerMode));
+        }
+    }
+#endif
     if (mMario->isPlayerModeYoshi()) {
         if (mMario->isStatusActive(0x27)) {
             static_cast<MarioYoshiBalloon*>(mMario->mYoshiBalloon)->fn_80414570();

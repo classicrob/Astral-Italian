@@ -11,6 +11,11 @@
 #include "Game/Util/MathUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 #include <cstring>
+#ifdef GALAXY_NATIVE
+// OdysseyMovement mod (docs/dev/ODYSSEY_MOVEMENT.md): SMO's wall slide.
+#include <petari/odyssey_move.hpp>
+extern "C" bool petari_mod_enabled(int mod);
+#endif
 
 MarioWall::MarioWall(MarioActor* pActor) : MarioState(pActor, MarioStatus_Wall) {
     _14 = 0;
@@ -133,9 +138,18 @@ bool MarioWall::update() {
         }
     }
 
+#ifdef GALAXY_NATIVE
+    // OdysseyMovement: SMO's slide lasts until the wall or the fall ends; holding
+    // the stick away from the wall lets go after 15 frames.
+    const bool odyssey = petari_mod_enabled(2) && getPlayerMode() == 0 && !_1E;
+    if (odyssey ? _18 > 15 : _14 >= getActor()->getConst().getTable()->mWallReleaseTime + getActor()->getConst().getTable()->mWallStickTime) {
+        release = true;
+    }
+#else
     if (_14 >= getActor()->getConst().getTable()->mWallReleaseTime + getActor()->getConst().getTable()->mWallStickTime) {
         release = true;
     }
+#endif
 
     if (_14 >= 3 && !((getPlayer()->mMovementStates.mLowWord >> 23) & 1U) && !((getPlayer()->mMovementStates.mHighWord >> 13) & 1U)) {
         release = true;
@@ -259,7 +273,23 @@ bool MarioWall::update() {
         return true;
     }
 
+#ifdef GALAXY_NATIVE
+    if (odyssey) {
+        // SMO: held for 3 frames, then gravity 0.5 up to 35.
+        _20 = PetariNative::Odyssey::stepWallSlide(_20, static_cast< int >(_14));
+        if (_14 == PetariNative::Odyssey::Const::WallKeepFrame + 1) {
+            changeAnimation("壁すべり");
+        }
+        if (_14 > PetariNative::Odyssey::Const::WallKeepFrame) {
+            playSound("スリップ");
+            playEffect("共通壁手擦り");
+        }
+    } else {
+        _20 = _20 * blend + speed * (1.0f - blend);
+    }
+#else
     _20 = _20 * blend + speed * (1.0f - blend);
+#endif
     addVelocity(getPlayer()->_75C, -_20);
     if (side <= 1) {
         f32 ratio;

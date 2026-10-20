@@ -100,6 +100,11 @@ endif()
 if(BUILD_TESTING)
     # SMG2 uses HomeButtonLayout; the SMG1 RSO wrapper test is deferred.
 
+    # Pure Menu API, synthetic sparse scenario IDs; no wrapper, disc or save.
+    add_executable(petari_level_select_menu_tests ${PETARI_REPO_ROOT}/native/tests/level_select_menu_tests.cpp)
+    target_link_libraries(petari_level_select_menu_tests PRIVATE petari_home_menu)
+    add_test(NAME native_level_select_menu COMMAND petari_level_select_menu_tests)
+
     # The game's fonts (galaxy_font.hpp): synthetic data, the ImGui atlas, and the
     # real Font.arc when the disc is in build/game-data (skipped otherwise).
     add_executable(petari_galaxy_font_tests ${PETARI_REPO_ROOT}/native/tests/galaxy_font_tests.cpp)

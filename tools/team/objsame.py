@@ -7,10 +7,12 @@ objhash.py hashes .symtab/.strtab/.rela.* verbatim, so a header-only refactor th
 object hash without changing anything the linker produces: MWCC renumbers its local labels (@1234
 literal labels, .dwarf.* labels) and the symbol table order, and relocations then point at different
 symbol indices. This tool compares:
-  - every allocated section's type, flags, size and bytes (.text, .data, .rodata, .sdata, .sbss, ...);
+  - every section occurrence in file order, keyed by name + occurrence number (MWCC emits several sections
+    with one name, e.g. one .text per weak function): type, flags, size, alignment and bytes;
   - named (non-compiler-local) symbols: name, binding/type, section, value and size;
-  - every relocation outside debug sections: offset, type, addend and its target resolved to a
-    symbol name, or for compiler-local labels and section symbols to (section, value).
+  - every relocation outside debug sections, grouped by the section occurrence it applies to: offset, type,
+    addend and its target resolved to a symbol name, or for compiler-local labels and section symbols to
+    (section occurrence, value).
 Debug information (.line, .debug, .comment and their relocations) is ignored, as in objhash.py.
 
 Usage:
@@ -44,7 +46,7 @@ def read_object(path):
     for h in headers:
         name_off, typ, flags, addr, off, size, link, info, align, entsize = h
         sections.append({"name": cstr(stroff, name_off), "type": typ, "flags": flags, "size": size, "link": link,
-                         "info": info, "entsize": entsize,
+                         "info": info, "entsize": entsize, "align": align,
                          "data": b"" if typ == SHT_NOBITS else d[off:off + size]})
     symbols = []
     for s in sections:
@@ -58,42 +60,61 @@ def read_object(path):
     return sections, symbols
 
 
-def section_name(sections, index):
+def section_keys(sections):
+    """A stable key per section index: its name plus its occurrence number among sections of that name.
+    MWCC objects can hold several sections with one name (e.g. one .text per weak/template function),
+    so the name alone is not an identity."""
+    keys, seen = [], {}
+    for s in sections:
+        n = seen.get(s["name"], 0)
+        seen[s["name"]] = n + 1
+        keys.append(f"{s['name']}#{n}")
+    return keys
+
+
+def section_name(sections, index, keys=None):
     if index == 0:
         return "UND"
     if index >= 0xFF00:
         return f"special{index:#x}"
-    return sections[index]["name"] if index < len(sections) else f"bad{index}"
+    if index >= len(sections):
+        return f"bad{index}"
+    return keys[index] if keys is not None else sections[index]["name"]
 
 
-def symbol_key(sections, sym):
-    """A stable identity for a relocation target."""
+def symbol_key(sections, sym, keys):
+    """A stable identity for a relocation target (local labels: section occurrence + offset)."""
     if sym["name"] == "" or LOCAL_LABEL.match(sym["name"]) or (sym["info"] & 0xF) == 3:  # STT_SECTION
-        return ("local", section_name(sections, sym["shndx"]), sym["value"])
+        return ("local", section_name(sections, sym["shndx"], keys), sym["value"])
     return ("sym", sym["name"])
 
 
 def summarize(path):
     sections, symbols = read_object(path)
+    keys = section_keys(sections)
     out = {}
-    for s in sections:
+    for index, s in enumerate(sections):
         if s["name"] in SKIP or s["type"] in (SHT_SYMTAB, SHT_STRTAB, SHT_RELA) or s["name"] == "":
             continue
-        out["section " + s["name"]] = (s["type"], s["flags"], s["size"], s["data"])
-    named = sorted((sym["name"], sym["info"], section_name(sections, sym["shndx"]), sym["value"], sym["size"])
+        out["section " + keys[index]] = (s["type"], s["flags"], s["size"], s["align"], s["data"])
+    named = sorted((sym["name"], sym["info"], section_name(sections, sym["shndx"], keys), sym["value"], sym["size"])
                    for sym in symbols
                    if sym["name"] and not LOCAL_LABEL.match(sym["name"]) and section_name(sections, sym["shndx"]) not in SKIP)
     out["named symbols"] = tuple(named)
-    for s in sections:
+    for index, s in enumerate(sections):
         if s["type"] != SHT_RELA or s["name"] in SKIP:
+            continue
+        target = section_name(sections, s["info"], keys)  # the section these relocations apply to
+        if target.split("#")[0] in SKIP:
             continue
         rows = []
         for i in range(len(s["data"]) // 12):
             offset, info, addend = struct.unpack(">IIi", s["data"][i * 12:i * 12 + 12])
             sym = symbols[info >> 8] if (info >> 8) < len(symbols) else {"name": f"badsym{info >> 8}", "info": 0,
                                                                           "shndx": 0, "value": 0, "size": 0}
-            rows.append((offset, info & 0xFF, addend, symbol_key(sections, sym)))
-        out["relocations " + s["name"]] = tuple(sorted(rows))
+            rows.append((offset, info & 0xFF, addend, symbol_key(sections, sym, keys)))
+        key = "relocations for " + target
+        out[key] = out.get(key, ()) + tuple(sorted(rows))
     return out
 
 

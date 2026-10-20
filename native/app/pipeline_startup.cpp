@@ -87,7 +87,7 @@ bool preparePipelines(SDL_Window* window) {
         // key/button events stay here so Return cannot also press the game's A.
         for (const AuroraEvent* event = aurora_update(); event && event->type != AURORA_NONE; ++event) {
             if (event->type == AURORA_EXIT) {
-                SDL_SetWindowTitle(window, "MacioGalaxy");
+                SDL_SetWindowTitle(window, "Astral Italian");
                 std::fprintf(stderr, "[gx startup prep] result=quit remaining=%u\n", pending);
                 return false;
             }
@@ -180,7 +180,7 @@ bool preparePipelines(SDL_Window* window) {
     // Leaving this loop does not cancel them; stage/draw requests still promote
     // matching jobs, and the normal stage gates protect stages not ready yet.
     Input::focusChanged(SmokeBackground::enabled || (SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS) != 0);
-    SDL_SetWindowTitle(window, "MacioGalaxy");
+    SDL_SetWindowTitle(window, "Astral Italian");
     petari_gx_pipeline_preparation_status(&total, &pending, &failed);
     std::sort(intervals.begin(), intervals.end());
     const double p99 = intervals.empty() ? 0.0 : intervals[static_cast<std::size_t>((intervals.size() - 1) * 0.99)];

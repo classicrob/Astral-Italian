@@ -18,6 +18,11 @@ struct AudEffectData {
 namespace {
     const AudEffectData cAudEffectDataList[] = {
         {0.0f, 127, 1.0f, 90, -1, 0}, {1.0f, 127, 1.0f, 90, -1, 0}, {0.0f, 10, 1.0f, 90, -1, 0}, {1.0f, 10, 1.0f, 90, 0, 0}, {1.0f, 80, 1.0f, 90, -1, 0},
+#ifdef GALAXY_NATIVE
+        // SB4E01 lbl_806488D0 has 7 entries (0xA8 bytes); types 5 and 6 are used (AudSceneMgr requests 6).
+        // PLACEHOLDER(port): native-only until the Wii table carries them too; resolve when the owner completes the table for both builds.
+        {0.7f, 127, 1.0f, 90, -1, 0}, {0.54f, 127, 1.0f, 90, -1, 0},
+#endif
     };
 };  // namespace
 

@@ -58,7 +58,7 @@ void PipelineCacheDir::prepare(const fs::path& user, bool testRun, const char* c
                      testRun ? "user-test-run" : "user-no-home");
         return;
     }
-    const auto machine = fs::path(home) / "Library/Caches/Petari";
+    const auto machine = fs::path(home) / "Library/Caches/AstralItalian";
     fs::create_directories(machine, ec);
     int fd = ec ? -1 : open((machine / ".petari-instance.lock").c_str(), O_CREAT | O_RDWR | O_CLOEXEC, 0600);
     if (fd >= 0 && flock(fd, LOCK_EX | LOCK_NB) != 0) {

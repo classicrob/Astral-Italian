@@ -103,7 +103,7 @@ void usage() {
                "  --disc DIR  extracted disc (containing files/); default: $PETARI_GAME_DIR,\n"
                "              else build/game-data/SB4E01 under the working directory\n"
                "  --user DIR  saves, settings, controls and crash reports;\n"
-               "              default: ~/Library/Application Support/Petari\n"
+               "              default: ~/Library/Application Support/AstralItalian\n"
                "  --stage GALAXY [--scenario N]  one normal file-load stage request, scenario default 1.\n"
                "              GALAXY is an SMG2 internal name or English-name alias; actual ScenarioNo membership is checked.\n"
                "              --stage list prints the SMG2 catalog after the game's metadata loads.\n"
@@ -202,7 +202,7 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         const char* home = std::getenv("HOME");
         const bool normalUser = home && !paths->user.empty() &&
             std::filesystem::weakly_canonical(paths->user) ==
-            std::filesystem::weakly_canonical(std::filesystem::path(home) / "Library/Application Support/Petari");
+            std::filesystem::weakly_canonical(std::filesystem::path(home) / "Library/Application Support/AstralItalian");
         if (paths->user.empty() || normalUser || fixture ||
             !std::filesystem::is_regular_file(paths->user / ".petari-make-unlocked-save")) {
             std::fputs("petari: --make-unlocked-save requires an explicit isolated --user holding "
@@ -230,7 +230,14 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
             std::fputs("petari: HOME is not set; pass --user\n", stderr);
             return false;
         }
-        paths->user = std::filesystem::path(home) / "Library/Application Support/Petari";
+        // Never MacioGalaxy's folder (~/Library/Application Support/Petari): it holds the user's SMG1 saves.
+        paths->user = std::filesystem::path(home) / "Library/Application Support/AstralItalian";
+    }
+    if (const char* home = std::getenv("HOME"); home != nullptr && home[0] != '\0' &&
+        std::filesystem::weakly_canonical(paths->user) ==
+            std::filesystem::weakly_canonical(std::filesystem::path(home) / "Library/Application Support/Petari")) {
+        std::fputs("petari: refusing MacioGalaxy's user folder (SMG1 saves); SMG2 uses ~/Library/Application Support/AstralItalian\n", stderr);
+        return false;
     }
     std::string catalogError;
     if (!App::LaunchStage::configureCatalog(paths->disc, &catalogError)) {
@@ -888,7 +895,7 @@ int main(int argc, char** argv) {
 
     const std::string userPath = paths.user.string();
     AuroraConfig config{};
-    config.appName = "MacioGalaxy";  // the window title (Aurora uses it for the SDL window)
+    config.appName = "Astral Italian";  // the window title (Aurora uses it for the SDL window)
     config.userPath = userPath.c_str();
     App::PipelineCacheDir pipelineCache;
     if (!App::SmokeBackground::enabled) {

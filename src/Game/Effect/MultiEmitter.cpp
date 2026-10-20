@@ -9,6 +9,9 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <JSystem/JParticle/JPAEmitter.hpp>
+#ifdef GALAXY_NATIVE
+#include <JSystem/JMath/JMAFloatConversion.hpp>
+#endif
 #include <algorithm>
 #ifdef GALAXY_NATIVE
 #include <petari/game_compat.hpp>
@@ -256,7 +259,11 @@ void MultiEmitter::addChildEmitter(MultiEmitter* pChild) {
 
 namespace {
     inline s16 toS16(f32 deg) {
+#ifdef GALAXY_NATIVE
+        return JMath::truncToS16(DEGREE_TO_S16 * deg);
+#else
         return DEGREE_TO_S16 * deg;
+#endif
     }
 };  // namespace
 

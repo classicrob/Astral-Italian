@@ -19,9 +19,17 @@ public:
 class MultiEmitterCallBack : public MultiEmitterCallBackBase {
 public:
     struct FlagSRT {
+#ifdef GALAXY_NATIVE
+        // The Wii code loads bytes and tests nonzero, including noncanonical bool bytes.
+        // Keep the raw values; the null-AutoEffectInfo path does not initialize them.
+        u8 mScale;
+        u8 mRotation;
+        u8 mTranslation;
+#else
         bool mScale;
         bool mRotation;
         bool mTranslation;
+#endif
 
         inline bool isTransform() const {
             return mScale || mRotation || mTranslation ? true : false;

@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/GameDataPlayerStatus.hpp"
 #include "Game/System/BinaryDataContentAccessor.hpp"
 #include "Game/Util/MathUtil.hpp"
@@ -35,13 +38,25 @@ s32 GameDataPlayerStatus::serialize(u8* pBuffer, u32 size) const {
     *static_cast< u8* >(accessor.getPointer("mPlayerLeft", pData)) = playerLeft;
 
     u16 starPiece = mStockedStarPiece;
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::store<u16>(accessor.getPointer("mStockedStarPieceNum", pData), starPiece);
+#else
     *static_cast< u16* >(accessor.getPointer("mStockedStarPieceNum", pData)) = starPiece;
+#endif
 
     u16 coin = mStockedCoin;
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::store<u16>(accessor.getPointer("mStockedCoinNum", pData), coin);
+#else
     *static_cast< u16* >(accessor.getPointer("mStockedCoinNum", pData)) = coin;
+#endif
 
     u16 last1up = mLast1upCoinNum;
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::store<u16>(accessor.getPointer("mLast1upCoinNum", pData), last1up);
+#else
     *static_cast< u16* >(accessor.getPointer("mLast1upCoinNum", pData)) = last1up;
+#endif
 
     u8 flag = mFlag;
     *static_cast< u8* >(accessor.getPointer("mFlag", pData)) = flag;
@@ -59,13 +74,25 @@ s32 GameDataPlayerStatus::deserialize(const u8* pBuffer, u32 size) {
     mPlayerLeft = pPlayerLeft != nullptr ? *static_cast< u8* >(pPlayerLeft) : 0;
 
     void* pStarPiece = accessor.getPointer("mStockedStarPieceNum", pData);
+#ifdef GALAXY_NATIVE
+    mStockedStarPiece = pStarPiece != nullptr ? PetariNative::SaveWire::load<u16>(pStarPiece) : 0;
+#else
     mStockedStarPiece = pStarPiece != nullptr ? *static_cast< u16* >(pStarPiece) : 0;
+#endif
 
     void* pCoin = accessor.getPointer("mStockedCoinNum", pData);
+#ifdef GALAXY_NATIVE
+    mStockedCoin = pCoin != nullptr ? PetariNative::SaveWire::load<u16>(pCoin) : 0;
+#else
     mStockedCoin = pCoin != nullptr ? *static_cast< u16* >(pCoin) : 0;
+#endif
 
     void* pLast1up = accessor.getPointer("mLast1upCoinNum", pData);
+#ifdef GALAXY_NATIVE
+    mLast1upCoinNum = pLast1up != nullptr ? PetariNative::SaveWire::load<u16>(pLast1up) : 0;
+#else
     mLast1upCoinNum = pLast1up != nullptr ? *static_cast< u16* >(pLast1up) : 0;
+#endif
 
     void* pFlag = accessor.getPointer("mFlag", pData);
     mFlag = pFlag != nullptr ? *static_cast< u8* >(pFlag) : 0;

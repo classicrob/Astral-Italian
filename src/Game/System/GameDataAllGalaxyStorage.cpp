@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/GameDataGalaxyStorage.hpp"
 #include "Game/System/BinaryDataContentAccessor.hpp"
 #include "Game/System/GalaxyStatusAccessor.hpp"
@@ -82,7 +85,11 @@ u32 GameDataAllGalaxyStorage::getSignature() const {
 
 s32 GameDataAllGalaxyStorage::serialize(u8* pData, u32 dataSize) const {
     u16 galaxyNum = getGalaxyNum();
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::store<u16>(pData, galaxyNum);
+#else
     *(u16*)pData = galaxyNum;
+#endif
 
     MR::copyMemory(pData + 2, mHeaderSerializer->getBuffer(), mHeaderSerializer->getHeaderSize());
     s32 writeOffset = mHeaderSerializer->getHeaderSize() + 2;
@@ -99,12 +106,20 @@ s32 GameDataAllGalaxyStorage::serialize(u8* pData, u32 dataSize) const {
 
         u16 galaxyNameHash = MR::getHashCode(pStorage->mGalaxyName);
         u16* pGalaxyName = (u16*)accessor.getPointer("mGalaxyName", pRecord);
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<u16>(pGalaxyName, galaxyNameHash);
+#else
         *pGalaxyName = galaxyNameHash;
+#endif
 
         u16 recordSize = pStorage->serialize(accessor, scenarioAccessor, pRecord);
 
         u16* pDataSize = (u16*)accessor.getPointer("mDataSize", pRecord);
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<u16>(pDataSize, recordSize);
+#else
         *pDataSize = recordSize;
+#endif
 
         writeOffset += recordSize;
     }
@@ -113,7 +128,11 @@ s32 GameDataAllGalaxyStorage::serialize(u8* pData, u32 dataSize) const {
 }
 
 s32 GameDataAllGalaxyStorage::deserialize(const u8* pData, u32 dataSize) {
+#ifdef GALAXY_NATIVE
+    u16 galaxyNum = PetariNative::SaveWire::load<u16>(pData);
+#else
     u16 galaxyNum = *(u16*)pData;
+#endif
     BinaryDataContentAccessor accessor((u8*)(pData + 2));
     s32 readOffset = accessor.getHeaderSize() + 2;
 
@@ -125,13 +144,21 @@ s32 GameDataAllGalaxyStorage::deserialize(const u8* pData, u32 dataSize) {
         const u8* pRecord = pData + readOffset;
 
         u16* pGalaxyName = (u16*)accessor.getPointer("mGalaxyName", (u8*)pRecord);
+#ifdef GALAXY_NATIVE
+        u16 galaxyNameHash = (pGalaxyName != nullptr) ? PetariNative::SaveWire::load<u16>(pGalaxyName) : 0;
+#else
         u16 galaxyNameHash = (pGalaxyName != nullptr) ? *pGalaxyName : 0;
+#endif
         if (galaxyNameHash == 0) {
             return 2;
         }
 
         u16* pDataSize = (u16*)accessor.getPointer("mDataSize", (u8*)pRecord);
+#ifdef GALAXY_NATIVE
+        u16 recordSize = (pDataSize != nullptr) ? PetariNative::SaveWire::load<u16>(pDataSize) : 0;
+#else
         u16 recordSize = (pDataSize != nullptr) ? *pDataSize : 0;
+#endif
         if (recordSize == 0) {
             return 2;
         }

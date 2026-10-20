@@ -1,3 +1,7 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#include <stdexcept>
+#endif
 #include "Game/System/BinaryDataChunkHolder.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 
@@ -17,6 +21,9 @@ void BinaryDataChunkHolder::addChunk(BinaryDataChunkBase* pChunk) {
 
 u32 BinaryDataChunkHolder::makeFileBinary(u8* pData, u32 a2) {
     s32 offset = 0;
+#ifdef GALAXY_NATIVE
+    if (a2 < 4) throw std::runtime_error("save record buffer too small");
+#endif
 
     MR::zeroMemory(pData, 4);
     pData[0] = 2;
@@ -29,6 +36,10 @@ u32 BinaryDataChunkHolder::makeFileBinary(u8* pData, u32 a2) {
         BinaryDataChunkHolderChunkData* chunkData = reinterpret_cast< BinaryDataChunkHolderChunkData* >(mData);
         makeChunkData(chunkData, mBufferSize, mChunks[idx]);
 
+#ifdef GALAXY_NATIVE
+        if (static_cast<u32>(offset) > a2 || chunkData->mChunkSize > a2 - offset)
+            throw std::runtime_error("save chunks exceed record buffer");
+#endif
         MR::copyMemory(&pData[offset], chunkData, chunkData->mChunkSize);
         offset += chunkData->mChunkSize;
     }
@@ -39,6 +50,16 @@ u32 BinaryDataChunkHolder::makeFileBinary(u8* pData, u32 a2) {
 bool BinaryDataChunkHolder::loadFromFileBinary(const u8* pData, u32 dataSize) {
     s32 offset = 0;
 
+#ifdef GALAXY_NATIVE
+    if (dataSize < 4 || pData[0] != 2) return false;
+    u32 checkedOffset = 4;
+    for (u32 i = 0; i < pData[1]; ++i) {
+        if (checkedOffset > dataSize || dataSize - checkedOffset < 12) return false;
+        const u32 length = PetariNative::SaveWire::load<u32>(pData + checkedOffset + 8);
+        if (length < 12 || length > dataSize - checkedOffset) return false;
+        checkedOffset += length;
+    }
+#endif
     if (dataSize < calcBinarySize(pData)) {
         return false;
     }
@@ -92,6 +113,9 @@ bool BinaryDataChunkHolder::loadFromFileBinary(const u8* pData, u32 dataSize) {
 void BinaryDataChunkHolder::makeChunkData(BinaryDataChunkHolderChunkData* pData, u32 bufferSize, const BinaryDataChunkBase* pChunk) {
     pData->mSignature = pChunk->getSignature();
     pData->mHash = pChunk->makeHeaderHashCode();
+#ifdef GALAXY_NATIVE
+    if (bufferSize < pData->getDataOffset()) throw std::runtime_error("save chunk buffer too small");
+#endif
     pData->mChunkSize = pChunk->serialize(pData->getData(), bufferSize - pData->getDataOffset()) + pData->getDataOffset();
 }
 

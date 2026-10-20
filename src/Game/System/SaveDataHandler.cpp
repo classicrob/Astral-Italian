@@ -1,3 +1,8 @@
+#ifdef GALAXY_NATIVE
+#include "Game/System/NativeSaveMigration.hpp"
+#include <petari/save_codec.hpp>
+#include <petari/host_allocation.hpp>
+#endif
 #include "Game/System/SaveDataHandler.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/System/NANDManager.hpp"
@@ -48,6 +53,9 @@ SaveDataHandler::SaveDataHandler(const SysConfigFile* pSysConfigFile, const User
 void SaveDataHandler::update() {
     updateNerve();
     mBannerCreator->updateNerve();
+#ifdef GALAXY_NATIVE
+    NativeSaveMigration::pollRoundTrip(*this);
+#endif
 }
 
 void SaveDataHandler::requestCheckEnableToCreate() {
@@ -73,6 +81,9 @@ void SaveDataHandler::requestLoadSaveData(const char* pFileName) {
 }
 
 bool SaveDataHandler::requestVerifyAfterLoadGameDataFile() {
+#ifdef GALAXY_NATIVE
+    NativeSaveMigration::prepareLoaded(_14, _C);
+#endif
     if (!isCorrectFileHeader(_14)) {
         return false;
     }
@@ -83,11 +94,18 @@ bool SaveDataHandler::requestVerifyAfterLoadGameDataFile() {
         return false;
     }
 
+#ifdef GALAXY_NATIVE
+    if (pFileHeader->mCheckSum != PetariNative::SaveWire::checksum(_14 + sizeof(u32), pFileHeader->mFileSize - sizeof(u32))) {
+#else
     if (pFileHeader->mCheckSum != MR::calcCheckSum(_14 + sizeof(u32), pFileHeader->mFileSize - sizeof(u32))) {
+#endif
         return false;
     }
 
     copySaveDataEachFile(_18, _14);
+#ifdef GALAXY_NATIVE
+    NativeSaveMigration::checkRoundTrip(*this);
+#endif
 
     return true;
 }
@@ -166,7 +184,11 @@ void SaveDataHandler::requestSaveSaveData() {
     MR::copyMemory(_14, _18, fileAccessorA.getHeader()->mFileSize);
     MR::fillMemory(_14 + fileAccessorA.getHeader()->mFileSize, 0,
                    OSRoundUp32B(fileAccessorA.getHeader()->mFileSize) - fileAccessorA.getHeader()->mFileSize);
+#ifdef GALAXY_NATIVE
+    fileAccessorB.getHeader()->mCheckSum = PetariNative::SaveWire::checksum(_14 + sizeof(u32), fileAccessorA.getHeader()->mFileSize - sizeof(u32));
+#else
     fileAccessorB.getHeader()->mCheckSum = MR::calcCheckSum(_14 + sizeof(u32), reinterpret_cast< SaveDataFileHeader* >(_14)->mFileSize - sizeof(u32));
+#endif
 
     SaveDataFileHeader* pHeader = fileAccessorB.getHeader();
     mNANDRequestInfo->setWriteSeq(::cSaveFileName, _14, OSRoundUp32B(pHeader->mFileSize), 60, 0);
@@ -356,6 +378,14 @@ bool SaveDataHandler::isCorrectFileHeader(const u8* pBuffer) {
 }
 
 void SaveDataHandler::copySaveDataEachFile(u8* pFileDst, const u8* pFileSrc) {
+#ifdef GALAXY_NATIVE
+    PetariNative::HostAllocationScope allocations;
+    const auto size = PetariNative::SaveWire::load<u32>(pFileSrc + 12);
+    PetariNative::SaveWire::Bytes bytes(pFileSrc, pFileSrc + OSRoundUp32B(size));
+    PetariNative::SaveWire::canonical(bytes, false);
+    // Preserve the original directory and unused bytes as well as every record.
+    MR::copyMemory(pFileDst, pFileSrc, bytes.size());
+#else
     SaveDataFileAccessor srcFileAccessor = SaveDataFileAccessor(const_cast< u8* >(pFileSrc));
     SaveDataFileAccessor dstFileAccessor = SaveDataFileAccessor(pFileDst);
 
@@ -378,6 +408,7 @@ void SaveDataHandler::copySaveDataEachFile(u8* pFileDst, const u8* pFileSrc) {
             }
         }
     }
+#endif
 }
 
 void SaveDataHandler::createCommunicationBuffer() {

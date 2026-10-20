@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/SysConfigFile.hpp"
 #include "Game/System/BinaryDataContentAccessor.hpp"
 #include "Game/Util/MemoryUtil.hpp"
@@ -45,19 +48,35 @@ s32 SysConfigChunk::deserialize(const u8* buffer, u32 size) {
     }
     {
         OSTime* value = static_cast<OSTime*>(accessor.getPointer("mTimeSent", data));
+#ifdef GALAXY_NATIVE
+        mTimeSent = value ? PetariNative::SaveWire::load<OSTime>(value) : 0;
+#else
         mTimeSent = value ? *value : 0;
+#endif
     }
     {
         u32* value = static_cast<u32*>(accessor.getPointer("mSentBytes", data));
+#ifdef GALAXY_NATIVE
+        mSentBytes = value ? PetariNative::SaveWire::load<u32>(value) : 0;
+#else
         mSentBytes = value ? *value : 0;
+#endif
     }
     {
         u16* value = static_cast<u16*>(accessor.getPointer("mBankStarPieceNum", data));
+#ifdef GALAXY_NATIVE
+        mBackupCounters->mBankedStarPiece = value ? PetariNative::SaveWire::load<u16>(value) : 0;
+#else
         mBackupCounters->mBankedStarPiece = value ? *value : 0;
+#endif
     }
     {
         u16* value = static_cast<u16*>(accessor.getPointer("mBankStarPieceMax", data));
+#ifdef GALAXY_NATIVE
+        mBackupCounters->mMaxBankedStarPiece = value ? PetariNative::SaveWire::load<u16>(value) : 0;
+#else
         mBackupCounters->mMaxBankedStarPiece = value ? *value : 0;
+#endif
     }
     {
         u8* value = static_cast<u8*>(accessor.getPointer("mGiftedPlayerLeft", data));
@@ -65,7 +84,11 @@ s32 SysConfigChunk::deserialize(const u8* buffer, u32 size) {
     }
     {
         u16* value = static_cast<u16*>(accessor.getPointer("mGiftedFileNameHash", data));
+#ifdef GALAXY_NATIVE
+        mBackupCounters->mPlayerLeftHash = value ? PetariNative::SaveWire::load<u16>(value) : 1;
+#else
         mBackupCounters->mPlayerLeftHash = value ? *value : 1;
+#endif
     }
     mCurrentCounters->copyFrom(*mBackupCounters);
     u32 newSize = headerSize + mHeaderSerializer->getDataSize();
@@ -148,19 +171,35 @@ s32 SysConfigChunk::serialize(u8* buffer, u32) const {
     }
     {
         OSTime value = mTimeSent;
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<OSTime>(accessor.getPointer("mTimeSent", data), value);
+#else
         *static_cast<OSTime*>(accessor.getPointer("mTimeSent", data)) = value;
+#endif
     }
     {
         u32 value = mSentBytes;
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<u32>(accessor.getPointer("mSentBytes", data), value);
+#else
         *static_cast<u32*>(accessor.getPointer("mSentBytes", data)) = value;
+#endif
     }
     {
         u16 value = mBackupCounters->mBankedStarPiece;
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<u16>(accessor.getPointer("mBankStarPieceNum", data), value);
+#else
         *static_cast<u16*>(accessor.getPointer("mBankStarPieceNum", data)) = value;
+#endif
     }
     {
         u16 value = mBackupCounters->mMaxBankedStarPiece;
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<u16>(accessor.getPointer("mBankStarPieceMax", data), value);
+#else
         *static_cast<u16*>(accessor.getPointer("mBankStarPieceMax", data)) = value;
+#endif
     }
     {
         u8 value = mBackupCounters->mSharedPlayerLeft;
@@ -168,7 +207,11 @@ s32 SysConfigChunk::serialize(u8* buffer, u32) const {
     }
     {
         u16 value = mBackupCounters->mPlayerLeftHash;
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::store<u16>(accessor.getPointer("mGiftedFileNameHash", data), value);
+#else
         *static_cast<u16*>(accessor.getPointer("mGiftedFileNameHash", data)) = value;
+#endif
     }
     return headerSize + mHeaderSerializer->getDataSize();
 }

@@ -2,6 +2,9 @@
 
 #include <revolution/types.h>
 #include <cstddef>
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 
 class BinaryDataChunkBase {
 public:
@@ -26,10 +29,17 @@ public:
         return (u8*)this + getDataOffset();
     }
 
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::Value<u32> mSignature;
+    PetariNative::SaveWire::Value<u32> mHash;
+    PetariNative::SaveWire::Value<u32> mChunkSize;
+    u8 mData[1];
+#else
     /* 0x00 */ u32 mSignature;
     /* 0x04 */ u32 mHash;
     /* 0x08 */ u32 mChunkSize;
     /* 0x0C */ void* mData;
+#endif
 };
 
 class BinaryDataChunkHolder {

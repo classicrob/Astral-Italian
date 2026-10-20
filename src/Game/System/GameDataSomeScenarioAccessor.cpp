@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/GameDataGalaxyStorage.hpp"
 #include "Game/System/BinaryDataContentAccessor.hpp"
 
@@ -14,7 +17,11 @@ void GameDataSomeScenarioAccessor::resetAllData() {
 
 void GameDataSomeScenarioAccessor::serialize(const BinaryDataContentAccessor& rAccessor, u8* pData) const {
     *(u8*)rAccessor.getPointer("mMissNum", pData) = mMissNum;
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::store<s32>(rAccessor.getPointer("mBestTime", pData), mBestTime);
+#else
     *(s32*)rAccessor.getPointer("mBestTime", pData) = mBestTime;
+#endif
     *(u8*)rAccessor.getPointer("mFlag", pData) = mFlag;
 }
 
@@ -31,7 +38,11 @@ s32 GameDataSomeScenarioAccessor::deserialize(const BinaryDataContentAccessor& r
     s32 bestTime;
     s32* pBestTime = (s32*)rAccessor.getPointer("mBestTime", (u8*)pData);
     if (pBestTime != NULL) {
+#ifdef GALAXY_NATIVE
+        bestTime = PetariNative::SaveWire::load<s32>(pBestTime);
+#else
         bestTime = *pBestTime;
+#endif
     } else {
         bestTime = 0;
     }

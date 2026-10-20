@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/ConfigDataMisc.hpp"
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
@@ -58,7 +61,11 @@ s32 ConfigDataMisc::serialize(u8* pBuffer, u32 size) const {
     JSUMemoryOutputStream stream = JSUMemoryOutputStream(pBuffer, size);
 
     OSTime lastModified = mLastModified;
+#ifdef GALAXY_NATIVE
+    PetariNative::SaveWire::write<OSTime>(stream, lastModified);
+#else
     stream.write(&lastModified, sizeof(lastModified));
+#endif
 
     return stream.mPosition;
 }
@@ -69,7 +76,11 @@ s32 ConfigDataMisc::deserialize(const u8* pBuffer, u32 size) {
     JSUMemoryInputStream stream = JSUMemoryInputStream(pBuffer, size);
 
     OSTime lastModified;
+#ifdef GALAXY_NATIVE
+    lastModified = PetariNative::SaveWire::read<OSTime>(stream);
+#else
     stream.read(&lastModified, sizeof(lastModified));
+#endif
     mLastModified = lastModified;
 
     return 0;

@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/GameDataTicoFatStorage.hpp"
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
@@ -52,7 +55,11 @@ u32 GameDataTicoFatStorage::getSignature() const {
 
 s32 GameDataTicoFatStorage::serialize(u8* pData, u32 dataSize) const {
     JSUMemoryOutputStream stream(pData, dataSize);
+#ifdef GALAXY_NATIVE
+    for (s32 i = 0; i < 48; ++i) PetariNative::SaveWire::write<u16>(stream, mStarPieceAlms[i]);
+#else
     stream.write(mStarPieceAlms, 0x60);
+#endif
 
     for (s32 i = 0; i < 16; i++) {
         u16 value;
@@ -61,7 +68,11 @@ s32 GameDataTicoFatStorage::serialize(u8* pData, u32 dataSize) const {
         } else {
             value = 0;
         }
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::write<u16>(stream, value);
+#else
         stream.write(&value, sizeof(u16));
+#endif
     }
 
     return stream.getPosition();
@@ -69,12 +80,20 @@ s32 GameDataTicoFatStorage::serialize(u8* pData, u32 dataSize) const {
 
 s32 GameDataTicoFatStorage::deserialize(const u8* pData, u32 dataSize) {
     JSUMemoryInputStream stream(pData, dataSize);
+#ifdef GALAXY_NATIVE
+    for (s32 i = 0; i < 48; ++i) mStarPieceAlms[i] = PetariNative::SaveWire::read<u16>(stream);
+#else
     stream.read(mStarPieceAlms, 0x60);
+#endif
 
     mTicoCoinFeedList->clear();
     for (s32 i = 0; i < 16; i++) {
         u16 value;
+#ifdef GALAXY_NATIVE
+        value = PetariNative::SaveWire::read<u16>(stream);
+#else
         stream.read(&value, sizeof(u16));
+#endif
         if (value != 0) {
             mTicoCoinFeedList->add(value, nullptr);
         }

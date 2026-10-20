@@ -73,6 +73,32 @@ traces and `acceptance.json` stay privately under
 and awards nothing. `complete-save.json` in the separate user directory records
 the regular save/reload check; it is not by itself a five-minute runtime pass.
 
+## Save format and build 6 migration
+
+Build 6 alone introduces Wii-format saves: big-endian headers, 12-byte chunk
+headers, big-endian chunk fields and the Wii checksum. On the first load of an
+older native little-endian `GameData.bin`, the game validates the entire file,
+writes `GameData.bin.le-backup` beside it, syncs and rereads that backup, then
+atomically replaces `GameData.bin` with the Wii-format version. The original
+bytes remain in the backup. If backup creation or verification fails, the game
+refuses migration and does not reset the file. Later loads use the converted
+file and leave the backup alone. These saves require build 6 or later; older
+native builds cannot read the converted format.
+
+No user directory is relocated. Normal progress remains in
+`~/MacioGalaxy2-play/user`; `--unlocked` remains separate in
+`~/Library/Application Support/AstralItalian-unlocked`; inside either directory
+the file is `NAND/title/00010000/53423445/data/GameData.bin`. Build 4's real
+progress is not migrated by development tests. The SMG1 `Petari` directory is
+never a migration destination.
+
+The build owner's `native/tools/save_wire_validation.py` tests private copies
+under `AstralItalian-unlocked/save-wire-validation`, using a Dolphin reference
+and a legacy native save. It runs the actual game chunk loaders/serializers and
+normal NAND writer, checks byte-identical Wii output, verifies the exact legacy
+backup, and repeats the converted load to check that migration happens once.
+Source saves are read-only; logs and acceptance stay in private game data.
+
 ## Controls (keyboard and mouse)
 
 The same keys as MacioGalaxy (full list and remapping: native/CONTROLS.md; F1 remaps them in the game).

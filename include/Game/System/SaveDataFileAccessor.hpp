@@ -1,17 +1,23 @@
 #pragma once
 
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+using SaveDataWireU32 = PetariNative::SaveWire::Value<u32>;
+#else
+typedef u32 SaveDataWireU32;
+#endif
 
 struct SaveDataFileHeader {
-    /* 0x00 */ u32 mCheckSum;
-    /* 0x04 */ u32 mVersion;
-    /* 0x08 */ u32 mUserFileInfoNum;
-    /* 0x0C */ u32 mFileSize;
+    /* 0x00 */ SaveDataWireU32 mCheckSum;
+    /* 0x04 */ SaveDataWireU32 mVersion;
+    /* 0x08 */ SaveDataWireU32 mUserFileInfoNum;
+    /* 0x0C */ SaveDataWireU32 mFileSize;
 };
 
 struct SaveDataFileInfo {
     /* 0x00 */ char mName[12];
-    /* 0x0C */ u32 mOffset;
+    /* 0x0C */ SaveDataWireU32 mOffset;
 };
 
 struct SaveDataFile {

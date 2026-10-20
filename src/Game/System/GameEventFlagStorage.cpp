@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/GameEventFlagStorage.hpp"
 #include "Game/System/GameEventFlag.hpp"
 #include "Game/System/GameEventFlagTable.hpp"
@@ -31,7 +34,11 @@ s32 GameEventFlagStorage::serialize(u8* pData, u32 size) const {
         GameEventFlagAccessor accessor(iter.getFlag());
         u16 hash = MR::getHashCode(accessor.getName()) & 0x7FFF;
         u16 data = hash | (mFlagBitArray->isOn(GameEventFlagTable::getIndex(iter.getFlag())) ? 0x8000 : 0);
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::write<u16>(stream, data);
+#else
         stream.write(&data, sizeof(data));
+#endif
     }
 
     return stream.mPosition;
@@ -46,7 +53,11 @@ s32 GameEventFlagStorage::deserialize(const u8* pData, u32 size) {
 
     for (s32 i = 0; i < num; i++) {
         u16 data;
+#ifdef GALAXY_NATIVE
+        data = PetariNative::SaveWire::read<u16>(stream);
+#else
         stream.read(&data, sizeof(data));
+#endif
 
         isOn = ((data >> 15) & 0x1) != 0;
         int index = GameEventFlagTable::getIndexFromHashCode(data & 0x7FFF);

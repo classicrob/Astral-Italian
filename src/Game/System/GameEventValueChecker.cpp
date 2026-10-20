@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/save_wire.hpp>
+#endif
 #include "Game/System/GameEventValueChecker.hpp"
 #include "Game/System/FindingLuigiEventScheduler.hpp"
 #include "Game/Util/HashUtil.hpp"
@@ -127,8 +130,13 @@ s32 GameEventValueChecker::serialize(u8* pData, u32 maxBufferSize) const {
         hash = MR::getHashCode(::cGameEventValueTable[idx].mName);
         const u16 value = mValues[idx];
 
+#ifdef GALAXY_NATIVE
+        PetariNative::SaveWire::write<u16>(stream, hash);
+        PetariNative::SaveWire::write<u16>(stream, value);
+#else
         stream.writeU16(hash);
         stream.writeU16(value);
+#endif
     }
 
     return stream.mPosition;
@@ -139,11 +147,20 @@ s32 GameEventValueChecker::deserialize(const u8* pData, u32 maxBufferSize) {
 
     JSUMemoryInputStream stream(pData, maxBufferSize);
 
+#ifdef GALAXY_NATIVE
+    s32 numEntries = static_cast< s32 >(maxBufferSize) / 4;
+#else
     s32 numEntries = static_cast< s32 >(maxBufferSize) / 2;
+#endif
 
     for (s32 idx = 0; idx < numEntries; idx++) {
+#ifdef GALAXY_NATIVE
+        u16 hash = PetariNative::SaveWire::read<u16>(stream);
+        u16 value = PetariNative::SaveWire::read<u16>(stream);
+#else
         u16 hash = stream.readU16();
         u16 value = stream.readU16();
+#endif
 
         s32 valueIndex = findIndexFromHashCode(hash);
 

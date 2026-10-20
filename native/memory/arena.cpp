@@ -99,6 +99,8 @@ uintptr_t PetariNativeHostToPhysical(const void* pointer) {
     const auto address = reinterpret_cast<std::uintptr_t>(pointer);
     if (contains(mem1, address)) return address - mem1.base;
     if (contains(mem2, address)) return address - mem2.base + mem2Physical;
+    std::fprintf(stderr, "Native arena: %p is outside MEM1 [%p, +0x%zx) and MEM2 [%p, +0x%zx)\n", pointer,
+                 reinterpret_cast<void*>(mem1.base), mem1.size, reinterpret_cast<void*>(mem2.base), mem2.size);
     fail("Physical conversion requires an address inside a game arena");
 }
 BOOL PetariNativeIsMemoryRegion(const void* pointer, int region) {

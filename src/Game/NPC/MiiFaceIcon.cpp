@@ -27,9 +27,9 @@ void MiiFaceIcon::drawIcon() {
     }
 
     if (mIsFavoriteColorBG) {
-        mMakeIconResult = mRecipe->makeIconWithFavoriteColor(mImageBuffer + reinterpret_cast<ResTIMG*>(mImageBuffer)->mImageDataOffset, mWidth, mHeight);
+        mMakeIconResult = mRecipe->makeIconWithFavoriteColor(mImageBuffer + JUT_RESTIMG_OFFSET(reinterpret_cast<ResTIMG*>(mImageBuffer)->mImageDataOffset), mWidth, mHeight);
     } else {
-        mMakeIconResult = mRecipe->makeIcon(mImageBuffer + reinterpret_cast<ResTIMG*>(mImageBuffer)->mImageDataOffset, mWidth, mHeight, Color8(0, 0, 0, 255));
+        mMakeIconResult = mRecipe->makeIcon(mImageBuffer + JUT_RESTIMG_OFFSET(reinterpret_cast<ResTIMG*>(mImageBuffer)->mImageDataOffset), mWidth, mHeight, Color8(0, 0, 0, 255));
     }
 
     mIsCreated = true;

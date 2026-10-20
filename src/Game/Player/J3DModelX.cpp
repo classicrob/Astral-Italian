@@ -372,7 +372,7 @@ J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(
 #ifdef GALAXY_NATIVE
     GDSetTexImgPtr(GX_TEXMAP0, const_cast< u8* >(reinterpret_cast< const u8* >(MR::getScreenResTIMG())) + JUT_RESTIMG_OFFSET(MR::getScreenResTIMG()->mImageDataOffset));
 #else
-    GDSetTexImgPtr(GX_TEXMAP0, const_cast< u8* >(reinterpret_cast< const u8* >(MR::getScreenResTIMG())) + MR::getScreenResTIMG()->mImageDataOffset);
+    GDSetTexImgPtr(GX_TEXMAP0, const_cast< u8* >(reinterpret_cast< const u8* >(MR::getScreenResTIMG())) + JUT_RESTIMG_OFFSET(MR::getScreenResTIMG()->mImageDataOffset));
 #endif
     GDSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_NRM, GX_TRUE, GX_IDENTITY);
     storeDisplayList(&obj, 6);

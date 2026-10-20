@@ -452,7 +452,7 @@ void CollisionShadow::drawAndCaptureTex(J3DModelX* pModel, const TVec3f& rPositi
 #ifdef GALAXY_NATIVE
     void* destination = const_cast<u8*>(reinterpret_cast<const u8*>(image) + JUT_RESTIMG_OFFSET(image->mImageDataOffset));
 #else
-    void* destination = const_cast<u8*>(reinterpret_cast<const u8*>(image) + image->mImageDataOffset);
+    void* destination = const_cast<u8*>(reinterpret_cast<const u8*>(image) + JUT_RESTIMG_OFFSET(image->mImageDataOffset));
 #endif
     GXRenderModeObj* mode = JUTVideo::getManager()->getRenderMode();
     GXSetCopyFilter(GX_FALSE, mode->sample_pattern, GX_FALSE, mode->vfilter);

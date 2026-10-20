@@ -26,7 +26,7 @@ MarioModelDL::MarioModelDL(LiveActor* actor, const char* material, const char* t
         GDInitGDLObj(&object, buffer, sizeof(buffer));
         __GDCurrentDL = &object;
         ResTIMG* image = MR::getResTIMG(actor, static_cast<u16>(textureIndex + i));
-        GDSetTexImgPtr(GX_TEXMAP0, reinterpret_cast<u8*>(image) + image->mImageDataOffset);
+        GDSetTexImgPtr(GX_TEXMAP0, reinterpret_cast<u8*>(image) + JUT_RESTIMG_OFFSET(image->mImageDataOffset));
         GDPadCurr32();
         u32 size = object.ptr - object.start;
         holder->mSize = size;

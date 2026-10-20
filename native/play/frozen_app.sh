@@ -26,7 +26,8 @@ frozen_app_validate() {
 
 frozen_app_named() {
     case "$1" in
-    default) frozen_app_validate "$HOME/MacioGalaxy2-play/Petari.app" ;;
+    default) frozen_app_validate "$HOME/MacioGalaxy2-play/build5/Petari.app" ;;
+    build4) frozen_app_validate "$HOME/MacioGalaxy2-play/Petari.app" ;;
     ''|.|..|*[!A-Za-z0-9._-]*) echo "play: use default or a frozen build directory name" >&2; return 1 ;;
     *) frozen_app_validate "$HOME/MacioGalaxy2-play/$1/Petari.app" ;;
     esac
@@ -36,10 +37,14 @@ frozen_app_list() {
     for frozen_candidate in "$HOME/MacioGalaxy2-play/Petari.app" "$HOME/MacioGalaxy2-play/"*/Petari.app; do
         if frozen_verified=$(frozen_app_validate "$frozen_candidate" 2>/dev/null); then
             if [ "$frozen_candidate" = "$HOME/MacioGalaxy2-play/Petari.app" ]; then
-                printf '  default  %s\n' "$frozen_verified"
+                printf '  build4  %s\n' "$frozen_verified"
             else
                 frozen_name=${frozen_candidate%/Petari.app}
-                printf '  %s  %s\n' "${frozen_name##*/}" "$frozen_verified"
+                if [ "${frozen_name##*/}" = build5 ]; then
+                    printf '  build5 (default)  %s\n' "$frozen_verified"
+                else
+                    printf '  %s  %s\n' "${frozen_name##*/}" "$frozen_verified"
+                fi
             fi
         fi
     done

@@ -18,7 +18,7 @@ native/play/play.sh --list-builds
 native/play/play.sh --build build3 flip-swap
 ```
 
-`--build default` selects `~/MacioGalaxy2-play/Petari.app`. `ASTRAL_APP` may
+`--build default` selects `~/MacioGalaxy2-play/build5/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
 select another frozen app under the same tree and is checked by the same rule.
 A marker records the build owner's freeze; it does not isolate saves or caches.
 The versioned [persistent-state inventory](native/play/PERSISTENT-STATE.md)
@@ -42,7 +42,7 @@ Double-click **`Play Astral Italian.command`** in the repository folder. A menu 
 Press a number and Return. The game skips the title, opens file 1 (creating it if needed) and drops you into
 mission 1 of that galaxy. It does not award stars or unlock anything in the file. Quit with Cmd+Q.
 
-It plays the frozen build `~/MacioGalaxy2-play/Petari.app` (see `FROZEN.txt` next to it). Saves, settings and logs go
+It plays frozen build 5 at `~/MacioGalaxy2-play/build5/Petari.app` (see `FROZEN.txt` next to it). Saves, settings and logs go
 to `~/MacioGalaxy2-play/user`; MacioGalaxy's own folder (`~/Library/Application Support/Petari`) is refused.
 
 ## Odyssey movement: one toggle
@@ -68,7 +68,7 @@ the frozen build 3 does.
 
 ## Something looks or feels off? Press M (or F9) (build 5 and later)
 
-Not in the current default build 4: there, just tell us what happened and roughly when. From build 5 on:
+Available in default build 5. On build 4, just tell us what happened and roughly when. From build 5 on:
 M (or F9) saves a capture to `~/MacioGalaxy2-play/captures/<date-time>/`: the last 5 seconds (300 frames) of your inputs and
 Mario's movement, Mario's state at that moment, and a screenshot. Nothing appears on screen; keep playing. Afterwards,
 write one line about what felt off into that folder's `state.txt` (the last line, "note:"), or just say which capture it
@@ -88,11 +88,19 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 
 ## Status and known issues
 
+Build 5 is the default. Its freeze record is ~/MacioGalaxy2-play/build5/FROZEN.txt.
+
+- Clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617); the fix is scheduled for build 5.1.
+- Star Bit mods: G collection was observed. V shoot-nearest has not yet been observed firing; its tested attempt was blocked.
+- Odyssey movement changes were confirmed, but the full moveset remains unproven.
+- Build 5 starts with a fresh renderer-build-keyed shader cache and the bundled seed. Old cache files are ignored and preserved, not deleted. New effects outside the seed can still compile on first use.
+
+
 - **Build 4: avoid Yoshi Star Galaxy.** It crashes there (a renderer bug fixed for build 5), and the crash can leave a
   bad entry in the shader cache that makes every later build-4 launch crash at startup. After ANY build-4 crash, move
   `~/Library/Caches/AstralItalian/pipeline_cache.db*` (the `.db`, `-wal` and `-shm` files) aside into a backup folder
   before relaunching; do not touch `dawn_cache` or your saves. Build 5 keeps a separate, checked cache per build.
-- Build 4 (default, frozen 09:05): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
+- Historical build 4 (frozen 09:05; selectable with --build build4): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
   and on, and the toggle demonstrably changes Mario's moves (crouch + Spin rolls him only with it on). New: the world
   maps load (walking them and entering galaxies from them not checked yet).
 - Audio: ON by default since build 4. Measured, not yet listened to by a person: no underruns or dropouts in 3.5 minutes

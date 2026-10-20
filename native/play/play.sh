@@ -5,7 +5,7 @@
 #
 # GALAXY: flip-swap (default), fluffy-bluff, sky-station, title (normal boot to the title screen), or any name
 # `Petari --stage list` prints. Everything is configurable through the environment:
-#   ASTRAL_APP   frozen app bundle    (default ~/MacioGalaxy2-play/Petari.app)
+#   ASTRAL_APP   frozen app bundle    (default ~/MacioGalaxy2-play/build5/Petari.app)
 #   ASTRAL_DISC  extracted SB4E01 disc, the directory holding files/ (default ~/MacioGalaxy2-gamedata/SB4E01-extracted)
 #   ASTRAL_USER  saves/settings/controls (default ~/MacioGalaxy2-play/user). Never the MacioGalaxy (SMG1) user
 #                directory ~/Library/Application Support/Petari: the script refuses it.
@@ -16,7 +16,7 @@ set -u
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/frozen_app.sh"
 
-app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}
+app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/build5/Petari.app}
 disc=${ASTRAL_DISC:-$HOME/MacioGalaxy2-gamedata/SB4E01-extracted}
 user=${ASTRAL_USER:-$HOME/MacioGalaxy2-play/user}
 audio=${ASTRAL_AUDIO:-on}

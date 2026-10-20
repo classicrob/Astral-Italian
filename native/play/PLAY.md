@@ -18,7 +18,7 @@ native/play/play.sh --list-builds
 native/play/play.sh --build build3 flip-swap
 ```
 
-`--build default` selects `~/MacioGalaxy2-play/Petari.app`. `ASTRAL_APP` may
+`--build default` selects `~/MacioGalaxy2-play/build5/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
 select another frozen app under the same tree and is checked by the same rule.
 A marker records the build owner's freeze; it does not isolate saves or caches.
 The versioned [persistent-state inventory](PERSISTENT-STATE.md)
@@ -63,7 +63,7 @@ native/play/play.sh flip-swap --scenario 2 --odyssey --audio off
 | Audio | `a` | `--audio off` | On by default since build 4. Off runs the game's audio through a silent driver. |
 
 Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petari.app`, default
-`~/MacioGalaxy2-play/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
+`~/MacioGalaxy2-play/build5/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
 `~/MacioGalaxy2-gamedata/SB4E01-extracted`), `ASTRAL_USER` (saves, settings, controls, logs; default
 `~/MacioGalaxy2-play/user`). The scripts refuse MacioGalaxy's own user folder
 (`~/Library/Application Support/Petari`), so its saves are never read or written.
@@ -178,7 +178,16 @@ native/play/play.sh <InternalName> [--odyssey]     # e.g. native/play/play.sh Is
 
 World maps (WorldMap01-08) load without Mario by design. About 7 galaxies currently crash on one shared bug that is being fixed. The full table is in ~/MacioGalaxy2-team/scratch-port/sweep/SUMMARY.md.
 
-## Status and known issues (build 4, frozen 2026-10-20 09:05)
+## Build 5: default frozen build
+
+The app and its clean-build provenance are in ~/MacioGalaxy2-play/build5/. The sibling PERSISTENT-STATE.md inventories saves, settings and keyed cache paths. Build 4 and its saves remain at their original paths; select it with --build build4.
+
+- Clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617); the fix is scheduled for build 5.1.
+- Star Bit mods: G collection was observed. V shoot-nearest has not yet been observed firing; its tested attempt was blocked.
+- Odyssey movement changes were confirmed, but the full moveset remains unproven.
+- Build 5 starts with a fresh renderer-build-keyed shader cache and the bundled seed. Old cache files are ignored and preserved, not deleted. New effects outside the seed can still compile on first use.
+
+## Historical build 4 checks (frozen 2026-10-20 09:05)
 
 What was checked (`~/MacioGalaxy2-play/FROZEN.txt` has the numbers):
 - **Flip-Swap Galaxy** and **Fluffy Bluff Galaxy**: start, load and play; 120-second smoke runs pass with Odyssey movement

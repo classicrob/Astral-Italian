@@ -13,7 +13,7 @@ set -u
 here=$(cd "$(dirname "$0")" && pwd)
 . "$here/frozen_app.sh"
 
-app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}
+app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/build5/Petari.app}
 disc=${ASTRAL_DISC:-$HOME/MacioGalaxy2-gamedata/SB4E01-extracted}
 root=${ASTRAL_SMOKE_ROOT:-$HOME/MacioGalaxy2-play/smoke}
 galaxy=flip-swap

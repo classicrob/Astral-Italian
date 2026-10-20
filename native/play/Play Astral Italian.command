@@ -4,7 +4,7 @@
 here=$(cd "$(dirname "$0")" && pwd)
 play="$here/play.sh"
 . "$here/frozen_app.sh"
-app=$(frozen_app_validate "${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}") || exit 1
+app=$(frozen_app_validate "${ASTRAL_APP:-$HOME/MacioGalaxy2-play/build5/Petari.app}") || exit 1
 export ASTRAL_APP="$app"
 odyssey=
 audio=${ASTRAL_AUDIO:-on}

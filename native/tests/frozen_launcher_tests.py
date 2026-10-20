@@ -40,11 +40,23 @@ class FrozenLauncherTests(unittest.TestCase):
 
     def test_default_and_named_frozen_dry_launch(self):
         self.app(self.root)
+        self.app(self.root / "build5")
         self.app(self.root / "build3")
-        for args in (("--dry-run",), ("--build", "build3", "--dry-run")):
+        for args in (("--dry-run",), ("--build", "default", "--dry-run"),
+                     ("--build", "build4", "--dry-run"), ("--build", "build3", "--dry-run")):
             result = self.run_play(*args)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("  run  ", result.stdout)
+            expected = self.root / "Petari.app" if "build4" in args else self.root / ("build3" if "build3" in args else "build5") / "Petari.app"
+            self.assertIn(str(expected / "Contents/MacOS/Petari"), result.stdout)
+
+    def test_no_argument_menu_selects_build5(self):
+        self.app(self.root)
+        app = self.app(self.root / "build5")
+        result = subprocess.run(["sh", str(PLAY.parents[1] / "Play Astral Italian.command")],
+                                input="q\n", env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Frozen build: " + str(app.parent.resolve()), result.stdout)
 
     def test_unfrozen_rejected_before_state_creation(self):
         app = self.app(self.root, frozen=False)
@@ -66,6 +78,7 @@ class FrozenLauncherTests(unittest.TestCase):
 
     def test_discovery_omits_unfrozen_and_external_apps(self):
         self.app(self.root)
+        self.app(self.root / "build5")
         self.app(self.root / "build3")
         self.app(self.root / "unfrozen", frozen=False)
         outside = self.app(self.home / "outside")
@@ -74,7 +87,8 @@ class FrozenLauncherTests(unittest.TestCase):
         (self.root / "escaped/FROZEN.txt").write_text("Not sufficient\n")
         result = self.run_play("--list-builds")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("default", result.stdout)
+        self.assertIn("build5 (default)", result.stdout)
+        self.assertIn("build4", result.stdout)
         self.assertIn("build3", result.stdout)
         self.assertNotIn("unfrozen", result.stdout)
         self.assertNotIn("escaped", result.stdout)
@@ -85,7 +99,7 @@ class FrozenLauncherTests(unittest.TestCase):
         external = self.home / "external-exe"
         exe.rename(external)
         exe.symlink_to(external)
-        self.assertNotEqual(self.run_play("--dry-run").returncode, 0)
+        self.assertNotEqual(self.run_play("--dry-run", app=app).returncode, 0)
         self.assertNotEqual(self.run_play("--build", "../outside", "--dry-run").returncode, 0)
 
     def test_frozen_smoke_rejects_unfrozen_without_launch(self):

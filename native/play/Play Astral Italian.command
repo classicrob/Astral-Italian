@@ -18,6 +18,8 @@ while :; do
     echo "  a) Audio: $audio"
     echo "  q) Quit"
     echo
+    echo "  In the game: \` (the key between Escape and Tab) opens the Home menu: controls, mods."
+    echo
     printf "Choice: "
     read -r choice || exit 0
     case "$choice" in

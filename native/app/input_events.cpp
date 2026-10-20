@@ -134,9 +134,11 @@ bool input(const SDL_Event& event) {
         return true;
     }
     countPhysical(event);
-    // F9: playtest capture (playtest_capture.hpp; inert unless PETARI_CAPTURE_DIR is set). The key also reaches the
-    // input layer, where it is unbound by default.
-    if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat && event.key.scancode == SDL_SCANCODE_F9) {
+    // F9 or M ("mark this moment", for keyboards without usable function keys): playtest capture
+    // (playtest_capture.hpp; inert unless PETARI_CAPTURE_DIR is set). Both keys also reach the input layer, where they
+    // are unbound by default.
+    if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat &&
+        (event.key.scancode == SDL_SCANCODE_F9 || event.key.scancode == SDL_SCANCODE_M)) {
         PlaytestCapture::request();
     }
     return Input::SDL3::handleEvent(event);

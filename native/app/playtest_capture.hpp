@@ -1,5 +1,5 @@
 #pragma once
-// One-key playtest capture (F9): when the player presses it, the game thread writes a timestamped folder under
+// One-key playtest capture (F9 or M): when the player presses it, the game thread writes a timestamped folder under
 // PETARI_CAPTURE_DIR with
 //   route.csv   the last 300 frames of Mario's state and the bound inputs (the PETARI_ROUTE_RECORD format, oldest first),
 //   state.txt   the scene, stage, scenario, Mario's position, velocity, gravity and the camera at the press,

@@ -30,7 +30,7 @@ to `~/MacioGalaxy2-play/user`; MacioGalaxy's own folder (`~/Library/Application 
 ./"Play Astral Italian.command" flip-swap --odyssey
 ```
 
-In the game: F1, then Mods, then Odyssey movement (saved in `mods.txt`). The moves and keys are in
+In the game: the Home menu (` or F1), then Mods, then Odyssey movement (saved in `mods.txt`). The moves and keys are in
 `native/MODS.md`, "Odyssey movement". The switch only does something on a build that includes the Odyssey hooks;
 the frozen build 3 does.
 
@@ -43,18 +43,19 @@ the frozen build 3 does.
   Mario stands still when you let go (no drift).
 - Coins, purple coins, the 1-Up and the electric rails show up and react.
 
-## Something looks or feels off? Press F9 (build 5 and later)
+## Something looks or feels off? Press M (or F9) (build 5 and later)
 
 Not in the current default build 4: there, just tell us what happened and roughly when. From build 5 on:
-F9 saves a capture to `~/MacioGalaxy2-play/captures/<date-time>/`: the last 5 seconds (300 frames) of your inputs and
+M (or F9) saves a capture to `~/MacioGalaxy2-play/captures/<date-time>/`: the last 5 seconds (300 frames) of your inputs and
 Mario's movement, Mario's state at that moment, and a screenshot. Nothing appears on screen; keep playing. Afterwards,
 write one line about what felt off into that folder's `state.txt` (the last line, "note:"), or just say which capture it
 was. Each capture can be replayed and measured.
 
 ## Controls
 
-The same keys as MacioGalaxy. Press **F1** in the game for the full list and to remap. Basics: WASD move,
-Space jump, F spin, Shift crouch / ground pound, mouse = Star Pointer, left click shoots Star Bits, Q/E camera,
+The same keys as MacioGalaxy. Press **`** (the key between Escape and Tab; F1 works too) in the game for the full list and to remap. Basics: WASD move,
+Space jump, F spin, Shift crouch / ground pound, ` (the key between Escape and Tab) or F1 opens the Home menu
+(controls, mods), mouse = Star Pointer, left click shoots Star Bits, Q/E camera,
 C recenter, Return start, Escape pause. Full table: `native/play/PLAY.md` and `native/CONTROLS.md`.
 
 ## More

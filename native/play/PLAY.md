@@ -36,7 +36,7 @@ native/play/play.sh flip-swap --scenario 2 --odyssey --audio off
 
 | What | Menu | Command | Notes |
 | --- | --- | --- | --- |
-| Odyssey movement (Super Mario Odyssey moveset) | `o` | `--odyssey` | For this run only. In the game: F1, then Mods, then Odyssey movement (saved in `mods.txt`). The frozen build 3 includes the Odyssey hooks (build2/ and build1/ do not). Moves and keys: native/MODS.md, "Odyssey movement". |
+| Odyssey movement (Super Mario Odyssey moveset) | `o` | `--odyssey` | For this run only. In the game: the Home menu (` or F1), then Mods, then Odyssey movement (saved in `mods.txt`). Builds 3 and later include the Odyssey hooks (build2/ and build1/ do not). Moves and keys: native/MODS.md, "Odyssey movement". |
 | Audio | `a` | `--audio off` | On by default since build 4. Off runs the game's audio through a silent driver. |
 
 Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petari.app`, default
@@ -47,7 +47,7 @@ Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petar
 
 ## Controls (keyboard and mouse)
 
-The same keys as MacioGalaxy (full list and remapping: native/CONTROLS.md; F1 remaps them in the game).
+The same keys as MacioGalaxy (full list and remapping: native/CONTROLS.md; the Home menu, ` or F1, remaps them in the game).
 
 | Action | Key |
 | --- | --- |
@@ -63,10 +63,10 @@ The same keys as MacioGalaxy (full list and remapping: native/CONTROLS.md; F1 re
 | First-person view | Up (Down to leave) |
 | Pause | Escape |
 | Start | Return |
-| Home menu: controls, mods, level select | F1 |
+| Home menu: controls, mods, level select | ` (between Escape and Tab) or F1 |
 | Co-star Luma (second player pointer) | F2 |
 | Walk slowly | hold Left Alt while moving |
-| Playtest capture (last 5 s of input + Mario state + screenshot to `~/MacioGalaxy2-play/captures/`; build 5 and later) | F9 |
+| Playtest capture (last 5 s of input + Mario state + screenshot to `~/MacioGalaxy2-play/captures/`; build 5 and later) | M or F9 |
 
 Power-ups use the same keys: Cloud Mario makes a cloud platform with F (Spin), Spin Drill starts with F, Yoshi
 jumps with Space (hold to flutter), his tongue is the left mouse button where you point.
@@ -153,7 +153,7 @@ Known issues (honest list):
   and the Odyssey moves other than the roll (long jump, dive, ground-pound jump, wall jump, sideflip, backflip).
 - **Not compared with a real Wii**: jump height and run speed come from the game's own code but were not checked
   against Dolphin yet.
-- The F1 menu uses a built-in font (the SMG1 font file it looks for is not on the SMG2 disc).
+- The Home menu uses a built-in font (the SMG1 font file it looks for is not on the SMG2 disc).
 - Fluffy Bluff loads a little slower than Flip-Swap (more sound data).
 
 Older builds: `~/MacioGalaxy2-play/build3/` (Odyssey, no world map), `build2/` (no Odyssey hooks) and `build1/`

@@ -3,6 +3,7 @@
 import argparse
 import csv
 import hashlib
+import importlib.util
 import json
 import math
 import re
@@ -15,6 +16,13 @@ import tempfile
 MAGIC = b"SMG2KPD1"
 RECORD = struct.Struct(">QIIIiiiII")
 REPO = Path(__file__).resolve().parents[2]
+
+
+def actor_capture_receipt(trace):
+    spec = importlib.util.spec_from_file_location("headless_actor_receipt", REPO / "native/tools/actor_receipt.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.collect_actor_receipt(trace, trace_columns())
 
 
 def trace_columns():
@@ -324,6 +332,7 @@ def main(argv=None):
     run.add_argument("--request", help='shared startup command: galaxy "Name" scenario N')
     run.add_argument("--stage", help="shared catalog internal name, alias, or English galaxy label")
     run.add_argument("--scenario", type=sync_number, help="actual selected ScenarioNo; defaults to 1 with --stage")
+    run.add_argument("--actor-trace", action="store_true", help="record and validate complete actor census sidecars")
     run.add_argument("--inputs-from-sync", action="store_true", help="hold all channels disconnected until the ready seam, then consume tape frame 0; trace includes the anchor")
     run.add_argument("--sync-stage", help="canonical target stage at the first ready post-endFrame seam")
     run.add_argument("--sync-scenario", type=sync_number, help="placed ScenarioNo, not selected hidden/green ID")
@@ -378,7 +387,11 @@ def main(argv=None):
     manifest_path = Path(str(trace) + ".manifest.json")
     marker = Path(str(trace) + ".complete")
     timing = Path(str(trace) + ".timing.csv")
-    if any(path.exists() or path.is_symlink() for path in (trace, manifest_path, marker, timing, sync_path)):
+    artifacts = [trace, manifest_path, marker, timing, sync_path]
+    if args.actor_trace:
+        for suffix in (".actors.csv", ".actor-frames.csv"):
+            artifacts.extend([Path(str(trace) + suffix), Path(str(trace) + suffix + ".partial")])
+    if any(path.exists() or path.is_symlink() for path in artifacts):
         raise ValueError("refusing to overwrite an existing trace")
     user.mkdir(parents=True, exist_ok=True)
     if any(user.iterdir()):
@@ -390,6 +403,8 @@ def main(argv=None):
         command = [str(args.executable.expanduser().resolve()), "--inputs", str(tape), "--disc", str(disc),
                    "--user", str(user), "--trace", str(trace), "--epoch-ticks", str(args.epoch_ticks),
                    "--rate-numerator", str(args.rate_numerator), "--rate-denominator", str(args.rate_denominator)]
+        if args.actor_trace:
+            command.append("--actor-trace")
         if args.inputs_from_sync:
             command.append("--inputs-from-sync")
         if args.no_ftz:
@@ -422,6 +437,9 @@ def main(argv=None):
                     "sync_json": str(sync_path) if args.sync_stage is not None else None,
                     "executable_sha256": digest(args.executable) if args.executable.is_file() else None}
         manifest["diagnostic_placeholder"] = diagnostic
+        if args.actor_trace:
+            manifest["actors"] = dict(schema_version=1, status="incomplete", frames=None,
+                                      actor_rows=None, identity_holds=None, qualification="unverified", files=[])
         with manifest_path.open("x") as out:
             json.dump(manifest, out, indent=2)
             out.write("\n")
@@ -435,6 +453,20 @@ def main(argv=None):
             complete = status == 0 and trace.is_file() and marker.is_file() and marker.read_text().strip() == str(trace_frames) and valid_trace(trace, trace_frames) and valid_timing(timing, trace_frames)
         except (OSError, ValueError, KeyError, TypeError, csv.Error) as exc:
             complete, validation_error = False, str(exc)
+        if args.actor_trace:
+            try:
+                if not complete:
+                    raise ValueError("main capture did not complete validation")
+                manifest["actors"] = actor_capture_receipt(trace)
+                if manifest["actors"]["frames"] != trace_frames:
+                    raise ValueError("actor receipt frame count differs from main trace")
+            except (OSError, ValueError, KeyError, TypeError, csv.Error) as exc:
+                complete, validation_error = False, "actor sidecar receipt: " + str(exc)
+                manifest["actors"] = dict(schema_version=1, status="incomplete", frames=None,
+                                          actor_rows=None, identity_holds=None, qualification="unverified", files=[],
+                                          error=str(exc))
+        if args.inputs_from_sync and origin is not None:
+            manifest["input_source_start"] = origin["source_frame"] + 1
         manifest.update(status=("diagnostic-complete" if diagnostic else "complete") if complete else "invalid", exit_status=status,
                         frames=trace_frames, trace_frames=trace_frames, sync_origin=origin, validation_error=validation_error)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")

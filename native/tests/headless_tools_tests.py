@@ -285,8 +285,67 @@ class InterchangeTests(unittest.TestCase):
                 if corruption in (None, "gated"):
                     gated = corruption == "gated"
                     self.assertEqual(manifest["inputs_from_sync"], gated)
+                    if gated: self.assertEqual(manifest["input_source_start"], 1000)
                     self.assertEqual(manifest["trace_frames"], 6 if gated else 2)
                     self.assertEqual(manifest["sync_origin"]["source_frame"], 999 if gated else 3)
+
+    def test_actor_trace_preflight_preserves_existing_sidecars(self):
+        for suffix in (".actors.csv", ".actor-frames.csv", ".actors.csv.partial", ".actor-frames.csv.partial"):
+            with self.subTest(suffix=suffix), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                trace = root / "trace.csv"
+                existing = Path(str(trace) + suffix)
+                existing.write_text("existing evidence")
+                with patch.object(headless.subprocess, "call") as run:
+                    with self.assertRaisesRegex(ValueError, "overwrite"):
+                        headless.main(["run", "--inputs", str(root / "inputs.jsonl"), "--executable", str(root / "petari_headless"),
+                                       "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                                       "--trace", str(trace), "--epoch-ticks", "0", "--actor-trace"])
+                    run.assert_not_called()
+                self.assertEqual(existing.read_text(), "existing evidence")
+
+    def test_actor_trace_launcher_parses_actual_receipt_and_invalidates_missing_rows(self):
+        actor_spec = importlib.util.spec_from_file_location("receipt", ROOT / "native/tools/actor_receipt.py")
+        receipt = importlib.util.module_from_spec(actor_spec)
+        actor_spec.loader.exec_module(receipt)
+        for broken in (False, True):
+            with self.subTest(broken=broken), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source, trace = root / "inputs.jsonl", root / "native.csv"
+                source.write_text("\n".join(json.dumps(r) for r in headless.generate(frames=1)) + "\n")
+                def completed(command):
+                    self.assertIn("--actor-trace", command)
+                    context = dict(frame="0", scene_epoch="0", scene="Game", stage="SyntheticGalaxy", scenario="1", init_state="6")
+                    main = dict(context, scene_valid=1, player_valid=0, actor_count_valid=1, rng_valid=0,
+                                animation_valid=0, actor_registered=0, actor_living=0)
+                    def write(path, columns, rows):
+                        with path.open("w", newline="") as out:
+                            writer = csv.DictWriter(out, columns); writer.writeheader(); writer.writerows(rows)
+                    write(trace, headless.trace_columns(), [main])
+                    write(Path(str(trace) + ".actors.csv"), receipt.ACTOR_COLUMNS, [])
+                    census = dict(context, schema_version=1, ready=1, registered=0, living=0, emitted=0,
+                                  identity_unresolved=0, identity_ambiguous=0)
+                    write(Path(str(trace) + ".actor-frames.csv"), receipt.ACTOR_FRAME_COLUMNS, [] if broken else [census])
+                    Path(str(trace) + ".complete").write_text("1\n")
+                    Path(str(trace) + ".timing.csv").write_text("frame,vi_count,ticks\n0,80,1000\n")
+                    return 0
+                with patch.object(headless.subprocess, "call", side_effect=completed):
+                    status = headless.main(["run", "--inputs", str(source), "--executable", str(root / "petari_headless"),
+                                           "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                                           "--trace", str(trace), "--epoch-ticks", "0", "--actor-trace"])
+                manifest = json.loads(Path(str(trace) + ".manifest.json").read_text())
+                self.assertEqual(status, 2 if broken else 0)
+                self.assertEqual(manifest["status"], "invalid" if broken else "complete")
+                actors = manifest["actors"]
+                self.assertEqual(actors["status"], "incomplete" if broken else "captured")
+                if broken:
+                    self.assertIsNone(actors["frames"])
+                    self.assertEqual(actors["files"], [])
+                else:
+                    self.assertEqual((actors["frames"], actors["actor_rows"], actors["identity_holds"]), (1, 0, 0))
+                    self.assertEqual(actors["qualification"], "sampled-identities-only")
+                    self.assertEqual(actors["files"][0]["path"], trace.name + ".actors.csv")
+                    self.assertEqual(len(actors["files"][0]["sha256"]), 64)
 
     def test_sync_flags_require_target_and_unsigned_numbers(self):
         with self.assertRaisesRegex(ValueError, "requires --sync-stage"):

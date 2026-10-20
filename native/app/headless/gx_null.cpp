@@ -3,6 +3,8 @@
 #include <revolution/vi.h>
 #include <revolution/os.h>
 #include <petari/platform/gx_sync.hpp>
+#include <petari/platform/null_gx_processor.hpp>
+#include <petari/host_allocation.hpp>
 #include <petari/progress_hook.hpp>
 #include <algorithm>
 #include <cmath>
@@ -15,6 +17,26 @@ namespace {
 using PetariNative::Headless::GxLedger;
 namespace Sync = PetariNative::Platform::GXSync;
 GxLedger gFifo;
+using Processor = PetariNative::Platform::NullGxProcessor;
+Processor gProcessor;
+// All use of the ledger/processor is serialized by the OS interrupt lock.
+unsigned gDeferProcessing = 0;
+class InterruptGuard {
+public:
+    InterruptGuard() : mEnabled(OSDisableInterrupts()) {}
+    ~InterruptGuard() { OSRestoreInterrupts(mEnabled); }
+private:
+    BOOL mEnabled;
+};
+void pump() {
+    PetariNative::HostAllocationScope host;
+    gProcessor.publish(gFifo.bytes());
+    gProcessor.pump(Sync::breakpointPosition(), [](const Processor::Event& event) {
+        if (event.kind == Processor::Kind::Token) Sync::reportToken(event.token, event.position);
+        else Sync::reportDrawDone(event.position);
+    }, [](auto processed, auto written) { Sync::reportProgress(processed, written); },
+       [](auto position) { Sync::reportBreakpointReached(position); });
+}
 std::uint64_t gCalls = 0, gDisplayListBytes = 0, gLastDone = 0;
 GXFifoObj gCpu{}, gGpu{};
 f32 gViewport[6] = {0, 0, 640, 480, 0, 1};
@@ -30,9 +52,10 @@ GXTlutRegionCallback gTlutCallback = nullptr;
     std::abort();
 }
 void emit(const void* data, u32 count) {
+    InterruptGuard interrupts;
     try { gFifo.write(data, count); }
     catch (const std::exception& error) { OSPanic(__FILE__, __LINE__, "%s", error.what()); std::abort(); }
-    if (!gFifo.recording()) Sync::reportProgress(gFifo.bytes(), gFifo.bytes());
+    if (!gFifo.recording() && !gDeferProcessing) pump();
 }
 void word(std::uint64_t value, unsigned count) {
     u8 bytes[8];
@@ -87,7 +110,8 @@ GXBool GXGetGPFifo(GXFifoObj* object) { *object = gGpu; return GX_TRUE; }
 GXBool GXGetFifoWrap(const GXFifoObj*) { return GX_FALSE; }
 GXBool __GXIsGPFifoReady() { return GX_TRUE; }
 void GXGetFifoPtrs(const GXFifoObj*, void** read, void** write) {
-    if (read) *read = Sync::positionToPointer(gFifo.bytes());
+    InterruptGuard interrupts;
+    if (read) *read = Sync::positionToPointer(gProcessor.processed());
     if (write) *write = Sync::positionToPointer(gFifo.bytes());
 }
 void GXGetGPStatus(GXBool* over, GXBool* under, GXBool* readIdle, GXBool* commandIdle, GXBool* breakpoint) {
@@ -97,24 +121,54 @@ void GXGetGPStatus(GXBool* over, GXBool* under, GXBool* readIdle, GXBool* comman
     if (breakpoint) *breakpoint = status.breakpoint;
 }
 void GXEnableBreakPt(void* pointer) {
+    InterruptGuard interrupts;
     Sync::setBreakpoint(Sync::pointerToPosition(pointer));
-    Sync::reportBreakpointReached(Sync::pointerToPosition(pointer));
+    pump();
 }
-void GXDisableBreakPt() { Sync::clearBreakpoint(); }
+void GXDisableBreakPt() { InterruptGuard interrupts; Sync::clearBreakpoint(); pump(); }
 GXBreakPtCallback GXSetBreakPtCallback(GXBreakPtCallback cb) { return Sync::setBreakpointCallback(cb); }
 GXDrawSyncCallback GXSetDrawSyncCallback(GXDrawSyncCallback cb) { return Sync::setDrawSyncCallback(cb); }
 GXDrawDoneCallback GXSetDrawDoneCallback(GXDrawDoneCallback cb) { return Sync::setDrawDoneCallback(cb); }
-void GXSetDrawSync(u16 token) { word(0x61, 1); word(0x48000000U | token, 4); Sync::reportToken(token, gFifo.bytes()); }
+void GXSetDrawSync(u16 token) {
+    InterruptGuard interrupts;
+    PetariNative::HostAllocationScope host;
+    // Register the command event before exposing its bytes to processing. The
+    // interrupt lock also prevents DrawSyncManager arming a stale saved pointer
+    // between this command's write and event registration.
+    ++gDeferProcessing;
+    word(0x61, 1); word(0x48000000U | token, 4);
+    --gDeferProcessing;
+    if (!gFifo.recording()) {
+        gProcessor.publish(gFifo.bytes());
+        gProcessor.append(Processor::Kind::Token, token, gFifo.bytes());
+        pump();
+    }
+}
 void GXSetDrawDone() {
+    InterruptGuard interrupts;
+    PetariNative::HostAllocationScope host;
+    ++gDeferProcessing;
     word(0x61, 1); word(0x45000002, 4);
-    gLastDone = Sync::noteDrawDoneIssued(); Sync::reportDrawDone(gFifo.bytes());
+    --gDeferProcessing;
+    if (!gFifo.recording()) {
+        gLastDone = Sync::noteDrawDoneIssued();
+        gProcessor.publish(gFifo.bytes());
+        gProcessor.append(Processor::Kind::DrawDone, 0, gFifo.bytes());
+        pump();
+    }
 }
 void GXDrawDone() { GXSetDrawDone(); Sync::waitDrawDone(gLastDone); }
 u16 GXReadDrawSync() { return Sync::lastToken(); }
-void GXAbortFrame() { Sync::abortFrame(); Sync::abortApplied(gFifo.bytes(), gFifo.bytes()); }
-void GXFlush() { Sync::reportProgress(gFifo.bytes(), gFifo.bytes()); }
-void GXBeginDisplayList(void* buffer, u32 capacity) { gFifo.begin(buffer, capacity); }
-u32 GXEndDisplayList() { return gFifo.end(); }
+void GXAbortFrame() {
+    InterruptGuard interrupts;
+    PetariNative::HostAllocationScope host;
+    Sync::abortFrame();
+    gProcessor.abort(gFifo.bytes());
+    Sync::abortApplied(gProcessor.processed(), gProcessor.written());
+}
+void GXFlush() { InterruptGuard interrupts; if (!gFifo.recording()) pump(); }
+void GXBeginDisplayList(void* buffer, u32 capacity) { InterruptGuard interrupts; gFifo.begin(buffer, capacity); }
+u32 GXEndDisplayList() { InterruptGuard interrupts; return gFifo.end(); }
 void GXCallDisplayList(const void* buffer, u32 size) {
     if (size && !buffer) unsupported("GXCallDisplayList(null)");
     word(0x40, 1); word(0, 4); word(size, 4); gDisplayListBytes += size;

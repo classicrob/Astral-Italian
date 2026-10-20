@@ -25,7 +25,9 @@ cert="$(git rev-parse main) $(git rev-parse HEAD:src) $(git rev-parse HEAD:inclu
 if [ -n "${REMOTE_PROOF_RECEIPT:-}" ]; then
   [ -n "${REMOTE_PROOF_ROOT:-}" ] && [ -n "${REMOTE_PROOF_HOST:-}" ] || { echo "remote proof root and trusted host required" >&2; exit 1; }
   state waiting-remote-proof "verify genuine remote objects before consuming certificate"
-  lockf -k "$lock" nice -n 19 python3 tools/team/remoteproof.py verify --receipt "$REMOTE_PROOF_RECEIPT" --proof-root "$REMOTE_PROOF_ROOT" --host "$REMOTE_PROOF_HOST"
+  set -- python3 tools/team/remoteproof.py verify --receipt "$REMOTE_PROOF_RECEIPT" --proof-root "$REMOTE_PROOF_ROOT" --host "$REMOTE_PROOF_HOST"
+  [ -z "${REMOTE_PROOF_EQUIVALENT_BASE:-}" ] || set -- "$@" --equivalent-base "$REMOTE_PROOF_EQUIVALENT_BASE"
+  lockf -k "$lock" nice -n 19 "$@"
   state remote-proof-accepted "continue final source guard and incremental landing"
   export REMOTE_PROOF_CONTRACT=build/remote-proof-contract.json
 fi

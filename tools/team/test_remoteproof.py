@@ -9,6 +9,7 @@ import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import remoteproof as rp
@@ -163,6 +164,82 @@ class RemoteProofTests(unittest.TestCase):
         (self.root / 'alias.cert').symlink_to(self.root / 'proof.cert')
         self.receipt['certificate']['path'] = 'alias.cert'
         self.rejects()
+
+    def equivalent_fixture(self):
+        self.spec['before'] = dict(src='old', include='old-include', libs='old-libs', config='old-config')
+        self.receipt['spec'] = copy.deepcopy(self.spec)
+        self.spec['base'] = 'current'
+
+    def equivalence_git(self, *args):
+        if args[0] == 'diff':
+            return 'PLAY.md\nnative/play/PLAY.md' if args[2] == 'base' else 'src/Game/Test.cpp'
+        if args[0] == 'rev-parse':
+            path = args[1].split(':', 1)[1]
+            return self.spec['before'].get(path, 'same-' + path)
+        self.fail(args)
+
+    def test_docs_base_equivalence_preserves_original_proof(self):
+        self.equivalent_fixture()
+        original = copy.deepcopy(self.receipt)
+        with patch.object(rp, 'git', side_effect=self.equivalence_git), \
+             patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+             patch.object(rp.subprocess, 'check_output', return_value=b'source'):
+            result = rp.verify(self.receipt, self.root, self.spec, 'M1', equivalent_base='base')
+        self.assertEqual(result, b'current src include libs\n')
+        self.assertEqual(self.receipt, original)
+        self.assertEqual((self.root / 'proof.cert').read_bytes(), b'base src include libs\n')
+
+    def test_base_equivalence_requires_explicit_original_base(self):
+        self.equivalent_fixture()
+        for original in (None, 'another-base'):
+            with self.subTest(original=original), self.assertRaises(ValueError):
+                rp.base_equivalence(self.receipt['spec'], self.spec, original)
+
+    def test_base_equivalence_rejects_other_contract_changes(self):
+        self.equivalent_fixture()
+        for field in ('before', 'after', 'units', 'toolchain', 'generators'):
+            saved = self.receipt['spec'][field]
+            self.receipt['spec'][field] = 'changed'
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                rp.base_equivalence(self.receipt['spec'], self.spec, 'base')
+            self.receipt['spec'][field] = saved
+
+    def test_base_equivalence_rejects_nonancestor(self):
+        self.equivalent_fixture()
+        with patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=1)), \
+             self.assertRaises(ValueError):
+            rp.base_equivalence(self.receipt['spec'], self.spec, 'base')
+
+    def test_base_equivalence_rejects_source_advance(self):
+        self.equivalent_fixture()
+        with patch.object(rp, 'git', return_value='native/app/main.cpp'), \
+             patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+             self.assertRaises(ValueError):
+            rp.base_equivalence(self.receipt['spec'], self.spec, 'base')
+
+    def test_base_equivalence_rejects_compile_input_tree_changes(self):
+        self.equivalent_fixture()
+        for changed_path in (*rp.INPUTS, 'tools', 'configure.py'):
+            def changed_git(*args):
+                if args == ('rev-parse', 'current:' + changed_path):
+                    return 'different'
+                return self.equivalence_git(*args)
+            with self.subTest(path=changed_path), \
+                 patch.object(rp, 'git', side_effect=changed_git), \
+                 patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+                 self.assertRaises(ValueError):
+                rp.base_equivalence(self.receipt['spec'], self.spec, 'base')
+
+    def test_base_equivalence_rejects_unbound_before_tree(self):
+        self.equivalent_fixture()
+        def unbound_git(*args):
+            if args[0] == 'rev-parse' and args[1].endswith(':src'):
+                return 'same-but-unbound'
+            return self.equivalence_git(*args)
+        with patch.object(rp, 'git', side_effect=unbound_git), \
+             patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+             self.assertRaises(ValueError):
+            rp.base_equivalence(self.receipt['spec'], self.spec, 'base')
 
 
 if __name__ == '__main__':

@@ -87,10 +87,36 @@ def confined(root, name):
     return path
 
 
-def verify(receipt, root, expected, host):
+def base_equivalence(proven, expected, equivalent_base=None):
+    if proven == expected:
+        return None
+    require(equivalent_base and proven.get('base') == equivalent_base,
+            'stale or mismatched source/config/tool contract')
+    compared = dict(proven)
+    compared['base'] = expected['base']
+    require(compared == expected, 'equivalent base cannot change other contract fields')
+    result = subprocess.run(['git', 'merge-base', '--is-ancestor', equivalent_base, expected['base']],
+                            cwd=ROOT, capture_output=True)
+    require(result.returncode == 0, 'proof base is not an ancestor of landing base')
+    changed = git('diff', '--name-only', equivalent_base, expected['base']).splitlines()
+    require(changed and all(p.endswith('.md') for p in changed),
+            'base advancement is not documentation-only')
+    inputs = {}
+    for path in (*INPUTS, 'tools', 'configure.py'):
+        before = git('rev-parse', f'{equivalent_base}:{path}')
+        current = git('rev-parse', f'{expected["base"]}:{path}')
+        require(before == current, f'base compile input changed: {path}')
+        if path in INPUTS:
+            require(before == expected['before'][path], f'proof before tree mismatch: {path}')
+        inputs[path] = before
+    return {'proof_base': equivalent_base, 'landing_base': expected['base'],
+            'changed_documentation': changed, 'identical_inputs': inputs}
+
+
+def verify(receipt, root, expected, host, equivalent_base=None):
     require(receipt['schema'] == 1 and receipt['status'] == 'PASS', 'incomplete remote proof')
     require(receipt['host'] == host, 'unexpected proof host')
-    require(receipt['spec'] == expected, 'stale or mismatched source/config/tool contract')
+    equivalence = base_equivalence(receipt['spec'], expected, equivalent_base)
     require(receipt['restored_trees'] == expected['after'], 'tested sources not restored')
     require(receipt['builds'] == {'before': 0, 'after': 0, 'control': 0, 'restore': 0},
             'a clean build or control failed')
@@ -113,8 +139,8 @@ def verify(receipt, root, expected, host):
     cert_info = receipt['certificate']
     cert = confined(root, cert_info['path']).read_bytes()
     require(digest(cert) == cert_info['sha256'], 'certificate hash mismatch')
-    wanted_cert = (expected['base'] + ' ' + ' '.join(expected['after'][p] for p in INPUTS[:3]) + '\n').encode()
-    require(cert == wanted_cert, 'certificate does not bind this landing')
+    wanted_cert = (receipt['spec']['base'] + ' ' + ' '.join(expected['after'][p] for p in INPUTS[:3]) + '\n').encode()
+    require(cert == wanted_cert, 'certificate does not bind the original proof')
     ctl = receipt['control']
     require(ctl['object'] in expected['units'], 'control is not a configured source object')
     source = expected['units'][ctl['object']]['source']
@@ -152,6 +178,8 @@ def verify(receipt, root, expected, host):
         require(files['control/original.o'] == files[f'after/{ctl["object"]}'], 'control baseline mismatch')
         require(original.read_bytes() == restored.read_bytes(), 'control object not restored byte-identically')
         require(bool(objsame.compare(original, perturbed)), 'negative control failed to change semantics')
+    if equivalence:
+        return (expected['base'] + ' ' + ' '.join(expected['after'][p] for p in INPUTS[:3]) + '\n').encode()
     return cert
 
 
@@ -165,6 +193,7 @@ def main():
     check.add_argument('--receipt', type=Path, required=True)
     check.add_argument('--proof-root', type=Path, required=True)
     check.add_argument('--host', required=True)
+    check.add_argument('--equivalent-base', help='Explicit original proof base; only a verified docs-only advance is allowed')
     current = sub.add_parser('check')
     current.add_argument('--contract', type=Path, required=True)
     args = parser.parse_args()
@@ -178,7 +207,9 @@ def main():
     root = args.proof_root.resolve(strict=True)
     path = args.receipt.resolve(strict=True)
     require(path.is_relative_to(root), 'receipt outside trusted proof directory')
-    cert = verify(json.loads(path.read_text()), root, contract, args.host)
+    receipt = json.loads(path.read_text())
+    equivalence = base_equivalence(receipt['spec'], contract, args.equivalent_base)
+    cert = verify(receipt, root, contract, args.host, args.equivalent_base)
     require(contract == canonical_spec(), 'inputs changed during remote verification')
     target = ROOT / 'build/hookproof-land.cert'
     target.parent.mkdir(exist_ok=True)
@@ -186,6 +217,13 @@ def main():
     pending.write_bytes(cert)
     pending.replace(target)
     (ROOT / 'build/remote-proof-contract.json').write_text(json.dumps(contract, sort_keys=True) + '\n')
+    original_cert = confined(root, receipt['certificate']['path'])
+    imported = {'receipt_path': str(path), 'receipt_sha256': digest(path.read_bytes()),
+                'original_certificate_path': str(original_cert),
+                'original_certificate_sha256': digest(original_cert.read_bytes()),
+                'imported_certificate_sha256': digest(cert), 'base_equivalence': equivalence,
+                'contract': contract}
+    (ROOT / 'build/remote-proof-import.json').write_text(json.dumps(imported, sort_keys=True) + '\n')
     print(f'REMOTE PROOF OK: {len(contract["units"])} objects; control changed/restored; {digest(path.read_bytes())}')
 
 

@@ -176,6 +176,12 @@ if(BUILD_TESTING)
     target_link_libraries(petari_platform_crash_tests PRIVATE petari_platform)
     add_test(NAME native_platform_crash COMMAND petari_platform_crash_tests)
 
+    add_executable(petari_null_gx_processor_tests ${PETARI_REPO_ROOT}/native/tests/null_gx_processor_tests.cpp)
+    target_compile_features(petari_null_gx_processor_tests PRIVATE cxx_std_17)
+    target_include_directories(petari_null_gx_processor_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    target_link_libraries(petari_null_gx_processor_tests PRIVATE Threads::Threads)
+    add_test(NAME native_null_gx_processor COMMAND petari_null_gx_processor_tests)
+
     add_executable(petari_platform_gx_sync_tests ${PETARI_REPO_ROOT}/native/tests/platform_gx_sync_tests.cpp)
     target_link_libraries(petari_platform_gx_sync_tests PRIVATE petari_platform)
     add_test(NAME native_platform_gx_sync COMMAND petari_platform_gx_sync_tests)

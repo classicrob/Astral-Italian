@@ -24,6 +24,7 @@
 
 #include "petari/platform/diagnostics.hpp"
 #include "petari/platform/gx_sync.hpp"
+#include "petari/platform/null_gx_processor.hpp"
 
 extern "C" void __OSThreadInit(void);
 
@@ -306,6 +307,45 @@ void testNoDropsAndInterruptsDisabled() {
     GXS::setDrawSyncCallback(drawSyncCallback);
 }
 
+// Exercise the actual null-processor policy against the production event queue,
+// interrupt delivery and draw-done waits (not only the pure ordering oracle).
+void testNullProcessorDelayedBreakpoint() {
+    using Processor = PetariNative::Platform::NullGxProcessor;
+    Processor processor;
+    static std::atomic<int> tokens{0}, hits{0};
+    tokens = 0; hits = 0;
+    GXS::setDrawSyncCallback([](u16) { ++tokens; });
+    GXS::setBreakpointCallback([] { ++hits; });
+    auto pump = [&] {
+        processor.pump(GXS::breakpointPosition(), [](const Processor::Event& event) {
+            if (event.kind == Processor::Kind::Token) GXS::reportToken(event.token, event.position);
+            else GXS::reportDrawDone(event.position);
+        }, [](auto processed, auto written) { GXS::reportProgress(processed, written); },
+           [](auto position) { GXS::reportBreakpointReached(position); });
+    };
+    BOOL enabled = OSDisableInterrupts();
+    processor.publish(100); pump();
+    const auto savedPointer = processor.written();
+    processor.publish(105); processor.append(Processor::Kind::Token, 1, 105); pump();
+    GXS::setBreakpoint(savedPointer); pump(); // delayed DrawSyncManager arm
+    const auto firstDone = GXS::noteDrawDoneIssued();
+    processor.publish(110); processor.append(Processor::Kind::DrawDone, 0, 110); pump();
+    OSRestoreInterrupts(enabled);
+    GXS::waitDrawDone(firstDone);
+    check(tokens == 1 && hits == 0, "production queue: stale five-byte breakpoint has no retroactive interrupt");
+    enabled = OSDisableInterrupts();
+    GXS::setBreakpoint(115);
+    processor.publish(115); processor.append(Processor::Kind::Token, 2, 115); pump();
+    const auto secondDone = GXS::noteDrawDoneIssued();
+    processor.publish(120); processor.append(Processor::Kind::DrawDone, 0, 120); pump();
+    check(processor.processed() == 115 && processor.pending() == 1, "production queue: future breakpoint retains draw done");
+    GXS::clearBreakpoint(); pump();
+    OSRestoreInterrupts(enabled);
+    GXS::waitDrawDone(secondDone);
+    check(tokens == 2 && hits == 1, "production queue: tokens and reached breakpoint delivered once before resumed draw done");
+    GXS::shutdown();
+}
+
 void testMisuse() {
     check(aborts([] { GXS::pointerToPosition(reinterpret_cast<void*>(0x1234)); }), "a non-FIFO pointer is refused");
     check(aborts([] {
@@ -313,6 +353,15 @@ void testMisuse() {
               GXS::reportToken(2, 50);
           }),
           "out-of-order reports abort");
+    check(aborts([] {
+              // Old null adapter: saved pointer100, token command processed at
+              //105, then DrawSyncManager finally arms/reports saved100.
+              GXS::reportProgress(100, 100);
+              GXS::reportToken(1, 105);
+              GXS::setBreakpoint(100);
+              GXS::reportBreakpointReached(100);
+          }),
+          "retroactive five-byte breakpoint report still aborts at platform boundary");
     check(aborts([] {
               std::thread host([] {
                   OSDisableInterrupts();
@@ -721,6 +770,7 @@ int main() {
     testTokensBeforeNextFrame();
     gRenderer.stop();
     GXS::shutdown();
+    testNullProcessorDelayedBreakpoint();
     testCompileBurstIsNotAHang();
     testHaltedWithNothingRunnableAborts(testHaltedWhileAThreadCanRunIsNotAborted());
     testHangReport();

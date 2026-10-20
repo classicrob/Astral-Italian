@@ -62,6 +62,16 @@ public:
     f32 getFileCachePlacementFreeRatio() const;
     u32 mFileCacheArchiveBytes;
     u32 mFileCacheArchiveCount;
+
+    // The world map heap (the Wii's 0x840000 solid heap) holds the world map and Starship resource archives
+    // and the J3D objects ResourceHolder creates for them, and natively also each J3D file's host-layout copy,
+    // which the Wii never allocates. Those copies go to mWorldMapHostImageHeap, a sibling of the same size
+    // (see createWorldMapHeap), and native resource-object growth gets cWorldMapNativeAllowance on top of the
+    // Wii size. The world map heap's archives are chosen by name, not by free space, so the allowance does not
+    // change what is placed there.
+    JKRSolidHeap* mWorldMapHostImageHeap;
+    static const u32 cWorldMapWiiSize = 0x840000;
+    static const u32 cWorldMapNativeAllowance = 0x100000;
 #endif
     static JKRExpHeap* sRootHeapGDDR3;
 };

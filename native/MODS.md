@@ -98,7 +98,9 @@ Known gaps in this version:
 in F1 → Mods, then reload the stage once so the cap models are created. **R** or
 controller **RB** throws; holding it extends the hover. RB becomes throw while
 both mods are active; the other spin key/button still performs Galaxy's spin.
-With either mod off, the throw control (R/RB by default) performs Spin. `Cappy=off` is the default in
+With either mod off, the throw control (R/RB by default) performs Spin.
+The R fallback is new in this port; the earlier build left R inactive.
+F and RB keep their existing Spin behavior, and `controls.txt` remapping is unchanged. `Cappy=off` is the default in
 `mods.txt`; an explicit saved setting or `PETARI_MODS=OdysseyMovement,Cappy`
 enables it for the requested run.
 

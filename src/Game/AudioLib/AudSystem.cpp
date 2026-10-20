@@ -1211,6 +1211,30 @@ namespace AudParams {
 
 #ifdef GALAXY_NATIVE
 namespace AudParams {
+    // JAS/JAI initialization (Wii: unnamed .sdata2 constants 0x807D73C0-0x807D7400 loaded by init_JAS_JAI_ and
+    // AudNewAudSystem; names from the initializer fields they are stored into).
+    const int numFreeSe = 120;
+    const int numFreeSeq = 3;
+    const int numFreeStream = 3;
+    const int numFreeSoundChild = 160;
+    const int aramAddr = 0;
+    const int aramSize = 0xDB0000;
+    const int workAreaSize = 0x1000;
+    const int audioThreadPriority = 2;
+    const int dvdThreadPriority = 5;
+    const int dvdThreadSwitchID = -1;
+    const int audioThreadSwitchID = -1;
+    const int numFreeTracks = 200;
+    const int numFreeTrackChannels = 1;
+    const int streamBlockSize = 0x2760;
+    const int numStreamChannels = 4;
+    const f32 outputGain = 0.9f;
+    const int maxSeqDataSize = 0xDAC0;
+    const s32 numInspectableSoundObj = 8;
+    const f32 masterVolBgm = 1.2f;
+    const f32 masterVolSe = 1.2f;
+    const f32 masterVolStream = 2.6f;
+    const s32 streamAramBlocks_perChunk = 36;
     const f32 streamSampleRate = 0x1.f400000000000p+14f;
     const f32 faderVolZeroVolume = 0x0.0p+0f;
     const f32 faderVolDownVolume = 0x1.554c980000000p-2f;

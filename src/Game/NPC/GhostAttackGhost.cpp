@@ -181,7 +181,10 @@ void GhostAttackGhost::startSleep() {
     MR::startBtp(this, "Sleep");
     XanimePlayer* player = mRaceDataReader->mXanimePlayer;
     BckCtrlData data;
+#ifndef GALAXY_NATIVE
     data.mName = lbl_807CF430;
+#endif
+    // Native BckCtrlData already retains the constructor's canonical empty name.
     data.mStartFrame = 0;
     data.mLoopMode = 2;
     data.mRepeatFrame = 134;

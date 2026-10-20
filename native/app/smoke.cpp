@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <spawn.h>
 #include <sys/wait.h>
+#include <pthread.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -1676,13 +1678,33 @@ void sampleProcess(const std::string& directory) {
     }
 }
 
+// The report's backstop. A raw detached pthread with no allocation: in a hung
+// process std::thread's state allocation (operator new may route to a game
+// heap whose lock the hung thread holds) and stdio's stderr lock are not safe.
+std::atomic<int> gAbandonStatus{0};
+
+void* abandonHangReport(void*) {
+    struct timespec delay{60, 0};
+    while (::nanosleep(&delay, &delay) != 0) {
+    }
+    static const char kAbandoned[] = "PETARI SMOKE HANG: report abandoned after 60 s\n";
+    ssize_t w = ::write(STDERR_FILENO, kAbandoned, sizeof(kAbandoned) - 1);
+    (void)w;
+    std::_Exit(gAbandonStatus.load());
+}
+
 [[noreturn]] void exitAfterHangReport(int status, const char* reason) {
     // The report reads a hung process; never let it keep the process alive.
-    std::thread([status] {
-        std::this_thread::sleep_for(std::chrono::seconds(60));
-        std::fprintf(stderr, "PETARI SMOKE HANG: report abandoned after 60 s\n");
-        std::_Exit(status);
-    }).detach();
+    gAbandonStatus.store(status);
+    pthread_attr_t attributes;
+    pthread_t backstop;
+    if (pthread_attr_init(&attributes) != 0 || pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED) != 0 ||
+        pthread_create(&backstop, &attributes, abandonHangReport, nullptr) != 0) {
+        static const char kNoBackstop[] = "PETARI SMOKE HANG: no backstop thread; reporting without a time limit\n";
+        ssize_t w = ::write(STDERR_FILENO, kNoBackstop, sizeof(kNoBackstop) - 1);
+        (void)w;
+    }
+    pthread_attr_destroy(&attributes);
     void (*dump)(const char*);
     std::string directory;
     {

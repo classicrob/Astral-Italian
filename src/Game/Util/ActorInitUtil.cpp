@@ -20,6 +20,14 @@
 #include "Game/Util/VectorUtil.hpp"
 #include <cstdio>
 
+#ifdef GALAXY_NATIVE
+// Optional InitActor sub-file names (FallType, KoopaAssault, ...) format a null pointer as nothing with the
+// Wii C library ("InitSensor.bcsv"); the host prints "(null)".
+#define INIT_SUB_FILE(pSubFile) ((pSubFile) != nullptr ? (pSubFile) : "")
+#else
+#define INIT_SUB_FILE(pSubFile) (pSubFile)
+#endif
+
 namespace MR {
     bool isDataEnable(JMapInfo* pInfo, const char* pName) {
         if (!MR::isExistElement(pInfo, "InitFunction", pName)) {
@@ -407,7 +415,7 @@ namespace MR {
         char buf[0x80];
         snprintf(buf, sizeof(buf), "%s.arc", name);
         MR::initSensors(pActor, buf, a5);
-        JMapInfo* colInfo = MR::createCsvParserFromFile(buf, "InitCollision%s.bcsv", a5);
+        JMapInfo* colInfo = MR::createCsvParserFromFile(buf, "InitCollision%s.bcsv", INIT_SUB_FILE(a5));
 
         if (colInfo != nullptr) {
             ResourceHolder* holder = MR::createAndAddResourceHolder(buf);
@@ -431,7 +439,7 @@ namespace MR {
         }
 
         MR::initSwitches(pActor, rIter, buf, a5);
-        JMapInfo* scaleInfo = MR::createCsvParserFromFile(buf, "InitScale%s.bcsv", a5);
+        JMapInfo* scaleInfo = MR::createCsvParserFromFile(buf, "InitScale%s.bcsv", INIT_SUB_FILE(a5));
 
         if (scaleInfo != nullptr) {
             TVec3f actorScale(pActor->mScale);
@@ -513,7 +521,7 @@ namespace MR {
 
     // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void initSensors(LiveActor* pActor, const char* pArchive, const char* pSubFile) {
-        JMapInfo* info = createCsvParserFromFile(pArchive, "InitSensor%s.bcsv", pSubFile);
+        JMapInfo* info = createCsvParserFromFile(pArchive, "InitSensor%s.bcsv", INIT_SUB_FILE(pSubFile));
         if (info != nullptr) {
             s32 count = getCsvDataElementNum(info);
             pActor->initHitSensor(count);
@@ -557,7 +565,7 @@ namespace MR {
 
     // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void initSwitches(LiveActor* pActor, const JMapInfoIter& rIter, const char* pArchive, const char* pSubFile) {
-        JMapInfo* info = createCsvParserFromFile(pArchive, "InitSwitch%s.bcsv", pSubFile);
+        JMapInfo* info = createCsvParserFromFile(pArchive, "InitSwitch%s.bcsv", INIT_SUB_FILE(pSubFile));
         if (info != nullptr) {
             const char* type = nullptr;
             if (getInitSwitchType(&type, info, "SW_APPEAR")) {

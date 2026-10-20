@@ -318,6 +318,11 @@ class FixtureQualificationTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
         self.fixture = self.root / 'fixture.json'
+        # Mechanics-only tests below mock the unavailable observer contract.
+        # Dedicated ObserverContractTests exercise the real guard without this.
+        self.contract_mock = mock.patch.object(gate, 'observer_contract', return_value=[])
+        self.contract_mock.start()
+        self.addCleanup(self.contract_mock.stop)
 
     def check_blocked(self, fixture):
         write_json(self.fixture, fixture)
@@ -358,7 +363,8 @@ class FixtureQualificationTests(unittest.TestCase):
             inputs.write_text(''.join(json.dumps(row) + '\n' for row in gate.input_contract().generate(frames=input_count)))
             policy = dict(tick_hz=60750000, rate_numerator=60000, rate_denominator=1001, epoch_ticks=0,
                           fpcr_fz=True, audio_output='off', audio_processing='virtual-ai-dsp')
-            manifest = dict(schema_version=1, frames=count, input_frames=input_count, command=['not-an-executable'], timing_policy=policy)
+            manifest = dict(schema_version=1, frames=count, input_frames=input_count, command=['not-an-executable'], timing_policy=policy,
+                            observer_contract_incomplete=True, field_availability={'pending_state_id': gate.CALLBACK_ONLY_NOTICE})
             paths = dict(frames=path, actors=Path(str(path) + '.actors.csv'), census=Path(str(path) + '.actor-frames.csv'),
                          sync=Path(str(path) + '.sync.json'), manifest=folder / 'manifest.json',
                          executable=executable, producer=producer, input=inputs)
@@ -720,6 +726,124 @@ class FixtureQualificationTests(unittest.TestCase):
         self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record['input_export'].update(
             sha256=td.sha256(path), bytes=path.stat().st_size))
         self.assertIn('actual post-anchor input reads differ', self.check_blocked(fixture)['errors'][0])
+
+
+class ObserverContractTests(unittest.TestCase):
+    """Exercise the real coverage fence; never mock observer_contract here."""
+    # Reuse fixture construction only, not the mechanics class's guard mock or tests.
+    spec = FixtureQualificationTests.spec
+    build_adversarial_fixture = FixtureQualificationTests.build_adversarial_fixture
+    mutate_artifact = FixtureQualificationTests.mutate_artifact
+    rebind_actor_fixture = FixtureQualificationTests.rebind_actor_fixture
+    check_blocked = FixtureQualificationTests.check_blocked
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name)
+        self.fixture = self.root / 'fixture.json'
+
+    def test_actual_unavailable_contract_blocks_even_positive_admission(self):
+        fixture = self.build_adversarial_fixture()
+        with mock.patch.object(gate, 'admission', return_value=dict(reviewer='SYNTHETIC POSITIVE ADMISSION', rationale='cannot waive coverage')) as approval:
+            report = self.check_blocked(fixture)
+        approval.assert_not_called()
+        self.assertIn('observer_contract_incomplete=true', report['errors'][0])
+        self.assertIn('callback-context only', report['errors'][0])
+        self.assertTrue(all(not entry['qualified'] for entry in report['observer_contracts'].values()))
+        diagnostics = report['diagnostics']['observer_contract_comparisons']
+        self.assertEqual(diagnostics['qualification'], 'UNQUALIFIED_OBSERVER_CONTRACT')
+        self.assertEqual(diagnostics['native_vs_dolphin']['frames']['exit_code'], 0)
+        self.assertIsNone(report['comparisons'])
+        self.assertIn('blank pending cell does not establish absence', gate.markdown(report))
+
+    def test_unavailable_field_blocks_even_if_incomplete_flag_false(self):
+        fixture = self.build_adversarial_fixture()
+        for side in gate.SIDES:
+            self.mutate_artifact(fixture, side, 'manifest', lambda record: record.update(observer_contract_incomplete=False))
+        report = self.check_blocked(fixture)
+        self.assertIn('pending_state_id is unavailable', report['errors'][0])
+        self.assertNotIn('observer_contract_incomplete=true', report['errors'][0])
+
+    def test_legacy_missing_metadata_is_not_coverage(self):
+        fixture = self.build_adversarial_fixture()
+        for side in gate.SIDES:
+            self.mutate_artifact(fixture, side, 'manifest', lambda record: (
+                record.pop('observer_contract_incomplete'), record.pop('field_availability')))
+        report = self.check_blocked(fixture)
+        self.assertIn('required observer_contract_incomplete is missing/unknown', report['errors'][0])
+        self.assertIn('required pending_state_id availability is missing/unknown', report['errors'][0])
+
+    def test_unknown_labels_never_invent_available_or_not_applicable_provider(self):
+        for label in ('available', 'observed', 'not-applicable', 'none', '', None, 1):
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as folder:
+                self.root, self.fixture = Path(folder), Path(folder) / 'fixture.json'
+                fixture = self.build_adversarial_fixture()
+                for side in gate.SIDES:
+                    self.mutate_artifact(fixture, side, 'manifest', lambda record: record.update(
+                        observer_contract_incomplete=False, field_availability={'pending_state_id': label}))
+                self.assertIn('no implemented/approved provider contract', self.check_blocked(fixture)['errors'][0])
+
+    def test_missing_unknown_availability_shapes_and_flag_types(self):
+        for fields in (None, [], {}, {'other_field': 'observed'}):
+            errors = gate.observer_contract(dict(observer_contract_incomplete=False, field_availability=fields))
+            self.assertTrue(any('availability is missing/unknown' in error for error in errors))
+        for flag in (None, 0, 1, 'false', [], {}):
+            errors = gate.observer_contract(dict(observer_contract_incomplete=flag,
+                                                field_availability={'pending_state_id': gate.CALLBACK_ONLY_NOTICE}))
+            self.assertTrue(any('observer_contract_incomplete is missing/unknown' in error for error in errors))
+
+    def test_unavailable_never_becomes_zero_or_state_head(self):
+        fixture = self.build_adversarial_fixture()
+        path = Path(fixture['native']['frames']['path'])
+        trace = td.read_trace(path)
+        trace.rows[(0,)]['pending_state_id'] = '0'
+        write_csv(path, trace.columns, list(trace.rows.values()))
+        fixture['native']['frames'] = self.spec(path)
+        self.assertIn('must remain blank, never a substitute value', self.check_blocked(fixture)['errors'][0])
+        self.assertEqual(td.read_trace(path).rows[(0,)]['pending_state_id'], '0')  # Reader never repairs data.
+
+    def test_recorded_position_state_head_actor_differences_are_unqualified_only(self):
+        fixture = self.build_adversarial_fixture(actor_count=2)
+        path = Path(fixture['native']['frames']['path'])
+        trace = td.read_trace(path)
+        trace.rows[(1,)].update(x='1', x_bits='0x3f800000', state_ids='[2,1]')
+        write_csv(path, trace.columns, list(trace.rows.values()))
+        fixture['native']['frames'] = self.spec(path)
+        def change_actors(rows):
+            rows[2].update(x='1', x_bits='0x3f800000')  # same-producer player consistency
+            rows[3].update(x='2', x_bits='0x40000000')
+        self.rebind_actor_fixture(fixture, 'native', change_actors)
+        report = self.check_blocked(fixture)
+        diagnostic = report['diagnostics']['observer_contract_comparisons']['native_vs_dolphin']
+        self.assertEqual(diagnostic['frames']['first_divergence']['frame'], 1)
+        self.assertEqual(diagnostic['actors']['first_divergence']['frame'], 1)
+        self.assertEqual(diagnostic['frames']['exit_code'], 1)
+        self.assertIsNone(report['first_divergence'])
+        self.assertNotIn('status: 1 divergences', gate.markdown(report))
+        self.assertEqual(td.read_trace(path).rows[(1,)]['pending_state_id'], '')
+
+    def test_unknown_policy_stays_unknown_with_retained_contract_diagnostics(self):
+        fixture = self.build_adversarial_fixture()
+        self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record['timing_policy'].update(fpcr_fz=None))
+        report = self.check_blocked(fixture)
+        sync = report['diagnostics']['synchronization']['native/dolphin']
+        self.assertFalse(sync['compatible'])
+        self.assertIsNone(sync['sides']['b']['timing_policy']['fpcr_fz'])
+        self.assertIn('observer_contract_comparisons', report['diagnostics'])
+
+    def test_unavailable_contract_does_not_skip_actual_input_validation(self):
+        fixture = self.build_adversarial_fixture()
+        path = Path(fixture['dolphin']['input']['path'])
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        rows[4]['samples'][0]['hold'] = 8
+        path.write_text(''.join(json.dumps(row) + '\n' for row in rows))
+        fixture['dolphin']['input'] = self.spec(path)
+        self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record['input_export'].update(
+            sha256=td.sha256(path), bytes=path.stat().st_size))
+        report = self.check_blocked(fixture)
+        self.assertIn('actual post-anchor input reads differ', report['errors'][0])
+        self.assertNotIn('observer_contract_comparisons', report.get('diagnostics', {}))
 
 
 class AdmissionContractTests(unittest.TestCase):

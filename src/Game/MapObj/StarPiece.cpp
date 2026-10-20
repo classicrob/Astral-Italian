@@ -34,6 +34,10 @@
 #include <revolution/gx/GXStruct.h>
 #include <revolution/mtx.h>
 
+#ifdef GALAXY_NATIVE
+#include <petari/star_bits_collect.hpp>
+#endif
+
 
 const GXColor effectColors[] = {{0x00, 0x55, 0xff, 0xFF}, {0xFF, 0xFF, 0x00, 0xFF}, {0x55, 0xFF, 0x00, 0xFF}, {0x7F, 0x7F, 0x00, 0xFF}};
 const GXColor initColors[] = {{0x80, 0x00, 0x99, 0xFF}, {0xE6, 0xA0, 0x00, 0xFF}, {0x46, 0xA1, 0x08, 0xFF},
@@ -54,6 +58,30 @@ namespace NrvStarPiece {
     NEW_NERVE(HostTypeNrvRailMove, StarPiece, RailMove);
 };  // namespace NrvStarPiece
 
+#ifdef GALAXY_NATIVE
+bool PetariNative::StarBits::collectPiece(StarPiece* piece) {
+    PieceState state;
+    state.alive = !MR::isDead(piece);
+    state.movementEnabled = (static_cast<const NameObj*>(piece)->mFlags & 3) == 0;
+    state.collectionEnabled = piece->isCollectionEnabled();
+    state.hasPointerTarget = piece->mStarPointerTarget != nullptr;
+    state.pointerDelay = piece->mPointerCollectDelay;
+    // Dead/uninitialized pieces have no usable spine. Check their state first.
+    if (!state.alive || !state.hasPointerTarget) return false;
+    if (piece->isNerve(GET_NERVE(StarPiece, HostTypeNrvFloating))) state.motion = Motion::Floating;
+    else if (piece->isNerve(GET_NERVE(StarPiece, HostTypeNrvFall))) state.motion = Motion::Fall;
+    else if (piece->isNerve(GET_NERVE(StarPiece, HostTypeNrvFollowPlayer))) state.motion = Motion::FollowPlayer;
+    else if (piece->isNerve(GET_NERVE(StarPiece, HostTypeNrvRailMove))) state.motion = Motion::RailMove;
+    if (!eligible(state)) return false;
+
+    // Deliberately no distance, frustum or clipping test: this mod covers the
+    // current scene. goToPlayer wakes clipped actors and enters normal ToTarget.
+    // initStarPointerTarget initializes the last pointed channel to WPAD_CHAN0.
+    piece->goToPlayer(TVec3f(piece->mFront));
+    return true;
+}
+#endif
+
 StarPiece::StarPiece(const char* pName)
     : LiveActor(pName), mFront(0, 0, 1), mTargetTurnRate(0.02f), mTargetSpeedRate(), mParabolaA(), mParabolaB(), mThrowStartPos(0, 0, 0), mThrowEndPos(0, 0, 0), mThrowTriangleFilter(nullptr), mTargetSensor(), mGettableEffectTimer(-1),
       mGettableDelayCounter(-1), mPointerCollectDelay(-1), mFallKillTimer(), mColor((GXColor){0, 0, 0, 255}), mGroupType(GroupType_None), mHostInfo(nullptr),
@@ -68,6 +96,9 @@ StarPiece::StarPiece(const char* pName)
     mFlags.isInWater = false;
     mFlags.isLightEffect = false;
     mFlags.isLaunched = false;
+#ifdef GALAXY_NATIVE
+    PetariNative::StarBits::registerPiece(this);
+#endif
 }
 
 void StarPiece::initAndSetFloatingFromGroup(const JMapInfoIter& rIter) {

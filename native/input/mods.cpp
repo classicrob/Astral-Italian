@@ -15,7 +15,7 @@ namespace {
 constexpr int kCount = static_cast<int>(Mod::Count);
 constexpr const char* kNames[kCount] = {"CollectStarBits", "ShootEnemy", "OdysseyMovement", "Cappy", "OdysseyJumpDive",
                                        "SkipCutscenes", "PointToMove", "GenericCharacter", "GenericWorld", "HideHud", "LevelEditor"};
-constexpr const char* kDescriptions[kCount] = {"Collect visible Star Bits", "Fire a Star Bit at the nearest enemy",
+constexpr const char* kDescriptions[kCount] = {"Collect scene Star Bits", "Fire a Star Bit at the nearest enemy",
                                                "Odyssey movement", "Cappy", "Jump during a ground pound dives",
                                                "Hold Space to skip cutscenes and dialogue", "Point to move (hold left click)",
                                                "Generic character (not Mario)", "Generic world (plain terrain and objects)", "Hide the HUD",

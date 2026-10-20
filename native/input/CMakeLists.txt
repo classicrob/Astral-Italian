@@ -185,6 +185,12 @@ if(BUILD_TESTING)
     target_compile_features(petari_odyssey_move_tests PRIVATE cxx_std_17)
     add_test(NAME native_odyssey_move COMMAND petari_odyssey_move_tests)
 
+    # CollectStarBits: production eligibility, scene registry and press window.
+    add_executable(petari_star_bits_collect_tests ${PETARI_REPO_ROOT}/native/tests/star_bits_collect_tests.cpp)
+    target_link_libraries(petari_star_bits_collect_tests PRIVATE petari_native_config)
+    target_compile_features(petari_star_bits_collect_tests PRIVATE cxx_std_17)
+    add_test(NAME native_star_bits_collect COMMAND petari_star_bits_collect_tests)
+
     # Cappy mod: the cap's flight and bounce model alone (header-only).
     add_executable(petari_cappy_tests ${PETARI_REPO_ROOT}/native/tests/cappy_tests.cpp)
     target_include_directories(petari_cappy_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)

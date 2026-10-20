@@ -296,7 +296,7 @@ void testControlsSummary() {
     check(summaryOf(r, "Start (title: A and B)") == "(not bound)", "unbound Start");
     check(summaryOf(r, "Walk slowly") == "(not bound)", "unbound hold reads as not bound");
     check(summaryOf(r, "Pause") == "P", "remapped pause");
-    check(summaryOf(r, "Star Ball / Ray") == "I J K L tilt while riding", "ride line follows movement");
+    check(summaryOf(r, "Star Ball") == "I J K L tilt while riding", "ride line follows movement");
     check(In::displayName(In::Binding::key(In::Key::Num1)) == "1" && In::displayName(In::Binding::key(In::Key::G)) == "G",
           "digits and letters display plainly");
 
@@ -2944,6 +2944,7 @@ int main(int argc, char** argv) {
     __OSThreadInit();
     if (argc == 2 && std::strcmp(argv[1], "--cappy-only") == 0) {
         testCappyInput();
+        testMods();
         std::printf("native Cappy input tests passed (%d checks)\n", checks);
         return 0;
     }

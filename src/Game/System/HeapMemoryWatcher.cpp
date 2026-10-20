@@ -193,8 +193,17 @@ void HeapMemoryWatcher::createHeaps() {
     mWPadHeap = ::createExpHeap(wpadHeapSize, pRootHeapGDDR, false);
     mHomeButtonLayoutHeap = ::createExpHeap(0x80000, HeapMemoryWatcher::sRootHeapGDDR3, false);
 
+#ifdef GALAXY_NATIVE
+    // The stationed heaps take everything but the game heaps' share. Natively the game heaps also hold
+    // host-layout J3D/particle copies and larger objects, and the native arenas are 128/256 MiB, so the
+    // game heaps keep 64/96 MiB more than the Wii's 0x500000/0xD80000 (the stationed heaps still get far
+    // more than on the Wii).
+    u32 stationedHeapNapaSize = JKRHeap::sRootHeap->getMaxAllocatableSize(16) - (0x500000 + 0x4000000);
+    u32 stationedHeapGDDRSize = sRootHeapGDDR3->getMaxAllocatableSize(16) - (0xD80000 + 0x6000000);
+#else
     u32 stationedHeapNapaSize = JKRHeap::sRootHeap->getMaxAllocatableSize(16) - 0x500000;
     u32 stationedHeapGDDRSize = sRootHeapGDDR3->getMaxAllocatableSize(16) - 0xD80000;
+#endif
     mStationedHeapNapa = ::createExpHeap(stationedHeapNapaSize, JKRHeap::sRootHeap, false);
     mStationedHeapGDDR = ::createExpHeap(stationedHeapGDDRSize, HeapMemoryWatcher::sRootHeapGDDR3, false);
     createGameHeap();

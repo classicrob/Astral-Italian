@@ -52,6 +52,26 @@ class CaptureTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'dependency drift'):
                 capture.verify_dependencies({str(p):{'sha256':'old'}})
 
+    def test_constructor_retains_field_identity_without_inventing_initializer_range(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source='C::C() : _10(0) {}'
+            prefix=self.setup_tree(tmp,source,source)
+            capture.BYFILE={'x.cpp':[{'id':'row','byte_offset':9,'end_byte_offset':12}]}
+            node={'id':'ctor','kind':'CXXConstructorDecl','name':'C',
+                  'type':{'qualType':'void ()'},
+                  'range':{'begin':{'file':str(capture.LEGACY/'x.cpp'),'offset':prefix,'tokLen':1},
+                           'end':{'offset':prefix+len(source)-1,'tokLen':1}},
+                  'inner':[{'kind':'CXXCtorInitializer',
+                            'anyInit':{'id':'field','kind':'FieldDecl','name':'_10','type':{'qualType':'int'}},
+                            'inner':[{'kind':'IntegerLiteral','value':'0','type':{'qualType':'int'}}]}]}
+            facts,_,errors=capture.reduce_ast(node)
+            self.assertFalse(errors)
+            ctor=next(f for f in facts if f['kind']=='CXXConstructorDecl')
+            initializer=ctor['children'][0]
+            self.assertEqual(initializer['anyInit']['name'],'_10')
+            self.assertNotIn('range',initializer)
+            self.assertFalse(any(f['kind']=='CXXCtorInitializer' for f in facts))
+
     def test_no_compiler_in_dry_run(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'inventory.json').write_text(json.dumps({'files':{'x.cpp':'fixture'},'rows':[{'id':'x','file':'x.cpp','byte_offset':0}]}))

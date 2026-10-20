@@ -72,7 +72,7 @@ def reduce_ast(tree):
   return {'file':name_for(state['file']),'offset':raw['offset'],'tokLen':raw.get('tokLen',0),'line':raw.get('presumedLine',raw.get('line')),'col':raw.get('col')}
  def compact(n,depth=0):
   if not isinstance(n,dict):return None
-  d={k:n[k] for k in ['id','kind','name','type','castKind','opcode','value','valueCategory','isArrow','referencedMemberDecl','referencedDecl','path','isInvalid','isImplicit'] if k in n}
+  d={k:n[k] for k in ['id','kind','name','type','castKind','opcode','value','valueCategory','isArrow','referencedMemberDecl','referencedDecl','anyInit','path','isInvalid','isImplicit'] if k in n}
   if depth<3 and n.get('inner'):d['children']=[compact(x,depth+1) for x in n['inner'] if isinstance(x,dict)]
   return d
  def walk(n,parents):
@@ -119,6 +119,7 @@ def reduce_ast(tree):
     if key=='referencedMemberDecl' and isinstance(value,str):refs.add(value)
     elif key=='referencedDecl' and isinstance(value,dict):refs.add(value.get('id'))
     elif key=='typeAliasDeclId' and isinstance(value,str):refs.add(value)
+    elif key=='anyInit' and isinstance(value,dict):refs.add(value.get('id'))
     elif key in {'children','type','parents'}:references(value)
   elif isinstance(n,list):
    for x in n:references(x)

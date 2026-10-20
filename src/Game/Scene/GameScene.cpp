@@ -226,7 +226,7 @@ void GameScene::update() {
 #ifdef GALAXY_NATIVE
     // Home menu Level Select: warp once normal play allows a pause (no demo, wipe, death or damage), through the
     // game's own stage change.
-    if (PetariNative::PlayerLaunch::warpPending.load() && isPermitToPauseMenu()) {
+    if (PetariNative::PlayerLaunch::warpPending.load() && permitsStartPauseMenu()) {
         PetariNative::PlayerLaunch::warpPending.store(false);
         requestLevelSelectWarp(PetariNative::PlayerLaunch::warpStage, PetariNative::PlayerLaunch::warpScenario);
     }

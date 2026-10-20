@@ -55,6 +55,7 @@ std::optional<std::uint64_t> StageSync::select(State& state, std::uint64_t sourc
         if (field(state, "rng_valid") != "1") throw ReplayError("first stage-sync seam has no valid RNG seed");
         auto seed = decimal(field(state, "rng_seed"));
         if (seed > UINT32_MAX) throw ReplayError("stage-sync RNG seed exceeds u32");
+        const auto seedBefore = static_cast<std::uint32_t>(seed);
         const auto epoch = decimal(field(state, "scene_epoch"));
         if (mOptions.seed) {
             if (!forceSeed) throw ReplayError("stage-sync RNG setter is unavailable");
@@ -64,7 +65,7 @@ std::optional<std::uint64_t> StageSync::select(State& state, std::uint64_t sourc
                 throw ReplayError("stage-sync RNG write did not survive immediate observation");
             seed = *mOptions.seed;
         }
-        mOrigin = Origin{sourceFrame, epoch, ticks, viCount, static_cast<std::uint32_t>(seed)};
+        mOrigin = Origin{sourceFrame, epoch, ticks, viCount, static_cast<std::uint32_t>(seed), seedBefore};
     }
     const auto epoch = decimal(field(state, "scene_epoch"));
     if (sourceFrame < mOrigin->frame || epoch < mOrigin->epoch) throw ReplayError("stage-sync source clock moved backwards");
@@ -77,6 +78,7 @@ void StageSync::writeOrigin(std::ostream& out) const {
         << "\",\n  \"scenario\": " << mOptions.scenario << ",\n  \"source_frame\": " << mOrigin->frame
         << ",\n  \"source_scene_epoch\": " << mOrigin->epoch << ",\n  \"source_ticks\": " << mOrigin->ticks
         << ",\n  \"source_vi_count\": " << mOrigin->viCount << ",\n  \"rng_seed\": " << mOrigin->seed
+        << ",\n  \"rng_seed_before\": " << mOrigin->seedBefore
         << ",\n  \"rng_valid\": true,\n  \"rng_forced\": " << (mOptions.seed ? "true" : "false") << "\n}\n";
     out.flush();
     if (!out) throw ReplayError("cannot write stage-sync sidecar");

@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 PROVENANCE = {'tick_hz_basis', 'rate_basis', 'fp_policy'}
-REQUIRED_POLICY = {'tick_hz', 'rate_numerator', 'rate_denominator', 'fpcr_fz', 'audio_output', 'audio_processing'}
+REQUIRED_POLICY = {'tick_hz', 'rate_numerator', 'rate_denominator', 'epoch_ticks', 'fpcr_fz', 'audio_output', 'audio_processing'}
 
 
 def validate_sync(paths, traces, require=False, manifests=(None, None)):

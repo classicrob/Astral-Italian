@@ -65,6 +65,44 @@ def valid_timing(path, frames):
         return False
 
 
+def sync_number(value):
+    if not re.fullmatch(r"(?:[0-9]+|0[xX][0-9a-fA-F]+)", value):
+        raise argparse.ArgumentTypeError("expected decimal or 0x unsigned 32-bit integer")
+    number = int(value, 16 if value.lower().startswith("0x") else 10)
+    if number > 0xffffffff:
+        raise argparse.ArgumentTypeError("stage-sync integer exceeds u32")
+    return number
+
+
+def sync_completion(path, args):
+    origin = json.loads(path.read_text())
+    if type(origin.get("schema_version")) is not int or origin["schema_version"] != 1 or origin.get("phase") != "post-endFrame":
+        raise ValueError("invalid stage-sync schema/phase")
+    if origin.get("stage") != args.sync_stage or type(origin.get("scenario")) is not int or origin["scenario"] != args.sync_scenario:
+        raise ValueError("stage-sync target mismatch")
+    for key in ("source_frame", "source_scene_epoch", "source_ticks", "source_vi_count"):
+        integer(origin[key], 0, 0xffffffffffffffff, key)
+    integer(origin["rng_seed"], 0, 0xffffffff, "stage-sync seed")
+    if origin.get("rng_valid") is not True or type(origin.get("rng_forced")) is not bool or origin["rng_forced"] != (args.sync_rng_seed is not None):
+        raise ValueError("invalid stage-sync RNG provenance")
+    if args.sync_rng_seed is not None and origin["rng_seed"] != args.sync_rng_seed:
+        raise ValueError("stage-sync forced seed mismatch")
+    frames = args.frames - origin["source_frame"]
+    if frames <= 0:
+        raise ValueError("stage-sync origin outside input tape")
+    with args.trace.open(newline="") as source:
+        first = next(csv.DictReader(source), {})
+    expected = dict(frame="0", scene_epoch="0", scene_valid="1", scene="Game", init_state="6",
+                    stage=args.sync_stage, scenario=str(args.sync_scenario), rng_valid="1", rng_seed=str(origin["rng_seed"]))
+    if any(first.get(key) != value for key, value in expected.items()):
+        raise ValueError("stage-sync origin disagrees with row zero")
+    with Path(str(args.trace) + ".timing.csv").open(newline="") as source:
+        first_time = next(csv.DictReader(source), {})
+    if first_time != dict(frame="0", vi_count=str(origin["source_vi_count"]), ticks=str(origin["source_ticks"])):
+        raise ValueError("stage-sync origin disagrees with timing sidecar")
+    return frames, origin
+
+
 def integer(value, low, high, name):
     if type(value) is not int or not low <= value <= high:
         raise ValueError(f"{name}: expected integer {low}..{high}")
@@ -283,6 +321,9 @@ def main(argv=None):
     run.add_argument("--rate-numerator", type=int, default=60000)
     run.add_argument("--rate-denominator", type=int, default=1001)
     run.add_argument("--no-ftz", action="store_true")
+    run.add_argument("--sync-stage", help="canonical target stage at the first ready post-endFrame seam")
+    run.add_argument("--sync-scenario", type=sync_number, help="placed ScenarioNo, not selected hidden/green ID")
+    run.add_argument("--sync-rng-seed", type=sync_number, help="one-shot test override of the game RNG at that seam")
     args = parser.parse_args(argv)
     if args.command == "schema":
         print(json.dumps({"schema_version": 1, "columns": trace_columns()}, indent=2))
@@ -309,11 +350,18 @@ def main(argv=None):
                 output.unlink()
             raise
         return 0
+    if args.sync_stage is not None:
+        if not re.fullmatch(r"[A-Za-z0-9_]{1,127}", args.sync_stage) or not args.sync_scenario or args.sync_scenario > 0x7fffffff:
+            raise ValueError("stage sync requires an internal stage name and positive placed scenario")
+    elif args.sync_scenario is not None or args.sync_rng_seed is not None:
+        raise ValueError("stage-sync scenario/seed requires --sync-stage")
     disc, user, trace, source = (outside_repo(p) for p in (args.disc, args.user, args.trace, args.inputs))
+    args.trace = trace
+    sync_path = Path(str(trace) + ".sync.json")
     manifest_path = Path(str(trace) + ".manifest.json")
     marker = Path(str(trace) + ".complete")
     timing = Path(str(trace) + ".timing.csv")
-    if any(path.exists() or path.is_symlink() for path in (trace, manifest_path, marker, timing)):
+    if any(path.exists() or path.is_symlink() for path in (trace, manifest_path, marker, timing, sync_path)):
         raise ValueError("refusing to overwrite an existing trace")
     user.mkdir(parents=True, exist_ok=True)
     if any(user.iterdir()):
@@ -327,6 +375,10 @@ def main(argv=None):
                    "--rate-numerator", str(args.rate_numerator), "--rate-denominator", str(args.rate_denominator)]
         if args.no_ftz:
             command.append("--no-ftz")
+        if args.sync_stage is not None:
+            command.extend(["--sync-stage", args.sync_stage, "--sync-scenario", str(args.sync_scenario)])
+            if args.sync_rng_seed is not None:
+                command.extend(["--sync-rng-seed", str(args.sync_rng_seed)])
         lock = Path.home() / "MacioGalaxy2-team/slots/native.lock"
         def digest(path):
             result = hashlib.sha256()
@@ -334,16 +386,31 @@ def main(argv=None):
                 while chunk := contents.read(1024 * 1024):
                     result.update(chunk)
             return result.hexdigest()
-        manifest = {"schema_version": 1, "frames": args.frames, "epoch_ticks": args.epoch_ticks,
+        timing_policy = dict(tick_hz=60750000, rate_numerator=args.rate_numerator,
+                             rate_denominator=args.rate_denominator, epoch_ticks=args.epoch_ticks,
+                             fpcr_fz=not args.no_ftz, audio_output="off", audio_processing="virtual-ai-dsp",
+                             tick_hz_basis="native SDK virtual timebase", fp_policy="ARM FPCR.FZ on game/device/OS threads")
+        manifest = {"schema_version": 1, "frames": args.frames, "input_frames": args.frames, "timing_policy": timing_policy, "epoch_ticks": args.epoch_ticks,
                     "rate_numerator": args.rate_numerator, "rate_denominator": args.rate_denominator,
                     "fpcr_fz": not args.no_ftz, "input_sha256": digest(source), "columns": trace_columns(),
-                    "disc_root": str(disc), "status": "prepared", "command": command, "timing_csv": str(timing)}
+                    "disc_root": str(disc), "status": "prepared", "command": command, "timing_csv": str(timing),
+                    "sync_json": str(sync_path) if args.sync_stage is not None else None,
+                    "executable_sha256": digest(args.executable) if args.executable.is_file() else None}
         with manifest_path.open("x") as out:
             json.dump(manifest, out, indent=2)
             out.write("\n")
         status = subprocess.call(["lockf", "-k", str(lock), "nice", "-n", "10", *command])
-        complete = status == 0 and trace.is_file() and marker.is_file() and marker.read_text().strip() == str(args.frames) and valid_trace(trace, args.frames) and valid_timing(timing, args.frames)
-        manifest.update(status="complete" if complete else "invalid", exit_status=status)
+        trace_frames, origin, validation_error = args.frames, None, None
+        try:
+            if args.sync_stage is not None:
+                trace_frames, origin = sync_completion(sync_path, args)
+            elif sync_path.exists():
+                raise ValueError("unexpected sync sidecar in an unsynchronized run")
+            complete = status == 0 and trace.is_file() and marker.is_file() and marker.read_text().strip() == str(trace_frames) and valid_trace(trace, trace_frames) and valid_timing(timing, trace_frames)
+        except (OSError, ValueError, KeyError, TypeError, csv.Error) as exc:
+            complete, validation_error = False, str(exc)
+        manifest.update(status="complete" if complete else "invalid", exit_status=status,
+                        frames=trace_frames, trace_frames=trace_frames, sync_origin=origin, validation_error=validation_error)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
         return 0 if complete else 2
 

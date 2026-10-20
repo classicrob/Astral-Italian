@@ -183,6 +183,7 @@ int main(int argc,char** argv) {
         }
         if (args.count("--sync-scenario")) sync.scenario=H::syncInteger(args.at("--sync-scenario"));
         if (args.count("--sync-rng-seed")) sync.seed=H::syncInteger(args.at("--sync-rng-seed"));
+        if (!args.count("--sync-stage") && args.count("--sync-scenario")) throw H::ReplayError("--sync-scenario requires --sync-stage");
         H::StageSync validateSync(sync);
         H::FloatingPointMode fp(ftz);
         PetariNative::FloatingPointThreadPolicy threadFp(ftz);

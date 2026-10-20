@@ -24,7 +24,7 @@ private:
     bool matches(const State& state) const;
     struct Origin {
         std::uint64_t frame, epoch, ticks, viCount;
-        std::uint32_t seed;
+        std::uint32_t seed, seedBefore;
     };
     StageSyncOptions mOptions;
     std::optional<Origin> mOrigin;

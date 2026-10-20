@@ -27,7 +27,18 @@
       "binaryDir": "${sourceDir}/build/macos-arm64-headless",
       "cacheVariables": {
         "PETARI_BUILD_HEADLESS": "ON",
-        "PETARI_BUILD_GX_PROBE": "OFF"
+        "PETARI_BUILD_GX_PROBE": "OFF",
+        "CMAKE_C_FLAGS_DEBUG": "-g -O0",
+        "CMAKE_CXX_FLAGS_DEBUG": "-g -O0"
+      }
+    },
+    {
+      "name": "macos-arm64-headless-o2",
+      "inherits": "macos-arm64-headless",
+      "binaryDir": "${sourceDir}/build/macos-arm64-headless-o2",
+      "cacheVariables": {
+        "CMAKE_C_FLAGS_DEBUG": "-g -O2",
+        "CMAKE_CXX_FLAGS_DEBUG": "-g -O2"
       }
     }
   ],
@@ -45,6 +56,14 @@
     {
       "name": "macos-arm64-headless",
       "configurePreset": "macos-arm64-headless",
+      "jobs": 6,
+      "targets": [
+        "petari_headless"
+      ]
+    },
+    {
+      "name": "macos-arm64-headless-o2",
+      "configurePreset": "macos-arm64-headless-o2",
       "jobs": 6,
       "targets": [
         "petari_headless"
@@ -69,6 +88,18 @@
     {
       "name": "macos-arm64-headless",
       "configurePreset": "macos-arm64-headless",
+      "filter": {
+        "include": {
+          "name": "^native_headless_"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-arm64-headless-o2",
+      "configurePreset": "macos-arm64-headless-o2",
       "filter": {
         "include": {
           "name": "^native_headless_"

@@ -197,6 +197,25 @@ class ProtocolTests(unittest.TestCase):
             server.close()
         return value, received
 
+    def test_large_coalesced_packets_are_buffered_without_bytewise_receives(self):
+        def packet(text):
+            data = text.encode()
+            return b'$' + data + b'#' + f'{sum(data) & 255:02x}'.encode()
+        class Stream:
+            calls = 0
+            def __init__(self):
+                self.data = b'+' + packet('ab' * 4096) + packet('T05')
+            def recv(self, size):
+                self.calls += 1
+                data, self.data = self.data[:size], self.data[size:]
+                return data
+            def sendall(self, _): pass
+        stream = Stream()
+        remote = RSP(stream)
+        self.assertEqual(remote.receive(), 'ab' * 4096)
+        self.assertEqual(remote.receive(), 'T05')
+        self.assertEqual(stream.calls, 1)
+
     def test_fragmented_reply_and_rejected_checksum(self):
         value, traffic = self.exchange("1234abcd", lambda r: r.reg(64), corrupt=True)
         self.assertEqual(value, 0x1234ABCD)

@@ -21,3 +21,5 @@ history under one read/update per loop; actual jump/spin execution still
 requires playable-stage verification. Native/Dolphin prefixes remain explicit
 and independently timed. Suffix frame0 is the first input loop AFTER sync
 row0; append it at source_frame+1, retaining the idle row0 input.
+
+Capture301 rows to include the anchor plus the full300-input suffix.

@@ -47,7 +47,7 @@ class ObserverError(RuntimeError):
 
 
 class RSP:
-    """ACK-mode RSP; never issue guest-memory or register writes."""
+    """Buffered ACK-mode transport for Dolphin PPC RSP packets."""
 
     def __init__(self, stream: socket.socket):
         self.stream = stream
@@ -463,7 +463,7 @@ def collect(args):
             manifest["cpu_core"] = config.getint("Core", "CPUCore")
             manifest["rtc_epoch"] = config.getint("Core", "CustomRTCValue")
             manifest["timing_policy"] = dict(
-                tick_hz=60750000, tick_hz_basis="Dolphin Wii SystemTimers time base; not measured by this collector",
+                tick_hz=60750000, tick_hz_basis="guest PPC time-base ticks: Dolphin Wii 729000000 / TIMER_RATIO 12; not measured",
                 rate_numerator=None, rate_denominator=None,
                 rate_basis="guest VI configuration; this collector does not observe VI registers",
                 fpcr_fz=None, fp_policy="Gekko semantics under selected Dolphin CPU core; host FPCR not observed",

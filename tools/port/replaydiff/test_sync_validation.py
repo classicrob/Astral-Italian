@@ -88,6 +88,11 @@ class SyncValidationTests(unittest.TestCase):
                 self.write_json(Path(str(self.paths[1]) + '.manifest.json'), metadata)
                 self.assertFalse(self.check()['compatible'])
 
+    def test_unrecorded_clock_epoch_is_unqualified(self):
+        policy = {key: value for key, value in self.policy.items() if key != 'epoch_ticks'}
+        self.write_json(Path(str(self.paths[1]) + '.manifest.json'), dict(timing_policy=policy))
+        self.assertFalse(self.check()['compatible'])
+
     def test_policy_mismatches_fail_including_epoch(self):
         for changes in (dict(epoch_ticks=1), dict(rate_denominator=1000), dict(fpcr_fz=False),
                         dict(audio_output='on'), dict(audio_processing='Dolphin DSP HLE')):

@@ -86,6 +86,18 @@ emulator. Release the lock between runs; every locked run must stay below
 not that determinism or native equivalence passed. Exit 2 means an incomplete
 run. Partial rows and the manifest/log error remain available for diagnosis.
 
+The manifest's `timing_policy` distinguishes PPC time-base frequency from
+Dolphin core scheduling ticks. Pinned Dolphin uses a 729 MHz Wii core and a
+12:1 time-base ratio, giving `tick_hz=60750000`; this collector does not read
+actual tick or VI registers. Rate numerator/denominator and host `fpcr_fz`
+remain null, with explicit interpretation strings. Audio output backend and
+DSPHLE setting are declared. Dolphin continues scheduling DSP slices and
+audio DMA independently of the null sound backend. These declarations do not
+qualify native timing, audio processing or floating-point equivalence. Sources:
+[pinned SystemTimers.cpp](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/Core/HW/SystemTimers.cpp),
+[SystemTimers.h](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/Core/HW/SystemTimers.h),
+and [AudioCommon.cpp](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/AudioCommon/AudioCommon.cpp).
+
 ## Optional stage synchronization
 
 `collect --sync-stage SkyIslandGalaxy --sync-scenario 1 --frames 300` emits
@@ -110,7 +122,8 @@ still declares the **full source-loop count**, including boot/navigation.
 `inputs.jsonl` retains that clock, capacities and actual read ordinals. Source
 frame `source_frame` was consumed before sync row 0; first shared gameplay
 inputs belong to `source_frame+1` and affect sync row 1. The tape must extend
-through all requested output rows. It is never silently rebased or regenerated
+through all requested output rows. A complete 300-input gameplay suffix after
+the anchor requires 301 emitted rows (anchor plus 300 completed loops). It is never silently rebased or regenerated
 from the trimmed trace. Seed alignment does not equalize already-initialized
 actors; row-0 non-RNG equality needs separate qualification.
 
@@ -438,3 +451,61 @@ events in the private report and exit **2**; a completed bounded window exits
 **0**, with its stated qualification limits. Synthetic unit tests exercise the
 comparator, watch traps, fallback, symbol bounds, pointer guards, cleanup and
 private artifact flow; a live game replay remains a separate qualification.
+
+
+Script segments may supply `acc: [x,y,z]` in raw KPAD g units, finite within
++/-8g. Default is `[0,-1,0]`. Exported `acc_value` is the vector magnitude and
+`acc_speed` is distance from the preceding injected core sample, per actual
+read. These synthesized filtered fields are explicit controller intent; they
+do not claim natural WPAD/KPAD filtering equivalence. See inputs/stage-start.json
+for the proposed300-loop idle/walk/jump/spin suffix (not live-qualified).
+
+## Stage-sync comparison qualification (Sol F)
+
+`tracediff.py` automatically validates adjacent `<trace>.sync.json` files if either
+exists. `--require-sync` requires both even when neither exists. Each v1 sidecar
+must describe `phase: "post-endFrame"`, the canonical `stage`, positive placed
+`scenario`, original `source_frame`/`source_scene_epoch`, nullable u64
+`source_ticks`/`source_vi_count`, observed u32 `rng_seed`, and boolean
+`rng_valid: true`/`rng_forced`. Row 0 must be frame 0, scene epoch 0, valid scene
+`Game`, initialization state 6, and match the declared target and observed seed.
+`player_valid` remains an observation; it does not shift the selected origin.
+Both post-sync seeds must agree. `rng_forced` may differ when native explicitly
+injects Dolphin's observed seed once; it remains recorded as provenance.
+
+```sh
+python3 tools/port/replaydiff/tracediff.py oracle.csv native.csv \
+  --require-sync --manifest-a oracle/manifest.json \
+  --manifest-b native.csv.manifest.json --json comparison.json
+```
+
+Absent overrides, the comparator looks for `<trace>.manifest.json`, then
+`manifest.json` beside that CSV. Each manifest needs an explicit flat
+`timing_policy` object with observed `tick_hz`, `rate_numerator`,
+`rate_denominator`, `epoch_ticks`, boolean `fpcr_fz`, and strings `audio_output`
+and `audio_processing`. Tick rate and rational rate terms are positive integers;
+epoch ticks may be zero. Additional substantive policy fields must match too.
+A sibling `rtc_epoch`, when declared, also participates. Descriptive
+`tick_hz_basis`, `rate_basis`, and `fp_policy` strings remain provenance rather
+than equality requirements. Unknown/null policy values, missing metadata,
+incomplete manifests, and incompatible target/phase/seed/clock/FZ/audio settings
+return **2**. The current Dolphin collector's unobserved VI rate and FZ therefore
+leave cross-platform comparisons explicitly unqualified; native defaults are
+never substituted for Dolphin observations.
+
+The report retains full state differences and an `initial_non_rng_state` check
+even when metadata validation returns 2. Check that initial state before
+attributing later divergence. Raw source clocks/origins remain in the report;
+CSV clocks and other columns retain their usual comparison rules. Synchronizing
+a global RNG seed cannot establish equal initialization, other RNGs, or
+scheduling. Row 0 describes inputs that happened before the sync seam; common
+post-sync gameplay reads start the next loop. Input tapes remain explicit.
+
+For native O0/O2 diagnostics, keep settings, clock epoch, assets and input tapes
+identical apart from optimization. A mismatch diagnoses native/compiler-order,
+undefined-behavior, or nondeterminism issues; it does not by itself establish a
+decompilation bug. A compatible metadata report is only a metadata check, not a
+runtime replay qualification. Compare the normal frame trace as the gate for
+actor-table comparisons; actor tables are not accepted as sync origin records.
+Legacy CSVs without sidecars still compare, explicitly marked `not-requested`
+for synchronization.

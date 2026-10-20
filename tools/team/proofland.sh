@@ -18,6 +18,11 @@ trap 'python3 tools/team/landlock.py release >/dev/null 2>&1 || true' EXIT INT T
 wip
 git rebase main || { git rebase --abort; echo "rebase conflict: resolve, then retry" >&2; exit 1; }
 cert="$(git rev-parse main) $(git rev-parse HEAD:src) $(git rev-parse HEAD:include) $(git rev-parse HEAD:libs)"
+if [ -n "${REMOTE_PROOF_RECEIPT:-}" ]; then
+  [ -n "${REMOTE_PROOF_ROOT:-}" ] && [ -n "${REMOTE_PROOF_HOST:-}" ] || { echo "remote proof root and trusted host required" >&2; exit 1; }
+  nice -n 19 python3 tools/team/remoteproof.py verify --receipt "$REMOTE_PROOF_RECEIPT" --proof-root "$REMOTE_PROOF_ROOT" --host "$REMOTE_PROOF_HOST"
+  export REMOTE_PROOF_CONTRACT=build/remote-proof-contract.json
+fi
 if [ "$(cat build/hookproof-land.cert 2>/dev/null)" != "$cert" ]; then
   lockf -k "$lock" sh tools/team/hookproof.sh build/hookproof-land main HEAD | tee build/hookproof-land.txt
   grep -q '^PROOF OK' build/hookproof-land.txt || { echo "proof failed: not landing" >&2; exit 1; }
@@ -32,5 +37,8 @@ LAND_LOCK_HELD=$pid CERT_TREES="${cert#* }" lockf -k "$lock" sh -c '
   [ -z "$(git status --porcelain --untracked-files=no)" ] || { git status --short; echo "unexpected dirty files" >&2; exit 1; }
   [ "$(git rev-parse HEAD:src) $(git rev-parse HEAD:include) $(git rev-parse HEAD:libs)" = "$CERT_TREES" ] \
     || { echo "sources changed after the proof" >&2; exit 1; }
+  if [ -n "${REMOTE_PROOF_CONTRACT:-}" ]; then
+    python3 tools/team/remoteproof.py check --contract "$REMOTE_PROOF_CONTRACT" || exit 1
+  fi
   sh tools/team/land.sh'
 

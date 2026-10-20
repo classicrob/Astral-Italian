@@ -827,7 +827,11 @@ void AudSystem::setField9A4(bool value) {
 }
 
 void AudSystem::setField834(s32 value) {
+#ifdef GALAXY_NATIVE
+    msBasic->mRestrictedSoundFrames = value;
+#else
     *reinterpret_cast< s32* >(reinterpret_cast< u8* >(msBasic) + 0x834) = value;
+#endif
 }
 
 // Used by AudBgmVolumeController::update and AudSystemVolumeController::updateSeVolumeSetLevel.

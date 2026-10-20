@@ -265,7 +265,54 @@ HeapMemoryWatcher::HeapMemoryWatcher()
     createHeaps();
 }
 
-void HeapMemoryWatcher::memoryErrorCallback(void*, u32, int) {
+#ifdef GALAXY_NATIVE
+namespace {
+    // Names the game heap that JKRHeap::callErrorHandler passed in; null for a heap that is not one of the
+    // watcher's own (sizes are then not reported).
+    JKRHeap* findFailedHeap(HeapMemoryWatcher* pWatcher, const void* pHeap, const char** pName) {
+        struct HeapEntry {
+            JKRHeap* mHeap;
+            const char* mName;
+        };
+        const HeapEntry heaps[] = {
+            {pWatcher->mStationedHeapNapa, "stationed NAPA"},
+            {pWatcher->mStationedHeapGDDR, "stationed GDDR"},
+            {pWatcher->mGameHeapNapa, "game NAPA"},
+            {pWatcher->mGameHeapGDDR, "game GDDR"},
+            {pWatcher->mWorldMapHeap, "world map"},
+            {pWatcher->mFileCacheHeap, "file cache"},
+            {pWatcher->mFileCacheHostImageHeap, "file cache host-image companion"},
+            {pWatcher->mSceneHeapNapa, "scene NAPA"},
+            {pWatcher->mSceneHeapGDDR, "scene GDDR"},
+            {pWatcher->mWPadHeap, "WPad"},
+            {pWatcher->mHomeButtonLayoutHeap, "home button layout"},
+            {pWatcher->mAudSystemHeap, "audio system"},
+        };
+        for (u32 i = 0; i < sizeof(heaps) / sizeof(heaps[0]); i++) {
+            if (heaps[i].mHeap != nullptr && static_cast< const void* >(heaps[i].mHeap) == pHeap) {
+                *pName = heaps[i].mName;
+                return heaps[i].mHeap;
+            }
+        }
+        return nullptr;
+    }
+}  // namespace
+#endif
+
+void HeapMemoryWatcher::memoryErrorCallback(void* pHeap, u32 size, int alignment) {
+#ifdef GALAXY_NATIVE
+    // Native diagnostics: the Wii panic message is empty, which hides which heap ran out. Heap sizes come from
+    // the unlocked do_* queries (the failing heap's lock is held here).
+    HeapMemoryWatcher* pWatcher = SingletonHolder< HeapMemoryWatcher >::get();
+    const char* pName = "not a HeapMemoryWatcher heap";
+    JKRHeap* pFailed = pWatcher != nullptr ? findFailedHeap(pWatcher, pHeap, &pName) : nullptr;
+    if (pFailed != nullptr) {
+        OSReport("HeapMemoryWatcher: %s heap %p out of memory: request %u bytes, alignment %d, heap %u bytes, free %d, total free %d\n", pName, pHeap, size,
+                 alignment, static_cast< u32 >(pFailed->getEnd() - pFailed->getStart()), pFailed->do_getFreeSize(), pFailed->do_getTotalFreeSize());
+    } else {
+        OSReport("HeapMemoryWatcher: %s %p out of memory: request %u bytes, alignment %d\n", pName, pHeap, size, alignment);
+    }
+#endif
     OSPanic(__FILE__, 617, "");
 }
 

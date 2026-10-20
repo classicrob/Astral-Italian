@@ -68,10 +68,10 @@ void testAssign() {
     In::Bindings b = In::Bindings::defaults();
     // A free key replaces the slot.
     check(Remap::assign(b, Action::Shake, 0, kG, Resolve::Check) == Result::Conflict, "G is the Collect Star Bits mod's");
-    check(Remap::assign(b, Action::Shake, 0, Binding::key(In::Key::Y), Resolve::Check) == Result::Done &&
-              slot(b, Action::Shake, 0) == Binding::key(In::Key::Y) && !has(b, Action::Shake, kF),
+    check(Remap::assign(b, Action::Shake, 0, Binding::key(In::Key::M), Resolve::Check) == Result::Done &&
+              slot(b, Action::Shake, 0) == Binding::key(In::Key::M) && !has(b, Action::Shake, kF),
           "a free key replaces the slot's input");
-    check(Remap::assign(b, Action::Shake, 0, Binding::key(In::Key::Y), Resolve::Check) == Result::Unchanged,
+    check(Remap::assign(b, Action::Shake, 0, Binding::key(In::Key::M), Resolve::Check) == Result::Unchanged,
           "the same input again changes nothing");
 
     // Conflict: Cap throw on F, which is Spin.

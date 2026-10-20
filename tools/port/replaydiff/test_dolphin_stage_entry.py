@@ -6,7 +6,8 @@ from dolphin_collect import ObserverError
 
 
 class Remote:
-    def __init__(self):
+    def __init__(self, stage='RedBlueExGalaxy'):
+        self.stage = stage
         self.registers = dict.fromkeys(range(71), 0)
         self.registers.update({1: 0x81700000, 64: entry.ENTRY, 67: entry.ENTRY})
         self.saved = '00' * 400
@@ -14,8 +15,8 @@ class Remote:
         self.writes = []
 
     def read(self, address, size):
-        if address == entry.STAGE_STRING:
-            return b'RedBlueExGalaxy\0'
+        if address == entry.STAGE_STRINGS[self.stage]:
+            return self.stage.encode('ascii') + b'\0'
         return bytes(size)
 
     def command(self, packet):
@@ -59,9 +60,11 @@ class Memory:
 
 
 class EntryTests(unittest.TestCase):
-    def make_entry(self):
-        with patch.object(entry, 'dol_function', side_effect=lambda path, address, size: bytes(size)):
-            return entry.StageEntry('unused')
+    def make_entry(self, stage='RedBlueExGalaxy'):
+        def read(path, address, size):
+            return stage.encode('ascii') + b'\0' if address == entry.STAGE_STRINGS[stage] else bytes(size)
+        with patch.object(entry, 'dol_function', side_effect=read):
+            return entry.StageEntry('unused', stage)
 
     def test_exact_three_calls_restore_registers_and_skip_original_destination(self):
         stage = self.make_entry()
@@ -92,6 +95,42 @@ class EntryTests(unittest.TestCase):
         stage.expected['request'] = b'X'
         remote = Remote()
         with self.assertRaisesRegex(ObserverError, 'signature mismatch'):
+            stage.enter(remote, 999)
+        self.assertEqual(remote.calls, [])
+
+    def test_yoshi_uses_existing_immutable_string_and_same_calls(self):
+        stage = self.make_entry('YosshiHomeGalaxy')
+        remote = Remote('YosshiHomeGalaxy')
+        with patch.object(entry.collector, 'Memory', Memory):
+            stage.enter(remote, 999)
+        self.assertEqual(remote.calls[1][3], 0x806B88D8)
+        self.assertEqual({key: remote.calls[1][key] for key in [4, 5, 6]}, {4: 1, 5: 1, 6: 0})
+        self.assertEqual(remote.calls[2][4], 0x806B88D8)
+        self.assertEqual(remote.registers[64], entry.EPILOGUE)
+        self.assertEqual(stage.receipt['stage'], 'YosshiHomeGalaxy')
+        self.assertFalse(any(packet.startswith('M') for packet in remote.writes))
+
+    def test_unknown_stage_and_scenario_rejected_before_dol_access(self):
+        with patch.object(entry, 'dol_function') as read:
+            for stage, scenario in [('Unknown', 1), ('YosshiHomeGalaxy', 2), ('YosshiHomeGalaxy', True)]:
+                with self.subTest(stage=stage, scenario=scenario), self.assertRaises(ObserverError):
+                    entry.StageEntry('unused', stage, scenario)
+            read.assert_not_called()
+
+    def test_sync_target_must_match(self):
+        entry.validate_sync_target('YosshiHomeGalaxy', 1, 'YosshiHomeGalaxy', 1)
+        for stage, scenario in [('RedBlueExGalaxy', 1), ('YosshiHomeGalaxy', 2), (None, None)]:
+            with self.subTest(stage=stage, scenario=scenario), self.assertRaisesRegex(ObserverError, 'exactly match'):
+                entry.validate_sync_target('YosshiHomeGalaxy', 1, stage, scenario)
+
+    def test_dol_string_must_match(self):
+        with patch.object(entry, 'dol_function', return_value=b'bad'), self.assertRaisesRegex(ObserverError, 'DOL stage string'):
+            entry.StageEntry('unused', 'YosshiHomeGalaxy')
+
+    def test_guest_string_must_match_before_calls(self):
+        stage = self.make_entry('YosshiHomeGalaxy')
+        remote = Remote('RedBlueExGalaxy')
+        with self.assertRaisesRegex(ObserverError, 'stage string'):
             stage.enter(remote, 999)
         self.assertEqual(remote.calls, [])
 

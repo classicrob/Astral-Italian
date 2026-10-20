@@ -769,6 +769,15 @@ python3 -B -m unittest discover -s tools/port/replaydiff -p test_replay_gate.py
 
 ## Human route intent diagnostics
 
+The stage-entry wrapper has a bounded selector: `--entry-stage RedBlueExGalaxy`
+(default) or `--entry-stage YosshiHomeGalaxy`, with `--entry-scenario 1` only.
+`--sync-stage` and `--sync-scenario` must exactly match that selection. The Yoshi
+selector uses the existing immutable SB4E01 string at `0x806b88d8`; both original
+DOL bytes and guest bytes must match before calls. The same three original
+functions, register preservation, file1 check and return epilogue are retained.
+No guest string, instruction, or save-progress patch is made. Synthetic selector
+tests and static DOL validation do not establish runtime Yoshi acceptance.
+
 `route_to_kpad_script.py SOURCE OUTPUT --source-sha256 HASH
 --spin-policy held-remote-x3-v1 [--prefix N]` consumes a closed private
 `PETARI_ROUTE_RECORD` CSV. It selects the first valid **target-stage/scenario**

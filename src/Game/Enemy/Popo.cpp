@@ -23,6 +23,10 @@
 #include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Enemy/PetoPopoParam.hpp"
 
+#ifdef GALAXY_NATIVE
+#include "Game/Player/YoshiLockOnTarget.hpp"
+#endif
+
 // Named tuning constants: the target loads equal values from separate .sdata2 slots (e.g. both 30.0f
 // blow-down speeds), so they are objects defined at the end of the TU, not folded literals.
 namespace {
@@ -505,7 +509,11 @@ void Popo::control() {
     if (isStarPointerTargetable() && MR::isStarPointerPointing2PAttachTarget(this)) {
         setNerve(&NrvPopo::PopoNrvTouch::sInstance);
     }
+#ifdef GALAXY_NATIVE
+    mYoshiLockOn->mOffset = mLockOnOffset;
+#else
     *reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(mYoshiLockOn) + 8) = mLockOnOffset;
+#endif
     mScaleController->updateNerve();
 }
 

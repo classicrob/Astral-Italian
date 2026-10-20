@@ -248,7 +248,13 @@ u32 JASSeqParser::readReg(JASTrack* track, u32 reg) const {
             if (!track->mSeqCtrl.mReader.mNumStacks) {
                 return 0;
             }
+#ifdef GALAXY_NATIVE
+            // The DOL's address arithmetic: mPorts[n - 0x1B] is mLoopCounts[n - 1] (0x60 + 2(n - 0x1B) = 0x2C + 2(n - 1))
+            // with 32-bit wraparound; natively the unsigned index lands 8 GiB away.
+            ret = track->mSeqCtrl.mReader.mLoopCounts[track->mSeqCtrl.mReader.mNumStacks - 1];
+#else
             ret = track->mTrackPort.mPorts[track->mSeqCtrl.mReader.mNumStacks - 0x20 + 5];
+#endif
             break;
         case 0x22:
             ret = track->getTimebase();

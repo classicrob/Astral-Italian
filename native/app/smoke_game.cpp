@@ -178,7 +178,10 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
             observation.powerStars = GameDataFunction::calcCurrentPowerStarNum();
             observation.stageResult = GameSequenceFunction::hasStageResultSequence();
             // The Game scene is a GameScene (SceneFactory: "Game").
-            // SMG2's GameScene has no isPermitToPauseMenu (SMG1): not observed.
+            // The Game scene is a GameScene (SceneFactory: "Game"); SMG2's check is permitsStartPauseMenu.
+            if (pController->mScene != nullptr) {
+                observation.pausePermitted = static_cast< const GameScene* >(pController->mScene)->permitsStartPauseMenu();
+            }
         }
     }
     stepCollisionProbe(observation.stage, observation.sceneReady && observation.scene == "Game", observation.playerValid,

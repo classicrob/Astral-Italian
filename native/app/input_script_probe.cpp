@@ -139,7 +139,8 @@ bool inputScriptFrame() {
     }
     if (s.phase == Phase::Wait) {
         const Observation o = observeGame(true, false);
-        const bool play = o.playerValid && o.pausePermitted && !o.demoActive && !o.talkActive;
+        // SMG2's title runs on the FileSelect stage with a live Mario: wait for a real stage.
+        const bool play = o.playerValid && o.pausePermitted && !o.demoActive && !o.talkActive && o.stage != "FileSelect";
         s.steady = play ? s.steady + 1 : 0;
         if (s.steady < s.steadyNeeded) return false;
         s.phase = Phase::Run;

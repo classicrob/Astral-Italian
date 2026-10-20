@@ -560,6 +560,10 @@ void GameScene::init() {
             MR::deactivateDefaultGameLayout();
         }
         while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
+#ifdef GALAXY_NATIVE
+            // As the wait above: the wave loads finish on higher-priority threads.
+            petari_os_preemption_point();
+#endif
         }
         MR::getGameSystemObjHolder()->mAudioSystem->finishStageResourceLoading();
     }

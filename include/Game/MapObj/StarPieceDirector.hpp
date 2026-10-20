@@ -96,6 +96,11 @@ public:
 
     void calcShootGoalUsingPointingDepth();
 
+#ifdef GALAXY_NATIVE
+    void tryShootNearestEnemy();
+    bool mNativeShotThisFrame = false;
+#endif
+
     f32 mShootSpeed;
     HitSensor* mTargetSensor;
     f32 mTargetDistance;

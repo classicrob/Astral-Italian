@@ -179,6 +179,12 @@ if(BUILD_TESTING)
     target_link_libraries(petari_smg2_controls_tests PRIVATE petari_input)
     add_test(NAME native_smg2_controls COMMAND petari_smg2_controls_tests)
 
+    # ShootEnemy mod: shared nearest-target policy and one-press transaction.
+    add_executable(petari_shoot_nearest_enemy_tests ${PETARI_REPO_ROOT}/native/tests/shoot_nearest_enemy_tests.cpp)
+    target_include_directories(petari_shoot_nearest_enemy_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    target_compile_features(petari_shoot_nearest_enemy_tests PRIVATE cxx_std_17)
+    add_test(NAME native_shoot_nearest_enemy COMMAND petari_shoot_nearest_enemy_tests)
+
     # OdysseyMovement mod: the SMO movement model alone (header-only).
     add_executable(petari_odyssey_move_tests ${PETARI_REPO_ROOT}/native/tests/odyssey_move_tests.cpp)
     target_include_directories(petari_odyssey_move_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)

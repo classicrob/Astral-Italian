@@ -67,8 +67,12 @@ int main() {
     std::string error;
     check(LS::installCatalog({{"MenuSyntheticGalaxy", "Menu Fixture Galaxy", 3,
         {{2, 1, "Normal", "", ""}, {7, 2, "Hidden", "", ""}, {12, 4, "Green", "", ""},
-         {15, 8, "Normal", "SyntheticComet", ""}}, "synthetic menu test; NOT disc inventory"}}, &error), "synthetic catalog installs");
+         {15, 8, "Normal", "SyntheticComet", ""}}, "synthetic menu test; NOT disc inventory"},
+        {"WorldMap08Galaxy", "", 8, {{1, 0, "", "", ""}}, "synthetic nameless world; NOT disc inventory"}}, &error), "synthetic catalog installs");
     auto menu = openLevels();
+    press(menu, HM::Button::Right);
+    check(std::strstr(menu.view().items[0].label, "Menu Fixture Galaxy") != nullptr,
+          "Level Select skips nameless world8 when cycling galaxies");
     check(std::strcmp(menu.view().items[1].label, "Mission 2 (1 of 4)") == 0 &&
           std::strstr(menu.view().message, "World 3") != nullptr, "first menu row uses actual ID and world");
     press(menu, HM::Button::Down);

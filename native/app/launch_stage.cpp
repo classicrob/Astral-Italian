@@ -164,8 +164,10 @@ bool onGameDataReady(const ScenarioDataParser& parser, const JMapInfo& worldOrde
         const int world = status.getWorldNo();
         if (world <= 0 || orderedWorld > static_cast<u32>(std::numeric_limits<int>::max()) || world != static_cast<int>(orderedWorld))
             return fail(error, std::string("world-number provenance mismatch for ") + stage);
-        // Some world-ordered records (world maps such as WorldMap08Galaxy) have no GalaxyName label: they keep
-        // their internal name in listings and are still addressable by it.
+        // GAME's text/route audit found names for worlds 1-7 only and no game
+        // route to world 8. Nameless records such as WorldMap08Galaxy remain
+        // addressable for explicit test launches, but are omitted from the
+        // player-facing listing and Level Select by the shared catalog view.
         const auto english = sEnglish.find(stage);
         const bool hasEnglish = english != sEnglish.end();
         CatalogGalaxy galaxy;

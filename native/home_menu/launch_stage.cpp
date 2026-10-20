@@ -15,7 +15,8 @@ namespace {
 struct Catalog {
     std::vector<CatalogGalaxy> records;
     std::vector<std::string> aliases, comets, hidden;
-    std::vector<Galaxy> views;
+    std::vector<Galaxy> views;            // Full records, preserving indices for explicit resolution.
+    std::vector<Galaxy> listedViews;      // Verified names exposed to player-facing lists.
 };
 
 std::unique_ptr<Catalog> sCatalog;
@@ -121,6 +122,7 @@ bool installCatalog(std::vector<CatalogGalaxy> records, std::string* error) {
     next->comets.resize(count);
     next->hidden.resize(count);
     next->views.reserve(count);
+    next->listedViews.reserve(count);
     for (std::size_t i = 0; i < count; ++i) {
         const CatalogGalaxy& g = next->records[i];
         next->aliases[i] = alias(g.englishName.empty() ? g.stage : g.englishName);
@@ -133,6 +135,7 @@ bool installCatalog(std::vector<CatalogGalaxy> records, std::string* error) {
         }
         next->views.push_back({g.stage.c_str(), next->aliases[i].c_str(), g.englishName.empty() ? g.stage.c_str() : g.englishName.c_str(),
                                g.world, static_cast<int>(g.scenarios.size()), next->comets[i].c_str(), next->hidden[i].c_str()});
+        if (!g.englishName.empty()) next->listedViews.push_back(next->views.back());
     }
     sCatalog.swap(next);
     resolvePendingStartup();
@@ -185,8 +188,8 @@ const std::vector<CatalogGalaxy>& catalog() {
 }
 
 const Galaxy* galaxies(int* count) {
-    if (count) *count = sCatalog ? static_cast<int>(sCatalog->views.size()) : 0;
-    return sCatalog && !sCatalog->views.empty() ? sCatalog->views.data() : nullptr;
+    if (count) *count = sCatalog ? static_cast<int>(sCatalog->listedViews.size()) : 0;
+    return sCatalog && !sCatalog->listedViews.empty() ? sCatalog->listedViews.data() : nullptr;
 }
 
 const char* domeName(int world) {
@@ -263,8 +266,9 @@ void printList(std::FILE* out) {
     int world = -1;
     for (std::size_t i = 0; i < sCatalog->records.size(); ++i) {
         const CatalogGalaxy& g = sCatalog->records[i];
+        if (g.englishName.empty()) continue;
         if (g.world != world) { world = g.world; std::fprintf(out, "\n%s\n", domeName(world)); }
-        std::fprintf(out, "  %s  %s  %s [", sCatalog->aliases[i].c_str(), g.stage.c_str(), g.englishName.empty() ? "(English label unavailable)" : g.englishName.c_str());
+        std::fprintf(out, "  %s  %s  %s [", sCatalog->aliases[i].c_str(), g.stage.c_str(), g.englishName.c_str());
         bool first = true;
         for (const Scenario& s : g.scenarios) {
             std::fprintf(out, "%s%d%s%s%s", first ? "" : " ", s.number, s.comet.empty() ? "" : "C", s.powerStarType == "Hidden" ? "H" : "", s.powerStarType == "Green" ? "G" : "");

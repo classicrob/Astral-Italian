@@ -204,7 +204,22 @@ int main(int argc, char** argv) {
 
     other.englishName.clear();
     check(LS::installCatalog({other}, &error) && LS::resolve(other.stage, 2, &stage, &error), "missing English label retains canonical internal destination");
-    check(listing().find("English label unavailable") != std::string::npos, "missing label is never fabricated");
+    check(LS::galaxies(&count) == nullptr && count == 0 && listing().find(other.stage) == std::string::npos,
+          "nameless records stay out of the player-facing catalog and CLI list");
+
+    LS::CatalogGalaxy world7{"WorldMap07Galaxy", "World S", 7, {{1, 0, "", "", ""}}, "synthetic named world"};
+    auto world8 = world7; world8.stage = "WorldMap08Galaxy"; world8.world = 8; world8.englishName.clear();
+    check(LS::installCatalog({world8, fixture(), world7}, &error), "named and nameless worlds install together");
+    all = LS::galaxies(&count);
+    check(count == 2 && all && std::strcmp(all[0].stage, "SyntheticTestGalaxy") == 0 &&
+              std::strcmp(all[1].stage, "WorldMap07Galaxy") == 0, "named worlds stay selectable without world8");
+    check(listing().find("WorldMap07Galaxy") != std::string::npos && listing().find("WorldMap08Galaxy") == std::string::npos,
+          "CLI list excludes the nameless world while retaining named worlds");
+    check(LS::resolve("WorldMap08Galaxy", 1, &stage, &error) && stage == "WorldMap08Galaxy" &&
+              LS::find("WorldMap08Galaxy") && LS::scenario("WorldMap08Galaxy", 1),
+          "explicit world8 test launch retains canonical resolution and scenario metadata");
+    check(!LS::resolve("WorldMap08Galaxy", 2, &stage, &error) && error.find("ScenarioNo 1;") != std::string::npos,
+          "unlisted world still validates actual scenario membership");
     check(LS::find("FileSelect") == nullptr && LS::find("AstroDome") == nullptr, "no implicit menu/SMG1 hub destinations");
     messageTests();
 

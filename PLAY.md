@@ -65,6 +65,10 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 
 ## Status and known issues
 
+- **Build 4: avoid Yoshi Star Galaxy.** It crashes there (a renderer bug fixed for build 5), and the crash can leave a
+  bad entry in the shader cache that makes every later build-4 launch crash at startup. After ANY build-4 crash, move
+  `~/Library/Caches/AstralItalian/pipeline_cache.db*` (the `.db`, `-wal` and `-shm` files) aside into a backup folder
+  before relaunching; do not touch `dawn_cache` or your saves. Build 5 keeps a separate, checked cache per build.
 - Build 4 (default, frozen 09:05): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
   and on, and the toggle demonstrably changes Mario's moves (crouch + Spin rolls him only with it on). New: the world
   maps load (walking them and entering galaxies from them not checked yet).

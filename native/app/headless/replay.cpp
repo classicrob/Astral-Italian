@@ -24,15 +24,28 @@ std::int32_t signed32(std::istream& in) {
 }
 Replay::Replay(std::istream& in, bool inputsFromSync) : mWaitingForSync(inputsFromSync) {
     for (unsigned channel = 0; channel < 4; ++channel) {
-        auto& read = mDisconnected[channel];
+        auto& read = mBootstrap[channel];
         read = {};
         read.channel = channel;
-        read.error = -2;
-        read.probeError = -1;
-        read.device = 253;
+        const bool connected = channel == 0;
+        read.returned = connected ? 1 : 0;
+        read.error = connected ? 0 : -2;
+        read.probeError = connected ? 0 : -1;
+        read.device = connected ? 1 : 253;
         read.samples.resize(1);
-        read.samples[0][92] = 253;
-        read.samples[0][93] = 255;
+        auto& sample = read.samples[0];
+        auto bits = [&](unsigned offset, std::uint32_t value) {
+            for (unsigned i = 0; i < 4; ++i) sample[offset + i] = value >> (24 - 8 * i);
+        };
+        bits(16, 0xbf800000);
+        for (unsigned offset : {24, 52, 84}) bits(offset, 0x3f800000);
+        sample[92] = connected ? 1 : 253;
+        sample[93] = connected ? 0 : 255;
+        sample[95] = connected ? 5 : 0;
+        if (connected) {
+            bits(108, 0xbf800000);
+            bits(116, 0x3f800000);
+        }
     }
     char magic[8];
     if (!in.read(magic, sizeof(magic)) || std::memcmp(magic, "SMG2KPD1", 8)) throw ReplayError("bad KPAD tape magic");
@@ -74,7 +87,7 @@ Replay::Replay(std::istream& in, bool inputsFromSync) : mWaitingForSync(inputsFr
 const Read& Replay::consume(std::uint32_t channel, std::uint32_t capacity) {
     if (mWaitingForSync) {
         if (channel >= 4 || !capacity || capacity > 4096) throw ReplayError("invalid pre-sync KPAD read");
-        auto& read = mDisconnected[channel];
+        auto& read = mBootstrap[channel];
         read.capacity = capacity;
         return read;
     }
@@ -96,7 +109,7 @@ void Replay::endFrame() {
     mOrdinal = 0;
 }
 const Read* Replay::connection(std::uint32_t channel) const {
-    if (mWaitingForSync) return channel < 4 ? &mDisconnected[channel] : nullptr;
+    if (mWaitingForSync) return channel < 4 ? &mBootstrap[channel] : nullptr;
     for (auto i = mFrameStart; i < mReads.size() && mReads[i].frame == mFrame; ++i)
         if (mReads[i].channel == channel) return &mReads[i];
     return nullptr;

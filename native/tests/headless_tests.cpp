@@ -58,10 +58,17 @@ int main() {
             check(gated.waitingForSync() && !gated.finished(), "pre-sync input remains pending");
             for (unsigned channel = 0; channel < 4; ++channel) {
                 const auto* connection = gated.connection(channel);
-                check(connection && connection->probeError == -1 && connection->device == 253, "pre-sync controllers are disconnected");
+                check(connection && connection->probeError == (channel ? -1 : 0) && connection->device == (channel ? 253 : 1), "pre-sync channel zero is a connected Nunchuk; others disconnected");
                 const auto& idle = gated.consume(channel, 120);
-                check(idle.returned == 0 && idle.error == -2 && idle.samples[0][92] == 253 && idle.samples[0][93] == 255,
-                      "pre-sync read supplies only the disconnected slot-zero sentinel");
+                check(idle.returned == (channel ? 0 : 1) && idle.error == (channel ? -2 : 0) &&
+                      idle.samples[0][92] == (channel ? 253 : 1) && idle.samples[0][93] == (channel ? 255 : 0),
+                      "pre-sync read supplies neutral connected or disconnected status");
+                check(idle.samples[0][16] == 0xbf && idle.samples[0][24] == 0x3f && idle.samples[0][25] == 0x80 &&
+                      idle.samples[0][52] == 0x3f && idle.samples[0][84] == 0x3f, "bootstrap core gravity/horizon is canonical idle");
+                check(idle.samples[0][0] == 0 && idle.samples[0][4] == 0 && idle.samples[0][8] == 0 &&
+                      idle.samples[0][96] == 0 && idle.samples[0][100] == 0, "bootstrap has no buttons, edges, or stick movement");
+                if (!channel) check(idle.samples[0][108] == 0xbf && idle.samples[0][116] == 0x3f &&
+                                    idle.samples[0][117] == 0x80 && idle.samples[0][95] == 5, "bootstrap Nunchuk gravity and data format");
             }
             gated.endFrame();
             check(gated.frame() == 0, "boot and anchor do not consume tape frames");

@@ -6,6 +6,9 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include <JSystem/JParticle/JPAEmitter.hpp>
+#ifdef GALAXY_NATIVE
+#include <JSystem/JMath/JMAFloatConversion.hpp>
+#endif
 
 namespace {
     Color8 getSyntheticColor(const Color8& rColor1, const Color8& rColor2) {
@@ -119,7 +122,11 @@ void MultiEmitterCallBack::setSRTFromHostMtx(JPABaseEmitter* pEmitter, MtxPtr pM
 
 namespace {
     inline s16 toS16(f32 deg) {
+#ifdef GALAXY_NATIVE
+        return JMath::truncToS16(DEGREE_TO_S16 * deg);
+#else
         return DEGREE_TO_S16 * deg;
+#endif
     }
 
     inline void setScaleFromHostScaleOne(MultiEmitterCallBack* pCallBack, JPABaseEmitter* pEmitter, bool b1, bool b2) {
@@ -184,6 +191,8 @@ void MultiEmitterCallBack::effectLight(JPABaseEmitter* pEmitter) {
 }
 
 void MultiEmitterCallBack::followSRT(JPABaseEmitter* pEmitter, bool b2) {
+    // ORIGINAL BUG: flag is uninitialized on the Wii too. Without AutoEffectInfo,
+    // live host pointers can leave those bytes observable; no native default is inferred.
     FlagSRT flag;
     isFollowSRT(&flag, b2);
 

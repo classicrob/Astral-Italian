@@ -24,6 +24,7 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include <petari/cappy.hpp>
+#include <petari/host_allocation.hpp>
 #include <petari/odyssey_move.hpp>
 
 #include <cmath>
@@ -561,6 +562,7 @@ bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea) {
     if (std::find(s.spinAreas.begin(), s.spinAreas.end(), pArea) != s.spinAreas.end()) {
         return false;
     }
+    PetariNative::HostAllocationScope host;  // contacts outlive the current scene heap
     s.spinAreas.push_back(pArea);
     return true;
 }

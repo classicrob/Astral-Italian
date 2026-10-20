@@ -7,7 +7,8 @@ from dolphin_collect import ObserverError
 
 class Remote:
     def __init__(self):
-        self.registers = {1: 0x81700000, 64: entry.ENTRY, 67: 0x804D62FC}
+        self.registers = dict.fromkeys(range(71), 0)
+        self.registers.update({1: 0x81700000, 64: entry.ENTRY, 67: entry.ENTRY})
         self.saved = '00' * 400
         self.calls = []
         self.writes = []
@@ -18,8 +19,10 @@ class Remote:
         return bytes(size)
 
     def command(self, packet):
-        if packet == 'g':
-            return self.saved
+        if packet.startswith('p'):
+            number = int(packet[1:], 16)
+            width = 16 if 32 <= number < 64 else 8
+            return f'{self.registers[number]:0{width}x}'
         raise AssertionError(packet)
 
     def ok(self, packet):
@@ -27,8 +30,6 @@ class Remote:
         if packet.startswith('P'):
             register, value = packet[1:].split('=')
             self.registers[int(register, 16)] = int(value, 16)
-        elif packet.startswith('G'):
-            self.registers = {1: 0x81700000, 64: entry.ENTRY, 67: entry.ENTRY}
         else:
             raise AssertionError(packet)
 

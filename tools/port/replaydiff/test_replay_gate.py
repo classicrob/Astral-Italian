@@ -627,6 +627,101 @@ class FixtureQualificationTests(unittest.TestCase):
         self.assertIn('\nstatus: 1 divergences\n', gate.markdown(report))
 
 
+    def install_automatic_suffix(self, fixture, side='dolphin'):
+        path = Path(fixture[side]['manifest']['path']).parent / 'sync-input-script.json'
+        write_json(path, dict(version=1, frames=fixture['expected_frames'] - 1, segments=[]))
+        self.mutate_artifact(fixture, side, 'manifest', lambda record: record.update(
+            live_input_revisions=[dict(suffix_source_start=1)], sync_input_source_start=1,
+            sync_input_script_sha256=td.sha256(path)))
+        return path
+
+    def test_automatic_suffix_is_actual_hash_bound_admission_artifact(self):
+        fixture = self.build_adversarial_fixture()
+        for side in ('dolphin', 'dolphin_repeat'):
+            self.install_automatic_suffix(fixture, side)
+        write_json(self.fixture, fixture)
+        def mocked_admission(_fixture, _root, pins):
+            for side in ('dolphin', 'dolphin_repeat'):
+                script = Path(fixture[side]['manifest']['path']).parent / 'sync-input-script.json'
+                self.assertEqual(pins[side + '.sync_input_script'], dict(path=str(script.resolve()), sha256=td.sha256(script)))
+            return dict(reviewer='SYNTHETIC TEST DOUBLE', rationale='mechanics only')
+        with mock.patch.object(gate, 'admission', side_effect=mocked_admission):
+            report = gate.evaluate(self.fixture)
+        self.assertEqual(report['status'], 'PASS', report['errors'])  # Test mechanics, never real qualification.
+
+    def test_automatic_suffix_does_not_bypass_independent_admission(self):
+        fixture = self.build_adversarial_fixture()
+        self.install_automatic_suffix(fixture)
+        report = self.check_blocked(fixture)
+        self.assertIn('synthetic evidence', report['errors'][0])
+        self.assertIn('dolphin.sync_input_script', report['inputpins'])
+
+    def test_real_mixed_duplicate_or_unknown_revisions_still_block(self):
+        auto = dict(suffix_source_start=1)
+        edited = dict(first_future_frame=2, sha256='0' * 64)
+        for revisions in ([edited], [auto, edited], [auto, auto], [dict(auto, extra=True)],
+                          [dict(unknown=1)], [1], None, {}, True):
+            with self.subTest(revisions=revisions), tempfile.TemporaryDirectory() as folder:
+                self.root, self.fixture = Path(folder), Path(folder) / 'fixture.json'
+                fixture = self.build_adversarial_fixture()
+                self.install_automatic_suffix(fixture)
+                self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record.update(live_input_revisions=revisions))
+                self.check_blocked(fixture)
+
+    def test_automatic_suffix_requires_exact_strict_source_clock(self):
+        for field in ('marker', 'manifest'):
+            for value in (0, 2, True, '1'):
+                with self.subTest(field=field, value=value), tempfile.TemporaryDirectory() as folder:
+                    self.root, self.fixture = Path(folder), Path(folder) / 'fixture.json'
+                    fixture = self.build_adversarial_fixture()
+                    self.install_automatic_suffix(fixture)
+                    def change(record):
+                        if field == 'marker':
+                            record['live_input_revisions'][0]['suffix_source_start'] = value
+                        else:
+                            record['sync_input_source_start'] = value
+                    self.mutate_artifact(fixture, 'dolphin', 'manifest', change)
+                    self.check_blocked(fixture)
+
+    def test_automatic_suffix_requires_actual_copy_and_declared_hash(self):
+        for mode in ('missing', 'stale', 'undeclared', 'invalid-hash'):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as folder:
+                self.root, self.fixture = Path(folder), Path(folder) / 'fixture.json'
+                fixture = self.build_adversarial_fixture()
+                path = self.install_automatic_suffix(fixture)
+                if mode == 'missing':
+                    path.unlink()
+                elif mode == 'stale':
+                    path.write_text('SYNTHETIC stale copy')
+                elif mode == 'undeclared':
+                    self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record.pop('sync_input_script_sha256'))
+                else:
+                    self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record.update(sync_input_script_sha256='not-a-hash'))
+                self.check_blocked(fixture)
+
+    def test_suffix_metadata_requires_marker_and_scripted_producer(self):
+        fixture = self.build_adversarial_fixture()
+        self.install_automatic_suffix(fixture)
+        self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record.update(live_input_revisions=[]))
+        self.assertIn('missing its exact revision marker', self.check_blocked(fixture)['errors'][0])
+        self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record.update(
+            live_input_revisions=[dict(suffix_source_start=1)],
+            input_method='read-only original KPADReadEx and verified WPADProbe-equivalent snapshot'))
+        self.assertIn('live-edited', self.check_blocked(fixture)['errors'][0])
+
+    def test_automatic_suffix_still_compares_actual_input_records(self):
+        fixture = self.build_adversarial_fixture()
+        self.install_automatic_suffix(fixture)
+        path = Path(fixture['dolphin']['input']['path'])
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        rows[4]['samples'][0]['hold'] = 8
+        path.write_text(''.join(json.dumps(row) + '\n' for row in rows))
+        fixture['dolphin']['input'] = self.spec(path)
+        self.mutate_artifact(fixture, 'dolphin', 'manifest', lambda record: record['input_export'].update(
+            sha256=td.sha256(path), bytes=path.stat().st_size))
+        self.assertIn('actual post-anchor input reads differ', self.check_blocked(fixture)['errors'][0])
+
+
 class AdmissionContractTests(unittest.TestCase):
     def setUp(self):
         temp = tempfile.TemporaryDirectory()

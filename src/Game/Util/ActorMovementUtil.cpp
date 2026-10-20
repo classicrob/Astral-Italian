@@ -2,7 +2,7 @@
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
-#include "Game/Animation/Xanimecore.hpp"
+#include "Game/Animation/XanimeCore.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/ActorPoseTQ.hpp"

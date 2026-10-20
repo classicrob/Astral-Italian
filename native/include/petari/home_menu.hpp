@@ -174,6 +174,7 @@ struct ModsEntry {
     char label[48] = {};
     bool on = false;
     int needs = -1;  // index of a mod this one needs: on without it, the line says so
+    bool available = true;
 };
 
 // One disc-file mod of the Mod folder page: its label (title, file count) and state.
@@ -262,6 +263,7 @@ struct ViewItem {
     const char* label = "";
     Rect rect;
     bool focused = false;
+    bool enabled = true;
 };
 
 // What the overlay draws.

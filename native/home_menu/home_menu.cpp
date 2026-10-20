@@ -283,6 +283,10 @@ void Menu::setMods(const ModsEntry* entries, int count) {
 // "Cappy: On", or "Cappy: On (needs Odyssey movement)" while a mod it needs is off.
 void Menu::refreshModLabels() {
     for (int i = 0; i < mModCount; i++) {
+        if (!mMods[i].available) {
+            std::snprintf(mModLabels[i], sizeof(mModLabels[i]), "%s (not yet ported)", mMods[i].label);
+            continue;
+        }
         const int needs = mMods[i].needs;
         const bool missing = mMods[i].on && needs >= 0 && needs < mModCount && !mMods[needs].on;
         std::snprintf(mModLabels[i], sizeof(mModLabels[i]), "%s: %s%s%s%s", mMods[i].label, mMods[i].on ? "On" : "Off",
@@ -641,6 +645,7 @@ View Menu::view() const {
         view.message = "Off by default. Saved in mods.txt; change their keys on the Controls page.";
         for (int i = 0; i < mModCount; i++) {
             setItem(i, mModLabels[i]);  // audit-ok: i < mModCount <= kMaxMods (setMods clamps)
+            view.items[i].enabled = mMods[i].available;
         }
         setItem(mModCount, "Odyssey camera...");
         setItem(mModCount + 1, "Level Select");
@@ -986,6 +991,10 @@ void Menu::activate(int index) {
             mFocus = 0;
             mRepeatDir = 0;
         } else if (index >= 0 && index < mModCount) {
+            if (!mMods[index].available) {
+                play(Sound::Cancel);
+                return;
+            }
             play(Sound::Select);
             mMods[index].on = !mMods[index].on;
             mModToggles |= 1u << index;

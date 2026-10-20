@@ -42,6 +42,19 @@ void go(HM::Menu& menu) {
 }  // namespace
 
 int main() {
+    auto unavailable = openMenu();
+    HM::ModsEntry pending;
+    std::strcpy(pending.label, "Cappy");
+    pending.on = true;
+    pending.available = false;
+    unavailable.setMods(&pending, 1);
+    press(unavailable, HM::Button::Down); press(unavailable, HM::Button::Down); press(unavailable, HM::Button::A);
+    check(!unavailable.view().items[0].enabled &&
+          std::strcmp(unavailable.view().items[0].label, "Cappy (not yet ported)") == 0,
+          "unported mod is greyed out without an On/Off promise");
+    press(unavailable, HM::Button::A);
+    check(unavailable.takeModToggles() == 0, "unported mod cannot emit a toggle");
+
     auto empty = openLevels();
     check(std::strstr(empty.view().items[0].label, "No SMG2 catalog") != nullptr, "empty catalog is explicit");
     press(empty, HM::Button::Left); press(empty, HM::Button::Right);

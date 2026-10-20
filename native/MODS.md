@@ -94,6 +94,8 @@ Known gaps in this version:
 
 ## Cappy
 
+**SMG2 build 5: not yet ported.** The entry is disabled and labelled "not yet ported". Saved settings and `PETARI_MODS` cannot activate it in this build. The design below describes the SMG1 implementation being adapted for SMG2; it is not an SMG2 feature claim.
+
 Mario throws his cap like in Super Mario Odyssey, and can bounce off it. Turn it
 on in F1 → Mods (`Cappy=on` in `mods.txt`, or `PETARI_MODS=OdysseyMovement,Cappy`
 for one run). It needs Odyssey movement: with that off, Cappy does nothing and

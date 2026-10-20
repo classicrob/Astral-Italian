@@ -47,10 +47,17 @@ endif()
 # bridge reads the SDK's HBM and KPAD structures.
 # progress.cpp: the personal progress record (petari/progress.hpp), shown on the My Progress page.
 add_library(petari_home_menu STATIC home_menu.cpp hbm_bridge.cpp launch_stage.cpp galaxy_font.cpp ${PETARI_REPO_ROOT}/native/progress/progress.cpp)
+if(NOT _petari_home_menu_standalone)
+    target_sources(petari_home_menu PRIVATE ${PETARI_REPO_ROOT}/native/app/launch_stage.cpp
+        ${PETARI_REPO_ROOT}/native/app/launch_stage_messages.cpp)
+    target_link_libraries(petari_home_menu PUBLIC petari_resource_formats)
+endif()
 target_include_directories(petari_home_menu PUBLIC include ${PETARI_REPO_ROOT}/native/include)
+target_include_directories(petari_home_menu PUBLIC ${PETARI_REPO_ROOT}/native/app)
 target_link_libraries(petari_home_menu PUBLIC petari_native_config)
 target_compile_features(petari_home_menu PUBLIC cxx_std_17)
-# launch_stage.cpp lists the mod galaxy registry's galaxies (native/platform/dvd/mod_galaxy.cpp).
+# The remaining Home menu code uses the folder-mod registry; the launch catalog
+# itself comes from SMG2 ScenarioData/world order and English message resources.
 target_include_directories(petari_home_menu PUBLIC ${PETARI_REPO_ROOT}/native/platform/include)
 if(TARGET petari_platform_dvd)
     target_link_libraries(petari_home_menu PUBLIC petari_platform_dvd)

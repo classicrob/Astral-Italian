@@ -20,6 +20,7 @@ extern "C" bool aurora_imgui_update_texture(unsigned long long, unsigned, unsign
 #include <SDL3/SDL_events.h>
 
 #include <cctype>
+#include <charconv>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -63,6 +64,7 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 #include "display_link.hpp"
 #include "latency_report.hpp"
 #include <petari/launch_stage.hpp>
+#include "launch_stage.hpp"
 #include <petari/player_launch.hpp>
 #include <petari/host_allocation.hpp>
 
@@ -97,17 +99,14 @@ void logMessage(AuroraLogLevel level, const char* module, const char* message, u
 }
 
 void usage() {
-    std::fputs("Usage: petari [--disc DIR] [--user DIR] [--stage GALAXY [--scenario N]] [--test-fixture observatory|stage]\n"
+    std::fputs("Usage: petari [--disc DIR] [--user DIR] [--stage GALAXY [--scenario N]]\n"
                "  --disc DIR  extracted disc (containing files/); default: $PETARI_GAME_DIR,\n"
                "              else build/game-data/SB4E01 under the working directory\n"
                "  --user DIR  saves, settings, controls and crash reports;\n"
                "              default: ~/Library/Application Support/Petari\n"
-               "  --stage GALAXY [--scenario N]  after you load a file (past the tutorial), go straight to\n"
-               "              this galaxy and mission (default 1) instead of the observatory; once per session.\n"
-               "              GALAXY: an alias such as good-egg, or an internal name. --stage list prints them\n"
-               "  --test-fixture observatory  post-tutorial test progression; requires a marked isolated --user\n"
-               "  --test-fixture stage  synthetic entry to $PETARI_STAGE scenario $PETARI_SCENARIO after the file\n"
-               "              loads (observatory progression otherwise); requires --user marked \"stage\"\n"
+               "  --stage GALAXY [--scenario N]  one normal file-load stage request, scenario default 1.\n"
+               "              GALAXY is an SMG2 internal name or English-name alias; actual ScenarioNo membership is checked.\n"
+               "              --stage list prints the SMG2 catalog after the game's metadata loads.\n"
                "  --make-unlocked-save all-missions|complete-luigi|grand-finale  unlock file 1 of an isolated\n"
                "              --user holding .petari-make-unlocked-save, save, reload and verify it, then exit\n"
                "              (native/SAVES.md; use native/tools/make_unlocked_save.py)\n"
@@ -116,50 +115,28 @@ void usage() {
                stderr);
 }
 
-// --test-fixture stage: PETARI_STAGE (a stage directory name) and PETARI_SCENARIO
-// (1..8). Existence of the stage on the disc is checked once the disc is known.
-bool stageFixtureFromEnvironment() {
-    const char* stage = std::getenv("PETARI_STAGE");
-    const char* scenario = std::getenv("PETARI_SCENARIO");
-    if (stage == nullptr || stage[0] == '\0' || scenario == nullptr || scenario[0] == '\0') {
-        std::fputs("petari: --test-fixture stage requires PETARI_STAGE and PETARI_SCENARIO\n", stderr);
-        return false;
-    }
-    for (const char* c = stage; *c != '\0'; ++c) {
-        if (!std::isalnum(static_cast<unsigned char>(*c))) {
-            std::fprintf(stderr, "petari: PETARI_STAGE \"%s\" is not a stage name\n", stage);
-            return false;
-        }
-    }
-    char* end = nullptr;
-    const long number = std::strtol(scenario, &end, 10);
-    if (end == nullptr || *end != '\0' || number < 1 || number > 8) {
-        std::fprintf(stderr, "petari: PETARI_SCENARIO \"%s\" is not a scenario number (1..8)\n", scenario);
-        return false;
-    }
-    PetariNative::TestFixture::stage = stage;
-    PetariNative::TestFixture::stageScenario = static_cast<int>(number);
-    return true;
-}
-
 bool resolvePaths(int argc, char** argv, App::Paths* paths) {
     bool fixture = false;
-    bool stageFixture = false;
     std::string unlockedSave;
     std::string launchStage;
+    bool launchStageGiven = false;
     int launchScenario = 1;
     bool launchScenarioGiven = false;
     for (int i = 1; i < argc; i++) {
         if (std::strcmp(argv[i], "--stage") == 0 && i + 1 < argc) {
+            if (launchStageGiven) { std::fputs("petari: duplicate --stage\n", stderr); return false; }
+            launchStageGiven = true;
             launchStage = argv[++i];
+            if (launchStage.empty()) { std::fputs("petari: --stage requires a name or list\n", stderr); return false; }
         } else if (std::strcmp(argv[i], "--scenario") == 0 && i + 1 < argc) {
-            char* end = nullptr;
-            const long value = std::strtol(argv[++i], &end, 10);
-            if (end == argv[i] || *end != '\0' || value < 1 || value > 99) {
+            const char* text = argv[++i];
+            int value = 0;
+            const auto parsed = std::from_chars(text, text + std::strlen(text), value);
+            if (launchScenarioGiven || parsed.ec != std::errc() || parsed.ptr != text + std::strlen(text) || value < 1) {
                 std::fprintf(stderr, "petari: --scenario expects a mission number, got %s\n", argv[i]);
                 return false;
             }
-            launchScenario = static_cast<int>(value);
+            launchScenario = value;
             launchScenarioGiven = true;
         } else if (std::strcmp(argv[i], "--disc") == 0 && i + 1 < argc) {
             paths->disc = argv[++i];
@@ -172,7 +149,7 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         } else if (std::strcmp(argv[i], "--test-fixture") == 0 && i + 1 < argc &&
                    std::strcmp(argv[i + 1], "stage") == 0) {
             ++i;
-            fixture = stageFixture = true;
+            fixture = true;
         } else if (std::strcmp(argv[i], "--make-unlocked-save") == 0 && i + 1 < argc &&
                    (std::strcmp(argv[i + 1], "all-missions") == 0 || std::strcmp(argv[i + 1], "complete-luigi") == 0 ||
                     std::strcmp(argv[i + 1], "grand-finale") == 0 ||
@@ -182,8 +159,12 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
             return false;
         }
     }
+    if (fixture) {
+        std::fputs("petari: legacy SMG1 --test-fixture modes are unavailable in SMG2; use --stage/--scenario for a normal stage request\n", stderr);
+        return false;
+    }
     // A restart into a new galaxy (the level editor's New Galaxy): read once, then cleared so a later
-    // restart doesn't repeat it. Test fixtures enter through PETARI_STAGE instead (set with it).
+    // restart doesn't repeat it.
     if (const char* open = std::getenv("PETARI_OPEN_STAGE"); open != nullptr && open[0] != '\0' && launchStage.empty()) {
         const char* edit = std::getenv("PETARI_OPEN_EDIT");
         const char* title = std::getenv("PETARI_OPEN_TITLE");
@@ -206,9 +187,13 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         std::fputs("petari: --scenario needs --stage\n", stderr);
         return false;
     }
+    if (launchStage == "list" && launchScenarioGiven) {
+        std::fputs("petari: --stage list does not accept --scenario\n", stderr);
+        return false;
+    }
     if (!launchStage.empty()) {
         if (fixture || !unlockedSave.empty()) {
-            std::fputs("petari: --stage is for normal play; test fixtures use PETARI_STAGE\n", stderr);
+            std::fputs("petari: --stage cannot be combined with save mutation or legacy fixtures\n", stderr);
             return false;
         }
     }
@@ -228,56 +213,16 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         std::fprintf(stderr, "PETARI UNLOCKED SAVE: requested %s for file %d in %s\n", unlockedSave.c_str(),
                      PetariNative::UnlockedSave::slot, paths->user.string().c_str());
     }
-    if (fixture) {
-        std::ifstream marker(paths->user / ".petari-test-fixture");
-        std::string kind;
-        std::getline(marker, kind);
-        const char* home = std::getenv("HOME");
-        const bool normalUser = home && !paths->user.empty() &&
-            std::filesystem::weakly_canonical(paths->user) ==
-            std::filesystem::weakly_canonical(std::filesystem::path(home) / "Library/Application Support/Petari");
-        const char* wanted = stageFixture ? "stage" : "observatory";
-        if (paths->user.empty() || normalUser || kind != wanted) {
-            std::fprintf(stderr, "petari: fixture requires explicit isolated --user with .petari-test-fixture containing %s\n", wanted);
-            return false;
-        }
-        if (stageFixture && !stageFixtureFromEnvironment()) {
-            return false;
-        }
-        PetariNative::TestFixture::observatory = true;
-        std::fputs("PETARI FIXTURE: post-tutorial observatory progression; not earned progression\n", stderr);
-    }
     // The stage smoke script needs the stage fixture's entry.
     const char* smoke = std::getenv("PETARI_SMOKE");
-    if (smoke != nullptr && std::strcmp(smoke, "stage") == 0 && !stageFixture) {
-        std::fputs("petari: PETARI_SMOKE=stage requires --test-fixture stage\n", stderr);
+    if (smoke != nullptr && std::strcmp(smoke, "stage") == 0) {
+        std::fputs("petari: the legacy stage smoke fixture is unavailable in SMG2; use --stage/--scenario\n", stderr);
         return false;
     }
     if (paths->disc.empty()) {
         const char* env = std::getenv("PETARI_GAME_DIR");
         paths->disc = env != nullptr && env[0] != '\0' ? std::filesystem::path(env)
                                                       : std::filesystem::current_path() / "build/game-data/SB4E01";
-    }
-    if (stageFixture) {
-        const std::string& stage = PetariNative::TestFixture::stage;
-        const std::filesystem::path scenario = std::filesystem::path("StageData") / stage / (stage + "Scenario.arc");
-        bool found = std::filesystem::is_regular_file(paths->disc / "files" / scenario);
-        // A new galaxy from a folder mod (<user>/mods/<Mod>/files/...); the overlay decides later
-        // whether that mod is enabled.
-        std::error_code ec;
-        if (!found && !paths->user.empty() && std::filesystem::is_directory(paths->user / "mods", ec)) {
-            for (const auto& mod : std::filesystem::directory_iterator(paths->user / "mods", ec)) {
-                found = found || std::filesystem::is_regular_file(mod.path() / "files" / scenario, ec);
-            }
-        }
-        if (!found) {
-            std::fprintf(stderr, "petari: PETARI_STAGE %s has no StageData/%s/%sScenario.arc on the disc or in a mod folder\n",
-                         stage.c_str(), stage.c_str(), stage.c_str());
-            return false;
-        }
-        std::fprintf(stderr, "PETARI FIXTURE: synthetic stage entry requested: %s scenario %d (test entry through the "
-                     "after-loading galaxy move; no progression claims)\n", stage.c_str(),
-                     PetariNative::TestFixture::stageScenario);
     }
     if (paths->user.empty()) {
         const char* home = std::getenv("HOME");
@@ -287,19 +232,20 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         }
         paths->user = std::filesystem::path(home) / "Library/Application Support/Petari";
     }
-    if (!launchStage.empty()) {
-        // Mod galaxies (galaxy.json of the user's enabled folder mods) are destinations too.
-        std::vector<std::string> galaxyLog;
-        PetariNative::Platform::ModGalaxy::load(PetariNative::Platform::ModFolder::enabledRoots(paths->user), &galaxyLog);
-        for (const std::string& line : galaxyLog) std::fprintf(stderr, "[mods] %s\n", line.c_str());
-        std::string stage, error;
-        if (!App::LaunchStage::resolve(launchStage, launchScenario, &stage, &error)) {
+    std::string catalogError;
+    if (!App::LaunchStage::configureCatalog(paths->disc, &catalogError)) {
+        std::fprintf(stderr, "petari: SMG2 level select unavailable: %s\n", catalogError.c_str());
+        if (!launchStage.empty() || !PetariNative::UnlockedSave::variant.empty()) return false;
+    }
+    if (launchStage == "list") {
+        App::LaunchStage::requestCatalogListing();
+    } else if (!launchStage.empty()) {
+        std::string error;
+        if (!App::LaunchStage::configureStartupRequest(launchStage, launchScenario, &error)) {
             std::fprintf(stderr, "petari: --stage: %s\n", error.c_str());
             return false;
         }
-        PetariNative::PlayerLaunch::stage = stage;
-        PetariNative::PlayerLaunch::scenario = launchScenario;
-        std::fprintf(stderr, "PETARI LAUNCH: after a file loads, going to %s mission %d\n", stage.c_str(), launchScenario);
+        std::fprintf(stderr, "PETARI LAUNCH: queued SMG2 request %s scenario %d; awaiting real catalog/file load\n", launchStage.c_str(), launchScenario);
     }
     return true;
 }
@@ -819,21 +765,6 @@ int main(int argc, char** argv) {
     // (building it on a first game allocation would be a startup hitch).
     PetariNative::prepareAllocationSymbols();
     App::Paths paths;
-    for (int i = 1; i + 1 < argc; ++i) {
-        if (std::strcmp(argv[i], "--stage") == 0 && std::strcmp(argv[i + 1], "list") == 0) {
-            // The enabled mods' galaxies are listed too (for --user, else the normal user folder).
-            std::filesystem::path user;
-            for (int k = 1; k + 1 < argc; ++k) {
-                if (std::strcmp(argv[k], "--user") == 0) user = argv[k + 1];
-            }
-            const char* home = std::getenv("HOME");
-            if (user.empty() && home != nullptr) user = std::filesystem::path(home) / "Library/Application Support/Petari";
-            std::vector<std::string> galaxyLog;
-            if (!user.empty()) PetariNative::Platform::ModGalaxy::load(PetariNative::Platform::ModFolder::enabledRoots(user), &galaxyLog);
-            App::LaunchStage::printList(stdout);
-            return 0;
-        }
-    }
     if (!resolvePaths(argc, argv, &paths)) {
         usage();
         return 2;

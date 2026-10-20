@@ -1532,10 +1532,10 @@ void testProgressPage() {
     PR::resetForTesting();
     std::string error;
     check(PR::parse("{\"version\": 1, \"missions\": {"
-                    "\"EggStarGalaxy:1\": {\"stage\": \"EggStarGalaxy\", \"mission\": 1, \"first_clear\": \"2026-10-01T10:00:00Z\", "
+                    "\"MenuSyntheticGalaxy:1\": {\"stage\": \"MenuSyntheticGalaxy\", \"mission\": 1, \"first_clear\": \"2026-10-01T10:00:00Z\", "
                     "\"last_clear\": \"2026-10-03T12:00:00Z\", \"clears\": 3, \"best_time_s\": 123.5, \"fewest_deaths\": 0, "
                     "\"best_coins\": 42, \"best_star_bits\": 120},"
-                    "\"EggStarGalaxy:5\": {\"stage\": \"EggStarGalaxy\", \"mission\": 5, \"first_clear\": \"2026-10-02T09:00:00Z\", "
+                    "\"MenuSyntheticGalaxy:5\": {\"stage\": \"MenuSyntheticGalaxy\", \"mission\": 5, \"first_clear\": \"2026-10-02T09:00:00Z\", "
                     "\"clears\": 1, \"best_time_s\": 59.0, \"fewest_deaths\": 2, \"best_coins\": 0, \"best_star_bits\": 0}}}", &error),
           "test record parses");
     HM::Menu menu = newMenu();
@@ -1548,24 +1548,24 @@ void testProgressPage() {
     check(std::strcmp(view.title, "My Progress") == 0 && view.itemCount == 4 && std::strcmp(view.items[1].label, "Reset progress...") == 0 &&
               std::strcmp(view.items[2].label, "Badges: On") == 0 && std::strcmp(view.items[3].label, "Back") == 0,
           "title, selector, Reset, Badges and Back");
-    check(std::strstr(view.items[0].label, "Bowser Jr.'s Robot Reactor") != nullptr && view.lineCount == 2 &&
+    check(std::strstr(view.items[0].label, "First Fixture Galaxy") != nullptr && view.lineCount == 2 &&
               std::strstr(view.lines[1].inputs, "Not cleared yet") != nullptr,
           "starts on the first galaxy, a one-mission galaxy has one row under the header");
     menu.update(press(Right));
     menu.update(press(Right));
     view = menu.view();
-    check(std::strstr(view.items[0].label, "Good Egg Galaxy") != nullptr && view.lineCount == 7, "Right moves to the next galaxies; Good Egg has six missions");
+    check(std::strstr(view.items[0].label, "Menu Fixture Galaxy") != nullptr && view.lineCount == 7, "Right moves to the next galaxies; fixture has six actual scenario IDs");
     check(std::strstr(view.message, "2 of 6 cleared here, 2 in all") != nullptr && std::strstr(view.message, "save is not changed") != nullptr,
           "the message counts clears here and in all");
     check(std::strcmp(view.lines[1].action, "Mission 1") == 0 && std::strstr(view.lines[1].inputs, "Cleared 2:03.50  0  42  120") != nullptr &&
               std::strstr(view.lines[1].pad, "x3  2026-10-01") != nullptr,
           "a cleared mission shows best time, deaths, coins, Star Bits, clears and first clear date");
     check(std::strcmp(view.lines[4].action, "Mission 4 (comet)") == 0 && std::strstr(view.lines[4].inputs, "Not cleared yet") != nullptr &&
-              std::strcmp(view.lines[6].action, "Mission 6 (hidden star)") == 0 &&
+              std::strcmp(view.lines[6].action, "Mission 12 (hidden star)") == 0 &&
               std::strstr(view.lines[5].inputs, "Cleared 0:59.00  2  0  0") != nullptr,
           "comet and hidden missions are labelled; mission 5 is cleared");
     menu.update(press(Left));
-    check(std::strstr(menu.view().items[0].label, "Honeyhive") == nullptr && std::strstr(menu.view().items[0].label, "Flipswitch Galaxy") != nullptr,
+    check(std::strstr(menu.view().items[0].label, "Second Fixture Galaxy") != nullptr,
           "Left moves back");
     for (int i = 0; i < 40; ++i) menu.update(press(Left));
     check(std::strstr(menu.view().items[0].label, "<  ") != nullptr, "the selector wraps around");
@@ -1621,33 +1621,33 @@ void testLevelSelect() {
     HM::View view = menu.view();
     check(std::strcmp(view.title, "Level Select") == 0 && view.itemCount == 4 &&
               std::strcmp(view.items[0].label, galaxies[0].name) == 0 &&
-              std::strcmp(view.items[1].label, "Mission 1 of 1") == 0 && std::strcmp(view.items[2].label, "Go") == 0 &&
-              std::strcmp(view.items[3].label, "Back") == 0 && std::strstr(view.message, "Terrace") != nullptr,
+              std::strcmp(view.items[1].label, "Mission 1 (1 of 1)") == 0 && std::strcmp(view.items[2].label, "Go") == 0 &&
+              std::strcmp(view.items[3].label, "Back") == 0 && std::strstr(view.message, "World 1") != nullptr,
           "Level Select shows galaxy, mission, Go and Back");
     menu.update(press(HM::Button::Left));
     check(menu.levelGalaxy() == count - 1, "editor off wraps to the last real galaxy");
     menu.update(press(HM::Button::Right));
     // Right steps through galaxies; Left wraps backward.
-    int goodEgg = -1;
+    int fixture = -1;
     for (int i = 0; i < count; i++) {
-        if (std::strcmp(galaxies[i].stage, "EggStarGalaxy") == 0) goodEgg = i;
+        if (std::strcmp(galaxies[i].stage, "MenuSyntheticGalaxy") == 0) fixture = i;
     }
-    for (int i = 0; i < goodEgg; i++) {
+    for (int i = 0; i < fixture; i++) {
         menu.update(press(HM::Button::Right));
     }
-    check(menu.levelGalaxy() == goodEgg && std::strcmp(menu.view().items[0].label, "Good Egg Galaxy") == 0, "Right steps galaxies");
+    check(menu.levelGalaxy() == fixture && std::strcmp(menu.view().items[0].label, "Menu Fixture Galaxy") == 0, "Right steps galaxies");
     menu.update(press(HM::Button::Left));
     menu.update(press(HM::Button::Right));
-    check(menu.levelGalaxy() == goodEgg, "Left steps back");
+    check(menu.levelGalaxy() == fixture, "Left steps back");
     menu.update(press(Down));
     for (int i = 0; i < 3; i++) {
         menu.update(press(HM::Button::Right));
     }
-    check(menu.levelMission() == 4 && std::strcmp(menu.view().items[1].label, "Mission 4 of 6 (comet)") == 0,
+    check(menu.levelMission() == 4 && std::strcmp(menu.view().items[1].label, "Mission 4 (4 of 6) (comet)") == 0,
           "mission steps, comet marked");
     menu.update(press(A));
     menu.update(press(A));
-    check(std::strcmp(menu.view().items[1].label, "Mission 6 of 6 (hidden star)") == 0, "A also steps; hidden star marked");
+    check(std::strcmp(menu.view().items[1].label, "Mission 12 (6 of 6) (hidden star)") == 0, "A also steps; hidden star marked");
     menu.update(press(HM::Button::Right));
     check(menu.levelMission() == 1, "missions wrap");
     menu.update(press(HM::Button::Left));
@@ -1661,7 +1661,7 @@ void testLevelSelect() {
     check(menu.phase() == HM::Phase::Closing && played(HM::Sound::Select), "Go closes the menu");
     check(!menu.takeLevelRequest(&stage, &mission), "request waits for the menu to finish closing");
     check(framesUntilSelection(menu) == 10 && menu.selection() == HM::Selection::Resume, "Go resumes the game");
-    check(menu.takeLevelRequest(&stage, &mission) && std::strcmp(stage, "EggStarGalaxy") == 0 && mission == 6,
+    check(menu.takeLevelRequest(&stage, &mission) && std::strcmp(stage, "MenuSyntheticGalaxy") == 0 && mission == 12,
           "the warp is reported once the menu is closed");
     check(!menu.takeLevelRequest(&stage, &mission), "reported once");
     // Back and Escape return to the Mods page without a request.
@@ -1757,6 +1757,17 @@ void testCameraPage() {
 }
 
 int main() {
+    // Synthetic catalog only: sparse IDs exercise ordinal-to-ScenarioNo mapping.
+    namespace LS = PetariNative::App::LaunchStage;
+    const LS::Scenario normal{1, 1, "Normal", "", ""};
+    std::string error;
+    check(LS::installCatalog({
+        {"FirstSyntheticGalaxy", "First Fixture Galaxy", 1, {normal}, "synthetic menu fixture"},
+        {"SecondSyntheticGalaxy", "Second Fixture Galaxy", 1, {normal}, "synthetic menu fixture"},
+        {"MenuSyntheticGalaxy", "Menu Fixture Galaxy", 1,
+         {{1, 1, "Normal", "", ""}, {2, 2, "Normal", "", ""}, {3, 4, "Normal", "", ""},
+          {4, 8, "Normal", "SyntheticComet", ""}, {5, 16, "Green", "", ""}, {12, 32, "Hidden", "", ""}},
+         "synthetic menu fixture"}}, &error), "synthetic catalog installs: " + error);
     testLifecycle();
     testSelections();
     testCancellation();

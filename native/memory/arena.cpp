@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <mutex>
+#include <limits>
 #include <sys/mman.h>
 #include <execinfo.h>
 #include <unistd.h>
@@ -30,17 +31,28 @@ std::mutex arenaMutex;
     backtrace_symbols_fd(frames, count, STDERR_FILENO);
     std::abort();
 }
-Arena allocateArena(std::size_t size, std::size_t reserved) {
-    void* memory = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+void allocateArenas() {
+    // ResTIMG and other game records store signed 32-bit relative addresses
+    // across MEM1/MEM2. Independent mmaps leave that distance up to ASLR.
+    constexpr std::size_t reservationSize = mem2Physical + mem2Size;
+    static_assert(mem1Size <= mem2Physical);
+    static_assert(reservationSize - 1 <= std::numeric_limits<std::int32_t>::max());
+    void* memory = mmap(nullptr, reservationSize, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
     if (memory == MAP_FAILED) fail("Could not reserve game memory");
     const auto base = reinterpret_cast<std::uintptr_t>(memory);
-    return {base, base + reserved, base + size, size};
+    if (mprotect(memory, mem1Size, PROT_READ | PROT_WRITE) != 0 ||
+        mprotect(reinterpret_cast<void*>(base + mem2Physical), mem2Size, PROT_READ | PROT_WRITE) != 0) {
+        fail("Could not enable game memory");
+    }
+    // The gap between the two physical regions stays inaccessible and is not
+    // accepted by either arena's address/region checks.
+    mem1 = {base, base + bootReservation, base + mem1Size, mem1Size};
+    mem2 = {base + mem2Physical, base + mem2Physical, base + reservationSize, mem2Size};
 }
 void init() {
     PetariNative::HostAllocationScope hostAllocations;
     std::call_once(initialized, [] {
-        mem1 = allocateArena(mem1Size, bootReservation);
-        mem2 = allocateArena(mem2Size, 0);
+        allocateArenas();
         __MEM2End = mem2.base + mem2.size;
         auto* boot = reinterpret_cast<OSBootInfo*>(mem1.base);
         boot->memorySize = mem1Size;

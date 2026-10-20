@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
+#include <limits>
 
 static void check(bool value, const char* reason) {
     if (!value) { std::fprintf(stderr, "%s\n", reason); std::exit(1); }
@@ -22,6 +24,26 @@ int main() {
     check(OSGetPhysicalMem2Size() == 256 * 1024 * 1024, "MEM2 capacity");
     check(OSCachedToPhysical(mem2) == 0x10000000 && OSPhysicalToUncached(0x10000000) == mem2, "MEM2 address round trip");
     check(__MEM2End == reinterpret_cast<uintptr_t>(OSGetMEM2ArenaHi()), "Native MEM2 end");
+    const auto mem1Base = reinterpret_cast<std::uintptr_t>(OSPhysicalToCached(0));
+    const auto mem2Base = reinterpret_cast<std::uintptr_t>(OSPhysicalToCached(0x10000000));
+    check(mem2Base == mem1Base + 0x10000000, "MEM1/MEM2 share the Wii physical-layout reservation");
+    check(reinterpret_cast<std::uintptr_t>(high) == mem1Base + 128 * 1024 * 1024,
+          "MEM1 size and boot reservation remain unchanged");
+    const auto mem2Last = reinterpret_cast<std::uintptr_t>(OSGetMEM2ArenaHi()) - 1;
+    const auto maxCrossArenaDistance = mem2Last - mem1Base;
+    check(maxCrossArenaDistance == 512 * 1024 * 1024 - 1 &&
+          maxCrossArenaDistance <= static_cast<std::uintptr_t>(std::numeric_limits<std::int32_t>::max()),
+          "maximum cross-arena relative offset fits signed32 in either direction");
+    const auto gap = reinterpret_cast<const void*>(mem1Base + 128 * 1024 * 1024);
+    check(!OSIsMEM1Region(gap) && !OSIsMEM2Region(gap), "physical gap belongs to neither arena");
+    auto* mem1LastByte = reinterpret_cast<u8*>(reinterpret_cast<std::uintptr_t>(high) - 1);
+    auto* mem2LastByte = reinterpret_cast<u8*>(mem2Last);
+    *mem1LastByte = 0x5a;
+    *mem2LastByte = 0xa5;
+    check(*mem1LastByte == 0x5a && *mem2LastByte == 0xa5, "both reserved arena ends are writable");
+    std::printf("Native arena layout MEM1=%p MEM2=%p max_cross_distance=%llu\n",
+                reinterpret_cast<void*>(mem1Base), reinterpret_cast<void*>(mem2Base),
+                static_cast<unsigned long long>(maxCrossArenaDistance));
     check(!OSIsMEM1Region(&low) && !OSIsMEM2Region(&low), "Host stack is not game memory");
     auto* first = static_cast<u8*>(OSAllocFromMEM1ArenaLo(33, 32));
     auto* second = static_cast<u8*>(OSAllocFromMEM1ArenaLo(16, 64));

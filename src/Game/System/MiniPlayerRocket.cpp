@@ -346,8 +346,8 @@ namespace NrvMiniPlayerRocket {
 // ---- MiniRoutePoint ----
 
 MiniRoutePoint::MiniRoutePoint() : LiveActor("中継点") {
-    mNo = -1;
-    mIsSmall = false;
+    mPointIndex = -1;
+    mNotReady = false;
     mIsTicoBuild = false;
 }
 
@@ -368,7 +368,7 @@ void MiniRoutePoint::init(const JMapInfoIter&) {
 }
 
 void MiniRoutePoint::makeActorAppeared() {
-    MR::setScale(this, mIsSmall ? 0.4f : 1.0f);
+    MR::setScale(this, mNotReady ? 0.4f : 1.0f);
     mScale.y = 1.0f;
     MR::setScale(mShadow, mScale);
     MR::setRotation(mShadow, mRotation);
@@ -393,7 +393,7 @@ bool MiniRoutePoint::tryOpen() {
         return false;
     }
 
-    WorldMapFunction::approachScale(this, 0.1f, mIsSmall ? 0.7f : 1.2f);
+    WorldMapFunction::approachScale(this, 0.1f, mNotReady ? 0.7f : 1.2f);
     mScale.y = 1.0f;
     return true;
 }
@@ -443,7 +443,7 @@ bool MiniRoutePoint::startCloseSound() {
 }
 
 void MiniRoutePoint::control() {
-    WorldMapFunction::returnScale(this, 0.05f, mIsSmall ? 0.4f : 1.0f);
+    WorldMapFunction::returnScale(this, 0.05f, mNotReady ? 0.4f : 1.0f);
     mScale.y = 1.0f;
     MR::setScale(mShadow, mScale);
     MR::setRotation(mShadow, mRotation);

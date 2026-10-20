@@ -205,7 +205,7 @@ void WorldMapPointMarks::setupMarks() {
             pMark->mPointIndex = i;
             pMark->makeActorDead();
             pMark->mNotReady = mWorld->isNodeNotReady(i);
-            pMark->mFlag11 = mWorld->isNodeFlag11(i);
+            pMark->mIsTicoBuild = mWorld->isNodeFlag11(i);
             index++;
         }
     }

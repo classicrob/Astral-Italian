@@ -22,8 +22,8 @@ public:
     bool startOpenSound();
     bool startCloseSound();
 
-    /* 0x90 */ s32 mNo;
+    /* 0x90 */ s32 mPointIndex;   // world-map node this mark stands on
     /* 0x94 */ LiveActor* mShadow;
-    /* 0x98 */ bool mIsSmall;
-    /* 0x99 */ bool mIsTicoBuild;
+    /* 0x98 */ bool mNotReady;    // node not ready yet: the mark is drawn small
+    /* 0x99 */ bool mIsTicoBuild;  // node's TicoBuild flag: "TicoBuild" brk instead of "Normal"
 };

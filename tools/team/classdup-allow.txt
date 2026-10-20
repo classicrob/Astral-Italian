@@ -1,6 +1,5 @@
 # Known duplicate top-level class/struct bodies (tools/team/classdup.py). One name per line, then `# owner: status`.
 # Remove a line when its duplicate is fixed. New duplicates fail the check (land.sh).
-MiniRoutePoint  # core: fixed on wt/core-worldmap-routepoint (f7a0926f), remove when landed
 WorldMapSequence  # core: fixed on wt/core-worldmap-sequence (579ee419), remove when landed
 CollisionObj  # core/enemies: fixed on wt/core-odr-collisionobj (00a92a22), remove when landed
 SwitchWatcherHolder  # core/enemies: fixed on wt/core-odr-switchwatcher (c5497c54), remove when landed

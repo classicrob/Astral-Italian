@@ -61,8 +61,9 @@ public:
         } catch (const std::exception& e) { fail(e.what()); }
     }
     void frame() {
-        PetariNative::HostAllocationScope host;
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
+        L::testReturnToShipFrame();
+        PetariNative::HostAllocationScope host;
         if (mAwaitingFrameWait) throw H::ReplayError("game loop advanced without the headless frame wait hook");
         if (mStartupRequested && L::startupStatus()==L::StartupStatus::Failed)
             throw H::ReplayError("startup request failed: "+L::startupError());

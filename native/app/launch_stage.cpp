@@ -1,6 +1,11 @@
 #include "launch_stage.hpp"
 #include "launch_stage_messages.hpp"
 
+#include "Game/Scene/GameScene.hpp"
+#include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemSceneController.hpp"
+#include "Game/Util/DemoUtil.hpp"
+#include "Game/Util/SingletonHolder.hpp"
 #include "Game/System/GalaxyStatusAccessor.hpp"
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
@@ -10,6 +15,9 @@
 #include <petari/host_allocation.hpp>
 
 #include <cstdlib>
+#include <cerrno>
+#include <climits>
+#include <cstring>
 #include <limits>
 #include <set>
 #include <utility>
@@ -54,6 +62,63 @@ bool dispatch(const Request& request, int* placedScenario, std::string* error) {
     return true;
 }
 }  // namespace
+
+// Test-only driver, shared by GX and headless. This seam runs on the game
+// thread before its host-allocation scope; transition allocations keep normal
+// game routing. Nothing is forced except the canonical scene-change request.
+void testReturnToShipFrame() {
+    struct Settings {
+        unsigned long frames = 0;
+        int startIndex = 0;
+    };
+    static const Settings settings = [] {
+        Settings value;
+        const char* text = std::getenv("PETARI_TEST_RETURN_TO_SHIP");
+        if (!text || !*text) return value;
+        char* end = nullptr;
+        errno = 0;
+        if (*text < '0' || *text > '9') end = const_cast<char*>(text);
+        else value.frames = std::strtoul(text, &end, 10);
+        bool valid = !errno && value.frames > 0 && end != text;
+        if (valid && *end == ':') {
+            const char* index = end + 1;
+            errno = 0;
+            const long parsed = std::strtol(index, &end, 10);
+            valid = *index >= '0' && *index <= '9' && end != index && !errno && parsed <= INT_MAX;
+            if (valid) value.startIndex = static_cast<int>(parsed);
+        }
+        if (!valid || *end) {
+            std::fputs("[return-to-ship-test] invalid PETARI_TEST_RETURN_TO_SHIP; disabled\n", stderr);
+            value.frames = 0;
+        }
+        return value;
+    }();
+    static bool fired = false;
+    static unsigned long steadyFrames = 0;
+    if (!settings.frames || fired) return;
+    // Only the explicitly launched target counts, never FileSelect or the ship
+    // visited during boot. Placement can differ from the selected star number.
+    const Request* target = resolvedStartupRequest();
+    const auto* system = SingletonHolder<GameSystem>::get();
+    const auto* controller = system ? system->mSceneController : nullptr;
+    bool ready = startupStatus() == StartupStatus::Applied && target && controller &&
+        controller->isSceneInitializeState(SceneInitializeState_End) && controller->mScene &&
+        std::strcmp(controller->mCurrSceneControlInfo.mScene, "Game") == 0 &&
+        std::strcmp(controller->mCurrSceneControlInfo.mStage, target->stage.c_str()) == 0 &&
+        controller->getCurrentScenarioNo() == startupPlacedScenario() && !controller->isExistRequest();
+    if (ready) {
+        const auto* scene = static_cast<const GameScene*>(controller->mScene);
+        ready = scene->isExecAction() && scene->permitsStartPauseMenu() && !MR::isDemoActive();
+    }
+    if (!ready) { steadyFrames = 0; return; }
+    if (++steadyFrames != settings.frames) return;
+    fired = true;
+    // The game's first argument is a spawn/start index, despite older test
+    // recipes calling this optional field a scenario. -1 selects ship scenario2.
+    GameSequenceFunction::requestChangeStageMarioFaceShip(settings.startIndex, -1);
+    std::fprintf(stderr, "[return-to-ship-test] fired stage=%s scenario=%d steady_frames=%lu start_index=%d request=GameSequenceFunction::requestChangeStageMarioFaceShip(%d,-1)\n",
+        target->stage.c_str(), startupPlacedScenario(), steadyFrames, settings.startIndex, settings.startIndex);
+}
 
 bool configureCatalog(const std::filesystem::path& disc, std::string* error) {
     HostAllocationScope host;

@@ -4,7 +4,9 @@
 #include "gx/regs.hpp"
 #include "gfx/resources.hpp"
 #include "../gx/pipeline_postmatrix.hpp"
+#include "../gx/pipeline_texgen_count.hpp"
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <cstdlib>
@@ -37,6 +39,85 @@ ShaderConfig indirect_config() {
     stage.alphaPass.d = GX_CA_TEXA;
     stage.indTexMtxId = GX_ITM_0;
     return config;
+}
+
+void texgen_count_tests() {
+    // Exercise the real snapshot builder: count must come from live GX state,
+    // not a sentinel inferred from a possibly invalid enabled generator.
+    const auto saved = g_gxState;
+    g_gxState.vtxDesc[GX_VA_POS] = GX_DIRECT;
+    g_gxState.vtxFmts[0].attrs[GX_VA_POS].cnt = GX_POS_XYZ;
+    g_gxState.vtxFmts[0].attrs[GX_VA_POS].type = GX_F32;
+    g_gxState.vtxFmts[0].attrs[GX_VA_POS].frac = 0;
+    g_gxState.numTexGens = 0;
+    g_gxState.numTevStages = 2;
+    g_gxState.numIndStages = 1;
+    g_gxState.indStages[0] = {GX_TEXCOORD1, GX_TEXMAP1, GX_ITS_2, GX_ITS_4};
+    g_gxState.tevStages[0] = indirect_config().tevStages[0];
+    auto& first = g_gxState.tevStages[0];
+    first.colorPass = {GX_CC_TEXC, GX_CC_TEXA, GX_CC_TEXC, GX_CC_TEXA};
+    first.alphaPass = {GX_CA_TEXA, GX_CA_TEXA, GX_CA_TEXA, GX_CA_TEXA};
+    first.tevSwapTex = GX_TEV_SWAP1;
+    g_gxState.tevSwapTable[1] = {GX_CH_ALPHA, GX_CH_BLUE, GX_CH_RED, GX_CH_GREEN};
+    g_gxState.tevStages[1] = first;
+    // Disabled TEV orders also read black when numtexgens is zero in Dolphin.
+    g_gxState.tevStages[1].texMapId = GX_TEXMAP_NULL;
+    PipelineConfig pipeline{};
+    populate_pipeline_config(pipeline, GX_TRIANGLES, GX_VTXFMT0);
+    auto& config = pipeline.shaderConfig;
+    for (unsigned i = 0; i < 2; ++i) {
+        const auto& stage = config.tevStages[i];
+        expect(stage.colorPass.a == GX_CC_ZERO && stage.colorPass.b == GX_CC_ZERO &&
+               stage.colorPass.c == GX_CC_ZERO && stage.colorPass.d == GX_CC_ZERO,
+               "all color TEXC/TEXA operands equal swapped zero textemp in every stage");
+        expect(stage.alphaPass.a == GX_CA_ZERO && stage.alphaPass.b == GX_CA_ZERO &&
+               stage.alphaPass.c == GX_CA_ZERO && stage.alphaPass.d == GX_CA_ZERO,
+               "all alpha TEXA operands equal swapped zero textemp in every stage");
+    }
+    const auto info = build_shader_info(config);
+    expect(info.sampledTexCoords.none(), "zero texgens leave inactive sentinel generators unsampled");
+    expect(info.sampledIndTextures.test(1), "zero texgens preserve indirect texture sampling");
+    const auto source = build_shader_source(config, DstAlphaMode::None);
+    expect(source.find("var sampled0 =") == std::string::npos && source.find("var sampled1 =") == std::string::npos,
+           "zero texgens skip direct texture samples rather than sample coordinate zero");
+    expect(source.find("textureSampleBias(tex1, tex1_samp, vec2f(0.0)") != std::string::npos,
+           "indirect lookup retains pinned Dolphin zero-coordinate behavior");
+    expect(config.tcgs[0].src == GX_MAX_TEXGENSRC, "inactive sentinel remains intact");
+
+    g_gxState.numTexGens = 1;
+    g_gxState.numIndStages = 0;
+    g_gxState.numTevStages = 1;
+    g_gxState.tcgs[0].src = GX_TG_POS;
+    g_gxState.tevStages[0] = indirect_config().tevStages[0];
+    g_gxState.tevStages[0].indTexMtxId = GX_ITM_OFF;
+    g_gxState.tevStages[0].texCoordId = GX_TEXCOORD7;
+    populate_pipeline_config(pipeline, GX_TRIANGLES, GX_VTXFMT0);
+    expect(config.tevStages[0].texCoordId == GX_TEXCOORD0 && config.tevStages[0].texMapId == GX_TEXMAP0,
+           "positive texgen count maps ungenerated direct coordinate to zero without disabling texture");
+    expect(build_shader_info(config).sampledTexCoords.to_ulong() == 1,
+           "positive fallback analyzes only coordinate zero");
+    const auto positiveSource = build_shader_source(config, DstAlphaMode::None);
+    expect(positiveSource.find("var sampled0 =") != std::string::npos && positiveSource.find("tex7_uv") == std::string::npos,
+           "positive fallback emits direct sampling using generated coordinate zero");
+    g_gxState.numTexGens = 2;
+    g_gxState.tcgs[1].src = GX_TG_POS;
+    g_gxState.tevStages[0].texCoordId = GX_TEXCOORD1;
+    populate_pipeline_config(pipeline, GX_TRIANGLES, GX_VTXFMT0);
+    expect(config.tevStages[0] == g_gxState.tevStages[0], "valid direct stage stays byte-equivalent");
+    const auto validStage = g_gxState.tevStages[0];
+    g_gxState.tevStages[0].texCoordId = GX_TEXCOORD_NULL;
+    g_gxState.tevStages[0].texMapId = GX_TEXMAP_NULL;
+    populate_pipeline_config(pipeline, GX_TRIANGLES, GX_VTXFMT0);
+    expect(config.tevStages[0] == g_gxState.tevStages[0],
+           "positive count leaves a disabled NULL-coordinate stage byte-equivalent");
+    expect(build_shader_info(config).sampledTexCoords.none(),
+           "disabled NULL-coordinate stage does not mark coordinate zero sampled");
+    g_gxState.tevStages[0] = validStage;
+    g_gxState.tcgs[1].src = GX_MAX_TEXGENSRC;
+    populate_pipeline_config(pipeline, GX_TRIANGLES, GX_VTXFMT0);
+    expect(config.tcgs[1].src == GX_MAX_TEXGENSRC && config.tevStages[0].texCoordId == GX_TEXCOORD1,
+           "genuinely invalid enabled texgen is not repaired or hidden");
+    g_gxState = saved;
 }
 
 void edge_tests() {
@@ -164,10 +245,42 @@ void regression_tests() {
 
 int main(int argc, char** argv) {
     aurora::gfx::detail::resources().limits.minUniformBufferOffsetAlignment = 256;
+    if (argc == 3 && std::string(argv[1]) == "--audit-texgen-count") {
+        // Input: consecutive native-layout PipelineConfig records from a private
+        // RO SQLite snapshot. No assets or config bytes are printed.
+        std::ifstream input(argv[2], std::ios::binary);
+        if (!input) return 2;
+        PipelineConfig before{};
+        unsigned rows = 0;
+        while (input.read(reinterpret_cast<char*>(&before), sizeof(before))) {
+            if (before.version != GXPipelineConfigVersion) return 3;
+            // The cached snapshot lacks the live count: validate its contiguous
+            // enabled-slot representation before deriving the captured count.
+            unsigned count = 0;
+            bool inactive = false;
+            for (const auto& tcg : before.shaderConfig.tcgs) {
+                if (tcg.src == GX_MAX_TEXGENSRC) inactive = true;
+                else {
+                    if (inactive || unsigned(tcg.src) > GX_MAX_TEXGENSRC) return 4;
+                    ++count;
+                }
+            }
+            auto after = before;
+            petari_tev_texgen_count(after.shaderConfig, count);
+            const auto seed = static_cast<aurora::HashType>(aurora::gfx::ShaderType::GX);
+            const auto oldHash = aurora::xxh3_hash(before, seed);
+            const auto newHash = aurora::xxh3_hash(after, seed);
+            std::printf("{\"row\":%u,\"derived_numTexGens\":%u,\"changed\":%s,\"before_hash\":\"%016llx\",\"after_hash\":\"%016llx\"}\n",
+                        rows++, count, std::memcmp(&before, &after, sizeof(before)) == 0 ? "false" : "true",
+                        static_cast<unsigned long long>(oldHash), static_cast<unsigned long long>(newHash));
+        }
+        return input.eof() && input.gcount() == 0 && rows ? 0 : 5;
+    }
     if (argc == 1) {
         std::signal(SIGSEGV, [](int) { std::_Exit(88); });
         std::signal(SIGABRT, [](int) { std::_Exit(89); });
         std::set_terminate([] { std::fputs("Unexpected noexcept termination in shader regression\n", stderr); std::_Exit(87); });
+        texgen_count_tests();
         regression_tests();
         edge_tests();
         return failures ? 1 : 0;

@@ -29,6 +29,9 @@ def patch(text, kind):
   PetariPipeline::stages.moduleMs += PetariPipeline::milliseconds(PetariPipeline::Clock::now() - petariModuleStart);
   return petariModule;''')
     elif kind == 'gx.cpp':
+        texgen_header = Path(__file__).resolve().with_name('pipeline_texgen_count.hpp')
+        text = f'#include "{texgen_header}"\n' + text
+        replace('  if (g_gxState.alphaCompare) {', '  petari_tev_texgen_count(config.shaderConfig, g_gxState.numTexGens);\n  if (g_gxState.alphaCompare) {')
         replace('  const auto& vtxFmt = g_gxState.vtxFmts[fmt];',
                 '  const auto& vtxFmt = g_gxState.vtxFmts[unsigned(fmt) & 7u];')
         for count, maximum in [('numTevStages', 'MaxTevStages'), ('numIndStages', 'MaxIndStages'), ('numTexGens', 'MaxTexCoord')]:

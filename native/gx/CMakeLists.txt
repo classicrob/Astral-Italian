@@ -471,7 +471,8 @@ foreach(_pair "${CMAKE_CURRENT_BINARY_DIR}/indirect/shader.cpp|shader.cpp" "${au
     list(GET _pair 1 _kind)
     set(_output "${CMAKE_CURRENT_BINARY_DIR}/stages/${_kind}")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_pipeline_stages.py" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_profile.hpp" "${_source}")
+        "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_pipeline_stages.py" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_profile.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_texgen_count.hpp" "${_source}")
     execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_pipeline_stages.py"
         "${_source}" "${_output}" "${_kind}" COMMAND_ERROR_IS_FATAL ANY)
     get_target_property(_sources aurora_gx SOURCES)

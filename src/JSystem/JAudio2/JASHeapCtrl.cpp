@@ -156,7 +156,13 @@ void JASHeap::insertChild(JASHeap* pHeap, JASHeap* pNext, void* pBase, u32 size,
     pHeap->mBase = (u8*)pBase;
     pHeap->mSize = size;
     pHeap->mHeap = nullptr;
+#ifdef GALAXY_NATIVE
+    // A null pNext appends: the original forms &pNext->mTree from null, which is null only because mTree is at
+    // offset 0 (getEndChild() is null).
+    mTree.insertChild(pNext != nullptr ? &pNext->mTree : mTree.getEndChild(), &pHeap->mTree);
+#else
     mTree.insertChild(&pNext->mTree, &pHeap->mTree);
+#endif
 }
 
 JASHeap* JASHeap::getTailHeap() {

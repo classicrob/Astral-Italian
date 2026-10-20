@@ -5,6 +5,11 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Util.hpp"
 
+#ifdef GALAXY_NATIVE
+// The Wii .sbss2 object is zero-initialized; its consumer loads one f32.
+f32 sGhostFootprintOpacity = 0.0f;
+#endif
+
 struct GhostSpaceFlyAnimationNames {
     char end[12];
     char loop[16];

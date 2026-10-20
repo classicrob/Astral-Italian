@@ -11,6 +11,11 @@
 #include <wstring.h>
 
 namespace StaffRollUtil {
+#ifdef GALAXY_NATIVE
+    // The original .sbss2 scalar is read by StaffRoll::exeScroll via lwz.
+    s32 sThankYouVoiceFrame = 0;
+#endif
+
     // NONMATCHING: tag-skip copy loop schedules the src/counter increments in a different order.
     StaffRollLine* createLine(const wchar_t* message, u32 line, s32 index, bool* endMarker) {
         wchar_t text[256];

@@ -119,6 +119,12 @@ bool MameMuimui::tryPressAttack() {
     return true;
 }
 
+#ifdef GALAXY_NATIVE
+// The base listener table at 0x8068C2D4 supplies empty score/combo callbacks.
+void MameMuimuiListener::scoreHit(s32, MameMuimui*) {}
+void MameMuimuiListener::breakCombo(MameMuimui*) {}
+#endif
+
 void MameMuimuiListener::onActorEventEmpty(MameMuimui* pActor) {}
 
 void MameMuimuiListener::onListenerEmpty() {}

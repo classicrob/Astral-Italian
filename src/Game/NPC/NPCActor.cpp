@@ -35,6 +35,18 @@
 
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
+#ifdef GALAXY_NATIVE
+// Shared SMG2 action names supplied by the original Wii data objects.
+const char cNPCReactionDefault[] = "Reaction";
+const char cNPCPointingDefault[] = "Pointing";
+const char cNPCTrampledDefault[] = "Trampled";
+const char cNPCSpinDefault[] = "Spin";
+const char cNPCTurnDefault[] = "Turn";
+const char cNPCWaitDefault[] = "Wait";
+extern const char cNPCTalkDefault[] = "Talk";
+extern const char cNPCTalkTurnDefault[] = "TalkTurn";
+#endif
+
 namespace NrvNPCActor {
     NEW_NERVE(NPCActorNrvReaction, NPCActor, Reaction);
     NEW_NERVE(NPCActorNrvWait, NPCActor, Wait);

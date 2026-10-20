@@ -45,6 +45,34 @@ Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petar
 `~/MacioGalaxy2-play/user`). The scripts refuse MacioGalaxy's own user folder
 (`~/Library/Application Support/Petari`), so its saves are never read or written.
 
+## Everything-unlocked save (separate progress)
+
+Use the menu's **u** toggle, or `native/play/play.sh title --unlocked`, then
+**pick file 1 for everything unlocked**. The option uses only
+`~/Library/Application Support/AstralItalian-unlocked`. Normal progress in
+`~/MacioGalaxy2-play/user`, `~/Library/Application Support/AstralItalian`, and
+the SMG1 `Petari` directory is not modified by creation or this option.
+Direct entry also works: `native/play/play.sh WorldMap07Galaxy --unlocked` or
+`native/play/play.sh MarioFaceShipGalaxy --unlocked`.
+
+The build owner creates the file once, through the game's own star, progression
+and save/loader APIs (no save-byte patching):
+
+```sh
+python3 native/tools/complete_save.py \
+  --executable build/macos-arm64-headless/native/app/headless/petari_headless
+```
+
+Creation refuses a nonempty destination or an existing game file. It completes
+all 242 actual star records, opens galaxies and SMG2 progression flags, marks
+world checkpoints and Hungry Luma routes complete, saves normally, reloads and
+checks all stars/unlocks plus unchanged other save records. The same command
+runs the World S map and Starship for at least 18,000 ready frames each; logs,
+traces and `acceptance.json` stay privately under
+`~/MacioGalaxy2-gamedata/unlocked-validation`. A later check uses `--verify-only`
+and awards nothing. `complete-save.json` in the separate user directory records
+the regular save/reload check; it is not by itself a five-minute runtime pass.
+
 ## Controls (keyboard and mouse)
 
 The same keys as MacioGalaxy (full list and remapping: native/CONTROLS.md; F1 remaps them in the game).

@@ -17,7 +17,12 @@ struct AudMePlayingParams {
     /* 0x1 */ u8 mChordVolume;
     /* 0x2 */ u8 mPan;
     /* 0x3 */ u8 mDolby;
+#ifdef GALAXY_NATIVE
+    // Read in place from the big-endian ME table resource.
+    /* 0x4 */ BigEndianValue< u16 > mStopTime;
+#else
     /* 0x4 */ u16 mStopTime;
+#endif
     /* 0x6 */ u8 _6;
     /* 0x7 */ u8 _7;
 };

@@ -247,12 +247,18 @@ void MiiSelect::control() {
     if (mPageButtons[0]->isFirstStepWait() && !mPageButtons[1]->isFirstStepWait() && mPageButtons[1]->isWait()) {
         pAnimCtrl = MR::getPaneAnimCtrl(this, mPageButtons[0]->mPaneName, 0);
 
+#ifdef GALAXY_NATIVE
+        if (pAnimCtrl)
+#endif
         pAnimCtrl->setFrame(MR::getPaneAnimFrame(this, mPageButtons[1]->mPaneName, 0));
     }
 
     if (mPageButtons[1]->isFirstStepWait() && !mPageButtons[0]->isFirstStepWait() && mPageButtons[0]->isWait()) {
         pAnimCtrl = MR::getPaneAnimCtrl(this, mPageButtons[1]->mPaneName, 0);
 
+#ifdef GALAXY_NATIVE
+        if (pAnimCtrl)
+#endif
         pAnimCtrl->setFrame(MR::getPaneAnimFrame(this, mPageButtons[0]->mPaneName, 0));
     }
 
@@ -426,6 +432,9 @@ void MiiSelect::getIconID(FileSelectIconID* pIconID, s32 param2) const {
 }
 
 void MiiSelect::onSelect(s32 param1, nw4r::lyt::TexMap* pTexMap) {
+#ifdef GALAXY_NATIVE
+    if (!pTexMap) return;
+#endif
     mSelectedIconIndex = param1;
     mSelectedMiiTexMap = pTexMap;
 

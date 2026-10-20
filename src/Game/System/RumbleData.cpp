@@ -1,7 +1,11 @@
 #include "Game/System/WPadRumbleData.hpp"
 #include "Game/Util/HashUtil.hpp"
 
+#ifdef GALAXY_NATIVE
+extern RumblePattern sRumblePatterns[14];
+#else
 extern RumblePattern sRumblePatterns[13];
+#endif
 
 const RumblePattern* RumbleData::getPattern(const char* pName) {
     u32 hash = MR::getHashCode(pName);

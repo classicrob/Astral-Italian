@@ -16,9 +16,12 @@
 //   aborts). Other MSR bits read as zero.
 // - OSGetStackPointer returns 0: there is no PowerPC stack, and a truncated
 //   host pointer would mislead.
-// The signal handler formats with snprintf and walks the stack with
-// backtrace(), which are not formally async-signal-safe; the process is
-// already dying, and the report is written with write(2).
+// The signal handler is async-signal-safe: it formats into a fixed buffer with
+// its own integer/hex/string appenders (no stdio, no locale, no malloc) and
+// writes with write(2). backtrace() is warmed up at install (its first call
+// loads the unwinder), and backtrace_symbols_fd() writes without allocating.
+// A fault inside the handler itself does not recurse: it restores the default
+// action and terminates.
 
 #include <revolution/base/PPCArch.h>
 #include <revolution/os.h>
@@ -28,11 +31,12 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/mman.h>
 #include <sys/ucontext.h>
 #include <unistd.h>
 
 #include <atomic>
-#include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -85,57 +89,111 @@ const char* errorName(int error) {
     return (error >= 0 && error < OS_ERROR_MAX) ? names[error] : "?";
 }
 
-void emit(int fd, const char* fmt, ...) {
-    char line[512];
-    va_list args;
-    va_start(args, fmt);
-    const int n = std::vsnprintf(line, sizeof(line), fmt, args);
-    va_end(args);
-    if (n > 0) {
-        const size_t len = std::min<size_t>(static_cast<size_t>(n), sizeof(line) - 1);
-        ssize_t w = ::write(STDERR_FILENO, line, len);
+// Async-signal-safe line builder: fixed storage, no stdio/locale/malloc.
+class Line {
+public:
+    Line& str(const char* text) {
+        if (text == nullptr) {
+            text = "(null)";
+        }
+        while (*text && mLength < sizeof(mBuffer)) {
+            mBuffer[mLength++] = *text++;
+        }
+        return *this;
+    }
+    Line& dec(long long value) {
+        char digits[24];
+        int n = 0;
+        unsigned long long magnitude = value < 0 ? 0ULL - static_cast<unsigned long long>(value) : static_cast<unsigned long long>(value);
+        do {
+            digits[n++] = static_cast<char>('0' + magnitude % 10);
+            magnitude /= 10;
+        } while (magnitude != 0 && n < 24);
+        if (value < 0) {
+            str("-");
+        }
+        while (n > 0 && mLength < sizeof(mBuffer)) {
+            mBuffer[mLength++] = digits[--n];
+        }
+        return *this;
+    }
+    // Lowercase hex; width pads with zeros (0: no padding).
+    Line& hex(unsigned long long value, int width = 0) {
+        char digits[16];
+        int n = 0;
+        do {
+            digits[n++] = "0123456789abcdef"[value & 0xF];
+            value >>= 4;
+        } while (value != 0 && n < 16);
+        while (n < width && n < 16) {
+            digits[n++] = '0';
+        }
+        while (n > 0 && mLength < sizeof(mBuffer)) {
+            mBuffer[mLength++] = digits[--n];
+        }
+        return *this;
+    }
+    Line& ptr(const void* pointer) { return str("0x").hex(reinterpret_cast<uintptr_t>(pointer)); }
+    // Left-aligned in a field of width characters (for register names).
+    Line& padTo(size_t column) {
+        while (mLength < column && mLength < sizeof(mBuffer)) {
+            mBuffer[mLength++] = ' ';
+        }
+        return *this;
+    }
+    size_t length() const { return mLength; }
+    void emit(int fd) {
+        ssize_t w = ::write(STDERR_FILENO, mBuffer, mLength);
         if (fd >= 0) {
-            w = ::write(fd, line, len);
+            w = ::write(fd, mBuffer, mLength);
         }
         (void)w;
+        mLength = 0;
     }
-}
+
+private:
+    char mBuffer[512];
+    size_t mLength = 0;
+};
 
 void writeReport(int sig, siginfo_t* info, void* ucontextRaw) {
     const int fd = gReportPath[0] ? ::open(gReportPath, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644) : -1;
-    emit(fd, "==== Petari native crash report ====\n");
-    emit(fd, "signal: %s (%d), code %d, fault address %p\n", signalName(sig), sig, info ? info->si_code : 0, info ? info->si_addr : nullptr);
+    Line line;
+    line.str("==== Petari native crash report ====\n").emit(fd);
+    line.str("signal: ").str(signalName(sig)).str(" (").dec(sig).str("), code ").dec(info ? info->si_code : 0).str(", fault address ")
+        .ptr(info ? info->si_addr : nullptr).str("\n").emit(fd);
     if (gHavePanic.load()) {
-        emit(fd, "last panic: %s\n", gPanicMessage);
+        line.str("last panic: ").str(gPanicMessage).str("\n").emit(fd);
     }
     OSThread* bound = OS::boundThread();
     OSThread* running = OSGetCurrentThread();
     if (bound) {
-        emit(fd, "OS thread: %p (priority %d, base %d) - faulting code ran on this game thread\n", static_cast<void*>(bound), bound->priority,
-             bound->base);
+        line.str("OS thread: ").ptr(bound).str(" (priority ").dec(bound->priority).str(", base ").dec(bound->base)
+            .str(") - faulting code ran on this game thread\n").emit(fd);
     } else {
-        emit(fd, "OS thread: none on this host thread (interrupt/host context); running OS thread %p\n", static_cast<void*>(running));
+        line.str("OS thread: none on this host thread (interrupt/host context); running OS thread ").ptr(running).str("\n").emit(fd);
     }
-    emit(fd, "interrupts disabled on faulting thread: %s\n", OS::interruptsDisabled() ? "yes" : "no");
+    line.str("interrupts disabled on faulting thread: ").str(OS::interruptsDisabled() ? "yes" : "no").str("\n").emit(fd);
 
     if (ucontextRaw) {
         auto* uc = static_cast<ucontext_t*>(ucontextRaw);
         const auto& ss = uc->uc_mcontext->__ss;
-        emit(fd, "host arm64 registers (not PowerPC):\n");
-        emit(fd, "  pc %016llx  lr %016llx  sp %016llx  fp %016llx\n", static_cast<unsigned long long>(__darwin_arm_thread_state64_get_pc(ss)),
-             static_cast<unsigned long long>(__darwin_arm_thread_state64_get_lr(ss)),
-             static_cast<unsigned long long>(__darwin_arm_thread_state64_get_sp(ss)),
-             static_cast<unsigned long long>(__darwin_arm_thread_state64_get_fp(ss)));
+        line.str("host arm64 registers (not PowerPC):\n").emit(fd);
+        line.str("  pc ").hex(__darwin_arm_thread_state64_get_pc(ss), 16).str("  lr ").hex(__darwin_arm_thread_state64_get_lr(ss), 16)
+            .str("  sp ").hex(__darwin_arm_thread_state64_get_sp(ss), 16).str("  fp ").hex(__darwin_arm_thread_state64_get_fp(ss), 16)
+            .str("\n").emit(fd);
         for (int i = 0; i < 29; i += 4) {
-            emit(fd, "  x%-2d %016llx", i, static_cast<unsigned long long>(ss.__x[i]));
-            for (int j = i + 1; j < i + 4 && j < 29; ++j) {
-                emit(fd, "  x%-2d %016llx", j, static_cast<unsigned long long>(ss.__x[j]));
+            for (int j = i; j < i + 4 && j < 29; ++j) {
+                const size_t start = line.length();
+                line.str("  x").dec(j);
+                line.padTo(start + 6);
+                line.hex(ss.__x[j], 16);
             }
-            emit(fd, "\n");
+            line.str("\n").emit(fd);
         }
     }
 
-    emit(fd, "host backtrace:\n");
+    line.str("host backtrace:\n").emit(fd);
     void* frames[64];
     const int count = backtrace(frames, 64);
     backtrace_symbols_fd(frames, count, STDERR_FILENO);
@@ -143,30 +201,42 @@ void writeReport(int sig, siginfo_t* info, void* ucontextRaw) {
         backtrace_symbols_fd(frames, count, fd);
     }
 
-    emit(fd, "game error handlers (registered, not called: no PowerPC context natively):\n");
+    line.str("game error handlers (registered, not called: no PowerPC context natively):\n").emit(fd);
     bool any = false;
     for (int e = 0; e < OS_ERROR_MAX; ++e) {
         if (gErrorHandlers[e]) {
-            emit(fd, "  %s -> %p\n", errorName(e), reinterpret_cast<void*>(gErrorHandlers[e]));
+            line.str("  ").str(errorName(e)).str(" -> ").ptr(reinterpret_cast<void*>(gErrorHandlers[e])).str("\n").emit(fd);
             any = true;
         }
     }
     if (!any) {
-        emit(fd, "  (none)\n");
+        line.str("  (none)\n").emit(fd);
     }
 
-    emit(fd, "recent OSReport output:\n");
+    line.str("recent OSReport output:\n").emit(fd);
     const unsigned next = gReportNext.load();
     for (unsigned i = (next > kReportLines ? next - kReportLines : 0); i < next; ++i) {
-        emit(fd, "  %s\n", gReportRing[i % kReportLines]);
+        line.str("  ").str(gReportRing[i % kReportLines]).str("\n").emit(fd);
     }
-    emit(fd, "==== end of report ====\n");
+    line.str("==== end of report ====\n").emit(fd);
     if (fd >= 0) {
         ::close(fd);
     }
 }
 
+std::atomic<bool> gInHandler{false};
+
 void crashHandler(int sig, siginfo_t* info, void* ucontext) {
+    if (gInHandler.exchange(true)) {
+        // A fault while writing the report (or a second fatal signal): do not
+        // recurse into the report; terminate with this signal.
+        static const char kNested[] = "==== Petari native crash report: fault inside the crash handler; terminating ====\n";
+        ssize_t w = ::write(STDERR_FILENO, kNested, sizeof(kNested) - 1);
+        (void)w;
+        signal(sig, SIG_DFL);
+        raise(sig);
+        return;
+    }
     writeReport(sig, info, ucontext);
     // Default action: terminate with this signal (debuggers and the system
     // crash reporter still see it).
@@ -216,18 +286,36 @@ void install(const std::filesystem::path& reportDirectory) {
         std::snprintf(gReportPath, sizeof(gReportPath), "%s/petari-crash-%ld-%d.txt", reportDirectory.c_str(), static_cast<long>(std::time(nullptr)),
                       static_cast<int>(::getpid()));
     }
+    // backtrace()'s first call loads the unwinder (and may allocate): do it
+    // now, so the signal handler's call does not.
+    void* warm[4];
+    (void)backtrace(warm, 4);
     // Faults caused by stack overflow need their own stack.
-    static char altStack[128 * 1024];
-    stack_t ss{};
-    ss.ss_sp = altStack;
-    ss.ss_size = sizeof(altStack);
-    sigaltstack(&ss, nullptr);
+    installThread();
     struct sigaction action{};
     action.sa_sigaction = crashHandler;
     action.sa_flags = SA_SIGINFO | SA_ONSTACK;
     sigemptyset(&action.sa_mask);
     for (int sig : {SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGTRAP, SIGABRT}) {
         sigaction(sig, &action, nullptr);
+    }
+}
+
+void installThread() {
+    stack_t current{};
+    if (sigaltstack(nullptr, &current) == 0 && !(current.ss_flags & SS_DISABLE) && current.ss_sp != nullptr) {
+        return;  // this thread already has one
+    }
+    constexpr size_t kAltStackSize = 128 * 1024;
+    void* stack = ::mmap(nullptr, kAltStackSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (stack == MAP_FAILED) {
+        return;
+    }
+    stack_t ss{};
+    ss.ss_sp = stack;
+    ss.ss_size = kAltStackSize;
+    if (sigaltstack(&ss, nullptr) != 0) {
+        ::munmap(stack, kAltStackSize);
     }
 }
 

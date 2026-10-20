@@ -26,6 +26,12 @@ namespace PetariNative::Platform::Crash {
 // (the directory must exist). Call once from the main thread at start-up.
 void install(const std::filesystem::path& reportDirectory);
 
+// Gives the calling thread its own alternate signal stack (sigaltstack is per
+// thread), so a stack overflow on it can still be reported. install() does this
+// for its own thread; the OS layer calls it for every OS thread it starts.
+// Allocates with mmap (no malloc); safe to call more than once per thread.
+void installThread();
+
 // Path of the report file the next crash will write (empty if none).
 std::filesystem::path reportPath();
 

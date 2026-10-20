@@ -46,6 +46,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "petari/platform/crash.hpp"
 #include "os_internal.hpp"
 #include "os_sdk_private.h"
 #include "petari/host_allocation.hpp"
@@ -634,6 +635,8 @@ void* hostEntry(void* arg) {
     // An OS thread runs game code: plain new/delete follow the current JKR heap
     // (outside HostAllocationScope), as on the Wii. Host threads keep malloc.
     PetariNative::setGameAllocationThread(true);
+    // A stack overflow on this thread must still produce a crash report.
+    PetariNative::Platform::Crash::installThread();
     OSDisableInterrupts();
     // Host wake-up latency for high-priority game threads (JAudio2's audio
     // and DVD threads run at priority 2 and 5): they have per-block audio

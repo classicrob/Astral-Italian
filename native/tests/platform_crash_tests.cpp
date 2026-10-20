@@ -1,6 +1,9 @@
 // Tests for host crash reporting, the error-handler registry, OSContext
 // bookkeeping, and the modelled PowerPC machine-state calls.
 
+#include <malloc/malloc.h>
+#include <pthread.h>
+#include <signal.h>
 #include <revolution/base/PPCArch.h>
 #include <revolution/os.h>
 #include <revolution/os/OSError.h>
@@ -68,6 +71,55 @@ std::pair<int, std::string> crashInChild(const fs::path& dir, const std::functio
         fs::remove(entry.path());
     }
     return {status, text};
+}
+
+
+// As crashInChild, but the child must finish within timeoutSeconds: a crash
+// handler that deadlocks (e.g. on a lock the faulting code holds) fails the
+// check instead of hanging the test. Returns {-1, ""} on a timeout.
+std::pair<int, std::string> crashInChildWithin(const fs::path& dir, int timeoutSeconds, const std::function<void()>& fn) {
+    std::fflush(nullptr);
+    const pid_t pid = ::fork();
+    if (pid == 0) {
+        std::freopen("/dev/null", "w", stderr);
+        std::freopen("/dev/null", "w", stdout);
+        PCrash::install(dir);
+        fn();
+        ::_exit(0);
+    }
+    int status = 0;
+    bool done = false;
+    for (int waited = 0; waited < timeoutSeconds * 10 && !done; ++waited) {
+        done = ::waitpid(pid, &status, WNOHANG) == pid;
+        if (!done) {
+            ::usleep(100 * 1000);
+        }
+    }
+    if (!done) {
+        ::kill(pid, SIGKILL);
+        ::waitpid(pid, &status, 0);
+        for (const auto& entry : fs::directory_iterator(dir)) {
+            fs::remove(entry.path());
+        }
+        return {-1, std::string()};
+    }
+    std::string text;
+    for (const auto& entry : fs::directory_iterator(dir)) {
+        std::ifstream in(entry.path());
+        std::stringstream buffer;
+        buffer << in.rdbuf();
+        text += buffer.str();
+        fs::remove(entry.path());
+    }
+    return {status, text};
+}
+
+
+// Never returns: overflows the calling thread's stack.
+__attribute__((noinline)) int recurseForever(int depth) {
+    volatile char pad[512];
+    pad[0] = static_cast<char>(depth);
+    return recurseForever(depth + 1) + pad[0];
 }
 
 bool has(const std::string& text, const char* needle) {
@@ -142,12 +194,55 @@ void testCrashReports() {
     fs::remove_all(dir);
 }
 
+
+// The handler must not need a lock the faulting code may hold: a fault with
+// every malloc zone locked (a crash inside malloc) or with stderr's stdio lock
+// held must still produce a complete report and terminate, not deadlock.
+void testCrashReportsUnderHeldLocks() {
+    const fs::path dir = tempDir("locks");
+    auto [heap, heapReport] = crashInChildWithin(dir, 10, [] {
+        OSReport("about to fault with the heap locked\n");
+        malloc_zone_t* zone = malloc_default_zone();
+        zone->introspect->force_lock(zone);
+        volatile int* null = nullptr;
+        *null = 1;
+    });
+    check(heap != -1, "fault with malloc locked: the handler does not deadlock");
+    check(heap != -1 && WIFSIGNALED(heap) && (WTERMSIG(heap) == SIGSEGV || WTERMSIG(heap) == SIGBUS), "fault with malloc locked terminates with its signal");
+    check(has(heapReport, "fault address 0x0") && has(heapReport, "about to fault with the heap locked") && has(heapReport, "==== end of report ===="),
+          "fault with malloc locked: complete report");
+
+    auto [stdioLocked, stdioReport] = crashInChildWithin(dir, 10, [] {
+        flockfile(stderr);
+        volatile int* null = nullptr;
+        *null = 2;
+    });
+    check(stdioLocked != -1 && WIFSIGNALED(stdioLocked) && has(stdioReport, "==== end of report ===="), "fault with stderr locked: complete report, no deadlock");
+
+    // A stack overflow on another thread (OS threads are host threads): the
+    // handler must run on an alternate stack there too, or it re-faults.
+    auto [overflow, overflowReport] = crashInChildWithin(dir, 10, [] {
+        pthread_t thread;
+        pthread_attr_t attributes;
+        pthread_attr_init(&attributes);
+        pthread_attr_setstacksize(&attributes, 256 * 1024);
+        pthread_create(&thread, &attributes, [](void*) -> void* {
+            PCrash::installThread();
+            return reinterpret_cast<void*>(static_cast<intptr_t>(recurseForever(0)));
+        }, nullptr);
+        pthread_join(thread, nullptr);
+    });
+    check(overflow != -1 && WIFSIGNALED(overflow) && has(overflowReport, "==== end of report ===="),
+          "stack overflow on another thread: complete report, no re-fault");
+    fs::remove_all(dir);
+}
 }  // namespace
 
 int main() {
     __OSThreadInit();
     testRegistryAndContexts();
     testCrashReports();
+    testCrashReportsUnderHeldLocks();
     OSReport("platform crash tests passed (%d checks)\n", checks);
     return 0;
 }

@@ -258,7 +258,13 @@ JMapInfoIter StageDataHolder::getGeneralPosInfoFromDataIndex(int idx_) const {
 s32 StageDataHolder::getChildObjNum(const JMapInfoIter& rIter) const {
     s32 count = 0;
     s32 linkID;
+#ifdef GALAXY_NATIVE
+    if (!MR::getJMapInfoLinkID(rIter, &linkID)) {
+        return 0;
+    }
+#else
     MR::getJMapInfoLinkID(rIter, &linkID);
+#endif
 
     if (mPlacementObjs.mCount != 0) {
         for (MR::BothDirList< JMapInfo >::iterator it = mPlacementObjs.begin(); !it.isEnd(); it++) {
@@ -277,7 +283,13 @@ s32 StageDataHolder::getChildObjNum(const JMapInfoIter& rIter) const {
 JMapInfoIter StageDataHolder::getChildObjInfoFromDataIndex(const JMapInfoIter& rIter, int index) const {
     s32 count = 0;
     s32 linkID;
+#ifdef GALAXY_NATIVE
+    if (!MR::getJMapInfoLinkID(rIter, &linkID)) {
+        return JMapInfoIter();
+    }
+#else
     MR::getJMapInfoLinkID(rIter, &linkID);
+#endif
 
     for (MR::BothDirList< JMapInfo >::iterator it = mPlacementObjs.begin(); !it.isEnd(); it++) {
         for (s32 i = 0; i < it->getNumEntries(); i++) {

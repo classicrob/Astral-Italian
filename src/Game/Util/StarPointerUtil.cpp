@@ -611,7 +611,14 @@ namespace MR {
         TVec3f fallbackPlanePos(camPos);
         fallbackPlanePos.add(backOffset);
         TVec3f forceIntersectPos;
+#ifdef GALAXY_NATIVE
+        if (!MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, fallbackPlanePos, camNorm)) {
+            pPos->set(rPlaneBasePos);
+            return false;
+        }
+#else
         MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, fallbackPlanePos, camNorm);
+#endif
 
         TVec3f forceNorm;
         TVec3f checkDir(rPlaneBasePos);
@@ -621,7 +628,14 @@ namespace MR {
         } else {
             forceNorm = planeNorm;
         }
+#ifdef GALAXY_NATIVE
+        if (!MR::checkHitSemilinePlane(pPos, forceIntersectPos, forceNorm, rPlaneBasePos, planeNorm)) {
+            pPos->set(rPlaneBasePos);
+            return false;
+        }
+#else
         MR::checkHitSemilinePlane(pPos, forceIntersectPos, forceNorm, rPlaneBasePos, planeNorm);
+#endif
         return true;
     }
 

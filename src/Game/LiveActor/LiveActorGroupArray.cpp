@@ -63,11 +63,21 @@ MsgSharedGroup* LiveActorGroupArray::tryCreateGroupForLiveActor(LiveActor* pActo
     s32 groupID = -1;
     MR::getJMapInfoGroupID(rIter, &groupID);
 
+#ifdef GALAXY_NATIVE
+    // pGroupName is used after the block (createGroup), so the buffer must outlive the
+    // block; Clang reuses block-local stack slots.
+    char buf[32];
+    if (pGroupName == nullptr) {
+        snprintf(buf, sizeof(buf), "group%02d", groupID);
+        pGroupName = buf;
+    }
+#else
     if (pGroupName == nullptr) {
         char buf[32];
         snprintf(buf, sizeof(buf), "group%02d", groupID);
         pGroupName = buf;
     }
+#endif
 
     MsgSharedGroup* group = findGroup(rIter);
 

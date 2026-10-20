@@ -13,9 +13,9 @@ inline int tolower(int c) {
 }
 #endif
 
-typedef struct FSTEntry FSTEntry;
+typedef struct ARCFileSystemEntry ARCFileSystemEntry;
 
-struct FSTEntry {
+struct ARCFileSystemEntry {
     unsigned int isDirAndStringOff;
     unsigned int parentOrPosition;
     unsigned int nextEntryOrLength;
@@ -52,7 +52,7 @@ BOOL ARCInitHandle(void* arcStart, ARCHandle* handle) {
     const u32 fstSize = PetariNative::readU32BE(header + 8);
     const u32 fileStart = PetariNative::readU32BE(header + 12);
     if (fstStart < 32 || fstSize < 12 || fileStart < fstStart || fstSize > fileStart - fstStart) return FALSE;
-    auto* entries = reinterpret_cast<FSTEntry*>(static_cast<u8*>(arcStart) + fstStart);
+    auto* entries = reinterpret_cast<ARCFileSystemEntry*>(static_cast<u8*>(arcStart) + fstStart);
     const u32 count = nextDir(entries, 0);
     if (!entryIsDir(entries, 0) || count == 0 || count > fstSize / 12) return FALSE;
     handle->archiveStartAddr = arcStart;
@@ -64,7 +64,7 @@ BOOL ARCInitHandle(void* arcStart, ARCHandle* handle) {
     handle->currDir = 0;
     return TRUE;
 #else
-    FSTEntry* FSTEntries;
+    ARCFileSystemEntry* FSTEntries;
     ARCHeader* arcHeader = (ARCHeader*)arcStart;
 
     if (arcHeader->magic != 0x55AA382D) {
@@ -88,7 +88,7 @@ BOOL ARCInitHandle(void* arcStart, ARCHandle* handle) {
 BOOL ARCOpen(ARCHandle* handle, const char* fileName, ARCFileInfo* af) {
     s32 entry;
     char currentDir[128];
-    FSTEntry* FSTEntries = (FSTEntry*)handle->FSTStart;
+    ARCFileSystemEntry* FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
     entry = ARCConvertPathToEntrynum(handle, fileName);
 
     if (0 > entry) {
@@ -114,7 +114,7 @@ BOOL ARCOpen(ARCHandle* handle, const char* fileName, ARCFileInfo* af) {
 #pragma pop
 
 BOOL ARCFastOpen(ARCHandle* handle, s32 entrynum, ARCFileInfo* af) {
-    FSTEntry* FSTEntries = (FSTEntry*)handle->FSTStart;
+    ARCFileSystemEntry* FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
 
     if ((entrynum < 0) || (entrynum >= handle->entryNum) || entryIsDir(FSTEntries, entrynum)) {
         return FALSE;
@@ -153,10 +153,10 @@ s32 ARCConvertPathToEntrynum(ARCHandle* handle, const char* pathPtr)
     u32 dirLookAt;
     u32 i;
     const char* origPathPtr = pathPtr;
-    FSTEntry* FSTEntries;
+    ARCFileSystemEntry* FSTEntries;
 
     dirLookAt = handle->currDir;
-    FSTEntries = (FSTEntry*)handle->FSTStart;
+    FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
 
     while (1) {
         if (*pathPtr == '\0') {
@@ -240,7 +240,7 @@ static u32 myStrncpy(char* dest, char* src, u32 maxlen) {
 static u32 entryToPath(ARCHandle* handle, u32 entry, char* path, u32 maxlen) {
     char* name;
     u32 loc;
-    FSTEntry* FSTEntries = (FSTEntry*)handle->FSTStart;
+    ARCFileSystemEntry* FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
 
     if (entry == 0) {
         return 0;
@@ -260,7 +260,7 @@ static u32 entryToPath(ARCHandle* handle, u32 entry, char* path, u32 maxlen) {
 
 static BOOL ARCConvertEntrynumToPath(ARCHandle* handle, s32 entrynum, char* path, u32 maxlen) {
     u32 loc;
-    FSTEntry* FSTEntries = (FSTEntry*)handle->FSTStart;
+    ARCFileSystemEntry* FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
 
     loc = entryToPath(handle, (u32)entrynum, path, maxlen);
 
@@ -311,10 +311,10 @@ BOOL ARCClose(ARCFileInfo* af) {
 
 BOOL ARCChangeDir(ARCHandle* handle, const char* dirName) {
     s32 entry;   
-    FSTEntry* FSTEntries;
+    ARCFileSystemEntry* FSTEntries;
 
     entry = ARCConvertPathToEntrynum(handle, dirName);
-    FSTEntries = (FSTEntry*)handle->FSTStart;
+    FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
 
     if ((entry < 0) || (entryIsDir(FSTEntries, entry) == FALSE)) {
         return FALSE;
@@ -326,10 +326,10 @@ BOOL ARCChangeDir(ARCHandle* handle, const char* dirName) {
 
 BOOL ARCOpenDir(ARCHandle* handle, const char* dirName, ARCDir* dir) {
     s32         entry;
-    FSTEntry*   FSTEntries;
+    ARCFileSystemEntry*   FSTEntries;
 
     entry = ARCConvertPathToEntrynum(handle, dirName);
-    FSTEntries = (FSTEntry*)handle->FSTStart;
+    FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
 
     if ((entry < 0) || (entryIsDir(FSTEntries, entry) == FALSE)) {
         return FALSE;
@@ -344,11 +344,11 @@ BOOL ARCOpenDir(ARCHandle* handle, const char* dirName, ARCDir* dir) {
 
 BOOL ARCReadDir(ARCDir* dir, ARCDirEntry* dirent) {
     u32 loc;
-    FSTEntry* FSTEntries;
+    ARCFileSystemEntry* FSTEntries;
     ARCHandle* handle;
 
     handle = dir->handle;
-    FSTEntries = (FSTEntry*)handle->FSTStart;
+    FSTEntries = (ARCFileSystemEntry*)handle->FSTStart;
     loc = dir->location;
 retry:
     if ((loc <= dir->entryNum) || (dir->next <= loc)) {

@@ -145,15 +145,7 @@ public:
     /* 0x96 */ u8 mPrmColorAlphaAnm;
 };
 
-class JPAParticleCallBack {
-public:
-    virtual ~JPAParticleCallBack() = 0;
-    virtual void execute(JPABaseEmitter*, JPABaseParticle*) {
-    }
-
-    virtual void draw(JPABaseEmitter*, JPABaseParticle*) {
-    }
-};
+#include "JSystem/JParticle/JPAParticleCallBack.hpp"
 
 static inline u32 COLOR_MULTI(u32 a, u32 b) {
     return ((a * (b + 1)) * 0x10000) >> 24;

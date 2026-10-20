@@ -6,16 +6,16 @@
 #include <locale.h>
 
 
-typedef struct FSTEntry FSTEntry;
+typedef struct DVDFSTEntry DVDFSTEntry;
 
-struct FSTEntry {
+struct DVDFSTEntry {
     u32 isDirAndStringOff;
     u32 parentOrPosition;
     u32 nextEntryOrLength;
 };
 
 static OSBootInfo* BootInfo;
-static FSTEntry* FstStart;
+static DVDFSTEntry* FstStart;
 static char* FstStringStart;
 static u32 MaxEntryNum;
 static u32 currentDirectory = 0;
@@ -37,7 +37,7 @@ inline int tolower(int c) {
 
 void __DVDFSInit(void) {
     BootInfo = (OSBootInfo*)OSPhysicalToCached(0);
-    FstStart = (FSTEntry*)BootInfo->FSTLocation;
+    FstStart = (DVDFSTEntry*)BootInfo->FSTLocation;
 
     if (FstStart != NULL) {
         MaxEntryNum = FstStart[0].nextEntryOrLength;

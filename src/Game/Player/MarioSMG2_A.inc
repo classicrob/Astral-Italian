@@ -862,11 +862,12 @@ void Mario::fn_803A22D0(f32 x, s32 arg) {
     TVec3f sp8;
     if ((this->mFlags14.mLowWord >> 12) & 1) {
         this->fn_803A2420();
-        if ((this->mMovementStates.mHighWord >> 8) & 1) {
-            this->fn_803A23F0(&sp8);
-            this->fn_803A2420();
-            this->fn_803A2450(&sp8);
-        }
+    }
+    // The DOL tests high-word bit 8 independently of flags14 bit 12.
+    if ((this->mMovementStates.mHighWord >> 8) & 1) {
+        this->fn_803A23F0(&sp8);
+        this->fn_803A2420();
+        this->fn_803A2450(&sp8);
     } else if ((this->mFlags14.mLowWord >> 19) & 1) {
         this->fn_803A24C0(&sp8);
     } else {
@@ -877,9 +878,10 @@ void Mario::fn_803A22D0(f32 x, s32 arg) {
             this->fn_803A2570(x, &sp8);
             this->fn_803A2720();
             this->fn_803A27A0(&sp8);
-            this->fn_803A2860();
         }
     }
+    // All vector-producing paths join here at DOL 0x803A23AC.
+    this->fn_803A2860();
     if (arg == 0) {
         this->setFrontVecKeepUp(sp8);
     }

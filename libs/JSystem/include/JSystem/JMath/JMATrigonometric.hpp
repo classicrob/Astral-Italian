@@ -2,6 +2,9 @@
 
 #include "math_types.hpp"
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include "JSystem/JMath/JMAFloatConversion.hpp"
+#endif
 
 #ifdef __MWERKS__
 #ifdef GALAXY_NATIVE
@@ -83,19 +86,35 @@ namespace JMath {
         }
 
         inline T sinRadian(f32 v) {
+#ifdef GALAXY_NATIVE
+            if (v < 0.0f) {
+                return -sin_(JMath::truncToU16(v * -(LEN / TAngleConstant_< f32 >::RADIAN_DEG360())));
+            } else {
+                return sin_(JMath::truncToU16(v * (LEN / TAngleConstant_< f32 >::RADIAN_DEG360())));
+            }
+#else
             if (v < 0.0f) {
                 return -sin_(v * -(LEN / TAngleConstant_< f32 >::RADIAN_DEG360()));
             } else {
                 return sin_(v * (LEN / TAngleConstant_< f32 >::RADIAN_DEG360()));
             }
+#endif
         }
 
         inline T sinDegree(f32 v) {
+#ifdef GALAXY_NATIVE
+            if (v < 0.0f) {
+                return -sin_(JMath::truncToU16(v * -(LEN / 360.0f)));
+            } else {
+                return sin_(JMath::truncToU16(v * (LEN / 360.0f)));
+            }
+#else
             if (v < 0.0f) {
                 return -sin_(v * -(LEN / 360.0f));
             } else {
                 return sin_(v * (LEN / 360.0f));
             }
+#endif
         }
 
         inline T sinLap(f32 v) {
@@ -107,11 +126,19 @@ namespace JMath {
         }
 
         inline T cosRadian(f32 v) {
+#ifdef GALAXY_NATIVE
+            if (v < 0.0f) {
+                v = -v;
+            }
+
+            return cos_(JMath::truncToU16(v * (LEN / TAngleConstant_< f32 >::RADIAN_DEG360())));
+#else
             if (v < 0.0f) {
                 v = -v;
             }
 
             return cos_(v * (LEN / TAngleConstant_< f32 >::RADIAN_DEG360()));
+#endif
         }
 
         inline T cosDegree(f32 v) {

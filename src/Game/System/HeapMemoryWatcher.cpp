@@ -8,6 +8,7 @@
 #include <revolution/os.h>
 #include <revolution/wpad.h>
 #ifdef GALAXY_NATIVE
+#include <atomic>
 #include <cstdint>
 #include "Game/System/NativeBootTrace.hpp"
 #include "Game/Util/SingletonHolder.hpp"
@@ -17,21 +18,25 @@ namespace {
     // Heap for the host-layout copy of a big-endian J3D file (MacioGalaxy): the companion of the file cache or
     // of the world map heap when the file is inside that heap, otherwise null (the current heap). A companion
     // is a sibling of the heap it serves, so findFromRoot resolves a source inside that heap to the heap itself.
+    // Where the host copies of J3D files went (PETARI_TRACE_BOOT reports these with each mounted archive).
+    std::atomic< u32 > sCopiesToFileCache(0);
+    std::atomic< u32 > sCopiesToWorldMap(0);
+    std::atomic< u32 > sCopiesToCurrentHeap(0);
+
     JKRHeap* resolveHostImageHeap(const void* pSource) {
         HeapMemoryWatcher* pWatcher = SingletonHolder< HeapMemoryWatcher >::get();
-        if (pWatcher == nullptr) {
-            return nullptr;
+        JKRHeap* pSourceHeap = pWatcher != nullptr ? JKRHeap::findFromRoot(const_cast< void* >(pSource)) : nullptr;
+        if (pSourceHeap != nullptr) {
+            if (pSourceHeap == pWatcher->mFileCacheHeap && pWatcher->mFileCacheHostImageHeap != nullptr) {
+                sCopiesToFileCache++;
+                return pWatcher->mFileCacheHostImageHeap;
+            }
+            if (pSourceHeap == pWatcher->mWorldMapHeap && pWatcher->mWorldMapHostImageHeap != nullptr) {
+                sCopiesToWorldMap++;
+                return pWatcher->mWorldMapHostImageHeap;
+            }
         }
-        JKRHeap* pSourceHeap = JKRHeap::findFromRoot(const_cast< void* >(pSource));
-        if (pSourceHeap == nullptr) {
-            return nullptr;
-        }
-        if (pSourceHeap == pWatcher->mFileCacheHeap && pWatcher->mFileCacheHostImageHeap != nullptr) {
-            return pWatcher->mFileCacheHostImageHeap;
-        }
-        if (pSourceHeap == pWatcher->mWorldMapHeap && pWatcher->mWorldMapHostImageHeap != nullptr) {
-            return pWatcher->mWorldMapHostImageHeap;
-        }
+        sCopiesToCurrentHeap++;
         return nullptr;
     }
 }  // namespace
@@ -169,6 +174,20 @@ void HeapMemoryWatcher::resetGameHeapGDDR3() {
 }
 
 void HeapMemoryWatcher::destroyWorldMapHeap() {
+#ifdef GALAXY_NATIVE
+    // A solid heap only grows until it is destroyed, so its free bytes now are the measured peak of this
+    // residency: compare with cWorldMapWiiSize and cWorldMapNativeAllowance (PETARI_TRACE_BOOT).
+    if (MR::Native::isTraceBoot() && mWorldMapHeap != nullptr) {
+        OSReport("[heap-peak] world map destroyed: heap %d bytes, free %d (peak use %d, Wii size %u, allowance %u); host images heap %d bytes, free %d\n",
+                 static_cast< s32 >(mWorldMapHeap->getEnd() - mWorldMapHeap->getStart()), mWorldMapHeap->getTotalFreeSize(),
+                 static_cast< s32 >(mWorldMapHeap->getEnd() - mWorldMapHeap->getStart()) - mWorldMapHeap->getTotalFreeSize(), cWorldMapWiiSize,
+                 cWorldMapNativeAllowance,
+                 mWorldMapHostImageHeap != nullptr ? static_cast< s32 >(mWorldMapHostImageHeap->getEnd() - mWorldMapHostImageHeap->getStart()) : -1,
+                 mWorldMapHostImageHeap != nullptr ? mWorldMapHostImageHeap->getTotalFreeSize() : -1);
+        OSReport("[heap-peak] host copies so far: file cache %u, world map %u, current heap %u\n", sCopiesToFileCache.load(), sCopiesToWorldMap.load(),
+                 sCopiesToCurrentHeap.load());
+    }
+#endif
     ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mWorldMapHeap));
 #ifdef GALAXY_NATIVE
     // The world map heap's J3D objects point into these copies; both go away together.
@@ -364,9 +383,10 @@ void HeapMemoryWatcher::noteArchiveMounted(JKRHeap* pHeap, const char* pName, co
     }
     if (MR::Native::isTraceBoot()) {
         // The world map figures measure that heap's native peak against the Wii size (cWorldMapNativeAllowance).
-        OSReport("[heap-arc] %s -> %s, %u bytes; file cache free %d; world map free %d, host images free %d\n", pName, pHeapName, bytes,
-                 mFileCacheHeap != nullptr ? mFileCacheHeap->getTotalFreeSize() : -1, mWorldMapHeap != nullptr ? mWorldMapHeap->getTotalFreeSize() : -1,
-                 mWorldMapHostImageHeap != nullptr ? mWorldMapHostImageHeap->getTotalFreeSize() : -1);
+        OSReport("[heap-arc] %s -> %s, %u bytes; file cache free %d; world map free %d, host images free %d; host copies to file cache %u, world map %u, current heap %u\n",
+                 pName, pHeapName, bytes, mFileCacheHeap != nullptr ? mFileCacheHeap->getTotalFreeSize() : -1,
+                 mWorldMapHeap != nullptr ? mWorldMapHeap->getTotalFreeSize() : -1, mWorldMapHostImageHeap != nullptr ? mWorldMapHostImageHeap->getTotalFreeSize() : -1,
+                 sCopiesToFileCache.load(), sCopiesToWorldMap.load(), sCopiesToCurrentHeap.load());
     }
 }
 #endif

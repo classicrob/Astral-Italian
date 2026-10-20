@@ -310,7 +310,8 @@ void petariCappyInit(MarioActor* pActor) {
     s.cap = new CappyParts(pActor, model, sCapMtx.toMtxPtr());
     s.cap->initWithoutIter();
     s.cap->initHitSensor(1);
-    MR::addHitSensorPosEye(s.cap, "cappy", 16, Cappy::Const::Radius + 10.0f, &s.pos, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorEye(s.cap, "cappy", 16, Cappy::Const::Radius + 10.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::setSensorFollowPos(s.cap, "cappy", &s.pos);
     MR::hideMaterial(s.cap, "Hair_v");
     MR::hideMaterial(s.cap, "Hair2_v");
     s.cap->kill();

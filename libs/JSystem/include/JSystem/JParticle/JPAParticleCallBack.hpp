@@ -1,12 +1,11 @@
 #pragma once
 
-#include "JSystem/JParticle/JPAEmitterCallBack.hpp"
-
+class JPABaseEmitter;
 class JPABaseParticle;
 
 class JPAParticleCallBack {
 public:
-    virtual ~JPAParticleCallBack();
+    virtual ~JPAParticleCallBack() = 0;
     virtual void execute(JPABaseEmitter*, JPABaseParticle*) {
     }
 

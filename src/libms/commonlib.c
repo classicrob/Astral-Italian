@@ -36,6 +36,9 @@ void LMSi_AnalyzeMessageBlocks(MsbInfo* pInfo) {
 }
 
 void LMSi_AnalyzeMessageBinary(MsbInfo* pInfo, const char* pType) {
+#ifdef GALAXY_NATIVE
+    LMSi_ConvertToHostOrder(pInfo->header);
+#endif
     LMSi_AnalyzeMessageHeader(pInfo);
     LMSi_AnalyzeMessageBlocks(pInfo);
 }

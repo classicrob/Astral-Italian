@@ -115,6 +115,11 @@ void LMSi_AnalyzeMessageBinary(MsbInfo* pInfo, const char* pType);
 s32 LMSi_SearchBlockByName(MsbInfo* pInfo, const char* pName);
 s32 LMSi_GetHashTableIndexFromLabel(const char* pLabel, s32 bucketNum);
 
+#ifdef GALAXY_NATIVE
+// hostorder.c: rewrites a big-endian binary to host byte order in place, once.
+void LMSi_ConvertToHostOrder(MsbHeader* pHeader);
+#endif
+
 // flowfile.c
 MsbfInfo* LMS_InitFlowchart(void* pData);
 s32 LMS_GetNodeNum(MsbfInfo* pInfo);

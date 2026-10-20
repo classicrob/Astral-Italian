@@ -386,6 +386,22 @@ void testAlarmsAndSleep() {
     OSSleepTicks(OSMillisecondsToTicks(40));
     check(gAlarmFires.load() == 0, "cancelled alarm does not fire");
 
+    // OSCancelAlarms cancels only the alarms carrying the tag; tag 0 is never matched.
+    OSAlarm tagged;
+    OSAlarm other;
+    OSCreateAlarm(&tagged);
+    OSCreateAlarm(&other);
+    OSSetAlarmTag(&tagged, 7);
+    OSSetAlarmTag(&other, 8);
+    gAlarmFires = 0;
+    OSSetAlarm(&tagged, OSMillisecondsToTicks(20), alarmHandler);
+    OSSetAlarm(&other, OSMillisecondsToTicks(20), alarmHandler);
+    OSCancelAlarms(0);
+    OSCancelAlarms(7);
+    OSReceiveMessage(&gAlarmQueue, &msg, OS_MESSAGE_BLOCK);
+    OSSleepTicks(OSMillisecondsToTicks(40));
+    check(gAlarmFires.load() == 1, "OSCancelAlarms cancels the tagged alarm only");
+
     // Periodic alarm.
     OSSetPeriodicAlarm(&alarm, OSGetTime(), OSMillisecondsToTicks(10), alarmHandler);
     for (int i = 0; i < 3; ++i) {

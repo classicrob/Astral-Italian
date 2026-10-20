@@ -1,5 +1,6 @@
 #include "replay.hpp"
 #include "trace.hpp"
+#include "stage_sync.hpp"
 #include "fp_mode.hpp"
 #include "platform.hpp"
 #include "gx_ledger.hpp"
@@ -35,8 +36,8 @@ namespace {
 [[noreturn]] void fail(const char* message) { std::fprintf(stderr,"headless: %s\n",message); std::fflush(nullptr); std::_Exit(2); }
 class Driver {
 public:
-    Driver(H::Replay& replay, H::Trace& trace, std::filesystem::path tracePath, unsigned numerator, unsigned denominator)
-        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mOwner(std::this_thread::get_id()) {
+    Driver(H::Replay& replay, H::Trace& trace, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync)
+        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mOwner(std::this_thread::get_id()) {
         mTiming << "frame,vi_count,ticks\n";
         if (!mTiming) throw H::ReplayError("cannot create timing sidecar");
         mThread=std::thread([this]{worker();});
@@ -58,18 +59,35 @@ public:
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
         if (mAwaitingFrameWait) throw H::ReplayError("game loop advanced without the headless frame wait hook");
         auto state=H::observeGame();
-        mTiming << mReplay.frame() << ',' << VIGetRetraceCount() << ',' << OSGetTime() << '\n';
-        mTiming.flush();
-        if (!mTiming) throw H::ReplayError("cannot write timing sidecar");
+        const auto sourceFrame=mReplay.frame();
+        const auto ticks=OSGetTime();
+        if (ticks<0) throw H::ReplayError("negative SDK clock at frame seam");
+        const auto viCount=VIGetRetraceCount();
         mReplay.endFrame();
-        mTrace.write(mReplay.frame()-1,state);
+        const bool wasStarted=mSync.started();
+        const auto frame=mSync.select(state,sourceFrame,ticks,viCount,[](std::uint32_t seed) {
+            H::setGameRngSeed(seed);
+            return H::observeGame();
+        });
+        if (!wasStarted && mSync.started()) {
+            std::ofstream origin(mPath.string()+".sync.json");
+            mSync.writeOrigin(origin);
+        }
+        if (frame) {
+            mTiming << *frame << ',' << viCount << ',' << ticks << '\n';
+            mTiming.flush();
+            if (!mTiming) throw H::ReplayError("cannot write timing sidecar");
+            mTrace.write(*frame,state);
+            ++mTraceFrames;
+        }
         mSawFrame=true; mAwaitingFrameWait=true;
         if (mReplay.finished()) {
+            if (mSync.enabled() && !mSync.started()) throw H::ReplayError("input tape ended before the stage-sync target was reached");
             mTrace.finish();
             std::ofstream marker(mPath.string()+".complete");
-            marker << mReplay.frames() << '\n'; marker.flush();
+            marker << mTraceFrames << '\n'; marker.flush();
             if (!marker) throw H::ReplayError("cannot write completion marker");
-            std::fprintf(stderr,"headless: completed %llu game loops\n",static_cast<unsigned long long>(mReplay.frames()));
+            std::fprintf(stderr,"headless: completed %llu game loops, %llu trace rows\n",static_cast<unsigned long long>(mReplay.frames()),static_cast<unsigned long long>(mTraceFrames));
             const auto gx=H::gxStats();
             std::fprintf(stderr,"headless GX: %llu direct FIFO bytes, %llu discarded state calls, %llu display-list payload bytes\n",
                          static_cast<unsigned long long>(gx.fifoBytes),static_cast<unsigned long long>(gx.stateCalls),
@@ -110,7 +128,7 @@ private:
             }
         } catch (const std::exception& e) { fail(e.what()); }
     }
-    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock;
+    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
     std::thread mThread;
@@ -142,12 +160,12 @@ int main(int argc,char** argv) {
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--no-ftz") {ftz=false;continue;}
-            if (key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator") throw H::ReplayError("unknown argument: "+key);
+            if (key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
         for (const char* key:{"--inputs","--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
         const auto input=external(args.at("--inputs")),disc=external(args.at("--disc")),user=external(args.at("--user")),path=external(args.at("--trace"));
-        for (const auto& output : {path, std::filesystem::path(path.string()+".complete"),std::filesystem::path(path.string()+".timing.csv")})
+        for (const auto& output : {path, std::filesystem::path(path.string()+".complete"),std::filesystem::path(path.string()+".timing.csv"),std::filesystem::path(path.string()+".sync.json")})
             if (std::filesystem::exists(output) || std::filesystem::is_symlink(output)) throw H::ReplayError("refusing to overwrite trace artifacts");
         if (std::filesystem::exists(user) && !std::filesystem::is_empty(user)) throw H::ReplayError("--user must be a fresh isolated directory");
         std::filesystem::create_directories(user);
@@ -158,6 +176,14 @@ int main(int argc,char** argv) {
         auto n=args.count("--rate-numerator")?integer(args.at("--rate-numerator")):60000;
         auto d=args.count("--rate-denominator")?integer(args.at("--rate-denominator")):1001;
         if (!n || !d || n>1000000 || d>1000000) throw H::ReplayError("invalid frame rate");
+        H::StageSyncOptions sync;
+        if (args.count("--sync-stage")) {
+            sync.stage=args.at("--sync-stage");
+            if (sync.stage.empty()) throw H::ReplayError("--sync-stage cannot be empty");
+        }
+        if (args.count("--sync-scenario")) sync.scenario=H::syncInteger(args.at("--sync-scenario"));
+        if (args.count("--sync-rng-seed")) sync.seed=H::syncInteger(args.at("--sync-rng-seed"));
+        H::StageSync validateSync(sync);
         H::FloatingPointMode fp(ftz);
         PetariNative::FloatingPointThreadPolicy threadFp(ftz);
         std::fprintf(stderr,"headless: rate %llu/%llu Hz, epoch %llu ticks, FPCR.FZ=%d\n",
@@ -166,7 +192,7 @@ int main(int argc,char** argv) {
         P::OS::enableVirtualTime(static_cast<std::int64_t>(epoch));
         std::ofstream output(path); if (!output) throw H::ReplayError("cannot create trace");
         H::Trace trace(output);
-        Driver driver(replay,trace,path,n,d); gDriver=&driver;
+        Driver driver(replay,trace,path,n,d,std::move(sync)); gDriver=&driver;
         PetariNative::Input::setClock(PetariNative::Input::Clock::Manual);
         PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});
         P::VI::setClock(P::VI::Clock::External); P::VI::setWaitDriver({Driver::viWait,&driver});

@@ -14,6 +14,8 @@ import re
 import struct
 import sys
 
+from sync_validation import validate_sync
+
 POSITION = {prefix + axis for prefix in ("", "sim_") for axis in "xyz"}
 VELOCITY = {prefix + axis for prefix in ("v", "vel_after_", "actor_v") for axis in "xyz"}
 DIRECTION = {prefix + axis for prefix in ("front_", "up_", "actor_up_", "gravity_up_", "g", "actor_gravity_") for axis in "xyz"}
@@ -315,6 +317,8 @@ def format_report(report):
     lines = [f"Trace comparison: {report['status']}"]
     if "initial_non_rng_state" in report:
         lines.append("Initial non-RNG state: " + json.dumps(report["initial_non_rng_state"]))
+    if "synchronization" in report:
+        lines.append("Synchronization: " + report["synchronization"]["status"])
     for error in report["invalid_errors"]:
         lines.append("ERROR: " + error)
     first = report["first_divergence"]
@@ -353,6 +357,9 @@ def main(argv=None):
     parser.add_argument("--expected-frames", type=int, help="require a declared run length; detects identical truncation")
     parser.add_argument("--actors", action="store_true", help="one row per actor/frame; identity defaults to actor_name + actor_id")
     parser.add_argument("--actor-key", action="append", help="repeat for stable identity columns in actor mode")
+    parser.add_argument("--require-sync", action="store_true", help="require stage-sync sidecars and compatible explicit timing/FZ/audio policies")
+    parser.add_argument("--manifest-a", type=Path, help="override A's adjacent capture manifest")
+    parser.add_argument("--manifest-b", type=Path, help="override B's adjacent capture manifest")
     parser.add_argument("--json", type=str, metavar="PATH", help="write machine report; '-' prints only JSON")
     args = parser.parse_args(argv)
     if args.history < 0 or (args.actor_key and not args.actors) or (args.expected_frames is not None and args.expected_frames < 1):
@@ -363,7 +370,13 @@ def main(argv=None):
             raise TraceError("policy must be an object")
         policy = Policy(args.abs_tol, args.rel_tol, overrides)
         actor_keys = tuple(args.actor_key or ("actor_name", "actor_id")) if args.actors else ()
-        report = compare(read_trace(args.a, actor_keys), read_trace(args.b, actor_keys), policy, args.history, actor_keys, args.expected_frames)
+        traces = (read_trace(args.a, actor_keys), read_trace(args.b, actor_keys))
+        report = compare(*traces, policy, args.history, actor_keys, args.expected_frames)
+        sync = validate_sync((args.a, args.b), traces, args.require_sync, (args.manifest_a, args.manifest_b))
+        report["synchronization"] = sync
+        if sync["errors"]:
+            report["invalid_errors"].extend(sync["errors"])
+            report.update(exit_code=2, status="invalid/incomplete")
         report.update(trace_a=str(args.a), trace_b=str(args.b), actor_keys=list(actor_keys),
                       trace_a_sha256=sha256(args.a), trace_b_sha256=sha256(args.b),
                       policy=dict(abs_override=args.abs_tol, relative=args.rel_tol, columns=overrides), expected_frames=args.expected_frames)

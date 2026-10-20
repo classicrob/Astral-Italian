@@ -1,4 +1,5 @@
 #include "trace.hpp"
+#include "stage_sync.hpp"
 #include "replay.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
@@ -37,6 +38,11 @@ unsigned boolean(const bool& value) {
 void vector(State& out, const char* x, const char* y, const char* z, const TVec3f& v) {
     out.real(x, v.x); out.real(y, v.y); out.real(z, v.z);
 }
+}
+void setGameRngSeed(std::uint32_t seed) {
+    auto* system = SingletonHolder<GameSystem>::get();
+    if (!system || !system->mObjHolder) throw ReplayError("game RNG holder unavailable at stage-sync seam");
+    system->mObjHolder->mRandom.mSeed = seed;
 }
 State observeGame() {
     State out;

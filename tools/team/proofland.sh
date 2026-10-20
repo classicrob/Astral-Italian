@@ -20,18 +20,18 @@ git rebase main || { git rebase --abort; echo "rebase conflict: resolve, then re
 cert="$(git rev-parse main) $(git rev-parse HEAD:src) $(git rev-parse HEAD:include) $(git rev-parse HEAD:libs)"
 if [ -n "${REMOTE_PROOF_RECEIPT:-}" ]; then
   [ -n "${REMOTE_PROOF_ROOT:-}" ] && [ -n "${REMOTE_PROOF_HOST:-}" ] || { echo "remote proof root and trusted host required" >&2; exit 1; }
-  nice -n 19 python3 tools/team/remoteproof.py verify --receipt "$REMOTE_PROOF_RECEIPT" --proof-root "$REMOTE_PROOF_ROOT" --host "$REMOTE_PROOF_HOST"
+  lockf -k "$lock" nice -n 19 python3 tools/team/remoteproof.py verify --receipt "$REMOTE_PROOF_RECEIPT" --proof-root "$REMOTE_PROOF_ROOT" --host "$REMOTE_PROOF_HOST"
   export REMOTE_PROOF_CONTRACT=build/remote-proof-contract.json
 fi
 if [ "$(cat build/hookproof-land.cert 2>/dev/null)" != "$cert" ]; then
-  lockf -k "$lock" sh tools/team/hookproof.sh build/hookproof-land main HEAD | tee build/hookproof-land.txt
+  lockf -k "$lock" nice -n 19 sh tools/team/hookproof.sh build/hookproof-land main HEAD | tee build/hookproof-land.txt
   grep -q '^PROOF OK' build/hookproof-land.txt || { echo "proof failed: not landing" >&2; exit 1; }
   echo "$cert" > build/hookproof-land.cert
 else
   echo "proof certificate current for $cert"
 fi
 # Inside the build lock: commit helper WIP that appeared while waiting, re-check the proven sources, land.
-LAND_LOCK_HELD=$pid CERT_TREES="${cert#* }" lockf -k "$lock" sh -c '
+LAND_LOCK_HELD=$pid CERT_TREES="${cert#* }" lockf -k "$lock" nice -n 19 sh -c '
   git add -A native tools docs CMakeLists.txt CMakePresets.json 2>/dev/null || true
   git diff --cached --quiet || git commit -q -m "port: helper WIP (native/tools/docs only)"
   [ -z "$(git status --porcelain --untracked-files=no)" ] || { git status --short; echo "unexpected dirty files" >&2; exit 1; }

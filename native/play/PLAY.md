@@ -198,6 +198,10 @@ What was checked (`~/MacioGalaxy2-play/FROZEN.txt` has the numbers):
   this build.
 
 Known issues (honest list):
+- **Home-menu Level Select does nothing** (builds 4 and 5): Go sets `PlayerLaunch::warpPending`
+  (native/home_menu/hbm_bridge.cpp), but no SMG2 code consumes it. MacioGalaxy does it in `GameScene::update`
+  (once `isPermitToPauseMenu()`, through the game's own galaxy move); that hook was never carried over. Use the
+  launcher's galaxy menu or `--stage` instead. Fix planned for 5.1 (GameScene, GAME lead).
 - **Build 4 and Yoshi Star Galaxy / poisoned shader cache**: build 4 aborts in Yoshi Star Galaxy ("unhandled tcg src
   21": the alpha-shadow pass draws with zero texgens; fixed for build 5 in the Aurora pipeline layer). Aurora stores a
   pipeline config before compiling it, so the crash leaves that row in the shared cache, and build 4 prebuilds every

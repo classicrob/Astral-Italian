@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <petari/odyssey_move.hpp>
+#include "Game/Player/MarioCappy.hpp"
 extern "C" bool petari_mod_enabled(int mod);
 #endif
 #include <revolution/gd.h>
@@ -837,7 +838,7 @@ void MarioActor::controlMain() {
                          Live::spinBuffer, static_cast< int >((mMario->mMovementStates.mLowWord >> 20) & 1U));
         }
     }
-    // Cappy mod (separate, not ported): petariCappyInput(this)
+    petariCappyInput(this);
 #endif
     update2D();
     if (mActorEffectState->mActive) {
@@ -859,6 +860,9 @@ void MarioActor::controlMain() {
         updateFairyStar();
         _930 = 0;
     }
+#ifdef GALAXY_NATIVE
+    petariCappyUpdate(this);
+#endif
 }
 
 
@@ -1020,7 +1024,7 @@ void MarioActor::updateSwingAction() {
         _946 = 0;
     }
 #ifdef GALAXY_NATIVE
-    // Cappy mod (separate, not ported): petariCappySwingAction(this)
+    petariCappySwingAction(this);
     // OdysseyMovement: the mod's Spin moves read the swing's rising edge directly,
     // buffered SpinBufferFrames frames, without Galaxy's spin cooldown (_946) and
     // swing lockouts (_F1C/_F1E). A press they use starts no Galaxy spin and no
@@ -5993,6 +5997,9 @@ void MarioActor::initParts() {
     _994 = new MarioParts(this, "スピンチコ", "SpinTico", false, getBaseMtx(), nullptr);
     _994->initWithoutIter();
     _994->kill();
+#ifdef GALAXY_NATIVE
+    petariCappyInit(this);
+#endif
 }
 
 

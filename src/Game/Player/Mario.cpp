@@ -138,6 +138,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <petari/odyssey_move.hpp>
+#include "Game/Player/MarioCappy.hpp"
 extern "C" bool petari_mod_enabled(int mod);
 namespace {
     constexpr int kModOdysseyMovement = 2;  // PetariNative::Mods::Mod::OdysseyMovement
@@ -157,6 +158,8 @@ namespace {
     // default): Jump pressed during the mod's ground pound dives, as Spin does.
     constexpr int kModOdysseyJumpDive = 4;
     s32 sOdysseyAirFrames = 0;             // frames in procJump's air branch since the last landing (or wall jump)
+    int sCappyPostBounceDives = 0;
+    bool sCappyDiveReady = false;
     bool sOdysseyAirDived = false;         // one jump-press dive per airtime (a cap bounce gives it back)
 
     bool odysseyOn() { return petari_mod_enabled(kModOdysseyMovement); }
@@ -190,7 +193,6 @@ namespace {
         return sOdyssey.active ? sOdyssey.air.up : up.dot(pMario->mJumpVec);
     }
 
-    // Cappy mod (separate, not ported): petariOdysseyAirThrow, petariOdysseyCapBounce
 
     // OdysseyMovement: SMO's dive (20 forward, 28 up, gravity 2.0) from a ground
     // pound in the air, on Spin or (OdysseyJumpDive) Jump (procHipDrop).
@@ -213,7 +215,11 @@ namespace {
         odysseyStart(PetariNative::Odyssey::Air::Dive, m.getAirFrontVec(), up, 0.0f, m._430);
         sOdyssey.lastChain = -1;
         sOdysseyAirDived = true;
-        // Cappy mod (separate, not ported): petariCappyDiveStarted()
+        if (sCappyDiveReady) {
+            ++sCappyPostBounceDives;
+            sCappyDiveReady = false;
+        }
+        petariCappyDiveStarted();
         std::fprintf(stderr, "[odyssey] dive (%s) from (%.3f, %.3f, %.3f)\n", pFrom, m.mPosHolder->mPos.x, m.mPosHolder->mPos.y,
                      m.mPosHolder->mPos.z);
     }
@@ -239,6 +245,73 @@ namespace {
         return false;
     }
 }  // namespace
+
+bool petariOdysseyAirThrow(Mario* pMario, bool hop) {
+    Mario& m = *pMario;
+    if (!((m.mMovementStates.mLowWord & Mario::MovementStates::Jumping) != 0) || ((m.mMovementStates.mLowWord >> 20) & 1U) || ((m.mMovementStates.mLowWord >> 30) & 1U)) {
+        return false;
+    }
+    TVec3f up(-m.mActor->mAppliedGravityVec);
+    MR::normalizeOrZero(&up);
+    const TVec3f velocity = odysseyAirVelocity(pMario, up);
+    const f32 upSpeed = odysseyUpSpeed(pMario, up);
+    TVec3f dir(velocity);
+    MR::normalizeOrZero(&dir);
+    if (MR::isNearZero(dir)) {
+        dir = m.getAirFrontVec();
+    }
+    odysseyStart(PetariNative::Odyssey::Air::CapThrow, dir, up, velocity.length(), m._430);
+    sOdyssey.air = PetariNative::Odyssey::startCapThrow(velocity.length(), upSpeed, hop);
+    sOdyssey.lastChain = -1;
+    m.stopAnimationUpper(nullptr);
+    m.changeAnimation("空中ひねり", "落下");
+    return true;
+}
+
+// Cappy mod: bounce off the cap. From a dive: up 22, gravity 1.0, horizontal up
+// to 16; from a ground pound: up 35, gravity 1.5; otherwise up 25, gravity 1.0
+// (a jump's horizontal rules). Galaxy sees a normal jump (_430 0) with its
+// mid-air somersault.
+void petariOdysseyCapBounce(Mario* pMario) {
+    namespace Odyssey = PetariNative::Odyssey;
+    Mario& m = *pMario;
+    TVec3f up(-m.mActor->mAppliedGravityVec);
+    MR::normalizeOrZero(&up);
+    const bool groundPound = ((m.mMovementStates.mLowWord >> 20) & 1U);
+    const bool dive = sOdyssey.active && sOdyssey.air.kind == Odyssey::Air::Dive;
+    const Odyssey::Air kind = groundPound ? Odyssey::Air::GroundPoundCapBounce : dive ? Odyssey::Air::DiveCapBounce : Odyssey::Air::CapBounce;
+    TVec3f velocity = groundPound ? TVec3f(0.0f, 0.0f, 0.0f) : odysseyAirVelocity(pMario, up);
+    TVec3f dir(velocity);
+    MR::normalizeOrZero(&dir);
+    if (MR::isNearZero(dir)) {
+        dir = m.getAirFrontVec();
+    }
+    if (groundPound) {
+        m.mMovementStates.mLowWord &= ~(1U << 20);
+        m._424 = 0;
+    }
+    m._430 = 0;
+    // The dive holds the leap's last frame at rate 0 (procJump): play on.
+    if (XanimeFrameCtrl* ctrl = m.getAnimator()->getXanimePlayer()->getFrameCtrl(); ctrl != nullptr) {
+        ctrl->setRate(1.0f);
+    }
+    m.stopAnimationUpper(nullptr);
+    m.stopAnimation(nullptr);
+    m.changeAnimation("空中一回転", "落下");
+    m.playSound("中ジャンプ");
+    m.playSound("声中ジャンプ");
+    m.playSound("ジャンプ踏切");
+    odysseyStart(kind, dir, up, velocity.length(), m._430);
+    sOdyssey.lastChain = -1;
+    // A cap bounce is a new air action: the jump-press dive is available again.
+    sCappyDiveReady = true;
+    sOdysseyAirDived = false;
+    sOdysseyAirFrames = 0;
+    std::fprintf(stderr, "[odyssey] cap bounce (kind %d) from (%.3f, %.3f, %.3f)\n", static_cast< int >(kind), m.mPosHolder->mPos.x,
+                 m.mPosHolder->mPos.y, m.mPosHolder->mPos.z);
+}
+extern "C" int petari_cappy_post_bounce_dives() { return sCappyPostBounceDives; }
+
 #endif
 
 // ---- Mario.cpp ----
@@ -7339,6 +7412,7 @@ void Mario::tryJump() {
     if ((mFlags14.mLowWord >> 5) & 1) _430 = 0;
 #ifdef GALAXY_NATIVE
     sOdyssey.active = false;
+    sCappyDiveReady = false;
     sOdysseyAirFrames = 0;  // a new airtime (also after a landing that skipped procJump's, e.g. water)
     sOdysseyAirDived = false;
     if (odysseyJump) {
@@ -7977,7 +8051,7 @@ void Mario::tryWallJump(const TVec3f& rVec, bool a2) {
         MR::normalizeOrZero(&up);
         odysseyStart(PetariNative::Odyssey::Air::WallJump, rVec, up, 0.0f, _430);
         sOdyssey.lastChain = -1;
-        // Cappy mod (separate, not ported): petariCappyWallJump()  (no cap bounce until the next landing)
+        petariCappyWallJump();
         sOdysseyAirFrames = 0;  // the wall jump's own press does not dive
     }
 #endif
@@ -8336,6 +8410,7 @@ void Mario::procJump(bool a1) {
     if(((mMovementStates.mLowWord >> 30) & 1U) && !a1) {
         sOdysseyLanded = sOdyssey.active ? sOdyssey.air.kind : PetariNative::Odyssey::Air::None;
         sOdyssey.active = false;
+        sCappyDiveReady = false;
         sOdysseyAirFrames = 0;
         sOdysseyAirDived = false;
         PetariNative::Odyssey::Live::noSpinAir = false;

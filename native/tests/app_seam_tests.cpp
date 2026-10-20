@@ -265,6 +265,7 @@ int petari_cappy_state() {
 int petari_cappy_hits() {
     return 0;
 }
+int petari_cappy_post_bounce_dives() { return 0; }
 int petari_cappy_collected() {
     return 0;
 }

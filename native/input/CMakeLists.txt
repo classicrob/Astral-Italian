@@ -111,6 +111,7 @@ if(BUILD_TESTING)
         ${PETARI_REPO_ROOT}/src/Game/System/WPadPointer.cpp
         ${PETARI_REPO_ROOT}/src/Game/System/WPadRumble.cpp
         ${PETARI_REPO_ROOT}/src/Game/System/RumbleData.cpp
+        ${PETARI_REPO_ROOT}/src/Game/System/RumbleDataNative.cpp
         ${PETARI_REPO_ROOT}/src/Game/System/WPadStick.cpp
         ${PETARI_REPO_ROOT}/src/Game/Util/GamePadUtil.cpp
         ${PETARI_REPO_ROOT}/src/Game/Util/HashUtil.cpp
@@ -127,6 +128,7 @@ if(BUILD_TESTING)
         target_compile_definitions(petari_input_tests PRIVATE PETARI_INPUT_TEST_SDL3=1)
     endif()
     add_test(NAME native_input COMMAND petari_input_tests)
+    add_test(NAME native_cappy_input COMMAND petari_input_tests --cappy-only)
 
     add_executable(petari_smg2_sdk_tests ${PETARI_REPO_ROOT}/native/tests/smg2_sdk_tests.cpp)
     target_link_libraries(petari_smg2_sdk_tests PRIVATE petari_input)

@@ -52,6 +52,30 @@ int main() {
     auto truncated=tape();truncated.pop_back();rejects([&]{std::istringstream in(truncated);Replay bad(in);},"truncated tape");
     auto trailing=tape()+"x";rejects([&]{std::istringstream in(trailing);Replay bad(in);},"trailing bytes");
     auto corrupt=tape();corrupt[8+8+8+8+4+3]=4;rejects([&]{std::istringstream in(corrupt);Replay bad(in);},"invalid channel");
+    for (unsigned bootFrames : {2, 19}) {
+        std::istringstream gatedSource(tape()); Replay gated(gatedSource, true);
+        for (unsigned boot = 0; boot < bootFrames; ++boot) {
+            check(gated.waitingForSync() && !gated.finished(), "pre-sync input remains pending");
+            for (unsigned channel = 0; channel < 4; ++channel) {
+                const auto* connection = gated.connection(channel);
+                check(connection && connection->probeError == -1 && connection->device == 253, "pre-sync controllers are disconnected");
+                const auto& idle = gated.consume(channel, 120);
+                check(idle.returned == 0 && idle.error == -2 && idle.samples[0][92] == 253 && idle.samples[0][93] == 255,
+                      "pre-sync read supplies only the disconnected slot-zero sentinel");
+            }
+            gated.endFrame();
+            check(gated.frame() == 0, "boot and anchor do not consume tape frames");
+        }
+        rejects([&] { gated.consume(4, 120); }, "pre-sync invalid channel");
+        rejects([&] { gated.consume(0, 0); }, "pre-sync invalid capacity");
+        gated.startInputs();
+        check(!gated.waitingForSync() && gated.connection(0)->device == 1, "ready anchor releases tape connection");
+        check(gated.consume(0, 120).samples[0][0] == 0x80, "first post-anchor loop consumes exact tape row zero");
+        gated.endFrame(); gated.startInputs();
+        check(gated.frame() == 1, "starting twice cannot rewind tape");
+        gated.consume(0, 120); gated.endFrame();
+        check(gated.finished(), "all suffix frames complete independent of boot length");
+    }
     GxLedger fifo;std::uint8_t storage[64]{};const std::uint8_t data[3]={0x61,0x12,0x34};
     fifo.write(data,3);check(fifo.bytes()==3,"direct FIFO byte count");
     fifo.begin(storage,64);fifo.write(data,3);check(fifo.end()==32,"display list padding");

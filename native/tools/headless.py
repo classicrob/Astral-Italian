@@ -87,7 +87,7 @@ def sync_completion(path, args):
         raise ValueError("invalid stage-sync RNG provenance")
     if args.sync_rng_seed is not None and origin["rng_seed"] != args.sync_rng_seed:
         raise ValueError("stage-sync forced seed mismatch")
-    frames = args.frames - origin["source_frame"]
+    frames = args.frames + 1 if args.inputs_from_sync else args.frames - origin["source_frame"]
     if frames <= 0:
         raise ValueError("stage-sync origin outside input tape")
     with args.trace.open(newline="") as source:
@@ -324,6 +324,7 @@ def main(argv=None):
     run.add_argument("--request", help='shared startup command: galaxy "Name" scenario N')
     run.add_argument("--stage", help="shared catalog internal name, alias, or English galaxy label")
     run.add_argument("--scenario", type=sync_number, help="actual selected ScenarioNo; defaults to 1 with --stage")
+    run.add_argument("--inputs-from-sync", action="store_true", help="hold all channels disconnected until the ready seam, then consume tape frame 0; trace includes the anchor")
     run.add_argument("--sync-stage", help="canonical target stage at the first ready post-endFrame seam")
     run.add_argument("--sync-scenario", type=sync_number, help="placed ScenarioNo, not selected hidden/green ID")
     run.add_argument("--sync-rng-seed", type=sync_number, help="one-shot test override of the game RNG at that seam")
@@ -353,6 +354,8 @@ def main(argv=None):
                 output.unlink()
             raise
         return 0
+    if args.inputs_from_sync and args.sync_stage is None:
+        raise ValueError("--inputs-from-sync requires --sync-stage")
     if args.sync_stage is not None:
         if not re.fullmatch(r"[A-Za-z0-9_]{1,127}", args.sync_stage) or not args.sync_scenario or args.sync_scenario > 0x7fffffff:
             raise ValueError("stage sync requires an internal stage name and positive placed scenario")
@@ -387,6 +390,8 @@ def main(argv=None):
         command = [str(args.executable.expanduser().resolve()), "--inputs", str(tape), "--disc", str(disc),
                    "--user", str(user), "--trace", str(trace), "--epoch-ticks", str(args.epoch_ticks),
                    "--rate-numerator", str(args.rate_numerator), "--rate-denominator", str(args.rate_denominator)]
+        if args.inputs_from_sync:
+            command.append("--inputs-from-sync")
         if args.no_ftz:
             command.append("--no-ftz")
         if args.request is not None:
@@ -411,7 +416,8 @@ def main(argv=None):
         diagnostic = Path(command[0] + ".diagnostic.json").is_file()
         manifest = {"schema_version": 1, "frames": args.frames, "input_frames": args.frames, "timing_policy": timing_policy, "wall_timeout_seconds": 540, "epoch_ticks": args.epoch_ticks,
                     "rate_numerator": args.rate_numerator, "rate_denominator": args.rate_denominator,
-                    "fpcr_fz": not args.no_ftz, "input_sha256": digest(source), "columns": trace_columns(),
+                    "fpcr_fz": not args.no_ftz, "input_sha256": digest(source), "inputs_from_sync": args.inputs_from_sync,
+                    "input_origin": "first loop after ready anchor" if args.inputs_from_sync else "boot", "columns": trace_columns(),
                     "disc_root": str(disc), "startup_request": args.request, "startup_stage": args.stage, "startup_scenario": args.scenario, "status": "prepared", "command": command, "timing_csv": str(timing),
                     "sync_json": str(sync_path) if args.sync_stage is not None else None,
                     "executable_sha256": digest(args.executable) if args.executable.is_file() else None}

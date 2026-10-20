@@ -22,7 +22,18 @@ std::int32_t signed32(std::istream& in) {
     return result;
 }
 }
-Replay::Replay(std::istream& in) {
+Replay::Replay(std::istream& in, bool inputsFromSync) : mWaitingForSync(inputsFromSync) {
+    for (unsigned channel = 0; channel < 4; ++channel) {
+        auto& read = mDisconnected[channel];
+        read = {};
+        read.channel = channel;
+        read.error = -2;
+        read.probeError = -1;
+        read.device = 253;
+        read.samples.resize(1);
+        read.samples[0][92] = 253;
+        read.samples[0][93] = 255;
+    }
     char magic[8];
     if (!in.read(magic, sizeof(magic)) || std::memcmp(magic, "SMG2KPD1", 8)) throw ReplayError("bad KPAD tape magic");
     mFrames = number(in, 8);
@@ -61,6 +72,12 @@ Replay::Replay(std::istream& in) {
     if (in.peek() != std::char_traits<char>::eof()) throw ReplayError("trailing KPAD tape data");
 }
 const Read& Replay::consume(std::uint32_t channel, std::uint32_t capacity) {
+    if (mWaitingForSync) {
+        if (channel >= 4 || !capacity || capacity > 4096) throw ReplayError("invalid pre-sync KPAD read");
+        auto& read = mDisconnected[channel];
+        read.capacity = capacity;
+        return read;
+    }
     if (finished() || mNext == mReads.size()) throw ReplayError("extra KPAD read at frame " + std::to_string(mFrame));
     const auto& read = mReads[mNext];
     if (read.frame != mFrame || read.ordinal != mOrdinal || read.channel != channel || read.capacity != capacity)
@@ -71,6 +88,7 @@ const Read& Replay::consume(std::uint32_t channel, std::uint32_t capacity) {
     return read;
 }
 void Replay::endFrame() {
+    if (mWaitingForSync) return;
     if (finished()) throw ReplayError("extra game frame after end of KPAD tape");
     if (mNext < mReads.size() && mReads[mNext].frame == mFrame) throw ReplayError("missing KPAD reads at frame " + std::to_string(mFrame));
     ++mFrame;
@@ -78,6 +96,7 @@ void Replay::endFrame() {
     mOrdinal = 0;
 }
 const Read* Replay::connection(std::uint32_t channel) const {
+    if (mWaitingForSync) return channel < 4 ? &mDisconnected[channel] : nullptr;
     for (auto i = mFrameStart; i < mReads.size() && mReads[i].frame == mFrame; ++i)
         if (mReads[i].channel == channel) return &mReads[i];
     return nullptr;

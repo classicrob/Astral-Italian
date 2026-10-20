@@ -33,6 +33,7 @@ CENSUS_COLUMNS = ('schema_version frame scene_epoch scene stage scenario init_st
 SIDES = ('native', 'dolphin', 'dolphin_repeat')
 COMMON_ARTIFACTS = {'frames', 'actors', 'census', 'sync', 'manifest', 'executable', 'producer', 'input'}
 COVERAGE = {'initialization', 'input_delivery', 'actor_identity', 'timing', 'floating_point', 'state_rng'}
+CALLBACK_ONLY_NOTICE = 'unavailable (callback-context only)'
 DIGEST = re.compile(r'[0-9a-f]{64}\Z')
 HEX_NAME = re.compile(r'(?:[0-9a-f]{2}){0,1023}\Z')
 
@@ -430,6 +431,29 @@ def admission(fixture, root, pins):
     return record
 
 
+def observer_contract(manifest):
+    """Check actual D145 metadata; no complete-notice provider exists yet.
+
+    An owner admission cannot manufacture availability. A future complete or
+    not-applicable contract requires its own provider/parent review; no string
+    below is accepted as a success label or inferred from a blank CSV cell.
+    """
+    errors = []
+    incomplete = manifest.get('observer_contract_incomplete')
+    if type(incomplete) is not bool:
+        errors.append('required observer_contract_incomplete is missing/unknown')
+    elif incomplete:
+        errors.append('producer declares observer_contract_incomplete=true')
+    availability = manifest.get('field_availability')
+    if not isinstance(availability, dict) or 'pending_state_id' not in availability:
+        errors.append('required pending_state_id availability is missing/unknown')
+    elif availability['pending_state_id'] == CALLBACK_ONLY_NOTICE:
+        errors.append('pending_state_id is unavailable (callback-context only), not absent')
+    else:
+        errors.append('pending_state_id availability has no implemented/approved provider contract')
+    return errors
+
+
 def compare_pair(a, b, expected):
     frames = tracediff.compare(a['frames'], b['frames'], expected_frames=expected, history=120)
     actors = tracediff.compare(a['projected'], b['projected'], actor_keys=('record_kind', 'record_id'),
@@ -466,6 +490,7 @@ def evaluate(fixture_path):
         scenario = uint(fixture.get('scenario'), 1)
         captures, manifests, paths_by_side = {}, {}, {}
         windows = []
+        contract_errors = []
         for side in SIDES:
             required = COMMON_ARTIFACTS | ({'timing', 'completion'} if side == 'native' else set())
             require(isinstance(fixture.get(side), dict) and set(fixture[side]) == required, side + ': missing/unknown capture artifacts')
@@ -475,8 +500,17 @@ def evaluate(fixture_path):
                     and paths['census'] == Path(str(paths['frames']) + '.actor-frames.csv'), side + ': actor sidecar paths mismatch')
             require(not any(Path(str(path) + '.partial').exists() for path in paths.values()), side + ': partial capture artifact remains')
             manifest = load_json(paths['manifest'])
+            gaps = observer_contract(manifest)
+            report.setdefault('observer_contracts', {})[side] = dict(
+                qualified=not gaps, errors=gaps,
+                observer_contract_incomplete=manifest.get('observer_contract_incomplete'),
+                field_availability=manifest.get('field_availability'))
+            contract_errors.extend(side + ': ' + gap for gap in gaps)
             main = tracediff.read_trace(paths['frames'])
             validate_frames(main, expected, stage, scenario)
+            if isinstance(manifest.get('field_availability'), dict) and manifest['field_availability'].get('pending_state_id') == CALLBACK_ONLY_NOTICE:
+                require(all(row['pending_state_id'] == '' for row in main.rows.values()),
+                        side + ': declared unavailable pending_state_id must remain blank, never a substitute value')
             extra = producer(side, paths, manifest, expected, main.columns)
             for label, spec in extra.items():
                 artifact(spec, root, side + '.' + label, pins)
@@ -488,12 +522,23 @@ def evaluate(fixture_path):
             paths_by_side[side], manifests[side] = paths, manifest
             windows.append(input_window(paths, manifest, expected, native=side == 'native'))
         require(windows[0] == windows[1] == windows[2], 'actual post-anchor input reads differ (prefixes retained, no realignment)')
+        sync_errors = []
         for left, right in (('native', 'dolphin'), ('dolphin', 'dolphin_repeat')):
             sync = validate_sync([paths_by_side[s]['frames'] for s in (left, right)],
                                  [captures[s]['frames'] for s in (left, right)], require=True,
                                  manifests=[paths_by_side[s]['manifest'] for s in (left, right)])
             report.setdefault('diagnostics', {}).setdefault('synchronization', {})[left + '/' + right] = sync
-            require(sync['compatible'], '; '.join(sync['errors']))
+            sync_errors.extend(sync['errors'])
+        if contract_errors:
+            report['diagnostics']['observer_contract_comparisons'] = dict(
+                qualification='UNQUALIFIED_OBSERVER_CONTRACT',
+                scope='Recorded fields only; blank pending_state_id is not evidence of absence or full observer coverage. No gameplay divergence or equivalence verdict.',
+                native_vs_dolphin=compare_pair(captures['native'], captures['dolphin'], expected),
+                dolphin_repeat=compare_pair(captures['dolphin'], captures['dolphin_repeat'], expected))
+            for label, pin in dict(pins, fixture=fixture_pin).items():
+                require(tracediff.sha256(pin['path']) == pin['sha256'], label + ': input changed during diagnostic comparison')
+        require(not contract_errors, '; '.join(contract_errors))
+        require(not sync_errors, '; '.join(sync_errors))
         admission_record = admission(fixture, root, pins)
         report['admission'] = dict(reviewer=admission_record['reviewer'], rationale=admission_record['rationale'])
         pins['fixture'] = fixture_pin
@@ -541,6 +586,8 @@ def markdown(report):
              'Measured frame divergences: ' + str(report['measured_diverging_frames']),
              'Measured actor/census divergences: ' + str(report['measured_diverging_actor_records'])]
     lines.extend('\n- ' + error for error in report['errors'])
+    if any(not record['qualified'] for record in report.get('observer_contracts', {}).values()):
+        lines.extend(['', 'Observer coverage is unavailable/unknown. Any retained comparisons are explicitly unqualified diagnostics; a blank pending cell does not establish absence.'])
     if report['first_divergence']:
         first = report['first_divergence']
         lines.extend(['', 'First divergence (' + first['kind'] + '):', '', '```json', json.dumps(first, indent=2), '```'])

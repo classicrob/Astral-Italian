@@ -761,6 +761,30 @@ qualification. No receipt, missing evidence, stale bindings or unknown policy
 means BLOCKED. Synthetic unit tests mock admission **only inside tests** to
 exercise orchestration; there is no runtime admission bypass.
 
+
+The D145 observer contract explicitly declares
+`observer_contract_incomplete: true` and
+`field_availability.pending_state_id: "unavailable (callback-context only)"`.
+Both observers leave that CSV cell blank; it is callback scratch, not a valid
+always-live pending-state field at this seam. The gate **must BLOCK**, with null
+measurements, even if an independent admission receipt is supplied. Missing or
+unknown required availability/flag metadata also blocks. There is currently no
+implemented complete-notice or not-applicable provider, and the gate accepts no
+invented success label or default. A future such contract requires separate
+owner/parent approval. The unavailable cell must stay blank: it is never replaced
+with zero, null, an active state-head value, or inferred absence.
+
+After all actual capture/input/count/player validations, permitted comparisons
+may be retained under `diagnostics.observer_contract_comparisons`, explicitly
+`UNQUALIFIED_OBSERVER_CONTRACT`. Original columns and raw files stay intact;
+recorded positions, state-head stack, actors and input checks are unchanged.
+Timing/sync errors remain reported, with no unknown values filled. These
+comparisons are neither gameplay divergence nor whole-state equivalence and
+never populate the gate's measured counts or first-divergence verdict. Synthetic
+mechanics tests may mock the observer guard only inside tests; the runtime has
+no bypass. Dedicated unmocked contract tests check unavailable/missing/unknown
+metadata and positive-admission counterexamples.
+
 Run mechanics tests with:
 
 ```sh

@@ -69,6 +69,14 @@ public:
     // (see createWorldMapHeap), and native resource-object growth gets cWorldMapNativeAllowance on top of the
     // Wii size. The world map heap's archives are chosen by name, not by free space, so the allowance does not
     // change what is placed there.
+    //
+    // Measured (GX app, PETARI_TRACE_BOOT [heap-peak] at destroy, Starship scenario 2 and the world map stages):
+    // peak use of the world map heap, with the J3D host copies on the companion, was 8,360,968 bytes for the
+    // Starship (7,446,552 of it archives at mount, so 0.91 MB of resource objects after mount), 7,767,176 for
+    // WorldMap01Galaxy and 7,764,168 for WorldMap04Galaxy, against the Wii's 8,650,752: every measured peak is
+    // below the Wii size. The companion held 5.62 MB (65%) for the Starship and 0.57 MB for the world maps. The
+    // allowance is therefore margin for native object growth the measured stages do not reach (headroom to Wii
+    // size + allowance was 1.34 MB or more); re-measure with the [heap-peak] line before lowering it.
     JKRSolidHeap* mWorldMapHostImageHeap;
     static const u32 cWorldMapWiiSize = 0x840000;
     static const u32 cWorldMapNativeAllowance = 0x100000;

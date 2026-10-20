@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("headless", ROOT / "native/tools/headless.py")
 headless = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(headless)
+bounded_spec = importlib.util.spec_from_file_location("bounded_run", ROOT / "native/tools/bounded_run.py")
+bounded = importlib.util.module_from_spec(bounded_spec)
+bounded_spec.loader.exec_module(bounded)
 gx_spec = importlib.util.spec_from_file_location("gx_noops", ROOT / "native/app/headless/gen_gx_noops.py")
 gx = importlib.util.module_from_spec(gx_spec)
 gx_spec.loader.exec_module(gx)
@@ -238,6 +241,16 @@ class InterchangeTests(unittest.TestCase):
                 headless.sync_number(value)
         self.assertEqual(headless.sync_number("012"), 12)
         self.assertEqual(headless.sync_number("0xffffffff"), 0xffffffff)
+
+    def test_wall_deadline_terminates_only_the_spawned_process_group(self):
+        with patch.object(bounded.subprocess, "Popen") as spawn, patch.object(bounded.os, "killpg") as kill:
+            child = spawn.return_value
+            child.pid = 12345
+            child.wait.side_effect = [bounded.subprocess.TimeoutExpired("fixture", 540), 0, 0]
+            self.assertEqual(bounded.run(["fixture"], 540), 124)
+            spawn.assert_called_once_with(["fixture"], start_new_session=True)
+            self.assertEqual(kill.call_args_list, [unittest.mock.call(12345, bounded.signal.SIGTERM),
+                                                  unittest.mock.call(12345, bounded.signal.SIGKILL)])
 
     def test_timing_sidecar_rejects_gaps_and_backwards_time(self):
         with tempfile.TemporaryDirectory() as tmp:

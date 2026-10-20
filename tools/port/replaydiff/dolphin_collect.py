@@ -439,7 +439,8 @@ def collect(args):
                 if type(input_frames) is not int or input_frames < 1:
                     raise ObserverError("input script must declare a positive source-frame count")
             inputs = ScriptedInput(script, input_frames, output / "inputs.jsonl", args.live_input_script)
-            manifest.update(input_method="scripted filtered KPAD injection", input_script_sha256=sha256(script),
+            manifest.update(input_method="scripted filtered KPAD injection", input_frames=input_frames,
+                            input_script_sha256=sha256(script),
                             input_adapter_sha256=sha256(Path(__file__).with_name("kpad_script.py")),
                             input_contract_sha256=sha256(REPO / "native/tools/headless.py"))
             (output / "input-script.json").write_bytes(script.read_bytes())
@@ -464,7 +465,7 @@ def collect(args):
             manifest["rtc_epoch"] = config.getint("Core", "CustomRTCValue")
             manifest["timing_policy"] = dict(
                 tick_hz=60750000, tick_hz_basis="guest PPC time-base ticks: Dolphin Wii 729000000 / TIMER_RATIO 12; not measured",
-                rate_numerator=None, rate_denominator=None,
+                rate_numerator=None, rate_denominator=None, epoch_ticks=None,
                 rate_basis="guest VI configuration; this collector does not observe VI registers",
                 fpcr_fz=None, fp_policy="Gekko semantics under selected Dolphin CPU core; host FPCR not observed",
                 audio_output="off" if config.get("DSP", "Backend", fallback="") == "No Audio Output" else "configured backend",
@@ -675,6 +676,8 @@ def main():
     args = parser.parse_args()
     if args.action == "collect" and (bool(args.sync_stage) != (args.sync_scenario is not None)):
         parser.error("--sync-stage and --sync-scenario must be supplied together")
+    if args.action == "collect" and args.sync_scenario is not None and args.sync_scenario <= 0:
+        parser.error("--sync-scenario must be a positive placed ScenarioNo")
     if args.action == "collect" and args.sync_stage and not all(
             char.isascii() and (char.isalnum() or char == "_") for char in args.sync_stage):
         parser.error("--sync-stage must be a canonical internal stage identifier")

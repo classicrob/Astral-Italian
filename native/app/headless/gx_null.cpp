@@ -3,6 +3,7 @@
 #include <revolution/vi.h>
 #include <revolution/os.h>
 #include <petari/platform/gx_sync.hpp>
+#include <petari/progress_hook.hpp>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -63,6 +64,10 @@ GXRenderModeObj mode(VITVMode tv, u16 height) {
 }
 }
 extern "C" {
+void petari_gx_pipeline_stage_begin(const char*, const char*) { ++gCalls; }
+bool petari_gx_waiting_for_pipeline() { return false; }
+void petari_progress_badge(const char*, int, float, float) { ++gCalls; }
+void petari_progress_star_get(int, int) { ++gCalls; }
 GXRenderModeObj GXNtsc480IntDf = mode(VI_TVMODE_NTSC_INT, 480);
 GXRenderModeObj GXNtsc480Int = mode(VI_TVMODE_NTSC_INT, 480);
 GXRenderModeObj GXMpal480IntDf = mode(VI_TVMODE_MPAL_INT, 480);

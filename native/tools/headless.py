@@ -390,7 +390,7 @@ def main(argv=None):
                              rate_denominator=args.rate_denominator, epoch_ticks=args.epoch_ticks,
                              fpcr_fz=not args.no_ftz, audio_output="off", audio_processing="virtual-ai-dsp",
                              tick_hz_basis="native SDK virtual timebase", fp_policy="ARM FPCR.FZ on game/device/OS threads")
-        manifest = {"schema_version": 1, "frames": args.frames, "input_frames": args.frames, "timing_policy": timing_policy, "epoch_ticks": args.epoch_ticks,
+        manifest = {"schema_version": 1, "frames": args.frames, "input_frames": args.frames, "timing_policy": timing_policy, "wall_timeout_seconds": 540, "epoch_ticks": args.epoch_ticks,
                     "rate_numerator": args.rate_numerator, "rate_denominator": args.rate_denominator,
                     "fpcr_fz": not args.no_ftz, "input_sha256": digest(source), "columns": trace_columns(),
                     "disc_root": str(disc), "status": "prepared", "command": command, "timing_csv": str(timing),
@@ -399,7 +399,7 @@ def main(argv=None):
         with manifest_path.open("x") as out:
             json.dump(manifest, out, indent=2)
             out.write("\n")
-        status = subprocess.call(["lockf", "-k", str(lock), "nice", "-n", "10", *command])
+        status = subprocess.call(["lockf", "-k", str(lock), "nice", "-n", "10", sys.executable, str(REPO / "native/tools/bounded_run.py"), "540", *command])
         trace_frames, origin, validation_error = args.frames, None, None
         try:
             if args.sync_stage is not None:

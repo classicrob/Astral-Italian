@@ -51,7 +51,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/gx_noops.inc"
         --manual "${CMAKE_CURRENT_SOURCE_DIR}/gx_null.cpp"
     DEPENDS gen_gx_noops.py gx_null.cpp ${_gx_headers}
     VERBATIM)
-add_library(petari_gx_null STATIC gx_null.cpp "${CMAKE_CURRENT_BINARY_DIR}/gx_noops.inc")
+add_library(petari_gx_null STATIC gx_null.cpp "${_headless_root}/native/gx/sync_backend.cpp" "${CMAKE_CURRENT_BINARY_DIR}/gx_noops.inc")
 target_include_directories(petari_gx_null PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(petari_gx_null PUBLIC petari_native_config petari_headless_core petari_platform_gx_sync)
 file(GLOB _gd_sources CONFIGURE_DEPENDS "${_headless_root}/src/RVL_SDK/gd/*.c")

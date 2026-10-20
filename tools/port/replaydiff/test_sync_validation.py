@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 import tracediff as td
+from dolphin_collect import COLUMNS
 from sync_validation import validate_sync
 
 
@@ -22,7 +23,7 @@ class SyncValidationTests(unittest.TestCase):
                            rng_valid=True, rng_seed=19, rng_forced=False)
         self.policy = dict(tick_hz=60750000, rate_numerator=60000, rate_denominator=1001,
                            epoch_ticks=0, fpcr_fz=True, audio_output='off', audio_processing='virtual-ai-dsp')
-        self.rows = [dict(schema_version='1', frame=str(frame), scene_epoch='0', scene_valid='1',
+        self.rows = [dict(frame=str(frame), scene_epoch='0', scene_valid='1',
                           scene='Game', stage='FixtureGalaxy', scenario='1', init_state='6',
                           rng_valid='1', rng_seed='19', player_valid='0', x='100') for frame in range(2)]
         for path in self.paths:
@@ -108,8 +109,28 @@ class SyncValidationTests(unittest.TestCase):
         self.assertIn('tick_hz_basis', report['sides']['b']['timing_policy'])
 
     def test_incomplete_manifest_rejected(self):
-        self.write_json(Path(str(self.paths[1]) + '.manifest.json'), dict(status='incomplete', timing_policy=self.policy))
-        self.assertFalse(self.check()['compatible'])
+        for status in ('incomplete', 'invalid', 'prepared', 'failed', 'error'):
+            with self.subTest(status=status):
+                self.write_json(Path(str(self.paths[1]) + '.manifest.json'), dict(status=status, timing_policy=self.policy))
+                self.assertFalse(self.check()['compatible'])
+
+    def test_actual_shared_csv_header_has_no_schema_version(self):
+        self.assertNotIn('schema_version', COLUMNS)
+        rows = []
+        for source in self.rows:
+            row = dict.fromkeys(COLUMNS, '')
+            row.update({key: '0' for key in COLUMNS if key.endswith('_valid')})
+            row.update(source)
+            row['x_bits'] = f"0x{td.float_bits(float(row['x'])):08x}"
+            rows.append(row)
+        for path in self.paths:
+            self.write_trace(path, rows)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = td.main([*[str(path) for path in self.paths], '--require-sync', '--json', '-'])
+        report = json.loads(output.getvalue())
+        self.assertEqual(code, 0, report['invalid_errors'])
+        self.assertTrue(report['synchronization']['compatible'])
 
     def test_duplicate_json_keys_rejected(self):
         Path(str(self.paths[1]) + '.sync.json').write_text('{"rng_seed":19,"rng_seed":20}')

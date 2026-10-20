@@ -268,3 +268,58 @@ stage/scenario evidence still needed, risk references and separate CPU, UI,
 render, audio, device and persistence tests. It is a planned coverage matrix,
 not a selected fixture or runtime result; all exclusions and validity rules
 above remain in force.
+
+## Stage-start synchronization and optimization comparison
+
+The optional native test flags are `--sync-stage <InternalName>` and
+`--sync-scenario <placed-ScenarioNo>`, with optional
+`--sync-rng-seed <u32 decimal or 0x hex>`. These flags observe a destination;
+launching it requires the shared startup adapter or the normal input route.
+The first post-endFrame seam with `scene_valid=1`, `scene=Game`,
+`init_state=6` (SceneInitializeState_End), and the exact stage/placed scenario
+becomes trace row zero. Player validity does not postpone this seam. Missing
+RNG at this first match fails. The optional seed writes only
+GameSystemObjHolder's TRandom_fast_ seed, once, then immediately reobserves
+it. It does not alter actor state, progress, or later seeds.
+
+`<trace>.sync.json` records schema version 1, phase `post-endFrame`, stage,
+scenario, source frame/scene epoch/ticks/VI count, post-sync RNG seed,
+`rng_valid=true`, and `rng_forced`. Native also records `rng_seed_before`.
+CSV frame and scene_epoch subtract their origins; the 86-column schema and
+reserved blank clock columns stay unchanged. The timing CSV retains actual
+native ticks/VI counts against the rebased frame. Without sync flags, frame
+and scene_epoch keep their original behavior.
+
+Native launcher `--frames` remains the entire input tape length, including
+boot/navigation. Only rows from the selected seam onward are written;
+completion and manifest distinguish `input_frames` and `trace_frames`.
+Row zero's KPAD reads already happened: the first common gameplay input must
+be at source origin + 1. The Dolphin collector's `--frames` instead counts
+output rows. Do not trim/rebase the native boot tape or assume that native
+and Dolphin boot consume identical reads.
+
+The launcher validates origin/row-zero/seed/clock consistency and records an
+explicit `timing_policy`: tick frequency, rational rate, boot epoch, FPCR.FZ,
+`audio_output=off`, and `audio_processing=virtual-ai-dsp`. Audio has no device
+sink; DSP/AI sample budgets and callbacks continue, as required by the harness
+contract. Unknown Dolphin rate/FZ or different policy values leave a pair
+unqualified; never invent matching metadata. Both seed alignment and initial
+non-RNG state agreement are necessary before attributing later differences.
+A seed reset cannot repair RNG-dependent actor initialization that already
+happened.
+
+The `macos-arm64-headless` preset explicitly uses `-O0`; the otherwise matched
+`macos-arm64-headless-o2` preset uses `-O2`. Both retain Debug assertions,
+ASan/UBSan, arm64, and `-ffp-contract=off`. Build each through the shared lock
+with at most six jobs. Run identical input/disc fixtures with fresh separate
+user directories, identical timing/FZ/sync seed, and different output paths;
+compare via `tools/port/replaydiff/tracediff.py --require-sync`. An O0/O2
+mismatch diagnoses native/compiler behavior, undefined behavior, argument
+order or nondeterminism; it does not establish a decompilation bug. A full
+linked harness and actual fixtures are required for this experiment.
+
+Locked launcher runs have a 540-second wall deadline after lock acquisition,
+with termination restricted to their own process group. This bounds each
+heavy slot below the team's ten-minute limit, apart from shutdown overhead.
+No live stage-start qualification or O0/O2 trace comparison is asserted by
+these component tests.

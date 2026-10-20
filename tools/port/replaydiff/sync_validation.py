@@ -22,6 +22,9 @@ def validate_sync(paths, traces, require=False, manifests=(None, None)):
         errors.append('synchronization: ' + message)
 
     def load(path, side, kind):
+        def nonfinite(token):
+            raise ValueError('nonfinite JSON ' + token)
+
         def unique(pairs):
             obj = {}
             for key, value in pairs:
@@ -31,8 +34,7 @@ def validate_sync(paths, traces, require=False, manifests=(None, None)):
             return obj
         try:
             data = path.read_bytes()
-            obj = json.loads(data, object_pairs_hook=unique,
-                             parse_constant=lambda token: (_ for _ in ()).throw(ValueError('nonfinite JSON ' + token)))
+            obj = json.loads(data, object_pairs_hook=unique, parse_constant=nonfinite)
             if not isinstance(obj, dict):
                 raise ValueError('expected JSON object')
             return dict(path=str(path), sha256=hashlib.sha256(data).hexdigest(), data=obj)
@@ -84,7 +86,7 @@ def validate_sync(paths, traces, require=False, manifests=(None, None)):
         if row is None:
             reject(side + ' has no frame-zero origin row')
         else:
-            expected = dict(schema_version=1, frame=0, scene_epoch=0, scene_valid=1,
+            expected = dict(frame=0, scene_epoch=0, scene_valid=1,
                             scenario=origin.get('scenario'), init_state=6, rng_valid=1,
                             rng_seed=origin.get('rng_seed'))
             for field, value in expected.items():
@@ -99,7 +101,7 @@ def validate_sync(paths, traces, require=False, manifests=(None, None)):
         manifest = load(Path(manifest_path), side, 'manifest')
         result['sides'][side]['manifest'] = {key: value for key, value in manifest.items() if key != 'data'}
         metadata = manifest['data']
-        if str(metadata.get('status', '')).lower().startswith(('incomplete', 'failed', 'error')):
+        if str(metadata.get('status', '')).lower().startswith(('incomplete', 'failed', 'error', 'invalid', 'prepared')):
             reject(side + ' manifest declares an incomplete/failed capture')
         policy = metadata.get('timing_policy')
         result['sides'][side]['timing_policy'] = policy
@@ -124,6 +126,8 @@ def validate_sync(paths, traces, require=False, manifests=(None, None)):
         if 'epoch_ticks' in policy and not uint(policy['epoch_ticks'], 64):
             reject(side + ' timing_policy.epoch_ticks must be u64')
         if 'rtc_epoch' in metadata:
+            if not uint(metadata['rtc_epoch'], 64):
+                reject(side + ' rtc_epoch must be an observed u64 configuration value')
             substantive['rtc_epoch'] = metadata['rtc_epoch']
         policies.append(substantive)
     for field in ('phase', 'stage', 'scenario', 'rng_seed'):

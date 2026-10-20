@@ -89,7 +89,7 @@ run. Partial rows and the manifest/log error remain available for diagnosis.
 The manifest's `timing_policy` distinguishes PPC time-base frequency from
 Dolphin core scheduling ticks. Pinned Dolphin uses a 729 MHz Wii core and a
 12:1 time-base ratio, giving `tick_hz=60750000`; this collector does not read
-actual tick or VI registers. Rate numerator/denominator and host `fpcr_fz`
+actual tick or VI registers. Rate numerator/denominator, `epoch_ticks` and host `fpcr_fz`
 remain null, with explicit interpretation strings. Audio output backend and
 DSPHLE setting are declared. Dolphin continues scheduling DSP slices and
 audio DMA independently of the null sound backend. These declarations do not

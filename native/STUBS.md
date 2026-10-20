@@ -166,3 +166,17 @@ complete native replacements (`JKRAramPiece::startDMA` and
 Not covered: functions with real but possibly incomplete bodies, such as the
 defaults in SC settings or WPAD extension handling. Those are behaviour audits,
 not stubs.
+
+## Headless native presentation annotations
+
+`petari_gx_pipeline_stage_begin` discards/counts renderer pipeline preparation;
+there is no renderer or pipeline database in this target.
+`petari_gx_waiting_for_pipeline` returns false because that pipeline worker does
+not exist. `petari_progress_badge` and `petari_progress_star_get` discard/count
+the native personal-progress overlay notifications. These hooks have no game
+progress writes or game-state return values; the harness does not qualify the
+native personal-progress display/record. The real game save/progress logic
+still runs against isolated NAND. Implementations live only in the headless
+GX backend; the normal app retains its actual renderer/progress providers.
+`petari_gx_sync_held_ticket` uses the existing native GX sync adapter, including
+its real held-ticket state, rather than a constant stub.

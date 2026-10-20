@@ -141,6 +141,41 @@ class ScriptTests(unittest.TestCase):
         self.input.end_frame()
         self.assertEqual(self.input.ordinal, 0)
 
+    def test_resume_to_existing_entry_is_deferred_without_losing_the_stop(self):
+        class Remote:
+            def __init__(self): self.memory = {}; self.commands = []; self.result = 99
+            def ok(self, command):
+                self.commands.append(command)
+                if command.startswith('M'):
+                    location, data = command[1:].split(':')
+                    self.memory[int(location.split(',')[0], 16)] = bytes.fromhex(data)
+                elif command.startswith('P3='): self.result = int(command[3:], 16)
+            def reg(self, number): return ENTRY if number == 64 else self.result
+            def read(self, address, length): return self.memory[address][:length]
+            def stop(self, command): pass
+        remote = Remote()
+        self.input.pending = (0, 0x80001000, 120, 0x80002000)
+        self.input.breakpoints = {ENTRY, RETURN}
+        self.assertTrue(self.input.handle(remote, RETURN, 2))
+        self.assertTrue(self.input.deferred_stop)
+        self.assertIsNone(self.input.pending)
+        self.assertEqual(self.input.reads, 1)
+        self.assertEqual(self.input.resume_diversions[0]['stopped_pc'], f'{ENTRY:08x}')
+        self.assertNotIn(RETURN + 4, self.input.breakpoints)
+        self.assertIn(ENTRY, self.input.breakpoints)
+
+    def test_sync_suffix_preserves_executed_prefix_and_starts_on_next_loop(self):
+        self.input.sample(2, 0)
+        prefix = [dict(item) for item in self.input.script['segments']]
+        suffix = dict(version=1, frames=4, segments=[dict(start=1, end=2, buttons=['B'])])
+        self.input.start_suffix(suffix, 4)
+        self.assertEqual(self.input.script['frames'], 8)
+        self.assertEqual(self.input.script['segments'][0], dict(prefix[0], end=4))
+        self.assertEqual(self.input.sample(4, 0)['release'], 2048)
+        self.assertEqual(self.input.sample(5, 0)['trig'], 1024)
+        self.assertEqual(self.input.sample(6, 0)['release'], 1024)
+        self.assertFalse(self.input.live)
+
     def test_write_is_bounded_to_mapped_ram_and_sample_or_error_width(self):
         class Remote:
             def ok(self, _):

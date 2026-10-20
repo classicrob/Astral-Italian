@@ -109,10 +109,17 @@ class SyncValidationTests(unittest.TestCase):
         self.assertIn('tick_hz_basis', report['sides']['b']['timing_policy'])
 
     def test_incomplete_manifest_rejected(self):
-        for status in ('incomplete', 'invalid', 'prepared', 'failed', 'error'):
+        for status in ('incomplete', 'invalid', 'prepared', 'failed', 'error', 'diagnostic-complete'):
             with self.subTest(status=status):
                 self.write_json(Path(str(self.paths[1]) + '.manifest.json'), dict(status=status, timing_policy=self.policy))
                 self.assertFalse(self.check()['compatible'])
+
+    def test_diagnostic_binary_cannot_qualify_even_with_matching_rows(self):
+        self.write_json(Path(str(self.paths[1]) + '.manifest.json'),
+                        dict(status='complete', diagnostic_placeholder=True, timing_policy=self.policy))
+        report = self.check()
+        self.assertFalse(report['compatible'])
+        self.assertTrue(any('placeholder' in error for error in report['errors']))
 
     def test_actual_shared_csv_header_has_no_schema_version(self):
         self.assertNotIn('schema_version', COLUMNS)

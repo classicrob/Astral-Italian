@@ -70,6 +70,11 @@ The collector verifies the original caller's `bl` instruction before running.
 It removes the breakpoint, steps one instruction, then reinstalls it to avoid
 recounting a stopped instruction. Experimental `--gui` instead continues to a
 temporary execute breakpoint at seam+4; its full repeat qualification is pending.
+If resuming to a temporary pc+4 breakpoint instead reaches another installed
+KPAD or game-loop breakpoint, the collector processes that stopped event before
+issuing another continue. It records these diversions in the manifest; unknown
+stops or the original stopped PC still fail. This also covers a temporary
+breakpoint inserted inside a JIT block already executing.
 Record a new TAS movie without GDB first, then replay it in batch mode for collection.
 Unexpected stops, invalid nonnull pointers,
 bad counts/strings/booleans, cycles, and nonfinite floats fail the capture.
@@ -97,6 +102,36 @@ qualify native timing, audio processing or floating-point equivalence. Sources:
 [pinned SystemTimers.cpp](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/Core/HW/SystemTimers.cpp),
 [SystemTimers.h](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/Core/HW/SystemTimers.h),
 and [AudioCommon.cpp](https://github.com/dolphin-emu/dolphin/blob/409881c34357d0f105fd473167d15ab0bd9c1628/Source/Core/AudioCommon/AudioCommon.cpp).
+
+## Read-only native input export
+
+`--export-inputs` can accompany `--movie`; it observes original KPADReadEx
+entry/return buffers and the verified SDK control-block fields queried by
+WPADProbe, with no guest RAM/register writes. `inputs.jsonl` retains every returned sample in SDK order, or slot0
+on a zero/error return, including actual requested capacity and result/error.
+Connection is queried at stopped KPAD entry and return. The exported connection
+is the actual post-read snapshot; differences are retained as before/after
+records in manifest `connection_observation.within_read_transitions`. The native
+tape does not represent intra-call transition timing, so these observations
+cannot establish native connection timing equivalence. The observer verifies the complete original WPADProbe function
+hash before reading its control-block array/status/device/ready fields. The
+original function only reads these inside an interrupt guard and writes its
+caller output; a stopped CPU permits an equivalent query without a guest call.
+No connection is inferred from failed sample contents. Unsupported extensions and nonfinite fields fail rather
+than replacing data. The native schema preserves named fields, excluding
+inactive extension-union padding. This mode remains live-unqualified until an
+exported run passes trace identity and native packing checks.
+
+The accepted M0 movie is private
+`~/MacioGalaxy2-gamedata/accepted-input-m0.dtm`. Use a fresh CPU4 profile and
+`collect --movie PATH --export-inputs --frames 1800` with the standard bounded
+lock lifecycle. The expected accepted M0 CSV SHA256 is
+`ab83e2716468324f33b5f1da955d15154b976e24a817e943eae460505b7265b1`.
+A differing replay is new evidence, not the accepted route. After a successful
+matching capture, `python3 native/tools/headless.py pack --frames 1800
+PRIVATE_CAPTURE/inputs.jsonl PRIVATE_CAPTURE/inputs.tape` validates the native
+interchange. Synthetic movie-to-button approximation cannot substitute for
+this filtered SDK export. Exact operational paths are in Sol C's HANDOFF.
 
 ## Optional stage synchronization
 
@@ -126,6 +161,17 @@ through all requested output rows. A complete 300-input gameplay suffix after
 the anchor requires 301 emitted rows (anchor plus 300 completed loops). It is never silently rebased or regenerated
 from the trimmed trace. Seed alignment does not equalize already-initialized
 actors; row-0 non-RNG equality needs separate qualification.
+
+`--sync-input-script inputs/stage-start.json` optionally freezes that shared
+controller suffix at `source_frame+1`. Supply the ordinary `--input-script`
+as the full navigation prefix and request suffix length+1 output rows. On
+the selected seam the collector preserves all executed prefix intent, replaces
+future navigation with the suffix, and disables live edits.
+`input-script-final.json` records the complete derived source-frame script;
+`sync_input_source_start` and suffix hash are in the manifest. The actual
+exported KPAD JSONL remains authoritative, including trigger/release/acceleration
+history across the boundary. Replay it directly; an independent intent-script
+expansion is evidence only after matching the actual read stream.
 
 `--save-state PATH` launches Dolphin with its `-s` option. Keep states outside
 the repository and team upload tree; only their SHA256 enters the manifest.
@@ -198,7 +244,8 @@ movie matches every semantic row.
 
 `collect --input-script tools/port/replaydiff/inputs/galaxy-route.json` runs a
 frame-indexed script through the original game. It cannot be combined with
-`--movie` or `--gui`. This is input gate A: it bypasses KPAD filtering and does
+`--movie`. `--gui` permits menu-based private checkpoint creation during
+exploration; it uses temporary execute breakpoints and remains unqualified. This is input gate A: it bypasses KPAD filtering and does
 not qualify raw Wiimote/KPAD behavior.
 
 The adapter verifies original DOL instructions at `KPADReadEx` (`8054b440`) and
@@ -509,3 +556,8 @@ runtime replay qualification. Compare the normal frame trace as the gate for
 actor-table comparisons; actor tables are not accepted as sync origin records.
 Legacy CSVs without sidecars still compare, explicitly marked `not-requested`
 for synchronization.
+
+Diagnostic placeholder binaries cannot qualify a synchronized replay, even when
+all recorded state and policies match. A manifest with
+`diagnostic_placeholder: true` or a `diagnostic-*` status returns 2 while retaining
+the initial-state and full-diff diagnostics.

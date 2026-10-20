@@ -18,6 +18,12 @@ int main(){
     check(sample.mpls.angularVelocity.x==1 && sample.unk_EC==0xabcdef12,"SMG2 trailing fields");
     bytes[92]=2;word(bytes,96,123);word(bytes,108,0x3f400000);sample=decodeSample(bytes);
     check(sample.ex_status.cl.hold==123 && sample.ex_status.cl.lstick.x==0.75f,"Classic union");
-    bytes[92]=255;try{decodeSample(bytes);check(false,"unknown extension must fail");}catch(const ReplayError&){}
+    for (unsigned device : {252u,255u}) {
+        bytes[92]=device; sample=decodeSample(bytes);
+        check(sample.dev_type==device && sample.wpad_err==-1 && sample.unk_EC==0xabcdef12,"initialization sentinel and named fields survive");
+        unsigned char empty[sizeof(sample.ex_status)]{};
+        check(!std::memcmp(&sample.ex_status,empty,sizeof(empty)),"initialization sentinels have no extension union");
+    }
+    bytes[92]=254;try{decodeSample(bytes);check(false,"undefined extension must fail");}catch(const ReplayError&){}
     std::puts("headless KPAD field decoder checks passed");
 }

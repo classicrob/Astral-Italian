@@ -31,7 +31,7 @@ KPADStatus decodeSample(const Sample& bytes) {
     } else if (out.dev_type == 2 || out.dev_type == 7) {
         auto& ex=out.ex_status.cl; ex.hold=u32at(bytes,96); ex.trig=u32at(bytes,100); ex.release=u32at(bytes,104);
         ex.lstick=vector2(bytes,108); ex.rstick=vector2(bytes,116); ex.ltrigger=f32at(bytes,124); ex.rtrigger=f32at(bytes,128);
-    } else if (out.dev_type != 0 && out.dev_type != 5 && out.dev_type != 253) {
+    } else if (out.dev_type != 0 && out.dev_type != 5 && out.dev_type != 252 && out.dev_type != 253 && out.dev_type != 255) {
         throw ReplayError("unsupported KPAD extension union");
     }
     out.mpls.angularVelocity=vector(bytes,176); out.mpls.angle=vector(bytes,188);

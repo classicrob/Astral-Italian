@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "symbols": {
+    "RFLiFormatAsync": {"kind": "function", "declaration": "libs/RVLFaceLib/include/RFLi_Format.h:23"},
+    "RFLiIsSameFaceCore": {"kind": "function", "declaration": "libs/RVLFaceLib/include/RFLi_DataUtility.h:14"},
+    "RFLi_MakeRandomFace": {"kind": "function", "declaration": "libs/RVLFaceLib/include/RFLi_MakeRandomFace.h:9"},
+    "lbl_807CF430": {"kind": "object", "declaration": "src/Game/NPC/GhostAttackGhost.cpp:11"},
+    "sOpenGalaxyStep": {"kind": "object", "declaration": "src/Game/System/WorldMapResultTU16.cpp:11"}
+  }
+}

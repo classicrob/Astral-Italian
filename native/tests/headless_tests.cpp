@@ -2,6 +2,7 @@
 #include "trace.hpp"
 #include "gx_ledger.hpp"
 #include "fp_mode.hpp"
+#include "startup_arrival.hpp"
 #include <petari/floating_point.hpp>
 #include <cmath>
 #include <cstdio>
@@ -57,6 +58,20 @@ int main() {
     check(!std::memcmp(storage,data,3) && storage[31]==0 && fifo.bytes()==3,"display-list capture does not double-count direct FIFO");
     rejects([&]{fifo.end();},"unbalanced display-list end");
     fifo.begin(storage,2);rejects([&]{fifo.write(data,3);},"display-list overflow");
+    StartupArrival arrival;State observed;
+    observed.integer("scene_valid",1);observed.integer("player_valid",1);
+    observed.text("scene","FileSelect");observed.text("stage","RequestedGalaxy");
+    observed.integer("scenario",1);observed.integer("init_state",6);
+    check(!arrival.observe(observed,"RequestedGalaxy",1),"FileSelect background Mario does not qualify a launch");
+    observed.text("scene","Game");observed.integer("init_state",5);
+    check(!arrival.observe(observed,"RequestedGalaxy",1),"scene must finish initialization");
+    observed.integer("init_state",6);observed.integer("player_valid",0);
+    check(!arrival.observe(observed,"RequestedGalaxy",1),"gameplay player must be valid");
+    observed.integer("player_valid",1);
+    check(!arrival.observe(observed,"OtherGalaxy",1),"canonical stage must match");
+    check(!arrival.observe(observed,"RequestedGalaxy",501),"selected green-star number is not the placed scenario");
+    check(arrival.observe(observed,"RequestedGalaxy",1),"actual ready stage and placed scenario qualify");
+    check(arrival.observed(),"arrival evidence is retained");
     State state;state.integer("player_valid",0);state.text("stage","A,\"B");state.real("x",-0.0f);
     check(state.fields.at("x_bits")=="0x80000000","signed-zero bits");
     std::uint32_t bits=0x3f800001;float one;std::memcpy(&one,&bits,4);state.real("y",one);

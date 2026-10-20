@@ -27,7 +27,7 @@ target_include_directories(petari_native_config INTERFACE
     "${PETARI_LEGACY_ROOT}/libs/JSystem/include"
     "${PETARI_LEGACY_ROOT}/libs/nw4r/include"
     "${PETARI_LEGACY_ROOT}/libs/libms/include"
-    native/include include libs/RVL_SDK/include libs/JSystem/include libs/nw4r/include libs/libms/include)
+    native/include native/app native/home_menu/include include libs/RVL_SDK/include libs/JSystem/include libs/nw4r/include libs/libms/include)
 add_dependencies(petari_native_config petari_legacy_sources)
 target_compile_options(petari_native_config INTERFACE
     -fno-strict-aliasing -ffp-contract=off -fcheck-new -Werror=return-type -Wno-register)

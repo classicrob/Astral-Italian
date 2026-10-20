@@ -5,7 +5,7 @@ import json
 import math
 from pathlib import Path
 
-from dolphin_collect import Memory, ObserverError, REPO, private_path
+from dolphin_collect import Memory, ObserverError, REPO, SEAM, private_path
 
 _spec = importlib.util.spec_from_file_location("headless_contract", REPO / "native/tools/headless.py")
 contract = importlib.util.module_from_spec(_spec)
@@ -59,6 +59,23 @@ class ScriptedInput:
         self.reads = 0
         self.pending = None
         self.breakpoints = set()
+        self.deferred_stop = False
+        self.resume_diversions = []
+
+    def start_suffix(self, suffix, source_start):
+        """Freeze a shared suffix after the completed sync loop; preserve past intent."""
+        if self.pending is not None or self.ordinal != 0:
+            raise ObserverError("input suffix must start between completed source loops")
+        segments = []
+        for item in self.script["segments"]:
+            if item["start"] < source_start:
+                segments.append(dict(item, end=min(item["end"], source_start)))
+        for item in suffix["segments"]:
+            segments.append(dict(item, start=item["start"] + source_start,
+                                 end=item["end"] + source_start))
+        self.script = dict(version=1, frames=source_start + suffix["frames"], segments=segments)
+        self.live = False
+        self.revisions.append(dict(suffix_source_start=source_start))
 
     def install(self, remote):
         for address, encoded in ((ENTRY, "38e000014800000c"), (RETURN - 4, "4807bbc1"), (RETURN, "3b9c0001907d0004")):
@@ -156,8 +173,11 @@ class ScriptedInput:
         self.breakpoints.discard(pc)
         remote.stop("c")
         next_pc = remote.reg(64)
-        if next_pc != pc + 4:
-            raise ObserverError(f"KPAD step breakpoint expected {pc + 4:#x}, got {next_pc:#x}")
+        self.deferred_stop = next_pc != pc + 4
+        if self.deferred_stop:
+            if next_pc == pc or next_pc not in self.breakpoints | {SEAM}:
+                raise ObserverError(f"KPAD step breakpoint expected {pc + 4:#x}, got {next_pc:#x}")
+            self.resume_diversions.append(dict(frame=frame, expected_pc=f"{pc + 4:08x}", stopped_pc=f"{next_pc:08x}"))
         remote.ok(f"z0,{pc + 4:x},4")
         self.breakpoints.discard(pc + 4)
         if pc == ENTRY:

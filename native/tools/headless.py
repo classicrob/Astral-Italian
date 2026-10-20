@@ -182,7 +182,7 @@ def encode_sample(sample):
         vector(116, cl["rstick"], ("x", "y"))
         real(124, cl["ltrigger"])
         real(128, cl["rtrigger"])
-    elif device in (0, 5, 253):
+    elif device in (0, 5, 252, 253, 255):
         if ex != {}:
             raise ValueError("core/disconnected sample must have an empty extension union")
     else:
@@ -321,6 +321,9 @@ def main(argv=None):
     run.add_argument("--rate-numerator", type=int, default=60000)
     run.add_argument("--rate-denominator", type=int, default=1001)
     run.add_argument("--no-ftz", action="store_true")
+    run.add_argument("--request", help='shared startup command: galaxy "Name" scenario N')
+    run.add_argument("--stage", help="shared catalog internal name, alias, or English galaxy label")
+    run.add_argument("--scenario", type=sync_number, help="actual selected ScenarioNo; defaults to 1 with --stage")
     run.add_argument("--sync-stage", help="canonical target stage at the first ready post-endFrame seam")
     run.add_argument("--sync-scenario", type=sync_number, help="placed ScenarioNo, not selected hidden/green ID")
     run.add_argument("--sync-rng-seed", type=sync_number, help="one-shot test override of the game RNG at that seam")
@@ -355,6 +358,17 @@ def main(argv=None):
             raise ValueError("stage sync requires an internal stage name and positive placed scenario")
     elif args.sync_scenario is not None or args.sync_rng_seed is not None:
         raise ValueError("stage-sync scenario/seed requires --sync-stage")
+    if args.request is not None and args.stage is not None:
+        raise ValueError("choose --request or --stage")
+    if args.scenario is not None and args.stage is None:
+        raise ValueError("--scenario requires --stage")
+    if args.stage is not None:
+        if not args.stage.strip():
+            raise ValueError("startup stage must not be empty")
+        args.scenario = 1 if args.scenario is None else args.scenario
+        integer(args.scenario, 1, 0x7fffffff, "selected scenario")
+    if args.request is not None and not args.request.strip():
+        raise ValueError("startup request must not be empty")
     disc, user, trace, source = (outside_repo(p) for p in (args.disc, args.user, args.trace, args.inputs))
     args.trace = trace
     sync_path = Path(str(trace) + ".sync.json")
@@ -375,6 +389,10 @@ def main(argv=None):
                    "--rate-numerator", str(args.rate_numerator), "--rate-denominator", str(args.rate_denominator)]
         if args.no_ftz:
             command.append("--no-ftz")
+        if args.request is not None:
+            command.extend(["--request", args.request])
+        if args.stage is not None:
+            command.extend(["--stage", args.stage, "--scenario", str(args.scenario)])
         if args.sync_stage is not None:
             command.extend(["--sync-stage", args.sync_stage, "--sync-scenario", str(args.sync_scenario)])
             if args.sync_rng_seed is not None:
@@ -390,12 +408,14 @@ def main(argv=None):
                              rate_denominator=args.rate_denominator, epoch_ticks=args.epoch_ticks,
                              fpcr_fz=not args.no_ftz, audio_output="off", audio_processing="virtual-ai-dsp",
                              tick_hz_basis="native SDK virtual timebase", fp_policy="ARM FPCR.FZ on game/device/OS threads")
+        diagnostic = Path(command[0] + ".diagnostic.json").is_file()
         manifest = {"schema_version": 1, "frames": args.frames, "input_frames": args.frames, "timing_policy": timing_policy, "wall_timeout_seconds": 540, "epoch_ticks": args.epoch_ticks,
                     "rate_numerator": args.rate_numerator, "rate_denominator": args.rate_denominator,
                     "fpcr_fz": not args.no_ftz, "input_sha256": digest(source), "columns": trace_columns(),
-                    "disc_root": str(disc), "status": "prepared", "command": command, "timing_csv": str(timing),
+                    "disc_root": str(disc), "startup_request": args.request, "startup_stage": args.stage, "startup_scenario": args.scenario, "status": "prepared", "command": command, "timing_csv": str(timing),
                     "sync_json": str(sync_path) if args.sync_stage is not None else None,
                     "executable_sha256": digest(args.executable) if args.executable.is_file() else None}
+        manifest["diagnostic_placeholder"] = diagnostic
         with manifest_path.open("x") as out:
             json.dump(manifest, out, indent=2)
             out.write("\n")
@@ -409,10 +429,10 @@ def main(argv=None):
             complete = status == 0 and trace.is_file() and marker.is_file() and marker.read_text().strip() == str(trace_frames) and valid_trace(trace, trace_frames) and valid_timing(timing, trace_frames)
         except (OSError, ValueError, KeyError, TypeError, csv.Error) as exc:
             complete, validation_error = False, str(exc)
-        manifest.update(status="complete" if complete else "invalid", exit_status=status,
+        manifest.update(status=("diagnostic-complete" if diagnostic else "complete") if complete else "invalid", exit_status=status,
                         frames=trace_frames, trace_frames=trace_frames, sync_origin=origin, validation_error=validation_error)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
-        return 0 if complete else 2
+        return 0 if complete and not diagnostic else 2
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import dolphin_collect as collector
+from kpad_script import ENTRY
 
 
 def source_row(frame, **changes):
@@ -48,7 +49,7 @@ class StageSyncTests(unittest.TestCase):
             script.write_text(json.dumps(dict(version=1, frames=5, segments=[])))
             args = SimpleNamespace(output=str(root / 'capture'), socket=str(root / 'gdb.sock'),
                                    dolphin=None, frames=2, input_script=str(script), live_input_script=False,
-                                   gui=False, movie=None, connect_timeout=1, stop_timeout=1, wall_timeout=1,
+                                   gui=True, movie=None, connect_timeout=1, stop_timeout=1, wall_timeout=1,
                                    sync_stage='SkyIslandGalaxy', sync_scenario=1)
             handled = []
             class Stream:
@@ -58,11 +59,20 @@ class StageSyncTests(unittest.TestCase):
                 def close(self): pass
             class Remote:
                 step = False
+                first = True
+                pc = collector.SEAM
                 def __init__(self, _): pass
-                def stop(self, *_args, **_kwargs): pass
+                def stop(self, command, **_kwargs):
+                    if command != 'c': return
+                    if self.first:
+                        self.pc, self.first = ENTRY, False
+                    elif self.pc == ENTRY:
+                        self.pc = collector.SEAM
+                    else:
+                        self.pc = collector.SEAM + (4 if self.step else 0)
                 def read(self, address, size): return bytes.fromhex(collector.SIGNATURES[address])
                 def reg(self, number):
-                    return collector.CALLER if number == 67 else collector.SEAM + (4 if self.step else 0)
+                    return collector.CALLER if number == 67 else self.pc
                 def ok(self, command):
                     self.assert_no_write(command)
                     if command.startswith('Z0,804be284'): self.step = True
@@ -79,7 +89,15 @@ class StageSyncTests(unittest.TestCase):
                     self.frames = frames
                     if frames != 5: raise AssertionError('script clock truncated')
                 def install(self, _): pass
-                def handle(self, remote, pc, frame): handled.append(frame); return False
+                deferred_stop = False
+                def handle(self, remote, pc, frame):
+                    if pc == ENTRY:
+                        remote.stop('c')
+                        self.deferred_stop = True
+                        return True
+                    self.deferred_stop = False
+                    handled.append(frame)
+                    return False
                 def end_frame(self): pass
                 def close(self, remote, complete):
                     if not complete: raise AssertionError('collection did not complete')

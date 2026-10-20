@@ -86,9 +86,22 @@ class InterchangeTests(unittest.TestCase):
 
     def test_unknown_extension_fails(self):
         sample = headless.idle_sample()
-        sample["dev_type"] = 255
+        sample["dev_type"] = 254
         with self.assertRaises(ValueError):
             headless.encode_sample(sample)
+
+    def test_initialization_device_sentinels_have_no_extension_union(self):
+        for device in (252, 255):
+            sample = headless.idle_sample(False)
+            sample.update(dev_type=device, wpad_err=-1, unk_EC=0x12345678)
+            raw = headless.encode_sample(sample)
+            self.assertEqual(raw[92], device)
+            self.assertEqual(raw[93], 255)
+            self.assertEqual(raw[96:176], bytes(80))
+            self.assertEqual(raw[236:240], bytes.fromhex("12345678"))
+            sample["ex_status"] = {"fs": {}}
+            with self.assertRaises(ValueError):
+                headless.encode_sample(sample)
 
     def test_classic_union_and_motionplus(self):
         sample = headless.idle_sample()
@@ -143,6 +156,40 @@ class InterchangeTests(unittest.TestCase):
             self.assertEqual(call.call_args.args[0][:6], ["lockf", "-k", str(Path.home() / "MacioGalaxy2-team/slots/native.lock"), "nice", "-n", "10"])
             self.assertFalse((root / "native.csv").exists())
             self.assertEqual(json.loads((root / "native.csv.manifest.json").read_text())["status"], "invalid")
+
+    def test_startup_request_is_forwarded_and_recorded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "inputs.jsonl"
+            source.write_text("\n".join(json.dumps(r) for r in headless.generate(frames=1)) + "\n")
+            request = 'galaxy "Tall Trunk" scenario 3'
+            with patch.object(headless.subprocess, "call", return_value=2) as call:
+                status = headless.main(["run", "--inputs", str(source), "--executable", str(root / "petari_headless"),
+                                       "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                                       "--trace", str(root / "native.csv"), "--epoch-ticks", "0", "--request", request])
+            self.assertEqual(status, 2)
+            command = call.call_args.args[0]
+            self.assertEqual(command[command.index("--request") + 1], request)
+            manifest = json.loads((root / "native.csv.manifest.json").read_text())
+            self.assertEqual(manifest["startup_request"], request)
+            self.assertEqual(manifest["status"], "invalid")
+            self.assertFalse((root / "native.csv.complete").exists())
+
+    def test_structured_startup_stage_is_forwarded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "inputs.jsonl"
+            source.write_text("\n".join(json.dumps(r) for r in headless.generate(frames=1)) + "\n")
+            with patch.object(headless.subprocess, "call", return_value=2) as call:
+                status = headless.main(["run", "--inputs", str(source), "--executable", str(root / "petari_headless"),
+                                       "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                                       "--trace", str(root / "native.csv"), "--epoch-ticks", "0", "--stage", "Tall Trunk", "--scenario", "3"])
+            self.assertEqual(status, 2)
+            command = call.call_args.args[0]
+            self.assertEqual(command[command.index("--stage") + 1], "Tall Trunk")
+            self.assertEqual(command[command.index("--scenario") + 1], "3")
+            manifest = json.loads((root / "native.csv.manifest.json").read_text())
+            self.assertEqual((manifest["startup_stage"], manifest["startup_scenario"]), ("Tall Trunk", 3))
 
     def test_shared_trace_columns(self):
         schema = json.loads((ROOT / "native/app/headless/trace_schema.json").read_text())
@@ -252,6 +299,31 @@ class InterchangeTests(unittest.TestCase):
             self.assertEqual(kill.call_args_list, [unittest.mock.call(12345, bounded.signal.SIGTERM),
                                                   unittest.mock.call(12345, bounded.signal.SIGKILL)])
 
+    def test_complete_placeholder_trace_never_qualifies(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, trace, executable = root / "inputs.jsonl", root / "native.csv", root / "fixture"
+            source.write_text("\n".join(json.dumps(r) for r in headless.generate(frames=1)) + "\n")
+            executable.write_text("fixture binary")
+            Path(str(executable) + ".diagnostic.json").write_text('{"diagnostic_only":true}')
+            def completed(command):
+                with trace.open("w", newline="") as out:
+                    writer = csv.DictWriter(out, fieldnames=headless.trace_columns())
+                    writer.writeheader()
+                    writer.writerow(dict(frame=0, scene_epoch=0, scene_valid=0, rng_valid=0,
+                                         player_valid=0, actor_count_valid=0, animation_valid=0))
+                Path(str(trace) + ".complete").write_text("1\n")
+                Path(str(trace) + ".timing.csv").write_text("frame,vi_count,ticks\n0,1,123\n")
+                return 0
+            with patch.object(headless.subprocess, "call", side_effect=completed):
+                result = headless.main(["run", "--inputs", str(source), "--executable", str(executable),
+                                       "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                                       "--trace", str(trace), "--epoch-ticks", "123"])
+            manifest = json.loads(Path(str(trace) + ".manifest.json").read_text())
+            self.assertEqual(result, 2)
+            self.assertTrue(manifest["diagnostic_placeholder"])
+            self.assertEqual(manifest["status"], "diagnostic-complete")
+
     def test_timing_sidecar_rejects_gaps_and_backwards_time(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "timing.csv"
@@ -279,6 +351,19 @@ class InterchangeTests(unittest.TestCase):
 
 
 class NullGxGeneratorTests(unittest.TestCase):
+    def test_real_platform_definition_excludes_query_but_a_call_does_not(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "gx.h").write_text("void GXReadReal(int*);\nvoid GXReadMissing(int*);\n")
+            manual, platform, output = root / "manual.cpp", root / "platform.cpp", root / "out.inc"
+            manual.write_text("void helper() { GXReadMissing(nullptr); }\n")
+            platform.write_text("void GXReadReal(int* out) { *out=0; }\n")
+            with patch.object(sys, "argv", ["gen_gx_noops.py", str(root), str(output), "--manual", str(manual), "--manual", str(platform)]):
+                gx.main()
+            generated = output.read_text()
+            self.assertNotIn("GXReadReal", generated)
+            self.assertIn('unsupported("GXReadMissing")', generated)
+
     def test_native_abi_extern_declaration_and_missing_newline(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "gx.h"

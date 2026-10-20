@@ -4,6 +4,8 @@
 #include "fp_mode.hpp"
 #include "platform.hpp"
 #include "gx_ledger.hpp"
+#include "startup_arrival.hpp"
+#include <launch_stage.hpp>
 #include <petari/headless.h>
 #include <petari/app.hpp>
 #include <petari/boot.hpp>
@@ -32,12 +34,14 @@
 extern "C" void petari_game_main(void);
 namespace H=PetariNative::Headless;
 namespace P=PetariNative::Platform;
+namespace L=PetariNative::App::LaunchStage;
 namespace {
 [[noreturn]] void fail(const char* message) { std::fprintf(stderr,"headless: %s\n",message); std::fflush(nullptr); std::_Exit(2); }
+std::atomic<std::uint64_t> gSourceFrame{UINT64_MAX};
 class Driver {
 public:
-    Driver(H::Replay& replay, H::Trace& trace, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync)
-        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mOwner(std::this_thread::get_id()) {
+    Driver(H::Replay& replay, H::Trace& trace, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested)
+        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
         mTiming << "frame,vi_count,ticks\n";
         if (!mTiming) throw H::ReplayError("cannot create timing sidecar");
         mThread=std::thread([this]{worker();});
@@ -58,7 +62,18 @@ public:
         PetariNative::HostAllocationScope host;
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
         if (mAwaitingFrameWait) throw H::ReplayError("game loop advanced without the headless frame wait hook");
+        if (mStartupRequested && L::startupStatus()==L::StartupStatus::Failed)
+            throw H::ReplayError("startup request failed: "+L::startupError());
         auto state=H::observeGame();
+        if (mStartupRequested && L::startupStatus()==L::StartupStatus::Applied) {
+            const auto* selected=L::resolvedStartupRequest();
+            const int placed=L::startupPlacedScenario();
+            if (!selected || placed<=0) throw H::ReplayError("applied startup request has no resolved placed target");
+            const bool alreadyObserved=mStartupArrival.observed();
+            if (mStartupArrival.observe(state,selected->stage,placed) && !alreadyObserved)
+                std::fprintf(stderr,"headless: startup target observed at frame %llu: %s selected %d placed %d\n",
+                    static_cast<unsigned long long>(mReplay.frame()),selected->stage.c_str(),selected->scenario,placed);
+        }
         const auto sourceFrame=mReplay.frame();
         const auto ticks=OSGetTime();
         if (ticks<0) throw H::ReplayError("negative SDK clock at frame seam");
@@ -82,6 +97,10 @@ public:
         }
         mSawFrame=true; mAwaitingFrameWait=true;
         if (mReplay.finished()) {
+            if (mStartupRequested && L::startupStatus()!=L::StartupStatus::Applied)
+                throw H::ReplayError("startup request did not reach Applied before tape completion");
+            if (mStartupRequested && !mStartupArrival.observed())
+                throw H::ReplayError("requested stage/scenario was not observed ready before tape completion");
             if (mSync.enabled() && !mSync.started()) throw H::ReplayError("input tape ended before the stage-sync target was reached");
             mTrace.finish();
             std::ofstream marker(mPath.string()+".complete");
@@ -98,6 +117,7 @@ public:
     void wait(bool frame) {
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("retrace wait ran on an unexpected thread");
         if (frame && !mAwaitingFrameWait) throw H::ReplayError("extra headless game-loop wait");
+        if (frame) gSourceFrame.store(mReplay.frame(),std::memory_order_relaxed);
         const int released=petari_os_try_begin_host_blocking();
         if (frame && !released) throw H::ReplayError("game-loop wait requires an interruptible OS thread");
         {
@@ -129,6 +149,7 @@ private:
         } catch (const std::exception& e) { fail(e.what()); }
     }
     H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0;
+    bool mStartupRequested=false; H::StartupArrival mStartupArrival;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
     std::thread mThread;
@@ -150,6 +171,7 @@ std::uint64_t integer(const std::string& value) {
 }
 extern "C" void petari_host_frame_seam() { try { if (!gDriver) fail("frame seam before harness initialization"); gDriver->frame(); } catch (const std::exception& e) { fail(e.what()); } }
 extern "C" void petari_host_frame_mark(int) {}
+extern "C" std::uint64_t petari_headless_source_frame() { return gSourceFrame.load(std::memory_order_relaxed); }
 extern "C" void petari_headless_wait_frame() { try { gDriver->wait(true); } catch (const std::exception& e) { fail(e.what()); } }
 extern "C" void petari_headless_wait_retrace() { Driver::viWait(gDriver); }
 int main(int argc,char** argv) {
@@ -160,7 +182,7 @@ int main(int argc,char** argv) {
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--no-ftz") {ftz=false;continue;}
-            if (key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
+            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
         for (const char* key:{"--inputs","--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
@@ -187,13 +209,28 @@ int main(int argc,char** argv) {
         H::StageSync validateSync(sync);
         H::FloatingPointMode fp(ftz);
         PetariNative::FloatingPointThreadPolicy threadFp(ftz);
+        if (args.count("--request") && args.count("--stage")) throw H::ReplayError("choose --request or --stage");
+        if (args.count("--scenario") && !args.count("--stage")) throw H::ReplayError("--scenario requires --stage");
+        const bool startupRequested=args.count("--request") || args.count("--stage");
+        if (startupRequested) {
+            std::string error;
+            bool configured=false;
+            if (args.count("--request")) configured=L::configureStartupRequest(args.at("--request"),&error);
+            else {
+                const auto scenario=args.count("--scenario")?H::syncInteger(args.at("--scenario")):1;
+                if (!scenario || scenario>INT32_MAX) throw H::ReplayError("--scenario must be a positive selected ScenarioNo");
+                configured=L::configureStartupRequest(args.at("--stage"),static_cast<int>(scenario),&error);
+            }
+            if (!configured || !L::configureCatalog(disc,&error)) throw H::ReplayError("startup request: "+error);
+        }
         std::fprintf(stderr,"headless: rate %llu/%llu Hz, epoch %llu ticks, FPCR.FZ=%d\n",
                      static_cast<unsigned long long>(n),static_cast<unsigned long long>(d),
                      static_cast<unsigned long long>(epoch),H::FloatingPointMode::flushToZero());
         P::OS::enableVirtualTime(static_cast<std::int64_t>(epoch));
         std::ofstream output(path); if (!output) throw H::ReplayError("cannot create trace");
         H::Trace trace(output);
-        Driver driver(replay,trace,path,n,d,std::move(sync)); gDriver=&driver;
+        Driver driver(replay,trace,path,n,d,std::move(sync),startupRequested); gDriver=&driver;
+        gSourceFrame.store(0,std::memory_order_relaxed);
         PetariNative::Input::setClock(PetariNative::Input::Clock::Manual);
         PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});
         P::VI::setClock(P::VI::Clock::External); P::VI::setWaitDriver({Driver::viWait,&driver});

@@ -386,7 +386,7 @@ def prepare(args):
     (config / "Dolphin.ini").write_text(
         "[General]\nGDBSocket = " + str(endpoint) + "\nGDBPort = -1\n"
         "[Core]\nCPUThread = False\nCPUCore = " + str(args.cpu_core) + "\n"
-        "EnableCheats = False\nEnableCustomRTC = True\nCustomRTCValue = 946684800\n"
+        "EnableCheats = False\nEnableSaveStates = True\nEnableCustomRTC = True\nCustomRTCValue = 946684800\n"
         "OverrideRegionSettings = True\nSelectedLanguage = 1\n"
         "DSPHLE = True\nEmulationSpeed = 1.0\nWiiSDCard = False\n"
         "SIDevice0 = 0\nSIDevice1 = 0\nSIDevice2 = 0\nSIDevice3 = 0\n"
@@ -419,6 +419,7 @@ def collect(args):
     sync = StageSync(args.sync_stage, args.sync_scenario) if getattr(args, "sync_stage", None) else None
     input_frames = args.frames
     inputs_installed = False
+    suffix = None
     def interrupted(number, _frame):
         raise ObserverError(f"capture interrupted by {signal.Signals(number).name}")
     log = (output / "run.log").open("w", buffering=1)
@@ -429,21 +430,38 @@ def collect(args):
         manifest.update(collector_sha256=sha256(__file__), python_version=sys.version.split()[0],
                         columns_sha256=hashlib.sha256(",".join(COLUMNS).encode()).hexdigest())
         if args.input_script:
-            if args.movie or args.gui:
-                raise ObserverError("scripted KPAD input requires batch collection without a movie")
+            if args.movie:
+                raise ObserverError("scripted KPAD input cannot be combined with a movie")
             sys.modules.setdefault("dolphin_collect", sys.modules[__name__])
-            from kpad_script import ScriptedInput
+            from kpad_script import ScriptedInput, load_script
             script = Path(args.input_script).expanduser().resolve()
             if sync:
                 input_frames = json.loads(script.read_text())["frames"]
                 if type(input_frames) is not int or input_frames < 1:
                     raise ObserverError("input script must declare a positive source-frame count")
+            if getattr(args, "sync_input_script", None):
+                suffix_path = Path(args.sync_input_script).expanduser().resolve()
+                suffix_frames = json.loads(suffix_path.read_text())["frames"]
+                suffix = load_script(suffix_path, suffix_frames)
+                if type(suffix_frames) is not int or suffix_frames < 1 or args.frames != suffix_frames + 1:
+                    raise ObserverError("--frames must equal sync suffix frames + 1 for the anchor")
+                manifest["sync_input_script_sha256"] = sha256(suffix_path)
+                (output / "sync-input-script.json").write_bytes(suffix_path.read_bytes())
             inputs = ScriptedInput(script, input_frames, output / "inputs.jsonl", args.live_input_script)
             manifest.update(input_method="scripted filtered KPAD injection", input_frames=input_frames,
                             input_script_sha256=sha256(script),
                             input_adapter_sha256=sha256(Path(__file__).with_name("kpad_script.py")),
                             input_contract_sha256=sha256(REPO / "native/tools/headless.py"))
             (output / "input-script.json").write_bytes(script.read_bytes())
+        if getattr(args, "export_inputs", False):
+            if args.input_script:
+                raise ObserverError("--export-inputs is read-only and cannot be combined with --input-script")
+            sys.modules.setdefault("dolphin_collect", sys.modules[__name__])
+            from kpad_observe import ObservedInput
+            inputs = ObservedInput(output / "inputs.jsonl")
+            manifest.update(input_method="read-only original KPADReadEx and verified WPADProbe-equivalent snapshot",
+                            input_adapter_sha256=sha256(Path(__file__).with_name("kpad_observe.py")),
+                            input_contract_sha256=sha256(REPO / "native/tools/headless.py"))
         if args.dolphin:
             user = game_private_path(args.user)
             disc = game_private_path(args.disc)
@@ -531,15 +549,19 @@ def collect(args):
         snapshot = Snapshot(remote)
         rejected = 0
         started = time.monotonic()
+        stop_pending = False
         with (output / "oracle.csv.partial").open("w", newline="") as file:
             writer = csv.DictWriter(file, COLUMNS, extrasaction="ignore")
             writer.writeheader()
             while manifest["frames"] < args.frames:
                 if time.monotonic() - started > args.wall_timeout:
                     raise ObserverError("capture wall timeout")
-                remote.stop("c")
+                if not stop_pending:
+                    remote.stop("c")
+                stop_pending = False
                 pc, lr = remote.reg(64), remote.reg(67)
                 if inputs_installed and inputs.handle(remote, pc, manifest["source_frames"]):
+                    stop_pending = getattr(inputs, "deferred_stop", False)
                     continue
                 if pc != SEAM:
                     raise ObserverError(f"unexpected stop PC {pc:#x}, LR {lr:#x}")
@@ -557,6 +579,11 @@ def collect(args):
                     if row is not None:
                         if sync and row["frame"] == 0:
                             manifest["sync"] = sync.origin
+                            if suffix:
+                                inputs.start_suffix(suffix, manifest["source_frames"])
+                                input_frames = inputs.script["frames"]
+                                manifest.update(input_frames=input_frames,
+                                                sync_input_source_start=manifest["source_frames"])
                             (output / "oracle.csv.sync.json").write_text(json.dumps(sync.origin, indent=2) + "\n")
                         writer.writerow(row)
                         file.flush()
@@ -571,7 +598,7 @@ def collect(args):
                     if changed or manifest["source_frames"] % 60 == 0:
                         log.write(json.dumps({k: source_row[k] for k in ("frame", "scene", "stage", "scenario", "init_state", "player_valid", "observer_error")}) + "\n")
                         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-                    if inputs and manifest["source_frames"] >= input_frames and manifest["frames"] < args.frames:
+                    if args.input_script and manifest["source_frames"] >= input_frames and manifest["frames"] < args.frames:
                         raise ObserverError("full source input tape exhausted before requested trace completed")
                 else:
                     rejected += 1
@@ -589,7 +616,11 @@ def collect(args):
                 remote.stop("c" if args.gui or inputs else "s")
                 next_pc = remote.reg(64)
                 if next_pc != SEAM + 4:
-                    raise ObserverError(f"step breakpoint expected {SEAM + 4:#x}, got {next_pc:#x}")
+                    if not inputs or next_pc not in inputs.breakpoints:
+                        raise ObserverError(f"step breakpoint expected {SEAM + 4:#x}, got {next_pc:#x}")
+                    stop_pending = True
+                    manifest.setdefault("seam_resume_diversions", []).append(
+                        dict(source_frame=manifest["source_frames"], stopped_pc=f"{next_pc:08x}"))
                 if step_installed:
                     remote.ok(f"z0,{SEAM + 4:x},4")
                     step_installed = False
@@ -611,8 +642,17 @@ def collect(args):
         if inputs:
             try:
                 manifest["input_reads"] = inputs.reads
+                if hasattr(inputs, "probe_counts"):
+                    manifest["connection_observation"] = dict(
+                        method=inputs.connection_method,
+                        probe_counts=inputs.probe_counts, maximum_age_source_loops=inputs.max_probe_age,
+                        function_sha256=inputs.probe_sha256,
+                        within_read_transitions=inputs.connection_transitions,
+                        connection_phase="post-KPADReadEx; intra-call timing is not represented by the native tape")
                 manifest["live_input_revisions"] = inputs.revisions
-                (output / "input-script-final.json").write_text(json.dumps(inputs.script, indent=2) + "\n")
+                manifest["input_resume_diversions"] = getattr(inputs, "resume_diversions", [])
+                if inputs.script is not None:
+                    (output / "input-script-final.json").write_text(json.dumps(inputs.script, indent=2) + "\n")
                 inputs.close(remote, manifest["status"] == "captured; repeat qualification required")
             except Exception as exc:
                 cleanup_error = f"input cleanup failed: {type(exc).__name__}"
@@ -660,9 +700,11 @@ def main():
     capture.add_argument("--dolphin", help="executable; omit to attach to an already locked isolated run")
     capture.add_argument("--disc", default="~/MacioGalaxy2-gamedata/SB4E01.iso")
     capture.add_argument("--movie")
+    capture.add_argument("--export-inputs", action="store_true", help="read original KPADReadEx samples and WPADProbe results without injecting input")
     capture.add_argument("--save-state", help="private Dolphin state to restore; KPAD injection starts after first seam")
     capture.add_argument("--sync-stage", help="canonical internal stage; first matching ready end-of-loop seam becomes row 0")
     capture.add_argument("--sync-scenario", type=int, help="placed ScenarioNo; required with --sync-stage")
+    capture.add_argument("--sync-input-script", help="freeze this shared suffix immediately after sync row 0")
     capture.add_argument("--input-script", help="explicit filtered KPAD script; writes SDK output buffers/register r3")
     capture.add_argument("--live-input-script", action="store_true", help="exploration only: reload future-only script edits")
     capture.add_argument("--gui", action="store_true", help="show the main UI for TAS recording/navigation")
@@ -674,6 +716,10 @@ def main():
     capture.add_argument("--lock", default="~/MacioGalaxy2-team/slots/native.lock")
     capture.add_argument("--slot-held", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.action == "collect" and args.export_inputs and args.input_script:
+        parser.error("--export-inputs cannot be combined with --input-script")
+    if args.action == "collect" and args.sync_input_script and not (args.sync_stage and args.input_script):
+        parser.error("--sync-input-script requires --sync-stage and --input-script")
     if args.action == "collect" and (bool(args.sync_stage) != (args.sync_scenario is not None)):
         parser.error("--sync-stage and --sync-scenario must be supplied together")
     if args.action == "collect" and args.sync_scenario is not None and args.sync_scenario <= 0:

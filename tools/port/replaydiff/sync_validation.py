@@ -101,8 +101,10 @@ def validate_sync(paths, traces, require=False, manifests=(None, None)):
         manifest = load(Path(manifest_path), side, 'manifest')
         result['sides'][side]['manifest'] = {key: value for key, value in manifest.items() if key != 'data'}
         metadata = manifest['data']
-        if str(metadata.get('status', '')).lower().startswith(('incomplete', 'failed', 'error', 'invalid', 'prepared')):
+        if str(metadata.get('status', '')).lower().startswith(('incomplete', 'failed', 'error', 'invalid', 'prepared', 'diagnostic-')):
             reject(side + ' manifest declares an incomplete/failed capture')
+        if metadata.get('diagnostic_placeholder') is True:
+            reject(side + ' diagnostic placeholder binary cannot qualify a replay')
         policy = metadata.get('timing_policy')
         result['sides'][side]['timing_policy'] = policy
         if not isinstance(policy, dict):

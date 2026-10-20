@@ -74,28 +74,48 @@ void ItemRoomDoor::exeOpen() {
 }
 
 void ItemRoomDoor::exeOpenWait() {
+#ifndef GALAXY_NATIVE
     // Shift-JIS "アイテム部屋への扉開" block. The +N offsets below are not names inside this literal: they
     // select the strings that the target pools right after it, so the substrings must stay one literal.
     const char* pBase = "\203A\203C\203e\203\200\225\224\211\256\202\326\202\314\223\374\216\272";
+#endif
     if (MR::isFirstStep(this)) {
+#ifdef GALAXY_NATIVE
+        MR::tryStartActionNotPlaying(this, "ItemRoomDoorOpen");
+#else
         MR::tryStartActionNotPlaying(this, pBase + 0x4c);
+#endif
         MR::invalidateCollisionParts(this);
     }
 
+#ifdef GALAXY_NATIVE
+    // Use the actual pooled names directly; pBase's literal does not contain them.
+    f32 dist = MR::calcDistanceToPlayer(*MR::getSensorPos(this, "Open"));
+#else
     f32 dist = MR::calcDistanceToPlayer(*MR::getSensorPos(this, pBase + 0x44));
+#endif
     bool isFar = dist >= 450.0f;
     if (isFar) {
         setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvClose::sInstance);
         return;
     }
 
+#ifdef GALAXY_NATIVE
+    f32 radius = MR::getSensorRadius(this, "Into");
+    if (MR::isPlayerInRange(radius, *MR::getSensorPos(this, "Into"))) {
+#else
     f32 radius = MR::getSensorRadius(this, pBase + 0x74);
     if (MR::isPlayerInRange(radius, *MR::getSensorPos(this, pBase + 0x74))) {
+#endif
         if (MR::tryStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sEnterDemoName)) {
             setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvDemoPlayerWaitOpen::sInstance);
         }
     } else {
+#ifdef GALAXY_NATIVE
+        MR::startSoundInPlayerDistance(this, "InnerSoundEmitting", -1, -1, 10000.0f);
+#else
         MR::startSoundInPlayerDistance(this, pBase + 0x60, -1, -1, 10000.0f);
+#endif
     }
 }
 

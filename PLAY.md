@@ -13,7 +13,7 @@ Double-click **`Play Astral Italian.command`** in the repository folder. A menu 
   3) Sky Station Galaxy    (World 1, fallback)
   4) Title screen          (normal start, file select)
   o) Odyssey movement: off
-  a) Audio: off
+  a) Audio: on
 ```
 
 Press a number and Return. The game skips the title, opens file 1 (creating it if needed) and drops you into
@@ -58,7 +58,8 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 
 - Build 3 (default, frozen 02:45): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
   and on, and the toggle demonstrably changes Mario's moves (crouch + Spin rolls him only with it on).
-- Audio: off by default (silent driver), never listened to on this build. Turn it on with `a` at your own risk.
+- Audio: ON by default since build 4. Measured, not yet listened to by a person: no underruns or dropouts in 3.5 minutes
+  of each galaxy, no clipping, music around -20 dBFS. If it sounds wrong, press `a` in the menu to turn it off.
 - First run: brief hitches the first time new effects appear (shaders compiling); later runs use the cache.
 - Untested: Sky Station and every other galaxy, power-ups (Cloud Flower), Yoshi, the world map, co-star mode, and the
   Odyssey moves other than the roll.

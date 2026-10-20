@@ -13,7 +13,7 @@ Double-click **Play Astral Italian.command** (in this folder). A Terminal window
   3) Sky Station Galaxy    (World 1, fallback)
   4) Title screen          (normal start, file select)
   o) Odyssey movement: off
-  a) Audio: off
+  a) Audio: on
 ```
 
 Press a number and Return. The game opens its window, goes through the title and file select by itself and drops
@@ -26,7 +26,7 @@ native/play/play.sh flip-swap       # Flip-Swap Galaxy (RedBlueExGalaxy)
 native/play/play.sh fluffy-bluff    # Fluffy Bluff Galaxy (MokumokuValleyGalaxy)
 native/play/play.sh sky-station     # Sky Station Galaxy (IslandFleetGalaxy), the fallback
 native/play/play.sh title           # the normal start: title screen and file select
-native/play/play.sh flip-swap --scenario 2 --odyssey --audio on
+native/play/play.sh flip-swap --scenario 2 --odyssey --audio off
 ```
 
 `--scenario N` picks another mission (the actual mission numbers are listed by
@@ -37,7 +37,7 @@ native/play/play.sh flip-swap --scenario 2 --odyssey --audio on
 | What | Menu | Command | Notes |
 | --- | --- | --- | --- |
 | Odyssey movement (Super Mario Odyssey moveset) | `o` | `--odyssey` | For this run only. In the game: F1, then Mods, then Odyssey movement (saved in `mods.txt`). The frozen build 3 includes the Odyssey hooks (build2/ and build1/ do not). Moves and keys: native/MODS.md, "Odyssey movement". |
-| Audio | `a` | `--audio on` | Off by default (the game still runs its audio, through a silent driver). Turn it on if it sounds right on this build. |
+| Audio | `a` | `--audio off` | On by default since build 4. Off runs the game's audio through a silent driver. |
 
 Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petari.app`, default
 `~/MacioGalaxy2-play/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
@@ -137,8 +137,10 @@ What was checked (`~/MacioGalaxy2-play/FROZEN.txt` has the numbers):
   this build.
 
 Known issues (honest list):
-- **Audio is off by default** (silent driver; the game still runs its audio code). It was never listened to on this
-  build: turn it on with `a` at your own risk.
+- **Audio is on by default** (since the morning of 2026-10-20). It was measured, not yet listened to by a person: a raw
+  capture of the device feed over 3.5 minutes of each galaxy had no underruns, no replayed blocks, no clipping and no
+  dropouts during play, with music around -20 dBFS RMS. If anything sounds wrong (pitch, envelopes, stuck notes),
+  press `a` in the menu to turn it off and tell us what you heard.
 - **First-run hitches**: the first time a new effect or object appears, the game can stall briefly while its shader
   compiles (about 15 short hitches in two minutes of Fluffy Bluff on a first run). They go away on later runs: the
   shaders are cached under `~/Library/Caches/AstralItalian`.

@@ -9,14 +9,14 @@
 #   ASTRAL_DISC  extracted SB4E01 disc, the directory holding files/ (default ~/MacioGalaxy2-gamedata/SB4E01-extracted)
 #   ASTRAL_USER  saves/settings/controls (default ~/MacioGalaxy2-play/user). Never the MacioGalaxy (SMG1) user
 #                directory ~/Library/Application Support/Petari: the script refuses it.
-#   ASTRAL_AUDIO on|off (default off: SDL's dummy audio driver keeps the game's audio timing without a device)
+#   ASTRAL_AUDIO on|off (default on; off uses SDL's dummy driver, which keeps the game's audio timing without a device)
 #   ASTRAL_LOG   log file (default $ASTRAL_USER/logs/play-<galaxy>-<time>.log)
 set -u
 
 app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}
 disc=${ASTRAL_DISC:-$HOME/MacioGalaxy2-gamedata/SB4E01-extracted}
 user=${ASTRAL_USER:-$HOME/MacioGalaxy2-play/user}
-audio=${ASTRAL_AUDIO:-off}
+audio=${ASTRAL_AUDIO:-on}
 galaxy=flip-swap
 scenario=1
 odyssey=0

@@ -4,7 +4,7 @@
 here=$(cd "$(dirname "$0")" && pwd)
 play="$here/play.sh"
 odyssey=
-audio=${ASTRAL_AUDIO:-off}
+audio=${ASTRAL_AUDIO:-on}
 while :; do
     clear 2>/dev/null
     echo "Astral Italian (Super Mario Galaxy 2, native)"

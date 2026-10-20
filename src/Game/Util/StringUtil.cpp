@@ -245,6 +245,16 @@ namespace MR {
         u32 i;
 
         for (i = 0; i < num - 1; pDst++, pSrc++, i++) {
+#ifdef GALAXY_NATIVE
+            // The Wii accepts nonzero units with a zero high byte (0x01..0xFF).
+            // Native message strings hold host-order UTF-16, so inspect the unit.
+            const u16 code = static_cast< u16 >(*pSrc);
+            if (code == 0 || code > 0xFF) {
+                break;
+            }
+
+            *pDst = static_cast< char >(code);
+#else
             const char* p = reinterpret_cast< const char* >(pSrc);
 
             if (p[0] != '\0') {
@@ -256,6 +266,7 @@ namespace MR {
             }
 
             *pDst = p[1];
+#endif
         }
 
         *pDst = '\0';

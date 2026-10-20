@@ -260,3 +260,11 @@ The launcher itself wraps the executable as `lockf -k <shared-lock> nice -n 10
 <executable> ...`; do not add an outer copy of the same lock around this launcher.
 Epoch 0 above is only an example, not the expected oracle epoch. No disc image,
 Dolphin run, or full native run is launched by the unit tests.
+
+## Coverage beyond the first replay
+
+[REPLAY_COVERAGE.md](REPLAY_COVERAGE.md) lists SMG2 system-specific actions,
+stage/scenario evidence still needed, risk references and separate CPU, UI,
+render, audio, device and persistence tests. It is a planned coverage matrix,
+not a selected fixture or runtime result; all exclusions and validity rules
+above remain in force.

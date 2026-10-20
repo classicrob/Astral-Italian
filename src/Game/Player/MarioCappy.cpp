@@ -4,6 +4,7 @@
 // changes anything, and every hook returns at once.
 #ifdef GALAXY_NATIVE
 #include "Game/Player/MarioCappy.hpp"
+#include "Game/AreaObj/AreaObj.hpp"
 #include "Game/LiveActor/AllLiveActorGroup.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/HitSensorInfo.hpp"
@@ -29,6 +30,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 extern "C" bool petari_mod_enabled(int mod);
 extern "C" bool petari_mod_take_press(int mod);
@@ -76,6 +78,7 @@ namespace {
         f32 capOffsetFront = 5.0f;
         HitSensor* hits[kMaxHits] = {};
         int hitCount = 0;
+        std::vector<const AreaObj*> spinAreas;  // touched areas in this throw
     };
     State s;
     TPos3f sCapMtx;
@@ -151,6 +154,7 @@ namespace {
         Mario* mario = pActor->mMario;
         Cappy::startThrow(s.cappy, inAir);
         s.hitCount = 0;
+        s.spinAreas.clear();
         // The line follows Mario's facing at the press, as the dive does: Galaxy's
         // throw animations (its spin) must not turn it before Cappy leaves.
         s.pressFront = across(mario->mFrontVec, upOf(pActor));
@@ -546,6 +550,20 @@ namespace {
         }
     }
 }  // namespace
+
+// Flip-Swap uses SpinSwitchArea rather than a panel attack sensor. Let the
+// actual flying cap enter the same area, retaining its switch and volume rules.
+bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea) {
+    if (!active() || s.cappy.state == Cappy::State::Idle || s.cappy.state == Cappy::State::Windup ||
+        !pArea->isValidSwitchA() || !pArea->isInVolume(s.pos)) {
+        return false;
+    }
+    if (std::find(s.spinAreas.begin(), s.spinAreas.end(), pArea) != s.spinAreas.end()) {
+        return false;
+    }
+    s.spinAreas.push_back(pArea);
+    return true;
+}
 
 void petariCappyWallJump() {
     s.bounce.wallJump();

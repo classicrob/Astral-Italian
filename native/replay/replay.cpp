@@ -1,10 +1,10 @@
-#include "replay.hpp"
+#include <petari/replay.hpp>
 #include <algorithm>
 #include <cstring>
 #include <limits>
 #include <string>
 
-namespace PetariNative::Headless {
+namespace PetariNative::ReplayInput {
 namespace {
 std::uint64_t number(std::istream& in, unsigned bytes) {
     std::uint64_t result = 0;

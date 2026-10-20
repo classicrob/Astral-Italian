@@ -38,7 +38,12 @@ def run(command, seconds=540):
             signal.signal(sig, handler)
 
 
+def main(argv=None):
+    args = sys.argv if argv is None else ["bounded_run.py", *argv]
+    if len(args) < 3 or not args[1].isdigit() or not 1 <= int(args[1]) <= 3600:
+        raise SystemExit("usage: bounded_run.py <seconds:1..3600> <command> [args...]")
+    return run(args[2:], int(args[1]))
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 3 or not sys.argv[1].isdigit() or not 1 <= int(sys.argv[1]) <= 540:
-        raise SystemExit("usage: bounded_run.py <seconds:1..540> <command> [args...]")
-    raise SystemExit(run(sys.argv[2:], int(sys.argv[1])))
+    raise SystemExit(main())

@@ -1,7 +1,7 @@
-#include "platform.hpp"
+#include <petari/replay_kpad.hpp>
 #include <cstring>
 
-namespace PetariNative::Headless {
+namespace PetariNative::ReplayInput {
 namespace {
 u32 u32at(const Sample& bytes, unsigned offset) {
     u32 value = 0;

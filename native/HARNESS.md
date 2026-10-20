@@ -433,3 +433,32 @@ reported by owner; omitted unique definitions become additional traps.
 - `GXPeekZ` returns the far plane (no depth buffer): depth-occlusion queries (lens flares, Star Pointer depth)
   behave as if nothing were in front. Traces that depend on those differ from Dolphin by construction.
 - `GXPeekARGB` returns 0 (transparent black): no framebuffer headlessly.
+
+## Reconstructed host recordings (5.1 Stage 1)
+
+`native/tools/recording_to_kpad.py --recording <private.csv> --output <fresh-private-dir>
+--stage YosshiHomeGalaxy --scenario 1 --anchor 509 --frames 30000` converts host
+intent to the same strict JSONL and SMG2KPD1 tape used by the harness. The output
+manifest binds the recording, converter, shared encoder and outputs, and lists
+recorded, synthesized and unknown fields. This is not a consumed-KPAD capture or
+a Dolphin equivalence certificate. The explicit source anchor is a PROXY; native
+stage sync still uses the first exact ready seam. No trajectory fitting occurs.
+
+The newer recording's shoot maps to B; pointer x-right/y-down and valid flag are
+preserved, including finite values outside +/-1. Values round only to the f32
+format required by KPAD. Unsupported pointer values are listed and conversion
+fails rather than clamping. Old recordings without these columns get explicitly
+labeled neutral pointer/B-up defaults. Held edges and pointer/acceleration deltas
+use the predecessor at the suffix boundary. All source stage transitions and
+invalid/dead frames after the anchor are retained. `--frames` may add an explicitly
+counted neutral postroll; it never truncates or claims postroll is recorded input.
+
+Use `headless.py run ... --inputs-from-sync --sync-stage YosshiHomeGalaxy
+--sync-scenario 1 --frames 30000 --wall-timeout 1800` with fresh private user/trace
+paths. The watchdog default remains 540 seconds; the larger explicit limit only
+changes wall supervision, never virtual timing. The shared parser/decoder live
+in `native/replay` (`petari_replay_core`, `petari_replay_kpad`), and the encoder
+lives in `native/tools/kpad_tape.py`; headless compatibility imports remain.
+Read-only `[headless clear]` console events report star-count/clear-demo changes
+without changing the shared 86-column trace contract. A ship transition alone is
+not evidence of getting a star. Stage 2 GX replay is not implemented here.

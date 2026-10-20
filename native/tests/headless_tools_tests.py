@@ -370,6 +370,28 @@ class InterchangeTests(unittest.TestCase):
             self.assertEqual(kill.call_args_list, [unittest.mock.call(12345, bounded.signal.SIGTERM),
                                                   unittest.mock.call(12345, bounded.signal.SIGKILL)])
 
+    def test_replay_wall_watchdog_accepts_explicit_long_limit(self):
+        with patch.object(bounded, "run", return_value=0) as run:
+            self.assertEqual(bounded.main(["1800", "fixture"]), 0)
+            run.assert_called_once_with(["fixture"], 1800)
+        with self.assertRaises(SystemExit): bounded.main(["3601", "fixture"])
+        with self.assertRaises(SystemExit): bounded.main(["0", "fixture"])
+
+    def test_custom_wall_timeout_is_recorded_and_passed_to_watchdog(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); source = root / "inputs.jsonl"; trace = root / "trace.csv"
+            source.write_text("\n".join(json.dumps(r) for r in headless.generate(frames=1)) + "\n")
+            def stopped(command):
+                watchdog = command.index(str(ROOT / "native/tools/bounded_run.py"))
+                self.assertEqual(command[watchdog+1], "1800")
+                return 124
+            with patch.object(headless.subprocess, "call", side_effect=stopped):
+                result = headless.main(["run", "--inputs", str(source), "--executable", str(root / "fixture"),
+                    "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                    "--trace", str(trace), "--epoch-ticks", "0", "--wall-timeout", "1800"])
+            self.assertEqual(result, 2)
+            self.assertEqual(json.loads(Path(str(trace)+".manifest.json").read_text())["wall_timeout_seconds"], 1800)
+
     def test_complete_placeholder_trace_never_qualifies(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

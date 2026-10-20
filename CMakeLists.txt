@@ -202,6 +202,7 @@ if(PETARI_BUILD_GX_PROBE)
     unset(_PETARI_BUILD_TESTING_SAVED CACHE)
 endif()
 
+add_subdirectory(native/replay)
 add_subdirectory(native/app/headless)
 
 add_subdirectory(native/home_menu)

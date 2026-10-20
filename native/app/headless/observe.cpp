@@ -8,6 +8,8 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include "Game/Util/PadRecorder.hpp"
 #include "Game/Scene/Scene.hpp"
+#include "Game/Scene/GameScene.hpp"
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/LiveActor/AllLiveActorGroup.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -18,6 +20,7 @@
 #include "Game/Player/MarioPosHolder.hpp"
 #include "Game/Player/MarioState.hpp"
 #include <set>
+#include <cstdio>
 #include <cstring>
 
 namespace PetariNative::Headless {
@@ -75,6 +78,18 @@ State observeGame() {
     out.integer("init_state", static_cast<unsigned>(controller->mSceneInitializeState));
     if (controller->mSceneInitializeState != SceneInitializeState_End || sceneName != "Game") return out;
     if (!controller->mScene) throw ReplayError("initialized game controller has no scene");
+    // Read-only clear evidence, kept out of the shared Dolphin trace schema.
+    static int previousStars = -1;
+    static bool previousClear = false;
+    if (stage != "FileSelect") {
+        const int stars = GameDataFunction::calcCurrentPowerStarNum();
+        const bool clear = static_cast<const GameScene*>(controller->mScene)->isExecStageClearDemo();
+        if (stars != previousStars || clear != previousClear)
+            std::fprintf(stderr, "[headless clear] stage=%s scenario=%d power_stars=%d stage_clear_demo=%d\n",
+                         stage.c_str(), info.mScenarioNo, stars, clear);
+        previousStars = stars;
+        previousClear = clear;
+    }
     const auto* objects = controller->mScene->mSceneObjHolder;
     if (!objects) throw ReplayError("initialized game scene has no scene-object holder");
     const auto* group = static_cast<const AllLiveActorGroup*>(objects->mObjs[SceneObj_AllLiveActorGroup]);

@@ -1,0 +1,13 @@
+# Renderer-independent strict KPAD tape reader and named SDK decoder.
+add_library(petari_replay_core STATIC replay.cpp)
+target_compile_features(petari_replay_core PUBLIC cxx_std_17)
+target_compile_options(petari_replay_core PUBLIC -ffp-contract=off)
+target_include_directories(petari_replay_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+if(PETARI_SANITIZERS)
+    target_compile_options(petari_replay_core PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(petari_replay_core PUBLIC -fsanitize=address,undefined)
+endif()
+if(TARGET petari_native_config)
+    add_library(petari_replay_kpad STATIC kpad_decode.cpp)
+    target_link_libraries(petari_replay_kpad PUBLIC petari_replay_core petari_native_config)
+endif()

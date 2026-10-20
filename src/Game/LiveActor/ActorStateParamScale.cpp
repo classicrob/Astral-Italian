@@ -7,11 +7,16 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/NerveUtil.hpp"
 
+#ifdef GALAXY_NATIVE
+// Natively MathUtil.hpp's inline clamp is the definition (the Wii form below needs the target's out-of-line copy).
+#include "Game/Util/MathUtil.hpp"
+#else
 // MR::clamp / MR::getEaseOutValue are out-of-line in the target; MathUtil.hpp declares clamp inline.
 namespace MR {
     f32 clamp(f32 x, f32 min, f32 max);
     f32 getEaseOutValue(f32 x, f32 start, f32 end, f32 max);
 }
+#endif
 
 ActorStateParamScale::ActorStateParamScale(LiveActor* pHost) {
     mIsOnSwitch = false;

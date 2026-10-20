@@ -274,7 +274,7 @@ file(GLOB PETARI_J3D_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/JSystem/J3DGraphLoader/*.cpp")
 add_library(petari_j3d STATIC EXCLUDE_FROM_ALL ${PETARI_J3D_SOURCES} model_overrides.cpp
     "${CMAKE_SOURCE_DIR}/src/JSystem/JUtility/JUTNameTab.cpp"
-    # SMG1 JUTNativeResource.cpp is absent; its hooks remain deferred.
+    "${CMAKE_SOURCE_DIR}/src/JSystem/JUtility/JUTNativeResource.cpp"
     "${CMAKE_SOURCE_DIR}/src/JSystem/JUtility/JUTAssert.cpp")
 petari_encode_target_sources(petari_j3d)
 target_compile_options(petari_j3d PRIVATE -fno-rtti)

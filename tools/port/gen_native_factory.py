@@ -112,6 +112,9 @@ SPECIAL = {
 }
 
 
+INLINE_CTORS = ["DashFruit::DashFruit(const char* pName) : StemFruit(pName) {}"]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--exclude", nargs="*", default=[])
@@ -170,6 +173,8 @@ def main():
          '#include "Game/NameObj/NameObjFactory.hpp"']
     o += [f'#include "{h}"' for h in sorted(includes)]
     o += ["#include <cstdio>", "#include <cstdlib>", "",
+          "// Defined only inside the original factory TU (NameObjFactory.cpp), inline there.",
+          *INLINE_CTORS, "",
           "// createNameObj<T> (new T(pName)) comes from NameObjFactory.hpp's unnamed namespace.",
           "namespace {"]
     for k, f in forms.items():

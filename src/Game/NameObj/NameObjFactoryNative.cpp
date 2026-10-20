@@ -464,6 +464,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+// Defined only inside the original factory TU (NameObjFactory.cpp), inline there.
+DashFruit::DashFruit(const char* pName) : StemFruit(pName) {}
+
 // createNameObj<T> (new T(pName)) comes from NameObjFactory.hpp's unnamed namespace.
 namespace {
 

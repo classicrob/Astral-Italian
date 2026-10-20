@@ -169,7 +169,8 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
             observation.talkActive = MR::isSystemTalking();
             observation.playerDead = MR::isPlayerDead();
             observation.playerLife = static_cast< int >(pMario->getHealth());
-            observation.playerInBind = MR::isPlayerInBind();
+            // SMG2 has no MR::isPlayerInBind (an SMG1 helper): not observed.
+            observation.playerInBind = false;
             observation.playerSwinging = MR::isPlayerSwingAction();
             // The loaded file's game data (GameDataHolder), read-only; a file
             // is loaded whenever Mario is in a Game scene.
@@ -177,9 +178,7 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
             observation.powerStars = GameDataFunction::calcCurrentPowerStarNum();
             observation.stageResult = GameSequenceFunction::hasStageResultSequence();
             // The Game scene is a GameScene (SceneFactory: "Game").
-            if (pController->mScene != nullptr) {
-                observation.pausePermitted = static_cast< const GameScene* >(pController->mScene)->isPermitToPauseMenu();
-            }
+            // SMG2's GameScene has no isPermitToPauseMenu (SMG1): not observed.
         }
     }
     stepCollisionProbe(observation.stage, observation.sceneReady && observation.scene == "Game", observation.playerValid,
@@ -228,7 +227,7 @@ void recordRouteFrame(bool background) {
                 row.yaw = std::atan2(camera.x, camera.z);
                 const auto* ground = actor->getMario()->mGroundPolygon;
                 if (ground && ground->isValid()) row.zone = ground->getHostPlacementZoneID();
-                row.bound = MR::isPlayerInBind();
+                row.bound = false;  // SMG2 has no MR::isPlayerInBind
                 row.dead = MR::isPlayerDead();
                 row.powerStars = GameDataFunction::calcCurrentPowerStarNum();
             }

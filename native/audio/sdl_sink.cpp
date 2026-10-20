@@ -80,6 +80,9 @@ std::thread producer;
 // joined by stop()) does all formatting and stderr I/O, so the realtime paths
 // never block on the stderr lock or spend their budget on formatting.
 bool diagnostics = false;  // set by start() before the threads start
+// PETARI_AUDIO_CAPTURE=<file>: test-only raw capture of what the device is fed (s16le stereo at the start() rate),
+// for offline level/silence checks. Written from the device callback; opened by start(), flushed by stop().
+std::FILE* captureFile = nullptr;
 std::atomic<std::int64_t> worstTickGapUs{0};     // producer: time between ticks
 std::atomic<std::int64_t> worstPullUs{0};        // producer: one tick's AI pulls (includes lock waits)
 std::atomic<std::uint64_t> pulledFrames{0};
@@ -242,6 +245,9 @@ void SDLCALL fill(void*, SDL_AudioStream* stream, int additionalBytes, int) {
     while (frames > 0) {
         const int count = std::min(frames, 1024);
         ring.read(buffer, static_cast<std::size_t>(count));
+        if (captureFile != nullptr) {
+            std::fwrite(buffer, 4, static_cast<std::size_t>(count), captureFile);
+        }
         if (!SDL_PutAudioStreamData(stream, buffer, count * 4)) {
             failed.store(true, std::memory_order_relaxed);
             return;
@@ -256,6 +262,9 @@ void stop(void*) {
     deviceThreadRealtime.store(0, std::memory_order_relaxed);
     stopProducer.store(true, std::memory_order_release);
     if (producer.joinable()) producer.join();
+    if (captureFile != nullptr) {
+        std::fflush(captureFile);  // not closed: the device callback may still be writing (test-only, the process exits soon)
+    }
     if (reporter != nullptr) {
         {
             std::lock_guard<std::mutex> guard(reporterLock);
@@ -373,6 +382,10 @@ void start(std::uint32_t rate, void*) {
     diagnostics = diagValue != nullptr && diagValue[0] != '\0' && diagValue[0] != '0';
     PetariNative::Platform::Audio::setTimingDiagnostics(diagnostics);
     lastCallbackUs = 0;
+    if (const char* capture = std::getenv("PETARI_AUDIO_CAPTURE"); captureFile == nullptr && capture != nullptr && capture[0] != '\0') {
+        captureFile = std::fopen(capture, "wb");
+        std::fprintf(stderr, "[audio] capture %s: s16le stereo %u Hz%s\n", capture, rate, captureFile ? "" : " (open failed)");
+    }
     SDL_AudioSpec spec{SDL_AUDIO_S16, 2, static_cast<int>(rate)};
     device = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, fill, nullptr);
     if (device && SDL_GetHintBoolean("PETARI_SMOKE_BACKGROUND", false)) {

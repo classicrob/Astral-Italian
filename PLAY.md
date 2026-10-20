@@ -32,7 +32,7 @@ to `~/MacioGalaxy2-play/user`; MacioGalaxy's own folder (`~/Library/Application 
 
 In the game: F1, then Mods, then Odyssey movement (saved in `mods.txt`). The moves and keys are in
 `native/MODS.md`, "Odyssey movement". The switch only does something on a build that includes the Odyssey hooks;
-the status below says whether the frozen build does.
+the frozen build 3 does.
 
 ## What to look for (Flip-Swap)
 
@@ -56,15 +56,11 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 
 ## Status and known issues
 
-- Flip-Swap Galaxy: plays (Mario, panels, HUD, walking, jumping, falling off edges).
-  Frozen-build smoke (150 s): PASS, 8,257 gameplay frames.
-- Fluffy Bluff Galaxy: loads and plays (Mario, Toad, enemies, clouds, HUD). Loading takes a little longer than
-  Flip-Swap. Frozen-build smoke (150 s): PASS, 8,229 gameplay frames. The Cloud Flower is SMG2-only code that was not
-  checked natively yet.
-- Sky Station Galaxy: the fallback, not checked in this build yet.
-- The frozen build is build 2 (`~/MacioGalaxy2-play/FROZEN.txt`); build 1 (Flip-Swap only) is kept in
-  `~/MacioGalaxy2-play/build1/`.
-- Audio: off by default (the game runs its audio through a silent driver). Turn it on with `a` at your own risk.
-- Odyssey movement: not in the frozen build yet; the toggle does nothing until it is.
-- SMG2-only systems (Yoshi, Cloud Flower, the world map, co-star mode) run their decompiled code but were not
-  validated natively.
+- Build 3 (default, frozen 02:45): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
+  and on, and the toggle demonstrably changes Mario's moves (crouch + Spin rolls him only with it on).
+- Audio: off by default (silent driver), never listened to on this build. Turn it on with `a` at your own risk.
+- First run: brief hitches the first time new effects appear (shaders compiling); later runs use the cache.
+- Untested: Sky Station and every other galaxy, power-ups (Cloud Flower), Yoshi, the world map, co-star mode, and the
+  Odyssey moves other than the roll.
+- The full list and the measured numbers: [`native/play/PLAY.md`](native/play/PLAY.md), "Status and known issues",
+  and `~/MacioGalaxy2-play/FROZEN.txt`. Older builds: `~/MacioGalaxy2-play/build2/`, `build1/`.

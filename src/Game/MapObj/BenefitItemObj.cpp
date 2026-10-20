@@ -3,6 +3,7 @@
 #include "Game/LiveActor/FlashingCtrl.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -25,11 +26,6 @@
 #include "Game/Util/SupportPlayUtil.hpp"
 
 
-
-class ScoreAttackFunction {
-public:
-    static void score1000Points(const LiveActor*);
-};
 
 namespace NrvBenefitItemObj {
     NEW_NERVE(HostTypeNrvWait, BenefitItemObj, Wait);

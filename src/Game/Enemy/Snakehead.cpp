@@ -4,6 +4,7 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
 #include "Game/Util/ActorStateUtil.hpp"
@@ -20,11 +21,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
-
-class ScoreAttackFunction {
-public:
-    static void score300Points(const LiveActor*);
-};
 
 namespace {
     struct SnakeheadData {

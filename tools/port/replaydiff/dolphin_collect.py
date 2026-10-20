@@ -11,6 +11,7 @@ import math
 import os
 from pathlib import Path
 import plistlib
+import signal
 import socket
 import struct
 import subprocess
@@ -387,8 +388,14 @@ def collect(args):
     step_installed = False
     remote = None
     inputs = None
+    handlers = {}
+    def interrupted(number, _frame):
+        raise ObserverError(f"capture interrupted by {signal.Signals(number).name}")
     log = (output / "run.log").open("w", buffering=1)
     try:
+        for number in (signal.SIGTERM, signal.SIGINT, signal.SIGALRM):
+            handlers[number] = signal.signal(number, interrupted)
+        signal.setitimer(signal.ITIMER_REAL, 540)
         manifest.update(collector_sha256=sha256(__file__), python_version=sys.version.split()[0],
                         columns_sha256=hashlib.sha256(",".join(COLUMNS).encode()).hexdigest())
         if args.input_script:
@@ -445,6 +452,8 @@ def collect(args):
                 raise ObserverError("stale/existing GDB socket: remove only after confirming no emulator owns it")
             log.write("Shared emulator/build slot held; launching " + repr(command) + "\n")
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
+            manifest.update(collector_pid=os.getpid(), dolphin_pid=process.pid)
+        (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         deadline = time.monotonic() + args.connect_timeout
         while True:
             stream = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -497,6 +506,7 @@ def collect(args):
                         spans.append(dict(first_frame=row["frame"], context=context))
                     if changed or manifest["frames"] % 60 == 0 or row["observer_error"]:
                         log.write(json.dumps({k: row[k] for k in ("frame", "scene", "stage", "scenario", "init_state", "player_valid", "observer_error")}) + "\n")
+                        (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
                     if row["observer_error"]:
                         raise ObserverError(row["observer_error"])
                     if inputs:
@@ -532,11 +542,19 @@ def collect(args):
         log.write(manifest["error"] + "\n")
         raise
     finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        if stream:
+            stream.settimeout(1)
+        cleanup_error = None
         if inputs:
-            manifest["input_reads"] = inputs.reads
-            manifest["live_input_revisions"] = inputs.revisions
-            (output / "input-script-final.json").write_text(json.dumps(inputs.script, indent=2) + "\n")
-            inputs.close(remote, manifest["status"] == "captured; repeat qualification required")
+            try:
+                manifest["input_reads"] = inputs.reads
+                manifest["live_input_revisions"] = inputs.revisions
+                (output / "input-script-final.json").write_text(json.dumps(inputs.script, indent=2) + "\n")
+                inputs.close(remote, manifest["status"] == "captured; repeat qualification required")
+            except Exception as exc:
+                cleanup_error = f"input cleanup failed: {type(exc).__name__}"
+                manifest.update(status="incomplete", cleanup_error=cleanup_error)
         if remote and step_installed:
             try:
                 remote.ok(f"z0,{SEAM + 4:x},4")
@@ -561,6 +579,10 @@ def collect(args):
                 endpoint.unlink()
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         log.close()
+        for number, handler in handlers.items():
+            signal.signal(number, handler)
+        if cleanup_error:
+            raise ObserverError(cleanup_error)
 
 
 def main():
@@ -581,14 +603,16 @@ def main():
     capture.add_argument("--gui", action="store_true", help="show the main UI for TAS recording/navigation")
     capture.add_argument("--output", required=True)
     capture.add_argument("--frames", type=int, default=600)
-    capture.add_argument("--connect-timeout", type=float, default=600)
-    capture.add_argument("--stop-timeout", type=float, default=120)
-    capture.add_argument("--wall-timeout", type=float, default=900)
+    capture.add_argument("--connect-timeout", type=float, default=60)
+    capture.add_argument("--stop-timeout", type=float, default=30)
+    capture.add_argument("--wall-timeout", type=float, default=480)
     capture.add_argument("--lock", default="~/MacioGalaxy2-team/slots/native.lock")
     capture.add_argument("--slot-held", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.action == "collect" and args.frames < 1:
         parser.error("--frames must be positive")
+    if args.action == "collect" and not 0 < args.wall_timeout <= 480:
+        parser.error("--wall-timeout must be within 0..480 seconds; each locked run stays below 10 minutes")
     if args.action == "collect" and args.dolphin and not args.slot_held:
         command = ["lockf", "-k", str(Path(args.lock).expanduser()), "nice", "-n", "10",
                    sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], "--slot-held"]

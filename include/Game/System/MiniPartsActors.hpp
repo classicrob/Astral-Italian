@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Game/System/MiniRoutePoint.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 
 #include "Game/LiveActor/LiveActor.hpp"
@@ -111,23 +112,4 @@ namespace NrvMiniStarPieceMine {
     };
 };  // namespace NrvMiniStarPieceMine
 
-/// Relay point marker on a map node (name "中継点", model "MiniRoutePoint", 0x9C bytes).
-class MiniRoutePoint : public LiveActor {
-public:
-    MiniRoutePoint();
-
-    bool isOpening() const;
-    bool tryOpen();
-    void setPosition(const TVec3f&);
-    void setReachable(bool);
-    bool isStarting() const;
-    void start();
-    bool startOpenSound();
-    bool startCloseSound();
-
-    /* 0x90 */ s32 mPointIndex;
-    /* 0x94 */ u8 _94[4];
-    /* 0x98 */ bool mNotReady;
-    /* 0x99 */ bool mFlag11;
-    /* 0x9A */ u8 _9A[2];
-};
+// MiniRoutePoint (relay point marker on a map node, "中継点") is defined in Game/System/MiniRoutePoint.hpp.

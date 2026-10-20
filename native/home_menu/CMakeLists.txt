@@ -47,6 +47,8 @@ endif()
 # bridge reads the SDK's HBM and KPAD structures.
 # progress.cpp: the personal progress record (petari/progress.hpp), shown on the My Progress page.
 add_library(petari_home_menu STATIC home_menu.cpp hbm_bridge.cpp launch_stage.cpp galaxy_font.cpp ${PETARI_REPO_ROOT}/native/progress/progress.cpp)
+# launch_stage.cpp derives from game classes, which are compiled without RTTI (petari_game_objects).
+target_compile_options(petari_home_menu PRIVATE -fno-rtti)
 if(NOT _petari_home_menu_standalone)
     target_sources(petari_home_menu PRIVATE ${PETARI_REPO_ROOT}/native/app/launch_stage.cpp
         ${PETARI_REPO_ROOT}/native/app/launch_stage_messages.cpp)

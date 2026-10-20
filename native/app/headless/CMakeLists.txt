@@ -143,6 +143,8 @@ endif()
 add_executable(petari_headless EXCLUDE_FROM_ALL main.cpp observe.cpp "${_headless_root}/native/app/milestone.cpp"
     "${_headless_root}/native/app/actor_observe.cpp")
 target_compile_definitions(petari_headless PRIVATE PETARI_HEADLESS_SOURCE_ROOT="${_headless_root}")
+# Game classes are compiled without RTTI (petari_game_objects): TUs that emit vtables for them must not need their typeinfo.
+target_compile_options(petari_headless PRIVATE -fno-rtti)
 target_link_libraries(petari_headless PRIVATE petari_headless_platform petari_game_objects petari_headless_game_libraries
     petari_headless_core petari_gx_null petari_home_menu petari_sdk_mem petari_rfl Threads::Threads)
 target_link_options(petari_headless PRIVATE -Wl,-dead_strip)

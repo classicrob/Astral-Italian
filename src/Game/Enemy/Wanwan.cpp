@@ -164,7 +164,8 @@ s32 Wanwan::getType(const JMapInfoIter& rIter) {
 }
 
 s32 Wanwan::getAppearStarPieceNum(Rock::Type type) {
-    return type == Rock::TypeMini ? 3 : 9;
+    // Wanwan mini is 1; Rock::WanwanRollingMini is a different tag (2).
+    return static_cast<s32>(type) == TypeMini ? 3 : 9;
 }
 
 // NONMATCHING: stack slot order of toRail/g temporaries

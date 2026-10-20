@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/MapObj/Rock.hpp"
 #include "Game/Util/JMapInfo.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 #include <JSystem/JGeometry/TMatrix.hpp>
@@ -11,12 +12,10 @@ class KeySwitch;
 class ModelObj;
 class Nerve;
 
-struct Rock {
-    enum Type { TypeNormal = 0, TypeMini = 1, TypeGold = 2 };
-};
-
 class Wanwan : public LiveActor {
 public:
+    enum Type { TypeNormal = 0, TypeMini = 1, TypeGold = 2 };
+
     Wanwan(f32 = 10.0f, const char* = "\x83\x8f\x83\x93\x83\x8f\x83\x93");
 
     virtual ~Wanwan();
@@ -34,6 +33,7 @@ public:
     static s32 getGoalStayStep() NO_INLINE;  // fn_8021B300
     bool isMini() const { return mType == 1; }
     static s32 getType(const JMapInfoIter&);
+    // Preserve the existing Rock::Type ABI; its values use Wanwan's Type domain.
     static s32 getAppearStarPieceNum(Rock::Type) NO_INLINE;
 
     void initMapToolInfo(const JMapInfoIter&);

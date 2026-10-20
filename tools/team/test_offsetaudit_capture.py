@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Exact production-token mapping and opt-in compiler guard regressions."""
 from pathlib import Path
-import contextlib, importlib.util, io, json, sys, tempfile, unittest
+import contextlib, hashlib, importlib.util, io, json, sys, tempfile, unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import offsetaudit as audit
@@ -9,6 +10,9 @@ import offsetaudit_capture as capture
 
 
 class CaptureTests(unittest.TestCase):
+    def setUp(self):
+        capture.reset_context_pins()
+
     def setup_tree(self, directory, original, encoded):
         capture.ROOT=Path(directory)/'root';capture.LEGACY=Path(directory)/'legacy'
         for root in [capture.ROOT,capture.LEGACY]:root.mkdir(exist_ok=True)
@@ -103,6 +107,68 @@ class CaptureTests(unittest.TestCase):
                     self.assertEqual(field['range']['end']['offset'],offset)
                     self.assertEqual(field['parent']['id'],'record')
                     self.assertEqual(field['constructor_references'][0]['id'],'0x110392e20')
+
+    def test_case_differing_include_dependency_without_compiler(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.setup_tree(tmp,'int x;','int x;')
+            relative='include/Game/Animation/XanimeCore.hpp'
+            header=capture.LEGACY/relative;header.parent.mkdir(parents=True)
+            header.write_text('struct XanimeCore {};')
+            original=capture.ROOT/relative;original.parent.mkdir(parents=True)
+            original.write_bytes(header.read_bytes())
+            alias=header.with_name('Xanimecore.hpp')
+            # M1: this already exists and is the same inode. On case-sensitive
+            # CI, a symlink supplies a real filesystem alias with the same spelling.
+            if not alias.exists():alias.symlink_to(header.name)
+            self.assertTrue(alias.samefile(header))
+            capture.pin_context_file(header)
+            canonical,binding=capture.bind_context_dependency(alias)
+            self.assertEqual(canonical,str(header))
+            self.assertEqual(binding['reported_path'],str(alias))
+            self.assertEqual(binding['sha256'],hashlib.sha256(header.read_bytes()).hexdigest())
+            capture.OUT=Path(tmp)/'out';capture.OUT.mkdir()
+            capture.INPUT={'files':{'x.cpp':hashlib.sha256((capture.ROOT/'x.cpp').read_bytes()).hexdigest()}}
+            capture.CTX={'command':['never-a-compiler','-fsyntax-only'],'source_base':'fixture'}
+            capture.PRODUCER_SHA=capture.AUDIT_SHA=capture.ENCODER_SHA='fixture'
+            capture.COMPILER={};capture.BYFILE={}
+            def fake_compiler(command,**kwargs):
+                # Produce deterministic files only: no compiler process is spawned.
+                kwargs['stdout'].write('{"kind":"TranslationUnitDecl"}')
+                Path(command[command.index('-MF')+1]).write_text('x.o: '+str(alias)+'\n')
+                return SimpleNamespace(returncode=0)
+            with patch.object(capture.subprocess,'run',side_effect=fake_compiler) as run:
+                summary=capture.collect('x.cpp')
+            self.assertEqual(run.call_count,1)
+            report=json.loads((capture.OUT/summary['evidence_file']).read_text())
+            self.assertEqual(set(report['dependencies']),{str(header)})
+            self.assertEqual(report['dependencies'][str(header)]['original']['path'],relative)
+
+    def test_case_only_names_distinct_real_files_never_alias_even_same_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);left=root/'left'/'XanimeCore.hpp';right=root/'right'/'Xanimecore.hpp'
+            left.parent.mkdir();right.parent.mkdir()
+            left.write_text('same bytes');right.write_bytes(left.read_bytes())
+            self.assertFalse(left.samefile(right))
+            # Two actual files/inodes with case-only leaf names. Project their
+            # resolved spelling into one case-sensitive namespace, so the test
+            # remains meaningful on M1's case-insensitive filesystem. Only the
+            # spelling is projected: stat, size and content are the actual files'.
+            views={left:root/'view'/'XanimeCore.hpp',right:root/'view'/'Xanimecore.hpp'}
+            with patch.object(Path,'resolve',autospec=True,side_effect=lambda p:views[p]):
+                capture.pin_context_file(left)
+                with self.assertRaisesRegex(ValueError,'dependency absent/changed'):
+                    capture.bind_context_dependency(right)
+                # Negative control: a blanket casefold would select the pinned
+                # file despite the actual different inode and identical bytes.
+                folded={str(p).casefold() for p in capture.CONTEXT_REALPATHS}
+                self.assertIn(str(views[right]).casefold(),folded)
+
+    def test_same_inode_changed_bytes_reject(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'Header.hpp';path.write_text('before')
+            capture.pin_context_file(path);path.write_text('after!')
+            with self.assertRaisesRegex(ValueError,'dependency absent/changed'):
+                capture.bind_context_dependency(path)
 
     def test_no_compiler_in_dry_run(self):
         with tempfile.TemporaryDirectory() as tmp:

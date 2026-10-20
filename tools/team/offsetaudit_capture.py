@@ -13,6 +13,28 @@ INPUT=CTX=AUD=None
 PRODUCER_SHA=ENCODER_SHA=AUDIT_SHA=COMPILER=None
 TIMEOUT=120
 CONTEXT_PINS={}
+CONTEXT_REALPATHS={}
+CONTEXT_IDENTITIES={}
+
+def reset_context_pins():
+ CONTEXT_PINS.clear();CONTEXT_REALPATHS.clear();CONTEXT_IDENTITIES.clear()
+
+def pin_context_file(path):
+ info=path.stat();key=str(path);resolved=str(path.resolve())
+ CONTEXT_PINS[key]={'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'size':info.st_size}
+ CONTEXT_REALPATHS.setdefault(resolved,set()).add(key)
+ if info.st_ino:CONTEXT_IDENTITIES.setdefault((info.st_dev,info.st_ino),set()).add(key)
+
+def bind_context_dependency(path):
+ # resolve() handles symlinks but may preserve include spelling on case-insensitive
+ # filesystems. Device/inode closes that alias without case-folding distinct files.
+ info=path.stat();resolved=str(path.resolve());digest=hashlib.sha256(path.read_bytes()).hexdigest()
+ real=CONTEXT_REALPATHS.get(resolved,set());same=CONTEXT_IDENTITIES.get((info.st_dev,info.st_ino),set()) if info.st_ino else set()
+ candidates=[key for key in real|same if CONTEXT_PINS[key]=={'sha256':digest,'size':info.st_size}]
+ if not candidates:raise ValueError('dependency absent/changed since pre-capture snapshot: '+str(path))
+ key=min(candidates,key=lambda key:(key!=str(path),key not in real,key))
+ return key,{'sha256':digest,'size':info.st_size,'reported_path':str(path),
+             'identity_binding':'realpath' if key in real else 'device_inode'}
 
 def verify_source_pins():
  for name,expected in INPUT['files'].items():
@@ -162,11 +184,10 @@ def collect(name):
   for path in paths:
    f=Path(path)
    if f.is_file():
-    dependencies[path]={'sha256':hashlib.sha256(f.read_bytes()).hexdigest()}
-    original=name_for(str(f))
-    if original and (ROOT/original).is_file():dependencies[path]['original']={'path':original,'sha256':hashlib.sha256((ROOT/original).read_bytes()).hexdigest()}
-    if str(f) not in CONTEXT_PINS or CONTEXT_PINS[str(f)]!=dependencies[path]['sha256']:
-     raise ValueError('dependency absent/changed since pre-capture snapshot: '+str(f))
+    canonical,binding=bind_context_dependency(f)
+    dependencies[canonical]=binding
+    original=name_for(canonical)
+    if original and (ROOT/original).is_file():dependencies[canonical]['original']={'path':original,'sha256':hashlib.sha256((ROOT/original).read_bytes()).hexdigest()}
  verify_dependencies(dependencies)
  summary={'source':name,'exit':run.returncode,'facts':len(facts),'seconds':round(time.time()-start,2),'ast_sha256':digest,'mapping_errors':maps,'parse_error':error,'evidence_file':str(report.relative_to(OUT))}
  result={'summary':summary,'command':command,'source_base':CTX['source_base'],'source_hash':INPUT['files'][name],'dependencies':dependencies,'producer_sha256':PRODUCER_SHA,'source_mapping_tool_sha256':AUDIT_SHA,'legacy_encoder_sha256':ENCODER_SHA,'compiler':COMPILER,'facts':facts,'referenced_declarations':decls}
@@ -210,11 +231,11 @@ def main(argv=None):
  AUDIT_SHA=hashlib.sha256(Path(__file__).with_name('offsetaudit.py').read_bytes()).hexdigest()
  encoder=ROOT/'native/tools/encode_legacy_sources.py';spec=importlib.util.spec_from_file_location('offsetaudit_native_capture_encoder',encoder);enc=importlib.util.module_from_spec(spec);spec.loader.exec_module(enc)
  LEGACY=OUT/'legacy';enc.prepare(ROOT,LEGACY)
- CONTEXT_PINS={}
+ reset_context_pins()
  for directory in [ROOT/'src',ROOT/'include',ROOT/'libs',ROOT/'native',LEGACY]:
   for path in directory.rglob('*'):
    if path.is_file() and path.suffix in {'.c','.cpp','.cc','.cxx','.h','.hpp','.hh','.hxx','.inc','.inl'}:
-    CONTEXT_PINS[str(path)]=hashlib.sha256(path.read_bytes()).hexdigest()
+    pin_context_file(path)
  # Use production legacy include precedence, not raw wchar_t/UTF8 assumptions.
  expanded=[arg.replace('{root}',str(ROOT)).replace('{legacy}',str(LEGACY)) for arg in command]
  CTX={'command':expanded,'source_base':INPUT.get('source_base',plan.get('source_base'))}

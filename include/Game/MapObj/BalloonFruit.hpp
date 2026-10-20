@@ -39,7 +39,7 @@ public:
     bool tryStartShake();             // fn_80273070
     bool tryStartBind();              // fn_802730E0
     bool isSwitchA() const;  // fn_80273150
-    void enableYoshiBalloonResource();  // fn_80272690
+    static void enableYoshiBalloonResource();  // fn_80272690
 
     /* 0x090 */ TVec3f mHomePos;
     /* 0x09C */ TVec3f mHomeRot;

@@ -343,6 +343,16 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
     MR::attenuateVelocity(this, (mGroundCount < 5) ? 0.96f : 0.99f);
     mRadius = MR::lerp(mRadius, mSpeedTarget, 0.1f);
 
+#ifdef GALAXY_NATIVE
+    TVec3f up;
+    const TVec3f* pUp;
+    if (MR::isBindedGround(this)) {
+        pUp = &MR::getGroundNormal(this);
+    } else {
+        up.set(-mGravity);
+        pUp = &up;
+    }
+#else
     const TVec3f* pUp;
     if (MR::isBindedGround(this)) {
         pUp = &MR::getGroundNormal(this);
@@ -350,6 +360,7 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
         TVec3f up(-mGravity);
         pUp = &up;
     }
+#endif
     MR::rotateQuatRollBall(&mQuat, mVelocity, *pUp, mRadius);
     f32 velLen = MR::calcVelocityLength(this);
     if (velLen < 4.0f) {

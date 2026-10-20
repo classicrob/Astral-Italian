@@ -2,6 +2,12 @@
 #include "revolution/wenc.h"
 
 s32 WENCGetEncodeData(WENCInfo* info, u32 flag, const s16* pcmData, s32 samples, u8* adpcmData) {
+#ifdef GALAXY_NATIVE
+    void* userInfo = info;
+    WENCInfo alignedInfo;
+    memcpy(&alignedInfo, userInfo, sizeof(alignedInfo));
+    info = &alignedInfo;
+#endif
     const f64 table[] = {0.89843750, 0.89843750, 0.89843750, 0.89843750, 1.19921875, 1.59765625, 2.00000000, 2.39843750};
 
     u8* dst;
@@ -115,5 +121,8 @@ s32 WENCGetEncodeData(WENCInfo* info, u32 flag, const s16* pcmData, s32 samples,
     info->dlh = dlh;
     info->dlq = dlq;
 
+#ifdef GALAXY_NATIVE
+    memcpy(userInfo, (const void*)info, sizeof(*info));
+#endif
     return samples;
 }

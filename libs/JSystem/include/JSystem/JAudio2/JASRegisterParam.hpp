@@ -4,7 +4,11 @@
 
 class JASRegisterParam {
 public:
+#ifdef GALAXY_NATIVE
+    enum RegID : u32 { REG_A, REG_B, REG_S, REG_F, REG_X, REG_Y };
+#else
     enum RegID { REG_A, REG_B, REG_S, REG_F, REG_X, REG_Y };
+#endif
 
     JASRegisterParam();
 

@@ -151,10 +151,22 @@ void StarPointerDirector::createLayout() {
 
 namespace {
     static f32 mtx_identity[3][4] = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
+#ifdef GALAXY_NATIVE
+    // ORIGINAL BUG: the 4x4 projection is copied from the 3x4 table above, so on the Wii its last row is the
+    // next .data object (StarPointerPeekZ's vtable: 0, 0, a code pointer that reads as a negative denormal,
+    // flushed to -0 under FPSCR.NI, 0). The native build spells out that row instead of reading past the table.
+    static f32 proj_identity[4][4] = {
+        {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -0.0f, 0.0f}};
+#endif
 };  // namespace
 
+#ifdef GALAXY_NATIVE
+StarPointerTransformHolder::StarPointerTransformHolder() : mViewMtx(mtx_identity), mProjMtx(proj_identity) {
+}
+#else
 StarPointerTransformHolder::StarPointerTransformHolder() : mViewMtx(mtx_identity), mProjMtx(mtx_identity) {
 }
+#endif
 
 void StarPointerTransformHolder::movement() {
     f32 fovyRad = PI_180 * getFovy();

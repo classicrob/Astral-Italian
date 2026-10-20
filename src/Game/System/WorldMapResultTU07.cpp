@@ -747,32 +747,9 @@ namespace NrvWorldMapSequence {
     WMS_NERVE_DECL(WorldMapSequenceNoMove);
 };  // namespace NrvWorldMapSequence
 
-class WorldMapSequence : public NerveExecutor {
-public:
-    WorldMapSequence(void*);
-
-    virtual ~WorldMapSequence();
-
-    void init(bool);
-    void exeStart();
-    void exeWait();
-    void exePointMove();
-    void exePointWarp();
-    void exeGreenStarDemo();
-    void exeNoMove();
-    bool isGalaxyMap() const NO_INLINE;
-    bool updatePoint(bool) NO_INLINE;
-    bool checkWorldNews() NO_INLINE;
-
-    /* 0x08 */ WorldMapOwner* mOwner;
-    /* 0x0C */ WorldMapResultStateWait* mStateWait;
-    /* 0x10 */ WorldMapResultStatePointEvent* mStatePointEvent;
-    /* 0x14 */ WorldMapResultStateTicoRouteCreate* mStateTicoRoute;
-    /* 0x18 */ WorldMapResultStateWorldNews* mStateWorldNews;
-    /* 0x1C */ WorldMapResultStateWorldWarp* mStateWorldWarp;
-    /* 0x20 */ WorldMapResultStateGalaxyMap* mStateGalaxyMap;
-    /* 0x24 */ bool mFlag;
-};
+// The canonical WorldMapSequence definition, included here (after its nerve classes) so the
+// Wii object keeps the original definition order (vtable order in .data).
+#include "Game/System/WorldMapSequence.hpp"
 
 WorldMapSequence::WorldMapSequence(void* pOwner) : NerveExecutor("シーケンス管理") {
     mOwner = static_cast<WorldMapOwner*>(pOwner);

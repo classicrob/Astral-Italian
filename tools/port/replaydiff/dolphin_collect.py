@@ -51,17 +51,42 @@ class RSP:
     def __init__(self, stream: socket.socket):
         self.stream = stream
         self.last = b""
+        self.buffer = b""
+        self.cursor = 0
 
     def byte(self):
-        result = self.stream.recv(1)
-        if not result:
-            raise ObserverError("GDB connection closed")
+        if self.cursor == len(self.buffer):
+            self.buffer = self.stream.recv(65536)
+            self.cursor = 0
+            if not self.buffer:
+                raise ObserverError("GDB connection closed")
+        result = self.buffer[self.cursor:self.cursor + 1]
+        self.cursor += 1
         return result
 
     def send(self, payload):
         data = payload.encode("ascii")
         self.last = b"$" + data + b"#" + f"{sum(data) & 255:02x}".encode()
         self.stream.sendall(self.last)
+
+    def until(self, delimiter, limit):
+        parts, size = [], 0
+        while True:
+            if self.cursor == len(self.buffer):
+                self.buffer = self.stream.recv(65536)
+                self.cursor = 0
+                if not self.buffer:
+                    raise ObserverError("GDB connection closed")
+            end = self.buffer.find(delimiter, self.cursor)
+            stop = end if end >= 0 else len(self.buffer)
+            part = self.buffer[self.cursor:stop]
+            size += len(part)
+            if size > limit:
+                raise ObserverError("oversized RSP reply")
+            parts.append(part)
+            self.cursor = stop + (end >= 0)
+            if end >= 0:
+                return b"".join(parts)
 
     def receive(self):
         for _ in range(100):
@@ -73,14 +98,7 @@ class RSP:
                 continue
             if start != b"$":
                 raise ObserverError(f"unexpected RSP prefix {start!r}")
-            data = bytearray()
-            while True:
-                char = self.byte()
-                if char == b"#":
-                    break
-                data += char
-                if len(data) > 65536:
-                    raise ObserverError("oversized RSP reply")
+            data = self.until(b"#", 65536)
             check = self.byte() + self.byte()
             if sum(data) & 255 != int(check, 16):
                 self.stream.sendall(b"-")
@@ -122,8 +140,8 @@ class RSP:
                    ((0x80000000, 0x81800000), (0x90000000, 0x94000000))):
             raise ObserverError(f"unmapped guest read {address:#x}+{size:#x}")
         result = bytearray()
-        for offset in range(0, size, 512):
-            length = min(512, size - offset)
+        for offset in range(0, size, 4096):
+            length = min(4096, size - offset)
             reply = self.command(f"m{address + offset:x},{length:x}")
             if len(reply) != length * 2:
                 code = reply if reply.startswith("E") and len(reply) <= 8 else "malformed/short reply"
@@ -136,11 +154,28 @@ class RSP:
 
 
 class Memory:
-    def __init__(self, remote):
+    def __init__(self, remote, cache_pages=False):
         self.remote = remote
+        self.cache_pages = cache_pages
+        self.pages = {}
+
+    def read(self, address, size):
+        if not self.cache_pages:
+            return self.remote.read(address, size)
+        result = bytearray()
+        while size:
+            page = address & ~4095
+            if page not in self.pages:
+                self.pages[page] = self.remote.read(page, 4096)
+            offset = address - page
+            length = min(size, 4096 - offset)
+            result += self.pages[page][offset:offset + length]
+            address += length
+            size -= length
+        return bytes(result)
 
     def u32(self, address):
-        return struct.unpack(">I", self.remote.read(address, 4))[0]
+        return struct.unpack(">I", self.read(address, 4))[0]
 
     @staticmethod
     def checked_pointer(value, address, nullable=False, alignment=4):
@@ -157,25 +192,25 @@ class Memory:
     def pointers(self, address, count):
         for first in range(0, count, 1024):
             length = min(1024, count - first)
-            block = self.remote.read(address + first * 4, length * 4)
+            block = self.read(address + first * 4, length * 4)
             for index, (value,) in enumerate(struct.iter_unpack(">I", block)):
                 yield self.checked_pointer(value, address + (first + index) * 4)
 
     def string(self, address, limit=64):
-        data = self.remote.read(address, limit)
+        data = self.read(address, limit)
         end = data.find(b"\0")
         if end < 0:
             raise ObserverError(f"unterminated guest string {address:#x}")
         return data[:end].decode("ascii", errors="strict")
 
     def boolean(self, address):
-        value = self.remote.read(address, 1)[0]
+        value = self.read(address, 1)[0]
         if value not in (0, 1):
             raise ObserverError(f"nonboolean at {address:#x}: {value}")
         return value
 
     def vector(self, row, prefix, address):
-        data = self.remote.read(address, 12)
+        data = self.read(address, 12)
         for i, axis in enumerate("xyz"):
             raw = data[i * 4:i * 4 + 4]
             value = struct.unpack(">f", raw)[0]
@@ -187,12 +222,13 @@ class Memory:
 
 class Snapshot:
     def __init__(self, remote):
-        self.m = Memory(remote)
+        self.m = Memory(remote, cache_pages=True)
         self.epoch = 0
         self.identity = None
 
     def take(self, frame):
         m = self.m
+        m.pages.clear()
         row = dict.fromkeys(COLUMNS, "")
         row.update(frame=frame, scene_valid=0, rng_valid=0, player_valid=0,
                    actor_count_valid=0, animation_valid=0, observer_error="")
@@ -208,7 +244,7 @@ class Snapshot:
             if not controller:
                 row["scene_epoch"] = self.epoch
                 return row
-            control = m.remote.read(controller, 0x134)
+            control = m.read(controller, 0x134)
             for name, start in (("scene", 0), ("stage", 0x40)):
                 data = control[start:start + 64]
                 end = data.find(b"\0")
@@ -230,7 +266,7 @@ class Snapshot:
             holder = m.pointer(scene + 0x10)
             all_actors = m.pointer(holder + 4 * 0x39, nullable=True)
             if all_actors:
-                capacity, count = struct.unpack(">ii", m.remote.read(all_actors + 0x14, 8))
+                capacity, count = struct.unpack(">ii", m.read(all_actors + 0x14, 8))
                 if not 0 <= count <= capacity <= 32768:
                     raise ObserverError(f"invalid actor count/capacity {count}/{capacity}")
                 living = 0
@@ -254,7 +290,7 @@ class Snapshot:
                                     ("actor_gravity_", actor + 0x44)):
                 m.vector(row, prefix, address)
             row.update(hp=m.u32(actor + 0x6B0), dead=m.boolean(actor + 0x70),
-                       mode=struct.unpack(">H", m.remote.read(actor + 0x6F8, 2))[0])
+                       mode=struct.unpack(">H", m.read(actor + 0x6F8, 2))[0])
             for key, offset in (("movement_lo", 0xC), ("movement_hi", 0x10),
                                 ("flags14_lo", 0x14), ("flags14_hi", 0x18),
                                 ("draw", 0x1C), ("flags20", 0x20),

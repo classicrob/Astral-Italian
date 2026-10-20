@@ -151,7 +151,9 @@ The adapter verifies original DOL instructions at `KPADReadEx` (`8054b440`) and
 its WPadHolder return (`804cf884`, call at `804cf880`). It lets the original SDK
 read finish, then writes one complete synthesized 240-byte sample to its captured
 output buffer, the captured error word, and GPR3 returned count. It checks all
-three by reading back. No scene, player, RNG, save, instruction or PC writes are
+three by reading back. Temporary execute breakpoints advance from the entry and
+return instruction to pc+4, allowing pending interrupt handling before that
+instruction is reached; unexpected stops still fail closed. No scene, player, RNG, save, instruction or PC writes are
 issued. Unknown callers, nested reads, non-120 capacities and invalid pointers
 fail closed. Channel 0 is connected Nunchuk with one sample; other channels have
 zero samples returned, error -1 and an explicit disconnected slot 0. The native

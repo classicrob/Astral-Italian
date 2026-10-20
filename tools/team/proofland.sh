@@ -25,7 +25,12 @@ if [ "$(cat build/hookproof-land.cert 2>/dev/null)" != "$cert" ]; then
 else
   echo "proof certificate current for $cert"
 fi
-wip
-[ "$(git rev-parse HEAD:src) $(git rev-parse HEAD:include) $(git rev-parse HEAD:libs)" = "${cert#* }" ] \
-  || { echo "sources changed after the proof" >&2; exit 1; }
-LAND_LOCK_HELD=$pid lockf -k "$lock" sh tools/team/land.sh
+# Inside the build lock: commit helper WIP that appeared while waiting, re-check the proven sources, land.
+LAND_LOCK_HELD=$pid CERT_TREES="${cert#* }" lockf -k "$lock" sh -c '
+  git add -A native tools docs CMakeLists.txt CMakePresets.json 2>/dev/null || true
+  git diff --cached --quiet || git commit -q -m "port: helper WIP (native/tools/docs only)"
+  [ -z "$(git status --porcelain --untracked-files=no)" ] || { git status --short; echo "unexpected dirty files" >&2; exit 1; }
+  [ "$(git rev-parse HEAD:src) $(git rev-parse HEAD:include) $(git rev-parse HEAD:libs)" = "$CERT_TREES" ] \
+    || { echo "sources changed after the proof" >&2; exit 1; }
+  sh tools/team/land.sh'
+

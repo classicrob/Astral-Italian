@@ -10,10 +10,14 @@ from dolphin_collect import COLUMNS, Memory, ObserverError, ROOT, RSP, Snapshot,
 class FakeRAM:
     def __init__(self):
         self.data = bytearray(0x10000)
+        self.reads = []
 
     def read(self, address, length):
-        if address == ROOT:
-            return struct.pack(">I", 0x80001000)
+        self.reads.append((address, length))
+        if address <= ROOT and ROOT + 4 <= address + length:
+            data = bytearray(length)
+            data[ROOT - address:ROOT - address + 4] = struct.pack(">I", 0x80001000)
+            return bytes(data)
         offset = address - 0x80000000
         if not 0 <= offset <= len(self.data) - length:
             raise ObserverError("unmapped fake read")
@@ -70,6 +74,17 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(row["x"], "1.25")
         self.assertEqual(row["x_bits"], "0x3fa00000")
         self.assertEqual(row["hp"], 3)
+
+    def test_snapshot_pages_are_reused_only_until_the_next_frame(self):
+        self.player()
+        first = self.observer.take(0)
+        self.assertEqual(first['observer_error'], '')
+        self.assertEqual(len(self.ram.reads), len(set(self.ram.reads)))
+        self.assertLess(len(self.ram.reads), 12)
+        self.ram.put(0x80005014, struct.pack('>f', 4.5))
+        second = self.observer.take(1)
+        self.assertEqual(second['x'], '4.5')
+        self.assertEqual(second['observer_error'], '')
 
     def test_cycle_emits_error_instead_of_silently_truncating(self):
         self.player()

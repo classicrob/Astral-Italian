@@ -199,6 +199,20 @@ that boot movie in two fresh collector profiles. Dolphin requires the disc to be
 selected in its main game list before Movie / Start Recording Input is enabled.
 An idle setup GUI must not hold the shared emulator/build lock.
 
+**Follow-on filtered-input gate (in progress):** `--input-script` now synthesizes
+complete KPAD results at the verified SDK return seam and exports their actual
+ordered calls in the native harness JSONL schema. This is explicit input
+injection, not a capture of naturally filtered Wiimote data. The public
+frame/button/pointer/stick script lives in `tools/port/replaydiff/inputs/`;
+`kpad_script.py` expands it for the native harness, subject to exact equality
+with Dolphin's exported call schedule and samples. Live future-only edits are
+for route exploration; qualification requires frozen fresh-profile repeats.
+One incomplete exploration selected/created a file, chose Mario's icon, started
+it, and reached `PeachCastleGalaxy` initialization at frame 3039. A KPAD
+single-step PC check then failed during loading; temporary execute breakpoints
+now replace that assumption. No playable interval or repeatability claim is
+made for that attempt.
+
 Independent original-DOL checks also confirmed `getUpVec` uses actor `+0x618`,
 `getFrontVec` uses Mario `+0x208`, `getRandom` loads GameSystem `+0x20` then seed
 `+0x34`, and `getCurrentAnimationName` loads Xanime `+0x60` then the group's first

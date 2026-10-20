@@ -45,9 +45,6 @@ for n,typ in specs:
     tail=b[rows*size:]
     assert tail==bytes(len(tail)),(n,'non-zero partial row')
     lines+=['};','']
-lines.append('// Wii .sbss 0x807D4E30 (zero-initialized; set when Luigi is the player).')
-lines.append('bool gIsLuigi = false;')
-assert data('gIsLuigi')==bytes(1) if 'gIsLuigi' in g['objects'] else True
 out=Path('/Users/roberthaisfield/MacioGalaxy2-wt/port/src/Game/Player/PlayerAnimeTablesNative.cpp')
 out.write_text('#ifdef GALAXY_NATIVE\n#include "Game/Animation/XanimeResource.hpp"\n\n'+'\n'.join(lines)+'\n#endif\n')
 print('wrote',out,'tables',len(specs))

@@ -2317,6 +2317,4 @@ XanimeBckTable4 yoshiAnimationBckTable3[] = {
     {{""}, {{"", 0x0.0p+0f}, {nullptr, 0x0.0p+0f}, {nullptr, 0x0.0p+0f}, {nullptr, 0x0.0p+0f}}},
 };
 
-// Wii .sbss 0x807D4E30 (zero-initialized; set when Luigi is the player).
-bool gIsLuigi = false;
 #endif

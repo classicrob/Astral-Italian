@@ -142,7 +142,7 @@ this filtered SDK export. Exact operational paths are in Sol C's HANDOFF.
 
 ## Optional stage synchronization
 
-`collect --sync-stage SkyIslandGalaxy --sync-scenario 1 --frames 300` emits
+`collect --sync-stage RedBlueExGalaxy --sync-scenario 1 --frames 300` (Flip-Swap; Sky Station is IslandFleetGalaxy) emits
 300 rows beginning at the **first** accepted post-endFrame seam with
 `scene_valid=1`, scene `Game`, `init_state=6` (`SceneInitializeState_End`),
 and the exact internal stage and placed `ScenarioNo`. It does not wait for

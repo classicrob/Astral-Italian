@@ -52,6 +52,11 @@ extern "C" void petari_os_preemption_point(void);
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SystemUtil.hpp"
 #include <JSystem/J3DGraphBase/J3DSys.hpp>
+#ifdef GALAXY_NATIVE
+#include "Game/System/GalaxyStatusAccessor.hpp"
+#include <petari/player_launch.hpp>
+#include <cstdio>
+#endif
 
 namespace {
     bool clearPadMode() NO_INLINE;
@@ -180,9 +185,52 @@ void GameScene::start() {
     setNerve(GET_NERVE(GameScene, GameSceneAction));
 }
 
+#ifdef GALAXY_NATIVE
+namespace {
+    // Home menu Level Select: enters a stage and scenario directly (not earned progression), placing a hidden or
+    // green star in its host scenario the way ScenarioSelectScene::trySetCurrentScenarioNo does. The stage name
+    // must outlive the move: it is PlayerLaunch::warpStage. False: nothing was requested.
+    bool requestLevelSelectWarp(const char* pStage, s32 selected) {
+        GalaxyStatusAccessor status = MR::makeGalaxyStatusAccessor(pStage);
+        if (status.mScenarioData == nullptr) {
+            std::fprintf(stderr, "PETARI LEVEL SELECT: %s has no scenario data; warp not applied\n", pStage);
+            return false;
+        }
+        s32 placed = selected;
+        if (status.isNotNormalStar(selected)) {
+            // The placement helper uses a u32 star mask with (1 << (id - 1)).
+            if (selected > 32) {
+                std::fprintf(stderr, "PETARI LEVEL SELECT: %s star %d exceeds the engine's 32-bit placement mask; warp not applied\n", pStage,
+                             static_cast< int >(selected));
+                return false;
+            }
+            placed = MR::getPlacedHiddenStarScenarioNo(pStage, selected);
+            if (!status.isExistPowerStarAtScenario(placed, selected)) {
+                std::fprintf(stderr, "PETARI LEVEL SELECT: %s star %d is not placed in scenario %d; warp not applied\n", pStage, static_cast< int >(selected),
+                             static_cast< int >(placed));
+                return false;
+            }
+        }
+        std::fprintf(stderr, "PETARI LEVEL SELECT: warping to %s scenario %d (placed %d); not earned progression\n", pStage, static_cast< int >(selected),
+                     static_cast< int >(placed));
+        // Also puts the in-game sequence into InStage, as the --stage entry does.
+        GameSequenceFunction::requestChangeStageInStageScenario(pStage, placed, selected);
+        return true;
+    }
+}  // namespace
+#endif
+
 void GameScene::update() {
     mPauseCtrl->updateNerve();
     updateNerve();
+#ifdef GALAXY_NATIVE
+    // Home menu Level Select: warp once normal play allows a pause (no demo, wipe, death or damage), through the
+    // game's own stage change.
+    if (PetariNative::PlayerLaunch::warpPending.load() && isPermitToPauseMenu()) {
+        PetariNative::PlayerLaunch::warpPending.store(false);
+        requestLevelSelectWarp(PetariNative::PlayerLaunch::warpStage, PetariNative::PlayerLaunch::warpScenario);
+    }
+#endif
     CategoryList::execute(static_cast< MR::MovementType >(0x1a));
 }
 

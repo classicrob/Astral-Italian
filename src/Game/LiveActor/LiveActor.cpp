@@ -158,8 +158,12 @@ void LiveActor::makeActorAppeared() {
 void LiveActor::kill() {
     makeActorDead();
 
-    // SMG2: the switch-dead flag sits at +0x10 of StageSwitchCtrl (not named in our header).
+    // SMG2: the switch-dead flag is at +0x10 on Wii, after four pointers.
+#ifdef GALAXY_NATIVE
+    if (mStageSwitchCtrl != nullptr && mStageSwitchCtrl->isValidSwitchDead() && mStageSwitchCtrl->mUsesAutoDeadSwitch) {
+#else
     if (mStageSwitchCtrl != nullptr && mStageSwitchCtrl->isValidSwitchDead() && *reinterpret_cast< bool* >(reinterpret_cast< u8* >(mStageSwitchCtrl) + 0x10)) {
+#endif
         MR::onSwitchDead(this);
     }
 }

@@ -43,7 +43,7 @@ public:
 
     static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
 
-    void enablePlayerTornado();
+    static void enablePlayerTornado();
     void initSandstormParam();
     void initTrapModel();
     void updateBindActorMtx();

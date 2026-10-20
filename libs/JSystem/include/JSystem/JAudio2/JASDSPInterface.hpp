@@ -65,8 +65,13 @@ namespace JASDsp {
         /* 0x00A */ u8 _A[0x00C - 0x00A];
         /* 0x00C */ s16 mPauseFlag;
         /* 0x00E */ short _E;
+#ifdef GALAXY_NATIVE
+        /* 0x010 */ u16 _10[6][4];
+        /* 0x040 */ u8 _18[0x050 - 0x040];
+#else
         /* 0x010 */ u16 _10[1][4];  // array size unknown
         /* 0x018 */ u8 _18[0x050 - 0x018];
+#endif
         /* 0x050 */ u16 _50;
         /* 0x052 */ u16 _52;
         /* 0x054 */ u16 _54;

@@ -351,7 +351,12 @@ void JASDsp::TChannel::setBusConnect(u8 param_0, u8 param_1) {
         0x0000, 0x0D00, 0x0D60, 0x0DC0, 0x0E20, 0x0E80, 0x0EE0, 0x0CA0, 0x0F40, 0x0FA0, 0x0B00, 0x09A0,
     };
     u16 r30 = 0;
+#ifdef GALAXY_NATIVE
+    // Dolby ID 0xff reads this halfword at DOL 0x80659C2E, beyond the Wii table.
+    r30 = param_1 == 0xff ? 0x4861 : connect_table[param_1];
+#else
     r30 = connect_table[param_1];
+#endif
     tmp[0] = r30;
 }
 

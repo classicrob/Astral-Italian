@@ -22,6 +22,9 @@ void petariCappyUpdate(MarioActor* pActor);
 void petariCappyWallJump();
 // MarioJump.cpp: a dive started; while Cappy is out it keeps him there (as a throw press).
 void petariCappyDiveStarted();
+// The throw borrows Spin animations, which are not an actual Spin action.
+// SwingActionWatcher excludes that visual motion; real Spin states remain valid.
+bool petariCappyUsesSpinAnimation();
 // SpinSwitchArea: cap contact, once per area per throw. Uses the area's own
 // volume/validity checks; false unless the cap is flying with both mods on.
 bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea);

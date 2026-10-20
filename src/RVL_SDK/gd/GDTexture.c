@@ -22,7 +22,7 @@ u8 GDTexImage3Ids[8] = {
     TX_SETIMAGE3_I4_ID, TX_SETIMAGE3_I5_ID, TX_SETIMAGE3_I6_ID, TX_SETIMAGE3_I7_ID,
 };
 
-u8 GD2HWFiltConv[] = {0, 4, 1, 5, 2, 6.};
+u8 GD2HWFiltConv[] = {0, 4, 1, 5, 2, 6};
 
 void GDSetTexLookupMode(GXTexMapID id, GXTexWrapMode wrap_s, GXTexWrapMode wrap_t, GXTexFilter min_filt, GXTexFilter mag_filt, f32 min_lod,
                         f32 max_lod, f32 lod_bias, GXBool bias_clamp, GXBool do_edge_lod, GXAnisotropy max_aniso) {

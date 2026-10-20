@@ -36,7 +36,11 @@ namespace nw4r {
                 NW4R_POINTER_ASSERT_AT(60, this);
                 NW4R_ALIGN2_ASSERT_AT(61, stream);
                 NW4R_POINTER_ASSERT_AT(62, stream);
+#ifdef GALAXY_NATIVE
+                NW4R_ASSERT_AT(63, mReadFunc == &CharStrmReader::ReadNextCharUTF16);
+#else
                 NW4R_ASSERT_AT(63, mReadFunc == ReadNextCharUTF16);
+#endif
                 mCharStrm = stream;
             }
 

@@ -713,6 +713,7 @@ def main():
     capture.add_argument("--connect-timeout", type=float, default=60)
     capture.add_argument("--stop-timeout", type=float, default=30)
     capture.add_argument("--wall-timeout", type=float, default=480)
+    capture.add_argument("--lock-timeout", type=int, help="optional maximum seconds waiting for the shared slot")
     capture.add_argument("--lock", default="~/MacioGalaxy2-team/slots/native.lock")
     capture.add_argument("--slot-held", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -729,12 +730,17 @@ def main():
         parser.error("--sync-stage must be a canonical internal stage identifier")
     if args.action == "collect" and args.save_state and (not args.dolphin or args.movie):
         parser.error("--save-state requires --dolphin and cannot be combined with --movie")
+    if args.action == "collect" and args.lock_timeout is not None and args.lock_timeout < 0:
+        parser.error("--lock-timeout must be nonnegative")
     if args.action == "collect" and args.frames < 1:
         parser.error("--frames must be positive")
     if args.action == "collect" and not 0 < args.wall_timeout <= 480:
         parser.error("--wall-timeout must be within 0..480 seconds; each locked run stays below 10 minutes")
     if args.action == "collect" and args.dolphin and not args.slot_held:
-        command = ["lockf", "-k", str(Path(args.lock).expanduser()), "nice", "-n", "10",
+        command = ["lockf", "-k"]
+        if args.lock_timeout is not None:
+            command += ["-t", str(args.lock_timeout)]
+        command += [str(Path(args.lock).expanduser()), "nice", "-n", "10",
                    sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], "--slot-held"]
         print("Waiting for shared emulator/build slot", flush=True)
         return subprocess.call(command)

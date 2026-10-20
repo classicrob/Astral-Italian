@@ -331,7 +331,7 @@ these component tests.
 normal attempted build. It generates `undefined_traps.cpp` from the matching
 OWNER inventory, assigning each confirmed missing function its original raw
 assembler symbol. A trap prints its demangled name and caller return address,
-flushes stderr, and aborts. It never returns a fabricated value.
+flushes stderr, and aborts in the default `GALAXY_NATIVE_TRAP_MODE=ABORT` mode.
 
 The generator writes `undefined_traps.json` with separate `functions`, `data`,
 `unknown`, and `already_provided` lists. In this explicit diagnostic mode, vtables, RTTI, guards, static data and
@@ -382,3 +382,20 @@ scenario arrival. Pending, Failed, or dispatch without observed arrival fails.
 The selected scenario may differ from its placed scenario for hidden/green
 stars; `--sync-scenario` always names the placed scenario. No synthetic
 progress is written by the frontend.
+
+
+`GALAXY_NATIVE_TRAP_MODE=COLLECT` is an explicit diagnostic alternative. It
+logs the first call to each missing function with its demangled symbol, first
+caller address, source input frame and a global sequence number, then returns
+zero in integer and FP result registers. Before the frame clock is available,
+the frame is UINT64_MAX. Repeated calls are suppressed per symbol. Unknown
+indirect aggregate return storage cannot be initialized, and continuing past
+a missing function can cause later invalid state or crashes. Guarded data
+access always aborts in either mode. Neither mode can qualify a replay.
+
+The diagnostic binary has an adjacent `.diagnostic.json` marker. The launcher
+records `diagnostic_placeholder=true`; even a complete trace remains
+diagnostic and the comparator rejects qualification. Refresh available-object
+and undefined-symbol manifests after provider changes. Diagnostic duplicate
+omissions require public Wii symbol-address/split evidence and must be
+reported by owner; omitted unique definitions become additional traps.

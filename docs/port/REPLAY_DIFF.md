@@ -382,3 +382,19 @@ already initialized with another stream. This mode has synthetic collector
 integration coverage; no playable-galaxy live qualification yet. Private
 savestate restore is available via --save-state; its source clock starts after
 restore and injection starts after the first accepted seam.
+
+
+### M0 filtered tape delivered (2026-10-19, 21:38)
+
+Private ~/MacioGalaxy2-gamedata/m0-native-inputs/inputs.jsonl records7200 original
+SDK reads/11008 samples over1800 loops; strict native packing produced inputs.tape.
+CSV SHA256ab83e2716468324f33b5f1da955d15154b976e24a817e943eae460505b7265b1
+is identical to the accepted M0 captures. Export observes KPADReadEx without
+writes and queries the stopped original WPAD control fields after verifying
+the complete WPADProbe function hash. Sentinel255 is preserved (Sol A extended
+native encoder/decoder for252/255). Most connected reads return3/4 samples.
+One connection transition inside source536/read0 is recorded before/after;
+tape connection is the actual post-read snapshot, not intra-call timing.
+One filtered export is qualified for route identity/packing only; native
+equality, tape repeat determinism and playable-galaxy physics remain pending.
+Exact paths/commands/hashes and final slot outcome are in Sol C HANDOFF.md.

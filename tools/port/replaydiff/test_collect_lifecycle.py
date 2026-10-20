@@ -10,6 +10,17 @@ import dolphin_collect as collector
 
 
 class LifecycleTests(unittest.TestCase):
+    def test_lock_wait_budget_is_passed_to_lockf_before_launch(self):
+        args=['dolphin_collect.py','collect','--dolphin','/not-launched',
+              '--output','/not-created','--lock-timeout','300']
+        with patch.object(collector.sys,'argv',args), \
+             patch.object(collector.subprocess,'call',return_value=75) as launch:
+            self.assertEqual(collector.main(),75)
+        command=launch.call_args.args[0]
+        self.assertEqual(command[:4],['lockf','-k','-t','300'])
+        self.assertEqual(command[5:8],['nice','-n','10'])
+        self.assertEqual(command[-1],'--slot-held')
+
     def test_termination_and_budget_signals_stop_owned_dolphin(self):
         for sig in (signal.SIGTERM, signal.SIGALRM):
             with self.subTest(signal=sig), tempfile.TemporaryDirectory() as directory:

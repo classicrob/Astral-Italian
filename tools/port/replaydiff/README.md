@@ -58,6 +58,8 @@ checks this setting before launching.
 `collect --dolphin` re-executes itself as
 `lockf -k ~/MacioGalaxy2-team/slots/native.lock nice -n 10 <collector command>`.
 It holds that slot through hashing, the emulator run, and emulator termination.
+Optional `--lock-timeout SECONDS` bounds queue waiting via `lockf -t`; it does
+not extend the independently bounded locked run.
 Do not pass the internal `--slot-held` argument manually. Without `--dolphin`,
 it attaches to an already isolated, separately locked emulator; it does not
 acquire the slot or stop that externally managed emulator.
@@ -89,7 +91,9 @@ period. SIGTERM/SIGINT record an incomplete manifest and stop/reap the owned
 emulator. Release the lock between runs; every locked run must stay below
 10 minutes. The capture records its PIDs immediately and progress every 60 loops. Exit 0 means the requested rows were captured,
 not that determinism or native equivalence passed. Exit 2 means an incomplete
-run. Partial rows and the manifest/log error remain available for diagnosis.
+run. A queue timeout returns lockf's nonzero status before an output directory
+or emulator is created. Partial rows and the manifest/log error remain
+available for capture failures.
 
 The manifest's `timing_policy` distinguishes PPC time-base frequency from
 Dolphin core scheduling ticks. Pinned Dolphin uses a 729 MHz Wii core and a
@@ -119,8 +123,11 @@ original function only reads these inside an interrupt guard and writes its
 caller output; a stopped CPU permits an equivalent query without a guest call.
 No connection is inferred from failed sample contents. Unsupported extensions and nonfinite fields fail rather
 than replacing data. The native schema preserves named fields, excluding
-inactive extension-union padding. This mode remains live-unqualified until an
-exported run passes trace identity and native packing checks.
+inactive extension-union padding. One1800-loop M0 export passed exact accepted CSV identity and strict native
+packing:7200 SDK reads/11008 samples. The actual SDK commonly returns3/4
+samples per connected read and uses device255 during initialization. A single
+within-call connection transition at source536 is retained in the manifest.
+Filtered-tape repeat determinism and native behavior/timing remain unqualified.
 
 The accepted M0 movie is private
 `~/MacioGalaxy2-gamedata/accepted-input-m0.dtm`. Use a fresh CPU4 profile and

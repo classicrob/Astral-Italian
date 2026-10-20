@@ -231,12 +231,18 @@ bool WoodLogBridge::receiveMsgPlayerAttack(u32 msg, HitSensor* pA, HitSensor* pB
 
 // fn_8032BF70: writes one GX vertex (position, color, texcoord) to the WGPIPE.
 void writeLogVertex(const TVec3f* pPos, const Color8* pColor, f32 s, f32 t) NO_INLINE {
+#ifdef GALAXY_NATIVE
+    GXPosition3f32(pPos->x, pPos->y, pPos->z);
+    GXColor1u32(*pColor);
+    GXTexCoord2f32(s, t);
+#else
     *(volatile f32*)0xCC008000 = pPos->x;
     *(volatile f32*)0xCC008000 = pPos->y;
     *(volatile f32*)0xCC008000 = pPos->z;
     *(volatile u32*)0xCC008000 = *pColor;
     *(volatile f32*)0xCC008000 = s;
     *(volatile f32*)0xCC008000 = t;
+#endif
 }
 
 // fn_8032BFA0: emits one quad strip (4 vertices) of a log segment.

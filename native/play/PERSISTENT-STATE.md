@@ -1,6 +1,6 @@
 # Persistent-state inventory (schema 1)
 
-Source audit: 2026-10-20, application base `3056913b`; Aurora
+Source audit: 2026-10-20, application freeze base `fe71f35b`; Aurora
 `08122911e8621acb7ded6563813b264bec1494b5` (pinned by
 `native/gx/CMakeLists.txt`). This inventories runtime write destinations,
 including opt-in diagnostics and transient files. Paths below are families when
@@ -13,7 +13,13 @@ No state is moved, deleted or migrated by this document or the player launcher.
 - `U`: the app's `--user` argument; direct app default is
   `~/Library/Application Support/AstralItalian`. The player launcher defaults to
   `~/MacioGalaxy2-play/user`, overridden by `ASTRAL_USER` (passed as `--user`).
-  Source: `native/app/app_main.cpp`, `parseArguments`.
+  `play.sh --unlocked` (menu **u**) instead selects exactly
+  `~/Library/Application Support/AstralItalian-unlocked`, overriding
+  `ASTRAL_USER` for that run; it requires a non-symlink user root and existing
+  `complete-save.json`. This build-5 complete save is separate from ordinary
+  progress. Its NAND, settings, logs and other `U`-relative state all use the
+  unlocked root; captures still use their independent root below.
+  Source: `native/app/app_main.cpp`, `parseArguments`; `native/play/play.sh`.
 - `C`: normal graphics cache root `~/Library/Caches/AstralItalian`, independent
   of `U`. `PETARI_CACHE_DIR` overrides it (creation failure falls back to `U`).
   Test/fixture launches use `U`; a busy machine-cache lock also falls back to `U`.
@@ -32,6 +38,7 @@ No state is moved, deleted or migrated by this document or the player launcher.
 | Destination / family | Contents and write condition | Sharing / source witness |
 | --- | --- | --- |
 | `U/NAND/**` | Emulated writable NAND; title save data, system/shared data, `/meta`, `/tmp`. SB4E01 title data is `title/00010000/53423445/data/` (including game-created `GameData.bin` and banner/config files). Safe writes stage copies in `tmp/sys/<unique>/<name>` before replacement; NAND `/tmp` is cleared at boot. Nodes carry `com.petari.nand` extended attributes. | Per `U`, shared by every build using it. `native/app/platform_host.cpp`; `native/platform/nand/{nand_host,isfs_host,nand_async}.cpp`. The low-level standalone NAND fallback accepts `PETARI_NAND_ROOT` only when not already mounted; the app mounts `U/NAND` explicitly. |
+| `~/Library/Application Support/AstralItalian-unlocked/complete-save.json` (or a permitted isolated descendant `U/complete-save.json`) | Game-written complete-save/reload receipt from the opt-in `ASTRAL_DEV_COMPLETE_SAVE` / `ASTRAL_VERIFY_COMPLETE_SAVE` development flow. A receipt is required to play with `--unlocked`; ordinary play does not regenerate it. | Shared across builds choosing unlocked progress; `src/Game/System/NativeCompleteSave.cpp`, `checkRoot`/`beforeStageLaunch`; `native/include/petari/complete_save_paths.hpp`. |
 | `U/settings.txt`, `U/settings.txt.tmp` | Host SC console settings; temporary replacement. | Per `U`; `native/platform/sc/sc_host.cpp`, `setStore`/flush. |
 | `U/mods.txt` | Home-menu mod switches, including folder mod state. `PETARI_MODS`/`PETARI_MOD_FOLDERS` override effective state without making a separate destination. | Per `U`; `native/input/mods.cpp`, `native/platform/dvd/mod_folder.cpp`. |
 | `U/controls.txt`, `.tmp`, `.bad` | Input remapping; atomic replacement and preservation of malformed old controls. | Per `U`; `native/input/remap.cpp`, `save`. |
@@ -85,10 +92,42 @@ String-valued trace switches that only print to stderr do not add destinations.
 Headless developer runs (`native/app/headless/main.cpp`, `native/tools/headless.py`)
 write the caller's trace, `.timing.csv`, `.sync.json`, `.complete`,
 `.manifest.json`, temporary sibling `smg2-kpad-*/inputs.kpd` tape, user NAND/settings, and launcher logs.
-Later actor-enabled builds add `.actors.csv`, `.actor-frames.csv`, and `.partial`
-staging siblings. The launcher uses `~/MacioGalaxy2-team/slots/native.lock`;
+The freeze includes `--actor-trace`: when enabled it adds `.actors.csv`,
+`.actor-frames.csv`, and `.partial` staging siblings, finalized before `.complete`
+(`native/app/headless/actor_trace.cpp`). `--existing-unlocked-user` permits the
+separate unlocked save root instead of a fresh fixture; output traces still use
+the caller-selected paths. The launcher uses `~/MacioGalaxy2-team/slots/native.lock`;
 this is distinct from the app instance locks. These are developer diagnostic
 artifacts, not destinations chosen by the frozen player menu.
+
+## Complete-save preparation artifacts
+
+`native/tools/complete_save.py` creates only the separate unlocked root (or a
+permitted descendant), through the game's NAND APIs. It also creates
+`~/MacioGalaxy2-gamedata/unlocked-validation/<timestamp>/` with
+`WorldMap07Galaxy` / `MarioFaceShipGalaxy` logs, headless traces and sidecars,
+and final `acceptance.json`. These are per-validation-run artifacts; the
+unlocked user tree and `complete-save.json` persist across builds. The helper
+refuses nonempty creation destinations; `--verify-only` reloads existing data.
+
+The older `native/tools/make_unlocked_save.py` is a distinct opt-in preparation
+workflow with caller-selected private output/work roots. It creates a
+`.petari-make-unlocked-save` marker, `unlocked-save-inventory.json`,
+`unlocked-save-request.json`, `unlocked-save-receipt.json`,
+`unlocked-save-nand-ledger.json`, `unlocked-save.json`, variant/inventory logs and
+copied `NAND/**` when that workflow's game-side provider succeeds. These are
+not created by selecting the build-5 `--unlocked` player option. Its existing
+source/provider limitations are unchanged by this inventory.
+
+## Freeze delta audit
+
+The source diff `ee0732c0..fe71f35b` changes native zero-texgen shader handling
+and arena mappings/tests, adding no write destination. Auditing the earlier
+inventory base `3056913b..fe71f35b` additionally identified the unlocked-user
+launcher/helper flow and the finalized actor sidecars documented above. Mod
+behavior changes retain `U/mods.txt`; they do not add storage roots. Cache
+invalidation changes must be reflected in the cache rows when their separate
+source commit is available; a proposed layout is not an implemented contract.
 
 ## Framework / temporary state and inactive features
 

@@ -120,8 +120,14 @@ namespace MR {
     }
 
     const char* getCurrentRegionPrefix() {
+#ifdef GALAXY_NATIVE
+        // extractString appends a terminator after the two region letters.
+        char prefix[3];
+        MR::extractString(prefix, getCurrentLanguagePrefix(), 2, sizeof(prefix));
+#else
         char prefix[2];
         MR::extractString(prefix, getCurrentLanguagePrefix(), sizeof(prefix), 3);
+#endif
 
         if (MR::isEqualString(prefix, "Jp")) {
             return "Jp";

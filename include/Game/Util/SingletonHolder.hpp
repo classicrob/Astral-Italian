@@ -43,3 +43,11 @@ public:
 
     static T* sInstance;
 };
+
+#ifdef GALAXY_NATIVE
+template < typename T >
+T* SingletonHolder< T >::sInstance;
+
+template < typename T >
+T* AudSingletonHolder< T >::sInstance;
+#endif

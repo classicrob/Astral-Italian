@@ -1810,3 +1810,13 @@ namespace MR {
     }
 
 };  // namespace MR
+
+#ifdef GALAXY_NATIVE
+namespace MR {
+    f32 calcDistanceXY(const TVec3f& rPos1, const TVec3f& rPos2) {
+        f32 xDelta = rPos1.x - rPos2.x;
+        f32 yDelta = rPos1.y - rPos2.y;
+        return JGeometry::TUtil< f32 >::sqrt(xDelta * xDelta + yDelta * yDelta);
+    }
+}
+#endif

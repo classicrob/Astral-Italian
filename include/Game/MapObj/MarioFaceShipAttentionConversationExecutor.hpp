@@ -30,7 +30,11 @@ public:
         /* 0x24 */ LiveActor* mTargetActor;
         /* 0x28 */ ActorCameraInfo* mCameraInfo;
         /* 0x2C */ TalkMessageCtrl* mTalkCtrl;
+#ifdef GALAXY_NATIVE
+        const char* mDemoIndex;
+#else
         /* 0x30 */ s32 mDemoIndex;
+#endif
         /* 0x34 */ LiveActorGroup* mActorGroup;
         /* 0x38 */ MarioFaceShipEventCast* mCast;
     };
@@ -62,7 +66,11 @@ public:
     /* 0x94 */ s32 mTalkIndex;
     /* 0x98 */ LiveActor* mTargetActor;
     /* 0x9C */ LiveActorGroup* mActorGroup;
+#ifdef GALAXY_NATIVE
+    const char* mDemoIndex;
+#else
     /* 0xA0 */ s32 mDemoIndex;
+#endif
     /* 0xA4 */ ActorCameraInfo* mCameraInfo;
     /* 0xA8 */ TalkMessageCtrl* mTalkCtrl;
     /* 0xAC */ ActorCameraInfo* mCameraInfoDefault;

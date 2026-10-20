@@ -9,6 +9,7 @@
 #include <revolution/wpad.h>
 #ifdef GALAXY_NATIVE
 #include <cstdint>
+#include "Game/System/NativeBootTrace.hpp"
 #endif
 
 JKRExpHeap* HeapMemoryWatcher::sRootHeapGDDR3;
@@ -78,6 +79,10 @@ void HeapMemoryWatcher::createWorldMapHeap() {
 }
 
 void HeapMemoryWatcher::createFileCacheHeapOnGameHeap(u32 size) {
+#ifdef GALAXY_NATIVE
+    mFileCacheArchiveBytes = 0;
+    mFileCacheArchiveCount = 0;
+#endif
     mFileCacheHeap = ::createSolidHeap(size, mGameHeapGDDR);
     mFileCacheDelegateHeap = new (mFileCacheHeap, 0) DelegatingHeap(mFileCacheHeap);
 }
@@ -197,6 +202,11 @@ void HeapMemoryWatcher::createGameHeap() {
 HeapMemoryWatcher::HeapMemoryWatcher()
     : mStationedHeapNapa(), mStationedHeapGDDR(), mGameHeapNapa(), mGameHeapGDDR(), mWorldMapHeap(), mFileCacheHeap(), mFileCacheDelegateHeap(), mSceneHeapNapa(),
       mSceneHeapGDDR(), mWPadHeap(), mHomeButtonLayoutHeap(), mAudSystemHeap() {
+#ifdef GALAXY_NATIVE
+    mFileCacheHostImageHeap = nullptr;
+    mFileCacheArchiveBytes = 0;
+    mFileCacheArchiveCount = 0;
+#endif
     JKRHeap::setErrorHandler(HeapMemoryWatcher::memoryErrorCallback);
     createHeaps();
 }
@@ -207,3 +217,26 @@ void HeapMemoryWatcher::memoryErrorCallback(void*, u32, int) {
 
 void HeapMemoryWatcher::checkRestMemory() {
 }
+
+#ifdef GALAXY_NATIVE
+void HeapMemoryWatcher::noteArchiveMounted(JKRHeap* pHeap, const char* pName, const void* pData) {
+    const u8* pBytes = static_cast< const u8* >(pData);
+    const u32 bytes = pBytes == nullptr ? 0 : (u32(pBytes[4]) << 24) | (u32(pBytes[5]) << 16) | (u32(pBytes[6]) << 8) | pBytes[7];
+    const char* pHeapName = "other";
+    if (pHeap == mFileCacheHeap) {
+        pHeapName = "file cache";
+        mFileCacheArchiveBytes += bytes;
+        mFileCacheArchiveCount++;
+    } else if (pHeap == mSceneHeapGDDR) {
+        pHeapName = "scene GDDR";
+    } else if (pHeap == mSceneHeapNapa) {
+        pHeapName = "scene NAPA";
+    } else if (pHeap == mStationedHeapNapa || pHeap == mStationedHeapGDDR) {
+        pHeapName = "stationed";
+    }
+    if (MR::Native::isTraceBoot()) {
+        OSReport("[heap-arc] %s -> %s, %u bytes; file cache free %d\n", pName, pHeapName, bytes,
+                 mFileCacheHeap != nullptr ? mFileCacheHeap->getTotalFreeSize() : -1);
+    }
+}
+#endif

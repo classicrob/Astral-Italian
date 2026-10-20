@@ -109,7 +109,11 @@ void MarioFaceShipAttentionConversationDirector::registerNpc(const MarioFaceShip
         if (pNpc->mEventNo >= 0 && pParam->mTalkIndex == pNpc->mEventNo) {
             if (pNpc->mFlag14) {
                 pParam->mTargetActor = pNpc->mActor;
+#ifdef GALAXY_NATIVE
+                pParam->mDemoIndex = pNpc->mDemoName;
+#else
                 pParam->mDemoIndex = reinterpret_cast< s32 >(pNpc->mDemoName);
+#endif
                 pParam->mCameraInfo = pNpc->mCameraInfo;
             }
             return;

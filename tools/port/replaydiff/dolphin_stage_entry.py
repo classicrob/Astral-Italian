@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import struct
 import sys
+import traceback
 
 import dolphin_collect as collector
 import kpad_script
@@ -117,10 +118,22 @@ class StageEntry:
 def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--entry-dol", default="~/MacioGalaxy2-gamedata/SB4E01-extracted/sys/main.dol")
+    parser.add_argument("--pointer-diagnostics", action="store_true")
     args, remaining = parser.parse_known_args()
     if "--slot-held" not in remaining or "--input-script" not in remaining or "--dolphin" not in remaining:
         parser.error("use the shared lock externally and pass --slot-held, --dolphin and --input-script")
     output = collector.game_private_path(remaining[remaining.index("--output") + 1])
+    if args.pointer_diagnostics:
+        checked = collector.Memory.checked_pointer
+        def checked_pointer(value, address, nullable=False, alignment=4):
+            try:
+                return checked(value, address, nullable, alignment)
+            except collector.ObserverError:
+                if output.is_dir():
+                    (output / "pointer-error-context.json").write_text(json.dumps(
+                        dict(address=address, value=value, stack=traceback.format_stack()), indent=2) + "\n")
+                raise
+        collector.Memory.checked_pointer = staticmethod(checked_pointer)
     entry = StageEntry(collector.game_private_path(args.entry_dol))
     original = kpad_script.ScriptedInput
     class Input(original):

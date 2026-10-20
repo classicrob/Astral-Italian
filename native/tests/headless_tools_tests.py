@@ -336,6 +336,8 @@ class InterchangeTests(unittest.TestCase):
                 manifest = json.loads(Path(str(trace) + ".manifest.json").read_text())
                 self.assertEqual(status, 2 if broken else 0)
                 self.assertEqual(manifest["status"], "invalid" if broken else "complete")
+                self.assertTrue(manifest["observer_contract_incomplete"])
+                self.assertEqual(manifest["field_availability"], {"pending_state_id": "unavailable (callback-context only)"})
                 actors = manifest["actors"]
                 self.assertEqual(actors["status"], "incomplete" if broken else "captured")
                 if broken:

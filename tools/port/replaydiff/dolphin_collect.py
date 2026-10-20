@@ -492,9 +492,8 @@ class Snapshot:
                 ids.append(m.u32(node + 0xC))
                 node = m.pointer(node + 8, nullable=True)
             row["state_ids"] = json.dumps(ids, separators=(",", ":"))
-            pending = m.pointer(player + 0x984, nullable=True)
-            if pending:
-                row["pending_state_id"] = m.u32(pending + 0xC)
+            # +0x984 is noticed-state callback scratch, not a live pointer at this seam.
+            row["pending_state_id"] = ""
             animator = m.pointer(actor + 0x588, nullable=True)
             if animator:
                 name = m.pointer(animator + 0x114, nullable=True, alignment=1)
@@ -611,6 +610,8 @@ def collect(args):
                     frame_seam=f"{SEAM:08x}", caller_lr=f"{CALLER:08x}",
                     resume_method="temporary breakpoint" if args.gui or args.input_script else "single instruction",
                     input_method="Dolphin movie" if args.movie else "none; idle disconnected host controls")
+    manifest["field_availability"] = {"pending_state_id": "unavailable (callback-context only)"}
+    manifest["observer_contract_incomplete"] = True
     process = None
     stream = None
     installed = False

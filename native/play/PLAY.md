@@ -166,6 +166,13 @@ What was checked (`~/MacioGalaxy2-play/FROZEN.txt` has the numbers):
   this build.
 
 Known issues (honest list):
+- **Build 4 and Yoshi Star Galaxy / poisoned shader cache**: build 4 aborts in Yoshi Star Galaxy ("unhandled tcg src
+  21": the alpha-shadow pass draws with zero texgens; fixed for build 5 in the Aurora pipeline layer). Aurora stores a
+  pipeline config before compiling it, so the crash leaves that row in the shared cache, and build 4 prebuilds every
+  cached row at startup without validation: each later launch then aborts within seconds. Avoid Yoshi Star Galaxy on
+  build 4. After any build-4 crash, move `~/Library/Caches/AstralItalian/pipeline_cache.db`, `-wal` and `-shm` aside
+  (keep them as a backup; leave `dawn_cache` and the saves alone) before relaunching. Build 5 validates cached rows
+  and keys the cache per build, so rows from another build are never loaded.
 - **Audio is on by default** (since the morning of 2026-10-20). It was measured, not yet listened to by a person: a raw
   capture of the device feed over 3.5 minutes of each galaxy had no underruns, no replayed blocks, no clipping and no
   dropouts during play, with music around -20 dBFS RMS. If anything sounds wrong (pitch, envelopes, stuck notes),

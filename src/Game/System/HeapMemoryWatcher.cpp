@@ -14,18 +14,25 @@
 #include <petari/host_image_heap.hpp>
 
 namespace {
-    // Heap for the host-layout copy of a big-endian J3D file (MacioGalaxy): the file cache's companion when the
-    // file is inside the file cache, otherwise null (the current heap). The companion is a sibling of the file
-    // cache, so findFromRoot resolves a source inside the file cache to the file cache itself.
-    JKRHeap* resolveFileCacheHostImageHeap(const void* pSource) {
+    // Heap for the host-layout copy of a big-endian J3D file (MacioGalaxy): the companion of the file cache or
+    // of the world map heap when the file is inside that heap, otherwise null (the current heap). A companion
+    // is a sibling of the heap it serves, so findFromRoot resolves a source inside that heap to the heap itself.
+    JKRHeap* resolveHostImageHeap(const void* pSource) {
         HeapMemoryWatcher* pWatcher = SingletonHolder< HeapMemoryWatcher >::get();
-        if (pWatcher == nullptr || pWatcher->mFileCacheHeap == nullptr || pWatcher->mFileCacheHostImageHeap == nullptr) {
+        if (pWatcher == nullptr) {
             return nullptr;
         }
-        if (JKRHeap::findFromRoot(const_cast< void* >(pSource)) != pWatcher->mFileCacheHeap) {
+        JKRHeap* pSourceHeap = JKRHeap::findFromRoot(const_cast< void* >(pSource));
+        if (pSourceHeap == nullptr) {
             return nullptr;
         }
-        return pWatcher->mFileCacheHostImageHeap;
+        if (pSourceHeap == pWatcher->mFileCacheHeap && pWatcher->mFileCacheHostImageHeap != nullptr) {
+            return pWatcher->mFileCacheHostImageHeap;
+        }
+        if (pSourceHeap == pWatcher->mWorldMapHeap && pWatcher->mWorldMapHostImageHeap != nullptr) {
+            return pWatcher->mWorldMapHostImageHeap;
+        }
+        return nullptr;
     }
 }  // namespace
 #endif
@@ -93,7 +100,17 @@ JKRHeap* HeapMemoryWatcher::getHeapGDDR3(const JKRHeap* pHeap) {
 }
 
 void HeapMemoryWatcher::createWorldMapHeap() {
+#ifdef GALAXY_NATIVE
+    // Native resource objects are larger (64-bit pointers): cWorldMapNativeAllowance more room, where the Wii
+    // leaves none. The J3D host-layout copies get their own sibling heap, as for the file cache: every copy
+    // duplicates a file inside an archive resident in this heap, each file is converted once per residency, and
+    // the files are multiples of 32 bytes, so the copies fit in the Wii size plus 32 (the heap's data is
+    // 16-aligned). Reproduced overflow: the Yoshi-to-Starship return filled the Wii-sized heap with copies.
+    mWorldMapHeap = ::createSolidHeap(cWorldMapWiiSize + cWorldMapNativeAllowance, mGameHeapGDDR);
+    mWorldMapHostImageHeap = ::createSolidHeap(cWorldMapWiiSize + 0x20, mGameHeapGDDR);
+#else
     mWorldMapHeap = ::createSolidHeap(0x840000, mGameHeapGDDR);
+#endif
 }
 
 void HeapMemoryWatcher::createFileCacheHeapOnGameHeap(u32 size) {
@@ -153,6 +170,12 @@ void HeapMemoryWatcher::resetGameHeapGDDR3() {
 
 void HeapMemoryWatcher::destroyWorldMapHeap() {
     ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mWorldMapHeap));
+#ifdef GALAXY_NATIVE
+    // The world map heap's J3D objects point into these copies; both go away together.
+    if (mWorldMapHostImageHeap != nullptr) {
+        ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mWorldMapHostImageHeap));
+    }
+#endif
 }
 
 void HeapMemoryWatcher::destroyFileCache() {
@@ -255,12 +278,13 @@ HeapMemoryWatcher::HeapMemoryWatcher()
       mSceneHeapGDDR(), mWPadHeap(), mHomeButtonLayoutHeap(), mAudSystemHeap() {
 #ifdef GALAXY_NATIVE
     mFileCacheHostImageHeap = nullptr;
+    mWorldMapHostImageHeap = nullptr;
     mFileCacheArchiveBytes = 0;
     mFileCacheArchiveCount = 0;
 #endif
     JKRHeap::setErrorHandler(HeapMemoryWatcher::memoryErrorCallback);
 #ifdef GALAXY_NATIVE
-    PetariNative::J3D::setHostImageHeapResolver(::resolveFileCacheHostImageHeap);
+    PetariNative::J3D::setHostImageHeapResolver(::resolveHostImageHeap);
 #endif
     createHeaps();
 }
@@ -280,6 +304,7 @@ namespace {
             {pWatcher->mGameHeapNapa, "game NAPA"},
             {pWatcher->mGameHeapGDDR, "game GDDR"},
             {pWatcher->mWorldMapHeap, "world map"},
+            {pWatcher->mWorldMapHostImageHeap, "world map host-image companion"},
             {pWatcher->mFileCacheHeap, "file cache"},
             {pWatcher->mFileCacheHostImageHeap, "file cache host-image companion"},
             {pWatcher->mSceneHeapNapa, "scene NAPA"},
@@ -328,6 +353,8 @@ void HeapMemoryWatcher::noteArchiveMounted(JKRHeap* pHeap, const char* pName, co
         pHeapName = "file cache";
         mFileCacheArchiveBytes += bytes;
         mFileCacheArchiveCount++;
+    } else if (pHeap == mWorldMapHeap) {
+        pHeapName = "world map";
     } else if (pHeap == mSceneHeapGDDR) {
         pHeapName = "scene GDDR";
     } else if (pHeap == mSceneHeapNapa) {
@@ -336,8 +363,10 @@ void HeapMemoryWatcher::noteArchiveMounted(JKRHeap* pHeap, const char* pName, co
         pHeapName = "stationed";
     }
     if (MR::Native::isTraceBoot()) {
-        OSReport("[heap-arc] %s -> %s, %u bytes; file cache free %d\n", pName, pHeapName, bytes,
-                 mFileCacheHeap != nullptr ? mFileCacheHeap->getTotalFreeSize() : -1);
+        // The world map figures measure that heap's native peak against the Wii size (cWorldMapNativeAllowance).
+        OSReport("[heap-arc] %s -> %s, %u bytes; file cache free %d; world map free %d, host images free %d\n", pName, pHeapName, bytes,
+                 mFileCacheHeap != nullptr ? mFileCacheHeap->getTotalFreeSize() : -1, mWorldMapHeap != nullptr ? mWorldMapHeap->getTotalFreeSize() : -1,
+                 mWorldMapHostImageHeap != nullptr ? mWorldMapHostImageHeap->getTotalFreeSize() : -1);
     }
 }
 #endif

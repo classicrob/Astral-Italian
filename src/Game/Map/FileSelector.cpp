@@ -46,11 +46,20 @@
 #include <cstdio>
 #include <nw4r/ut/ResFont.h>
 #ifdef GALAXY_NATIVE
+#include <petari/launch_stage.hpp>
 #include <petari/player_launch.hpp>
 #include <petari/milestone.hpp>
 #endif
 
 #define USER_FILE_NUM 3
+
+#ifdef GALAXY_NATIVE
+namespace {
+    // A pending --stage/--request startup opens file 1 once, creating it (Mario icon, no Mii) if it is new.
+    bool sNativeStartupFileUsed = false;
+    bool sNativeStartupCreate = false;
+}  // namespace
+#endif
 
 namespace {
     static const s32 sIndexOrder[6] = {1, 2, 3, 4, 5, 6};
@@ -1041,10 +1050,23 @@ void FileSelector::exeFileSelect() {
         appearAllIndex();
         MR::activeStarPointerGuidance();
 #ifdef GALAXY_NATIVE
-        const s32 openFile = PetariNative::PlayerLaunch::openFile;
+        s32 openFile = PetariNative::PlayerLaunch::openFile;
         PetariNative::PlayerLaunch::openFile = 0;
+        namespace Launch = PetariNative::App::LaunchStage;
+        const bool startupFile = openFile <= 0 && !sNativeStartupFileUsed && Launch::startupStatus() == Launch::StartupStatus::PendingFileLoad;
+        if (startupFile) {
+            sNativeStartupFileUsed = true;
+            openFile = 1;
+        }
         const int openIndex = openFile > 0 ? ::getItemArrayIndex(openFile) : -1;
         FileSelectItem* pOpen = openIndex >= 0 ? static_cast<FileSelectItem*>(mItems->getActor(openIndex)) : nullptr;
+        if (startupFile && pOpen != nullptr && pOpen->isNew() && !isUserFileCorrupted(openFile)) {
+            petari_milestone("FileSelector.StartupCreate");
+            mSelectedItem = pOpen;
+            sNativeStartupCreate = true;
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvCreate));
+            return;
+        }
         if (pOpen != nullptr && !pOpen->isNew() && !isUserFileCorrupted(openFile) && !pOpen->mHasInvalidMiiId) {
             petari_milestone("FileSelector.OpenFile");
             mSelectedItem = pOpen;
@@ -1157,6 +1179,12 @@ void FileSelector::exeDemoStartWait() {
         mIsTitleBgmRhythmEnabled = false;
     }
 
+#ifdef GALAXY_NATIVE
+    // The startup file's icon save may still be running (inactive on every normal path).
+    if (GameSequenceFunction::isActiveSaveDataHandleSequence()) {
+        return;
+    }
+#endif
     if (isHiddenAllLayout()) {
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvDemo));
     }
@@ -1236,6 +1264,17 @@ void FileSelector::exeCreate() {
 
     if (GameSequenceFunction::isSuccessSaveDataHandleSequence()) {
         restoreUserFile();
+#ifdef GALAXY_NATIVE
+        if (sNativeStartupCreate) {
+            // Startup file: Mario icon, saved like a confirmed icon choice, then loaded (MiiCreateWait/FileConfirm skipped).
+            sNativeStartupCreate = false;
+            FileSelectIconID iconId;
+            iconId.setFellowID(FileSelectIconID::Mario);
+            storeSetMiiIdUserFile(mSelectedItem->mFileIndex, iconId);
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvDemoStartWait));
+            return;
+        }
+#endif
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStartFirst));
     } else {
         clearPointing();

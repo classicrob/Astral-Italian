@@ -24,7 +24,15 @@ DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(
         pMap->getValue(i, "Bgm", &info.mBgm);
         pMap->getValue(i, "SystemSe", &info.mSystemSe);
         pMap->getValue(i, "ActionSe", &info.mActionSe);
+#ifdef GALAXY_NATIVE
+        // Preserve the first byte of the Wii's big-endian s32 store, including nonzero raw bytes.
+        s32 returnBgm;
+        if (pMap->getValue(i, "ReturnBgm", &returnBgm)) {
+            info.mReturnBgm = static_cast< u32 >(returnBgm) >> 24;
+        }
+#else
         pMap->getValue(i, "ReturnBgm", reinterpret_cast< s32* >(&info.mReturnBgm));
+#endif
         pMap->getValue(i, "BgmWipeoutFrame", &info.mBgmWipeoutFrame);
         if (MR::hasCsvItem(pMap, "AllSoundStopFrame")) {
             pMap->getValue(i, "AllSoundStopFrame", &info.mAllSoundStopFrame);

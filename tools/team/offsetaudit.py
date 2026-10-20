@@ -78,12 +78,38 @@ def guard_lines(source):
 
     def evaluate(expr):
         expr = expr.strip()
-        if 'GALAXY_NATIVE' in expr and not native_known:
-            return None
-        if expr in {'1', 'GALAXY_NATIVE', 'defined(GALAXY_NATIVE)', 'defined GALAXY_NATIVE'}:
-            return True
-        if expr in {'0', '!GALAXY_NATIVE', '!defined(GALAXY_NATIVE)', '!defined GALAXY_NATIVE'}:
-            return False
+        # Three-valued short-circuit logic: !defined(NATIVE) && arbitrary
+        # version comparisons is false natively even when VERSION is unknown.
+        # Never turn an unsupported arithmetic/comparison atom into false.
+        level = 0
+        for operator in ('||', '&&'):
+            for index, character in enumerate(expr):
+                if character == '(':
+                    level += 1
+                elif character == ')':
+                    level -= 1
+                elif level == 0 and expr.startswith(operator, index):
+                    a, b = evaluate(expr[:index]), evaluate(expr[index+2:])
+                    if operator == '&&':
+                        return False if a is False or b is False else True if a is True and b is True else None
+                    return True if a is True or b is True else False if a is False and b is False else None
+            level = 0
+        if expr.startswith('(') and expr.endswith(')'):
+            level = 0
+            for index, character in enumerate(expr):
+                level += (character == '(') - (character == ')')
+                if level == 0:
+                    break
+            if index == len(expr)-1:
+                return evaluate(expr[1:-1])
+        if expr.startswith('!') and not expr.startswith('!='):
+            inner = evaluate(expr[1:])
+            return None if inner is None else not inner
+        if re.fullmatch(r'(?:defined\s*(?:\(\s*GALAXY_NATIVE\s*\)|GALAXY_NATIVE)|GALAXY_NATIVE)', expr):
+            return True if native_known else None
+        value = integer(expr)
+        if value is not None:
+            return bool(value)
         return None
 
     stack, result = [], {}
@@ -413,7 +439,6 @@ def ast_accesses(root, manifest_path, rows, wii_layout, domains):
         return {}, errors
     tree = json.loads(raw)
     records = (wii_layout or {}).get('records', {})
-    selected = [row for row in rows if row['file'] == primary]
     nodes = []
 
     def visit(node, current_file):
@@ -433,15 +458,38 @@ def ast_accesses(root, manifest_path, rows, wii_layout, domains):
         elif loc.get('includedFrom') or begin.get('includedFrom'):
             current_file = '<included-file>'
         if current_file == primary and 'offset' in begin and not any(k in begin for k in ('spellingLoc', 'expansionLoc')):
+            node = dict(node, audit_file=primary)
             nodes.append(node)
         for child in node.get('inner', []):
             visit(child, current_file)
 
-    visit(tree, primary)
+    if meta.get('format') == 'offsetaudit_compact_ast_v1':
+        def restore(node):
+            result = {k: v for k, v in node.items() if k != 'children'}
+            if node.get('children'):
+                result['inner'] = [restore(child) for child in node['children'] if isinstance(child, dict)]
+            return result
+
+        for fact in tree.get('facts', []):
+            if fact.get('macro_provenance') or fact.get('token_validation') is False:
+                continue  # exact macro/type closure belongs to an explicit reviewed binding
+            name = fact['file']
+            if name not in meta['files']:
+                continue
+            node = restore(fact)
+            token_length = len(fact.get('name', '')) if fact.get('kind') == 'MemberExpr' else 0
+            node['range'] = {'begin': {'offset': fact['start']},
+                             'end': {'offset': fact['end'] - token_length, 'tokLen': token_length}}
+            node['audit_file'] = name
+            nodes.append(node)
+        selected = [row for row in rows if row['file'] in {n['audit_file'] for n in nodes}]
+    else:
+        visit(tree, primary)
+        selected = [row for row in rows if row['file'] == primary]
     starts = {}
     for node in nodes:
         start = node['range']['begin']['offset']
-        starts.setdefault(start, []).append(node)
+        starts.setdefault((node['audit_file'], start), []).append(node)
 
     def record_of(node):
         type_info = node.get('type', {})
@@ -479,11 +527,11 @@ def ast_accesses(root, manifest_path, rows, wii_layout, domains):
 
     result = {}
     for row in selected:
-        candidates = starts.get(row['byte_offset'], [])
+        row_nodes = [node for node in nodes if node['audit_file'] == row['file']]
         record, field, offset = None, None, None
         if row['kind'] in {'unnamed_member', 'unnamed_identifier'}:
             # MemberExpr ranges begin at the base; use the member token's end.
-            matches = [n for n in nodes if n.get('kind') == 'MemberExpr' and
+            matches = [n for n in row_nodes if n.get('kind') == 'MemberExpr' and
                        n.get('name') == row['expression'] and
                        n.get('range', {}).get('end', {}).get('offset') == row['byte_offset']]
             identities = {(record_of(n.get('inner', [{}])[0]), n.get('name')) for n in matches}
@@ -493,7 +541,7 @@ def ast_accesses(root, manifest_path, rows, wii_layout, domains):
             # A raw byte displacement must belong to an actual AST binary op.
             # Match either the inner byte cast or the complete outer cast range.
             matches = []
-            for n in nodes:
+            for n in row_nodes:
                 if n.get('kind') != 'BinaryOperator' or n.get('opcode') not in {'+', '-'}:
                     continue
                 begin = n['range']['begin']['offset']

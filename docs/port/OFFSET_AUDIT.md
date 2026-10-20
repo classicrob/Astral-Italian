@@ -122,7 +122,7 @@ Only direct named record fields are imported. Nested/base entries must be bound
 to their own record, not mistaken for top-level fields.
 
 For an explicitly authorized probe run, use `--collect-plan plan.json --out DIR`.
-This is the **only** mode which starts a compiler. A plan supplies exact argv,
+This scanner mode explicitly starts a compiler. A plan supplies exact argv,
 source pins and accuracy separately for the two ABIs:
 
 ```
@@ -211,3 +211,54 @@ The first actual probe mechanically recovers StageSwitchCtrl's +16 access and
 native+32 field. It stays an approximate-layout candidate because PPC Clang is
 not relabelled as MWCC evidence. A separate actual MWCC `offsetof` probe provides
 the independent sample check.
+
+## Explicit production-native AST capture
+
+`tools/team/offsetaudit_capture.py` is the shared AST producer, not a second
+scanner or a verdict classifier. Its default is a dry run and starts no compiler.
+Use `--run` only when compiler work is authorized for the current host:
+
+```
+python3 tools/team/offsetaudit_capture.py --plan capture-plan.json --out /tmp/ast
+python3 tools/team/offsetaudit_capture.py --plan capture-plan.json --out /tmp/ast --run --jobs 2
+```
+
+The schema-1 plan contains `root`, `inventory` (a pinned scanner result),
+`source_base`, and an explicit `command` argv containing `-fsyntax-only`.
+Optional `sources` or repeated `--source` restrict the exact inventory files.
+Use `{root}` and `{legacy}` in argv paths. For example:
+
+```
+{"schema":1,"root":"/checkout","inventory":"inventory.json",
+ "source_base":"COMMIT",
+ "command":["clang++","-std=c++17","-DGALAXY_NATIVE=1","-fsyntax-only",
+   "-I","{root}/native/include","-I","{legacy}/include","-I","{root}/include",
+   "-I","{legacy}/libs/JSystem/include","-I","{root}/libs/JSystem/include"]}
+```
+
+Use the owning native compile command's complete include/define flags, not just
+the abbreviated example. The producer runs the actual project legacy-source
+encoder, including native UTF-16/MSL substitutions. It checks a one-to-one token
+map against original source bytes and rejects unapproved identifier changes.
+Clang's elided filenames are tracked in dump emission order; macro spelling and
+expansion locations remain distinct. Exact member/cast token checks are retained.
+Unmapped ranges and compile failures are explicit, never an all-clear.
+
+The producer snapshots project dependencies before capture, checks source and
+dependency hashes after capture, and pins the compiler, encoder and reducer.
+Full ASTs are hashed, reduced to relevant typed nodes/declarations, then removed.
+`manifests/*.json` are accepted by the scanner's repeated `--ast` option. Compact
+facts with macro provenance or failed token validation cannot silently generate
+a binding. Cached captures reject changed producers, compilers or dependencies.
+After an interrupted job, use a fresh output directory and rerun that source;
+do not promote a partial projection to evidence.
+
+Neither a successful syntax compile nor an overlapping AST range proves an
+access safe. Scalar/declaration false positives still need exact parsed syntax;
+raw pointers need allocation/base provenance, domain, and measured layout
+relations. A resource record may coexist with host pointer tables in the same
+function. There is deliberately no global domain default or automatic SAME label.
+
+```
+python3 -m unittest discover -s tools/team -p 'test_offsetaudit*.py'
+```

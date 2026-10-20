@@ -101,6 +101,48 @@ auto y = *(bool*)((char*)p + 0x10);'''
         states = audit.guard_lines('#ifndef GALAXY_NATIVE\n#if UNKNOWN\nx\n#endif\n#endif')
         self.assertEqual(states[3], 'excluded')
 
+    def test_three_valued_compound_native_guards(self):
+        cases = {
+            '!defined(GALAXY_NATIVE) && (VERSION == 2)': 'excluded',
+            '(VERSION == 2) && !defined(GALAXY_NATIVE)': 'excluded',
+            'defined GALAXY_NATIVE || VERSION == 2': 'included',
+            'defined(GALAXY_NATIVE) && VERSION == 2': 'unknown',
+            '!(defined(GALAXY_NATIVE) || VERSION == 2)': 'excluded',
+            '!(0 || (0 && UNKNOWN))': 'included',
+            'UNKNOWN || !defined(GALAXY_NATIVE)': 'unknown',
+        }
+        for expression, expected in cases.items():
+            self.assertEqual(audit.guard_lines('#if '+expression+'\nx\n#endif')[2], expected, expression)
+
+    def test_compact_ast_import_stays_pinned_and_rejects_unvalidated_macro(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = '(u8*)p + 12;'
+            (root/'test.cpp').write_text(source)
+            rows = self.rows(source)
+            fact = {'kind': 'BinaryOperator', 'opcode': '+', 'file': 'test.cpp',
+                    'start': 0, 'end': 11, 'token_validation': None,
+                    'children': [
+                        {'kind': 'CStyleCastExpr', 'type': {'qualType': 'u8 *'},
+                         'children': [{'kind': 'DeclRefExpr', 'type': {'qualType': 'MemoryChunk *'}}]},
+                        {'kind': 'IntegerLiteral', 'value': '12'}]}
+            manifest = {'schema': 1, 'format': 'offsetaudit_compact_ast_v1',
+                        'primary_source': 'test.cpp', 'ast': 'ast.json',
+                        'files': {'test.cpp': audit.sha(source.encode())},
+                        'producer': {'kind': 'synthetic-test', 'command': ['fixture']}}
+            layout = {'records': {'MemoryChunk': {'fields': {'mBuffer': {'offset_bits': 96}}}}}
+            for blocked in (None, 'macro', 'token'):
+                candidate = dict(fact)
+                if blocked == 'macro': candidate['macro_provenance'] = {'fixture': True}
+                if blocked == 'token': candidate['token_validation'] = False
+                payload = json.dumps({'facts': [candidate]}).encode()
+                (root/'ast.json').write_bytes(payload)
+                manifest['ast_sha256'] = audit.sha(payload)
+                (root/'manifest.json').write_text(json.dumps(manifest))
+                derived, errors = audit.ast_accesses(root, root/'manifest.json', rows, layout, {})
+                self.assertFalse(errors)
+                self.assertEqual(bool(derived), blocked is None)
+
     def test_dump_direct_fields_not_nested_fields(self):
         dump = ''' 0 | class Outer
  0 |   struct Nested child

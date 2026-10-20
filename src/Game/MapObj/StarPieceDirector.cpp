@@ -7,12 +7,33 @@
 #include "Game/Util.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+#ifdef GALAXY_NATIVE
+#include <petari/host_allocation.hpp>
+#include <petari/mods.hpp>
+#include <petari/star_bits_collect.hpp>
+#include <cstdio>
+
+namespace {
+    PetariNative::StarBits::SceneRegistry<StarPiece> sCollectPieces;
+    PetariNative::StarBits::CollectionWindow sCollectWindow;
+}
+
+void PetariNative::StarBits::registerPiece(StarPiece* piece) {
+    HostAllocationScope host;
+    sCollectPieces.add(MR::getStarPieceDirector(), piece);
+}
+#endif
+
 namespace NrvStarPieceShooter {
     NEW_NERVE(HostTypeNrvWait, StarPieceShooter, Wait);
     NEW_NERVE(HostTypeNrvLockOn, StarPieceShooter, LockOn);
 };  // namespace NrvStarPieceShooter
 
 StarPieceDirector::~StarPieceDirector() {
+#ifdef GALAXY_NATIVE
+    PetariNative::HostAllocationScope host;
+    if (sCollectPieces.endScene(this)) sCollectWindow.reset();
+#endif
 }
 StarPieceShooter::~StarPieceShooter() {
 }
@@ -73,6 +94,14 @@ u32 StarPieceDirector::getRandomColor() {
 StarPieceDirector::StarPieceDirector(const char* pName)
     : LiveActorGroup(pName, 128), mNumStarPieceNewed(), mNumStarPieceGettable(), mColorIndex(), mNumStarPiecesLaunched(), mNewHostInfoIndex(),
       mNewReceiverInfoIndex(), mResetChasingStarPiece(), mSoundIndex(), mQueueNewGetSound() {
+#ifdef GALAXY_NATIVE
+    // Reset before this scene can construct any pooled, placed or group bits.
+    {
+        PetariNative::HostAllocationScope host;
+        sCollectPieces.beginScene(this);
+        sCollectWindow.reset();
+    }
+#endif
     MR::connectToSceneMapObjMovement(this);
 
     for (int i = 0; i < ARRAY_SIZE(mStarPieceShooters); i++) {
@@ -280,6 +309,30 @@ bool StarPieceDirector::gotByPlayer() {
 void StarPieceDirector::movement() {
     mResetChasingStarPiece = false;
     updateSound();
+#ifdef GALAXY_NATIVE
+    using namespace PetariNative;
+    const int mod = static_cast<int>(Mods::Mod::CollectStarBits);
+    // Consume even while disabled; the input layer discards disabled presses.
+    const bool pressed = petari_mod_take_press(mod);
+    const bool enabled = petari_mod_enabled(mod);
+    if (!enabled) {
+        sCollectWindow.reset();
+        return;
+    }
+    StarBits::Context context;
+    context.demo = MR::isDemoActive();
+    context.talking = MR::isNormalTalking();
+    context.pointerValid = MR::isStarPointerValid(0);
+    context.pointer1PDisabled = MR::isStarPointer1PInvalid2PValidMode();
+    context.starBits = MR::getStarPieceNum();
+    if (sCollectWindow.beginFrame(enabled, pressed, StarBits::canCollect(context))) {
+        unsigned count = 0;
+        sCollectPieces.forEach(this, [&count](StarPiece* piece) {
+            if (StarBits::collectPiece(piece)) ++count;
+        });
+        if (count) std::fprintf(stderr, "[mods] collecting %u scene Star Bits\n", count);
+    }
+#endif
 }
 
 void StarPieceDirector::updateSound() {

@@ -14,7 +14,7 @@
 namespace PetariNative::Mods {
 
 enum class Mod : int {
-    CollectStarBits,  // one button collects every Star Bit on screen
+    CollectStarBits,  // one button collects every eligible Star Bit in the current scene
     ShootEnemy,       // one button fires a Star Bit at the nearest enemy on screen
     OdysseyMovement,  // Mario moves with Super Mario Odyssey's physics (docs/dev/ODYSSEY_MOVEMENT.md); no button
     Cappy,            // Odyssey's cap throw and cap bounce (docs/dev/CAPPY.md); needs OdysseyMovement
@@ -29,7 +29,7 @@ enum class Mod : int {
 };
 
 const char* name(Mod mod);          // "CollectStarBits", the mods.txt key
-const char* description(Mod mod);   // "Collect visible Star Bits", for the menu
+const char* description(Mod mod);   // "Collect scene Star Bits", for the menu
 
 bool enabled(Mod mod);  // any thread
 void setEnabled(Mod mod, bool on);

@@ -268,6 +268,7 @@ def artifact(spec, root, label, pins):
 
 def producer(kind, paths, manifest, expected, columns):
     """Check real producer fields as written today; never synthesize a status."""
+    additional_artifacts = {}
     require(type(manifest.get('schema_version')) is int and manifest['schema_version'] == 1, kind + ': manifest schema')
     require(uint(manifest.get('frames'), 1) == expected, kind + ': producer declared length mismatch')
     require(not manifest.get('error') and not manifest.get('cleanup_error') and not manifest.get('validation_error'), kind + ': producer error')
@@ -305,7 +306,26 @@ def producer(kind, paths, manifest, expected, columns):
         observation = manifest.get('connection_observation', {})
         require(isinstance(observation, dict), 'invalid Dolphin connection observation')
         require(not observation.get('within_read_transitions'), 'unrepresented intra-read connection transition')
-        require(not manifest.get('live_input_revisions'), 'live-edited input provenance requires separate review/protocol')
+        revisions = manifest.get('live_input_revisions', [])
+        require(isinstance(revisions, list), 'invalid input revision history')
+        if revisions:
+            require(manifest['input_method'] == 'scripted filtered KPAD injection'
+                    and len(revisions) == 1 and isinstance(revisions[0], dict)
+                    and set(revisions[0]) == {'suffix_source_start'},
+                    'live-edited input provenance requires separate review/protocol')
+            source_start = uint(load_json(paths['sync']).get('source_frame'), high=0xffffffffffffffff) + 1
+            require(uint(revisions[0]['suffix_source_start'], 1, 0xffffffffffffffff) == source_start
+                    and uint(manifest.get('sync_input_source_start'), 1, 0xffffffffffffffff) == source_start,
+                    'automatic suffix marker disagrees with actual source clock')
+            digest = manifest.get('sync_input_script_sha256')
+            require(isinstance(digest, str) and DIGEST.fullmatch(digest), 'automatic suffix requires declared script SHA-256')
+            # The collector writes this exact copy before capture. Bind it just
+            # like every other actual artifact, including independent admission.
+            additional_artifacts['sync_input_script'] = dict(
+                path=str(paths['manifest'].parent / 'sync-input-script.json'), sha256=digest)
+        else:
+            require('sync_input_source_start' not in manifest and 'sync_input_script_sha256' not in manifest,
+                    'declared automatic suffix is missing its exact revision marker')
         receipt = manifest.get('input_export')
         require(isinstance(receipt, dict) and type(receipt.get('schema_version')) is int and receipt['schema_version'] == 1
                 and receipt.get('status') == 'captured', 'actual Dolphin exported-input receipt is unavailable/incomplete')
@@ -315,6 +335,7 @@ def producer(kind, paths, manifest, expected, columns):
         require(uint(receipt.get('read_count'), high=0xffffffffffffffff) == manifest.get('input_reads'), 'Dolphin input export read count mismatch')
     require(isinstance(manifest.get('command'), list) and manifest['command'] and all(isinstance(s, str) for s in manifest['command']),
             kind + ': actual producer launch command missing')
+    return additional_artifacts
 
 
 def actor_receipt(paths, manifest, actors, census):
@@ -456,7 +477,9 @@ def evaluate(fixture_path):
             manifest = load_json(paths['manifest'])
             main = tracediff.read_trace(paths['frames'])
             validate_frames(main, expected, stage, scenario)
-            producer(side, paths, manifest, expected, main.columns)
+            extra = producer(side, paths, manifest, expected, main.columns)
+            for label, spec in extra.items():
+                artifact(spec, root, side + '.' + label, pins)
             actors = table(paths['actors'], ACTOR_COLUMNS)
             census = table(paths['census'], CENSUS_COLUMNS)
             actor_receipt(paths, manifest, actors, census)

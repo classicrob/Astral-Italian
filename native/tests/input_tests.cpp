@@ -2470,6 +2470,20 @@ void testCappyInput() {
               hasBinding(d, In::Action::ModCappyThrow, In::Binding::pad(PadButton::RightShoulder)),
           "cap throw: R and RB by default");
 
+    In::keyEvent(In::Key::R, true, false);
+    rig.frame();
+    check(In::boundState().spin, "Cappy off: R spins");
+    In::keyEvent(In::Key::R, false, false);
+    rig.frames_(30);
+    check(!petari_mod_take_press(cappy), "R while off is not a buffered throw");
+    Mods::setEnabled(Mods::Mod::Cappy, true);
+    In::keyEvent(In::Key::R, true, false);
+    rig.frame();
+    check(In::boundState().spin, "Cappy without Odyssey: R spins");
+    In::keyEvent(In::Key::R, false, false);
+    rig.frames_(30);
+    Mods::setEnabled(Mods::Mod::Cappy, false);
+    petari_mod_take_press(cappy);
     In::padButtonEvent(PadButton::RightShoulder, true);
     rig.frame();
     check(In::boundState().spin, "Cappy off: RB still spins");
@@ -2595,6 +2609,22 @@ void testMods() {
     check(Mods::load("/nonexistent/petari-mods.txt", &error) && Mods::enabled(Mods::Mod::CollectStarBits) &&
               !Mods::enabled(Mods::Mod::ShootEnemy),
           "PETARI_MODS turns on the named mods");
+    setenv("PETARI_ODYSSEY_MOVEMENT", "1", 1);
+    setenv("PETARI_MODS", "Cappy", 1);
+    check(Mods::load("/nonexistent/petari-mods.txt", &error) && Mods::enabled(Mods::Mod::OdysseyMovement) &&
+              Mods::enabled(Mods::Mod::Cappy), "--odyssey preserves the explicit Cappy choice");
+    unsetenv("PETARI_MODS");
+    {
+        const std::string path = std::string(std::getenv("TMPDIR") ? std::getenv("TMPDIR") : "/tmp") + "/petari-odyssey-" +
+                                 std::to_string(getpid()) + ".txt";
+        { std::ofstream out(path); out << "Cappy=on\n"; }
+        check(Mods::load(path, &error) && Mods::enabled(Mods::Mod::Cappy) && Mods::enabled(Mods::Mod::OdysseyMovement),
+              "--odyssey preserves saved Cappy On");
+        std::remove(path.c_str());
+    }
+    check(Mods::load("/nonexistent/petari-mods.txt", &error) && !Mods::enabled(Mods::Mod::Cappy),
+          "--odyssey alone does not enable Cappy");
+    unsetenv("PETARI_ODYSSEY_MOVEMENT");
     setenv("PETARI_MODS", "Teleport", 1);
     check(!Mods::load("/nonexistent/petari-mods.txt", &error), "PETARI_MODS rejects unknown mods");
     unsetenv("PETARI_MODS");

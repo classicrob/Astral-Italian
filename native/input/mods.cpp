@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <mutex>
 #include <sstream>
@@ -132,6 +133,11 @@ bool load(const std::filesystem::path& file, std::string* error) {
             }
             values[index] = on;
         }
+    }
+    // The play launcher's --odyssey adds movement without discarding saved
+    // Cappy/other choices or an explicit PETARI_MODS list.
+    if (const char* env = std::getenv("PETARI_ODYSSEY_MOVEMENT"); env != nullptr && std::strcmp(env, "1") == 0) {
+        values[static_cast<int>(Mod::OdysseyMovement)] = true;
     }
     for (int i = 0; i < kCount; ++i) gEnabled[i].store(values[i], std::memory_order_relaxed);
     std::lock_guard<std::mutex> lock(gFileMutex);

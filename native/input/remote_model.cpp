@@ -234,7 +234,10 @@ std::uint32_t RemoteModel::heldBits() const {
             case Binding::Device::Pad: held = input.code < mPad.size() && mPad[input.code]; break;
             }
             if (held) {
-                bits |= bitsForAction(action);
+                // The throw control retains Spin while Cappy is inactive, just
+                // as RB does through its shared Shake binding. This also follows
+                // a remapped cap key without adding a conflicting Shake slot.
+                bits |= !mCoStar && !cappyClaims && action == Action::ModCappyThrow ? kBitShake : bitsForAction(action);
                 if (!mCoStar && action == Action::Start && titlePromptActive()) {
                     bits |= actionBits(Action::B);
                 }

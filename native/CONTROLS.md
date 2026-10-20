@@ -155,7 +155,7 @@ Buttons can be remapped using their layout-neutral names such as
 to one of the new actions.
 
 Imported optional controls keep their defaults: G/V collect/shoot mods,
-R cap throw, J/L and I/K orbit/pitch, Z/X zoom, middle mouse or Command
+R cap throw (Spin while Cappy is inactive), J/L and I/K orbit/pitch, Z/X zoom, middle mouse or Command
 orbit drag, P photo mode, O screenshot, and a short Tab tap for the editor.
 They act only when their corresponding native feature is enabled; see
 [MODS.md](MODS.md). Their presence is not a claim that each imported mod

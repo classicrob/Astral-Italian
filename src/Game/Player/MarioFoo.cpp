@@ -16,6 +16,8 @@
 #include "Game/Util/MtxUtil.hpp"
 #include <JSystem/JUtility/JUTTexture.hpp>
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void MarioFoo_FORCE_MATCH_SDATA2() {
     (void)0.52359879f;
     (void)0.100000001f;
@@ -49,12 +51,16 @@ void MarioFoo_FORCE_MATCH_SDATA2() {
     (void)1.00010002f;
     (void)6.0f;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void MarioFoo_FORCE_MATCH(TVec3f& rVec, f32 a, f32 b, f32 c) {
     rVec.setLength(a);
     rVec.setLength(b);
     rVec.setLength(c);
 }
+#endif
 
 namespace {
     f32 cTurnMotionSpeed = 5.0f;
@@ -65,12 +71,15 @@ namespace {
     f32 cUpperAngleWait = JGeometry::TUtil< f32 >::PI() / 100.0f;
 };  // namespace
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::tryStartFoo() {
     if (MR::getAreaObj("CelestrialArea", getTrans()) || !mFoo->_48) {
         changeStatus(mFoo);
         mFoo->setStartSpeed(mActor->getConst().getTable()->mSwimFrontMaxSpeed);
     }
 }
+#endif
 
 MarioFoo::MarioFoo(MarioActor* pActor) : MarioState(pActor, MarioStatus_Foo) {
     _11 = 0;
@@ -581,10 +590,13 @@ f32 MarioFoo::getStickY() const {
     return MarioModule::getStickY();
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 const char* MarioFoo_FORCE_MATCH_DATA(u32 index) {
     static const char* const strings[] = {"水泳ダメージ", "水中ダメージ", "声小ダメージ", "ダメージ", "水泳ダメージ中"};
     return strings[index];
 }
+#endif
 
 void MarioFoo::spin() {
     if (!_60) {

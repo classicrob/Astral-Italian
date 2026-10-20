@@ -13,6 +13,8 @@ namespace {
     static bool sIsDisabled;
 };  // namespace
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::isDisableStayHere() const {
     if (((getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         return true;
@@ -116,7 +118,10 @@ bool Mario::isDisableStayHere() const {
 
     return mActor->_3C0;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::isDisableFpViewMode() const {
     if (_97C) {
         return true;
@@ -124,6 +129,7 @@ bool Mario::isDisableFpViewMode() const {
 
     return isDisableStayHere();
 }
+#endif
 
 MarioFpView::MarioFpView(MarioActor* pActor) : MarioState(pActor, MarioStatus_FpView), mDelay(), mIsActive(), mBlurOffset(), mFrame() {
 }
@@ -204,6 +210,8 @@ void MarioFpView::forceClose() {
     mIsActive = false;
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::tryFpViewMode() {
     if (isStatusActive(MarioStatus_FpView)) {
         return;
@@ -215,6 +223,7 @@ void Mario::tryFpViewMode() {
 
     MR::startSystemSE("SE_SY_CAMERA_FP_VIEW");
 }
+#endif
 
 f32 MarioFpView::getBlurOffset() const {
     return mBlurOffset;

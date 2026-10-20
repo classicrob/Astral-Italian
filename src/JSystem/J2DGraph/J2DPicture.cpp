@@ -553,11 +553,13 @@ void J2DPicture::setTevMode() {
     }
 }
 
+#ifndef GALAXY_NATIVE  // native: one definition (Game/Util/MathUtil.cpp, the DOL's global copy; this unit's copy is local in the DOL)
 void J2DPicture::swap(f32& lhs, f32& rhs) {
     f32 tmp = lhs;
     lhs = rhs;
     rhs = tmp;
 }
+#endif
 
 /* NEW IN SMG1 */
 void J2DPicture::setBlendColorRatio(f32 a1, f32 a2, f32 a3, f32 a4, f32 a5, f32 a6, f32 a7, f32 a8) {

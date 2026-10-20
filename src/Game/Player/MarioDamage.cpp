@@ -36,6 +36,8 @@ namespace {
     const char sBackDamageLandAnimation[] = "中後ダメージ着地";
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void MarioDamage_FORCE_MATCH_SDATA2() {
     (void)10.0f;
     (void)5.0f;
@@ -48,6 +50,7 @@ void MarioDamage_FORCE_MATCH_SDATA2() {
     (void)0.100000001f;
     (void)0.25f;
 }
+#endif
 
 MarioDamage::MarioDamage(MarioActor* pActor)
     : MarioState(pActor, MarioStatus_Damage), _11(0), _12(0), _14(0), _16(0), _18(0), _1C(0.0f, 0.0f, 0.0f), _28(nullptr), _2C(nullptr), _30(false),

@@ -4,6 +4,8 @@
 #include "Game/Player/MarioModule.hpp"
 #include "Game/Player/Yoshi.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::stopPunch() {
     if (isStatusActive(MarioStatus_Magic)) {
         closeStatus(mMagic);
@@ -18,7 +20,10 @@ void Mario::stopPunch() {
 
     actor->_944 = 0;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::startMagic() {
     if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         if (!mActor->_468) {
@@ -37,6 +42,7 @@ void Mario::startMagic() {
         }
     }
 }
+#endif
 
 MarioMagic::MarioMagic(MarioActor* pActor) : MarioState(pActor, MarioStatus_Magic) {
     _12 = 0;

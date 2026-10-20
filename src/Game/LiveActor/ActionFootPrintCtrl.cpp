@@ -83,5 +83,7 @@ void ActionFootPrintCtrl::updateInfoEnabled() {
     }
 }
 
+#ifndef GALAXY_NATIVE  // native: ActionFlagCtrl.cpp (DOL split owner) defines it; misplaced copy
 ActionFootPrintInfo::ActionFootPrintInfo() : mBckName(NULL), mStartFrame(0.0f), mJointName(NULL), mIsRight(0), mIsEnabled(0) {
 }
+#endif

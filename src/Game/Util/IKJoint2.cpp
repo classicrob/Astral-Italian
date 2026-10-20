@@ -5,6 +5,7 @@
 
 
 
+#ifndef GALAXY_NATIVE  // native: IKJoint.cpp (DOL split owner) defines these; misplaced copies
 IKJoint::IKJoint() : _0(), _30(), _60(), mRootBoneLength(100.0f), mMiddleBoneLength(100.0f) {
     _0.identity();
     _60.identity();
@@ -141,6 +142,7 @@ s32 IKJoint::updateByDistanceOnly(f32 distance) {
     _60.setTrans(middlePosition);
     return result;
 }
+#endif
 
 void IKJoint::calcToTargetMatrixByFirstPose(TPos3f* pMatrix, const TPos3f& rRootMatrix, const TVec3f& rRootPosition, const TVec3f& rDirection) const {
     TPos3f matrix;
@@ -154,6 +156,7 @@ void IKJoint::calcToTargetMatrixByFirstPose(TPos3f* pMatrix, const TPos3f& rRoot
     pMatrix->set(matrix);
 }
 
+#ifndef GALAXY_NATIVE  // native: IKJoint.cpp (DOL split owner) defines these; misplaced copies
 void IKJoint::getRootJointPosition(TVec3f* pPos) const {
     _30.getTrans(*pPos);
 }
@@ -172,3 +175,4 @@ f32 IKJoint::getMinLimitDistance() const {
 f32 IKJoint::getMaxLimitDistance() const {
     return mRootBoneLength + mMiddleBoneLength;
 }
+#endif

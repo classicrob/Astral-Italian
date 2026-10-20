@@ -10,6 +10,8 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::doFrontStep() {
     if (getCurrentStatus() == MarioStatus_FrontStep) {
         return false;
@@ -71,6 +73,7 @@ bool Mario::doFrontStep() {
 
     return true;
 }
+#endif
 
 bool MarioFrontStep::start() {
     changeAnimation("前壁ウエイト");

@@ -127,6 +127,8 @@ namespace {
     static f32 cTurnMotionSpeed = 5.0f;
 };  // namespace
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 f32 getSwimValue(f32 stick, u32 index, const MarioConstTable* pTable) {
     if (index == 2) {
         return pTable->mSwimRotXIne;
@@ -138,6 +140,7 @@ f32 getSwimValue(f32 stick, u32 index, const MarioConstTable* pTable) {
 
     return 0.0f;
 }
+#endif
 
 void MarioSwim::setDamage(const TVec3f& rKnockbackVec, u16 damage) {
     mDamage->mVelocity.set(rKnockbackVec);

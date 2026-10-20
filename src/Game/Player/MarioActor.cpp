@@ -2140,11 +2140,14 @@ bool MarioActor::binderFilter(const Triangle* pTriangle) {
 }
 
 
+// native: defined in DrawUtil.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 namespace MR {
     s32 getFrameBufferWidth() {
         return JUTGetVideoManager()->getRenderMode()->fbWidth;
     }
 };
+#endif
   // namespace MR
 
 void MarioActor::setPunchHitTimer(u8 punchHitTime) {
@@ -9205,12 +9208,17 @@ void MarioAnimator_FORCE_MATCH_SDATA2() {
 extern const char* jname_chest;
 
 
+// native: defined in MarioAnimator.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 const char* jname_chest = "Spine1";
+#endif
 #pragma push
 #pragma opt_propagation off
 #pragma pop
 
 
+// native: defined in MarioAnimator.cpp / Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 HitSensor* MarioActor::getLookTargetSensor() const {
     if (_934) {
         return nullptr;
@@ -9222,6 +9230,7 @@ HitSensor* MarioActor::getLookTargetSensor() const {
 
     return _46C;
 }
+#endif
 
 // ---- MarioBee.cpp ----
 
@@ -10573,6 +10582,8 @@ void MarioActor::getThrowVec(TVec3f* pVec) const {
 
 // ---- MarioTeresa.cpp ----
 
+// native: defined in MarioAnimator.cpp / Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void MarioTeresa_FORCE_MATCH_SDATA2() {
     (void)100.0f;
     (void)10.0f;
@@ -10603,6 +10614,7 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
     (void)0.707000017f;
     (void)-10.0f;
 }
+#endif
 
 
 void MarioActor::runTeresaBaseAnimation() {

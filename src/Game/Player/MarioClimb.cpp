@@ -2,10 +2,13 @@
 #include "Game/Util.hpp"
 #include "Game/Player/MarioActor.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::connectToClimb() {
     _790 = -getShadowNorm();
     changeStatus(mClimb);
 }
+#endif
 
 MarioClimb::MarioClimb(MarioActor* pActor) : MarioState(pActor, MarioStatus_Climb), mTimer() {
 }

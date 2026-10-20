@@ -34,6 +34,7 @@ PlantLeaf::PlantLeaf(f32 leafCoord, const TVec3f& rPosition, const TVec3f& rGrow
     mPosMtx.identity();
 }
 
+#ifndef GALAXY_NATIVE  // native: PlantLeaf.cpp (DOL split owner) defines these; misplaced copies
 PlantLeafDrawInit::PlantLeafDrawInit(const char* pName) : LiveActor(pName), mMaterial(), mShape(), mShapeDraw() {
     MR::registerPreDrawFunction(MR::Functor(this, &PlantLeafDrawInit::initDraw), MR::DrawType_Plant);
 
@@ -123,3 +124,4 @@ void PlantLeafDrawInit::initDraw() const {
     mShape->loadPreDrawSetting();
     mShape->loadVtxArray();
 }
+#endif

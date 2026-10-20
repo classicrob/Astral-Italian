@@ -130,6 +130,7 @@ void JAISound::die_JAISound_() {
     die();
 }
 
+#ifndef GALAXY_NATIVE  // native: Game/AudioLib/JAISound.cpp (DOL split owner) defines it
 bool JAISound::calc_JAISound_() {
     setCalcedOnce(true);
     if (isStopping() && JAISound_tryDie_()) {
@@ -172,6 +173,7 @@ bool JAISound::calc_JAISound_() {
 
     return currentlyPlaying;
 }
+#endif
 
 void JAISound::initTrack_JAISound_(JASTrack* track) {
     JASSoundParams* soundParams[JASTrack::TChannelMgr::CHANNEL_MAX];

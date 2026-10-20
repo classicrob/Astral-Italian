@@ -10,6 +10,8 @@
 #include "Game/Util/MtxUtil.hpp"
 #include <cstring>
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void MarioHang_FORCE_MATCH_SDATA2() {
     (void)-0.8f;
     (void)50.0f;
@@ -40,10 +42,14 @@ void MarioHang_FORCE_MATCH_SDATA2() {
     (void)0.001f;
     (void)0.01f;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::isHanging() const {
     return getCurrentStatus() == MarioStatus_Hang;
 }
+#endif
 
 void MarioHang::recordWallPolygon(const Triangle* pTriangle) {
     Triangle* triangle = _20;

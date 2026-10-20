@@ -3,6 +3,8 @@
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Util/MathUtil.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::startTalk(const LiveActor* pActor) {
     stopWalk();
 
@@ -10,10 +12,14 @@ void Mario::startTalk(const LiveActor* pActor) {
 
     changeStatus(mTalk);
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::endTalk() {
     closeStatus(mTalk);
 }
+#endif
 
 MarioTalk::MarioTalk(MarioActor* pActor) : MarioState(pActor, MarioStatus_Talk), _14(), mIsUpdate() {
 }
@@ -73,6 +79,9 @@ bool MarioTalk::start() {
     return true;
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::setLastNonFixMoveVec(const TVec3f& rVec) {
     _334 = rVec;
 }
+#endif

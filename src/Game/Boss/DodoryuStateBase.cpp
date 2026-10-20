@@ -429,6 +429,7 @@ void DodoryuDemoDown::exePlay() {
     }
 }
 
+#ifndef GALAXY_NATIVE  // native: DodoryuStateBase2.cpp (DOL split owner) defines these; misplaced copies
 void DodoryuStateBase::calcAttackDir(TVec3f* pVec, const TVec3f& rVec1, const TVec3f& rVec2) {
     pVec->sub(rVec2, rVec1);
 
@@ -460,3 +461,4 @@ bool DodoryuStateBase::calcVerticalizedDir(TVec3f* pVec, const TVec3f& rVec) {
 
     return true;
 }
+#endif

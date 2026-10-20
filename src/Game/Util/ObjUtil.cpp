@@ -812,6 +812,7 @@ JMapInfoIter MR::getCsvDataU32ByElement(u32* pOut, const JMapInfo* pInfo, const 
     return iter;
 }
 
+#ifndef GALAXY_NATIVE  // native: SequenceUtil.cpp (DOL split owner) defines these; misplaced copies
 bool MR::isStageStateScenarioOpeningCamera() {
     return GameSceneFunction::isExecScenarioOpeningCamera();
 }
@@ -819,6 +820,7 @@ bool MR::isStageStateScenarioOpeningCamera() {
 bool MR::isStageStatePowerStarAppeared() {
     return GameSequenceFunction::isResultPowerStarAppeared();
 }
+#endif
 
 void MR::declarePowerStar(const NameObj* pObj) {
     declareEventPowerStar(pObj, -1);

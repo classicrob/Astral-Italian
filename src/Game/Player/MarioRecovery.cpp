@@ -6,6 +6,8 @@
 #include "Game/Util/MathUtil.hpp"
 #include <revolution/mtx.h>
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::doRecovery() {
     if (isStatusActive(MarioStatus_Foo)) {
         return false;
@@ -38,6 +40,7 @@ bool Mario::doRecovery() {
     }
     return true;
 }
+#endif
 
 MarioRecovery::MarioRecovery(MarioActor* actor) : MarioState(actor, MarioStatus_Recovery) {
     _16 = 0;

@@ -40,6 +40,7 @@ void JAUSoundObject::process() {
     setPos(*mPos);
 }
 
+#ifndef GALAXY_NATIVE  // native: Game/AudioLib/JAUSoundObject.cpp (DOL split owner) defines it
 JAISoundHandle* JAUSoundObject::startSound(JAISoundID soundID) {
     if (!mIsAllocated) {
         return nullptr;
@@ -62,6 +63,7 @@ JAISoundHandle* JAUSoundObject::startSound(JAISoundID soundID) {
 
     return handle;
 }
+#endif
 
 JAISoundHandle* JAUSoundObject::startSoundIndex(JAISoundID soundID, u8 index) {
     if (!mIsAllocated) {
@@ -73,6 +75,7 @@ JAISoundHandle* JAUSoundObject::startSoundIndex(JAISoundID soundID, u8 index) {
     return handle;
 }
 
+#ifndef GALAXY_NATIVE  // native: Game/AudioLib/JAUSoundObject.cpp (DOL split owner) defines it
 JAISoundHandle* JAUSoundObject::startLevelSound(JAISoundID soundID) {
     if (!mIsAllocated) {
         return nullptr;
@@ -101,6 +104,7 @@ JAISoundHandle* JAUSoundObject::startLevelSound(JAISoundID soundID) {
 
     return handle;
 }
+#endif
 
 JAISoundHandle* JAUSoundObject::startLevelSoundIndex(JAISoundID soundID, u8 index) {
     if (!mIsAllocated) {

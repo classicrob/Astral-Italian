@@ -13,12 +13,14 @@
 ShadowSurfaceBox::~ShadowSurfaceBox() {
 }
 
+#ifndef GALAXY_NATIVE  // native: ShadowSurfaceDrawer.cpp (DOL split owner) defines these
 ShadowSurfaceBox::ShadowSurfaceBox() : ShadowSurfaceDrawer("影描画[水面ボックス]"), mSize(100.0f) {
 }
 
 void ShadowSurfaceBox::setSize(const TVec3f& pSize) {
     mSize.set(pSize);
 }
+#endif
 
 void ShadowSurfaceBox::draw() const {
     TPos3f base;

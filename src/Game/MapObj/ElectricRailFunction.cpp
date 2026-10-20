@@ -19,6 +19,7 @@ namespace {
     ElectricRailHolder* getHolder() {
         return MR::getSceneObj< ElectricRailHolder >(SceneObj_ElectricRailHolder);
     }
+#ifndef GALAXY_NATIVE  // native: only the misplaced ElectricRailHolder copies below use it
 
     bool isNearRail(const LiveActor* pActor, const HitSensor* pSensor, TVec3f* pRailPos, TVec3f* pRailDir) NO_INLINE {
         TVec3f railPos;
@@ -41,8 +42,10 @@ namespace {
 
         return false;
     }
+#endif
 };  // namespace
 
+#ifndef GALAXY_NATIVE  // native: ElectricRailHolder.cpp (DOL split owner) defines these; misplaced copies
 ElectricRailHolder::ElectricRailHolder(const char* pName) : LiveActor(pName), mIsActive() {
     MR::zeroMemory(&mRailModels, sizeof(mRailModels));
     MR::zeroMemory(&mRailItems, sizeof(mRailItems.mArray));
@@ -142,6 +145,7 @@ void ElectricRailHolder::initDraw() const {
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 30, GX_FALSE, 125);
 }
+#endif
 
 void ElectricRailFunction::registerRail(const LiveActor* pActor, ElectricRailType railType) {
     MR::createSceneObj(SceneObj_ElectricRailHolder);
@@ -164,6 +168,7 @@ f32 ElectricRailFunction::getHipDropSensorRadius() {
     return 60.0f;
 }
 
+#ifndef GALAXY_NATIVE  // native: ElectricRailHolder.cpp (DOL split owner) defines these; misplaced copies
 void ElectricRailHolder::init(const JMapInfoIter& rIter) {
     MR::connectToScene(this, MR::MovementType_MapObjDecoration, MR::CalcAnimType_MapObj, MR::DrawBufferType_None, MR::DrawType_ElectricRailHolder);
 
@@ -247,6 +252,7 @@ ModelObj* ElectricRailHolder::createModel(ElectricRailType railType) const {
 
     return pModel;
 }
+#endif
 
 u32 ElectricRailFunction::calcDisplayListSize(u32 size, s32 count) {
     return (((size * count + 3) / 32) + 2) * 32;

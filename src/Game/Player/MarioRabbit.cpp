@@ -7,17 +7,23 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::startRabbitMode() {
     if (!isStatusActive(MarioStatus_Rabbit)) {
         changeStatus(mRabbit);
     }
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::endRabbitMode() {
     if (isStatusActive(MarioStatus_Rabbit)) {
         closeStatus(mRabbit);
     }
 }
+#endif
 
 MarioRabbit::MarioRabbit(MarioActor* pActor) : MarioState(pActor, MarioStatus_Rabbit), _14() {
     _18.zero();

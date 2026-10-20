@@ -10,8 +10,10 @@
 #include <revolution/gx/GXVert.h>
 #include <revolution/mtx.h>
 
+#ifndef GALAXY_NATIVE  // native: ShadowSurfaceBox.cpp (DOL split owner) defines these; misplaced copies
 ShadowSurfaceBox::~ShadowSurfaceBox() {
 }
+#endif
 
 ShadowSurfaceBox::ShadowSurfaceBox() : ShadowSurfaceDrawer("影描画[水面ボックス]"), mSize(100.0f, 100.0f, 100.0f) {
 }
@@ -20,6 +22,7 @@ void ShadowSurfaceBox::setSize(const TVec3f& pSize) {
     mSize.set(pSize);
 }
 
+#ifndef GALAXY_NATIVE  // native: ShadowSurfaceBox.cpp (DOL split owner) defines these; misplaced copies
 void ShadowSurfaceBox::draw() const {
     MtxPtr baseMtx;
     ShadowController* controller = getController();
@@ -97,3 +100,4 @@ void ShadowSurfaceBox::draw() const {
     GXColor1u32(0x80);
     GXEnd();
 }
+#endif

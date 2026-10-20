@@ -141,6 +141,7 @@ s32 IKJoint::updateByDistanceOnly(f32 distance) {
     return result;
 }
 
+#ifndef GALAXY_NATIVE  // native: IKJoint2.cpp (DOL split owner) defines it
 void IKJoint::calcToTargetMatrixByFirstPose(TPos3f* pMatrix, const TPos3f& rRootMatrix, const TVec3f& rRootPosition, const TVec3f& rDirection) const {
     TPos3f matrix;
     TVec3f side;
@@ -152,6 +153,7 @@ void IKJoint::calcToTargetMatrixByFirstPose(TPos3f* pMatrix, const TPos3f& rRoot
     matrix.concat(rRootMatrix, matrix);
     pMatrix->set(matrix);
 }
+#endif
 
 void IKJoint::getRootJointPosition(TVec3f* pPos) const {
     _30.getTrans(*pPos);

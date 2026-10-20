@@ -1056,6 +1056,7 @@ void JPADrawRotYBillboard(JPAEmitterWorkData* pWork, JPABaseParticle* pParticle)
 #endif
 
 #if !defined(GALAXY_NATIVE) || !defined(PETARI_OVERWRITE_PARTICLES)
+#ifndef GALAXY_NATIVE  // native: JAU_JASInitializer.cpp (DOL split owner) defines it; misplaced copy
 void JAU_JASInitializer::initJASystem(JKRSolidHeap* pHeap) {
     if (JASAudioThread::getThreadPointer() == nullptr && JASDvd::getThreadPointer() == nullptr) {
         JASKernel::setupRootHeap(pHeap, heapSize_);
@@ -1106,6 +1107,7 @@ void JAU_JASInitializer::initJASystem(JKRSolidHeap* pHeap) {
         break;
     }
 }
+#endif
 
 namespace {
     s32 sAudioThreadMsgSize = 0x20;

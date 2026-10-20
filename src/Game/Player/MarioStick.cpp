@@ -10,16 +10,22 @@
 #include "Game/Util/MtxUtil.hpp"
 #include <revolution/mtx.h>
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::checkBeeStick() {
     return;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::tryBeeStick(const HitSensor* pSensor) {
     bool res = mStick->setStickSensor(pSensor);
     if (res) {
         changeStatus(mStick);
     }
 }
+#endif
 
 MarioStick::MarioStick(MarioActor* pActor) : MarioState(pActor, MarioStatus_Stick) {
     _4C = 0;

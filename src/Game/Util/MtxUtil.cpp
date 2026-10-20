@@ -965,11 +965,13 @@ namespace MR {
         PSMTXConcat(inv, pMtxB, pDst->mMtx);
     }
 
+#ifndef GALAXY_NATIVE  // native: MathUtil.cpp (DOL split owner) defines it; misplaced copy
     void rotAxisVecRad(const TVec3f& rAxis, const TVec3f& rVec, TVec3f* pOut, f32 rad) {
         Mtx rot;
         PSMTXRotAxisRad(rot, &rVec, rad);
         PSMTXMultVec(rot, &rAxis, pOut);
     }
+#endif
 };  // namespace MR
 
 // PLACEHOLDER(core): removal changes blendMtx inlining; resolve when canonical geometry emission preserves blendMtx

@@ -8,6 +8,8 @@
 #include "Game/Util/MathUtil.hpp"
 #include <revolution/types.h>
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::blown(const TVec3f& rVec) {
     if (getCurrentStatus() == MarioStatus_Blown) {
         return false;
@@ -31,6 +33,7 @@ bool Mario::blown(const TVec3f& rVec) {
 
     return true;
 }
+#endif
 
 // NONMATCHING: independent initialization scheduling.
 MarioBlown::MarioBlown(MarioActor* pActor) : MarioState(pActor, MarioStatus_Blown), mTimer(), _14() {

@@ -23,6 +23,7 @@ namespace {
     static const f32 sSpringSpeedToStop = 0.001f;
 };  // namespace
 
+#ifndef GALAXY_NATIVE  // native: PlantLeaf2.cpp (DOL split owner of the ctor) defines it
 PlantLeaf::PlantLeaf(f32 leafCoord, const TVec3f& rPosition, const TVec3f& rGrowDirection, f32 leafSize)
     : LiveActor("葉（伸び植物）"), mSpringCoord(), mSpringSpeed(), mLeafCoord(leafCoord), mLeafSize(leafSize), mSide(1.0f, 0.0f, 0.0f),
       mUp(0.0f, 1.0f, 0.0f), mFront(rGrowDirection) {
@@ -33,6 +34,7 @@ PlantLeaf::PlantLeaf(f32 leafCoord, const TVec3f& rPosition, const TVec3f& rGrow
     mBaseMtx.setTrans(mPosition);
     mPosMtx.identity();
 }
+#endif
 
 PlantLeafDrawInit::PlantLeafDrawInit(const char* pName) : LiveActor(pName), mMaterial(), mShape(), mShapeDraw() {
     MR::registerPreDrawFunction(MR::FunctorV0M<const PlantLeafDrawInit*, void (PlantLeafDrawInit::*)() const>(this, &PlantLeafDrawInit::initDraw), MR::DrawType_Plant);

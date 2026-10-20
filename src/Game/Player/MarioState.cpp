@@ -30,6 +30,8 @@ bool MarioState::proc(u32 msg) {
     return true;
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::sendStateMsg(u32 msg) {
     MarioState* pNext;
 
@@ -52,7 +54,10 @@ void Mario::sendStateMsg(u32 msg) {
         pState = pNext;
     }
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::updatePosture(MtxPtr mtx) {
     if (_97C != nullptr) {
         return _97C->postureCtrl(mtx);
@@ -62,6 +67,7 @@ bool Mario::updatePosture(MtxPtr mtx) {
 
     return false;
 }
+#endif
 
 bool MarioState::postureCtrl(MtxPtr mtx) {
     getPlayer()->postureCtrl(mtx);
@@ -69,6 +75,8 @@ bool MarioState::postureCtrl(MtxPtr mtx) {
     return false;
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::changeStatus(MarioState* pState) {
     if (isStatusActive(pState->mStatusId)) {
         return;
@@ -90,7 +98,10 @@ void Mario::changeStatus(MarioState* pState) {
         _97C = pState->_8;
     }
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::closeStatus(MarioState* pState) {
     if (pState == nullptr) {
         while (_97C != nullptr) {
@@ -121,7 +132,10 @@ void Mario::closeStatus(MarioState* pState) {
     pState->_8 = nullptr;
     pState->proc(MarioStateMsg_Close);
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 u32 Mario::getCurrentStatus() const {
     MarioState* pState = _97C;
 
@@ -131,7 +145,10 @@ u32 Mario::getCurrentStatus() const {
 
     return pState->mStatusId;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::isStatusActive(u32 statusId) const {
     MarioState* pState = _97C;
 
@@ -153,6 +170,7 @@ bool Mario::isStatusActive(u32 statusId) const {
 
     return false;
 }
+#endif
 
 u32 MarioState::getNoticedStatus() const {
     return getPlayer()->_980->mStatusId;

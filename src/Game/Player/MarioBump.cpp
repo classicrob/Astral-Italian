@@ -6,6 +6,8 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::checkBump() {
     if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 21) & 1U) && ((mMovementStates.mLowWord >> 30) & 1U)) {
         if (!isStatusActive(MarioStatus_Hang) && !isStatusActive(MarioStatus_Wall) && !isStatusActive(MarioStatus_Swim) &&
@@ -26,7 +28,10 @@ void Mario::checkBump() {
         }
     }
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::startBump(const TVec3f& rVec) {
     if ((getTrans() - rVec).length() >= 100.0f) {
         return;
@@ -61,6 +66,7 @@ void Mario::startBump(const TVec3f& rVec) {
         _790 = v19;
     }
 }
+#endif
 
 // NONMATCHING: zero scalar relocation label.
 MarioBump::MarioBump(MarioActor* pActor) : MarioState(pActor, MarioStatus_Bump) {

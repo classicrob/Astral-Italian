@@ -153,22 +153,31 @@ bool MarioWait::close() {
     return true;
 }
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::isBlendWaitGround() const {
     return calcAngleD(_368) > 8.0f;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::checkSpecialWaitAnimation() {
     if (mWait->checkStart()) {
         changeStatus(mWait);
     }
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void Mario::resetSleepTimer() {
     mWait->_16 = 0;
     if (isStatusActive(MarioStatus_Wait)) {
         closeStatus(mWait);
     }
 }
+#endif
 
 MarioWait::MarioWait(MarioActor* pActor) : MarioState(pActor, MarioStatus_Wait) {
     _16 = 0;

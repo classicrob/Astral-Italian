@@ -1180,6 +1180,7 @@ namespace Collision {
         return MR::getCollisionDirector()->getCategoryKeeper(0)->checkStrikePoint(rPoint, pHit);
     }
 
+#ifndef GALAXY_NATIVE  // native: Collision.cpp (DOL split owner) defines these; misplaced copies
     s32 checkStrikeBallToMap(const TVec3f& rCenter, f32 radius, const CollisionPartsFilterBase* pPartsFilter,
                              const TriangleFilterBase* pTriangleFilter) {
         return MR::getCollisionDirector()->getCategoryKeeper(0)->checkStrikeBall(rCenter, radius, false, pPartsFilter, pTriangleFilter);
@@ -1213,4 +1214,5 @@ namespace Collision {
     u32 getStrikeInfoNumMap() {
         return MR::getStrikeInfoNumCategory(0);
     }
+#endif
 };  // namespace Collision

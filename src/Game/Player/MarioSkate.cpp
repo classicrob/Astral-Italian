@@ -7,6 +7,8 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 void MarioSkate_FORCE_MATCH_SDATA2() {
     (void)20.0f;
     (void)50.0f;
@@ -25,7 +27,10 @@ void MarioSkate_FORCE_MATCH_SDATA2() {
     (void)0.95f;
     (void)0.05f;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::isSkatableFloor() const {
     // CollisionFloorCode enum is not in our include tree; values from the SB4E01 floor code table
     // (CollisionCode::createFloorTable add() order): Ice = 5, GlassIce = 33 (Petari order).
@@ -35,11 +40,15 @@ bool Mario::isSkatableFloor() const {
 
     return _960 == 33 /* CollisionFloorCode_GlassIce */;
 }
+#endif
 
+// native: defined in Mario.cpp (DOL split owner); misplaced copy
+#ifndef GALAXY_NATIVE
 bool Mario::doSkate() {
     changeStatus(mSkate);
     return true;
 }
+#endif
 
 MarioSkate::MarioSkate(MarioActor* pActor) : MarioState(pActor, MarioStatus_Skate) {
     _14 = 0;

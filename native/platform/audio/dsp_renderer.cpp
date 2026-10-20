@@ -193,15 +193,17 @@ void Renderer::prepareFrame() {
     mBackLeftReverb.fill(0);
     mBackRightReverb.fill(0);
 
-    // Patterns 2 and 3 evolve every frame (noise-like sources).
+    // Patterns 2 and 3 evolve every frame (noise-like sources). The DSP accumulator wraps at 32 bits:
+    // compute in 64 bits and wrap explicitly (signed overflow would be undefined behaviour).
+    const auto wrap32 = [](std::int64_t value) { return static_cast<std::int32_t>(static_cast<std::uint32_t>(value)); };
     std::int16_t* p2 = mTables.patterns.data() + 0x80;
     std::int32_t yn2 = p2[0x3E], yn1 = p2[0x3F];
     for (int i = 0; i < 0x40; i += 2) {
-        std::int32_t v = yn2 * yn1 - fixed16(p2[i]);
+        std::int32_t v = wrap32(std::int64_t(yn2) * yn1 - fixed16(p2[i]));
         yn2 = yn1;
         yn1 = p2[i];
         p2[i] = static_cast<std::int16_t>(v >> 16);
-        v = 2 * (yn2 * yn1 + fixed16(p2[i + 1]));
+        v = wrap32(2 * (std::int64_t(yn2) * yn1 + fixed16(p2[i + 1])));
         yn2 = yn1;
         yn1 = p2[i + 1];
         p2[i + 1] = static_cast<std::int16_t>(v >> 16);
@@ -210,7 +212,7 @@ void Renderer::prepareFrame() {
     yn2 = p3[0x3E];
     yn1 = p3[0x3F];
     const std::int16_t acc = static_cast<std::int16_t>(yn1);
-    std::int16_t step = static_cast<std::int16_t>(p3[0] + ((yn1 * yn2 + (fixed16(yn2) + yn1)) >> 16));
+    std::int16_t step = static_cast<std::int16_t>(p3[0] + (wrap32(std::int64_t(yn1) * yn2 + (std::int64_t(fixed16(yn2)) + yn1)) >> 16));
     step = static_cast<std::int16_t>((step & 0x1FF) | 0x2000);
     for (int i = 0; i < 0x40; ++i) {
         p3[i] = static_cast<std::int16_t>(acc + (i + 1) * step);

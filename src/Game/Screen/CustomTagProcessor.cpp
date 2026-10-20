@@ -151,6 +151,9 @@ namespace nw4r {
     namespace ut {
         template <>
         inline f32 TextWriterBase<wchar_t>::GetCharSpaceValidated() const {
+#ifdef GALAXY_NATIVE
+            NW4R_NULL_ASSERT_AT(108, this);
+#else
             (void)((((reinterpret_cast<u32>(this) & 0xFF000000) == 0x80000000) ||
                   ((reinterpret_cast<u32>(this) & 0xFF800000) == 0x81000000) ||
                   ((reinterpret_cast<u32>(this) & 0xF8000000) == 0x90000000) ||
@@ -160,6 +163,7 @@ namespace nw4r {
                   ((reinterpret_cast<u32>(this) & 0xFFFFC000) == 0xE0000000)) || (
                 nw4r::db::Panic("TextWriterBase.h", 108,
                     "NW4R:Pointer Error\nthis(=%p) is not valid pointer.", this), 0));
+#endif
             return mCharSpace;
         }
     }

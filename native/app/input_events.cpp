@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "host.hpp"
+#include "playtest_capture.hpp"
 #include "smoke_background.hpp"
 #include "petari/input.hpp"
 #include "petari/input_remap.hpp"
@@ -133,6 +134,11 @@ bool input(const SDL_Event& event) {
         return true;
     }
     countPhysical(event);
+    // F9: playtest capture (playtest_capture.hpp; inert unless PETARI_CAPTURE_DIR is set). The key also reaches the
+    // input layer, where it is unbound by default.
+    if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat && event.key.scancode == SDL_SCANCODE_F9) {
+        PlaytestCapture::request();
+    }
     return Input::SDL3::handleEvent(event);
 }
 

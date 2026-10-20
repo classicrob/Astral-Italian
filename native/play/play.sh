@@ -11,6 +11,7 @@
 #                directory ~/Library/Application Support/Petari: the script refuses it.
 #   ASTRAL_AUDIO on|off (default on; off uses SDL's dummy driver, which keeps the game's audio timing without a device)
 #   ASTRAL_LOG   log file (default $ASTRAL_USER/logs/play-<galaxy>-<time>.log)
+#   ASTRAL_CAPTURES  where F9 playtest captures go (default ~/MacioGalaxy2-play/captures)
 set -u
 
 app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}
@@ -69,6 +70,8 @@ echo "  log  $log"
 # Odyssey movement for this run only (PETARI_MODS overrides mods.txt); otherwise mods.txt in the user directory decides.
 [ "$odyssey" = 1 ] && export PETARI_MODS=OdysseyMovement
 [ "$audio" = off ] && export SDL_AUDIO_DRIVER=dummy
+# F9 in the game saves a playtest capture (last 300 frames of input and Mario state, the state, a screenshot) here.
+export PETARI_CAPTURE_DIR="${ASTRAL_CAPTURES:-$HOME/MacioGalaxy2-play/captures}" PETARI_CAPTURE_LOG="$log"
 if [ "$dry" = 1 ]; then
     echo "  run  ${PETARI_MODS:+PETARI_MODS=$PETARI_MODS }${SDL_AUDIO_DRIVER:+SDL_AUDIO_DRIVER=$SDL_AUDIO_DRIVER }$exe $*"
     exit 0

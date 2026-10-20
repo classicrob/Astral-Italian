@@ -193,6 +193,7 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
 
 #include "route_record.hpp"
 #include "route_record_writer.hpp"
+#include "playtest_capture.hpp"
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Util/SceneUtil.hpp"
 #include <petari/host_allocation.hpp>
@@ -204,10 +205,13 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
 namespace PetariNative::App {
 void recordRouteFrame(bool background) {
     static const char* path = std::getenv("PETARI_ROUTE_RECORD");
-    if (!path || !*path) return;
+    const bool record = path && *path;
+    const bool capture = PlaytestCapture::enabled(background);
+    if (!record && !capture) return;
     PetariNative::HostAllocationScope host;
     static RouteRecordWriter writer;
-    if (!writer.open(path, background)) return;
+    const bool write = record && writer.open(path, background);
+    if (!write && !capture) return;
     RouteRecordFrame row;
     const auto* system = SingletonHolder<GameSystem>::get();
     const auto* controller = system ? system->mSceneController : nullptr;
@@ -237,6 +241,7 @@ void recordRouteFrame(bool background) {
         }
     }
     row.input = PetariNative::Input::boundState();
-    writer.write(row);
+    if (write) writer.write(row);
+    if (capture) PlaytestCapture::frame(row);
 }
 }

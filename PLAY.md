@@ -43,6 +43,13 @@ the frozen build 3 does.
   Mario stands still when you let go (no drift).
 - Coins, purple coins, the 1-Up and the electric rails show up and react.
 
+## Something looks or feels off? Press F9
+
+F9 saves a capture to `~/MacioGalaxy2-play/captures/<date-time>/`: the last 5 seconds (300 frames) of your inputs and
+Mario's movement, Mario's state at that moment, and a screenshot. Nothing appears on screen; keep playing. Afterwards,
+write one line about what felt off into that folder's `state.txt` (the last line, "note:"), or just say which capture it
+was. Each capture can be replayed and measured.
+
 ## Controls
 
 The same keys as MacioGalaxy. Press **F1** in the game for the full list and to remap. Basics: WASD move,

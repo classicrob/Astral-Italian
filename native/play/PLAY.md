@@ -66,6 +66,7 @@ The same keys as MacioGalaxy (full list and remapping: native/CONTROLS.md; F1 re
 | Home menu: controls, mods, level select | F1 |
 | Co-star Luma (second player pointer) | F2 |
 | Walk slowly | hold Left Alt while moving |
+| Playtest capture (last 5 s of input + Mario state + screenshot to `~/MacioGalaxy2-play/captures/`) | F9 |
 
 Power-ups use the same keys: Cloud Mario makes a cloud platform with F (Spin), Spin Drill starts with F, Yoshi
 jumps with Space (hold to flutter), his tongue is the left mouse button where you point.

@@ -6,6 +6,7 @@
 
 class MarioActor;
 class Mario;
+class AreaObj;
 
 // MarioActor::initParts: the cap and hair models (only with the mod on).
 void petariCappyInit(MarioActor* pActor);
@@ -21,6 +22,9 @@ void petariCappyUpdate(MarioActor* pActor);
 void petariCappyWallJump();
 // MarioJump.cpp: a dive started; while Cappy is out it keeps him there (as a throw press).
 void petariCappyDiveStarted();
+// SpinSwitchArea: cap contact, once per area per throw. Uses the area's own
+// volume/validity checks; false unless the cap is flying with both mods on.
+bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea);
 // The Generic character mod (GenericFigure.cpp): while Cappy is out, his matrix
 // (axes scaled by his drawn size, origin his centre) and true; false while he
 // is on Mario's head or the mod is off.

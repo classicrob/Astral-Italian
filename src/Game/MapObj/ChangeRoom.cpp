@@ -13,7 +13,11 @@ namespace GameSequenceFunction {
     void prepareStageResetChangeRoomLuigi(s32);
 };  // namespace GameSequenceFunction
 
+#ifdef GALAXY_NATIVE
+s32 lbl_807E3088 = 0;
+#else
 extern s32 lbl_807E3088;
+#endif
 
 namespace NrvChangeRoom {
     NEW_NERVE(ChangeRoomNrvWait, ChangeRoom, Wait);

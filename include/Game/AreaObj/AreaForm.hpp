@@ -19,8 +19,13 @@ public:
     AreaForm() : mFollowMtx() {
     }
 
+#ifdef GALAXY_NATIVE
+    virtual void init(const JMapInfoIter&) = 0;
+    virtual bool isInVolume(const TVec3f&) const = 0;
+#else
     virtual void init(const JMapInfoIter&);
     virtual bool isInVolume(const TVec3f&) const;
+#endif
 
     /* 0x04 */ TPos3f* mFollowMtx;
 };

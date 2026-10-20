@@ -270,3 +270,11 @@ void AnmModelSwitchSyncBrk::checkForReverse() {
         setNerve(GET_NERVE(AnmModelObj, HostTypeWait));
     }
 }
+
+#ifdef GALAXY_NATIVE
+AnmModelSwitchMoveInvalidateCollision::~AnmModelSwitchMoveInvalidateCollision() {}
+
+bool AnmModelSwitchMoveInvalidateCollision::isInvalidateCollision() const {
+    return true;
+}
+#endif

@@ -23,6 +23,11 @@ inline void StemFruit::onEatEnd() {
 DashFruit::~DashFruit() {
 }
 
+#ifdef GALAXY_NATIVE
+StemFruit::~StemFruit() {
+}
+#else
 inline StemFruit::~StemFruit() {
 }
+#endif
 

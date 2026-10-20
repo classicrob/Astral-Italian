@@ -13,7 +13,11 @@ public:
     virtual ~SimpleBreakableObjBase() {
     }
 
+#ifdef GALAXY_NATIVE
+    virtual void control() = 0;
+#else
     virtual void control();
+#endif
 };
 
 class SimpleBreakableObj : public SimpleBreakableObjBase {

@@ -27,6 +27,8 @@ int main(int argc,char** argv) {
         assert(writer.open(argv[2],false));
         RouteRecordFrame row; row.stage="A,\"B"; row.valid=true; row.gy=-2;
         row.input.jump=true; row.input.spin=true; row.input.moveX=.5f;
+        row.input.shoot=true; row.input.pointerValid=true;
+        row.input.pointerX=.25f; row.input.pointerY=-.75f;
         writer.write(row);
     }
     RouteRecordWriter duplicate;
@@ -45,6 +47,10 @@ int main(int argc,char** argv) {
             self.assertEqual(rows[0]['jump'],'1')
             self.assertEqual(rows[0]['power_stars'],'-1')
             self.assertEqual(rows[0]['dead'],'0')
+            self.assertEqual(rows[0]['shoot'],'1')
+            self.assertEqual(rows[0]['pointer_valid'],'1')
+            self.assertEqual(float(rows[0]['pointer_x']),.25)
+            self.assertEqual(float(rows[0]['pointer_y']),-.75)
             self.assertNotIn(None,rows[0])
 
     def test_jump_spin_landing_and_multiple_visits(self):

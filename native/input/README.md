@@ -9,6 +9,18 @@ original code, and the game's `WPad*` classes read real KPAD output.
 The public API is `native/include/petari/input.hpp`. The optional SDL3 adapter
 is `include/petari/input_sdl3.hpp`.
 
+Foreground `PETARI_ROUTE_RECORD` CSVs append `shoot`, `pointer_valid`,
+`pointer_x`, and `pointer_y` after the existing columns. Shooting is the bound
+B action, including remaps and minimum button pulses. Pointer coordinates are
+host intent before KPAD filtering: x right, y down, with the game image spanning
+-1 to 1; mouse coordinates can extend beyond that image. Invalid pointers have
+zero coordinates. The pointer reflects mouse/controller ownership, focus, and
+the remote's pointing posture. These samples do not prove which filtered KPAD
+sample gameplay consumed. The F9/M capture CSV uses the same columns. Older
+recordings, including frozen build 4, lack these fields; missing values are
+unknown rather than evidence of no aiming or shooting. Existing named-column
+readers can continue using the original columns.
+
 ## Super Mario Galaxy 2 additions
 
 The imported defaults remain unchanged. [../CONTROLS.md](../CONTROLS.md)

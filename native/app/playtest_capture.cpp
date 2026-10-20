@@ -69,6 +69,7 @@ void writeState(const std::string& dir, const RouteRecordFrame& row) {
     std::fprintf(f, "power stars %d\n", row.powerStars);
     const Input::BoundState& i = row.input;
     std::fprintf(f, "input now: move %.3f %.3f, jump %d, spin %d, crouch %d\n", i.moveX, i.moveY, i.jump, i.spin, i.crouch);
+    std::fprintf(f, "shoot %d; host pointer valid %d, position %.6f %.6f (x right, y down; screen -1..1)\n", i.shoot, i.pointerValid, i.pointerX, i.pointerY);
     std::fprintf(f, "mods: %s\n", mods != nullptr ? mods : "(mods.txt)");
     std::fprintf(f, "app log: %s\n", log != nullptr ? log : "(not set)");
     std::fprintf(f, "route.csv: the last %d frames before the press, oldest first\n", gCount);

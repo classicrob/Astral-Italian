@@ -132,6 +132,43 @@ void testDefaultsAndStorage() {
     std::filesystem::remove_all(directory);  // only this test's mkdtemp directory
 }
 
+void testRecordedPointerAndShoot() {
+    RemoteModel model;
+    check(!model.boundState().pointerValid && !model.boundState().shoot, "recording starts without pointer or B");
+    model.setViewport({1000, 750, 100, 50, 800, 600});
+    model.mouseMoved(600, 200);
+    const auto mouse = model.boundState();
+    check(mouse.pointerValid && std::fabs(mouse.pointerX - .25f) < 1e-6f &&
+          std::fabs(mouse.pointerY + .5f) < 1e-6f, "recorded mouse uses image-relative KPAD axes");
+    model.mouseButtonEvent(In::MouseButton::Left, true);
+    tick(model);
+    check(model.boundState().shoot, "recording captures bound B shooting");
+    model.mouseButtonEvent(In::MouseButton::Left, false);
+    tick(model, 100);
+    check(!model.boundState().shoot, "recording captures B release");
+    auto remapped = In::Bindings::defaults();
+    std::string error;
+    check(remapped.parse("B=Key:M\n", &error), "shoot binding remaps");
+    model.setBindings(remapped);
+    key(model, In::Key::M);
+    tick(model);
+    check(model.boundState().shoot, "recorded shooting follows remapped action");
+    model.padAxisEvent(In::PadAxis::RightX, 1.0f);
+    tick(model, 20);
+    const auto pad = model.boundState();
+    check(pad.pointerValid && pad.pointerX > mouse.pointerX, "recording captures controller pointer movement");
+    model.focusChanged(false);
+    tick(model, 100);
+    const auto unfocused = model.boundState();
+    check(!unfocused.pointerValid && unfocused.pointerX == 0 && unfocused.pointerY == 0 && !unfocused.shoot,
+          "focus loss records an unavailable pointer and released B");
+    model.focusChanged(true);
+    model.mouseMoved(600, 200);
+    model.setPosture(In::Posture::Upright);
+    tick(model, 100);
+    check(!model.boundState().pointerValid, "upright remote hides recorded pointer");
+}
+
 void testNunchukFlick() {
     RemoteModel model;
     key(model, In::Key::H);
@@ -251,6 +288,7 @@ int main() {
     PetariNative::Mods::resetForTesting();
     PetariNative::PointMove::resetForTesting();
     testDefaultsAndStorage();
+    testRecordedPointerAndShoot();
     testNunchukFlick();
     testCoStarIsolation();
     std::printf("SMG2 controls: %d checks passed\n", checks);

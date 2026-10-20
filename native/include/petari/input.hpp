@@ -330,6 +330,9 @@ struct BoundState {
     bool jump = false, spin = false, crouch = false;
     bool cameraLeft = false, cameraRight = false, cameraCenter = false;
     bool cameraUp = false, cameraDown = false;
+    bool shoot = false, pointerValid = false;  // bound B and visible host pointer intent, before KPAD filtering
+    // KPAD screen coordinates: x right, y down, screen -1..1; mouse intent can extend outside the image.
+    float pointerX = 0, pointerY = 0;
 };
 BoundState boundState();
 

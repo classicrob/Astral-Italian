@@ -133,6 +133,14 @@ public:
         state.cameraCenter = (mOutput & actionBits(Action::NunchukC)) != 0;
         state.cameraUp = (mOutput & actionBits(Action::DpadUp)) != 0;
         state.cameraDown = (mOutput & actionBits(Action::DpadDown)) != 0;
+        state.shoot = (mOutput & actionBits(Action::B)) != 0;
+        state.pointerX = mPadPointerX;
+        state.pointerY = mPadPointerY;
+        const bool pointing = mPadPointer || (mMouseInWindow && pointerPosition(mViewport, mMouseX, mMouseY,
+                                                                              &state.pointerX, &state.pointerY));
+        const float visiblePitch = kSensorVisiblePitchDegrees * 3.14159265358979f / 180.0f;
+        state.pointerValid = mFocused && pointing && mPitch > -visiblePitch && mPitch < visiblePitch;
+        if (!state.pointerValid) state.pointerX = state.pointerY = 0;
         return state;
     }
 

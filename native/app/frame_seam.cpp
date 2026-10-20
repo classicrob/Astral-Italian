@@ -27,6 +27,7 @@ extern "C" uint64_t petari_gx_pipeline_manifest_failure_count();
 extern "C" void petari_gx_pipeline_report();
 
 #include "frame_stats.hpp"
+#include "launch_stage.hpp"
 #include "spike_profiler.hpp"
 #include "host.hpp"
 #include "progress_observe.hpp"
@@ -789,6 +790,7 @@ extern "C" void petari_host_frame_mark(int mark) {
 }
 
 extern "C" void petari_host_frame_seam(void) {
+    LaunchStage::testReturnToShipFrame();
     const std::uint64_t entry = Telemetry::nowNs();
     PetariNative::HostAllocationScope host;
     recordRouteFrame(SmokeBackground::enabled);

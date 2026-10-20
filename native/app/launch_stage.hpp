@@ -19,6 +19,11 @@ bool catalogListingRequested();
 // continue a requested launch/inventory as if publication succeeded.
 bool onGameDataReady(const ScenarioDataParser& parser, const JMapInfo& worldOrder, std::string* error);
 
+// Opt-in PETARI_TEST_RETURN_TO_SHIP=<positive frames>[:<nonnegative start index>].
+// One normal ship request after consecutive ready/action frames in the applied
+// startup target. Call on the game thread before entering HostAllocationScope.
+void testReturnToShipFrame();
+
 // Normal after-file-load destination seam only. Explicit startup requests may
 // override ANY selected file's initial destination, including the tutorial;
 // false eligibility consumes/refuses the one-shot without modifying progress.

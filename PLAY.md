@@ -39,8 +39,8 @@ the frozen build 3 does.
 - The red and blue flip panels swap when you spin (F). Each spin flips every panel.
 - If the panel under Mario flips away, he falls. That is the galaxy working, not a bug.
 - The camera follows Mario smoothly and should not snap or jump when the panels flip.
-- Jumps: a single jump rises about 200 units and lands after about 40 frames. Mario stands still when you let go
-  (no drift).
+- Jumps: a full jump (Space held) rises about 260 units and lands after about 44 frames (measured on this build).
+  Mario stands still when you let go (no drift).
 - Coins, purple coins, the 1-Up and the electric rails show up and react.
 
 ## Controls

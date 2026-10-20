@@ -186,8 +186,14 @@ MiniPlayerRocket* GrandGalaxyMap::getRocket() {
 // Returns the address of a local copy of the offset (as the target does); callers read it right away.
 const TVec3f* GrandGalaxyMap::getNodeOffset(s32 node) const {
     static Vec sNodeOffset = {0.0f, 1000.0f, 0.0f};
+#ifdef GALAXY_NATIVE
+    // ORIGINAL BUG: the returned local is dead once the call returns; natively keep the copy alive.
+    static const TVec3f sNativeNodeOffset(sNodeOffset);
+    return &sNativeNodeOffset;
+#else
     TVec3f offset(sNodeOffset);
     return &offset;
+#endif
 }
 
 void GrandGalaxyMap::getNodePosition(TVec3f* pOut, const GrandGalaxyMap* pMap, s32 node) {

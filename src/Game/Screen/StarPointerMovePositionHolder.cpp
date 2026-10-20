@@ -203,14 +203,30 @@ void StarPointerMovePositionHolder::connectDown(const char* up, const char* down
 const char* StarPointerMovePositionHolder::getPositionName(s32 index) const { return mPositions[index].mName; }
 const TVec2f& StarPointerMovePositionHolder::getScreenPosition() const { return mScreenPosition; }
 const TVec2f& StarPointerMovePositionHolder::getScreenVelocity() const { return sZeroVelocity; }
+#ifdef GALAXY_NATIVE
+// ORIGINAL BUG: the DOL returns a reference to a temporary TVec3f(gZeroVec) in its own popped frame (callers read the zeros
+// before the slot is reused). Natively return a zero vector that outlives the call.
+namespace {
+    const TVec3f& nativeZeroWorldVec() {
+        static const TVec3f sZero(0.0f, 0.0f, 0.0f);
+        return sZero;
+    }
+}  // namespace
+const TVec3f& StarPointerMovePositionHolder::getWorldVelocity() const { return nativeZeroWorldVec(); }
+#else
 const TVec3f& StarPointerMovePositionHolder::getWorldVelocity() const { return TVec3f(gZeroVec); }
+#endif
 f32 StarPointerMovePositionHolder::getScreenSpeed() const { return 0.0f; }
 f32 StarPointerMovePositionHolder::getViewDistanceZ() const { return 0.0f; }
 s32 StarPointerMovePositionHolder::getPastPointCount() const { return 1; }
 s32 StarPointerMovePositionHolder::getNextPastPointCount() const { return 1; }
 const TVec2f& StarPointerMovePositionHolder::getPastPosition(s32) const { return getScreenPosition(); }
 const TVec2f& StarPointerMovePositionHolder::getNextPastPosition(s32) const { return getScreenPosition(); }
+#ifdef GALAXY_NATIVE
+const TVec3f& StarPointerMovePositionHolder::getWorldPosition() const { return nativeZeroWorldVec(); }
+#else
 const TVec3f& StarPointerMovePositionHolder::getWorldPosition() const { return TVec3f(gZeroVec); }
+#endif
 bool StarPointerMovePositionHolder::isInScreen() const { return true; }
 bool StarPointerMovePositionHolder::isOutScreenLong() const { return false; }
 

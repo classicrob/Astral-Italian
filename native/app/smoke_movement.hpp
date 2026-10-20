@@ -154,6 +154,7 @@ private:
     unsigned long mBounceFrame = 0, mJumpFrame = 0;
     bool mBounced = false, mDive2 = false;
     float mBounceHeight = 0.0f, mAfterBounceApex = 0.0f;
+    int mPostBounceDiveStart = 0;
     int mBounceStart = 0;  // bounces before the task (petari_cappy_bounces)
 };
 

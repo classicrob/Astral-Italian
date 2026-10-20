@@ -2489,9 +2489,9 @@ void testCappyInput() {
     Mods::setEnabled(Mods::Mod::OdysseyMovement, true);
     In::padButtonEvent(PadButton::RightShoulder, true);
     rig.frame();
-    check(In::boundState().spin, "unported Cappy cannot steal RB from spin");
-    check(!petari_mod_take_press(cappy), "unported Cappy does not deliver a throw press");
-    check(!petari_mod_held(cappy), "unported Cappy is unavailable even with saved settings on");
+    check(!In::boundState().spin, "Cappy active: RB throws and does not spin");
+    check(petari_mod_take_press(cappy) && !petari_mod_take_press(cappy), "one throw press");
+    check(petari_mod_held(cappy), "held while RB is down");
     In::padButtonEvent(PadButton::RightShoulder, false);
     rig.frame();
     check(!petari_mod_held(cappy), "released");
@@ -2503,7 +2503,7 @@ void testCappyInput() {
     rig.frames_(30);
     In::keyEvent(In::Key::R, true, false);
     rig.frame();
-    check(!petari_mod_take_press(cappy) && !petari_mod_held(cappy), "unported Cappy ignores the R binding");
+    check(petari_mod_take_press(cappy) && petari_mod_held(cappy) && !In::boundState().spin, "R throws, held");
     In::focusChanged(false);
     check(!petari_mod_held(cappy), "losing focus lets go");
     In::focusChanged(true);
@@ -2910,8 +2910,13 @@ void testEditorPick() {
     Pick::resetForTesting();
 }
 
-int main() {
+int main(int argc, char** argv) {
     __OSThreadInit();
+    if (argc == 2 && std::strcmp(argv[1], "--cappy-only") == 0) {
+        testCappyInput();
+        std::printf("native Cappy input tests passed (%d checks)\n", checks);
+        return 0;
+    }
     testBindings();
     testControlsSummary();
     testConnection();

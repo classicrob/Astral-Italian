@@ -60,11 +60,13 @@ void ElectricRail2Point::init(const JMapInfoIter& iter) {
 
 void writeGxVec3(f32, f32, f32) NO_INLINE;
 
+#ifndef GALAXY_NATIVE
 namespace {
     inline volatile f32* gxFifoF32() {
         return reinterpret_cast<volatile f32*>(0xCC008000);
     }
 }  // namespace
+#endif
 
 ElectricRail2Point::~ElectricRail2Point() {
 }
@@ -207,33 +209,53 @@ void ElectricRail2Point::drawRailQuad(f32 w0, f32 w1, f32 h0, f32 h1) const {
         TVec3f sideB = mSideA * w1;
         TVec3f vertex = (start + sideA) + sideB;
         writeGxVec3(vertex.x, vertex.y, vertex.z);
+#ifdef GALAXY_NATIVE
+        GXTexCoord2f32(0.0f, 0.0f);
+#else
         *gxFifoF32() = 0.0f;
         *gxFifoF32() = 0.0f;
+#endif
         sideA = mSideB * h0;
         sideB = mSideA * h1;
         vertex = (start + sideA) + sideB;
         writeGxVec3(vertex.x, vertex.y, vertex.z);
+#ifdef GALAXY_NATIVE
+        GXTexCoord2f32(0.0f, 1.0f);
+#else
         *gxFifoF32() = 0.0f;
         *gxFifoF32() = 1.0f;
+#endif
         sideA = mSideB * w0;
         sideB = mSideA * w1;
         vertex = (end + sideA) + sideB;
         writeGxVec3(vertex.x, vertex.y, vertex.z);
+#ifdef GALAXY_NATIVE
+        GXTexCoord2f32(texLength, 0.0f);
+#else
         *gxFifoF32() = texLength;
         *gxFifoF32() = 0.0f;
+#endif
         sideA = mSideB * h0;
         sideB = mSideA * h1;
         vertex = (end + sideA) + sideB;
         writeGxVec3(vertex.x, vertex.y, vertex.z);
+#ifdef GALAXY_NATIVE
+        GXTexCoord2f32(texLength, 1.0f);
+#else
         *gxFifoF32() = texLength;
         *gxFifoF32() = 1.0f;
+#endif
     }
 }
 
 // unnamed fn_8029B8B0: three f32 writes to the GX FIFO
 void writeGxVec3(f32 x, f32 y, f32 z) NO_INLINE;
 void writeGxVec3(f32 x, f32 y, f32 z) {
+#ifdef GALAXY_NATIVE
+    GXPosition3f32(x, y, z);
+#else
     *gxFifoF32() = x;
     *gxFifoF32() = y;
     *gxFifoF32() = z;
+#endif
 }

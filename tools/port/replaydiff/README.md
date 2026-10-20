@@ -696,7 +696,14 @@ marker, executable/input hashes and valid timing/origin. Its committed
 protocol means N tape loops produce N+1 trace rows: tape0 drives trace1. Dolphin
 requires its actual `captured; repeat qualification required` manifest, accepted
 PC/LR seam, collector/executable hashes, and final `input_export` receipt with
-actual path/hash/bytes/read count. Script intent hashes do not replace the export.
+actual path/hash/bytes/read count. Script intent hashes do not replace the export. The only admitted nonempty
+`live_input_revisions` history is the collector's single automatic
+`{suffix_source_start: ...}` marker for scripted input: it must equal both
+`sync_input_source_start` and the actual origin's source frame plus one. Its
+declared `sync_input_script_sha256` must match the collector-owned
+`sync-input-script.json` copy, added as `<side>.sync_input_script` to input and
+independent-admission pins. Real, mixed, duplicate or unknown live-edit records
+still block qualification; no comparison or input-match check is bypassed.
 Dolphin input labels retain their source clock: `source_frame+1` is the first
 post-anchor input loop. Full prefixes remain pinned; all actual common-loop KPAD
 reads, order, channels and complete samples must agree. Both traces' stage-sync

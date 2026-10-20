@@ -10,6 +10,8 @@
 # Evidence: the app's per-frame phase CSV (PETARI_FRAME_CSV: startup, loading, menu, gameplay), written when the app
 # quits after SIGTERM (SDL turns it into a quit request, the console power button). Exit status 0 = PASS.
 set -u
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/frozen_app.sh"
 
 app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}
 disc=${ASTRAL_DISC:-$HOME/MacioGalaxy2-gamedata/SB4E01-extracted}
@@ -36,6 +38,7 @@ sky-station|skystation|IslandFleetGalaxy) stage=IslandFleetGalaxy ;;
 *) stage=$galaxy ;;
 esac
 
+app=$(frozen_app_validate "$app") || exit 2
 exe="$app/Contents/MacOS/Petari"
 [ -x "$exe" ] || { echo "smoke: no app at $app" >&2; exit 2; }
 [ -d "$disc/files" ] || { echo "smoke: no extracted disc at $disc" >&2; exit 2; }

@@ -5,6 +5,7 @@
 #include "platform.hpp"
 #include "gx_ledger.hpp"
 #include "startup_arrival.hpp"
+#include "actor_trace.hpp"
 #include <launch_stage.hpp>
 #include <petari/headless.h>
 #include <petari/app.hpp>
@@ -40,8 +41,8 @@ namespace {
 std::atomic<std::uint64_t> gSourceFrame{UINT64_MAX};
 class Driver {
 public:
-    Driver(H::Replay& replay, H::Trace& trace, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested)
-        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
+    Driver(H::Replay& replay, H::Trace& trace, H::ActorTraceFiles* actors, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested)
+        : mReplay(replay),mTrace(trace),mActors(actors),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
         mTiming << "frame,vi_count,ticks\n";
         if (!mTiming) throw H::ReplayError("cannot create timing sidecar");
         mThread=std::thread([this]{worker();});
@@ -94,6 +95,7 @@ public:
             mTiming.flush();
             if (!mTiming) throw H::ReplayError("cannot write timing sidecar");
             mTrace.write(*frame,state);
+            if (mActors) mActors->write(*frame,state,H::observeActors(state));
             ++mTraceFrames;
         }
         mSawFrame=true; mAwaitingFrameWait=true;
@@ -104,6 +106,7 @@ public:
                 throw H::ReplayError("requested stage/scenario was not observed ready before tape completion");
             if (mSync.enabled() && !mSync.started()) throw H::ReplayError("input tape ended before the stage-sync target was reached");
             mTrace.finish();
+            if (mActors) mActors->finish(); // Both sidecars must publish before main completion.
             std::ofstream marker(mPath.string()+".complete");
             marker << mTraceFrames << '\n'; marker.flush();
             if (!marker) throw H::ReplayError("cannot write completion marker");
@@ -149,7 +152,7 @@ private:
             }
         } catch (const std::exception& e) { fail(e.what()); }
     }
-    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0,mSourceFrame=0;
+    H::Replay& mReplay; H::Trace& mTrace; H::ActorTraceFiles* mActors; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0,mSourceFrame=0;
     bool mStartupRequested=false; H::StartupArrival mStartupArrival;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
@@ -179,7 +182,7 @@ int main(int argc,char** argv) {
     try {
         std::setlocale(LC_NUMERIC,"C");
         std::map<std::string,std::string> args;
-        bool ftz=true,inputsFromSync=false;
+        bool ftz=true,inputsFromSync=false,actorTrace=false;
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--inputs-from-sync") {
@@ -187,6 +190,10 @@ int main(int argc,char** argv) {
                 inputsFromSync=true;continue;
             }
             if (key=="--no-ftz") {ftz=false;continue;}
+            if (key=="--actor-trace") {
+                if (actorTrace) throw H::ReplayError("duplicate --actor-trace");
+                actorTrace=true; continue;
+            }
             if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
@@ -235,7 +242,9 @@ int main(int argc,char** argv) {
         P::OS::enableVirtualTime(static_cast<std::int64_t>(epoch));
         std::ofstream output(path); if (!output) throw H::ReplayError("cannot create trace");
         H::Trace trace(output);
-        Driver driver(replay,trace,path,n,d,std::move(sync),startupRequested); gDriver=&driver;
+        std::unique_ptr<H::ActorTraceFiles> actors;
+        if (actorTrace) actors=std::make_unique<H::ActorTraceFiles>(path);
+        Driver driver(replay,trace,actors.get(),path,n,d,std::move(sync),startupRequested); gDriver=&driver;
         gSourceFrame.store(0,std::memory_order_relaxed);
         PetariNative::Input::setClock(PetariNative::Input::Clock::Manual);
         PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});

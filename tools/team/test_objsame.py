@@ -19,7 +19,7 @@ import objsame  # noqa: E402
 
 
 def build_elf(path, text1=b"\x60\x00\x00\x00", text2=b"\x4e\x80\x00\x20", label="@100", reloc_target=1,
-              align2=4):
+              align2=4, func_other=0):
     """Sections: 0 null, 1 .text, 2 .text, 3 .rela.text (for section 2), 4 .symtab, 5 .strtab, 6 .shstrtab.
     Symbols: 0 null, 1 local label in section 1 at 0, 2 global `func` in section 2 at 0."""
     shstr = b"\0.text\0.rela.text\0.symtab\0.strtab\0.shstrtab\0"
@@ -28,7 +28,7 @@ def build_elf(path, text1=b"\x60\x00\x00\x00", text2=b"\x4e\x80\x00\x20", label=
     label_off, func_off = 1, 2 + len(label)
     symtab = (b"\0" * 16
               + struct.pack(">IIIBBH", label_off, 0, 4, 0x00, 0, 1)    # local NOTYPE in .text#0
-              + struct.pack(">IIIBBH", func_off, 0, 4, 0x12, 0, 2))    # global FUNC in .text#1
+              + struct.pack(">IIIBBH", func_off, 0, 4, 0x12, func_other, 2))  # global FUNC in .text#1
     rela = struct.pack(">IIi", 0, (reloc_target << 8) | 10, 0)        # R_PPC_REL24 at .text#1+0
     blobs = [b"", text1, text2, rela, symtab, strtab, shstr]
     offsets, data = [], b""
@@ -84,6 +84,9 @@ class ObjsameTests(unittest.TestCase):
 
     def test_relocation_retarget_in_second_occurrence(self):
         self.assertIn("relocations for .text#1", self.variant(reloc_target=2))
+
+    def test_symbol_visibility_change(self):
+        self.assertIn("named symbols", self.variant(func_other=2))  # STV_HIDDEN
 
     def test_real_mwcc_object_first_text_flip(self):
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))

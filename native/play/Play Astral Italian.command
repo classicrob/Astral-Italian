@@ -3,6 +3,9 @@
 # See PLAY.md next to this file. The paths can be changed with ASTRAL_APP / ASTRAL_DISC / ASTRAL_USER.
 here=$(cd "$(dirname "$0")" && pwd)
 play="$here/play.sh"
+. "$here/frozen_app.sh"
+app=$(frozen_app_validate "${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}") || exit 1
+export ASTRAL_APP="$app"
 odyssey=
 audio=${ASTRAL_AUDIO:-on}
 save=
@@ -15,6 +18,8 @@ while :; do
     echo "  3) Sky Station Galaxy    (World 1, fallback)"
     echo "  4) Title screen          (normal start, file select)"
     echo
+    echo "  Frozen build: ${ASTRAL_APP%/Petari.app}"
+    echo "  b) Choose a frozen build"
     echo "  o) Odyssey movement: $([ -n "$odyssey" ] && echo ON || echo off)"
     echo "  a) Audio: $audio"
     echo "  u) Save: $([ -n "$save" ] && echo 'everything unlocked (separate file 1)' || echo 'normal progress')"
@@ -29,6 +34,16 @@ while :; do
     2) galaxy=fluffy-bluff ;;
     3) galaxy=sky-station ;;
     4) galaxy=title ;;
+    b|B) frozen_app_list
+         printf "Frozen build name (default or directory name): "
+         read -r build_name || exit 0
+         if selected_app=$(frozen_app_named "$build_name"); then
+             export ASTRAL_APP="$selected_app"
+         else
+             printf "Press Return to continue. "
+             read -r _ || exit 0
+         fi
+         continue ;;
     o|O) if [ -n "$odyssey" ]; then odyssey=; else odyssey=--odyssey; fi; continue ;;
     a|A) if [ "$audio" = off ]; then audio=on; else audio=off; fi; continue ;;
     u|U) if [ -n "$save" ]; then save=; else save=--unlocked; fi; continue ;;

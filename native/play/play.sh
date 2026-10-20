@@ -1,7 +1,7 @@
 #!/bin/sh
 # Play Astral Italian (the native Super Mario Galaxy 2 build) on the machine that holds the disc.
 #
-#   play.sh [GALAXY] [--scenario N] [--unlocked] [--odyssey] [--audio on|off] [--dry-run]
+#   play.sh [--build NAME | --list-builds] [GALAXY] [--scenario N] [--unlocked] [--odyssey] [--audio on|off] [--dry-run]
 #
 # GALAXY: flip-swap (default), fluffy-bluff, sky-station, title (normal boot to the title screen), or any name
 # `Petari --stage list` prints. Everything is configurable through the environment:
@@ -13,6 +13,8 @@
 #   ASTRAL_LOG   log file (default $ASTRAL_USER/logs/play-<galaxy>-<time>.log)
 #   ASTRAL_CAPTURES  where F9 playtest captures go (default ~/MacioGalaxy2-play/captures)
 set -u
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/frozen_app.sh"
 
 app=${ASTRAL_APP:-$HOME/MacioGalaxy2-play/Petari.app}
 disc=${ASTRAL_DISC:-$HOME/MacioGalaxy2-gamedata/SB4E01-extracted}
@@ -26,6 +28,8 @@ unlocked=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
+    --build) [ $# -ge 2 ] || { echo "play: --build needs a name" >&2; exit 2; }; app=$(frozen_app_named "$2") || exit 1; shift 2 ;;
+    --list-builds) frozen_app_list; exit 0 ;;
     --scenario) [ $# -ge 2 ] || { echo "play: --scenario needs a number" >&2; exit 2; }; scenario=$2; shift 2 ;;
     --odyssey) odyssey=1; shift ;;
     --unlocked) user="$HOME/Library/Application Support/AstralItalian-unlocked"; unlocked=1; shift ;;
@@ -48,6 +52,7 @@ esac
 case "$scenario" in ''|*[!0-9]*) echo "play: --scenario expects a number, got $scenario" >&2; exit 2 ;; esac
 case "$audio" in on|off) ;; *) echo "play: audio must be on or off, got $audio" >&2; exit 2 ;; esac
 
+app=$(frozen_app_validate "$app") || exit 1
 exe="$app/Contents/MacOS/Petari"
 [ -x "$exe" ] || { echo "play: no app at $app (set ASTRAL_APP to the frozen Petari.app)" >&2; exit 1; }
 [ -d "$disc/files" ] || { echo "play: no extracted disc at $disc (expected $disc/files; set ASTRAL_DISC)" >&2; exit 1; }

@@ -3,6 +3,28 @@
 Your own disc is the source of all game data. It stays private in `~/MacioGalaxy2-gamedata/`
 (`SB4E01.iso`, extracted to `SB4E01-extracted/`). Nothing from it is in this repository.
 
+
+## Frozen builds only
+
+The user plays **only frozen builds**. Every player launcher requires a
+`Petari.app` under `~/MacioGalaxy2-play/` with a sibling `FROZEN.txt`.
+Unfrozen apps and apps outside that tree are refused, including symlinks that
+resolve outside it. There is no development-build fallback.
+
+Use the menu's **b** option to choose an available frozen build, or:
+
+```sh
+native/play/play.sh --list-builds
+native/play/play.sh --build build3 flip-swap
+```
+
+`--build default` selects `~/MacioGalaxy2-play/Petari.app`. `ASTRAL_APP` may
+select another frozen app under the same tree and is checked by the same rule.
+A marker records the build owner's freeze; it does not isolate saves or caches.
+The versioned [persistent-state inventory](native/play/PERSISTENT-STATE.md)
+lists every runtime destination and its sharing policy. In particular, normal
+builds share `~/Library/Caches/AstralItalian` even with separate user folders.
+
 ## Launch
 
 Double-click **`Play Astral Italian.command`** in the repository folder. A menu opens:
@@ -12,6 +34,7 @@ Double-click **`Play Astral Italian.command`** in the repository folder. A menu 
   2) Fluffy Bluff Galaxy   (World 1)
   3) Sky Station Galaxy    (World 1, fallback)
   4) Title screen          (normal start, file select)
+  b) Choose a frozen build
   o) Odyssey movement: off
   a) Audio: on
 ```

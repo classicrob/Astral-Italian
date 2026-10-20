@@ -63,6 +63,7 @@ namespace {
         Cappy::Cap cappy;
         Cappy::BounceLimit bounce;
         Cappy::HopLimit hop;
+        bool throwAnimation = false;  // lasts through the borrowed animation, even after an early catch
         int buffer = 0;       // frames a throw press waits for Mario (PreInputFrameCapThrow)
         bool held = false;    // the throw button, this frame
         TVec3f origin = TVec3f(0.0f, 0.0f, 0.0f);        // the throw line: release point and direction
@@ -143,6 +144,7 @@ namespace {
         }
         s.cappy = Cappy::Cap{};
         s.buffer = 0;
+        s.throwAnimation = false;
         if (s.cap != nullptr && !MR::isDead(s.cap)) {
             s.cap->kill();
         }
@@ -154,6 +156,7 @@ namespace {
     void startThrow(MarioActor* pActor, bool inAir) {
         Mario* mario = pActor->mMario;
         Cappy::startThrow(s.cappy, inAir);
+        s.throwAnimation = true;
         s.hitCount = 0;
         s.spinAreas.clear();
         // The line follows Mario's facing at the press, as the dive does: Galaxy's
@@ -551,6 +554,21 @@ namespace {
         }
     }
 }  // namespace
+
+// MarioActor classifies these animations as punching. Cappy borrows them
+// only for the throw motion: it must not also create a global Spin edge.
+// A real grounded Spin has Magic status; an air Spin has jump action 8 (or
+// the tornado bit). Keep those intact, including F while the cap is out.
+bool petariCappyUsesSpinAnimation() {
+    if (!active() || !s.throwAnimation || !normalMario(s.actor)) {
+        return false;
+    }
+    const Mario* mario = s.actor->mMario;
+    if (mario->isStatusActive(MarioStatus_Magic) || mario->_430 == 8 || ((mario->mMovementStates.mLowWord >> 16) & 1U)) {
+        return false;
+    }
+    return mario->isAnimationRun("地上ひねり") || mario->isAnimationRun("空中ひねり");
+}
 
 // Flip-Swap uses SpinSwitchArea rather than a panel attack sensor. Let the
 // actual flying cap enter the same area, retaining its switch and volume rules.

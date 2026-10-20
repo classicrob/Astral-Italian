@@ -88,6 +88,9 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 
 ## Status and known issues
 
+- **Home-menu Level Select does nothing (builds 4 and 5).** Choosing a galaxy and **Go** closes the menu but never
+  warps: the warp it queues is not picked up by the game in this SMG2 port yet (fix planned for build 5.1). To play a
+  particular galaxy, use the launcher's galaxy menu or `play.sh <galaxy>` / `--stage` instead.
 Build 5 is the default. Its freeze record is ~/MacioGalaxy2-play/build5/FROZEN.txt.
 
 - Clearing a galaxy and returning to the Starship can abort with the native heap-budget check (HeapMemoryWatcher 617); the fix is scheduled for build 5.1.

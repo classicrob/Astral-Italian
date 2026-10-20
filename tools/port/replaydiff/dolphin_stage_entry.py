@@ -47,6 +47,24 @@ class StageEntry:
         if remote.reg(number) != value:
             raise collector.ObserverError("stage-entry register readback mismatch")
 
+    @staticmethod
+    def save_registers(remote):
+        saved = {}
+        for number in range(71):
+            value = remote.command(f"p{number:x}")
+            expected = 16 if 32 <= number < 64 else 8
+            if len(value) != expected or any(ch not in "0123456789abcdefABCDEF" for ch in value):
+                raise collector.ObserverError(f"cannot preserve PPC register {number}")
+            saved[number] = value
+        return saved
+
+    @staticmethod
+    def restore_registers(remote, saved):
+        for number, value in saved.items():
+            remote.ok(f"P{number:x}={value}")
+        if StageEntry.save_registers(remote) != saved:
+            raise collector.ObserverError("individual PPC register restore mismatch")
+
     def enter(self, remote, frame):
         if self.receipt["status"] != "not-reached":
             raise collector.ObserverError("stage entry is one-shot")
@@ -73,16 +91,12 @@ class StageEntry:
         caller = memory.u32(stack + 20)
         if not 0x80251E50 <= caller < 0x80251F24:
             raise collector.ObserverError("stage entry did not originate in FileSelector::exeDemo")
-        saved = remote.command("g")
-        if len(saved) < 32 * 8 or len(saved) % 2 or any(ch not in "0123456789abcdefABCDEF" for ch in saved):
-            raise collector.ObserverError("cannot preserve full PPC register packet")
-        remote.ok("G" + saved)
-        if remote.command("g") != saved:
-            raise collector.ObserverError("full PPC register restore unavailable")
+        saved = self.save_registers(remote)
+        self.restore_registers(remote, saved)
         calls = [("reset", {3: holder}), ("request", {3: STAGE_STRING, 4: 1, 5: 1, 6: 0}),
                  ("set_in_stage", {3: in_game, 4: STAGE_STRING})]
         for name, registers in calls:
-            remote.ok("G" + saved)
+            self.restore_registers(remote, saved)
             for number, value in registers.items():
                 self.register(remote, number, value)
             self.register(remote, 67, ENTRY)
@@ -92,12 +106,11 @@ class StageEntry:
                 raise collector.ObserverError(f"stage-entry call did not return cleanly: {name}")
             self.receipt["calls"].append(dict(function=name, address=f"0x{FUNCTIONS[name][0]:08x}",
                                               registers={f"r{k}": f"0x{v:08x}" for k, v in registers.items()}))
-        remote.ok("G" + saved)
-        if remote.command("g") != saved:
-            raise collector.ObserverError("stage-entry final register restore mismatch")
+        self.restore_registers(remote, saved)
         self.register(remote, 64, EPILOGUE)
         self.receipt.update(status="requested", loaded_file=1, destination_branch_skipped=True,
-                            register_restore="full g/G packet, PC changed to original epilogue; original stack retained",
+                            register_restore="individual p/P: GPR0..31, FPR PS0 lanes, PC/MSR/CR/LR/CTR/XER/FPSCR; original stack retained",
+                            paired_single_ps1="not exposed by pinned Dolphin GDB stub; original callees retain ABI responsibility",
                             direct_guest_memory_writes=False)
 
 

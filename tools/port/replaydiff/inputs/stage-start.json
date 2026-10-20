@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "frames": 300,
+  "segments": [
+    {"start": 90, "end": 120, "stick": [0.3, 0]},
+    {"start": 150, "end": 162, "buttons": ["A"]},
+    {"start": 220, "end": 245, "acc": [3, -1, 0]}
+  ]
+}

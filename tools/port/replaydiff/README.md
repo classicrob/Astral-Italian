@@ -76,11 +76,52 @@ bad counts/strings/booleans, cycles, and nonfinite floats fail the capture.
 
 Dolphin can leave its Unix socket after exiting. Confirm no emulator owns it
 before removing a stale socket. A new output directory is required each run.
-Connection timeout defaults to 600 seconds **after acquiring the shared slot**;
-per-stop timeout is 120 seconds; capture wall timeout is 900 seconds. All can
-be set on the command line. Exit 0 means the requested rows were captured,
+Connection timeout defaults to 60 seconds **after acquiring the shared slot**;
+per-stop timeout is 30 seconds; capture wall timeout defaults to 480 seconds
+and cannot exceed that value. An independent 540-second alarm covers startup,
+hashing and capture together; owned Dolphin termination has a 10-second grace
+period. SIGTERM/SIGINT record an incomplete manifest and stop/reap the owned
+emulator. Release the lock between runs; every locked run must stay below
+10 minutes. The capture records its PIDs immediately and progress every 60 loops. Exit 0 means the requested rows were captured,
 not that determinism or native equivalence passed. Exit 2 means an incomplete
 run. Partial rows and the manifest/log error remain available for diagnosis.
+
+## Optional stage synchronization
+
+`collect --sync-stage SkyIslandGalaxy --sync-scenario 1 --frames 300` emits
+300 rows beginning at the **first** accepted post-endFrame seam with
+`scene_valid=1`, scene `Game`, `init_state=6` (`SceneInitializeState_End`),
+and the exact internal stage and placed `ScenarioNo`. It does not wait for
+`player_valid`. That seam becomes CSV frame 0 and scene epoch 0; later epoch
+changes remain visible. The 86-column schema is unchanged. An observer error
+before synchronization fails the run, and missing RNG at the first matching
+seam fails instead of selecting a later origin.
+
+`oracle.csv.sync.json` records `schema_version=1`, `phase="post-endFrame"`,
+`stage`, `scenario`, `source_frame`, `source_scene_epoch`, `source_ticks`,
+`source_vi_count`, `rng_valid`, `rng_seed` (unsigned decimal integer), and
+`rng_forced=false`. The seed is read from the untouched original game.
+Sidecar ticks/VI are null when unobserved; `rng_valid` is boolean true. A sidecar beside a partial trace
+is diagnostic only; require a complete `oracle.csv` and successful manifest.
+The manifest retains the origin and number of accepted source loops.
+
+With sync enabled, `--frames` is the output row count; a scripted input file
+still declares the **full source-loop count**, including boot/navigation.
+`inputs.jsonl` retains that clock, capacities and actual read ordinals. Source
+frame `source_frame` was consumed before sync row 0; first shared gameplay
+inputs belong to `source_frame+1` and affect sync row 1. The tape must extend
+through all requested output rows. It is never silently rebased or regenerated
+from the trimmed trace. Seed alignment does not equalize already-initialized
+actors; row-0 non-RNG equality needs separate qualification.
+
+`--save-state PATH` launches Dolphin with its `-s` option. Keep states outside
+the repository and team upload tree; only their SHA256 enters the manifest.
+Source frame 0 is the first accepted loop after restore, not the original
+power-on ordinal. KPAD breakpoints are installed after that first seam to avoid
+intercepting a return from a read entered before the restore; that first loop
+has no newly injected input records. Preserve this distinction when constructing
+an independent native boot tape. Savestate loading and sync are implemented but
+remain unqualified on a live galaxy capture.
 
 ## CSV schema v1
 

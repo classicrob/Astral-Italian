@@ -22,7 +22,7 @@ def load_script(path, frames):
         raise ObserverError("KPAD script version/frame count mismatch")
     end = 0
     for segment in script["segments"]:
-        if set(segment) - {"start", "end", "buttons", "pointer", "stick"} or not {"start", "end"} <= set(segment):
+        if set(segment) - {"start", "end", "buttons", "pointer", "stick", "acc"} or not {"start", "end"} <= set(segment):
             raise ObserverError("unknown/missing KPAD segment fields")
         start, stop = segment["start"], segment["end"]
         if type(start) is not int or type(stop) is not int or not end <= start < stop <= frames:
@@ -36,6 +36,10 @@ def load_script(path, frames):
             if value is not None and (not isinstance(value, list) or len(value) != 2 or any(
                     type(x) not in (float, int) or not math.isfinite(x) or not -1 <= x <= 1 for x in value)):
                 raise ObserverError("pointer/stick must be normalized finite pairs")
+        acc = segment.get("acc")
+        if acc is not None and (not isinstance(acc, list) or len(acc) != 3 or any(
+                type(x) not in (float, int) or not math.isfinite(x) or not -8 <= x <= 8 for x in acc)):
+            raise ObserverError("acc must be a finite three-axis vector within +/-8g")
     return script
 
 
@@ -50,6 +54,7 @@ class ScriptedInput:
         self.file = self.output.with_suffix(".jsonl.partial").open("w")
         self.previous = [0] * 4
         self.previous_pointer = None
+        self.previous_acc = [0, -1, 0]
         self.ordinal = 0
         self.reads = 0
         self.pending = None
@@ -67,7 +72,7 @@ class ScriptedInput:
             updated = load_script(self.path, self.script["frames"])
             def intent(script, at):
                 item = next((item for item in script["segments"] if item["start"] <= at < item["end"]), {})
-                return {key: item[key] for key in ("buttons", "pointer", "stick") if key in item}
+                return {key: item[key] for key in ("buttons", "pointer", "stick", "acc") if key in item}
             if any(intent(updated, old) != intent(self.script, old) for old in range(frame + 1)):
                 raise ObserverError("live edits must preserve all past/current frame inputs")
             self.script = updated
@@ -83,6 +88,11 @@ class ScriptedInput:
             return {axis: contract.floating(value) for axis, value in zip("xy", pair)}
         if channel == 0:
             sample["ex_status"]["fs"]["stick"] = vector(segment.get("stick", [0, 0]))
+            acc = segment.get("acc", [0, -1, 0])
+            sample.update(acc={axis: contract.floating(value) for axis, value in zip("xyz", acc)},
+                          acc_value=contract.floating(math.sqrt(sum(value * value for value in acc))),
+                          acc_speed=contract.floating(math.sqrt(sum((a - b) ** 2 for a, b in zip(acc, self.previous_acc)))))
+            self.previous_acc = acc
             pointer = segment.get("pointer")
             if pointer is not None:
                 old = self.previous_pointer or pointer

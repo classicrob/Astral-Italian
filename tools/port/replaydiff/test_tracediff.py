@@ -41,6 +41,25 @@ class TraceDiffTests(unittest.TestCase):
         self.assertEqual(report["exit_code"], 0)
         self.assertIsNone(report["first_divergence"])
 
+    def test_initial_non_rng_state_is_separate_from_seed(self):
+        a, b = self.rows(), self.rows()
+        for rows, seed in ((a, "10"), (b, "20")):
+            for row in rows:
+                row.update(rng_seed=seed, rng_valid="1", player_valid="0")
+        report = td.compare(self.trace(a), self.trace(b))
+        self.assertEqual(report["exit_code"], 1)
+        self.assertTrue(report["initial_non_rng_state"]["equal_within_policy"])
+        self.assertEqual(report["initial_non_rng_state"]["player_valid_a"], ["0"])
+        b[0]["x"] = "103"
+        report = td.compare(self.trace(a), self.trace(b))
+        self.assertFalse(report["initial_non_rng_state"]["equal_within_policy"])
+        self.assertEqual(report["initial_non_rng_state"]["differences"][0]["columns"][0]["column"], "x")
+
+    def test_missing_origin_does_not_claim_initial_equivalence(self):
+        report = td.compare(self.trace(self.rows()[1:]), self.trace(self.rows()[1:]))
+        self.assertFalse(report["initial_non_rng_state"]["complete"])
+        self.assertFalse(report["initial_non_rng_state"]["equal_within_policy"])
+
     def test_float_jitter_and_bit_difference(self):
         a, b = self.rows(), self.rows()
         for rows, value in ((a, 100.0), (b, 100.00000762939453)):

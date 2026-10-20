@@ -366,3 +366,19 @@ beyond residues when the writer trace points elsewhere. Do not run a rebuild her
   on schema/hash/gaps/observer errors; archive first-divergence artifacts privately.
   Require both input-adapter tests and representative gameplay fixtures. Replay
   passing certifies these recorded paths, not all game behavior.
+
+
+### Optional stage origin (Sol C, 2026-10-19)
+
+Dolphin collect supports --sync-stage / --sync-scenario without changing schema
+v1. First Game/scene_valid/End=6/exact-stage/exact-placed-scenario post-endFrame
+seam becomes frame and scene_epoch 0, independent of player validity. Untouched
+RNG seed and source frame/epoch/reserved ticks/VI are exported in
+oracle.csv.sync.json (phase post-endFrame, rng_forced false). Full source-clock
+input JSONL remains intact; row-0 reads precede the origin and shared gameplay
+input begins on the next loop. A missing seed at the first qualifying seam fails.
+Native one-time seeding at the corresponding seam cannot repair actor state
+already initialized with another stream. This mode has synthetic collector
+integration coverage; no playable-galaxy live qualification yet. Private
+savestate restore is available via --save-state; its source clock starts after
+restore and injection starts after the first accepted seam.

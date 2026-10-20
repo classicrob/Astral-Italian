@@ -39,6 +39,22 @@ class ScriptTests(unittest.TestCase):
         self.assertEqual(encoded[96:104].hex(), '000000003f800000')
         self.assertEqual(self.input.sample(2, 1)['dev_type'], 253)
 
+    def test_acceleration_pulse_has_exact_native_bits_and_read_deltas(self):
+        self.input.script['segments'] = [dict(start=2, end=5, acc=[3, -1, 0])]
+        self.input.sample(1, 0)
+        high = self.input.sample(2, 0)
+        self.assertEqual(contract.encode_sample(high)[12:24].hex(), '40400000bf80000000000000')
+        self.assertEqual(high['acc_speed']['value'], 3)
+        self.assertEqual(self.input.sample(2, 0)['acc_speed']['value'], 0)
+        self.assertEqual(self.input.sample(5, 0)['acc_speed']['value'], 3)
+        self.assertEqual(self.input.sample(6, 0)['acc']['y']['value'], -1)
+
+    def test_acceleration_bounds_fail_before_injection(self):
+        for acc in ([9, 0, 0], [0, 0], [True, 0, 0], [float('nan'), 0, 0]):
+            self.path.write_text(json.dumps(dict(version=1, frames=20, segments=[dict(start=2, end=5, acc=acc)])))
+            with self.assertRaises(ObserverError):
+                load_script(self.path, 20)
+
     def test_bad_script_cannot_silently_change_frame_contract(self):
         with self.assertRaises(ObserverError):
             load_script(self.path, 21)

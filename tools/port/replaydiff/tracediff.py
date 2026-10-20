@@ -296,6 +296,16 @@ def compare(a, b, policy=None, history=120, actor_keys=(), expected_frames=None)
             last_diverging_frame=max(bad_frames))
     else:
         report["summary"] = dict(compared_frames=len({k[0] for k in all_keys}), compared_rows=len(all_keys), diverging_frames=0, diverging_columns=0)
+    initial_keys = [key for key in all_keys if key[0] == 0]
+    initial_differences = [dict(**describe_key(key, actor_keys), columns=[d for d in differences.get(key, []) if d["column"] not in ("rng_seed", "rng_valid")]) for key in initial_keys]
+    initial_differences = [row for row in initial_differences if row["columns"]]
+    initial_complete = bool(initial_keys) and not errors and all(key in a.rows and key in b.rows for key in initial_keys)
+    report["initial_non_rng_state"] = dict(
+        complete=initial_complete, equal_within_policy=initial_complete and not initial_differences,
+        differences=initial_differences,
+        player_valid_a=sorted({row.get("player_valid", "unavailable") for key, row in a.rows.items() if key[0] == 0}),
+        player_valid_b=sorted({row.get("player_valid", "unavailable") for key, row in b.rows.items() if key[0] == 0}),
+        scope="Recorded columns only; equal global RNG does not establish equal initialization or scheduling")
     report["exit_code"] = 2 if errors else 1 if differences else 0
     report["status"] = ("identical", "diverged", "invalid/incomplete")[report["exit_code"]]
     return report
@@ -303,6 +313,8 @@ def compare(a, b, policy=None, history=120, actor_keys=(), expected_frames=None)
 
 def format_report(report):
     lines = [f"Trace comparison: {report['status']}"]
+    if "initial_non_rng_state" in report:
+        lines.append("Initial non-RNG state: " + json.dumps(report["initial_non_rng_state"]))
     for error in report["invalid_errors"]:
         lines.append("ERROR: " + error)
     first = report["first_divergence"]

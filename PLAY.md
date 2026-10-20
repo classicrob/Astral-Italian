@@ -57,9 +57,13 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 ## Status and known issues
 
 - Flip-Swap Galaxy: plays (Mario, panels, HUD, walking, jumping, falling off edges).
-- Fluffy Bluff Galaxy: may not load. The stage loads in the headless harness, but in the app it can sit on the
-  loading screen while the stage's sound data loads. If nothing happens after a minute, quit and pick Flip-Swap.
+  Frozen-build smoke (150 s): PASS, 8,257 gameplay frames.
+- Fluffy Bluff Galaxy: loads and plays (Mario, Toad, enemies, clouds, HUD). Loading takes a little longer than
+  Flip-Swap. Frozen-build smoke (150 s): PASS, 8,229 gameplay frames. The Cloud Flower is SMG2-only code that was not
+  checked natively yet.
 - Sky Station Galaxy: the fallback, not checked in this build yet.
+- The frozen build is build 2 (`~/MacioGalaxy2-play/FROZEN.txt`); build 1 (Flip-Swap only) is kept in
+  `~/MacioGalaxy2-play/build1/`.
 - Audio: off by default (the game runs its audio through a silent driver). Turn it on with `a` at your own risk.
 - Odyssey movement: not in the frozen build yet; the toggle does nothing until it is.
 - SMG2-only systems (Yoshi, Cloud Flower, the world map, co-star mode) run their decompiled code but were not

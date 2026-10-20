@@ -6,6 +6,10 @@
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/Util/SingletonHolder.hpp"
 
+#ifdef GALAXY_NATIVE
+#include <JSystem/JMath/JMAFloatConversion.hpp>
+#endif
+
 namespace {
     f32* gAcosTable;
 };
@@ -777,11 +781,23 @@ namespace MR {
 
 
     void floatToFixed16(TVec3s* pDst, const TVec3f& rPSrc, u8 q) {
+#ifdef GALAXY_NATIVE
+        // Wii slw uses six count bits; bit 5 clears the word. The result is
+        // converted as signed, so a count of 31 produces a negative scale.
+        const u32 shift = q & 0x3f;
+        const s32 scaleWord = shift >= 32 ? 0 : shift == 31 ? (-2147483647 - 1) : (1 << shift);
+        f32 scale = static_cast<f32>(scaleWord);
+
+        pDst->x = JMath::truncToS16(rPSrc.x * scale);
+        pDst->y = JMath::truncToS16(rPSrc.y * scale);
+        pDst->z = JMath::truncToS16(rPSrc.z * scale);
+#else
         f32 scale = 1 << q;
 
         pDst->x = rPSrc.x * scale;
         pDst->y = rPSrc.y * scale;
         pDst->z = rPSrc.z * scale;
+#endif
     }
 
     void fixed16ToFloat(TVec3f* pDst, const TVec3s& rPSrc, u8 q) {

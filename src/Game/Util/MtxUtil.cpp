@@ -4,6 +4,10 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <JSystem/JMath/JMath.hpp>
 
+#ifdef GALAXY_NATIVE
+#include <JSystem/JMath/JMAFloatConversion.hpp>
+#endif
+
 static Mtx mtrans_org = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
 
 static Mtx tmpmtx_sc = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
@@ -41,9 +45,15 @@ namespace MR {
     }
 
     void makeMtxRotate(MtxPtr pMtx, f32 rx, f32 ry, f32 rz) {
+#ifdef GALAXY_NATIVE
+        s16 angleX = JMath::truncToS16(rx * DEGREE_TO_S16);
+        s16 angleY = JMath::truncToS16(ry * DEGREE_TO_S16);
+        s16 angleZ = JMath::truncToS16(rz * DEGREE_TO_S16);
+#else
         s16 angleX = (s16)(rx * DEGREE_TO_S16);
         s16 angleY = (s16)(ry * DEGREE_TO_S16);
         s16 angleZ = (s16)(rz * DEGREE_TO_S16);
+#endif
         makeMtxRotate(pMtx, angleX, angleY, angleZ);
     }
 
@@ -52,7 +62,11 @@ namespace MR {
     }
 
     void makeMtxRotateY(MtxPtr pMtx, f32 ry) {
+#ifdef GALAXY_NATIVE
+        s16 angle = JMath::truncToS16(ry * DEGREE_TO_S16);
+#else
         s16 angle = (s16)(ry * DEGREE_TO_S16);
+#endif
         f32 sinY = JMASSin(angle);
         f32 cosY = JMASCos(angle);
 

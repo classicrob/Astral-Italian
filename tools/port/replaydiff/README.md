@@ -766,3 +766,46 @@ Run mechanics tests with:
 ```sh
 python3 -B -m unittest discover -s tools/port/replaydiff -p test_replay_gate.py
 ```
+
+## Human route intent diagnostics
+
+`route_to_kpad_script.py SOURCE OUTPUT --source-sha256 HASH
+--spin-policy held-remote-x3-v1 [--prefix N]` consumes a closed private
+`PETARI_ROUTE_RECORD` CSV. It selects the first valid **target-stage/scenario**
+row as a provisional anchor and maps subsequent rows to the frozen suffix,
+preserving invalid/dead intervals. It rejects malformed/gapped data and existing
+outputs. Adjacent equal intents are coalesced without resampling. A receipt binds
+source/intent hashes, original frame mapping, synthetic shake policy, and gaps.
+The source contains remapped intent, not raw consumed KPAD; stick and position
+values are rounded. Missing pointer/shoot/tilt and GX RNG remain unknown. Spins
+use explicit synthetic remote acceleration, not an invented button or recovered
+native shake queue.
+
+Use that intent with the approved stage-entry wrapper's `--sync-input-script`.
+Suffix input0 affects trace row1, after ready anchor row0; N inputs produce N+1
+trace rows. `human_pair.py` validates the actual finalized Dolphin export and
+conversion hashes, selects source-origin+1 through +N, preserves all ordered read
+records, and rebases only frame labels. It strictly packs and runs the native
+side through the existing locked launcher with natural seeds. `--executable`
+and `--frozen-build-receipt` support a hash-bound private executable/runtime/
+launcher bundle instead of a mutable checkout. No game assets belong in source.
+
+The report separates raw/zero/default-tolerance Dolphin/native differences from
+GX position departures at the provisional source-anchor+trace-frame mapping.
+GX position tolerances are explicit: 0, 0.0005 (half of the recorded decimal
+unit), and 0.01. Invalid GX positions are not evidence; their time slots remain.
+No input phase is fitted to a later matching position. Unrecorded shooting is a
+gap in both reconstructed replays, not automatically a Dolphin/native mismatch.
+
+These reports are diagnostic only: no admission, qualified counts null, pending
+state unavailable, and `prev_draw` excluded by port-owner policy because its
+retail pre-first-stride initialization/previous-frame meaning is unproved.
+No actor equivalence is claimed without actor observations. ASan's existing ODR
+override and raw sanitizer diagnostics are retained explicitly.
+
+The collector's default wall budget remains 480 seconds. The opt-in
+`--extended-wall-budget --wall-timeout 1500` is the explicit team-approved
+exception for **one continuous full human-tape run**, never stitched runs.
+Approval, host, UI mode, and measured setup/suffix durations are recorded. Visible
+UI is user-authorized while away; USER INCOMING stops server runs. Do not alter
+CPU/video/DSP/timing settings to change throughput.

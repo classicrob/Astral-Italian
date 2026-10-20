@@ -610,9 +610,19 @@ def collect(args):
                     frame_seam=f"{SEAM:08x}", caller_lr=f"{CALLER:08x}",
                     resume_method="temporary breakpoint" if args.gui or args.input_script else "single instruction",
                     input_method="Dolphin movie" if args.movie else "none; idle disconnected host controls")
+    manifest['producer_host'] = socket.gethostname()
+    manifest['collection_started_utc'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     manifest["field_availability"] = {"pending_state_id": "unavailable (callback-context only)"}
     manifest["observer_contract_incomplete"] = True
+    manifest['runtime_budget'] = dict(default_seconds=480, effective_seconds=args.wall_timeout,
+                                    extended=bool(getattr(args, 'extended_wall_budget', False)))
+    if getattr(args, 'extended_wall_budget', False):
+        manifest['runtime_budget']['approval'] = ('team lead thr_qzkz8x9vp8 via port lead thr_dqaxhnywic, '
+                                                  '2026-10-20: ONE continuous human-tape run <=1500s; no stitching')
     process = None
+    collection_started = time.monotonic()
+    sampling_started = None
+    suffix_started = None
     stream = None
     installed = False
     step_installed = False
@@ -632,7 +642,7 @@ def collect(args):
     try:
         for number in (signal.SIGTERM, signal.SIGINT, signal.SIGALRM):
             handlers[number] = signal.signal(number, interrupted)
-        signal.setitimer(signal.ITIMER_REAL, 540)
+        signal.setitimer(signal.ITIMER_REAL, max(540, args.wall_timeout + 60) if getattr(args, 'extended_wall_budget', False) else 540)
         manifest.update(collector_sha256=sha256(__file__), python_version=sys.version.split()[0],
                         columns_sha256=hashlib.sha256(",".join(COLUMNS).encode()).hexdigest())
         if args.input_script:
@@ -724,6 +734,7 @@ def collect(args):
                 raise ObserverError("stale/existing GDB socket: remove only after confirming no emulator owns it")
             log.write("Shared emulator/build slot held; launching " + repr(command) + "\n")
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
+            manifest['ui_mode'] = 'visible'
             manifest.update(collector_pid=os.getpid(), dolphin_pid=process.pid)
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         deadline = time.monotonic() + args.connect_timeout
@@ -762,6 +773,7 @@ def collect(args):
             actor_output = ActorSidecars(output)
         rejected = 0
         started = time.monotonic()
+        sampling_started = started
         stop_pending = False
         with (output / "oracle.csv.partial").open("w", newline="") as file:
             writer = csv.DictWriter(file, COLUMNS, extrasaction="ignore")
@@ -791,6 +803,7 @@ def collect(args):
                     manifest["source_frames"] += 1
                     if row is not None:
                         if sync and row["frame"] == 0:
+                            suffix_started = time.monotonic()
                             manifest["sync"] = sync.origin
                             if suffix:
                                 inputs.start_suffix(suffix, manifest["source_frames"])
@@ -852,6 +865,10 @@ def collect(args):
         log.write(manifest["error"] + "\n")
         raise
     finally:
+        stopped = time.monotonic()
+        manifest["collection_elapsed_seconds"] = stopped - collection_started
+        manifest["sampling_elapsed_seconds"] = stopped - sampling_started if sampling_started is not None else None
+        manifest["suffix_elapsed_seconds"] = stopped - suffix_started if suffix_started is not None else None
         signal.setitimer(signal.ITIMER_REAL, 0)
         if stream:
             stream.settimeout(1)
@@ -942,6 +959,7 @@ def main():
     capture.add_argument("--connect-timeout", type=float, default=60)
     capture.add_argument("--stop-timeout", type=float, default=30)
     capture.add_argument("--wall-timeout", type=float, default=480)
+    capture.add_argument('--extended-wall-budget', action='store_true', help='explicit team-approved ONE continuous human-tape run, maximum 1500 seconds; default remains 480')
     capture.add_argument("--lock-timeout", type=int, help="optional maximum seconds waiting for the shared slot")
     capture.add_argument("--lock", default="~/MacioGalaxy2-team/slots/native.lock")
     capture.add_argument("--slot-held", action="store_true", help=argparse.SUPPRESS)
@@ -963,8 +981,8 @@ def main():
         parser.error("--lock-timeout must be nonnegative")
     if args.action == "collect" and args.frames < 1:
         parser.error("--frames must be positive")
-    if args.action == "collect" and not 0 < args.wall_timeout <= 480:
-        parser.error("--wall-timeout must be within 0..480 seconds; each locked run stays below 10 minutes")
+    if args.action == "collect" and not 0 < args.wall_timeout <= (1500 if args.extended_wall_budget else 480):
+        parser.error('--wall-timeout must be within 0..480, or 0..1500 only with explicit --extended-wall-budget approval')
     if args.action == "collect" and args.dolphin and not args.slot_held:
         command = ["lockf", "-k"]
         if args.lock_timeout is not None:

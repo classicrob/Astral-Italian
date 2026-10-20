@@ -3,6 +3,7 @@ import importlib.util
 import hashlib
 import json
 import math
+from bisect import bisect_right
 from pathlib import Path
 
 from dolphin_collect import Memory, ObserverError, REPO, SEAM, private_path
@@ -46,6 +47,7 @@ def load_script(path, frames):
 class ScriptedInput:
     def __init__(self, path, frames, output, live=False):
         self.script = load_script(path, frames)
+        self.starts = [item['start'] for item in self.script['segments']]
         self.path = Path(path)
         self.live = live
         self.modified = self.path.stat().st_mtime_ns
@@ -74,6 +76,7 @@ class ScriptedInput:
             segments.append(dict(item, start=item["start"] + source_start,
                                  end=item["end"] + source_start))
         self.script = dict(version=1, frames=source_start + suffix["frames"], segments=segments)
+        self.starts = [item['start'] for item in segments]
         self.live = False
         self.revisions.append(dict(suffix_source_start=source_start))
 
@@ -93,11 +96,14 @@ class ScriptedInput:
             if any(intent(updated, old) != intent(self.script, old) for old in range(frame + 1)):
                 raise ObserverError("live edits must preserve all past/current frame inputs")
             self.script = updated
+            self.starts = [item['start'] for item in updated['segments']]
             self.modified = self.path.stat().st_mtime_ns
             self.revisions.append(dict(first_future_frame=frame + 1,
                                        sha256=hashlib.sha256(self.path.read_bytes()).hexdigest()))
         sample = contract.idle_sample(channel == 0)
-        segment = next((item for item in self.script["segments"] if item["start"] <= frame < item["end"]), {}) if channel == 0 else {}
+        index = bisect_right(self.starts, frame) - 1
+        item = self.script['segments'][index] if index >= 0 else {}
+        segment = item if channel == 0 and item and frame < item['end'] else {}
         hold = sum(BUTTONS[name] for name in segment.get("buttons", []))
         sample.update(hold=hold, trig=hold & ~self.previous[channel], release=self.previous[channel] & ~hold)
         self.previous[channel] = hold

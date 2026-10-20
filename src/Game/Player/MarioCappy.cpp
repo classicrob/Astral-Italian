@@ -560,7 +560,12 @@ namespace {
 // A real grounded Spin has Magic status; an air Spin has jump action 8 (or
 // the tornado bit). Keep those intact, including F while the cap is out.
 bool petariCappyUsesSpinAnimation() {
-    if (!active() || !s.throwAnimation || !normalMario(s.actor)) {
+    // OFF/absent: return after the mod read, before consulting actor/throw
+    // state. SwingActionWatcher's original edge history is then untouched.
+    if (!petari_mod_enabled(kModCappy)) {
+        return false;
+    }
+    if (!petari_mod_enabled(kModOdysseyMovement) || s.cap == nullptr || !s.throwAnimation || !normalMario(s.actor)) {
         return false;
     }
     const Mario* mario = s.actor->mMario;

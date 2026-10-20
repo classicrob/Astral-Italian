@@ -34,7 +34,7 @@ public:
     void fn_80416EE0();
     void fn_80416F60();
     void fn_80416FC0();
-    static void fn_80417040();
+    void fn_80417040();
     bool fn_804172C0() const;
     void fn_80417370();
     void fn_804173F0();

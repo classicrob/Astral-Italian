@@ -298,6 +298,16 @@ be at source origin + 1. The Dolphin collector's `--frames` instead counts
 output rows. Do not trim/rebase the native boot tape or assume that native
 and Dolphin boot consume identical reads.
 
+For a tape containing only the common gameplay suffix, add
+`--inputs-from-sync` (requires `--sync-stage`). Before and through the ready
+anchor, all four channels report disconnected (`WPADProbe=-1`, device 253;
+KPAD returns 0/error -2 with a disconnected slot-zero sample). These boot reads
+do not consume the tape. The next game loop reads tape frame 0, affecting trace
+row 1; a tape of N frames produces N+1 trace rows including the anchor. Source
+frame/ticks/VI provenance still includes boot, and the wall timeout still bounds
+failure to reach the seam. The manifest declares `inputs_from_sync` and the input
+origin. Without this option the boot/navigation tape behavior above is unchanged.
+
 The launcher validates origin/row-zero/seed/clock consistency and records an
 explicit `timing_policy`: tick frequency, rational rate, boot epoch, FPCR.FZ,
 `audio_output=off`, and `audio_processing=virtual-ai-dsp`. Audio has no device

@@ -240,7 +240,7 @@ class InterchangeTests(unittest.TestCase):
             self.assertFalse(headless.valid_trace(path, 2))
 
     def test_sync_completion_keeps_full_input_clock_and_validates_origin(self):
-        for corruption in (None, "missing", "seed", "target", "timing", "row", "outside"):
+        for corruption in (None, "gated", "missing", "seed", "target", "timing", "row", "outside"):
             with self.subTest(corruption=corruption), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 source, trace = root / "inputs.jsonl", root / "native.csv"
@@ -250,9 +250,13 @@ class InterchangeTests(unittest.TestCase):
                     self.assertEqual(struct.unpack_from(">QQ", tape, 8), (5, 20))
                     self.assertEqual(struct.unpack_from(">Q", tape, 24 + 16 * 280)[0], 4)
                     self.assertEqual(command[command.index("--sync-rng-seed") + 1], "0")
+                    gated = corruption == "gated"
+                    self.assertEqual("--inputs-from-sync" in command, gated)
+                    count = 6 if gated else 2
                     origin = dict(schema_version=1, phase="post-endFrame", stage="TestGalaxy", scenario=2,
                                   source_frame=3, source_scene_epoch=7, source_ticks=1000,
                                   source_vi_count=80, rng_valid=True, rng_seed=0, rng_forced=True)
+                    if gated: origin["source_frame"] = 999
                     if corruption == "seed": origin["rng_seed"] = 1
                     if corruption == "target": origin["scenario"] = 1
                     if corruption == "timing": origin["source_ticks"] = 999
@@ -262,27 +266,33 @@ class InterchangeTests(unittest.TestCase):
                     with trace.open("w", newline="") as out:
                         writer = csv.DictWriter(out, fieldnames=headless.trace_columns())
                         writer.writeheader()
-                        for frame in range(2):
+                        for frame in range(count):
                             writer.writerow(dict(frame=frame, scene_epoch=0, scene_valid=1, scene="Game", stage="TestGalaxy",
                                                  scenario=2, init_state=6, player_valid=0, actor_count_valid=0,
                                                  animation_valid=0, rng_valid=0 if corruption == "row" else 1, rng_seed=frame))
-                    Path(str(trace) + ".complete").write_text("2\n")
-                    Path(str(trace) + ".timing.csv").write_text("frame,vi_count,ticks\n0,80,1000\n1,81,2000\n")
+                    Path(str(trace) + ".complete").write_text(str(count) + "\n")
+                    Path(str(trace) + ".timing.csv").write_text("frame,vi_count,ticks\n" + "".join(f"{i},{80+i},{1000*(i+1)}\n" for i in range(count)))
                     return 0
                 with patch.object(headless.subprocess, "call", side_effect=completed):
                     status = headless.main(["run", "--inputs", str(source), "--executable", str(root / "petari_headless"),
                                            "--frames", "5", "--disc", str(root / "disc"), "--user", str(root / "user"),
                                            "--trace", str(trace), "--epoch-ticks", "123", "--sync-stage", "TestGalaxy",
-                                           "--sync-scenario", "2", "--sync-rng-seed", "0x0"])
+                                           "--sync-scenario", "2", "--sync-rng-seed", "0x0"] + (["--inputs-from-sync"] if corruption == "gated" else []))
                 manifest = json.loads(Path(str(trace) + ".manifest.json").read_text())
-                self.assertEqual(status, 0 if corruption is None else 2)
+                self.assertEqual(status, 0 if corruption in (None, "gated") else 2)
                 self.assertEqual(manifest["input_frames"], 5)
                 self.assertEqual(manifest["timing_policy"]["audio_output"], "off")
-                if corruption is None:
-                    self.assertEqual(manifest["trace_frames"], 2)
-                    self.assertEqual(manifest["sync_origin"]["source_frame"], 3)
+                if corruption in (None, "gated"):
+                    gated = corruption == "gated"
+                    self.assertEqual(manifest["inputs_from_sync"], gated)
+                    self.assertEqual(manifest["trace_frames"], 6 if gated else 2)
+                    self.assertEqual(manifest["sync_origin"]["source_frame"], 999 if gated else 3)
 
     def test_sync_flags_require_target_and_unsigned_numbers(self):
+        with self.assertRaisesRegex(ValueError, "requires --sync-stage"):
+            headless.main(["run", "--executable", "/tmp/no-binary", "--inputs", "/tmp/no-inputs",
+                           "--frames", "1", "--disc", "/tmp/disc", "--user", "/tmp/user",
+                           "--trace", "/tmp/trace", "--epoch-ticks", "0", "--inputs-from-sync"])
         for value in ("", "-1", "+1", " 1", "0x", "4294967296"):
             with self.subTest(value=value), self.assertRaises(headless.argparse.ArgumentTypeError):
                 headless.sync_number(value)

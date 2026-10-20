@@ -72,9 +72,9 @@ public:
             const bool alreadyObserved=mStartupArrival.observed();
             if (mStartupArrival.observe(state,selected->stage,placed) && !alreadyObserved)
                 std::fprintf(stderr,"headless: startup target observed at frame %llu: %s selected %d placed %d\n",
-                    static_cast<unsigned long long>(mReplay.frame()),selected->stage.c_str(),selected->scenario,placed);
+                    static_cast<unsigned long long>(mSourceFrame),selected->stage.c_str(),selected->scenario,placed);
         }
-        const auto sourceFrame=mReplay.frame();
+        const auto sourceFrame=mSourceFrame++;
         const auto ticks=OSGetTime();
         if (ticks<0) throw H::ReplayError("negative SDK clock at frame seam");
         const auto viCount=VIGetRetraceCount();
@@ -87,6 +87,7 @@ public:
         if (!wasStarted && mSync.started()) {
             std::ofstream origin(mPath.string()+".sync.json");
             mSync.writeOrigin(origin);
+            mReplay.startInputs();
         }
         if (frame) {
             mTiming << *frame << ',' << viCount << ',' << ticks << '\n';
@@ -106,7 +107,7 @@ public:
             std::ofstream marker(mPath.string()+".complete");
             marker << mTraceFrames << '\n'; marker.flush();
             if (!marker) throw H::ReplayError("cannot write completion marker");
-            std::fprintf(stderr,"headless: completed %llu game loops, %llu trace rows\n",static_cast<unsigned long long>(mReplay.frames()),static_cast<unsigned long long>(mTraceFrames));
+            std::fprintf(stderr,"headless: completed %llu game loops, %llu trace rows\n",static_cast<unsigned long long>(mSourceFrame),static_cast<unsigned long long>(mTraceFrames));
             const auto gx=H::gxStats();
             std::fprintf(stderr,"headless GX: %llu direct FIFO bytes, %llu discarded state calls, %llu display-list payload bytes\n",
                          static_cast<unsigned long long>(gx.fifoBytes),static_cast<unsigned long long>(gx.stateCalls),
@@ -117,7 +118,7 @@ public:
     void wait(bool frame) {
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("retrace wait ran on an unexpected thread");
         if (frame && !mAwaitingFrameWait) throw H::ReplayError("extra headless game-loop wait");
-        if (frame) gSourceFrame.store(mReplay.frame(),std::memory_order_relaxed);
+        if (frame) gSourceFrame.store(mSourceFrame,std::memory_order_relaxed);
         const int released=petari_os_try_begin_host_blocking();
         if (frame && !released) throw H::ReplayError("game-loop wait requires an interruptible OS thread");
         {
@@ -148,7 +149,7 @@ private:
             }
         } catch (const std::exception& e) { fail(e.what()); }
     }
-    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0;
+    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0,mSourceFrame=0;
     bool mStartupRequested=false; H::StartupArrival mStartupArrival;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
@@ -178,9 +179,13 @@ int main(int argc,char** argv) {
     try {
         std::setlocale(LC_NUMERIC,"C");
         std::map<std::string,std::string> args;
-        bool ftz=true;
+        bool ftz=true,inputsFromSync=false;
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
+            if (key=="--inputs-from-sync") {
+                if (inputsFromSync) throw H::ReplayError("duplicate --inputs-from-sync");
+                inputsFromSync=true;continue;
+            }
             if (key=="--no-ftz") {ftz=false;continue;}
             if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
@@ -192,7 +197,8 @@ int main(int argc,char** argv) {
         if (std::filesystem::exists(user) && !std::filesystem::is_empty(user)) throw H::ReplayError("--user must be a fresh isolated directory");
         std::filesystem::create_directories(user);
         std::ifstream source(input,std::ios::binary); if (!source) throw H::ReplayError("cannot open input tape");
-        H::Replay replay(source);
+        if (inputsFromSync && !args.count("--sync-stage")) throw H::ReplayError("--inputs-from-sync requires --sync-stage");
+        H::Replay replay(source,inputsFromSync);
         const auto epoch=integer(args.at("--epoch-ticks"));
         if (epoch>static_cast<std::uint64_t>(INT64_MAX)) throw H::ReplayError("epoch outside SDK time range");
         auto n=args.count("--rate-numerator")?integer(args.at("--rate-numerator")):60000;

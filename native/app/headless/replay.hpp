@@ -20,7 +20,9 @@ struct Read {
 };
 class Replay {
 public:
-    explicit Replay(std::istream& input);
+    explicit Replay(std::istream& input, bool inputsFromSync = false);
+    bool waitingForSync() const { return mWaitingForSync; }
+    void startInputs() { mWaitingForSync = false; }
     const Read& consume(std::uint32_t channel, std::uint32_t capacity);
     void endFrame();
     std::uint64_t frame() const { return mFrame; }
@@ -29,6 +31,8 @@ public:
     const Read* connection(std::uint32_t channel) const;
 private:
     std::vector<Read> mReads;
+    bool mWaitingForSync = false;
+    std::array<Read, 4> mDisconnected;
     std::uint64_t mFrames = 0, mFrame = 0;
     std::size_t mNext = 0, mFrameStart = 0;
     std::uint32_t mOrdinal = 0;

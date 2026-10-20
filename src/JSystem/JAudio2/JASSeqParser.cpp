@@ -744,8 +744,15 @@ s32 JASSeqParser::cmdDump(JASTrack* track, u32* args) {
 s32 JASSeqParser::cmdPrintf(JASTrack* track, u32* args) {
     char formatString[0x80];
     // %s arguments are sequence-data addresses, so values hold pointer-width data.
+#ifdef GALAXY_NATIVE
+    // Zeroed: unused values are passed to JASReport, and clang treats an indeterminate argument as UB (noundef), which
+    // let it drop the numValues == 0 check and run the argument loop off the stack for a plain "-----\n" printf.
+    uintptr_t values[4] = {};
+    u8 formatTypes[4] = {};
+#else
     uintptr_t values[4];
     u8 formatTypes[4];
+#endif
     u32 numValues = 0, i;
     for (i = 0; i < sizeof(formatString); i++) {
         formatString[i] = track->getSeqCtrl()->readByte();

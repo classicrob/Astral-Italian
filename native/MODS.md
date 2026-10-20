@@ -5,7 +5,7 @@ unmodified game and every test run behave exactly as before.
 
 | Mod (`mods.txt` name) | Button | What it does |
 | --- | --- | --- |
-| Collect visible Star Bits (`CollectStarBits`) | G, controller L3 (left stick click) | Every Star Bit on screen flies to Mario, as if the pointer had touched each one |
+| Collect scene Star Bits (`CollectStarBits`) | G, controller L3 (left stick click) | Every eligible Star Bit in the current scene flies to Mario, including bits off screen |
 | Fire a Star Bit at the nearest enemy (`ShootEnemy`) | V (no controller default) | Shoots one Star Bit at the nearest enemy on screen |
 | Odyssey movement (`OdysseyMovement`) | none (a mode; it uses the normal Jump, Crouch and Spin buttons) | Mario moves with Super Mario Odyssey's physics and moveset: see "Odyssey movement" below. |
 | Cappy (`Cappy`) | R, controller RB | Super Mario Odyssey's cap throw and cap bounce; needs Odyssey movement: see "Cappy" below. |
@@ -370,18 +370,24 @@ screenshots. See native/app/skip_probe.cpp.
 
 ## How they follow the game's rules
 
-Both mods act only where the game itself would let the pointer collect or
-shoot Star Bits: not during cutscenes, not while the Star Pointer is disabled
+Both mods retain the game's pointer-mode restrictions: not during cutscenes,
+not while the Star Pointer is disabled
 (for example in the file select's two-player transparency mode), and not while
 the game is paused (they run in the Star Bit director's per-frame update,
 which stops with the scene).
 
-- **Collect** uses the game's own collection path: for four frames after the
-  press, `StarPiece::tryGotJudge` treats every eligible Star Bit as pointed at,
-  so `goToPlayer` sends it to Mario with the normal sparkle, sound and counter.
-  Eligible means what the pointer could collect (within the game's collection
-  distance, past its short delay after appearing) and on screen: not clipped,
-  not hidden, inside the camera frustum.
+- **Collect** scans every constructed Star Bit in the current scene for four
+  frames after the press, including placed and group bits outside the director's
+  pool. Camera visibility, clipping and distance do not limit collection.
+  Eligible bits enter `goToPlayer`, which wakes clipped actors and follows the
+  normal chase, arrival, sparkle, sound, counter, 1-up and host-budget path.
+  Collection retains the game's short pointer delay, collection-enable switches
+  and collectible states (Floating, Fall, FollowPlayer and RailMove). Dead or
+  suspended bits, thrown/reflected ammo, gifts, Hop bits that already auto-count,
+  and bits already chasing or collected are excluded. Normal talking, demos,
+  an unavailable pointer and the 10,000-bit cap block the action; an interrupted
+  window is canceled. The registry and press window reset when the scene
+  director is destroyed or replaced. A press never adds directly to a counter.
 - **Shoot** uses `StarPieceShooter::shoot`'s path: `StarPiece::throwToTarget` from
   the usual shot origin, the usual shot sound, one Star Bit spent. The hit, stun
   and damage are the enemy's normal response to a Star Bit. The target is the
@@ -398,6 +404,9 @@ shot at, what it hit, and "not allowed now" / "no enemy on screen").
 - `native_input` covers the bindings, press counting, dropped presses while a
   mod is off, and `mods.txt`/`PETARI_MODS` parsing; `native_home_menu` covers the
   Mods page.
+- `native_star_bits_collect` checks the production collection policy, four-frame
+  window, all-piece scene registry, replacement/teardown and one chase per bit.
+  Rewards remain in the game code; this model does not simulate its counters.
 - `PETARI_MODS_AUTOPRESS=<frames>` (test driver in `app_main.cpp`) presses the
   collect button every `<frames>` gameplay frames and the shoot button halfway
   between, so background smoke runs can exercise the mods; with the mods off the

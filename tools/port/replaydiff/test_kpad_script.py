@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 from dolphin_collect import ObserverError
-from kpad_script import ENTRY, RETURN, ScriptedInput, contract, load_script
+from kpad_script import ENTRY, RETURN, ScriptedInput, contract, expand, load_script
 
 
 class ScriptTests(unittest.TestCase):
@@ -48,6 +48,21 @@ class ScriptTests(unittest.TestCase):
         with self.assertRaises(ObserverError):
             load_script(self.path, 20)
 
+    def test_public_script_expands_to_a_strict_native_tape(self):
+        output = self.root / 'expanded.jsonl'
+        expand(self.path, output)
+        rows = list(contract.rows_from_jsonl(output))
+        self.assertEqual(len(rows), 80)
+        self.assertEqual([(row['read_ordinal'], row['channel']) for row in rows[:4]], [(i, i) for i in range(4)])
+        self.assertEqual(rows[8]['samples'][0]['trig'], 2048)
+        self.assertEqual(rows[12]['samples'][0]['trig'], 0)
+        self.assertEqual(rows[20]['samples'][0]['release'], 2048)
+        tape = io.BytesIO()
+        contract.encode_rows(rows, 20, tape)
+        self.assertEqual(len(tape.getvalue()), 24 + 80 * (contract.RECORD.size + 240))
+        with self.assertRaises(ObserverError):
+            expand(self.path, output)
+
     def test_live_edits_cannot_rewrite_executed_inputs(self):
         self.input.live = True
         self.input.sample(6, 0)
@@ -85,7 +100,7 @@ class ScriptTests(unittest.TestCase):
                     self.registers[3] = int(command[3:], 16)
 
             def stop(self, command):
-                assert command == 's'
+                assert command == 'c'
                 self.registers[64] += 4
 
             def read(self, address, length):

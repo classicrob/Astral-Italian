@@ -343,7 +343,7 @@ def collect(args):
     manifest = dict(schema_version=1, status="incomplete", frames=0,
                     requested_frames=args.frames, scene_spans=[],
                     frame_seam=f"{SEAM:08x}", caller_lr=f"{CALLER:08x}",
-                    resume_method="temporary breakpoint" if args.gui else "single instruction",
+                    resume_method="temporary breakpoint" if args.gui or args.input_script else "single instruction",
                     input_method="Dolphin movie" if args.movie else "none; idle disconnected host controls")
     process = None
     stream = None
@@ -472,13 +472,13 @@ def collect(args):
                         log.write(f"Non-GameSystem seam caller LR={lr:08x}; rejected={rejected}\n")
                     if rejected > 10000:
                         raise ObserverError("too many non-GameSystem seam callers")
-                if args.gui:
+                if args.gui or inputs:
                     # Avoid the GUI's competing single-step state.
                     remote.ok(f"Z0,{SEAM + 4:x},4")
                     step_installed = True
                 remote.ok(f"z0,{SEAM:x},4")
                 installed = False
-                remote.stop("c" if args.gui else "s")
+                remote.stop("c" if args.gui or inputs else "s")
                 next_pc = remote.reg(64)
                 if next_pc != SEAM + 4:
                     raise ObserverError(f"step breakpoint expected {SEAM + 4:#x}, got {next_pc:#x}")

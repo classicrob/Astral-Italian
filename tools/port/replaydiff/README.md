@@ -175,9 +175,21 @@ per-frame global ordinals, actual capacity, all samples, errors and connection
 state. The file remains `.partial` on failure. The run also pins script, adapter
 and contract SHA256 hashes, and copies the script. The native harness consumes
 that JSONL through its existing pack/run commands; it must not guess one read
-per channel per frame. The small public script under `inputs/` contains only
+per channel per frame. `python3 tools/port/replaydiff/kpad_script.py SCRIPT
+/private/path/inputs.jsonl` expands the public script using the declared
+WPadHolder contract (channels 0,1,2,3 in that order, capacity 120, once per loop).
+This expansion must match the actual Dolphin export byte for byte over every
+frame before it becomes an accepted shared input fixture. The expander alone
+is synthetic input, not proof of the actual call schedule. The small public script under `inputs/` contains only
 intentional controller input, with no game data. Original traces and expanded
 read exports stay outside the checkout.
+
+`--live-input-script` is exploration only. It reloads edits at input reads and
+rejects any change to past/current frame intent, recording revision hashes and
+the final script. Use a stable scratch copy while other lanes check files out
+in the worktree. Copy the final script into `inputs/`, then run two fresh-profile
+canonical repeats without this flag; a live exploration is not a repeatability
+qualification.
 
 ## Deterministic input movies
 

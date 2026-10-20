@@ -5,7 +5,7 @@ import json
 import math
 from pathlib import Path
 
-from dolphin_collect import Memory, ObserverError, REPO
+from dolphin_collect import Memory, ObserverError, REPO, private_path
 
 _spec = importlib.util.spec_from_file_location("headless_contract", REPO / "native/tools/headless.py")
 contract = importlib.util.module_from_spec(_spec)
@@ -100,6 +100,17 @@ class ScriptedInput:
         # Only the captured SDK output buffers and error word are passed here.
         remote.ok(f"M{address:x},{len(data):x}:{data.hex()}")
 
+    def emit(self, frame, channel, capacity, sample):
+        result, error = (1, 0) if channel == 0 else (0, -1)
+        row = dict(frame=frame, read_ordinal=self.ordinal, channel=channel, requested_length=capacity,
+                   returned_count=result, error=error,
+                   connection=dict(probe_error=error, device_type=1 if channel == 0 else 253), samples=[sample])
+        self.file.write(json.dumps(row, separators=(",", ":")) + "\n")
+        self.file.flush()
+        self.ordinal += 1
+        self.reads += 1
+        return row
+
     def handle(self, remote, pc, frame):
         if pc == ENTRY:
             if self.pending is not None or remote.reg(67) != RETURN:
@@ -125,21 +136,20 @@ class ScriptedInput:
             if (remote.read(buffer, 240) != raw or remote.reg(3) != result or
                     remote.read(error, 4) != (err & 0xffffffff).to_bytes(4, "big")):
                 raise ObserverError("KPAD injection readback mismatch")
-            row = dict(frame=frame, read_ordinal=self.ordinal, channel=channel, requested_length=capacity,
-                       returned_count=result, error=err, connection=dict(probe_error=err, device_type=1 if channel == 0 else 253),
-                       samples=[sample])
-            self.file.write(json.dumps(row, separators=(",", ":")) + "\n")
-            self.file.flush()
-            self.ordinal += 1
-            self.reads += 1
+            self.emit(frame, channel, capacity, sample)
             self.pending = None
         else:
             return False
+        remote.ok(f"Z0,{pc + 4:x},4")
+        self.breakpoints.add(pc + 4)
         remote.ok(f"z0,{pc:x},4")
         self.breakpoints.discard(pc)
-        remote.stop("s")
-        if remote.reg(64) != pc + 4:
-            raise ObserverError("KPAD seam step failed")
+        remote.stop("c")
+        next_pc = remote.reg(64)
+        if next_pc != pc + 4:
+            raise ObserverError(f"KPAD step breakpoint expected {pc + 4:#x}, got {next_pc:#x}")
+        remote.ok(f"z0,{pc + 4:x},4")
+        self.breakpoints.discard(pc + 4)
         if pc == ENTRY:
             remote.ok(f"Z0,{ENTRY:x},4")
             self.breakpoints.add(ENTRY)
@@ -160,3 +170,30 @@ class ScriptedInput:
         self.file.close()
         if complete:
             self.output.with_suffix(".jsonl.partial").rename(self.output)
+
+
+def expand(path, output):
+    """Expand the declared WPadHolder four-read contract; verify against live exports."""
+    output = private_path(output)
+    if output.exists() or output.with_suffix(".jsonl.partial").exists():
+        raise ObserverError("input expansion output already exists")
+    frames = json.loads(Path(path).read_text())["frames"]
+    inputs = ScriptedInput(path, frames, output)
+    try:
+        for frame in range(frames):
+            for channel in range(4):
+                inputs.emit(frame, channel, 120, inputs.sample(frame, channel))
+            inputs.end_frame()
+    except BaseException:
+        inputs.close(None)
+        raise
+    inputs.close(None, complete=True)
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Expand the frozen controller script to native KPAD JSONL")
+    parser.add_argument("script", type=Path)
+    parser.add_argument("output", type=Path)
+    args = parser.parse_args()
+    expand(args.script, args.output)

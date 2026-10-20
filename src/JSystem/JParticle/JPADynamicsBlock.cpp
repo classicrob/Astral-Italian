@@ -1,8 +1,21 @@
 #include "JSystem/JParticle/JPADynamicsBlock.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
 #include "JSystem/JParticle/JPAEmitter.hpp"
+#ifdef GALAXY_NATIVE
+#include "JSystem/JMath/JMAFloatConversion.hpp"
+#endif
 
 namespace {
+#ifdef GALAXY_NATIVE
+    // Gekko divw retains this quotient on division by zero or signed overflow.
+    inline s32 JPADivideWord(s32 numerator, s32 denominator) {
+        if (denominator == 0 || (numerator == (-2147483647 - 1) && denominator == -1)) {
+            return numerator < 0 ? -1 : 0;
+        }
+        return numerator / denominator;
+    }
+#endif
+
     inline f32 JPASinShort(s16 v) {
         return JMath::sSinCosTable.table[static_cast< u16 >(v) >> 2].a1;
     }
@@ -68,9 +81,15 @@ void JPAVolumeCube(JPAEmitterWorkData* work) {
 static void JPAVolumeSphere(JPAEmitterWorkData* work) {
     s16 phi, theta;
     if (work->mpEmtr->checkFlag(JPADynFlag_FixedInterval)) {
+#ifdef GALAXY_NATIVE
+        phi = (u16)(JPADivideWord(work->mVolumeX * 0x8000, work->mDivNumber - 1) + 0x4000);
+        u16 angle = (u16)JPADivideWord(work->mVolumeAngleNum * 0x10000, work->mVolumeAngleMax - 1);
+        theta = JMath::truncToS16((f32)angle * work->mVolumeSweep + 0x8000);
+#else
         phi = (u16)(work->mVolumeX * 0x8000 / (work->mDivNumber - 1) + 0x4000);
         u16 angle = (u16)(work->mVolumeAngleNum * 0x10000 / (work->mVolumeAngleMax - 1));
         theta = (f32)angle * work->mVolumeSweep + 0x8000;
+#endif
         work->mVolumeAngleNum++;
         if (work->mVolumeAngleNum == work->mVolumeAngleMax) {
             work->mVolumeAngleNum = 0;
@@ -83,7 +102,11 @@ static void JPAVolumeSphere(JPAEmitterWorkData* work) {
         }
     } else {
         phi = work->mpEmtr->get_r_ss() >> 1;
+#ifdef GALAXY_NATIVE
+        theta = JMath::truncToS16(work->mVolumeSweep * work->mpEmtr->get_r_ss());
+#else
         theta = work->mVolumeSweep * work->mpEmtr->get_r_ss();
+#endif
     }
 
     f32 rnd = work->mpEmtr->get_r_f();

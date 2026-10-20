@@ -7,6 +7,8 @@
 # Usage (from the worktree root; nothing staged; no other writers in this worktree while it runs):
 #   tools/team/hookproof.sh [outdir]            uncommitted edits in src/include/libs vs HEAD
 #   tools/team/hookproof.sh outdir BASE [HEAD]  committed edits BASE..HEAD (worktree clean at HEAD)
+# For a batch without an edited .cpp, explicitly select a tracked dependent .cpp:
+#   HOOKPROOF_CONTROL_SOURCE=src/JSystem/JKernel/JKRHeap.cpp tools/team/hookproof.sh [outdir]
 set -u
 out=${1:-build/hookproof}
 base=${2:-}
@@ -49,11 +51,88 @@ else
     (cd "$out/saved" && find . -type f) | while read -r f; do mkdir -p "$(dirname "$f")"; cp "$out/saved/$f" "$f"; done
     while read -r f; do rm -f "$f"; done < "$out/deleted.txt"
   }
-  # Restore the proposed tree whatever happens.
-  trap 'phase_after' EXIT INT TERM HUP
 fi
+ctl=; control_active=0
+restore_control() {
+  [ "$control_active" -eq 1 ] || return 0
+  cp "$out/control.bak" "$ctl" && touch "$ctl" || { echo "control source restore failed: $ctl" >&2; return 3; }
+  control_active=0
+}
+control_hash() {
+  [ -s "$ctlo" ] || return 1
+  digest=$(shasum "$ctlo") || return 1
+  printf '%s\n' "${digest%% *}"
+}
+cleanup() {
+  proof_rc=$?
+  trap - EXIT
+  trap '' INT TERM HUP
+  restore_control || proof_rc=3
+  [ -n "$base" ] || phase_after
+  exit "$proof_rc"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 n=$(cat "$out/modified.txt" "$out/added.txt" "$out/deleted.txt" | grep -c .)
 [ "$n" -gt 0 ] || { echo "no changed files" >&2; exit 2; }
+
+ctl=$(cat "$out/modified.txt" "$out/added.txt" | grep -E '\.cpp$' | head -1)
+if [ -n "${HOOKPROOF_CONTROL_SOURCE:-}" ]; then
+  [ -z "$ctl" ] || { echo "control override is only for batches without an edited .cpp" >&2; exit 2; }
+  ctl=$(python3 - "$HOOKPROOF_CONTROL_SOURCE" "$out" <<'PY'
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+def fail(reason):
+    sys.exit("invalid control override: " + reason)
+
+root = Path.cwd().resolve()
+source = Path(sys.argv[1])
+if not source.is_absolute():
+    source = root / source
+try:
+    relative = source.relative_to(root)
+except ValueError:
+    fail("source must be inside this worktree")
+if not relative.parts or relative.parts[0] != "src" or relative.suffix != ".cpp" or ".." in relative.parts:
+    fail("source must be a canonical src/*.cpp path")
+if not source.is_file() or any(p.is_symlink() for p in (source, *source.parents)):
+    fail("source must be a real regular file without symlink aliases")
+tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", str(relative)], capture_output=True, text=True)
+if tracked.returncode or tracked.stdout.splitlines() != [str(relative)]:
+    fail("source must be tracked")
+obj = Path("build/SB4E01") / relative.with_suffix(".o")
+if obj.is_symlink() or not obj.is_file() or not obj.stat().st_size:
+    fail("control object must already exist and be nonempty")
+out = Path(sys.argv[2])
+result = subprocess.run(["ninja", "-t", "deps", str(obj)], capture_output=True, text=True)
+(out / "control-deps.txt").write_text(result.stdout)
+lines = result.stdout.rstrip().splitlines()
+header = re.fullmatch(re.escape(str(obj)) + r": #deps (\d+), deps mtime \d+ \(VALID\)", lines[0]) if lines else None
+if result.returncode or not header:
+    fail("Ninja must report a VALID dependency record for the control object")
+if len(lines) - 1 != int(header[1]) or any(not line.startswith("    ") or not line[4:] for line in lines[1:]):
+    fail("malformed Ninja dependency record")
+deps = {Path(line[4:]).resolve() for line in lines[1:]}
+if source.resolve() not in deps:
+    fail("dependency record does not name the control source")
+changed = {Path(f).resolve() for name in ("modified", "added", "deleted")
+           for f in (out / (name + ".txt")).read_text().splitlines() if f}
+matches = sorted(str(p.relative_to(root)) for p in deps & changed)
+if not matches:
+    fail("control dependency closure does not intersect changed inputs")
+(out / "control-dependency-match.json").write_text(json.dumps(matches, indent=2) + "\n")
+print(relative)
+PY
+  ) || exit 2
+fi
+[ -n "$ctl" ] || { echo "no edited .cpp: set HOOKPROOF_CONTROL_SOURCE to a tracked dependent source" >&2; exit 2; }
+printf '%s\n' "$ctl" > "$out/control-source.txt"
 
 clean_build() {  # $1 = phase name
   find build/SB4E01/src -name '*.o' -delete
@@ -70,18 +149,21 @@ nb=$(grep -c . "$out/before.sha"); na=$(grep -c . "$out/after.sha")
 diff "$out/before.sha" "$out/after.sha" > "$out/object-diff.txt"; nd=$(grep -c '^[<>]' "$out/object-diff.txt")
 nf=$(diff "$out/before.full.sha" "$out/after.full.sha" | grep -c '^<')
 
-# Control: perturb one edited .cpp so that its object MUST change, then restore it.
-ctl=$(grep -E '\.cpp$' "$out/modified.txt" "$out/added.txt" | head -1 | cut -d: -f2); ctl_ok=0
+# Control: perturb an edited .cpp or an explicitly validated dependent, then restore it.
+ctl_ok=0
 if [ -n "$ctl" ]; then
-  ctlo="build/SB4E01/${ctl%.cpp}.o"; h0=$(shasum "$ctlo" | cut -d' ' -f1)
-  cp "$ctl" "$out/control.bak"; printf '\nextern const int hookproof_control_marker = 0x1234;\n' >> "$ctl"
-  nice -n 10 ninja -j 4 "$ctlo" > "$out/build-control.log" 2>&1
-  h1=$(shasum "$ctlo" | cut -d' ' -f1)
-  cp "$out/control.bak" "$ctl"; touch "$ctl"
-  nice -n 10 ninja -j 4 "$ctlo" >> "$out/build-control.log" 2>&1
-  h2=$(shasum "$ctlo" | cut -d' ' -f1)
-  [ "$h1" != "$h0" ] && [ "$h2" = "$h0" ] && ctl_ok=1
-  echo "control $ctl: perturbed object changed=$([ "$h1" != "$h0" ] && echo yes || echo NO), restored identical=$([ "$h2" = "$h0" ] && echo yes || echo NO)"
+  ctlo="build/SB4E01/${ctl%.cpp}.o"; h0=$(control_hash) || h0=
+  cp "$ctl" "$out/control.bak" || exit 3
+  control_active=1
+  printf '\nextern const int hookproof_control_marker = 0x1234;\n' >> "$ctl" || exit 3
+  nice -n 10 ninja -j 4 "$ctlo" > "$out/build-control.log" 2>&1; rc_c=$?
+  h1=$(control_hash) || h1=
+  restore_control || exit 3
+  nice -n 10 ninja -j 4 "$ctlo" >> "$out/build-control.log" 2>&1; rc_r=$?
+  h2=$(control_hash) || h2=
+  [ "$rc_c" -eq 0 ] && [ "$rc_r" -eq 0 ] && [ -n "$h0" ] && [ -n "$h1" ] && [ -n "$h2" ] \
+    && [ "$h1" != "$h0" ] && [ "$h2" = "$h0" ] && ctl_ok=1
+  echo "control $ctl: perturbed object changed=$([ "$h1" != "$h0" ] && echo yes || echo NO), restored identical=$([ "$h2" = "$h0" ] && echo yes || echo NO) (compile rc=$rc_c, restore rc=$rc_r)"
 fi
 echo "files: $n changed; clean builds: before rc=$rc_b ($nb objects), after rc=$rc_a ($na objects); code-section lines differing: $nd (objects differing only in debug info: $nf)"
 if [ "$rc_b" -ne 0 ] || [ "$rc_a" -ne 0 ] || [ "$nb" -lt 2000 ] || [ "$nb" -ne "$na" ] || [ "$nd" -ne 0 ] \

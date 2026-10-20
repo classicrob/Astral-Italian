@@ -37,6 +37,17 @@ void* OSPhysicalToUncached(u32);
 #define OS_BASE_CACHED (OS_CACHED_REGION_PREFIX << 16)
 #define OS_BASE_UNCACHED (OS_UNCACHED_REGION_PREFIX << 16)
 
+#ifdef GALAXY_NATIVE
+void* PetariNativePhysicalToHost(uintptr_t);
+uintptr_t PetariNativeHostToPhysical(const void*);
+BOOL PetariNativeIsMemoryRegion(const void*, int);
+#define OSPhysicalToCached(paddr) PetariNativePhysicalToHost((uintptr_t)(paddr))
+#define OSCachedToPhysical(caddr) PetariNativeHostToPhysical((const void*)(caddr))
+#define OSUncachedToPhysical(ucaddr) PetariNativeHostToPhysical((const void*)(ucaddr))
+#define OSPhysicalToUncached(paddr) PetariNativePhysicalToHost((uintptr_t)(paddr))
+#define OSIsMEM1Region(addr) PetariNativeIsMemoryRegion((const void*)(addr), 1)
+#define OSIsMEM2Region(addr) PetariNativeIsMemoryRegion((const void*)(addr), 2)
+#else
 #define OSPhysicalToCached(paddr) ((void*)((uintptr_t)(paddr) + (u32)OS_BASE_CACHED))
 #define OSCachedToPhysical(caddr) ((uintptr_t)(caddr) - (u32)OS_BASE_CACHED)
 #define OSUncachedToPhysical(ucaddr) ((uintptr_t)(ucaddr) & ~(uintptr_t)(u32)OS_BASE_UNCACHED)
@@ -44,6 +55,7 @@ void* OSPhysicalToUncached(u32);
 
 #define OSIsMEM1Region(addr) (((uintptr_t)(addr) & 0x30000000u) == 0x00000000u)
 #define OSIsMEM2Region(addr) (((uintptr_t)(addr) & 0x30000000u) == 0x10000000u)
+#endif
 
 #define OSRoundUp32B(x) (((uintptr_t)(x) + 32 - 1) & ~(uintptr_t)(32 - 1))
 #define OSRoundDown32B(x) ((uintptr_t)(x) & ~(uintptr_t)(32 - 1))

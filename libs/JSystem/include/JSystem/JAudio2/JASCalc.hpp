@@ -3,7 +3,11 @@
 #include <limits>
 #include <revolution.h>
 
+#ifdef GALAXY_NATIVE
+extern const s16 sIIRCutoff[129][4];
+#else
 extern const s16 sIIRCutoff[128][4];
+#endif
 
 namespace JASCalc {
     void imixcopy(const s16*, const s16*, s16*, u32);

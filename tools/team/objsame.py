@@ -9,7 +9,7 @@ literal labels, .dwarf.* labels) and the symbol table order, and relocations the
 symbol indices. This tool compares:
   - every section occurrence in file order, keyed by name + occurrence number (MWCC emits several sections
     with one name, e.g. one .text per weak function): type, flags, size, alignment and bytes;
-  - named (non-compiler-local) symbols: name, binding/type, section, value and size;
+  - named (non-compiler-local) symbols: name, binding/type, visibility (st_other), section, value and size;
   - every relocation outside debug sections, grouped by the section occurrence it applies to: offset, type,
     addend and its target resolved to a symbol name, or for compiler-local labels and section symbols to
     (section occurrence, value).
@@ -55,7 +55,7 @@ def read_object(path):
             for i in range(len(s["data"]) // 16):
                 name_off, value, size, info, other, shndx = struct.unpack(">IIIBBH", s["data"][i * 16:i * 16 + 16])
                 symbols.append({"name": cstr(strtab, name_off), "value": value, "size": size, "info": info,
-                                "shndx": shndx})
+                                "other": other, "shndx": shndx})
             break
     return sections, symbols
 
@@ -97,7 +97,7 @@ def summarize(path):
         if s["name"] in SKIP or s["type"] in (SHT_SYMTAB, SHT_STRTAB, SHT_RELA) or s["name"] == "":
             continue
         out["section " + keys[index]] = (s["type"], s["flags"], s["size"], s["align"], s["data"])
-    named = sorted((sym["name"], sym["info"], section_name(sections, sym["shndx"], keys), sym["value"], sym["size"])
+    named = sorted((sym["name"], sym["info"], sym["other"], section_name(sections, sym["shndx"], keys), sym["value"], sym["size"])
                    for sym in symbols
                    if sym["name"] and not LOCAL_LABEL.match(sym["name"]) and section_name(sections, sym["shndx"]) not in SKIP)
     out["named symbols"] = tuple(named)

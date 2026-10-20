@@ -436,6 +436,8 @@ def main(argv=None):
                     "disc_root": str(disc), "startup_request": args.request, "startup_stage": args.stage, "startup_scenario": args.scenario, "status": "prepared", "command": command, "timing_csv": str(timing),
                     "sync_json": str(sync_path) if args.sync_stage is not None else None,
                     "executable_sha256": digest(args.executable) if args.executable.is_file() else None}
+        manifest["field_availability"] = {"pending_state_id": "unavailable (callback-context only)"}
+        manifest["observer_contract_incomplete"] = True
         manifest["diagnostic_placeholder"] = diagnostic
         if args.actor_trace:
             manifest["actors"] = dict(schema_version=1, status="incomplete", frames=None,

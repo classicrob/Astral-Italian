@@ -319,6 +319,14 @@ uses a 16-frame neutral synthetic tape, and requires the actual galaxy seam,
 script at nice 9 so the launcher's additional nice 10 runs the game at nice 19.
 This is a bootstrap test, not a Dolphin comparison.
 
+`pending_state_id` stays blank on both producers. The original Mario+0x984
+field is noticed-state scratch used only inside notice callbacks; the constructor
+does not initialize it, so it cannot be dereferenced at the frame seam. The
+initialized state-head list is still observed normally. Both manifests declare
+`field_availability.pending_state_id = "unavailable (callback-context only)"`
+and `observer_contract_incomplete = true`. Blank means unavailable, not no state;
+this prevents complete replay qualification until callback observation exists.
+
 The launcher validates origin/row-zero/seed/clock consistency and records an
 explicit `timing_policy`: tick frequency, rational rate, boot epoch, FPCR.FZ,
 `audio_output=off`, and `audio_processing=virtual-ai-dsp`. Audio has no device

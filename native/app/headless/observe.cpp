@@ -119,7 +119,8 @@ State observeGame() {
         states += std::to_string(state->mStatusId);
     }
     out.text("state_ids", states + ']');
-    if (mario->_980) out.integer("pending_state_id", mario->_980->mStatusId);
+    // _980 is noticed-state callback scratch, not a live pointer at this seam.
+    out.text("pending_state_id", "");
     out.integer("mode", actor->mPlayerMode); out.integer("hp", actor->mHealth); out.integer("dead", boolean(actor->mFlags.mIsDead));
     if (actor->mMarioAnim && actor->mMarioAnim->mCurrBck) {
         out.text("anim_name", bounded(actor->mMarioAnim->mCurrBck, 1024));

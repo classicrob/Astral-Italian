@@ -64,6 +64,15 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(row["x"], "")
         self.assertEqual(row["observer_error"], "")
 
+    def test_uninitialized_noticed_callback_scratch_is_unavailable_at_frame_seam(self):
+        self.player()
+        self.ram.word(0x80006984, 0x00780620)
+        row = self.observer.take(0)
+        self.assertEqual(row["observer_error"], "")
+        self.assertEqual(row["player_valid"], 1)
+        self.assertEqual(row["state_ids"], "[0]")
+        self.assertEqual(row["pending_state_id"], "")
+
     def test_player_zero_state_id_is_distinct_from_no_pending_state(self):
         self.player()
         row = self.observer.take(0)

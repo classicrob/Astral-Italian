@@ -1008,7 +1008,7 @@ void MarioActor::updateSwingAction() {
     if (mMario->isPlayerModeYoshi() && ((mMario->mMovementStates.mLowWord >> 21) & 1U)) mMario->mMovementStates.mLowWord &= 0xFFDFFFFFU;
     u8 action = mActionTable1080->selectAction("スピンアタック");
     switch (action) {
-    case 1:
+    case 1: {
         bool didSpinPunch = true;
         if (fn_803C33D0()) {
             bool tmp = false;
@@ -1056,6 +1056,7 @@ void MarioActor::updateSwingAction() {
         }
 
         break;
+    }
     case 2:
         if (isEnableSpinPunch() && !mMario->isSwimming()) {
             updateFireSpin();
@@ -1069,7 +1070,7 @@ void MarioActor::updateSwingAction() {
         }
 
         break;
-    case 4:
+    case 4: {
         if (mMario->_418 != 0) {
             break;
         }
@@ -1078,6 +1079,7 @@ void MarioActor::updateSwingAction() {
         const MarioConstTable* pConstants = mConst->getTable();
         _946 = pConstants->mTeresaWallThroughTime + pConstants->mSpinIntervalTime;
         break;
+    }
     case 5:
         if (!isEnableSpinPunch()) {
             break;

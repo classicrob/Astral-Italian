@@ -434,7 +434,7 @@ void Mario::fn_8039A020() {
             this->mMovementStates.mLowWord &= 0xFFFFEFFF;
         }
     } else {
-        if (this->mActor->fn_803BE0D0() == nullptr) {
+        if (!this->mActor->fn_803BE0D0()) {
             this->mMovementStates.mLowWord &= 0xFFFFEFFF;
         }
     }

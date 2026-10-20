@@ -37,6 +37,11 @@ void JAUSoundObject::process() {
     if (!mIsAllocated) {
         return;
     }
+#ifdef GALAXY_NATIVE
+    if (mPos == nullptr) {
+        return;
+    }
+#endif
     setPos(*mPos);
 }
 

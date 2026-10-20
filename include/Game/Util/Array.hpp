@@ -54,13 +54,21 @@ namespace MR {
         /// @brief Returns an iterator to the first element.
         /// @return The pointer to the first element.
         T* begin() {
+#ifdef GALAXY_NATIVE
+            return mArr;
+#else
             return &mArr[0];
+#endif
         }
 
         /// @brief Returns an iterator to the first element.
         /// @return The pointer to the first element.
         const T* begin() const {
+#ifdef GALAXY_NATIVE
+            return mArr;
+#else
             return &mArr[0];
+#endif
         }
 
         /// @brief Returns an iterator to the reverse first element.
@@ -78,13 +86,21 @@ namespace MR {
         /// @brief Returns an iterator past the last element.
         /// @return The pointer past the last element.
         T* end() {
+#ifdef GALAXY_NATIVE
+            return mMaxSize == 0 ? mArr : mArr + mMaxSize;
+#else
             return &mArr[mMaxSize];
+#endif
         }
 
         /// @brief Returns an iterator past the last element.
         /// @return The pointer past the last element.
         const T* end() const {
+#ifdef GALAXY_NATIVE
+            return mMaxSize == 0 ? mArr : mArr + mMaxSize;
+#else
             return &mArr[mMaxSize];
+#endif
         }
 
         /// @brief Returns an iterator past the reverse last element.
@@ -266,13 +282,21 @@ namespace MR {
         /// @brief Returns an iterator to the first element.
         /// @return The pointer to the first element.
         Item* begin() {
+#ifdef GALAXY_NATIVE
+            return mArray.begin();
+#else
             return &mArray[0];
+#endif
         }
 
         /// @brief Returns an iterator to the first element.
         /// @return The pointer to the first element.
         const Item* begin() const {
+#ifdef GALAXY_NATIVE
+            return mArray.begin();
+#else
             return &mArray[0];
+#endif
         }
 
         /// @brief Returns an iterator to the reverse first element.
@@ -290,13 +314,23 @@ namespace MR {
         /// @brief Returns an iterator past the last element.
         /// @return The pointer past the last element.
         Item* end() {
+#ifdef GALAXY_NATIVE
+            Item* first = mArray.begin();
+            return mCount == 0 ? first : first + mCount;
+#else
             return &mArray[mCount];
+#endif
         }
 
         /// @brief Returns an iterator past the last element.
         /// @return The pointer past the last element.
         const Item* end() const {
+#ifdef GALAXY_NATIVE
+            const Item* first = mArray.begin();
+            return mCount == 0 ? first : first + mCount;
+#else
             return &mArray[mCount];
+#endif
         }
 
         /// @brief Returns an iterator past the reverse last element.

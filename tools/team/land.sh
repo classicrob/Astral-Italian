@@ -41,6 +41,10 @@ done < "$stamps"
 # sources older than their objects, so ninja skipped them and a broken landing passed): touch every file this
 # branch changes so it is really recompiled. Files only changed by main keep the restored mtimes above.
 git diff --name-only main...HEAD -- src include libs | while read -r f; do [ -f "$f" ] && touch "$f"; done
+for script in native/play/*.sh native/play/*.command; do
+  [ -f "$script" ] || continue
+  sh -n "$script" || { echo "launcher syntax check failed: $script" >&2; exit 1; }
+done
 python3 tools/team/classdup.py || { echo "duplicate class definitions (ODR): fix before landing" >&2; exit 1; }
 tools/team/nj.sh >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
 git -C "$main" merge --ff-only -q "$branch"

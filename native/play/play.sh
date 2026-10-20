@@ -62,7 +62,7 @@ set -- --disc "$disc" --user "$user"
 [ -n "$stage" ] && set -- "$@" --stage "$stage" --scenario "$scenario"
 log=${ASTRAL_LOG:-$user/logs/play-${stage:-title}-$(date +%Y%m%d-%H%M%S).log}
 
-echo "Astral Italian: $label${stage:+ (mission $scenario)}; Odyssey movement $([ "$odyssey" = 1 ] && echo on || echo "as in mods.txt (off unless turned on in the Home menu: ` or F1, then Mods)"); audio $audio"
+echo "Astral Italian: $label${stage:+ (mission $scenario)}; Odyssey movement $([ "$odyssey" = 1 ] && echo on || echo "as in mods.txt (off unless turned on in the Home menu: \` or F1, then Mods)"); audio $audio"
 echo "  app  $app"
 echo "  disc $disc"
 echo "  user $user"

@@ -1,3 +1,4 @@
+#include "pipeline_cache_identity.hpp"
 #include "pipeline_cache_dir.hpp"
 #include <fcntl.h>
 #include <sys/file.h>
@@ -14,6 +15,10 @@ namespace fs = std::filesystem;
 bool snapshot(const fs::path& source, const fs::path& destination) {
     std::error_code ec;
     if (!fs::is_regular_file(source, ec) || fs::exists(destination, ec)) return false;
+    if (!PetariPipelineCache::sameBuildFile(source.c_str())) {
+        std::fprintf(stderr, "[gx cache identity] ignored foreign adoption %s\n", source.c_str());
+        return false;
+    }
     const auto partial = fs::path(destination.string() + ".partial");
     fs::remove(partial, ec);
     sqlite3* from = nullptr;
@@ -74,7 +79,10 @@ void PipelineCacheDir::prepare(const fs::path& user, bool testRun, const char* c
     path = machine;
     // One-time adoption of an existing per-save cache keeps an old install warm.
     unsigned copied = 0;
-    for (const char* name : {"pipeline_cache.db", "dawn_cache.db"}) copied += snapshot(user / name, machine / name);
+    for (const char* stem : {"pipeline_cache", "dawn_cache"}) {
+        const auto name = PetariPipelineCache::filename(stem);
+        copied += snapshot(user / name, machine / name);
+    }
     std::fprintf(stderr, "[gx pipeline cache] dir=%s source=machine adopted_from_user=%u\n", path.c_str(), copied);
 }
 }

@@ -211,7 +211,8 @@ PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLa
         text = replace(anchor, anchor + '  const PetariFastPipeline::InvalidateScope petariFastInvalidate;\n')
     anchor = 'extern "C" void petari_gx_pipeline_report() {\n'
     text = replace(anchor, anchor + '  PetariFastPipeline::reportIfChecking();\n')
-    return text
+    from patch_aurora_cache_policy import patch_pipeline
+    return patch_pipeline(text)
 
 
 def main():

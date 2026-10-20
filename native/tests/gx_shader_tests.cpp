@@ -5,6 +5,8 @@
 #include "gfx/resources.hpp"
 #include "../gx/pipeline_postmatrix.hpp"
 #include "../gx/pipeline_texgen_count.hpp"
+#include "pipeline_cache_identity.hpp"
+#include "../gx/pipeline_texgen_validity.hpp"
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -39,6 +41,62 @@ ShaderConfig indirect_config() {
     stage.alphaPass.d = GX_CA_TEXA;
     stage.indTexMtxId = GX_ITM_0;
     return config;
+}
+
+void cache_policy_tests() {
+    sqlite3* db = nullptr;
+    expect(sqlite3_open(":memory:", &db) == SQLITE_OK, "cache fixture opens");
+    expect(PetariPipelineCache::identity(db, true), "new same-build cache acquires identity");
+    expect(PetariPipelineCache::identity(db), "same-build cache is reusable");
+    sqlite3_exec(db, "CREATE TABLE pipeline_cache(hash INTEGER,config BLOB)", nullptr, nullptr, nullptr);
+    PipelineConfig good{};
+    good.shaderConfig = indirect_config();
+    auto poison = good;
+    poison.shaderConfig.tcgs[0].src = GX_MAX_TEXGENSRC;
+    const auto unchangedPoison = poison;
+    sqlite3_stmt* insert = nullptr;
+    sqlite3_prepare_v2(db, "INSERT INTO pipeline_cache VALUES(?,?)", -1, &insert, nullptr);
+    unsigned key = 1;
+    for (const auto* config : {&good, &poison}) {
+        sqlite3_bind_int(insert, 1, key++);
+        sqlite3_bind_blob(insert, 2, config, sizeof(*config), SQLITE_TRANSIENT);
+        expect(sqlite3_step(insert) == SQLITE_DONE, "cache fixture row written");
+        sqlite3_reset(insert);
+    }
+    sqlite3_finalize(insert);
+    sqlite3_stmt* query = nullptr;
+    sqlite3_prepare_v2(db, "SELECT hash,config FROM pipeline_cache", -1, &query, nullptr);
+    unsigned accepted = 0, dropped = 0;
+    while (sqlite3_step(query) == SQLITE_ROW) {
+        PipelineConfig config;
+        std::memcpy(&config, sqlite3_column_blob(query, 1), sizeof(config));
+        if (!petari_cached_shader_valid(config.shaderConfig, sqlite3_column_int64(query, 0))) { ++dropped; continue; }
+        ++accepted;
+        expect(!build_shader_source(config.shaderConfig, DstAlphaMode::None).empty(), "retained cache row builds shader");
+    }
+    sqlite3_finalize(query);
+    expect(accepted == 1 && dropped == 1, "poisoned-row DB loads without abort and drops exactly the invalid row");
+    expect(std::memcmp(&poison, &unchangedPoison, sizeof(poison)) == 0, "cache admission never repairs poisoned bytes");
+    sqlite3_exec(db, "UPDATE petari_cache_build SET build_key='foreign-build'", nullptr, nullptr, nullptr);
+    expect(!PetariPipelineCache::identity(db) && !PetariPipelineCache::identity(db, true),
+           "foreign-build DB ignored without relabelling");
+    expect(PetariPipelineCache::filename("pipeline_cache").find(PETARI_PIPELINE_BUILD_KEY) != std::string::npos &&
+           PetariPipelineCache::filename("dawn_cache").find(PETARI_PIPELINE_BUILD_KEY) != std::string::npos,
+           "SQLite pipeline and Dawn filenames share the deterministic build identity");
+    sqlite3_close(db);
+    auto defaultNormal = good.shaderConfig;
+    defaultNormal.numIndStages = 0;
+    defaultNormal.tevStages[0].indTexMtxId = GX_ITM_OFF;
+    defaultNormal.tcgs[0].src = GX_TG_NRM;
+    defaultNormal.attrs[GX_VA_NRM] = {};
+    expect(petari_cached_shader_valid(defaultNormal, 3), "runtime default normal remains valid for cached texgen");
+    expect(!build_shader_source(defaultNormal, DstAlphaMode::None).empty(), "default normal cache row generates shader");
+    auto missingPosition = good.shaderConfig;
+    missingPosition.attrs[GX_VA_POS] = {};
+    expect(!petari_cached_shader_valid(missingPosition, 4), "missing required position rejected before runtime fatal");
+    auto badAttribute = good.shaderConfig;
+    badAttribute.attrs[GX_POS_MTX_ARRAY] = {.attrType = GX_DIRECT, .cnt = 1, .compType = GX_U8};
+    expect(!petari_cached_shader_valid(badAttribute, 5), "non-vertex array attribute rejected before runtime fatal");
 }
 
 void texgen_count_tests() {
@@ -245,6 +303,25 @@ void regression_tests() {
 
 int main(int argc, char** argv) {
     aurora::gfx::detail::resources().limits.minUniformBufferOffsetAlignment = 256;
+    if (argc == 3 && std::string(argv[1]) == "--validate-cache") {
+        sqlite3* db = nullptr;
+        if (sqlite3_open_v2(argv[2], &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) return 2;
+        sqlite3_stmt* q = nullptr;
+        if (sqlite3_prepare_v2(db, "SELECT hash,config FROM pipeline_cache WHERE type=1 AND config_version=13 AND config_size=2772", -1, &q, nullptr) != SQLITE_OK) return 3;
+        unsigned accepted = 0, dropped = 0;
+        while (sqlite3_step(q) == SQLITE_ROW) {
+            if (sqlite3_column_bytes(q, 1) != sizeof(PipelineConfig)) return 4;
+            PipelineConfig config;
+            std::memcpy(&config, sqlite3_column_blob(q, 1), sizeof(config));
+            if (petari_cached_shader_valid(config.shaderConfig, sqlite3_column_int64(q, 0))) {
+                if (build_shader_source(config.shaderConfig, DstAlphaMode::None).empty()) return 5;
+                ++accepted;
+            } else ++dropped;
+        }
+        sqlite3_finalize(q); sqlite3_close(db);
+        std::printf("cache_admission accepted=%u dropped=%u build=%s\n", accepted, dropped, PETARI_PIPELINE_BUILD_KEY);
+        return 0;
+    }
     if (argc == 3 && std::string(argv[1]) == "--audit-texgen-count") {
         // Input: consecutive native-layout PipelineConfig records from a private
         // RO SQLite snapshot. No assets or config bytes are printed.
@@ -280,6 +357,7 @@ int main(int argc, char** argv) {
         std::signal(SIGSEGV, [](int) { std::_Exit(88); });
         std::signal(SIGABRT, [](int) { std::_Exit(89); });
         std::set_terminate([] { std::fputs("Unexpected noexcept termination in shader regression\n", stderr); std::_Exit(87); });
+        cache_policy_tests();
         texgen_count_tests();
         regression_tests();
         edge_tests();

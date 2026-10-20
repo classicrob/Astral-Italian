@@ -1,3 +1,4 @@
+#include "pipeline_cache_identity.hpp"
 #include "smoke_storage.hpp"
 #include <CommonCrypto/CommonDigest.h>
 #include <copyfile.h>
@@ -42,6 +43,10 @@ fs::path darwinDirectory(int key = _CS_DARWIN_USER_CACHE_DIR) {
 
 void seedDatabase(const fs::path& source, const fs::path& destination) {
     if (!fs::is_regular_file(source) || fs::exists(destination)) return;
+    if (!PetariPipelineCache::sameBuildFile(source.c_str())) {
+        std::fprintf(stderr, "[gx cache identity] ignored foreign adoption %s\n", source.c_str());
+        return;
+    }
     sqlite3* from = nullptr;
     sqlite3* to = nullptr;
     bool ok = sqlite3_open_v2(source.c_str(), &from, SQLITE_OPEN_READONLY, nullptr) == SQLITE_OK &&
@@ -157,8 +162,10 @@ bool SmokeStorage::prepare(const fs::path& user, const char* cacheOverride, std:
         if (!relative.empty() && *relative.begin() != "..")
             throw std::runtime_error("background cache cannot use the shared Darwin cache directory");
         cacheLock = lockDirectory(cache);
-        seedDatabase(realUser / "dawn_cache.db", cache / "dawn_cache.db");
-        seedDatabase(realUser / "pipeline_cache.db", cache / "pipeline_cache.db");
+        for (const char* stem : {"pipeline_cache", "dawn_cache"}) {
+            const auto name = PetariPipelineCache::filename(stem);
+            seedDatabase(realUser / name, cache / name);
+        }
         // A stable per-fixture namespace keeps warm data reusable without sharing writes.
         uint64_t hash = 14695981039346656037ULL;
         for (unsigned char c : cache.string()) { hash ^= c; hash *= 1099511628211ULL; }

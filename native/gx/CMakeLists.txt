@@ -13,6 +13,28 @@ FetchContent_Declare(aurora
     GIT_TAG 08122911e8621acb7ded6563813b264bec1494b5)
 FetchContent_MakeAvailable(aurora)
 
+# Cache identity is content-based: no checkout path, timestamp or dirty-git state.
+file(GLOB_RECURSE _petari_cache_identity_inputs CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.inc" "${CMAKE_CURRENT_SOURCE_DIR}/*.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.wgsl")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_petari_cache_identity_inputs}
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt" "${CMAKE_SOURCE_DIR}/native/app/CMakeLists.txt")
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache_identity.py"
+    identity "${CMAKE_SOURCE_DIR}" "${aurora_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache_build_identity.hpp" COMMAND_ERROR_IS_FATAL ANY)
+add_library(petari_pipeline_cache_identity INTERFACE)
+target_link_libraries(petari_pipeline_cache_identity INTERFACE SQLite::SQLite3)
+target_include_directories(petari_pipeline_cache_identity INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(aurora_core PRIVATE petari_pipeline_cache_identity)
+target_link_libraries(aurora_gx PRIVATE petari_pipeline_cache_identity)
+function(petari_stamp_pipeline_seed source destination)
+    execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/gx/pipeline_cache_identity.py"
+        stamp "${source}" "${destination}" "${CMAKE_BINARY_DIR}/native/gx/pipeline_cache_build_identity.key"
+        COMMAND_ERROR_IS_FATAL ANY)
+endfunction()
+
 set(_petari_regs "${CMAKE_CURRENT_BINARY_DIR}/aurora-regs.cpp")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_regs.py" "${aurora_SOURCE_DIR}/lib/gx/regs.cpp")
@@ -209,13 +231,28 @@ if(TARGET imgui_backends)
         COMPILE_OPTIONS "-iquote${_sdl3_backends}")
 endif()
 
+set(_dawn_cache_source "${aurora_SOURCE_DIR}/lib/webgpu/gpu_cache.cpp")
+set(_dawn_cache_output "${CMAKE_CURRENT_BINARY_DIR}/build-keyed-dawn-cache.cpp")
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py"
+    dawn "${_dawn_cache_source}" "${_dawn_cache_output}" COMMAND_ERROR_IS_FATAL ANY)
+get_target_property(_sources aurora_core SOURCES)
+list(REMOVE_ITEM _sources lib/webgpu/gpu_cache.cpp "${_dawn_cache_source}")
+list(APPEND _sources "${_dawn_cache_output}")
+set_property(TARGET aurora_core PROPERTY SOURCES "${_sources}")
+set_source_files_properties("${_dawn_cache_output}" TARGET_DIRECTORY aurora_core PROPERTIES
+    COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py" "${_dawn_cache_source}")
+
 set(_pipeline_source "${aurora_SOURCE_DIR}/lib/gfx/pipeline_cache.cpp")
 set(_pipeline_output "${CMAKE_CURRENT_BINARY_DIR}/aurora-pipeline-cache.cpp")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_pipeline.py" "${_pipeline_source}"
     "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_profile.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc"
     "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_worker.inc" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_stage.inc"
-    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_global.inc" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_fast_path.hpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_global.inc" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_fast_path.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_texgen_validity.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache_identity.hpp")
 execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_pipeline.py"
     "${_pipeline_source}" "${_pipeline_output}" COMMAND_ERROR_IS_FATAL ANY)
 get_target_property(_sources aurora_gx SOURCES)
@@ -500,7 +537,7 @@ set_source_files_properties("${_petari_missing_output}" TARGET_DIRECTORY aurora_
 add_executable(petari_gx_shader_tests "${CMAKE_SOURCE_DIR}/native/tests/gx_shader_tests.cpp")
 target_compile_features(petari_gx_shader_tests PRIVATE cxx_std_20)
 target_include_directories(petari_gx_shader_tests PRIVATE "${aurora_SOURCE_DIR}/lib" "${aurora_SOURCE_DIR}/lib/gx")
-target_link_libraries(petari_gx_shader_tests PRIVATE aurora::gx aurora::core absl::flat_hash_map absl::btree)
+target_link_libraries(petari_gx_shader_tests PRIVATE petari_pipeline_cache_identity aurora::gx aurora::core absl::flat_hash_map absl::btree)
 target_link_options(petari_gx_shader_tests PRIVATE -Wl,-dead_strip)
 if(_petari_build_testing)
     add_test(NAME native_gx_shader COMMAND petari_gx_shader_tests)
@@ -648,4 +685,8 @@ if(_petari_build_testing)
     add_test(NAME native_gx_geometry_budget COMMAND petari_gx_geometry_budget_tests)
     add_test(NAME native_aurora_geometry_patch COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_SOURCE_DIR}/native/tests/aurora_geometry_patch_tests.py" "${aurora_SOURCE_DIR}")
+endif()
+
+if(BUILD_TESTING)
+    add_test(NAME native_pipeline_cache_identity COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_identity_tests.py")
 endif()

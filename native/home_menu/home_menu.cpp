@@ -359,9 +359,11 @@ void Menu::refreshFolderLabels() {
 
 namespace {
 const char* missionKind(const App::LaunchStage::Galaxy& galaxy, int mission) {
-    const char digit = static_cast<char>('0' + mission);
-    if (std::strchr(galaxy.comets, digit) != nullptr) return " (comet)";
-    if (std::strchr(galaxy.hidden, digit) != nullptr) return " (hidden star)";
+    const auto* data = App::LaunchStage::scenario(galaxy.stage, mission);
+    if (!data) return "";
+    if (!data->comet.empty()) return " (comet)";
+    if (data->powerStarType == "Hidden") return " (hidden star)";
+    if (data->powerStarType == "Green") return " (green star)";
     return "";
 }
 
@@ -386,7 +388,8 @@ void Menu::refreshProgress() {
     std::memset(&header, 0, sizeof(header));
     std::snprintf(header.inputs, sizeof(header.inputs), "Best time / deaths / coins / Star Bits");
     std::snprintf(header.pad, sizeof(header.pad), "Clears, first clear");
-    for (int mission = 1; mission <= galaxy.missions && mProgressLineCount < kMaxProgressLines; mission++) {
+    for (int index = 0; index < galaxy.missions && mProgressLineCount < kMaxProgressLines; index++) {
+        const int mission = App::LaunchStage::scenarioNumberAt(galaxy, index);
         ControlsEntry& line = mProgressLines[mProgressLineCount++];
         std::memset(&line, 0, sizeof(line));
         std::snprintf(line.action, sizeof(line.action), "Mission %d%s", mission, missionKind(galaxy, mission));
@@ -428,8 +431,11 @@ bool Menu::takeLevelRequest(const char** stage, int* mission) {
     mLevelPending = false;
     int count = 0;
     const App::LaunchStage::Galaxy* galaxies = App::LaunchStage::galaxies(&count);
+    if (!stage || !mission || !galaxies || mLevelGalaxy < 0 || mLevelGalaxy >= count) return false;
+    const int actual = App::LaunchStage::scenarioNumberAt(galaxies[mLevelGalaxy], mLevelMission - 1);
+    if (actual == 0) return false;
     *stage = galaxies[mLevelGalaxy].stage;
-    *mission = mLevelMission;
+    *mission = actual;
     return true;
 }
 
@@ -458,13 +464,22 @@ void Menu::refreshLevelLabels() {
         std::snprintf(mLevelMessage, sizeof(mLevelMessage), "Mod galaxies. Create your own galaxy.");
         return;
     }
+    if (!galaxies || count == 0) {
+        std::snprintf(mLevelLabels[0], sizeof(mLevelLabels[0]), "No SMG2 catalog loaded");
+        std::snprintf(mLevelLabels[1], sizeof(mLevelLabels[1]), "No missions available");
+        std::snprintf(mLevelMessage, sizeof(mLevelMessage), "Wait for the game's stage data to load.");
+        return;
+    }
+    mLevelGalaxy = std::clamp(mLevelGalaxy, 0, count - 1);
     const App::LaunchStage::Galaxy& galaxy = galaxies[mLevelGalaxy];
-    const char digit = static_cast<char>('0' + mLevelMission);
-    const bool comet = std::strchr(galaxy.comets, digit) != nullptr;
-    const bool hidden = std::strchr(galaxy.hidden, digit) != nullptr;
+    mLevelMission = std::clamp(mLevelMission, 1, galaxy.missions);
+    const int actual = App::LaunchStage::scenarioNumberAt(galaxy, mLevelMission - 1);
+    const auto* data = App::LaunchStage::scenario(galaxy.stage, actual);
+    const char* kind = data && !data->comet.empty() ? " (comet)" :
+                       data && data->powerStarType == "Hidden" ? " (hidden star)" :
+                       data && data->powerStarType == "Green" ? " (green star)" : "";
     std::snprintf(mLevelLabels[0], sizeof(mLevelLabels[0]), "%s", galaxy.name);
-    std::snprintf(mLevelLabels[1], sizeof(mLevelLabels[1]), "Mission %d of %d%s", mLevelMission, galaxy.missions,
-                  comet ? " (comet)" : hidden ? " (hidden star)" : "");
+    std::snprintf(mLevelLabels[1], sizeof(mLevelLabels[1]), "Mission %d (%d of %d)%s", actual, mLevelMission, galaxy.missions, kind);
     std::snprintf(mLevelMessage, sizeof(mLevelMessage), "%s. Left/Right changes; your save is not changed.",
                   App::LaunchStage::domeName(galaxy.dome));
 }
@@ -474,6 +489,7 @@ void Menu::changeLevelValue(int item, int delta) {
     const App::LaunchStage::Galaxy* galaxies = App::LaunchStage::galaxies(&count);
     if (item == 0) {
         const int slots = count + (mEditorEnabled ? 1 : 0);
+        if (slots == 0) { refreshLevelLabels(); return; }
         mLevelGalaxy = (mLevelGalaxy + delta + slots) % slots;
         mLevelMission = 1;
     } else if (mLevelGalaxy < count) {

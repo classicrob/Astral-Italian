@@ -11,6 +11,9 @@
 #include "Game/Util/SystemUtil.hpp"
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <JSystem/JKernel/JKRSolidHeap.hpp>
+#ifdef GALAXY_NATIVE
+#include <petari/ppc_integer.hpp>
+#endif
 
 void MR::connectToSceneImageEffect(NameObj* pObj) {
     MR::connectToScene(pObj, 0x15 /* MovementType_ImageEffect */, MR::CalcAnimType_Environment, MR::DrawBufferType_None, MR::DrawType_ImageEffect);
@@ -21,8 +24,20 @@ void MR::connectToSceneImageEffectMovement(NameObj* pObj) {
 }
 
 void ImageEffectLocalUtil::capture(JUTTexture* pTexture, s32 divisions, s32 tile, GXTexFmt format, bool clear, u8 filter) {
+#ifdef GALAXY_NATIVE
+    using namespace PetariNative::PPC;
+    // Follow 8047697C..804769B8, including DIVW exceptional results and low-word
+    // multiplication. The Wii evaluates the height argument before the width.
+    const s32 height = MR::getFrameBufferHeight();
+    const s32 y = divideSignedWord(multiplyWord(divideSignedWord(tile, divisions), height), divisions);
+    const s32 width = MR::getFrameBufferWidth();
+    const s32 column = subtractWord(tile, multiplyWord(divideSignedWord(tile, divisions), divisions));
+    const s32 x = divideSignedWord(multiplyWord(column, width), divisions);
+    pTexture->capture(x, y, format, clear, filter);
+#else
     pTexture->capture((tile % divisions) * MR::getFrameBufferWidth() / divisions, (tile / divisions) * MR::getFrameBufferHeight() / divisions, format,
                       clear, filter);
+#endif
 }
 
 void ImageEffectLocalUtil::setupDrawTexture() {

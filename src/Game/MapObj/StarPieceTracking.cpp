@@ -3,6 +3,9 @@
 #include "Game/MapObj/StarPieceDirector.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/Color.hpp"
+#endif
 #include "JSystem/JMath/JMath.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
 
@@ -19,7 +22,11 @@ StarPieceTrackingPiece::StarPieceTrackingPiece(const char* name)
 
 void StarPieceTrackingPiece::init(const JMapInfoIter& iter) {
     u32 color = StarPieceDirector::getRandomColor();
+#ifdef GALAXY_NATIVE
+    mColor = static_cast<GXColor>(Color8(color));
+#else
     mColor = *reinterpret_cast<const GXColor*>(&color);
+#endif
     MR::initActor(this, iter, "StarPiece", true);
     MR::initDLMakerMatColor0(this, "StarPiece1_v", &mColor);
     MR::newDifferedDLBuffer(this);

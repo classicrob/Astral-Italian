@@ -2,6 +2,9 @@
 #include "Game/MapObj/StarPieceDirector.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Util/Color.hpp"
+#endif
 namespace NrvStarPieceScatter {
     NEW_NERVE(StarPieceScatterNrvScatter,StarPieceScatter,Scatter);
 }
@@ -9,7 +12,11 @@ StarPieceScatter::StarPieceScatter(const char* name)
  :LiveActor(name),mColor((GXColor){0,0,0,255}),mUp(0.f,0.f,0.f){}
 void StarPieceScatter::init(const JMapInfoIter& iter){
     u32 color=StarPieceDirector::getRandomColor();
+#ifdef GALAXY_NATIVE
+    mColor = static_cast<GXColor>(Color8(color));
+#else
     mColor=*reinterpret_cast<const GXColor*>(&color);
+#endif
     MR::initActor(this,iter,"StarPiece",true);
     MR::initDLMakerMatColor0(this,"StarPiece1_v",&mColor);
     MR::newDifferedDLBuffer(this);

@@ -55,7 +55,13 @@ void GameSystemObjHolder::initAfterStationedResourceLoaded() {
 void GameSystemObjHolder::createStationedObjects() {
     SingletonHolder<NameObjRegister>::get()->setCurrentHolder(mObjHolder);
     _3C = new ResourceCsvGroupHolder();
+#ifdef GALAXY_NATIVE
+    // Natively the particle resource manager reads a host-layout copy of Particles.jpc (2.07 MiB on the
+    // disc) made on this heap, and its objects are larger; adjustSize() below trims the unused tail.
+    JKRSolidHeap* heap = JKRSolidHeap::create(0x200000 + 0x400000, MR::getCurrentHeap(), false);
+#else
     JKRSolidHeap* heap = JKRSolidHeap::create(0x200000, MR::getCurrentHeap(), false);
+#endif
     MR::CurrentHeapRestorer restorer(heap);
     mParticleResHolder = new ParticleResourceHolder("/ParticleData/Effect.arc");
     heap->adjustSize();

@@ -35,6 +35,7 @@ class StageEntry:
         self.expected = {name: dol_function(dol, address, size) for name, (address, size) in FUNCTIONS.items()}
         self.receipt = dict(schema_version=1, status="not-reached", approval="port lead A thr_re66v9zuv4",
                             method="original guest functions via GDB registers; no instruction or progress-flag patch",
+                            entry_tool_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                             stage="RedBlueExGalaxy", placed_scenario=1, selected_scenario=1,
                             entry_pc=f"0x{ENTRY:08x}", return_epilogue=f"0x{EPILOGUE:08x}",
                             stage_string=f"0x{STAGE_STRING:08x}", calls=[], destination_branch_skipped=False,
@@ -93,6 +94,8 @@ class StageEntry:
         if not 0x80251E50 <= caller < 0x80251F24:
             raise collector.ObserverError("stage entry did not originate in FileSelector::exeDemo")
         saved = self.save_registers(remote)
+        self.receipt.update(guest_fpscr_entry_bits="0x" + saved[70], guest_msr_entry_bits="0x" + saved[65],
+                            fp_observation_phase="file-loaded entry, before stage initialization; not a host FPCR/FZ equivalence claim")
         self.restore_registers(remote, saved)
         calls = [("reset", {3: holder}), ("request", {3: STAGE_STRING, 4: 1, 5: 1, 6: 0}),
                  ("set_in_stage", {3: in_game, 4: STAGE_STRING})]

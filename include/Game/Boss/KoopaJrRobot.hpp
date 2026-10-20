@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/CollisionObj.hpp"
 #include "Game/LiveActor/ShadowVolumeQuakeWave.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
@@ -182,12 +183,7 @@ class HomingKiller;
 class FixedPosition;
 
 // SMG2 CollisionObj (0x94 bytes); only the ctor is needed here (defined in another unit)
-class CollisionObj : public LiveActor {
-public:
-    CollisionObj(LiveActor*, const char*, const char*, HitSensor*, MtxPtr, s32);
-    virtual ~CollisionObj();
-    /* 0x90 */ u32 _90;
-};
+// CollisionObj: Game/LiveActor/CollisionObj.hpp (its 0x90 is MtxPtr mBaseMtx, a pointer).
 
 // TU03: pool of homing killers shared by the launchers (no vtable, 0x10 bytes)
 class KoopaJrRobotKillerPool {

@@ -187,6 +187,9 @@ LayoutHolder* MR::createAndAddLayoutHolderRawData(const char* pArcPath) {
 }
 
 void MR::createAndAddPaneCtrl(LayoutActor* pActor, const char* pPaneName, u32 animLayerNum) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     pActor->getLayoutManager()->createAndAddPaneCtrl(pPaneName, animLayerNum);
 }
 
@@ -204,11 +207,17 @@ bool MR::isExistPane(const LayoutActor* pActor, const char* pPaneName) {
 
 
 void MR::setInfluencedAlphaToChild(const LayoutActor* pActor) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
+#endif
     ::setInfluencedAlphaToChild(getRootPane(pActor));
 }
 
 
 void MR::setLayoutAlphaFloat(const LayoutActor* pActor, f32 alpha) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
+#endif
     f32 alphaFloat = clamp(alpha, 0.0f, 1.0f);
 
     nw4r::lyt::Pane* pane = pActor->getLayoutManager()->getPane(nullptr);
@@ -218,6 +227,9 @@ void MR::setLayoutAlphaFloat(const LayoutActor* pActor, f32 alpha) {
 
 
 void MR::executeTextBoxRecursive(LayoutActor* pActor, const char* pPaneName, const TextBoxRecursiveOperation& rOperation) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     nw4r::lyt::TextBox* pTextBox = nw4r::ut::DynamicCast< nw4r::lyt::TextBox* >(getPane(pActor, pPaneName));
 
     if (pTextBox != nullptr) {
@@ -232,19 +244,31 @@ void MR::executeTextBoxRecursive(LayoutActor* pActor, const char* pPaneName, con
 }
 
 void MR::setTextBoxGameMessageRecursive(LayoutActor* pActor, const char* pPaneName, const char* pMessageId) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     setTextBoxMessageRecursive(pActor, pPaneName, getGameMessageDirect(pMessageId));
 }
 
 
 void MR::setTextBoxSystemMessageRecursive(LayoutActor* pActor, const char* pPaneName, const char* pMessageId) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     setTextBoxMessageRecursive(pActor, pPaneName, getSystemMessageDirect(pMessageId));
 }
 
 void MR::setTextBoxMessageRecursive(LayoutActor* pActor, const char* pPaneName, const wchar_t* pMessage) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     executeTextBoxRecursive(pActor, pPaneName, TextBoxRecursiveSetMessage(pMessage));
 }
 
 void MR::setTextBoxFormatRecursive(LayoutActor* pActor, const char* pPaneName, const wchar_t* pFormat, ...) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     wchar_t message[256];
     va_list list;
 
@@ -256,10 +280,16 @@ void MR::setTextBoxFormatRecursive(LayoutActor* pActor, const char* pPaneName, c
 }
 
 void MR::setTextBoxArgNumberRecursive(LayoutActor* pActor, const char* pPaneName, s32 number, s32 argIndex) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     executeTextBoxRecursive(pActor, pPaneName, TextBoxRecursiveSetArgNumber(number, argIndex));
 }
 
 void MR::setTextBoxArgStringRecursive(LayoutActor* pActor, const char* pPaneName, const wchar_t* pMessage, s32 argIndex) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     executeTextBoxRecursive(pActor, pPaneName, TextBoxRecursiveSetArgString(pMessage, argIndex));
 }
 
@@ -270,10 +300,16 @@ void setTextBoxVerticalPositionRecursive(LayoutActor* pActor, const char* pPaneN
 
 
 void MR::setTextBoxVerticalPositionCenterRecursive(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     setTextBoxVerticalPositionRecursive(pActor, pPaneName, 1);
 }
 
 void MR::setTextBoxVerticalPositionBottomRecursive(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     setTextBoxVerticalPositionRecursive(pActor, pPaneName, 2);
 }
 
@@ -284,6 +320,9 @@ void setTextBoxHorizontalPositionRecursive(LayoutActor* pActor, const char* pPan
 
 
 void MR::updateClearTimeTextBox(LayoutActor* pActor, const char* pPaneName, u32 step) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     wchar_t clearTimeText[16];
 
     makeClearTimeString(clearTimeText, step);
@@ -291,6 +330,9 @@ void MR::updateClearTimeTextBox(LayoutActor* pActor, const char* pPaneName, u32 
 }
 
 void MR::updateMinuteAndSecondTextBox(LayoutActor* pActor, const char* pPaneName, u32 step) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     wchar_t minuteAndSecondText[16];
 
     makeMinuteAndSecondString(minuteAndSecondText, step);
@@ -298,26 +340,44 @@ void MR::updateMinuteAndSecondTextBox(LayoutActor* pActor, const char* pPaneName
 }
 
 void MR::setTextBoxFontRecursive(LayoutActor* pActor, const char* pPaneName, nw4r::ut::Font* pFont) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     executeTextBoxRecursive(pActor, pPaneName, TextBoxRecursiveSetFont(pFont));
 }
 
 void MR::showPane(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     getPane(pActor, pPaneName)->SetVisible(true);
 }
 
 void MR::showPaneRecursive(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     ::showPaneRecursive(getPane(pActor, pPaneName));
 }
 
 void MR::hidePane(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     getPane(pActor, pPaneName)->SetVisible(false);
 }
 
 void MR::hidePaneRecursive(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     ::hidePaneRecursive(getPane(pActor, pPaneName));
 }
 
 bool MR::isHiddenPane(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return true; }
+#endif
     return !getPane(pActor, pPaneName)->IsVisible();
 }
 
@@ -334,20 +394,32 @@ void MR::hideScreen(LayoutActor* pActor) {
 }
 
 void MR::setFollowPos(const TVec2f* pFollowPos, const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
+#endif
     pActor->getLayoutManager()->getPaneCtrl(pPaneName)->mFollowPos = pFollowPos;
 }
 
 void MR::setFollowTypeReplace(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
+#endif
     LayoutPaneCtrl* pCtrl = pActor->getLayoutManager()->getPaneCtrl(pPaneName);
     pCtrl->mFollowType = 0;
 }
 
 void MR::setFollowTypeAdd(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
+#endif
     LayoutPaneCtrl* pCtrl = pActor->getLayoutManager()->getPaneCtrl(pPaneName);
     pCtrl->mFollowType = 1;
 }
 
 void MR::copyPaneTrans(TVec2f* pTrans, const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { pTrans->zero(); return; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     pTrans->x = pPane->mGlbMtx._03;
     pTrans->y = pPane->mGlbMtx._13;
@@ -355,6 +427,9 @@ void MR::copyPaneTrans(TVec2f* pTrans, const LayoutActor* pActor, const char* pP
 }
 
 f32 MR::getPaneTransX(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     TVec2f trans(pPane->mGlbMtx._03, pPane->mGlbMtx._13);
     convertLayoutPosToScreenPos(&trans, trans);
@@ -362,6 +437,9 @@ f32 MR::getPaneTransX(const LayoutActor* pActor, const char* pPaneName) {
 }
 
 f32 MR::getPaneTransY(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     TVec2f trans(pPane->mGlbMtx._03, pPane->mGlbMtx._13);
     convertLayoutPosToScreenPos(&trans, trans);
@@ -369,34 +447,52 @@ f32 MR::getPaneTransY(const LayoutActor* pActor, const char* pPaneName) {
 }
 
 void MR::setLayoutPosAtPaneTrans(LayoutActor* pActor, const LayoutActor* pFollowActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
+#endif
     TVec2f trans;
     copyPaneTrans(&trans, pFollowActor, pPaneName);
     pActor->setTrans(trans);
 }
 
 void MR::copyPaneScale(TVec2f* pScale, const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { pScale->set(1.0f, 1.0f); return; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     pScale->set< f32 >(pPane->mScale.x, pPane->mScale.y);
 }
 
 
 void MR::setPaneScale(const LayoutActor* pActor, const char* pPaneName, f32 x, f32 y) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     nw4r::math::VEC2 scale(x, y);
     pActor->getLayoutManager()->getPane(pPaneName)->mScale = scale;
 }
 
 void MR::setLayoutScaleAtPaneScale(LayoutActor* pActor, const LayoutActor* pFollowActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
+#endif
     TVec2f scale;
     copyPaneScale(&scale, pFollowActor, pPaneName);
     setPaneScale(pActor, nullptr, scale.x, scale.y);
 }
 
 void MR::copyPaneRotate(TVec3f* pRotate, const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { pRotate->zero(); return; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     pRotate->set< f32 >(pPane->mRotate.x, pPane->mRotate.y, pPane->mRotate.z);
 }
 
 void MR::setPaneRotate(const LayoutActor* pActor, f32 x, f32 y, f32 z, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     nw4r::math::VEC3 rotate;
     rotate.x = x;
     rotate.y = y;
@@ -405,11 +501,17 @@ void MR::setPaneRotate(const LayoutActor* pActor, f32 x, f32 y, f32 z, const cha
 }
 
 void MR::setLayoutScalePosAtPaneScaleTrans(LayoutActor* pActor, const LayoutActor* pFollowActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
+#endif
     setLayoutPosAtPaneTrans(pActor, pFollowActor, pPaneName);
     setLayoutScaleAtPaneScale(pActor, pFollowActor, pPaneName);
 }
 
 void MR::setLayoutScalePosAtPaneScaleTransIfExecCalcAnim(LayoutActor* pActor, const LayoutActor* pFollowActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pFollowActor, pPaneName)) { return; }
+#endif
     if (isExecuteCalcAnimLayout(pActor)) {
         setLayoutScalePosAtPaneScaleTrans(pActor, pFollowActor, pPaneName);
     }
@@ -428,17 +530,32 @@ nw4r::lyt::TexMap* MR::createLytTexMap(ResTIMG* pImage) {
 }
 
 nw4r::lyt::TexMap* MR::getLytTexMap(LayoutActor* pActor, const char* pPaneName, u8 textureIndex) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return nullptr; }
+#endif
     nw4r::lyt::Picture* pPicture = nw4r::ut::DynamicCast< nw4r::lyt::Picture* >(getPane(pActor, pPaneName));
+#ifdef GALAXY_NATIVE
+    if (!pPicture || !pPicture->GetMaterial()) return nullptr;
+#endif
 
     return const_cast< nw4r::lyt::TexMap* >(&pPicture->GetMaterial()->GetTexture(textureIndex));
 }
 
 void MR::replacePaneTexture(LayoutActor* pActor, const char* pPaneName, const nw4r::lyt::TexMap* pTexture, u8 textureIndex) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     nw4r::lyt::Picture* pPicture = nw4r::ut::DynamicCast< nw4r::lyt::Picture* >(getPane(pActor, pPaneName));
+#ifdef GALAXY_NATIVE
+    if (!pPicture || !pPicture->GetMaterial() || !pTexture) return;
+#endif
     pPicture->GetMaterial()->SetTexture(textureIndex, *pTexture);
 }
 
 void MR::startAnim(LayoutActor* pActor, const char* pAnimName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)) { return; }
+#endif
     pActor->getLayoutManager()->getPaneCtrl(nullptr)->start(pAnimName, animLayer);
 
     if (pActor->mEffectKeeper != nullptr) {
@@ -447,22 +564,34 @@ void MR::startAnim(LayoutActor* pActor, const char* pAnimName, u32 animLayer) {
 }
 
 void MR::startAnimAtFirstStep(LayoutActor* pActor, const char* pAnimName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
+#endif
     if (isFirstStep(pActor)) {
         startAnim(pActor, pAnimName, animLayer);
     }
 }
 
 void MR::startPaneAnim(LayoutActor* pActor, const char* pPaneName, const char* pAnimName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
+#endif
     pActor->getLayoutManager()->getPaneCtrl(pPaneName)->start(pAnimName, animLayer);
 }
 
 void MR::startPaneAnimAtStep(LayoutActor* pActor, const char* pPaneName, const char* pAnimName, s32 step, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
+#endif
     if (isStep(pActor, step)) {
         startPaneAnim(pActor, pPaneName, pAnimName, animLayer);
     }
 }
 
 void MR::startPaneAnimAtFirstStep(LayoutActor* pActor, const char* pPaneName, const char* pAnimName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
+#endif
     if (isFirstStep(pActor)) {
         startPaneAnim(pActor, pPaneName, pAnimName, animLayer);
     }
@@ -471,6 +600,9 @@ void MR::startPaneAnimAtFirstStep(LayoutActor* pActor, const char* pPaneName, co
 
 
 void MR::startAnimAndSetFrameAndStop(LayoutActor* pActor, const char* pAnimName, f32 animFrame, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return; }
+#endif
     startAnim(pActor, pAnimName, animLayer);
     setAnimFrameAndStop(pActor, animFrame, animLayer);
 }
@@ -481,6 +613,9 @@ void MR::startPaneAnimAndSetFrameAndStop(LayoutActor* pActor, const char* pPaneN
 }
 
 void MR::setAnimFrameAndStop(LayoutActor* pActor, f32 animFrame, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return; }
+#endif
     J3DFrameCtrl* pFrameCtrl = getAnimCtrl(pActor, animLayer);
 
     pFrameCtrl->setFrame(animFrame);
@@ -488,10 +623,16 @@ void MR::setAnimFrameAndStop(LayoutActor* pActor, f32 animFrame, u32 animLayer) 
 }
 
 void MR::setAnimFrameAndStopAtEnd(LayoutActor* pActor, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr)) { return; }
+#endif
     setAnimFrameAndStop(pActor, getAnimFrameMax(pActor, animLayer), animLayer);
 }
 
 void MR::setAnimFrameAndStopAdjustTextWidth(LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     nw4r::ut::Rect rect;
     ::getTextDrawRectRecursive(&rect, pPane, false);
@@ -499,6 +640,9 @@ void MR::setAnimFrameAndStopAdjustTextWidth(LayoutActor* pActor, const char* pPa
 }
 
 void MR::setAnimFrameAndStopAdjustTextHeight(LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     nw4r::ut::Rect rect;
     ::getTextDrawRectRecursive(&rect, pPane, false);
@@ -506,6 +650,9 @@ void MR::setAnimFrameAndStopAdjustTextHeight(LayoutActor* pActor, const char* pP
 }
 
 void MR::setPaneAnimFrameAndStop(LayoutActor* pActor, const char* pPaneName, f32 animFrame, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return; }
+#endif
     J3DFrameCtrl* pFrameCtrl = getPaneAnimCtrl(pActor, pPaneName, animLayer);
 
     pFrameCtrl->setFrame(animFrame);
@@ -514,62 +661,107 @@ void MR::setPaneAnimFrameAndStop(LayoutActor* pActor, const char* pPaneName, f32
 
 
 void MR::setAnimFrame(LayoutActor* pActor, f32 animFrame, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return; }
+#endif
     getAnimCtrl(pActor, animLayer)->setFrame(animFrame);
 }
 
 void MR::setPaneAnimFrame(LayoutActor* pActor, const char* pPaneName, f32 animFrame, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return; }
+#endif
     getPaneAnimCtrl(pActor, pPaneName, animLayer)->setFrame(animFrame);
 }
 
 void MR::setAnimRate(LayoutActor* pActor, f32 animRate, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return; }
+#endif
     getAnimCtrl(pActor, animLayer)->setRate(animRate);
 }
 
 void MR::setPaneAnimRate(LayoutActor* pActor, const char* pPaneName, f32 animRate, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return; }
+#endif
     getPaneAnimCtrl(pActor, pPaneName, animLayer)->setRate(animRate);
 }
 
 void MR::stopAnim(LayoutActor* pActor, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)) { return; }
+#endif
     pActor->getLayoutManager()->getPaneCtrl(nullptr)->stop(animLayer);
 }
 
 void MR::stopPaneAnim(LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return; }
+#endif
     pActor->getLayoutManager()->getPaneCtrl(pPaneName)->stop(animLayer);
 }
 
 bool MR::isAnimStopped(const LayoutActor* pActor, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)) { return true; }
+#endif
     return pActor->getLayoutManager()->getPaneCtrl(nullptr)->isAnimStopped(animLayer);
 }
 
 bool MR::isPaneAnimStopped(const LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)) { return true; }
+#endif
     return pActor->getLayoutManager()->getPaneCtrl(pPaneName)->isAnimStopped(animLayer);
 }
 
 f32 MR::getAnimFrame(const LayoutActor* pActor, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return 0; }
+#endif
     return getAnimCtrl(pActor, animLayer)->getFrame();
 }
 
 f32 MR::getPaneAnimFrame(const LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return 0; }
+#endif
     return getPaneAnimCtrl(pActor, pPaneName, animLayer)->getFrame();
 }
 
 s16 MR::getAnimFrameMax(const LayoutActor* pActor, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !getAnimCtrl(pActor, animLayer)) { return 0; }
+#endif
     return getAnimCtrl(pActor, animLayer)->getEnd();
 }
 
 s16 MR::getPaneAnimFrameMax(const LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !getPaneAnimCtrl(pActor, pPaneName, animLayer)) { return 0; }
+#endif
     return getPaneAnimCtrl(pActor, pPaneName, animLayer)->getEnd();
 }
 
 s16 MR::getAnimFrameMax(const LayoutActor* pActor, const char* pAnimName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getAnimTransform(pAnimName)) { return 0; }
+#endif
     return pActor->getLayoutManager()->getAnimTransform(pAnimName)->GetFrameSize();
 }
 
 J3DFrameCtrl* MR::getAnimCtrl(const LayoutActor* pActor, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr) || !pActor->getLayoutManager()->getPaneCtrl(nullptr)->getFrameCtrl(animLayer)) { return nullptr; }
+#endif
     return pActor->getLayoutManager()->getPaneCtrl(nullptr)->getFrameCtrl(animLayer);
 }
 
 J3DFrameCtrl* MR::getPaneAnimCtrl(const LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName) || !pActor->getLayoutManager()->getPaneCtrl(pPaneName)->getFrameCtrl(animLayer)) { return nullptr; }
+#endif
     return pActor->getLayoutManager()->getPaneCtrl(pPaneName)->getFrameCtrl(animLayer);
 }
 
@@ -702,6 +894,9 @@ void MR::setNerveAtAnimStopped(LayoutActor* pActor, const Nerve* pNerve, u32 ani
 }
 
 void MR::setNerveAtPaneAnimStopped(LayoutActor* pActor, const char* pPaneName, const Nerve* pNerve, u32 animLayer) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     if (isPaneAnimStopped(pActor, pPaneName, animLayer)) {
         pActor->setNerve(pNerve);
     }
@@ -794,14 +989,23 @@ SimpleLayout* MR::createSimpleLayoutTalkParts(const char* pName, const char* pAr
 }
 
 nw4r::lyt::Pane* MR::getPane(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return nullptr; }
+#endif
     return pActor->getLayoutManager()->getPane(pPaneName);
 }
 
 nw4r::lyt::Pane* MR::getRootPane(const LayoutActor* pActor) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, nullptr)) { return nullptr; }
+#endif
     return pActor->getLayoutManager()->getPane(nullptr);
 }
 
 void MR::calcTextBoxRectRecursive(TBox2f* pBox, const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { pBox->i.zero(); pBox->f.zero(); return; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     nw4r::ut::Rect rect;
 
@@ -818,6 +1022,9 @@ void MR::calcTextBoxRectRecursive(TBox2f* pBox, const LayoutActor* pActor, const
 }
 
 u32 MR::getTextLineNumMaxRecursive(const LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return 0; }
+#endif
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
 
     if (pPane != nullptr) {
@@ -862,10 +1069,16 @@ namespace {
 
 
 void MR::setTextBoxNumberRecursive(LayoutActor* pActor, const char* pPaneName, s32 number) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     setTextBoxFormatRecursive(pActor, pPaneName, L"%d", number);
 }
 
 void MR::clearTextBoxMessageRecursive(LayoutActor* pActor, const char* pPaneName) {
+#ifdef GALAXY_NATIVE
+    if (!nativeLayoutPaneReady(pActor, pPaneName)) { return; }
+#endif
     setTextBoxMessageRecursive(pActor, pPaneName, L"");
 }
 

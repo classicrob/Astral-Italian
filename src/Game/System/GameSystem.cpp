@@ -1,5 +1,8 @@
 #ifdef GALAXY_NATIVE
 #include <petari/app.hpp>
+#include "launch_stage.hpp"
+#include <cstdlib>
+#include <cstdio>
 #endif
 #if defined(GALAXY_NATIVE) && defined(GALAXY_HEADLESS)
 #include <petari/headless.h>
@@ -189,6 +192,23 @@ void GameSystem::initAfterStationedResourceLoaded() {
     mSceneController->initAfterStationedResourceLoaded();
     mSequenceDirector->initAfterResourceLoaded();
     mDataHolder->init();
+#ifdef GALAXY_NATIVE
+    // Publish once, after both ScenarioDataParser and world order are loaded.
+    namespace Launch = PetariNative::App::LaunchStage;
+    if (Launch::catalogConfigured()) {
+        const JMapInfo* order = GameSystemDataFunction::getGalaxyWorldOrderList();
+        std::string error;
+        if (!order || !Launch::onGameDataReady(*mSceneController->mScenarioParser, *order, &error)) {
+            if (!order) error = "GalaxyWorldOrderList is unavailable";
+            Launch::failStartupRequest(error);
+            std::fprintf(stderr, "SMG2 level select: %s\n", error.c_str());
+            if (Launch::catalogListingRequested() || Launch::startupStatus() != Launch::StartupStatus::Idle)
+                std::_Exit(2);
+        }
+    }
+    // Save inventory/frontend integration belongs AFTER successful publication;
+    // it is not implemented by the launch adapter.
+#endif
 }
 
 void GameSystem::prepareReset() {

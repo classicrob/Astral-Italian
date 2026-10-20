@@ -1,3 +1,8 @@
+#ifdef GALAXY_NATIVE
+#include "launch_stage.hpp"
+#include <cstdio>
+#include <cstdlib>
+#endif
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/NWC24/NWC24Messenger.hpp"
@@ -263,6 +268,15 @@ namespace GameSequenceFunction {
         if (!MR::isOnGameEventFlagNormalEnding()) {
             GameDataFunction::forceMarioPlayer();
         }
+#ifdef GALAXY_NATIVE
+        // An explicit startup request overrides this one destination only.
+        namespace Launch = PetariNative::App::LaunchStage;
+        if (Launch::onFileLoaded(true)) return;
+        if (Launch::startupStatus() == Launch::StartupStatus::Failed) {
+            std::fprintf(stderr, "SMG2 stage request: %s\n", Launch::startupError().c_str());
+            std::_Exit(2);
+        }
+#endif
         if (GameDataFunction::isOnGameEventFlag("オープニング実行")) {
             s32 powerStarNum = GameDataFunction::calcCurrentPowerStarNum();
             if (powerStarNum == 0) {

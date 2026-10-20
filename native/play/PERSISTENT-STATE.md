@@ -1,6 +1,7 @@
 # Persistent-state inventory (schema 1)
 
-Source audit: 2026-10-20, application freeze base `fe71f35b`; Aurora
+Source audit: 2026-10-20, application freeze base `fe71f35b` plus cache-policy
+commit `1b122ce49a9c5f14baa0cf45b352f51b58d6c872`; Aurora
 `08122911e8621acb7ded6563813b264bec1494b5` (pinned by
 `native/gx/CMakeLists.txt`). This inventories runtime write destinations,
 including opt-in diagnostics and transient files. Paths below are families when
@@ -28,9 +29,11 @@ No state is moved, deleted or migrated by this document or the player launcher.
 - Background smoke: `U/cache` (or `PETARI_CACHE_DIR`) is `C`, with locks on both
   roots. Metal and temporary namespaces are isolated below; this mode refuses
   the app's default real user directory. Source: `native/app/smoke_storage.cpp`.
-- Nothing is automatically keyed by frozen build number. Separate `ASTRAL_USER`
-  and `PETARI_CACHE_DIR` are needed for per-build save/settings and graphics
-  cache isolation. Explicit output paths are shared if reused. Never use
+- Save/settings roots are not keyed by frozen build number: separate
+  `ASTRAL_USER` values isolate them. Graphics databases share a root but use
+  renderer-content-keyed filenames and metadata, described below. Identical
+  renderers may share caches across frozen builds; `PETARI_CACHE_DIR` selects
+  a separate root when needed. Explicit output paths are shared if reused. Never use
   `~/Library/Application Support/Petari` (the separate SMG1 game).
 
 ## Normal app state
@@ -48,7 +51,7 @@ No state is moved, deleted or migrated by this document or the player launcher.
 | `U/mods-cache/**` | Generated disc-file patches for enabled folder mods. | Per `U`; `native/platform/dvd/mod_folder.cpp`, `resolveForUser`. Patch builder/editor integration is deferred by root `CMakeLists.txt` in this SMG2 base; retain the configured destination in the inventory. |
 | `U/imgui.ini` | ImGui window/layout settings. | Per `U`; pinned Aurora `lib/imgui.cpp`, `g_imguiSettings`. |
 | `U/controller_ports.dat`; `U/keyboard_bindings.dat`; `U/<controller-name>_<VID>_<PID>.controller`; corresponding `.tmp-<unique>` siblings | Aurora port preferences and controller/keyboard mapping serialization, when those Aurora UI paths are used. Separate from native `controls.txt`. | Per `U`; pinned Aurora `lib/input.cpp`, `lib/dolphin/pad/pad.cpp`, `lib/io.cpp` atomic writer. |
-| `C/pipeline_cache.db`, `C/dawn_cache.db`; SQLite `-wal`, `-shm`, `-journal` and adoption `.partial` siblings | Pipeline configurations and Dawn compiled data. First normal launch can snapshot existing `U` databases into absent machine databases. | Shared machine defaults; explicit/test roots as above. `pipeline_cache_dir.cpp`; pinned Aurora `lib/gfx/pipeline_cache.cpp`, `lib/webgpu/gpu_cache.cpp`. Bundled `initial_pipeline_cache.db` is read-only input, not an additional output. |
+| `C/pipeline_cache.<renderer-key>.db`, `C/dawn_cache.<renderer-key>.db`; SQLite `-wal`, `-shm`, `-journal` and adoption `.partial` siblings | Pipeline configurations and Dawn compiled data. Exactly one matching `petari_cache_build` identity is mandatory; only empty newly created databases can acquire it at runtime. Normal/background adoption copies only matching named and tagged `U` databases. Legacy `pipeline_cache.db` / `dawn_cache.db`, foreign keys and untagged databases are ignored and left untouched, even if renamed. | Root selection/locks unchanged; namespace shared only by identical renderer keys. `native/gx/pipeline_cache_identity.{hpp,py}`, `patch_aurora_cache_policy.py`; `pipeline_cache_dir.cpp`, `smoke_storage.cpp`; Aurora pipeline/Dawn cache call sites patched by commit `1b122ce4`. |
 | `C/imgui.log` | ImGui's configured debug log destination, when logging is requested. | Same sharing as cache; pinned Aurora `lib/imgui.cpp`. |
 | `~/Library/Caches/AstralItalian/.petari-instance.lock` | Machine graphics-cache flock file; file may remain after process exit. | Machine shared; `pipeline_cache_dir.cpp`. Override/test paths bypass this particular lock. Do not infer a live owner from file existence. |
 | `U/Crashes/petari-crash-<time>-<pid>.txt` | Native fatal/signal report. | Per `U`; `platform_host.cpp`; `native/platform/os/os_crash.cpp`. |
@@ -126,8 +129,33 @@ and arena mappings/tests, adding no write destination. Auditing the earlier
 inventory base `3056913b..fe71f35b` additionally identified the unlocked-user
 launcher/helper flow and the finalized actor sidecars documented above. Mod
 behavior changes retain `U/mods.txt`; they do not add storage roots. Cache
-invalidation changes must be reflected in the cache rows when their separate
-source commit is available; a proposed layout is not an implemented contract.
+policy commit `1b122ce4` subsequently replaces the unkeyed database names with
+renderer-keyed names and checks all adoption/fallback paths as described here.
+
+## Renderer cache identity and seeds
+
+The renderer key is SHA256 of the renderer/config schema, pinned Aurora input,
+native GX source/patch chain and renderer packaging inputs. It excludes checkout
+paths, mtimes and Git state; it is **not the whole game-source revision** or a
+frozen build number. P's delivered `1b122ce4` key is
+`2e0537ae4d307d5bdd63cfd5edf1ea1187d0dfa557789878a4f984bcd8a6b917`;
+later renderer changes can produce a different key.
+
+All normal machine, `PETARI_CACHE_DIR`, user-fallback and background-smoke roots
+use the same filename/metadata admission. A busy or failed machine cache cannot
+bypass this through `U`. Non-renderer state such as `imgui.log`, `imgui.ini`,
+locks and the OS-managed Metal namespace is not renamed by this change.
+
+Bundling writes a **build-local copy** of initial/stage seed databases, stamps
+it with the target renderer identity and leaves the seed input untouched.
+Pre-stamped foreign seeds are errors, not relabeled inputs. The bundled
+`initial_pipeline_cache.db` and stage seed inputs are read-only at play time;
+they are admitted by identity before import into the keyed runtime database.
+GX preload, initial-seed and stage-manifest ingresses validate structure and
+sampled texgens, skip invalid rows and log their hashes/reasons. They never
+normalize or repair invalid bytes. This changes admission, not the SQLite
+format version or any save location. Source contract:
+`docs/port/pipeline-cache-policy.md` at `1b122ce4`.
 
 ## Framework / temporary state and inactive features
 

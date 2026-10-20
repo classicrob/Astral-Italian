@@ -70,8 +70,14 @@ target_include_directories(petari_game_objects PRIVATE "${PETARI_LEGACY_ROOT}/li
 target_compile_options(petari_game_objects PRIVATE -Wno-inconsistent-missing-override -fno-rtti)
 
 include(CTest)
-add_library(petari_host_runtime STATIC native/src/host_allocation.cpp native/src/asset_diagnostics.cpp native/text/utf16.cpp)
+add_library(petari_host_runtime STATIC native/src/host_allocation.cpp native/src/asset_diagnostics.cpp native/text/utf16.cpp
+    native/text/msl_stdio.cpp)
 target_link_libraries(petari_host_runtime PUBLIC petari_native_config)
+if(BUILD_TESTING)
+    add_executable(petari_msl_stdio_tests native/tests/msl_stdio_tests.cpp)
+    target_link_libraries(petari_msl_stdio_tests PRIVATE petari_host_runtime)
+    add_test(NAME native_msl_stdio COMMAND petari_msl_stdio_tests)
+endif()
 add_library(petari_memory STATIC native/memory/address_api.cpp native/memory/arena.cpp src/RVL_SDK/os/OSAlloc.c)
 petari_encode_target_sources(petari_memory)
 set_source_files_properties("${PETARI_LEGACY_ROOT}/src/RVL_SDK/os/OSAlloc.c" PROPERTIES LANGUAGE CXX)

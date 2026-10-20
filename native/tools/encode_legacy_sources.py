@@ -19,6 +19,8 @@ TOKEN = re.compile(
     r'|(?P<identifier>\b[A-Za-z_][A-Za-z_0-9]*\b)', re.MULTILINE
 )
 WIDE_FUNCTIONS = {'wcslen', 'wcscpy', 'wcsncpy', 'wcscmp', 'wcschr', 'swprintf', 'vswprintf'}
+# Narrow formatting with MSL semantics (petari/msl_stdio.h): a null %s prints nothing, `l` integers are 32 bits.
+NARROW_FUNCTIONS = {'snprintf', 'vsnprintf', 'sprintf', 'vsprintf'}
 ESCAPE_OR_CHARACTER = re.compile(r'\\(?:u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8}|[\s\S])|[^\\]')
 EXTENSIONS = {'.c', '.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.inc'}
 
@@ -39,6 +41,8 @@ def transform(source):
                 return 'PetariChar16'
             if text in WIDE_FUNCTIONS:
                 return 'petari_utf16_' + text
+            if text in NARROW_FUNCTIONS:
+                return 'petari_msl_' + text
             return text
         if match.lastgroup == 'comment' or match.group('comment') is not None:
             return text
@@ -80,7 +84,7 @@ def prepare(root, output):
         except UnicodeEncodeError as error:
             raise ValueError(f'{path}: literal is not representable in Shift-JIS: {error}') from error
         destination = output / path.relative_to(root)
-        content = '#include <petari/utf16.h>\n#line 1 ' + json.dumps(str(path), ensure_ascii=False) + '\n' + encoded
+        content = '#include <petari/utf16.h>\n#include <petari/msl_stdio.h>\n#line 1 ' + json.dumps(str(path), ensure_ascii=False) + '\n' + encoded
         if not destination.exists() or destination.read_text(encoding='utf-8') != content:
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(content, encoding='utf-8')

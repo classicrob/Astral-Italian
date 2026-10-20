@@ -1,210 +1,152 @@
-# Unlocked saves
+# SMG2 unlocked saves
 
-SMG2 skeleton: paths below use SB4E01 title identity. Save layout and compatibility
-have not been validated for SMG2; the remaining procedures are imported SMG1 reference.
+**Status: runtime verification pending port GO. No generated SMG2 save has been
+verified or published by this implementation.** Real-disc execution is server-only;
+no game assets, saves or disc-derived catalogs belong on the M1, in attachments,
+in a repository/build tree or in a team evidence directory. The Python transport
+and native contract tests pass with explicitly synthetic data. The engine adapter has a
+native compile check; it has not run in the full application.
 
-Ready-made saves unlock the observatory destinations. Choose `grand-finale`
-for all content including Grand Finale and an already-completed Luigi file.
-They are for playing and testing. Each save is in its own directory under
-`build/saves/`. Your own save in `~/Library/Application Support/Petari` is never
-read or changed.
+The former instructions described SMG1: 120-star Mario/Luigi files, observatory
+domes, Grand Finale and specific Hungry Luma seeds. They are not SMG2 facts and
+are not supported variants. This tool does not parse, construct, patch or invent
+save-format bytes, or install anything into a personal NAND.
 
-| Directory | File 1 contains | Use it for |
+## Requested profiles
+
+| Variant | Exact selected star identities | Required game readback |
 |---|---|---|
-| `build/saves/all-missions` | Mario with 120 stars. All six domes and the regular missions are open; Grand Finale remains locked. The observatory is fully restored. | Replaying the regular game as Mario. |
-| `build/saves/complete-luigi` | The same, plus the 120-star ending counted as seen, so Luigi is playable. Luigi's own game starts from the beginning, as in the real game. | Playing as Luigi. |
-| `build/saves/grand-finale` | Mario and Luigi each with 120 stars and both endings seen, so the Grand Finale Galaxy is open. | All content, including Grand Finale and unlocked Luigi levels. |
+| `worlds1-6` | Every non-green star in actual worlds 1 through 6 | Worlds 1–6 open |
+| `postgame` | Every non-green star in actual worlds 1 through 7 | Worlds 1–6, postgame and World S open |
+| `all-stars` | All 242 actual SB4E01 identities, including green stars | Previous checks, green stars, and Luigi/Master Luma if applicable |
 
-## Why the stars are collected
+Counts for the smaller profiles come from the loaded SMG2 catalog and save
+storage. A scenario row is not a star. `PowerStarId` is a bitmask; multiple
+actual `ScenarioNo` values can refer to the same `(galaxy, starId)` record.
+Neither the 242 acceptance guard nor a reported positive maximum creates an
+inventory: the adapter must independently resolve all 242 records, check the
+game's maximum and reverse-check every allocated galaxy record. Partial or
+ambiguous inventories fail.
 
-The game cannot open a galaxy without collecting stars. Every dome, galaxy,
-comet and Hungry Luma galaxy opens because of collected stars or Grand Stars.
-Mission select also depends on stars. It shows the missions you have finished
-plus the next one. Comet, purple-coin and hidden missions appear in the list only
-after their star is collected. The only way to open everything with no stars
-would be to change the game's rules, so these saves hold the stars. A mission
-whose star you already have can still be played in full. It gives a see-through
-star at the end.
+Profiles are exact. An isolated seed with any owned star outside the requested
+profile is rejected before mutation, including a green/World S star retained
+from a higher-progress seed. Use a lower-progress seed created by the game.
+Selected bronze stars must become real stars. This implementation does not reset
+a file or silently erase progress. Config/icon data and every unrelated save
+record must remain byte-identical through the game's own serializers.
 
-The Hungry Lumas inside galaxies count as fed, as they would be after their
-missions. Six galaxies have one: Space Junk, Battlerock, Dusty Dune, Sea Slide,
-Toy Time and Melty Molten. The planet each turns into is already there in
-later missions, for example Toy Time's comet, which starts on it.
+**All three runtime policies currently remain unsupported.** SMG2 world-map
+point/path transitions and the World S/Luigi/Master Luma setter/getter rules
+must be established from the actual engine before enabling them. A star count
+alone does not establish those unlocks. Only Luigi and Master Luma may be marked
+not applicable, with explicit SMG2 evidence and readback; this cannot waive a
+world or ending requirement.
 
-In every variant, the Grand Finale's own star is left uncollected. Tutorial and
-first power-up explanations are still unseen. Records such as best race times
-and coin scores are empty.
+## Engine adapter and remaining integration
 
-## Playing one
+`src/Game/System/NativeUnlockedSave.cpp/.hpp` are entirely `GALAXY_NATIVE` and
+are not added to the Wii configure list. They consume the level-select owner's
+read-only `CatalogGalaxy` API, not an authored SMG1 table. Native build
+integration must include that catalog change first.
 
-Use the directory directly. This leaves it unchanged except for your own
-progress:
+The catalog is derived from SMG2 `ScenarioData.bcsv`, `GalaxyInfo.bcsv` and
+`GalaxyWorldOrderList.bcsv`. The single shared publication seam is the end of
+`GameSystem::initAfterStationedResourceLoaded`, after `mDataHolder->init()`.
+The level-select owner publishes first; saves must require `catalogReady()`.
+The adapter compares raw masks with the actual parser, validates save-array
+bounds before the unchecked engine accessor, checks hidden/green placement
+with `MR::getPlacedHiddenStarScenarioNo` and actual mask membership, and reads
+owned/bronze state from the actual holder. A helper's fallback scenario 1 is
+not accepted without membership.
 
-```sh
-build/macos-gx/native/app/Petari.app/Contents/MacOS/Petari --user build/saves/grand-finale
-```
+`Readback` is an asynchronous persistence adapter. The normal event loop must
+continue pumping `SaveDataHandleSequence::update` and the NAND worker. It:
 
-Choose file 1 on the file select screen. The game saves progress to this
-directory. It also keeps its settings and shader caches there, so the first
-launch may prepare shaders for longer than your usual directory does. To start
-over, make the save again (see below). You can also copy the directory before
-playing and use the copy.
+1. Loads with the existing `SaveDataHandler::requestLoadGameData`, checks its
+   actual result and calls `requestVerifyAfterLoadGameDataFile`. That canonical
+   function covers version/header, file size and checksum.
+2. Selects an existing file through `startLoadUserFile`, checking both corruption
+   flags and creation state. Slot membership comes from the validated game
+   directory, not an assumed SMG1 six-slot layout.
+3. Saves the selected holder/config with `storeUserFile` and
+   `requestSaveSaveData`, preserving config and every other game record.
+4. Waits for actual completion, reloads through the same regular game path and
+   compares all stored records plus the holder's own serialized readback.
 
-## Install as your normal save (about one minute)
+This transport is not a progression certificate. Complete semantic getter
+checks, actual policy mutation and bound JSON inventory/request/receipt handling
+still need the coordinated runtime frontend. No callbacks are installed into
+shared GameSystem/app_main/SaveDataHandleSequence files by this branch; the port
+lead owns that integration and the full-app gate. The generic synchronous
+`Backend` header is a testable contract, not an implementation of asynchronous
+NAND completion.
 
-**Quit Petari first**. Run these commands
-from this repository's root in Terminal. Choose the variant on the first line.
-These are instructions for you to run; the test tools never install a save into
-your normal directory.
+## Publication protocol
 
-```sh
-(
-set -e
-variant=grand-finale
-save_relative=NAND/title/00010000/53423445/data/GameData.bin
-petari_user="$HOME/Library/Application Support/Petari"
-petari_backup=$(mktemp -d "$HOME/Desktop/Petari-save-backup.XXXXXX")
-if [ -d "$petari_user/NAND" ]; then
-  ditto "$petari_user/NAND" "$petari_backup/NAND"
-fi
-mkdir -p "$petari_user/NAND/title/00010000/53423445/data"
-cp "build/saves/$variant/$save_relative" "$petari_user/$save_relative"
-printf 'Keep this backup: %s\n' "$petari_backup"
-)
-```
-
-**This replaces the entire six-slot save container**, not just file 1. Settings
-and shader caches are retained. Each published variant changes file 1; the
-other five slots come from the test seed, not your existing save. Keep the printed
-backup directory. Launch Petari normally and select file 1.
-
-### Restore your previous save
-
-Quit Petari, replace the example backup path
-below with the printed path, and copy back the original container:
-
-```sh
-cp "$HOME/Desktop/Petari-save-backup.EXAMPLE/NAND/title/00010000/53423445/data/GameData.bin" \
-   "$HOME/Library/Application Support/Petari/NAND/title/00010000/53423445/data/GameData.bin"
-```
-
-For Luigi with every level already unlocked, use `grand-finale` and switch to
-Luigi on file 1's character selection. `complete-luigi` unlocks the character,
-but his separate adventure has no collected stars yet. Grand Finale is reached
-through its observatory NPC, rather than one of the six dome maps. Hungry Luma
-and other observatory destinations also use their own entrances.
-
-## Fix a save made before 2026-10-01 (Hungry Lumas)
-
-Saves made from these variants before 2026-10-01 have the stars but not the
-Hungry Lumas fed inside galaxies. In those saves Toy Time's comet and hidden
-star start Mario in empty space, and Battlerock's bomb time attack has no
-planet. Other missions with a Hungry Luma in them ask you to feed it again. To
-fix a save you have been playing, without losing your progress, **quit Petari
-first** and run this from the repository root, with your save directory:
+`native/tools/make_unlocked_save.py` requires a cooperating executable and an
+explicit `--run`. Until the runtime integration and port GO exist, generation
+fails; old CLI/log output cannot satisfy this protocol. Once approved on the
+server (these are private-path examples, not local assets):
 
 ```sh
-python3 native/tools/make_unlocked_save.py --feed-galaxy-lumas ~/Petari-playtest/all-missions
+python3 native/tools/make_unlocked_save.py \
+  --variant all-stars --seed /private/server-gamedata/isolated-game-created-seed \
+  --output /private/server-gamedata/new-isolated-all-stars \
+  --app /absolute/built/Petari --disc /private/server-gamedata/extracted-SMG2 --run
 ```
 
-In every file, as Mario and as Luigi, it records a galaxy's Hungry Luma as fed
-when the file holds a star that shows it was fed: one from a mission the Luma
-appears in, or one won on the planet it turns into. Nothing else changes. Your
-stars, Star Bits, lives and records stay as they are. The game makes the change
-on a copy, saves it with its own save sequence and checks it on reload. The script
-then confirms that only those Star Bit counts changed, and copies your previous
-`GameData.bin` to `save-backups/` in the save directory. Only then does it
-replace the save. If anything fails, your save is not changed. A save that
-needs nothing is left untouched. To undo, copy the backup back over
-`NAND/title/00010000/53423445/data/GameData.bin`.
+The production driver checks LocalHostName `MacBook-Pro-52` and the existence
+of `~/MacioGalaxy2-gamedata/README.txt` before reading/copying a seed. Other hosts,
+including the M1, are refused; it reads no asset to perform this check. It refuses
+seed/disc/output paths inside any git checkout/worktree or a build/team/upload
+area. The executable itself may live in a build tree; assets and generated
+artifacts may not. All working copies, catalogs, receipts, logs and NAND ledgers
+remain in the private server output parent; do not mirror them as team evidence.
 
-## Making a save again
+The seed and output must be disjoint. The output must not exist. Personal
+`~/Library/Application Support/Petari` and its descendants, symlink NAND entries
+and unmarked CLI work directories are refused. The tool copies the seed's NAND
+into a new private work directory; the seed is never passed as `--user`.
 
-`native/tools/make_unlocked_save.py` makes these saves:
+The first application run is `--make-unlocked-save inventory`. Its JSON, retained privately on the server, must
+identify `SB4E01`, the fresh random run ID, provenance, a complete engine-validated
+inventory and supported profile/getter rules, plus the actual selected `slot`,
+`seed_owned` identities and `seed_owned_count` from the regular loader. The inventory run may not alter
+NAND. The tool writes an exact identity plan to `unlocked-save-request.json`
+then launches the requested variant. The application must refuse out-of-profile
+seed stars **before** changing the holder.
+
+A successful game-written `unlocked-save-receipt.json` must bind the run, plan,
+app, seed, inventory and saved-file hashes; contain exact before/after owned
+identities and bronze state; and report actual save completion, regular loader,
+header/version/checksum, serialized readback, unchanged other slots, clear
+corruption flags and every required semantic getter. The Python side rejects
+missing, duplicate, stale, unsupported or failed results, invented totals and
+extra/lost stars. Receipt provenance is an audit contract with the reviewed game
+provider, not proof that an arbitrary executable is truthful.
+
+Only after those checks pass does Python publish the isolated NAND, logs,
+inventory, request, receipt and `unlocked-save-nand-ledger.json`. The ledger
+contains SHA-256 for every NAND file before inventory, after inventory and after
+game save, plus the exact changed-path list. Only `GameData.bin` may change.
+`unlocked-save.json` binds the ledger and other artifacts and is written last.
+A failed run keeps a private diagnostic work directory, without a published
+manifest; an interrupted copy can leave an incomplete output directory which
+must not be treated as verified. No `VERIFIED` log line substitutes for readback.
+
+## Small checks
 
 ```sh
-python3 native/tools/make_unlocked_save.py --variant all-missions   # writes build/saves/all-missions
+python3 -B native/tests/unlocked_save_tests.py
+clang++ -std=c++17 -Wall -Wextra -Werror -I native/include \
+  native/tests/unlocked_save_contract_tests.cpp -o /tmp/unlocked-save-contract
+/tmp/unlocked-save-contract /tmp/unlocked-save-contract-test
 ```
 
-It refuses to overwrite an existing directory, so pass `--output` with a new
-path, or remove the old directory first. It needs a built app and a seed user
-directory whose file 1 exists. The default seed is `build/observatory-user-2`,
-which is only read. File 1 keeps the seed's icon. Other files are copied from
-the seed unchanged. If several automated runs share one checkout, run them one
-at a time.
-
-In a fresh clone `build/saves/` and `build/observatory-user-2` do not exist
-(they are local, untracked files). Make your own seed first: launch the game with
-`--user build/my-seed`, start a new game in file 1 and let it save, quit, then
-
-```sh
-python3 native/tools/make_unlocked_save.py --variant grand-finale --seed build/my-seed
-```
-
-The save is made by the game's own code, not by editing bytes directly:
-
-1. `Petari --make-unlocked-save VARIANT` accepts only an explicit `--user`
-   directory marked with `.petari-make-unlocked-save`. It never accepts the
-   normal save directory.
-2. At boot, the game loads the seed's file with its usual loader. File 1 is
-   rebuilt using the game's progression functions (`GameDataHolder`):
-   - every star except the Grand Finale's
-   - galaxies already visited
-   - the observatory Hungry Lumas fully fed
-   - the final story event reached
-   - the library open and the storybook read
-   - Luigi's hiding events finished
-   - the observatory's two scene-revealed warp pods already revealed
-     (`WarpPodSaveBits` 0 and 1; no other stage uses these bits)
-   - every galaxy-opening scene and one-time conversation counted as seen
-
-   All other unlocks come from these through the game's own rules. The ending
-   records are stored in the file's config data.
-3. The game's save routine writes `GameData.bin`, including its checksum. The
-   game then reads it back through the same path it uses at startup. That
-   includes the version, size and checksum checks, plus both corruption flags.
-   The reloaded data must match the stored bytes exactly. The count must be 120
-   stars and all 7 Grand Stars. No galaxy may still be waiting to open. Every
-   dome's galaxies must be open, except the Grand Finale when the variant does
-   not allow it. The app prints `PETARI UNLOCKED SAVE: VERIFIED` and exits with
-   status 0, or prints each failure and exits with status 1.
-4. The script checks the file format again with a separate parser (header,
-   checksum and chunk layout, and 120 stars). Only then does it publish the
-   `NAND/` folder, `generation.log` and `unlocked-save.json`, which contains the
-   game's report and the file hashes.
-
-`native/tests/unlocked_save_tests.py` (ctest `native_unlocked_save`) tests the
-format checker and the isolation rules. It also re-checks every published save
-against its manifest.
-
-## Verification and limits
-
-The three saves pass the game's own generation and read-back checks and an
-independent file-format and manifest regression (the `native_unlocked_save`
-test). That establishes the saved progression, not a
-completed playthrough or that every mission runs without bugs.
-
-Live checks, each with an automated dome tour (`native/tools/dome_tour.py`:
-a normal file load, the walk to the dome through the real observatory, the dome
-map, the mission menu, entering mission 1 of every galaxy on the map, and the
-return through the pause menu), on isolated copies of the saves:
-
-| Save | Domes checked | Result |
-|---|---|---|
-| `all-missions` | Terrace, Fountain, Kitchen, Bedroom, Engine Room, Garden | 32 galaxy visits, all PASS; full maps and the exact mission IDs in every menu (for example Battle Rock and Dusty Dune 1–7, Buoy Base 1–2); no missing layout or sound references, crashes or hangs. Good Egg missions 4–6 were also entered. |
-| `grand-finale` | all six domes, as Mario | 29 visits, all PASS, same checks. |
-| `complete-luigi` | all six domes, as Mario | all visits PASS, same checks. |
-| `grand-finale` | Terrace, as Luigi | 5/5 PASS; loading the file as Luigi passes the movement and pause checks. |
-| `complete-luigi` | Luigi's own new game | Loading as Luigi starts at the Gateway with no letter prologue, as on the Wii (`StorySequenceExecutor`: `!isDataMario()`); after its opening demo (advanced with A) Luigi is playable: jump, movement both ways, pause and resume pass. |
-
-Notes:
-
-- The Engine Room is reached by a route a person recorded (wall kicks up a
-  chimney, a star that catches Mario at a ledge, a spin launch); see
-  `native/ROUTE_RECORDING.md`. Three consecutive tours passed with the wall-kick
-  climb succeeding first time.
-- The Grand Finale galaxy route is not automated yet: the Launch Star works, but
-  the walk on its small planet to the Grand Finale Luma does not reach it. This
-  is a test-driver limitation, not a save or game fault.
-- Movement in each visited galaxy is reported, not asserted as mission
-  completion (a few galaxies recorded only a short movement distance).
+These tests cover identity deduplication, exact profiles/high-progress seed
+rejection, incomplete inventory, unresolved flags, save/loader/checksum failure,
+corruption, stale receipts, bronze/readback errors, isolation, timeout, refusal
+to overwrite and NAND hash-ledger publication. **Their fixtures and receipts are
+test doubles, not game data or an end-to-end pass.** Do not commit disc assets,
+NAND contents or generated saves. Save-dependent replay coverage remains
+`PENDING_GAME_VERIFICATION`; fresh-NAND CPU replay is a separate test.

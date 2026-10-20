@@ -537,7 +537,7 @@ namespace {
         }
         // From Mario's body, as his spin punch (MarioActor::sendPunch), without
         // its _FCC: an enemy hitting back must still be in reach of Mario.
-        if (MR::sendMsgPlayerPunch(pOther, s.actor->getSensor("body"))) {
+        if (MR::sendMsgPlayerPunch(pOther, s.actor->getSensor("Body"))) {
             s.hits[s.hitCount++] = pOther;
             ++sHits;
             if (!s.actor->selectCustomEffectSpinHitSound(pOther->mHost->mName)) {

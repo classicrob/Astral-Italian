@@ -16,8 +16,15 @@
 
 PlayerHeapHolder::PlayerHeapHolder() : mCondition(), mNapaHeap(), mGDDRHeap(), mIsDataMario(true) {
     ConditionUsePlayerHeap* condition = new ConditionUsePlayerHeap();
+#ifdef GALAXY_NATIVE
+    // Natively the player's J3D models and animations also get host-layout copies on these heaps
+    // (MacioGalaxy measured 3.23 MiB of native player J3D loading for SMG1); adjust() trims the tails.
+    mNapaHeap = PlayerHeapHolder::createHeap(0x200000 + 0x800000, MR::getStationedHeapNapa());
+    JKRExpHeap* gddr = PlayerHeapHolder::createHeap(0x500000 + 0x800000, MR::getStationedHeapGDDR3());
+#else
     mNapaHeap = PlayerHeapHolder::createHeap(0x200000, MR::getStationedHeapNapa());
     JKRExpHeap* gddr = PlayerHeapHolder::createHeap(0x500000, MR::getStationedHeapGDDR3());
+#endif
     mGDDRHeap = gddr;
     condition->mNapaHeap = mNapaHeap;
     condition->mGDDRHeap = gddr;

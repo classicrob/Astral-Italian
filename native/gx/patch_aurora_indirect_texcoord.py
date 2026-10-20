@@ -8,6 +8,7 @@ source, output = map(Path, sys.argv[1:])
 text = source.read_text()
 header = Path(__file__).resolve().with_name('pipeline_shader_indices.hpp')
 text = f'#include "{header}"\n' + text
+text = f'#include "{header.with_name("pipeline_texgen_validity.hpp")}"\n' + text
 
 def replace(old, new):
     global text
@@ -39,6 +40,7 @@ if source.name == 'shader_info.cpp':
       info.sampledTexCoords.set(indCoord);
     }''')
 elif source.name == 'shader.cpp':
+    replace('    if (is_emboss_texgen(tcg.type)) {', '    if (!petari_texgen_source_valid(tcg)) FATAL("unhandled tcg src {}", underlying(tcg.src));\n    if (is_emboss_texgen(tcg.type)) {')
     replace('std::string build_shader_source(const ShaderConfig& config, DstAlphaMode dstAlphaMode,',
             'std::string build_shader_source(const ShaderConfig& inputConfig, DstAlphaMode dstAlphaMode,')
     replace('                                uint32_t normalAttachment) noexcept {\n  ZoneScoped;',

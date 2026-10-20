@@ -156,8 +156,11 @@ extern "C" void petari_gx_pipeline_stage_begin(const char* name, const char* see
               size == sizeof(gx::PipelineConfig) && data) {
             gx::PipelineConfig config;
             std::memcpy(&config, data, sizeof(config));
-            if (config.version == gx::GXPipelineConfigVersion)
-              manifest.push_back({ShaderType::GX, config, firstUse});
+            if (config.version == gx::GXPipelineConfigVersion) {
+              if (gx::petari_cached_shader_valid(config.shaderConfig,
+                    xxh3_hash(config, static_cast<HashType>(ShaderType::GX))))
+                manifest.push_back({ShaderType::GX, config, firstUse});
+            }
             else ++rejected;
           } else if (type == static_cast<int>(ShaderType::Clear) && version == clear::ClearPipelineConfigVersion &&
                      size == sizeof(clear::PipelineConfig) && data) {

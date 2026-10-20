@@ -133,6 +133,23 @@ void AreaObjMgr::entry(AreaObj* pAreaObj) {
 }
 
 AreaObj* AreaObjMgr::find_in(const TVec3f& rVec) const {
+#ifdef GALAXY_NATIVE
+    // Cache the same range as the Wii search, but never form begin - 1.
+    AreaObj* const* const first = mArray.begin();
+    AreaObj* const* const last = mArray.end();
+    AreaObj* const* current = last;
+    AreaObj* const* found = last;
+    while (current != first) {
+        --current;
+        if ((*current)->isInVolume(rVec)) {
+            found = current;
+            break;
+        }
+    }
+    // The original reloads the current end after the predicate calls and
+    // reloads the result cell. Preserve both reads rather than assuming purity.
+    return found != mArray.end() ? *found : nullptr;
+#else
     AreaObj* const* Begin = mArray.begin();
     AreaObj* const* End = mArray.end();
     AreaObj* const* p = std::rfind_if(
@@ -146,6 +163,7 @@ AreaObj* AreaObjMgr::find_in(const TVec3f& rVec) const {
     }
 
     return nullptr;
+#endif
 }
 
 void AreaObjMgr::requestMovementOnAll() {

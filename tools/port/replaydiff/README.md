@@ -568,3 +568,81 @@ Diagnostic placeholder binaries cannot qualify a synchronized replay, even when
 all recorded state and policies match. A manifest with
 `diagnostic_placeholder: true` or a `diagnostic-*` status returns 2 while retaining
 the initial-state and full-diff diagnostics.
+
+## Optional complete actor sidecars (schema v1)
+
+`collect --actors` adds `oracle.csv.actors.csv` and
+`oracle.csv.actor-frames.csv` without changing the 86-column main trace. Both
+are sampled at the same accepted post-endFrame stop, using the same memory
+snapshot as the main row. Stage synchronization applies the main row's frame
+and scene-epoch origins to both sidecars. Pre-sync input clocks stay unchanged.
+No additional guest writes, function calls, code patches or class/vtable guesses
+are used. Actor mode also verifies original-DOL signatures for NameObj's name
+and link member offsets, signed JMapLinkInfo validity, and actor transform loads.
+
+The actor header, in order, is:
+
+```text
+schema_version,frame,scene_epoch,scene,stage,scenario,init_state,producer_handle,actor_id,identity_kind,identity_status,name_valid,name_hex,link_valid,link_id,link_zone,link_context,dead,x,x_bits,y,y_bits,z,z_bits,rot_x,rot_x_bits,rot_y,rot_y_bits,rot_z,rot_z_bits,scale_x,scale_x_bits,scale_y,scale_y_bits,scale_z,scale_z_bits
+```
+
+Every registered AllLiveActorGroup entry is emitted, including dead actors.
+`name_hex` preserves the exact name bytes as lowercase hexadecimal, excluding
+the terminating NUL; it is not a UTF-8 conversion. `name_valid=0` distinguishes
+a null name from a valid empty string. Strings are bounded at 1024 bytes.
+`dead` is the canonical bool. Position, rotation and scale retain nine-digit
+float32 decimals plus exact eight-digit `0x` bits, including signed zero and
+stored subnormals. Unterminated strings, invalid pointers/counts, duplicate
+registered pointers, noncanonical bools or nonfinite scalars fail capture.
+
+`link_id`, `link_zone` and `link_context` are signed16 fields from NameObj's
+JMapLinkInfo. `link_valid` is exactly their all-nonnegative `isValid()` predicate.
+`identity_kind=player` comes only from equality with the actual
+SceneObj_MarioHolder's `mActor`, giving candidate key `player`. Otherwise a valid
+link and valid name give kind `link` and candidate key
+`link:<zone>:<context>:<id>:<name_hex>`. Other entries have kind `unresolved`.
+Only unique candidates in the complete frame receive `identity_status=source-key`
+and a populated `actor_id`. Duplicate keys are `ambiguous`; missing candidates
+are `unresolved`. All entries remain in the CSV. No name-only, registration-order,
+position, address or guessed class identity is substituted.
+
+`producer_handle` is a monotonic run-local serial for sampled pointer continuity,
+never a cross-run key. Observed absence followed by return gets a new handle.
+A candidate changing on the same handle or returning on a different handle is
+a sticky `key-change` or `key-reuse` HOLD with blank `actor_id`. Epoch changes
+reset identity history. Unresolved-to-valid changes also HOLD. Ownership of all
+ambiguous candidates is retained: disappearance of one duplicate cannot upgrade
+the remaining actor to an accepted key. Reuse of an address between consecutive samples cannot
+be detected this way: no constructor/destructor or lifetime proof is implied.
+Source keys are candidates for a qualified pair, not blanket object equivalence.
+
+The census header, in order, is:
+
+```text
+schema_version,frame,scene_epoch,scene,stage,scenario,init_state,ready,registered,living,emitted,identity_unresolved,identity_ambiguous
+```
+
+There is exactly one census row per emitted main frame. `ready=1` requires
+Game/init6 and valid actor counts; missing nullable groups remain not ready.
+Nonready rows have blank registered/living counts and emitted0. A valid empty
+group has ready1 and all three counts0. A complete ready census must agree
+with the main registered/living counts and actual emitted/dead rows.
+`key-change`/`key-reuse` count in `identity_unresolved`; ambiguous keys count
+separately. A receipt is written only after all its actor rows have been written.
+Consumers must keep census coverage, distinguish valid empty from unavailable,
+and HOLD unresolved identity; sparse actor rows alone cannot establish coverage.
+
+Sidecars retain `.partial` until successful producer finalization. The main
+manifest's `actors` record includes schema, frame/actor/identity-hold counts,
+successful filenames and SHA256s. Actor finalization failure keeps the capture
+incomplete and exits2; partial/renamed files alone never qualify a run. Missing
+sidecars do not mean zero actors. Component tests use synthetic RAM and captures;
+no live Dolphin/native actor-pair qualification is asserted by this implementation.
+
+After an actual filtered-input exporter closes successfully, `manifest.json`
+also records `input_export` with `schema_version: 1`, `status: "captured"`,
+`path: "inputs.jsonl"`, SHA256, `bytes`, and `read_count`. These bind the actual
+closed JSONL file and count its records against the exporter's observed reads;
+they do not hash an intent script or fixture in its place. Missing/incomplete
+files, empty/truncated records or read-count disagreement keep the capture
+incomplete. This receipt alone does not qualify the input schedule or a replay.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import configparser
 import csv
 import hashlib
@@ -29,6 +30,16 @@ SIGNATURES = {
     0x8003B404: "8084002080640034",  # GameSystem -> ObjHolder -> RNG
     0x803DCD7C: "93fd0114",  # MarioAnimator cached current BCK
 }
+# Additional original-DOL layout guards, read only when --actors is requested.
+ACTOR_SIGNATURES = {
+    0x80339760: "908300044e800020",  # NameObj::setName: pointer at +4.
+    0x80339770: "3863000c4bd2e24c",  # NameObj::setLinkedInfo: member at +0xC.
+    0x80067950: "3800ffffb0030000b0030002b00300044e800020",  # signed -1 defaults.
+    0x80067A90: ("a8030000388000002c00000041800020a80300022c00000041800014"
+                 "a80300042c00000041800008388000017c8323784e800020"),
+    0x8000F568: ("c004003490010014c0240014d0010008c0440018c064001c"
+                 "c0840020c0a40024c0c40028c0e4002cc1040030"),  # actor pos/rot/scale.
+}
 REPO = Path(__file__).resolve().parents[3]
 VECTORS = ("", "sim_", "v", "vel_after_", "actor_v", "front_", "actor_up_",
            "g", "actor_gravity_")
@@ -40,6 +51,14 @@ COLUMNS += ["movement_lo", "movement_hi", "flags14_lo", "flags14_hi", "draw", "f
             "flags24_lo", "flags24_hi", "prev_draw", "state_flags3", "state_ids",
             "pending_state_id", "mode", "anim_name", "hp", "dead", "rng_seed",
             "actor_registered", "actor_living", "vi_count", "ticks"]
+ACTOR_CONTEXT = ["frame", "scene_epoch", "scene", "stage", "scenario", "init_state"]
+ACTOR_FLOATS = [prefix + axis for prefix in ("", "rot_", "scale_") for axis in "xyz"]
+ACTOR_COLUMNS = ["schema_version", *ACTOR_CONTEXT, "producer_handle", "actor_id",
+                 "identity_kind", "identity_status", "name_valid", "name_hex",
+                 "link_valid", "link_id", "link_zone", "link_context", "dead"]
+ACTOR_COLUMNS += [column for field in ACTOR_FLOATS for column in (field, field + "_bits")]
+ACTOR_FRAME_COLUMNS = ["schema_version", *ACTOR_CONTEXT, "ready", "registered", "living",
+                       "emitted", "identity_unresolved", "identity_ambiguous"]
 
 
 class ObserverError(RuntimeError):
@@ -198,11 +217,14 @@ class Memory:
                 yield self.checked_pointer(value, address + (first + index) * 4)
 
     def string(self, address, limit=64):
+        return self.string_bytes(address, limit).decode("ascii", errors="strict")
+
+    def string_bytes(self, address, limit=64):
         data = self.read(address, limit)
         end = data.find(b"\0")
         if end < 0:
             raise ObserverError(f"unterminated guest string {address:#x}")
-        return data[:end].decode("ascii", errors="strict")
+        return data[:end]
 
     def boolean(self, address):
         value = self.read(address, 1)[0]
@@ -221,13 +243,171 @@ class Memory:
             row[prefix + axis + "_bits"] = "0x" + raw.hex()
 
 
+class ActorCensus:
+    """Sampled continuity and candidate source keys, never address-based cross-run IDs."""
+
+    def __init__(self):
+        self.epoch = None
+        self.next_handle = 1
+        self.active = {}
+        self.key_owners = {}
+
+    def take(self, memory, row, members, player_actor):
+        if row["scene_epoch"] != self.epoch:
+            self.epoch = row["scene_epoch"]
+            self.active.clear()
+            self.key_owners.clear()
+        if not actor_ready(row):
+            self.active.clear()
+            return []
+        if len({address for address, _ in members}) != len(members):
+            raise ObserverError("duplicate registered actor pointer")
+        result, candidates, current = [], [], {}
+        for address, dead in members:
+            actor = dict(schema_version=1, **{key: row[key] for key in ACTOR_CONTEXT}, dead=dead)
+            name = memory.pointer(address + 4, nullable=True, alignment=1)
+            actor.update(name_valid=int(bool(name)),
+                         name_hex=memory.string_bytes(name, 1024).hex() if name else "")
+            follow, zone, context = struct.unpack(">hhh", memory.read(address + 0xC, 6))
+            valid = min(follow, zone, context) >= 0  # JMapLinkInfo::isValid, signed s16.
+            actor.update(link_valid=int(valid), link_id=follow, link_zone=zone, link_context=context)
+            for prefix, offset in (("", 0x14), ("rot_", 0x20), ("scale_", 0x2C)):
+                memory.vector(actor, prefix, address + offset)
+            if address == player_actor:
+                kind, key = "player", "player"
+            elif valid and name:
+                kind, key = "link", f"link:{zone}:{context}:{follow}:{actor['name_hex']}"
+            else:
+                kind, key = "unresolved", ""
+            previous = self.active.get(address)
+            known_handle = previous is not None
+            if previous is None:
+                previous = dict(handle=self.next_handle, key="", hold="")
+                self.next_handle += 1
+            state = previous.copy()
+            if known_handle and key != state["key"]:
+                state["hold"] = "key-change"
+            state["key"] = key
+            current[address] = state
+            actor.update(producer_handle=state["handle"], actor_id="", identity_kind=kind)
+            result.append(actor)
+            candidates.append((key, state))
+        counts = Counter(key for key, _ in candidates if key)
+        # Retain every observed owner, including ambiguous candidates. Losing an
+        # ambiguous member later cannot upgrade the remaining member's identity.
+        for key, state in candidates:
+            if key:
+                self.key_owners.setdefault(key, set()).add(state["handle"])
+        for actor, (key, state) in zip(result, candidates):
+            if key and counts[key] > 1:
+                status = "ambiguous"
+            else:
+                if key and self.key_owners[key] != {state["handle"]}:
+                    state["hold"] = "key-reuse"
+                status = state["hold"] or ("source-key" if key else "unresolved")
+                if key and status == "source-key":
+                    actor["actor_id"] = key
+            actor["identity_status"] = status
+        self.active = current
+        return result
+
+
+def actor_ready(row):
+    return (row["scene_valid"] == 1 and row["scene"] == "Game" and
+            row["init_state"] == 6 and row["actor_count_valid"] == 1)
+
+
+class ActorSidecars:
+    """One complete census receipt per emitted primary frame, including zero actors."""
+
+    def __init__(self, output):
+        self.paths = [output / ("oracle.csv" + suffix) for suffix in (".actors.csv", ".actor-frames.csv")]
+        self.files = []
+        self.frames = self.rows = self.holds = 0
+        self.complete = False
+        try:
+            for path in self.paths:
+                self.files.append(Path(str(path) + ".partial").open("x", newline=""))
+            self.actors = csv.DictWriter(self.files[0], ACTOR_COLUMNS)
+            self.census = csv.DictWriter(self.files[1], ACTOR_FRAME_COLUMNS)
+            self.actors.writeheader()
+            self.census.writeheader()
+        except Exception:
+            for file in self.files:
+                file.close()
+            raise
+
+    def write(self, row, actors):
+        if row["frame"] != self.frames:
+            raise ObserverError("actor census frame is not contiguous with primary trace")
+        ready = actor_ready(row)
+        if (not ready and actors) or (ready and len(actors) != row["actor_registered"]):
+            raise ObserverError("actor census does not cover every registered entry")
+        if ready and sum(1 - actor["dead"] for actor in actors) != row["actor_living"]:
+            raise ObserverError("actor census living count disagrees with primary trace")
+        context = {key: row[key] for key in ACTOR_CONTEXT}
+        unresolved = ambiguous = 0
+        for actor in actors:
+            if any(actor[key] != value for key, value in context.items()):
+                raise ObserverError("actor row context disagrees with primary trace")
+            ambiguous += actor["identity_status"] == "ambiguous"
+            unresolved += actor["identity_status"] not in ("source-key", "ambiguous")
+        # Commit the receipt last: a partial actor batch never claims complete frame coverage.
+        self.actors.writerows(actors)
+        self.files[0].flush()
+        self.census.writerow(dict(schema_version=1, **context, ready=int(ready),
+                                 registered=row["actor_registered"] if ready else "",
+                                 living=row["actor_living"] if ready else "", emitted=len(actors),
+                                 identity_unresolved=unresolved, identity_ambiguous=ambiguous))
+        self.files[1].flush()
+        self.frames += 1
+        self.rows += len(actors)
+        self.holds += unresolved + ambiguous
+
+    def close(self, complete):
+        for file in self.files:
+            file.close()
+        if complete:
+            renamed = []
+            try:
+                for path in self.paths:
+                    Path(str(path) + ".partial").rename(path)
+                    renamed.append(path)
+            except OSError:
+                # Preserve diagnostic partials when only one rename succeeded.
+                for path in renamed:
+                    path.rename(Path(str(path) + ".partial"))
+                raise
+            self.complete = True
+
+    def manifest(self):
+        return dict(schema_version=1, status="captured" if self.complete else "incomplete",
+                    frames=self.frames, actor_rows=self.rows, identity_holds=self.holds,
+                    qualification="Candidate keys only; sampled pointer continuity is not a lifetime proof",
+                    files=[dict(path=path.name, sha256=sha256(path)) for path in self.paths] if self.complete else [])
+
+
 class Snapshot:
-    def __init__(self, remote):
+    def __init__(self, remote, actors=False):
         self.m = Memory(remote, cache_pages=True)
         self.epoch = 0
         self.identity = None
+        self.actor_census = ActorCensus() if actors else None
+        self.actor_rows = []
 
     def take(self, frame):
+        self.members = []
+        self.player_actor = 0
+        row = self._take(frame)
+        self.actor_rows = []
+        if self.actor_census and not row["observer_error"]:
+            try:
+                self.actor_rows = self.actor_census.take(self.m, row, self.members, self.player_actor)
+            except (ObserverError, UnicodeError, struct.error) as exc:
+                row["observer_error"] = str(exc)
+        return row
+
+    def _take(self, frame):
         m = self.m
         m.pages.clear()
         row = dict.fromkeys(COLUMNS, "")
@@ -274,12 +454,16 @@ class Snapshot:
                 if count:
                     array = m.pointer(all_actors + 0x1C)
                     for actor in m.pointers(array, count):
-                        living += 1 - m.boolean(actor + 0x70)
+                        dead = m.boolean(actor + 0x70)
+                        living += 1 - dead
+                        if self.actor_census:
+                            self.members.append((actor, dead))
                 row.update(actor_count_valid=1, actor_registered=count, actor_living=living)
             mario_holder = m.pointer(holder + 4 * 0x15, nullable=True)
             if not mario_holder:
                 return row
             actor = m.pointer(mario_holder + 0x14, nullable=True)
+            self.player_actor = actor
             if not actor:
                 return row
             player = m.pointer(actor + 0x584)
@@ -374,6 +558,24 @@ def sha256(path):
     return digest.hexdigest()
 
 
+def input_export_receipt(output, read_count):
+    """Bind the actual closed exporter file, never an intent script or a fixture."""
+    path = output / "inputs.jsonl"
+    digest = hashlib.sha256()
+    rows = size = 0
+    with path.open("rb") as file:
+        for line in file:
+            if not line.endswith(b"\n") or not line.strip():
+                raise ObserverError("input export has an incomplete/empty JSONL record")
+            digest.update(line)
+            size += len(line)
+            rows += 1
+    if rows != read_count:
+        raise ObserverError("input export record count disagrees with observed reads")
+    return dict(schema_version=1, status="captured", path=path.name,
+                sha256=digest.hexdigest(), bytes=size, read_count=rows)
+
+
 def prepare(args):
     user = game_private_path(args.user)
     if user.exists() and any(user.iterdir()):
@@ -415,6 +617,9 @@ def collect(args):
     step_installed = False
     remote = None
     inputs = None
+    actor_output = None
+    if getattr(args, "actors", False):
+        manifest["actors"] = dict(schema_version=1, status="incomplete")
     handlers = {}
     sync = StageSync(args.sync_stage, args.sync_scenario) if getattr(args, "sync_stage", None) else None
     input_frames = args.frames
@@ -541,12 +746,19 @@ def collect(args):
             expected = bytes.fromhex(encoded)
             if remote.read(address, len(expected)) != expected:
                 raise ObserverError(f"SB4E01 instruction signature mismatch at {address:#x}")
+        if getattr(args, "actors", False):
+            for address, encoded in ACTOR_SIGNATURES.items():
+                expected = bytes.fromhex(encoded)
+                if remote.read(address, len(expected)) != expected:
+                    raise ObserverError(f"SB4E01 actor layout signature mismatch at {address:#x}")
         if inputs and not getattr(args, "save_state", None):
             inputs.install(remote)
             inputs_installed = True
         remote.ok(f"Z0,{SEAM:x},4")
         installed = True
-        snapshot = Snapshot(remote)
+        snapshot = Snapshot(remote, actors=True) if getattr(args, "actors", False) else Snapshot(remote)
+        if getattr(args, "actors", False):
+            actor_output = ActorSidecars(output)
         rejected = 0
         started = time.monotonic()
         stop_pending = False
@@ -587,6 +799,10 @@ def collect(args):
                             (output / "oracle.csv.sync.json").write_text(json.dumps(sync.origin, indent=2) + "\n")
                         writer.writerow(row)
                         file.flush()
+                        if actor_output:
+                            actor_output.write(row, [dict(actor, frame=row["frame"],
+                                                          scene_epoch=row["scene_epoch"])
+                                                     for actor in snapshot.actor_rows])
                         manifest["frames"] += 1
                         spans = manifest["scene_spans"]
                         context = [row[k] for k in ("scene", "stage", "scenario", "init_state")]
@@ -641,6 +857,7 @@ def collect(args):
         cleanup_error = None
         if inputs:
             try:
+                manifest["input_export"] = dict(schema_version=1, status="incomplete", path="inputs.jsonl")
                 manifest["input_reads"] = inputs.reads
                 if hasattr(inputs, "probe_counts"):
                     manifest["connection_observation"] = dict(
@@ -654,9 +871,19 @@ def collect(args):
                 if inputs.script is not None:
                     (output / "input-script-final.json").write_text(json.dumps(inputs.script, indent=2) + "\n")
                 inputs.close(remote, manifest["status"] == "captured; repeat qualification required")
+                if manifest["status"] == "captured; repeat qualification required":
+                    manifest["input_export"] = input_export_receipt(output, inputs.reads)
             except Exception as exc:
                 cleanup_error = f"input cleanup failed: {type(exc).__name__}"
                 manifest.update(status="incomplete", cleanup_error=cleanup_error)
+        if actor_output:
+            try:
+                actor_output.close(manifest["status"] == "captured; repeat qualification required")
+                manifest["actors"] = actor_output.manifest()
+            except Exception as exc:
+                cleanup_error = f"actor finalization failed: {type(exc).__name__}: {exc}"
+                manifest.update(status="incomplete", cleanup_error=cleanup_error)
+                manifest["actors"] = dict(schema_version=1, status="incomplete")
         if remote and step_installed:
             try:
                 remote.ok(f"z0,{SEAM + 4:x},4")
@@ -701,6 +928,7 @@ def main():
     capture.add_argument("--disc", default="~/MacioGalaxy2-gamedata/SB4E01.iso")
     capture.add_argument("--movie")
     capture.add_argument("--export-inputs", action="store_true", help="read original KPADReadEx samples and WPADProbe results without injecting input")
+    capture.add_argument("--actors", action="store_true", help="capture complete registered-actor and per-frame census sidecars")
     capture.add_argument("--save-state", help="private Dolphin state to restore; KPAD injection starts after first seam")
     capture.add_argument("--sync-stage", help="canonical internal stage; first matching ready end-of-loop seam becomes row 0")
     capture.add_argument("--sync-scenario", type=int, help="placed ScenarioNo; required with --sync-stage")

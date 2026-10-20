@@ -960,10 +960,14 @@ namespace MR {
     }
 
     void setBinderIgnoreMovingCollision(LiveActor* pActor) {
+#ifdef GALAXY_NATIVE
+        pActor->mBinder->_1EC._0 = false;
+#else
         s8* pFlags = (s8*)&pActor->mBinder->_1EC;
         s32 flags = *pFlags;
         flags &= 0xFFFFFF7F;
         *pFlags = flags;
+#endif
     }
 
     ActorHitReactionCtrl* getHitReactionCtrl(const LiveActor* pActor) {

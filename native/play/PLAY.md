@@ -126,7 +126,7 @@ native/play/play.sh <InternalName> [--odyssey]     # e.g. native/play/play.sh Is
 
 World maps (WorldMap01-08) load without Mario by design. About 7 galaxies currently crash on one shared bug that is being fixed. The full table is in ~/MacioGalaxy2-team/scratch-port/sweep/SUMMARY.md.
 
-## Status and known issues (build 3, frozen 2026-10-20 02:45)
+## Status and known issues (build 4, frozen 2026-10-20 09:05)
 
 What was checked (`~/MacioGalaxy2-play/FROZEN.txt` has the numbers):
 - **Flip-Swap Galaxy** and **Fluffy Bluff Galaxy**: start, load and play; 120-second smoke runs pass with Odyssey movement
@@ -141,9 +141,12 @@ Known issues (honest list):
   capture of the device feed over 3.5 minutes of each galaxy had no underruns, no replayed blocks, no clipping and no
   dropouts during play, with music around -20 dBFS RMS. If anything sounds wrong (pitch, envelopes, stuck notes),
   press `a` in the menu to turn it off and tell us what you heard.
+- **World maps** (new in build 4): they load and render (WorldMap01 checked in the app, 01/02 for 30,000 frames
+  headless). Walking the map and entering a galaxy from it were not checked yet.
 - **First-run hitches**: the first time a new effect or object appears, the game can stall briefly while its shader
   compiles (about 15 short hitches in two minutes of Fluffy Bluff on a first run). They go away on later runs: the
-  shaders are cached under `~/Library/Caches/AstralItalian`.
+  shaders are cached under `~/Library/Caches/AstralItalian`, and on this Mac that cache is already warm for Flip-Swap and
+  Fluffy Bluff (no frame over 25 ms in 90 s of each).
 - **Untested**: Sky Station (the fallback entry), every other galaxy, the title-screen path (entry 4) beyond the file
   select, the world map, Yoshi, Cloud/Rock/Spin Drill power-ups (Fluffy Bluff's Cloud Flower included), co-star mode,
   and the Odyssey moves other than the roll (long jump, dive, ground-pound jump, wall jump, sideflip, backflip).
@@ -152,8 +155,8 @@ Known issues (honest list):
 - The F1 menu uses a built-in font (the SMG1 font file it looks for is not on the SMG2 disc).
 - Fluffy Bluff loads a little slower than Flip-Swap (more sound data).
 
-Older builds: `~/MacioGalaxy2-play/build2/` (no Odyssey hooks; Flip-Swap + Fluffy Bluff) and `build1/` (Flip-Swap
-only). Start one with `ASTRAL_APP=~/MacioGalaxy2-play/build2/Petari.app native/play/play.sh flip-swap`.
+Older builds: `~/MacioGalaxy2-play/build3/` (Odyssey, no world map), `build2/` (no Odyssey hooks) and `build1/`
+(Flip-Swap only). Start one with `ASTRAL_APP=~/MacioGalaxy2-play/build3/Petari.app native/play/play.sh flip-swap`.
 
 ## For the build owner: the 60-second smoke
 

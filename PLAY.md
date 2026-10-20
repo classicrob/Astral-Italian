@@ -56,12 +56,14 @@ The full guide (options, environment variables, logs, the frozen-build smoke) is
 
 ## Status and known issues
 
-- Build 3 (default, frozen 02:45): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
-  and on, and the toggle demonstrably changes Mario's moves (crouch + Spin rolls him only with it on).
+- Build 4 (default, frozen 09:05): Flip-Swap and Fluffy Bluff load and play; smoke runs pass with Odyssey movement off
+  and on, and the toggle demonstrably changes Mario's moves (crouch + Spin rolls him only with it on). New: the world
+  maps load (walking them and entering galaxies from them not checked yet).
 - Audio: ON by default since build 4. Measured, not yet listened to by a person: no underruns or dropouts in 3.5 minutes
   of each galaxy, no clipping, music around -20 dBFS. If it sounds wrong, press `a` in the menu to turn it off.
-- First run: brief hitches the first time new effects appear (shaders compiling); later runs use the cache.
-- Untested: Sky Station and every other galaxy, power-ups (Cloud Flower), Yoshi, the world map, co-star mode, and the
+- First run: brief hitches the first time new effects appear (shaders compiling); later runs use the cache, which is
+  already warm on this Mac for Flip-Swap and Fluffy Bluff.
+- Untested: Sky Station and every other galaxy, power-ups (Cloud Flower), Yoshi, world-map travel, co-star mode, and the
   Odyssey moves other than the roll.
 - The full list and the measured numbers: [`native/play/PLAY.md`](native/play/PLAY.md), "Status and known issues",
-  and `~/MacioGalaxy2-play/FROZEN.txt`. Older builds: `~/MacioGalaxy2-play/build2/`, `build1/`.
+  and `~/MacioGalaxy2-play/FROZEN.txt`. Older builds: `~/MacioGalaxy2-play/build3/` (last night's), `build2/`, `build1/`.

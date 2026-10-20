@@ -39,6 +39,12 @@ source predicates and reconstruction limits for its action table.
 `native/tests/smg2_controls_tests.cpp` covers the complete imported-default
 snapshot, new names/conflicts, editor remaps, file save/reload, gesture
 isolation/timing/focus, co-star isolation, pointer sharing and remaps.
+`smg2_sdk_tests.cpp` also runs these controls through actual WPAD reports
+and SDK KPAD filtering: the Nunchuk's 2 g distance threshold at three
+report/frame phases, C/Z delays, co-star connection, pointer calibration,
+A/B isolation, shake, focus loss, disconnect and live remapping. It uses
+one KPAD initialization, as SMG2's initializer is one-shot, and reads fresh
+reports after the first read applies the SDK's initial reset.
 `input_tests.cpp` adds SDK KPAD + game WPad cases for H's stronger threshold
 at three report/frame phases, C/Z lockouts, channel 1 connection, buttons,
 pointer, shake, disconnect and live remapping. Run the normal standalone

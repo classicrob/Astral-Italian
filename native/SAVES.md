@@ -1,5 +1,14 @@
 # SMG2 unlocked saves
 
+For the separate everything-complete developer file, use
+`native/tools/complete_save.py` and `play.sh --unlocked` as documented in
+`native/play/PLAY.md`. That native hook creates only a fresh file in
+`~/Library/Application Support/AstralItalian-unlocked`, calls the actual SMG2
+holders and normal save/loader, and checks a regular reload. Its two headless
+scene runs produce the separate runtime acceptance report. The older isolated
+profile/receipt implementation described below remains unintegrated; its status
+does not describe the new complete-file path.
+
 **Status: runtime verification pending port GO. No generated SMG2 save has been
 verified or published by this implementation.** Real-disc execution is server-only;
 no game assets, saves or disc-derived catalogs belong on the M1, in attachments,

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Play Astral Italian (the native Super Mario Galaxy 2 build) on the machine that holds the disc.
 #
-#   play.sh [GALAXY] [--scenario N] [--odyssey] [--audio on|off] [--dry-run]
+#   play.sh [GALAXY] [--scenario N] [--unlocked] [--odyssey] [--audio on|off] [--dry-run]
 #
 # GALAXY: flip-swap (default), fluffy-bluff, sky-station, title (normal boot to the title screen), or any name
 # `Petari --stage list` prints. Everything is configurable through the environment:
@@ -22,11 +22,13 @@ galaxy=flip-swap
 scenario=1
 odyssey=0
 dry=0
+unlocked=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
     --scenario) [ $# -ge 2 ] || { echo "play: --scenario needs a number" >&2; exit 2; }; scenario=$2; shift 2 ;;
     --odyssey) odyssey=1; shift ;;
+    --unlocked) user="$HOME/Library/Application Support/AstralItalian-unlocked"; unlocked=1; shift ;;
     --audio) [ $# -ge 2 ] || { echo "play: --audio needs on or off" >&2; exit 2; }; audio=$2; shift 2 ;;
     --dry-run) dry=1; shift ;;
     -h|--help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -55,6 +57,12 @@ user_parent=$(cd "$(dirname "$user")" 2>/dev/null && pwd -P)
 if [ "$user_parent/$(basename "$user")" = "$smg1_user" ]; then
     echo "play: $user is MacioGalaxy's (SMG1) user directory; use a separate ASTRAL_USER" >&2
     exit 1
+fi
+if [ "$unlocked" = 1 ]; then
+    [ ! -L "$user" ] && [ -f "$user/complete-save.json" ] || {
+        echo "play: no generated unlocked save in $user; run native/tools/complete_save.py first" >&2
+        exit 1
+    }
 fi
 mkdir -p "$user/logs" || exit 1
 

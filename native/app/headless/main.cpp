@@ -9,6 +9,7 @@
 #include <launch_stage.hpp>
 #include <petari/headless.h>
 #include <petari/app.hpp>
+#include <petari/complete_save_paths.hpp>
 #include <petari/boot.hpp>
 #include <petari/host_allocation.hpp>
 #include <petari/floating_point.hpp>
@@ -182,7 +183,7 @@ int main(int argc,char** argv) {
     try {
         std::setlocale(LC_NUMERIC,"C");
         std::map<std::string,std::string> args;
-        bool ftz=true,inputsFromSync=false,actorTrace=false;
+        bool ftz=true,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--inputs-from-sync") {
@@ -194,6 +195,7 @@ int main(int argc,char** argv) {
                 if (actorTrace) throw H::ReplayError("duplicate --actor-trace");
                 actorTrace=true; continue;
             }
+            if (key=="--existing-unlocked-user") {existingUnlockedUser=true;continue;}
             if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
@@ -201,7 +203,10 @@ int main(int argc,char** argv) {
         const auto input=external(args.at("--inputs")),disc=external(args.at("--disc")),user=external(args.at("--user")),path=external(args.at("--trace"));
         for (const auto& output : {path, std::filesystem::path(path.string()+".complete"),std::filesystem::path(path.string()+".timing.csv"),std::filesystem::path(path.string()+".sync.json")})
             if (std::filesystem::exists(output) || std::filesystem::is_symlink(output)) throw H::ReplayError("refusing to overwrite trace artifacts");
-        if (std::filesystem::exists(user) && !std::filesystem::is_empty(user)) throw H::ReplayError("--user must be a fresh isolated directory");
+        if (existingUnlockedUser && !PetariNative::CompleteSave::isIsolatedUser(user))
+            throw H::ReplayError("--existing-unlocked-user requires the separate AstralItalian-unlocked directory");
+        if (!existingUnlockedUser && std::filesystem::exists(user) && !std::filesystem::is_empty(user))
+            throw H::ReplayError("--user must be a fresh isolated directory");
         std::filesystem::create_directories(user);
         std::ifstream source(input,std::ios::binary); if (!source) throw H::ReplayError("cannot open input tape");
         if (inputsFromSync && !args.count("--sync-stage")) throw H::ReplayError("--inputs-from-sync requires --sync-stage");

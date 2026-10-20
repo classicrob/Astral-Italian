@@ -324,6 +324,8 @@ def main(argv=None):
     run.add_argument("--frames", type=int, required=True)
     run.add_argument("--disc", type=Path, required=True)
     run.add_argument("--user", type=Path, required=True)
+    run.add_argument("--existing-unlocked-user", action="store_true",
+                     help="reuse only the separate AstralItalian-unlocked NAND for save reload validation")
     run.add_argument("--trace", type=Path, required=True)
     run.add_argument("--epoch-ticks", type=int, required=True)
     run.add_argument("--rate-numerator", type=int, default=60000)
@@ -394,7 +396,11 @@ def main(argv=None):
     if any(path.exists() or path.is_symlink() for path in artifacts):
         raise ValueError("refusing to overwrite an existing trace")
     user.mkdir(parents=True, exist_ok=True)
-    if any(user.iterdir()):
+    if args.existing_unlocked_user:
+        allowed = (Path.home() / "Library/Application Support/AstralItalian-unlocked").absolute()
+        if allowed.resolve() != allowed or not user.is_relative_to(allowed):
+            raise ValueError("--existing-unlocked-user requires the separate AstralItalian-unlocked directory")
+    elif any(user.iterdir()):
         raise ValueError("headless --user must be a fresh isolated directory")
     with tempfile.TemporaryDirectory(prefix="smg2-kpad-", dir=user.parent) as temp:
         tape = Path(temp) / "inputs.kpd"
@@ -409,6 +415,8 @@ def main(argv=None):
             command.append("--inputs-from-sync")
         if args.no_ftz:
             command.append("--no-ftz")
+        if args.existing_unlocked_user:
+            command.append("--existing-unlocked-user")
         if args.request is not None:
             command.extend(["--request", args.request])
         if args.stage is not None:

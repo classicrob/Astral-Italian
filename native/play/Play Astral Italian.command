@@ -5,6 +5,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 play="$here/play.sh"
 odyssey=
 audio=${ASTRAL_AUDIO:-on}
+save=
 while :; do
     clear 2>/dev/null
     echo "Astral Italian (Super Mario Galaxy 2, native)"
@@ -16,6 +17,7 @@ while :; do
     echo
     echo "  o) Odyssey movement: $([ -n "$odyssey" ] && echo ON || echo off)"
     echo "  a) Audio: $audio"
+    echo "  u) Save: $([ -n "$save" ] && echo 'everything unlocked (separate file 1)' || echo 'normal progress')"
     echo "  q) Quit"
     echo
     echo "  In the game: \` (the key between Escape and Tab) opens the Home menu: controls, mods."
@@ -29,11 +31,12 @@ while :; do
     4) galaxy=title ;;
     o|O) if [ -n "$odyssey" ]; then odyssey=; else odyssey=--odyssey; fi; continue ;;
     a|A) if [ "$audio" = off ]; then audio=on; else audio=off; fi; continue ;;
+    u|U) if [ -n "$save" ]; then save=; else save=--unlocked; fi; continue ;;
     q|Q) exit 0 ;;
     *) continue ;;
     esac
     echo
-    sh "$play" "$galaxy" $odyssey --audio "$audio"
+    sh "$play" "$galaxy" $save $odyssey --audio "$audio"
     echo
     printf "Press Return for the menu. "
     read -r _ || exit 0

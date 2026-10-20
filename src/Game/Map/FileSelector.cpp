@@ -1,4 +1,7 @@
 #include "Game/System/GameDataFunction.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/System/NativeCompleteSave.hpp"
+#endif
 #include "Game/Map/FileSelector.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -1062,6 +1065,9 @@ void FileSelector::exeFileSelect() {
         }
         const int openIndex = openFile > 0 ? ::getItemArrayIndex(openFile) : -1;
         FileSelectItem* pOpen = openIndex >= 0 ? static_cast<FileSelectItem*>(mItems->getActor(openIndex)) : nullptr;
+        if (startupFile && pOpen != nullptr) {
+            NativeCompleteSave::checkSelection(openFile, pOpen->isNew());
+        }
         if (startupFile && pOpen != nullptr && pOpen->isNew() && !isUserFileCorrupted(openFile)) {
             petari_milestone("FileSelector.StartupCreate");
             mSelectedItem = pOpen;
@@ -1211,6 +1217,9 @@ void FileSelector::exeDemo() {
     }
 
     GameDataFunction::setUserName(name);
+#ifdef GALAXY_NATIVE
+    if (!NativeCompleteSave::beforeStageLaunch()) return;
+#endif
     GameDataFunction::resetPlayerLeftAndTryOnDimensionBigCastleGalaxyComet();
     GameSequenceFunction::requestChangeStageAfterFileSelect();
     MR::startSystemWipeCircleWithCaptureScreen(90);

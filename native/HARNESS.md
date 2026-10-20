@@ -300,13 +300,24 @@ and Dolphin boot consume identical reads.
 
 For a tape containing only the common gameplay suffix, add
 `--inputs-from-sync` (requires `--sync-stage`). Before and through the ready
-anchor, all four channels report disconnected (`WPADProbe=-1`, device 253;
-KPAD returns 0/error -2 with a disconnected slot-zero sample). These boot reads
+anchor, channel 0 reports a neutral connected Wii Remote/Nunchuk matching
+`headless.py idle_sample(True)` (WPADProbe 0/device 1, one sample/error 0).
+Channels 1..3 report disconnected (WPADProbe -1/device 253, zero samples/error
+-2 with a slot-zero sentinel). A disconnected channel 0 blocks the game in its
+controller error window. These boot reads
 do not consume the tape. The next game loop reads tape frame 0, affecting trace
 row 1; a tape of N frames produces N+1 trace rows including the anchor. Source
 frame/ticks/VI provenance still includes boot, and the wall timeout still bounds
 failure to reach the seam. The manifest declares `inputs_from_sync` and the input
 origin. Without this option the boot/navigation tape behavior above is unchanged.
+
+Run the asset-dependent bootstrap regression with
+`native/tools/test_sync_boot.py --executable <headless> --disc <private-disc-root>
+--output <fresh-private-directory>`. It goes through the same locked launcher,
+uses a 16-frame neutral synthetic tape, and requires the actual galaxy seam,
+17 trace rows, exact input mapping, and validated actor receipts. Launch the
+script at nice 9 so the launcher's additional nice 10 runs the game at nice 19.
+This is a bootstrap test, not a Dolphin comparison.
 
 The launcher validates origin/row-zero/seed/clock consistency and records an
 explicit `timing_policy`: tick frequency, rational rate, boot epoch, FPCR.FZ,

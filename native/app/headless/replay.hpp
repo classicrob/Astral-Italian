@@ -32,7 +32,7 @@ public:
 private:
     std::vector<Read> mReads;
     bool mWaitingForSync = false;
-    std::array<Read, 4> mDisconnected;
+    std::array<Read, 4> mBootstrap;
     std::uint64_t mFrames = 0, mFrame = 0;
     std::size_t mNext = 0, mFrameStart = 0;
     std::uint32_t mOrdinal = 0;

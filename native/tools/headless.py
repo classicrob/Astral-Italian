@@ -333,7 +333,7 @@ def main(argv=None):
     run.add_argument("--stage", help="shared catalog internal name, alias, or English galaxy label")
     run.add_argument("--scenario", type=sync_number, help="actual selected ScenarioNo; defaults to 1 with --stage")
     run.add_argument("--actor-trace", action="store_true", help="record and validate complete actor census sidecars")
-    run.add_argument("--inputs-from-sync", action="store_true", help="hold all channels disconnected until the ready seam, then consume tape frame 0; trace includes the anchor")
+    run.add_argument("--inputs-from-sync", action="store_true", help="hold a neutral connected Nunchuk on channel 0 until the ready seam, then consume tape frame 0; trace includes the anchor")
     run.add_argument("--sync-stage", help="canonical target stage at the first ready post-endFrame seam")
     run.add_argument("--sync-scenario", type=sync_number, help="placed ScenarioNo, not selected hidden/green ID")
     run.add_argument("--sync-rng-seed", type=sync_number, help="one-shot test override of the game RNG at that seam")

@@ -76,6 +76,56 @@ Each run writes a log to `~/MacioGalaxy2-play/user/logs/` (the menu prints its n
 own, the menu shows the last lines of that log. Restart with the same menu entry; saves stay in
 `~/MacioGalaxy2-play/user`.
 
+## More galaxies (headless boot sweep, 2026-10-20 04:00)
+A no-graphics sweep booted every galaxy folder on the disc with `--stage`. These **40** reached Mario standing in the level. Only Flip-Swap and Fluffy Bluff have been tested with graphics, so the others may still have rendering, object or audio problems, but they are worth a try:
+
+```sh
+native/play/play.sh <InternalName> [--odyssey]     # e.g. native/play/play.sh IslandFleetGalaxy
+```
+
+- `AbekobeGalaxy`
+- `BigGalaxy`
+- `ChallengeGliderGalaxy`
+- `ChaosGravityGalaxy`
+- `ChildRoomGalaxy`
+- `CloudGardenGalaxy`
+- `DigMineGalaxy`
+- `FlowerHighlandGalaxy`
+- `GoroRockGalaxy`
+- `HomeCenterGalaxy`
+- `HoneyBeeVillageGalaxy`
+- `IslandFleetGalaxy`
+- `JungleGliderGalaxy`
+- `KachikochiLavaGalaxy`
+- `KingOfKingsGalaxy`
+- `LongForCastleGalaxy`
+- `MadnessOnimasuGalaxy`
+- `MagicGalaxy`
+- `MarioFaceShipGalaxy`
+- `MarioOnMarioGalaxy`
+- `MokumokuValleyGalaxy`
+- `OmoteuLandGalaxy`
+- `PeachCastleGalaxy`
+- `QuicksandGalaxy`
+- `RedBlueExGalaxy`
+- `SecretAthleticGalaxy`
+- `StarCreekGalaxy`
+- `SwitchMoveBlockGalaxy`
+- `TamakoroPlanetGalaxy`
+- `TamakoroSliderGalaxy`
+- `TeresaLabyrinthGalaxy`
+- `ThunderFleetGalaxy`
+- `TimerSwitchingPlatformGalaxy`
+- `UnderGroundDangeonGalaxy`
+- `VsKoopaGravityGalaxy`
+- `VsKoopaJrLv1Galaxy`
+- `VsKoopaJrLv3Galaxy`
+- `VsKoopaLv1Galaxy`
+- `WanwanFactoryGalaxy`
+- `WhiteSnowGalaxy`
+
+World maps (WorldMap01-08) load without Mario by design. About 7 galaxies currently crash on one shared bug that is being fixed. The full table is in ~/MacioGalaxy2-team/scratch-port/sweep/SUMMARY.md.
+
 ## Status and known issues (build 3, frozen 2026-10-20 02:45)
 
 What was checked (`~/MacioGalaxy2-play/FROZEN.txt` has the numbers):

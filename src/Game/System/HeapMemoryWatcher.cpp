@@ -10,6 +10,24 @@
 #ifdef GALAXY_NATIVE
 #include <cstdint>
 #include "Game/System/NativeBootTrace.hpp"
+#include "Game/Util/SingletonHolder.hpp"
+#include <petari/host_image_heap.hpp>
+
+namespace {
+    // Heap for the host-layout copy of a big-endian J3D file (MacioGalaxy): the file cache's companion when the
+    // file is inside the file cache, otherwise null (the current heap). The companion is a sibling of the file
+    // cache, so findFromRoot resolves a source inside the file cache to the file cache itself.
+    JKRHeap* resolveFileCacheHostImageHeap(const void* pSource) {
+        HeapMemoryWatcher* pWatcher = SingletonHolder< HeapMemoryWatcher >::get();
+        if (pWatcher == nullptr || pWatcher->mFileCacheHeap == nullptr || pWatcher->mFileCacheHostImageHeap == nullptr) {
+            return nullptr;
+        }
+        if (JKRHeap::findFromRoot(const_cast< void* >(pSource)) != pWatcher->mFileCacheHeap) {
+            return nullptr;
+        }
+        return pWatcher->mFileCacheHostImageHeap;
+    }
+}  // namespace
 #endif
 
 JKRExpHeap* HeapMemoryWatcher::sRootHeapGDDR3;
@@ -80,11 +98,18 @@ void HeapMemoryWatcher::createWorldMapHeap() {
 
 void HeapMemoryWatcher::createFileCacheHeapOnGameHeap(u32 size) {
 #ifdef GALAXY_NATIVE
+    // Native resource objects for cached archives are larger (64-bit pointers): extra room on the file cache.
+    size += cFileCacheNativeAllowance;
     mFileCacheArchiveBytes = 0;
     mFileCacheArchiveCount = 0;
 #endif
     mFileCacheHeap = ::createSolidHeap(size, mGameHeapGDDR);
     mFileCacheDelegateHeap = new (mFileCacheHeap, 0) DelegatingHeap(mFileCacheHeap);
+#ifdef GALAXY_NATIVE
+    // Each J3D file in a cached archive also gets a same-size host-layout copy (J3DModelLoader/J3DAnmLoader), on a
+    // sibling heap of the same size (32-aligned copies of 32-multiple files fit in size + 32).
+    mFileCacheHostImageHeap = ::createSolidHeap(size + 0x20, mGameHeapGDDR);
+#endif
 }
 
 void HeapMemoryWatcher::createSceneHeapOnGameHeap() {
@@ -132,10 +157,21 @@ void HeapMemoryWatcher::destroyWorldMapHeap() {
 
 void HeapMemoryWatcher::destroyFileCache() {
     ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mFileCacheHeap));
+#ifdef GALAXY_NATIVE
+    // The file cache's J3D objects point into these copies; both go away together.
+    if (mFileCacheHostImageHeap != nullptr) {
+        ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mFileCacheHostImageHeap));
+    }
+#endif
 }
 
 void HeapMemoryWatcher::freeAllFileCache() {
     mFileCacheDelegateHeap->freeAll();
+#ifdef GALAXY_NATIVE
+    if (mFileCacheHostImageHeap != nullptr) {
+        mFileCacheHostImageHeap->freeAll();
+    }
+#endif
 }
 
 void HeapMemoryWatcher::destroySceneHeap() {
@@ -223,6 +259,9 @@ HeapMemoryWatcher::HeapMemoryWatcher()
     mFileCacheArchiveCount = 0;
 #endif
     JKRHeap::setErrorHandler(HeapMemoryWatcher::memoryErrorCallback);
+#ifdef GALAXY_NATIVE
+    PetariNative::J3D::setHostImageHeapResolver(::resolveFileCacheHostImageHeap);
+#endif
     createHeaps();
 }
 

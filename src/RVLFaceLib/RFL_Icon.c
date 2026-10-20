@@ -1,10 +1,21 @@
 #include "RVLFaceLibInternal.h"
 
+#ifdef GALAXY_NATIVE
+#include <math.h>
+
+// RFL narrows MSL's double-precision atan2. Natively this file is C++: keep that precision through the host's
+// C atan2 with internal linkage (no definition of the host library's atan2f).
+static inline float RFLiAtan2f(float y, float x) {
+    return (float)atan2((double)y, (double)x);
+}
+#define atan2f RFLiAtan2f
+#else
 double atan2(double y, double x);
 
 inline float atan2f(float x, float y) {
     return atan2(x, y);
 }
+#endif
 
 RFLErrcode RFLMakeIcon(void* buf, RFLDataSource source, RFLMiddleDB* middleDB, u16 index, RFLExpression expression, const RFLIconSetting* setting) {
     RFLiCharInfo info;

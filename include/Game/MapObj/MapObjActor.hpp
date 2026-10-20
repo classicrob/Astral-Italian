@@ -54,7 +54,12 @@ public:
     virtual void initCaseNoUseSwitchA(const MapObjActorInitInfo& rInfo);
     virtual void initCaseUseSwitchB(const MapObjActorInitInfo& rInfo);
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo& rInfo);
+#ifdef GALAXY_NATIVE
+    // Empty inline in the original (the DOL's weak copy sits in Halo).
+    virtual void makeSubModels(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo) {}
+#else
     virtual void makeSubModels(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo);
+#endif
     virtual void updateProjmapMtx();
     virtual bool tryEmitWaitEffect();
     virtual bool tryDeleteWaitEffect();

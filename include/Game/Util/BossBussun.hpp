@@ -93,7 +93,9 @@ public:
 
     virtual ~BossBussunStateShot();
     virtual void appear();
-    virtual void kill();
+#ifndef GALAXY_NATIVE
+    virtual void kill();  // not in the DOL vtable (slot is ActorStateBaseInterface::kill)
+#endif
 
     void exeShotSign();
     void exeShot();

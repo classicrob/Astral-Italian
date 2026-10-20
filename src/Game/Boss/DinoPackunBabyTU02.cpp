@@ -120,7 +120,9 @@ DinoPackunBabyShell::DinoPackunBabyShell(LiveActor* pHost, const char* pName, co
     loadFixedPosition(pJointName, nullptr);
 }
 
+#ifndef GALAXY_NATIVE
 inline PartsModel::~PartsModel() {}
+#endif
 
 void DinoPackunBabyShell::init(const JMapInfoIter& rIter) {
     PartsModel::init(rIter);

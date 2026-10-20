@@ -146,7 +146,9 @@ class KoopaJrRobotStateIntro : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateIntro(KoopaJrRobot*, const JMapInfoIter&);  // TU06 fn_800DF5A0
     virtual ~KoopaJrRobotStateIntro();
-    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
+#ifndef GALAXY_NATIVE
+    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);  // not in the DOL (vtable or text)
+#endif
     virtual void kill();
     static const char* getCameraName();  // fn_800DF590
     void exeWait();

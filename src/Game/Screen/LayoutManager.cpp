@@ -23,6 +23,9 @@
 #include <nw4r/lyt/group.h>
 #include <nw4r/lyt/layout.h>
 #include <nw4r/lyt/material.h>
+#ifdef GALAXY_NATIVE
+#include <petari/asset_diagnostics.hpp>
+#endif
 #include <nw4r/lyt/pane.h>
 #include <nw4r/lyt/picture.h>
 #include <nw4r/lyt/texMap.h>
@@ -247,6 +250,18 @@ LayoutPaneCtrl* LayoutManager::createAndAddPaneCtrl(const char* pName, u32 animL
     addPaneCtrl(pPaneCtrl);
     return pPaneCtrl;
 }
+
+#ifdef GALAXY_NATIVE
+// Out of line natively so a missing pane is reported (header inline on the Wii).
+nw4r::lyt::Pane* LayoutManager::getPane(const char* pName) const {
+    nw4r::lyt::Pane* pRoot = mLayout != nullptr ? mLayout->mpRootPane : nullptr;
+    nw4r::lyt::Pane* pPane = pRoot != nullptr && pName != nullptr ? pRoot->FindPaneByName(pName, true) : pRoot;
+    if (pPane == nullptr) {
+        PetariNative::reportMissingLayoutReference(mLayoutName, pName, "pane");
+    }
+    return pPane;
+}
+#endif
 
 LayoutPaneCtrl* LayoutManager::getPaneCtrl(const char* pName) const {
     if (pName == nullptr) {

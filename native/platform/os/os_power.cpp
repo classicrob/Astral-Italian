@@ -97,6 +97,9 @@ void enqueueByPriority(OSShutdownFunctionInfo* info) {
     case PPower::Intent::ReturnToMenu:
         OSReport("OSReturnToMenu(): there is no Wii Menu on this host; exiting.\n");
         break;
+    case PPower::Intent::ReturnToDataManager:
+        OSReport("OSReturnToDataManager(): there is no Data Management screen on this host; exiting.\n");
+        break;
     case PPower::Intent::Reboot:
         OSReport("OSRebootSystem(): there is no console to reboot on this host; exiting.\n");
         break;
@@ -221,6 +224,11 @@ void OSRestart(u32 resetCode) {
 
 void OSReturnToMenu(void) {
     leave(PPower::Intent::ReturnToMenu, 0, 5);
+}
+
+// OSReset.c: __OSReturnToMenu(1), the same shutdown as OSReturnToMenu (event 5).
+void OSReturnToDataManager(void) {
+    leave(PPower::Intent::ReturnToDataManager, 0, 5);
 }
 
 void OSRebootSystem(void) {

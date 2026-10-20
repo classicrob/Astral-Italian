@@ -253,6 +253,25 @@ void OSCancelAlarm(OSAlarm* alarm) {
     OSRestoreInterrupts(enabled);
 }
 
+// OSAlarm.c: cancels every queued alarm carrying the tag (0 and -1 are never matched).
+void OSCancelAlarms(u32 tag) {
+    if (tag == 0 || tag == 0xFFFFFFFF) {
+        return;
+    }
+
+    BOOL enabled = OSDisableInterrupts();
+    OSAlarm* alarm = AlarmQueue.head;
+    OSAlarm* next = alarm != nullptr ? alarm->next : nullptr;
+    while (alarm != nullptr) {
+        if (alarm->tag == tag) {
+            OSCancelAlarm(alarm);
+        }
+        alarm = next;
+        next = alarm != nullptr ? alarm->next : nullptr;
+    }
+    OSRestoreInterrupts(enabled);
+}
+
 void OSSetAlarmTag(OSAlarm* alarm, u32 tag) {
     alarm->tag = tag;
 }

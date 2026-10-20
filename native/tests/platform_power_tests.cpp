@@ -151,6 +151,7 @@ void testExitIntents() {
         {[] { OSShutdownSystem(); }, static_cast<int>(PPower::Intent::Shutdown), 2},
         {[] { OSReturnToMenu(); }, static_cast<int>(PPower::Intent::ReturnToMenu), 5},
         {[] { OSRebootSystem(); }, static_cast<int>(PPower::Intent::Reboot), 1},
+        {[] { OSReturnToDataManager(); }, static_cast<int>(PPower::Intent::ReturnToDataManager), 5},
     };
     for (const auto& c : cases) {
         const int status = inChild([&] {

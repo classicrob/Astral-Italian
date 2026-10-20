@@ -13,7 +13,12 @@ public:
     class Condition {
     public:
         virtual ~Condition();
+#ifdef GALAXY_NATIVE
+        // No base body in the DOL: every condition overrides it.
+        virtual bool isExecute(const MR::StationedFileInfo*) const = 0;
+#else
         virtual bool isExecute(const MR::StationedFileInfo*) const;
+#endif
         virtual JKRHeap* getProperHeap(const MR::StationedFileInfo*) const;
     };
 

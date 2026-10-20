@@ -5,7 +5,11 @@
 namespace {
     const char* sTicoBabyDemoName = "ベビチコ出会い";
 }  // namespace
+#ifdef GALAXY_NATIVE
+const s32 lbl_807E3108 = 0;  // .sbss2: a zero-filled constant
+#else
 extern s32 lbl_807E3108;
+#endif
 
 namespace NrvTicoBaby {
     NEW_NERVE(TicoBabyNrvWait, TicoBaby, Wait);

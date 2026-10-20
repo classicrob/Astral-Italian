@@ -52,7 +52,11 @@ void GhostAttackGhost::init(const JMapInfoIter& iter) {
         MR::initActor(this, iter, "GhostAttackGhost", "2DWater", false);
         MR::startAction(this, "Irregular");
     } else {
+#ifdef GALAXY_NATIVE
+        MR::initActor(this, iter, "GhostAttackGhost", "", false);  // lbl_807CFEB0 is this pooled empty string
+#else
         MR::initActor(this, iter, "GhostAttackGhost", lbl_807CFEB0, false);
+#endif
     }
     mHandJointCtrl = MR::createJointController(this, "HandL0", &GhostAttackGhost::calcHandJoint);
     mHeadJointCtrl = MR::createJointController(this, "HandR0", &GhostAttackGhost::calcHandJoint);

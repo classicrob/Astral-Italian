@@ -8,13 +8,14 @@
 // disabled, and OSGetResetButtonState() reports a press once.
 //
 // When the game leaves (OSShutdownSystem, OSRestart, OSReturnToMenu,
-// OSRebootSystem), registered shutdown functions run as on the console
+// OSReturnToDataManager, OSRebootSystem), registered shutdown functions run as on the console
 // (repeated non-final passes until all succeed, then a final pass with
 // interrupts disabled), then the application's exit handler receives the
 // intent. These OS functions never return: if the handler returns, the call
 // aborts. Without a handler:
-// - Shutdown, ReturnToMenu, Reboot: the process exits with status 0 (there is
-//   no Wii Menu or console to return to);
+// - Shutdown, ReturnToMenu, ReturnToDataManager, Reboot: the process exits
+//   with status 0 (there is no Wii Menu, Data Management screen or console to
+//   return to);
 // - Restart: the process relaunches itself with the reset code, which the
 //   new instance reports through OSGetResetCode()/OSIsRestart().
 
@@ -27,12 +28,13 @@ enum class Intent {
     Restart,       // OSRestart: relaunch this title with a reset code
     ReturnToMenu,  // OSReturnToMenu: Wii Menu (unavailable natively)
     Reboot,        // OSRebootSystem: reboot the console (unavailable natively)
+    ReturnToDataManager,  // OSReturnToDataManager: the Wii Menu's Data Management screen (unavailable natively)
 };
 
 struct Exit {
     Intent intent;
     std::uint32_t resetCode;      // OSRestart's argument (Restart only)
-    std::uint32_t shutdownEvent;  // event given to shutdown functions: 2, 4, 5, 1
+    std::uint32_t shutdownEvent;  // event given to shutdown functions: 2, 4, 5, 1, 5
 };
 
 // Must not return: it should quit, relaunch (see relaunch()), or hand control

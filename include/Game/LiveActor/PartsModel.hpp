@@ -8,7 +8,12 @@ class PartsModel : public LiveActor {
 public:
     PartsModel(LiveActor* pHost, const char* pName, const char* pModelName, MtxPtr pMtx, int drawBufferType, bool);
 
+#ifdef GALAXY_NATIVE
+    // Inline in the original (the DOL's weak copy sits in DinoPackunBabyTU02), so init() is the vtable's key function.
+    virtual ~PartsModel() {}
+#else
     virtual ~PartsModel();
+#endif
     virtual void init(const JMapInfoIter& rIter);
     virtual void movement();
     virtual void calcAnim();

@@ -293,16 +293,25 @@ namespace NrvWorldMapResultStateCometAppear {
     WMR_NERVE_DECL(WorldMapResultStateCometAppearEnd);
 };  // namespace NrvWorldMapResultStateCometAppear
 
-#define WMR_STATE_DECL_HOST(host, name, extra)                                                                                                       \
+#define WMR_STATE_DECL_HOST_KILL(host, name, killDecl, extra)                                                                                        \
     class name : public ActorStateBase< host > {                                                                                                     \
     public:                                                                                                                                          \
         name(host*);                                                                                                                                 \
         virtual ~name();                                                                                                                             \
         virtual void init();                                                                                                                         \
         virtual void appear();                                                                                                                       \
-        virtual void kill();                                                                                                                         \
+        killDecl                                                                                                                                     \
         extra                                                                                                                                        \
     }
+
+#define WMR_STATE_DECL_HOST(host, name, extra) WMR_STATE_DECL_HOST_KILL(host, name, virtual void kill();, extra)
+
+/// The kill() override of states whose DOL vtable keeps ActorStateBaseInterface::kill (RouteOpen, WorldWarp).
+#ifdef GALAXY_NATIVE
+#define WMR_STATE_NO_KILL
+#else
+#define WMR_STATE_NO_KILL virtual void kill();
+#endif
 
 /// State of the result cutscenes (host: WorldMapResultCommand).
 #define WMR_STATE_DECL(name, extra) WMR_STATE_DECL_HOST(WorldMapResultCommand, name, extra)
@@ -312,7 +321,7 @@ namespace NrvWorldMapResultStateCometAppear {
 
 WMR_STATE_DECL(WorldMapResultStateStart, void exeWait(); void exeEnd(););
 WMR_STATE_DECL(WorldMapResultStateEnd, void exeWait(); void exeEnd(););
-WMR_STATE_DECL(WorldMapResultStateRouteOpen, virtual void control(); bool isXXX() const;
+WMR_STATE_DECL_HOST_KILL(WorldMapResultCommand, WorldMapResultStateRouteOpen, WMR_STATE_NO_KILL, virtual void control(); bool isXXX() const;
                void exeStart() {
                    MR::isFirstStep(this);
 

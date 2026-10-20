@@ -529,6 +529,14 @@ u32 VIGetDimmingCount(void) {
     return gIdleCount >= threshold ? 0 : threshold - gIdleCount;
 }
 
+// vi.c: retraces left before the idle DVD motor stops. Only VIEnableDVDStopMotor
+// starts that countdown; VIInit disables it and SMG2 never re-enables it (the
+// function is not in its DOL), so the count stays at the full threshold.
+u32 VIGetDVDStopMotorCount(void) {
+    OS::InterruptGuard guard;
+    return tvFormatOf(gLatched.tvMode) == VI_PAL ? 90000 : 108000;
+}
+
 BOOL VIResetDimmingCount(void) {
     OS::InterruptGuard guard;
     gActivity = true;

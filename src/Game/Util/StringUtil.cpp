@@ -128,7 +128,14 @@ namespace MR {
         char* pExtSeparator = strrchr(pDst, '.');
         char* pDirSeparator = strrchr(pDst, '/');
 
+#ifdef GALAXY_NATIVE
+        // The Wii compares address words: a missing separator is zero. Keep
+        // those cases without ordering or adding to a null C++ pointer.
+        if (pDirSeparator != nullptr &&
+            (pExtSeparator == nullptr || pExtSeparator < pDirSeparator || pDirSeparator + 1 == pExtSeparator)) {
+#else
         if (pExtSeparator < pDirSeparator || pDirSeparator + 1 == pExtSeparator) {
+#endif
             return pDirSeparator;
         }
 

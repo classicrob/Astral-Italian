@@ -119,7 +119,11 @@ void PukupukuWaterSurface::init(const JMapInfoIter& rIter) {
     MR::declareCoin(this, 1);
     mPartsModel = new PartsModel(this, "氷モデル", "PukupukuFreezeIce", getBaseMtx(), 0x13, false);
     mPartsModel->initWithoutIter();
+#ifdef GALAXY_NATIVE
+    mPartsModel->mCheckHiddenHost = true;
+#else
     reinterpret_cast< u8* >(mPartsModel)[0x9D] = 1;
+#endif
     mPartsModel->makeActorDead();
     MR::startAction(mPartsModel, "Normal");
     makeActorAppeared();
@@ -285,7 +289,11 @@ void PukupukuWaterSurface::exePukupukuDead() {
     }
     if (MR::isActionEnd(mPartsModel)) {
         MR::startBva(mPartsModel, "Normal");
+#ifdef GALAXY_NATIVE
+        mPartsModel->mCheckHiddenHost = false;
+#else
         reinterpret_cast< u8* >(mPartsModel)[0x9D] = 0;
+#endif
         mPartsModel->kill();
         kill();
     }

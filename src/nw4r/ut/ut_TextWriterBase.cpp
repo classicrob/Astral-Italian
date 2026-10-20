@@ -154,6 +154,15 @@ namespace nw4r {
                     prevStreamPos = reinterpret_cast< StreamType >(reader.GetCurrentPos());
                 }
 
+#ifdef GALAXY_NATIVE
+                // The original reads the character after the end before the loop test stops it (past
+                // a one-character buffer here and there). Leave the stream one character past the end
+                // without reading it.
+                if (reinterpret_cast< StreamType >(reader.GetCurrentPos()) >= end) {
+                    reader.Set(end + 1);
+                    break;
+                }
+#endif
                 code = reader.Next();
             }
 

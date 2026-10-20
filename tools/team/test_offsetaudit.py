@@ -55,7 +55,8 @@ auto y = *(bool*)((char*)p + 0x10);'''
     def test_alias_integer_and_functional_address_casts_are_not_silently_lost(self):
         for source in ['using BytePtr=u8*; auto q=reinterpret_cast<BytePtr>(p)+12;',
                        'auto q=reinterpret_cast<unsigned long>(p)+12;',
-                       'auto q=(BytePtr)p+12;', 'auto q=std::uintptr_t(p)+12;']:
+                       'auto q=(BytePtr)p+12;', 'auto q=std::uintptr_t(p)+12;',
+                       'auto q=static_cast<BytePtr>(p)+12;', 'auto q=const_cast<BytePtr>(p)+12;']:
             self.assertTrue(self.rows(source), source)
 
     def test_octal_constant(self):

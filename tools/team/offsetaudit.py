@@ -211,7 +211,9 @@ def scan_text(path, data):
                 end += 1
             if depth == 0:
                 type_tokens = tokens[i+2:end-1]
-                if token.text == 'reinterpret_cast' or any(t.text in {'*', 'uintptr_t', 'intptr_t'} for t in type_tokens):
+                if type_tokens:
+                    # Even static_cast<Alias> may be a pointer cast. Inventory
+                    # every named cast; unknown typedefs never disappear.
                     last = end
                     if end < len(tokens) and tokens[end].text == '(' and end in pairs:
                         last = pairs[end] + 1
@@ -503,7 +505,8 @@ def ast_accesses(root, manifest_path, rows, wii_layout, domains):
                 if len(children) != 2:
                     continue
                 count, rec = const_int(children[1]), record_of(children[0])
-                pointer_type = children[0].get('type', {}).get('qualType', '')
+                pointer_info = children[0].get('type', {})
+                pointer_type = pointer_info.get('desugaredQualType', pointer_info.get('qualType', ''))
                 if count is None or rec is None or not re.search(r'(?:u8|s8|char|unsigned char|signed char)\s*\*', pointer_type):
                     continue  # no element-size guess for non-byte pointer addition
                 count *= -1 if n['opcode'] == '-' else 1

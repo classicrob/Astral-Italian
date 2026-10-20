@@ -98,14 +98,17 @@ bool onGameDataReady(const ScenarioDataParser& parser, const JMapInfo& worldOrde
         const int world = status.getWorldNo();
         if (world <= 0 || orderedWorld > static_cast<u32>(std::numeric_limits<int>::max()) || world != static_cast<int>(orderedWorld))
             return fail(error, std::string("world-number provenance mismatch for ") + stage);
+        // Some world-ordered records (world maps such as WorldMap08Galaxy) have no GalaxyName label: they keep
+        // their internal name in listings and are still addressable by it.
         const auto english = sEnglish.find(stage);
-        if (english == sEnglish.end()) return fail(error, std::string("English GalaxyName label is absent for ") + stage);
+        const bool hasEnglish = english != sEnglish.end();
         CatalogGalaxy galaxy;
         galaxy.stage = stage;
-        galaxy.englishName = english->second.text;
+        galaxy.englishName = hasEnglish ? english->second.text : std::string();
         galaxy.world = world;
         galaxy.provenance = "ObjectData/SystemDataTable.arc/GalaxyWorldOrderList.bcsv:row=" + std::to_string(row) +
-                            ";StageData/" + stage + "/" + stage + "Scenario.arc/{GalaxyInfo,ScenarioData}.bcsv;" + english->second.provenance;
+                            ";StageData/" + stage + "/" + stage + "Scenario.arc/{GalaxyInfo,ScenarioData}.bcsv;" +
+                            (hasEnglish ? english->second.provenance : std::string("no GalaxyName label"));
         for (int index = 0; index < data->mScenarioData->getNumEntries(); ++index) {
             s32 number = 0;
             u32 mask = 0;

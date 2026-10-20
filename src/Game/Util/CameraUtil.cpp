@@ -327,7 +327,12 @@ namespace MR {
         if (chunk != nullptr) {
             chunk->setCameraType("CAM_TYPE_ANIM", getCameraDirector()->mHolder);
             CameraGeneralParam* param = chunk->mGeneralParam;
+#ifdef GALAXY_NATIVE
+            chunk->mGeneralParam->mNum1 = 0;
+            chunk->mGeneralParam->mAnimData = pAnimData;
+#else
             chunk->mGeneralParam->mNum1 = reinterpret_cast< intptr_t >(pAnimData);
+#endif
             chunk->mGeneralParam->mDist = 1.0f;
             chunk->getGeneralParam()->mNum2 &= 0x80000000;
             chunk->getGeneralParam()->mNum2 |= CameraAnim::getAnimFrame(reinterpret_cast< u8* >(pAnimData));

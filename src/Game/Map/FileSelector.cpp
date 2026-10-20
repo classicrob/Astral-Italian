@@ -933,7 +933,9 @@ void FileSelector::exeTitle() {
     }
 
 #ifdef GALAXY_NATIVE
-    if (PetariNative::PlayerLaunch::openFile > 0) {
+    // An opened file or a pending --stage startup skips the title ("Press A and B").
+    if (PetariNative::PlayerLaunch::openFile > 0 ||
+        (!sNativeStartupFileUsed && PetariNative::App::LaunchStage::startupStatus() == PetariNative::App::LaunchStage::StartupStatus::PendingFileLoad)) {
         mTitle->kill();
     } else {
         mTitle->updateNerve();

@@ -15,6 +15,9 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SystemUtil.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/launch_stage.hpp>
+#endif
 
 
 namespace {
@@ -111,6 +114,14 @@ void LogoScene::exeStrapFadein() {
 void LogoScene::exeStrapDisplay() {
     if (MR::isFirstStep(this)) {
         MR::startAnim(mStrapLayout, "Strap", 0);
+#ifdef GALAXY_NATIVE
+        // A --stage startup goes straight to its galaxy: the reminder leaves at its earliest step, as if pressed.
+        namespace Launch = PetariNative::App::LaunchStage;
+        const Launch::StartupStatus status = Launch::startupStatus();
+        if (status == Launch::StartupStatus::PendingCatalog || status == Launch::StartupStatus::PendingFileLoad) {
+            mInputBuffered = true;
+        }
+#endif
     }
 
     if (MR::isStep(this, STRAP_DISPLAY_MAX_FRAME - 1)) {

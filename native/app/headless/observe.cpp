@@ -1,4 +1,5 @@
 #include "trace.hpp"
+#include "actor_trace.hpp"
 #include "stage_sync.hpp"
 #include "replay.hpp"
 #include "Game/System/GameSystem.hpp"
@@ -127,4 +128,48 @@ State observeGame() {
     out.integer("player_valid", 1);
     return out;
 }
+ActorFrame observeActors(const State& state) {
+    ActorFrame snapshot;
+    if (!actorFrameReady(state)) return snapshot;
+    const auto* system = SingletonHolder<GameSystem>::get();
+    const auto* controller = system ? system->mSceneController : nullptr;
+    if (!controller || !controller->mScene || controller->mSceneInitializeState != SceneInitializeState_End ||
+        bounded(controller->mCurrSceneControlInfo.mScene, sizeof(controller->mCurrSceneControlInfo.mScene)) != "Game" ||
+        bounded(controller->mCurrSceneControlInfo.mStage, sizeof(controller->mCurrSceneControlInfo.mStage)) != state.fields.at("stage") ||
+        std::to_string(controller->mCurrSceneControlInfo.mScenarioNo) != state.fields.at("scenario"))
+        throw ReplayError("actor census scene changed after main observation");
+    const auto* objects = controller->mScene->mSceneObjHolder;
+    const auto* group = objects ? static_cast<const AllLiveActorGroup*>(objects->mObjs[SceneObj_AllLiveActorGroup]) : nullptr;
+    if (!group || group->mObjNum < 0 || group->mObjNum > group->mObjNumMax || group->mObjNumMax > 32768 ||
+        (group->mObjNum && !group->mObjArray)) throw ReplayError("invalid actor census group");
+    const auto* holder = static_cast<const MarioHolder*>(objects->mObjs[SceneObj_MarioHolder]);
+    const auto* player = holder ? holder->mActor : nullptr;
+    snapshot.ready = true;
+    snapshot.registered = group->mObjNum;
+    snapshot.actors.reserve(group->mObjNum);
+    for (int i = 0; i < group->mObjNum; ++i) {
+        const auto* actor = static_cast<const LiveActor*>(group->mObjArray[i]);
+        if (!actor) throw ReplayError("null actor census member");
+        ActorSample sample;
+        sample.localPointer = reinterpret_cast<std::uintptr_t>(actor);
+        sample.isPlayer = actor == player;
+        if (actor->mName) {
+            const auto length = strnlen(actor->mName, ActorNameStorageLimit);
+            if (length == ActorNameStorageLimit) throw ReplayError("unterminated actor census name");
+            sample.nameValid = true;
+            sample.nameBytes.assign(actor->mName, length); // Raw bytes, no ASCII/UTF-8 interpretation.
+        }
+        sample.linkId = actor->mLinkInfo.mFollowID;
+        sample.linkZone = actor->mLinkInfo.mZoneID;
+        sample.linkContext = actor->mLinkInfo.mContext;
+        sample.dead = boolean(actor->mFlags.mIsDead);
+        sample.position = {actor->mPosition.x, actor->mPosition.y, actor->mPosition.z};
+        sample.rotation = {actor->mRotation.x, actor->mRotation.y, actor->mRotation.z};
+        sample.scale = {actor->mScale.x, actor->mScale.y, actor->mScale.z};
+        snapshot.living += !sample.dead;
+        snapshot.actors.push_back(std::move(sample));
+    }
+    return snapshot;
+}
+
 }

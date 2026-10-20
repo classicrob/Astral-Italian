@@ -504,6 +504,14 @@ namespace {
         std::abort();
     }
 
+    [[noreturn]] void trapMissingPostCreation(const char* pFunction) {
+        std::fprintf(stderr, "NameObjFactory: post-creation %s is not callable natively yet\n", pFunction);
+        std::abort();
+    }
+
+    // PLACEHOLDER(port): BalloonFruit::enableYoshiBalloonResource is declared non-static but called without an object; resolve when it is made static (Wii symbol-table proof pending)
+    // PLACEHOLDER(port): Sandstorm::enablePlayerTornado is declared non-static but called without an object; resolve when it is made static (Wii symbol-table proof pending)
+    // PLACEHOLDER(port): YoshiEgg::fn_80417040 is declared non-static but called without an object; resolve when it is made static (Wii symbol-table proof pending)
 }  // namespace
 
 namespace NameObjFactory {
@@ -1502,11 +1510,11 @@ namespace NameObjFactory {
         {"MorphItemNeoIce", MR::enablePlayerResourceMorph},
         {"MorphItemNeoTeresa", MR::enablePlayerResourceMorph},
         {"MorphItemRock", MR::enablePlayerResourceMorph},
-        {"YoshiEgg", [](const JMapInfoIter&) { YoshiEgg::fn_80417040(); }},
-        {"BalloonFruit", [](const JMapInfoIter&) { BalloonFruit::enableYoshiBalloonResource(); }},
-        {"SunakazeKun", [](const JMapInfoIter&) { Sandstorm::enablePlayerTornado(); }},
-        {"TwisterSan", [](const JMapInfoIter&) { Sandstorm::enablePlayerTornado(); }},
-        {"TwisterSanSlim", [](const JMapInfoIter&) { Sandstorm::enablePlayerTornado(); }},
+        {"YoshiEgg", [](const JMapInfoIter&) { trapMissingPostCreation("YoshiEgg::fn_80417040"); }},
+        {"BalloonFruit", [](const JMapInfoIter&) { trapMissingPostCreation("BalloonFruit::enableYoshiBalloonResource"); }},
+        {"SunakazeKun", [](const JMapInfoIter&) { trapMissingPostCreation("Sandstorm::enablePlayerTornado"); }},
+        {"TwisterSan", [](const JMapInfoIter&) { trapMissingPostCreation("Sandstorm::enablePlayerTornado"); }},
+        {"TwisterSanSlim", [](const JMapInfoIter&) { trapMissingPostCreation("Sandstorm::enablePlayerTornado"); }},
         {"CometHopperArea", [](const JMapInfoIter&) { MR::enablePlayerResourceHopperComet(); }},
         {"CometRainbowArea", [](const JMapInfoIter&) { MR::enablePlayerResourceInvincibleComet(); }},
         {"SpinCloudItem", [](const JMapInfoIter&) { SpinCloudItem::enablePlayerResourceCloud(); }},

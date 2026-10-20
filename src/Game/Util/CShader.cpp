@@ -213,7 +213,11 @@ void CShader::setup(J3DModelData* pData) {
 
 namespace {
     inline s32 getCount(u8* pRead) {
+#ifdef GALAXY_NATIVE
+        return PetariNative::readU16BE(pRead + 1);
+#else
         return *reinterpret_cast< u16* >(pRead + 1);
+#endif
     }
 };  // namespace
 
@@ -270,9 +274,15 @@ void CShader::makeIndexData(J3DShape* pShape) const {
 
             for (s32 i = 0; i < count; i++) {
                 u8* pVertex = pRead + 3 + stride * i;
+#ifdef GALAXY_NATIVE
+                u16 pos = PetariNative::readU16BE(pVertex + posOffset);
+                u16 nrm = PetariNative::readU16BE(pVertex + nrmOffset);
+                u16 tex = PetariNative::readU16BE(pVertex + texOffset);
+#else
                 u16 pos = *reinterpret_cast< u16* >(pVertex + posOffset);
                 u16 nrm = *reinterpret_cast< u16* >(pVertex + nrmOffset);
                 u16 tex = *reinterpret_cast< u16* >(pVertex + texOffset);
+#endif
                 mIndexArray[pos]._0 = nrm;
                 mIndexArray[pos]._2 = tex;
             }
@@ -327,10 +337,18 @@ void CShader::checkBorderVtx(J3DModelData* pData, u32 shapeIndex) {
                     break;
                 }
 
+#ifdef GALAXY_NATIVE
+                s32 count = PetariNative::readU16BE(pRead + 1);
+#else
                 s32 count = *reinterpret_cast< u16* >(pRead + 1);
+#endif
 
                 for (s32 i = 0; i < count; i++) {
+#ifdef GALAXY_NATIVE
+                    u16 pos = PetariNative::readU16BE((pRead + stride * i) + (posOffset + 3));
+#else
                     u16 pos = *reinterpret_cast< u16* >((pRead + stride * i) + (posOffset + 3));
+#endif
                     mIndexArray[pos]._0 = 0xFFFF;
                     mIndexArray[pos]._2 = 0xFFFF;
                 }
@@ -343,7 +361,13 @@ void CShader::checkBorderVtx(J3DModelData* pData, u32 shapeIndex) {
 
 CShader::CLengthMap::CLengthMap(const ResTIMG* pTimg) {
     _0 = pTimg;
+#ifdef GALAXY_NATIVE
+    static_assert(sizeof(ResTIMG) == 0x20, "Wii texture header size");
+    // The Wii stores address + 0x20 even for null; the inactive flag prevents a read.
+    _4 = reinterpret_cast< const u8* >(reinterpret_cast< std::uintptr_t >(pTimg) + sizeof(ResTIMG));
+#else
     _4 = reinterpret_cast< const u8* >(pTimg) + sizeof(ResTIMG);
+#endif
     setLengthMap(pTimg);
 }
 

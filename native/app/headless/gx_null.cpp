@@ -74,6 +74,11 @@ GXRenderModeObj GXMpal480IntDf = mode(VI_TVMODE_MPAL_INT, 480);
 GXRenderModeObj GXPal528IntDf = mode(VI_TVMODE_PAL_INT, 528);
 GXRenderModeObj GXEurgb60Hz480IntDf = mode(VI_TVMODE_EURGB60_INT, 480);
 GXFifoObj* GXInit(void*, u32) { return &gCpu; }
+// No depth buffer headlessly: every depth peek reads the far plane, i.e. nothing in front (sun/lens-flare and
+// Star Pointer occlusion tests see an unobstructed view). Listed in HARNESS.md as a known headless difference.
+void GXPeekZ(u16, u16, u32* z) { ++gCalls; *z = 0xFFFFFF; }
+// No framebuffer headlessly either: colour peeks read transparent black.
+void GXPeekARGB(u16, u16, u32* color) { ++gCalls; *color = 0; }
 void GXInitFifoBase(GXFifoObj* object, void*, u32) { std::memset(object, 0, sizeof(*object)); }
 void GXSetCPUFifo(const GXFifoObj* object) { gCpu = *object; }
 void GXSetGPFifo(const GXFifoObj* object) { gGpu = *object; }

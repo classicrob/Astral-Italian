@@ -310,6 +310,13 @@ namespace nw4r {
                     prevStreamPos = reinterpret_cast< StreamType >(reader.GetCurrentPos());
                 }
 
+#ifdef GALAXY_NATIVE
+                // The original reads one character past the end before the loop test stops it (past a
+                // one-character picture-font buffer on the stack here): stop without that read.
+                if (reinterpret_cast< StreamType >(reader.GetCurrentPos()) - str >= length) {
+                    break;
+                }
+#endif
                 code = reader.Next();
             }
 

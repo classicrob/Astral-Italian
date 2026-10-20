@@ -480,6 +480,12 @@ namespace nw4r {
                     prevStreamPos = reinterpret_cast< StreamType >(reader.GetCurrentPos());
                 }
 
+#ifdef GALAXY_NATIVE
+                // As in CalcLineRectImpl: stop at the end without reading the character after it.
+                if (reinterpret_cast< StreamType >(reader.GetCurrentPos()) - str >= length) {
+                    break;
+                }
+#endif
                 code = reader.Next();
             }
 

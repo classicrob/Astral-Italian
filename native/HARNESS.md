@@ -399,3 +399,8 @@ diagnostic and the comparator rejects qualification. Refresh available-object
 and undefined-symbol manifests after provider changes. Diagnostic duplicate
 omissions require public Wii symbol-address/split evidence and must be
 reported by owner; omitted unique definitions become additional traps.
+
+## Known headless differences (lead 2)
+- `GXPeekZ` returns the far plane (no depth buffer): depth-occlusion queries (lens flares, Star Pointer depth)
+  behave as if nothing were in front. Traces that depend on those differ from Dolphin by construction.
+- `GXPeekARGB` returns 0 (transparent black): no framebuffer headlessly.

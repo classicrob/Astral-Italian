@@ -19,11 +19,13 @@ spec.loader.exec_module(encoding)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--case', choices=['region'], default='region')
+    parser.add_argument('--case', choices=['region', 'conversion'], default='region')
     parser.add_argument('--baseline', help='git revision used for implementation sources only')
     args = parser.parse_args()
-    sources = ['src/Game/Util/StringUtil.cpp', 'src/Game/System/Language.cpp',
-               'src/Game/System/NerveExecutor.cpp', 'src/JSystem/JMath/random.cpp']
+    sources = ['src/Game/Util/StringUtil.cpp']
+    if args.case == 'region':
+        sources += ['src/Game/System/Language.cpp', 'src/Game/System/NerveExecutor.cpp',
+                    'src/JSystem/JMath/random.cpp']
     with tempfile.TemporaryDirectory(prefix='petari-text-') as tmp:
         tmp = Path(tmp)
         legacy = tmp / 'legacy'
@@ -42,14 +44,17 @@ def main():
         for directory in includes:
             command += ['-I', str(legacy / directory)]
         command += ['-I', str(ROOT / 'native/include')]
-        command += [str(ROOT / ('native/tests/' + args.case + '_prefix_tests.cpp'))]
+        test_source = 'region_prefix_tests.cpp' if args.case == 'region' else 'utf16_conversion_tests.cpp'
+        command += [str(ROOT / 'native/tests' / test_source)]
         command += [str(legacy / source) for source in sources]
         command += ['-Wl,-dead_strip', '-o', str(tmp / 'test')]
         subprocess.run(command, check=True)
         result = subprocess.run([str(tmp / 'test')], capture_output=True, text=True)
         if args.baseline:
-            if result.returncode == 0:
-                raise SystemExit('baseline unexpectedly passed')
+            expected = ('AddressSanitizer: stack-buffer-overflow' if args.case == 'region'
+                        else 'Incorrect conversion:')
+            if result.returncode == 0 or expected not in result.stderr:
+                raise SystemExit('baseline did not reproduce the expected failure')
             # Summarize diagnostics without copying lengthy sanitizer logs.
             diagnostic = next((line.strip() for line in (result.stderr + result.stdout).splitlines()
                                if 'SUMMARY:' in line or 'Incorrect' in line), 'test returned ' + str(result.returncode))

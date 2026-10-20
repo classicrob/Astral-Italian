@@ -204,9 +204,14 @@ namespace MR {
 
     JMapInfo* makeInitActorCsvParser(const char* a1, const char* pSubFile) {
         const char* csv = "InitActor.bcsv";
+#ifdef GALAXY_NATIVE
+        char buf[64];  // csv points into it after the block (clang reuses block-local stack slots)
+#endif
 
         if (pSubFile != nullptr) {
+#ifndef GALAXY_NATIVE
             char buf[64];
+#endif
             snprintf(buf, sizeof(buf), "InitActor%s.bcsv", pSubFile);
             csv = buf;
         }

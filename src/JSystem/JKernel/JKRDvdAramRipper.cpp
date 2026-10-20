@@ -319,7 +319,7 @@ static inline int decompSZS_subroutine(u8* src, u32 dest) {
     }
 
     SYaz0Header* header = reinterpret_cast< SYaz0Header* >(src);
-    endAddr = dest + (header->length - fileOffset);
+    endAddr = dest + (JKR_YAZ0_LENGTH(header) - fileOffset);
     if (endAddr > dest + maxDest) {
         endAddr = dest + maxDest;
     }

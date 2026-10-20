@@ -5,6 +5,15 @@
 #include "JSystem/J3DGraphBase/J3DStruct.hpp"
 #include "JSystem/JMath/JMath.hpp"
 
+// Key-framed rotations are stored scaled down by 2^mDecShift. Shifting a negative value left
+// is undefined before C++20; natively the shift is done on the unsigned bits, which gives the
+// same result as the PowerPC slw.
+#ifdef GALAXY_NATIVE
+#define J3D_ROT_SHIFT(value, shift) static_cast< int >(static_cast< u32 >(value) << (shift))
+#else
+#define J3D_ROT_SHIFT(value, shift) ((value) << (shift))
+#endif
+
 void J3DFrameCtrl::init(s16 endFrame) {
     mAttribute = EMode_LOOP;
     mState = 0;
@@ -647,11 +656,10 @@ void J3DAnmTransformKey::calcTransform(f32 frame, u16 jointNo, J3DTransformInfo*
         pTransform->mRotation.x = 0;
         break;
     case 1:
-        pTransform->mRotation.x = mRotData[entryX->mRotationInfo.mOffset] << mDecShift;
+        pTransform->mRotation.x = J3D_ROT_SHIFT(mRotData[entryX->mRotationInfo.mOffset], mDecShift);
         break;
     default:
-        pTransform->mRotation.x = (int)J3DGetKeyFrameInterpolation(frame, &entryX->mRotationInfo, &mRotData[entryX->mRotationInfo.mOffset])
-                                  << mDecShift;
+        pTransform->mRotation.x = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryX->mRotationInfo, &mRotData[entryX->mRotationInfo.mOffset]), mDecShift);
     }
 
     switch (entryY->mRotationInfo.mMaxFrame) {
@@ -659,11 +667,10 @@ void J3DAnmTransformKey::calcTransform(f32 frame, u16 jointNo, J3DTransformInfo*
         pTransform->mRotation.y = 0;
         break;
     case 1:
-        pTransform->mRotation.y = mRotData[entryY->mRotationInfo.mOffset] << mDecShift;
+        pTransform->mRotation.y = J3D_ROT_SHIFT(mRotData[entryY->mRotationInfo.mOffset], mDecShift);
         break;
     default:
-        pTransform->mRotation.y = (int)J3DGetKeyFrameInterpolation(frame, &entryY->mRotationInfo, &mRotData[entryY->mRotationInfo.mOffset])
-                                  << mDecShift;
+        pTransform->mRotation.y = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryY->mRotationInfo, &mRotData[entryY->mRotationInfo.mOffset]), mDecShift);
     }
 
     switch (entryZ->mRotationInfo.mMaxFrame) {
@@ -671,11 +678,10 @@ void J3DAnmTransformKey::calcTransform(f32 frame, u16 jointNo, J3DTransformInfo*
         pTransform->mRotation.z = 0;
         break;
     case 1:
-        pTransform->mRotation.z = mRotData[entryZ->mRotationInfo.mOffset] << mDecShift;
+        pTransform->mRotation.z = J3D_ROT_SHIFT(mRotData[entryZ->mRotationInfo.mOffset], mDecShift);
         break;
     default:
-        pTransform->mRotation.z = (int)J3DGetKeyFrameInterpolation(frame, &entryZ->mRotationInfo, &mRotData[entryZ->mRotationInfo.mOffset])
-                                  << mDecShift;
+        pTransform->mRotation.z = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryZ->mRotationInfo, &mRotData[entryZ->mRotationInfo.mOffset]), mDecShift);
     }
 
     switch (entryX->mTranslateInfo.mMaxFrame) {
@@ -758,11 +764,10 @@ void J3DAnmTextureSRTKey::calcTransform(f32 frame, u16 jointNo, J3DTextureSRTInf
         pTexSRTInfo->mRotation = 0;
         break;
     case 1:
-        pTexSRTInfo->mRotation = mRotData[entryRot->mRotationInfo.mOffset] << mDecShift;
+        pTexSRTInfo->mRotation = J3D_ROT_SHIFT(mRotData[entryRot->mRotationInfo.mOffset], mDecShift);
         break;
     default:
-        pTexSRTInfo->mRotation = (int)J3DGetKeyFrameInterpolation(frame, &entryRot->mRotationInfo, &mRotData[entryRot->mRotationInfo.mOffset])
-                                 << mDecShift;
+        pTexSRTInfo->mRotation = J3D_ROT_SHIFT((int)J3DGetKeyFrameInterpolation(frame, &entryRot->mRotationInfo, &mRotData[entryRot->mRotationInfo.mOffset]), mDecShift);
     }
 
     switch (entryX->mTranslateInfo.mMaxFrame) {

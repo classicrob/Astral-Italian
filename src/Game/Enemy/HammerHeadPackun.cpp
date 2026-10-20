@@ -123,7 +123,7 @@ void HammerHeadPackun::control() {
     {
         // Publish the actual trample/spin target, including its animated
         // joint offset, so an observer aims at the same sensor as a player.
-        const TVec3f head = getSensor("body")->mPosition;
+        const TVec3f head = getSensor("Body")->mPosition;
         TVec3f front;
         MR::calcFrontVec(&front, this);
         MR::Native::publishActor("HammerHead", head, front, 0, (isChance() ? PETARI_ACTOR_READY : 0u) | PETARI_ACTOR_HOSTILE);

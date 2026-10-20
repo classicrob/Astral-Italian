@@ -6,6 +6,14 @@
 #include "Game/Screen/StarPointerDirector.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
+#ifdef GALAXY_NATIVE
+#include "Game/LiveActor/AllLiveActorGroup.hpp"
+#include "Game/LiveActor/HitSensorInfo.hpp"
+#include "Game/LiveActor/HitSensorKeeper.hpp"
+#include <petari/mods.hpp>
+#include <petari/shoot_nearest_enemy.hpp>
+#include <cstdio>
+#endif
 
 namespace NrvStarPieceShooter {
     NEW_NERVE(HostTypeNrvWait, StarPieceShooter, Wait);
@@ -459,7 +467,13 @@ void StarPieceShooter::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void StarPieceShooter::control() {
+#ifdef GALAXY_NATIVE
+    mNativeShotThisFrame = false;
+#endif
     tryShoot();
+#ifdef GALAXY_NATIVE
+    tryShootNearestEnemy();
+#endif
 
     TVec3f playerCenterPos(*MR::getPlayerCenterPos());
     TVec3f playerUpVec;
@@ -511,6 +525,9 @@ bool StarPieceShooter::shoot() {
         }
     }
 
+#ifdef GALAXY_NATIVE
+    mNativeShotThisFrame = true;
+#endif
     return true;
 }
 
@@ -626,3 +643,103 @@ void StarPieceShooter::calcShootGoalUsingPointingDepth() {
     MR::setPosition(this, starPointerWorldPos);
     mShootSpeed = shootSpeed;
 }
+
+
+#ifdef GALAXY_NATIVE
+void StarPieceShooter::tryShootNearestEnemy() {
+    namespace Policy = PetariNative::ShootNearestEnemy;
+    using PetariNative::Mods::Mod;
+    // The second shooter must never consume the shared keyboard press.
+    const bool pressed = Policy::takePress(mPointerPort, [] {
+        return petari_mod_take_press(static_cast<int>(Mod::ShootEnemy));
+    });
+    if (!pressed) return;  // also drains disabled/stale presses through the existing input path
+
+    const auto vector = [](const TVec3f& p) { return Policy::Vec3{p.x, p.y, p.z}; };
+    TVec3f player(0.0f), camera(0.0f), gravity(0.0f);
+    const auto state = [](const LiveActor* actor) {
+        return Policy::ActorState{actor != nullptr && !MR::isDead(actor),
+                                  actor != nullptr && !MR::isClipped(actor),
+                                  actor != nullptr && !MR::isHiddenModel(actor)};
+    };
+    const auto candidate = [&](HitSensor* sensor) {
+        return Policy::Candidate{state(sensor->mHost), sensor->isValid(), MR::isSensorEnemy(sensor),
+                                 vector(sensor->mPosition), sensor->mRadius};
+    };
+    const auto visible = [&](HitSensor* sensor) {
+        if (!Policy::safeSegment(vector(camera), vector(sensor->mPosition)) ||
+            MR::isJudgedToClipFrustum(sensor->mPosition, sensor->mRadius))
+            return false;
+        TVec3f hit;
+        const TVec3f direction(sensor->mPosition - camera);
+        const bool blocked = MR::getFirstPolyOnLineToMap(&hit, nullptr, camera, direction);
+        return Policy::unobstructed(vector(camera), vector(sensor->mPosition), blocked,
+                                    blocked ? vector(hit) : Policy::Vec3{});
+    };
+    HitSensor* const sender = getSensor("search");
+    const bool pointerUsable = !MR::isDemoActive() && MR::isStarPointerInScreen(mPointerPort) &&
+        MR::isStarPointerValid(mPointerPort) && MR::isEnableStarPointerShootStarPiece(mPointerPort) &&
+        !MR::isStarPointer1PInvalid2PValidMode() && sender != nullptr && sender->isValid() &&
+        Policy::finite(vector(sender->mPosition));
+    const Policy::Request request{
+        petari_mod_enabled(static_cast<int>(Mod::ShootEnemy)), pressed, mPointerPort, pointerUsable,
+        pointerUsable && StarPointerFunction::canShoot(mPointerPort),
+        Policy::normalInputBusy(mNativeShotThisFrame, mChargeStep, MR::testCorePadButtonB(mPointerPort)),
+        MR::getStarPieceNum()
+    };
+    const auto find = [&]() -> HitSensor* {
+        player.set(*MR::getPlayerCenterPos());
+        camera.set(MR::getCamPos());
+        gravity.set(*MR::getPlayerGravity());
+        if (!Policy::finite(vector(player)) || !Policy::finite(vector(camera)) || !Policy::finite(vector(gravity)))
+            return nullptr;
+        const TVec3f origin = MR::getStarPieceDirector()->calcPosCameraShoot(mPointerPort);
+        if (!Policy::finite(vector(origin))) return nullptr;
+        AllLiveActorGroup* const actors = MR::getAllLiveActorGroup();
+        if (actors == nullptr) return nullptr;
+        Policy::Selection nearest(vector(player));
+        HitSensor* best = nullptr;
+        for (s32 i = 0; i < actors->getObjNum(); ++i) {
+            LiveActor* const actor = actors->getActor(i);
+            if (!Policy::eligible(state(actor))) continue;
+            HitSensorKeeper* const keeper = actor->getSensorKeeper();
+            if (keeper == nullptr) continue;
+            for (s32 j = 0; j < keeper->mSensorCount; ++j) {
+                HitSensorInfo* const info = keeper->getNthSensorInfo(j);
+                HitSensor* const sensor = info != nullptr ? info->mSensor : nullptr;
+                if (sensor == nullptr) continue;
+                if (nearest.consider(candidate(sensor), [&] { return visible(sensor); }, [&] {
+                        return MR::sendMsgLockOnStarPieceShoot(sensor, sender) &&
+                               sensor->isValid() && Policy::eligible(state(sensor->mHost));
+                    }))
+                    best = sensor;
+            }
+        }
+        return best;
+    };
+    const auto shootTarget = [&](HitSensor* target) {
+        // Negotiation can change an actor: recheck current validity/range/LOS before launch.
+        Policy::Selection current(vector(player));
+        if (!current.consider(candidate(target), [&] { return visible(target); }, [] { return true; }))
+            return false;
+        HitSensor* const savedTarget = mTargetSensor;
+        mTargetSensor = target;
+        mShootSpeed = 400.0f;
+        mGravity.set(gravity);
+        const bool fired = shoot();  // ordinary origin, final map obstruction, flight, ammo and impact messages
+        mTargetSensor = savedTarget;
+        return fired;
+    };
+    const auto noAmmo = [&] {
+        MR::startCSSound("CS_NO_SPIECE", "SE_SY_CS_NO_PIECE", mPointerPort, 0, 1.0f);
+    };
+    const auto feedback = [&] {
+        MR::deleteEffect(this, "Charge");
+        MR::tryRumblePadMiddle(this, mPointerPort);
+        MR::startCSSound("CS_STARDUST_SHOOT", "SE_SY_CS_STAR_PIECE_SHOOT", mPointerPort, 0, 1.0f);
+    };
+    const Policy::Result result = Policy::run(request, find, shootTarget, noAmmo, feedback);
+    std::fprintf(stderr, "[mods] shoot nearest enemy: result %d (range %.0f)\n",
+                 static_cast<int>(result), Policy::kRange);
+}
+#endif

@@ -15,7 +15,7 @@ namespace PetariNative::Mods {
 
 enum class Mod : int {
     CollectStarBits,  // one button collects every Star Bit on screen
-    ShootEnemy,       // one button fires a Star Bit at the nearest enemy on screen
+    ShootEnemy,       // one press shoots the nearest accepting visible enemy within 3000 units of Mario
     OdysseyMovement,  // Mario moves with Super Mario Odyssey's physics (docs/dev/ODYSSEY_MOVEMENT.md); no button
     Cappy,            // Odyssey's cap throw and cap bounce (docs/dev/CAPPY.md); needs OdysseyMovement
     OdysseyJumpDive,  // with OdysseyMovement: pressing Jump in the air dives; ON unless turned off

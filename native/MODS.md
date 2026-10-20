@@ -6,7 +6,7 @@ unmodified game and every test run behave exactly as before.
 | Mod (`mods.txt` name) | Button | What it does |
 | --- | --- | --- |
 | Collect visible Star Bits (`CollectStarBits`) | G, controller L3 (left stick click) | Every Star Bit on screen flies to Mario, as if the pointer had touched each one |
-| Fire a Star Bit at the nearest enemy (`ShootEnemy`) | V (no controller default) | Shoots one Star Bit at the nearest enemy on screen |
+| Fire a Star Bit at the nearest enemy (`ShootEnemy`) | V (no controller default) | Shoots one Star Bit at the nearest accepting visible enemy within 3000 units of Mario |
 | Odyssey movement (`OdysseyMovement`) | none (a mode; it uses the normal Jump, Crouch and Spin buttons) | Mario moves with Super Mario Odyssey's physics and moveset: see "Odyssey movement" below. |
 | Cappy (`Cappy`) | R, controller RB | Super Mario Odyssey's cap throw and cap bounce; needs Odyssey movement: see "Cappy" below. |
 | Point to move (`PointToMove`) | hold the left mouse button | Mario runs toward the point under the cursor while you hold it; keys still jump, spin and crouch: see "Point to move" below. |
@@ -368,13 +368,42 @@ logs `[skip-probe]` lines (what was on screen, the latch, the end, whether the
 game saw A, Mario afterwards). `PETARI_SKIP_PROBE_SHOTS=<dir>` adds
 screenshots. See native/app/skip_probe.cpp.
 
+## Shoot nearest enemy (SMG2)
+
+Enable `ShootEnemy` in Mods, then tap **V**. It is off by default. One press
+requests one Star Bit at the valid enemy sensor nearest to Mario's center,
+within **3000 world units** (the normal shooting distance clamp). The enemy
+must be alive, unclipped, shown, inside the camera frustum and visible past
+map geometry, and must accept the game's lock-on query. Rejected sensors
+are skipped. Exact distance ties keep the first actor/sensor in game order;
+nonfinite positions or radii are ignored.
+
+The 1P shooter consumes V; the 2P shooter leaves it alone. Normal B input runs
+first and takes priority: V does nothing during a B shot, while B is held,
+or while its charge is active. Cutscenes, disabled/invalid/off-screen pointers,
+2P-only mode and the normal shooting-disabled gate also block V. Presses
+are discarded while off or blocked, with no delayed shot when enabled again.
+
+The mod calls the existing `StarPieceShooter::shoot()`: ordinary shot origin,
+final map-obstruction check, projectile/impact sensor messages, speed 400,
+and exactly one normal ammo deduction. A successful shot gets the usual
+sound and rumble. No target or no free projectile spends no ammo and emits
+no shot effects. With otherwise usable shooting and no ammo, V plays the
+normal no-Star-Bits sound.
+
+Validation: `native_shoot_nearest_enemy` tests the exact header policy used by
+the hook (filters, inclusive range, nearest/ties, acceptance, LOS/nonfinite
+geometry, gates, 1P consumption, no ammo, no target and failed launch).
+Input binding/toggle/stale-press behavior remains in `native_input`.
+These model tests and compilation do not establish in-game visual behavior.
+
 ## How they follow the game's rules
 
 Both mods act only where the game itself would let the pointer collect or
 shoot Star Bits: not during cutscenes, not while the Star Pointer is disabled
 (for example in the file select's two-player transparency mode), and not while
-the game is paused (they run in the Star Bit director's per-frame update,
-which stops with the scene).
+the game is paused (collection runs in the director update and shooting in
+the 1P shooter control, which stop with the scene).
 
 - **Collect** uses the game's own collection path: for four frames after the
   press, `StarPiece::tryGotJudge` treats every eligible Star Bit as pointed at,
@@ -382,16 +411,18 @@ which stops with the scene).
   Eligible means what the pointer could collect (within the game's collection
   distance, past its short delay after appearing) and on screen: not clipped,
   not hidden, inside the camera frustum.
-- **Shoot** uses `StarPieceShooter::shoot`'s path: `StarPiece::throwToTarget` from
+- **Shoot** calls `StarPieceShooter::shoot`: `StarPiece::throwToTarget` from
   the usual shot origin, the usual shot sound, one Star Bit spent. The hit, stun
   and damage are the enemy's normal response to a Star Bit. The target is the
-  enemy sensor nearest to Mario that is valid, inside the camera frustum, whose
+  accepting enemy sensor nearest to Mario within 3000 units that is valid,
+  inside the camera frustum, whose
   actor is not clipped or hidden, and that the camera can see (no map polygon
   between). No target means no shot. With no Star Bits it plays the game's
   "no Star Bits" sound, as a normal shot would.
 
-Diagnostics go to the log as `[mods] ...` lines (what was collected, what was
-shot at, what it hit, and "not allowed now" / "no enemy on screen").
+ShootEnemy logs `[mods] shoot nearest enemy: result N (range 3000)` for a
+consumed enabled press: 0 = ignored, 1 = blocked by a gate or normal input,
+2 = no ammo, 3 = no eligible target, 4 = launch failed, 5 = fired.
 
 ## Testing
 

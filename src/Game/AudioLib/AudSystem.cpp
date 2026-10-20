@@ -1208,3 +1208,30 @@ namespace AudParams {
     const JAISeCategoryArrangementItem arrangeSE_RS = {16, 20};
     const JAISeCategoryArrangementItem arrangeHOMESE = {8, 16};
 }
+
+#ifdef GALAXY_NATIVE
+namespace AudParams {
+    const f32 streamSampleRate = 0x1.f400000000000p+14f;
+    const f32 faderVolZeroVolume = 0x0.0p+0f;
+    const f32 faderVolDownVolume = 0x1.554c980000000p-2f;
+    const f32 faderInterruptedVolume = 0x0.0p+0f;
+    const s32 faderVolZeroTime = 5;
+    const s32 faderVolDownTime = 3;
+    const s32 faderInterruptedTime = 10;
+    const s32 faderVolZeroRecoverTime = 5;
+    const s32 faderVolDownRecoverTime = 20;
+    const s32 faderInterruptedRecoverTime = 60;
+    const f32 micFarDistance = 0x1.b580000000000p+12f;
+    const f32 micNearDistance = 0x1.2c00000000000p+8f;
+    const f32 micMinVolume = 0x0.0p+0f;
+    const f32 micFrontDolbyZ = -0x1.f400000000000p+9f;
+    const f32 micBehindDolbyZ = 0x1.f400000000000p+11f;
+    const f32 micMaxDolby = 0x1.0000000000000p+0f;
+    const f32 micMinDolby = 0x0.0p+0f;
+    const f32 micCenterDolby = 0x1.b333340000000p-1f;
+    const f32 micPanAmplitude = 0x1.0000000000000p-1f;
+    const f32 micSonicSpeed = 0x1.9000000000000p+9f;
+    const f32 micPitchDeltaRatioRange = 0x1.8000000000000p+0f;
+    const s32 micPriorityDownRange = 255;
+}
+#endif

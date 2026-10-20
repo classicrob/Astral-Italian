@@ -23,7 +23,11 @@
 #include <cstdio>
 
 // Runtime-tunable zero-initialized timing from target .sbss2.
+#ifdef GALAXY_NATIVE
+s32 gGrandStarReturnBgmStartStep = 0;
+#else
 extern s32 gGrandStarReturnBgmStartStep;
+#endif
 
 namespace {
     const char* const cDemoMovePartName = "移動";

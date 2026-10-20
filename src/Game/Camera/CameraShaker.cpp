@@ -70,7 +70,13 @@ void CameraShaker::createSinglyHorizontalTask() {
     static const f32 cSinglyIntensity[] = {0.3f, 1.0f, 3.0f};
 
     // Should be i < NR_HORIZONTAL_TASKS
+#ifdef GALAXY_NATIVE
+    // Natively stop at the table's end: the original's extra iterations read past it and store into
+    // mInfinityTasks[0..3], which createInfinityTask() overwrites right after (only those allocations differ).
+    for (u32 i = 0; i < NR_HORIZONTAL_TASKS; i++) {
+#else
     for (u32 i = 0; i < NR_VERTICAL_TASKS; i++) {
+#endif
         CameraShakePatternSingly* singly = new CameraShakePatternSingly(cSinglyIntensity[i]);
 
         singly->setDirection(TVec2f(1.0f, 0.0f));

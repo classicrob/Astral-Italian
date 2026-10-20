@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Map/KoopaBattlePlanet.hpp"
+#include "Game/Map/KoopaFinalStarPlanet.hpp"
 
 class LiveActorGroup;
 class DemoObj;
@@ -22,10 +24,4 @@ public:
     FixedPosition* mPlayerPosition;
 };
 
-class KoopaBattlePlanet : public LiveActor {
-public:
-};
 
-class KoopaFinalStarPlanet : public LiveActor {
-public:
-};

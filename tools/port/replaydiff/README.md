@@ -646,3 +646,116 @@ closed JSONL file and count its records against the exporter's observed reads;
 they do not hash an intent script or fixture in its place. Missing/incomplete
 files, empty/truncated records or read-count disagreement keep the capture
 incomplete. This receipt alone does not qualify the input schedule or a replay.
+
+## Qualified native versus Dolphin gameplay gate
+
+`replay_gate.py --fixture /private/fixture.json --out /private/new-report`
+reads existing evidence only. It writes `gate.json` and `gate.md` into a **new**
+directory and exits 0 for PASS, 1 for DIVERGED, or 2 for BLOCKED. The Markdown includes machine-readable `status: PASS`, `status: <n> divergences`,
+or `status: BLOCKED`. Here n is differing comparison records: main-frame rows
+plus tagged actor/census rows, not unique bugs; frame and actor counts stay
+separate in JSON and all measured counts are null when BLOCKED. Port owners may
+mirror a reviewed real-pair result to authoritative `REPLAY-DIFF.md`; this tool
+never writes that server report. It never runs a
+producer, edits input, shifts a frame, or supplies missing policy values. Real
+captures, input tapes and admission evidence stay in the port owner's private
+server gamedata; do not bring them to M1, the repository or uploaded team trees.
+
+PASS means the admitted **recorded** gameplay fields agree within the existing
+`tracediff` policy. It is not proof of unobserved state, actor lifetime, universal
+numeric equivalence or a whole game. M0/FileSelect, Dolphin/Dolphin alone,
+diagnostic executables and synthetic tests cannot qualify this gate. Current
+missing providers/policy/admission remain BLOCKED. BLOCKED always has **null**
+measured divergence counts, including when diagnostic comparisons are available.
+
+The fixture is a strict duplicate-key/nonfinite-free JSON object with:
+
+- `schema_version: 1`, `gate_kind: "native-vs-dolphin-gameplay"`, `synthetic: false`.
+- Canonical `stage`, positive actual placed `scenario`, and `expected_frames`
+  including the immutable ready anchor (at least two rows).
+- `native`, `dolphin`, `dolphin_repeat` objects. Each contains exactly `frames`,
+  `actors`, `census`, `sync`, `manifest`, `executable`, `producer`, `input`.
+  Native additionally contains `timing` and `completion`. Each value is
+  `{"path":"...","sha256":"<64 lowercase hex digits>"}`, relative to the
+  fixture directory or absolute. Executables are hashed, **never executed**.
+- `admission`, another path/hash record for independently reviewed admission.
+
+Sidecars must be the actual `<frames>.sync.json`, `<frames>.actors.csv`, and
+`<frames>.actor-frames.csv`; native timing/completion use `.timing.csv` and
+`.complete`. Partial artifacts, hash mismatches, missing rows and parse errors
+block admission. Each normal trace must have the **entire current schema** from
+`native/app/headless/trace_schema.json`, frames `0..expected_frames-1`, complete
+player/scene/animation/RNG/actor-count coverage, ordered u32 state IDs and full
+flag fields. An unavailable player at the first ready anchor blocks required
+coverage; it never causes selection of a later anchor. Reserved ticks/VI cells
+remain blank; the native timing receipt and actual sync origins are preserved.
+
+Native requires the launcher's actual `complete` status, exit 0, final count
+marker, executable/input hashes and valid timing/origin. Its committed
+`inputs_from_sync: true`, `input_origin: "first loop after ready anchor"`
+protocol means N tape loops produce N+1 trace rows: tape0 drives trace1. Dolphin
+requires its actual `captured; repeat qualification required` manifest, accepted
+PC/LR seam, collector/executable hashes, and final `input_export` receipt with
+actual path/hash/bytes/read count. Script intent hashes do not replace the export.
+Dolphin input labels retain their source clock: `source_frame+1` is the first
+post-anchor input loop. Full prefixes remain pinned; all actual common-loop KPAD
+reads, order, channels and complete samples must agree. Both traces' stage-sync
+and observed timing/FP/audio policies pass **unchanged** `sync_validation`.
+Different substantive policy strings are not normalized into equivalence.
+
+Both actor producers must emit `manifest.actors` v1 with `status: "captured"`,
+`frames`, `actor_rows`, `identity_holds` and both final `files` path/hash records.
+The gate checks these against parsed files; main completion plus plausible CSVs
+is insufficient. The native launcher receipt is a coordinated provider contract;
+until actually emitted, its absence blocks the gate.
+
+Actor/census schemas follow the exact A/C v1 headers in `replay_gate.py`.
+Every main frame has one census, including nonready and valid empty frames;
+all registered actors, alive or dead, are retained. Counts, contexts, signed16
+link validity, lossless lowercase name bytes (maximum 1023 raw bytes plus NUL), finite f32 decimal/bits and
+unique keys are validated before comparison. `player` requires the producer's
+actual typed MarioHolder actor relation. Each ready frame with main player
+coverage must have exactly one such row, with **exact same-producer position
+bits and death flag**. Census registered/living/emitted counts reconcile with
+both raw actor rows and main counts at every frame.
+
+Cross-run identity is only unique `player` or
+`link:<zone>:<context>:<id>:<name_hex>` with actual valid link and name. Every
+status other than `source-key` blocks the whole actor gate. No name-only,
+address, class, registration order or guessed identity fallback exists.
+`producer_handle` is checked within each run for serial creation above all prior-frame handles (across epochs, without
+using row order), absence/return, and per-epoch key changes/reuse. It is retained
+in raw evidence.
+It is the **only field excluded from cross-run comparison**. Sampled continuity
+is not a constructor/destructor or address-reuse theorem.
+
+The adapter projects each real census into a distinct **census record**, never a
+fake actor, alongside every actual actor record. Record-kind/key namespaces stay
+separate; original fields remain in the projection with actor/census prefixes.
+This gives unchanged `tracediff.compare` a complete frame sequence even when
+zero actors are present. Actor position uses its existing float policy;
+rotation/scale use exact finite f32 values. Unmatched keys/count differences are
+reported, not dropped. First divergence identifies main/actor/census and the
+JSON retains up to 120 complete preceding frames plus comparator diagnostics.
+Dolphin gameplay repeat must first match all recorded values **and float bits**;
+repeat qualification alone never establishes native equivalence.
+
+Admission is a gate-owned **manual review receipt**, not a new producer success
+field or cryptographic authenticity service. It has `schema_version: 1`,
+`decision: "admit-gameplay"`, `synthetic: false`, nonempty `reviewer`/`rationale`,
+and exact `bindings` mapping every input pin label to SHA-256 (except fixture and
+admission to avoid a hash cycle). Labels include each `<side>.<artifact>`,
+`gate`, `compare`, `sync_validator`, `schema`, `input_contract`. `coverage` has
+exactly `initialization`, `input_delivery`, `actor_identity`, `timing`,
+`floating_point`, `state_rng`, each a path/hash reference to nonempty review
+evidence relative to the admission file. Reviewer/producer provenance must be
+reviewed by port owners; arbitrary self-authored approval is not independent
+qualification. No receipt, missing evidence, stale bindings or unknown policy
+means BLOCKED. Synthetic unit tests mock admission **only inside tests** to
+exercise orchestration; there is no runtime admission bypass.
+
+Run mechanics tests with:
+
+```sh
+python3 -B -m unittest discover -s tools/port/replaydiff -p test_replay_gate.py
+```

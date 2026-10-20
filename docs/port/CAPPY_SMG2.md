@@ -4,7 +4,7 @@ This is an opt-in `GALAXY_NATIVE` adaptation of MacioGalaxy's game-side Cappy,
 not a Wii decompilation change. `Cappy` and `OdysseyMovement` both default off.
 R/controller RB throws when both are enabled; stage reload is required after
 enabling Cappy so the actors can be created safely during player initialization.
-The interim build-5 menu fix disables the option until this port passes its gates.
+This port restores the Cappy menu option; the Odyssey movement dependency remains.
 
 ## Reused design and SMG2 differences
 

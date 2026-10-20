@@ -98,7 +98,7 @@ Known gaps in this version:
 in F1 → Mods, then reload the stage once so the cap models are created. **R** or
 controller **RB** throws; holding it extends the hover. RB becomes throw while
 both mods are active; the other spin key/button still performs Galaxy's spin.
-With Odyssey movement off, Cappy is inactive. `Cappy=off` is the default in
+With either mod off, the throw control (R/RB by default) performs Spin. `Cappy=off` is the default in
 `mods.txt`; an explicit saved setting or `PETARI_MODS=OdysseyMovement,Cappy`
 enables it for the requested run.
 
@@ -108,7 +108,16 @@ again to dive a second time. A wall jump removes the cap bounce until landing.
 The cap flies about 678 units across gravity, hovers briefly (longer while
 held), and returns. It stops at map geometry, hits enemies through the game's
 spin-punch message, and uses the game's item-get message for coins/Star Bits.
-Capturing enemies is not implemented.
+The same spin-punch message reaches map sensors, including spin switches and
+breakable objects that normally accept Mario's Spin. Flip-Swap panels use a
+spin-switch area instead of an attack sensor: the flying cap entering that
+area toggles its ordinary stage switch once per throw, with the same area
+validity rules. This does not give Cappy a new switch message or bypass an
+object's own reaction rules. Capturing enemies is not implemented.
+
+The play launcher's `--odyssey` adds Odyssey movement to the saved mod choices
+(or an explicit `PETARI_MODS` list), so a saved Cappy On remains On. It does
+not enable Cappy by itself.
 
 This reuses MacioGalaxy's cap-flight/contact and Odyssey air models and adapts
 the hooks to SMG2's fields, gravity, animation and sensor APIs. It uses SMG2's

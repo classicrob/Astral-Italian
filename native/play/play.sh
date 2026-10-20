@@ -80,13 +80,13 @@ echo "  app  $app"
 echo "  disc $disc"
 echo "  user $user"
 echo "  log  $log"
-# Odyssey movement for this run only (PETARI_MODS overrides mods.txt); otherwise mods.txt in the user directory decides.
-[ "$odyssey" = 1 ] && export PETARI_MODS=OdysseyMovement
+# Add Odyssey movement for this run, preserving the other choices in mods.txt or PETARI_MODS.
+[ "$odyssey" = 1 ] && export PETARI_ODYSSEY_MOVEMENT=1
 [ "$audio" = off ] && export SDL_AUDIO_DRIVER=dummy
 # F9 in the game saves a playtest capture (last 300 frames of input and Mario state, the state, a screenshot) here.
 export PETARI_CAPTURE_DIR="${ASTRAL_CAPTURES:-$HOME/MacioGalaxy2-play/captures}" PETARI_CAPTURE_LOG="$log"
 if [ "$dry" = 1 ]; then
-    echo "  run  ${PETARI_MODS:+PETARI_MODS=$PETARI_MODS }${SDL_AUDIO_DRIVER:+SDL_AUDIO_DRIVER=$SDL_AUDIO_DRIVER }$exe $*"
+    echo "  run  ${PETARI_MODS:+PETARI_MODS=$PETARI_MODS }${PETARI_ODYSSEY_MOVEMENT:+PETARI_ODYSSEY_MOVEMENT=$PETARI_ODYSSEY_MOVEMENT }${SDL_AUDIO_DRIVER:+SDL_AUDIO_DRIVER=$SDL_AUDIO_DRIVER }$exe $*"
     exit 0
 fi
 "$exe" "$@" > "$log" 2>&1

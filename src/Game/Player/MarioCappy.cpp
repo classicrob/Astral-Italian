@@ -503,8 +503,9 @@ void petariCappyUpdate(MarioActor* pActor) {
 
 namespace {
     // Cappy's touch (nice to have, docs/dev/CAPPY.md): an enemy gets Mario's
-    // spin punch (Galaxy's own reaction: stun, knock-back or defeat), each
-    // enemy once a throw, and Cappy comes back; coins and Star Bits are
+    // spin punch (Galaxy's own reaction: stun, knock-back or defeat). Map
+    // sensors receive that same message, including spin switches; each
+    // target once a throw, and Cappy comes back; coins and Star Bits are
     // collected as if Mario touched them.
     void capSensor(HitSensor* pOwn, HitSensor* pOther) {
         if (!active() || s.actor == nullptr || s.cappy.state == Cappy::State::Idle || s.cappy.state == Cappy::State::Windup) {
@@ -519,7 +520,7 @@ namespace {
             }
             return;
         }
-        if (!MR::isSensorEnemy(pOther) || MR::isDead(pOther->mHost)) {
+        if ((!MR::isSensorEnemy(pOther) && !MR::isSensorMapObj(pOther)) || MR::isDead(pOther->mHost)) {
             return;
         }
         for (int i = 0; i < s.hitCount; ++i) {

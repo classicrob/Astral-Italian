@@ -1990,11 +1990,19 @@ namespace MR {
     }
 
     void validateExCollisionParts(LiveActor* pActor) {
+#ifdef GALAXY_NATIVE
+        pActor->mBinder->_1EC._2 = true;
+#else
         *(u8*)&pActor->mBinder->_1EC |= 0x20;
+#endif
     }
 
     void invalidateExCollisionParts(LiveActor* pActor) {
+#ifdef GALAXY_NATIVE
+        pActor->mBinder->_1EC._2 = false;
+#else
         *(u8*)&pActor->mBinder->_1EC &= ~0x20;
+#endif
     }
 
     void onUpdateCollisionParts(LiveActor* pActor) {

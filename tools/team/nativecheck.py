@@ -31,10 +31,16 @@ def main():
     for f in a.files:
         rel = os.path.relpath(Path(f).resolve(), ROOT)
         entries = [e for e in db if e["file"].endswith("/" + rel)]
-        if not entries:
-            print(f"{rel}: NOT IN DB"); bad += 1; continue
+        new_file = not entries
+        if new_file:  # new TU: borrow a same-directory neighbour's command
+            d = os.path.dirname(rel)
+            entries = [e for e in db if os.path.dirname(e["file"]).endswith("/" + d)]
+            if not entries:
+                print(f"{rel}: NOT IN DB"); bad += 1; continue
         e = entries[0]
         args = e["arguments"] if "arguments" in e else shlex.split(e["command"])
+        if new_file:
+            args = [str(enc / rel) if t == e["file"] else t for t in args]
         out, skip = [], False
         for t in args:
             if skip:

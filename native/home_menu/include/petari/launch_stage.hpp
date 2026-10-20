@@ -62,6 +62,8 @@ bool installCatalog(std::vector<CatalogGalaxy> catalog, std::string* error);
 bool catalogReady();
 const std::vector<CatalogGalaxy>& catalog();
 
+// Player-facing entries with verified English names; find/resolve also retain
+// nameless internal records for explicit test launches.
 const Galaxy* galaxies(int* count);
 const char* domeName(int world);           // Legacy function name; prints "World 1".."World S".
 const Galaxy* find(const std::string& name);

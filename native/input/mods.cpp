@@ -75,7 +75,7 @@ const char* description(Mod mod) {
 
 bool enabled(Mod mod) {
     const int i = static_cast<int>(mod);
-    return i >= 0 && i < kCount && gEnabled[i].load(std::memory_order_relaxed);
+    return i >= 0 && i < kCount && mod != Mod::Cappy && gEnabled[i].load(std::memory_order_relaxed);
 }
 
 void setEnabled(Mod mod, bool on) {

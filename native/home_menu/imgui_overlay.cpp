@@ -842,7 +842,8 @@ void drawImGuiOverlay(float imageX, float imageY, float imageWidth, float imageH
             // A page with many rows (the Mods page with a dozen mods) has short buttons: the label shrinks
             // with them instead of crowding the edges. Normal pages keep itemSize.
             const float labelSize = std::min(itemSize, (itemMax.y - itemMin.y) * 0.78f);
-            galaxyButton(list, font, labelSize, itemMin, itemMax, item.focused, unit, alpha, item.label);
+            galaxyButton(list, font, labelSize, itemMin, itemMax, item.focused && item.enabled, unit,
+                         alpha * (item.enabled ? 1.0f : 0.4f), item.label);
         }
 
         // The buttons that work here, along the bottom of the image, as the

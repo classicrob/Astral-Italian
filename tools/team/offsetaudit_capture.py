@@ -75,9 +75,14 @@ def original_offset(name,offset,end=False):
  return orig.start+min(offset-begin,len(orig.text))
 
 def name_for(path):
- if not path:return None
- for prefix in [str(LEGACY)+'/',str(ROOT)+'/']:
-  if path.startswith(prefix):return path[len(prefix):]
+ if not path or not Path(path).is_absolute():return None
+ try:
+  physical=Path(path).resolve()
+  for base in [LEGACY,ROOT]:
+   if base is None:continue
+   try:return physical.relative_to(base.resolve()).as_posix()
+   except ValueError:pass
+ except (OSError,RuntimeError):pass
  return None
 
 INTEREST={'ParmVarDecl','FieldDecl','VarDecl','EnumConstantDecl','FunctionDecl','CXXMethodDecl','CXXConstructorDecl','CXXDestructorDecl','CXXRecordDecl','RecordDecl','TypedefDecl','TypeAliasDecl','CXXStaticCastExpr','CXXReinterpretCastExpr','CXXConstCastExpr','CXXDynamicCastExpr','CStyleCastExpr','CXXFunctionalCastExpr','ImplicitCastExpr','BinaryOperator','CompoundAssignOperator','UnaryOperator','ArraySubscriptExpr','MemberExpr','DeclRefExpr','CallExpr','CXXMemberCallExpr','CXXOperatorCallExpr','CXXConstructExpr','IntegerLiteral','FloatingLiteral','UnaryExprOrTypeTraitExpr','ParenExpr','InitListExpr','CXXCtorInitializer'}
@@ -89,9 +94,9 @@ def reduce_ast(tree):
   if 'spellingLoc' in raw or 'expansionLoc' in raw:
    spelling=loc(raw.get('spellingLoc'));expansion=loc(raw.get('expansionLoc'));chosen=expansion or spelling
    return dict(chosen,macro={'spelling':spelling,'expansion':expansion}) if chosen else None
-  if 'file' in raw:state['file']=raw['file']
+  if 'file' in raw:state['file']=name_for(raw['file'])
   if 'offset' not in raw:return None
-  return {'file':name_for(state['file']),'offset':raw['offset'],'tokLen':raw.get('tokLen',0),'line':raw.get('presumedLine',raw.get('line')),'col':raw.get('col')}
+  return {'file':state['file'],'offset':raw['offset'],'tokLen':raw.get('tokLen',0),'line':raw.get('presumedLine',raw.get('line')),'col':raw.get('col')}
  def compact(n,depth=0):
   if not isinstance(n,dict):return None
   d={k:n[k] for k in ['id','kind','name','type','castKind','opcode','value','valueCategory','isArrow','referencedMemberDecl','referencedDecl','anyInit','path','isInvalid','isImplicit'] if k in n}

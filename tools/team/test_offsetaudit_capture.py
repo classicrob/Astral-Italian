@@ -170,6 +170,46 @@ class CaptureTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'dependency absent/changed'):
                 capture.bind_context_dependency(path)
 
+    def test_parent_relative_inc_location_retains_mapped_fact(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source='int _18;'
+            prefix=self.setup_tree(tmp,source,source)
+            name='src/Game/Player/MarioSMG2_A.inc'
+            for root in [capture.ROOT,capture.LEGACY]:
+                dest=root/name;dest.parent.mkdir(parents=True)
+                dest.write_bytes((root/'x.cpp').read_bytes())
+            (capture.LEGACY/'include').mkdir()
+            alias=capture.LEGACY/'include'/'..'/name
+            self.assertTrue(alias.samefile(capture.LEGACY/name))
+            capture.BYFILE={name:[{'id':'row','byte_offset':4,'end_byte_offset':7}]}
+            node={'id':'field','kind':'VarDecl','name':'_18','type':{'qualType':'int'},
+                  'loc':{'file':str(alias),'offset':prefix+4,'tokLen':3},
+                  'range':{'begin':{'offset':prefix,'tokLen':3},
+                           'end':{'offset':prefix+4,'tokLen':3}}}
+            facts,_,errors=capture.reduce_ast(node)
+            self.assertFalse(errors)
+            self.assertEqual(len(facts),1)
+            self.assertEqual(capture.name_for(str(alias)),name)
+            self.assertEqual((facts[0]['file'],facts[0]['start'],facts[0]['end']),(name,0,7))
+            self.assertEqual(facts[0]['rows'],['row'])
+
+    def test_symlink_location_uses_target_within_source_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.setup_tree(tmp,'int x;','int x;')
+            link=capture.LEGACY/'alias.inc';link.symlink_to('x.cpp')
+            self.assertEqual(capture.name_for(str(link)),'x.cpp')
+
+    def test_location_escape_and_external_symlink_not_owned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.setup_tree(tmp,'int x;','int x;')
+            outside=Path(tmp)/'outside.inc';outside.write_text('int y;')
+            (capture.LEGACY/'include').mkdir()
+            escaped=capture.LEGACY/'include'/'..'/'..'/'outside.inc'
+            self.assertTrue(escaped.samefile(outside))
+            self.assertIsNone(capture.name_for(str(escaped)))
+            link=capture.LEGACY/'outside.inc';link.symlink_to(outside)
+            self.assertIsNone(capture.name_for(str(link)))
+
     def test_no_compiler_in_dry_run(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'inventory.json').write_text(json.dumps({'files':{'x.cpp':'fixture'},'rows':[{'id':'x','file':'x.cpp','byte_offset':0}]}))

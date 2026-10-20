@@ -482,6 +482,20 @@ foreach(_pair "${CMAKE_CURRENT_BINARY_DIR}/indirect/shader.cpp|shader.cpp" "${au
         COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/gx")
 endforeach()
 
+# Missing texture-coordinate attributes read zero (composes on the stage-timing output for shader.cpp).
+set(_petari_missing_source "${CMAKE_CURRENT_BINARY_DIR}/stages/shader.cpp")
+set(_petari_missing_output "${CMAKE_CURRENT_BINARY_DIR}/missing_texcoord/shader.cpp")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_missing_texcoord.py" "${_petari_missing_source}")
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_missing_texcoord.py"
+    "${_petari_missing_source}" "${_petari_missing_output}" COMMAND_ERROR_IS_FATAL ANY)
+get_target_property(_sources aurora_gx SOURCES)
+list(REMOVE_ITEM _sources "${_petari_missing_source}")
+list(APPEND _sources "${_petari_missing_output}")
+set_property(TARGET aurora_gx PROPERTY SOURCES "${_sources}")
+set_source_files_properties("${_petari_missing_output}" TARGET_DIRECTORY aurora_gx PROPERTIES
+    COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/gx")
+
 add_executable(petari_gx_shader_tests "${CMAKE_SOURCE_DIR}/native/tests/gx_shader_tests.cpp")
 target_compile_features(petari_gx_shader_tests PRIVATE cxx_std_20)
 target_include_directories(petari_gx_shader_tests PRIVATE "${aurora_SOURCE_DIR}/lib" "${aurora_SOURCE_DIR}/lib/gx")

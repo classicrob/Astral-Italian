@@ -265,6 +265,12 @@ App::FrameStats::Phase framePhaseForPipelines() {
     const bool gameplay = phase == App::FrameStats::Phase::Gameplay && !App::Host::pauseMenuActive();
     petari_gx_pipeline_set_gameplay(gameplay);
     App::LatencyReport::frame(gameplay);
+    // Opt-in image dumps of the whole session (PETARI_XFB_DUMP with _LABELS=boot) count from the first frame.
+    static bool bootMarked = false;
+    if (!bootMarked) {
+        bootMarked = true;
+        PetariNative::EfbDump::mark("boot");
+    }
     // Test driver (PETARI_MODS_AUTOPRESS=<frames>): during gameplay, press the
     // collect mod's button every <frames> frames and the shoot mod's halfway
     // between. The mods still decide whether a press does anything.

@@ -94,50 +94,37 @@ Known gaps in this version:
 
 ## Cappy
 
-**SMG2 build 5: not yet ported.** The entry is disabled and labelled "not yet ported". Saved settings and `PETARI_MODS` cannot activate it in this build. The design below describes the SMG1 implementation being adapted for SMG2; it is not an SMG2 feature claim.
+**SMG2-specific native mod, off by default.** Enable Odyssey movement and Cappy
+in F1 → Mods, then reload the stage once so the cap models are created. **R** or
+controller **RB** throws; holding it extends the hover. RB becomes throw while
+both mods are active; the other spin key/button still performs Galaxy's spin.
+With Odyssey movement off, Cappy is inactive. `Cappy=off` is the default in
+`mods.txt`; an explicit saved setting or `PETARI_MODS=OdysseyMovement,Cappy`
+enables it for the requested run.
 
-Mario throws his cap like in Super Mario Odyssey, and can bounce off it. Turn it
-on in F1 → Mods (`Cappy=on` in `mods.txt`, or `PETARI_MODS=OdysseyMovement,Cappy`
-for one run). It needs Odyssey movement: with that off, Cappy does nothing and
-the Mods line reads "Cappy: On (needs Odyssey movement)". The cap model loads
-with the stage, so turning Cappy on takes effect at the next stage load (a
-level, the observatory, or Level Select). Only normal Mario throws (not the
-power-up suits, not swimming).
+Jump, throw, ground pound, and dive into the hovering cap to bounce. A cap
+bounce restores the once-per-airtime jump-press dive: ground pound and jump
+again to dive a second time. A wall jump removes the cap bounce until landing.
+The cap flies about 678 units across gravity, hovers briefly (longer while
+held), and returns. It stops at map geometry, hits enemies through the game's
+spin-punch message, and uses the game's item-get message for coins/Star Bits.
+Capturing enemies is not implemented.
 
-| Move | Keyboard | Controller |
-| --- | --- | --- |
-| Throw (Cappy flies about 680 units ahead, hovers, and comes back) | R | RB |
-| Keep Cappy out longer (up to 2 seconds) | hold R | hold RB |
-| Air throw (a small hop; no new height while above the last throw) | R in the air | RB in the air |
-| Dive (as Spin) | R during a ground pound | RB during a ground pound |
-| Roll, roll boost (as Spin) | R while crouching, while rolling | RB, same |
-| Cap bounce | jump, fall, dive or ground pound into the hovering cap | same |
+This reuses MacioGalaxy's cap-flight/contact and Odyssey air models and adapts
+the hooks to SMG2's fields, gravity, animation and sensor APIs. It uses SMG2's
+own MarioHair/LuigiHair resources; both characters expose hair while the cap
+is out. It applies only to normal Mario/Luigi on foot or airborne. Yoshi
+riding, all power-up modes (including Cloud, Rock, Bee, Boo, Fire and Spring),
+swimming, hanging/climbing, scripted rides, damage, demos and restricted
+movement states recall the cap. It does not change SMG2's power-up abilities
+or give Yoshi a thrown cap. Generic-character rendering is outside this port.
 
-The signature loop: Space (jump), R (throw), Space (the jump-press dive; or
-Shift then R, as in SMO): Mario dives into the hovering cap, bounces off it, and
-can dive again (Space, or Shift then R). One cap bounce per airtime; landing gives it back, a wall jump takes it
-away until the next landing. A bounce from a dive is 231 units high, from a jump
-or fall 300, from a ground pound 391.
-
-With the Cappy mod on, RB throws instead of spinning (the left button still
-spins; with the mod off RB spins as before). R and RB are remappable in
-`controls.txt` (`ModCappyThrow=Key:R,Pad:RightShoulder`).
-
-Known gaps in this version:
-
-- Luigi keeps his cap on and throws a red one (Galaxy has no hair model for
-  him).
-- Cappy hits enemies with Mario's spin punch and collects Star Bits and coins
-  he touches (coins not yet checked in game). No captures, homing throws or
-  cap-return jumps.
-- SMO's own Cappy parameters are not published: the flight follows the
-  community's frame measurements; the hover without holding (10 frames) and
-  the return speed are our own choices. A tapped throw stays bounceable for its
-  short hover, and a dive while Cappy is out (R or Space) keeps him there as if
-  held, for half a second, so the tapped loop works. The bounce needs Mario to
-  touch the cap (it grows when fully thrown), and gives back the jump-press dive.
-  Details and
-  sources: docs/dev/CAPPY.md.
+Every game hook is `GALAXY_NATIVE`-only. With the toggle off no cap actor is
+created, and Wii code is unchanged. Implementation/adaptation and validation:
+`docs/port/CAPPY_SMG2.md`. The unit tests exercise throw/hover/return/contact
+and Odyssey bounce physics. The native movement smoke checks the throw and
+bounce loop, and requires the game to register an actual post-bounce second
+dive. SMG1 measurements are design inputs, not an SMG2 runtime pass.
 
 ## Odyssey camera
 

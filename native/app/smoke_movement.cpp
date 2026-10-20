@@ -14,6 +14,7 @@ extern "C" int petari_cappy_bounces();
 extern "C" int petari_cappy_state();
 extern "C" int petari_cappy_hits();
 extern "C" int petari_cappy_collected();
+extern "C" int petari_cappy_post_bounce_dives();
 
 namespace PetariNative::App::Smoke {
 
@@ -708,6 +709,7 @@ Step MovementDriver::step(const Observation& o) {
             mBounced = true;
             mBounceFrame = mPhaseFrames;
             mBounceHeight = height;
+            mPostBounceDiveStart = petari_cappy_post_bounce_dives();
             PetariNative::EfbDump::mark("cappy bounce");
             note(std::string(task.name) + ": bounce on frame " + std::to_string(mPhaseFrames) + " at height " + num(height));
         }
@@ -733,6 +735,10 @@ Step MovementDriver::step(const Observation& o) {
                 finish(Result::Fail, std::string(task.name) + ": landed after " + std::to_string(mPhaseFrames) +
                                          " frames without a cap bounce (Cappy state " + std::to_string(petari_cappy_state()) + ")",
                        step);
+                break;
+            }
+            if ((task.cappy == 1 || task.cappy == 4) && petari_cappy_post_bounce_dives() <= mPostBounceDiveStart) {
+                finish(Result::Fail, std::string(task.name) + ": cap bounce did not restore an actual second dive", step);
                 break;
             }
             note(std::string("MOVEMENT ") + task.name + ": bounce on frame " + std::to_string(mBounceFrame) + " at height " +

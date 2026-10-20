@@ -11,6 +11,7 @@ import contextlib
 import hashlib
 import io
 import json
+import os
 from pathlib import Path, PurePosixPath
 import runpy
 import subprocess
@@ -155,6 +156,7 @@ def verify(receipt, root, expected, host):
 
 
 def main():
+    os.chdir(ROOT)
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     spec = sub.add_parser('spec')

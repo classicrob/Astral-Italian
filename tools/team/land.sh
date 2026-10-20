@@ -46,7 +46,7 @@ for script in native/play/*.sh native/play/*.command; do
   sh -n "$script" || { echo "launcher syntax check failed: $script" >&2; exit 1; }
 done
 python3 tools/team/classdup.py || { echo "duplicate class definitions (ODR): fix before landing" >&2; exit 1; }
-tools/team/nj.sh >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
+tools/team/nj.sh -j "${TEAM_BUILD_JOBS:-6}" >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
 git -C "$main" merge --ff-only -q "$branch"
 # cache the report of the exact main we just built, so lanes can use it as a regression baseline
 # (safe_land.py: skip the separate "build plain main" step when ~/MacioGalaxy2-team/main-report/<main sha>.json exists)

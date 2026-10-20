@@ -3,9 +3,7 @@
 #include "JSystem/JParticle/JPAResource.hpp"
 #include <cstring>
 
-struct JPAResourceLoader {
-    JPAResourceLoader(u8 const*, JPAResourceManager*);
-};
+#include "JSystem/JParticle/JPAResourceLoader.hpp"
 
 JPAResourceManager::JPAResourceManager(void const* pData, JKRHeap* pHeap) {
     mpResArr = NULL;

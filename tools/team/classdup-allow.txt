@@ -6,7 +6,3 @@ KoopaBattlePlanet  # core/enemies: fixed on wt/core-odr-koopaplanets (7c166801),
 KoopaFinalStarPlanet  # core/enemies: fixed on wt/core-odr-koopaplanets (7c166801), remove when landed
 Rock  # enemies/objects: Enemy/Wanwan.hpp vs MapObj/Rock.hpp; NOT trivial: the Type enums disagree (Wanwan TypeMini=1, Rock WanwanRolling=1/WanwanRollingMini=2), check the DOL before merging
 ScoreAttackFunction  # enemies/objects: local classes in Enemy/Snakehead.cpp and MapObj/BenefitItemObj.cpp (ODR: rename or share)
-JAUAudibleParam  # m1: JAUAudible.hpp vs JAUAudibleParam.hpp
-JPAParticleCallBack  # m1: JPAParticle.hpp vs JPAParticleCallBack.hpp
-JPAResourceLoader  # m1: JPAResourceLoader.hpp vs JPAResourceManager.cpp
-FSTEntry  # m1: C struct in RVL_SDK arc.c and dvdfs.c (C has no ODR, but keep the layouts equal)

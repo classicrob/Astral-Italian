@@ -362,6 +362,14 @@ namespace GameSequenceFunction {
         getGameSequenceInGame()->setInStage(pStageName);
     }
 
+#ifdef GALAXY_NATIVE
+    void requestChangeStageInStageScenario(const char* pStageName, s32 scenarioNo, s32 selectedScenarioNo) {
+        IN_STAGE_HOLDER->reset();
+        requestChangeStage(pStageName, scenarioNo, selectedScenarioNo, nullptr);
+        getGameSequenceInGame()->setInStage(pStageName);
+    }
+#endif
+
     void requestChangeStageAfterStageClear() {
         const char* pStageName = IN_STAGE_HOLDER->getStageName();
         reflectStageResult();

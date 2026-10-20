@@ -48,7 +48,8 @@ bool dispatch(const Request& request, int* placedScenario, std::string* error) {
         }
     }
     // Engine transition allocations retain their normal JKR routing.
-    GameSequenceFunction::requestChangeStage(request.stage.c_str(), placed, request.scenario, nullptr);
+    // Also puts the in-game sequence into InStage (a bare requestChangeStage left it in its Starship state).
+    GameSequenceFunction::requestChangeStageInStageScenario(request.stage.c_str(), placed, request.scenario);
     *placedScenario = placed;
     return true;
 }

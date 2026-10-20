@@ -180,7 +180,7 @@ namespace JASBNKParser {
     JASBasicBank* createBasicBank(void const*, JKRHeap*);
 
     inline u32 getBankNumber(const void* param_0) {
-        u32* ptr = (u32*)param_0;
+        const JSU_BE(u32)* ptr = (const JSU_BE(u32)*)param_0;
         return ptr[2];
     }
 

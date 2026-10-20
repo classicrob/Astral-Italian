@@ -49,10 +49,11 @@ struct JAUSoundTable_ {
 
     void init(const void* pData) {
         mData = pData;
-        if (*(u32*)mData != Root::magicNumber()) {
+        const JSU_BE(u32)* header = (const JSU_BE(u32)*)mData;
+        if (header[0] != Root::magicNumber()) {
             mData = nullptr;
         } else {
-            mRoot = (Root*)((u8*)mData + *((u32*)mData + 3));
+            mRoot = (Root*)((u8*)mData + header[3]);
         }
     }
 

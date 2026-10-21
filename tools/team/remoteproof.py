@@ -21,12 +21,46 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import objsame
+import mario52
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 INPUTS = ('src', 'include', 'libs', 'config')
 GENERATORS = ('configure.py', 'tools/project.py', 'tools/ninja_syntax.py', 'tools/team/objsame.py')
 
+
+APPROVED_NATIVE_52 = {
+    "a75c18f6a3b942975ba827151c53b91c4b4cff2a": [
+        "CMakeLists.txt",
+        "native/cmake/LegacySources.cmake",
+        "native/input/CMakeLists.txt",
+        "native/resource/rfl/CMakeLists.txt",
+        "native/tests/legacy_source_build_tests.py",
+        "native/tests/source_encoding_tests.py",
+        "native/tools/encode_legacy_sources.py"
+    ],
+    "21933226cdebc7decdc0652af28d1b8bb6465037": [
+        "docs/port/headless-virtual-io.md",
+        "native/app/headless/main.cpp",
+        "native/app/headless/platform.cpp",
+        "native/app/headless/reload_policy.hpp",
+        "native/platform/CMakeLists.txt",
+        "native/platform/dvd/dvd_host.cpp",
+        "native/platform/gx_sync/gx_sync.cpp",
+        "native/platform/include/petari/platform/virtual_time.hpp",
+        "native/platform/nand/nand_async.cpp",
+        "native/platform/os/os_thread.cpp",
+        "native/tests/headless_reload_repeat.py",
+        "native/tests/virtual_async_tests.cpp"
+    ],
+    "05623e76ad94dea46415c38fdf6e6adaac8c85d2": [
+        "native/app/launch_stage.cpp",
+        "native/home_menu/include/petari/launch_stage.hpp",
+        "native/home_menu/launch_stage.cpp",
+        "native/tests/app_launch_stage_tests.cpp",
+        "native/tests/level_select_menu_tests.cpp"
+    ]
+}
 
 def require(ok, message):
     if not ok:
@@ -87,7 +121,7 @@ def confined(root, name):
     return path
 
 
-def base_equivalence(proven, expected, equivalent_base=None):
+def base_equivalence(proven, expected, equivalent_base=None, approved_native_52=False):
     if proven == expected:
         return None
     require(equivalent_base and proven.get('base') == equivalent_base,
@@ -99,8 +133,17 @@ def base_equivalence(proven, expected, equivalent_base=None):
                             cwd=ROOT, capture_output=True)
     require(result.returncode == 0, 'proof base is not an ancestor of landing base')
     changed = git('diff', '--name-only', equivalent_base, expected['base']).splitlines()
-    require(changed and all(p.endswith('.md') for p in changed),
-            'base advancement is not documentation-only')
+    if approved_native_52:
+        require(equivalent_base == mario52.BASE, 'native exception is only approved for the 5.2 base')
+        commits = git('rev-list', equivalent_base + '..' + expected['base']).splitlines()
+        require(set(commits) == set(APPROVED_NATIVE_52) and len(commits) == 3,
+                'unapproved native base commits')
+        for commit in commits:
+            paths = git('diff-tree', '--no-commit-id', '--name-only', '-r', commit).splitlines()
+            require(paths == APPROVED_NATIVE_52[commit], 'approved native commit path mismatch')
+    else:
+        require(changed and all(p.endswith('.md') for p in changed),
+                'base advancement is not documentation-only')
     inputs = {}
     for path in (*INPUTS, 'tools', 'configure.py'):
         before = git('rev-parse', f'{equivalent_base}:{path}')
@@ -110,13 +153,13 @@ def base_equivalence(proven, expected, equivalent_base=None):
             require(before == expected['before'][path], f'proof before tree mismatch: {path}')
         inputs[path] = before
     return {'proof_base': equivalent_base, 'landing_base': expected['base'],
-            'changed_documentation': changed, 'identical_inputs': inputs}
+            'changed_paths': changed, 'approved_native_52': approved_native_52, 'identical_inputs': inputs}
 
 
-def verify(receipt, root, expected, host, equivalent_base=None):
+def verify(receipt, root, expected, host, equivalent_base=None, approved_native_52=False, mario_52=False):
     require(receipt['schema'] == 1 and receipt['status'] == 'PASS', 'incomplete remote proof')
     require(receipt['host'] == host, 'unexpected proof host')
-    equivalence = base_equivalence(receipt['spec'], expected, equivalent_base)
+    equivalence = base_equivalence(receipt['spec'], expected, equivalent_base, approved_native_52)
     require(receipt['restored_trees'] == expected['after'], 'tested sources not restored')
     require(receipt['builds'] == {'before': 0, 'after': 0, 'control': 0, 'restore': 0},
             'a clean build or control failed')
@@ -128,6 +171,9 @@ def verify(receipt, root, expected, host, equivalent_base=None):
     for record in provenance.values():
         data = confined(root, record['path']).read_bytes()
         require(data and digest(data) == record['sha256'], 'provenance artifact hash mismatch')
+    require(mario_52 == ('sanctioned_delta' in receipt), 'sanctioned evidence requires explicit Mario52 approval')
+    if mario_52:
+        mario52.verify_evidence(receipt, root, confined)
     files = receipt['files']
     require(isinstance(files, dict) and files, 'empty artifact manifest')
     archive = receipt['archive']
@@ -172,8 +218,13 @@ def verify(receipt, root, expected, host, equivalent_base=None):
                 target.write_bytes(data)
             require(seen == expected_files, 'missing archive objects')
         for rel in expected['units']:
-            require(not objsame.compare(dest / 'before' / rel, dest / 'after' / rel),
-                    f'Wii semantic difference: {rel}')
+            before, after = dest / 'before' / rel, dest / 'after' / rel
+            if mario_52 and rel == mario52.OBJECT:
+                mario52.verify_objects(before, after)
+                mario52.measure(before, after, ROOT, json.loads(confined(
+                    root, receipt['sanctioned_delta']['matching']['path']).read_text()))
+            else:
+                require(not objsame.compare(before, after), f'Wii semantic difference: {rel}')
         original, perturbed, restored = [dest / 'control' / f'{p}.o' for p in ('original', 'perturbed', 'restored')]
         require(files['control/original.o'] == files[f'after/{ctl["object"]}'], 'control baseline mismatch')
         require(original.read_bytes() == restored.read_bytes(), 'control object not restored byte-identically')
@@ -194,6 +245,8 @@ def main():
     check.add_argument('--proof-root', type=Path, required=True)
     check.add_argument('--host', required=True)
     check.add_argument('--equivalent-base', help='Explicit original proof base; only a verified docs-only advance is allowed')
+    check.add_argument('--approved-native-52', action='store_true', help='Exact three reviewed 5.2 native prerequisite commits only')
+    check.add_argument('--mario-52', action='store_true', help='Preapproved pinned Mario22D0 envelope and private-reference metrics')
     current = sub.add_parser('check')
     current.add_argument('--contract', type=Path, required=True)
     args = parser.parse_args()
@@ -208,8 +261,8 @@ def main():
     path = args.receipt.resolve(strict=True)
     require(path.is_relative_to(root), 'receipt outside trusted proof directory')
     receipt = json.loads(path.read_text())
-    equivalence = base_equivalence(receipt['spec'], contract, args.equivalent_base)
-    cert = verify(receipt, root, contract, args.host, args.equivalent_base)
+    equivalence = base_equivalence(receipt['spec'], contract, args.equivalent_base, args.approved_native_52)
+    cert = verify(receipt, root, contract, args.host, args.equivalent_base, args.approved_native_52, args.mario_52)
     require(contract == canonical_spec(), 'inputs changed during remote verification')
     target = ROOT / 'build/hookproof-land.cert'
     target.parent.mkdir(exist_ok=True)
@@ -222,6 +275,7 @@ def main():
                 'original_certificate_path': str(original_cert),
                 'original_certificate_sha256': digest(original_cert.read_bytes()),
                 'imported_certificate_sha256': digest(cert), 'base_equivalence': equivalence,
+                'mario52_sanction': mario52.PLAN_SHA if args.mario_52 else None,
                 'contract': contract}
     (ROOT / 'build/remote-proof-import.json').write_text(json.dumps(imported, sort_keys=True) + '\n')
     print(f'REMOTE PROOF OK: {len(contract["units"])} objects; control changed/restored; {digest(path.read_bytes())}')

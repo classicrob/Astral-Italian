@@ -241,6 +241,50 @@ class RemoteProofTests(unittest.TestCase):
              self.assertRaises(ValueError):
             rp.base_equivalence(self.receipt['spec'], self.spec, 'base')
 
+    def test_sanction_metadata_requires_explicit_opt_in(self):
+        self.receipt['sanctioned_delta'] = {}
+        self.rejects()
+
+    def test_native52_exact_commits_and_paths(self):
+        self.equivalent_fixture()
+        self.receipt['spec']['base'] = rp.mario52.BASE
+        def approved_git(*args):
+            if args[0] == 'rev-list':
+                return '\n'.join(rp.APPROVED_NATIVE_52)
+            if args[0] == 'diff-tree':
+                return '\n'.join(rp.APPROVED_NATIVE_52[args[-1]])
+            return self.equivalence_git(*args)
+        with patch.object(rp, 'git', side_effect=approved_git), \
+             patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)):
+            result = rp.base_equivalence(self.receipt['spec'], self.spec, rp.mario52.BASE, True)
+        self.assertTrue(result['approved_native_52'])
+
+    def test_native52_rejects_additional_commit(self):
+        self.equivalent_fixture()
+        self.receipt['spec']['base'] = rp.mario52.BASE
+        def extra_git(*args):
+            if args[0] == 'rev-list':
+                return '\n'.join([*rp.APPROVED_NATIVE_52, 'unreviewed-native-change'])
+            return self.equivalence_git(*args)
+        with patch.object(rp, 'git', side_effect=extra_git), \
+             patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+             self.assertRaisesRegex(ValueError, 'unapproved native base commits'):
+            rp.base_equivalence(self.receipt['spec'], self.spec, rp.mario52.BASE, True)
+
+    def test_native52_rejects_wrong_paths(self):
+        self.equivalent_fixture()
+        self.receipt['spec']['base'] = rp.mario52.BASE
+        def wrong_git(*args):
+            if args[0] == 'rev-list':
+                return '\n'.join(rp.APPROVED_NATIVE_52)
+            if args[0] == 'diff-tree':
+                return 'native/unreviewed.cpp'
+            return self.equivalence_git(*args)
+        with patch.object(rp, 'git', side_effect=wrong_git), \
+             patch.object(rp.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+             self.assertRaisesRegex(ValueError, 'path mismatch'):
+            rp.base_equivalence(self.receipt['spec'], self.spec, rp.mario52.BASE, True)
+
 
 if __name__ == '__main__':
     unittest.main()

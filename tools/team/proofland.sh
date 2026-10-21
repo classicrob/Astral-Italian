@@ -27,6 +27,8 @@ if [ -n "${REMOTE_PROOF_RECEIPT:-}" ]; then
   state waiting-remote-proof "verify genuine remote objects before consuming certificate"
   set -- python3 tools/team/remoteproof.py verify --receipt "$REMOTE_PROOF_RECEIPT" --proof-root "$REMOTE_PROOF_ROOT" --host "$REMOTE_PROOF_HOST"
   [ -z "${REMOTE_PROOF_EQUIVALENT_BASE:-}" ] || set -- "$@" --equivalent-base "$REMOTE_PROOF_EQUIVALENT_BASE"
+  [ "${REMOTE_PROOF_APPROVED_NATIVE_52:-}" != 1 ] || set -- "$@" --approved-native-52
+  [ "${REMOTE_PROOF_MARIO_52:-}" != 1 ] || set -- "$@" --mario-52
   lockf -k "$lock" nice -n 19 "$@"
   state remote-proof-accepted "continue final source guard and incremental landing"
   export REMOTE_PROOF_CONTRACT=build/remote-proof-contract.json

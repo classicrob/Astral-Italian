@@ -15,7 +15,7 @@ while :; do
     echo
     echo "  c) 5.2.1 with Cappy (default)"
     echo "  f) 5.1 (fallback)"
-    echo "  n) 5.3 candidate (not default; build5.3)"
+    echo "  n) 5.3 candidate (not default; pad untested; build5.3)"
     echo
     echo "  1) Flip-Swap Galaxy      (World 1)"
     echo "  2) Fluffy Bluff Galaxy   (World 1)"

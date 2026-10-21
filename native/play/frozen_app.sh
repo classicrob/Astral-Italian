@@ -53,7 +53,7 @@ frozen_app_list() {
                     frozen_seen_default=$frozen_candidate
                     printf '  5.2.1 with Cappy (default; build5.2.1)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.3 ]; then
-                    printf '  5.3 candidate (not default; build5.3)  %s\n' "$frozen_verified"
+                    printf '  5.3 candidate (not default; pad untested; build5.3)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.2 ]; then
                     printf '  5.2 with Cappy (build5.2)  %s\n' "$frozen_verified"
                 else

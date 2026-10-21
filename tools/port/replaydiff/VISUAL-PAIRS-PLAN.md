@@ -28,7 +28,7 @@ IDs/VI state and screenshot completion to the sampled source frame; disclose
 latency rather than labeling an unknown image +N. This is still a provider gap,
 not a reason to fabricate readiness or presentation equality.
 
-Use the actual game viewport only, equal dimensions, actual renderer/backend,
+Use the actual game viewport only, bound pixel/display aspect and color space, actual renderer/backend,
 resolution, aspect, AA, color-space, app/executable/source/disc/tool hashes and
 host in the receipt. No forced Null backend, render-setting shortcuts, host-clock
 alignment or unrecorded camera repositioning. Preserve the baseline geometry
@@ -36,13 +36,20 @@ and input. If camera/state/RNG differs, retain that finding beside the images;
 visual similarity does not make gameplay equal.
 
 `visual_pairs.py --manifest PRIVATE/pairs.json --out PRIVATE/new-report --keep 10`
-compares same-size full images without cropping, registration or temporal shift.
-It reports normalized RGB MAE/RMSE, 8x8-block luminance SSIM and dHash distance.
-The block SSIM is explicitly a heuristic, not a full-window standard SSIM or
-proof of semantic equivalence. Rank by lowest block SSIM and retain the top
-image pairs with exact provenance and state. Capture metadata must bind real
-image, sync, trace, delivered-input and presentation receipts by SHA256; unknown
-presentation/ready data is BLOCKED. A declared capture offset alone is rejected.
+compares complete opaque sRGB game viewports on a fixed common grid (long side
+at most256, no upsampling, declared display aspect). Pixel aspect must match
+actual dimensions and bound display aspect. LANCZOS normalization and a fixed
+0.75-grid-pixel Gaussian filter reduce small sampling/filter differences;
+there is no image registration, crop, temporal shift or offset fitting.
+It retains unfiltered RGB MAE/RMSE, SSIM8 and dHash, plus filtered metrics and
+worst-tile RGB error. Ranking uses fixed color-RMSE, one-minus-SSIM and
+worst-tile weights0.45/0.45/0.10; color changes cannot hide behind luminance.
+This is heuristic review ordering, not a semantic equivalence threshold.
+`report.html` and report.json rank measured pairs, retain the top original
+image pairs plus common-grid/difference views, and show bound producer state,
+source/binary/host, input and ready-frame provenance. Unknown image/provider
+frames are NOTMEASURED/BLOCKED, with no metrics or fabricated image. Absent
++60/+300/+600 pairs are explicit missing slots. No gameplay PASS is emitted.
 All screenshots, traces and reports stay under private gamedata. Commit only
 tools and synthetic tests. After summaries, keep the top pairs and failed-provider
 witnesses; prune only owned redundant images, never shared assets or user saves.
@@ -51,7 +58,7 @@ Manifest schema 1 contains `pairs[]` with stage/scenario/offset/input_kind=idle,
 and native/dolphin objects. Each object includes `{path,sha256}` records for
 image, sync, trace, input and presentation_receipt; capture_source_frame,
 presentation_binding='frame-id-verified', host, executable_sha256,
-source_revision and renderer. The trace must contain ready and offset rows.
+source_revision, renderer, image_geometry and input_delivery_receipt. The trace must be dense from0 through the offset, with the same observed Game/init6 stage/scenario/epoch and valid player throughout; endpoint-only evidence is rejected.
 The presentation receipt is an actual provider artifact, never a fixture
 assertion for live data. No gameplay PASS or admission is emitted by this tool.
 
@@ -100,3 +107,44 @@ failure, image failure, ambiguity and rejection of another process's window.
 The wrapper has not yet been used in a live visual reference run. Native GX
 presentation binding is still a provider gap. These tools do not change any
 emulation/render settings, inputs, saves or guest memory.
+
+
+## Metric schema2 and stricter producer bindings
+
+Existing manifest schema1 is retained; `metric_schema_version=2` identifies the
+new comparison policy. The presentation artifact must bind all provider
+host/executable_sha256/source_revision/renderer/image_geometry values and the
+actual input_sha256, besides matching source/render/readback frame IDs, image
+hash and completed fence. A role-mismatched method is rejected. image_geometry
+is `{kind:"game-viewport",pixel_aspect_ratio:[p,q],display_aspect_ratio:[a,b],
+color_space:"sRGB"}`; these are actual provider facts, not inferred crops.
+Provider identity hashes must be full40/64 hexadecimal values. The sync artifact
+must also retain its actual source_scene_epoch, separate from a rebased trace
+epoch. Metadata and manifest hashes are rechecked after measurement; retained
+original image copies must match their pinned hashes.
+
+The input_delivery_receipt is a hashed producer artifact with schema_version1,
+status captured, input_sha256, frames600, read_count2400, source_frame_start
+ready+1 and source_frame_end ready+600. Method is native-consumed-read-log or
+dolphin-actual-export, according to role. Actual JSONL records are still parsed
+and must match between providers and the declared canonical connected-idle
+contract; a receipt assertion alone does not replace the input tape.
+`presentation_receipt(...,provenance=...)` can bind explicitly supplied facts;
+without them its older core receipt remains insufficient for the pair gate.
+Do not synthesize these producer facts to satisfy the comparator.
+
+Synthetic controls cover missing objects, changed color (including matching
+luminance), seven-pixel translation, resampling/filter differences, pixel aspect,
+transparent/mismatched viewports, stale/unbound frames/identities/input, missing
+providers and offsets, missing trace rows and a reload between equal endpoints.
+Synthetic tolerances qualify only these fixtures. They are not thresholds for
+accepting real gameplay/rendering. Existing Python3.14/Pillow12.1 are used;
+no new dependency was installed.
+
+Actual provider gaps remain unchanged: native GXCopyDisp source/copy tag to
+completed renderer readback; Dolphin XFB/VI source tag to actual PNG readback;
+actual same delivered canonical idle read history on both sides; bound viewport
+extent/PAR/DAR/color metadata and executable/source provenance. Window captures
+with unknown XFB age/chrome do not meet those gates. Native figure-probe timing
+and queued screenshots cannot be relabelled as ready+N. No provider hook/app,
+Game source, backend setting or runtime installation was changed in this task.

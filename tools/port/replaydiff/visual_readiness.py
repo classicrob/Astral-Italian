@@ -61,14 +61,14 @@ class ReadySchedule:
         return request
 
 
-def presentation_receipt(request, copy, readback, image, method):
+def presentation_receipt(request, copy, readback, image, method, provenance=None):
     """Validate source tags supplied by real renderer copy/readback callbacks."""
     if request['status'] != 'PENDING_PRESENTATION':
         raise ValueError('capture readiness is blocked')
     if method not in ('native-renderer-readback', 'dolphin-xfb-present-readback'):
         raise ValueError('unknown renderer provider')
     frame_id = copy.get('frame_id')
-    if type(frame_id) is not int or frame_id < 0 or readback.get('frame_id') != frame_id:
+    if type(frame_id) is not int or frame_id < 0 or type(readback.get('frame_id')) is not int or readback.get('frame_id') != frame_id:
         raise ValueError('unknown/mismatched copy and readback frame IDs')
     if copy.get('source_frame') != request['capture_source_frame'] or copy.get('scene_epoch') != request['source_scene_epoch']:
         raise ValueError('presented copy is from another game frame or scene')
@@ -80,8 +80,23 @@ def presentation_receipt(request, copy, readback, image, method):
     h = hashlib.sha256(path.read_bytes()).hexdigest()
     if readback.get('image_sha256') != h:
         raise ValueError('image bytes differ from the renderer readback receipt')
-    return dict(schema_version=1, status='captured', method=method, stage=request['stage'], scenario=request['scenario'],
+    result = dict(schema_version=1, status='captured', method=method, stage=request['stage'], scenario=request['scenario'],
                 ready_source_frame=request['ready_source_frame'], capture_source_frame=request['capture_source_frame'],
                 rendered_source_frame=copy['source_frame'], rendered_frame_id=frame_id,
                 readback_frame_id=readback['frame_id'], render_fence_complete=True, image_sha256=h,
                 qualification='UNQUALIFIED_VISUAL_DIAGNOSTIC')
+
+    if provenance is not None:
+        from visual_pairs import geometry
+        import re
+        from PIL import Image
+        required = ('host','executable_sha256','source_revision','renderer','image_geometry','input_sha256')
+        if any(not provenance.get(k) for k in required):
+            raise ValueError('provider provenance is incomplete')
+        for key,length in [('executable_sha256',64),('source_revision',40),('input_sha256',64)]:
+            if not re.fullmatch('[0-9a-f]{'+str(length)+'}',str(provenance[key])):
+                raise ValueError('unbound provider identity/input hash')
+        with Image.open(path) as pixels:
+            geometry(pixels.size,provenance['image_geometry'])
+        result.update({k:provenance[k] for k in required})
+    return result

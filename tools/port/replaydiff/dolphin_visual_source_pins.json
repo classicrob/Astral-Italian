@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "dolphin_revision": "409881c34357d0f105fd473167d15ab0bd9c1628",
+  "repository": "https://github.com/dolphin-emu/dolphin",
+  "files": {
+    "Source/Core/Common/IOFile.cpp": "7a4ccc6488aee995b46a164917033f079beecf2bc19d9553ec268e0bc24ebb71",
+    "Source/Core/Common/Image.cpp": "c421dc2bd13d0f4c49e91fd16935db949168373b532a5cef4e1f00e91176316b",
+    "Source/Core/Core/HW/VideoInterface.cpp": "9a5f9df5f0b9589667ba674087ceb552b225c02b59394692dcc8909f7e29ad23",
+    "Source/Core/Core/PowerPC/GDBStub.cpp": "43925ad7da1ed078f7e42380b50a5a3ef0d61498e60ab0281edf067ae3f318c0",
+    "Source/Core/VideoBackends/Metal/MTLStateTracker.mm": "43f96580e6995f271bf04a1f7c2948ed5e9da38ecbf857d0a16b9fdcd86d2be1",
+    "Source/Core/VideoBackends/Metal/MTLTexture.mm": "fcca51b4c765721fd242cb2f25620418bd3d98be69cbd82df1814985c7fb4ace",
+    "Source/Core/VideoBackends/Metal/MTLUtil.mm": "1dceb82b8ca0b382e0564e2c608bf9e861348ba39dc96a0f50a797f55d8ab6ec",
+    "Source/Core/VideoBackends/OGL/OGLTexture.cpp": "518ec27c53f4a2b395e58840cbb3232bab3a75d14d24fff734fd400547ab57f8",
+    "Source/Core/VideoBackends/Vulkan/VKTexture.cpp": "1df5addcfadc616522177615c33fe306c59f518211d646bbed77f42c8c6c479d",
+    "Source/Core/VideoCommon/AbstractTexture.cpp": "7d91673f1683c451b257a6156cfafc62d659c67fd3e0d8cdaa0fe2930ec1ac60",
+    "Source/Core/VideoCommon/AbstractTexture.h": "879d41869994df57eb9e4712cd9ea8f3886b2dd8ac1d91c42c049d94534632f0",
+    "Source/Core/VideoCommon/AsyncRequests.cpp": "cdb6062d0cfd596af922c1abc66fba0ee44742df1d6655578dd77f4935fe757f",
+    "Source/Core/VideoCommon/BPFunctions.cpp": "68c7461bd204b51ec24d9784e71ef2b4f32b0c3bcdd3a4e9b32d8bcfc59153e8",
+    "Source/Core/VideoCommon/BPStructs.cpp": "8b186405624676ab216e9cc0087d2d0c3eefc5c6d299a174dbd1f8caf3e8f4b3",
+    "Source/Core/VideoCommon/FrameDumper.cpp": "c2104316edf52c265dc220a5ab7eabd9dcf29724567c91ced4763482ea238834",
+    "Source/Core/VideoCommon/FrameDumper.h": "83bdceb7a47e43b4121cbdcbb997ee03c332725aa3d604f0b1f3a8a0fe63bb55",
+    "Source/Core/VideoCommon/FramebufferManager.cpp": "62661d7b473c4145e31701bcf57c6d110e4eca1aec48bda84a38afa369c53f7a",
+    "Source/Core/VideoCommon/PixelShaderManager.cpp": "f1b4c618ceac8bb2a6a0fb77475bd673e8ec61faa60b862327f57265ad264232",
+    "Source/Core/VideoCommon/Present.cpp": "b729e0f2a0f642cfc8596facf46e555e323c7d4c4e6805e3bf36d4c7467a5869",
+    "Source/Core/VideoCommon/Present.h": "f652761ad6f35494b4893b477228439105afdf47d06f07c02ae57ee5d14d0934",
+    "Source/Core/VideoCommon/TextureCacheBase.cpp": "b7296b171e6441e3764f3887ef75a70324a4e079ac3d16ad6e6295e912408f15",
+    "Source/Core/VideoCommon/TextureCacheBase.h": "b51d36d092b14183ae5a349234c7704dfaa27dad5e683b120d8c13f6a44d7700",
+    "Source/Core/VideoCommon/VideoBackendBase.cpp": "e06c6a6bdaaddf40865cc9943c19b7bbdb320d3450ff7626f09e5b30fbb8691c"
+  },
+  "retail": {
+    "dol_sha256": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+    "symbols_sha256": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534",
+    "symbols_revision": "33e71ee880b426c0c7da03a724377200e874c417",
+    "guards": {
+      "draw_call": {
+        "address": "804b6a90",
+        "word": "48000051"
+      },
+      "draw_return": {
+        "address": "804b6a94",
+        "word": "806dea08"
+      },
+      "selected_scene_return": {
+        "address": "804ba798",
+        "word": "2c030000"
+      },
+      "post_endFrame_wait_entry": {
+        "address": "804be280",
+        "word": "9421fff0"
+      },
+      "wait_call": {
+        "address": "804b6ac0",
+        "word": "480077c1"
+      }
+    }
+  },
+  "runtime_provider_accepted": false,
+  "qualification": "BLOCKED"
+}

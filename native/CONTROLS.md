@@ -145,6 +145,64 @@ The names in the tables are the exact serialized names. Pointer position
 itself is not a remappable button. An invalid file is reported and ignored;
 the first successful save preserves it as `controls.txt.bad`.
 
+## Switch Pro Controller
+
+A controller with Nintendo labels (Switch Pro Controller, Joy-Con pair; SDL3
+reports its bottom button labelled B) is bound by **label**, not position: A is
+the right face button and B the bottom one. It has two layouts. The Galaxy
+layout is used with the mods off; the Odyssey layout replaces it automatically
+whenever the OdysseyMovement mod is on (F1 → Mods, `mods.txt`, or `--odyssey`),
+at the next controller input after the switch, with no restart.
+
+| Pro | Galaxy layout (mods off) | Odyssey layout (OdysseyMovement on) |
+| --- | --- | --- |
+| Left stick | move | move |
+| Right stick | Star Pointer | orbit camera (Odyssey camera on; else the Star Pointer) |
+| Gyro | optional pointer (`Gyro=on`) | Star Pointer |
+| A / B | jump (A also starts at the title) | jump |
+| Y / X | spin | throw Cappy (spin while the Cappy mod is off) |
+| Shake the controller | spin | spin |
+| R | spin | spin |
+| ZL | crouch / ground pound (Z) | crouch / ground pound |
+| ZR | shoot Star Bits; back in menus (B) | shoot Star Bits; back in menus |
+| L | center camera (C) | center camera |
+| R3 | recenter the pointer | recenter the pointer |
+| L3 | Collect Star Bits mod | Collect Star Bits mod |
+| D-pad | camera / first person | same; down also photo mode (when on) |
+| + / − | Plus / Minus | Plus / Minus |
+| Home | Home menu | Home menu |
+| Capture | playtest capture (as M) | playtest capture |
+
+The Wii B button is ZR here, as the Wii Remote's trigger. **B on the Pro
+Controller is the Wii A**, so in menus B confirms and ZR goes back. Rumble
+follows the game's Wii Remote rumble (`Rumble=off` turns it off).
+
+Everything is remappable on the Controls page, which shows the controller
+column for the layout in use, by label. `controls.txt` stores each layout in its
+own section, written only when it differs from the defaults (so a file with
+only keyboard remaps still reads in older builds):
+
+```text
+[ProOdyssey]
+ModCappyThrow=Pad:Y,Pad:X
+Shake=Pad:R,Pad:Shake
+
+[Controller]
+Gyro=auto        # auto: Odyssey layout only; on: both Pro layouts; off
+GyroSpeed=1      # 0.05 to 10
+GyroInvertX=off
+GyroInvertY=off
+Rumble=on
+ShakeG=1.6       # how hard a shake must be, in g (0.5 to 8)
+```
+
+Pro section names are `Pad:A`, `B`, `X`, `Y`, `L`, `R`, `ZL`, `ZR`, `Plus`,
+`Minus`, `Home`, `Capture`, `LStick`, `RStick`, `DpadUp`, `DpadDown`,
+`DpadLeft`, `DpadRight`, and `Shake` (a shake of the controller). An action a
+section omits keeps its default; `Action=` unbinds it. Keyboard and mouse
+bindings are shared by every layout and stay in the main section. Xbox and
+PlayStation controllers keep the positional defaults below.
+
 ## Controllers and optional native controls
 
 Existing gamepad defaults are unchanged: left stick moves, right stick

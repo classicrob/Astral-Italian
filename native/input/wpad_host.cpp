@@ -42,6 +42,7 @@ extern KPADInsideStatus inside_kpads[4];
 #include "petari/latency_probe.hpp"
 #include "petari/editor_settings.hpp"
 #include "petari/camera_settings.hpp"
+#include "petari/mods.hpp"
 #include "remote_model.hpp"
 
 namespace PetariNative::Input {
@@ -561,17 +562,76 @@ BoundState boundState() {
     return model().boundState();
 }
 
+namespace {
+// Controller layout (PadLayout): a pad with Nintendo labels, and the OdysseyMovement
+// mod, read at each controller event and bindings call. Caller holds gHostMutex.
+bool gNintendoPad = false;
+Detail::PadShakeDetector gPadShake;
+double gGyroLast = 0.0;
+
+PadLayout wantedLayout() {
+    return padLayoutFor(gNintendoPad, Mods::enabled(Mods::Mod::OdysseyMovement));
+}
+
+void syncLayout() {
+    const PadLayout layout = wantedLayout();
+    if (model().bindings().layout() == layout) return;
+    // Held buttons keep their physical state; they now drive the new layout's actions.
+    HostAllocationScope scope;
+    Bindings next = model().bindings();
+    next.setLayout(layout);
+    model().setBindings(next);
+    coStarModel().setBindings(next);
+}
+
+bool gyroPointerOn(const Bindings& b) {
+    switch (b.options().gyro) {
+    case PadOptions::Gyro::Off: return false;
+    case PadOptions::Gyro::On: return b.layout() != PadLayout::Standard;
+    case PadOptions::Gyro::Auto: return b.layout() == PadLayout::ProOdyssey;
+    }
+    return false;
+}
+}  // namespace
+
 void setBindings(const Bindings& value) {
     HostAllocationScope scope;
     std::lock_guard<std::mutex> lock(gHostMutex);
-    model().setBindings(value);
-    coStarModel().setBindings(value);
+    // The layout belongs to the connected pad, not to the caller's copy.
+    Bindings next = value;
+    next.setLayout(wantedLayout());
+    model().setBindings(next);
+    coStarModel().setBindings(next);
 }
 
 Bindings bindings() {
     HostAllocationScope scope;
     std::lock_guard<std::mutex> lock(gHostMutex);
+    syncLayout();
     return model().bindings();
+}
+
+void padConnected(bool nintendoLabels) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    gNintendoPad = nintendoLabels;
+    gPadShake.reset();
+    gGyroLast = 0.0;
+    syncLayout();
+}
+
+PadLayout padLayout() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    syncLayout();
+    return model().bindings().layout();
+}
+
+bool padRumble() {
+    bool enabled;
+    {
+        std::lock_guard<std::mutex> lock(gHostMutex);
+        enabled = model().bindings().options().rumble;
+    }
+    return enabled && rumbleActive(0);
 }
 
 void setSettings(const Settings& value) {
@@ -586,7 +646,8 @@ Settings settings() {
 }
 
 namespace {
-constexpr Action kModActions[] = {Action::ModCollectStarBits, Action::ModShootEnemy, Action::ModCappyThrow};
+constexpr Action kModActions[] = {Action::ModCollectStarBits, Action::ModShootEnemy, Action::ModCappyThrow,
+                                  Action::PlaytestCapture};
 std::atomic<int> gModPresses[std::size(kModActions)];
 
 // Latency probe (petari/latency_probe.hpp): a down edge of an input bound to A
@@ -914,6 +975,7 @@ void padButtonEvent(PadButton button, bool down) {
     gHostActivity = true;
     if (down) noteDevice(Binding::Device::Pad);
     std::lock_guard<std::mutex> lock(gHostMutex);
+    syncLayout();
     if (captureEvent(Binding::pad(button), down, false)) return;
     if (down) {
         countModPress(Binding::pad(button));
@@ -933,6 +995,7 @@ void padAxisEvent(PadAxis axis, float value) {
         noteDevice(Binding::Device::Pad);
     }
     std::lock_guard<std::mutex> lock(gHostMutex);
+    syncLayout();
     if (editorCapturing()) return;
     if (CameraSettings::photoEnabled() && CameraSettings::photoCapturing()) {
         if (axis == PadAxis::RightX || axis == PadAxis::RightY) (axis == PadAxis::RightX ? gRightX : gRightY) = value;
@@ -955,6 +1018,33 @@ void padDisconnected() {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().padDisconnected();
     coStarModel().padDisconnected();
+    gPadShake.reset();
+    gGyroLast = 0.0;
+}
+
+void padSensorEvent(PadSensor sensor, const float data[3], double seconds) {
+    bool shakeChanged = false;
+    bool shakeHeld = false;
+    {
+        std::lock_guard<std::mutex> lock(gHostMutex);
+        syncLayout();
+        const Bindings& b = model().bindings();
+        if (sensor == PadSensor::Gyro) {
+            float dx;
+            float dy;
+            if (Detail::gyroPointerDelta(data, seconds, &gGyroLast, b.options(), &dx, &dy) && gyroPointerOn(b) &&
+                !editorCapturing() && !(CameraSettings::photoEnabled() && CameraSettings::photoCapturing())) {
+                model().padPointerMove(dx, dy);
+            }
+            return;
+        }
+        const bool before = gPadShake.held();
+        shakeHeld = gPadShake.update(data, seconds, b.options().shakeG);
+        shakeChanged = shakeHeld != before;
+        if (shakeChanged && shakeHeld) gHostActivity = true;
+    }
+    // A shake is a controller button (Pad:Shake): remappable, captured by the Controls page.
+    if (shakeChanged) padButtonEvent(PadButton::Shake, shakeHeld);
 }
 
 void mouseMoved(float x, float y) {
@@ -1140,6 +1230,9 @@ void resetForTesting() {
         std::lock_guard<std::mutex> lock(gHostMutex);
         gCapture = CaptureState::Idle;
         gSwallowRelease = false;
+        gNintendoPad = false;
+        gPadShake.reset();
+        gGyroLast = 0.0;
         std::lock_guard<std::mutex> scroll(gMenuScrollMutex);
         gMenuRows = 0.0f;
         gMenuPages = 0;

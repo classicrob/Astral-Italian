@@ -154,6 +154,25 @@ controllers act as one.
   - It moves at up to `Settings::padPointerWidthsPerSecond` (0.9) with a
     squared response, starting from where the mouse last pointed.
   - R3 centers it, and any mouse motion hands the pointer back to the mouse.
+- **Nintendo pads.** A pad whose bottom button is labelled B (the app asks
+  SDL3, `padConnected`) uses the ProGalaxy layout, or ProOdyssey while the
+  OdysseyMovement mod is on (`padLayoutFor`, re-checked at each controller
+  event and `bindings()` call). Each layout keeps its own controller buttons in
+  `Bindings` (`layout()`, `setLayout`); keyboard and mouse inputs are shared.
+  The host owns the layout: `setBindings` keeps the pad's layout whatever the
+  copy says. Labels show in the Controls page (`displayName(input, layout)`).
+  - **Gyro** (`padSensorEvent`, rad/s): moves the controller's Star Pointer
+    (`gyroPointerDelta`, `kGyroUnitsPerRadian` 3 per radian at GyroSpeed 1,
+    0.02 rad/s rest band) in ProOdyssey (`Gyro=auto`) or both Pro layouts
+    (`Gyro=on`). R3 recenters it.
+  - **Shake** (accelerometer, m/s²): `PadShakeDetector` holds `Pad:Shake`
+    while the change from a 0.3 s gravity estimate exceeds `ShakeG` (1.6 g),
+    releases below half of it or after 0.4 s. It is a bindable button
+    (Spin by default), so the remote model's flick spacing applies.
+  - **Capture** (`Pad:Misc1`, SDL's MISC1) is the `PlaytestCapture` action;
+    the app polls it each frame (`Events::frame`) and also rumbles the pad
+    while `padRumble()` (the motor and `Rumble=on`).
+  - Tests: `native/tests/pro_controller_tests.cpp` (`ctest -R native_pro_controller`).
 - **Release.** Focus loss and disconnection release everything.
 - **Activity.** Button events count as activity for the screen saver, and
   so do stick movements past 25%.

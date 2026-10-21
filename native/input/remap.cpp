@@ -68,10 +68,12 @@ std::vector<Action> boundElsewhere(const Bindings& bindings, Action action, Bind
 }
 
 std::vector<Action> conflicts(const Bindings& bindings, Action action, Binding input) {
-    static const Bindings kDefaults = Bindings::defaults();
+    static const Bindings kDefaults[] = {Bindings::defaults(PadLayout::Standard), Bindings::defaults(PadLayout::ProGalaxy),
+                                         Bindings::defaults(PadLayout::ProOdyssey)};
+    const Bindings& defaults = kDefaults[static_cast<int>(bindings.layout()) % 3];
     std::vector<Action> result;
     for (const Action other : boundElsewhere(bindings, action, input)) {
-        const bool sharedByDefault = contains(kDefaults.inputs(action), input) && contains(kDefaults.inputs(other), input);
+        const bool sharedByDefault = contains(defaults.inputs(action), input) && contains(defaults.inputs(other), input);
         if (!sharedByDefault) result.push_back(other);
     }
     return result;
@@ -152,7 +154,7 @@ Result clearSlot(Bindings& bindings, Action action, int slot) {
 }
 
 Result resetAction(Bindings& bindings, Action action) {
-    const Bindings defaults = Bindings::defaults();
+    const Bindings defaults = Bindings::defaults(bindings.layout());
     if (bindings.inputs(action) == defaults.inputs(action)) return Result::Unchanged;
     Bindings next = bindings;
     setInputs(next, action, defaults.inputs(action));

@@ -58,6 +58,9 @@ bool loadControls(const std::filesystem::path& file, std::string* error);
 // SDL events for the input layer. Returns true if consumed. Also counts them
 // as physical input (below); every event is still delivered unchanged.
 bool input(const SDL_Event& event);
+// Once per frame after the events (frame seam): controller rumble and the
+// PlaytestCapture action. Main thread.
+void frame();
 // Physical input since launch, for the smoke's assisted-run check: presses and
 // releases of keys and mouse buttons bound to a game action (key repeats and
 // unbound keys do not count), pointer motion and focus changes. The smoke's own

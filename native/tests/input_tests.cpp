@@ -200,7 +200,10 @@ void testBindings() {
           "Return is bound only to Start");
 
     const std::string text = d.serialize();
-    In::Bindings parsed;
+    // Onto the defaults, as Remap::load does: the Pro layouts' sections are written
+    // only where they differ from the defaults.
+    In::Bindings parsed = In::Bindings::defaults();
+    parsed.clear(Action::A);
     std::string error;
     check(parsed.parse(text, &error), "defaults parse: " + error);
     check(parsed.serialize() == text, "bindings round-trip through text");

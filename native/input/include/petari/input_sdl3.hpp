@@ -16,7 +16,7 @@
 namespace PetariNative::Input::SDL3 {
 
 // SDL's standard gamepad button, or false for buttons with no binding name
-// (paddles, touchpad, misc).
+// (paddles, touchpad, MISC2..6).
 inline bool padButtonOf(Uint8 sdl, PadButton* button) {
     switch (sdl) {
     case SDL_GAMEPAD_BUTTON_SOUTH: *button = PadButton::South; return true;
@@ -34,6 +34,7 @@ inline bool padButtonOf(Uint8 sdl, PadButton* button) {
     case SDL_GAMEPAD_BUTTON_DPAD_DOWN: *button = PadButton::DpadDown; return true;
     case SDL_GAMEPAD_BUTTON_DPAD_LEFT: *button = PadButton::DpadLeft; return true;
     case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: *button = PadButton::DpadRight; return true;
+    case SDL_GAMEPAD_BUTTON_MISC1: *button = PadButton::Misc1; return true;  // Pro Capture, Xbox Share
     default: return false;
     }
 }
@@ -106,6 +107,15 @@ inline bool handleEvent(const SDL_Event& event) {
     case SDL_EVENT_GAMEPAD_REMOVED:
         padDisconnected();
         return true;
+    case SDL_EVENT_GAMEPAD_SENSOR_UPDATE: {
+        // The app enables the sensors and reports the pad's labels (padConnected),
+        // which need SDL calls.
+        if (event.gsensor.sensor != SDL_SENSOR_GYRO && event.gsensor.sensor != SDL_SENSOR_ACCEL) return false;
+        const Uint64 ns = event.gsensor.sensor_timestamp != 0 ? event.gsensor.sensor_timestamp : event.gsensor.timestamp;
+        padSensorEvent(event.gsensor.sensor == SDL_SENSOR_GYRO ? PadSensor::Gyro : PadSensor::Accel, event.gsensor.data,
+                       static_cast<double>(ns) * 1e-9);
+        return true;
+    }
     case SDL_EVENT_WINDOW_MOUSE_LEAVE:
         mouseLeft();
         return true;

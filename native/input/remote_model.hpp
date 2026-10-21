@@ -76,6 +76,31 @@ bool pointerPosition(const Viewport& viewport, float mouseX, float mouseY, float
 // cross clamp.
 std::int8_t rawStickAxis(float value);
 
+// A shake of a controller from its accelerometer (SDL3: m/s^2, gravity
+// included): held while the change from the slowly tracked gravity exceeds
+// thresholdG, released below half of it. Pure, for Pad:Shake.
+class PadShakeDetector {
+public:
+    // Returns whether the shake "button" is down after this sample.
+    bool update(const float accel[3], double seconds, float thresholdG);
+    bool held() const { return mHeld; }
+    void reset() { *this = PadShakeDetector(); }
+
+private:
+    bool mHaveGravity = false;
+    float mGravity[3] = {};
+    double mLast = 0.0;
+    double mPressed = 0.0;
+    double mReleased = -1.0;
+    bool mHeld = false;
+};
+
+// Gyro rate to Star Pointer motion in KPAD units (the image is 2 wide, y down).
+// Pure. False when the sample moves nothing (first sample, gap, or rest).
+constexpr float kGyroUnitsPerRadian = 3.0f;  // about 38 degrees across the image at speed 1
+bool gyroPointerDelta(const float gyro[3], double seconds, double* lastSeconds, const PadOptions& options, float* dx,
+                      float* dy);
+
 class RemoteModel {
 public:
     explicit RemoteModel(bool coStar = false);
@@ -90,6 +115,9 @@ public:
     void padButtonEvent(PadButton button, bool down);
     void padAxisEvent(PadAxis axis, float value);
     void padDisconnected();
+    // Moves the controller's Star Pointer by a KPAD offset (the gyro), taking it
+    // over from the mouse as the right stick does.
+    void padPointerMove(float dx, float dy);
     void mouseMoved(float x, float y);
     void mouseLeft();
     void setViewport(const Viewport& viewport) { mViewport = viewport; }

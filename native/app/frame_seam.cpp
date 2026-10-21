@@ -564,6 +564,7 @@ void handleEvents(const AuroraEvent* event) {
             break;
         }
     }
+    Events::frame();
 }
 
 // Opens the next Aurora frame. While the window cannot present (minimized,

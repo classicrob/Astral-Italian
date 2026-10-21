@@ -63,6 +63,9 @@ enum class PadButton : std::uint8_t {
     DpadRight,
     LeftTrigger,
     RightTrigger,
+    // Appended (2026-10-21, Pro Controller layouts); earlier names keep their codes.
+    Misc1,  // Switch Pro Capture, Xbox Share (SDL_GAMEPAD_BUTTON_MISC1)
+    Shake,  // a shake of a controller with an accelerometer (padSensorEvent), as a button
     Count
 };
 enum class PadAxis : std::uint8_t { LeftX, LeftY, RightX, RightY, LeftTrigger, RightTrigger, Count };
@@ -120,7 +123,37 @@ enum class Action : std::uint8_t {
     CoStarA,
     CoStarB,
     CoStarShake,
+    // Playtest capture (F9/M on the keyboard, handled by the app; the Pro Controller's
+    // Capture button by default). Not a remote button: counted like the mod actions.
+    PlaytestCapture,
     Count
+};
+
+// Controller layouts. Standard is positional (Xbox, PlayStation, and any pad
+// without Nintendo labels) and is the imported default set. A pad with Nintendo
+// labels (Switch Pro, Joy-Con pair) uses ProGalaxy, or ProOdyssey while the
+// OdysseyMovement mod is on (native/CONTROLS.md "Switch Pro Controller").
+// Keyboard and mouse bindings are shared by all layouts.
+enum class PadLayout : std::uint8_t { Standard, ProGalaxy, ProOdyssey, Count };
+const char* padLayoutName(PadLayout layout);
+// The layout for a pad: Standard unless it has Nintendo labels.
+PadLayout padLayoutFor(bool nintendoLabels, bool odysseyMovement);
+
+// Controller options in controls.txt's [Controller] section.
+struct PadOptions {
+    enum class Gyro : std::uint8_t { Auto, On, Off };
+    // The gyro moves the Star Pointer: Auto in ProOdyssey (where the right stick
+    // is the camera), On in every Nintendo layout, Off never.
+    Gyro gyro = Gyro::Auto;
+    float gyroSpeed = 1.0f;    // pointer speed multiplier
+    bool gyroInvertX = false;
+    bool gyroInvertY = false;
+    bool rumble = true;        // the game's Wii Remote rumble on the controller
+    float shakeG = 1.6f;       // accelerometer change (g) that counts as a shake (Pad:Shake)
+    bool operator==(const PadOptions& other) const {
+        return gyro == other.gyro && gyroSpeed == other.gyroSpeed && gyroInvertX == other.gyroInvertX &&
+               gyroInvertY == other.gyroInvertY && rumble == other.rumble && shakeG == other.shakeG;
+    }
 };
 
 struct Binding {
@@ -136,29 +169,57 @@ struct Binding {
 
 // Remappable bindings. Each action may have several inputs, and an input may
 // drive several actions.
+// Each controller layout has its own controller buttons; layout() selects the
+// one inputs(), bind(), unbind() and clear() see, next to the shared keyboard
+// and mouse inputs. The host keeps it on the connected pad's layout.
 class Bindings {
 public:
     // The approved defaults from native/CONTROLS.md, plus provisional
-    // bindings for the other buttons and tilt (see native/input/README.md).
-    static Bindings defaults();
+    // bindings for the other buttons and tilt (see native/input/README.md),
+    // seen through the given controller layout.
+    static Bindings defaults(PadLayout layout = PadLayout::Standard);
 
     void bind(Action action, Binding input);    // adds; no effect if present
     void unbind(Action action, Binding input);
     void clear(Action action);
+    // Keyboard and mouse inputs, then the current layout's controller buttons.
     const std::vector<Binding>& inputs(Action action) const;
+
+    PadLayout layout() const { return mLayout; }
+    void setLayout(PadLayout layout);
+    PadOptions& options() { return mOptions; }
+    const PadOptions& options() const { return mOptions; }
 
     // Text form, one "Action=Input,Input" line per action, for saving remaps.
     // Inputs are "Key:<name>" (see keyName), "Mouse:<Left|Middle|Right|X1|X2>"
     // or "Pad:<South|East|West|North|Back|Guide|Start|LeftStick|RightStick|
     // LeftShoulder|RightShoulder|DpadUp|DpadDown|DpadLeft|DpadRight|
-    // LeftTrigger|RightTrigger>".
+    // LeftTrigger|RightTrigger|Misc1|Shake>".
+    // Then, only where they differ from the defaults, a "[ProGalaxy]" and a
+    // "[ProOdyssey]" section of controller buttons by Nintendo label
+    // ("Pad:<A|B|X|Y|L|R|ZL|ZR|Plus|Minus|Home|Capture|LStick|RStick|
+    // DpadUp|DpadDown|DpadLeft|DpadRight|Shake>"), and a "[Controller]"
+    // section of PadOptions ("Gyro=auto|on|off", "GyroSpeed=1", "GyroInvertX=off",
+    // "GyroInvertY=off", "Rumble=on", "ShakeG=1.6").
     std::string serialize() const;
     // Replaces bindings for the actions present in the text. Actions not
     // mentioned keep their current bindings. On error nothing changes.
     bool parse(const std::string& text, std::string* error);
 
 private:
-    std::vector<Binding> mInputs[static_cast<int>(Action::Count)];
+    static constexpr int kActions = static_cast<int>(Action::Count);
+    static constexpr int kProLayouts = 2;
+    std::vector<Binding>& padSet(int layout, int action);
+    void rebuild(int action);
+
+    // Keyboard, mouse and the Standard layout's controller buttons.
+    std::vector<Binding> mInputs[kActions];
+    // The controller buttons of ProGalaxy and ProOdyssey.
+    std::vector<Binding> mPro[kProLayouts][kActions];
+    // inputs() in a Pro layout: mInputs' keyboard and mouse inputs, then mPro's.
+    std::vector<Binding> mView[kActions];
+    PadLayout mLayout = PadLayout::Standard;
+    PadOptions mOptions;
 };
 
 const char* actionName(Action action);
@@ -180,7 +241,9 @@ std::vector<ControlsLine> controlsSummary(const Bindings& bindings);
 // controlsSummary.
 std::string titleHint(const Bindings& bindings);
 // How an input appears to the player: "Space", "Left Shift", "Left mouse".
-std::string displayName(Binding input);
+// Controller buttons by position ("Pad bottom"), or in a Pro layout by their
+// Nintendo label ("Pad B", "Pad ZR").
+std::string displayName(Binding input, PadLayout layout = PadLayout::Standard);
 // The constant names in Key ("W", "Num1", "LeftShift", ...), or "Usage<n>".
 std::string keyName(KeyCode code);
 bool parseKeyName(const std::string& name, KeyCode* code);
@@ -295,6 +358,21 @@ void padButtonEvent(PadButton button, bool down);
 void padAxisEvent(PadAxis axis, float value);
 // The last controller was removed: everything it held is released.
 void padDisconnected();
+// A controller was connected; nintendoLabels: its bottom face button is labelled
+// B (Switch Pro, Joy-Con). Selects the controller layout (padLayout).
+void padConnected(bool nintendoLabels);
+// The controller layout in effect: from the connected pad and the OdysseyMovement
+// mod, followed as either changes. Any thread.
+PadLayout padLayout();
+// Controller motion sensors, as SDL3 reports them: the gyro in radians per second
+// (x pitch up, y yaw left, z roll), the accelerometer in m/s^2. In a Nintendo
+// layout the gyro moves the Star Pointer (PadOptions::gyro) and a shake presses
+// Pad:Shake. seconds: the sample's time (any monotonic clock).
+enum class PadSensor : std::uint8_t { Gyro, Accel };
+void padSensorEvent(PadSensor sensor, const float data[3], double seconds);
+// Whether controller rumble should run now: the game's motor (rumbleActive(0))
+// and PadOptions::rumble. Any thread.
+bool padRumble();
 void setPosture(Posture posture);
 Posture posture();
 

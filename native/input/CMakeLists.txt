@@ -143,6 +143,11 @@ if(BUILD_TESTING)
     target_link_libraries(petari_smg2_controls_tests PRIVATE petari_input)
     add_test(NAME native_smg2_controls COMMAND petari_smg2_controls_tests)
 
+    # Switch Pro Controller layouts: label tables, Galaxy/Odyssey switch, controls.txt sections, gyro, shake.
+    add_executable(petari_pro_controller_tests ${PETARI_REPO_ROOT}/native/tests/pro_controller_tests.cpp)
+    target_link_libraries(petari_pro_controller_tests PRIVATE petari_input)
+    add_test(NAME native_pro_controller COMMAND petari_pro_controller_tests)
+
     # ShootEnemy mod: shared nearest-target policy and one-press transaction.
     add_executable(petari_shoot_nearest_enemy_tests ${PETARI_REPO_ROOT}/native/tests/shoot_nearest_enemy_tests.cpp)
     target_include_directories(petari_shoot_nearest_enemy_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)

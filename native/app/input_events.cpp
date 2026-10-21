@@ -1,6 +1,7 @@
 // Window events and remapped controls for the native input layer.
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_scancode.h>
 
 #include <cstdio>
@@ -28,6 +29,48 @@ bool loadControls(const std::filesystem::path& file, std::string* error) {
 namespace {
 
 Smoke::PhysicalInputs gPhysical;
+
+// The controller whose labels choose the layout, sensors feed the pointer and
+// shake, and rumble follows the game's Wii Remote motor (native/CONTROLS.md
+// "Switch Pro Controller"). Aurora opens every controller; all act as one.
+SDL_JoystickID gPadId = 0;
+bool gRumbling = false;
+
+void usePad(SDL_JoystickID id) {
+    SDL_Gamepad* pad = SDL_GetGamepadFromID(id);
+    if (pad == nullptr) return;
+    gPadId = id;
+    const bool nintendo = SDL_GetGamepadButtonLabel(pad, SDL_GAMEPAD_BUTTON_SOUTH) == SDL_GAMEPAD_BUTTON_LABEL_B;
+    bool gyro = false;
+    bool accel = false;
+    if (nintendo) {
+        // Only the Nintendo layouts use them: no sensor reports from other pads.
+        gyro = SDL_GamepadHasSensor(pad, SDL_SENSOR_GYRO) && SDL_SetGamepadSensorEnabled(pad, SDL_SENSOR_GYRO, true);
+        accel = SDL_GamepadHasSensor(pad, SDL_SENSOR_ACCEL) && SDL_SetGamepadSensorEnabled(pad, SDL_SENSOR_ACCEL, true);
+    }
+    const bool rumble = SDL_GetBooleanProperty(SDL_GetGamepadProperties(pad), SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
+    Input::padConnected(nintendo);
+    const char* name = SDL_GetGamepadName(pad);
+    std::fprintf(stderr, "[pad] using '%s' (type %d): %s layout; gyro %s, accelerometer %s, rumble %s\n",
+                 name != nullptr ? name : "?", static_cast<int>(SDL_GetGamepadType(pad)),
+                 Input::padLayoutName(Input::padLayout()), gyro ? "on" : "no", accel ? "on" : "no", rumble ? "yes" : "no");
+}
+
+void padRemoved(SDL_JoystickID id) {
+    if (id != gPadId) return;
+    gPadId = 0;
+    gRumbling = false;
+    int count = 0;
+    SDL_JoystickID* pads = SDL_GetGamepads(&count);
+    for (int i = 0; pads != nullptr && i < count; ++i) {
+        if (pads[i] != id && SDL_GetGamepadFromID(pads[i]) != nullptr) {
+            usePad(pads[i]);
+            break;
+        }
+    }
+    SDL_free(pads);
+    if (gPadId == 0) Input::padConnected(false);
+}
 
 // The first game action the input is bound to, or null.
 const char* boundAction(const Input::Binding& input) {
@@ -141,7 +184,24 @@ bool input(const SDL_Event& event) {
         (event.key.scancode == SDL_SCANCODE_F9 || event.key.scancode == SDL_SCANCODE_M)) {
         PlaytestCapture::request();
     }
+    if (event.type == SDL_EVENT_GAMEPAD_ADDED) usePad(event.gdevice.which);
+    if (event.type == SDL_EVENT_GAMEPAD_REMOVED) padRemoved(event.gdevice.which);
     return Input::SDL3::handleEvent(event);
+}
+
+void frame() {
+    // The PlaytestCapture action (the Pro Controller's Capture by default; F9/M above).
+    if (Input::takeActionPresses(Input::Action::PlaytestCapture) > 0) PlaytestCapture::request();
+    // Rumble: renewed each frame while the game's motor runs, stopped when it stops.
+    SDL_Gamepad* pad = gPadId != 0 ? SDL_GetGamepadFromID(gPadId) : nullptr;
+    if (pad == nullptr) return;
+    const bool want = Input::padRumble();
+    if (want) {
+        SDL_RumbleGamepad(pad, 0x5000, 0xB000, 100);
+    } else if (gRumbling) {
+        SDL_RumbleGamepad(pad, 0, 0, 0);
+    }
+    gRumbling = want;
 }
 
 Smoke::PhysicalInputs physicalInputs() {

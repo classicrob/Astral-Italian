@@ -189,7 +189,10 @@ public:
     void row(int index, RemapRow* out) override {
         HostAllocationScope scope;
         const Input::Bindings bindings = Input::bindings();
-        static const Input::Bindings kDefaults = Input::Bindings::defaults();
+        static const Input::Bindings kDefaults[] = {Input::Bindings::defaults(Input::PadLayout::Standard),
+                                                    Input::Bindings::defaults(Input::PadLayout::ProGalaxy),
+                                                    Input::Bindings::defaults(Input::PadLayout::ProOdyssey)};
+        const Input::Bindings& defaults = kDefaults[static_cast<int>(bindings.layout()) % 3];
         const Row& row = kRows[index];
         std::snprintf(out->label, sizeof(out->label), "%s%s%s", row.icon, row.icon[0] != '\0' ? " " : "", row.label);
         for (int slot = 0; slot < kRemapSlots; slot++) {
@@ -197,11 +200,11 @@ public:
             out->slots[slot][0] = '\0';
             out->conflict[slot] = false;
             if (Input::Remap::slotInput(bindings, row.action, slot, &input)) {
-                std::snprintf(out->slots[slot], sizeof(out->slots[slot]), "%s", name(input).c_str());
+                std::snprintf(out->slots[slot], sizeof(out->slots[slot]), "%s", name(input, bindings.layout()).c_str());
                 out->conflict[slot] = !Input::Remap::conflicts(bindings, row.action, input).empty();
             }
         }
-        out->changed = bindings.inputs(row.action) != kDefaults.inputs(row.action);
+        out->changed = bindings.inputs(row.action) != defaults.inputs(row.action);
     }
 
     void beginCapture() override { Input::beginCapture(); }
@@ -213,7 +216,7 @@ public:
         case Input::CaptureState::Captured: {
             HostAllocationScope scope;
             mCaptured = input;
-            std::snprintf(out, static_cast<size_t>(size), "%s", name(input).c_str());
+            std::snprintf(out, static_cast<size_t>(size), "%s", name(input, Input::padLayout()).c_str());
             return CaptureStatus::Captured;
         }
         case Input::CaptureState::Cancelled:
@@ -256,7 +259,7 @@ public:
     RemapOutcome resetAll() override {
         HostAllocationScope scope;
         Input::Bindings bindings = Input::bindings();
-        const Input::Bindings defaults = Input::Bindings::defaults();
+        const Input::Bindings defaults = Input::Bindings::defaults(bindings.layout());
         if (bindings.serialize() == defaults.serialize()) return RemapOutcome::Unchanged;
         return apply(defaults, Input::Remap::Result::Done);
     }
@@ -315,12 +318,13 @@ private:
         {Input::Action::PhotoMode, "", "Photo mode"},
         {Input::Action::PhotoShot, "", "Photo mode: save a shot"},
         {Input::Action::LevelEditor, "", "Level editor: Edit / Play (tap)"},
+        {Input::Action::PlaytestCapture, "", "Playtest capture (also F9 / M)"},
     };
     static_assert(sizeof(kRows) / sizeof(kRows[0]) == static_cast<size_t>(Input::Action::Count), "a row per action");
 
     // Controller buttons without the "Pad " prefix: the column says which device.
-    static std::string name(const Input::Binding& input) {
-        std::string text = Input::displayName(input);
+    static std::string name(const Input::Binding& input, Input::PadLayout layout) {
+        std::string text = Input::displayName(input, layout);
         if (input.device == Input::Binding::Device::Pad && text.rfind("Pad ", 0) == 0) text = text.substr(4);
         return text;
     }

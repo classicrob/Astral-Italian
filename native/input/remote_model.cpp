@@ -415,6 +415,74 @@ void RemoteModel::updatePadPointer() {
     mPadPointerY = std::clamp(mPadPointerY - y * length * speed, -1.0f, 1.0f);  // KPAD: y down
 }
 
+void RemoteModel::padPointerMove(float dx, float dy) {
+    if (mCoStar || !mFocused || !(dx == dx) || !(dy == dy)) return;
+    if (!mPadPointer) {
+        float posX = 0.0f;
+        float posY = 0.0f;
+        if (mMouseInWindow && pointerPosition(mViewport, mMouseX, mMouseY, &posX, &posY)) {
+            mPadPointerX = std::clamp(posX, -1.0f, 1.0f);
+            mPadPointerY = std::clamp(posY, -1.0f, 1.0f);
+        } else {
+            mPadPointerX = mPadPointerY = 0.0f;
+        }
+        mPadPointer = true;
+    }
+    mPadPointerX = std::clamp(mPadPointerX + dx, -1.0f, 1.0f);
+    mPadPointerY = std::clamp(mPadPointerY + dy, -1.0f, 1.0f);
+}
+
+bool PadShakeDetector::update(const float accel[3], double seconds, float thresholdG) {
+    constexpr float kGravity = 9.80665f;
+    const double dt = seconds - mLast;
+    if (!mHaveGravity || dt < 0.0 || dt > 0.5) {
+        // First sample or a gap: start tracking again, at rest.
+        std::copy(accel, accel + 3, mGravity);
+        mHaveGravity = true;
+        mLast = seconds;
+        if (mHeld) {
+            mHeld = false;
+            mReleased = seconds;
+        }
+        return mHeld;
+    }
+    mLast = seconds;
+    float change = 0.0f;
+    for (int i = 0; i < 3; ++i) change += (accel[i] - mGravity[i]) * (accel[i] - mGravity[i]);
+    change = std::sqrt(change) / kGravity;
+    if (!mHeld && change > thresholdG && (mReleased < 0.0 || seconds - mReleased >= 0.1)) {
+        mHeld = true;
+        mPressed = seconds;
+    } else if (mHeld && ((change < thresholdG * 0.5f && seconds - mPressed >= 0.05) || seconds - mPressed >= 0.4)) {
+        // Released when the motion settles, or after 0.4 s of continuous shaking (one
+        // flick per shake; the remote model spaces the spins).
+        mHeld = false;
+        mReleased = seconds;
+    }
+    // Gravity follows the controller's orientation (a 0.3 s time constant), not a shake.
+    const float follow = static_cast<float>(dt / (0.3 + dt)) * (mHeld ? 0.25f : 1.0f);
+    for (int i = 0; i < 3; ++i) mGravity[i] += (accel[i] - mGravity[i]) * follow;
+    return mHeld;
+}
+
+bool gyroPointerDelta(const float gyro[3], double seconds, double* lastSeconds, const PadOptions& options, float* dx,
+                      float* dy) {
+    const double dt = seconds - *lastSeconds;
+    const bool first = *lastSeconds <= 0.0;
+    *lastSeconds = seconds;
+    *dx = *dy = 0.0f;
+    if (first || !(dt > 0.0) || dt > 0.1) return false;
+    constexpr float kRest = 0.02f;  // rad/s: a controller lying still
+    const float pitch = std::fabs(gyro[0]) > kRest ? gyro[0] : 0.0f;
+    const float yaw = std::fabs(gyro[1]) > kRest ? gyro[1] : 0.0f;
+    if (pitch == 0.0f && yaw == 0.0f) return false;
+    const float scale = kGyroUnitsPerRadian * options.gyroSpeed * static_cast<float>(dt);
+    // Yaw left (+y) moves the pointer left; pitch up (+x) moves it up (KPAD y down).
+    *dx = -yaw * scale * (options.gyroInvertX ? -1.0f : 1.0f);
+    *dy = -pitch * scale * (options.gyroInvertY ? -1.0f : 1.0f);
+    return true;
+}
+
 void RemoteModel::mouseMoved(float x, float y) {
     mMouseX = x;
     mMouseY = y;

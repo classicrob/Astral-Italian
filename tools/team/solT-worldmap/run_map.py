@@ -15,6 +15,18 @@ if r.get('object_freshness_verified'):
   assert sha(v['object'])==v['object_sha256']
   if v['generated_sha256']:assert sha(v['generated'])==v['generated_sha256']
  for target,digest in r['logs'].items():assert sha(Path(r.get('log_paths',{}).get(target,str(O/('route-diag-'+target+'.log')))))==digest
+ if r.get('worker_package'):
+  assert sha(r['worker_package_manifest'])==r['worker_package_manifest_sha256']
+  pkg=r['worker_package'];assert sha(pkg['patched_cpp'])==pkg['patched_cpp_sha256']
+  for item in pkg.get('absolute_files',[]):assert sha(item['path'])==item['sha256']
+  assert r.get('focused_controls',{}).get('status')=='PASS','native diagnostic controls not passed'
+  assert sha(r['focused_controls']['receipt'])==r['focused_controls']['receipt_sha256']
+  capture=Path(pkg['runtime_output']);assert not capture.exists(),'exclusive worker output already exists'
+  capture.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
+  assert capture.parent.stat().st_mode&0o777==0o700,'worker capture parent permissions differ'
+  worker_dir=Path(next(iter(json.loads(f.read_text()).values()))['generated']).parent
+  for extra in pkg.get('adjacent_files',[]):assert sha(worker_dir/extra['name'])==extra['sha256']
+
 
 out=Path(tempfile.mkdtemp(prefix=args.case+'-',dir=P));seed=H/'MacioGalaxy2-gamedata/unlocked-save-copy-20261020';shutil.copytree(seed,out/'user');seedhash={str(p.relative_to(seed)):sha(p) for p in seed.rglob('*') if p.is_file()}
 for n in ['cache','tmp','captures/xfb','captures/surface']:(out/n).mkdir(mode=0o700,parents=True,exist_ok=True)

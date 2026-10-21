@@ -11,18 +11,19 @@ def state():
  owners=[x for x in lines if '[wm-owner]' in x]
  if not owners:raise SystemExit('no actual map owner observation')
  return owners[-1],lines
-for event in events:
+for index,event in enumerate(events):
  while time.time()-start<event['elapsed_from_app_start']:time.sleep(.1)
  if event['action']=='click':
   owner,lines=state();expected=[(1,0),(0,0),(0,1)][click]
   for key,value in zip(('galaxy-map','current'),expected):
    if not re.search(r'(?:^| )'+key+'='+str(value)+r'(?: |$)',owner):raise SystemExit('actual owner readiness differs: '+owner)
   if click==0:
+   assert any('[input-script] done' in line for line in lines),'common scripted prefix not complete; refuse matched click'
    n=[x for x in lines if '[wm-node]' in x and 'domain=1 node=0 ' in x][-1];m=re.search(r'clip=\(([^,]+),([^,]+),([^\)]+)\)',n);x,y,w=map(float,m.groups());assert abs(x/w)<.01 and abs(y/w)<.01,'Grand projection moved'
   click+=1
  cmd=[sys.executable,str(base/'host_action.py'),str(case),event['action'],*event['arguments']]
  subprocess.run(cmd,check=True)
- if event['action']=='click':
+ if event['action']=='click' and (index+1==len(events) or events[index+1]['elapsed_from_app_start']-(time.time()-start)>5):
   time.sleep(2)
   subprocess.run([sys.executable,str(base/'capture_wait.py'),str(case),'worker-click'+str(click)],check=False)
   subprocess.run([sys.executable,str(base/'host_action.py'),str(case),'activate'],check=False)

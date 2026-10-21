@@ -1,16 +1,21 @@
 {
-  "host_input.py": "a0004b11f7ef5abc27f50439791fd3f6ba7bbb40d6004576d3669a84d656ab40",
-  "host_action.py": "9ca80b48e61e64bd3b5c09cf5bace959b047d434a2f9d4e44acc0b37ddb3da94",
-  "host_capture.py": "cc76c7636ae7a6081a26d8d2bfd536bb39586371fd824aeaca7bbe81f5498549",
-  "capture_wait.py": "1e5fb87dc61d80d85f87b311dc7595524732997cd93a112061e4b5d5257ae4ab",
-  "permission_probe.py": "4faddd3b1b24207dd24285b8e2576ebbd1af53b9470253e5403bf4c430646eab",
-  "host_boot.py": "80ae85f2d1a5b0b386a74d142aacc7e3b0fe03862898cb347beccf3d65125ba5",
-  "timed_current_click.py": "f87a34431484f7a485097756a11ba2baf72f2198f83ab2c2f6174707ec2410c9",
-  "run_map.py": "7ab2934263cfb97dd622e035b3f8cc592082300573637374b3bfd15734507726",
-  "diag_build.py": "d5c975bd31d3d463c9eaafee03e7e5bf110239e395db939b54a424413858016e",
-  "ab_build.py": "652f4e7c2fbf5c1f219d26ccfbe36585da075b367dc4f2639291c547cdcb99ac",
-  "compact_diagnostic.py": "8ae67b273c6f5cf9c697af3beded9ad2e89a4faf0ec8e782a115eded04181b1a",
-  "typed_build.py": "7c03cbc3b661ca4e8be98c5b53732ad54a6ddc390c282dd9ee14a4faae78ced6",
-  "worker_build.py": "3ea6604c9ed7d445f9e72899b786df93c4af8cdaaf8f80096ce8a458d3a7bf70",
-  "replay_typed_postboot.py": "c8ea3305e341871ce3c32afcee544734f28c6fbc47700ca463893cc98b49463f"
+  "files": {
+    "ab_build.py": "652f4e7c2fbf5c1f219d26ccfbe36585da075b367dc4f2639291c547cdcb99ac",
+    "capture_wait.py": "1e5fb87dc61d80d85f87b311dc7595524732997cd93a112061e4b5d5257ae4ab",
+    "compact_diagnostic.py": "8ae67b273c6f5cf9c697af3beded9ad2e89a4faf0ec8e782a115eded04181b1a",
+    "diag_build.py": "d5c975bd31d3d463c9eaafee03e7e5bf110239e395db939b54a424413858016e",
+    "host_action.py": "9ca80b48e61e64bd3b5c09cf5bace959b047d434a2f9d4e44acc0b37ddb3da94",
+    "host_boot.py": "80ae85f2d1a5b0b386a74d142aacc7e3b0fe03862898cb347beccf3d65125ba5",
+    "host_capture.py": "cc76c7636ae7a6081a26d8d2bfd536bb39586371fd824aeaca7bbe81f5498549",
+    "host_input.py": "a0004b11f7ef5abc27f50439791fd3f6ba7bbb40d6004576d3669a84d656ab40",
+    "permission_probe.py": "4faddd3b1b24207dd24285b8e2576ebbd1af53b9470253e5403bf4c430646eab",
+    "replay_typed_postboot.py": "be34c2c04fa1913b1a7a78d95430dd7a772361659d81022ae33305d9dd0471b7",
+    "run_map.py": "22859403fad163b4ae8c854446c12f2eec8e83a7455b4682db5443c4442fba90",
+    "run_worker_controls.py": "1709caec5cb135963d3edfc83cbb92394028b61aa57899d5910c238ef11151cc",
+    "timed_current_click.py": "f87a34431484f7a485097756a11ba2baf72f2198f83ab2c2f6174707ec2410c9",
+    "typed_build.py": "7c03cbc3b661ca4e8be98c5b53732ad54a6ddc390c282dd9ee14a4faae78ced6",
+    "worker_build.py": "9ea91bbd680b481b211660e9e5e34394aa12ada6e8a59be9418d1a36dec6142e"
+  },
+  "validation": "Python parse only; actual native/runtimes in private receipts",
+  "private_game_data_included": false
 }

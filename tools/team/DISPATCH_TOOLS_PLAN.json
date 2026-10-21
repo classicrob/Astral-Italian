@@ -1,0 +1,364 @@
+{
+  "schema": 1,
+  "status": "DISABLED_BLOCKED_KNOWN_NINJA_NONCONSOLE_CHILD_GROUP_GAP",
+  "execution_enabled": false,
+  "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-tools-v1",
+  "labels": [
+    "python_context",
+    "ninja_version",
+    "git_version",
+    "compiler_rule",
+    "consumed_deps"
+  ],
+  "total_seconds": 60,
+  "work_seconds": 20,
+  "cleanup_seconds": 4,
+  "maximum_allocated_bytes": 67108864,
+  "minimum_free_bytes": 53687091200,
+  "completion_reserved_bytes": 65536,
+  "canonical_spec": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-proof-design/canonical-33e71-22d4-spec.json",
+    "sha256": "3b0975d48ca4354862814f13de004121fb16fbc1b90f87fb8e9f78a65155f8d9"
+  },
+  "official_unit": "src/Game/System/WorldMapResultTU13.o",
+  "official_tokens": [
+    "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+    "/Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe",
+    "/Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe",
+    "-nodefaults",
+    "-proc",
+    "gekko",
+    "-align",
+    "powerpc",
+    "-enum",
+    "int",
+    "-fp",
+    "hardware",
+    "-Cpp_exceptions",
+    "off",
+    "-O4,s",
+    "-inline",
+    "auto",
+    "-pragma",
+    "cats off",
+    "-pragma",
+    "warn_notinlined off",
+    "-maxerrors",
+    "1",
+    "-nosyspath",
+    "-RTTI",
+    "off",
+    "-str",
+    "reuse",
+    "-enc",
+    "SJIS",
+    "-sdata",
+    "4",
+    "-sdata2",
+    "4",
+    "-ipa",
+    "file",
+    "-sym",
+    "on",
+    "-i",
+    "include",
+    "-i",
+    "libs/JSystem/include",
+    "-i",
+    "libs/MSL_C++/include",
+    "-i",
+    "libs/MSL_C/include",
+    "-i",
+    "libs/MetroTRK/include",
+    "-i",
+    "libs/RVLFaceLib/include",
+    "-i",
+    "libs/RVL_SDK/include",
+    "-i",
+    "libs/Runtime/include",
+    "-i",
+    "libs/nw4r/include",
+    "-i",
+    "build/SB4E01/include",
+    "-DVERSION=0",
+    "-DRMGK01=0",
+    "-DRMGJ01=1",
+    "-DRMGE01=2",
+    "-DRMGP01=3",
+    "-lang=c++",
+    "-MMD",
+    "-c",
+    "src/Game/System/WorldMapResultTU13.cpp",
+    "-o",
+    "build/SB4E01/src/Game/System",
+    "&&",
+    "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "tools/transform_dep.py",
+    "build/SB4E01/src/Game/System/WorldMapResultTU13.d",
+    "build/SB4E01/src/Game/System/WorldMapResultTU13.d"
+  ],
+  "compile_tokens": [
+    "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+    "/Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe",
+    "/Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe",
+    "-nodefaults",
+    "-proc",
+    "gekko",
+    "-align",
+    "powerpc",
+    "-enum",
+    "int",
+    "-fp",
+    "hardware",
+    "-Cpp_exceptions",
+    "off",
+    "-O4,s",
+    "-inline",
+    "auto",
+    "-pragma",
+    "cats off",
+    "-pragma",
+    "warn_notinlined off",
+    "-maxerrors",
+    "1",
+    "-nosyspath",
+    "-RTTI",
+    "off",
+    "-str",
+    "reuse",
+    "-enc",
+    "SJIS",
+    "-sdata",
+    "4",
+    "-sdata2",
+    "4",
+    "-ipa",
+    "file",
+    "-sym",
+    "on",
+    "-i",
+    "include",
+    "-i",
+    "libs/JSystem/include",
+    "-i",
+    "libs/MSL_C++/include",
+    "-i",
+    "libs/MSL_C/include",
+    "-i",
+    "libs/MetroTRK/include",
+    "-i",
+    "libs/RVLFaceLib/include",
+    "-i",
+    "libs/RVL_SDK/include",
+    "-i",
+    "libs/Runtime/include",
+    "-i",
+    "libs/nw4r/include",
+    "-i",
+    "build/SB4E01/include",
+    "-DVERSION=0",
+    "-DRMGK01=0",
+    "-DRMGJ01=1",
+    "-DRMGE01=2",
+    "-DRMGP01=3",
+    "-lang=c++",
+    "-MMD",
+    "-c",
+    "src/Game/System/solPCompilerContext.cpp",
+    "-o",
+    "build/SB4E01/src/Game/System",
+    "&&",
+    "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "tools/transform_dep.py",
+    "build/SB4E01/src/Game/System/solPCompilerContext.d",
+    "build/SB4E01/src/Game/System/solPCompilerContext.d"
+  ],
+  "substitutions": [
+    {
+      "index": 66,
+      "before": "src/Game/System/WorldMapResultTU13.cpp",
+      "after": "src/Game/System/solPCompilerContext.cpp"
+    },
+    {
+      "index": 72,
+      "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.d",
+      "after": "build/SB4E01/src/Game/System/solPCompilerContext.d"
+    },
+    {
+      "index": 73,
+      "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.d",
+      "after": "build/SB4E01/src/Game/System/solPCompilerContext.d"
+    }
+  ],
+  "graph_output_substitution": {
+    "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.o",
+    "after": "build/SB4E01/src/Game/System/solPCompilerContext.o"
+  },
+  "graph_depfile_substitution": {
+    "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.d",
+    "after": "build/SB4E01/src/Game/System/solPCompilerContext.d"
+  },
+  "source_fixture_sha256": "7a8b013d4a67e06a8f2c17d4e6229d73cafb0518c5b1d147b1e373e537403079",
+  "graph_sha256": "bddc74b24c041756a150cf1ca532a8b2dc1e0e4dc47afd557e9e5afb0e81c14f",
+  "fixture_cwd": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-tools-v1/fixture",
+  "operator": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solL/dispatch-platform-operator-r2/operator.json",
+    "sha256": "9d06ff86f3da0eb540a0af5092a0c1490769bc007afeb3d0cc0c806ba5782a00"
+  },
+  "full_env_sha256": "2a7504b4427fb6b9d94985d954b6ea950c168a6ae23f271c09d175dc0a8fc0c8",
+  "base_env": {
+    "HOME": "/Users/roberthaisfield",
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TMPDIR": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-tools-v1/tmp",
+    "PYTHONCOERCECLOCALE": "0",
+    "PYTHONUTF8": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "python": {
+    "argv": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "resolved": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+  },
+  "tools": {
+    "wibo": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+      "sha256": "92f14bb8f9ddb6ee21d280561eff0026dcd3b93c409198a867e67c47b8628664"
+    },
+    "wibo_real": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo.real",
+      "sha256": "bfb53e13706506fef31c331a1b4312af84a5c71af451f0cafe42c5511b2acbe4"
+    },
+    "sjiswrap": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe",
+      "sha256": "01d50fa1148cfc3c3b16658c6c9b1c0d9f5324cde79ed6c09ef8353af9d63adf"
+    },
+    "compiler": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe",
+      "sha256": "88b1cb542abc17a99f1087cbfc1daa4b5da2ef5ea8204410b7d766ce08ec3e71"
+    },
+    "python_command": {
+      "path": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+      "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+    },
+    "ninja": {
+      "path": "/opt/homebrew/Cellar/ninja/1.13.2/bin/ninja",
+      "sha256": "a75ab11ced61c31783228dff8303975d62eb7e7761cbd12c537a95792a4fbc3f"
+    },
+    "git": {
+      "path": "/usr/bin/git",
+      "sha256": "3573dc149c40b6dbba10a2465334e080da2e5f598b2f14178074ab8ddd013307"
+    },
+    "env": {
+      "path": "/usr/bin/env",
+      "sha256": "afab19a06b009cb5beeb00b44e33dc974be0e8634f2690233565f03132cd1c6d"
+    },
+    "sh": {
+      "path": "/bin/sh",
+      "sha256": "e5dec01b6a80f735dd4098cf5e2c335f48440a641395e36453dbd7fd9bb1c19e"
+    },
+    "transform_dep": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/proof-wm-dispatch-source/tools/transform_dep.py",
+      "sha256": "622a2c65f9b10a836c8af3c36ff2db770f5739e1c0285f5f004b82867c965d9f"
+    }
+  },
+  "source_files": {
+    "dispatch_tools_profile.py": "7833af8b2507a5e319f6b947c2fd2e66cd0d57a5b7bce5a103cac083ba894c66",
+    "dispatch_tools_gate.py": "33fcde9db1fee44917b8a37ede90379bfb0354c3e9a2d21db09177deb65ecd34",
+    "dispatch_tools_chosen.py": "efa38a82a3ab5a14a500537821345dd8c9ada014715df718985cee4bb264b242",
+    "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea",
+    "dispatch_full_budget.py": "b392e6d9723ad64f0eae915c131274b6fac157089a974e94d9b0adb5b44ab6bc",
+    "dispatch_exec_gate.py": "d6967d647c2279d89a7b44b2891ec085da23d8a11a297f33e7c10cb6fb6a47cb",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "dispatch_preflight.py": "adfaae0ee51350fedb883937ae887f1f1d443f986b0c4b98f334894f266c1d72"
+  },
+  "independent_commands": {
+    "owner": "L",
+    "original_rows_sha256": "d41b350898e0ccb1f15fd59e0e24ef0d32b6eaf5ffbb471f7d19000bf97dacb0",
+    "producer_helpers": "not authority; independent exact row/substitution review required"
+  },
+  "scope": "Pythonactual9postexec; Ninja/Git version; ONE Ninja->shell->slotwrapper->sjiswrap->Wii1.0->transform synthetic rule; Ninjaactualconsumeddepsquery. No all8/all2426/escapeddescendants/nativepostexecenv/compilerUID authority",
+  "storage": "privateM1 root700/files600; rawrequests andbudget includeoperator9; sanitizedmirror/chatonly",
+  "limits": "onejob j1/nice19/nonblockingnative.lock/floor50; failfast/no retries; sampled bounds, not universal syscall quota; sharedwibo1..6locks outsideownedroot exist in pinned wrapper",
+  "excluded": "full827/shared8/importer unchanged; priorisolated12files andoldercases retained; no allocation or enabledcopy",
+  "commands": [
+    [
+      "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+      "-c",
+      "import os,json,hashlib,pathlib,sys\ndef checked(condition,message):\n    if not condition: raise RuntimeError(message)\nprint(\"SOLP_EXEC_IDENTITY\",os.getpid(),os.getpgrp(),os.getsid(0),os.getuid())\nraw=pathlib.Path(sys.argv[1]).read_bytes()\nchecked(len(raw)<=16384 and hashlib.sha256(raw).hexdigest()==sys.argv[2],\"postexec operator pin\")\nrecord=json.loads(raw); expected=record[\"env\"]; actual=dict(os.environ)\nchecked(set(expected)=={\"HOME\",\"PATH\",\"LANG\",\"LC_ALL\",\"TMPDIR\",\"PYTHONCOERCECLOCALE\",\"PYTHONUTF8\",\"PYTHONNOUSERSITE\",\"__CF_USER_TEXT_ENCODING\"} and actual==expected,\"postexec exact nine-key mismatch\")\ndigest=hashlib.sha256(json.dumps(actual,sort_keys=True,separators=(\",\",\":\"),ensure_ascii=True).encode()).hexdigest()\nchecked(digest==record[\"env_sha256\"],\"postexec full mapping pin\")\nprint(\"SOLP_POSTEXEC_ENV_SHA256\",digest)\n",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solL/dispatch-platform-operator-r2/operator.json",
+      "9d06ff86f3da0eb540a0af5092a0c1490769bc007afeb3d0cc0c806ba5782a00"
+    ],
+    [
+      "/opt/homebrew/Cellar/ninja/1.13.2/bin/ninja",
+      "--version"
+    ],
+    [
+      "/usr/bin/git",
+      "--version"
+    ],
+    [
+      "/opt/homebrew/Cellar/ninja/1.13.2/bin/ninja",
+      "-f",
+      "compiler.ninja",
+      "-j",
+      "1",
+      "-k",
+      "1",
+      "-d",
+      "keepdepfile",
+      "build/SB4E01/src/Game/System/solPCompilerContext.o"
+    ],
+    [
+      "/opt/homebrew/Cellar/ninja/1.13.2/bin/ninja",
+      "-f",
+      "compiler.ninja",
+      "-t",
+      "deps",
+      "build/SB4E01/src/Game/System/solPCompilerContext.o"
+    ]
+  ],
+  "future_argv": [
+    "nice",
+    "-n",
+    "19",
+    "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/dispatch_tools_chosen.py",
+    "--plan",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/DISPATCH_TOOLS_PLAN.json",
+    "--execute-plan-sha256",
+    "REQUIRES_SEPARATE_ENABLED_DELTA_AND_COMPONENT_ALLOCATION"
+  ],
+  "execution_lifecycle": {
+    "status": "BLOCKED",
+    "actual_runtime_enabled": false,
+    "reason": "Ninja nonconsole shell has distinctPGID; outergroup TERM/KILL/ESRCH cannot establish its cleanup",
+    "unconditional_parent_refusal": true,
+    "compiler_gate_refusal": true,
+    "source": {
+      "commit": "3441b633c2fe2c494e958780ba0f4227b1327634",
+      "anchors": {
+        "subprocess-posix.cc": [
+          "101-104",
+          "132-135",
+          "164-183",
+          "451-462"
+        ],
+        "real_command_runner.cc": [
+          "53-56",
+          "97-116"
+        ],
+        "build.cc": [
+          "628-631",
+          "770-779"
+        ],
+        "ninja.cc": [
+          "1392-1394"
+        ]
+      },
+      "qualification": "source/version correspondence only; no reproducible-build or runtime descendant qualification"
+    },
+    "normal_completion": "source waitpid/Finish is distinct from bounded interrupted cleanup; neither retrocertifies unrelated lanes"
+  }
+}

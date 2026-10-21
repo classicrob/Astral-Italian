@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "status": "SOURCE_ONLY_COMPILER_RUNTIME_BLOCKED",
+  "source_pins": {
+    "upstream_tag": "v1.13.2",
+    "resolved_commit": "3441b633c2fe2c494e958780ba0f4227b1327634",
+    "installed_binary": "/opt/homebrew/Cellar/ninja/1.13.2/bin/ninja",
+    "binary_sha256": "a75ab11ced61c31783228dff8303975d62eb7e7761cbd12c537a95792a4fbc3f",
+    "qualification": "upstream source+installeddeclaredversion binding only, not reproduciblebuild or actual descendant execution proof",
+    "files": {
+      "subprocess-posix.cc": {
+        "url": "https://raw.githubusercontent.com/ninja-build/ninja/3441b633c2fe2c494e958780ba0f4227b1327634/src/subprocess-posix.cc",
+        "sha256": "a9a4ea4280ac4e9e3d275dc4458c30baf0c067c8cd51b3c6d2034fe6eab88fdc",
+        "bytes": 13025
+      },
+      "ninja.cc": {
+        "url": "https://raw.githubusercontent.com/ninja-build/ninja/3441b633c2fe2c494e958780ba0f4227b1327634/src/ninja.cc",
+        "sha256": "9d671f4d44eb06a548bbd97adbc9af33e49d72ef2a9ee11fb6aa59f681ab02c8",
+        "bytes": 57229
+      },
+      "build.cc": {
+        "url": "https://raw.githubusercontent.com/ninja-build/ninja/3441b633c2fe2c494e958780ba0f4227b1327634/src/build.cc",
+        "sha256": "afd4ececbb6462ff55aa67414dca9963d069bed338e7855548e6527f427544ae",
+        "bytes": 33752
+      },
+      "build.h": {
+        "url": "https://raw.githubusercontent.com/ninja-build/ninja/3441b633c2fe2c494e958780ba0f4227b1327634/src/build.h",
+        "sha256": "6668e22969a2d8b601b5972361ed0385cc9bf4710d933158ee6c9cfc7d114902",
+        "bytes": 9524
+      },
+      "real_command_runner.cc": {
+        "url": "https://raw.githubusercontent.com/ninja-build/ninja/3441b633c2fe2c494e958780ba0f4227b1327634/src/real_command_runner.cc",
+        "sha256": "c097b908df41d182dcf72824fb6c5bbbc56be78c7ea82dbdd3ae5edcfd02f656",
+        "bytes": 3540
+      }
+    }
+  },
+  "anchors": {
+    "subprocess-posix.cc": [
+      "101-104",
+      "132-135",
+      "164-183",
+      "451-462"
+    ],
+    "real_command_runner.cc": [
+      "53-56",
+      "97-116"
+    ],
+    "build.cc": [
+      "628-631",
+      "770-779"
+    ],
+    "ninja.cc": [
+      "1392-1394"
+    ]
+  },
+  "source_manifest_sha256": "2393d00a5666b2146797d917d8e5b71bbfd34df55657c4c2ccc3cddfd1d54f29",
+  "runtime_observation": "NONE",
+  "boundary": "Nonconsole shell distinct process group; normal Finish is not bounded interruption cleanup. Current controller has no pre-work child-group registration/ack. No pool/flags/toolchain/kill changes.",
+  "plan_execution_enabled": false,
+  "full827": "unchanged/disabled",
+  "accepted_isolated_python": "6b7c unchanged"
+}

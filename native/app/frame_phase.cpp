@@ -2,6 +2,7 @@
 // Aurora or SDL headers here. Reads the same scene-controller values as the
 // smoke observation (smoke_game.cpp), on the game thread while it holds the CPU.
 
+#include <algorithm>
 #include <cstring>
 
 #include "Game/AudioLib/AudSystem.hpp"
@@ -30,7 +31,8 @@ FrameStats::Phase framePhase() {
     return FrameStats::Phase::Menu;
 }
 
-bool playerInPlay() {
+namespace {
+bool rawPlayerInPlay() {
     // The game's own "ready for play" test (launch_stage.cpp), on a stage that is
     // not the file select or a world map, with no pause menu or system talk.
     const GameSystem* pGameSystem = SingletonHolder< GameSystem >::get();
@@ -44,8 +46,32 @@ bool playerInPlay() {
         return false;
     }
     const GameScene* pScene = static_cast< const GameScene* >(pController->mScene);
-    return pScene->isExecAction() && pScene->permitsStartPauseMenu() && !MR::isDemoActive() && !MR::isSystemTalking() &&
-           !pauseMenuActive();
+    return pScene->isExecAction() && pScene->permitsStartPauseMenu() && !pScene->isExecScenarioStarter() &&
+           !MR::isDemoActive() && !MR::isSystemTalking() && !pauseMenuActive();
+}
+
+// The test can pass for a frame at a stage's start before the opening begins, so
+// play counts only once it has held for kPlayFrames consecutive frames (0.1 s).
+constexpr int kPlayFrames = 6;
+int sPlayFrames = 0;
+}  // namespace
+
+void updatePlayerInPlay() {
+    sPlayFrames = rawPlayerInPlay() ? std::min(sPlayFrames + 1, kPlayFrames) : 0;
+}
+
+bool playerInPlay() {
+    return sPlayFrames >= kPlayFrames;
+}
+
+bool scenarioIntroActive() {
+    const GameSystem* pGameSystem = SingletonHolder< GameSystem >::get();
+    const GameSystemSceneController* pController = pGameSystem != nullptr ? pGameSystem->mSceneController : nullptr;
+    if (pController == nullptr || pController->mScene == nullptr || !pController->isSceneInitializeState(SceneInitializeState_End) ||
+        std::strcmp(pController->mCurrSceneControlInfo.mScene, "Game") != 0) {
+        return false;
+    }
+    return static_cast< const GameScene* >(pController->mScene)->isExecScenarioStarter();
 }
 
 bool pauseMenuActive() {

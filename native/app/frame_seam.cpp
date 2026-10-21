@@ -855,6 +855,8 @@ extern "C" void petari_host_frame_mark(int mark) {
     }
 }
 
+extern "C" uint64_t petari_gx_pipeline_skipped_draws();
+
 extern "C" void petari_host_frame_seam(void) {
     LaunchStage::testReturnToShipFrame();
     const std::uint64_t entry = Telemetry::nowNs();
@@ -866,6 +868,7 @@ extern "C" void petari_host_frame_seam(void) {
         static bool wasInPlay = false;
         static unsigned long long seams = 0;
         ++seams;
+        Host::updatePlayerInPlay();
         const bool inPlay = Host::playerInPlay();
         if (inPlay) PetariNative::Input::playControlShown();
         if (inPlay && !wasInPlay) {
@@ -876,6 +879,15 @@ extern "C" void petari_host_frame_seam(void) {
                          static_cast<long long>(wall));
         }
         wasInPlay = inPlay;
+        // Draws skipped because their pipeline was still compiling (pop-in), per frame.
+        static std::uint64_t lastSkipped = petari_gx_pipeline_skipped_draws();
+        const std::uint64_t skipped = petari_gx_pipeline_skipped_draws();
+        if (skipped != lastSkipped) {
+            std::fprintf(stderr, "[pop-in] frame %llu skipped_draws %llu (%s)\n", seams,
+                         static_cast<unsigned long long>(skipped - lastSkipped),
+                         Host::scenarioIntroActive() ? "intro" : inPlay ? "play" : "menu/loading");
+            lastSkipped = skipped;
+        }
     }
     observeProgressFrame();
     // Game state is readable here, before the CPU is released.

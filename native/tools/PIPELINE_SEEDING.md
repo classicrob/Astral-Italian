@@ -893,3 +893,14 @@ Earlier provenance exclusions remain unchanged. See closure-7/REPORT.md and
 publish-result.json under build/pipeline-prep-measure for the completed-sweep
 coverage table and publication status. No additional live run measures this
 delta; the startup timing corpus remains frozen.
+
+## SMG2 pack v13 (2026-10-21)
+
+`native/data/pipeline-seeds.v13.xz` (82 KB): 63 `<Stage>.db` + `__global__.db`, 2,419 GX/clear configs, GX config
+version 13. It comes from seed v4 = the curated 5.2.1 seed (382), the configs of the user's real 5.2.1 cache (+185,
+the YosshiHomeGalaxy plant-pull hitch), and cold scripted `--stage` sweeps of 59 stages (+971, +881; scratch
+receipts all/A-receipt.md, A3-receipt.md, B-analyze-v2.md, seeddir-receipt.md, gate-receipt.md). Each stage
+database holds the rows that stage drew, ranked hot-first (`first_frame_used`). The CMake `ensure` step expands it
+into `build/pipeline-seeds` and bundles it as `Resources/pipeline-seeds`, stamped with the build identity. With the
+stage-prep gate wired at `GameSystemSceneController::startScene`, a stage waits (bounded) only for its own hot rows,
+170-191 instead of the 2,419 a single bundled db gated. A frozen build no longer needs `-DPETARI_PIPELINE_SEED`.

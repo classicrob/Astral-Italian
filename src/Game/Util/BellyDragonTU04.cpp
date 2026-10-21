@@ -1,4 +1,7 @@
 #include "Game/Util/BellyDragon.hpp"
+#ifdef GALAXY_NATIVE
+#include "Game/Camera/CameraTargetMtx.hpp"
+#endif
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
@@ -321,7 +324,11 @@ s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     BellyDragonUtil::setBodyPartMtx(pBody, MR::getJointMtx(pHost->mPod->mDecoration, (s32)0));
     pHost->mBaseMtx.set(MR::getJointMtx(pHost->mPod->mDecoration, (s32)0));
     MR::setPosition(pHost, pBody->mPosition);
+#ifdef GALAXY_NATIVE
+    pHost->mPod->mCameraTargetMtx->mMatrix.set(pHost->mPod->mHostMtx.mMtx);
+#else
     ((TPos3f*)((u8*)pHost->mPod->mCameraTargetMtx + 0x14))->set(pHost->mPod->mHostMtx.mMtx);
+#endif
     CameraTargetArg targetArg(pHost->mPod->mCameraTargetMtx);
     MR::startAnimCameraTargetOther(pHost, pHost->mPod->mCameraInfo, pName, targetArg, 0, false, lbl_807D7828);
     return 1;

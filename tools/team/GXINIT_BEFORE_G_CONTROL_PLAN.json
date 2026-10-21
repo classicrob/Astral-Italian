@@ -14,7 +14,7 @@
     "helper_cleanup_interval_seconds": 6
   },
   "sources": {
-    "gxinit_before_g_controls.py": "0c706c5c25e41d801622be8af90748ef811adf6e8f76b68e6325402e9d4653db",
+    "gxinit_before_g_controls.py": "a685e28ea40f59d94b4578e813afa97ff87a4fddfc9693f56fe8da354cb408d3",
     "gxinit_fixed_four.py": "22f66e9514154a0ed84b361d4131c69bd482add3a1a7f16b386301f83135ed26",
     "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea"
   },
@@ -28,8 +28,11 @@
       "symbol_recovery.py": "a01feac5c551832833c8c2db8fc211585bfd524bf7b22bc2ae2096540e652d18"
     }
   },
-  "operator": null,
-  "full_env_sha256": null,
+  "operator": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solL/gxinit-before-g-operator-r1/operator.json",
+    "sha256": "c219d2e4827e61690b2f0fe99ddcd3af8c4a05cec3fe70ba4875254dc7e251c7"
+  },
+  "full_env_sha256": "0c37269f97066b52893be54e2c689e6101863159f4ba04dd6580c516b7a6780c",
   "base_env": {
     "HOME": "/Users/roberthaisfield",
     "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",

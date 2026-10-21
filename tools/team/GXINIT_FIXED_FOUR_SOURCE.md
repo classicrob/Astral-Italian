@@ -108,3 +108,10 @@ Eleven no-process tests cover original six models plus before-G/unknown ordering
 once-only failures, G delivery uncertainty, separate errors/no batch retry and
 all control guards/pins/no-payload AST. No actual helper import, gate, process,
 compiler, control, lock or SDK/dependency read is performed by these tests.
+
+L subsequently supplied the separate control-only operator c219d2e4/full0c37269f.
+The disabled control source/plan now pin its path/rawSHA/full9digest exactly;
+private values were not read, copied or mirrored by P. Compiler/four-command
+operator remains NULL and no control mapping is reused for that scope. Child,
+case, batch, CLI and helper import refusal remain; runtime admission/validation
+needs reviewed source change, not a bool-only edit. Prior dd27 source is retained.

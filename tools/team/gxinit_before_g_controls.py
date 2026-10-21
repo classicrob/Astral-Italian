@@ -9,6 +9,8 @@ import gxinit_fixed_four as fixed
 
 ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1')
 CASES=('identity-eof','registered-parent-unwind')
+OPERATOR={'path':'/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solL/gxinit-before-g-operator-r1/operator.json','sha256':'c219d2e4827e61690b2f0fe99ddcd3af8c4a05cec3fe70ba4875254dc7e251c7'}
+FULL_ENV_SHA='0c37269f97066b52893be54e2c689e6101863159f4ba04dd6580c516b7a6780c'
 
 
 def refuse_controls():
@@ -21,7 +23,7 @@ def validate_disabled(plan):
     fixed.need(plan['root']==plan['cwd']==str(ROOT) and not ROOT.exists(),'fixed absent control root')
     fixed.need(plan['limits']=={'total_seconds':45,'maximum_allocated_bytes':67108864,'minimum_free_bytes':53687091200,'metadata_reserve_bytes':65536,'gate_alarm_seconds':10,'identity_seconds':8,'direct_wait_seconds':12,'helper_cleanup_interval_seconds':6},'fixed control limits')
     fixed.need(plan['cases']==list(CASES) and plan['scope']=='BEFORE_G_ONLY_NO_PAYLOAD_NO_COMPILER','no tool/payload scope')
-    fixed.need(plan['operator'] is None and plan['full_env_sha256'] is None,'fresh external operator required; no ambient fallback')
+    fixed.need(plan['operator']==OPERATOR and plan['full_env_sha256']==FULL_ENV_SHA,'independent exact control-only operator; no ambient fallback')
     fixed.need(set(plan['sources'])=={'gxinit_before_g_controls.py','gxinit_fixed_four.py','dispatch_platform_exact.py'},'exact three sources')
     for name,pin in plan['sources'].items():fixed.need(fixed.exact.sha(Path(__file__).with_name(name))==pin,'control source drift')
     fixed.need(set(plan['helper'])=={'path','sha256','module_closure'} and plan['helper']['sha256']==fixed.SUPERVISOR_SHA,'known helper')

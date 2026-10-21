@@ -14,6 +14,7 @@
 namespace petari::capture {
 ssize_t Io::write(int fd, const void* p, std::size_t n) { return ::write(fd, p, n); }
 ssize_t Io::readAt(int fd, void* p, std::size_t n, off_t at) { return ::pread(fd, p, n, at); }
+int Io::captureOwner(int fd, struct stat* owner) { return ::fstat(fd, owner); }
 int Io::flush(int fd) { return ::fsync(fd); }
 int Io::close(int fd) { return ::close(fd); }
 int Io::publish(const char* temp, const char* final) { return ::link(temp, final); }
@@ -99,6 +100,8 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
     std::string temp;
     struct stat owner{};
     bool published = false;
+    bool temporaryCreated = false;
+    bool ownerKnown = false;
     try {
         if (path.empty() || path.back() == '/' || path.find('\0') != std::string::npos)
             throw std::runtime_error("invalid final path");
@@ -107,8 +110,10 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
         std::vector<char> name(temp.begin(), temp.end()); name.push_back(0);
         fd = ::mkstemp(name.data());
         if (fd < 0) fail("mkstemp");
+        temporaryCreated = true;
         temp = name.data();
-        if (::fstat(fd, &owner)) fail("fstat owner");
+        if (io.captureOwner(fd, &owner)) fail("fstat owner");
+        ownerKnown = true;
         for (std::size_t at = 0; at < bytes.size();) {
             auto n = io.write(fd, bytes.data() + at, bytes.size() - at);
             if (n < 0 && errno == EINTR) continue;
@@ -140,15 +145,28 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
         std::string hex;
         for (auto c : digest) { hex.push_back("0123456789abcdef"[c >> 4]); hex.push_back("0123456789abcdef"[c & 15]); }
         if (::unlink(temp.c_str())) fail("remove partial link");
-        return {Receipt{path, hex, w, h, bytes.size()}, {}};
+        return {Receipt{path, hex, w, h, bytes.size()}, {}, {}, "complete"};
     } catch (const std::exception& e) {
         std::string error = e.what();
         if (fd >= 0 && io.close(fd)) error += std::string("; cleanup close: ") + std::strerror(errno);
-        if (!temp.empty() && owns(temp, owner) && ::unlink(temp.c_str()))
-            error += std::string("; cleanup partial: ") + std::strerror(errno);
+        std::string retained;
+        std::string cleanupStatus = temporaryCreated ? "cleanup-complete" : "no-partial-created";
+        if (temporaryCreated && !ownerKnown) {
+            retained = temp;
+            cleanupStatus = "retained-unverified-owner";
+            error += "; partial retained (ownership unverified): " + temp;
+        } else if (temporaryCreated && !owns(temp, owner)) {
+            retained = temp;
+            cleanupStatus = "retained-path-unverified";
+            error += "; partial path state/ownership unverified: " + temp;
+        } else if (temporaryCreated && ::unlink(temp.c_str())) {
+            retained = temp;
+            cleanupStatus = "retained-cleanup-error";
+            error += std::string("; cleanup partial: ") + std::strerror(errno) + "; path: " + temp;
+        }
         if (published && owns(path, owner) && ::unlink(path.c_str()))
             error += std::string("; cleanup final: ") + std::strerror(errno);
-        return {std::nullopt, error};
+        return {std::nullopt, error, retained, cleanupStatus};
     }
 }
 }

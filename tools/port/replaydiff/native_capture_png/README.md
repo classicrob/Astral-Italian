@@ -35,7 +35,7 @@ This is atomic visibility with checked file-data flush, not a claim of directory
 entry durability across power loss. No color profile or sRGB/gamma claim is added.
 The returned receipt is in memory; a future caller may serialize it after success.
 
-## Standalone controls
+## Historical standalone controls (a5641ae5/r3)
 
 Use the existing Python with Pillow and the system Apple toolchain, no packages:
 
@@ -43,12 +43,13 @@ Use the existing Python with Pillow and the system Apple toolchain, no packages:
 nice -n 19 /opt/homebrew/bin/python3.14 tools/port/replaydiff/native_capture_png/run_fixture.py --output ~/MacioGalaxy2-gamedata/sold/checked-png-FRESH
 ```
 
-The runner acquires the actual server POSIX `native.lock` nonblocking before any
-compiler/fixture process. It records compiler/SDK/source/executable hashes, uses
-one compiler driver, ASan+UBSan, and a 180-second compile/run bound. Private output
+The historical runner acquired the actual server POSIX `native.lock` nonblocking
+before compiler/fixture processes. It recorded compiler/SDK/source/executable
+hashes and used one compiler driver, ASan+UBSan, and a 180-second compile/run bound. Private output
 is checked below 256 MiB; successful disposable binaries/images are removed after
 independent Pillow CRC/decode/dimension/pixel and Python SHA256 checks. Receipt and
-logs remain. The process group is owned and reaped before explicit lock release.
+logs remain. The old runner recorded leader reaping and lock release; independent review found
+that this does not establish whole-group cleanup. See the reuse hold below.
 
 29 native controls cover multiblock and one-pixel encoding; short writes/reads;
 write/read/flush EINTR; ENOSPC/EIO; zero progress; truncation/corruption; flush,
@@ -58,3 +59,29 @@ Every failed case checks absence of a receipt and unexpected final/partial files
 collision controls verify sentinel content survives. Descriptor counts must match.
 Seven successful files receive independent PNG decode and hash checks. These are
 synthetic I/O and encoder controls, not GPU or visual-provider acceptance.
+
+## Reuse hold after independent source review
+
+The current runner is deliberately hard-gated FAIL_CLOSED before any output,
+lock or process creation, with no bypass. Historical a5641ae5/r3 proves bounded
+encoder/decode controls only, **not lifecycle qualification**. Its former runner
+had unmasked spawn-registration and signal gaps, no HUP handler, and substituted
+leader wait for whole-process-group absence. No claim of an actual r3 leak is made.
+P's shared OwnedJob reference at abc13027 is also unqualified (EPERM/actual PGID,
+UID and absence uncertainties); it must not be used as a substitute. Re-enabling
+requires L/PORT review of a shared lifecycle implementation plus a new allocation.
+The old command above now returns 2 without starting anything.
+
+The helper now exposes `Result.retainedPartialPath` and `cleanupStatus`. If the
+initial owner-fstat fails after mkstemp, it closes once, does not unlink a path of
+unqualified ownership, and returns the exact generated partial path with status
+`retained-unverified-owner` and no receipt. Other cleanup path uncertainties are
+reported explicitly. A narrow native fault control is prepared in `fixture.cpp`:
+the fixture independently captures its own inode before injecting fstat failure,
+checks retained-path reporting/no final publication, then removes only that
+fixture-proven inode. **This new native control has not run.**
+
+Prior coverage limits stay explicit: close faults were injected after real close;
+FD census was only 0..255. Metadata/open/unlink/hash/allocation failure branches and
+maximum-cap success were not qualified. Python-only gate controls test refusal,
+no spawn/lock/file creation and no force bypass; they do not test process cleanup.

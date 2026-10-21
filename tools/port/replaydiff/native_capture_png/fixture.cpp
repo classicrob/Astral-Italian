@@ -13,6 +13,14 @@ namespace fs = std::filesystem;
 struct Faults : Io {
     std::string mode;
     int writes = 0, reads = 0, flushes = 0, closes = 0;
+    struct stat fixtureOwnedInode{};
+    int captureOwner(int fd, struct stat* out) override {
+        if (mode == "owner-fstat") {
+            if (::fstat(fd, &fixtureOwnedInode)) return -1;
+            errno = EIO; return -1;
+        }
+        return Io::captureOwner(fd, out);
+    }
     explicit Faults(std::string m) : mode(std::move(m)) {}
     ssize_t write(int fd, const void* p, std::size_t n) override {
         ++writes;
@@ -114,6 +122,19 @@ int main(int argc, char** argv) {
             auto r = publishRgbPng((root / "one.png").string(), 1, 1, pixel, 3, io);
             require(r.receipt.has_value(), "one-pixel PNG failed");
             std::cout << "RECEIPT one.png " << r.receipt->sha256 << ' ' << r.receipt->bytes << '\n'; ++checks;
+        }
+        {
+            Faults io("owner-fstat");
+            auto r = publishRgbPng((root / "owner-fstat.png").string(), 640, 48, rgb.data(), rgb.size(), io);
+            require(!r.receipt && r.cleanupStatus == "retained-unverified-owner", "owner failure status missing");
+            require(!r.retainedPartialPath.empty() && r.error.find(r.retainedPartialPath) != std::string::npos, "retained path not reported");
+            struct stat retained{};
+            require(!::lstat(r.retainedPartialPath.c_str(), &retained), "unverified partial incorrectly removed");
+            require(retained.st_ino == io.fixtureOwnedInode.st_ino && retained.st_dev == io.fixtureOwnedInode.st_dev,
+                    "fixture does not own retained inode");
+            require(fs::path(r.retainedPartialPath).parent_path() == root, "retained path escaped fixture root");
+            require(!fs::exists(root / "owner-fstat.png"), "owner failure published final");
+            fs::remove(r.retainedPartialPath); ++checks;
         }
         checkNoPartial(root);
         require(openDescriptors() == descriptors, "descriptor leaked");

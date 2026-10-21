@@ -57,7 +57,7 @@ class DriverTests(unittest.TestCase):
 
     def test_full_only_rejects_incomplete_prefix_receipts(self):
         with tempfile.TemporaryDirectory() as directory:
-            home=Path(directory); root=home/'MacioGalaxy2-gamedata'; case=root/'prefix'; capture=case/'capture'; capture.mkdir(parents=True)
+            home=Path(directory).resolve(); root=home/'MacioGalaxy2-gamedata'; case=root/'prefix'; capture=case/'capture'; capture.mkdir(parents=True)
             result=case/'result.json'; result.write_text('{"status":"incomplete"}')
             (capture/'manifest.json').write_text('{}'); (root/'receipt.json').write_text('{}')
             with patch('pathlib.Path.home',return_value=home), self.assertRaisesRegex(RuntimeError,'not a finalized'):

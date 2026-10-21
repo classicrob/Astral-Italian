@@ -41,6 +41,14 @@ WorldMapResultStateGrandGalaxyEnd::~WorldMapResultStateGrandGalaxyEnd() {
 }
 
 namespace NrvWorldMapResultStateGrandGalaxyEnd {
-    WMR_NERVE_DEF(WorldMapResultStateGrandGalaxyEndZoomOut, WorldMapResultStateGrandGalaxyEnd, ZoomOut);
-    WMR_NERVE_DEF(WorldMapResultStateGrandGalaxyEndWait, WorldMapResultStateGrandGalaxyEnd, Wait);
+    WorldMapResultStateGrandGalaxyEndZoomOut WorldMapResultStateGrandGalaxyEndZoomOut::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateGrandGalaxyEndWait WorldMapResultStateGrandGalaxyEndWait::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStateGrandGalaxyEndWait::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(pSpine->mExecutor)->exeZoomOut();
+    }
+
+    void WorldMapResultStateGrandGalaxyEndZoomOut::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(pSpine->mExecutor)->exeWait();
+    }
 };  // namespace NrvWorldMapResultStateGrandGalaxyEnd

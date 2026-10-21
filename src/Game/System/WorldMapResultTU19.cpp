@@ -61,7 +61,19 @@ void WorldMapResultStatePointWarp::exeEnd() {
 }
 
 namespace NrvWorldMapResultStatePointWarp {
-    WMR_NERVE_DEF(WorldMapResultStatePointWarpStart, WorldMapResultStatePointWarp, End);
-    WMR_NERVE_DEF(WorldMapResultStatePointWarpWait, WorldMapResultStatePointWarp, Wait);
-    WMR_NERVE_DEF(WorldMapResultStatePointWarpEnd, WorldMapResultStatePointWarp, Start);
+    WorldMapResultStatePointWarpStart WorldMapResultStatePointWarpStart::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStatePointWarpWait WorldMapResultStatePointWarpWait::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStatePointWarpEnd WorldMapResultStatePointWarpEnd::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStatePointWarpEnd::execute(Spine* pSpine) const {
+        reinterpret_cast< WorldMapResultStatePointWarp* >(pSpine->mExecutor)->exeEnd();
+    }
+
+    void WorldMapResultStatePointWarpWait::execute(Spine* pSpine) const {
+        reinterpret_cast< WorldMapResultStatePointWarp* >(pSpine->mExecutor)->exeWait();
+    }
+
+    void WorldMapResultStatePointWarpStart::execute(Spine* pSpine) const {
+        reinterpret_cast< WorldMapResultStatePointWarp* >(pSpine->mExecutor)->exeStart();
+    }
 };  // namespace NrvWorldMapResultStatePointWarp

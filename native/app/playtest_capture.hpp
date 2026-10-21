@@ -5,7 +5,7 @@
 //   state.txt   the scene, stage, scenario, Mario's position, velocity, gravity and the camera at the press,
 //   screen.png  the next presented frame.
 // Inert unless PETARI_CAPTURE_DIR is set (native/play/play.sh sets ~/MacioGalaxy2-play/captures) and off in background
-// smoke runs. Each press logs "[capture] saved <folder>". PETARI_CAPTURE_TEST_FRAME=<n> presses it at recorder frame n.
+// smoke runs. Each press logs "[capture] saved <folder>". PETARI_CAPTURE_TEST_FRAME=<n>[,<n>...] presses it at those recorder frames.
 #include "route_record_writer.hpp"
 
 #include <atomic>

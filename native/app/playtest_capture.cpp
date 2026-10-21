@@ -124,12 +124,25 @@ bool enabled(bool background) {
 
 void frame(const RouteRecordFrame& row) {
     ++gFrame;
-    // Test hook: PETARI_CAPTURE_TEST_FRAME=<n> presses the capture key at recorder frame n (no window input needed).
-    static const unsigned long testFrame = [] {
+    // Test hook: PETARI_CAPTURE_TEST_FRAME=<n>[,<n>...] presses the capture key at those recorder frames (no window
+    // input needed; up to 16, ascending), e.g. to screenshot the frames around a stage's first playable frame.
+    static unsigned long testFrames[16] = {};
+    static int testCount = -1;
+    static int testNext = 0;
+    if (testCount < 0) {
+        testCount = 0;
         const char* value = std::getenv("PETARI_CAPTURE_TEST_FRAME");
-        return value != nullptr ? std::strtoul(value, nullptr, 10) : 0ul;
-    }();
-    if (testFrame != 0 && gFrame == testFrame) request();
+        for (char* end = nullptr; value != nullptr && *value != '\0' && testCount < 16; value = *end == ',' ? end + 1 : end) {
+            const unsigned long frame = std::strtoul(value, &end, 10);
+            if (end == value) break;
+            if (frame != 0) testFrames[testCount++] = frame;
+        }
+    }
+    while (testNext < testCount && testFrames[testNext] < gFrame) ++testNext;
+    if (testNext < testCount && gFrame == testFrames[testNext]) {
+        request();
+        ++testNext;
+    }
     Slot& slot = gRing[gNext];
     std::snprintf(slot.stage, sizeof(slot.stage), "%s", row.stage != nullptr ? row.stage : "");
     slot.row = row;

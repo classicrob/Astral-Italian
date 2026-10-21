@@ -11,6 +11,13 @@ HERE=Path(__file__).resolve().parent
 def hashbytes(data):return hashlib.sha256(data).hexdigest()
 def canonical(x):return json.dumps(x,sort_keys=True,separators=(',',':')).encode()
 def record(path):return {'path':str(path),'sha256':p.sha(path)}
+def check_execution_sources(tree,phase,contract):
+ expected=contract['execution_sources'][phase]
+ assert set(expected)=={'tools/transform_dep.py'},'exact phase execution-source set required'
+ for rel,h in expected.items():
+  path=tree/rel
+  assert path.is_file() and not path.is_symlink() and p.sha(path)==h,'phase execution-source drift '+phase+'/'+rel
+
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--repo',type=Path,required=True);ap.add_argument('--spec',type=Path,required=True);ap.add_argument('--qualified',type=Path,required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--dol',type=Path,required=True);ap.add_argument('--execute-contract-sha256');args=ap.parse_args()
  repo=args.repo.resolve();out=args.output.resolve();q=args.qualified.resolve();spec=json.loads(args.spec.read_bytes())
@@ -102,9 +109,11 @@ def main():
     if phase=='before':expected['after']=expected['before']
     assert actual==expected,'independent actual phase contract mismatch'
     captured_specs[phase]=actual
+    check_execution_sources(tree,phase,contract)
     run([sys.executable,str(graph)],cwd=tree,log=phase+'-graph.log')
     assert p.sha(tree/'build.ninja')==qualified['phases'][phase]['graph'],'actual graph differs from reviewed qualified graph'
     observed_graphs[phase]=p.sha(tree/'build.ninja')
+    check_execution_sources(tree,phase,contract)
     run(['ninja','-j',str(contract['jobs']),'-k','1','all_source'],cwd=tree,log=phase+'-build.log')
     paths={str(x.relative_to(tree/'build/SB4E01')):x for x in (tree/'build/SB4E01/src').rglob('*.o')}
     assert set(paths)==set(spec['units']) and len(paths)==2426
@@ -116,6 +125,7 @@ def main():
     headers_sha=deps_manifest(tree,phase+'-deps.txt',phase+'-dependency-hashes.json')
     run(['git','status','--porcelain','--untracked-files=no'],cwd=tree,log=phase+'-clean-status.txt')
     assert not (work/(phase+'-clean-status.txt')).read_bytes().strip()
+    check_execution_sources(tree,phase,contract)
     result['phases'][phase]={'exit_code':0,'clean':True,'objects':2426,'source':rev,'graph_sha256':p.sha(tree/'build.ninja'),'manifest_sha256':p.sha(work/(phase+'-objects.json')),'dependency_hashes_sha256':headers_sha}
    state('FULL_COMPARISON_OWNERSHIP_REFERENCE_CLOSURE')
    observed_bindings={}
@@ -168,6 +178,7 @@ def main():
     original_obj=p.sha(obj);perturbed_source=original+ctl['append'].encode();assert hashbytes(perturbed_source)==ctl['perturbed_source_sha256']
     try:
      source.write_bytes(perturbed_source);obj.unlink()
+     check_execution_sources(tree,'after',contract)
      run(['ninja','-j','1',str(obj.relative_to(tree))],cwd=tree,log=scope+'-perturb.log')
      shutil.copy2(obj,control/'perturbed.o');assert ob.compare(control/'original.o',control/'perturbed.o'),'source perturb must change semantics'
      changed=dict(summaries['after']);changed[unit]=ob.summarize(control/'perturbed.o')
@@ -175,7 +186,8 @@ def main():
      except ValueError:pass
      else:raise AssertionError('full semantic comparison accepted actual source perturb')
     finally:source.write_bytes(original)
-    obj.unlink();run(['ninja','-j','1',str(obj.relative_to(tree))],cwd=tree,log=scope+'-restore.log')
+    obj.unlink();check_execution_sources(tree,'after',contract)
+    run(['ninja','-j','1',str(obj.relative_to(tree))],cwd=tree,log=scope+'-restore.log')
     shutil.copy2(obj,control/'restored.o');assert p.sha(obj)==original_obj==p.sha(control/'original.o') and not ob.compare(control/'original.o',control/'restored.o')
     assert source.read_bytes()==original
     run(['ninja','-t','commands',str(obj.relative_to(tree))],cwd=tree,log=scope+'-control-command.txt')
@@ -186,6 +198,7 @@ def main():
    run(['git','status','--porcelain','--untracked-files=no'],cwd=trees['after'],log='after-restored-status.txt')
    assert not (work/'after-restored-status.txt').read_bytes().strip()
    for unit,h in json.loads((work/'after-objects.json').read_text()).items():assert p.sha(trees['after']/'build/SB4E01'/unit)==h,'postrestore object drift'
+   for phase,tree in trees.items():check_execution_sources(tree,phase,contract)
    for path,h in context.items():assert p.sha(path)==h,'tool drift '+path
    job.remaining();result['status']='FULL_PAIR_COMPONENTS_COMPLETE_IMPORT_PENDING';result['seconds']=time.monotonic()-job.start
    p.dump(work/'source-controls.json',result['controls']);state('COMPONENTS_COMPLETE_IMPORT_REVIEW_PENDING_NO_GENERIC_CERT')

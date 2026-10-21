@@ -1,0 +1,65 @@
+{
+  "context_sha256": "3c123262017672c6ddf256715645a64d23b613e20d6964a1d3f52c69688918e7",
+  "toolchain_sha256": "6a97301f6a64258b4e67991e1ef22c2a07abca3b7662478a702aec5b0ed9e828",
+  "actual_link_context_sha256": "829db9316284652a9ab1ed393b57c4937eb297b77fe1117a2e26bf8b2d9ab89c",
+  "inputs": [
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang++",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang-20",
+      "bytes": 176028112,
+      "sha256": "44698f93798de0177959f17941dbd889ecd802fabd88124dbe86f5cfd93bc1ba"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/ld64.lld",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/lld",
+      "bytes": 124470576,
+      "sha256": "1c4bf27ee01e45977f8275b7e58d5105bacaa8ae7375270285169c264e217fd9"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++.a",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++.a",
+      "bytes": 1609768,
+      "sha256": "6ab89e1af512728b54e2bfe4a8f2f62726491655113eacf9e3033f7d4b5acbf2"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++abi.a",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++abi.a",
+      "bytes": 448176,
+      "sha256": "d15ede44523fdf3bf63f3c200f1d6beafb9a10973da080c54f4ec98e4706f472"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libunwind.a",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libunwind.a",
+      "bytes": 92280,
+      "sha256": "24aebe5ba2e9c92bfc71a694241980dd9935fc45baddcdb66e768f077231337e"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1/__config_site",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1/__config_site",
+      "bytes": 1842,
+      "sha256": "868f5541abf63f98e42552e35dd41b7623781746300f9381d4e3f003d0c5e700"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/SDKSettings.json",
+      "resolved": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/SDKSettings.json",
+      "bytes": 6757,
+      "sha256": "b2d7151e8e85b9b1e68e59bd6655867ae05507e4aff7625541d41ebc5ab17387"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/SDKSettings.plist",
+      "resolved": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/SDKSettings.plist",
+      "bytes": 4924,
+      "sha256": "46d2069c8f4b48158297c6663a0501a748126bf7e14884663de01b68df55d50d"
+    }
+  ],
+  "source_component": "31a34d8dc1980055cfba2b1cab2c20e2eb2b4c12",
+  "game_brackets": "046e6a71afea72c219e1f5d454e606131f99a7e7",
+  "runner_status": "BLOCKED: no reviewed generic compiler API/context",
+  "limits": {
+    "wall_seconds": 120,
+    "parallel_jobs": 1,
+    "nice": 19,
+    "private_output_bytes": 268435456
+  },
+  "runtime_installation": "NOT_ALLOCATED"
+}

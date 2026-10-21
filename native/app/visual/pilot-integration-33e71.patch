@@ -1,0 +1,28 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -248,3 +248,7 @@
+         petari_home_menu petari_sdk_mem petari_rfl petari_vi_bridge petari_gx_sync_bridge)
+     target_link_options(petari PRIVATE -Wl,-dead_strip)
+ endif()
++
++add_subdirectory(native/app/visual)
++include(native/app/visual/PilotIntegration.cmake)
++petari_enable_draw_pilot_integration()
+--- a/native/app/frame_seam.cpp
++++ b/native/app/frame_seam.cpp
+@@ -26,6 +26,7 @@
+ extern "C" uint64_t petari_gx_pipeline_manifest_failure_count();
+ extern "C" void petari_gx_pipeline_report();
+ 
++#include "visual/draw_pilot_bridge.hpp"
+ #include "frame_stats.hpp"
+ #include "launch_stage.hpp"
+ #include "spike_profiler.hpp"
+@@ -793,6 +794,7 @@
+     LaunchStage::testReturnToShipFrame();
+     const std::uint64_t entry = Telemetry::nowNs();
+     PetariNative::HostAllocationScope host;
++    PetariNative::Visual::drawPilotHostPostEndFrame();
+     recordRouteFrame(SmokeBackground::enabled);
+     observeProgressFrame();
+     // Game state is readable here, before the CPU is released.

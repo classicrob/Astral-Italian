@@ -1,8 +1,10 @@
 # No-XFB pilot lifetime review packet
 
-Status: SOURCE PROPOSAL, independent review pending. Installation and execution
-remain BLOCKED. This packet changes no callback, reader, scheduler, input, VI or
-Game source. `lifetime_source_pins.json` binds the exact source used below.
+Status: SOURCE PROPOSAL, E preliminary review supports chronology but does not
+establish whole-reader no-handoff safety. Final independent report pending.
+Installation and execution remain BLOCKED. This packet changes no callback,
+reader, scheduler, input, VI or Game source. `lifetime_source_pins.json` binds
+the exact source used below.
 
 The component baseline is 39c71f41abcbbe44ba0151557974b6b4d70e9324,
 including the 3ceebf4a amendment. The separately owned GAME brackets remain
@@ -71,7 +73,12 @@ must remain separate from readiness.
 
 Cooperative handoffs occur under interruptMutex. giveCpu stores gCurrent with
 release ordering; waitForCpu waits with the same mutex and loads gCurrent with
-acquire ordering. OS interrupt enable/disable can deliver pending preemption.
+acquire ordering. This describes the normal waiting path. When giveCpu resumes
+a forceParked holder, it calls thread_resume and the holder resumes at its
+suspended instruction, without passing through waitForCpu there. Do not infer
+that the normal acquire/mutex path proves memory ordering on this resumed path.
+No blanket source-only publication proof or reachable race is asserted for it.
+OS interrupt enable/disable can deliver pending preemption.
 The reader/observer/bridge source contains no OS scheduling call, host-release
 call, wait, allocation or publication callback in its sampling traversal.
 HostAllocationScope in the seam is an allocation policy, NOT a CPU lock.
@@ -92,9 +99,12 @@ by naming the namespace. No compiled-frame refusal proof is supplied here, and
 no change to scheduling or interrupt masking is proposed to manufacture one.
 
 The accepted source contract must therefore state BOTH that the owner holds the
-baton and that no handoff can interrupt the live traversal. If E cannot establish
-that latter property at source scope, scene observations take the unavailable
-proposal below. Neither first-ready nor a sampled epoch repairs the gap.
+baton and that no handoff can interrupt the live traversal. E's preliminary
+review of038f33b5 confirms that the latter property is not established at
+source-only scope. All listed controller-derived observations therefore remain
+unavailable under the proposal below until an actual no-transfer or object-
+lifetime witness is reviewed. Neither first-ready nor a sampled epoch repairs
+the gap. This does not assert a reachable race in an existing executable.
 
 ## Registration, stop and storage retirement
 

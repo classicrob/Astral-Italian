@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "status": "SOURCE_REVIEW_PENDING_NO_INSTALLATION",
+  "status": "SOURCE_CHRONOLOGY_SUPPORTED_WHOLE_READER_SAFETY_UNESTABLISHED",
   "qualification": "BLOCKED",
   "qualified_frames": null,
   "document": {
     "path": "native/app/visual/NO-XFB-LIFETIME-CONTRACT.md",
-    "sha256": "8be0b04bd615a2e3c368abdb32fa0dbbc590c495d2499e3d8b118414050292fb"
+    "sha256": "9bf839fa5187a918c88e2d7e4ec8a3392b42b61a6516fb9f28a761ff84a5cbfd"
   },
   "files": [
     {
@@ -265,5 +265,13 @@
     "installer_changes": 0,
     "game_changes": 0,
     "scheduler_changes": 0
+  },
+  "preliminary_review": {
+    "reviewer_thread": "thr_ytqc72k9in",
+    "reviewed_commit": "038f33b57d372f033693743b86bbb4fc247c908e",
+    "final_report": "pending",
+    "normal_wait_vs_force_parked_resume": "distinct; no blanket acquire/mutex inference",
+    "controller_fields": "unavailable proposal; existing reader installation blocked",
+    "reachable_race_asserted": false
   }
 }

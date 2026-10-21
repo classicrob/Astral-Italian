@@ -67,7 +67,11 @@ Aurora/FIFO/worker/copy changes exist. The patch is proposed/unapplied.
 
 `PilotIntegration.cmake` adds the core dependency through the actual
 petari_game_objects target for both GX/headless normal consumers. It links the
-optional host adapter only through petari_app_host. Manual partial-link trap mode
+optional host adapter privately through petari_app_host. Typed sampler/host TUs
+consume native_config privately; only SDK-free bridge/core interfaces propagate.
+PRIVATE PETARI_DRAW_PILOT_HOST_SEAM enables the guarded include/call on the real
+app-host target only; direct-source seam tests retain their baseline body and
+need no Game provider or shim. The definition is absent from native_config. Manual partial-link trap mode
 fails configuration explicitly until its archive inventory is separately bound;
 there is no unresolved-symbol fallback or silent GX-only accessor. Native link
 checks in all supported final consumers remain UNRUN.
@@ -127,3 +131,20 @@ same-owner seam/input-stop integration, then one bounded metadata-only pilot.
 Real copy/clear/endGX/resource/selection/GPU/readback/viewport/PAR/color/publication
 and Dolphin host bridge evidence are still absent. No actual pixel comparison can
 be qualified from this packet or its compile-only outputs.
+
+Source correction after6c52 review: canonical argv now use -MD, not -MMD, so actual
+future depfiles include system headers; pre-inventory alone does not establish
+consumed dependencies. Native compile and installation remain blocked. The old
+r2 arrays/source mirror are frozen; use separately pinned r4 arrays for new review.
+
+M1 preparation now has exact r4 source bytes and fourteen arrays at team
+scratch-port/solD/draw-observer-m1-plan-r1/command-plan-r4.json
+SHA ddac833b086fe0cee342610f4b4a48c640b45e1a7345a399ba1458f778ae0414.
+Candidate-input inventory397305e1ed271187cec5080b02edf2164cd697e827a4d01b00cf421f9e10bc63
+contains21002 resolved source/tool/SDK/resource files and566102319 read bytes.
+It is candidate preflight evidence only; no actual consumed dependency or native
+execution is observed. Actual /usr/bin/otool pin is
+3573dc149c40b6dbba10a2465334e080da2e5f598b2f14178074ab8ddd013307.
+The immutable inventory/summary live under the approved M1 private source packet;
+no game assets or raw captures were copied. Every pin must be revalidated before
+any future execution, and actual -MD paths must all join the pre-inventory.

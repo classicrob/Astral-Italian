@@ -11,9 +11,11 @@ function(petari_enable_draw_pilot_integration)
         add_library(petari_draw_pilot_host STATIC
             "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/draw_pilot_host.cpp"
             "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/draw_snapshot_no_xfb.cpp")
-        target_link_libraries(petari_draw_pilot_host PUBLIC petari_native_config petari_draw_pilot_core)
+        target_link_libraries(petari_draw_pilot_host PRIVATE petari_native_config
+            PUBLIC petari_draw_pilot_core)
         if(TARGET petari_app_host)
-            target_link_libraries(petari_app_host PUBLIC petari_draw_pilot_host)
+            target_link_libraries(petari_app_host PRIVATE petari_draw_pilot_host)
+            target_compile_definitions(petari_app_host PRIVATE PETARI_DRAW_PILOT_HOST_SEAM=1)
         endif()
     endif()
 endfunction()

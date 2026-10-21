@@ -28,7 +28,7 @@ def plan(context,source,output):
         path=folder/name;need(path.is_file(),'missing frozen fixture source '+name);files[str(path)]=digest(path)
         flags=prefix if canonical else [compiler,'-nostdinc++','-isystem',str(Path(compiler).parent.parent/'include/c++/v1'),'-nostdlib++','-O3','-std=gnu++17','-arch','arm64','-isysroot',args[args.index('-isysroot')+1],'-mmacosx-version-min=15.0','-ffp-contract=off','-fno-strict-aliasing','-fno-rtti']
         stem=Path(name).stem;obj=output/(stem+'.o')
-        commands.append(dict(label='compile-'+stem,cwd=entry['directory'],argv=flags+([] if canonical else ['-UNDEBUG'])+['-MMD','-MF',str(output/(stem+'.d')),'-c',str(path),'-o',str(obj)]))
+        commands.append(dict(label='compile-'+stem,cwd=entry['directory'],argv=flags+([] if canonical else ['-UNDEBUG'])+['-MD','-MF',str(output/(stem+'.d')),'-c',str(path),'-o',str(obj)]))
         return str(obj)
     core=[compile_(name) for name in ('draw_observer.cpp','draw_observer_json.cpp')]
     controls=compile_('draw_observer_tests.cpp');bridge=compile_('draw_pilot_bridge.cpp');bridge_tests=compile_('draw_pilot_bridge_tests.cpp')

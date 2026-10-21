@@ -21,6 +21,8 @@ class PlanTests(unittest.TestCase):
         self.assertIn('BLOCKED',result['runner']);self.assertIsNone(result['qualified_frames'])
         self.assertFalse((self.root/'fresh-output').exists())
         for command in result['commands']:
+            if command['label'].startswith('compile-'):
+                self.assertIn('-MD',command['argv']);self.assertNotIn('-MMD',command['argv'])
             if command['label'].startswith('link-'):
                 self.assertEqual(sum(arg.endswith('.a') for arg in command['argv']),3);self.assertIn('-nostdlib++',command['argv'])
     def test_foreign_compiler_or_runtime_rejected(self):

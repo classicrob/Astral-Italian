@@ -24,7 +24,7 @@ void drawPilotHostPostEndFrame() noexcept {
     const auto* detached=activePilot;const auto stop=stopCallback;
     activePilot=nullptr;stopCallback=nullptr;
     stop(*detached);
-    // A returning stop callback must never let Game execute input617.
+    // A returning stop callback must never let Game execute interval617.
     std::abort();
 }
 } // namespace PetariNative::Visual

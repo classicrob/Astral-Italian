@@ -7,11 +7,99 @@
 #include "Game/Util/GamePadUtil.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <revolution/os.h>
+#ifdef GALAXY_NATIVE
+#include <petari/endian.hpp>
+#include <cstdint>
+#include <cstring>
+#endif
 
 
 namespace {
     const s32 cStatusSize = 0xF0;
     bool sIsReplayPrepared;
+
+#ifdef GALAXY_NATIVE
+    // .pad recordings contain Wii big-endian scalar representations. Keep the
+    // delta history in wire order; only the returned KPAD sample is host order.
+    template <typename T>
+    void readRecordedScalar(T& value, const u8* wire) {
+        static_assert(sizeof(T) == 4 || sizeof(T) == 8, "recorded scalar width");
+        if constexpr (sizeof(T) == 4) {
+            const std::uint32_t bits = PetariNative::readU32BE(wire);
+            std::memcpy(&value, &bits, sizeof(value));
+        } else {
+            const std::uint64_t bits = (std::uint64_t(PetariNative::readU32BE(wire)) << 32) |
+                                       PetariNative::readU32BE(wire + 4);
+            std::memcpy(&value, &bits, sizeof(value));
+        }
+    }
+
+    void readRecordedVec(Vec& value, const u8* wire) {
+        readRecordedScalar(value.x, wire);
+        readRecordedScalar(value.y, wire + 4);
+        readRecordedScalar(value.z, wire + 8);
+    }
+
+    void readRecordedVec2(Vec2& value, const u8* wire) {
+        readRecordedScalar(value.x, wire);
+        readRecordedScalar(value.y, wire + 4);
+    }
+
+    void decodeRecordedStatus(KPADStatus* status) {
+        static_assert(sizeof(KPADStatus) == cStatusSize, "Wii pad sample width");
+        u8 wire[cStatusSize];
+        std::memcpy(wire, status, sizeof(wire));
+        readRecordedScalar(status->hold, wire);
+        readRecordedScalar(status->trig, wire + 4);
+        readRecordedScalar(status->release, wire + 8);
+        readRecordedVec(status->acc, wire + 0x0C);
+        readRecordedScalar(status->acc_value, wire + 0x18);
+        readRecordedScalar(status->acc_speed, wire + 0x1C);
+        readRecordedVec2(status->pos, wire + 0x20);
+        readRecordedVec2(status->vec, wire + 0x28);
+        readRecordedScalar(status->speed, wire + 0x30);
+        readRecordedVec2(status->horizon, wire + 0x34);
+        readRecordedVec2(status->hori_vec, wire + 0x3C);
+        readRecordedScalar(status->hori_speed, wire + 0x44);
+        readRecordedScalar(status->dist, wire + 0x48);
+        readRecordedScalar(status->dist_vec, wire + 0x4C);
+        readRecordedScalar(status->dist_speed, wire + 0x50);
+        readRecordedVec2(status->acc_vertical, wire + 0x54);
+        // The four byte-sized status fields at 0x5C remain unchanged.
+        const u8 device = status->dev_type;
+        if (device == WPAD_DEV_FREESTYLE || device == WPAD_DEV_MPLS_FREESTYLE) {
+            readRecordedVec2(status->ex_status.fs.stick, wire + 0x60);
+            readRecordedVec(status->ex_status.fs.acc, wire + 0x68);
+            readRecordedScalar(status->ex_status.fs.acc_value, wire + 0x74);
+            readRecordedScalar(status->ex_status.fs.acc_speed, wire + 0x78);
+        } else if (device == WPAD_DEV_CLASSIC || device == WPAD_DEV_MPLS_CLASSIC ||
+                   (device >= 16 && device <= 19)) {
+            readRecordedScalar(status->ex_status.cl.hold, wire + 0x60);
+            readRecordedScalar(status->ex_status.cl.trig, wire + 0x64);
+            readRecordedScalar(status->ex_status.cl.release, wire + 0x68);
+            readRecordedVec2(status->ex_status.cl.lstick, wire + 0x6C);
+            readRecordedVec2(status->ex_status.cl.rstick, wire + 0x74);
+            readRecordedScalar(status->ex_status.cl.ltrigger, wire + 0x7C);
+            readRecordedScalar(status->ex_status.cl.rtrigger, wire + 0x80);
+        } else if (device == 3) { // Balance board, as in read_kpad_ext.
+            readRecordedScalar(status->ex_status.bl.tgc_weight, wire + 0x60);
+            for (u32 i = 0; i < 4; ++i) {
+                readRecordedScalar(status->ex_status.bl.weight[i], wire + 0x68 + i * 8);
+                readRecordedScalar(status->ex_status.bl.weight_ave[i], wire + 0x88 + i * 8);
+            }
+            readRecordedScalar(status->ex_status.bl.weight_err, wire + 0xA8);
+            readRecordedScalar(status->ex_status.bl.tgc_weight_err, wire + 0xAC);
+        }
+        // Inactive extension bytes stay exactly as reconstructed from the file.
+        readRecordedVec(status->mpls.angularVelocity, wire + 0xB0);
+        readRecordedVec(status->mpls.angle, wire + 0xBC);
+        readRecordedVec(status->mpls.direction.X, wire + 0xC8);
+        readRecordedVec(status->mpls.direction.Y, wire + 0xD4);
+        readRecordedVec(status->mpls.direction.Z, wire + 0xE0);
+        readRecordedScalar(status->unk_EC, wire + 0xEC);
+    }
+#endif
+
 
     PadRecorder* getPadRec() NO_INLINE {
         return SingletonHolder<GameSystem>::get()->mObjHolder->mPadRecorder;
@@ -112,7 +200,11 @@ s32 PadRecorder::replayFrame(s32 channel, KPADStatus* pStatus) {
     u32 packetNo;
     u32 size;
     s32 statusNum;
+#ifdef GALAXY_NATIVE
+    parsePacketHeader(&packetNo, &size, &statusNum, PetariNative::readU32BE(mPacketBuffer));
+#else
     parsePacketHeader(&packetNo, &size, &statusNum, *reinterpret_cast< u32* >(mPacketBuffer));
+#endif
 
     if (packetNo != static_cast< u8 >(mPacketNo)) {
         stopReplay();
@@ -156,6 +248,9 @@ const u8* PadRecorder::decompress(KPADStatus* pOut, const u8* pMask, KPADStatus*
         }
     }
 
+#ifdef GALAXY_NATIVE
+    decodeRecordedStatus(pOut);
+#endif
     return pData;
 }
 
@@ -191,7 +286,17 @@ bool PadRecorder::readHeader() {
 
     DCInvalidateRange(buffer, sizeof(buffer));
     mReader->read(buffer, sizeof(PadRecordHeader));
+#ifdef GALAXY_NATIVE
+    static_assert(sizeof(PadRecordHeader) == 0x40, "Wii pad header width");
+    std::memcpy(mHeader, buffer, sizeof(PadRecordHeader));
+    readRecordedScalar(mHeader->mHeaderSize, buffer);
+    readRecordedScalar(mHeader->_4, buffer + 4);
+    readRecordedScalar(mHeader->_8, buffer + 8);
+    readRecordedScalar(mHeader->_10, buffer + 0x10);
+    readRecordedScalar(mHeader->_14, buffer + 0x14);
+#else
     *mHeader = *reinterpret_cast< PadRecordHeader* >(buffer);
+#endif
 
     if (mHeader->mHeaderSize != sizeof(PadRecordHeader)) {
         return false;
@@ -203,7 +308,12 @@ bool PadRecorder::readHeader() {
 void PadRecorder::readUserFile() {
     DCInvalidateRange(mPacketBuffer, 0x20);
     mReader->read(mPacketBuffer, 4);
+#ifdef GALAXY_NATIVE
+    s32 size;
+    readRecordedScalar(size, mPacketBuffer);
+#else
     s32 size = *reinterpret_cast< s32* >(mPacketBuffer);
+#endif
 
     if (GameSequenceFunction::isPadMode()) {
         mReader->mPos += size;

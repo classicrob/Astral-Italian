@@ -252,6 +252,7 @@ class ProvenanceControls(unittest.TestCase):
         trust = {'spec_bytes': d.canonical({'units': dict.fromkeys(str(i) for i in range(2426))}),
                  'tip': 'b'*40, 'host': 'test', 'plan_pins': {}, 'contract_sha256': '0'*64,
                  'verifier_tools': d.verifier_tools(), 'command_tokens': {},
+                 'terminal_publication_sha256':'e'*64,
                  'phase_roots': {'before':'/owned/execution/before','after':'/owned/execution/after'}}
         with self.assertRaises(ValueError):
             d.verify(b'{}', Path('.'), trust, None, b'not-original-dol')

@@ -134,3 +134,45 @@ both actual source perturb/restore controls, 26 ELF and eight config negatives,
 and the separately transported TU14 control archive. The caller's fixed tool
 environment, final monitor, full package and independent import remain subject
 to their own source review, actual qualification and explicit allocation.
+
+## Final monitors and detached publication (source-only extension)
+
+Both `receipt.monitors.execution` and `.packaging` are mandatory. Each contains
+confined, hash-bound `budget`, `cleanup` and `completion` artifact records.
+`dispatch_monitors.py` checks successful **final** teardown reports, exact byte
+hash joins, a shared original baseline/root, finite monotonic elapsed times,
+reviewed stage limits and the reserved floor/growth policy. The execution
+completion binds the canonical actual-result hash; packaging binds both final
+encoded archive hashes. Empty samples, failed/uncertain cleanup, EPERM failure,
+rebased packaging budgets, stale or reused artifacts and inconsistent reports
+reject. This validates reported sampled observations; it grants no filesystem
+quota or syscall latency guarantee and cannot substitute for the reviewed
+chosen-context lifecycle qualification.
+
+The reviewed caller contract must add `packaging_seconds: 600` and
+`terminal_metadata: {maximum_allocated_bytes: 16777216, reserved_bytes: 16777216,
+scope: "monitor-copy-and-terminal-receipt-transfer-only"}`. Both monitored stages
+reserve those bytes above the 50 GiB floor and below the 4 GiB growth ceiling.
+They retain the 0.25 s sampling interval, finite 200,000-entry/2 s scan policy,
+2,400 s execution work limit and four-second cleanup grace. The exact completion
+fields and rejecting controls are defined by `dispatch_monitors.py` and its
+asset-free tests. Unknown completion fields reject.
+
+The terminal receipt cannot hash its own final monitor. Instead the operator
+trust dictionary independently pins `terminal_publication_sha256`, and the
+importer reads `terminal-publication.json` from the import root. This detached
+sidecar binds final raw receipt/transfer hashes, the six final monitor files,
+exact eight-file terminal metadata inventory, original baseline and host
+allocation/free-space observations. It excludes its own hash and reserves
+64 KiB for its final publication. The producer must enforce that reserve when
+publishing; the importer checks the supplied bytes against the external pin,
+metadata hashes/lengths, original-root growth/floor and the declared measured
+metadata-plus-final-file reserve. Receiving-filesystem allocation is not used as
+a substitute for the original host observation. The actual terminal publisher
+and chosen-context caller still need independent review and actual qualification.
+The operator context in the final import record binds the detached sidecar pin
+alongside command tokens and exact phase roots.
+
+No live full caller, actual full package, production import/hook or landing is
+qualified by this extension. Missing final reports or disabled caller contracts
+remain rejection conditions; there is no compatibility bypass for older drafts.

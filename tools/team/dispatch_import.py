@@ -29,7 +29,7 @@ DELTA = {'schema', 'plans', 'original_ownership', 'strict_remainder',
          'actual_negative_controls'}
 RECEIPT = {'schema', 'type', 'status', 'host', 'spec', 'restored_trees', 'clean',
            'builds', 'archive', 'files', 'certificate', 'provenance', 'control',
-           'dispatch_delta'}
+           'dispatch_delta', 'monitors'}
 POSITIONS = {
     'TU13': ((0x370, 8, 0x390, 8), (0x390, 8, 0x370, 8)),
     'TU14': ((0x240, 12, 0x230, 8), (0x230, 8, 0x240, 12)),
@@ -373,7 +373,7 @@ def final_hook(record, pinned_record_sha256, current_spec, current_tools, curren
 def verifier_tools():
     root = Path(__file__).resolve().parent
     names = ('dispatch_import.py', 'dispatchproof.py', 'dispatchownership.py',
-             'dispatch-tu13-ownership-v1.json', 'objsame.py', 'dispatch_commands.py')
+             'dispatch-tu13-ownership-v1.json', 'objsame.py', 'dispatch_commands.py', 'dispatch_monitors.py')
     return {n: sha((root/n).read_bytes()) for n in names}
 
 
@@ -448,7 +448,7 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
     receipt-derived expectations are forbidden. Missing qualification rejects.
     """
     exact(trust, {'spec_bytes', 'tip', 'host', 'plan_pins', 'contract_sha256',
-                  'verifier_tools', 'command_tokens', 'phase_roots'}, 'operator trust contract fields')
+                  'verifier_tools', 'command_tokens', 'phase_roots', 'terminal_publication_sha256'}, 'operator trust contract fields')
     need(trust['verifier_tools'] == verifier_tools(), 'independent verifier tool pin drift')
     exact(trust['command_tokens'], {'before', 'after', 'TU13', 'TU14'}, 'independent command qualification missing')
     need(all(trust['command_tokens'].values()), 'empty independent command expectation')
@@ -498,6 +498,31 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
     cleanup = recipe['owned_process_cleanup']
     need(cleanup['all_owned_groups_absent'] is True and not cleanup['remaining_pgids']
          and not cleanup['failures'] and cleanup['execution_error'] is None, 'incomplete owned cleanup')
+    need(contract.get('execution_enabled') is True, 'disabled execution contract')
+    from dispatch_monitors import check as check_monitors
+    exact(r['monitors'], {'execution', 'packaging'}, 'successful final monitors required')
+    monitor_bytes = {}
+    for stage, records in r['monitors'].items():
+        exact(records, {'budget', 'cleanup', 'completion'}, 'final monitor artifact fields')
+        monitor_bytes[stage] = {name: artifact(root, rec) for name, rec in records.items()}
+    # The secondary archive record is still fully verified/extracted below.
+    monitor_secondary = metadata(root, delta['secondary_control'])
+    need(json_bytes(monitor_bytes['execution']['cleanup']) == cleanup,
+         'recipe/final monitor cleanup disagreement')
+    monitor_result = check_monitors(r['monitors'], monitor_bytes, contract, trust['contract_sha256'],
+                   trust['phase_roots'], {
+                       'execution': {'actual_result_sha256': sha(canonical(result))},
+                       'packaging': {'primary_encoded_sha256': r['archive']['encoded_sha256'],
+                                     'secondary_encoded_sha256': monitor_secondary['archive']['encoded_sha256']}})
+    publication_bytes = artifact(root, {'path': 'terminal-publication.json',
+                                         'sha256': trust['terminal_publication_sha256']})
+    publication = json_bytes(publication_bytes)
+    publication_files = {name: artifact(root, {'path': name, 'sha256': rec['sha256']})
+                         for name, rec in publication['files'].items()}
+    from dispatch_monitors import terminal_check
+    terminal_check(publication_bytes, trust['terminal_publication_sha256'], receipt_bytes,
+                   r, contract, monitor_result['root'], monitor_result['initial_allocated_bytes'],
+                   publication_files, monitor_secondary['archive'])
     cert = metadata(root, r['certificate'])
     certificate_check(cert, r, trust['plan_pins'], sha(trust['spec_bytes']))
     exact(r['control'], {'source', 'object', 'source_sha256', 'restored_source_sha256'}, 'primary control fields')
@@ -651,4 +676,5 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
             'contract_sha256': trust['contract_sha256'], 'certificate_sha256': r['certificate']['sha256'],
             'verifier_tools': trust['verifier_tools'], 'candidate_tip': trust['tip'],
             'operator_context_sha256': sha(canonical({'command_tokens': trust['command_tokens'],
-                                                     'phase_roots': trust['phase_roots']}))}
+                                                     'phase_roots': trust['phase_roots'],
+                                                     'terminal_publication_sha256': trust['terminal_publication_sha256']}))}

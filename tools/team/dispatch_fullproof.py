@@ -5,6 +5,7 @@ from pathlib import Path
 import dispatch_preflight as p
 import dispatch_fullcheck as check
 import dispatch_full_budget as budget
+import dispatch_monitor as monitor
 HERE=Path(__file__).resolve().parent
 
 def hashbytes(data):return hashlib.sha256(data).hexdigest()
@@ -13,6 +14,9 @@ def record(path):return {'path':str(path),'sha256':p.sha(path)}
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--repo',type=Path,required=True);ap.add_argument('--spec',type=Path,required=True);ap.add_argument('--qualified',type=Path,required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--dol',type=Path,required=True);ap.add_argument('--execute-contract-sha256');args=ap.parse_args()
  repo=args.repo.resolve();out=args.output.resolve();q=args.qualified.resolve();spec=json.loads(args.spec.read_bytes())
+ assert out==budget.FULL_ROOT,'exact reviewed full root required'
+ launch=budget.launch_context(out)
+ os.umask(0o077)
  assert p.sha(args.spec)==p.SPEC and spec['base']==p.BASE and len(spec['units'])==2426
  assert p.git(repo,'rev-parse','HEAD').decode().strip()==p.TIP and p.git(repo,'rev-parse','main').decode().strip()==p.BASE
  assert not p.git(repo,'status','--porcelain','--untracked-files=no')
@@ -20,8 +24,8 @@ def main():
  assert qualified['status']=='THREE_TU_COMPONENT_QUALIFICATION_ONLY_NOT_FULL_PROOF'
  assert p.sha(q/'execution/result.json')=='2ff50b4ad70f9f837d6420365a60387d24fee5bb0a49315d1ce37cc1a53182ed'
  context=dict(qplan['input_files'])
- for name in ('dispatch_fullproof.py','dispatch_fullcheck.py','dispatch_preflight.py','dispatch_package.py','dispatch_artifacts.py','dispatch_budget.py','dispatch_full_budget.py'):context[str(HERE/name)]=p.sha(HERE/name)
- for exe in (Path(sys.executable).resolve(),Path(shutil.which('ninja')).resolve()):context[str(exe)]=p.sha(exe)
+ for name in ('dispatch_fullproof.py','dispatch_fullcheck.py','dispatch_preflight.py','dispatch_package.py','dispatch_artifacts.py','dispatch_budget.py','dispatch_full_budget.py','dispatch_exec_gate.py','dispatch_monitor.py'):context[str(HERE/name)]=p.sha(HERE/name)
+ for exe in [Path(sys.executable),Path('/usr/bin/env'),Path('/bin/sh'),*[Path(row['path']) for row in launch['targets'].values()]]:context[str(exe)]=p.sha(exe)
  for path,h in context.items():assert p.sha(path)==h,'tool/context drift '+path
  decoder={name:p.git(repo,'show',p.DECODER+':tools/team/'+name+'.py') for name in ('dispatchproof','dispatchownership','objsame')}
  # Source-only preparation reads already qualified decoder and ELF summaries.
@@ -44,7 +48,7 @@ def main():
  for scope,ctl in perturb.items():
   src=p.git(repo,'show',p.TIP+':'+ctl['source']);assert ctl['append'].split('()')[0].encode() not in src
   ctl['source_sha256']=hashbytes(src);ctl['perturbed_source_sha256']=hashbytes(src+ctl['append'].encode())
- contract={'schema':1,'type':'DISPATCH_FULL_COMPONENT_RECIPE_NOT_IMPORT_APPROVAL','execution_enabled':False,'blocking_gate':'Accepted v7 disposable component only; generic compiler launch gate UNIMPLEMENTED/UNQUALIFIED, full caller/package/import review pending','accepted_disposable_component':{'source':'7c9ab833','plan_sha256':'566fe968de003b6a1df0b05c51e0d3052500a502eedd750610d536996abdd160','release_receipt_sha256':'e5f81c3bf24f96670ccfe18b7c350d118eea16aaf499edebee3bd3c6c1d8abf9','tests':20,'actual_cases':6,'scope':'disposable only; no generic/full qualification'},'generic_ownership_status':budget.GENERIC_OWNERSHIP_STATUS,'scan_limits':{'entries':budget.SCAN_ENTRIES,'seconds':budget.SCAN_SECONDS,'semantics':'sampled filesystem syscall latency, finite entry/time checks; not hard real-time quota'},'required_live_budget':{'minimum_free_bytes':50*1024**3,'maximum_owned_growth_bytes':4*1024**3,'sample_interval_seconds':0.25,'scope':'child waits, Python controls and packaging; retain original baseline across packaging'},'before':p.BASE,'after':p.TIP,'canonical_spec_sha256':p.SPEC,'plans':pins,'qualified_result_sha256':p.sha(q/'execution/result.json'),'qualified_objects':{phase:qualified['phases'][phase]['objects'] for phase in ('before','after')},'context':context,'decoder_commit':p.DECODER,'decoder_files':{n:hashbytes(data) for n,data in decoder.items()},'real_ELF_controls_per_scope':13,'config_controls':8,'source_controls':perturb,'work_seconds':2400,'cleanup_grace_seconds':4,'jobs':4,'primary_archive_members':4855,'secondary_archive_members':3,'control_member_paths':{'TU13':['control/'+n+'.o' for n in ('original','perturbed','restored')],'TU14':['control-tu14/'+n+'.o' for n in ('original','perturbed','restored')]},'import_status':'REQUIRES_L_SEPARATE_REVIEWED_ADAPTER_AND_PORT_ALLOCATION','certificate_type':'DISPATCH_PROOF_V1'}
+ contract={'schema':1,'type':'DISPATCH_FULL_COMPONENT_RECIPE_NOT_IMPORT_APPROVAL','execution_enabled':False,'blocking_gate':'Accepted v7 component; generic per-launch gate SOURCE IMPLEMENTED but actual chosen context UNQUALIFIED; caller/package/import review and allocation pending','accepted_disposable_component':{'source':'7c9ab833','plan_sha256':'566fe968de003b6a1df0b05c51e0d3052500a502eedd750610d536996abdd160','release_receipt_sha256':'e5f81c3bf24f96670ccfe18b7c350d118eea16aaf499edebee3bd3c6c1d8abf9','tests':20,'actual_cases':6,'scope':'disposable only; no generic/full qualification'},'generic_ownership_status':budget.GENERIC_OWNERSHIP_STATUS,'launch_context':launch,'phase_roots':{phase:str(out/'execution'/phase) for phase in ('before','after')},'execution_sources':{phase:{'tools/transform_dep.py':hashbytes(p.git(repo,'show',rev+':tools/transform_dep.py'))} for phase,rev in [('before',p.BASE),('after',p.TIP)]},'packaging_seconds':600,'terminal_metadata':{'maximum_allocated_bytes':monitor.METADATA_CAP,'reserved_bytes':monitor.METADATA_CAP,'scope':'monitor-copy-and-terminal-receipt-transfer-only'},'scan_limits':{'entries':budget.SCAN_ENTRIES,'seconds':budget.SCAN_SECONDS,'semantics':'sampled filesystem syscall latency, finite entry/time checks; not hard real-time quota'},'required_live_budget':{'minimum_free_bytes':50*1024**3,'maximum_owned_growth_bytes':4*1024**3,'sample_interval_seconds':0.25,'scope':'child waits, Python controls and packaging; retain original baseline across packaging'},'before':p.BASE,'after':p.TIP,'canonical_spec_sha256':p.SPEC,'plans':pins,'qualified_result_sha256':p.sha(q/'execution/result.json'),'qualified_objects':{phase:qualified['phases'][phase]['objects'] for phase in ('before','after')},'context':context,'decoder_commit':p.DECODER,'decoder_files':{n:hashbytes(data) for n,data in decoder.items()},'real_ELF_controls_per_scope':13,'config_controls':8,'source_controls':perturb,'work_seconds':2400,'cleanup_grace_seconds':4,'jobs':4,'primary_archive_members':4855,'secondary_archive_members':3,'control_member_paths':{'TU13':['control/'+n+'.o' for n in ('original','perturbed','restored')],'TU14':['control-tu14/'+n+'.o' for n in ('original','perturbed','restored')]},'import_status':'REQUIRES_L_SEPARATE_REVIEWED_ADAPTER_AND_PORT_ALLOCATION','certificate_type':'DISPATCH_PROOF_V1'}
  pin=hashbytes(canonical(contract))
  if not args.execute_contract_sha256:
   out.mkdir(parents=True,exist_ok=False);p.dump(out/'contract.json',contract);(out/'contract.sha256').write_text(pin+'\n')
@@ -53,12 +57,14 @@ def main():
  assert contract['execution_enabled'] is True,'full execution blocked pending independently qualified live-budget termination controls'
  assert args.execute_contract_sha256==pin and json.loads((out/'contract.json').read_bytes())==json.loads(canonical(contract))
  for scope,plan in plans.items():assert json.loads((out/(scope+'-plan.json')).read_bytes())==json.loads(canonical(plan))
- assert os.getpriority(os.PRIO_PROCESS,0)>=19 and shutil.disk_usage(out).free>=50*1024**3
+ assert os.getpriority(os.PRIO_PROCESS,0)>=19 and shutil.disk_usage(out).free>=50*1024**3+monitor.METADATA_CAP
  assert p.sha(args.dol)==p.DOL
  lock=(Path.home()/'MacioGalaxy2-team/slots/native.lock').open('a');fcntl.lockf(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
  work=out/'execution';work.mkdir(exist_ok=False)
+ (out/'tmp').mkdir(exist_ok=False)
+ os.environ.clear();os.environ.update(launch['env'])
  graph=Path.home()/'MacioGalaxy2-team/scratch-port/solP/source_graph.py';macro=Path.home()/'MacioGalaxy2-team/scratch-port/solP/dtk-source/assets/macros.inc'
- with budget.FullBudgetJob(work,contract['work_seconds'],out,contract['required_live_budget']['minimum_free_bytes'],contract['required_live_budget']['maximum_owned_growth_bytes'],contract['required_live_budget']['sample_interval_seconds']) as job:
+ with budget.FullBudgetJob(work,contract['work_seconds'],out,contract['required_live_budget']['minimum_free_bytes']+monitor.METADATA_CAP,contract['required_live_budget']['maximum_owned_growth_bytes']-monitor.METADATA_CAP,contract['required_live_budget']['sample_interval_seconds'],launch=launch) as job:
   run=job.run
   def deps_manifest(tree,log,dest):
    dependencies={}
@@ -184,5 +190,6 @@ def main():
    job.remaining();result['status']='FULL_PAIR_COMPONENTS_COMPLETE_IMPORT_PENDING';result['seconds']=time.monotonic()-job.start
    p.dump(work/'source-controls.json',result['controls']);state('COMPONENTS_COMPLETE_IMPORT_REVIEW_PENDING_NO_GENERIC_CERT')
   finally:p.dump(work/'result.json',result)
+ monitor.complete('execution',out,pin,job,{'actual_result_sha256':hashbytes(canonical(result))})
  print(result['status'])
 if __name__=='__main__':main()

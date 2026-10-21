@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "status": "SOURCE_ONLY_EXACT_REVIEW_PENDING_EXECUTION_DISABLED",
+  "previous_source": "3c27cd38",
+  "canonical_spec_sha256": "3b0975d48ca4354862814f13de004121fb16fbc1b90f87fb8e9f78a65155f8d9",
+  "before": "33e71ee880b426c0c7da03a724377200e874c417",
+  "after": "22d4c005612f83dc70a2a187c2b1a426ada66296",
+  "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-full-v9-r2",
+  "contract_canonical_sha256": "827b07b3d899c5a555cbfb657dafd28da28087a0643a033326d3e174339d9d54",
+  "contract_file_sha256": "8114e6f8f143dc223affb47f9ab17fbf64a781a8a6bfbe76e8286b7dd23714ec",
+  "phase_roots": {
+    "after": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-full-v9-r2/execution/after",
+    "before": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-full-v9-r2/execution/before"
+  },
+  "execution_enabled": false,
+  "source_files": {
+    "dispatch_fullproof.py": "cce87ba2c37f3221b7fde36e741a941c48c2941053ab137ac33f93d2c35991bf",
+    "dispatch_package.py": "58f26514c2b5b37fa4c01553c4cb347e1bacf0dc1a7b452874ab9266bbd82aa4",
+    "dispatch_full_budget.py": "b392e6d9723ad64f0eae915c131274b6fac157089a974e94d9b0adb5b44ab6bc",
+    "dispatch_exec_gate.py": "4f510bfe6a3e17efbbdcd2395c1712a53d08e89f5b0e8b5b66c5c8bb43cd2c7c",
+    "dispatch_monitor.py": "509a7bf98c03db9af5746cc4ff1aaa6414cda35c555ca83e6f4481b3c91314ed",
+    "dispatch_gate_check.py": "fdea6835e8318052c734a826501aaff3878146fba305c476035311abda626982",
+    "DISPATCH_GATE_CHECK_PLAN.json": "d496c8a9bcb891f976db3c45da8e9f6c232cdf0e41cd905a162331f4b769f7df",
+    "test_dispatch_full_budget.py": "3522712f7ec9a4bd1b42e68a2780d7871c474eae9d5f766ce7810b9eab8b7c44",
+    "test_dispatch_exec_gate.py": "9b0ca49f671007141f7df22e6781763553e5b253b891a2877bc5d3f7f6567960",
+    "test_dispatch_monitor.py": "42bcf0e5a9af500b690e877647365a9f1b0857406e14083f70ce3c3360c2542f",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "dispatch_preflight.py": "adfaae0ee51350fedb883937ae887f1f1d443f986b0c4b98f334894f266c1d72"
+  },
+  "chosen_plan_file_sha256": "d496c8a9bcb891f976db3c45da8e9f6c232cdf0e41cd905a162331f4b769f7df",
+  "chosen_execution_enabled": false,
+  "importer_commit": "3bacfa28",
+  "accepted_disposable_source": "7c9ab833",
+  "accepted_disposable_release_sha256": "e5f81c3bf24f96670ccfe18b7c350d118eea16aaf499edebee3bd3c6c1d8abf9",
+  "models": {
+    "count": 21,
+    "seconds": 0.064,
+    "result": "PASS no-process/filesystem models only; no diagnostic/tool exec/timer/native lock",
+    "command": "PYTHONPATH=tools/team python3 -m unittest -f test_dispatch_full_budget test_dispatch_exec_gate test_dispatch_monitor"
+  },
+  "unrun": [
+    "chosen-tool actual context",
+    "compiler/native app",
+    "fresh2426before/after",
+    "actual package/import"
+  ],
+  "remaining": [
+    "exact source + L3bac API review",
+    "explicit enabled chosen-plan repin + separate <=60s allocation; T2 release received but not allocation",
+    "chosen actual acceptance then exact enabled fullsource/contract repin + full allocation",
+    "independent realpackage import and production hook remain L-owned"
+  ],
+  "scope": "no game candidate appends; no raw worker analysis; no general process-manager framework"
+}

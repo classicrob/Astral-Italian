@@ -2,12 +2,13 @@
 """Package completed intentional-delta components for L's SEPARATE importer review.
 No generic hookproof-land.cert, no remoteproof/proofland invocation, no landing.
 """
-import argparse,base64,hashlib,json,tarfile,shutil
+import argparse,base64,hashlib,json,tarfile,shutil,os
 from pathlib import Path
 import dispatch_preflight as p
 import dispatch_fullproof as full
 import dispatch_artifacts as artifacts
 import dispatch_full_budget as budget
+import dispatch_monitor as monitoring
 
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--proof',type=Path,required=True);ap.add_argument('--spec',type=Path,required=True);ap.add_argument('--independent-spec',type=Path,required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--reviewed-contract-sha256',required=True);args=ap.parse_args()
@@ -23,12 +24,14 @@ def main():
  for phase in ('before','after'):
   assert r['phases'][phase]['objects']==2426 and r['phases'][phase]['exit_code']==0 and r['phases'][phase]['clean']
  for name,h in contract['context'].items():assert p.sha(name)==h,'tool/recipe drift'
- assert out==root/'package','package must remain inside the original budget root'
+ assert root==budget.FULL_ROOT and out==root/'package','exact original root/package required'
+ os.umask(0o077)
+ os.environ.clear();os.environ.update(contract['launch_context']['env'])
  original_budget=json.loads((work/'disk-budget.json').read_text())
  assert original_budget['root']==str(root),'original root budget binding'
- monitor=root/'packaging-monitor';monitor.mkdir(exist_ok=False)
+ monitor_dir=root/'packaging-monitor';monitor_dir.mkdir(exist_ok=False)
  required=contract['required_live_budget']
- with budget.FullBudgetJob(monitor,600,root,required['minimum_free_bytes'],required['maximum_owned_growth_bytes'],required['sample_interval_seconds'],baseline=original_budget['initial_allocated_bytes']) as packaging_job:
+ with budget.FullBudgetJob(monitor_dir,contract['packaging_seconds'],root,required['minimum_free_bytes']+monitoring.METADATA_CAP,required['maximum_owned_growth_bytes']-monitoring.METADATA_CAP,required['sample_interval_seconds'],baseline=original_budget['initial_allocated_bytes']) as packaging_job:
   out.mkdir(parents=True,exist_ok=False)
   def write(name,data):
    dest=out/name;dest.parent.mkdir(parents=True,exist_ok=True)
@@ -91,12 +94,16 @@ def main():
   tagged={'type':'DISPATCH_PROOF_V1','canonical_spec_sha256':p.SPEC,'base':p.BASE,'after_trees':spec['after'],'TU13_plan_sha256':contract['plans']['TU13'],'TU14_plan_sha256':contract['plans']['TU14'],'secondary_control_sha256':delta['secondary_control']['sha256'],'fullcomparison_sha256':delta['strict_remainder']['sha256']}
   certificate=write('dispatch-proof.cert.json',full.canonical(tagged)+b'\n')
   receipt={'schema':1,'type':'DISPATCH_PROOF_V1','status':'COMPLETE_AWAITING_INDEPENDENT_IMPORT','host':'host_db276ab2vt','spec':spec,'restored_trees':spec['after'],'clean':{'before':True,'after':True},'builds':{'before':0,'after':0,'control':0,'restore':0},'archive':primary,'files':files,'certificate':certificate,'provenance':provenance,'control':{k:r['controls']['TU13'][k] for k in ('source','unit','source_sha256','restored_source_sha256')},'dispatch_delta':delta}
-  receipt['control']['object']=receipt['control'].pop('unit');write('receipt.json',receipt)
+  receipt['control']['object']=receipt['control'].pop('unit')
   parts=[];encoded=out/primary['path'];partdir=out/'transfer-parts';partdir.mkdir()
   with encoded.open('rb') as stream:
    index=0
    while block:=stream.read(2*1024*1024):
     name='transfer-parts/part-%04d.b64'%index;path=out/name;path.write_bytes(block);parts.append({'path':name,'sha256':p.sha(path),'bytes':len(block)});index+=1
-  write('transfer.json',{'primary_archive':primary,'ordered_parts':parts,'full_encoded_bytes':encoded.stat().st_size,'secondary_archive':secondary_archive,'receipt_sha256':p.sha(out/'receipt.json'),'regular_files':{str(path.relative_to(out)):p.sha(path) for path in out.rglob('*') if path.is_file() and path.name!='transfer.json'}})
-  print(json.dumps({'status':receipt['status'],'receipt_sha256':p.sha(out/'receipt.json'),'primary_members':4855,'secondary_members':3,'tagged_certificate_only':True},indent=2))
+  # Hash all existing archives/evidence/parts INSIDE the monitored stage.
+  existing_files={str(path.relative_to(out)):p.sha(path) for path in out.rglob('*') if path.is_file()}
+  transfer={'primary_archive':primary,'ordered_parts':parts,'full_encoded_bytes':encoded.stat().st_size,'secondary_archive':secondary_archive}
+ monitoring.complete('packaging',root,args.reviewed_contract_sha256,packaging_job,{'primary_encoded_sha256':primary['encoded_sha256'],'secondary_encoded_sha256':secondary_archive['encoded_sha256']})
+ publication_sha=monitoring.terminal_publish(root,out,contract,args.reviewed_contract_sha256,receipt,transfer,existing_files)
+ print(json.dumps({'status':receipt['status'],'receipt_sha256':p.sha(out/'receipt.json'),'terminal_publication_sha256':publication_sha,'primary_members':4855,'secondary_members':3,'tagged_certificate_only':True},indent=2))
 if __name__=='__main__':main()

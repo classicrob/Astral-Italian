@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "status": "SOURCE_ONLY_CHOSEN_TOOL_PROPOSAL_NOT_ALLOCATED",
+  "execution_enabled": false,
+  "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-gate-check-v9-r1",
+  "commands": [
+    [
+      "/opt/homebrew/opt/python@3.15/bin/python3.15",
+      "-c",
+      "import os; print(\"SOLP_EXEC_IDENTITY\",os.getpid(),os.getpgrp(),os.getsid(0),os.getuid())"
+    ],
+    [
+      "ninja",
+      "--version"
+    ],
+    [
+      "git",
+      "--version"
+    ]
+  ],
+  "total_seconds": 60,
+  "work_seconds": 20,
+  "cleanup_seconds": 4,
+  "maximum_owned_growth_bytes": 67108864,
+  "minimum_free_bytes": 53687091200,
+  "launch_context": {
+    "python": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "python_sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab",
+    "gate": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/dispatch_exec_gate.py",
+    "gate_sha256": "4f510bfe6a3e17efbbdcd2395c1712a53d08e89f5b0e8b5b66c5c8bb43cd2c7c",
+    "targets": {
+      "git": {
+        "path": "/usr/bin/git",
+        "sha256": "3573dc149c40b6dbba10a2465334e080da2e5f598b2f14178074ab8ddd013307"
+      },
+      "ninja": {
+        "path": "/opt/homebrew/Cellar/ninja/1.13.2/bin/ninja",
+        "sha256": "a75ab11ced61c31783228dff8303975d62eb7e7761cbd12c537a95792a4fbc3f"
+      },
+      "/opt/homebrew/opt/python@3.15/bin/python3.15": {
+        "path": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+        "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+      }
+    },
+    "runtime": {
+      "python3": {
+        "path": "/opt/homebrew/bin/python3",
+        "resolved": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+        "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+      },
+      "/usr/bin/env": {
+        "path": "/usr/bin/env",
+        "resolved": "/usr/bin/env",
+        "sha256": "afab19a06b009cb5beeb00b44e33dc974be0e8634f2690233565f03132cd1c6d"
+      },
+      "/bin/sh": {
+        "path": "/bin/sh",
+        "resolved": "/bin/sh",
+        "sha256": "e5dec01b6a80f735dd4098cf5e2c335f48440a641395e36453dbd7fd9bb1c19e"
+      }
+    },
+    "env": {
+      "HOME": "/Users/roberthaisfield",
+      "PATH": "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TMPDIR": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-gate-check-v9-r1/tmp",
+      "PYTHONCOERCECLOCALE": "0",
+      "PYTHONUTF8": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "source_files": {
+    "dispatch_gate_check.py": "fdea6835e8318052c734a826501aaff3878146fba305c476035311abda626982",
+    "dispatch_full_budget.py": "b392e6d9723ad64f0eae915c131274b6fac157089a974e94d9b0adb5b44ab6bc",
+    "dispatch_exec_gate.py": "4f510bfe6a3e17efbbdcd2395c1712a53d08e89f5b0e8b5b66c5c8bb43cd2c7c",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "dispatch_preflight.py": "adfaae0ee51350fedb883937ae887f1f1d443f986b0c4b98f334894f266c1d72"
+  },
+  "scope": "exact Python post-exec identity, Ninja --version, Git --version; no compiler/app/v7 repetition",
+  "safety": "one fresh root only; failfast; original argv/flags; no alternative signal/security mechanism; unknown gate independently expires10s; full proof disabled",
+  "limits": "sampled syscall/scan enforcement, not universal OS realtime guarantee",
+  "future_command": [
+    "nice",
+    "-n",
+    "19",
+    "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/dispatch_gate_check.py",
+    "--plan",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/DISPATCH_GATE_CHECK_PLAN.json",
+    "--execute-plan-sha256",
+    "REQUIRES_EXACT_ENABLED_PLAN_REVIEW_AND_ALLOCATION_SHA"
+  ]
+}

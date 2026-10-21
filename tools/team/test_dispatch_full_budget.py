@@ -38,6 +38,26 @@ class ScanSourceModels(unittest.TestCase):
                     job.run(['DO_NOT_EXECUTE'])
                 spawn.assert_not_called()
 
+    def test_missing_root_fails_instead_of_zero(self):
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(FileNotFoundError):
+                full.bounded_allocated(Path(d)/'missing')
+
+    def test_scan_permission_error_propagates(self):
+        with tempfile.TemporaryDirectory() as d:
+            with patch.object(full.os, 'scandir', side_effect=PermissionError('model')):
+                with self.assertRaises(PermissionError):full.bounded_allocated(Path(d))
+
+    def test_packaging_original_baseline_not_reset(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            job=full.FullBudgetJob(root,3,root,0,4096,0.25,baseline=0)
+            job.remaining=lambda:2
+            with patch.object(full,'bounded_allocated',return_value=8192),patch.object(full.shutil,'disk_usage',return_value=type('Disk',(),{'free':100000})()):
+                with self.assertRaises(full.accepted.DiskBudgetExceeded):job.check()
+            self.assertEqual(job.baseline,0)
+            self.assertEqual(job.peak_growth,8192)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,21 @@
+{
+  "semantic_base_revision": "33e71ee880b426c0c7da03a724377200e874c417",
+  "files": {
+    "CMakeLists.txt": "14c0fc31deccaf5699b49b87fa7141d82c405c15b16030cf14380d5746a6dc5d",
+    "src/Game/System/GameSystem.cpp": "1ee07d447405f139161368281e4f9721319206f6ed6cebb4eb3fb40535ac9a51",
+    "src/Game/System/GameSystemSceneController.cpp": "f3356b0d251a9d45e6fd51aa42b980b23be977b9bc5ddad4b0bcf9600aa34bde",
+    "src/Game/System/MainLoopFramework.cpp": "f9cef00d9d8f0c885cc805a8fe643e6f61939c3650d0419109ba16c3995e1ee6",
+    "include/Game/System/GameSystem.hpp": "ba5b0a45d270b96b409e06e354eb0d4132855d84bea1bc189df9b0adceaa33f8",
+    "include/Game/System/GameSystemSceneController.hpp": "913904985b55569d889c3ec066df33bf51709e69e3582ae0f96d1762600dcded",
+    "include/Game/System/MainLoopFramework.hpp": "e24647a62560afe10a351d2201b9f202e6f74f2b4ef90a001497cf91d2df71a8",
+    "include/Game/Scene/Scene.hpp": "c027061e7fb3676d0622f5f7997b793a9e5a78de0e421abcfffd60b4fa9f0d55",
+    "include/Game/Scene/SceneObjHolder.hpp": "88b202f4b646ef132f35265d33176ee798a7c473d8c8cb2a5ea99120eb3fc8e9",
+    "include/Game/Player/MarioHolder.hpp": "df58b3ba436405f33ed2874656b880aa1970310f9b36fa5a960b106b3ca9b1af",
+    "include/Game/Player/MarioActor.hpp": "cb64b4aae376a090912ad28b7b6775cd6e99282e51ad588f38fa54ed61a6b6e3",
+    "include/Game/Player/Mario.hpp": "764d11e545c98de4d70d5e119a103f571a7ccf14a09c44013c5991bdcf416e63",
+    "libs/JSystem/include/JSystem/JUtility/JUTXfb.hpp": "e748651f151221be78681b8ca9326906756b8808825c2047ee204132b92424cf"
+  },
+  "interface_owner": "D new files; GAME B callsites; E independent source review pending",
+  "native_controls": "UNRUN; no compile/runtime allocation",
+  "qualification": "BLOCKED"
+}

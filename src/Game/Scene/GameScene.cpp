@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_scene_diag.hpp>
+#endif
 #include "Game/Util/BgmUtil.hpp"
 #ifdef GALAXY_NATIVE
 extern "C" void petari_os_preemption_point(void);
@@ -161,6 +164,9 @@ GameScene::GameScene()
 }
 
 GameScene::~GameScene() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::retireScene();
+#endif
     MR::stopReplayPad();
     MR::endToCaptureScreen("Camera");
     MR::onStarPointerSceneOut();
@@ -235,6 +241,9 @@ void GameScene::update() {
 }
 
 void GameScene::draw() const {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::beginDraw();
+#endif
     MR::drawInit();
     LightFunction::initLightRegisterAll();
     CategoryList::execute(MR::DrawType_MiiFaceIcon);
@@ -243,6 +252,9 @@ void GameScene::draw() const {
     draw3D();
     draw2D();
     MR::reinitGX();
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::endDraw();
+#endif
 }
 
 void GameScene::calcAnim() {

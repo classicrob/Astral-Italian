@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/System/GrandGalaxyMapStates.hpp"
 #include "Game/System/GrandGalaxyMap.hpp"
@@ -17,6 +20,9 @@ void GrandGalaxyMapStateStart::init() {
 }
 
 void GrandGalaxyMapStateStart::appear() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("GrandGalaxyMapStateStart::appear", 0);
+#endif
     mIsDead = false;
     mHost->changeRocketActionBck("Wait");
     mHost->startAreaCamera(-1, 0);
@@ -28,6 +34,9 @@ void GrandGalaxyMapStateStart::kill() {
 }
 
 void GrandGalaxyMapStateStart::exeStart() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("GrandGalaxyMapStateStart::exeStart", getNerveStep());
+#endif
     if (MR::isFirstStep(this)) {
         getHost()->faceRocketInstant(TVec3f(0.0f, 0.0f, -1.0f));
     } else {

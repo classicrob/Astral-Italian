@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #include "Game/System/GrandGalaxyMap.hpp"
 #include "Game/Screen/GrandGalaxyMapInfo.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -16,6 +19,9 @@ void GrandGalaxyMap::init(bool isDirect) {
 }
 
 void GrandGalaxyMap::start() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("GrandGalaxyMap::start", 0);
+#endif
     if (mIsEnd) {
         mIsEnd = false;
         mSequence->start();
@@ -24,6 +30,9 @@ void GrandGalaxyMap::start() {
 }
 
 void GrandGalaxyMap::end() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("GrandGalaxyMap::end", 0);
+#endif
     if (!mIsEnd) {
         mIsEnd = true;
         mSequence->end();

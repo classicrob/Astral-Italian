@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_scene_diag.hpp>
+#endif
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapResultStateGrandGalaxyEnd.hpp"
@@ -17,6 +20,10 @@ void WorldMapResultStateGrandGalaxyEnd::init() {
 }
 
 void WorldMapResultStateGrandGalaxyEnd::appear() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("WorldMapResultStateGrandGalaxyEnd::appear", 0);
+    PetariWmRouteDiag::checkpoint(mHost, "GrandGalaxyEnd::appear-before-local-camera");
+#endif
     mIsDead = false;
     mHost->changeRocketActionBck("Wait");
     mHost->startNodeCamera(-1, 0);
@@ -24,6 +31,9 @@ void WorldMapResultStateGrandGalaxyEnd::appear() {
 }
 
 void WorldMapResultStateGrandGalaxyEnd::exeZoomOut() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::bodyState("WorldMapResultStateGrandGalaxyEnd::exeZoomOut", this);
+#endif
     if (MR::isFirstStep(this)) {
         mFovy = MR::getFovy();
     }
@@ -42,5 +52,14 @@ WorldMapResultStateGrandGalaxyEnd::~WorldMapResultStateGrandGalaxyEnd() {
 
 namespace NrvWorldMapResultStateGrandGalaxyEnd {
     WMR_NERVE_DEF(WorldMapResultStateGrandGalaxyEndZoomOut, WorldMapResultStateGrandGalaxyEnd, ZoomOut);
+#ifdef GALAXY_NATIVE
+    void WorldMapResultStateGrandGalaxyEndWait::execute(Spine* spine) const {
+        auto* state = reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(spine->mExecutor);
+        PetariWmRouteDiag::bodyState("WorldMapResultStateGrandGalaxyEnd::exeWait", state);
+        state->exeWait();
+    }
+    WorldMapResultStateGrandGalaxyEndWait WorldMapResultStateGrandGalaxyEndWait::sInstance ATTRIBUTE_WEAK;
+#else
     WMR_NERVE_DEF(WorldMapResultStateGrandGalaxyEndWait, WorldMapResultStateGrandGalaxyEnd, Wait);
+#endif
 };  // namespace NrvWorldMapResultStateGrandGalaxyEnd

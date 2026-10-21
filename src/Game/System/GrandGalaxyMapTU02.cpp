@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #include "Game/System/GrandGalaxyMap.hpp"
 #include "Game/Screen/GrandGalaxyMapInfo.hpp"
 #include "Game/System/GalaxyStatusAccessor.hpp"
@@ -153,6 +156,13 @@ void GrandGalaxyMap::startEventCamera(const char* pName, s32 frames) {
     snprintf(cameraName, sizeof(cameraName), "%s", pName);
     LiveActor* pTarget = getCamera()->mCameraTarget;
     s32 cameraId = getCamera()->mCameraId;
+#ifdef GALAXY_NATIVE
+    if (PetariWmRouteDiag::enabled()) {
+        const auto* data = getWorld()->mMapData; const s32 current = getCamera()->mCurrent;
+        const s32 layer = data && data->mNodes && current >= 0 && current < data->mNum ? data->mNodes[current].mLayer : -1;
+        PetariWmRouteDiag::request("GrandGalaxyMap::startEventCamera", cameraName, cameraId, frames, pTarget, pTarget ? pTarget->mPosition.x : 0.0f, pTarget ? pTarget->mPosition.y : 0.0f, pTarget ? pTarget->mPosition.z : 0.0f, current, layer);
+    }
+#endif
     MR::startEventCameraById(cameraId, cameraName, CameraTargetArg(pTarget), frames);
 }
 

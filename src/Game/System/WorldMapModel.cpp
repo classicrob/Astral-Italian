@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_scene_diag.hpp>
+#endif
 #pragma auto_inline off
 #include "Game/System/WorldMapModel.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -100,7 +103,14 @@ void WorldMapOwnerContext::init(s32 world, s32 node) {
 WorldMapOwner::WorldMapOwner() : NameObj("ワールドマップ"), mContext(0), mSequence(0), mMainLayout(0) {}
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::init(const JMapInfoIter&) {
+#ifdef GALAXY_NATIVE
+    // Latch the original two operands without adding a second consumed flag query.
+    const bool wmDiagEvent = GameDataFunction::isOnGameEventFlag("グランドギャラクシーマップ初プレイ");
+    bool after = wmDiagEvent ? GameSequenceFunction::isWorldMapAfterFileSelect() : false;
+    PetariWmRouteDiag::consumed(this, after, wmDiagEvent);
+#else
     bool after = GameDataFunction::isOnGameEventFlag("グランドギャラクシーマップ初プレイ") ? GameSequenceFunction::isWorldMapAfterFileSelect() : false;
+#endif
     if (MR::isEqualStageName("WorldMap01Galaxy")) GameDataFunction::setCurrentWorldId(1);
     if (MR::isEqualStageName("WorldMap02Galaxy")) GameDataFunction::setCurrentWorldId(2);
     if (MR::isEqualStageName("WorldMap03Galaxy")) GameDataFunction::setCurrentWorldId(3);
@@ -118,12 +128,30 @@ void WorldMapOwner::init(const JMapInfoIter&) {
     static_cast<GrandGalaxyMap*>(mMainLayout)->init(after);
     mSequence = new WorldMapSequence(this);
     mSequence->init(after);
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::postInit(this);
+#endif
     if (GameSequenceFunction::isWorldMapAfterFileSelect()) GameSequenceFunction::clearWorldMapAfterFileSelect();
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::flags("after-clear");
+#endif
     GameSequenceFunction::clearWorldMapFlag22D();
     GameSequenceFunction::clearWorldMapFlag22C();
 }
-void WorldMapOwner::movement() { mSequence->updateNerve(); }
-WorldMapOwner::~WorldMapOwner() {}
+void WorldMapOwner::movement() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::setPhase("owner-update");
+#endif
+    mSequence->updateNerve();
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::movement(this);
+#endif
+}
+WorldMapOwner::~WorldMapOwner() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::retired(this);
+#endif
+}
 
 void WorldMapFunction::movementMini() {
     TPos3f saved(MR::getCameraViewMtx());
@@ -164,6 +192,9 @@ void WorldMapFunction::entryMini() {
     MR::loadViewMtx();
 }
 void WorldMapFunction::drawMini() {
+#ifdef GALAXY_NATIVE
+    if (PetariWmRouteDiag::enabled()) PetariWmRouteDiag::pass = 1;
+#endif
     TPos3f saved(MR::getCameraViewMtx());
     f32 fovy = MR::getFovy();
     MR::reinitGX();
@@ -180,6 +211,9 @@ void WorldMapFunction::drawMini() {
     MR::loadViewMtx();
     MR::setFovy(fovy);
     MR::loadProjectionMtx();
+#ifdef GALAXY_NATIVE
+    if (PetariWmRouteDiag::enabled()) PetariWmRouteDiag::pass = 0;
+#endif
 }
 void WorldMapFunction::initMiniCamera() {
     new ((void*)&sMiniEye) TVec3f(0.0f, 0.0f, 10000.0f);

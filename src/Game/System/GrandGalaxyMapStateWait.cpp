@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #include "Game/System/GrandGalaxyMapStates.hpp"
 #include "Game/System/GrandGalaxyMap.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
@@ -18,6 +21,9 @@ void GrandGalaxyMapStateWait::init() {
 }
 
 void GrandGalaxyMapStateWait::appear() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("GrandGalaxyMapStateWait::appear", 0);
+#endif
     mIsDead = false;
     mHost->startAreaCamera(-1, -1);
     setNerve(&GrandGalaxyMapStateWaitWait::sInstance);

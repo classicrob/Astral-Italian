@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #include "Game/Player/DLchanger.hpp"
 #include "Game/Player/J3DModelX.hpp"
 #include "Game/Util.hpp"
@@ -479,6 +482,9 @@ J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(
 
 void J3DModelX::shapePacketDrawFast(J3DShapePacketX* packet) const {
     if (!(packet->mFlags & 0x10) && packet->getShape()) {
+#ifdef GALAXY_NATIVE
+        PetariWmRouteDiag::submitted(this);
+#endif
         packet->prepareDraw();
         if (packet->getTexMtxObj()) {
             J3DDifferedTexMtx::sTexGenBlock = packet->getShape()->mMaterial->mTexGenBlock;

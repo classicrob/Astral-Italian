@@ -94,7 +94,7 @@ with tempfile.TemporaryDirectory(prefix='petari-scene-input-') as directory:
     source.write_text(fixture+'\n#include "'+str(root/'native/app/input_script_probe.cpp')+'"\n'+tests)
     exe = tmp/'scene-input-test'
     compiler = sys.argv[1] if len(sys.argv)>1 else 'clang++'
-    subprocess.run([compiler,'-std=c++17','-I'+str(tmp),'-I'+str(root/'native/include'),'-I'+str(root/'native/app'),str(source),'-o',str(exe)],check=True)
+    subprocess.run([compiler,'-std=c++17','-I'+str(tmp),'-I'+str(root/'native/include'),'-I'+str(root/'native/app'),str(source),'-o',str(exe),*sys.argv[2:]],check=True)
     env = {k:v for k,v in os.environ.items() if not k.startswith('PETARI_INPUT_SCRIPT')}
     subprocess.run([str(exe)],check=True,env=env)
     tape=tmp/'parse.txt'

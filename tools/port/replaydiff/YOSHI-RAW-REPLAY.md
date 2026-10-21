@@ -4,12 +4,20 @@ The opt-in `--sync-input-records` suffix consumes the strict native KPAD JSONL
 contract. It retains every sample bit, button edge, acceleration/pointer delta,
 connection and read ordinal. It changes only exported frame labels from suffix
 coordinates to source-loop coordinates. Input row 0 affects trace row 1, after
-the accepted ready anchor. The actual read schedule and read-only retail
-WPADProbe-equivalent connection must agree; otherwise capture fails.
+the accepted ready anchor. The actual read schedule must agree; otherwise capture fails. By default the
+read-only retail WPADProbe-equivalent connection must also agree. The explicit
+`--sync-observed-connection` mode instead exports the actual observed connection
+without guest probe writes, retaining all source samples/history. It records
+the first synthetic/actual connection difference as an input-delivery boundary,
+never gameplay divergence. A matched native replay must consume the finalized
+`observed-inputs.jsonl` export. The old preconverted native trace is comparable
+only through the last trace row before that input difference takes effect.
+Boot-prefix connections remain scripted synthetic and are outside this receipt's
+actual-connection scope.
 
 `yoshi_replay.py --root <fresh-private-directory> --slot-held` runs selector
 acceptance, a 1,200-input prefix, then one continuous 30,000-input replay under an
-externally held native.lock at nice 19. It uses the existing M1 private Dolphin,
+externally held native.lock at nice 19. It uses observed-connection mode and the existing M1 private Dolphin,
 ISO, profile and pinned anchor-522 conversion. Only the copied profile's GDB
 socket changes. The runner validates every delivered suffix record against the
 source, retains failed outputs, and never adjusts inputs or RNG to fix a route.

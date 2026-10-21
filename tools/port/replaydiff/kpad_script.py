@@ -177,14 +177,7 @@ class ScriptedInput:
             if self.raw_suffix:
                 from kpad_observe import read_connection
                 row = self.raw_suffix.take(frame, self.ordinal, channel, capacity)
-                observed_connection = read_connection(remote, channel)
-                if observed_connection != row['connection']:
-                    self.raw_suffix.receipt['connection_mismatch'] = dict(
-                        source_frame=frame, suffix_frame=frame - self.raw_suffix.source_start,
-                        read_ordinal=self.ordinal, channel=channel,
-                        expected=row['connection'], observed=observed_connection)
-                    raise ObserverError('actual WPADProbe connection differs from raw tape: ' +
-                                        json.dumps(self.raw_suffix.receipt['connection_mismatch'], sort_keys=True))
+                row = self.raw_suffix.connection(row, read_connection(remote, channel))
                 result, err = row['returned_count'], row['error']
                 samples = row['samples']
             else:

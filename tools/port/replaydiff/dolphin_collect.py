@@ -673,7 +673,7 @@ def collect(args):
                 from kpad_records import RawSuffix
                 from kpad_script import contract
                 raw_suffix = RawSuffix(game_private_path(args.sync_input_records), args.sync_input_records_sha256,
-                                       args.frames - 1, output, contract)
+                                       args.frames - 1, output, contract, getattr(args, 'sync_observed_connection', False))
                 manifest['raw_input_suffix'] = raw_suffix.receipt
             inputs = ScriptedInput(script, input_frames, output / "inputs.jsonl", args.live_input_script)
             manifest.update(input_method="scripted filtered KPAD injection", input_frames=input_frames,
@@ -978,6 +978,7 @@ def main():
     capture.add_argument("--sync-input-script", help="freeze this shared suffix immediately after sync row 0")
     capture.add_argument('--sync-input-records', help='private strict native KPAD JSONL suffix after ready row 0')
     capture.add_argument('--sync-input-records-sha256')
+    capture.add_argument('--sync-observed-connection', action='store_true', help='export actual read-only WPADProbe connection; keep all source sample bits/history unchanged')
     capture.add_argument('--yoshi-replay-budget', action='store_true', help='bounded full Yoshi replay, up to 10800 seconds; default remains 480')
     capture.add_argument("--input-script", help="explicit filtered KPAD script; writes SDK output buffers/register r3")
     capture.add_argument("--live-input-script", action="store_true", help="exploration only: reload future-only script edits")
@@ -1009,6 +1010,8 @@ def main():
         parser.error("--lock-timeout must be nonnegative")
     if args.action == "collect" and args.frames < 1:
         parser.error("--frames must be positive")
+    if args.action == 'collect' and args.sync_observed_connection and not args.sync_input_records:
+        parser.error('--sync-observed-connection requires a raw suffix')
     if args.action == 'collect' and args.sync_input_records:
         if not (args.sync_stage and args.input_script and args.sync_input_records_sha256) or args.sync_input_script or args.frames < 2:
             parser.error('raw suffix requires sync, boot script, SHA256 and N+1 frames; cannot combine suffix modes')

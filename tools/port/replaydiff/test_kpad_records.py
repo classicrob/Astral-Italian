@@ -87,6 +87,23 @@ class RawSuffixTests(unittest.TestCase):
             inputs.close(None)
             self.assertFalse((root / 'export.jsonl').exists())
 
+    def test_observed_connection_is_exported_without_changing_source_samples(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); path, rows = self.make(root, 1)
+            suffix = RawSuffix(path, digest(path), 1, root, contract, observed_connection=True)
+            suffix.start(201)
+            original = copy.deepcopy(rows[0])
+            row = suffix.take(201, 0, 0, 120)
+            observed = dict(probe_error=-2, device_type=1)
+            exported = suffix.connection(row, observed)
+            self.assertEqual(exported['connection'], observed)
+            self.assertEqual(exported['samples'], original['samples'])
+            self.assertEqual(row['connection'], original['connection'])
+            self.assertEqual(suffix.receipt['connection_difference_reads'], 1)
+            self.assertEqual(suffix.receipt['first_connection_difference']['classification'],
+                             'input-delivery boundary; not gameplay divergence')
+            suffix.close(False)
+
     def test_missing_read_and_incomplete_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

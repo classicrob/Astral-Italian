@@ -15,16 +15,22 @@ def digest(path):
 
 
 class RawSuffix:
-    def __init__(self, path, expected_sha256, frames, directory, contract):
+    def __init__(self, path, expected_sha256, frames, directory, contract, observed_connection=False):
         self.path = Path(path)
         self.frames = frames
         self.expected_sha256 = expected_sha256
+        self.observed_connection = observed_connection
         if digest(self.path) != expected_sha256:
             raise ObserverError('raw input SHA256 mismatch')
         self.receipt = dict(schema_version=1, status='incomplete', path=str(self.path),
                             sha256=expected_sha256, frames=frames, reads=0,
                             origin='first loop after ready anchor; row 0 input affects trace row 1',
                             history='all supplied edges, sample bits and predecessor deltas retained')
+        self.receipt.update(
+            connection_policy='observed read-only probe' if observed_connection else 'require source connection',
+            connection_difference_reads=0, first_connection_difference=None,
+            kpd_sha256_scope='re-encoded source, not observed delivery',
+            connection_scope='raw suffix only; prior boot connections are scripted synthetic')
         previous_tempdir = tempfile.tempdir
         try:
             tempfile.tempdir = str(directory)
@@ -57,6 +63,20 @@ class RawSuffix:
         self.next = next(self.rows, None)
         self.receipt['reads'] += 1
         return dict(row, frame=source_frame)
+
+    def connection(self, row, observed):
+        if observed != row['connection']:
+            evidence = dict(source_frame=row['frame'], suffix_frame=row['frame'] - self.source_start,
+                            read_ordinal=row['read_ordinal'], channel=row['channel'],
+                            expected=row['connection'], observed=observed,
+                            classification='input-delivery boundary; not gameplay divergence')
+            if not self.observed_connection:
+                self.receipt['connection_mismatch'] = evidence
+                raise ObserverError('actual WPADProbe connection differs from raw tape: ' + str(evidence))
+            self.receipt['connection_difference_reads'] += 1
+            if self.receipt['first_connection_difference'] is None:
+                self.receipt['first_connection_difference'] = evidence
+        return dict(row, connection=observed) if self.observed_connection else row
 
     def end_frame(self, source_frame):
         frame = source_frame - self.source_start

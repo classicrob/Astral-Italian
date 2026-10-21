@@ -13,6 +13,7 @@ import socket
 import subprocess
 import sys
 import time
+import tempfile
 
 from kpad_records import RawSuffix, digest
 from kpad_script import contract
@@ -48,6 +49,51 @@ def prefix(source, target, frames):
             output.write(line)
 
 
+def bind_actual_suffix(capture, source, origin, frames, observed_connection):
+    expected = iter(contract.rows_from_jsonl(source))
+    actual = (row for row in contract.rows_from_jsonl(capture / 'inputs.jsonl') if row['frame'] > origin)
+    target = capture / 'observed-inputs.jsonl'
+    partial = target.with_suffix('.jsonl.partial')
+    reads, differences, first = 0, 0, None
+    with partial.open('x') as stream:
+        for row in actual:
+            normalized = dict(row, frame=row['frame'] - origin - 1)
+            wanted = next(expected, None)
+            if wanted and not observed_connection and normalized['connection'] != wanted['connection']:
+                raise RuntimeError('synthetic/actual connection mismatch is an input-delivery boundary, not gameplay divergence')
+            candidate = dict(normalized, connection=wanted['connection']) if wanted and observed_connection else normalized
+            if wanted != candidate:
+                raise RuntimeError(f'exported source sample/read/history changed at {normalized["frame"]}:{normalized["read_ordinal"]}')
+            if normalized['connection'] != wanted['connection']:
+                differences += 1
+                if first is None:
+                    first = dict(input_frame=normalized['frame'], first_affected_trace_frame=normalized['frame'] + 1,
+                                 source_frame=row['frame'], read_ordinal=row['read_ordinal'], channel=row['channel'],
+                                 synthetic=wanted['connection'], observed=normalized['connection'],
+                                 classification='input-delivery boundary; not gameplay divergence')
+            stream.write(json.dumps(normalized, separators=(',', ':')) + '\n')
+            reads += 1
+        if next(expected, None) is not None: raise RuntimeError('exported suffix is truncated')
+    binary = capture / 'observed-inputs.kpd'
+    binary_partial = binary.with_suffix('.kpd.partial')
+    previous_tempdir = tempfile.tempdir
+    try:
+        tempfile.tempdir = str(capture)
+        with binary_partial.open('xb') as stream:
+            contract.encode_rows(contract.rows_from_jsonl(partial), frames, stream)
+    finally:
+        tempfile.tempdir = previous_tempdir
+    binary_partial.rename(binary)
+    partial.rename(target)
+    return dict(schema_version=1, status='captured', reads=reads, frames=frames,
+                path=str(target), sha256=digest(target), kpd_path=str(binary), kpd_sha256=digest(binary),
+                samples_history='identical to pinned conversion; frame labels only rebased',
+                connections='actual read-only WPADProbe' if observed_connection else 'source connection verified',
+                connection_difference_reads=differences, first_connection_difference=first,
+                preconverted_native_comparison_through_trace_frame=first['input_frame'] if first else frames,
+                matched_native_replay_requires='this observed-inputs.jsonl, never the old synthetic-connection tape')
+
+
 def verify_export(case, source, frames):
     manifest = json.loads((case / 'capture/manifest.json').read_text())
     if manifest['status'] != 'captured; repeat qualification required' or manifest['frames'] != frames + 1:
@@ -59,23 +105,18 @@ def verify_export(case, source, frames):
     origin = manifest['sync']['source_frame']
     if manifest['raw_input_suffix']['source_start'] != origin + 1:
         raise RuntimeError('suffix/trace anchor phase mismatch')
-    actual = (row for row in contract.rows_from_jsonl(case / 'capture/inputs.jsonl') if row['frame'] > origin)
-    expected = iter(contract.rows_from_jsonl(source))
-    reads = 0
-    for row in actual:
-        normalized = dict(row, frame=row['frame'] - origin - 1)
-        if next(expected, None) != normalized:
-            raise RuntimeError(f'exported suffix differs from pinned input at {normalized["frame"]}:{normalized["read_ordinal"]}')
-        reads += 1
-    if next(expected, None) is not None:
-        raise RuntimeError('exported suffix is truncated')
+    binding = bind_actual_suffix(case / 'capture', source, origin, frames,
+                                 manifest['raw_input_suffix'].get('connection_policy') == 'observed read-only probe')
+    reads = binding['reads']
+    if binding['connection_difference_reads'] != manifest['raw_input_suffix'].get('connection_difference_reads', 0):
+        raise RuntimeError('actual export connection differences disagree with producer receipt')
     with (case / 'capture/oracle.csv').open() as stream:
         rows = csv.DictReader(stream)
         first = next(rows)
         if first['stage'] != 'YosshiHomeGalaxy' or first['scenario'] != '1' or first['init_state'] != '6':
             raise RuntimeError('wrong accepted ready target')
     return dict(status='verified diagnostic only', qualification='BLOCKED', measured_qualified_frames=None,
-                suffix_reads=reads, natural_ready_seed=first['rng_seed'], source_origin=origin,
+                delivered_input=binding, suffix_reads=reads, natural_ready_seed=first['rng_seed'], source_origin=origin,
                 oracle_sha256=digest(case / 'capture/oracle.csv'), input_export_sha256=digest(case / 'capture/inputs.jsonl'),
                 collection_elapsed_seconds=manifest['collection_elapsed_seconds'],
                 suffix_elapsed_seconds=manifest['suffix_elapsed_seconds'], stage_clear=manifest.get('stage_clear'))
@@ -102,7 +143,7 @@ def run_case(root, tools, profile_source, source, frames, label, budget, receipt
                '--disc', receipt['disc'], '--user', str(profile), '--socket', str(endpoint),
                '--input-script', str(root / 'boot-menu.json'), '--sync-stage', 'YosshiHomeGalaxy',
                '--sync-scenario', '1', '--sync-input-records', str(source),
-               '--sync-input-records-sha256', digest(source), '--frames', str(frames + 1),
+               '--sync-input-records-sha256', digest(source), '--sync-observed-connection', '--frames', str(frames + 1),
                '--wall-timeout', str(budget), '--yoshi-replay-budget', '--output', str(case / 'capture')]
     state(root, f'{label}:pre-spawn', case)
     phase = dict(label=label, status='incomplete', frames=frames, argv=command,
@@ -166,7 +207,7 @@ def main():
                    nice=os.getpriority(os.PRIO_PROCESS, 0), qualification='BLOCKED', measured_qualified_frames=None,
                    approval='PORT thr_brg5rhzvas unattended full Yoshi replay on M1',
                    anchor=522, anchor_method='509+13 proxy intro-event alignment; exact GX-ready/raw KPAD UNKNOWN',
-                   input_history='pinned eee95167 conversion; no clamp, rebase of history or seed force', phases=[])
+                   input_history='pinned eee95167 samples/history; actual read-only probe in export; no clamp or seed force', phases=[])
     try:
         tools = Path(__file__).resolve().parent
         receipt['source_files'] = {str(path.relative_to(tools)): digest(path) for path in sorted(tools.glob('*.py'))}
@@ -208,7 +249,14 @@ def main():
             if count != 30000:
                 tape = root / f'{label}.jsonl'
                 prefix(source, tape, count)
-            run_case(root, tools, profile, tape, count, label, budget, receipt)
+            result = run_case(root, tools, profile, tape, count, label, budget, receipt)
+            if count == 1200:
+                projected = (result['collection_elapsed_seconds'] - result['suffix_elapsed_seconds'] +
+                             result['suffix_elapsed_seconds'] / count * 30000)
+                receipt['full_projection_seconds'] = projected
+                write_json(root / 'receipt.json', receipt)
+                if not args.prefix_only and projected > 10680:
+                    raise RuntimeError(f'prefix projects {projected:.1f}s full run beyond 10800s guard; full not started')
             require_hash(source, TAPE_SHA)
             if profile_hashes != {str(path.relative_to(profile)): digest(path) for path in sorted(profile.rglob('*')) if path.is_file()}:
                 raise RuntimeError('source profile changed')

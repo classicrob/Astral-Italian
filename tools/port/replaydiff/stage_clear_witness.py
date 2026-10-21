@@ -1,5 +1,6 @@
 """Read-only stage-result witness bound to retail SB4E01 getters and stores."""
 import json
+import hashlib
 import struct
 
 from dolphin_collect import ObserverError
@@ -66,5 +67,6 @@ class ClearWitness:
         if complete:
             self.path.with_suffix('.jsonl.partial').rename(self.path)
             self.receipt['status'] = 'captured'
+            self.receipt['file'] = dict(path=self.path.name, sha256=hashlib.sha256(self.path.read_bytes()).hexdigest())
         self.receipt['reproduces_clear'] = bool(complete and self.receipt['yoshi_star_result'] and self.receipt['starship_ready'])
         return self.receipt

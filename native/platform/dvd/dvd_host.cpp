@@ -56,6 +56,7 @@
 #include "dvd_fst.hpp"
 #include "dvd_internal.hpp"
 #include "os_internal.hpp"
+#include "petari/frame_telemetry.hpp"
 #include "petari/host_allocation.hpp"
 #include "petari/platform/dvd.hpp"
 #include "petari/platform/virtual_time.hpp"
@@ -306,6 +307,7 @@ BOOL issueCommand(s32 prio, DVDCommandBlock* block) {
 // Reads disc bytes [offset, offset + length) into dst. Areas between files
 // read as zero. Called on the drive thread without the lock.
 bool readDisc(const Fst& fst, OpenFiles& files, u8* dst, u64 offset, u64 length) {
+    PetariNative::FrameTelemetry::Scope readTiming{PetariNative::FrameTelemetry::DiscRead};
     if (offset + length > fst.discEnd()) {
         std::fprintf(stderr, "DVD: read of 0x%llx bytes at disc offset 0x%llx is past the end of the disc\n",
                      static_cast<unsigned long long>(length), static_cast<unsigned long long>(offset));

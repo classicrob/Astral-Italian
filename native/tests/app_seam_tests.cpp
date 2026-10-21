@@ -664,6 +664,12 @@ int main() {
 }
 
 namespace PetariNative::App {
+    namespace Host {
+    void stallContext(char* stage, std::size_t, int* scenario, int* zone) {
+        stage[0] = '\0';
+        *scenario = *zone = -1;
+    }
+    }  // namespace Host
     void recordRouteFrame(bool) {
     }
     void observeProgressFrame() {

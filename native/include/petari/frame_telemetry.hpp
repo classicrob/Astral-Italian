@@ -52,6 +52,10 @@ enum Counter : unsigned {
     // Game thread: GameSystemSceneController::startScene waiting for the stage's
     // shader preparation (petari_gx_pipeline_stage_wait) before the first frame.
     StagePrepWait,
+    // DVD drive thread: one disc read (JKR archive mounts, file loads, effect
+    // resources all come through it). Time is the host read; the stall logger
+    // (native/app/stall_log.hpp) names a frame "resource-load" from it.
+    DiscRead,
     CounterCount
 };
 

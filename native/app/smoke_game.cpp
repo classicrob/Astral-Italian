@@ -199,10 +199,32 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
 #include <petari/host_allocation.hpp>
 #include <petari/input.hpp>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 namespace PetariNative::App {
+namespace Host {
+void stallContext(char* stage, std::size_t size, int* scenario, int* zone) {
+    stage[0] = '\0';
+    *scenario = *zone = -1;
+    const auto* system = SingletonHolder<GameSystem>::get();
+    const auto* controller = system ? system->mSceneController : nullptr;
+    if (controller == nullptr) return;
+    std::snprintf(stage, size, "%s", controller->mCurrSceneControlInfo.mStage);
+    *scenario = controller->mCurrSceneControlInfo.mScenarioNo;
+    if (controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End) &&
+        std::strcmp(controller->mCurrSceneControlInfo.mScene, "Game") == 0 && MR::isExistSceneObj(SceneObj_MarioHolder)) {
+        const auto* holder = MR::getSceneObj<MarioHolder>(SceneObj_MarioHolder);
+        const auto* actor = holder ? holder->getMarioActor() : nullptr;
+        if (Smoke::canObservePlayer(actor)) {
+            const auto* ground = actor->getMario()->mGroundPolygon;
+            if (ground && ground->isValid()) *zone = ground->getHostPlacementZoneID();
+        }
+    }
+}
+}  // namespace Host
+
 void recordRouteFrame(bool background) {
     static const char* path = std::getenv("PETARI_ROUTE_RECORD");
     const bool record = path && *path;

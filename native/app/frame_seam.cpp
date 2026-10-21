@@ -29,6 +29,7 @@ extern "C" void petari_gx_pipeline_report();
 #include "frame_stats.hpp"
 #include "launch_stage.hpp"
 #include "spike_profiler.hpp"
+#include "stall_log.hpp"
 #include "host.hpp"
 #include "progress_observe.hpp"
 #include "smoke_background.hpp"
@@ -103,6 +104,8 @@ struct Timing {
     bool unfocusedInFrame = false; // unfocused or unpresentable at any time this frame
     std::uint64_t counterNs[Telemetry::CounterCount] = {};
     std::uint64_t counterEvents[Telemetry::CounterCount] = {};
+    std::uint32_t discReads = 0;   // this frame's disc reads and their time, for the stall logger
+    std::uint32_t discReadUs = 0;
 };
 Timing gTiming;
 
@@ -126,6 +129,54 @@ std::uint64_t takeCounter(Telemetry::Counter counter, std::uint64_t* events = nu
 
 std::uint64_t takeMax(Telemetry::Counter counter) {
     return Telemetry::slots[counter].maxNs.exchange(0, std::memory_order_relaxed);
+}
+
+// Stall logger (stall_log.hpp). A frame under the threshold costs the one compare in Log::observe.
+void printStall(const StallLog::Stall& stall) {
+    char stage[64];
+    int scenario = -1, zone = -1;
+    char context[128] = "";
+    if (stall.phase != FrameStats::Phase::Startup) {
+        Host::stallContext(stage, sizeof(stage), &scenario, &zone);
+        if (stage[0] != '\0') {
+            std::snprintf(context, sizeof(context), "stage %s", stage);
+            std::size_t n = std::strlen(context);
+            if (scenario >= 0) n += static_cast<std::size_t>(std::snprintf(context + n, sizeof(context) - n, " scenario %d", scenario));
+            if (zone >= 0) std::snprintf(context + n, sizeof(context) - n, " zone %d", zone);
+        }
+    }
+    char line[400];
+    StallLog::formatLine(stall, context, line, sizeof(line));
+    std::fprintf(stderr, "%s\n", line);
+}
+
+void reportStall(const FrameStats::Frame& frame) {
+    StallLog::FrameInput in;
+    in.frame = frame.index;
+    in.intervalMs = frame.intervalMs;
+    in.phase = frame.phase;
+    in.unfocused = frame.unfocused;
+    in.pipelines = frame.pipelineWaits;
+    in.textures = frame.textureUploads;
+    in.loads = gTiming.discReads;
+    in.pipelineUs = frame.us[FrameStats::PipelineWait];
+    in.textureUs = frame.us[FrameStats::TextureHash] + frame.us[FrameStats::TextureUpload];
+    in.loadUs = gTiming.discReadUs;
+    for (unsigned part = 0; part < FrameStats::kGameThreadParts; part++) {
+        if (frame.us[part] >= in.dominantUs) {
+            in.dominantUs = frame.us[part];
+            in.dominantPart = part;
+        }
+    }
+    const StallLog::Outcome out = StallLog::gLog.observe(in);
+    if (out.summary) {
+        char line[200];
+        StallLog::formatSummary(out.loading, line, sizeof(line));
+        std::fprintf(stderr, "%s\n", line);
+    }
+    if (out.stall) {
+        printStall(out.detail);
+    }
 }
 
 // At a seam entry: the frame since the previous seam entry.
@@ -191,6 +242,12 @@ void recordFrame(std::uint64_t entry, FrameStats::Phase phase) {
     frame.us[FrameStats::TextureHash] = microseconds(takeCounter(Telemetry::TextureHash));
     frame.us[FrameStats::TextureUpload] = microseconds(takeCounter(Telemetry::TextureUpload, &events));
     frame.textureUploads = static_cast<std::uint32_t>(events);
+    {
+        std::uint64_t reads = 0;
+        const std::uint64_t ns = takeCounter(Telemetry::DiscRead, &reads);
+        t.discReads = static_cast<std::uint32_t>(reads);
+        t.discReadUs = microseconds(ns);
+    }
     frame.us[FrameStats::TokenBarrierWait] = microseconds(takeCounter(Telemetry::TokenBarrierWait));
     frame.us[FrameStats::StagePrepWait] = microseconds(takeCounter(Telemetry::StagePrepWait));
     // A scene start that waited for its stage's shaders is part of loading,
@@ -199,6 +256,7 @@ void recordFrame(std::uint64_t entry, FrameStats::Phase phase) {
         frame.phase = FrameStats::Phase::Loading;
     }
     t.recorder->add(frame);
+    reportStall(frame);
     if (frame.intervalMs > t.spikeMs && SpikeProfiler::enabled()) {
         SpikeProfiler::keepSpike(frame.index, frame.intervalMs, t.lastEntry, entry);
     }
@@ -225,6 +283,7 @@ void startTiming() {
             gTiming.spikeMs = static_cast<double>(spikeMs);
         }
     }
+    StallLog::gLog.setThresholdMs(StallLog::thresholdFromText(std::getenv("PETARI_STALL_MS")));
     if (gTiming.recorder == nullptr) {
         // 30 minutes at 60 frames/s by default, about 100 bytes per frame.
         const std::size_t csvFrames = gTiming.csvPath != nullptr ? environmentNumber("PETARI_FRAME_CSV_FRAMES", 108000) : 0;
@@ -693,6 +752,11 @@ void reportFrameStats() {
     // Exit can come on a game thread whose plain new/delete use the game heap.
     HostAllocationScope host;
     SpikeProfiler::writeReport();
+    if (StallLog::LoadSummary pending; StallLog::gLog.takePending(&pending)) {
+        char line[200];
+        StallLog::formatSummary(pending, line, sizeof(line));
+        std::fprintf(stderr, "%s\n", line);
+    }
     static std::atomic<bool> reported{false};
     if (gTiming.recorder == nullptr || !gTiming.report || reported.exchange(true)) {
         return;

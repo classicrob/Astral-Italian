@@ -1,5 +1,6 @@
 // One-key playtest capture: see playtest_capture.hpp.
 #include "playtest_capture.hpp"
+#include "stall_log.hpp"
 
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
@@ -24,6 +25,7 @@ namespace PetariNative::App::PlaytestCapture {
 namespace {
 
 constexpr int kHistory = 300;
+constexpr std::size_t kRing = StallLog::kRing;
 
 struct Slot {
     RouteRecordFrame row;
@@ -72,6 +74,9 @@ void writeState(const std::string& dir, const RouteRecordFrame& row) {
     std::fprintf(f, "shoot %d; host pointer valid %d, position %.6f %.6f (x right, y down; screen -1..1)\n", i.shoot, i.pointerValid, i.pointerX, i.pointerY);
     std::fprintf(f, "mods: %s\n", mods != nullptr ? mods : "(mods.txt)");
     std::fprintf(f, "app log: %s\n", log != nullptr ? log : "(not set)");
+    char stalls[kRing * 120 + 160];
+    StallLog::formatCapture(StallLog::gLog, kHistory, stalls, sizeof(stalls));
+    std::fputs(stalls, f);
     std::fprintf(f, "route.csv: the last %d frames before the press, oldest first\n", gCount);
     std::fprintf(f, "note: (write what felt off here)\n");
     std::fclose(f);

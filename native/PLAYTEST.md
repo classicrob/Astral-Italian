@@ -391,3 +391,30 @@ Continue using CUA for screenshots, pointer operations, window control and all
 other interactions. This helper sends OS events; it never injects game inputs or
 changes game state directly. SIGKILL cannot run cleanup; prefer the handled
 signals when stopping it.
+
+## Stall log: why a frame hitched
+
+Every frame whose wall-clock interval exceeds 20 ms prints one line to stderr (the play log), with no setup:
+
+```
+[stall] frame 9973 34.2 ms phase=gameplay cause=pipeline-compile+resource-load (pipelines 3, textures 0, loads 1) stage YosshiHomeGalaxy scenario 1 zone 5
+[stall] frame 7 41.0 ms phase=gameplay cause=other (game_work 38.0 ms; pipelines 0, textures 0, loads 0) stage ...
+[stall] 12 frames over the threshold during loading, worst 412.0 ms (frame 331); causes pipeline-compile+texture-upload
+```
+
+- `frame` is the seam's frame counter (the same one as the `PETARI_FRAME_CSV` index). `phase` is startup, loading, menu or gameplay;
+  `unfocused` is appended if the window lacked focus during the frame.
+- Causes come from counters bumped where the work happens (`native/include/petari/frame_telemetry.hpp`): `pipeline-compile` is a
+  blocking GPU pipeline resolve on the GX processor (`PipelineWait`), `texture-upload` a static texture hash/create/upload
+  (`TextureHash`, `TextureUpload`), `resource-load` disc reads on the DVD drive thread (`DiscRead`: JKR archive mounts, file and
+  effect-resource loads). A cause counts when it took at least 1 ms in the frame; all that count are listed, the longest first.
+  `loads` counts disc reads, including background streaming, so it is a hint, not proof. With no cause the frame is `other`,
+  and the dominating game-thread part of the frame (`GameWork`, `DrawDoneWait`, `SeamEndFrame`, ... see `frame_stats.hpp`) is named.
+- Startup and Loading stalls are not printed one by one: one summary line is printed when the load ends.
+- `PETARI_STALL_MS=<ms>` changes the threshold; `PETARI_STALL_MS=0` turns the log off.
+- The M / F9 capture (`PETARI_CAPTURE_DIR`) writes a `stalls (last 300 frames): ...` line into `state.txt`: `none over 20 ms`, or the
+  count followed by one `stall frame N ms ... cause=...` line each (only the newest 32 stalls are remembered: `at least 32` means more).
+- `other (unattributed N ms ...)` means the game thread's frame-loop marks were missing for that frame or the thread was off-CPU (an
+  overloaded host): the stall is real but not one of the named causes.
+
+Code: `native/app/stall_log.hpp` (classifier, ring, rate limit), hooked in `frame_seam.cpp`; test `native_stall_log`.

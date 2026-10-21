@@ -163,7 +163,7 @@ if(BUILD_TESTING)
     add_executable(petari_app_seam_tests ${PETARI_REPO_ROOT}/native/tests/app_seam_tests.cpp frame_seam.cpp frame_stats.cpp spike_profiler.cpp)
     target_link_libraries(petari_app_seam_tests PRIVATE petari_app_smoke)
     target_compile_definitions(petari_app_seam_tests PRIVATE PETARI_HAS_CUTSCENE_SKIP=1)
-    target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_REPO_ROOT}/native/include ${PETARI_REPO_ROOT}/native/home_menu/include)
     if(_petari_app_standalone)
         target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_AURORA_INCLUDE_DIR} ${PETARI_SDL3_INCLUDE_DIR})
     else()
@@ -171,6 +171,11 @@ if(BUILD_TESTING)
             $<TARGET_PROPERTY:aurora::core,INTERFACE_INCLUDE_DIRECTORIES>)
     endif()
     add_test(NAME native_app_seam COMMAND petari_app_seam_tests)
+
+    # Playtest stall logger classifier, ring and rate limit (stall_log.hpp). Pure logic.
+    add_executable(petari_stall_log_tests ${PETARI_REPO_ROOT}/native/tests/stall_log_tests.cpp frame_stats.cpp)
+    target_link_libraries(petari_stall_log_tests PRIVATE petari_native_config)
+    add_test(NAME native_stall_log COMMAND petari_stall_log_tests)
 
     # Present-interval summary and off-cadence math (petari/present_stats.hpp).
     add_executable(petari_present_stats_tests ${PETARI_REPO_ROOT}/native/tests/present_stats_tests.cpp)

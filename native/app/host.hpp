@@ -5,6 +5,7 @@
 // headers (Aurora's dolphin/ GX headers and the SDK's revolution/ headers
 // declare the same names).
 
+#include <cstddef>
 #include <filesystem>
 #include <string>
 
@@ -46,6 +47,9 @@ namespace Host {
 FrameStats::Phase framePhase();
 // The pause menu is open (the game's own audio pause state). Same thread rules.
 bool pauseMenuActive();
+// Where the player is, for a stall log line (stall_log.hpp): the stage name into stage (empty if no stage) and
+// the scenario and Mario's ground zone id (-1 if unknown). Same thread rules; only called on a stalled frame.
+void stallContext(char* stage, std::size_t size, int* scenario, int* zone);
 }  // namespace Host
 
 // --- input_events.cpp ---

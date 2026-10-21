@@ -59,4 +59,36 @@ class LiveControls(unittest.TestCase):
    with self.assertRaises(b.DiskBudgetExceeded):
     with b.LiveBudgetJob(work,3,root,0,4096,0.02,baseline=baseline):self.fail('existing build growth must not be rebased away')
    self.check_reaped(work)
+class OwnershipSourceModels(unittest.TestCase):
+ def setup_model(self,root):
+  work=root/'work';work.mkdir();job=b.LiveBudgetJob(work,3,root,0,1024**2,0.02)
+  job.fixture_identity_path=root/'identity.json';job.groups[707]=types.SimpleNamespace(pid=707)
+  return job,work
+ def test_matching_report_and_kernel_but_wrong_session_leader_rejects(self):
+  with retained_fixture() as d:
+   job,work=self.setup_model(Path(d));job.fixture_identity_path.write_text(json.dumps({'pid':707,'pgid':808,'sid':808,'uid':501}))
+   with patch.object(b.os,'getpgid',return_value=808),patch.object(b.os,'getsid',return_value=808),patch.object(b.os,'killpg') as kill:
+    with self.assertRaises(RuntimeError):job.observe_fixture()
+    self.assertEqual(job.ownership[707]['status'],'CONTRADICTED');self.assertNotIn(707,job.identities)
+    with self.assertRaises(RuntimeError):job.stop_group(job.groups[707])
+    kill.assert_not_called()
+ def test_missing_identity_is_not_verified_and_does_not_signal(self):
+  with retained_fixture() as d:
+   job,work=self.setup_model(Path(d))
+   with patch.object(b.os,'killpg') as kill:
+    job.observe_fixture();self.assertEqual(job.ownership[707]['status'],'MISSING')
+    with self.assertRaises(RuntimeError):job.stop_group(job.groups[707])
+    kill.assert_not_called()
+ def test_verified_observation_requires_both_kernel_values(self):
+  with retained_fixture() as d:
+   job,work=self.setup_model(Path(d));job.fixture_identity_path.write_text(json.dumps({'pid':707,'pgid':707,'sid':707,'uid':501}))
+   with patch.object(b.os,'getpgid',return_value=707),patch.object(b.os,'getsid',return_value=707):job.observe_fixture()
+   self.assertEqual(job.ownership[707]['status'],'VERIFIED');self.assertEqual(job.identities[707]['uid'],501)
+ def test_cleanup_failure_never_reports_success(self):
+  with retained_fixture() as d:
+   job,work=self.setup_model(Path(d));failure=RuntimeError('mock cleanup failure')
+   with patch.object(b.signal,'setitimer'),patch.object(b.p.OwnedJob,'__exit__',side_effect=failure):
+    with self.assertRaises(RuntimeError):job.__exit__(RuntimeError,failure,None)
+   data=json.loads((work/'disk-budget.json').read_text());self.assertEqual(data['cleanup']['status'],'FAILED_OR_UNCERTAIN');self.assertFalse(data['cleanup']['all_owned_groups_absence_confirmed']);self.assertEqual(data['cleanup']['remaining_groups'][0]['registered_leader_pid'],707);self.assertIsNotNone(data['cleanup']['error']);self.assertIn('NOT established',data['cleanup_order'])
+
 if __name__=='__main__':unittest.main()

@@ -64,3 +64,23 @@ packaging baseline. Any new lifecycle control execution requires L source review
 a concrete diagnostic/cause/fix proposal and fresh explicit PORT allocation. A
 new control must preserve exact operation, PID/PGID/SID/UID and timestamps; successful
 normal child exit or source/model checks cannot substitute for real group termination.
+
+## Source amendment after root review (controls still UNRUN)
+
+For the exact disposable fixture, both child report and independent parent PGID/SID
+observations must equal the registered Popen leader PID, not merely each other.
+VERIFIED ownership is published only after that check. MISSING, OBSERVATION_FAILED
+and CONTRADICTED remain distinct; failed/contradicted observations are sticky for
+that fixture. No killpg probe/TERM/KILL is permitted for an unverified or contradicted
+fixture target. The mismatch report and registered target remain preserved. This
+is not a generic compiler UID protocol and does not explain the old unbound EPERM.
+
+Exit metadata now records actual superclass cleanup success/error/traceback, its
+base report and remaining registered leaders/requested groups/ownership. Failure
+wording explicitly says success/absence was NOT established; it never unconditionally
+claims all groups stopped. Failure-path cleanup still precedes allocation-tree scans.
+
+Four additional source-model tests are prepared for wrong leader despite matching
+report/kernel values, missing identity, fully verified leader, and cleanup failure
+metadata. They are UNRUN, along with all amended lifecycle controls. Only syntax
+compilation was checked; no new signals, child lifecycle executions or native builds.

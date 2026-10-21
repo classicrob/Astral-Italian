@@ -30,7 +30,7 @@ def allocated_bytes(root):
 
 class LiveBudgetJob(p.OwnedJob):
  def __init__(self,work,seconds,root,min_free,max_growth,interval,baseline=None):
-  super().__init__(work,seconds);self.root=Path(root);self.min_free=min_free;self.max_growth=max_growth;self.interval=interval;self.baseline=baseline;self.samples=0;self.peak_growth=0;self.lowest_free=None;self.failure=None;self.max_scan_seconds=0;self.identities={};self.fixture_identity_path=None;self.operation_stage='idle'
+  super().__init__(work,seconds);self.root=Path(root);self.min_free=min_free;self.max_growth=max_growth;self.interval=interval;self.baseline=baseline;self.samples=0;self.peak_growth=0;self.lowest_free=None;self.failure=None;self.max_scan_seconds=0;self.identities={};self.ownership={};self.fixture_identity_path=None;self.operation_stage='idle'
  def __enter__(self):
   super().__enter__()
   try:
@@ -55,23 +55,53 @@ class LiveBudgetJob(p.OwnedJob):
    payload=(json.dumps(event,sort_keys=True)+'\n').encode();written=os.write(fd,payload)
    if written!=len(payload):raise RuntimeError('incomplete syscall journal write')
   finally:os.close(fd)
+ def ownership_state(self,pid,status,**evidence):
+  state={'status':status,**evidence};self.ownership[pid]=state
+  self.journal({'event':'ownership_state','pid':pid,'ownership':dict(state)})
  def observe_fixture(self):
-  # Future disposable fixture supplies its ACTUAL self-observed identity.
-  # No UID is inferred from the parent or from start_new_session=True.
-  if self.fixture_identity_path is None or not self.fixture_identity_path.exists():return
-  data=json.loads(self.fixture_identity_path.read_text());required={'pid','pgid','sid','uid'}
-  if set(data)!=required or not all(type(data[k]) is int for k in required):raise RuntimeError('invalid fixture identity')
-  if data['pid'] not in self.groups:raise RuntimeError('identity is not registered child')
-  old=self.identities.get(data['pid'])
-  if old is not None and old!=data:raise RuntimeError('child identity changed')
-  if old is None:
-   # Preserve immutable observation and compare actual parent PGID/SID reads.
-   observed={'pgid':self.operation('getpgid-observe',data['pid'],lambda:os.getpgid(data['pid'])),'sid':self.operation('getsid-observe',data['pid'],lambda:os.getsid(data['pid']))}
-   if observed['pgid']!=data['pgid'] or observed['sid']!=data['sid']:raise RuntimeError('fixture identity mismatch')
-   self.identities[data['pid']]=dict(data);self.journal({'event':'actual_child_identity','identity':dict(data)})
+  # Exact disposable fixture only. No compiler UID/ownership claim is made.
+  if self.fixture_identity_path is None:return
+  if not self.fixture_identity_path.exists():
+   for pid in self.groups:
+    previous=self.ownership.get(pid,{}).get('status')
+    if previous in ('CONTRADICTED','OBSERVATION_FAILED'):continue
+    state='OBSERVATION_FAILED' if previous=='VERIFIED' else 'MISSING'
+    if previous!=state:self.ownership_state(pid,state,reason='fixture identity file absent')
+   return
+  try:
+   data=json.loads(self.fixture_identity_path.read_text());required={'pid','pgid','sid','uid'}
+   if set(data)!=required or not all(type(data[k]) is int for k in required):raise RuntimeError('invalid fixture identity')
+   if data['pid'] not in self.groups:
+    for pid in self.groups:self.ownership_state(pid,'CONTRADICTED',reported_identity=data,reason='reported PID is not registered child')
+    raise RuntimeError('identity is not registered child')
+   pid=data['pid']
+   if self.ownership.get(pid,{}).get('status') in ('CONTRADICTED','OBSERVATION_FAILED'):raise RuntimeError('prior ownership contradiction/observation failure is not recoverable in this fixture')
+   old=self.identities.get(pid)
+   if old is not None and old!=data:
+    self.ownership_state(pid,'CONTRADICTED',reported_identity=data,prior_identity=old,reason='immutable child identity changed')
+    raise RuntimeError('child identity changed')
+   if old is None:
+    observed={'pgid':self.operation('getpgid-observe',pid,lambda:os.getpgid(pid)),'sid':self.operation('getsid-observe',pid,lambda:os.getsid(pid))}
+    # BOTH independent observations must identify this registered session leader.
+    if observed['pgid']!=pid or observed['sid']!=pid or data['pgid']!=pid or data['sid']!=pid:
+     self.ownership_state(pid,'CONTRADICTED',observed=observed,reported_identity=data,registered_leader=pid,reason='unexpected process group/session')
+     raise RuntimeError('fixture is not the registered new-session group leader')
+    self.identities[pid]=dict(data);self.ownership_state(pid,'VERIFIED',observed=observed,identity=dict(data))
+    self.journal({'event':'actual_child_identity','identity':dict(data)})
+  except BaseException as error:
+   for pid in self.groups:
+    if self.ownership.get(pid,{}).get('status')!='CONTRADICTED':self.ownership_state(pid,'OBSERVATION_FAILED',reason=repr(error))
+   raise
+ def require_signal_ownership(self,pid):
+  # Missing/failed observations are not verified ownership. In this fixture mode
+  # no signal/probe targets an unverified or contradicted requested process group.
+  if self.fixture_identity_path is not None and self.ownership.get(pid,{}).get('status')!='VERIFIED':
+   self.journal({'event':'signal_blocked_unverified_ownership','pid':pid,'ownership':self.ownership.get(pid,{'status':'MISSING'})})
+   raise RuntimeError('fixture process-group ownership is not verified')
  def operation(self,name,pid,call):
   self.operation_stage=name;identity=self.identities.get(pid)
-  self.journal({'event':'intent','operation':name,'pid':pid,'requested_pgid':pid,'actual_identity':identity,'identity_complete':identity is not None})
+  if name.startswith('killpg'):self.require_signal_ownership(pid)
+  self.journal({'event':'intent','operation':name,'pid':pid,'requested_pgid':pid,'actual_identity':identity,'identity_complete':self.ownership.get(pid,{}).get('status')=='VERIFIED','ownership':self.ownership.get(pid,{'status':'UNOBSERVED'})})
   try:value=call()
   except BaseException as error:
    self.journal({'event':'error','operation':name,'pid':pid,'errno':getattr(error,'errno',None),'error':repr(error),'traceback':traceback.format_exception(type(error),error,error.__traceback__)})
@@ -86,6 +116,7 @@ class LiveBudgetJob(p.OwnedJob):
   try:self.observe_fixture()
   except BaseException as error:
    observation_error=error;self.journal({'event':'identity_observation_error','error':repr(error),'traceback':traceback.format_exception(type(error),error,error.__traceback__)})
+  self.require_signal_ownership(proc.pid)
   for sig,grace in ((signal.SIGTERM,1.0),(signal.SIGKILL,3.0)):
    try:self.operation('killpg-'+signal.Signals(sig).name,proc.pid,lambda:os.killpg(proc.pid,sig))
    except ProcessLookupError:pass
@@ -114,8 +145,19 @@ class LiveBudgetJob(p.OwnedJob):
   if typ is None and self.failure is None:
    try:self.check()
    except BaseException as error:late=error
+  cleanup_error=None
   try:return_value=super().__exit__(typ or (type(late) if late else None),value or late,tb)
+  except BaseException as error:
+   cleanup_error={'error':repr(error),'errno':getattr(error,'errno',None),'traceback':traceback.format_exception(type(error),error,error.__traceback__)}
+   raise
   finally:
-   p.dump(self.work/'disk-budget.json',{'root':str(self.root),'initial_allocated_bytes':self.baseline,'minimum_free_bytes':self.min_free,'maximum_owned_growth_bytes':self.max_growth,'sampling_seconds':self.interval,'samples':self.samples,'peak_observed_growth_bytes':self.peak_growth,'lowest_observed_free_bytes':self.lowest_free,'max_scan_seconds':self.max_scan_seconds,'failure':self.failure,'cleanup_order':'all owned PGIDs stopped/reaped/absence checked BEFORE this metadata; no output deletion','semantics':'sampled observed enforcement; not an instantaneous filesystem quota'})
+   base_cleanup=None;base_read_error=None
+   try:base_cleanup=json.loads((self.work/'owned-process-cleanup.json').read_text())
+   except BaseException as error:base_read_error=repr(error)
+   confirmed=(cleanup_error is None and not self.groups and base_cleanup is not None and base_cleanup.get('all_owned_groups_absent') is True and not base_cleanup.get('failures'))
+   remaining=[{'registered_leader_pid':pid,'requested_pgid':pid,'ownership':self.ownership.get(pid,{'status':'UNOBSERVED'})} for pid in self.groups]
+   cleanup={'status':'CONFIRMED' if confirmed else 'FAILED_OR_UNCERTAIN','all_owned_groups_absence_confirmed':confirmed,'remaining_groups':remaining,'error':cleanup_error,'base_report':base_cleanup,'base_report_read_error':base_read_error}
+   order='owned-group cleanup confirmed before this metadata' if confirmed else 'owned-group cleanup attempted before metadata; success/absence NOT established'
+   p.dump(self.work/'disk-budget.json',{'root':str(self.root),'initial_allocated_bytes':self.baseline,'minimum_free_bytes':self.min_free,'maximum_owned_growth_bytes':self.max_growth,'sampling_seconds':self.interval,'samples':self.samples,'peak_observed_growth_bytes':self.peak_growth,'lowest_observed_free_bytes':self.lowest_free,'max_scan_seconds':self.max_scan_seconds,'failure':self.failure,'cleanup':cleanup,'cleanup_order':order,'semantics':'sampled observed enforcement; not an instantaneous filesystem quota'})
   if late and typ is None:raise late
   return return_value

@@ -139,6 +139,9 @@ namespace JPA {
                 return nullptr;
             }
             if (type == tag("KFA1")) {  // key count at 0x09, f32 (time, value, in, out) keys at 0x0C
+                if (size < 0x0C) {
+                    return "KFA1 smaller than its data";
+                }
                 const std::uint32_t keys = mImage[block + 0x09];
                 if (0x0C + keys * 16 > size) {
                     return "KFA1 keys outside the block";

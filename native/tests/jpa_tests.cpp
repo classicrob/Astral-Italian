@@ -236,6 +236,65 @@ static void testSynthetic() {
     check(rejects(bad), "color table outside block rejected");
 }
 
+// Converter-only synthetic inputs; a lone key block is not a runnable effect resource.
+static void testKeyBlockHeaderBounds() {
+    auto singleKeyBlock = [](std::size_t size, std::uint8_t keys) {
+        Buffer file(0x18 + size, 0);
+        std::memcpy(file.data(), "JPAC2-10", 8);
+        put16(file, 0x08, 1);  // one resource, no textures
+        put16(file, 0x12, 1);  // one block
+        file[0x15] = 1;        // one key block
+        std::memcpy(&file[0x18], "KFA1", 4);
+        put32(file, 0x1C, static_cast< std::uint32_t >(size));
+        if (size > 9) {
+            file[0x21] = keys;
+        }
+        return file;
+    };
+
+    for (std::size_t size = 8; size < 0x0C; ++size) {
+        const Buffer file = singleKeyBlock(size, 0);
+        Buffer image(file.size());
+        const char* error = JPA::makeHostImage(file.data(), static_cast< std::uint32_t >(file.size()), image.data());
+        check(error != nullptr && std::strcmp(error, "KFA1 smaller than its data") == 0,
+              "short KFA1 header rejected before reading its fields");
+    }
+
+    const Buffer emptyKeys = singleKeyBlock(0x0C, 0);  // complete header, no key scalars
+    Buffer emptyImage(emptyKeys.size());
+    const char* emptyError = JPA::makeHostImage(emptyKeys.data(), static_cast< std::uint32_t >(emptyKeys.size()), emptyImage.data());
+    check(emptyError == nullptr, "minimum zero-key KFA1 header converted");
+    if (emptyError == nullptr) {
+        check(hostAt< std::uint32_t >(emptyImage, 0x18) == 0x4B464131 &&
+                  hostAt< std::uint32_t >(emptyImage, 0x1C) == 0x0C && emptyImage[0x21] == 0,
+              "minimum zero-key KFA1 framing/count preserved");
+    }
+
+    Buffer file = singleKeyBlock(0x0C + 16, 1);  // smallest one-key payload
+    const float values[4] = {0.0f, 2.5f, -1.0f, 0.125f};
+    for (std::size_t i = 0; i < 4; ++i) {
+        put32(file, 0x24 + i * 4, floatBits(values[i]));
+    }
+    Buffer image(file.size());
+    const char* error = JPA::makeHostImage(file.data(), static_cast< std::uint32_t >(file.size()), image.data());
+    check(error == nullptr, "minimum one-key KFA1 converted");
+    if (error == nullptr) {
+        check(hostAt< std::uint32_t >(image, 0x18) == 0x4B464131 &&
+                  hostAt< std::uint32_t >(image, 0x1C) == 0x1C && image[0x21] == 1,
+              "minimum KFA1 framing/count preserved");
+        for (std::size_t i = 0; i < 4; ++i) {
+            check(hostAt< std::uint32_t >(image, 0x24 + i * 4) == floatBits(values[i]),
+                  "minimum KFA1 key scalar bits preserved");
+        }
+    }
+
+    file = singleKeyBlock(0x0C + 16, 2);  // complete header, truncated key payload
+    image.assign(file.size(), 0);
+    error = JPA::makeHostImage(file.data(), static_cast< std::uint32_t >(file.size()), image.data());
+    check(error != nullptr && std::strcmp(error, "KFA1 keys outside the block") == 0,
+          "complete KFA1 header still rejects truncated keys");
+}
+
 static bool readFile(const std::filesystem::path& path, Buffer* pOut) {
     std::ifstream file(path, std::ios::binary);
     if (!file) {
@@ -321,6 +380,7 @@ static void testAssets(const std::filesystem::path& filesRoot) {
 
 int main(int argc, char** argv) {
     testSynthetic();
+    testKeyBlockHeaderBounds();
     if (argc == 3 && std::strcmp(argv[1], "--assets") == 0) {
         testAssets(argv[2]);
     } else if (argc != 1) {

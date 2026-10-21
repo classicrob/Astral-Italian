@@ -41,6 +41,12 @@ class FeelTests(unittest.TestCase):
         self.assertEqual(data['gameplay']['unfocused']['sum'], 1)
         self.assertEqual(data['gameplay']['efb_captures']['sum'], 1)
 
+    def test_csv_startup_is_not_launch_latency(self):
+        path = self.file('f.csv', 'frame,phase,interval_ms\n1,startup,16\n')
+        result = fm.extract(self.launch, self.context, path)
+        self.assertEqual(result['channels']['frames']['status'], 'MEASURED')
+        self.assertEqual(result['channels']['startup_wall_latency']['status'], 'NOTMEASURED')
+
     def test_unknown_phase_not_relabelled_gameplay(self):
         path = self.file('f.csv', 'frame,phase,interval_ms\n0,,10\n')
         self.assertEqual(set(fm.frames(path)['phases']), {'UNKNOWN'})

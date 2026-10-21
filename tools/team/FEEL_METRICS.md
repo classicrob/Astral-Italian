@@ -36,3 +36,5 @@ nice -n 19 python3 -m unittest tools/team/test_feel_metrics.py
 ```
 
 Real gate receipts also configure CSV writers, editor-mouse tracing, input logging and F9 capture directories. These are now retained in the configured diagnostic-overhead list; a capture-directory setting does not claim continuous capture. SDL_AUDIO_DRIVER/SDL_AUDIODRIVER selection is retained separately, including dummy versus DEFAULT. This does not infer actual hardware output without the bound sink witness.
+
+CSV startup samples are not full launch-to-first-present latency: renderer initialization or seed precompilation can precede frame1. startup_wall_latency remains explicitly NOTMEASURED without bound process-launch/first-present timestamps. Low CSV startup p95 and zero blocking-resolve events do not establish hitch-free or quick initial preload.

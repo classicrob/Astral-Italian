@@ -161,7 +161,9 @@ def extract(launch, context, frame_path=None, log_path=None):
     environment = launch.get('environment', {})
     frame_data = frames(frame_path)
     text = log_path.read_text(errors='replace') if log_path is not None and log_path.is_file() else ''
-    channels = {'frames': frame_data, **log_metrics(text, environment, context)}
+    channels = {'frames': frame_data,
+                'startup_wall_latency': missing('no bound process-launch and first-present timestamps; CSV startup samples exclude unobserved pre-frame work'),
+                **log_metrics(text, environment, context)}
     enabled = [key for key in DIAGNOSTICS if environment.get(key) not in (None, '', '0', 'off', 'false')]
     contamination = context.get('contamination', {})
     require(isinstance(contamination, dict), 'contamination must be structured')

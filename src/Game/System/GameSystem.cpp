@@ -1,5 +1,6 @@
 #ifdef GALAXY_NATIVE
 #include <petari/app.hpp>
+#include "visual/draw_observer.hpp"
 #include "launch_stage.hpp"
 #include <cstdlib>
 #include <cstdio>
@@ -232,8 +233,29 @@ bool GameSystem::isPreparedReset() const {
 }
 
 void GameSystem::frameLoop() {
+#ifdef GALAXY_NATIVE
+    if (const auto* callbacks = PetariNative::Visual::drawObserverCallbacks()) {
+        if (callbacks->loopEntry) {
+            callbacks->loopEntry(this, MainLoopFramework::sManager);
+        }
+    }
+#endif
     MainLoopFramework::sManager->beginRender();
+#ifdef GALAXY_NATIVE
+    if (const auto* callbacks = PetariNative::Visual::drawObserverCallbacks()) {
+        if (callbacks->drawEntry) {
+            callbacks->drawEntry(this, MainLoopFramework::sManager);
+        }
+    }
+#endif
     draw();
+#ifdef GALAXY_NATIVE
+    if (const auto* callbacks = PetariNative::Visual::drawObserverCallbacks()) {
+        if (callbacks->drawExit) {
+            callbacks->drawExit(this, MainLoopFramework::sManager);
+        }
+    }
+#endif
     MainLoopFramework::sManager->endRender();
     update();
     calcAnim();

@@ -46,3 +46,22 @@ EPERM or cleanup uncertainty remains failure with retained records; never claim
 absence or successful release from leader exit alone. No fullproof caller,
 monitor, transform_dep, package or publisher is used. Original31a/046/6c52, old94
 runner and failed71679 diagnostic remain unchanged.
+
+
+The caller now requires an EXTERNALLY SUPPLIED, byte-exact launch envelope matching
+all keys/values of pinned launch.env. It validates that complete mapping at entry
+BEFORE state/root/lock operations and again before/after each command. It does not
+mutate os.environ, reexec itself, ignore implicit platform keys or treat ordinary
+BB ambient env as equivalent. A future allocated launcher must supply that exact
+minimal mapping; any added/missing/changed key rejects without files/lock/children.
+This is an enforced launch precondition, not a claim that71679 actually passed.
+No new signal, permission or subprocess mechanism is introduced.
+
+STATE is created only AFTER successful nonblocking lock acquisition and floor
+check, via O_EXCL/O_NOFOLLOW. Existing state—even if the work root is absent—is
+preserved. Updates use only the retained descriptor, after fstat/lstat dev+inode+
+UID/regular/single-link checks, with bounded bytes/checked write/truncate/fsync and
+post-check. A replaced path is never reopened or unlinked. Owner-fstat failure
+retains the exact partial path and refuses rewriting. Lock contention has no STATE
+object, so its finally path cannot create/overwrite one. Native execution remains
+disabled; filesystem models exercise only private temporary fixture state.

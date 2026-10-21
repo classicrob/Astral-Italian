@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shlex
 import shutil
+import stat
 import time
 from observer_standalone_supervisor import checked_plan,load_leaves,make_job_class,MECHANISMS
 
@@ -51,7 +52,44 @@ def revalidate(plan,launch,metadata,check):
     for argv0,row in launch['targets'].items():
         need(str(Path(argv0).resolve())==row['path'],'chosen target resolution drift')
         verify_record(argv0,row['sha256'],check)
-    need(dict(os.environ)==launch['env'],'actual execution environment differs from pinned envelope')
+    require_exact_launch_envelope(launch)
+
+
+def require_exact_launch_envelope(launch):
+    expected=launch['env']
+    need(type(expected) is dict and all(type(k) is str and type(v) is str for k,v in expected.items()),'invalid exact launch envelope')
+    need(dict(os.environ)==expected,'byte-exact validated launch envelope required; no environment keys ignored or installed')
+
+
+class OwnedState:
+    def __init__(self,path):
+        self.path=Path(path);self.fd=None
+        fd=os.open(self.path,os.O_RDWR|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+        try:
+            observed=os.fstat(fd)
+            need(stat.S_ISREG(observed.st_mode) and observed.st_uid==os.getuid() and observed.st_nlink==1,'fresh STATE ownership unavailable')
+            self.identity=(observed.st_dev,observed.st_ino,observed.st_uid)
+            self.fd=fd
+        except BaseException as error:
+            try:os.close(fd)
+            except OSError:pass
+            raise RuntimeError('retained unverified STATE path; no unlink or rewrite: '+str(self.path)) from error
+    def verify(self):
+        need(self.fd is not None,'STATE descriptor closed')
+        for observed in (os.fstat(self.fd),self.path.lstat()):
+            need(stat.S_ISREG(observed.st_mode) and observed.st_nlink==1 and
+                 (observed.st_dev,observed.st_ino,observed.st_uid)==self.identity,'owned STATE identity changed; refusing rewrite')
+    def update(self,value):
+        raw=(json.dumps(value)+'\n').encode();need(len(raw)<=65536,'STATE exceeds bounded metadata')
+        self.verify();os.lseek(self.fd,0,os.SEEK_SET);offset=0
+        while offset<len(raw):
+            try:written=os.write(self.fd,raw[offset:])
+            except InterruptedError:continue
+            need(written>0,'short STATE write');offset+=written
+        os.ftruncate(self.fd,len(raw));os.fsync(self.fd);self.verify()
+    def close(self):
+        if self.fd is not None:
+            fd=self.fd;self.fd=None;os.close(fd)
 
 
 def consumed_md(path,cwd,inventory,check):
@@ -102,6 +140,7 @@ def execute_after_qualification(contract,plan_path,launch_path,inputs_path,leave
     contract=pinned_json(contract,contract_pin);need(contract['execution_enabled'] is True,'source-only contract cannot execute')
     for path,pin in contract['caller_sources'].items():verify_record(path,pin,lambda:None)
     plan=checked_plan(plan_path,PLAN);launch=pinned_json(launch_path,LAUNCH);inventory=pinned_json(inputs_path,INPUTS)
+    require_exact_launch_envelope(launch)
     need(os.getpriority(os.PRIO_PROCESS,0)>=19,'nice19 required')
     work=Path(work).resolve();need(not work.exists(),'fresh output root required')
     need((Path.home()/'MacioGalaxy2-gamedata') in work.parents,'private output required')
@@ -117,12 +156,13 @@ def execute_after_qualification(contract,plan_path,launch_path,inputs_path,leave
     # Persistent lock is never removed. Do not queue behind another job.
     lockpath=Path.home()/'MacioGalaxy2-team/slots/native.lock'
     lockfd=os.open(lockpath,os.O_RDWR|os.O_CREAT|os.O_NOFOLLOW,0o600)
-    held=False;cleanup_confirmed=False;job=None;result={}
+    held=False;cleanup_confirmed=False;job=None;result={};state_owner=None
     state=work.parent/(work.name+'.STATE.json')
     try:
         fcntl.lockf(lockfd,fcntl.LOCK_EX|fcntl.LOCK_NB);held=True
         need(shutil.disk_usage(work.parent).free>=50*1024**3,'free-space floor50GiB')
-        state.write_text(json.dumps(dict(host='M1',source=contract['caller_sources'],binary='UNRUN',phase='PREPARE_OWNED_JOB',output=str(work),pid=os.getpid(),resume='retain failure; no retry/partial acceptance'))+'\n')
+        state_owner=OwnedState(state)
+        state_owner.update(dict(host='M1',source=contract['caller_sources'],binary='UNRUN',phase='PREPARE_OWNED_JOB',output=str(work),pid=os.getpid(),resume='retain failure; no retry/partial acceptance'))
         modules=load_leaves(leaves);Job=make_job_class(modules)
         work.mkdir(mode=0o700);(work/'tmp').mkdir(mode=0o700)
         job=Job(work,plan,launch);job.total_started=started;job.absolute_work_end=min(job.absolute_work_end,started+110);result=dict(status='INCOMPLETE',plan_sha256=PLAN,commands=[],deps={},otool={},qualification='BLOCKED',qualified_frames=None)
@@ -132,7 +172,7 @@ def execute_after_qualification(contract,plan_path,launch_path,inputs_path,leave
             for command in plan['commands']:
                 revalidate(plan,launch,metadata,job.remaining)
                 for path,pin in contract['caller_sources'].items():verify_record(path,pin,job.remaining)
-                state.write_text(json.dumps(dict(host='M1',phase=command['label'],output=str(work),pid=os.getpid(),resume='retain failure; owned supervisor cleanup required'))+'\n')
+                state_owner.update(dict(host='M1',phase=command['label'],output=str(work),pid=os.getpid(),resume='retain failure; owned supervisor cleanup required'))
                 job.run_next();label=command['label'];argv=command['argv']
                 if label.startswith('compile-'):
                     result['deps'][label]=consumed_md(argv[argv.index('-MF')+1],command['cwd'],inventory,job.remaining)
@@ -156,9 +196,13 @@ def execute_after_qualification(contract,plan_path,launch_path,inputs_path,leave
         raise
     finally:
         # Do not describe a failed/unknown group as released or successful.
-        if not held:os.close(lockfd)
-        elif job is None or cleanup_confirmed:fcntl.lockf(lockfd,fcntl.LOCK_UN);os.close(lockfd)
-        state.write_text(json.dumps(dict(host='M1',phase='DONE' if cleanup_confirmed else 'FAILED_OR_UNCERTAIN',output=str(work),pid=os.getpid(),lock_release_claim=cleanup_confirmed,resume='root review; no retry'))+'\n')
+        try:
+            if state_owner is not None:
+                try:state_owner.update(dict(host='M1',phase='DONE' if cleanup_confirmed else 'FAILED_OR_UNCERTAIN',output=str(work),pid=os.getpid(),lock_release_claim=cleanup_confirmed,resume='root review; no retry'))
+                finally:state_owner.close()
+        finally:
+            if not held:os.close(lockfd)
+            elif job is None or cleanup_confirmed:fcntl.lockf(lockfd,fcntl.LOCK_UN);os.close(lockfd)
 
 
 if __name__=='__main__':

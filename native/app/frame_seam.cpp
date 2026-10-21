@@ -16,6 +16,9 @@
 #endif
 
 #include <algorithm>
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#endif
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -152,8 +155,62 @@ void printStall(const StallLog::Stall& stall) {
     std::fprintf(stderr, "%s\n", line);
 }
 
+#if defined(__APPLE__)
+// CPU time (user + system, microseconds) a thread has run, or -1.
+std::int64_t threadCpuUs(thread_act_t thread) {
+    thread_basic_info_data_t info;
+    mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+    if (thread == MACH_PORT_NULL ||
+        thread_info(thread, THREAD_BASIC_INFO, reinterpret_cast<thread_info_t>(&info), &count) != KERN_SUCCESS) {
+        return -1;
+    }
+    return (static_cast<std::int64_t>(info.user_time.seconds) + info.system_time.seconds) * 1000000 +
+           info.user_time.microseconds + info.system_time.microseconds;
+}
+
+// Aurora's render worker, by its thread name (no Aurora change). Looked up once a second until found.
+thread_act_t renderWorkerThread() {
+    static thread_act_t found = MACH_PORT_NULL;
+    static unsigned untilRetry = 0;
+    if (found != MACH_PORT_NULL || untilRetry-- > 0) return found;
+    untilRetry = 60;
+    thread_act_array_t threads = nullptr;
+    mach_msg_type_number_t count = 0;
+    if (task_threads(mach_task_self(), &threads, &count) != KERN_SUCCESS) return found;
+    for (mach_msg_type_number_t i = 0; i < count; i++) {
+        thread_extended_info_data_t info;
+        mach_msg_type_number_t n = THREAD_EXTENDED_INFO_COUNT;
+        if (found == MACH_PORT_NULL &&
+            thread_info(threads[i], THREAD_EXTENDED_INFO, reinterpret_cast<thread_info_t>(&info), &n) == KERN_SUCCESS &&
+            std::strncmp(info.pth_name, "Aurora render worker", sizeof(info.pth_name)) == 0) {
+            found = threads[i];
+        } else {
+            mach_port_deallocate(mach_task_self(), threads[i]);
+        }
+    }
+    vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(threads), count * sizeof(thread_act_t));
+    return found;
+}
+#endif
+
+// The frame's CPU time on the game thread (the seam's caller) and the render worker, for the stall logger.
+void frameCpu(StallLog::FrameInput* in) {
+#if defined(__APPLE__)
+    static const thread_act_t game = mach_thread_self();
+    static std::int64_t lastGame = -1, lastRender = -1;
+    const std::int64_t g = threadCpuUs(game), r = threadCpuUs(renderWorkerThread());
+    if (g >= 0 && lastGame >= 0) in->gameCpuUs = static_cast<std::int32_t>(std::min<std::int64_t>(g - lastGame, INT32_MAX));
+    if (r >= 0 && lastRender >= 0) in->renderCpuUs = static_cast<std::int32_t>(std::min<std::int64_t>(r - lastRender, INT32_MAX));
+    lastGame = g;
+    lastRender = r;
+#else
+    (void)in;
+#endif
+}
+
 void reportStall(const FrameStats::Frame& frame) {
     StallLog::FrameInput in;
+    if (StallLog::gLog.enabled()) frameCpu(&in);
     in.frame = frame.index;
     in.intervalMs = frame.intervalMs;
     in.phase = frame.phase;

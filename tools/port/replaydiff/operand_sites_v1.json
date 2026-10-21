@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "status": "STATIC_SITES_VERIFIED_NOT_RUNTIME_ACCEPTED",
+  "qualification": "BLOCKED",
+  "source_defect": null,
+  "dol_sha256": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+  "native_source": "6b78fad2261e08a3ef031b7d2677905b205ddf3f",
+  "dolphin_source": "409881c34357d0f105fd473167d15ab0bd9c1628",
+  "functions": {
+    "actor_init_after": {
+      "entry": "0x803b7bb0",
+      "size": 284,
+      "sha256": "3ccee080f126f12ac08bcf66ab4d1a4b31b7787bf5eddb0c05316f10a42863c0",
+      "execution": "UNOBSERVED"
+    },
+    "actor_init_member": {
+      "entry": "0x803bef00",
+      "size": 2028,
+      "sha256": "980880bb79edc1238cb4a28c13147a80637bd13883f00a1e55494085044fc7a7",
+      "execution": "UNOBSERVED"
+    },
+    "actor_camera_reset": {
+      "entry": "0x803bfbb0",
+      "size": 84,
+      "sha256": "de5d81e516cb7641f890b03a5401b358069dca24cc590319f607505bd5816224",
+      "execution": "UNOBSERVED"
+    },
+    "actor_force_matrix": {
+      "entry": "0x803bdb40",
+      "size": 192,
+      "sha256": "f0b1f0f35741ce2d39276f46012b81dceae0a624d9a254168f58550e3bde8ebf",
+      "execution": "UNOBSERVED"
+    },
+    "access_keep_up": {
+      "entry": "0x803b5560",
+      "size": 184,
+      "sha256": "90f4507d92d74ea5f7f2876feea1dc1f036f47bd2a30e2175e91f31d5d387be3",
+      "execution": "UNOBSERVED"
+    },
+    "actor_camera_update": {
+      "entry": "0x803c6670",
+      "size": 360,
+      "sha256": "f40492fd00458fb982f5536d70dd452858ed89f0a0273f071a7dfbbf1b67e200",
+      "execution": "UNOBSERVED"
+    },
+    "mario_constructor": {
+      "entry": "0x80386d60",
+      "size": 3292,
+      "sha256": "c6dfb76c924ae0b72d63b9e4df1fa031c0b45c0ac8d2208d98ba2c0854dc304f",
+      "execution": "UNOBSERVED"
+    },
+    "mario_set_front": {
+      "entry": "0x8038b000",
+      "size": 340,
+      "sha256": "012832d3220bffe63f169519bc7600c188743497660d82e6959c62cd52974a43",
+      "execution": "UNOBSERVED"
+    },
+    "mario_set_head": {
+      "entry": "0x8038afc0",
+      "size": 56,
+      "sha256": "d1e49bf617a8193affe862a1766ed3620aeff49a24c3c5b9f278d16a6fb57447",
+      "execution": "UNOBSERVED"
+    },
+    "mario_keep_up": {
+      "entry": "0x8038b3d0",
+      "size": 360,
+      "sha256": "47834b50c5d130420b33d0fb23a9f9cf7bb207530c815b53097ee28fa0319434",
+      "execution": "UNOBSERVED"
+    },
+    "mario_keep_side": {
+      "entry": "0x8038b540",
+      "size": 280,
+      "sha256": "8a1d35ac6713e3d0bdd7cc3ee684bf161b310e69236a593eb4478d68db82b42f",
+      "execution": "UNOBSERVED"
+    },
+    "mario_fix_gravity": {
+      "entry": "0x803898a0",
+      "size": 1264,
+      "sha256": "4d9aed19fed48fccdfcd4bede92c995f2f26c7f45b1a66528642931982c6c2be",
+      "execution": "UNOBSERVED"
+    },
+    "mario_blend_head": {
+      "entry": "0x803b23e0",
+      "size": 136,
+      "sha256": "f26aab54146a1c5575efc8d9b0b1802a4d8aba80b587fdde803afa75b33b0169",
+      "execution": "UNOBSERVED"
+    },
+    "mario_quaternion_head": {
+      "entry": "0x803b1ef0",
+      "size": 640,
+      "sha256": "c3e090994cdb7da7ced8eace96c72eb5520023ff079a0617629ccd807bd5c72f",
+      "execution": "UNOBSERVED"
+    },
+    "blend_sphere": {
+      "entry": "0x8003f840",
+      "size": 560,
+      "sha256": "ced76efe38d96593ccb65cba09241cfe0f8d0e22f54cd8f65a60e8a46fabae86",
+      "execution": "UNOBSERVED"
+    }
+  },
+  "calls": {
+    "camera_blend": {
+      "function": "actor_camera_update",
+      "pre_pc": "0x803c6788",
+      "post_pc": "0x803c678c",
+      "target": "0x8003f840",
+      "call_sha256": "772d50bf5488dfb82fb41004a08dcc2b896a88419629b7c117a6b1635bc1013e",
+      "post_instruction_sha256": "5aa6eb571f05c614fbcd8bbdc55460f20e3b7e63a041b1df47566e926a85643f",
+      "operands": "r3=dst=actor+618,r4=from=actor+618,r5=to=actor+648; f1=rate PS0 binary64",
+      "execution": "UNOBSERVED"
+    },
+    "camera_fallback_copy": {
+      "function": "actor_camera_update",
+      "pre_pc": "0x803c679c",
+      "post_pc": "0x803c67a0",
+      "target": "0x8000e740",
+      "call_sha256": "46da915064d50378d571422da9094406d78f80f5d8574790c16670e7bfbf6a1c",
+      "post_instruction_sha256": "b4151305a716d7e435bdc7619d0f29dc058b4a264fe2095ff77a4025619206a3",
+      "operands": "r3=actor+618,r4=actor+648; only on blend false",
+      "execution": "UNOBSERVED"
+    },
+    "force_matrix_y": {
+      "function": "actor_force_matrix",
+      "pre_pc": "0x803bdbac",
+      "post_pc": "0x803bdbb0",
+      "target": "0x8000e260",
+      "call_sha256": "7d4fb6c5f4417c278412a8a92a0c8226d89a2c432e835a7d6665104df6125ab0",
+      "post_instruction_sha256": "d3373fb852401bc92eb3c0fe24e4104bb46a79d8516cf8b866b52f8e496ab105",
+      "operands": "r3=matrix (48 bytes),r4=actor+618",
+      "execution": "UNOBSERVED"
+    },
+    "access_up_copy": {
+      "function": "access_keep_up",
+      "pre_pc": "0x803b55e0",
+      "post_pc": "0x803b55e4",
+      "target": "0x8000e740",
+      "call_sha256": "bdff5bf3c6fd7625b628624269aa22cee05cb71192f2a771fa3cefa43130d8a9",
+      "post_instruction_sha256": "e96b2dc17f3cd1891c9e8b11697a4c9ecaadae60707be74d261d40f5b2de0caf",
+      "operands": "r3=actor+618,r4=mario+1f0",
+      "execution": "UNOBSERVED"
+    },
+    "camera_reset_copy": {
+      "function": "actor_camera_reset",
+      "pre_pc": "0x803bfbdc",
+      "post_pc": "0x803bfbe0",
+      "target": "0x8000e740",
+      "call_sha256": "3174cd8d5b5f97c65c8fc7b5838dc06956da1a37cba270ccd133909cb6ca6e38",
+      "post_instruction_sha256": "6fea016a651b6460fdd05e8073e5114413e814d86781e4dc4e8c3592dc851128",
+      "operands": "r3=actor+618,r4=actor+648",
+      "execution": "UNOBSERVED"
+    },
+    "init_after_up_copy": {
+      "function": "actor_init_after",
+      "pre_pc": "0x803b7c30",
+      "post_pc": "0x803b7c34",
+      "target": "0x8000e740",
+      "call_sha256": "351ecfa468acf8554cf3e756e365049e19dbacb61ad955d7189feaeadabf927e",
+      "post_instruction_sha256": "c80b2be7ef16d9e1149e48d10c39e5e037551cb28b47bf7c5e3f302327967b8f",
+      "operands": "r3=actor+618,r4=actor+648",
+      "execution": "UNOBSERVED"
+    },
+    "init_member_up_zero": {
+      "function": "actor_init_member",
+      "pre_pc": "0x803bf07c",
+      "post_pc": "0x803bf080",
+      "target": "0x8000dbb0",
+      "call_sha256": "dc2fa5c7dc70ac8917ae2fdfdb1fdcf7c7a211b629c0b309ae92e190d263ac89",
+      "post_instruction_sha256": "19e5fdc51b5d1f334da095b0f38e74fa2c8ac6b5cd6a494c92583b7e8afa749b",
+      "operands": "r3=actor+618",
+      "execution": "UNOBSERVED"
+    },
+    "front_projected_copy": {
+      "function": "mario_set_front",
+      "pre_pc": "0x8038b108",
+      "post_pc": "0x8038b10c",
+      "target": "0x8000e740",
+      "call_sha256": "dfb3fb05f5eac7c39c6d2bb0206b9454f1289bdf2de211900376869290de5c12",
+      "post_instruction_sha256": "9a0bc177e0d1d68bdd8ad5dcd5d11fa1b3c620bd16ac10a9e415d2cca3f3a108",
+      "operands": "r3=mario+208,r4=stack projected front",
+      "execution": "UNOBSERVED"
+    },
+    "front_guarded_copy": {
+      "function": "mario_set_front",
+      "pre_pc": "0x8038b118",
+      "post_pc": "0x8038b11c",
+      "target": "0x8000e740",
+      "call_sha256": "601cb8527d417f4a74db7311d0d397a5f2d0d4c8d65bb63ecfd3e62f4fc86ddd",
+      "post_instruction_sha256": "4a66772c1118bdcb6cd1583538842b075abb0050053cc3d6bfc16389f653a0cc",
+      "operands": "r3=mario+208,r4=input front",
+      "execution": "UNOBSERVED"
+    },
+    "front_direct_copy": {
+      "function": "mario_set_front",
+      "pre_pc": "0x8038b128",
+      "post_pc": "0x8038b12c",
+      "target": "0x8000e740",
+      "call_sha256": "f703b068064fd05dece1cd8d36e7fd0602a541410336aa3bda7505bda669ce03",
+      "post_instruction_sha256": "75c1479bd52fa349268d179074e0b46653a5a6e7f42aae9be007d1401cb5a9cd",
+      "operands": "r3=mario+208,r4=input front",
+      "execution": "UNOBSERVED"
+    },
+    "front_normalize": {
+      "function": "mario_set_front",
+      "pre_pc": "0x8038b130",
+      "post_pc": "0x8038b134",
+      "target": "0x8003e500",
+      "call_sha256": "f3e29477a081c06334641e2d6df8806e7281890466e91dd9ce6462fdd0e72a75",
+      "post_instruction_sha256": "895af7811b212b0702ec0c26307b899dfa7e4560c9f2bf757619cd570d878970",
+      "operands": "r3=mario+208; save pointer before callee clobbers r3",
+      "execution": "UNOBSERVED"
+    },
+    "keep_up_side_normalize": {
+      "function": "mario_keep_up",
+      "pre_pc": "0x8038b49c",
+      "post_pc": "0x8038b4a0",
+      "target": "0x8003e500",
+      "call_sha256": "f7dd9f73e3e8ae68fdda5b1064dae48c9a4bfbf793b693499ae57b4f00987fa9",
+      "post_instruction_sha256": "aebb96486b4eb5bfa8bb792e27f248cbe47663db502a4dc0d386f5baa91af89e",
+      "operands": "r3=stack side (sp+2c)",
+      "execution": "UNOBSERVED"
+    },
+    "keep_up_saved_side_normalize": {
+      "function": "mario_keep_up",
+      "pre_pc": "0x8038b4b0",
+      "post_pc": "0x8038b4b4",
+      "target": "0x8003e500",
+      "call_sha256": "c6c8efe60311bccb0d4ac80a68146984c47c756fc90a87358b58f4ab3b096909",
+      "post_instruction_sha256": "aebb96486b4eb5bfa8bb792e27f248cbe47663db502a4dc0d386f5baa91af89e",
+      "operands": "r3=mario+310",
+      "execution": "UNOBSERVED"
+    },
+    "head_blend": {
+      "function": "mario_blend_head",
+      "pre_pc": "0x803b2414",
+      "post_pc": "0x803b2418",
+      "target": "0x8003f840",
+      "call_sha256": "11eac207253955a414ec6b0a244d7220ef60ffcac3c8109c7f3a163ef105f484",
+      "post_instruction_sha256": "5aa6eb571f05c614fbcd8bbdc55460f20e3b7e63a041b1df47566e926a85643f",
+      "operands": "r3=stack output,r4=mario+1f0,r5=direction; f1=rate PS0 binary64",
+      "execution": "UNOBSERVED"
+    },
+    "head_normalize": {
+      "function": "mario_blend_head",
+      "pre_pc": "0x803b2448",
+      "post_pc": "0x803b244c",
+      "target": "0x8003e500",
+      "call_sha256": "4e60d330296ca40fbf9bb59948db0f709dca9565f35ff6b386a97ed143e2b7f6",
+      "post_instruction_sha256": "74847064944d80510efffdc2ab25dece017d3589ce274077656ad05c23e316b5",
+      "operands": "r3=mario+1f0",
+      "execution": "UNOBSERVED"
+    }
+  },
+  "target_trace_frames": [
+    887,
+    888,
+    889,
+    903,
+    904
+  ],
+  "guest_layout_only": {
+    "actor_mario_pointer": "0x584",
+    "actor_up": "0x618",
+    "actor_up_target": "0x648",
+    "actor_camera_counter": "0x660:u16",
+    "actor_remote_matrix_flag": "0x4e1:u8",
+    "actor_constants_pointer": "0x590",
+    "constants_table_index": "0xc:u32",
+    "table_camera_timer": "0x7a0:u16",
+    "mario_head": "0x1f0",
+    "mario_front": "0x208",
+    "mario_side": "0x310"
+  },
+  "native_layout": "DWARF typed fields or native offsetof assertions; never reuse guest offsets",
+  "ps1": "UNAVAILABLE through pinned GDB p interface; no injected mffs/stores or guest calls",
+  "launcher_or_installer": false,
+  "native_bridge": {
+    "sha256": "059e7594ea56370693748688f3500869146f57257f6fc0af7b11e091a568756f",
+    "source": "6b78fad2261e08a3ef031b7d2677905b205ddf3f",
+    "calls": {
+      "camera_blend_wrapper": {
+        "file_pre_pc": "0x1016ca3a4",
+        "file_post_pc": "0x1016ca3a8",
+        "file_call_target": "0x102db1bb8",
+        "operands": "x0=from,x1=to,x2=dst; s0=f32 rate; stub symbol is const/from,const/to,dst wrapper",
+        "call_sha256": "4de087286412d3c4e55685fc47e977b522f30d0ccc5496709b0fb0430fe8743d",
+        "post_instruction_sha256": "a77cdb6e9273b60ce9795da27f704391c23d8d8a4e5d30a1288b2c5b76e327e9",
+        "execution": "UNOBSERVED; resolve actual module ASLR slide before use"
+      },
+      "front_normalize": {
+        "file_pre_pc": "0x1015132cc",
+        "file_post_pc": "0x1015132d0",
+        "file_call_target": "0x1022583ac",
+        "operands": "x0=in-place front vector",
+        "call_sha256": "8770eb26c4f572aaa2149ad5cd211b600c30b38c73e66dab795b170f4da35bc4",
+        "post_instruction_sha256": "2d159cacb295ae050f57839524175a779517b808c75e0e9f330cd1bc4d9f9b8f",
+        "execution": "UNOBSERVED; resolve actual module ASLR slide before use"
+      }
+    },
+    "source_frame_file_address": "0x10374c060",
+    "source_frame_symbol": "__ZN12_GLOBAL__N_112gSourceFrameE",
+    "read_boundary_file_address": "0x1025edf58",
+    "read_boundary_symbol": "__ZN12PetariNative8Headless6Replay7consumeEjj",
+    "frame_semantics": "gSourceFrame is stored from mSourceFrame by Driver::wait(true) after the preceding emitted seam; bind actual sync origin, never call exported getter in inferior.",
+    "dwarf": "Offline camera address lookup returned no DIE; typed-field access not demonstrated. ABI argument captures do not depend on guest layout.",
+    "mode": "Raw debugger FPCR AND FPSR reads before/after observation; no expressions, inferior function calls, FP formatting or register writes."
+  }
+}

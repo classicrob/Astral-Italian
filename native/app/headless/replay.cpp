@@ -100,13 +100,29 @@ const Read& Replay::consume(std::uint32_t channel, std::uint32_t capacity) {
     ++mOrdinal;
     return read;
 }
+void Replay::setSegments(std::vector<std::uint64_t> lengths) {
+    std::uint64_t end = 0;
+    mSegmentEnds.clear();
+    for (const auto length : lengths) {
+        if (!length) throw ReplayError("empty tape segment");
+        end += length;
+        mSegmentEnds.push_back(end);
+    }
+    if (end != mFrames) throw ReplayError("tape segments must cover exactly the tape frames");
+}
 void Replay::endFrame() {
+    mSegmentJustEnded = false;
     if (mWaitingForSync) return;
     if (finished()) throw ReplayError("extra game frame after end of KPAD tape");
     if (mNext < mReads.size() && mReads[mNext].frame == mFrame) throw ReplayError("missing KPAD reads at frame " + std::to_string(mFrame));
     ++mFrame;
     mFrameStart = mNext;
     mOrdinal = 0;
+    if (!mSegmentEnds.empty() && mFrame == mSegmentEnds[mSegment] && mFrame != mFrames) {
+        ++mSegment;
+        mWaitingForSync = true;  // the next segment starts at its own sync seam
+        mSegmentJustEnded = true;
+    }
 }
 const Read* Replay::connection(std::uint32_t channel) const {
     if (mWaitingForSync) return channel < 4 ? &mBootstrap[channel] : nullptr;

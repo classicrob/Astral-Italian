@@ -49,8 +49,8 @@ namespace {
 std::atomic<std::uint64_t> gSourceFrame{UINT64_MAX};
 class Driver {
 public:
-    Driver(H::Replay* replay, H::KeyboardScript* keyboard, H::Trace& trace, H::ActorTraceFiles* actors, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested)
-        : mReplay(replay),mKeyboard(keyboard),mTrace(trace),mActors(actors),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
+    Driver(H::Replay* replay, H::KeyboardScript* keyboard, H::Trace& trace, H::ActorTraceFiles* actors, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested, std::vector<H::StageSyncOptions> laterSegments = {})
+        : mReplay(replay),mKeyboard(keyboard),mTrace(trace),mActors(actors),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(sync),mFirstSync(sync),mLaterSegments(std::move(laterSegments)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
         mTiming << "frame,vi_count,ticks\n";
         if (!mTiming) throw H::ReplayError("cannot create timing sidecar");
         mThread=std::thread([this]{worker();});
@@ -67,7 +67,7 @@ public:
             return input.returned;
         } catch (const std::exception& e) { fail(e.what()); }
     }
-    std::uint64_t tapeFrame() const { return mReplay.waitingForSync() ? UINT64_MAX : mReplay.frame(); }
+    std::uint64_t tapeFrame() const { return !mReplay || mReplay->waitingForSync() ? UINT64_MAX : mReplay->frame(); }
     void frame() {
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
         L::testReturnToShipFrame();
@@ -93,6 +93,7 @@ public:
         if (ticks<0) throw H::ReplayError("negative SDK clock at frame seam");
         const auto viCount=VIGetRetraceCount();
         if (mReplay) mReplay->endFrame();
+        const bool segmentBoundary=mReplay && mReplay->segmentEnded();  // this seam is the last row of a multi-segment tape's segment
         const bool keyboardDone = mKeyboard && (!mStartupRequested || L::startupStatus()==L::StartupStatus::Applied) && mKeyboard->step(state);
         if (mKeyboard && mSourceFrame > 10000) throw H::ReplayError("keyboard script did not finish within 10000 loops");
         const bool wasStarted=mSync.started();
@@ -101,23 +102,32 @@ public:
             H::setGameRngSeed(seed);
             return H::observeGame();
         });
-        const bool ready=mSync.enabled() ? mSync.started() :
+        const bool ready=mSync.enabled() ? (mSync.started() || mEverStarted) :
             state.fields.count("scene") && state.fields.at("scene")=="Game" &&
             state.fields.count("init_state") && state.fields.at("init_state")=="6";
         mActivateAsync=mReloadPolicy.observe(ready,
             state.fields.count("init_state") && state.fields.at("init_state")=="0");
         if (!wasStarted && mSync.started()) {
-            std::ofstream origin(mPath.string()+".sync.json");
+            std::ofstream origin(mPath.string()+".sync"+(mSegIndex?std::to_string(mSegIndex):std::string())+".json");
             mSync.writeOrigin(origin);
             mReplay->startInputs();
+            mEverStarted=true; mSegmentActive=true; mSegmentStartRow=mTraceFrames;
         }
-        if (frame) {
-            mTiming << *frame << ',' << viCount << ',' << ticks << '\n';
+        if (frame && mSegmentActive) {
+            // Trace rows are numbered globally; a segment's first row is its sync seam (listed in <trace>.segments.csv).
+            mTiming << mTraceFrames << ',' << viCount << ',' << ticks << '\n';
             mTiming.flush();
             if (!mTiming) throw H::ReplayError("cannot write timing sidecar");
-            mTrace.write(*frame,state);
-            if (mActors) mActors->write(*frame,state,H::observeActors(state));
+            mTrace.write(mTraceFrames,state);
+            if (mActors) mActors->write(mTraceFrames,state,H::observeActors(state));
             ++mTraceFrames;
+        }
+        if (segmentBoundary && mSegmentActive) {  // the segment's last row is written: wait for the next scene's sync seam
+            mSegments.push_back({mSegIndex,mSegmentStartRow,mTraceFrames-mSegmentStartRow});
+            mSegmentActive=false;
+            if (mSegIndex>=mLaterSegments.size()) throw H::ReplayError("more tape segments than sync targets");
+            mSync=H::StageSync(mLaterSegments[mSegIndex]);
+            ++mSegIndex;
         }
         mSawFrame=true; mAwaitingFrameWait=true;
         if (keyboardDone || (mReplay && mReplay->finished())) {
@@ -126,6 +136,10 @@ public:
             if (mStartupRequested && !mStartupArrival.observed())
                 throw H::ReplayError("requested stage/scenario was not observed ready before tape completion");
             if (mSync.enabled() && !mSync.started()) throw H::ReplayError("input tape ended before the stage-sync target was reached");
+            mSegments.push_back({mSegIndex,mSegmentStartRow,mTraceFrames-mSegmentStartRow});
+            {   std::ofstream seg(mPath.string()+".segments.csv"); seg<<"segment,trace_start_row,rows\n";
+                for (const auto& x:mSegments) seg<<x.index<<','<<x.start<<','<<x.rows<<'\n';
+                seg.flush(); if (!seg) throw H::ReplayError("cannot write segments sidecar"); }
             mTrace.finish();
             if (mActors) mActors->finish(); // Both sidecars must publish before main completion.
             std::ofstream marker(mPath.string()+".complete");
@@ -181,6 +195,9 @@ private:
             }
         } catch (const std::exception& e) { fail(e.what()); }
     }
+    struct SegmentRow { std::size_t index; std::uint64_t start, rows; };
+    std::vector<SegmentRow> mSegments; std::size_t mSegIndex=0; bool mSegmentActive=false,mEverStarted=false; std::uint64_t mSegmentStartRow=0;
+    H::StageSyncOptions mFirstSync; std::vector<H::StageSyncOptions> mLaterSegments;
     H::Replay* mReplay; H::KeyboardScript* mKeyboard; H::Trace& mTrace; H::ActorTraceFiles* mActors; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0,mSourceFrame=0;
     bool mStartupRequested=false; H::StartupArrival mStartupArrival;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
@@ -260,7 +277,7 @@ int main(int argc,char** argv) {
                 actorTrace=true; continue;
             }
             if (key=="--existing-unlocked-user") {existingUnlockedUser=true;continue;}
-            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--mod-actions" && key!="--inputs" && key!="--keyboard-script" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
+            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--segments" && key!="--mod-actions" && key!="--inputs" && key!="--keyboard-script" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
         for (const char* key:{"--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
@@ -293,7 +310,7 @@ int main(int argc,char** argv) {
             std::string error;
             if (!PetariNative::Mods::load(user / "mods.txt", &error)) throw H::ReplayError(error);
         }
-        if (inputsFromSync && !args.count("--sync-stage")) throw H::ReplayError("--inputs-from-sync requires --sync-stage");
+        if (inputsFromSync && !args.count("--sync-stage") && !args.count("--segments")) throw H::ReplayError("--inputs-from-sync requires --sync-stage");
         const auto epoch=integer(args.at("--epoch-ticks"));
         if (epoch>static_cast<std::uint64_t>(INT64_MAX)) throw H::ReplayError("epoch outside SDK time range");
         auto n=args.count("--rate-numerator")?integer(args.at("--rate-numerator")):60000;
@@ -307,8 +324,26 @@ int main(int argc,char** argv) {
         }
         if (args.count("--sync-scenario")) sync.scenario=H::syncInteger(args.at("--sync-scenario"));
         if (args.count("--sync-rng-seed")) sync.seed=H::syncInteger(args.at("--sync-rng-seed"));
-        if (syncPlay && !args.count("--sync-stage")) throw H::ReplayError("--sync-play requires --sync-stage");
+        if (syncPlay && !args.count("--sync-stage") && !args.count("--segments")) throw H::ReplayError("--sync-play requires --sync-stage");
         if (!args.count("--sync-stage") && args.count("--sync-scenario")) throw H::ReplayError("--sync-scenario requires --sync-stage");
+        std::vector<H::StageSyncOptions> laterSegments;
+        if (args.count("--segments")) {
+            // "stage scenario rng_seed frames" per tape segment (tools/port/replay_tape.py): each starts at its own sync seam.
+            if (args.count("--sync-stage") || args.count("--sync-scenario") || args.count("--sync-rng-seed")) throw H::ReplayError("--segments replaces --sync-stage/--sync-scenario/--sync-rng-seed");
+            if (!inputsFromSync) throw H::ReplayError("--segments requires --inputs-from-sync");
+            std::ifstream list(external(args.at("--segments"))); if (!list) throw H::ReplayError("cannot open --segments");
+            std::vector<std::uint64_t> lengths; std::string line;
+            while (std::getline(list,line)) {
+                if (line.empty() || line[0]=='#') continue;
+                std::istringstream words(line); H::StageSyncOptions o; std::string scenario,seed; std::uint64_t frames=0;
+                if (!(words>>o.stage>>scenario>>seed>>frames)) throw H::ReplayError("bad --segments line: "+line);
+                o.scenario=H::syncInteger(scenario); o.seed=H::syncInteger(seed); o.play=syncPlay;
+                lengths.push_back(frames);
+                if (lengths.size()==1) sync=o; else laterSegments.push_back(o);
+            }
+            if (lengths.empty()) throw H::ReplayError("--segments is empty");
+            if (!replay) throw H::ReplayError("--segments requires --inputs"); replay->setSegments(lengths);
+        }
         H::StageSync validateSync(sync);
         H::FloatingPointMode fp(ftz);
         PetariNative::FloatingPointThreadPolicy threadFp(ftz);
@@ -334,7 +369,7 @@ int main(int argc,char** argv) {
         H::Trace trace(output);
         std::unique_ptr<H::ActorTraceFiles> actors;
         if (actorTrace) actors=std::make_unique<H::ActorTraceFiles>(path);
-        Driver driver(replay.get(),keyboard.get(),trace,actors.get(),path,n,d,std::move(sync),startupRequested); gDriver=&driver;
+        Driver driver(replay.get(),keyboard.get(),trace,actors.get(),path,n,d,std::move(sync),startupRequested,std::move(laterSegments)); gDriver=&driver;
         gSourceFrame.store(0,std::memory_order_relaxed);
         PetariNative::Input::setClock(keyboard ? PetariNative::Input::Clock::Alarm : PetariNative::Input::Clock::Manual);
         if (replay) PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});

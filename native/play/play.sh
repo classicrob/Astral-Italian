@@ -11,6 +11,7 @@
 #                directory ~/Library/Application Support/Petari: the script refuses it.
 #   ASTRAL_AUDIO on|off (default on; off uses SDL's dummy driver, which keeps the game's audio timing without a device)
 #   ASTRAL_LOG   log file (default $ASTRAL_USER/logs/play-<galaxy>-<time>.log)
+#   ASTRAL_TAPES  where the exact tape of each session goes (default ~/MacioGalaxy2-play/tapes); ASTRAL_TAPE=off disables it
 #   ASTRAL_CAPTURES  where F9 playtest captures go (default ~/MacioGalaxy2-play/captures)
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
@@ -84,9 +85,15 @@ echo "  log  $log"
 [ "$odyssey" = 1 ] && export PETARI_ODYSSEY_MOVEMENT=1
 [ "$audio" = off ] && export SDL_AUDIO_DRIVER=dummy
 # F9 in the game saves a playtest capture (last 300 frames of input and Mario state, the state, a screenshot) here.
+# Exact tape (builds from 5.3 on; older builds ignore it): every session writes <tapes>/<stage>-<time>/route.csv, route.kpd (the
+# game's own KPAD reads), route.actions (mod buttons) and route.tape.json, so it can be replayed headless to the same frames
+# (tools/port/replay_tape.py, native/PLAYTEST.md). ~150 MB an hour. ASTRAL_TAPE=off turns it off; ASTRAL_TAPES moves the folder.
+if [ "${ASTRAL_TAPE:-on}" != off ]; then
+    export PETARI_TAPE_RECORD="${ASTRAL_TAPES:-$HOME/MacioGalaxy2-play/tapes}/${stage:-title}-$(date +%Y%m%d-%H%M%S)"
+fi
 export PETARI_CAPTURE_DIR="${ASTRAL_CAPTURES:-$HOME/MacioGalaxy2-play/captures}" PETARI_CAPTURE_LOG="$log"
 if [ "$dry" = 1 ]; then
-    echo "  run  ${PETARI_MODS:+PETARI_MODS=$PETARI_MODS }${PETARI_ODYSSEY_MOVEMENT:+PETARI_ODYSSEY_MOVEMENT=$PETARI_ODYSSEY_MOVEMENT }${SDL_AUDIO_DRIVER:+SDL_AUDIO_DRIVER=$SDL_AUDIO_DRIVER }$exe $*"
+    echo "  run  ${PETARI_TAPE_RECORD:+PETARI_TAPE_RECORD=$PETARI_TAPE_RECORD }${PETARI_MODS:+PETARI_MODS=$PETARI_MODS }${PETARI_ODYSSEY_MOVEMENT:+PETARI_ODYSSEY_MOVEMENT=$PETARI_ODYSSEY_MOVEMENT }${SDL_AUDIO_DRIVER:+SDL_AUDIO_DRIVER=$SDL_AUDIO_DRIVER }$exe $*"
     exit 0
 fi
 "$exe" "$@" > "$log" 2>&1

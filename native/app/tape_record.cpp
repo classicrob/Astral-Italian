@@ -22,6 +22,18 @@ bool gInit = false, gOpen = false, gBackground = false;
 std::uint64_t gRow = 0;
 std::vector<Ready> gReadys, gPlayReadys;
 bool gWasPlayReady = false;
+// One tape segment per scene visit that reached play-ready: it starts at the visit's first play-ready seam (row `start`; tape
+// frame 0 = the loop after it) and ends at the visit's last seam (row `end`, inclusive); the loops between segments (scene
+// teardown, loading, the opening flyover) are not part of the tape: a replay re-anchors at each segment's own sync seam.
+struct Segment {
+    std::uint64_t start, end;
+    std::string stage;
+    int scenario;
+    std::uint32_t seed;
+    bool open;
+};
+std::vector<Segment> gSegments;
+bool gVisitHasSegment = false;
 std::string gSceneKey;  // scene visit identity at the last seam
 
 std::string exeSha256() {
@@ -88,7 +100,20 @@ void writeSidecar(bool final) {
         std::fprintf(f, "%s\n    {\"row\": %llu, \"stage\": %s, \"scenario\": %d, \"rng_seed\": %u}", i ? "," : "",
                      static_cast<unsigned long long>(r.row), json(r.stage).c_str(), r.scenario, r.seed);
     }
-    std::fputs("\n  ],\n  \"play_ready_seams\": [", f);
+    std::fputs("\n  ],\n  \"segments\": [", f);
+    for (std::size_t i = 0; i < gSegments.size(); ++i) {
+        const auto& g = gSegments[i];
+        const std::uint64_t end = g.open ? (gRow > g.start ? gRow - 1 : g.start) : g.end;
+        std::fprintf(f, "%s\n    {\"start_row\": %llu, \"end_row\": %llu, \"frames\": %llu, \"stage\": %s, \"scenario\": %d, \"rng_seed\": %u}", i ? "," : "",
+                     static_cast<unsigned long long>(g.start), static_cast<unsigned long long>(end), static_cast<unsigned long long>(end - g.start),
+                     json(g.stage).c_str(), g.scenario, g.seed);
+    }
+    std::fputs("\n  ],\n  \"replay_env\": {", f);
+    {
+        const char* rts = std::getenv("PETARI_TEST_RETURN_TO_SHIP");  // a test hook that changes the scene: the replay must fire it too
+        std::fprintf(f, "%s", rts && *rts ? (std::string("\"PETARI_TEST_RETURN_TO_SHIP\": ") + json(rts)).c_str() : "");
+    }
+    std::fputs("},\n  \"play_ready_seams\": [", f);
     for (std::size_t i = 0; i < gPlayReadys.size(); ++i) {
         const auto& r = gPlayReadys[i];
         std::fprintf(f, "%s\n    {\"row\": %llu, \"stage\": %s, \"scenario\": %d, \"rng_seed\": %u}", i ? "," : "",
@@ -148,6 +173,22 @@ void seam(const Seam& s) {
         gOpen = true;
         std::atexit(finish);
         std::fprintf(stderr, "PETARI TAPE RECORD: writing %s.kpd / .actions / .tape.json\n", gBase.c_str());
+    }
+    {   // Segments: one per scene visit that reached play-ready (see Segment above).
+        const bool isGame = std::strcmp(s.scene, "Game") == 0;
+        const std::string visit = std::string(s.scene) + "\n" + s.stage + "\n" + std::to_string(s.scenario);
+        const bool newVisit = s.initEnd && visit != gSceneKey;
+        if ((!s.initEnd || newVisit) && !gSegments.empty() && gSegments.back().open) {
+            gSegments.back().open = false;
+            gSegments.back().end = gRow > 0 ? gRow - 1 : 0;
+            writeSidecar(false);
+        }
+        if (newVisit) gVisitHasSegment = false;
+        if (isGame && s.initEnd && s.playReady && s.seedValid && !gVisitHasSegment) {
+            gSegments.push_back({gRow, gRow, s.stage, s.scenario, s.seed, true});
+            gVisitHasSegment = true;
+            writeSidecar(false);
+        }
     }
     // A scene visit's first Game/End seam is a ready seam (the one petari_headless --sync-stage selects).
     const std::string key = std::string(s.scene) + "\n" + s.stage + "\n" + std::to_string(s.scenario);

@@ -23,6 +23,10 @@ public:
     explicit Replay(std::istream& input, bool inputsFromSync = false);
     bool waitingForSync() const { return mWaitingForSync; }
     void startInputs() { mWaitingForSync = false; }
+    // Several tape segments (one per scene visit, each starting at its own sync seam): after the last frame of a segment the
+    // replay waits for the next sync again (neutral boot-style reads); frames stay globally contiguous.
+    void setSegments(std::vector<std::uint64_t> lengths);
+    bool segmentEnded() const { return mSegmentJustEnded; }
     const Read& consume(std::uint32_t channel, std::uint32_t capacity);
     void endFrame();
     std::uint64_t frame() const { return mFrame; }
@@ -36,6 +40,9 @@ private:
     std::uint64_t mFrames = 0, mFrame = 0;
     std::size_t mNext = 0, mFrameStart = 0;
     std::uint32_t mOrdinal = 0;
+    std::vector<std::uint64_t> mSegmentEnds;  // global frame at which each segment ends (exclusive)
+    std::size_t mSegment = 0;
+    bool mSegmentJustEnded = false;
 };
 class FrameClock {
 public:

@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Replay a recorded tape headless from its ready seam and report where (if anywhere) it first diverges.
+"""Replay a recorded tape headless and report, per scene segment, where (if anywhere) it first diverges.
 
   replay_tape.py TAPE --headless <petari_headless> --disc <extracted disc> --out <fresh dir>
-                 [--ready N] [--max-frames N] [--no-ftz] [--epoch-ticks T] [--dry-run]
+                 [--allow-incomplete] [--max-frames N] [--no-ftz] [--epoch-ticks T] [--dry-run]
 
-TAPE is the `<x>.tape.json` the GX app writes next to the route CSV (PETARI_TAPE_RECORD=<dir> or
-PETARI_ROUTE_RECORD=<x>.csv; native/PLAYTEST.md), or the directory / base path holding it. The tool:
-  1. takes the N-th ready seam of the sidecar (default 0): the first Game/SceneInitializeState_End seam of a stage visit,
-     the same seam `petari_headless --sync-stage` selects; reads after it are tape frame 0..T-1;
-  2. writes a trimmed, rebased copy of the .kpd / .actions into --out (the tape itself is never modified),
-     a fresh user dir with the recorded mods.txt, and runs the headless replay (--stage/--sync-stage/--inputs-from-sync);
-  3. compares the headless trace row k with route row R+k and writes first-divergence.json:
-     position (x,y,z, float32 exact) > 0.01 is THE divergence; any bit difference, a stage/scenario/player-valid/
-     dead/grounded change is reported too (`first_any_difference`). `matched_rows` = rows 0..N-1 identical in the gate sense.
-No tolerance hides anything: both numbers (first bit difference, first > 0.01) are printed.
+TAPE is the `<x>.tape.json` the GX app writes next to the route CSV (PETARI_TAPE_RECORD=<dir>, or PETARI_ROUTE_RECORD=<x>.csv, or an
+ordinary launcher session: native/PLAYTEST.md), or the directory / base path holding it. A tape is a list of SEGMENTS, one per scene
+visit that reached play-ready (a galaxy, the Starship, ...): segment i starts at its own play-ready seam (route row start_row) and runs to
+the visit's last seam (end_row). The loops in between (teardown, loading, the opening flyover) take a different number of loops in
+GX and in headless (they depend on asynchronous loading), so the replay re-anchors at every segment's sync seam, sets the recorded RNG
+seed there, and feeds the segment's recorded KPAD reads + mod buttons; between segments it feeds neutral reads. The tool:
+  1. writes trimmed, rebased copies of the .kpd / .actions and a segments list into --out (the tape itself is never modified);
+  2. runs `petari_headless --stage S --segments ... --sync-play --inputs-from-sync --mod-actions` with PETARI_MODS = the recorded mods
+     and the recorded replay_env (PETARI_TEST_RETURN_TO_SHIP, a hook that changes the scene, must fire in the replay too);
+  3. compares headless trace row k of segment i with route row start_row_i + k and writes first-divergence.json:
+     position (x,y,z, float32 exact) more than 0.01 away, or a stage / scenario / player-valid / dead / grounded change, is THE divergence
+     (per segment and overall); the first bit difference and the number of differing rows are reported too (no tolerance hides anything);
+  4. reports `reached star`: the route CSV's own power-star count rose (game get) and the replay matched through that row.
+Exit status 0: every segment matched to the end. `--allow-incomplete` replays a killed session up to its last checkpoint.
 """
 import argparse
 import csv
@@ -29,6 +33,7 @@ MAGIC = b"SMG2KPD1"
 RECORD = struct.Struct(">QIIIiiiII")  # frame, ordinal, channel, capacity, returned, error, probe, device, nsamples
 SAMPLE = 240
 POSITION_LIMIT = 0.01
+DEFAULT_ON = ("OdysseyJumpDive",)  # mods that are on without a mods.txt line (native/input/mods.cpp kDefaults)
 
 
 # --- tape files -----------------------------------------------------------------------------------------------
@@ -61,23 +66,6 @@ def pack_kpd(frames, records):
     return bytes(out)
 
 
-def trim_kpd(records, ready_row, seams, max_frames=None):
-    """Reads after the ready seam (row R) are tape frames 0.. (absolute frame R+1 -> 0). Only loops that finished (their seam
-    was written: absolute frame <= seams-1) count. Returns (tape_frames, rebased records)."""
-    last = seams - 1
-    total = last - ready_row
-    if max_frames is not None:
-        total = min(total, max_frames)
-    if total < 1:
-        raise ValueError("no complete game loop after the ready seam")
-    kept = []
-    for r in records:
-        t = r["frame"] - (ready_row + 1)
-        if 0 <= t < total:
-            kept.append(dict(r, frame=t))
-    return total, kept
-
-
 def parse_actions(text):
     """'frame mod press held' lines -> {(frame, mod): (press, held)}"""
     out = {}
@@ -89,13 +77,69 @@ def parse_actions(text):
     return out
 
 
-def rebase_actions(actions, ready_row, total):
-    lines = ["# frame mod press held (tape frames after the ready seam)"]
-    for (f, m), (p, h) in sorted(actions.items()):
-        t = f - (ready_row + 1)
-        if 0 <= t < total:
-            lines.append(f"{t} {m} {p} {h}")
+def plan_segments(segments, seams, max_frames=None):
+    """The sidecar's segments -> [dict(index, start, end, frames, offset, stage, scenario, rng_seed)]. A segment is tape frames
+    start+1..end (absolute game-loop numbers of its reads); `frames` = end-start; `offset` = the segment's first global tape frame.
+    Segments past the last finished seam are dropped; the last kept one is cut at the last finished loop."""
+    plan, offset = [], 0
+    for i, g in enumerate(segments):
+        start, end = g["start_row"], min(g["end_row"], seams - 1)
+        if end <= start:
+            continue
+        frames = end - start
+        if max_frames is not None:
+            frames = min(frames, max_frames - offset)
+            end = start + frames
+        if frames < 1:
+            break
+        plan.append(dict(index=i, start=start, end=end, frames=frames, offset=offset, stage=g["stage"], scenario=g["scenario"], rng_seed=g["rng_seed"]))
+        offset += frames
+    if not plan:
+        raise ValueError("no complete game loop after a ready seam")
+    return plan
+
+
+def build_tape(records, plan):
+    """Reads of segment i (absolute frames start+1..end) rebased to global tape frames offset..offset+frames-1."""
+    kept = []
+    for seg in plan:
+        lo, hi = seg["start"] + 1, seg["end"]
+        for r in records:
+            if lo <= r["frame"] <= hi:
+                kept.append(dict(r, frame=seg["offset"] + r["frame"] - lo))
+    return sum(s["frames"] for s in plan), kept
+
+
+def rebase_actions(actions, plan):
+    lines = ["# frame mod press held (global tape frames; segments back to back)"]
+    rows = []
+    for seg in plan:
+        lo, hi = seg["start"] + 1, seg["end"]
+        for (f, m), (p, h) in actions.items():
+            if lo <= f <= hi:
+                rows.append((seg["offset"] + f - lo, m, p, h))
+    for f, m, p, h in sorted(rows):
+        lines.append(f"{f} {m} {p} {h}")
     return "\n".join(lines) + "\n"
+
+
+def segments_text(plan):
+    return "# stage scenario rng_seed frames\n" + "".join(f"{s['stage']} {s['scenario']} {s['rng_seed']} {s['frames']}\n" for s in plan)
+
+
+def trim_invalid_tail(route_rows, start, end):
+    """The last segment of a session that was quit (or killed) ends with loops where the app was tearing down and the route
+    recorder saw no valid player: they are not game state, so the segment ends at its last valid row."""
+    end = min(end, len(route_rows) - 1)
+    while end > start and route_rows[end]["valid"] != "1":
+        end -= 1
+    return end
+
+
+def mods_env(mods):
+    """PETARI_MODS value giving exactly the recorded set: the listed mods on, a default-on mod that was off explicitly off."""
+    items = list(mods) + [f"-{m}" for m in DEFAULT_ON if m not in mods]
+    return ",".join(items) if items else "none"
 
 
 # --- comparison -----------------------------------------------------------------------------------------------
@@ -104,14 +148,14 @@ def f32(text):
     return struct.unpack(">f", struct.pack(">f", float(text)))[0]
 
 
-def compare(trace_rows, route_rows, ready_row):
-    """trace row k <-> route row ready_row+k. Position is compared as float32 (the route CSV holds %.9g)."""
-    n = min(len(trace_rows), len(route_rows) - ready_row)
+def compare(trace_rows, route_rows, route_start):
+    """trace row k <-> route row route_start+k. Position is compared as float32 (the route CSV holds %.9g)."""
+    n = min(len(trace_rows), len(route_rows) - route_start)
     first_any = first_pos = None
     bit_rows = []
     max_dist = 0.0
     for k in range(n):
-        t, r = trace_rows[k], route_rows[ready_row + k]
+        t, r = trace_rows[k], route_rows[route_start + k]
         diffs = {}
         if t["stage"] != r["stage"]:
             diffs["stage"] = [t["stage"], r["stage"]]
@@ -133,28 +177,64 @@ def compare(trace_rows, route_rows, ready_row):
         max_dist = max(max_dist, dist)
         if diffs:
             bit_rows.append(k)
-        if diffs and first_any is None:
-            first_any = dict(trace_row=k, route_row=ready_row + k, diffs=diffs, dist=dist)
+            if first_any is None:
+                first_any = dict(trace_row=k, route_row=route_start + k, diffs=diffs, dist=dist)
         if (dist > POSITION_LIMIT or {"stage", "scenario", "valid", "dead", "grounded"} & diffs.keys()) and first_pos is None:
-            first_pos = dict(trace_row=k, route_row=ready_row + k, diffs=diffs, dist=dist,
+            first_pos = dict(trace_row=k, route_row=route_start + k, diffs=diffs, dist=dist,
                              trace=[t[c] for c in "xyz"], route=[r[c] for c in "xyz"],
                              inputs={c: r[c] for c in ("move_x", "move_y", "jump", "spin", "crouch", "shoot")})
     return dict(rows_compared=n, first_divergence=first_pos,
                 matched_rows=n if first_pos is None else first_pos["trace_row"],
-                first_any_difference=first_any, rows_with_any_difference=len(bit_rows), last_any_difference_row=bit_rows[-1] if bit_rows else None,
+                first_any_difference=first_any, rows_with_any_difference=len(bit_rows),
+                last_any_difference_row=bit_rows[-1] if bit_rows else None,
                 max_position_error=max_dist, position_limit=POSITION_LIMIT)
 
 
+def star_events(route_rows):
+    """Route rows where the game's own power-star count rose (both rows in a game scene: count >= 0)."""
+    events, prev = [], None
+    for i, r in enumerate(route_rows):
+        try:
+            n = int(r["power_stars"])
+        except (KeyError, ValueError):
+            continue
+        if n >= 0:
+            if prev is not None and n > prev:
+                events.append(dict(route_row=i, stage=r["stage"], stars=n, previous=prev))
+            prev = n
+    return events
+
+
+def segment_results(trace_rows, seg_rows, route_rows, plan):
+    """seg_rows: [(trace_start_row, rows)] as written by the headless run; per-segment compare + overall verdict."""
+    out = []
+    for seg, (tstart, rows) in zip(plan, seg_rows):
+        res = compare(trace_rows[tstart: tstart + rows], route_rows, seg["start"])
+        res.update(segment=seg["index"], stage=seg["stage"], scenario=seg["scenario"], route_start_row=seg["start"],
+                   route_end_row=seg["end"], tape_frames=seg["frames"])
+        out.append(res)
+    return out
+
+
+def verdict(results, stars):
+    first = next(((r["segment"], r["first_divergence"]) for r in results if r["first_divergence"]), None)
+    complete = all(r["rows_compared"] == r["tape_frames"] + 1 for r in results)
+    reached = None
+    for ev in stars:  # the replay reproduced the star if the segment holding that row matched through it
+        for r in results:
+            if r["route_start_row"] <= ev["route_row"] <= r["route_end_row"]:
+                k = ev["route_row"] - r["route_start_row"]
+                if r["matched_rows"] > k:
+                    reached = ev
+                break
+        if reached:
+            break
+    return dict(all_segments_matched=first is None and complete, first_divergence_segment=first[0] if first else None,
+                first_divergence=first[1] if first else None, star_in_recording=bool(stars), star_events=stars,
+                reached_star="yes" if reached else "no", reached_star_event=reached)
+
+
 # --- driver ---------------------------------------------------------------------------------------------------
-
-DEFAULT_ON = ("OdysseyJumpDive",)  # mods that are on without a mods.txt line (native/input/mods.cpp kDefaults)
-
-
-def mods_env(mods):
-    """PETARI_MODS value giving exactly the recorded set: the listed mods on, a default-on mod that was off explicitly off."""
-    items = list(mods) + [f"-{m}" for m in DEFAULT_ON if m not in mods]
-    return ",".join(items) if items else "none"
-
 
 def locate_sidecar(arg):
     p = Path(arg).expanduser()
@@ -174,9 +254,7 @@ def main(argv=None):
     ap.add_argument("--headless", required=True, type=Path)
     ap.add_argument("--disc", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
-    ap.add_argument("--ready", type=int, default=0, help="which anchor seam of the sidecar (default the first)")
-    ap.add_argument("--anchor", choices=("play", "game"), default="play", help="play: the game's ready-for-play seam (default); game: first Game/End seam")
-    ap.add_argument("--max-frames", type=int)
+    ap.add_argument("--max-frames", type=int, help="replay at most this many tape frames (all segments together)")
     ap.add_argument("--no-ftz", action="store_true")
     ap.add_argument("--epoch-ticks", type=int, default=0)
     ap.add_argument("--allow-incomplete", action="store_true", help="replay a killed session up to its last checkpoint")
@@ -195,44 +273,61 @@ def main(argv=None):
     for f in (kpd, actions, route):
         if not f.is_file():
             raise SystemExit(f"replay_tape: missing {f}")
-    # Anchor: the game's play-ready seam by default (the opening flyover's length depends on asynchronous loading, so the
-    # Game/End seam is a different game state in GX and headless); --anchor game selects the Game/End seam.
-    seams_key = "play_ready_seams" if a.anchor == "play" else "ready_seams"
-    ready = meta[seams_key][a.ready]
+    if not meta.get("segments") and meta.get("play_ready_seams"):  # tapes written before segments: the first play-ready to the end
+        r = meta["play_ready_seams"][0]
+        meta["segments"] = [dict(start_row=r["row"], end_row=meta["seams"] - 1, stage=r["stage"], scenario=r["scenario"], rng_seed=r["rng_seed"])]
+    if not meta.get("segments"):
+        raise SystemExit("replay_tape: the tape has no segment that reached play-ready (the session never got control of Mario)")
+    route_rows = list(csv.DictReader(route.open()))
+    meta["segments"][-1]["end_row"] = trim_invalid_tail(route_rows, meta["segments"][-1]["start_row"], min(meta["segments"][-1]["end_row"], meta["seams"] - 1))
+    plan = plan_segments(meta["segments"], meta["seams"], a.max_frames)
     if a.out.exists():
         raise SystemExit(f"replay_tape: {a.out} exists; give a fresh --out")
     a.out.mkdir(parents=True)
 
     _, records = parse_kpd(kpd.read_bytes(), allow_trailing=not meta.get("complete"))
-    total, kept = trim_kpd(records, ready["row"], meta["seams"], a.max_frames)
+    total, kept = build_tape(records, plan)
     (a.out / "inputs.kpd").write_bytes(pack_kpd(total, kept))
-    (a.out / "inputs.actions").write_text(rebase_actions(parse_actions(actions.read_text()), ready["row"], total))
+    (a.out / "inputs.actions").write_text(rebase_actions(parse_actions(actions.read_text()), plan))
+    (a.out / "segments.txt").write_text(segments_text(plan))
     user = a.out / "user"  # the headless harness wants an empty user dir: the mods go in through PETARI_MODS
     trace = a.out / "trace.csv"
+    first = plan[0]
     cmd = [str(a.headless), "--inputs", str(a.out / "inputs.kpd"), "--mod-actions", str(a.out / "inputs.actions"), "--disc", str(a.disc),
            "--user", str(user), "--trace", str(trace), "--epoch-ticks", str(a.epoch_ticks),
-           "--stage", ready["stage"], "--scenario", str(ready["scenario"]),
-           "--sync-stage", ready["stage"], "--sync-scenario", str(ready["scenario"]), "--sync-rng-seed", str(ready["rng_seed"]),
-           "--inputs-from-sync"] + (["--sync-play"] if a.anchor == "play" else [])
+           "--stage", first["stage"], "--scenario", str(first["scenario"]),
+           "--segments", str(a.out / "segments.txt"), "--sync-play", "--inputs-from-sync"]
     if a.no_ftz:
         cmd.append("--no-ftz")
-    (a.out / "command.json").write_text(json.dumps(dict(cmd=cmd, PETARI_MODS=mods_env(meta["mods"]), ready=ready, tape_frames=total, mods=meta["mods"], exe_sha256_recorded=meta.get("exe_sha256")), indent=2) + "\n")
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PETARI_")}
+    env["PETARI_MODS"] = mods_env(meta["mods"])
+    env.update(meta.get("replay_env") or {})
+    (a.out / "command.json").write_text(json.dumps(dict(cmd=cmd, env={k: v for k, v in env.items() if k.startswith("PETARI_")}, segments=plan,
+                                                        tape_frames=total, mods=meta["mods"], exe_sha256_recorded=meta.get("exe_sha256")), indent=2) + "\n")
     if a.dry_run:
         print(" ".join(cmd))
         return 0
-    env = {k: v for k, v in os.environ.items() if not k.startswith("PETARI_")}
-    env["PETARI_MODS"] = mods_env(meta["mods"])
     log = (a.out / "headless.log").open("wb")
     rc = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, env=env).returncode
     if rc != 0 or not (a.out / "trace.csv.complete").exists():
         raise SystemExit(f"replay_tape: the headless replay failed (exit {rc}); see {a.out / 'headless.log'}")
-    sync = json.loads((a.out / "trace.csv.sync.json").read_text())  # rng_seed = the seed after the one-shot set (the recorded one); rng_seed_before = the natural one
-    result = compare(list(csv.DictReader(trace.open())), list(csv.DictReader(route.open())), ready["row"])
-    result.update(tape=str(sidecar), ready=ready, tape_frames=total, replay_rng_seed=sync["rng_seed"], replay_natural_rng_seed=sync.get("rng_seed_before"), recorded_rng_seed=ready["rng_seed"],
-                  rng_seed_matches=sync["rng_seed"] == ready["rng_seed"])
-    (a.out / "first-divergence.json").write_text(json.dumps(result, indent=2) + "\n")
-    print(json.dumps({k: result[k] for k in ("rows_compared", "matched_rows", "first_divergence", "first_any_difference", "rows_with_any_difference", "last_any_difference_row", "max_position_error", "rng_seed_matches")}, indent=2))
-    return 0 if result["first_divergence"] is None else 1
+    seg_rows = [(int(r["trace_start_row"]), int(r["rows"])) for r in csv.DictReader((a.out / "trace.csv.segments.csv").open())]
+    if len(seg_rows) != len(plan):
+        raise SystemExit(f"replay_tape: the replay ran {len(seg_rows)} segments, the tape has {len(plan)}")
+    results = segment_results(list(csv.DictReader(trace.open())), seg_rows, route_rows, plan)
+    for i, seg in enumerate(plan):
+        sync = json.loads((a.out / ("trace.csv.sync%s.json" % (i or ""))).read_text())
+        results[i].update(replay_rng_seed=sync["rng_seed"], replay_natural_rng_seed=sync.get("rng_seed_before"), recorded_rng_seed=seg["rng_seed"],
+                          rng_seed_matches=sync["rng_seed"] == seg["rng_seed"])
+    summary = verdict(results, star_events(route_rows))
+    summary.update(tape=str(sidecar), tape_frames=total, segments=results)
+    (a.out / "first-divergence.json").write_text(json.dumps(summary, indent=2) + "\n")
+    brief = {k: summary[k] for k in ("all_segments_matched", "first_divergence_segment", "first_divergence", "reached_star", "star_in_recording")}
+    brief["segments"] = [{k: r[k] for k in ("segment", "stage", "tape_frames", "rows_compared", "matched_rows", "first_divergence", "rows_with_any_difference",
+                                            "last_any_difference_row", "max_position_error", "rng_seed_matches")} for r in results]
+    print(json.dumps(brief, indent=2))
+    print(f"reached star: {summary['reached_star']}")
+    return 0 if summary["all_segments_matched"] else 1
 
 
 if __name__ == "__main__":

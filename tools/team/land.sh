@@ -59,7 +59,7 @@ def docs_only(path):
     return path.endswith(".md") or (len(parts) == 3 and parts[:2] == ["native", "play"] and path.endswith(".sh"))
 
 
-paths = subprocess.check_output(["git", "diff", "--name-only", "-z", "main...HEAD"]).split(b"\0")
+paths = subprocess.check_output(["git", "diff", "--no-renames", "--name-only", "-z", "main...HEAD"]).split(b"\0")
 print("docs" if all(docs_only(path.decode("utf-8", errors="strict")) for path in paths if path) else "full")
 PYGATE
 ) || exit 1

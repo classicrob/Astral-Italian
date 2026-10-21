@@ -136,7 +136,7 @@ def summarize_metrics(case, stage):
     return result
 
 
-def verify(handoff_path, manifest_path):
+def verify(handoff_path, manifest_path, selection_path=None):
     h = json.loads(handoff_path.read_text())
     assert h["source_sha"] == SOURCE and h["host_id"] == SERVER
     assert h["production_only"] is True and h["extra_game_fixes"] == []
@@ -149,6 +149,20 @@ def verify(handoff_path, manifest_path):
     assert m["supported_count"] == len(m["supported_destinations"]) == 60
     assert m["selected_scenario"] == 1
     assert all(s in m["supported_destinations"] for s in INITIAL)
+    selection, stages, allocation = None, INITIAL, 1200
+    if selection_path:
+        selection = json.loads(selection_path.read_text())
+        assert selection["source_sha"] == SOURCE and selection["manifest_sha256"] == MANIFEST_SHA
+        stages = [row["stage"] for row in selection["stages"]]
+        assert len(stages) == len(set(stages)) == 6
+        assert all(row["scenario"] == 1 and row["scenario1_metadata_present"] for row in selection["stages"])
+        assert all(s in m["supported_destinations"] and not s.startswith("WorldMap") for s in stages)
+        assert digest(h["prior_receipt"]) == selection["prior_batch_receipt_sha256"]
+        prior = json.loads(Path(h["prior_receipt"]).read_text())
+        assert prior["source_sha"] == SOURCE and prior["artifact_sha256"] == h["executable_sha256"]
+        assert set(stages).isdisjoint(prior["observed_fresh_and_warm_galaxies"])
+        allocation = selection["max_runtime_seconds"]
+        assert allocation == 1500
     source = Path(h["source_root"])
     assert subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip() == SOURCE
     assert not subprocess.check_output(["git", "diff", "HEAD", "--"], cwd=source)
@@ -157,7 +171,7 @@ def verify(handoff_path, manifest_path):
         assert hashlib.sha256(expected).hexdigest() == digest(source / provider)
     assert files(h["private_seed"]) == h["private_seed_files"]
     assert Path(h["disc"]).is_dir()
-    return h, m
+    return h, m, stages, allocation, selection
 
 
 def main():
@@ -168,12 +182,13 @@ def main():
     p.add_argument("--state", type=Path, required=True)
     p.add_argument("--cleanup-success-caches", action="store_true")
     p.add_argument("--batch-id", help="preannounced new private directory name")
+    p.add_argument("--selection", type=Path)
     a = p.parse_args()
-    h, manifest = verify(a.handoff, a.manifest)
+    h, manifest, stages, allocation, selection = verify(a.handoff, a.manifest, a.selection)
     assert "MacioGalaxy2-gamedata" in a.output_parent.parts
     a.output_parent.mkdir(parents=True, mode=0o700, exist_ok=True)
     if a.batch_id:
-        assert re.fullmatch(r"gx53-batch1-[A-Za-z0-9_-]+", a.batch_id)
+        assert re.fullmatch(r"gx53-batch[0-9]+-[A-Za-z0-9_-]+", a.batch_id)
         out = a.output_parent / a.batch_id
         out.mkdir(mode=0o700)
     else:
@@ -194,21 +209,27 @@ def main():
     write(out / "batch.json", {"source_sha": SOURCE, "handoff": h,
         "handoff_sha256": digest(a.handoff), "manifest_sha256": MANIFEST_SHA,
         "runner_sha256": digest(__file__), "source_providers": source_providers,
-        "coverage_inventory": [{"stage": s, "status": "PLANNED_INITIAL_BATCH" if s in INITIAL else "NOT_RUN_WORLDMAP_OUT_OF_SCOPE" if s.startswith("WorldMap") else "NOT_RUN"} for s in manifest["supported_destinations"]],
-        "planned_stages": INITIAL, "case_wall_seconds": SECONDS, "max_runtime_seconds": 1200,
+        "coverage_inventory": [{"stage": s, "status": "PLANNED_BATCH" if s in stages else "NOT_RUN_WORLDMAP_OUT_OF_SCOPE" if s.startswith("WorldMap") else "NOT_RUN"} for s in manifest["supported_destinations"]],
+        "planned_stages": stages, "selection": selection,
+        "selection_sha256": digest(a.selection) if a.selection else None,
+        "case_wall_seconds": SECONDS, "max_runtime_seconds": allocation,
         "input": "neutral idle; no SMOKE driver or injected input",
         "cache_scope": "fresh/warm app cache only; OS/driver cache uncontrolled",
         "coverage": "direct entry only; normal path and visual comparison separate"})
     print(json.dumps({"batch": str(out), "controller_pid": os.getpid()}), flush=True)
     try:
-        for stage in INITIAL:
+        for stage in stages:
+            if (out / "STOP-AFTER-CURRENT").exists():
+                break
             fresh = None
             successful = []
             for mode in ("fresh", "warm"):
+                if (out / "STOP-AFTER-CURRENT").exists():
+                    break
                 if mode == "warm" and fresh is None:
                     rows.append({"stage": stage, "mode": mode, "status": "NOT_RUN: fresh case failed or cache unavailable"})
                     continue
-                assert time.monotonic() - started + SECONDS + 10 <= 1200, "20 minute allocation exhausted"
+                assert time.monotonic() - started + SECONDS + 20 <= allocation, "batch allocation exhausted"
                 free = shutil.disk_usage(out).free
                 assert free >= FLOOR, "50 GiB floor; no global pruning permitted"
                 assert digest(h["executable"]) == h["executable_sha256"]

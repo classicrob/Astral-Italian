@@ -1,0 +1,58 @@
+{
+  "source_sha": "33e71ee880b426c0c7da03a724377200e874c417",
+  "manifest_sha256": "b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a",
+  "selection": "World1 untested in GalaxyWorldOrderList order, then remaining supported manifest ASCII catalogue order",
+  "catalog_metadata_sha256": "c6c31e362aabfc946203925497c605641dcf254c14329c739625a19fa3ea633d",
+  "prior_observed_galaxies": [
+    "RedBlueExGalaxy",
+    "MokumokuValleyGalaxy",
+    "YosshiHomeGalaxy"
+  ],
+  "prior_batch_receipt_sha256": "c0d54d30ba5dd02248ee6adca366de91c5885ebacdf3d60f515ef350f38f9326",
+  "stages": [
+    {
+      "stage": "IslandFleetGalaxy",
+      "scenario": 1,
+      "world": 1,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "DigMineGalaxy",
+      "scenario": 1,
+      "world": 1,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "AbekobeGalaxy",
+      "scenario": 1,
+      "world": 1,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "VsKoopaJrLv1Galaxy",
+      "scenario": 1,
+      "world": 1,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "AncientExcavationGalaxy",
+      "scenario": 1,
+      "world": 6,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "BigGalaxy",
+      "scenario": 1,
+      "world": 4,
+      "scenario1_metadata_present": true
+    }
+  ],
+  "case_seconds": 90,
+  "cases_per_galaxy": [
+    "fresh",
+    "warm"
+  ],
+  "max_runtime_seconds": 1500,
+  "no_worldmap": true,
+  "qualification": "Direct-entry idle only; scenario eligibility is not gameplay completion."
+}

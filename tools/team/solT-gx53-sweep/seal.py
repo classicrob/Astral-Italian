@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 root = Path(sys.argv[1]).resolve()
-assert "solT-gx53-direct" in root.parts and root.name.startswith("gx53-batch1-")
+assert "solT-gx53-direct" in root.parts and root.name.startswith("gx53-batch")
 load = lambda p: json.loads(Path(p).read_text())
 batch = load(root / "batch.json")
 closed = load(root / "closed.json")
@@ -38,7 +38,7 @@ for entry in closed["rows"]:
     table.append(row)
 observed = [s for s in batch["planned_stages"] if all(any(r.get("stage") == s and r.get("mode") == mode and r.get("status") == "BOUNDED_IDLE_OBSERVED" for r in table) for mode in ("fresh", "warm"))]
 freed = sum(item["bytes_freed"] for path in root.glob("*-cleanup.json") for item in load(path))
-summary = {"status": "INITIAL_BATCH_CLOSED", "source_sha": batch["source_sha"],
+summary = {"status": "BOUNDED_BATCH_CLOSED", "source_sha": batch["source_sha"],
     "artifact_sha256": batch["handoff"]["executable_sha256"], "renderer_key": batch["handoff"]["artifact_key"],
     "manifest_sha256": batch["manifest_sha256"], "runner_sha256": batch["runner_sha256"],
     "case_receipts": table, "observed_fresh_and_warm_galaxies": observed,

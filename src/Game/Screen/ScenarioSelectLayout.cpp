@@ -727,14 +727,14 @@ void ScenarioSelectLayout::exeWaitScenarioSelect() {
     updateStarPointerMovePositions();
     updateSelectedScenario();
 #ifdef GALAXY_NATIVE
-    for (s32 i = 0; i < 7; ++i) {
+    for (s32 i = 0; i < ARRAY_SIZE(cStarPaneName); ++i) {
         if (!mStar[i]->_30 && mStar[i]->mScenarioNo == 1) {
             MR::Native::publishUiPaneTarget(this, ::cStarPaneName[i], "Scenario.First", 1,
                 PETARI_UI_SELECTABLE | (mSelectedScenarioNo == 1 ? PETARI_UI_POINTING : 0));
         }
     }
     // The personal progress badges (native/PROGRESS.md): where each shown mission star is, every frame.
-    for (s32 i = 0; i < 7; ++i) {
+    for (s32 i = 0; i < ARRAY_SIZE(cStarPaneName); ++i) {
         TVec2f badgePos;
         if (!mStar[i]->_30 && MR::Native::paneCenterOnScreen(this, ::cStarPaneName[i], &badgePos)) {
             petari_progress_badge(MR::getCurrentStageName(), mStar[i]->mScenarioNo, badgePos.x / MR::getScreenWidth(),
@@ -743,7 +743,7 @@ void ScenarioSelectLayout::exeWaitScenarioSelect() {
     }
     // Every shown mission star, indexed by its scenario number (comet and
     // hidden stars included once the file owns them).
-    for (s32 i = 0; i < 7; ++i) {
+    for (s32 i = 0; i < ARRAY_SIZE(cStarPaneName); ++i) {
         if (!mStar[i]->_30) {
             const s32 scenarioNo = mStar[i]->mScenarioNo;
             MR::Native::publishUiPaneTarget(this, ::cStarPaneName[i], "Scenario.Star", scenarioNo,

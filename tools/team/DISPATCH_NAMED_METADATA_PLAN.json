@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "status": "DISABLED_THREE_STAGE_NAMED_METADATA_PROPOSAL_NO_ALLOCATION",
+  "execution_enabled": false,
+  "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-named-metadata-v1",
+  "key": "__CF_USER_TEXT_ENCODING",
+  "stages": [
+    "launcherentry",
+    "parentaftereightkeysetup",
+    "childentry"
+  ],
+  "total_seconds": 30,
+  "work_seconds": 10,
+  "cleanup_seconds": 4,
+  "maximum_allocated_bytes": 67108864,
+  "minimum_free_bytes": 53687091200,
+  "maximum_records": 3,
+  "maximum_record_bytes": 16384,
+  "maximum_value_utf8_bytes": 512,
+  "completion_reserved_bytes": 65536,
+  "python": {
+    "argv": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "resolved": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+  },
+  "eight_key_setup": {
+    "HOME": "/Users/roberthaisfield",
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TMPDIR": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-named-metadata-v1/tmp",
+    "PYTHONCOERCECLOCALE": "0",
+    "PYTHONUTF8": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "source_files": {
+    "dispatch_named_metadata_run.py": "7a0ccbbff50daffc0cff3043c653f58c249a91c1df6d781651db7f5e76acdd40",
+    "dispatch_named_metadata.py": "559fd7b047f112503d49a2e03e1d73b94d63607b4a8e3bc8cb44ea69ea7dfe06",
+    "dispatch_platform_context_proposal.py": "ff0b15f4be12200a2cc22754e996eddae4d82f0a133e4dee2bf7df8a83f8fe80",
+    "dispatch_full_budget.py": "b392e6d9723ad64f0eae915c131274b6fac157089a974e94d9b0adb5b44ab6bc",
+    "dispatch_exec_gate.py": "d6967d647c2279d89a7b44b2891ec085da23d8a11a297f33e7c10cb6fb6a47cb",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "dispatch_preflight.py": "adfaae0ee51350fedb883937ae887f1f1d443f986b0c4b98f334894f266c1d72"
+  },
+  "scope": "ONLY selected named-key presence/value UTF8hex/length/hash + actualidentity/sourcepins; no otherenvvalues, tool/payload/ack/admission",
+  "child_argv_template": [
+    "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/dispatch_named_metadata.py",
+    "--child",
+    "--plan",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-named-metadata-v1/invocation.json",
+    "--plan-sha256",
+    "EXACT_ALLOCATED_PLAN_SHA",
+    "--parent-pid",
+    "ACTUAL_REGISTERED_CONTROLLER_PID"
+  ],
+  "parent_argv_template": [
+    "nice",
+    "-n",
+    "19",
+    "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/dispatch_named_metadata_run.py",
+    "--plan",
+    "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/DISPATCH_NAMED_METADATA_PLAN.json",
+    "--execute-plan-sha256",
+    "REQUIRES_SEPARATE_ENABLED_PLAN_REVIEW_AND_ALLOCATION_SHA"
+  ],
+  "lifecycle": "singlemetadatachild; actualpid/pgid/sid/uid+parent join; unchanged TERM1/KILL3 waitreap-beforestrictESRCH; EPERMuncertain; no signal withoutverifiedownership; childselfexpires10s; no retry",
+  "storage": "private700/freshroot; stageEXCL600 atomicpublish, <=3stagefiles each16384B; control/journal/invocation/completion separate retainedmetadata under64MiB",
+  "limits": "sampled finite scan/syscall bounds; not universal hard realtime quota; 64KiBcompletion reserve",
+  "qualification": "SOURCE_PROPOSAL_ONLY actualhelper/lifecycle/UTF8value/materialization unrun; full827disabled"
+}

@@ -113,6 +113,17 @@ class FeelTests(unittest.TestCase):
         self.assertIn('PETARI_FRAME_STATS', result['conditions']['diagnostic_overhead']['enabled'])
         self.assertEqual(result['qualification'], 'BLOCKED')
 
+    def test_actual_gate_csv_mouse_capture_and_dummy_bindings(self):
+        self.launch['environment'] = {'PETARI_FRAME_CSV': '/private/frames.csv',
+            'PETARI_ROUTE_RECORD': '/private/route.csv', 'PETARI_EDITOR_MOUSE_TRACE': '1',
+            'PETARI_CAPTURE_DIR': '/private/captures', 'SDL_AUDIO_DRIVER': 'dummy'}
+        result = fm.extract(self.launch, self.context)
+        self.assertEqual(result['conditions']['audio_driver_requested'], 'dummy')
+        self.assertFalse(result['conditions']['real_audio_requested'])
+        for flag in ('PETARI_FRAME_CSV', 'PETARI_ROUTE_RECORD', 'PETARI_EDITOR_MOUSE_TRACE', 'PETARI_CAPTURE_DIR'):
+            self.assertIn(flag, result['conditions']['diagnostic_overhead']['enabled'])
+        self.assertEqual(result['conditions']['diagnostic_overhead']['status'], 'NOTQUANTIFIED')
+
     def test_histogram_exhaustive_zero_and_high_samples(self):
         data = fm.distribution([0, 16, 25, 33, 50, 100, 1000])
         self.assertEqual(sum(x['count'] for x in data['histogram']), 7)

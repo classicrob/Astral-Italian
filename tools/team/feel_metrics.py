@@ -14,7 +14,9 @@ TIMINGS = ('interval_ms', 'present_ms', 'present_call_ms', 'pipeline_wait_ms',
 BOUNDS = (1000 / 60, 25, 1000 / 30, 50, 100)
 DIAGNOSTICS = ('PETARI_FRAME_STATS', 'PETARI_PIPELINE_DIAG', 'PETARI_AUDIO_DIAG',
                'PETARI_CAPPY_TRACE', 'PETARI_ODYSSEY_TRACE', 'PETARI_TRACE_BOOT',
-               'PETARI_XFB_DUMP', 'PETARI_SURFACE_DUMP')
+               'PETARI_XFB_DUMP', 'PETARI_SURFACE_DUMP', 'PETARI_FRAME_CSV',
+               'PETARI_ROUTE_RECORD', 'PETARI_EDITOR_MOUSE_TRACE', 'PETARI_INPUT_SCRIPT_LOG',
+               'PETARI_CAPTURE_DIR')
 
 
 def require(ok, message):
@@ -174,7 +176,8 @@ def extract(launch, context, frame_path=None, log_path=None):
                                                   'reason': 'no matched diagnostics-off measurement'},
                            'contamination': contamination or {'status': 'UNKNOWN', 'reason': 'no owned-job/window receipt'},
                            'cache': context.get('cache', {'classification': 'UNKNOWN'}),
-                           'real_audio_requested': environment.get('PETARI_SMOKE_REAL_AUDIO') == '1'},
+                           'real_audio_requested': environment.get('PETARI_SMOKE_REAL_AUDIO') == '1',
+                           'audio_driver_requested': environment.get('SDL_AUDIO_DRIVER', environment.get('SDL_AUDIODRIVER', 'DEFAULT'))},
             'channels': channels}
 
 

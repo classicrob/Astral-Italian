@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "status": "DISABLED_DESIGN_REVIEW_ONLY",
+  "execution_enabled": false,
+  "key": "__CF_USER_TEXT_ENCODING",
+  "operator_record": null,
+  "operator_record_sha256": null,
+  "expected_full_env_sha256": null,
+  "actual_value": "UNKNOWN_NOT_READ",
+  "admission": "NOT_IMPLEMENTED_NOT_AUTHORIZED",
+  "observation_proposal": {
+    "execution_enabled": false,
+    "status": "SOURCE_AND_ARGV_NOT_IMPLEMENTED_PENDING_REVIEW",
+    "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-named-metadata-v1",
+    "stages": [
+      "launcher_entry",
+      "parent_pre_spawn",
+      "child_entry"
+    ],
+    "key": "__CF_USER_TEXT_ENCODING",
+    "maximum_value_utf8_bytes": 512,
+    "maximum_records": 3,
+    "maximum_record_bytes": 16384,
+    "total_seconds": 30,
+    "work_seconds": 10,
+    "cleanup_seconds": 4,
+    "maximum_allocated_bytes": 67108864,
+    "minimum_free_bytes": 53687091200,
+    "payload": "NONE",
+    "argv": null,
+    "allocation": "NONE"
+  },
+  "preserve": "all prior cases/groupabsenceUNKNOWN/full827 disabled; no guessed value or new active allowlist"
+}

@@ -54,3 +54,26 @@ presentation_binding='frame-id-verified', host, executable_sha256,
 source_revision and renderer. The trace must contain ready and offset rows.
 The presentation receipt is an actual provider artifact, never a fixture
 assertion for live data. No gameplay PASS or admission is emitted by this tool.
+
+## Source adapter checkpoint
+
+`visual_readiness.ReadySchedule` now accepts actual source observations from
+both providers and produces requests only at the fixed offsets. It observes
+contiguous post-endFrame seams from source frame zero, anchors the first exact
+Game/init6 target, retains separately observed player validity, and cancels
+rather than reanchors after a scene/epoch change. An unavailable player at the
+actual anchor remains BLOCKED; it never moves the anchor to a later convenient
+row. `presentation_receipt` validates real copy/readback IDs, source/epoch tags,
+completion fence and exact private image hash. These helpers have synthetic
+coverage. They are not a claim that renderer hooks have run.
+
+Native integration points are `native/app/frame_seam.cpp` before CPU release
+and `native/gx/present/present_aurora.cpp` after FIFO drain/readback. Existing
+`Screenshot::request` means next presented game frame and must not be relabeled
+as its request's sampled state. `LatencyProbe::frame` counts Aurora choices and
+is incremented once during initial presentation installation; it is not a game
+source-frame counter. Its current single-press `noteCopy` record cannot supply
+a complete image schedule. Native latest-copy presentation also precedes retail
+VI scan-out; keep that distinction explicit instead of changing the reference
+renderer. Actual GXCopyDisp copy tags and readback IDs, or an explicitly
+unqualified window-capture mode with unknown presentation lag, are still needed.

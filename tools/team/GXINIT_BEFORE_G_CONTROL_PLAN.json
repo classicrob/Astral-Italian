@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "execution_enabled": false,
+  "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1",
+  "cwd": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1",
+  "limits": {
+    "total_seconds": 45,
+    "maximum_allocated_bytes": 67108864,
+    "minimum_free_bytes": 53687091200,
+    "metadata_reserve_bytes": 65536,
+    "gate_alarm_seconds": 10,
+    "identity_seconds": 8,
+    "direct_wait_seconds": 12,
+    "helper_cleanup_interval_seconds": 6
+  },
+  "sources": {
+    "gxinit_before_g_controls.py": "0c706c5c25e41d801622be8af90748ef811adf6e8f76b68e6325402e9d4653db",
+    "gxinit_fixed_four.py": "22f66e9514154a0ed84b361d4131c69bd482add3a1a7f16b386301f83135ed26",
+    "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea"
+  },
+  "helper": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-helper-0fcd2b4e-source/recovery_caller.py",
+    "sha256": "0fcd2b4e74a2423200065aafd4248f6589791bf9b2348726122bf5b2fc4ee5b0",
+    "module_closure": {
+      "recovery_caller.py": "0fcd2b4e74a2423200065aafd4248f6589791bf9b2348726122bf5b2fc4ee5b0",
+      "recovery_transaction.py": "c41b7712874ac443ecbacf475c3cf70ad8972dbc708123fcff66f1a41c2ad707",
+      "retention_paths.py": "b372144e90ec04dc3819851d7872752a51a23697e586de91d90b3f5b40bacbbd",
+      "symbol_recovery.py": "a01feac5c551832833c8c2db8fc211585bfd524bf7b22bc2ae2096540e652d18"
+    }
+  },
+  "operator": null,
+  "full_env_sha256": null,
+  "base_env": {
+    "HOME": "/Users/roberthaisfield",
+    "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TMPDIR": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1/tmp",
+    "PYTHONCOERCECLOCALE": "0",
+    "PYTHONUTF8": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "cases": [
+    "identity-eof",
+    "registered-parent-unwind"
+  ],
+  "scope": "BEFORE_G_ONLY_NO_PAYLOAD_NO_COMPILER"
+}

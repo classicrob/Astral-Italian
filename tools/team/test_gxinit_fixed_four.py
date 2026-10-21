@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import unittest
 import gxinit_fixed_four as f
+import gxinit_before_g_controls as controls
 
 class FixedModels(unittest.TestCase):
     def plan(self):return json.loads(Path(f.__file__).with_name('GXINIT_FIXED_FOUR_PLAN.json').read_bytes())
@@ -37,6 +38,77 @@ class FixedModels(unittest.TestCase):
         # The only G write is after joined_identity, durable record and append.
         text=ast.unparse(run);self.assertLess(text.index('joined_identity('),text.index("pending.stdin.write(b'G')"))
         self.assertLess(text.index('sup.children.append(pending)'),text.index("pending.stdin.write(b'G')"))
+    def cleanup_doubles(self,events,stop_error=None,wait_error=None,exists=False):
+        class Pipe:
+            closed=False
+            def close(self):events.append('close');self.closed=True
+        class Handle:
+            pid=123;returncode=None;stdin=Pipe()
+            def wait(self,timeout):
+                events.append(('wait',timeout))
+                if wait_error:raise wait_error
+                self.returncode=0;return 0
+        handle=Handle()
+        class Supervisor:
+            children=[handle]
+            def __init__(self):self.events=[]
+            def stop_all(self):
+                events.append('stop_all')
+                if stop_error:raise stop_error
+                handle.returncode=0
+            def persist(self):events.append('persist')
+        class Helper:
+            @staticmethod
+            def group_exists(pid):events.append('probe');return exists
+        return handle,Supervisor(),Helper
+    def test_before_g_reaps_before_existing_helper_and_unknown_never_probes(self):
+        for verified in (True,False):
+            events=[];h,s,helper=self.cleanup_doubles(events)
+            state={'attempted':False,'result':None,'error':None}
+            result=f.cleanup_step_once(h,verified,False,s,helper,state)
+            self.assertEqual(events[:2],['close',('wait',12)])
+            if verified:
+                self.assertLess(events.index(('wait',12)),events.index('stop_all'))
+                self.assertTrue(result['groups_absent'])
+            else:
+                self.assertEqual(events,['close',('wait',12)])
+                self.assertFalse(result['groups_absent'])
+    def test_cleanup_uncertainty_and_wait_failure_never_retry(self):
+        for stop_error,wait_error in ((PermissionError('EPERM'),None),(None,TimeoutError('wait'))):
+            events=[];h,s,helper=self.cleanup_doubles(events,stop_error,wait_error)
+            state={'attempted':False,'result':None,'error':None}
+            with self.assertRaises((PermissionError,TimeoutError)):f.cleanup_step_once(h,True,False,s,helper,state)
+            snapshot=list(events)
+            with self.assertRaisesRegex(RuntimeError,'no retry'):f.cleanup_step_once(h,True,False,s,helper,state)
+            self.assertEqual(snapshot,events);self.assertTrue(state['attempted']);self.assertIsNotNone(state['error'])
+            if wait_error:self.assertNotIn('stop_all',events)
+            self.assertEqual(s.children,[h])
+    def test_ack_delivery_uncertainty_is_not_before_g(self):
+        events=[];h,s,helper=self.cleanup_doubles(events)
+        f.cleanup_step_once(h,True,True,s,helper,{'attempted':False,'result':None,'error':None})
+        self.assertEqual(events[0],'stop_all');self.assertNotIn('close',events)
+    def test_primary_cleanup_errors_and_no_outer_retry(self):
+        error=f.StepFailure('primary','cleanup')
+        self.assertEqual((error.primary_error,error.cleanup_error),('primary','cleanup'))
+        tree=ast.parse(Path(f.__file__).read_text());execute=next(x for x in tree.body if isinstance(x,ast.FunctionDef) and x.name=='execute_four')
+        self.assertNotIn('sup.stop_all()',ast.unparse(execute))
+        cleanup=next(x for x in tree.body if isinstance(x,ast.FunctionDef) and x.name=='cleanup_step_once')
+        text=ast.unparse(cleanup);self.assertLess(text.index("state['attempted'] = True"),text.index('pending.wait('))
+    def test_disabled_controls_pins_and_no_payload_path(self):
+        plan=json.loads(Path(f.__file__).with_name('GXINIT_BEFORE_G_CONTROL_PLAN.json').read_bytes())
+        controls.validate_disabled(plan)
+        changed=copy.deepcopy(plan);changed['execution_enabled']=True
+        with self.assertRaises(RuntimeError):controls.validate_disabled(changed)
+        for fn,args in [(controls.run_controls,({},None,None)),(controls.run_case,('identity-eof',{},None,None,None,None,None,None)),(controls.gate,(None,None,None,None))]:
+            with self.assertRaisesRegex(RuntimeError,'CONTROLS REFUSED'):fn(*args)
+        tree=ast.parse(Path(controls.__file__).read_text())
+        for node in ast.walk(tree):
+            if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute):
+                self.assertNotIn(node.func.attr,('execve','execvpe','execv','killpg','kill'))
+        rendered=ast.unparse(tree)
+        self.assertNotIn("write(b'G')",rendered)
+        self.assertNotIn('sup.stop_all()',rendered)
+        self.assertIn('os_signal_test',rendered)
     def test_dependencies_and_missing_unknown_inputs(self):
         root='/fixture';source=root+'/candidate.cpp';names=[source,root+'/required.h']
         contract={'mandatory_paths_common':[names[1]],'allowed_resolved_roots':[root],'max_dependencies_per_arm':5,'max_total_dependency_bytes_per_arm':100}

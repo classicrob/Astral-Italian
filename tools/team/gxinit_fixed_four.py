@@ -143,13 +143,55 @@ def load_environment(plan):
     need(digest==plan['full_env_sha256'],'operator context digest');return env
 
 
+
+class StepFailure(RuntimeError):
+    """Keep independent primary/cleanup failures without retrying cleanup."""
+    def __init__(self,primary,cleanup):
+        self.primary_error=primary;self.cleanup_error=cleanup
+        super().__init__('fixed step failed: '+repr({'primary':primary,'cleanup':cleanup}))
+
+
+def cleanup_step_once(pending,verified,ack_attempted,sup,helper,state):
+    """ONE attempt per handle. Before-G ordering is not compiler qualification.
+
+    state is retained even on interruption/error; no caller may re-enter cleanup.
+    Fake handles/helpers only in source models; all runtime entry guards remain.
+    """
+    need(state=={'attempted':False,'result':None,'error':None},'cleanup already attempted; no retry')
+    state['attempted']=True  # BEFORE pipe/wait/probe/helper or other failure point.
+    try:
+        if not verified or not ack_attempted:
+            # This owned gate has not received an attempted G write. Close its
+            # pipe and WAIT/REAP before any verified-group helper probe. A write
+            # attempt (even failed flush) is NEVER classified as before-G.
+            if pending.stdin is not None and not pending.stdin.closed:pending.stdin.close()
+            pending.wait(timeout=12)
+            need(pending.returncode is not None,'gate direct wait did not reap')
+        if verified:
+            # Existing helper only. After-G compiler ordering remains OPEN.
+            sup.stop_all()
+            need(pending.returncode is not None and not helper.group_exists(pending.pid),'strict existing helper cleanup')
+            result={'leaders_reaped':True,'groups_absent':True,'error':None}
+            sup.children.remove(pending)
+            sup.events.append({'retired':pending.pid,'status':pending.returncode});sup.persist()
+        else:
+            # No helper, signal or group probe for unverified ownership.
+            result={'leaders_reaped':pending.returncode is not None,'groups_absent':False,'error':'UNVERIFIED_GROUP_UNKNOWN'}
+        state['result']=result
+        return result
+    except BaseException as error:
+        state['error']=repr(error)
+        raise
+
+
 def run_registered_step(plan,index,sup,helper,check,env,invocation_path,invocation_sha):
     refuse_execution()  # Models do not bypass this to launch a child.
     import signal,threading,subprocess
     step=plan['steps'][index];root=Path(plan['output']);nonce=os.urandom(16).hex();identity_path=root/(step['id']+'.identity.json')
     need(threading.active_count()==1 and not sup.children,'fixed serial single-threaded launch')
     gate=[sys.executable,str(Path(__file__).resolve()),'--gated-child',str(invocation_path),invocation_sha,str(identity_path),nonce,str(index)]
-    pending=None;verified=False;cleanup=None
+    pending=None;verified=False;ack_attempted=False;cleanup=None
+    primary_error=None;cleanup_error=None;cleanup_state={'attempted':False,'result':None,'error':None}
     try:
         with (root/(step['id']+'.log')).open('xb') as log:
             mask=signal.pthread_sigmask(signal.SIG_BLOCK,{signal.SIGTERM,signal.SIGINT,signal.SIGHUP})
@@ -164,25 +206,33 @@ def run_registered_step(plan,index,sup,helper,check,env,invocation_path,invocati
                 target_pin=runtime_target(plan,index)
                 private_record(root/(step['id']+'.registered.json'),{'identity':identity,'argv':step['argv'],'step':step['id'],'plan_sha256':invocation_sha,'target_sha256':target_pin})
                 verified=True;sup.children.append(pending);sup.events.append({'registered':identity,'step':step['id']});sup.persist()
+                ack_attempted=True  # Set BEFORE first write; delivery uncertainty is after-G.
                 pending.stdin.write(b'G');pending.stdin.flush();pending.stdin.close()
             finally:signal.pthread_sigmask(signal.SIG_SETMASK,mask)
             until=time.monotonic()+step['seconds']
             while pending.poll() is None:
                 check();need(time.monotonic()<until,'fixed step deadline');time.sleep(.2)
+    except BaseException as error:
+        primary_error=error
     finally:
         if pending is not None:
-            if verified:
-                # Existing helper only; exact probe-before-reap disposition OPEN.
-                sup.stop_all();need(pending.returncode is not None and not helper.group_exists(pending.pid),'strict existing helper cleanup')
-                cleanup={'leaders_reaped':True,'groups_absent':True,'error':None}
-                sup.children.remove(pending);sup.events.append({'retired':pending.pid,'status':pending.returncode});sup.persist()
-            else:
-                # Unknown group: close owned channel and await gate EOF/alarm. NO SIGNAL/PROBE.
-                if pending.stdin is not None and not pending.stdin.closed:pending.stdin.close()
-                try:pending.wait(timeout=12)
-                except subprocess.TimeoutExpired:pass
-                private_record(root/(step['id']+'.unknown.json'),{'direct_pid':pending.pid,'reaped_status':pending.returncode,'group_absence':'UNKNOWN','signal_sent':False})
+            try:
+                cleanup=cleanup_step_once(pending,verified,ack_attempted,sup,helper,cleanup_state)
+            except BaseException as error:
+                cleanup_error=error
+            # Best-effort private evidence never overwrites primary/cleanup.
+            try:
+                private_record(root/(step['id']+'.cleanup.json'),{'direct_pid':pending.pid,'verified':verified,
+                  'ack_attempted':ack_attempted,'state':cleanup_state,'reaped_status':pending.returncode,
+                  'primary_error':repr(primary_error) if primary_error is not None else None,
+                  'cleanup_error':repr(cleanup_error) if cleanup_error is not None else None})
+            except BaseException as record_error:
+                if cleanup_error is None:cleanup_error=record_error
+    if primary_error is not None or cleanup_error is not None:
+        raise StepFailure(repr(primary_error) if primary_error is not None else None,
+                          repr(cleanup_error) if cleanup_error is not None else None) from primary_error
     return accept_status(index,pending.returncode,cleanup)
+
 
 
 def verify_inputs(a,check=None):
@@ -239,7 +289,7 @@ def execute_four(plan,invocation_path,invocation_sha,helper):
                 need(time.monotonic()-began<=1,'sampled metadata scan bound')
     def interrupted(signum,frame):raise RuntimeError('fixed job interrupt '+str(signum))
     previous={sig:signal.signal(sig,interrupted) for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP)}
-    sup=None;results=[];failure=None
+    sup=None;results=[];failure=None;cleanup_failure=None
     try:
         with helper.exclusive_lock(Path.home()/'MacioGalaxy2-team/slots/native.lock'):
             check();os.umask(0o077);output.mkdir(mode=0o700);(output/'tmp').mkdir();verify_inputs(a,check)
@@ -271,18 +321,23 @@ def execute_four(plan,invocation_path,invocation_sha,helper):
                     with (output/'steps.json').open('wb') as f:f.write(payload)
                 verify_inputs(a,check);check()
             except BaseException as error:
-                failure=repr(error);raise
+                if isinstance(error,StepFailure):failure=error.primary_error;cleanup_failure=error.cleanup_error
+                else:failure=repr(error)
+                raise
             finally:
-                try:
-                    if sup is not None:sup.stop_all()
-                except BaseException as cleanup_error:
-                    failure='CLEANUP_UNCERTAIN '+repr(cleanup_error);raise
-                finally:
-                    # Never claims success from leader/ps or locked path alone.
-                    private_record(output/'completion.json',{'status':'FOUR_COMMAND_STATUSES_ONLY_SEMANTIC_REVIEW_PENDING' if failure is None else 'FAIL_CLOSED',
-                      'error':failure,'steps':len(results),'elapsed':time.monotonic()-start,'compiler_escape_qualified':False,'fixture_semantic_acceptance':False,'kernel_uid_observed':False,
-                      'cleanup_scope':'verified registry only; pending failures see unknown records',
-                      'owned_group_status':'VERIFIED_LIST_EMPTY_ONLY' if failure is None else 'FAIL_CLOSED_SEE_PENDING_AND_GROUP_JOURNALS'})
+                # run_registered_step owns its handle's sole cleanup attempt.
+                # NEVER repeat stop_all here, even with a retained uncertain
+                # registry. Between steps the registry must already be empty.
+                completion={'status':'FOUR_COMMAND_STATUSES_ONLY_SEMANTIC_REVIEW_PENDING' if failure is None and cleanup_failure is None else 'FAIL_CLOSED',
+                  'error':failure,'cleanup_error':cleanup_failure,'steps':len(results),'elapsed':time.monotonic()-start,
+                  'compiler_escape_qualified':False,'fixture_semantic_acceptance':False,'kernel_uid_observed':False,
+                  'cleanup_scope':'one attempt per handle; uncertain registry retained without second cleanup',
+                  'remaining_registered_pids':[p.pid for p in sup.children],
+                  'owned_group_status':'VERIFIED_LIST_EMPTY_ONLY' if failure is None and cleanup_failure is None and not sup.children else 'FAIL_CLOSED_SEE_PENDING_AND_GROUP_JOURNALS'}
+                try:private_record(output/'completion.json',completion)
+                except BaseException:
+                    if failure is None and cleanup_failure is None:raise
+                    # Preserve in-flight primary/cleanup exception if metadata fails.
     finally:
         for sig,handler in previous.items():signal.signal(sig,handler)
 

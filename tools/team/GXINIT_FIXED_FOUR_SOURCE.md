@@ -77,3 +77,34 @@ aftercleanup; correct kernelPGID/SID and selfUID mismatch; source hardrefusal+
 noG ordering; MD target/mandatory/unknownroot/duplicate rejection; exactlinker
 witness/all3libs. No helper module import, child, process/signal, actualtool,
 compiler, app, lock, actualdependency/SDK or originalpayload operation occurred.
+
+## Superseding source cleanup correction (after L review4cbbac6a)
+
+Each step now owns exactly ONE cleanup attempt. The retained state flips to
+attempted BEFORE any pipe/wait/helper/probe operation; a second entry rejects
+without touching the handle. Batch completion never invokes stop_all again.
+An uncertain registry remains retained; completion separately stores primary and
+cleanup errors, and metadata failure never replaces an already active error.
+
+For known before-G gates only, cleanup closes the owned stdin and boundedly
+waits/reaps the direct gate BEFORE stop_all's first cleanup group probe. A failed
+wait skips the helper. A G write attempt is conservatively after-G even if write
+or flush fails. This does NOT qualify after-G compiler interruption or escaped
+children. Unknown identity closes/waits only, no helper/group signal/probe.
+
+The exact four existing helper source files are staged, not imported, at
+solP/gxinit-helper-0fcd2b4e-source; manifest626cc488 binds all bytes to L source.
+Actual M1 import resolution remains UNRUN. A separate disabled two-case source
+and plan use the fresh absent root solP/gxinit-before-g-controls-v1. Cases are
+identity+EOF and controlled parent exception after registered identity BEFORE G.
+The second is an exception-unwind test, NOT an actual OS signal test. Neither
+control has any exec, tool argv, G write, or compiler path. Entry refusals remain
+at CLI, control batch, case and child. Context operator/fullhash are NULL pending
+L's independent private exact-nine record; active runtime validation/helper
+loading and any admission delta still require exact review and allocation.
+45s/64MiB/floor50+64KiB limits are proposed sampled enforcement, not measured.
+
+Eleven no-process tests cover original six models plus before-G/unknown ordering,
+once-only failures, G delivery uncertainty, separate errors/no batch retry and
+all control guards/pins/no-payload AST. No actual helper import, gate, process,
+compiler, control, lock or SDK/dependency read is performed by these tests.

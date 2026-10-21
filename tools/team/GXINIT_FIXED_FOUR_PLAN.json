@@ -149,9 +149,14 @@
   "cwd": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51",
   "output": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2",
   "supervisor": {
-    "path": null,
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-helper-0fcd2b4e-source/recovery_caller.py",
     "sha256": "0fcd2b4e74a2423200065aafd4248f6589791bf9b2348726122bf5b2fc4ee5b0",
-    "module_closure": null
+    "module_closure": {
+      "recovery_caller.py": "0fcd2b4e74a2423200065aafd4248f6589791bf9b2348726122bf5b2fc4ee5b0",
+      "recovery_transaction.py": "c41b7712874ac443ecbacf475c3cf70ad8972dbc708123fcff66f1a41c2ad707",
+      "retention_paths.py": "b372144e90ec04dc3819851d7872752a51a23697e586de91d90b3f5b40bacbbd",
+      "symbol_recovery.py": "a01feac5c551832833c8c2db8fc211585bfd524bf7b22bc2ae2096540e652d18"
+    }
   },
   "limits": {
     "total_seconds": 240,
@@ -176,13 +181,13 @@
     "PYTHONNOUSERSITE": "1"
   },
   "sources": {
-    "gxinit_fixed_four.py": "3ed6de65b448556e0c8af28bd635200937923046779afeaaf7c64a1769ae811a",
+    "gxinit_fixed_four.py": "22f66e9514154a0ed84b361d4131c69bd482add3a1a7f16b386301f83135ed26",
     "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea"
   },
   "actual_control_plan": {
     "execution_enabled": false,
-    "source_status": "PREPARED_NO_CHILD_ALLOCATION_OR_CONTROL_MODE_ADMISSION",
-    "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-fixed-child-controls-v1",
+    "source_status": "SOURCE_IMPLEMENTED_DISABLED_OPERATOR_AND_REVIEW_OPEN",
+    "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1",
     "maximum_seconds": 45,
     "maximum_new_bytes": 67108864,
     "cases": [
@@ -200,14 +205,15 @@
         "negative": "injected incorrect observation noG/nosignal; read-onlydirectoutcome orUNKNOWN, notPASS"
       },
       {
-        "case": "registered-gate interruption",
+        "case": "registered-parent-unwind",
         "maximum_seconds": 12,
         "payload": "same gate pausedbeforeG; no tool payload",
         "require": [
           "known verifiedgroup only",
           "reviewedexistingstop_all ordering",
           "directleaderreap beforestrictabsence evidence or explicitfailclosed",
-          "no compiler/nativefixture exec"
+          "no compiler/nativefixture exec",
+          "controlled parent exception; NOT actual OS signal qualification"
         ]
       }
     ],
@@ -217,6 +223,7 @@
       "separate reviewed gate-observation control mode retaining unconditional payload refusal",
       "ROOT exact one-shot allocation/lock/floor; no automatic transition to fourcommandjob"
     ],
-    "remaining_actual_four_steps": "2clangcompiles+old17/candidate0 onlyaftercontrols/sourceapproval; expected17 semanticacceptance E/Bowned; no escapedchildguarantee"
+    "remaining_actual_four_steps": "2clangcompiles+old17/candidate0 onlyaftercontrols/sourceapproval; expected17 semanticacceptance E/Bowned; no escapedchildguarantee",
+    "separate_plan": "GXINIT_BEFORE_G_CONTROL_PLAN.json"
   }
 }

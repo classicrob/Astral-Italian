@@ -437,3 +437,30 @@ not the file select or a world map, held for 6 frames.
 `[pop-in] frame N skipped_draws K (intro|play|menu/loading)` is printed for every
 frame that skipped draws; `[play ready] frame N wall_ms=...` marks the first
 frame of each return to play (launch-to-control timing).
+
+## First-use texture prewarm, and the 60 fps / latency sweep
+
+**Texture prewarm.** On the Wii a texture costs nothing at its first draw (its texels are in memory); the port
+creates the GPU texture then, which was a 20-60 ms frame each time a HUD layout, model, effect or font first
+appeared in play. On the stage's first gameplay frame the port now queues the static textures of the in-game HUD
+layouts (`native/app/hud_prewarm.cpp`), of every loaded model resource and the particle resource, and of the
+TextBox fonts (`native/app/model_prewarm.cpp`) for Aurora's texture cache (`patch_aurora_texture_prewarm.py`).
+The queue drains under a per-frame budget behind the stage-start fade; a later stage's queue replaces an
+unfinished one, and a batch expires 900 frames after it was queued. Logs: `[hud prewarm] N layout textures ...`,
+`[tex prewarm] N model and M effect textures queued`.
+- `PETARI_HUD_PREWARM=0` turns the layout part off, `PETARI_TEXTURE_PREWARM=0` the model/effect/font part.
+- `PETARI_PREWARM_MS=<ms>` is the per-frame drain budget (default 1.5; at least one texture per frame).
+
+**Frame-boundary token barrier.** `GameSystem::frameLoop` waits after the retrace for every draw-sync token of the
+previous frame (`petari_gx_sync_wait_tokens_delivered`), so a token callback always runs before the next frame's
+game code, as the Wii's in-order token interrupts guarantee. Without it, DrawSyncManager could miss a token at a
+stage start and the FIFO breakpoint deadlocked until the 1 s GX abort (a 1.5 s freeze in 1/10 to 1/3 of cold stage
+entries). It costs about 0.2 ms per frame (FrameStats "token barrier").
+
+**Sweep.** `native/tools/perf_sweep.sh <Petari.app copy> <seed.db|none> <out> <stage>...`: per stage a cold pass
+and a warm pass with frame and on-screen present statistics and the latency probe, both running
+`perf_sweep_move.script` (camera pans, walk, jump, spin), quitting at its end (`PETARI_INPUT_SCRIPT_QUIT=1`). Each
+pass waits for a quiet machine (`QUIET_LOAD`, `QUIET_CPU`, `QUIET_WAIT`) and records the load and top processes.
+`native/tools/perf_table.py <out>` prints the per-galaxy table (late presents against the 60 fps cadence, the pass
+line being 0 warm; game-thread p50/p99/max; worst input latency). Pass `none` to test an app's bundled seeds.
+`PETARI_CAPTURE_TEST_FRAME=<n>[,<n>...]` takes captures (screen.png + state.txt) at those frames, for frame strips.

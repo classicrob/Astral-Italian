@@ -11,6 +11,7 @@ import os
 import re
 from pathlib import Path
 import shutil
+import sqlite3
 import statistics
 import subprocess
 import sys
@@ -58,6 +59,25 @@ def finite(value):
         return x if math.isfinite(x) else None
     except (ValueError, TypeError):
         return None
+
+
+def cache_metadata(root):
+    result = {}
+    for p in sorted(Path(root).glob("*.db")):
+        key = re.search(r"\.([a-f0-9]{64})\.db$", p.name)
+        row = {"cache_key": key[1] if key else "NOT_MEASURED", "query_mode": "read-only"}
+        try:
+            db = sqlite3.connect(p.resolve().as_uri() + "?mode=ro", uri=True, timeout=2)
+            try:
+                db.execute("PRAGMA query_only=ON")
+                names = [r[0] for r in db.execute("SELECT name FROM sqlite_schema WHERE type='table'")]
+                row["table_rows"] = {name: db.execute('SELECT COUNT(*) FROM "' + name.replace('"', '""') + '"').fetchone()[0] for name in names}
+            finally:
+                db.close()
+        except sqlite3.Error:
+            row["table_rows"] = "NOT_MEASURED: read-only cache metadata unavailable"
+        result[p.name] = row
+    return result
 
 
 def summarize_metrics(case, stage):
@@ -207,6 +227,7 @@ def main():
                     shutil.copytree(fresh / "cache", case / "cache")
                     initial_cache = files(case / "cache")
                     assert initial_cache and initial_cache == files(fresh / "cache")
+                initial_cache_metadata = cache_metadata(case / "cache")
                 for name in ("tmp", "surface", "xfb"):
                     (case / name).mkdir(mode=0o700)
                 env = {k: v for k, v in os.environ.items() if not k.startswith(("PETARI_", "ASTRAL_"))}
@@ -221,7 +242,8 @@ def main():
                 cmd = [sys.executable, h["bounded_runner"], str(SECONDS), h["executable"],
                     "--disc", h["disc"], "--user", str(case / "user"), "--stage", stage, "--scenario", "1"]
                 write(case / "command.json", {"argv": cmd, "environment": {k: v for k, v in env.items() if k.startswith("PETARI_")},
-                    "cache_mode": mode, "initial_cache": initial_cache, "warm_source": str(fresh) if mode == "warm" else None,
+                    "cache_mode": mode, "initial_cache": initial_cache, "initial_cache_metadata": initial_cache_metadata,
+                    "warm_source": str(fresh) if mode == "warm" else None,
                     "seed_files": h["private_seed_files"], "disk_free_before_bytes": free})
                 state("PRE-SPAWN-" + stage + "-" + mode)
                 begin = time.monotonic()
@@ -231,12 +253,13 @@ def main():
                     rc = child.wait()
                 elapsed = time.monotonic() - begin
                 state("COMPLETED-" + stage + "-" + mode)
+                final_cache_metadata = cache_metadata(case / "cache")
                 result = {"label": "SERVER GX5.3 direct-entry idle", "source_sha": SOURCE,
                     "artifact_sha256": h["executable_sha256"], "stage": stage, "scenario": 1, "mode": mode, "exit_code": rc,
                     "elapsed_seconds": round(elapsed, 3), "log": "app-UNREAD.log",
                     "log_bytes": (case / "app-UNREAD.log").stat().st_size, "logs_read": False,
                     "firstcause": "UNKNOWN; no log/core analysis permitted", "metrics": "NOT_MEASURED",
-                    "status": "BROKEN_OR_UNKNOWN", "cache_final": files(case / "cache"),
+                    "status": "BROKEN_OR_UNKNOWN", "cache_final": files(case / "cache"), "cache_metadata": final_cache_metadata,
                     "captures": {k: [{"name": f.name, "bytes": f.stat().st_size} for f in sorted((case / k).glob("*.png"))] for k in ("surface", "xfb")}}
                 if rc in (0, 124) and elapsed >= SECONDS - 1:
                     try:

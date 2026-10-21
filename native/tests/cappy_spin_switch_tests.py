@@ -91,12 +91,13 @@ CASES = [
 def run(app, disc, out, name, text):
     work = out / name
     (work / "user").mkdir(parents=True, exist_ok=True)
+    (work / "cache").mkdir(exist_ok=True)
     (work / "user/mods.txt").write_text("OdysseyMovement=on\nCappy=on\n")
     keys = work / "keys.txt"
     keys.write_text(text)
     env = {"PATH": "/usr/bin:/bin", "HOME": str(Path.home()), "PETARI_CAPPY_TRACE": "1", "PETARI_INPUT_SCRIPT": str(keys),
            "PETARI_SMOKE": "", "PETARI_SMOKE_BACKGROUND": "1", "PETARI_FAST_BOOT": "1", "SDL_AUDIODRIVER": "dummy",
-           "PETARI_SMOKE_FRAMES": "100000", "PETARI_STAGE_GATE_MS": "0"}
+           "PETARI_SMOKE_FRAMES": "100000", "PETARI_CACHE_DIR": str(work / "cache"), "PETARI_STAGE_GATE_MS": "0"}
     log = work / "app.log"
     with log.open("wb") as f:
         proc = subprocess.Popen([app, "--disc", disc, "--user", str(work / "user"), "--stage", "RedBlueExGalaxy", "--scenario", "1"],

@@ -194,7 +194,11 @@ def main():
                 assert digest(h["executable"]) == h["executable_sha256"]
                 case = out / (stage + "-" + mode)
                 case.mkdir(mode=0o700)
-                shutil.copytree(h["private_seed"], case / "user")
+                if h.get("seed_mode") == "empty":
+                    assert h["private_seed_files"] == {}
+                    (case / "user").mkdir(mode=0o700)
+                else:
+                    shutil.copytree(h["private_seed"], case / "user")
                 assert files(case / "user") == h["private_seed_files"]
                 if mode == "fresh":
                     (case / "cache").mkdir(mode=0o700)
@@ -206,7 +210,7 @@ def main():
                 for name in ("tmp", "surface", "xfb"):
                     (case / name).mkdir(mode=0o700)
                 env = {k: v for k, v in os.environ.items() if not k.startswith(("PETARI_", "ASTRAL_"))}
-                env.update(PETARI_MODS="none", PETARI_CACHE_DIR=str(case / "cache"),
+                env.update(PETARI_MODS="none,-OdysseyJumpDive", PETARI_CACHE_DIR=str(case / "cache"),
                     PETARI_FRAME_CSV=str(case / "frames.csv"), PETARI_FRAME_CSV_FRAMES="12000",
                     PETARI_ROUTE_RECORD=str(case / "route.csv"), TMPDIR=str(case / "tmp") + "/", LANG="C", LC_ALL="C")
                 for kind in ("SURFACE", "XFB"):

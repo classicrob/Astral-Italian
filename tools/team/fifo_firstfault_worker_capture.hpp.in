@@ -1,0 +1,188 @@
+#pragma once
+// Diagnostic only. Single existing FIFO worker; never a producer/actor callback.
+#include <algorithm>
+#include <array>
+#include <cerrno>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
+#include <limits>
+#include <sys/stat.h>
+#include <unistd.h>
+
+namespace PWorkerFirstFault {
+constexpr char Marker[] = "P_FIFO_WORKER_FIRSTFAULT_v1";
+constexpr char CaptureParent[] = @CAPTURE_PARENT@;
+constexpr char CaptureName[] = @CAPTURE_NAME@;
+constexpr std::size_t MaxOutput = 512 * 1024;
+struct Command { std::uint64_t span=0; std::size_t pos=0, remaining=0; unsigned raw=0, n=0; std::array<unsigned char,32> bytes{}; };
+struct Array { std::uint64_t pointer=0; unsigned size=0, stride=0, le=0; };
+struct Binding { std::uint64_t span=0; std::size_t pos=0; unsigned kind=0, reg=0, value=0, attr=0xffffffffu,index=0,dest=0,count=0,offset=0,bytes=0; Array array{}; };
+struct Attr { unsigned desc=0,cnt=0,type=0,frac=0; };
+struct Primitive {
+  std::uint64_t span=0; std::size_t cmd=0, payload=0, end=0, remaining=0;
+  unsigned prim=0,fmt=0,count=0,size=0,total=0,cacheFmt=0,cacheSize=0,cache=0,attrs=0,skip=0;
+  std::array<Attr,32> attr{};
+};
+struct State {
+  bool initialized=false, enabled=false, warning=false, fault=false, active=false, pending=false;
+  int fd=-1; unsigned suspended=0; std::uint64_t span=0, commands=0, bindings=0, primitives=0;
+  unsigned limits=0; const unsigned char* data=nullptr; std::size_t size=0, used=0;
+  Command current{}; Primitive pendingPrimitive{};
+  std::array<Command,64> command{}; std::array<Binding,32> binding{}; std::array<Primitive,2> primitive{};
+  std::array<Array,32> baseline{}; unsigned baselineCount=0;
+  std::array<char,MaxOutput> output{};
+};
+static_assert(sizeof(State)<=2*MaxOutput,"diagnostic storage bound");
+inline State state{};
+enum : unsigned { RingLoss=1, RawLimit=2, BadRange=4, Reentry=8, BadFormat=16, OutputLimit=32, IoFailure=64, CounterLimit=128 };
+inline bool enabled() noexcept {
+  if (!state.initialized) {
+    state.initialized=true;
+    const char* flag=std::getenv("PETARI_FIFO_FIRSTFAULT");
+    if (!flag || std::strcmp(flag,"1")!=0) return false;
+    int dir=::open(CaptureParent,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    struct stat st{};
+    if (dir>=0 && ::fstat(dir,&st)==0 && S_ISDIR(st.st_mode) && (st.st_mode&0777)==0700 && st.st_uid==::getuid())
+      state.fd=::openat(dir,CaptureName,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);
+    if (state.fd>=0 && ::fchmod(state.fd,0600)!=0) {::close(state.fd);state.fd=-1;}
+    if (dir>=0) ::close(dir);
+    state.enabled=state.fd>=0;
+    if (!state.enabled) {constexpr char error[]="P_FIFO_WORKER_FIRSTFAULT_v1 capture setup failed; diagnostic unavailable LIMIT\n"; (void)::write(STDERR_FILENO,error,sizeof(error)-1);}
+  }
+  return state.enabled;
+}
+inline bool live() noexcept { return state.enabled && state.active && state.suspended==0; }
+inline void put(char c) noexcept {
+  if(state.used<MaxOutput)state.output[state.used++]=c;else state.limits|=OutputLimit;
+}
+inline void text(const char* s) noexcept { while(*s)put(*s++); }
+inline void number(std::uint64_t value,unsigned base,unsigned width) noexcept {
+  char digits[32]{};unsigned n=0;
+  do{digits[n++]="0123456789abcdef"[value%base];value/=base;}while(value && n<sizeof(digits));
+  if(width>16){state.limits|=BadFormat;width=0;}while(n<width){put('0');--width;}
+  while(n)put(digits[--n]);
+}
+// Deliberately tiny format vocabulary, no libc/C++ formatter or allocation.
+inline void append(const char* format,...) noexcept {
+  va_list ap;va_start(ap,format);
+  for(const char* p=format;*p;++p){
+    if(*p!='%'){put(*p);continue;}++p;unsigned width=0;
+    if(*p=='0'){++p;while(*p>='0'&&*p<='9'){width=width*10+static_cast<unsigned>(*p-'0');++p;}}
+    unsigned modifier=0;
+    if(p[0]=='l'&&p[1]=='l'){modifier=1;p+=2;}else if(*p=='z'){modifier=2;++p;}
+    if(*p=='s'&&modifier==0){text(va_arg(ap,const char*));continue;}
+    if(*p=='u'||*p=='x'){
+      std::uint64_t v=modifier==1?static_cast<std::uint64_t>(va_arg(ap,unsigned long long)):
+        modifier==2?static_cast<std::uint64_t>(va_arg(ap,std::size_t)):static_cast<std::uint64_t>(va_arg(ap,unsigned));
+      number(v,*p=='x'?16u:10u,width);continue;
+    }
+    state.limits|=BadFormat;put('?');if(!*p)break;
+  }
+  va_end(ap);
+}
+inline void array_line(const char* tag,unsigned attr,const Array& a) noexcept {
+  append("%s attr=%u pointer=%llx size=%u stride=%u le=%u\n",tag,attr,static_cast<unsigned long long>(a.pointer),a.size,a.stride,a.le);
+}
+template<class A> inline Array array_copy(const A& a) noexcept {
+  return {static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(a.data)),static_cast<unsigned>(a.size),static_cast<unsigned>(a.stride),a.le?1u:0u};
+}
+inline void primitive_lines(const char* tag,const Primitive& p) noexcept {
+  append("%s span=%llu cmd=%zu payload=%zu end=%zu remaining=%zu prim=%u fmt=%u count=%u size=%u total=%u cacheFmt=%u cacheSize=%u cached=%u skipped=%u attrs=%u\n",tag,static_cast<unsigned long long>(p.span),p.cmd,p.payload,p.end,p.remaining,p.prim,p.fmt,p.count,p.size,p.total,p.cacheFmt,p.cacheSize,p.cache,p.skip,p.attrs);
+  for(unsigned i=0;i<p.attrs;++i) {const auto& a=p.attr[i];append("attr index=%u desc=%u cnt=%u type=%u frac=%u\n",i,a.desc,a.cnt,a.type,a.frac);}
+}
+inline void flush(const char* reason) noexcept {
+  if(!live())return;
+  state.used=0;
+  append("BEGIN %s reason=%s span=%llu local=%zu raw=%02x remaining=%zu limits=%u\n",Marker,reason,static_cast<unsigned long long>(state.span),state.current.pos,state.current.raw,state.current.remaining,state.limits);
+  append("totals commands=%llu bindings=%llu primitives=%llu capacities=64,32,2\n",static_cast<unsigned long long>(state.commands),static_cast<unsigned long long>(state.bindings),static_cast<unsigned long long>(state.primitives));
+  append("LIMIT originalDL=UNKNOWN caller=UNKNOWN absoluteOwnership=UNKNOWN trueAlignment=UNKNOWN spanIsNotDL=1\n");
+  const auto nc=std::min<std::uint64_t>(state.commands,state.command.size());
+  for(std::uint64_t j=state.commands-nc;j<state.commands;++j) {
+    const auto& c=state.command[j%state.command.size()];append("cmd span=%llu local=%zu raw=%02x remaining=%zu n=%u bytes=",static_cast<unsigned long long>(c.span),c.pos,c.raw,c.remaining,c.n);
+    for(unsigned i=0;i<c.n;++i)append("%02x",c.bytes[i]);append("\n");
+  }
+  for(unsigned i=0;i<state.baselineCount;++i)array_line("span_baseline",i,state.baseline[i]);
+  const auto nb=std::min<std::uint64_t>(state.bindings,state.binding.size());
+  for(std::uint64_t j=state.bindings-nb;j<state.bindings;++j) {
+    const auto& b=state.binding[j%state.binding.size()];append("binding span=%llu local=%zu kind=%u reg=%x value=%x\n",static_cast<unsigned long long>(b.span),b.pos,b.kind,b.reg,b.value);if(b.attr!=0xffffffffu)array_line("binding_state",b.attr,b.array);
+    if(b.kind==3)append("indexed index=%u dest=%x count=%u sourceOffset=%u sourceBytes=%u\n",b.index,b.dest,b.count,b.offset,b.bytes);
+  }
+  const auto np=std::min<std::uint64_t>(state.primitives,state.primitive.size());
+  for(std::uint64_t j=state.primitives-np;j<state.primitives;++j)primitive_lines("completed_primitive",state.primitive[j%state.primitive.size()]);
+  if(state.pending)primitive_lines("pending_primitive",state.pendingPrimitive);
+  std::size_t begin=state.current.pos>1024?state.current.pos-1024:0;
+  for(std::uint64_t j=state.primitives-np;j<state.primitives;++j) {const auto& p=state.primitive[j%state.primitive.size()];if(p.span==state.span)begin=std::min(begin,p.cmd);}
+  const std::size_t end=state.current.pos<=state.size?state.current.pos+std::min<std::size_t>(128,state.size-state.current.pos):state.size;
+  if(begin>end || !state.data){state.limits|=BadRange;begin=end;}
+  if(end-begin>65536){state.limits|=RawLimit;begin=end-65536;}
+  append("raw_window span=%llu begin=%zu end=%zu cap=65536\n",static_cast<unsigned long long>(state.span),begin,end);
+  for(std::size_t p=begin;p<end;p+=32){append("raw local=%zu bytes=",p);for(std::size_t i=p;i<std::min(p+32,end);++i)append("%02x",state.data[i]);append("\n");}
+  append("END %s reason=%s finalLimits=%u\n",Marker,reason,state.limits);
+  std::size_t sent=0;
+  for(unsigned attempt=0;attempt<15 && sent<state.used;++attempt){const auto n=::write(state.fd,state.output.data()+sent,state.used-sent);if(n>0)sent+=static_cast<std::size_t>(n);else if(n<0&&errno==EINTR)continue;else break;}
+  if(sent!=state.used){state.limits|=IoFailure;constexpr char error[]="P_FIFO_WORKER_FIRSTFAULT_v1 incomplete snapshot write LIMIT\n";(void)::write(STDERR_FILENO,error,sizeof(error)-1);}
+}
+template<class Reader> struct SpanScope {
+  bool tracked=false,suspended=false;
+  template<class GX> SpanScope(Reader& r,const GX& gx) noexcept {
+    if(!enabled())return;
+    if(state.active){state.limits|=Reentry;++state.suspended;suspended=true;return;}
+    if(state.span==std::numeric_limits<std::uint64_t>::max()){state.limits|=CounterLimit;return;}
+    ++state.span;state.data=r.data();state.size=r.size();state.active=true;tracked=true;
+    state.baselineCount=static_cast<unsigned>(std::min<std::size_t>(state.baseline.size(),gx.arrays.size()));
+    for(unsigned i=0;i<state.baselineCount;++i)state.baseline[i]=array_copy(gx.arrays[i]);
+  }
+  ~SpanScope() noexcept {if(suspended){--state.suspended;return;}if(tracked){state.data=nullptr;state.size=0;state.active=false;}}
+};
+inline void command(unsigned raw,std::size_t pos,std::size_t remaining) noexcept {
+  if(!live())return;
+  if(state.commands==std::numeric_limits<std::uint64_t>::max()){state.limits|=CounterLimit;return;}
+  Command c{};c.span=state.span;c.pos=pos;c.raw=raw;c.remaining=remaining;
+  if(pos>state.size || !state.data)state.limits|=BadRange;
+  else{c.n=static_cast<unsigned>(std::min<std::size_t>(c.bytes.size(),state.size-pos));std::memcpy(c.bytes.data(),state.data+pos,c.n);}
+  if(state.commands>=state.command.size())state.limits|=RingLoss;
+  state.command[state.commands++%state.command.size()]=c;state.current=c;
+}
+inline void warning() noexcept {if(live()&&!state.warning){state.warning=true;flush("first_nested_warning");}}
+template<class A> inline void indexed(unsigned array,unsigned index,unsigned dest,unsigned count,unsigned offset,unsigned bytes,const A& a) noexcept {
+  if(!live())return;
+  const bool bad=a.data==nullptr || offset>a.size || bytes>a.size-offset;
+  if(bad&&!state.fault){state.fault=true;
+    // Keep operand metadata in a binding record before the snapshot.
+    if(state.bindings==std::numeric_limits<std::uint64_t>::max()){state.limits|=CounterLimit;return;}
+    Binding b{};b.span=state.span;b.pos=state.current.pos;b.kind=3;b.reg=dest;b.value=(index<<16)|((count-1)<<12)|dest;b.attr=array;b.array=array_copy(a);b.index=index;b.dest=dest;b.count=count;b.offset=offset;b.bytes=bytes;
+    if(state.bindings>=state.binding.size())state.limits|=RingLoss;state.binding[state.bindings++%state.binding.size()]=b;flush("first_indexed_array_fault");}
+}
+template<class GX> inline void cp(unsigned reg,std::size_t end,const GX& gx) noexcept {
+  if(!live())return;
+  if(state.bindings==std::numeric_limits<std::uint64_t>::max()){state.limits|=CounterLimit;return;}
+  Binding b{};b.span=state.span;b.pos=state.current.pos;b.kind=1;b.reg=reg;
+  if(end>=4 && end<=state.size && state.data){for(std::size_t i=end-4;i<end;++i)b.value=(b.value<<8)|state.data[i];}else state.limits|=BadRange;
+  if(reg>=0xa0&&reg<=0xbf){b.attr=9+(reg&15);if(b.attr<gx.arrays.size())b.array=array_copy(gx.arrays[b.attr]);else state.limits|=BadRange;}
+  if(state.bindings>=state.binding.size())state.limits|=RingLoss;state.binding[state.bindings++%state.binding.size()]=b;
+}
+template<class A> inline void native_array(unsigned sub,unsigned attr,const A& a) noexcept {
+  if(!live())return;if(state.bindings==std::numeric_limits<std::uint64_t>::max()){state.limits|=CounterLimit;return;}
+  Binding b{};b.span=state.span;b.pos=state.current.pos;b.kind=2;b.reg=sub;b.attr=attr;b.array=array_copy(a);
+  if(state.bindings>=state.binding.size())state.limits|=RingLoss;state.binding[state.bindings++%state.binding.size()]=b;
+}
+template<class Reader> struct PrimitiveScope {
+  Reader& reader;bool tracked=false;
+  template<class GX> PrimitiveScope(Reader& r,unsigned prim,unsigned fmt,unsigned count,const GX& gx) noexcept:reader(r){
+    if(!live())return;if(state.pending){state.limits|=Reentry;return;}
+    Primitive p{};p.span=state.span;p.cmd=state.current.pos;p.payload=r.offset();p.remaining=r.remaining();p.prim=prim;p.fmt=fmt;p.count=count;p.cacheFmt=static_cast<unsigned>(gx.lastVtxFmt);p.cacheSize=gx.lastVtxSize;p.cache=p.cacheFmt==fmt;
+    if(fmt>=gx.vtxFmts.size()){state.limits|=BadFormat;return;}
+    p.attrs=static_cast<unsigned>(std::min<std::size_t>(21,std::min(gx.vtxDesc.size(),p.attr.size())));
+    p.attrs=static_cast<unsigned>(std::min<std::size_t>(p.attrs,gx.vtxFmts[fmt].attrs.size()));
+    for(unsigned i=0;i<p.attrs;++i){const auto& a=gx.vtxFmts[fmt].attrs[i];p.attr[i]={static_cast<unsigned>(gx.vtxDesc[i]),static_cast<unsigned>(a.cnt),static_cast<unsigned>(a.type),static_cast<unsigned>(a.frac)};}
+    state.pendingPrimitive=p;state.pending=true;tracked=true;
+  }
+  ~PrimitiveScope() noexcept {if(tracked){state.pendingPrimitive.end=reader.offset();if(state.primitives==std::numeric_limits<std::uint64_t>::max())state.limits|=CounterLimit;else{if(state.primitives>=state.primitive.size())state.limits|=RingLoss;state.primitive[state.primitives++%state.primitive.size()]=state.pendingPrimitive;}state.pending=false;}}
+};
+inline void primitive_bytes(unsigned size,unsigned total) noexcept {if(live()&&state.pending){state.pendingPrimitive.size=size;state.pendingPrimitive.total=total;}}
+inline void geometry_skip() noexcept {if(live()&&state.pending)state.pendingPrimitive.skip=1;}
+inline void draw_overrun() noexcept {if(live()&&!state.fault){state.fault=true;flush("first_draw_overrun");}}
+} // namespace PWorkerFirstFault

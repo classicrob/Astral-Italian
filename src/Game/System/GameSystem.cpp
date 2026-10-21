@@ -1,5 +1,6 @@
 #ifdef GALAXY_NATIVE
 #include <petari/app.hpp>
+extern "C" void petari_gx_sync_wait_tokens_delivered(void);
 #include "launch_stage.hpp"
 #include <cstdlib>
 #include <cstdio>
@@ -252,6 +253,12 @@ void GameSystem::frameLoop() {
 #endif
 #ifdef GALAXY_NATIVE
     petari_host_frame_mark(PETARI_FRAME_MARK_RETRACE_DONE);  // frame statistics: the retrace wait ended
+    // Native GX may deliver a draw done before an earlier draw-sync token whose EFB capture is still in flight; on
+    // the Wii every token interrupt precedes the draw done. Wait here, at the frame boundary (after the retrace, so
+    // the captures overlap it), for every token of the previous frame, before any game code of the next one runs:
+    // DrawSyncManager must see each token (pop its breakpoint entry) before a scene change clears the token ranges,
+    // or the FIFO breakpoint never moves (a 1.5 s GX abort at stage start), and GXPeekZ users read their results.
+    petari_gx_sync_wait_tokens_delivered();
 #endif
 }
 

@@ -23,8 +23,13 @@ void SpinSwitchArea::movement() {
     }
 #endif
 #ifdef GALAXY_NATIVE
-    const bool capContact = petariCappyTouchSpinSwitchArea(this);
+    // A real Spin always flips, and takes the in-flight throw's pending contact
+    // with it: the cap arriving later must not undo it.
     const bool playerSpin = MR::isPlayerSwingActionStartNow() && isInVolume(*MR::getPlayerPos());
+    if (playerSpin) {
+        petariCappyConsumeSpinSwitchArea(this);
+    }
+    const bool capContact = petariCappyTouchSpinSwitchArea(this);
     if (!capContact && !playerSpin) {
         return;
     }

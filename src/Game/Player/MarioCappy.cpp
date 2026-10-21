@@ -590,6 +590,17 @@ bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea) {
     return true;
 }
 
+void petariCappyConsumeSpinSwitchArea(const AreaObj* pArea) {
+    if (!active() || s.cappy.state == Cappy::State::Idle || std::find(s.spinAreas.begin(), s.spinAreas.end(), pArea) != s.spinAreas.end()) {
+        return;
+    }
+    PetariNative::HostAllocationScope host;  // contacts outlive the current scene heap
+    s.spinAreas.push_back(pArea);
+    if (trace()) {
+        std::fprintf(stderr, "[cappy] spin took the contact of %s\n", pArea->mName);
+    }
+}
+
 void petariCappyWallJump() {
     s.bounce.wallJump();
 }

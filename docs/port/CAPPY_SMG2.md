@@ -35,6 +35,13 @@ No donor files or game assets are changed.
   APIs load these archives; nothing is copied into the repository.
 - Keep the same map ray, enemy spin-punch and coin/Star-Bit item-get routes.
   Captures and Generic-character cap rendering are outside this adaptation.
+- Flip-Swap's spin-switch area (`SpinSwitchArea`): a real Galaxy Spin always
+  flips it once, that frame; each throw's cap flips it at most once. A Spin
+  pressed before the cap of an earlier throw reaches the area takes that
+  throw's pending contact there (`petariCappyConsumeSpinSwitchArea`), so the
+  cap, ~8 frames after an air throw, does not flip it straight back. A throw
+  issued after the Spin still counts once. Run test (needs the disc):
+  `native/tests/cappy_spin_switch_tests.py`.
 - The unported Odyssey orbit camera keeps its own absent observer. Cappy's
   observers now come from the real game-side implementation.
 

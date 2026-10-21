@@ -28,6 +28,10 @@ bool petariCappyUsesSpinAnimation();
 // SpinSwitchArea: cap contact, once per area per throw. Uses the area's own
 // volume/validity checks; false unless the cap is flying with both mods on.
 bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea);
+// A real Spin just flipped this area: the throw in flight (cap not yet in the
+// area) gives up its contact there, so its late arrival does not flip it back.
+// A throw issued afterwards counts once as usual. No effect when no throw is out.
+void petariCappyConsumeSpinSwitchArea(const AreaObj* pArea);
 // The Generic character mod (GenericFigure.cpp): while Cappy is out, his matrix
 // (axes scaled by his drawn size, origin his centre) and true; false while he
 // is on Mario's head or the mod is off.

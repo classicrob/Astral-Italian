@@ -115,7 +115,9 @@ breakable objects that normally accept Mario's Spin. Flip-Swap panels use a
 spin-switch area instead of an attack sensor: the flying cap entering that
 area toggles its ordinary stage switch once per throw, with the same area
 validity rules. The borrowed throw animation does not also count as a Spin,
-so one throw produces one toggle. This does not give Cappy a new switch message or bypass an
+so one throw produces one toggle. A real Spin always toggles the area too,
+and takes the pending contact of a throw whose cap has not reached it yet, so
+the cap arriving afterwards does not undo the Spin. This does not give Cappy a new switch message or bypass an
 object's own reaction rules. Capturing enemies is not implemented.
 
 The play launcher's `--odyssey` adds Odyssey movement to the saved mod choices

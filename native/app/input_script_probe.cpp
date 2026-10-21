@@ -4,6 +4,10 @@
 // Script lines: "<frames> [key ...]" with key names as in controls.txt (Space, W, LeftShift, J, ...);
 // '#' starts a comment. Each line holds its keys for <frames> frames; presses and releases are sent
 // only when the held set changes, so a key held across lines stays down.
+// PETARI_INPUT_SCRIPT_SCENE_SPAN=1: opt-in scene-spanning input only. "scene <name> [stage]"
+// waits with all keys released for an initialized scene. Loading pauses the tape, releases every
+// key and discards an interrupted held-key line, so a Back press cannot carry into the next scene.
+// Non-Game scenes receive ordinary key events without querying Mario; their player CSV cells are empty.
 // PETARI_INPUT_SCRIPT_LOG=<csv>: one row per scripted frame: frame, line, held keys, Mario's position,
 // velocity and ground flag, the camera's position and forward axis, whether he is dead, and his gravity vector.
 // Logs "[input-script] start ..." and "[input-script] done after N frames". The start also marks the image-dump
@@ -33,6 +37,7 @@ struct Line {
     int frames = 0;
     std::vector<Input::KeyCode> keys;
     std::string text;
+    std::string waitScene, waitStage;
 };
 
 enum class Phase { Off, Wait, Run, Done };
@@ -44,6 +49,9 @@ struct InputScript {
     int frame = 0, line = 0, lineFrame = 0;
     std::vector<Input::KeyCode> held;
     std::FILE* log = nullptr;
+    bool sceneSpan = false;
+    int heldLine = -1, waitingLine = -1;
+    std::string lastScene, lastStage;
 };
 
 InputScript& script() {
@@ -52,6 +60,7 @@ InputScript& script() {
         const char* path = std::getenv("PETARI_INPUT_SCRIPT");
         if (path == nullptr || path[0] == '\0') return s;
         if (const char* v = std::getenv("PETARI_INPUT_SCRIPT_STEADY")) s.steadyNeeded = std::atoi(v);
+        if (const char* v = std::getenv("PETARI_INPUT_SCRIPT_SCENE_SPAN")) s.sceneSpan = std::string(v) == "1";
         std::ifstream in(path);
         std::string text;
         int number = 0;
@@ -60,6 +69,22 @@ InputScript& script() {
             const std::string body = text.substr(0, text.find('#'));
             std::istringstream words(body);
             Line line;
+            if (s.sceneSpan) {
+                std::string first;
+                words >> first;
+                if (first == "scene") {
+                    if (!(words >> line.waitScene)) {
+                        std::fprintf(stderr, "[input-script] %s:%d: scene name required; script ignored\n", path, number);
+                        return InputScript{};
+                    }
+                    words >> line.waitStage;
+                    line.text = body;
+                    s.lines.push_back(line);
+                    continue;
+                }
+                words.clear();
+                words.str(body);
+            }
             if (!(words >> line.frames)) continue;
             std::string name;
             bool ok = line.frames > 0;
@@ -132,7 +157,27 @@ void finish(InputScript& s, const char* why) {
 bool inputScriptFrame() {
     InputScript& s = script();
     if (s.phase == Phase::Off || s.phase == Phase::Done) return false;
-    if (!sceneReadable()) {
+    // This observer reads controller scene/stage values and readiness only; it does not query actors.
+    const Observation scene = s.sceneSpan ? observeGame(false, false) : Observation{};
+    const bool playerReadable = (!s.sceneSpan || scene.scene == "Game") && sceneReadable();
+    if (s.sceneSpan && s.phase == Phase::Run) {
+        const bool changed = scene.sceneReady && (scene.scene != s.lastScene || scene.stage != s.lastStage);
+        if (!scene.sceneReady || changed) {
+            if (!s.held.empty()) {
+                std::fprintf(stderr, "[input-script] transition: release keys from line %d at frame %d\n", s.heldLine, s.frame);
+                // If the key line was interrupted, consume its remainder. A completed prior line
+                // may still have held keys, in which case the next line must remain untouched.
+                if (s.heldLine == s.line) { ++s.line; s.lineFrame = 0; }
+                hold(s, {});
+                s.heldLine = -1;
+            }
+            if (!scene.sceneReady) return false;
+            s.lastScene = scene.scene;
+            s.lastStage = scene.stage;
+            std::fprintf(stderr, "[input-script] scene-ready %s/%s frame %d\n", scene.scene.c_str(), scene.stage.c_str(), s.frame);
+        }
+    }
+    if (!playerReadable && !(s.sceneSpan && s.phase == Phase::Run && scene.sceneReady)) {
         if (s.phase == Phase::Run) finish(s, "stopped (the scene went away)");
         s.steady = 0;
         return false;
@@ -144,6 +189,7 @@ bool inputScriptFrame() {
         s.steady = play ? s.steady + 1 : 0;
         if (s.steady < s.steadyNeeded) return false;
         s.phase = Phase::Run;
+        if (s.sceneSpan) { s.lastScene = scene.scene; s.lastStage = scene.stage; }
         Input::focusChanged(true);  // keys count as a focused player's, as for the other probes
         // Image dumps (PETARI_SURFACE_DUMP / PETARI_XFB_DUMP with _LABELS=input-script) count from here, so dump
         // index N is script frame N (plus the presentation latency; see docs/dev/ODYSSEY_CAMERA.md).
@@ -156,8 +202,26 @@ bool inputScriptFrame() {
         return false;
     }
     const Line& line = s.lines[s.line];
+    if (s.sceneSpan && !line.waitScene.empty()) {
+        hold(s, {});
+        s.heldLine = -1;
+        if (s.waitingLine != s.line) {
+            s.waitingLine = s.line;
+            std::fprintf(stderr, "[input-script] waiting for scene %s/%s line %d\n", line.waitScene.c_str(), line.waitStage.c_str(), s.line);
+        }
+        if (scene.scene == line.waitScene && (line.waitStage.empty() || scene.stage == line.waitStage)) {
+            std::fprintf(stderr, "[input-script] matched scene %s/%s line %d\n", scene.scene.c_str(), scene.stage.c_str(), s.line);
+            ++s.line;
+            s.lineFrame = 0;
+        }
+        return false;
+    }
     hold(s, line.keys);
-    if (s.log != nullptr) {
+    s.heldLine = s.line;
+    if (s.sceneSpan && s.lineFrame == 0) {
+        std::fprintf(stderr, "[input-script] keys %s/%s line %d: %s\n", scene.scene.c_str(), scene.stage.c_str(), s.line, line.text.c_str());
+    }
+    if (s.log != nullptr && playerReadable) {
         const TVec3f& p = *MR::getPlayerPos();
         const TVec3f& v = *MR::getPlayerVelocity();
         const TVec3f c = MR::getCamPos();
@@ -168,6 +232,11 @@ bool inputScriptFrame() {
         std::fprintf(s.log, "%d,%d,%s,%.2f,%.2f,%.2f,%.3f,%.3f,%.3f,%d,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f,%d,%.4f,%.4f,%.4f\n", s.frame, s.line,
                      keys.empty() ? "-" : keys.c_str(), p.x, p.y, p.z, v.x, v.y, v.z, MR::isOnGroundPlayer() ? 1 : 0, c.x, c.y, c.z, f.x,
                      f.y, f.z, MR::isPlayerDead() ? 1 : 0, g.x, g.y, g.z);
+    }
+    if (s.log != nullptr && !playerReadable) {
+        std::string keys;
+        for (Input::KeyCode k : s.held) keys += (keys.empty() ? "" : "+") + Input::keyName(k);
+        std::fprintf(s.log, "%d,%d,%s,,,,,,,,,,,,,,,,,\n", s.frame, s.line, keys.empty() ? "-" : keys.c_str());
     }
     ++s.frame;
     if (++s.lineFrame >= line.frames) {

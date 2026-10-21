@@ -96,8 +96,13 @@ void BellyDragonUtil::syncToHead(BellyDragon* pHost) {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonUtil::setBodyPartMtx(BellyDragonBodyPart* pObj, const f32 (*mtx)[4]) {
+#ifdef GALAXY_NATIVE
+    pObj->mMtx.set(mtx);
+    pObj->mPosition.set< f32 >(pObj->mMtx.mMtx[0][3], pObj->mMtx.mMtx[1][3], pObj->mMtx.mMtx[2][3]);
+#else
     ((TPos3f*)((u8*)pObj + 0xA8))->set(mtx);
     ((TVec3f*)((u8*)pObj + 0x14))->set< f32 >(*(f32*)((u8*)pObj + 0xB4), *(f32*)((u8*)pObj + 0xC4), *(f32*)((u8*)pObj + 0xD4));
+#endif
 }
 
 void BellyDragonUtil::updateFront(BellyDragon* pHost, f32 rate) {

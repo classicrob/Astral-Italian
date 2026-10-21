@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 
 from recovery_caller import GroupSupervisor, group_exists, verify_tokens, verify_generated, exclusive_lock, restore_after_children, ChildNotQuiescent
 
@@ -73,6 +74,18 @@ class CallerTests(unittest.TestCase):
         self.assertEqual(tx.data['phase'], 'RESTORED')
         for path, sha in images.items(): self.assertEqual(digest(path), sha)
         self.assertTrue(json.loads((output / 'before-restore.json').read_text())['all_children_gone_and_reaped'])
+        receipt = os.environ.get('RECOVERY_TEST_RECEIPT')
+        if receipt:
+            evidence = {'scope': 'DISPOSABLE_SOURCE_ONLY_CONTROL',
+                        'test': 'real transaction restores only after disposable child termination',
+                        'children': [{'pid': p.pid, 'wait_returncode': p.returncode,
+                                      'group_exists_after_cleanup': group_exists(p.pid)} for p in self.supervisor.children],
+                        'before_restore_gate': json.loads((output / 'before-restore.json').read_text()),
+                        'transaction_phase': tx.data['phase'], 'checkout_restored': checkout.read() == original,
+                        'both_build_images_restored': all(digest(p) == sha for p, sha in images.items()),
+                        'events': tx.data['events']}
+            with Path(receipt).open('x') as f:
+                json.dump(evidence, f, indent=2); f.write('\n')
 
     def test_unquiescent_child_refuses_restore(self):
         class Unsafe:
@@ -212,6 +225,11 @@ class CallerTests(unittest.TestCase):
         verify_build_snapshots(snapshot)
         path.write_bytes(b'changed')
         with self.assertRaisesRegex(ValueError, 'files differ'): verify_build_snapshots(snapshot)
+
+
+    def test_permission_uncertainty_never_means_group_gone(self):
+        with patch('recovery_caller.os.killpg', side_effect=PermissionError()):
+            self.assertTrue(group_exists(12345))
 
 
     def test_generated_missing_closure_rejects(self):

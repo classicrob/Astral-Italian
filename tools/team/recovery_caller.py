@@ -28,6 +28,9 @@ def group_exists(pgid):
         return True
     except ProcessLookupError:
         return False
+    except PermissionError:
+        # Existence is uncertain; never authorize restoration from EPERM.
+        return True
 
 
 @contextmanager
@@ -57,7 +60,12 @@ class GroupSupervisor:
     def stop_all(self):
         for child in self.children:
             if group_exists(child.pid):
-                os.killpg(child.pid, signal.SIGTERM)
+                try:
+                    os.killpg(child.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                except PermissionError as exc:
+                    raise ChildNotQuiescent('cannot establish ownership/quiescence of group') from exc
                 until = time.monotonic() + self.term_seconds
                 while time.monotonic() < until:
                     child.poll()
@@ -69,6 +77,8 @@ class GroupSupervisor:
                         os.killpg(child.pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
+                    except PermissionError as exc:
+                        raise ChildNotQuiescent('cannot establish ownership/quiescence of group') from exc
             try:
                 child.wait(timeout=2)
             except subprocess.TimeoutExpired as exc:

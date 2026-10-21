@@ -168,3 +168,25 @@ It cannot create a real receipt by asserting fixture fields. Missing links, shif
 requests, later-draw substitution, selected-vs-placed confusion, input errors,
 Immediate/duplicate/stitched XFBs, wrong IDs, Map-only completion, unchecked PNG close
 or unknown color all block. It never launches or patches anything.
+
+## Tightened stop and original-export witnesses
+
+The source validator now requires the final observed source seam to be exactly
+anchor+616, not merely at least that far. A separately pinnable CPU-stop artifact
+records that seam, terminal source counter, zero resumes and no emulation advance
+after stop. Draw entry/exit and copy are witnessed between the actual request seam
+and its observed adjacent next seam. VI selection carries its originating source
+seam within the bound. GPU/readback/PNG completion may occur later in host event
+order only under the unchanged no-emulation-advance stop witness. This is observed
+seam adjacency, not an image lag or fitted +1 alignment.
+
+Input proof now requires original raw-export identity plus a separately pinnable
+closed collector receipt and a read census covering every source seam0..stop,
+including zero-read seams. The entire original file is checked for ordered frames,
+dense per-frame read ordinals and census counts; only then is the canonical suffix
+compared. Removing the original prefix cannot be hidden by updating the working
+export's hash/counts. Output claims only hash-verified equality to the pinned
+original and complete per-seam census agreement; it no longer asserts unconditional
+original_prefix_preserved or records_rewritten booleans. Checksums do not authenticate
+a maliciously rewritten collection of all producer artifacts. Runtime producer
+code/receipt review and qualification remain absent.

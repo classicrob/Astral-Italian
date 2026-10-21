@@ -59,11 +59,16 @@ def ready_request(e):
             if found and found['offset']==e['offset']:request=found
     need(not schedule.cancelled,'ready/epoch changed; no reanchor')
     need(request is not None and request['status']=='PENDING_PRESENTATION','actual ready/offset/player unavailable')
-    need(last>=schedule.origin['source_frame']+600+TAIL_FRAMES,'observation tail is absent; no future draw assumed')
+    equal(last,schedule.origin['source_frame']+600+TAIL_FRAMES,'exact observation-tail stop is absent/exceeded')
+    stop=e['cpu_stop']
+    for key,value in dict(status='stopped',phase='post-endFrame',source_frame=last,terminal_source_frame=last,
+                          resume_after_stop_count=0,emulation_advanced_after_stop=False,input_frames=600+TAIL_FRAMES).items():
+        equal(stop.get(key),value,'unproven CPU stop bound: '+key)
+    integer(stop['event'],'unknown CPU stop event')
     return request,schedule.origin
 
 
-def idle_delivery(e,origin):
+def idle_delivery(e,origin,method='dolphin-actual-export'):
     from kpad_script import contract
     canonical=bound_file(e['input']);actual=bound_file(e['actual_input'])
     total=600+TAIL_FRAMES
@@ -83,9 +88,64 @@ def idle_delivery(e,origin):
     export=e['input_export']
     for key,value in dict(status='captured',sha256=digest(actual),bytes=actual.stat().st_size,read_count=len(observed)).items():
         equal(export.get(key),value,'actual closed input_export mismatch: '+key)
+    original=bound_file(export['original_raw_export'])
+    equal(digest(original),digest(actual),'actual export is not the separately pinned original raw export')
+    closed=json.loads(bound_file(export['closed_receipt']).read_text())
+    census_path=bound_file(export['read_census'])
+    census=json.loads(census_path.read_text())
+    for key,value in dict(status='closed',method=method,sha256=digest(original),bytes=original.stat().st_size,
+                          read_count=len(observed),source_start=0,source_end=end,census_sha256=digest(census_path)).items():
+        equal(closed.get(key),value,'original collector closure mismatch: '+key)
+    equal(len(census),end+1,'pre-anchor/full read census coverage missing')
+    grouped=[0]*(end+1)
+    previous=(-1,-1)
+    for row in observed:
+        frame=integer(row['frame'],'invalid original source frame')
+        need(frame<=end,'original input extends beyond CPU stop')
+        ordinal=integer(row['read_ordinal'],'invalid original read ordinal')
+        need((frame,ordinal)>previous,'original read history reordered/duplicated')
+        equal(ordinal,grouped[frame],'missing original read ordinal')
+        grouped[frame]+=1;previous=(frame,ordinal)
+    for frame,item in enumerate(census):
+        equal(item.get('source_frame'),frame,'read census has shifted/missing source seams')
+        equal(item.get('reads'),grouped[frame],'original prefix/full read census differs')
     return dict(canonical_sha256=digest(canonical),actual_export_sha256=digest(actual),
+                original_export_sha256=digest(original),closed_receipt_sha256=digest(bound_file(export['closed_receipt'])),
                 source_start=start,source_end=end,frames=total,read_count=total*4,
-                original_prefix_preserved=True,records_rewritten=False)
+                actual_equals_pinned_original=True,preanchor_coverage='verified against complete per-seam read census')
+
+
+
+def review_draw_scope(e,request,origin,retail_sites=True):
+    coverage=e['draw_coverage']
+    equal(coverage['complete'],True,'draw ordering coverage incomplete')
+    equal(coverage['request_source_frame'],request['capture_source_frame'],'request was shifted/rebased')
+    event=integer(coverage['request_event'],'unknown request event')
+    draws=coverage['draws']
+    need(bool(draws),'no actual next draw observation')
+    entries=[integer(d['entry_event'],'unknown draw entry') for d in draws]
+    need(entries==sorted(set(entries)) and all(n>event for n in entries),'draw history is missing/reordered')
+    draw=draws[0]
+    equal(e['selected_draw_id'],draw['id'],'later convenient draw selected instead of first next draw')
+    if retail_sites:
+        for key,site in [('entry_pc','draw_call'),('exit_pc','draw_return'),('selected_scene_pc','selected_scene_return')]:
+            equal(draw[key],PINS['retail']['guards'][site]['address'],'unbound retail '+key)
+        equal(draw['guest_cpu_stopped'],True,'retail mutable state not stopped')
+    else:
+        equal(draw['entry_hook'],'after-beginRender/before-GameSystem::draw','unbound native draw entry')
+        equal(draw['exit_hook'],'after-GameSystem::draw/before-endRender','unbound native draw exit')
+    need(draw['entry_event']<draw['selected_scene_event']<draw['exit_event'],'draw/selected-scene ordering invalid')
+    equal(coverage['next_source_frame'],request['capture_source_frame']+1,'next observed seam is not adjacent to request')
+    need(draw['exit_event']<coverage['next_seam_event']<=e['cpu_stop']['event'],'draw is outside witnessed source-seam/stop interval')
+    equal(draw['after_source_seam'],request['capture_source_frame'],'draw occurred after a different/later source seam')
+    equal(draw['before_source_seam'],coverage['next_source_frame'],'draw lacks next-seam upper-bound witness')
+    eligible=typed_draw_eligibility(draw['snapshot'],e['stage'],e['scenario'])
+    need(eligible['typed_candidate'],'next draw is not actual ready Game/player/placed target: '+','.join(eligible['reasons']))
+    equal(draw['snapshot']['scene_epoch'],origin['source_scene_epoch'],'draw crosses sampled scene epoch')
+    for key in ('scene_valid','scene','stage','placed_scenario','init_state','current_scene_nonnull','executed_scene_is_current','canonical_player_valid','game_cpu_owned','scene_epoch','scene_epoch_kind'):
+        equal(draw['exit_snapshot'].get(key),draw['snapshot'][key],'draw-exit identity/readiness differs: '+key)
+    equal(draw['exit_snapshot'].get('observation_phase'),'after-GameSystem::draw','draw-exit phase is unbound')
+    return draw
 
 
 def review(e):
@@ -101,30 +161,12 @@ def review(e):
             need(re.fullmatch('[0-9a-f]{64}',str(e.get(key))) is not None,'unknown producer: '+key)
         request,origin=ready_request(e)
         result.update(request=request,ready_origin=origin,input_binding=idle_delivery(e,origin))
-        coverage=e['draw_coverage']
-        equal(coverage['complete'],True,'draw ordering coverage incomplete')
-        equal(coverage['request_source_frame'],request['capture_source_frame'],'request was shifted/rebased')
-        event=integer(coverage['request_event'],'unknown request event')
-        draws=coverage['draws']
-        need(bool(draws),'no actual next draw observation')
-        entries=[integer(d['entry_event'],'unknown draw entry') for d in draws]
-        need(entries==sorted(set(entries)) and all(n>event for n in entries),'draw history is missing/reordered')
-        draw=draws[0]
-        equal(e['selected_draw_id'],draw['id'],'later convenient draw selected instead of first next draw')
-        for key,site in [('entry_pc','draw_call'),('exit_pc','draw_return'),('selected_scene_pc','selected_scene_return')]:
-            equal(draw[key],PINS['retail']['guards'][site]['address'],'unbound retail '+key)
-        need(draw['entry_event']<draw['selected_scene_event']<draw['exit_event'],'draw/selected-scene ordering invalid')
-        equal(draw['guest_cpu_stopped'],True,'retail mutable state not stopped')
-        eligible=typed_draw_eligibility(draw['snapshot'],e['stage'],e['scenario'])
-        need(eligible['typed_candidate'],'next draw is not actual ready Game/player/placed target: '+','.join(eligible['reasons']))
-        equal(draw['snapshot']['scene_epoch'],origin['source_scene_epoch'],'draw crosses sampled scene epoch')
-        for key in ('scene_valid','scene','stage','placed_scenario','init_state','current_scene_nonnull','executed_scene_is_current','canonical_player_valid','game_cpu_owned','scene_epoch','scene_epoch_kind'):
-            equal(draw['exit_snapshot'].get(key),draw['snapshot'][key],'draw-exit identity/readiness differs: '+key)
-        equal(draw['exit_snapshot'].get('observation_phase'),'after-GameSystem::draw','draw-exit phase is unbound')
+        draw=review_draw_scope(e,request,origin)
         copy=e['copy']
         for key,value in dict(draw_id=draw['id'],kind='xfb',buffer_mode=3,current_render=True,lineage_complete=True).items():
             equal(copy.get(key),value,'unsupported/unbound copy '+key)
-        need(draw['exit_event']<copy['endGX_event']<copy['event'],'copy does not follow draw and endGX')
+        need(draw['exit_event']<copy['endGX_event']<copy['event']<e['draw_coverage']['next_seam_event'],'copy does not follow draw/endGX within witnessed interval')
+        equal(copy['observed_source_seam'],draw['after_source_seam'],'copy source-seam witness mismatch')
         equal(copy['efb_writers'],['current-draw','endGX'],'unknown/mixed EFB writer lineage')
         equal(copy['clear_before_draw_proven'],True,'retained EFB attribution unbound')
         selection=e['selection']
@@ -140,6 +182,7 @@ def review(e):
                               copy_ids=[copy['id']],xfb_entry_id=copy['xfb_entry_id'],settings_unchanged=True).items():
             equal(selection.get(key),value,'VI selection not bound: '+key)
         need(selection['event']>copy['event'],'selection precedes target copy')
+        need(request['capture_source_frame']<=integer(selection['originating_source_seam'],'unknown VI source seam')<=e['cpu_stop']['source_frame'],'VI selection originated beyond emulation bound')
         dump=e['dump']
         for key,value in dict(present_id=selection['present_id'],xfb_entry_id=selection['xfb_entry_id'],
                               copy_ids=[copy['id']],resolution_policy='XFBRawResolution',

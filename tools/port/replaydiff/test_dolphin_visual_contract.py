@@ -15,10 +15,10 @@ import dolphin_visual_contract as visual
 def bind(path):return dict(path=str(path),sha256=visual.digest(path))
 
 
-def fixture(root):
+def fixture(root,origin=5):
     root.mkdir(parents=True,exist_ok=True)
     image=root/'synthetic.png';Image.new('RGB',(32,18),(40,110,170)).save(image)
-    trace=root/'source.csv';origin=5
+    trace=root/'source.csv'
     with trace.open('w') as f:
         fields=['frame','scene_valid','player_valid','scene_epoch','scene','stage','scenario','init_state']
         writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader()
@@ -39,19 +39,22 @@ def fixture(root):
     with actual.open('w') as f:
         for frame in range(origin+617):
             for channel in range(4):f.write(json.dumps(row(frame,channel))+'\n')
-    result=dict(synthetic=True,stage='Synthetic',scenario=1,offset=60,tail_frames=16,
+    original=root/'original-closed.jsonl';original.write_bytes(actual.read_bytes())
+    census=root/'read-census.json';census.write_text(json.dumps([dict(source_frame=i,reads=4) for i in range(origin+617)]))
+    closure=root/'closed-receipt.json';closure.write_text(json.dumps(dict(status='closed',method='dolphin-actual-export',sha256=visual.digest(original),bytes=original.stat().st_size,read_count=(origin+617)*4,source_start=0,source_end=origin+616,census_sha256=visual.digest(census))))
+    result=dict(synthetic=True,cpu_stop=dict(status='stopped',phase='post-endFrame',source_frame=origin+616,terminal_source_frame=origin+616,resume_after_stop_count=0,emulation_advanced_after_stop=False,input_frames=616,event=10000),stage='Synthetic',scenario=1,offset=60,tail_frames=16,
         sampling_definition='post-seam-request/next-observed-draw-v2',source_revision=visual.PINS['dolphin_revision'],
         executable_sha256='a'*64,instrumentation_manifest_sha256='b'*64,trace=bind(trace),input=bind(canonical),
-        actual_input=bind(actual),input_export=dict(status='captured',sha256=visual.digest(actual),bytes=actual.stat().st_size,read_count=(origin+617)*4),
-        selected_draw_id=17,draw_coverage=dict(complete=True,request_source_frame=65,request_event=100,draws=[dict(
-            id=17,entry_event=101,selected_scene_event=102,exit_event=103,entry_pc='804b6a90',exit_pc='804b6a94',
+        actual_input=bind(actual),input_export=dict(status='captured',sha256=visual.digest(actual),bytes=actual.stat().st_size,read_count=(origin+617)*4,original_raw_export=bind(original),closed_receipt=bind(closure),read_census=bind(census)),
+        selected_draw_id=17,draw_coverage=dict(complete=True,request_source_frame=origin+60,request_event=100,next_source_frame=origin+61,next_seam_event=106,draws=[dict(
+            id=17,after_source_seam=origin+60,before_source_seam=origin+61,entry_event=101,selected_scene_event=102,exit_event=103,entry_pc='804b6a90',exit_pc='804b6a94',
             selected_scene_pc='804ba798',guest_cpu_stopped=True,snapshot=dict(scene_valid=1,scene='Game',stage='Synthetic',
                 placed_scenario=1,init_state=6,current_scene_nonnull=True,executed_scene_is_current=True,canonical_player_valid=True,
                 observation_phase='before-GameSystem::draw',game_cpu_owned=True,scene_epoch=2,scene_epoch_kind='sampled-identity'))]),
         copy=dict(id=72,draw_id=17,kind='xfb',buffer_mode=3,current_render=True,lineage_complete=True,
-                  clear_before_draw_proven=True,efb_writers=['current-draw','endGX'],endGX_event=104,event=105,xfb_entry_id=600),
+                  observed_source_seam=origin+60,clear_before_draw_proven=True,efb_writers=['current-draw','endGX'],endGX_event=104,event=105,xfb_entry_id=600),
         selection=dict(reason='VideoInterface',duplicate=False,stitched=False,copy_ids=[72],xfb_entry_id=600,
-                       settings_unchanged=True,event=110,present_id=900),
+                       settings_unchanged=True,originating_source_seam=origin+61,event=110,present_id=900),
         dump=dict(id=10,present_id=900,xfb_entry_id=600,copy_ids=[72],resolution_policy='XFBRawResolution',
                   includes_host_overlay=False,pending_overwrite_observed=False,staging_generation=4,event=111,source_rect=[0,0,32,18],target_rect=[0,0,32,18]),
         gpu=dict(dump_id=10,staging_generation=4,backend='Metal',flush_returned=True,map_success=True,error_status_observed=True,
@@ -87,7 +90,10 @@ class DolphinVisualContractTests(unittest.TestCase):
         self.assertEqual(r['ready_origin']['source_frame'],5)
     def test_all_fixed_offsets_use_their_own_observed_request(self):
         for offset in (60,300,600):
-            e=copy.deepcopy(self.base);e['offset']=offset;e['draw_coverage']['request_source_frame']=5+offset
+            e=copy.deepcopy(self.base);e['offset']=offset;e['draw_coverage']['request_source_frame']=5+offset;e['draw_coverage']['next_source_frame']=6+offset
+            e['draw_coverage']['draws'][0].update(after_source_seam=5+offset,before_source_seam=6+offset)
+            e['copy']['observed_source_seam']=5+offset
+            e['selection']['originating_source_seam']=6+offset;e['selection_history']['events']=[copy.deepcopy(e['selection'])]
             self.assertEqual(self.review(e)['status'],'PROPOSAL_CHAIN_CONSISTENT')
     def test_draw_exit_identity_change_is_not_hidden(self):
         e=copy.deepcopy(self.base);e['draw_coverage']['draws'][0]['exit_snapshot']['scene_epoch']=3;self.blocked(e)
@@ -155,6 +161,39 @@ class DolphinVisualContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=self.home/'MacioGalaxy2-gamedata') as tmp:
             p=Path(tmp)/'actual.jsonl';lines=Path(self.base['actual_input']['path']).read_text().splitlines();del lines[24];p.write_text('\n'.join(lines)+'\n')
             e=copy.deepcopy(self.base);e['actual_input']=bind(p);e['input_export'].update(sha256=visual.digest(p),bytes=p.stat().st_size,read_count=len(lines));self.blocked(e)
+    def test_missing_original_prefix_cannot_be_hidden_by_new_export_hashes(self):
+        for also_rebind_closure in (False,True):
+            with tempfile.TemporaryDirectory(dir=self.home/'MacioGalaxy2-gamedata') as tmp:
+                root=Path(tmp);e=copy.deepcopy(self.base)
+                rows=[json.loads(line) for line in Path(e['actual_input']['path']).read_text().splitlines()]
+                rows=[row for row in rows if row['frame']>=6]
+                p=root/'prefix-deleted.jsonl';p.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                e['actual_input']=bind(p);e['input_export'].update(sha256=visual.digest(p),bytes=p.stat().st_size,read_count=len(rows))
+                if also_rebind_closure:
+                    e['input_export']['original_raw_export']=bind(p)
+                    receipt=json.loads(Path(e['input_export']['closed_receipt']['path']).read_text())
+                    receipt.update(sha256=visual.digest(p),bytes=p.stat().st_size,read_count=len(rows))
+                    closed=root/'changed-closure.json';closed.write_text(json.dumps(receipt));e['input_export']['closed_receipt']=bind(closed)
+                r=self.review(e);self.assertEqual(r['status'],'BLOCKED')
+                self.assertIn('census differs' if also_rebind_closure else 'original raw export',r['reasons'][0])
+    def test_exact_tail_trace_and_cpu_stop_are_required(self):
+        for extra in (False,True):
+            with tempfile.TemporaryDirectory(dir=self.home/'MacioGalaxy2-gamedata') as tmp:
+                e=copy.deepcopy(self.base);p=Path(tmp)/'source.csv'
+                with Path(e['trace']['path']).open() as f:reader=csv.DictReader(f);fields=reader.fieldnames;rows=list(reader)
+                if extra:
+                    last=dict(rows[-1]);last['frame']=str(int(last['frame'])+1);rows.append(last)
+                else:rows.pop()
+                with p.open('w') as f:writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
+                e['trace']=bind(p);self.blocked(e)
+        for key,value in [('terminal_source_frame',622),('resume_after_stop_count',1),('emulation_advanced_after_stop',True)]:
+            e=copy.deepcopy(self.base);e['cpu_stop'][key]=value;self.blocked(e)
+    def test_draw_or_vi_past_source_bound_is_not_gpu_drain(self):
+        e=copy.deepcopy(self.base);e['draw_coverage']['draws'][0]['after_source_seam']=622;self.blocked(e)
+        e=copy.deepcopy(self.base);e['selection']['originating_source_seam']=622;e['selection_history']['events']=[copy.deepcopy(e['selection'])];self.blocked(e)
+    def test_gpu_drain_after_stop_is_allowed_without_emulation_advance(self):
+        e=copy.deepcopy(self.base);e['gpu']['event']=11000;e['png']['event']=11001
+        self.assertEqual(self.review(e)['status'],'PROPOSAL_CHAIN_CONSISTENT')
     def test_source_blob_and_dol_drift_fail_before_binding(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'source.cpp').write_text('synthetic source');(root/'symbols').write_text('synthetic symbols')

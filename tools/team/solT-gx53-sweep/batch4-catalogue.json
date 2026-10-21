@@ -1,0 +1,71 @@
+{
+  "status": "PREPARATION_ONLY_NOT_ALLOCATED",
+  "source_sha": "33e71ee880b426c0c7da03a724377200e874c417",
+  "manifest_sha256": "b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a",
+  "selection": "Remaining supported non-WorldMap manifest ASCII order after closed first15",
+  "catalog_metadata_sha256": "c6c31e362aabfc946203925497c605641dcf254c14329c739625a19fa3ea633d",
+  "prior_observed_galaxies": [
+    "RedBlueExGalaxy",
+    "MokumokuValleyGalaxy",
+    "YosshiHomeGalaxy",
+    "IslandFleetGalaxy",
+    "DigMineGalaxy",
+    "AbekobeGalaxy",
+    "VsKoopaJrLv1Galaxy",
+    "AncientExcavationGalaxy",
+    "BigGalaxy",
+    "BigTree2Galaxy",
+    "BigWaterFallGalaxy",
+    "ChallengeGliderGalaxy",
+    "ChaosGravityGalaxy",
+    "ChildRoomGalaxy",
+    "CloudGardenGalaxy"
+  ],
+  "prior_batch_receipt_sha256": "ea9646c333aaf00982179532caa659404ac98a9299d828a8f10e7064a7c94ec1",
+  "stages": [
+    {
+      "stage": "DimensionBigCastleGalaxy",
+      "scenario": 1,
+      "world": 7,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "FlowerHighlandGalaxy",
+      "scenario": 1,
+      "world": 2,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "GhostConveyorGalaxy",
+      "scenario": 1,
+      "world": 3,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "GoroRockGalaxy",
+      "scenario": 1,
+      "world": 2,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "HomeCenterGalaxy",
+      "scenario": 1,
+      "world": 2,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "HoneyBeeVillageGalaxy",
+      "scenario": 1,
+      "world": 4,
+      "scenario1_metadata_present": true
+    }
+  ],
+  "case_seconds": 90,
+  "cases_per_galaxy": [
+    "fresh",
+    "warm"
+  ],
+  "max_runtime_seconds": 1500,
+  "no_worldmap": true,
+  "qualification": "Preparation only, no runtime allocation. Direct-entry idle does not establish gameplay completion, normal-path or visual correctness."
+}

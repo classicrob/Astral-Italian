@@ -1,0 +1,35 @@
+{
+  "status": "PLAN_ONLY_NOT_ALLOCATED_NO_TRANSFER_OR_DELETE",
+  "inventory_server": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx53-server/RETENTION-BATCHES12.json",
+  "inventory_sha256": "5282d41c23c9e5dc91470895728b26ffddf68f37441546d4b47bc5f3bba966b0",
+  "source_host": "host_amemqempmf",
+  "destination_host": "host_db276ab2vt",
+  "transport_identity": "roberthaisfield@MacBook-Pro-46.local; existing key authentication and known_hosts binding, no changed trust/settings",
+  "source_parent_server": "/Users/roberthaisfield/MacioGalaxy2-gamedata/solT-gx53-direct",
+  "source_archive_proposed": "/Users/roberthaisfield/MacioGalaxy2-gamedata/solT-gx53-transfer/closed-batches12-5282d41c.tar",
+  "destination_directory_proposed": "/Users/roberthaisfield/MacioGalaxy2-gamedata/solT-gx53-archive/20261021/closed-batches12",
+  "destination_archive_proposed": "/Users/roberthaisfield/MacioGalaxy2-gamedata/solT-gx53-archive/20261021/closed-batches12/closed-batches12-5282d41c.tar",
+  "files": 238,
+  "selected_pngs": 108,
+  "listed_input_bytes": 1234058773,
+  "format": "Uncompressed tar of exactly inventory members under relative batch paths; no symlinks, unknown files, WorldMap data or attachments. Logs are opaque byte transport only, never displayed or parsed.",
+  "archive_size_limit_bytes": 1500000000,
+  "hard_allocation_seconds_proposed": 300,
+  "resources": "One sequential nice19 I/O job; no app/compiler/performance overlap; allocation required on both hosts; >=50GiB free each before/after; existing bounded runner owns timeout, no custom process signaling.",
+  "m1_disk_free_at_plan_bytes": 81117777920,
+  "steps": [
+    "Rehash inventory and non-log source member hashes, stat-only unopened logs; reject new or changed members. Ensure both destination parent and source staging are new private mode700 paths.",
+    "Build exact-member uncompressed tar exclusively; record source archive SHA256, bytes, relative member names/sizes and input inventory SHA; never display member content.",
+    "Use existing rsync -a transport via known host to a new private M1 .partial file, one job. No credentials or trust changes.",
+    "Independently on M1 hash whole archive; require exact source SHA/bytes. Check exact regular-member name/size set, reject duplicates/absolute/traversal/links, and hash every non-log selected member against inventory without extracting/rendering. Logs remain opaque/stat-only in member receipt; full archive hash covers their transferred bytes.",
+    "Only after all checks, finalize owned destination archive name and write immutable M1 verification plus small SERVER path/recovery manifest. Do not remove source evidence or staging archive in this allocation."
+  ],
+  "required_live_references": [
+    "All original batch1/2 absolute evidence paths stay live until verified destination and separate consumer release/deletion allocation.",
+    "SERVER production53 source/app/build/dependencies and ARTIFACT-HANDOFF remain live for subsequent batches.",
+    "SERVER team/scratch-port/solT/gx53-server tool/plan/state/receipt paths stay live; recovery manifest maps each source path to destination archive/member and hashes.",
+    "M1 env_ep5ejudd6t and six retained dependencies remain alive; no archival retirement or oldWorldMap path touches."
+  ],
+  "deletion": "SEPARATE ALLOCATION ONLY after independently verified M1 archive and consumer release; no deletion/move/prune implicit in this plan.",
+  "analysis": "Logs remain UNREAD/NOT_MEASURED for analysis; no crash/FIFO parsing or interpretation."
+}

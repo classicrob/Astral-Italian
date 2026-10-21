@@ -43,6 +43,7 @@
 
 class NameObj;
 
+#ifndef GALAXY_NATIVE
 #define FACTORY_CLASS(name, size) \
     class name {                 \
     public:                      \
@@ -1018,6 +1019,8 @@ extern const FactoryCreateFunc cFactoryCreateFuncs[] = {
     NameObjFactory::createBaseOriginCylinder< AreaObj >,
     NameObjFactory::createBaseOriginCube< SoundEmitterCubeWorldMapSync >,
 };
+
+#endif
 
 namespace NameObjFactory {
     extern const Name2CreateFunc cCreateTable[977];

@@ -1,4 +1,4 @@
-import json,sys,tempfile,types,unittest,contextlib,shutil,os
+import json,sys,tempfile,types,unittest,contextlib,os
 from pathlib import Path
 from unittest.mock import patch
 import dispatch_budget as b
@@ -10,7 +10,7 @@ def retained_fixture():
  try:yield str(root)
  except BaseException:
   print('FAILED FIXTURE RETAINED: '+str(root),file=sys.stderr);raise
- else:shutil.rmtree(root)
+ else:print('SUCCESS FIXTURE RETAINED: '+str(root),file=sys.stderr)
 
 def child_source(identity,target,grow):
  return ("import os,json,time;from pathlib import Path;"

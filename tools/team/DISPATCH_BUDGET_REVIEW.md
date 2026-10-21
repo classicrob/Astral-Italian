@@ -43,8 +43,9 @@ reusable lifecycle API. It currently remains separate from the disabled full cal
   absence BEFORE any allocation-tree scan. It does not attempt a failed-path recursive
   disk scan. Counters/metadata serialize only after the inherited cleanup attempt.
 - Fixture roots live under own scratch-port/solP/dispatch-budget-source-controls/;
-  exceptions retain them, journals and exact child identity. Success removes only
-  that disposable fixture directory after assertions. No old proof input is touched.
+  both success and failure retain them, journals and exact child identity for
+  independent review. No fixture directory is automatically removed, and no old
+  proof input is touched.
 
 ## Sampling limitations and future review gates
 

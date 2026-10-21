@@ -492,7 +492,7 @@ void J3DModelX::shapePacketDrawFast(J3DShapePacketX* packet) const {
 
 void J3DModelX::shapeDrawFast(J3DShapeX* shape) const {
     if (J3DShape::sOldVcdVatCmd != shape->mVcdVatCmd) {
-        GXCallDisplayList(shape->mVcdVatCmd, 0xC0);
+        GXCallDisplayList(shape->mVcdVatCmd, J3DShape::kVcdVatDLSize);
         J3DShape::sOldVcdVatCmd = shape->mVcdVatCmd;
     }
 

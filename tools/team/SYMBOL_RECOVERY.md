@@ -1,3 +1,7 @@
+# Future freeze prevention
+
+Every new frozen executable must satisfy [the debug-symbol freeze gate](FROZEN_SYMBOLS.md) before promotion or object pruning: adjacent UUID-qualified dSYM, representative file:line lookup, hash-bound source/toolchain receipts and an independently verified private M1 archive. This does not assert historical dSYM availability.
+
 # Exact frozen-symbol qualification
 
 `symbol_recovery.py` is read-only tooling. It extracts historical configure argv without executing old shell scripts, binds original compile/link argv, verifies dependency archives and the two pinned SDL literal patches in memory, and emits preservation/restoration plans. It never configures, compiles, checks out, renames, deletes or acquires locks. The CLI refuses existing output; allocation flags do not enable an executor.

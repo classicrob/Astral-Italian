@@ -6,8 +6,11 @@
   "permission_probe.py": "4faddd3b1b24207dd24285b8e2576ebbd1af53b9470253e5403bf4c430646eab",
   "host_boot.py": "80ae85f2d1a5b0b386a74d142aacc7e3b0fe03862898cb347beccf3d65125ba5",
   "timed_current_click.py": "f87a34431484f7a485097756a11ba2baf72f2198f83ab2c2f6174707ec2410c9",
-  "run_map.py": "35d713a027f38b3364549809161219e0c09e5ecf35d616b602866827ef8eee00",
+  "run_map.py": "7ab2934263cfb97dd622e035b3f8cc592082300573637374b3bfd15734507726",
   "diag_build.py": "d5c975bd31d3d463c9eaafee03e7e5bf110239e395db939b54a424413858016e",
   "ab_build.py": "652f4e7c2fbf5c1f219d26ccfbe36585da075b367dc4f2639291c547cdcb99ac",
-  "compact_diagnostic.py": "8ae67b273c6f5cf9c697af3beded9ad2e89a4faf0ec8e782a115eded04181b1a"
+  "compact_diagnostic.py": "8ae67b273c6f5cf9c697af3beded9ad2e89a4faf0ec8e782a115eded04181b1a",
+  "typed_build.py": "7c03cbc3b661ca4e8be98c5b53732ad54a6ddc390c282dd9ee14a4faae78ced6",
+  "worker_build.py": "3ea6604c9ed7d445f9e72899b786df93c4af8cdaaf8f80096ce8a458d3a7bf70",
+  "replay_typed_postboot.py": "c8ea3305e341871ce3c32afcee544734f28c6fbc47700ca463893cc98b49463f"
 }

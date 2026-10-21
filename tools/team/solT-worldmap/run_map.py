@@ -31,6 +31,9 @@ try:
  env.update(PETARI_MODS='none',PETARI_TRACE_BOOT='1',PETARI_CACHE_DIR=str(out/'cache'),PETARI_ROUTE_RECORD=str(out/'route.csv'),PETARI_FRAME_CSV=str(out/'frames.csv'),PETARI_FRAME_STATS='1',PETARI_INPUT_SCRIPT=str(script),PETARI_INPUT_SCRIPT_LOG=str(out/'input.csv'),PETARI_INPUT_SCRIPT_STEADY='60',TMPDIR=str(out/'tmp')+'/',LANG='C',LC_ALL='C')
  for n in ['XFB','SURFACE']:
   env['PETARI_'+n+'_DUMP']=str(out/'captures'/n.lower());env['PETARI_'+n+'_DUMP_LABELS']='boot,input-script';env['PETARI_'+n+'_DUMP_EVERY']='120';env['PETARI_'+n+'_DUMP_SPAN']='18000'
+ for key,value in r.get('diagnostic_environment',{}).items():
+  assert key.startswith('PETARI_FIFO_') and isinstance(value,str),'non-worker diagnostic environment rejected'
+  env[key]=value
  if args.diag:env['PETARI_WM_DIAG']='1'
  if args.scene_span:env['PETARI_INPUT_SCRIPT_SCENE_SPAN']='1'
  if args.normal_boot and not args.host_boot:env.update(PETARI_SMOKE='observe',PETARI_SMOKE_FRAMES='30000',PETARI_SMOKE_BACKGROUND='0',PETARI_SMOKE_IGNORE_PHYSICAL='1')
@@ -42,9 +45,16 @@ try:
   p=subprocess.Popen(cmd,cwd=R,env=env,stdout=log,stderr=subprocess.STDOUT);state('RUNNING-WORLDMAP',p.pid);print(str(out),flush=True);rc=p.wait()
  state('COMPLETED-WORLDMAP')
  lines=(out/'app.log').read_text(errors='replace').splitlines();fault=next((s for s in lines if re.search(r'FATAL|indexed XF load from unmapped|malloc:|Assertion.*failed|runtime error:',s,re.I)),None)
+ if fault is None:fault=next((line for line in lines if line.startswith('signal: SIG')),None)
+ fault_context=[]
+ if fault:
+  end=lines.index(fault)
+  if fault.startswith('signal: SIG'):end=next((i for i,line in enumerate(lines[:end]) if '==== Petari native crash report' in line),end)
+  fault_context=lines[max(0,end-3):end]+[fault]
+
  assert all(sha(seed/k)==v for k,v in seedhash.items()),'seed changed'
  captures={n:len(list((out/'captures'/n).glob('*.png'))) for n in ['surface','xfb']}
- result=dict(label=r['label'],binary_sha256=sha(exe),binary_unchanged=sha(exe)==r['binary_sha256'],returncode=rc,elapsed_seconds=round(time.time()-start,2),fault=fault,captures=captures,private_output=str(out),seed_unchanged=True,pointer_click='HOST INPUT REQUESTED; boot/map interaction requires observed evidence' if args.host_boot else 'NOT RUN (OS permission)',alternate_window_size='pending review' if args.host_boot else 'NOT RUN (OS permission)',diagnostic=args.diag,last_lines=(lines[max(0,lines.index(fault)-3):lines.index(fault)+1] if fault else lines[-4:]))
+ result=dict(label=r['label'],binary_sha256=sha(exe),binary_unchanged=sha(exe)==r['binary_sha256'],returncode=rc,elapsed_seconds=round(time.time()-start,2),fault=fault,captures=captures,private_output=str(out),seed_unchanged=True,pointer_click='HOST INPUT REQUESTED; boot/map interaction requires observed evidence' if args.host_boot else 'NOT RUN (OS permission)',alternate_window_size='pending review' if args.host_boot else 'NOT RUN (OS permission)',diagnostic=args.diag,last_lines=(fault_context if fault else lines[-4:]))
  result['cache_final']={str(f.relative_to(out/'cache')):dict(bytes=f.stat().st_size,sha256=sha(f)) for f in (out/'cache').rglob('*') if f.is_file()}
  result['route_sha256']=sha(out/'route.csv') if (out/'route.csv').exists() else None
  result['input_sha256']=sha(out/'input.csv') if (out/'input.csv').exists() else None

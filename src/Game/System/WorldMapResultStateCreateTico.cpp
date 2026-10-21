@@ -114,13 +114,49 @@ WorldMapResultStateCreateTico::~WorldMapResultStateCreateTico() {
 }
 
 namespace NrvWorldMapResultStateCreateTico {
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoClose, WorldMapResultStateCreateTico, End);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoOpen, WorldMapResultStateCreateTico, CloseEnd);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoExtend, WorldMapResultStateCreateTico, Message);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteClose, WorldMapResultStateCreateTico, WhiteOpen);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteWait, WorldMapResultStateCreateTico, WhiteWait);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteOpen, WorldMapResultStateCreateTico, WhiteClose);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoMessage, WorldMapResultStateCreateTico, Extend);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoCloseEnd, WorldMapResultStateCreateTico, Open);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoEnd, WorldMapResultStateCreateTico, Close);
+    WorldMapResultStateCreateTicoClose WorldMapResultStateCreateTicoClose::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoOpen WorldMapResultStateCreateTicoOpen::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoExtend WorldMapResultStateCreateTicoExtend::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoWhiteClose WorldMapResultStateCreateTicoWhiteClose::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoWhiteWait WorldMapResultStateCreateTicoWhiteWait::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoWhiteOpen WorldMapResultStateCreateTicoWhiteOpen::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoMessage WorldMapResultStateCreateTicoMessage::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoCloseEnd WorldMapResultStateCreateTicoCloseEnd::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateCreateTicoEnd WorldMapResultStateCreateTicoEnd::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStateCreateTicoEnd::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeEnd();
+    }
+
+    void WorldMapResultStateCreateTicoCloseEnd::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeCloseEnd();
+    }
+
+    void WorldMapResultStateCreateTicoMessage::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeMessage();
+    }
+
+    void WorldMapResultStateCreateTicoWhiteOpen::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeWhiteOpen();
+    }
+
+    void WorldMapResultStateCreateTicoWhiteWait::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeWhiteWait();
+    }
+
+    void WorldMapResultStateCreateTicoWhiteClose::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeWhiteClose();
+    }
+
+    void WorldMapResultStateCreateTicoExtend::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeExtend();
+    }
+
+    void WorldMapResultStateCreateTicoOpen::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeOpen();
+    }
+
+    void WorldMapResultStateCreateTicoClose::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateCreateTico*>(pSpine->mExecutor)->exeClose();
+    }
 };  // namespace NrvWorldMapResultStateCreateTico

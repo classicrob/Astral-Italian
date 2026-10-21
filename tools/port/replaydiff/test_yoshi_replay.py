@@ -2,7 +2,11 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from yoshi_replay import prefix, verify_export, bind_actual_suffix
+import contextlib
+import io
+import sys
+from unittest.mock import patch
+from yoshi_replay import prefix, verify_export, bind_actual_suffix, accepted_prefix, main
 from kpad_script import contract
 
 
@@ -50,6 +54,19 @@ class DriverTests(unittest.TestCase):
             (root / 'inputs.jsonl').write_text(json.dumps(actual) + '\n')
             with self.assertRaisesRegex(RuntimeError, 'sample/read/history changed'):
                 bind_actual_suffix(root, source, 100, 1, True)
+
+    def test_full_only_rejects_incomplete_prefix_receipts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home=Path(directory); root=home/'MacioGalaxy2-gamedata'; case=root/'prefix'; capture=case/'capture'; capture.mkdir(parents=True)
+            result=case/'result.json'; result.write_text('{"status":"incomplete"}')
+            (capture/'manifest.json').write_text('{}'); (root/'receipt.json').write_text('{}')
+            with patch('pathlib.Path.home',return_value=home), self.assertRaisesRegex(RuntimeError,'not a finalized'):
+                accepted_prefix(result,root,{},root/'boot.json','synthetic')
+
+    def test_full_only_cannot_silently_skip_acceptance(self):
+        for extra in (['--full-only'],['--full-only','--prefix-only','--accepted-prefix','/private/result.json']):
+            with patch.object(sys,'argv',['yoshi_replay.py','--root','/unused','--slot-held',*extra]), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                main()
 
 
 if __name__ == '__main__': unittest.main()

@@ -36,3 +36,12 @@ not original consumed GX KPAD. Natural seeds remain unforced. Callback-only
 pending state, unknown timing/FP policy and absent actor census keep replay
 qualification BLOCKED even when the goal is reproduced. All real inputs,
 profiles, outputs and logs remain private.
+
+
+After acceptance, `--full-only --accepted-prefix PRIVATE/prefix-1200/result.json`
+starts one fresh continuous full capture. It reparses actual accepted input and
+delivery records, verifies final trace/file hashes, unchanged source profile,
+boot script, strict contract and every runtime helper, and requires the same
+host plus a feasible measured projection. It reuses no guest state or partial
+trace. Only orchestration skips already accepted short runs. A changed runtime
+helper, input prefix, profile or host requires acceptance again.

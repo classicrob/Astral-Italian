@@ -182,6 +182,74 @@ def run_case(root, tools, profile_source, source, frames, label, budget, receipt
     return result
 
 
+def accepted_prefix(path, tools, profile_hashes, boot, host, full_source=None):
+    path=Path(path).expanduser().resolve()
+    if (Path.home() / 'MacioGalaxy2-gamedata') not in path.parents:
+        raise RuntimeError('accepted prefix must stay private')
+    result=json.loads(path.read_text())
+    manifest=json.loads((path.parent / 'capture/manifest.json').read_text())
+    producer=json.loads((path.parent.parent / 'receipt.json').read_text())
+    if (result.get('status')!='verified diagnostic only' or result.get('suffix_reads')!=4800 or
+        manifest.get('status')!='captured; repeat qualification required' or manifest.get('frames')!=1201 or
+        manifest.get('raw_input_suffix',{}).get('connection_policy')!='observed read-only probe'):
+        raise RuntimeError('prefix is not a finalized observed-connection acceptance')
+    if producer.get('status')!='complete diagnostic only' or producer.get('host')!=host:
+        raise RuntimeError('accepted prefix must be complete on this host; otherwise repeat acceptance')
+    if producer['source_profile_files']!=profile_hashes:
+        raise RuntimeError('accepted prefix used a different source profile; repeat acceptance')
+    helpers=('dolphin_collect.py','dolphin_stage_entry.py','kpad_script.py','kpad_records.py','kpad_observe.py','stage_clear_witness.py')
+    for name in helpers:
+        if producer['source_files'].get(name)!=digest(tools/name):
+            raise RuntimeError('runtime helper differs from accepted prefix: '+name)
+    if manifest['input_script_sha256']!=digest(boot) or manifest['input_contract_sha256']!=digest(tools.parents[2]/'native/tools/headless.py'):
+        raise RuntimeError('boot script or strict input contract changed; repeat acceptance')
+    capture=path.parent/'capture'
+    require_hash(capture/'oracle.csv',result['oracle_sha256'])
+    require_hash(capture/'inputs.jsonl',result['input_export_sha256'])
+    require_hash(Path(result['delivered_input']['path']),result['delivered_input']['sha256'])
+    require_hash(Path(result['delivered_input']['kpd_path']),result['delivered_input']['kpd_sha256'])
+    source=Path(manifest['raw_input_suffix']['path']).resolve()
+    if (Path.home()/'MacioGalaxy2-gamedata') not in source.parents:
+        raise RuntimeError('accepted source prefix left private storage')
+    require_hash(source,manifest['raw_input_suffix']['sha256'])
+    origin=manifest['sync']['source_frame']
+    if result['source_origin']!=origin or manifest['sync'].get('rng_forced') is not False:
+        raise RuntimeError('accepted source origin/seed policy changed')
+    actual=(row for row in contract.rows_from_jsonl(capture/'inputs.jsonl') if row['frame']>origin)
+    delivered=iter(contract.rows_from_jsonl(Path(result['delivered_input']['path'])))
+    full=iter(contract.rows_from_jsonl(full_source)) if full_source else None
+    reads=0
+    try:
+        for wanted in contract.rows_from_jsonl(source):
+            if full is not None and next(full,None)!=wanted:
+                raise RuntimeError('full input prefix differs from accepted source')
+            have=next(actual,None)
+            normalized=dict(have,frame=have['frame']-origin-1) if have else None
+            if normalized is None or dict(normalized,connection=wanted['connection'])!=wanted or next(delivered,None)!=normalized:
+                raise RuntimeError('accepted prefix sample/read/delivery evidence disagrees')
+            reads+=1
+        if reads!=4800 or next(actual,None) is not None or next(delivered,None) is not None:
+            raise RuntimeError('accepted prefix actual read accounting is incomplete')
+    finally:
+        if full is not None: full.close()
+        actual.close(); delivered.close()
+    with (capture/'oracle.csv').open() as stream:
+        rows=csv.DictReader(stream); first=None; count=0
+        for index,row in enumerate(rows):
+            if row['frame']!=str(index): raise RuntimeError('accepted trace is not dense')
+            if first is None: first=row
+            count+=1
+    if (count!=1201 or first['stage']!='YosshiHomeGalaxy' or first['scenario']!='1' or first['init_state']!='6' or
+        first['rng_seed']!=result['natural_ready_seed'] or first['rng_seed']!=str(manifest['sync']['rng_seed'])):
+        raise RuntimeError('accepted ready trace/seed/count changed')
+    projected=producer.get('full_projection_seconds')
+    if type(projected) not in (int,float) or not 0<projected<=10680:
+        raise RuntimeError('accepted prefix does not fit full-run guard')
+    return dict(path=str(path),sha256=digest(path),projection_seconds=projected,
+                source_origin=result['source_origin'],natural_ready_seed=result['natural_ready_seed'],
+                mode='acceptance reused only; full capture starts from fresh boot, no state/tape stitching')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', required=True, type=Path)
@@ -190,8 +258,12 @@ def main():
     parser.add_argument('--profile-template', type=Path)
     parser.add_argument('--boot-menu', type=Path)
     parser.add_argument('--prefix-only', action='store_true')
+    parser.add_argument('--full-only', action='store_true')
+    parser.add_argument('--accepted-prefix', type=Path)
     parser.add_argument('--overall-budget', type=int)
     args = parser.parse_args()
+    if args.full_only and (args.prefix_only or not args.accepted_prefix): parser.error('--full-only requires accepted prefix and excludes --prefix-only')
+    if args.accepted_prefix and not args.full_only: parser.error('--accepted-prefix requires --full-only')
     if args.overall_budget is not None:
         if not 60 <= args.overall_budget <= 14400: parser.error('overall budget must be 60..14400')
         signal.setitimer(signal.ITIMER_REAL, args.overall_budget)
@@ -239,8 +311,12 @@ def main():
         boot = (args.boot_menu or private / 'sold/human01/candidate-r1-dolphin/input-script.json').expanduser().resolve()
         if private not in boot.parents: raise RuntimeError('menu must stay private')
         shutil.copyfile(boot, root / 'boot-menu.json')
-        phases = [('selector-16', 16, 1500), ('prefix-1200', 1200, 1500)]
-        if not args.prefix_only: phases.append(('full-30000', 30000, 10800))
+        if args.full_only:
+            receipt['accepted_prefix']=accepted_prefix(args.accepted_prefix,tools,profile_hashes,boot,socket.gethostname(),source)
+            phases=[('full-30000',30000,10800)]
+        else:
+            phases = [('selector-16', 16, 1500), ('prefix-1200', 1200, 1500)]
+            if not args.prefix_only: phases.append(('full-30000', 30000, 10800))
         for label, count, budget in phases:
             if deadline:
                 budget = min(budget, int(deadline - time.monotonic()) - 30)

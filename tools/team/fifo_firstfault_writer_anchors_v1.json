@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "status": "STOP_WRITER_EXCLUSION_NOT_ESTABLISHED",
+  "bounded_anchors": [
+    {
+      "role": "fifo",
+      "label": "yielding_buffer_lock",
+      "start_line": 95,
+      "end_line": 114,
+      "bounded_source_sha256": "4d74ee6ac64ea1dfdf817e35a8ec6d5c1363fedcba9e9d72ef54048b2ac261ea"
+    },
+    {
+      "role": "fifo",
+      "label": "worker_mirror",
+      "start_line": 121,
+      "end_line": 168,
+      "bounded_source_sha256": "b26ff57531cad4d8161d13a87a03675d6d50fde6554387c7b76b5766d4ee7d70"
+    },
+    {
+      "role": "fifo",
+      "label": "grow_copy",
+      "start_line": 247,
+      "end_line": 272,
+      "bounded_source_sha256": "f4350f2b1fce060cec2ff337061e0fda23aa0f151cd9929e4023dc04fe1608d6"
+    },
+    {
+      "role": "fifo",
+      "label": "publication",
+      "start_line": 273,
+      "end_line": 289,
+      "bounded_source_sha256": "e4962ffed7b64eae04a1d959c44c47fbf5dde5bfe8b0bf25ba2715b55b4a6ef1"
+    },
+    {
+      "role": "fifo",
+      "label": "recording_domain",
+      "start_line": 313,
+      "end_line": 334,
+      "bounded_source_sha256": "3cc2d1fde1c02713df718403365988a596ae20d2d1c0c425a6a102319266bee1"
+    },
+    {
+      "role": "fifo",
+      "label": "drain_rebase",
+      "start_line": 335,
+      "end_line": 366,
+      "bounded_source_sha256": "d4f5ebb762aa49b3b3679e39ee79e093ace93c538ebaed362e9b4f91a26a519a"
+    },
+    {
+      "role": "fifo",
+      "label": "clear_rebase",
+      "start_line": 370,
+      "end_line": 379,
+      "bounded_source_sha256": "8e360affc0d702ffdd4cc004b31466531cbf61b371537cca8fa2e4042463d0b8"
+    },
+    {
+      "role": "fifo",
+      "label": "C_ABI_positions_publish_abort",
+      "start_line": 383,
+      "end_line": 415,
+      "bounded_source_sha256": "03a422a4ce6a6d09b9ebc15731de24768478f34f1350eea2555dc4183b6ebf38"
+    },
+    {
+      "role": "fifo_header",
+      "label": "inline_bulk_copy",
+      "start_line": 38,
+      "end_line": 54,
+      "bounded_source_sha256": "f1cba3decc92ab9f828052342a3a710e6886714a167c24396f200130d92fa4f2"
+    },
+    {
+      "role": "fifo_header",
+      "label": "inline_byte_copy",
+      "start_line": 55,
+      "end_line": 69,
+      "bounded_source_sha256": "d82276ee70fd2afb1ad1470b00cc3fe519d240c1ee637ba03abddc9a8e55b51e"
+    },
+    {
+      "role": "os_thread",
+      "label": "host_release_and_reacquire",
+      "start_line": 2194,
+      "end_line": 2277,
+      "bounded_source_sha256": "0a7586ae56cc9daa992542a4fe0fe5d633c48d6ef41366c7efd2d02b3d58cf97"
+    }
+  ],
+  "wait_branch_order_verified": [
+    "petari_gx_sync_begin_host_wait()",
+    "lock.lock();",
+    "work();",
+    "lock.unlock();",
+    "petari_gx_sync_end_host_wait();"
+  ],
+  "static_conflict": "A released-CPU grow closure runs before end_host_wait; B may hold CPU and use inline fast writes without sBufferMutex. No source exclusion proved. Reachability in failing run NOT claimed.",
+  "copy_site_patches_emitted": false,
+  "compiler_or_runtime": false,
+  "production_acceptance": false,
+  "source_files": {
+    "fifo": {
+      "sha256": "85c6833b14ebf2f57fd213deea567b93c5b833f0aab2e80003195f74b75e8280"
+    },
+    "fifo_header": {
+      "sha256": "07e3fe83339ae38861a842ec7a49bad20ba933db3d2c05c9be2c2a88aa820292"
+    },
+    "display_list": {
+      "sha256": "97e063a5639ec9aa6116cff553afab5811a824911719d71f5d9bf269c2c46e09"
+    },
+    "processor": {
+      "sha256": "b1cf672a6c51dec9e588932876ce6f963b6052f1238fa19151d0edf022c940fc"
+    },
+    "sync_backend": {
+      "sha256": "8d8e1c75af93df672bba27e570394078f26364b0bb4a3a04b1768b6cf23d3f89"
+    },
+    "sync_bridge": {
+      "sha256": "d4006703ba4c7b76969e48f4913fb18d6cc47c9d2aea4337e55f5114403fa31c"
+    },
+    "os_thread": {
+      "sha256": "1f0439e0ed36b5d2f3a079283dd6244ebdb9848579cf3556fed9fb8d79932af7"
+    },
+    "os_interrupts": {
+      "sha256": "d7624ccb17406aea2b6e2a20799fa0b535f324593d31a46a4ffd95ebe2e7c915"
+    },
+    "os_internal": {
+      "sha256": "a40021938be5993e4e10dd5fc7ded3d6c560a8a4cb302d519a3c3000cdf3bbca"
+    }
+  }
+}

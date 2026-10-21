@@ -123,7 +123,7 @@ def main():
  if args.execute_plan_sha256 is None:
   out.mkdir(exist_ok=False,parents=True);dump(out/'plan.json',plan);(out/'plan.sha256').write_text(pin+'\n');print(pin);return
  assert pin==args.execute_plan_sha256,'input/context/recipe drift'
- assert json.loads((out/'plan.json').read_text())==plan,'prepared plan changed'
+ assert json.loads((out/'plan.json').read_text())==json.loads(canonical),'prepared plan changed'
  assert sha(args.dol)==DOL
  assert os.getpriority(os.PRIO_PROCESS,0)>=19,'nice19 required'
  assert shutil.disk_usage(out).free>=50*1024**3

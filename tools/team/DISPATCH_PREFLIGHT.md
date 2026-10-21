@@ -13,9 +13,9 @@ executables AND compiler support files, wrappers/assembler/tools and three
 reviewed decoder modules. These are hash-checked again before execution and after
 qualification. No old object or dependency file is copied.
 
-Prepared M1 directory: ~/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r4
+Prepared M1 directory: ~/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r5
 Plan canonical-JSON SHA256:
-0f5acc3b5ada9350c4b527329dbacc3a8a203aeb65fa15d707f3a4f173829950
+f767bf14382f57b7cba22fe7c63d50cd3879ca798af23d311d40bda8dc35a018
 
 After independent review and PORT allocation only:
 
@@ -23,9 +23,9 @@ After independent review and PORT allocation only:
 nice -n 19 python3 tools/team/dispatch_preflight.py \
   --repo /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/proof-wm-dispatch-source \
   --spec /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-proof-design/canonical-33e71-22d4-spec.json \
-  --output /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r4 \
+  --output /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r5 \
   --dol /Users/roberthaisfield/MacioGalaxy2-gamedata/SB4E01-extracted/sys/main.dol \
-  --execute-plan-sha256 0f5acc3b5ada9350c4b527329dbacc3a8a203aeb65fa15d707f3a4f173829950
+  --execute-plan-sha256 f767bf14382f57b7cba22fe7c63d50cd3879ca798af23d311d40bda8dc35a018
 ```
 
 The script itself acquires native.lock nonblocking, requires nice19 and 50GiB
@@ -68,7 +68,7 @@ prepare mode or the Python model checks.
 - Eight separate config controls: wrong address and wrong size for each of four
   mapped execute records. Unapproved config remainder cannot change.
 
-The Python tests are preparation evidence only: six test methods cover all
+The Python tests are preparation evidence only: seven test methods cover all
 four permitted records, remainder and symbol-field rejection plus map identity,
 wrong address/size, duplicate and config remainder rejection. They do NOT discharge
 real ELF controls. Additional lifecycle tests model an exited leader with a surviving
@@ -92,3 +92,8 @@ The full 2426 fresh pair, all-other2424 reference/effective-alias closure,
 Wii-active source perturb/restore controls, operator-reviewed independent TU13/TU14
 external plans and secondary TU14 control transport remain REQUIRED separately.
 Current remoteproof must not be invoked as if it accepted intentional deltas.
+
+R4 stopped before lock/compiler because raw Python tuples differ from JSON lists.
+R5 compares both prepared plans after JSON roundtrip while preserving the exact
+canonical SHA check. A regression requires roundtrip equality and rejection of a
+changed nested expected value; all seven tests pass. R4 failure evidence retained.

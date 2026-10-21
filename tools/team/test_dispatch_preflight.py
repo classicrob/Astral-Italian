@@ -71,4 +71,16 @@ class ChildMask(unittest.TestCase):
    self.assertEqual(actual,sorted(int(s) for s in original))
   self.assertEqual(p.signal.pthread_sigmask(p.signal.SIG_BLOCK,set()),original)
 
+class PlanRoundtrip(unittest.TestCase):
+ def test_tuple_list_roundtrip_and_changed_plan(self):
+  original={'expected':p.EXPECT,'spec_sha256':p.SPEC}
+  canonical=p.json.dumps(original,sort_keys=True,separators=(',',':')).encode()
+  saved=p.json.loads(canonical)
+  self.assertNotEqual(saved,original) # the historical false failure
+  self.assertEqual(saved,p.json.loads(canonical))
+  saved['expected']['TU13']['Start'][0][0]+=4
+  self.assertNotEqual(saved,p.json.loads(canonical))
+  changed=p.json.dumps(saved,sort_keys=True,separators=(',',':')).encode()
+  self.assertNotEqual(p.hashlib.sha256(changed).hexdigest(),p.hashlib.sha256(canonical).hexdigest())
+
 if __name__=='__main__':unittest.main()

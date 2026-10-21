@@ -105,6 +105,7 @@ struct Timing {
     bool unfocusedInFrame = false; // unfocused or unpresentable at any time this frame
     std::uint64_t counterNs[Telemetry::CounterCount] = {};
     std::uint64_t counterEvents[Telemetry::CounterCount] = {};
+    FrameStats::Phase lastPhase = FrameStats::Phase::Startup;  // the previous frame's, for the per-stage HUD prewarm
     std::uint32_t discReads = 0;   // this frame's disc reads and their time, for the stall logger
     std::uint32_t discReadUs = 0;
 };
@@ -258,6 +259,10 @@ void recordFrame(std::uint64_t entry, FrameStats::Phase phase) {
     }
     t.recorder->add(frame);
     reportStall(frame);
+    if (frame.phase == FrameStats::Phase::Gameplay && t.lastPhase != FrameStats::Phase::Gameplay) {
+        Host::prewarmHudTextures();  // the stage's HUD layouts exist now; create their GPU textures before they are shown
+    }
+    t.lastPhase = frame.phase;
     if (frame.intervalMs > t.spikeMs && SpikeProfiler::enabled()) {
         SpikeProfiler::keepSpike(frame.index, frame.intervalMs, t.lastEntry, entry);
     }

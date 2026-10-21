@@ -674,6 +674,13 @@ foreach(_relative lib/gx/texture.cpp lib/gfx/texture.cpp)
         "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_texture_timing.py" "${_source}")
     execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_texture_timing.py"
         "${_source}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    if(_relative STREQUAL "lib/gx/texture.cpp")
+        # HUD texture prewarm (native/app/hud_prewarm.cpp): applied on top of the timing patch.
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_texture_prewarm.py")
+        execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_texture_prewarm.py"
+            "${_output}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    endif()
     get_target_property(_sources aurora_gx SOURCES)
     list(REMOVE_ITEM _sources "${_relative}" "${_source}")
     list(APPEND _sources "${_output}")
@@ -697,6 +704,8 @@ if(_petari_build_testing)
     add_test(NAME native_gx_geometry_budget COMMAND petari_gx_geometry_budget_tests)
     add_test(NAME native_aurora_geometry_patch COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_SOURCE_DIR}/native/tests/aurora_geometry_patch_tests.py" "${aurora_SOURCE_DIR}")
+    add_test(NAME native_aurora_texture_prewarm_patch COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_SOURCE_DIR}/native/tests/aurora_texture_prewarm_patch_tests.py" "${aurora_SOURCE_DIR}")
 endif()
 
 if(BUILD_TESTING)

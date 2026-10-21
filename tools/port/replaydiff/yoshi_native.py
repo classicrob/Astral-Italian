@@ -155,7 +155,10 @@ def main():
     write_json(output/'receipt.json',receipt)
     if status:
         raise RuntimeError('native run failed; retain log/partials; no gameplay comparison')
-    frozen_bundle(bundle)
+    if frozen_bundle(bundle)!=(identity,support,binary):
+        raise ValueError('native identity/support receipt changed during replay')
+    if finalized_inputs(case)!=(result,dolphin,inputs,frames):
+        raise ValueError('Dolphin producer receipt changed during native replay')
     report=compare(case,output,result,dolphin,frames)
     if args.recording:
         recording=game_private_path(args.recording)

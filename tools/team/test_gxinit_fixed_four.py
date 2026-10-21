@@ -100,7 +100,7 @@ class FixedModels(unittest.TestCase):
         changed=copy.deepcopy(plan);changed['execution_enabled']=True
         with self.assertRaises(RuntimeError):controls.validate_disabled(changed)
         for fn,args in [(controls.run_controls,({},None,None,0.0)),(controls.run_case,('identity-eof',{},None,None,None,None,None,None)),(controls.gate,(None,None,None,None))]:
-            with self.assertRaisesRegex(RuntimeError,'CONTROLS REFUSED'):fn(*args)
+            with self.assertRaises(RuntimeError):fn(*args)
         tree=ast.parse(Path(controls.__file__).read_text())
         for node in ast.walk(tree):
             if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute):
@@ -113,12 +113,12 @@ class FixedModels(unittest.TestCase):
         from unittest.mock import patch
         plan=json.loads(Path(f.__file__).with_name('GXINIT_BEFORE_G_CONTROL_PLAN.json').read_bytes())
         runtime=copy.deepcopy(plan);runtime['execution_enabled']=True
-        with patch.object(controls,'validate_root') as root,patch.object(controls,'verify_python') as python,patch.object(controls,'CALLER_ROOT',Path(controls.__file__).resolve().parent),patch.object(controls,'exact_source_entries'):
+        with patch.object(controls,'validate_root') as root,patch.object(controls,'verify_python') as python,patch.object(controls,'CALLER_ROOT',Path(controls.__file__).resolve().parent),patch.object(controls,'exact_source_entries'),patch.object(controls.os,'getpriority',return_value=19):
             runtime['caller_source_root']=str(Path(controls.__file__).resolve().parent)
             controls.validate_runtime(runtime,'child');root.assert_called_with('child');python.assert_called_with(plan['python'])
         for field,value in [('python',{}),('operator',{}),('cases',[]),('limits',dict(plan['limits'],work_seconds=45)),('base_env',dict(plan['base_env'],LANG='en_US'))]:
             bad=copy.deepcopy(runtime);bad[field]=value
-            with self.assertRaises(RuntimeError):controls.validate_runtime(bad,'parent')
+            with self.assertRaises(RuntimeError):controls.validate_runtime(bad,'fresh-parent')
         controls.work_clock(100.0,122.999)
         for now in (99,123,145,float('nan'),float('inf')):
             with self.assertRaises(RuntimeError):controls.work_clock(100.0,now)
@@ -151,6 +151,37 @@ class FixedModels(unittest.TestCase):
         main_guard=text.index("if __name__ == '__main__':")
         self.assertLess(main_guard,text.index('import gxinit_fixed_four'))
         self.assertGreater(text.index("'post stdout flush45s limit'"),text.index('flush=True'))
+    def test_control_phase_entry_admission_without_process(self):
+        tree=ast.parse(Path(controls.__file__).read_text())
+        methods={n.name:n for n in tree.body if isinstance(n,ast.FunctionDef)}
+        for name,phase in [('gate','child'),('run_case','registered-parent'),('run_controls','fresh-parent')]:
+            text=ast.unparse(methods[name]);self.assertIn(repr(phase),text)
+            self.assertNotIn('refuse_controls()',text)
+            self.assertIn('read_runtime_request(',text)
+        main=ast.unparse(methods['main'])
+        self.assertIn('validate_disabled(plan)',main);self.assertIn('refuse_controls()',main)
+        self.assertIn("validate_runtime(plan, 'fresh-parent')",main)
+        self.assertLess(main.index('validate_runtime('),main.index('run_controls('))
+        from unittest.mock import patch
+        with patch.object(controls,'validate_root') as root:
+            with self.assertRaises(RuntimeError):controls.validate_runtime({},'source-parent')
+            root.assert_not_called()
+        for args in [(None,None),('/not-read','a'*63),('/not-read','Z'*64)]:
+            with self.assertRaises(RuntimeError):controls.request_arguments(*args)
+    def test_root_phase_policy_without_filesystem(self):
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        import stat
+        staged=controls.CALLER_ROOT;execution=controls.ROOT
+        fake=SimpleNamespace(st_mode=stat.S_IFDIR|0o700,st_uid=501)
+        with patch.object(Path,'exists',return_value=False),patch.object(Path,'is_symlink',return_value=False),patch.object(Path,'cwd',return_value=staged):
+            controls.validate_root('fresh-parent')
+        with patch.object(Path,'lstat',return_value=fake),patch.object(Path,'is_symlink',return_value=False),patch.object(controls.os,'getuid',return_value=501),patch.object(Path,'cwd',return_value=staged):
+            controls.validate_root('registered-parent')
+            with self.assertRaises(RuntimeError):controls.validate_root('child')
+        with patch.object(Path,'lstat',return_value=fake),patch.object(Path,'is_symlink',return_value=False),patch.object(controls.os,'getuid',return_value=501),patch.object(Path,'cwd',return_value=execution):
+            controls.validate_root('child')
+            with self.assertRaises(RuntimeError):controls.validate_root('registered-parent')
     def test_dependencies_and_missing_unknown_inputs(self):
         root='/fixture';source=root+'/candidate.cpp';names=[source,root+'/required.h']
         contract={'mandatory_paths_common':[names[1]],'allowed_resolved_roots':[root],'max_dependencies_per_arm':5,'max_total_dependency_bytes_per_arm':100}

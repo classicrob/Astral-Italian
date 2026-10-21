@@ -164,3 +164,27 @@ and no helper was imported. Final stdout flush is now followed by a fresh clock
 check INSIDE the existing terminal-failure path; an overrun cannot return0 with
 only the older printed elapsed. Same sampled syscall-stall limits and45total.
 Fourteen no-process models passed; control/compiler/allocation remains disabled.
+
+## Control-only admission after L source support555afea6
+
+Supersedes the earlier control-entry unconditional refusals ONLY. Current disabled
+plan still rejects before lock/helper import/environment change/root creation.
+The control-only runtime path accepts an exact separately reviewed enabled plan:
+CLI/batch validate fresh-parent (absent execution root and cwd fixed clean source
+staging); case validates registered-parent (private existing root/tmp, same parent
+cwd and immutable invocation joins); child validates private existing root/tmp,
+child execution cwd, exact request/source/Python/operator, fixed case identity
+path and nonce. EOF revalidates request/context. No G byte is sent or accepted;
+there is no exec/target dispatch. Self-expiry alarm precedes child file validation.
+
+New immutable source staging is solP/gxinit-before-g-source-v3, leaving reviewed
+v2 unchanged. Exact clean5-file context/cache rejection remains. The disabled
+plan/launch metadata specify cwd=source-v3 and the pinned Python under nice19;
+child cwd stays the same operator's execution root controls-v1. Operatorc219/
+full0c372 and both cases/45caps are unchanged. CLI/batch/case/child each revalidate
+fixed runtime state; only a reviewed enabled-only raw delta plus ROOT allocation
+can authorize actual evaluation. None has been created/executed in this phase.
+Production gxinit_fixed_four.py/its plan/exact module remain byte-identical and
+all compiler/payload refusal functions remain. No shared/full827 admission.
+Sixteen no-process tests passed, including phase-policy mocks and request guards;
+no helper/process import, child, signal, control, lock or compiler operation.

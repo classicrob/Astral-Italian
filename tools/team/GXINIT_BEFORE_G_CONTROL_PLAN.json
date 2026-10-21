@@ -17,7 +17,7 @@
     "helper_cleanup_interval_seconds": 6
   },
   "sources": {
-    "gxinit_before_g_controls.py": "af85b16c04e5bdf8c7c9ac6a975decc1eb630faf3768db660e8ca381ecf971de",
+    "gxinit_before_g_controls.py": "3b5008c29040bd8777e833231b1f3e719b218be376b6ec6a3ffb0551cc709e3e",
     "gxinit_fixed_four.py": "22f66e9514154a0ed84b361d4131c69bd482add3a1a7f16b386301f83135ed26",
     "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea"
   },
@@ -56,5 +56,5 @@
     "resolved": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
     "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
   },
-  "caller_source_root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v2"
+  "caller_source_root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v3"
 }

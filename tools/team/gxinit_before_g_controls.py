@@ -1,4 +1,4 @@
-"""DISABLED fixed two-case gate observation. No payload path or tool argv."""
+"""Fixed two-case control-only admission; shipped plan DISABLED, no payload."""
 import time
 CLI_STARTED=time.monotonic()  # Includes later source/import/context work.
 import sys
@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
-CALLER_ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v2')
+CALLER_ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v3')
 CALLER_ENTRIES={'gxinit_before_g_controls.py','gxinit_fixed_four.py','dispatch_platform_exact.py','GXINIT_BEFORE_G_CONTROL_PLAN.json','MANIFEST.json'}
 
 
@@ -42,7 +42,7 @@ LIMITS={'total_seconds':45,'work_seconds':23,'cleanup_reserve_seconds':18,'termi
 
 
 def refuse_controls():
-    raise RuntimeError('CONTROLS REFUSED: exact operator/helper/order review and separate allocation required')
+    raise RuntimeError('CONTROLS DISABLED: separately reviewed enabled plan and ROOT allocation required')
 
 
 def validate_contract(plan,enabled,phase):
@@ -68,23 +68,51 @@ def validate_contract(plan,enabled,phase):
 
 def validate_root(phase):
     import stat
-    fixed.need(phase in ('parent','child'),'known validation phase')
-    if phase=='parent':fixed.need(not ROOT.exists() and not ROOT.is_symlink(),'fresh absent control root')
+    fixed.need(phase in ('source-parent','fresh-parent','registered-parent','child'),'known validation phase')
+    if phase in ('source-parent','fresh-parent'):
+        fixed.need(not ROOT.exists() and not ROOT.is_symlink(),'fresh absent control root')
     else:
         for path in (ROOT,ROOT/'tmp'):
             st=path.lstat()
-            fixed.need(stat.S_ISDIR(st.st_mode) and not path.is_symlink() and st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700,'owned private existing child root/tmp')
-        fixed.need(str(Path.cwd())==str(ROOT),'child fixed cwd')
+            fixed.need(stat.S_ISDIR(st.st_mode) and not path.is_symlink() and st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700,'owned private existing root/tmp')
+    if phase in ('fresh-parent','registered-parent'):
+        fixed.need(Path.cwd().resolve()==CALLER_ROOT,'parent fixed source cwd')
+    if phase=='child':fixed.need(Path.cwd().resolve()==ROOT,'child fixed execution cwd')
 
 
-def validate_disabled(plan):validate_contract(plan,False,'parent')
+def validate_disabled(plan):validate_contract(plan,False,'source-parent')
 
 
 def validate_runtime(plan,phase):
+    fixed.need(phase in ('fresh-parent','registered-parent','child'),'fixed runtime phase')
     validate_contract(plan,True,phase)
     fixed.need(Path(__file__).resolve().parent==CALLER_ROOT,'actual clean caller location')
     exact_source_entries(CALLER_ROOT,CALLER_ENTRIES)
     verify_python(plan['python'])
+    fixed.need(os.getpriority(os.PRIO_PROCESS,0)>=19,'actual nice19 control process')
+
+
+
+def request_arguments(plan_path,plan_sha):
+    fixed.need(isinstance(plan_path,(str,Path)) and type(plan_sha) is str and len(plan_sha)==64 and all(c in '0123456789abcdef' for c in plan_sha),'bounded pinned runtime request arguments')
+
+
+def read_runtime_request(plan_path,plan_sha,phase):
+    request_arguments(plan_path,plan_sha)
+    raw=fixed.bounded(plan_path,131072)
+    fixed.need(hashlib.sha256(raw).hexdigest()==plan_sha,'immutable runtime request pin')
+    plan=fixed.exact.strict_json(raw);validate_runtime(plan,phase)
+    return plan
+
+
+def invocation_join(plan,plan_sha):
+    row=fixed.exact.strict_json(fixed.bounded(ROOT/'invocation.json',16384))
+    fixed.need(set(row)=={'plan_sha256','python','operator','full_env_sha256','started_monotonic','limits'},'exact parent invocation fields')
+    for key,value in {'plan_sha256':plan_sha,'python':plan['python'],'operator':plan['operator'],'full_env_sha256':plan['full_env_sha256'],'limits':plan['limits']}.items():
+        fixed.need(row[key]==value,'registered parent invocation join')
+    import math
+    fixed.need(type(row['started_monotonic']) is float and math.isfinite(row['started_monotonic']),'finite parent start record')
+    return row
 
 
 def verify_python(record):
@@ -134,17 +162,18 @@ def load_control_helper(plan,check):
 
 
 def gate(plan_path,plan_sha,identity_path,nonce):
-    refuse_controls()  # Independently reviewed control admission not implemented.
+    request_arguments(plan_path,plan_sha)  # Pure shape rejection before signals.
     import signal
     signal.signal(signal.SIGALRM,signal.SIG_DFL);signal.alarm(10)
-    raw=fixed.bounded(plan_path,131072);fixed.need(hashlib.sha256(raw).hexdigest()==plan_sha,'exact child plan')
-    plan=fixed.exact.strict_json(raw)
-    validate_runtime(plan,'child')
+    plan=read_runtime_request(plan_path,plan_sha,'child')
+    invocation_join(plan,plan_sha)
+    fixed.need(identity_path in {str(ROOT/(case+'.identity.json')) for case in CASES} and type(nonce) is str and len(nonce)==32 and all(c in '0123456789abcdef' for c in nonce),'fixed identity output/nonce')
     env=fixed.load_environment(plan);fixed.exact.exact_env(dict(os.environ),env)
     fixed.need(str(Path.cwd())==plan['cwd'],'child cwd')
     fixed.private_record(identity_path,{'pid':os.getpid(),'pgid':os.getpgrp(),'sid':os.getsid(0),'uid':os.getuid(),'nonce':nonce})
     fixed.need(os.read(0,1)==b'','control requires EOF; any byte including G rejects')
-    fixed.exact.exact_env(dict(os.environ),env);validate_runtime(plan,'child')
+    fixed.exact.exact_env(dict(os.environ),env)
+    fixed.need(read_runtime_request(plan_path,plan_sha,'child')==plan,'child request unchanged after EOF')
     signal.alarm(0)
     # No exec, payload dispatch, target argument or source/compiler operation.
 
@@ -153,7 +182,9 @@ class BeforeGUnwind(RuntimeError):pass
 
 
 def run_case(case,plan,plan_path,plan_sha,sup,helper,env,check):
-    refuse_controls()
+    fixed.need(read_runtime_request(plan_path,plan_sha,'registered-parent')==plan,'case immutable admitted plan')
+    invocation_join(plan,plan_sha)
+    fixed.exact.exact_env(dict(os.environ),env)
     import signal,subprocess,threading
     fixed.need(case in CASES and not sup.children and threading.active_count()==1,'fixed serial case')
     root=Path(plan['root']);nonce=os.urandom(16).hex();identity_path=root/(case+'.identity.json')
@@ -195,11 +226,12 @@ def run_case(case,plan,plan_path,plan_sha,sup,helper,env,check):
 
 
 def run_controls(plan,plan_path,plan_sha,started):
-    refuse_controls()
+    work_clock(started)
+    fixed.need(read_runtime_request(plan_path,plan_sha,'fresh-parent')==plan,'batch immutable admitted plan')
     import shutil,signal
     # Clock comes from CLI entry, not after loader/context. No new work
     # after23; the ONE active handle may use12+6cleanup, then4terminal.
-    start=started;work_clock(start);validate_runtime(plan,'parent');work_clock(start)
+    start=started;work_clock(start);validate_runtime(plan,'fresh-parent');work_clock(start)
     env=fixed.load_environment(plan);work_clock(start)
     # Explicit operator mapping, never ambient inheritance or ignored extras.
     # Only this standalone control process is changed; values stay private.
@@ -225,6 +257,7 @@ def run_controls(plan,plan_path,plan_sha,started):
         check();os.umask(0o077);ROOT.mkdir(mode=0o700);(ROOT/'tmp').mkdir()
         fixed.private_record(ROOT/'helper-resolution.json',resolution)
         fixed.private_record(ROOT/'invocation.json',{'plan_sha256':plan_sha,'python':plan['python'],'operator':plan['operator'],'full_env_sha256':plan['full_env_sha256'],'started_monotonic':start,'limits':plan['limits']})
+        validate_runtime(plan,'registered-parent');work_clock(start)
         previous={sig:signal.signal(sig,interrupted) for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP)}
         try:
             sup=helper.GroupSupervisor(ROOT/'children.json',check,ROOT/'STOP')
@@ -270,8 +303,10 @@ def main():
     import argparse
     parser=argparse.ArgumentParser();parser.add_argument('--plan',type=Path,required=True);parser.add_argument('--sha256',required=True);args=parser.parse_args()
     raw=fixed.bounded(args.plan,131072);fixed.need(hashlib.sha256(raw).hexdigest()==args.sha256,'control plan raw pin')
-    plan=fixed.exact.strict_json(raw);validate_disabled(plan);work_clock(CLI_STARTED)
-    refuse_controls()  # BEFORE helper import, lock, environment change or output.
+    plan=fixed.exact.strict_json(raw);work_clock(CLI_STARTED)
+    if type(plan) is dict and plan.get('execution_enabled') is False:
+        validate_disabled(plan);refuse_controls()  # Disabled rejection BEFORE lock/import/output.
+    validate_runtime(plan,'fresh-parent');work_clock(CLI_STARTED)
     run_controls(plan,args.plan,args.sha256,CLI_STARTED)
 
 if __name__=='__main__':main()

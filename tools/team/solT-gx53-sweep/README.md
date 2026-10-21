@@ -1,0 +1,21 @@
+# Canonical 5.3 server GX sweep
+
+This is a separate direct-entry idle observation task. The parked WorldMap investigation, its managed environment, raw logs and capture files are untouched. No app log is opened or parsed by this runner. Failed cases retain original outputs and have unknown first cause; there is no crash analysis, retry, runtime fix or promotion.
+
+Production source is exactly `33e71ee880b426c0c7da03a724377200e874c417`. Eligibility is the source-only supported-60 manifest from dad739a6, SHA256 `b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a`. The initial batch contains RedBlueExGalaxy, MokumokuValleyGalaxy and YosshiHomeGalaxy, scenario 1. WorldMap entries are not run in this allocation.
+
+Each galaxy receives 90 seconds with a fresh app cache, then 90 seconds with that completed galaxy's app cache copied into an independent warm directory. Both runs receive independent copies of the same immutable private user seed. OS/driver caches are uncontrolled. Failed fresh cases are not retried warm. No SMOKE driver, gameplay input, state changes or forced flags are injected. `PETARI_MODS=none` is an explicit top-level registry setting; inherited dormant subflags are not reclassified as individually off.
+
+Before launch, L must supply the exact production app/receipt/key and explicitly release the server lock. The handoff JSON binds `source_sha`, `host_id`, `production_only`, empty `extra_game_fixes`, `artifact_receipt` and its SHA256, `artifact_key`, `executable` and SHA256, `bounded_runner` and SHA256, `source_root`, `private_seed` and its recursive `private_seed_files` manifest, `disc`, `native_lock`, and `explicit_L_artifact_and_lock_release`. Receipt fields and tool/source hashes are verified before the actual nonblocking lock acquisition. Authorization is external; a JSON field does not create it.
+
+Run with nice 19, under the runner's actual lock and existing production `bounded_run.py`. The total runtime allocation is at most 20 minutes; free space must remain at least 50 GiB. Example (private handoff/output paths are supplied separately):
+
+```
+nice -n 19 python3 sweep.py --handoff HANDOFF.json --manifest sb4e01-destinations-v1.json --output-parent PRIVATE_NEW_ROOT --state OWNED_STATE --cleanup-success-caches
+```
+
+The 60-entry coverage inventory keeps all seven eligible WorldMap entries explicitly NOT_RUN/out-of-scope rather than silently dropping them. This allocation does not claim full-60 coverage.
+
+Three XFB/surface capture requests per channel are scheduled at boot-relative 0/1800/3600 presentation marks. Labels do not establish identical game frames. Frame CSV and route CSV retain their separate source-defined domains. At least 300 consecutive finite alive Mario rows in the requested destination and 300 finite timing intervals support `BOUNDED_IDLE_OBSERVED`; expected bounded exit 124 is recorded separately from clean exit. Missing metrics remain `NOT_MEASURED`. This is not mission completion, normal-path coverage, render correctness or a qualified Dolphin visual-diff PASS.
+
+The only automatic deletion is successful new-run cache directories after the fresh/warm pair closes and a cache hash/size retention manifest is written. Failed outputs, logs, selected captures, seed originals and all previous outputs are preserved. No global pruning occurs.

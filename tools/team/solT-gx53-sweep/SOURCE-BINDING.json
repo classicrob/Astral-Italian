@@ -1,0 +1,13 @@
+{
+  "production_source": "33e71ee880b426c0c7da03a724377200e874c417",
+  "source_providers": {
+    "native/app/frame_seam.cpp": "c4b651ced89717b81cd129061d55a57ff6d0c56b0ed93a06d262803108a238d3",
+    "native/app/frame_stats.cpp": "1d1e651d86ca2c63e870e14d2846b0273e91dce5a4fcf5389a573c5e96a3c901",
+    "native/app/smoke_game.cpp": "bf98d8f56113e4f92617081030bfdb6062c61c6b312e23516b3681116d24bf20",
+    "native/app/route_record_writer.hpp": "3e1a561a689a5b0a03b61d39f40e1e3cb4291059a315f5a5c7483699cf35a90a",
+    "native/gx/present/present_aurora.cpp": "8c27bf26870fb59acaed4a91ea629a931443854bf691886efcc16efcbae55ab4",
+    "native/tools/bounded_run.py": "63bc9aa442cbc3fa2e2e345fe6e59dfd0bdc45a66652041d97d5fd493b2b9b7c"
+  },
+  "manifest_sha256": "b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a",
+  "synthetic_metrics_check": "PASS: absent channels NOT_MEASURED,310 finite route/timing rows observed,unreadlog path is directory and neveropened; noapp run"
+}

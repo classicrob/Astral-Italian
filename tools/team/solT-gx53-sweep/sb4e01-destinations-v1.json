@@ -1,0 +1,509 @@
+{
+  "schema_version": 1,
+  "manifest_id": "smg2-sb4e01-sweep-destinations",
+  "manifest_version": 1,
+  "purpose": "Source-only scoring eligibility for the historical 80-name SB4E01 scenario-1 direct-entry sweep.",
+  "qualification": "Eligibility is derived from catalog/scenario metadata, not a claim of gameplay completion, Mario validity, rendering correctness, or general progression coverage.",
+  "selected_scenario": 1,
+  "sort_order": "ASCII lexical; exact canonical internal names, no aliases or renamed spellings",
+  "supported_count": 60,
+  "supported_destinations": [
+    "AbekobeGalaxy",
+    "AncientExcavationGalaxy",
+    "BigGalaxy",
+    "BigTree2Galaxy",
+    "BigWaterFallGalaxy",
+    "ChallengeGliderGalaxy",
+    "ChaosGravityGalaxy",
+    "ChildRoomGalaxy",
+    "CloudGardenGalaxy",
+    "DigMineGalaxy",
+    "DimensionBigCastleGalaxy",
+    "FlowerHighlandGalaxy",
+    "GhostConveyorGalaxy",
+    "GoroRockGalaxy",
+    "HomeCenterGalaxy",
+    "HoneyBeeVillageGalaxy",
+    "IslandFleetGalaxy",
+    "JungleGliderGalaxy",
+    "KachikochiLavaGalaxy",
+    "KingOfKingsGalaxy",
+    "KoopaJrLv2Galaxy",
+    "LongForCastleGalaxy",
+    "MadnessOnimasuGalaxy",
+    "MagicGalaxy",
+    "MarioFaceShipGalaxy",
+    "MarioOnMarioGalaxy",
+    "MemoryRoadGalaxy",
+    "MokumokuValleyGalaxy",
+    "MysteryCandyGalaxy",
+    "OmoteuLandGalaxy",
+    "PeachCastleGalaxy",
+    "QuicksandGalaxy",
+    "RedBlueExGalaxy",
+    "SecretAthleticGalaxy",
+    "StaffRollGalaxy",
+    "StarCreekGalaxy",
+    "SwitchMoveBlockGalaxy",
+    "TamakoroPlanetGalaxy",
+    "TamakoroSliderGalaxy",
+    "TeresaLabyrinthGalaxy",
+    "ThunderFleetGalaxy",
+    "TimerSwitchingPlatformGalaxy",
+    "TropicalResortGalaxy",
+    "TwisterTowerGalaxy",
+    "UnderGroundDangeonGalaxy",
+    "VsKoopaGravityGalaxy",
+    "VsKoopaJrLv1Galaxy",
+    "VsKoopaJrLv3Galaxy",
+    "VsKoopaLv1Galaxy",
+    "VsKoopaLv3Galaxy",
+    "WanwanFactoryGalaxy",
+    "WhiteSnowGalaxy",
+    "WorldMap01Galaxy",
+    "WorldMap02Galaxy",
+    "WorldMap03Galaxy",
+    "WorldMap04Galaxy",
+    "WorldMap05Galaxy",
+    "WorldMap06Galaxy",
+    "WorldMap07Galaxy",
+    "YosshiHomeGalaxy"
+  ],
+  "unavailable_count": 19,
+  "unavailable_destinations": [
+    "AncientExcavationTest02Galaxy",
+    "BossParadeGalaxy",
+    "E3MovCloudGardenGalaxy",
+    "E3MovFlowerHighlandGalaxy",
+    "E3MovTubeSliderTutorialGalaxy",
+    "GemAsteroidGalaxy",
+    "HomeCenterTest01Galaxy",
+    "KoopaCastleGalaxy",
+    "KoopaVs1Galaxy",
+    "MarioFaceGalaxy",
+    "OtaTestGalaxy",
+    "RedBlueExTest01Galaxy",
+    "StorybookTestGalaxy",
+    "SurvivalCosmosGalaxy",
+    "TakeuchiTestGalaxy",
+    "TakezawaTestAGalaxy",
+    "TemplateGalaxy",
+    "YamaguchiTestGalaxy",
+    "ZakoParadeGalaxy"
+  ],
+  "unavailable_reason": "Each directory is an empty placeholder in the disc FST (zero descendant entries); no Scenario archive exists; no GalaxyWorldOrderList record exists. Expected catalog rejection, excluded from supported pass/fail scoring.",
+  "unsupported_direct_entry_count": 1,
+  "unsupported_direct_entry_destinations": [
+    "WorldMap08Galaxy"
+  ],
+  "unsupported_direct_entry_reason": "WorldMap08Galaxy has scenario/catalog metadata but no supported direct-entry route. Preserve as an explicit unscored diagnostic; do not combine with missing-data exclusions.",
+  "outside_historical_sweep": {
+    "destinations": [
+      "FileSelect"
+    ],
+    "reason": "Internal menu scene, not a Galaxy destination; present among the 62 catalog records but outside the historical 80 Galaxy-name attempts."
+  },
+  "derivation": {
+    "audit_source_revision": "490472ea06874de070e61f3726f97901c94b60b1",
+    "historical_sweep_source_revision": "ee0732c08548d59ace747b059352510cb6b36063",
+    "private_data_policy": "Only canonical destination identifiers, counts, classification summaries, and SHA-256 digests are versioned. No archive, DOL, disc/FST payload, scenario table dump, save, tape, trace, screenshot, or private absolute path is included.",
+    "source_readers": [
+      {
+        "path": "native/app/launch_stage.cpp",
+        "sha256": "4604bbec1391c2c4cc410492d0bd8c720404d899109b95d2e11643cda6cc4fbd"
+      },
+      {
+        "path": "native/home_menu/launch_stage.cpp",
+        "sha256": "4eee81db1265931ac955fa4304edb92b45c7b7a70589382b86493af5cb81dcff"
+      },
+      {
+        "path": "src/Game/System/ScenarioDataParser.cpp",
+        "sha256": "168336c99b28de56caf5654bad8b9c5e87ef9db8b61f36ffd2d30f6d240a4738"
+      }
+    ],
+    "metadata_inputs": [
+      {
+        "path": "sys/fst.bin",
+        "sha256": "b487a6a14f727c7b89d13362c4c1782e8dfeea416acd233df9ce62cb746c3c20",
+        "entry_count": 4493
+      },
+      {
+        "path": "files/ObjectData/SystemDataTable.arc",
+        "sha256": "b8a2fdd625ef406f5f5af694f54f60600c1c8cd6a00e3bc28283325757497722",
+        "table": "GalaxyWorldOrderList.bcsv",
+        "positive_world_records": 62
+      }
+    ],
+    "scenario_archive_witnesses": [
+      {
+        "stage": "AbekobeGalaxy",
+        "archive": "files/StageData/AbekobeGalaxy/AbekobeGalaxyScenario.arc",
+        "sha256": "e26a264d387d66c5178f552cec3472360f580fdde5b0eebc2e987ae5c041362d"
+      },
+      {
+        "stage": "AncientExcavationGalaxy",
+        "archive": "files/StageData/AncientExcavationGalaxy/AncientExcavationGalaxyScenario.arc",
+        "sha256": "0e95b6ba3cabb7963eebf9ce7577d96952d5a30eb499cf3e6c605cdba7b10c8e"
+      },
+      {
+        "stage": "BigGalaxy",
+        "archive": "files/StageData/BigGalaxy/BigGalaxyScenario.arc",
+        "sha256": "055ad5817c790980ea48ac24d8bfb39e821112267bff17effd6fac48dd6f2bc7"
+      },
+      {
+        "stage": "BigTree2Galaxy",
+        "archive": "files/StageData/BigTree2Galaxy/BigTree2GalaxyScenario.arc",
+        "sha256": "c90c67787629a9dafc26bd91040cff4c868214a43cecb7242b65a8571517a4db"
+      },
+      {
+        "stage": "BigWaterFallGalaxy",
+        "archive": "files/StageData/BigWaterFallGalaxy/BigWaterFallGalaxyScenario.arc",
+        "sha256": "76c07271387da5e06998d1c738939abae419b2525a066529edc2275c885eae0e"
+      },
+      {
+        "stage": "ChallengeGliderGalaxy",
+        "archive": "files/StageData/ChallengeGliderGalaxy/ChallengeGliderGalaxyScenario.arc",
+        "sha256": "ebec8fba84c9b4d6a59dd6fb08308069fe9839b3974e260d4ad9666874ee1445"
+      },
+      {
+        "stage": "ChaosGravityGalaxy",
+        "archive": "files/StageData/ChaosGravityGalaxy/ChaosGravityGalaxyScenario.arc",
+        "sha256": "d30128fced9f03972a181770fe9e5e49bb6cfc006d761b9c9e657d1545a990ac"
+      },
+      {
+        "stage": "ChildRoomGalaxy",
+        "archive": "files/StageData/ChildRoomGalaxy/ChildRoomGalaxyScenario.arc",
+        "sha256": "687f0ed013519969a81cbda564f25b723d1f564ff2394ae68b531498d44438fb"
+      },
+      {
+        "stage": "CloudGardenGalaxy",
+        "archive": "files/StageData/CloudGardenGalaxy/CloudGardenGalaxyScenario.arc",
+        "sha256": "8c3037057568da6f0a598bfb8d3a7feacadcf7d5a3eddcfdb53ca6854c318c6c"
+      },
+      {
+        "stage": "DigMineGalaxy",
+        "archive": "files/StageData/DigMineGalaxy/DigMineGalaxyScenario.arc",
+        "sha256": "00e3077dd40d78f657da0f54d5f5d6d91ed0af1d8e0ddd4c00e28090389ace2e"
+      },
+      {
+        "stage": "DimensionBigCastleGalaxy",
+        "archive": "files/StageData/DimensionBigCastleGalaxy/DimensionBigCastleGalaxyScenario.arc",
+        "sha256": "f55e30caef24d47d81b49496eab09c8ca8563a8232a0158f26bf998c1c6ec5d4"
+      },
+      {
+        "stage": "FileSelect",
+        "archive": "files/StageData/FileSelect/FileSelectScenario.arc",
+        "sha256": "486f1275523ac0a12d2d4fcd6ed756d737e8b2e7887ae494b7bb2d5db054b432"
+      },
+      {
+        "stage": "FlowerHighlandGalaxy",
+        "archive": "files/StageData/FlowerHighlandGalaxy/FlowerHighlandGalaxyScenario.arc",
+        "sha256": "129e109f25e82f3f8b248ac12739cc9508567d1dc702f136dd5a0248d271790d"
+      },
+      {
+        "stage": "GhostConveyorGalaxy",
+        "archive": "files/StageData/GhostConveyorGalaxy/GhostConveyorGalaxyScenario.arc",
+        "sha256": "bed2137af14d2fa69e5dd0d0c6be441f687adf43a0df19e05a53384e16f94e59"
+      },
+      {
+        "stage": "GoroRockGalaxy",
+        "archive": "files/StageData/GoroRockGalaxy/GoroRockGalaxyScenario.arc",
+        "sha256": "7881ed5e8b7ba04664844547a056e8ff3b2f97627a2fb8da66dcd823960969f1"
+      },
+      {
+        "stage": "HomeCenterGalaxy",
+        "archive": "files/StageData/HomeCenterGalaxy/HomeCenterGalaxyScenario.arc",
+        "sha256": "06b7b13449ca24d62ff32f42a1807fc76d67ce5818b2fd7e17c53f5ddbb524ae"
+      },
+      {
+        "stage": "HoneyBeeVillageGalaxy",
+        "archive": "files/StageData/HoneyBeeVillageGalaxy/HoneyBeeVillageGalaxyScenario.arc",
+        "sha256": "ab3d673e49b63a1184e912e8e5974853423e173198a461607148d1d3e5eaac6e"
+      },
+      {
+        "stage": "IslandFleetGalaxy",
+        "archive": "files/StageData/IslandFleetGalaxy/IslandFleetGalaxyScenario.arc",
+        "sha256": "3d9bdee64069f07e96adac31fe3ddac4b22f01ed1a746555bb50dffb53bf856d"
+      },
+      {
+        "stage": "JungleGliderGalaxy",
+        "archive": "files/StageData/JungleGliderGalaxy/JungleGliderGalaxyScenario.arc",
+        "sha256": "c8502229cf2852d87f99320c13ff3475241d03869969f297ee0268174211d454"
+      },
+      {
+        "stage": "KachikochiLavaGalaxy",
+        "archive": "files/StageData/KachikochiLavaGalaxy/KachikochiLavaGalaxyScenario.arc",
+        "sha256": "5b454044a881fcb900c216549b430b9f661fa951ce623b3dc4ae71cd130ab983"
+      },
+      {
+        "stage": "KingOfKingsGalaxy",
+        "archive": "files/StageData/KingOfKingsGalaxy/KingOfKingsGalaxyScenario.arc",
+        "sha256": "35cc337ca2fa507996420cc19872f705321b865bb1738fba742ff5de739de0dc"
+      },
+      {
+        "stage": "KoopaJrLv2Galaxy",
+        "archive": "files/StageData/KoopaJrLv2Galaxy/KoopaJrLv2GalaxyScenario.arc",
+        "sha256": "69b87b82b10380ca7c1d81c9dec29e7e603c9ba74ef0d6ba497116d092cd4b86"
+      },
+      {
+        "stage": "LongForCastleGalaxy",
+        "archive": "files/StageData/LongForCastleGalaxy/LongForCastleGalaxyScenario.arc",
+        "sha256": "433f3922e5beaa807d73bb4d6cf79215aa5b973d66b75371efc4a1e929ccab37"
+      },
+      {
+        "stage": "MadnessOnimasuGalaxy",
+        "archive": "files/StageData/MadnessOnimasuGalaxy/MadnessOnimasuGalaxyScenario.arc",
+        "sha256": "35523e713a77d0607bc424a0379cecc823ebd82aeea6676bc376c49447924e1a"
+      },
+      {
+        "stage": "MagicGalaxy",
+        "archive": "files/StageData/MagicGalaxy/MagicGalaxyScenario.arc",
+        "sha256": "d75b40e8912a9964192fa383f663a4f61a51bf238a94acc73aacee41a67b70cb"
+      },
+      {
+        "stage": "MarioFaceShipGalaxy",
+        "archive": "files/StageData/MarioFaceShipGalaxy/MarioFaceShipGalaxyScenario.arc",
+        "sha256": "9b15e77e8116f5ad1ec6d2a85d269bfc3a509879443980b44ba55ca8226cd563"
+      },
+      {
+        "stage": "MarioOnMarioGalaxy",
+        "archive": "files/StageData/MarioOnMarioGalaxy/MarioOnMarioGalaxyScenario.arc",
+        "sha256": "4d7f0504bc670f3e38d2cd27df0aa0ee5b4edf6d364cece1701e0416300ded2a"
+      },
+      {
+        "stage": "MemoryRoadGalaxy",
+        "archive": "files/StageData/MemoryRoadGalaxy/MemoryRoadGalaxyScenario.arc",
+        "sha256": "f4282c420f6808fe65f58d6265d5c3751f3f89c33fd97aed31b43fc2a16a4e19"
+      },
+      {
+        "stage": "MokumokuValleyGalaxy",
+        "archive": "files/StageData/MokumokuValleyGalaxy/MokumokuValleyGalaxyScenario.arc",
+        "sha256": "e3db565f7c91e8a79a34cbea4e2d3535f0b5b28dfa7993fc0edf6c7cd00b8fe3"
+      },
+      {
+        "stage": "MysteryCandyGalaxy",
+        "archive": "files/StageData/MysteryCandyGalaxy/MysteryCandyGalaxyScenario.arc",
+        "sha256": "d3138df17e3fbdff6461cf051cc28970c8aa8480c8823acebf9382b2220d7cb4"
+      },
+      {
+        "stage": "OmoteuLandGalaxy",
+        "archive": "files/StageData/OmoteuLandGalaxy/OmoteuLandGalaxyScenario.arc",
+        "sha256": "34577e3f1319aa22bb08fcce3a267db8d012206234270b70dd4e837b8423899b"
+      },
+      {
+        "stage": "PeachCastleGalaxy",
+        "archive": "files/StageData/PeachCastleGalaxy/PeachCastleGalaxyScenario.arc",
+        "sha256": "8fb85035aac3a71868ad466aa1849e52008ba9870a4e36a4ce0d64bf0d3d4035"
+      },
+      {
+        "stage": "QuicksandGalaxy",
+        "archive": "files/StageData/QuicksandGalaxy/QuicksandGalaxyScenario.arc",
+        "sha256": "749dc0078f0a42ff2f76f7f3ed8c5d531bb2787519769159b3f2ab242475b739"
+      },
+      {
+        "stage": "RedBlueExGalaxy",
+        "archive": "files/StageData/RedBlueExGalaxy/RedBlueExGalaxyScenario.arc",
+        "sha256": "633585e1423810669b14e12c65f9b8f351eb011c6830500ace0301669f7d3495"
+      },
+      {
+        "stage": "SecretAthleticGalaxy",
+        "archive": "files/StageData/SecretAthleticGalaxy/SecretAthleticGalaxyScenario.arc",
+        "sha256": "2c2d3e060493af1a881b9622fc3fd5687eb16ac5d3e792f695d0631996e66e44"
+      },
+      {
+        "stage": "StaffRollGalaxy",
+        "archive": "files/StageData/StaffRollGalaxy/StaffRollGalaxyScenario.arc",
+        "sha256": "cf476d386ca93a6fa847483909629345520a9cf2f98decb0d43696db03b6a453"
+      },
+      {
+        "stage": "StarCreekGalaxy",
+        "archive": "files/StageData/StarCreekGalaxy/StarCreekGalaxyScenario.arc",
+        "sha256": "7d3d682d91c34d665aafbe3605eab3f467b835d0b6fb4fde37a55f337f9fe68b"
+      },
+      {
+        "stage": "SwitchMoveBlockGalaxy",
+        "archive": "files/StageData/SwitchMoveBlockGalaxy/SwitchMoveBlockGalaxyScenario.arc",
+        "sha256": "0a1c95a893b6baa229b28d7ab72608a4c511a5f27792fd857e63e9539d43b5ac"
+      },
+      {
+        "stage": "TamakoroPlanetGalaxy",
+        "archive": "files/StageData/TamakoroPlanetGalaxy/TamakoroPlanetGalaxyScenario.arc",
+        "sha256": "931552a38a3d31e2cfdd5d6883522195a5ae7860cd2a6bfcc64f124fb92fc75f"
+      },
+      {
+        "stage": "TamakoroSliderGalaxy",
+        "archive": "files/StageData/TamakoroSliderGalaxy/TamakoroSliderGalaxyScenario.arc",
+        "sha256": "03b8ff4e34319af18259f3ab1bb96f46b877e15ed9e4c3dcfae9095fa736b012"
+      },
+      {
+        "stage": "TeresaLabyrinthGalaxy",
+        "archive": "files/StageData/TeresaLabyrinthGalaxy/TeresaLabyrinthGalaxyScenario.arc",
+        "sha256": "43d1a2c0910d77a47bcee05c364a7734da4dcf12075419079f3e1e5652d82257"
+      },
+      {
+        "stage": "ThunderFleetGalaxy",
+        "archive": "files/StageData/ThunderFleetGalaxy/ThunderFleetGalaxyScenario.arc",
+        "sha256": "b91ae5147f1ae2e1354c8cccf690da217b95ae3759c2637909335c977955b5db"
+      },
+      {
+        "stage": "TimerSwitchingPlatformGalaxy",
+        "archive": "files/StageData/TimerSwitchingPlatformGalaxy/TimerSwitchingPlatformGalaxyScenario.arc",
+        "sha256": "9826daad803e98b6e30aae5bb0ae8a6ff5348695f1dff692a228dfae0867da98"
+      },
+      {
+        "stage": "TropicalResortGalaxy",
+        "archive": "files/StageData/TropicalResortGalaxy/TropicalResortGalaxyScenario.arc",
+        "sha256": "855bc0bbf0f90c7318ef2943e71e3f65422fc953d396c85b7e2e5b26dd40383d"
+      },
+      {
+        "stage": "TwisterTowerGalaxy",
+        "archive": "files/StageData/TwisterTowerGalaxy/TwisterTowerGalaxyScenario.arc",
+        "sha256": "f2d7f61ba03fddd2a21aeeeceeb612bdad959829de35e7495d04a2aa1b541067"
+      },
+      {
+        "stage": "UnderGroundDangeonGalaxy",
+        "archive": "files/StageData/UnderGroundDangeonGalaxy/UnderGroundDangeonGalaxyScenario.arc",
+        "sha256": "6537bc056f736b48b0e77e775578f7f9de7b17604d276e08aa23cf87b4b29027"
+      },
+      {
+        "stage": "VsKoopaGravityGalaxy",
+        "archive": "files/StageData/VsKoopaGravityGalaxy/VsKoopaGravityGalaxyScenario.arc",
+        "sha256": "93c1413a1c9cceb979afe432f04a6d51d4ab769f3bcfd50607e79a42ab07a04f"
+      },
+      {
+        "stage": "VsKoopaJrLv1Galaxy",
+        "archive": "files/StageData/VsKoopaJrLv1Galaxy/VsKoopaJrLv1GalaxyScenario.arc",
+        "sha256": "aa1a19326c0f17a2271c9746cd780a37fdb97a63c5743741b14f64f14cf0b918"
+      },
+      {
+        "stage": "VsKoopaJrLv3Galaxy",
+        "archive": "files/StageData/VsKoopaJrLv3Galaxy/VsKoopaJrLv3GalaxyScenario.arc",
+        "sha256": "e7a33296d0f94594b0424cefbdbe4c277a5839bf9bd19ecc84f39e10e6dd7c6c"
+      },
+      {
+        "stage": "VsKoopaLv1Galaxy",
+        "archive": "files/StageData/VsKoopaLv1Galaxy/VsKoopaLv1GalaxyScenario.arc",
+        "sha256": "3e37e93c10f2ece16b7da90ab716b13054e5905a60e3c46acf1256359ac355aa"
+      },
+      {
+        "stage": "VsKoopaLv3Galaxy",
+        "archive": "files/StageData/VsKoopaLv3Galaxy/VsKoopaLv3GalaxyScenario.arc",
+        "sha256": "049ef51090a5ad64ee5aecda87f071f5bc6d19bb545ef0c5cd10102a7a7a51c3"
+      },
+      {
+        "stage": "WanwanFactoryGalaxy",
+        "archive": "files/StageData/WanwanFactoryGalaxy/WanwanFactoryGalaxyScenario.arc",
+        "sha256": "37791de5640dfa2af3909ff0962b5c44e19a986406fc6bf1b2c02f1b16dbec71"
+      },
+      {
+        "stage": "WhiteSnowGalaxy",
+        "archive": "files/StageData/WhiteSnowGalaxy/WhiteSnowGalaxyScenario.arc",
+        "sha256": "8a138b890556c1a440322989fd9e3dee3233c83339812da61335f9d292877cf0"
+      },
+      {
+        "stage": "WorldMap01Galaxy",
+        "archive": "files/StageData/WorldMap01Galaxy/WorldMap01GalaxyScenario.arc",
+        "sha256": "65258ef5cb1fdc1400b27f13bce60751d43daa0b1028e4b0ccf3f4beceac32fb"
+      },
+      {
+        "stage": "WorldMap02Galaxy",
+        "archive": "files/StageData/WorldMap02Galaxy/WorldMap02GalaxyScenario.arc",
+        "sha256": "550bf25c27396b7c08e8a35bfaf6b186110e6c2ceaaa4990886e63353e5259c2"
+      },
+      {
+        "stage": "WorldMap03Galaxy",
+        "archive": "files/StageData/WorldMap03Galaxy/WorldMap03GalaxyScenario.arc",
+        "sha256": "7c68e688c97f13e95503c105e8fbbfbfbf4d1848820f6efd8b2eea79931bfc69"
+      },
+      {
+        "stage": "WorldMap04Galaxy",
+        "archive": "files/StageData/WorldMap04Galaxy/WorldMap04GalaxyScenario.arc",
+        "sha256": "afcc292e193a8f861d21c5beef96d3cb71fd03dac433d8d49cf9c704fd8812fe"
+      },
+      {
+        "stage": "WorldMap05Galaxy",
+        "archive": "files/StageData/WorldMap05Galaxy/WorldMap05GalaxyScenario.arc",
+        "sha256": "982b6ac17ad4168abd84f67bb66f69071602a7d84becf09dae072c8b72c11074"
+      },
+      {
+        "stage": "WorldMap06Galaxy",
+        "archive": "files/StageData/WorldMap06Galaxy/WorldMap06GalaxyScenario.arc",
+        "sha256": "2391b1b7b07f6b518d5465f1939e6335f75dbf5669e6dd14f4f94e30a4b49e98"
+      },
+      {
+        "stage": "WorldMap07Galaxy",
+        "archive": "files/StageData/WorldMap07Galaxy/WorldMap07GalaxyScenario.arc",
+        "sha256": "045704bade7474dbd83723009ff9ce63ac1bc8f33230633bd961083408139b77"
+      },
+      {
+        "stage": "WorldMap08Galaxy",
+        "archive": "files/StageData/WorldMap08Galaxy/WorldMap08GalaxyScenario.arc",
+        "sha256": "9a24b58e59fd98366d6c8a9f0be702c21d2f7cd1ae0b87425e32fa8e353c6d8a"
+      },
+      {
+        "stage": "YosshiHomeGalaxy",
+        "archive": "files/StageData/YosshiHomeGalaxy/YosshiHomeGalaxyScenario.arc",
+        "sha256": "40b44a4074ff1a102e368f571a935d7e52d489ace95bb12d155f909af43ae48b"
+      }
+    ],
+    "rules": [
+      "Read positive-WorldNo GalaxyWorldOrderList records using the catalog policy in native/app/launch_stage.cpp at audit_source_revision.",
+      "Require the corresponding scenario archive, GalaxyInfo.WorldNo agreement, and an actual ScenarioData.ScenarioNo=1 row; never treat row ordinal as ScenarioNo.",
+      "Of 62 metadata records, remove the non-Galaxy FileSelect menu scene, then separately exclude WorldMap08Galaxy, leaving 60 eligible Galaxy destinations.",
+      "The other 19 historical Galaxy-name directories have zero descendant FST entries and no scenario/world-order record; classify as unavailable data.",
+      "Use supported_destinations as the canonical scoring allow-list. Retain excluded attempts separately for diagnostics; reject unknown names instead of guessing aliases."
+    ],
+    "classification_sets_sha256": "97818f95ac0c01c29ef5a243dd3e663657fd8e5e0db1ef6c3dde964c3383e9f0",
+    "canonical_digest_format": "SHA-256 of ASCII json.dumps(value, sort_keys=True, separators=(comma,colon), ensure_ascii=True), without trailing newline"
+  },
+  "historical_80_reconciliation": {
+    "attempted": 80,
+    "identity": "80 = 60 supported + 19 unavailable + 1 unsupported direct entry",
+    "legacy_scored_stages": 79,
+    "legacy_scored_identity": "79 = 60 supported + 19 unavailable; old denominator included missing-data placeholders",
+    "corrected_supported_denominator": 60,
+    "complete_30000_exit0": 54,
+    "supported_incomplete": 6,
+    "supported_incomplete_destinations": [
+      "BigTree2Galaxy",
+      "BigWaterFallGalaxy",
+      "LongForCastleGalaxy",
+      "MadnessOnimasuGalaxy",
+      "StaffRollGalaxy",
+      "WhiteSnowGalaxy"
+    ],
+    "supported_incomplete_classification": {
+      "known_gx_ordering": [
+        "BigTree2Galaxy",
+        "MadnessOnimasuGalaxy"
+      ],
+      "separately_owned_source_defects": [
+        "BigWaterFallGalaxy",
+        "LongForCastleGalaxy",
+        "StaffRollGalaxy",
+        "WhiteSnowGalaxy"
+      ]
+    },
+    "failed_summary_count": 25,
+    "failed_summary_identity": "25 = 19 unavailable + 2 known GX ordering + 4 separately owned source defects; WorldMap08 is additional and unscored",
+    "raw_mario_valid": 58,
+    "supported_mario_valid": 57,
+    "qualification": "Historical build-5 results only. Reclassification creates no new passes; current-main and GX sweep outcomes must be separately source/binary-bound.",
+    "evidence": [
+      {
+        "name": "build5-post-promotion-completion.json",
+        "sha256": "89ca3b6b6280823c2afa9ac9f00858f39af76c1f33437fc5fe1bd3cbe686f7af"
+      },
+      {
+        "name": "build5-post-promotion-completion.md",
+        "sha256": "9b3245b93b4844bb0a633fe4b3b1978752b277340c86329f62c7293869d69daf"
+      }
+    ],
+    "historical_binary_sha256": "1c6c1756c3c408baca406d6fb31a10a50c7fe7283338ecd2188c039c0500a1b6"
+  },
+  "execution_policy": {
+    "hold": "USERINCOMING: metadata only; no build or game run",
+    "future_headless_location": "SERVER, coordinated by Sol L",
+    "incoming_gx_status": "No results available at manifest creation; score future summaries against this manifest and bind them to their actual source and binary revisions."
+  }
+}

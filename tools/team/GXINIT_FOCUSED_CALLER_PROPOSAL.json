@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "status": "SOURCE_ONLY_FIXED_CALLER_PROPOSAL_NOT_EXECUTABLE",
+  "execution_enabled": false,
+  "authority_sha256": "9789adaecb5a1572ed0be3da599132a5a2bd98afee6a1f8d67a0f6b18b69003c",
+  "supervisor_sha256": "0fcd2b4e74a2423200065aafd4248f6589791bf9b2348726122bf5b2fc4ee5b0",
+  "launch_sequence_source_sha256": "9f4e944331c6809a2ba74a3b290e9b9a07ce5891952bb35db8473f5b5cdfb519",
+  "steps": 4,
+  "nested_bounded_sessions": false,
+  "proposal": {
+    "path": "tools/team/GXINIT_FOCUSED_CALLER_PROPOSAL.md",
+    "sha256": "015c96002c94ab75ec66ecfc86afe3e461841e379929e58053cf97778048ccd9"
+  },
+  "unresolved": [
+    "exactM1helper/importclosurematerialization",
+    "fixedcaller source implementation/review",
+    "exact environment/allocation pin",
+    "kernel UID/lineage admission policy or reviewed hook",
+    "actual clang/linker same-group/escape scope",
+    "GroupSupervisor initial probe-before-reap/EPERM cleanup boundary disposition"
+  ],
+  "no_runtime_or_supervisor_qualification": true
+}

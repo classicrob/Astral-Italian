@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "status": "SOURCE_RECIPE_DISABLED_PENDING_CONTEXT_LIFECYCLE_REVIEW",
+  "execution_enabled": false,
+  "stage": "YosshiHomeGalaxy",
+  "scenario": 1,
+  "inputs": 616,
+  "snapshot": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4",
+  "output": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/capture",
+  "dolphin": "/Users/roberthaisfield/MacioGalaxy2-gamedata/Dolphin-2609a.app/Contents/MacOS/Dolphin",
+  "host_query": "/Users/roberthaisfield/toolchains/sol-t-validation/worldmap51/host_input.py",
+  "collector_argv": [
+    "--entry-stage",
+    "YosshiHomeGalaxy",
+    "--entry-scenario",
+    "1",
+    "--entry-dol",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/SB4E01-extracted/sys/main.dol",
+    "collect",
+    "--slot-held",
+    "--dolphin",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/Dolphin-2609a.app/Contents/MacOS/Dolphin",
+    "--disc",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/SB4E01.iso",
+    "--user",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/profile",
+    "--socket",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/gdb.sock",
+    "--input-script",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/boot-menu.json",
+    "--sync-stage",
+    "YosshiHomeGalaxy",
+    "--sync-scenario",
+    "1",
+    "--sync-input-records",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/idle616.jsonl",
+    "--sync-input-records-sha256",
+    "REQUIRES_FRESH_GENERATOR_RECEIPT_SHA",
+    "--sync-observed-connection",
+    "--frames",
+    "617",
+    "--wall-timeout",
+    "430",
+    "--output",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/capture"
+  ],
+  "pins": [
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/dolphin_collect.py",
+      "sha256": "68e360230461dac009727e3b77156480a19d432b5486f37ce4e27afc47b7e3ea"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/dolphin_menu_probe.py",
+      "sha256": "a33e060bf45a5de2336ca0b5d33a6d9304e73d0fb25967c5f3764d6d35e66f1a"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/dolphin_stage_entry.py",
+      "sha256": "d17048d7037cfe9bb0d1043f199a4940ac5368ba2eaed92390e5869435e1a17d"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/human_pair.py",
+      "sha256": "d6e7af1eac39e3dad97a3a8dc54eb9b4e23abe6828feca3c378ae008b7fec89d"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/kpad_observe.py",
+      "sha256": "741ad072d348b36e67cbf9d765f47b351f6cafb15b02715847682c4b9f2053f9"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/kpad_records.py",
+      "sha256": "7face386b0a2b24966575a4e6e10d6c78441cd577746936a840bb663cb47aebe"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/kpad_script.py",
+      "sha256": "f3ca7f0d985de8d1dd2e2c02eccb557ee6c5511110f87e3aed5723cf5cb91a2b"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/make_movie.py",
+      "sha256": "6aa0d879e8b54e90d7a8c95e6b01b1daa15844fbb5878832d49e2c0126ce4507"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/replay_gate.py",
+      "sha256": "311e8ebd989ccb3ff75a24afd0ede898975fd76c49ce0c19ea95f4bb138d9534"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/route_to_kpad_script.py",
+      "sha256": "9bf7f6a9590aa3dce64f4b125b72151d88bc694868cbc460a1ecf7f64cfd3795"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/stage_clear_witness.py",
+      "sha256": "ca541d70b53a3a3aa16e656659a777816ae88de1de991c923071519ac303c89a"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/sync_validation.py",
+      "sha256": "6e53e81c2d3848f15a784ebb94d02109fcd7db665b4304451bc108085107408a"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_actor_sidecars.py",
+      "sha256": "a21219af2623bb516ce55f8d68e57701c958a57679745c582dfb9b5c592437f5"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_collect_lifecycle.py",
+      "sha256": "e4075a137525cc1c75371ddc9366a999d1a8e6fbde51c3bffc7ebddfb10a9770"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_dolphin_collect.py",
+      "sha256": "f30266479f30ee7e90a0cf959c749107099eea9d2ace4b771782e2d7762691ba"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_dolphin_stage_entry.py",
+      "sha256": "3cad8842a92fbaff4499384373a0c6cfaf15aae0e31282abe3ebcc1c3f72744f"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_extended_budget.py",
+      "sha256": "d91907941735748db636d5c46cc40a7399f564452e0b8f6563d8341fdd17e5e1"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_human_pair.py",
+      "sha256": "3229ebfedf383d03a6fab3e2958694e8fe9d56f8cdc4eea308e4518e831e8ce3"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_kpad_observe.py",
+      "sha256": "63a67f0dc5de43678d86b0601a89b94bde966d9706dd991ae02af7481805a03f"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_kpad_records.py",
+      "sha256": "d539ac539e737d05214701d626b1a35f93b3594a01952f8b665bb3a814a3456f"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_kpad_script.py",
+      "sha256": "199037f9ae9b5ebc74965b695f4f43f04bac1331f9f7dc3d6d5de7f4111a0e82"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_make_movie.py",
+      "sha256": "f6cc58bf85ebdd57e6aa8741543af9f46f65aec1bdfc5108f0b8042fbf9dc8f3"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_replay_gate.py",
+      "sha256": "98c0c1eac3830593ff66147bdc3e2504cecef8820001cc59a0640269609348bc"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_route_to_kpad_script.py",
+      "sha256": "3672d11e33db687fc05d6bba9573ad2a8bb79f60aec46ef43d76adef3895631f"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_stage_clear_witness.py",
+      "sha256": "6af4e138d7eaff93df2fb749c1ddb449cc78855405af8d0a5d95db0f3eb6e908"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_stage_sync.py",
+      "sha256": "d02a828040b4ab665e584233df61e8afae94ac0f1ad180a886e663c1350ed5b3"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_sync_validation.py",
+      "sha256": "beab64256288f4559071235ac1d54ece5b3a01af97f39af2153773abf7013747"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_tracediff.py",
+      "sha256": "eef4f62a035d598cac0a05d6b8f6995549760095584e4fa31742215621aa3a63"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_watchwriter.py",
+      "sha256": "d9e47d78f061b8b4800a7bf458dc5556c9dc3a19d5cbb8c78bc46e48fc8cef8a"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/test_yoshi_replay.py",
+      "sha256": "aa12c4cedbb44fb561f14128cb768ff4882cd4559de5ccd7270450ac6389ff1a"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/tracediff.py",
+      "sha256": "571cd05f9fc4125bd2c3f768d7d368c76b7d89a2dd860e1d1442322a19339196"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/watchwriter.py",
+      "sha256": "004d82ebc8493f1e16cf00d0144b24f2044fa1af1644864e1d5e475f5127b752"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/tools/port/replaydiff/yoshi_replay.py",
+      "sha256": "c463884c9813f0a7f886ca249b9d89a981b7c30f93a01771d7d0075c58c20563"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-tools-r4/native/tools/headless.py",
+      "sha256": "602d3d48e93b6d896693c05ca80e71cd9d3bf9c4ee688a9eeefeca97f25ecddc"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/boot-menu.json",
+      "sha256": "7124ccaed1383ddbade74c120970f024461f4530f0bcb34b01b661d717953cf7"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/sol-t-validation/worldmap51/host_input.py",
+      "sha256": "a0004b11f7ef5abc27f50439791fd3f6ba7bbb40d6004576d3669a84d656ab40"
+    },
+    {
+      "path": "/usr/sbin/screencapture",
+      "sha256": "2b29190c20a5fe2ceef10210cb8b3c229d78e583141e8f78a98ac04b6eea619c"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/Resources/Python.app/Contents/MacOS/Python",
+      "sha256": "7a209f009f732b268fac0f2adbe9fca641c368bbec1e5e43c3c56660da9c2ecd"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/source/stopped_reference.py",
+      "sha256": "335b05119fc93c3103280d8a164c2cd070159ac814657600668452da51606777"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/source/prepare_idle.py",
+      "sha256": "937ba1c1d1ed3a9bba7deaa9af5cee46f74dd624e10f1f92031ba0b0d3d28ea3"
+    }
+  ],
+  "expected_emulator": {
+    "sha256": "888de10b7c6e8297aab2e4d51b050589b8dec9f13c889b7f094b3e92b9285e77",
+    "pin_basis": "historical completed full capture; current executable rehash required under allocated preflight",
+    "revision": "409881c34357d0f105fd473167d15ab0bd9c1628",
+    "version": "2609a",
+    "M1_Info_plist_sha256": "dabd8575f1e1f547068c37ba0e26f56958b43b0ab33dddf76b161293ed30cc03"
+  },
+  "disc_pin_basis": {
+    "iso_sha256": "495188876a68fecfd8d2614e84435e5a1b76c50aaf35e7fc99204771be78dc4c",
+    "dol_sha256": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+    "scope": "Existing accepted source receipts, not fresh bulk rehash in this metadata task"
+  },
+  "profile": {
+    "source": "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/human01/candidate-r1-profile",
+    "files": {
+      "Cache/SB4E01.uidcache": "4540658f80adbdc88b28ecb5296efd2aabba4cff87dc7be73da6573b28f3ee18",
+      "Config/DSUClient.ini": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "Config/Dolphin.ini": "b84c12de6ad8838e554bc98479dadf58ae00050ff883be40c4794618a5f4a0bd",
+      "Config/FreeLook.ini": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "Config/FreeLookController.ini": "9c83817cd9ff2a0452fa55cbcf44176fc33995040941fb9a1f5d7fdcc68434f9",
+      "Config/GBA.ini": "2a8e3d784e174667a43192cbfba6363c70067deb1ce0f9bed990a8e8e041cbd1",
+      "Config/GCKeyNew.ini": "cfa8164881d8f2e29939b470c560b5867853a18d4686ed66eea72a2f1fc4a29a",
+      "Config/GCPadNew.ini": "f2e001efeed1462d7678d885b9c40c807ced4588126e6434207bf4c81e7288b7",
+      "Config/GFX.ini": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "Config/Logger.ini": "562251e06bf393ce22407d510947dcd04e1a10babad1cc147cd6b84571eb163c",
+      "Config/Qt.ini": "d7f31bfd39161cb43819076cc3fea824059a1b0e4e9c052328a8dd200c5c6a4c",
+      "Config/RetroAchievements.ini": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "Config/TimePlayed.ini": "0f2bdc76e2c4740240fe4638dcd9250dc45e47c25ef32f061c1483d5a9adba01",
+      "Config/WiimoteNew.ini": "73be275e3e2c5b92ed7b35f41770be7a38fdca7228b2cd497d78ebfffff7ccf4",
+      "GC/SRAM.raw": "12247fa2fb88491f5f5cc0ffe58bf3619eda6e250939f9d344544b2b4cdd4bc5",
+      "Logs/dolphin.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ResourcePacks/Packs.ini": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "Wii/fst.bin": "3ba72d9db4d35e0a6c3c42961ff7b104dab504a73b914ebb181d2b1656fe8e8d",
+      "Wii/shared2/sys/SYSCONF": "b1b4b3154faac78a210c2603c393e18a1ecb3e176eb657f1d38878739a541560",
+      "Wii/shared2/sys/net/02/config.dat": "67e5820020048d1904d1db8b86d0a18d073d4b330aeaddb6462694ab415a3306",
+      "Wii/shared2/wc24/mbox/Readme.txt": "e5a888912968050c6c1d46d1c364c324684e1d15aaa62cfe36cf7fce2c687b21",
+      "Wii/shared2/wc24/mbox/wc24recv.ctl": "efa39268e7071941e4fe429d49c86d73bee952df95d91d7909c478dd1bc9050a",
+      "Wii/shared2/wc24/mbox/wc24recv.mbx": "dd2ad8c9fb38884523459963bfaec5d5aeaa5fd20efcdc209764d461e690e435",
+      "Wii/shared2/wc24/mbox/wc24send.ctl": "430c3795f1a0aeb198bf626a4a2ff6d123321d453807dd7b904dc3b74db35d13",
+      "Wii/shared2/wc24/mbox/wc24send.mbx": "c248dc031ce09f7be1e55956b6f173e79d6a47d913c22a16593c4687325692b7",
+      "Wii/shared2/wc24/misc.bin": "13dd5b6b2682defd3b23afd8e2983d00edc25bd4dc28a8389380dee0ec45a4a5",
+      "Wii/shared2/wc24/nwc24dl.bin": "057b6f840c19b41ce080318bc7e717e2b910965ce72ab781a7e319017636c38e",
+      "Wii/shared2/wc24/nwc24fl.bin": "ed94af416c47ed3bc2c944ebcd1d734b8935d9697feb0f7039d8fea3ec514c18",
+      "Wii/shared2/wc24/nwc24fls.bin": "c3a4a5649d6ed2322a0de98d2258b96a6a1d3c0179854fd21e9835d529736822",
+      "Wii/shared2/wc24/nwc24msg.cbk": "7afebf33eeb0035397cc74e15e892e700cd2903641d26562f5d46cfbb6171109",
+      "Wii/shared2/wc24/nwc24msg.cfg": "caba9bad02a5b5e46d0d014c7c330dfd5a7f39506eb1ea41f20f8c293d7ca059",
+      "Wii/sys/uid.sys": "723e5a7739ef867d77e91d5d4b4dd23512329cdae4fd0e4945bcffec3cec183b",
+      "Wii/title/00000001/00000002/data/play_rec.dat": "4c6ec8f8bf034ebc0f518ab17c62cd8a8b8bb9b998f15b3672d2ad7fe4154da8",
+      "Wii/title/00000001/00000002/data/setting.txt": "cb89a1ca93f436b8036b71bff257b2aa008d9af954c9e8d9fd2590363513a8db",
+      "Wii/title/00000001/00000002/data/state.dat": "62a6223d3006f3cb8ae4f7ab7f8c1503d5e3f893286b0523d7f97488ddb5f0c2",
+      "Wii/title/00010000/53423445/content/title.tmd": "e165a6f14be2bcd46bce13603e1c9afe67f2b03d75f3a74eb673fcb215d82d82",
+      "Wii/title/00010000/53423445/data/GameData.bin": "436e9fc29de31840d59acb0d0baaf782fe7be104314e36e5e950d43abe97b7eb",
+      "Wii/title/00010000/53423445/data/banner.bin": "fdf829c60011cba796e169d298f555516391da2d0ab72b680ed729175a689acc"
+    },
+    "allowed_semantic_delta": "General.GDBSocket -> fresh output/gdb.sock ONLY, using existing yoshi_replay.py125-139 recipe",
+    "settings": "No backend/core/DSP/timing/FTZ or save-progress change"
+  },
+  "budgets": {
+    "total_seconds": 480,
+    "collector_wall_seconds": 430,
+    "screenshot_timeout_seconds": 10,
+    "screenshot_reap_seconds": 3,
+    "overall_reserve_seconds": 37,
+    "new_output_max_bytes": 268435456,
+    "free_floor_bytes": 53687091200,
+    "nice": 19,
+    "one_job_lock": "/Users/roberthaisfield/MacioGalaxy2-team/slots/native.lock",
+    "no_retry": true
+  },
+  "current_source_gaps": [
+    "M1 r4 collector snapshot and boot-menu path absent: transfer/source-only materialization and full pin check required before allocated runtime",
+    "Idle616 JSONL must be freshly produced by pinned prepare_idle.py/contract; operator must freeze resulting SHA into a NEW plan, no placeholder enabling",
+    "M1 LaunchServices exact Python.app permission identity must be joined to actual outer caller/owned PID/PGID/session cleanup and global480/output cap; this packet does not qualify a new lifecycle runner",
+    "stopped_reference.py is NEW SOURCE proposal, not accepted installed screenshot callback; capture subprocess spawn/signal path and source hook need independent review",
+    "Current emulator/dependency context must be verified at allocation; historical binary/disc pins alone are not live checks"
+  ],
+  "qualification": "BLOCKED",
+  "qualified_frames": null,
+  "pair_eligible": false,
+  "missing_matched_pixel_evidence": [
+    "native E NOPAIR lifetime remains unresolved",
+    "requested state versus actual selected draw/copy/VI/readback identity",
+    "actual display contents/age at stopped guest CPU seam",
+    "native/Dolphin color encoding/viewport/PAR and exact input/phase/provider receipts"
+  ],
+  "normal_native_app_or_native_hook": false,
+  "wrapper_argv": [
+    "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/Resources/Python.app/Contents/MacOS/Python",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/source/stopped_reference.py",
+    "--plan",
+    "/Users/roberthaisfield/MacioGalaxy2-gamedata/sold/yoshi-idle-reference-r1/PLAN.json",
+    "--plan-sha256",
+    "NEW_OPERATOR_PIN_AFTER_PREREQUISITE_REVIEW"
+  ]
+}

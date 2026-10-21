@@ -860,7 +860,23 @@ extern "C" void petari_host_frame_seam(void) {
     const std::uint64_t entry = Telemetry::nowNs();
     PetariNative::HostAllocationScope host;
     recordRouteFrame(SmokeBackground::enabled);
-    if (Host::playerInPlay()) PetariNative::Input::playControlShown();
+    {
+        // The first frame of each stage visit that Mario can be played: "[play ready]"
+        // with the wall time, so launch-to-control and load-to-control can be measured.
+        static bool wasInPlay = false;
+        static unsigned long long seams = 0;
+        ++seams;
+        const bool inPlay = Host::playerInPlay();
+        if (inPlay) PetariNative::Input::playControlShown();
+        if (inPlay && !wasInPlay) {
+            const auto wall = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+            std::fprintf(stderr, "[play ready] frame %llu wall_ms=%lld\n",
+                         seams,
+                         static_cast<long long>(wall));
+        }
+        wasInPlay = inPlay;
+    }
     observeProgressFrame();
     // Game state is readable here, before the CPU is released.
     recordFrame(entry, gTiming.probe != nullptr ? gTiming.probe() : FrameStats::Phase::Gameplay);

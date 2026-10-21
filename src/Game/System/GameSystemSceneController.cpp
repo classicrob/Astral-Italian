@@ -2,6 +2,7 @@
 #include "Game/System/GameSystemSceneController.hpp"
 #ifdef GALAXY_NATIVE
 extern "C" void petari_gx_pipeline_stage_begin(const char* stage, const char* seed_db_path);
+extern "C" void petari_gx_pipeline_stage_wait(void);
 #endif
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -182,6 +183,9 @@ bool GameSystemSceneController::isFirstUpdateSceneNerveNormal() const {
 }
 
 void GameSystemSceneController::startScene() {
+#ifdef GALAXY_NATIVE
+    petari_gx_pipeline_stage_wait();  // native: wait (bounded) for this stage's hot pipelines, so the first frame never draws a partial scene
+#endif
     mScene->start();
     requestChangeNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerNormal));
 }

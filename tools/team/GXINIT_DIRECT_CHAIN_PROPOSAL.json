@@ -1,0 +1,515 @@
+{
+  "schema": 1,
+  "type": "FIXED_9789_DIRECT_CHAIN_SOURCE_PROPOSAL",
+  "execution_enabled": false,
+  "created_utc": "2026-10-21T12:28:10.671175+00:00",
+  "authority": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/FOCUSED-COMMANDS-v2.json",
+    "sha256": "9789adaecb5a1572ed0be3da599132a5a2bd98afee6a1f8d67a0f6b18b69003c"
+  },
+  "caller": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-integration-v8/tools/team/gxinit_fixed_four.py",
+    "sha256": "22f66e9514154a0ed84b361d4131c69bd482add3a1a7f16b386301f83135ed26",
+    "plan_sha256": "4518efee95f066442228fa60833f751d27ec5d08def740dd5e57ad55be2eccb0",
+    "refusal": "UNCHANGED; CLI/loader/batch/step/child/preexec remain refused"
+  },
+  "accepted_component": {
+    "producer_release_sha256": "57c535b4711a66c5d5128af393f08cbdbd56a917afef06c0eea03ba1a85e3a6f",
+    "independent_review_sha256": "47939abe2b035c8105e4ae79662f8cd0c126699a0226d198d53cc9dd9ea9a639",
+    "scope": "2beforeG only, no independent syscall timestamp/errno journal; lock release bound producer probe+caller context; no compiler/OSsignal/escape qualification"
+  },
+  "cwd": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51",
+  "output_root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2",
+  "steps": [
+    {
+      "id": "compile-old",
+      "seconds": 90,
+      "expected_exit": 0,
+      "argv": [
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang++",
+        "-v",
+        "-DAURORA",
+        "-DAURORA_ENABLE_GX",
+        "-DIMGUI_ENABLE_FREETYPE",
+        "-DIMGUI_USER_CONFIG=\"aurora/imgui_config.h\"",
+        "-DTARGET_PC",
+        "-DTRACY_ON_DEMAND",
+        "-DWEBGPU_DAWN",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/gx",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/include",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/gx",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/fmt/include",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/sdl-build/include-revision",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/sdl/include",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/xxhash-src/cmake_unofficial/..",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/imgui",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/abseil-cpp",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/native/gx",
+        "-isystem",
+        "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/dawn/include",
+        "-isystem",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/tracy-src/public",
+        "-isystem",
+        "/opt/homebrew/include",
+        "-iquote",
+        "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx",
+        "-std=c++20",
+        "-nostdinc++",
+        "-isystem",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1",
+        "-nostdlib++",
+        "-O3",
+        "-DNDEBUG",
+        "-arch",
+        "arm64",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk",
+        "-mmacosx-version-min=15.0",
+        "-fuse-ld=/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/ld64.lld",
+        "-Wl,-no_exported_symbols",
+        "-lpthread",
+        "-MD",
+        "-MF",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old.d",
+        "-MT",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/old.cpp",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++.a",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++abi.a",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libunwind.a",
+        "-o",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old"
+      ],
+      "argv_sha256": "73bce0b953f5582eddc69217af91e0d7c04469e67fc435e7282c0125aad8518f",
+      "admitted": false
+    },
+    {
+      "id": "compile-candidate",
+      "seconds": 90,
+      "expected_exit": 0,
+      "argv": [
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang++",
+        "-v",
+        "-DAURORA",
+        "-DAURORA_ENABLE_GX",
+        "-DIMGUI_ENABLE_FREETYPE",
+        "-DIMGUI_USER_CONFIG=\"aurora/imgui_config.h\"",
+        "-DTARGET_PC",
+        "-DTRACY_ON_DEMAND",
+        "-DWEBGPU_DAWN",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/gx",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/include",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/gx",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/fmt/include",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/sdl-build/include-revision",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/sdl/include",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/xxhash-src/cmake_unofficial/..",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/imgui",
+        "-I/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/abseil-cpp",
+        "-I/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/native/gx",
+        "-isystem",
+        "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/dawn/include",
+        "-isystem",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/tracy-src/public",
+        "-isystem",
+        "/opt/homebrew/include",
+        "-iquote",
+        "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx",
+        "-std=c++20",
+        "-nostdinc++",
+        "-isystem",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1",
+        "-nostdlib++",
+        "-O3",
+        "-DNDEBUG",
+        "-arch",
+        "arm64",
+        "-isysroot",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk",
+        "-mmacosx-version-min=15.0",
+        "-fuse-ld=/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/ld64.lld",
+        "-Wl,-no_exported_symbols",
+        "-lpthread",
+        "-MD",
+        "-MF",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate.d",
+        "-MT",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/candidate.cpp",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++.a",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++abi.a",
+        "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libunwind.a",
+        "-o",
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate"
+      ],
+      "argv_sha256": "61ec5adec757c833cbe025650d6cf8c2bc201a847dcb7f56d93dd6b9b6ddd13e",
+      "admitted": false
+    },
+    {
+      "id": "old-negative",
+      "seconds": 5,
+      "expected_exit": 17,
+      "argv": [
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old"
+      ],
+      "argv_sha256": "68815e5bd4afe5c2fe4aa6ff3df2c96c07ee5551e89009f5a742bc58679f86b6",
+      "admitted": false
+    },
+    {
+      "id": "candidate",
+      "seconds": 5,
+      "expected_exit": 0,
+      "argv": [
+        "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate"
+      ],
+      "argv_sha256": "1444776941571ac4c115173bd9859b0606eadd6a38cf008678a69794d1a628b1",
+      "admitted": false
+    }
+  ],
+  "two_compile_arm_differences": [
+    {
+      "index": 45,
+      "old": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old.d",
+      "candidate": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate.d"
+    },
+    {
+      "index": 47,
+      "old": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old",
+      "candidate": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate"
+    },
+    {
+      "index": 48,
+      "old": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/old.cpp",
+      "candidate": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/candidate.cpp"
+    },
+    {
+      "index": 53,
+      "old": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/old",
+      "candidate": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/focused-execution-v2/candidate"
+    }
+  ],
+  "input_pins": [
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/native/tests/aurora_gx_init_defaults_fixture.py",
+      "sha256": "c7a22702a32da7ffe532a2bd8b10bc8089e3ea0657d96bc7a52bb643b47c2294"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/native/gx/patch_aurora_gx_init.py",
+      "sha256": "c7941c4bdcd14b80a39e3f43ccae5789bf5ef6417dfe7d045f9fe1a4fcfc9eb3"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/native/gx/CMakeLists.txt",
+      "sha256": "222ec880a9498cc4629e457692e29b73cfb49cf346ad2eb43bb925843b0b92dd"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/FIXTURE-PINS.json",
+      "sha256": "a5c5f5e9246b8640b79c7eef05d4bddc843a209134906ba2713dcbb7e71a1aa4"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/GXGeometry-compile-context.json",
+      "sha256": "5781da90e6bd61f1531269f87795a62765d6393bbc405f77157f0c02cac7d605"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/B-PROPOSAL-BINDING.json",
+      "sha256": "fc7efd57b40c7be4636218dfbe12c2985e3bee399fca6b094035eb991158fcab"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/providers/old-GXManage.cpp",
+      "sha256": "2afc438f3ef69f3b7e84394a9f2a60ca735b84dba93a0b97ab96c906e0c4804b"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/providers/candidate-GXManage.cpp",
+      "sha256": "a09b7c51caaa1235813285cee61ffccf776aafac3795677d61ea0037f4331608"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/old.cpp",
+      "sha256": "e2834e5adeec7cf24dabf368cca58bd8b065cb52d1cf25433a808c0fb2b21794"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/candidate.cpp",
+      "sha256": "0de8ee74fec59e282d5e4c6b5c15a0709bf065cdcb57f03447d91d35c4512997"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx/GXGeometry.cpp",
+      "sha256": "297319fab9c453efe78570c3f5847c8c484f767a687d39656e0229040a735a14"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/fifo-worker-generated/worker-r3/native-control-plan.json",
+      "sha256": "70b7f67fb6cad86a7137b1b14fa96995897df8463ccd7d67cee7d5ebad0a6b85"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/tools/bounded_run.py",
+      "sha256": "63bc9aa442cbc3fa2e2e345fe6e59dfd0bdc45a66652041d97d5fd493b2b9b7c"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx53-server-prep/M1-GAMESYSTEM-COMPILE-CONTEXT.json",
+      "sha256": "3c123262017672c6ddf256715645a64d23b613e20d6964a1d3f52c69688918e7"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang++",
+      "sha256": "44698f93798de0177959f17941dbd889ecd802fabd88124dbe86f5cfd93bc1ba"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/ld64.lld",
+      "sha256": "1c4bf27ee01e45977f8275b7e58d5105bacaa8ae7375270285169c264e217fd9"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++.a",
+      "sha256": "6ab89e1af512728b54e2bfe4a8f2f62726491655113eacf9e3033f7d4b5acbf2"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libc++abi.a",
+      "sha256": "d15ede44523fdf3bf63f3c200f1d6beafb9a10973da080c54f4ec98e4706f472"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/lib/libunwind.a",
+      "sha256": "24aebe5ba2e9c92bfc71a694241980dd9935fc45baddcdb66e768f077231337e"
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1/__config_site",
+      "sha256": "868f5541abf63f98e42552e35dd41b7623781746300f9381d4e3f003d0c5e700"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/SDKSettings.json",
+      "sha256": "b2d7151e8e85b9b1e68e59bd6655867ae05507e4aff7625541d41ebc5ab17387"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/SDKSettings.plist",
+      "sha256": "46d2069c8f4b48158297c6663a0501a748126bf7e14884663de01b68df55d50d"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-gamelead/dof-drawFinal-review-B/input-pins.json",
+      "sha256": "63ed408dd620d0942ecb38dcc261017429b4c0d5e6548a6b10a19364e3485e9b"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx/gx.hpp",
+      "sha256": "ad5c1ac94f8c583077ab9af7ad8bacb5e530396cb6125e13022158d186390510"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/gx/gx.hpp",
+      "sha256": "7cc8b98806ebabd340f66926940a126e6b97f0c42d7f8b9c825c094a7ee8ac62"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include/dolphin/types.h",
+      "sha256": "2f5880cc059ef365423482ef52a60d2eef9020733686cf3236cb5f39395ac455"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include/dolphin/gx/GXEnum.h",
+      "sha256": "c0d835d5d3e40d2af7c9c37e4877f2e3ae406267b48609fbcb2cd7ee0a9e7c8b"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx/__gx.h",
+      "sha256": "5763236e1bdcefadf58a27feb8dac16985d072e8f5385e22f9f347a773e73690"
+    },
+    {
+      "path": "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/gx/fifo.hpp",
+      "sha256": "07e3fe83339ae38861a842ec7a49bad20ba933db3d2c05c9be2c2a88aa820292"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/gx/pipeline_owner.hpp",
+      "sha256": "97bfc880968ef43bea9aeb48848a232bc35b52d601527e8028c3ca196bff2daf"
+    },
+    {
+      "path": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+      "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+    }
+  ],
+  "linker": {
+    "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/ld64.lld",
+    "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/lld",
+    "expected_sha256": "1c4bf27ee01e45977f8275b7e58d5105bacaa8ae7375270285169c264e217fd9",
+    "actual_invocation_observation": "UNRUN; -v log must confirm exact absolute linker and runtime libraries before qualification"
+  },
+  "dependency_contract": {
+    "mode": "-MD includes system headers; explicit -MF/-MT arms retained",
+    "mandatory_paths_common": [
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx/__gx.h",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include/dolphin/gx.h",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include/dolphin/gx/GXEnum.h",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/gx/fifo.hpp",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/internal.hpp",
+      "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1/__config_site"
+    ],
+    "mandatory_per_arm": "exact fixture-source/<arm>.cpp",
+    "nonempty_unique_required": true,
+    "target_must_equal_exact_output_binary": true,
+    "max_dependencies_per_arm": 5000,
+    "max_total_dependency_bytes_per_arm": 134217728,
+    "allowed_resolved_roots": [
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/abseil-cpp",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/include",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/dolphin/gx",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/aurora/lib/gx",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/dawn/include",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/fmt/include",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/imgui",
+      "/Users/roberthaisfield/.bb-machines/robb.getbb.app/plugins/environment-git-worktree/host-data/worktrees/thr_x6aaqwtzr5-1/MacioGalaxy2/build/sol-t-downloads/sdl/include",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/sdl-build/include-revision",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/tracy-src/public",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/_deps/xxhash-src",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/build/gx-llvm20-worldmap51/native/gx",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/gx",
+      "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/worldmap51-source/native/include",
+      "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64",
+      "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/c++/v1",
+      "/opt/homebrew/include"
+    ],
+    "unknown_path_or_missing_mandatory": "STOP qualification; preserve; no automatic root additions",
+    "pre_post": "Pin selected canonical core/tool/config inputs before and after; seal fresh full MD closure after actual compile; do not infer historical headers"
+  },
+  "tool_metadata_only": [
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang++",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang-20",
+      "bytes": 176028112,
+      "sha256_from_authority": "44698f93798de0177959f17941dbd889ecd802fabd88124dbe86f5cfd93bc1ba",
+      "bytes_rehashed_now": false
+    },
+    {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang++",
+      "resolved": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/bin/clang-20",
+      "bytes": 176028112,
+      "sha256_from_authority": "44698f93798de0177959f17941dbd889ecd802fabd88124dbe86f5cfd93bc1ba",
+      "bytes_rehashed_now": false
+    }
+  ],
+  "fixture_source_intake": [
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/old.cpp",
+      "sha256": "e2834e5adeec7cf24dabf368cca58bd8b065cb52d1cf25433a808c0fb2b21794",
+      "direct_process_primitive_matches": [],
+      "limit": "lexical explicit fixture file only; not transitive library/provider/runtime closure"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/fixture-source/candidate.cpp",
+      "sha256": "0de8ee74fec59e282d5e4c6b5c15a0709bf065cdcb57f03447d91d35c4512997",
+      "direct_process_primitive_matches": [],
+      "limit": "lexical explicit fixture file only; not transitive library/provider/runtime closure"
+    }
+  ],
+  "upstream": {
+    "commit": "87f0227cb60147a26a1eeb4fb06e3b505e9c7261",
+    "annotated_tag_object": "023ec9011c9a92cfa8922030eb266d66a10f78f8",
+    "sources": {
+      "clang/lib/Driver/Job.cpp": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/87f0227cb60147a26a1eeb4fb06e3b505e9c7261/clang/lib/Driver/Job.cpp",
+        "sha256": "8e6e54d2cfc8201fb3c2e307b0b1d29fbab2c9057a46dd7ee82a3115e7604ae4",
+        "bytes": 15710,
+        "status": "PINNED_UPSTREAM_SOURCE_NOT_INSTALLED_EXECUTABLE_PROOF"
+      },
+      "llvm/lib/Support/Program.cpp": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/87f0227cb60147a26a1eeb4fb06e3b505e9c7261/llvm/lib/Support/Program.cpp",
+        "sha256": "205354608269f435886025dd62d5f0d7ee54179afb7cfde4f0c83861f2f57a5b",
+        "bytes": 3948,
+        "status": "PINNED_UPSTREAM_SOURCE_NOT_INSTALLED_EXECUTABLE_PROOF"
+      },
+      "llvm/lib/Support/Unix/Program.inc": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/87f0227cb60147a26a1eeb4fb06e3b505e9c7261/llvm/lib/Support/Unix/Program.inc",
+        "sha256": "e9c53f9f86c42515a1eebe9678342b4fd42621a70b9db918684b696ee2dc6875",
+        "bytes": 18274,
+        "status": "PINNED_UPSTREAM_SOURCE_NOT_INSTALLED_EXECUTABLE_PROOF"
+      },
+      "clang/tools/driver/driver.cpp": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/87f0227cb60147a26a1eeb4fb06e3b505e9c7261/clang/tools/driver/driver.cpp",
+        "sha256": "03f4671d92b52ad7701ab678bde4c785d7c7b3acc8c9d32e96aa56534645b698",
+        "bytes": 18382,
+        "status": "PINNED_UPSTREAM_SOURCE_NOT_INSTALLED_EXECUTABLE_PROOF"
+      },
+      "clang/lib/Driver/Driver.cpp": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/87f0227cb60147a26a1eeb4fb06e3b505e9c7261/clang/lib/Driver/Driver.cpp",
+        "sha256": "d3265329cc452c1ab5d6e6828be6a074fc100776a4c46956ed9c0d677d5dd5cf",
+        "bytes": 283575,
+        "status": "PINNED_UPSTREAM_SOURCE_NOT_INSTALLED_EXECUTABLE_PROOF"
+      }
+    },
+    "conditional_chain": [
+      "Job.cpp324-386 executes ordinary external jobs with ExecuteAndWait timeout0",
+      "Job.cpp397/407-413 permits in-process CC1 or same external command path; exact mode UNOBSERVED",
+      "Program.cpp32-48 passes DetachProcess=false and waits for the job PID",
+      "Unix Program.inc195-252 uses posix_spawn attrp=null when enabled;268-307 fork fallback calls setsid ONLY when DetachProcess=true"
+    ],
+    "scope": "expected non-detached jobs conditional on exact binary/source/build and effective job closure, NOT generic escaped-descendant proof"
+  },
+  "installation": {
+    "pointer": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solT/gx-init-defaults-candidate-r1/LLVM-INSTALLATION-PROVENANCE-POINTERS.json",
+      "sha256": "eba0b10962ec0a63d1b7b32168ea1f970a762e2a198a905fc2dbc2ddd11152e0"
+    },
+    "archive_sha256_from_existing_verification": "a9a22f450d35f1f73cd61ab6a17c6f27d8f6051d56197395c1eb397f0c9bbec4",
+    "attestation_sha256": "d29735b7828e5b54ae1ba0fe3fffb84047a0a0833d3ae1af6b84d59eff6578e2",
+    "attested_source_commit": "87f0227cb60147a26a1eeb4fb06e3b505e9c7261",
+    "installed_selected_member_join": "OPEN; no archive scan/extraction/large rehash in this source task",
+    "config": {
+      "path": "/Users/roberthaisfield/toolchains/LLVM-20.1.8-macOS-ARM64/include/clang/Config/config.h",
+      "sha256": "45eb20f234c43d5dc5ac41c451888bc811199129bda0383621801524a1838b50",
+      "declarations": {
+        "CLANG_CONFIG_FILE_SYSTEM_DIR": {
+          "line": 45,
+          "declaration": "/* #undef CLANG_CONFIG_FILE_SYSTEM_DIR */"
+        },
+        "CLANG_CONFIG_FILE_USER_DIR": {
+          "line": 46,
+          "declaration": "/* #undef CLANG_CONFIG_FILE_USER_DIR */"
+        },
+        "CLANG_SPAWN_CC1": {
+          "line": 84,
+          "declaration": "#define CLANG_SPAWN_CC1 0"
+        }
+      },
+      "limit": "installed header metadata, not itself proof these executable build options match"
+    },
+    "bin_directory_cfg_names": [],
+    "bin_entries_examined": 160
+  },
+  "required_gates": [
+    {
+      "gate": "L_SOURCE_DISPOSITION_OF_EXACT_TOOL_JOIN",
+      "minimum": "compare exact clang-20/lld +3staticlibs/generatedclangconfig archived member bytes/aliases with installed authority pins; bind defaults/job closure; no full LLVM rebuild",
+      "status": "OPEN; archive work unallocated"
+    },
+    {
+      "gate": "NATIVE4_CONTEXT",
+      "minimum": "fresh L exact9 operator using9789 outputroot/tmp; no reuse of c219 beforeG operator; phase-correct immutable source/tool/root/command checks in refused caller",
+      "status": "OPEN; production operator NULL"
+    },
+    {
+      "gate": "POST_G_CLEANUP_ORDER",
+      "minimum": "L must disposition0fcd postG initial probe/poll/TERM/KILL/reap ordering or narrowly repin SAME helper to existing reviewed reap-before-absence ordering; no new supervisor, no repeated cleanup or EPERM waiver",
+      "status": "OPEN; beforeG reaped-gate result does not exercise timeout"
+    },
+    {
+      "gate": "POST_G_TIMEOUT_COMPONENT",
+      "minimum": "separately reviewed bounded direct-exec gate integration using existing owned same-group/self-expiring fixture patterns: ignoredTERM leader and leader-exits/surviving-worker cases; actual identity, wait/reap, strictabsence, deadline/failfast. This is a new afterG component, not beforeG rerun and not compiler proof",
+      "status": "UNIMPLEMENTED_UNALLOCATED; ROOT exact source/plan required"
+    },
+    {
+      "gate": "REAL_FOUR_COMMAND_EVIDENCE",
+      "minimum": "ONLY after prerequisite reviews/ROOTallocation: unchanged9789 four argv, actual-v cc1/linker job witness rejects unknown jobs/configs/paths; MD closure/mandatory roots, prepost tool/source/lib pins, fresh binaries binding expected0/0/17/0 ONLY after strictcleanup; E/B fixture semantic output acceptance separate",
+      "status": "UNRUN_UNALLOCATED"
+    }
+  ],
+  "budget_source_finding": {
+    "old_proposal_work_seconds": 210,
+    "maximum_beforeG_verified_cleanup_seconds": 18,
+    "terminal_reserve_seconds": 18,
+    "sum_seconds": 246,
+    "fixed_total_seconds": 240,
+    "minimal_proposed_cutoff_seconds": 204,
+    "equation": "204+max(verified-beforeG18,unverified12,postGhelper6)+18=240",
+    "applied": false,
+    "limit": "source-only arithmetic; future runtime clock must start at CLI entry and sample callbacks, including source/helper/context before spawn; no syscall-latency guarantee"
+  },
+  "forbidden_inferences": [
+    "tool successful exit/v log not descendant/timeout containment",
+    "group absence not escaped-process absence",
+    "upstream tag/installed CMake exports not installed archive member identity",
+    "no default config/plugin/extra job normalization to force admission",
+    "no source flags/toolchain/Ninja pool/alternate-kill changes",
+    "no runtime/control retry/compiler allocation or production enablement"
+  ]
+}

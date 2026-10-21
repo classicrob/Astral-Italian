@@ -30,7 +30,9 @@ class RawSuffix:
             connection_policy='observed read-only probe' if observed_connection else 'require source connection',
             connection_difference_reads=0, first_connection_difference=None,
             kpd_sha256_scope='re-encoded source, not observed delivery',
-            connection_scope='raw suffix only; prior boot connections are scripted synthetic')
+            connection_scope='raw suffix only; prior boot connections are scripted synthetic',
+            connection_phase='post-KPADReadEx; intra-call timing is not represented by native tape',
+            within_read_connection_transitions=0, first_within_read_transition=None)
         previous_tempdir = tempfile.tempdir
         try:
             tempfile.tempdir = str(directory)

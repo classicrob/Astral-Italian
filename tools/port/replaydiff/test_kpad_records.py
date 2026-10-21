@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from kpad_records import RawSuffix, digest
-from kpad_script import contract, ScriptedInput, RETURN
+from kpad_script import contract, ScriptedInput, RETURN, ENTRY
 from dolphin_collect import ObserverError
 
 
@@ -86,6 +86,32 @@ class RawSuffixTests(unittest.TestCase):
                 with self.assertRaises(ObserverError): inputs.handle(Remote(), RETURN, 201)
             inputs.close(None)
             self.assertFalse((root / 'export.jsonl').exists())
+
+    def test_within_read_transition_is_retained_as_timing_gap(self):
+        class Remote:
+            def __init__(self):
+                self.memory = {}; self.registers = {3:0, 4:0x80001000, 5:120, 6:0x80002000, 64:ENTRY, 67:RETURN}
+            def ok(self, command):
+                if command.startswith('M'):
+                    target, raw = command[1:].split(':'); self.memory[int(target.split(',')[0],16)] = bytes.fromhex(raw)
+                elif command.startswith('P3='): self.registers[3] = int(command[3:],16)
+            def reg(self, number): return self.registers[number]
+            def read(self, address, size): return self.memory[address][:size]
+            def stop(self, command): self.registers[64] += 4
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); path, _ = self.make(root,1)
+            suffix=RawSuffix(path,digest(path),1,root,contract,observed_connection=True); suffix.start(201)
+            script=root/'boot.json'; script.write_text(json.dumps(dict(version=1,frames=300,segments=[])))
+            inputs=ScriptedInput(script,300,root/'export.jsonl'); inputs.raw_suffix=suffix
+            remote=Remote(); before=dict(probe_error=0,device_type=1); after=dict(probe_error=-2,device_type=1)
+            with patch('kpad_observe.read_connection',side_effect=[before,after]):
+                inputs.handle(remote,ENTRY,201); remote.registers[64]=RETURN
+                inputs.handle(remote,RETURN,201)
+            self.assertEqual(suffix.receipt['within_read_connection_transitions'],1)
+            self.assertEqual(suffix.receipt['first_within_read_transition']['before'],before)
+            self.assertEqual(suffix.receipt['first_within_read_transition']['after'],after)
+            self.assertIsNone(inputs.pending_connection)
+            inputs.close(None)
 
     def test_observed_connection_is_exported_without_changing_source_samples(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -64,6 +64,7 @@ class ScriptedInput:
         self.deferred_stop = False
         self.resume_diversions = []
         self.raw_suffix = None
+        self.pending_connection = None
 
     def start_suffix(self, suffix, source_start):
         """Freeze a shared suffix after the completed sync loop; preserve past intent."""
@@ -168,6 +169,9 @@ class ScriptedInput:
             Memory.checked_pointer(buffer, buffer)
             Memory.checked_pointer(error, error)
             self.pending = (channel, buffer, capacity, error)
+            if self.raw_suffix and self.raw_suffix.observed_connection:
+                from kpad_observe import read_connection
+                self.pending_connection = read_connection(remote, channel)
             remote.ok(f"Z0,{RETURN:x},4")
             self.breakpoints.add(RETURN)
         elif pc == RETURN:
@@ -177,7 +181,16 @@ class ScriptedInput:
             if self.raw_suffix:
                 from kpad_observe import read_connection
                 row = self.raw_suffix.take(frame, self.ordinal, channel, capacity)
-                row = self.raw_suffix.connection(row, read_connection(remote, channel))
+                observed = read_connection(remote, channel)
+                if self.pending_connection is not None and observed != self.pending_connection:
+                    receipt = self.raw_suffix.receipt
+                    receipt['within_read_connection_transitions'] += 1
+                    if receipt['first_within_read_transition'] is None:
+                        receipt['first_within_read_transition'] = dict(
+                            source_frame=frame, suffix_frame=frame - self.raw_suffix.source_start,
+                            read_ordinal=self.ordinal, channel=channel,
+                            before=self.pending_connection, after=observed)
+                row = self.raw_suffix.connection(row, observed)
                 result, err = row['returned_count'], row['error']
                 samples = row['samples']
             else:
@@ -201,6 +214,7 @@ class ScriptedInput:
             else:
                 self.emit(frame, channel, capacity, samples[0])
             self.pending = None
+            self.pending_connection = None
         else:
             return False
         remote.ok(f"Z0,{pc + 4:x},4")

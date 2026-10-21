@@ -1,0 +1,148 @@
+{
+  "DOL_sha256": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+  "bodies": [
+    {
+      "address": "0x804f93a0",
+      "name": "init",
+      "sha256": "fb5af48c02700ad8be9780287095c21c51cfab327113efea7b45ba59d72a71a9",
+      "size": 124
+    },
+    {
+      "address": "0x804f9420",
+      "name": "appear",
+      "sha256": "7aea38113e34a9f6c08caf078cb7e76afb9fcace965d682baec8b3498468d138",
+      "size": 124
+    },
+    {
+      "address": "0x804f9530",
+      "name": "wait",
+      "sha256": "80bdf920f0c954766e0b1c6bfc9e94bcafe5d25c051a79163a7ee524b94e3f80",
+      "size": 120
+    },
+    {
+      "address": "0x804f96a0",
+      "name": "sinit",
+      "sha256": "346ba495cff07374143305acc2969585040f0ccb4cff7cd1a2b9037729814498",
+      "size": 52
+    },
+    {
+      "address": "0x804f96e0",
+      "name": "ctor-Start",
+      "sha256": "e0304ce2dba0bd20e5146e0d50c6adeda537a90d3921a0c45246511ccb22ca88",
+      "size": 16
+    },
+    {
+      "address": "0x804f96f0",
+      "name": "ctor-Wait",
+      "sha256": "1211798ffaaebaa87bbc067aeff28f7505b0cb74bf0d09588b2de4aa82e5977a",
+      "size": 16
+    },
+    {
+      "address": "0x804f9700",
+      "name": "ctor-End",
+      "sha256": "8430940f746e2ca99f3a32bd6fb637f36237f48ce7fcf49009c720f3831edf49",
+      "size": 16
+    },
+    {
+      "address": "0x804f9710",
+      "name": "execute-Start",
+      "sha256": "0eaf51dd618753dbf02145178156517c7f74c02579976378af010b85fc98a8af",
+      "size": 8
+    },
+    {
+      "address": "0x804f9720",
+      "name": "execute-Wait",
+      "sha256": "585d61ecf14c94ee5474c57cf4b8dcf61fa347047bb62856a62e24e3f0ecd0da",
+      "size": 8
+    },
+    {
+      "address": "0x804f9730",
+      "name": "execute-End",
+      "sha256": "24c2aa32bf5c8eb8ad424176bed640e177fac8bdddf6a715ce690a80fbb36055",
+      "size": 8
+    },
+    {
+      "address": "0x80004210",
+      "name": "init-registers",
+      "sha256": "344a742195d4113a21d05382639edeb0546de68d645bf2cc5bb8551836831d7a",
+      "size": 144
+    },
+    {
+      "address": "0x802431d0",
+      "name": "Spine-update",
+      "sha256": "f0d0f53129b7674d641e064b9a3a4110bbdd79f72b74b0b7df3b6da70e16ca3d",
+      "size": 88
+    },
+    {
+      "address": "0x802432c0",
+      "name": "Spine-changeNerve",
+      "sha256": "8c9f65aa81ba78a6373ef3ed062bd55a93df4a04580b18a8f1847d331bfd5847",
+      "size": 100
+    },
+    {
+      "address": "0x804c4cc0",
+      "name": "NerveExecutor-setNerve",
+      "sha256": "cad08140edd88befe916df96c51772e4174f2d613511d81136b05b1d7bd94411",
+      "size": 8
+    },
+    {
+      "address": "0x804f94e0",
+      "name": "exeStart-body",
+      "sha256": "b85f93bdeafdc6500f31f556fc65fc5044c1f25162de4989a73c6da520bcc914",
+      "size": 80
+    },
+    {
+      "address": "0x804f95b0",
+      "name": "exeEnd-body",
+      "sha256": "df9040680fcb10051225c5cfeb1be7e8747676f0ff785e1afeb29923bfdbdd75",
+      "size": 140
+    }
+  ],
+  "chains": [
+    {
+      "body": 2152699104,
+      "constructor": 2152699616,
+      "identity": "Start",
+      "singleton": 2155700176,
+      "slot": 8,
+      "vtable": 2154836376,
+      "wrapper": 2152699696
+    },
+    {
+      "body": 2152699184,
+      "constructor": 2152699632,
+      "identity": "Wait",
+      "singleton": 2155700180,
+      "slot": 8,
+      "vtable": 2154836360,
+      "wrapper": 2152699680
+    },
+    {
+      "body": 2152699312,
+      "constructor": 2152699648,
+      "identity": "End",
+      "singleton": 2155700184,
+      "slot": 8,
+      "vtable": 2154836344,
+      "wrapper": 2152699664
+    }
+  ],
+  "qualification": "Pinned source-only ownership claims; full instruction decoder and actual compiled joins remain pending.",
+  "r13_base": 2155705120,
+  "schema": 1,
+  "scope": "TU13",
+  "vtable_records": [
+    {
+      "address": "0x80703178",
+      "sha256": "36c8eda7900b7264a0c6fe5296c1337f91c53eb4167738ff222275eacbce2d72"
+    },
+    {
+      "address": "0x80703188",
+      "sha256": "4b1ce6a7de8a768227876ae78e280b1d3e6f3796f3068ff5283aacb54979e48e"
+    },
+    {
+      "address": "0x80703198",
+      "sha256": "27c439051f5dfdfb55661ca428b30b7bd45b7004b8c813f05a166d958d6a729d"
+    }
+  ]
+}

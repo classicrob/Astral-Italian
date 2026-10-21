@@ -54,6 +54,9 @@ bool playerInPlay();
 void updatePlayerInPlay();
 // The stage's opening (ScenarioStarter: the galaxy preview flyover) is running. Game thread.
 bool scenarioIntroActive();
+// The in-game HUD layouts' textures to Aurora's texture cache, so their first draw creates no GPU texture
+// (hud_prewarm.cpp). Once per stage, on the first gameplay frame. Same thread rules.
+void prewarmHudTextures();
 // Where the player is, for a stall log line (stall_log.hpp): the stage name into stage (empty if no stage) and
 // the scenario and Mario's ground zone id (-1 if unknown). Same thread rules; only called on a stalled frame.
 void stallContext(char* stage, std::size_t size, int* scenario, int* zone);

@@ -1,0 +1,17 @@
+# Generic stage probe: camera pan, walk, jump, spin, look around (about 17 s after steady play).
+90 E
+90 Q
+30
+90 W
+20 W Space
+40 W
+20 F
+60
+90 S
+60 A
+60 D
+20 Space
+60
+90 E
+90 Right
+60

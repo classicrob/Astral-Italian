@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "scope": "T2_WORLD_MAP_51_EFFECTIVE_SOURCE_PREFLIGHT_ONLY",
+  "hashes": {
+    "fifo": "85c6833b14ebf2f57fd213deea567b93c5b833f0aab2e80003195f74b75e8280",
+    "processor": "b1cf672a6c51dec9e588932876ce6f963b6052f1238fa19151d0edf022c940fc",
+    "display_list": "97e063a5639ec9aa6116cff553afab5811a824911719d71f5d9bf269c2c46e09",
+    "fifo_header": "07e3fe83339ae38861a842ec7a49bad20ba933db3d2c05c9be2c2a88aa820292"
+  },
+  "production_acceptance": false
+}

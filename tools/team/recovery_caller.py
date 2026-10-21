@@ -311,6 +311,9 @@ def execute(packet_path, allocation_path, output):
                     verify_generated(build, json.loads(Path(packet['generated_manifest']).read_text()))
                     verify_additional_generated(build, json.loads(Path(packet['additional_generated_manifest']).read_text()))
                     verify_tokens(build, contract)
+                    verify_pins(packet['pins'])
+                    if GitCheckout(root).read() != {'head': packet['historical_source'], 'branch': None, 'clean': True}:
+                        raise ValueError('historical source changed during configure')
                     atomic_json(output / 'prebuild-qualification.json',
                                 {'generated_files_exact': 4931, 'compile_and_link_tokens_exact': True})
                     supervisor.run(packet['build_argv'], root, 1200, output / 'build.log', env)

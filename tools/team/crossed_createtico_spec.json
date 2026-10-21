@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "family": "CreateTico",
+  "base": "33e71ee880b426c0c7da03a724377200e874c417",
+  "candidate": "ccd80023f1dc7873e438d2d64e287668cf03b640",
+  "source": "src/Game/System/WorldMapResultStateCreateTico.cpp",
+  "unit": "src/Game/System/WorldMapResultStateCreateTico.o",
+  "targets": [
+    {
+      "state": "Close",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoCloseCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoClose",
+      "before_va": 2152669136,
+      "after_va": 2152669328,
+      "slot_va": 2154834840,
+      "method_va": 2152667856,
+      "width": 8
+    },
+    {
+      "state": "Open",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpenCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpen",
+      "before_va": 2152669152,
+      "after_va": 2152669312,
+      "slot_va": 2154834824,
+      "method_va": 2152667952,
+      "width": 8
+    },
+    {
+      "state": "Extend",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtendCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtend",
+      "before_va": 2152669168,
+      "after_va": 2152669296,
+      "slot_va": 2154834808,
+      "method_va": 2152668096,
+      "width": 8
+    },
+    {
+      "state": "WhiteClose",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteCloseCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteClose",
+      "before_va": 2152669184,
+      "after_va": 2152669280,
+      "slot_va": 2154834792,
+      "method_va": 2152668256,
+      "width": 8
+    },
+    {
+      "state": "WhiteOpen",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpenCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpen",
+      "before_va": 2152669280,
+      "after_va": 2152669184,
+      "slot_va": 2154834760,
+      "method_va": 2152668352,
+      "width": 8
+    },
+    {
+      "state": "Message",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessageCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessage",
+      "before_va": 2152669296,
+      "after_va": 2152669168,
+      "slot_va": 2154834744,
+      "method_va": 2152668448,
+      "width": 8
+    },
+    {
+      "state": "CloseEnd",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEndCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEnd",
+      "before_va": 2152669312,
+      "after_va": 2152669152,
+      "slot_va": 2154834728,
+      "method_va": 2152668560,
+      "width": 8
+    },
+    {
+      "state": "End",
+      "symbol": "execute__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEndCFP5Spine",
+      "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEnd",
+      "before_va": 2152669328,
+      "after_va": 2152669136,
+      "slot_va": 2154834712,
+      "method_va": 2152668656,
+      "width": 8
+    }
+  ],
+  "map_edit_lines": {
+    "before": [
+      "execute__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoCloseCFP5Spine = .text:0x804F1FD0; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpenCFP5Spine = .text:0x804F1FE0; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtendCFP5Spine = .text:0x804F1FF0; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteCloseCFP5Spine = .text:0x804F2000; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpenCFP5Spine = .text:0x804F2060; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessageCFP5Spine = .text:0x804F2070; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEndCFP5Spine = .text:0x804F2080; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEndCFP5Spine = .text:0x804F2090; // type:function size:0x8\n"
+    ],
+    "after": [
+      "execute__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEndCFP5Spine = .text:0x804F1FD0; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEndCFP5Spine = .text:0x804F1FE0; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessageCFP5Spine = .text:0x804F1FF0; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpenCFP5Spine = .text:0x804F2000; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteCloseCFP5Spine = .text:0x804F2060; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtendCFP5Spine = .text:0x804F2070; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpenCFP5Spine = .text:0x804F2080; // type:function size:0x8\n",
+      "execute__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoCloseCFP5Spine = .text:0x804F2090; // type:function size:0x8\n"
+    ]
+  },
+  "unchanged_context": [
+    "WhiteWait execute804F2010/72 incl step==60",
+    "all9 statics/constructor/order/weak records; all remaining bytes/refs"
+  ],
+  "config_sha256": {
+    "before": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534",
+    "after": "772c92f315eeeee6072ac128f9077a76cfb4f853e03ba0707e4bf4d80b8aaadf"
+  }
+}

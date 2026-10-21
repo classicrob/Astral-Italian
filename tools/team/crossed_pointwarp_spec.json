@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "family": "PointWarp",
+  "base": "33e71ee880b426c0c7da03a724377200e874c417",
+  "candidate": "de4289f1c4f9a8d2293b03ff8f9bc580048784bb",
+  "source": "src/Game/System/WorldMapResultTU19.cpp",
+  "unit": "src/Game/System/WorldMapResultTU19.o",
+  "targets": [
+    {
+      "state": "Start",
+      "symbol": "execute__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStartCFP5Spine",
+      "vtable_symbol": "__vt__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart",
+      "before_va": 2152708880,
+      "after_va": 2152708912,
+      "slot_va": 2154837632,
+      "method_va": 2152708256,
+      "width": 8
+    },
+    {
+      "state": "End",
+      "symbol": "execute__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEndCFP5Spine",
+      "vtable_symbol": "__vt__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd",
+      "before_va": 2152708912,
+      "after_va": 2152708880,
+      "slot_va": 2154837600,
+      "method_va": 2152708528,
+      "width": 8
+    }
+  ],
+  "map_edit_lines": {
+    "before": [
+      "execute__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStartCFP5Spine = .text:0x804FBB10; // type:function size:0x8\n",
+      "execute__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEndCFP5Spine = .text:0x804FBB30; // type:function size:0x8\n"
+    ],
+    "after": [
+      "execute__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStartCFP5Spine = .text:0x804FBB30; // type:function size:0x8\n",
+      "execute__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEndCFP5Spine = .text:0x804FBB10; // type:function size:0x8\n"
+    ]
+  },
+  "unchanged_context": [
+    "Wait execute804FBB20/8",
+    "methods/singletons/constructors/vtables/registration and all other bytes/refs"
+  ],
+  "config_sha256": {
+    "before": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534",
+    "after": "62b98305e52719256a618c91874f2545d62f277acd7d413787abf54898ab883c"
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "family": "PointWarp",
+  "execution_enabled": false,
+  "status": "SOURCE_ONLY_FRESH_OBJECTS_UNALLOCATED",
+  "base": "33e71ee880b426c0c7da03a724377200e874c417",
+  "candidate": "de4289f1c4f9a8d2293b03ff8f9bc580048784bb",
+  "changed_paths": [
+    "config/SB4E01/symbols.txt",
+    "src/Game/System/WorldMapResultTU19.cpp"
+  ],
+  "source_pins": {
+    "before": {
+      "src/Game/System/WorldMapResultTU19.cpp": "182dd8ed05d42344ca26680cac32b0df28e39dcbef2ac858f8f89100b5c8248c",
+      "config/SB4E01/symbols.txt": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534"
+    },
+    "after": {
+      "src/Game/System/WorldMapResultTU19.cpp": "d3309c9711c33c7c2ccdd8785e3df20e98b696521e425c2a9a8bb9453ed4ac87",
+      "config/SB4E01/symbols.txt": "62b98305e52719256a618c91874f2545d62f277acd7d413787abf54898ab883c"
+    }
+  },
+  "spec": {
+    "path": "tools/team/crossed_pointwarp_spec.json",
+    "sha256": "7a3c1820cde05e9ff0ecd0f643908864d5f9de2448c56fa102015ae5603022d9"
+  },
+  "official_unit": "src/Game/System/WorldMapResultTU19.o",
+  "official_options": {
+    "add_to_all": true,
+    "asflags": [
+      "-mgekko",
+      "--strip-local-absolute",
+      "-I include",
+      "-I build/SB4E01/include",
+      "--defsym version=0"
+    ],
+    "asm_dir": null,
+    "cflags": [
+      "-nodefaults",
+      "-proc gekko",
+      "-align powerpc",
+      "-enum int",
+      "-fp hardware",
+      "-Cpp_exceptions off",
+      "-O4,s",
+      "-inline auto",
+      "-pragma \"cats off\"",
+      "-pragma \"warn_notinlined off\"",
+      "-maxerrors 1",
+      "-nosyspath",
+      "-RTTI off",
+      "-str reuse",
+      "-enc SJIS",
+      "-sdata 4",
+      "-sdata2 4",
+      "-ipa file",
+      "-sym on",
+      "-i include",
+      "-i libs/JSystem/include",
+      "-i libs/MSL_C++/include",
+      "-i libs/MSL_C/include",
+      "-i libs/MetroTRK/include",
+      "-i libs/RVLFaceLib/include",
+      "-i libs/RVL_SDK/include",
+      "-i libs/Runtime/include",
+      "-i libs/nw4r/include",
+      "-i build/SB4E01/include",
+      "-DVERSION=0",
+      "-DRMGK01=0",
+      "-DRMGJ01=1",
+      "-DRMGE01=2",
+      "-DRMGP01=3"
+    ],
+    "extab_padding": null,
+    "extra_asflags": [],
+    "extra_cflags": [],
+    "extra_clang_flags": [],
+    "lib": "System",
+    "mw_version": "Wii/1.0",
+    "progress_category": "game",
+    "scratch_preset_id": null,
+    "shift_jis": true,
+    "source": "Game/System/WorldMapResultTU19.cpp",
+    "src_dir": "src"
+  },
+  "fresh_objects": {
+    "count": 2,
+    "paths": {
+      "before": "src/Game/System/WorldMapResultTU19.o",
+      "after": "src/Game/System/WorldMapResultTU19.o"
+    },
+    "observed_elf_tuples": null,
+    "measured_envelope": null,
+    "independent_operator_pin": null
+  },
+  "requested_future_limits": {
+    "objects": 2,
+    "jobs": 1,
+    "nice": 19,
+    "work_seconds": 120,
+    "cleanup_seconds": 4,
+    "total_seconds": 150,
+    "maximum_allocated_bytes": 134217728,
+    "minimum_free_bytes": 53687091200,
+    "native_lock": "actual nonblocking required; not acquired"
+  },
+  "execution_context": {
+    "compiler": "/Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe",
+    "wrapper": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+    "encoding_wrapper": "/Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe",
+    "flags": "official_options only; exact rawexpandedcommand+root/operator/tool/systemdeps requires independent L pin",
+    "runner": "NONE QUALIFIED for this actual compiler descendant chain; no command launched",
+    "containment": "cf399 unconditional refusal retained; no reuse/full827 enablement"
+  },
+  "acceptance": [
+    "fresh input/tool/command/generated/header/dependency/source/config pins",
+    "actual owning section-occurrence/symbolinfo-other-value-size/slot-addend preflight; operator review BEFORE compare admission",
+    "all strict remainder with only fixed envelope; no wholeobjectidentity claim",
+    "original physical ownership/ctor/Spine/producer independently decoded plus slot/wrapper original improvement component",
+    "named/local/ABS/configalias references closed in affectedobject; all-object/final link closure separate",
+    "real controls mutate copied objects/config and both actual source perturb/restore; restore rawidentical",
+    "native typed bootstrap/provider/lifetime separately reviewed; no fakehost or linkfailure credited as negative"
+  ],
+  "negatives": [
+    "genuine_old_source",
+    "each owning target independently crossed",
+    "stale/crossed execute address",
+    "each wrong execute width",
+    "first actual nonempty executable occurrence bit",
+    "extra named/local/ABS/midbody reference",
+    "missing/duplicate symbol/provider",
+    "changed weak binding/visibility/section/data/pool/alignment",
+    "source perturb semantic rejection + rawidentical restore"
+  ],
+  "native_dependencies": [
+    "src/Game/System/NerveExecutor.cpp",
+    "src/Game/LiveActor/Spine.cpp",
+    "src/Game/LiveActor/Nerve.cpp",
+    "src/Game/LiveActor/ActorStateKeeper.cpp"
+  ],
+  "bootstrap": "OPEN: canonical command/NameObj/register/holder/host setup and actual provider linking; no ABI/layout shims",
+  "full_proof": "not this component; no generic cert/import/full2426/weakallocation/runtime claim",
+  "packet_references": [
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/pointwarp-independent-E/REPORT.md",
+      "sha256": "a57902af5a8a9fcf40951513b957974c6fb2a8539ef6dbb58fce383b39d552af",
+      "scope": "source/metadata only, not original payload or execution acceptance"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-objects11/pointwarp-correction-B/revision2/ownership-map.json",
+      "sha256": "146519b85342f45ed8b53d44909f8aafdc26595c13cef3fe3ec79bf24c61bbe6",
+      "scope": "source/metadata only, not original payload or execution acceptance"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-objects11/pointwarp-correction-B/revision2/PROOF-PLAN-FOR-P.md",
+      "sha256": "ff167b923a17e7ffaa1225db1ada5ff60aafa7132d132aa530013a96122ac816",
+      "scope": "source/metadata only, not original payload or execution acceptance"
+    },
+    {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-objects11/pointwarp-correction-B/revision2/archive-receipt.json",
+      "sha256": "deb79644082b278cff5b380a06675afcff4bff560c21b394f3c88bf7183609d9",
+      "scope": "source/metadata only, not original payload or execution acceptance"
+    }
+  ],
+  "adapter_sources": {
+    "crossed_dispatch_component.py": "ce03f6bb654124d228052ea7a871d8891c8085307a0a0a642334897f465271f3",
+    "crossed_pointwarp.py": "20144ad20243bf854f1d290d31cde2b87c1a0836e9617a7d1da441c4139660ab",
+    "crossed_pointwarp_spec.json": "7a3c1820cde05e9ff0ecd0f643908864d5f9de2448c56fa102015ae5603022d9",
+    "objsame.py": "e6d883e7ef93eda2e5547d37b93527d1108ba2b615e2f6fb6b7a72fbaf1a2380"
+  },
+  "source_validation": {
+    "sole_parent": true,
+    "two_changed_paths": true,
+    "actual_full_map_fixed_changes_only": "PASS",
+    "fresh_object_gate": "NOT_RUN",
+    "native_fixture": "NOT_COMPILED_OR_RUN",
+    "production_acceptance": false
+  }
+}

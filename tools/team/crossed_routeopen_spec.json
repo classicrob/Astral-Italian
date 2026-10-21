@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "family": "RouteOpen",
+  "base": "33e71ee880b426c0c7da03a724377200e874c417",
+  "candidate": "0073d1f6f4cd490d7afd33f5f2b056c830b08921",
+  "source": "src/Game/System/WorldMapResultStateRouteOpen.cpp",
+  "unit": "src/Game/System/WorldMapResultStateRouteOpen.o",
+  "targets": [
+    {
+      "state": "Extend",
+      "symbol": "execute__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtendCFP5Spine",
+      "vtable_symbol": "__vt__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend",
+      "before_va": 2152667536,
+      "after_va": 2152667568,
+      "slot_va": 2154834560,
+      "method_va": 2152666784,
+      "width": 8
+    },
+    {
+      "state": "Message",
+      "symbol": "execute__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessageCFP5Spine",
+      "vtable_symbol": "__vt__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage",
+      "before_va": 2152667568,
+      "after_va": 2152667536,
+      "slot_va": 2154834528,
+      "method_va": 2152667056,
+      "width": 8
+    }
+  ],
+  "map_edit_lines": {
+    "before": [
+      "execute__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtendCFP5Spine = .text:0x804F1990; // type:function size:0x8\n",
+      "execute__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessageCFP5Spine = .text:0x804F19B0; // type:function size:0x8\n",
+      "lbl_807D5F20 = .sbss:0x807D5F20; // type:object size:0x4\n"
+    ],
+    "after": [
+      "execute__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtendCFP5Spine = .text:0x804F19B0; // type:function size:0x8\n",
+      "execute__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessageCFP5Spine = .text:0x804F1990; // type:function size:0x8\n",
+      "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext = .sbss:0x807D5F20; // type:object size:0x4\n"
+    ]
+  },
+  "config_bridge": {
+    "before_name": "lbl_807D5F20",
+    "after_name": "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext",
+    "va": 2155700000
+  },
+  "done": {
+    "method_symbol": "exeExtend__28WorldMapResultStateRouteOpenFv",
+    "before_singleton": "sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage",
+    "after_singleton": "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext",
+    "original_producer_pc": 2152666908,
+    "consumer_pc": 2152666912,
+    "original_target": 2155700000,
+    "baseline_target": 2155700004
+  },
+  "unchanged_context": [
+    "Start/WaitNext/End callback bodies",
+    "all except two execute values and exact measured done SDA21 site; unexpected WaitNext ELF symbol delta HOLD"
+  ],
+  "config_sha256": {
+    "before": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534",
+    "after": "b063f108e5572dd75307e9856cade00821a4125b5e1131b05e69f7622a3b491f"
+  }
+}

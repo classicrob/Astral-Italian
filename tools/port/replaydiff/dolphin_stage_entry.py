@@ -45,6 +45,7 @@ def validate_sync_target(stage, scenario, sync_stage, sync_scenario):
 
 class StageEntry:
     def __init__(self, dol, stage='RedBlueExGalaxy', scenario=1):
+        self.clear_witness = None
         self.stage, self.scenario = stage, scenario
         self.stage_string = select_stage(stage, scenario)
         self.stage_bytes = stage.encode('ascii') + b'\0'
@@ -104,6 +105,8 @@ class StageEntry:
         in_game = memory.pointer(sequence + 0x10)
         in_stage = memory.pointer(in_game + 0x18)
         holder = memory.pointer(in_stage + 0x10)
+        if self.clear_witness:
+            self.clear_witness.bind(remote, holder)
         save_sequence = memory.pointer(director + 8)
         user = memory.pointer(save_sequence + 0xC)
         game_data = memory.pointer(user)
@@ -143,6 +146,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, add_help=False)
     parser.add_argument("--entry-dol", default="~/MacioGalaxy2-gamedata/SB4E01-extracted/sys/main.dol")
     parser.add_argument("--pointer-diagnostics", action="store_true")
+    parser.add_argument("--clear-witness", action="store_true")
     parser.add_argument('--entry-stage', default='RedBlueExGalaxy')
     parser.add_argument('--entry-scenario', type=int, default=1)
     args, remaining = parser.parse_known_args()
@@ -180,6 +184,9 @@ def main():
             if pc != ENTRY:
                 return super().handle(remote, pc, frame)
             self.deferred_stop = False
+            if args.clear_witness and entry.clear_witness is None:
+                from stage_clear_witness import ClearWitness
+                entry.clear_witness = ClearWitness(output)
             entry.enter(remote, frame)
             remote.ok(f"z0,{ENTRY:x},4")
             self.breakpoints.discard(ENTRY)
@@ -189,6 +196,8 @@ def main():
     class Snapshot(base):
         def take(self, frame):
             row = super().take(frame)
+            if entry.clear_witness:
+                entry.clear_witness.sample(self.m.remote, row)
             if row["stage"] == "FileSelect" and row["init_state"] == 6 and frame % 30 == 0:
                 state = dict(frame=frame, **menu_state(self.m))
                 with (output / "menu-state.jsonl").open("a") as stream:
@@ -204,6 +213,8 @@ def main():
             manifest = output / "manifest.json"
             if manifest.exists():
                 data = json.loads(manifest.read_text())
+                if entry.clear_witness:
+                    data['stage_clear'] = entry.clear_witness.close(data.get('status') == 'captured; repeat qualification required')
                 data["stage_entry"] = entry.receipt
                 manifest.write_text(json.dumps(data, indent=2) + "\n")
 

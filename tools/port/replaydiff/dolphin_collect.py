@@ -619,6 +619,11 @@ def collect(args):
     if getattr(args, 'extended_wall_budget', False):
         manifest['runtime_budget']['approval'] = ('team lead thr_qzkz8x9vp8 via port lead thr_dqaxhnywic, '
                                                   '2026-10-20: ONE continuous human-tape run <=1500s; no stitching')
+    if getattr(args, 'yoshi_replay_budget', False):
+        manifest['runtime_budget'].update(
+            extended=True, scope='Yoshi continuous replay only',
+            approval='port lead thr_brg5rhzvas: unattended full Yoshi replay on M1; no stitching',
+            engineering_cap_seconds=10800)
     process = None
     collection_started = time.monotonic()
     sampling_started = None
@@ -636,13 +641,14 @@ def collect(args):
     input_frames = args.frames
     inputs_installed = False
     suffix = None
+    raw_suffix = None
     def interrupted(number, _frame):
         raise ObserverError(f"capture interrupted by {signal.Signals(number).name}")
     log = (output / "run.log").open("w", buffering=1)
     try:
         for number in (signal.SIGTERM, signal.SIGINT, signal.SIGALRM):
             handlers[number] = signal.signal(number, interrupted)
-        signal.setitimer(signal.ITIMER_REAL, max(540, args.wall_timeout + 60) if getattr(args, 'extended_wall_budget', False) else 540)
+        signal.setitimer(signal.ITIMER_REAL, max(540, args.wall_timeout + 60) if (getattr(args, 'extended_wall_budget', False) or getattr(args, 'yoshi_replay_budget', False)) else 540)
         manifest.update(collector_sha256=sha256(__file__), python_version=sys.version.split()[0],
                         columns_sha256=hashlib.sha256(",".join(COLUMNS).encode()).hexdigest())
         if args.input_script:
@@ -663,6 +669,12 @@ def collect(args):
                     raise ObserverError("--frames must equal sync suffix frames + 1 for the anchor")
                 manifest["sync_input_script_sha256"] = sha256(suffix_path)
                 (output / "sync-input-script.json").write_bytes(suffix_path.read_bytes())
+            if getattr(args, 'sync_input_records', None):
+                from kpad_records import RawSuffix
+                from kpad_script import contract
+                raw_suffix = RawSuffix(game_private_path(args.sync_input_records), args.sync_input_records_sha256,
+                                       args.frames - 1, output, contract)
+                manifest['raw_input_suffix'] = raw_suffix.receipt
             inputs = ScriptedInput(script, input_frames, output / "inputs.jsonl", args.live_input_script)
             manifest.update(input_method="scripted filtered KPAD injection", input_frames=input_frames,
                             input_script_sha256=sha256(script),
@@ -796,7 +808,10 @@ def collect(args):
                         raise ObserverError(source_row["observer_error"])
                     row = sync.select(source_row) if sync else source_row
                     if inputs:
-                        inputs.end_frame()
+                        if raw_suffix:
+                            inputs.end_frame(manifest['source_frames'])
+                        else:
+                            inputs.end_frame()
                         if not inputs_installed:
                             inputs.install(remote)
                             inputs_installed = True
@@ -810,6 +825,10 @@ def collect(args):
                                 input_frames = inputs.script["frames"]
                                 manifest.update(input_frames=input_frames,
                                                 sync_input_source_start=manifest["source_frames"])
+                            if raw_suffix:
+                                inputs.start_record_suffix(raw_suffix, manifest['source_frames'], remote)
+                                input_frames = manifest['source_frames'] + raw_suffix.frames
+                                manifest.update(sync_input_source_start=manifest['source_frames'], input_frames=input_frames)
                             (output / "oracle.csv.sync.json").write_text(json.dumps(sync.origin, indent=2) + "\n")
                         writer.writerow(row)
                         file.flush()
@@ -894,6 +913,12 @@ def collect(args):
             except Exception as exc:
                 cleanup_error = f"input cleanup failed: {type(exc).__name__}"
                 manifest.update(status="incomplete", cleanup_error=cleanup_error)
+        if raw_suffix:
+            try:
+                raw_suffix.close(manifest['status'] == 'captured; repeat qualification required')
+            except Exception as exc:
+                manifest.update(status='incomplete', raw_input_error=str(exc))
+            manifest['raw_input_suffix'] = raw_suffix.receipt
         if actor_output:
             try:
                 actor_output.close(manifest["status"] == "captured; repeat qualification required")
@@ -951,6 +976,9 @@ def main():
     capture.add_argument("--sync-stage", help="canonical internal stage; first matching ready end-of-loop seam becomes row 0")
     capture.add_argument("--sync-scenario", type=int, help="placed ScenarioNo; required with --sync-stage")
     capture.add_argument("--sync-input-script", help="freeze this shared suffix immediately after sync row 0")
+    capture.add_argument('--sync-input-records', help='private strict native KPAD JSONL suffix after ready row 0')
+    capture.add_argument('--sync-input-records-sha256')
+    capture.add_argument('--yoshi-replay-budget', action='store_true', help='bounded full Yoshi replay, up to 10800 seconds; default remains 480')
     capture.add_argument("--input-script", help="explicit filtered KPAD script; writes SDK output buffers/register r3")
     capture.add_argument("--live-input-script", action="store_true", help="exploration only: reload future-only script edits")
     capture.add_argument("--gui", action="store_true", help="show the main UI for TAS recording/navigation")
@@ -981,7 +1009,13 @@ def main():
         parser.error("--lock-timeout must be nonnegative")
     if args.action == "collect" and args.frames < 1:
         parser.error("--frames must be positive")
-    if args.action == "collect" and not 0 < args.wall_timeout <= (1500 if args.extended_wall_budget else 480):
+    if args.action == 'collect' and args.sync_input_records:
+        if not (args.sync_stage and args.input_script and args.sync_input_records_sha256) or args.sync_input_script or args.frames < 2:
+            parser.error('raw suffix requires sync, boot script, SHA256 and N+1 frames; cannot combine suffix modes')
+    if args.action == 'collect' and args.yoshi_replay_budget:
+        if not (args.sync_stage == 'YosshiHomeGalaxy' and args.sync_scenario == 1 and args.sync_input_records and 2 <= args.frames <= 30001) or args.extended_wall_budget:
+            parser.error('Yoshi budget requires bounded Yoshi/scenario1 raw suffix, exclusive of old extended budget')
+    if args.action == "collect" and not 0 < args.wall_timeout <= (10800 if args.yoshi_replay_budget else 1500 if args.extended_wall_budget else 480):
         parser.error('--wall-timeout must be within 0..480, or 0..1500 only with explicit --extended-wall-budget approval')
     if args.action == "collect" and args.dolphin and not args.slot_held:
         command = ["lockf", "-k"]

@@ -56,6 +56,22 @@ def decode_sample(raw):
     return sample
 
 
+def read_connection(remote, channel):
+    # WPADProbe only reads these fields inside an interrupt guard; the CPU is stopped here.
+    m = Memory(remote)
+    control = m.pointer(CONTROL_BLOCKS + channel * 4)
+    error = signed(m.u32(control + 0x900))
+    device = m.read(control + 0x905, 1)[0]
+    if error != -1:
+        if device == 253:
+            error = -1
+        elif m.u32(control + 0x920) == 0:
+            error = -2
+    if not -128 <= error <= 127:
+        raise ObserverError('original WPADProbe status outside native interchange range')
+    return dict(probe_error=error, device_type=device)
+
+
 class ObservedInput:
     def __init__(self, output):
         self.output = Path(output)
@@ -92,20 +108,9 @@ class ObservedInput:
         self.add(remote, ENTRY)
 
     def connection(self, remote, channel):
-        # WPADProbe only reads these fields inside an interrupt guard; the CPU is stopped here.
-        m = Memory(remote)
-        control = m.pointer(CONTROL_BLOCKS + channel * 4)
-        error = signed(m.u32(control + 0x900))
-        device = m.read(control + 0x905, 1)[0]
-        if error != -1:
-            if device == 253:
-                error = -1
-            elif m.u32(control + 0x920) == 0:
-                error = -2
-        if not -128 <= error <= 127:
-            raise ObserverError('original WPADProbe status outside native interchange range')
+        result = read_connection(remote, channel)
         self.probe_counts[channel] = self.probe_counts.get(channel, 0) + 1
-        return dict(probe_error=error, device_type=device)
+        return result
 
     def handle(self, remote, pc, frame):
         m = Memory(remote)

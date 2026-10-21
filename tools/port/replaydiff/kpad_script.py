@@ -63,6 +63,7 @@ class ScriptedInput:
         self.breakpoints = set()
         self.deferred_stop = False
         self.resume_diversions = []
+        self.raw_suffix = None
 
     def start_suffix(self, suffix, source_start):
         """Freeze a shared suffix after the completed sync loop; preserve past intent."""
@@ -79,6 +80,19 @@ class ScriptedInput:
         self.starts = [item['start'] for item in segments]
         self.live = False
         self.revisions.append(dict(suffix_source_start=source_start))
+
+    def start_record_suffix(self, suffix, source_start, remote):
+        from kpad_observe import PROBE, PROBE_SHA256
+        if self.pending is not None or self.ordinal != 0:
+            raise ObserverError('raw suffix must start between completed loops')
+        if hashlib.sha256(remote.read(PROBE, 0x8c)).hexdigest() != PROBE_SHA256:
+            raise ObserverError('original WPADProbe complete function signature mismatch')
+        suffix.start(source_start)
+        suffix.receipt.update(connection_method='read-only WPADProbe-equivalent after each SDK read',
+                              probe_sha256=PROBE_SHA256)
+        self.raw_suffix = suffix
+        self.live = False
+        self.revisions.append(dict(raw_suffix_source_start=source_start, sha256=suffix.expected_sha256))
 
     def install(self, remote):
         for address, encoded in ((ENTRY, "38e000014800000c"), (RETURN - 4, "4807bbc1"), (RETURN, "3b9c0001907d0004")):
@@ -160,16 +174,33 @@ class ScriptedInput:
             if self.pending is None:
                 raise ObserverError("KPAD return without entry")
             channel, buffer, capacity, error = self.pending
-            sample = self.sample(frame, channel)
-            raw = bytes(contract.encode_sample(sample))
-            self.write(remote, buffer, raw)
-            result, err = (1, 0) if channel == 0 else (0, -1)
-            self.write(remote, error, (err & 0xffffffff).to_bytes(4, "big"))
-            remote.ok(f"P3={result:08x}")
-            if (remote.read(buffer, 240) != raw or remote.reg(3) != result or
-                    remote.read(error, 4) != (err & 0xffffffff).to_bytes(4, "big")):
-                raise ObserverError("KPAD injection readback mismatch")
-            self.emit(frame, channel, capacity, sample)
+            if self.raw_suffix:
+                from kpad_observe import read_connection
+                row = self.raw_suffix.take(frame, self.ordinal, channel, capacity)
+                if read_connection(remote, channel) != row['connection']:
+                    raise ObserverError('actual WPADProbe connection differs from raw tape')
+                result, err = row['returned_count'], row['error']
+                samples = row['samples']
+            else:
+                result, err = (1, 0) if channel == 0 else (0, -1)
+                samples = [self.sample(frame, channel)]
+            for index, sample in enumerate(samples):
+                raw = bytes(contract.encode_sample(sample))
+                self.write(remote, buffer + index * 240, raw)
+                if remote.read(buffer + index * 240, 240) != raw:
+                    raise ObserverError('KPAD sample injection readback mismatch')
+            self.write(remote, error, (err & 0xffffffff).to_bytes(4, 'big'))
+            remote.ok(f'P3={result & 0xffffffff:08x}')
+            if (remote.reg(3) != (result & 0xffffffff) or
+                    remote.read(error, 4) != (err & 0xffffffff).to_bytes(4, 'big')):
+                raise ObserverError('KPAD injection readback mismatch')
+            if self.raw_suffix:
+                self.file.write(json.dumps(row, separators=(',', ':')) + '\n')
+                self.file.flush()
+                self.ordinal += 1
+                self.reads += 1
+            else:
+                self.emit(frame, channel, capacity, samples[0])
             self.pending = None
         else:
             return False
@@ -191,9 +222,11 @@ class ScriptedInput:
             self.breakpoints.add(ENTRY)
         return True
 
-    def end_frame(self):
+    def end_frame(self, source_frame=None):
         if self.pending is not None:
             raise ObserverError("game seam encountered inside KPAD read")
+        if self.raw_suffix:
+            self.raw_suffix.end_frame(source_frame)
         self.ordinal = 0
 
     def close(self, remote, complete=False):
@@ -204,6 +237,8 @@ class ScriptedInput:
                 except Exception:
                     pass
         self.file.close()
+        if self.raw_suffix:
+            self.raw_suffix.close(complete)
         if complete:
             self.output.with_suffix(".jsonl.partial").rename(self.output)
 

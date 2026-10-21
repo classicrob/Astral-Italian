@@ -47,7 +47,7 @@ void WorldMapResultStateRouteOpen::exeExtend() {
 
     if (MR::isGreaterStep(this, 30)) {
         if (done) {
-            setNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenMessage));
+            setNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenWaitNext));
         } else {
             mCount++;
             setNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenExtend));
@@ -82,9 +82,29 @@ WorldMapResultStateRouteOpen::~WorldMapResultStateRouteOpen() {
 }
 
 namespace NrvWorldMapResultStateRouteOpen {
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenStart, WorldMapResultStateRouteOpen, Start);
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenExtend, WorldMapResultStateRouteOpen, Message);
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenWaitNext, WorldMapResultStateRouteOpen, WaitNext);
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenMessage, WorldMapResultStateRouteOpen, Extend);
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenEnd, WorldMapResultStateRouteOpen, End);
+    WorldMapResultStateRouteOpenStart WorldMapResultStateRouteOpenStart::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateRouteOpenExtend WorldMapResultStateRouteOpenExtend::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateRouteOpenWaitNext WorldMapResultStateRouteOpenWaitNext::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateRouteOpenMessage WorldMapResultStateRouteOpenMessage::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateRouteOpenEnd WorldMapResultStateRouteOpenEnd::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStateRouteOpenEnd::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateRouteOpen*>(pSpine->mExecutor)->exeEnd();
+    }
+
+    void WorldMapResultStateRouteOpenMessage::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateRouteOpen*>(pSpine->mExecutor)->exeMessage();
+    }
+
+    void WorldMapResultStateRouteOpenWaitNext::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateRouteOpen*>(pSpine->mExecutor)->exeWaitNext();
+    }
+
+    void WorldMapResultStateRouteOpenExtend::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateRouteOpen*>(pSpine->mExecutor)->exeExtend();
+    }
+
+    void WorldMapResultStateRouteOpenStart::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateRouteOpen*>(pSpine->mExecutor)->exeStart();
+    }
 };  // namespace NrvWorldMapResultStateRouteOpen

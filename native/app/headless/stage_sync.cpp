@@ -44,7 +44,8 @@ StageSync::StageSync(StageSyncOptions options) : mOptions(std::move(options)) {
 bool StageSync::matches(const State& state) const {
     return field(state, "scene_valid") == "1" && field(state, "scene") == "Game" &&
            field(state, "init_state") == "6" && field(state, "stage") == mOptions.stage &&
-           field(state, "scenario") == std::to_string(mOptions.scenario);
+           field(state, "scenario") == std::to_string(mOptions.scenario) &&
+           (!mOptions.play || mPlayReady);
 }
 std::optional<std::uint64_t> StageSync::select(State& state, std::uint64_t sourceFrame,
                                               std::uint64_t ticks, std::uint64_t viCount,

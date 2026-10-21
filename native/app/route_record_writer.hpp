@@ -40,7 +40,7 @@ public:
         const float norm = std::sqrt(r.gx*r.gx+r.gy*r.gy+r.gz*r.gz);
         const float scale = norm > 1e-6f ? -1.0f/norm : 0;
         const auto& i = r.input;
-        std::fprintf(mFile, "\",%d,%d,%d,%.3f,%.3f,%.3f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%d,%.5f,%.5f,%d,%d,%d,%d,%d,%d,%d,%d,%.6f,%.6f,%.6f,%.6f,%d,%d,%d,%d,%.6f,%.6f\n",
+        std::fprintf(mFile, "\",%d,%d,%d,%.9g,%.9g,%.9g,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%d,%.5f,%.5f,%d,%d,%d,%d,%d,%d,%d,%d,%.6f,%.6f,%.6f,%.6f,%d,%d,%d,%d,%.6f,%.6f\n",
             r.scenario,r.zone,r.valid,r.x,r.y,r.z,r.gx,r.gy,r.gz,r.gx*scale,r.gy*scale,r.gz*scale,
             r.grounded,r.bound,i.moveX,i.moveY,i.jump,i.spin,i.crouch,i.cameraLeft,i.cameraRight,
             i.cameraCenter,i.cameraUp,i.cameraDown,r.yaw,r.cx,r.cy,r.cz,r.powerStars,r.dead,

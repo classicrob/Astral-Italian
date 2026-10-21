@@ -10,6 +10,7 @@
 #include "startup_arrival.hpp"
 #include "actor_trace.hpp"
 #include <launch_stage.hpp>
+#include <host.hpp>
 #include <petari/headless.h>
 #include <petari/app.hpp>
 #include <petari/complete_save_paths.hpp>
@@ -18,6 +19,9 @@
 #include <petari/floating_point.hpp>
 #include <petari/input.hpp>
 #include <petari/kpad_replay.hpp>
+#include <petari/mods.hpp>
+#include <map>
+#include <sstream>
 #include <petari/platform/virtual_time.hpp>
 #include <petari/platform/vi.hpp>
 #include <petari/platform/power.hpp>
@@ -63,6 +67,7 @@ public:
             return input.returned;
         } catch (const std::exception& e) { fail(e.what()); }
     }
+    std::uint64_t tapeFrame() const { return mReplay.waitingForSync() ? UINT64_MAX : mReplay.frame(); }
     void frame() {
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
         L::testReturnToShipFrame();
@@ -70,6 +75,9 @@ public:
         if (mAwaitingFrameWait) throw H::ReplayError("game loop advanced without the headless frame wait hook");
         if (mStartupRequested && L::startupStatus()==L::StartupStatus::Failed)
             throw H::ReplayError("startup request failed: "+L::startupError());
+        // The game's "ready for play" at this seam, read before this seam's update: the same ordering as the GX app's tape recorder.
+        const bool playReady=PetariNative::App::Host::playerInPlay();
+        PetariNative::App::Host::updatePlayerInPlay();
         auto state=H::observeGame();
         if (mStartupRequested && L::startupStatus()==L::StartupStatus::Applied) {
             const auto* selected=L::resolvedStartupRequest();
@@ -88,6 +96,7 @@ public:
         const bool keyboardDone = mKeyboard && (!mStartupRequested || L::startupStatus()==L::StartupStatus::Applied) && mKeyboard->step(state);
         if (mKeyboard && mSourceFrame > 10000) throw H::ReplayError("keyboard script did not finish within 10000 loops");
         const bool wasStarted=mSync.started();
+        mSync.setPlayReady(playReady);
         const auto frame=mSync.select(state,sourceFrame,ticks,viCount,[](std::uint32_t seed) {
             H::setGameRngSeed(seed);
             return H::observeGame();
@@ -181,6 +190,36 @@ private:
     std::thread mThread;
 };
 Driver* gDriver=nullptr;
+// Mod buttons from <tape>.actions (frame mod press held), rebased to tape frames by tools/port/replay_tape.py.
+struct ModActions {
+    struct Entry { bool press=false,held=false; };
+    std::map<std::pair<std::uint64_t,int>,Entry> entries;
+    std::uint64_t consumedFrame=UINT64_MAX; unsigned consumedMask=0;
+    static std::uint64_t now() { return gDriver ? gDriver->tapeFrame() : UINT64_MAX; }
+    static bool press(int mod,void* user) {
+        auto& self=*static_cast<ModActions*>(user); const auto f=now(); if (f==UINT64_MAX) return false;
+        const auto it=self.entries.find({f,mod}); if (it==self.entries.end() || !it->second.press) return false;
+        if (self.consumedFrame!=f) { self.consumedFrame=f; self.consumedMask=0; }
+        if (self.consumedMask>>mod & 1U) return false;
+        self.consumedMask|=1U<<mod; return true;
+    }
+    static bool held(int mod,void* user) {
+        auto& self=*static_cast<ModActions*>(user); const auto f=now(); if (f==UINT64_MAX) return false;
+        const auto it=self.entries.find({f,mod}); return it!=self.entries.end() && it->second.held;
+    }
+};
+ModActions gModActions;
+void loadModActions(const std::filesystem::path& path) {
+    std::ifstream in(path); if (!in) throw H::ReplayError("cannot open --mod-actions");
+    std::string line;
+    while (std::getline(in,line)) {
+        if (line.empty() || line[0]=='#') continue;
+        std::istringstream words(line); unsigned long long frame; int mod,press,held;
+        if (!(words>>frame>>mod>>press>>held) || mod<0 || mod>=16 || (press&~1) || (held&~1)) throw H::ReplayError("bad --mod-actions line: "+line);
+        auto& entry=gModActions.entries[{frame,mod}]; entry.press=press; entry.held=held;
+    }
+    PetariNative::Input::setModReplayHooks({ModActions::press,ModActions::held,&gModActions});
+}
 std::filesystem::path external(const std::string& value) {
     const auto path=std::filesystem::weakly_canonical(value);
     const auto repo=std::filesystem::weakly_canonical(PETARI_HEADLESS_SOURCE_ROOT);
@@ -204,7 +243,7 @@ int main(int argc,char** argv) {
     try {
         std::setlocale(LC_NUMERIC,"C");
         std::map<std::string,std::string> args;
-        bool ftz=true,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
+        bool ftz=true,syncPlay=false,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--inputs-from-sync") {
@@ -212,12 +251,16 @@ int main(int argc,char** argv) {
                 inputsFromSync=true;continue;
             }
             if (key=="--no-ftz") {ftz=false;continue;}
+            if (key=="--sync-play") {
+                if (syncPlay) throw H::ReplayError("duplicate --sync-play");
+                syncPlay=true;continue;
+            }
             if (key=="--actor-trace") {
                 if (actorTrace) throw H::ReplayError("duplicate --actor-trace");
                 actorTrace=true; continue;
             }
             if (key=="--existing-unlocked-user") {existingUnlockedUser=true;continue;}
-            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--keyboard-script" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
+            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--mod-actions" && key!="--inputs" && key!="--keyboard-script" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
         for (const char* key:{"--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
@@ -234,6 +277,14 @@ int main(int argc,char** argv) {
         std::unique_ptr<H::Replay> replay;
         std::unique_ptr<H::KeyboardScript> keyboard;
         if (args.count("--inputs")) {
+            {   // mods exactly as the GX app: <user>/mods.txt, then PETARI_MODS / PETARI_ODYSSEY_MOVEMENT (a fresh user: defaults)
+                std::string modError;
+                if (!PetariNative::Mods::load(user/"mods.txt",&modError)) throw H::ReplayError("mods: "+modError);
+                for (int m=0;m<static_cast<int>(PetariNative::Mods::Mod::Count);++m)
+                    if (PetariNative::Mods::enabled(static_cast<PetariNative::Mods::Mod>(m)))
+                        std::fprintf(stderr,"PETARI MODS: %s on\n",PetariNative::Mods::name(static_cast<PetariNative::Mods::Mod>(m)));
+            }
+            if (args.count("--mod-actions")) loadModActions(external(args.at("--mod-actions")));
             std::ifstream source(external(args.at("--inputs")),std::ios::binary);
             if (!source) throw H::ReplayError("cannot open input tape");
             replay=std::make_unique<H::Replay>(source,inputsFromSync);
@@ -249,12 +300,14 @@ int main(int argc,char** argv) {
         auto d=args.count("--rate-denominator")?integer(args.at("--rate-denominator")):1001;
         if (!n || !d || n>1000000 || d>1000000) throw H::ReplayError("invalid frame rate");
         H::StageSyncOptions sync;
+        sync.play=syncPlay;
         if (args.count("--sync-stage")) {
             sync.stage=args.at("--sync-stage");
             if (sync.stage.empty()) throw H::ReplayError("--sync-stage cannot be empty");
         }
         if (args.count("--sync-scenario")) sync.scenario=H::syncInteger(args.at("--sync-scenario"));
         if (args.count("--sync-rng-seed")) sync.seed=H::syncInteger(args.at("--sync-rng-seed"));
+        if (syncPlay && !args.count("--sync-stage")) throw H::ReplayError("--sync-play requires --sync-stage");
         if (!args.count("--sync-stage") && args.count("--sync-scenario")) throw H::ReplayError("--sync-scenario requires --sync-stage");
         H::StageSync validateSync(sync);
         H::FloatingPointMode fp(ftz);

@@ -437,3 +437,43 @@ not the file select or a world map, held for 6 frames.
 `[pop-in] frame N skipped_draws K (intro|play|menu/loading)` is printed for every
 frame that skipped draws; `[play ready] frame N wall_ms=...` marks the first
 frame of each return to play (launch-to-control timing).
+
+## Recording a tape: a user session that replays exactly
+
+A *tape* is a session recorded so that `petari_headless` can play it back and land on the same frames. Recording it
+costs nothing you can measure (appends to buffered files at the game's own input reads).
+
+```sh
+PETARI_TAPE_RECORD=$HOME/tapes/flipswap-1 <the usual launch>   # or PETARI_ROUTE_RECORD=<x>.csv (files beside it)
+```
+
+`PETARI_TAPE_RECORD=<dir>` writes `<dir>/route.csv` (every game loop; positions at `%.9g`, i.e. the float32 exactly),
+`route.kpd` (every KPADReadEx the game made: count, error, **every sample**, the connection state it saw; the format
+`tools/headless.py pack` writes and `petari_headless --inputs` reads), `route.actions` (mod buttons: Cappy etc., by game
+loop) and `route.tape.json` (ready seams with stage, scenario and the game's RNG seed there; the enabled mods; the exe
+sha256; counts, including `unencodable_samples` / `lossy_samples`, which must be 0). It also works in background mode,
+so scripted sessions (`PETARI_INPUT_SCRIPT`) can be taped. Quit the game normally: a tape whose sidecar says
+`"complete": false` is refused by the replay tool.
+
+The tape anchor is the *play-ready seam*: the first seam where the game's own "ready for play" test (`native/app/play_ready.cpp`, the
+`[play ready]` log line) has held, recorded in `play_ready_seams` with the RNG seed there. (The Game/End seam, `ready_seams`, is also
+recorded, but the opening flyover's length depends on asynchronous loading: it ran ~430 loops longer in headless than in the GX
+session, so Game/End is not the same game state in both; `--anchor game` selects it anyway.) The replay uses
+`petari_headless --sync-stage ... --sync-play` and sets the recorded RNG seed at that seam. Reads after it are tape frame 0, 1, 2 ...;
+trace row k is route row R+k.
+
+Replay (one command; needs the extracted disc and a `petari_headless` of the same source as the recording):
+
+```sh
+python3 tools/port/replay_tape.py ~/tapes/flipswap-1 --headless build/macos-arm64-headless-o2/native/app/headless/petari_headless \
+    --disc ~/MacioGalaxy2-gamedata/SB4E01-extracted --out ~/tapes/flipswap-1-replay [--ready N] [--max-frames N] [--no-ftz]
+```
+
+It writes a trimmed copy of the tape, a fresh user with the recorded `mods.txt`, runs the replay (`--stage`, `--sync-stage`,
+`--sync-rng-seed <recorded seed>`, `--inputs-from-sync`, `--mod-actions`) and `first-divergence.json`: the first row where Mario's
+position (float32) is more than 0.01 away or stage / scenario / player-valid / dead / grounded differ, the first row with any bit
+difference, and `matched_rows`. Exit status 0 means the whole session matched. Mods are loaded by `petari_headless` exactly as by the
+app (`<user>/mods.txt`, then `PETARI_MODS`); mod buttons come from the tape (`petari_mod_take_press/held`), not from a keyboard.
+
+Limits: the replay starts from a fresh user (a tape recorded on a save with progress needs that save copied in; the sidecar does not
+carry it); the selected scenario is taken to be the placed one; pointer/mouse-only mods (PointToMove, the editor) are not taped.

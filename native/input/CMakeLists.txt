@@ -67,6 +67,7 @@ add_library(petari_input STATIC
     camera_input.cpp
     editor_input.cpp
     editor_pick.cpp
+    kpad_record.cpp
     mods.cpp
     remap.cpp
     point_move.cpp
@@ -135,6 +136,11 @@ if(BUILD_TESTING)
     add_test(NAME native_smg2_sdk COMMAND petari_smg2_sdk_tests)
 
     # Remapping from the Home menu: capture, conflicts, the Home guard, controls.txt.
+    # Exact tape recorder: sample encoding vs tools/headless.py, .kpd/.actions files.
+    add_executable(petari_kpad_record_tests ${PETARI_REPO_ROOT}/native/tests/kpad_record_tests.cpp)
+    target_link_libraries(petari_kpad_record_tests PRIVATE petari_input)
+    add_test(NAME native_kpad_record COMMAND petari_kpad_record_tests)
+
     add_executable(petari_input_remap_tests ${PETARI_REPO_ROOT}/native/tests/input_remap_tests.cpp)
     target_link_libraries(petari_input_remap_tests PRIVATE petari_input)
     add_test(NAME native_input_remap COMMAND petari_input_remap_tests)

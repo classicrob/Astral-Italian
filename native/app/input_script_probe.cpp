@@ -6,11 +6,12 @@
 // only when the held set changes, so a key held across lines stays down.
 // PETARI_INPUT_SCRIPT_LOG=<csv>: one row per scripted frame: frame, line, held keys, Mario's position,
 // velocity and ground flag, the camera's position and forward axis, whether he is dead, and his gravity vector.
-// Logs "[input-script] start ..." and "[input-script] done after N frames". The start also marks the image-dump
+// Logs "[input-script] start ..." and "[input-script] done after N frames" (PETARI_INPUT_SCRIPT_QUIT=1 then quits). The start also marks the image-dump
 // phase "input-script" (petari/efb_dump_mark.hpp), so PETARI_SURFACE_DUMP_LABELS=input-script dumps only the script.
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -24,6 +25,7 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include "petari/efb_dump_mark.hpp"
 #include "petari/input.hpp"
+#include "host.hpp"
 #include "smoke.hpp"
 
 namespace PetariNative::App::Smoke {
@@ -125,6 +127,11 @@ void finish(InputScript& s, const char* why) {
     s.phase = Phase::Done;
     std::fprintf(stderr, "[input-script] %s after %d frames\n", why, s.frame);
     std::fflush(stderr);
+    // PETARI_INPUT_SCRIPT_QUIT=1: quit when the script ends, so exit summaries
+    // (frame and present statistics, latency) are printed.
+    if (const char* quit = std::getenv("PETARI_INPUT_SCRIPT_QUIT"); quit != nullptr && std::strcmp(quit, "1") == 0) {
+        PetariNative::App::Host::requestQuit();
+    }
 }
 
 }  // namespace

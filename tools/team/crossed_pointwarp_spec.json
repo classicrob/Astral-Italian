@@ -44,5 +44,18 @@
   "config_sha256": {
     "before": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534",
     "after": "62b98305e52719256a618c91874f2545d62f277acd7d413787abf54898ab883c"
+  },
+  "required_context": {
+    "__ct__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStartFv": 2,
+    "__ct__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWaitFv": 2,
+    "__ct__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEndFv": 2,
+    "execute__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWaitCFP5Spine": 2,
+    "__vt__28WorldMapResultStatePointWarp": 1,
+    "__vt__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd": 1,
+    "__vt__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWait": 1,
+    "__vt__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart": 1,
+    "sInstance__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart": 1,
+    "sInstance__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWait": 1,
+    "sInstance__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd": 1
   }
 }

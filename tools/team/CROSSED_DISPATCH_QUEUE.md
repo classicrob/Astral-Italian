@@ -125,3 +125,51 @@ source/model results only. Real objects, original decoder qualification,
 actual perturb/restore, target improvement, native bootstrap and full gates
 remain NOT_RUN. Source syntax and diff checks pass. Required prior artifacts
 and managed worktree retained; cleanup0.
+
+## Superseding F1–F6 correction / raw intake supplement
+
+Immutable1dea history is retained. C's six refusal findings and B's applicable
+PointWarp findings are source-review blockers, not candidate defects or runtime
+failures. The corrected source requires complete measured context inventories
+(Route18,Point11,Create29 symbol records from exact maps), including named
+WaitNext and WhiteWait/allstatics/constructors/vtables. This is definition/tuple
+presence, not original provider, weak selection, constructor execution or native
+bootstrap proof. Other-field changes stay strict. Earlier minimal positives were
+insufficient; corrected synthetic positives explicitly contain this full context.
+
+Typed map parsing now retains label/unclassified address records with optional
+size. Repeated local configured names are preserved as occurrence lists, never
+chosen as bare-name owner. Every candidate address is considered for an undefined
+alias; any possible hit into a changed execute rejects. Defined object-local
+symbols use their actual section/value, rather than an ambiguous global name.
+The first full-map source replay stopped on actual duplicate local names (e.g.
+GXPosition3f32); that source-check failure is preserved in the correction receipt.
+Occurrence-preserving parsing closes that failure without silently ignoring the
+records. Full actual source/map tests then pass all three exact phases.
+
+All named symbol extents, section payload/declaration lengths and full known
+relocation write widths must fit. The containing16B vtable must fit the section;
+start-offset-only checks no longer suffice. Unknown relocation widths/special
+sections reject rather than inventing a write size.
+
+crossed_dispatch_raw.py is a new bytes-only intake supplement, not a replacement
+for the live shared objsame tool: it retains ALL symtabs/localraw info/other/size/
+ordinal/section records, each RELA's own sh_link/sh_info/ordinal/rawinfo/addend,
+complete section headers/occurrence identities and every raw payload SHA. RELA
+resolution uses its linked table, not the first table. Header/string/symbol/
+relocation bounds are checked. Debug relocation metadata stays retained, with
+no executable-write claim for its types. Raw metadata equality supplies NO
+normalization allowance; any actual delta stays HOLD pending exact review.
+
+snapshot_component reads one O_NOFOLLOW descriptor into immutable bytes, hashes
+those bytes, checks descriptor identity/size/ctime/mtime, and passes the SAME bytes
+to the new raw+semantic parser. It does not hash then reopen. The model creates
+only a tiny synthetic ELF and asserts no parser-open occurs. Actual game ELFs
+were not accessed. qualify_files now UNCONDITIONALLY REFUSES before any actual
+object read pending independent corrected raw/context adapter review. Semantic
+model output explicitly leaves raw_metadata_qualified/full_provider_ownership
+FALSE; these corrections cannot become production/admission or retroactivePASS.
+
+Twenty synthetic/source unittest methods pass, including paired alias/context/
+fullrange/rawtable/metadata/sameparsedbytes negatives. No old source candidate,
+actual-object/original decoder/fullproof/native/runtime qualification follows.

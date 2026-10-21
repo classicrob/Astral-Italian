@@ -60,5 +60,25 @@
   "config_sha256": {
     "before": "ffded7f58417113fadbb5f34d9b33d846372b4e993a619a4d2e6ebfa29dbf534",
     "after": "b063f108e5572dd75307e9856cade00821a4125b5e1131b05e69f7622a3b491f"
+  },
+  "required_context": {
+    "__ct__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStartFv": 2,
+    "__ct__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtendFv": 2,
+    "__ct__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNextFv": 2,
+    "__ct__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessageFv": 2,
+    "__ct__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEndFv": 2,
+    "execute__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEndCFP5Spine": 2,
+    "execute__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNextCFP5Spine": 2,
+    "execute__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStartCFP5Spine": 2,
+    "__vt__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEnd": 1,
+    "__vt__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage": 1,
+    "__vt__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext": 1,
+    "__vt__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend": 1,
+    "__vt__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStart": 1,
+    "sInstance__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStart": 1,
+    "sInstance__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend": 1,
+    "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext": 1,
+    "sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage": 1,
+    "sInstance__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEnd": 1
   }
 }

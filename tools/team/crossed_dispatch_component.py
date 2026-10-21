@@ -24,15 +24,52 @@ def record(summary,name):
     return rows[0]
 
 def parse_map(text):
+    """Resolve address records regardless of type/size; labels are not dropped."""
     import re
     result={}
     for line in text.splitlines():
-        m=re.fullmatch(r'(\S+) = (\.\w+):0x([0-9a-fA-F]+); // type:(function|object) size:0x([0-9a-fA-F]+)',line)
-        if m:
-            name,section,value,kind,size=m.groups()
-            require(name not in result,'duplicate configured name')
-            result[name]=[section,int(value,16),int(size,16),kind]
+        if ' = .' not in line:continue
+        m=re.fullmatch(r'(\S+) = (\.[\w.]+):0x([0-9a-fA-F]+);(?: // (.*))?',line)
+        require(m is not None,'unsupported address map record')
+        name,section,value,attributes=m.groups();attributes=attributes or ''
+        typ=re.search(r'(?:^| )type:(\w+)',attributes);size=re.search(r'(?:^| )size:0x([0-9a-fA-F]+)',attributes)
+        row=[section,int(value,16),int(size[1],16) if size else None,typ[1] if typ else 'unclassified']
+        if name not in result:result[name]=row
+        elif type(result[name]) is dict:result[name]['occurrences'].append(row)
+        else:result[name]={'occurrences':[result[name],row]}  # Preserve, never choose one bare-name owner.
     return result
+
+
+def relocation_width(typ):
+    widths={1:4,2:4,3:2,4:2,5:2,6:2,7:4,8:4,9:4,10:4,11:4,12:4,13:4,26:4,32:4,109:4}
+    require(type(typ) is int and typ in widths,'unqualified relocation write width')
+    return widths[typ]
+
+
+def require_summary_extents(summary):
+    for key,section in summary.items():
+        if not key.startswith('section '):continue
+        require(len(section)==5 and type(section[2]) is int and section[2]>=0,'malformed section shape')
+        require(isinstance(section[4],bytes) and len(section[4])==(0 if section[0]==8 else section[2]),'declared/payload section extent mismatch')
+    for row in summary['named symbols']:
+        require(len(row)==6 and type(row[4]) is int and type(row[5]) is int and row[4]>=0 and row[5]>=0,'malformed symbol extent')
+        if row[3]=='UND':continue
+        if row[3].startswith('special'):
+            require(row[3] in ('special0xfff1','special0xfff2'),'unsupported special symbol section')
+            continue
+        require('section '+row[3] in summary,'invalid named symbol section')
+        require(row[4]+row[5]<=summary['section '+row[3]][2],'symbol extends outside section')
+
+
+def required_context(summary,spec,measured,phase):
+    require(type(measured) is dict and set(measured)==set(spec['required_context']),'mandatory family context inventory')
+    for name,kind in spec['required_context'].items():
+        row=record(summary,name)
+        require(set(measured[name])=={'before','after'} and row==measured[name][phase],'family context tuple not independently measured')
+        require(row[1]&15==kind and row[3]!='UND' and not row[3].startswith('special'),'mandatory provider undefined/wrong type')
+        require(row[5]>0,'mandatory provider extent absent')
+        require(measured[name]['before']==measured[name]['after'],'unapproved family context delta')
+
 
 def map_check(before,after,spec):
     """Exact full map remainder including line ordering; only fixed named edits."""
@@ -75,7 +112,7 @@ def closure(summary,spec,phase,config):
         for row in rows:
             offset,typ,addend,target=row
             require(type(offset) is int and type(typ) is int and type(addend) is int,'malformed relocation scalar')
-            require(0<=offset<summary['section '+section][2],'bad source relocation extent')
+            require(0<=offset and offset+relocation_width(typ)<=summary['section '+section][2],'full relocation write exceeds source section')
             require(target[0] in ('sym','local'),'unsupported relocation target kind')
             if target[0]=='sym':
                 require(len(target)==2,'malformed named reference')
@@ -83,15 +120,17 @@ def closure(summary,spec,phase,config):
                 if named:
                     require(not named[3].startswith('bad'),'bad target section')
                     if named[3] not in ('UND','special0xfff2'):loc=(named[3],named[4]+addend)
-                cfg=config.get(target[1]);absolute=cfg[1]+addend if cfg else None
+                cfg=config.get(target[1]) if named is None or named[3]=='UND' else None
+                candidates=cfg['occurrences'] if type(cfg) is dict else ([cfg] if cfg else [])
+                absolute_values=[r[1]+addend for r in candidates]
             else:
                 require(len(target)==3 and type(target[2]) is int,'malformed local reference')
-                loc=(target[1],target[2]+addend);absolute=loc[1] if target[1]=='special0xfff1' else None
-                require(target[1]=='UND' or target[1].startswith('special') or 'section '+target[1] in summary,'bad local target section')
+                loc=(target[1],target[2]+addend);absolute_values=[loc[1]] if target[1]=='special0xfff1' else []
+                require(target[1] in ('UND','special0xfff1','special0xfff2') or 'section '+target[1] in summary,'bad local target section')
             for expected,r in spans:
                 by_name=target[0]=='sym' and target[1]==expected['symbol']
                 by_location=loc is not None and loc[0]==r[3] and r[4]<=loc[1]<r[4]+r[5]
-                by_va=absolute is not None and expected[phase+'_va']<=absolute<expected[phase+'_va']+8
+                by_va=any(expected[phase+'_va']<=absolute<expected[phase+'_va']+8 for absolute in absolute_values)
                 by_abs=loc is not None and loc[0]=='special0xfff1' and expected[phase+'_va']<=loc[1]<expected[phase+'_va']+8
                 if by_name or by_location or by_va or by_abs:hits.append([section,offset,typ,addend,list(target),expected['symbol']])
     return sorted(hits,key=canonical)
@@ -99,14 +138,16 @@ def closure(summary,spec,phase,config):
 def compare_summaries(before,after,envelope,envelope_sha,spec,config_before,config_after):
     """Only operator-pinned measured symbol/slot tuples; never inferred allowances."""
     require(digest(envelope)==envelope_sha,'independent measured envelope pin')
-    require(set(envelope)=={'schema','family','base','candidate','raw_objects','symbols','owning_slots','route_done'},'exact measured envelope fields')
+    require(set(envelope)=={'schema','family','base','candidate','raw_objects','symbols','owning_slots','route_done','context'},'exact measured envelope fields')
     require(type(envelope['schema']) is int and envelope['schema']==1,'envelope schema')
     require(envelope['family']==spec['family'] and envelope['base']==spec['base'] and envelope['candidate']==spec['candidate'],'family/source envelope mismatch')
     require(set(envelope['raw_objects'])=={'before','after'} and all(type(h) is str and len(h)==64 and set(h)<=set('0123456789abcdef') for h in envelope['raw_objects'].values()),'actual object digest inventory')
     names={r['symbol'] for r in spec['targets']}
     require(set(envelope['symbols'])==names and set(envelope['owning_slots'])==names,'exact family envelope inventory')
+    require_summary_extents(before);require_summary_extents(after)
     norm=[copy.deepcopy(before),copy.deepcopy(after)]
     for phase,summary in [('before',before),('after',after)]:
+        required_context(summary,spec,envelope['context'],phase)
         expected_refs=[]
         for item in spec['targets']:
             name=item['symbol'];r=record(summary,name)
@@ -131,7 +172,7 @@ def compare_summaries(before,after,envelope,envelope_sha,spec,config_before,conf
     else:require(envelope['route_done'] is None,'unexpected RouteOpen allowance')
     require(norm[0]==norm[1],'strict remainder differs outside exact family envelope')
     return {'status':'COMPONENT_REMAINDER_ONLY','family':spec['family'],'production_acceptance':False,
-      'full_reference_closure':False,'original_ownership':False,'changed_execute_count':len(names)}
+      'full_reference_closure':False,'original_ownership':False,'raw_metadata_qualified':False,'full_provider_ownership':False,'changed_execute_count':len(names)}
 
 def route_done(normalized,before,after,measured,spec):
     """One exact addi+SDA21 site; actual measured tuples required, no body mask."""
@@ -181,10 +222,36 @@ def original_slots(data,spec):
     return {'status':'ORIGINAL_SLOT_WRAPPER_COMPONENT_ONLY','full_ownership':False,'family':spec['family']}
 
 
+def qualification_admission():
+    raise ValueError('actual ELF qualification disabled pending corrected raw/context adapter independent review')
+
+
 def qualify_files(before,after,envelope,pin,spec,map_before,map_after):
-    require(digest(envelope)==pin,'operator envelope pin required before reading object')
-    for phase,path in [('before',before),('after',after)]:
-        p=Path(path);require(p.is_file() and not p.is_symlink() and p.stat().st_size<=16*1024**2,'bounded regular object')
-        require(hashlib.sha256(p.read_bytes()).hexdigest()==envelope['raw_objects'][phase],'actual raw object pin')
-    map_check(map_before,map_after,spec)
-    return compare_summaries(objsame.summarize(before),objsame.summarize(after),envelope,pin,spec,parse_map(map_before),parse_map(map_after))
+    # No real objects are read through this API until exact corrected source review.
+    qualification_admission()
+
+
+def snapshot_component(path,pin):
+    """One immutable byte read feeds BOTH digest and raw/semantic parsers.
+
+    Source-only inspection helper; invoking it on real objects needs allocation.
+    """
+    import os
+    import stat
+    from crossed_dispatch_raw import read_snapshot
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+    try:
+        before=os.fstat(fd)
+        require(stat.S_ISREG(before.st_mode) and before.st_size<=16*1024**2,'bounded regular object')
+        chunks=[];remaining=before.st_size
+        while remaining:
+            block=os.read(fd,min(remaining,65536));require(bool(block),'object shortened during snapshot')
+            chunks.append(block);remaining-=len(block)
+        require(os.read(fd,1)==b'','object grew during snapshot')
+        after=os.fstat(fd)
+        require((before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns,before.st_ctime_ns)==
+                (after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns,after.st_ctime_ns),'object mutated during snapshot')
+    finally:os.close(fd)
+    raw=b''.join(chunks)
+    require(hashlib.sha256(raw).hexdigest()==pin,'snapshot raw object pin')
+    return read_snapshot(raw)

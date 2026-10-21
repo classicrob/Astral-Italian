@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import crossed_dispatch_component as component
-SPEC_SHA='d7b31b66f5bbbb7b9fd027fed62913c467a395fcc2a1cfb812495361d43f693f'
+SPEC_SHA='2e9631f3d350113a97c9e6d3b69821183d1289276f9f8195b612cb10fe71ea7f'
 def spec():
     raw=Path(__file__).with_name('crossed_createtico_spec.json').read_bytes()
     component.require(hashlib.sha256(raw).hexdigest()==SPEC_SHA,'fixed family spec drift')

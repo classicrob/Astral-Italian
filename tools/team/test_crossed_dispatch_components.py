@@ -17,7 +17,7 @@ def fixture(module):
     raw=bytearray(text_size);method=None
     if s['family']=='RouteOpen':raw[0x7c:0x80]=bytes.fromhex('388d0000')
     summaries=[];envelope={'schema':1,'family':s['family'],'base':s['base'],'candidate':s['candidate'],
-      'raw_objects':{'before':'0'*64,'after':'1'*64},'symbols':{},'owning_slots':{},'route_done':None}
+      'raw_objects':{'before':'0'*64,'after':'1'*64},'symbols':{},'owning_slots':{},'route_done':None,'context':{}}
     configs=[]
     for phase in ('before','after'):
         symbols=[];relocs=[]
@@ -37,6 +37,23 @@ def fixture(module):
                  (s['done']['before_singleton'],0x21,0,'.sbss#0',4,4),
                  (s['done']['after_singleton'],0x21,0,'.sbss#0',0,4)])
             summary['relocations for .text#0']=((0x7c,109,0,('sym',s['done'][phase+'_singleton'])),)
+        # Synthetic full context, not observed ELF/provider ownership.
+        text=bytearray(summary['section .text#0'][4]);data=bytearray(summary['section .data#0'][4]);sbss=8
+        for name,kind in s['required_context'].items():
+            existing=next((r for r in symbols if r[0]==name),None)
+            if existing is None:
+                if name.startswith('__vt__'):
+                    value=len(data);data.extend(bytes(16));existing=(name,0x21,0,'.data#0',value,16)
+                elif name.startswith('sInstance__'):
+                    existing=(name,0x21,0,'.sbss#0',sbss,4);sbss+=4
+                else:
+                    width=72 if 'WhiteWait' in name and name.startswith('execute') else 16
+                    value=len(text);text.extend(bytes(width));existing=(name,0x22,0,'.text#0',value,width)
+                symbols.append(existing)
+            envelope['context'].setdefault(name,{})[phase]=list(existing)
+        summary['section .text#0']=(1,6,len(text),4,bytes(text))
+        summary['section .data#0']=(1,3,len(data),4,bytes(data))
+        summary['section .sbss#0']=(8,3,sbss,4,b'')
         summary['named symbols']=tuple(sorted(symbols));summaries.append(summary)
         configs.append({t['symbol']:['.text',t[phase+'_va'],8,'function'] for t in s['targets']})
     if s['family']=='RouteOpen':
@@ -119,6 +136,35 @@ class FamilyModels(unittest.TestCase):
     def test_no_production_admission(self):
         for module in MODULES:
             self.assertFalse(module.production_status()['execution_enabled']);self.assertFalse(module.production_status()['certificate'])
+    def test_label_alias_and_unclassified_address_records(self):
+        for module in MODULES:
+            f=fixture(module);t=f[0]['targets'][0]
+            text='Alias = .text:0x%08X; // type:label\n'%t['after_va']
+            parsed=c.parse_map(text);self.assertEqual(parsed['Alias'][1],t['after_va']);self.assertIsNone(parsed['Alias'][2])
+            ambiguous=c.parse_map(text+'Alias = .text:0x1000; // type:label\n')
+            self.assertEqual(len(ambiguous['Alias']['occurrences']),2)
+            f[3][1].update(ambiguous);f[1][1]['relocations for .data#0']+=((0,1,0,('sym','Alias')),)
+            with self.assertRaises(ValueError):compare(module,f)
+    def test_required_family_context_and_full_extents(self):
+        for module in MODULES:
+            f=fixture(module);name=next(n for n in f[0]['required_context'] if n.startswith('sInstance'))
+            for phase in (0,1):f[1][phase]['named symbols']=tuple(r for r in f[1][phase]['named symbols'] if r[0]!=name)
+            with self.assertRaises(ValueError):compare(module,f)
+            f=fixture(module);last=max(row[1] for row in f[2]['owning_slots'].values() for row in [row['after']])
+            for phase in (0,1):
+                row=f[1][phase]['section .data#0'];f[1][phase]['section .data#0']=(row[0],row[1],last+1,row[3],row[4][:last+1])
+            with self.assertRaises(ValueError):compare(module,f)
+        f=fixture(route);name=f[0]['done']['after_singleton']
+        for phase in (0,1):f[1][phase]['named symbols']=tuple(r for r in f[1][phase]['named symbols'] if r[0]!=name)
+        with self.assertRaises(ValueError):compare(route,f)
+        f=fixture(tico);name=next(n for n in f[0]['required_context'] if 'WhiteWait' in n and n.startswith('execute'))
+        for phase in (0,1):f[1][phase]['named symbols']=tuple(r for r in f[1][phase]['named symbols'] if r[0]!=name)
+        with self.assertRaises(ValueError):compare(tico,f)
+    def test_actual_qualification_refuses_before_object_access(self):
+        for module in MODULES:
+            with self.assertRaisesRegex(ValueError,'qualification disabled'):
+                module.qualify_files('/NOT_OPENED','/NOT_OPENED',{},'', '', '')
+
     def test_original_slot_decoder_helpers_only_synthetic(self):
         self.assertEqual(c.branch(0x48000008,0x1000,False),0x1008)
         self.assertEqual(c.branch(0x4bfffff9,0x1000,True),0xff8)

@@ -21,7 +21,7 @@
   },
   "spec": {
     "path": "tools/team/crossed_pointwarp_spec.json",
-    "sha256": "7a3c1820cde05e9ff0ecd0f643908864d5f9de2448c56fa102015ae5603022d9"
+    "sha256": "4dbd578d60db1abcd450f55d6f0dff9800d298d7a446b2679426eff6024c4c49"
   },
   "official_unit": "src/Game/System/WorldMapResultTU19.o",
   "official_options": {
@@ -162,10 +162,11 @@
     }
   ],
   "adapter_sources": {
-    "crossed_dispatch_component.py": "ce03f6bb654124d228052ea7a871d8891c8085307a0a0a642334897f465271f3",
-    "crossed_pointwarp.py": "20144ad20243bf854f1d290d31cde2b87c1a0836e9617a7d1da441c4139660ab",
-    "crossed_pointwarp_spec.json": "7a3c1820cde05e9ff0ecd0f643908864d5f9de2448c56fa102015ae5603022d9",
-    "objsame.py": "e6d883e7ef93eda2e5547d37b93527d1108ba2b615e2f6fb6b7a72fbaf1a2380"
+    "crossed_dispatch_component.py": "b3b2b6d0200bf5b78c1deb495664336629bebeb356533b186958ceefc8974171",
+    "crossed_pointwarp.py": "06a2152d94123e5565c4353f134c777abb210e1e987ddd0357adfb2eb224e2e9",
+    "crossed_pointwarp_spec.json": "4dbd578d60db1abcd450f55d6f0dff9800d298d7a446b2679426eff6024c4c49",
+    "objsame.py": "e6d883e7ef93eda2e5547d37b93527d1108ba2b615e2f6fb6b7a72fbaf1a2380",
+    "crossed_dispatch_raw.py": "3131d40205aada9e4abd86fadd5d80bf7bc65c80d46f1eca90e430dcc235fa89"
   },
   "source_validation": {
     "sole_parent": true,
@@ -174,5 +175,13 @@
     "fresh_object_gate": "NOT_RUN",
     "native_fixture": "NOT_COMPILED_OR_RUN",
     "production_acceptance": false
+  },
+  "actual_admission": "UNCONDITIONAL qualify_files REFUSAL before any real object read; corrected raw/context adapters need independent review + exact raw allowances",
+  "required_context_count": 11,
+  "raw_intake": "immutable once-read bytes ->digest+allSYMTAB/ownRELAsh_link/rawlocalordinal/header/extent metadata and semantic; no actualobjects read",
+  "original_history": "1dea immutable; six C/B source refusal findings corrected/supplemented, not retroactivePASS",
+  "correction_review_refs": {
+    "C": "scratch-enemies/worldmap-placement-C/crossed-adapters-review-1dea/review.json SHAeb2c9a2cf0e20b0cb99c81330db8532607cad97130709ba761133c5440229a7b",
+    "B": "scratch-objects11/pointwarp-adapter-review-B-1dea86f5/REPORT.md SHAed30f4dca20be6e13c87b73def3323b9fa25b2bcb1fd7d372f2f2df20cfaa3ce"
   }
 }

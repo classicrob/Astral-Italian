@@ -21,7 +21,7 @@
   },
   "spec": {
     "path": "tools/team/crossed_createtico_spec.json",
-    "sha256": "d7b31b66f5bbbb7b9fd027fed62913c467a395fcc2a1cfb812495361d43f693f"
+    "sha256": "2e9631f3d350113a97c9e6d3b69821183d1289276f9f8195b612cb10fe71ea7f"
   },
   "official_unit": "src/Game/System/WorldMapResultStateCreateTico.o",
   "official_options": {
@@ -166,10 +166,11 @@
     }
   ],
   "adapter_sources": {
-    "crossed_dispatch_component.py": "ce03f6bb654124d228052ea7a871d8891c8085307a0a0a642334897f465271f3",
-    "crossed_createtico.py": "b893467484f109e60b2ffab5f26b509ae3aee40ae68c2e631de6c65b4c8e964b",
-    "crossed_createtico_spec.json": "d7b31b66f5bbbb7b9fd027fed62913c467a395fcc2a1cfb812495361d43f693f",
-    "objsame.py": "e6d883e7ef93eda2e5547d37b93527d1108ba2b615e2f6fb6b7a72fbaf1a2380"
+    "crossed_dispatch_component.py": "b3b2b6d0200bf5b78c1deb495664336629bebeb356533b186958ceefc8974171",
+    "crossed_createtico.py": "877e6230da0a8cad5647e6080b1ff0feb7115ab0d909512284975c6476e8aef1",
+    "crossed_createtico_spec.json": "2e9631f3d350113a97c9e6d3b69821183d1289276f9f8195b612cb10fe71ea7f",
+    "objsame.py": "e6d883e7ef93eda2e5547d37b93527d1108ba2b615e2f6fb6b7a72fbaf1a2380",
+    "crossed_dispatch_raw.py": "3131d40205aada9e4abd86fadd5d80bf7bc65c80d46f1eca90e430dcc235fa89"
   },
   "source_validation": {
     "sole_parent": true,
@@ -178,5 +179,13 @@
     "fresh_object_gate": "NOT_RUN",
     "native_fixture": "NOT_COMPILED_OR_RUN",
     "production_acceptance": false
+  },
+  "actual_admission": "UNCONDITIONAL qualify_files REFUSAL before any real object read; corrected raw/context adapters need independent review + exact raw allowances",
+  "required_context_count": 29,
+  "raw_intake": "immutable once-read bytes ->digest+allSYMTAB/ownRELAsh_link/rawlocalordinal/header/extent metadata and semantic; no actualobjects read",
+  "original_history": "1dea immutable; six C/B source refusal findings corrected/supplemented, not retroactivePASS",
+  "correction_review_refs": {
+    "C": "scratch-enemies/worldmap-placement-C/crossed-adapters-review-1dea/review.json SHAeb2c9a2cf0e20b0cb99c81330db8532607cad97130709ba761133c5440229a7b",
+    "B": "scratch-objects11/pointwarp-adapter-review-B-1dea86f5/REPORT.md SHAed30f4dca20be6e13c87b73def3323b9fa25b2bcb1fd7d372f2f2df20cfaa3ce"
   }
 }

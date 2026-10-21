@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "status": "source-only",
+  "native": {
+    "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+    "files": {
+      "native/gx/present/present_aurora.cpp": "8c27bf26870fb59acaed4a91ea629a931443854bf691886efcc16efcbae55ab4",
+      "native/gx/present/present_host.cpp": "e0ce5acd771b38d503d8489a16a00e9001327b83f48d741f88a1fa8613f5dc22",
+      "native/gx/present/present_aurora.hpp": "9cb16036fc21b38ff4aefaf58d98d58e94c98976d0764eca44dbfcc07b37b202",
+      "native/gx/present/present.h": "f50903510f46b5f1e0c30529526bb66304899a5c3ecd483170366bdb7b558380",
+      "native/gx/patch_aurora_present.py": "0b6ea6e38ce80e57909fcf68762d03b41063becd005636484096b4d31a9731e7",
+      "native/gx/CMakeLists.txt": "1d4270bcf3e7fb51a4db107c2987c307bdc403d6a4980209df1a8eb38da5540b",
+      "native/app/frame_seam.cpp": "c4b651ced89717b81cd129061d55a57ff6d0c56b0ed93a06d262803108a238d3",
+      "src/Game/System/GameSystem.cpp": "1ee07d447405f139161368281e4f9721319206f6ed6cebb4eb3fb40535ac9a51",
+      "native/include/petari/latency_probe.hpp": "92cb5f62b09ba8e7594e914ee0e13730a3e29231dcf5eba574e1182df53fd0f6",
+      "native/include/petari/png_write.hpp": "edc667c44a7824b7508a718ef229e6dc3fbb2a0f73988f879c0075f7a178d3a2",
+      "native/include/petari/screenshot.hpp": "7dd2daeeb22744cc53828a16969454fbdc2c7ecaac7dd7933ddeca860c8b823c",
+      "native/gx/patch_aurora_texture_timing.py": "bb9064e39aef8a885d3e7274799bf64f2d7645415fc7767dab91bd6942e0f040",
+      "native/gx/patch_aurora_sync.py": "d5c93a5499d77b8f35645a5b7574dbe96d4e314db47b30a9be26c8dc815f6933",
+      "src/Game/System/MainLoopFramework.cpp": "f9cef00d9d8f0c885cc805a8fe643e6f61939c3650d0419109ba16c3995e1ee6",
+      "src/JSystem/JUtility/JUTVideo.cpp": "4bb7159a3ef8d06e26dedd956ee27ddc40e31702798c2280fde914b7b832879f",
+      "native/app/headless/observe.cpp": "e1fd1956c26034f0f686f8fb6b21b357eea3fd1fcd58465022cfb91d5fff7147",
+      "native/app/progress_observe.cpp": "656e71a8583de6802942e5856d7529082b5c5a432f2677f89c305bec0239666b",
+      "native/app/smoke_game.cpp": "bf98d8f56113e4f92617081030bfdb6062c61c6b312e23516b3681116d24bf20",
+      "native/app/route_record.hpp": "a1610a91f6e78575886fb9be901998bb94eda000c0fd754d1846f4d0a481a038"
+    }
+  },
+  "aurora": {
+    "revision": "08122911e8621acb7ded6563813b264bec1494b5",
+    "repository": "https://github.com/encounter/aurora",
+    "files": {
+      "lib/aurora.cpp": "ef7ddf6f9ca1705235fcd10c7de62f7a0fcd45e5a5bad750d7e381d3f089b4d9",
+      "lib/dolphin/gx/GXFrameBuffer.cpp": "8d2ba595885e3c52e78a843c511e89348899ebfbadc810d691aeb7efbe908010",
+      "lib/gfx/frame.cpp": "1b64edf2ff31e7839e2a579cd056167f425b70610ad829c118636930ff84e695",
+      "lib/gfx/recording.cpp": "57f6ca588fe53d381eecec6b0fbb1610ea1863e4ac9b76e6b48fe5411419a823",
+      "lib/gfx/render_worker.cpp": "5547cf000d1daaa2f1f85256c30300dac65783918aa43ca14ab65a5e31c04aec",
+      "lib/gfx/texture.cpp": "550f804df43f391829509591b3e3237ec3a44cb2c079f5859e16cb72dd158fae",
+      "lib/gfx/texture.hpp": "8ba4b22ab4a4ba1db58f77a7c0bd04994624ae63ae58c12d3b545bf30083f9fc",
+      "lib/gx/command_processor.cpp": "ff3eeb1c06562c0cbbeb5cbad0daa45aeb4370733dd073ccd34f10f6303ba5ab",
+      "lib/gx/fifo.cpp": "f26e48d9854352562ddb13936f93140ffd74f2c65e41df04da8a9074e17a1c6f",
+      "lib/gx/gx.cpp": "ef6604ddfa9b66f167730d076bc7eb87fa20b1c9591b1c2fd249d1d64c3463dc",
+      "lib/gx/gx.hpp": "7cc8b98806ebabd340f66926940a126e6b97f0c42d7f8b9c825c094a7ee8ac62",
+      "lib/gx/texture.cpp": "441dcd01ad0bbfd9b1f63db1596a0264aa0acce0546cbbd79baedf46b97c6ca5"
+    }
+  },
+  "runtime_provider_accepted": false,
+  "qualification": "BLOCKED"
+}

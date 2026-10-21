@@ -234,7 +234,7 @@ class DecoderTests(unittest.TestCase):
             struct.pack_into('>I', data, index * 4, offset)
             struct.pack_into('>I', data, 0x48 + index * 4, address)
             struct.pack_into('>I', data, 0x90 + index * 4, size)
-        struct.pack_into('>II', data, 0x100, 0x80630000, 0x48000020)
+        struct.pack_into('>II', data, 0x100, 0x80640000, 0x48000020)
         struct.pack_into('>I', data, 0x148, 0x80001000)
         return data
 

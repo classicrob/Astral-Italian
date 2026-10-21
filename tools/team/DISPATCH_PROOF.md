@@ -5,7 +5,7 @@ This branch does not change remoteproof.py, proofland.sh, the certificate format
 Run the asset-free tests at low priority:
 
 ```
-nice -n 19 python3 -m unittest tools/team/test_dispatchproof.py
+nice -n 19 python3 -m unittest tools/team/test_dispatchproof.py tools/team/test_dispatchownership.py
 ```
 
 The synthetic big-endian ELF fixtures exercise the actual objsame ELF reader, section payload comparison, named symbol records, and relocation normalization. They are not substitutes for mutations of the real candidate objects.
@@ -26,9 +26,9 @@ The caller supplies an independently reviewed SHA256 over canonical JSON (`sort_
 
 ## Original DOL and ownership
 
-Original DOL SHA256 is pinned in code. `dispatch-tu13-ownership-v1.json` contains only addresses, body/table hashes and the Start/Wait/End singleton -> constructor -> vtable -> wrapper -> body claims; its own file hash is pinned. No game bytes or instruction dumps are included. `audit_tu13_dol` reads the private local DOL, validates all pinned bodies/tables, and decodes the two physical Start/End vtable words plus executor-load/tail-branch instructions. It returns PARTIAL_DOL_EDGES_ONLY, never acceptance.
+Original DOL SHA256 is pinned in code. `dispatch-tu13-ownership-v1.json` contains only addresses, body/table hashes and the Start/Wait/End singleton -> constructor -> vtable -> wrapper -> body claims; its own file hash is pinned. No game bytes or instruction dumps are included. `audit_tu13_dol` reads the private local DOL, validates all pinned bodies/tables, and delegates to the now qualified bounded ownership decoder described below. It never returns proof acceptance.
 
-Full r13 bootstrap, init/appear selection, sinit/constructor stores, Wait and Spine decoding remains PENDING, as does joining the actual fresh compiled symbols/relocations through the symbol map to those physical addresses. TU14 has no DOL decoder yet and no implicit reuse of TU13 ownership claims. Unknown instructions or unmapped/overlapping reads reject. The code must not be connected to production until these unfinished checks have real evidence and rejecting controls.
+The original r13/bootstrap/selector/constructor/Wait/Spine chain is now decoded in separate TU13 and TU14 contracts. Joining the actual fresh candidate symbols/relocations through the symbol map to those physical addresses remains PENDING. TU14 does not reuse TU13 ownership claims. Unknown instructions or unmapped/overlapping reads reject. The code must not be connected to production until these unfinished checks have real evidence and rejecting controls.
 
 ## Required work before import integration
 
@@ -38,3 +38,26 @@ Full r13 bootstrap, init/appear selection, sinit/constructor stores, Wait and Sp
 4. Review fail-closed integration with full schema1 archive/certificate/six provenance and an explicit operator opt-in, mutually exclusive with Mario52. No producer scripts executed, old canonical spec edited, broad native exemption or whole-TU waiver. Existing final contract recheck and nj guard stay required.
 
 No real candidate compilation, original-DOL audit, native.lock acquisition, production verifier execution or landing was performed to produce the synthetic test result.
+
+## Qualified bounded ownership decoder
+
+`dispatchownership.py` now implements both separate original-DOL chains. `decode_original_dol(data, scope)` requires the exact private original DOL SHA, then verifies r13 LIS/ORI bootstrap; init/appear (and TU13 Start/Wait) selectors and their linked initNerve/setNerve calls; sinit argument ADDIs and distinct constructor BLs; each constructor's vtable materialization/store; owning execute slot+8; exact executor load from Spine in r4; and the size-specific wrapper tail branch. TU14 additionally requires init's dead flag and its twelve-byte wrapper selecting the distinct Wait singleton. It binds TU14 argument PCs9978/9984 separately from actual BL PCs9980/9988. The earlier packet's mislabeled call positions reject.
+
+The shared decoder follows initNerve's preserved argument into Spine construction, the executor's Spine field, setNerve's pending-nerve store, changeNerve's pending-to-current transfer/reset, and update's actual current-nerve vtable/slot8/CTR call with Spine in r4. This is a bounded instruction/dataflow verifier for the pinned chain, not a general PPC emulator or a whole-program behavioral proof. Unknown edge forms reject; the production entry also requires the entire original DOL hash. It emits only semantic addresses/scalars, never instruction bytes.
+
+`decode_object(path, scope)` resolves the existing ELF's actual singleton/sinit/constructor/vtable/execute relationships, including effective local/section aliases for ownership relocations, and reports semantic method mismatches. It distinguishes pre-link SDA21 RA=0 from the original linked r13 instruction; it requires the exact relocation to the owned singleton. It never derives linked wrapper VAs by subtracting unrelated object offsets. `require_candidate` rejects those mismatches; matching this component alone still cannot accept an object or issue a proof certificate. Actual candidate-to-config VA/size joins and the full unchanged remainder remain independent required checks.
+
+Both read-only server pre-fix objects reject as candidates with exactly two known dispatch reversals each. The pinned original TU13 and TU14 chains decode. Eight semantic mutations against the in-memory private-DOL reader reject without relying on outer hash rejection; no mutated DOL or payload fixture is written. Forty asset-free test methods cover both synthetic complete chains and rejecting controls, including the exact wrong r3-base assumption found during qualification. The test programs are emitted from semantic ISA operations, not copied instruction payloads.
+
+Callable interfaces for independent challenge:
+
+```
+from dispatchownership import decode_original_dol, decode_object, require_candidate
+original_report = decode_original_dol(private_dol_bytes, 'TU13')
+baseline_report = decode_object(private_before_object_path, 'TU13')
+require_candidate(private_before_object_path, 'TU13')  # expected ValueError
+```
+
+Use TU14 separately. `dispatchproof.audit_tu13_dol` additionally checks its pinned metadata bodies/tables before delegating the full decoder; `audit_tu14_dol` delegates its separate full chain. Every successful report retains production_acceptance=false. Full fresh candidate objects, integrated source/config bindings, complete effective-reference closure, actual source perturb/restore compilation and import integration remain PENDING. No live world-map observation replaces those checks.
+
+`qualify_dispatchownership.py --dol PRIVATE_DOL --tu13 PRIVATE_BEFORE_TU13 --tu14 PRIVATE_BEFORE_TU14 --output NEW_SEMANTIC_RECEIPT` repeats the bounded read-only qualification. The two BEFORE object hashes are pinned to P's completed proof53-r1 baseline measurements. It refuses to overwrite an output and emits only hashes, addresses, mismatch names and control results. It uses no lock, compiler, runtime or proofland API; it does not change those original files. All generated instruction mutations exist only in memory.

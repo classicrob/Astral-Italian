@@ -35,7 +35,7 @@ SCOPES = {
 }
 BINDINGS = {'base', 'tip', 'source_trees', 'source_files', 'config_files',
             'toolchain', 'generators', 'graphs', 'dol_sha256'}
-PENDING = ['reviewed fresh-object envelope', 'full original-DOL ownership decoder qualification',
+PENDING = ['reviewed fresh-object envelope', 'fresh integrated original-DOL and compiled ownership qualification',
            'fresh 2426-object reference closure', 'actual ELF rejecting/restoration controls',
            'reviewed remoteproof/proofland integration']
 
@@ -191,12 +191,12 @@ def physical_edges(data, edges):
     for table, wrapper, target in edges:
         require(struct.unpack('>I', dol_read(data, table + 8, 4))[0] == wrapper, 'wrong DOL owning slot')
         load, branch = struct.unpack('>II', dol_read(data, wrapper, 8))
-        require(load == 0x80630000 and branch_target(branch, wrapper + 4) == target,
+        require(load == 0x80640000 and branch_target(branch, wrapper + 4) == target,
                 'wrong DOL executor load/wrapper target')
 
 
 def audit_tu13_dol(data):
-    """Validate pinned bodies and physical vtable/wrapper edges; full chain stays pending."""
+    """Validate pinned bodies and delegate the complete bounded original chain decoder."""
     require(sha(data) == DOL_SHA, 'original DOL hash')
     pin_bytes = Path(__file__).with_name('dispatch-tu13-ownership-v1.json').read_bytes()
     require(sha(pin_bytes) == OWNERSHIP_SHA, 'ownership metadata pin')
@@ -209,9 +209,13 @@ def audit_tu13_dol(data):
     edges = ((0x80703198, 0x804f9730, 0x804f94e0),
              (0x80703178, 0x804f9710, 0x804f95b0))
     physical_edges(data, edges)
-    return {'status': 'PARTIAL_DOL_EDGES_ONLY', 'production_acceptance': False,
-            'pending': ['r13 bootstrap/init/appear/sinit/ctor and Spine instruction decoding',
-                        'Wait chain decoding', 'compiled relocation-to-DOL ownership joins']}
+    from dispatchownership import decode_original_dol
+    return decode_original_dol(data, 'TU13')
+
+
+def audit_tu14_dol(data):
+    from dispatchownership import decode_original_dol
+    return decode_original_dol(data, 'TU14')
 
 
 def production_status():

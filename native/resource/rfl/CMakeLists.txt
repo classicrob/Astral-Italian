@@ -23,45 +23,7 @@ get_filename_component(PETARI_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." A
 
 if(_petari_rfl_standalone)
     # The root build's shared targets, recreated for a standalone build.
-    find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
-    set(PETARI_LEGACY_ROOT "${CMAKE_BINARY_DIR}/legacy-sjis")
-    execute_process(
-        COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tools/encode_legacy_sources.py"
-            --root "${PETARI_REPO_ROOT}" --output "${PETARI_LEGACY_ROOT}"
-        RESULT_VARIABLE _petari_encoding_result)
-    if(NOT _petari_encoding_result EQUAL 0)
-        message(FATAL_ERROR "Could not prepare Shift-JIS legacy sources")
-    endif()
-    # Regenerate the copies when sources change, as the root build does.
-    file(GLOB_RECURSE _petari_legacy_inputs CONFIGURE_DEPENDS
-        "${PETARI_REPO_ROOT}/src/*.c" "${PETARI_REPO_ROOT}/src/*.cpp" "${PETARI_REPO_ROOT}/src/*.h"
-        "${PETARI_REPO_ROOT}/include/*.h" "${PETARI_REPO_ROOT}/include/*.hpp"
-        "${PETARI_REPO_ROOT}/libs/*.h" "${PETARI_REPO_ROOT}/libs/*.hpp")
-    set(_petari_encoding_stamp "${PETARI_LEGACY_ROOT}/.prepared")
-    add_custom_command(OUTPUT "${_petari_encoding_stamp}"
-        COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tools/encode_legacy_sources.py"
-            --root "${PETARI_REPO_ROOT}" --output "${PETARI_LEGACY_ROOT}"
-        COMMAND "${CMAKE_COMMAND}" -E touch "${_petari_encoding_stamp}"
-        DEPENDS "${PETARI_REPO_ROOT}/native/tools/encode_legacy_sources.py" ${_petari_legacy_inputs}
-        COMMENT "Updating Shift-JIS literals in generated native source inputs")
-    add_custom_target(petari_legacy_sources DEPENDS "${_petari_encoding_stamp}")
-    function(petari_encode_target_sources target)
-        get_target_property(_sources "${target}" SOURCES)
-        set(_encoded)
-        foreach(_source IN LISTS _sources)
-            set(_relative "")
-            if(IS_ABSOLUTE "${_source}")
-                file(RELATIVE_PATH _relative "${PETARI_REPO_ROOT}" "${_source}")
-            endif()
-            if(_relative MATCHES "^src/")
-                list(APPEND _encoded "${PETARI_LEGACY_ROOT}/${_relative}")
-            else()
-                list(APPEND _encoded "${_source}")
-            endif()
-        endforeach()
-        set_property(TARGET "${target}" PROPERTY SOURCES "${_encoded}")
-        add_dependencies("${target}" petari_legacy_sources)
-    endfunction()
+    include("${PETARI_REPO_ROOT}/native/cmake/LegacySources.cmake")
 
     add_library(petari_native_config INTERFACE)
     target_compile_definitions(petari_native_config INTERFACE GALAXY_NATIVE=1)

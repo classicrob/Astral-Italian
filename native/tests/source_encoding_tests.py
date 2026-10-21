@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -56,6 +57,29 @@ int main() {
         converted = encoding.transform('R"tag(日本\n"x")tag"')
         self.assertEqual(converted.count('\n'), 1)
         self.assertIn(encoding.octal_bytes('日本\n"x"'), converted)
+
+    def test_selective_file_generation(self):
+        with tempfile.TemporaryDirectory(prefix='petari-selective-encoding-') as temp:
+            root = Path(temp)
+            (root / 'src').mkdir()
+            wanted = root / 'src/wanted.cpp'
+            wanted.write_text('const char* s = "星";')
+            (root / 'src/other.cpp').write_text('int other;')
+            output = root / 'generated'
+            subprocess.run([sys.executable, str(SCRIPT), '--root', str(root), '--output', str(output),
+                            '--file', 'src/wanted.cpp'], check=True, capture_output=True)
+            self.assertIn(encoding.octal_bytes('星'), (output / 'src/wanted.cpp').read_text())
+            self.assertFalse((output / 'src/other.cpp').exists())
+
+    def test_selective_file_rejects_escape(self):
+        with tempfile.TemporaryDirectory(prefix='petari-encoding-escape-') as temp:
+            root = Path(temp)
+            result = subprocess.run([sys.executable, str(SCRIPT), '--root', str(root),
+                                     '--output', str(root / 'generated'), '--file', '../outside.cpp'],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('--file must name a legacy source', result.stderr)
+            self.assertFalse((root / 'generated').exists())
 
     def test_compiled_bytes(self):
         source = r'''

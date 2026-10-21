@@ -75,9 +75,9 @@ def source_files(root):
                 yield path
 
 
-def prepare(root, output):
+def prepare(root, output, files=None):
     count = 0
-    for path in source_files(root):
+    for path in source_files(root) if files is None else files:
         original = path.read_text(encoding='utf-8')
         try:
             encoded = transform(original)
@@ -96,8 +96,25 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--file', type=Path, action='append', help='encode only this root-relative input (repeatable)')
     args = parser.parse_args()
-    count = prepare(args.root.resolve(), args.output.resolve())
+    root = args.root.resolve()
+    files = None
+    if args.file is not None:
+        files = []
+        for relative in args.file:
+            path = root / relative
+            try:
+                path.resolve().relative_to(root)
+                inside_root = True
+            except ValueError:
+                inside_root = False
+            if (relative.is_absolute() or '..' in relative.parts or not relative.parts
+                    or relative.parts[0] not in ('src', 'include', 'libs')
+                    or relative.suffix not in EXTENSIONS or not inside_root):
+                parser.error('--file must name a legacy source inside src/, include/ or libs/')
+            files.append(path)
+    count = prepare(root, args.output.resolve(), files)
     print(f'Prepared native legacy sources; encoded literals in {count} files.')
 
 

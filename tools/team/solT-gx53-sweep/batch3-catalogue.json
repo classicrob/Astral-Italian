@@ -1,0 +1,69 @@
+{
+  "status": "PREPARATION_ONLY_NOT_ALLOCATED",
+  "source_sha": "33e71ee880b426c0c7da03a724377200e874c417",
+  "manifest_sha256": "b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a",
+  "catalog_metadata_sha256": "c6c31e362aabfc946203925497c605641dcf254c14329c739625a19fa3ea633d",
+  "selection": "Remaining supported non-WorldMap manifest ASCII order after closed first nine",
+  "stages": [
+    {
+      "stage": "BigTree2Galaxy",
+      "scenario": 1,
+      "world": 3,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "BigWaterFallGalaxy",
+      "scenario": 1,
+      "world": 2,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "ChallengeGliderGalaxy",
+      "scenario": 1,
+      "world": 5,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "ChaosGravityGalaxy",
+      "scenario": 1,
+      "world": 5,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "ChildRoomGalaxy",
+      "scenario": 1,
+      "world": 10,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "CloudGardenGalaxy",
+      "scenario": 1,
+      "world": 3,
+      "scenario1_metadata_present": true
+    }
+  ],
+  "case_seconds": 90,
+  "cases_per_galaxy": [
+    "fresh",
+    "warm"
+  ],
+  "no_worldmap": true,
+  "runtime_authorization": false,
+  "prior_observed_galaxies": [
+    "RedBlueExGalaxy",
+    "MokumokuValleyGalaxy",
+    "YosshiHomeGalaxy",
+    "IslandFleetGalaxy",
+    "DigMineGalaxy",
+    "AbekobeGalaxy",
+    "VsKoopaJrLv1Galaxy",
+    "AncientExcavationGalaxy",
+    "BigGalaxy"
+  ],
+  "prior_batch_receipts_sha256": [
+    "c0d54d30ba5dd02248ee6adca366de91c5885ebacdf3d60f515ef350f38f9326",
+    "8b4967c8cf5f9e102a6fe045fad662537fbe758fdd61ef8337150436984951f8"
+  ],
+  "max_runtime_seconds": 1500,
+  "qualification": "Preparation only; requires a separate allocation and explicit artifact/lock handoff. Direct-entry idle is not normal-path or gameplay completion."
+}

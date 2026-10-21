@@ -31,6 +31,7 @@ def stats(values):
     return {"rows": len(values), "mean_ms": statistics.fmean(values), "p50_ms": q(.5),
             "p95_ms": q(.95), "p99_ms": q(.99), "max_ms": values[-1],
             "over_20ms": sum(x > 20 for x in values),
+            "over_25ms": sum(x > 25 for x in values),
             "over_33_333ms": sum(x > 1000 / 30 for x in values),
             "over_50ms": sum(x > 50 for x in values), "over_100ms": sum(x > 100 for x in values)}
 
@@ -66,13 +67,16 @@ for entry in closed["rows"]:
         "focused_source_gameplay_intervals": stats(frame),
         "presented_drawable_intervals": stats(present), "present_state_rows": states,
         "non_gameplay_or_unfocused_rows_excluded": excluded, "included_efb_capture_rows": efb_rows})
-result = {"source_sha": batch["source_sha"], "artifact_sha256": batch["handoff"]["executable_sha256"],
+result = {"summary_schema_version": 2,
+    "threshold_semantics": "Strictly greater than each threshold, using recorded CSV values; exactly 25.000ms is excluded from over_25ms. Source timing columns have three decimal places.",
+    "summary_tool_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    "source_sha": batch["source_sha"], "artifact_sha256": batch["handoff"]["executable_sha256"],
     "renderer_key": batch["handoff"]["artifact_key"], "cases": cases,
     "providers": {name: batch["source_providers"][name] for name in ("native/app/frame_seam.cpp", "native/app/frame_stats.cpp")},
     "present_semantics": "native/include/petari/present_stats.hpp: interval between presented drawable timestamps, not GPU duration or input-to-screen latency",
     "gpu_time": "NOT_MEASURED", "input_to_screen_latency": "NOT_MEASURED", "visual_dolphin_diff": "NOT_MEASURED",
     "qualification": "Neutral direct-entry idle, focused rows labelled gameplay by existing source. Includes capture overhead and uncontrolled OS/driver cache. No performance/GPU/visual PASS. Logs unread."}
-with (root / "FRAME-FEEL.json").open("x") as handle:
+with (root / "FRAME-FEEL-25MS.json").open("x") as handle:
     json.dump(result, handle, indent=2, allow_nan=False)
     handle.write("\n")
 print(json.dumps(result, indent=2, allow_nan=False))

@@ -27,6 +27,7 @@ frozen_app_validate() {
 frozen_app_named() {
     case "$1" in
     default) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.1/Petari.app" ;;
+    "5.2 with Cappy"|build5.2) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.2/Petari.app" ;;
     build4) frozen_app_validate "$HOME/MacioGalaxy2-play/Petari.app" ;;
     ''|.|..|*[!A-Za-z0-9._-]*) echo "play: use default or a frozen build directory name" >&2; return 1 ;;
     *) frozen_app_validate "$HOME/MacioGalaxy2-play/$1/Petari.app" ;;
@@ -42,6 +43,8 @@ frozen_app_list() {
                 frozen_name=${frozen_candidate%/Petari.app}
                 if [ "${frozen_name##*/}" = build5.1 ]; then
                     printf '  build5.1 (default)  %s\n' "$frozen_verified"
+                elif [ "${frozen_name##*/}" = build5.2 ]; then
+                    printf '  5.2 with Cappy (build5.2)  %s\n' "$frozen_verified"
                 else
                     printf '  %s  %s\n' "${frozen_name##*/}" "$frozen_verified"
                 fi

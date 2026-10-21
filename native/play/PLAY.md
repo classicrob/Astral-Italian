@@ -243,3 +243,9 @@ audio, no physical input, a fresh user folder under `~/MacioGalaxy2-play/smoke`)
 quits it after 60 seconds and passes when it reached a menu scene (logo/title/file select), logged the stage request,
 played at least 120 gameplay frames and never crashed or panicked (the app's per-frame phase CSV and log are kept in
 the run folder). Run it for each galaxy before handing the build over.
+
+### Optional 5.2 with Cappy
+
+Build 5.1 remains the default. Choose **c) 5.2 with Cappy** in the launcher, or use `native/play/play.sh --build build5.2 fluffy-bluff`. The build name `"5.2 with Cappy"` is also accepted by `--build`. Enable Odyssey movement and Cappy in Home → Mods to throw with R; F remains Spin. Existing saved mod choices are preserved.
+
+Both 5.1 and 5.2 have a known galaxy-selection/world-map renderer issue involving nested CALL_DL and an unmapped array24. Use the launcher galaxy menu or Home-menu Level Select to enter a galaxy directly. The account owner explicitly approved releasing 5.2 with this known issue; the normal-route/unlocked-save galaxy-entry gate is waived only for 5.2. Build 5.2.1 requires the complete normal-route gate. See the immutable build5.2/FROZEN.txt for the exact artifact and actual gate receipts.

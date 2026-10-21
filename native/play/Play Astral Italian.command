@@ -19,7 +19,8 @@ while :; do
     echo "  4) Title screen          (normal start, file select)"
     echo
     echo "  Frozen build: ${ASTRAL_APP%/Petari.app}"
-    echo "  b) Choose a frozen build"
+    echo "  c) 5.2 with Cappy"
+    echo "  b) Choose another frozen build"
     echo "  o) Odyssey movement: $([ -n "$odyssey" ] && echo ON || echo off)"
     echo "  a) Audio: $audio"
     echo "  u) Save: $([ -n "$save" ] && echo 'everything unlocked (separate file 1)' || echo 'normal progress')"
@@ -34,6 +35,9 @@ while :; do
     2) galaxy=fluffy-bluff ;;
     3) galaxy=sky-station ;;
     4) galaxy=title ;;
+    c|C) selected_app=$(frozen_app_named build5.2) || exit 1
+         export ASTRAL_APP="$selected_app"
+         continue ;;
     b|B) frozen_app_list
          printf "Frozen build name (default or directory name): "
          read -r build_name || exit 0

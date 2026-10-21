@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_camera_diag.hpp>
+#endif
 #include "Game/Camera/CameraManEvent.hpp"
 #include "Game/Camera/CamTranslatorAnim.hpp"
 #include "Game/Camera/Camera.hpp"
@@ -207,6 +210,10 @@ void CameraManEvent::changeCamera() {
     translator->setParam(mChunk);
     setExtraParam();
     setVPanParam();
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::setPhase("camera-apply");
+    PetariWmRouteDiag::applied(this);
+#endif
 }
 
 void CameraManEvent::setExtraParam() {
@@ -321,6 +328,10 @@ void CameraManEvent::requestChunk(CameraParamChunkEvent* pChunk, EPriority prior
     mItems[priority].mSecond.mTargetArg.mLiveActor = rArg.mLiveActor;
     mItems[priority].mSecond.mTargetArg.mMarioActor = rArg.mMarioActor;
     mItems[priority].mSecond.mFrame = frame;
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::setPhase("camera-enqueue");
+    if (PetariWmRouteDiag::event()) PetariWmRouteDiag::cameraQueue("CameraManEvent::requestChunk", this);
+#endif
 }
 
 bool CameraManEvent::cleanChunkFIFO(CameraParamChunk* pChunk) {

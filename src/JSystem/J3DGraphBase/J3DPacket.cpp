@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #include "JSystem/J3DGraphBase/J3DPacket.hpp"
 #include "JSystem/J3DGraphAnimator/J3DModel.hpp"
 #include "JSystem/J3DGraphAnimator/J3DModelData.hpp"
@@ -325,6 +328,9 @@ void J3DShapePacket::prepareDraw() const {
 
 void J3DShapePacket::draw() {
     if (!checkFlag(J3DShpFlag_Hidden) && mpShape != NULL) {
+#ifdef GALAXY_NATIVE
+        PetariWmRouteDiag::submitted(mpModel);
+#endif
         prepareDraw();
 
         if (mpTexMtxObj != NULL) {
@@ -344,6 +350,9 @@ void J3DShapePacket::draw() {
 
 void J3DShapePacket::drawFast() {
     if (!checkFlag(J3DShpFlag_Hidden) && mpShape != NULL) {
+#ifdef GALAXY_NATIVE
+        PetariWmRouteDiag::submitted(mpModel);
+#endif
         prepareDraw();
 
         if (mpTexMtxObj != NULL) {

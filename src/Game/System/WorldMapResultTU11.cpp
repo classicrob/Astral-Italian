@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_route_diag.hpp>
+#endif
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultStateWorldWarp.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
@@ -406,6 +409,9 @@ void WorldMapOwner::tryTalkPoint(s32 node) {
 
 // NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue) (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::prepareWorld() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("WorldMapOwner::prepareWorld", 0);
+#endif
     WorldMapOwnerContext* pContext = mContext;
     pContext->mWorld->prepare();
     if (mContext->mModel != nullptr) {
@@ -415,6 +421,9 @@ void WorldMapOwner::prepareWorld() {
 
 // NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue) (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::finishWorld() {
+#ifdef GALAXY_NATIVE
+    PetariWmRouteDiag::body("WorldMapOwner::finishWorld", 0);
+#endif
     WorldMapOwnerContext* pContext = mContext;
     pContext->mWorld->finish();
     if (mContext->mModel != nullptr) {
@@ -851,6 +860,13 @@ void WorldMapOwner::startCamera(const char* pName, s32 frames) {
     snprintf(buffer, 0x100, "%s", pName);
     LiveActor* pTarget = getCamera()->mCameraTarget;
     s32 id = getCamera()->mCameraId;
+#ifdef GALAXY_NATIVE
+    if (PetariWmRouteDiag::enabled()) {
+        const auto* data = getMapData(); const s32 current = getCamera()->mCurrent;
+        const s32 layer = data && data->mNodes && current >= 0 && current < data->mNum ? data->mNodes[current].mLayer : -1;
+        PetariWmRouteDiag::request("WorldMapOwner::startCamera", buffer, id, frames, pTarget, pTarget ? pTarget->mPosition.x : 0.0f, pTarget ? pTarget->mPosition.y : 0.0f, pTarget ? pTarget->mPosition.z : 0.0f, current, layer);
+    }
+#endif
     MR::startEventCameraById(id, buffer, CameraTargetArg(pTarget), frames);
 }
 
@@ -867,6 +883,13 @@ void WorldMapOwner::startCameraAtCurrent(const char* pName, s32 frames) {
     }
 
     s32 id = getCamera()->mCameraId;
+#ifdef GALAXY_NATIVE
+    if (PetariWmRouteDiag::enabled()) {
+        const auto* data = getMapData(); const s32 current = getCamera()->mCurrent;
+        const s32 layer = data && data->mNodes && current >= 0 && current < data->mNum ? data->mNodes[current].mLayer : -1;
+        PetariWmRouteDiag::request("WorldMapOwner::startCameraAtCurrent", buffer, id, frames, pTarget, pTarget ? pTarget->mPosition.x : 0.0f, pTarget ? pTarget->mPosition.y : 0.0f, pTarget ? pTarget->mPosition.z : 0.0f, current, layer);
+    }
+#endif
     MR::startEventCameraById(id, buffer, CameraTargetArg(pTarget), frames);
 }
 

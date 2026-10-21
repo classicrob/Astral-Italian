@@ -1,4 +1,5 @@
 #pragma once
+#include <petari/wm_route_diag.hpp>
 #include <petari/input.hpp>
 #include <cmath>
 #include <cstdio>
@@ -32,6 +33,9 @@ public:
     }
     void write(const RouteRecordFrame& r) {
         if (!mFile) return;
+        if (PetariWmRouteDiag::enabled() && PetariWmRouteDiag::world && (PetariWmRouteDiag::selected || mFrame % 60 == 0))
+            std::fprintf(stderr, "[wm-route-align] aurora_frame=%llu seq=%llu thread=%llu phase=seam-before-route-write route_frame=%lu stage=%s valid=%d\n",
+                PetariWmRouteDiag::runtimeFrame(), ++PetariWmRouteDiag::eventSequence, PetariWmRouteDiag::threadId(), mFrame, r.stage ? r.stage : "", r.valid);
         std::fprintf(mFile, "%lu,\"", mFrame++);
         for (const char* p = r.stage ? r.stage : ""; *p; ++p) {
             if (*p == '"') std::fputc('"', mFile);

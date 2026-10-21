@@ -40,7 +40,10 @@ No donor files or game assets are changed.
   pressed before the cap of an earlier throw reaches the area takes that
   throw's pending contact there (`petariCappyConsumeSpinSwitchArea`), so the
   cap, ~8 frames after an air throw, does not flip it straight back. A throw
-  issued after the Spin still counts once. Run test (needs the disc):
+  issued after the Spin still counts once. A Spin pressed over a ground throw's
+  borrowed animation (which Galaxy reads as a spin already running) is held
+  until the cap has left the hand (frame 12), then starts the game's own Spin
+  (`petariCappyGroundSpinOverThrow`); no forced status or swing edge. Run test (needs the disc):
   `native/tests/cappy_spin_switch_tests.py`.
 - The unported Odyssey orbit camera keeps its own absent observer. Cappy's
   observers now come from the real game-side implementation.

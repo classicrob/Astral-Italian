@@ -1055,6 +1055,22 @@ void MarioActor::updateSwingAction() {
 #endif
     bool requestRush = isRequestRush();
     if (!requestRush) requestRush = false;
+#ifdef GALAXY_NATIVE
+    // Cappy's ground throw borrows the spin animation, which Galaxy reads as a
+    // spin already running: it drops a Spin pressed meanwhile (and starts its
+    // interval). The press is held until Cappy has left the hand, then starts
+    // the game's own Spin below.
+    switch (petariCappyGroundSpinOverThrow(this, requestRush)) {
+    case PetariCappyGroundSpin::Hold:
+        _1E1 = requestRush;
+        return;
+    case PetariCappyGroundSpin::Deliver:
+        requestRush = true;
+        break;
+    case PetariCappyGroundSpin::None:
+        break;
+    }
+#endif
     _1E1 = requestRush;
     if (_946) {
         if (requestRush) tryReleaseBombTeresa();
@@ -1103,7 +1119,11 @@ void MarioActor::updateSwingAction() {
             mMario->trySpinJump(tmp);
             setPunchHitTimer(0x19);
             tryReleaseBombTeresa();
-        } else if (!((getMovementStates().mLowWord >> 16) & 1U) && !mMario->isAnimationRun("地上ひねり") && !mMario->isAnimationRun("雲スピン")) {
+        } else if (!((getMovementStates().mLowWord >> 16) & 1U) && (!mMario->isAnimationRun("地上ひねり")
+#ifdef GALAXY_NATIVE
+                   || petariCappyTakeGroundSpinDelivery()
+#endif
+                   ) && !mMario->isAnimationRun("雲スピン")) {
             const char* pLastAnimationName = mMarioAnim->getUpperAnimationName();
             if (mPlayerMode == 4) {
                 if (!mMario->isAnimationRun("ハチスピン")) {

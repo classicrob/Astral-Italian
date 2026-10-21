@@ -117,7 +117,10 @@ area toggles its ordinary stage switch once per throw, with the same area
 validity rules. The borrowed throw animation does not also count as a Spin,
 so one throw produces one toggle. A real Spin always toggles the area too,
 and takes the pending contact of a throw whose cap has not reached it yet, so
-the cap arriving afterwards does not undo the Spin. This does not give Cappy a new switch message or bypass an
+the cap arriving afterwards does not undo the Spin. A Spin pressed over a ground
+throw's borrowed animation is held until Cappy has left the hand (throw frame 12),
+then Galaxy's own Spin starts (Magic status, hit sensor, effects); later presses
+start it at once. This does not give Cappy a new switch message or bypass an
 object's own reaction rules. Capturing enemies is not implemented.
 
 The play launcher's `--odyssey` adds Odyssey movement to the saved mod choices

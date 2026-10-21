@@ -25,6 +25,13 @@ void petariCappyDiveStarted();
 // The throw borrows Spin animations, which are not an actual Spin action.
 // SwingActionWatcher excludes that visual motion; real Spin states remain valid.
 bool petariCappyUsesSpinAnimation();
+// A Spin pressed over a ground throw's borrowed spin animation. Hold: Cappy is
+// still in the hand, the press is kept (the caller leaves it alone). Deliver:
+// Cappy has left (or the kept press is due), start the game's own Spin now.
+enum class PetariCappyGroundSpin { None, Hold, Deliver };
+PetariCappyGroundSpin petariCappyGroundSpinOverThrow(MarioActor* pActor, bool pressed);
+// True once for a Deliver: the "spin already running" test must let the Spin start.
+bool petariCappyTakeGroundSpinDelivery();
 // SpinSwitchArea: cap contact, once per area per throw. Uses the area's own
 // volume/validity checks; false unless the cap is flying with both mods on.
 bool petariCappyTouchSpinSwitchArea(const AreaObj* pArea);

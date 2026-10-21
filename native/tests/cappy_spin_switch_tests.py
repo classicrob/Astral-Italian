@@ -61,12 +61,23 @@ def script(air, throw, spin_after, total=170):
     return timeline(ev, total)
 
 
-# name, air, throw, spin_after, expected toggle sources in order
+# The cap flips the area at its release (throw frame 12); the Spin's own swing edge follows 2 frames after the Spin starts.
+SPIN_OVER_THROW = ["cappy", "spin"]
+
+# name, air, throw, spin_after, expected toggle sources in order. A ground Spin (pressed at all) must also start
+# Galaxy's Magic status exactly once ("[cappy] mario spin (Magic) starts"): a real Spin, not a borrowed animation.
 CASES = [
     ("ground_spin_alone", False, False, 0, ["spin"]),
     ("ground_throw_alone", False, True, None, ["cappy"]),
     ("ground_throw_then_spin_50", False, True, 50, ["cappy", "spin"]),  # the spin is after the throw's animation
     ("ground_spin_then_throw_50", False, True, -50, ["spin", "cappy"]),  # a throw after the spin counts once
+    # Spin pressed over the ground throw: held until the cap has left the hand (throw frame 12), then Galaxy's own Spin
+    ("ground_throw_then_spin_2", False, True, 2, SPIN_OVER_THROW),
+    ("ground_throw_then_spin_6", False, True, 6, SPIN_OVER_THROW),
+    ("ground_throw_then_spin_11", False, True, 11, SPIN_OVER_THROW),
+    ("ground_throw_then_spin_12", False, True, 12, SPIN_OVER_THROW),
+    ("ground_throw_then_spin_14", False, True, 14, SPIN_OVER_THROW),
+    ("ground_throw_then_spin_20", False, True, 20, SPIN_OVER_THROW),
     ("air_spin_alone", True, False, 0, ["spin"]),
     ("air_throw_alone", True, True, None, ["cappy"]),
     ("air_throw_then_spin_2", True, True, 2, ["spin"]),   # spin first: it takes the cap's pending contact
@@ -105,7 +116,7 @@ def run(app, disc, out, name, text):
     text = log.read_text(errors="replace")
     if "[input-script] start" not in text:
         raise SystemExit(f"{name}: the script never started; see {log}")
-    return [(m.group(1), int(m.group(2)), int(m.group(3))) for m in LINE.finditer(text)]
+    return [(m.group(1), int(m.group(2)), int(m.group(3))) for m in LINE.finditer(text)], len(re.findall(r"\[cappy\] mario spin \(Magic\) starts", text))
 
 
 def main():
@@ -121,12 +132,13 @@ def main():
     for name, air, throw, spin_after, expect in CASES:
         if only and name not in only:
             continue
-        toggles = run(str(Path(a.app).resolve()), a.disc, out, name, script(air, throw, spin_after))
+        toggles, spins = run(str(Path(a.app).resolve()), a.disc, out, name, script(air, throw, spin_after))
         sources = [t[0] for t in toggles]
         chained = all(t[2] == 1 - t[1] for t in toggles) and all(toggles[i][2] == toggles[i + 1][1] for i in range(len(toggles) - 1))
-        ok = sources == expect and chained
+        want_spins = 1 if (not air and spin_after is not None) else 0
+        ok = sources == expect and chained and spins == want_spins
         failed += not ok
-        print(f"{'PASS' if ok else 'FAIL'} {name}: toggles {toggles} expected sources {expect}")
+        print(f"{'PASS' if ok else 'FAIL'} {name}: toggles {toggles} expected sources {expect}; Magic starts {spins} expected {want_spins}")
     sys.exit(1 if failed else 0)
 
 

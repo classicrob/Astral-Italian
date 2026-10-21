@@ -63,6 +63,8 @@ namespace {
         Cappy::Cap cappy;
         Cappy::BounceLimit bounce;
         Cappy::HopLimit hop;
+        bool spinPending = false;     // a Spin press kept until Cappy has left the hand
+        bool spinDelivery = false;    // this frame's Spin may start over the borrowed animation
         bool throwAnimation = false;  // lasts through the borrowed animation, even after an early catch
         int buffer = 0;       // frames a throw press waits for Mario (PreInputFrameCapThrow)
         bool held = false;    // the throw button, this frame
@@ -145,6 +147,7 @@ namespace {
         s.cappy = Cappy::Cap{};
         s.buffer = 0;
         s.throwAnimation = false;
+        s.spinPending = false;
         if (s.cap != nullptr && !MR::isDead(s.cap)) {
             s.cap->kill();
         }
@@ -157,6 +160,7 @@ namespace {
         Mario* mario = pActor->mMario;
         Cappy::startThrow(s.cappy, inAir);
         s.throwAnimation = true;
+        s.spinPending = false;
         s.hitCount = 0;
         s.spinAreas.clear();
         // The line follows Mario's facing at the press, as the dive does: Galaxy's
@@ -406,6 +410,14 @@ void petariCappyUpdate(MarioActor* pActor) {
         return;
     }
     Mario* mario = pActor->mMario;
+    if (trace()) {  // Galaxy's own Spin (Magic status) starting, for the run tests
+        static bool wasMagic = false;
+        const bool magic = mario->isStatusActive(MarioStatus_Magic);
+        if (magic && !wasMagic) {
+            std::fprintf(stderr, "[cappy] mario spin (Magic) starts, cap %s\n", Cappy::stateName(s.cappy.state));
+        }
+        wasMagic = magic;
+    }
     const TVec3f up = upOf(pActor);
     const bool grounded = !pActor->isJumping() && ((mario->mMovementStates.mLowWord >> 30) & 1U);
     if (grounded) {
@@ -416,7 +428,8 @@ void petariCappyUpdate(MarioActor* pActor) {
     }
 
     bool tested = false, contact = false;
-    if (s.cappy.state == Cappy::State::Windup || (s.cappy.state == Cappy::State::Fly && s.cappy.frame <= 4)) {
+    if ((s.cappy.state == Cappy::State::Windup || (s.cappy.state == Cappy::State::Fly && s.cappy.frame <= 4)) &&
+        !mario->isStatusActive(MarioStatus_Magic)) {  // a real Spin keeps its own light
         // Galaxy's spin animations start the spin's light trail and sparkles
         // (MarioAnimator::spinEntry): not a cap throw's.
         mario->stopEffect("スピンライト");
@@ -554,6 +567,47 @@ namespace {
         }
     }
 }  // namespace
+
+PetariCappyGroundSpin petariCappyGroundSpinOverThrow(MarioActor* pActor, bool pressed) {
+    s.spinDelivery = false;
+    const auto drop = [&] {
+        s.spinPending = false;
+        return PetariCappyGroundSpin::None;
+    };
+    if (!active() || !s.throwAnimation || s.actor != pActor || !normalMario(pActor)) {
+        return drop();
+    }
+    const Mario* mario = pActor->mMario;
+    const bool grounded = !pActor->isJumping() && ((mario->mMovementStates.mLowWord >> 30) & 1U);
+    if (!grounded || mario->isStatusActive(MarioStatus_Magic) || !mario->isAnimationRun("地上ひねり")) {
+        return drop();  // no borrowed ground animation (or a real Spin already runs): Galaxy's own rules
+    }
+    if (s.cappy.state == Cappy::State::Windup) {
+        if (pressed) {
+            s.spinPending = true;
+            if (trace()) {
+                std::fprintf(stderr, "[cappy] spin press kept until release\n");
+            }
+            return PetariCappyGroundSpin::Hold;
+        }
+        return PetariCappyGroundSpin::None;
+    }
+    if (!pressed && !s.spinPending) {
+        return PetariCappyGroundSpin::None;
+    }
+    s.spinPending = false;
+    s.spinDelivery = true;
+    if (trace()) {
+        std::fprintf(stderr, "[cappy] spin over the throw animation\n");
+    }
+    return PetariCappyGroundSpin::Deliver;
+}
+
+bool petariCappyTakeGroundSpinDelivery() {
+    const bool delivery = s.spinDelivery;
+    s.spinDelivery = false;
+    return delivery;
+}
 
 // MarioActor classifies these animations as punching. Cappy borrows them
 // only for the throw motion: it must not also create a global Spin edge.

@@ -97,6 +97,12 @@ function(petari_isolate_aurora_allocations target source)
         "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_allocations.py" "${_source}")
     execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_allocations.py"
         "${_source}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    if("${source}" STREQUAL "lib/dolphin/gx/GXManage.cpp")
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gx_init.py")
+        execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gx_init.py"
+            "${_output}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    endif()
     get_filename_component(_original_dir "${_source}" DIRECTORY)
     set_source_files_properties("${_output}" TARGET_DIRECTORY ${target} PROPERTIES COMPILE_OPTIONS "-iquote${_original_dir}")
     get_target_property(_sources ${target} SOURCES)

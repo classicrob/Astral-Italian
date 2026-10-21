@@ -55,6 +55,12 @@ public:
     static void startCreateResourceHolderOnMainThread(const char*, CreateResourceHolderArgs*);
     static void startCreateLayoutHolderOnMainThread(const char*, CreateResourceHolderArgs*);
 
+#ifdef GALAXY_NATIVE
+    /// @brief Native port only (texture prewarm, native/app/model_prewarm.cpp): the loaded holders, read-only.
+    const ResourceHolderManagerName2Resource* nativeBegin() const { return mResourceArray.begin(); }
+    const ResourceHolderManagerName2Resource* nativeEnd() const { return mResourceArray.end(); }
+#endif
+
 private:
     ResourceHolderManagerName2Resource* createAndAddInner(const char*, MakeArchiveFileNameFuncPtr, FuncPtrB);
     ResourceHolderManagerName2Resource* createAndAddInnerStationed(const char*, FuncPtrC) NO_INLINE;

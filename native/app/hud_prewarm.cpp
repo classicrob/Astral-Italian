@@ -34,22 +34,46 @@
 #include <nw4r/lyt/material.h>
 #include <nw4r/lyt/pane.h>
 #include <nw4r/lyt/texMap.h>
+#include <nw4r/lyt/textBox.h>
+#include <nw4r/ut/ResFontBase.h>
 #include <petari/host_allocation.hpp>
 
 #include <cstdint>
+#include <unordered_set>
 #include <cstdio>
 #include <cstdlib>
 
 #include "host.hpp"
 
 extern "C" void petari_gx_texture_prewarm(const void* texObj);
+extern "C" void petari_gx_texture_prewarm_cancel();
 
 namespace PetariNative::App::Host {
+unsigned prewarmModelTextures();   // model_prewarm.cpp
+unsigned prewarmEffectTextures();
 namespace {
 
 struct Counts {
     unsigned textures = 0, skipped = 0;
+    std::unordered_set<const void*> fonts;  // font resources whose glyph sheets are already queued
 };
+
+// A text box's font: its glyph sheets are textures too (CharWriter::LoadTexture builds the same GXTexObj at the first draw
+// of a character on the sheet, one 512x128 I4 upload per sheet).
+void prewarmFont(const nw4r::ut::Font* font, Counts& counts) {
+    if (font == nullptr || font->GetType() != nw4r::ut::Font::TYPE_RESOURCE) return;
+    const nw4r::ut::detail::ResFontBase* resFont = static_cast< const nw4r::ut::detail::ResFontBase* >(font);
+    const nw4r::ut::FontInformation* info = resFont->mFontInfo;
+    const nw4r::ut::FontTextureGlyph* glyph = info != nullptr ? info->pGlyph : nullptr;
+    if (glyph == nullptr || glyph->sheetImage == nullptr || !counts.fonts.insert(glyph).second) return;
+    for (u16 sheet = 0; sheet < glyph->sheetNum; ++sheet) {
+        GXTexObj obj;
+        GXInitTexObj(&obj, glyph->sheetImage + static_cast< size_t >(glyph->sheetSize) * sheet, glyph->sheetWidth, glyph->sheetHeight,
+                     static_cast< GXTexFmt >(glyph->sheetFormat), GX_CLAMP, GX_CLAMP, GX_FALSE);
+        petari_gx_texture_prewarm(&obj);
+        ++counts.textures;
+    }
+}
 
 bool isPaletteFormat(GXTexFmt format) {
     return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
@@ -79,6 +103,7 @@ void prewarmLayout(const LayoutActor* actor, Counts& counts) {
         if (pane == nullptr) continue;
         const u8 materials = pane->GetMaterialNum();
         for (u8 m = 0; m < materials; ++m) prewarmMaterial(pane->GetMaterial(m), counts);
+        if (const nw4r::lyt::TextBox* text = nw4r::ut::DynamicCast< const nw4r::lyt::TextBox* >(pane)) prewarmFont(text->GetFont(), counts);
     }
 }
 
@@ -91,9 +116,10 @@ void prewarmHudTextures() {
         return value == nullptr || value[0] != '0';
     }();
     if (!enabled) return;
+    PetariNative::HostAllocationScope host;
+    petari_gx_texture_prewarm_cancel();  // what the previous stage still had queued
     GameSceneLayoutHolder* holder = MR::getGameSceneLayoutHolder();
     if (holder == nullptr) return;
-    PetariNative::HostAllocationScope host;
     Counts counts;
     prewarmLayout(holder->mInformationMessage, counts);
     prewarmLayout(holder->mYesNoLayout, counts);
@@ -122,6 +148,16 @@ void prewarmHudTextures() {
     }
     std::fprintf(stderr, "[hud prewarm] %u layout textures handed to the texture cache (%u palette/empty skipped)\n",
                  counts.textures, counts.skipped);
+    // The stage's model and effect textures (model_prewarm.cpp), created over the next frames under a time budget.
+    static const bool models = [] {
+        const char* value = std::getenv("PETARI_TEXTURE_PREWARM");
+        return value == nullptr || value[0] != '0';
+    }();
+    if (models) {
+        const unsigned m = prewarmModelTextures();
+        const unsigned e = prewarmEffectTextures();
+        std::fprintf(stderr, "[tex prewarm] %u model and %u effect textures queued\n", m, e);
+    }
 }
 
 }  // namespace PetariNative::App::Host

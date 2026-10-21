@@ -6,15 +6,17 @@ import argparse,base64,hashlib,json,tarfile,shutil
 from pathlib import Path
 import dispatch_preflight as p
 import dispatch_fullproof as full
+import dispatch_artifacts as artifacts
 
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--proof',type=Path,required=True);ap.add_argument('--spec',type=Path,required=True);ap.add_argument('--independent-spec',type=Path,required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--reviewed-contract-sha256',required=True);args=ap.parse_args()
  root=args.proof.resolve();work=root/'execution';out=args.output.resolve();contract=json.loads((root/'contract.json').read_text())
+ assert contract.get('execution_enabled') is True,'packaging blocked pending qualified full execution/lifecycle contract'
  assert full.hashbytes(full.canonical(contract))==args.reviewed_contract_sha256
  r=json.loads((work/'result.json').read_text());cleanup=json.loads((work/'owned-process-cleanup.json').read_text());spec=json.loads(args.spec.read_text())
  assert r['status']=='FULL_PAIR_COMPONENTS_COMPLETE_IMPORT_PENDING' and r['contract_sha256']==args.reviewed_contract_sha256
  assert cleanup['all_owned_groups_absent'] and not cleanup['remaining_pgids'] and not cleanup['failures'] and cleanup['execution_error'] is None
- assert p.sha(args.spec)==p.SPEC and json.loads(args.independent_spec.read_text())==spec
+ assert p.sha(args.spec)==p.sha(args.independent_spec)==p.SPEC and json.loads(args.independent_spec.read_text())==spec
  assert len(r['actual_ELF_controls'])==26 and len(r['actual_config_controls'])==8 and set(r['controls'])=={'TU13','TU14'}
  comparison=json.loads((work/'full-comparison.json').read_text());assert comparison['strict_objects']==2424
  for phase in ('before','after'):
@@ -61,10 +63,14 @@ def main():
  # Secondary provenance and source control logs are separately confined/hash-bound.
  secondary_record={**secondary,'archive':secondary_archive,'manifest':secondary_manifest,'context':contract['context'],'logs':{kind:copy('dispatch/TU14-'+kind+'.txt',work/('TU14-'+source)) for kind,source in [('perturb','perturb.log'),('restore','restore.log'),('command','control-command.txt'),('deps','control-deps.txt'),('headers','control-dependency-hashes.json')]}}
  delta['secondary_control']=write('dispatch/secondary-control.json',secondary_record)
- delta['actual_negative_controls']=write('dispatch/actual-negative-controls.json',{'ELF':r['actual_ELF_controls'],'config':r['actual_config_controls']})
- # Preserve ALL new mutation artifacts, not only last per-TU path as in r5.
+ # Metadata paths refer to the PACKAGE root, never the producer execution root.
+ packaged_controls=[]
  for row in r['actual_ELF_controls']:
-  assert row['rejected'] and p.sha(work/row['path'])==row['sha256'];copy('dispatch/'+row['path'],work/row['path'])
+  origin=artifacts.confined_file(work,row['path']);assert row['rejected'] and p.sha(origin)==row['sha256']
+  name='dispatch/'+row['path'];copied=copy(name,origin)
+  packaged_controls.append({**row,'path':copied['path'],'sha256':copied['sha256']})
+ artifacts.negative_artifacts(out,packaged_controls)
+ delta['actual_negative_controls']=write('dispatch/actual-negative-controls.json',{'ELF':packaged_controls,'config':r['actual_config_controls']})
  before_log=copy('before.log',work/'before-build.log');after_log=copy('after.log',work/'after-build.log')
  control_log=write('control.log',b'\n'.join((work/(s+'-'+kind+'.log')).read_bytes() for s in ('TU13','TU14') for kind in ('perturb','restore')))
  recipe=write('recipe.json',{'contract':contract,'actual_result':r,'owned_process_cleanup':cleanup,'import_status':'PENDING_INDEPENDENT_L_DISPATCH_IMPORT','source_controls_append_bytes':contract['source_controls']})

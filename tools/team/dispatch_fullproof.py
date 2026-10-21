@@ -19,7 +19,7 @@ def main():
  assert qualified['status']=='THREE_TU_COMPONENT_QUALIFICATION_ONLY_NOT_FULL_PROOF'
  assert p.sha(q/'execution/result.json')=='2ff50b4ad70f9f837d6420365a60387d24fee5bb0a49315d1ce37cc1a53182ed'
  context=dict(qplan['input_files'])
- for name in ('dispatch_fullproof.py','dispatch_fullcheck.py','dispatch_preflight.py','dispatch_package.py'):context[str(HERE/name)]=p.sha(HERE/name)
+ for name in ('dispatch_fullproof.py','dispatch_fullcheck.py','dispatch_preflight.py','dispatch_package.py','dispatch_artifacts.py'):context[str(HERE/name)]=p.sha(HERE/name)
  for exe in (Path(sys.executable).resolve(),Path(shutil.which('ninja')).resolve()):context[str(exe)]=p.sha(exe)
  for path,h in context.items():assert p.sha(path)==h,'tool/context drift '+path
  decoder={name:p.git(repo,'show',p.DECODER+':tools/team/'+name+'.py') for name in ('dispatchproof','dispatchownership','objsame')}
@@ -43,12 +43,13 @@ def main():
  for scope,ctl in perturb.items():
   src=p.git(repo,'show',p.TIP+':'+ctl['source']);assert ctl['append'].split('()')[0].encode() not in src
   ctl['source_sha256']=hashbytes(src);ctl['perturbed_source_sha256']=hashbytes(src+ctl['append'].encode())
- contract={'schema':1,'type':'DISPATCH_FULL_COMPONENT_RECIPE_NOT_IMPORT_APPROVAL','before':p.BASE,'after':p.TIP,'canonical_spec_sha256':p.SPEC,'plans':pins,'qualified_result_sha256':p.sha(q/'execution/result.json'),'qualified_objects':{phase:qualified['phases'][phase]['objects'] for phase in ('before','after')},'context':context,'decoder_commit':p.DECODER,'decoder_files':{n:hashbytes(data) for n,data in decoder.items()},'real_ELF_controls_per_scope':13,'config_controls':8,'source_controls':perturb,'work_seconds':2400,'cleanup_grace_seconds':4,'jobs':4,'primary_archive_members':4855,'secondary_archive_members':3,'control_member_paths':{'TU13':['control/'+n+'.o' for n in ('original','perturbed','restored')],'TU14':['control-tu14/'+n+'.o' for n in ('original','perturbed','restored')]},'import_status':'REQUIRES_L_SEPARATE_REVIEWED_ADAPTER_AND_PORT_ALLOCATION','certificate_type':'DISPATCH_PROOF_V1'}
+ contract={'schema':1,'type':'DISPATCH_FULL_COMPONENT_RECIPE_NOT_IMPORT_APPROVAL','execution_enabled':False,'blocking_gate':'Live disk/growth watcher actual group-termination controls UNQUALIFIED (EPERM operation/ownership unresolved); source-only prepare is permitted, execution prohibited','required_live_budget':{'minimum_free_bytes':50*1024**3,'maximum_owned_growth_bytes':4*1024**3,'sample_interval_seconds':0.25,'scope':'child waits, Python controls and packaging; retain original baseline across packaging'},'before':p.BASE,'after':p.TIP,'canonical_spec_sha256':p.SPEC,'plans':pins,'qualified_result_sha256':p.sha(q/'execution/result.json'),'qualified_objects':{phase:qualified['phases'][phase]['objects'] for phase in ('before','after')},'context':context,'decoder_commit':p.DECODER,'decoder_files':{n:hashbytes(data) for n,data in decoder.items()},'real_ELF_controls_per_scope':13,'config_controls':8,'source_controls':perturb,'work_seconds':2400,'cleanup_grace_seconds':4,'jobs':4,'primary_archive_members':4855,'secondary_archive_members':3,'control_member_paths':{'TU13':['control/'+n+'.o' for n in ('original','perturbed','restored')],'TU14':['control-tu14/'+n+'.o' for n in ('original','perturbed','restored')]},'import_status':'REQUIRES_L_SEPARATE_REVIEWED_ADAPTER_AND_PORT_ALLOCATION','certificate_type':'DISPATCH_PROOF_V1'}
  pin=hashbytes(canonical(contract))
  if not args.execute_contract_sha256:
   out.mkdir(parents=True,exist_ok=False);p.dump(out/'contract.json',contract);(out/'contract.sha256').write_text(pin+'\n')
   for scope,plan in plans.items():p.dump(out/(scope+'-plan.json'),plan)
   print(json.dumps({'contract_sha256':pin,'plans':pins,'status':'PREPARED_ONLY_NO_BUILD_OR_IMPORT'},indent=2));return
+ assert contract['execution_enabled'] is True,'full execution blocked pending independently qualified live-budget termination controls'
  assert args.execute_contract_sha256==pin and json.loads((out/'contract.json').read_bytes())==json.loads(canonical(contract))
  for scope,plan in plans.items():assert json.loads((out/(scope+'-plan.json')).read_bytes())==json.loads(canonical(plan))
  assert os.getpriority(os.PRIO_PROCESS,0)>=19 and shutil.disk_usage(out).free>=50*1024**3

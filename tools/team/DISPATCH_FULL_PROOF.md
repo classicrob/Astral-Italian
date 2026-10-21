@@ -10,7 +10,37 @@ byte-identical, SHA `3b0975d48ca4354862814f13de004121fb16fbc1b90f87fb8e9f78a6515
 The three GAME picks/4 paths are exactly the independently closed source binding;
 5.3 EffectSystem is retained. JAS/Pad/factory/diagnostics are excluded.
 
-## Exact reviewed inputs and preparation
+## Review revision: EXECUTION DISABLED
+
+The original5ac09/222f proposal failed review for copied-control paths and lack of
+live disk supervision. This revision fixes confined copied paths/hashes, adds ABS
+alias closure and intentionally sets caller `execution_enabled=false`.
+Blocked source-review contract:
+`216b46dea8f3ad530d9d4e7e5bd3b44d047098364bd81332830d1b83c97242ef`
+at `dispatch-full-r5-BLOCKED/`; separate game plans remain690a023a/446a24d0.
+The historical preparation/command text below records5ac09 and is NOT an executable
+allocation or current instruction. Original spec/old proposals/failure receipts
+remain unchanged and retained.
+
+Seven confined-path/hash regressions and39 semantic/alias source-model checks PASS.
+No additional lifecycle execution was performed after PORT HOLD. The live-budget
+prototype is source-review-only and UNQUALIFIED: actual child controls failed with
+EPERM during inherited cleanup; exact syscall/actual PGID+UID were not retained.
+Current PID/PGID ps absence does not replace the failed killpg0 gate. New SOURCE
+instrumentation journals intent/result/errno/traceback, obtains actual fixture
+PID/PGID/SID/UID and preserves failed directories; its controls are UNRUN. See
+DISPATCH_BUDGET_REVIEW.md. No qualified reusable lifecycle API or full allocation
+exists. CPython3.15 kqueue waits catch OSError: original OSError-derived signal
+exceptions must not be assumed to interrupt those waits. The new RuntimeError
+prototype interrupts budget crossings but has NOT qualified group termination.
+
+The required50GiB floor/4GiB growth are now explicit contract requirements but NOT
+claimed live-enforced by the disabled caller. Packaging is likewise disabled until
+a newly reviewed qualified execution contract. A future revision must wire the
+reviewed watcher across children/Python/packaging, preserving the original allocation
+baseline; sampled observations cannot be described as an instantaneous disk quota.
+
+## Historical5ac09 reviewed-input proposal (record only)
 
 The already executed r5 qualification is **not reused as full-build objects**.
 Its six raw hashes, graph hashes and actual symbol records pin the expected full

@@ -28,8 +28,9 @@ def check_all(summaries,plans,dp,config_symbols=None,phase=None):
  for unit,summary in summaries.items():
   for row in summary.get('named symbols',()):
    name,info,other,section,value,size=row
-   if section!='UND' and not section.startswith(('special','bad')):
-    definitions.setdefault(name,[]).append((unit,section,value,size))
+   require(not section.startswith('bad'),'malformed symbol section')
+   if section.startswith('special'):require(section in ('special0xfff1','special0xfff2'),'unsupported special symbol section')
+   if section!='UND':definitions.setdefault(name,[]).append((unit,section,value,size))
    if name in names and section!='UND':
     require(name not in endpoints,'duplicate execute definition')
     endpoints[name]=(unit,section,value,size)
@@ -52,13 +53,24 @@ def check_all(summaries,plans,dp,config_symbols=None,phase=None):
        for plan in plans.values():
         for execute,mapping in plan['symbol_map'].items():
          start,width=mapping[phase]
-         if cfgsection=='.text' and start<=address+addend<start+width:hits.add(execute)
+         if cfgsection=='.text' and start<=((address+addend)&0xffffffff)<start+width:hits.add(execute)
      candidates=definitions.get(name,())
-    elif target[0]=='local':candidates=[(unit,target[1],target[2],0)]
+    elif target[0]=='local':
+     require(not target[1].startswith('bad'),'malformed local target section')
+     if target[1].startswith('special'):require(target[1] in ('special0xfff1','special0xfff2'),'unsupported special local target')
+     candidates=[(unit,target[1],target[2],0)]
     else:raise ValueError('unknown relocation target kind')
     for owner,sec,val,size in candidates:
+     if sec=='special0xfff1':
+      require(phase in ('before','after'),'absolute alias requires explicit phase VA spans')
+      for plan in plans.values():
+       for execute,mapping in plan['symbol_map'].items():
+        start,width=mapping[phase]
+        if start<=((val+addend)&0xffffffff)<start+width:hits.add(execute)
+      continue
+     if sec=='special0xfff2':continue # COMMON is alignment/storage, not a linked VA.
      for name,(own,esection,start,width) in endpoints.items():
-      if owner==own and sec==esection and start<=val+addend<start+width:hits.add(name)
+      if owner==own and sec==esection and start<=((val+addend)&0xffffffff)<start+width:hits.add(name)
     for name in hits:
      # Exact raw named zero-addend slot is mandatory, not merely a resolved alias.
      row=(unit,section,offset,typ,addend,*target)

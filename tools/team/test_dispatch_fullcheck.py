@@ -70,4 +70,19 @@ class Combined(References):
  def test_missing_actual_config_map_rejects(self):
   a,b,m,dp=self.fixture();m['after'].pop('start')
   with self.assertRaises(ValueError):f.compare_trees(a,b,self.plans,dict.fromkeys(self.plans),dict.fromkeys(self.plans),dp,m)
+class AbsoluteAliases(References):
+ def maps(self):
+  for plan in self.plans.values():plan['symbol_map']={name:{'before':[0x80000000+i*32,8],'after':[0x80000100+i*32,8]} for i,name in enumerate(plan['symbols'])}
+ def test_named_and_local_absolute_aliases_both_phases(self):
+  self.maps()
+  for phase,address in [('before',0x80000000),('after',0x80000100)]:
+   for target,definitions,addend in [(('sym','absolute_alias'),(('absolute_alias',17,0,'special0xfff1',address,4),),0),(('local','special0xfff1',address-4),(),8),(('local','special0xfff1',address),(),0x100000000)]:
+    self.rows['external.o']={'named symbols':definitions,'relocations for .data#0':((0,1,addend,target),)}
+    with self.assertRaises(ValueError):f.check_all(self.rows,self.plans,None,{},phase)
+ def test_bad_section_rejects(self):
+  self.rows['external.o']={'relocations for .data#0':((0,1,0,('local','bad999',1)),)}
+  with self.assertRaises(ValueError):self.audit()
+ def test_common_not_absolute(self):
+  self.maps();self.rows['external.o']={'named symbols':(('common',17,0,'special0xfff2',0x80000000,4),),'relocations for .data#0':((0,1,0,('sym','common')),)}
+  self.assertEqual(len(f.check_all(self.rows,self.plans,None,{},'before')),4)
 if __name__=='__main__':unittest.main()

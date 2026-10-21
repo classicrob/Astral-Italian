@@ -74,7 +74,19 @@ void WorldMapResultStateGalaxyMap::exeEnd() {
 }
 
 namespace NrvWorldMapResultStateGalaxyMap {
-    WMR_NERVE_DEF(WorldMapResultStateGalaxyMapStart, WorldMapResultStateGalaxyMap, End);
-    WMR_NERVE_DEF(WorldMapResultStateGalaxyMapWait, WorldMapResultStateGalaxyMap, Wait);
-    WMR_NERVE_DEF(WorldMapResultStateGalaxyMapEnd, WorldMapResultStateGalaxyMap, Start);
-};  
+    WorldMapResultStateGalaxyMapStart WorldMapResultStateGalaxyMapStart::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateGalaxyMapWait WorldMapResultStateGalaxyMapWait::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateGalaxyMapEnd WorldMapResultStateGalaxyMapEnd::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStateGalaxyMapEnd::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateGalaxyMap*>(pSpine->mExecutor)->exeEnd();
+    }
+
+    void WorldMapResultStateGalaxyMapWait::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateGalaxyMap*>(pSpine->mExecutor)->exeWait();
+    }
+
+    void WorldMapResultStateGalaxyMapStart::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateGalaxyMap*>(pSpine->mExecutor)->exeStart();
+    }
+};

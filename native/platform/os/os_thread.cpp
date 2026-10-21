@@ -45,6 +45,8 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <deque>
+#include "petari/platform/virtual_time.hpp"
 
 #include "petari/platform/crash.hpp"
 #include "os_internal.hpp"
@@ -120,6 +122,12 @@ void setPreemptPending(bool pending) {
 bool gCurrentRunning;
 // OS threads between petari_os_begin_host_blocking and _end (interrupt lock).
 int gHostBlockingThreads;
+std::condition_variable gVirtualChanged;
+struct VirtualAsyncRequest { std::uint64_t ticket; bool claimed; };
+std::deque<VirtualAsyncRequest> gVirtualAsync;
+std::uint64_t gNextVirtualAsync = 1;
+std::atomic<bool> gVirtualAsyncActive{false};
+OSThreadQueue gVirtualPollers{nullptr, nullptr};
 
 // The baton holder as the lock-free host-wait monitor sees it (batonMonitor).
 // Written under the interrupt lock by publishHolder; gHolderHand changes with
@@ -774,6 +782,7 @@ __attribute__((no_sanitize("thread"))) void walkSuspendedStack(std::uintptr_t fp
 // first three stretches of each) and summarised at exit and in hang reports.
 
 void publishHolder() {
+    gVirtualChanged.notify_all();
     OSThread* holder = gCurrent.load(std::memory_order_relaxed);
     if (holder != gHolderThread.load(std::memory_order_relaxed)) {
         gHolderRunning.store(false, std::memory_order_relaxed);
@@ -1484,6 +1493,85 @@ HolderOverrideStats holderOverrideStats() {
 
 bool cpuQuiescent() {
     return gCurrent.load(std::memory_order_relaxed) == nullptr && RunQueueBits == 0 && gHostBlockingThreads == 0;
+}
+
+std::uint64_t queueVirtualAsync() {
+    if (!virtualTimeEnabled()) return 0;
+    InterruptGuard guard;
+    PetariNative::HostAllocationScope host;
+    const auto ticket = gNextVirtualAsync++;
+    if (!ticket) fatal("virtual async ticket overflow");
+    gVirtualAsync.push_back({ticket, false});
+    gVirtualChanged.notify_all();
+    return ticket;
+}
+
+bool virtualAsyncActive() {
+    return gVirtualAsyncActive.load(std::memory_order_acquire);
+}
+
+void activateVirtualAsync() {
+    if (!virtualTimeEnabled() || virtualAsyncActive()) return;
+    if (boundThread() && !tHostBlocking) fatal("virtual async activation requires the OS CPU to be released");
+    InterruptGuard guard;
+    // Retire all legacy deliveries before changing dispatch rules. Requests
+    // remain registered even while legacy workers can complete out of order.
+    hostWait(gVirtualChanged, [&] {
+        return gVirtualAsync.empty() && gCurrent.load(std::memory_order_relaxed) == nullptr &&
+            RunQueueBits == 0 && gHostBlockingThreads <= 1;
+    });
+    gVirtualAsyncActive.store(true, std::memory_order_release);
+    gVirtualChanged.notify_all();
+}
+
+bool waitVirtualAsync(std::uint64_t ticket) {
+    if (!ticket) return true;
+    InterruptGuard guard;
+    const auto find = [&] {
+        return std::find_if(gVirtualAsync.begin(), gVirtualAsync.end(),
+            [ticket](const auto& request) { return request.ticket == ticket; });
+    };
+    hostWait(gVirtualChanged, [&] {
+        return find() == gVirtualAsync.end() || !virtualAsyncActive() || (gVirtualAsync.front().ticket == ticket &&
+            gCurrent.load(std::memory_order_relaxed) == nullptr && RunQueueBits == 0);
+    });
+    const auto found = find();
+    if (found == gVirtualAsync.end()) return false;
+    found->claimed = true;
+    return true;
+}
+
+bool cancelVirtualAsync(std::uint64_t ticket) {
+    if (!ticket) return false;
+    InterruptGuard guard;
+    const auto found = std::find_if(gVirtualAsync.begin(), gVirtualAsync.end(),
+        [ticket](const auto& request) { return request.ticket == ticket; });
+    if (found == gVirtualAsync.end() || found->claimed) return false;
+    gVirtualAsync.erase(found);
+    if (gVirtualAsync.empty()) OSWakeupThread(&gVirtualPollers);
+    gVirtualChanged.notify_all();
+    return true;
+}
+
+void finishVirtualAsync(std::uint64_t ticket) {
+    if (!ticket) return;
+    InterruptGuard guard;
+    const auto found = std::find_if(gVirtualAsync.begin(), gVirtualAsync.end(),
+        [ticket](const auto& request) { return request.ticket == ticket; });
+    if (found == gVirtualAsync.end()) fatal("unknown virtual async ticket");
+    gVirtualAsync.erase(found);
+    if (gVirtualAsync.empty()) OSWakeupThread(&gVirtualPollers);
+    gVirtualChanged.notify_all();
+}
+
+void waitVirtualWork() {
+    if (!virtualAsyncActive()) return;
+    if (boundThread() && !tHostBlocking) fatal("virtual work fence requires the OS CPU to be released");
+    InterruptGuard guard;
+    hostWait(gVirtualChanged, [&] {
+        return gVirtualAsync.empty() && gCurrent.load(std::memory_order_relaxed) == nullptr &&
+            RunQueueBits == 0 && gHostBlockingThreads <= 1;
+    });
 }
 
 std::string describeAddress(std::uint64_t address) {
@@ -2231,7 +2319,15 @@ void petari_os_begin_host_blocking(void) {
 }
 
 void petari_os_preemption_point(void) {
-    // An interrupt-state change delivers a pending preemption.
+    // Polling loaders may need an I/O interrupt before the next VI. Sleep
+    // them on one OS queue, so completion makes all waiters ready atomically
+    // and OS priority, rather than host wake-up order, chooses the next one.
+    if (virtualAsyncActive() && tBound && !tHostBlocking && !interruptsDisabled()) {
+        OSDisableInterrupts();
+        if (Reschedule == 0 && gCurrent.load(std::memory_order_relaxed) == tBound)
+            while (!gVirtualAsync.empty()) OSSleepThread(&gVirtualPollers);
+        OSEnableInterrupts();
+    }
     OSRestoreInterrupts(OSDisableInterrupts());
 }
 
@@ -2270,6 +2366,7 @@ void petari_os_end_host_blocking(void) {
     tHost->hostBlocking = false;
     PetariNative::setGameCpuReleased(false);
     --gHostBlockingThreads;
+    gVirtualChanged.notify_all();
     interruptReschedule();
     waitForCpu(self);
     OSEnableInterrupts();

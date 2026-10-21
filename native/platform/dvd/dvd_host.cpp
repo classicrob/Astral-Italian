@@ -58,6 +58,7 @@
 #include "os_internal.hpp"
 #include "petari/host_allocation.hpp"
 #include "petari/platform/dvd.hpp"
+#include "petari/platform/virtual_time.hpp"
 
 namespace fs = std::filesystem;
 
@@ -184,6 +185,8 @@ struct Drive {
     std::condition_variable changed;
     OSThreadQueue waiters{nullptr, nullptr};
 
+    std::uint64_t virtualTicket = 0;
+    bool virtualClaimed = false;
     bool initialized = false;
     bool stopRequested = false;
     std::thread thread;
@@ -235,6 +238,10 @@ bool isQueued(Drive& d, const DVDCommandBlock* block) {
         }
     }
     return false;
+}
+
+void queueVirtualDrive(Drive& d) {
+    if (!d.virtualTicket && !d.paused) d.virtualTicket = OS::queueVirtualAsync();
 }
 
 // Highest priority first.
@@ -291,6 +298,7 @@ BOOL issueCommand(s32 prio, DVDCommandBlock* block) {
     }
     storeState(block, DVD_STATE_WAITING);
     d.queues[prio].pushBack(block);
+    queueVirtualDrive(d);
     d.changed.notify_all();
     return TRUE;
 }
@@ -370,10 +378,19 @@ void runDrive() {
     OpenFiles files;
     OSDisableInterrupts();
     while (true) {
-        OS::hostWait(d.changed, [&] { return d.stopRequested || (!d.paused && anyQueued(d)); });
-        if (d.stopRequested) {
-            break;
+        if (d.virtualTicket && (d.stopRequested || d.paused || !anyQueued(d))) {
+            OS::finishVirtualAsync(d.virtualTicket);
+            d.virtualTicket = 0;
+            d.virtualClaimed = false;
         }
+        OS::hostWait(d.changed, [&] { return d.stopRequested || (!d.paused && anyQueued(d)); });
+        if (d.stopRequested) break;
+        queueVirtualDrive(d);
+        const auto ticket = d.virtualTicket;
+        d.virtualClaimed = false;
+        if (!OS::waitVirtualAsync(ticket) || ticket != d.virtualTicket) continue;
+        if (d.stopRequested || d.paused || !anyQueued(d)) continue;
+        d.virtualClaimed = true;
         DVDCommandBlock* block = popWaiting(d);
         d.executing = block;
 
@@ -412,6 +429,9 @@ void runDrive() {
             OSEnableInterrupts();
             const bool ok = readDisc(fst, files, dst, discOffset, n);
             OSDisableInterrupts();
+            // Other device interrupts may have readied an OS thread while
+            // pread was in flight. Publish transfer progress only at idle.
+            OS::waitVirtualAsync(ticket);
             if (!ok) {
                 failed = true;
                 break;
@@ -615,6 +635,10 @@ void shutdown() {
     InterruptGuard guard;
     if (d.thread.joinable()) {
         d.stopRequested = true;
+        if (d.virtualTicket && !d.virtualClaimed) {
+            OS::finishVirtualAsync(d.virtualTicket);
+            d.virtualTicket = 0;
+        }
         d.changed.notify_all();
         std::thread thread = std::move(d.thread);
         OSEnableInterrupts();
@@ -974,12 +998,18 @@ void DVDPause(void) {
     Drive& d = drive();
     InterruptGuard guard;
     d.paused = true;
+    if (d.virtualTicket && !d.virtualClaimed) {
+        OS::finishVirtualAsync(d.virtualTicket);
+        d.virtualTicket = 0;
+    }
+    d.changed.notify_all();
 }
 
 void DVDResume(void) {
     Drive& d = drive();
     InterruptGuard guard;
     d.paused = false;
+    if (anyQueued(d)) queueVirtualDrive(d);
     d.changed.notify_all();
 }
 

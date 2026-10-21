@@ -145,6 +145,11 @@ add_executable(petari_dvd_smoke tools/dvd_smoke.cpp)
 target_link_libraries(petari_dvd_smoke PRIVATE petari_platform)
 
 if(BUILD_TESTING)
+    add_executable(petari_virtual_async_tests ${PETARI_REPO_ROOT}/native/tests/virtual_async_tests.cpp)
+    target_link_libraries(petari_virtual_async_tests PRIVATE petari_platform_os petari_platform_gx_sync)
+    add_test(NAME native_virtual_async COMMAND petari_virtual_async_tests)
+    set_tests_properties(native_virtual_async PROPERTIES TIMEOUT 30)
+
     add_executable(petari_platform_dvd_tests ${PETARI_REPO_ROOT}/native/tests/platform_dvd_tests.cpp)
     target_include_directories(petari_platform_dvd_tests PRIVATE dvd)
     target_link_libraries(petari_platform_dvd_tests PRIVATE petari_platform)

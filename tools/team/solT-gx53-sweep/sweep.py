@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import shutil
 import statistics
@@ -146,11 +147,17 @@ def main():
     p.add_argument("--output-parent", type=Path, required=True)
     p.add_argument("--state", type=Path, required=True)
     p.add_argument("--cleanup-success-caches", action="store_true")
+    p.add_argument("--batch-id", help="preannounced new private directory name")
     a = p.parse_args()
     h, manifest = verify(a.handoff, a.manifest)
     assert "MacioGalaxy2-gamedata" in a.output_parent.parts
     a.output_parent.mkdir(parents=True, mode=0o700, exist_ok=True)
-    out = Path(tempfile.mkdtemp(prefix="gx53-batch1-", dir=a.output_parent))
+    if a.batch_id:
+        assert re.fullmatch(r"gx53-batch1-[A-Za-z0-9_-]+", a.batch_id)
+        out = a.output_parent / a.batch_id
+        out.mkdir(mode=0o700)
+    else:
+        out = Path(tempfile.mkdtemp(prefix="gx53-batch1-", dir=a.output_parent))
     os.chmod(out, 0o700)
     a.state.parent.mkdir(parents=True, exist_ok=True)
     def state(phase, child="none"):

@@ -19,12 +19,12 @@ class ContextObservationModels(unittest.TestCase):
         self.assertNotIn('other',json.dumps(value))
         self.assertNotIn('/private',json.dumps(value))
 
-    def test_unrelated_secrets_and_names_not_exported(self):
+    def test_unrelated_values_not_exported_names_only(self):
         value=self.observe({'PRIVATE_TOKEN_NAME':'actual-secret'},{'DIFFERENT_SECRET_NAME':'requested-secret'})
         raw=json.dumps(value)
-        for secret in ('PRIVATE_TOKEN_NAME','DIFFERENT_SECRET_NAME','actual-secret','requested-secret'):
+        for secret in ('actual-secret','requested-secret'):
             self.assertNotIn(secret,raw)
-        self.assertEqual(value['outside_allowlist'],{'actual_count':1,'requested_count':1,'different_count':2})
+        self.assertEqual(value['outside_allowlist']['different_names'],[{'name':'DIFFERENT_SECRET_NAME','actual_present':False,'requested_present':True},{'name':'PRIVATE_TOKEN_NAME','actual_present':True,'requested_present':False}])
         self.assertFalse(value['env_equal'])
 
     def test_cwd_values_and_bound(self):

@@ -25,7 +25,7 @@ def publish(path, value):
     temporary = path.with_name(path.name+'.tmp')
     fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     try:
-        data = json.dumps(value, sort_keys=True).encode()
+        data = json.dumps(value, sort_keys=True, ensure_ascii=True).encode()
         if os.write(fd, data) != len(data):
             raise RuntimeError('incomplete launch-gate record')
     finally:
@@ -33,12 +33,16 @@ def publish(path, value):
     os.rename(temporary, path)
 
 
-# Only the reviewed chosen context is disclosed. Unrelated env names/values
-# are never exported, even when they cause strict equality to fail.
+# Reviewed context values are hashed. Outside it, only bounded differing key
+# names are disclosed; unrelated values/lengths/hashes are never exported.
 CONTEXT_KEYS = ('HOME', 'PATH', 'LANG', 'LC_ALL', 'TMPDIR',
                 'PYTHONCOERCECLOCALE', 'PYTHONUTF8', 'PYTHONNOUSERSITE')
 CONTEXT_RECORD_CAP = 65536
 CWD_TEXT_CAP = 4096
+UNKNOWN_NAME_COUNT_CAP = 16
+UNKNOWN_NAME_CHARACTER_CAP = 128
+UNKNOWN_NAME_BYTES_CAP = 512
+UNKNOWN_NAMES_JSON_CAP = 8192
 
 
 def context_observation(request, actual_cwd, actual_env):
@@ -64,8 +68,23 @@ def context_observation(request, actual_cwd, actual_env):
                    'actual': value_pin(actual_env, key),
                    'requested': value_pin(requested_env, key)}
               for key in CONTEXT_KEYS}
-    # Counts only outside the allowlist: no names, values or value hashes.
+    # Export ONLY differing names outside the allowlist, never their values,
+    # lengths or hashes. No unrelated environment snapshot is retained.
     outside = (set(actual_env) | set(requested_env)) - set(CONTEXT_KEYS)
+    different = [key for key in outside if actual_env.get(key) != requested_env.get(key)
+                 or (key in actual_env) != (key in requested_env)]
+    if len(different) > UNKNOWN_NAME_COUNT_CAP:
+        raise RuntimeError('context unknown-key name count exceeds bound')
+    for key in different:
+        if (type(key) is not str or len(key) > UNKNOWN_NAME_CHARACTER_CAP
+                or len(key.encode('utf-8', errors='surrogatepass')) > UNKNOWN_NAME_BYTES_CAP):
+            raise RuntimeError('context unknown-key name size/type exceeds bound')
+    names = [{'name': key, 'actual_present': key in actual_env,
+              'requested_present': key in requested_env} for key in sorted(different)]
+    # JSON escaping (ensure_ascii=True) also covers control characters and
+    # non-ASCII names; serialization never interpolates raw names into logs.
+    if len(json.dumps(names, sort_keys=True, ensure_ascii=True).encode()) > UNKNOWN_NAMES_JSON_CAP:
+        raise RuntimeError('context unknown-key escaped names exceed bound')
     return {'schema': 1, 'type': 'PRE_IDENTITY_CONTEXT_COMPARISON',
             'cwd_equal': actual_cwd == request['cwd'],
             'env_equal': actual_env == request['env'],
@@ -73,11 +92,16 @@ def context_observation(request, actual_cwd, actual_env):
             'environment': fields,
             'outside_allowlist': {'actual_count': len(set(actual_env)-set(CONTEXT_KEYS)),
                                   'requested_count': len(set(requested_env)-set(CONTEXT_KEYS)),
-                                  'different_count': sum(actual_env.get(k) != requested_env.get(k)
-                                      or (k in actual_env) != (k in requested_env) for k in outside)},
+                                  'different_count': len(different),
+                                  'different_names': names},
             'limits': {'cwd_text_characters_per_side': CWD_TEXT_CAP,
                        'record_bytes': CONTEXT_RECORD_CAP,
-                       'unrelated_environment_names_and_values': 'OMITTED'}}
+                       'unknown_differing_names': {'maximum_count': UNKNOWN_NAME_COUNT_CAP,
+                           'maximum_characters_each': UNKNOWN_NAME_CHARACTER_CAP,
+                           'maximum_utf8_bytes_each': UNKNOWN_NAME_BYTES_CAP,
+                           'maximum_escaped_json_bytes': UNKNOWN_NAMES_JSON_CAP,
+                           'escaping': 'JSON ensure_ascii=True; sorted names; reject overflow'},
+                       'unrelated_environment_values_lengths_hashes': 'OMITTED'}}
 
 
 def check_request(request, observation_path=None):
@@ -95,7 +119,7 @@ def check_request(request, observation_path=None):
     actual_cwd = str(Path.cwd().resolve())
     if observation_path is not None:
         observation = context_observation(request, actual_cwd, actual_env)
-        if len(json.dumps(observation, sort_keys=True).encode()) > CONTEXT_RECORD_CAP:
+        if len(json.dumps(observation, sort_keys=True, ensure_ascii=True).encode()) > CONTEXT_RECORD_CAP:
             raise RuntimeError('context observation exceeds bound')
         publish(observation_path, observation)
     env_equal = actual_env == request['env']

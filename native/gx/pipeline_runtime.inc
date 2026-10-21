@@ -76,6 +76,24 @@ extern "C" bool petari_gx_pipeline_full_preparation() {
   return PetariPipeline::globalPrecompile();
 }
 
+// Complete scenes (set from the frame seam each frame): outside active play (intros,
+// menus, loading, pause) a GX draw waits for its pipeline instead of being skipped,
+// so a frame never shows part of the scene; the frame (the fade) holds instead, as
+// the original never draws a partial scene. Active play keeps the bounded wait.
+// PETARI_PIPELINE_COMPLETE_SCENES=0 turns it off.
+static bool petari_complete_scenes_enabled() {
+  static const bool enabled = [] {
+    const char* value = std::getenv("PETARI_PIPELINE_COMPLETE_SCENES");
+    return !(value && std::strcmp(value, "0") == 0);
+  }();
+  return enabled;
+}
+// On from the first frame (boot, logo) until the frame seam first reports play.
+static std::atomic<bool> petariCompleteScenes{petari_complete_scenes_enabled()};
+extern "C" void petari_gx_pipeline_set_complete_scenes(bool complete) {
+  petariCompleteScenes.store(petari_complete_scenes_enabled() && complete, std::memory_order_relaxed);
+}
+
 extern "C" void petari_gx_pipeline_set_gameplay(bool gameplay) {
   {
     std::lock_guard lock{g_pipelineMutex};

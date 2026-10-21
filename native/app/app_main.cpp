@@ -71,6 +71,7 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 extern "C" void petari_gx_pipeline_background_begin();
 extern "C" void petari_efb_snapshot_prewarm();
 extern "C" void petari_gx_pipeline_set_gameplay(bool gameplay);
+extern "C" void petari_gx_pipeline_set_complete_scenes(bool complete);
 
 namespace App = PetariNative::App;
 
@@ -271,6 +272,9 @@ App::FrameStats::Phase framePhaseForPipelines() {
     const App::FrameStats::Phase phase = App::Host::framePhase();
     const bool gameplay = phase == App::FrameStats::Phase::Gameplay && !App::Host::pauseMenuActive();
     petari_gx_pipeline_set_gameplay(gameplay);
+    // No partial scenes outside active play: intros, menus, loading and pause wait for
+    // their pipelines (the fade holds) instead of skipping draws (pipeline_runtime.inc).
+    petari_gx_pipeline_set_complete_scenes(!(gameplay && App::Host::playerInPlay()));
     App::LatencyReport::frame(gameplay);
     // Opt-in image dumps of the whole session (PETARI_XFB_DUMP with _LABELS=boot) count from the first frame.
     static bool bootMarked = false;

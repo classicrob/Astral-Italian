@@ -70,7 +70,8 @@ def patch(text):
   return find_pipeline_impl(runtimeKey,
       [config] { return CompiledPipeline{.main = rmlui::create_pipeline(config)}; }, priority);''')
     replace('  return resolve_pipeline(ShaderType::GX, config, layout, PipelinePriority::Normal);',
-            '  const PetariPipeline::BoundedDrawScope petariBoundedDraw{!PetariPipeline::unboundedBlocking()};\n'
+            '  const PetariPipeline::BoundedDrawScope petariBoundedDraw{!PetariPipeline::unboundedBlocking() &&\n'
+            '      !petariCompleteScenes.load(std::memory_order_relaxed)};\n'
             '  return resolve_pipeline(ShaderType::GX, config, layout, PetariPipeline::asynchronous()\n'
             '      ? PipelinePriority::Normal : PipelinePriority::Blocking);')
     # Bounded GX draws wait only within the frame budget; clear/UI pipelines still block.
@@ -97,8 +98,9 @@ def patch(text):
     replace('    g_pipelineThread = std::thread(pipeline_worker);', '''    const unsigned count = std::max(PetariPipeline::startupWorkerCount(), PetariPipeline::burstWorkerCount());
     petariActiveWorkers = count;
     petariNormalWorkers = PetariPipeline::workerCount();
-    std::fprintf(stderr, "[gx pipeline] policy=%s compile_workers=%u normal_workers=%u\\n",
-                 PetariPipeline::asynchronous() ? "async" : "blocking", count, petariNormalWorkers);
+    std::fprintf(stderr, "[gx pipeline] policy=%s compile_workers=%u normal_workers=%u (complete scenes outside play)\\n",
+                 PetariPipeline::asynchronous() ? "async" : PetariPipeline::unboundedBlocking() ? "blocking" : "bounded",
+                 count, petariNormalWorkers);
     for (unsigned i = 0; i < count; ++i) g_pipelineThreads.emplace_back(pipeline_worker, i);''')
     replace('    g_pipelineThread.join();',
             '    for (auto& worker : g_pipelineThreads) worker.join();\n    g_pipelineThreads.clear();')

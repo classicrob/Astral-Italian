@@ -418,3 +418,22 @@ Every frame whose wall-clock interval exceeds 20 ms prints one line to stderr (t
   overloaded host): the stall is real but not one of the named causes.
 
 Code: `native/app/stall_log.hpp` (classifier, ring, rate limit), hooked in `frame_seam.cpp`; test `native_stall_log`.
+
+## No partial scenes: pipelines outside play, and the pop-in log
+
+By default a GX draw whose pipeline is still compiling waits at most 6 ms per
+frame and is then skipped until the compile lands (`bounded`, pipeline_runtime.inc),
+so that a compile during play costs a short wait rather than a long hitch. Outside active play (the stage's
+opening flyover, menus, the file select, loading, pause) that showed a partial
+scene: geometry popped in during the galaxy intro's fade-in (2026-10-21: up to
+1,600 skipped draws in frames 544-550 of YosshiHomeGalaxy on a cold, unseeded
+cache). There draws now wait for their pipelines (the frame, behind the fade,
+holds instead), as the original never draws a partial scene. Active play keeps
+the bounded wait. "Play" is `Host::playerInPlay`: the game's own
+`permitsStartPauseMenu`, no ScenarioStarter opening, demo, system talk or pause,
+not the file select or a world map, held for 6 frames.
+`PETARI_PIPELINE_COMPLETE_SCENES=0` restores the old behaviour.
+
+`[pop-in] frame N skipped_draws K (intro|play|menu/loading)` is printed for every
+frame that skipped draws; `[play ready] frame N wall_ms=...` marks the first
+frame of each return to play (launch-to-control timing).

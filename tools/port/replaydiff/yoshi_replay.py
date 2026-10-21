@@ -145,7 +145,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', required=True, type=Path)
     parser.add_argument('--slot-held', action='store_true', required=True)
+    parser.add_argument('--tape', type=Path)
+    parser.add_argument('--profile-template', type=Path)
+    parser.add_argument('--boot-menu', type=Path)
+    parser.add_argument('--prefix-only', action='store_true')
+    parser.add_argument('--overall-budget', type=int)
     args = parser.parse_args()
+    if args.overall_budget is not None:
+        if not 60 <= args.overall_budget <= 14400: parser.error('overall budget must be 60..14400')
+        signal.setitimer(signal.ITIMER_REAL, args.overall_budget)
+    deadline = time.monotonic() + args.overall_budget if args.overall_budget else None
     root = args.root.expanduser().resolve()
     private = Path.home() / 'MacioGalaxy2-gamedata'
     if private not in root.parents or root.exists():
@@ -168,7 +177,8 @@ def main():
         receipt['disc_sha256'] = ISO_SHA
         receipt['dol'] = str(private / 'SB4E01-extracted/sys/main.dol')
         receipt['dol_sha256'] = digest(receipt['dol'])
-        source = private / 'solp-replay-stage1/converted-anchor522-r1/inputs.jsonl'
+        source = (args.tape or private / 'solp-replay-stage1/converted-anchor522-r1/inputs.jsonl').expanduser().resolve()
+        if private not in source.parents: raise RuntimeError('input must stay private')
         require_hash(source, TAPE_SHA)
         require_hash(source.with_name('inputs.kpd'), KPD_SHA)
         validation = root / 'input-validation'
@@ -181,11 +191,19 @@ def main():
                                               jsonl_sha256=TAPE_SHA, kpd_sha256=KPD_SHA)
         finally:
             validated.close(False)
-        profile = private / 'sold/human01/candidate-r1-profile'
+        profile = (args.profile_template or private / 'sold/human01/candidate-r1-profile').expanduser().resolve()
+        if private not in profile.parents: raise RuntimeError('profile must stay private')
         profile_hashes = {str(path.relative_to(profile)): digest(path) for path in sorted(profile.rglob('*')) if path.is_file()}
         receipt['source_profile_files'] = profile_hashes
-        shutil.copyfile(private / 'sold/human01/candidate-r1-dolphin/input-script.json', root / 'boot-menu.json')
-        for label, count, budget in [('selector-16', 16, 1500), ('prefix-1200', 1200, 1500), ('full-30000', 30000, 10800)]:
+        boot = (args.boot_menu or private / 'sold/human01/candidate-r1-dolphin/input-script.json').expanduser().resolve()
+        if private not in boot.parents: raise RuntimeError('menu must stay private')
+        shutil.copyfile(boot, root / 'boot-menu.json')
+        phases = [('selector-16', 16, 1500), ('prefix-1200', 1200, 1500)]
+        if not args.prefix_only: phases.append(('full-30000', 30000, 10800))
+        for label, count, budget in phases:
+            if deadline:
+                budget = min(budget, int(deadline - time.monotonic()) - 30)
+                if budget < 1: raise RuntimeError('overall budget exhausted before next phase')
             tape = source
             if count != 30000:
                 tape = root / f'{label}.jsonl'
@@ -201,7 +219,8 @@ def main():
         raise
     finally:
         write_json(root / 'receipt.json', receipt)
-    state(root, 'all captures complete; analysis pending', root)
+    signal.setitimer(signal.ITIMER_REAL, 0)
+    state(root, 'requested captures complete; analysis pending', root)
     return 0
 
 
@@ -210,4 +229,5 @@ if __name__ == '__main__':
         raise RuntimeError(f'replay interrupted by {signal.Signals(number).name}')
     signal.signal(signal.SIGTERM, interrupted)
     signal.signal(signal.SIGINT, interrupted)
+    signal.signal(signal.SIGALRM, interrupted)
     sys.exit(main())

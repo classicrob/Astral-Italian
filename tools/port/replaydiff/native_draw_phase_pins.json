@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+  "files": {
+    "src/Game/System/GameSystem.cpp": "1ee07d447405f139161368281e4f9721319206f6ed6cebb4eb3fb40535ac9a51",
+    "src/Game/System/MainLoopFramework.cpp": "f9cef00d9d8f0c885cc805a8fe643e6f61939c3650d0419109ba16c3995e1ee6",
+    "include/Game/System/MainLoopFramework.hpp": "e24647a62560afe10a351d2201b9f202e6f74f2b4ef90a001497cf91d2df71a8",
+    "src/Game/System/GameSystemSceneController.cpp": "f3356b0d251a9d45e6fd51aa42b980b23be977b9bc5ddad4b0bcf9600aa34bde",
+    "include/Game/System/GameSystemSceneController.hpp": "913904985b55569d889c3ec066df33bf51709e69e3582ae0f96d1762600dcded",
+    "src/JSystem/JUtility/JUTXfb.cpp": "18fd614b624c676d6e5d26e3d3d1fa75f815c6dbca2afa4b5ab6b6707670e313",
+    "src/JSystem/JUtility/JUTVideo.cpp": "4bb7159a3ef8d06e26dedd956ee27ddc40e31702798c2280fde914b7b832879f",
+    "native/app/headless/observe.cpp": "e1fd1956c26034f0f686f8fb6b21b357eea3fd1fcd58465022cfb91d5fff7147",
+    "native/app/frame_seam.cpp": "c4b651ced89717b81cd129061d55a57ff6d0c56b0ed93a06d262803108a238d3",
+    "native/platform/include/petari/platform/vi.hpp": "98d8a1539fe56a21d49133674278948c817948171e9e82d69a50aa07c2b02dbb",
+    "native/gx/patch_aurora_present.py": "0b6ea6e38ce80e57909fcf68762d03b41063becd005636484096b4d31a9731e7"
+  },
+  "aurora_revision": "08122911e8621acb7ded6563813b264bec1494b5",
+  "aurora_binding": "native_visual_source_pins.json; no worker command changes or analysis in this proposal"
+}

@@ -16,3 +16,11 @@ Run the source-only controls:
 python3 -m unittest discover -s tools/team -p test_retention_paths.py
 python3 -m unittest discover -s tools/team -p test_symbol_recovery.py
 ```
+
+## Durable transaction engine
+
+`recovery_transaction.py` now supplies the preservation/restore engine, qualified only on synthetic paths. It requires an explicit unexpired exclusive lease pinned to the original HEAD, source root and historical target. It journals and fsyncs rename intent before mutation, reconciles interrupted atomic moves by device/inode, restores the actual original checkout and both canonical build directories, and retains failed builds at distinct paths. No destination is overwritten. SIGINT/SIGTERM/SIGHUP unwind through restoration; abrupt death is recovered by reopening the original journal and calling restore. Unexpected dirty/source/directory/file identity requires manual review instead of a destructive guess. Restore remains available after allocation expiry or a disk-floor failure.
+
+The engine exposes no CLI mutation entry point. A caller owns the native lock and bounded configure/build processes. `run_owned` guarantees an unwind for ordinary errors and handled signals; journal recovery handles termination between rename and commit. Build5.1 GX is the first proposed attempt, with maximum26minutes,8GiB additional allocation, total jobs<=6 and50GiB floor. The caller must check budgets while supervising each bounded child, not only after it exits. No real recovery execution has been qualified or performed.
+
+Current synthetic coverage additionally includes a real Git adapter against a disposable fixture repository, SIGTERM delivery, success/error/restart before and after rename/checkout, restart during restoration, occupied destinations, altered protected image/directory, dirty checkout, stale allocation, space-floor/budget, terminal-journal reuse and independent hash/UUID rejection. Temporary fixture repositories/directories are removed by their owning test fixtures.

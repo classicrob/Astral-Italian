@@ -27,6 +27,9 @@ class TexturePrewarmPatch(unittest.TestCase):
             self.assertEqual(run(PREWARM, timed, patched).returncode, 0)
             text = patched.read_text()
             self.assertIn('extern "C" void petari_gx_texture_prewarm(const void* texObj)', text)
+            self.assertIn('extern "C" void petari_gx_texture_prewarm_cancel()', text)
+            self.assertIn('PETARI_PREWARM_MS', text)  # per-frame time budget
+            self.assertIn('kPetariPrewarmLifeFrames', text)  # stale batches are dropped
             end = text.index('void end_frame() noexcept {')
             self.assertLess(end, text.index('petari_drain_texture_prewarm();', end))
             self.assertLess(text.index('static void petari_drain_texture_prewarm()'), end)

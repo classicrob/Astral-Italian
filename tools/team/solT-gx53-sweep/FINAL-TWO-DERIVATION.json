@@ -1,0 +1,63 @@
+{
+  "status": "SOURCE_ONLY_PREPARATION_NO_RUNTIME",
+  "base_runner_sha256": "ae7ddec52a9c6317033c018af711b273e657304eaa6136b08c9f818cdca4810c",
+  "final_two_runner_sha256": "8d436f0e13841f5e885053f117d13cc73b907473f1d3be14459a1289cea0fbd0",
+  "outer_sha256": "68e2a844eee75e1fd50864bb82494e370c4c66b1445370be1f26512a1239615c",
+  "template_sha256": "3524f98d4e713831f996806945d7c484bcf544c8ca81979b5e8eb6c55ee54626",
+  "exact_replacements": [
+    [
+      "\"\"\"Bounded production GX direct-entry idle observations. Never reads app logs.\"\"\"",
+      "\"\"\"Strict final-two GX direct-entry recipe. Requires a pinned closed predecessor.\"\"\""
+    ],
+    [
+      "INITIAL = [\"RedBlueExGalaxy\", \"MokumokuValleyGalaxy\", \"YosshiHomeGalaxy\"]",
+      "INITIAL = ['WanwanFactoryGalaxy', 'WhiteSnowGalaxy']"
+    ],
+    [
+      "    selection, stages, allocation = None, INITIAL, 1200\n    if selection_path:",
+      "    assert selection_path is not None, \"Final pair requires a separately bound selection\"\n    selection, stages, allocation = None, INITIAL, 540\n    if selection_path:"
+    ],
+    [
+      "        assert len(stages) == len(set(stages)) == 6",
+      "        assert stages == INITIAL and len(set(stages)) == 2\n        assert selection[\"status\"] == \"PINNED_PREDECESSOR_REQUIRES_SEPARATE_ALLOCATION\"\n        assert selection[\"final_supported_direct_idle_cap\"] == 53\n        assert selection[\"worldmap_not_run\"] == 7"
+    ],
+    [
+      "        assert set(stages).isdisjoint(prior[\"observed_fresh_and_warm_galaxies\"])",
+      "        assert set(stages).isdisjoint(prior[\"observed_fresh_and_warm_galaxies\"])\n        assert prior[\"status\"] == \"BOUNDED_BATCH_CLOSED\" and prior[\"logs_all_unread\"]\n        assert prior[\"renderer_key\"] == h[\"artifact_key\"]\n        assert prior[\"observed_fresh_and_warm_galaxies\"] == selection[\"required_predecessor_stages\"]\n        assert len(selection[\"prior_observed_galaxies\"]) == len(set(selection[\"prior_observed_galaxies\"])) == 51\n        assert set(selection[\"required_predecessor_stages\"]).issubset(selection[\"prior_observed_galaxies\"])\n        assert set(selection[\"prior_observed_galaxies\"]) | set(stages) == {s for s in m[\"supported_destinations\"] if not s.startswith(\"WorldMap\")}"
+    ],
+    [
+      "        assert allocation == 1500",
+      "        assert allocation == 540\n        assert selection[\"case_seconds\"] == SECONDS\n        assert selection[\"cases_per_galaxy\"] == [\"fresh\", \"warm\"]"
+    ],
+    [
+      "    p.add_argument(\"--selection\", type=Path)",
+      "    p.add_argument(\"--selection\", type=Path, required=True)"
+    ]
+  ],
+  "unchanged_helpers": [
+    "cache_metadata",
+    "digest",
+    "files",
+    "finite",
+    "summarize_metrics",
+    "write"
+  ],
+  "main_after_argument_declarations_ast_identical": true,
+  "existing_six_runner_unmodified": true,
+  "bound_seconds": 540,
+  "cases": 4,
+  "per_case_seconds": 90,
+  "no_runtime_allocation": true,
+  "synthetic_verify_controls": [
+    "unbound-template:REJECTED",
+    "correct-exact-pair:ACCEPTED_SYNTHETIC_PREFLIGHT_ONLY",
+    "missing-selection:REJECTED",
+    "six-names:REJECTED",
+    "reversed-pair:REJECTED",
+    "longer-allocation:REJECTED",
+    "wrong-predecessor:REJECTED",
+    "missing-historical-stage:REJECTED",
+    "wrong-final-cap:REJECTED"
+  ],
+  "control_limit": "verify-only with synthetic artifact/provider stand-ins; no app, cache, capture or runtime qualification"
+}

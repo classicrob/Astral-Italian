@@ -6,7 +6,7 @@ Your own disc is the source of all game data. It stays private in `~/MacioGalaxy
 
 ## Build 5.2.1 with Cappy (default)
 
-The default frozen app is `~/MacioGalaxy2-play/build5.2.1/Petari.app`. Pick **c) 5.2.1 with Cappy (default)** or **f) 5.1 (fallback)** in the launcher. Build 5.2 also remains available through `--build build5.2`.
+The default frozen app is `~/MacioGalaxy2-play/build5.2.1/Petari.app`. Pick **c) 5.2.1 with Cappy (default)** or **f) 5.1 (fallback)** in the launcher. **n) 5.3 candidate (not default; build5.3)** is selectable once `~/MacioGalaxy2-play/build5.3` has been frozen (until then it reports "no app" and returns to the menu; `--build build5.3` is the same). Build 5.2 also remains available through `--build build5.2`.
 
 If 5.2.1 misbehaves, pick 5.1 in the launcher or run `native/play/play.sh --build build5.1`; press M to capture the problem.
 
@@ -44,6 +44,7 @@ Double-click **`Play Astral Italian.command`** in the repository folder. A menu 
 ```
   c) 5.2.1 with Cappy (default)
   f) 5.1 (fallback)
+  n) 5.3 candidate (not default; build5.3)
   1) Flip-Swap Galaxy      (World 1)
   2) Fluffy Bluff Galaxy   (World 1)
   3) Sky Station Galaxy    (World 1, fallback)

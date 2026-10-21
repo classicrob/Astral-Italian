@@ -15,6 +15,7 @@ while :; do
     echo
     echo "  c) 5.2.1 with Cappy (default)"
     echo "  f) 5.1 (fallback)"
+    echo "  n) 5.3 candidate (not default; build5.3)"
     echo
     echo "  1) Flip-Swap Galaxy      (World 1)"
     echo "  2) Fluffy Bluff Galaxy   (World 1)"
@@ -42,6 +43,13 @@ while :; do
          continue ;;
     f|F) selected_app=$(frozen_app_named build5.1) || exit 1
          export ASTRAL_APP="$selected_app"
+         continue ;;
+    n|N) if selected_app=$(frozen_app_named build5.3); then
+             export ASTRAL_APP="$selected_app"
+         else
+             printf "Press Return to continue. "
+             read -r _ || exit 0
+         fi
          continue ;;
     b|B) frozen_app_list
          printf "Frozen build name (default or directory name): "

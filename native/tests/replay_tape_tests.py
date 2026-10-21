@@ -42,24 +42,44 @@ class TapeFiles(unittest.TestCase):
         with self.assertRaises(ValueError):
             rt.parse_kpd(b"NOTATAPE" + data[8:])
 
-    def test_trim_rebases_after_the_ready_seam_and_drops_the_unfinished_loop(self):
-        # ready seam = route row 4; seams written = 10 (rows 0..9): loops 5..9 finished, loop 10 (frame 10) did not.
-        records = [rec(f, 0) for f in range(12)]
-        total, kept = rt.trim_kpd(records, 4, 10)
-        self.assertEqual(total, 5)
-        self.assertEqual([r["frame"] for r in kept], [0, 1, 2, 3, 4])
-        self.assertEqual(kept[0]["samples"], records[5]["samples"])  # absolute frame 5 = tape frame 0
-        total, kept = rt.trim_kpd(records, 4, 10, max_frames=2)
-        self.assertEqual((total, len(kept)), (2, 2))
+    SEGMENTS = [dict(start_row=4, end_row=9, stage="A", scenario=1, rng_seed=11), dict(start_row=14, end_row=18, stage="B", scenario=2, rng_seed=22)]
+
+    def test_plan_segments_cuts_at_the_last_finished_loop(self):
+        # seams written = 17 (rows 0..16): segment 1 (rows 14..18) is cut at row 16; segment 0 is whole
+        plan = rt.plan_segments(self.SEGMENTS, 17)
+        self.assertEqual([(p["start"], p["end"], p["frames"], p["offset"]) for p in plan], [(4, 9, 5, 0), (14, 16, 2, 5)])
+        self.assertEqual(len(rt.plan_segments(self.SEGMENTS, 12)), 1)  # segment 1 never started
+        self.assertEqual(rt.plan_segments(self.SEGMENTS, 20, max_frames=7)[1]["frames"], 2)
         with self.assertRaises(ValueError):
-            rt.trim_kpd(records, 9, 10)
+            rt.plan_segments(self.SEGMENTS, 4)
+
+    def test_build_tape_rebases_each_segment_and_drops_the_gap(self):
+        records = [rec(f, 0) for f in range(20)]
+        plan = rt.plan_segments(self.SEGMENTS, 20)
+        total, kept = rt.build_tape(records, plan)
+        self.assertEqual(total, 9)
+        # segment 0: absolute frames 5..9 -> 0..4; gap 10..14 dropped; segment 1: 15..18 -> 5..8
+        self.assertEqual([r["frame"] for r in kept], [0, 1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(kept[0]["samples"], records[5]["samples"])
+        self.assertEqual(kept[5]["samples"], records[15]["samples"])
+        self.assertEqual(rt.segments_text(plan), "# stage scenario rng_seed frames\nA 1 11 5\nB 2 22 4\n")
 
     def test_actions_rebase(self):
-        actions = rt.parse_actions("# c\n5 3 1 1\n6 3 0 1\n2 3 1 0\n")
-        text = rt.rebase_actions(actions, 4, 5)
+        actions = rt.parse_actions("# c\n5 3 1 1\n6 3 0 1\n2 3 1 0\n12 3 1 1\n16 3 1 0\n")
+        text = rt.rebase_actions(actions, rt.plan_segments(self.SEGMENTS, 20))
         self.assertIn("0 3 1 1\n", text)
         self.assertIn("1 3 0 1\n", text)
-        self.assertNotIn("2 3 1 0", text)  # before the ready seam
+        self.assertIn("6 3 1 0\n", text)  # absolute 16 = segment 1 frame 1 -> global 5 + 1
+        self.assertNotIn("2 3 1 0", text)  # before the first segment
+        self.assertNotIn("12 3", text)     # in the gap
+
+
+class Tail(unittest.TestCase):
+    def test_invalid_teardown_tail_is_trimmed(self):
+        rows = [route_row(valid=1) for _ in range(6)] + [route_row(valid=0) for _ in range(3)]
+        self.assertEqual(rt.trim_invalid_tail(rows, 1, 8), 5)
+        self.assertEqual(rt.trim_invalid_tail(rows, 1, 4), 4)
+        self.assertEqual(rt.trim_invalid_tail([route_row(valid=0)] * 4, 1, 3), 1)
 
 
 class Mods(unittest.TestCase):
@@ -67,6 +87,21 @@ class Mods(unittest.TestCase):
         self.assertEqual(rt.mods_env(["OdysseyMovement", "Cappy", "OdysseyJumpDive"]), "OdysseyMovement,Cappy,OdysseyJumpDive")
         self.assertEqual(rt.mods_env(["OdysseyMovement"]), "OdysseyMovement,-OdysseyJumpDive")  # default-on mod that was off
         self.assertEqual(rt.mods_env([]), "-OdysseyJumpDive")
+
+
+class Verdict(unittest.TestCase):
+    def test_star_events_and_reached_star(self):
+        rows = [route_row(power_stars=-1), route_row(power_stars=0), route_row(power_stars=0), route_row(power_stars=1), route_row(power_stars=1)]
+        stars = rt.star_events(rows)
+        self.assertEqual([(e["route_row"], e["stars"]) for e in stars], [(3, 1)])
+        plan = [dict(index=0, start=1, end=4, frames=3)]
+        good = [dict(segment=0, route_start_row=1, route_end_row=4, tape_frames=3, rows_compared=4, matched_rows=4, first_divergence=None)]
+        v = rt.verdict(good, stars)
+        self.assertEqual((v["all_segments_matched"], v["reached_star"]), (True, "yes"))
+        early = [dict(good[0], matched_rows=1, first_divergence=dict(trace_row=1))]  # diverged before the star row (k = 2)
+        v = rt.verdict(early, stars)
+        self.assertEqual((v["all_segments_matched"], v["reached_star"], v["first_divergence_segment"]), (False, "no", 0))
+        self.assertEqual(rt.verdict(good, [])["reached_star"], "no")
 
 
 class Compare(unittest.TestCase):

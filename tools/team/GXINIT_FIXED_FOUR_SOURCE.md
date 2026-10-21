@@ -188,3 +188,13 @@ Production gxinit_fixed_four.py/its plan/exact module remain byte-identical and
 all compiler/payload refusal functions remain. No shared/full827 admission.
 Sixteen no-process tests passed, including phase-policy mocks and request guards;
 no helper/process import, child, signal, control, lock or compiler operation.
+
+## Immediate launch cutoff after independent6a review
+
+Added exactly one check() directly before Popen, after validation/log-open/mask
+setup. A cutoff/floor failure leaves pending=None and the existing mask finally
+unwinds; no child is spawned. Source/code/disabledplan are repinned in fresh
+caller stage v4; old v3/b8ee/manifest remain unchanged. A future enabled-only plan
+must live OUTSIDE the exact five-entry source staging. Same cases/operator/caps,
+production refusals unchanged. Seventeen no-process tests pass, including AST
+assertion that check() is the statement immediately preceding the sole Popen.

@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
-CALLER_ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v3')
+CALLER_ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v4')
 CALLER_ENTRIES={'gxinit_before_g_controls.py','gxinit_fixed_four.py','dispatch_platform_exact.py','GXINIT_BEFORE_G_CONTROL_PLAN.json','MANIFEST.json'}
 
 
@@ -195,6 +195,7 @@ def run_case(case,plan,plan_path,plan_sha,sup,helper,env,check):
         with (root/(case+'.log')).open('xb') as log:
             mask=signal.pthread_sigmask(signal.SIG_BLOCK,{signal.SIGTERM,signal.SIGINT,signal.SIGHUP})
             try:
+                check()  # Last sampled cutoff/floor/output check BEFORE spawn.
                 pending=subprocess.Popen(argv,cwd=plan['cwd'],env=env,stdin=subprocess.PIPE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,
                     preexec_fn=lambda:signal.pthread_sigmask(signal.SIG_SETMASK,mask))
                 until=time.monotonic()+8

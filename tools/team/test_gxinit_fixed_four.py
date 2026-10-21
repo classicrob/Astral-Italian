@@ -182,6 +182,17 @@ class FixedModels(unittest.TestCase):
         with patch.object(Path,'lstat',return_value=fake),patch.object(Path,'is_symlink',return_value=False),patch.object(controls.os,'getuid',return_value=501),patch.object(Path,'cwd',return_value=execution):
             controls.validate_root('child')
             with self.assertRaises(RuntimeError):controls.validate_root('registered-parent')
+    def test_budget_check_immediately_precedes_spawn(self):
+        tree=ast.parse(Path(controls.__file__).read_text())
+        case=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='run_case')
+        matches=[]
+        for node in ast.walk(case):
+            if isinstance(node,ast.Try):
+                for index,statement in enumerate(node.body):
+                    if isinstance(statement,ast.Assign) and isinstance(statement.value,ast.Call) and ast.unparse(statement.value.func)=='subprocess.Popen':
+                        self.assertGreater(index,0)
+                        self.assertEqual(ast.unparse(node.body[index-1]),'check()');matches.append(statement)
+        self.assertEqual(len(matches),1)
     def test_dependencies_and_missing_unknown_inputs(self):
         root='/fixture';source=root+'/candidate.cpp';names=[source,root+'/required.h']
         contract={'mandatory_paths_common':[names[1]],'allowed_resolved_roots':[root],'max_dependencies_per_arm':5,'max_total_dependency_bytes_per_arm':100}

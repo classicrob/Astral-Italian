@@ -37,6 +37,7 @@ void advanceDevices(std::uint64_t target) {
             Audio::drainInterrupts();
             frames-=pulled;
         }
+        OS::waitVirtualWork();
         now=next;
     }
 }

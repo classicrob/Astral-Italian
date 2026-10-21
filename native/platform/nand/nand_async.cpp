@@ -32,15 +32,21 @@
 #include "isfs_host.hpp"
 #include "nand_internal.hpp"
 #include "petari/host_allocation.hpp"
+#include "petari/platform/virtual_time.hpp"
 
 namespace Fs = PetariNative::Platform::NAND::Fs;
 
 namespace {
 
+namespace OS = PetariNative::Platform::OS;
+struct Job { std::function<void()> run; std::uint64_t ticket; };
+thread_local std::uint64_t tVirtualTicket = 0;
+
 struct Worker {
     std::mutex lock;
     std::condition_variable changed;
-    std::deque<std::function<void()>> queue;
+    std::deque<Job> queue;
+    std::uint64_t activeTicket = 0;
     bool running = false;
     bool stop = false;
     pthread_t thread{};
@@ -65,15 +71,22 @@ void* workerMain(void*) {
         if (w.stop) {
             return nullptr;
         }
-        std::function<void()> job = std::move(w.queue.front());
+        Job job = std::move(w.queue.front());
         w.queue.pop_front();
+        w.activeTicket = job.ticket;
         lock.unlock();
-        job();
+        if (OS::waitVirtualAsync(job.ticket)) {
+            tVirtualTicket = job.ticket;
+            job.run();
+            tVirtualTicket = 0;
+            OS::finishVirtualAsync(job.ticket);
+        }
         {
             // Destroy the job (and its captures) under the host allocator.
-            std::function<void()> discard = std::move(job);
+            Job discard = std::move(job);
         }
         lock.lock();
+        w.activeTicket = 0;
     }
 }
 
@@ -86,22 +99,35 @@ s32 submit(Job&& lambda) {
     PetariNative::HostAllocationScope hostAllocations;
     std::function<void()> job(std::forward<Job>(lambda));
     Worker& w = worker();
-    std::lock_guard<std::mutex> guard(w.lock);
-    if (!w.running) {
-        w.stop = false;
-        if (pthread_create(&w.thread, nullptr, workerMain, nullptr) != 0) {
-            return NAND_RESULT_ALLOC_FAILED;
+    // Ticket assignment and FIFO insertion are one virtual interrupt
+    // transaction; a preempting submitter must not enqueue ticket 2 first.
+    const bool virtualMode = OS::virtualTimeEnabled();
+    const BOOL enabled = virtualMode ? OSDisableInterrupts() : FALSE;
+    const auto ticket = OS::queueVirtualAsync();
+    s32 result = NAND_RESULT_OK;
+    {
+        std::lock_guard<std::mutex> guard(w.lock);
+        if (!w.running) {
+            w.stop = false;
+            if (pthread_create(&w.thread, nullptr, workerMain, nullptr) != 0)
+                result = NAND_RESULT_ALLOC_FAILED;
+            else
+                w.running = true;
         }
-        w.running = true;
+        if (result == NAND_RESULT_OK) {
+            w.queue.push_back({std::move(job), ticket});
+            w.changed.notify_one();
+        }
     }
-    w.queue.push_back(std::move(job));
-    w.changed.notify_one();
-    return NAND_RESULT_OK;
+    if (result != NAND_RESULT_OK) OS::finishVirtualAsync(ticket);
+    if (virtualMode) OSRestoreInterrupts(enabled);
+    return result;
 }
 
 // Completion, as an IPC interrupt delivers it.
 void complete(NANDCommandBlock* block, s32 result) {
     BOOL enabled = OSDisableInterrupts();
+    OS::waitVirtualAsync(tVirtualTicket);
     reinterpret_cast<NANDCallback>(block->callback)(result, block);
     OSRestoreInterrupts(enabled);
 }
@@ -221,20 +247,28 @@ namespace PetariNative::Platform::NAND {
 void stopAsync() {
     Worker& w = worker();
     bool join;
+    std::uint64_t activeTicket;
     {
         std::lock_guard<std::mutex> guard(w.lock);
         join = w.running;
         w.stop = true;
+        activeTicket = w.activeTicket;
     }
+    OS::cancelVirtualAsync(activeTicket);
     w.changed.notify_all();
     if (join) {
         pthread_join(w.thread, nullptr);
     }
     PetariNative::HostAllocationScope hostAllocations;
-    std::lock_guard<std::mutex> guard(w.lock);
-    w.queue.clear();
-    w.running = false;
-    w.stop = false;
+    std::deque<Job> discarded;
+    {
+        std::lock_guard<std::mutex> guard(w.lock);
+        discarded.swap(w.queue);
+        w.activeTicket = 0;
+        w.running = false;
+        w.stop = false;
+    }
+    for (const auto& job : discarded) OS::finishVirtualAsync(job.ticket);
 }
 
 }  // namespace PetariNative::Platform::NAND

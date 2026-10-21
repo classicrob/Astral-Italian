@@ -1,6 +1,7 @@
 #include "replay.hpp"
 #include "trace.hpp"
 #include "stage_sync.hpp"
+#include "reload_policy.hpp"
 #include "fp_mode.hpp"
 #include "platform.hpp"
 #include "gx_ledger.hpp"
@@ -87,6 +88,11 @@ public:
             H::setGameRngSeed(seed);
             return H::observeGame();
         });
+        const bool ready=mSync.enabled() ? mSync.started() :
+            state.fields.count("scene") && state.fields.at("scene")=="Game" &&
+            state.fields.count("init_state") && state.fields.at("init_state")=="6";
+        mActivateAsync=mReloadPolicy.observe(ready,
+            state.fields.count("init_state") && state.fields.at("init_state")=="0");
         if (!wasStarted && mSync.started()) {
             std::ofstream origin(mPath.string()+".sync.json");
             mSync.writeOrigin(origin);
@@ -144,12 +150,20 @@ private:
                 mChanged.wait(lock,[this]{return mRequest || mStop;});
                 if (mStop) return;
                 const bool advance=mAdvance;
+                const bool activate=mActivateAsync;
                 lock.unlock();
+                if (activate && !P::OS::virtualAsyncActive()) {
+                    P::OS::activateVirtualAsync();
+                    std::fprintf(stderr,"headless: scoped ordered async reload policy activated after source frame %llu; DVD latency not emulated\n",
+                        static_cast<unsigned long long>(mSourceFrame-1));
+                }
                 for (unsigned channel=0;channel<4;++channel)
                     if (const auto* record=mReplay.connection(channel))
                         PetariNative::Input::replayConnection(channel,record->probeError,record->device);
+                P::OS::waitVirtualWork();
                 if (advance) H::advanceDevices(mClock.advance());
                 P::VI::signalRetrace();
+                P::OS::waitVirtualWork();
                 lock.lock(); mRequest=false; mChanged.notify_all();
             }
         } catch (const std::exception& e) { fail(e.what()); }
@@ -158,6 +172,8 @@ private:
     bool mStartupRequested=false; H::StartupArrival mStartupArrival;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
+    H::ReloadPolicy mReloadPolicy;
+    bool mActivateAsync=false;
     std::thread mThread;
 };
 Driver* gDriver=nullptr;

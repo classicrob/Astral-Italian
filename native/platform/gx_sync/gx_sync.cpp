@@ -24,6 +24,7 @@
 #include <deque>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include <revolution/gx/GXPerf.h>
 #include <revolution/os.h>
@@ -34,6 +35,7 @@
 #include "petari/platform/diagnostics.hpp"
 #include "petari/platform/gx_sync.hpp"
 #include "petari/platform/os_host.hpp"
+#include "petari/platform/virtual_time.hpp"
 
 namespace OS = PetariNative::Platform::OS;
 
@@ -44,11 +46,21 @@ constexpr std::uint64_t kPointerBase = std::uint64_t(1) << 32;  // opaque FIFO p
 
 enum class Kind { Token, DrawDone, Breakpoint };
 
+class VirtualInterruptGuard {
+public:
+    VirtualInterruptGuard() : mVirtual(OS::virtualTimeEnabled()), mEnabled(mVirtual ? OSDisableInterrupts() : FALSE) {}
+    ~VirtualInterruptGuard() { if (mVirtual) OSRestoreInterrupts(mEnabled); }
+private:
+    bool mVirtual;
+    BOOL mEnabled;
+};
+
 struct Event {
     Kind kind;
     std::uint16_t token;
     std::uint64_t position;
     std::uint64_t ticket = 0;      // Token: snapshot ticket, 0 when none
+    std::uint64_t virtualTicket = 0;
     bool ready = true;             // Token: snapshot complete
     std::uint64_t lostDrawDones = 0;  // DrawDone: draw-done BPs discarded by an abort before this one
 };
@@ -80,6 +92,8 @@ struct State {
     std::uint64_t tokensReported = 0;   // token interrupts reported (with or without a ticket)
     int progressWaiters = 0;            // OS threads asleep in waitProcessed
     bool progressWake = false;
+    std::uint64_t progressVirtualTicket = 0;
+    std::uint64_t activeVirtualTicket = 0;
     int drawDoneWaiters = 0;
 
     std::atomic<std::uint64_t> breakpoint{kNoBreakpoint};
@@ -115,6 +129,10 @@ void notifyHostWaiters(State& s) {
 
 void deliver(State& s, const Event& e) {
     BOOL enabled = OSDisableInterrupts();
+    if (!OS::waitVirtualAsync(e.virtualTicket)) {
+        OSRestoreInterrupts(enabled);
+        return;
+    }
     switch (e.kind) {
     case Kind::Token:
         tDeliveringTicket = e.ticket;
@@ -140,6 +158,7 @@ void deliver(State& s, const Event& e) {
         }
         break;
     }
+    OS::finishVirtualAsync(e.virtualTicket);
     OSRestoreInterrupts(enabled);
     if (e.kind == Kind::DrawDone || e.kind == Kind::Token) {
         notifyHostWaiters(s);
@@ -164,7 +183,7 @@ bool strictTokenOrder() {
 }
 
 std::deque<Event>::iterator nextDeliverableLocked(State& s) {
-    if (strictTokenOrder()) {
+    if (strictTokenOrder() || OS::virtualAsyncActive()) {
         return !s.queue.empty() && s.queue.front().ready ? s.queue.begin() : s.queue.end();
     }
     for (auto it = s.queue.begin(); it != s.queue.end(); ++it) {
@@ -191,17 +210,28 @@ void* interruptMain(void*) {
     State& s = state();
     std::unique_lock<std::mutex> lock(s.lock);
     while (true) {
-        s.changed.wait(lock, [&] { return s.stop || s.progressWake || nextDeliverableLocked(s) != s.queue.end(); });
-        if (s.progressWake) {
+        const auto progressReady = [&] {
+            return s.progressWake && (!OS::virtualAsyncActive() || s.queue.empty() ||
+                s.progressVirtualTicket < s.queue.front().virtualTicket);
+        };
+        s.changed.wait(lock, [&] { return s.stop || progressReady() || nextDeliverableLocked(s) != s.queue.end(); });
+        if (progressReady()) {
             // Not a GP interrupt: wakes waitProcessed sleepers, never held
             // back by an incomplete snapshot.
             s.progressWake = false;
             s.progressWaiters = 0;
+            const auto ticket = s.progressVirtualTicket;
+            s.progressVirtualTicket = 0;
+            s.activeVirtualTicket = ticket;
             lock.unlock();
             BOOL enabled = OSDisableInterrupts();
-            OSWakeupThread(&s.progressWaitQueue);
+            if (OS::waitVirtualAsync(ticket)) {
+                OSWakeupThread(&s.progressWaitQueue);
+                OS::finishVirtualAsync(ticket);
+            }
             OSRestoreInterrupts(enabled);
             lock.lock();
+            s.activeVirtualTicket = 0;
             continue;
         }
         const auto next = nextDeliverableLocked(s);
@@ -210,9 +240,11 @@ void* interruptMain(void*) {
         }
         const Event e = *next;
         s.queue.erase(next);
+        s.activeVirtualTicket = e.virtualTicket;
         lock.unlock();
         deliver(s, e);
         lock.lock();
+        s.activeVirtualTicket = 0;
     }
 }
 
@@ -228,6 +260,8 @@ void startLocked(State& s) {
 
 // Returns the ticket to pass to the flush hook, or 0.
 std::uint64_t enqueueLocked(State& s, Event e) {
+    if (OS::virtualTimeEnabled() && !OS::interruptsDisabled()) OS::fatal("virtual GP enqueue requires interrupt transaction");
+    e.virtualTicket = OS::queueVirtualAsync();
     if (e.position < s.lastReported) {
         OSPanic(__FILE__, __LINE__, "GX sync: event at stream position %llu reported after position %llu (out of stream order)",
                 static_cast<unsigned long long>(e.position), static_cast<unsigned long long>(s.lastReported));
@@ -264,6 +298,7 @@ void enqueue(Event e) {
     void* user;
     std::uint64_t flush;
     {
+        VirtualInterruptGuard virtualGuard;
         std::lock_guard<std::mutex> guard(s.lock);
         flush = enqueueLocked(s, e);
         hook = s.flushHook;
@@ -292,6 +327,7 @@ void progressLocked(State& s, std::uint64_t processed, std::uint64_t written) {
     }
     if (s.progressWaiters > 0 && !s.progressWake) {
         s.progressWake = true;
+        s.progressVirtualTicket = OS::queueVirtualAsync();
         startLocked(s);
         s.changed.notify_one();
     }
@@ -335,6 +371,7 @@ void reportToken(std::uint16_t token, std::uint64_t position) {
     void* user;
     std::uint64_t ticket = 0;
     {
+        VirtualInterruptGuard virtualGuard;
         std::lock_guard<std::mutex> guard(s.lock);
         hook = s.snapshotHook;
         user = s.snapshotUser;
@@ -364,6 +401,7 @@ void reportBreakpointReached(std::uint64_t position) {
     PetariNative::HostAllocationScope hostAllocations;
     std::uint64_t flush = 0;
     {
+        VirtualInterruptGuard virtualGuard;
         std::lock_guard<std::mutex> guard(s.lock);
         markBreakpointReachedLocked(s, position, flush);
     }
@@ -373,6 +411,7 @@ void reportBreakpointReached(std::uint64_t position) {
 void reportProgress(std::uint64_t processed, std::uint64_t written) {
     State& s = state();
     {
+        VirtualInterruptGuard virtualGuard;
         std::lock_guard<std::mutex> guard(s.lock);
         progressLocked(s, processed, written);
     }
@@ -385,6 +424,7 @@ std::uint64_t processLimit(std::uint64_t processed, std::uint64_t target) {
     std::uint64_t flush = 0;
     std::uint64_t limit = target;
     {
+        VirtualInterruptGuard virtualGuard;
         std::lock_guard<std::mutex> guard(s.lock);
         if (target > s.written) {
             s.written = target;  // commands are pending even while halted
@@ -404,6 +444,7 @@ std::uint64_t processLimit(std::uint64_t processed, std::uint64_t target) {
 void abortApplied(std::uint64_t processed, std::uint64_t written) {
     State& s = state();
     {
+        VirtualInterruptGuard virtualGuard;
         std::lock_guard<std::mutex> guard(s.lock);
         if (s.abortPending) {
             s.abortPending = false;
@@ -718,16 +759,21 @@ void shutdown() {
     }
     State& s = state();
     bool join;
+    PetariNative::HostAllocationScope hostAllocations;
+    std::vector<std::uint64_t> cancelled;
     {
         std::lock_guard<std::mutex> guard(s.lock);
         join = s.running;
         s.stop = true;
+        cancelled.push_back(s.activeVirtualTicket);
+        cancelled.push_back(s.progressVirtualTicket);
+        for (const auto& event : s.queue) cancelled.push_back(event.virtualTicket);
     }
+    for (const auto ticket : cancelled) OS::cancelVirtualAsync(ticket);
     s.changed.notify_all();
     if (join) {
         pthread_join(s.thread, nullptr);
     }
-    PetariNative::HostAllocationScope hostAllocations;
     std::lock_guard<std::mutex> guard(s.lock);
     s.queue.clear();
     s.running = false;
@@ -742,6 +788,7 @@ void shutdown() {
     s.abortPending = false;
     s.progressWaiters = s.drawDoneWaiters = 0;
     s.progressWake = false;
+    s.activeVirtualTicket = s.progressVirtualTicket = 0;
     s.breakpoint.store(kNoBreakpoint);
     s.lastToken.store(0);
     s.drawSync.store(nullptr);

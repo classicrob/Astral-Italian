@@ -1,0 +1,10 @@
+import argparse,csv,hashlib,json,os,subprocess,time
+from pathlib import Path
+p=argparse.ArgumentParser();p.add_argument('output',type=Path);p.add_argument('pid',type=int);p.add_argument('--normal-route',action='store_true');p.add_argument('--confirmed-cua-mapping',action='store_true',required=True);a=p.parse_args()
+launch=json.loads((a.output/'launch.json').read_text());command=subprocess.check_output(['ps','-p',str(a.pid),'-o','state=,command='],text=True).strip()
+assert command and not command.startswith('Z') and str(a.output/'user') in command
+rows=list(csv.DictReader((a.output/'route.csv').open()));valid=[r for r in rows if r.get('stage')=='WorldMap01Galaxy' and r.get('valid')=='1' and r.get('pointer_valid')=='1']
+positions=sorted({(r['pointer_x'],r['pointer_y']) for r in valid});assert len(valid)>=30 and len(positions)>=3
+screens=sorted((a.output/'captures').glob('*/screen.png'));assert len(screens)>=2
+payload={'source':launch['source'],'binary_sha256':launch['binary_sha256'],'observed_pid':a.pid,'observed_monotonic':time.monotonic(),'observed_frame':valid[-1]['frame'],'ordinary_cua_input':True,'mapping_observed':True,'normal_route_observed':a.normal_route,'window_points':[1280,752],'image_rect_points':[0,0,1280,720],'image_rect_coordinate_space':'SDL client points; outer title bar 32 points excluded','screenshot_pixels':[2560,1504],'render_surface_pixels':[2560,1440],'mapping_basis':'Actual CUA image points400,300 /900,450 /700,600 yield normalized pointer coordinates consistent with2x pixels and32point titlebar; visual cursor observed in map','pointer_positions':positions,'before_screenshot':str(screens[0]),'after_screenshot':str(screens[-1]),'screenshot_sha256':{str(s):hashlib.sha256(s.read_bytes()).hexdigest() for s in (screens[0],screens[-1])}}
+target=a.output/'host-pointer.json';assert not target.exists();target.write_text(json.dumps(payload,indent=2)+'\n');print('Live pointer observation persisted',payload['observed_frame'],len(valid),'pointer rows',len(positions),'positions')

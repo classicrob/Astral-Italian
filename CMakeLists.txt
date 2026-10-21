@@ -183,6 +183,8 @@ if(BUILD_TESTING)
     target_compile_options(petari_game_compat_tests PRIVATE -Wno-deprecated-declarations)
     add_test(NAME native_game_compat COMMAND petari_game_compat_tests)
     add_test(NAME native_source_encoding COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/source_encoding_tests.py")
+    add_test(NAME native_graphics_dependency_build COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/graphics_dependency_build_tests.py")
+    set_tests_properties(native_graphics_dependency_build PROPERTIES RUN_SERIAL TRUE TIMEOUT 60 LABELS "build-tooling")
     add_test(NAME native_legacy_source_build COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/legacy_source_build_tests.py")
     set_tests_properties(native_legacy_source_build PROPERTIES RUN_SERIAL TRUE TIMEOUT 60 LABELS "build-tooling")
     # SMG1 pipeline seed packs were deliberately not imported.

@@ -1,4 +1,6 @@
 include(FetchContent)
+include("${CMAKE_SOURCE_DIR}/native/cmake/GraphicsDependencies.cmake")
+petari_configure_graphics_dependencies()
 enable_language(OBJC)
 set(CMAKE_FIND_FRAMEWORK LAST)
 find_package(SQLite3 3.37 REQUIRED GLOBAL)
@@ -12,6 +14,7 @@ FetchContent_Declare(aurora
     GIT_REPOSITORY https://github.com/encounter/aurora.git
     GIT_TAG 08122911e8621acb7ded6563813b264bec1494b5)
 FetchContent_MakeAvailable(aurora)
+petari_record_graphics_dependencies("${CMAKE_CURRENT_BINARY_DIR}/dependency-paths.tsv")
 
 # Cache identity is content-based: no checkout path, timestamp or dirty-git state.
 file(GLOB_RECURSE _petari_cache_identity_inputs CONFIGURE_DEPENDS
@@ -464,6 +467,7 @@ endif()
 
 add_library(petari_audio_sdl STATIC "${CMAKE_SOURCE_DIR}/native/audio/sdl_sink.cpp")
 target_link_libraries(petari_audio_sdl PUBLIC petari_platform_audio PRIVATE SDL3::SDL3 petari_host_runtime)
+petari_link_audio_frameworks(petari_audio_sdl)
 if(_petari_build_testing)
     add_executable(petari_audio_sdl_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_sdl_tests.cpp")
     target_link_libraries(petari_audio_sdl_tests PRIVATE petari_audio_sdl)

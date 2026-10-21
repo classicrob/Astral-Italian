@@ -209,6 +209,29 @@ void testButtonsThroughModel() {
     Mods::resetForTesting();
 }
 
+// The stage intro (ScenarioStarter) is not play: the game skips it on Wii A only
+// (trySkipTrigger -> testSystemPadTriggerDecide -> testCorePadTriggerA). Both Pro
+// layouts must give Wii A on A (so the skip works) and Wii B on B (back, no skip).
+void testIntroSkipButtons() {
+    const std::uint32_t bitA = In::Detail::actionBits(Action::A), bitB = In::Detail::actionBits(Action::B);
+    for (const PadLayout layout : {PadLayout::ProGalaxy, PadLayout::ProOdyssey}) {
+        const std::string name = In::padLayoutName(layout);
+        Mods::resetForTesting();
+        if (layout == PadLayout::ProOdyssey) Mods::setEnabled(Mods::Mod::OdysseyMovement, true);
+        RemoteModel model;
+        model.setBindings(In::Bindings::defaults(layout));
+        // Play just ended (the hint lapses after 100 ms), as when an intro follows play.
+        model.playControlShown();
+        tick(model, 60);
+        check(!model.playControlActive(), name + ": the intro is not play");
+        const std::uint32_t a = pressAndRead(model, kA);
+        check((a & bitA) != 0 && (a & bitB) == 0, name + " intro: Pro A is Wii A only (skips the intro)");
+        const std::uint32_t b = pressAndRead(model, kB);
+        check((b & bitB) != 0 && (b & bitA) == 0, name + " intro: Pro B is Wii B only (back; does not skip)");
+    }
+    Mods::resetForTesting();
+}
+
 void testLayoutSwitching() {
     Mods::resetForTesting();
     In::resetForTesting();
@@ -441,6 +464,7 @@ int main() {
     PetariNative::PointMove::resetForTesting();
     testTables();
     testButtonsThroughModel();
+    testIntroSkipButtons();
     testLayoutSwitching();
     testRemapPerLayout();
     testFile();

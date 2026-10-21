@@ -134,6 +134,9 @@ public:
         mSteering = steering;
     }
     bool motionControlActive() const;
+    // Mario is in play (see Input::playControlShown).
+    void playControlShown() { mPlayReport = mReportIndex + 1; }
+    bool playControlActive() const;
 
     // A bound input went down since the last call (reconnects a remote).
     bool takeActivity();
@@ -241,6 +244,8 @@ private:
     std::uint64_t mLastNunchukButtonReport = 0;
     std::uint64_t mTitlePromptReport = 0;  // report of the last titlePromptShown (0: none)
     std::uint64_t mMotionReport = 0;       // report of the last motionControlShown (0: none)
+    std::uint64_t mPlayReport = 0;         // report of the last playControlShown (0: none)
+    bool mPlayJumpAsA = false;             // what the held PlayJump press means, set at its press
     Steering mSteering = Steering::Ball;
 };
 

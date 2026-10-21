@@ -319,6 +319,7 @@ private:
         {Input::Action::PhotoShot, "", "Photo mode: save a shot"},
         {Input::Action::LevelEditor, "", "Level editor: Edit / Play (tap)"},
         {Input::Action::PlaytestCapture, "", "Playtest capture (also F9 / M)"},
+        {Input::Action::PlayJump, PETARI_ICON_A, "Pro B: jump in play, back in menus"},
     };
     static_assert(sizeof(kRows) / sizeof(kRows[0]) == static_cast<size_t>(Input::Action::Count), "a row per action");
 

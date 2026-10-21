@@ -159,12 +159,13 @@ at the next controller input after the switch, with no restart.
 | Left stick | move | move |
 | Right stick | Star Pointer | orbit camera (Odyssey camera on; else the Star Pointer) |
 | Gyro | optional pointer (`Gyro=on`) | Star Pointer |
-| A / B | jump (A also starts at the title) | jump |
+| A | jump; confirm in menus (starts at the title) | jump; confirm |
+| B | jump in play; back in menus | jump in play; back in menus |
 | Y / X | spin | throw Cappy (spin while the Cappy mod is off) |
 | Shake the controller | spin | spin |
 | R | spin | spin |
 | ZL | crouch / ground pound (Z) | crouch / ground pound |
-| ZR | shoot Star Bits; back in menus (B) | shoot Star Bits; back in menus |
+| ZR | shoot Star Bits (Wii B) | shoot Star Bits |
 | L | center camera (C) | center camera |
 | R3 | recenter the pointer | recenter the pointer |
 | L3 | Collect Star Bits mod | Collect Star Bits mod |
@@ -173,8 +174,14 @@ at the next controller input after the switch, with no restart.
 | Home | Home menu | Home menu |
 | Capture | playtest capture (as M) | playtest capture |
 
-The Wii B button is ZR here, as the Wii Remote's trigger. **B on the Pro
-Controller is the Wii A**, so in menus B confirms and ZR goes back. Rumble
+Menus follow the Nintendo convention in both layouts: **A confirms, B goes
+back** (the file select, the world map, the pause menu, dialogs and the Home
+menu). Only while Mario is in play does B jump (`PlayJump`: Wii A in play,
+Wii B otherwise). "In play" is the game's own test for a stage that may open
+its pause menu (`GameScene::permitsStartPauseMenu`, no demo, no pause menu or
+system talk, not the file select or a world map), reported each frame; a B
+press keeps the meaning it had when it went down, so a menu opening mid-jump
+does not turn a held jump into back. ZR is always Wii B (Star Bits). Rumble
 follows the game's Wii Remote rumble (`Rumble=off` turns it off).
 
 Everything is remappable on the Controls page, which shows the controller

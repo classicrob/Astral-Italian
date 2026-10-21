@@ -126,6 +126,9 @@ enum class Action : std::uint8_t {
     // Playtest capture (F9/M on the keyboard, handled by the app; the Pro Controller's
     // Capture button by default). Not a remote button: counted like the mod actions.
     PlaytestCapture,
+    // The Pro layouts' B: Wii A (jump) while Mario is in play (playControlShown),
+    // else Wii B, so menus keep A = confirm, B = back. Decided at the press.
+    PlayJump,
     Count
 };
 
@@ -393,6 +396,12 @@ enum class Steering : std::uint8_t {
     Ray,   // Ray surfing (SurfRay::updateRide): level, A/D twist, W/S ignored
 };
 void motionControlShown(Steering steering);
+// Game side (native builds): Mario is in play this frame (a stage, no menu,
+// demo, pause or system talk). For the next 100 ms PlayJump presses are Wii A;
+// otherwise, in menus, the file select, the world map and the Home menu, Wii B.
+void playControlShown();
+// Host side: playControlShown was reported within the last 100 ms. Any thread.
+bool playControlActive();
 
 // Presses (down edges, OS repeats ignored) of an input bound to a mod action
 // since the last call, then zero. Any thread. Other actions always return 0.

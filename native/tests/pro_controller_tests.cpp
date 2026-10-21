@@ -65,7 +65,7 @@ constexpr PadButton kL = PadButton::LeftShoulder, kR = PadButton::RightShoulder,
 
 std::map<Action, std::vector<PadButton>> expectedPro(bool odyssey) {
     std::map<Action, std::vector<PadButton>> t;
-    t[Action::A] = {kB};                    // B: jump
+    t[Action::PlayJump] = {kB};             // B: jump in play, back in menus
     t[Action::Start] = {kA};                // A: jump; A+B at the title prompt
     if (odyssey) {
         t[Action::ModCappyThrow] = {kY, kX};  // Y / X: throw Cappy
@@ -122,7 +122,7 @@ void testTables() {
     bool header = false;
     for (const auto& line : In::controlsSummary(In::Bindings::defaults(PadLayout::ProOdyssey))) {
         header |= line.pad == "Pro Controller (Odyssey layout)";
-        if (line.action == "Jump / confirm") check(line.pad == "B", "summary: B jumps");
+        if (line.action == "Jump / confirm") check(line.pad == "A / B", "summary: A and B jump (" + line.pad + ")");
         if (line.action == "Cap throw (Cappy mod)") check(line.pad == "Y / X", "summary: Y / X throw Cappy");
         if (line.action == "Shoot Star Bits / back") check(line.pad == "ZR", "summary: ZR shoots");
     }
@@ -151,7 +151,25 @@ void testButtonsThroughModel() {
     {
         RemoteModel model;
         model.setBindings(In::Bindings::defaults(PadLayout::ProGalaxy));
-        check((pressAndRead(model, kB) & bitA) != 0, "Galaxy: B jumps (Wii A)");
+        // Menus (no play hint): Nintendo convention, A confirms (Wii A) and B goes back (Wii B).
+        const std::uint32_t menuB = pressAndRead(model, kB);
+        check((menuB & bitB) != 0 && (menuB & bitA) == 0, "Galaxy menus: B is Wii B (back)");
+        const std::uint32_t menuA = pressAndRead(model, kA);
+        check((menuA & bitA) != 0 && (menuA & bitB) == 0, "Galaxy menus: A is Wii A (confirm)");
+        // In play: B jumps (Wii A).
+        model.playControlShown();
+        const std::uint32_t playB = pressAndRead(model, kB);
+        check((playB & bitA) != 0 && (playB & bitB) == 0, "Galaxy in play: B jumps (Wii A)");
+        // A press keeps its meaning while held: a menu opening mid-jump does not turn it into back.
+        model.playControlShown();
+        model.padButtonEvent(kB, true);
+        tick(model, 60);  // the play hint lapses (100 ms) while B is held
+        check(!model.playControlActive() && (model.outputBits() & bitA) != 0 && (model.outputBits() & bitB) == 0,
+              "held B stays a jump after play ends (flutter / hold is not cut into back)");
+        model.padButtonEvent(kB, false);
+        tick(model, 400);
+        const std::uint32_t after = pressAndRead(model, kB);
+        check((after & bitB) != 0 && (after & bitA) == 0, "the next B press out of play is back again");
         const std::uint32_t a = pressAndRead(model, kA);
         check((a & bitA) != 0 && (a & bitB) == 0, "Galaxy: A jumps (Wii A), without B outside the title");
         model.titlePromptShown();
@@ -180,7 +198,10 @@ void testButtonsThroughModel() {
         model.setBindings(In::Bindings::defaults(PadLayout::ProOdyssey));
         check((pressAndRead(model, kY) & shake) == 0, "Odyssey + Cappy: Y throws, does not spin");
         check((pressAndRead(model, kR) & shake) != 0, "Odyssey: R spins");
-        check((pressAndRead(model, kB) & bitA) != 0, "Odyssey: B jumps");
+        const std::uint32_t menu = pressAndRead(model, kB);
+        check((menu & bitB) != 0 && (menu & bitA) == 0, "Odyssey menus: B is back (Wii B)");
+        model.playControlShown();
+        check((pressAndRead(model, kB) & bitA) != 0, "Odyssey in play: B jumps");
         // Cappy off: the throw buttons fall back to spin, as RB does in Standard.
         Mods::setEnabled(Mods::Mod::Cappy, false);
         check((pressAndRead(model, kX) & shake) != 0, "Odyssey without Cappy: X spins");
@@ -297,7 +318,7 @@ void testFile() {
     loaded.setLayout(PadLayout::ProOdyssey);
     check(pads(loaded, Action::ModCappyThrow) == std::vector<PadButton>{kZR} && pads(loaded, Action::B) == std::vector<PadButton>{kY},
           "the file's Odyssey remaps");
-    check(pads(loaded, Action::A) == std::vector<PadButton>{kB}, "actions the section omits keep their defaults");
+    check(pads(loaded, Action::PlayJump) == std::vector<PadButton>{kB}, "actions the section omits keep their defaults");
     check(loaded.options().gyro == In::PadOptions::Gyro::Off, "the file's options");
     check(Remap::save(loaded, &message), "save: " + message);
     In::Bindings again;

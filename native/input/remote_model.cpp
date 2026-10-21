@@ -237,6 +237,10 @@ std::uint32_t RemoteModel::heldBits() const {
                 // The throw control falls back to Spin while Cappy is inactive, just
                 // as RB does through its shared Shake binding. This also follows
                 // a remapped cap key without adding a conflicting Shake slot.
+                if (action == Action::PlayJump) {
+                    if (!mCoStar) bits |= actionBits(mPlayJumpAsA ? Action::A : Action::B);
+                    break;
+                }
                 bits |= !mCoStar && !cappyClaims && action == Action::ModCappyThrow ? kBitShake : bitsForAction(action);
                 if (!mCoStar && action == Action::Start && titlePromptActive()) {
                     bits |= actionBits(Action::B);
@@ -276,6 +280,14 @@ std::uint32_t RemoteModel::refreshRaw() {
 }
 
 void RemoteModel::inputChanged(Binding input, bool down) {
+    if (down && !mCoStar) {
+        // A PlayJump press keeps its meaning (jump or back) until it is released,
+        // even if a menu opens or closes while it is held.
+        const auto& play = mBindings.inputs(Action::PlayJump);
+        if (std::find(play.begin(), play.end(), input) != play.end() && !actionHeld(Action::PlayJump)) {
+            mPlayJumpAsA = playControlActive();
+        }
+    }
     switch (input.device) {
     case Binding::Device::Key: mKeys[input.code] = down; break;
     case Binding::Device::Mouse: mMouse[input.code] = down; break;
@@ -291,6 +303,10 @@ void RemoteModel::inputChanged(Binding input, bool down) {
 
 bool RemoteModel::titlePromptActive() const {
     return mTitlePromptReport != 0 && mReportIndex <= mTitlePromptReport + kGameHintReports;
+}
+
+bool RemoteModel::playControlActive() const {
+    return mPlayReport != 0 && mReportIndex <= mPlayReport + kGameHintReports;
 }
 
 bool RemoteModel::motionControlActive() const {

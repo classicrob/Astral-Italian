@@ -1,6 +1,7 @@
 // One-key playtest capture: see playtest_capture.hpp.
 #include "playtest_capture.hpp"
 #include "stall_log.hpp"
+#include "petari/input.hpp"
 
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
@@ -73,6 +74,8 @@ void writeState(const std::string& dir, const RouteRecordFrame& row) {
     std::fprintf(f, "input now: move %.3f %.3f, jump %d, spin %d, crouch %d\n", i.moveX, i.moveY, i.jump, i.spin, i.crouch);
     std::fprintf(f, "shoot %d; host pointer valid %d, position %.6f %.6f (x right, y down; screen -1..1)\n", i.shoot, i.pointerValid, i.pointerX, i.pointerY);
     std::fprintf(f, "mods: %s\n", mods != nullptr ? mods : "(mods.txt)");
+    std::fprintf(f, "controller layout %s; Mario in play %d (Pro B: %s)\n", PetariNative::Input::padLayoutName(PetariNative::Input::padLayout()),
+                 PetariNative::Input::playControlActive(), PetariNative::Input::playControlActive() ? "jump" : "back");
     std::fprintf(f, "app log: %s\n", log != nullptr ? log : "(not set)");
     char stalls[kRing * 120 + 160];
     StallLog::formatCapture(StallLog::gLog, kHistory, stalls, sizeof(stalls));

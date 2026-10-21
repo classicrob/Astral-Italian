@@ -29,12 +29,16 @@ class ReadySchedule:
             raise ValueError('observation is already rebased or has a different source frame')
         valid = integer(row['scene_valid'], 'scene_valid')
         player = integer(row['player_valid'], 'player_valid')
-        state = integer(row['init_state'], 'init_state')
         epoch = integer(row['scene_epoch'], 'scene_epoch')
-        scenario = integer(row['scenario'], 'scenario')
         if valid not in (0, 1) or player not in (0, 1) or epoch < 0:
             raise ValueError('invalid observation validity/epoch')
-        match = valid == 1 and row['scene'] == 'Game' and row['stage'] == self.stage and scenario == self.scenario and state == 6
+        if not valid:
+            if self.origin is not None and self.cancelled is None:
+                self.cancelled = dict(source_frame=source_frame, reason='scene unavailable after anchor; no reanchor')
+            return None
+        state = integer(row['init_state'], 'init_state')
+        scenario = integer(row['scenario'], 'scenario')
+        match = row['scene'] == 'Game' and row['stage'] == self.stage and scenario == self.scenario and state == 6
         if self.origin is None:
             if not match: return None
             self.origin = dict(schema_version=1, phase='post-endFrame', stage=self.stage, scenario=self.scenario,

@@ -77,3 +77,26 @@ a complete image schedule. Native latest-copy presentation also precedes retail
 VI scan-out; keep that distinction explicit instead of changing the reference
 renderer. Actual GXCopyDisp copy tags and readback IDs, or an explicitly
 unqualified window-capture mode with unknown presentation lag, are still needed.
+
+
+## Raw window diagnostic adapter
+
+`visual_dolphin.py` wraps the existing entry/collector source observations and
+requests a read-only owned-window screenshot at the actual source offsets. It
+checks the stopped guest PC/LR, executable path/hash, process start identity,
+screen-capture permission and an unambiguous window belonging to that PID.
+An explicit window ID can narrow that owned set; it cannot select another app.
+The capture receipt retains full window bounds, dimensions, timestamps and PNG
+hash. It labels GPU/XFB age UNKNOWN and leaves render/readback IDs and fence
+completion unavailable. This adapter therefore produces UNQUALIFIED window
+witnesses; it cannot satisfy the stricter presentation-bound pair gate above.
+Its window chrome is not silently cropped or treated as an equal viewport.
+
+Readiness observation allows the actual pre-controller rows with unavailable
+scene/init/scenario fields, without filling them with zero. An unavailable scene
+after the accepted anchor cancels the schedule. Synthetic tests cover those
+transitions, exact source offsets, observer restoration, PID reuse, permission
+failure, image failure, ambiguity and rejection of another process's window.
+The wrapper has not yet been used in a live visual reference run. Native GX
+presentation binding is still a provider gap. These tools do not change any
+emulation/render settings, inputs, saves or guest memory.

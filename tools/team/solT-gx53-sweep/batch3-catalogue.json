@@ -1,5 +1,5 @@
 {
-  "status": "PREPARATION_ONLY_NOT_ALLOCATED",
+  "status": "ALLOCATED_BY_PORT_REQUIRES_PREFLIGHT",
   "source_sha": "33e71ee880b426c0c7da03a724377200e874c417",
   "manifest_sha256": "b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a",
   "catalog_metadata_sha256": "c6c31e362aabfc946203925497c605641dcf254c14329c739625a19fa3ea633d",
@@ -48,7 +48,6 @@
     "warm"
   ],
   "no_worldmap": true,
-  "runtime_authorization": false,
   "prior_observed_galaxies": [
     "RedBlueExGalaxy",
     "MokumokuValleyGalaxy",
@@ -65,5 +64,6 @@
     "8b4967c8cf5f9e102a6fe045fad662537fbe758fdd61ef8337150436984951f8"
   ],
   "max_runtime_seconds": 1500,
-  "qualification": "Preparation only; requires a separate allocation and explicit artifact/lock handoff. Direct-entry idle is not normal-path or gameplay completion."
+  "qualification": "Preparation only; requires a separate allocation and explicit artifact/lock handoff. Direct-entry idle is not normal-path or gameplay completion.",
+  "prior_batch_receipt_sha256": "8b4967c8cf5f9e102a6fe045fad662537fbe758fdd61ef8337150436984951f8"
 }

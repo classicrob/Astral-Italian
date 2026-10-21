@@ -94,6 +94,8 @@ def inspect_provider(provider, stage, scenario, offset):
         row = selected.get(frame)
         if row is None or row.get('scene') != 'Game' or row.get('stage') != stage or row.get('scenario') != str(scenario) or row.get('init_state') != '6' or row.get('player_valid') != '1':
             raise ValueError('missing actual ready/player trace row or capture crosses a scene boundary')
+    if selected[0].get('scene_epoch') != selected[offset].get('scene_epoch'):
+        raise ValueError('capture offset crosses a scene epoch')
     if provider['capture_source_frame'] != origin['source_frame'] + offset:
         raise ValueError('capture source frame is not the declared post-ready offset')
     if provider.get('presentation_binding') != 'frame-id-verified':
@@ -128,6 +130,9 @@ def compare_manifest(manifest, output, keep=10):
     for index, pair in enumerate(data['pairs']):
         entry = dict(index=index, stage=pair['stage'], scenario=pair['scenario'], offset=pair['offset'], status='BLOCKED')
         try:
+            if not isinstance(pair['stage'], str) or not pair['stage'] or not all(c.isascii() and (c.isalnum() or c == '_') for c in pair['stage']):
+                raise ValueError('noncanonical stage name')
+            if type(pair['scenario']) is not int or pair['scenario'] <= 0: raise ValueError('invalid scenario')
             if pair['offset'] not in (60, 300, 600): raise ValueError('unsupported capture offset')
             left, native = inspect_provider(pair['native'], pair['stage'], pair['scenario'], pair['offset'])
             right, dolphin = inspect_provider(pair['dolphin'], pair['stage'], pair['scenario'], pair['offset'])
@@ -153,7 +158,7 @@ def compare_manifest(manifest, output, keep=10):
             shutil.copyfile(source, folder / (provider + source.suffix))
         (folder / 'pair.json').write_text(json.dumps(row, indent=2) + '\n')
         retained.append(str(folder))
-    report = dict(schema_version=1, status='UNQUALIFIED_VISUAL_DIAGNOSTIC', manifest_sha256=digest(manifest),
+    report = dict(schema_version=1, status='UNQUALIFIED_VISUAL_DIAGNOSTIC' if ranked else 'BLOCKED', manifest_sha256=digest(manifest),
                   metric_policy='same-size full image; no crop, resize, temporal shift or image registration; rank by luma block SSIM8',
                   results=results, retained=retained, qualification='BLOCKED', measured_qualified_frames=None)
     (output / 'report.json').write_text(json.dumps(report, indent=2) + '\n')

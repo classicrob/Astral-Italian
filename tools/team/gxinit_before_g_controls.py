@@ -1,12 +1,37 @@
 """DISABLED fixed two-case gate observation. No payload path or tool argv."""
 import time
 CLI_STARTED=time.monotonic()  # Includes later source/import/context work.
+import sys
+sys.dont_write_bytecode=True  # BEFORE any adjacent source import.
 import hashlib
 import json
 import os
 from pathlib import Path
-import sys
+CALLER_ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-source-v2')
+CALLER_ENTRIES={'gxinit_before_g_controls.py','gxinit_fixed_four.py','dispatch_platform_exact.py','GXINIT_BEFORE_G_CONTROL_PLAN.json','MANIFEST.json'}
+
+
+def exact_source_entries(base,expected):
+    # Finite inventory; no custom loader, bytecode read or directory recursion.
+    import stat
+    seen=set()
+    with os.scandir(base) as entries:
+        for entry in entries:
+            if entry.name not in expected or entry.name in seen:raise RuntimeError('unexpected source entry/cache')
+            st=entry.stat(follow_symlinks=False)
+            if not stat.S_ISREG(st.st_mode):raise RuntimeError('source entry not regular; no caches/symlinks')
+            seen.add(entry.name)
+    if seen!=expected:raise RuntimeError('incomplete exact source entries')
+
+
+if __name__=='__main__':
+    if Path(__file__).resolve().parent!=CALLER_ROOT:raise RuntimeError('only immutable clean staged caller directory may launch')
+    if sys.pycache_prefix is not None:raise RuntimeError('external bytecode cache prefix not admitted')
+    if {'gxinit_fixed_four','dispatch_platform_exact'}.intersection(sys.modules):raise RuntimeError('preloaded adjacent caller module not admitted')
+    exact_source_entries(CALLER_ROOT,CALLER_ENTRIES)  # BEFORE fixed import.
 import gxinit_fixed_four as fixed
+if __name__=='__main__':
+    if Path(fixed.__file__).resolve()!=CALLER_ROOT/'gxinit_fixed_four.py' or Path(fixed.exact.__file__).resolve()!=CALLER_ROOT/'dispatch_platform_exact.py':raise RuntimeError('adjacent caller import resolution mismatch')
 
 ROOT=Path('/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1')
 CASES=('identity-eof','registered-parent-unwind')
@@ -21,10 +46,11 @@ def refuse_controls():
 
 
 def validate_contract(plan,enabled,phase):
-    fixed.need(set(plan)=={'schema','execution_enabled','root','cwd','limits','sources','helper','operator','full_env_sha256','base_env','cases','scope','python'},'exact control fields')
+    fixed.need(set(plan)=={'schema','execution_enabled','root','cwd','limits','sources','helper','operator','full_env_sha256','base_env','cases','scope','python','caller_source_root'},'exact control fields')
     fixed.need(type(plan['schema']) is int and plan['schema']==1 and plan['execution_enabled'] is enabled,'exact control admission bit')
     fixed.need(plan['root']==plan['cwd']==str(ROOT),'fixed control root')
     validate_root(phase)
+    fixed.need(plan['caller_source_root']==str(CALLER_ROOT),'fixed clean caller source root')
     fixed.need(plan['limits']==LIMITS,'23work+18cleanup+4terminal inside45')
     fixed.need(plan['python']==PYTHON,'exact M1 interpreter image pin')
     fixed.need(plan['cases']==list(CASES) and plan['scope']=='BEFORE_G_ONLY_NO_PAYLOAD_NO_COMPILER','no tool/payload scope')
@@ -56,6 +82,8 @@ def validate_disabled(plan):validate_contract(plan,False,'parent')
 
 def validate_runtime(plan,phase):
     validate_contract(plan,True,phase)
+    fixed.need(Path(__file__).resolve().parent==CALLER_ROOT,'actual clean caller location')
+    exact_source_entries(CALLER_ROOT,CALLER_ENTRIES)
     verify_python(plan['python'])
 
 
@@ -73,6 +101,9 @@ def work_clock(start,now=None):
 
 def helper_hashes(plan,check):
     record=plan['helper'];base=Path(record['path']).parent;result={}
+    check();exact_source_entries(base,set(record['module_closure'])|{'MANIFEST.json'})
+    manifest=fixed.bounded(base/'MANIFEST.json',16384)
+    fixed.need(hashlib.sha256(manifest).hexdigest()=='626cc488d7a6559619036c85ddfdab3aae9c03b2c34650f8e25b57b0d115d246','exact staged helper manifest')
     for name,pin in record['module_closure'].items():
         check();path=base/name
         fixed.need(not path.is_symlink() and str(path.resolve())==str(path),'fixed helper regular path resolution')
@@ -223,6 +254,7 @@ def run_controls(plan,plan_path,plan_sha,started):
                     final_elapsed=time.monotonic()-start
                     fixed.need(final_elapsed<=45,'post terminal-write45s limit')
                     print(json.dumps({'status':'COMPLETE' if failure is None else 'FAIL_CLOSED','elapsed_seconds':final_elapsed,'compiler_qualified':False}),flush=True)
+                    fixed.need(time.monotonic()-start<=45,'post stdout flush45s limit')
                 except BaseException as terminal_error:
                     try:fixed.private_record(ROOT/'terminal-failure.json',{'terminal_error':repr(terminal_error),'elapsed_seconds':time.monotonic()-start,'primary_error':failure,'status':'FAIL_CLOSED'})
                     except BaseException:pass

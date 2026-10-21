@@ -145,3 +145,22 @@ post-write clock is checked; any overrun preserves a failure record. These remai
 sampled bounds with explicit syscall-stall limitations, not a universal hard
 kernel latency guarantee. No budget increase, new signal mechanism or control
 execution. Thirteen source/model tests passed; all actual controls UNRUN.
+
+## Source cache and stdout correction after L review65a0dd95
+
+Control source sets dont_write_bytecode before adjacent fixed-module import.
+The only admitted future script location is separate immutable caller staging
+solP/gxinit-before-g-source-v2, with exactly three .py files, the disabled control
+plan and MANIFEST.json. CLI checks the exact regular-file entry set BEFORE fixed
+import, rejects preloaded adjacent modules/external pycache_prefix and checks
+actual adjacent __file__ resolution afterward. This prevents initial caller
+bytecode-cache inputs without a custom loader. Repository tools/team is for
+source/models, not an admitted runtime script location.
+
+Helper pre/post hash passes now ALSO require exactly four regular .py files plus
+pinned MANIFEST.json. Any __pycache__, .pyc, symlink, directory, missing or extra
+entry rejects; no cache is removed or silently repaired. Helper bytes unchanged
+and no helper was imported. Final stdout flush is now followed by a fresh clock
+check INSIDE the existing terminal-failure path; an overrun cannot return0 with
+only the older printed elapsed. Same sampled syscall-stall limits and45total.
+Fourteen no-process models passed; control/compiler/allocation remains disabled.

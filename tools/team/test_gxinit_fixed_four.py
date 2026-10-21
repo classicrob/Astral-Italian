@@ -113,7 +113,8 @@ class FixedModels(unittest.TestCase):
         from unittest.mock import patch
         plan=json.loads(Path(f.__file__).with_name('GXINIT_BEFORE_G_CONTROL_PLAN.json').read_bytes())
         runtime=copy.deepcopy(plan);runtime['execution_enabled']=True
-        with patch.object(controls,'validate_root') as root,patch.object(controls,'verify_python') as python:
+        with patch.object(controls,'validate_root') as root,patch.object(controls,'verify_python') as python,patch.object(controls,'CALLER_ROOT',Path(controls.__file__).resolve().parent),patch.object(controls,'exact_source_entries'):
+            runtime['caller_source_root']=str(Path(controls.__file__).resolve().parent)
             controls.validate_runtime(runtime,'child');root.assert_called_with('child');python.assert_called_with(plan['python'])
         for field,value in [('python',{}),('operator',{}),('cases',[]),('limits',dict(plan['limits'],work_seconds=45)),('base_env',dict(plan['base_env'],LANG='en_US'))]:
             bad=copy.deepcopy(runtime);bad[field]=value
@@ -131,6 +132,25 @@ class FixedModels(unittest.TestCase):
         self.assertIn('module.__file__',text);self.assertIn('sys.dont_write_bytecode = True',text)
         self.assertNotIn('fixed.load_helper(',ast.unparse(tree))
         with self.assertRaisesRegex(RuntimeError,'EXECUTION REFUSED'):f.load_helper({})
+    def test_exact_source_entries_and_post_stdout_guard(self):
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        import stat
+        class Scan:
+            def __init__(self,names):self.entries=[SimpleNamespace(name=n,stat=lambda **k:SimpleNamespace(st_mode=stat.S_IFREG)) for n in names]
+            def __enter__(self):return iter(self.entries)
+            def __exit__(self,*args):pass
+        expected={'a.py','MANIFEST.json'}
+        for names,valid in [(['a.py','MANIFEST.json'],True),(['a.py'],False),(['a.py','MANIFEST.json','__pycache__'],False),(['a.py','MANIFEST.json','a.pyc'],False)]:
+            with patch.object(controls.os,'scandir',return_value=Scan(names)):
+                if valid:controls.exact_source_entries('/not-read',expected)
+                else:
+                    with self.assertRaises(RuntimeError):controls.exact_source_entries('/not-read',expected)
+        tree=ast.parse(Path(controls.__file__).read_text());text=ast.unparse(tree)
+        self.assertLess(text.index('sys.dont_write_bytecode = True'),text.index('import gxinit_fixed_four'))
+        main_guard=text.index("if __name__ == '__main__':")
+        self.assertLess(main_guard,text.index('import gxinit_fixed_four'))
+        self.assertGreater(text.index("'post stdout flush45s limit'"),text.index('flush=True'))
     def test_dependencies_and_missing_unknown_inputs(self):
         root='/fixture';source=root+'/candidate.cpp';names=[source,root+'/required.h']
         contract={'mandatory_paths_common':[names[1]],'allowed_resolved_roots':[root],'max_dependencies_per_arm':5,'max_total_dependency_bytes_per_arm':100}

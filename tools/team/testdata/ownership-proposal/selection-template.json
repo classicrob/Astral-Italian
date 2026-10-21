@@ -1,0 +1,213 @@
+{
+  "all_provider_inventory": {
+    "path": "SYNTHETIC/invented-all-providers.json",
+    "sha256": "46bee07a6b894e5b21ed2a256b9f4936f76a178510749d8cd9113e7f5f986fd8"
+  },
+  "artifact_role": "original_link_contribution_witness",
+  "original_image_binding": {
+    "path": "SYNTHETIC/invented-image-binding.json",
+    "sha256": "08456665b421e39271560efc8a048a2e11d2927d0e01425d4831532d484646d3"
+  },
+  "original_link_recipe": {
+    "path": "SYNTHETIC/invented-original-recipe.json",
+    "sha256": "6ab83169c2baa0fbb1032266467c7fcd84b6c0811f1e214520ad81fabac38c47"
+  },
+  "providers": [
+    {
+      "archive_member_identity": "invented.a(member.o)",
+      "contribution": {
+        "address": "0x81002000",
+        "size": 4
+      },
+      "definition": {
+        "binding": 2,
+        "defining_section": {
+          "address": 0,
+          "alignment": 4,
+          "entry_size": 0,
+          "file_offset": 600,
+          "flags": 3,
+          "index": 4,
+          "name": ".sbss",
+          "name_offset": 128,
+          "occurrence": ".sbss#0",
+          "sh_info": 0,
+          "sh_link": 0,
+          "size": 4,
+          "type": 8
+        },
+        "definition_kind": "SECTION",
+        "name": "invented_ready_singleton",
+        "object_sha256": "bedd10fea45113661357f07b5ddfa47f4907bb0911081dbf2381f50468e625eb",
+        "other": 0,
+        "section_index": 4,
+        "section_occurrence": ".sbss#0",
+        "size": 4,
+        "string_name_offset": 32,
+        "string_table_section": {
+          "address": 0,
+          "alignment": 1,
+          "entry_size": 0,
+          "file_offset": 3072,
+          "flags": 0,
+          "index": 11,
+          "name": ".strtab",
+          "name_offset": 352,
+          "occurrence": ".strtab#0",
+          "sh_info": 0,
+          "sh_link": 0,
+          "size": 256,
+          "type": 3
+        },
+        "string_table_section_index": 11,
+        "symbol_index": 100,
+        "symbol_table_entry_size": 16,
+        "symbol_table_section": {
+          "address": 0,
+          "alignment": 4,
+          "entry_size": 16,
+          "file_offset": 1024,
+          "flags": 0,
+          "index": 10,
+          "name": ".symtab",
+          "name_offset": 320,
+          "occurrence": ".symtab#0",
+          "sh_info": 4,
+          "sh_link": 11,
+          "size": 2048,
+          "type": 2
+        },
+        "symbol_table_section_index": 10,
+        "type": 1,
+        "value": 0
+      },
+      "disposition": "selected",
+      "input_order": 1,
+      "original_input_object": {
+        "path": "SYNTHETIC/invented-original-input",
+        "sha256": "bedd10fea45113661357f07b5ddfa47f4907bb0911081dbf2381f50468e625eb"
+      },
+      "resolution_witness": {
+        "path": "SYNTHETIC/invented-selection-rule.json",
+        "sha256": "6dfc7b48797d11d7051b73ebde7e11b1617d370b2287feaf4320828f0d66984b"
+      },
+      "section": {
+        "address": 0,
+        "alignment": 4,
+        "entry_size": 0,
+        "file_offset": 600,
+        "flags": 3,
+        "index": 4,
+        "name": ".sbss",
+        "name_offset": 128,
+        "occurrence": ".sbss#0",
+        "sh_info": 0,
+        "sh_link": 0,
+        "size": 4,
+        "type": 8
+      }
+    }
+  ],
+  "selected_provider": {
+    "archive_member_identity": "invented.a(member.o)",
+    "contribution": {
+      "address": "0x81002000",
+      "size": 4
+    },
+    "definition": {
+      "binding": 2,
+      "defining_section": {
+        "address": 0,
+        "alignment": 4,
+        "entry_size": 0,
+        "file_offset": 600,
+        "flags": 3,
+        "index": 4,
+        "name": ".sbss",
+        "name_offset": 128,
+        "occurrence": ".sbss#0",
+        "sh_info": 0,
+        "sh_link": 0,
+        "size": 4,
+        "type": 8
+      },
+      "definition_kind": "SECTION",
+      "name": "invented_ready_singleton",
+      "object_sha256": "bedd10fea45113661357f07b5ddfa47f4907bb0911081dbf2381f50468e625eb",
+      "other": 0,
+      "section_index": 4,
+      "section_occurrence": ".sbss#0",
+      "size": 4,
+      "string_name_offset": 32,
+      "string_table_section": {
+        "address": 0,
+        "alignment": 1,
+        "entry_size": 0,
+        "file_offset": 3072,
+        "flags": 0,
+        "index": 11,
+        "name": ".strtab",
+        "name_offset": 352,
+        "occurrence": ".strtab#0",
+        "sh_info": 0,
+        "sh_link": 0,
+        "size": 256,
+        "type": 3
+      },
+      "string_table_section_index": 11,
+      "symbol_index": 100,
+      "symbol_table_entry_size": 16,
+      "symbol_table_section": {
+        "address": 0,
+        "alignment": 4,
+        "entry_size": 16,
+        "file_offset": 1024,
+        "flags": 0,
+        "index": 10,
+        "name": ".symtab",
+        "name_offset": 320,
+        "occurrence": ".symtab#0",
+        "sh_info": 4,
+        "sh_link": 11,
+        "size": 2048,
+        "type": 2
+      },
+      "symbol_table_section_index": 10,
+      "type": 1,
+      "value": 0
+    },
+    "disposition": "selected",
+    "input_order": 1,
+    "original_input_object": {
+      "path": "SYNTHETIC/invented-original-input",
+      "sha256": "bedd10fea45113661357f07b5ddfa47f4907bb0911081dbf2381f50468e625eb"
+    },
+    "resolution_witness": {
+      "path": "SYNTHETIC/invented-selection-rule.json",
+      "sha256": "6dfc7b48797d11d7051b73ebde7e11b1617d370b2287feaf4320828f0d66984b"
+    },
+    "section": {
+      "address": 0,
+      "alignment": 4,
+      "entry_size": 0,
+      "file_offset": 600,
+      "flags": 3,
+      "index": 4,
+      "name": ".sbss",
+      "name_offset": 128,
+      "occurrence": ".sbss#0",
+      "sh_info": 0,
+      "sh_link": 0,
+      "size": 4,
+      "type": 8
+    }
+  },
+  "selection_rule_witness": {
+    "path": "SYNTHETIC/invented-selection-rule.json",
+    "sha256": "6dfc7b48797d11d7051b73ebde7e11b1617d370b2287feaf4320828f0d66984b"
+  },
+  "witness": {
+    "path": "SYNTHETIC/invented-original-contributions.json",
+    "sha256": "840a2987132d46403c5f5d6311e1b0d0d0e047bdad0389c38b0514507ded2687"
+  }
+}

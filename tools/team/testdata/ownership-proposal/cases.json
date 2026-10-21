@@ -1,0 +1,2898 @@
+{
+  "all_cases_production_acceptance": false,
+  "case_count": 55,
+  "cases": [
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "ASSOCIATION_CANDIDATE_ONLY",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Reconstruction plus original initializer are not original allocation/weak selection.",
+        "semantic_check_required": true
+      },
+      "id": "complete_association_candidate",
+      "mutations": []
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Single-record rename conflicts with exact pinned ELF identity and unchanged relocation target occurrence. Callback correctness is still downstream; this metadata corruption is not waived.",
+        "semantic_check_required": true
+      },
+      "id": "single_execute_record_rename_is_unknown",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/execute/name",
+          "value": "invented_other_execute"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Symbol must belong to exact object.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_object_hash",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/object_sha256",
+          "value": "4f6c9b48fdd6ae8c7462deb5914758e783f3383b3ce58c4916b6d06fd32fae27"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Exact table index/header must agree.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_symtab_index",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/symbol_table_section_index",
+          "value": 12
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Full scoped symbol occurrence required.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_symbol_ordinal",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/symbol_index",
+          "value": 999
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "sh_link/name identity must agree.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_string_table_link",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/string_table_section_index",
+          "value": 12
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Name-only section join forbidden.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_section_occurrence",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/section_occurrence",
+          "value": ".sbss#1"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Preserve visibility/other bits; do not normalize.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_raw_st_other",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/other",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No guessed typed extent.",
+        "semantic_check_required": true
+      },
+      "id": "missing_definition_width",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/size",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Common/undefined is not a selected section definition.",
+        "semantic_check_required": true
+      },
+      "id": "common_symbol",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/definition_kind",
+          "value": "COMMON"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Resolve through actual referenced symtab.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_rela_sh_link",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/sh_link",
+          "value": 12
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Relocation must name actual source section.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_rela_sh_info",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/sh_info",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Relocation ordinal/file bounds must agree.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_rela_ordinal",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/entry_index",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Exact entry offset and alignment required.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_rela_file_offset",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/entry_file_offset",
+          "value": 4109
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Raw target ordinal cannot be joined by name.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_raw_r_info",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/raw_r_info",
+          "value": 25965
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Unexplained adjusted address is not same singleton.",
+        "semantic_check_required": true
+      },
+      "id": "signed_addend_not_zero",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/explicit_signed_addend",
+          "value": -4
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Full target section identity required.",
+        "semantic_check_required": true
+      },
+      "id": "target_section_mismatch",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/2/target/defining_section/occurrence",
+          "value": ".text#1"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Full source section identity required.",
+        "semantic_check_required": true
+      },
+      "id": "source_section_mismatch",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/2/source_symbol/defining_section/occurrence",
+          "value": ".text#1"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "ADDI/load PC is not constructor BL.",
+        "semantic_check_required": true
+      },
+      "id": "swapped_load_vs_BL_roles",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_initializer/constructor_call_pc",
+          "value": "0x81001020"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Original selected address must agree.",
+        "semantic_check_required": true
+      },
+      "id": "changed_original_address",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_initializer/singleton_address",
+          "value": "0x81002004"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Context and every original span must agree.",
+        "semantic_check_required": true
+      },
+      "id": "wrong_original_image",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_initializer/image_sha256",
+          "value": "0a8e20a0dc99d8f5e65eaebb9038ab418b18c82d8388664cfc93e228198b0962"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No reuse across source arms without exact independent bridge.",
+        "semantic_check_required": true
+      },
+      "id": "changed_source_context",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/source_binding/audited_source_commit",
+          "value": "3333333333333333333333333333333333333333"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Exact full map pin required.",
+        "semantic_check_required": true
+      },
+      "id": "changed_map_context",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/mapped_record/map_sha256",
+          "value": "30c2230d0b6157b8f1b4147d8d6ee475b7234c25521223abefb1ff4a7c683ee9"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No wrapping extents.",
+        "semantic_check_required": true
+      },
+      "id": "address_size_overflow",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/extents/mapped_span",
+          "value": {
+            "address": "0xfffffffc",
+            "size": 8
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Object relative value+size must fit defining section without overflow.",
+        "semantic_check_required": true
+      },
+      "id": "symbol_extent_overflows_section",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/singleton/value",
+          "value": 4294967294
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Do not infer singleton identity from nearby/identical bytes.",
+        "semantic_check_required": true
+      },
+      "id": "sinit_targets_other_singleton",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/target/symbol_index",
+          "value": 105
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Ctor HI/LO pair must bind same exact vtable target/addend.",
+        "semantic_check_required": true
+      },
+      "id": "ctor_HA_LO_targets_diverge",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/4/target/symbol_index",
+          "value": 106
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Reconstruction size cannot be inflated from map.",
+        "semantic_check_required": true
+      },
+      "id": "sized_symbol_not_same_mapped_span",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/extents/reconstructed_symbol_size",
+          "value": 8
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No implicit addend interpretation.",
+        "semantic_check_required": true
+      },
+      "id": "REL_not_RELA",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/relocations/1/encoding",
+          "value": "REL"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Lossless record identity mandatory.",
+        "semantic_check_required": true
+      },
+      "id": "missing_required_relocation_ordinal",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/relations/0/reconstruction/relocations/1/entry_index"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "SHT_NOBITS has no object-file byte payload.",
+        "semantic_check_required": true
+      },
+      "id": "NOBITS_zeros_not_payload",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/relations/0/reconstruction/singleton_section/file_bytes_sha256",
+          "value": "93f6086ddc617c55a0675ea1007a28f75cdb9ab068bf5dd2dce17b41214c93e6"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Duplicate subject IDs are not silently coalesced, even when bytes agree.",
+        "semantic_check_required": true
+      },
+      "id": "duplicate_subject_conflict",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/relations/-",
+          "value": {
+            "class_name": "NrvInvented::Ready",
+            "extents": {
+              "mapped_span": {
+                "address": "0x81002000",
+                "size": 4
+              },
+              "observed_access_extent": {
+                "address": "0x81002000",
+                "size": 4
+              },
+              "original_allocation_extent": {
+                "missing_evidence": [
+                  "original link/contribution witness; invented fixture grants none"
+                ],
+                "reason": "Original allocation extent not established",
+                "state": "UNKNOWN"
+              },
+              "reconstructed_symbol_size": 4,
+              "unassigned_ranges": []
+            },
+            "mapped_record": {
+              "address": "0x81002000",
+              "declared_size": 4,
+              "line": 1,
+              "map_sha256": "cc8ef98b5e55c60894a1449b37ab66a97be94cb0f06c04fe32a831fc6b4a3c50",
+              "name": "invented_ready_singleton",
+              "record_index": 0,
+              "section": ".sbss",
+              "size_explicit": true,
+              "symbol_type": "object"
+            },
+            "original_initializer": {
+              "constructor": {
+                "address": "0x81001040",
+                "existing_owner_units": [
+                  "Game/Invented.cpp"
+                ],
+                "image_sha256": "1d9a0682622a8367f3dec31317c15a6ef5e814fc84b69a50492d47051fcd84de",
+                "ownership_witness": {
+                  "path": "SYNTHETIC/owned-.text.json",
+                  "sha256": "770d05d4142b48bfb3ede2c79c8483e19fb6de399fc2e87b8d94afd8ae0d8794"
+                },
+                "section": ".text",
+                "sha256": "ed1a77ad48913b96a52f4709986b996f463afa8352f1de6144f6d9abc0f047e2",
+                "size": 16
+              },
+              "constructor_call_pc": "0x81001024",
+              "ctors_entry": {
+                "address": "0x81004000",
+                "existing_owner_units": [
+                  "Game/Invented.cpp"
+                ],
+                "image_sha256": "1d9a0682622a8367f3dec31317c15a6ef5e814fc84b69a50492d47051fcd84de",
+                "ownership_witness": {
+                  "path": "SYNTHETIC/owned-.ctors.json",
+                  "sha256": "5a806a6c50b461d39ef8bbf21080fd6f59f44c8e313d9984ce96728974bf8458"
+                },
+                "section": ".ctors",
+                "sha256": "483c5f25fdd4ef849399834b380e77d97d1f68d235174cae45db07e675941f96",
+                "size": 4
+              },
+              "execute_address": "0x81001060",
+              "execute_slot": 8,
+              "image_sha256": "1d9a0682622a8367f3dec31317c15a6ef5e814fc84b69a50492d47051fcd84de",
+              "initializer": {
+                "address": "0x81001020",
+                "existing_owner_units": [
+                  "Game/Invented.cpp"
+                ],
+                "image_sha256": "1d9a0682622a8367f3dec31317c15a6ef5e814fc84b69a50492d47051fcd84de",
+                "ownership_witness": {
+                  "path": "SYNTHETIC/owned-.text.json",
+                  "sha256": "770d05d4142b48bfb3ede2c79c8483e19fb6de399fc2e87b8d94afd8ae0d8794"
+                },
+                "section": ".text",
+                "sha256": "d94d48ec4d4c6a4be591dda2e77aee7ded62a49d8a9502ca06d5f75ef73cc92c",
+                "size": 24
+              },
+              "initializer_unit": "Game/Invented.cpp",
+              "receiver_adjustment": 0,
+              "register_and_cfg_witness": {
+                "path": "SYNTHETIC/original-initializer-CFG.json",
+                "sha256": "ecaeabc3d44e88ecdbd1794b857ef2f4fb6c12a9f12852bfa189619aded1f875"
+              },
+              "singleton_address": "0x81002000",
+              "singleton_load_pc": "0x81001020",
+              "storage_ownership_grant": false,
+              "vptr_address": "0x81003000",
+              "vptr_store_pc": "0x81001048",
+              "vtable_observation": {
+                "address": "0x81003000",
+                "existing_owner_units": [],
+                "image_sha256": "1d9a0682622a8367f3dec31317c15a6ef5e814fc84b69a50492d47051fcd84de",
+                "ownership_witness": {
+                  "missing_evidence": [
+                    "original link/contribution witness; invented fixture grants none"
+                  ],
+                  "reason": "storage owner unresolved",
+                  "state": "UNKNOWN"
+                },
+                "section": ".data",
+                "sha256": "7fc0771276d22390cee5b09e591af684127282d9ecbf54a3fb252f8bcd0a0abe",
+                "size": 16
+              },
+              "write_width": 4
+            },
+            "original_selection": {
+              "missing_evidence": [
+                "original link/contribution witness; invented fixture grants none"
+              ],
+              "reason": "Original selected weak input is not established",
+              "state": "UNKNOWN"
+            },
+            "reconstruction": {
+              "artifact_role": "reconstructed_relocatable_object",
+              "audited_source_bridge": {
+                "path": "SYNTHETIC/exact-source-tree.json",
+                "sha256": "20bc6d2ea3fb6a8daa095a9e2a05b71200a2467584cbb6dd830f6d67b04bd799"
+              },
+              "build_recipe": {
+                "path": "SYNTHETIC/recipe.json",
+                "sha256": "a8bef914971dd44b9ce3fcee68b31b7526963bae375d9735e8cb7230355ef757"
+              },
+              "constructor": {
+                "binding": 2,
+                "defining_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 0,
+                  "file_offset": 256,
+                  "flags": 6,
+                  "index": 1,
+                  "name": ".text",
+                  "name_offset": 32,
+                  "occurrence": ".text#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 128,
+                  "type": 1
+                },
+                "definition_kind": "SECTION",
+                "name": "invented_ctor",
+                "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                "other": 0,
+                "section_index": 1,
+                "section_occurrence": ".text#0",
+                "size": 16,
+                "string_name_offset": 96,
+                "string_table_section": {
+                  "address": 0,
+                  "alignment": 1,
+                  "entry_size": 0,
+                  "file_offset": 3072,
+                  "flags": 0,
+                  "index": 11,
+                  "name": ".strtab",
+                  "name_offset": 352,
+                  "occurrence": ".strtab#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 256,
+                  "type": 3
+                },
+                "string_table_section_index": 11,
+                "symbol_index": 102,
+                "symbol_table_entry_size": 16,
+                "symbol_table_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 16,
+                  "file_offset": 1024,
+                  "flags": 0,
+                  "index": 10,
+                  "name": ".symtab",
+                  "name_offset": 320,
+                  "occurrence": ".symtab#0",
+                  "sh_info": 4,
+                  "sh_link": 11,
+                  "size": 2048,
+                  "type": 2
+                },
+                "symbol_table_section_index": 10,
+                "type": 2,
+                "value": 64
+              },
+              "ctors_section": {
+                "address": 0,
+                "alignment": 4,
+                "entry_size": 0,
+                "file_offset": 640,
+                "flags": 3,
+                "index": 5,
+                "name": ".ctors",
+                "name_offset": 160,
+                "occurrence": ".ctors#0",
+                "sh_info": 0,
+                "sh_link": 0,
+                "size": 4,
+                "type": 1
+              },
+              "elf_class": 32,
+              "elf_data": "big_endian",
+              "elf_flags": 0,
+              "elf_machine": "EM_PPC",
+              "elf_type": "ET_REL",
+              "execute": {
+                "binding": 2,
+                "defining_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 0,
+                  "file_offset": 256,
+                  "flags": 6,
+                  "index": 1,
+                  "name": ".text",
+                  "name_offset": 32,
+                  "occurrence": ".text#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 128,
+                  "type": 1
+                },
+                "definition_kind": "SECTION",
+                "name": "invented_execute",
+                "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                "other": 0,
+                "section_index": 1,
+                "section_occurrence": ".text#0",
+                "size": 8,
+                "string_name_offset": 160,
+                "string_table_section": {
+                  "address": 0,
+                  "alignment": 1,
+                  "entry_size": 0,
+                  "file_offset": 3072,
+                  "flags": 0,
+                  "index": 11,
+                  "name": ".strtab",
+                  "name_offset": 352,
+                  "occurrence": ".strtab#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 256,
+                  "type": 3
+                },
+                "string_table_section_index": 11,
+                "symbol_index": 104,
+                "symbol_table_entry_size": 16,
+                "symbol_table_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 16,
+                  "file_offset": 1024,
+                  "flags": 0,
+                  "index": 10,
+                  "name": ".symtab",
+                  "name_offset": 320,
+                  "occurrence": ".symtab#0",
+                  "sh_info": 4,
+                  "sh_link": 11,
+                  "size": 2048,
+                  "type": 2
+                },
+                "symbol_table_section_index": 10,
+                "type": 2,
+                "value": 96
+              },
+              "initializer": {
+                "binding": 1,
+                "defining_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 0,
+                  "file_offset": 256,
+                  "flags": 6,
+                  "index": 1,
+                  "name": ".text",
+                  "name_offset": 32,
+                  "occurrence": ".text#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 128,
+                  "type": 1
+                },
+                "definition_kind": "SECTION",
+                "name": "invented_sinit",
+                "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                "other": 0,
+                "section_index": 1,
+                "section_occurrence": ".text#0",
+                "size": 24,
+                "string_name_offset": 64,
+                "string_table_section": {
+                  "address": 0,
+                  "alignment": 1,
+                  "entry_size": 0,
+                  "file_offset": 3072,
+                  "flags": 0,
+                  "index": 11,
+                  "name": ".strtab",
+                  "name_offset": 352,
+                  "occurrence": ".strtab#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 256,
+                  "type": 3
+                },
+                "string_table_section_index": 11,
+                "symbol_index": 101,
+                "symbol_table_entry_size": 16,
+                "symbol_table_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 16,
+                  "file_offset": 1024,
+                  "flags": 0,
+                  "index": 10,
+                  "name": ".symtab",
+                  "name_offset": 320,
+                  "occurrence": ".symtab#0",
+                  "sh_info": 4,
+                  "sh_link": 11,
+                  "size": 2048,
+                  "type": 2
+                },
+                "symbol_table_section_index": 10,
+                "type": 2,
+                "value": 32
+              },
+              "logical_split_unit": "Game/Invented.cpp",
+              "object": {
+                "path": "SYNTHETIC/object",
+                "sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c"
+              },
+              "relocations": [
+                {
+                  "encoding": "RELA",
+                  "entry_file_offset": 4096,
+                  "entry_index": 0,
+                  "entry_size": 12,
+                  "explicit_signed_addend": 0,
+                  "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                  "raw_r_info": 25857,
+                  "relocation_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 12,
+                    "file_offset": 4096,
+                    "flags": 0,
+                    "index": 20,
+                    "name": ".rela.ctors",
+                    "name_offset": 640,
+                    "occurrence": ".rela.ctors#0",
+                    "sh_info": 5,
+                    "sh_link": 10,
+                    "size": 12,
+                    "type": 4
+                  },
+                  "relocation_type": 1,
+                  "role": "ctors_initializer",
+                  "sh_info": 5,
+                  "sh_link": 10,
+                  "source_offset": 0,
+                  "source_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 0,
+                    "file_offset": 640,
+                    "flags": 3,
+                    "index": 5,
+                    "name": ".ctors",
+                    "name_offset": 160,
+                    "occurrence": ".ctors#0",
+                    "sh_info": 0,
+                    "sh_link": 0,
+                    "size": 4,
+                    "type": 1
+                  },
+                  "source_symbol": {
+                    "binding": 0,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 640,
+                      "flags": 3,
+                      "index": 5,
+                      "name": ".ctors",
+                      "name_offset": 160,
+                      "occurrence": ".ctors#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 4,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_ctors_section",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 5,
+                    "section_occurrence": ".ctors#0",
+                    "size": 4,
+                    "string_name_offset": 192,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 2,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 3,
+                    "value": 0
+                  },
+                  "target": {
+                    "binding": 1,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_sinit",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 24,
+                    "string_name_offset": 64,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 101,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 32
+                  }
+                },
+                {
+                  "encoding": "RELA",
+                  "entry_file_offset": 4108,
+                  "entry_index": 0,
+                  "entry_size": 12,
+                  "explicit_signed_addend": 0,
+                  "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                  "raw_r_info": 25709,
+                  "relocation_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 12,
+                    "file_offset": 4108,
+                    "flags": 0,
+                    "index": 21,
+                    "name": ".rela.text",
+                    "name_offset": 672,
+                    "occurrence": ".rela.text#0",
+                    "sh_info": 1,
+                    "sh_link": 10,
+                    "size": 12,
+                    "type": 4
+                  },
+                  "relocation_type": 109,
+                  "role": "sinit_singleton",
+                  "sh_info": 1,
+                  "sh_link": 10,
+                  "source_offset": 32,
+                  "source_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 0,
+                    "file_offset": 256,
+                    "flags": 6,
+                    "index": 1,
+                    "name": ".text",
+                    "name_offset": 32,
+                    "occurrence": ".text#0",
+                    "sh_info": 0,
+                    "sh_link": 0,
+                    "size": 128,
+                    "type": 1
+                  },
+                  "source_symbol": {
+                    "binding": 1,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_sinit",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 24,
+                    "string_name_offset": 64,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 101,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 32
+                  },
+                  "target": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 600,
+                      "flags": 3,
+                      "index": 4,
+                      "name": ".sbss",
+                      "name_offset": 128,
+                      "occurrence": ".sbss#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 4,
+                      "type": 8
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_ready_singleton",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 4,
+                    "section_occurrence": ".sbss#0",
+                    "size": 4,
+                    "string_name_offset": 32,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 100,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 1,
+                    "value": 0
+                  }
+                },
+                {
+                  "encoding": "RELA",
+                  "entry_file_offset": 4120,
+                  "entry_index": 0,
+                  "entry_size": 12,
+                  "explicit_signed_addend": 0,
+                  "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                  "raw_r_info": 26122,
+                  "relocation_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 12,
+                    "file_offset": 4120,
+                    "flags": 0,
+                    "index": 22,
+                    "name": ".rela.text",
+                    "name_offset": 704,
+                    "occurrence": ".rela.text#1",
+                    "sh_info": 1,
+                    "sh_link": 10,
+                    "size": 12,
+                    "type": 4
+                  },
+                  "relocation_type": 10,
+                  "role": "sinit_constructor",
+                  "sh_info": 1,
+                  "sh_link": 10,
+                  "source_offset": 36,
+                  "source_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 0,
+                    "file_offset": 256,
+                    "flags": 6,
+                    "index": 1,
+                    "name": ".text",
+                    "name_offset": 32,
+                    "occurrence": ".text#0",
+                    "sh_info": 0,
+                    "sh_link": 0,
+                    "size": 128,
+                    "type": 1
+                  },
+                  "source_symbol": {
+                    "binding": 1,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_sinit",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 24,
+                    "string_name_offset": 64,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 101,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 32
+                  },
+                  "target": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_ctor",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 16,
+                    "string_name_offset": 96,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 102,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 64
+                  }
+                },
+                {
+                  "encoding": "RELA",
+                  "entry_file_offset": 4132,
+                  "entry_index": 0,
+                  "entry_size": 12,
+                  "explicit_signed_addend": 0,
+                  "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                  "raw_r_info": 26374,
+                  "relocation_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 12,
+                    "file_offset": 4132,
+                    "flags": 0,
+                    "index": 23,
+                    "name": ".rela.text",
+                    "name_offset": 736,
+                    "occurrence": ".rela.text#2",
+                    "sh_info": 1,
+                    "sh_link": 10,
+                    "size": 12,
+                    "type": 4
+                  },
+                  "relocation_type": 6,
+                  "role": "ctor_vtable_hi",
+                  "sh_info": 1,
+                  "sh_link": 10,
+                  "source_offset": 64,
+                  "source_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 0,
+                    "file_offset": 256,
+                    "flags": 6,
+                    "index": 1,
+                    "name": ".text",
+                    "name_offset": 32,
+                    "occurrence": ".text#0",
+                    "sh_info": 0,
+                    "sh_link": 0,
+                    "size": 128,
+                    "type": 1
+                  },
+                  "source_symbol": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_ctor",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 16,
+                    "string_name_offset": 96,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 102,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 64
+                  },
+                  "target": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 512,
+                      "flags": 3,
+                      "index": 2,
+                      "name": ".data",
+                      "name_offset": 64,
+                      "occurrence": ".data#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 16,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_vtable",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 2,
+                    "section_occurrence": ".data#0",
+                    "size": 16,
+                    "string_name_offset": 128,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 103,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 1,
+                    "value": 0
+                  }
+                },
+                {
+                  "encoding": "RELA",
+                  "entry_file_offset": 4144,
+                  "entry_index": 0,
+                  "entry_size": 12,
+                  "explicit_signed_addend": 0,
+                  "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                  "raw_r_info": 26372,
+                  "relocation_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 12,
+                    "file_offset": 4144,
+                    "flags": 0,
+                    "index": 24,
+                    "name": ".rela.text",
+                    "name_offset": 768,
+                    "occurrence": ".rela.text#3",
+                    "sh_info": 1,
+                    "sh_link": 10,
+                    "size": 12,
+                    "type": 4
+                  },
+                  "relocation_type": 4,
+                  "role": "ctor_vtable_lo",
+                  "sh_info": 1,
+                  "sh_link": 10,
+                  "source_offset": 68,
+                  "source_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 0,
+                    "file_offset": 256,
+                    "flags": 6,
+                    "index": 1,
+                    "name": ".text",
+                    "name_offset": 32,
+                    "occurrence": ".text#0",
+                    "sh_info": 0,
+                    "sh_link": 0,
+                    "size": 128,
+                    "type": 1
+                  },
+                  "source_symbol": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_ctor",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 16,
+                    "string_name_offset": 96,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 102,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 64
+                  },
+                  "target": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 512,
+                      "flags": 3,
+                      "index": 2,
+                      "name": ".data",
+                      "name_offset": 64,
+                      "occurrence": ".data#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 16,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_vtable",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 2,
+                    "section_occurrence": ".data#0",
+                    "size": 16,
+                    "string_name_offset": 128,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 103,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 1,
+                    "value": 0
+                  }
+                },
+                {
+                  "encoding": "RELA",
+                  "entry_file_offset": 4156,
+                  "entry_index": 0,
+                  "entry_size": 12,
+                  "explicit_signed_addend": 0,
+                  "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                  "raw_r_info": 26625,
+                  "relocation_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 12,
+                    "file_offset": 4156,
+                    "flags": 0,
+                    "index": 25,
+                    "name": ".rela.data",
+                    "name_offset": 800,
+                    "occurrence": ".rela.data#0",
+                    "sh_info": 2,
+                    "sh_link": 10,
+                    "size": 12,
+                    "type": 4
+                  },
+                  "relocation_type": 1,
+                  "role": "vtable_execute",
+                  "sh_info": 2,
+                  "sh_link": 10,
+                  "source_offset": 8,
+                  "source_section": {
+                    "address": 0,
+                    "alignment": 4,
+                    "entry_size": 0,
+                    "file_offset": 512,
+                    "flags": 3,
+                    "index": 2,
+                    "name": ".data",
+                    "name_offset": 64,
+                    "occurrence": ".data#0",
+                    "sh_info": 0,
+                    "sh_link": 0,
+                    "size": 16,
+                    "type": 1
+                  },
+                  "source_symbol": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 512,
+                      "flags": 3,
+                      "index": 2,
+                      "name": ".data",
+                      "name_offset": 64,
+                      "occurrence": ".data#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 16,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_vtable",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 2,
+                    "section_occurrence": ".data#0",
+                    "size": 16,
+                    "string_name_offset": 128,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 103,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 1,
+                    "value": 0
+                  },
+                  "target": {
+                    "binding": 2,
+                    "defining_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 0,
+                      "file_offset": 256,
+                      "flags": 6,
+                      "index": 1,
+                      "name": ".text",
+                      "name_offset": 32,
+                      "occurrence": ".text#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 128,
+                      "type": 1
+                    },
+                    "definition_kind": "SECTION",
+                    "name": "invented_execute",
+                    "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                    "other": 0,
+                    "section_index": 1,
+                    "section_occurrence": ".text#0",
+                    "size": 8,
+                    "string_name_offset": 160,
+                    "string_table_section": {
+                      "address": 0,
+                      "alignment": 1,
+                      "entry_size": 0,
+                      "file_offset": 3072,
+                      "flags": 0,
+                      "index": 11,
+                      "name": ".strtab",
+                      "name_offset": 352,
+                      "occurrence": ".strtab#0",
+                      "sh_info": 0,
+                      "sh_link": 0,
+                      "size": 256,
+                      "type": 3
+                    },
+                    "string_table_section_index": 11,
+                    "symbol_index": 104,
+                    "symbol_table_entry_size": 16,
+                    "symbol_table_section": {
+                      "address": 0,
+                      "alignment": 4,
+                      "entry_size": 16,
+                      "file_offset": 1024,
+                      "flags": 0,
+                      "index": 10,
+                      "name": ".symtab",
+                      "name_offset": 320,
+                      "occurrence": ".symtab#0",
+                      "sh_info": 4,
+                      "sh_link": 11,
+                      "size": 2048,
+                      "type": 2
+                    },
+                    "symbol_table_section_index": 10,
+                    "type": 2,
+                    "value": 96
+                  }
+                }
+              ],
+              "singleton": {
+                "binding": 2,
+                "defining_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 0,
+                  "file_offset": 600,
+                  "flags": 3,
+                  "index": 4,
+                  "name": ".sbss",
+                  "name_offset": 128,
+                  "occurrence": ".sbss#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 4,
+                  "type": 8
+                },
+                "definition_kind": "SECTION",
+                "name": "invented_ready_singleton",
+                "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                "other": 0,
+                "section_index": 4,
+                "section_occurrence": ".sbss#0",
+                "size": 4,
+                "string_name_offset": 32,
+                "string_table_section": {
+                  "address": 0,
+                  "alignment": 1,
+                  "entry_size": 0,
+                  "file_offset": 3072,
+                  "flags": 0,
+                  "index": 11,
+                  "name": ".strtab",
+                  "name_offset": 352,
+                  "occurrence": ".strtab#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 256,
+                  "type": 3
+                },
+                "string_table_section_index": 11,
+                "symbol_index": 100,
+                "symbol_table_entry_size": 16,
+                "symbol_table_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 16,
+                  "file_offset": 1024,
+                  "flags": 0,
+                  "index": 10,
+                  "name": ".symtab",
+                  "name_offset": 320,
+                  "occurrence": ".symtab#0",
+                  "sh_info": 4,
+                  "sh_link": 11,
+                  "size": 2048,
+                  "type": 2
+                },
+                "symbol_table_section_index": 10,
+                "type": 1,
+                "value": 0
+              },
+              "singleton_section": {
+                "address": 0,
+                "alignment": 4,
+                "entry_size": 0,
+                "file_offset": 600,
+                "flags": 3,
+                "index": 4,
+                "name": ".sbss",
+                "name_offset": 128,
+                "occurrence": ".sbss#0",
+                "sh_info": 0,
+                "sh_link": 0,
+                "size": 4,
+                "type": 8
+              },
+              "source_commit": "1111111111111111111111111111111111111111",
+              "source_tree": "2222222222222222222222222222222222222222",
+              "source_unit_path": "src/Game/Invented.cpp",
+              "vtable": {
+                "binding": 2,
+                "defining_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 0,
+                  "file_offset": 512,
+                  "flags": 3,
+                  "index": 2,
+                  "name": ".data",
+                  "name_offset": 64,
+                  "occurrence": ".data#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 16,
+                  "type": 1
+                },
+                "definition_kind": "SECTION",
+                "name": "invented_vtable",
+                "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+                "other": 0,
+                "section_index": 2,
+                "section_occurrence": ".data#0",
+                "size": 16,
+                "string_name_offset": 128,
+                "string_table_section": {
+                  "address": 0,
+                  "alignment": 1,
+                  "entry_size": 0,
+                  "file_offset": 3072,
+                  "flags": 0,
+                  "index": 11,
+                  "name": ".strtab",
+                  "name_offset": 352,
+                  "occurrence": ".strtab#0",
+                  "sh_info": 0,
+                  "sh_link": 0,
+                  "size": 256,
+                  "type": 3
+                },
+                "string_table_section_index": 11,
+                "symbol_index": 103,
+                "symbol_table_entry_size": 16,
+                "symbol_table_section": {
+                  "address": 0,
+                  "alignment": 4,
+                  "entry_size": 16,
+                  "file_offset": 1024,
+                  "flags": 0,
+                  "index": 10,
+                  "name": ".symtab",
+                  "name_offset": 320,
+                  "occurrence": ".symtab#0",
+                  "sh_info": 4,
+                  "sh_link": 11,
+                  "size": 2048,
+                  "type": 2
+                },
+                "symbol_table_section_index": 10,
+                "type": 1,
+                "value": 0
+              }
+            },
+            "singleton_address": "0x81002000",
+            "source_binding": {
+              "audited_source_commit": "1111111111111111111111111111111111111111",
+              "audited_source_tree": "2222222222222222222222222222222222222222",
+              "class_name": "NrvInvented::Ready",
+              "declaration": {
+                "declared_type": "NrvInvented::Ready",
+                "end_line": 2,
+                "line": 1,
+                "path": "include/Game/Invented.hpp",
+                "preprocessing_witness": {
+                  "path": "SYNTHETIC/source-class_declaration-preprocessing.json",
+                  "sha256": "b0fbf43b38f5c0df9d20df0e827f63c98b6d3800939cf1ff812f55fb726c13f5"
+                },
+                "qualified_name": "NrvInvented::Ready",
+                "role": "class_declaration",
+                "sha256": "ce5b2467097895219ea0b03886b8540eec6b203039bda6504a3f5f8e89b344f5"
+              },
+              "relevant_headers": [
+                {
+                  "declared_type": "NrvInvented::Ready",
+                  "end_line": 2,
+                  "line": 1,
+                  "path": "include/Game/Invented.hpp",
+                  "preprocessing_witness": {
+                    "path": "SYNTHETIC/source-relevant_header-preprocessing.json",
+                    "sha256": "6be5b2b8e2c92bfdd7df9b216ab20d8c960d40636f4821280df55db1727f8120"
+                  },
+                  "qualified_name": "NrvInvented::Ready",
+                  "role": "relevant_header",
+                  "sha256": "ff16a3fd32f822206a787c4c53daabb2af5deef6efead1ef9be602be7faa4138"
+                }
+              ],
+              "static_definition": {
+                "declared_type": "NrvInvented::Ready",
+                "end_line": 11,
+                "line": 10,
+                "path": "src/Game/Invented.cpp",
+                "preprocessing_witness": {
+                  "path": "SYNTHETIC/source-static_definition-preprocessing.json",
+                  "sha256": "c2adc99e03e8e2c576401300b5c56f942d7f802968acca386ac982842bfa9a61"
+                },
+                "qualified_name": "NrvInvented::Ready",
+                "role": "static_definition",
+                "sha256": "40a300043416187e74e500a113b9755c40d8774e54c6bcd8d00cbb4b62f4916f"
+              }
+            },
+            "subject_id": "invented-ready",
+            "unit_roles": [
+              {
+                "evidence": {
+                  "path": "SYNTHETIC/reconstruction-association.json",
+                  "sha256": "529f20681fd94b0328181a551c46f142011596b3794b6c20c45f371ad8e31d90"
+                },
+                "role": "reconstructed_definition",
+                "unit": "Game/Invented.cpp"
+              },
+              {
+                "evidence": {
+                  "path": "SYNTHETIC/original-initializer-CFG.json",
+                  "sha256": "ecaeabc3d44e88ecdbd1794b857ef2f4fb6c12a9f12852bfa189619aded1f875"
+                },
+                "role": "original_initializer_contribution",
+                "unit": "Game/Invented.cpp"
+              },
+              {
+                "evidence": {
+                  "missing_evidence": [
+                    "original link/contribution witness; invented fixture grants none"
+                  ],
+                  "reason": "No original storage selection witness",
+                  "state": "UNKNOWN"
+                },
+                "role": "original_storage_contribution",
+                "unit": "UNKNOWN"
+              },
+              {
+                "evidence": {
+                  "missing_evidence": [
+                    "original link/contribution witness; invented fixture grants none"
+                  ],
+                  "reason": "No original selected provider witness",
+                  "state": "UNKNOWN"
+                },
+                "role": "original_selected_weak_provider",
+                "unit": "UNKNOWN"
+              }
+            ],
+            "unresolved_obligations": [
+              "original allocation extent",
+              "selected original weak provider",
+              "complete original provider census"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No deduplication by name/offset; duplicate ordinal/entry occurrence refuses.",
+        "semantic_check_required": true
+      },
+      "id": "duplicate_relocation_record",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/relations/0/reconstruction/relocations/-",
+          "value": {
+            "encoding": "RELA",
+            "entry_file_offset": 4108,
+            "entry_index": 0,
+            "entry_size": 12,
+            "explicit_signed_addend": 0,
+            "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+            "raw_r_info": 25709,
+            "relocation_section": {
+              "address": 0,
+              "alignment": 4,
+              "entry_size": 12,
+              "file_offset": 4108,
+              "flags": 0,
+              "index": 21,
+              "name": ".rela.text",
+              "name_offset": 672,
+              "occurrence": ".rela.text#0",
+              "sh_info": 1,
+              "sh_link": 10,
+              "size": 12,
+              "type": 4
+            },
+            "relocation_type": 109,
+            "role": "sinit_singleton",
+            "sh_info": 1,
+            "sh_link": 10,
+            "source_offset": 32,
+            "source_section": {
+              "address": 0,
+              "alignment": 4,
+              "entry_size": 0,
+              "file_offset": 256,
+              "flags": 6,
+              "index": 1,
+              "name": ".text",
+              "name_offset": 32,
+              "occurrence": ".text#0",
+              "sh_info": 0,
+              "sh_link": 0,
+              "size": 128,
+              "type": 1
+            },
+            "source_symbol": {
+              "binding": 1,
+              "defining_section": {
+                "address": 0,
+                "alignment": 4,
+                "entry_size": 0,
+                "file_offset": 256,
+                "flags": 6,
+                "index": 1,
+                "name": ".text",
+                "name_offset": 32,
+                "occurrence": ".text#0",
+                "sh_info": 0,
+                "sh_link": 0,
+                "size": 128,
+                "type": 1
+              },
+              "definition_kind": "SECTION",
+              "name": "invented_sinit",
+              "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+              "other": 0,
+              "section_index": 1,
+              "section_occurrence": ".text#0",
+              "size": 24,
+              "string_name_offset": 64,
+              "string_table_section": {
+                "address": 0,
+                "alignment": 1,
+                "entry_size": 0,
+                "file_offset": 3072,
+                "flags": 0,
+                "index": 11,
+                "name": ".strtab",
+                "name_offset": 352,
+                "occurrence": ".strtab#0",
+                "sh_info": 0,
+                "sh_link": 0,
+                "size": 256,
+                "type": 3
+              },
+              "string_table_section_index": 11,
+              "symbol_index": 101,
+              "symbol_table_entry_size": 16,
+              "symbol_table_section": {
+                "address": 0,
+                "alignment": 4,
+                "entry_size": 16,
+                "file_offset": 1024,
+                "flags": 0,
+                "index": 10,
+                "name": ".symtab",
+                "name_offset": 320,
+                "occurrence": ".symtab#0",
+                "sh_info": 4,
+                "sh_link": 11,
+                "size": 2048,
+                "type": 2
+              },
+              "symbol_table_section_index": 10,
+              "type": 2,
+              "value": 32
+            },
+            "target": {
+              "binding": 2,
+              "defining_section": {
+                "address": 0,
+                "alignment": 4,
+                "entry_size": 0,
+                "file_offset": 600,
+                "flags": 3,
+                "index": 4,
+                "name": ".sbss",
+                "name_offset": 128,
+                "occurrence": ".sbss#0",
+                "sh_info": 0,
+                "sh_link": 0,
+                "size": 4,
+                "type": 8
+              },
+              "definition_kind": "SECTION",
+              "name": "invented_ready_singleton",
+              "object_sha256": "8842693a34bf72ca49851c631e63c447fa790af76ef489fe65a906e772b4f61c",
+              "other": 0,
+              "section_index": 4,
+              "section_occurrence": ".sbss#0",
+              "size": 4,
+              "string_name_offset": 32,
+              "string_table_section": {
+                "address": 0,
+                "alignment": 1,
+                "entry_size": 0,
+                "file_offset": 3072,
+                "flags": 0,
+                "index": 11,
+                "name": ".strtab",
+                "name_offset": 352,
+                "occurrence": ".strtab#0",
+                "sh_info": 0,
+                "sh_link": 0,
+                "size": 256,
+                "type": 3
+              },
+              "string_table_section_index": 11,
+              "symbol_index": 100,
+              "symbol_table_entry_size": 16,
+              "symbol_table_section": {
+                "address": 0,
+                "alignment": 4,
+                "entry_size": 16,
+                "file_offset": 1024,
+                "flags": 0,
+                "index": 10,
+                "name": ".symtab",
+                "name_offset": 320,
+                "occurrence": ".symtab#0",
+                "sh_info": 4,
+                "sh_link": 11,
+                "size": 2048,
+                "type": 2
+              },
+              "symbol_table_section_index": 10,
+              "type": 1,
+              "value": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "ASSOCIATION_CANDIDATE_ONLY",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Keep map8, ELF4, store4 and original extent/tail UNKNOWN separately.",
+        "semantic_check_required": true
+      },
+      "id": "End_map8_ELF4_unassigned_tail",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/mapped_record/declared_size",
+          "value": 8
+        },
+        {
+          "op": "replace",
+          "path": "/relations/0/extents/mapped_span/size",
+          "value": 8
+        },
+        {
+          "op": "replace",
+          "path": "/relations/0/extents/unassigned_ranges",
+          "value": [
+            {
+              "range": {
+                "address": "0x81002004",
+                "size": 4
+              },
+              "reason": "Unassigned original tail",
+              "state": "UNKNOWN"
+            }
+          ]
+        },
+        {
+          "op": "replace",
+          "path": "/context/full_symbols",
+          "value": {
+            "path": "SYNTHETIC/symbols-End8",
+            "sha256": "04be60ee45118bd387f99530005e2670034feeeb714a3df9f97ad85075e62230"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/relations/0/mapped_record/map_sha256",
+          "value": "04be60ee45118bd387f99530005e2670034feeeb714a3df9f97ad85075e62230"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Padding cannot be inferred from alignment/neighbor.",
+        "semantic_check_required": true
+      },
+      "id": "End_tail_assumed_padding",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/extents/unassigned_ranges",
+          "value": [
+            {
+              "range": {
+                "address": "0x81002004",
+                "size": 4
+              },
+              "reason": "inferred alignment",
+              "state": "PADDING"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Artifact provenance role must not be upgraded.",
+        "semantic_check_required": true
+      },
+      "id": "reconstruction_masquerades_original",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/artifact_role",
+          "value": "original_link_contribution_witness"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Incomplete duplicate/global resolution remains UNKNOWN.",
+        "semantic_check_required": true
+      },
+      "id": "second_weak_provider_not_closed",
+      "mutations": [
+        {
+          "op": "note",
+          "path": "/relations/0/original_selection",
+          "value": "Add another distinct weak provider from another input; original provider census incomplete"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Preserve all competing records; reject unreviewed alias association.",
+        "semantic_check_required": true
+      },
+      "id": "unrelated_same_address_record",
+      "mutations": [
+        {
+          "op": "note",
+          "path": "/relations/0/mapped_record",
+          "value": "Full map contains another unrelated same-address symbol; do not filter it"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No derived singleton address or registered initializer closure.",
+        "semantic_check_required": true
+      },
+      "id": "startup_or_registration_missing",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_initializer/register_and_cfg_witness",
+          "value": {
+            "path": "SYNTHETIC/missing-startup-or-registration.json",
+            "sha256": "171c257582e1187d9815743df0cd1086a27ae3b37b1706ca71bba622e87c799f"
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Dead exact byte sequence is not a reachable construction chain.",
+        "semantic_check_required": true
+      },
+      "id": "unreachable_pattern",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_initializer/register_and_cfg_witness",
+          "value": {
+            "path": "SYNTHETIC/entry-BLR-unreachable-pattern.json",
+            "sha256": "fd2b4c2e231a63f8680fae14aee41e18064f531f050187c7b1c02ffa50abb5d4"
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Unsupported overlapping byte/indexed store invalidates final vptr.",
+        "semantic_check_required": true
+      },
+      "id": "partial_store_after_vptr",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_initializer/register_and_cfg_witness",
+          "value": {
+            "path": "SYNTHETIC/ctor-partial-overwrite.json",
+            "sha256": "7813408eb23a5fd57318e93e975a6432ebcdfbe9f6b6a0a5273db8698099cebf"
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Constructor equality cannot refresh source/build/weak provider identity.",
+        "semantic_check_required": true
+      },
+      "id": "22_source_reuses_33_without_bridge",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/context/audited_source_commit",
+          "value": "4444444444444444444444444444444444444444"
+        },
+        {
+          "op": "replace",
+          "path": "/relations/0/reconstruction/audited_source_bridge",
+          "value": {
+            "missing_evidence": [
+              "original link/contribution witness; invented fixture grants none"
+            ],
+            "reason": "Only identical constructor bytes known",
+            "state": "UNKNOWN"
+          }
+        },
+        {
+          "op": "replace",
+          "path": "/relations/0/source_binding/audited_source_commit",
+          "value": "4444444444444444444444444444444444444444"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "ASSOCIATION_CANDIDATE_ONLY",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Nearest STT_FILE does not identify original selected input.",
+        "semantic_check_required": true
+      },
+      "id": "original_final_STT_FILE_heuristic",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_selection",
+          "value": {
+            "missing_evidence": [
+              "original link/contribution witness; invented fixture grants none"
+            ],
+            "reason": "Only final STT_FILE adjacency observed",
+            "state": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "ASSOCIATION_CANDIDATE_ONLY",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Equivalence is not actual original selection.",
+        "semantic_check_required": true
+      },
+      "id": "all_candidate_bodies_equal_selection_unknown",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/original_selection",
+          "value": {
+            "missing_evidence": [
+              "original link/contribution witness; invented fixture grants none"
+            ],
+            "reason": "All reconstructed providers have equal bodies; original input selection missing",
+            "state": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Envelope is always disabled.",
+        "semantic_check_required": true
+      },
+      "id": "enable_production_flag",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/production_enabled",
+          "value": true
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No synthesized split owner or gate path.",
+        "semantic_check_required": true
+      },
+      "id": "generic_owner_split_override",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/relations/0/effective_split_owner",
+          "value": "Game/Invented.cpp"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "SCHEMA_REFUSAL",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Data evidence never supplies independent API/source obligations.",
+        "semantic_check_required": true
+      },
+      "id": "API_sourceclass_bypass_attempt",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/relations/0/grants_API_and_sourceclass",
+          "value": true
+        }
+      ]
+    },
+    {
+      "base": "selection_fragment",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Selected occurrence must appear exactly once in complete provider census.",
+        "semantic_check_required": true
+      },
+      "id": "selected_provider_absent_from_providers",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/providers",
+          "value": []
+        }
+      ]
+    },
+    {
+      "base": "selection_fragment",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "A discarded occurrence cannot be the selected original provider.",
+        "semantic_check_required": true
+      },
+      "id": "selected_provider_discarded",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/selected_provider/disposition",
+          "value": "discarded"
+        }
+      ]
+    },
+    {
+      "base": "selection_fragment",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Ambiguous selection remains UNKNOWN.",
+        "semantic_check_required": true
+      },
+      "id": "selected_provider_ambiguous",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/selected_provider/disposition",
+          "value": "ambiguous"
+        }
+      ]
+    },
+    {
+      "base": "selection_fragment",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Contribution must contain exact proven original object extent.",
+        "semantic_check_required": true
+      },
+      "id": "original_contribution_excludes_object",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/selected_provider/contribution",
+          "value": {
+            "address": "0x81002004",
+            "size": 4
+          }
+        }
+      ]
+    },
+    {
+      "base": "selection_fragment",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "No same-address resolution without original unique selection witness.",
+        "semantic_check_required": true
+      },
+      "id": "second_selected_provider",
+      "mutations": [
+        {
+          "op": "note",
+          "path": "/providers/-",
+          "value": "Append a second distinct selected occurrence at same output address"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "UNKNOWN",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Review hash covers context AND all relations; no per-relation transplant.",
+        "semantic_check_required": true
+      },
+      "id": "review_transplanted_across_arm",
+      "mutations": [
+        {
+          "op": "note",
+          "path": "/review",
+          "value": "Use a reviewed-design-only receipt for other context/map/source/scope with unchanged relation bytes"
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "ASSOCIATION_CANDIDATE_ONLY",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Containment proves no object extent or selected storage unit.",
+        "semantic_check_required": true
+      },
+      "id": "BSS_container_only",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/relations/0/extents/original_allocation_extent",
+          "value": {
+            "missing_evidence": [
+              "original link/contribution witness; invented fixture grants none"
+            ],
+            "reason": "Only global original BSS envelope contains address",
+            "state": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "base": "association",
+      "expected": {
+        "association_component": "ASSOCIATION_CANDIDATE_ONLY",
+        "original_allocation": "UNKNOWN",
+        "original_weak_selection": "UNKNOWN",
+        "production_acceptance": false,
+        "reason": "Consumers requiring declared mapspan8 ownership remain UNKNOWN.",
+        "semantic_check_required": true
+      },
+      "id": "original4B_proof_does_not_own_map8",
+      "mutations": [
+        {
+          "op": "note",
+          "path": "/relations/0/extents",
+          "value": "Original witness proves object4 only, mappedspan8/tail4 still unassigned"
+        }
+      ]
+    }
+  ],
+  "evaluated": false,
+  "evidence_domain": "WHOLLY_INVENTED",
+  "fixture_files": [
+    "synthetic-association.json",
+    "synthetic-selection-fragment.json"
+  ],
+  "fixture_qualification": "Declarative invented metadata only, no byte-bearing objects or witness files. Positive describes required candidate behavior after independently validating/generated matching artifacts; no fixture is a review grant or executed semantic PASS.",
+  "mutation_language": "replace/add/remove are JSON Pointer design edits; note records required independently-authored fixture variation, not executable JSON Patch",
+  "original_bytes_or_addresses": false,
+  "review_corrections": [
+    "Single-record execute rename now expects UNKNOWN; exact symbol identity remains required.",
+    "Synthetic repeated .rela.text occurrences now #0,#1,#2,#3; distinct section indices preserved."
+  ],
+  "review_hash_covered_value": "Every envelope root property except review; context includes fullschema+design/source/map/image/tool and all relations.",
+  "schema": 1,
+  "scope": "DISABLED semantic acceptance specification; no executable checker"
+}

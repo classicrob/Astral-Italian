@@ -1,0 +1,1167 @@
+{
+  "$comment": "Wire shape only. No field, pin or review presence grants semantics. No implementation or production admission path exists. Semantic obligations and rejecting cases in DESIGN.md and synthetic-cases.json.",
+  "$defs": {
+    "context": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_subject_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "audited_source_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "audited_source_tree": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "design_spec": {
+          "$ref": "#/$defs/pin"
+        },
+        "full_splits": {
+          "$ref": "#/$defs/pin"
+        },
+        "full_symbols": {
+          "$ref": "#/$defs/pin"
+        },
+        "original_image": {
+          "$ref": "#/$defs/pin"
+        },
+        "proposal_schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "tool": {
+          "$ref": "#/$defs/pin"
+        }
+      },
+      "required": [
+        "tool",
+        "audited_source_commit",
+        "audited_source_tree",
+        "original_image",
+        "full_symbols",
+        "full_splits",
+        "allowed_subject_ids",
+        "proposal_schema_sha256",
+        "design_spec"
+      ],
+      "type": "object"
+    },
+    "extents": {
+      "additionalProperties": false,
+      "properties": {
+        "mapped_span": {
+          "$ref": "#/$defs/range"
+        },
+        "observed_access_extent": {
+          "$ref": "#/$defs/range"
+        },
+        "original_allocation_extent": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/original_extent"
+            }
+          ]
+        },
+        "reconstructed_symbol_size": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unassigned_ranges": {
+          "items": {
+            "$ref": "#/$defs/unassigned"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "mapped_span",
+        "reconstructed_symbol_size",
+        "observed_access_extent",
+        "original_allocation_extent",
+        "unassigned_ranges"
+      ],
+      "type": "object"
+    },
+    "gap": {
+      "additionalProperties": false,
+      "properties": {
+        "missing_evidence": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "reason": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "state": {
+          "const": "UNKNOWN"
+        }
+      },
+      "required": [
+        "state",
+        "reason",
+        "missing_evidence"
+      ],
+      "type": "object"
+    },
+    "mapped_record": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "declared_size": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "line": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "map_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "record_index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "section": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "size_explicit": {
+          "type": "boolean"
+        },
+        "symbol_type": {
+          "const": "object"
+        }
+      },
+      "required": [
+        "map_sha256",
+        "line",
+        "record_index",
+        "name",
+        "section",
+        "address",
+        "size_explicit",
+        "declared_size",
+        "symbol_type"
+      ],
+      "type": "object"
+    },
+    "original_extent": {
+      "additionalProperties": false,
+      "properties": {
+        "original_image_binding": {
+          "$ref": "#/$defs/pin"
+        },
+        "range": {
+          "$ref": "#/$defs/range"
+        },
+        "witness": {
+          "$ref": "#/$defs/pin"
+        },
+        "witness_role": {
+          "enum": [
+            "original_allocation_record",
+            "original_typed_object_record"
+          ]
+        }
+      },
+      "required": [
+        "range",
+        "witness_role",
+        "witness",
+        "original_image_binding"
+      ],
+      "type": "object"
+    },
+    "original_initializer": {
+      "additionalProperties": false,
+      "properties": {
+        "constructor": {
+          "$ref": "#/$defs/span"
+        },
+        "constructor_call_pc": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "ctors_entry": {
+          "$ref": "#/$defs/span"
+        },
+        "execute_address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "execute_slot": {
+          "const": 8
+        },
+        "image_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "initializer": {
+          "$ref": "#/$defs/span"
+        },
+        "initializer_unit": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "receiver_adjustment": {
+          "const": 0
+        },
+        "register_and_cfg_witness": {
+          "$ref": "#/$defs/pin"
+        },
+        "singleton_address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "singleton_load_pc": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "storage_ownership_grant": {
+          "const": false
+        },
+        "vptr_address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "vptr_store_pc": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "vtable_observation": {
+          "$ref": "#/$defs/span"
+        },
+        "write_width": {
+          "const": 4
+        }
+      },
+      "required": [
+        "image_sha256",
+        "ctors_entry",
+        "initializer",
+        "singleton_load_pc",
+        "constructor_call_pc",
+        "constructor",
+        "vptr_store_pc",
+        "singleton_address",
+        "vptr_address",
+        "write_width",
+        "receiver_adjustment",
+        "vtable_observation",
+        "execute_slot",
+        "execute_address",
+        "register_and_cfg_witness",
+        "initializer_unit",
+        "storage_ownership_grant"
+      ],
+      "type": "object"
+    },
+    "original_input": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_member_identity": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "contribution": {
+          "$ref": "#/$defs/range"
+        },
+        "definition": {
+          "$ref": "#/$defs/symbol"
+        },
+        "disposition": {
+          "enum": [
+            "selected",
+            "discarded",
+            "ambiguous"
+          ]
+        },
+        "input_order": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "original_input_object": {
+          "$ref": "#/$defs/pin"
+        },
+        "resolution_witness": {
+          "$ref": "#/$defs/pin"
+        },
+        "section": {
+          "$ref": "#/$defs/section"
+        }
+      },
+      "required": [
+        "original_input_object",
+        "archive_member_identity",
+        "input_order",
+        "definition",
+        "section",
+        "contribution",
+        "disposition",
+        "resolution_witness"
+      ],
+      "type": "object"
+    },
+    "original_selection": {
+      "additionalProperties": false,
+      "properties": {
+        "all_provider_inventory": {
+          "$ref": "#/$defs/pin"
+        },
+        "artifact_role": {
+          "enum": [
+            "original_link_contribution_witness",
+            "original_input_selection_witness"
+          ]
+        },
+        "original_image_binding": {
+          "$ref": "#/$defs/pin"
+        },
+        "original_link_recipe": {
+          "$ref": "#/$defs/pin"
+        },
+        "providers": {
+          "items": {
+            "$ref": "#/$defs/original_input"
+          },
+          "type": "array"
+        },
+        "selected_provider": {
+          "$ref": "#/$defs/original_input"
+        },
+        "selection_rule_witness": {
+          "$ref": "#/$defs/pin"
+        },
+        "witness": {
+          "$ref": "#/$defs/pin"
+        }
+      },
+      "required": [
+        "artifact_role",
+        "witness",
+        "original_image_binding",
+        "original_link_recipe",
+        "selected_provider",
+        "all_provider_inventory",
+        "providers",
+        "selection_rule_witness"
+      ],
+      "type": "object"
+    },
+    "pin": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "range": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "size": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address",
+        "size"
+      ],
+      "type": "object"
+    },
+    "reconstruction": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_role": {
+          "const": "reconstructed_relocatable_object"
+        },
+        "audited_source_bridge": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/pin"
+            }
+          ]
+        },
+        "build_recipe": {
+          "$ref": "#/$defs/pin"
+        },
+        "constructor": {
+          "$ref": "#/$defs/symbol"
+        },
+        "ctors_section": {
+          "$ref": "#/$defs/section"
+        },
+        "elf_class": {
+          "const": 32
+        },
+        "elf_data": {
+          "const": "big_endian"
+        },
+        "elf_flags": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "elf_machine": {
+          "const": "EM_PPC"
+        },
+        "elf_type": {
+          "const": "ET_REL"
+        },
+        "execute": {
+          "$ref": "#/$defs/symbol"
+        },
+        "initializer": {
+          "$ref": "#/$defs/symbol"
+        },
+        "logical_split_unit": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "object": {
+          "$ref": "#/$defs/pin"
+        },
+        "relocations": {
+          "items": {
+            "$ref": "#/$defs/relocation"
+          },
+          "type": "array"
+        },
+        "singleton": {
+          "$ref": "#/$defs/symbol"
+        },
+        "singleton_section": {
+          "$ref": "#/$defs/section"
+        },
+        "source_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "source_tree": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "source_unit_path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "vtable": {
+          "$ref": "#/$defs/symbol"
+        }
+      },
+      "required": [
+        "artifact_role",
+        "object",
+        "build_recipe",
+        "source_commit",
+        "source_tree",
+        "audited_source_bridge",
+        "source_unit_path",
+        "elf_class",
+        "elf_data",
+        "elf_machine",
+        "singleton_section",
+        "singleton",
+        "initializer",
+        "constructor",
+        "vtable",
+        "execute",
+        "ctors_section",
+        "relocations",
+        "logical_split_unit",
+        "elf_type",
+        "elf_flags"
+      ],
+      "type": "object"
+    },
+    "relation": {
+      "additionalProperties": false,
+      "properties": {
+        "class_name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "extents": {
+          "$ref": "#/$defs/extents"
+        },
+        "mapped_record": {
+          "$ref": "#/$defs/mapped_record"
+        },
+        "original_initializer": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/original_initializer"
+            }
+          ]
+        },
+        "original_selection": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/original_selection"
+            }
+          ]
+        },
+        "reconstruction": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/reconstruction"
+            }
+          ]
+        },
+        "singleton_address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "source_binding": {
+          "$ref": "#/$defs/source_binding"
+        },
+        "subject_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "unit_roles": {
+          "items": {
+            "$ref": "#/$defs/unit_role"
+          },
+          "type": "array"
+        },
+        "unresolved_obligations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "subject_id",
+        "class_name",
+        "singleton_address",
+        "mapped_record",
+        "source_binding",
+        "reconstruction",
+        "original_initializer",
+        "original_selection",
+        "extents",
+        "unit_roles",
+        "unresolved_obligations"
+      ],
+      "type": "object"
+    },
+    "relocation": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "const": "RELA"
+        },
+        "entry_file_offset": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "entry_index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "entry_size": {
+          "const": 12
+        },
+        "explicit_signed_addend": {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        },
+        "object_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "raw_r_info": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "relocation_section": {
+          "$ref": "#/$defs/section"
+        },
+        "relocation_type": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "role": {
+          "enum": [
+            "ctors_initializer",
+            "sinit_singleton",
+            "sinit_constructor",
+            "ctor_vtable_hi",
+            "ctor_vtable_lo",
+            "vtable_execute"
+          ]
+        },
+        "sh_info": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sh_link": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_offset": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_section": {
+          "$ref": "#/$defs/section"
+        },
+        "source_symbol": {
+          "$ref": "#/$defs/symbol"
+        },
+        "target": {
+          "$ref": "#/$defs/symbol"
+        }
+      },
+      "required": [
+        "object_sha256",
+        "relocation_section",
+        "entry_index",
+        "entry_file_offset",
+        "encoding",
+        "entry_size",
+        "sh_link",
+        "sh_info",
+        "source_section",
+        "source_symbol",
+        "source_offset",
+        "raw_r_info",
+        "relocation_type",
+        "explicit_signed_addend",
+        "target",
+        "role"
+      ],
+      "type": "object"
+    },
+    "review": {
+      "additionalProperties": false,
+      "properties": {
+        "claim_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "receipt": {
+          "$ref": "#/$defs/pin"
+        },
+        "reviewer": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "scope": {
+          "const": "singleton_data_ownership_disabled_design"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "reviewed_design_only"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "scope",
+        "reviewer",
+        "claim_sha256",
+        "receipt"
+      ],
+      "type": "object"
+    },
+    "section": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "alignment": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "entry_size": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "file_offset": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "flags": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "name_offset": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "occurrence": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sh_info": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sh_link": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "size": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "index",
+        "name",
+        "occurrence",
+        "type",
+        "flags",
+        "alignment",
+        "size",
+        "file_offset",
+        "address",
+        "name_offset",
+        "entry_size",
+        "sh_link",
+        "sh_info"
+      ],
+      "type": "object"
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "declared_type": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "end_line": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "line": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "preprocessing_witness": {
+          "$ref": "#/$defs/pin"
+        },
+        "qualified_name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "class_declaration",
+            "static_definition",
+            "relevant_header",
+            "macro_definition"
+          ]
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "line",
+        "end_line",
+        "role",
+        "qualified_name",
+        "declared_type",
+        "preprocessing_witness"
+      ],
+      "type": "object"
+    },
+    "source_binding": {
+      "additionalProperties": false,
+      "properties": {
+        "audited_source_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "audited_source_tree": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "class_name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "declaration": {
+          "$ref": "#/$defs/source"
+        },
+        "relevant_headers": {
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "type": "array"
+        },
+        "static_definition": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "audited_source_commit",
+        "audited_source_tree",
+        "class_name",
+        "declaration",
+        "static_definition",
+        "relevant_headers"
+      ],
+      "type": "object"
+    },
+    "span": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "pattern": "^0x[0-9a-f]{8}$",
+          "type": "string"
+        },
+        "existing_owner_units": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "image_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "ownership_witness": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/pin"
+            }
+          ]
+        },
+        "section": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "image_sha256",
+        "address",
+        "size",
+        "section",
+        "sha256",
+        "existing_owner_units",
+        "ownership_witness"
+      ],
+      "type": "object"
+    },
+    "symbol": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "defining_section": {
+          "$ref": "#/$defs/section"
+        },
+        "definition_kind": {
+          "enum": [
+            "SECTION",
+            "UNDEFINED",
+            "COMMON"
+          ]
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "object_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "other": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "section_index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "section_occurrence": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "size": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "string_name_offset": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "string_table_section": {
+          "$ref": "#/$defs/section"
+        },
+        "string_table_section_index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "symbol_index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "symbol_table_entry_size": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "symbol_table_section": {
+          "$ref": "#/$defs/section"
+        },
+        "symbol_table_section_index": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "value": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "object_sha256",
+        "symbol_table_section_index",
+        "symbol_index",
+        "symbol_table_entry_size",
+        "string_table_section_index",
+        "string_name_offset",
+        "name",
+        "section_index",
+        "section_occurrence",
+        "value",
+        "size",
+        "binding",
+        "type",
+        "other",
+        "definition_kind",
+        "symbol_table_section",
+        "string_table_section",
+        "defining_section"
+      ],
+      "type": "object"
+    },
+    "unassigned": {
+      "additionalProperties": false,
+      "properties": {
+        "range": {
+          "$ref": "#/$defs/range"
+        },
+        "reason": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "state": {
+          "const": "UNKNOWN"
+        }
+      },
+      "required": [
+        "range",
+        "state",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "unit_role": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "$ref": "#/$defs/pin"
+            }
+          ]
+        },
+        "role": {
+          "enum": [
+            "reconstructed_definition",
+            "original_initializer_contribution",
+            "original_storage_contribution",
+            "original_selected_weak_provider"
+          ]
+        },
+        "unit": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "unit",
+        "evidence"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:nervemap:disabled-singleton-data-ownership:1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "context": {
+      "$ref": "#/$defs/context"
+    },
+    "evidence_domain": {
+      "enum": [
+        "SYNTHETIC",
+        "REAL_REVIEW_CANDIDATE"
+      ]
+    },
+    "mode": {
+      "const": "DISABLED_PROPOSAL"
+    },
+    "production_enabled": {
+      "const": false
+    },
+    "relations": {
+      "items": {
+        "$ref": "#/$defs/relation"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "review": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/review"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "mode",
+    "production_enabled",
+    "evidence_domain",
+    "context",
+    "relations",
+    "review"
+  ],
+  "title": "Disabled singleton data ownership evidence proposal",
+  "type": "object"
+}

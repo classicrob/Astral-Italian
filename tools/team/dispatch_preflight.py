@@ -44,6 +44,66 @@ def config_envelope(before,after,dp):
  assert filtered(before,0)==filtered(after,1),'unapproved config remainder'
  return True
 
+class OwnedJob:
+ """One global execution deadline; all spawned groups retained until absent."""
+ def __init__(self,work,seconds=420):
+  self.work=work;self.seconds=seconds;self.groups={};self.events=[]
+ def __enter__(self):
+  self.start=time.monotonic();self.previous={n:signal.getsignal(n) for n in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP,signal.SIGALRM)}
+  def stop(n,frame):raise InterruptedError('owned job signal '+str(n))
+  def expired(n,frame):raise TimeoutError('global preflight execution deadline')
+  for n in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP):signal.signal(n,stop)
+  signal.signal(signal.SIGALRM,expired);signal.setitimer(signal.ITIMER_REAL,self.seconds)
+  return self
+ def remaining(self):
+  left=self.seconds-(time.monotonic()-self.start)
+  if left<=0:raise TimeoutError('global preflight execution deadline')
+  return left
+ @staticmethod
+ def alive(pgid):
+  try:os.killpg(pgid,0);return True
+  except ProcessLookupError:return False
+ def stop_group(self,proc):
+  # Never infer group absence from leader.poll()/wait(): workers may survive it.
+  for sig,grace in ((signal.SIGTERM,1.0),(signal.SIGKILL,3.0)):
+   try:os.killpg(proc.pid,sig)
+   except ProcessLookupError:pass
+   self.events.append({'pgid':proc.pid,'signal':int(sig)})
+   end=time.monotonic()+grace
+   while self.alive(proc.pid) and time.monotonic()<end:
+    proc.poll();time.sleep(0.02)
+   if not self.alive(proc.pid):break
+  proc.wait(timeout=1)
+  if self.alive(proc.pid):raise RuntimeError('owned process group persists: '+str(proc.pid))
+  del self.groups[proc.pid];self.events.append({'pgid':proc.pid,'leader_reaped_and_group_absent':True})
+ def run(self,argv,cwd=None,log='commands.log'):
+  self.remaining()
+  with (self.work/log).open('ab') as f:
+   # Block handlers through spawn+registration so unwind always knows the PGID.
+   mask=signal.pthread_sigmask(signal.SIG_BLOCK,set(self.previous))
+   try:
+    proc=subprocess.Popen(argv,cwd=cwd,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+    self.groups[proc.pid]=proc
+   finally:signal.pthread_sigmask(signal.SIG_SETMASK,mask)
+   code=proc.wait(timeout=self.remaining())
+   if code:raise subprocess.CalledProcessError(code,argv)
+   if self.alive(proc.pid):raise RuntimeError('leader exited with surviving owned group')
+   del self.groups[proc.pid];self.events.append({'pgid':proc.pid,'leader_reaped_and_group_absent':True})
+  self.remaining()
+ def __exit__(self,typ,value,tb):
+  signal.setitimer(signal.ITIMER_REAL,0)
+  for n in self.previous:signal.signal(n,signal.SIG_IGN)
+  failures=[]
+  try:
+   for proc in list(self.groups.values()):
+    try:self.stop_group(proc)
+    except BaseException as error:failures.append(repr(error))
+   dump(self.work/'owned-process-cleanup.json',{'events':self.events,'remaining_pgids':list(self.groups),'failures':failures,'all_owned_groups_absent':not self.groups,'execution_error':repr(value) if value else None,'cleanup_only_after_budget':True})
+  finally:
+   for n,handler in self.previous.items():signal.signal(n,handler)
+  if failures:raise RuntimeError('cleanup could not confirm group absence: '+str(failures))
+  return False
+
 def main():
  ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--repo',type=Path,required=True);ap.add_argument('--spec',type=Path,required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--dol',type=Path,required=True)
  ap.add_argument('--execute-plan-sha256',help='Absent: prepare only. Present: requires separately allocated native.lock slot.')
@@ -67,113 +127,104 @@ def main():
  assert os.getpriority(os.PRIO_PROCESS,0)>=19,'nice19 required'
  assert shutil.disk_usage(out).free>=50*1024**3
  lock=(Path.home()/'MacioGalaxy2-team/slots/native.lock').open('a');fcntl.lockf(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
- work=out/'execution';work.mkdir(exist_ok=False);start=time.monotonic()
- def run(argv,cwd=None,log='commands.log'):
-  remaining=420-(time.monotonic()-start);assert remaining>0
-  with (work/log).open('ab') as f:
-   proc=subprocess.Popen(argv,cwd=cwd,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
-   try:
-    code=proc.wait(timeout=remaining)
-    if code:raise subprocess.CalledProcessError(code,argv)
-   except BaseException:
-    try:os.killpg(proc.pid,signal.SIGTERM)
-    except ProcessLookupError:pass
-    try:proc.wait(timeout=3)
-    except subprocess.TimeoutExpired:
-     os.killpg(proc.pid,signal.SIGKILL);proc.wait()
-    raise
- def state(phase):
-  (out/'STATE').write_text(json.dumps({'host':'host_db276ab2vt','source':[BASE,TIP],'spec':SPEC,'plan':pin,'phase':phase,'owner_pid':os.getpid(),'output':str(work),'resume':'Preserve failed execution; new prepare/output required, no partial acceptance.'},separators=(',',':'))+'\n')
- state('PREPARE_FRESH_PHASES')
- lib=work/'decoder';lib.mkdir()
- for n,h in decoder_files.items():
-  p=lib/(n+'.py');p.write_bytes(git(repo,'show',DECODER+':tools/team/'+n+'.py'));assert sha(p)==h
- sys.path.insert(0,str(lib));ob=load('objsame',lib/'objsame.py');dp=load('dispatchproof',lib/'dispatchproof.py');ownership=load('dispatchownership',lib/'dispatchownership.py')
- for scope in ('TU13','TU14'):
-  assert ownership.decode_original_dol(args.dol.read_bytes(),scope)
- results={'status':'RUNNING_NO_PRODUCTION_ACCEPTANCE','plan_sha256':pin,'phases':{},'controls':[]}
- before_map=git(repo,'show',BASE+':config/SB4E01/symbols.txt').decode();after_map=git(repo,'show',TIP+':config/SB4E01/symbols.txt').decode()
- config_envelope(before_map,after_map,dp)
- for scope in dp.SCOPES.values():
-  for name,pair in scope['symbols'].items():
-   for field in (0,1):
-    lines=after_map.splitlines(keepends=True);index=next(i for i,l in enumerate(lines) if l.startswith(name+' = '));values=list(pair[1]);values[field]+=4
-    lines[index]=name+' = .text:0x%08X; // type:function size:0x%X\n'%tuple(values)
-    try:config_envelope(before_map,''.join(lines),dp)
-    except AssertionError:pass
-    else:raise AssertionError('wrong config address/size accepted')
-    results['controls'].append({'control':'wrong-config-'+name+'-'+str(field),'rejected':True})
- try:
-  for phase,rev in [('before',BASE),('after',TIP)]:
-   state(phase+'_FRESH_THREE_TUS');tree=work/phase
-   run(['git','clone','--shared','--no-checkout',str(repo),str(tree)])
-   run(['git','checkout','--detach',rev],cwd=tree)
-   inc=tree/'build/SB4E01/include';inc.mkdir(parents=True);shutil.copy2(macros,inc/'macros.inc')
-   run([sys.executable,str(graph)],cwd=tree,log=phase+'-graph.log')
-   targets=['build/SB4E01/src/Game/System/'+n+'.o' for n in UNITS]
-   with (work/(phase+'-commands.txt')).open('wb') as f:subprocess.run(['ninja','-t','commands',*targets],cwd=tree,stdout=f,check=True,timeout=20)
-   run(['ninja','-j','1',*targets],cwd=tree,log=phase+'-compile.log')
-   with (work/(phase+'-deps.txt')).open('wb') as f:subprocess.run(['ninja','-t','deps'],cwd=tree,stdout=f,check=True,timeout=20)
-   assert len(list((tree/'build/SB4E01/src').rglob('*.o')))==3
-   dependencies={}
-   for line in (work/(phase+'-deps.txt')).read_text().splitlines():
-    if line.startswith('    '):
-     name=line.strip();path=Path(name) if Path(name).is_absolute() else tree/name
-     assert path.is_file(),'missing dependency: '+name
-     dependencies[name]=sha(path)
-   assert dependencies,'no dependency records'
-   dump(work/(phase+'-dependency-hashes.json'),dependencies)
-   results['phases'][phase]={'commands':sha(work/(phase+'-commands.txt')),'dependency_hashes':sha(work/(phase+'-dependency-hashes.json')),'objects':{p:sha(tree/p) for p in targets},'graph':sha(tree/'build.ninja'),'deps':sha(work/(phase+'-deps.txt'))}
+ work=out/'execution';work.mkdir(exist_ok=False)
+ with OwnedJob(work,420) as job:
+  start=job.start
+  run=job.run
+  def state(phase):
+   (out/'STATE').write_text(json.dumps({'host':'host_db276ab2vt','source':[BASE,TIP],'spec':SPEC,'plan':pin,'phase':phase,'owner_pid':os.getpid(),'output':str(work),'resume':'Preserve failed execution; new prepare/output required, no partial acceptance.'},separators=(',',':'))+'\n')
+  state('PREPARE_FRESH_PHASES')
+  lib=work/'decoder';lib.mkdir()
+  for n,h in decoder_files.items():
+   p=lib/(n+'.py');run(['git','-C',str(repo),'show',DECODER+':tools/team/'+n+'.py'],log='decoder/'+n+'.py');assert sha(p)==h
+  sys.path.insert(0,str(lib));ob=load('objsame',lib/'objsame.py');dp=load('dispatchproof',lib/'dispatchproof.py');ownership=load('dispatchownership',lib/'dispatchownership.py')
   for scope in ('TU13','TU14'):
-   name='WorldMapResult'+scope+'.o'; a=work/'before/build/SB4E01/src/Game/System'/name;b=work/'after/build/SB4E01/src/Game/System'/name
-   assert len(ownership.decode_object(a,scope)['mismatches'])==2
-   ownership.require_candidate(b,scope);ownership.decode_original_dol(args.dol.read_bytes(),scope);envelope(ob,a,b,scope,dp)
-   # Real-ELF controls: change first text byte, each approved symbol value/size,
-   # and each owning data relocation's addend. Never outer-digest-only rejection.
-   original=b.read_bytes();shoff=struct.unpack_from('>I',original,32)[0];shents,shnum=struct.unpack_from('>HH',original,46)
-   headers=[struct.unpack_from('>10I',original,shoff+i*shents) for i in range(shnum)]
-   sections,symbols=ob.read_object(b);keys=ob.section_keys(sections)
-   mutations=[]
-   textindex=keys.index('.text#0');m=bytearray(original);m[headers[textindex][4]]^=1;mutations.append(('first-text',m))
-   syms=next(h for h in headers if h[1]==2)
-   names=list(dp.SCOPES[scope]['symbols'])
-   for i,s in enumerate(symbols):
-    if s['name'] in names:
-     for label,off in [('value',4),('size',8)]:
-      m=bytearray(original);pos=syms[4]+i*16+off;struct.pack_into('>I',m,pos,struct.unpack_from('>I',m,pos)[0]+4);mutations.append((s['name']+'-'+label,m))
-   owned_offsets={'TU13':{0x48,0x68},'TU14':{0x58,0x68}}[scope]
-   for h in headers:
-    if h[1]==4 and keys[h[7]]=='.data#0':
-     for pos in range(h[4],h[4]+h[5],12):
-      if struct.unpack_from('>I',original,pos)[0] in owned_offsets:
-       m=bytearray(original);struct.pack_into('>i',m,pos+8,4);mutations.append(('own-slot-addend-'+str(pos),m))
-   assert len(mutations)==7
-   symbol_indices=[i for i,s in enumerate(symbols) if s['name'] in names];assert len(symbol_indices)==2
-   for h in headers:
-    if h[1]==4 and keys[h[7]]=='.data#0':
-     for pos in range(h[4],h[4]+h[5],12):
-      if struct.unpack_from('>I',original,pos)[0] in owned_offsets:
-       m=bytearray(original);info=struct.unpack_from('>I',m,pos+4)[0];old=info>>8
-       assert old in symbol_indices
-       new=next(i for i in symbol_indices if i!=old);struct.pack_into('>I',m,pos+4,(new<<8)|(info&255))
-       mutations.append(('wrong-owning-target-'+str(pos),m))
-   assert len(mutations)==9
-   for label,data in mutations:
-    mutant=work/(scope+'-mutant.o');mutant.write_bytes(data)
-    try:envelope(ob,a,mutant,scope,dp)
-    except (AssertionError,ValueError,IndexError):pass
-    else:raise AssertionError('mutation accepted: '+label)
-    if label.startswith('wrong-owning-target'):
-     try:ownership.require_candidate(mutant,scope)
-     except ValueError:pass
-     else:raise AssertionError('ownership accepted wrong target')
-    results['controls'].append({'scope':scope,'control':label,'rejected':True,'sha256':sha(mutant)})
-   results[scope]={'ownership':ownership.require_candidate(b,scope),'envelope':'strict remaining bytes/sections/relocations/symbols equal'}
-  a=work/'before/build/SB4E01/src/Game/System/GrandGalaxyMapSequence.o';b=work/'after/build/SB4E01/src/Game/System/GrandGalaxyMapSequence.o'
-  assert ob.summarize(a)==ob.summarize(b),'typed Sequence changed Wii object'
-  for p,h in context.items():assert sha(p)==h,'context drift: '+p
-  results['status']='THREE_TU_COMPONENT_QUALIFICATION_ONLY_NOT_FULL_PROOF';results['seconds']=time.monotonic()-start
-  state('COMPONENTS_COMPLETE_FULL2426_AND_SOURCE_CONTROLS_PENDING')
- finally:dump(work/'result.json',results)
- print(results['status'])
+   assert ownership.decode_original_dol(args.dol.read_bytes(),scope)
+  results={'status':'RUNNING_NO_PRODUCTION_ACCEPTANCE','plan_sha256':pin,'phases':{},'controls':[]}
+  run(['git','-C',str(repo),'show',BASE+':config/SB4E01/symbols.txt'],log='before-symbols.txt');run(['git','-C',str(repo),'show',TIP+':config/SB4E01/symbols.txt'],log='after-symbols.txt')
+  before_map=(work/'before-symbols.txt').read_text();after_map=(work/'after-symbols.txt').read_text()
+  config_envelope(before_map,after_map,dp)
+  for scope in dp.SCOPES.values():
+   for name,pair in scope['symbols'].items():
+    for field in (0,1):
+     lines=after_map.splitlines(keepends=True);index=next(i for i,l in enumerate(lines) if l.startswith(name+' = '));values=list(pair[1]);values[field]+=4
+     lines[index]=name+' = .text:0x%08X; // type:function size:0x%X\n'%tuple(values)
+     try:config_envelope(before_map,''.join(lines),dp)
+     except AssertionError:pass
+     else:raise AssertionError('wrong config address/size accepted')
+     results['controls'].append({'control':'wrong-config-'+name+'-'+str(field),'rejected':True})
+  try:
+   for phase,rev in [('before',BASE),('after',TIP)]:
+    state(phase+'_FRESH_THREE_TUS');tree=work/phase
+    run(['git','clone','--shared','--no-checkout',str(repo),str(tree)])
+    run(['git','checkout','--detach',rev],cwd=tree)
+    inc=tree/'build/SB4E01/include';inc.mkdir(parents=True);shutil.copy2(macros,inc/'macros.inc')
+    run([sys.executable,str(graph)],cwd=tree,log=phase+'-graph.log')
+    targets=['build/SB4E01/src/Game/System/'+n+'.o' for n in UNITS]
+    run(['ninja','-t','commands',*targets],cwd=tree,log=phase+'-commands.txt')
+    run(['ninja','-j','1',*targets],cwd=tree,log=phase+'-compile.log')
+    run(['ninja','-t','deps'],cwd=tree,log=phase+'-deps.txt')
+    assert len(list((tree/'build/SB4E01/src').rglob('*.o')))==3
+    dependencies={}
+    for line in (work/(phase+'-deps.txt')).read_text().splitlines():
+     if line.startswith('    '):
+      name=line.strip();path=Path(name) if Path(name).is_absolute() else tree/name
+      assert path.is_file(),'missing dependency: '+name
+      dependencies[name]=sha(path)
+    assert dependencies,'no dependency records'
+    dump(work/(phase+'-dependency-hashes.json'),dependencies)
+    results['phases'][phase]={'commands':sha(work/(phase+'-commands.txt')),'dependency_hashes':sha(work/(phase+'-dependency-hashes.json')),'objects':{p:sha(tree/p) for p in targets},'graph':sha(tree/'build.ninja'),'deps':sha(work/(phase+'-deps.txt'))}
+   for scope in ('TU13','TU14'):
+    name='WorldMapResult'+scope+'.o'; a=work/'before/build/SB4E01/src/Game/System'/name;b=work/'after/build/SB4E01/src/Game/System'/name
+    assert len(ownership.decode_object(a,scope)['mismatches'])==2
+    ownership.require_candidate(b,scope);ownership.decode_original_dol(args.dol.read_bytes(),scope);envelope(ob,a,b,scope,dp)
+    # Real-ELF controls: change first text byte, each approved symbol value/size,
+    # and each owning data relocation's addend. Never outer-digest-only rejection.
+    original=b.read_bytes();shoff=struct.unpack_from('>I',original,32)[0];shents,shnum=struct.unpack_from('>HH',original,46)
+    headers=[struct.unpack_from('>10I',original,shoff+i*shents) for i in range(shnum)]
+    sections,symbols=ob.read_object(b);keys=ob.section_keys(sections)
+    mutations=[]
+    textindex=keys.index('.text#0');m=bytearray(original);m[headers[textindex][4]]^=1;mutations.append(('first-text',m))
+    syms=next(h for h in headers if h[1]==2)
+    names=list(dp.SCOPES[scope]['symbols'])
+    for i,s in enumerate(symbols):
+     if s['name'] in names:
+      for label,off in [('value',4),('size',8)]:
+       m=bytearray(original);pos=syms[4]+i*16+off;struct.pack_into('>I',m,pos,struct.unpack_from('>I',m,pos)[0]+4);mutations.append((s['name']+'-'+label,m))
+    owned_offsets={'TU13':{0x48,0x68},'TU14':{0x58,0x68}}[scope]
+    for h in headers:
+     if h[1]==4 and keys[h[7]]=='.data#0':
+      for pos in range(h[4],h[4]+h[5],12):
+       if struct.unpack_from('>I',original,pos)[0] in owned_offsets:
+        m=bytearray(original);struct.pack_into('>i',m,pos+8,4);mutations.append(('own-slot-addend-'+str(pos),m))
+    assert len(mutations)==7
+    symbol_indices=[i for i,s in enumerate(symbols) if s['name'] in names];assert len(symbol_indices)==2
+    for h in headers:
+     if h[1]==4 and keys[h[7]]=='.data#0':
+      for pos in range(h[4],h[4]+h[5],12):
+       if struct.unpack_from('>I',original,pos)[0] in owned_offsets:
+        m=bytearray(original);info=struct.unpack_from('>I',m,pos+4)[0];old=info>>8
+        assert old in symbol_indices
+        new=next(i for i in symbol_indices if i!=old);struct.pack_into('>I',m,pos+4,(new<<8)|(info&255))
+        mutations.append(('wrong-owning-target-'+str(pos),m))
+    assert len(mutations)==9
+    for label,data in mutations:
+     mutant=work/(scope+'-mutant.o');mutant.write_bytes(data)
+     try:envelope(ob,a,mutant,scope,dp)
+     except (AssertionError,ValueError,IndexError):pass
+     else:raise AssertionError('mutation accepted: '+label)
+     if label.startswith('wrong-owning-target'):
+      try:ownership.require_candidate(mutant,scope)
+      except ValueError:pass
+      else:raise AssertionError('ownership accepted wrong target')
+     results['controls'].append({'scope':scope,'control':label,'rejected':True,'sha256':sha(mutant)})
+    results[scope]={'ownership':ownership.require_candidate(b,scope),'envelope':'strict remaining bytes/sections/relocations/symbols equal'}
+   a=work/'before/build/SB4E01/src/Game/System/GrandGalaxyMapSequence.o';b=work/'after/build/SB4E01/src/Game/System/GrandGalaxyMapSequence.o'
+   assert ob.summarize(a)==ob.summarize(b),'typed Sequence changed Wii object'
+   for p,h in context.items():assert sha(p)==h,'context drift: '+p
+   job.remaining()
+   results['status']='THREE_TU_COMPONENT_QUALIFICATION_ONLY_NOT_FULL_PROOF';results['seconds']=time.monotonic()-start
+   state('COMPONENTS_COMPLETE_FULL2426_AND_SOURCE_CONTROLS_PENDING')
+  finally:dump(work/'result.json',results)
+  print(results['status'])
 if __name__=='__main__':main()

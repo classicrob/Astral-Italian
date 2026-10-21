@@ -1,0 +1,482 @@
+{
+  "schema": 1,
+  "type": "SEPARATE_CROSSED_FAMILY_EVIDENCE_INTAKE_LEDGER",
+  "execution_enabled": false,
+  "priority": "RouteOpen first after nativefix slot; compiler allocations remain separate/pending",
+  "P_role": "tracked adapter implementation/evidence intake owner; no compiler while T2 nativefix owns slot",
+  "GAME_C_role": "scratch Route-only prototype/contract/adversarial synthetic supplement; no tracked/shared adapter edits",
+  "shared_checkpoint": "fe0b050e; C/B source/model support only; qualify_files unconditional object-read refusal retained",
+  "no_scope_widening": [
+    "no liveSCOPES/22/2989/full827 edits",
+    "no beforeG/ordinary9789 success transferred to Wii proof",
+    "no unobserved ownership/tuple/normalization allowance"
+  ],
+  "families": [
+    {
+      "priority": 1,
+      "family": "RouteOpen",
+      "base": "33e71ee880b426c0c7da03a724377200e874c417",
+      "candidate": "0073d1f6f4cd490d7afd33f5f2b056c830b08921",
+      "source": "src/Game/System/WorldMapResultStateRouteOpen.cpp",
+      "unit": "src/Game/System/WorldMapResultStateRouteOpen.o",
+      "spec": {
+        "path": "tools/team/crossed_routeopen_spec.json",
+        "sha256": "ff5cfc5fe8651bdf3bf5cff6a3129321aea09ddd52eabe8f98f4c515acf3fd3c"
+      },
+      "plan": {
+        "path": "tools/team/crossed_routeopen_plan.json",
+        "sha256": "c125044f789a01d1c29a96ecba59071d629fed5226a0fea74535d9dd5124d8e6"
+      },
+      "targets": [
+        {
+          "state": "Extend",
+          "symbol": "execute__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtendCFP5Spine",
+          "vtable_symbol": "__vt__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend",
+          "before_va": 2152667536,
+          "after_va": 2152667568,
+          "slot_va": 2154834560,
+          "method_va": 2152666784,
+          "width": 8
+        },
+        {
+          "state": "Message",
+          "symbol": "execute__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessageCFP5Spine",
+          "vtable_symbol": "__vt__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage",
+          "before_va": 2152667568,
+          "after_va": 2152667536,
+          "slot_va": 2154834528,
+          "method_va": 2152667056,
+          "width": 8
+        }
+      ],
+      "required_context": {
+        "__ct__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStartFv": 2,
+        "__ct__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtendFv": 2,
+        "__ct__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNextFv": 2,
+        "__ct__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessageFv": 2,
+        "__ct__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEndFv": 2,
+        "execute__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEndCFP5Spine": 2,
+        "execute__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNextCFP5Spine": 2,
+        "execute__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStartCFP5Spine": 2,
+        "__vt__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEnd": 1,
+        "__vt__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage": 1,
+        "__vt__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext": 1,
+        "__vt__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend": 1,
+        "__vt__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStart": 1,
+        "sInstance__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStart": 1,
+        "sInstance__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend": 1,
+        "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext": 1,
+        "sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage": 1,
+        "sInstance__Q231NrvWorldMapResultStateRouteOpen31WorldMapResultStateRouteOpenEnd": 1
+      },
+      "required_context_count": 18,
+      "config_bridge": {
+        "before_name": "lbl_807D5F20",
+        "after_name": "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext",
+        "va": 2155700000
+      },
+      "done": {
+        "method_symbol": "exeExtend__28WorldMapResultStateRouteOpenFv",
+        "before_singleton": "sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage",
+        "after_singleton": "sInstance__Q231NrvWorldMapResultStateRouteOpen36WorldMapResultStateRouteOpenWaitNext",
+        "original_producer_pc": 2152666908,
+        "consumer_pc": 2152666912,
+        "original_target": 2155700000,
+        "baseline_target": 2155700004
+      },
+      "fresh_discovery": {
+        "count": 2,
+        "phases": [
+          "before",
+          "after"
+        ],
+        "objects": null,
+        "raw_sha256": null,
+        "raw_section_symbol_rela_identity": null,
+        "measured_envelope": null,
+        "operator_pin": null,
+        "limits": {
+          "objects": 2,
+          "jobs": 1,
+          "nice": 19,
+          "work_seconds": 120,
+          "cleanup_seconds": 4,
+          "total_seconds": 150,
+          "maximum_allocated_bytes": 134217728,
+          "minimum_free_bytes": 53687091200,
+          "native_lock": "actual nonblocking required; not acquired"
+        },
+        "runner": "future exact ROOT allocation; no implicit extension of ordinary9789",
+        "acceptance": "OBSERVATION_ONLY_NOT_QUALIFICATION; object intake/refusal admission remains separate"
+      },
+      "intake_required": [
+        "one immutable FD snapshot/hash/parse per object, exact ELF32BE/PPC bounds",
+        "all section headers/occurrences/payload hashes, ALL symtabs/local info/other/size/ordinal",
+        "each RELA owns sh_link/sh_info; full relocation write and symbol/vtable extents",
+        "all mandatory context/providers and real weak/singleton/ctor identities; presence alone NOT ownership",
+        "complete named/local/ABS/config-label alias references and owning slots",
+        "record actual unexpected raw differences before any normalization; reject/HOLD instead of posthoc envelope expansion"
+      ],
+      "comparison_admission": "DISABLED until real envelope+independent operator/source/negative review; no blanket wholeTU mask",
+      "controls_after_discovery": {
+        "artifact_mutants": [
+          "genuine_old_source",
+          "each owning target independently crossed",
+          "stale/crossed execute address",
+          "each wrong execute width",
+          "first actual nonempty executable occurrence bit",
+          "extra named/local/ABS/midbody reference",
+          "missing/duplicate symbol/provider",
+          "changed weak binding/visibility/section/data/pool/alignment",
+          "source perturb semantic rejection + rawidentical restore",
+          "old done Message807D5F24",
+          "wrong done Extend807D5F1C",
+          "WaitNext identity/name/4B extent",
+          "wrong receiver",
+          "genuine old/exact done source controls distinct"
+        ],
+        "actual_source_perturb_restore": "requires separate source/control/compiler budget; not included in 2object discovery",
+        "restoration": "both source and restored ELF raw-byte identity; setup/link failures never count as semantic negative"
+      },
+      "typed_setup": {
+        "dependencies": [
+          "src/Game/System/NerveExecutor.cpp",
+          "src/Game/LiveActor/Spine.cpp",
+          "src/Game/LiveActor/Nerve.cpp",
+          "src/Game/LiveActor/ActorStateKeeper.cpp"
+        ],
+        "bootstrap": "OPEN: canonical command/NameObj/register/holder/host setup and actual provider linking; no ABI/layout shims",
+        "execution": "UNRUN_UNALLOCATED; canonical engine providers/receiver lifetime, no ABI shims"
+      },
+      "later_full_scope": [
+        "strict all-other object remainder under exact sanctioned family envelope",
+        "all-object/effective alias and final provider/weak/allocation closure not supplied by single TU",
+        "independent original ownership/improvement from sealed evidence; no duplicate original-payload reads or copied private data",
+        "future full certificate/import/runtime separate; source component support is not acceptance"
+      ],
+      "next_source_work": "consume C isolated scratch Route supplement; implement explicit raw-field normalization only after review, keep WaitNext bridge/done exact and actual_file refusal"
+    },
+    {
+      "priority": 2,
+      "family": "PointWarp",
+      "base": "33e71ee880b426c0c7da03a724377200e874c417",
+      "candidate": "de4289f1c4f9a8d2293b03ff8f9bc580048784bb",
+      "source": "src/Game/System/WorldMapResultTU19.cpp",
+      "unit": "src/Game/System/WorldMapResultTU19.o",
+      "spec": {
+        "path": "tools/team/crossed_pointwarp_spec.json",
+        "sha256": "4dbd578d60db1abcd450f55d6f0dff9800d298d7a446b2679426eff6024c4c49"
+      },
+      "plan": {
+        "path": "tools/team/crossed_pointwarp_plan.json",
+        "sha256": "7b7eb699e8fcbdff87381eddb08438924b2946708061604226e0221033a8a1d9"
+      },
+      "targets": [
+        {
+          "state": "Start",
+          "symbol": "execute__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStartCFP5Spine",
+          "vtable_symbol": "__vt__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart",
+          "before_va": 2152708880,
+          "after_va": 2152708912,
+          "slot_va": 2154837632,
+          "method_va": 2152708256,
+          "width": 8
+        },
+        {
+          "state": "End",
+          "symbol": "execute__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEndCFP5Spine",
+          "vtable_symbol": "__vt__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd",
+          "before_va": 2152708912,
+          "after_va": 2152708880,
+          "slot_va": 2154837600,
+          "method_va": 2152708528,
+          "width": 8
+        }
+      ],
+      "required_context": {
+        "__ct__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStartFv": 2,
+        "__ct__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWaitFv": 2,
+        "__ct__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEndFv": 2,
+        "execute__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWaitCFP5Spine": 2,
+        "__vt__28WorldMapResultStatePointWarp": 1,
+        "__vt__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd": 1,
+        "__vt__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWait": 1,
+        "__vt__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart": 1,
+        "sInstance__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart": 1,
+        "sInstance__Q231NrvWorldMapResultStatePointWarp32WorldMapResultStatePointWarpWait": 1,
+        "sInstance__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd": 1
+      },
+      "required_context_count": 11,
+      "config_bridge": null,
+      "done": null,
+      "fresh_discovery": {
+        "count": 2,
+        "phases": [
+          "before",
+          "after"
+        ],
+        "objects": null,
+        "raw_sha256": null,
+        "raw_section_symbol_rela_identity": null,
+        "measured_envelope": null,
+        "operator_pin": null,
+        "limits": {
+          "objects": 2,
+          "jobs": 1,
+          "nice": 19,
+          "work_seconds": 120,
+          "cleanup_seconds": 4,
+          "total_seconds": 150,
+          "maximum_allocated_bytes": 134217728,
+          "minimum_free_bytes": 53687091200,
+          "native_lock": "actual nonblocking required; not acquired"
+        },
+        "runner": "future exact ROOT allocation; no implicit extension of ordinary9789",
+        "acceptance": "OBSERVATION_ONLY_NOT_QUALIFICATION; object intake/refusal admission remains separate"
+      },
+      "intake_required": [
+        "one immutable FD snapshot/hash/parse per object, exact ELF32BE/PPC bounds",
+        "all section headers/occurrences/payload hashes, ALL symtabs/local info/other/size/ordinal",
+        "each RELA owns sh_link/sh_info; full relocation write and symbol/vtable extents",
+        "all mandatory context/providers and real weak/singleton/ctor identities; presence alone NOT ownership",
+        "complete named/local/ABS/config-label alias references and owning slots",
+        "record actual unexpected raw differences before any normalization; reject/HOLD instead of posthoc envelope expansion"
+      ],
+      "comparison_admission": "DISABLED until real envelope+independent operator/source/negative review; no blanket wholeTU mask",
+      "controls_after_discovery": {
+        "artifact_mutants": [
+          "genuine_old_source",
+          "each owning target independently crossed",
+          "stale/crossed execute address",
+          "each wrong execute width",
+          "first actual nonempty executable occurrence bit",
+          "extra named/local/ABS/midbody reference",
+          "missing/duplicate symbol/provider",
+          "changed weak binding/visibility/section/data/pool/alignment",
+          "source perturb semantic rejection + rawidentical restore"
+        ],
+        "actual_source_perturb_restore": "requires separate source/control/compiler budget; not included in 2object discovery",
+        "restoration": "both source and restored ELF raw-byte identity; setup/link failures never count as semantic negative"
+      },
+      "typed_setup": {
+        "dependencies": [
+          "src/Game/System/NerveExecutor.cpp",
+          "src/Game/LiveActor/Spine.cpp",
+          "src/Game/LiveActor/Nerve.cpp",
+          "src/Game/LiveActor/ActorStateKeeper.cpp"
+        ],
+        "bootstrap": "OPEN: canonical command/NameObj/register/holder/host setup and actual provider linking; no ABI/layout shims",
+        "execution": "UNRUN_UNALLOCATED; canonical engine providers/receiver lifetime, no ABI shims"
+      },
+      "later_full_scope": [
+        "strict all-other object remainder under exact sanctioned family envelope",
+        "all-object/effective alias and final provider/weak/allocation closure not supplied by single TU",
+        "independent original ownership/improvement from sealed evidence; no duplicate original-payload reads or copied private data",
+        "future full certificate/import/runtime separate; source component support is not acceptance"
+      ],
+      "next_source_work": "use correctedde4289 only, strict Wait and 11context; typed host/bootstrap remains unresolved"
+    },
+    {
+      "priority": 3,
+      "family": "CreateTico",
+      "base": "33e71ee880b426c0c7da03a724377200e874c417",
+      "candidate": "ccd80023f1dc7873e438d2d64e287668cf03b640",
+      "source": "src/Game/System/WorldMapResultStateCreateTico.cpp",
+      "unit": "src/Game/System/WorldMapResultStateCreateTico.o",
+      "spec": {
+        "path": "tools/team/crossed_createtico_spec.json",
+        "sha256": "2e9631f3d350113a97c9e6d3b69821183d1289276f9f8195b612cb10fe71ea7f"
+      },
+      "plan": {
+        "path": "tools/team/crossed_createtico_plan.json",
+        "sha256": "d21d50b5836728cb92dd2d6cfc8fb17f312341c2a3d1523485908adb43096c19"
+      },
+      "targets": [
+        {
+          "state": "Close",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoCloseCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoClose",
+          "before_va": 2152669136,
+          "after_va": 2152669328,
+          "slot_va": 2154834840,
+          "method_va": 2152667856,
+          "width": 8
+        },
+        {
+          "state": "Open",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpenCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpen",
+          "before_va": 2152669152,
+          "after_va": 2152669312,
+          "slot_va": 2154834824,
+          "method_va": 2152667952,
+          "width": 8
+        },
+        {
+          "state": "Extend",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtendCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtend",
+          "before_va": 2152669168,
+          "after_va": 2152669296,
+          "slot_va": 2154834808,
+          "method_va": 2152668096,
+          "width": 8
+        },
+        {
+          "state": "WhiteClose",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteCloseCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteClose",
+          "before_va": 2152669184,
+          "after_va": 2152669280,
+          "slot_va": 2154834792,
+          "method_va": 2152668256,
+          "width": 8
+        },
+        {
+          "state": "WhiteOpen",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpenCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpen",
+          "before_va": 2152669280,
+          "after_va": 2152669184,
+          "slot_va": 2154834760,
+          "method_va": 2152668352,
+          "width": 8
+        },
+        {
+          "state": "Message",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessageCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessage",
+          "before_va": 2152669296,
+          "after_va": 2152669168,
+          "slot_va": 2154834744,
+          "method_va": 2152668448,
+          "width": 8
+        },
+        {
+          "state": "CloseEnd",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEndCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEnd",
+          "before_va": 2152669312,
+          "after_va": 2152669152,
+          "slot_va": 2154834728,
+          "method_va": 2152668560,
+          "width": 8
+        },
+        {
+          "state": "End",
+          "symbol": "execute__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEndCFP5Spine",
+          "vtable_symbol": "__vt__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEnd",
+          "before_va": 2152669328,
+          "after_va": 2152669136,
+          "slot_va": 2154834712,
+          "method_va": 2152668656,
+          "width": 8
+        }
+      ],
+      "required_context": {
+        "__ct__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoCloseFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpenFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtendFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteCloseFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteWaitFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpenFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessageFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEndFv": 2,
+        "__ct__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEndFv": 2,
+        "execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteWaitCFP5Spine": 2,
+        "__vt__29WorldMapResultStateCreateTico": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEnd": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEnd": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessage": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpen": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteWait": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteClose": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtend": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpen": 1,
+        "__vt__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoClose": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoClose": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpen": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtend": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteClose": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteWait": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpen": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessage": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEnd": 1,
+        "sInstance__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEnd": 1
+      },
+      "required_context_count": 29,
+      "config_bridge": null,
+      "done": null,
+      "fresh_discovery": {
+        "count": 2,
+        "phases": [
+          "before",
+          "after"
+        ],
+        "objects": null,
+        "raw_sha256": null,
+        "raw_section_symbol_rela_identity": null,
+        "measured_envelope": null,
+        "operator_pin": null,
+        "limits": {
+          "objects": 2,
+          "jobs": 1,
+          "nice": 19,
+          "work_seconds": 120,
+          "cleanup_seconds": 4,
+          "total_seconds": 150,
+          "maximum_allocated_bytes": 134217728,
+          "minimum_free_bytes": 53687091200,
+          "native_lock": "actual nonblocking required; not acquired"
+        },
+        "runner": "future exact ROOT allocation; no implicit extension of ordinary9789",
+        "acceptance": "OBSERVATION_ONLY_NOT_QUALIFICATION; object intake/refusal admission remains separate"
+      },
+      "intake_required": [
+        "one immutable FD snapshot/hash/parse per object, exact ELF32BE/PPC bounds",
+        "all section headers/occurrences/payload hashes, ALL symtabs/local info/other/size/ordinal",
+        "each RELA owns sh_link/sh_info; full relocation write and symbol/vtable extents",
+        "all mandatory context/providers and real weak/singleton/ctor identities; presence alone NOT ownership",
+        "complete named/local/ABS/config-label alias references and owning slots",
+        "record actual unexpected raw differences before any normalization; reject/HOLD instead of posthoc envelope expansion"
+      ],
+      "comparison_admission": "DISABLED until real envelope+independent operator/source/negative review; no blanket wholeTU mask",
+      "controls_after_discovery": {
+        "artifact_mutants": [
+          "genuine_old_source",
+          "each owning target independently crossed",
+          "stale/crossed execute address",
+          "each wrong execute width",
+          "first actual nonempty executable occurrence bit",
+          "extra named/local/ABS/midbody reference",
+          "missing/duplicate symbol/provider",
+          "changed weak binding/visibility/section/data/pool/alignment",
+          "source perturb semantic rejection + rawidentical restore",
+          "WhiteWait step0/59/60/61 body/reloc mutation",
+          "late extra effect per34checkpoints",
+          "valid secondreceiver/host preservation",
+          "unmatched provider and wrongreceiver setup label"
+        ],
+        "actual_source_perturb_restore": "requires separate source/control/compiler budget; not included in 2object discovery",
+        "restoration": "both source and restored ELF raw-byte identity; setup/link failures never count as semantic negative"
+      },
+      "typed_setup": {
+        "dependencies": [
+          "src/Game/System/NerveExecutor.cpp",
+          "src/Game/LiveActor/Spine.cpp",
+          "src/Game/LiveActor/Nerve.cpp",
+          "src/Game/LiveActor/ActorStateKeeper.cpp"
+        ],
+        "bootstrap": "OPEN: canonical command/NameObj/register/holder/host setup and actual provider linking; no ABI/layout shims",
+        "execution": "UNRUN_UNALLOCATED; canonical engine providers/receiver lifetime, no ABI shims"
+      },
+      "later_full_scope": [
+        "strict all-other object remainder under exact sanctioned family envelope",
+        "all-object/effective alias and final provider/weak/allocation closure not supplied by single TU",
+        "independent original ownership/improvement from sealed evidence; no duplicate original-payload reads or copied private data",
+        "future full certificate/import/runtime separate; source component support is not acceptance"
+      ],
+      "next_source_work": "use recipeV2 only; all9 statics/ctors, WhiteWait72B/step60 strict; eight slot improvements and34checkpoints/secondreceiver remain pending"
+    }
+  ]
+}

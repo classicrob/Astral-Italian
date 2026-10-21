@@ -238,6 +238,9 @@ void GameSystem::frameLoop() {
     update();
     calcAnim();
     mObjHolder->captureIfAllowForScreenPreserver();
+#ifdef GALAXY_NATIVE
+    petari_host_frame_mark(PETARI_FRAME_MARK_END_FRAME);  // frame statistics: game work ends, the GXDrawDone wait starts
+#endif
     MainLoopFramework::sManager->endFrame();
 #ifdef GALAXY_NATIVE
     petari_host_frame_seam();
@@ -246,6 +249,9 @@ void GameSystem::frameLoop() {
     petari_headless_wait_frame();
 #else
     MainLoopFramework::sManager->waitForRetrace();
+#endif
+#ifdef GALAXY_NATIVE
+    petari_host_frame_mark(PETARI_FRAME_MARK_RETRACE_DONE);  // frame statistics: the retrace wait ended
 #endif
 }
 

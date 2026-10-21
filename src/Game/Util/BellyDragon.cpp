@@ -61,7 +61,11 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
     if (MR::tryRegisterDemoCast(this, rIter)) {
         mDemoA = (LiveActor*)MR::createDemoObj(lbl_8066C858 + 0x54, lbl_8066C858 + 0x68, lbl_8066C858 + 0x78, NULL);
         mDemoB = (LiveActor*)MR::createDemoObj(lbl_8066C858 + 0x88, lbl_8066C858 + 0x98, lbl_8066C858 + 0x78, NULL);
+#ifdef GALAXY_NATIVE
+        mDemoB->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
+#else
         ((s16*)mDemoB)[7] = ((s16*)this)[7];
+#endif
         MR::resetPosition(mDemoA, lbl_8066C858 + 0xA0);
         MR::resetPosition(mDemoB, lbl_8066C858 + 0xA0);
         mDemoA->makeActorDead();

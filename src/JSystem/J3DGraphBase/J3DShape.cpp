@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_diag.hpp>
+#endif
 #include "JSystem/J3DGraphBase/J3DShape.hpp"
 #include "JSystem/J3DGraphBase/J3DGD.hpp"
 #include "JSystem/J3DGraphBase/J3DPacket.hpp"
@@ -267,6 +270,9 @@ void J3DShape::makeVcdVatCmd() {
 }
 
 void J3DShape::loadPreDrawSetting() const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DShape::loadPreDrawSetting", j3dSys.getModel());
+#endif
     if (sOldVcdVatCmd != mVcdVatCmd) {
         GXCallDisplayList(mVcdVatCmd, kVcdVatDLSize);
         sOldVcdVatCmd = mVcdVatCmd;
@@ -287,6 +293,9 @@ void J3DShape::setArrayAndBindPipeline() const {
 }
 
 void J3DShape::drawFast() const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DShape::drawFast", j3dSys.getModel());
+#endif
     if (sOldVcdVatCmd != mVcdVatCmd) {
         GXCallDisplayList(mVcdVatCmd, kVcdVatDLSize);
         sOldVcdVatCmd = mVcdVatCmd;
@@ -334,6 +343,9 @@ void J3DShape::simpleDraw() const {
 }
 
 void J3DShape::simpleDrawCache() const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DShape::simpleDrawCache", j3dSys.getModel());
+#endif
     if (sOldVcdVatCmd != mVcdVatCmd) {
         GXCallDisplayList(mVcdVatCmd, kVcdVatDLSize);
         sOldVcdVatCmd = mVcdVatCmd;

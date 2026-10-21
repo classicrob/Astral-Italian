@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_diag.hpp>
+#endif
 #include "Game/Player/DLchanger.hpp"
 #include "Game/Player/J3DModelX.hpp"
 #include "Game/Util.hpp"
@@ -183,6 +186,9 @@ void J3DModelX::directDraw(J3DModel* model) {
 }
 
 void J3DModelX::drawIn(J3DMaterial* material, bool fog, MtxPtr base, J3DModel* model) {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DModelX::drawIn", this);
+#endif
     if (!material) {
         return;
     }
@@ -491,6 +497,9 @@ void J3DModelX::shapePacketDrawFast(J3DShapePacketX* packet) const {
 }
 
 void J3DModelX::shapeDrawFast(J3DShapeX* shape) const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DModelX::shapeDrawFast", this);
+#endif
     if (J3DShape::sOldVcdVatCmd != shape->mVcdVatCmd) {
         GXCallDisplayList(shape->mVcdVatCmd, 0xC0);
         J3DShape::sOldVcdVatCmd = shape->mVcdVatCmd;

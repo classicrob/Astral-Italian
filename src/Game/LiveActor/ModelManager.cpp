@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_diag.hpp>
+#endif
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/Animation/BckCtrl.hpp"
 #include "Game/Animation/BpkPlayer.hpp"
@@ -396,6 +399,9 @@ void ModelManager::initModelAndAnimation(ResourceHolder* pModelHolder, const cha
         mXanimeResourceTable = MR::newXanimeResourceTable(pAnimationHolder);
         mXanimePlayer = MR::newXanimePlayer(pModelHolder, pModelName, pAnimationHolder, flags, mXanimeResourceTable);
     }
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::model(getJ3DModel(), pModelName);
+#endif
 }
 
 void ModelManager::initMaterialAnm() {

@@ -696,3 +696,6 @@ endif()
 if(BUILD_TESTING)
     add_test(NAME native_pipeline_cache_identity COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_identity_tests.py")
 endif()
+
+# SCRATCH ONLY: remove this include with the diagnostic branch.
+include("${CMAKE_CURRENT_SOURCE_DIR}/wm_diag.cmake")

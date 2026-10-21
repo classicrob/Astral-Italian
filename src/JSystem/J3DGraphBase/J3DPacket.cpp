@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_diag.hpp>
+#endif
 #include "JSystem/J3DGraphBase/J3DPacket.hpp"
 #include "JSystem/J3DGraphAnimator/J3DModel.hpp"
 #include "JSystem/J3DGraphAnimator/J3DModelData.hpp"
@@ -52,6 +55,9 @@ void J3DDisplayListObj::swapBuffer() {
 }
 
 void J3DDisplayListObj::callDL() const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DDisplayListObj", j3dSys.getModel());
+#endif
     GXCallDisplayList(mpDisplayList[0], mSize);
 }
 
@@ -338,6 +344,9 @@ void J3DShapePacket::draw() {
             mpDisplayListObj->callDL();
         }
 
+#ifdef GALAXY_NATIVE
+        PetariWmDiag::drawn(mpModel);
+#endif
         mpShape->draw();
     }
 }
@@ -353,6 +362,9 @@ void J3DShapePacket::drawFast() {
             J3DDifferedTexMtx::sTexGenBlock = NULL;
         }
 
+#ifdef GALAXY_NATIVE
+        PetariWmDiag::drawn(mpModel);
+#endif
         mpShape->drawFast();
     }
 }

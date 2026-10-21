@@ -1,3 +1,7 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_diag.hpp>
+#include "JSystem/J3DGraphBase/J3DSys.hpp"
+#endif
 #include "JSystem/J3DGraphBase/J3DShapeDraw.hpp"
 #include "JSystem/JKernel/JKRHeap.hpp"
 #include <cstring>
@@ -87,6 +91,9 @@ J3DShapeDraw::J3DShapeDraw(const u8* displayList, u32 displayListSize) {
 }
 
 void J3DShapeDraw::draw() const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiag::Context wmContext("J3DShapeDraw", j3dSys.getModel());
+#endif
     GXCallDisplayList(mDisplayList, mDisplayListSize);
 }
 

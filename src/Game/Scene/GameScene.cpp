@@ -1,3 +1,6 @@
+#ifdef GALAXY_NATIVE
+#include <petari/wm_diag_scene.hpp>
+#endif
 #include "Game/Util/BgmUtil.hpp"
 #ifdef GALAXY_NATIVE
 extern "C" void petari_os_preemption_point(void);
@@ -235,6 +238,9 @@ void GameScene::update() {
 }
 
 void GameScene::draw() const {
+#ifdef GALAXY_NATIVE
+    PetariWmDiagScene::beginFrame();
+#endif
     MR::drawInit();
     LightFunction::initLightRegisterAll();
     CategoryList::execute(MR::DrawType_MiiFaceIcon);
@@ -242,6 +248,9 @@ void GameScene::draw() const {
     drawMirror();
     draw3D();
     draw2D();
+#ifdef GALAXY_NATIVE
+    PetariWmDiagScene::endFrame();
+#endif
     MR::reinitGX();
 }
 
@@ -494,6 +503,9 @@ namespace GameSequenceFunction {
 };  // namespace GameSequenceFunction
 
 void GameScene::init() {
+#ifdef GALAXY_NATIVE
+    PetariWmDiagScene::reset();
+#endif
     MR::isStageFileSelect();
     SceneFunction::createHioBasicNode(this);
     SceneFunction::startStageFileLoad();

@@ -4,7 +4,7 @@ Single-thread SIGALRM supervision; no background observer thread changes the
 reviewed preexec contract. Checks happen before child spawn, while waiting, during
 Python work and on exit. This is sampled supervision, not a filesystem quota.
 """
-import os,shutil,signal,time,json,traceback
+import os,shutil,signal,time,json,traceback,subprocess
 from pathlib import Path
 import dispatch_preflight as p
 
@@ -117,16 +117,30 @@ class LiveBudgetJob(p.OwnedJob):
   except BaseException as error:
    observation_error=error;self.journal({'event':'identity_observation_error','error':repr(error),'traceback':traceback.format_exception(type(error),error,error.__traceback__)})
   self.require_signal_ownership(proc.pid)
+  cleanup_deadline=time.monotonic()+4.0
+  leader_reaped=False;group_absent=False
   for sig,grace in ((signal.SIGTERM,1.0),(signal.SIGKILL,3.0)):
+   end=min(cleanup_deadline,time.monotonic()+grace)
+   if end<=time.monotonic():raise RuntimeError('owned cleanup deadline before escalation')
    try:self.operation('killpg-'+signal.Signals(sig).name,proc.pid,lambda:os.killpg(proc.pid,sig))
    except ProcessLookupError:pass
    self.events.append({'pgid':proc.pid,'signal':int(sig)})
-   end=time.monotonic()+grace
-   while self.alive(proc.pid) and time.monotonic()<end:
-    self.operation('poll',proc.pid,proc.poll);time.sleep(0.02)
-   if not self.alive(proc.pid):break
-  self.operation('wait-reap',proc.pid,lambda:proc.wait(timeout=1))
-  if self.alive(proc.pid):raise RuntimeError('owned group remains')
+   # Reap the direct child BEFORE any group-zero probe. A poll-before-probe
+   # would retain an exit race; leader status still never proves group absence.
+   try:
+    status=self.operation('wait-reap',proc.pid,lambda:proc.wait(timeout=max(0.0,end-time.monotonic())))
+   except subprocess.TimeoutExpired:
+    self.journal({'event':'leader_wait_grace_expired','pid':proc.pid,'signal':int(sig)})
+    if sig==signal.SIGKILL:raise RuntimeError('owned leader not reaped within cleanup deadline')
+    continue
+   leader_reaped=True
+   self.events.append({'pgid':proc.pid,'leader_reaped_status':status})
+   group_absent=not self.alive(proc.pid)  # EPERM remains an error, never absence.
+   while not group_absent and time.monotonic()<end:
+    time.sleep(min(0.02,max(0.0,end-time.monotonic())))
+    group_absent=not self.alive(proc.pid)
+   if group_absent:break
+  if not leader_reaped or not group_absent:raise RuntimeError('owned group remains or cleanup uncertain')
   del self.groups[proc.pid];self.events.append({'pgid':proc.pid,'leader_reaped_and_group_absent':True})
   if observation_error is not None:raise RuntimeError('identity observation failed; no lifecycle qualification') from observation_error
  def check(self):

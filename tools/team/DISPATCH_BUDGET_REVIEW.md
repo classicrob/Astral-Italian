@@ -85,3 +85,23 @@ Four additional source-model tests are prepared for wrong leader despite matchin
 report/kernel values, missing identity, fully verified leader, and cleanup failure
 metadata. They are UNRUN, along with all amended lifecycle controls. Only syntax
 compilation was checked; no new signals, child lifecycle executions or native builds.
+
+## Leader reap ordering amendment — SOURCE ONLY
+
+The owned direct child is now waited/reaped within the existing TERM one-second
+and KILL three-second grace deadlines BEFORE any group-zero probe. TERM wait
+expiry escalates using the existing group KILL mechanism; KILL wait expiry fails
+without claiming absence. A reaped leader's actual status is journaled. Surviving
+workers still require strict group absence; TERM-reaped leader with a live group
+uses the remaining TERM grace then group KILL. EPERM always propagates as uncertainty.
+The total cleanup grace deadline is four seconds; syscall/journal latency remains
+an explicit limitation, not an uninterrupted external watchdog qualification.
+
+Five no-process models cover TERM exit, TERM ignored, leader exit with a surviving
+worker, post-reap EPERM, and KILL wait timeout. Every group syscall and child wait
+is mocked. These are source-model acceptance only, never actual lifecycle PASS.
+The separate DISPATCH_BUDGET_REAP_PLAN.json lists future actual fixtures; all remain
+UNRUN and require exact independent source review plus a new allocation. Existing
+95e661f7 failure records are unchanged; neither host zombie state nor old EPERM
+cause is established. The Apple XNU source cited by PORT supports a possibility,
+not a measurement of this host kernel or this child at the failure instant.

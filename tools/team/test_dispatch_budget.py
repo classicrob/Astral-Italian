@@ -91,4 +91,42 @@ class OwnershipSourceModels(unittest.TestCase):
     with self.assertRaises(RuntimeError):job.__exit__(RuntimeError,failure,None)
    data=json.loads((work/'disk-budget.json').read_text());self.assertEqual(data['cleanup']['status'],'FAILED_OR_UNCERTAIN');self.assertFalse(data['cleanup']['all_owned_groups_absence_confirmed']);self.assertEqual(data['cleanup']['remaining_groups'][0]['registered_leader_pid'],707);self.assertIsNotNone(data['cleanup']['error']);self.assertIn('NOT established',data['cleanup_order'])
 
+class LeaderReapSourceModels(unittest.TestCase):
+ # Pure models: every group syscall and child wait is mocked; NO process spawn.
+ def model(self,mode):
+  with retained_fixture() as d:
+   root=Path(d);work=root/'work';work.mkdir();job=b.LiveBudgetJob(work,3,root,0,1024**2,0.02)
+   calls=[];clock=[0.0];state={'killed':False,'waits':0}
+   def wait(timeout):
+    calls.append(('wait',timeout));state['waits']+=1
+    if mode=='never' or (mode=='ignore' and state['waits']==1):
+     clock[0]+=timeout;raise b.subprocess.TimeoutExpired('model',timeout)
+    return -9 if state['killed'] else -15
+   proc=types.SimpleNamespace(pid=707,wait=wait);job.groups[707]=proc
+   def killpg(pid,sig):
+    calls.append(('killpg',sig));self.assertEqual(pid,707)
+    if sig==b.signal.SIGKILL:state['killed']=True
+    if sig==0:
+     self.assertTrue(any(c[0]=='wait' for c in calls[:-1]))
+     if mode=='eperm':raise PermissionError(1,'model EPERM')
+     if mode!='worker' or state['killed']:raise ProcessLookupError()
+   def sleep(seconds):clock[0]+=seconds
+   with patch.object(b.os,'killpg',side_effect=killpg),patch.object(b.time,'monotonic',side_effect=lambda:clock[0]),patch.object(b.time,'sleep',side_effect=sleep):
+    if mode in ('eperm','never'):
+     with self.assertRaises((PermissionError,RuntimeError)):job.stop_group(proc)
+     self.assertIn(707,job.groups)
+    else:job.stop_group(proc);self.assertNotIn(707,job.groups)
+   self.assertLessEqual(clock[0],4.0)
+   return calls,job.events
+ def test_term_reap_before_probe(self):
+  calls,events=self.model('term');self.assertEqual([c[0] for c in calls],['killpg','wait','killpg']);self.assertIn({'pgid':707,'leader_reaped_status':-15},events)
+ def test_term_ignored_escalates_before_probe(self):
+  calls,events=self.model('ignore');self.assertEqual([c[0] for c in calls],['killpg','wait','killpg','wait','killpg']);self.assertEqual(calls[2],('killpg',b.signal.SIGKILL))
+ def test_reaped_leader_surviving_worker_requires_kill(self):
+  calls,events=self.model('worker');self.assertIn(('killpg',b.signal.SIGKILL),calls);self.assertEqual(calls[-2][0],'wait');self.assertEqual(calls[-1],('killpg',0))
+ def test_eperm_after_reap_stays_uncertain(self):
+  calls,events=self.model('eperm');self.assertEqual([c[0] for c in calls],['killpg','wait','killpg']);self.assertFalse(any(e.get('leader_reaped_and_group_absent') for e in events))
+ def test_kill_timeout_no_unreaped_probe(self):
+  calls,events=self.model('never');self.assertEqual([c[0] for c in calls],['killpg','wait','killpg','wait'])
+
 if __name__=='__main__':unittest.main()

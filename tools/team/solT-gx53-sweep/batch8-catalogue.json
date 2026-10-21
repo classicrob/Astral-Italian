@@ -1,0 +1,95 @@
+{
+  "status": "PREPARATION_ONLY_NOT_ALLOCATED",
+  "source_sha": "33e71ee880b426c0c7da03a724377200e874c417",
+  "manifest_sha256": "b25e906dd6454964506421989c241eb17fe9f1e159f1ec26b91ea48b1869459a",
+  "catalog_metadata_sha256": "c6c31e362aabfc946203925497c605641dcf254c14329c739625a19fa3ea633d",
+  "selection": "Remaining supported non-WorldMap manifest ASCII order after closed first39",
+  "prior_observed_galaxies": [
+    "RedBlueExGalaxy",
+    "MokumokuValleyGalaxy",
+    "YosshiHomeGalaxy",
+    "IslandFleetGalaxy",
+    "DigMineGalaxy",
+    "AbekobeGalaxy",
+    "VsKoopaJrLv1Galaxy",
+    "AncientExcavationGalaxy",
+    "BigGalaxy",
+    "BigTree2Galaxy",
+    "BigWaterFallGalaxy",
+    "ChallengeGliderGalaxy",
+    "ChaosGravityGalaxy",
+    "ChildRoomGalaxy",
+    "CloudGardenGalaxy",
+    "DimensionBigCastleGalaxy",
+    "FlowerHighlandGalaxy",
+    "GhostConveyorGalaxy",
+    "GoroRockGalaxy",
+    "HomeCenterGalaxy",
+    "HoneyBeeVillageGalaxy",
+    "JungleGliderGalaxy",
+    "KachikochiLavaGalaxy",
+    "KingOfKingsGalaxy",
+    "KoopaJrLv2Galaxy",
+    "LongForCastleGalaxy",
+    "MadnessOnimasuGalaxy",
+    "MagicGalaxy",
+    "MarioFaceShipGalaxy",
+    "MarioOnMarioGalaxy",
+    "MemoryRoadGalaxy",
+    "MysteryCandyGalaxy",
+    "OmoteuLandGalaxy",
+    "PeachCastleGalaxy",
+    "QuicksandGalaxy",
+    "SecretAthleticGalaxy",
+    "StaffRollGalaxy",
+    "StarCreekGalaxy",
+    "SwitchMoveBlockGalaxy"
+  ],
+  "prior_batch_receipt_sha256": "23db4473b726f988ad9f643126dd1fd115ff718af1da27bfae28611609a2fbca",
+  "stages": [
+    {
+      "stage": "TamakoroPlanetGalaxy",
+      "scenario": 1,
+      "world": 3,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "TamakoroSliderGalaxy",
+      "scenario": 1,
+      "world": 7,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "TeresaLabyrinthGalaxy",
+      "scenario": 1,
+      "world": 5,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "ThunderFleetGalaxy",
+      "scenario": 1,
+      "world": 5,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "TimerSwitchingPlatformGalaxy",
+      "scenario": 1,
+      "world": 3,
+      "scenario1_metadata_present": true
+    },
+    {
+      "stage": "TropicalResortGalaxy",
+      "scenario": 1,
+      "world": 4,
+      "scenario1_metadata_present": true
+    }
+  ],
+  "case_seconds": 90,
+  "cases_per_galaxy": [
+    "fresh",
+    "warm"
+  ],
+  "max_runtime_seconds": 1500,
+  "no_worldmap": true,
+  "qualification": "Preparation only. No runtime allocation, normal-path, gameplay completion or visual correctness claim."
+}

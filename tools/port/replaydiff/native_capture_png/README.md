@@ -85,3 +85,10 @@ Prior coverage limits stay explicit: close faults were injected after real close
 FD census was only 0..255. Metadata/open/unlink/hash/allocation failure branches and
 maximum-cap success were not qualified. Python-only gate controls test refusal,
 no spawn/lock/file creation and no force bypass; they do not test process cleanup.
+
+Cleanup close or owned-final unlink errors now mark `cleanup-incomplete`; unknown
+published-final ownership/state marks `cleanup-uncertain` and reports its path.
+A failed primary close also leaves descriptor state uncertain rather than complete.
+More specific retained-partial statuses continue to express incomplete/unknown
+cleanup. These return-status corrections are source-reviewed only, not natively
+retested; runner remains hard-gated.

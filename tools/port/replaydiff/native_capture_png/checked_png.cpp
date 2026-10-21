@@ -102,6 +102,7 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
     bool published = false;
     bool temporaryCreated = false;
     bool ownerKnown = false;
+    bool closeOutcomeUncertain = false;
     try {
         if (path.empty() || path.back() == '/' || path.find('\0') != std::string::npos)
             throw std::runtime_error("invalid final path");
@@ -126,7 +127,7 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
         if (rc < 0) fail("fsync");
         verify(fd, bytes, io);
         int closing = fd; fd = -1;
-        if (io.close(closing)) fail("close partial");
+        if (io.close(closing)) { closeOutcomeUncertain = true; fail("close partial"); }
         if (!owns(temp, owner)) throw std::runtime_error("partial identity changed");
         if (io.publish(temp.c_str(), path.c_str())) fail("atomic no-replace publication");
         published = true;
@@ -139,7 +140,7 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
         if (!CC_SHA256_Init(&hash)) throw std::runtime_error("SHA256 init failed");
         verify(fd, bytes, io, &hash);
         closing = fd; fd = -1;
-        if (io.close(closing)) fail("close published PNG");
+        if (io.close(closing)) { closeOutcomeUncertain = true; fail("close published PNG"); }
         unsigned char digest[CC_SHA256_DIGEST_LENGTH];
         if (!CC_SHA256_Final(digest, &hash)) throw std::runtime_error("SHA256 final failed");
         std::string hex;
@@ -148,7 +149,12 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
         return {Receipt{path, hex, w, h, bytes.size()}, {}, {}, "complete"};
     } catch (const std::exception& e) {
         std::string error = e.what();
-        if (fd >= 0 && io.close(fd)) error += std::string("; cleanup close: ") + std::strerror(errno);
+        bool cleanupIncomplete = false;
+        bool cleanupUncertain = closeOutcomeUncertain;
+        if (fd >= 0 && io.close(fd)) {
+            cleanupIncomplete = true;
+            error += std::string("; cleanup close: ") + std::strerror(errno);
+        }
         std::string retained;
         std::string cleanupStatus = temporaryCreated ? "cleanup-complete" : "no-partial-created";
         if (temporaryCreated && !ownerKnown) {
@@ -164,8 +170,18 @@ Result publishRgbPng(const std::string& path, std::uint32_t w, std::uint32_t h,
             cleanupStatus = "retained-cleanup-error";
             error += std::string("; cleanup partial: ") + std::strerror(errno) + "; path: " + temp;
         }
-        if (published && owns(path, owner) && ::unlink(path.c_str()))
-            error += std::string("; cleanup final: ") + std::strerror(errno);
+        if (published) {
+            if (!owns(path, owner)) {
+                cleanupUncertain = true;
+                error += "; published final state/ownership unverified: " + path;
+            } else if (::unlink(path.c_str())) {
+                cleanupIncomplete = true;
+                error += std::string("; cleanup final: ") + std::strerror(errno) + "; path: " + path;
+            }
+        }
+        if (cleanupUncertain) cleanupStatus = "cleanup-uncertain";
+        else if (cleanupIncomplete && (cleanupStatus == "cleanup-complete" || cleanupStatus == "no-partial-created"))
+            cleanupStatus = "cleanup-incomplete";
         return {std::nullopt, error, retained, cleanupStatus};
     }
 }

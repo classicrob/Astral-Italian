@@ -31,6 +31,7 @@ extern "C" void petari_gx_pipeline_report();
 #include "spike_profiler.hpp"
 #include "stall_log.hpp"
 #include "host.hpp"
+#include "petari/input.hpp"
 #include "progress_observe.hpp"
 #include "smoke_background.hpp"
 #include "smoke.hpp"
@@ -859,6 +860,7 @@ extern "C" void petari_host_frame_seam(void) {
     const std::uint64_t entry = Telemetry::nowNs();
     PetariNative::HostAllocationScope host;
     recordRouteFrame(SmokeBackground::enabled);
+    if (Host::playerInPlay()) PetariNative::Input::playControlShown();
     observeProgressFrame();
     // Game state is readable here, before the CPU is released.
     recordFrame(entry, gTiming.probe != nullptr ? gTiming.probe() : FrameStats::Phase::Gameplay);

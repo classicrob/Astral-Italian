@@ -47,6 +47,9 @@ namespace Host {
 FrameStats::Phase framePhase();
 // The pause menu is open (the game's own audio pause state). Same thread rules.
 bool pauseMenuActive();
+// Mario is in play (a stage, not a menu, demo, pause menu or system talk): the
+// Pro layouts' B is jump only then (Input::playControlShown). Game thread.
+bool playerInPlay();
 // Where the player is, for a stall log line (stall_log.hpp): the stage name into stage (empty if no stage) and
 // the scenario and Mario's ground zone id (-1 if unknown). Same thread rules; only called on a stalled frame.
 void stallContext(char* stage, std::size_t size, int* scenario, int* zone);

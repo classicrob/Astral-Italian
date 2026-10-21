@@ -19,7 +19,7 @@ const char* const kActionNames[kActionCount] = {
     "PostureToggle", "Walk",   "Start", "ModCollectStarBits", "ModShootEnemy", "CameraOrbitHold", "CameraZoomIn",
     "CameraZoomOut", "CameraOrbitLeft", "CameraOrbitRight", "CameraPitchUp", "CameraPitchDown", "PhotoMode", "PhotoShot",
     "ModCappyThrow", "LevelEditor", "NunchukShake", "CoStarToggle", "CoStarA", "CoStarB", "CoStarShake",
-    "PlaytestCapture",
+    "PlaytestCapture", "PlayJump",
 };
 
 const char* const kMouseNames[static_cast<int>(MouseButton::Count)] = {"Left", "Middle", "Right", "X1", "X2"};
@@ -268,7 +268,7 @@ std::vector<ControlsLine> controlsSummary(const Bindings& b) {
                                    : b.layout() == PadLayout::ProGalaxy ? "Pro Controller (Galaxy layout)"
                                                                          : "Controller"},
         {"Move", move, "left stick"},
-        {"Jump / confirm", joined(inputsOf(b, {Action::A}), " / "), padText(b, {Action::A})},
+        {"Jump / confirm", joined(inputsOf(b, {Action::A}), " / "), padText(b, {Action::A, Action::Start, Action::PlayJump})},
         {"Start (title: A and B)", joined(inputsOf(b, {Action::Start}), " / "), padText(b, {Action::Start})},
         {"Spin", joined(inputsOf(b, {Action::Shake}), " / "), padText(b, {Action::Shake})},
         {"Shake Nunchuk", joined(inputsOf(b, {Action::NunchukShake}), " / "), padText(b, {Action::NunchukShake})},
@@ -412,7 +412,7 @@ Bindings Bindings::defaults(PadLayout layout) {
     for (const PadLayout pro : {PadLayout::ProGalaxy, PadLayout::ProOdyssey}) {
         const bool odyssey = pro == PadLayout::ProOdyssey;
         b.setLayout(pro);
-        b.bind(Action::A, Binding::pad(PadButton::South));     // B: jump
+        b.bind(Action::PlayJump, Binding::pad(PadButton::South));  // B: jump in play, back in menus
         b.bind(Action::Start, Binding::pad(PadButton::East));  // A: jump (A then B together at the title prompt)
         // Y / X: spin, or in the Odyssey layout throw Cappy (which spins while Cappy is off).
         const Action face = odyssey ? Action::ModCappyThrow : Action::Shake;

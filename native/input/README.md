@@ -172,6 +172,10 @@ controllers act as one.
   - **Capture** (`Pad:Misc1`, SDL's MISC1) is the `PlaytestCapture` action;
     the app polls it each frame (`Events::frame`) and also rumbles the pad
     while `padRumble()` (the motor and `Rumble=on`).
+  - **B** is `PlayJump`: Wii A while the game reports Mario in play
+    (`playControlShown`, from `Host::playerInPlay` each frame; lapses after
+    100 ms), else Wii B, latched at the press. A is `Start` (Wii A; A+B at the
+    title prompt). So menus keep A = confirm, B = back.
   - Tests: `native/tests/pro_controller_tests.cpp` (`ctest -R native_pro_controller`).
 - **Release.** Focus loss and disconnection release everything.
 - **Activity.** Button events count as activity for the screen saver, and

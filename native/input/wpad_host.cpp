@@ -1160,6 +1160,16 @@ Posture posture() {
     return model().posture();
 }
 
+void playControlShown() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().playControlShown();
+}
+
+bool playControlActive() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().playControlActive();
+}
+
 void titlePromptShown() {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model().titlePromptShown();

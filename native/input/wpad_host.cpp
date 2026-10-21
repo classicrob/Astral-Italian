@@ -16,6 +16,7 @@
 //    the Wii (see noteActivity).
 
 #include <revolution/kpad.h>
+#include <petari/kpad_record.hpp>
 #include <petari/kpad_replay.hpp>
 #include <revolution/kpad/KPADInternal.h>
 
@@ -1335,6 +1336,17 @@ void serviceReplayCommands() {
 using namespace PetariNative::Input;
 
 extern "C" BOOL petari_kpad_replay_read(s32 chan, KPADStatus* buffer, u32 capacity, s32* error, s32* returned) {
+    if (KpadRecord::active() && !gReplayActive.load(std::memory_order_acquire)) {
+        // Tape recording: the read is the SDK's own (KPADReadEx = KPADiRead with readEx), its result is
+        // appended to the tape together with the connection the game's WPADProbe would report.
+        if (!returned) misuse("petari_kpad_replay_read", "missing return-count destination");
+        *returned = KPADiRead(chan, buffer, capacity, error, TRUE);
+        s32 probe;
+        u32 device;
+        { Interrupts guard; const Channel& ch = channel("KpadRecord", chan); probe = readiness(ch); device = ch.devType; }
+        KpadRecord::read(chan, capacity, *returned, error ? *error : 0, probe, device, buffer);
+        return TRUE;
+    }
     if (!gReplayActive.load(std::memory_order_acquire)) return FALSE;
     KpadReplayHooks hooks;
     { Interrupts guard; hooks = gReplayHooks; }

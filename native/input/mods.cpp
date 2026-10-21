@@ -1,3 +1,5 @@
+#include <petari/kpad_record.hpp>
+#include <petari/kpad_replay.hpp>
 #include "petari/mods.hpp"
 
 #include <atomic>
@@ -177,19 +179,30 @@ void resetForTesting() {
 
 }  // namespace PetariNative::Mods
 
+namespace {
+PetariNative::Input::ModReplayHooks gModReplay;
+}
+void PetariNative::Input::setModReplayHooks(const ModReplayHooks& hooks) { gModReplay = hooks; }
+
 extern "C" bool petari_mod_take_press(int mod) {
     using namespace PetariNative;
     if (mod < 0 || mod >= static_cast<int>(Mods::Mod::Count)) return false;
     if (Mods::kActions[mod] == Input::Action::Count) return false;  // no button
+    if (gModReplay.press) return Mods::enabled(static_cast<Mods::Mod>(mod)) && gModReplay.press(mod, gModReplay.user);
     const int presses = Input::takeActionPresses(Mods::kActions[mod]);
-    return presses > 0 && Mods::enabled(static_cast<Mods::Mod>(mod));
+    const bool answer = presses > 0 && Mods::enabled(static_cast<Mods::Mod>(mod));
+    if (Input::KpadRecord::active()) Input::KpadRecord::modPress(mod, answer);
+    return answer;
 }
 
 extern "C" bool petari_mod_held(int mod) {
     using namespace PetariNative;
     if (mod < 0 || mod >= static_cast<int>(Mods::Mod::Count)) return false;
     if (Mods::kActions[mod] == Input::Action::Count) return false;  // no button
-    return Mods::enabled(static_cast<Mods::Mod>(mod)) && Input::actionHeld(Mods::kActions[mod]);
+    if (gModReplay.held) return Mods::enabled(static_cast<Mods::Mod>(mod)) && gModReplay.held(mod, gModReplay.user);
+    const bool answer = Mods::enabled(static_cast<Mods::Mod>(mod)) && Input::actionHeld(Mods::kActions[mod]);
+    if (Input::KpadRecord::active()) Input::KpadRecord::modHeld(mod, answer);
+    return answer;
 }
 
 extern "C" bool petari_mod_enabled(int mod) {

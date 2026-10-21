@@ -5,6 +5,7 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSequenceDirector.hpp"
 #include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/GameSystemFunction.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -191,7 +192,9 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
 
 }  // namespace PetariNative::App::Smoke
 
+#include "host.hpp"
 #include "route_record.hpp"
+#include "tape_record.hpp"
 #include "route_record_writer.hpp"
 #include "playtest_capture.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -226,13 +229,13 @@ void stallContext(char* stage, std::size_t size, int* scenario, int* zone) {
 }  // namespace Host
 
 void recordRouteFrame(bool background) {
-    static const char* path = std::getenv("PETARI_ROUTE_RECORD");
+    static const char* path = TapeRecord::routePath();  // PETARI_TAPE_RECORD=<dir> or PETARI_ROUTE_RECORD=<csv>
     const bool record = path && *path;
     const bool capture = PlaytestCapture::enabled(background);
     if (!record && !capture) return;
     PetariNative::HostAllocationScope host;
     static RouteRecordWriter writer;
-    const bool write = record && writer.open(path, background);
+    const bool write = record && writer.open(path, background && !TapeRecord::background());  // a scripted tape session may record in the background
     if (!write && !capture) return;
     RouteRecordFrame row;
     const auto* system = SingletonHolder<GameSystem>::get();
@@ -263,7 +266,22 @@ void recordRouteFrame(bool background) {
         }
     }
     row.input = PetariNative::Input::boundState();
-    if (write) writer.write(row);
+    if (write) {
+        writer.write(row);
+        TapeRecord::Seam seam;
+        if (controller) {
+            seam.scene = controller->mCurrSceneControlInfo.mScene;
+            seam.stage = controller->mCurrSceneControlInfo.mStage;
+            seam.scenario = controller->mCurrSceneControlInfo.mScenarioNo;
+            seam.initEnd = controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
+        }
+        if (system && system->mObjHolder) {
+            seam.seedValid = true;
+            seam.seed = system->mObjHolder->mRandom.mSeed;
+        }
+        seam.playReady = Host::playerInPlay();
+        TapeRecord::seam(seam);
+    }
     if (capture) PlaytestCapture::frame(row);
 }
 }

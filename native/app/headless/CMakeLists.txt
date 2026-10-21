@@ -145,7 +145,7 @@ if(GALAXY_NATIVE_TRAP_UNDEFINED)
     return()
 endif()
 add_executable(petari_headless EXCLUDE_FROM_ALL main.cpp observe.cpp "${_headless_root}/native/app/milestone.cpp"
-    "${_headless_root}/native/app/actor_observe.cpp")
+    "${_headless_root}/native/app/actor_observe.cpp" "${_headless_root}/native/app/play_ready.cpp")
 target_compile_definitions(petari_headless PRIVATE PETARI_HEADLESS_SOURCE_ROOT="${_headless_root}")
 # Game classes are compiled without RTTI (petari_game_objects): TUs that emit vtables for them must not need their typeinfo.
 target_compile_options(petari_headless PRIVATE -fno-rtti)

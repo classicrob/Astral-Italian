@@ -17,6 +17,14 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def require_current_ready(row):
+    if not (row.get('frame') == 616 and row.get('scene_valid') == 1
+            and row.get('scene') == 'Game' and row.get('stage') == 'YosshiHomeGalaxy'
+            and row.get('scenario') == 1 and row.get('init_state') == 6
+            and row.get('player_valid') == 1):
+        raise ValueError('current row is not the requested ready Yoshi player observation')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', required=True)
@@ -64,6 +72,7 @@ def main():
         row = original_select(sync, source)
         if row is None or row['frame'] != 616:
             return row
+        require_current_ready(row)
         if state['captured']:
             raise ValueError('second screenshot forbidden')
         remote, process = state['remote'], state['process']
@@ -143,4 +152,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

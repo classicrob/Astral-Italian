@@ -338,15 +338,12 @@ def commands_check(text, expected_tokens):
     need(rows == expected_tokens and rows, 'independent compile command mismatch')
 
 
-def dependency_check(text, hashes, phase, revision, sources, toolchain):
+def dependency_check(text, hashes, phase_root, revision, sources, toolchain):
     names = {line.strip() for line in text.splitlines() if line.startswith('    ')}
     need(names and names == set(hashes), 'dependency census/hash inventory')
     for name, digest in hashes.items():
-        path = PurePosixPath(name)
-        if path.is_absolute():
-            marker = '/execution/' + phase + '/'
-            need(name.count(marker) == 1, 'unexpected absolute dependency origin')
-            name = name.split(marker, 1)[1]
+        from dispatch_commands import dependency_name
+        name = dependency_name(name, phase_root)
         relative(name)
         if name in toolchain:
             wanted = toolchain[name]
@@ -358,7 +355,8 @@ def dependency_check(text, hashes, phase, revision, sources, toolchain):
 def final_hook(record, pinned_record_sha256, current_spec, current_tools, current_tip):
     """Pure final-hook contract check. Does not invoke land.sh or write a cert."""
     exact(record, {'type', 'status', 'receipt_sha256', 'spec', 'spec_sha256', 'plans',
-                   'contract_sha256', 'certificate_sha256', 'verifier_tools', 'candidate_tip'}, 'hook record fields')
+                   'contract_sha256', 'certificate_sha256', 'verifier_tools', 'candidate_tip',
+                   'operator_context_sha256'}, 'hook record fields')
     need(sha(canonical(record)) == pinned_record_sha256, 'unreviewed import record')
     need(record['type'] == TYPE and record['status'] == 'VERIFIED_NOT_LANDED', 'wrong import mode/status')
     need(record['candidate_tip'] == current_tip and re.fullmatch('[0-9a-f]{40}', current_tip or '')
@@ -367,7 +365,7 @@ def final_hook(record, pinned_record_sha256, current_spec, current_tools, curren
     exact(record['plans'], SCOPES, 'hook scope pins')
     need(all(re.fullmatch('[0-9a-f]{64}', v or '') for v in record['plans'].values()), 'hook plan hash format')
     need(all(re.fullmatch('[0-9a-f]{64}', record[k] or '') for k in
-             ('receipt_sha256', 'spec_sha256', 'contract_sha256', 'certificate_sha256')),
+             ('receipt_sha256', 'spec_sha256', 'contract_sha256', 'certificate_sha256', 'operator_context_sha256')),
          'hook identity format')
     return {'status': 'FINAL_CONTRACT_MATCH_ONLY', 'landing_authorized': False}
 
@@ -375,7 +373,7 @@ def final_hook(record, pinned_record_sha256, current_spec, current_tools, curren
 def verifier_tools():
     root = Path(__file__).resolve().parent
     names = ('dispatch_import.py', 'dispatchproof.py', 'dispatchownership.py',
-             'dispatch-tu13-ownership-v1.json', 'objsame.py')
+             'dispatch-tu13-ownership-v1.json', 'objsame.py', 'dispatch_commands.py')
     return {n: sha((root/n).read_bytes()) for n in names}
 
 
@@ -450,10 +448,17 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
     receipt-derived expectations are forbidden. Missing qualification rejects.
     """
     exact(trust, {'spec_bytes', 'tip', 'host', 'plan_pins', 'contract_sha256',
-                  'verifier_tools', 'command_tokens'}, 'operator trust contract fields')
+                  'verifier_tools', 'command_tokens', 'phase_roots'}, 'operator trust contract fields')
     need(trust['verifier_tools'] == verifier_tools(), 'independent verifier tool pin drift')
     exact(trust['command_tokens'], {'before', 'after', 'TU13', 'TU14'}, 'independent command qualification missing')
     need(all(trust['command_tokens'].values()), 'empty independent command expectation')
+    exact(trust['phase_roots'], {'before', 'after'}, 'exact operator phase roots required')
+    from dispatch_commands import dependency_name
+    for phase, path in trust['phase_roots'].items():
+        need(PurePosixPath(path).parts[-2:] == ('execution', phase), 'operator phase root shape')
+        dependency_name('source.hpp', path)
+    need(PurePosixPath(trust['phase_roots']['before']).parent ==
+         PurePosixPath(trust['phase_roots']['after']).parent, 'incompatible operator phase roots')
     spec = json_bytes(trust['spec_bytes'])
     need(len(spec['units']) == 2426 and sha(original_dol) == dispatch.DOL_SHA,
          'canonical inventory/original DOL pin')
@@ -586,7 +591,7 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
                  'reported dependency manifest hash')
             commands_check(actual['commands.txt'].decode(), trust['command_tokens'][phase])
             dependency_check(actual['deps.txt'].decode(), json_bytes(actual['dependency-hashes.json']),
-                             phase, rev, sources, spec['toolchain'])
+                             trust['phase_roots'][phase], rev, sources, spec['toolchain'])
             hashes = {u: sha((extracted/phase/u).read_bytes()) for u in spec['units']}
             need(json_bytes(actual['objects.json']) == hashes and
                  result['phases'][phase]['manifest_sha256'] == sha(actual['objects.json']), 'full object manifest')
@@ -639,9 +644,11 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
             need((sha(command), sha(deps), sha(headers)) == (control['compiler_command_sha256'],
                  control['dependencies_sha256'], control['dependency_header_hashes_sha256']), 'control command/header provenance')
             commands_check(command.decode(), trust['command_tokens'][scope])
-            dependency_check(deps.decode(), json_bytes(headers), 'after', trust['tip'], sources, spec['toolchain'])
+            dependency_check(deps.decode(), json_bytes(headers), trust['phase_roots']['after'], trust['tip'], sources, spec['toolchain'])
     need(trust['verifier_tools'] == verifier_tools(), 'verifier drift during import')
     return {'type': TYPE, 'status': 'VERIFIED_NOT_LANDED', 'receipt_sha256': sha(receipt_bytes),
             'spec': spec, 'spec_sha256': sha(trust['spec_bytes']), 'plans': trust['plan_pins'],
             'contract_sha256': trust['contract_sha256'], 'certificate_sha256': r['certificate']['sha256'],
-            'verifier_tools': trust['verifier_tools'], 'candidate_tip': trust['tip']}
+            'verifier_tools': trust['verifier_tools'], 'candidate_tip': trust['tip'],
+            'operator_context_sha256': sha(canonical({'command_tokens': trust['command_tokens'],
+                                                     'phase_roots': trust['phase_roots']}))}

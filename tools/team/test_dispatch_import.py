@@ -100,7 +100,7 @@ class HookContract(unittest.TestCase):
     def setUp(self):
         self.spec = {'base': 'a'*40, 'before': {}, 'after': {}}
         self.tools = {'dispatch_import.py': 'b'*64}
-        self.record = {'type': d.TYPE, 'status': 'VERIFIED_NOT_LANDED',
+        self.record = {'type': d.TYPE, 'status': 'VERIFIED_NOT_LANDED', 'operator_context_sha256':'d'*64,
                        'receipt_sha256': 'a'*64, 'spec': self.spec,
                        'spec_sha256': 'b'*64, 'plans': {'TU13': 'c'*64, 'TU14': 'd'*64},
                        'contract_sha256': 'e'*64, 'certificate_sha256': 'f'*64,
@@ -229,19 +229,30 @@ class ProvenanceControls(unittest.TestCase):
                 raise ValueError('missing local immutable source')
         text = 'object: #deps 1\n    include/header.hpp\n'
         hashes = {'include/header.hpp': d.sha(b'header')}
-        d.dependency_check(text, hashes, 'before', 'a'*40, Sources(), {})
+        d.dependency_check(text, hashes, '/owned/execution/before', 'a'*40, Sources(), {})
         for name, digest in [('include/header.hpp', '0'*64), ('../outside', '0'*64),
                              ('/foreign/include/header.hpp', d.sha(b'header'))]:
             with self.subTest(name=name), self.assertRaises(ValueError):
                 d.dependency_check('object:\n    '+name+'\n', {name: digest},
-                                   'before', 'a'*40, Sources(), {})
+                                   '/owned/execution/before', 'a'*40, Sources(), {})
         with self.assertRaises(ValueError):
-            d.dependency_check(text, {}, 'before', 'a'*40, Sources(), {})
+            d.dependency_check(text, {}, '/owned/execution/before', 'a'*40, Sources(), {})
+        root = '/owned/execution/before'
+        valid = root+'/include/header.hpp'
+        d.dependency_check('object:\n    '+valid+'\n', {valid:d.sha(b'header')},
+                           root, 'a'*40, Sources(), {})
+        for foreign in ('/foreign/execution/before/include/header.hpp',
+                        '/owned/execution/after/include/header.hpp'):
+            with self.assertRaises(ValueError):
+                d.dependency_check('object:\n    '+foreign+'\n', {foreign:d.sha(b'header')},
+                                   root, 'a'*40, Sources(), {})
+
 
     def test_wrong_private_dol_and_missing_operator_command_qualification_reject(self):
         trust = {'spec_bytes': d.canonical({'units': dict.fromkeys(str(i) for i in range(2426))}),
                  'tip': 'b'*40, 'host': 'test', 'plan_pins': {}, 'contract_sha256': '0'*64,
-                 'verifier_tools': d.verifier_tools(), 'command_tokens': {}}
+                 'verifier_tools': d.verifier_tools(), 'command_tokens': {},
+                 'phase_roots': {'before':'/owned/execution/before','after':'/owned/execution/after'}}
         with self.assertRaises(ValueError):
             d.verify(b'{}', Path('.'), trust, None, b'not-original-dol')
         trust['command_tokens'] = dict.fromkeys(('before', 'after', 'TU13', 'TU14'), [['compiler']])

@@ -90,3 +90,47 @@ python3 -m unittest discover -s tools/team -p test_dispatch_import.py
 The tests qualify transport, synthetic semantic inventory, failure rejection and
 pure hook contracts. They do not certify a real2426-object package, candidate
 compilation, source perturb execution, original-DOL runtime behavior or promotion.
+
+## Independent command and phase-root context
+
+`dispatch_commands.py` derives every compile token from the operator-pinned
+canonical unit options and the official configuration's unit order. It does not
+read producer command receipts. Qualification compares this derivation with an
+in-memory expansion of the pinned official `configure.py`/`tools/project.py`
+graph, using only Ninja's `-t commands` metadata operation. No compiler is run.
+POSIX `shlex.split` is the only command normalization: row order, token order,
+absolute tool paths, phase-relative source/output names, Shift-JIS wrapping,
+language selection, dependency transformation and assembler DTK fixup stay exact.
+Before/after source bytes and trees are separately bound even when commands match.
+
+For `33e71ee880b426c0c7da03a724377200e874c417` to
+`22d4c005612f83dc70a2a187c2b1a426ada66296`, canonical spec
+`3b0975d48ca4354862814f13de004121fb16fbc1b90f87fb8e9f78a65155f8d9`
+yields 2,424 MWCC rows and two GNU assembler/DTK-fixup rows. Independent expansion
+matches graph `67e483c6dbb4b864718a842a7acaaed75d6284ca3f0ed30f823c317bd905de69`.
+The private operator packet is
+`~/MacioGalaxy2-team/scratch-port/solL/dispatch-operator-expectations-r1/`;
+`command-tokens.json` has SHA-256
+`d41b350898e0ccb1f15fd59e0e24ef0d32b6eaf5ffbb471f7d19000bf97dacb0`.
+It includes exact per-target TU13/TU14 source-control commands. The local
+metadata-only Ninja and the target M1 execution Ninja have different hashes;
+the packet records both without treating version strings as byte identity.
+The first metadata preflight that conflated these identities is preserved.
+
+The operator trust dictionary now also requires exact `phase_roots.before` and
+`phase_roots.after` absolute paths under one reviewed `execution` directory.
+Dependency normalization strips only that exact corresponding root. Foreign
+prefixes, opposite-phase roots, dot traversal and noncanonical paths reject.
+These roots remain unbound until the final caller/output allocation is reviewed.
+The returned import record hashes command tokens and roots together as
+`operator_context_sha256`; the pure final-hook record retains this binding.
+`dispatch_commands.py` is included in verifier tool hashes.
+
+This command qualification grants no full build, archive import, final hook or
+landing authority. Full object evidence must still satisfy the separate TU13
+and TU14 operator plans, pinned original-DOL ownership, all 2,426-object
+named/local/absolute/config reference closure, 2,424 strict object comparisons,
+both actual source perturb/restore controls, 26 ELF and eight config negatives,
+and the separately transported TU14 control archive. The caller's fixed tool
+environment, final monitor, full package and independent import remain subject
+to their own source review, actual qualification and explicit allocation.

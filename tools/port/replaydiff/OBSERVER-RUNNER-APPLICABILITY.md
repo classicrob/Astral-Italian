@@ -35,3 +35,43 @@ actual timeout/output/ownership controls must be separately reviewed/allocated;
 source-only controls cannot qualify these mechanisms. P was asked for the existing
 small child identity/ack leaf to reuse without coupling to the fullproof framework.
 No new process runner or unchecked compiler execution is supplied by this file.
+
+The new isolated source implementation is observer_standalone_supervisor.py.
+It imports only four exact supervision leaves (v7 preflight/budget and71679a45
+exec-gate/full-budget helper); no fullproof caller/monitor/publisher is imported.
+The v9 helper supplies parent target/identity acknowledgement and inherited v7
+ownership guard, spawn-mask and leader-reap/strict-group cleanup. Its old generic
+run API is explicitly disabled on this subclass. Only the exact fourteen-command
+operator-pinned inventory is supported; no Ninja/git/app/alternate tool command.
+Static tools are the pinned LLVM20 compiler and actualotool; two control binaries
+must be linked successfully in this fresh owned output root before their hashes
+can be admitted as per-launch targets. They are generated artifacts, not prior
+independent expected binary identities. Source/actual context review remains required.
+
+The constructor starts a110s work deadline, with10s reserved for inherited4s
+cleanup and bounded final provenance. Verification and postchecks must happen
+inside this same budget context. Exceeding120s cannot report bounded success.
+No source/library file can guarantee a hard real-time bound on blocking filesystem
+syscalls; actual elapsed/cleanup controls and final receipt are mandatory. Sampled
+allocation enforcement is256MiB on the fresh output root; it is not a quota.
+Retained journals/request/identity/target/ack records bind each launch. Unknown
+ownership or EPERM rejects group operations; no fallback signal or ps waiver.
+The public module has no executable caller and exits SOURCE_ONLY_UNQUALIFIED.
+
+prepare_observer_launch_context.py reads/pins only the exact leaves, actual
+compiler/otool/Python bytes and proposed clean environment. It changes no process
+environment and starts no child. The source caller is intentionally not enabled:
+root/L must review this small adaptation, exact plan/context and owned-lock/lifecycle
+controls before any allocation. Required controls remain UNRUN: identity mismatch,
+missing ack, ignored TERM/surviving child, output growth, total120s accounting,
+interruption during spawn/wait, source/header/tool drift, and exact actual compiler
+context. Five Python no-process inventory models do not qualify any of these.
+
+An eventual allocated caller must acquire the nonblocking persistent host lock,
+write STATE before child spawn, enter this budget context BEFORE all input/tool/
+header revalidation, run exact arrays in sequence, validate -MD actual dependencies
+against the candidate pins and inspect each otool output for unexpected dynamic
+C++ runtime. It must close its result with unchanged source/tool pins, complete
+14-command statuses, <=120s elapsed and confirmed whole-group absence. Cleanup
+uncertainty retains all evidence and forbids a success/release claim. No such
+caller, compiler run, lifecycle control or sampler installation executed here.

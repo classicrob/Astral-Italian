@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
 import sqlite3,tempfile,unittest
 from contextlib import contextmanager,closing
 from pathlib import Path

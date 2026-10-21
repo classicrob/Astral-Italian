@@ -285,7 +285,11 @@ void PointPartsHolder::callStarCheckPoint(s32 pointIndex) {
 }
 
 s32 PointPartsHolder::getActorField94(s32 pointIndex) {
+#ifdef GALAXY_NATIVE
+    return static_cast<MiniStarCheckPoint*>(find(pointIndex)->mActor)->mStarNum;
+#else
     return *reinterpret_cast<s32*>(reinterpret_cast<u8*>(find(pointIndex)->mActor) + 0x94);
+#endif
 }
 
 bool PointPartsHolder::isStarCheckPointReady(s32 pointIndex) {

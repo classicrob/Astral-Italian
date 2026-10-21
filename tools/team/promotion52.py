@@ -2,6 +2,8 @@
 import argparse,atexit,csv,hashlib,json,math,os,re,signal,sqlite3,subprocess,time
 from pathlib import Path
 from cache_gate52 import inspect as inspect_cache
+from visual_gate52 import validate_review
+from unlocked_load52 import load_witness
 HOME=Path.home();TEAM=HOME/'MacioGalaxy2-team/scratch-port/solL'
 def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def inventory(root):
@@ -121,12 +123,14 @@ def main():
   elif name in ('normal-route','normal-boot-ui'):
    mapped=valid_rows(route,'WorldMap01Galaxy')
    checks['normal_route_scene_chain']=len(valid)>=120 and len(mapped)>=120 and next((i for i,r in enumerate(route) if r['stage']=='MarioFaceShipGalaxy'),len(route)) < next((i for i,r in enumerate(route) if r['stage']=='WorldMap01Galaxy'),-1)
-   checks['unlocked_map']=any(r.get('power_stars')=='242' for r in mapped) and 'FileSelector.OpenFile' in text
+   checks['unlocked_map']=load_witness(name,text,mapped,command)
    pointer=[r for r in mapped if r.get('pointer_valid')=='1']
    checks['normal_route_pointer']=len(pointer)>=30 and len({(r.get('pointer_x'),r.get('pointer_y')) for r in pointer})>=3
    evidence=out/'host-pointer.json'
    observed=json.loads(evidence.read_text()) if evidence.exists() else {}
-   checks['normal_route_visual']=observed.get('binary_sha256')==args.sha256 and observed.get('source')==SOURCE and observed.get('ordinary_cua_input') is True and observed.get('mapping_observed') is True and observed.get('observed_pid')==active.pid and start<=observed.get('observed_monotonic',-1)<=start+seconds and observed.get('normal_route_observed') is True and all(observed.get(k) for k in ('window_points','image_rect_points','before_screenshot','after_screenshot'))
+   checks['normal_route_host_observation']=observed.get('binary_sha256')==args.sha256 and observed.get('source')==SOURCE and observed.get('ordinary_cua_input') is True and observed.get('mapping_observed') is True and observed.get('observed_pid')==active.pid and start<=observed.get('observed_monotonic',-1)<=start+seconds and observed.get('normal_route_observed') is True and all(observed.get(k) for k in ('window_points','image_rect_points','before_screenshot','after_screenshot'))
+   try:checks['normal_route_visual_acceptance']=validate_review(out,{'source':SOURCE,'binary_sha256':args.sha256,'case':name,'mode':mode},active.pid,start,start+seconds)
+   except (ValueError,OSError,TypeError,KeyError):checks['normal_route_visual_acceptance']=False
   elif hook:
    ship=[r for r in route if r['stage']=='MarioFaceShipGalaxy' and r['scenario']=='2' and r['valid']=='1']
    fired=[line for line in hooks if 'request' in line and 'invalid' not in line]
@@ -142,12 +146,12 @@ def main():
   audio_underruns=[int(x) for x in re.findall(r'underrun (\d+) frames',text)]
   if audio:checks['real_audio_zero_underruns']=len(audio_underruns)>=50 and sum(audio_underruns)==0 and 'SDL audio underrun:' not in text
   after=caches(cache);checks['matching_key_cache_written']=any(r['rows'] for r in after)
-  record={'case':name,'mode':mode,'passed':all(checks.values()),'checks':checks,'source':SOURCE,'binary_sha256':args.sha256,'renderer_key':key,'cache':str(cache),'true_fresh_cache':mode=='fresh' and (cache!=real or first_real_fresh),'before_cache':before,'after_cache':after,'seconds':seconds,'exit':active.returncode,'frame_counts':phases,'valid_requested_rows':len(valid),'hook_lines':hooks,'input_rows':len(inputs),'faults':faults,'real_audio':audio,'audio_underrun_frames':sum(audio_underruns) if audio else None,'adapter':('ordinary normal-boot file-select UI on PRIVATE_COPY' if name=='normal-boot-ui' else 'direct --user PRIVATE_COPY --stage; normal-boot UI not driven') if copied else None,'visual_acceptance_pending':name.startswith('cappy-')}
+  record={'case':name,'mode':mode,'passed':all(checks.values()),'checks':checks,'source':SOURCE,'binary_sha256':args.sha256,'renderer_key':key,'cache':str(cache),'true_fresh_cache':mode=='fresh' and (cache!=real or first_real_fresh),'before_cache':before,'after_cache':after,'seconds':seconds,'exit':active.returncode,'frame_counts':phases,'valid_requested_rows':len(valid),'hook_lines':hooks,'input_rows':len(inputs),'faults':faults,'real_audio':audio,'audio_underrun_frames':sum(audio_underruns) if audio else None,'adapter':('ordinary normal-boot file-select UI on PRIVATE_COPY' if name=='normal-boot-ui' else 'direct --user PRIVATE_COPY --stage; normal-boot UI not driven') if copied else None,'visual_acceptance_pending':name.startswith('cappy-') or (name in ('normal-route','normal-boot-ui') and not checks.get('normal_route_visual_acceptance',False))}
   (out/'receipt.json').write_text(json.dumps(record,indent=2)+'\n');results.append(record);(root/'results.json').write_text(json.dumps(results,indent=2)+'\n')
   active=None;state('PROMOTION52_COMPLETE_'+name+'_'+mode,out)
   print(json.dumps({'case':name,'mode':mode,'passed':record['passed'],'failed_checks':[k for k,v in checks.items() if not v],'valid_rows':len(valid)}),flush=True)
   if not record['passed']:raise SystemExit(1)
  assert inventory(fixture)=={k:save[k] for k in ('files','xattrs')}
  assert inventory(Path(save['source']))=={k:save[k] for k in ('files','xattrs')}
- print('14 runtime gates PASS; Cappy screenshot visual review still required before promotion',flush=True)
+ print(str(len(results))+' selected runtime gates PASS; selected cases only; normal-route/Cappy visual review remain separate promotion requirements',flush=True)
 if __name__=='__main__':main()

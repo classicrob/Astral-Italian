@@ -1,8 +1,2 @@
 # Known duplicate top-level class/struct bodies (tools/team/classdup.py). One name per line, then `# owner: status`.
 # Remove a line when its duplicate is fixed. New duplicates fail the check (land.sh).
-CollisionObj  # core/enemies: fixed on wt/core-odr-collisionobj (00a92a22), remove when landed
-SwitchWatcherHolder  # core/enemies: fixed on wt/core-odr-switchwatcher (c5497c54), remove when landed
-KoopaBattlePlanet  # core/enemies: fixed on wt/core-odr-koopaplanets (7c166801), remove when landed
-KoopaFinalStarPlanet  # core/enemies: fixed on wt/core-odr-koopaplanets (7c166801), remove when landed
-Rock  # enemies/objects: Enemy/Wanwan.hpp vs MapObj/Rock.hpp; NOT trivial: the Type enums disagree (Wanwan TypeMini=1, Rock WanwanRolling=1/WanwanRollingMini=2), check the DOL before merging
-ScoreAttackFunction  # enemies/objects: local classes in Enemy/Snakehead.cpp and MapObj/BenefitItemObj.cpp (ODR: rename or share)

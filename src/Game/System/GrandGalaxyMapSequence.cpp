@@ -74,7 +74,15 @@ void GrandGalaxyMapSequence::exeWait() {
     }
 
     MR::updateActorState(this);
+#ifdef GALAXY_NATIVE
+    // PartsWarpInfo retains Wii offsets; it is not the native state object's layout.
+    PartsWarpInfo warpInfo = {};
+    if (!tryPointMove() && mHost->tryWorldWarp(&warpInfo)) {
+        mWorldWarp->mWarpParam0 = warpInfo.mParam0;
+        mWorldWarp->mWarpParam1 = warpInfo.mParam1;
+#else
     if (!tryPointMove() && mHost->tryWorldWarp(reinterpret_cast< PartsWarpInfo* >(mWorldWarp))) {
+#endif
         MR::startActionSound(mHost->getRocket(), "PushAButton", -1, -1, -1);
         mHost->requestEnd();
         setNerve(&GrandGalaxyMapSequenceWorldWarp::sInstance);

@@ -8,7 +8,11 @@
 #include "Game/Util/ScreenUtil.hpp"
 
 static ParticleCalcExecutor* getGalaxyMapCalc() {
+#ifdef GALAXY_NATIVE
+    return MR::getEffectSystem()->mCalcExec;
+#else
     return *reinterpret_cast< ParticleCalcExecutor** >(reinterpret_cast< u8* >(MR::getEffectSystem()) + 0x20);
+#endif
 }
 
 WorldMapResultStateGalaxyMap::WorldMapResultStateGalaxyMap(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ギャラクシーマップ]", pHost) {

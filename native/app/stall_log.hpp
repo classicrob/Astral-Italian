@@ -42,6 +42,9 @@ struct FrameInput {
     std::uint32_t pipelineUs = 0, textureUs = 0, loadUs = 0;
     unsigned dominantPart = FrameStats::Unattributed;  // largest game-thread FrameStats part
     std::uint32_t dominantUs = 0;
+    // CPU time the game thread and Aurora's render worker actually ran in the frame (-1: unknown). A late
+    // frame whose threads ran far less than its wall time was waiting or preempted (a busy host), not working.
+    std::int32_t gameCpuUs = -1, renderCpuUs = -1;
 };
 
 struct Stall {
@@ -54,6 +57,7 @@ struct Stall {
     std::uint32_t pipelines = 0, textures = 0, loads = 0;
     unsigned dominantPart = FrameStats::Unattributed;
     std::uint32_t dominantUs = 0;
+    std::int32_t gameCpuUs = -1, renderCpuUs = -1;
 };
 
 inline Stall classify(const FrameInput& in) {
@@ -67,6 +71,8 @@ inline Stall classify(const FrameInput& in) {
     s.loads = in.loads;
     s.dominantPart = in.dominantPart;
     s.dominantUs = in.dominantUs;
+    s.gameCpuUs = in.gameCpuUs;
+    s.renderCpuUs = in.renderCpuUs;
     const std::uint32_t us[3] = {in.pipelineUs, in.textureUs, in.loadUs};
     const std::uint32_t events[3] = {in.pipelines, in.textures, in.loads};
     std::uint32_t best = 0;
@@ -209,9 +215,14 @@ inline void formatLine(const Stall& s, const char* context, char* out, std::size
     if (s.mask == 0) {
         std::snprintf(extra, sizeof(extra), "%s %.1f ms; ", FrameStats::partName(s.dominantPart), s.dominantUs / 1000.0);
     }
-    std::snprintf(out, size, "[stall] frame %llu %.1f ms phase=%s cause=%s (%spipelines %u, textures %u, loads %u)%s%s%s",
+    char cpu[64] = "";
+    if (s.gameCpuUs >= 0) {
+        std::snprintf(cpu, sizeof(cpu), "; cpu game %.1f render %.1f ms", s.gameCpuUs / 1000.0,
+                      s.renderCpuUs >= 0 ? s.renderCpuUs / 1000.0 : -1.0);
+    }
+    std::snprintf(out, size, "[stall] frame %llu %.1f ms phase=%s cause=%s (%spipelines %u, textures %u, loads %u%s)%s%s%s",
                   static_cast<unsigned long long>(s.frame), s.ms, FrameStats::phaseName(s.phase), causes, extra,
-                  s.pipelines, s.textures, s.loads, s.unfocused ? " unfocused" : "", context[0] != '\0' ? " " : "", context);
+                  s.pipelines, s.textures, s.loads, cpu, s.unfocused ? " unfocused" : "", context[0] != '\0' ? " " : "", context);
 }
 
 inline void formatSummary(const LoadSummary& l, char* out, std::size_t size) {

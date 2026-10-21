@@ -191,6 +191,12 @@ class DolphinVisualContractTests(unittest.TestCase):
     def test_draw_or_vi_past_source_bound_is_not_gpu_drain(self):
         e=copy.deepcopy(self.base);e['draw_coverage']['draws'][0]['after_source_seam']=622;self.blocked(e)
         e=copy.deepcopy(self.base);e['selection']['originating_source_seam']=622;e['selection_history']['events']=[copy.deepcopy(e['selection'])];self.blocked(e)
+    def test_nonselected_draw_and_vi_history_cannot_extend_past_stop(self):
+        e=copy.deepcopy(self.base);late=copy.deepcopy(e['draw_coverage']['draws'][0])
+        late.update(id=18,entry_event=200,selected_scene_event=201,exit_event=202,after_source_seam=622,before_source_seam=623)
+        e['draw_coverage']['draws'].append(late);self.blocked(e)
+        e=copy.deepcopy(self.base);late=copy.deepcopy(e['selection']);late.update(event=200,present_id=901,copy_ids=[999],originating_source_seam=622)
+        e['selection_history']['events'].append(late);self.blocked(e)
     def test_gpu_drain_after_stop_is_allowed_without_emulation_advance(self):
         e=copy.deepcopy(self.base);e['gpu']['event']=11000;e['png']['event']=11001
         self.assertEqual(self.review(e)['status'],'PROPOSAL_CHAIN_CONSISTENT')

@@ -96,6 +96,7 @@ def idle_delivery(e,origin,method='dolphin-actual-export'):
     for key,value in dict(status='closed',method=method,sha256=digest(original),bytes=original.stat().st_size,
                           read_count=len(observed),source_start=0,source_end=end,census_sha256=digest(census_path)).items():
         equal(closed.get(key),value,'original collector closure mismatch: '+key)
+    need(isinstance(census,list),'read census is not a sequence')
     equal(len(census),end+1,'pre-anchor/full read census coverage missing')
     grouped=[0]*(end+1)
     previous=(-1,-1)
@@ -107,6 +108,7 @@ def idle_delivery(e,origin,method='dolphin-actual-export'):
         equal(ordinal,grouped[frame],'missing original read ordinal')
         grouped[frame]+=1;previous=(frame,ordinal)
     for frame,item in enumerate(census):
+        need(isinstance(item,dict),'invalid read census entry')
         equal(item.get('source_frame'),frame,'read census has shifted/missing source seams')
         equal(item.get('reads'),grouped[frame],'original prefix/full read census differs')
     return dict(canonical_sha256=digest(canonical),actual_export_sha256=digest(actual),
@@ -125,6 +127,10 @@ def review_draw_scope(e,request,origin,retail_sites=True):
     need(bool(draws),'no actual next draw observation')
     entries=[integer(d['entry_event'],'unknown draw entry') for d in draws]
     need(entries==sorted(set(entries)) and all(n>event for n in entries),'draw history is missing/reordered')
+    for item in draws:
+        need(item['entry_event']<item['exit_event']<=e['cpu_stop']['event'],'draw history advances beyond CPU stop')
+        need(request['capture_source_frame']<=item['after_source_seam']<item['before_source_seam']<=e['cpu_stop']['source_frame'],'draw history lacks bounded source interval')
+        equal(item['before_source_seam'],item['after_source_seam']+1,'draw history seam bounds not adjacent')
     draw=draws[0]
     equal(e['selected_draw_id'],draw['id'],'later convenient draw selected instead of first next draw')
     if retail_sites:
@@ -139,6 +145,7 @@ def review_draw_scope(e,request,origin,retail_sites=True):
     need(draw['exit_event']<coverage['next_seam_event']<=e['cpu_stop']['event'],'draw is outside witnessed source-seam/stop interval')
     equal(draw['after_source_seam'],request['capture_source_frame'],'draw occurred after a different/later source seam')
     equal(draw['before_source_seam'],coverage['next_source_frame'],'draw lacks next-seam upper-bound witness')
+    need(isinstance(draw['snapshot'],dict) and isinstance(draw['exit_snapshot'],dict),'draw snapshots must be objects')
     eligible=typed_draw_eligibility(draw['snapshot'],e['stage'],e['scenario'])
     need(eligible['typed_candidate'],'next draw is not actual ready Game/player/placed target: '+','.join(eligible['reasons']))
     equal(draw['snapshot']['scene_epoch'],origin['source_scene_epoch'],'draw crosses sampled scene epoch')
@@ -156,7 +163,7 @@ def review(e):
         need(type(e['offset']) is int and e['offset'] in (60,300,600),'unknown requested offset')
         equal(e['sampling_definition'],'post-seam-request/next-observed-draw-v2','phase contract not declared')
         equal(e['tail_frames'],TAIL_FRAMES,'unreviewed observation tail')
-        equal(e['source_revision'],PINS['dolphin_revision'],'unpinned Dolphin base source')
+        equal(e.get('semantic_base_revision',e['source_revision']),PINS['dolphin_revision'],'unpinned Dolphin base source')
         for key in ('executable_sha256','instrumentation_manifest_sha256'):
             need(re.fullmatch('[0-9a-f]{64}',str(e.get(key))) is not None,'unknown producer: '+key)
         request,origin=ready_request(e)
@@ -175,6 +182,8 @@ def review(e):
         selected_events=history['events']
         order=[integer(s['event'],'unknown VI selection event') for s in selected_events]
         need(order==sorted(set(order)) and all(n>copy['event'] for n in order),'VI selection history order invalid')
+        for item in selected_events:
+            need(request['capture_source_frame']<=integer(item['originating_source_seam'],'unknown VI history source')<=e['cpu_stop']['source_frame'],'VI history advances beyond CPU stop')
         matching=[s for s in selected_events if copy['id'] in s.get('copy_ids',[])]
         need(bool(matching),'target copy was not selected')
         equal(selection,matching[0],'later selection substituted for first matching selection')

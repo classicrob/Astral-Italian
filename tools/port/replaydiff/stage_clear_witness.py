@@ -56,7 +56,8 @@ class ClearWitness:
         if result['result_stage'] == 'YosshiHomeGalaxy' and result['stage_result'] and result['cleared_star_id'] == 1:
             if self.receipt['yoshi_star_result'] is None:
                 self.receipt['yoshi_star_result'] = dict(context, **result)
-        if row['stage'] == 'MarioFaceShipGalaxy' and row['init_state'] == 6:
+        star = self.receipt['yoshi_star_result']
+        if star and row['frame'] > star['frame'] and row['stage'] == 'MarioFaceShipGalaxy' and row['init_state'] == 6:
             if self.receipt['starship_ready'] is None:
                 self.receipt['starship_ready'] = context
 

@@ -47,5 +47,16 @@ class ClearWitnessTests(unittest.TestCase):
             witness.sample(Remote(), dict(frame=20, stage='MarioFaceShipGalaxy', scenario=2, init_state=6, scene='Game'))
             self.assertTrue(witness.close(True)['reproduces_clear'])
 
+    def test_earlier_ship_never_substitutes_for_after_clear_arrival(self):
+        raw = bytearray(0x4c)
+        class Remote:
+            def read(self, address, size): return bytes(raw)
+        with tempfile.TemporaryDirectory() as directory:
+            witness = ClearWitness(Path(directory)); witness.bound = True; witness.holder = 0x80001000
+            witness.sample(Remote(), dict(frame=1, stage='MarioFaceShipGalaxy', scenario=2, init_state=6, scene='Game'))
+            raw[:] = self.raw()
+            witness.sample(Remote(), dict(frame=20, stage='YosshiHomeGalaxy', scenario=1, init_state=6, scene='Game'))
+            self.assertFalse(witness.close(True)['reproduces_clear'])
+
 
 if __name__ == '__main__': unittest.main()

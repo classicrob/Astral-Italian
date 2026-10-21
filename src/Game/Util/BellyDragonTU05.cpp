@@ -96,13 +96,21 @@ void BellyDragonPod::appearFireGround(s32 isShort, const TVec3f* pVec) {
         LiveActor* pActor = mGroupA->getDeadActor();
         if (pActor != NULL) {
             if (pVec != NULL) {
+#ifdef GALAXY_NATIVE
+                BellyDragonUtil::calcGroundUpMtx(&static_cast<BellyDragonFireGround*>(pActor)->mBaseMtx, mHost, pVec);
+#else
                 BellyDragonUtil::calcGroundUpMtx((TPos3f*)((u8*)pActor + 0x90), mHost, pVec);
+#endif
             } else {
                 f32 scale = lbl_807D784C;
                 if (isShort != 0) {
                     scale = lbl_807D7850;
                 }
+#ifdef GALAXY_NATIVE
+                BellyDragonUtil::calcGroundHillMtx(&static_cast<BellyDragonFireGround*>(pActor)->mBaseMtx, mHost, mHost->getBaseMtx(), scale);
+#else
                 BellyDragonUtil::calcGroundHillMtx((TPos3f*)((u8*)pActor + 0x90), mHost, mHost->getBaseMtx(), scale);
+#endif
             }
             pActor->appear();
         }

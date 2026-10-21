@@ -6,6 +6,9 @@
 #include <revolution/os/OSInterrupt.h>
 #include <revolution/os.h>
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include <stdint.h>
+#endif
 
 class JASDisposer;
 class JKRHeap;
@@ -179,7 +182,14 @@ public:
         }
 
         bool checkArea(const void* ptr) const {
+#ifdef GALAXY_NATIVE
+            const uintptr_t address = reinterpret_cast< uintptr_t >(ptr);
+            const uintptr_t begin = reinterpret_cast< uintptr_t >(mBuffer);
+            const uintptr_t end = reinterpret_cast< uintptr_t >(mBuffer + ChunkSize);
+            return begin <= address && address < end;
+#else
             return (u8*)this + 0xc <= (u8*)ptr && (u8*)ptr < (u8*)this + (0xc + ChunkSize);
+#endif
         }
 
         MemoryChunk* getNextChunk() {

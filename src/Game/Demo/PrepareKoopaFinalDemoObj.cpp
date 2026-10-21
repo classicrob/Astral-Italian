@@ -147,9 +147,21 @@ void PrepareKoopaFinalDemoObj::setRandomBckFrame(s32 offset) {
     MR::setBckFrame(this, static_cast< f32 >(frameMax - (offset % frameMax)));
 }
 
-// Nerve execute bodies (each nerve's sInstance is defined below).
+// Keep singleton definition order independent from physical execute order.
 namespace NrvPrepareKoopaFinalDemoObj {
-    void PrepareKoopaFinalDemoObjNrvWait::execute(Spine* pSpine) const {
+    PrepareKoopaFinalDemoObjNrvWait PrepareKoopaFinalDemoObjNrvWait::sInstance ATTRIBUTE_WEAK;
+    PrepareKoopaFinalDemoObjNrvStopShakeEnd PrepareKoopaFinalDemoObjNrvStopShakeEnd::sInstance ATTRIBUTE_WEAK;
+    PrepareKoopaFinalDemoObjNrvShake PrepareKoopaFinalDemoObjNrvShake::sInstance ATTRIBUTE_WEAK;
+    PrepareKoopaFinalDemoObjNrvStartPuppet PrepareKoopaFinalDemoObjNrvStartPuppet::sInstance ATTRIBUTE_WEAK;
+    PrepareKoopaFinalDemoObjNrvEnd PrepareKoopaFinalDemoObjNrvEnd::sInstance ATTRIBUTE_WEAK;
+
+    void PrepareKoopaFinalDemoObjNrvEnd::execute(Spine* pSpine) const {
+        PrepareKoopaFinalDemoObj* pActor = reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor);
+        if (MR::isFirstStep(pActor)) {
+            MR::stopShakingCamera(pActor);
+        }
+    }
+    void PrepareKoopaFinalDemoObjNrvStartPuppet::execute(Spine* pSpine) const {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShake();
     }
     void PrepareKoopaFinalDemoObjNrvShake::execute(Spine* pSpine) const {
@@ -158,22 +170,11 @@ namespace NrvPrepareKoopaFinalDemoObj {
     void PrepareKoopaFinalDemoObjNrvStopShakeEnd::execute(Spine* pSpine) const {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShakeEnd();
     }
-    void PrepareKoopaFinalDemoObjNrvStartPuppet::execute(Spine* pSpine) const {
+    void PrepareKoopaFinalDemoObjNrvWait::execute(Spine* pSpine) const {
         PrepareKoopaFinalDemoObj* pActor = reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor);
         if (MR::tryStartDemoRegisteredMarioPuppetable(pActor, nullptr)) {
             MR::setPlayerPosAndWait(pActor->mPosition, false);
             pActor->setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvShake));
         }
     }
-    void PrepareKoopaFinalDemoObjNrvEnd::execute(Spine* pSpine) const {
-        PrepareKoopaFinalDemoObj* pActor = reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor);
-        if (MR::isFirstStep(pActor)) {
-            MR::stopShakingCamera(pActor);
-        }
-    }
-    PrepareKoopaFinalDemoObjNrvWait PrepareKoopaFinalDemoObjNrvWait::sInstance ATTRIBUTE_WEAK;
-    PrepareKoopaFinalDemoObjNrvStopShakeEnd PrepareKoopaFinalDemoObjNrvStopShakeEnd::sInstance ATTRIBUTE_WEAK;
-    PrepareKoopaFinalDemoObjNrvShake PrepareKoopaFinalDemoObjNrvShake::sInstance ATTRIBUTE_WEAK;
-    PrepareKoopaFinalDemoObjNrvStartPuppet PrepareKoopaFinalDemoObjNrvStartPuppet::sInstance ATTRIBUTE_WEAK;
-    PrepareKoopaFinalDemoObjNrvEnd PrepareKoopaFinalDemoObjNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvPrepareKoopaFinalDemoObj

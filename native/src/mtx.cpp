@@ -1,93 +1,43 @@
 #include <revolution/mtx.h>
-#include <petari/ppc_math.hpp>
 #include <cmath>
 #include <cstring>
-
-namespace PPC = PetariNative::PPC;
-
-namespace {
-double refineReciprocalLength(double squareLength) {
-    const double estimate = PPC::frsqrte(squareLength);
-    const double squareEstimate = PPC::multiplySingle(estimate, estimate);
-    const double halfEstimate = PPC::multiplySingle(estimate, 0.5);
-    const double correction = PPC::negativeMultiplySubtractSingle(squareEstimate, squareLength, 3.0);
-    return PPC::multiplySingle(correction, halfEstimate);
-}
-
-double vectorSquareLength(const Vec* v) {
-    const PPC::Paired xy = PPC::loadPair(&v->x);
-    const PPC::Paired squares = PPC::multiply(xy, xy);
-    const PPC::Paired z = PPC::splat(PPC::loadSingle(v->z));
-    const PPC::Paired xz = PPC::multiplyAdd(z, z, squares);
-    return PPC::sum0(xz, squares, squares).first;
-}
-}
 
 extern const Vec gZeroVec = {0.0f, 0.0f, 0.0f};
 
 void PSVECAdd(const Vec* a, const Vec* b, Vec* out) {
-    PPC::storePair(&out->x, PPC::add(PPC::loadPair(&a->x), PPC::loadPair(&b->x)));
-    PPC::storePair(&out->z, PPC::add(PPC::loadPair(&a->z, true), PPC::loadPair(&b->z, true)), true);
+    *out = {a->x + b->x, a->y + b->y, a->z + b->z};
 }
 
 void PSVECSubtract(const Vec* a, const Vec* b, Vec* out) {
-    PPC::storePair(&out->x, PPC::subtract(PPC::loadPair(&a->x), PPC::loadPair(&b->x)));
-    PPC::storePair(&out->z, PPC::subtract(PPC::loadPair(&a->z, true), PPC::loadPair(&b->z, true)), true);
+    *out = {a->x - b->x, a->y - b->y, a->z - b->z};
 }
 
 void PSVECScale(const Vec* v, Vec* out, f32 scale) {
-    const PPC::Paired xy = PPC::loadPair(&v->x);
-    const PPC::Paired z = PPC::loadPair(&v->z, true);
-    const PPC::Paired scalar = PPC::splat(PPC::loadSingle(scale));
-    PPC::storePair(&out->x, PPC::multiplyScalar0(xy, scalar));
-    PPC::storePair(&out->z, PPC::multiplyScalar0(z, scalar), true);
+    *out = {v->x * scale, v->y * scale, v->z * scale};
 }
 
 f32 PSVECDotProduct(const Vec* a, const Vec* b) {
-    const PPC::Paired yz = PPC::multiply(PPC::loadPair(&a->y), PPC::loadPair(&b->y));
-    const PPC::Paired xy = PPC::multiplyAdd(PPC::loadPair(&a->x), PPC::loadPair(&b->x), yz);
-    return PPC::forceSingle(PPC::sum0(xy, yz, yz).first);
+    return a->x * b->x + a->y * b->y + a->z * b->z;
 }
 
 f32 PSVECMag(const Vec* v) {
-    const double squareLength = vectorSquareLength(v);
-    if (squareLength == 0.0) return PPC::forceSingle(squareLength);
-    return PPC::forceSingle(PPC::multiplySingle(squareLength, refineReciprocalLength(squareLength)));
+    return std::sqrt(PSVECDotProduct(v, v));
 }
 
 void PSVECNormalize(const Vec* v, Vec* out) {
-    const PPC::Paired xy = PPC::loadPair(&v->x);
-    const PPC::Paired z = PPC::loadPair(&v->z, true);
-    const PPC::Paired squares = PPC::multiply(xy, xy);
-    const PPC::Paired xz = PPC::multiplyAdd(z, z, squares);
-    const double squareLength = PPC::sum0(xz, z, squares).first;
-    const PPC::Paired inverse = PPC::splat(refineReciprocalLength(squareLength));
-    PPC::storePair(&out->x, PPC::multiplyScalar0(xy, inverse));
-    PPC::storePair(&out->z, PPC::multiplyScalar0(z, inverse), true);
+    PSVECScale(v, out, 1.0f / PSVECMag(v));
 }
 
 void PSVECCrossProduct(const Vec* a, const Vec* b, Vec* out) {
-    const PPC::Paired bxy = PPC::loadPair(&b->x);
-    const PPC::Paired az = PPC::splat(PPC::loadSingle(a->z));
-    const PPC::Paired axy = PPC::loadPair(&a->x);
-    const PPC::Paired byx = PPC::merge10(bxy, bxy);
-    const PPC::Paired bz = PPC::splat(PPC::loadSingle(b->z));
-    const PPC::Paired azb = PPC::multiply(bxy, az);
-    const PPC::Paired axb = PPC::multiplyScalar0(bxy, axy);
-    const PPC::Paired xz = PPC::multiplySubtract(axy, bz, azb);
-    const PPC::Paired xy = PPC::multiplySubtract(axy, byx, axb);
-    PPC::storePair(&out->x, PPC::merge11(xz, xz), true);
-    PPC::storePair(&out->y, PPC::negate(PPC::merge01(xz, xy)));
+    *out = {a->y * b->z - a->z * b->y,
+            a->z * b->x - a->x * b->z,
+            a->x * b->y - a->y * b->x};
 }
 
 f32 PSVECDistance(const Vec* a, const Vec* b) {
-    const PPC::Paired yz = PPC::subtract(PPC::loadPair(&a->y), PPC::loadPair(&b->y));
-    const PPC::Paired xy = PPC::subtract(PPC::loadPair(&a->x), PPC::loadPair(&b->x));
-    const PPC::Paired squares = PPC::multiply(yz, yz);
-    const PPC::Paired sum = PPC::multiplyAdd(xy, xy, squares);
-    const double squareLength = PPC::sum0(sum, squares, squares).first;
-    if (squareLength == 0.0) return PPC::forceSingle(squareLength);
-    return PPC::forceSingle(PPC::multiplySingle(squareLength, refineReciprocalLength(squareLength)));
+    Vec difference;
+    PSVECSubtract(a, b, &difference);
+    return PSVECMag(&difference);
 }
 
 void PSMTXIdentity(Mtx out) {
@@ -134,116 +84,29 @@ void PSMTXMultVecArraySR(const Mtx m, const Vec* src, Vec* out, u32 count) {
 }
 
 u32 PSMTXInverse(const Mtx m, Mtx out) {
-    // Register pairs preserve the bound Gekko cofactor and reciprocal sequence.
-    PPC::Paired f[14]{};
-    f[0] = PPC::loadPair(&m[0][0], true);
-    f[1] = PPC::loadPair(&m[0][1]);
-    f[2] = PPC::loadPair(&m[1][0], true);
-    f[6] = PPC::merge10(f[1], f[0]);
-    f[3] = PPC::loadPair(&m[1][1]);
-    f[4] = PPC::loadPair(&m[2][0], true);
-    f[7] = PPC::merge10(f[3], f[2]);
-    f[5] = PPC::loadPair(&m[2][1]);
-    f[11] = PPC::multiply(f[3], f[6]);
-    f[8] = PPC::merge10(f[5], f[4]);
-    f[13] = PPC::multiply(f[5], f[7]);
-    f[11] = PPC::multiplySubtract(f[1], f[7], f[11]);
-    f[12] = PPC::multiply(f[1], f[8]);
-    f[13] = PPC::multiplySubtract(f[3], f[8], f[13]);
-    f[10] = PPC::multiply(f[3], f[4]);
-    f[12] = PPC::multiplySubtract(f[5], f[6], f[12]);
-    f[7] = PPC::multiply(f[0], f[13]);
-    f[9] = PPC::multiply(f[0], f[5]);
-    f[8] = PPC::multiply(f[1], f[2]);
-    f[7] = PPC::multiplyAdd(f[2], f[12], f[7]);
-    f[6] = PPC::subtract(f[6], f[6]);
-    f[10] = PPC::multiplySubtract(f[2], f[5], f[10]);
-    f[7] = PPC::multiplyAdd(f[4], f[11], f[7]);
-    f[9] = PPC::multiplySubtract(f[1], f[4], f[9]);
-    f[8] = PPC::multiplySubtract(f[0], f[3], f[8]);
-    if (f[7].first == f[6].first) return 0;
-    f[0] = PPC::splat(PPC::fres(f[7].first));
-    f[6] = PPC::add(f[0], f[0]);
-    f[5] = PPC::multiply(f[7], f[0]);
-    f[0] = PPC::negativeMultiplySubtract(f[0], f[5], f[6]);
-    f[1] = PPC::splat(PPC::loadSingle(*&m[0][3]));
-    f[13] = PPC::multiplyScalar0(f[13], f[0]);
-    f[2] = PPC::splat(PPC::loadSingle(*&m[1][3]));
-    f[12] = PPC::multiplyScalar0(f[12], f[0]);
-    f[3] = PPC::splat(PPC::loadSingle(*&m[2][3]));
-    f[11] = PPC::multiplyScalar0(f[11], f[0]);
-    f[5] = PPC::merge00(f[13], f[12]);
-    f[4] = PPC::merge11(f[13], f[12]);
-    f[6] = PPC::multiply(f[13], f[1]);
-    PPC::storePair(&out[0][0], f[5]);
-    PPC::storePair(&out[1][0], f[4]);
-    f[10] = PPC::multiplyScalar0(f[10], f[0]);
-    f[9] = PPC::multiplyScalar0(f[9], f[0]);
-    f[6] = PPC::multiplyAdd(f[12], f[2], f[6]);
-    PPC::storePair(&out[2][0], f[10], true);
-    f[8] = PPC::multiplyScalar0(f[8], f[0]);
-    f[6] = PPC::negativeMultiplyAdd(f[11], f[3], f[6]);
-    PPC::storePair(&out[2][1], f[9], true);
-    f[7] = PPC::multiply(f[10], f[1]);
-    f[5] = PPC::merge00(f[11], f[6]);
-    PPC::storePair(&out[2][2], f[8], true);
-    f[7] = PPC::multiplyAdd(f[9], f[2], f[7]);
-    f[4] = PPC::merge11(f[11], f[6]);
-    PPC::storePair(&out[0][2], f[5]);
-    f[7] = PPC::negativeMultiplyAdd(f[8], f[3], f[7]);
-    PPC::storePair(&out[1][2], f[4]);
-    PPC::storePair(&out[2][3], f[7], true);
+    const f32 a = m[0][0], b = m[0][1], c = m[0][2];
+    const f32 d = m[1][0], e = m[1][1], f = m[1][2];
+    const f32 g = m[2][0], h = m[2][1], i = m[2][2];
+    const f32 determinant = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+    if (determinant == 0.0f) return 0;
+    const f32 reciprocal = 1.0f / determinant;
+    Mtx result = {
+        {(e * i - f * h) * reciprocal, (c * h - b * i) * reciprocal, (b * f - c * e) * reciprocal, 0},
+        {(f * g - d * i) * reciprocal, (a * i - c * g) * reciprocal, (c * d - a * f) * reciprocal, 0},
+        {(d * h - e * g) * reciprocal, (b * g - a * h) * reciprocal, (a * e - b * d) * reciprocal, 0}};
+    for (int row = 0; row < 3; ++row)
+        result[row][3] = -(result[row][0] * m[0][3] + result[row][1] * m[1][3] + result[row][2] * m[2][3]);
+    PSMTXCopy(result, out);
     return 1;
 }
 
 extern "C" u32 PSMTXInvXpose(const Mtx m, Mtx out) {
-    // Register pairs preserve the bound Gekko cofactor and reciprocal sequence.
-    PPC::Paired f[14]{};
-    f[0] = PPC::loadPair(&m[0][0], true);
-    f[1] = PPC::loadPair(&m[0][1]);
-    f[2] = PPC::loadPair(&m[1][0], true);
-    f[6] = PPC::merge10(f[1], f[0]);
-    f[3] = PPC::loadPair(&m[1][1]);
-    f[4] = PPC::loadPair(&m[2][0], true);
-    f[7] = PPC::merge10(f[3], f[2]);
-    f[5] = PPC::loadPair(&m[2][1]);
-    f[11] = PPC::multiply(f[3], f[6]);
-    f[8] = PPC::merge10(f[5], f[4]);
-    f[13] = PPC::multiply(f[5], f[7]);
-    f[11] = PPC::multiplySubtract(f[1], f[7], f[11]);
-    f[12] = PPC::multiply(f[1], f[8]);
-    f[13] = PPC::multiplySubtract(f[3], f[8], f[13]);
-    f[10] = PPC::multiply(f[3], f[4]);
-    f[12] = PPC::multiplySubtract(f[5], f[6], f[12]);
-    f[7] = PPC::multiply(f[0], f[13]);
-    f[9] = PPC::multiply(f[0], f[5]);
-    f[8] = PPC::multiply(f[1], f[2]);
-    f[7] = PPC::multiplyAdd(f[2], f[12], f[7]);
-    f[6] = PPC::subtract(f[6], f[6]);
-    f[10] = PPC::multiplySubtract(f[2], f[5], f[10]);
-    f[7] = PPC::multiplyAdd(f[4], f[11], f[7]);
-    f[9] = PPC::multiplySubtract(f[1], f[4], f[9]);
-    f[8] = PPC::multiplySubtract(f[0], f[3], f[8]);
-    if (f[7].first == f[6].first) return 0;
-    f[0] = PPC::splat(PPC::fres(f[7].first));
-    PPC::storePair(&out[0][3], f[6], true);
-    f[4] = PPC::add(f[0], f[0]);
-    f[5] = PPC::multiply(f[7], f[0]);
-    PPC::storePair(&out[1][3], f[6], true);
-    f[0] = PPC::negativeMultiplySubtract(f[0], f[5], f[4]);
-    PPC::storePair(&out[2][3], f[6], true);
-    f[13] = PPC::multiplyScalar0(f[13], f[0]);
-    f[12] = PPC::multiplyScalar0(f[12], f[0]);
-    PPC::storePair(&out[0][0], f[13]);
-    f[11] = PPC::multiplyScalar0(f[11], f[0]);
-    PPC::storePair(&out[1][0], f[12]);
-    f[10] = PPC::multiplyScalar0(f[10], f[0]);
-    PPC::storePair(&out[2][0], f[11]);
-    f[9] = PPC::multiplyScalar0(f[9], f[0]);
-    PPC::storePair(&out[0][2], f[10], true);
-    f[8] = PPC::multiplyScalar0(f[8], f[0]);
-    PPC::storePair(&out[1][2], f[9], true);
-    PPC::storePair(&out[2][2], f[8], true);
+    Mtx inverse;
+    if (!PSMTXInverse(m, inverse)) return 0;
+    for (int row = 0; row < 3; ++row) {
+        for (int col = 0; col < 3; ++col) out[row][col] = inverse[col][row];
+        out[row][3] = 0;
+    }
     return 1;
 }
 
@@ -283,60 +146,15 @@ void PSMTXRotRad(Mtx out, char axis, f32 radians) {
     PSMTXRotTrig(out, axis, std::sin(radians), std::cos(radians));
 }
 
-namespace {
-// Gekko rotation kernel; the caller supplies its trigonometric values.
-void makeAxisRotation(Mtx out, const Vec* axis, f32 sine, f32 cosine) {
-    PPC::Paired f[13]{};
-    f[1] = PPC::splat(PPC::loadSingle(sine));
-    f[2] = PPC::splat(PPC::loadSingle(cosine));
-    f[3] = PPC::loadPair(&axis->x);
-    f[11] = PPC::splat(PPC::loadSingle(PPC::forceSingle(f[2].first)));
-    f[10] = PPC::splat(0.5);
-    f[12] = PPC::splat(PPC::loadSingle(PPC::forceSingle(f[1].first)));
-    f[4] = PPC::multiply(f[3], f[3]);
-    f[2] = PPC::splat(PPC::loadSingle(*&axis->z));
-    f[8] = PPC::splat(PPC::addSingle(f[10].first, f[10].first));
-    f[9] = PPC::splat(3.0);
-    f[1] = PPC::splat(PPC::subtractSingle(f[10].first, f[10].first));
-    f[5] = PPC::multiplyAdd(f[2], f[2], f[4]);
-    f[0] = PPC::splat(PPC::subtractSingle(f[8].first, f[11].first));
-    f[11] = PPC::merge00(f[11], f[11]);
-    f[6] = PPC::sum0(f[5], f[2], f[4]);
-    f[7].first = PPC::frsqrte(f[6].first);
-    f[4] = PPC::splat(PPC::multiplySingle(f[7].first, f[7].first));
-    f[5] = PPC::splat(PPC::multiplySingle(f[7].first, f[10].first));
-    f[4] = PPC::splat(PPC::negativeMultiplySubtractSingle(f[4].first, f[6].first, f[9].first));
-    f[7] = PPC::splat(PPC::multiplySingle(f[4].first, f[5].first));
-    f[3] = PPC::multiplyScalar0(f[3], f[7]);
-    f[2] = PPC::multiplyScalar0(f[2], f[7]);
-    f[6] = PPC::multiplyScalar0(f[3], f[0]);
-    f[7] = PPC::multiplyScalar0(f[2], f[0]);
-    f[10] = PPC::multiplyScalar0(f[3], f[12]);
-    f[5] = PPC::multiplyScalar1(f[6], f[3]);
-    f[4] = PPC::multiplyScalar0(f[6], f[3]);
-    f[6] = PPC::multiplyScalar0(f[6], f[2]);
-    f[0] = PPC::splat(PPC::negativeMultiplySubtractSingle(f[2].first, f[12].first, f[5].first));
-    f[3] = PPC::negate(f[10]);
-    f[8] = PPC::splat(PPC::multiplyAddSingle(f[2].first, f[12].first, f[5].first));
-    f[4] = PPC::sum0(f[4], f[0], f[11]);
-    f[0] = PPC::sum0(f[3], f[1], f[6]);
-    f[7] = PPC::multiplyScalar0(f[7], f[2]);
-    PPC::storePair(&out[0][0], f[4]);
-    f[9] = PPC::sum0(f[6], f[1], f[10]);
-    f[3] = PPC::sum0(f[6], f[6], f[3]);
-    PPC::storePair(&out[1][2], f[0]);
-    f[5] = PPC::sum1(f[11], f[8], f[5]);
-    f[7] = PPC::sum0(f[7], f[1], f[11]);
-    PPC::storePair(&out[0][2], f[9]);
-    f[6] = PPC::sum1(f[10], f[3], f[6]);
-    PPC::storePair(&out[1][0], f[5]);
-    PPC::storePair(&out[2][0], f[6]);
-    PPC::storePair(&out[2][2], f[7]);
-}
-}
-
 void PSMTXRotAxisRad(Mtx out, const Vec* axis, f32 radians) {
-    makeAxisRotation(out, axis, std::sin(radians), std::cos(radians));
+    Vec v;
+    PSVECNormalize(axis, &v);
+    const f32 s = std::sin(radians), c = std::cos(radians), t = 1.0f - c;
+    const Mtx result = {
+        {t*v.x*v.x+c, t*v.x*v.y-s*v.z, t*v.x*v.z+s*v.y, 0},
+        {t*v.x*v.y+s*v.z, t*v.y*v.y+c, t*v.y*v.z-s*v.x, 0},
+        {t*v.x*v.z-s*v.y, t*v.y*v.z+s*v.x, t*v.z*v.z+c, 0}};
+    PSMTXCopy(result, out);
 }
 
 void PSQUATMultiply(const Quaternion* a, const Quaternion* b, Quaternion* out) {
@@ -351,45 +169,12 @@ f32 PSQUATDotProduct(const Quaternion* a, const Quaternion* b) {
 }
 
 void PSMTXQuat(Mtx out, const Quaternion* q) {
-    PPC::Paired f[14]{};
-    f[4] = PPC::loadPair(&q->x);
-    f[5] = PPC::loadPair(&q->z);
-    f[6] = PPC::multiply(f[4], f[4]);
-    f[1] = PPC::splat(1.0);
-    f[9] = PPC::merge10(f[4], f[4]);
-    f[0] = PPC::splat(PPC::subtractSingle(f[1].first, f[1].first));
-    f[8] = PPC::multiplyAdd(f[5], f[5], f[6]);
-    f[10] = PPC::multiplyScalar1(f[5], f[5]);
-    PPC::storePair(&out[0][3], f[0], true);
-    f[2] = PPC::splat(PPC::addSingle(f[1].first, f[1].first));
-    f[3] = PPC::sum0(f[8], f[8], f[8]);
-    PPC::storePair(&out[2][3], f[0], true);
-    f[7] = PPC::multiply(f[5], f[5]);
-    f[12] = PPC::multiplyAdd(f[4], f[9], f[10]);
-    f[13] = PPC::splat(PPC::fres(f[3].first));
-    f[3] = PPC::negativeMultiplySubtract(f[3], f[13], f[2]);
-    f[11] = PPC::multiplyScalar1(f[9], f[5]);
-    f[10] = PPC::multiplySubtract(f[4], f[9], f[10]);
-    f[3] = PPC::multiply(f[13], f[3]);
-    f[9] = PPC::multiplyAddScalar0(f[4], f[5], f[11]);
-    f[8] = PPC::sum1(f[7], f[8], f[6]);
-    f[3] = PPC::splat(PPC::multiplySingle(f[3].first, f[2].first));
-    f[11] = PPC::negativeMultiplySubtract(f[11], f[2], f[9]);
-    f[6] = PPC::sum0(f[6], f[6], f[6]);
-    f[9] = PPC::multiply(f[9], f[3]);
-    f[11] = PPC::multiply(f[11], f[3]);
-    f[8] = PPC::negativeMultiplySubtract(f[8], f[3], f[1]);
-    PPC::storePair(&out[0][2], f[9], true);
-    f[12] = PPC::multiply(f[12], f[3]);
-    f[10] = PPC::multiply(f[10], f[3]);
-    f[7] = PPC::merge10(f[11], f[0]);
-    f[5] = PPC::merge00(f[12], f[8]);
-    f[4] = PPC::merge10(f[8], f[10]);
-    PPC::storePair(&out[1][2], f[7]);
-    f[13] = PPC::merge01(f[11], f[9]);
-    f[6] = PPC::negativeMultiplySubtract(f[6], f[3], f[1]);
-    PPC::storePair(&out[1][0], f[5]);
-    PPC::storePair(&out[2][2], f[6], true);
-    PPC::storePair(&out[0][0], f[4]);
-    PPC::storePair(&out[2][0], f[13]);
+    const f32 s = 2.0f / PSQUATDotProduct(q, q);
+    const f32 xx=q->x*q->x*s, yy=q->y*q->y*s, zz=q->z*q->z*s;
+    const f32 xy=q->x*q->y*s, xz=q->x*q->z*s, yz=q->y*q->z*s;
+    const f32 wx=q->w*q->x*s, wy=q->w*q->y*s, wz=q->w*q->z*s;
+    const Mtx result = {{1-yy-zz, xy-wz, xz+wy, 0},
+                        {xy+wz, 1-xx-zz, yz-wx, 0},
+                        {xz-wy, yz+wx, 1-xx-yy, 0}};
+    PSMTXCopy(result, out);
 }

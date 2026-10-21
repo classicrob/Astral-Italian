@@ -157,12 +157,7 @@ typedef int BOOL;
 #if defined(GALAXY_NATIVE) && defined(__cplusplus)
 extern "C" {
 #endif
-#ifdef GALAXY_NATIVE
-f64 __frsqrte(f64);
-f64 __fres(f64);
-#else
 f32 __frsqrte(f32);
-#endif
 u32 __cntlzw(u32);
 s32 __abs(s32);
 f32 __fabsf(f32);

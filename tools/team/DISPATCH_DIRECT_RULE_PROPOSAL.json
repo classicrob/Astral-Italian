@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "status": "SOURCE_PROPOSAL_ONLY_DESCENDANT_BEHAVIOR_UNQUALIFIED",
+  "execution_enabled": false,
+  "implementation": "none",
+  "target": "/bin/sh",
+  "argv_shape": [
+    "/bin/sh",
+    "-c",
+    "EXACT_L_OPERATOR_APPROVED_EXPANDED_OFFICIAL_COMMAND"
+  ],
+  "command_authority": "immutable official graph + L independent command expectation; command bytes not yet supplied/approved for this contract",
+  "previous_context": "2641 unchanged disabled;6b7c accepted isolated Python unchanged;full827 unchanged disabled",
+  "proposal": {
+    "path": "tools/team/DISPATCH_DIRECT_RULE_PROPOSAL.md",
+    "sha256": "a4075ec1355a4ae972a946b0cf771e038516134ddb13c6ef8784fb82a3b0a884"
+  },
+  "existing_tool_pins": {
+    "sh": {
+      "path": "/bin/sh",
+      "sha256": "e5dec01b6a80f735dd4098cf5e2c335f48440a641395e36453dbd7fd9bb1c19e"
+    },
+    "wibo": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+      "sha256": "92f14bb8f9ddb6ee21d280561eff0026dcd3b93c409198a867e67c47b8628664"
+    },
+    "wibo_real": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo.real",
+      "sha256": "bfb53e13706506fef31c331a1b4312af84a5c71af451f0cafe42c5511b2acbe4"
+    },
+    "sjiswrap": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe",
+      "sha256": "01d50fa1148cfc3c3b16658c6c9b1c0d9f5324cde79ed6c09ef8353af9d63adf"
+    },
+    "compiler": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe",
+      "sha256": "88b1cb542abc17a99f1087cbfc1daa4b5da2ef5ea8204410b7d766ce08ec3e71"
+    },
+    "python_command": {
+      "path": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+      "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+    },
+    "transform_dep": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/proof-wm-dispatch-source/tools/transform_dep.py",
+      "sha256": "622a2c65f9b10a836c8af3c36ff2db770f5739e1c0285f5f004b82867c965d9f"
+    }
+  },
+  "operator": "fresh root-specific L record required; none created",
+  "scope_limit": "No Ninja runtime; no arbitrary shell; no pool/flags/toolchain/alternatekill changes; escaped descendants unknown",
+  "actual_tests": "none"
+}

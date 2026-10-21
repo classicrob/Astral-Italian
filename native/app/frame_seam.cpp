@@ -377,18 +377,19 @@ void runSmoke(Driver* driver, bool probeHoldsA, bool probeOwnsInput, bool quitOn
     if (step.assertFocus) {
         Events::assertFocus();
     }
-    if (step.pointer) {
+    const bool sceneScriptOwnsInput = Smoke::inputScriptOwnsSyntheticControls();
+    if (step.pointer && !sceneScriptOwnsInput) {
         // Normalised over the game image, as the input layer maps the pointer.
         Events::movePointer(gLastImage.x + step.pointerU * gLastImage.width,
                             gLastImage.y + step.pointerV * gLastImage.height);
     }
     for (const Smoke::Press& press : step.presses) {
-        if ((probeOwnsInput && press.down) || (probeHoldsA && press.button == Smoke::Button::A)) {
+        if (sceneScriptOwnsInput || (probeOwnsInput && press.down) || (probeHoldsA && press.button == Smoke::Button::A)) {
             continue;  // PETARI_SKIP_PROBE holds Space (the script's A would release it); PETARI_POINT_PROBE drives
         }
         Events::pressButton(static_cast<int>(press.button), press.down);
     }
-    if (step.menuWheel != 0.0f) {
+    if (step.menuWheel != 0.0f && !sceneScriptOwnsInput) {
         Events::menuWheel(step.menuWheel);
     }
     if (step.warp && !Smoke::warpPlayer(step)) {

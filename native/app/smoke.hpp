@@ -483,6 +483,8 @@ bool figureProbeFrame();
 // input_script_probe.cpp: PETARI_INPUT_SCRIPT, a player's keyboard script typed through the native
 // input layer once normal play is steady; stepped by pointProbeFrame (true while it types).
 bool inputScriptFrame();
+// Scene-spanning diagnostic owns both press and release events after ordinary boot.
+bool inputScriptOwnsSyntheticControls();
 // collision_probe.cpp (SDK side): PETARI_COLLISION_PROBE, a read-only map
 // collision survey for offline route planning; stepped by observeGame.
 bool collisionProbeActive();

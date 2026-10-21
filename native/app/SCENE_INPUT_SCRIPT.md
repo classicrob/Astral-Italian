@@ -2,7 +2,7 @@
 
 Set `PETARI_INPUT_SCRIPT_SCENE_SPAN=1` with the existing `PETARI_INPUT_SCRIPT` path. This is opt-in test input; it does not select stages, move actors, change game state, or alter bindings. With the option absent the existing script behavior is unchanged.
 
-The script still waits for steady normal gameplay before its first line. In addition to `<frames> [key ...]`, it accepts `scene <scene-name> [stage-name]`. Such a line releases all keys and waits for an initialized matching scene. Loading pauses the frame counter and releases held keys. If loading interrupted a held-key line, its remaining frames are discarded. A completed previous line never consumes the following line. Non-Game scene input has empty player/camera CSV cells.
+The script still waits for steady normal gameplay before its first line. In addition to `<frames> [key ...]`, it accepts `scene <scene-name> [stage-name]`. Such a line releases all keys and waits for an initialized matching scene. Loading pauses the frame counter and releases held keys. If loading interrupted a held-key line, its remaining frames are discarded. A completed previous line never consumes the following line. Non-Game scene input has empty player/camera CSV cells. Once the tape starts, it owns both input edges: the smoke observer still records scenes, but its pointer, button presses/releases and wheel events are suppressed, including during scene guards and loading. Observer focus assertion intentionally remains active; ownership covers synthetic buttons, pointer and wheel, without changing normal focus handling.
 
 For example, after an ordinary route has reached ScenarioSelect:
 

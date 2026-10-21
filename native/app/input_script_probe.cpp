@@ -154,6 +154,11 @@ void finish(InputScript& s, const char* why) {
 
 }  // namespace
 
+bool inputScriptOwnsSyntheticControls() {
+    const InputScript& s = script();
+    return s.sceneSpan && s.phase == Phase::Run;
+}
+
 bool inputScriptFrame() {
     InputScript& s = script();
     if (s.phase == Phase::Off || s.phase == Phase::Done) return false;

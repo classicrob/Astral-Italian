@@ -4,7 +4,7 @@ from unittest.mock import patch
 import dispatch_budget as b
 @contextlib.contextmanager
 def retained_fixture():
- base=Path.home()/'MacioGalaxy2-team/scratch-port/solP/dispatch-budget-source-controls'
+ base=Path(os.environ['SOLP_BUDGET_FIXTURE_ROOT']) if 'SOLP_BUDGET_FIXTURE_ROOT' in os.environ else Path.home()/'MacioGalaxy2-team/scratch-port/solP/dispatch-budget-source-controls'
  base.mkdir(parents=True,exist_ok=True)
  root=Path(tempfile.mkdtemp(prefix='fixture-',dir=base));root.chmod(0o700)
  try:yield str(root)
@@ -26,10 +26,10 @@ class LiveControls(unittest.TestCase):
   if report['events']:
    journal=[json.loads(line) for line in (work/'syscall-journal.jsonl').read_text().splitlines()]
    self.assertTrue(any(row['event']=='actual_child_identity' for row in journal))
-  for row in report['events']:
-   try:b.os.killpg(row['pgid'],0)
-   except ProcessLookupError:pass
-   else:self.fail('owned group remains')
+  for pgid in {row['pgid'] for row in report['events']}:
+   self.assertTrue(any(row.get('pgid')==pgid and row.get('leader_reaped_and_group_absent') is True for row in report['events']))
+  # stop_group already performed the strict, journaled absence operation.
+  # Do not add a later unjournaled probe against a potentially reused PGID.
  def test_growth_crossing_stops_real_python_child(self):
   with retained_fixture() as d:
    root=Path(d);work=root/'work';work.mkdir();target=root/'grow'
@@ -59,6 +59,41 @@ class LiveControls(unittest.TestCase):
    with self.assertRaises(b.DiskBudgetExceeded):
     with b.LiveBudgetJob(work,3,root,0,4096,0.02,baseline=baseline):self.fail('existing build growth must not be rebased away')
    self.check_reaped(work)
+class RealLeaderWorkerControls(LiveControls):
+ # Batch explicitly selects these two methods; inherited four budget cases are
+ # selected separately ONCE, never by loading this entire subclass.
+ def run_role(self,role):
+  from dispatch_budget_fixture import WorkerFixtureJob
+  with retained_fixture() as d:
+   root=Path(d);work=root/'work';work.mkdir()
+   kind=WorkerFixtureJob if role=='leader-worker' else b.LiveBudgetJob
+   def disk(path):return types.SimpleNamespace(free=0 if (root/'trigger.json').exists() else 100000000)
+   with patch.object(b.shutil,'disk_usage',side_effect=disk):
+    with self.assertRaises(b.DiskBudgetExceeded):
+     with kind(work,3,root,1,1024**2,0.02) as job:
+      job.fixture_identity_path=root/'child-identity.json'
+      job.run([sys.executable,str(Path(__file__).with_name('dispatch_budget_fixture_child.py')),role,str(root)])
+   self.check_reaped(work)
+   journal=[json.loads(line) for line in (work/'syscall-journal.jsonl').read_text().splitlines()]
+   first_probe=next(i for i,e in enumerate(journal) if e.get('operation')=='killpg0' and e['event']=='intent')
+   self.assertTrue(any(e.get('operation')=='wait-reap' and e['event']=='result' for e in journal[:first_probe]))
+   cleanup=json.loads((work/'owned-process-cleanup.json').read_text())
+   statuses=[e['leader_reaped_status'] for e in cleanup['events'] if 'leader_reaped_status' in e]
+   self.assertTrue(any(e.get('signal')==int(b.signal.SIGKILL) for e in cleanup['events']))
+   if role=='ignore-term':
+    self.assertEqual(statuses,[-int(b.signal.SIGKILL)])
+    self.assertTrue(any(e['event']=='leader_wait_grace_expired' for e in journal))
+   else:
+    self.assertEqual(statuses[0],-int(b.signal.SIGTERM))
+    worker=next(e for e in journal if e['event']=='actual_worker_identity')
+    self.assertEqual(worker['worker_identity']['ppid'],worker['lineage']['leader_pid'])
+    self.assertEqual(worker['worker_identity']['pid'],worker['lineage']['worker_pid'])
+    self.assertEqual(worker['observed'],{'pgid':worker['lineage']['leader_pid'],'sid':worker['lineage']['leader_pid']})
+    # Reaped leader is insufficient: its worker made the first zero-probe succeed.
+    self.assertEqual(journal[first_probe+1]['event'],'result')
+ def test_actual_term_ignored_leader(self):self.run_role('ignore-term')
+ def test_actual_leader_exit_surviving_worker(self):self.run_role('leader-worker')
+
 class OwnershipSourceModels(unittest.TestCase):
  def setup_model(self,root):
   work=root/'work';work.mkdir();job=b.LiveBudgetJob(work,3,root,0,1024**2,0.02)
@@ -128,5 +163,33 @@ class LeaderReapSourceModels(unittest.TestCase):
   calls,events=self.model('eperm');self.assertEqual([c[0] for c in calls],['killpg','wait','killpg']);self.assertFalse(any(e.get('leader_reaped_and_group_absent') for e in events))
  def test_kill_timeout_no_unreaped_probe(self):
   calls,events=self.model('never');self.assertEqual([c[0] for c in calls],['killpg','wait','killpg','wait'])
+
+class WorkerOwnershipSourceModels(unittest.TestCase):
+ def check_worker(self,mode):
+  from dispatch_budget_fixture import WorkerFixtureJob
+  with retained_fixture() as d:
+   root=Path(d);work=root/'work';work.mkdir();job=WorkerFixtureJob(work,3,root,0,1024**2,0.02)
+   job.fixture_identity_path=root/'child-identity.json';job.groups[707]=types.SimpleNamespace(pid=707)
+   job.identities[707]={'pid':707,'pgid':707,'sid':707,'uid':501};job.ownership[707]={'status':'VERIFIED'}
+   worker={'pid':708,'ppid':707,'pgid':707,'sid':707,'uid':501}
+   if mode=='wrong-parent':worker['ppid']=999
+   if mode=='wrong-uid':worker['uid']=999
+   if mode!='missing':
+    (root/'worker-identity.json').write_text(json.dumps(worker));(root/'lineage.json').write_text(json.dumps({'leader_pid':707,'worker_pid':708}))
+   with patch.object(b.LiveBudgetJob,'observe_fixture',return_value=None),patch.object(b.os,'getuid',return_value=501),patch.object(b.os,'getpgid',return_value=999 if mode=='wrong-kernel' else 707),patch.object(b.os,'getsid',return_value=707),patch.object(b.os,'killpg') as kill:
+    if mode not in ('valid','missing'):
+     with self.assertRaises(RuntimeError):job.observe_fixture()
+    else:job.observe_fixture()
+    if mode=='valid':
+     self.assertEqual(job.worker_state,'VERIFIED');self.assertTrue((root/'worker-verified.json').exists())
+    else:
+     with self.assertRaises(RuntimeError):job.require_signal_ownership(707)
+     self.assertFalse((root/'worker-verified.json').exists())
+    kill.assert_not_called()
+ def test_valid_worker_binding(self):self.check_worker('valid')
+ def test_missing_worker_blocks_group_signal(self):self.check_worker('missing')
+ def test_wrong_parent_blocks_group_signal(self):self.check_worker('wrong-parent')
+ def test_wrong_uid_blocks_group_signal(self):self.check_worker('wrong-uid')
+ def test_wrong_kernel_group_blocks_signal(self):self.check_worker('wrong-kernel')
 
 if __name__=='__main__':unittest.main()

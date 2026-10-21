@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "status": "SOURCE_PLAN_ONLY_ACTUAL_CONTROLS_UNRUN",
+  "status": "EXACT_DISPOSABLE_FIXTURE_BATCH_SOURCE_ONLY_UNRUN",
   "scope": "disposable fixture lifecycle only; full216b disabled",
-  "source_predecessor": "95e661f7",
+  "source_predecessor": "1e96bcbd",
   "cleanup_grace_seconds": {
     "TERM": 1,
     "KILL": 3,
@@ -39,5 +39,51 @@
     "sampled filesystem full-proof budget"
   ],
   "xnu_possibility_reference": "https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/kern/kern_sig.c#L1580",
-  "xnu_limit": "PORT-provided primary source supports possible zombie-group explanation only; actual host kernel/state unbound; no old cause inference"
+  "xnu_limit": "PORT-provided primary source supports possible zombie-group explanation only; actual host kernel/state unbound; no old cause inference",
+  "total_seconds": 90,
+  "output_bytes": 67108864,
+  "cases": [
+    "OwnershipSourceModels",
+    "LeaderReapSourceModels",
+    "WorkerOwnershipSourceModels",
+    "LiveControls.test_growth_crossing_stops_real_python_child",
+    "LiveControls.test_synthetic_floor_crossing_stops_real_python_child",
+    "RealLeaderWorkerControls.test_actual_term_ignored_leader",
+    "RealLeaderWorkerControls.test_actual_leader_exit_surviving_worker",
+    "LiveControls.test_python_work_crossing",
+    "LiveControls.test_packaging_continues_original_baseline"
+  ],
+  "source_files": {
+    "dispatch_preflight.py": "adfaae0ee51350fedb883937ae887f1f1d443f986b0c4b98f334894f266c1d72",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "test_dispatch_budget.py": "1f5ac186bd76fb927923eb5cd2200b82c779461d718780015d10316e3ca83875",
+    "dispatch_budget_fixture_child.py": "af1b7b6d2d9bbbdfeb9467c28609f0e64c9fdbc9b62cb4d590c4ecf3c6f31540",
+    "dispatch_budget_fixture.py": "04626fee67aab5c7f835183ad275cf2643bf4e2e34863d500699e178e17fd149",
+    "dispatch_budget_fixture_batch.py": "676b58f4cc865333582acadffb8de932330ec88f6477a3aede3bffb248835156"
+  },
+  "python": {
+    "executable": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab",
+    "version": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 17.0.0 (clang-1700.6.4.2)]"
+  },
+  "subprocess_source_sha256": "68a09b33081bc3c640f3fe0ea2cc75ef2b31ddc1c2b624047ab01591d3763622",
+  "worker_evidence": [
+    "leader registered Popen PID/kernel PGID/SID/child actual UID",
+    "leader records direct Popen worker PID in immutable lineage.json",
+    "worker self reports actual PID/PPID/PGID/SID/UID; parent independently reads kernel worker PGID/SID",
+    "worker UID equals leader actual UID and current controller UID",
+    "parent acknowledges only after joins; leader budget trigger waits for acknowledgement",
+    "unverified/contradicted worker blocks every inherited group probe/signal; self expiry10s",
+    "no generic descendant census or independent kernel PPID/UID claim; evidence scope explicit"
+  ],
+  "execution_requirements": [
+    "exact L review + fresh explicit PORT allocation; source note does not allocate",
+    "STATE before lock/command; fresh owned output; nice19 one job; nonblocking actual native.lock",
+    "six actual cases selected ONCE plus14 no-process model methods; failfast",
+    "child/worker self-expire10s; no added signal mechanism",
+    "deadline checks reserve4s cleanup and10s failure selfexpiry; sampled syscall latency remains limitation",
+    "source fixed output is small; per-case/final64MiB allocated checks; no unrelated writes permitted",
+    "failure stops, preserves all records and unknown exitstatus; no retries or alternative kill",
+    "actual fixture branch UNRUN; full216b remains execution_enabled=false"
+  ]
 }

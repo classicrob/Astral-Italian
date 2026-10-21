@@ -105,3 +105,37 @@ UNRUN and require exact independent source review plus a new allocation. Existin
 95e661f7 failure records are unchanged; neither host zombie state nor old EPERM
 cause is established. The Apple XNU source cited by PORT supports a possibility,
 not a measurement of this host kernel or this child at the failure instant.
+
+## Exact real-fixture source proposal (NOT EXECUTED)
+
+`dispatch_budget_fixture_child.py` adds TERM-ignored leader and leader-with-worker
+roles, each with an independent SIGALRM self-expiry of ten seconds. The worker
+inherits the leader group/session and ignores TERM. The leader records its actual
+Popen worker PID; the worker independently records its own PID/PPID/PGID/SID/UID.
+`WorkerFixtureJob` verifies both records against the registered leader, kernel
+worker PGID/SID and actual UID consistency before acknowledging. The child budget
+trigger waits for this acknowledgement. Unverified worker ownership blocks group
+signals/probes. Kernel PPID/UID are not independently queried; self-reported fields
+and the leader's actual Popen result are explicit evidence, not a generic census.
+
+The real tests require journaled leader status/reap before the first zero-probe,
+KILL escalation for ignored TERM, and a successful first zero-probe after leader
+TERM exit to prove the worker outlived it. Final strict group absence is still
+mandatory. EPERM remains injected in a no-process model only. A redundant later
+unjournaled zero-probe in the old assertion helper was replaced by checking the
+actual stop_group absence event/report; stop_group's strict kernel gate is intact.
+
+The exact runner selects six real budget/lifecycle cases ONCE plus14 no-process
+models. It pins helper/interpreter bytes, acquires native.lock nonblocking at
+nice19, retains fresh output, enforces failfast admission/work/cleanup budgets and
+checks a64MiB allocated-output cap. Deadline and output checks remain sampled;
+filesystem/journal syscall latency is not an external hard real-time guarantee.
+No production/global watcher qualification is claimed. Review these limitations
+before any allocation rather than treating models or planned caps as actual PASS.
+
+Future exact command (replace placeholders only after allocation, STATE first):
+`nice -n 19 python3 tools/team/dispatch_budget_fixture_batch.py --plan tools/team/DISPATCH_BUDGET_REAP_PLAN.json --execute-plan-sha256 PLAN_SHA --output PRIVATE_FRESH_OUTPUT`
+
+Only14 no-process models and syntax checks have run. No real new fixture, signal,
+lock, batch runner, compiler or app has executed. All95e661 failure packets remain
+unchanged. A new exact L/PORT review/allocation is required for this proposal.

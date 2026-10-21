@@ -51,15 +51,20 @@ WorldMapResultStateGrandGalaxyEnd::~WorldMapResultStateGrandGalaxyEnd() {
 }
 
 namespace NrvWorldMapResultStateGrandGalaxyEnd {
-    WMR_NERVE_DEF(WorldMapResultStateGrandGalaxyEndZoomOut, WorldMapResultStateGrandGalaxyEnd, ZoomOut);
+    WorldMapResultStateGrandGalaxyEndZoomOut WorldMapResultStateGrandGalaxyEndZoomOut::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateGrandGalaxyEndWait WorldMapResultStateGrandGalaxyEndWait::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStateGrandGalaxyEndWait::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(pSpine->mExecutor)->exeZoomOut();
+    }
+
+    void WorldMapResultStateGrandGalaxyEndZoomOut::execute(Spine* pSpine) const {
 #ifdef GALAXY_NATIVE
-    void WorldMapResultStateGrandGalaxyEndWait::execute(Spine* spine) const {
-        auto* state = reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(spine->mExecutor);
+        auto* state = reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(pSpine->mExecutor);
         PetariWmRouteDiag::bodyState("WorldMapResultStateGrandGalaxyEnd::exeWait", state);
         state->exeWait();
-    }
-    WorldMapResultStateGrandGalaxyEndWait WorldMapResultStateGrandGalaxyEndWait::sInstance ATTRIBUTE_WEAK;
 #else
-    WMR_NERVE_DEF(WorldMapResultStateGrandGalaxyEndWait, WorldMapResultStateGrandGalaxyEnd, Wait);
+        reinterpret_cast<WorldMapResultStateGrandGalaxyEnd*>(pSpine->mExecutor)->exeWait();
 #endif
+    }
 };  // namespace NrvWorldMapResultStateGrandGalaxyEnd

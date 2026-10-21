@@ -109,7 +109,7 @@ def unpack(root, archive, members, destination):
     with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as stream:
         for member in stream:
             relative(member.name)
-            need(member.isfile() and not member.pax_headers and member.name in members
+            need(member.type in (tarfile.REGTYPE, tarfile.AREGTYPE) and not member.pax_headers and member.name in members
                  and member.name not in seen, 'unsafe/duplicate/unexpected archive member')
             need(0 < member.size <= 64*1024**2, 'member size')
             total += member.size
@@ -477,6 +477,7 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
     recipe = json_bytes(evidence['recipe'])
     exact(recipe, {'contract', 'actual_result', 'owned_process_cleanup', 'import_status',
                    'source_controls_append_bytes'}, 'recipe fields')
+    need(recipe['import_status'] == 'PENDING_INDEPENDENT_L_DISPATCH_IMPORT', 'recipe import mode')
     contract = recipe['contract']
     need(sha(canonical(contract)) == trust['contract_sha256'], 'unreviewed producer contract')
     need(contract['plans'] == trust['plan_pins'] and contract['before'] == spec['base']
@@ -488,6 +489,7 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
                    'actual_ELF_controls', 'actual_config_controls', 'seconds'}, 'actual result fields')
     need(result['status'] == 'FULL_PAIR_COMPONENTS_COMPLETE_IMPORT_PENDING' and
          result['contract_sha256'] == trust['contract_sha256'], 'incomplete actual result')
+    exact(result['phases'], {'before', 'after'}, 'actual phase scope')
     cleanup = recipe['owned_process_cleanup']
     need(cleanup['all_owned_groups_absent'] is True and not cleanup['remaining_pgids']
          and not cleanup['failures'] and cleanup['execution_error'] is None, 'incomplete owned cleanup')
@@ -508,12 +510,14 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
     units = json_bytes(evidence['unit_manifest'])
     exact(units, {'spec_units', 'phases', 'qualified_object_pins', 'actual_evidence',
                   'primary_control_evidence'}, 'unit manifest fields')
+    exact(units['actual_evidence'], {'before', 'after'}, 'phase provenance scope')
     need(units['spec_units'] == spec['units'] and units['phases'] == result['phases']
          and units['qualified_object_pins'] == contract['qualified_objects'], 'unit provenance')
     spec_compare = json_bytes(evidence['spec_comparison'])
     exact(spec_compare, {'original_spec_sha256', 'independent_spec_sha256', 'parsed_equal',
                          'actual_phase_specs'}, 'independent spec evidence fields')
     need(spec_compare['original_spec_sha256'] == sha(trust['spec_bytes'])
+         and spec_compare['independent_spec_sha256'] == sha(trust['spec_bytes'])
          and spec_compare['parsed_equal'] is True, 'independent spec comparison')
     for phase in ('before', 'after'):
         expected = copy.deepcopy(spec)
@@ -576,7 +580,10 @@ def verify(receipt_bytes, root, trust, sources, original_dol):
                             'dependency-hashes.json', 'objects.json'}, 'phase evidence fields')
             actual = {n: artifact(root, rec) for n, rec in records.items()}
             graph = sha(actual['build.ninja'])
-            need(all(graph == plans[s]['bindings']['graphs'][phase] for s in SCOPES), 'actual graph hash')
+            need(all(graph == plans[s]['bindings']['graphs'][phase] for s in SCOPES)
+                 and result['phases'][phase]['graph_sha256'] == graph, 'actual graph hash')
+            need(result['phases'][phase]['dependency_hashes_sha256'] == sha(actual['dependency-hashes.json']),
+                 'reported dependency manifest hash')
             commands_check(actual['commands.txt'].decode(), trust['command_tokens'][phase])
             dependency_check(actual['deps.txt'].decode(), json_bytes(actual['dependency-hashes.json']),
                              phase, rev, sources, spec['toolchain'])

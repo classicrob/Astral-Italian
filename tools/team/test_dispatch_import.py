@@ -47,6 +47,7 @@ class Transport(unittest.TestCase):
             [('/absolute', b'ELF', tarfile.REGTYPE)],
             [('a', b'ELF', tarfile.SYMTYPE)],
             [('a', b'ELF', tarfile.LNKTYPE)],
+            [('a', b'ELF', tarfile.GNUTYPE_SPARSE)],
             [('a', b'ELF', tarfile.REGTYPE), ('a', b'ELF', tarfile.REGTYPE)],
             [('unexpected', b'ELF', tarfile.REGTYPE)], [],
         ]

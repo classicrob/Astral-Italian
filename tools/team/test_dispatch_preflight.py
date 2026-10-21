@@ -59,4 +59,16 @@ class Lifecycle(unittest.TestCase):
     with p.OwnedJob(Path(d),0.02):p.time.sleep(0.2)
    result=p.json.loads((Path(d)/'owned-process-cleanup.json').read_text());self.assertIn('TimeoutError',result['execution_error'])
 
+class ChildMask(unittest.TestCase):
+ def test_child_exec_restores_prior_signal_mask(self):
+  import tempfile
+  from pathlib import Path
+  original=p.signal.pthread_sigmask(p.signal.SIG_BLOCK,set())
+  with tempfile.TemporaryDirectory() as d:
+   with p.OwnedJob(Path(d),5) as job:
+    job.run([p.sys.executable,'-c','import json,signal;print(json.dumps(sorted(int(s) for s in signal.pthread_sigmask(signal.SIG_BLOCK,set()))))'],log='child-mask.json')
+   actual=p.json.loads((Path(d)/'child-mask.json').read_text())
+   self.assertEqual(actual,sorted(int(s) for s in original))
+  self.assertEqual(p.signal.pthread_sigmask(p.signal.SIG_BLOCK,set()),original)
+
 if __name__=='__main__':unittest.main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Bounded THREE-TU qualification only. No full-tree/certificate/landing authority."""
-import argparse,copy,fcntl,hashlib,importlib.util,json,os,re,shutil,signal,struct,subprocess,sys,time
+import argparse,copy,fcntl,hashlib,importlib.util,json,os,re,shutil,signal,struct,subprocess,sys,threading,time
 from pathlib import Path
 BASE='33e71ee880b426c0c7da03a724377200e874c417'
 TIP='22d4c005612f83dc70a2a187c2b1a426ada66296'
@@ -80,9 +80,10 @@ class OwnedJob:
   self.remaining()
   with (self.work/log).open('ab') as f:
    # Block handlers through spawn+registration so unwind always knows the PGID.
+   assert threading.active_count()==1,'child preexec mask restoration requires single Python thread'
    mask=signal.pthread_sigmask(signal.SIG_BLOCK,set(self.previous))
    try:
-    proc=subprocess.Popen(argv,cwd=cwd,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+    proc=subprocess.Popen(argv,cwd=cwd,stdout=f,stderr=subprocess.STDOUT,start_new_session=True,preexec_fn=lambda:signal.pthread_sigmask(signal.SIG_SETMASK,mask))
     self.groups[proc.pid]=proc
    finally:signal.pthread_sigmask(signal.SIG_SETMASK,mask)
    code=proc.wait(timeout=self.remaining())

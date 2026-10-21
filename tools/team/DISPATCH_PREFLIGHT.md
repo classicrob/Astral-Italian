@@ -13,9 +13,9 @@ executables AND compiler support files, wrappers/assembler/tools and three
 reviewed decoder modules. These are hash-checked again before execution and after
 qualification. No old object or dependency file is copied.
 
-Prepared M1 directory: ~/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r3
+Prepared M1 directory: ~/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r4
 Plan canonical-JSON SHA256:
-022728212c821f48faa3778bba8de5e13dd2c63bd2e0c9f6de5a2f4f970e39b1
+0f5acc3b5ada9350c4b527329dbacc3a8a203aeb65fa15d707f3a4f173829950
 
 After independent review and PORT allocation only:
 
@@ -23,16 +23,18 @@ After independent review and PORT allocation only:
 nice -n 19 python3 tools/team/dispatch_preflight.py \
   --repo /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/proof-wm-dispatch-source \
   --spec /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-proof-design/canonical-33e71-22d4-spec.json \
-  --output /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r3 \
+  --output /Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-preflight-r4 \
   --dol /Users/roberthaisfield/MacioGalaxy2-gamedata/SB4E01-extracted/sys/main.dol \
-  --execute-plan-sha256 022728212c821f48faa3778bba8de5e13dd2c63bd2e0c9f6de5a2f4f970e39b1
+  --execute-plan-sha256 0f5acc3b5ada9350c4b527329dbacc3a8a203aeb65fa15d707f3a4f173829950
 ```
 
 The script itself acquires native.lock nonblocking, requires nice19 and 50GiB
 free. Six sequential fresh object compiles only, j1. Expected 30–90s; hard
 global execution budget 420s, including in-process postcompile controls.
 TERM/INT/HUP unwind through the owned-group cleanup; spawn+registration masks those
-signals and ALRM until the new PGID is registered. Every execution child (including
+signals and ALRM until the new PGID is registered. In the child, a minimal
+preexec restores the prior mask before exec; the parent also restores its mask.
+The runner requires one Python thread before this single-thread-only preexec seam. Every execution child (including
 git/Ninja metadata commands) is in a recorded new process group. Leader exit alone
 never proves worker exit. Cleanup signals the whole group TERM, then KILL if needed,
 reaps the leader and confirms killpg(PGID,0) reports absence; otherwise it fails
@@ -66,13 +68,14 @@ prepare mode or the Python model checks.
 - Eight separate config controls: wrong address and wrong size for each of four
   mapped execute records. Unapproved config remainder cannot change.
 
-The Python tests are preparation evidence only: five test methods cover all
+The Python tests are preparation evidence only: six test methods cover all
 four permitted records, remainder and symbol-field rejection plus map identity,
 wrong address/size, duplicate and config remainder rejection. They do NOT discharge
 real ELF controls. Additional lifecycle tests model an exited leader with a surviving
 worker (TERM then KILL and whole-group absence), deliver real TERM/INT/HUP to the
 Python test process to verify unwind, and exercise the actual global ALRM during
-in-process work. The surviving-worker case is mocked: it is not actual job cleanup
+in-process work. A tiny Python child also reports its actual post-exec signal mask,
+which must equal the original parent mask (and the parent mask must be restored). The surviving-worker case is mocked: it is not actual job cleanup
 evidence. Actual compile and all native/ELF controls are UNRUN at sealing.
 
 ## Output and cleanup

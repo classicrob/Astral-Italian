@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "type": "DISABLED_FULL_CANDIDATE_SOURCE_ACCEPTANCE_NOT_EXECUTION_CONTRACT",
+  "execution_enabled": false,
+  "canonical_spec_sha256": "3b0975d48ca4354862814f13de004121fb16fbc1b90f87fb8e9f78a65155f8d9",
+  "before": "33e71ee880b426c0c7da03a724377200e874c417",
+  "after": "22d4c005612f83dc70a2a187c2b1a426ada66296",
+  "immutable_old_contract_sha256": "216b46dea8f3ad530d9d4e7e5bd3b44d047098364bd81332830d1b83c97242ef",
+  "source_files": {
+    "dispatch_fullproof.py": "811ce4ca9616638847e4c0545532d065e9b6c09613a91c40d46775aeeb251288",
+    "dispatch_package.py": "b806b990cf121218b8e9844d4259ff79b363c6f79ba3641c7acca9620db972c8",
+    "dispatch_full_budget.py": "dfaf03f90d38f379e2e5ef3d3ebc47455ee88eb41c3f22788d091a345e1d9ec1",
+    "test_dispatch_full_budget.py": "b0a74c1b634f9224f81c37806eb0aa6109a0c85374510e542d63ed98d170875d",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "dispatch_artifacts.py": "a31f35f4321c3d6a276fb6d84a32567612887a0d338bf6d02fe73330082afa3e",
+    "dispatch_fullcheck.py": "fe4db0c8bcd9e74ff3eba3e4fb5109c73277c0ce47755b00433d87e4d0c68c59",
+    "DISPATCH_FULL_INTEGRATION.md": "910f29b9994f42c7978a3df30cc8dfe0fad3f64be3737807e8bd242129c4a047"
+  },
+  "accepted_disposable_component": {
+    "source": "7c9ab833",
+    "plan_sha256": "566fe968de003b6a1df0b05c51e0d3052500a502eedd750610d536996abdd160",
+    "release_receipt_sha256": "e5f81c3bf24f96670ccfe18b7c350d118eea16aaf499edebee3bd3c6c1d8abf9",
+    "independent_review_path": "SERVER scratch-port/solL/dispatch-v7-actual-diagnostic-review.json",
+    "scope": "six actual+14 model disposable diagnostic only; independently accepted by L"
+  },
+  "importer": {
+    "commit": "88327e4f",
+    "files": {
+      "dispatch_import.py": "65418a1e81ff0b078c00daed9f1988ea83ccc5e1688c6bd72dfb3f4e21df20ff",
+      "DISPATCH_IMPORT.md": "67642f9d8d1121ac4b1dff71b399211f329cf9141b6084ba17ac67177afa0b77",
+      "dispatchproof.py": "bd1617ac3554b7488ba3116aa2266023ad865532ee1e99717dac4482374e6236",
+      "dispatchownership.py": "495a8c51653dfcf91280345a29151b4389d408623965cd75dd6bacbe523cc678",
+      "objsame.py": "e6d883e7ef93eda2e5547d37b93527d1108ba2b615e2f6fb6b7a72fbaf1a2380"
+    },
+    "operator_trust_fields": [
+      "spec_bytes",
+      "tip",
+      "host",
+      "plan_pins",
+      "contract_sha256",
+      "verifier_tools",
+      "command_tokens"
+    ],
+    "production_hook": "NOT_INSTALLED_OR_AUTHORIZED"
+  },
+  "source_model_checks": {
+    "tests": 4,
+    "seconds": 0.004,
+    "result": "PASS filesystem/source only; no children/signals/lock",
+    "syntax": "py_compile PASS",
+    "diff_check": "PASS"
+  },
+  "remaining_gates": [
+    {
+      "id": "generic_identity",
+      "status": "UNIMPLEMENTED_UNQUALIFIED; source run() hard refuses",
+      "minimum": "per-launch selfreport+registered kernel group/session+argv/tool pins+ack-before-exec, exact Ninja/shell/wibo group audit; separate <=60s actual chosen-tool first-stage review/allocation"
+    },
+    {
+      "id": "budget_scan",
+      "status": "FINITE SOURCE CHECKS; sampling/syscall latency remains documented limit",
+      "minimum": "review finite200000-entry/2s scan; missing/error/baseline no-process checks, owned local root and global work checks"
+    },
+    {
+      "id": "packaging_monitor_binding",
+      "status": "OPEN_IMPORTER_CHANGE_REVIEW_REQUIRED",
+      "minimum": "original root baseline across package, final successful monitor+exit artifact must be operator-bound/independently verified; L883 not yet requires it"
+    },
+    {
+      "id": "independent_commands",
+      "status": "L_TOKENS_SEALED_ROOT_ENV_CONTEXT_PENDING",
+      "minimum": "Exact phase roots, transform_dep622a2c65, proposed fixedPATH/context-r2 before actual execution; operator expectations d41b3508 remain independent."
+    },
+    {
+      "id": "full_contract_and_allocation",
+      "status": "NOT_PREPARED_OR_ALLOCATED",
+      "minimum": "exact new immutable contract/source/plan/caller+importer review then explicit PORT fullallocation; old216b stays disabled"
+    },
+    {
+      "id": "actual_full_package_import",
+      "status": "UNRUN",
+      "minimum": "fresh2426+2426/2424strict+twoDOLenvelopes/allreferenceclosure/bothsourcecontrols/26+8negatives/4855+3ELFs+sixprovenance+taggedcert only; independent L realpackage verification"
+    }
+  ],
+  "no_game_or_raw_worker_data_access": true,
+  "independent_commands": {
+    "status": "L_SEALED_TOKEN_EXPECTATIONS_PENDING_FINAL_PHASE_ROOT_AND_ENV_CONTEXT",
+    "sha256": "d41b350898e0ccb1f15fd59e0e24ef0d32b6eaf5ffbb471f7d19000bf97dacb0",
+    "graph_sha256": "67e483c6dbb4b864718a842a7acaaed75d6284ca3f0ed30f823c317bd905de69",
+    "command_context_r2_sha256": "d6d71bc295a418dfcecf5bea650a49ce8cd468bb46c57a0c12b7528421e47702",
+    "transform_dep_sha256_both_phases": "622a2c65f9b10a836c8af3c36ff2db770f5739e1c0285f5f004b82867c965d9f",
+    "remaining": "Pin final phase roots; enforce exact minimal PATH/shebang/interpreter/tool resolution in new caller. No execution/tool substitution."
+  }
+}

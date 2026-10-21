@@ -115,3 +115,33 @@ private values were not read, copied or mirrored by P. Compiler/four-command
 operator remains NULL and no control mapping is reused for that scope. Child,
 case, batch, CLI and helper import refusal remain; runtime admission/validation
 needs reviewed source change, not a bool-only edit. Prior dd27 source is retained.
+
+## Control-only runtime source supplement after L review3a90a38d
+
+Disabled control plan now pins actual M1 Python c33fec4b/path/resolution. Source
+image bytes were rehashed; no tool/context child was run. Separate runtime
+validation requires the enabled bit plus the same fixed source/operator/helper/
+case fields. Parent requires the root absent; child requires UID-owned0700 root
+and tmp, fixedcwd and exact source/Python/operator checks before identity and
+again after EOF. Default CLI still validates DISABLED then unconditionally refuses;
+control batch/case/child still refuse. Runtime validator presence is not admission.
+
+A control-only helper loader checks all four1MiB-bounded source hashes before and
+after import, rejects preloaded ambient modules, records each actual __file__
+resolution, suppresses bytecode writes and restores sys.path/bytecode policy.
+Tests inspect this source only; helper modules have not been imported. Production
+fixed.load_helper and all fixed payload refusals remain unchanged. Runtime parent
+would explicitly clear/set its environment from the exact independent operator,
+compare all nine keys, and pass that same mapping to the gate; no ignored extras
+or ambient/default value admission. Value-bearing records stay private M1.
+
+CLI_STARTED precedes the remaining module imports. Source validation, interpreter,
+operator and helper work count toward23s; new work/spawn stops at that cutoff.
+One active gate gets the reserved12s directwait + existing6s helper interval;
+4s terminal reserve closes45total. Previous case cleanup consumes the same work
+clock before another spawn. Completion + terminal report, process exit/stdout and
+absence of terminal-failure.json jointly establish a future timed result. The
+post-write clock is checked; any overrun preserves a failure record. These remain
+sampled bounds with explicit syscall-stall limitations, not a universal hard
+kernel latency guarantee. No budget increase, new signal mechanism or control
+execution. Thirteen source/model tests passed; all actual controls UNRUN.

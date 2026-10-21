@@ -99,7 +99,7 @@ class FixedModels(unittest.TestCase):
         controls.validate_disabled(plan)
         changed=copy.deepcopy(plan);changed['execution_enabled']=True
         with self.assertRaises(RuntimeError):controls.validate_disabled(changed)
-        for fn,args in [(controls.run_controls,({},None,None)),(controls.run_case,('identity-eof',{},None,None,None,None,None,None)),(controls.gate,(None,None,None,None))]:
+        for fn,args in [(controls.run_controls,({},None,None,0.0)),(controls.run_case,('identity-eof',{},None,None,None,None,None,None)),(controls.gate,(None,None,None,None))]:
             with self.assertRaisesRegex(RuntimeError,'CONTROLS REFUSED'):fn(*args)
         tree=ast.parse(Path(controls.__file__).read_text())
         for node in ast.walk(tree):
@@ -109,6 +109,28 @@ class FixedModels(unittest.TestCase):
         self.assertNotIn("write(b'G')",rendered)
         self.assertNotIn('sup.stop_all()',rendered)
         self.assertIn('os_signal_test',rendered)
+    def test_runtime_contract_and_budget_models(self):
+        from unittest.mock import patch
+        plan=json.loads(Path(f.__file__).with_name('GXINIT_BEFORE_G_CONTROL_PLAN.json').read_bytes())
+        runtime=copy.deepcopy(plan);runtime['execution_enabled']=True
+        with patch.object(controls,'validate_root') as root,patch.object(controls,'verify_python') as python:
+            controls.validate_runtime(runtime,'child');root.assert_called_with('child');python.assert_called_with(plan['python'])
+        for field,value in [('python',{}),('operator',{}),('cases',[]),('limits',dict(plan['limits'],work_seconds=45)),('base_env',dict(plan['base_env'],LANG='en_US'))]:
+            bad=copy.deepcopy(runtime);bad[field]=value
+            with self.assertRaises(RuntimeError):controls.validate_runtime(bad,'parent')
+        controls.work_clock(100.0,122.999)
+        for now in (99,123,145,float('nan'),float('inf')):
+            with self.assertRaises(RuntimeError):controls.work_clock(100.0,now)
+        self.assertEqual(sum(plan['limits'][x] for x in ('work_seconds','cleanup_reserve_seconds','terminal_reserve_seconds')),45)
+    def test_control_only_loader_boundaries_without_import(self):
+        tree=ast.parse(Path(controls.__file__).read_text())
+        loader=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='load_control_helper')
+        text=ast.unparse(loader)
+        self.assertLess(text.index('before = helper_hashes'),text.index('importlib.import_module'))
+        self.assertLess(text.index('importlib.import_module'),text.index('after = helper_hashes'))
+        self.assertIn('module.__file__',text);self.assertIn('sys.dont_write_bytecode = True',text)
+        self.assertNotIn('fixed.load_helper(',ast.unparse(tree))
+        with self.assertRaisesRegex(RuntimeError,'EXECUTION REFUSED'):f.load_helper({})
     def test_dependencies_and_missing_unknown_inputs(self):
         root='/fixture';source=root+'/candidate.cpp';names=[source,root+'/required.h']
         contract={'mandatory_paths_common':[names[1]],'allowed_resolved_roots':[root],'max_dependencies_per_arm':5,'max_total_dependency_bytes_per_arm':100}

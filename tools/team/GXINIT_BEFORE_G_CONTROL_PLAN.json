@@ -5,6 +5,9 @@
   "cwd": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/gxinit-before-g-controls-v1",
   "limits": {
     "total_seconds": 45,
+    "work_seconds": 23,
+    "cleanup_reserve_seconds": 18,
+    "terminal_reserve_seconds": 4,
     "maximum_allocated_bytes": 67108864,
     "minimum_free_bytes": 53687091200,
     "metadata_reserve_bytes": 65536,
@@ -14,7 +17,7 @@
     "helper_cleanup_interval_seconds": 6
   },
   "sources": {
-    "gxinit_before_g_controls.py": "a685e28ea40f59d94b4578e813afa97ff87a4fddfc9693f56fe8da354cb408d3",
+    "gxinit_before_g_controls.py": "1f92741b8c932c115ec1cd6efbc7f1fffcbbd2f5c3d06a68d8d1ed228fa4ebd8",
     "gxinit_fixed_four.py": "22f66e9514154a0ed84b361d4131c69bd482add3a1a7f16b386301f83135ed26",
     "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea"
   },
@@ -47,5 +50,10 @@
     "identity-eof",
     "registered-parent-unwind"
   ],
-  "scope": "BEFORE_G_ONLY_NO_PAYLOAD_NO_COMPILER"
+  "scope": "BEFORE_G_ONLY_NO_PAYLOAD_NO_COMPILER",
+  "python": {
+    "path": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+    "resolved": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+  }
 }

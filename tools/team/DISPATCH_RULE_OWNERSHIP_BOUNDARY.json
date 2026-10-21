@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "status": "SOURCE_ONLY_BLOCKED_FIXED_INPUTS_LACK_PREWORK_ACK",
+  "document": {
+    "path": "tools/team/DISPATCH_RULE_OWNERSHIP_BOUNDARY.md",
+    "sha256": "d50368a3320bf4f8b222045ad4f5abb2b777f6df3099710e1511f760714d91a7"
+  },
+  "baseline_commit": "2641a55f",
+  "implementation": "none",
+  "execution": "none",
+  "hard_refusals": "unchanged",
+  "full827": "unchanged/disabled",
+  "source_binding": {
+    "path": "tools/team/DISPATCH_NINJA_LIFECYCLE.json",
+    "sha256": "da03a69b9ddea500c8f2c36dfc53b196c214da1a4927681c7a0ab4c865a83574"
+  },
+  "wrapper_pin": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+    "sha256": "92f14bb8f9ddb6ee21d280561eff0026dcd3b93c409198a867e67c47b8628664"
+  }
+}

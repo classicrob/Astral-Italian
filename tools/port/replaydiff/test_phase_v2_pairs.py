@@ -157,6 +157,13 @@ class PhaseV2Tests(unittest.TestCase):
                 with p.open('w') as f:writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
                 x['trace']=bind(p)
             self.changed(e,'native','ready',change);self.blocked(e)
+    def test_transparent_native_viewport_cannot_become_content_pair(self):
+        for alpha in (0,254):
+            e=copy.deepcopy(self.base);p=self.root/f'transparent-{alpha}.png'
+            Image.new('RGBA',(32,18),(80,100,120,alpha)).save(p)
+            def change(x):x['image']=bind(p);x['png']['sha256']=bind(p)['sha256']
+            self.changed(e,'native','publication',change)
+            self.assertIn('transparent native viewport',self.blocked(e)['error'])
     def test_valid_content_difference_is_not_input_or_gameplay_failure(self):
         e=copy.deepcopy(self.base)
         p=self.root/'different-content.png';Image.new('RGB',(32,18),(200,20,20)).save(p)

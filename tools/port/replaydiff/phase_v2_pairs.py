@@ -141,7 +141,10 @@ def native_chain(e,producer):
     for key,value in dict(submit_id=submit['id'],success=True,callback_completed=True).items():same(mapped.get(key),value,'native map completion unproven: '+key)
     png=e['png'];image=bound_file(e['image'])
     with Image.open(image) as pixels:
-        same(pixels.format,'PNG','native artifact is not PNG');size=pixels.size;pixels.verify()
+        same(pixels.format,'PNG','native artifact is not PNG');pixels.verify()
+    with Image.open(image) as pixels:
+        pixels.load();size=pixels.size
+        require(pixels.convert('RGBA').getchannel('A').getextrema()==(255,255),'transparent native viewport')
     for record in (encoded,mapped,png):
         same(record['width'],size[0],'native width mismatch');same(record['height'],size[1],'native height mismatch')
     for key in ('write_success','flush_success','close_success','verified_temp_bytes','published_inode_verified','temp_link_removed'):same(png.get(key),True,'native checked PNG publication missing: '+key)

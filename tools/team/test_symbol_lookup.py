@@ -21,7 +21,7 @@ class LookupTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'native/app/frame_seam.cpp';p.parent.mkdir(parents=True);p.touch()
             text="Line info: file 'native/app/frame_seam.cpp', line 792, column 1"
-            self.assertEqual(lookup_witness(text,[p])[0]['normalized_file'],str(p))
+            self.assertEqual(lookup_witness(text,[p])[0]['normalized_file'],str(p.resolve()))
             with self.assertRaises(ValueError):lookup_witness(text,[p,p])
             p.unlink()
             with self.assertRaises(ValueError):lookup_witness(text,[p])

@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "total_seconds": 60,
+  "work_seconds": 20,
+  "cleanup_seconds": 4,
+  "maximum_allocated_bytes": 67108864,
+  "minimum_free_bytes": 53687091200,
+  "completion_reserved_bytes": 65536,
+  "status": "DISABLED_DESCENDANT_TIMEOUT_UNQUALIFIED",
+  "execution_enabled": false,
+  "root": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-direct-rule-v1",
+  "labels": [
+    "official_direct_rule"
+  ],
+  "source_files": {
+    "dispatch_direct_profile.py": "94cd5680c9007d34189d80128c936b57f43db6ae32f79c1ffa4a0383f2b51ed0",
+    "dispatch_direct_gate.py": "73a6d01d7dca1308d4a844340dcf546d373e15505d02c10ab4dad97ca19ce554",
+    "dispatch_direct_chosen.py": "f60ac4f29df76cec362483d742cce679cc83f7bc1586dc76eca3753d4abf2bc0",
+    "dispatch_platform_exact.py": "58bda5e316b6cf9602b9b7b85952ab0c090296b87a857b3787f0b92b812818ea",
+    "dispatch_full_budget.py": "b392e6d9723ad64f0eae915c131274b6fac157089a974e94d9b0adb5b44ab6bc",
+    "dispatch_exec_gate.py": "d6967d647c2279d89a7b44b2891ec085da23d8a11a297f33e7c10cb6fb6a47cb",
+    "dispatch_budget.py": "166df6ad94ae91090702aa931c35cedd766dca5d505ce2c028c0e6219f43f1a0",
+    "dispatch_preflight.py": "adfaae0ee51350fedb883937ae887f1f1d443f986b0c4b98f334894f266c1d72"
+  },
+  "authority": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solL/dispatch-direct-rule-authority-r1/AUTHORITY.json",
+    "sha256": "b315336764984939a563cb6fc291b2efdd1f7b2ecb8be962b3114c38fbeafee2"
+  },
+  "operator": {
+    "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solL/dispatch-platform-operator-r3/operator.json",
+    "sha256": "68ff3c2b5ceb5ee2cd19cd8ef32f6ee67c6239be5da8059835ad0c5ad5250054"
+  },
+  "full_env_sha256": "151562af2c18e8bba0714c3883ab5f9371169b7013eceeb174376e7f4546cf06",
+  "base_env": {
+    "HOME": "/Users/roberthaisfield",
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TMPDIR": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-direct-rule-v1/tmp",
+    "PYTHONCOERCECLOCALE": "0",
+    "PYTHONUTF8": "1",
+    "PYTHONNOUSERSITE": "1"
+  },
+  "python": {
+    "resolved": "/opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+  },
+  "tools": {
+    "sh": {
+      "path": "/bin/sh",
+      "sha256": "e5dec01b6a80f735dd4098cf5e2c335f48440a641395e36453dbd7fd9bb1c19e"
+    },
+    "wibo": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo",
+      "sha256": "92f14bb8f9ddb6ee21d280561eff0026dcd3b93c409198a867e67c47b8628664"
+    },
+    "wibo_real": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo.real",
+      "sha256": "bfb53e13706506fef31c331a1b4312af84a5c71af451f0cafe42c5511b2acbe4"
+    },
+    "sjiswrap": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe",
+      "sha256": "01d50fa1148cfc3c3b16658c6c9b1c0d9f5324cde79ed6c09ef8353af9d63adf"
+    },
+    "compiler": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe",
+      "sha256": "88b1cb542abc17a99f1087cbfc1daa4b5da2ef5ea8204410b7d766ce08ec3e71"
+    },
+    "python_command": {
+      "path": "/opt/homebrew/opt/python@3.15/bin/python3.15",
+      "sha256": "c33fec4bd58962690baa18120ba966eecb7ca98bd329d8d94c342e861351fdab"
+    },
+    "transform_dep": {
+      "path": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/proof-wm-dispatch-source/tools/transform_dep.py",
+      "sha256": "622a2c65f9b10a836c8af3c36ff2db770f5739e1c0285f5f004b82867c965d9f"
+    }
+  },
+  "commands": [
+    [
+      "/bin/sh",
+      "-c",
+      "/Users/roberthaisfield/MacioGalaxy2/build/tools/wibo /Users/roberthaisfield/MacioGalaxy2/build/tools/sjiswrap.exe /Users/roberthaisfield/MacioGalaxy2/build/compilers/Wii/1.0/mwcceppc.exe -nodefaults -proc gekko -align powerpc -enum int -fp hardware -Cpp_exceptions off -O4,s -inline auto -pragma \"cats off\" -pragma \"warn_notinlined off\" -maxerrors 1 -nosyspath -RTTI off -str reuse -enc SJIS -sdata 4 -sdata2 4 -ipa file -sym on -i include -i libs/JSystem/include -i libs/MSL_C++/include -i libs/MSL_C/include -i libs/MetroTRK/include -i libs/RVLFaceLib/include -i libs/RVL_SDK/include -i libs/Runtime/include -i libs/nw4r/include -i build/SB4E01/include -DVERSION=0 -DRMGK01=0 -DRMGJ01=1 -DRMGE01=2 -DRMGP01=3 -lang=c++ -MMD -c src/Game/System/solPCompilerContext.cpp -o build/SB4E01/src/Game/System && \"/opt/homebrew/opt/python@3.15/bin/python3.15\" tools/transform_dep.py build/SB4E01/src/Game/System/solPCompilerContext.d build/SB4E01/src/Game/System/solPCompilerContext.d"
+    ]
+  ],
+  "cwd": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-port/solP/dispatch-platform-direct-rule-v1/fixture",
+  "substitution_spans_in_original": [
+    {
+      "after": "src/Game/System/solPCompilerContext.cpp",
+      "before": "src/Game/System/WorldMapResultTU13.cpp",
+      "offset": 729
+    },
+    {
+      "after": "build/SB4E01/src/Game/System/solPCompilerContext.d",
+      "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.d",
+      "offset": 873
+    },
+    {
+      "after": "build/SB4E01/src/Game/System/solPCompilerContext.d",
+      "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.d",
+      "offset": 923
+    }
+  ],
+  "output_binding": {
+    "after": "build/SB4E01/src/Game/System/solPCompilerContext.o",
+    "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.o"
+  },
+  "depfile_binding": {
+    "after": "build/SB4E01/src/Game/System/solPCompilerContext.d",
+    "before": "build/SB4E01/src/Game/System/WorldMapResultTU13.d"
+  },
+  "source_fixture_sha256": "7a8b013d4a67e06a8f2c17d4e6229d73cafb0518c5b1d147b1e373e537403079"
+}

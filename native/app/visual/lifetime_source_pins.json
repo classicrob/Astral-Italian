@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "status": "SOURCE_REVIEW_PENDING_NO_INSTALLATION",
+  "qualification": "BLOCKED",
+  "qualified_frames": null,
+  "document": {
+    "path": "native/app/visual/NO-XFB-LIFETIME-CONTRACT.md",
+    "sha256": "8be0b04bd615a2e3c368abdb32fa0dbbc590c495d2499e3d8b118414050292fb"
+  },
+  "files": [
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/platform/os/os_thread.cpp",
+      "bytes": 94552,
+      "sha256": "3cccd04d34d8329461680097a22f98c372160b7b7f96048b80ee1bd48bf92c1a",
+      "git_blob": "2366e3d91ec2c12857cf5dbbf6f6a9aac00f176c"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/platform/os/os_interrupts.cpp",
+      "bytes": 2542,
+      "sha256": "d7624ccb17406aea2b6e2a20799fa0b535f324593d31a46a4ffd95ebe2e7c915",
+      "git_blob": "7d5af84b7f549ab61174abd64349d3537f7476dd"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/platform/os/os_internal.hpp",
+      "bytes": 5550,
+      "sha256": "a40021938be5993e4e10dd5fc7ded3d6c560a8a4cb302d519a3c3000cdf3bbca",
+      "git_blob": "b65d44e834dd16f8f41f2895c1fe0d499d29e8e3"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/src/host_allocation.cpp",
+      "bytes": 25780,
+      "sha256": "37b4aaf5751fab0c44a29dd6719bb0f042c486a51f54139c4f14aa3db68f8b50",
+      "git_blob": "7d190f506a67db4b1ca64005688a8d1fdf0e6264"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/include/petari/host_allocation.hpp",
+      "bytes": 5112,
+      "sha256": "2c26d6e9be83793d19389d41f42ea7b8a1eba2787a3e8f30722e2511682af79a",
+      "git_blob": "94764a2e3499411dd586868ead2c7a73391ff733"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/platform/include/petari/platform/os_host.hpp",
+      "bytes": 2062,
+      "sha256": "4451cef7a49ab24e582d2edf06091c856c32f2038e5f2d3f78effd7e72e41633",
+      "git_blob": "0ce5dc00e7daf8e16a326ede924d72d8b0cbd717"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/app/platform_host.cpp",
+      "bytes": 5944,
+      "sha256": "f7fe6fb95e09043f8a16107574ffd27ceefa6e3149bd3e21c3e94c040430131d",
+      "git_blob": "ce5af7f76562d3e72abc1efa10208a95b0da533a"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/app/app_main.cpp",
+      "bytes": 60767,
+      "sha256": "14dc7501994e87cf0c98ac9b4ee2999c2fc17a69a9856271ec91bd2c006afd63",
+      "git_blob": "d0552b183b8f4c37b93746aa1d179e64103aa86a"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "native/app/frame_seam.cpp",
+      "bytes": 39698,
+      "sha256": "c4b651ced89717b81cd129061d55a57ff6d0c56b0ed93a06d262803108a238d3",
+      "git_blob": "a267631cb508da4594cac73962d22642e8693de2"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/System/GameSystem.cpp",
+      "bytes": 11167,
+      "sha256": "1ee07d447405f139161368281e4f9721319206f6ed6cebb4eb3fb40535ac9a51",
+      "git_blob": "fe64a614dbd8b7597d912d74be90da1577263b1f"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/System/GameSystemSceneController.cpp",
+      "bytes": 22259,
+      "sha256": "f3356b0d251a9d45e6fd51aa42b980b23be977b9bc5ddad4b0bcf9600aa34bde",
+      "git_blob": "e0ade3dd6228921f5528bc7eeb89ba8f09ef8f72"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/System/FunctionAsyncExecutor.cpp",
+      "bytes": 6983,
+      "sha256": "fcf468009ec0f457c5db888d1875eb7fa750c85031ae3d2ba506e4476dfccba0",
+      "git_blob": "5ec3a0a20c061c5769a1870fb9c1f9b0397dd55b"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "include/Game/System/FunctionAsyncExecutor.hpp",
+      "bytes": 1909,
+      "sha256": "5c417d09c79ad2606743b73c7cfae2f09d50d2060c6f7828f767c505383ea18e",
+      "git_blob": "ced14c6c6efb582db6b91c849969d8b2088ea87e"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/System/MainLoopFramework.cpp",
+      "bytes": 19022,
+      "sha256": "f9cef00d9d8f0c885cc805a8fe643e6f61939c3650d0419109ba16c3995e1ee6",
+      "git_blob": "263d74d68e030e49520bac044825291662c59929"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/LiveActor/Spine.cpp",
+      "bytes": 1078,
+      "sha256": "8ff0366107ea50820cf637377571b6a7971e5655dec4daa5f1a6168282c6f338",
+      "git_blob": "965331501f0f1d8753f4246d95afddfb22368539"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "include/Game/LiveActor/Nerve.hpp",
+      "bytes": 4662,
+      "sha256": "8a0e574107f34a87d268fc537b64e1a0a856f0e0514435cee71785312cd0f544",
+      "git_blob": "e02f635d022039d63f0c632011391c9b013cc58b"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/Util/SystemUtil.cpp",
+      "bytes": 7615,
+      "sha256": "9e86046143e23726112057268f294d2665bad566f8d7acdac20df8ce5b32cb64",
+      "git_blob": "c6baf48ca27151e28b0c605fe7f6e7a738264dbf"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "include/Game/Util/SingletonHolder.hpp",
+      "bytes": 973,
+      "sha256": "e1d64bad4a49ebdd2fdeaa22dbb18378efef37873d2b8f923136082604ed3730",
+      "git_blob": "3a5efa935c9de1c49cd9fd8e65d373c0d190d71e"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_snapshot_no_xfb.cpp",
+      "bytes": 2358,
+      "sha256": "483b4ded24ab7b76d55bb1ac6813f2c2a48b399cddf1a725702a62e0b6c66b5d",
+      "git_blob": "d008ca72d29392ddfe7a38e03fc7690c82a77ef4"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_snapshot_no_xfb.hpp",
+      "bytes": 245,
+      "sha256": "8ee89beaf3ddb54245f753278795d674ad2d07a76e3734f541f8fd6669721880",
+      "git_blob": "3bd65e4a2f5be6af3eb09f8d95e3c61b5c49aa9e"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_observer.hpp",
+      "bytes": 3486,
+      "sha256": "699e783f23038fbd3931c25396fec0488400e2a80859471f470f87bfe3a533bd",
+      "git_blob": "db8523981d16a8cbb98dacb56d65d02bb16c80fb"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_observer.cpp",
+      "bytes": 4166,
+      "sha256": "ff7e2ae73228b6a8f525dfee37c2b92b559c9bdd5bb087b0da515a4c82fdb7ec",
+      "git_blob": "666f09aebeb82a234d9075c3224822e0f011f3df"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_observer_json.cpp",
+      "bytes": 4167,
+      "sha256": "0e1c3b19034650d004936f8d6d25d8a462ad037998df67553dd8a3ebdfc5c6db",
+      "git_blob": "0d8c3901cdee08da72d31427a2ff9a478f18473d"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_pilot_bridge.hpp",
+      "bytes": 1302,
+      "sha256": "67c1fc39e88ee0064496dd377c8b5e11d3ede65e21dd8319a6ad86d2359fd050",
+      "git_blob": "b362a1fdd98293a5eaffc70683eda33a2d6e95b8"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_pilot_bridge.cpp",
+      "bytes": 2300,
+      "sha256": "f661618b3bd2836e21dfc3d92771248c3277d02baf54f726deac583f6ed52611",
+      "git_blob": "69a526e5cc82f9f5664f3523a8c034452cc93514"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/draw_pilot_host.cpp",
+      "bytes": 1280,
+      "sha256": "27c0e65afe1bbe6c0cf061541a8bba2140d7f3bfa2830c296b153e9fb310ee56",
+      "git_blob": "d1fb29d3c4b21babaf22e1135101b471676898a7"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/PilotIntegration.cmake",
+      "bytes": 1148,
+      "sha256": "9d238f1ea5f5ffcbb2aafc7d92b8608f39efa424e5df04a1feb8d36bed43b206",
+      "git_blob": "66b0a101d5792217c3ca63668ea0af30d27c8b5f"
+    },
+    {
+      "revision": "39c71f41abcbbe44ba0151557974b6b4d70e9324",
+      "path": "native/app/visual/pilot-integration-33e71.patch",
+      "bytes": 1123,
+      "sha256": "3f3bfe0c1000372adf8b79643184408b5e32cd3c716b8799b7a2d9d9f8fc8749",
+      "git_blob": "91660901ed08c30b88efabd3091bf4a63a729b22"
+    },
+    {
+      "revision": "046e6a71afea72c219e1f5d454e606131f99a7e7",
+      "path": "src/Game/System/GameSystem.cpp",
+      "bytes": 11891,
+      "sha256": "9be85fd40abf892386127add3d1fc122bbd76aed716bcb14f44f3f16b952f441",
+      "git_blob": "fc321bf1f5ae72fe323c3fe17d5ace9c82e826f5"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "src/Game/System/OSThreadWrapper.cpp",
+      "bytes": 1394,
+      "sha256": "362913178a3aed56ee16725eaeb5db23876802505818929440e11586ae8ea758",
+      "git_blob": "cd1b6b7bbe7e67a40ec273e859630c6d3397edc1"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "include/Game/System/OSThreadWrapper.hpp",
+      "bytes": 553,
+      "sha256": "0be19431b034e59686778965313b9df25855fc4feba9104a54d671693b666d6c",
+      "git_blob": "245179b6e78aef817afc477f92f116bc5ea93bab"
+    },
+    {
+      "revision": "33e71ee880b426c0c7da03a724377200e874c417",
+      "path": "include/Game/System/GameSystemSceneController.hpp",
+      "bytes": 4370,
+      "sha256": "913904985b55569d889c3ec066df33bf51709e69e3582ae0f96d1762600dcded",
+      "git_blob": "d379f38f0e5fbbc02449aa4dfb46b458e9795d44"
+    }
+  ],
+  "command_metadata": {
+    "sha256": "ddac833b086fe0cee342610f4b4a48c640b45e1a7345a399ba1458f778ae0414",
+    "role": "standalone_compile_plan_not_integrated_app_evidence",
+    "executed": false
+  },
+  "review_questions": [
+    "async17 construction publication and retirement ordering",
+    "whole-callback no-handoff source proof including forced preemption stack classification",
+    "same owner registration/quiescent uninstall and storage lifetime",
+    "616 loop stop versus separately unproved input and CPU-stop receipt"
+  ],
+  "unavailable_proposal": {
+    "applied": false,
+    "reason": "async scene lifetime not proven if whole traversal serialization cannot be established",
+    "fields": [
+      "controller_present",
+      "scene_key",
+      "init_state",
+      "current_scene_nonnull",
+      "executed_scene_nonnull",
+      "executed_scene_is_current",
+      "initialized_game",
+      "canonical_player_valid"
+    ],
+    "consequence": "No ready anchor; no pair; do not reinterpret existing zero values"
+  },
+  "execution": {
+    "native_commands": 0,
+    "lock_acquisitions": 0,
+    "installer_changes": 0,
+    "game_changes": 0,
+    "scheduler_changes": 0
+  }
+}

@@ -5,7 +5,7 @@
 # Files whose content is unchanged by the rebase get their old mtimes back, so ninja only rebuilds what changed.
 # Run from your lane worktree root with a clean tree (commit first).
 set -e
-main="$HOME/MacioGalaxy2"
+main="${LAND_MAIN:-$HOME/MacioGalaxy2}"
 lock="$HOME/MacioGalaxy2-team/land.lock"
 branch=$(git rev-parse --abbrev-ref HEAD)
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "commit your changes first" >&2; exit 1; }
@@ -67,6 +67,10 @@ if [ "$gate_mode" = docs ]; then
   echo "launcher/docs-only change: syntax and class checks passed; Wii build unchanged"
 else
   tools/team/nj.sh -j "${TEAM_BUILD_JOBS:-6}" >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
+  # crossed-dispatch oracle: every vtable slot / nerve binding of the freshly built objects against the original DOL;
+  # new CROSSED/WRONG/CONFLICT rows (or a stale allow-list line after a fix) block the landing
+  python3 tools/team/dispatchcheck.py --quiet --allow tools/team/dispatchcheck-allow.txt --strict \
+    || { echo "dispatch oracle failed: a binding differs from the original DOL (see rows above); update tools/team/dispatchcheck-allow.txt only for reviewed rows" >&2; exit 1; }
 fi
 git -C "$main" merge --ff-only -q "$branch"
 # cache the report of the exact main we just built, so lanes can use it as a regression baseline

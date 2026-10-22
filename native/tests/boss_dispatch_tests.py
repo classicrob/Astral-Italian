@@ -84,7 +84,7 @@ def sandy(phase):
     return code, code.replace(nerves, wrong)
 
 
-FIXTURES = {'KoopaJrRobot': robot, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2)}
+FIXTURES = {'KoopaJrRobot': robot, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
 
 
 def main():

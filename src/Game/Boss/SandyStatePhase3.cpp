@@ -20,24 +20,73 @@ namespace NrvSandyStatePhase3 {
     class SandyStatePhase3NrvDamageClose;
     class SandyStatePhase3NrvOpen;
 
-    NEW_NERVE(SandyStatePhase3NrvStart, SandyStatePhase3, Start);
+    class SandyStatePhase3NrvStart : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase3* actor = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);
+            actor->exeStart();
+        }
+        static SandyStatePhase3NrvStart sInstance;
+    };
     class SandyStatePhase3NrvClose : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
         static SandyStatePhase3NrvClose sInstance;
     };
-    NEW_NERVE(SandyStatePhase3NrvOpen, SandyStatePhase3, Open);
-    NEW_NERVE(SandyStatePhase3NrvOpenWait, SandyStatePhase3, OpenWait);
-    NEW_NERVE(SandyStatePhase3NrvDamage, SandyStatePhase3, Damage);
+    class SandyStatePhase3NrvOpen : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase3* actor = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);
+            actor->exeOpen();
+        }
+        static SandyStatePhase3NrvOpen sInstance;
+    };
+    class SandyStatePhase3NrvOpenWait : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase3* actor = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);
+            actor->exeOpenWait();
+        }
+        static SandyStatePhase3NrvOpenWait sInstance;
+    };
+    class SandyStatePhase3NrvDamage : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase3* actor = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);
+            actor->exeDamage();
+        }
+        static SandyStatePhase3NrvDamage sInstance;
+    };
     class SandyStatePhase3NrvDamageClose : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
         static SandyStatePhase3NrvDamageClose sInstance;
     };
-    NEW_NERVE(SandyStatePhase3NrvThrow, SandyStatePhase3, Throw);
-    NEW_NERVE(SandyStatePhase3NrvThrowBomb, SandyStatePhase3, ThrowBomb);
+    class SandyStatePhase3NrvThrow : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase3* actor = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);
+            actor->exeThrow();
+        }
+        static SandyStatePhase3NrvThrow sInstance;
+    };
+    class SandyStatePhase3NrvThrowBomb : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase3* actor = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);
+            actor->exeThrowBomb();
+        }
+        static SandyStatePhase3NrvThrowBomb sInstance;
+    };
+
+    SandyStatePhase3NrvStart SandyStatePhase3NrvStart::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase3NrvClose SandyStatePhase3NrvClose::sInstance ATTRIBUTE_WEAK;
+    SandyStatePhase3NrvOpen SandyStatePhase3NrvOpen::sInstance ATTRIBUTE_WEAK;
+    SandyStatePhase3NrvOpenWait SandyStatePhase3NrvOpenWait::sInstance ATTRIBUTE_WEAK;
+    SandyStatePhase3NrvDamage SandyStatePhase3NrvDamage::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase3NrvDamageClose SandyStatePhase3NrvDamageClose::sInstance ATTRIBUTE_WEAK;
+    SandyStatePhase3NrvThrow SandyStatePhase3NrvThrow::sInstance ATTRIBUTE_WEAK;
+    SandyStatePhase3NrvThrowBomb SandyStatePhase3NrvThrowBomb::sInstance ATTRIBUTE_WEAK;
 
     inline void SandyStatePhase3NrvClose::execute(Spine* pSpine) const {
         SandyStatePhase3* pState = reinterpret_cast< SandyStatePhase3* >(pSpine->mExecutor);

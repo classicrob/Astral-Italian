@@ -53,7 +53,38 @@ int main() {
     return code, code.replace(nerves, wrong)
 
 
-FIXTURES = {'KoopaJrRobot': robot}
+def sandy(phase):
+    cls = 'SandyStatePhase' + str(phase)
+    source = (ROOT/('src/Game/Boss/' + cls + '.cpp')).read_text()
+    nerves = source[source.index('namespace Nrv' + cls + ' {'):source.index('};  // namespace Nrv' + cls) + 2]
+    states = ['Start', 'Close', 'Throw', 'Open', 'OpenWait', 'Damage', 'DamageClose']
+    if phase == 3: states.append('ThrowBomb')
+    code = '#include "Game/LiveActor/Nerve.hpp"\n#include <cstdio>\n#include <cstdlib>\n#include <cstring>\n#include <initializer_list>\n'
+    code += 'struct ' + cls + ' { const char* called = ""; bool ready = false; const Nerve* next = nullptr;\n'
+    code += 'void setNerve(const Nerve* n) { next = n; }\n'
+    for name in ['Start', 'Damage'] + (['Throw', 'ThrowBomb', 'Open', 'OpenWait'] if phase == 3 else []):
+        code += 'void exe' + name + '() { called = "' + name + '"; }\n'
+    code += '};\n'
+    code += 'bool sandyStateClose(' + cls + '* p, bool damage) { p->called = damage ? "DamageClose" : "Close"; return p->ready; }\n'
+    code += 'bool sandyStateThrow(' + cls + '* p, int count, int delay, bool alt) { p->called = "Throw"; if (count != ' + str(3 if phase == 1 else 4) + ' || delay != ' + str(20 if phase == 1 else 90) + ' || alt != ' + ('false' if phase == 1 else 'true') + ') std::abort(); return p->ready; }\n'
+    code += 'bool sandyStateOpenStart(' + cls + '* p, int delay) { p->called = "Open"; if (delay != 60) std::abort(); return p->ready; }\n'
+    code += 'bool sandyStateOpenWait(' + cls + '* p, int delay) { p->called = "OpenWait"; if (delay != ' + str(240 if phase == 1 else 120) + ') std::abort(); return p->ready; }\n'
+    code += nerves + '\nvoid check(bool ok) { if (!ok) std::abort(); }\nint main() {\n'
+    transitions = {'Close': 'Throw', 'DamageClose': 'Throw'}
+    if phase != 3: transitions.update(Throw='Open', Open='OpenWait', OpenWait='Close')
+    for state in states:
+        code += 'for (bool ready : {false, true}) { ' + cls + ' actor; actor.ready = ready; Spine spine(&actor, GET_NERVE(' + cls + ', ' + cls + 'Nrv' + state + ')); spine.update(); check(std::strcmp(actor.called, "' + state + '") == 0);\n'
+        if state in transitions:
+            code += 'check(actor.next == (ready ? GET_NERVE(' + cls + ', ' + cls + 'Nrv' + transitions[state] + ') : nullptr));\n'
+        else: code += 'check(actor.next == nullptr);\n'
+        code += '}\n'
+    code += 'std::puts("' + cls + ': production wrappers, helper arguments and branch targets passed"); }\n'
+    wrong = nerves.replace('setNerve(&' + cls + 'NrvThrow::sInstance);', 'setNerve(&' + cls + 'NrvDamage::sInstance);')
+    assert wrong != nerves
+    return code, code.replace(nerves, wrong)
+
+
+FIXTURES = {'KoopaJrRobot': robot, 'SandyStatePhase1': lambda: sandy(1)}
 
 
 def main():

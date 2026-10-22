@@ -24,7 +24,14 @@ namespace NrvSandyStatePhase1 {
     class SandyStatePhase1NrvDamage;
     class SandyStatePhase1NrvDamageClose;
 
-    NEW_NERVE(SandyStatePhase1NrvStart, SandyStatePhase1, Start);
+    class SandyStatePhase1NrvStart : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase1* actor = reinterpret_cast< SandyStatePhase1* >(pSpine->mExecutor);
+            actor->exeStart();
+        }
+        static SandyStatePhase1NrvStart sInstance;
+    };
     class SandyStatePhase1NrvClose : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
@@ -45,16 +52,26 @@ namespace NrvSandyStatePhase1 {
         virtual void execute(Spine* pSpine) const;
         static SandyStatePhase1NrvOpenWait sInstance;
     };
-    NEW_NERVE(SandyStatePhase1NrvDamage, SandyStatePhase1, Damage);
+    class SandyStatePhase1NrvDamage : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            SandyStatePhase1* actor = reinterpret_cast< SandyStatePhase1* >(pSpine->mExecutor);
+            actor->exeDamage();
+        }
+        static SandyStatePhase1NrvDamage sInstance;
+    };
     class SandyStatePhase1NrvDamageClose : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
         static SandyStatePhase1NrvDamageClose sInstance;
     };
+
+    SandyStatePhase1NrvStart SandyStatePhase1NrvStart::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase1NrvClose SandyStatePhase1NrvClose::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase1NrvThrow SandyStatePhase1NrvThrow::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase1NrvOpen SandyStatePhase1NrvOpen::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase1NrvOpenWait SandyStatePhase1NrvOpenWait::sInstance ATTRIBUTE_WEAK;
+    SandyStatePhase1NrvDamage SandyStatePhase1NrvDamage::sInstance ATTRIBUTE_WEAK;
     SandyStatePhase1NrvDamageClose SandyStatePhase1NrvDamageClose::sInstance ATTRIBUTE_WEAK;
 
     inline void SandyStatePhase1NrvClose::execute(Spine* pSpine) const {

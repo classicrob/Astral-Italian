@@ -552,7 +552,7 @@ void SandyHand::control() {
 }
 
 // 800FE8F0
-bool SandyHand::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+bool SandyHand::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg)) {
         return mSandy->tryStartBlur();
     }
@@ -560,7 +560,7 @@ bool SandyHand::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
 }
 
 // 800FE940
-bool SandyHand::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+bool SandyHand::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg) || MR::isMsgFireBallAttack(msg)) {
         mScaleController->startHitReaction();
         return true;

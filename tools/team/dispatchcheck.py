@@ -480,6 +480,76 @@ class Prog:
         self.dol_chains()
         return {y: c[0] for y, c in self._chains.items()}
 
+
+    def run_align(self, rows, stats):
+        """Non-exact functions: align the masked instruction streams of source and DOL (difflib); a relocated
+        instruction inside an EQUAL block (same masked word, so same opcode and registers) is paired with its DOL
+        counterpart at any constant shift and checked directly. Replaces ordinal guesses for shifted functions."""
+        import difflib
+        for unit, e, f, faddr, dolb, rels in self.nonexact:
+            size = self.sy.by_name.get(f['name'], (0, len(dolb)))[1] if f['bind'] != 0 else len(dolb)
+            dolb = self.dol.bytes(faddr, size) or dolb
+            nw, nd = f['size'] // 4, len(dolb) // 4
+            if abs(nw - nd) > 16 or not rels:
+                continue
+            srcb = e.content(f['sec'], f['off'], f['size'])
+            ws = []
+            for i in range(nw):
+                w = u32(srcb, i * 4)
+                r = rels.get(i * 4)
+                if r and r[0] in MASK:
+                    w &= ~MASK[r[0]] & 0xFFFFFFFF
+                ws.append(w)
+            wd = []
+            for i in range(nd):
+                w = u32(dolb, i * 4)
+                # mask the same operand field wherever the source has a relocation of that kind at the aligned slot
+                wd.append(w)
+            # mask DOL words that correspond (by opcode class) to relocated source words: do it per candidate pair
+            def masked_dol(i, typ):
+                return u32(dolb, i * 4) & ~MASK[typ] & 0xFFFFFFFF
+            wd_m = []
+            kinds = {rels[o][0] for o in rels if rels[o][0] in MASK}
+            for i in range(nd):
+                w = u32(dolb, i * 4)
+                op = w >> 26
+                if op == 18 and R_REL24 in kinds:
+                    w &= ~MASK[R_REL24] & 0xFFFFFFFF
+                elif op in (14, *range(32, 56)) and R_SDA21 in kinds and ((w >> 16) & 31) in (2, 13):
+                    w &= ~MASK[R_SDA21] & 0xFFFFFFFF
+                wd_m.append(w)
+            sm = difflib.SequenceMatcher(None, ws, wd_m, autojunk=False)
+            shift = {}
+            for tag, i1, i2, j1, j2 in sm.get_opcodes():
+                if tag == 'equal':
+                    for k in range(i2 - i1):
+                        shift[i1 + k] = j1 + k
+            for off, (typ, si, ad) in sorted(rels.items()):
+                t = e.syms[si]
+                if typ not in (R_REL24, R_SDA21) or not (t['name'].startswith(('sInstance__', 'execute__')) and 'Nrv' in t['name']):
+                    continue
+                if f['name'].startswith('__sinit_'):
+                    continue
+                j = shift.get(off // 4)
+                if j is None or abs(j - off // 4) > 8:
+                    continue  # a large shift is a coincidental alignment, not the same instruction
+                expect, how = self.target(e, unit, si, ad)
+                if expect is None or how not in ('sym', 'chain'):
+                    continue
+                insn = u32(dolb, j * 4)
+                op = self.dol_operand(typ, insn, faddr + j * 4)
+                if op is None or op[0] != 'addr':
+                    continue
+                stats['align_checked'] += 1
+                v = self.verdict(op[1], expect, t['name'])
+                if v == 'ALIAS':
+                    continue
+                row = dict(layer='align', unit=unit, function=f['name'], offset=off, kind='dispatch', verdict=v,
+                           target=t['name'], expect=expect, dol=op[1], site=faddr + j * 4, how=how, dol_offset=j * 4)
+                if v != 'MATCH':
+                    row['dol_name'] = self.sy.name_at(op[1])
+                rows.append(row)
+
     def run_sinit(self, rows, stats):
         """For each source sinit pair (sInstance__X, __ct__X) of a nerve class the DOL must construct the instance the
         source names with the ctor the source names (order-independent)."""
@@ -868,6 +938,7 @@ class Prog:
         if 'code' in layers:
             self.run_code(rows, stats)
             self.run_near(rows, stats)
+            self.run_align(rows, stats)
             self.run_sinit(rows, stats)
             self.run_seq(rows, stats)
             self.run_sem(rows, stats)

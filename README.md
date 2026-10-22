@@ -1,109 +1,141 @@
+# Astral Italian
+
 > [!IMPORTANT]
-> **MacioGalaxy2: a private, AI-assisted fork of [SMGCommunity/Garigari](https://github.com/SMGCommunity/Garigari).**
-> Not affiliated with or endorsed by the Garigari or Petari projects; not intended for upstream.
-> Please do not contact their maintainers or Discord about anything in this fork.
-> Team workflow: [docs/team/TEAM.md](docs/team/TEAM.md).
+> **A private, AI-assisted fork of [SMGCommunity/Garigari](https://github.com/SMGCommunity/Garigari).**
+> Not affiliated with or endorsed by Garigari or Petari, and not intended for upstream.
+> **Please do not contact their maintainers or Discord about this fork.**
 
-Garigari
-[![Build Status]][actions] ![SB4E01_Code]![SB4E01_Link] [![Discord Badge]][discord]
-=============
+![Code 83.65%](https://img.shields.io/badge/code-83.65%25-2185d0)
+![Functions 94.9%](https://img.shields.io/badge/functions-94.9%25-2185d0)
+![Fuzzy 99.0%](https://img.shields.io/badge/fuzzy-99.0%25-2185d0)
 
-[Build Status]: https://github.com/SMGCommunity/Garigari/actions/workflows/build.yml/badge.svg
-[actions]: https://github.com/SMGCommunity/Garigari/actions/workflows/build.yml
+![Decompilation progress by source unit; area is code size, colour is matched code percentage](docs/images/progress-treemap.svg)
 
-[SB4E01_Code]: https://decomp.dev/SMGCommunity/Garigari/SB4E01.svg?mode=shield&measure=code&label=SB4E01
-[SB4E01_Link]: https://decomp.dev/SMGCommunity/Garigari/SB4E01.svg?mode=shield&measure=complete_code_percent&label=
+Regenerate after a Wii build: `python3 tools/team/progress_treemap.py build/SB4E01/report.json docs/images/progress-treemap.svg`.
 
-[Discord Badge]: https://img.shields.io/discord/727908905392275526?color=%237289DA&logo=discord&logoColor=%23FFFFFF
-[discord]: https://discord.gg/ZxEqyYeZbf
-[progress_link]: https://decomp.dev/SMGCommunity/Garigari
+## What this is
 
-<!-- markdownlint-disable MD033 -->
-[<img src="https://decomp.dev/SMGCommunity/Garigari.svg?w=512&h=256" width="512" height="256" alt="A visual">][progress_link]
-<!-- markdownlint-enable MD033 -->
+Astral Italian combines a Super Mario Galaxy 2 decompilation (USA Rev 0,
+`SB4E01`) with a native macOS port for Apple Silicon. **No game assets are
+included. You need your own disc.**
 
-A work-in-progress decompilation of Super Mario Galaxy 2.
+## Status
 
-This repository does **not** contain any game assets or assembly whatsoever. An existing copy of the game is required.
+As of **2026-10-22**:
 
-This project is **not** meant to be an effort to create a PC port. Join the Discord server to learn more and ask about our work-in-progress PC port "AstroCore".
+- **83.65% matched code** (5,244,504 / 6,269,292 bytes), **94.93% matched
+  functions** (47,801 / 50,354), and **98.96% fuzzy match**. Matched code is
+  different from fully completed/linked code, currently **1.50%**. These are
+  local objdiff report numbers, not upstream's decomp.dev statistics.
+- **5.2.1 with Cappy** is the default frozen build; **5.1** is the fallback.
+  **5.3** is a frozen, non-default candidate. **5.3.2 source is on main**;
+  its clean frozen release and full release gates are still pending. A
+  `dev-20261022` drop is available through the frozen-build chooser.
+- A player **cleared Yoshi Star Galaxy, collected its star and returned to
+  Starship Mario** on 5.2.1. Flip-Swap and Fluffy Bluff have been played;
+  Fluffy Bluff's Odyssey moves and Star Bit mods were player-confirmed.
+  Flip-Swap completion is not established. Automated normal-route checks
+  reached Sky Station mission 1 through file select, Starship and World 1's map.
+- Coverage of free movement and mission completion is limited; this is not a
+  full-game completion claim. **Switch 2 Pro Controller does not work yet**:
+  macOS libusb/SDL integration needs work. There is no native Windows or Linux port.
 
-> [!NOTE]
-> AI may be used for code cleanup, formatting, documentation, and naming assistance. AI-generated decompilation work is not allowed. Pull requests containing obvious AI-generated decompilation output or other AI slop will be rejected. Contributors should be able to explain and justify any decompilation work they submit. This also applies to all tool-generated code. We want to keep this project as human as possible.
+Progress comes from the latest numeric entry in the team's `progress.log`
+(2026-10-21 17:40) and the local report used for the treemap. Play coverage and
+build status were checked against team reports and frozen-build receipts;
+[PLAY.md](PLAY.md) describes the launcher.
 
-Supported versions:
+## Play it
 
-- `SB4E01`: Rev 0 (USA)
+Read [PLAY.md](PLAY.md), then double-click
+[Play Astral Italian.command](Play%20Astral%20Italian.command). The launcher
+uses your privately extracted disc, normally
+`~/MacioGalaxy2-gamedata/SB4E01-extracted/`.
 
-Dependencies
-============
+Choose **c** for 5.2.1, **f** for 5.1, **n** for the 5.3 candidate, or **b**
+for other available frozen builds. Choose a galaxy or the title screen;
+Odyssey movement and audio have menu toggles. The launcher requires an app
+with a `FROZEN.txt` marker under `~/MacioGalaxy2-play/`.
 
-Windows
---------
+Normal saves, settings, mods and controls live in `~/MacioGalaxy2-play/user/`
+(saves under `NAND/`); run logs are in `user/logs/`. The optional unlocked
+save uses `~/Library/Application Support/AstralItalian-unlocked/`.
+Builds can share saves and graphics caches. See the
+[persistent-state inventory](native/play/PERSISTENT-STATE.md) for exact paths.
 
-On Windows, it's **highly recommended** to use native tooling. WSL or msys2 are **not** required.  
-When running under WSL, [objdiff](#diffing) is unable to get filesystem notifications for automatic rebuilds.
+## Mods and menus
 
-- Install [Python](https://www.python.org/downloads/) and add it to `%PATH%`.
-  - Also available from the [Windows Store](https://apps.microsoft.com/store/detail/python-311/9NRWMJP3717K).
-- Download [ninja](https://github.com/ninja-build/ninja/releases) and add it to `%PATH%`.
-  - Quick install via pip: `pip install ninja`
+Open the Home menu with **grave/backtick (`)** or **F1** to change controls,
+enable mods, or use **Level Select**. Optional mods are off until enabled:
 
-macOS
-------
+- **Odyssey movement:** long jumps, dives, rolls, wall jumps and more.
+- **Cappy:** enable both Odyssey movement and Cappy, then reload the stage.
+  **R** throws the cap; cap contact can flip Flip-Swap panels. In current
+  main/5.3.2 source, a cap bounce restores the airborne Spin; this fix is
+  absent from frozen 5.3.
+- **Collect-all-Star-Bits (G):** pulls eligible Star Bits in the current scene to Mario.
+- **Shoot-nearest (V):** fires a Star Bit at the nearest eligible visible enemy in range.
 
-- Install [ninja](https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages):
+Details: [Mods](native/MODS.md), [Controls](native/CONTROLS.md),
+[Home menu](native/HOME_MENU.md), [Level Select](native/LEVEL_SELECT.md).
 
-  ```sh
-  brew install ninja
-  ```
+## Controls
 
-[wibo](https://github.com/decompals/wibo), a minimal 32-bit Windows binary wrapper, will be automatically downloaded and used.
+| Action | Default keyboard / mouse |
+| --- | --- |
+| Move / jump / spin | WASD / Space / F |
+| Crouch; ground pound in air | Shift |
+| Star Pointer / shoot / hold pointer target | Mouse / left click / right click |
+| Rotate / recenter camera | Q and E / C |
+| Start / pause / Home menu | Return / Escape / grave (`) or F1 |
+| Capture a playtest problem | M or F9 |
 
-Linux
-------
+Xbox and PlayStation controllers use SDL gamepad input. Switch Pro layouts
+use **Nintendo button labels**, with separate Galaxy and Odyssey layouts;
+physical-pad validation remains limited. Switch 2 Pro is not supported yet.
+See [CONTROLS.md](native/CONTROLS.md) for mappings, power-ups and remapping.
 
-- Install [ninja](https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages).
+## How it is built
 
-[wibo](https://github.com/decompals/wibo), a minimal 32-bit Windows binary wrapper, will be automatically downloaded and used.
+The Wii decompilation uses **decomp-toolkit (dtk), Ninja and objdiff**.
+The upstream dependency, build and diffing instructions now live in
+[Building the decompilation](docs/building-decomp.md).
 
-Building
-========
+The native port uses CMake and native platform replacements with
+`GALAXY_NATIVE` hooks. [native/README.md](native/README.md) describes the
+architecture and build setup; its opening status and imported SMG1 sections
+are historical. Use [PLAY.md](PLAY.md) for current play instructions.
 
-- Clone the repository:
+## How the work is done
 
-  ```sh
-  git clone https://github.com/SMGCommunity/Garigari.git
-  ```
+AI agent teams work in separate worktrees with proof gates. Native hook
+changes go through [hookproof](tools/team/hookproof.sh) and
+[proofland](tools/team/proofland.sh): clean before/after Wii object builds
+must be identical, with a perturbation control to check the proof itself.
+The [crossed-dispatch oracle](tools/team/dispatchcheck.py) separately checks
+bindings against the original DOL, catching wrong vtable or nerve targets
+that byte matching can miss. Dispatch fixes have their own image-proof path.
+[land.sh](tools/team/land.sh) serializes landings, rebases, checks and pushes;
+its docs-only path skips the Wii build.
 
-- Using [Dolphin Emulator](https://dolphin-emu.org/), extract your game to `orig/GAMEID`.
-![](assets/dolphin-extract.png)
-  - To save space, the only necessary files are the following. Any others can be deleted.
-    - `sys/main.dol`
-- Configure:
+See the [team playbook](docs/team/TEAM.md) and
+[dispatch/proof guide](docs/team/DISPATCH.md).
 
-  ```sh
-  python configure.py
-  ```
+## Docs map
 
-  To use a version other than `GAMEID` (USA), specify it with `--version`.
-- Build:
+| Document | Purpose |
+| --- | --- |
+| [PLAY.md](PLAY.md) | Start playing; build choices and known issues |
+| [Full play guide](native/play/PLAY.md) | Launcher options and troubleshooting |
+| [Persistent state](native/play/PERSISTENT-STATE.md) | Saves, settings, logs and caches |
+| [Controls](native/CONTROLS.md) | Keyboard, mouse, controllers and remapping |
+| [Mods](native/MODS.md) | Optional movement and gameplay helpers |
+| [Home menu](native/HOME_MENU.md) | Native menu and controls page |
+| [Level Select](native/LEVEL_SELECT.md) | Galaxy/mission requests and their limits |
+| [Wii build guide](docs/building-decomp.md) | Dependencies, building and objdiff |
+| [Native port](native/README.md) | Architecture and build reference (historical status text) |
+| [Team playbook](docs/team/TEAM.md) / [Dispatch checks](docs/team/DISPATCH.md) | Agent workflow and proof gates |
 
-  ```sh
-  ninja
-  ```
-
-Diffing
-=======
-
-Once the initial build succeeds, an `objdiff.json` should exist in the project root.
-
-Download the latest release from [encounter/objdiff](https://github.com/encounter/objdiff). Under project settings, set `Project directory`. The configuration should be loaded automatically.
-
-Select an object from the left sidebar to begin diffing. Changes to the project will rebuild automatically: changes to source files, headers, `configure.py`, `splits.txt` or `symbols.txt`.
-
-![](assets/objdiff.png)
-
-Credits
-=======
-Big thanks to the [doldecomp team](https://github.com/doldecomp/sdk_2009-12-11) for their efforts on bte, [tp](https://github.com/zeldaret/tp) for JSystem, and [ogws](https://github.com/doldecomp/ogws/tree/master), where this repository has sourced code and headers from.
+Credit to Garigari and Petari, and to the [doldecomp team](https://github.com/doldecomp),
+[Zelda TP](https://github.com/zeldaret/tp) and [OGWS](https://github.com/doldecomp/ogws/tree/master)
+for code and headers used by this project.

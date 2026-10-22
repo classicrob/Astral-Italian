@@ -88,6 +88,7 @@ GXRenderModeObj mode(VITVMode tv, u16 height) {
 }
 extern "C" {
 void petari_gx_pipeline_stage_begin(const char*, const char*) { ++gCalls; }
+void petari_gx_pipeline_stage_wait(void) { ++gCalls; }  // GameSystemSceneController::startScene: no renderer to wait for
 bool petari_gx_waiting_for_pipeline() { return false; }
 void petari_progress_badge(const char*, int, float, float) { ++gCalls; }
 void petari_progress_star_get(int, int) { ++gCalls; }

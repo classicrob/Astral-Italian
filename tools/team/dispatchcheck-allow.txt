@@ -40,30 +40,6 @@
 - <chain-807d1f08> 807d1f08  # names CROSSED 
 - <chain-807d1f0c> 807d1f0c  # names CROSSED 
 - <chain-807d3e3c> 807d3e3c  # names CROSSED 
-- <chain-807d5f1c> 807d5f1c  # names CROSSED 
-- <chain-807d5f24> 807d5f24  # names CROSSED 
-- <chain-807d5f30> 807d5f30  # names CROSSED 
-- <chain-807d5f34> 807d5f34  # names CROSSED 
-- <chain-807d5f38> 807d5f38  # names CROSSED 
-- <chain-807d5f3c> 807d5f3c  # names CROSSED 
-- <chain-807d5f44> 807d5f44  # names CROSSED 
-- <chain-807d5f48> 807d5f48  # names CROSSED 
-- <chain-807d5f4c> 807d5f4c  # names CROSSED 
-- <chain-807d5f50> 807d5f50  # names CROSSED 
-- <chain-807d5fd0> 807d5fd0  # names CROSSED 
-- <chain-807d5fd8> 807d5fd8  # names CROSSED 
-- <chain-807d5fe0> 807d5fe0  # names CROSSED 
-- <chain-807d5fe4> 807d5fe4  # names CROSSED 
-- <chain-807d5fe8> 807d5fe8  # names CROSSED 
-- <chain-807d5fec> 807d5fec  # names CROSSED 
-- <chain-807d5ff0> 807d5ff0  # names CROSSED 
-- <chain-807d5ff4> 807d5ff4  # names CROSSED 
-- <chain-807d5ff8> 807d5ff8  # names CROSSED 
-- <chain-807d5ffc> 807d5ffc  # names CROSSED 
-- <chain-807d6000> 807d6000  # names CROSSED 
-- <chain-807d6008> 807d6008  # names CROSSED 
-- <chain-807d6050> 807d6050  # names CROSSED 
-- <chain-807d6058> 807d6058  # names CROSSED 
 - @GUARD@memPool___26JASPoolAllocObject<5AudMe> 0  # conflict CONFLICT 
 - @GUARD@memPool___32JASPoolAllocObject<10AudMeTrack> 0  # conflict CONFLICT 
 - @GUARD@memPool___35JASPoolAllocObject<13AudSeStrategy> 0  # conflict CONFLICT 
@@ -126,7 +102,6 @@
 - sInstance__Q220NrvKoopaJrCastleHead21KoopaJrCastleHeadNrvC 0  # conflict CONFLICT 
 - sInstance__Q220NrvKoopaJrCastleHead21KoopaJrCastleHeadNrvD 0  # conflict CONFLICT 
 - sInstance__Q221NrvTwoLegsStateDamage25TwoLegsStateDamageNrvHide 0  # conflict CONFLICT 
-- sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage 0  # conflict CONFLICT 
 - sInstance__Q28NrvFluff19FluffNrvBeforeBloom 0  # conflict CONFLICT 
 - swap__10J2DPictureFRfRf 0  # conflict CONFLICT 
 Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 30  # code CROSSED __ct__34JASMemPool<20AudDopplerAudible<2>>Fv
@@ -301,7 +276,6 @@ Game/Demo/TransformFaceTicoBabyDemoObj __vt__Q231NrvTransformFaceTicoBabyDemoObj
 Game/Demo/TransformFaceTicoBabyDemoObj __vt__Q231NrvTransformFaceTicoBabyDemoObj37TransformFaceTicoBabyDemoObjNrvAppear 68  # data CROSSED execute__Q231NrvTransformFaceTicoBabyDemoObj37TransformFaceT
 Game/Demo/TransformFaceTicoBabyDemoObj execute__Q231NrvTransformFaceTicoBabyDemoObj37TransformFaceTicoBabyDemoObjNrvAppearCFP5Spine 2c  # sem CROSSED sInstance__Q231NrvTransformFaceTicoBabyDemoObj37TransformFac
 Game/Demo/TransformFaceTicoBabyDemoObj init__28TransformFaceTicoBabyDemoObjFRC12JMapInfoIter 3c  # sem CROSSED sInstance__Q231NrvTransformFaceTicoBabyDemoObj35TransformFac
-Game/Enemy/BattanKing attackSensor__10BattanKingFP9HitSensorP9HitSensor 278  # near CROSSED sInstance__Q213NrvBattanKing16BattanKingNrvRun
 Game/Map/FileSelector exeTitleEnd__12FileSelectorFv a4  # code CROSSED sInstance__Q215NrvFileSelector30FileSelectorNrvFileSelectSta
 Game/Map/FileSelector exeTitleEnd__12FileSelectorFv a4  # sem CROSSED sInstance__Q215NrvFileSelector30FileSelectorNrvFileSelectSta
 Game/Map/ShadowColorSetter calcShadowColor__2MRFUc 48  # code CROSSED __as__8_GXColorFRC8_GXColor
@@ -309,7 +283,6 @@ Game/MapObj/Candlestand init__11CandlestandFRC12JMapInfoIter 88  # code CROSSED 
 Game/MapObj/CollectTicoHolder __dt__17CollectTicoHolderFv 28  # code CROSSED __dt__14LiveActorGroupFv
 Game/MapObj/GravityFallBlock exeFall__16GravityFallBlockFv 138  # near CROSSED sInstance__Q219NrvGravityFallBlock24GravityFallBlockNrvBreak
 Game/MapObj/GravityFallBlock exeFall__16GravityFallBlockFv 138  # sem-seq CROSSED sInstance__Q219NrvGravityFallBlock24GravityFallBlockNrvBreak
-Game/MapObj/JetTurtle appear__9JetTurtleFv ec  # near CROSSED sInstance__Q212NrvJetTurtle17JetTurtleNrvWait2
 Game/MapObj/LiftFlower __sinit_\LiftFlower_cpp 10  # sinit CROSSED __ct__Q213NrvLiftFlower17LiftFlowerNrvWaitFv
 Game/MapObj/LiftFlower __sinit_\LiftFlower_cpp 8  # code CROSSED sInstance__Q213NrvLiftFlower17LiftFlowerNrvWait
 Game/MapObj/LiftFlower init__10LiftFlowerFRC12JMapInfoIter c4  # code CROSSED sInstance__Q213NrvLiftFlower17LiftFlowerNrvWait
@@ -324,11 +297,6 @@ Game/MapObj/RestartObj exeCollect__10RestartObjFv 7c  # code CROSSED sInstance__
 Game/MapObj/RestartObj exeShake__10RestartObjFv 6c  # code CROSSED sInstance__Q213NrvRestartObj18RestartObjNrvShake
 Game/MapObj/RestartObj exeShake__10RestartObjFv 6c  # sem CROSSED sInstance__Q213NrvRestartObj18RestartObjNrvShake
 Game/MapObj/SpinCloudBlock __dt__19SpinCloudBlockGroupFv 28  # code CROSSED __dt__14LiveActorGroupFv
-Game/NPC/KinopioBank eventFunc__11KinopioBankFUl 134  # near CROSSED sInstance__Q214NrvKinopioBank8Complete
-Game/NPC/KinopioBank eventFunc__11KinopioBankFUl 148  # near CROSSED sInstance__Q214NrvKinopioBank3End
-Game/Player/InfernoMarioManekuri exeJump__20InfernoMarioManekuriFv 10c  # near CROSSED sInstance__Q223NrvInfernoMarioManekuri29InfernoMarioManekuri
-Game/Player/MarioActor calcAnimHorrorBone__10MarioActorFv e8  # near CROSSED sInstance__Q213NrvMarioActor17MarioActorNrvWait
-Game/Player/MarioActor calcAnimHorrorBone__10MarioActorFv fc  # near CROSSED sInstance__Q213NrvMarioActor19MarioActorNrvNoRush
 Game/Player/MarioEffect __ct__11MarioEffectFP10MarioActor 4c  # code CROSSED identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f
 Game/Player/MarioEffect __ct__11MarioEffectFP10MarioActor 54  # code CROSSED identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f
 Game/Ride/Fluff onDemoAction__5FluffFv 20  # code CROSSED sInstance__Q28NrvFluff19FluffNrvBeforeBloom
@@ -338,75 +306,6 @@ Game/System/GameSequenceEnding exeMessage__18GameSequenceEndingFv 98  # sem-seq 
 Game/System/GameSequenceEnding exeMessage__18GameSequenceEndingFv a8  # sem-seq CROSSED sInstance__Q232@unnamed@GameSequenceEnding_cpp@32GameSequenc
 Game/System/MiniPlayerRocket __vt__14MiniRoutePoint 238  # data CROSSED __dt__14MiniRoutePointFv
 Game/System/MiniPlayerRocket __vt__16MiniWorldMapMark 1c8  # data CROSSED __dt__16MiniWorldMapMarkFv
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 14  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico33WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 1c  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico35WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 24  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico39WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 34  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico38WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 3c  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico36WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 44  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico37WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 4c  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico32WorldMapRes
-Game/System/WorldMapResultStateCreateTico __sinit_\WorldMapResultStateCreateTico_cpp 8  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico34WorldMapRes
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico32WorldMapResultStateCreateTicoEnd a0  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico32WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico33WorldMapResultStateCreateTicoOpen 110  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico33WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico34WorldMapResultStateCreateTicoClose 120  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico34WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico35WorldMapResultStateCreateTicoExtend 100  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico35WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico36WorldMapResultStateCreateTicoMessage c0  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico36WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico37WorldMapResultStateCreateTicoCloseEnd b0  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico37WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteOpen d0  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResul
-Game/System/WorldMapResultStateCreateTico __vt__Q232NrvWorldMapResultStateCreateTico39WorldMapResultStateCreateTicoWhiteClose f0  # data CROSSED execute__Q232NrvWorldMapResultStateCreateTico39WorldMapResul
-Game/System/WorldMapResultStateCreateTico appear__29WorldMapResultStateCreateTicoFv 8  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico34WorldMapRes
-Game/System/WorldMapResultStateCreateTico exeCloseEnd__29WorldMapResultStateCreateTicoFv 38  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico32WorldMapRes
-Game/System/WorldMapResultStateCreateTico exeClose__29WorldMapResultStateCreateTicoFv 38  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico33WorldMapRes
-Game/System/WorldMapResultStateCreateTico exeExtend__29WorldMapResultStateCreateTicoFv 80  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico39WorldMapRes
-Game/System/WorldMapResultStateCreateTico exeMessage__29WorldMapResultStateCreateTicoFv 50  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico37WorldMapRes
-Game/System/WorldMapResultStateCreateTico exeOpen__29WorldMapResultStateCreateTicoFv 74  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico35WorldMapRes
-Game/System/WorldMapResultStateCreateTico exeWhiteOpen__29WorldMapResultStateCreateTicoFv 38  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico36WorldMapRes
-Game/System/WorldMapResultStateCreateTico execute__Q232NrvWorldMapResultStateCreateTico38WorldMapResultStateCreateTicoWhiteWaitCFP5Spine 2c  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico38WorldMapRes
-Game/System/WorldMapResultStateCreateTico init__29WorldMapResultStateCreateTicoFv 8  # sem CROSSED sInstance__Q232NrvWorldMapResultStateCreateTico34WorldMapRes
-Game/System/WorldMapResultStateRouteOpen __sinit_\WorldMapResultStateRouteOpen_cpp 14  # sem CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen34WorldMapResu
-Game/System/WorldMapResultStateRouteOpen __sinit_\WorldMapResultStateRouteOpen_cpp 24  # sem CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResu
-Game/System/WorldMapResultStateRouteOpen __vt__Q231NrvWorldMapResultStateRouteOpen34WorldMapResultStateRouteOpenExtend d0  # data CROSSED execute__Q231NrvWorldMapResultStateRouteOpen34WorldMapResult
-Game/System/WorldMapResultStateRouteOpen __vt__Q231NrvWorldMapResultStateRouteOpen35WorldMapResultStateRouteOpenMessage b0  # data CROSSED execute__Q231NrvWorldMapResultStateRouteOpen35WorldMapResult
-Game/System/WorldMapResultStateRouteOpen exeExtend__28WorldMapResultStateRouteOpenFv 7c  # code CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResu
-Game/System/WorldMapResultStateRouteOpen exeExtend__28WorldMapResultStateRouteOpenFv 7c  # sem CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResu
-Game/System/WorldMapResultStateRouteOpen exeExtend__28WorldMapResultStateRouteOpenFv 90  # sem CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen34WorldMapResu
-Game/System/WorldMapResultStateRouteOpen exeWaitNext__28WorldMapResultStateRouteOpenFv 30  # sem CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen35WorldMapResu
-Game/System/WorldMapResultStateRouteOpen execute__Q231NrvWorldMapResultStateRouteOpen33WorldMapResultStateRouteOpenStartCFP5Spine 2c  # sem CROSSED sInstance__Q231NrvWorldMapResultStateRouteOpen34WorldMapResu
-Game/System/WorldMapResultTU13 __sinit_\WorldMapResultTU13_cpp 1c  # sem CROSSED sInstance__Q231NrvWorldMapResultStateGalaxyMap31WorldMapResu
-Game/System/WorldMapResultTU13 __sinit_\WorldMapResultTU13_cpp 8  # sem CROSSED sInstance__Q231NrvWorldMapResultStateGalaxyMap33WorldMapResu
-Game/System/WorldMapResultTU13 __vt__Q231NrvWorldMapResultStateGalaxyMap31WorldMapResultStateGalaxyMapEnd 48  # data CROSSED execute__Q231NrvWorldMapResultStateGalaxyMap31WorldMapResult
-Game/System/WorldMapResultTU13 __vt__Q231NrvWorldMapResultStateGalaxyMap33WorldMapResultStateGalaxyMapStart 68  # data CROSSED execute__Q231NrvWorldMapResultStateGalaxyMap33WorldMapResult
-Game/System/WorldMapResultTU13 appear__28WorldMapResultStateGalaxyMapFv 60  # sem CROSSED sInstance__Q231NrvWorldMapResultStateGalaxyMap33WorldMapResu
-Game/System/WorldMapResultTU13 exeWait__28WorldMapResultStateGalaxyMapFv 5c  # sem CROSSED sInstance__Q231NrvWorldMapResultStateGalaxyMap31WorldMapResu
-Game/System/WorldMapResultTU13 init__28WorldMapResultStateGalaxyMapFv 8  # sem CROSSED sInstance__Q231NrvWorldMapResultStateGalaxyMap33WorldMapResu
-Game/System/WorldMapResultTU14 __sinit_\WorldMapResultTU14_cpp 14  # sem CROSSED sInstance__Q236NrvWorldMapResultStateGrandGalaxyEnd37WorldMa
-Game/System/WorldMapResultTU14 __sinit_\WorldMapResultTU14_cpp 8  # sem CROSSED sInstance__Q236NrvWorldMapResultStateGrandGalaxyEnd40WorldMa
-Game/System/WorldMapResultTU14 __vt__Q236NrvWorldMapResultStateGrandGalaxyEnd37WorldMapResultStateGrandGalaxyEndWait 58  # data CROSSED execute__Q236NrvWorldMapResultStateGrandGalaxyEnd37WorldMapR
-Game/System/WorldMapResultTU14 __vt__Q236NrvWorldMapResultStateGrandGalaxyEnd40WorldMapResultStateGrandGalaxyEndZoomOut 68  # data CROSSED execute__Q236NrvWorldMapResultStateGrandGalaxyEnd40WorldMapR
-Game/System/WorldMapResultTU14 appear__33WorldMapResultStateGrandGalaxyEndFv 40  # sem CROSSED sInstance__Q236NrvWorldMapResultStateGrandGalaxyEnd40WorldMa
-Game/System/WorldMapResultTU14 execute__Q236NrvWorldMapResultStateGrandGalaxyEnd37WorldMapResultStateGrandGalaxyEndWaitCFP5Spine 4  # sem CROSSED sInstance__Q236NrvWorldMapResultStateGrandGalaxyEnd37WorldMa
-Game/System/WorldMapResultTU14 init__33WorldMapResultStateGrandGalaxyEndFv 8  # sem CROSSED sInstance__Q236NrvWorldMapResultStateGrandGalaxyEnd37WorldMa
-Game/System/WorldMapResultTU15 __sinit_\WorldMapResultTU15_cpp 14  # sinit CROSSED __ct__Q235NrvWorldMapResultStateGreenStarDemo37WorldMapResul
-Game/System/WorldMapResultTU15 __sinit_\WorldMapResultTU15_cpp 1c  # sinit CROSSED __ct__Q235NrvWorldMapResultStateGreenStarDemo38WorldMapResul
-Game/System/WorldMapResultTU15 __sinit_\WorldMapResultTU15_cpp 24  # sinit CROSSED __ct__Q235NrvWorldMapResultStateGreenStarDemo36WorldMapResul
-Game/System/WorldMapResultTU15 __sinit_\WorldMapResultTU15_cpp 2c  # sinit CROSSED __ct__Q235NrvWorldMapResultStateGreenStarDemo41WorldMapResul
-Game/System/WorldMapResultTU15 __sinit_\WorldMapResultTU15_cpp 34  # sinit CROSSED __ct__Q235NrvWorldMapResultStateGreenStarDemo36WorldMapResul
-Game/System/WorldMapResultTU15 __sinit_\WorldMapResultTU15_cpp 3c  # sinit CROSSED __ct__Q235NrvWorldMapResultStateGreenStarDemo35WorldMapResul
-Game/System/WorldMapResultTU15 __vt__Q235NrvWorldMapResultStateGreenStarDemo35WorldMapResultStateGreenStarDemoEnd 88  # data CROSSED execute__Q235NrvWorldMapResultStateGreenStarDemo35WorldMapRe
-Game/System/WorldMapResultTU15 __vt__Q235NrvWorldMapResultStateGreenStarDemo36WorldMapResultStateGreenStarDemoTalk 98  # data CROSSED execute__Q235NrvWorldMapResultStateGreenStarDemo36WorldMapRe
-Game/System/WorldMapResultTU15 __vt__Q235NrvWorldMapResultStateGreenStarDemo36WorldMapResultStateGreenStarDemoWait b8  # data CROSSED execute__Q235NrvWorldMapResultStateGreenStarDemo36WorldMapRe
-Game/System/WorldMapResultTU15 __vt__Q235NrvWorldMapResultStateGreenStarDemo37WorldMapResultStateGreenStarDemoStart d8  # data CROSSED execute__Q235NrvWorldMapResultStateGreenStarDemo37WorldMapRe
-Game/System/WorldMapResultTU15 __vt__Q235NrvWorldMapResultStateGreenStarDemo38WorldMapResultStateGreenStarDemoShower c8  # data CROSSED execute__Q235NrvWorldMapResultStateGreenStarDemo38WorldMapRe
-Game/System/WorldMapResultTU15 __vt__Q235NrvWorldMapResultStateGreenStarDemo41WorldMapResultStateGreenStarDemoTalkStart a8  # data CROSSED execute__Q235NrvWorldMapResultStateGreenStarDemo41WorldMapRe
-Game/System/WorldMapResultTU16 __vt__Q232NrvWorldMapResultStateOpenGalaxy33WorldMapResultStateOpenGalaxyOpen 78  # data CROSSED execute__Q232NrvWorldMapResultStateOpenGalaxy33WorldMapResul
-Game/System/WorldMapResultTU16 __vt__Q232NrvWorldMapResultStateOpenGalaxy34WorldMapResultStateOpenGalaxyClose 58  # data CROSSED execute__Q232NrvWorldMapResultStateOpenGalaxy34WorldMapResul
-Game/System/WorldMapResultTU19 __sinit_\WorldMapResultTU19_cpp 1c  # sem CROSSED sInstance__Q231NrvWorldMapResultStatePointWarp31WorldMapResu
-Game/System/WorldMapResultTU19 __sinit_\WorldMapResultTU19_cpp 8  # sem CROSSED sInstance__Q231NrvWorldMapResultStatePointWarp33WorldMapResu
-Game/System/WorldMapResultTU19 __vt__Q231NrvWorldMapResultStatePointWarp31WorldMapResultStatePointWarpEnd a0  # data CROSSED execute__Q231NrvWorldMapResultStatePointWarp31WorldMapResult
-Game/System/WorldMapResultTU19 __vt__Q231NrvWorldMapResultStatePointWarp33WorldMapResultStatePointWarpStart c0  # data CROSSED execute__Q231NrvWorldMapResultStatePointWarp33WorldMapResult
-Game/System/WorldMapResultTU19 appear__28WorldMapResultStatePointWarpFv 34  # sem CROSSED sInstance__Q231NrvWorldMapResultStatePointWarp33WorldMapResu
-Game/System/WorldMapResultTU19 exeWait__28WorldMapResultStatePointWarpFv 58  # sem CROSSED sInstance__Q231NrvWorldMapResultStatePointWarp31WorldMapResu
-Game/System/WorldMapResultTU19 init__28WorldMapResultStatePointWarpFv 8  # sem CROSSED sInstance__Q231NrvWorldMapResultStatePointWarp33WorldMapResu
 Game/Util/BellyDragonTU03 __vt__21BellyDragonFireGround 34  # data CROSSED kill__21BellyDragonFireGroundFv
 Game/Util/BossJugem control__9BossJugemFv 48  # code CROSSED sInstance__Q212NrvBossJugem17BossJugemNrvSleep
 Game/Util/BossJugem control__9BossJugemFv 7c  # code CROSSED sInstance__Q212NrvBossJugem17BossJugemNrvSleep

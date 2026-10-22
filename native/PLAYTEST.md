@@ -492,3 +492,6 @@ by the app (`<user>/mods.txt`, then `PETARI_MODS`); mod buttons come from the ta
 Limits: the replay starts from a fresh user (a tape recorded on a save with progress needs that save copied in; the sidecar does not carry
 it); the selected scenario is taken to be the placed one; presses during the loops between segments are not replayed (neutral reads);
 `PETARI_TEST_WARP` (a Level Select test driver in the GX app) is not replayed; pointer/mouse-only mods (PointToMove, the editor) are not taped.
+
+The launcher keeps only the 20 newest session tapes in ~/MacioGalaxy2-play/tapes (about 150 MB an hour of play); older ones are removed
+when a new session starts. Copy a tape worth keeping (a star get, a bug) to ~/MacioGalaxy2-gamedata/rec-tapes first.

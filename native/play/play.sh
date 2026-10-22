@@ -89,7 +89,12 @@ echo "  log  $log"
 # game's own KPAD reads), route.actions (mod buttons) and route.tape.json, so it can be replayed headless to the same frames
 # (tools/port/replay_tape.py, native/PLAYTEST.md). ~150 MB an hour. ASTRAL_TAPE=off turns it off; ASTRAL_TAPES moves the folder.
 if [ "${ASTRAL_TAPE:-on}" != off ]; then
-    export PETARI_TAPE_RECORD="${ASTRAL_TAPES:-$HOME/MacioGalaxy2-play/tapes}/${stage:-title}-$(date +%Y%m%d-%H%M%S)"
+    tapes="${ASTRAL_TAPES:-$HOME/MacioGalaxy2-play/tapes}"
+    # Bounded: keep the 19 newest session tapes plus this one; older ones are removed (copy a tape worth keeping elsewhere).
+    if [ -d "$tapes" ]; then
+        ls -1dt "$tapes"/*/ 2>/dev/null | tail -n +20 | while IFS= read -r old; do rm -rf "${old%/}"; done
+    fi
+    export PETARI_TAPE_RECORD="$tapes/${stage:-title}-$(date +%Y%m%d-%H%M%S)"
 fi
 export PETARI_CAPTURE_DIR="${ASTRAL_CAPTURES:-$HOME/MacioGalaxy2-play/captures}" PETARI_CAPTURE_LOG="$log"
 if [ "$dry" = 1 ]; then

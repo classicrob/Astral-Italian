@@ -322,6 +322,8 @@ class Prog:
                 return None
             return 'addr', (at + s16(insn & 0xFFFC)) & 0xFFFFFFFF
         if typ == R_SDA21:
+            if (insn >> 26) not in (14, *range(32, 56)):
+                return None  # not an addi / integer-or-FP load/store: the bits only look like r2/r13
             ra = (insn >> 16) & 31
             base = SDA13 if ra == 13 else SDA2 if ra == 2 else None
             return None if base is None else ('addr', (base + s16(insn & 0xFFFF)) & 0xFFFFFFFF)
@@ -450,8 +452,8 @@ class Prog:
                 insn = u32(dolb, off)
                 if typ == R_REL24 and not (insn >> 26 == 18 and insn & 1):
                     continue
-                if typ == R_SDA21 and ((insn >> 16) & 31) not in (2, 13):
-                    continue
+                if typ == R_SDA21 and (((insn >> 16) & 31) not in (2, 13) or (insn >> 26) != 14):
+                    continue  # the address of a nerve instance is taken with addi rD, r13, sym@sda21
                 if typ not in (R_REL24, R_SDA21):
                     continue
                 if f['name'].startswith('__sinit_') or not (t['name'].startswith(('sInstance__', 'execute__')) and 'Nrv' in t['name']):

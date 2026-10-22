@@ -1,31 +1,7 @@
 # reviewed-open dispatch rows (unit container-or-function offset); remove a line when its family is fixed
-- @GUARD@memPool___26JASPoolAllocObject<5AudMe> 0  # conflict CONFLICT 
-- @GUARD@memPool___32JASPoolAllocObject<10AudMeTrack> 0  # conflict CONFLICT 
-- @GUARD@memPool___35JASPoolAllocObject<13AudSeStrategy> 0  # conflict CONFLICT 
 - __as__8_GXColorFRC8_GXColor 0  # conflict CONFLICT 
-- __ct__18JASMemPool<5AudMe>Fv 0  # conflict CONFLICT 
-- __ct__24JASMemPool<10AudMeTrack>Fv 0  # conflict CONFLICT 
-- __ct__27JASMemPool<13AudSeStrategy>Fv 0  # conflict CONFLICT 
 - __dt__14LiveActorGroupFv 0  # conflict CONFLICT 
-- __dt__18JASMemPool<5AudMe>Fv 0  # conflict CONFLICT 
-- __dt__24JASMemPool<10AudMeTrack>Fv 0  # conflict CONFLICT 
-- __dt__27JASMemPool<13AudSeStrategy>Fv 0  # conflict CONFLICT 
-- identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>Fv 0  # conflict CONFLICT 
-- memPool___26JASPoolAllocObject<5AudMe> 0  # conflict CONFLICT 
-- memPool___32JASPoolAllocObject<10AudMeTrack> 0  # conflict CONFLICT 
-- memPool___35JASPoolAllocObject<13AudSeStrategy> 0  # conflict CONFLICT 
-- memPool___42JASPoolAllocObject<20AudDopplerAudible<2>> 0  # conflict CONFLICT 
 - swap__10J2DPictureFRfRf 0  # conflict CONFLICT 
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 30  # code CROSSED __ct__34JASMemPool<20AudDopplerAudible<2>>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 3c  # code WRONG __dt__34JASMemPool<20AudDopplerAudible<2>>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 64  # code CROSSED __ct__24JASMemPool<10AudMeTrack>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 70  # code WRONG __dt__24JASMemPool<10AudMeTrack>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 98  # code CROSSED __ct__18JASMemPool<5AudMe>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp a4  # code WRONG __dt__18JASMemPool<5AudMe>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp cc  # code CROSSED __ct__27JASMemPool<13AudSeStrategy>Fv
-Game/AudioLib/AudSystem __sinit_\AudSystem_cpp d8  # code WRONG __dt__27JASMemPool<13AudSeStrategy>Fv
 Game/Map/ShadowColorSetter calcShadowColor__2MRFUc 48  # code CROSSED __as__8_GXColorFRC8_GXColor
 Game/MapObj/CollectTicoHolder __dt__17CollectTicoHolderFv 28  # code CROSSED __dt__14LiveActorGroupFv
 Game/MapObj/SpinCloudBlock __dt__19SpinCloudBlockGroupFv 28  # code CROSSED __dt__14LiveActorGroupFv
-Game/Player/MarioEffect __ct__11MarioEffectFP10MarioActor 4c  # code CROSSED identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f
-Game/Player/MarioEffect __ct__11MarioEffectFP10MarioActor 54  # code CROSSED identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f

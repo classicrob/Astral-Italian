@@ -617,6 +617,30 @@ class Prog:
                     if op and op[0] == 'addr':
                         sem(unit, e, t, op[1], (f['name'], o, faddr + di), 'sem-seq')
 
+
+    def run_names(self, rows, stats):
+        """symbols.txt names along each DOL chain (instance, ctor, vtable, execute) must name the SAME class."""
+        chains = self.dol_chains()
+        def suffix(name, prefix, tail=''):
+            if name and name.startswith(prefix):
+                n = name[len(prefix):]
+                return n[:-len(tail)] if tail and n.endswith(tail) else n
+            return None
+        for y, (k, v, e, x) in sorted(chains.items()):
+            kinds = []
+            for label, addr, prefix, tail in (('instance', y, 'sInstance__', ''), ('ctor', k, '__ct__', 'Fv'),
+                                              ('vtable', v, '__vt__', ''), ('execute', e, 'execute__', 'CFP5Spine')):
+                names = [n for n in self.sy.by_addr.get(addr, []) if n.startswith(prefix)] if addr else []
+                if names:
+                    kinds.append((label, addr, suffix(names[0], prefix, tail)))
+            if len({c for _, _, c in kinds}) > 1:
+                rows.append(dict(layer='names', unit='', function='<chain-%x>' % y, offset=y, kind='dispatch',
+                                 verdict='CROSSED', site=y,
+                                 detail={l: (hex(a), c) for l, a, c in kinds}))
+                stats['names_crossed'] += 1
+            elif kinds:
+                stats['names_match'] += 1
+
     # ---- data ---------------------------------------------------------------------------------------------------
     def body_matches(self, e, unit, symidx, addend, w):
         """Is the source function the target names equal to the DOL code at w, with its relocs resolving there?"""
@@ -756,6 +780,7 @@ class Prog:
             self.run_code(rows, stats)
             self.run_seq(rows, stats)
             self.run_sem(rows, stats)
+            self.run_names(rows, stats)
         for n, addrs in sorted(conflicts.items()):
             rows.append(dict(layer='conflict', unit='', function=n, offset=0, kind='dispatch', verdict='CONFLICT',
                              detail={hex(a): [f'{u}:{fn}+{o:#x}' for u, fn, o in ev][:3] for a, ev in addrs.items()}))

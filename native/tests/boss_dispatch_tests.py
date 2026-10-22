@@ -191,7 +191,22 @@ int main() {
     return code, mutant
 
 
-FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
+def ota():
+    source = (ROOT/'src/Game/Boss/OtaKingMagma.cpp').read_text()
+    nerves = block(source, 'namespace NrvOtaKingMagma {')
+    states = ['Wait', 'AppearDemo', 'Attack', 'FireAttack', 'HitBack', 'Damage', 'Down', 'EndWait']
+    code = '#include "Game/LiveActor/Nerve.hpp"\n#include <cstdio>\n#include <cstring>\n#include <cstdlib>\nstruct OtaKingMagma { const char* called = "";\n'
+    for name in states: code += 'void exe' + name + '() { called = "' + name + '"; }\n'
+    code += '};\n' + nerves + '\nint main() {\n'
+    for name in states:
+        code += '{ OtaKingMagma actor; Spine spine(&actor, GET_NERVE(OtaKingMagma, OtaKingMagmaNrv' + name + ')); spine.update(); if (std::strcmp(actor.called, "' + name + '") != 0) std::abort(); }\n'
+    code += 'std::puts("OtaKingMagma: all production nerves dispatch to their exe function"); }\n'
+    old = 'NEW_NERVE(OtaKingMagmaNrvDamage, OtaKingMagma, Damage)'
+    assert nerves.count(old) == 1
+    return code, code.replace(old, old.replace(', Damage)', ', Down)'))
+
+
+FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'OtaKingMagma': ota, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
 
 
 def main():

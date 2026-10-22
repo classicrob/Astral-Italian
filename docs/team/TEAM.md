@@ -1,6 +1,6 @@
 # MacioGalaxy2 team playbook
 
-Private fork of SMGCommunity/Garigari (SMG2 decomp, SB4E01). Goal: decompile SMG2 fast, reusing
+Independent continuation of SMGCommunity/Garigari (SMG2 decomp, SB4E01). Goal: decompile SMG2 fast, reusing
 Petari (SMG1), so it can later be ported natively the way MacioGalaxy ports SMG1.
 
 **Never contact upstream** (no PRs, issues, or Discord posts to Garigari/Petari). Their AI policy

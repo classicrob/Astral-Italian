@@ -1,9 +1,10 @@
 # Astral Italian
 
 > [!IMPORTANT]
-> **A private, AI-assisted fork of [SMGCommunity/Garigari](https://github.com/SMGCommunity/Garigari).**
-> Not affiliated with or endorsed by Garigari or Petari, and not intended for upstream.
-> **Please do not contact their maintainers or Discord about this fork.**
+> **Astral Italian** is an independent, AI-agent-built continuation of the Super Mario Galaxy 2 decomp, plus a native macOS port.
+> It builds on the human work of [Garigari](https://github.com/SMGCommunity/Garigari) (project scaffolding, symbols, splits, initial matching)
+> and [Petari](https://github.com/SMGCommunity/Petari) (SMG1 code reused for shared engine code).
+> It isn't affiliated with or endorsed by either project. Everything here is CC0, like upstream; anyone may take anything.
 
 ![Code 83.65%](https://img.shields.io/badge/code-83.65%25-2185d0)
 ![Functions 94.9%](https://img.shields.io/badge/functions-94.9%25-2185d0)

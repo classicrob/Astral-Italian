@@ -120,3 +120,9 @@ Build 5.1 is the default. Its freeze record is ~/MacioGalaxy2-play/build5.1/FROZ
 - The 5.1 freeze checks bounded Yoshi Star, Flip-Swap, Fluffy Bluff, unlocked-save ship load, WorldMap01 walking/idle and galaxy-to-ship scene return. It does not establish every galaxy, Yoshi gameplay, power-ups, full world-map travel, co-star mode or actual star-clear/save-return coverage.
 - The full list and the measured numbers: [`native/play/PLAY.md`](native/play/PLAY.md), "Status and known issues",
   and `~/MacioGalaxy2-play/build5.1/FROZEN.txt`. Older builds: `~/MacioGalaxy2-play/build3/` (last night's), `build2/`, `build1/`.
+
+### Optional 5.2 with Cappy
+
+Build 5.1 remains the default. Choose **c) 5.2 with Cappy** in the launcher, or use `native/play/play.sh --build build5.2 fluffy-bluff`. The build name `"5.2 with Cappy"` is also accepted by `--build`. Enable Odyssey movement and Cappy in Home → Mods to throw with R; F remains Spin. Existing saved mod choices are preserved.
+
+Both 5.1 and 5.2 have a known galaxy-selection/world-map renderer issue involving nested CALL_DL and an unmapped array24. Use the launcher galaxy menu or Home-menu Level Select to enter a galaxy directly. The account owner explicitly approved releasing 5.2 with this known issue; the normal-route/unlocked-save galaxy-entry gate is waived only for 5.2. Build 5.2.1 requires the complete normal-route gate. See the immutable build5.2/FROZEN.txt for the exact artifact and actual gate receipts.

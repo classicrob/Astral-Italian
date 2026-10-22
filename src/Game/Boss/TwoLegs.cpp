@@ -12,8 +12,7 @@
             reinterpret_cast< TwoLegs* >(pSpine->mExecutor)->updateStateAndNext(); \
         }                                                                       \
         static name sInstance;                                                  \
-    };                                                                          \
-    name name::sInstance ATTRIBUTE_WEAK;
+    };
 
 namespace NrvTwoLegs {
     class TwoLegsNrvStart : public Nerve {
@@ -73,7 +72,12 @@ namespace NrvTwoLegs {
     };
     TwoLegsNrvStart TwoLegsNrvStart::sInstance ATTRIBUTE_WEAK;
     TwoLegsNrvWait TwoLegsNrvWait::sInstance ATTRIBUTE_WEAK;
+    TwoLegsNrvWalkNoDamage TwoLegsNrvWalkNoDamage::sInstance ATTRIBUTE_WEAK;
+    TwoLegsNrvWalkDamage TwoLegsNrvWalkDamage::sInstance ATTRIBUTE_WEAK;
+    TwoLegsNrvJump TwoLegsNrvJump::sInstance ATTRIBUTE_WEAK;
     TwoLegsNrvShot TwoLegsNrvShot::sInstance ATTRIBUTE_WEAK;
+    TwoLegsNrvDamage TwoLegsNrvDamage::sInstance ATTRIBUTE_WEAK;
+    TwoLegsNrvChangePos TwoLegsNrvChangePos::sInstance ATTRIBUTE_WEAK;
     TwoLegsNrvOpening TwoLegsNrvOpening::sInstance ATTRIBUTE_WEAK;
     TwoLegsNrvExplosion TwoLegsNrvExplosion::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvTwoLegs

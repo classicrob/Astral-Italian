@@ -28,7 +28,7 @@ void TwoLegsStateDamage::appear() {
 }
 
 bool TwoLegsStateDamage::isHide() {
-    return isNerve(&NrvTwoLegsStateDamage::TwoLegsStateDamageNrvHide::sInstance);
+    return isNerve(&NrvTwoLegsStateDamage::TwoLegsStateDamageNrvRunAwayLand::sInstance);
 }
 
 void TwoLegsStateDamage::appearStarPiece() {

@@ -85,14 +85,14 @@ void TwoLegsStateShot::shootBullet() {
 }
 
 bool TwoLegsStateShot::tryAttackStrong(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(&NrvTwoLegsStateShot::TwoLegsStateShotNrvSitDown::sInstance)) {
+    if (isNerve(&NrvTwoLegsStateShot::TwoLegsStateShotNrvReverseSign::sInstance)) {
         return TwoLegsStateWalkDamage::tryStrongStamp(this, mHost, pSender, pReceiver);
     }
     return false;
 }
 
 bool TwoLegsStateShot::tryAttack(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(&NrvTwoLegsStateShot::TwoLegsStateShotNrvSitDown::sInstance)) {
+    if (isNerve(&NrvTwoLegsStateShot::TwoLegsStateShotNrvReverseSign::sInstance)) {
         return TwoLegsStateWalkDamage::tryStamp(this, mHost, pSender, pReceiver);
     }
     return false;
@@ -117,7 +117,7 @@ void TwoLegsStateShot::exeAttack() {
     }
     if (MR::isActionEnd(mHost) && !mHost->tryKillStateIfPlayerBetweenFeet(this)) {
         if (mHost->isPhase0()) {
-            setNerve(&NrvTwoLegsStateShot::TwoLegsStateShotNrvSitDown::sInstance);
+            setNerve(&NrvTwoLegsStateShot::TwoLegsStateShotNrvReverseSign::sInstance);
             return;
         }
         if (mHost->isLastPhase()) {

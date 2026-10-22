@@ -987,7 +987,7 @@ void FileSelector::exeTitleEnd() {
 
     if (mCameraController->isAtFarPoint() && MR::isEndStationedArchiveLoader()) {
         validateRotateAllItems();
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelect));
     }
 }
 

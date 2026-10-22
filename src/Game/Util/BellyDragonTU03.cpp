@@ -37,7 +37,7 @@ void BellyDragonFireGround::appear() {
     setNerve(&NrvBellyDragonFireGround::BellyDragonFireGroundNrvAppear::sInstance);
 }
 
-void BellyDragonFireGround::kill() {
+void BellyDragonFireGround::makeActorDead() {
     LiveActor::makeActorDead();
     mBloom->makeActorDead();
 }

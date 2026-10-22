@@ -206,7 +206,51 @@ def ota():
     return code, code.replace(old, old.replace(', Damage)', ', Down)'))
 
 
-FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'OtaKingMagma': ota, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
+def fire_ground():
+    header = (ROOT/'include/Game/Util/BellyDragon.hpp').read_text()
+    declaration = block(header, 'class BellyDragonFireGround :') + ';'
+    source = (ROOT/'src/Game/Util/BellyDragonTU03.cpp').read_text()
+    body = block(source, 'void BellyDragonFireGround::makeActorDead()')
+    code = r'''
+#include <JSystem/JGeometry.hpp>
+#include <cstdio>
+#include <cstdlib>
+class JMapInfoIter;
+class HitSensor;
+struct LiveActor {
+    int dead = 0, killed = 0;
+    virtual ~LiveActor() {}
+    virtual void init(const JMapInfoIter&) {}
+    virtual void appear() {}
+    virtual void kill() { ++killed; makeActorDead(); }
+    virtual void makeActorDead() { ++dead; }
+    virtual void calcAndSetBaseMtx() {}
+    virtual void attackSensor(HitSensor*, HitSensor*) {}
+};
+''' + declaration + body + r'''
+BellyDragonFireGround::BellyDragonFireGround() : mBloom(nullptr) {}
+BellyDragonFireGround::~BellyDragonFireGround() {}
+void BellyDragonFireGround::init(const JMapInfoIter&) {}
+void BellyDragonFireGround::appear() {}
+void BellyDragonFireGround::calcAndSetBaseMtx() {}
+void BellyDragonFireGround::attackSensor(HitSensor*, HitSensor*) {}
+int main() {
+    LiveActor bloom;
+    BellyDragonFireGround ground; ground.mBloom = &bloom;
+    LiveActor* actor = &ground;
+    actor->makeActorDead();
+    if (ground.dead != 1 || bloom.dead != 1 || ground.killed) std::abort();
+    actor->kill();
+    if (ground.dead != 2 || bloom.dead != 2 || ground.killed != 1) std::abort();
+    std::puts("BellyDragonFireGround: makeActorDead dispatch reaches production bloom cleanup and preserves inherited kill");
+}
+'''
+    mutant = code.replace('virtual void makeActorDead();', 'virtual void kill();').replace('BellyDragonFireGround::makeActorDead()', 'BellyDragonFireGround::kill()')
+    assert mutant != code
+    return code, mutant
+
+
+FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'OtaKingMagma': ota, 'BellyDragonFireGround': fire_ground, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
 
 
 def main():

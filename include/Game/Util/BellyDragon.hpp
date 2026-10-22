@@ -57,7 +57,7 @@ public:
     virtual ~BellyDragonFireGround();
     virtual void init(const JMapInfoIter&);
     virtual void appear();
-    virtual void kill();
+    virtual void makeActorDead();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
 

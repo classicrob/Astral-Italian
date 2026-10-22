@@ -78,7 +78,7 @@ void GravityFallBlock::exeFall() {
         MR::tryRumblePadWeak(this, 0);
         MR::emitEffectHit(this, MR::getGroundHitPos(this), "Hit");
         mBasePos.set< f32 >(mPosition);
-        setNerve(&NrvGravityFallBlock::GravityFallBlockNrvBreak::sInstance);
+        setNerve(&NrvGravityFallBlock::GravityFallBlockNrvWait::sInstance);
     }
 }
 

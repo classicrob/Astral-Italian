@@ -702,7 +702,7 @@ void MarioLauncher::offSwitchA() {
 }
 
 bool MarioLauncher::isFollowValid(s32) const {
-    return isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvWait)) || isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvReady));
+    return isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvAim)) || isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvFlight));
 }
 
 void MarioLauncherShell::calcAndSetBaseMtx() {

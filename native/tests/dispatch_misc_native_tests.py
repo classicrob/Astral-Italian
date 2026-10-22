@@ -24,6 +24,34 @@ def function(source, signature):
 
 
 CASES = {
+    'MarioLauncher': {
+        'path': 'Game/MapObj/MarioLauncher',
+        'signature': 'bool MarioLauncher::isFollowValid(s32) const',
+        'nerves': ['MarioLauncherNrvWait', 'MarioLauncherNrvReady', 'MarioLauncherNrvAim', 'MarioLauncherNrvFlight'],
+        'old': ('MarioLauncherNrvAim)) || isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvFlight)',
+                'MarioLauncherNrvWait)) || isNerve(GET_NERVE(MarioLauncher, MarioLauncherNrvReady)'),
+        'fixture': r'''
+using s32 = int;
+struct MarioLauncher : Host {
+    bool isFollowValid(s32) const;
+    void exeWait() { called = 1; } void exeReady() { called = 2; }
+    void exeAim() { called = 3; } void exeFlight() { called = 4; }
+};
+''',
+        'test': r'''
+MarioLauncher actor;
+const Nerve* wait = GET_NERVE(MarioLauncher, MarioLauncherNrvWait);
+const Nerve* ready = GET_NERVE(MarioLauncher, MarioLauncherNrvReady);
+const Nerve* aim = GET_NERVE(MarioLauncher, MarioLauncherNrvAim);
+const Nerve* flight = GET_NERVE(MarioLauncher, MarioLauncherNrvFlight);
+for (const Nerve* nerve : {wait, ready, aim, flight}) {
+    actor.current = nerve;
+    Spine spine{&actor}; actor.current->execute(&spine);
+    for (s32 id : {-1, 0, 1})
+        require(actor.isFollowValid(id) == (actor.called == 3 || actor.called == 4), "follow valid only while Aim or Flight executes");
+}
+''',
+    },
     'HomeButtonLayout': {
         'path': 'Game/Screen/HomeButtonLayout',
         'signature': 'void HomeButtonLayout::forceToDeactive()',

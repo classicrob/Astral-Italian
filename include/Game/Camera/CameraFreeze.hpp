@@ -9,6 +9,6 @@ public:
     virtual void reset();
     virtual CameraTargetObj* calc();
     virtual CamTranslatorBase* createTranslator();
+    virtual bool isUnknownOff() const;
     virtual bool isCorrectingErpPositionOff() const;
-    virtual bool isSubjectiveCameraOff() const;
 };

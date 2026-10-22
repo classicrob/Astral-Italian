@@ -22,10 +22,10 @@ CamTranslatorBase* CameraFreeze::createTranslator() {
     return new CamTranslatorFreeze(this);
 }
 
-bool CameraFreeze::isCorrectingErpPositionOff() const {
+bool CameraFreeze::isUnknownOff() const {
     return true;
 }
 
-bool CameraFreeze::isSubjectiveCameraOff() const {
+bool CameraFreeze::isCorrectingErpPositionOff() const {
     return true;
 }

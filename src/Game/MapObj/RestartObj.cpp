@@ -81,7 +81,7 @@ void RestartObj::exeCollect() {
         changeTexture(true);
     }
     if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(RestartObj, RestartObjNrvAfter));
+        setNerve(GET_NERVE(RestartObj, RestartObjNrvCollectAfter));
     }
 }
 
@@ -92,7 +92,7 @@ void RestartObj::exeShake() {
         MR::tryRumblePadWeak(this, 0);
     }
     if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(RestartObj, RestartObjNrvShake));
+        setNerve(GET_NERVE(RestartObj, RestartObjNrvAfter));
     }
 }
 

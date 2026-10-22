@@ -76647,9 +76647,9 @@ sInstance__Q228NrvRepeatTimerSwitchingBlock36RepeatTimerSwitchingBlockNrvSwitchO
 sInstance__Q228NrvRepeatTimerSwitchingBlock37RepeatTimerSwitchingBlockNrvSwitchOff = .sbss:0x807D423C; // type:object size:0x4
 sInstance__Q213NrvRestartObj17RestartObjNrvWait = .sbss:0x807D4240; // type:object size:0x4
 sInstance__Q213NrvRestartObj20RestartObjNrvCollect = .sbss:0x807D4244; // type:object size:0x4
-lbl_807D4248 = .sbss:0x807D4248; // type:object size:0x4
+sInstance__Q213NrvRestartObj25RestartObjNrvCollectAfter = .sbss:0x807D4248; // type:object size:0x4
 sInstance__Q213NrvRestartObj18RestartObjNrvShake = .sbss:0x807D424C; // type:object size:0x4
-lbl_807D4250 = .sbss:0x807D4250; // type:object size:0x8
+sInstance__Q213NrvRestartObj18RestartObjNrvAfter = .sbss:0x807D4250; // type:object size:0x8
 sInstance__Q224NrvRisePictureBookPlanet28RisePictureBookPlanetNrvWait = .sbss:0x807D4258; // type:object size:0x4
 sInstance__Q224NrvRisePictureBookPlanet28RisePictureBookPlanetNrvMove = .sbss:0x807D425C; // type:object size:0x4
 sInstance__Q224NrvRisePictureBookPlanet31RisePictureBookPlanetNrvReverse = .sbss:0x807D4260; // type:object size:0x8

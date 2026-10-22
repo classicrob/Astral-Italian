@@ -97,7 +97,7 @@ void Fluff::init(const JMapInfoIter& rIter) {
 
 void Fluff::onDemoAction() {
     MR::requestMovementOn(mModel);
-    setNerve(GET_NERVE(Fluff, FluffNrvBeforeBloom));
+    setNerve(GET_NERVE(Fluff, FluffNrvFreeBloom));
 }
 
 void Fluff::initAfterPlacement() {

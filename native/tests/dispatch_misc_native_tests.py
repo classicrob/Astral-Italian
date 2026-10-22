@@ -24,6 +24,28 @@ def function(source, signature):
 
 
 CASES = {
+    'Fluff': {
+        'path': 'Game/Ride/Fluff',
+        'signature': 'void Fluff::onDemoAction()',
+        'nerves': ['FluffNrvBeforeBloom', 'FluffNrvFreeBloom'],
+        'old': ('FluffNrvFreeBloom)', 'FluffNrvBeforeBloom)'),
+        'fixture': r'''
+namespace MR { int movements = 0; void requestMovementOn(void*) { ++movements; } }
+struct Fluff : Host {
+    void* mModel = this;
+    void onDemoAction();
+    void exeFreeBloom() { called = 1; }
+};
+''',
+        'test': r'''
+Fluff actor;
+actor.current = GET_NERVE(Fluff, FluffNrvBeforeBloom);
+actor.onDemoAction();
+require(MR::movements == 1, "model movement requested");
+Spine spine{&actor}; actor.current->execute(&spine);
+require(actor.called == 1, "demo action dispatches exeFreeBloom");
+''',
+    },
     'MarioLauncher': {
         'path': 'Game/MapObj/MarioLauncher',
         'signature': 'bool MarioLauncher::isFollowValid(s32) const',
@@ -142,8 +164,12 @@ def run(name, case, work):
     wrappers = []
     for nerve in case['nerves']:
         lines = [line for line in source.splitlines() if 'NEW_NERVE(' + nerve + ',' in line]
-        assert len(lines) == 1, nerve
-        wrappers.append(lines[0])
+        if not lines:
+            wrappers.append(function(source, 'class ' + nerve) + ';\n'
+                            + nerve + ' ' + nerve + '::sInstance;')
+        else:
+            assert len(lines) == 1, nerve
+            wrappers.append(lines[0])
     header = (ROOT / 'include/Game/LiveActor/Nerve.hpp').read_text()
     macros = '#define NERVE_INSTANCE(name) inline name name::sInstance;\n'
     macros += header[header.index('#define NEW_NERVE('):]

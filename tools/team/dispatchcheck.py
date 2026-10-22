@@ -117,7 +117,12 @@ class ELF:
                     a, info, add = struct.unpack_from('>IIi', raw, s[4] + off)
                     self.relocs.append((s[7], a, info & 255, info >> 8, add))
         self.rel_by_sec = collections.defaultdict(dict)
+        self.rel_collisions = set()
         for sec, off, typ, symidx, addend in self.relocs:
+            if typ in (R_ADDR16, R_ADDR16_LO, R_ADDR16_HI, R_ADDR16_HA) and self.is_code(sec):
+                off &= ~3  # halfword relocations point at instruction+2: key them by the instruction
+            if off in self.rel_by_sec[sec]:
+                self.rel_collisions.add((sec, off))
             self.rel_by_sec[sec][off] = (typ, symidx, addend)
 
     def content(self, sec, off, n):
@@ -281,7 +286,7 @@ class Prog:
                     continue
                 srcb = e.content(f['sec'], f['off'], f['size'])
                 rels = {o - f['off']: r for o, r in e.rel_by_sec[f['sec']].items() if f['off'] <= o < f['off'] + f['size']}
-                exact = True
+                exact = not any(f['off'] <= o < f['off'] + f['size'] for sc, o in e.rel_collisions if sc == f['sec'])
                 for i in range(0, f['size'], 4):
                     sw, dw = u32(srcb, i), u32(dolb, i)
                     r = rels.get(i)
@@ -356,17 +361,21 @@ class Prog:
             b = self.dol.bytes(a, 0x80) or self.dol.bytes(a, 0x20)
             if cls is None or b is None:
                 continue
-            regs, last = {}, None
+            regs, last = {}, None  # regs: reg -> (value, base-constant)
             for i in range(0, len(b), 4):
                 w = u32(b, i)
                 op, rt, ra = w >> 26, (w >> 21) & 31, (w >> 16) & 31
                 if op == 15 and ra == 0:
-                    regs[rt] = ((w & 0xFFFF) << 16) & 0xFFFFFFFF
+                    v = ((w & 0xFFFF) << 16) & 0xFFFFFFFF
+                    regs[rt] = (v, v)
                 elif op == 14 and ra in regs:
-                    regs[rt] = (regs[ra] + s16(w & 0xFFFF)) & 0xFFFFFFFF
+                    v0, base = regs[ra]
+                    v = (v0 + s16(w & 0xFFFF)) & 0xFFFFFFFF
+                    # lis result (low half zero) + addi completes the address; anything else is an adjustment
+                    regs[rt] = (v, v if v0 & 0xFFFF == 0 else base)
                 elif op == 36 and ra == 3 and (w & 0xFFFF) == 0 and rt in regs:
-                    if 0x80600000 <= regs[rt] < 0x80730000:
-                        last = regs[rt]
+                    if 0x80600000 <= regs[rt][1] < 0x80730000:
+                        last = regs[rt][1]
                 elif w == 0x4E800020:  # blr
                     break
             if last is not None:
@@ -416,6 +425,8 @@ class Prog:
                         row['dol_name'] = self.sy.name_at(op[1])
                 if how == 'local' and v in ('CROSSED', 'WRONG'):
                     v = 'LOCALDRIFT:' + v
+                elif v == 'MATCH' and how != 'sym':
+                    v = 'MATCH_INFERRED' if how == 'inferred' else 'MATCH_LOCAL'  # not independent evidence
                 row['how'] = how
                 done(v)
 
@@ -521,27 +532,32 @@ class Prog:
         return chains
 
     def src_exe(self):
-        """class suffix -> (exe-target address or None, exe name) from the source objects' nerve vtables."""
+        """class suffix -> (exe-target address or None, exe name): from the source vtable container `__vt__<cls>`,
+        its slot-2 relocation, the execute wrapper it names and that wrapper's first branch."""
         out = {}
         for unit, e in self.elfs.items():
             funcs = {f['name']: f for f in e.syms if f['type'] == 2 and f['size'] and e.is_code(f['sec'])}
+            conts = collections.defaultdict(list)
+            for sym in e.syms:
+                if sym['name'].startswith('__vt__') and e.is_data(sym['sec']) and sym['size']:
+                    conts[sym['sec']].append(sym)
             for sec, off, typ, si, ad in e.relocs:
                 if typ != R_ADDR32 or not e.is_data(sec):
                     continue
+                c = next((c for c in conts.get(sec, []) if c['off'] <= off < c['off'] + c['size']), None)
+                if c is None or off - c['off'] != 8:
+                    continue
                 t = e.syms[si]
-                if not t['name'].startswith('execute__') or t['name'].startswith('executeOnEnd'):
-                    continue
                 f = funcs.get(t['name'])
-                if f is None:
+                if f is None or not t['name'].startswith('execute__'):
                     continue
-                rels = sorted(o for o in e.rel_by_sec[f['sec']] if f['off'] <= o < f['off'] + f['size'] and e.rel_by_sec[f['sec']][o][0] == R_REL24)
+                rels = sorted(o for o in e.rel_by_sec[f['sec']] if f['off'] <= o < f['off'] + f['size']
+                              and e.rel_by_sec[f['sec']][o][0] == R_REL24)
                 if not rels:
                     continue
                 typ2, si2, ad2 = e.rel_by_sec[f['sec']][rels[0]]
-                cls = t['name'][len('execute__'):]
-                cls = cls[:-len('CFP5Spine')] if cls.endswith('CFP5Spine') else cls
                 x, how = self.target(e, unit, si2, ad2)
-                out[cls] = (x, e.syms[si2]['name'])
+                out[c['name'][len('__vt__'):]] = (x, e.syms[si2]['name'])
         return out
 
     def run_sem(self, rows, stats):
@@ -603,15 +619,13 @@ class Prog:
                 sw &= m; dw &= m
             if sw != dw:
                 return False
-        resolved = 0
         for off, (typ, si, ad) in rels.items():
             exp, how = self.target(e, unit, si, ad)
             op = self.dol_operand(typ, u32(dolb, off), w + off)
-            if exp is None or op is None or op[0] != 'addr':
-                continue
+            if exp is None or op is None or op[0] != 'addr' or how != 'sym':
+                return None  # a relocation we cannot verify independently: no MATCH_BODY
             if op[1] != exp & 0xFFFFFFFF:
                 return False
-            resolved += 1
         return True
 
     def run_data(self, rows, stats):
@@ -673,6 +687,8 @@ class Prog:
                     row['dol_name'] = self.sy.name_at(w)
                     if how == 'local' or chow == 'local':
                         v = 'LOCALDRIFT:' + v
+                elif v == 'MATCH' and (how != 'sym' or chow != 'sym'):
+                    v = 'MATCH_INFERRED' if 'inferred' in (how, chow) else 'MATCH_LOCAL'
                 done(v)
             # vtable shape: unrelocated words must equal the DOL words; the source vtable may not be larger
             for sec, cs in cont.items():
@@ -742,6 +758,15 @@ def main():
     ap.add_argument('--write-allow', metavar='FILE', help='write the current BAD rows as an allow-list (baseline)')
     a = ap.parse_args()
     prog = Prog(a.root, a.dol)
+    inventory = []
+    cfg = pathlib.Path(a.root) / 'objdiff.json'
+    if cfg.exists():
+        expected = {u['name'].removeprefix('main/') for u in json.loads(cfg.read_text())['units'] if u.get('base_path')}
+        inventory = sorted(expected - set(prog.elfs))
+    for unit, err in prog.errors:
+        print('INVENTORY unreadable object', unit, err)
+    for unit in inventory:
+        print('INVENTORY missing object', unit)
     rows, stats = prog.run(('data', 'code') if a.layer == 'all' else (a.layer,))
     if a.prefix:
         rows = [r for r in rows if r['unit'].startswith(a.prefix)]
@@ -770,7 +795,7 @@ def main():
     for r in bad:
         print('BAD', r['layer'], r['unit'], r.get('container') or r.get('function'), f"+{r['offset']:x}",
               r.get('target', ''), '->', r.get('dol_name') or r.get('detail') or hex(r.get('dol', 0)))
-    if a.strict and (bad or stale):
+    if a.strict and (bad or stale or prog.errors or inventory):
         sys.exit(1)
 
 

@@ -84,7 +84,7 @@ void writeSidecar(bool final) {
     std::FILE* f = std::fopen((path + ".tmp").c_str(), "w");
     if (!f) return;
     const auto stats = Input::KpadRecord::stats();
-    static const std::string sha = exeSha256();
+    static const std::string sha = exeSha256();  // computed when the tape opens (seam()), never in play
     std::fprintf(f, "{\n  \"schema\": 1,\n  \"complete\": %s,\n  \"route_csv\": %s,\n  \"kpd\": %s,\n  \"actions\": %s,\n",
                  final ? "true" : "false", json(gRoute).c_str(), json(gBase + ".kpd").c_str(), json(gBase + ".actions").c_str());
     std::fprintf(f, "  \"seams\": %llu,\n  \"exe_sha256\": %s,\n  \"source\": %s,\n  \"mods\": %s,\n",
@@ -171,6 +171,7 @@ void seam(const Seam& s) {
             return;
         }
         gOpen = true;
+        writeSidecar(false);  // hashes the executable now (a startup cost), not at the first checkpoint during play
         std::atexit(finish);
         std::fprintf(stderr, "PETARI TAPE RECORD: writing %s.kpd / .actions / .tape.json\n", gBase.c_str());
     }
@@ -210,7 +211,7 @@ void seam(const Seam& s) {
     // killed instead of quit still leaves a replayable tape (the sidecar then says complete=false and where it stops).
     if (gRow % 60 == 0) {
         Input::KpadRecord::checkpoint();
-        writeSidecar(false);
+        if (gRow % 300 == 0) writeSidecar(false);  // the sidecar may lag the tape (it is valid to the loops it names); it is small but a file replace
     }
 }
 

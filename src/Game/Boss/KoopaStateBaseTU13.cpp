@@ -51,7 +51,7 @@ void KoopaStateLastDamage::appear() {
     }
 }
 
-void KoopaStateLastDamage::moveToTarget() {
+void KoopaStateLastDamage::control() {
     MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, MR::getEaseInOutValue(mStep, 0.0f, mDuration, 0.0f, 1.0f));
     mStep++;
 }

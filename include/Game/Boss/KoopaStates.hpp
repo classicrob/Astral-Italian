@@ -354,7 +354,7 @@ public:
     virtual ~KoopaStateLastDamage();
     virtual void appear();
 
-    void moveToTarget();
+    virtual void control();
     void setDamageType(HitSensor*);
     void exeDamage();
     void exeRollEnd();

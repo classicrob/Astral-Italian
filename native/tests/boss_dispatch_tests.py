@@ -148,7 +148,50 @@ int main() {
     return code, code.replace(methods[0], wrong)
 
 
-FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
+def last_damage():
+    header = (ROOT/'include/Game/Boss/KoopaStates.hpp').read_text()
+    declaration = block(header, 'class KoopaStateLastDamage :') + ';'
+    source = (ROOT/'src/Game/Boss/KoopaStateBaseTU13.cpp').read_text()
+    control = block(source, 'void KoopaStateLastDamage::control()')
+    code = r'''
+#include "Game/LiveActor/ActorStateBase.hpp"
+#include <JSystem/JGeometry.hpp>
+#include <cstdio>
+#include <cstdlib>
+class HitSensor;
+struct KoopaBattle { TVec3f mPosition; };
+static int blendCalls;
+namespace MR {
+float getEaseInOutValue(float, float, float, float, float) { return 0.5f; }
+void vecBlend(TVec3f* result, const TVec3f& from, const TVec3f& to, float rate) {
+    ++blendCalls;
+    result->set(from.x + (to.x - from.x) * rate,
+                from.y + (to.y - from.y) * rate, from.z + (to.z - from.z) * rate);
+}
+}
+''' + declaration + control + r'''
+KoopaStateLastDamage::KoopaStateLastDamage(KoopaBattle* host) : ActorStateBase<KoopaBattle>("fixture", host) {
+    mStep = 4; mDuration = 120;
+    mStartPos.set(1.0f, 2.0f, 3.0f); mTargetPos.set(9.0f, 12.0f, 15.0f);
+}
+KoopaStateLastDamage::~KoopaStateLastDamage() {}
+void KoopaStateLastDamage::appear() {}
+int main() {
+    KoopaBattle host;
+    KoopaStateLastDamage state(&host);
+    ActorStateBaseInterface* interface = &state;
+    interface->control();
+    if (blendCalls != 1 || state.mStep != 5 || host.mPosition.x != 5.0f ||
+        host.mPosition.y != 7.0f || host.mPosition.z != 9.0f) std::abort();
+    std::puts("KoopaStateLastDamage: base-interface control dispatch runs production position update");
+}
+'''
+    mutant = code.replace('virtual void control();', 'void moveToTarget();').replace('KoopaStateLastDamage::control()', 'KoopaStateLastDamage::moveToTarget()')
+    assert mutant != code
+    return code, mutant
+
+
+FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
 
 
 def main():
@@ -170,9 +213,10 @@ def main():
             if not name.startswith('native/'): flags += ['-I', str(encoded/name)]
             flags += ['-I', str(ROOT/name)]
         objects = []
-        for unit in ['Nerve', 'Spine', 'ActorStateKeeper']:
-            obj = work/(unit + '.o')
-            subprocess.run(flags + ['-c', str(encoded/('src/Game/LiveActor/' + unit + '.cpp')), '-o', str(obj)], check=True)
+        for path in ['src/Game/LiveActor/Nerve.cpp', 'src/Game/LiveActor/Spine.cpp',
+                     'src/Game/LiveActor/ActorStateKeeper.cpp', 'src/Game/System/NerveExecutor.cpp']:
+            obj = work/(Path(path).stem + '.o')
+            subprocess.run(flags + ['-c', str(encoded/path), '-o', str(obj)], check=True)
             objects.append(str(obj))
         link = ['-Wl,-dead_strip'] if sys.platform == 'darwin' else ['-Wl,--gc-sections']
         for family in a.families or FIXTURES:

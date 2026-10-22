@@ -31,7 +31,6 @@ public:
 
     virtual const char* getTypeString() const;
 
-    virtual void start();
     virtual void update();
 
     virtual void executeType(const DemoSoundInfo* pInfo);

@@ -46,9 +46,6 @@ DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(
     }
 }
 
-void DemoSoundKeeper::start() {
-}
-
 void DemoSoundKeeper::update() {
     DemoSheetKeeperInfoHolder< DemoSoundInfo >::update();
 

@@ -10,8 +10,8 @@ class JPABaseEmitter;
 
 struct MovingFollowMtx {
     MovingFollowMtx() {
-        _4.identity();
-        _34.identity();
+        PSMTXIdentity(_4.toMtxPtr());
+        PSMTXIdentity(_34.toMtxPtr());
         _64 = nullptr;
         _68 = nullptr;
         _0 = 0;

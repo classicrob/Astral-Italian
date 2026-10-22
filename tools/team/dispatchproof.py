@@ -95,6 +95,8 @@ def symbol_addr(prog, e, unit, sym):
 
 
 def storage_addr(prog,e,unit,sym):
+    legacy=getattr(prog,'_proof_legacy_addresses',{}).get(sym['name'])
+    if legacy is not None:return legacy
     definition=getattr(prog,'_proof_definition_addresses',{}).get((unit,sym['sec'],sym['off'],sym['name']))
     if definition is not None:return definition
     sec=sym['sec']
@@ -117,6 +119,9 @@ def prepare_addresses(pb, pa):
         prog._proof_allowed_old=set()
         prog._proof_named={}
         prog._proof_chain_addresses={}
+        prog._proof_legacy_addresses={}
+        prog._proof_variants=set()
+        prog._proof_image_bytes={}
         tried=set()
         for unit,e in prog.elfs.items():
             for idx,sym in enumerate(e.syms):
@@ -220,6 +225,56 @@ def prepare_addresses(pb, pa):
                 if exact_body(prog,e,unit,sym,addr) and exact_body(other,oe,unit,cs,addr):
                     prog._proof_definition_addresses[unit,sym['sec'],sym['off'],sym['name']]=addr
 
+    # Removing a wrong global name must not relocate its unchanged weak copies.
+    # This is comparison bookkeeping only: L targets are NEVER DOL evidence.
+    for prog,other in ((pb,pa),(pa,pb)):
+        for name,record in prog.sy.by_name.items():
+            if name in other.sy.by_name or record not in other.sy.by_name.values():continue
+            addr,size,sec,typ=record
+            if typ!='function':continue
+            def legacy_records(p):
+                out=[];definitions=[]
+                for unit,e in p.elfs.items():
+                    ids=section_ids(e)
+                    for i,s in enumerate(e.syms):
+                        if s['name']!=name:continue
+                        out.append((unit,'symbol',tuple(s.items())))
+                        if s['sec']:
+                            if not 0<s['sec']<len(e.s) or s['bind']!=2 or s['type']!=2 or s['size']!=size:return None,None
+                            definitions.append((unit,e,s))
+                            out.append((unit,'body',e.content(s['sec'],s['off'],size),
+                                tuple((o-s['off'],t,ad,e.syms[si]['name']) for sc,o,t,si,ad in e.relocs if sc==s['sec'] and s['off']<=o<s['off']+size)))
+                        for sc,o,t,si,ad in e.relocs:
+                            if si==i and not ignored(e,sc):out.append((unit,'use',ids[sc],o,t,ad,e.content(sc,o&~3,4)))
+                return out,definitions
+            old,defs=legacy_records(prog);new,otherdefs=legacy_records(other)
+            if old and old==new and defs and all(not exact_body(prog,e,u,s,addr) for u,e,s in defs):
+                pb._proof_legacy_addresses[name]=pa._proof_legacy_addresses[name]=addr
+
+    # Keep pre-existing, unchanged non-exact duplicate variants distinct from
+    # their address's exact image. Their bytes/relocations still compare in full.
+    for unit in set(pb.elfs)&set(pa.elfs):
+        for prog,other in ((pb,pa),(pa,pb)):
+            e,oe=prog.elfs[unit],other.elfs[unit];groups=collections.defaultdict(list)
+            for s in e.syms:
+                if s['size'] and s['type'] in (1,2) and 0<s['sec']<len(e.s):
+                    a=storage_addr(prog,e,unit,s)
+                    if a is not None:groups[e.names[s['sec']],a,s['size']].append(s)
+            for (sec,addr,size),syms in groups.items():
+                if len({(s['sec'],s['off']) for s in syms})<2:continue
+                for s in syms:
+                    if exact_body(prog,e,unit,s,addr):continue
+                    matches=[x for x in oe.syms if x==s]
+                    if len(matches)!=1:continue
+                    x=matches[0]
+                    if storage_addr(other,oe,unit,x)!=addr or exact_body(other,oe,unit,x,addr):continue
+                    def body(p,el,sy):
+                        return (el.content(sy['sec'],sy['off'],size),collections.Counter((o-sy['off'],t,ad,target_key(p,el,unit,si,ad))
+                            for sc,o,t,si,ad in el.relocs if sc==sy['sec'] and sy['off']<=o<sy['off']+size))
+                    if body(prog,e,s)==body(other,oe,x):
+                        key=(unit,s['sec'],s['off'],size)
+                        prog._proof_variants.add(key);other._proof_variants.add(key)
+
 
 def exact_body(prog, e, unit, sym, addr):
     sec, off, size = sym['sec'], sym['off'], sym['size']
@@ -275,13 +330,14 @@ def exact_coverage(prog):
     result=collections.defaultdict(list)
     config=hashlib.sha256((prog.root/'config/SB4E01/symbols.txt').read_bytes()).digest()
     named=hashlib.sha256(repr(sorted(prog._proof_named.items())).encode()).digest()
+    legacy=tuple(sorted(getattr(prog,'_proof_legacy_addresses',{}).items()))
     aliases=collections.defaultdict(list)
     for key,addr in prog._proof_addresses.items():aliases[key[0]].append((key[1:],addr))
     for key,addr in getattr(prog,'_proof_definition_addresses',{}).items():aliases[key[0]].append((('definition',)+key[1:],addr))
     permitted=collections.defaultdict(list)
     for unit,site,target in getattr(prog,'_proof_allowed_old',set()):permitted[unit].append((site,target))
     for unit,e in prog.elfs.items():
-        key=(unit,hashlib.sha256(e.raw).digest(),config,named,tuple(sorted(aliases[unit],key=repr)),tuple(sorted(permitted[unit])))
+        key=(unit,hashlib.sha256(e.raw).digest(),config,named,legacy,tuple(sorted(aliases[unit],key=repr)),tuple(sorted(permitted[unit])))
         entries=_COVERAGE_CACHE.get(key)
         if entries is None:
             entries=[]
@@ -301,6 +357,8 @@ def target_key(prog, e, unit, si, ad):
     are not interchangeable (two BSS objects both have empty bodies).
     """
     t = e.syms[si]
+    legacy=getattr(prog,'_proof_legacy_addresses',{}).get(t['name'])
+    if legacy is not None:return ('L',t['name'],legacy+ad,t['bind'],t['type'],t['size'])
     if not hasattr(e,'_proof_other'):
         e._proof_other=[e.raw[sh[4]+o+13] for sh in e.s if sh[1]==2 for o in range(0,sh[5],16)]
     def addressed(a):return ('A',a,t['bind'],t['type'],t['size'],e._proof_other[si])
@@ -330,6 +388,8 @@ def unit_image(prog, unit):
     """
     e = prog.elfs[unit]
     ids, img = section_ids(e), {}
+    if not hasattr(prog,'_proof_image_bytes'):prog._proof_image_bytes={}
+    bodies={};prog._proof_image_bytes[unit]=bodies
     for sec, sh in enumerate(e.s):
         if not sec or ignored(e, sec) or sh[1] in (2, 3, 4):
             continue
@@ -349,7 +409,8 @@ def unit_image(prog, unit):
                 raise ValueError(f'{unit}: overlapping/out-of-section symbol at {ids[sec]}+{off:#x}')
             if off > cursor:
                 blocks.append((cursor, off - cursor, ('P',previous) if previous is not None else ('O',cursor)))
-            blocks.append((off, size, ('A', addr)))
+            variant=(unit,sec,off,size) in getattr(prog,'_proof_variants',set())
+            blocks.append((off, size, ('V',addr,ids[sec],off) if variant else ('A', addr)))
             cursor = off + size
             previous = addr+size
         if cursor < sh[5]:
@@ -362,10 +423,11 @@ def unit_image(prog, unit):
                 raise ValueError(f'{unit}: truncated section {ids[sec]}')
             rels = collections.Counter((o - off, typ, ad, target_key(prog, e, unit, si, ad))
                                       for rs, o, typ, si, ad in e.relocs if rs == sec and off <= o < off + size)
-            k = (e.names[sec] if key[0] in ('A','P') else ids[sec], key, size)
+            k = (e.names[sec] if key[0] in ('A','P','V') else ids[sec], key, size)
             if k in img and img[k] != (hashlib.sha256(body).hexdigest(),rels):
                 raise ValueError(f'{unit}: conflicting duplicate original-address image key {k}')
             img[k] = (hashlib.sha256(body).hexdigest(), rels)
+            bodies[k]=body
         # Relocations outside storage must not silently vanish.
         for rs, o, typ, si, ad in e.relocs:
             if rs == sec and not 0 <= o < sh[5]:
@@ -373,17 +435,29 @@ def unit_image(prog, unit):
     return img
 
 
-def compare_units(unit, ib, ia, flipped_sites, problems, removable=frozenset(), addable=frozenset()):
+def compare_units(unit, ib, ia, flipped_sites, problems, removable=frozenset(), addable=frozenset(), binding_trades=frozenset(), detail_bodies=None):
+    failed=False
     if set(ib)-set(ia)-set(removable) or set(ia)-set(ib)-set(addable):
-        problems.append(f'{unit}: section/symbol image keys differ')
-        return None
+        suffix=f': -{sorted(set(ib)-set(ia)-set(removable),key=repr)} +{sorted(set(ia)-set(ib)-set(addable),key=repr)}' if detail_bodies else ''
+        problems.append(f'{unit}: section/symbol image keys differ{suffix}')
+        if not detail_bodies:return None
+        failed=True
     retargets = 0
     for k in set(ib)&set(ia):
         hb,rb=ib[k]
         ha,ra=ia[k]
         if hb != ha:
-            problems.append(f'{unit}: bytes at {k} differ')
-            return None
+            suffix=''
+            if detail_bodies:
+                b,a=detail_bodies[0][k],detail_bodies[1][k];runs=[];start=None
+                for i in range(max(len(b),len(a))+1):
+                    diff=i<max(len(b),len(a)) and b[i:i+1]!=a[i:i+1]
+                    if diff and start is None:start=i
+                    if not diff and start is not None:runs.append((hex(start),b[start:i].hex(),a[start:i].hex()));start=None
+                suffix=f': (offset, before, after) {runs}'
+            problems.append(f'{unit}: bytes at {k} differ{suffix}')
+            if not detail_bodies:return None
+            failed=True
         if rb == ra:
             continue
         removed, added = rb - ra, ra - rb
@@ -395,16 +469,28 @@ def compare_units(unit, ib, ia, flipped_sites, problems, removable=frozenset(), 
             site = k[1][1] + (o & ~3 if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else o) if k[1][0] == 'A' else None
             new = candidates[0] if len(candidates) == 1 else None
             allowed = (unit, k, o, typ, ad, site, target, new[3] if new else None)
-            if count != 1 or new is None or allowed not in flipped_sites:
-                problems.append(f'{unit}: relocation {k}+{o:#x} changed without an independent BAD->MATCH proof')
-                return None
+            trade=False
+            if new is not None and target[0]==new[3][0]=='A' and len(target)==len(new[3])==6:
+                t=new[3]
+                oldrecord=('A',target[1]-ad,target[4],target[2],target[3],target[5])
+                newrecord=('A',t[1]-ad,t[4],t[2],t[3],t[5])
+                trade=(oldrecord,newrecord) in binding_trades
+            if count != 1 or new is None or (allowed not in flipped_sites and not trade):
+                suffix=f': -{old} x{count} +{candidates}' if detail_bodies else ''
+                problems.append(f'{unit}: relocation {k}+{o:#x} changed without an independent BAD->MATCH proof{suffix}')
+                if not detail_bodies:return None
+                failed=True
+                if new is not None:
+                    added.subtract({new:count});added+=collections.Counter()
+                continue
             added.subtract({new: 1})
             added += collections.Counter()
-            retargets += 1
+            retargets += not trade
         if added:
-            problems.append(f'{unit}: extra relocation records at {k}')
-            return None
-    return retargets
+            problems.append(f'{unit}: extra relocation records at {k}'+(f': {list(added.elements())}' if detail_bodies else ''))
+            if not detail_bodies:return None
+            failed=True
+    return None if failed else retargets
 
 
 def row_key(r):
@@ -643,10 +729,33 @@ def emission_permissions(prog, other, unit, img, otherimg, coverage):
     return allowed
 
 
+def exact_binding_trades(pb,pa,unit):
+    eb,ea=pb.elfs[unit],pa.elfs[unit]
+    cb,ca=symbol_contract(eb,pb,unit),symbol_contract(ea,pa,unit)
+    missing,extra=cb-ca,ca-cb
+    trades=set()
+    # A strong/weak emission may trade places only over the same independently
+    # exact image. Binding changes on unanchored or non-exact storage still fail.
+    for record,count in list(missing.items()):
+        if record[0]!='A' or count!=1 or record[3] not in (1,2):continue
+        counterpart=record[:3]+(3-record[3],)+record[4:]
+        if extra[counterpart]!=1:continue
+        _,addr,size,bind,typ,other=record
+        copies=[]
+        for p,e in ((pb,eb),(pa,ea)):
+            ss=[s for s in e.syms if s['size']==size and s['type']==typ and storage_addr(p,e,unit,s)==addr]
+            copies.append(bool(ss) and all(exact_body(p,e,unit,s,addr) for s in ss))
+        if all(copies):trades.add((record,counterpart))
+    return trades
+
+
 def check_symbol_changes(pb,pa,unit,ib,ia,removed,added):
     eb,ea=pb.elfs[unit],pa.elfs[unit]
     cb,ca=symbol_contract(eb,pb,unit),symbol_contract(ea,pa,unit)
-    for counter,permissions in ((cb-ca,removed),(ca-cb,added)):
+    missing,extra=cb-ca,ca-cb
+    for record,counterpart in exact_binding_trades(pb,pa,unit):
+        missing.subtract({record:1});extra.subtract({counterpart:1})
+    for counter,permissions in ((+missing,removed),(+extra,added)):
         for record,count in counter.items():
             if record[0]!='A' or count!=1:return False
             _,addr,size,bind,typ,other=record
@@ -701,7 +810,7 @@ def config_ranges_preserved(pb,pa):
     return not removed and not added
 
 
-def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
+def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean, detail=False):
     ob, oa, problems = pb.elfs, pa.elfs, []
     prepare_addresses(pb,pa)
     if pa.sy.dups-pb.sy.dups:
@@ -793,20 +902,24 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
         def fixed_symbols(prog, e):
             return collections.Counter(('<anonymous>' if anonymous(s) else s['name'], s['sec'], s['off']) for i,s in enumerate(e.syms)
                 if not (0 < s['sec'] < len(e.s) and ignored(e, s['sec']))
-                and not (s['size'] and s['type'] in (1, 2) and symbol_addr(prog, e, unit, s) is not None)
+                and not (s['size'] and s['type'] in (1, 2) and storage_addr(prog, e, unit, s) is not None)
                 and not (s['sec']==0 and any(si==i and not ignored(e,sec) for sec,o,t,si,ad in e.relocs) and target_key(prog,e,unit,i,0)[0]=='A'))
-        if fixed_symbols(pb, eb) != fixed_symbols(pa, ea):
-            problems.append(f'{unit}: unanchored/unsized symbol placement differs')
-            continue
+        fb,fa=fixed_symbols(pb,eb),fixed_symbols(pa,ea)
+        if fb != fa:
+            suffix=f': -{list((fb-fa).elements())} +{list((fa-fb).elements())}' if detail else ''
+            problems.append(f'{unit}: unanchored/unsized symbol placement differs{suffix}')
+            if not detail:continue
         try:
             ib,ia=unit_image(pb,unit),unit_image(pa,unit)
             shared=set(cover_b)&set(cover_a)
             removed=emission_permissions(pb,pa,unit,ib,ia,shared)
             added=emission_permissions(pa,pb,unit,ia,ib,shared)
             if not check_symbol_changes(pb,pa,unit,ib,ia,removed,added):
-                problems.append(f'{unit}: symbol metadata/name change is not a preserved image or exact duplicate')
-                continue
-            n=compare_units(unit,ib,ia,allowed,problems,removed,added)
+                suffix=f': -{list((symbol_contract(eb,pb,unit)-symbol_contract(ea,pa,unit)).elements())} +{list((symbol_contract(ea,pa,unit)-symbol_contract(eb,pb,unit)).elements())}' if detail else ''
+                problems.append(f'{unit}: symbol metadata/name change is not a preserved image or exact duplicate{suffix}')
+                if not detail:continue
+            bodies=(pb._proof_image_bytes[unit],pa._proof_image_bytes[unit]) if detail else None
+            n=compare_units(unit,ib,ia,allowed,problems,removed,added,exact_binding_trades(pb,pa,unit),bodies)
         except (ValueError, IndexError) as ex:
             problems.append(str(ex))
             continue
@@ -861,6 +974,7 @@ def main():
     ap.add_argument('--pointwarp-after', help='selftest only: tree with the compiled de4289f1 PointWarp object')
     ap.add_argument('--dol', help='original main.dol (default: <root>/orig/SB4E01/sys/main.dol); its sha1 must equal config/SB4E01/build.sha1')
     ap.add_argument('--out')
+    ap.add_argument('--report-only', action='store_true', help='list unexplained differences and exit 0; never emit DISPATCH PROOF OK')
     a = ap.parse_args()
     a.dol = a.dol or None
     if a.selftest:
@@ -873,14 +987,19 @@ def main():
     pa = load_after(a.after,a.dol,pb)
     rows_b, _ = pb.run()
     rows_a, _ = pa.run()
-    problems, report, flipped = compare_trees(pb, pa, rows_b, rows_a, set(a.unit), a.expect_clean)
+    problems, report, flipped = compare_trees(pb, pa, rows_b, rows_a, set(a.unit), a.expect_clean, detail=a.report_only)
     print(json.dumps(report))
     for k in flipped:
         print('FLIPPED', *[str(x)[:70] for x in k])
     for p in problems:
         print('PROBLEM', p)
     if a.out:
-        pathlib.Path(a.out).write_text(json.dumps(dict(report=report, problems=problems, flipped=[list(k) for k in flipped]), indent=1))
+        payload=dict(report=report, problems=problems, flipped=[list(k) for k in flipped])
+        if a.report_only:payload['report_only']=True
+        pathlib.Path(a.out).write_text(json.dumps(payload, indent=1))
+    if a.report_only:
+        print(f'DISPATCH REPORT ONLY: {len(problems)} unexplained differences; no proof granted')
+        return
     if problems:
         print('DISPATCH PROOF FAILED')
         sys.exit(1)

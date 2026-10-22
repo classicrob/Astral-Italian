@@ -615,6 +615,139 @@ class BossNamingControls(unittest.TestCase):
         self.assertFalse(dp.paired_high_permissions(b,a,{low}))
 
 
+class BatchFourControls(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.units=('Game/Util/BossJugemTU01','Game/Demo/PrepareKoopaFinalDemoObj','Game/Demo/StaffRollDemoObj')
+        fixture=ROOT.parent/'dispatch-land'
+        if not all((fixture/'build/SB4E01/src'/f'{u}.o').exists() for u in cls.units):raise unittest.SkipTest('batch four fixtures unavailable')
+        cls.tmp=tempfile.TemporaryDirectory(prefix='R-four-');cls.dir=pathlib.Path(cls.tmp.name)
+        def phase(root,label):
+            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt');p.elfs={}
+            for n,u in enumerate(cls.units):
+                path=cls.dir/f'{label}-{n}.o';path.write_bytes((root/'build/SB4E01/src'/f'{u}.o').read_bytes());p.elfs[u]=dc.ELF(path)
+            p.inferred=collections.defaultdict(lambda:collections.defaultdict(list));p._chains=None;p.ctor_inst={};return p
+        cls.before,cls.after=phase(ROOT,'before'),phase(fixture,'after')
+        cls.legacy='__dt__23ActorStateBaseInterfaceFv'
+        if cls.legacy in cls.after.sy.by_name:raise unittest.SkipTest('batch four naming fixture unavailable')
+
+    @classmethod
+    def tearDownClass(cls):cls.tmp.cleanup()
+
+    def phases(self):return copy.copy(self.before),copy.copy(self.after)
+
+    def mutated(self,p,u,offset):
+        q=copy.copy(p);q.elfs=dict(p.elfs);raw=bytearray(p.elfs[u].raw);raw[offset]^=1
+        path=self.dir/'mutated.o';path.write_bytes(raw);q.elfs[u]=dc.ELF(path);return q
+
+    def test_removed_wrong_anchor_is_comparison_only(self):
+        b,a=self.phases();dp.prepare_addresses(b,a);u=self.units[0]
+        for p in (b,a):
+            e=p.elfs[u];i=next(i for i,s in enumerate(e.syms) if s['name']==self.legacy);s=e.syms[i]
+            self.assertEqual(dp.storage_addr(p,e,u,s),0x80109cb0)
+            self.assertEqual(dp.target_key(p,e,u,i,0)[0],'L')
+            self.assertFalse(dp.exact_body(p,e,u,s,0x80109cb0))
+        self.assertEqual(dp.unit_image(b,u),dp.unit_image(a,u))
+
+    def test_removed_wrong_anchor_changed_copy_rejected(self):
+        b,a=self.phases();u=self.units[0];e=a.elfs[u];s=next(s for s in e.syms if s['name']==self.legacy)
+        a=self.mutated(a,u,e.s[s['sec']][4]+s['off']);dp.prepare_addresses(b,a)
+        self.assertNotIn(self.legacy,a._proof_legacy_addresses)
+
+    def test_removed_wrong_anchor_changed_use_rejected(self):
+        b,a=self.phases();u=self.units[0];e=a.elfs[u];i=next(i for i,s in enumerate(e.syms) if s['name']==self.legacy)
+        sc,o,t,si,ad=next(r for r in e.relocs if not dp.ignored(e,r[0]))
+        raw=bytearray(e.raw);sh=next(s for s in e.s if s[1]==4 and s[7]==sc)
+        at=next(at for at in range(sh[4],sh[4]+sh[5],12) if dc.u32(raw,at)==o)
+        put32(raw,at+4,(i<<8)|t);path=self.dir/'changed-use.o';path.write_bytes(raw)
+        a.elfs=dict(a.elfs);a.elfs[u]=dc.ELF(path);dp.prepare_addresses(b,a)
+        self.assertNotIn(self.legacy,a._proof_legacy_addresses)
+
+    def test_existing_nonexact_variant_preserved(self):
+        b,a=self.phases();dp.prepare_addresses(b,a);u=self.units[1]
+        ib,ia=dp.unit_image(b,u),dp.unit_image(a,u)
+        variants=[k for k in ib if k[1][0]=='V'];self.assertEqual(len(variants),1)
+        self.assertEqual(ib[variants[0]],ia[variants[0]])
+
+    def test_modified_nonexact_variant_rejected(self):
+        b,a=self.phases();u=self.units[1];e=a.elfs[u]
+        s=next(s for s in e.syms if s['name']=='__vt__Q22MR11FunctorBase')
+        a=self.mutated(a,u,e.s[s['sec']][4]+s['off']);dp.prepare_addresses(b,a)
+        with self.assertRaises(ValueError):dp.unit_image(a,u)
+
+    def staff_phases(self):
+        b,a=self.phases();dp.prepare_addresses(b,a);u=self.units[2];rows=[]
+        for p in (b,a):
+            out=[];p.run_data(out,collections.Counter());rows.append({dp.oracle_key(r):r for r in out if r['unit']==u})
+        for k,r in rows[0].items():
+            n=rows[1].get(k)
+            if not n or not dp.bad(r) or n['verdict']!='MATCH':continue
+            old,new=dp.row_relocation(b,r),dp.row_relocation(a,n)
+            if old and new and old[:4]==new[:4] and old[2]==dc.R_ADDR32 and b.dol.word(r['site'])==new[4][1]:
+                b._proof_allowed_old.add((u,r['site'],old[4]))
+        return b,a
+
+    def test_exact_strong_weak_trade_preserved(self):
+        b,a=self.staff_phases();u=self.units[2]
+        self.assertTrue(dp.check_symbol_changes(b,a,u,dp.unit_image(b,u),dp.unit_image(a,u),set(),set()))
+
+    def test_inexact_strong_weak_trade_rejected(self):
+        b,a=self.staff_phases();u=self.units[2];e=a.elfs[u]
+        s=next(s for s in e.syms if s['name']=='__vt__Q219NrvStaffRollDemoObj20StaffRollDemoObjNrvE')
+        a=self.mutated(a,u,e.s[s['sec']][4]+s['off'])
+        self.assertFalse(dp.check_symbol_changes(b,a,u,dp.unit_image(b,u),dp.unit_image(a,u),set(),set()))
+
+    def test_nonflipped_strong_weak_trade_rejected(self):
+        b,a=self.staff_phases();b._proof_allowed_old=set();u=self.units[2]
+        self.assertFalse(dp.check_symbol_changes(b,a,u,dp.unit_image(b,u),dp.unit_image(a,u),set(),set()))
+
+    def test_binding_trade_relocations_keep_same_address(self):
+        b,a=self.staff_phases();u=self.units[2];ib,ia=dp.unit_image(b,u),dp.unit_image(a,u);allowed=set()
+        for k in set(ib)&set(ia):
+            for old in (ib[k][1]-ia[k][1]):
+                candidates=[r for r in (ia[k][1]-ib[k][1]) if r[:3]==old[:3]]
+                if len(candidates)!=1 or old[1]!=dc.R_ADDR32:continue
+                site=k[1][1]+old[0]
+                if (u,site,old[3]) in b._proof_allowed_old:allowed.add((u,k,*old[:3],site,old[3],candidates[0][3]))
+        problems=[];dp.compare_units(u,ib,ia,allowed,problems,binding_trades=dp.exact_binding_trades(b,a,u))
+        self.assertEqual(problems,[])
+
+    def test_binding_trade_different_address_rejected(self):
+        b,a=self.staff_phases();u=self.units[2];trades=dp.exact_binding_trades(b,a,u);old,new=next(iter(trades))
+        k=('.data',('A',0x80000000),4)
+        def target(r):return ('A',r[1]+4,r[3],r[4],r[2],r[5])
+        ib={k:('same',collections.Counter({(0,dc.R_ADDR32,0,target(old)):1}))}
+        ia={k:('same',collections.Counter({(0,dc.R_ADDR32,0,target(new)):1}))}
+        problems=[];dp.compare_units(u,ib,ia,set(),problems,binding_trades=trades);self.assertTrue(problems)
+
+
+class ReportOnlyControls(unittest.TestCase):
+    def test_report_lists_bytes_and_unapproved_relocation_once(self):
+        k=('.text',('A',0x80000000),4)
+        ib={k:('before',collections.Counter({(0,dc.R_ADDR32,0,('A',1)):1}))}
+        ia={k:('after',collections.Counter({(0,dc.R_ADDR32,0,('A',2)):1}))}
+        problems=[]
+        n=dp.compare_units('control',ib,ia,set(),problems,detail_bodies=({k:b'\x01\x02\x03\x04'},{k:b'\x01\x05\x06\x04'}))
+        self.assertIsNone(n);self.assertEqual(len(problems),2)
+        self.assertIn("('0x1', '0203', '0506')",problems[0]);self.assertIn('BAD->MATCH',problems[1])
+
+    def test_report_mode_never_grants_proof(self):
+        import contextlib,io
+        from unittest.mock import patch
+        class Prog:
+            def run(self):return [],{}
+        for report_only in (False,True):
+            out=io.StringIO();args=['dispatchproof.py','--before','before','--after','after']+(['--report-only'] if report_only else [])
+            with patch.object(sys,'argv',args),patch.object(dp.dc,'Prog',return_value=Prog()),patch.object(dp,'load_after',return_value=Prog()),patch.object(dp,'compare_trees',return_value=(['unexplained control'],{},[])),contextlib.redirect_stdout(out):
+                if report_only:dp.main()
+                else:
+                    with self.assertRaises(SystemExit) as status:dp.main()
+                    self.assertEqual(status.exception.code,1)
+            self.assertIn('unexplained control',out.getvalue());self.assertNotIn('DISPATCH PROOF OK',out.getvalue())
+            self.assertIn('REPORT ONLY' if report_only else 'PROOF FAILED',out.getvalue())
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser();ap.add_argument('--root',type=pathlib.Path,default=ROOT);ap.add_argument('--dol');ap.add_argument('--pointwarp-after',type=pathlib.Path,default=POINT);ap.add_argument('--proof-script',type=pathlib.Path)
     args,rest=ap.parse_known_args();ROOT=args.root.resolve();DOL=args.dol;POINT=args.pointwarp_after.resolve() if args.pointwarp_after else None

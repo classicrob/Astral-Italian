@@ -39,7 +39,6 @@
 - <chain-807d1e94> 807d1e94  # names CROSSED 
 - <chain-807d1f08> 807d1f08  # names CROSSED 
 - <chain-807d1f0c> 807d1f0c  # names CROSSED 
-- <chain-807d3e3c> 807d3e3c  # names CROSSED 
 - @GUARD@memPool___26JASPoolAllocObject<5AudMe> 0  # conflict CONFLICT 
 - @GUARD@memPool___32JASPoolAllocObject<10AudMeTrack> 0  # conflict CONFLICT 
 - @GUARD@memPool___35JASPoolAllocObject<13AudSeStrategy> 0  # conflict CONFLICT 
@@ -256,10 +255,7 @@ Game/Boss/TwoLegsBulletTU04 tryAttack__16TwoLegsStateShotFP9HitSensorP9HitSensor
 Game/Boss/TwoLegsBulletTU04 tryAttack__16TwoLegsStateShotFP9HitSensorP9HitSensor 20  # sem CROSSED sInstance__Q219NrvTwoLegsStateShot26TwoLegsStateShotNrvSitDo
 Game/Boss/TwoLegsBulletTU06 isHide__18TwoLegsStateDamageFv 0  # code CROSSED sInstance__Q221NrvTwoLegsStateDamage25TwoLegsStateDamageNrvH
 Game/Boss/TwoLegsBulletTU06 isHide__18TwoLegsStateDamageFv 0  # sem CROSSED sInstance__Q221NrvTwoLegsStateDamage25TwoLegsStateDamageNrvH
-Game/Camera/CameraFreeze __vt__12CameraFreeze 40  # data CROSSED isSubjectiveCameraOff__12CameraFreezeCFv
-Game/Camera/CameraFreeze __vt__12CameraFreeze 44  # data CROSSED isCorrectingErpPositionOff__12CameraFreezeCFv
 Game/Camera/CameraFreeze __vt__12CameraFreeze 48  # data CROSSED isUnknownOff__6CameraCFv
-Game/Demo/DemoSoundKeeper __vt__15DemoSoundKeeper 6c  # data CROSSED start__15DemoSoundKeeperFv
 Game/Demo/PrepareKoopaFinalDemoObj __vt__Q227NrvPrepareKoopaFinalDemoObj31PrepareKoopaFinalDemoObjNrvWait 100  # data CROSSED execute__Q227NrvPrepareKoopaFinalDemoObj31PrepareKoopaFinalD
 Game/Demo/PrepareKoopaFinalDemoObj __vt__Q227NrvPrepareKoopaFinalDemoObj38PrepareKoopaFinalDemoObjNrvStartPuppet d0  # data CROSSED execute__Q227NrvPrepareKoopaFinalDemoObj38PrepareKoopaFinalD
 Game/Demo/StaffRollDemoObj __sinit_\StaffRollDemoObj_cpp 34  # sem CROSSED sInstance__Q219NrvStaffRollDemoObj20StaffRollDemoObjNrvF
@@ -283,11 +279,6 @@ Game/MapObj/Candlestand init__11CandlestandFRC12JMapInfoIter 88  # code CROSSED 
 Game/MapObj/CollectTicoHolder __dt__17CollectTicoHolderFv 28  # code CROSSED __dt__14LiveActorGroupFv
 Game/MapObj/GravityFallBlock exeFall__16GravityFallBlockFv 138  # near CROSSED sInstance__Q219NrvGravityFallBlock24GravityFallBlockNrvBreak
 Game/MapObj/GravityFallBlock exeFall__16GravityFallBlockFv 138  # sem-seq CROSSED sInstance__Q219NrvGravityFallBlock24GravityFallBlockNrvBreak
-Game/MapObj/LiftFlower __sinit_\LiftFlower_cpp 10  # sinit CROSSED __ct__Q213NrvLiftFlower17LiftFlowerNrvWaitFv
-Game/MapObj/LiftFlower __sinit_\LiftFlower_cpp 8  # code CROSSED sInstance__Q213NrvLiftFlower17LiftFlowerNrvWait
-Game/MapObj/LiftFlower init__10LiftFlowerFRC12JMapInfoIter c4  # code CROSSED sInstance__Q213NrvLiftFlower17LiftFlowerNrvWait
-Game/MapObj/MarioLauncher __vt__40TriangleFilterDelegator<13MarioLauncher> 1ec  # data CROSSED isInvalidTriangle__40TriangleFilterDelegator<13MarioLauncher
-Game/MapObj/MarioLauncher __vt__50BaseMatrixFollowValidateDelegator<13MarioLauncher> 1e0  # data CROSSED isValid__50BaseMatrixFollowValidateDelegator<13MarioLauncher
 Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 30  # code CROSSED sInstance__Q216NrvMarioLauncher21MarioLauncherNrvReady
 Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 30  # sem CROSSED sInstance__Q216NrvMarioLauncher21MarioLauncherNrvReady
 Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 8  # code CROSSED sInstance__Q216NrvMarioLauncher20MarioLauncherNrvWait
@@ -304,8 +295,6 @@ Game/Screen/HomeButtonLayout forceToDeactive__16HomeButtonLayoutFv 30  # code CR
 Game/Screen/HomeButtonLayout forceToDeactive__16HomeButtonLayoutFv 30  # sem CROSSED sInstance__Q219NrvHomeButtonLayout22HomeButtonLayoutActive
 Game/System/GameSequenceEnding exeMessage__18GameSequenceEndingFv 98  # sem-seq CROSSED sInstance__Q232@unnamed@GameSequenceEnding_cpp@33GameSequenc
 Game/System/GameSequenceEnding exeMessage__18GameSequenceEndingFv a8  # sem-seq CROSSED sInstance__Q232@unnamed@GameSequenceEnding_cpp@32GameSequenc
-Game/System/MiniPlayerRocket __vt__14MiniRoutePoint 238  # data CROSSED __dt__14MiniRoutePointFv
-Game/System/MiniPlayerRocket __vt__16MiniWorldMapMark 1c8  # data CROSSED __dt__16MiniWorldMapMarkFv
 Game/Util/BellyDragonTU03 __vt__21BellyDragonFireGround 34  # data CROSSED kill__21BellyDragonFireGroundFv
 Game/Util/BossJugem control__9BossJugemFv 48  # code CROSSED sInstance__Q212NrvBossJugem17BossJugemNrvSleep
 Game/Util/BossJugem control__9BossJugemFv 7c  # code CROSSED sInstance__Q212NrvBossJugem17BossJugemNrvSleep

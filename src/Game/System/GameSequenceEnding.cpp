@@ -167,10 +167,10 @@ void GameSequenceEnding::exeMessage() {
             return;
         }
         if (GameDataFunction::isOnGameEventFlag(sNormalEndingMailFlag)) {
-            setNerve(GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence));
+            setNerve(GET_NERVE_ANON(GameSequenceEndingNrvMessageWait));
             return;
         }
-        setNerve(GET_NERVE_ANON(GameSequenceEndingNrvMessageWait));
+        setNerve(GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence));
     }
 }
 

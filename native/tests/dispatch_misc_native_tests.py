@@ -24,6 +24,40 @@ def function(source, signature):
 
 
 CASES = {
+    'HomeButtonLayout': {
+        'path': 'Game/Screen/HomeButtonLayout',
+        'signature': 'void HomeButtonLayout::forceToDeactive()',
+        'nerves': ['HomeButtonLayoutPrepare', 'HomeButtonLayoutActive', 'HomeButtonLayoutDeactive'],
+        'old': ('isNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutPrepare))',
+                'isNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutActive))'),
+        'fixture': r'''
+namespace RSO { int blackouts = 0; void HBMStartBlackOut() { ++blackouts; } }
+struct HomeButtonLayout : Host {
+    void* mMenuContext = nullptr; bool mForcedDeactivation = false;
+    void forceToDeactive();
+    void exePrepare() { called = 1; }
+    void exeActive() { called = 2; }
+    void exeDeactive() { called = 3; }
+};
+''',
+        'test': r'''
+HomeButtonLayout actor;
+const Nerve* prepare = GET_NERVE(HomeButtonLayout, HomeButtonLayoutPrepare);
+const Nerve* active = GET_NERVE(HomeButtonLayout, HomeButtonLayoutActive);
+const Nerve* deactive = GET_NERVE(HomeButtonLayout, HomeButtonLayoutDeactive);
+actor.current = prepare; actor.forceToDeactive();
+require(actor.current == prepare && !actor.mForcedDeactivation && RSO::blackouts == 0, "null menu is ignored");
+actor.mMenuContext = &actor;
+for (const Nerve* initial : {prepare, active, deactive}) {
+    actor.current = initial; actor.called = 0; actor.mForcedDeactivation = false;
+    actor.forceToDeactive();
+    require(actor.mForcedDeactivation, "forced deactivation recorded");
+    Spine spine{&actor}; actor.current->execute(&spine);
+    require(actor.called == (initial == active ? 2 : 3), "Prepare dispatches Deactive; Active finishes blackout");
+}
+require(RSO::blackouts == 3, "blackout requested for each valid menu");
+''',
+    },
     'FileSelector': {
         'path': 'Game/Map/FileSelector',
         'signature': 'void FileSelector::exeTitleEnd()',

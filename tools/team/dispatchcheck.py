@@ -518,18 +518,27 @@ class Prog:
             if vt is None:
                 continue
             e = d.word(vt + 8)
-            eb = d.bytes(e, 0x10) if e else None
-            x = None
-            if eb:
-                for i in range(0, 0x10, 4):
-                    w = u32(eb, i)
-                    if w >> 26 == 18:
-                        x = (e + i + ((w & 0x03FFFFFC) - (0x4000000 if w & 0x2000000 else 0))) & 0xFFFFFFFF
-                        break
-                    if w == 0x4E800020:
-                        break
+            x = self.wrapper_targets(e) if e else None
             chains[y] = (k, vt, e, x)
         return chains
+
+    def wrapper_targets(self, e):
+        """Ordered call/branch targets (outside the wrapper itself) of the DOL execute wrapper at e."""
+        size = self.sy.by_name.get(self.sy.name_at(e) or '', (0, 0))[1] if e in self.sy.by_addr else 0
+        n = size if 0 < size <= 0x200 else 0x100
+        eb = self.dol.bytes(e, n)
+        if eb is None:
+            return None
+        out = []
+        for i in range(0, n, 4):
+            w = u32(eb, i)
+            if w >> 26 == 18:
+                t = (e + i + ((w & 0x03FFFFFC) - (0x4000000 if w & 0x2000000 else 0))) & 0xFFFFFFFF
+                if not (e <= t < e + n):
+                    out.append(t)
+            if w == 0x4E800020 and (size or out):
+                break
+        return tuple(out) or None
 
     def src_exe(self):
         """class suffix -> (exe-target address or None, exe name): from the source vtable container `__vt__<cls>`,
@@ -555,9 +564,12 @@ class Prog:
                               and e.rel_by_sec[f['sec']][o][0] == R_REL24)
                 if not rels:
                     continue
-                typ2, si2, ad2 = e.rel_by_sec[f['sec']][rels[0]]
-                x, how = self.target(e, unit, si2, ad2)
-                out[c['name'][len('__vt__'):]] = (x, e.syms[si2]['name'])
+                seq = []
+                for o in rels:
+                    typ2, si2, ad2 = e.rel_by_sec[f['sec']][o]
+                    x, how = self.target(e, unit, si2, ad2)
+                    seq.append((x if how == 'sym' else None, e.syms[si2]['name']))
+                out[c['name'][len('__vt__'):]] = (tuple(a for a, _ in seq), seq[0][1], tuple(n for _, n in seq))
         return out
 
     def run_sem(self, rows, stats):
@@ -569,20 +581,25 @@ class Prog:
         def sem(unit, e, t, dol_addr, where, layer):
             cls = t['name'][len('sInstance__'):]
             row = dict(layer=layer, unit=unit, offset=where[1], function=where[0], kind='dispatch', target=t['name'], dol=dol_addr, site=where[2])
-            if cls not in src or src[cls][0] is None:
+            if cls not in src or not any(a is not None for a in src[cls][0]):
                 row['verdict'] = 'UNRESOLVED:sem_source_exe'
             elif dol_addr not in chains or chains[dol_addr][3] is None:
                 row['verdict'] = 'UNRESOLVED:sem_dol_chain'
             else:
                 xs, xd = src[cls][0], chains[dol_addr][3]
-                row.update(src_exe=src[cls][1], dol_exe=self.sy.name_at(xd))
-                row['verdict'] = 'MATCH' if xs == xd else 'CROSSED'
+                row.update(src_exe=src[cls][1], dol_exe=self.sy.name_at(xd[0]), src_seq=src[cls][2][:4])
+                if len(xs) != len(xd):
+                    row['verdict'] = 'UNRESOLVED:sem_wrapper_shape'
+                elif all(a is None or a == b for a, b in zip(xs, xd)):
+                    row['verdict'] = 'MATCH'
+                else:
+                    row['verdict'] = 'CROSSED'
             stats['sem_' + row['verdict'].split(':')[0].lower()] += 1
             rows.append(row)
         for unit, e, f, faddr, dolb, rels in self.exact_stream:
             for off, (typ, si, ad) in rels.items():
                 t = e.syms[si]
-                if t['name'].startswith('sInstance__') and typ in (R_SDA21, R_ADDR16_LO):
+                if t['name'].startswith('sInstance__') and 'Nrv' in t['name'] and typ in (R_SDA21, R_ADDR16_LO):
                     op = self.dol_operand(typ, u32(dolb, off), faddr + off)
                     if op and op[0] == 'addr':
                         sem(unit, e, t, op[1], (f['name'], off, faddr + off), 'sem')
@@ -595,7 +612,7 @@ class Prog:
                 continue
             for (o, (typ, si, ad)), di in zip(src_l, dol_l):
                 t = e.syms[si]
-                if t['name'].startswith('sInstance__'):
+                if t['name'].startswith('sInstance__') and 'Nrv' in t['name']:
                     op = self.dol_operand(typ, u32(dolb, di), faddr + di)
                     if op and op[0] == 'addr':
                         sem(unit, e, t, op[1], (f['name'], o, faddr + di), 'sem-seq')

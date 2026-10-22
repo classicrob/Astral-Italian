@@ -50,7 +50,19 @@ WorldMapResultStateOpenGalaxy::~WorldMapResultStateOpenGalaxy() {
 }
 
 namespace NrvWorldMapResultStateOpenGalaxy {
-    WMR_NERVE_DEF(WorldMapResultStateOpenGalaxyOpen, WorldMapResultStateOpenGalaxy, Open);
-    WMR_NERVE_DEF(WorldMapResultStateOpenGalaxyWait, WorldMapResultStateOpenGalaxy, Wait);
-    WMR_NERVE_DEF(WorldMapResultStateOpenGalaxyClose, WorldMapResultStateOpenGalaxy, Close);
+    WorldMapResultStateOpenGalaxyOpen WorldMapResultStateOpenGalaxyOpen::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateOpenGalaxyWait WorldMapResultStateOpenGalaxyWait::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateOpenGalaxyClose WorldMapResultStateOpenGalaxyClose::sInstance ATTRIBUTE_WEAK;
+
+    void WorldMapResultStateOpenGalaxyClose::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateOpenGalaxy*>(pSpine->mExecutor)->exeOpen();
+    }
+
+    void WorldMapResultStateOpenGalaxyWait::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateOpenGalaxy*>(pSpine->mExecutor)->exeWait();
+    }
+
+    void WorldMapResultStateOpenGalaxyOpen::execute(Spine* pSpine) const {
+        reinterpret_cast<WorldMapResultStateOpenGalaxy*>(pSpine->mExecutor)->exeClose();
+    }
 };  // namespace NrvWorldMapResultStateOpenGalaxy

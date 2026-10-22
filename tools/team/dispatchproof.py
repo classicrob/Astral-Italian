@@ -411,7 +411,7 @@ def row_relocation(prog, row):
         off = row['offset'] if row['layer'] == 'data' else sym['off'] + row['offset']
         for sec, o, typ, si, ad in e.relocs:
             if sec == sym['sec'] and (o & ~3 if row['layer'] != 'data' and typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else o) == off and e.syms[si]['name'] == row.get('target'):
-                addr = prog.sym_addr(e, unit, sym)
+                addr = symbol_addr(prog, e, unit, sym)
                 if addr is not None and sym['size']:
                     block = (e.names[sec], ('A', addr), sym['size'])
                     candidates.append((block, o - sym['off'], typ, ad, target_key(prog, e, unit, si, ad)))
@@ -556,19 +556,50 @@ def check_symbol_changes(pb,pa,unit,ib,ia,removed,added):
     return True
 
 
+def config_ranges_preserved(pb,pa):
+    """Renames retain ranges; first naming may split one unnamed label range.
+
+    The new definition must already occupy the same independently split-owned
+    address and size in both objects, and independently equal the original DOL.
+    The remaining label retains the suffix bytes of the original range.
+    """
+    rb={v for v in pb.sy.by_name.values()};ra={v for v in pa.sy.by_name.values()}
+    removed,added=rb-ra,ra-rb
+    for old in list(removed):
+        addr,size,sec,typ=old
+        oldnames=[n for n,v in pb.sy.by_name.items() if v==old]
+        if not oldnames or any(n!=f'lbl_{addr:08X}' for n in oldnames):continue
+        candidates=[]
+        for name,new in pa.sy.by_name.items():
+            a,z,sc,t=new
+            if new not in added or a!=addr or not 0<z<size or (sc,t)!=(sec,typ) or name.startswith('lbl_'):continue
+            rest=(addr+z,size-z,sec,typ)
+            if rest not in added or pa.sy.by_name.get(f'lbl_{addr+z:08X}')!=rest:continue
+            valid=True
+            for prog in (pb,pa):
+                copies=[]
+                for unit,e in prog.elfs.items():
+                    for sym in e.syms:
+                        if sym['name']!=name or sym['size']!=z or not 0<sym['sec']<len(e.s):continue
+                        if e.names[sym['sec']]!=sec or sym['type']!=({'function':2,'object':1}.get(typ)):continue
+                        base=prog.bases.get((unit,sec))
+                        if base is not None and base+sym['off']==addr and exact_body(prog,e,unit,sym,addr):copies.append((unit,sym))
+                if not copies:valid=False;break
+            if valid:candidates.append((new,rest))
+        if len(candidates)==1:
+            new,rest=candidates[0];removed.remove(old);added.remove(new);added.remove(rest)
+    return not removed and not added
+
+
 def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
     ob, oa, problems = pb.elfs, pa.elfs, []
-    def config_ranges(prog):
-        return {(a,size,sec,typ) for a,size,sec,typ in prog.sy.by_name.values()}
-    if config_ranges(pb)!=config_ranges(pa):
-        problems.append('symbols.txt changed an address/size/section/type range instead of renaming it')
+    prepare_addresses(pb,pa)
     if pa.sy.dups-pb.sy.dups:
         problems.append('symbols.txt introduced duplicate names')
     if (pb.root/'config/SB4E01/splits.txt').read_bytes()!=(pa.root/'config/SB4E01/splits.txt').read_bytes():
         problems.append('split ownership changed')
     if pb.dol.raw!=pa.dol.raw:
         problems.append('original DOLs differ')
-    prepare_addresses(pb,pa)
     files_b, files_a = tree_objects(pb.root), tree_objects(pa.root)
     if not files_b or not files_a:
         problems.append('empty object tree')
@@ -616,6 +647,8 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
             problems.append(f'new BAD oracle row: {k}')
     pb._proof_allowed_old={(t[0],t[5],t[6]) for t in allowed}
     pa._proof_allowed_old=set()
+    if not config_ranges_preserved(pb,pa):
+        problems.append('symbols.txt changed a range without a preserved rename or independently exact first naming')
     cover_b,cover_a=exact_coverage(pb),exact_coverage(pa)
     if set(cover_b)!=set(cover_a):
         problems.append(f'global DOL-exact coverage differs: -{list(set(cover_b)-set(cover_a))[:5]} +{list(set(cover_a)-set(cover_b))[:5]}')

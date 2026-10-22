@@ -405,6 +405,61 @@ class SinitControls(unittest.TestCase):
         self.assertFalse(dp.sinit_permissions(self.before,self.after,self.rb,row))
 
 
+class FirstNamingControls(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.unit='Game/Demo/DemoSoundKeeper';fixture=ROOT.parent/'dispatch-misc'
+        if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():raise unittest.SkipTest('misc objects unavailable')
+        cls.tmp=tempfile.TemporaryDirectory(prefix='R-naming-');cls.dir=pathlib.Path(cls.tmp.name)
+        def phase(root,label):
+            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt')
+            path=cls.dir/(label+'.o');path.write_bytes((root/'build/SB4E01/src'/f'{cls.unit}.o').read_bytes())
+            p.elfs={cls.unit:dc.ELF(path)};p.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
+            p._chains=None;p.ctor_inst={};return p
+        cls.before,cls.after=phase(ROOT,'before'),phase(fixture,'after')
+        # Isolate naming from the separate dispatch correction: both snapshots
+        # already contain the exact corrected vtable, with original config before.
+        cls.old_elfs=dict(cls.before.elfs)
+        cls.before.elfs=dict(cls.after.elfs)
+        cls.original=(ROOT/'config/SB4E01/symbols.txt').read_text()
+        # Only this naming range differs for these controls; source target names
+        # already exist in one phase's symbol map and are DOL-verified.
+        cls.text=(fixture/'config/SB4E01/symbols.txt').read_text()
+        cls.old='lbl_8067F390 = .data:0x8067F390; // type:object size:0x60'
+        cls.new='__vt__15DemoSoundKeeper = .data:0x8067F390; // type:object size:0x30\nlbl_8067F3C0 = .data:0x8067F3C0; // type:object size:0x30'
+
+    @classmethod
+    def tearDownClass(cls):cls.tmp.cleanup()
+
+    def preserved(self,new=None,dirty=False,flipped=False):
+        before=copy.copy(self.before);after=copy.copy(self.after)
+        if flipped:before.elfs=self.old_elfs
+        # Preserve unrelated range metadata from the baseline, while allowing
+        # the real source target's first naming at an existing identical range.
+        txt=self.original.replace('start__15DemoSoundKeeperFv = .text:0x80139FA0;',
+            'executeType__42DemoSheetKeeperInfoHolder<13DemoSoundInfo>FPC13DemoSoundInfo = .text:0x80139FA0;')
+        cfg=self.dir/'symbols.txt';cfg.write_text(txt.replace(self.old,new or self.new));after.sy=dc.Symbols(cfg)
+        if dirty:
+            e=after.elfs[self.unit];raw=bytearray(e.raw);sym=next(s for s in e.syms if s['name']=='__vt__15DemoSoundKeeper')
+            raw[e.s[sym['sec']][4]+sym['off']]^=1
+            obj=self.dir/'dirty.o';obj.write_bytes(raw);after.elfs={self.unit:dc.ELF(obj)}
+        dp.prepare_addresses(before,after)
+        if flipped:
+            e=before.elfs[self.unit];idx=next(i for i,s in enumerate(e.syms) if s['name']=='start__15DemoSoundKeeperFv')
+            before._proof_allowed_old={(self.unit,0x8067f3a4,dp.target_key(before,e,self.unit,idx,0))}
+        return dp.config_ranges_preserved(before,after)
+
+    def test_first_naming_flipped_slot(self):self.assertTrue(self.preserved(flipped=True))
+    def test_first_naming_flipped_plus_other_byte(self):self.assertFalse(self.preserved(flipped=True,dirty=True))
+    def test_first_naming_positive(self):self.assertTrue(self.preserved())
+    def test_first_naming_gap(self):self.assertFalse(self.preserved(self.new.replace('size:0x30', 'size:0x2C',1)))
+    def test_first_naming_overlap(self):self.assertFalse(self.preserved(self.new.replace('0x8067F3C0;', '0x8067F3BC;')))
+    def test_first_naming_wrong_object_size(self):self.assertFalse(self.preserved(self.new.replace('size:0x30','size:0x2C',1).replace('lbl_8067F3C0 = .data:0x8067F3C0; // type:object size:0x30','lbl_8067F3BC = .data:0x8067F3BC; // type:object size:0x34')))
+    def test_first_naming_changed_bytes(self):self.assertFalse(self.preserved(dirty=True))
+    def test_first_naming_remainder_name(self):self.assertFalse(self.preserved(self.new.replace('lbl_8067F3C0 =','other =')))
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser();ap.add_argument('--root',type=pathlib.Path,default=ROOT);ap.add_argument('--dol');ap.add_argument('--pointwarp-after',type=pathlib.Path,default=POINT);ap.add_argument('--proof-script',type=pathlib.Path)
     args,rest=ap.parse_known_args();ROOT=args.root.resolve();DOL=args.dol;POINT=args.pointwarp_after.resolve() if args.pointwarp_after else None

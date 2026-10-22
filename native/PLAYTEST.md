@@ -440,6 +440,15 @@ frame of each return to play (launch-to-control timing).
 
 ## Recording a tape: a user session that replays exactly
 
+**Your tape, replayed (for the player).** Play as usual from the launcher (5.3 and later): every session saves a tape folder under
+`~/MacioGalaxy2-play/tapes/<galaxy>-<time>/` by itself, nothing to switch on (`ASTRAL_TAPE=off` turns it off). Quit the game normally
+when you are done, then tell the team the folder name. They replay it with one command, and it says per scene whether the replay
+stayed on your exact path and whether it reached the star:
+
+```sh
+python3 tools/port/replay_tape.py ~/MacioGalaxy2-play/tapes/<folder> --headless <petari_headless> --disc <extracted disc> --out <new empty folder>
+```
+
 A *tape* is a session recorded so that `petari_headless` can play it back and land on the same frames, through scene changes
 (galaxy, star get, Starship, the next galaxy). Recording costs nothing you can measure (appends to buffered files at the game's own
 input reads).

@@ -15,7 +15,7 @@ Target/container addresses come from symbols.txt; symbols it does not name are I
 exact functions that reference them (bl, HA+LO, SDA21), and a function target nobody names is verified by BODY: the
 source body must equal the DOL body at the slot's address and its own relocs must resolve there.
 
-Verdicts: MATCH | MATCH_BODY | CROSSED (DOL points at another symbol we name) | WRONG | ALIAS (same name, another
+Verdicts: MATCH | MATCH_BODY | CONTENT_MATCH / CONTENT_BODY (hypotheses; not independent MATCH evidence) | CROSSED (DOL points at another symbol we name) | WRONG | ALIAS (same name, another
 copy) | LOCALDRIFT:* (anchored only by unit-local section offsets; advisory) | UNRESOLVED:<reason> | CONFLICT.
 Row field `kind`: dispatch (function/vtable/nerve-instance target) or data (other objects).
 Read-only: objects, config/SB4E01/{symbols,splits}.txt, the DOL.
@@ -206,6 +206,8 @@ class Prog:
         self.nonexact = []
         self._chains = None
         self.ctor_inst = {}
+        self.source_wrappers = {}
+        self.source_wrapper_keys = {}
 
     # ---- anchors -----------------------------------------------------------------------------------------------
     def sym_addr(self, e, unit, sym):
@@ -248,6 +250,9 @@ class Prog:
             ka = self.sy.addr('__ct__' + t['name'][len('sInstance__'):] + 'Fv')
             if ka is not None and ka in self.ctor_inst:
                 return self.ctor_inst[ka] + addend, 'chain'
+        va = self.vtable_anchor(t['name'])
+        if va and va[1] == 'vtable-ctor':
+            return va[0] + addend, va[1]
         inf = self.inferred.get(t['name']) if not drifty(t) and t['type'] != 3 and t['bind'] != 0 else None
         if inf and len(inf) == 1:
             return next(iter(inf)) + addend, 'inferred'
@@ -391,6 +396,279 @@ class Prog:
                 out.setdefault('__vt__' + cls, set()).add(last)
         return {k: next(iter(v)) for k, v in out.items() if len(v) == 1}
 
+    # ---- independently anchored vtables -------------------------------------------------------------------------
+    def vptr_stores(self, e, f, addr=None):
+        """Conservative data flow for stores to this+0 in a named ctor/dtor.
+
+        Source constants must have a complete __vt__ HA/LO pair; DOL constants must be file-backed vtable headers.
+        Track the incoming this through mr/addi, kill volatile registers at calls, and stop at control-flow joins.
+        An initial dtor null guard is allowed: both paths either skip destruction or follow the recorded stores.
+        """
+        if addr is None:
+            b = e.content(f['sec'], f['off'], f['size'])
+            rels = {o - f['off']: r for o, r in e.rel_by_sec[f['sec']].items()
+                    if f['off'] <= o < f['off'] + f['size']}
+        else:
+            size = self.sy.by_name.get(f['name'], (0, 0))[1]
+            if not size or size > 0x4000:
+                return []
+            b, rels = self.dol.bytes(addr, size), {}
+        if not b or len(b) % 4:
+            return []
+        regs, out, tested_this, skip_until = {3: ('this', 0)}, [], False, 0
+        for off in range(0, len(b), 4):
+            if off < skip_until:
+                continue
+            w = u32(b, off)
+            op, rt, ra, rb = w >> 26, (w >> 21) & 31, (w >> 16) & 31, (w >> 11) & 31
+            r = rels.get(off)
+            if w == 0x4E800020:
+                break
+            if op == 16:
+                # Only the usual leading cmpwi this,0 / beq skip-dtor guard is safe to cross.
+                if tested_this and not out and ((w >> 21) & 31) == 12 and ((w >> 16) & 31) == 2:
+                    tested_this = False
+                    continue
+                # A forward conditional may only choose scalar arguments (e.g. left/right actor name).
+                # Cross it only when the skipped block has no side effects/control flow and cannot change
+                # a this alias. Drop every constant at the join; neither path's selected value is an anchor.
+                target = off + s16(w & 0xFFFC)
+                aliases = {n for n, val in regs.items() if val[0] == 'this'}
+                transparent = not w & 2 and off < target <= min(len(b), off + 0x40)
+                for pos in range(off + 4, target if transparent else off + 4, 4):
+                    iw = u32(b, pos); iop, irt, ira = iw >> 26, (iw >> 21) & 31, (iw >> 16) & 31
+                    dest = irt if iop in (7, 8, 12, 13, 14, 15) else ira
+                    if iop not in (7, 8, 12, 13, 14, 15, 20, 21, 23, 24, 25, 26, 27, 28, 29) or dest in aliases:
+                        transparent = False
+                        break
+                if transparent:
+                    regs = {n: val for n, val in regs.items() if n in aliases}
+                    tested_this, skip_until = False, target
+                    continue
+                break
+            if op == 18:
+                if not w & 1:
+                    break
+                if addr is None:
+                    helper = e.syms[r[1]]['name'] if r and r[0] == R_REL24 else ''
+                else:
+                    delta = (w & 0x03FFFFFC) - (0x4000000 if w & 0x2000000 else 0)
+                    helper = self.sy.name_at((addr + off + delta) & 0xFFFFFFFF) or ''
+                if self.save_stub_preserves_gprs(helper):
+                    continue  # compiler save stubs only store registers; incoming this is preserved
+                for n in (0, *range(3, 13)):
+                    regs.pop(n, None)
+                tested_this = False
+                continue
+            if op == 19:
+                break  # bctr/bctrl or an unmodelled branch
+            if op == 11:  # cmpwi
+                tested_this = ra in regs and regs[ra] == ('this', 0) and (w & 0xFFFF) == 0
+                continue
+            if op == 15 and ra == 0:
+                if addr is None:
+                    if r and r[0] == R_ADDR16_HA and e.syms[r[1]]['name'].startswith('__vt__'):
+                        regs[rt] = ('hi', e.syms[r[1]]['name'], r[2])
+                    else:
+                        regs.pop(rt, None)
+                else:
+                    regs[rt] = ('const', (w & 0xFFFF) << 16)
+                continue
+            if op == 14:
+                old = regs.get(ra) if ra else None
+                regs.pop(rt, None)
+                if old and old[0] == 'this':
+                    regs[rt] = ('this', old[1] + s16(w & 0xFFFF))
+                elif addr is None and old and old[0] == 'hi' and r and r[0] == R_ADDR16_LO:
+                    if (e.syms[r[1]]['name'], r[2]) == old[1:]:
+                        regs[rt] = ('vtable', old[1], old[2])
+                elif addr is not None and old and old[0] == 'const':
+                    regs[rt] = ('const', (old[1] + s16(w & 0xFFFF)) & 0xFFFFFFFF)
+                continue
+            if op == 31 and ((w >> 1) & 1023) == 444 and rt == rb:  # mr rA,rS (or rA,rS,rS)
+                old = regs.get(rt)
+                regs.pop(ra, None)
+                if old:
+                    regs[ra] = old
+                continue
+            if op == 36:
+                if regs.get(ra) == ('this', 0) and (w & 0xFFFF) == 0:
+                    val = regs.get(rt)
+                    if val and addr is None and val[0] == 'vtable' and val[2] == 0:
+                        out.append((off, val[1]))
+                    elif val and addr is not None and val[0] == 'const' and self.is_vtable_header(val[1]):
+                        out.append((off, val[1]))
+                continue
+            if op == 46:
+                for n in range(rt, 32):
+                    regs.pop(n, None)
+            elif op in (40, 32, 34, 42, 7, 8, 12, 13):
+                regs.pop(rt, None)
+            elif op in (20, 21, 23, 24, 25, 26, 27, 28, 29):
+                regs.pop(ra, None)
+            elif op == 31:
+                # Arithmetic writes rD, logical/shift writes rA. Invalidating both is conservative.
+                regs.pop(rt, None); regs.pop(ra, None)
+            elif op in (33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55):
+                regs.pop(rt, None); regs.pop(ra, None)
+            elif op not in (3, 10, 38, 44, 48, 50, 52, 54, 59, 63):
+                regs.clear()
+                tested_this = False
+        return out
+
+    def save_stub_preserves_gprs(self, name):
+        """Recognise the real compiler save-stub body, not merely a plausible helper name."""
+        m = re.fullmatch(r'_save([gf])pr_(\d+)', name)
+        a = self.sy.addr(name) if m else None
+        if a is None or not 14 <= int(m[2]) <= 31:
+            return False
+        first = int(m[2]); opcode = 36 if m[1] == 'g' else 54
+        b = self.dol.bytes(a, (32 - first) * 4 + 4)
+        return (b is not None and u32(b, len(b) - 4) == 0x4E800020
+                and all(u32(b, i * 4) >> 26 == opcode
+                        and (u32(b, i * 4) >> 21) & 31 == reg
+                        and (u32(b, i * 4) >> 16) & 31 == 11
+                        for i, reg in enumerate(range(first, 32))))
+
+    def dol_section_ranges(self, code):
+        # DOL has seven *header entries* for text, not necessarily seven nonempty text sections.
+        # Dol.secs omits empty entries, so slicing Dol.secs[:7] would also include data sections.
+        return [(u32(self.dol.raw, 0x48 + i * 4), u32(self.dol.raw, 0x90 + i * 4))
+                for i in (range(7) if code else range(7, 18)) if u32(self.dol.raw, 0x90 + i * 4)]
+
+    def is_vtable_header(self, a):
+        return (a % 4 == 0 and any(lo <= a < lo + size for lo, size in self.dol_section_ranges(False))
+                and self.dol.word(a) == 0 and self.dol.word(a + 4) == 0
+                and any(lo <= (self.dol.word(a + 8) or 0) < lo + size for lo, size in self.dol_section_ranges(True)))
+
+    def anchor_vtables(self):
+        """Ctor/dtor identity and vptr-store order anchor tables without inspecting their slot targets.
+
+        Reject unequal store counts, disagreement with already named tables, or multiple addresses for a class.
+        Content-only candidates use >=3 distinct independently named functions and a unique DOL location, but
+        their CONTENT_MATCH rows deliberately do NOT become independent MATCH evidence or target anchors.
+        """
+        candidates = collections.defaultdict(lambda: collections.defaultdict(list))
+        tables = {}
+        for unit, e in self.elfs.items():
+            for c in e.syms:
+                if c['name'].startswith('__vt__') and c['size'] >= 12 and e.is_data(c['sec']):
+                    tables.setdefault(c['name'], (unit, e, c))
+            for f in e.syms:
+                if not (f['name'].startswith(('__ct__', '__dt__')) and f['type'] == 2 and f['size'] and e.is_code(f['sec'])):
+                    continue
+                # The address comes directly from this named class member, never an inferred relocation.
+                a = self.func_anchor(unit, e, f)
+                if not isinstance(a, int):
+                    continue
+                src, dol = self.vptr_stores(e, f), self.vptr_stores(e, f, a)
+                if not src or len(src) != len(dol):
+                    continue
+                if any(self.sy.addr(n) not in (None, v) for (_, n), (_, v) in zip(src, dol)):
+                    continue
+                for (so, name), (do, v) in zip(src, dol):
+                    candidates[name][v].append(dict(unit=unit, function=f['name'], offset=so, dol_offset=do, site=a + do))
+        self.vtable_anchors, self.vtable_anchor_reasons = {}, {}
+        for name in tables:
+            if self.sy.addr(name) is not None or len(self.inferred.get(name, {})) == 1:
+                continue  # preserve existing named/unique exact-reference anchors
+            # A unique named ctor/dtor may independently disambiguate conflicting source-reference guesses.
+            addrs = candidates.get(name, {})
+            if len(addrs) == 1:
+                v = next(iter(addrs))
+                self.vtable_anchors[name] = (v, 'vtable-ctor', addrs[v][:3])
+            elif addrs:
+                self.vtable_anchor_reasons[name] = 'vtable_ctor_ambiguous'
+        # Build a word index of original data once; scan full tables, not just named lbl_ boundaries.
+        index = collections.defaultdict(set)
+        for lo, size in self.dol_section_ranges(False):
+            b = self.dol.bytes(lo, size)
+            for off in range(0, size - 3, 4):
+                w = u32(b, off)
+                if any(a <= w < a + z for a, z in self.dol_section_ranges(True)):
+                    index[w].add(lo + off)
+        for name, (unit, e, c) in tables.items():
+            if self.sy.addr(name) is not None or name in self.vtable_anchors or name in self.inferred:
+                continue
+            constraints = []
+            for off, (typ, si, ad) in e.rel_by_sec[c['sec']].items():
+                if c['off'] + 8 <= off < c['off'] + c['size'] and typ == R_ADDR32:
+                    a, how = self.target(e, unit, si, ad)
+                    if a is not None and how == 'sym' and (e.syms[si]['type'] == 2 or
+                            self.sy.by_name.get(e.syms[si]['name'], (0, 0, '', ''))[3] == 'function'):
+                        constraints.append((off - c['off'], a))
+            if len({a for _, a in constraints}) < 3:
+                self.vtable_anchor_reasons.setdefault(name, 'vtable_content_fewer_than_three_targets')
+                continue
+            # Every independently resolved slot must agree. Using only a matching subset can mistake an
+            # emitted derived table for a base table that the original linker discarded.
+            good = None
+            for off, a in constraints:
+                locations = {site - off for site in index.get(a, ())
+                             if self.is_vtable_header(site - off) and self.dol.bytes(site - off, c['size']) is not None
+                             and not any(not LOCALNAME.match(n) for n in self.sy.by_addr.get(site - off, ()))}
+                good = locations if good is None else good & locations
+            good = good or set()
+            if len(good) == 1:
+                base = next(iter(good))
+                self.vtable_anchors[name] = (base, 'vtable-content', [dict(targets=len({a for _, a in constraints}))])
+            else:
+                self.vtable_anchor_reasons[name] = 'vtable_content_ambiguous' if good else 'vtable_content_no_match'
+
+    def vtable_anchor(self, name):
+        return getattr(self, 'vtable_anchors', {}).get(name)
+
+    def wrapper_body_verdict(self, e, unit, f, at):
+        """Verify an entire no-call/inline wrapper at the independently decoded DOL chain endpoint.
+
+        Raw instruction equality is required. All relocations must resolve independently; local constants and
+        inferred addresses remain unresolved. This covers empty execute functions without inventing an exe call.
+        """
+        if not f or not f['size'] or not at:
+            return None
+        b = self.dol.bytes(at, f['size'])
+        if b is None:
+            return None
+        # Do not read into another independently named function after a shorter original wrapper.
+        sizes = [self.sy.by_name[n][1] for n in self.sy.by_addr.get(at, []) if self.sy.by_name[n][3] == 'function']
+        if sizes and any(z != f['size'] for z in sizes):
+            return None
+        src = e.content(f['sec'], f['off'], f['size'])
+        rels = {o - f['off']: r for o, r in e.rel_by_sec[f['sec']].items() if f['off'] <= o < f['off'] + f['size']}
+        if any(f['off'] <= o < f['off'] + f['size'] for sec, o in e.rel_collisions if sec == f['sec']):
+            return None
+        for off in range(0, f['size'], 4):
+            sw, dw = u32(src, off), u32(b, off)
+            r = rels.get(off)
+            if r:
+                typ, si, ad = r
+                a, how = self.target(e, unit, si, ad)
+                op = self.dol_operand(typ, dw, at + off)
+                if typ == R_SDA21 and op and op[0] == 'addr' and how not in ('sym', 'chain', 'vtable-ctor'):
+                    t = e.syms[si]
+                    width = {32: 4, 34: 1, 40: 2, 42: 2, 48: 4, 50: 8}.get(dw >> 26)
+                    if (width and t['sec'] and not e.s[t['sec']][2] & 1 and e.is_data(t['sec'])
+                            and LOCALNAME.match(t['name']) and 0 <= ad <= t['size'] - width
+                            and e.content(t['sec'], t['off'] + ad, width) == self.dol.bytes(op[1], width)):
+                        mask = ~MASK[typ] & 0xFFFFFFFF
+                        if sw & mask != dw & mask:
+                            return False
+                        continue
+                if typ not in MASK or a is None or how not in ('sym', 'chain', 'vtable-ctor') or op is None:
+                    return None
+                want = a & 0xFFFFFFFF
+                if op[0] == 'hi':
+                    want = ((a + 0x8000) >> 16 if typ == R_ADDR16_HA else a >> 16) & 0xFFFF
+                elif op[0] == 'lo':
+                    want = a & 0xFFFF
+                if op[1] != want:
+                    return False
+                mask = ~MASK[typ] & 0xFFFFFFFF
+                sw &= mask; dw &= mask
+            if sw != dw:
+                return False
+        return True
+
     # ---- verdicts -----------------------------------------------------------------------------------------------
     def verdict(self, got, expect, tname):
         if got == (expect & 0xFFFFFFFF):
@@ -434,7 +712,7 @@ class Prog:
                         row['dol_name'] = self.sy.name_at(op[1])
                 if how == 'local' and v in ('CROSSED', 'WRONG'):
                     v = 'LOCALDRIFT:' + v
-                elif v == 'MATCH' and how not in ('sym', 'chain'):
+                elif v == 'MATCH' and how not in ('sym', 'chain', 'vtable-ctor'):
                     v = 'MATCH_INFERRED' if how == 'inferred' else 'MATCH_LOCAL'  # not independent evidence
                 row['how'] = how
                 done(v)
@@ -459,7 +737,7 @@ class Prog:
                 if f['name'].startswith('__sinit_') or not (t['name'].startswith(('sInstance__', 'execute__')) and 'Nrv' in t['name']):
                     continue  # nerve use sites only: other call sites are noisy, sinit pairs have their own layer
                 expect, how = self.target(e, unit, si, ad)
-                if expect is None or how not in ('sym', 'chain'):
+                if expect is None or how not in ('sym', 'chain', 'vtable-ctor'):
                     continue
                 op = self.dol_operand(typ, insn, faddr + off)
                 if op is None or op[0] != 'addr':
@@ -649,11 +927,15 @@ class Prog:
                         regs[rt] = (regs[ra] + s16(w & 0xFFFF)) & 0xFFFFFFFF
                     else:
                         regs.pop(rt, None)
-                elif op == 18 and w & 1:
+                elif op == 18 and not w & 2:
                     t = (a + i + ((w & 0x03FFFFFC) - (0x4000000 if w & 0x2000000 else 0))) & 0xFFFFFFFF
+                    if not w & 1 and not (self.sy.name_at(t) or '').startswith('__ct__'):
+                        break
                     if 3 in regs and 0x807CF000 <= regs[3] < 0x807E0000:
                         inst.setdefault(regs[3], t)
                     regs.pop(3, None)
+                    if not w & 1:
+                        break
                 elif op in (24, 25):  # ori
                     pass
         chains = {}
@@ -718,6 +1000,13 @@ class Prog:
                 f = funcs.get(t['name'])
                 if f is None or not t['name'].startswith('execute__'):
                     continue
+                cls = c['name'][len('__vt__'):]
+                identity = (e.content(f['sec'], f['off'], f['size']),
+                            tuple((o - f['off'], typ, e.syms[si]['name'], ad)
+                                  for o, (typ, si, ad) in sorted(e.rel_by_sec[f['sec']].items())
+                                  if f['off'] <= o < f['off'] + f['size']))
+                old = self.source_wrapper_keys.setdefault(cls, identity)
+                self.source_wrappers[cls] = (unit, e, f) if old == identity and self.source_wrappers.get(cls, True) else None
                 rels = sorted(o for o in e.rel_by_sec[f['sec']] if f['off'] <= o < f['off'] + f['size']
                               and e.rel_by_sec[f['sec']][o][0] == R_REL24)
                 if not rels:
@@ -740,7 +1029,25 @@ class Prog:
             cls = t['name'][len('sInstance__'):]
             row = dict(layer=layer, unit=unit, offset=where[1], function=where[0], kind='dispatch', target=t['name'], dol=dol_addr, site=where[2])
             if cls not in src or not any(a is not None for a in src[cls][0]):
-                row['verdict'] = 'UNRESOLVED:sem_source_exe'
+                sw = self.source_wrappers.get(cls)
+                endpoint = chains.get(dol_addr, (None, None, None))[2]
+                body = self.wrapper_body_verdict(sw[1], sw[0], sw[2], endpoint) if sw else None
+                if body is True:
+                    row.update(verdict='MATCH', src_exe=sw[2]['name'], dol_exe=self.sy.name_at(endpoint),
+                               how='wrapper-body', detail='whole execute body and all relocations independently verified')
+                elif (sw and sw[2]['size'] == 4
+                      and u32(sw[1].content(sw[2]['sec'], sw[2]['off'], 4)) == 0x4E800020
+                      and chains.get(dol_addr, (None, None, None, None))[3]):
+                    row.update(verdict='CROSSED', src_exe=sw[2]['name'], dol_exe=self.sy.name_at(chains[dol_addr][3][0]),
+                               how='empty-wrapper-vs-call', detail='source execute immediately returns; original chain dispatches an external call')
+                elif body is False:
+                    row.update(verdict='UNRESOLVED:sem_wrapper_body_differs',
+                               detail='inline execute bodies differ; instruction mismatch alone is not a crossed target')
+                elif cls in self.source_wrapper_keys and sw is None:
+                    row.update(verdict='UNRESOLVED:sem_source_wrapper_variants',
+                               detail='weak execute copies differ (inline body versus helper); no independently anchored helper')
+                else:
+                    row['verdict'] = 'UNRESOLVED:sem_source_exe'
             elif dol_addr not in chains or chains[dol_addr][3] is None:
                 row['verdict'] = 'UNRESOLVED:sem_dol_chain'
             else:
@@ -867,7 +1174,12 @@ class Prog:
                     elif drifty(c) or c['bind'] == 0:
                         caddr, chow = self.local_addr(e, unit, c), 'local'
                 if caddr is None:
-                    done('UNRESOLVED:container_unmapped'); continue
+                    va = self.vtable_anchor(c['name'])
+                    if va:
+                        caddr, chow, evidence = va
+                        row['anchor'] = evidence
+                    else:
+                        done('UNRESOLVED:' + self.vtable_anchor_reasons.get(c['name'], 'container_unmapped')); continue
                 loc = caddr + off - c['off']
                 w = self.dol.word(loc)
                 if w is None:
@@ -878,15 +1190,19 @@ class Prog:
                 row.update(dol_addr=loc, site=loc, dol=w, how=how, chow=chow)
                 if expect is None:
                     if how == 'target_unmapped' and self.body_matches(e, unit, symidx, addend, w):
-                        done('MATCH_BODY'); continue
+                        done('CONTENT_BODY' if chow == 'vtable-content' else 'MATCH_BODY'); continue
                     done('UNRESOLVED:' + how); continue
                 row['expect'] = expect
                 v = self.verdict(w, expect, t['name'])
                 if v in ('CROSSED', 'WRONG'):
                     row['dol_name'] = self.sy.name_at(w)
-                    if how == 'local' or chow == 'local':
+                    if chow == 'vtable-content':
+                        v = 'ADVISORY:' + v  # a content hypothesis cannot establish a crossed class binding
+                    elif how == 'local' or chow == 'local':
                         v = 'LOCALDRIFT:' + v
-                elif v == 'MATCH' and (how not in ('sym', 'chain') or chow != 'sym'):
+                elif v == 'MATCH' and chow == 'vtable-content':
+                    v = 'CONTENT_MATCH'  # selected by contents; never independent proof evidence
+                elif v == 'MATCH' and (how not in ('sym', 'chain', 'vtable-ctor') or chow not in ('sym', 'vtable-ctor')):
                     v = 'MATCH_INFERRED' if 'inferred' in (how, chow) else 'MATCH_LOCAL'
                 done(v)
             # vtable shape: unrelocated words must equal the DOL words; the source vtable may not be larger
@@ -898,6 +1214,9 @@ class Prog:
                     if caddr is None:
                         inf = self.inferred.get(c['name'])
                         caddr = next(iter(inf)) if inf and len(inf) == 1 else None
+                    if caddr is None:
+                        va = self.vtable_anchor(c['name'])
+                        caddr = va[0] if va and va[1] == 'vtable-ctor' else None
                     if caddr is None:
                         continue
                     zsym = self.sy.by_name.get(c['name'], (0, 0))[1]
@@ -930,6 +1249,9 @@ class Prog:
         for name, v in self.dol_ctor_vtables().items():
             if name not in self.sy.by_name and name not in self.inferred:
                 self.inferred[name][v].append(('<dol-ctor>', name, 0))
+        self.anchor_vtables()
+        stats['vtable_ctor_anchors'] = sum(v[1] == 'vtable-ctor' for v in self.vtable_anchors.values())
+        stats['vtable_content_anchors'] = sum(v[1] == 'vtable-content' for v in self.vtable_anchors.values())
         conflicts = {n: a for n, a in self.inferred.items() if len(a) > 1}
         stats['inferred_symbols'] = len(self.inferred)
         stats['inferred_conflicts'] = len(conflicts)

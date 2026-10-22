@@ -344,7 +344,7 @@ class SinitControls(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.unit='Game/System/WorldMapResultTU15'
-        fixture=ROOT.parent/'dispatch-land'
+        fixture=ROOT.parent/'dispatch-wmap'
         if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():
             raise unittest.SkipTest('stable world-map fixture unavailable')
         cls.tmp=tempfile.TemporaryDirectory(prefix='R-sinit-')
@@ -504,6 +504,115 @@ class AlignmentControls(unittest.TestCase):
         path=self.dir/'changed.o';path.write_bytes(raw);p.elfs={self.unit:dc.ELF(path)}
         self.assertIsNone(self.site(p=p))
     def test_align_wrong_source_offset(self):self.assertIsNone(self.site(a=dict(self.ra,offset=0xa8)))
+
+
+class BossNamingControls(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.units=('Game/Boss/OtaKingMagma','Game/Boss/KoopaJrRobot','Game/Camera/CameraFreeze');fixture=ROOT.parent/'dispatch-land'
+        if not all((fixture/'build/SB4E01/src'/f'{u}.o').exists() for u in cls.units):raise unittest.SkipTest('boss fixtures unavailable')
+        cls.tmp=tempfile.TemporaryDirectory(prefix='R-boss-');cls.dir=pathlib.Path(cls.tmp.name)
+        def phase(root,label):
+            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt');p.elfs={}
+            for n,u in enumerate(cls.units):
+                path=cls.dir/f'{label}-{n}.o';path.write_bytes((root/'build/SB4E01/src'/f'{u}.o').read_bytes());p.elfs[u]=dc.ELF(path)
+            p.inferred=collections.defaultdict(lambda:collections.defaultdict(list));p._chains=None;p.ctor_inst={};return p
+        cls.before,cls.after=phase(ROOT,'before'),phase(fixture,'after')
+        cls.name='__vt__Q215NrvOtaKingMagma19OtaKingMagmaNrvDown'
+        if cls.after.sy.addr(cls.name)!=0x80678c98:raise unittest.SkipTest('boss naming fix unavailable')
+
+    @classmethod
+    def tearDownClass(cls):cls.tmp.cleanup()
+
+    def test_definition_storage_reference_binding_separate(self):
+        b,a=copy.copy(self.before),copy.copy(self.after);dp.prepare_addresses(b,a)
+        e=b.elfs[self.units[0]];idx=next(i for i,s in enumerate(e.syms) if s['name']==self.name);sym=e.syms[idx]
+        self.assertEqual(dp.storage_addr(b,e,self.units[0],sym),0x80678c98)
+        self.assertEqual(dp.target_key(b,e,self.units[0],idx,0)[1],0x80678c88)
+
+    def test_boss_same_range_keys(self):
+        b,a=copy.copy(self.before),copy.copy(self.after);dp.prepare_addresses(b,a)
+        for u in self.units[:2]:
+            self.assertEqual(set(dp.unit_image(b,u)),set(dp.unit_image(a,u)))
+        cb,ca=dp.exact_coverage(b),dp.exact_coverage(a)
+        for addr in (0x80678c88,0x80678c98,0x80678ca8):
+            self.assertIn((addr,16),cb);self.assertIn((addr,16),ca)
+
+    def test_already_exact_identical_bodies_keep_own_addresses(self):
+        b,a=copy.copy(self.before),copy.copy(self.after);dp.prepare_addresses(b,a)
+        u=self.units[2];e=b.elfs[u]
+        sym=next(s for s in e.syms if s['name']=='isCorrectingErpPositionOff__12CameraFreezeCFv')
+        self.assertTrue(dp.exact_body(b,e,u,sym,0x801196d0))
+        self.assertTrue(dp.exact_body(b,e,u,sym,0x801196e0))
+        self.assertEqual(dp.storage_addr(b,e,u,sym),0x801196d0)
+
+    def test_inexact_definition_not_canonicalized(self):
+        b,a=copy.copy(self.before),copy.copy(self.after);u=self.units[0];e=b.elfs[u]
+        sym=next(s for s in e.syms if s['name']==self.name);raw=bytearray(e.raw)
+        raw[e.s[sym['sec']][4]+sym['off']]^=1
+        path=self.dir/'inexact.o';path.write_bytes(raw);b.elfs=dict(b.elfs);b.elfs[u]=dc.ELF(path)
+        dp.prepare_addresses(b,a);sym=next(s for s in b.elfs[u].syms if s['name']==self.name)
+        self.assertEqual(dp.storage_addr(b,b.elfs[u],u,sym),0x80678c88)
+        with self.assertRaises(ValueError):dp.unit_image(b,u)
+
+    def test_inexact_relocation_not_canonicalized(self):
+        b,a=copy.copy(self.before),copy.copy(self.after);u=self.units[0];e=b.elfs[u]
+        sym=next(s for s in e.syms if s['name']==self.name);raw=bytearray(e.raw)
+        idx=next(i for i,s in enumerate(e.syms) if s['name'].startswith('execute__') and 'NrvDamageCFP' in s['name'])
+        sh=next(s for s in e.s if s[1]==4 and s[7]==sym['sec'])
+        loc=next(o for o in range(sh[4],sh[4]+sh[5],12) if dc.u32(raw,o)==sym['off']+8)
+        put32(raw,loc+4,(idx<<8)|dc.R_ADDR32)
+        path=self.dir/'wrong-target.o';path.write_bytes(raw);b.elfs=dict(b.elfs);b.elfs[u]=dc.ELF(path)
+        dp.prepare_addresses(b,a);sym=next(s for s in b.elfs[u].syms if s['name']==self.name)
+        self.assertEqual(dp.storage_addr(b,b.elfs[u],u,sym),0x80678c88)
+        with self.assertRaises(ValueError):dp.unit_image(b,u)
+
+    def low_token(self,b=None,a=None):
+        b=b or copy.copy(self.before);a=a or copy.copy(self.after)
+        dp.prepare_addresses(b,a);rows=[]
+        for prog in (b,a):
+            prog.func_info={};prog.nonexact=[];prog.exact_stream=list(prog.exact_functions())
+            out=[];prog.run_code(out,collections.Counter())
+            rows.append(next(r for r in out if r.get('site')==0x800f2404))
+        self.assertTrue(dp.bad(rows[0]));self.assertEqual(rows[1]['verdict'],'MATCH')
+        br,ar=dp.row_relocation(b,rows[0]),dp.row_relocation(a,rows[1])
+        block,off,typ,ad=br[:4]
+        return b,a,(self.units[0],block,off,typ,ad,0x800f2404,br[4],ar[4])
+
+    def test_adjacent_ha_companion_positive(self):
+        b,a,low=self.low_token();hi=dp.paired_high_permissions(b,a,{low})
+        self.assertEqual(len(hi),1);self.assertEqual(next(iter(hi))[2:4],(2,dc.R_ADDR16_HA))
+
+    def test_ha_without_direct_low_rejected(self):
+        b,a,low=self.low_token();self.assertFalse(dp.paired_high_permissions(b,a,set()))
+
+    def changed_pair(self,prog,kind):
+        p=copy.copy(prog);u=self.units[0];e=p.elfs[u];raw=bytearray(e.raw)
+        f=next(f for f in e.syms if f['type']==2 and p.sym_addr(e,u,f)==0x800f2400)
+        sh=next(s for s in e.s if s[1]==4 and s[7]==f['sec'])
+        loc=next(o for o in range(sh[4],sh[4]+sh[5],12) if dc.u32(raw,o)==f['off']+2)
+        if kind=='nonadjacent':put32(raw,loc,f['off']+10)
+        elif kind=='addend':put32(raw,loc+8,4)
+        elif kind=='register':
+            at=e.s[f['sec']][4]+f['off']+4;w=dc.u32(raw,at);put32(raw,at,(w&~(31<<16))|(5<<16))
+        path=self.dir/(kind+str(id(p))+'.o');path.write_bytes(raw);p.elfs=dict(p.elfs);p.elfs[u]=dc.ELF(path)
+        return p
+
+    def test_ha_nonadjacent_rejected(self):
+        b,a,low=self.low_token();self.assertFalse(dp.paired_high_permissions(self.changed_pair(b,'nonadjacent'),self.changed_pair(a,'nonadjacent'),{low}))
+
+    def test_ha_different_register_rejected(self):
+        b,a,low=self.low_token();self.assertFalse(dp.paired_high_permissions(self.changed_pair(b,'register'),self.changed_pair(a,'register'),{low}))
+
+    def test_ha_different_addend_rejected(self):
+        b,a,low=self.low_token();self.assertFalse(dp.paired_high_permissions(self.changed_pair(b,'addend'),self.changed_pair(a,'addend'),{low}))
+
+    def test_ha_different_encoding_rejected(self):
+        b=copy.copy(self.before);b.sy=copy.deepcopy(b.sy)
+        addr,size,sec,typ=b.sy.by_name[self.name];b.sy.by_name[self.name]=(addr-0x10000,size,sec,typ)
+        b,a,low=self.low_token(b=b)
+        self.assertFalse(dp.paired_high_permissions(b,a,{low}))
 
 
 if __name__=='__main__':

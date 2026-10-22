@@ -95,6 +95,8 @@ def symbol_addr(prog, e, unit, sym):
 
 
 def storage_addr(prog,e,unit,sym):
+    definition=getattr(prog,'_proof_definition_addresses',{}).get((unit,sym['sec'],sym['off'],sym['name']))
+    if definition is not None:return definition
     sec=sym['sec']
     if 0<sec<len(e.s) and e.s[sec][1]==8:
         base=getattr(prog,'_proof_storage_bases',{}).get((unit,section_ids(e)[sec]))
@@ -111,6 +113,7 @@ def prepare_addresses(pb, pa):
     # symbols also anchor otherwise unnamed storage in that SAME section.
     for prog in (pb, pa):
         prog._proof_addresses = {}
+        prog._proof_definition_addresses = {}
         prog._proof_allowed_old=set()
         prog._proof_named={}
         prog._proof_chain_addresses={}
@@ -188,6 +191,35 @@ def prepare_addresses(pb, pa):
                     if a is not None:names[sym['name']].add(a)
         prog._proof_named={n:next(iter(v)) for n,v in names.items() if len(v)==1}
 
+    # Definition placement and a reference's named binding are different facts.
+    # A corrected name map can identify unchanged, independently DOL-exact
+    # storage that the old map mislabeled. Never rewrite target_key's binding.
+    ranges=[{(a,z,sc,typ) for a,z,sc,typ in p.sy.by_name.values()} for p in (pb,pa)]
+    common=ranges[0]&ranges[1]
+    for prog,other in ((pb,pa),(pa,pb)):
+        for unit,e in prog.elfs.items():
+            oe=other.elfs.get(unit)
+            if oe is None:continue
+            counterparts=collections.defaultdict(list)
+            for s in oe.syms:
+                if s['size'] and s['type'] in (1,2):counterparts[s['name']].append(s)
+            for sym in e.syms:
+                if not sym['size'] or sym['type'] not in (1,2) or not 0<sym['sec']<len(e.s):continue
+                addr=other.sy.addr(sym['name'])
+                own=symbol_addr(prog,e,unit,sym)
+                if addr is None or addr==own:continue
+                if own is not None and exact_body(prog,e,unit,sym,own):continue
+                typ='function' if sym['type']==2 else 'object'
+                if (addr,sym['size'],e.names[sym['sec']],typ) not in common:continue
+                cs=counterparts[sym['name']]
+                if len(cs)!=1:continue
+                cs=cs[0]
+                if any(sym[k]!=cs[k] for k in ('size','type','bind')):continue
+                if not 0<cs['sec']<len(oe.s) or e.names[sym['sec']]!=oe.names[cs['sec']]:continue
+                if e.content(sym['sec'],sym['off'],sym['size'])!=oe.content(cs['sec'],cs['off'],cs['size']):continue
+                if exact_body(prog,e,unit,sym,addr) and exact_body(other,oe,unit,cs,addr):
+                    prog._proof_definition_addresses[unit,sym['sec'],sym['off'],sym['name']]=addr
+
 
 def exact_body(prog, e, unit, sym, addr):
     sec, off, size = sym['sec'], sym['off'], sym['size']
@@ -245,16 +277,17 @@ def exact_coverage(prog):
     named=hashlib.sha256(repr(sorted(prog._proof_named.items())).encode()).digest()
     aliases=collections.defaultdict(list)
     for key,addr in prog._proof_addresses.items():aliases[key[0]].append((key[1:],addr))
+    for key,addr in getattr(prog,'_proof_definition_addresses',{}).items():aliases[key[0]].append((('definition',)+key[1:],addr))
     permitted=collections.defaultdict(list)
     for unit,site,target in getattr(prog,'_proof_allowed_old',set()):permitted[unit].append((site,target))
     for unit,e in prog.elfs.items():
-        key=(unit,hashlib.sha256(e.raw).digest(),config,named,tuple(sorted(aliases[unit])),tuple(sorted(permitted[unit])))
+        key=(unit,hashlib.sha256(e.raw).digest(),config,named,tuple(sorted(aliases[unit],key=repr)),tuple(sorted(permitted[unit])))
         entries=_COVERAGE_CACHE.get(key)
         if entries is None:
             entries=[]
             for sym in e.syms:
                 if sym['size'] and sym['type'] in (1,2):
-                    a=symbol_addr(prog,e,unit,sym)
+                    a=storage_addr(prog,e,unit,sym)
                     if a is not None and exact_body(prog,e,unit,sym,a):entries.append((a,sym['size'],sym['name']))
             _COVERAGE_CACHE[key]=entries
         for a,size,name in entries:result[a,size].append((unit,name))
@@ -420,6 +453,41 @@ def row_relocation(prog, row):
     return candidates[0] if len(candidates) == 1 else None
 
 
+def paired_high_permissions(pb,pa,direct_lows):
+    """An unchanged HA field may accompany ONLY its approved adjacent LO fix."""
+    permitted=set()
+    for unit,block,off,typ,ad,site,old,new in direct_lows:
+        if typ!=dc.R_ADDR16_LO or off<6 or off%4!=2:continue
+        parts=[]
+        for prog,target in ((pb,old),(pa,new)):
+            e=prog.elfs[unit]
+            fs=[f for f in e.syms if f['type']==2 and 0<f['sec']<len(e.s) and f['size']==block[2] and e.names[f['sec']]==block[0]
+                and prog.sym_addr(e,unit,f)==block[1][1]]
+            if len(fs)!=1:break
+            f=fs[0]
+            lo=[r for r in e.relocs if r[0]==f['sec'] and r[1]==f['off']+off]
+            hi=[r for r in e.relocs if r[0]==f['sec'] and r[1]==f['off']+off-4]
+            if len(lo)!=1 or len(hi)!=1:break
+            lo,hi=lo[0],hi[0]
+            if lo[2]!=dc.R_ADDR16_LO or hi[2]!=dc.R_ADDR16_HA or hi[3:]!=lo[3:] or lo[4]!=ad:break
+            if target_key(prog,e,unit,lo[3],ad)!=target:break
+            at=f['off']+off-2
+            sw_hi=dc.u32(e.content(f['sec'],at-4,4),0);sw_lo=dc.u32(e.content(f['sec'],at,4),0)
+            if sw_hi>>26!=15 or (sw_hi>>16)&31 or sw_lo>>26 not in (14,*range(32,56)):break
+            if (sw_hi>>21)&31!=(sw_lo>>16)&31:break
+            dw_hi=prog.dol.word(site-4);dw_lo=prog.dol.word(site)
+            if dw_hi is None or dw_lo is None:break
+            if sw_hi&0xffff0000!=dw_hi&0xffff0000 or sw_lo&0xffff0000!=dw_lo&0xffff0000:break
+            parts.append((sw_hi,sw_lo,dw_hi,dw_lo))
+        if len(parts)!=2 or parts[0]!=parts[1]:continue
+        dw_hi,dw_lo=parts[0][2:]
+        before=((old[1]+0x8000)>>16)&0xffff;after=((new[1]+0x8000)>>16)&0xffff
+        actual=(((dw_hi&0xffff)<<16)+dc.s16(dw_lo&0xffff))&0xffffffff
+        if before!=after or after!=dw_hi&0xffff or actual!=new[1] or actual==old[1]:continue
+        permitted.add((unit,block,off-4,dc.R_ADDR16_HA,ad,site-4,old,new))
+    return permitted
+
+
 def aligned_site(pb,pa,b,a,block,off,typ):
     """Revalidate v8's equal-block alignment; return original PC, never source PC."""
     import difflib
@@ -556,13 +624,13 @@ def emission_permissions(prog, other, unit, img, otherimg, coverage):
         x=p.elfs[unit];out=collections.defaultdict(set)
         for sym in x.syms:
             if sym['size'] and sym['type'] in (1,2) and 0<sym['sec']<len(x.s):
-                a=symbol_addr(p,x,unit,sym)
+                a=storage_addr(p,x,unit,sym)
                 if a is not None:out[(x.names[sym['sec']],('A',a),sym['size'])].add((sym['sec'],sym['off'],sym['size']))
         return out
     here,there=locations(prog),locations(other)
     for sym in e.syms:
         if not sym['size'] or sym['type'] not in (1,2):continue
-        a=symbol_addr(prog,e,unit,sym)
+        a=storage_addr(prog,e,unit,sym)
         k=(e.names[sym['sec']],('A',a),sym['size']) if a is not None else None
         if k in img and len(here[k])>len(there[k]) and (a,sym['size']) in coverage and exact_body(prog,e,unit,sym,a):
             allowed.add(k)
@@ -655,7 +723,7 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
     for rows, dst in ((rows_b, kb), (rows_a, ka)):
         for r in rows:
             dst[oracle_key(r)].append(r)
-    flipped, allowed = [], set()
+    flipped, allowed, direct_lows = [], set(), set()
     for k, rs in kb.items():
         after = ka.get(k, [])
         if sum(r['verdict'] == 'MATCH' for r in after) < sum(r['verdict'] == 'MATCH' for r in rs):
@@ -683,11 +751,15 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
                         val=ar[4][1]
                         want=((val+0x8000)>>16 if typ==dc.R_ADDR16_HA else val>>16)&0xffff if op[0]=='hi' else val&0xffff
                         correct=op[1]==want
-                    if correct:allowed.add((b['unit'],block,off,typ,ad,site,br[4],ar[4]))
+                    if correct:
+                        token=(b['unit'],block,off,typ,ad,site,br[4],ar[4])
+                        allowed.add(token)
+                        if b['layer']=='code' and typ==dc.R_ADDR16_LO:direct_lows.add(token)
 
     for k, rs in ka.items():
         if sum(bad(r) for r in rs) > sum(bad(r) for r in kb.get(k, [])):
             problems.append(f'new BAD oracle row: {k}')
+    allowed.update(paired_high_permissions(pb,pa,direct_lows))
     pb._proof_allowed_old={(t[0],t[5],t[6]) for t in allowed}
     pa._proof_allowed_old=set()
     if not config_ranges_preserved(pb,pa):
@@ -702,7 +774,7 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
         # Even byte-identical objects can change meaning through symbols.txt.
         # Inspect all objects whose referenced/defined mapped addresses changed.
         def addresses(prog, e):
-            return [symbol_addr(prog, e, unit, s) for s in e.syms]
+            return [(symbol_addr(prog,e,unit,s),storage_addr(prog,e,unit,s)) for s in e.syms]
         if eb.raw == ea.raw and addresses(pb, eb) == addresses(pa, ea):
             report['identical'] += 1
             continue

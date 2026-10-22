@@ -250,7 +250,70 @@ int main() {
     return code, mutant
 
 
-FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'OtaKingMagma': ota, 'BellyDragonFireGround': fire_ground, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
+def jugem():
+    source = (ROOT/'src/Game/Util/BossJugem.cpp').read_text()
+    nerves = block(source, 'namespace NrvBossJugem {')
+    control = block(source, 'void BossJugem::control()')
+    states = ['StandBy', 'DemoOpening', 'Wait', 'WaitTogezo', 'Move', 'ThrowOne', 'ThrowTwo',
+              'ThrowAll', 'Dash', 'Damage', 'Angry', 'MoveLeft', 'MoveRight', 'StarPieceReaction',
+              'DemoDown', 'DemoEnding']
+    code = r'''
+#include "Game/LiveActor/Nerve.hpp"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <initializer_list>
+struct Manager { void updateAll() {} };
+struct Cloud { void updateFloatSound() {} };
+struct BossJugem {
+    const char* called = "";
+    bool smoke = false;
+    Spine spine{this, nullptr};
+    Manager manager; Cloud cloud;
+    Manager* mTogezoMgr = &manager;
+    Cloud* mCloud = &cloud;
+    bool isAngrySmoke() const { return smoke; }
+    bool isNerve(const Nerve* nerve) const { return spine.getCurrentNerve() == nerve; }
+    void updateCameraTarget() {} void updateCloudSway() {}
+    void selectNextAction() { called = "NextAction"; }
+    void control();
+'''
+    for name in states: code += 'void exe' + name + '() { called = "' + name + '"; }\n'
+    code += r'''
+};
+static int removed, sounded;
+static bool stateDone;
+namespace MR {
+bool updateActorState(BossJugem*) { return stateDone; }
+void tryEmitEffect(BossJugem*, const char*) {}
+void tryDeleteEffect(BossJugem*, const char*) { ++removed; }
+void startActionSound(BossJugem*, const char*, int, int, int) { ++sounded; }
+}
+void check(bool ok) { if (!ok) std::abort(); }
+''' + nerves + control + r'''
+int main() {
+    using namespace NrvBossJugem;
+    const Nerve* states[] = {&BossJugemNrvAngry::sInstance, &BossJugemNrvSleep::sInstance, &BossJugemNrvWait::sInstance};
+    BossJugem actor;
+    for (int i = 0; i < 3; ++i) for (bool smoke : {false, true}) {
+        actor.spine.setNerve(states[i]); actor.smoke = smoke; removed = sounded = 0;
+        actor.control();
+        check(removed == (!smoke && i != 0 ? 1 : 0));
+        check(sounded == (smoke || i == 0 ? 1 : 0));
+    }
+    actor.spine.setNerve(states[0]); actor.spine.update(); check(std::strcmp(actor.called, "Angry") == 0);
+    actor.spine.setNerve(states[1]); actor.called = "";
+    stateDone = false; actor.spine.update(); check(std::strcmp(actor.called, "") == 0);
+    stateDone = true; actor.spine.update(); check(std::strcmp(actor.called, "NextAction") == 0);
+    std::puts("BossJugem: production control gates angry smoke on Angry, with separate Sleep dispatch");
+}
+'''
+    old = control.replace('BossJugemNrvAngry', 'BossJugemNrvSleep')
+    assert old != control
+    return code, code.replace(control, old)
+
+
+FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'KoopaStateLastDamage': last_damage, 'OtaKingMagma': ota, 'BellyDragonFireGround': fire_ground, 'BossJugem': jugem, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
 
 
 def main():

@@ -127,10 +127,10 @@ void BossJugem::control() {
     mTogezoMgr->updateAll();
     if (isAngrySmoke()) {
         MR::tryEmitEffect(this, "AngrySmoke");
-    } else if (!isNerve(&NrvBossJugem::BossJugemNrvSleep::sInstance)) {
+    } else if (!isNerve(&NrvBossJugem::BossJugemNrvAngry::sInstance)) {
         MR::tryDeleteEffect(this, "AngrySmoke");
     }
-    if (isAngrySmoke() || isNerve(&NrvBossJugem::BossJugemNrvSleep::sInstance)) {
+    if (isAngrySmoke() || isNerve(&NrvBossJugem::BossJugemNrvAngry::sInstance)) {
         MR::startActionSound(this, "AngrySmoke", -1, -1, -1);
     }
     updateCloudSway();

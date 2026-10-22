@@ -43,33 +43,33 @@ void KoopaJrCastleHead::init(const JMapInfoIter& rIter) {
     PSMTXInverse(rootMtx, inv);
     PSMTXConcat(inv, MR::getJointMtx(this, "Cannon1"), mCannonMtx);
     PartsModel::init(rIter);
-    initNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance, 0);
+    initNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance, 0);
     MR::startAction(this, "Wait");
     makeActorAppeared();
     MR::invalidateHitSensor(this, "Panic");
     mIsJointCallbackDisabled = false;
 }
 
-// fn_800D55B0: forwards an attack-sensor pair to the host unless the actor is in its C nerve.
+// fn_800D55B0: forwards an attack-sensor pair to the host unless the actor is in its D nerve.
 void KoopaJrCastleHead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (!isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance)) {
         LiveActor* pHost = mHost;
         pHost->attackSensor(pSender, pReceiver);
     }
 }
 
-// fn_800D5620: forwards receiveMsgPlayerAttack to the host unless the actor is in its C nerve.
+// fn_800D5620: forwards receiveMsgPlayerAttack to the host unless the actor is in its D nerve.
 bool KoopaJrCastleHead::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance)) {
         return false;
     }
     LiveActor* pHost = mHost;
     return pHost->receiveMsgPlayerAttack(msg, pSender, pReceiver);
 }
 
-// fn_800D56A0: forwards receiveOtherMsg to the host unless the actor is in its C nerve.
+// fn_800D56A0: forwards receiveOtherMsg to the host unless the actor is in its D nerve.
 bool KoopaJrCastleHead::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance)) {
         return false;
     }
     LiveActor* pHost = mHost;
@@ -83,15 +83,15 @@ namespace KoopaJrCastleFunction {
 };  // namespace KoopaJrCastleFunction
 
 void KoopaJrCastleHead::setNerveA() {
-    setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);
-}
-
-void KoopaJrCastleHead::setNerveB() {
     setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance);
 }
 
-void KoopaJrCastleHead::setNerveC() {
+void KoopaJrCastleHead::setNerveB() {
     setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance);
+}
+
+void KoopaJrCastleHead::setNerveC() {
+    setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
 }
 
 // breakCastleCapsule: break the capsule (Break + Wait animations), then invalidate its collision.
@@ -105,7 +105,7 @@ void breakCastleCapsule(LiveActor* pActor) {
 }
 
 void KoopaJrCastleHead::setNerveD() {
-    setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
+    setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);
 }
 
 void KoopaJrCastleHead::resetWaitUnlessDamaged() {
@@ -180,7 +180,7 @@ void KoopaJrCastleHead::exeSecondDamage() {
     }
 }
 
-// fn_800D5B10: 'Wait' phase of the head: animates, tracks the player, and returns to nerve D when the player leaves.
+// fn_800D5B10: 'Wait' phase of the head: animates, tracks the player, and returns to nerve A when the player leaves.
 // NONMATCHING: string table addressing: target uses lbl_80674E30 + offset, literals here
 void KoopaJrCastleHead::exePanic() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
@@ -193,7 +193,7 @@ void KoopaJrCastleHead::exePanic() {
     }
     if (!KoopaJrCastleFunction::isPlayerOnCastle() && MR::isOnGroundPlayer()) {
         MR::startAction(pCastle->mKoopaJr, "Wait");
-        setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
+        setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);
         return;
     }
     KoopaJrCastleFunction::turnHeadToPlayer(0.4f);
@@ -214,7 +214,7 @@ void KoopaJrCastleHead::exeSpinSign() {
     MR::startActionSound(this, "EmLvWaterbazPreStorm", -1, -1, -1);
     if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvF::sInstance)) {
         if (!KoopaJrCastleFunction::isPlayerOnCastle() && MR::isOnGroundPlayer()) {
-            setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
+            setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);
             return;
         }
     }
@@ -257,14 +257,14 @@ void KoopaJrCastleHead::exeSpin() {
     MR::makeMtxSideUpPos(reinterpret_cast< TPos3f* >(cannonMtx), side, up, pos);
     MR::startActionSound(this, "EmLvWaterbazStorm", static_cast<s32>(100.0f * ease / 25.0f), -1, -1);
     if (MR::isGreaterStep(this, 0x96)) {
-        setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);
+        setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);
     }
 }
 
-// canStartAction: true when the head is idle enough to take a new action (not in A/B/C and not in the E..H group).
+// canStartAction: true when the head is idle enough to take a new action (not in B/C/D and not in the E..H group).
 bool KoopaJrCastleHead::canStartAction() {
-    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance) || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance) ||
-        isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance) || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance) ||
+        isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance)) {
         return false;
     }
     return !isPanicOrSpin();
@@ -279,7 +279,7 @@ void KoopaJrCastleHead::calcAndSetBaseMtx() {
 // fn_800D5F50: writes the head's pose matrix from the given matrix's translation (idle head only).
 // NONMATCHING: joint concat order and setMtxTrans argument shape inferred from the m2c read only
 bool KoopaJrCastleHead::calcJointCannon(TPos3f* pMtx, const JointControllerInfo&) {
-    if (mIsJointCallbackDisabled || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (mIsJointCallbackDisabled || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance)) {
         return false;
     }
     TPos3f mtx;

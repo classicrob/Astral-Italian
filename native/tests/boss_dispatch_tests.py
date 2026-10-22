@@ -15,6 +15,16 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def block(text, anchor):
+    start = text.index(anchor); opening = text.index('{', start)
+    depth, end = 1, opening + 1
+    while depth:
+        if text[end] == '{': depth += 1
+        elif text[end] == '}': depth -= 1
+        end += 1
+    return text[start:end]
+
+
 def robot():
     source = (ROOT/'src/Game/Boss/KoopaJrRobot.cpp').read_text()
     nerves = source[source.index('namespace NrvKoopaJrRobot {'):source.index('KoopaJrRobot::KoopaJrRobot(')]
@@ -84,7 +94,61 @@ def sandy(phase):
     return code, code.replace(nerves, wrong)
 
 
-FIXTURES = {'KoopaJrRobot': robot, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
+def castle():
+    source = (ROOT/'src/Game/Boss/KoopaJrCastleHead.cpp').read_text()
+    header = (ROOT/'include/Game/Boss/KoopaJrCastleNerves.hpp').read_text()
+    nerves = block(header, 'namespace NrvKoopaJrCastleHead {')
+    instances = source[source.index('namespace NrvKoopaJrCastleHead {'):source.index('KoopaJrCastleHead::KoopaJrCastleHead(')]
+    methods = [block(source, 'void KoopaJrCastleHead::setNerve' + name + '()') for name in 'ABCD']
+    methods += [block(source, 'bool KoopaJrCastleHead::canStartAction()'),
+                block(source, 'bool KoopaJrCastleHead::isPanicOrSpin() const'),
+                block(source, 'void KoopaJrCastleHead::resetWaitUnlessDamaged()')]
+    code = r'''
+#include "Game/LiveActor/Nerve.hpp"
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+struct KoopaJrCastleHead {
+    const char* called = "";
+    Spine spine{this, nullptr};
+    void setNerve(const Nerve* n) { spine.setNerve(n); }
+    bool isNerve(const Nerve* n) const { return spine.getCurrentNerve() == n; }
+    void setNerveA(); void setNerveB(); void setNerveC(); void setNerveD();
+    bool canStartAction(); bool isPanicOrSpin() const; void resetWaitUnlessDamaged();
+    void exeWait() { called = "Wait"; }
+    void exeFirstDamage() { called = "FirstDamage"; }
+    void exeSecondDamage() { called = "SecondDamage"; }
+    void exePanic() { called = "Panic"; }
+    void exeSpinSign() { called = "SpinSign"; }
+    void exeSpin() { called = "Spin"; }
+};
+void check(bool ok) { if (!ok) std::abort(); }
+''' + nerves + instances + '\n'.join(methods) + r'''
+int main() {
+    using namespace NrvKoopaJrCastleHead;
+    const Nerve* states[] = {&KoopaJrCastleHeadNrvA::sInstance, &KoopaJrCastleHeadNrvB::sInstance,
+        &KoopaJrCastleHeadNrvC::sInstance, &KoopaJrCastleHeadNrvD::sInstance,
+        &KoopaJrCastleHeadNrvE::sInstance, &KoopaJrCastleHeadNrvF::sInstance,
+        &KoopaJrCastleHeadNrvG::sInstance, &KoopaJrCastleHeadNrvH::sInstance};
+    KoopaJrCastleHead head;
+    head.setNerveA(); head.spine.update(); check(std::strcmp(head.called, "FirstDamage") == 0);
+    head.setNerveB(); head.spine.update(); check(std::strcmp(head.called, "SecondDamage") == 0);
+    head.setNerveC(); check(head.spine.getCurrentNerve() == states[3]);
+    head.setNerveD(); head.spine.update(); check(std::strcmp(head.called, "Wait") == 0);
+    for (int i = 0; i < 8; ++i) {
+        head.setNerve(states[i]); check(head.canStartAction() == (i == 0));
+        head.resetWaitUnlessDamaged();
+        check(head.spine.getCurrentNerve() == ((i == 1 || i == 2) ? states[i] : states[0]));
+    }
+    std::puts("KoopaJrCastleHead: production selectors dispatch damage/wait and gate actions correctly");
+}
+'''
+    wrong = methods[0].replace('KoopaJrCastleHeadNrvB', 'KoopaJrCastleHeadNrvA')
+    assert wrong != methods[0]
+    return code, code.replace(methods[0], wrong)
+
+
+FIXTURES = {'KoopaJrRobot': robot, 'KoopaJrCastleHead': castle, 'SandyStatePhase1': lambda: sandy(1), 'SandyStatePhase2': lambda: sandy(2), 'SandyStatePhase3': lambda: sandy(3)}
 
 
 def main():

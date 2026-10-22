@@ -48,6 +48,13 @@
 #include <revolution/sc.h>
 #include <revolution/vi/vifuncs.h>
 
+// Match the original pool singleton initialization order.
+template JASMemPool< AudMeTrack > JASPoolAllocObject< AudMeTrack >::memPool_;
+template JASMemPool< AudMe > JASPoolAllocObject< AudMe >::memPool_;
+template JASMemPool< AudSeStrategy > JASPoolAllocObject< AudSeStrategy >::memPool_;
+template JASMemPool< AudDopplerAudible< 2 > > JASPoolAllocObject< AudDopplerAudible< 2 > >::memPool_;
+
+
 #ifdef GALAXY_NATIVE
 const char sAudioResFile[] = "/AudioRes/SMR.szs";
 const char sJaiSeqArc[] = "/AudioRes/Seqs/JaiSeq.arc";

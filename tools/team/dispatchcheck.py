@@ -438,6 +438,79 @@ class Prog:
                 done(v)
 
 
+
+    def run_near(self, rows, stats):
+        """Non-exact functions of the same size: relocations whose DOL instruction at the SAME offset is the same kind
+        (bl/b for REL24, SDA21 memory/addi, lis/addi halves) are checked directly. Independent evidence for those sites."""
+        for unit, e, f, faddr, dolb, rels in self.nonexact:
+            if len(dolb) != f['size']:
+                continue
+            for off, (typ, si, ad) in sorted(rels.items()):
+                t = e.syms[si]
+                insn = u32(dolb, off)
+                if typ == R_REL24 and not (insn >> 26 == 18 and insn & 1):
+                    continue
+                if typ == R_SDA21 and ((insn >> 16) & 31) not in (2, 13):
+                    continue
+                if typ not in (R_REL24, R_SDA21):
+                    continue
+                if f['name'].startswith('__sinit_') or not (t['name'].startswith(('sInstance__', 'execute__')) and 'Nrv' in t['name']):
+                    continue  # nerve use sites only: other call sites are noisy, sinit pairs have their own layer
+                expect, how = self.target(e, unit, si, ad)
+                if expect is None or how not in ('sym', 'chain'):
+                    continue
+                op = self.dol_operand(typ, insn, faddr + off)
+                if op is None or op[0] != 'addr':
+                    continue
+                stats['near_checked'] += 1
+                v = self.verdict(op[1], expect, t['name'])
+                if v == 'ALIAS':
+                    continue
+                row = dict(layer='near', unit=unit, function=f['name'], offset=off, kind='dispatch', verdict=v,
+                           target=t['name'], expect=expect, dol=op[1], site=faddr + off, how=how)
+                if v != 'MATCH':
+                    row['dol_name'] = self.sy.name_at(op[1])
+                rows.append(row)
+
+
+    def dol_sinit_pairs(self):
+        """{instance address: ctor address} decoded from every DOL __sinit_ function (r3 = instance; bl ctor)."""
+        self.dol_chains()
+        return {y: c[0] for y, c in self._chains.items()}
+
+    def run_sinit(self, rows, stats):
+        """For each source sinit pair (sInstance__X, __ct__X) of a nerve class the DOL must construct the instance the
+        source names with the ctor the source names (order-independent)."""
+        pairs = self.dol_sinit_pairs()
+        for unit, e in self.elfs.items():
+            for f in e.syms:
+                if f['type'] != 2 or not f['name'].startswith('__sinit_') or not e.is_code(f['sec']):
+                    continue
+                rels = sorted(o for o in e.rel_by_sec[f['sec']] if f['off'] <= o < f['off'] + f['size'])
+                last_inst = None
+                for o in rels:
+                    typ, si, ad = e.rel_by_sec[f['sec']][o]
+                    t = e.syms[si]
+                    if t['name'].startswith('sInstance__') and 'Nrv' in t['name'] and typ in (R_SDA21, R_ADDR16_HA):
+                        last_inst = (t, ad, o)
+                    elif typ == R_REL24 and t['name'].startswith('__ct__') and 'Nrv' in t['name'] and last_inst:
+                        it, iad, io = last_inst
+                        last_inst = None
+                        ia, ihow = self.target(e, unit, e.syms.index(it), iad)
+                        ca, chow = self.target(e, unit, si, ad)
+                        row = dict(layer='sinit', unit=unit, function=f['name'], offset=o - f['off'], kind='dispatch',
+                                   target=t['name'], site=None)
+                        if ia is None or ca is None or ihow not in ('sym', 'chain') or chow != 'sym':
+                            row['verdict'] = 'UNRESOLVED:sinit_pair_anchor'
+                        elif ia not in pairs:
+                            row['verdict'] = 'UNRESOLVED:sinit_dol_pair'
+                        elif pairs.get(ia) == ca:
+                            row['verdict'] = 'MATCH'
+                        else:
+                            row.update(verdict='CROSSED', expect=ca, dol=pairs.get(ia, 0), dol_name=self.sy.name_at(pairs[ia]) if ia in pairs else None)
+                        stats['sinit_' + row['verdict'].split(':')[0].lower()] += 1
+                        rows.append(row)
+
     def run_seq(self, rows, stats):
         """Advisory: in functions that are not byte-exact, pair the k-th branch / SDA21 operand of the source with
         the k-th one in the DOL (only when the counts agree). Same-size functions only."""
@@ -792,6 +865,8 @@ class Prog:
             self.run_data(rows, stats)
         if 'code' in layers:
             self.run_code(rows, stats)
+            self.run_near(rows, stats)
+            self.run_sinit(rows, stats)
             self.run_seq(rows, stats)
             self.run_sem(rows, stats)
             self.run_names(rows, stats)

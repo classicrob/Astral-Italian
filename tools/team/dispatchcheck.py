@@ -204,6 +204,8 @@ class Prog:
         self.func_info = {}
         self.exact_stream = []
         self.nonexact = []
+        self._chains = None
+        self.ctor_inst = {}
 
     # ---- anchors -----------------------------------------------------------------------------------------------
     def sym_addr(self, e, unit, sym):
@@ -241,6 +243,11 @@ class Prog:
         a = self.sym_addr(e, unit, t)
         if a is not None:
             return a + addend, 'sym'
+        if t['name'].startswith('sInstance__') and 'Nrv' in t['name'] and t['bind'] != 0:
+            # independent anchor: the instance the original's sinit hands to the constructor symbols.txt names for this class
+            ka = self.sy.addr('__ct__' + t['name'][len('sInstance__'):] + 'Fv')
+            if ka is not None and ka in self.ctor_inst:
+                return self.ctor_inst[ka] + addend, 'chain'
         inf = self.inferred.get(t['name']) if not drifty(t) and t['type'] != 3 and t['bind'] != 0 else None
         if inf and len(inf) == 1:
             return next(iter(inf)) + addend, 'inferred'
@@ -425,7 +432,7 @@ class Prog:
                         row['dol_name'] = self.sy.name_at(op[1])
                 if how == 'local' and v in ('CROSSED', 'WRONG'):
                     v = 'LOCALDRIFT:' + v
-                elif v == 'MATCH' and how != 'sym':
+                elif v == 'MATCH' and how not in ('sym', 'chain'):
                     v = 'MATCH_INFERRED' if how == 'inferred' else 'MATCH_LOCAL'  # not independent evidence
                 row['how'] = how
                 done(v)
@@ -470,6 +477,12 @@ class Prog:
 
     # ---- semantic nerve chain ------------------------------------------------------------------------------------
     def dol_chains(self):
+        if self._chains is None:
+            self._chains = self._dol_chains()
+            self.ctor_inst = {c[0]: y for y, c in self._chains.items()}
+        return self._chains
+
+    def _dol_chains(self):
         """instance address -> (ctor, vtable, execute, exe-target) decoded from DOL only (sinit -> ctor -> vtable ->
         slot 2 -> first branch of the execute wrapper)."""
         d = self.dol
@@ -728,7 +741,7 @@ class Prog:
                     row['dol_name'] = self.sy.name_at(w)
                     if how == 'local' or chow == 'local':
                         v = 'LOCALDRIFT:' + v
-                elif v == 'MATCH' and (how != 'sym' or chow != 'sym'):
+                elif v == 'MATCH' and (how not in ('sym', 'chain') or chow != 'sym'):
                     v = 'MATCH_INFERRED' if 'inferred' in (how, chow) else 'MATCH_LOCAL'
                 done(v)
             # vtable shape: unrelocated words must equal the DOL words; the source vtable may not be larger
@@ -765,6 +778,7 @@ class Prog:
         stats['code_weak_copy_elsewhere'] = sum(1 for v in self.func_info.values() if v[1] == 'elsewhere')
         stats['code_funcs_nonexact'] = sum(1 for v in self.func_info.values() if v[0] is False)
         self.infer(exact)
+        self.dol_chains()
         for name, v in self.dol_ctor_vtables().items():
             if name not in self.sy.by_name and name not in self.inferred:
                 self.inferred[name][v].append(('<dol-ctor>', name, 0))

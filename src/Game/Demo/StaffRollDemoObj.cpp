@@ -25,12 +25,20 @@ namespace NrvStaffRollDemoObj {
     NEW_NERVE(StaffRollDemoObjNrvB, StaffRollDemoObj, B);
     NEW_NERVE(StaffRollDemoObjNrvC, StaffRollDemoObj, C);
     NEW_NERVE(StaffRollDemoObjNrvD, StaffRollDemoObj, D);
-    NEW_NERVE(StaffRollDemoObjNrvE, StaffRollDemoObj, E);
-    NEW_NERVE(StaffRollDemoObjNrvF, StaffRollDemoObj, F);
-    NEW_NERVE(StaffRollDemoObjNrvG, StaffRollDemoObj, G);
-    class StaffRollDemoObjNrvH : public Nerve {
+    class StaffRollDemoObjNrvE : public Nerve {
     public:
         virtual void execute(Spine*) const;
+        static StaffRollDemoObjNrvE sInstance;
+    };
+    NERVE_INSTANCE(StaffRollDemoObjNrvE)
+    NEW_NERVE(StaffRollDemoObjNrvF, StaffRollDemoObj, E);
+    NEW_NERVE(StaffRollDemoObjNrvG, StaffRollDemoObj, F);
+    class StaffRollDemoObjNrvH : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            StaffRollDemoObj* actor = reinterpret_cast< StaffRollDemoObj* >(pSpine->mExecutor);
+            actor->exeG();
+        }
         static StaffRollDemoObjNrvH sInstance;
     };
     StaffRollDemoObjNrvH StaffRollDemoObjNrvH::sInstance ATTRIBUTE_WEAK;
@@ -229,7 +237,7 @@ void StaffRollDemoObj::exeD() {
     }
 }
 
-// Nerve E: wait on the roll's end-of-part flag.
+// Nerve F: wait for the roll to end, then move on to G.
 void StaffRollDemoObj::exeE() {
     if (MR::isFirstStep(this)) {
         mChildB->makeActorAppeared();
@@ -243,7 +251,7 @@ void StaffRollDemoObj::exeE() {
     }
 }
 
-// Nerve F: close the wipe, then move on to G.
+// Nerve G: close the wipe, then move on to H.
 void StaffRollDemoObj::exeF() {
     if (MR::isFirstStep(this)) {
         MR::closeWipeFade(0x78);
@@ -257,7 +265,7 @@ void StaffRollDemoObj::exeF() {
     MR::setSeVolumeSetLevel(0xD, 0);
 }
 
-// Nerve G: last step, request the next room.
+// Nerve H: last step, request the next room.
 void StaffRollDemoObj::exeG() {
     if (MR::isGreaterEqualStep(this, 0x78)) {
         MR::endDemo(this, sEndFadeDemoName);
@@ -266,8 +274,8 @@ void StaffRollDemoObj::exeG() {
     MR::setSeVolumeSetLevel(0xD, 0);
 }
 
-// Nerve H (custom execute body): when the wait flag clears, end the demo and return to C.
-void NrvStaffRollDemoObj::StaffRollDemoObjNrvH::execute(Spine* pSpine) const {
+// Nerve E (custom execute body): when the wait flag clears, end the demo and return to C.
+void NrvStaffRollDemoObj::StaffRollDemoObjNrvE::execute(Spine* pSpine) const {
     StaffRollDemoObj* pActor = reinterpret_cast< StaffRollDemoObj* >(pSpine->mExecutor);
     if (MR::isStoryBookTurnPageEnd() != 0) {
         MR::endDemo(pActor, sPageTurnDemoName);

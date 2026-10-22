@@ -5,113 +5,371 @@ hookproof.sh demands byte-identical objects, which a dispatch fix can never sati
 moves, a vtable relocation retargets).  This tool compares two COMPLETE source-object trees (before / after) and
 accepts only:
 
-  1. the same set of object files;
-  2. per object: identical allocated-section bytes, identical symbol sets (name, bind, type, size, section), and
-     identical relocation multisets keyed by (container symbol, offset in container, type, addend, target
-     identity) -- EXCEPT relocation sites the oracle reports as BAD before and MATCH after;
-  3. symbol placement (offset inside a section) may differ only inside objects that contain such a flipped site
-     or that are named with --unit (a pure reorder of weak nerve functions / instances);
-  4. oracle (tools/team/dispatchcheck.py) before vs after: no row regresses, no new BAD row, the BAD rows that
-     disappear are listed; with --expect-clean the after tree must have none for the --unit objects.
+  1. identical complete object inventories and no unreadable objects;
+  2. identical ordered non-debug section contracts (including NOBITS sizes),
+     symbol multisets (including unsized symbols), all stored bytes and all
+     relocation records;
+  3. mapped definitions may reorder only while preserving their entire image at
+     each original address; unmapped storage, local/section targets and padding
+     retain exact section placement;
+  4. a relocation retarget requires an unambiguous BAD->MATCH candidate,
+     independently named/chain-anchored targets, and unchanged type/addend.
+     Direct and semantic candidates require the original operand at the same
+     instruction; sinit reordering requires a separately validated pure ctor
+     and original instance/ctor pair. Inference alone grants no exception.
+     MATCH coverage cannot disappear or regress.
 
-`--selftest` perturbs one object (a code byte, a relocation target, a symbol) in a temp copy and requires the
-comparison to FAIL for each, proving the comparator sees real changes.
+`--unit` scopes only --expect-clean, never the object comparison. Compiler
+.line/.debug* and .comment bookkeeping is ignored; constructor/destructor and
+exception tables are compared in order. --selftest runs repeatable real-object
+negative controls in test_dispatchproof.py. This proof is deliberately conservative:
+unsupported reorderings require review, rather than weakening the comparator.
 
 Usage: dispatchproof.py --before ROOT --after ROOT [--unit Game/Boss/TwoLegs]... [--expect-clean] [--dol main.dol]
        dispatchproof.py --selftest --after ROOT
 Exit 0 and prints `DISPATCH PROOF OK` only if every check passes.
 """
-import argparse, collections, hashlib, json, os, pathlib, shutil, sys, tempfile
+import argparse, bisect, collections, hashlib, json, pathlib, sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import dispatchcheck as dc  # noqa: E402
 
-SKIP_SECS = {'.line', '.debug', '.comment', '.symtab', '.strtab', '.shstrtab'}
+# Only compiler bookkeeping is ignored. Every other section, including NOBITS,
+# .ctors/.dtors and exception tables, participates in the proof.
+def ignored(e, sec):
+    return not e.s[sec][2]&2 and (e.names[sec] in ('.line','.debug','.comment') or e.names[sec].startswith(('.debug_','.zdebug_')))
 
 
-def sec_ident(e):
-    """Allocated (and note) section occurrences: [(name, type, flags, size, align, content-hash)]."""
-    out = []
-    for i, s in enumerate(e.s):
-        n = e.names[i]
-        if n in SKIP_SECS or n.startswith(('.rela', '.rel')) or s[1] in (2, 3, 4) or i == 0:
-            continue
-        body = b'' if s[1] == 8 else e.raw[s[4]:s[4] + s[5]]
-        out.append((n, s[1], s[2], s[5], s[8], hashlib.sha1(body).hexdigest()))
+def section_ids(e):
+    seen, out = collections.Counter(), {}
+    for i, name in enumerate(e.names):
+        out[i] = (name, seen[name])
+        seen[name] += 1
     return out
 
 
-def containers(e):
-    """sec -> sorted [(off, size, name)] of sized symbols (functions in code, objects in data)."""
-    cs = collections.defaultdict(list)
-    for s in e.syms:
-        if s['sec'] and s['sec'] < len(e.s) and s['size'] and s['name'] and s['type'] in (1, 2):
-            cs[s['sec']].append((s['off'], s['size'], s['name'], s['bind']))
-    for v in cs.values():
-        v.sort()
-    return cs
+def section_contract(e):
+    ids = section_ids(e)
+    return [(ids[i], s[1], s[2], s[3], s[5], s[8], s[9],
+             ids.get(s[6]) if s[6] else None, s[7])
+            for i, s in enumerate(e.s) if i and s[1] not in (2, 3, 4) and not ignored(e, i)]
+
+
+def relocation_contract(e):
+    ids = section_ids(e)
+    return [(ids[i], s[1], s[2], s[5], s[8], s[9], ids.get(s[6]), ids.get(s[7]))
+            for i, s in enumerate(e.s) if s[1] in (4, 9)
+            and not (0 < s[7] < len(e.s) and ignored(e, s[7]))]
+
+
+def symbol_contract(e, prog=None, unit=None):
+    import struct
+    ids, result = section_ids(e), collections.Counter()
+    used={si for sec,o,typ,si,ad in e.relocs if not ignored(e,sec)}
+    for table in e.s:
+        if table[1] != 2:continue
+        for idx, off in enumerate(range(0,table[5],16)):
+            sym=e.syms[idx];sec=sym['sec']
+            if 0<sec<len(e.s) and ignored(e,sec):continue
+            other=struct.unpack_from('>B',e.raw,table[4]+off+13)[0]
+            a=storage_addr(prog,e,unit,sym) if prog else None
+            if prog and sec==0 and idx in used and target_key(prog,e,unit,idx,0)[0]=='A':
+                continue
+            if a is not None and sym['size'] and sym['type'] in (1,2):
+                key=('A',a,sym['size'],sym['bind'],sym['type'],other)
+            else:
+                name='<anonymous>' if anonymous(sym) else sym['name']
+                key=('N',name,sym['bind'],sym['type'],sym['size'],other,ids[sec] if 0<sec<len(e.s) else sec)
+            result[key]+=1
+    return result
+
+
+def symbol_addr(prog, e, unit, sym):
+    a = prog.sym_addr(e, unit, sym)
+    if a is not None:
+        return a
+    chain=getattr(prog,'_proof_chain_addresses',{}).get(sym['name'])
+    if chain is not None:return chain
+    return getattr(prog,'_proof_addresses',{}).get((unit,sym['sec'],sym['off'],sym['name']))
+
+
+def storage_addr(prog,e,unit,sym):
+    sec=sym['sec']
+    if 0<sec<len(e.s) and e.s[sec][1]==8:
+        base=getattr(prog,'_proof_storage_bases',{}).get((unit,section_ids(e)[sec]))
+        if base is not None:return base+sym['off']
+    return symbol_addr(prog,e,unit,sym)
+
+
+def anonymous(sym):
+    return sym['bind'] == 0 and bool(dc.LOCALNAME.fullmatch(sym['name']))
+
+
+def prepare_addresses(pb, pa):
+    # Independent chain anchors are supplied by oracle v5. Consistent nearby
+    # symbols also anchor otherwise unnamed storage in that SAME section.
+    for prog in (pb, pa):
+        prog._proof_addresses = {}
+        prog._proof_allowed_old=set()
+        prog._proof_named={}
+        prog._proof_chain_addresses={}
+        tried=set()
+        for unit,e in prog.elfs.items():
+            for idx,sym in enumerate(e.syms):
+                name=sym['name']
+                if name.startswith('sInstance__') and 'Nrv' in name and name not in tried and prog.sy.addr(name) is None:
+                    tried.add(name)
+                    addr,how=prog.target(e,unit,idx,0)
+                    if how=='chain':prog._proof_chain_addresses[name]=addr
+        for unit, e in prog.elfs.items():
+            offsets = collections.defaultdict(set)
+            for sym in e.syms:
+                if sym['size'] and 0 < sym['sec'] < len(e.s):
+                    a = symbol_addr(prog, e, unit, sym)
+                    if a is not None:
+                        offsets[sym['sec']].add(a - sym['off'])
+            for sym in e.syms:
+                sec = sym['sec']
+                if not sym['size'] or not 0 < sec < len(e.s) or ignored(e, sec):
+                    continue
+                if prog.sym_addr(e, unit, sym) is not None or anonymous(sym):
+                    continue
+                choices = offsets[sec]
+                base = prog.bases.get((unit, e.names[sec]))
+                # Section offsets are authoritative only when owned by a split,
+                # or unanimously anchored by the section's named BSS instances.
+                a = None
+                if e.s[sec][1] == 8 and len(choices) == 1:
+                    a = next(iter(choices)) + sym['off']
+                elif base is not None and e.names[sec] not in ('.text',):
+                    a = base + sym['off']
+                if a is not None:
+                    prog._proof_addresses[unit, sec, sym['off'], sym['name']] = a
+    # A newly named definition may already exist as an identical weak copy. It
+    # gains an identity only when its complete relocated body independently
+    # equals the DOL at that address, never just from a coincidental call operand.
+    for prog, other in ((pb, pa), (pa, pb)):
+        for unit, e in prog.elfs.items():
+            for sym in e.syms:
+                if not sym['size'] or sym['type'] not in (1,2) or prog.sym_addr(e,unit,sym) is not None:
+                    continue
+                a = other.sy.addr(sym['name'])
+                if a is not None and exact_body(prog,e,unit,sym,a):
+                    prog._proof_addresses[unit,sym['sec'],sym['off'],sym['name']] = a
+
+    # BSS is zero-initialized storage; its layout is independent of the names
+    # used to bind references. A phase with consistent independent anchors fixes
+    # the shared section placement, even if the other phase names one cell wrong.
+    bases={}
+    for unit in set(pb.elfs)&set(pa.elfs):
+        for prog in (pb,pa):
+            e=prog.elfs[unit];candidates=collections.defaultdict(set)
+            for sym in e.syms:
+                if sym['size'] and 0<sym['sec']<len(e.s) and e.s[sym['sec']][1]==8:
+                    a=prog.sym_addr(e,unit,sym)
+                    if a is not None:candidates[section_ids(e)[sym['sec']]].add(a-sym['off'])
+            for sid,values in candidates.items():
+                if len(values)==1:bases[unit,sid]=next(iter(values))
+    for prog in (pb,pa):
+        prog._proof_storage_bases=bases
+        for unit,e in prog.elfs.items():
+            for sym in e.syms:
+                sec=sym['sec']
+                base=bases.get((unit,section_ids(e).get(sec))) if 0<sec<len(e.s) and e.s[sec][1]==8 else None
+                if base is not None and sym['size'] and prog.sym_addr(e,unit,sym) is None:
+                    prog._proof_addresses[unit,sec,sym['off'],sym['name']]=base+sym['off']
+    for prog in (pb,pa):
+        names=collections.defaultdict(set)
+        for unit,e in prog.elfs.items():
+            for sym in e.syms:
+                if sym['bind'] and sym['sec'] and sym['size']:
+                    a=symbol_addr(prog,e,unit,sym)
+                    if a is not None:names[sym['name']].add(a)
+        prog._proof_named={n:next(iter(v)) for n,v in names.items() if len(v)==1}
+
+
+def exact_body(prog, e, unit, sym, addr):
+    sec, off, size = sym['sec'], sym['off'], sym['size']
+    if not 0 < sec < len(e.s) or e.s[sec][1] == 8:
+        return False
+    body, dol = bytearray(e.content(sec,off,size)), prog.dol.bytes(addr,size)
+    if dol is None or len(body) != size:
+        return False
+    want = bytearray(dol)
+    seen = set()
+    if not hasattr(e,'_proof_reloc_index'):
+        grouped=collections.defaultdict(list)
+        for rs,o,typ,si,ad in e.relocs:grouped[rs].append((o,typ,si,ad))
+        e._proof_reloc_index={sc:(sorted(v),sorted(r[0] for r in v)) for sc,v in grouped.items()}
+    records,offsets=e._proof_reloc_index.get(sec,([],[]))
+    for o,typ,si,ad in records[bisect.bisect_left(offsets,off):bisect.bisect_left(offsets,off+size)]:
+        n = o-off
+        if n in seen:
+            return False
+        seen.add(n)
+        target = target_key(prog,e,unit,si,ad)
+        if target[0] != 'A':
+            return False
+        if typ == dc.R_ADDR32:
+            if n+4>size or (dc.u32(dol,n) != target[1]&0xffffffff and (unit,addr+n,target) not in getattr(prog,'_proof_allowed_old',set())):
+                return False
+            body[n:n+4] = want[n:n+4] = b'\0'*4
+        elif typ in dc.MASK:
+            at = n & ~3 if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else n
+            if at+4>size:
+                return False
+            op=prog.dol_operand(typ,dc.u32(dol,at),addr+at)
+            if op is None:
+                return False
+            expected=target[1]&0xffffffff
+            if op[0]=='hi':expected=((expected+0x8000)>>16 if typ==dc.R_ADDR16_HA else expected>>16)&0xffff
+            elif op[0]=='lo':expected &= 0xffff
+            if op[1] != expected and (unit,addr+at,target) not in getattr(prog,'_proof_allowed_old',set()):
+                return False
+            mask=~dc.MASK[typ]&0xffffffff
+            import struct
+            struct.pack_into('>I',body,at,dc.u32(body,at)&mask)
+            struct.pack_into('>I',want,at,dc.u32(want,at)&mask)
+        else:
+            return False
+    return body==want
+
+
+_COVERAGE_CACHE = {}
+
+
+def exact_coverage(prog):
+    result=collections.defaultdict(list)
+    config=hashlib.sha256((prog.root/'config/SB4E01/symbols.txt').read_bytes()).digest()
+    named=hashlib.sha256(repr(sorted(prog._proof_named.items())).encode()).digest()
+    aliases=collections.defaultdict(list)
+    for key,addr in prog._proof_addresses.items():aliases[key[0]].append((key[1:],addr))
+    permitted=collections.defaultdict(list)
+    for unit,site,target in getattr(prog,'_proof_allowed_old',set()):permitted[unit].append((site,target))
+    for unit,e in prog.elfs.items():
+        key=(unit,hashlib.sha256(e.raw).digest(),config,named,tuple(sorted(aliases[unit])),tuple(sorted(permitted[unit])))
+        entries=_COVERAGE_CACHE.get(key)
+        if entries is None:
+            entries=[]
+            for sym in e.syms:
+                if sym['size'] and sym['type'] in (1,2):
+                    a=symbol_addr(prog,e,unit,sym)
+                    if a is not None and exact_body(prog,e,unit,sym,a):entries.append((a,sym['size'],sym['name']))
+            _COVERAGE_CACHE[key]=entries
+        for a,size,name in entries:result[a,size].append((unit,name))
+    return result
 
 
 def target_key(prog, e, unit, si, ad):
-    """Resolved target address in this tree's own symbols.txt, else a placement-free identity."""
-    addr, how = prog.target(e, unit, si, ad)
-    if addr is not None:
-        return ('A', addr)
+    """Never use learned addresses as target identity: inference can be circular.
+
+    Local/section targets retain their exact placement and addend. Equal bodies
+    are not interchangeable (two BSS objects both have empty bodies).
+    """
     t = e.syms[si]
-    if t['type'] != 3 and t['name'] and not dc.drifty(t):
-        return ('N', t['name'], ad)
+    if not hasattr(e,'_proof_other'):
+        e._proof_other=[e.raw[sh[4]+o+13] for sh in e.s if sh[1]==2 for o in range(0,sh[5],16)]
+    def addressed(a):return ('A',a,t['bind'],t['type'],t['size'],e._proof_other[si])
+    addr = symbol_addr(prog, e, unit, t)
+    if addr is not None:
+        return addressed(addr+ad)
+    if t['name'].startswith('sInstance__'):
+        a,how=prog.target(e,unit,si,ad)
+        if a is not None and how == 'chain':
+            return addressed(a)
+    a=getattr(prog,'_proof_named',{}).get(t['name'])
+    if a is not None and t['bind']:
+        return addressed(a+ad)
     sec = t['sec']
-    if sec and sec < len(e.s) and t['type'] != 3 and t['size']:
-        body = e.raw[e.s[sec][4] + t['off']:e.s[sec][4] + t['off'] + t['size']] if e.s[sec][1] != 8 else b''
-        return ('L', e.names[sec], t['size'], hashlib.sha1(body).hexdigest(), ad)
-    return ('S', e.names[sec] if sec and sec < len(e.s) else '?', ad)
+    if 0 < sec < len(e.s):
+        sid = section_ids(e)[sec]
+        return ('S', sid, t['off'] + ad) if t['type'] == 3 else ('N', '<anonymous>' if anonymous(t) else t['name'], sid, t['off'], ad)
+    return ('N', t['name'], sec, t['off'], ad)
 
 
 def unit_image(prog, unit):
-    """{key: (size, content-hash, ((offset, type, target-key), ...))} where key is the symbol's address in this
-    tree's symbols.txt (placement-free identity for symbols it does not map), i.e. the linked image of the unit."""
+    """Partition ALL non-debug section bytes into anchored symbols and offset gaps.
+
+    Mapped definitions may reorder, but their full bytes and relocation multiset
+    must survive at the same original address. Unmapped storage stays at its
+    exact section offset. Overlapping independent anchors fail closed.
+    """
     e = prog.elfs[unit]
-    cs = containers(e)
-    img = {}
-    for sec, lst in cs.items():
-        if e.names[sec].startswith(('.line', '.debug')):
+    ids, img = section_ids(e), {}
+    for sec, sh in enumerate(e.s):
+        if not sec or ignored(e, sec) or sh[1] in (2, 3, 4):
             continue
-        for off, size, name, bind in lst:
-            sym = next(s for s in e.syms if s['name'] == name and s['sec'] == sec and s['off'] == off)
-            a = prog.sym_addr(e, unit, sym)
-            if a is None and not (bind == 0 and dc.LOCALNAME.match(name)):
-                inf = prog.inferred.get(name)
-                a = next(iter(inf)) if inf and len(inf) == 1 else None
-            key = ('A', a) if a is not None else ('N', e.names[sec], name)
-            body = b'' if e.s[sec][1] == 8 else e.raw[e.s[sec][4] + off:e.s[sec][4] + off + size]
-            rels = tuple(sorted((o - off, t, target_key(prog, e, unit, si, ad))
-                                for o, (t, si, ad) in e.rel_by_sec[sec].items() if off <= o < off + size))
-            img[(key, size)] = (hashlib.sha1(body).hexdigest(), rels, name, off)
+        anchors = {}
+        for sym in e.syms:
+            if sym['sec'] != sec or not sym['size'] or sym['type'] not in (1, 2):
+                continue
+            a = storage_addr(prog,e,unit,sym)
+            if a is not None:
+                block = (sym['off'], sym['size'])
+                if block in anchors and anchors[block] != a:
+                    raise ValueError(f'{unit}: aliases at one offset have different original addresses')
+                anchors[block] = a
+        cursor, blocks, previous = 0, [], None
+        for (off, size), addr in sorted(anchors.items()):
+            if off < cursor or off + size > sh[5]:
+                raise ValueError(f'{unit}: overlapping/out-of-section symbol at {ids[sec]}+{off:#x}')
+            if off > cursor:
+                blocks.append((cursor, off - cursor, ('P',previous) if previous is not None else ('O',cursor)))
+            blocks.append((off, size, ('A', addr)))
+            cursor = off + size
+            previous = addr+size
+        if cursor < sh[5]:
+            blocks.append((cursor, sh[5]-cursor, ('P',previous) if previous is not None else ('O',cursor)))
+        if not blocks:
+            blocks = [(0, sh[5], ('O', 0))]
+        for off, size, key in blocks:
+            body = b'' if sh[1] == 8 else e.content(sec, off, size)
+            if sh[1] != 8 and len(body) != size:
+                raise ValueError(f'{unit}: truncated section {ids[sec]}')
+            rels = collections.Counter((o - off, typ, ad, target_key(prog, e, unit, si, ad))
+                                      for rs, o, typ, si, ad in e.relocs if rs == sec and off <= o < off + size)
+            k = (e.names[sec] if key[0] in ('A','P') else ids[sec], key, size)
+            if k in img and img[k] != (hashlib.sha256(body).hexdigest(),rels):
+                raise ValueError(f'{unit}: conflicting duplicate original-address image key {k}')
+            img[k] = (hashlib.sha256(body).hexdigest(), rels)
+        # Relocations outside storage must not silently vanish.
+        for rs, o, typ, si, ad in e.relocs:
+            if rs == sec and not 0 <= o < sh[5]:
+                raise ValueError(f'{unit}: relocation outside section {ids[sec]}')
     return img
 
 
-def compare_units(unit, ib, ia, flipped_sites, problems):
-    """Return the number of intended (flipped) relocation retargets, or None when something else differs."""
-    if set(ib) != set(ia):
-        problems.append(f'{unit}: symbol image keys differ: -{[k for k in ib if k not in ia][:3]} +{[k for k in ia if k not in ib][:3]}')
+def compare_units(unit, ib, ia, flipped_sites, problems, removable=frozenset(), addable=frozenset()):
+    if set(ib)-set(ia)-set(removable) or set(ia)-set(ib)-set(addable):
+        problems.append(f'{unit}: section/symbol image keys differ')
         return None
     retargets = 0
-    for k, (hb, rb, nb, ob_) in ib.items():
-        ha, ra, na, oa_ = ia[k]
+    for k in set(ib)&set(ia):
+        hb,rb=ib[k]
+        ha,ra=ia[k]
         if hb != ha:
-            problems.append(f'{unit}: bytes of {nb} / {na} at {k[0]} differ')
+            problems.append(f'{unit}: bytes at {k} differ')
             return None
-        if rb != ra:
-            db = dict(((o, t), g) for o, t, g in rb)
-            da = dict(((o, t), g) for o, t, g in ra)
-            for key in set(db) | set(da):
-                if db.get(key) != da.get(key):
-                    site = k[0][1] + key[0] if k[0][0] == 'A' else None
-                    if site is not None and site in flipped_sites:
-                        retargets += 1
-                    else:
-                        problems.append(f'{unit}: relocation +{key[0]:#x} of {nb} / {na} changed {db.get(key)} -> {da.get(key)} and the oracle did not flip that site')
-                        return None
+        if rb == ra:
+            continue
+        removed, added = rb - ra, ra - rb
+        # One old and one new relocation, with the SAME type and addend. Never
+        # bless removal/insertion, duplicate records, or another container/unit.
+        for old, count in removed.items():
+            o, typ, ad, target = old
+            candidates = [r for r in added if r[:3] == old[:3] and added[r] == count]
+            site = k[1][1] + (o & ~3 if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else o) if k[1][0] == 'A' else None
+            new = candidates[0] if len(candidates) == 1 else None
+            allowed = (unit, k, o, typ, ad, site, target, new[3] if new else None)
+            if count != 1 or new is None or allowed not in flipped_sites:
+                problems.append(f'{unit}: relocation {k}+{o:#x} changed without an independent BAD->MATCH proof')
+                return None
+            added.subtract({new: 1})
+            added += collections.Counter()
+            retargets += 1
+        if added:
+            problems.append(f'{unit}: extra relocation records at {k}')
+            return None
     return retargets
 
 
@@ -132,105 +390,317 @@ def digest(p):
     return hashlib.sha1(pathlib.Path(p).read_bytes()).hexdigest()
 
 
+def oracle_key(r):
+    # Names/targets can change in a valid fix; the original physical site cannot.
+    if isinstance(r.get('site'),int):
+        return (r['layer'],r['unit'],r['site'])
+    return (r['layer'],r['unit'],r.get('container') or r.get('function') or '',r['offset'],r.get('section'))
+
+
+def row_relocation(prog, row):
+    """Identify the actual ELF record behind a row; ambiguity grants no exception."""
+    unit = row['unit']
+    if unit not in prog.elfs:
+        return None
+    e = prog.elfs[unit]
+    candidates = []
+    name = row.get('container') or row.get('function')
+    for sym in e.syms:
+        if sym['name'] != name or not 0 < sym['sec'] < len(e.s):
+            continue
+        off = row['offset'] if row['layer'] == 'data' else sym['off'] + row['offset']
+        for sec, o, typ, si, ad in e.relocs:
+            if sec == sym['sec'] and (o & ~3 if row['layer'] != 'data' and typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else o) == off and e.syms[si]['name'] == row.get('target'):
+                addr = prog.sym_addr(e, unit, sym)
+                if addr is not None and sym['size']:
+                    block = (e.names[sec], ('A', addr), sym['size'])
+                    candidates.append((block, o - sym['off'], typ, ad, target_key(prog, e, unit, si, ad)))
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def sinit_permissions(pb, pa, before, after):
+    """Prove an independent pure initialization pair, never a site=None PC match.
+
+    Only addi r3,SDA or lis/addi r3 followed by bl is supported. Intervening
+    stack stores and immediate arithmetic on other registers preserve r3. Both changed operands stay pinned to this pair.
+    """
+    unit=before['unit']; eb,ea=pb.elfs[unit],pa.elfs[unit]
+    def function(e,row):
+        fs=[f for f in e.syms if f['name']==row['function'] and f['type']==2 and f['size']]
+        return fs[0] if len(fs)==1 else None
+    fb,fa=function(eb,before),function(ea,after)
+    if not fb or not fa or fb['size']!=fa['size']:return set()
+    if eb.content(fb['sec'],fb['off'],fb['size'])!=ea.content(fa['sec'],fa['off'],fa['size']):return set()
+    def pattern(words, call):
+        # Return the load instruction(s) for a straight-line r3 -> bl pair.
+        if call<4 or words[call] & 0xfc000003 != 0x48000001:return None
+        end=call-4
+        while end>=0:
+            w=words[end];op=w>>26;rt=(w>>21)&31;ra=(w>>16)&31
+            if (op==36 and ra==1) or (op in (14,15) and rt!=3):end-=4
+            else:break
+        if end<0:return None
+        w=words[end]
+        if w & 0xffff0000==0x38600000:return [end]  # unlinked SDA21 addi r3,0
+        if w>>26==14 and (w>>21)&31==3 and (w>>16)&31 in (2,13):return [end]
+        if w & 0xffff0000==0x38630000 and end>=4 and words[end-4]&0xffff0000==0x3c600000:return [end-4,end]
+        return None
+    def source(prog,e,f,row):
+        body=e.content(f['sec'],f['off'],f['size'])
+        words={n:dc.u32(body,n) for n in range(0,len(body),4)}
+        loads=pattern(words,row['offset'])
+        if loads is None:return None
+        offsets=loads+[row['offset']];records=[]
+        for off in offsets:
+            rs=[r for r in e.relocs if r[0]==f['sec'] and r[1] in (f['off']+off,f['off']+off+2)]
+            if len(rs)!=1:return None
+            sec,o,typ,si,ad=rs[0];name=e.syms[si]['name']
+            a,how=prog.target(e,unit,si,ad)
+            if ad or a is None:return None
+            if off==row['offset']:
+                if typ!=dc.R_REL24 or how!='sym' or not name.startswith('__ct__') or 'Nrv' not in name:return None
+            elif how not in ('sym','chain') or not name.startswith('sInstance__') or 'Nrv' not in name:return None
+            elif typ != (dc.R_SDA21 if len(loads)==1 else dc.R_ADDR16_HA if off==loads[0] else dc.R_ADDR16_LO):return None
+            block=(e.names[sec],('A',prog.sym_addr(e,unit,f)),f['size'])
+            if block[1][1] is None:return None
+            records.append((block,o-f['off'],typ,ad,target_key(prog,e,unit,si,ad)))
+        if len(loads)==2 and records[0][4][1]!=records[1][4][1]:return None
+        return records
+    br,ar=source(pb,eb,fb,before),source(pa,ea,fa,after)
+    if not br or not ar or len(br)!=len(ar) or any(b[:4]!=a[:4] for b,a in zip(br,ar)):return set()
+    y,k=ar[0][4][1],ar[-1][4][1]
+    if pa.dol_sinit_pairs().get(y)!=k:return set()
+    # Independently constrain the original ctor, not the oracle's heuristic scan.
+    kb=pa.dol.bytes(k,16)
+    if kb is None:return set()
+    kw=[dc.u32(kb,i) for i in range(0,16,4)]
+    if [kw[0]&0xffff0000,kw[1]&0xffff0000,kw[2],kw[3]]!=[0x3c800000,0x38840000,0x90830000,0x4e800020]:return set()
+    ctors=[(u,e,f) for u,e in pa.elfs.items() for f in e.syms
+           if f['type']==2 and f['size']==16 and pa.sym_addr(e,u,f)==k and f['name'].startswith('__ct__')]
+    if not ctors or not all(exact_body(pa,e,u,f,k) for u,e,f in ctors):return set()
+    # Locate and decode a real original sinit pair, with the same strict pattern.
+    found=False
+    for name,(addr,size,sec,typ) in pa.sy.by_name.items():
+        if not name.startswith('__sinit_') or not size or sec!='.text':continue
+        body=pa.dol.bytes(addr,size)
+        if body is None:continue
+        words={n:dc.u32(body,n) for n in range(0,size,4)}
+        for off in words:
+            loads=pattern(words,off)
+            if loads is None:continue
+            call=pa.dol_operand(dc.R_REL24,words[off],addr+off)
+            if not call or call!=('addr',k):continue
+            if len(loads)==1:
+                w=words[loads[0]];ra=(w>>16)&31
+                if ra not in (2,13):continue
+                inst=((dc.SDA2 if ra==2 else dc.SDA13)+dc.s16(w&0xffff))&0xffffffff
+            else:inst=((words[loads[0]]&0xffff)<<16)+dc.s16(words[loads[1]]&0xffff)
+            if inst==y:found=True;break
+        if found:break
+    if not found:return set()
+    allowed=set()
+    for b,a in zip(br,ar):
+        if b[4]==a[4]:continue
+        block,off,typ,ad=b[:4]
+        site=block[1][1]+(off&~3 if typ in (dc.R_ADDR16_HA,dc.R_ADDR16_LO) else off)
+        allowed.add((unit,block,off,typ,ad,site,b[4],a[4]))
+    return allowed
+
+
+def emission_permissions(prog, other, unit, img, otherimg, coverage):
+    e=prog.elfs[unit]
+    allowed=set()
+    def locations(p):
+        x=p.elfs[unit];out=collections.defaultdict(set)
+        for sym in x.syms:
+            if sym['size'] and sym['type'] in (1,2) and 0<sym['sec']<len(x.s):
+                a=symbol_addr(p,x,unit,sym)
+                if a is not None:out[(x.names[sym['sec']],('A',a),sym['size'])].add((sym['sec'],sym['off'],sym['size']))
+        return out
+    here,there=locations(prog),locations(other)
+    for sym in e.syms:
+        if not sym['size'] or sym['type'] not in (1,2):continue
+        a=symbol_addr(prog,e,unit,sym)
+        k=(e.names[sym['sec']],('A',a),sym['size']) if a is not None else None
+        if k in img and len(here[k])>len(there[k]) and (a,sym['size']) in coverage and exact_body(prog,e,unit,sym,a):
+            allowed.add(k)
+            # Alignment following a removed exact duplicate may disappear only
+            # when EVERY byte equals DOL padding at the exact same address.
+            pk=next((p for p in img if p[0]==k[0] and p[1]==('P',a+sym['size'])),None)
+            if pk is not None and pk not in otherimg and not img[pk][1]:
+                dol=prog.dol.bytes(a+sym['size'],pk[2])
+                if dol is not None and hashlib.sha256(dol).hexdigest()==img[pk][0]:allowed.add(pk)
+    return allowed
+
+
+def check_symbol_changes(pb,pa,unit,ib,ia,removed,added):
+    eb,ea=pb.elfs[unit],pa.elfs[unit]
+    cb,ca=symbol_contract(eb,pb,unit),symbol_contract(ea,pa,unit)
+    for counter,permissions in ((cb-ca,removed),(ca-cb,added)):
+        for record,count in counter.items():
+            if record[0]!='A' or count!=1:return False
+            _,addr,size,bind,typ,other=record
+            if typ not in (1,2) or not any(k[1]==('A',addr) and k[2]==size for k in permissions):return False
+    before={s['name']:s for s in eb.syms if s['size'] and s['type'] in (1,2) and not anonymous(s) and not ignored(eb,s['sec'])}
+    after={s['name']:s for s in ea.syms if s['size'] and s['type'] in (1,2) and not anonymous(s) and not ignored(ea,s['sec'])}
+    for name in set(before)&set(after):
+        b,a=before[name],after[name]
+        if b['size']!=a['size'] and symbol_addr(pb,eb,unit,b)==symbol_addr(pa,ea,unit,a):return False
+    # A compiler record cannot be renamed arbitrarily: independently mapped
+    # names must exist in that phase's symbol map (or an original chain anchor).
+    for prog,e,own,other in ((pb,eb,before,after),(pa,ea,after,before)):
+        for name in set(own)-set(other):
+            sym=own[name]
+            if prog.sy.addr(name) is None and (pa if prog is pb else pb).sy.addr(name) is None:
+                return False
+    return True
+
+
 def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
-    ob, oa = pb.elfs, pa.elfs
-    problems = []
-    if set(ob) != set(oa):
-        problems.append(f'object sets differ: -{sorted(set(ob) - set(oa))[:5]} +{sorted(set(oa) - set(ob))[:5]}')
-    kb = {row_key(r): r for r in rows_b}
-    ka = {row_key(r): r for r in rows_a}
-    flipped, regress, newbad = [], [], []
-    for k, r in kb.items():
-        a = ka.get(k)
-        if a is None:
-            continue
-        if bad(r) and a['verdict'] == 'MATCH':
-            flipped.append(k)
-        elif r['verdict'] == 'MATCH' and a['verdict'] != 'MATCH':
-            regress.append((k, a['verdict']))
-    for k, a in ka.items():
-        if bad(a) and (k not in kb or not bad(kb[k])):
-            newbad.append(k)
-    if regress:
-        problems.append(f'{len(regress)} oracle rows regressed MATCH->other: {regress[:3]}')
-    if newbad:
-        problems.append(f'{len(newbad)} new BAD oracle rows: {newbad[:3]}')
-    flipped_sites = {kb[k]['site'] for k in flipped if 'site' in kb[k]}
-    flipped_units = {k[1] for k in flipped}
-    report = dict(objects=len(ob), identical=0, retargeted_objects=0, retargeted_sites=0, flipped_rows=len(flipped),
-                  still_bad=sum(1 for r in rows_a if bad(r)), bad_before=sum(1 for r in rows_b if bad(r)))
+    ob, oa, problems = pb.elfs, pa.elfs, []
+    def config_ranges(prog):
+        return {(a,size,sec,typ) for a,size,sec,typ in prog.sy.by_name.values()}
+    if config_ranges(pb)!=config_ranges(pa):
+        problems.append('symbols.txt changed an address/size/section/type range instead of renaming it')
+    if pa.sy.dups-pb.sy.dups:
+        problems.append('symbols.txt introduced duplicate names')
+    if (pb.root/'config/SB4E01/splits.txt').read_bytes()!=(pa.root/'config/SB4E01/splits.txt').read_bytes():
+        problems.append('split ownership changed')
+    if pb.dol.raw!=pa.dol.raw:
+        problems.append('original DOLs differ')
+    prepare_addresses(pb,pa)
+    files_b, files_a = tree_objects(pb.root), tree_objects(pa.root)
+    if not files_b or not files_a:
+        problems.append('empty object tree')
+    if set(files_b) != set(files_a):
+        problems.append(f'object sets differ: -{sorted(set(files_b)-set(files_a))[:5]} +{sorted(set(files_a)-set(files_b))[:5]}')
+    for phase, prog, files in (('before', pb, files_b), ('after', pa, files_a)):
+        if prog.errors or set(files) != set(prog.elfs):
+            problems.append(f'{phase}: unreadable objects: {prog.errors[:3]}')
+    # Keep all rows at a site (aliases can overlap); dict overwrite is unsound.
+    kb, ka = collections.defaultdict(list), collections.defaultdict(list)
+    for rows, dst in ((rows_b, kb), (rows_a, ka)):
+        for r in rows:
+            dst[oracle_key(r)].append(r)
+    flipped, allowed = [], set()
+    for k, rs in kb.items():
+        after = ka.get(k, [])
+        if sum(r['verdict'] == 'MATCH' for r in after) < sum(r['verdict'] == 'MATCH' for r in rs):
+            problems.append(f'oracle MATCH row regressed/disappeared: {k}')
+        if len(rs) == len(after) == 1 and bad(rs[0]) and after[0]['verdict'] == 'MATCH':
+            b, a = rs[0], after[0]
+            flipped.append(row_key(b))
+            # Candidate rows need independent validation of actual source operands.
+            if b['layer']=='sinit':
+                allowed.update(sinit_permissions(pb,pa,b,a))
+                continue
+            if b['layer'] in ('data','code','sem','sem-seq','near'):
+                if any(prog.sy.addr(row.get('target','')) is None and row.get('target') not in prog._proof_chain_addresses
+                       for prog,row in ((pb,b),(pa,a))):continue
+                br,ar=row_relocation(pb,b),row_relocation(pa,a)
+                if br and ar and br[:4]==ar[:4] and br[4][0]==ar[4][0]=='A' and br[4][1]!=ar[4][1]:
+                    block,off,typ,ad=br[:4]
+                    site=block[1][1]+(off&~3 if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else off)
+                    if site!=b.get('site') or site!=a.get('site'):continue
+                    word=pb.dol.word(site)
+                    op=pb.dol_operand(typ,word,site) if word is not None and typ!=dc.R_ADDR32 else None
+                    correct=(word==ar[4][1]) if typ==dc.R_ADDR32 else bool(op and op[0]=='addr' and op[1]==ar[4][1])
+                    if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) and op:
+                        val=ar[4][1]
+                        want=((val+0x8000)>>16 if typ==dc.R_ADDR16_HA else val>>16)&0xffff if op[0]=='hi' else val&0xffff
+                        correct=op[1]==want
+                    if correct:allowed.add((b['unit'],block,off,typ,ad,site,br[4],ar[4]))
+
+    for k, rs in ka.items():
+        if sum(bad(r) for r in rs) > sum(bad(r) for r in kb.get(k, [])):
+            problems.append(f'new BAD oracle row: {k}')
+    pb._proof_allowed_old={(t[0],t[5],t[6]) for t in allowed}
+    pa._proof_allowed_old=set()
+    cover_b,cover_a=exact_coverage(pb),exact_coverage(pa)
+    if set(cover_b)!=set(cover_a):
+        problems.append(f'global DOL-exact coverage differs: -{list(set(cover_b)-set(cover_a))[:5]} +{list(set(cover_a)-set(cover_b))[:5]}')
+    report = dict(objects=len(files_b), identical=0, retargeted_objects=0, retargeted_sites=0, flipped_rows=len(flipped),
+                  still_bad=sum(bad(r) for r in rows_a), bad_before=sum(bad(r) for r in rows_b))
     for unit in sorted(set(ob) & set(oa)):
-        if ob[unit].raw == oa[unit].raw:
+        eb, ea = ob[unit], oa[unit]
+        # Even byte-identical objects can change meaning through symbols.txt.
+        # Inspect all objects whose referenced/defined mapped addresses changed.
+        def addresses(prog, e):
+            return [symbol_addr(prog, e, unit, s) for s in e.syms]
+        if eb.raw == ea.raw and addresses(pb, eb) == addresses(pa, ea):
             report['identical'] += 1
             continue
-        n = compare_units(unit, unit_image(pb, unit), unit_image(pa, unit), flipped_sites, problems)
-        if n is None:
+        if eb.raw[:32] != ea.raw[:32] or eb.raw[36:46] != ea.raw[36:46]:
+            problems.append(f'{unit}: ELF identity/header differs')
             continue
-        if n == 0:
-            report['identical'] += 1
+        if [r[:4]+r[5:] for r in section_contract(eb)] != [r[:4]+r[5:] for r in section_contract(ea)]:
+            problems.append(f'{unit}: section contract differs (order/type/flags/size/alignment/link)')
             continue
-        report['retargeted_objects'] += 1
-        report['retargeted_sites'] += n
+        # Relocation count is checked in the image; table identity, linkage and
+        # alignment must also remain stable, including empty relocation tables.
+        if [r[:3]+r[4:] for r in relocation_contract(eb)] != [r[:3]+r[4:] for r in relocation_contract(ea)]:
+            problems.append(f'{unit}: relocation section contract differs')
+            continue
+        # Unsized / unanchored symbols must retain exact placement too.
+        def fixed_symbols(prog, e):
+            return collections.Counter(('<anonymous>' if anonymous(s) else s['name'], s['sec'], s['off']) for i,s in enumerate(e.syms)
+                if not (0 < s['sec'] < len(e.s) and ignored(e, s['sec']))
+                and not (s['size'] and s['type'] in (1, 2) and symbol_addr(prog, e, unit, s) is not None)
+                and not (s['sec']==0 and any(si==i and not ignored(e,sec) for sec,o,t,si,ad in e.relocs) and target_key(prog,e,unit,i,0)[0]=='A'))
+        if fixed_symbols(pb, eb) != fixed_symbols(pa, ea):
+            problems.append(f'{unit}: unanchored/unsized symbol placement differs')
+            continue
+        try:
+            ib,ia=unit_image(pb,unit),unit_image(pa,unit)
+            shared=set(cover_b)&set(cover_a)
+            removed=emission_permissions(pb,pa,unit,ib,ia,shared)
+            added=emission_permissions(pa,pb,unit,ia,ib,shared)
+            if not check_symbol_changes(pb,pa,unit,ib,ia,removed,added):
+                problems.append(f'{unit}: symbol metadata/name change is not a preserved image or exact duplicate')
+                continue
+            n=compare_units(unit,ib,ia,allowed,problems,removed,added)
+        except (ValueError, IndexError) as ex:
+            problems.append(str(ex))
+            continue
+        if n is not None:
+            report['retargeted_objects' if n else 'identical'] += 1
+            report['retargeted_sites'] += n
     if expect_clean:
         left = [row_key(r) for r in rows_a if bad(r) and (r['unit'] in units or not units)]
         if left:
-            problems.append(f'{len(left)} BAD rows remain in the after tree for the requested units: {left[:3]}')
+            problems.append(f'{len(left)} BAD rows remain for requested units: {left[:3]}')
     return problems, report, flipped
 
 
-def selftest(after, dol):
-    """Perturb one object of a temp tree and require the image comparison to refuse each perturbation."""
-    import struct
-    base = pathlib.Path(after) / 'build/SB4E01/src'
-    pa = dc.Prog(after, dol)
-    pick = next(u for u in pa.elfs if u.endswith('WorldMapResultTU19'))
-    raw = (base / (pick + '.o')).read_bytes()
-    e = pa.elfs[pick]
-    text = next(i for i, n in enumerate(e.names) if n == '.text')
-    rd = next(i for i, n in enumerate(e.names) if n == '.rela.data')
-    st = next(i for i, s in enumerate(e.s) if s[1] == 2)
-    m1 = bytearray(raw); m1[e.s[text][4] + 8] ^= 1
-    m2 = bytearray(raw)
-    a_, info, ad = struct.unpack_from('>IIi', m2, e.s[rd][4])
-    struct.pack_into('>IIi', m2, e.s[rd][4], a_, (((info >> 8) + 1) << 8) | (info & 255), ad)
-    m3 = bytearray(raw)
-    for k in range(1, e.s[st][5] // 16):
-        o = e.s[st][4] + k * 16
-        sz = struct.unpack_from('>I', m3, o + 8)[0]
-        if sz and e.syms[k]['type'] in (1, 2):
-            struct.pack_into('>I', m3, o + 8, sz + 4)
-            break
-    results = []
-    for name, data in (('code byte', m1), ('reloc retarget', m2), ('symbol size', m3), ('identical copy', bytearray(raw))):
-        tmp = pathlib.Path(tempfile.mkdtemp(prefix='dispatchproof-selftest-'))
+def selftest(after, dol, pointwarp_after=None):
+    import subprocess
+    args = [sys.executable, str(pathlib.Path(__file__).with_name('test_dispatchproof.py')), '--root', str(after)]
+    if dol:
+        args += ['--dol', str(dol)]
+    if pointwarp_after:
+        args += ['--pointwarp-after', str(pointwarp_after)]
+    return subprocess.run(args).returncode == 0
+
+
+def load_after(root, dol, before):
+    """Read every object, sharing only byte-identical immutable ELF parses."""
+    import copy
+    prog=copy.copy(before);prog.root=pathlib.Path(root)
+    prog.dol=dc.Dol(dc.original_dol(root,dol))
+    prog.sy=dc.Symbols(prog.root/'config/SB4E01/symbols.txt')
+    prog.bases,prog.ends=dc.load_splits(prog.root/'config/SB4E01/splits.txt')
+    prog.elfs={};prog.errors=[]
+    for unit,path in tree_objects(root).items():
         try:
-            (tmp / 'build/SB4E01').mkdir(parents=True)
-            os.symlink(pathlib.Path(after) / 'config', tmp / 'config')
-            os.symlink(base, tmp / 'build/SB4E01/src')
-            shutil.rmtree(tmp / 'build/SB4E01/src', ignore_errors=True) if False else None
-            # real copy of the tree with one replaced object: symlink every object file individually
-            os.unlink(tmp / 'build/SB4E01/src')
-            for p in base.rglob('*.o'):
-                q = tmp / 'build/SB4E01/src' / p.relative_to(base)
-                q.parent.mkdir(parents=True, exist_ok=True)
-                if p == base / (pick + '.o'):
-                    q.write_bytes(bytes(data))
-                else:
-                    os.symlink(p, q)
-            pm = dc.Prog(str(tmp), dol)
-            problems = []
-            try:
-                n = compare_units(pick, unit_image(pa, pick), unit_image(pm, pick), set(), problems)
-            except Exception as ex:
-                n, problems = None, [f'exception {ex}']
-            accepted = n == 0 and not problems
-            results.append((name, 'ACCEPTED' if accepted else 'REJECTED', (problems or [''])[0][:90]))
-        finally:
-            shutil.rmtree(tmp, ignore_errors=True)
-    for r in results:
-        print('selftest:', *r)
-    want = {'code byte': 'REJECTED', 'reloc retarget': 'REJECTED', 'symbol size': 'REJECTED', 'identical copy': 'ACCEPTED'}
-    return all(want[n] == v for n, v, _ in results)
+            raw=path.read_bytes();old=before.elfs.get(unit)
+            prog.elfs[unit]=old if old is not None and raw==old.raw else dc.ELF(path)
+        except Exception as ex:prog.errors.append((unit,str(ex)))
+    prog.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
+    prog.func_info={};prog.exact_stream=[];prog.nonexact=[]
+    prog._chains=None;prog.ctor_inst={}
+    for key in list(vars(prog)):
+        if key.startswith('_proof_'):delattr(prog,key)
+    return prog
 
 
 def main():
@@ -240,17 +710,19 @@ def main():
     ap.add_argument('--unit', action='append', default=[])
     ap.add_argument('--expect-clean', action='store_true')
     ap.add_argument('--selftest', action='store_true')
+    ap.add_argument('--pointwarp-after', help='selftest only: tree with the compiled de4289f1 PointWarp object')
     ap.add_argument('--dol', help='original main.dol (default: <root>/orig/SB4E01/sys/main.dol); its sha1 must equal config/SB4E01/build.sha1')
     ap.add_argument('--out')
     a = ap.parse_args()
     a.dol = a.dol or None
     if a.selftest:
-        ok = selftest(a.after, a.dol)
+        ok = selftest(a.after, a.dol, a.pointwarp_after)
         print('SELFTEST OK' if ok else 'SELFTEST FAILED')
         sys.exit(0 if ok else 1)
     if not a.before:
         ap.error('--before required')
-    pb, pa = dc.Prog(a.before, a.dol), dc.Prog(a.after, a.dol)
+    pb = dc.Prog(a.before, a.dol)
+    pa = load_after(a.after,a.dol,pb)
     rows_b, _ = pb.run()
     rows_a, _ = pa.run()
     problems, report, flipped = compare_trees(pb, pa, rows_b, rows_a, set(a.unit), a.expect_clean)

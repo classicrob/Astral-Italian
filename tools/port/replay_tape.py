@@ -257,6 +257,9 @@ def main(argv=None):
     ap.add_argument("--max-frames", type=int, help="replay at most this many tape frames (all segments together)")
     ap.add_argument("--no-ftz", action="store_true")
     ap.add_argument("--epoch-ticks", type=int, default=0)
+    ap.add_argument("--anchor", choices=("play", "game"), default="play",
+                    help="play (default): re-anchor each scene visit at its play-ready seam; game: ONE segment from the first Game/End seam "
+                         "(the opening flyover is part of it; its length differs between GX and headless, so this is a diagnostic, not a gate)")
     ap.add_argument("--allow-incomplete", action="store_true", help="replay a killed session up to its last checkpoint")
     ap.add_argument("--dry-run", action="store_true", help="write the replay inputs, print the command, do not run it")
     a = ap.parse_args(argv)
@@ -273,6 +276,9 @@ def main(argv=None):
     for f in (kpd, actions, route):
         if not f.is_file():
             raise SystemExit(f"replay_tape: missing {f}")
+    if a.anchor == "game":
+        r = meta["ready_seams"][-1] if not [g for g in meta["ready_seams"] if g["stage"] not in ("FileSelect",)] else [g for g in meta["ready_seams"] if g["stage"] != "FileSelect"][0]
+        meta["segments"] = [dict(start_row=r["row"], end_row=meta["seams"] - 1, stage=r["stage"], scenario=r["scenario"], rng_seed=r["rng_seed"])]
     if not meta.get("segments") and meta.get("play_ready_seams"):  # tapes written before segments: the first play-ready to the end
         r = meta["play_ready_seams"][0]
         meta["segments"] = [dict(start_row=r["row"], end_row=meta["seams"] - 1, stage=r["stage"], scenario=r["scenario"], rng_seed=r["rng_seed"])]
@@ -296,7 +302,7 @@ def main(argv=None):
     cmd = [str(a.headless), "--inputs", str(a.out / "inputs.kpd"), "--mod-actions", str(a.out / "inputs.actions"), "--disc", str(a.disc),
            "--user", str(user), "--trace", str(trace), "--epoch-ticks", str(a.epoch_ticks),
            "--stage", first["stage"], "--scenario", str(first["scenario"]),
-           "--segments", str(a.out / "segments.txt"), "--sync-play", "--inputs-from-sync"]
+           "--segments", str(a.out / "segments.txt")] + (["--sync-play"] if a.anchor == "play" else []) + ["--inputs-from-sync"]
     if a.no_ftz:
         cmd.append("--no-ftz")
     env = {k: v for k, v in os.environ.items() if not k.startswith("PETARI_")}

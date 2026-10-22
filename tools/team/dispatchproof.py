@@ -15,7 +15,8 @@ accepts only:
   4. a relocation retarget requires an unambiguous BAD->MATCH candidate,
      independently named/chain-anchored targets, and unchanged type/addend.
      Direct and semantic candidates require the original operand at the same
-     instruction; sinit reordering requires a separately validated pure ctor
+     instruction. Aligned candidates additionally revalidate the masked-word
+     equal block and its bounded shift; sinit reordering requires a pure ctor
      and original instance/ctor pair. Inference alone grants no exception.
      MATCH coverage cannot disappear or regress.
 
@@ -392,6 +393,7 @@ def digest(p):
 
 def oracle_key(r):
     # Names/targets can change in a valid fix; the original physical site cannot.
+    if r['layer']=='align':return (r['layer'],r['unit'],r.get('function'),r['offset'])
     if isinstance(r.get('site'),int):
         return (r['layer'],r['unit'],r['site'])
     return (r['layer'],r['unit'],r.get('container') or r.get('function') or '',r['offset'],r.get('section'))
@@ -416,6 +418,46 @@ def row_relocation(prog, row):
                     block = (e.names[sec], ('A', addr), sym['size'])
                     candidates.append((block, o - sym['off'], typ, ad, target_key(prog, e, unit, si, ad)))
     return candidates[0] if len(candidates) == 1 else None
+
+
+def aligned_site(pb,pa,b,a,block,off,typ):
+    """Revalidate v8's equal-block alignment; return original PC, never source PC."""
+    import difflib
+    if typ not in (dc.R_SDA21,dc.R_REL24):return None
+    di=b.get('dol_offset')
+    if not isinstance(di,int) or di!=a.get('dol_offset') or di%4 or abs(di-off)>32:return None
+    bodies=[];pcs=[]
+    for prog,row in ((pb,b),(pa,a)):
+        e=prog.elfs[row['unit']]
+        fs=[f for f in e.syms if f['name']==row['function'] and f['type']==2 and f['size']]
+        if len(fs)!=1:return None
+        f=fs[0];addr=prog.sym_addr(e,row['unit'],f)
+        if addr!=block[1][1] or f['size']!=block[2] or row['offset']!=off:return None
+        size=prog.sy.by_name.get(f['name'],(0,f['size']))[1]
+        dol=prog.dol.bytes(addr,size)
+        src=e.content(f['sec'],f['off'],f['size'])
+        if dol is None or len(src)%4 or len(dol)%4 or abs(len(src)-len(dol))>64 or not 0<=di<len(dol):return None
+        rels={}
+        for sec,o,t,si,ad in e.relocs:
+            if sec!=f['sec'] or not f['off']<=o<f['off']+f['size']:continue
+            n=(o-f['off'])&~3
+            if n in rels:return None
+            rels[n]=t
+        if rels.get(off)!=typ:return None
+        mask=~dc.MASK[typ]&0xffffffff
+        if dc.u32(src,off)&mask!=dc.u32(dol,di)&mask:return None
+        ws=[dc.u32(src,n)&~dc.MASK.get(rels.get(n),0)&0xffffffff for n in range(0,len(src),4)]
+        kinds=set(rels.values());wd=[]
+        for n in range(0,len(dol),4):
+            w=dc.u32(dol,n);op=w>>26
+            if op==18 and dc.R_REL24 in kinds:w &= ~dc.MASK[dc.R_REL24]&0xffffffff
+            elif op in (14,*range(32,56)) and dc.R_SDA21 in kinds and (w>>16)&31 in (2,13):w &= ~dc.MASK[dc.R_SDA21]&0xffffffff
+            wd.append(w)
+        pairs=[(i1,i2,j1) for tag,i1,i2,j1,j2 in difflib.SequenceMatcher(None,ws,wd,autojunk=False).get_opcodes()
+               if tag=='equal' and i1<=off//4<i2 and j1+off//4-i1==di//4]
+        if len(pairs)!=1 or row.get('site')!=addr+di:return None
+        bodies.append(src);pcs.append(addr+di)
+    return pcs[0] if bodies[0]==bodies[1] and pcs[0]==pcs[1] else None
 
 
 def sinit_permissions(pb, pa, before, after):
@@ -625,16 +667,17 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean):
             if b['layer']=='sinit':
                 allowed.update(sinit_permissions(pb,pa,b,a))
                 continue
-            if b['layer'] in ('data','code','sem','sem-seq','near'):
+            if b['layer'] in ('data','code','sem','sem-seq','near','align'):
                 if any(prog.sy.addr(row.get('target','')) is None and row.get('target') not in prog._proof_chain_addresses
                        for prog,row in ((pb,b),(pa,a))):continue
                 br,ar=row_relocation(pb,b),row_relocation(pa,a)
                 if br and ar and br[:4]==ar[:4] and br[4][0]==ar[4][0]=='A' and br[4][1]!=ar[4][1]:
                     block,off,typ,ad=br[:4]
                     site=block[1][1]+(off&~3 if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) else off)
-                    if site!=b.get('site') or site!=a.get('site'):continue
-                    word=pb.dol.word(site)
-                    op=pb.dol_operand(typ,word,site) if word is not None and typ!=dc.R_ADDR32 else None
+                    original_site=aligned_site(pb,pa,b,a,block,off,typ) if b['layer']=='align' else site
+                    if original_site is None or original_site!=b.get('site') or original_site!=a.get('site'):continue
+                    word=pb.dol.word(original_site)
+                    op=pb.dol_operand(typ,word,original_site) if word is not None and typ!=dc.R_ADDR32 else None
                     correct=(word==ar[4][1]) if typ==dc.R_ADDR32 else bool(op and op[0]=='addr' and op[1]==ar[4][1])
                     if typ in (dc.R_ADDR16,dc.R_ADDR16_LO,dc.R_ADDR16_HI,dc.R_ADDR16_HA) and op:
                         val=ar[4][1]

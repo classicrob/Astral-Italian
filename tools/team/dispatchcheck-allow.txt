@@ -65,19 +65,10 @@
 - sInstance__Q210NrvTwoLegs20TwoLegsNrvWalkDamage 0  # conflict CONFLICT 
 - sInstance__Q210NrvTwoLegs22TwoLegsNrvWalkNoDamage 0  # conflict CONFLICT 
 - sInstance__Q212NrvBossJugem17BossJugemNrvSleep 0  # conflict CONFLICT 
-- sInstance__Q212NrvSandyHand16SandyHandNrvStop 0  # conflict CONFLICT 
-- sInstance__Q213NrvRestartObj18RestartObjNrvAfter 0  # conflict CONFLICT 
-- sInstance__Q213NrvRestartObj18RestartObjNrvShake 0  # conflict CONFLICT 
-- sInstance__Q214NrvCandlestand12HostTypeBurn 0  # conflict CONFLICT 
-- sInstance__Q214NrvRepeatBlock22RepeatBlockNrvTailWait 0  # conflict CONFLICT 
-- sInstance__Q215NrvFileSelector30FileSelectorNrvFileSelectStart 0  # conflict CONFLICT 
 - sInstance__Q215NrvKoopaJrRobot19KoopaJrRobotNrvDead 0  # conflict CONFLICT 
 - sInstance__Q215NrvKoopaJrRobot19KoopaJrRobotNrvDemo 0  # conflict CONFLICT 
 - sInstance__Q215NrvKoopaJrRobot21KoopaJrRobotNrvPhase1 0  # conflict CONFLICT 
 - sInstance__Q215NrvKoopaJrRobot21KoopaJrRobotNrvPhase2 0  # conflict CONFLICT 
-- sInstance__Q216NrvMarioLauncher20MarioLauncherNrvWait 0  # conflict CONFLICT 
-- sInstance__Q216NrvMarioLauncher21MarioLauncherNrvReady 0  # conflict CONFLICT 
-- sInstance__Q219NrvHomeButtonLayout22HomeButtonLayoutActive 0  # conflict CONFLICT 
 - sInstance__Q219NrvSandyStatePhase123SandyStatePhase1NrvOpen 0  # conflict CONFLICT 
 - sInstance__Q219NrvSandyStatePhase124SandyStatePhase1NrvClose 0  # conflict CONFLICT 
 - sInstance__Q219NrvSandyStatePhase124SandyStatePhase1NrvThrow 0  # conflict CONFLICT 
@@ -101,7 +92,6 @@
 - sInstance__Q220NrvKoopaJrCastleHead21KoopaJrCastleHeadNrvC 0  # conflict CONFLICT 
 - sInstance__Q220NrvKoopaJrCastleHead21KoopaJrCastleHeadNrvD 0  # conflict CONFLICT 
 - sInstance__Q221NrvTwoLegsStateDamage25TwoLegsStateDamageNrvHide 0  # conflict CONFLICT 
-- sInstance__Q28NrvFluff19FluffNrvBeforeBloom 0  # conflict CONFLICT 
 - swap__10J2DPictureFRfRf 0  # conflict CONFLICT 
 Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 30  # code CROSSED __ct__34JASMemPool<20AudDopplerAudible<2>>Fv
 Game/AudioLib/AudSystem __sinit_\AudSystem_cpp 3c  # code WRONG __dt__34JASMemPool<20AudDopplerAudible<2>>Fv
@@ -142,7 +132,6 @@ Game/Boss/OtaKingMagma __ct__Q215NrvOtaKingMagma19OtaKingMagmaNrvDownFv 4  # cod
 Game/Boss/OtaKingMagma __ct__Q215NrvOtaKingMagma21OtaKingMagmaNrvDamageFv 4  # code WRONG __vt__Q215NrvOtaKingMagma21OtaKingMagmaNrvDamage
 Game/Boss/OtaKingMagma __vt__Q215NrvOtaKingMagma19OtaKingMagmaNrvDown 188  # data CROSSED execute__Q215NrvOtaKingMagma19OtaKingMagmaNrvDownCFP5Spine
 Game/Boss/OtaKingMagma __vt__Q215NrvOtaKingMagma21OtaKingMagmaNrvDamage 198  # data CROSSED execute__Q215NrvOtaKingMagma21OtaKingMagmaNrvDamageCFP5Spine
-Game/Boss/SandyHand init__9SandyHandFRC12JMapInfoIter 58  # code CROSSED sInstance__Q212NrvSandyHand16SandyHandNrvStop
 Game/Boss/SandyStatePhase1 __ct__16SandyStatePhase1FP5Sandy 38  # code CROSSED sInstance__Q219NrvSandyStatePhase124SandyStatePhase1NrvThrow
 Game/Boss/SandyStatePhase1 __ct__16SandyStatePhase1FP5Sandy 7c  # code CROSSED sInstance__Q219NrvSandyStatePhase125SandyStatePhase1NrvDamag
 Game/Boss/SandyStatePhase1 __sinit_\SandyStatePhase1_cpp 1c  # sem CROSSED sInstance__Q219NrvSandyStatePhase124SandyStatePhase1NrvClose
@@ -255,7 +244,6 @@ Game/Boss/TwoLegsBulletTU04 tryAttack__16TwoLegsStateShotFP9HitSensorP9HitSensor
 Game/Boss/TwoLegsBulletTU04 tryAttack__16TwoLegsStateShotFP9HitSensorP9HitSensor 20  # sem CROSSED sInstance__Q219NrvTwoLegsStateShot26TwoLegsStateShotNrvSitDo
 Game/Boss/TwoLegsBulletTU06 isHide__18TwoLegsStateDamageFv 0  # code CROSSED sInstance__Q221NrvTwoLegsStateDamage25TwoLegsStateDamageNrvH
 Game/Boss/TwoLegsBulletTU06 isHide__18TwoLegsStateDamageFv 0  # sem CROSSED sInstance__Q221NrvTwoLegsStateDamage25TwoLegsStateDamageNrvH
-Game/Camera/CameraFreeze __vt__12CameraFreeze 48  # data CROSSED isUnknownOff__6CameraCFv
 Game/Demo/PrepareKoopaFinalDemoObj __vt__Q227NrvPrepareKoopaFinalDemoObj31PrepareKoopaFinalDemoObjNrvWait 100  # data CROSSED execute__Q227NrvPrepareKoopaFinalDemoObj31PrepareKoopaFinalD
 Game/Demo/PrepareKoopaFinalDemoObj __vt__Q227NrvPrepareKoopaFinalDemoObj38PrepareKoopaFinalDemoObjNrvStartPuppet d0  # data CROSSED execute__Q227NrvPrepareKoopaFinalDemoObj38PrepareKoopaFinalD
 Game/Demo/StaffRollDemoObj __sinit_\StaffRollDemoObj_cpp 34  # sem CROSSED sInstance__Q219NrvStaffRollDemoObj20StaffRollDemoObjNrvF
@@ -272,29 +260,11 @@ Game/Demo/TransformFaceTicoBabyDemoObj __vt__Q231NrvTransformFaceTicoBabyDemoObj
 Game/Demo/TransformFaceTicoBabyDemoObj __vt__Q231NrvTransformFaceTicoBabyDemoObj37TransformFaceTicoBabyDemoObjNrvAppear 68  # data CROSSED execute__Q231NrvTransformFaceTicoBabyDemoObj37TransformFaceT
 Game/Demo/TransformFaceTicoBabyDemoObj execute__Q231NrvTransformFaceTicoBabyDemoObj37TransformFaceTicoBabyDemoObjNrvAppearCFP5Spine 2c  # sem CROSSED sInstance__Q231NrvTransformFaceTicoBabyDemoObj37TransformFac
 Game/Demo/TransformFaceTicoBabyDemoObj init__28TransformFaceTicoBabyDemoObjFRC12JMapInfoIter 3c  # sem CROSSED sInstance__Q231NrvTransformFaceTicoBabyDemoObj35TransformFac
-Game/Map/FileSelector exeTitleEnd__12FileSelectorFv a4  # code CROSSED sInstance__Q215NrvFileSelector30FileSelectorNrvFileSelectSta
-Game/Map/FileSelector exeTitleEnd__12FileSelectorFv a4  # sem CROSSED sInstance__Q215NrvFileSelector30FileSelectorNrvFileSelectSta
 Game/Map/ShadowColorSetter calcShadowColor__2MRFUc 48  # code CROSSED __as__8_GXColorFRC8_GXColor
-Game/MapObj/Candlestand init__11CandlestandFRC12JMapInfoIter 88  # code CROSSED sInstance__Q214NrvCandlestand12HostTypeBurn
 Game/MapObj/CollectTicoHolder __dt__17CollectTicoHolderFv 28  # code CROSSED __dt__14LiveActorGroupFv
-Game/MapObj/GravityFallBlock exeFall__16GravityFallBlockFv 138  # near CROSSED sInstance__Q219NrvGravityFallBlock24GravityFallBlockNrvBreak
-Game/MapObj/GravityFallBlock exeFall__16GravityFallBlockFv 138  # sem-seq CROSSED sInstance__Q219NrvGravityFallBlock24GravityFallBlockNrvBreak
-Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 30  # code CROSSED sInstance__Q216NrvMarioLauncher21MarioLauncherNrvReady
-Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 30  # sem CROSSED sInstance__Q216NrvMarioLauncher21MarioLauncherNrvReady
-Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 8  # code CROSSED sInstance__Q216NrvMarioLauncher20MarioLauncherNrvWait
-Game/MapObj/MarioLauncher isFollowValid__13MarioLauncherCFl 8  # sem CROSSED sInstance__Q216NrvMarioLauncher20MarioLauncherNrvWait
-Game/MapObj/RepeatBlockHead __ct__15RepeatBlockTailFP11RepeatBlockPCc 40  # code CROSSED sInstance__Q214NrvRepeatBlock22RepeatBlockNrvTailWait
-Game/MapObj/RestartObj exeCollect__10RestartObjFv 7c  # code CROSSED sInstance__Q213NrvRestartObj18RestartObjNrvAfter
-Game/MapObj/RestartObj exeShake__10RestartObjFv 6c  # code CROSSED sInstance__Q213NrvRestartObj18RestartObjNrvShake
-Game/MapObj/RestartObj exeShake__10RestartObjFv 6c  # sem CROSSED sInstance__Q213NrvRestartObj18RestartObjNrvShake
 Game/MapObj/SpinCloudBlock __dt__19SpinCloudBlockGroupFv 28  # code CROSSED __dt__14LiveActorGroupFv
 Game/Player/MarioEffect __ct__11MarioEffectFP10MarioActor 4c  # code CROSSED identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f
 Game/Player/MarioEffect __ct__11MarioEffectFP10MarioActor 54  # code CROSSED identity__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f
-Game/Ride/Fluff onDemoAction__5FluffFv 20  # code CROSSED sInstance__Q28NrvFluff19FluffNrvBeforeBloom
-Game/Screen/HomeButtonLayout forceToDeactive__16HomeButtonLayoutFv 30  # code CROSSED sInstance__Q219NrvHomeButtonLayout22HomeButtonLayoutActive
-Game/Screen/HomeButtonLayout forceToDeactive__16HomeButtonLayoutFv 30  # sem CROSSED sInstance__Q219NrvHomeButtonLayout22HomeButtonLayoutActive
-Game/System/GameSequenceEnding exeMessage__18GameSequenceEndingFv 98  # sem-seq CROSSED sInstance__Q232@unnamed@GameSequenceEnding_cpp@33GameSequenc
-Game/System/GameSequenceEnding exeMessage__18GameSequenceEndingFv a8  # sem-seq CROSSED sInstance__Q232@unnamed@GameSequenceEnding_cpp@32GameSequenc
 Game/Util/BellyDragonTU03 __vt__21BellyDragonFireGround 34  # data CROSSED kill__21BellyDragonFireGroundFv
 Game/Util/BossJugem control__9BossJugemFv 48  # code CROSSED sInstance__Q212NrvBossJugem17BossJugemNrvSleep
 Game/Util/BossJugem control__9BossJugemFv 7c  # code CROSSED sInstance__Q212NrvBossJugem17BossJugemNrvSleep

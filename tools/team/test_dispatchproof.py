@@ -460,6 +460,52 @@ class FirstNamingControls(unittest.TestCase):
     def test_first_naming_remainder_name(self):self.assertFalse(self.preserved(self.new.replace('lbl_8067F3C0 =','other =')))
 
 
+class AlignmentControls(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.unit='Game/System/GameSequenceEnding';fixture=ROOT.parent/'dispatch-misc'
+        if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():raise unittest.SkipTest('misc objects unavailable')
+        cls.tmp=tempfile.TemporaryDirectory(prefix='R-align-');cls.dir=pathlib.Path(cls.tmp.name)
+        def phase(root,label):
+            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt')
+            path=cls.dir/(label+'.o');path.write_bytes((root/'build/SB4E01/src'/f'{cls.unit}.o').read_bytes())
+            p.elfs={cls.unit:dc.ELF(path)};p.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
+            p._chains=None;p.ctor_inst={}
+            e=p.elfs[cls.unit];f=next(f for f in e.syms if f['name']=='exeMessage__18GameSequenceEndingFv')
+            addr=p.sym_addr(e,cls.unit,f);dol=p.dol.bytes(addr,p.sy.by_name[f['name']][1])
+            rels={o-f['off']:(typ,si,ad) for sec,o,typ,si,ad in e.relocs if sec==f['sec'] and f['off']<=o<f['off']+f['size']}
+            p.nonexact=[(cls.unit,e,f,addr,dol,rels)]
+            rows=[];p.run_align(rows,collections.Counter())
+            return p,next(r for r in rows if r['offset']==0x98)
+        cls.before,cls.rb=phase(ROOT,'before');cls.after,cls.ra=phase(fixture,'after')
+        if cls.rb['verdict']!='CROSSED' or cls.ra['verdict']!='MATCH':raise unittest.SkipTest('expected shifted correction unavailable')
+        dp.prepare_addresses(cls.before,cls.after)
+        cls.br=dp.row_relocation(cls.before,cls.rb)
+
+    @classmethod
+    def tearDownClass(cls):cls.tmp.cleanup()
+
+    def site(self,b=None,a=None,p=None):
+        return dp.aligned_site(self.before,p or self.after,b or self.rb,a or self.ra,*self.br[:3])
+
+    def test_align_positive(self):self.assertEqual(self.site(),self.rb['site'])
+    def test_align_wrong_paired_pc(self):self.assertIsNone(self.site(a=dict(self.ra,site=self.ra['site']+4)))
+    def test_align_other_equal_instruction(self):
+        # Another same-register addi exists at +0xac, but it is not this equal block's partner.
+        b=dict(self.rb,dol_offset=0xac,site=self.rb['site']+16)
+        a=dict(self.ra,dol_offset=0xac,site=self.ra['site']+16)
+        self.assertIsNone(self.site(b,a))
+    def test_align_excess_shift(self):
+        self.assertIsNone(self.site(dict(self.rb,dol_offset=0x100),dict(self.ra,dol_offset=0x100)))
+    def test_align_changed_code_byte(self):
+        p=copy.copy(self.after);e=p.elfs[self.unit];f=next(f for f in e.syms if f['name']==self.ra['function'])
+        raw=bytearray(e.raw);raw[e.s[f['sec']][4]+f['off']]^=1
+        path=self.dir/'changed.o';path.write_bytes(raw);p.elfs={self.unit:dc.ELF(path)}
+        self.assertIsNone(self.site(p=p))
+    def test_align_wrong_source_offset(self):self.assertIsNone(self.site(a=dict(self.ra,offset=0xa8)))
+
+
 if __name__=='__main__':
     ap=argparse.ArgumentParser();ap.add_argument('--root',type=pathlib.Path,default=ROOT);ap.add_argument('--dol');ap.add_argument('--pointwarp-after',type=pathlib.Path,default=POINT);ap.add_argument('--proof-script',type=pathlib.Path)
     args,rest=ap.parse_known_args();ROOT=args.root.resolve();DOL=args.dol;POINT=args.pointwarp_after.resolve() if args.pointwarp_after else None

@@ -71,6 +71,8 @@ else
   # new CROSSED/WRONG/CONFLICT rows (or a stale allow-list line after a fix) block the landing
   python3 tools/team/dispatchcheck.py --quiet --allow tools/team/dispatchcheck-allow.txt --strict \
     || { echo "dispatch oracle failed: a binding differs from the original DOL (see rows above); update tools/team/dispatchcheck-allow.txt only for reviewed rows" >&2; exit 1; }
+  # headless harness: a GALAXY_NATIVE hook with only a GX-side definition breaks petari_headless (5062b75f); it must still link
+  if git diff --name-only main...HEAD | grep -qE '^(src|include|libs|native)/'; then sh tools/team/headlesslink.sh || exit 1; fi
 fi
 git -C "$main" merge --ff-only -q "$branch"
 # cache the report of the exact main we just built, so lanes can use it as a regression baseline

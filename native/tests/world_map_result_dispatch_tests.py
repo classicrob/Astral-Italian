@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FAMILIES = {
     'PointWarp': ('WorldMapResultTU19', ['Start', 'Wait', 'End']),
     'CreateTico': ('WorldMapResultStateCreateTico', ['Close', 'Open', 'Extend', 'WhiteClose', 'WhiteWait', 'WhiteOpen', 'Message', 'CloseEnd', 'End']),
+    'RouteOpen': ('WorldMapResultStateRouteOpen', ['Start', 'Extend', 'WaitNext', 'Message', 'End']),
 }
 
 
@@ -51,18 +52,61 @@ def fixture(family):
     code += 'std::puts("' + family + ': production nerve dispatch passed"); }\n'
     # Restore the original crossed wrapper as a negative control.
     wrong = {'PointWarp': ('exeStart();', 'exeEnd();'),
-             'CreateTico': ('exeClose();', 'exeEnd();')}[family]
+             'CreateTico': ('exeClose();', 'exeEnd();'),
+             'RouteOpen': ('exeExtend();', 'exeMessage();')}[family]
     assert definitions.count(wrong[0]) == 1
     mutant = code.replace(wrong[0], wrong[1])
     assert mutant != code
+    if family == 'RouteOpen':
+        transition = block(source, 'void WorldMapResultStateRouteOpen::exeExtend()')
+        transition = transition.replace('WorldMapResultStateRouteOpen::', 'RouteCompletionFixture::')
+        support = r'''
+struct WorldMapResultCommand { void* mRocket = nullptr; };
+struct WorldMapResultRoute {};
+struct RouteCompletionFixture {
+    WorldMapResultCommand command;
+    WorldMapResultCommand* mHost = &command;
+    WorldMapResultRoute* mRoute = nullptr;
+    int mWorldId = 0, mCount = 0, step = 0;
+    Spine spine{this, nullptr};
+    void setNerve(const Nerve* nerve) { spine.setNerve(nerve); }
+    void exeExtend();
+};
+static bool routeDone;
+bool updateRouteExtend(WorldMapResultCommand*, int, WorldMapResultRoute*, int, float) { return routeDone; }
+namespace MR {
+float calcNerveRate(RouteCompletionFixture* state, int duration) { return float(state->step) / duration; }
+void startActionSound(void*, const char*, int, int, int) {}
+bool isGreaterStep(RouteCompletionFixture* state, int limit) { return state->step > limit; }
+}
+'''
+        support += transition + r'''
+void checkCompletion() {
+    for (int step : {30, 31}) for (bool done : {false, true}) {
+        RouteCompletionFixture state;
+        state.step = step; routeDone = done;
+        state.exeExtend();
+        const Nerve* expected = step == 30 ? nullptr : done
+            ? static_cast<const Nerve*>(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenWaitNext))
+            : static_cast<const Nerve*>(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenExtend));
+        check(state.spine.getCurrentNerve() == expected);
+        check(state.mCount == (step > 30 && !done ? 1 : 0));
+    }
+    std::puts("RouteOpen: production completion arm selects WaitNext");
+}
+'''
+        code = '#include <initializer_list>\nvoid checkCompletion();\n' + code.replace('int main() {', 'int main() { checkCompletion();') + support
+        mutant = '#include <initializer_list>\nvoid checkCompletion();\n' + mutant.replace('int main() {', 'int main() { checkCompletion();') + support
     return code, mutant
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('families', nargs='*', choices=list(FAMILIES))
+    ap.add_argument('families', nargs='*', metavar='FAMILY')
     ap.add_argument('--compiler', default='clang++')
     args = ap.parse_args()
+    if any(family not in FAMILIES for family in args.families):
+        ap.error('families: ' + ', '.join(FAMILIES))
     spec = importlib.util.spec_from_file_location('encode', ROOT/'native/tools/encode_legacy_sources.py')
     encoding = importlib.util.module_from_spec(spec); spec.loader.exec_module(encoding)
     with tempfile.TemporaryDirectory(prefix='wmap-native-') as directory:
@@ -83,7 +127,12 @@ def main():
         link = ['-Wl,-dead_strip'] if sys.platform == 'darwin' else ['-Wl,--gc-sections']
         for family in args.families or FAMILIES:
             code, mutant = fixture(family)
-            for label, text in [('production', code), ('crossed-wrapper', mutant)]:
+            variants = [('production', code), ('crossed-wrapper', mutant)]
+            if family == 'RouteOpen':
+                arm = 'setNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenWaitNext));'
+                assert code.count(arm) == 1
+                variants.append(('Message-completion', code.replace(arm, arm.replace('RouteOpenWaitNext', 'RouteOpenMessage'))))
+            for label, text in variants:
                 cpp = work/'test.cpp'; cpp.write_text(text); binary = work/'test'
                 subprocess.run(flags + [str(cpp)] + objects + link + ['-o', str(binary)], check=True)
                 result = subprocess.run([str(binary)], capture_output=True, text=True,
@@ -93,7 +142,7 @@ def main():
                     print(result.stdout.strip())
                 else:
                     assert result.returncode, 'crossed wrapper escaped regression'
-                    print(f'{family}: crossed-wrapper negative control rejected')
+                    print(f'{family}: {label} negative control rejected')
     return 0
 
 

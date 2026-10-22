@@ -64,6 +64,16 @@ class ConversionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             convert(rows(), stage='Unknown')
 
+    def test_explicit_anchor_disclosed_and_validated(self):
+        script, receipt = convert(rows(), anchor_override=5)
+        self.assertEqual(receipt['first_target_valid_source_frame'], 2)
+        self.assertEqual(receipt['anchor_source_frame'], 5)
+        self.assertEqual(receipt['explicit_anchor_offset'], 3)
+        self.assertEqual(script['frames'], 2)
+        for invalid in [0, 4, 8]:
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                convert(rows(), anchor_override=invalid)
+
 
 if __name__ == '__main__':
     unittest.main()

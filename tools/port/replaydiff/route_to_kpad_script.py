@@ -17,7 +17,7 @@ REQUIRED = {'frame', 'stage', 'scenario', 'move_x', 'move_y', 'x', 'y', 'z', *BO
 SPIN_POLICY = 'held-remote-x3-v1'
 
 
-def convert(rows, stage='RedBlueExGalaxy', scenario=1, limit=None):
+def convert(rows, stage='RedBlueExGalaxy', scenario=1, limit=None, anchor_override=None):
     if not rows or not REQUIRED <= rows[0].keys():
         raise ValueError('missing required CSV columns or rows')
     for frame, row in enumerate(rows):
@@ -33,6 +33,14 @@ def convert(rows, stage='RedBlueExGalaxy', scenario=1, limit=None):
                    row['scenario'] == str(scenario) and row['valid'] == '1'), None)
     if anchor is None:
         raise ValueError('no valid target-stage anchor')
+    first_valid_anchor = anchor
+    if anchor_override is not None:
+        if type(anchor_override) is not int or not anchor <= anchor_override < len(rows):
+            raise ValueError('explicit anchor precedes first valid target or is out of range')
+        candidate = rows[anchor_override]
+        if candidate['stage'] != stage or candidate['scenario'] != str(scenario) or candidate['valid'] != '1':
+            raise ValueError('explicit anchor must be valid in exact target stage/scenario')
+        anchor = anchor_override
     end = next((i for i in range(anchor + 1, len(rows)) if rows[i]['stage'] != stage or
                 rows[i]['scenario'] != str(scenario)), len(rows))
     if limit is not None:
@@ -59,7 +67,12 @@ def convert(rows, stage='RedBlueExGalaxy', scenario=1, limit=None):
     script = dict(version=1, frames=len(selected), segments=segments)
     receipt = dict(schema_version=1, status='reconstructed-intent', qualification_status='BLOCKED',
                    qualified_divergences=None, source_rows=len(rows), anchor_source_frame=anchor,
-                   anchor_reason='first valid row matching exact stage and placed scenario; first-any-valid may be FileSelect',
+                   anchor_reason=('explicit measured-phase candidate, separately bound evidence; not proof of exact ready seam'
+                                  if anchor_override is not None else
+                                  'first valid row matching exact stage and placed scenario; first-any-valid may be FileSelect'),
+                   first_target_valid_source_frame=first_valid_anchor,
+                   explicit_anchor_offset=anchor - first_valid_anchor,
+                   anchor_method='explicit measured-phase candidate; not automatic alignment' if anchor_override is not None else 'first-target-valid proxy',
                    anchor_stage=stage, anchor_scenario=scenario,
                    anchor_position={axis: rows[anchor][axis] for axis in 'xyz'},
                    anchor_is_exact_ready_seam=False, input_source_start=anchor + 1,
@@ -86,6 +99,8 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--source-sha256', required=True)
     parser.add_argument('--prefix', type=int)
+    parser.add_argument('--anchor-source-frame', type=int)
+    parser.add_argument('--anchor-evidence', type=Path)
     parser.add_argument('--spin-policy', choices=[SPIN_POLICY], required=True)
     args = parser.parse_args()
     source = game_private_path(args.source)
@@ -94,7 +109,15 @@ def main():
     if digest != args.source_sha256:
         raise ValueError('closed source hash differs from pinned recording')
     rows = list(csv.DictReader(raw.decode('utf-8').splitlines()))
-    script, receipt = convert(rows, limit=args.prefix)
+    if (args.anchor_source_frame is None) != (args.anchor_evidence is None):
+        raise ValueError('explicit anchor requires a declared evidence file and vice versa')
+    script, receipt = convert(rows, limit=args.prefix, anchor_override=args.anchor_source_frame)
+    if args.anchor_evidence:
+        evidence_path = game_private_path(args.anchor_evidence)
+        evidence = json.loads(evidence_path.read_text())
+        if evidence.get('candidate_anchor_source_frame') != args.anchor_source_frame or evidence.get('source_sha256') != digest:
+            raise ValueError('anchor evidence does not bind candidate and source recording')
+        receipt['anchor_evidence'] = dict(path=str(evidence_path), sha256=hashlib.sha256(evidence_path.read_bytes()).hexdigest(), evidence=evidence)
     if source.read_bytes() != raw:
         raise ValueError('source changed while converting')
     output = game_private_path(args.output)

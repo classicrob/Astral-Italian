@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -42,6 +43,35 @@ def gx_departure(trace, gx, anchor, tolerance):
     return None
 
 
+def tracking_window(trace, gx, anchor, source_start, count):
+    maximum = {axis: 0.0 for axis in 'xyz'}
+    euclidean = 0.0
+    first_failure = None
+    compared = 0
+    missing = []
+    for source in range(source_start, source_start + count):
+        frame = source - anchor
+        row = trace.rows.get((frame,))
+        if source >= len(gx) or gx[source]['valid'] != '1' or not row or row.get('player_valid') != '1':
+            missing.append(dict(source_frame=source, trace_frame=frame))
+            continue
+        error = {axis: abs(float(row[axis]) - float(gx[source][axis])) for axis in 'xyz'}
+        compared += 1
+        maximum = {axis: max(maximum[axis], error[axis]) for axis in 'xyz'}
+        euclidean = max(euclidean, math.sqrt(sum(value * value for value in error.values())))
+        if first_failure is None and any(value > 0.01 for value in error.values()):
+            first_failure = dict(source_frame=source, trace_frame=frame, absolute_axis_error=error,
+                                 replay={axis: row[axis] for axis in 'xyz'}, gx={axis: gx[source][axis] for axis in 'xyz'})
+    return dict(status='TRACKED' if compared == count and not first_failure else 'NOT_TRACKED',
+                qualification='unqualified proxy-anchor tracking metric only', source_start=source_start,
+                source_end=source_start + count - 1, trace_start=source_start - anchor,
+                trace_end=source_start + count - 1 - anchor, required_frames=count, compared_frames=compared,
+                absolute_tolerance_per_axis=0.01, tolerance_declared_before_comparison=True,
+                max_axis_error=maximum, max_euclidean_error=euclidean, first_failure=first_failure, missing=missing,
+                route_budget_units=50, route_budget_satisfied=compared == count and euclidean <= 50,
+                ground_zone_comparison='UNKNOWN: not observed by common86 frozen providers; no link-zone substitution')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--capture', type=Path, required=True)
@@ -50,7 +80,16 @@ def main():
     parser.add_argument('--native-checkout', type=Path, default=Path.home() / 'MacioGalaxy2-wt/port')
     parser.add_argument('--executable', type=Path)
     parser.add_argument('--frozen-build-receipt', type=Path)
+    parser.add_argument('--tracking-source-start', type=int)
+    parser.add_argument('--tracking-frames', type=int)
+    parser.add_argument('--tracking-policy', type=Path)
     args = parser.parse_args()
+    if (args.tracking_source_start is None) != (args.tracking_frames is None):
+        raise ValueError('tracking source-start and frame count must be declared together')
+    policy = json.loads(args.tracking_policy.read_text()) if args.tracking_policy else None
+    if args.tracking_source_start is not None:
+        if not policy or policy['source_window'] != [args.tracking_source_start, args.tracking_source_start + args.tracking_frames - 1]:
+            raise ValueError('tracking window must match predeclared policy')
     capture, conversion = game_private_path(args.capture), game_private_path(args.conversion)
     receipt = json.loads(conversion.read_text())
     manifest = json.loads((capture / 'manifest.json').read_text())
@@ -152,6 +191,11 @@ def main():
                                'No actors requested for bounded long diagnostic capture; no per-actor equivalence claim.',
                                'Pending-state observer unavailable, timing/FP policy incomplete; no admission or qualification.',
                                'ODR detector override and existing UBSan diagnostics retained.'])
+    if args.tracking_source_start is not None:
+        report['movement_tracking'] = {side: tracking_window(current, gx, receipt['anchor_source_frame'],
+                                                             args.tracking_source_start, args.tracking_frames)
+                                       for side, current in [('native', a), ('dolphin', b)]}
+        report['tracking_policy'] = dict(path=str(args.tracking_policy), sha256=sha(args.tracking_policy), policy=policy)
     result = output / 'diagnostic.json'
     result.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(dict(report=str(result), raw_first=report['raw_first_difference'],

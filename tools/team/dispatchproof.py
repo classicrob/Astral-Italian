@@ -91,7 +91,15 @@ def symbol_addr(prog, e, unit, sym):
         return a
     chain=getattr(prog,'_proof_chain_addresses',{}).get(sym['name'])
     if chain is not None:return chain
+    anchor=getattr(prog,'vtable_anchor',lambda n:None)(sym['name'])
+    if anchor and anchor[1]=='vtable-ctor':return anchor[0]
     return getattr(prog,'_proof_addresses',{}).get((unit,sym['sec'],sym['off'],sym['name']))
+
+
+def independent_name(prog,name):
+    anchor=getattr(prog,'vtable_anchor',lambda n:None)(name)
+    return (prog.sy.addr(name) is not None or name in prog._proof_chain_addresses
+            or bool(anchor and anchor[1]=='vtable-ctor'))
 
 
 def storage_addr(prog,e,unit,sym):
@@ -810,6 +818,110 @@ def config_ranges_preserved(pb,pa):
     return not removed and not added
 
 
+def config_only_high_permissions(pb,pa,low):
+    """Metadata-only HA companion across at most eight harmless instructions.
+
+    This is called only by the preserved config-range case. The general HA
+    permission remains adjacent-only. Intermediate integer adds may write
+    another register; non-update FP loads/stores do not write any GPR.
+    """
+    unit,block,off,typ,ad,site,old,new=low
+    if typ!=dc.R_ADDR16_LO or off%4!=2 or pb.elfs[unit].raw!=pa.elfs[unit].raw:return set()
+    found=set()
+    for delta in range(4,37,4):
+        parts=[]
+        for p,target in ((pb,old),(pa,new)):
+            e=p.elfs[unit]
+            fs=[s for s in e.syms if s['type']==2 and s['size']==block[2] and 0<s['sec']<len(e.s)
+                and e.names[s['sec']]==block[0] and p.sy.addr(s['name'])==block[1][1]]
+            if len(fs)!=1 or off<delta+2:break
+            f=fs[0];lo=f['off']+off;hi=lo-delta
+            lr=[r for r in e.relocs if r[0]==f['sec'] and r[1]==lo]
+            hr=[r for r in e.relocs if r[0]==f['sec'] and r[1]==hi]
+            if len(lr)!=1 or len(hr)!=1:break
+            lr,hr=lr[0],hr[0]
+            if lr[2]!=dc.R_ADDR16_LO or hr[2]!=dc.R_ADDR16_HA or hr[3:]!=lr[3:] or lr[4]!=ad:break
+            if target_key(p,e,unit,lr[3],ad)!=target:break
+            sw_hi=dc.u32(e.content(f['sec'],hi-2,4),0);sw_lo=dc.u32(e.content(f['sec'],lo-2,4),0)
+            dw_hi=p.dol.word(site-delta);dw_lo=p.dol.word(site)
+            if dw_hi is None or dw_lo is None:break
+            reg=(sw_hi>>21)&31
+            if sw_hi>>26!=15 or (sw_hi>>16)&31 or sw_lo>>26!=14 or (sw_lo>>16)&31!=reg:break
+            if sw_hi&0xffff0000!=dw_hi&0xffff0000 or sw_lo&0xffff0000!=dw_lo&0xffff0000:break
+            safe=True
+            for at in range(hi+2,lo-2,4):
+                sw=dc.u32(e.content(f['sec'],at,4),0);dw=p.dol.word(block[1][1]+at-f['off'])
+                rels=[r for r in e.relocs if r[0]==f['sec'] and at<=r[1]<at+4]
+                if len(rels)>1 or any(r[2] not in dc.MASK for r in rels):safe=False;break
+                mask=~dc.MASK[rels[0][2]]&0xffffffff if rels else 0xffffffff
+                if dw is None or sw&mask!=dw&mask:safe=False;break
+                op,rt=sw>>26,(sw>>21)&31
+                if not (op==14 and rt!=reg or op in (48,50,52,54)):safe=False;break
+            if not safe:break
+            parts.append((dw_hi,dw_lo))
+        if len(parts)!=2 or parts[0]!=parts[1]:continue
+        dh,dl=parts[0]
+        before=((old[1]+0x8000)>>16)&0xffff;after=((new[1]+0x8000)>>16)&0xffff
+        actual=(((dh&0xffff)<<16)+dc.s16(dl&0xffff))&0xffffffff
+        if before==after==dh&0xffff and actual==new[1] and actual!=old[1]:
+            found.add((unit,block,off-delta,dc.R_ADDR16_HA,ad,site-delta,old,new))
+    return found if len(found)==1 else set()
+
+
+def config_move_storage(pb,pa,high_companions,direct):
+    """Correct storage metadata only; references keep each phase's binding.
+
+    A direct original operand must independently prove the new object address.
+    Both config ranges survive at the same sizes, all affected objects are byte
+    identical, and another unchanged strong BSS anchor confirms section layout.
+    This grants no relocation permission: every changed reference still needs
+    its own independently checked BAD->MATCH token.
+    """
+    accepted,extras=set(),set()
+    for name in pb.sy.by_name.keys()&pa.sy.by_name.keys():
+        old,new=pb.sy.by_name[name],pa.sy.by_name[name]
+        before,after=old[0],new[0]
+        if before==after or old[2:]!=new[2:] or old[3]!='object':continue
+        if pa.sy.by_name.get(f'lbl_{before:08X}')!=old or pb.sy.by_name.get(f'lbl_{after:08X}')!=new:continue
+        tokens=[t for t,target in direct.items() if target==name and t[4]==0 and t[6][0]==t[7][0]=='A' and t[6][1]==before and t[7][1]==after]
+        proven=False;candidate_highs=set()
+        for t in tokens:
+            if t[3] in (dc.R_SDA21,dc.R_ADDR32):proven=True
+            elif t[3]==dc.R_ADDR16_LO:
+                hi=(t[0],t[1],t[2]-4,dc.R_ADDR16_HA,t[4],t[5]-4,t[6],t[7])
+                if hi in high_companions:proven=True
+                else:
+                    pinned=config_only_high_permissions(pb,pa,t)
+                    if pinned:proven=True;candidate_highs.update(pinned)
+        if not proven:continue
+        definitions=[];valid=True
+        for unit in set(pb.elfs)|set(pa.elfs):
+            eb,ea=pb.elfs.get(unit),pa.elfs.get(unit)
+            syms=[s for e in (eb,ea) if e for s in e.syms if s['name']==name]
+            if not syms:continue
+            if eb is None or ea is None or eb.raw!=ea.raw:valid=False;break
+            for s in eb.syms:
+                if s['name']!=name or not s['sec']:continue
+                sec=s['sec']
+                if not 0<sec<len(eb.s) or eb.s[sec][1]!=8 or s['type']!=1 or s['bind']!=1 or not 0<s['size']<=new[1]:valid=False;break
+                if eb.names[sec]!=new[2]:valid=False;break
+                base=after-s['off'];anchors=[]
+                for x in eb.syms:
+                    if x['name']==name or x['sec']!=sec or x['bind']!=1 or x['type']!=1 or not x['size']:continue
+                    rec=pb.sy.by_name.get(x['name'])
+                    if rec and rec==pa.sy.by_name.get(x['name']) and rec[1]>=x['size'] and rec[2:]==(eb.names[sec],'object'):
+                        anchors.append(rec[0]-x['off'])
+                if not anchors or set(anchors)!={base}:valid=False;break
+                definitions.append((unit,sec,s['off'],name))
+            if not valid:break
+        if valid and definitions:
+            for key in definitions:
+                pb._proof_definition_addresses[key]=pa._proof_definition_addresses[key]=after
+            accepted.add(name)
+            extras.update(candidate_highs)
+    return accepted,extras
+
+
 def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean, detail=False):
     ob, oa, problems = pb.elfs, pa.elfs, []
     prepare_addresses(pb,pa)
@@ -832,7 +944,7 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean, detail=False):
     for rows, dst in ((rows_b, kb), (rows_a, ka)):
         for r in rows:
             dst[oracle_key(r)].append(r)
-    flipped, allowed, direct_lows = [], set(), set()
+    flipped, allowed, direct_lows, direct = [], set(), set(), {}
     for k, rs in kb.items():
         after = ka.get(k, [])
         if sum(r['verdict'] == 'MATCH' for r in after) < sum(r['verdict'] == 'MATCH' for r in rs):
@@ -845,8 +957,7 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean, detail=False):
                 allowed.update(sinit_permissions(pb,pa,b,a))
                 continue
             if b['layer'] in ('data','code','sem','sem-seq','near','align'):
-                if any(prog.sy.addr(row.get('target','')) is None and row.get('target') not in prog._proof_chain_addresses
-                       for prog,row in ((pb,b),(pa,a))):continue
+                if any(not independent_name(prog,row.get('target','')) for prog,row in ((pb,b),(pa,a))):continue
                 br,ar=row_relocation(pb,b),row_relocation(pa,a)
                 if br and ar and br[:4]==ar[:4] and br[4][0]==ar[4][0]=='A' and br[4][1]!=ar[4][1]:
                     block,off,typ,ad=br[:4]
@@ -863,12 +974,16 @@ def compare_trees(pb, pa, rows_b, rows_a, units, expect_clean, detail=False):
                     if correct:
                         token=(b['unit'],block,off,typ,ad,site,br[4],ar[4])
                         allowed.add(token)
+                        if b['layer']=='code' and b.get('target')==a.get('target'):direct[token]=b['target']
                         if b['layer']=='code' and typ==dc.R_ADDR16_LO:direct_lows.add(token)
 
     for k, rs in ka.items():
         if sum(bad(r) for r in rs) > sum(bad(r) for r in kb.get(k, [])):
             problems.append(f'new BAD oracle row: {k}')
-    allowed.update(paired_high_permissions(pb,pa,direct_lows))
+    high_companions=paired_high_permissions(pb,pa,direct_lows)
+    allowed.update(high_companions)
+    _,config_highs=config_move_storage(pb,pa,high_companions,direct)
+    allowed.update(config_highs)
     pb._proof_allowed_old={(t[0],t[5],t[6]) for t in allowed}
     pa._proof_allowed_old=set()
     if not config_ranges_preserved(pb,pa):
@@ -959,6 +1074,8 @@ def load_after(root, dol, before):
     prog.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
     prog.func_info={};prog.exact_stream=[];prog.nonexact=[]
     prog._chains=None;prog.ctor_inst={}
+    prog.source_wrappers={};prog.source_wrapper_keys={}
+    prog.vtable_anchors={};prog.vtable_anchor_reasons={}
     for key in list(vars(prog)):
         if key.startswith('_proof_'):delattr(prog,key)
     return prog

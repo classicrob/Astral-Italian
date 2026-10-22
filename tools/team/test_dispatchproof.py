@@ -25,6 +25,12 @@ POINT = None
 UNIT = 'Game/System/WorldMapResultTU19'
 
 
+def fixture_caches(p):
+    p.source_wrappers={};p.source_wrapper_keys={}
+    p.vtable_anchors={};p.vtable_anchor_reasons={}
+    return p
+
+
 def put32(raw, offset, value):
     struct.pack_into('>I', raw, offset, value)
 
@@ -87,6 +93,7 @@ class ProofControls(unittest.TestCase):
         pm.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
         pm.func_info={};pm.exact_stream=[];pm.nonexact=[]
         pm._chains=None;pm.ctor_inst={}
+        fixture_caches(pm)
         for name in ('_proof_addresses','_proof_named','_proof_storage_bases','_proof_chain_addresses','_proof_allowed_old'):
             if hasattr(pm,name):delattr(pm,name)
         return pm
@@ -345,12 +352,13 @@ class SinitControls(unittest.TestCase):
     def setUpClass(cls):
         cls.unit='Game/System/WorldMapResultTU15'
         fixture=ROOT.parent/'dispatch-wmap'
+        if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():fixture=ROOT.parent/'dispatch-land'
         if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():
             raise unittest.SkipTest('stable world-map fixture unavailable')
         cls.tmp=tempfile.TemporaryDirectory(prefix='R-sinit-')
         cls.dir=pathlib.Path(cls.tmp.name)
         def phase(root,label):
-            p=dc.Prog.__new__(dc.Prog);p.root=root
+            p=fixture_caches(dc.Prog.__new__(dc.Prog));p.root=root
             p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
             p.dol=dc.Dol(dc.original_dol(root,DOL))
             p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt')
@@ -409,10 +417,11 @@ class FirstNamingControls(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.unit='Game/Demo/DemoSoundKeeper';fixture=ROOT.parent/'dispatch-misc'
+        if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():fixture=ROOT.parent/'dispatch-land'
         if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():raise unittest.SkipTest('misc objects unavailable')
         cls.tmp=tempfile.TemporaryDirectory(prefix='R-naming-');cls.dir=pathlib.Path(cls.tmp.name)
         def phase(root,label):
-            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p=fixture_caches(dc.Prog.__new__(dc.Prog));p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
             p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt')
             path=cls.dir/(label+'.o');path.write_bytes((root/'build/SB4E01/src'/f'{cls.unit}.o').read_bytes())
             p.elfs={cls.unit:dc.ELF(path)};p.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
@@ -464,10 +473,11 @@ class AlignmentControls(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.unit='Game/System/GameSequenceEnding';fixture=ROOT.parent/'dispatch-misc'
+        if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():fixture=ROOT.parent/'dispatch-land'
         if not (fixture/'build/SB4E01/src'/f'{cls.unit}.o').exists():raise unittest.SkipTest('misc objects unavailable')
         cls.tmp=tempfile.TemporaryDirectory(prefix='R-align-');cls.dir=pathlib.Path(cls.tmp.name)
         def phase(root,label):
-            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p=fixture_caches(dc.Prog.__new__(dc.Prog));p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
             p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt')
             path=cls.dir/(label+'.o');path.write_bytes((root/'build/SB4E01/src'/f'{cls.unit}.o').read_bytes())
             p.elfs={cls.unit:dc.ELF(path)};p.inferred=collections.defaultdict(lambda:collections.defaultdict(list))
@@ -513,7 +523,7 @@ class BossNamingControls(unittest.TestCase):
         if not all((fixture/'build/SB4E01/src'/f'{u}.o').exists() for u in cls.units):raise unittest.SkipTest('boss fixtures unavailable')
         cls.tmp=tempfile.TemporaryDirectory(prefix='R-boss-');cls.dir=pathlib.Path(cls.tmp.name)
         def phase(root,label):
-            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p=fixture_caches(dc.Prog.__new__(dc.Prog));p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
             p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt');p.elfs={}
             for n,u in enumerate(cls.units):
                 path=cls.dir/f'{label}-{n}.o';path.write_bytes((root/'build/SB4E01/src'/f'{u}.o').read_bytes());p.elfs[u]=dc.ELF(path)
@@ -623,7 +633,7 @@ class BatchFourControls(unittest.TestCase):
         if not all((fixture/'build/SB4E01/src'/f'{u}.o').exists() for u in cls.units):raise unittest.SkipTest('batch four fixtures unavailable')
         cls.tmp=tempfile.TemporaryDirectory(prefix='R-four-');cls.dir=pathlib.Path(cls.tmp.name)
         def phase(root,label):
-            p=dc.Prog.__new__(dc.Prog);p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p=fixture_caches(dc.Prog.__new__(dc.Prog));p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
             p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt');p.elfs={}
             for n,u in enumerate(cls.units):
                 path=cls.dir/f'{label}-{n}.o';path.write_bytes((root/'build/SB4E01/src'/f'{u}.o').read_bytes());p.elfs[u]=dc.ELF(path)
@@ -720,6 +730,124 @@ class BatchFourControls(unittest.TestCase):
         ib={k:('same',collections.Counter({(0,dc.R_ADDR32,0,target(old)):1}))}
         ia={k:('same',collections.Counter({(0,dc.R_ADDR32,0,target(new)):1}))}
         problems=[];dp.compare_units(u,ib,ia,set(),problems,binding_trades=trades);self.assertTrue(problems)
+
+
+class BatchFiveControls(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if not hasattr(dc.Prog,'vtable_anchor'):raise unittest.SkipTest('independent vtable anchors require oracle v9')
+        cls.units=('Game/Boss/SandyHand','JSystem/JAudio2/JASTrack');fixture=ROOT.parent/'dispatch-land'
+        if not all((fixture/'build/SB4E01/src'/f'{u}.o').exists() for u in cls.units):raise unittest.SkipTest('batch five fixtures unavailable')
+        cls.tmp=tempfile.TemporaryDirectory(prefix='R-five-');cls.dir=pathlib.Path(cls.tmp.name)
+        def phase(root,label):
+            p=fixture_caches(dc.Prog.__new__(dc.Prog));p.root=root;p.sy=dc.Symbols(root/'config/SB4E01/symbols.txt')
+            p.dol=dc.Dol(dc.original_dol(root,DOL));p.bases,p.ends=dc.load_splits(root/'config/SB4E01/splits.txt');p.elfs={}
+            for n,u in enumerate(cls.units):
+                path=cls.dir/f'{label}-{n}.o';path.write_bytes((root/'build/SB4E01/src'/f'{u}.o').read_bytes());p.elfs[u]=dc.ELF(path)
+            p.inferred=collections.defaultdict(lambda:collections.defaultdict(list));p._chains=None;p.ctor_inst={};p.func_info={};p.nonexact=[]
+            rows,_=p.run();return p,rows
+        cls.before,cls.rb=phase(ROOT,'before');cls.after,cls.ra=phase(fixture,'after')
+        cls.name='sDefaultBankTable__8JASTrack'
+        if cls.after.sy.addr(cls.name)!=0x8077b8dc:raise unittest.SkipTest('batch five config fix unavailable')
+
+    @classmethod
+    def tearDownClass(cls):cls.tmp.cleanup()
+
+    def phases(self):
+        b,a=copy.copy(self.before),copy.copy(self.after);dp.prepare_addresses(b,a);return b,a
+
+    def bank_token(self,b=None,a=None):
+        b,a=(b,a) if b is not None else self.phases()
+        r=next(r for r in self.rb if r.get('target')==self.name and r['layer']=='code' and dp.bad(r))
+        n=next(n for n in self.ra if dp.oracle_key(n)==dp.oracle_key(r) and n['verdict']=='MATCH')
+        old,new=dp.row_relocation(b,r),dp.row_relocation(a,n)
+        self.assertEqual(old[:4],new[:4]);self.assertEqual(old[2],dc.R_ADDR16_LO)
+        self.assertEqual(b.dol.word(r['site'])&0xffff,new[4][1]&0xffff)
+        return b,a,(self.units[1],*old[:4],r['site'],old[4],new[4])
+
+    def moved(self,b=None,a=None,direct=True):
+        b,a,t=self.bank_token(b,a)
+        names,highs=dp.config_move_storage(b,a,set(),{t:self.name} if direct else {})
+        return b,a,names,highs
+
+    def test_config_move_storage_reference_separate(self):
+        b,a,names,highs=self.moved();self.assertEqual(names,{self.name});self.assertEqual(len(highs),1)
+        u=self.units[1];e=b.elfs[u];i=next(i for i,s in enumerate(e.syms) if s['name']==self.name)
+        self.assertEqual(dp.storage_addr(b,e,u,e.syms[i]),0x8077b8dc)
+        self.assertEqual(dp.target_key(b,e,u,i,0)[1],0x8077b8d0)
+        self.assertEqual(set(dp.unit_image(b,u)),set(dp.unit_image(a,u)))
+
+    def test_config_move_requires_direct_reference(self):self.assertFalse(self.moved(direct=False)[2])
+
+    def test_config_move_other_name_same_addresses_rejected(self):
+        b,a,t=self.bank_token();self.assertFalse(dp.config_move_storage(b,a,set(),{t:'another_symbol'})[0])
+
+    def test_config_move_preserves_old_range(self):
+        b,a=self.phases();a.sy=copy.deepcopy(a.sy);rec=a.sy.by_name['lbl_8077B8D0'];a.sy.by_name['lbl_8077B8D0']=(rec[0],rec[1]+4,*rec[2:])
+        self.assertFalse(self.moved(b,a)[2])
+
+    def test_config_move_preserves_new_range(self):
+        b,a=self.phases();b.sy=copy.deepcopy(b.sy);del b.sy.by_name['lbl_8077B8DC']
+        self.assertFalse(self.moved(b,a)[2])
+
+    def test_config_move_requires_unchanged_strong_anchor(self):
+        b,a=self.phases();a.sy=copy.deepcopy(a.sy);rec=a.sy.by_name['sTrackList__8JASTrack'];a.sy.by_name['sTrackList__8JASTrack']=(rec[0]+4,*rec[1:])
+        self.assertFalse(self.moved(b,a)[2])
+
+    def test_config_move_requires_identical_raw_object(self):
+        b,a=self.phases();u=self.units[1];e=a.elfs[u];raw=bytearray(e.raw);sec=e.names.index('.debug');raw[e.s[sec][4]]^=1
+        path=self.dir/'changed-debug.o';path.write_bytes(raw);a.elfs=dict(a.elfs);a.elfs[u]=dc.ELF(path)
+        self.assertFalse(self.moved(b,a)[2])
+
+    def changed_flow(self,p,kind):
+        u=self.units[1];e=p.elfs[u];raw=bytearray(e.raw);f=next(s for s in e.syms if s['name']=='init__8JASTrackFv')
+        at=f['off']+0xfc
+        if kind=='call':word=0x48000001
+        elif kind=='write':word=0x38600000
+        else:at=f['off']+0x104;word=0x38640000
+        put32(raw,e.s[f['sec']][4]+at,word);path=self.dir/f'flow-{kind}.o';path.write_bytes(raw)
+        q=copy.copy(p);q.elfs=dict(p.elfs);q.elfs[u]=dc.ELF(path);q.dol=copy.copy(p.dol)
+        # Match the hypothetical original instruction too, isolating register
+        # flow rejection from the separate non-relocated-byte equality check.
+        pc=p.sy.addr(f['name'])+at-f['off'];original=p.dol.word
+        q.dol.word=lambda addr: (word | (original(addr)&0xffff) if kind=='register' else word) if addr==pc else original(addr)
+        return q
+
+    def test_config_high_call_in_between_rejected(self):
+        b,a,t=self.bank_token();self.assertFalse(dp.config_only_high_permissions(self.changed_flow(b,'call'),self.changed_flow(a,'call'),t))
+
+    def test_config_high_register_write_in_between_rejected(self):
+        b,a,t=self.bank_token();self.assertFalse(dp.config_only_high_permissions(self.changed_flow(b,'write'),self.changed_flow(a,'write'),t))
+
+    def test_config_high_different_register_rejected(self):
+        b,a,t=self.bank_token();self.assertFalse(dp.config_only_high_permissions(self.changed_flow(b,'register'),self.changed_flow(a,'register'),t))
+
+    def test_config_high_more_than_eight_instructions_rejected(self):
+        b,a,t=self.bank_token();phases=[]
+        for p in (b,a):
+            u=self.units[1];e=p.elfs[u];raw=bytearray(e.raw);f=next(s for s in e.syms if s['name']=='init__8JASTrackFv')
+            sh=next(s for s in e.s if s[1]==4 and s[7]==f['sec'])
+            at=next(at for at in range(sh[4],sh[4]+sh[5],12) if dc.u32(raw,at)==f['off']+0xfa)
+            put32(raw,at,f['off']+0xde);path=self.dir/'distant-ha.o';path.write_bytes(raw)
+            q=copy.copy(p);q.elfs=dict(p.elfs);q.elfs[u]=dc.ELF(path);phases.append(q)
+        self.assertFalse(dp.config_only_high_permissions(*phases,t))
+
+    def test_sandy_ctor_anchor(self):
+        b,a=self.phases();u=self.units[0];e=b.elfs[u];s=next(s for s in e.syms if s['name']=='__vt__9SandyHand')
+        self.assertEqual(dp.symbol_addr(b,e,u,s),0x8067a4b8)
+        for r in self.rb:
+            if r['layer']!='data' or r['unit']!=u or not dp.bad(r):continue
+            n=next((n for n in self.ra if dp.oracle_key(n)==dp.oracle_key(r) and n['verdict']=='MATCH'),None)
+            if not n:continue
+            old,new=dp.row_relocation(b,r),dp.row_relocation(a,n)
+            if old and new and old[:4]==new[:4] and b.dol.word(r['site'])==new[4][1]:b._proof_allowed_old.add((u,r['site'],old[4]))
+        self.assertTrue(dp.exact_body(b,e,u,s,0x8067a4b8))
+
+    def test_sandy_content_hypothesis_not_an_anchor(self):
+        b,a=self.phases();b.vtable_anchors=dict(b.vtable_anchors);anchor=b.vtable_anchors['__vt__9SandyHand']
+        b.vtable_anchors['__vt__9SandyHand']=(anchor[0],'vtable-content',anchor[2]);dp.prepare_addresses(b,a)
+        e=b.elfs[self.units[0]];s=next(s for s in e.syms if s['name']=='__vt__9SandyHand')
+        self.assertIsNone(dp.symbol_addr(b,e,self.units[0],s));self.assertFalse(dp.independent_name(b,s['name']))
 
 
 class ReportOnlyControls(unittest.TestCase):

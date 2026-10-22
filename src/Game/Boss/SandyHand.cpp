@@ -492,7 +492,7 @@ void SandyHand::init(const JMapInfoIter& rIter) {
         MR::newDifferedDLBuffer(this);
         mScale.x *= -1.0f;
     }
-    initNerve(&NrvSandyHand::SandyHandNrvStop::sInstance, 0);
+    initNerve(&NrvSandyHand::SandyHandNrvWait::sInstance, 0);
     MR::registerDemoSimpleCastAll(this);
     mScaleParam = createScaleParam();
     mScaleController = new AnimScaleController(mScaleParam);

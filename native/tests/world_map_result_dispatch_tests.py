@@ -16,6 +16,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 FAMILIES = {
     'PointWarp': ('WorldMapResultTU19', ['Start', 'Wait', 'End']),
+    'CreateTico': ('WorldMapResultStateCreateTico', ['Close', 'Open', 'Extend', 'WhiteClose', 'WhiteWait', 'WhiteOpen', 'Message', 'CloseEnd', 'End']),
 }
 
 
@@ -49,7 +50,8 @@ def fixture(family):
         code += '{ ' + cls + ' executor; Spine spine(&executor, GET_NERVE(' + cls + ', ' + cls + state + ')); spine.update(); check(std::strcmp(executor.called, "' + state + '") == 0); check(spine.mStep == 1); }\n'
     code += 'std::puts("' + family + ': production nerve dispatch passed"); }\n'
     # Restore the original crossed wrapper as a negative control.
-    wrong = {'PointWarp': ('exeStart();', 'exeEnd();')}[family]
+    wrong = {'PointWarp': ('exeStart();', 'exeEnd();'),
+             'CreateTico': ('exeClose();', 'exeEnd();')}[family]
     assert definitions.count(wrong[0]) == 1
     mutant = code.replace(wrong[0], wrong[1])
     assert mutant != code

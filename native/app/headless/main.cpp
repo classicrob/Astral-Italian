@@ -1,4 +1,6 @@
 #include "replay.hpp"
+#include "keyboard.hpp"
+#include <petari/mods.hpp>
 #include "trace.hpp"
 #include "stage_sync.hpp"
 #include "reload_policy.hpp"
@@ -43,8 +45,8 @@ namespace {
 std::atomic<std::uint64_t> gSourceFrame{UINT64_MAX};
 class Driver {
 public:
-    Driver(H::Replay& replay, H::Trace& trace, H::ActorTraceFiles* actors, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested)
-        : mReplay(replay),mTrace(trace),mActors(actors),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
+    Driver(H::Replay* replay, H::KeyboardScript* keyboard, H::Trace& trace, H::ActorTraceFiles* actors, std::filesystem::path tracePath, unsigned numerator, unsigned denominator, H::StageSyncOptions sync, bool startupRequested)
+        : mReplay(replay),mKeyboard(keyboard),mTrace(trace),mActors(actors),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mSync(std::move(sync)),mStartupRequested(startupRequested),mOwner(std::this_thread::get_id()) {
         mTiming << "frame,vi_count,ticks\n";
         if (!mTiming) throw H::ReplayError("cannot create timing sidecar");
         mThread=std::thread([this]{worker();});
@@ -55,7 +57,7 @@ public:
             auto& d=*static_cast<Driver*>(user);
             if (std::this_thread::get_id()!=d.mOwner || !buffer) throw H::ReplayError("unexpected KPAD reader thread or null buffer");
             PetariNative::HostAllocationScope host;
-            const auto& input=d.mReplay.consume(channel,capacity);
+            const auto& input=d.mReplay->consume(channel,capacity);
             for (std::size_t i=0;i<input.samples.size();++i) buffer[i]=H::decodeSample(input.samples[i]);
             if (error) *error=input.error;
             return input.returned;
@@ -82,7 +84,9 @@ public:
         const auto ticks=OSGetTime();
         if (ticks<0) throw H::ReplayError("negative SDK clock at frame seam");
         const auto viCount=VIGetRetraceCount();
-        mReplay.endFrame();
+        if (mReplay) mReplay->endFrame();
+        const bool keyboardDone = mKeyboard && (!mStartupRequested || L::startupStatus()==L::StartupStatus::Applied) && mKeyboard->step(state);
+        if (mKeyboard && mSourceFrame > 10000) throw H::ReplayError("keyboard script did not finish within 10000 loops");
         const bool wasStarted=mSync.started();
         const auto frame=mSync.select(state,sourceFrame,ticks,viCount,[](std::uint32_t seed) {
             H::setGameRngSeed(seed);
@@ -96,7 +100,7 @@ public:
         if (!wasStarted && mSync.started()) {
             std::ofstream origin(mPath.string()+".sync.json");
             mSync.writeOrigin(origin);
-            mReplay.startInputs();
+            mReplay->startInputs();
         }
         if (frame) {
             mTiming << *frame << ',' << viCount << ',' << ticks << '\n';
@@ -107,7 +111,7 @@ public:
             ++mTraceFrames;
         }
         mSawFrame=true; mAwaitingFrameWait=true;
-        if (mReplay.finished()) {
+        if (keyboardDone || (mReplay && mReplay->finished())) {
             if (mStartupRequested && L::startupStatus()!=L::StartupStatus::Applied)
                 throw H::ReplayError("startup request did not reach Applied before tape completion");
             if (mStartupRequested && !mStartupArrival.observed())
@@ -157,8 +161,8 @@ private:
                     std::fprintf(stderr,"headless: scoped ordered async reload policy activated after source frame %llu; DVD latency not emulated\n",
                         static_cast<unsigned long long>(mSourceFrame-1));
                 }
-                for (unsigned channel=0;channel<4;++channel)
-                    if (const auto* record=mReplay.connection(channel))
+                for (unsigned channel=0;mReplay && channel<4;++channel)
+                    if (const auto* record=mReplay->connection(channel))
                         PetariNative::Input::replayConnection(channel,record->probeError,record->device);
                 P::OS::waitVirtualWork();
                 if (advance) H::advanceDevices(mClock.advance());
@@ -168,7 +172,7 @@ private:
             }
         } catch (const std::exception& e) { fail(e.what()); }
     }
-    H::Replay& mReplay; H::Trace& mTrace; H::ActorTraceFiles* mActors; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0,mSourceFrame=0;
+    H::Replay* mReplay; H::KeyboardScript* mKeyboard; H::Trace& mTrace; H::ActorTraceFiles* mActors; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock; H::StageSync mSync; std::uint64_t mTraceFrames=0,mSourceFrame=0;
     bool mStartupRequested=false; H::StartupArrival mStartupArrival;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
@@ -213,11 +217,13 @@ int main(int argc,char** argv) {
                 actorTrace=true; continue;
             }
             if (key=="--existing-unlocked-user") {existingUnlockedUser=true;continue;}
-            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
+            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--inputs" && key!="--keyboard-script" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
-        for (const char* key:{"--inputs","--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
-        const auto input=external(args.at("--inputs")),disc=external(args.at("--disc")),user=external(args.at("--user")),path=external(args.at("--trace"));
+        for (const char* key:{"--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
+        if (args.count("--inputs") == args.count("--keyboard-script")) throw H::ReplayError("choose --inputs or --keyboard-script");
+        if (args.count("--keyboard-script") && (inputsFromSync || args.count("--sync-stage"))) throw H::ReplayError("keyboard scripts start after steady play; stage-sync is for KPAD replay");
+        const auto disc=external(args.at("--disc")),user=external(args.at("--user")),path=external(args.at("--trace"));
         for (const auto& output : {path, std::filesystem::path(path.string()+".complete"),std::filesystem::path(path.string()+".timing.csv"),std::filesystem::path(path.string()+".sync.json")})
             if (std::filesystem::exists(output) || std::filesystem::is_symlink(output)) throw H::ReplayError("refusing to overwrite trace artifacts");
         if (existingUnlockedUser && !PetariNative::CompleteSave::isIsolatedUser(user))
@@ -225,9 +231,18 @@ int main(int argc,char** argv) {
         if (!existingUnlockedUser && std::filesystem::exists(user) && !std::filesystem::is_empty(user))
             throw H::ReplayError("--user must be a fresh isolated directory");
         std::filesystem::create_directories(user);
-        std::ifstream source(input,std::ios::binary); if (!source) throw H::ReplayError("cannot open input tape");
+        std::unique_ptr<H::Replay> replay;
+        std::unique_ptr<H::KeyboardScript> keyboard;
+        if (args.count("--inputs")) {
+            std::ifstream source(external(args.at("--inputs")),std::ios::binary);
+            if (!source) throw H::ReplayError("cannot open input tape");
+            replay=std::make_unique<H::Replay>(source,inputsFromSync);
+        } else {
+            keyboard=std::make_unique<H::KeyboardScript>(external(args.at("--keyboard-script")).string());
+            std::string error;
+            if (!PetariNative::Mods::load(user / "mods.txt", &error)) throw H::ReplayError(error);
+        }
         if (inputsFromSync && !args.count("--sync-stage")) throw H::ReplayError("--inputs-from-sync requires --sync-stage");
-        H::Replay replay(source,inputsFromSync);
         const auto epoch=integer(args.at("--epoch-ticks"));
         if (epoch>static_cast<std::uint64_t>(INT64_MAX)) throw H::ReplayError("epoch outside SDK time range");
         auto n=args.count("--rate-numerator")?integer(args.at("--rate-numerator")):60000;
@@ -266,10 +281,10 @@ int main(int argc,char** argv) {
         H::Trace trace(output);
         std::unique_ptr<H::ActorTraceFiles> actors;
         if (actorTrace) actors=std::make_unique<H::ActorTraceFiles>(path);
-        Driver driver(replay,trace,actors.get(),path,n,d,std::move(sync),startupRequested); gDriver=&driver;
+        Driver driver(replay.get(),keyboard.get(),trace,actors.get(),path,n,d,std::move(sync),startupRequested); gDriver=&driver;
         gSourceFrame.store(0,std::memory_order_relaxed);
-        PetariNative::Input::setClock(PetariNative::Input::Clock::Manual);
-        PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});
+        PetariNative::Input::setClock(keyboard ? PetariNative::Input::Clock::Alarm : PetariNative::Input::Clock::Manual);
+        if (replay) PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});
         P::VI::setClock(P::VI::Clock::External); P::VI::setWaitDriver({Driver::viWait,&driver});
         H::configurePlatform(disc.c_str(),user.c_str());
         if (petari_kpad_replay_hook_version()!=1) throw H::ReplayError("incompatible KPAD source hook");

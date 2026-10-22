@@ -1102,6 +1102,12 @@ void MarioActor::updateSwingAction() {
         }
         if (!YoshiParam::fn_8041BD50()) return;
     }
+#ifdef GALAXY_NATIVE
+    if (std::getenv("PETARI_CAPPY_TRACE") != nullptr && isJumping()) {
+        std::fprintf(stderr, "[cappy] air spin request action=%d spent=%d lock=%d\n", mMario->_430,
+                     static_cast<int>((mMario->mMovementStates.mHighWord >> 20) & 1U), mMario->_428);
+    }
+#endif
     if (!fn_803C3260()) return;
     if (mMario->isPlayerModeYoshi() && mYoshiHolder->fn_8041BB30()) mMario->fn_803B14E0();
     if (mMario->isPlayerModeCloud() && !MR::isSpinCloudBlockGroupEmpty()) mMario->mMovementStates.mHighWord &= 0xFFEFFFFFU;

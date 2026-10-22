@@ -44,7 +44,12 @@ No donor files or game assets are changed.
   borrowed animation (which Galaxy reads as a spin already running) is held
   until the cap has left the hand (frame 12), then starts the game's own Spin
   (`petariCappyGroundSpinOverThrow`); no forced status or swing edge. Run test (needs the disc):
-  `native/tests/cappy_spin_switch_tests.py`.
+  `native/tests/cappy_spin_switch_tests.py` (add `--headless` with a `petari_headless` executable for CPU-only keyboard runs).
+- A cap bounce restores Galaxy's air Spin allowance as well as the Odyssey dive.
+  Ground pound spends this allowance in `cancelTornadoJump` independently of the
+  jump type; `petariOdysseyCapBounce` clears that spent flag for the new airborne
+  phase. A second throw preserves the restored allowance. Vanilla movement and
+  Spin limits remain unchanged when Cappy is off.
 - The unported Odyssey orbit camera keeps its own absent observer. Cappy's
   observers now come from the real game-side implementation.
 

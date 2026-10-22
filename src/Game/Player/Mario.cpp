@@ -291,6 +291,10 @@ void petariOdysseyCapBounce(Mario* pMario) {
         m._424 = 0;
     }
     m._430 = 0;
+    // A cap bounce starts a fresh airborne phase. Ground pound (including the
+    // one before a dive) calls cancelTornadoJump, which spends Galaxy's air
+    // Spin separately from _430. Restore that move as landing does (stopJump).
+    m.mMovementStates.mHighWord &= ~(1U << 20);
     // The dive holds the leap's last frame at rate 0 (procJump): play on.
     if (XanimeFrameCtrl* ctrl = m.getAnimator()->getXanimePlayer()->getFrameCtrl(); ctrl != nullptr) {
         ctrl->setRate(1.0f);
@@ -7828,6 +7832,11 @@ void Mario::trySpinJump(u8 a1) {
         return;
     }
 
+#ifdef GALAXY_NATIVE
+    if (std::getenv("PETARI_CAPPY_TRACE") != nullptr) {
+        std::fprintf(stderr, "[cappy] mario spin (air) starts\n");
+    }
+#endif
     _430 = 0x8;
     _42A = a1 + 1;
 

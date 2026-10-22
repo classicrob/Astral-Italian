@@ -1,4 +1,8 @@
 #!/bin/sh
+# Dispatch mode has its own fail-closed contract; the ordinary path is unchanged.
+if [ "${DISPATCH_PROOF:-}" = 1 ]; then
+  exec python3 tools/team/dispatchlanding.py hook "$@"
+fi
 # Prove that source edits leave every Wii object unchanged. Each phase is a CLEAN object build (all
 # build/SB4E01/src objects deleted, then the full default build), so headers, .inc files and all their
 # dependents are recompiled by construction; the two complete object lists (paths and hashes) must be
@@ -136,7 +140,7 @@ printf '%s\n' "$ctl" > "$out/control-source.txt"
 
 clean_build() {  # $1 = phase name
   find build/SB4E01/src -name '*.o' -delete
-  nice -n 10 sh tools/team/nj.sh -j 4 -k 0 > "$out/build-$1.log" 2>&1; rc=$?
+  nice -n 10 sh tools/team/nj.sh -j "${HOOKPROOF_JOBS:-4}" -k 0 > "$out/build-$1.log" 2>&1; rc=$?
   find build/SB4E01/src -name '*.o' -print0 | xargs -0 shasum | sed 's|  build/SB4E01/| |' | sort -k2 > "$out/$1.full.sha"
   python3 tools/team/objhash.py build/SB4E01/src > "$out/$1.sha" || echo 99
   echo "$rc"
@@ -156,10 +160,10 @@ if [ -n "$ctl" ]; then
   cp "$ctl" "$out/control.bak" || exit 3
   control_active=1
   printf '\nextern const int hookproof_control_marker = 0x1234;\n' >> "$ctl" || exit 3
-  nice -n 10 ninja -j 4 "$ctlo" > "$out/build-control.log" 2>&1; rc_c=$?
+  nice -n 10 ninja -j "${HOOKPROOF_JOBS:-4}" "$ctlo" > "$out/build-control.log" 2>&1; rc_c=$?
   h1=$(control_hash) || h1=
   restore_control || exit 3
-  nice -n 10 ninja -j 4 "$ctlo" >> "$out/build-control.log" 2>&1; rc_r=$?
+  nice -n 10 ninja -j "${HOOKPROOF_JOBS:-4}" "$ctlo" >> "$out/build-control.log" 2>&1; rc_r=$?
   h2=$(control_hash) || h2=
   [ "$rc_c" -eq 0 ] && [ "$rc_r" -eq 0 ] && [ -n "$h0" ] && [ -n "$h1" ] && [ -n "$h2" ] \
     && [ "$h1" != "$h0" ] && [ "$h2" = "$h0" ] && ctl_ok=1

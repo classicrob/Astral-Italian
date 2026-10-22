@@ -1,4 +1,8 @@
 #!/bin/sh
+# Dispatch mode has its own fail-closed contract; the ordinary path is unchanged.
+if [ "${DISPATCH_PROOF:-}" = 1 ]; then
+  exec python3 tools/team/dispatchlanding.py land "$@"
+fi
 # Land a batch of source edits with a proof that is current at the moment of landing: take the landing lock
 # FIRST (main cannot move), rebase onto main, prove every Wii object unchanged with two clean builds
 # (tools/team/hookproof.sh main HEAD), then land with both locks still held (the landing build must not overlap

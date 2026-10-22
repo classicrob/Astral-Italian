@@ -77,7 +77,7 @@ void Candlestand::init(const JMapInfoIter& rIter) {
     info.setupHitSensorParam(8, sensorRange, sensorOffset);
     f32 clippingRadius = ::getParam(mObjectName)->mClippingRadius;
     info.setupClippingRadius(clippingRadius);
-    info.setupNerve(GET_NERVE(Candlestand, HostTypeBurn));
+    info.setupNerve(GET_NERVE(Candlestand, HostTypeEmit));
     info.setupAffectedScale();
     info.setupSound(4, "CandleStand");
     initialize(rIter, info);

@@ -1,10 +1,10 @@
 #include "Game/MapObj/RepeatBlock.hpp"
 #include "Game/Util.hpp"
 namespace NrvRepeatBlock {
-    class RepeatBlockNrvTailWait : public Nerve {
+    class RepeatBlockNrvTailAppear : public Nerve {
     public:
-        virtual void execute(Spine*) const {}
-        static RepeatBlockNrvTailWait sInstance;
+        virtual void execute(Spine* spine) const { reinterpret_cast<RepeatBlockTail*>(spine->mExecutor)->exeAppear(); }
+        static RepeatBlockNrvTailAppear sInstance;
     };
 }
 RepeatBlockHead::RepeatBlockHead(const char* name,RepeatBlock* parent) : LiveActor(name),mParent(parent),mAtoms(nullptr) {
@@ -54,5 +54,5 @@ void RepeatBlockHead::updateAtomPositions() {
     MR::makeMtxTR(mBaseMtx,mPosition,mRotation);
 }
 RepeatBlockTail::RepeatBlockTail(RepeatBlock* parent,const char* name) : RepeatBlockHead(name,parent),mAppearDir(0),mMoveDir(0),mAppearProgress(0.0f),mAppearStep(0) {
-    initNerve(&NrvRepeatBlock::RepeatBlockNrvTailWait::sInstance);
+    initNerve(&NrvRepeatBlock::RepeatBlockNrvTailAppear::sInstance);
 }

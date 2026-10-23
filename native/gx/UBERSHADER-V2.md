@@ -235,3 +235,51 @@ in each case. Same-app image comparison passes: all three int3 aggregate differe
 match int1 (table above), with identical 970-row trajectories and 15 captures per
 run. Evidence is `diff-int3-{yoshi,fluffy,ship}/diff.json`. Further workload profiling
 uses a separate branch and private app, never this immutable int3 app.
+
+
+## Int4: two-tier readiness safety net
+
+Renderer d26ec34c provides `PetariUberKeys {generic, fast}` and
+`PetariUberTier::{Generic,Fast}`. The existing two-argument `key`/`prepare`
+functions remain preferred-Fast wrappers, with three-argument tier overloads.
+Generic clears the identity/program bits, restoring int2's 293 count/fog/indirect
+keys. The 337 Fast keys share ten with Generic, for 620 distinct keys. Creation
+claims and publishes under the actual tier key, with a saved/restored thread-local
+shader tier. Both tiers share the unchanged 4768-byte uniform layout.
+
+A specialised reference associates both keys. Lookup selects READY Fast, else
+Generic; draw and complete-scene readiness use that same choice. A pending upgrade
+cannot introduce a wait when Generic is ready. When neither is ready, the previous
+wait/skip behavior remains. A draw also enqueues/promotes its upgrade when only
+Generic is ready. Aliased keys queue once as Generic.
+
+SOL 2 scheduler b92e6e78 is integrated as a9462997. Before FileSelect recording,
+two workers prepare front-end Generic only. After that recording, all four workers
+use this order: draw-blocking specialised work, active-stage Generic, active-stage
+Fast, front-end/demand Generic, unrelated Generic, remaining Fast, then speculative
+specialised backlog. The scheduler exposes per-tier readiness and completion.
+
+Exactly one final `[gx uber frame]` event is emitted at encoder packet end when it
+used any fallback, appending `generic=0|1 fast=0|1`. A mixed packet has both flags.
+`[gx uber frames]` appends inclusive `generic_frames`, `fast_frames`, `mixed_frames`;
+`generic + fast - mixed = fallback + forced`. `[gx uber tiers]` supplies cumulative
+`generic_draws` and `fast_draws`. The final packet does not depend on a subsequent
+begin to flush its flags. GPU CSV columns remain
+`frame,gpu_ms,gx_ms,timestamp_status`, with `packet ID = CSV frame + 1`.
+
+The frozen int4 app is `uber-v2-build/evidence/a9462997-Petari.app`, executable
+SHA256 `142014c403dbecd140ece7b33e2e3a4a105857ffabf7ab29ead58cc736ef44c0`,
+private ID `dev.petari.Petari.perfuberv2int4`. Deep/strict code signing verifies;
+full app/test build, 300 WGSL variants, specialised regression, classifier/key
+checks, 14 scheduler scenarios and actual tier-selection/packet-accounting tests
+pass. Same-app cold and image gates are still being collected. This preparation
+safety net by itself does not make Generic rendering cheap enough for the GPU gate.
+
+A separate prof3 app (int3 renderer plus diagnostic instrumentation) completed
+same-binary stationary Fluffy forced-all controls. Every last-500 valid GPU sample
+is proven forced and all 970-row input traces match: full 22.303 ms, remaining
+argument dispatch removed 17.077 ms, operation dispatch removed 20.176 ms, texture
+samples removed 18.331 ms, lighting removed 22.001 ms. These diagnostics change the
+image and are non-additive. The largest remaining removable component is still
+argument dispatch; adding vertex-lighting variants is not supported by this result.
+Evidence: `subfeatures3.json` and `measure-subfeatures3.sh`.

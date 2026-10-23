@@ -27,6 +27,7 @@ else:
   text+='\nstatic constexpr const char* petariUberWgsl = R"UBER('+ (here/'ubershader.wgsl').read_text()+')UBER";\n'
   text+='\n'+(here/'ubershader_source.inc').read_text()
  if kind=='frame':
+  replace('  begin_pipeline_frame();','  gx::petari_uber_set_recording_frame(frame.frameId);\n  begin_pipeline_frame();')
   replace('    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);', '    gx::petari_uber_begin_frame(g_framePackets[frameSlot].frameId);\n    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);')
  if kind=='command_processor':
   replace('  gfx::Range uniformRange{};','  gfx::Range uniformRange{};\n  gfx::Range uberUniformRange{};')
@@ -56,6 +57,35 @@ else:
   replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
  if kind=='cache':
   text=f'#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
+  # Emit exact pending key membership before a complete-scene wait. Normal
+  # pipeline diagnostics do not retain that vector after the frame completes.
+  replace('  if (ready()) return;\n  petariPipelineWaiters.fetch_add(1, std::memory_order_relaxed);','''  if (ready()) return;
+  if (gx::petari_uber_enabled() && PetariPipeline::diagnostics()) {
+    auto unique=keys;std::sort(unique.begin(),unique.end());unique.erase(std::unique(unique.begin(),unique.end()),unique.end());
+    for(auto key:unique) if(!g_pipelines.contains(key)) {
+      HashType configHash=0,shaderHash=0;const char* reason="unknown_config";unsigned fog=0,indirect=0,tev=0;
+      auto sample=petariPipelineSamples.find(key);
+      if(sample!=petariPipelineSamples.end()) {
+        configHash=sample->second.configKey;auto known=g_knownPipelines.find(configHash);
+        if(known!=g_knownPipelines.end()) {
+          reason="non_gx";
+          if(known->second.type==ShaderType::GX) {
+            const auto& c=std::get<gx::PipelineConfig>(known->second.config).shaderConfig;
+            shaderHash=xxh3_hash(c);reason=gx::petari_uber_reason(c);fog=c.fogType;indirect=c.numIndStages;tev=c.tevStageCount;
+          }
+        }
+      }
+      const auto uber=gx::petari_uber_lookup(key);CompiledPipeline available;
+      const bool fallbackReady=uber && gx::petari_uber_ready(uber,available);
+      std::fprintf(stderr,"[gx uber wait] frame=%llu key=%016llx config=%016llx shader=%016llx reason=%s fallback_key=%016llx fallback_ready=%u fog=%u indirect=%u tev=%u\\n",
+        (unsigned long long)gx::petari_uber_recording_frame(),(unsigned long long)key,(unsigned long long)configHash,(unsigned long long)shaderHash,reason,(unsigned long long)uber,fallbackReady,fog,indirect,tev);
+    }
+  }
+  petariPipelineWaiters.fetch_add(1, std::memory_order_relaxed);''')
+  replace('  if (!done) {\n    size_t pending = 0;','''  if (gx::petari_uber_enabled() && PetariPipeline::diagnostics())
+    std::fprintf(stderr,"[gx uber wait end] frame=%llu wait_ms=%.3f keys=%zu completed=%u\\n",(unsigned long long)gx::petari_uber_recording_frame(),PetariPipeline::milliseconds(waited),keys.size(),done);
+  if (!done) {
+    size_t pending = 0;''')
   # Covered draws with a boot-ready fallback queue their specialised pipeline without waiting.
   anchor='''  const PetariPipeline::BoundedDrawScope petariBoundedDraw{'''
   replace(anchor,'''  if (gx::petari_uber_enabled() && std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered") == 0) {

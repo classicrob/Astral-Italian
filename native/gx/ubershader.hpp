@@ -15,6 +15,8 @@ void petari_uber_boot();
 void petari_uber_report();
 void petari_uber_note(const ShaderConfig&);
 void petari_uber_begin_frame(uint64_t);
+void petari_uber_set_recording_frame(uint64_t);
+uint64_t petari_uber_recording_frame();
 void petari_uber_draw(bool fallback, bool forced, bool missing);
 extern thread_local bool petariBuildingUber;
 uint32_t petari_uber_variant(const ShaderConfig&);

@@ -61,6 +61,9 @@ void petari_uber_note(const ShaderConfig& c) {
   const auto key=xxh3_hash(c); std::lock_guard lock(uberMutex);
   if(uberConfigs.emplace(key,covered).second) std::fprintf(stderr,"[gx uber config] config=%016llx covered=%u reason=%s\n",(unsigned long long)key,covered,reason);
 }
+static thread_local uint64_t petariUberRecordingFrame=0;
+void petari_uber_set_recording_frame(uint64_t frame) {petariUberRecordingFrame=frame;}
+uint64_t petari_uber_recording_frame() {return petariUberRecordingFrame;}
 void petari_uber_begin_frame(uint64_t frame) {
   if(!petari_uber_enabled()) return;
   uberEncodingFrame=frame;uberFrameUsed=false;++uberFrames;

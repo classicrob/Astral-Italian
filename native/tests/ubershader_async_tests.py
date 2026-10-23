@@ -81,8 +81,15 @@ bool petari_uber_enabled() { return enabled; }
 bool petari_uber_all() { return false; }
 const char* petari_uber_reason(const ShaderConfig& c) { return c.covered?"covered":"unsupported"; }
 bool petari_cached_shader_valid(const ShaderConfig&, uint64_t) { return true; }
-uint64_t petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
- return (uint64_t(c.fixed)<<32) | (uint64_t(c.shaderConfig.variant)<<8) | l.key;
+enum class PetariUberTier { Generic, Fast };
+struct PetariUberKeys { gfx::PipelineRef generic, fast; };
+uint64_t petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l,PetariUberTier tier) {
+ return (uint64_t(c.fixed)<<32) | (uint64_t(c.shaderConfig.variant)<<8) | l.key |
+     (tier==PetariUberTier::Fast && c.shaderConfig.variant ? uint64_t(1)<<60 : 0);
+}
+uint64_t petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) { return petari_uber_key(c,l,PetariUberTier::Fast); }
+PetariUberKeys petari_uber_keys(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
+ return {petari_uber_key(c,l,PetariUberTier::Generic),petari_uber_key(c,l,PetariUberTier::Fast)};
 }
 std::mutex uberMutex;
 std::map<gfx::PipelineRef,gfx::CompiledPipeline> uberPipelines;
@@ -91,11 +98,14 @@ std::map<gfx::PipelineRef,UberPreparation> uberPreparation;
 std::map<gfx::PipelineRef,gfx::PipelineRef> associations;
 std::atomic<uint64_t> uberMissing{0},uberPendingDraws{0},uberFailedDraws{0},uberUnknownDraws{0},uberSkippedUnready{0};
 thread_local bool petariBuildingUber=false;
+thread_local PetariUberTier petariBuildingUberTier=PetariUberTier::Fast;
+std::atomic<unsigned> genericBuilds{0},fastBuilds{0};
 thread_local double petariUberShaderMs=0;
 std::atomic<unsigned> builds{0};
 std::atomic<bool> holdBuild=false,releaseBuild=false;
 gfx::CompiledPipeline create_pipeline(const PipelineConfig& c,const gfx::RenderTargetLayout&) {
  ++builds;
+ if(petariBuildingUberTier==PetariUberTier::Generic)++genericBuilds;else ++fastBuilds;
  if(holdBuild) while(!releaseBuild) std::this_thread::yield();
  if(c.shaderConfig.throws) throw std::runtime_error("injected failure");
  return {.main=true};
@@ -117,23 +127,35 @@ int main(int argc,char** argv) {
  gx::PipelineConfig c; gfx::RenderTargetLayout l;
  if(test=="claim") {
   gx::holdBuild=true;
-  std::thread first([&]{gx::petari_uber_prepare(c,l);});
+  std::thread first([&]{gx::petari_uber_prepare(c,l,gx::PetariUberTier::Generic);});
   while(!gx::builds) std::this_thread::yield();
   gfx::CompiledPipeline out;
-  CHECK(!gx::petari_uber_ready(gx::petari_uber_key(c,l),out));
+  CHECK(!gx::petari_uber_ready(gx::petari_uber_key(c,l,gx::PetariUberTier::Generic),out));
   std::vector<std::thread> more;
-  for(int i=0;i<12;++i) more.emplace_back([&]{gx::petari_uber_prepare(c,l);});
+  for(int i=0;i<12;++i) more.emplace_back([&]{gx::petari_uber_prepare(c,l,gx::PetariUberTier::Generic);});
   for(auto& t:more)t.join();
   CHECK(gx::builds==1);
   gx::releaseBuild=true; first.join();
-  CHECK(gx::petari_uber_ready(gx::petari_uber_key(c,l),out));
-  CHECK(!gx::petariBuildingUber);
+  CHECK(gx::petari_uber_ready(gx::petari_uber_key(c,l,gx::PetariUberTier::Generic),out));
+  CHECK(!gx::petariBuildingUber);CHECK(gx::petariBuildingUberTier==gx::PetariUberTier::Fast);
+ } else if(test=="tier_claim") {
+  gx::holdBuild=true;
+  std::thread generic([&]{gx::petari_uber_prepare(c,l,gx::PetariUberTier::Generic);});
+  std::thread fast([&]{gx::petari_uber_prepare(c,l,gx::PetariUberTier::Fast);});
+  while(gx::builds!=2)std::this_thread::yield();
+  std::vector<std::thread> more;
+  for(int i=0;i<12;++i)more.emplace_back([&,i]{gx::petari_uber_prepare(c,l,i%2 ? gx::PetariUberTier::Generic : gx::PetariUberTier::Fast);});
+  for(auto& t:more)t.join();CHECK(gx::builds==2);
+  gx::releaseBuild=true;generic.join();fast.join();
+  gfx::CompiledPipeline out;const auto keys=gx::petari_uber_keys(c,l);
+  CHECK(gx::petari_uber_ready(keys.generic,out) && gx::petari_uber_ready(keys.fast,out));
+  CHECK(gx::genericBuilds==1 && gx::fastBuilds==1);
  } else if(test=="failed") {
-  c.shaderConfig.throws=true; gx::petari_uber_prepare(c,l);gx::petari_uber_prepare(c,l);
-  gfx::CompiledPipeline out;const auto key=gx::petari_uber_key(c,l);
+  c.shaderConfig.throws=true; gx::petari_uber_prepare(c,l,gx::PetariUberTier::Generic);gx::petari_uber_prepare(c,l,gx::PetariUberTier::Generic);
+  gfx::CompiledPipeline out;const auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);
   CHECK(gx::builds==1); CHECK(!gx::petari_uber_ready(key,out));
   CHECK(gx::uberPreparation.at(key)==gx::UberPreparation::Failed);
-  CHECK(!gx::petariBuildingUber);
+  CHECK(!gx::petariBuildingUber);CHECK(gx::petariBuildingUberTier==gx::PetariUberTier::Fast);
  } else if(test=="variant") {
   gfx::petari_uber_queue_variant(c,l);
   gfx::petari_uber_queue_variant(c,l);
@@ -145,25 +167,27 @@ int main(int argc,char** argv) {
   auto one=take(2);auto two=take(3);CHECK(one && two);one();two(); // release borrows all workers' speculative slots
   CHECK(gx::builds==2);CHECK(gfx::petariUberBoot.completed.size()==2);
  } else if(test=="priority") {
+  gfx::petariUberTitleReleased=true;
   gfx::petari_uber_queue_variant(c,l,3);
   auto d=c;d.shaderConfig.variant=2;gfx::petari_uber_queue_variant(d,l,3);
   gfx::petari_uber_queue_variant(d,l,1); // promote existing job, don't duplicate
   CHECK(gfx::petariUberJobs.size()==2);
-  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l));
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic));
   gfx::g_pipelineQueue.push_back({9});gfx::petariPipelineSamples[9].drawBlocking=true;
   CHECK(!take()); // a real draw gets the reserved slot first
   gfx::g_pipelineQueue.clear();auto run=take();CHECK(run);run();
-  CHECK(gfx::petariUberBoot.completed.contains(gx::petari_uber_key(d,l)));
+  CHECK(gfx::petariUberBoot.completed.contains(gx::petari_uber_key(d,l,gx::PetariUberTier::Generic)));
  } else if(test=="stage") {
   auto d=c;d.shaderConfig.variant=2;
   gfx::petari_uber_queue_variant(c,l,3);gfx::petari_uber_queue_variant(d,l,3);
   gfx::petari_uber_schedule_stage(d,l,l,"YosshiHomeGalaxy");
-  CHECK(gfx::petariUberJobs.size()==2);
-  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l));
-  CHECK(gfx::petariUberJobs.front().priority==2);
+  CHECK(gfx::petariUberJobs.size()==3);
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic));
+  CHECK(gfx::petariUberJobs.front().priority==1);
   CHECK(gfx::petariUberBoot.titleKeys.empty()); // active-stage keys are not relabelled title keys
   gfx::petari_uber_schedule_draw(c,l);
-  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(c,l)); // an actual draw promotes above stage lookahead
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic)); // active stage stays above other demand
+  auto job=take();CHECK(!job); // active-stage work is held until the title release
  } else if(test=="boot") {
   gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
@@ -176,6 +200,33 @@ int main(int argc,char** argv) {
   gfx::petari_uber_async_stop();CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
   gx::petari_uber_boot();CHECK(gfx::petariUberJobs.size()==1); // generation can restart after shutdown
   CHECK(!gfx::petariUberTitleReleased && !take(2)); // release gate resets each boot
+ } else if(test=="front_only") {
+  auto d=c;d.shaderConfig.variant=2;
+  gfx::petari_uber_queue_variant(d,l); // non-front-end generic is held
+  gfx::petari_uber_queue_pair(c,l,1,true); // front-end generic + fast
+  CHECK(gfx::petariUberJobs.size()==3);CHECK(!take(2));
+  auto job=take();CHECK(job);job();CHECK(gx::genericBuilds==1 && gx::fastBuilds==0);
+  CHECK(!gfx::petari_uber_worker_ready(0) && !take()); // held jobs cannot keep the CV predicate true
+  gfx::petariActiveStage="FileSelect";gfx::petari_uber_observe_title(true,true);
+  job=take(3);CHECK(job);job(); // other generic precedes remaining fast
+  CHECK(gx::genericBuilds==2 && gx::fastBuilds==0);
+  job=take(2);CHECK(job);job();CHECK(gx::fastBuilds==1);
+  CHECK(gx::petariBuildingUberTier==gx::PetariUberTier::Fast);
+ } else if(test=="tiers") {
+  gfx::petariUberTitleReleased=true;
+  auto d=c;d.shaderConfig.variant=2;
+  gfx::petari_uber_queue_pair(c,l,1,true); // front-end
+  gfx::petari_uber_schedule_stage(d,l,l,"YosshiHomeGalaxy");
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(d,l).generic);
+  auto job=take();CHECK(job);job();
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(d,l).fast); // active fast precedes front-end generic
+  job=take();CHECK(job);job();CHECK(gx::genericBuilds==1 && gx::fastBuilds==1);
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
+  gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy"); // old stage jobs lose their priority
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
+ } else if(test=="alias") {
+  c.shaderConfig.variant=0;gfx::petari_uber_queue_pair(c,l,1,true);
+  CHECK(gfx::petariUberJobs.size()==1 && gfx::petariUberBoot.genericKeys.size()==1 && gfx::petariUberBoot.fastKeys.empty());
  } else if(test=="no_workers") {
   gfx::g_hasPipelineThread=false;gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
@@ -183,7 +234,8 @@ int main(int argc,char** argv) {
   gx::enabled=false;gx::petari_uber_boot();
   CHECK(!gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
  } else if(test=="wake") {
-  const auto key=gx::petari_uber_key(c,l);gx::associations[99]=key;
+  gfx::petariUberTitleReleased=true;
+  const auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);gx::associations[99]=key;
   gfx::petari_uber_queue_variant(c,l);
   std::atomic<bool> waiting=false,ready=false;
   std::thread waiter([&]{ std::unique_lock lock{gfx::g_pipelineMutex};waiting=true;
@@ -192,10 +244,10 @@ int main(int argc,char** argv) {
   auto run=take();CHECK(run);run();waiter.join();CHECK(ready);
   CHECK(!gfx::g_pipelines.contains(99)); // wake came from the fallback, not the specialised pipeline
  } else if(test=="unready") {
-  auto key=gx::petari_uber_key(c,l);gx::petari_uber_scheduled(key);
+  auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);gx::petari_uber_scheduled(key);
   gx::petari_uber_not_ready(key,false);gx::petari_uber_not_ready(key,true);
   CHECK(gx::uberMissing==1);CHECK(gx::uberPendingDraws==1);CHECK(gx::uberSkippedUnready==1);
-  c.shaderConfig.throws=true;gx::petari_uber_prepare(c,l);gx::petari_uber_not_ready(key,false);
+  c.shaderConfig.throws=true;gx::petari_uber_prepare(c,l,gx::PetariUberTier::Generic);gx::petari_uber_not_ready(key,false);
   CHECK(gx::uberMissing==2);CHECK(gx::uberFailedDraws==1);
  }
  return 0;
@@ -212,7 +264,7 @@ class Async(unittest.TestCase):
         queue = (GX / "pipeline_runtime.inc").read_text()
         queue = queue[queue.index("struct PetariUberJob"):queue.index("// Recent compile cost")]
         source = PREFIX + "\nnamespace aurora::gx {\n" + "\n".join(function(runtime, sig) for sig in (
-            "bool petari_uber_ready(", "void petari_uber_prepare(", "void petari_uber_scheduled(",
+            "bool petari_uber_ready(", "void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l,PetariUberTier tier)", "void petari_uber_scheduled(",
             "void petari_uber_not_ready(")) + "\n}\nnamespace aurora::gfx {\n" + queue + "\n}\n"
         source += '#include "ubershader_boot.inc"\n' + TESTS
         cpp = Path(cls.tmp.name) / "test.cpp"
@@ -221,7 +273,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "alias"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

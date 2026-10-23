@@ -70,15 +70,21 @@ constexpr unsigned kPetariOnDemandWorkers = 2;
 // Shutdown joins those workers before dropping queued callbacks.
 struct PetariUberJob {
   PipelineRef key = 0; // zero is an enumeration task, never a compiled variant
-  unsigned priority = 3; // enumeration, front-end/drawn, current-stage, remaining variants
+  unsigned priority = 4; // enum, active generic/fast, front-end generic, other generic/fast
   std::function<void()> run;
+  gx::PetariUberTier tier = gx::PetariUberTier::Generic;
+  bool frontEnd = false, demand = false;
 };
 static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
 static bool petariUberTitleReleased = false; // g_pipelineMutex; reset each boot
+static bool petari_uber_job_eligible(const PetariUberJob& job) {
+  return petariUberTitleReleased || !job.key ||
+      (job.frontEnd && job.tier == gx::PetariUberTier::Generic);
+}
 static bool petari_uber_worker_ready(unsigned workerIndex) {
   const auto limit = petariUberTitleReleased ? petariActiveWorkers :
       std::min(petariActiveWorkers, kPetariOnDemandWorkers);
-  return workerIndex < limit && !petariUberJobs.empty();
+  return workerIndex < limit && std::any_of(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
   if (!petari_uber_worker_ready(workerIndex)) return false;
@@ -87,8 +93,9 @@ static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& jo
     const auto it = petariPipelineSamples.find(g_pipelineQueue.front().hash);
     if (it != petariPipelineSamples.end() && it->second.drawBlocking) return false;
   }
-  job = std::move(petariUberJobs.front().run);
-  petariUberJobs.pop_front();
+  const auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
+  job = std::move(at->run);
+  petariUberJobs.erase(at);
   return true;
 }
 static void petari_uber_schedule_known();

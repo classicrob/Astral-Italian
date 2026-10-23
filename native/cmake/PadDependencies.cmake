@@ -2,7 +2,10 @@ include_guard(GLOBAL)
 include(FetchContent)
 
 set(PETARI_LIBUSB_VERSION "1.0.30")
-set(PETARI_LIBUSB_URL "https://github.com/libusb/libusb/releases/download/v1.0.30/libusb-1.0.30.tar.bz2")
+# Offline/pinned builds may point this at a local copy (file:///...); the SHA256 below is verified either way.
+if(NOT PETARI_LIBUSB_URL)
+    set(PETARI_LIBUSB_URL "https://github.com/libusb/libusb/releases/download/v1.0.30/libusb-1.0.30.tar.bz2")
+endif()
 set(PETARI_LIBUSB_SHA256 "fea36f34f9156400209595e300840767ab1a385ede1dc7ee893015aea9c6dbaf")
 set(PETARI_SDL3_REF "refs/tags/release-3.4.10")
 get_filename_component(_petari_native "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)

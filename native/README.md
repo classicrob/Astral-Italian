@@ -209,6 +209,26 @@ to a fresh release extraction. Pass `--sdl-archive /path/to/release-3.4.10.tar.g
 to use a local archive. With `--executable` and `--library`, it also verifies
 Mach-O dependencies and runs clean-environment present/absent library checks.
 
+**Offline or pinned builds.** FetchContent applies the SDL patches only to a
+tree it downloads itself; a tree given with `FETCHCONTENT_SOURCE_DIR_SDL` is used
+as is, and the configure then fails with "SDL patch was not applied". Make that
+tree with the same patch driver instead of copying a hand-patched one:
+
+```sh
+native/tools/prepare_sdl_tree.sh <release-3.4.10 SDL tree> <new patched dir>
+cmake ... -DFETCHCONTENT_SOURCE_DIR_SDL=<new patched dir> \
+  -DPETARI_LIBUSB_URL=file:///path/to/libusb-1.0.30.tar.bz2
+```
+
+The SDL input may be the pristine release tarball's contents or the tree Aurora
+populated (it already carries Aurora's two Android patches). `PETARI_LIBUSB_URL`
+(optional) points the libusb download at a local copy; its SHA256 is verified
+either way. Re-run `prepare_sdl_tree.sh` whenever `native/gx/sdl-patches/`
+changes (the configure compares the stamps with the patch files). After a build,
+`native/tools/check_app_bundle.py <Petari.app>` confirms the bundle: libusb in
+`Contents/Frameworks`, install name, no Homebrew dependency, rpath, licences,
+signatures, and that both SDL patches are compiled into the executable.
+
 ## Resource validation
 
 The default build also produces `petari_asset_check`. It validates big-endian

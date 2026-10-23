@@ -1,0 +1,152 @@
+diff --git a/src/hidapi/SDL_hidapi.c b/src/hidapi/SDL_hidapi.c
+--- a/src/hidapi/SDL_hidapi.c	2026-10-22 21:27:20
++++ b/src/hidapi/SDL_hidapi.c	2026-10-22 21:27:20
+@@ -853,10 +853,17 @@
+     Uint16 product;
+ } SDL_libusb_required[] = {
+     { USB_VENDOR_NINTENDO, USB_PRODUCT_NINTENDO_GAMECUBE_ADAPTER },
++#ifndef SDL_PLATFORM_MACOS
++    /* On macOS the OS HID driver owns the Switch 2 controllers' HID interface,
++     * so libusb can't open it. The input reports come from IOHID, and the
++     * Switch 2 driver opens only the vendor specific interface with libusb
++     * for the initialization commands.
++     */
+     { USB_VENDOR_NINTENDO, USB_PRODUCT_NINTENDO_SWITCH2_GAMECUBE_CONTROLLER },
+     { USB_VENDOR_NINTENDO, USB_PRODUCT_NINTENDO_SWITCH2_JOYCON_LEFT },
+     { USB_VENDOR_NINTENDO, USB_PRODUCT_NINTENDO_SWITCH2_JOYCON_RIGHT },
+     { USB_VENDOR_NINTENDO, USB_PRODUCT_NINTENDO_SWITCH2_PRO },
++#endif
+ };
+ 
+ static bool RequiresLibUSB(Uint16 vendor, Uint16 product)
+diff --git a/src/joystick/hidapi/SDL_hidapi_switch2.c b/src/joystick/hidapi/SDL_hidapi_switch2.c
+--- a/src/joystick/hidapi/SDL_hidapi_switch2.c	2026-10-22 21:27:20
++++ b/src/joystick/hidapi/SDL_hidapi_switch2.c	2026-10-22 21:27:20
+@@ -93,7 +93,9 @@
+     SDL_Joystick *joystick;
+ 
+     SDL_LibUSBContext *libusb;
++    libusb_context *usb_context;      // only when we opened the device ourselves
+     libusb_device_handle *device_handle;
++    bool owns_device_handle;
+     bool interface_claimed;
+     Uint8 interface_number;
+     Uint8 out_endpoint;
+@@ -365,30 +367,89 @@
+     return false;
+ }
+ 
++// The HID interface was opened by the platform backend (for example IOHID on
++// macOS, where the OS owns the HID interface), so there is no libusb device
++// handle for the vendor specific interface that takes the commands. Open the
++// USB device ourselves: the first one with the right IDs whose command
++// interface we can claim (a controller another instance already claimed
++// fails to claim and is skipped).
++static bool OpenCommandInterface(SDL_DriverSwitch2_Context *ctx, SDL_HIDAPI_Device *device)
++{
++    libusb_device **devices = NULL;
++    ssize_t count;
++
++    if (ctx->libusb->init(&ctx->usb_context) < 0) {
++        ctx->usb_context = NULL;
++        return SDL_SetError("Couldn't initialize libusb");
++    }
++
++    count = ctx->libusb->get_device_list(ctx->usb_context, &devices);
++    for (ssize_t i = 0; i < count && !ctx->interface_claimed; ++i) {
++        struct libusb_device_descriptor desc;
++        libusb_device_handle *handle = NULL;
++        Uint8 interface_number, out_endpoint, in_endpoint;
++
++        if (ctx->libusb->get_device_descriptor(devices[i], &desc) < 0 ||
++            desc.idVendor != device->vendor_id ||
++            desc.idProduct != device->product_id) {
++            continue;
++        }
++        if (ctx->libusb->open(devices[i], &handle) < 0) {
++            SDL_LogDebug(SDL_LOG_CATEGORY_INPUT, "Switch 2: couldn't open the USB device: %s", SDL_GetError());
++            continue;
++        }
++        if (!FindBulkEndpoints(ctx->libusb, handle, &interface_number, &out_endpoint, &in_endpoint)) {
++            ctx->libusb->close(handle);
++            continue;
++        }
++        int res = ctx->libusb->claim_interface(handle, interface_number);
++        if (res < 0) {
++            SDL_LogDebug(SDL_LOG_CATEGORY_INPUT, "Switch 2: couldn't claim interface %d: %s", interface_number, ctx->libusb->error_name(res));
++            ctx->libusb->close(handle);
++            continue;
++        }
++        ctx->device_handle = handle;
++        ctx->owns_device_handle = true;
++        ctx->interface_number = interface_number;
++        ctx->out_endpoint = out_endpoint;
++        ctx->in_endpoint = in_endpoint;
++        ctx->interface_claimed = true;
++    }
++    ctx->libusb->free_device_list(devices, 1);
++
++    if (!ctx->interface_claimed) {
++        ctx->libusb->exit(ctx->usb_context);
++        ctx->usb_context = NULL;
++        return SDL_SetError("Couldn't open the Switch 2 controller's command interface with libusb");
++    }
++    return true;
++}
++
+ static bool HIDAPI_DriverSwitch2_InitUSB(SDL_HIDAPI_Device *device)
+ {
+     SDL_DriverSwitch2_Context *ctx = (SDL_DriverSwitch2_Context *)device->context;
++    int res;
+ 
+     if (!SDL_InitLibUSB(&ctx->libusb)) {
+         return false;
+     }
+ 
+     ctx->device_handle = (libusb_device_handle *)SDL_GetPointerProperty(SDL_hid_get_properties(device->dev), SDL_PROP_HIDAPI_LIBUSB_DEVICE_HANDLE_POINTER, NULL);
+-    if (!ctx->device_handle) {
+-        return SDL_SetError("Couldn't get libusb device handle");
+-    }
++    if (ctx->device_handle) {
++        if (!FindBulkEndpoints(ctx->libusb, ctx->device_handle, &ctx->interface_number, &ctx->out_endpoint, &ctx->in_endpoint)) {
++            return SDL_SetError("Couldn't find bulk endpoints");
++        }
+ 
+-    if (!FindBulkEndpoints(ctx->libusb, ctx->device_handle, &ctx->interface_number, &ctx->out_endpoint, &ctx->in_endpoint)) {
+-        return SDL_SetError("Couldn't find bulk endpoints");
++        ctx->libusb->set_auto_detach_kernel_driver(ctx->device_handle, true);
++        res = ctx->libusb->claim_interface(ctx->device_handle, ctx->interface_number);
++        if (res < 0) {
++            return SDL_SetError("Couldn't claim interface %d: %d\n", ctx->interface_number, res);
++        }
++        ctx->interface_claimed = true;
++    } else if (!OpenCommandInterface(ctx, device)) {
++        return false;
+     }
+ 
+-    ctx->libusb->set_auto_detach_kernel_driver(ctx->device_handle, true);
+-    int res = ctx->libusb->claim_interface(ctx->device_handle, ctx->interface_number);
+-    if (res < 0) {
+-        return SDL_SetError("Couldn't claim interface %d: %d\n", ctx->interface_number, res);
+-    }
+-    ctx->interface_claimed = true;
+-
+     const Uint8 *init_sequence[] = {
+         (Uint8[]) { // Unknown purpose
+             0x7, 0x91, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0,
+@@ -1301,6 +1362,15 @@
+             ctx->libusb->release_interface(ctx->device_handle, ctx->interface_number);
+             ctx->interface_claimed = false;
+         }
++        if (ctx->owns_device_handle) {
++            ctx->libusb->close(ctx->device_handle);
++            ctx->owns_device_handle = false;
++        }
++        if (ctx->usb_context) {
++            ctx->libusb->exit(ctx->usb_context);
++            ctx->usb_context = NULL;
++        }
++        ctx->device_handle = NULL;
+         if (ctx->libusb) {
+             SDL_QuitLibUSB();
+             ctx->libusb = NULL;

@@ -10,6 +10,8 @@ keyboard -> WPAD -> KPAD path. Classifies each run from the exit status, the log
       [--stages A,B] [--scenarios 1-3] [--jobs 4] [--frames 3600] [--script default|<file>] [--rerun]
   python3 native/tools/headless_sweep.py list --disc <extracted disc>
   python3 native/tools/headless_sweep.py report --out <dir>      # re-classify logs + traces with the current parser
+  python3 native/tools/headless_sweep.py route --headless <bin> --out <new dir> [--save <unlocked save copy>]
+                                                                  # the grand-map normal route (native/tools/routes/)
 
 Outcomes: PASS, PASS_NOTE (passed with a note: Mario died, heap/alloc line, slow loops, late-frame outliers),
 FAIL(<class>) with the first-fault log line.  Classes: CRASH (signal), ABORT (OSPanic/assert/_Exit), HARNESS (harness
@@ -469,9 +471,77 @@ def selected(args):
     return chosen
 
 
+ROUTE_CHAIN = ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy", "IslandFleetGalaxy"]
+
+
+def run_route(args, out):
+    """Player-style route from the title through the grand galaxy map to IslandFleetGalaxy scenario 1 (PORT's accepted
+    GX route, driven by native/tools/routes/grandmap_route.txt). Checks mirror PORT's normal53.py: scene chain, 300
+    consecutive valid destination rows, no fault lines, no WorldMap request outside 01..08, save used as given."""
+    route = Path(args.route or HERE / "routes/grandmap_route.txt").resolve()
+    save = Path(args.save or Path.home() / "MacioGalaxy2-gamedata/unlocked-save-copy-20261020")
+    user = Path.home() / "Library/Application Support/AstralItalian-unlocked" / f"sweep-route-{os.getpid()}"
+    out.mkdir(parents=True, exist_ok=True)
+    shutil.copy(route, out / "route.txt")
+    if user.exists():
+        shutil.rmtree(user)
+    shutil.copytree(save, user)
+    log, trace = out / "app.log", out / "trace.csv"
+    cmd = [str(args.headless), "--disc", str(args.disc), "--user", str(user), "--existing-unlocked-user", "--boot",
+           "--keyboard-script", str(out / "route.txt"), "--trace", str(trace), "--epoch-ticks", "0"]
+    env = {"PATH": "/usr/bin:/bin", "HOME": os.environ.get("HOME", "/"), "SDL_AUDIODRIVER": "dummy",
+           "ASAN_OPTIONS": "detect_leaks=0", "UBSAN_OPTIONS": "print_stacktrace=0"}
+    start = time.time()
+    try:
+        with log.open("wb") as lf:
+            proc = subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, env=env, start_new_session=True)
+            try:
+                proc.wait(timeout=args.timeout * 3)
+                timed_out = False
+            except subprocess.TimeoutExpired:
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.wait()
+                timed_out = True
+    finally:
+        shutil.rmtree(user, ignore_errors=True)
+    trim_log(log)
+    text = log.read_text(errors="replace")
+    rows = read_trace(trace) or []
+    order = []
+    for r in rows:
+        if r.get("stage") and (not order or order[-1] != r["stage"]):
+            order.append(r["stage"])
+    best = run = 0
+    for r in rows:
+        ok = r.get("stage") == "IslandFleetGalaxy" and r.get("scenario") == "1" and r.get("player_valid") == "1" and r.get("dead") != "1" \
+            and all(math.isfinite(f(r, k)) for k in ("x", "y", "z"))
+        run = run + 1 if ok else 0
+        best = max(best, run)
+    faults = [l.strip()[:200] for l in text.splitlines() if re.search(r"runtime error:|AddressSanitizer|^headless: (?!rate|completed|scoped|startup)", l)]
+    checks = {
+        "exit_clean": proc.returncode == 0 and not timed_out,
+        "scene_chain": [x for x in order if x in ROUTE_CHAIN][:4] == ROUTE_CHAIN,
+        "destination_300_consecutive_valid": best >= 300,
+        "no_faults": not faults,
+        "no_invalid_worldmap_request": not any(re.fullmatch(r"WorldMap\d+Galaxy", x) and not 1 <= int(re.findall(r"\d+", x)[0]) <= 8 for x in order),
+        "existing_unlocked_save_used": "FileSelector.Create" not in text and "FileSelector.StartupCreate" not in text,
+    }
+    result = {"passed": all(checks.values()), "checks": checks, "stage_order": order, "destination_max_consecutive_valid": best,
+              "rows": len(rows), "exit": proc.returncode, "timed_out": timed_out, "faults": faults[:10], "elapsed": round(time.time() - start, 1)}
+    (out / "RESULT.json").write_text(json.dumps(result, indent=1))
+    if result["passed"] and trace.is_file() and not args.keep_trace:
+        trace.unlink()
+        for side in out.glob("trace.csv.*"):
+            side.unlink()
+    print(json.dumps({k: result[k] for k in ("passed", "checks", "destination_max_consecutive_valid", "stage_order", "elapsed")}, indent=1))
+    return 0 if result["passed"] else 1
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["run", "list", "report"])
+    ap.add_argument("command", choices=["run", "list", "report", "route"])
+    ap.add_argument("--route", help="route script for `route` (default native/tools/routes/grandmap_route.txt)")
+    ap.add_argument("--save", help="unlocked save copy to use for `route`")
     ap.add_argument("--headless", type=Path)
     ap.add_argument("--disc", type=Path, default=Path.home() / "MacioGalaxy2-gamedata/SB4E01-extracted")
     ap.add_argument("--out", type=Path)
@@ -502,6 +572,8 @@ def main():
         return 0
     if args.headless is None:
         ap.error("--headless is required")
+    if args.command == "route":
+        return run_route(args, out)
     out.mkdir(parents=True, exist_ok=True)
     script_path = out / "keys.txt"
     if args.script.startswith("pointer:"):

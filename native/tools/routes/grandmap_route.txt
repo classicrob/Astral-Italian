@@ -1,0 +1,51 @@
+# Grand-map normal route, headless (petari_headless --boot --existing-unlocked-user, a COPY of the unlocked-242 save):
+# title -> file select -> Starship -> helm -> World 1 via the grand galaxy map -> Sky Station -> Fly -> IslandFleet mission select.
+# Derived from PORT's accepted GX-app route (normal53.py GRANDMAP_EVENTS + host-events.jsonl): same offsets in loops from the
+# first observation of each stage, window 1280x752 whose pointer space starts 32 px below the window origin (y = window y - 32).
+viewport 1280 720
+at - 1018 timeout=4000
+30 Return
+at FileSelect 326 timeout=12000
+30 Return
+at FileSelect 746
+ptr 347 373
+at FileSelect 866
+10 Space
+at FileSelect 1166
+ptr 869 617
+at FileSelect 1286
+10 Space
+wait stage=MarioFaceShipGalaxy controllable=1 timeout=20000
+120
+60
+69 W
+11 W LeftShift
+8 W LeftShift Space
+25 W LeftShift
+17 W
+35
+38 W
+240
+at WorldMap01Galaxy 600 timeout=20000
+ptr 640 268
+at WorldMap01Galaxy 700
+10 Space
+at WorldMap01Galaxy 1300
+ptr 256 601
+at WorldMap01Galaxy 1500
+10 Space
+at WorldMap01Galaxy 2000
+ptr 531 581
+at WorldMap01Galaxy 2200
+10 Space
+at WorldMap01Galaxy 2600
+ptr 927 620
+at WorldMap01Galaxy 2800
+10 Space
+wait stage=IslandFleetGalaxy timeout=12000
+atseen IslandFleetGalaxy 6162 timeout=30000
+ptr 415 285
+atseen IslandFleetGalaxy 9462
+10 Space
+wait stage=IslandFleetGalaxy scenario=1 controllable=1 timeout=30000
+420

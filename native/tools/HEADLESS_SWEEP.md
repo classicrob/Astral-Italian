@@ -43,6 +43,17 @@ A run takes about 12 s (Release) or 30-60 s (ASan). Output per run: `runs/<Stage
   copy with `--existing-unlocked-user`); directives `wait <field>=<value> [timeout=N]`, `viewport W H`, `ptr X Y`
   and the keys `MouseLeft`/`MouseRight` drive a player-style path. `[sweep-scene]` log lines show every scene change.
 
+## The grand-map normal route
+
+`python3 native/tools/headless_sweep.py route --headless <bin> --out <dir>` plays PORT's accepted GX route in the headless
+harness (`native/tools/routes/grandmap_route.txt`, from a copy of the unlocked save): title -> file select -> Starship
+(opening demo advanced with A, then the recorded walk to the helm) -> grand galaxy map (leave it with A off the galaxy bar)
+-> World 1 -> Sky Station node -> "Fly to This Galaxy" -> mission select -> mission 1 -> IslandFleetGalaxy scenario 1.
+Checks (as PORT's normal53.py): clean exit, scene chain FileSelect -> MarioFaceShip -> WorldMap01 -> IslandFleet, >= 300
+consecutive valid destination rows, no fault lines, no stage request outside WorldMap01..08Galaxy, existing save used.
+It takes about 25 s (Release). Negative control: with c6cf8bf6 (the grand-map PartsWarpInfo fix) reverted the route stops at
+WorldMap01 with a non-clean exit. Pointer points are window-relative to PORT's 1280x752 window minus its 32 px title bar.
+
 ## Results (main at the time of writing: 2026-10-23, Release build)
 
 260 scenarios over 61 galaxies: 252 pass (7 clean, 245 with notes), 7 NON_GAMEPLAY (WorldMap01-07), 1 FAIL

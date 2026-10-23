@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <fstream>
+#include <map>
 #include <sstream>
 
 namespace PetariNative::Headless {
@@ -25,6 +26,9 @@ public:
     // is how a player-style path through title / file select / the ship / the world map is driven):
     //   wait <field>=<value> ... [timeout=<loops>]  hold nothing until the observed state matches (scene stage
     //                                               scenario init_state player_valid); a timeout fails the run
+    //   atseen <stage> <offset>                     same, counted from the stage's first observation at any init_state
+    //   at <stage|-> <offset> [timeout=<loops>]     hold nothing until <offset> loops after the stage was first ready (init_state 6)
+    //                                               ("-" = since the script started); PORT's stage-relative route offsets
     //   viewport <w> <h>                            window size for pointer coordinates (16:9 image, letterboxed)
     //   ptr <x> <y>                                 move the Star Pointer (window coordinates), one loop
     // and the key names MouseLeft / MouseRight in an ordinary `<frames> <keys...>` line.
@@ -51,6 +55,17 @@ public:
                         else line.conditions.emplace_back(cond.substr(0, eq), cond.substr(eq + 1));
                     }
                     if (line.conditions.empty()) throw ReplayError("wait needs at least one field=value");
+                } else if (first == "at" || first == "atseen") {
+                    line.kind = Line::At;
+                    line.seen = first == "atseen";
+                    line.frames = 1;
+                    if (!(words >> line.stage >> line.offset) || line.offset < 0) throw ReplayError("at <stage|-> <offset> [timeout=N]");
+                    if (line.stage == "-") line.stage.clear();
+                    std::string opt;
+                    while (words >> opt) {
+                        if (opt.compare(0, 8, "timeout=") != 0) throw ReplayError("bad at option: " + opt);
+                        line.timeout = std::stoi(opt.substr(8));
+                    }
                 } else if (first == "viewport") {
                     line.kind = Line::Viewport;
                     line.frames = 1;
@@ -80,6 +95,17 @@ public:
     }
     bool started() const { return mStarted; }
     bool step(const State& state) {
+        {   // `at` clocks: a stage counts from the first loop it is ready (init_state 6), the instant the GX app's
+            // route recorder starts logging it; "-" counts from the script start.
+            const auto stage = state.fields.find("stage");
+            const auto init = state.fields.find("init_state");
+            mFirstSeen.emplace(std::string(), 0);
+            mFirstObserved.emplace(std::string(), 0);
+            if (stage != state.fields.end() && !stage->second.empty()) mFirstObserved.emplace(stage->second, mLoop);
+            if (stage != state.fields.end() && !stage->second.empty() && init != state.fields.end() && init->second == "6")
+                mFirstSeen.emplace(stage->second, mLoop);
+            ++mLoop;
+        }
         if (!mStarted && mBoot) {
             mStarted = true;
             Input::focusChanged(true);
@@ -126,12 +152,32 @@ public:
         auto& line = mLines[mLine];
         switch (line.kind) {
         case Line::Wait: {
-            hold({}, {});
-            bool match = true;
+            bool match = true, wantsControl = false;
             for (const auto& [key, value] : line.conditions) {
-                const auto it = state.fields.find(key);
-                if (it == state.fields.end() || it->second != value) { match = false; break; }
+                std::string have;
+                if (key == "controllable") {  // Mario can be steered: no demo running, pause menu allowed
+                    wantsControl = true;
+                    const auto scene = state.fields.find("scene"), init = state.fields.find("init_state"), valid = state.fields.find("player_valid");
+                    have = (scene != state.fields.end() && scene->second == "Game" && init != state.fields.end() && init->second == "6" &&
+                            valid != state.fields.end() && valid->second == "1" && !MR::isDemoActive() &&
+                            static_cast<const GameScene*>(SingletonHolder<GameSystem>::get()->mSceneController->mScene)->permitsStartPauseMenu()) ? "1" : "0";
+                } else {
+                    const auto it = state.fields.find(key);
+                    if (it != state.fields.end()) have = it->second;
+                    else { match = false; break; }
+                }
+                if (have != value) { match = false; break; }
             }
+            // A player advances an opening demo's dialogue with A while waiting for control.
+            const auto sceneNow = state.fields.find("scene"), validNow = state.fields.find("player_valid");
+            const bool tapping = !match && wantsControl && sceneNow != state.fields.end() && sceneNow->second == "Game" &&
+                                 validNow != state.fields.end() && validNow->second == "1" && MR::isDemoActive();
+            Input::KeyCode a;
+            bool down = false;
+            if (tapping && Input::parseKeyName("Space", &a)) {
+                down = (mDemoFrames++ % 40) < 3;
+            }
+            hold(down ? std::vector<Input::KeyCode>{a} : std::vector<Input::KeyCode>{}, {});
             if (match) {
                 std::fprintf(stderr, "[input-script] wait satisfied after %d loops (line %zu)\n", mLineFrame, mLine);
                 ++mLine; mLineFrame = 0;
@@ -144,6 +190,17 @@ public:
                     seen += std::string(" ") + key + "=" + (it == state.fields.end() ? "-" : it->second);
                 }
                 throw ReplayError("route wait timed out after " + std::to_string(line.timeout) + " loops for" + what + "; observed" + seen);
+            }
+            break;
+        }
+        case Line::At: {
+            hold({}, {});
+            const auto& clocks = line.seen ? mFirstObserved : mFirstSeen;
+            const auto seen = clocks.find(line.stage);
+            if (seen != clocks.end() && mLoop - seen->second >= static_cast<std::uint64_t>(line.offset)) {
+                ++mLine; mLineFrame = 0;
+            } else if (line.timeout > 0 && ++mLineFrame > line.timeout) {
+                throw ReplayError("route 'at " + (line.stage.empty() ? std::string("-") : line.stage) + " " + std::to_string(line.offset) + "' timed out: stage " + (seen == clocks.end() ? "never observed" : "observed too late"));
             }
             break;
         }
@@ -180,8 +237,10 @@ private:
     int mDemoFrames = 0;
     bool mDemoA = false;
     struct Line {
-        enum Kind { Keys, Wait, Viewport, Pointer } kind = Keys;
-        int frames = 0, timeout = 0;
+        enum Kind { Keys, Wait, At, Viewport, Pointer } kind = Keys;
+        int frames = 0, timeout = 0, offset = 0;
+        std::string stage;
+        bool seen = false;  // atseen: count from the stage's first observation (any init_state), not from ready
         float x = 0.0f, y = 0.0f;
         std::vector<Input::KeyCode> keys;
         std::vector<Input::MouseButton> mouse;
@@ -202,6 +261,8 @@ private:
     std::vector<Line> mLines;
     std::vector<Input::KeyCode> mHeld;
     std::vector<Input::MouseButton> mHeldMouse;
+    std::map<std::string, std::uint64_t> mFirstSeen, mFirstObserved;
+    std::uint64_t mLoop = 0;
     std::size_t mLine = 0;
     int mFrame = 0, mLineFrame = 0, mSteady = 0;
     bool mStarted = false;

@@ -72,13 +72,18 @@ def patch(text):
     replace('  return resolve_pipeline(ShaderType::GX, config, layout, PipelinePriority::Normal);',
             '  const PetariPipeline::BoundedDrawScope petariBoundedDraw{!PetariPipeline::unboundedBlocking() &&\n'
             '      !petariCompleteScenes.load(std::memory_order_relaxed)};\n'
+            '  const PetariPipeline::DeferredSceneDrawScope petariDeferredSceneDraw{!PetariPipeline::unboundedBlocking() &&\n'
+            '      PetariPipeline::parallelCompleteScenes() && petariCompleteScenes.load(std::memory_order_relaxed)};\n'
             '  return resolve_pipeline(ShaderType::GX, config, layout, PetariPipeline::asynchronous()\n'
             '      ? PipelinePriority::Normal : PipelinePriority::Blocking);')
     # Bounded GX draws wait only within the frame budget; clear/UI pipelines still block.
     replace('''    g_pipelineReadyCv.wait(lock, [=] { return g_pipelines.contains(runtimeKey) || g_pipelineThreadEnd; });''',
             '''    const auto petariReady = [=] { return g_pipelines.contains(runtimeKey) || g_pipelineThreadEnd; };
     if (PetariPipeline::boundedDraw) petari_bounded_draw_wait(lock, petariReady);
+    else if (PetariPipeline::deferredSceneDraw) { if (!petariReady()) petari_defer_scene_draw(runtimeKey); }
     else g_pipelineReadyCv.wait(lock, petariReady);''')
+    # Complete scenes in parallel: the frame waits once for its deferred draws before it is encoded.
+    replace('void end_pipeline_frame() {\n', 'void end_pipeline_frame() {\n  petari_wait_scene_pipelines();\n')
     # Burst workers may not take every job (pipeline_runtime.inc): wake them all so
     # an eligible worker always sees new work.
     replace('''  if (notifyWorker) {

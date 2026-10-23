@@ -74,6 +74,26 @@ inline Clock::duration stageGateLoadingBudget() {
     return std::chrono::milliseconds(ms);
 }
 // Set on the GX recording thread while resolving a GX draw pipeline.
+// Complete scenes, in parallel (default on): outside play a GX draw whose pipeline is still compiling is recorded
+// without waiting and the frame waits once, before it is encoded, for all of them (pipeline_runtime.inc).
+// PETARI_COMPLETE_SCENES_PARALLEL=0 restores the per-draw wait on the recording thread.
+inline bool parallelCompleteScenes() {
+    static const bool enabled = millisecondsSetting("PETARI_COMPLETE_SCENES_PARALLEL", 1, 1) != 0;
+    return enabled;
+}
+// Upper bound of that frame wait; draws still pending after it are skipped (pop-in) rather than freezing on.
+inline Clock::duration completeSceneWaitBudget() {
+    static const unsigned ms = millisecondsSetting("PETARI_COMPLETE_SCENES_WAIT_MS", 10000, 60000);
+    return std::chrono::milliseconds(ms);
+}
+// Set on the GX recording thread while resolving a draw pipeline that the frame-end wait covers.
+inline thread_local bool deferredSceneDraw = false;
+struct DeferredSceneDrawScope {
+    explicit DeferredSceneDrawScope(bool enabled) { deferredSceneDraw = enabled; }
+    ~DeferredSceneDrawScope() { deferredSceneDraw = false; }
+    DeferredSceneDrawScope(const DeferredSceneDrawScope&) = delete;
+    DeferredSceneDrawScope& operator=(const DeferredSceneDrawScope&) = delete;
+};
 inline thread_local bool boundedDraw = false;
 struct BoundedDrawScope {
     explicit BoundedDrawScope(bool enabled) { boundedDraw = enabled; }

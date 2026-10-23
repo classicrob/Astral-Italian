@@ -223,6 +223,42 @@ static void petari_bounded_draw_wait(std::unique_lock<std::mutex>& lock, Ready r
   if (!ready()) ++petariDeferredDraws;
 }
 
+// Complete scenes in parallel (PetariPipeline::parallelCompleteScenes): each draw used to wait for its pipeline in
+// turn on the recording thread, so the next draw could not even request its own and a frame with many new pipelines
+// compiled them one by one (Starship first arrival, user playtest 2026-10-23: 49 and 43 pipelines, 4.3 s and 5.8 s).
+// Now such a draw is queued at the front (every worker may take it) and recorded; end_pipeline_frame waits once for
+// all of them before the frame is encoded, so the frame still never shows part of the scene.
+static std::vector<PipelineRef> petariScenePending;  // guarded by g_pipelineMutex
+
+static void petari_defer_scene_draw(PipelineRef key) {  // caller holds g_pipelineMutex
+  petariScenePending.push_back(key);
+}
+
+static void petari_wait_scene_pipelines() {
+  std::unique_lock lock{g_pipelineMutex};
+  if (petariScenePending.empty()) return;
+  std::vector<PipelineRef> keys;
+  keys.swap(petariScenePending);
+  const auto ready = [&] {
+    return g_pipelineThreadEnd ||
+        std::all_of(keys.begin(), keys.end(), [](auto key) { return g_pipelines.contains(key); });
+  };
+  if (ready()) return;
+  petariPipelineWaiters.fetch_add(1, std::memory_order_relaxed);
+  const auto start = PetariPipeline::Clock::now();
+  const bool done = g_pipelineReadyCv.wait_until(lock, start + PetariPipeline::completeSceneWaitBudget(), ready);
+  const auto waited = PetariPipeline::Clock::now() - start;
+  petariPipelineWaiters.fetch_sub(1, std::memory_order_relaxed);
+  PetariNative::FrameTelemetry::add(PetariNative::FrameTelemetry::PipelineWait,
+      static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(waited).count()));
+  if (!done) {
+    size_t pending = 0;
+    for (const auto key : keys) pending += !g_pipelines.contains(key);
+    std::fprintf(stderr, "[gx pipeline] complete-scene wait hit its %.0f ms bound: %zu of %zu draws' pipelines pending (skipped)\n",
+                 PetariPipeline::milliseconds(PetariPipeline::completeSceneWaitBudget()), pending, keys.size());
+  }
+}
+
 static void petari_pipeline_frame_budget() {
   std::lock_guard lock{g_pipelineMutex};
   petariDrawBudgetLeft = PetariPipeline::drawWaitBudget();

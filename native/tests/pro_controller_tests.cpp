@@ -8,7 +8,11 @@
 #include "petari/mods.hpp"
 #include "petari/point_move.hpp"
 #include "../input/remote_model.hpp"
+#ifdef PETARI_INPUT_TEST_SDL3
+#include "petari/input_sdl3.hpp"
+#endif
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -61,17 +65,18 @@ constexpr PadButton kA = PadButton::East, kB = PadButton::South, kX = PadButton:
 constexpr PadButton kL = PadButton::LeftShoulder, kR = PadButton::RightShoulder, kZL = PadButton::LeftTrigger,
                     kZR = PadButton::RightTrigger, kPlus = PadButton::Start, kMinus = PadButton::Back,
                     kHome = PadButton::Guide, kCapture = PadButton::Misc1, kShake = PadButton::Shake,
-                    kL3 = PadButton::LeftStick;
+                    kL3 = PadButton::LeftStick, kGR = PadButton::RightPaddle1, kGL = PadButton::LeftPaddle1,
+                    kC = PadButton::Misc2;
 
 std::map<Action, std::vector<PadButton>> expectedPro(bool odyssey) {
     std::map<Action, std::vector<PadButton>> t;
-    t[Action::PlayJump] = {kB};             // B: jump in play, back in menus
+    t[Action::PlayJump] = {kB, kGR};        // B / GR: jump in play, back in menus
     t[Action::Start] = {kA};                // A: jump; A+B at the title prompt
     if (odyssey) {
-        t[Action::ModCappyThrow] = {kY, kX};  // Y / X: throw Cappy
+        t[Action::ModCappyThrow] = {kY, kX, kGL};  // Y / X / GL: throw Cappy
         t[Action::Shake] = {kR, kShake};      // R, shake: spin
     } else {
-        t[Action::Shake] = {kY, kX, kR, kShake};  // Y / X, R, shake: spin
+        t[Action::Shake] = {kY, kX, kR, kShake, kGL};  // Y / X, R, shake, GL: spin
     }
     t[Action::NunchukZ] = {kZL};
     t[Action::B] = {kZR};
@@ -122,12 +127,64 @@ void testTables() {
     bool header = false;
     for (const auto& line : In::controlsSummary(In::Bindings::defaults(PadLayout::ProOdyssey))) {
         header |= line.pad == "Pro Controller (Odyssey layout)";
-        if (line.action == "Jump / confirm") check(line.pad == "A / B", "summary: A and B jump (" + line.pad + ")");
-        if (line.action == "Cap throw (Cappy mod)") check(line.pad == "Y / X", "summary: Y / X throw Cappy");
+        if (line.action == "Jump / confirm") check(line.pad == "A / B / GR", "summary: A, B and GR jump (" + line.pad + ")");
+        if (line.action == "Cap throw (Cappy mod)") check(line.pad == "Y / X / GL", "summary: Y / X / GL throw Cappy");
         if (line.action == "Shoot Star Bits / back") check(line.pad == "ZR", "summary: ZR shoots");
     }
     check(header, "summary names the Pro layout");
     check(In::controlsSummary(In::Bindings::defaults(PadLayout::ProGalaxy)).size() <= 20, "summary fits the page");
+}
+
+void testExtraButtonNames() {
+    // Earlier codes are persisted in bindings and indexed in the report model.
+    const PadButton oldButtons[] = {PadButton::South, PadButton::East, PadButton::West, PadButton::North,
+        PadButton::Back, PadButton::Guide, PadButton::Start, PadButton::LeftStick, PadButton::RightStick,
+        PadButton::LeftShoulder, PadButton::RightShoulder, PadButton::DpadUp, PadButton::DpadDown,
+        PadButton::DpadLeft, PadButton::DpadRight, PadButton::LeftTrigger, PadButton::RightTrigger,
+        PadButton::Misc1, PadButton::Shake};
+    for (int i = 0; i < 19; ++i) check(static_cast<int>(oldButtons[i]) == i, "stable earlier button " + std::to_string(i));
+    const PadButton buttons[] = {kC, kGR, kGL, PadButton::RightPaddle2, PadButton::LeftPaddle2};
+    const char* neutral[] = {"Misc2", "RightPaddle1", "LeftPaddle1", "RightPaddle2", "LeftPaddle2"};
+    const char* pro[] = {"C", "GR", "GL", "GR2", "GL2"};
+    const char* display[] = {"Pad C", "Pad paddle R1", "Pad paddle L1", "Pad paddle R2", "Pad paddle L2"};
+    check(static_cast<int>(PadButton::Count) == 24, "24 bindable pad buttons");
+    for (int i = 0; i < 5; ++i) {
+        check(static_cast<int>(buttons[i]) == 19 + i, "new button appended " + std::string(neutral[i]));
+        check(In::displayName(Binding::pad(buttons[i])) == display[i], "neutral display " + std::string(neutral[i]));
+        for (const PadLayout layout : {PadLayout::Standard, PadLayout::ProGalaxy, PadLayout::ProOdyssey}) {
+            const bool isPro = layout != PadLayout::Standard;
+            In::Bindings b = In::Bindings::defaults(layout);
+            const std::string label = std::string(In::padLayoutName(layout)) + " " + neutral[i];
+            if (isPro) check(In::displayName(Binding::pad(buttons[i]), layout) == std::string("Pad ") + pro[i], label + " display");
+            else {
+                for (int a = 0; a < static_cast<int>(Action::Count); ++a) {
+                    const auto bound = pads(b, static_cast<Action>(a));
+                    check(std::find(bound.begin(), bound.end(), buttons[i]) == bound.end(), label + " has no default");
+                }
+            }
+            // Every new name round trips in both naming schemes, including the
+            // usually unbound second pair of paddles.
+            b.clear(Action::One);
+            b.bind(Action::One, Binding::pad(buttons[i]));
+            const std::string text = b.serialize();
+            check(text.find(std::string("One=Pad:") + (isPro ? pro[i] : neutral[i]) + "\n") != std::string::npos,
+                  label + " serialized name");
+            In::Bindings back = In::Bindings::defaults(layout);
+            std::string error;
+            check(back.parse(text, &error) && back.serialize() == text && pads(back, Action::One) == std::vector<PadButton>{buttons[i]},
+                  label + " round trip: " + error);
+        }
+    }
+#ifdef PETARI_INPUT_TEST_SDL3
+    const Uint8 sdl[] = {SDL_GAMEPAD_BUTTON_MISC2, SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1, SDL_GAMEPAD_BUTTON_LEFT_PADDLE1,
+        SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2, SDL_GAMEPAD_BUTTON_LEFT_PADDLE2};
+    for (int i = 0; i < 5; ++i) {
+        PadButton button = PadButton::Count;
+        check(In::SDL3::padButtonOf(sdl[i], &button) && button == buttons[i], std::string("SDL mapping ") + neutral[i]);
+    }
+    PadButton ignored;
+    check(!In::SDL3::padButtonOf(SDL_GAMEPAD_BUTTON_MISC3, &ignored), "unnamed SDL button ignored");
+#endif
 }
 
 In::Detail::PointerCalibration calibration{0, 0, 1, 0.3f};
@@ -209,6 +266,95 @@ void testButtonsThroughModel() {
     Mods::resetForTesting();
 }
 
+void testGripButtons() {
+    const auto bitA = In::Detail::actionBits(Action::A), bitB = In::Detail::actionBits(Action::B);
+    const auto shake = In::Detail::kBitShake;
+    for (const PadLayout layout : {PadLayout::ProGalaxy, PadLayout::ProOdyssey}) {
+        Mods::resetForTesting();
+        const bool odyssey = layout == PadLayout::ProOdyssey;
+        Mods::setEnabled(Mods::Mod::OdysseyMovement, odyssey);
+        RemoteModel model;
+        model.setBindings(In::Bindings::defaults(layout));
+        auto bits = pressAndRead(model, kGR);
+        check((bits & bitB) && !(bits & bitA), "GR goes back in menus");
+        model.playControlShown();
+        model.padButtonEvent(kGR, true);
+        tick(model);
+        check((model.outputBits() & bitA) && !(model.outputBits() & bitB), "GR jumps in play");
+        tick(model, 60);
+        check((model.outputBits() & bitA) && !(model.outputBits() & bitB), "held GR stays jump after play ends");
+        model.padButtonEvent(kGR, false);
+        tick(model, 400);
+        bits = pressAndRead(model, kGR);
+        check((bits & bitB) && !(bits & bitA), "next GR press out of play goes back");
+        check((pressAndRead(model, kGL) & shake) != 0, "GL spins with Cappy off");
+        check(pressAndRead(model, kC) == 0, "C is unbound by default");
+        if (odyssey) {
+            Mods::setEnabled(Mods::Mod::Cappy, true);
+            check((pressAndRead(model, kGL) & shake) == 0, "GL does not spin with Cappy active");
+            In::resetForTesting();
+            In::padConnected(true);
+            In::padButtonEvent(kGL, true);
+            check(In::actionHeld(Action::ModCappyThrow) && In::takeActionPresses(Action::ModCappyThrow) == 1,
+                  "Odyssey GL produces a Cappy throw press and hold");
+            In::padButtonEvent(kGL, false);
+            check(!In::actionHeld(Action::ModCappyThrow), "GL throw releases");
+        }
+    }
+    In::resetForTesting();
+    Mods::resetForTesting();
+}
+
+void testExtraRemapping() {
+    for (const PadLayout layout : {PadLayout::ProGalaxy, PadLayout::ProOdyssey}) {
+        In::Bindings b = In::Bindings::defaults(layout);
+        const Action gripAction = layout == PadLayout::ProGalaxy ? Action::Shake : Action::ModCappyThrow;
+        In::Bindings visible = b;
+        Binding shown;
+        check(Remap::assign(visible, gripAction, 2, Binding::pad(kGL), Remap::Resolve::Check) == Remap::Result::Done &&
+              Remap::slotInput(visible, gripAction, 2, &shown) && shown == Binding::pad(kGL),
+              "capturing GL on its own action brings it into a visible Controls slot");
+        check(Remap::clearSlot(visible, gripAction, 2) == Remap::Result::Done &&
+              Remap::boundElsewhere(visible, Action::One, Binding::pad(kGL)).empty(), "visible GL can be cleared");
+        // C captures through the same path as every Controls page pad binding.
+        Mods::resetForTesting();
+        Mods::setEnabled(Mods::Mod::OdysseyMovement, layout == PadLayout::ProOdyssey);
+        In::resetForTesting();
+        In::padConnected(true);
+        In::beginCapture();
+        In::padButtonEvent(kC, true);
+        Binding captured;
+        check(In::captureState(&captured) == In::CaptureState::Captured && captured == Binding::pad(kC), "Controls page captures C");
+        In::padButtonEvent(kC, false);
+        check(Remap::assign(b, Action::One, 2, captured, Remap::Resolve::Check) == Remap::Result::Done,
+              "C can be assigned to an action");
+        In::setBindings(b);
+        In::padButtonEvent(kC, true);
+        check(In::actionHeld(Action::One), "remapped C reaches the action");
+        In::padButtonEvent(kC, false);
+        check(Remap::resetAction(b, Action::One) == Remap::Result::Done && pads(b, Action::One).empty(), "reset leaves C unbound");
+        for (PadButton grip : {kGR, kGL}) {
+            In::Bindings original = b;
+            const Action owner = grip == kGR ? Action::PlayJump : gripAction;
+            check(Remap::assign(b, Action::One, 2, Binding::pad(grip), Remap::Resolve::Check) == Remap::Result::Conflict,
+                  "grip assignment asks for conflict resolution");
+            check(b.serialize() == original.serialize(), "Cancel/check leaves bindings unchanged");
+            check(Remap::conflicts(b, Action::One, Binding::pad(grip)) == std::vector<Action>{owner}, "conflict names grip owner");
+            In::Bindings both = b;
+            check(Remap::assign(both, Action::One, 2, Binding::pad(grip), Remap::Resolve::KeepBoth) == Remap::Result::Done &&
+                  !Remap::boundElsewhere(both, Action::One, Binding::pad(grip)).empty(), "Keep both preserves grip owner");
+            b.bind(Action::One, Binding::pad(kC));
+            check(Remap::assign(b, Action::One, 2, Binding::pad(grip), Remap::Resolve::Swap) == Remap::Result::Done &&
+                  Remap::boundElsewhere(b, Action::One, Binding::pad(grip)).empty(), "Swap removes even a grip beyond the two visible slots");
+            const auto ownerPads = pads(b, owner);
+            check(std::find(ownerPads.begin(), ownerPads.end(), kC) != ownerPads.end(), "Swap gives old C binding to grip owner");
+            b = original;
+        }
+    }
+    In::resetForTesting();
+    Mods::resetForTesting();
+}
+
 // The stage intro (ScenarioStarter) is not play: the game skips it on Wii A only
 // (trySkipTrigger -> testSystemPadTriggerDecide -> testCorePadTriggerA). Both Pro
 // layouts must give Wii A on A (so the skip works) and Wii B on B (back, no skip).
@@ -279,7 +425,7 @@ void testRemapPerLayout() {
           "assign a controller slot in the Odyssey layout");
     check(pads(b, Action::Shake) == (std::vector<PadButton>{kR, kL3}), "Odyssey: second pad slot replaced");
     b.setLayout(PadLayout::ProGalaxy);
-    check(pads(b, Action::Shake) == (std::vector<PadButton>{kY, kX, kR, kShake}), "Galaxy layout untouched");
+    check(pads(b, Action::Shake) == (std::vector<PadButton>{kY, kX, kR, kShake, kGL}), "Galaxy layout untouched");
     b.setLayout(PadLayout::Standard);
     check(pads(b, Action::Shake) == (std::vector<PadButton>{PadButton::West, PadButton::RightShoulder}), "Standard untouched");
     // A keyboard slot edited in a Pro layout is the shared keyboard binding.
@@ -294,7 +440,7 @@ void testRemapPerLayout() {
     check(text.find("\n[ProOdyssey]\n") != std::string::npos && text.find("[ProGalaxy]") == std::string::npos,
           "only the changed layout is written");
     check(text.find("\nShake=Pad:R,Pad:LStick\n") != std::string::npos, "Pro sections use Nintendo labels");
-    check(text.find("\nModCappyThrow=Pad:Y,Pad:X\n") != std::string::npos, "the whole section is written");
+    check(text.find("\nModCappyThrow=Pad:Y,Pad:X,Pad:GL\n") != std::string::npos, "the whole section is written");
     In::Bindings back = In::Bindings::defaults();
     std::string error;
     check(back.parse(text, &error) && back.serialize() == text, "round trip: " + error);
@@ -312,6 +458,24 @@ void testFile() {
     check(!b.parse("[ProGalaxy]\nA=Key:Space\n", &error), "a key in a Pro section is refused");
     check(!b.parse("[Bogus]\n", &error), "an unknown section is refused");
     check(!b.parse("A=Pad:ZR\n", &error), "labels only inside the Pro sections");
+    In::Bindings legacy = In::Bindings::defaults();
+    check(legacy.parse("Shake=Key:F\n[ProGalaxy]\nPlayJump=Pad:B\nShake=Pad:Y,Pad:X,Pad:R,Pad:Shake\n"
+                       "[ProOdyssey]\nPlayJump=Pad:B\nModCappyThrow=Pad:Y,Pad:X\n", &error), "pre-Switch-2 saved sections load");
+    for (const PadLayout layout : {PadLayout::ProGalaxy, PadLayout::ProOdyssey}) {
+        legacy.setLayout(layout);
+        check(pads(legacy, Action::PlayJump) == (std::vector<PadButton>{kB, kGR}), "old saved PlayJump gains default GR");
+        check(pads(legacy, layout == PadLayout::ProGalaxy ? Action::Shake : Action::ModCappyThrow) ==
+                  expectedPro(layout == PadLayout::ProOdyssey).at(layout == PadLayout::ProGalaxy ? Action::Shake : Action::ModCappyThrow),
+              "old saved action gains default GL");
+        legacy.unbind(Action::PlayJump, Binding::pad(kGR));
+        legacy.unbind(layout == PadLayout::ProGalaxy ? Action::Shake : Action::ModCappyThrow, Binding::pad(kGL));
+    }
+    const std::string noGrips = legacy.serialize();
+    In::Bindings noGripsBack = In::Bindings::defaults();
+    check(noGripsBack.parse(noGrips, &error) && noGripsBack.serialize() == noGrips,
+          "intentional removal of every grip survives save/load");
+    check(noGrips.find("Pad:GR") == std::string::npos && noGrips.find("Pad:GL") == std::string::npos,
+          "explicit empty extras do not need a sentinel binding");
     check(b.parse("[ProGalaxy]\nA=Pad:South,Pad:A\n", &error) && (b.setLayout(PadLayout::ProGalaxy), true) &&
               pads(b, Action::A) == (std::vector<PadButton>{kB, kA}),
           "Pro sections also take position names: " + error);
@@ -339,9 +503,9 @@ void testFile() {
     std::string message;
     check(Remap::load(file, &loaded, &message), "load a Pro file: " + message);
     loaded.setLayout(PadLayout::ProOdyssey);
-    check(pads(loaded, Action::ModCappyThrow) == std::vector<PadButton>{kZR} && pads(loaded, Action::B) == std::vector<PadButton>{kY},
+    check(pads(loaded, Action::ModCappyThrow) == (std::vector<PadButton>{kZR, kGL}) && pads(loaded, Action::B) == std::vector<PadButton>{kY},
           "the file's Odyssey remaps");
-    check(pads(loaded, Action::PlayJump) == std::vector<PadButton>{kB}, "actions the section omits keep their defaults");
+    check(pads(loaded, Action::PlayJump) == (std::vector<PadButton>{kB, kGR}), "actions the section omits keep their defaults");
     check(loaded.options().gyro == In::PadOptions::Gyro::Off, "the file's options");
     check(Remap::save(loaded, &message), "save: " + message);
     In::Bindings again;
@@ -463,7 +627,10 @@ int main() {
     Mods::resetForTesting();
     PetariNative::PointMove::resetForTesting();
     testTables();
+    testExtraButtonNames();
     testButtonsThroughModel();
+    testGripButtons();
+    testExtraRemapping();
     testIntroSkipButtons();
     testLayoutSwitching();
     testRemapPerLayout();

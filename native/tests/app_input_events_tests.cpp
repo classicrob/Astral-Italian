@@ -10,11 +10,15 @@
 // window, SDL library or game is needed.
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_gamepad.h>
+#include <SDL3/SDL_hints.h>
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <map>
+#include <unistd.h>
 #include <vector>
 
 #include "../app/host.hpp"
@@ -45,6 +49,15 @@ struct Delivered {
 };
 std::vector<Delivered> gDelivered;
 Input::Bindings gBindings;
+struct FakePad {
+    std::string name;
+    Uint16 vendor, product;
+    bool nintendo;
+};
+std::map<SDL_JoystickID, FakePad> gPads;
+bool gNintendo = false;
+int gPolicyQueries = 0;
+int gPadLookups = 0;
 
 }  // namespace
 
@@ -80,11 +93,59 @@ void padAxisEvent(PadAxis axis, float value) {
 void padDisconnected() {
     gDelivered.push_back({Delivered::PadRemoved, 0, false, false});
 }
+void padConnected(bool nintendo) { gNintendo = nintendo; }
+PadLayout padLayout() { return gNintendo ? PadLayout::ProGalaxy : PadLayout::Standard; }
+void padSensorEvent(PadSensor, const float[3], double) {}
+bool padRumble() { return false; }
+int takeActionPresses(Action) { return 0; }
 void setViewport(const Viewport&) {}
 void focusChanged(bool focused) {
     gDelivered.push_back({Delivered::Focus, 0, focused, false});
 }
 }  // namespace PetariNative::Input
+
+// Device lifecycle fakes: removal deliberately erases the SDL object before
+// delivering the event, so the app must retain its identity itself.
+extern "C" {
+SDL_Gamepad* SDL_GetGamepadFromID(SDL_JoystickID id) {
+    ++gPadLookups;
+    const auto found = gPads.find(id);
+    return found == gPads.end() ? nullptr : reinterpret_cast<SDL_Gamepad*>(&found->second);
+}
+const char* SDL_GetGamepadName(SDL_Gamepad* pad) { return reinterpret_cast<FakePad*>(pad)->name.c_str(); }
+Uint16 SDL_GetGamepadVendor(SDL_Gamepad* pad) { return reinterpret_cast<FakePad*>(pad)->vendor; }
+Uint16 SDL_GetGamepadProduct(SDL_Gamepad* pad) { return reinterpret_cast<FakePad*>(pad)->product; }
+SDL_GamepadType SDL_GetGamepadType(SDL_Gamepad*) { return SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO; }
+SDL_GamepadButtonLabel SDL_GetGamepadButtonLabel(SDL_Gamepad* pad, SDL_GamepadButton) {
+    return reinterpret_cast<FakePad*>(pad)->nintendo ? SDL_GAMEPAD_BUTTON_LABEL_B : SDL_GAMEPAD_BUTTON_LABEL_A;
+}
+SDL_JoystickConnectionState SDL_GetGamepadConnectionState(SDL_Gamepad*) { return SDL_JOYSTICK_CONNECTION_WIRED; }
+const char* SDL_GetGamepadPath(SDL_Gamepad*) { return "fake USB path"; }
+const char* SDL_GetGamepadSerial(SDL_Gamepad*) { return "serial"; }
+bool SDL_GamepadHasButton(SDL_Gamepad*, SDL_GamepadButton button) {
+    return button == SDL_GAMEPAD_BUTTON_MISC2 || button == SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1 || button == SDL_GAMEPAD_BUTTON_LEFT_PADDLE1;
+}
+bool SDL_GamepadHasSensor(SDL_Gamepad*, SDL_SensorType) { return true; }
+bool SDL_SetGamepadSensorEnabled(SDL_Gamepad*, SDL_SensorType, bool) { return true; }
+SDL_PropertiesID SDL_GetGamepadProperties(SDL_Gamepad*) { return 1; }
+bool SDL_GetBooleanProperty(SDL_PropertiesID, const char*, bool) { return true; }
+bool SDL_RumbleGamepad(SDL_Gamepad*, Uint16, Uint16, Uint32) { return true; }
+bool SDL_GetHintBoolean(const char*, bool defaultValue) { ++gPolicyQueries; return defaultValue; }
+SDL_JoystickID* SDL_GetGamepads(int* count) {
+    *count = static_cast<int>(gPads.size());
+    auto* ids = static_cast<SDL_JoystickID*>(std::malloc((gPads.size() + 1) * sizeof(SDL_JoystickID)));
+    int i = 0;
+    for (const auto& pad : gPads) ids[i++] = pad.first;
+    ids[i] = 0;
+    return ids;
+}
+void SDL_free(void* memory) { std::free(memory); }
+bool SDL_IsGamepad(SDL_JoystickID id) { return gPads.count(id) != 0; }
+const char* SDL_GetJoystickNameForID(SDL_JoystickID) { return "Unmapped Switch"; }
+Uint16 SDL_GetJoystickVendorForID(SDL_JoystickID) { return 0x057e; }
+Uint16 SDL_GetJoystickProductForID(SDL_JoystickID) { return 0x2069; }
+const char* SDL_GetJoystickPathForID(SDL_JoystickID) { return "unmapped path"; }
+}
 
 extern "C" const char* SDL_GetScancodeName(SDL_Scancode scancode) {
     switch (scancode) {
@@ -319,6 +380,62 @@ int main() {
               Events::physicalInputs().gameplay == ignoredBefore.gameplay + 1,
           "flag off: the same key is delivered and counted");
 
-    std::printf("native app input events tests passed (%d checks)\n", checks);
+    // Capture only lifecycle output; all queries above still use real app code.
+    std::FILE* log = std::tmpfile();
+    check(log != nullptr, "temporary lifecycle log");
+    std::fflush(stderr);
+    const int savedStderr = dup(fileno(stderr));
+    check(savedStderr >= 0 && dup2(fileno(log), fileno(stderr)) >= 0, "capture lifecycle stderr");
+    auto lifecycle = [](Uint32 type, SDL_JoystickID id) {
+        SDL_Event event{};
+        event.type = type;
+        event.gdevice.which = id;
+        Events::input(event);
+    };
+    gPads.emplace(1, FakePad{"First pad", 0x1111, 0x2222, false});
+    lifecycle(SDL_EVENT_GAMEPAD_ADDED, 1);
+    check(!gNintendo, "Standard pad selects positional layout");
+    gPads.emplace(2, FakePad{"Switch 2", 0x057e, 0x2069, true});
+    lifecycle(SDL_EVENT_GAMEPAD_ADDED, 2);
+    check(gNintendo, "Switch 2 labels choose Pro layout");
+    gPads.erase(1);  // Remove a non-selected pad: still log it, keep Switch 2.
+    const int lookups = gPadLookups;
+    lifecycle(SDL_EVENT_GAMEPAD_REMOVED, 1);
+    check(gNintendo && gPadLookups == lookups, "non-selected removal uses cached identity without querying a vanished pad");
+    gPads.emplace(3, FakePad{"Fallback pad", 0x3333, 0x4444, false});
+    lifecycle(SDL_EVENT_GAMEPAD_ADDED, 3);
+    gPads.erase(3);
+    lifecycle(SDL_EVENT_GAMEPAD_REMOVED, 3);
+    check(gNintendo, "selected removal falls back to remaining Nintendo pad");
+    gPads.erase(2);
+    lifecycle(SDL_EVENT_GAMEPAD_REMOVED, 2);
+    check(!gNintendo, "last removal selects Standard");
+    lifecycle(SDL_EVENT_JOYSTICK_ADDED, 4);
+    lifecycle(SDL_EVENT_JOYSTICK_REMOVED, 4);
+    Events::frame();
+    check(gPolicyQueries == 2, "Switch 2/HIDAPI hint policy queried once per app, across events and frames");
+    std::fflush(stderr);
+    check(dup2(savedStderr, fileno(stderr)) >= 0, "restore stderr");
+    close(savedStderr);
+    std::rewind(log);
+    char logBuffer[8192]{};
+    const size_t size = std::fread(logBuffer, 1, sizeof(logBuffer) - 1, log);
+    check(size < sizeof(logBuffer) - 1, "bounded lifecycle log");
+    std::fclose(log);
+    const std::string lines(logBuffer, size);
+    check(lines.find("[pad] using 'Switch 2' vid=0x057e pid=0x2069") != std::string::npos &&
+          lines.find("layout=ProGalaxy extras=C,GR,GL") != std::string::npos, "add logs identity, layout and extra buttons");
+    check(lines.find("[pad] removed 'First pad' vid=0x1111 pid=0x2222; fallback='Switch 2'") != std::string::npos,
+          "non-selected removal is logged with continuing pad");
+    check(lines.find("[pad] removed 'Fallback pad' vid=0x3333 pid=0x4444; fallback='Switch 2'") != std::string::npos,
+          "selected removal logs cached identity and fallback");
+    check(lines.find("[pad] removed 'Switch 2' vid=0x057e pid=0x2069; fallback=none") != std::string::npos,
+          "last removal logs no fallback");
+    check(lines.find("joystick present but unmapped 'Unmapped Switch' vid=0x057e pid=0x2069") != std::string::npos,
+          "unmapped joystick add is visible");
+    check(lines.find("[pad] removed 'Unmapped Switch' vid=0x057e pid=0x2069; fallback=none") != std::string::npos,
+          "unmapped joystick removal retains identity");
+
+    std::printf("native app input events tests passed (%d checks, 0 failures)\n", checks);
     return 0;
 }

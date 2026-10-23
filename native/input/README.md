@@ -371,7 +371,7 @@ covers:
   Also covered: disconnection, reconnection by key press, Nunchuk removal, and
   a second remote.
 - **Buttons.** Press, release, and OS-repeat edges; KPAD repeat at 5/12 s,
-  then every 1/6 s; sub-report taps; double taps; two inputs on one button;
+  then every 1/12 s (SMG2); sub-report taps; double taps; two inputs on one button;
   Escape; and the approved buttons.
 - **Stick.** Cardinal directions, diagonal normalization, last pressed wins,
   and raw axis inversion at 100 values.

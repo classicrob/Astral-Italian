@@ -27,24 +27,25 @@ const char* const kMouseNames[static_cast<int>(MouseButton::Count)] = {"Left", "
 const char* const kPadNames[static_cast<int>(PadButton::Count)] = {
     "South",        "East",          "West",   "North",    "Back",     "Guide",     "Start",       "LeftStick", "RightStick",
     "LeftShoulder", "RightShoulder", "DpadUp", "DpadDown", "DpadLeft", "DpadRight", "LeftTrigger", "RightTrigger",
-    "Misc1",        "Shake"};
+    "Misc1",        "Shake", "Misc2", "RightPaddle1", "LeftPaddle1", "RightPaddle2", "LeftPaddle2"};
 
 // The same buttons by Nintendo label, for the Pro layouts' sections of controls.txt
 // (SDL3 reports positions: the bottom button is South, labelled B on a Nintendo pad).
 const char* const kProPadNames[static_cast<int>(PadButton::Count)] = {
     "B", "A", "Y", "X", "Minus", "Home", "Plus", "LStick", "RStick", "L", "R",
-    "DpadUp", "DpadDown", "DpadLeft", "DpadRight", "ZL", "ZR", "Capture", "Shake"};
+    "DpadUp", "DpadDown", "DpadLeft", "DpadRight", "ZL", "ZR", "Capture", "Shake", "C", "GR", "GL", "GR2", "GL2"};
 
 // Player-facing, layout neutral (South is Xbox A, PlayStation Cross, Nintendo B).
 const char* const kPadDisplayNames[static_cast<int>(PadButton::Count)] = {
     "Pad bottom",   "Pad right",    "Pad left",      "Pad top",        "Pad Back",       "Pad Guide",
     "Pad Start",    "Pad L3",       "Pad R3",        "Pad LB",         "Pad RB",         "Pad D-pad up",
-    "Pad D-pad down", "Pad D-pad left", "Pad D-pad right", "Pad LT", "Pad RT", "Pad Share", "Pad shake"};
+    "Pad D-pad down", "Pad D-pad left", "Pad D-pad right", "Pad LT", "Pad RT", "Pad Share", "Pad shake",
+    "Pad C", "Pad paddle R1", "Pad paddle L1", "Pad paddle R2", "Pad paddle L2"};
 
 const char* const kProPadDisplayNames[static_cast<int>(PadButton::Count)] = {
     "Pad B",        "Pad A",          "Pad Y",           "Pad X",           "Pad -",   "Pad Home", "Pad +",
     "Pad L-stick press", "Pad R-stick press", "Pad L", "Pad R", "Pad D-pad up", "Pad D-pad down", "Pad D-pad left",
-    "Pad D-pad right", "Pad ZL", "Pad ZR", "Pad Capture", "Pad shake"};
+    "Pad D-pad right", "Pad ZL", "Pad ZR", "Pad Capture", "Pad shake", "Pad C", "Pad GR", "Pad GL", "Pad GR2", "Pad GL2"};
 
 struct NamedKey {
     const char* name;
@@ -149,10 +150,11 @@ const char* const kMouseDisplayNames[static_cast<int>(MouseButton::Count)] = {
 // Controller buttons in the Controls page's own column: no "Pad " prefix.
 const char* const kPadShortNames[static_cast<int>(PadButton::Count)] = {
     "bottom", "right", "left", "top", "Back", "Guide", "Start", "L3", "R3", "LB", "RB",
-    "D-pad up", "D-pad down", "D-pad left", "D-pad right", "LT", "RT", "Share", "shake"};
+    "D-pad up", "D-pad down", "D-pad left", "D-pad right", "LT", "RT", "Share", "shake",
+    "C", "paddle R1", "paddle L1", "paddle R2", "paddle L2"};
 const char* const kProPadShortNames[static_cast<int>(PadButton::Count)] = {
     "B", "A", "Y", "X", "-", "Home", "+", "L-stick press", "R-stick press", "L", "R",
-    "D-pad up", "D-pad down", "D-pad left", "D-pad right", "ZL", "ZR", "Capture", "shake"};
+    "D-pad up", "D-pad down", "D-pad left", "D-pad right", "ZL", "ZR", "Capture", "shake", "C", "GR", "GL", "GR2", "GL2"};
 
 bool proLayout(PadLayout layout) {
     return layout == PadLayout::ProGalaxy || layout == PadLayout::ProOdyssey;
@@ -413,6 +415,7 @@ Bindings Bindings::defaults(PadLayout layout) {
         const bool odyssey = pro == PadLayout::ProOdyssey;
         b.setLayout(pro);
         b.bind(Action::PlayJump, Binding::pad(PadButton::South));  // B: jump in play, back in menus
+        b.bind(Action::PlayJump, Binding::pad(PadButton::RightPaddle1));  // GR: keep the thumb on the pointer stick
         b.bind(Action::Start, Binding::pad(PadButton::East));  // A: jump (A then B together at the title prompt)
         // Y / X: spin, or in the Odyssey layout throw Cappy (which spins while Cappy is off).
         const Action face = odyssey ? Action::ModCappyThrow : Action::Shake;
@@ -420,6 +423,7 @@ Bindings Bindings::defaults(PadLayout layout) {
         b.bind(face, Binding::pad(PadButton::North));
         b.bind(Action::Shake, Binding::pad(PadButton::RightShoulder));  // R
         b.bind(Action::Shake, Binding::pad(PadButton::Shake));          // shake the controller
+        b.bind(face, Binding::pad(PadButton::LeftPaddle1));  // GL: spin, or throw Cappy in Odyssey
         b.bind(Action::NunchukZ, Binding::pad(PadButton::LeftTrigger));  // ZL
         b.bind(Action::B, Binding::pad(PadButton::RightTrigger));        // ZR: Star Bits, back in menus
         b.bind(Action::NunchukC, Binding::pad(PadButton::LeftShoulder));  // L: center the camera
@@ -540,6 +544,9 @@ std::string Bindings::serialize() const {
         for (int i = 0; i < kActions && !differs; ++i) differs = mPro[l][i] != d.mPro[l][i];
         if (!differs) continue;
         out << "\n[" << padLayoutName(static_cast<PadLayout>(l + 1)) << "]\n";
+        // Distinguish an intentional unbinding of every new button from a
+        // saved pre-Switch-2 section, which lists the old defaults in full.
+        out << "# PadExtras=explicit\n";
         for (int i = 0; i < kActions; ++i) {
             out << kActionNames[i] << '=';
             for (size_t k = 0; k < mPro[l][i].size(); ++k) {
@@ -597,6 +604,8 @@ bool Bindings::parse(const std::string& text, std::string* error) {
     Bindings result = *this;
     result.setLayout(PadLayout::Standard);
     enum { Main, Pro, Options } section = Main;
+    bool proSeen[kProLayouts]{};
+    bool explicitExtras[kProLayouts]{};
     std::istringstream in(text);
     std::string line;
     int lineNumber = 0;
@@ -609,6 +618,9 @@ bool Bindings::parse(const std::string& text, std::string* error) {
     while (std::getline(in, line)) {
         ++lineNumber;
         line = trim(line);
+        if (section == Pro && line == "# PadExtras=explicit") {
+            explicitExtras[static_cast<int>(result.mLayout) - 1] = true;
+        }
         if (line.empty() || line[0] == '#') {
             continue;
         }
@@ -617,6 +629,7 @@ bool Bindings::parse(const std::string& text, std::string* error) {
             if (name == "ProGalaxy" || name == "ProOdyssey") {
                 section = Pro;
                 result.setLayout(name == "ProGalaxy" ? PadLayout::ProGalaxy : PadLayout::ProOdyssey);
+                proSeen[static_cast<int>(result.mLayout) - 1] = true;
             } else if (name == "Controller") {
                 section = Options;
             } else {
@@ -659,8 +672,21 @@ bool Bindings::parse(const std::string& text, std::string* error) {
             if (section == Pro && binding.device != Binding::Device::Pad) {
                 return fail("only controller buttons in a Pro layout section: \"" + item + "\"");
             }
+            if (section == Pro && binding.code >= static_cast<int>(PadButton::Misc2) &&
+                binding.code < static_cast<int>(PadButton::Count)) {
+                explicitExtras[static_cast<int>(result.mLayout) - 1] = true;
+            }
             result.bind(action, binding);
         }
+    }
+    // Older saves serialize every action of a changed Pro layout. Preserve
+    // their remaps and add the new grip defaults when that section has never
+    // mentioned an extra button. New saves mark explicit empty bindings too.
+    for (int l = 0; l < kProLayouts; ++l) {
+        if (!proSeen[l] || explicitExtras[l]) continue;
+        result.setLayout(static_cast<PadLayout>(l + 1));
+        result.bind(Action::PlayJump, Binding::pad(PadButton::RightPaddle1));
+        result.bind(l == 0 ? Action::Shake : Action::ModCappyThrow, Binding::pad(PadButton::LeftPaddle1));
     }
     result.setLayout(mLayout);
     *this = std::move(result);

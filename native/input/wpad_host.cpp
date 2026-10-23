@@ -1235,6 +1235,10 @@ void pumpReports(int count) {
     }
 }
 
+#ifdef PETARI_INPUT_KPAD_TEST_SUPPORT
+namespace Detail { void resetKpadForTesting(); }
+#endif
+
 void resetForTesting() {
     noteDevice(Binding::Device::Key);
     {
@@ -1258,6 +1262,9 @@ void resetForTesting() {
             ch = Channel{};
         }
         gInitialized = false;
+#ifdef PETARI_INPUT_KPAD_TEST_SUPPORT
+        Detail::resetKpadForTesting();
+#endif
         gReplayActive.store(false, std::memory_order_release);
         gReplayHooks = {};
         for (auto& error : gReplayProbeErrors) error = WPAD_ERR_NO_CONTROLLER;

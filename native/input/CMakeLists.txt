@@ -62,6 +62,10 @@ endif()
 # The SDK's KPAD.c, compiled unchanged. It relies on memcpy and memset
 # without including a header, which CodeWarrior's prefix file provided.
 set(PETARI_KPAD_SOURCE ${PETARI_REPO_ROOT}/src/RVL_SDK/kpad/KPAD.c)
+if(_petari_input_standalone AND BUILD_TESTING)
+    set(PETARI_KPAD_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/kpad_test_support.cpp)
+    set_source_files_properties(${PETARI_KPAD_SOURCE} PROPERTIES COMPILE_OPTIONS "-Wno-unknown-pragmas")
+endif()
 add_library(petari_input STATIC
     bindings.cpp
     camera_input.cpp
@@ -76,6 +80,10 @@ add_library(petari_input STATIC
     skip.cpp
     wpad_host.cpp
     ${PETARI_KPAD_SOURCE})
+if(_petari_input_standalone AND BUILD_TESTING)
+    target_compile_definitions(petari_input PRIVATE PETARI_INPUT_KPAD_TEST_SUPPORT=1
+        PETARI_KPAD_TEST_SOURCE="${PETARI_LEGACY_ROOT}/src/RVL_SDK/kpad/KPAD.c")
+endif()
 petari_encode_target_sources(petari_input)
 set_source_files_properties("${PETARI_LEGACY_ROOT}/src/RVL_SDK/kpad/KPAD.c" PROPERTIES
     LANGUAGE CXX
@@ -102,6 +110,8 @@ if(BUILD_TESTING)
     # tests check what gameplay sees. Dead stripping drops the parts of these
     # files that reach the rest of the game.
     set(PETARI_INPUT_GAME_SOURCES
+        # UBSan's vptr checks in WPadHolder reference GameSystem's base RTTI.
+        ${PETARI_REPO_ROOT}/src/Game/System/NerveExecutor.cpp
         ${PETARI_REPO_ROOT}/src/Game/System/WPad.cpp
         ${PETARI_REPO_ROOT}/src/Game/System/WPadAcceleration.cpp
         ${PETARI_REPO_ROOT}/src/Game/System/WPadButton.cpp
@@ -130,6 +140,9 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME native_input COMMAND petari_input_tests)
     add_test(NAME native_cappy_input COMMAND petari_input_tests --cappy-only)
+    if(PETARI_SDL3_INCLUDE_DIR)
+        add_test(NAME native_input_sdl3 COMMAND petari_input_tests --sdl3-only)
+    endif()
 
     add_executable(petari_smg2_sdk_tests ${PETARI_REPO_ROOT}/native/tests/smg2_sdk_tests.cpp)
     target_link_libraries(petari_smg2_sdk_tests PRIVATE petari_input)
@@ -152,7 +165,32 @@ if(BUILD_TESTING)
     # Switch Pro Controller layouts: label tables, Galaxy/Odyssey switch, controls.txt sections, gyro, shake.
     add_executable(petari_pro_controller_tests ${PETARI_REPO_ROOT}/native/tests/pro_controller_tests.cpp)
     target_link_libraries(petari_pro_controller_tests PRIVATE petari_input)
+    if(PETARI_SDL3_INCLUDE_DIR)
+        target_include_directories(petari_pro_controller_tests PRIVATE ${PETARI_SDL3_INCLUDE_DIR})
+        target_compile_definitions(petari_pro_controller_tests PRIVATE PETARI_INPUT_TEST_SDL3=1)
+    endif()
     add_test(NAME native_pro_controller COMMAND petari_pro_controller_tests)
+
+    add_executable(petari_pad_log_tests ${PETARI_REPO_ROOT}/native/tests/pad_log_tests.cpp)
+    target_compile_features(petari_pad_log_tests PRIVATE cxx_std_17)
+    if(PETARI_SANITIZERS)
+        target_compile_options(petari_pad_log_tests PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+        target_link_options(petari_pad_log_tests PRIVATE -fsanitize=address,undefined)
+    endif()
+    add_test(NAME native_pad_log COMMAND petari_pad_log_tests)
+    if(_petari_input_standalone AND PETARI_SDL3_INCLUDE_DIR)
+        # The real app event dispatcher with recording SDL/input fakes, no GX or SDL library.
+        add_executable(petari_app_input_events_tests ${PETARI_REPO_ROOT}/native/tests/app_input_events_tests.cpp
+            ${PETARI_REPO_ROOT}/native/app/input_events.cpp bindings.cpp remap.cpp)
+        target_include_directories(petari_app_input_events_tests PRIVATE ${PETARI_REPO_ROOT}/native/include
+            include ${PETARI_SDL3_INCLUDE_DIR})
+        target_compile_features(petari_app_input_events_tests PRIVATE cxx_std_17)
+        if(PETARI_SANITIZERS)
+            target_compile_options(petari_app_input_events_tests PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+            target_link_options(petari_app_input_events_tests PRIVATE -fsanitize=address,undefined)
+        endif()
+        add_test(NAME native_app_input_events COMMAND petari_app_input_events_tests)
+    endif()
 
     # ShootEnemy mod: shared nearest-target policy and one-press transaction.
     add_executable(petari_shoot_nearest_enemy_tests ${PETARI_REPO_ROOT}/native/tests/shoot_nearest_enemy_tests.cpp)

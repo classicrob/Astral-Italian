@@ -66,6 +66,12 @@ enum class PadButton : std::uint8_t {
     // Appended (2026-10-21, Pro Controller layouts); earlier names keep their codes.
     Misc1,  // Switch Pro Capture, Xbox Share (SDL_GAMEPAD_BUTTON_MISC1)
     Shake,  // a shake of a controller with an accelerometer (padSensorEvent), as a button
+    // Appended (2026-10-22); preserve all earlier binding codes.
+    Misc2,  // Switch 2 C (chat)
+    RightPaddle1,  // Switch 2 Pro GR
+    LeftPaddle1,   // Switch 2 Pro GL
+    RightPaddle2,
+    LeftPaddle2,
     Count
 };
 enum class PadAxis : std::uint8_t { LeftX, LeftY, RightX, RightY, LeftTrigger, RightTrigger, Count };
@@ -197,16 +203,19 @@ public:
     // Inputs are "Key:<name>" (see keyName), "Mouse:<Left|Middle|Right|X1|X2>"
     // or "Pad:<South|East|West|North|Back|Guide|Start|LeftStick|RightStick|
     // LeftShoulder|RightShoulder|DpadUp|DpadDown|DpadLeft|DpadRight|
-    // LeftTrigger|RightTrigger|Misc1|Shake>".
+    // LeftTrigger|RightTrigger|Misc1|Shake|Misc2|RightPaddle1|LeftPaddle1|
+    // RightPaddle2|LeftPaddle2>".
     // Then, only where they differ from the defaults, a "[ProGalaxy]" and a
     // "[ProOdyssey]" section of controller buttons by Nintendo label
     // ("Pad:<A|B|X|Y|L|R|ZL|ZR|Plus|Minus|Home|Capture|LStick|RStick|
-    // DpadUp|DpadDown|DpadLeft|DpadRight|Shake>"), and a "[Controller]"
+    // DpadUp|DpadDown|DpadLeft|DpadRight|Shake|C|GR|GL|GR2|GL2>"), and a "[Controller]"
     // section of PadOptions ("Gyro=auto|on|off", "GyroSpeed=1", "GyroInvertX=off",
     // "GyroInvertY=off", "Rumble=on", "ShakeG=1.6").
     std::string serialize() const;
     // Replaces bindings for the actions present in the text. Actions not
-    // mentioned keep their current bindings. On error nothing changes.
+    // mentioned keep their current bindings. Pre-extra-button Pro sections
+    // gain GR/GL defaults; # PadExtras=explicit opts out (written by serialize).
+    // On error nothing changes.
     bool parse(const std::string& text, std::string* error);
 
 private:

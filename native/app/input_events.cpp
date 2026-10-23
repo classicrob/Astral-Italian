@@ -2,13 +2,16 @@
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gamepad.h>
+#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_scancode.h>
 
 #include <cstdio>
 #include <fstream>
+#include <map>
 #include <sstream>
 
 #include "host.hpp"
+#include "pad_log.hpp"
 #include "playtest_capture.hpp"
 #include "smoke_background.hpp"
 #include "petari/input.hpp"
@@ -35,6 +38,45 @@ Smoke::PhysicalInputs gPhysical;
 // "Switch Pro Controller"). Aurora opens every controller; all act as one.
 SDL_JoystickID gPadId = 0;
 bool gRumbling = false;
+// SDL has already closed/removed the device when removal arrives.
+std::map<SDL_JoystickID, PadLog::Pad> gPads;
+std::map<SDL_JoystickID, PadLog::Pad> gUnmappedPads;
+
+std::string textOrEmpty(const char* text) { return text ? text : ""; }
+
+void logLine(const std::string& line) {
+    // native/play/play.sh and smoke_frozen.sh redirect stderr into the app log.
+    std::fprintf(stderr, "%s\n", line.c_str());
+}
+
+void logDriverPolicy() {
+    static bool logged = false;
+    if (logged) return;
+    logged = true;
+    // Match SDL's HIDAPI_DriverSwitch2_IsEnabled default on desktop platforms.
+    // SDL's public gamepad/joystick properties expose capabilities, not a driver name.
+    logLine(PadLog::switch2Policy(SDL_GetHintBoolean(SDL_HINT_JOYSTICK_HIDAPI_SWITCH2,
+                                                   SDL_GetHintBoolean(SDL_HINT_JOYSTICK_HIDAPI, true))));
+}
+
+PadLog::Pad describePad(SDL_Gamepad* pad) {
+    PadLog::Pad info;
+    info.name = textOrEmpty(SDL_GetGamepadName(pad));
+    info.vendor = SDL_GetGamepadVendor(pad);
+    info.product = SDL_GetGamepadProduct(pad);
+    info.type = static_cast<int>(SDL_GetGamepadType(pad));
+    switch (SDL_GetGamepadConnectionState(pad)) {
+    case SDL_JOYSTICK_CONNECTION_WIRED: info.connection = PadLog::Pad::Connection::Wired; break;
+    case SDL_JOYSTICK_CONNECTION_WIRELESS: info.connection = PadLog::Pad::Connection::Wireless; break;
+    default: break;
+    }
+    info.path = textOrEmpty(SDL_GetGamepadPath(pad));
+    info.serial = textOrEmpty(SDL_GetGamepadSerial(pad));
+    constexpr SDL_GamepadButton extras[] = {SDL_GAMEPAD_BUTTON_MISC2, SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1,
+        SDL_GAMEPAD_BUTTON_LEFT_PADDLE1, SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2, SDL_GAMEPAD_BUTTON_LEFT_PADDLE2};
+    for (std::size_t i = 0; i < info.extras.size(); ++i) info.extras[i] = SDL_GamepadHasButton(pad, extras[i]);
+    return info;
+}
 
 void usePad(SDL_JoystickID id) {
     SDL_Gamepad* pad = SDL_GetGamepadFromID(id);
@@ -50,26 +92,42 @@ void usePad(SDL_JoystickID id) {
     }
     const bool rumble = SDL_GetBooleanProperty(SDL_GetGamepadProperties(pad), SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
     Input::padConnected(nintendo);
-    const char* name = SDL_GetGamepadName(pad);
-    std::fprintf(stderr, "[pad] using '%s' (type %d): %s layout; gyro %s, accelerometer %s, rumble %s\n",
-                 name != nullptr ? name : "?", static_cast<int>(SDL_GetGamepadType(pad)),
-                 Input::padLayoutName(Input::padLayout()), gyro ? "on" : "no", accel ? "on" : "no", rumble ? "yes" : "no");
+    gPads[id] = describePad(pad);
+    gUnmappedPads.erase(id);
+    logLine(PadLog::usingPad(gPads.at(id), Input::padLayoutName(Input::padLayout()), gyro, accel, rumble));
 }
 
 void padRemoved(SDL_JoystickID id) {
-    if (id != gPadId) return;
-    gPadId = 0;
-    gRumbling = false;
-    int count = 0;
-    SDL_JoystickID* pads = SDL_GetGamepads(&count);
-    for (int i = 0; pads != nullptr && i < count; ++i) {
-        if (pads[i] != id && SDL_GetGamepadFromID(pads[i]) != nullptr) {
-            usePad(pads[i]);
-            break;
+    if (id == gPadId) {
+        gPadId = 0;
+        gRumbling = false;
+        int count = 0;
+        SDL_JoystickID* pads = SDL_GetGamepads(&count);
+        for (int i = 0; pads != nullptr && i < count; ++i) {
+            if (pads[i] != id && SDL_GetGamepadFromID(pads[i]) != nullptr) {
+                usePad(pads[i]);
+                break;
+            }
         }
+        SDL_free(pads);
+        if (gPadId == 0) Input::padConnected(false);
     }
-    SDL_free(pads);
-    if (gPadId == 0) Input::padConnected(false);
+    const auto removed = gPads.find(id);
+    const auto fallback = gPads.find(gPadId);
+    logLine(PadLog::removed(removed != gPads.end() ? removed->second : PadLog::Pad{},
+                           fallback != gPads.end() ? &fallback->second : nullptr));
+    gPads.erase(id);
+}
+
+void joystickAdded(SDL_JoystickID id) {
+    if (SDL_IsGamepad(id)) return;
+    PadLog::Pad info;
+    info.name = textOrEmpty(SDL_GetJoystickNameForID(id));
+    info.vendor = SDL_GetJoystickVendorForID(id);
+    info.product = SDL_GetJoystickProductForID(id);
+    info.path = textOrEmpty(SDL_GetJoystickPathForID(id));
+    gUnmappedPads[id] = info;
+    logLine(PadLog::unmapped(info));
 }
 
 // The first game action the input is bound to, or null.
@@ -168,6 +226,7 @@ void countPhysical(const SDL_Event& event) {
 }  // namespace
 
 bool input(const SDL_Event& event) {
+    logDriverPolicy();
     if (SmokeBackground::enabled && (SmokeBackground::physicalEvent(event.type) ||
         event.type == SDL_EVENT_WINDOW_FOCUS_LOST || event.type == SDL_EVENT_WINDOW_FOCUS_GAINED)) {
         return true;
@@ -186,10 +245,20 @@ bool input(const SDL_Event& event) {
     }
     if (event.type == SDL_EVENT_GAMEPAD_ADDED) usePad(event.gdevice.which);
     if (event.type == SDL_EVENT_GAMEPAD_REMOVED) padRemoved(event.gdevice.which);
+    if (event.type == SDL_EVENT_JOYSTICK_ADDED) joystickAdded(event.jdevice.which);
+    if (event.type == SDL_EVENT_JOYSTICK_REMOVED) {
+        const auto removed = gUnmappedPads.find(event.jdevice.which);
+        if (removed != gUnmappedPads.end()) {
+            const auto fallback = gPads.find(gPadId);
+            logLine(PadLog::removed(removed->second, fallback != gPads.end() ? &fallback->second : nullptr));
+            gUnmappedPads.erase(removed);
+        }
+    }
     return Input::SDL3::handleEvent(event);
 }
 
 void frame() {
+    logDriverPolicy();
     // The PlaytestCapture action (the Pro Controller's Capture by default; F9/M above).
     if (Input::takeActionPresses(Input::Action::PlaytestCapture) > 0) PlaytestCapture::request();
     // Rumble: renewed each frame while the game's motor runs, stopped when it stops.

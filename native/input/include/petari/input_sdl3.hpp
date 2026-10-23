@@ -16,7 +16,7 @@
 namespace PetariNative::Input::SDL3 {
 
 // SDL's standard gamepad button, or false for buttons with no binding name
-// (paddles, touchpad, MISC2..6).
+// (touchpad, MISC3..6).
 inline bool padButtonOf(Uint8 sdl, PadButton* button) {
     switch (sdl) {
     case SDL_GAMEPAD_BUTTON_SOUTH: *button = PadButton::South; return true;
@@ -35,6 +35,11 @@ inline bool padButtonOf(Uint8 sdl, PadButton* button) {
     case SDL_GAMEPAD_BUTTON_DPAD_LEFT: *button = PadButton::DpadLeft; return true;
     case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: *button = PadButton::DpadRight; return true;
     case SDL_GAMEPAD_BUTTON_MISC1: *button = PadButton::Misc1; return true;  // Pro Capture, Xbox Share
+    case SDL_GAMEPAD_BUTTON_MISC2: *button = PadButton::Misc2; return true;  // Switch 2 C
+    case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1: *button = PadButton::RightPaddle1; return true;  // GR
+    case SDL_GAMEPAD_BUTTON_LEFT_PADDLE1: *button = PadButton::LeftPaddle1; return true;    // GL
+    case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2: *button = PadButton::RightPaddle2; return true;
+    case SDL_GAMEPAD_BUTTON_LEFT_PADDLE2: *button = PadButton::LeftPaddle2; return true;
     default: return false;
     }
 }

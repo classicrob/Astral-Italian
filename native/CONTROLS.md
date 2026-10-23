@@ -153,6 +153,7 @@ the right face button and B the bottom one. It has two layouts. The Galaxy
 layout is used with the mods off; the Odyssey layout replaces it automatically
 whenever the OdysseyMovement mod is on (F1 → Mods, `mods.txt`, or `--odyssey`),
 at the next controller input after the switch, with no restart.
+Switch 2 Pro uses these same layouts by button label.
 
 | Pro | Galaxy layout (mods off) | Odyssey layout (OdysseyMovement on) |
 | --- | --- | --- |
@@ -161,6 +162,9 @@ at the next controller input after the switch, with no restart.
 | Gyro | optional pointer (`Gyro=on`) | Star Pointer |
 | A | jump; confirm in menus (starts at the title) | jump; confirm |
 | B | jump in play; back in menus | jump in play; back in menus |
+| GR (right grip) | jump in play; back in menus (same as B) | jump in play; back in menus (same as B) |
+| GL (left grip) | spin | throw Cappy (spin while the Cappy mod is off) |
+| C (chat) | unbound; remappable | unbound; remappable |
 | Y / X | spin | throw Cappy (spin while the Cappy mod is off) |
 | Shake the controller | spin | spin |
 | R | spin | spin |
@@ -191,7 +195,7 @@ only keyboard remaps still reads in older builds):
 
 ```text
 [ProOdyssey]
-ModCappyThrow=Pad:Y,Pad:X
+ModCappyThrow=Pad:Y,Pad:X,Pad:GL
 Shake=Pad:R,Pad:Shake
 
 [Controller]
@@ -205,10 +209,23 @@ ShakeG=1.6       # how hard a shake must be, in g (0.5 to 8)
 
 Pro section names are `Pad:A`, `B`, `X`, `Y`, `L`, `R`, `ZL`, `ZR`, `Plus`,
 `Minus`, `Home`, `Capture`, `LStick`, `RStick`, `DpadUp`, `DpadDown`,
-`DpadLeft`, `DpadRight`, and `Shake` (a shake of the controller). An action a
+`DpadLeft`, `DpadRight`, `C`, `GR`, `GL`, `GR2`, `GL2`, and `Shake` (a shake of the controller).
+The second pair of paddles (`GR2` / `GL2`) is unbound by default. In the main
+Standard section the extra button names are `Pad:Misc2`, `Pad:RightPaddle1`,
+`Pad:LeftPaddle1`, `Pad:RightPaddle2`, and `Pad:LeftPaddle2`; Standard defaults
+are unchanged. An action a
 section omits keeps its default; `Action=` unbinds it. Keyboard and mouse
 bindings are shared by every layout and stay in the main section. Xbox and
 PlayStation controllers keep the positional defaults below.
+
+Older Pro sections without extra button names gain the GR/GL defaults while
+keeping their previous remaps. New saves include `# PadExtras=explicit` in each
+saved Pro section so intentionally unbinding all extras survives reloading.
+For a hand-edited section with no extra button names, include that comment to
+disable this migration. Extra buttons use the same Controls page capture and
+Swap / Keep both / Cancel choices as other controller buttons.
+If an action has more than two controller bindings, capture one of its existing
+buttons into a visible slot to bring it there for replacement or clearing.
 
 ## Controllers and optional native controls
 

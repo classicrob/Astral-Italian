@@ -67,6 +67,7 @@ void check(bool condition, const std::string& label) {
     ++checks;
     if (!condition) {
         std::fprintf(stderr, "FAIL: %s\n", label.c_str());
+        std::fprintf(stderr, "native input: %d checks, 1 failed\n", checks);
         std::exit(1);
     }
 }
@@ -244,7 +245,7 @@ void testControlsSummary() {
     } expected[] = {
         {"", "Keyboard and mouse", "Controller"},
         {"Move", "W A S D", "left stick"},
-        {"Jump / confirm", "Space / Right mouse", "bottom"},
+        {"Jump / confirm", "Space / Right mouse", "bottom / top"},
         {"Start (title: A and B)", "Return / Keypad Enter", "top"},
         {"Spin", "F", "left / RB"},
         {"Shake Nunchuk", "H", ""},
@@ -437,7 +438,7 @@ void testButtons() {
     rig.frame();
     check(!button.testTriggerA() && button.testButtonA() && rig.trig() == 0, "trigger lasts one frame; OS repeats ignored");
 
-    // KPAD's repeat: the game asks for 1/2.4 s delay, 1/6 s pulse.
+    // SMG2's WPadButton asks for 1/2.4 s delay, 1/12 s pulse.
     int firstRepeat = -1;
     int secondRepeat = -1;
     for (int f = 2; f < 60; ++f) {
@@ -451,7 +452,7 @@ void testButtons() {
         }
     }
     check(firstRepeat >= 24 && firstRepeat <= 26, "first KPAD repeat after 5/12 s (" + std::to_string(firstRepeat) + ")");
-    check(secondRepeat - firstRepeat >= 9 && secondRepeat - firstRepeat <= 11, "then every 1/6 s");
+    check(secondRepeat - firstRepeat >= 4 && secondRepeat - firstRepeat <= 6, "then every 1/12 s");
 
     lift(In::Key::Space);
     rig.frame();
@@ -784,7 +785,7 @@ void testStick() {
     press(In::Key::D);
     rig.frame();
     check(near(stick.mStick.x, stick.mStick.y, 1e-6f) && near(std::hypot(stick.mStick.x, stick.mStick.y), 0.5f, 0.01f),
-          "Alt+W+D: half-length diagonal");
+          "Alt+W+D: half-length diagonal (" + std::to_string(std::hypot(stick.mStick.x, stick.mStick.y)) + ")");
     lift(In::Key::LeftAlt);
     rig.frames_(2);
     check(near(std::hypot(stick.mStick.x, stick.mStick.y), 1.0f, 0.02f), "releasing Alt runs again");
@@ -2169,6 +2170,8 @@ void testSdl3() {
     paddle.type = SDL_EVENT_GAMEPAD_BUTTON_DOWN;
     paddle.gbutton.button = SDL_GAMEPAD_BUTTON_MISC1;
     paddle.gbutton.down = true;
+    check(In::SDL3::handleEvent(paddle), "Capture has a binding name and is consumed");
+    paddle.gbutton.button = SDL_GAMEPAD_BUTTON_MISC3;
     check(!In::SDL3::handleEvent(paddle), "buttons with no binding name are not consumed");
     SDL_Event removed{};
     removed.type = SDL_EVENT_GAMEPAD_REMOVED;
@@ -2945,6 +2948,13 @@ void testEditorPick() {
 
 int main(int argc, char** argv) {
     __OSThreadInit();
+#ifdef PETARI_INPUT_TEST_SDL3
+    if (argc == 2 && std::strcmp(argv[1], "--sdl3-only") == 0) {
+        testSdl3();
+        std::printf("native SDL3 input tests passed (%d checks)\n", checks);
+        return 0;
+    }
+#endif
     if (argc == 2 && std::strcmp(argv[1], "--cappy-only") == 0) {
         testCappyInput();
         testMods();

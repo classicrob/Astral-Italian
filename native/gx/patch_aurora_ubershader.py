@@ -22,7 +22,7 @@ else:
   size='([]{ const auto* p=std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0) ? 5120u : gx::MaxUniformSize; }())'
   text=text.replace('gx::MaxUniformSize',size)
  if kind=='shader':
-  replace('  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);','  if (petariBuildingUber) return petari_uber_shader(dstAlphaMode, normalAttachment);\n  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);')
+  replace('  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);','  if (petariBuildingUber) return petari_uber_shader(config, dstAlphaMode, normalAttachment);\n  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);')
   text+='\n'+(here/'ubershader_runtime.inc').read_text()
   text+='\nstatic constexpr const char* petariUberWgsl = R"UBER('+ (here/'ubershader.wgsl').read_text()+')UBER";\n'
   text+='\n'+(here/'ubershader_source.inc').read_text()

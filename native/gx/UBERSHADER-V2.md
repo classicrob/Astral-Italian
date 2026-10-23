@@ -14,6 +14,7 @@ The renderer is the V1 interpreter plus diagnostic ablations, commit 44b75587.
 | Full interpreter | 2411 | 33.8140 | 34.2841 |
 | Fragment removed | 2426 | 3.9952 | 4.4283 |
 | Texture sampling removed | 2426 | 25.3248 | 25.7822 |
+| Vertex lighting removed | 2413 | 32.4894 | 33.6489 |
 
 The full interpreter costs 9.56x the specialised whole-run median. Removing
 fragment work removes almost all of the excess. Removing texture sampling still
@@ -47,6 +48,6 @@ the GPU-cost work, using Aurora's exact formulas and rounding.
 
 Evidence and scripts: `~/MacioGalaxy2-team/scratch-port/gate53/uber-v2-build`.
 Cases: `~/MacioGalaxy2-gamedata/port53/uber-v2-abl1-{off,full,fragment,textures,lighting}`.
-A vertex-lighting ablation is still completing as a control. All five output
+The vertex-lighting control remains close to the full interpreter. All five output
 variants and all three diagnostic modes passed Dawn Null WGSL validation;
 the specialised shader regression and existing coverage checks passed.

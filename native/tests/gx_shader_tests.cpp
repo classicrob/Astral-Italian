@@ -18,7 +18,9 @@
 
 namespace aurora::gx {
 std::string petari_uber_source(DstAlphaMode, uint32_t);
+std::string petari_uber_source(DstAlphaMode, uint32_t, uint32_t);
 const char* petari_uber_reason(const ShaderConfig&);
+aurora::gfx::PipelineRef petari_uber_key(const PipelineConfig&,const aurora::gfx::RenderTargetLayout&);
 }
 using namespace aurora::gx;
 
@@ -335,9 +337,11 @@ int main(int argc, char** argv) {
         });
         if(instance.WaitAny(df,5000000000)!=wgpu::WaitStatus::Success || !device) return 3;
         unsigned checked=0;
+        // All shipped count pairs plus the maximum admitted stage/texgen extent.
+        for(auto variant:{1u,33u,2u,34u,66u,35u,67u,99u,36u,68u,100u,132u,101u,133u,198u,264u,272u})
         for(auto mode:{DstAlphaMode::None,DstAlphaMode::Replace,DstAlphaMode::DualSource}) for(auto normal:{UINT32_MAX,1u}) {
             if(mode==DstAlphaMode::DualSource && (normal!=UINT32_MAX || !device.HasFeature(wgpu::FeatureName::DualSourceBlending)))continue;
-            const auto source=petari_uber_source(mode,normal);
+            const auto source=petari_uber_source(mode,normal,variant);
             wgpu::ShaderSourceWGSL wgsl{};wgsl.code=source.c_str();wgpu::ShaderModuleDescriptor sd{.nextInChain=&wgsl};
             auto shader=device.CreateShaderModule(&sd);
             auto sf=shader.GetCompilationInfo(wgpu::CallbackMode::WaitAnyOnly,[&](wgpu::CompilationInfoRequestStatus status,const wgpu::CompilationInfo* info){
@@ -368,6 +372,17 @@ int main(int argc, char** argv) {
         expect(std::string(petari_uber_reason(c)) == "texgen_type", "emboss texgen cannot enter generic path");
         c.tcgs[0].type = GX_TG_MTX2x4; c.attrs[GX_VA_NRM] = {.attrType=GX_INDEX16,.cnt=9,.compType=GX_S16,.nbt3=true};
         expect(std::string(petari_uber_reason(c)) != "covered", "NBT3 decode cannot enter generic path");
+        PipelineConfig first{};first.shaderConfig=indirect_config();
+        first.shaderConfig.numIndStages=0;first.shaderConfig.tevStages[0].indTexMtxId=GX_ITM_OFF;
+        aurora::gfx::RenderTargetLayout layout{};layout.key=123;
+        auto other=first;other.shaderConfig.alphaCompare.ref0=127;
+        expect(petari_uber_key(first,layout)==petari_uber_key(other,layout),"alpha reference remains uniform within a variant");
+        other=first;other.shaderConfig.tevStageCount=2;
+        expect(petari_uber_key(first,layout)!=petari_uber_key(other,layout),"different TEV counts require different generic pipelines");
+        other=first;other.depthUpdate=!other.depthUpdate;
+        expect(petari_uber_key(first,layout)!=petari_uber_key(other,layout),"fixed depth state remains in the generic key");
+        auto secondLayout=layout;secondLayout.key=456;
+        expect(petari_uber_key(first,layout)!=petari_uber_key(first,secondLayout),"target layout remains in the generic key");
         return failures ? 1 : 0;
     }
     if (argc == 3 && std::string(argv[1]) == "--audit-uber-cache") {

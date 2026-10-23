@@ -47,16 +47,19 @@ fn channel(c:u32,clr:vec4f,pos:vec3f,nrm:vec3f)->vec4f {
  out.cc0=vec4f(channel(0u,clr0,mv,normal).rgb,channel(2u,clr0,mv,normal).a);
  out.cc1=vec4f(channel(1u,clr1,mv,normal).rgb,channel(3u,clr1,mv,normal).a);
  var tc:array<vec3f,8>;
- for(var i=0u;i<8u;i++) {if((cfg(824u)&(1u<<i))==0u){continue;}let b=704u+i*8u;let src=cfg(b+1u);var v=vec4f(p,1);if(src==1u){v=vec4f(n,1);}if(src>=4u && src<=11u){v=vec4f(attr(13u+src-4u,vidx).xy,1,1);}
+ for(var i=0u;i<8u;i++) {if((cfg(824u)&(1u<<i))!=0u){let b=704u+i*8u;let src=cfg(b+1u);var v=vec4f(p,1);if(src==1u){v=vec4f(n,1);}if(src>=4u && src<=11u){v=vec4f(attr(13u+src-4u,vidx).xy,1,1);}
  var m=cfg(b+2u);if(cfg(512u+(1u+i)*8u)!=0u){m=u32(attr(1u+i,vidx).x);}var tmp=v.xyz;if(m!=60u){tmp=v*ubuf.postex_mtx[m/3u];}if(cfg(b)==1u){tmp.z=1.0;}if(cfg(b+4u)!=0u){tmp=normalize(tmp);}let pm=cfg(b+3u);if(pm!=125u){tmp=vec4f(tmp,1)*ubuf.postmtx[(pm-64u)/3u];}tc[i]=tmp;
- }
+ }}
  out.tc0=tc[0];out.tc1=tc[1];out.tc2=tc[2];out.tc3=tc[3];out.tc4=tc[4];out.tc5=tc[5];out.tc6=tc[6];out.tc7=tc[7];return out;
 }
 fn swizzle(v:vec4f,s:u32)->vec4f {let o=804u+s*4u;return vec4f(v[cfg(o)],v[cfg(o+1u)],v[cfg(o+2u)],v[cfg(o+3u)]);}
 fn konst(s:u32)->vec4f {if(s<8u){return vec4f(f32(8u-s)/8.0);}if(s<16u){return ubuf.konst[s-12u];}return vec4f(ubuf.konst[(s-16u)%4u][(s-16u)/4u]);}
-fn carg(a:u32,r:array<vec4f,4>,t:vec4f,v:vec4f,k:vec4f)->vec3f {
- if(a<8u){if((a&1u)==0u){return r[a/2u].rgb;}return vec3f(r[a/2u].a);}
+struct TevRegisters {r0:vec4f,r1:vec4f,r2:vec4f,r3:vec4f,};
+fn read_reg(r:TevRegisters,i:u32)->vec4f {switch(i){case 0u:{return r.r0;}case 1u:{return r.r1;}case 2u:{return r.r2;}default:{return r.r3;}}}
+fn texcoord(v:VertexOutput,i:u32)->vec3f {switch(i){case 0u:{return v.tc0;}case 1u:{return v.tc1;}case 2u:{return v.tc2;}case 3u:{return v.tc3;}case 4u:{return v.tc4;}case 5u:{return v.tc5;}case 6u:{return v.tc6;}default:{return v.tc7;}}}
+fn carg(a:u32,r:TevRegisters,t:vec4f,v:vec4f,k:vec4f)->vec3f {
+ if(a<8u){if((a&1u)==0u){return read_reg(r,a/2u).rgb;}return vec3f(read_reg(r,a/2u).a);}
  switch(a){case 8u:{return t.rgb;}case 9u:{return vec3f(t.a);}case 10u:{return v.rgb;}case 11u:{return vec3f(v.a);}case 12u:{return vec3f(1);}case 13u:{return vec3f(0.5);}case 14u:{return k.rgb;}default:{return vec3f(0);}}
 }
-fn aarg(a:u32,r:array<vec4f,4>,t:vec4f,v:vec4f,k:vec4f)->f32 {if(a<4u){return r[a].a;}switch(a){case 4u:{return t.a;}case 5u:{return v.a;}case 6u:{return k.a;}default:{return 0.0;}}}
+fn aarg(a:u32,r:TevRegisters,t:vec4f,v:vec4f,k:vec4f)->f32 {if(a<4u){return read_reg(r,a).a;}switch(a){case 4u:{return t.a;}case 5u:{return v.a;}case 6u:{return k.a;}default:{return 0.0;}}}
 fn compare(a:u32,b:u32,op:u32)->bool {switch(op){case 0u:{return false;}case 1u:{return a<b;}case 2u:{return a==b;}case 3u:{return a<=b;}case 4u:{return a>b;}case 5u:{return a!=b;}case 6u:{return a>=b;}default:{return true;}}}

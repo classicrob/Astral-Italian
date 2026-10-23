@@ -17,5 +17,6 @@ void petari_uber_note(const ShaderConfig&);
 void petari_uber_begin_frame(uint64_t);
 void petari_uber_draw(bool fallback, bool forced, bool missing);
 extern thread_local bool petariBuildingUber;
-wgpu::ShaderModule petari_uber_shader(DstAlphaMode, uint32_t);
+uint32_t petari_uber_variant(const ShaderConfig&);
+wgpu::ShaderModule petari_uber_shader(const ShaderConfig&, DstAlphaMode, uint32_t);
 }

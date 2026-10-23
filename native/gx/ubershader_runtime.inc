@@ -79,7 +79,15 @@ void petari_uber_report() {
   std::fprintf(stderr,"[gx uber frames] encoded_frames=%llu fallback_frames=%llu forced_frames=%llu\n",(unsigned long long)uberFrames.load(),(unsigned long long)uberFallbackFrames.load(),(unsigned long long)uberForcedFrames.load());
   std::fprintf(stderr,"[gx uber summary] draws=%llu covered_draws=%llu fallback_draws=%llu forced_draws=%llu specialized_draws=%llu unsupported_draws=%llu missing_key_draws=%llu configs=%zu covered_configs=%zu\n",(unsigned long long)uberDraws.load(),(unsigned long long)uberCovered.load(),(unsigned long long)uberFallback.load(),(unsigned long long)uberForced.load(),(unsigned long long)uberSpecialized.load(),(unsigned long long)(uberDraws-uberCovered),(unsigned long long)uberMissing.load(),uberConfigs.size(),covered);
 }
-gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) { auto key=c; key.shaderConfig={}; return xxh3_hash(l.key,xxh3_hash(key,0x55424552)); }
+uint32_t petari_uber_variant(const ShaderConfig& c) {
+  const auto info=build_shader_info(c);uint32_t extent=0;
+  for(unsigned i=0;i<8;++i)if(info.sampledTexCoords.test(i))extent=i+1;
+  return c.tevStageCount | (extent<<5);
+}
+gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
+  auto key=c;key.shaderConfig={};
+  return xxh3_hash(l.key,xxh3_hash(petari_uber_variant(c.shaderConfig),xxh3_hash(key,0x55424552)));
+}
 void petari_uber_associate(gfx::PipelineRef key,gfx::PipelineRef uber) { std::lock_guard lock(uberMutex);uberAssociations.emplace(key,uber); }
 gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef key) {std::lock_guard lock(uberMutex);auto it=uberAssociations.find(key);return it==uberAssociations.end()?0:it->second;}
 bool petari_uber_ready(gfx::PipelineRef key,gfx::CompiledPipeline& out) { std::lock_guard lock(uberMutex);auto it=uberPipelines.find(key);if(it==uberPipelines.end() || !it->second.main) return false;out=it->second;return true; }
@@ -108,7 +116,7 @@ gfx::Range petari_uber_uniform(const ShaderConfig& c) {
     w[o+4]=s.alphaPass.a;w[o+5]=s.alphaPass.b;w[o+6]=s.alphaPass.c;w[o+7]=s.alphaPass.d;
     w[o+8]=s.colorOp.op;w[o+9]=s.colorOp.bias;w[o+10]=s.colorOp.scale;w[o+11]=s.colorOp.clamp;w[o+12]=s.colorOp.outReg;
     w[o+13]=s.alphaOp.op;w[o+14]=s.alphaOp.bias;w[o+15]=s.alphaOp.scale;w[o+16]=s.alphaOp.clamp;w[o+17]=s.alphaOp.outReg;
-    w[o+18]=s.kcSel;w[o+19]=s.kaSel;w[o+20]=s.texCoordId;w[o+21]=s.texMapId;w[o+22]=s.channelId;w[o+23]=s.tevSwapRas;w[o+24]=s.tevSwapTex;
+    w[o+18]=s.kcSel;w[o+19]=s.kaSel;w[o+20]=s.texCoordId;w[o+21]=uses_texture_sample(s)?s.texMapId:GX_TEXMAP_NULL;w[o+22]=s.channelId;w[o+23]=s.tevSwapRas;w[o+24]=s.tevSwapTex;
   }
   for(unsigned i=0;i<=GX_VA_TEX7;++i) {auto& a=c.attrs[i];unsigned o=512+i*8;w[o]=a.attrType;w[o+1]=a.cnt;w[o+2]=a.compType;w[o+3]=a.offset;w[o+4]=a.stride;w[o+5]=a.frac;w[o+6]=a.le;}
   for(unsigned i=0;i<8;++i) {auto& t=c.tcgs[i];unsigned o=704+i*8;w[o]=t.type;w[o+1]=t.src;w[o+2]=t.mtx;w[o+3]=t.postMtx;w[o+4]=t.normalize;}

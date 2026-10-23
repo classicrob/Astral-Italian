@@ -226,7 +226,11 @@ void Renderer::applyReverb(bool postRendering) {
     }
     MixBuffer* buses[4] = {&mAux0Reverb, &mAux1Reverb, &mFrontLeftReverb, &mFrontRightReverb};
     for (int r = 0; r < 4; ++r) {
-        const ReverbBlock& block = mReverb[r];
+        // The microcode DMAs the parameter block into DSP memory and works on
+        // that copy; JASDsp::setFXLine rewrites the block from a game thread
+        // while this worker renders, so read it once (a changing circularBlocks
+        // must not pass the check below and then be 0 at the modulo).
+        const ReverbBlock block = mReverb[r];
         if (!block.enabled || block.buffer == nullptr || block.circularBlocks == 0) {
             continue;
         }

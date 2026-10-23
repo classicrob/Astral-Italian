@@ -97,6 +97,15 @@ public:
         if (mReplay) mReplay->endFrame();
         const bool segmentBoundary=mReplay && mReplay->segmentEnded();  // this seam is the last row of a multi-segment tape's segment
         const bool keyboardDone = mKeyboard && (!mStartupRequested || L::startupStatus()==L::StartupStatus::Applied) && mKeyboard->step(state);
+        if (mKeyboard) {  // scene/stage changes, for routes and for reading a failure's context
+            const auto get=[&](const char* key){ const auto it=state.fields.find(key); return it==state.fields.end()?std::string("-"):it->second; };
+            const std::string where=get("scene")+" "+get("stage")+" "+get("scenario")+" "+get("init_state");
+            if (where!=mLastWhere) {
+                std::fprintf(stderr,"[sweep-scene] loop %llu scene=%s stage=%s scenario=%s init_state=%s\n",static_cast<unsigned long long>(sourceFrame),
+                    get("scene").c_str(),get("stage").c_str(),get("scenario").c_str(),get("init_state").c_str());
+                mLastWhere=where;
+            }
+        }
         if (mKeyboard && !mKeyboard->started() && mStartupRequested && L::startupStatus()==L::StartupStatus::Applied && sourceFrame % 5000 == 0) {
             const auto get=[&](const char* key){ const auto it=state.fields.find(key); return it==state.fields.end()?std::string("-"):it->second; };
             std::fprintf(stderr,"[sweep-wait] loop %llu scene=%s stage=%s scenario=%s init_state=%s player_valid=%s demo=%d\n",
@@ -236,7 +245,7 @@ private:
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
     H::ReloadPolicy mReloadPolicy;
     bool mActivateAsync=false;
-    std::chrono::steady_clock::time_point mLastWall; bool mHaveWall=false; unsigned mSlow=0; std::vector<float> mWallMs;
+    std::string mLastWhere; std::chrono::steady_clock::time_point mLastWall; bool mHaveWall=false; unsigned mSlow=0; std::vector<float> mWallMs;
     std::thread mThread;
 };
 Driver* gDriver=nullptr;
@@ -293,7 +302,7 @@ int main(int argc,char** argv) {
     try {
         std::setlocale(LC_NUMERIC,"C");
         std::map<std::string,std::string> args;
-        bool noPlayer=false,ftz=true,syncPlay=false,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
+        bool noPlayer=false,bootRoute=false,ftz=true,syncPlay=false,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--inputs-from-sync") {
@@ -311,6 +320,7 @@ int main(int argc,char** argv) {
             }
             if (key=="--existing-unlocked-user") {existingUnlockedUser=true;continue;}
             if (key=="--no-player") {noPlayer=true;continue;}
+            if (key=="--boot") {bootRoute=true;continue;}
             if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--segments" && key!="--mod-actions" && key!="--inputs" && key!="--keyboard-script" && key!="--player-mode" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
@@ -340,7 +350,7 @@ int main(int argc,char** argv) {
             if (!source) throw H::ReplayError("cannot open input tape");
             replay=std::make_unique<H::Replay>(source,inputsFromSync);
         } else {
-            keyboard=std::make_unique<H::KeyboardScript>(external(args.at("--keyboard-script")).string(),args.count("--player-mode")?args.at("--player-mode"):std::string(),noPlayer);
+            keyboard=std::make_unique<H::KeyboardScript>(external(args.at("--keyboard-script")).string(),args.count("--player-mode")?args.at("--player-mode"):std::string(),noPlayer,bootRoute);
             std::string error;
             if (!PetariNative::Mods::load(user / "mods.txt", &error)) throw H::ReplayError(error);
         }

@@ -167,6 +167,12 @@ void MarioActor::fn_803CAA00() {
     f32 len = 70.0f;
     Mario* m = this->mMario;
     TVec3f blend;
+#ifdef GALAXY_NATIVE
+    // The Wii helper also leaves its output untouched for opposite directions.
+    // Retain the source direction in that case, rather than reading host stack
+    // contents and copying a possible NaN into the binder offset.
+    blend.set(m->mHeadVec);
+#endif
     if (((m->mDrawStates.mWord >> (0x10)) & 1)) {
         MR::vecBlendSphere(&blend, (m)->mHeadVec, (m)->_380, 0.5f * this->_984);
     } else {

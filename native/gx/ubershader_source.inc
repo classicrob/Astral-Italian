@@ -133,7 +133,7 @@ fn run(in:VertexOutput)->vec4f {
 }
 std::string petari_uber_source(DstAlphaMode mode,uint32_t normal) {return petari_uber_source(mode,normal,16u|(8u<<5)|(4u<<9)|(1u<<12));}
 wgpu::ShaderModule petari_uber_shader(const ShaderConfig& config,DstAlphaMode mode,uint32_t normal) {
- const auto variant=petari_uber_variant(config);
+ const auto variant=petari_uber_variant(config,petariBuildingUberTier);
  static std::mutex mutex;static std::map<std::tuple<unsigned,uint32_t,uint32_t>,wgpu::ShaderModule> modules;
  std::lock_guard lock(mutex);auto key=std::make_tuple(unsigned(mode),normal,variant);auto it=modules.find(key);if(it!=modules.end())return it->second;
  auto start=std::chrono::steady_clock::now();auto src=petari_uber_source(mode,normal,variant);

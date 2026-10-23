@@ -29,6 +29,7 @@ else:
  if kind=='frame':
   replace('  begin_pipeline_frame();','  gx::petari_uber_set_recording_frame(frame.frameId);\n  begin_pipeline_frame();')
   replace('    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);', '    gx::petari_uber_begin_frame(g_framePackets[frameSlot].frameId);\n    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);')
+  replace('    auto& packet = g_framePackets[frameSlot];','    gx::petari_uber_end_frame();\n    auto& packet = g_framePackets[frameSlot];')
  if kind=='command_processor':
   replace('  gfx::Range uniformRange{};','  gfx::Range uniformRange{};\n  gfx::Range uberUniformRange{};')
   replace('    cache.uniformRange = build_uniform(cache.shaderInfo);','''    cache.uniformRange = build_uniform(cache.shaderInfo);
@@ -41,7 +42,8 @@ else:
   replace('''  if (!gfx::get_pipeline(data.pipeline, pipeline)) {
     return;
   }''','''  const bool covered = data.uberUniformOffset != UINT32_MAX;
-  const auto uberKey = covered ? petari_uber_lookup(data.pipeline) : 0;
+  bool fast = false;
+  auto uberKey = covered ? petari_uber_lookup(data.pipeline, &fast) : 0;
   gfx::CompiledPipeline available;
   bool fallbackReady = covered && petari_uber_ready(uberKey, available);
   bool uber = false;
@@ -50,7 +52,10 @@ else:
   if (missing) petari_uber_not_ready(uberKey);
   if (force && fallbackReady) { pipeline = available; uber = true; }
   if (!uber && !gfx::get_pipeline(data.pipeline, pipeline)) {
-    if (!fallbackReady) fallbackReady = covered && petari_uber_ready(uberKey, available);
+    if (!fallbackReady && covered) {
+      uberKey = petari_uber_lookup(data.pipeline, &fast);
+      fallbackReady = petari_uber_ready(uberKey, available);
+    }
     if (!fallbackReady) {
       if (missing) petari_uber_not_ready(uberKey, true);
       return;
@@ -59,7 +64,7 @@ else:
     uber = true;
   }
   if (petari_uber_enabled()) {
-    petari_uber_draw(uber, force && uber, missing);
+    petari_uber_draw(uber, force && uber, missing, fast);
   }''')
   replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
  if kind=='cache':
@@ -99,10 +104,12 @@ else:
     const bool covered = std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered") == 0;
     CompiledPipeline uber;
     if (covered) {
-      const auto key = gx::petari_uber_key(config, layout);
-      gx::petari_uber_associate(xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX))), key);
-      const bool ready = gx::petari_uber_ready(key, uber);
-      if (!ready) petari_uber_schedule_draw(config, layout);
+      const auto keys = gx::petari_uber_keys(config, layout);
+      const auto ref = xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX)));
+      gx::petari_uber_associate(ref, keys);
+      const bool ready = gx::petari_uber_ready(gx::petari_uber_lookup(ref), uber);
+      // Also enqueue/promote an upgrade when the generic fallback is already ready.
+      if (!gx::petari_uber_ready(keys.fast, uber)) petari_uber_schedule_draw(config, layout);
       petari_uber_observe_title(true, ready);
       if (ready) return resolve_pipeline(ShaderType::GX, config, layout, PipelinePriority::Normal);
     } else petari_uber_observe_title(false, false);

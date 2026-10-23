@@ -18,6 +18,7 @@
 #include <set>
 #include <filesystem>
 #include "../gx/ubershader_programs.hpp"
+#include "../gx/ubershader.hpp"
 
 namespace aurora::gx {
 std::string petari_uber_source(DstAlphaMode, uint32_t);
@@ -398,6 +399,14 @@ int main(int argc, char** argv) {
             t.colorOp.outReg=GXTevRegID(a[8]);t.alphaOp.outReg=GXTevRegID(a[9]);
           }
           expect(petari_uber_arg_program(config)==p+1,"bounded argument program matches all selectors and destinations exactly");
+          PipelineConfig matched{};matched.shaderConfig=config;
+          const aurora::gfx::RenderTargetLayout tierLayout{};
+          const auto originalKeys=petari_uber_keys(matched,tierLayout);
+          expect(originalKeys.fast==petari_uber_key(matched,tierLayout),"legacy key remains the preferred fast tier");
+          expect(originalKeys.generic==petari_uber_key(matched,tierLayout,PetariUberTier::Generic),"pair contains the exact generic key");
+          matched.shaderConfig.tevStages[0].colorOp.outReg=GX_TEVREG1;
+          expect(petari_uber_keys(matched,tierLayout).generic==originalKeys.generic,"generic fallback accepts different output routes");
+          expect(petari_uber_keys(matched,tierLayout).fast!=originalKeys.fast,"baked output route cannot alias a different fast program");
           config.tevStages[0].colorPass.a=GXTevColorArg((unsigned(config.tevStages[0].colorPass.a)+1)%16);
           expect(petari_uber_arg_program(config)!=p+1,"different selectors cannot reuse a baked argument program");
         }
@@ -412,10 +421,17 @@ int main(int argc, char** argv) {
         expect(petari_uber_key(first,layout)!=petari_uber_key(other,layout),"fixed depth state remains in the generic key");
         auto secondLayout=layout;secondLayout.key=456;
         expect(petari_uber_key(first,layout)!=petari_uber_key(first,secondLayout),"target layout remains in the generic key");
+        auto genericOnly=first;
+        auto& stage=genericOnly.shaderConfig.tevStages[0];
+        stage.colorPass={GX_CC_HALF,GX_CC_HALF,GX_CC_HALF,GX_CC_HALF};
+        genericOnly.shaderConfig.tevSwapTable[stage.tevSwapTex].red=GX_CH_BLUE;
+        const auto aliases=petari_uber_keys(genericOnly,layout);
+        expect(aliases.generic==aliases.fast,"unknown nonidentity programs alias both tiers and compile only once");
+        expect((petari_uber_variant(first.shaderConfig,PetariUberTier::Generic)&~8191u)==0,"generic tier clears every fast specialization bit");
         return failures ? 1 : 0;
     }
     if (argc == 3 && std::string(argv[1]) == "--audit-uber-keys") {
-        std::set<aurora::gfx::PipelineRef> keys;std::set<uint32_t> variants;
+        std::set<aurora::gfx::PipelineRef> keys,genericKeys,combinedKeys;std::set<uint32_t> variants;
         unsigned databases=0,rows=0,rejected=0,fast=0,identity=0;
         aurora::gfx::RenderTargetLayout layout{};layout.key=1;
         for(const auto& file:std::filesystem::directory_iterator(argv[2])) {
@@ -428,10 +444,11 @@ int main(int argc, char** argv) {
             PipelineConfig c;std::memcpy(&c,sqlite3_column_blob(q,0),sizeof(c));
             if(!petari_cached_shader_valid(c.shaderConfig,0) || std::string(petari_uber_reason(c.shaderConfig))!="covered"){++rejected;continue;}
             ++rows;const auto variant=petari_uber_variant(c.shaderConfig);variants.insert(variant);keys.insert(petari_uber_key(c,layout));fast+=bool(variant>>24);identity+=bool(variant&(1u<<13));
+            const auto tiers=petari_uber_keys(c,layout);genericKeys.insert(tiers.generic);combinedKeys.insert(tiers.generic);combinedKeys.insert(tiers.fast);
           }
           sqlite3_finalize(q);sqlite3_close(db);
         }
-        std::printf("databases=%u configs=%u rejected=%u keys_one_layout=%zu shader_variants=%zu fast_program_configs=%u identity_swap_configs=%u\n",databases,rows,rejected,keys.size(),variants.size(),fast,identity);
+        std::printf("databases=%u configs=%u rejected=%u keys_one_layout=%zu shader_variants=%zu fast_program_configs=%u identity_swap_configs=%u generic_keys=%zu combined_keys=%zu\n",databases,rows,rejected,keys.size(),variants.size(),fast,identity,genericKeys.size(),combinedKeys.size());
         return 0;
     }
     if (argc == 3 && std::string(argv[1]) == "--audit-uber-cache") {

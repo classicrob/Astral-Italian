@@ -13,6 +13,7 @@
 #include <exception>
 namespace aurora::gx {
 thread_local bool petariBuildingUber = false;
+thread_local PetariUberTier petariBuildingUberTier = PetariUberTier::Fast;
 thread_local double petariUberShaderMs = 0;
 bool petari_uber_enabled() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0); }(); return b; }
 bool petari_uber_all() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && std::strcmp(p,"all")==0; }(); return b; }
@@ -65,10 +66,12 @@ enum class UberPreparation { Queued, Preparing, Ready, Failed };
 std::map<gfx::PipelineRef,UberPreparation> uberPreparation;
 std::atomic<uint64_t> uberPendingDraws{0},uberFailedDraws{0},uberUnknownDraws{0},uberSkippedUnready{0};
 std::map<HashType,bool> uberConfigs;
-std::map<gfx::PipelineRef,gfx::PipelineRef> uberAssociations;
+std::map<gfx::PipelineRef,PetariUberKeys> uberAssociations;
 thread_local uint64_t uberEncodingFrame=0;
 thread_local bool uberFrameUsed=false;
+thread_local bool uberFrameForced=false,uberFrameGeneric=false,uberFrameFast=false;
 std::atomic<uint64_t> uberFrames{0},uberFallbackFrames{0},uberForcedFrames{0};
+std::atomic<uint64_t> uberGenericFrames{0},uberFastFrames{0},uberMixedFrames{0},uberGenericDraws{0},uberFastDraws{0};
 std::atomic<uint64_t> uberDraws{0},uberCovered{0},uberFallback{0},uberForced{0},uberSpecialized{0},uberMissing{0};
 }
 void petari_uber_note(const ShaderConfig& c) {
@@ -82,15 +85,22 @@ void petari_uber_set_recording_frame(uint64_t frame) {petariUberRecordingFrame=f
 uint64_t petari_uber_recording_frame() {return petariUberRecordingFrame;}
 void petari_uber_begin_frame(uint64_t frame) {
   if(!petari_uber_enabled()) return;
-  uberEncodingFrame=frame;uberFrameUsed=false;++uberFrames;
+  uberEncodingFrame=frame;uberFrameUsed=false;uberFrameForced=false;uberFrameGeneric=false;uberFrameFast=false;++uberFrames;
 }
-void petari_uber_draw(bool fallback,bool forced,bool missing) {
+void petari_uber_end_frame() {
+  if(!petari_uber_enabled() || !uberFrameUsed)return;
+  if(uberFrameForced)++uberForcedFrames;else ++uberFallbackFrames;
+  uberGenericFrames+=uberFrameGeneric;uberFastFrames+=uberFrameFast;uberMixedFrames+=uberFrameGeneric&&uberFrameFast;
+  std::fprintf(stderr,"[gx uber frame] frame=%llu fallback=1 forced=%u generic=%u fast=%u\n",(unsigned long long)uberEncodingFrame,uberFrameForced,uberFrameGeneric,uberFrameFast);
+  uberFrameUsed=false;
+}
+void petari_uber_draw(bool fallback,bool forced,bool missing,bool fast) {
   uberFallback+=fallback&&!forced;uberForced+=forced;uberSpecialized+=!fallback;
   (void)missing; // observed once before the draw's possible early return
-  if(fallback && !uberFrameUsed) {
+  if(fallback) {
     uberFrameUsed=true;
-    if(forced)++uberForcedFrames;else ++uberFallbackFrames;
-    std::fprintf(stderr,"[gx uber frame] frame=%llu fallback=1 forced=%u\n",(unsigned long long)uberEncodingFrame,forced);
+    uberFrameForced|=forced;uberFrameFast|=fast;uberFrameGeneric|=!fast;
+    if(fast)++uberFastDraws;else ++uberGenericDraws;
   }
 }
 void petari_uber_not_ready(gfx::PipelineRef key, bool skipped) {
@@ -116,7 +126,8 @@ void petari_uber_release() {
 void petari_uber_report() {
   if(!petari_uber_enabled()) return;
   std::lock_guard lock(uberMutex); size_t covered=0;for(auto [k,v]:uberConfigs) covered+=v;
-  std::fprintf(stderr,"[gx uber frames] encoded_frames=%llu fallback_frames=%llu forced_frames=%llu\n",(unsigned long long)uberFrames.load(),(unsigned long long)uberFallbackFrames.load(),(unsigned long long)uberForcedFrames.load());
+  std::fprintf(stderr,"[gx uber frames] encoded_frames=%llu fallback_frames=%llu forced_frames=%llu generic_frames=%llu fast_frames=%llu mixed_frames=%llu\n",(unsigned long long)uberFrames.load(),(unsigned long long)uberFallbackFrames.load(),(unsigned long long)uberForcedFrames.load(),(unsigned long long)uberGenericFrames.load(),(unsigned long long)uberFastFrames.load(),(unsigned long long)uberMixedFrames.load());
+  std::fprintf(stderr,"[gx uber tiers] generic_draws=%llu fast_draws=%llu\n",(unsigned long long)uberGenericDraws.load(),(unsigned long long)uberFastDraws.load());
   std::fprintf(stderr,"[gx uber summary] draws=%llu covered_draws=%llu fallback_draws=%llu forced_draws=%llu specialized_draws=%llu unsupported_draws=%llu missing_key_draws=%llu configs=%zu covered_configs=%zu\n",(unsigned long long)uberDraws.load(),(unsigned long long)uberCovered.load(),(unsigned long long)uberFallback.load(),(unsigned long long)uberForced.load(),(unsigned long long)uberSpecialized.load(),(unsigned long long)(uberDraws-uberCovered),(unsigned long long)uberMissing.load(),uberConfigs.size(),covered);
   std::fprintf(stderr,"[gx uber readiness] not_ready_draws=%llu pending_draws=%llu failed_draws=%llu unknown_draws=%llu skipped_unready_draws=%llu\n",
       (unsigned long long)uberMissing.load(),(unsigned long long)uberPendingDraws.load(),
@@ -134,24 +145,36 @@ uint32_t petari_uber_arg_program(const ShaderConfig& c) {
   }
   return 0;
 }
-uint32_t petari_uber_variant(const ShaderConfig& c) {
+uint32_t petari_uber_variant(const ShaderConfig& c,PetariUberTier tier) {
   const auto info=build_shader_info(c);uint32_t extent=0;
   for(unsigned i=0;i<8;++i)if(info.sampledTexCoords.test(i))extent=i+1;
+  const auto generic=c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12);
+  if(tier==PetariUberTier::Generic)return generic;
   bool identity=true;
   const auto isIdentity=[](const auto& s){return s.red==GX_CH_RED && s.green==GX_CH_GREEN && s.blue==GX_CH_BLUE && s.alpha==GX_CH_ALPHA;};
   for(unsigned i=0;i<c.tevStageCount;++i){const auto& t=c.tevStages[i];identity&=isIdentity(c.tevSwapTable[t.tevSwapTex]) && isIdentity(c.tevSwapTable[t.tevSwapRas]);}
-  return c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12) | (uint32_t(identity)<<13) | (petari_uber_arg_program(c)<<24);
+  return generic | (uint32_t(identity)<<13) | (petari_uber_arg_program(c)<<24);
 }
-gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
+uint32_t petari_uber_variant(const ShaderConfig& c) {return petari_uber_variant(c,PetariUberTier::Fast);}
+gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l,PetariUberTier tier) {
   auto key=c;key.shaderConfig={};
-  return xxh3_hash(l.key,xxh3_hash(petari_uber_variant(c.shaderConfig),xxh3_hash(key,0x55424552)));
+  return xxh3_hash(l.key,xxh3_hash(petari_uber_variant(c.shaderConfig,tier),xxh3_hash(key,0x55424552)));
 }
-void petari_uber_associate(gfx::PipelineRef key,gfx::PipelineRef uber) { std::lock_guard lock(uberMutex);uberAssociations.emplace(key,uber); }
-gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef key) {std::lock_guard lock(uberMutex);auto it=uberAssociations.find(key);return it==uberAssociations.end()?0:it->second;}
+gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {return petari_uber_key(c,l,PetariUberTier::Fast);}
+PetariUberKeys petari_uber_keys(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {return {petari_uber_key(c,l,PetariUberTier::Generic),petari_uber_key(c,l,PetariUberTier::Fast)};}
+void petari_uber_associate(gfx::PipelineRef key,PetariUberKeys uber) { std::lock_guard lock(uberMutex);uberAssociations.emplace(key,uber); }
+gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef key,bool* fast) {
+  std::lock_guard lock(uberMutex);if(fast)*fast=false;
+  const auto it=uberAssociations.find(key);if(it==uberAssociations.end())return 0;
+  const auto& keys=it->second;
+  const auto preferred=uberPipelines.find(keys.fast);
+  if(keys.fast!=keys.generic && preferred!=uberPipelines.end() && preferred->second.main){if(fast)*fast=true;return keys.fast;}
+  return keys.generic;
+}
 bool petari_uber_ready(gfx::PipelineRef key,gfx::CompiledPipeline& out) { std::lock_guard lock(uberMutex);auto it=uberPipelines.find(key);if(it==uberPipelines.end() || !it->second.main) return false;out=it->second;return true; }
-void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
+void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l,PetariUberTier tier) {
   if(!petari_uber_enabled() || std::strcmp(petari_uber_reason(c.shaderConfig),"covered")) return;
-  const auto key=petari_uber_key(c,l);
+  const auto key=petari_uber_key(c,l,tier);
   {
     std::lock_guard lock(uberMutex);
     // Claim before compiling: concurrent callers see Preparing, never build twice.
@@ -160,14 +183,15 @@ void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& 
   }
   const auto start=std::chrono::steady_clock::now();
   const bool previousBuilding=petariBuildingUber;
+  const auto previousTier=petariBuildingUberTier;
   const double previousShaderMs=petariUberShaderMs;
-  petariUberShaderMs=0;petariBuildingUber=true;
+  petariUberShaderMs=0;petariBuildingUber=true;petariBuildingUberTier=tier;
   gfx::CompiledPipeline p;
   try { p=create_pipeline(c,l); }
   catch (const std::exception& e) { std::fprintf(stderr,"[gx uber async error] key=%016llx message=%s\n",(unsigned long long)key,e.what()); }
   catch (...) { std::fprintf(stderr,"[gx uber async error] key=%016llx message=unknown_exception\n",(unsigned long long)key); }
   const double shaderMs=petariUberShaderMs;
-  petariBuildingUber=previousBuilding;petariUberShaderMs=previousShaderMs;
+  petariBuildingUber=previousBuilding;petariUberShaderMs=previousShaderMs;petariBuildingUberTier=previousTier;
   auto ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
   const bool success=bool(p.main);
   {
@@ -175,8 +199,9 @@ void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& 
     uberPipelines.at(key)=std::move(p);
     uberPreparation.at(key)=success ? UberPreparation::Ready : UberPreparation::Failed;
   }
-  std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u\n",(unsigned long long)key,(unsigned long long)l.key,shaderMs,std::max(0.0,ms-shaderMs),success);
+  std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u tier=%s\n",(unsigned long long)key,(unsigned long long)l.key,shaderMs,std::max(0.0,ms-shaderMs),success,tier==PetariUberTier::Generic?"generic":"fast");
 }
+void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {petari_uber_prepare(c,l,PetariUberTier::Fast);}
 // Fixed layout: 4768 bytes, cfg 1024 packed bytes, projection, matrices, TEV regs, lights, channel state,
 // konst colors, post matrices, texture size/bias. All arrays have 16-byte strides.
 static Vec4<float> petari_uber_texture_bias(const gfx::TextureBind& tex) {

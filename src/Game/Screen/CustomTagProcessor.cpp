@@ -16,6 +16,9 @@
 #include <nw4r/ut/TextWriterBase.h>
 
 #include <wstring.h>
+#ifdef GALAXY_NATIVE
+#include "JSystem/JMath/JMAFloatConversion.hpp"
+#endif
 
 namespace {
     const f32 mRubyBaseLineOffset = 3.0f;
@@ -104,16 +107,36 @@ u8 CustomTagAlphaCtrl::alpha() const {
     return 255;
 }
 
+#ifdef GALAXY_NATIVE
+namespace {
+    // Last fade frame. update() also runs while the control is disabled (mFadeSpeed 0, so
+    // the quotient is +inf): the Wii's fctiwz saturates that to INT_MAX and the add wraps
+    // as a signed word; a host float-to-int cast of inf and a signed overflow are undefined.
+    s32 calcAlphaEndFrame(u32 count, f32 interval, f32 speed, s32 delay) {
+        const s32 frames = JMath::truncToS32((1.0f + count * interval) / speed);
+        return static_cast< s32 >(static_cast< u32 >(frames) + static_cast< u32 >(delay));
+    }
+}  // namespace
+#endif
+
 void CustomTagAlphaCtrl::update() {
     s32 delay = mWaitTime + mEndDelay;
+#ifdef GALAXY_NATIVE
+    mFrame = std::min(mFrame + 1, calcAlphaEndFrame(mCharCount, mCharInterval, mFadeSpeed, delay));
+#else
     mFrame = std::min(mFrame + 1, static_cast< s32 >((1.0f + mCharCount * mCharInterval) / mFadeSpeed) + delay);
+#endif
 }
 
 bool CustomTagAlphaCtrl::isEnd() const {
     if (mEnabled) {
         s32 frame = mFrame;
         s32 delay = mWaitTime + mEndDelay;
+#ifdef GALAXY_NATIVE
+        return frame >= calcAlphaEndFrame(mCharCount, mCharInterval, mFadeSpeed, delay);
+#else
         return frame >= static_cast< s32 >((1.0f + mCharCount * mCharInterval) / mFadeSpeed) + delay;
+#endif
     }
 
     return true;

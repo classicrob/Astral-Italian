@@ -4,6 +4,7 @@
 #include "../gfx/encoding.hpp"
 
 #include <atomic>
+#include <cmath>
 #include <chrono>
 #include <map>
 #include <sqlite3.h>
@@ -42,6 +43,7 @@ namespace {
 std::mutex uberMutex;
 std::map<gfx::PipelineRef,gfx::CompiledPipeline> uberPipelines;
 std::map<HashType,bool> uberConfigs;
+std::map<gfx::PipelineRef,gfx::PipelineRef> uberAssociations;
 std::atomic<uint64_t> uberDraws{0},uberCovered{0},uberFallback{0},uberForced{0},uberSpecialized{0},uberMissing{0};
 }
 void petari_uber_note(const ShaderConfig& c) {
@@ -57,6 +59,8 @@ void petari_uber_report() {
   std::fprintf(stderr,"[gx uber summary] draws=%llu covered_draws=%llu fallback_draws=%llu forced_draws=%llu specialized_draws=%llu unsupported_draws=%llu missing_key_draws=%llu configs=%zu covered_configs=%zu\n",(unsigned long long)uberDraws.load(),(unsigned long long)uberCovered.load(),(unsigned long long)uberFallback.load(),(unsigned long long)uberForced.load(),(unsigned long long)uberSpecialized.load(),(unsigned long long)(uberDraws-uberCovered),(unsigned long long)uberMissing.load(),uberConfigs.size(),covered);
 }
 gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) { auto key=c; key.shaderConfig={}; return xxh3_hash(l.key,xxh3_hash(key,0x55424552)); }
+void petari_uber_associate(gfx::PipelineRef key,gfx::PipelineRef uber) { std::lock_guard lock(uberMutex);uberAssociations.emplace(key,uber); }
+gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef key) {std::lock_guard lock(uberMutex);auto it=uberAssociations.find(key);return it==uberAssociations.end()?0:it->second;}
 bool petari_uber_ready(gfx::PipelineRef key,gfx::CompiledPipeline& out) { std::lock_guard lock(uberMutex);auto it=uberPipelines.find(key);if(it==uberPipelines.end() || !it->second.main) return false;out=it->second;return true; }
 void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
   if(!petari_uber_enabled() || std::strcmp(petari_uber_reason(c.shaderConfig),"covered")) return;

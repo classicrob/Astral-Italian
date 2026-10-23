@@ -251,7 +251,7 @@ list(REMOVE_ITEM _sources lib/webgpu/gpu_cache.cpp "${_dawn_cache_source}")
 list(APPEND _sources "${_dawn_cache_output}")
 set_property(TARGET aurora_core PROPERTY SOURCES "${_sources}")
 set_source_files_properties("${_dawn_cache_output}" TARGET_DIRECTORY aurora_core PROPERTIES
-    COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu")
+    COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu;-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py" "${_dawn_cache_source}")
 
@@ -724,8 +724,10 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
 execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_ubershader.py"
     "${aurora_SOURCE_DIR}/lib/gx/pipeline.hpp" "${_uber_header}" header "${aurora_SOURCE_DIR}" "${_uber_header}" COMMAND_ERROR_IS_FATAL ANY)
 foreach(_pair
+    "${CMAKE_CURRENT_BINARY_DIR}/stages/gx.cpp|gx|gx"
     "${CMAKE_CURRENT_BINARY_DIR}/missing_texcoord/shader.cpp|shader|gx"
-    "${CMAKE_CURRENT_BINARY_DIR}/geometry/command_processor.cpp|command_processor|gx"
+    "${CMAKE_CURRENT_BINARY_DIR}/pipeline-owners/lib/gx/command_processor.cpp|command_processor|gx"
+    "${CMAKE_CURRENT_BINARY_DIR}/geometry/frame.cpp|frame|gfx"
     "${CMAKE_CURRENT_BINARY_DIR}/geometry/recording.cpp|recording|gfx"
     "${CMAKE_CURRENT_BINARY_DIR}/geometry/encoding.cpp|encoding|gfx"
     "${CMAKE_CURRENT_BINARY_DIR}/aurora-pipeline-cache.cpp|cache|gfx"
@@ -742,5 +744,21 @@ foreach(_pair
     list(APPEND _sources "${_output}")
     set_property(TARGET aurora_gx PROPERTY SOURCES "${_sources}")
     set_source_files_properties("${_output}" TARGET_DIRECTORY aurora_gx PROPERTIES
-        COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/${_folder};-iquote${CMAKE_CURRENT_SOURCE_DIR}")
+        COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/${_folder};-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR}")
+endforeach()
+
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gpu_timing.py")
+foreach(_kind gpu gpu_prof)
+    set(_input "${aurora_SOURCE_DIR}/lib/webgpu/${_kind}.cpp")
+    if(_kind STREQUAL "gpu")
+        set(_input "${CMAKE_CURRENT_BINARY_DIR}/present/lib/webgpu/gpu.cpp")
+    endif()
+    set(_output "${CMAKE_CURRENT_BINARY_DIR}/gpu-timing/${_kind}.cpp")
+    execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gpu_timing.py"
+        "${_input}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    get_target_property(_sources aurora_core SOURCES)
+    list(REMOVE_ITEM _sources "${_input}" "lib/webgpu/${_kind}.cpp")
+    list(APPEND _sources "${_output}")
+    set_property(TARGET aurora_core PROPERTY SOURCES "${_sources}")
+    set_source_files_properties("${_output}" TARGET_DIRECTORY aurora_core PROPERTIES COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu;-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
 endforeach()

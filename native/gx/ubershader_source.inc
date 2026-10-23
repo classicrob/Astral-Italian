@@ -52,7 +52,7 @@ wgpu::ShaderModule petari_uber_shader(DstAlphaMode mode,uint32_t normal) {
  static std::mutex mutex;static std::map<std::pair<unsigned,uint32_t>,wgpu::ShaderModule> modules;
  std::lock_guard lock(mutex);auto key=std::make_pair(unsigned(mode),normal);auto it=modules.find(key);if(it!=modules.end())return it->second;
  auto start=std::chrono::steady_clock::now();auto src=petari_uber_source(mode,normal);
- PetariPipeline::dumpSource(xxh3_hash(src.data(),src.size()),src);
+ PetariPipeline::dumpSource(xxh3_hash_s(src.data(),src.size()),src);
  wgpu::ShaderSourceWGSL wgsl{};wgsl.code=src.c_str();wgpu::ShaderModuleDescriptor desc{.nextInChain=&wgsl,.label="Petari ubershader"};auto module=webgpu::g_device.CreateShaderModule(&desc);
  auto ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();std::fprintf(stderr,"[gx uber shader] mode=%u normal=%u source_bytes=%zu shader_ms=%.3f\n",unsigned(mode),normal,src.size(),ms);
  modules.emplace(key,module);return module;

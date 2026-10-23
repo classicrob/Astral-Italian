@@ -7,6 +7,8 @@ bool petari_uber_all();
 const char* petari_uber_reason(const ShaderConfig&);
 gfx::Range petari_uber_uniform(const ShaderConfig&);
 gfx::PipelineRef petari_uber_key(const PipelineConfig&, const gfx::RenderTargetLayout&);
+void petari_uber_associate(gfx::PipelineRef, gfx::PipelineRef);
+gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef);
 bool petari_uber_ready(gfx::PipelineRef, gfx::CompiledPipeline&);
 void petari_uber_prepare(const PipelineConfig&, const gfx::RenderTargetLayout&);
 void petari_uber_boot();

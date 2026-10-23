@@ -12,11 +12,15 @@ def replace(a,b):
 # Make copied header's dependencies absolute. All consumers must share this header.
 if kind=='header':
  text=re.sub(r'#include "([^"]+)"',lambda m:f'#include "{(root/"lib/gx"/m[1]).resolve()}"',text)
- replace('  gfx::Range uniformRange;','  gfx::Range uniformRange;\n  gfx::Range uberUniformRange{};\n  gfx::PipelineRef uberPipeline = 0;')
+ replace('  gfx::Range uniformRange;','  gfx::Range uniformRange;\n  uint32_t uberUniformOffset = UINT32_MAX;')
 else:
  text=text.replace('#include "pipeline.hpp"',f'#include "{header}"').replace('#include "../gx/pipeline.hpp"',f'#include "{header}"')
  if kind in ('shader','cache','pipeline','command_processor'):
   text=f'#include "{header}"\n#include "{here / "ubershader.hpp"}"\n'+text
+ if kind in ('frame','recording'):
+  text='#include <cstdlib>\n#include <cstring>\n'+text
+  size='([]{ const auto* p=std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0) ? 8192u : gx::MaxUniformSize; }())'
+  text=text.replace('gx::MaxUniformSize',size)
  if kind=='shader':
   replace('  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);','  if (petariBuildingUber) return petari_uber_shader(dstAlphaMode, normalAttachment);\n  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);')
   text+='\n'+(here/'ubershader_runtime.inc').read_text()
@@ -29,38 +33,42 @@ else:
     if (petari_uber_enabled() && std::strcmp(petari_uber_reason(cache.config.shaderConfig), "covered") == 0)
       cache.uberUniformRange = petari_uber_uniform(cache.config.shaderConfig);''')
   replace('  gfx::push_draw_command(DrawData{','  petari_uber_note(cache.config.shaderConfig);\n  gfx::push_draw_command(DrawData{')
-  replace('      .uniformRange = cache.uniformRange,','      .uniformRange = cache.uniformRange,\n      .uberUniformRange = cache.uberUniformRange,\n      .uberPipeline = cache.uberUniformRange.size ? petari_uber_key(cache.config, gfx::get_render_target_layout()) : 0,')
+  replace('      .uniformRange = cache.uniformRange,','      .uniformRange = cache.uniformRange,\n      .uberUniformOffset = cache.uberUniformRange.size ? cache.uberUniformRange.offset : UINT32_MAX,')
  if kind=='pipeline':
   replace('''  if (!gfx::get_pipeline(data.pipeline, pipeline)) {
     return;
-  }''','''  bool uber = false;
-  bool force = petari_uber_enabled() && petari_uber_all() && data.uberPipeline;
+  }''','''  const auto uberKey = data.uberUniformOffset != UINT32_MAX ? petari_uber_lookup(data.pipeline) : 0;
+  bool uber = false;
+  bool force = petari_uber_enabled() && petari_uber_all() && uberKey;
   bool missing = false;
-  if (force) uber = petari_uber_ready(data.uberPipeline, pipeline);
+  if (force) uber = petari_uber_ready(uberKey, pipeline);
   if (!uber && !gfx::get_pipeline(data.pipeline, pipeline)) {
-    if (!data.uberPipeline || !petari_uber_ready(data.uberPipeline, pipeline)) return;
+    if (!uberKey || !petari_uber_ready(uberKey, pipeline)) return;
     uber = true;
   }
   if (petari_uber_enabled()) {
     gfx::CompiledPipeline available;
-    missing = data.uberPipeline && !petari_uber_ready(data.uberPipeline, available);
+    missing = uberKey && !petari_uber_ready(uberKey, available);
     petari_uber_draw(uber, force && uber, missing);
   }''')
-  replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformRange.offset : data.uniformRange.offset};')
+  replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
  if kind=='cache':
   # Covered draws with a boot-ready fallback queue their specialised pipeline without waiting.
   anchor='''  const PetariPipeline::BoundedDrawScope petariBoundedDraw{'''
   replace(anchor,'''  if (gx::petari_uber_enabled() && std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered") == 0) {
+    gx::petari_uber_associate(xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX))), gx::petari_uber_key(config, layout));
     CompiledPipeline uber;
     if (gx::petari_uber_ready(gx::petari_uber_key(config, layout), uber))
       return resolve_pipeline(ShaderType::GX, config, layout, PipelinePriority::Normal);
   }
 '''+anchor)
   replace('  const size_t loadedCount = load_pipeline_cache();','  const size_t loadedCount = load_pipeline_cache();\n  gx::petari_uber_boot();')
-  replace('  petari_pipeline_summary();\n}', '  petari_pipeline_summary();\n  gx::petari_uber_report();\n}') if '  petari_pipeline_summary();\n}' in text else None
+  replace('void shutdown_pipeline_cache() {', 'void shutdown_pipeline_cache() {\n  gx::petari_uber_report();')
+  replace('    const auto sampleIt = petariPipelineSamples.find(ref);', '    CompiledPipeline uber;\n    if (gx::petari_uber_enabled() && gx::petari_uber_ready(gx::petari_uber_lookup(ref), uber)) return false;\n    const auto sampleIt = petariPipelineSamples.find(ref);')
   # Explicit reporting endpoint and shutdown both expose cumulative coverage.
   replace('extern "C" void petari_gx_pipeline_report() {','extern "C" void petari_gx_pipeline_report() {\n  gx::petari_uber_report();')
   text+='''
+#include <aurora/gfx.hpp>
 namespace aurora::gx {
 void petari_uber_boot() {
   if (!petari_uber_enabled()) return;

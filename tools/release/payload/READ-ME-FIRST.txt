@@ -14,10 +14,10 @@ Needs: a Mac with Apple Silicon (M1 or newer), macOS __MINMACOS__ or newer, abou
        xattr -dr com.apple.quarantine "/Applications/Astral Italian.app"
        xattr -d com.apple.quarantine "/path/to/this folder/Collect Bug Report.command"
    Or without Terminal:
-   - macOS 15 (Sequoia) and newer: double-click the app, click Done on the warning, then open
+   - Double-click the app, click Done on the warning, then open
      System Settings > Privacy & Security, scroll down to "Astral Italian was blocked", click "Open Anyway"
      and confirm with your password.
-   - macOS 14 and older: right-click (Control-click) the app, choose Open, then click Open.
+   - (Older macOS only: right-click the app, choose Open, then Open.)
    You only do this once.
 
 3. The app then asks for your game disc. Pick the disc image (or the folder). It checks that it is the

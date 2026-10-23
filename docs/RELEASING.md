@@ -7,25 +7,30 @@ publishes anything: a person reviews the draft on GitHub and presses Publish.
 
 1. **Freeze-grade app build on the server** (the M1 lacks clang 21/xxhash) of a source commit on `main`, frozen under
    `~/MacioGalaxy2-play/<build>/` with its `FROZEN.txt`.
-2. Configure it with `-DCMAKE_OSX_DEPLOYMENT_TARGET=<target>` (13.0, or the lowest that compiles). `make_release.sh --min-macos`
-   **fails** if the executable or any bundled library records a higher minimum. Homebrew libraries built from source on a newer
-   macOS carry that macOS as their minimum too: build/install those with the same `MACOSX_DEPLOYMENT_TARGET`, or use bottles.
-   Check the executable's C++ runtime (`otool -L`): it must use the system `/usr/lib/libc++`, never a Homebrew LLVM libc++.
-3. `Info.plist` identity stays `dev.petari.Petari` / executable `Petari`; the release script sets version, source commit,
+2. **Deployment target 15.0 is the project default** (root `CMakeLists.txt` and every preset set `CMAKE_OSX_DEPLOYMENT_TARGET`),
+   so the executable and everything built with it records `minos 15.0`; the M1 (macOS 15.1) is the oldest machine we test on.
+   `make_release.sh --min-macos` **fails** if the executable or any bundled library records a higher minimum.
+3. **Build with the `macos-arm64-release-portable` preset** (or the same two cache variables): it hides `/opt/homebrew` and
+   `/usr/local` from `find_package`, so Aurora fetches and statically links abseil, fmt, xxHash, zstd, libpng and FreeType at the
+   project's deployment target. Homebrew libraries are built for the OS they were installed on (the server's carry minos 26-27),
+   cannot be bundled into a 15.0 app, and would otherwise be dylibs the player does not have. Check the executable with
+   `otool -L`: only `/usr/lib` and `/System` paths, and the system `libc++` (never a Homebrew LLVM libc++).
+4. `Info.plist` identity stays `dev.petari.Petari` / executable `Petari`; the release script sets version, source commit,
    `LSMinimumSystemVersion`, the games category and copies the license and third-party notices into the bundle.
 
 ## Build the package
 
 ```sh
 tools/release/make_release.sh --app ~/MacioGalaxy2-play/build5.x/Petari.app \
-    --dsym <path to Petari.app.dSYM> --version 0.2.0 --commit <40-hex source commit> --min-macos 14.0
+    --dsym <path to Petari.app.dSYM> --version 0.2.0 --commit <40-hex source commit> --min-macos 15.0
 ```
 
 Output in `~/MacioGalaxy2-team/scratch-release/out/` (override with `--out`): `AstralItalian-<v>.zip`, `.dSYM.zip`,
 `.sha256`, `.manifest.json` and `.notes.md`. The script:
 
 - refuses an unfrozen app and a dSYM whose UUID does not match the executable;
-- copies every non-system dylib into `Contents/Frameworks` and rewrites install names to `@rpath` (`bundle_libs.py`);
+- copies any remaining non-system dylib into `Contents/Frameworks` and rewrites install names to `@rpath` (`bundle_libs.py`;
+  a no-op for a portable build, a safety net otherwise, and the scan still enforces the deployment target on what it copies);
 - ad-hoc signs the bundle (Apple Silicon will not run unsigned code);
 - runs `scan_bundle.py` on the bundle **and** the final zip: only Mach-O code, plists, SQLite shader seeds, text and icons are
   allowed; disc-format names, extensions and magic numbers (Wii/GC headers, Yaz0, RARC, WBFS, RVZ, ...), the game ID in

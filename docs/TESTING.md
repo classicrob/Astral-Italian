@@ -7,7 +7,7 @@ report what goes wrong.
 ## What you need
 
 - A Mac with **Apple Silicon** (M1 or newer). Intel Macs are not supported.
-- **macOS 14 or newer** (each release states its exact minimum in its notes).
+- **macOS 15 (Sequoia) or newer.**
 - About **6 GB** of free disk space (the app copies about 1.4 GB of game files out of your disc image).
 - **Your own copy of Super Mario Galaxy 2, USA version (game ID SB4E01).** No game data is included or available here.
   Accepted: a disc image (`.iso`, `.wbfs`, `.rvz`, `.wia`) or an already extracted folder that holds `files/` and `sys/`.
@@ -22,9 +22,8 @@ report what goes wrong.
 2. Drag **Astral Italian.app** to your Applications folder.
 3. **First launch:** the app is not signed with an Apple Developer ID yet (that costs money; it may come later), so macOS
    blocks it once:
-   - **macOS 15 and newer:** open the app, click *Done* on the warning, then *System Settings > Privacy & Security*, scroll to
+   - **Open Anyway:** open the app, click *Done* on the warning, then *System Settings > Privacy & Security*, scroll to
      "Astral Italian was blocked" and click **Open Anyway**.
-   - **macOS 14:** right-click (or Control-click) the app, choose **Open**, then **Open**.
    - **Terminal, any version:** `xattr -dr com.apple.quarantine "/Applications/Astral Italian.app"`
      (`Collect Bug Report.command` is blocked the same way the first time; use the same trick on it, or right-click > Open.)
 4. The app asks for your game disc. Choose the disc image (or the folder). It checks that it is the right game and extracts

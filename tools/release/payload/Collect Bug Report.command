@@ -29,13 +29,16 @@ done
     echo "free disk: $(df -h "$HOME" | awk 'NR==2{print $4}')"
 } > "$out/system.txt"
 
+# newest DIR N: the N most recently modified entries of DIR, one per line (names may contain spaces).
 newest() { ls -1dt "$1"/* 2>/dev/null | head -n "$2"; }
+# copy_newest DIR N DEST: copy those entries into DEST
+copy_newest() { newest "$1" "$2" | while IFS= read -r item; do cp -R "$item" "$3/" 2>/dev/null; done; }
 
 mkdir -p "$out/logs" "$out/captures" "$out/tapes"
-for f in $(newest "$support/logs" 3 | tr ' ' '?'); do cp "$f" "$out/logs/" 2>/dev/null; done
-for d in $(newest "$support/Captures" 3 | tr ' ' '?'); do cp -R "$d" "$out/captures/" 2>/dev/null; done
-crash_dir="$support/Crashes"
-[ -d "$crash_dir" ] && mkdir -p "$out/crashes" && for f in $(newest "$crash_dir" 3 | tr ' ' '?'); do cp "$f" "$out/crashes/" 2>/dev/null; done
+copy_newest "$support/logs" 3 "$out/logs"
+copy_newest "$support/Captures" 3 "$out/captures"
+mkdir -p "$out/crashes"
+copy_newest "$support/Crashes" 3 "$out/crashes"
 # The newest session tape lets the developers replay your session frame by frame; skip it when it is huge.
 tape=$(newest "$support/Tapes" 1)
 if [ -n "$tape" ]; then
@@ -49,7 +52,7 @@ ls -1t "$HOME/Library/Logs/DiagnosticReports" 2>/dev/null | grep -i "petari\|ast
 done
 
 zip_path="$HOME/Desktop/AstralItalian-report-$stamp.zip"
-(cd "$work" && ditto -c -k --keepParent "AstralItalian-report-$stamp" "$zip_path") || { echo "Could not create the zip."; exit 1; }
+(cd "$work" && ditto -c -k --norsrc --noextattr --keepParent "AstralItalian-report-$stamp" "$zip_path") || { echo "Could not create the zip."; exit 1; }
 echo "Report saved: $zip_path"
 echo "Please attach it to your GitHub issue (https://github.com/classicrob/Astral-Italian/issues/new/choose)."
 open -R "$zip_path"

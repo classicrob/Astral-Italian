@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
+# The oldest macOS the app is built for (and supported on). Must be set before project() to reach every compile and
+# link line, including the fetched dependencies. Override with -DCMAKE_OSX_DEPLOYMENT_TARGET=... only to test.
+if(APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum macOS version")
+endif()
 project(MacioGalaxy2Native LANGUAGES C CXX ASM)
 
 if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)

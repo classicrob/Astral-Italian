@@ -39,6 +39,8 @@
 #include <mutex>
 #include <thread>
 #include <limits>
+#include <chrono>
+#include <algorithm>
 
 extern "C" void petari_game_main(void);
 namespace H=PetariNative::Headless;
@@ -95,7 +97,15 @@ public:
         if (mReplay) mReplay->endFrame();
         const bool segmentBoundary=mReplay && mReplay->segmentEnded();  // this seam is the last row of a multi-segment tape's segment
         const bool keyboardDone = mKeyboard && (!mStartupRequested || L::startupStatus()==L::StartupStatus::Applied) && mKeyboard->step(state);
-        if (mKeyboard && mSourceFrame > 10000) throw H::ReplayError("keyboard script did not finish within 10000 loops");
+        if (mKeyboard && !mKeyboard->started() && mStartupRequested && L::startupStatus()==L::StartupStatus::Applied && sourceFrame % 5000 == 0) {
+            const auto get=[&](const char* key){ const auto it=state.fields.find(key); return it==state.fields.end()?std::string("-"):it->second; };
+            std::fprintf(stderr,"[sweep-wait] loop %llu scene=%s stage=%s scenario=%s init_state=%s player_valid=%s demo=%d\n",
+                static_cast<unsigned long long>(sourceFrame),get("scene").c_str(),get("stage").c_str(),get("scenario").c_str(),get("init_state").c_str(),
+                get("player_valid").c_str(),MR::isDemoActive()?1:0);
+        }
+        // Boot, load and intro demos count here (a 60 s script after a ~4,500-loop boot); a stage that never reaches
+        // play-ready within this budget is reported as such.
+        if (mKeyboard && mSourceFrame > 60000) throw H::ReplayError(mKeyboard->started() ? "keyboard script did not finish within 60000 loops" : "play-ready not reached within 60000 loops");
         const bool wasStarted=mSync.started();
         mSync.setPlayReady(playReady);
         const auto frame=mSync.select(state,sourceFrame,ticks,viCount,[](std::uint32_t seed) {
@@ -113,7 +123,10 @@ public:
             mReplay->startInputs();
             mEverStarted=true; mSegmentActive=true; mSegmentStartRow=mTraceFrames;
         }
-        if (frame && mSegmentActive) {
+        // Keyboard-script runs (the health sweep) have no stage-sync seam: record a row per loop from the script's start.
+        const bool keyboardRow = mKeyboard && mKeyboard->started();
+        if (keyboardRow) observeWallTime(sourceFrame);
+        if (frame && (mSegmentActive || keyboardRow)) {
             // Trace rows are numbered globally; a segment's first row is its sync seam (listed in <trace>.segments.csv).
             mTiming << mTraceFrames << ',' << viCount << ',' << ticks << '\n';
             mTiming.flush();
@@ -145,6 +158,7 @@ public:
             std::ofstream marker(mPath.string()+".complete");
             marker << mTraceFrames << '\n'; marker.flush();
             if (!marker) throw H::ReplayError("cannot write completion marker");
+            reportWallTime();
             std::fprintf(stderr,"headless: completed %llu game loops, %llu trace rows\n",static_cast<unsigned long long>(mSourceFrame),static_cast<unsigned long long>(mTraceFrames));
             const auto gx=H::gxStats();
             std::fprintf(stderr,"headless GX: %llu direct FIFO bytes, %llu discarded state calls, %llu display-list payload bytes\n",
@@ -152,6 +166,24 @@ public:
                          static_cast<unsigned long long>(gx.displayListBytes));
             std::fflush(nullptr); std::_Exit(0);
         }
+    }
+    // Wall time between consecutive loop seams while a keyboard script runs: the headless counterpart of the GX app's
+    // stall log (no pipeline/texture causes here, only game-thread work and resource loads on the virtual clock).
+    void observeWallTime(std::uint64_t sourceFrame) {
+        const auto now = std::chrono::steady_clock::now();
+        if (mHaveWall) {
+            const double ms = std::chrono::duration<double, std::milli>(now - mLastWall).count();
+            mWallMs.push_back(static_cast<float>(ms));
+            if (ms > 50.0 && mSlow < 12) { ++mSlow; std::fprintf(stderr, "[sweep-stall] loop %llu took %.1f ms (headless wall time)\n", static_cast<unsigned long long>(sourceFrame), ms); }
+        }
+        mLastWall = now; mHaveWall = true;
+    }
+    void reportWallTime() {
+        if (mWallMs.empty()) return;
+        auto sorted = mWallMs; std::sort(sorted.begin(), sorted.end());
+        std::fprintf(stderr, "headless sweep: %zu scripted loops, wall ms p50 %.2f p99 %.2f max %.2f, %zu over 50 ms\n", sorted.size(),
+                     static_cast<double>(sorted[sorted.size() / 2]), static_cast<double>(sorted[sorted.size() * 99 / 100]),
+                     static_cast<double>(sorted.back()), static_cast<std::size_t>(std::count_if(sorted.begin(), sorted.end(), [](float v) { return v > 50.0f; })));
     }
     void wait(bool frame) {
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("retrace wait ran on an unexpected thread");
@@ -204,6 +236,7 @@ private:
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
     H::ReloadPolicy mReloadPolicy;
     bool mActivateAsync=false;
+    std::chrono::steady_clock::time_point mLastWall; bool mHaveWall=false; unsigned mSlow=0; std::vector<float> mWallMs;
     std::thread mThread;
 };
 Driver* gDriver=nullptr;
@@ -260,7 +293,7 @@ int main(int argc,char** argv) {
     try {
         std::setlocale(LC_NUMERIC,"C");
         std::map<std::string,std::string> args;
-        bool ftz=true,syncPlay=false,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
+        bool noPlayer=false,ftz=true,syncPlay=false,inputsFromSync=false,actorTrace=false,existingUnlockedUser=false;
         for (int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if (key=="--inputs-from-sync") {
@@ -277,7 +310,8 @@ int main(int argc,char** argv) {
                 actorTrace=true; continue;
             }
             if (key=="--existing-unlocked-user") {existingUnlockedUser=true;continue;}
-            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--segments" && key!="--mod-actions" && key!="--inputs" && key!="--keyboard-script" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
+            if (key=="--no-player") {noPlayer=true;continue;}
+            if (key!="--request" && key!="--stage" && key!="--scenario" && key!="--segments" && key!="--mod-actions" && key!="--inputs" && key!="--keyboard-script" && key!="--player-mode" && key!="--disc" && key!="--user" && key!="--trace" && key!="--epoch-ticks" && key!="--rate-numerator" && key!="--rate-denominator" && key!="--sync-stage" && key!="--sync-scenario" && key!="--sync-rng-seed") throw H::ReplayError("unknown argument: "+key);
             if (i+1==argc || !args.emplace(key,argv[++i]).second) throw H::ReplayError("missing or duplicate argument: "+key);
         }
         for (const char* key:{"--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
@@ -306,7 +340,7 @@ int main(int argc,char** argv) {
             if (!source) throw H::ReplayError("cannot open input tape");
             replay=std::make_unique<H::Replay>(source,inputsFromSync);
         } else {
-            keyboard=std::make_unique<H::KeyboardScript>(external(args.at("--keyboard-script")).string());
+            keyboard=std::make_unique<H::KeyboardScript>(external(args.at("--keyboard-script")).string(),args.count("--player-mode")?args.at("--player-mode"):std::string(),noPlayer);
             std::string error;
             if (!PetariNative::Mods::load(user / "mods.txt", &error)) throw H::ReplayError(error);
         }

@@ -310,7 +310,19 @@ namespace MR {
     }
 
     void invalidateHitSensor(LiveActor* pActor, const char* pName) {
+#ifdef GALAXY_NATIVE
+        // The game calls this for sensors an actor does not have (Meramera::endRunaway invalidates "break", but
+        // Meramera.arc only defines "Body" and "attack"). On the Wii HitSensor::invalidate() then runs on a null
+        // `this`, which reads and clears bytes of low memory without effect; on the host it faults. No sensor
+        // means nothing to invalidate.
+        HitSensor* pSensor = pActor->getSensor(pName);
+        if (pSensor == nullptr) {
+            return;
+        }
+        pSensor->invalidate();
+#else
         pActor->getSensor(pName)->invalidate();
+#endif
     }
 
     bool tryValidateHitSensor(LiveActor* pActor, const char* pName) {

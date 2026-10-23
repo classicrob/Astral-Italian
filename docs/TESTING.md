@@ -26,6 +26,7 @@ report what goes wrong.
      "Astral Italian was blocked" and click **Open Anyway**.
    - **macOS 14:** right-click (or Control-click) the app, choose **Open**, then **Open**.
    - **Terminal, any version:** `xattr -dr com.apple.quarantine "/Applications/Astral Italian.app"`
+     (`Collect Bug Report.command` is blocked the same way the first time; use the same trick on it, or right-click > Open.)
 4. The app asks for your game disc. Choose the disc image (or the folder). It checks that it is the right game and extracts
    what it needs to `~/Library/Application Support/Astral Italian/Game Data/` (about 20 seconds to a few minutes). You do this
    once; the choice is remembered. *Astral Italian > Choose Game Disc...* (or launching with `--setup`) lets you change it.

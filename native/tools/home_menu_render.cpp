@@ -137,6 +137,7 @@ public:
     void change(int row, int) override {
         if (row == 0) options.fullscreen = !options.fullscreen;
         if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = options.vsync; }
+        if (row == 3) { options.ubershaders = !options.ubershaders; options.ubershadersRestartNeeded = !options.ubershaders; }
     }
 };
 
@@ -339,6 +340,9 @@ int main(int argc, char** argv) {
     shot("display", HM::Phase::Display);
     menu.update(press(Down)); menu.update(press(Down)); menu.update(press(A));
     shot("display-restart", HM::Phase::Display);
+    menu.update(press(Down)); menu.update(press(A));
+    shot("display-ubershaders-off", HM::Phase::Display);
+    menu.update(press(Up));
     menu.update(press(Up)); menu.update(press(Up)); menu.update(press(A));
     shot("display-fullscreen", HM::Phase::Display);
     menu.update(press(Plus));

@@ -35,6 +35,7 @@ private:
     std::filesystem::path mFile;
     Settings mSettings;
     bool mStartupVsync = false;
+    bool mStartupUbershaders = true;
     int mPending = -1;
     int mDelta = 1;
     std::string mMessage;

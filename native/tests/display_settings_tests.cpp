@@ -1,4 +1,5 @@
 #include "display_settings.hpp"
+#include <petari/ubershader_mode.hpp>
 
 #include <cstdio>
 #include <cstdlib>
@@ -43,22 +44,41 @@ int main() {
     settings.fullscreen = true; settings.size = 3; settings.vsync = true;
     check(DS::load(file, &settings, &error) && error.empty(), "missing file is normal");
     check(!settings.fullscreen && settings.size == 0 && !settings.vsync, "unchanged windowed/vsync-off defaults");
+    check(settings.ubershaders && !settings.ubershadersSaved, "fresh display defaults to hybrid ubershaders");
+    namespace Uber = PetariNative::Ubershaders;
+    const auto mode = [](const char* env, std::optional<bool> saved, Uber::Mode expected, const char* source) {
+        const auto selected = Uber::resolve(env, saved);
+        return selected.mode == expected && std::string(selected.source) == source;
+    };
+    check(mode(nullptr, std::nullopt, Uber::Mode::Hybrid, "default"), "mode default is hybrid");
+    check(mode(nullptr, false, Uber::Mode::Off, "setting"), "saved off disables hybrid");
+    check(mode(nullptr, true, Uber::Mode::Hybrid, "setting"), "saved on enables hybrid");
+    check(mode("0", true, Uber::Mode::Off, "env"), "environment zero wins over saved on");
+    check(mode("0", std::nullopt, Uber::Mode::Off, "env"), "environment zero wins over default on");
+    check(mode("1", false, Uber::Mode::Hybrid, "env"), "environment one wins over saved off");
+    check(mode("all", false, Uber::Mode::All, "env"), "diagnostic all wins over saved off");
+    check(mode("", true, Uber::Mode::Off, "env") && mode("invalid", true, Uber::Mode::Off, "env"),
+          "other explicit environment values retain prior off behavior");
     check(HM::kDisplaySizes[settings.size].width == 1280 && HM::kDisplaySizes[settings.size].height == 720,
           "unchanged 1280x720 default");
     settings = {true, 3, true};
     check(DS::save(file, settings, &error), "create user folder and save");
     check(DS::load(file, &settings, &error) && settings.fullscreen && settings.size == 3 && settings.vsync, "round trip");
+    settings.ubershaders = false;
+    check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.ubershaders && settings.ubershadersSaved,
+          "ubershaders off round trips with explicit saved marker");
     settings = {false, -20, false};
     check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && settings.size == 0, "save clamps low");
     { std::ofstream out(file); out << "size=999\r\nfullscreen=1\r\nvsync=0\r\nfuture=anything\n"; }
     check(DS::load(file, &settings, &error) && settings.size == 3 && settings.fullscreen, "load clamps high; CRLF and unknown keys");
-    for (const char* invalid : {"fullscreen=2", "vsync=-1", "size=2147483648", "size=", "size=2junk", "broken", "vsync=1\nsize=bad"}) {
+    for (const char* invalid : {"fullscreen=2", "vsync=-1", "ubershaders=2", "ubershaders=-1", "ubershaders=", "size=2147483648", "size=", "size=2junk", "broken", "vsync=1\nsize=bad"}) {
         { std::ofstream out(file); out << invalid << '\n'; }
         check(!DS::load(file, &settings, &error) && !error.empty(), "malformed file reports action");
         check(!settings.fullscreen && settings.size == 0 && !settings.vsync, "malformed file never partially applies");
     }
     { std::ofstream out(file); out << "# preferences\n\nsize=-99\n"; }
     check(DS::load(file, &settings, &error) && settings.size == 0 && error.empty(), "negative size clamps low");
+    check(settings.ubershaders && !settings.ubershadersSaved, "old display files keep the default-on mode source");
     check(!DS::save(root / "user", {}, &error) && !error.empty(), "rename failure is reported");
     { std::ofstream out(root / "block"); out << "file"; }
     check(!DS::save(root / "block/display.txt", {}, &error), "unwritable parent is reported");
@@ -93,6 +113,18 @@ int main() {
           "new launch consumes vsync and clears restart note");
     controller.change(2, 1); controller.tick(window);
     check(!controller.settings().restartNeeded, "reverting vsync clears restart note");
+    const int fullCalls = window.fullscreenCalls, resizeCalls = window.sizeCalls;
+    controller.change(3, 1); controller.tick(window);
+    check(!controller.settings().ubershaders && controller.settings().ubershadersRestartNeeded,
+          "ubershader toggle persists off and requires a new launch");
+    check(window.fullscreenCalls == fullCalls && window.sizeCalls == resizeCalls, "ubershader toggle does not change the live window");
+    check(DS::load(file, &settings, &error) && !settings.ubershaders && settings.ubershadersSaved, "toggle saved in display.txt");
+    DS::Controller newLaunch;
+    check(newLaunch.configure(file, &error) && !newLaunch.settings().ubershaders && !newLaunch.settings().ubershadersRestartNeeded,
+          "new launch consumes saved off preference");
+    controller.change(3, -1); controller.tick(window);
+    check(controller.settings().ubershaders && !controller.settings().ubershadersRestartNeeded,
+          "reverting ubershaders clears its restart note");
     window.refuse = true;
     controller.change(0, 1); controller.tick(window);
     char message[192]; controller.read(&settings, message, sizeof(message));

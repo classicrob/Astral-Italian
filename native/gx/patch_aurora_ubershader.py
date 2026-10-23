@@ -15,11 +15,11 @@ if kind=='header':
  replace('  gfx::Range uniformRange;','  gfx::Range uniformRange;\n  uint32_t uberUniformOffset = UINT32_MAX;')
 else:
  text=text.replace('#include "pipeline.hpp"',f'#include "{header}"').replace('#include "../gx/pipeline.hpp"',f'#include "{header}"')
- if kind in ('shader','cache','pipeline','command_processor','frame'):
+ if kind in ('shader','cache','pipeline','command_processor','frame','recording'):
   text=f'#include "{header}"\n#include "{here / "ubershader.hpp"}"\n'+text
  if kind in ('frame','recording'):
   text='#include <cstdlib>\n#include <cstring>\n'+text
-  size='([]{ const auto* p=std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0) ? 5120u : gx::MaxUniformSize; }())'
+  size='(gx::petari_uber_enabled() ? 5120u : gx::MaxUniformSize)'
   text=text.replace('gx::MaxUniformSize',size)
  if kind=='shader':
   replace('  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);','  if (petariBuildingUber) return petari_uber_shader(config, dstAlphaMode, normalAttachment);\n  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);')

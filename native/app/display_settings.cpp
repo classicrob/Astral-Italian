@@ -18,6 +18,7 @@ bool fail(std::string* error, const char* text) {
 Settings clamp(Settings settings) {
     settings.size = std::clamp(settings.size, 0, HomeMenu::kDisplaySizeCount - 1);
     settings.restartNeeded = false;
+    settings.ubershadersRestartNeeded = false;
     settings.busy = false;
     return settings;
 }
@@ -36,7 +37,7 @@ bool load(const std::filesystem::path& file, Settings* settings, std::string* er
         const auto equals = line.find('=');
         if (equals == std::string::npos) return fail(error, "Invalid display.txt. Remove it to restore the default display settings.");
         const std::string key = line.substr(0, equals);
-        if (key != "fullscreen" && key != "size" && key != "vsync") continue;
+        if (key != "fullscreen" && key != "size" && key != "vsync" && key != "ubershaders") continue;
         const char* begin = line.data() + equals + 1;
         const char* end = line.data() + line.size();
         if (end > begin && end[-1] == '\r') --end;
@@ -49,6 +50,7 @@ bool load(const std::filesystem::path& file, Settings* settings, std::string* er
         if (key == "fullscreen") parsed.fullscreen = value != 0;
         if (key == "size") parsed.size = value;
         if (key == "vsync") parsed.vsync = value != 0;
+        if (key == "ubershaders") { parsed.ubershaders = value != 0; parsed.ubershadersSaved = true; }
     }
     if (input.bad()) return fail(error, "Could not read display.txt. Check that your user folder is readable.");
     *settings = clamp(parsed);
@@ -68,8 +70,8 @@ bool save(const std::filesystem::path& file, Settings settings, std::string* err
     FILE* output = fdopen(fd, "w");
     bool ok = output != nullptr;
     if (output) {
-        ok = std::fprintf(output, "# Display settings; size: 0=1280x720, 1=1600x900, 2=1920x1080, 3=2560x1440\nfullscreen=%d\nsize=%d\nvsync=%d\n",
-                          settings.fullscreen, settings.size, settings.vsync) > 0;
+        ok = std::fprintf(output, "# Display settings; size: 0=1280x720, 1=1600x900, 2=1920x1080, 3=2560x1440\nfullscreen=%d\nsize=%d\nvsync=%d\nubershaders=%d\n",
+                          settings.fullscreen, settings.size, settings.vsync, settings.ubershaders) > 0;
         if (std::fflush(output) != 0 || fsync(fd) != 0) ok = false;
         if (std::fclose(output) != 0) ok = false;
     } else {
@@ -91,6 +93,7 @@ bool Controller::configure(const std::filesystem::path& file, std::string* error
     mFile = file;
     const bool ok = load(file, &mSettings, error);
     mStartupVsync = mSettings.vsync;
+    mStartupUbershaders = mSettings.ubershaders;
     mPending = -1;
     mMessage = ok ? "" : (error ? *error : "Could not read display.txt. Remove it to restore defaults.");
     return ok;
@@ -109,7 +112,7 @@ void Controller::read(Settings* out, char* message, std::size_t capacity) {
 
 void Controller::change(int row, int delta) {
     std::lock_guard lock(mMutex);
-    if (mSettings.busy || row < 0 || row > 2 || (row == 1 && mSettings.fullscreen)) return;
+    if (mSettings.busy || row < 0 || row >= HomeMenu::kDisplayOptionCount || (row == 1 && mSettings.fullscreen)) return;
     mPending = row;
     mDelta = delta;
     mSettings.busy = true;
@@ -138,14 +141,17 @@ void Controller::tick(Window& window) {
         if (ok) next.size = size;
     } else if (row == 2) {
         next.vsync = !next.vsync;
+    } else if (row == 3) {
+        next.ubershaders = !next.ubershaders;
     }
     next.fullscreen = window.fullscreen();
     next.busy = false;
     next.restartNeeded = next.vsync != mStartupVsync;
+    next.ubershadersRestartNeeded = next.ubershaders != mStartupUbershaders;
     if (!ok) message = "Could not change the window. Try again after the fullscreen animation finishes.";
     else if (!save(mFile, next, &message)) {
         std::fprintf(stderr, "petari: %s\n", message.c_str());
-    }
+    } else next.ubershadersSaved = true;
     std::lock_guard lock(mMutex);
     // A new request can arrive while an external fullscreen change is saved.
     next.busy = mPending >= 0;

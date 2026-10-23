@@ -29,6 +29,7 @@ public:
         if (row == 0) options.fullscreen = !options.fullscreen;
         if (row == 1) options.size = (options.size + delta + HM::kDisplaySizeCount) % HM::kDisplaySizeCount;
         if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = options.vsync; }
+        if (row == 3) { options.ubershaders = !options.ubershaders; options.ubershadersRestartNeeded = !options.ubershaders; }
     }
 };
 void openDisplay(HM::Menu& menu) {
@@ -53,9 +54,16 @@ int main() {
     FakeDisplay backend; menu.setDisplayBackend(&backend);
     openDisplay(menu);
     auto view = menu.view();
-    check(view.itemCount == 4 && std::strstr(view.items[1].label, "1280 x 720"), "four default rows");
+    check(view.itemCount == 5 && std::strstr(view.items[1].label, "1280 x 720"), "four options and Back");
     check(std::strstr(view.message, "quitting and reopening") && std::strstr(view.footer, "change"), "restart and navigation hints");
-    press(menu, HM::Button::A);
+    check(std::strcmp(view.items[3].label, "Ubershaders: On") == 0 && std::strstr(view.message, "Ubershaders"),
+          "default-on ubershaders row explains relaunch");
+    click(menu, 3);
+    check(!backend.options.ubershaders && std::strstr(menu.view().items[3].label, "Off (restart needed)"), "mouse toggles ubershaders off");
+    press(menu, HM::Button::Left);
+    check(backend.options.ubershaders && std::strcmp(menu.view().items[3].label, "Ubershaders: On") == 0,
+          "left toggles the saved preference back on");
+    backend.changes = 0; click(menu, 0);
     check(backend.options.fullscreen && !menu.view().items[1].enabled, "fullscreen toggle disables size row");
     press(menu, HM::Button::Down); press(menu, HM::Button::Right); press(menu, HM::Button::A); click(menu, 1);
     check(backend.changes == 1, "disabled size ignores keyboard/controller/mouse");
@@ -94,7 +102,7 @@ int main() {
 #endif
     press(menu, HM::Button::Plus);
     check(menu.phase() == HM::Phase::List && menu.focus() == 4, "back returns to Display entry");
-    press(menu, HM::Button::A); click(menu, 3);
+    press(menu, HM::Button::A); click(menu, HM::kDisplayOptionCount);
     check(menu.phase() == HM::Phase::List, "mouse Back");
     press(menu, HM::Button::A); press(menu, HM::Button::Home);
     for (int i = 0; i < 10; ++i) menu.update({});

@@ -204,7 +204,7 @@ void Menu::update(const FrameInput& input) {
         setFocus(hovered, true);
     }
 
-    if (mPhase == Phase::Display && mFocus < 3) {
+    if (mPhase == Phase::Display && mFocus < kDisplayOptionCount) {
         const std::uint32_t side = input.trigger & (Button::Left | Button::Right);
         if (side == Button::Left || side == Button::Right) {
             changeDisplay(mFocus, side == Button::Left ? -1 : 1);
@@ -279,10 +279,12 @@ void Menu::refreshDisplay() {
     std::snprintf(mDisplayLabels[1], sizeof(mDisplayLabels[1]), "Window size: %d x %d", size.width, size.height);
     std::snprintf(mDisplayLabels[2], sizeof(mDisplayLabels[2]), "VSync: %s%s", mDisplay.vsync ? "On" : "Off",
                   mDisplay.restartNeeded ? " (restart needed)" : "");
+    std::snprintf(mDisplayLabels[3], sizeof(mDisplayLabels[3]), "Ubershaders: %s%s", mDisplay.ubershaders ? "On" : "Off",
+                  mDisplay.ubershadersRestartNeeded ? " (restart needed)" : "");
     if (!mDisplayBackend) {
         std::snprintf(mDisplayMessage, sizeof(mDisplayMessage), "Display settings are unavailable in this build.");
     } else if (!mDisplayMessage[0]) {
-        std::snprintf(mDisplayMessage, sizeof(mDisplayMessage), "VSync applies after quitting and reopening the app. Window sizes may be limited by your screen.");
+        std::snprintf(mDisplayMessage, sizeof(mDisplayMessage), "VSync and Ubershaders apply after quitting and reopening the app. Window sizes may be limited by your screen.");
     }
 }
 
@@ -684,11 +686,11 @@ View Menu::view() const {
     } else if (mPhase == Phase::Display) {
         view.title = "Display";
         view.message = mDisplayMessage;
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < kDisplayOptionCount; ++i) {
             setItem(i, mDisplayLabels[i]);
             view.items[i].enabled = mDisplayBackend != nullptr && !mDisplay.busy && !(i == 1 && mDisplay.fullscreen);
         }
-        setItem(3, "Back");
+        setItem(kDisplayOptionCount, "Back");
     } else if (mPhase == Phase::Mods) {
         view.title = "Mods";
         view.message = "Off by default. Saved in mods.txt; change their keys on the Controls page.";
@@ -808,7 +810,7 @@ int Menu::pageItemCount() const {
     if (mPhase == Phase::Progress) {
         return kProgressItems;
     }
-    if (mPhase == Phase::Display) return 4;
+    if (mPhase == Phase::Display) return kDisplayOptionCount + 1;
     if (mPhase == Phase::Camera) {
         return kCameraItems;
     }
@@ -954,7 +956,7 @@ void Menu::activate(int index) {
             break;
         }
     } else if (mPhase == Phase::Display) {
-        if (index < 3) {
+        if (index < kDisplayOptionCount) {
             changeDisplay(index, 1);
         } else {
             play(Sound::Cancel);
@@ -1089,7 +1091,7 @@ void Menu::back() {
     if (mPhase == Phase::Confirm) {
         activate(kConfirmCancel);
     } else if (mPhase == Phase::Display) {
-        activate(3);
+        activate(kDisplayOptionCount);
     } else if (mPhase == Phase::Controls) {
         activate(0);
     } else if (mPhase == Phase::Mods) {

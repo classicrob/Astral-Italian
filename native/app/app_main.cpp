@@ -1,5 +1,6 @@
 #include "editor_m4_smoke.hpp"
 #include "display_settings.hpp"
+#include <petari/ubershader_mode.hpp>
 extern "C" bool aurora_imgui_update_texture(unsigned long long, unsigned, unsigned, const void*);
 // Native entry point: window, platform start-up, then the game's main loop
 // on this (the macOS main) thread. See docs/dev/INTEGRATION_PLAN.md.
@@ -982,6 +983,15 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "petari: %s\n", error.c_str());
     }
     const auto display = App::DisplaySettings::controller().settings();
+    const auto uberMode = PetariNative::Ubershaders::resolve(std::getenv("PETARI_UBERSHADER"),
+        display.ubershadersSaved ? std::optional<bool>(display.ubershaders) : std::nullopt);
+    // Resolve before Aurora initializes its device, uniform buffers or workers.
+    // Never replace an explicit environment choice, including zero.
+    if (setenv("PETARI_UBERSHADER", PetariNative::Ubershaders::environmentValue(uberMode.mode), 0) != 0) {
+        std::fputs("petari: could not configure ubershaders at launch\n", stderr);
+        return 1;
+    }
+    std::fprintf(stderr, "[gx uber] mode=%s source=%s\n", PetariNative::Ubershaders::name(uberMode.mode), uberMode.source);
     config.vsync = display.vsync;
     config.startFullscreen = display.fullscreen;
     // The game keeps running without focus, as on the console. Input releases

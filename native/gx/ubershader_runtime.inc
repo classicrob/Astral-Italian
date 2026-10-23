@@ -4,6 +4,7 @@
 #include "../gfx/recording.hpp"
 #include "../gfx/encoding.hpp"
 
+#include <petari/ubershader_mode.hpp>
 #include <atomic>
 #include <cmath>
 #include <chrono>
@@ -15,7 +16,7 @@ namespace aurora::gx {
 thread_local bool petariBuildingUber = false;
 thread_local PetariUberTier petariBuildingUberTier = PetariUberTier::Fast;
 thread_local double petariUberShaderMs = 0;
-bool petari_uber_enabled() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0); }(); return b; }
+bool petari_uber_enabled() { static const bool b = [] { return PetariNative::Ubershaders::resolve(std::getenv("PETARI_UBERSHADER")).mode != PetariNative::Ubershaders::Mode::Off; }(); return b; }
 bool petari_uber_all() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && std::strcmp(p,"all")==0; }(); return b; }
 const char* petari_uber_reason(const ShaderConfig& c) {
   if (c.lineMode) return "primitive";

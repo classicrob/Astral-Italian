@@ -109,6 +109,14 @@ the game already paces itself from VI/display-link retraces. No pacing or
 runtime surface-mode changes are made by this page. Developer launches using
 `PETARI_PRESENT_MODE` still override Aurora's selected present mode.
 
+**Ubershaders: On/Off** defaults to On (hybrid rendering). It reduces stalls while
+new shaders compile. The preference applies after quitting and reopening the app;
+Restart from Title does not apply it. A changed value shows “restart needed”.
+Developer launches resolve `PETARI_UBERSHADER` first (`0` fully disables fallback
+preparation and draws, `1` enables hybrid, `all` forces covered fallback draws),
+then the saved preference, then default On. Boot logs the effective mode and source:
+`[gx uber] mode=off|hybrid|all source=env|setting|default`.
+
 Use Up/Down to choose a row, A/Space to activate, Left/Right to change,
 Plus/Escape to go back, or HOME/F1 to resume. Mouse and controller input use
 the same path as the existing menu pages; the footer names current bindings.
@@ -117,8 +125,8 @@ and remapper. The default key table remains in `native/CONTROLS.md`.
 
 `native/app/display_settings.{hpp,cpp}` loads `display.txt` in the selected
 user directory before Aurora creates its window. Missing files retain the
-existing defaults: windowed, 1280×720, VSync off. The text file contains
-`fullscreen=0|1`, `size=0..3` (presets in the order above), and `vsync=0|1`.
+defaults: windowed, 1280×720, VSync off, Ubershaders On. The text file contains
+`fullscreen=0|1`, `size=0..3` (presets in the order above), `vsync=0|1`, and `ubershaders=0|1`. Older files without the new key retain default On.
 Out-of-range numeric preset indices are clamped; malformed known values reset
 the load to defaults and produce an actionable message. Changes use a unique
 sibling `display.txt.tmp-XXXXXX`, flush it and atomically rename it over the
@@ -135,7 +143,7 @@ app run on supported build hardware.
 
 Standalone tests: `native_display_settings` in `native/app` covers defaults,
 parsing, clamping, atomic replacement/failures, queued host changes, OS
-fullscreen changes and VSync relaunch state. `native_display_menu` in
+fullscreen changes, VSync/Ubershaders relaunch state and environment precedence. `native_display_menu` in
 `native/home_menu` covers navigation, disabled rows, notices and ImGui drawing
 at 480 lines in both aspects. The offline renderer writes `display.png`,
 `display-restart.png` and `display-fullscreen.png`; create its output

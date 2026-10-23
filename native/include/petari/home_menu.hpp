@@ -175,12 +175,16 @@ struct CameraOptions {
 struct DisplaySize { int width, height; };
 constexpr DisplaySize kDisplaySizes[] = {{1280, 720}, {1600, 900}, {1920, 1080}, {2560, 1440}};
 constexpr int kDisplaySizeCount = sizeof(kDisplaySizes) / sizeof(kDisplaySizes[0]);
+constexpr int kDisplayOptionCount = 4;
 struct DisplayOptions {
     bool fullscreen = false;
     int size = 0;
     bool vsync = false;  // VI/display-link already paces the game
     bool restartNeeded = false;
     bool busy = false;
+    bool ubershaders = true;
+    bool ubershadersSaved = false;
+    bool ubershadersRestartNeeded = false;
 };
 class DisplayBackend {
 public:
@@ -464,7 +468,7 @@ private:
     void leaveControls();
     DisplayBackend* mDisplayBackend = nullptr;
     DisplayOptions mDisplay;
-    char mDisplayLabels[3][64] = {};
+    char mDisplayLabels[kDisplayOptionCount][64] = {};
     char mDisplayMessage[192] = {};
     void refreshDisplay();
     void changeDisplay(int row, int delta);

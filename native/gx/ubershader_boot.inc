@@ -191,6 +191,10 @@ static void petari_uber_observe_title(bool covered, bool fallbackReady) {
       petari_uber_elapsed(), covered, fallbackReady, petariUberBoot.frontEndScanned,
       petari_uber_title_pending(), pending, petariUberBoot.failed.size(),
       petariUberBoot.seedsDone && petariUberBoot.cacheDone && !pending && petariUberBoot.failed.empty());
+  petariUberTitleReleased = true;
+  std::fprintf(stderr, "[gx uber async] event=prep_release stage=FileSelect phase=recording elapsed_ms=%.3f workers=%u\n",
+      petari_uber_elapsed(), petariActiveWorkers);
+  g_pipelineQueueCv.notify_all();
 }
 static void petari_uber_async_report() {
   if (!gx::petari_uber_enabled()) return;
@@ -207,6 +211,7 @@ static void petari_uber_async_stop() {
   petariUberBoot.cancelled += petariUberJobs.size();
   petariUberJobs.clear(); // workers already joined; no callbacks can outlive the device
   petariUberBoot.started = false; // a later device/cache initialization may start a fresh generation
+  petariUberTitleReleased = false;
 }
 } // namespace aurora::gfx
 
@@ -226,6 +231,7 @@ void petari_uber_boot() {
     workers = gfx::petariActiveWorkers;
     if (!gfx::petariUberBoot.started) {
       gfx::petariUberBoot = {};
+      gfx::petariUberTitleReleased = false;
       gfx::petariUberBoot.started = true;
       gfx::petariUberBoot.startedAt = start;
       if (gfx::g_hasPipelineThread && !gfx::g_pipelineThreadEnd) {
@@ -235,7 +241,7 @@ void petari_uber_boot() {
     }
   }
   gfx::g_pipelineQueueCv.notify_all();
-  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u synchronous_compiles=0 prep_policy=all_workers workers=%u\n",
-      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers);
+  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u synchronous_compiles=0 prep_policy=reserved_until_title workers=%u prep_workers=%u\n",
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers, std::min(workers, gfx::kPetariOnDemandWorkers));
 }
 } // namespace aurora::gx

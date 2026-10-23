@@ -74,8 +74,11 @@ struct PetariUberJob {
   std::function<void()> run;
 };
 static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
+static bool petariUberTitleReleased = false; // g_pipelineMutex; reset each boot
 static bool petari_uber_worker_ready(unsigned workerIndex) {
-  return workerIndex < petariActiveWorkers && !petariUberJobs.empty();
+  const auto limit = petariUberTitleReleased ? petariActiveWorkers :
+      std::min(petariActiveWorkers, kPetariOnDemandWorkers);
+  return workerIndex < limit && !petariUberJobs.empty();
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
   if (!petari_uber_worker_ready(workerIndex)) return false;

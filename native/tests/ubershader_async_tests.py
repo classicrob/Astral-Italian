@@ -140,7 +140,9 @@ int main(int argc,char** argv) {
   c.shaderConfig.variant=2;gfx::petari_uber_queue_variant(c,l);
   CHECK(gfx::petariUberJobs.size()==2);
   CHECK(gfx::petariUberBoot.scheduled.size()==2);
-  auto one=take(2);auto two=take(3);CHECK(one && two);one();two(); // borrow all workers' speculative slots
+  CHECK(!take(2) && !take(3)); // pre-title workers remain reserved
+  gfx::petariActiveStage="FileSelect";gfx::petari_uber_observe_title(true,false);
+  auto one=take(2);auto two=take(3);CHECK(one && two);one();two(); // release borrows all workers' speculative slots
   CHECK(gx::builds==2);CHECK(gfx::petariUberBoot.completed.size()==2);
  } else if(test=="priority") {
   gfx::petari_uber_queue_variant(c,l,3);
@@ -166,8 +168,14 @@ int main(int argc,char** argv) {
   gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
   CHECK(gx::builds==0); // boot call never runs enumeration or compilation
+  CHECK(!gfx::petariUberTitleReleased);
+  gfx::petariActiveStage="Unknown";gfx::petari_uber_observe_title(true,true);
+  CHECK(!gfx::petariUberTitleReleased); // earlier menu scenes cannot release workers
+  gfx::petariActiveStage="FileSelect";gfx::petari_uber_observe_title(true,true);
+  CHECK(gfx::petariUberTitleReleased);
   gfx::petari_uber_async_stop();CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
   gx::petari_uber_boot();CHECK(gfx::petariUberJobs.size()==1); // generation can restart after shutdown
+  CHECK(!gfx::petariUberTitleReleased && !take(2)); // release gate resets each boot
  } else if(test=="no_workers") {
   gfx::g_hasPipelineThread=false;gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);

@@ -50,6 +50,9 @@ std::mutex uberMutex;
 std::map<gfx::PipelineRef,gfx::CompiledPipeline> uberPipelines;
 std::map<HashType,bool> uberConfigs;
 std::map<gfx::PipelineRef,gfx::PipelineRef> uberAssociations;
+thread_local uint64_t uberEncodingFrame=0;
+thread_local bool uberFrameUsed=false;
+std::atomic<uint64_t> uberFrames{0},uberFallbackFrames{0},uberForcedFrames{0};
 std::atomic<uint64_t> uberDraws{0},uberCovered{0},uberFallback{0},uberForced{0},uberSpecialized{0},uberMissing{0};
 }
 void petari_uber_note(const ShaderConfig& c) {
@@ -58,10 +61,22 @@ void petari_uber_note(const ShaderConfig& c) {
   const auto key=xxh3_hash(c); std::lock_guard lock(uberMutex);
   if(uberConfigs.emplace(key,covered).second) std::fprintf(stderr,"[gx uber config] config=%016llx covered=%u reason=%s\n",(unsigned long long)key,covered,reason);
 }
-void petari_uber_draw(bool fallback,bool forced,bool missing) { uberFallback+=fallback&&!forced; uberForced+=forced; uberSpecialized+=!fallback; uberMissing+=missing; }
+void petari_uber_begin_frame(uint64_t frame) {
+  if(!petari_uber_enabled()) return;
+  uberEncodingFrame=frame;uberFrameUsed=false;++uberFrames;
+}
+void petari_uber_draw(bool fallback,bool forced,bool missing) {
+  uberFallback+=fallback&&!forced;uberForced+=forced;uberSpecialized+=!fallback;uberMissing+=missing;
+  if(fallback && !uberFrameUsed) {
+    uberFrameUsed=true;
+    if(forced)++uberForcedFrames;else ++uberFallbackFrames;
+    std::fprintf(stderr,"[gx uber frame] frame=%llu fallback=1 forced=%u\n",(unsigned long long)uberEncodingFrame,forced);
+  }
+}
 void petari_uber_report() {
   if(!petari_uber_enabled()) return;
   std::lock_guard lock(uberMutex); size_t covered=0;for(auto [k,v]:uberConfigs) covered+=v;
+  std::fprintf(stderr,"[gx uber frames] encoded_frames=%llu fallback_frames=%llu forced_frames=%llu\n",(unsigned long long)uberFrames.load(),(unsigned long long)uberFallbackFrames.load(),(unsigned long long)uberForcedFrames.load());
   std::fprintf(stderr,"[gx uber summary] draws=%llu covered_draws=%llu fallback_draws=%llu forced_draws=%llu specialized_draws=%llu unsupported_draws=%llu missing_key_draws=%llu configs=%zu covered_configs=%zu\n",(unsigned long long)uberDraws.load(),(unsigned long long)uberCovered.load(),(unsigned long long)uberFallback.load(),(unsigned long long)uberForced.load(),(unsigned long long)uberSpecialized.load(),(unsigned long long)(uberDraws-uberCovered),(unsigned long long)uberMissing.load(),uberConfigs.size(),covered);
 }
 gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) { auto key=c; key.shaderConfig={}; return xxh3_hash(l.key,xxh3_hash(key,0x55424552)); }

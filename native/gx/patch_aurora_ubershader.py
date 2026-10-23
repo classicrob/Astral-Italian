@@ -15,7 +15,7 @@ if kind=='header':
  replace('  gfx::Range uniformRange;','  gfx::Range uniformRange;\n  uint32_t uberUniformOffset = UINT32_MAX;')
 else:
  text=text.replace('#include "pipeline.hpp"',f'#include "{header}"').replace('#include "../gx/pipeline.hpp"',f'#include "{header}"')
- if kind in ('shader','cache','pipeline','command_processor'):
+ if kind in ('shader','cache','pipeline','command_processor','frame'):
   text=f'#include "{header}"\n#include "{here / "ubershader.hpp"}"\n'+text
  if kind in ('frame','recording'):
   text='#include <cstdlib>\n#include <cstring>\n'+text
@@ -26,6 +26,8 @@ else:
   text+='\n'+(here/'ubershader_runtime.inc').read_text()
   text+='\nstatic constexpr const char* petariUberWgsl = R"UBER('+ (here/'ubershader.wgsl').read_text()+')UBER";\n'
   text+='\n'+(here/'ubershader_source.inc').read_text()
+ if kind=='frame':
+  replace('    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);', '    gx::petari_uber_begin_frame(g_framePackets[frameSlot].frameId);\n    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);')
  if kind=='command_processor':
   replace('  gfx::Range uniformRange{};','  gfx::Range uniformRange{};\n  gfx::Range uberUniformRange{};')
   replace('    cache.uniformRange = build_uniform(cache.shaderInfo);','''    cache.uniformRange = build_uniform(cache.shaderInfo);

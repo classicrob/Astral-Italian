@@ -39,8 +39,15 @@ Logs are cumulative per process. `config` is a hash of ShaderConfig:
 [gx uber config] config=<hex> covered=<0|1> reason=<token>
 [gx uber shader] mode=<u> normal=<u> source_bytes=<n> shader_ms=<ms>
 [gx uber compile] key=<hex> layout=<hex> shader_ms=<ms> pipeline_ms=<ms> success=<0|1>
+[gx uber frame] frame=<encoded frame id> fallback=1 forced=<0|1>
+[gx uber frames] encoded_frames=<n> fallback_frames=<n> forced_frames=<n>
 [gx uber summary] draws=<n> covered_draws=<n> fallback_draws=<n> forced_draws=<n> specialized_draws=<n> unsupported_draws=<n> missing_key_draws=<n> configs=<n> covered_configs=<n>
 ```
+
+The frame event is logged once on the first generic draw of each encoded frame.
+`fallback_frames` counts hybrid frames; `forced_frames` counts forced-all frames.
+Join the frame IDs to the frame CSV’s `presented_frame` for phase attribution;
+`encoded_frames` includes startup and frames without any GX draw.
 
 Coverage counts recorded draw commands (merged geometry remains one command),
 while selection counts encoder invocations. They can differ when a recorded draw

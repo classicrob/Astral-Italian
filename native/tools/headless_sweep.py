@@ -112,6 +112,35 @@ def random_script(seed, total):
     return "\n".join(lines) + "\n"
 
 
+def pointer_script(seed, total):
+    """Seeded Star-Pointer poking for galaxy-map UI scenes: random pointer positions with A taps (MouseLeft), a
+    few stick/shake/B inputs, in a 1280x720 window."""
+    import random
+    rng = random.Random(seed)
+    lines = ["viewport 1280 720"]
+    used = 1
+    while used < total:
+        lines.append("ptr %d %d" % (rng.randint(40, 1240), rng.randint(30, 690)))
+        used += 1
+        wait = rng.randint(6, 40)
+        lines.append(str(wait))
+        used += wait
+        r = rng.random()
+        if r < 0.7:
+            lines.append("4 MouseLeft")  # A on whatever is under the pointer
+            used += 4
+        elif r < 0.8:
+            lines.append("4 Backspace")  # B
+            used += 4
+        elif r < 0.9:
+            lines.append("20 W")
+            used += 20
+        else:
+            lines.append("20 Return")
+            used += 20
+    return "\n".join(lines) + "\n"
+
+
 def script_text(total, text):
     """Repeat the base script until it has `total` loops (the last repetition is cut by the harness's own end)."""
     lines = [l for l in text.splitlines() if l.strip()]
@@ -185,6 +214,7 @@ def analyze_trace(rows):
     info = {"rows": len(rows)}
     if not rows:
         return info
+    info["stages_seen"] = sorted({r.get("stage") for r in rows if r.get("stage")})
     valid = [r for r in rows if r.get("player_valid") == "1"]
     info["player_valid_rows"] = len(valid)
     info["scene_not_game_rows"] = sum(1 for r in rows if r.get("scene") != "Game")
@@ -280,6 +310,9 @@ def classify(res):
         return "FAIL", "NOT_READY", reason[0] if reason else "no [input-script] start", notes
     if not done:
         return "FAIL", "INCOMPLETE", "exit 0 without completion marker", notes
+    bad = [x for x in (t.get("stages_seen") or []) if re.fullmatch(r"WorldMap\d+Galaxy", x) and not 1 <= int(re.findall(r"\d+", x)[0]) <= 8]
+    if bad:
+        return "FAIL", "INVALID_WORLDMAP_REQUEST", "stage observed outside WorldMap01..08Galaxy: " + ", ".join(bad), notes
     if res.get("no_player"):
         return "NON_GAMEPLAY", "", "", notes + ["galaxy-map UI scene: ran %d loops without a crash; no Mario to check" % t.get("rows", 0)]
     if t.get("nonfinite_rows"):
@@ -471,7 +504,9 @@ def main():
         ap.error("--headless is required")
     out.mkdir(parents=True, exist_ok=True)
     script_path = out / "keys.txt"
-    if args.script.startswith("random:"):
+    if args.script.startswith("pointer:"):
+        script_path.write_text(pointer_script(int(args.script.split(":")[1]), args.frames))
+    elif args.script.startswith("random:"):
         script_path.write_text(random_script(int(args.script.split(":")[1]), args.frames))
     else:
         base = DEFAULT_SCRIPT if args.script == "default" else Path(args.script).read_text()

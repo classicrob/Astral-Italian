@@ -694,6 +694,10 @@ foreach(_relative lib/gx/texture.cpp lib/gfx/texture.cpp)
 endforeach()
 
 if(_petari_build_testing)
+    add_test(NAME native_ubershader_discard COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_SOURCE_DIR}/native/tests/ubershader_discard_tests.py"
+        "${aurora_SOURCE_DIR}" "$<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>"
+        "${CMAKE_CXX_COMPILER}")
     include("${CMAKE_SOURCE_DIR}/native/tests/asset_reference_sweep.cmake")
 endif()
 

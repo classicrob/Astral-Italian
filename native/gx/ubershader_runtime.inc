@@ -146,11 +146,32 @@ uint32_t petari_uber_arg_program(const ShaderConfig& c) {
   }
   return 0;
 }
+// Match the specialised shader's static discard capability. Keeping a kill
+// instruction in an always-passing shader exposed sparse lava edges on Metal;
+// preserve the native shader's capability rather than a runtime no-op test.
+// Limit the extra variant to indirect shaders: those need the derivative-sensitive
+// sampling fix, while a global split delayed cold stage-entry fallback readiness.
+static bool petari_uber_needs_discard(const ShaderConfig& c) {
+  if (!c.alphaCompare) return false;
+  const auto a=alpha_compare(c.alphaCompare.comp0,c.alphaCompare.ref0);
+  const auto b=alpha_compare(c.alphaCompare.comp1,c.alphaCompare.ref1);
+  AlphaCompareExpr pass;
+  switch(c.alphaCompare.op) {
+  case GX_AOP_AND: pass=alpha_compare_and(a,b);break;
+  case GX_AOP_OR: pass=alpha_compare_or(a,b);break;
+  case GX_AOP_XOR: pass=alpha_compare_xor(a,b);break;
+  case GX_AOP_XNOR: pass=alpha_compare_xnor(a,b);break;
+  default: std::abort();
+  }
+  return alpha_compare_not(pass).constant != 0;
+}
 uint32_t petari_uber_variant(const ShaderConfig& c,PetariUberTier tier) {
   const auto info=build_shader_info(c);uint32_t extent=0;
   for(unsigned i=0;i<8;++i)if(info.sampledTexCoords.test(i))extent=i+1;
-  const auto generic=c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12);
-  if(tier==PetariUberTier::Generic)return generic;
+  const auto generic=c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12) | (uint32_t(c.numIndStages && !petari_uber_needs_discard(c))<<14);
+  // Share the correct discard-free Generic module instead of preparing a second
+  // upgrade for these indirect shaders; cold entry readiness takes precedence.
+  if(tier==PetariUberTier::Generic || (generic&(1u<<14)))return generic;
   bool identity=true;
   const auto isIdentity=[](const auto& s){return s.red==GX_CH_RED && s.green==GX_CH_GREEN && s.blue==GX_CH_BLUE && s.alpha==GX_CH_ALPHA;};
   for(unsigned i=0;i<c.tevStageCount;++i){const auto& t=c.tevStages[i];identity&=isIdentity(c.tevSwapTable[t.tevSwapTex]) && isIdentity(c.tevSwapTable[t.tevSwapRas]);}

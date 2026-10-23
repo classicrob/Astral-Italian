@@ -129,6 +129,8 @@ fn run(in:VertexOutput)->vec4f {
     if(a=="lighting") replaceFunction("fn channel(","@vertex", "fn channel(c:u32,clr:vec4f,pos:vec3f,nrm:vec3f)->vec4f {return clr;}\n");
     std::fprintf(stderr,"[gx uber ablation] feature=%s diagnostic_image=1\n",ablation);
   }
+  // Match the specialised shader's static discard capability in both tiers.
+  if(variant&(1u<<14))replaceAll("if(!alpha_pass){discard;}","");
   return src;
 }
 std::string petari_uber_source(DstAlphaMode mode,uint32_t normal) {return petari_uber_source(mode,normal,16u|(8u<<5)|(4u<<9)|(1u<<12));}

@@ -10494,9 +10494,15 @@ void Mario::clear2DStick() {
     mPrevious2DStickX = 0.0f;
     _624 = false;
     _61C = 0.0f;
+#ifdef GALAXY_NATIVE
+    // The constructor calls this before the flag has been initialised. Wii's
+    // byte load/nonzero test always leaves zero here; a host bool read is UB.
+    _66C = false;
+#else
     if (_66C) {
         _66C = false;
     }
+#endif
     _670.zero();
     _67C.zero();
 }

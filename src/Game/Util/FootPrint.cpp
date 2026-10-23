@@ -50,6 +50,12 @@ void FootPrint::initMember(s32 amount, s32 drawType) {
     mPrintNum = 0;
     mRotatingPrintIndex = 0;
 
+#ifdef GALAXY_NATIVE
+    // Wii leaves this byte untouched until addPrint/clear. Start in the normal
+    // print mode before movement can read uninitialised host heap contents.
+    _3C = false;
+#endif
+
     _2C = 20.0f;
     _30 = 20.0f;
     _34 = 20.0f;

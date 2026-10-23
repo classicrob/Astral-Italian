@@ -26,6 +26,11 @@ namespace {
 };  // namespace
 
 ItemBlock::ItemBlock(const char* pName) : LiveActor(pName), mKind(0), mClippingRange(0.0f, 0.0f, 0.0f), mTimer(0), mCooldownTimer(0), mItemCount(8), _AC(0), mCalcShadow(false) {
+#ifdef GALAXY_NATIVE
+    // Wii leaves this byte untouched before makeActorAppeared calls calcAnim.
+    // The first animation update must not depend on reused host heap contents.
+    mNoCalcAnim = false;
+#endif
 }
 
 void ItemBlock::init(const JMapInfoIter& rIter) {

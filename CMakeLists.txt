@@ -208,6 +208,11 @@ if(PETARI_BUILD_GX_PROBE)
     unset(_PETARI_BUILD_TESTING_SAVED CACHE)
 endif()
 
+# The CPU-only harness has no disc-container dependency.
+if(NOT PETARI_BUILD_HEADLESS)
+    add_subdirectory(native/disc_import)
+endif()
+
 add_subdirectory(native/app/headless)
 
 add_subdirectory(native/home_menu)

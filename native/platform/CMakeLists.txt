@@ -52,15 +52,17 @@ endif()
 
 # Replaces src/RVL_SDK/dvd/*.c except the portable dvdidutils.c, which is
 # compiled unchanged. Do not also link the Wii DVD driver sources.
+add_library(petari_dvd_fst STATIC dvd/dvd_fst.cpp)
+target_include_directories(petari_dvd_fst PUBLIC include dvd)
+target_compile_features(petari_dvd_fst PUBLIC cxx_std_17)
 add_library(petari_platform_dvd STATIC
-    dvd/dvd_fst.cpp
     dvd/dvd_host.cpp
     dvd/mod_folder.cpp
     dvd/mod_galaxy.cpp
     ${PETARI_REPO_ROOT}/src/RVL_SDK/dvd/dvdidutils.c)
 set_source_files_properties(${PETARI_REPO_ROOT}/src/RVL_SDK/dvd/dvdidutils.c PROPERTIES LANGUAGE CXX)
 target_include_directories(petari_platform_dvd PUBLIC include PRIVATE dvd os)
-target_link_libraries(petari_platform_dvd PUBLIC petari_platform_os petari_native_config petari_host_runtime Threads::Threads)
+target_link_libraries(petari_platform_dvd PUBLIC petari_dvd_fst petari_platform_os petari_native_config petari_host_runtime Threads::Threads)
 target_compile_features(petari_platform_dvd PUBLIC cxx_std_17)
 
 # Native OS: interrupts, uniprocessor thread scheduler, alarms, time,

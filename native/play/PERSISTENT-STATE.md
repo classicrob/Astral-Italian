@@ -12,7 +12,7 @@ No state is moved, deleted or migrated by this document or the player launcher.
 ## Roots and sharing
 
 - `U`: the app's `--user` argument; direct app default is
-  `~/Library/Application Support/AstralItalian`. The player launcher defaults to
+  `~/Library/Application Support/Astral Italian`. The player launcher defaults to
   `~/MacioGalaxy2-play/user`, overridden by `ASTRAL_USER` (passed as `--user`).
   `play.sh --unlocked` (menu **u**) instead selects exactly
   `~/Library/Application Support/AstralItalian-unlocked`, overriding
@@ -20,7 +20,7 @@ No state is moved, deleted or migrated by this document or the player launcher.
   `complete-save.json`. This build-5 complete save is separate from ordinary
   progress. Its NAND, settings, logs and other `U`-relative state all use the
   unlocked root; captures still use their independent root below.
-  Source: `native/app/app_main.cpp`, `parseArguments`; `native/play/play.sh`.
+  Source: `native/app/app_locations.{hpp,cpp}`, `native/app/app_main.cpp`, `resolvePaths`; `native/play/play.sh`.
 - `C`: normal graphics cache root `~/Library/Caches/AstralItalian`, independent
   of `U`. `PETARI_CACHE_DIR` overrides it (creation failure falls back to `U`).
   Test/fixture launches use `U`; a busy machine-cache lock also falls back to `U`.
@@ -36,6 +36,43 @@ No state is moved, deleted or migrated by this document or the player launcher.
   a separate root when needed. Explicit output paths are shared if reused. Never use
   `~/Library/Application Support/Petari` (the separate SMG1 game).
 
+## First-run setup and remembered choices
+
+The direct app needs no launcher or environment variables. Disc resolution is
+`--disc`, then `PETARI_GAME_DIR`, then a quick-validated `disc` in `app.cfg`,
+then an existing developer `build/game-data/SB4E01`, then native setup. An invalid
+remembered disc explains the problem and returns to setup. `--setup` forces setup;
+**Choose Game Disc…** in the application menu records a choice for the next launch.
+Extracted folders are fully validated in place. Disc images import into
+`~/Library/Application Support/Astral Italian/Game Data/SB4E01/` using the player's
+own USA SB4E01 revision-0 disc. No game data ships with the app.
+
+`app.cfg` lives at that support root, independently of `--user`. It is atomic
+key=value text (temporary `.app.cfg-*` siblings) with `disc`, `disc_source=folder|imported`, and the one-time
+`migration=copy|declined` choice. Unknown keys survive writes. Setup can offer to
+copy (never move) old `~/MacioGalaxy2-play/user` saves, or the former direct-app
+`~/Library/Application Support/AstralItalian` saves, only when no `--user` was
+given and the new root has no `NAND/`. It copies absent NAND/settings/mods/controls/
+camera/progress/mod-sidecar entries without merging or replacing existing entries,
+stages complete entries before publishing them, preserves NAND metadata, and
+writes `migrated-from.txt`. Transient `.migration-*` siblings are removed after
+success/failure. Either answer is remembered.
+The separate SMG1 `Petari` root is never a migration source or an allowed app root.
+
+Without `PETARI_TAPE_RECORD` or `PETARI_ROUTE_RECORD`, the direct app records a
+session in `~/Library/Application Support/Astral Italian/Tapes/session-<time>-<pid>/`
+(`route.csv`, `route.kpd`, `route.actions`, `route.tape.json`). Startup keeps nine
+previous app session directories plus the new one. `ASTRAL_TAPE=off` disables the
+default; explicit record/capture destinations are preserved and never pruned.
+Caps apply to app-owned log/session names only, not unrelated files or symlinks.
+Capture histories are not automatically pruned. `--user` still controls all user
+state listed below and does not change mod/settings semantics.
+
+Automation-only hooks: `ASTRAL_SUPPORT_DIR` overrides the support root so tests
+and `petari_first_run_demo` use temporary storage; `ASTRAL_FIRSTRUN_PICK` supplies
+the panel choice, and `ASTRAL_FIRSTRUN_PROMPTS=off` logs alerts and quits on error
+instead of waiting for a reply. The demo requires `ASTRAL_SUPPORT_DIR`.
+
 ## Normal app state
 
 | Destination / family | Contents and write condition | Sharing / source witness |
@@ -45,6 +82,7 @@ No state is moved, deleted or migrated by this document or the player launcher.
 | `U/settings.txt`, `U/settings.txt.tmp` | Host SC console settings; temporary replacement. | Per `U`; `native/platform/sc/sc_host.cpp`, `setStore`/flush. |
 | `U/mods.txt` | Home-menu mod switches, including folder mod state. `PETARI_MODS`/`PETARI_MOD_FOLDERS` override effective state without making a separate destination. | Per `U`; `native/input/mods.cpp`, `native/platform/dvd/mod_folder.cpp`. |
 | `U/controls.txt`, `.tmp`, `.bad` | Input remapping; atomic replacement and preservation of malformed old controls. | Per `U`; `native/input/remap.cpp`, `save`. |
+| `U/display.txt`, `U/display.txt.tmp-XXXXXX` | Windowed/fullscreen, window-size preset and next-launch VSync; defaults are 1280×720 windowed with VSync off. Unique temporary sibling is flushed then atomically renamed; failed writes remove it. | Per `U`; `native/app/display_settings.cpp`, Home menu Display page and host frame seam. Loaded before Aurora window creation. |
 | `U/camera.txt` | Camera/photo preferences saved from the Home menu. | Per `U`; `native/input/camera_input.cpp`, `load`/`save`. |
 | `U/progress.json`, `.tmp`; `U/progress_settings.txt` | Personal mission record/badge settings; record reset may remove the JSON. | Per `U`; `native/progress/progress.cpp`; app `Progress::load`. |
 | `U/mods-saves/<mod>.json`, `.json.tmp` | Extra galaxy progress beside, rather than inside, the game save. | Per `U`; `platform_host.cpp`; `native/platform/dvd/mod_galaxy.cpp`, `sidecarPath`/`saveRecords`. |
@@ -56,14 +94,14 @@ No state is moved, deleted or migrated by this document or the player launcher.
 | `~/Library/Caches/AstralItalian/.petari-instance.lock` | Machine graphics-cache flock file; file may remain after process exit. | Machine shared; `pipeline_cache_dir.cpp`. Override/test paths bypass this particular lock. Do not infer a live owner from file existence. |
 | `U/Crashes/petari-crash-<time>-<pid>.txt` | Native fatal/signal report. | Per `U`; `platform_host.cpp`; `native/platform/os/os_crash.cpp`. |
 | `U/Crashes/petari-hang-<pid>.sample.txt` | Watchdog's optional `/usr/bin/sample` output (`PETARI_HANG_SAMPLE`). Without a supplied hang directory the helper can use `TMPDIR` or `/tmp`. | Per invocation; `native/app/smoke.cpp`, `sampleProcess`/hang watchdog. |
-| stdout / stderr | Application, game, sanitizer and trace logs. Direct app launch does not itself choose a generic log file. | Inherited descriptors; player launcher redirects both below. Sanitizer runtime env such as `ASAN_OPTIONS=log_path=...` can independently redirect its own reports. |
+| `~/Library/Application Support/Astral Italian/logs/astral-<YYYYmmdd-HHMMSS>[-pid].log` / inherited stdout and stderr | Direct app launch redirects both only when they are closed or `/dev/null` (Finder); terminal, pipe and file redirection are preserved. Keeps the 20 newest app logs. | `native/app/app_locations.cpp`, `redirectAppLog`; player launcher redirects both below. Sanitizer runtime env such as `ASAN_OPTIONS=log_path=...` can independently redirect its own reports. |
 
 ## Player launcher and captures
 
 | Destination / override | Contents / sharing | Source |
 | --- | --- | --- |
 | `U/logs/play-<stage-or-title>-<timestamp>.log`; `ASTRAL_LOG` may replace the whole filename | Per-run redirected stdout/stderr. Directory is shared unless `ASTRAL_USER` differs; same-second names may collide. | `native/play/play.sh` |
-| `~/MacioGalaxy2-play/captures/<timestamp>[-N]/{route.csv,state.txt,screen.png}`; `ASTRAL_CAPTURES` changes root via `PETARI_CAPTURE_DIR` | M/F9 capture of the preceding 300 frames and screenshot/state. Absent `PETARI_CAPTURE_DIR`, direct app capture is disabled. `PETARI_CAPTURE_LOG` is recorded as a reference, not copied/written. | `native/app/playtest_capture.cpp`; `native/gx/present/present_aurora.cpp` |
+| `~/MacioGalaxy2-play/captures/<timestamp>[-N]/{route.csv,state.txt,screen.png}`; `ASTRAL_CAPTURES` changes root via `PETARI_CAPTURE_DIR` | M/F9 capture of the preceding 300 frames and screenshot/state. Absent `PETARI_CAPTURE_DIR`, the direct app uses `~/Library/Application Support/Astral Italian/Captures/`. `PETARI_CAPTURE_LOG` is recorded as a reference, not copied/written. | `native/app/playtest_capture.cpp`; `native/gx/present/present_aurora.cpp` |
 | Exact `PETARI_ROUTE_RECORD` file | Full post-frame route CSV; exclusive creation (`wx`), preserves invalid/dead frames. Shared only if caller reuses the path; does not default to a build directory. | `native/app/smoke_game.cpp`; `route_record_writer.hpp` |
 | `~/MacioGalaxy2-play/smoke/<timestamp>-<stage>/{user/**,app.log,frames.csv}`; `ASTRAL_SMOKE_ROOT` changes root | Frozen smoke fixture, fresh user root; app still follows graphics-cache selection rules above. | `native/play/smoke_frozen.sh` |
 

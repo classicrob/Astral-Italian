@@ -5,7 +5,7 @@
 // usage: petari_home_menu_render <out-dir> [--font <LayoutData/Font.arc>] [--background <file.ppm>]
 //                                 [--size WxH] [--wide 0|1]
 // Writes <out-dir>/<page>.png for the list, Controls, Mods, Odyssey camera,
-// Level Select, Mod folder, My Progress and the Restart confirmation. Without
+// Level Select, Mod folder, My Progress, Display and the Restart confirmation. Without
 // --font the pages use ImGui's built-in font (the fallback). The background
 // (binary PPM, e.g. a converted XFB dump) is stretched to the image; without it
 // a dark gradient stands in for the game.
@@ -128,6 +128,18 @@ void rasterize(Canvas& canvas, const Texture& texture) {
 
 // A stand-in for the input layer's remapper: the default rows, and a capture
 // that "presses" F, which Spin already has.
+class FakeDisplay final : public HM::DisplayBackend {
+public:
+    HM::DisplayOptions options;
+    void read(HM::DisplayOptions* out, char* message, std::size_t capacity) override {
+        *out = options; if (capacity) message[0] = '\0';
+    }
+    void change(int row, int) override {
+        if (row == 0) options.fullscreen = !options.fullscreen;
+        if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = options.vsync; }
+    }
+};
+
 class FakeControls final : public HM::ControlsBackend {
 public:
     int rowCount() override { return 34; }
@@ -248,13 +260,17 @@ int main(int argc, char** argv) {
     menu.setMods(mods, HM::kMaxMods);
     HM::FolderModEntry folder[2] = {{"Coin ring (3 files)", true}, {"Retexture pack (40 files)", false}};
     menu.setFolderMods(folder, 2);
-    menu.setFooterKeys("Space", "Escape", "F1", "\xE2\x86\x90/\xE2\x86\x92");
+    menu.setFooterKeys("Space", "Escape", "F1", "Left/Right");
 
     auto settle = [&] {
         for (int i = 0; i < 12; ++i) menu.update(HM::FrameInput{});
     };
     bool menuHidden = false;  // the hold ring shots: the game scene with no menu
-    auto shot = [&](const char* name) {
+    auto shot = [&](const char* name, HM::Phase expected = HM::Phase::Closed) {
+        if (expected != HM::Phase::Closed && menu.phase() != expected) {
+            std::fprintf(stderr, "cannot render %s: menu reached the wrong page\n", name);
+            std::exit(1);
+        }
         HM::publish(menuHidden ? HM::View{} : menu.view());
         io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
         io.DeltaTime = 1.0f / 60.0f;
@@ -276,10 +292,10 @@ int main(int argc, char** argv) {
     using namespace HM::Button;
     menu.open();
     settle();
-    shot("list");
+    shot("list", HM::Phase::List);
     menu.update(press(Down));
     menu.update(press(A));
-    shot("controls");
+    shot("controls", HM::Phase::Controls);
     // The remapper: browsing, waiting for a press, and a conflict.
     FakeControls fake;
     menu.setControlsBackend(&fake);
@@ -287,38 +303,48 @@ int main(int argc, char** argv) {
     menu.update(press(A));
     for (int i = 0; i < 9; ++i) menu.update(press(Down));
     menu.update(press(Right));
-    shot("remap");
+    shot("remap", HM::Phase::Controls);
     menu.update(press(A));
-    shot("remap-capture");
+    shot("remap-capture", HM::Phase::Controls);
     fake.captured = true;
     menu.update(HM::FrameInput{});
-    shot("remap-conflict");
+    shot("remap-conflict", HM::Phase::Controls);
     menu.update(press(Plus));
     menu.update(press(Plus));
     menu.setControlsBackend(nullptr);
     menu.update(press(Down));
     menu.update(press(A));
-    shot("mods");
-    for (int i = 0; i < 4; ++i) menu.update(press(Down));
+    shot("mods", HM::Phase::Mods);
+    for (int i = 0; i < HM::kMaxMods; ++i) menu.update(press(Down));
     menu.update(press(A));
-    shot("camera");
+    shot("camera", HM::Phase::Camera);
     menu.update(press(Plus));
     menu.update(press(Down));
     menu.update(press(A));
-    shot("levels");
+    shot("levels", HM::Phase::Levels);
     menu.update(press(Plus));
     menu.update(press(Down));
     menu.update(press(A));
-    shot("modfolder");
+    shot("modfolder", HM::Phase::ModFolder);
     menu.update(press(Plus));
     menu.update(press(Plus));
     menu.update(press(Down));
     menu.update(press(A));
-    shot("progress");
+    shot("progress", HM::Phase::Progress);
+    menu.update(press(Plus));
+    menu.update(press(Down));
+    FakeDisplay display;
+    menu.setDisplayBackend(&display);
+    menu.update(press(A));
+    shot("display", HM::Phase::Display);
+    menu.update(press(Down)); menu.update(press(Down)); menu.update(press(A));
+    shot("display-restart", HM::Phase::Display);
+    menu.update(press(Up)); menu.update(press(Up)); menu.update(press(A));
+    shot("display-fullscreen", HM::Phase::Display);
     menu.update(press(Plus));
     menu.update(press(Down));
     menu.update(press(A));
-    shot("confirm");
+    shot("confirm", HM::Phase::Confirm);
     // The hold-to-skip ring while Space is held: a third, two thirds, and the skip running.
     static float ringProgress = 0.0f;
     HM::setHoldProgressSource([]() { return ringProgress; });

@@ -100,6 +100,13 @@ else()
 endif()
 
 if(BUILD_TESTING)
+    add_executable(petari_display_menu_tests ${PETARI_REPO_ROOT}/native/tests/display_menu_tests.cpp)
+    target_link_libraries(petari_display_menu_tests PRIVATE petari_home_menu)
+    if(TARGET petari_home_menu_imgui)
+        target_link_libraries(petari_display_menu_tests PRIVATE petari_home_menu_imgui)
+        target_compile_definitions(petari_display_menu_tests PRIVATE PETARI_HOME_MENU_TEST_IMGUI=1)
+    endif()
+    add_test(NAME native_display_menu COMMAND petari_display_menu_tests)
     # SMG2 uses HomeButtonLayout; the SMG1 RSO wrapper test is deferred.
 
     # Pure Menu API, synthetic sparse scenario IDs; no wrapper, disc or save.

@@ -56,6 +56,8 @@ App::Rect lastImage;
 float lastWindowWidth = 0.0f;
 float lastWindowHeight = 0.0f;
 int imageUpdates = 0;
+int displayUpdates = 0;
+void* displayWindow = nullptr;
 std::vector<SDL_EventType> inputEvents;
 float overlay[4];
 
@@ -138,6 +140,9 @@ View publishedView() {
 }  // namespace PetariNative::HomeMenu
 
 namespace PetariNative::App::Host {
+bool playerInPlay() { return false; }
+void updatePlayerInPlay() {}
+bool scenarioIntroActive() { return false; }
 void requestQuit() {
     calls.push_back("requestQuit");
 }
@@ -148,6 +153,7 @@ void forceQuit() {
 }  // namespace PetariNative::App::Host
 
 namespace PetariNative::App::Events {
+void frame() {}
 Smoke::PhysicalInputs physicalInputs() {
     return {};
 }
@@ -255,6 +261,8 @@ std::uint64_t petari_gx_pipeline_manifest_failure_count() {
     return manifestFailures;
 }
 void petari_gx_pipeline_report() {}
+void petari_gx_pipeline_note_frame(double) {}
+std::uint64_t petari_gx_pipeline_skipped_draws() { return 0; }
 // The movement harness's Cappy tasks (src/Game/Player/MarioCappy.cpp).
 int petari_cappy_bounces() {
     return 0;
@@ -278,6 +286,7 @@ namespace {
 
 void reset() {
     calls.clear();
+    displayUpdates = 0;
     inputEvents.clear();
     updates.clear();
     hostScopeMissed = false;
@@ -287,6 +296,7 @@ void reset() {
 void testFirstFrameWithoutHooks() {
     reset();
     App::Seam::attach(reinterpret_cast<SDL_Window*>(0x1));
+    check(displayWindow == reinterpret_cast<void*>(0x1), "display backend attaches to the host window");
     beginFailures = 2;
     App::Seam::openFirstFrame();
     check(contains(calls, {"update", "begin", "update", "begin", "update", "begin"}),
@@ -301,6 +311,7 @@ void testFirstFrameWithoutHooks() {
     petari_host_frame_seam();
     check(contains(calls, {"overlay", "end", "update", "begin"}),
           "seam without hooks: overlay, end frame, events, next frame");
+    check(displayUpdates == 1 && !hostScopeMissed, "display requests run once under the host allocation scope");
     check(overlay[2] == 1280.0f && overlay[3] == 720.0f, "overlay over the whole window without a rectangle");
     check(imageUpdates == 1, "unchanged viewport is not re-sent");
 }
@@ -677,3 +688,18 @@ namespace PetariNative::App {
     void observeProgressFrame() {
     }
 }  // namespace PetariNative::App
+
+namespace PetariNative::App::DisplayWindow {
+void attach(void* window) { displayWindow = window; }
+void update() {
+    ++displayUpdates;
+    if (hostScopes == 0) hostScopeMissed = true;
+}
+}
+
+namespace PetariNative::Input {
+void playControlShown() {}
+}
+namespace PetariNative::App::LaunchStage {
+void testReturnToShipFrame() {}
+}

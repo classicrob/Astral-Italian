@@ -46,7 +46,13 @@ Progress comes from the latest numeric entry in the team's `progress.log`
 build status were checked against team reports and frozen-build receipts;
 [PLAY.md](PLAY.md) describes the launcher.
 
-## Play it
+## Try it (testers)
+
+A packaged **Astral Italian.app** for Apple Silicon Macs is built from frozen builds; see the [tester guide](docs/TESTING.md)
+for requirements, first launch, controls and how to report bugs. The app extracts the game from **your own** disc image
+on first run; no game data is distributed.
+
+## Play it (developer launcher)
 
 Read [PLAY.md](PLAY.md), then double-click
 [Play Astral Italian.command](Play%20Astral%20Italian.command). The launcher
@@ -126,6 +132,8 @@ See the [team playbook](docs/team/TEAM.md) and
 
 | Document | Purpose |
 | --- | --- |
+| [Tester guide](docs/TESTING.md) | Install the packaged app, controls, reporting bugs |
+| [Releasing](docs/RELEASING.md) | How tester packages are built (maintainers) |
 | [PLAY.md](PLAY.md) | Start playing; build choices and known issues |
 | [Full play guide](native/play/PLAY.md) | Launcher options and troubleshooting |
 | [Persistent state](native/play/PERSISTENT-STATE.md) | Saves, settings, logs and caches |

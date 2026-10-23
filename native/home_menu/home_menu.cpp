@@ -45,14 +45,15 @@ constexpr float kRemapTableRight = 0.75f;  // the table's right edge; the scroll
 constexpr float kRemapLabelShare = 0.32f;  // of the table width; four slots share the rest
 constexpr float kRemapButtonsTop = 0.65f;
 
-constexpr const char* kListLabels[] = {"Resume", "Controls", "Mods", "My Progress", "Restart from Title", "Quit"};
-constexpr int kListCount = 6;
+constexpr const char* kListLabels[] = {"Resume", "Controls", "Mods", "My Progress", "Display", "Restart from Title", "Quit"};
+constexpr int kListCount = 7;
 constexpr int kListResume = 0;
 constexpr int kListControls = 1;
 constexpr int kListMods = 2;
 constexpr int kListProgress = 3;
-constexpr int kListRestart = 4;
-constexpr int kListQuit = 5;
+constexpr int kListDisplay = 4;
+constexpr int kListRestart = 5;
+constexpr int kListQuit = 6;
 constexpr int kConfirmAccept = 0;
 constexpr int kConfirmCancel = 1;
 // Every other page's item count; View::items has to hold the largest.
@@ -156,6 +157,7 @@ void Menu::update(const FrameInput& input) {
         return;
     case Phase::List:
     case Phase::Confirm:
+    case Phase::Display:
     case Phase::Controls:
     case Phase::Mods:
     case Phase::Levels:
@@ -169,6 +171,8 @@ void Menu::update(const FrameInput& input) {
         updateRemap(input, pointerMoved);
         return;
     }
+
+    if (mPhase == Phase::Display) refreshDisplay();
 
     const int hovered = input.pointerValid ? itemAt(input.pointerX, input.pointerY) : -1;
 
@@ -200,6 +204,13 @@ void Menu::update(const FrameInput& input) {
         setFocus(hovered, true);
     }
 
+    if (mPhase == Phase::Display && mFocus < 3) {
+        const std::uint32_t side = input.trigger & (Button::Left | Button::Right);
+        if (side == Button::Left || side == Button::Right) {
+            changeDisplay(mFocus, side == Button::Left ? -1 : 1);
+            return;
+        }
+    }
     if (mPhase == Phase::Camera && mFocus == 1) {
         const std::uint32_t side = input.trigger & (Button::Left | Button::Right);
         if (side == Button::Left || side == Button::Right) {
@@ -252,6 +263,34 @@ int Menu::verticalStep(const FrameInput& input) {
         mRepeatTime = 0.0f;
     }
     return dir == Button::Up ? -steps : steps;
+}
+
+void Menu::setDisplayBackend(DisplayBackend* backend) {
+    mDisplayBackend = backend;
+    refreshDisplay();
+}
+
+void Menu::refreshDisplay() {
+    mDisplayMessage[0] = '\0';
+    if (mDisplayBackend) mDisplayBackend->read(&mDisplay, mDisplayMessage, sizeof(mDisplayMessage));
+    mDisplay.size = std::clamp(mDisplay.size, 0, kDisplaySizeCount - 1);
+    const auto size = kDisplaySizes[mDisplay.size];
+    std::snprintf(mDisplayLabels[0], sizeof(mDisplayLabels[0]), "Fullscreen: %s", mDisplay.fullscreen ? "On" : "Off");
+    std::snprintf(mDisplayLabels[1], sizeof(mDisplayLabels[1]), "Window size: %d x %d", size.width, size.height);
+    std::snprintf(mDisplayLabels[2], sizeof(mDisplayLabels[2]), "VSync: %s%s", mDisplay.vsync ? "On" : "Off",
+                  mDisplay.restartNeeded ? " (restart needed)" : "");
+    if (!mDisplayBackend) {
+        std::snprintf(mDisplayMessage, sizeof(mDisplayMessage), "Display settings are unavailable in this build.");
+    } else if (!mDisplayMessage[0]) {
+        std::snprintf(mDisplayMessage, sizeof(mDisplayMessage), "VSync applies after quitting and reopening the app. Window sizes may be limited by your screen.");
+    }
+}
+
+void Menu::changeDisplay(int row, int delta) {
+    if (!mDisplayBackend || mDisplay.busy || (row == 1 && mDisplay.fullscreen)) return;
+    mDisplayBackend->change(row, delta);
+    refreshDisplay();
+    play(Sound::Select);
 }
 
 void Menu::setControls(const ControlsEntry* entries, int count) {
@@ -515,6 +554,7 @@ void Menu::startBlackOut() {
     case Phase::Opening:
     case Phase::List:
     case Phase::Confirm:
+    case Phase::Display:
     case Phase::Controls:
     case Phase::Mods:
     case Phase::Levels:
@@ -565,6 +605,7 @@ View Menu::view() const {
         break;
     case Phase::List:
     case Phase::Confirm:
+    case Phase::Display:
     case Phase::Controls:
     case Phase::Mods:
     case Phase::Levels:
@@ -640,6 +681,14 @@ View Menu::view() const {
         }
         copyLines(mProgressLines, mProgressLineCount);
         view.linesArea = {-kControlsLinesHalfWidth / ax, kControlsLinesTop + 0.2f, kControlsLinesHalfWidth / ax, 0.42f};
+    } else if (mPhase == Phase::Display) {
+        view.title = "Display";
+        view.message = mDisplayMessage;
+        for (int i = 0; i < 3; ++i) {
+            setItem(i, mDisplayLabels[i]);
+            view.items[i].enabled = mDisplayBackend != nullptr && !mDisplay.busy && !(i == 1 && mDisplay.fullscreen);
+        }
+        setItem(3, "Back");
     } else if (mPhase == Phase::Mods) {
         view.title = "Mods";
         view.message = "Off by default. Saved in mods.txt; change their keys on the Controls page.";
@@ -683,7 +732,7 @@ View Menu::view() const {
     } else if (!confirm) {
         view.bands = true;
         view.title = "Super Mario Galaxy";
-        view.message = "Paused";
+        view.message = "Paused. Controls: keys and buttons. F1 or ` opens/closes this menu.";
         for (int i = 0; i < kListCount; i++) {
             setItem(i, kListLabels[i]);
         }
@@ -696,7 +745,7 @@ View Menu::view() const {
         setItem(kConfirmCancel, "Cancel");
     }
     // "<icon> <key>: <what>" for each button that works here.
-    const bool changes = mPhase == Phase::Levels || mPhase == Phase::Camera || progressPage;
+    const bool changes = mPhase == Phase::Levels || mPhase == Phase::Camera || mPhase == Phase::Display || progressPage;
     size_t used = 0;
     auto hint = [&](const char* icon, const char* key, const char* what) {
         if (used >= sizeof(view.footer)) return;
@@ -759,6 +808,7 @@ int Menu::pageItemCount() const {
     if (mPhase == Phase::Progress) {
         return kProgressItems;
     }
+    if (mPhase == Phase::Display) return 4;
     if (mPhase == Phase::Camera) {
         return kCameraItems;
     }
@@ -872,6 +922,13 @@ void Menu::activate(int index) {
                 mBackend->notice(mRemapMessage, sizeof(mRemapMessage));
             }
             break;
+        case kListDisplay:
+            play(Sound::Select);
+            mPhase = Phase::Display;
+            mFocus = 0;
+            mRepeatDir = 0;
+            refreshDisplay();
+            break;
         case kListProgress:
             play(Sound::Select);
             mProgressResetArmed = false;
@@ -895,6 +952,15 @@ void Menu::activate(int index) {
             mFocus = kConfirmCancel;
             mRepeatDir = 0;
             break;
+        }
+    } else if (mPhase == Phase::Display) {
+        if (index < 3) {
+            changeDisplay(index, 1);
+        } else {
+            play(Sound::Cancel);
+            mPhase = Phase::List;
+            mFocus = kListDisplay;
+            mRepeatDir = 0;
         }
     } else if (mPhase == Phase::Controls) {
         play(Sound::Cancel);
@@ -1022,6 +1088,8 @@ void Menu::activate(int index) {
 void Menu::back() {
     if (mPhase == Phase::Confirm) {
         activate(kConfirmCancel);
+    } else if (mPhase == Phase::Display) {
+        activate(3);
     } else if (mPhase == Phase::Controls) {
         activate(0);
     } else if (mPhase == Phase::Mods) {

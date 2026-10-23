@@ -85,7 +85,8 @@ void setError(std::string* error, std::string message) {
 
 }  // namespace
 
-bool Fst::fromDiscImage(const std::vector<std::uint8_t>& image, const fs::path& filesDirectory, Fst& out, std::string* error) {
+bool Fst::fromDiscImage(const std::vector<std::uint8_t>& image, const fs::path& filesDirectory, Fst& out, std::string* error,
+                        bool verifyHostFiles) {
     Fst fst;
     if (image.size() < kEntrySize) {
         setError(error, "fst.bin is too small to contain a root entry");
@@ -101,9 +102,13 @@ bool Fst::fromDiscImage(const std::vector<std::uint8_t>& image, const fs::path& 
         return false;
     }
 
+    if (readU32BE(&image[4]) != 0) {
+        setError(error, "fst.bin has an invalid root extent");
+        return false;
+    }
     const std::size_t stringStart = std::size_t(count) * kEntrySize;
     fst.mStrings.assign(image.begin() + static_cast<std::ptrdiff_t>(stringStart), image.end());
-    fst.mStrings.push_back('\0');  // guarantees termination of a final unterminated name
+    fst.mStrings.push_back('\0');  // empty root name; other names must terminate within the original table
     const std::size_t stringBytes = image.size() - stringStart;
 
     fst.mEntries.resize(count);
@@ -115,7 +120,8 @@ bool Fst::fromDiscImage(const std::vector<std::uint8_t>& image, const fs::path& 
         e.nameOffset = readU24BE(raw + 1);
         e.parentOrPosition = readU32BE(raw + 4);
         e.nextOrLength = readU32BE(raw + 8);
-        if (i != 0 && e.nameOffset >= stringBytes) {
+        if (i != 0 && (e.nameOffset >= stringBytes ||
+                       std::memchr(fst.mStrings.data() + e.nameOffset, 0, stringBytes - e.nameOffset) == nullptr)) {
             setError(error, "fst.bin entry " + std::to_string(i) + " has a name outside the string table");
             return false;
         }
@@ -142,6 +148,7 @@ bool Fst::fromDiscImage(const std::vector<std::uint8_t>& image, const fs::path& 
             return false;
         }
         fs::path host = stack.back().path / name;
+        fst.mHostPaths[i] = host;
         if (e.isDir) {
             const std::uint32_t parentNext = fst.mEntries[stack.back().entry].nextOrLength;
             if (e.parentOrPosition != stack.back().entry || e.nextOrLength <= i || e.nextOrLength > parentNext) {
@@ -153,13 +160,13 @@ bool Fst::fromDiscImage(const std::vector<std::uint8_t>& image, const fs::path& 
                 return false;
             }
             std::error_code ec;
-            if (!fs::is_directory(host, ec)) {
+            if (verifyHostFiles && !fs::is_directory(fs::symlink_status(host, ec))) {
                 problems.add("missing directory " + host.string());
             }
             stack.push_back({i, host});
-        } else {
+        } else if (verifyHostFiles) {
             std::error_code ec;
-            const fs::file_status status = fs::status(host, ec);
+            const fs::file_status status = fs::symlink_status(host, ec);
             if (!fs::is_regular_file(status)) {
                 problems.add("missing file " + host.string());
             } else {

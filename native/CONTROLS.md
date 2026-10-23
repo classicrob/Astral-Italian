@@ -6,6 +6,10 @@ keys. The input layer sends WPAD reports through the SDK's KPAD processing.
 These mappings describe the input path, not a claim that every action has
 been exercised in a running SMG2 stage.
 
+Open **F1** or **backtick (`)** for the native Home menu. **Controls** shows
+the live bindings and remapper; **Display** changes fullscreen and window size,
+and saves VSync for the next app launch (see `native/HOME_MENU.md`).
+
 ## Mario, menus, and the Star Pointer
 
 The last column is the action name used by `controls.txt` and the Controls

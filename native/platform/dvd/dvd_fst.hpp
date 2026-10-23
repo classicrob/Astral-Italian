@@ -37,9 +37,10 @@ class Fst {
 public:
     // Parses a Wii fst.bin image (big-endian) and binds every file to
     // filesDirectory/<path>. Fails if a listed file is missing, is not a
-    // regular file, or its size differs from the FST.
+    // regular file, or its size differs from the FST. Set verifyHostFiles=false
+    // to bind safe paths before extraction; structure and extents are still checked.
     static bool fromDiscImage(const std::vector<std::uint8_t>& image, const std::filesystem::path& filesDirectory, Fst& out,
-                              std::string* error);
+                              std::string* error, bool verifyHostFiles = true);
 
     // Builds an FST by scanning filesDirectory. Siblings are ordered by ASCII
     // upper-cased name, then by exact name, which is the ordering of Nintendo's

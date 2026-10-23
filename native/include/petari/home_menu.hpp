@@ -19,7 +19,7 @@
 //   and reports HBM_SELECT_BTN2; the layout's _25 flag only matters for that
 //   result. While the menu is closed it has no effect.
 //
-// The menu offers Mac actions (Resume, Controls, Mods, Restart from Title, Quit) and
+// The menu offers Mac actions (Resume, Controls, Mods, My Progress, Display, Restart from Title, Quit) and
 // does not present Wii system features. Controls is a remapper over the input
 // layer's bindings when the bridge sets its ControlsBackend (always in the game),
 // else the read-only list of setControls. Rendering is a Dear ImGui overlay drawn in the
@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstddef>
 #include <string>
 
 struct ImFont;
@@ -67,8 +68,9 @@ enum class Selection : int { None = -1, Resume = 0, Quit = 1, Restart = 2 };
 enum class Phase : std::uint8_t {
     Closed,    // before the first open
     Opening,   // fade in; input ignored
-    List,      // Resume / Controls / Mods / My Progress / Restart from Title / Quit
+    List,      // Resume / Controls / Mods / My Progress / Display / Restart from Title / Quit
     Confirm,   // confirming Restart or Quit
+    Display,   // window/fullscreen and saved presentation preferences
     Controls,  // the controls page, with Back
     Mods,      // on/off toggles for the native mods, Level Select, Back
     Levels,    // Level Select: galaxy, mission, Go, Back (native/LEVEL_SELECT.md)
@@ -150,7 +152,7 @@ struct Rect {
 constexpr int kMaxMods = 12;         // Mods::Mod::Count must stay <= this (the Mods page has one toggle each)
 // The Mods page lists every mod toggle, then Odyssey camera, Level Select, Mod folder and Back.
 constexpr int kModsPageExtraItems = 4;
-// Sized from the worst page (the Mods page); other pages use at most 6 items. View::items
+// Sized from the worst page (the Mods page); the main list uses 7 items. View::items
 // must never be indexed past this: a write past it lands on View::lineCount.
 constexpr int kMaxItems = kMaxMods + kModsPageExtraItems;
 static_assert(kMaxItems >= kMaxMods + kModsPageExtraItems, "the Mods page must fit in View::items");
@@ -167,6 +169,24 @@ struct CameraOptions {
     bool invertX = false;
     bool invertY = false;
     bool photo = false;  // photo mode (P), independent of the orbit camera
+};
+
+// Display presets are requested window sizes in points (macOS may constrain them).
+struct DisplaySize { int width, height; };
+constexpr DisplaySize kDisplaySizes[] = {{1280, 720}, {1600, 900}, {1920, 1080}, {2560, 1440}};
+constexpr int kDisplaySizeCount = sizeof(kDisplaySizes) / sizeof(kDisplaySizes[0]);
+struct DisplayOptions {
+    bool fullscreen = false;
+    int size = 0;
+    bool vsync = false;  // VI/display-link already paces the game
+    bool restartNeeded = false;
+    bool busy = false;
+};
+class DisplayBackend {
+public:
+    virtual ~DisplayBackend() = default;
+    virtual void read(DisplayOptions* out, char* message, std::size_t capacity) = 0;
+    virtual void change(int row, int delta) = 0;
 };
 
 // One toggle of the Mods page: what the mod does, and whether it is on.
@@ -304,6 +324,8 @@ public:
     void setControls(const ControlsEntry* entries, int count);
     // Makes the Controls page a remapper (null: the read-only summary). Not owned.
     void setControlsBackend(ControlsBackend* backend);
+    // Not owned; callbacks queue window work to the host thread.
+    void setDisplayBackend(DisplayBackend* backend);
     // The Mods page toggles (at most kMaxMods). Kept across opens.
     void setMods(const ModsEntry* entries, int count);
     // Toggles the player activated since the last call: bit i is entry i,
@@ -440,6 +462,12 @@ private:
     Rect remapArea() const;
     int verticalStep(const FrameInput& input);
     void leaveControls();
+    DisplayBackend* mDisplayBackend = nullptr;
+    DisplayOptions mDisplay;
+    char mDisplayLabels[3][64] = {};
+    char mDisplayMessage[192] = {};
+    void refreshDisplay();
+    void changeDisplay(int row, int delta);
     CameraOptions mCamera;
     bool mCameraChanged = false;
     char mCameraLabels[5][48] = {};

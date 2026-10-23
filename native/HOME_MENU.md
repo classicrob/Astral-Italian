@@ -1,6 +1,6 @@
 # Home menu look
 
-The native Home menu (F1 or `; `native/home_menu/`) draws with the game's own
+The native Home menu (F1 or backtick; `native/home_menu/`) draws with the game's own
 lettering and button icons, styled after the game's pause screen.
 
 ## Fonts from the disc
@@ -37,7 +37,7 @@ is the same either way.
 - Text has a soft drop shadow; titles are white MenuFont64.
 - A footer band along the bottom of the image names the buttons that work on
   the page, with their icons and current keys ("(A) Space: choose  (+)
-  Escape: back  (HOME) F1: close"; Level Select, Odyssey camera and My
+  Escape: back  (HOME) F1: close"; Display, Level Select, Odyssey camera and My
   Progress add the + Control Pad's "change").
 - Sizes follow the game image's height, so the pages read the same at any
   window size; long messages wrap to two lines.
@@ -91,3 +91,52 @@ navigation and scrolling (the wheel, pages, LB/LT, the scrollbar's arrows,
 track and thumb drag, clicks on the panel's empty space), capture, the conflict choices, Escape and the
 10-second timeout, the refused Home change, the buttons (Reset all needs a
 second A), the pointer, and a black-out cancelling a capture.
+
+## Display page
+
+Open the native Home menu with **F1** or **backtick (`)**, then choose
+**Display**. Fullscreen toggles macOS desktop fullscreen (a fullscreen Space).
+Window size cycles through **1280×720**, **1600×900**, **1920×1080** and
+**2560×1440** with Left/Right or the confirm button; clicking advances it.
+The size row is disabled in fullscreen. Sizes are requested window points;
+macOS can constrain them to the usable screen area. The existing presentation
+viewport keeps the game's aspect ratio and letterboxing.
+
+VSync is saved for the **next application launch**. A changed value shows
+“restart needed”; quit and reopen the app to apply it. **Restart from Title**
+does not recreate the window or apply VSync. The default remains off because
+the game already paces itself from VI/display-link retraces. No pacing or
+runtime surface-mode changes are made by this page. Developer launches using
+`PETARI_PRESENT_MODE` still override Aurora's selected present mode.
+
+Use Up/Down to choose a row, A/Space to activate, Left/Right to change,
+Plus/Escape to go back, or HOME/F1 to resume. Mouse and controller input use
+the same path as the existing menu pages; the footer names current bindings.
+The main menu also points to **Controls** for the live key/button reference
+and remapper. The default key table remains in `native/CONTROLS.md`.
+
+`native/app/display_settings.{hpp,cpp}` loads `display.txt` in the selected
+user directory before Aurora creates its window. Missing files retain the
+existing defaults: windowed, 1280×720, VSync off. The text file contains
+`fullscreen=0|1`, `size=0..3` (presets in the order above), and `vsync=0|1`.
+Out-of-range numeric preset indices are clamped; malformed known values reset
+the load to defaults and produce an actionable message. Changes use a unique
+sibling `display.txt.tmp-XXXXXX`, flush it and atomically rename it over the
+old file. Failed saves are shown on the page. Remove `display.txt` while the
+app is closed to restore defaults.
+
+A thread-safe `DisplayBackend` queues changes from the game's menu thread;
+`display_window.cpp` performs SDL operations on the host frame seam. It waits
+for fullscreen/resize transitions to settle before accepting another change,
+and observes fullscreen changes made through macOS. Fullscreen animations
+can briefly pause presentation. Window mutations and persistence are tested
+with a fake window; the actual macOS Spaces/Metal behavior still needs an
+app run on supported build hardware.
+
+Standalone tests: `native_display_settings` in `native/app` covers defaults,
+parsing, clamping, atomic replacement/failures, queued host changes, OS
+fullscreen changes and VSync relaunch state. `native_display_menu` in
+`native/home_menu` covers navigation, disabled rows, notices and ImGui drawing
+at 480 lines in both aspects. The offline renderer writes `display.png`,
+`display-restart.png` and `display-fullscreen.png`; create its output
+directory before running it. The stage Home tour also marks `home-display`.

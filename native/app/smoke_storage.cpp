@@ -1,3 +1,4 @@
+#include "app_locations.hpp"
 #include "pipeline_cache_identity.hpp"
 #include "smoke_storage.hpp"
 #include <CommonCrypto/CommonDigest.h>
@@ -148,7 +149,7 @@ bool SmokeStorage::prepare(const fs::path& user, const char* cacheOverride, std:
     try {
         const auto realUser = fs::weakly_canonical(user);
         const char* home = std::getenv("HOME");
-        if (home && realUser == fs::weakly_canonical(fs::path(home) / "Library/Application Support/AstralItalian"))
+        if (home && realUser == fs::weakly_canonical(AppLocations::defaultRoot(home)))
             throw std::runtime_error("background automation requires an isolated --user directory");
         userLock = lockDirectory(realUser);
         cache = fs::weakly_canonical(cacheOverride && *cacheOverride ? fs::path(cacheOverride) : realUser / "cache");

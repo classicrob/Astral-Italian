@@ -1,0 +1,61 @@
+name: Bug report (Astral Italian app)
+description: Something went wrong while playing the Mac app
+labels: ["bug", "tester"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! Please press **M** (or F9) right after the problem, quit, and run **Collect Bug Report.command** from the download; attach the zip below. See [docs/TESTING.md](https://github.com/classicrob/Astral-Italian/blob/main/docs/TESTING.md).
+        **Never attach game files or disc images.**
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in the release name, or in Finder (Get Info on the app).
+      placeholder: "0.2.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: Mac model, chip and macOS version
+      placeholder: "MacBook Air, M2, macOS 15.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem?
+      options:
+        - Crash or the app closed by itself
+        - Hang or freeze
+        - Wrong or broken visuals
+        - Sound problem
+        - Controls or camera feel off
+        - Setup / disc import problem
+        - Saves
+        - Performance (low frame rate, stutter)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Which galaxy or screen, and what you were doing.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce (if you know them)
+  - type: input
+    id: mods
+    attributes:
+      label: Mods switched on (if any)
+      placeholder: "Odyssey movement, Cappy"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Bug report zip and anything else
+      description: Drag the zip made by "Collect Bug Report.command" here. Add a screenshot or screen recording if it helps.

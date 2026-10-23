@@ -95,6 +95,8 @@ constexpr TourEntry kHomeTour[] = {
     {Button::Plus, nullptr},                             // back to the list, on Mods
     {Button::StickDown, nullptr}, {Button::A, nullptr},  // My Progress
     {Button::A, "home-progress"}, {Button::Plus, nullptr},
+    {Button::StickDown, nullptr}, {Button::A, nullptr},  // Display
+    {Button::A, "home-display"}, {Button::Plus, nullptr},
     {Button::StickDown, nullptr}, {Button::A, nullptr},  // Restart from Title: the confirmation
     {Button::A, "home-confirm"},  {Button::Plus, nullptr},
     {Button::Home, nullptr},      {Button::A, "home-closed"},

@@ -14,10 +14,10 @@ int main(int argc, char** argv) {
     assert(isIsolatedUserAt(base, home));
     assert(isIsolatedUserAt(base / "validation", home));
     assert(!isIsolatedUserAt(home / "Library/Application Support/Petari", home));
-    assert(!isIsolatedUserAt(home / "Library/Application Support/AstralItalian", home));
+    assert(!isIsolatedUserAt(home / "Library/Application Support/Astral Italian", home));
     assert(!isIsolatedUserAt(home / "MacioGalaxy2-play/user", home));
     assert(!isIsolatedUserAt(home / "Library/Application Support/AstralItalian-unlocked-other", home));
-    assert(!isIsolatedUserAt(base / "../AstralItalian", home));
+    assert(!isIsolatedUserAt(base / "../Astral Italian", home));
     fs::create_directory_symlink(home / "Library/Application Support", base);
     assert(!isIsolatedUserAt(base, home));
     fs::remove(base);

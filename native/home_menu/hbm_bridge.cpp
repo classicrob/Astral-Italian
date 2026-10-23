@@ -174,7 +174,7 @@ void refreshFooterKeys() {
     };
     const std::string left = key(Input::Action::DpadLeft, Input::Key::Left);
     const std::string right = key(Input::Action::DpadRight, Input::Key::Right);
-    const std::string change = left == "Left arrow" && right == "Right arrow" ? std::string("\xE2\x86\x90/\xE2\x86\x92")  // U+2190/U+2192
+    const std::string change = left == "Left arrow" && right == "Right arrow" ? std::string("Left/Right")
                                : left.empty() || right.empty() ? left + right : left + "/" + right;
     instance().setFooterKeys(key(Input::Action::A, 0).c_str(), key(Input::Action::Plus, 0).c_str(),
                              key(Input::Action::Home, 0).c_str(), change.c_str());

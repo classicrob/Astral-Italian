@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Hardened runtime needs no exceptions today: no JIT, no unsigned plug-ins, all libraries are signed with
+	     the same identity. If a notarized build refuses to start, add the specific entitlement it needs here. -->
+</dict>
+</plist>

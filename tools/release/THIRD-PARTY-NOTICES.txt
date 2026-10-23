@@ -1,0 +1,30 @@
+Astral Italian: third-party software
+====================================
+
+Astral Italian's own source code is released under CC0 1.0 (see LICENSE.txt). It contains no Nintendo game
+data. The app is linked with, or ships alongside, the following open-source software, each used under its own
+license (full texts: the linked project pages and, for the libraries in Contents/Frameworks, their upstream
+distributions).
+
+Linked into the executable
+  Aurora (graphics/platform layer)      MIT         https://github.com/encounter/aurora
+  Dawn / Tint (WebGPU on Metal)         BSD-3       https://dawn.googlesource.com/dawn (encounter/dawn build)
+  SDL3                                  zlib        https://github.com/libsdl-org/SDL
+  Dear ImGui                            MIT         https://github.com/ocornut/imgui
+  Tracy client                          BSD-3       https://github.com/wolfpld/tracy
+  nod (disc image reader)               MIT/Apache  https://github.com/encounter/nod
+  SQLite                                public domain (system library)
+  Garigari / Petari decompilation code  CC0         https://github.com/SMGCommunity/Garigari , https://github.com/SMGCommunity/Petari
+  doldecomp / Zelda TP / OGWS headers   CC0/MIT     https://github.com/doldecomp
+
+Shipped in Contents/Frameworks
+  Abseil (libabsl_*)                    Apache-2.0  https://github.com/abseil/abseil-cpp
+  {fmt} (libfmt)                        MIT         https://github.com/fmtlib/fmt
+  FreeType (libfreetype)                FreeType License (BSD-style) or GPLv2  https://freetype.org
+  libpng                                libpng License  http://www.libpng.org
+  Zstandard (libzstd)                   BSD-3       https://github.com/facebook/zstd
+  xxHash (libxxhash)                    BSD-2       https://github.com/Cyan4973/xxHash
+  Brotli (libbrotlicommon/dec)          MIT         https://github.com/google/brotli
+
+"Super Mario Galaxy 2" and related names are trademarks of Nintendo. This is an independent fan project, not
+affiliated with or endorsed by Nintendo.

@@ -1,4 +1,5 @@
 #include "editor_m4_smoke.hpp"
+#include "display_settings.hpp"
 extern "C" bool aurora_imgui_update_texture(unsigned long long, unsigned, unsigned, const void*);
 // Native entry point: window, platform start-up, then the game's main loop
 // on this (the macOS main) thread. See docs/dev/INTEGRATION_PLAN.md.
@@ -58,6 +59,8 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 #include <petari/home_menu.hpp>
 
 #include "host.hpp"
+#include "app_locations.hpp"
+#include "first_run.hpp"
 #include "smoke_background.hpp"
 #include "smoke_storage.hpp"
 #include "pipeline_cache_dir.hpp"
@@ -102,9 +105,10 @@ void logMessage(AuroraLogLevel level, const char* module, const char* message, u
 void usage() {
     std::fputs("Usage: petari [--disc DIR] [--user DIR] [--stage GALAXY [--scenario N]]\n"
                "  --disc DIR  extracted disc (containing files/); default: $PETARI_GAME_DIR,\n"
-               "              else build/game-data/SB4E01 under the working directory\n"
+               "              remembered app.cfg choice, dev build/game-data/SB4E01, then first-run setup\n"
+               "  --setup     choose a game disc again before starting\n"
                "  --user DIR  saves, settings, controls and crash reports;\n"
-               "              default: ~/Library/Application Support/AstralItalian\n"
+               "              default: ~/Library/Application Support/Astral Italian\n"
                "  --stage GALAXY [--scenario N]  one normal file-load stage request, scenario default 1.\n"
                "              GALAXY is an SMG2 internal name or English-name alias; actual ScenarioNo membership is checked.\n"
                "              --stage list prints the SMG2 catalog after the game's metadata loads.\n"
@@ -116,7 +120,20 @@ void usage() {
                stderr);
 }
 
-bool resolvePaths(int argc, char** argv, App::Paths* paths) {
+bool setupQuit = false;
+
+bool initializeSetupUI() {
+    // SDL creates its NSApplication subclass and standard menus only when NSApp is nil.
+    // First-run AppKit dialogs must not create a plain NSApplication ahead of SDL.
+    if (SDL_WasInit(SDL_INIT_VIDEO)) return true;
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO)) return true;
+    std::fprintf(stderr, "petari: could not open game-disc setup: %s\n", SDL_GetError());
+    return false;
+}
+
+bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocations& locations) {
+    bool setup = false;
+    bool userGiven = false;
     bool fixture = false;
     std::string unlockedSave;
     std::string launchStage;
@@ -143,6 +160,9 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
             paths->disc = argv[++i];
         } else if (std::strcmp(argv[i], "--user") == 0 && i + 1 < argc) {
             paths->user = argv[++i];
+            userGiven = true;
+        } else if (std::strcmp(argv[i], "--setup") == 0) {
+            setup = true;
         } else if (std::strcmp(argv[i], "--test-fixture") == 0 && i + 1 < argc &&
                    std::strcmp(argv[i + 1], "observatory") == 0) {
             ++i;
@@ -203,7 +223,7 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         const char* home = std::getenv("HOME");
         const bool normalUser = home && !paths->user.empty() &&
             std::filesystem::weakly_canonical(paths->user) ==
-            std::filesystem::weakly_canonical(std::filesystem::path(home) / "Library/Application Support/AstralItalian");
+            std::filesystem::weakly_canonical(App::AppLocations::defaultRoot(home));
         if (paths->user.empty() || normalUser || fixture ||
             !std::filesystem::is_regular_file(paths->user / ".petari-make-unlocked-save")) {
             std::fputs("petari: --make-unlocked-save requires an explicit isolated --user holding "
@@ -220,25 +240,30 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         std::fputs("petari: the legacy stage smoke fixture is unavailable in SMG2; use --stage/--scenario\n", stderr);
         return false;
     }
-    if (paths->disc.empty()) {
-        const char* env = std::getenv("PETARI_GAME_DIR");
-        paths->disc = env != nullptr && env[0] != '\0' ? std::filesystem::path(env)
-                                                      : std::filesystem::current_path() / "build/game-data/SB4E01";
-    }
-    if (paths->user.empty()) {
-        const char* home = std::getenv("HOME");
-        if (home == nullptr || home[0] == '\0') {
-            std::fputs("petari: HOME is not set; pass --user\n", stderr);
-            return false;
-        }
-        // Never MacioGalaxy's folder (~/Library/Application Support/Petari): it holds the user's SMG1 saves.
-        paths->user = std::filesystem::path(home) / "Library/Application Support/AstralItalian";
-    }
+    if (!userGiven) paths->user = locations.root;
     if (const char* home = std::getenv("HOME"); home != nullptr && home[0] != '\0' &&
-        std::filesystem::weakly_canonical(paths->user) ==
-            std::filesystem::weakly_canonical(std::filesystem::path(home) / "Library/Application Support/Petari")) {
-        std::fputs("petari: refusing MacioGalaxy's user folder (SMG1 saves); SMG2 uses ~/Library/Application Support/AstralItalian\n", stderr);
+        App::isOtherGameUserPath(paths->user, home)) {
+        std::fputs("petari: refusing MacioGalaxy's user folder (SMG1 saves); SMG2 uses ~/Library/Application Support/Astral Italian\n", stderr);
         return false;
+    }
+    if (!userGiven) {
+        const char* home = std::getenv("HOME");
+        const auto source = App::migrationSource(locations, home ? std::filesystem::path(home) : std::filesystem::path{},
+                                                  App::readAppConfig(locations));
+        if (!source.empty() && (!initializeSetupUI() || !App::FirstRun::offerMigration(locations))) return false;
+    }
+    const char* gameDir = std::getenv("PETARI_GAME_DIR");
+    const auto config = !paths->disc.empty() || (gameDir && *gameDir) || setup
+        ? App::AppConfig{} : App::readAppConfig(locations);
+    const auto resolution = App::resolveDisc(paths->disc, gameDir, config, std::filesystem::current_path());
+    if (!resolution.problem.empty()) {
+        if (!initializeSetupUI()) return false;
+        App::FirstRun::showProblem(resolution.problem);
+    }
+    paths->disc = resolution.disc;
+    if (setup || paths->disc.empty()) {
+        if (!initializeSetupUI()) return false;
+        if (!App::FirstRun::chooseDisc(locations, &paths->disc)) { setupQuit = true; return false; }
     }
     std::string catalogError;
     if (!App::LaunchStage::configureCatalog(paths->disc, &catalogError)) {
@@ -255,6 +280,7 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths) {
         }
         std::fprintf(stderr, "PETARI LAUNCH: queued SMG2 request %s scenario %d; awaiting real catalog/file load\n", launchStage.c_str(), launchScenario);
     }
+    App::prepareRunArtifacts(locations);
     return true;
 }
 
@@ -776,15 +802,23 @@ App::FrameStats::Phase framePhaseForPipelines() {
 }  // namespace
 
 int main(int argc, char** argv) {
-    // Before SDL starts AppKit (NSApplication finishes launching there).
-    disableWindowRestoration();
-    // The allocation-site check's symbol table, before any game thread runs
-    // (building it on a first game allocation would be a startup hitch).
-    PetariNative::prepareAllocationSymbols();
+    App::AppLocations locations;
     App::Paths paths;
-    if (!resolvePaths(argc, argv, &paths)) {
-        usage();
-        return 2;
+    try {
+        locations = App::AppLocations::fromEnvironment();
+        App::redirectAppLog(locations);
+        // Before SDL starts AppKit; Finder logs also include startup diagnostics.
+        disableWindowRestoration();
+        // Build the allocation-site symbol table before any game thread runs.
+        PetariNative::prepareAllocationSymbols();
+        if (!resolvePaths(argc, argv, &paths, locations)) {
+            if (setupQuit) return 0;
+            usage();
+            return 2;
+        }
+    } catch (const std::exception& exception) {
+        App::FirstRun::showProblem(exception.what());
+        return 1;
     }
 
     std::string error;
@@ -914,14 +948,18 @@ int main(int argc, char** argv) {
                                                                 : pipelineCache.path.string();
     config.cachePath = cachePath.c_str();
     config.desiredBackend = BACKEND_METAL;
-    // The game paces itself on VI retraces; a blocking present would add a
-    // second wait per frame.
-    config.vsync = false;
+    // Keep VI/display-link pacing unchanged; VSync changes apply at launch only.
+    if (!App::DisplaySettings::controller().configure(paths.user / "display.txt", &error)) {
+        std::fprintf(stderr, "petari: %s\n", error.c_str());
+    }
+    const auto display = App::DisplaySettings::controller().settings();
+    config.vsync = display.vsync;
+    config.startFullscreen = display.fullscreen;
     // The game keeps running without focus, as on the console. Input releases
     // held keys on focus loss.
     config.pauseOnFocusLost = false;
-    config.windowWidth = 1280;
-    config.windowHeight = 720;
+    config.windowWidth = PetariNative::HomeMenu::kDisplaySizes[display.size].width;
+    config.windowHeight = PetariNative::HomeMenu::kDisplaySizes[display.size].height;
     config.logCallback = logMessage;
     config.logLevel = LOG_INFO;
     const AuroraInfo info = aurora_initialize(1, argv, &config);
@@ -930,6 +968,7 @@ int main(int argc, char** argv) {
         aurora_shutdown();
         return 1;
     }
+    App::FirstRun::installMenu(locations);
     if (App::SmokeBackground::enabled) {
         auto* window = static_cast<SDL_Window*>(info.window);
         if (!SDL_SetWindowFocusable(window, false)) {

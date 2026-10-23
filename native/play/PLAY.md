@@ -1,5 +1,22 @@
 # Playing Astral Italian (native Super Mario Galaxy 2)
 
+For the downloaded **Astral Italian.app**, double-click the app and choose your
+own USA Super Mario Galaxy 2 disc (SB4E01, revision 0) or extracted folder. Setup
+imports images, validates folders in place, remembers the choice and starts the
+game. Use **Astral Italian > Choose Game Disc…** to change the choice for your
+next launch, or run `Petari --setup` before playing. No launcher is required.
+
+The direct app stores saves/settings in
+`~/Library/Application Support/Astral Italian/`, imported data in `Game Data/SB4E01/`
+below it, and remembered choices in `app.cfg`. It offers once to copy development
+saves without changing their originals or overwriting new files. Finder launches
+save logs under `logs/` (20 retained); captures default to `Captures/`; session
+tapes default to `Tapes/` (10 retained). `ASTRAL_TAPE=off` disables default tapes.
+Explicit `--disc`, `--user`, `PETARI_GAME_DIR`, `PETARI_CAPTURE_DIR`,
+`PETARI_TAPE_RECORD` and route-record destinations retain precedence. The player
+launcher described below keeps its separate development defaults. See
+[PERSISTENT-STATE.md](PERSISTENT-STATE.md) for the full location inventory.
+
 Astral Italian is the Mac build of the Super Mario Galaxy 2 decompilation. It runs from the frozen build on the
 machine that holds your extracted disc. Nothing here touches MacioGalaxy (the SMG1 port) or its saves.
 
@@ -90,7 +107,7 @@ Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petar
 Use the menu's **u** toggle, or `native/play/play.sh title --unlocked`, then
 **pick file 1 for everything unlocked**. The option uses only
 `~/Library/Application Support/AstralItalian-unlocked`. Normal progress in
-`~/MacioGalaxy2-play/user`, `~/Library/Application Support/AstralItalian`, and
+`~/MacioGalaxy2-play/user`, `~/Library/Application Support/Astral Italian`, and
 the SMG1 `Petari` directory is not modified by creation or this option.
 Direct entry also works: `native/play/play.sh WorldMap07Galaxy --unlocked` or
 `native/play/play.sh MarioFaceShipGalaxy --unlocked`.

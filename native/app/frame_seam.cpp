@@ -31,6 +31,7 @@ extern "C" void petari_gx_pipeline_report();
 extern "C" void petari_gx_pipeline_note_frame(double intervalMs);
 
 #include "frame_stats.hpp"
+#include "display_window.hpp"
 #include "launch_stage.hpp"
 #include "spike_profiler.hpp"
 #include "stall_log.hpp"
@@ -768,6 +769,7 @@ namespace Seam {
 
 void attach(SDL_Window* window) {
     gWindow = window;
+    DisplayWindow::attach(window);
 }
 
 void openFirstFrame() {
@@ -1017,6 +1019,7 @@ extern "C" void petari_host_frame_seam(void) {
     aurora_end_frame();
 
     const std::uint64_t beginStart = Telemetry::nowNs();
+    DisplayWindow::update();
     testFullscreen();  // PETARI_TEST_FULLSCREEN
     handleEvents(aurora_update());
     openFrame();

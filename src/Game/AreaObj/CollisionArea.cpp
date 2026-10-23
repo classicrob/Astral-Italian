@@ -307,7 +307,15 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
 
     pPoint->set(axisX * localPoint.x + axisY * localPoint.y + axisZ * localPoint.z + mWorldPos);
     MR::normalizeOrZero(pNormal);
+#ifdef GALAXY_NATIVE
+    // Edge contacts retain surface == -1. Wii slw uses six count bits and
+    // clears the word for counts 32..63, including -1; a host shift is undefined.
+    const u32 shift = static_cast<u32>(surface) & 0x3f;
+    const u32 surfaceBit = shift < 32 ? (1u << shift) : 0;
+    if (mPolygon != nullptr && (mSurfaceMaskArg & surfaceBit)) {
+#else
     if (mPolygon != nullptr && (mSurfaceMaskArg & (1 << surface))) {
+#endif
         mPolygon->setSurfaceAndSync(surface);
     }
 

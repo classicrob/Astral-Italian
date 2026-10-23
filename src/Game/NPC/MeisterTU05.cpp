@@ -12,6 +12,9 @@
 #include "Game/System/WPadHolder.hpp"
 #include "Game/Util/WorldMapUtil.hpp"
 #include "Game/Util/Array.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/ppc_integer.hpp>
+#endif
 
 const char* gMeisterGeneralTalkMessages[15] = {
     "Meister_PriorityTalkTicoFatExplain",
@@ -168,7 +171,18 @@ TalkMessageCtrl* MeisterTalkHolder::getTalkCtrl() {
 }
 
 // NONMATCHING: commutative add operands are reversed.
-void MeisterTalkHolder::nextTalk() { s32 count = mEventTalkCount; s32 index = mTalkIndex; index += count; mTalkIndex = (index + 1) % count; }
+void MeisterTalkHolder::nextTalk() {
+#ifdef GALAXY_NATIVE
+    // Default/main talks also advance an empty event list. Preserve the Wii's
+    // add/addi/divw/mullw/subf, whose remainder is the numerator when count is 0.
+    using namespace PetariNative::PPC;
+    const s32 count = mEventTalkCount;
+    const s32 numerator = signedWord(static_cast<u32>(mTalkIndex) + static_cast<u32>(count) + 1u);
+    mTalkIndex = subtractWord(numerator, multiplyWord(divideSignedWord(numerator, count), count));
+#else
+    s32 count = mEventTalkCount; s32 index = mTalkIndex; index += count; mTalkIndex = (index + 1) % count;
+#endif
+}
 
 // NONMATCHING: loop register allocation differs.
 void MeisterTalkHolder::removeInvalidTalk() {

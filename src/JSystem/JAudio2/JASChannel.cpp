@@ -6,6 +6,9 @@
 #include "JSystem/JGeometry.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
 #include "JSystem/JSupport/JSupport.hpp"
+#ifdef GALAXY_NATIVE
+#include "JSystem/JMath/JMAFloatConversion.hpp"
+#endif
 
 OSMessageQueue JASChannel::sBankDisposeMsgQ;
 
@@ -267,7 +270,13 @@ s32 JASChannel::initialUpdateDSPChannel(JASDsp::TChannel* i_channel) {
     if (pitch < 0.0f) {
         pitch = 0.0f;
     }
+#ifdef GALAXY_NATIVE
+    // Wii fctiwz converts to a signed word, then clrlwi retains its low 16 bits.
+    // Pitches above 65535 therefore wrap; a direct host float-to-u16 cast is undefined.
+    i_channel->setPitch(JMath::truncToU16(pitch));
+#else
     i_channel->setPitch(pitch);
+#endif
 
     i_channel->setPauseFlag(mPauseFlag);
     i_channel->_66 = 0;
@@ -338,7 +347,12 @@ s32 JASChannel::updateDSPChannel(JASDsp::TChannel* i_channel) {
     if (pitch < 0.0f) {
         pitch = 0.0f;
     }
+#ifdef GALAXY_NATIVE
+    // Match the same fctiwz/low-halfword conversion as the initial pitch update.
+    i_channel->setPitch(JMath::truncToU16(pitch));
+#else
     i_channel->setPitch(pitch);
+#endif
 
     if (!mPauseFlag && mKeySweepCount != 0) {
         mKeySweep += (mKeySweepTarget - mKeySweep) / mKeySweepCount;

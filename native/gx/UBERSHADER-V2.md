@@ -283,3 +283,58 @@ samples removed 18.331 ms, lighting removed 22.001 ms. These diagnostics change 
 image and are non-additive. The largest remaining removable component is still
 argument dispatch; adding vertex-lighting variants is not supported by this result.
 Evidence: `subfeatures3.json` and `measure-subfeatures3.sh`.
+
+
+### Int4 measured cold results and 5.4 release decision
+
+Binding head steer: hybrid ubershaders ship default ON in 5.4, with a persistent
+Display-menu On/Off toggle and explicit environment `0` override. The 20 ms GPU
+line becomes the v3 target. Release conditions remain no gameplay frame >100 ms
+on the three gates, warm play unchanged, and SOL 2's 61-galaxy image comparison;
+up to +1 s cold title latency is accepted. Int5 is one isolated uniform-program
+Generic experiment, then SOL 2 gets one pre-title worker-policy pass for int6.
+There are no further optimization boxes after int6.
+
+Int4's three default moving scripts completed with 100% observed draw/config
+coverage, zero failed/unknown keys and 620/620 prepared fallbacks. Packet flags,
+inclusive counters and the complete contiguous GPU query mapping all validate.
+
+| Stage | Covered / total draws | Observed configs | Gameplay >100 ms | Maximum gameplay ms |
+| --- | ---: | ---: | ---: | ---: |
+| Yoshi | 779746 / 779746 | 167 / 167 | 0 | 46.004 |
+| Fluffy | 1126938 / 1126938 | 162 / 162 | 0 | 44.817 |
+| Starship | 717663 / 717663 | 79 / 79 | 0 | 84.922 |
+
+| Stage / fallback packet class | Valid gameplay GPU n | Median / p99 / max ms | >=20 ms |
+| --- | ---: | --- | ---: |
+| Yoshi / generic_only | 19 | 7.392 / 12.263 / 16.324 | 0 |
+| Yoshi / fast_only | 1737 | 13.265 / 17.498 / 27.398 | 4 |
+| Yoshi / mixed | 209 | 15.466 / 20.899 / 27.369 | 46 |
+| Fluffy / generic_only | 106 | 32.534 / 33.601 / 40.395 | 84 |
+| Fluffy / fast_only | 1679 | 11.929 / 22.408 / 26.083 | 210 |
+| Fluffy / mixed | 57 | 19.166 / 31.983 / 32.205 | 16 |
+| Starship / generic_only | 164 | 22.051 / 24.419 / 85.322 | 102 |
+| Starship / fast_only | 29 | 6.172 / 10.991 / 11.571 | 0 |
+| Starship / mixed | 1019 | 17.498 / 23.931 / 24.778 | 54 |
+
+Starship still has a 59.937 ms frame-480 entry wait, which overlaps its 85.322 ms
+Generic-only GPU outlier. Its other GPU spans have no >100 ms outlier. Title
+first-recording times are 5464.980/5034.311/5069.049 ms (Yoshi/Fluffy/Starship),
+with fallback ready 1/0/0 and title Generic pending 0/23/22. Generic-all readiness
+is 23679.330/24047.508/22785.379 ms; all-tier readiness is
+32902.491/33168.445/32217.900 ms. No synchronous boot compiles occur.
+
+The Generic leaf worker-time sums are 62765.930/62744.879/60215.092 ms across
+293 keys, with medians 0.807/0.878/0.870 ms and p95 958.006/849.641/1040.037 ms.
+These sums overlap across workers and are **not boot holds**. Cached driver
+functions can be reused among distinct fixed-state keys inside a true-cold run.
+Each run creates 39 Generic modules; their source-assembly-plus-module-API time
+sums are 294.257/294.348/303.765 ms. Legacy per-key `pipeline_ms` is residual leaf
+time after timed source/module creation, including module mutex waits; it must
+not be described as a pure pipeline API timer. Detailed per-key/module evidence
+and readiness snapshots are in `compile-int4.json` and `summarize_tier_compile.py`.
+GPU and stall evidence is `int4.json` plus the stage case directories.
+
+Yoshi and Fluffy same-app stationary image comparisons again exactly match int1
+and int3; Starship is pending. Warm play and the 61-galaxy comparison remain
+release conditions, not inferred passes from these three cold measurements.

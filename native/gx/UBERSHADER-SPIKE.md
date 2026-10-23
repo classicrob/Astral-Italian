@@ -62,6 +62,12 @@ uses the actual encoder begin/end queries. Invalid or stale timestamps produce
 blank measurements, never reconstructed timings. `gx_ms` stays empty because
 Aurora render passes can mix GX and other commands. `readback_busy` marks skipped
 measurements when the four-slot ring is full. Feature availability is logged.
+The native exit report drains queries on the render worker because normal native
+exits use `_Exit` and skip Aurora shutdown. An unsubmitted final frame receives an
+`incomplete_frame` row. Query-frame indices begin at zero; encoded packet IDs begin
+at one in a fresh process. Whole-frame GPU-clock spans include gaps between
+submissions, so a CPU pipeline wait can appear inside the GPU-clock interval;
+these spans do not measure GPU utilization or the sum of active pass durations.
 With this variable unset the non-Tracy device feature request remains unchanged.
 
 Validation entrypoints on `petari_gx_shader_tests`:

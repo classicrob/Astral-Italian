@@ -61,21 +61,33 @@ bool g_enabled = false;''')
  replace('    } else if (state != SlotState::Failed) {', '''    } else if (state == SlotState::Failed) {
       if(g_csv) std::fprintf(g_csv,"%llu,,,readback_failed\\n",(unsigned long long)slot.frame);
     } else {''')
- replace('void shutdown() {', '''void shutdown() {
+ replace('void shutdown() {', 'void petari_csv_finish();\nvoid shutdown() {\n  petari_csv_finish();\n  if(g_csv){std::fclose(g_csv);g_csv=nullptr;}')
+ text+='''
+namespace aurora::webgpu::gpu_prof {
+// Run on the render worker after queued encoding work, before native _Exit.
+void petari_csv_finish() {
+  if(!g_csv) return;
   after_submit();
-  // Drain our outstanding readbacks before closing the CSV. Keep frame rows even
-  // when a query/map fails; never replace a missing timestamp with CPU elapsed time.
-  for(auto& slot:g_slots) if(slot.state==SlotState::InFlight) {
-    g_instance.WaitAny(slot.mapFuture,5000000000);
-    if(slot.state==SlotState::Mapped) { emit_frame(slot);slot.readback.Unmap(); }
-    else if(g_csv) std::fprintf(g_csv,"%llu,,,readback_incomplete\\n",(unsigned long long)slot.frame);
+  for(auto& slot:g_slots) {
+    auto state=slot.state.load();
+    if(state==SlotState::InFlight) {
+      g_instance.WaitAny(slot.mapFuture,5000000000);
+      state=slot.state.load();
+    }
+    if(state==SlotState::Mapped) {emit_frame(slot);slot.readback.Unmap();}
+    else if(state==SlotState::Recording) std::fprintf(g_csv,"%llu,,,incomplete_frame\\n",(unsigned long long)slot.frame);
+    else if(state==SlotState::InFlight || state==SlotState::Failed) std::fprintf(g_csv,"%llu,,,readback_incomplete\\n",(unsigned long long)slot.frame);
     slot.state=SlotState::Free;
-  } else if(slot.state==SlotState::Mapped) { emit_frame(slot);slot.readback.Unmap();slot.state=SlotState::Free; }
-  if(g_csv){std::fclose(g_csv);g_csv=nullptr;}
-''')
+  }
+  g_frameActive=false;
+  std::fflush(g_csv);
+}
+}
+'''
  replace('  auto& slot = record_slot();\n  if (slot.state != SlotState::Free) {','  auto& slot = record_slot();\n  const auto csvFrame = g_csvFrame++;\n  if (slot.state != SlotState::Free) {\n    if(g_csv) std::fprintf(g_csv,"%llu,,,readback_busy\\n",(unsigned long long)csvFrame);')
  replace('  slot.state = SlotState::Recording;','  slot.frame = csvFrame;\n  slot.state = SlotState::Recording;')
  # Unavailable timestamp pairs still need a CSV row.
+ replace('  if (ts == nullptr) {\n    return;', '  if (ts == nullptr) {\n    if(g_csv) std::fprintf(g_csv,"%llu,,,mapped_range_failed\\n",(unsigned long long)slot.frame);\n    return;')
  replace('  if (frameBegin == 0 || frameEnd <= frameBegin) {\n    return;','  if (frameBegin == 0 || frameEnd <= frameBegin) {\n    if(g_csv) std::fprintf(g_csv,"%llu,,,invalid_timestamp\\n",(unsigned long long)slot.frame);\n    return;')
 output.parent.mkdir(parents=True,exist_ok=True)
 if not output.exists() or output.read_text()!=text:output.write_text(text)

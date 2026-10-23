@@ -55,6 +55,7 @@ else:
   }''')
   replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
  if kind=='cache':
+  text=f'#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
   # Covered draws with a boot-ready fallback queue their specialised pipeline without waiting.
   anchor='''  const PetariPipeline::BoundedDrawScope petariBoundedDraw{'''
   replace(anchor,'''  if (gx::petari_uber_enabled() && std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered") == 0) {
@@ -68,7 +69,13 @@ else:
   replace('void shutdown_pipeline_cache() {', 'void shutdown_pipeline_cache() {\n  gx::petari_uber_report();')
   replace('    const auto sampleIt = petariPipelineSamples.find(ref);', '    CompiledPipeline uber;\n    if (gx::petari_uber_enabled() && gx::petari_uber_ready(gx::petari_uber_lookup(ref), uber)) return false;\n    const auto sampleIt = petariPipelineSamples.find(ref);')
   # Explicit reporting endpoint and shutdown both expose cumulative coverage.
-  replace('extern "C" void petari_gx_pipeline_report() {','extern "C" void petari_gx_pipeline_report() {\n  gx::petari_uber_report();')
+  replace('extern "C" void petari_gx_pipeline_report() {','''extern "C" void petari_gx_pipeline_report() {
+  const auto* gpuCsv = std::getenv("PETARI_GPU_TIMING_CSV");
+  if (gpuCsv && *gpuCsv) {
+    render_worker::enqueue_work([] { webgpu::gpu_prof::petari_csv_finish(); });
+    render_worker::synchronize();
+  }
+  gx::petari_uber_report();''')
   text+='''
 #include <aurora/gfx.hpp>
 namespace aurora::gx {

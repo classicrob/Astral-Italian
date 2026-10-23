@@ -135,7 +135,7 @@ Probes that found these: ASan+UBSan sweeps (`PETARI_SANITIZERS=ON`), a Release b
 `-ftrivial-auto-var-init=pattern` against one with `=zero` compared trace-for-trace (uninitialised locals), and the
 run-to-run / `MallocScribble` comparison. Known non-game differences: the trace `scene_epoch` offset (observer
 metadata), controller report phase after variable async boot (TamakoroSlider tilt), and music-beat phase
-(TimerSwitchingPlatform, OmoteuLand s3).
+(TimerSwitchingPlatform; OmoteuLand s3 is probably the same).
 
 ## Not reachable headlessly (yet)
 

@@ -3,6 +3,8 @@
 // report and the give-up path are checked.
 #include "tape_play.hpp"
 
+#include <revolution/kpad.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

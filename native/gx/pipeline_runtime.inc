@@ -65,16 +65,17 @@ constexpr double kPetariFrameBudgetMs = 20.0;
 // never queues behind speculative stage or prewarm compiles. Applies when there are more normal workers than this.
 // Outside active gameplay they also take the current stage's manifest (PetariPipeline::stageOnReservedWorkers).
 constexpr unsigned kPetariOnDemandWorkers = 2;
-// Populated only by opt-in fallback preparation. Existing reserved workers own
-// the callbacks; shutdown joins those workers before dropping queued callbacks.
+// Populated only by opt-in fallback preparation. Existing workers borrow their
+// speculative slots for this finite set; actual draw-blocking jobs stay first.
+// Shutdown joins those workers before dropping queued callbacks.
 struct PetariUberJob {
   PipelineRef key = 0; // zero is an enumeration task, never a compiled variant
-  unsigned priority = 3; // enumeration, front-end, draw-requested, remaining variants
+  unsigned priority = 3; // enumeration, front-end/drawn, current-stage, remaining variants
   std::function<void()> run;
 };
 static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
 static bool petari_uber_worker_ready(unsigned workerIndex) {
-  return workerIndex < std::min(kPetariOnDemandWorkers, petariNormalWorkers) && !petariUberJobs.empty();
+  return workerIndex < petariActiveWorkers && !petariUberJobs.empty();
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
   if (!petari_uber_worker_ready(workerIndex)) return false;
@@ -89,6 +90,9 @@ static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& jo
 }
 static void petari_uber_schedule_known();
 static void petari_uber_schedule_draw(const gx::PipelineConfig&, const RenderTargetLayout&);
+static void petari_uber_schedule_stage(const gx::PipelineConfig&, const RenderTargetLayout&,
+                                       const RenderTargetLayout&, const std::string&);
+static void petari_uber_stage_report(const std::string&);
 static void petari_uber_observe_title(bool covered, bool fallbackReady);
 static void petari_uber_async_report();
 static void petari_uber_async_stop();

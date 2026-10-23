@@ -70,7 +70,7 @@ struct Pending { PipelineRef hash; };
 std::deque<Pending> g_pipelineQueue;
 struct Sample { bool drawBlocking=false; };
 std::map<PipelineRef,Sample> petariPipelineSamples;
-unsigned petariNormalWorkers=4;
+unsigned petariNormalWorkers=4,petariActiveWorkers=4;
 constexpr unsigned kPetariOnDemandWorkers=2;
 std::string petariActiveStage;
 sqlite3* open_pipeline_cache_seed_db(const std::string&) { return nullptr; }
@@ -140,8 +140,7 @@ int main(int argc,char** argv) {
   c.shaderConfig.variant=2;gfx::petari_uber_queue_variant(c,l);
   CHECK(gfx::petariUberJobs.size()==2);
   CHECK(gfx::petariUberBoot.scheduled.size()==2);
-  CHECK(!take(2));
-  auto one=take();auto two=take(1);CHECK(one && two);one();two();
+  auto one=take(2);auto two=take(3);CHECK(one && two);one();two(); // borrow all workers' speculative slots
   CHECK(gx::builds==2);CHECK(gfx::petariUberBoot.completed.size()==2);
  } else if(test=="priority") {
   gfx::petari_uber_queue_variant(c,l,3);
@@ -153,6 +152,16 @@ int main(int argc,char** argv) {
   CHECK(!take()); // a real draw gets the reserved slot first
   gfx::g_pipelineQueue.clear();auto run=take();CHECK(run);run();
   CHECK(gfx::petariUberBoot.completed.contains(gx::petari_uber_key(d,l)));
+ } else if(test=="stage") {
+  auto d=c;d.shaderConfig.variant=2;
+  gfx::petari_uber_queue_variant(c,l,3);gfx::petari_uber_queue_variant(d,l,3);
+  gfx::petari_uber_schedule_stage(d,l,l,"YosshiHomeGalaxy");
+  CHECK(gfx::petariUberJobs.size()==2);
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l));
+  CHECK(gfx::petariUberJobs.front().priority==2);
+  CHECK(gfx::petariUberBoot.titleKeys.empty()); // active-stage keys are not relabelled title keys
+  gfx::petari_uber_schedule_draw(c,l);
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(c,l)); // an actual draw promotes above stage lookahead
  } else if(test=="boot") {
   gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
@@ -204,7 +213,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "failed", "variant", "priority", "boot", "wake", "unready", "no_workers", "flag_off"):
+        for test in ("claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

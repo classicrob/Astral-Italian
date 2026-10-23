@@ -7,6 +7,7 @@ struct PetariUberBootState {
   bool titleObserved = false, readyReported = false;
   PetariPipeline::Clock::time_point startedAt{};
   std::set<PipelineRef> scheduled, completed, failed, titleKeys;
+  std::map<std::string, std::set<PipelineRef>> stageKeys;
   size_t manifestErrors = 0, rejectedConfigs = 0, cancelled = 0;
 };
 static PetariUberBootState petariUberBoot; // g_pipelineMutex
@@ -33,13 +34,13 @@ static void petari_uber_push_job(PetariUberJob job) { // caller holds g_pipeline
   petariUberJobs.insert(at, std::move(job));
 }
 static void petari_uber_queue_variant(const gx::PipelineConfig& config, const RenderTargetLayout& layout,
-                                    unsigned priority = 3) {
+                                    unsigned priority = 3, bool title = false) {
   if (!gx::petari_uber_enabled() || std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered")) return;
   const auto key = gx::petari_uber_key(config, layout); // SOL 1 owns the variant key.
   {
     std::lock_guard lock{g_pipelineMutex};
     if (!g_hasPipelineThread || g_pipelineThreadEnd) return;
-    if (priority == 1) petariUberBoot.titleKeys.insert(key);
+    if (title) petariUberBoot.titleKeys.insert(key);
     if (!petariUberBoot.scheduled.insert(key).second) {
       // A cached/background request must not bury a newly drawn/title variant.
       auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(),
@@ -68,9 +69,9 @@ static void petari_uber_queue_variant(const gx::PipelineConfig& config, const Re
   g_pipelineQueueCv.notify_all();
 }
 static void petari_uber_queue_layouts(const gx::PipelineConfig& config, const RenderTargetLayout& scene,
-                                    const RenderTargetLayout& off, unsigned priority) {
-  petari_uber_queue_variant(config, scene, priority);
-  if (off.key != scene.key) petari_uber_queue_variant(config, off, priority);
+                                    const RenderTargetLayout& off, unsigned priority, bool title = false) {
+  petari_uber_queue_variant(config, scene, priority, title);
+  if (off.key != scene.key) petari_uber_queue_variant(config, off, priority, title);
 }
 static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTargetLayout scene,
                                   RenderTargetLayout off) {
@@ -90,7 +91,7 @@ static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTarge
         gx::PipelineConfig config;
         std::memcpy(&config, sqlite3_column_blob(stmt, 0), sizeof(config));
         if (gx::petari_cached_shader_valid(config.shaderConfig, 0))
-          petari_uber_queue_layouts(config, scene, off, priority);
+          petari_uber_queue_layouts(config, scene, off, priority, priority == 1);
         else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; }
       }
       if (status != SQLITE_DONE && status != SQLITE_ROW) {
@@ -152,7 +153,27 @@ static void petari_uber_schedule_known() {
   g_pipelineQueueCv.notify_all();
 }
 static void petari_uber_schedule_draw(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
-  petari_uber_queue_variant(config, layout, 2);
+  petari_uber_queue_variant(config, layout, 1);
+}
+static void petari_uber_schedule_stage(const gx::PipelineConfig& config, const RenderTargetLayout& scene,
+                                     const RenderTargetLayout& off, const std::string& stage) {
+  if (!gx::petari_uber_enabled() || std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered")) return;
+  const bool title = stage == "Unknown" || stage == "FileSelect";
+  petari_uber_queue_layouts(config, scene, off, title ? 1 : 2, title);
+  std::lock_guard lock{g_pipelineMutex};
+  auto& keys = petariUberBoot.stageKeys[stage];
+  keys.insert(gx::petari_uber_key(config, scene));
+  if (off.key != scene.key) keys.insert(gx::petari_uber_key(config, off));
+}
+static void petari_uber_stage_report(const std::string& stage) {
+  if (!gx::petari_uber_enabled()) return;
+  std::lock_guard lock{g_pipelineMutex};
+  const auto it = petariUberBoot.stageKeys.find(stage);
+  if (it == petariUberBoot.stageKeys.end()) return;
+  const auto pending = std::count_if(it->second.begin(), it->second.end(),
+      [](auto key) { return !petariUberBoot.completed.contains(key); });
+  std::fprintf(stderr, "[gx uber async] event=stage_priority stage=%s elapsed_ms=%.3f variants=%zu pending=%zu workers=%u\n",
+      stage.c_str(), petari_uber_elapsed(), it->second.size(), size_t(pending), petariActiveWorkers);
 }
 static bool petari_uber_or_specialized_ready(PipelineRef key) { // caller holds g_pipelineMutex
   if (g_pipelines.contains(key) || g_pipelineThreadEnd) return true;
@@ -199,8 +220,10 @@ void petari_uber_boot() {
   const auto dir = env && *env ? std::filesystem::path(env) :
       std::filesystem::path(g_config.resourcesPath ? g_config.resourcesPath : "") / "pipeline-seeds";
   bool queued = false;
+  unsigned workers = 0;
   {
     std::lock_guard lock{gfx::g_pipelineMutex};
+    workers = gfx::petariActiveWorkers;
     if (!gfx::petariUberBoot.started) {
       gfx::petariUberBoot = {};
       gfx::petariUberBoot.started = true;
@@ -212,7 +235,7 @@ void petari_uber_boot() {
     }
   }
   gfx::g_pipelineQueueCv.notify_all();
-  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u synchronous_compiles=0\n",
-      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued);
+  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u synchronous_compiles=0 prep_policy=all_workers workers=%u\n",
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers);
 }
 } // namespace aurora::gx

@@ -63,7 +63,7 @@ else:
   }''')
   replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
  if kind=='cache':
-  text=f'#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
+  text=f'#include <type_traits>\n#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
   # Emit exact pending key membership before a complete-scene wait. Normal
   # pipeline diagnostics do not retain that vector after the frame completes.
   replace('  if (ready()) return;\n  petariPipelineWaiters.fetch_add(1, std::memory_order_relaxed);','''  if (ready()) return;
@@ -129,6 +129,16 @@ else:
           'const auto petariReady = [=] { return petari_uber_or_specialized_ready(runtimeKey); };')
   replace('std::all_of(keys.begin(), keys.end(), [](auto key) { return g_pipelines.contains(key); });',
           'std::all_of(keys.begin(), keys.end(), [](auto key) { return petari_uber_or_specialized_ready(key); });')
+  # Stage manifests already provide validated configs on the recording side.
+  # Queue/promote their fallback jobs before submitting specialised stage work.
+  replace('    std::visit([&](const auto& config) { submit(item.type, config, hot); }, item.config);', '''    std::visit([&](const auto& config) {
+      if constexpr (std::is_same_v<std::decay_t<decltype(config)>, gx::PipelineConfig>) {
+        if (!overlay) petari_uber_schedule_stage(config, scene, offscreen, stageName);
+      }
+      submit(item.type, config, hot);
+    }, item.config);''')
+  replace('  size_t pending = 0, gatePending = 0;',
+          '  if (!overlay) petari_uber_stage_report(stageName);\n  size_t pending = 0, gatePending = 0;')
   text+='\n#include <aurora/gfx.hpp>\n'+(here/'ubershader_boot.inc').read_text()
 output.parent.mkdir(parents=True,exist_ok=True)
 if not output.exists() or output.read_text()!=text:output.write_text(text)

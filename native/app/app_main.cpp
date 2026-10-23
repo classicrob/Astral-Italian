@@ -68,6 +68,7 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 #include "latency_report.hpp"
 #include <petari/launch_stage.hpp>
 #include "launch_stage.hpp"
+#include "tape_play.hpp"
 #include <petari/player_launch.hpp>
 #include <petari/host_allocation.hpp>
 
@@ -140,6 +141,7 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
     bool launchStageGiven = false;
     int launchScenario = 1;
     bool launchScenarioGiven = false;
+    std::string replayTape;  // --replay-tape <dir> / PETARI_TAPE_PLAY=<dir>: a recorded tape replayed in this window
     for (int i = 1; i < argc; i++) {
         if (std::strcmp(argv[i], "--stage") == 0 && i + 1 < argc) {
             if (launchStageGiven) { std::fputs("petari: duplicate --stage\n", stderr); return false; }
@@ -156,6 +158,8 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
             }
             launchScenario = value;
             launchScenarioGiven = true;
+        } else if (std::strcmp(argv[i], "--replay-tape") == 0 && i + 1 < argc) {
+            replayTape = argv[++i];
         } else if (std::strcmp(argv[i], "--disc") == 0 && i + 1 < argc) {
             paths->disc = argv[++i];
         } else if (std::strcmp(argv[i], "--user") == 0 && i + 1 < argc) {
@@ -179,6 +183,30 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
         } else {
             return false;
         }
+    }
+    if (replayTape.empty()) {
+        if (const char* env = std::getenv("PETARI_TAPE_PLAY"); env != nullptr && env[0] != '\0') replayTape = env;
+    }
+    if (!replayTape.empty()) {
+        // The tape's first segment is entered like a normal --stage request (a save is still the player's own: use --user);
+        // later segments are reached by the level-select warp (native/PLAYTEST.md "Replaying your tape").
+        if (!launchStage.empty() || fixture) {
+            std::fputs("petari: --replay-tape replaces --stage and cannot be combined with it\n", stderr);
+            return false;
+        }
+        std::string error;
+        if (!App::TapePlay::configure(replayTape, &error)) {
+            std::fprintf(stderr, "petari: --replay-tape: %s\n", error.c_str());
+            return false;
+        }
+        const auto* first = App::TapePlay::firstSegment();
+        launchStage = first->stage;
+        launchScenario = first->scenario > 0 ? first->scenario : 1;
+        launchScenarioGiven = true;
+        std::fprintf(stderr, "PETARI TAPE PLAY: %s: %zu segment(s), mods [", replayTape.c_str(), App::TapePlay::meta()->segments.size());
+        for (std::size_t i = 0; i < App::TapePlay::meta()->mods.size(); ++i)
+            std::fprintf(stderr, "%s%s", i ? "," : "", App::TapePlay::meta()->mods[i].c_str());
+        std::fputs("]; physical input is ignored\n", stderr);
     }
     if (fixture) {
         std::fputs("petari: legacy SMG1 --test-fixture modes are unavailable in SMG2; use --stage/--scenario for a normal stage request\n", stderr);

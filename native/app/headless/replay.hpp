@@ -26,6 +26,11 @@ public:
     // Several tape segments (one per scene visit, each starting at its own sync seam): after the last frame of a segment the
     // replay waits for the next sync again (neutral boot-style reads); frames stay globally contiguous.
     void setSegments(std::vector<std::uint64_t> lengths);
+    // Keep only the reads of the given segments of a whole-session tape (a segment is absolute game loops start+1..end), rebased
+    // back to back, and make them the segments: the in-memory form of tools/port/replay_tape.py's trimmed tape, so the GX app
+    // replays the recorded tape directly.
+    struct SegmentRange { std::uint64_t start, end; };
+    void keepSegments(const std::vector<SegmentRange>& ranges);
     bool segmentEnded() const { return mSegmentJustEnded; }
     const Read& consume(std::uint32_t channel, std::uint32_t capacity);
     void endFrame();
@@ -33,6 +38,8 @@ public:
     std::uint64_t frames() const { return mFrames; }
     bool finished() const { return mFrame == mFrames; }
     const Read* connection(std::uint32_t channel) const;
+    // A neutral read (controller 0 connected, no buttons) for the loops between segments and after a replay was given up.
+    const Read& neutral(std::uint32_t channel, std::uint32_t capacity);
 private:
     std::vector<Read> mReads;
     bool mWaitingForSync = false;

@@ -195,6 +195,8 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
 #include "host.hpp"
 #include "route_record.hpp"
 #include "tape_record.hpp"
+#include "tape_play.hpp"
+#include <petari/player_launch.hpp>
 #include "route_record_writer.hpp"
 #include "playtest_capture.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -232,11 +234,12 @@ void recordRouteFrame(bool background) {
     static const char* path = TapeRecord::routePath();  // PETARI_TAPE_RECORD=<dir> or PETARI_ROUTE_RECORD=<csv>
     const bool record = path && *path;
     const bool capture = PlaytestCapture::enabled(background);
-    if (!record && !capture) return;
+    const bool play = TapePlay::active();  // replaying a tape (--replay-tape): the seam feeds it the same row the recorder writes
+    if (!record && !capture && !play) return;
     PetariNative::HostAllocationScope host;
     static RouteRecordWriter writer;
     const bool write = record && writer.open(path, background && !TapeRecord::background());  // a scripted tape session may record in the background
-    if (!write && !capture) return;
+    if (!write && !capture && !play) return;
     RouteRecordFrame row;
     const auto* system = SingletonHolder<GameSystem>::get();
     const auto* controller = system ? system->mSceneController : nullptr;
@@ -266,6 +269,35 @@ void recordRouteFrame(bool background) {
         }
     }
     row.input = PetariNative::Input::boundState();
+    if (play) {
+        TapePlay::SeamState state;
+        state.stage = row.stage ? row.stage : "";
+        state.scenario = row.scenario;
+        state.valid = row.valid;
+        state.grounded = row.grounded;
+        state.dead = row.dead;
+        state.x = row.x; state.y = row.y; state.z = row.z;
+        state.playReady = Host::playerInPlay();  // as of the previous seam's update, like the recorder and the headless driver
+        const auto step = TapePlay::seam(state);
+        if (step.kind == TapePlay::Step::Kind::Start && system && system->mObjHolder) system->mObjHolder->mRandom.mSeed = step.seed;
+        if (step.kind == TapePlay::Step::Kind::Warp) {
+            std::snprintf(PetariNative::PlayerLaunch::warpStage, sizeof(PetariNative::PlayerLaunch::warpStage), "%s", step.stage.c_str());
+            PetariNative::PlayerLaunch::warpScenario = step.scenario;
+            PetariNative::PlayerLaunch::warpPending.store(true);
+            std::fprintf(stderr, "PETARI TAPE PLAY: next segment: warp to %s scenario %d\n", step.stage.c_str(), step.scenario);
+        }
+        // PETARI_TAPE_PLAY_QUIT=<loops>: close the app that many loops after the replay finished or was given up (scripted runs);
+        // otherwise the window stays open for the viewer, with neutral input.
+        static long quitIn = -1;
+        if (step.kind == TapePlay::Step::Kind::Finished || step.kind == TapePlay::Step::Kind::GaveUp) {
+            const char* after = std::getenv("PETARI_TAPE_PLAY_QUIT");
+            if (after && *after) quitIn = std::atol(after);
+        }
+        if (quitIn == 0) { quitIn = -1; Host::requestQuit(); }
+        else if (quitIn > 0) --quitIn;
+        if (step.kind == TapePlay::Step::Kind::Start)
+            std::fprintf(stderr, "PETARI TAPE PLAY: segment starts at %s scenario %d (seed %u)\n", row.stage, row.scenario, step.seed);
+    }
     if (write) {
         writer.write(row);
         TapeRecord::Seam seam;

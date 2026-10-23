@@ -84,13 +84,14 @@ Replay::Replay(std::istream& in, bool inputsFromSync) : mWaitingForSync(inputsFr
     }
     if (in.peek() != std::char_traits<char>::eof()) throw ReplayError("trailing KPAD tape data");
 }
+const Read& Replay::neutral(std::uint32_t channel, std::uint32_t capacity) {
+    if (channel >= 4 || !capacity || capacity > 4096) throw ReplayError("invalid pre-sync KPAD read");
+    auto& read = mBootstrap[channel];
+    read.capacity = capacity;
+    return read;
+}
 const Read& Replay::consume(std::uint32_t channel, std::uint32_t capacity) {
-    if (mWaitingForSync) {
-        if (channel >= 4 || !capacity || capacity > 4096) throw ReplayError("invalid pre-sync KPAD read");
-        auto& read = mBootstrap[channel];
-        read.capacity = capacity;
-        return read;
-    }
+    if (mWaitingForSync) return neutral(channel, capacity);
     if (finished() || mNext == mReads.size()) throw ReplayError("extra KPAD read at frame " + std::to_string(mFrame));
     const auto& read = mReads[mNext];
     if (read.frame != mFrame || read.ordinal != mOrdinal || read.channel != channel || read.capacity != capacity)
@@ -109,6 +110,27 @@ void Replay::setSegments(std::vector<std::uint64_t> lengths) {
         mSegmentEnds.push_back(end);
     }
     if (end != mFrames) throw ReplayError("tape segments must cover exactly the tape frames");
+}
+void Replay::keepSegments(const std::vector<SegmentRange>& ranges) {
+    if (ranges.empty() || mNext || mFrame) throw ReplayError("keepSegments needs segments and an unread tape");
+    std::vector<Read> kept;
+    std::vector<std::uint64_t> lengths;
+    std::uint64_t offset = 0;
+    std::size_t cursor = 0;
+    for (const auto& range : ranges) {
+        if (range.end <= range.start || range.end > mFrames) throw ReplayError("tape segment outside the tape");
+        const auto first = range.start + 1;
+        while (cursor < mReads.size() && mReads[cursor].frame < first) ++cursor;
+        for (; cursor < mReads.size() && mReads[cursor].frame <= range.end; ++cursor) {
+            kept.push_back(std::move(mReads[cursor]));
+            kept.back().frame = offset + kept.back().frame - first;
+        }
+        lengths.push_back(range.end - range.start);
+        offset += lengths.back();
+    }
+    mReads = std::move(kept);
+    mFrames = offset;
+    setSegments(std::move(lengths));
 }
 void Replay::endFrame() {
     mSegmentJustEnded = false;

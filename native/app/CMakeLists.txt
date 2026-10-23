@@ -78,10 +78,11 @@ target_compile_features(petari_app_smoke PUBLIC cxx_std_17)
 target_include_directories(petari_app_smoke PUBLIC ${PETARI_REPO_ROOT}/native/include)
 
 if(NOT _petari_app_standalone)
-    add_library(petari_app_platform STATIC platform_host.cpp smoke_game.cpp playtest_capture.cpp collision_probe.cpp point_probe.cpp figure_probe.cpp input_script_probe.cpp frame_phase.cpp hud_prewarm.cpp model_prewarm.cpp soak_telemetry.cpp progress_observe.cpp tape_record.cpp play_ready.cpp)
+    add_library(petari_app_platform STATIC platform_host.cpp smoke_game.cpp playtest_capture.cpp collision_probe.cpp point_probe.cpp figure_probe.cpp input_script_probe.cpp frame_phase.cpp hud_prewarm.cpp model_prewarm.cpp soak_telemetry.cpp progress_observe.cpp tape_record.cpp tape_play.cpp tape_play_hooks.cpp headless/kpad_decode.cpp play_ready.cpp)
     target_link_libraries(petari_app_platform PUBLIC petari_native_config petari_boot
         petari_platform_os petari_platform_vi petari_platform_dvd petari_platform_nand petari_platform_sc
-        petari_audio_sdl petari_host_runtime petari_app_smoke petari_milestone)
+        petari_audio_sdl petari_host_runtime petari_app_smoke petari_milestone
+        petari_headless_core)  # tape replay (tape_play.cpp) feeds the recorded KPAD reads through the headless Replay
 
     add_library(petari_app_host STATIC frame_seam.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp display_window.cpp)
     # The donor cutscene-skip feature is deferred in SMG2. Keep the frame seam
@@ -215,6 +216,10 @@ if(BUILD_TESTING)
     add_test(NAME native_unlocked_save COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/unlocked_save_tests.py")
     add_test(NAME native_stage_edit COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/stage_edit_tests.py")
     add_test(NAME native_smoke_observe_safety COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/smoke_observe_safety_tests.py")
+    add_executable(petari_tape_play_tests "${PETARI_REPO_ROOT}/native/tests/tape_play_tests.cpp" tape_play.cpp headless/kpad_decode.cpp)
+    target_link_libraries(petari_tape_play_tests PRIVATE petari_headless_core petari_native_config)
+    target_include_directories(petari_tape_play_tests PRIVATE ${PETARI_REPO_ROOT}/native/app)
+    add_test(NAME native_tape_play COMMAND petari_tape_play_tests)
     add_test(NAME native_replay_tape COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/replay_tape_tests.py")
     add_test(NAME native_route_record COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/route_record_tests.py")
     add_test(NAME native_test_server_tool COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tools/test_server_tests.py")

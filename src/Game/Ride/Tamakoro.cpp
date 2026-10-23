@@ -1005,12 +1005,24 @@ void Tamakoro::updateMoment() {
         TVec3f moment;
         const TVec3f* up;
         // TVec3f tmpVec;
+#ifdef GALAXY_NATIVE
+        // up is read after the block (calcMomentRollBall), so the vector must
+        // outlive the block; Clang reuses block-local stack slots.
+        TVec3f tmpVec;
+        if (MR::isBindedGround(this)) {
+            up = &MR::getGroundNormal(this);
+        } else {
+            tmpVec.set(-mGravity);
+            up = &tmpVec;
+        }
+#else
         if (MR::isBindedGround(this)) {
             up = &MR::getGroundNormal(this);
         } else {
             TVec3f tmpVec(-mGravity);
             up = &tmpVec;
         }
+#endif
 
         MR::calcMomentRollBall(&moment, mVelocity, *up, mBaseRadius);
         MR::vecBlend(&mMoment, mMoment, moment, 0.25f);

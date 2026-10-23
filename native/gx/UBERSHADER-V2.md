@@ -231,5 +231,7 @@ SOL 2 owns cold/warm readiness comparison and the preparation regression.
 Evidence: `int3.json`, `gpu-int3-{yoshi,fluffy,ship}-cold.csv`,
 `measure-integrated3.sh`, `summarize_integrated3.py`; cases
 `uber-v2-int3-{yoshi,fluffy,ship}-cold`. Shader, cache and source provenance remain
-in each case. Same-app image comparison is pending. Further workload profiling
+in each case. Same-app image comparison passes: all three int3 aggregate differences exactly
+match int1 (table above), with identical 970-row trajectories and 15 captures per
+run. Evidence is `diff-int3-{yoshi,fluffy,ship}/diff.json`. Further workload profiling
 uses a separate branch and private app, never this immutable int3 app.

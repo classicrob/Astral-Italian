@@ -166,7 +166,7 @@ static void petari_uber_observe_title(bool covered, bool fallbackReady) {
   if (petariUberBoot.titleObserved || petariActiveStage != "FileSelect") return;
   petariUberBoot.titleObserved = true;
   const auto pending = petariUberBoot.scheduled.size() - petariUberBoot.completed.size();
-  std::fprintf(stderr, "[gx uber async] event=title_first_draw elapsed_ms=%.3f covered=%u fallback_ready=%u title_scanned=%u title_pending=%zu all_pending=%zu failed=%zu all_ready=%u\n",
+  std::fprintf(stderr, "[gx uber async] event=title_first_draw phase=recording elapsed_ms=%.3f covered=%u fallback_ready=%u title_scanned=%u title_pending=%zu all_pending=%zu failed=%zu all_ready=%u\n",
       petari_uber_elapsed(), covered, fallbackReady, petariUberBoot.frontEndScanned,
       petari_uber_title_pending(), pending, petariUberBoot.failed.size(),
       petariUberBoot.seedsDone && petariUberBoot.cacheDone && !pending && petariUberBoot.failed.empty());
@@ -185,6 +185,7 @@ static void petari_uber_async_stop() {
   std::lock_guard lock{g_pipelineMutex};
   petariUberBoot.cancelled += petariUberJobs.size();
   petariUberJobs.clear(); // workers already joined; no callbacks can outlive the device
+  petariUberBoot.started = false; // a later device/cache initialization may start a fresh generation
 }
 } // namespace aurora::gfx
 
@@ -200,12 +201,14 @@ void petari_uber_boot() {
   bool queued = false;
   {
     std::lock_guard lock{gfx::g_pipelineMutex};
-    if (gfx::g_hasPipelineThread && !gfx::g_pipelineThreadEnd && !gfx::petariUberBoot.started) {
+    if (!gfx::petariUberBoot.started) {
       gfx::petariUberBoot = {};
       gfx::petariUberBoot.started = true;
       gfx::petariUberBoot.startedAt = start;
-      gfx::petari_uber_push_job({0, 0, [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); }});
-      queued = true;
+      if (gfx::g_hasPipelineThread && !gfx::g_pipelineThreadEnd) {
+        gfx::petari_uber_push_job({0, 0, [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); }});
+        queued = true;
+      }
     }
   }
   gfx::g_pipelineQueueCv.notify_all();

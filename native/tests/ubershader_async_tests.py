@@ -158,6 +158,13 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
   CHECK(gx::builds==0); // boot call never runs enumeration or compilation
   gfx::petari_uber_async_stop();CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
+  gx::petari_uber_boot();CHECK(gfx::petariUberJobs.size()==1); // generation can restart after shutdown
+ } else if(test=="no_workers") {
+  gfx::g_hasPipelineThread=false;gx::petari_uber_boot();
+  CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
+ } else if(test=="flag_off") {
+  gx::enabled=false;gx::petari_uber_boot();
+  CHECK(!gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
  } else if(test=="wake") {
   const auto key=gx::petari_uber_key(c,l);gx::associations[99]=key;
   gfx::petari_uber_queue_variant(c,l);
@@ -197,7 +204,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "failed", "variant", "priority", "boot", "wake", "unready"):
+        for test in ("claim", "failed", "variant", "priority", "boot", "wake", "unready", "no_workers", "flag_off"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

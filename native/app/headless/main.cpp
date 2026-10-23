@@ -38,6 +38,7 @@
 #include <fstream>
 #include <mutex>
 #include <thread>
+#include <petari/frame_telemetry.hpp>
 #include <limits>
 #include <chrono>
 #include <algorithm>
@@ -180,19 +181,34 @@ public:
     // stall log (no pipeline/texture causes here, only game-thread work and resource loads on the virtual clock).
     void observeWallTime(std::uint64_t sourceFrame) {
         const auto now = std::chrono::steady_clock::now();
+        namespace FT = PetariNative::FrameTelemetry;
+        const auto readNs = FT::slots[FT::DiscRead].ns.load(std::memory_order_relaxed);
+        const auto readEvents = FT::slots[FT::DiscRead].events.load(std::memory_order_relaxed);
         if (mHaveWall) {
             const double ms = std::chrono::duration<double, std::milli>(now - mLastWall).count();
             mWallMs.push_back(static_cast<float>(ms));
-            if (ms > 50.0 && mSlow < 12) { ++mSlow; std::fprintf(stderr, "[sweep-stall] loop %llu took %.1f ms (headless wall time)\n", static_cast<unsigned long long>(sourceFrame), ms); }
+            if (ms > 50.0) {
+                // The stall logger's attribution, headless: disc reads (resource-load) or everything else (game-work).
+                // No pipeline/texture causes exist without a GPU.
+                const double loadMs = static_cast<double>(readNs - mLastReadNs) / 1e6;
+                const bool load = loadMs >= 1.0;
+                ++(load ? mLoadStalls : mWorkStalls);
+                if (mSlow < 12) {
+                    ++mSlow;
+                    std::fprintf(stderr, "[sweep-stall] loop %llu took %.1f ms (headless wall time) cause=%s (disc reads %llu, %.1f ms)\n",
+                        static_cast<unsigned long long>(sourceFrame), ms, load ? "resource-load" : "game-work",
+                        static_cast<unsigned long long>(readEvents - mLastReadEvents), loadMs);
+                }
+            }
         }
-        mLastWall = now; mHaveWall = true;
+        mLastWall = now; mHaveWall = true; mLastReadNs = readNs; mLastReadEvents = readEvents;
     }
     void reportWallTime() {
         if (mWallMs.empty()) return;
         auto sorted = mWallMs; std::sort(sorted.begin(), sorted.end());
-        std::fprintf(stderr, "headless sweep: %zu scripted loops, wall ms p50 %.2f p99 %.2f max %.2f, %zu over 50 ms\n", sorted.size(),
+        std::fprintf(stderr, "headless sweep: %zu scripted loops, wall ms p50 %.2f p99 %.2f max %.2f, %zu over 50 ms (resource-load %u, game-work %u)\n", sorted.size(),
                      static_cast<double>(sorted[sorted.size() / 2]), static_cast<double>(sorted[sorted.size() * 99 / 100]),
-                     static_cast<double>(sorted.back()), static_cast<std::size_t>(std::count_if(sorted.begin(), sorted.end(), [](float v) { return v > 50.0f; })));
+                     static_cast<double>(sorted.back()), static_cast<std::size_t>(std::count_if(sorted.begin(), sorted.end(), [](float v) { return v > 50.0f; })), mLoadStalls, mWorkStalls);
     }
     void wait(bool frame) {
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("retrace wait ran on an unexpected thread");
@@ -245,7 +261,7 @@ private:
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
     H::ReloadPolicy mReloadPolicy;
     bool mActivateAsync=false;
-    std::string mLastWhere; std::chrono::steady_clock::time_point mLastWall; bool mHaveWall=false; unsigned mSlow=0; std::vector<float> mWallMs;
+    std::string mLastWhere; std::uint64_t mLastReadNs=0,mLastReadEvents=0; unsigned mLoadStalls=0,mWorkStalls=0; std::chrono::steady_clock::time_point mLastWall; bool mHaveWall=false; unsigned mSlow=0; std::vector<float> mWallMs;
     std::thread mThread;
 };
 Driver* gDriver=nullptr;

@@ -249,11 +249,12 @@ def classify(res):
     allocs = [l for l in text.splitlines() if l.startswith("[alloc]") and "<- MessageData::MessageData <-" not in l]
     if allocs:
         notes.append(f"{len(allocs)} unexpected [alloc] line(s): {allocs[0][:100]}")
-    m = re.search(r"headless sweep: (\d+) scripted loops, wall ms p50 ([\d.]+) p99 ([\d.]+) max ([\d.]+), (\d+) over 50 ms", text)
+    m = re.search(r"headless sweep: (\d+) scripted loops, wall ms p50 ([\d.]+) p99 ([\d.]+) max ([\d.]+), (\d+) over 50 ms(?: \(resource-load (\d+), game-work (\d+)\))?", text)
     if m:
-        res["wall"] = {"loops": int(m.group(1)), "p50": float(m.group(2)), "p99": float(m.group(3)), "max": float(m.group(4)), "over50": int(m.group(5))}
+        res["wall"] = {"loops": int(m.group(1)), "p50": float(m.group(2)), "p99": float(m.group(3)), "max": float(m.group(4)), "over50": int(m.group(5)),
+                       "resource_load": int(m.group(6) or 0), "game_work": int(m.group(7) or 0)}
         if int(m.group(5)):
-            notes.append(f"{m.group(5)} loop(s) >50 ms (max {m.group(4)} ms)")
+            notes.append(f"{m.group(5)} loop(s) >50 ms (max {m.group(4)} ms; {m.group(6) or 0} resource-load, {m.group(7) or 0} game-work)")
     stalls = re.findall(r"\[sweep-stall\] loop (\d+) took ([\d.]+) ms", text)
     if stalls:
         res["stalls"] = [(int(a), float(b)) for a, b in stalls]

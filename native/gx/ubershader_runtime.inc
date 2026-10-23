@@ -17,8 +17,12 @@ bool petari_uber_enabled() { static const bool b = [] { auto p = std::getenv("PE
 bool petari_uber_all() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && std::strcmp(p,"all")==0; }(); return b; }
 const char* petari_uber_reason(const ShaderConfig& c) {
   if (c.lineMode) return "primitive";
-  if (c.fogType != GX_FOG_NONE || c.fogRangeEnabled) return "fog";
-  if (c.numIndStages) return "indirect";
+  switch(c.fogType) {
+    case GX_FOG_NONE:case GX_FOG_PERSP_LIN:case GX_FOG_PERSP_EXP:case GX_FOG_PERSP_EXP2:case GX_FOG_PERSP_REVEXP:case GX_FOG_PERSP_REVEXP2:
+    case GX_FOG_ORTHO_LIN:case GX_FOG_ORTHO_EXP:case GX_FOG_ORTHO_EXP2:case GX_FOG_ORTHO_REVEXP:case GX_FOG_ORTHO_REVEXP2:break;
+    default:return "fog_type";
+  }
+  if(c.numIndStages>4)return "indirect_count";
   if (!c.tevStageCount || c.tevStageCount > 16) return "stage_count";
   if (c.attrs[GX_VA_POS].attrType == GX_NONE) return "position";
   for (unsigned a=0;a<=GX_VA_TEX7;++a) {
@@ -39,7 +43,13 @@ const char* petari_uber_reason(const ShaderConfig& c) {
     auto& s=c.tevStages[i];
     if(s.alphaOp.op!=GX_TEV_ADD && s.alphaOp.op!=GX_TEV_SUB && s.alphaOp.op!=GX_TEV_COMP_A8_GT && s.alphaOp.op!=GX_TEV_COMP_A8_EQ) return "alpha_op";
     if((s.kcSel>=8 && s.kcSel<12) || (s.kaSel>=8 && s.kaSel<16)) return "konst_selector";
-    if(s.indTexMtxId!=GX_ITM_OFF || s.indTexWrapS!=GX_ITW_OFF || s.indTexWrapT!=GX_ITW_OFF || s.indTexAddPrev || s.channelId==GX_ALPHA_BUMP || s.channelId==GX_ALPHA_BUMPN) return "indirect";
+    if(unsigned(s.indTexStage)>3 || unsigned(s.indTexFormat)>3 || unsigned(s.indTexBiasSel)>7 || unsigned(s.indTexAlphaSel)>3 ||
+       unsigned(s.indTexWrapS)>6 || unsigned(s.indTexWrapT)>6 ||
+       !(s.indTexMtxId==GX_ITM_OFF || (s.indTexMtxId>=GX_ITM_0 && s.indTexMtxId<=GX_ITM_2) ||
+         (s.indTexMtxId>=GX_ITM_S0 && s.indTexMtxId<=GX_ITM_S2) || (s.indTexMtxId>=GX_ITM_T0 && s.indTexMtxId<=GX_ITM_T2))) return "indirect_format";
+  }
+  for(unsigned i=0;i<4;++i) if(info.usedIndStages.test(i)) {
+    const auto& ind=c.indStages[i];if(unsigned(ind.texCoordId)>7 || unsigned(ind.texMapId)>7 || unsigned(ind.scaleS)>8 || unsigned(ind.scaleT)>8)return "indirect_source";
   }
   for(unsigned i=0;i<4;++i) if(info.sampledColorChannels.test(i%2)) {
     const auto& cc=c.colorChannels[i];if(cc.lightingEnabled && unsigned(cc.attnFn)>GX_AF_NONE) return "lighting";
@@ -114,7 +124,7 @@ void petari_uber_report() {
 uint32_t petari_uber_variant(const ShaderConfig& c) {
   const auto info=build_shader_info(c);uint32_t extent=0;
   for(unsigned i=0;i<8;++i)if(info.sampledTexCoords.test(i))extent=i+1;
-  return c.tevStageCount | (extent<<5);
+  return c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12);
 }
 gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
   auto key=c;key.shaderConfig={};
@@ -151,7 +161,7 @@ void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& 
   }
   std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u\n",(unsigned long long)key,(unsigned long long)l.key,shaderMs,std::max(0.0,ms-shaderMs),success);
 }
-// Fixed layout: cfg 1024 packed bytes, projection, matrices, TEV regs, lights, channel state,
+// Fixed layout: 4768 bytes, cfg 1024 packed bytes, projection, matrices, TEV regs, lights, channel state,
 // konst colors, post matrices, texture size/bias. All arrays have 16-byte strides.
 static Vec4<float> petari_uber_texture_bias(const gfx::TextureBind& tex) {
   float bias=0;
@@ -168,7 +178,9 @@ gfx::Range petari_uber_uniform(const ShaderConfig& c) {
     w[o+4]=s.alphaPass.a;w[o+5]=s.alphaPass.b;w[o+6]=s.alphaPass.c;w[o+7]=s.alphaPass.d;
     w[o+8]=s.colorOp.op;w[o+9]=s.colorOp.bias;w[o+10]=s.colorOp.scale;w[o+11]=s.colorOp.clamp;w[o+12]=s.colorOp.outReg;
     w[o+13]=s.alphaOp.op;w[o+14]=s.alphaOp.bias;w[o+15]=s.alphaOp.scale;w[o+16]=s.alphaOp.clamp;w[o+17]=s.alphaOp.outReg;
-    w[o+18]=s.kcSel;w[o+19]=s.kaSel;w[o+20]=s.texCoordId;w[o+21]=uses_texture_sample(s)?s.texMapId:GX_TEXMAP_NULL;w[o+22]=s.channelId;w[o+23]=s.tevSwapRas;w[o+24]=s.tevSwapTex;
+    w[o+18]=s.kcSel;w[o+19]=s.kaSel;w[o+20]=s.texCoordId;w[o+21]=s.texMapId;w[o+22]=s.channelId;w[o+23]=s.tevSwapRas;w[o+24]=s.tevSwapTex;
+    w[o+25]=unsigned(s.indTexStage)|(unsigned(s.indTexFormat)<<2)|(unsigned(s.indTexAlphaSel)<<4);
+    w[o+26]=s.indTexBiasSel;w[o+27]=s.indTexMtxId;w[o+28]=s.indTexWrapS;w[o+29]=s.indTexWrapT;w[o+30]=s.indTexAddPrev;w[o+31]=uses_texture_sample(s);
   }
   for(unsigned i=0;i<=GX_VA_TEX7;++i) {auto& a=c.attrs[i];unsigned o=512+i*8;w[o]=a.attrType;w[o+1]=a.cnt;w[o+2]=a.compType;w[o+3]=a.offset;w[o+4]=a.stride;w[o+5]=a.frac;w[o+6]=a.le;}
   for(unsigned i=0;i<8;++i) {auto& t=c.tcgs[i];unsigned o=704+i*8;w[o]=t.type;w[o+1]=t.src;w[o+2]=t.mtx;w[o+3]=t.postMtx;w[o+4]=t.normalize;}
@@ -177,12 +189,17 @@ gfx::Range petari_uber_uniform(const ShaderConfig& c) {
   for(unsigned i=0;i<4;++i) {auto& s=c.tevSwapTable[i];w[804+i*4]=s.red;w[805+i*4]=s.green;w[806+i*4]=s.blue;w[807+i*4]=s.alpha;}
   w[821]=c.vtxStride;w[822]=c.tevStageCount;w[823]=c.attrs[GX_VA_NRM].attrType!=GX_NONE;
   auto info=build_shader_info(c);w[824]=info.sampledTexCoords.to_ulong();
+  w[825]=c.numIndStages;w[826]=c.fogType;w[827]=c.fogRangeEnabled;w[829]=info.usedIndStages.to_ulong();
+  for(unsigned i=0;i<4;++i){const auto& ind=c.indStages[i];unsigned o=832+i*4;w[o]=ind.texCoordId;w[o+1]=ind.texMapId;w[o+2]=ind.scaleS;w[o+3]=ind.scaleT;}
   b.append(w);auto proj=g_gxState.proj;if constexpr(UseReversedZ) proj.m2=proj.m2*Vec4{-1.f,-1.f,-1.f,-1.f};else proj.m2=proj.m2+proj.m3;b.append(proj);
   for(auto& x:g_gxState.pnMtx)b.append(x.pos);for(auto& x:g_gxState.texMtxs)b.append(x);for(auto& x:g_gxState.pnMtx)b.append(x.nrm);
   b.append(g_gxState.colorRegs);b.append(g_gxState.lights);
   for(auto& x:g_gxState.colorChannelState){b.append(x.matColor);b.append(x.ambColor);}
   b.append(g_gxState.kcolors);b.append(g_gxState.ptTexMtxs);
   for(unsigned i=0;i<8;++i) b.append(petari_uber_texture_bias(get_texture(static_cast<GXTexMapID>(i))));
+  b.append(g_gxState.fog.color);b.append(Vec4{g_gxState.fog.a,g_gxState.fog.b,g_gxState.fog.c,0.f});
+  for(const auto& scale:g_gxState.texCoordScales)b.append(Vec4{float(scale.scaleS)+1.f,float(scale.scaleT)+1.f,0.f,0.f});
+  for(const auto& m:g_gxState.indTexMtxs){b.append(Vec4{m.mtx.m0.x,m.mtx.m0.y,m.mtx.m1.x,m.mtx.m1.y});b.append(Vec4{m.mtx.m2.x,m.mtx.m2.y,std::exp2f(m.scaleExp),0.f});}
   return gfx::push_uniform(b.data(),b.size());
 }
 }

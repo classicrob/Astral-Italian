@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
         if(instance.WaitAny(df,5000000000)!=wgpu::WaitStatus::Success || !device) return 3;
         unsigned checked=0;
         // All shipped count pairs plus the maximum admitted stage/texgen extent.
-        for(auto variant:{1u,33u,2u,34u,66u,35u,67u,99u,36u,68u,100u,132u,101u,133u,198u,264u,272u})
+        for(auto variant:{1u,33u,2u,34u,66u,35u,67u,99u,36u,68u,100u,132u,101u,133u,198u,264u,272u,545u,578u,579u,4642u,6416u})
         for(auto mode:{DstAlphaMode::None,DstAlphaMode::Replace,DstAlphaMode::DualSource}) for(auto normal:{UINT32_MAX,1u}) {
             if(mode==DstAlphaMode::DualSource && (normal!=UINT32_MAX || !device.HasFeature(wgpu::FeatureName::DualSourceBlending)))continue;
             const auto source=petari_uber_source(mode,normal,variant);
@@ -361,17 +361,22 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--test-uber-coverage") {
         auto c = indirect_config();
-        expect(std::string(petari_uber_reason(c)) == "indirect", "indirect draws cannot enter generic path");
+        expect(std::string(petari_uber_reason(c)) == "covered", "indirect matrix path is covered");
         c.numIndStages = 0; c.tevStages[0].indTexMtxId = GX_ITM_OFF;
         expect(std::string(petari_uber_reason(c)) == "covered", "matrix texgen with direct float position is covered");
         c.fogType = GX_FOG_PERSP_LIN;
-        expect(std::string(petari_uber_reason(c)) == "fog", "fog retains specialized shader behavior");
+        expect(std::string(petari_uber_reason(c)) == "covered", "perspective fog is covered");
         c.fogType = GX_FOG_NONE; c.lineMode = 1;
         expect(std::string(petari_uber_reason(c)) == "primitive", "line expansion retains specialized shader behavior");
         c.lineMode = 0; c.tcgs[0].type = GX_TG_BUMP0;
         expect(std::string(petari_uber_reason(c)) == "texgen_type", "emboss texgen cannot enter generic path");
         c.tcgs[0].type = GX_TG_MTX2x4; c.attrs[GX_VA_NRM] = {.attrType=GX_INDEX16,.cnt=9,.compType=GX_S16,.nbt3=true};
         expect(std::string(petari_uber_reason(c)) != "covered", "NBT3 decode cannot enter generic path");
+        auto indirect=indirect_config();
+        indirect.numIndStages=5;
+        expect(std::string(petari_uber_reason(indirect))=="indirect_count","indirect stage count remains bounded");
+        auto fog=indirect_config();fog.fogType=3;
+        expect(std::string(petari_uber_reason(fog))=="fog_type","invalid fog types retain old path");
         PipelineConfig first{};first.shaderConfig=indirect_config();
         first.shaderConfig.numIndStages=0;first.shaderConfig.tevStages[0].indTexMtxId=GX_ITM_OFF;
         aurora::gfx::RenderTargetLayout layout{};layout.key=123;

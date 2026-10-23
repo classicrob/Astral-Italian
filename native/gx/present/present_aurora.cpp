@@ -698,8 +698,21 @@ static void raise_render_worker_qos() noexcept {
     return;
   }
   aurora::gfx::render_worker::enqueue_work([] {
-    const int result = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
-    std::fprintf(stderr, "[present] render worker QoS: %s\n", result == 0 ? "user-interactive" : "unchanged (failed)");
+    // Aurora sets the worker's priority through SDL (an explicit scheduling policy), after which macOS refuses QoS
+    // changes (EPERM). So the policy's own priority is raised to the top of SCHED_OTHER (the band user-interactive
+    // QoS maps to) when QoS cannot be set.
+    if (pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0) == 0) {
+      std::fputs("[present] render worker QoS: user-interactive\n", stderr);
+      return;
+    }
+    int policy = 0;
+    sched_param param{};
+    pthread_getschedparam(pthread_self(), &policy, &param);
+    const int before = param.sched_priority;
+    param.sched_priority = sched_get_priority_max(SCHED_OTHER);
+    const int result = pthread_setschedparam(pthread_self(), SCHED_OTHER, &param);
+    std::fprintf(stderr, "[present] render worker priority: %d -> %d (%s)\n", before, param.sched_priority,
+                 result == 0 ? "raised" : "unchanged, failed");
   });
 }
 

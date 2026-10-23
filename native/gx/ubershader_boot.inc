@@ -59,10 +59,19 @@ static unsigned petari_uber_job_priority(const PetariUberJob& job) { // g_pipeli
   if (generic && (job.frontEnd || job.demand)) return 3;
   return generic ? 4 : 5;
 }
+static bool petari_uber_job_before(const PetariUberJob& a, const PetariUberJob& b) {
+  if (a.priority != b.priority) return a.priority < b.priority;
+  // Only ACTIVE-STAGE Generic jobs use the measured static cost proxy.
+  // Equal costs and every other priority/tier retain the existing stable order.
+  if (a.priority != 1 || a.tier != gx::PetariUberTier::Generic || b.tier != gx::PetariUberTier::Generic) return false;
+  if (a.hasIndirect != b.hasIndirect) return a.hasIndirect;
+  if (a.tevStages != b.tevStages) return a.tevStages > b.tevStages;
+  return a.texgenExtent > b.texgenExtent;
+}
 static void petari_uber_push_job(PetariUberJob job) { // caller holds g_pipelineMutex
   job.priority = petari_uber_job_priority(job);
   const auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(),
-      [&](const auto& other) { return other.priority > job.priority; });
+      [&](const auto& other) { return petari_uber_job_before(job, other); });
   petariUberJobs.insert(at, std::move(job));
 }
 static void petari_uber_queue_variant(const gx::PipelineConfig& config, const RenderTargetLayout& layout,
@@ -99,7 +108,9 @@ static void petari_uber_queue_variant(const gx::PipelineConfig& config, const Re
             tier == gx::PetariUberTier::Generic ? "generic" : "fast", petariUberBoot.completed.size(), ready);
         petari_uber_maybe_ready();
         g_pipelineReadyCv.notify_all();
-      }, tier, title, priority == 1 && !title});
+      }, tier, title, priority == 1 && !title,
+          config.shaderConfig.numIndStages != 0, config.shaderConfig.tevStageCount,
+          (gx::petari_uber_variant(config.shaderConfig, gx::PetariUberTier::Generic) >> 5) & 15u});
     }
   }
   g_pipelineQueueCv.notify_all();
@@ -209,7 +220,7 @@ static void petari_uber_schedule_stage(const gx::PipelineConfig& config, const R
     if (petariUberBoot.activeStage != active) {
       petariUberBoot.activeStage = active;
       for (auto& job : petariUberJobs) job.priority = petari_uber_job_priority(job);
-      std::stable_sort(petariUberJobs.begin(), petariUberJobs.end(), [](const auto& a, const auto& b) { return a.priority < b.priority; });
+      std::stable_sort(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_before);
     }
     auto& keys = petariUberBoot.stageKeys[stage];
     for (const auto& layout : {scene, off}) {

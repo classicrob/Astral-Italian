@@ -49,7 +49,8 @@ double milliseconds(Clock::duration d) { return std::chrono::duration<double,std
 namespace aurora {
 struct { const char* resourcesPath=""; } g_config;
 namespace gx {
-struct ShaderConfig { unsigned variant=1; bool covered=true; bool throws=false; };
+struct ShaderConfig { unsigned variant=1; bool covered=true; bool throws=false;
+ unsigned numIndStages=0,tevStageCount=1,texgenExtent=1; };
 struct PipelineConfig { ShaderConfig shaderConfig; unsigned fixed=1; };
 }
 namespace gfx {
@@ -82,6 +83,9 @@ bool petari_uber_all() { return false; }
 const char* petari_uber_reason(const ShaderConfig& c) { return c.covered?"covered":"unsupported"; }
 bool petari_cached_shader_valid(const ShaderConfig&, uint64_t) { return true; }
 enum class PetariUberTier { Generic, Fast };
+uint32_t petari_uber_variant(const ShaderConfig& c,PetariUberTier) {
+ return c.tevStageCount | (c.texgenExtent<<5) | (c.numIndStages<<9);
+}
 struct PetariUberKeys { gfx::PipelineRef generic, fast; };
 uint64_t petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l,PetariUberTier tier) {
  return (uint64_t(c.fixed)<<32) | (uint64_t(c.shaderConfig.variant)<<8) | l.key |
@@ -224,6 +228,27 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
   gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy"); // old stage jobs lose their priority
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
+ } else if(test=="cost_order") {
+  gfx::petariUberTitleReleased=true;
+  auto nonind=c;nonind.fixed=10;nonind.shaderConfig.tevStageCount=16;
+  auto ind=c;ind.fixed=11;ind.shaderConfig.numIndStages=1;
+  auto tev=ind;tev.fixed=12;tev.shaderConfig.tevStageCount=3;
+  auto tex=tev;tex.fixed=13;tex.shaderConfig.texgenExtent=3;
+  auto tie=tex;tie.fixed=14;
+  for(const auto& cfg:{nonind,ind,tev,tex,tie})gfx::petari_uber_schedule_stage(cfg,l,l,"MokumokuValleyGalaxy");
+  std::vector<uint64_t> generic,fast;
+  for(const auto& job:gfx::petariUberJobs)(job.tier==gx::PetariUberTier::Generic?generic:fast).push_back(job.key);
+  CHECK(generic==std::vector<uint64_t>({gx::petari_uber_keys(tex,l).generic,gx::petari_uber_keys(tie,l).generic,
+    gx::petari_uber_keys(tev,l).generic,gx::petari_uber_keys(ind,l).generic,gx::petari_uber_keys(nonind,l).generic}));
+  CHECK(fast==std::vector<uint64_t>({gx::petari_uber_keys(nonind,l).fast,gx::petari_uber_keys(ind,l).fast,
+    gx::petari_uber_keys(tev,l).fast,gx::petari_uber_keys(tex,l).fast,gx::petari_uber_keys(tie,l).fast}));
+  // Stage switches demote to the unchanged stable order; activation re-sorts.
+  gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy");
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
+  gfx::petari_uber_schedule_stage(nonind,l,l,"MokumokuValleyGalaxy");
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(tex,l).generic);
+  gfx::g_pipelineQueue.push_back({99});gfx::petariPipelineSamples[99].drawBlocking=true;
+  CHECK(!take()); // cost sorting cannot preempt a draw-blocking specialised compile
  } else if(test=="alias") {
   c.shaderConfig.variant=0;gfx::petari_uber_queue_pair(c,l,1,true);
   CHECK(gfx::petariUberJobs.size()==1 && gfx::petariUberBoot.genericKeys.size()==1 && gfx::petariUberBoot.fastKeys.empty());
@@ -273,7 +298,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "alias"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "cost_order", "alias"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

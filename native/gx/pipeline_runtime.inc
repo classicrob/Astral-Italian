@@ -74,6 +74,8 @@ struct PetariUberJob {
   std::function<void()> run;
   gx::PetariUberTier tier = gx::PetariUberTier::Generic;
   bool frontEnd = false, demand = false;
+  bool hasIndirect = false;
+  unsigned tevStages = 0, texgenExtent = 0; // static module-cost proxy; not measured compile time
 };
 static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
 static bool petariUberTitleReleased = false; // g_pipelineMutex; reset each boot

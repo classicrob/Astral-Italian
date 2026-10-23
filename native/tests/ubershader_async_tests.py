@@ -199,13 +199,13 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberTitleReleased);
   gfx::petari_uber_async_stop();CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
   gx::petari_uber_boot();CHECK(gfx::petariUberJobs.size()==1); // generation can restart after shutdown
-  CHECK(!gfx::petariUberTitleReleased && !take(2)); // release gate resets each boot
+  CHECK(!gfx::petariUberTitleReleased); // non-front-end eligibility gate resets each boot
  } else if(test=="front_only") {
   auto d=c;d.shaderConfig.variant=2;
   gfx::petari_uber_queue_variant(d,l); // non-front-end generic is held
   gfx::petari_uber_queue_pair(c,l,1,true); // front-end generic + fast
-  CHECK(gfx::petariUberJobs.size()==3);CHECK(!take(2));
-  auto job=take();CHECK(job);job();CHECK(gx::genericBuilds==1 && gx::fastBuilds==0);
+  CHECK(gfx::petariUberJobs.size()==3);
+  auto job=take(3);CHECK(job);job();CHECK(gx::genericBuilds==1 && gx::fastBuilds==0); // all workers can prepare front-end Generic
   CHECK(!gfx::petari_uber_worker_ready(0) && !take()); // held jobs cannot keep the CV predicate true
   gfx::petariActiveStage="FileSelect";gfx::petari_uber_observe_title(true,true);
   job=take(3);CHECK(job);job(); // other generic precedes remaining fast

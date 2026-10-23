@@ -299,6 +299,6 @@ void petari_uber_boot() {
   }
   gfx::g_pipelineQueueCv.notify_all();
   std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u synchronous_compiles=0 prep_policy=frontend_generic_until_title workers=%u prep_workers=%u\n",
-      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers, std::min(workers, gfx::kPetariOnDemandWorkers));
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers, workers);
 }
 } // namespace aurora::gx

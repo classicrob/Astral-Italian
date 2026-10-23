@@ -82,8 +82,9 @@ static bool petari_uber_job_eligible(const PetariUberJob& job) {
       (job.frontEnd && job.tier == gx::PetariUberTier::Generic);
 }
 static bool petari_uber_worker_ready(unsigned workerIndex) {
-  const auto limit = petariUberTitleReleased ? petariActiveWorkers :
-      std::min(petariActiveWorkers, kPetariOnDemandWorkers);
+  // Only front-end Generic jobs are eligible before title; give that finite
+  // set the full pool instead of competing for two slots until its deadline.
+  const auto limit = petariActiveWorkers;
   return workerIndex < limit && std::any_of(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {

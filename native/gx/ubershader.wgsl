@@ -35,7 +35,7 @@ fn channel(c:u32,clr:vec4f,pos:vec3f,nrm:vec3f)->vec4f {
  let b=768u+c*8u;var mat=ubuf.channels[c*2u];if(cfg(b)==1u){mat=clr;}if(cfg(b+4u)==0u){return mat;}
  var light=ubuf.channels[c*2u+1u];if(cfg(b+1u)==1u){light=clr;}
  for(var i=0u;i<8u;i++){if((cfg(b+5u)&(1u<<i))==0u){continue;}let l=ubuf.lights[i];var dir=l.pos-pos;let d2=dot(dir,dir);let d=sqrt(d2);dir=dir/d;
- var att=1.0;if(cfg(b+3u)==1u){let cosine=max(0.0,dot(dir,l.dir));att=max(0.0,dot(l.cos_att,vec3f(1,cosine,cosine*cosine))/dot(l.dist_att,vec3f(1,d,d2)));}
+ var att=1.0;if(cfg(b+3u)==0u){let spec=select(0.0,max(0.0,dot(nrm,l.dir)),dot(nrm,dir)>=0.0);let v=vec3f(1,spec,spec*spec);var dist_att=l.dist_att;if(cfg(b+2u)!=0u){dist_att=normalize(dist_att);}att=max(0.0,dot(l.cos_att,v)/max(0.0,dot(dist_att,v)));}if(cfg(b+3u)==1u){let cosine=max(0.0,dot(dir,l.dir));att=max(0.0,dot(l.cos_att,vec3f(1,cosine,cosine*cosine))/dot(l.dist_att,vec3f(1,d,d2)));}
  var diff=1.0;if(cfg(b+2u)==1u){diff=dot(dir,nrm);}if(cfg(b+2u)==2u){diff=max(0.0,dot(dir,nrm));}light+=att*diff*l.color;
  }return mat*clamp(light,vec4f(0),vec4f(1));
 }

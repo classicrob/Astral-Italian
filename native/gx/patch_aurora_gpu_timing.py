@@ -24,7 +24,7 @@ else:
  replace('#ifdef TRACY_ENABLE\n\n#include <tracy/TracyC.h>','#include <cstdio>\n#include <cstdlib>\n#ifdef TRACY_ENABLE\n#include <tracy/TracyC.h>\n#endif')
  # Remove the entire old non-Tracy no-op implementation.
  text=text[:text.index('\n#else\n\nnamespace aurora::webgpu::gpu_prof {')]
- replace('  int64_t submitNs = 0;','  int64_t submitNs = 0;\n  uint64_t frame = 0;')
+ replace('  int64_t submitNs = 0;','  int64_t submitNs = 0;\n  uint64_t frame = 0;\n  wgpu::Future mapFuture{};')
  replace('bool g_enabled = false;','''FILE* g_csv = nullptr;
 uint64_t g_csvFrame = 0;
 bool g_enabled = false;''')
@@ -57,7 +57,22 @@ bool g_enabled = false;''')
   }''')
  replace('  TracyPlotConfig("aurora: gpuFrameMs",','#ifdef TRACY_ENABLE\n  TracyPlotConfig("aurora: gpuFrameMs",')
  replace('  Log.info("GPU profiling enabled ({} zones max)", MaxZones);','#endif\n  Log.info("GPU profiling enabled ({} zones max)", MaxZones);')
- replace('void shutdown() {','void shutdown() {\n  after_submit();\n  if(g_csv){std::fclose(g_csv);g_csv=nullptr;}')
+ replace('    slot.readback.MapAsync(', '    slot.mapFuture = slot.readback.MapAsync(')
+ replace('    } else if (state != SlotState::Failed) {', '''    } else if (state == SlotState::Failed) {
+      if(g_csv) std::fprintf(g_csv,"%llu,,,readback_failed\\n",(unsigned long long)slot.frame);
+    } else {''')
+ replace('void shutdown() {', '''void shutdown() {
+  after_submit();
+  // Drain our outstanding readbacks before closing the CSV. Keep frame rows even
+  // when a query/map fails; never replace a missing timestamp with CPU elapsed time.
+  for(auto& slot:g_slots) if(slot.state==SlotState::InFlight) {
+    g_instance.WaitAny(slot.mapFuture,5000000000);
+    if(slot.state==SlotState::Mapped) { emit_frame(slot);slot.readback.Unmap(); }
+    else if(g_csv) std::fprintf(g_csv,"%llu,,,readback_incomplete\\n",(unsigned long long)slot.frame);
+    slot.state=SlotState::Free;
+  } else if(slot.state==SlotState::Mapped) { emit_frame(slot);slot.readback.Unmap();slot.state=SlotState::Free; }
+  if(g_csv){std::fclose(g_csv);g_csv=nullptr;}
+''')
  replace('  auto& slot = record_slot();\n  if (slot.state != SlotState::Free) {','  auto& slot = record_slot();\n  const auto csvFrame = g_csvFrame++;\n  if (slot.state != SlotState::Free) {\n    if(g_csv) std::fprintf(g_csv,"%llu,,,readback_busy\\n",(unsigned long long)csvFrame);')
  replace('  slot.state = SlotState::Recording;','  slot.frame = csvFrame;\n  slot.state = SlotState::Recording;')
  # Unavailable timestamp pairs still need a CSV row.

@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <exception>
 #include <csignal>
+#include <map>
 
 namespace aurora::gx {
 std::string petari_uber_source(DstAlphaMode, uint32_t);
@@ -368,6 +369,22 @@ int main(int argc, char** argv) {
         c.tcgs[0].type = GX_TG_MTX2x4; c.attrs[GX_VA_NRM] = {.attrType=GX_INDEX16,.cnt=9,.compType=GX_S16,.nbt3=true};
         expect(std::string(petari_uber_reason(c)) != "covered", "NBT3 decode cannot enter generic path");
         return failures ? 1 : 0;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--audit-uber-cache") {
+        sqlite3* db=nullptr;
+        if(sqlite3_open_v2(argv[2],&db,SQLITE_OPEN_READONLY,nullptr)!=SQLITE_OK)return 2;
+        sqlite3_stmt* q=nullptr;
+        if(sqlite3_prepare_v2(db,"SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13",-1,&q,nullptr)!=SQLITE_OK)return 3;
+        std::map<std::string,unsigned> reasons;
+        while(sqlite3_step(q)==SQLITE_ROW) {
+            if(sqlite3_column_bytes(q,0)!=sizeof(PipelineConfig))return 4;
+            PipelineConfig c;std::memcpy(&c,sqlite3_column_blob(q,0),sizeof(c));
+            if(!petari_cached_shader_valid(c.shaderConfig,0)){++reasons["invalid"];continue;}
+            ++reasons[petari_uber_reason(c.shaderConfig)];
+        }
+        sqlite3_finalize(q);sqlite3_close(db);
+        for(auto& [reason,count]:reasons)std::printf("reason=%s configs=%u\n",reason.c_str(),count);
+        return 0;
     }
     if (argc == 3 && std::string(argv[1]) == "--validate-cache") {
         sqlite3* db = nullptr;

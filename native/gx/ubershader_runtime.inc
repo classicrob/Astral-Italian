@@ -25,7 +25,8 @@ const char* petari_uber_reason(const ShaderConfig& c) {
     if(a<GX_VA_POS) { if(v.attrType!=GX_DIRECT) return "matrix_index"; continue; }
     if(v.attrType>GX_INDEX16 || v.nbt3) return "attribute";
     if(a==GX_VA_CLR0 || a==GX_VA_CLR1) { if(v.compType>GX_RGBA8) return "color_format"; }
-    else if(v.compType>GX_F32 || v.cnt==0 || v.cnt>3 || (a==GX_VA_NRM && v.cnt!=3)) return "attribute_format";
+    else if(v.compType>GX_F32 || (a==GX_VA_POS && v.cnt!=2 && v.cnt!=3) ||
+      (a==GX_VA_NRM && v.cnt!=3) || (a>=GX_VA_TEX0 && v.cnt!=1 && v.cnt!=2)) return "attribute_format";
   }
   auto info=build_shader_info(c);
   for(unsigned i=0;i<8;++i) if(info.sampledTexCoords.test(i)) {
@@ -35,9 +36,13 @@ const char* petari_uber_reason(const ShaderConfig& c) {
   }
   for(unsigned i=0;i<c.tevStageCount;++i) {
     auto& s=c.tevStages[i];
+    if(s.alphaOp.op!=GX_TEV_ADD && s.alphaOp.op!=GX_TEV_SUB && s.alphaOp.op!=GX_TEV_COMP_A8_GT && s.alphaOp.op!=GX_TEV_COMP_A8_EQ) return "alpha_op";
+    if((s.kcSel>=8 && s.kcSel<12) || (s.kaSel>=8 && s.kaSel<16)) return "konst_selector";
     if(s.indTexMtxId!=GX_ITM_OFF || s.indTexWrapS!=GX_ITW_OFF || s.indTexWrapT!=GX_ITW_OFF || s.indTexAddPrev || s.channelId==GX_ALPHA_BUMP || s.channelId==GX_ALPHA_BUMPN) return "indirect";
   }
-  for(auto& cc:c.colorChannels) if(cc.lightingEnabled && cc.attnFn!=GX_AF_NONE && cc.attnFn!=GX_AF_SPOT) return "lighting";
+  for(unsigned i=0;i<4;++i) if(info.sampledColorChannels.test(i%2)) {
+    const auto& cc=c.colorChannels[i];if(cc.lightingEnabled && unsigned(cc.attnFn)>GX_AF_NONE) return "lighting";
+  }
   return "covered";
 }
 namespace {

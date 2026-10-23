@@ -63,6 +63,10 @@ struct SegmentReport {
     std::string firstDivergenceWhy;
 };
 
+// After a segment ended, the game gets this many loops to reach the next segment by itself (the ship's helm -> the world map ->
+// the galaxy are the player's untaped menu presses); then the glue jumps there with a direct stage change.
+constexpr std::uint64_t kWarpDelaySeams = 300;
+
 class Session {
 public:
     // Loads <dir>/route.tape.json, route.kpd, route.actions (optional) and route.csv. Throws Headless::ReplayError.
@@ -82,6 +86,7 @@ public:
     bool gaveUp() const { return !mError.empty(); }
     const std::string& error() const { return mError; }
     std::string reportText() const;
+    std::string segmentLine(std::size_t index) const;  // one report line for a segment
     std::string reportJson() const;
     std::uint64_t seams() const { return mSeams; }
     std::size_t segmentCount() const { return mPlan.size(); }

@@ -93,6 +93,7 @@ bool configure(const std::string& dir, std::string* error) {
     }
     Input::setKpadReplayHooks({hookRead, nullptr});
     Input::setModReplayHooks({hookPress, hookHeld, nullptr});
+    std::atexit([] { writeReport(); });  // a window closed early still leaves the report of what was replayed
     gFeeder = new Feeder;
     gFeeder->publish();
     gFeeder->thread = std::thread([] { gFeeder->run(); });
@@ -106,7 +107,11 @@ const Meta* meta() { return gSession ? &gSession->meta() : nullptr; }
 
 Step seam(const SeamState& state) {
     if (!gSession) return {};
+    const auto before = gSession->currentSegment();
+    const bool wasDone = gSession->finished();
     const Step step = gSession->seam(state);
+    if (!wasDone && gSession->currentSegment() != before)
+        std::fprintf(stderr, "PETARI TAPE PLAY: %s\n", gSession->segmentLine(before).c_str());
     if (gFeeder) gFeeder->publish();
     if (step.kind == Step::Kind::Finished || step.kind == Step::Kind::GaveUp) writeReport();
     return step;

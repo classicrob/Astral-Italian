@@ -331,7 +331,7 @@ Step Session::seam(const SeamState& s) {
         ++mSegRow;
         return step;
     }
-    if (mSegIndex > 0 && !mWarpSent) {
+    if (mSegIndex > 0 && !mWarpSent && mWaitSeams >= kWarpDelaySeams) {
         mWarpSent = true;
         step.kind = Step::Kind::Warp;
         step.stage = seg.stage;
@@ -375,24 +375,26 @@ bool Session::held(int mod) {
 
 const H::Read* Session::connection(std::uint32_t channel) const { return mReplay->connection(channel); }
 
+std::string Session::segmentLine(std::size_t index) const {
+    const auto& r = mReport[index];
+    std::ostringstream out;
+    out << "segment " << r.index << " " << r.stage << " scenario " << r.scenario << " (route row " << r.startRow << ", " << r.frames << " frames): ";
+    if (!r.started) out << "not reached";
+    else {
+        out << r.rowsCompared << " rows compared" << (r.completed ? "" : " (stopped early)") << ", ";
+        if (!r.diverged) out << "no divergence (max error " << r.maxDist << ")";
+        else out << "first divergence at row " << r.firstDivergenceRow << " (" << r.firstDivergenceWhy << ", " << r.firstDivergenceDist
+                 << "), max error " << r.maxDist;
+    }
+    return out.str();
+}
 std::string Session::reportText() const {
     std::ostringstream out;
     out << "tape replay report (position limit " << kPositionLimit << ")\n";
-    for (const auto& r : mReport) {
-        out << "segment " << r.index << " " << r.stage << " scenario " << r.scenario << " (route row " << r.startRow << ", " << r.frames
-            << " frames): ";
-        if (!r.started) out << "not reached\n";
-        else {
-            out << r.rowsCompared << " rows compared" << (r.completed ? "" : " (stopped early)") << ", ";
-            if (!r.diverged) out << "no divergence (max error " << r.maxDist << ")\n";
-            else out << "first divergence at row " << r.firstDivergenceRow << " (" << r.firstDivergenceWhy << ", " << r.firstDivergenceDist
-                     << "), max error " << r.maxDist << "\n";
-        }
-    }
+    for (std::size_t i = 0; i < mReport.size(); ++i) out << segmentLine(i) << "\n";
     if (!mError.empty()) out << "replay stopped: " << mError << "\n";
     return out.str();
 }
-
 std::string Session::reportJson() const {
     std::ostringstream out;
     out << "{\n  \"position_limit\": " << kPositionLimit << ",\n  \"finished\": " << (mDone && mError.empty() ? "true" : "false")

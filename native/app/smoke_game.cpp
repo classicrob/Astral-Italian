@@ -5,6 +5,7 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSequenceDirector.hpp"
 #include "Game/System/GameSystem.hpp"
+#include "Game/System/GalaxyStatusAccessor.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/GameSystemFunction.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
@@ -281,10 +282,17 @@ void recordRouteFrame(bool background) {
         const auto step = TapePlay::seam(state);
         if (step.kind == TapePlay::Step::Kind::Start && system && system->mObjHolder) system->mObjHolder->mRandom.mSeed = step.seed;
         if (step.kind == TapePlay::Step::Kind::Warp) {
+            // A jump cut to the next segment's galaxy: the game's own stage change (what the Level Select warp calls), taken from
+            // wherever the game is (the world map included). The name must outlive the move: PlayerLaunch::warpStage.
             std::snprintf(PetariNative::PlayerLaunch::warpStage, sizeof(PetariNative::PlayerLaunch::warpStage), "%s", step.stage.c_str());
-            PetariNative::PlayerLaunch::warpScenario = step.scenario;
-            PetariNative::PlayerLaunch::warpPending.store(true);
-            std::fprintf(stderr, "PETARI TAPE PLAY: next segment: warp to %s scenario %d\n", step.stage.c_str(), step.scenario);
+            const GalaxyStatusAccessor status = MR::makeGalaxyStatusAccessor(PetariNative::PlayerLaunch::warpStage);
+            if (status.mScenarioData != nullptr && !status.isNotNormalStar(step.scenario)) {
+                GameSequenceFunction::requestChangeStageInStageScenario(PetariNative::PlayerLaunch::warpStage, step.scenario, step.scenario);
+                std::fprintf(stderr, "PETARI TAPE PLAY: the game did not reach the next segment by itself: jump cut to %s scenario %d\n",
+                             step.stage.c_str(), step.scenario);
+            } else {
+                std::fprintf(stderr, "PETARI TAPE PLAY: cannot jump to %s scenario %d (not a normal star of a known galaxy)\n", step.stage.c_str(), step.scenario);
+            }
         }
         // PETARI_TAPE_PLAY_QUIT=<loops>: close the app that many loops after the replay finished or was given up (scripted runs);
         // otherwise the window stays open for the viewer, with neutral input.

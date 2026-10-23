@@ -194,6 +194,7 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
             std::fputs("petari: --replay-tape replaces --stage and cannot be combined with it\n", stderr);
             return false;
         }
+        setenv("ASTRAL_TAPE", "off", 1);  // a replay is not recorded again (the recorder is for a person's own session)
         std::string error;
         if (!App::TapePlay::configure(replayTape, &error)) {
             std::fprintf(stderr, "petari: --replay-tape: %s\n", error.c_str());

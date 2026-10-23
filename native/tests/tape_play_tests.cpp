@@ -105,6 +105,7 @@ int main() {
     check(hold(session) == 0, "neutral between segments");
     // The next segment is the same stage and scenario: it must not start until play-ready dropped (a new visit), and the glue is
     // asked once to warp there.
+    for (std::uint64_t i = 1; i < kWarpDelaySeams; ++i) check(session.seam(state(7, true)).kind == Step::Kind::None, "the game gets time to get there itself");
     step = session.seam(state(7, true));
     check(step.kind == Step::Kind::Warp && step.stage == "TestGalaxy" && step.scenario == 1, "warp to the next segment");
     check(session.seam(state(8, true)).kind == Step::Kind::None, "no second warp and no start in the old visit");

@@ -5,6 +5,11 @@ if(APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum macOS version")
 endif()
 project(MacioGalaxy2Native LANGUAGES C CXX ASM)
+if(APPLE)
+    # Objective-C++ (the app's Cocoa setup and menus). Enabled here, not inside native/app: a language enabled in a
+    # subdirectory is not reliably known at generate time (CMake 4.x with the Makefile generator fails).
+    enable_language(OBJCXX)
+endif()
 
 if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)
     set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "Target architecture" FORCE)

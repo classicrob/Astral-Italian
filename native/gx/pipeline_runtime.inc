@@ -45,16 +45,17 @@ static bool petariGameplay = false;
 // still compiling when the budget ran out (encoded as skips until it lands).
 static PetariPipeline::Clock::duration petariDrawBudgetLeft = PetariPipeline::drawWaitBudget();
 static uint64_t petariDeferredDraws = 0;
-// Global prewarm (the __global__ backlog), guarded by g_pipelineMutex. It is speculative work: it waits until play
-// has been reached once (menus, file select and the first stage load compile only what they draw or gate on), then
-// runs with few workers (PETARI_PIPELINE_PREWARM_WORKERS, default 2; 1 in gameplay), and pauses for a while after any
-// gameplay frame over budget. Metal compiles in MTLCompilerService, which our thread QoS does not cap, so an
-// uncapped backlog starved the game and kept menu draws waiting for a free worker (5.3.2 cold start).
+// Global prewarm (the __global__ backlog), guarded by g_pipelineMutex. It is speculative work. It runs from boot
+// (PetariPipeline::prewarmBeforePlay) on every worker except the two reserved for draw-requested and current-stage
+// jobs, so menu draws never wait behind it; PETARI_PIPELINE_PREWARM_WORKERS (1..8, default 8 = no cap beyond that
+// reservation) caps it outside gameplay. In gameplay it runs 1 in flight and pauses for a while after any frame over
+// budget. Locking it until play (26feb80a) left a true-cold first stage with ~100 hot variants pending at its gate
+// and a 2 s freeze (r30 bisect, 2026-10-23: the revert passed 4/5 true-cold Yoshi runs, 5.3.2 failed 4/4).
 static unsigned petariBackgroundCap = [] {
   const char* value = std::getenv("PETARI_PIPELINE_PREWARM_WORKERS");
   char* end = nullptr;
   const unsigned long count = value && *value ? std::strtoul(value, &end, 10) : 0;
-  return end && *end == '\0' && count >= 1 && count <= 8 ? static_cast<unsigned>(count) : 2u;
+  return end && *end == '\0' && count >= 1 && count <= 8 ? static_cast<unsigned>(count) : 8u;
 }();
 static bool petariPrewarmUnlocked = false;
 static unsigned petariBacklogHoldFrames = 0;

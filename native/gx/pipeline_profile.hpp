@@ -181,10 +181,10 @@ inline bool stageOnReservedWorkers() {
     static const bool enabled = millisecondsSetting("PETARI_PIPELINE_STAGE_ON_DEMAND_WORKERS", 1, 1) != 0;
     return enabled;
 }
-// 1: the global backlog may run in menus and loading (at PETARI_PIPELINE_PREWARM_WORKERS, never on the reserved
-// workers) instead of waiting until play is first reached. Default off (the 5.3.2 cold-start fix); measured opt-in.
+// The global backlog runs from boot in menus and loading (at PETARI_PIPELINE_PREWARM_WORKERS, never on the reserved
+// workers) instead of waiting until play is first reached. PETARI_PIPELINE_PREWARM_MENUS=0 restores the wait.
 inline bool prewarmBeforePlay() {
-    static const bool enabled = millisecondsSetting("PETARI_PIPELINE_PREWARM_MENUS", 0, 1) != 0;
+    static const bool enabled = millisecondsSetting("PETARI_PIPELINE_PREWARM_MENUS", 1, 1) != 0;
     return enabled;
 }
 // Game, render and audio threads run at user-interactive or real-time priority,

@@ -38,16 +38,15 @@ int main() try {
             }
         }
     }
-    // The title's "Preparing graphics N%" pill: under the title hint, in the top 12% of the image, readable at 480 lines.
+    // The title's "Preparing graphics N%" pill: in the image's bottom-right corner (right half, bottom 10%), clear of the
+    // centred prompt/copyright, readable at 480 lines.
     for (float fraction : {0.0f, 0.37f, 1.0f}) {
         const float w = 854.0f, h = 480.0f;
         io.DisplaySize = ImVec2(1280.0f, 800.0f);
         ImGui::NewFrame();
         HomeMenu::drawPreparingGraphics(fraction, 0.0f, 0.0f, w, h);
         ImGui::Render();
-        const HomeMenu::Rect hint = HomeMenu::titleHintRect();
-        const float hintBottom = (hint.y1 + 1.0f) * 0.5f * h;
-        float top = 1e9f, bottom = -1e9f, textTop = 1e9f, textBottom = -1e9f;
+        float top = 1e9f, bottom = -1e9f, left = 1e9f, right = -1e9f, textTop = 1e9f, textBottom = -1e9f;
         int vertices = 0;
         const auto* data = ImGui::GetDrawData();
         for (int list = 0; list < data->CmdListsCount; ++list) {
@@ -55,16 +54,19 @@ int main() try {
                 ++vertices;
                 top = std::fmin(top, v.pos.y);
                 bottom = std::fmax(bottom, v.pos.y);
+                left = std::fmin(left, v.pos.x);
+                right = std::fmax(right, v.pos.x);
                 const ImVec4 c = ImGui::ColorConvertU32ToFloat4(v.col);
                 if (c.x > 0.9f && c.y > 0.9f && c.z > 0.97f) { textTop = std::fmin(textTop, v.pos.y); textBottom = std::fmax(textBottom, v.pos.y); }
             }
         }
         check(vertices > 100, "preparing pill drawn");
-        check(top >= hintBottom - 0.5f && bottom <= 0.12f * h, "preparing pill under the title hint, in the top 12%");
+        check(top >= 0.90f * h && bottom <= h + 0.5f && left >= 0.70f * w && right <= w + 0.5f,
+              "preparing pill in the bottom-right corner of the image");
         check(textBottom - textTop >= 6.0f, ("preparing text readable at 480 lines: " + std::to_string(textBottom - textTop)).c_str());
     }
     ImGui::DestroyContext();
-    std::puts("Preparation overlay: text/bar geometry, ETA states and four window sizes pass; title pill placement passes");
+    std::puts("Preparation overlay: text/bar geometry, ETA states and four window sizes pass; title pill corner placement passes");
 } catch (const std::exception& error) {
     std::fprintf(stderr, "FAIL: %s\n", error.what());
     return 1;

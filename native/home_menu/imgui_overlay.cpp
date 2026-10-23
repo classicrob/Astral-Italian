@@ -613,9 +613,10 @@ void drawPreparingGraphics(float fraction, float imageX, float imageY, float ima
     fraction = std::clamp(fraction, 0.0f, 1.0f);
     ImDrawList* list = ImGui::GetForegroundDrawList();
     const ImageSpace image{imageX, imageY, imageWidth, imageHeight};
-    // Just under the title hint, narrower and fainter than it: information, not a prompt.
-    const ImVec2 pillMin = image.point(-0.30f, -0.835f);
-    const ImVec2 pillMax = image.point(0.30f, -0.775f);
+    // The image's bottom-right corner: the title's logo, prompt and copyright are centred, so the corner is free;
+    // fainter than the hint: information, not a prompt.
+    const ImVec2 pillMin = image.point(0.50f, 0.875f);
+    const ImVec2 pillMax = image.point(0.95f, 0.945f);
     const float height = pillMax.y - pillMin.y;
     list->PushClipRect(image.point(-1.0f, -1.0f), image.point(1.0f, 1.0f), false);
     list->AddRectFilled(pillMin, pillMax, color(0.02f, 0.03f, 0.08f, 0.50f), height * 0.5f);

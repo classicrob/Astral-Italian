@@ -39,6 +39,11 @@ Output in `~/MacioGalaxy2-team/scratch-release/out/` (override with `--out`): `A
 
 ## Check before uploading
 
+- On the **oldest macOS you support** (the M1, macOS 15.1): `python3 -I tools/release/check_weak_imports.py <Astral Italian.app>` lists
+  weak imports that macOS lacks (an API newer than the deployment target, linked weakly because the SDK is newer). It must
+  print 0; anything listed is a call that jumps to address 0 on that macOS unless the source guards it. (libusb's `pipe2`,
+  macOS 26+, crashed the first 15.0 build at startup; fixed by `ac_cv_func_pipe2=no` in `native/cmake/libusb`.)
+
 - Unzip into a fresh folder and launch it on a Mac **without** Homebrew/dev tools (and the oldest macOS you can reach).
   Run the first-run flow with a real disc, play a few minutes, press M, run `Collect Bug Report.command`.
 - `spctl --assess -v` will say "rejected" until the app is notarized; that is expected for the unsigned tester flow.

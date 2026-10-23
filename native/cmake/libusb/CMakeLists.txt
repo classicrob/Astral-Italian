@@ -14,7 +14,7 @@ if(CMAKE_OSX_SYSROOT)
 endif()
 # A parent architecture/SDK/deployment change needs fresh objects, even if make
 # would otherwise regard the previously configured C objects as up to date.
-string(SHA256 _configuration "${CMAKE_C_COMPILER}|${_flags}|${PETARI_LIBUSB_SHA256}")
+string(SHA256 _configuration "${CMAKE_C_COMPILER}|${_flags}|${PETARI_LIBUSB_SHA256}|no-pipe2")
 ExternalProject_Add(libusb
     URL "${PETARI_LIBUSB_URL}"
     URL_HASH "SHA256=${PETARI_LIBUSB_SHA256}"
@@ -26,7 +26,9 @@ ExternalProject_Add(libusb
     CONFIGURE_COMMAND "${CMAKE_COMMAND}" -E env
         "CC=${CMAKE_C_COMPILER}" "CFLAGS=-O2${_flags}" "LDFLAGS=${_flags}"
         "CPPFLAGS=" "LIBS=" "PKG_CONFIG_PATH=" "PKG_CONFIG_LIBDIR="
-        <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-static --enable-shared
+        # pipe2 first shipped in macOS 26: an SDK that declares it makes configure pick it, and libusb then calls the
+        # (weakly linked, null) symbol on older systems. Its pipe()+fcntl fallback works everywhere.
+        <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-static --enable-shared ac_cv_func_pipe2=no
     BUILD_COMMAND "${PETARI_MAKE}" -j2
     INSTALL_COMMAND "${PETARI_MAKE}" install
     COMMAND /usr/bin/install_name_tool -id @rpath/libusb-1.0.0.dylib <INSTALL_DIR>/lib/libusb-1.0.0.dylib

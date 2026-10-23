@@ -4,14 +4,19 @@ import csv
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import struct
 import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'native/tools'))
+import headless_determinism as determinism
+
 spec = importlib.util.spec_from_file_location("headless", ROOT / "native/tools/headless.py")
 headless = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(headless)
@@ -21,6 +26,83 @@ bounded_spec.loader.exec_module(bounded)
 gx_spec = importlib.util.spec_from_file_location("gx_noops", ROOT / "native/app/headless/gen_gx_noops.py")
 gx = importlib.util.module_from_spec(gx_spec)
 gx_spec.loader.exec_module(gx)
+
+
+class DeterminismTests(unittest.TestCase):
+    def compare(self, left, right):
+        with tempfile.TemporaryDirectory() as directory:
+            paths = [Path(directory) / name for name in ('left.csv', 'right.csv')]
+            for path, rows in zip(paths, (left, right)):
+                with path.open('w', newline='') as stream:
+                    csv.writer(stream).writerows(rows)
+            return determinism.compare_traces(*paths)
+
+    def test_identical_quoted_cells(self):
+        rows = [['frame', 'state_ids', 'x_bits'], ['0', '[1,2]', '0x80000000']]
+        result = self.compare(rows, rows)
+        self.assertTrue(result['identical'])
+        self.assertEqual(result['rows'], 1)
+
+    def test_compares_float_bits_even_when_decimals_match(self):
+        result = self.compare(
+            [['frame', 'x', 'x_bits'], ['0', '0', '0x00000000']],
+            [['frame', 'x', 'x_bits'], ['0', '0', '0x80000000']])
+        self.assertFalse(result['identical'])
+        self.assertEqual(result['first']['column'], 'x_bits')
+
+    def test_first_loop_and_column_and_all_change_counts(self):
+        header = ['frame', 'x', 'rng_seed']
+        result = self.compare(
+            [header, ['0', '1', '2'], ['1', '1', '2'], ['2', '1', '2']],
+            [header, ['0', '1', '2'], ['1', '3', '4'], ['2', '1', '5']])
+        self.assertEqual(result['first']['loop'], '1')
+        self.assertEqual(result['first']['column'], 'x')
+        self.assertEqual(result['columns'], {'x': 1, 'rng_seed': 2})
+        self.assertEqual(result['differing_rows'], 2)
+        self.assertEqual(result['first_by_column']['rng_seed']['loop'], '1')
+
+    def test_short_trace_is_a_difference(self):
+        result = self.compare([['frame'], ['0'], ['1']], [['frame'], ['0']])
+        self.assertFalse(result['identical'])
+        self.assertEqual(result['first']['column'], '__rows__')
+        self.assertEqual(result['first']['loop'], 1)
+
+    def test_schema_change_is_a_difference(self):
+        result = self.compare([['frame', 'x']], [['frame', 'x_bits']])
+        self.assertFalse(result['identical'])
+        self.assertEqual(result['first']['column'], '__columns__')
+
+    def test_rerun_clears_artifacts_and_isolates_scribble_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            args = SimpleNamespace(headless=root / 'binary', disc=root / 'disc', actor_trace=False, timeout=5, frames=1)
+            for variant in ('plain-a', 'scribble'):
+                with self.subTest(variant=variant):
+                    run = root / variant
+                    run.mkdir()
+                    trace = run / 'trace.csv'
+                    for suffix in ('', '.complete', '.timing.csv'):
+                        Path(str(trace) + suffix).write_text('stale artifact')
+
+                    def launch(cmd, stdout, stderr, env, start_new_session):
+                        self.assertFalse(any(run.glob('trace.csv*')))
+                        self.assertFalse((run / 'user').exists())
+                        if variant == 'scribble':
+                            self.assertEqual((env['MallocNanoZone'], env['MallocScribble']), ('0', '1'))
+                        else:
+                            self.assertNotIn('MallocScribble', env)
+                            self.assertNotIn('MallocNanoZone', env)
+                        (run / 'user').mkdir()
+                        trace.write_text('frame,x\n0,0\n1,0\n')
+                        Path(str(trace) + '.complete').write_text('2\n')
+                        stdout.write(b'[input-script] done\n')
+                        return SimpleNamespace(returncode=0, wait=lambda timeout: 0)
+
+                    with patch.dict(os.environ, {'MallocScribble': '1'}), patch.object(determinism.subprocess, 'Popen', launch):
+                        result = determinism.run_variant(args, root, 'Fixture', 1, variant, root / 'keys.txt')
+                    self.assertTrue(result['ok'])
+                    self.assertEqual(result['rows'], 2)
+                    self.assertFalse((run / 'user').exists())
 
 
 class InterchangeTests(unittest.TestCase):

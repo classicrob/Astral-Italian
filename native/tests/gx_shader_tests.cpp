@@ -376,14 +376,21 @@ int main(int argc, char** argv) {
         sqlite3_stmt* q=nullptr;
         if(sqlite3_prepare_v2(db,"SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13",-1,&q,nullptr)!=SQLITE_OK)return 3;
         std::map<std::string,unsigned> reasons;
+        std::map<std::pair<unsigned,unsigned>,unsigned> counts;
         while(sqlite3_step(q)==SQLITE_ROW) {
             if(sqlite3_column_bytes(q,0)!=sizeof(PipelineConfig))return 4;
             PipelineConfig c;std::memcpy(&c,sqlite3_column_blob(q,0),sizeof(c));
             if(!petari_cached_shader_valid(c.shaderConfig,0)){++reasons["invalid"];continue;}
             ++reasons[petari_uber_reason(c.shaderConfig)];
+            if(std::string(petari_uber_reason(c.shaderConfig))=="covered") {
+                const auto info=build_shader_info(c.shaderConfig);unsigned texgens=0;
+                for(unsigned i=0;i<8;++i) if(info.sampledTexCoords.test(i))texgens=i+1;
+                ++counts[{c.shaderConfig.tevStageCount,texgens}];
+            }
         }
         sqlite3_finalize(q);sqlite3_close(db);
         for(auto& [reason,count]:reasons)std::printf("reason=%s configs=%u\n",reason.c_str(),count);
+        for(auto& [key,count]:counts)std::printf("tev=%u texgens=%u configs=%u\n",key.first,key.second,count);
         return 0;
     }
     if (argc == 3 && std::string(argv[1]) == "--validate-cache") {

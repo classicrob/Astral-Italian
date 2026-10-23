@@ -78,7 +78,7 @@ Frame domains are explicit: packet IDs start at one, GPU query indices at zero.
 The packet begin callback calls the GX counter immediately before the query begin;
 query indices increment even when readback is busy. Both cold runs have complete,
 unique, contiguous query index ranges equal to encoded_frames, and event counts
-match fallback_frames. The GPU query index therefore maps to packet ID +1.
+match fallback_frames. The mapping is `packet ID = GPU CSV frame + 1`.
 Presented-frame telemetry can overlap a wait on the upcoming recording packet;
 the instrumented complete-scene waits below name recording packet 481, whereas
 the presented/GPU outlier is 480. No GPU duration is inferred for invalid rows.
@@ -111,3 +111,89 @@ No other feature rejection class appeared in either repeat's pending set.
 
 SOL 2 async commit ffa39f2f was cherry-picked alone as e5a335c9; its seven
 compiled fake-GPU scheduling scenarios pass. Full integration runtime checks follow.
+
+
+## Coverage and integrated scheduling baselines
+
+Exact fog and indirect coverage landed in 2a9b27fb. The packed draw buffer is
+4768 bytes. Fog uses Aurora's reversed-Z depth, perspective/orthographic equations,
+range adjustment, exp2 modes and ordering before final TEV overflow. Indirect uses
+its format rounding, bias, static/dynamic matrices, coordinate scaling/wrap/add-prev
+and alpha-bump equations. Unsupported vertex/texgen modes still reject explicitly.
+The three stage seed sets are covered 183/183, 206/206 and 106/106 configurations.
+
+The a0140447 integration (int1) has asynchronous preparation on reserved workers.
+The c9d27887 integration (int2) adds all-worker preparation and active-stage priority.
+Both use exactly the same renderer and private bundle IDs. The default moving
+970-frame scripts completed; measured draw coverage is 100% on all three stages.
+These are separate cold runs whose fallback composition changes with scheduling;
+GPU medians alone are not a renderer speedup ratio.
+
+| Integration / stage | Covered draws / total | Gameplay >100 ms | Maximum gameplay ms | Fallback GPU median / p99 / max ms | Fallback GPU >=20 ms |
+| --- | ---: | ---: | ---: | --- | ---: |
+| int1 Yoshi | 777093 / 777093 | 1 | 1104.947 | 13.519 / 19.620 / 32.695 | 8 |
+| int1 Fluffy | 1125414 / 1125414 | 1 | 1780.497 | 9.912 / 31.282 / 41.038 | 92 |
+| int1 Starship | 718369 / 718369 | 2 | 906.708 | 13.160 / 24.664 / 901.181 | 289 |
+| int2 Yoshi | 779657 / 779657 | 0 | 51.614 | 13.976 / 28.777 / 31.196 | 296 |
+| int2 Fluffy | 1127196 / 1127196 | 0 | 40.651 | 9.484 / 40.120 / 40.474 | 166 |
+| int2 Starship | 717707 / 717707 | 0 | 57.622 | 24.284 / 28.336 / 29.978 | 397 |
+
+Int2 removes the observed gameplay waits, but fails the GPU gate. All 293 fallback
+pipelines complete without failed or unknown keys. Boot only enqueues (no synchronous
+pipeline compiles); an unready fallback retains the existing wait/skip behavior and
+is counted separately from failed and unknown keys. The all-worker policy can delay
+first title recording; SOL 2's follow-up reserves two workers until that recording,
+then releases preparation to all workers and emits `event=prep_release`.
+
+Int1 stationary specialised/forced-all image comparisons, same signed executable,
+identical 970-row input traces and 15 captures per run:
+
+| Stage | Mean RGB difference /255 | Maximum channel difference /255 |
+| --- | ---: | ---: |
+| Yoshi | 0.000633108 | 15 |
+| Fluffy | 0.000297966 | 91 |
+| Starship | 0.001964615 | 158 |
+
+Yoshi and Starship are unchanged from V1's differences. Starship's largest outlier
+is the existing sparse silhouette edge. Fluffy's larger maxima occur at one or two
+pixels at the end of a bright water-reflection streak (for example frame 360,
+pixel 781,760); its off/off control is exactly zero. This is a shader-associated
+boundary difference, consistent with floating-point/indirect quantization, rather
+than ordinary capture noise. Its precise arithmetic cause has not been proved.
+These image results validate int1, not the later optimization below.
+
+## Measured heavy-frame optimization
+
+Profiling lives on a separate branch/app and is excluded from integration apps.
+Counters record actual fallback draws, physical draws including alpha prepasses,
+vertices, TEV/texgen/indirect/fog variants and fixed state per encoded frame. They
+cannot measure fragment overdraw; blending and disabled depth writes are only
+indicators. A Fluffy sample has 82.6% one-stage fallback draws and 77.5% with texgen
+extent one. A second sample's top eight complete argument/routing programs account
+for 92.2% of fallback draws and 95.1% of fallback vertices in heavy frames.
+
+Same-binary stationary forced-all diagnostics (last 500 valid samples) give full
+41.512 ms, argument-selector dispatch removed 23.814 ms, identity swizzles 31.790 ms,
+operation dispatch removed 40.441 ms, konst removed 45.856 ms and texture binding
+dispatch removed 40.376 ms. These image-changing ablations are non-additive and do
+not establish exact cycle shares. The completed controls do not justify adding a
+texture-binding-mask dimension to the key.
+
+Renderer 6baaacea instead adds two bounded dimensions: exact matches for the eight
+measured argument/output-register programs, and an identity-swap flag. The classifier
+compares every full enum and register selector. Unknown programs retain the generic
+interpreter; dynamic TEV operations, clamp/bias/scale, constants, lighting and all
+uniform values keep their original equations. Identity specialization requires all
+referenced swap tables to be identity. The complete 64-database audit counts 11608
+configs, 33 explicit rejections, 337 fixed keys (previously 293), 61 shader variants,
+3470 fast-program configs and 11560 identity-swap configs. The bounded key adds 15%
+fixed pipelines rather than baking whole materials.
+
+Int3 is renderer 6baaacea plus SOL 2 scheduling commit 6072fd6d, cherry-picked as
+b0bd3235. Its signed executable SHA256 is
+`d6de4bfedd407ad99ca5319224b3104b3f4cafaea143e0cd4d43406edcb54870`.
+The immutable app is `uber-v2-build/evidence/b0bd3235-Petari.app`; the private bundle
+ID is `dev.petari.Petari.perfuberv2int3`. The app and shader-test builds pass,
+300 generated WGSL variants validate without errors, classifier/coverage checks
+pass, and SOL 2's ten compiled scheduling scenarios pass. Cold gate and new image
+results must be evaluated on this frozen app before claiming the optimization passes.

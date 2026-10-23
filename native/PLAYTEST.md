@@ -513,6 +513,13 @@ the first segment is entered like `--stage` (the app picks file 1 by itself); ea
 buttons are fed from then on; between segments the pad is neutral. **The loops between segments are not on the tape** (menus, the
 world map, loading), so the app reaches each next segment with the Level Select warp: those transitions are jump cuts, not replays.
 
+**Start states.** A segment's first row is compared with the recorded start, and the replay can only start where the game is when it
+anchors. A segment that begins at a fresh galaxy start replays exactly (the first Fluffy Bluff visit of the first real tape: 10,500 loops,
+no divergence). A segment whose recorded start was not a fresh entry (a re-entry after a death, a return to the Starship after a star, the
+Starship entered from the file select, where Mario spawns elsewhere than with `--stage`) already differs at row 0; the headless replay
+shows the same row-0 difference for the Starship start, so this is the entry, not GX. Such a segment is shown as diverging from its first
+row, with the replayed and recorded positions in the report.
+
 At the end (or when the game reads differently than recorded and the replay gives up) the app prints a divergence report and writes
 `<tape>-replay-<time>/` next to the tape: a copy of the tape plus `divergence.json` / `divergence.txt`. Per segment it gives the rows
 compared, the row where the replayed position first leaves the recorded `route.csv` (more than 0.01, or another stage, scenario, alive

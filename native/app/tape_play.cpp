@@ -386,7 +386,8 @@ std::string Session::segmentLine(std::size_t index) const {
         out << r.rowsCompared << " rows compared" << (r.completed ? "" : " (stopped early)") << ", ";
         if (!r.diverged) out << "no divergence (max error " << r.maxDist << ")";
         else out << "first divergence at row " << r.firstDivergenceRow << " (" << r.firstDivergenceWhy << ", " << r.firstDivergenceDist
-                 << "), max error " << r.maxDist;
+                 << "; replayed (" << r.firstReplay[0] << ", " << r.firstReplay[1] << ", " << r.firstReplay[2] << ") recorded ("
+                 << r.firstRecorded[0] << ", " << r.firstRecorded[1] << ", " << r.firstRecorded[2] << ")), max error " << r.maxDist;
     }
     return out.str();
 }

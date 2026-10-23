@@ -118,11 +118,20 @@ namespace JMath {
         }
 
         inline T sinLap(f32 v) {
+#ifdef GALAXY_NATIVE
+            // Like sinRadian/sinDegree, the Wii narrows a signed fctiwz word.
+            if (v < 0.0f) {
+                return -sin_(JMath::truncToU16(v * -(f32)LEN));
+            } else {
+                return sin_(JMath::truncToU16(v * (f32)LEN));
+            }
+#else
             if (v < 0.0f) {
                 return -sin_(v * -(f32)LEN);
             } else {
                 return sin_(v * (f32)LEN);
             }
+#endif
         }
 
         inline T cosRadian(f32 v) {
@@ -146,7 +155,11 @@ namespace JMath {
                 v = -v;
             }
 
+#ifdef GALAXY_NATIVE
+            return cos_(JMath::truncToU16(v * (LEN / 360.0f)));
+#else
             return cos_(v * (LEN / 360.0f));
+#endif
         }
 
         inline T cosLap(f32 v) {
@@ -154,7 +167,11 @@ namespace JMath {
                 v = -v;
             }
 
+#ifdef GALAXY_NATIVE
+            return cos_(JMath::truncToU16(v * (f32)LEN));
+#else
             return cos_(v * (f32)LEN);
+#endif
         }
     };
 

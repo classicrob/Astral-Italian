@@ -405,6 +405,12 @@ void PlantGroup::initAfterPlacement() {
 
 // NONMATCHING: integer-to-float conversion temporaries reuse different stack slots
 s32 PlantGroup::placeOnRail(TVec3f* pCenter) {
+#ifdef GALAXY_NATIVE
+    // The Wii accumulates into an uninitialised stack vector here. Native stack
+    // residue can be large enough to overflow squared lengths and produce NaN
+    // sensor angles. Start the position sum at zero, as the circle path does.
+    pCenter->zero();
+#endif
     f32 length = MR::getRailTotalLength(this);
 
     if (MR::isLoopRail(this)) {

@@ -197,3 +197,39 @@ ID is `dev.petari.Petari.perfuberv2int3`. The app and shader-test builds pass,
 300 generated WGSL variants validate without errors, classifier/coverage checks
 pass, and SOL 2's ten compiled scheduling scenarios pass. Cold gate and new image
 results must be evaluated on this frozen app before claiming the optimization passes.
+
+
+### Int3 cold hybrid gate
+
+The same frozen app completed all three default moving scripts without WebGPU
+errors. Draw coverage remains 100%; no failed or unknown fallback keys occur.
+GPU query index domains and fallback event counts were checked for every run.
+The strict gate **fails** despite a substantial reduction in sustained GPU cost.
+
+| Stage | Covered / total draws | Covered / total observed configs | Fallback gameplay GPU n | Median / p95 / p99 / max ms | GPU >=20 ms | Gameplay >100 ms |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| Yoshi | 778454 / 778454 | 167 / 167 | 1481 | 12.995 / 15.644 / 16.895 / 319.564 | 6 | 1 |
+| Fluffy | 1126188 / 1126188 | 162 / 162 | 1456 | 12.352 / 17.758 / 18.658 / 24.510 | 7 | 0 |
+| Starship | 718065 / 718065 | 79 / 79 | 1211 | 12.536 / 14.316 / 15.722 / 910.983 | 3 | 3 |
+
+Yoshi's frame 480 waits 293.577 ms for covered but pending fallback keys; its
+maximum gameplay interval is 310.231 ms. Starship waits at frames 480/482/484
+(891.666/456.960/100.300 ms), with maximum gameplay interval 909.519 ms.
+These waits explain all three Starship GPU outliers. Every logged residual config
+is covered with an associated fallback key, but that key is not ready; this is
+preparation timing, not an unsupported fog/indirect feature or missing association.
+Yoshi has five additional zero-wait GPU outliers (maximum 25.624 ms), Fluffy seven
+(maximum 24.510 ms). Fluffy has no gameplay interval over 100 ms (max 31.041 ms).
+
+Int3 prepares 337/337 pipelines successfully in each run. Pending draw attempts /
+skipped-unready draws are Yoshi 9/9, Fluffy 75/6 and Starship 49/36. Its scheduling
+handoff is observable: Fluffy's title first recording at 5273.489 ms has a fallback
+ready, then `prep_release` at 5273.606 ms releases all four compile workers.
+This does not imply all title keys are ready (15 remain pending at that moment).
+SOL 2 owns cold/warm readiness comparison and the preparation regression.
+
+Evidence: `int3.json`, `gpu-int3-{yoshi,fluffy,ship}-cold.csv`,
+`measure-integrated3.sh`, `summarize_integrated3.py`; cases
+`uber-v2-int3-{yoshi,fluffy,ship}-cold`. Shader, cache and source provenance remain
+in each case. Same-app image comparison is pending. Further workload profiling
+uses a separate branch and private app, never this immutable int3 app.

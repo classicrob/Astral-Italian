@@ -28,6 +28,7 @@
 
 extern "C" uint64_t petari_gx_pipeline_manifest_failure_count();
 extern "C" void petari_gx_pipeline_report();
+extern "C" void petari_gx_pipeline_note_frame(double intervalMs);
 
 #include "frame_stats.hpp"
 #include "launch_stage.hpp"
@@ -316,6 +317,7 @@ void recordFrame(std::uint64_t entry, FrameStats::Phase phase) {
     }
     t.recorder->add(frame);
     reportStall(frame);
+    petari_gx_pipeline_note_frame(frame.intervalMs);  // over-budget gameplay frames pause the global prewarm
     if (frame.phase == FrameStats::Phase::Gameplay && t.lastPhase != FrameStats::Phase::Gameplay) {
         Host::prewarmHudTextures();  // the stage's HUD layouts exist now; create their GPU textures before they are shown
     }

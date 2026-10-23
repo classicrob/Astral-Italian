@@ -45,7 +45,24 @@ static bool petariGameplay = false;
 // still compiling when the budget ran out (encoded as skips until it lands).
 static PetariPipeline::Clock::duration petariDrawBudgetLeft = PetariPipeline::drawWaitBudget();
 static uint64_t petariDeferredDraws = 0;
-static unsigned petariBackgroundCap = ~0u;
+// Global prewarm (the __global__ backlog), guarded by g_pipelineMutex. It is speculative work: it waits until play
+// has been reached once (menus, file select and the first stage load compile only what they draw or gate on), then
+// runs with few workers (PETARI_PIPELINE_PREWARM_WORKERS, default 2; 1 in gameplay), and pauses for a while after any
+// gameplay frame over budget. Metal compiles in MTLCompilerService, which our thread QoS does not cap, so an
+// uncapped backlog starved the game and kept menu draws waiting for a free worker (5.3.2 cold start).
+static unsigned petariBackgroundCap = [] {
+  const char* value = std::getenv("PETARI_PIPELINE_PREWARM_WORKERS");
+  char* end = nullptr;
+  const unsigned long count = value && *value ? std::strtoul(value, &end, 10) : 0;
+  return end && *end == '\0' && count >= 1 && count <= 8 ? static_cast<unsigned>(count) : 2u;
+}();
+static bool petariPrewarmUnlocked = false;
+static unsigned petariBacklogHoldFrames = 0;
+constexpr unsigned kPetariBacklogHoldFrames = 30;
+constexpr double kPetariFrameBudgetMs = 20.0;
+// Workers 0..kPetariOnDemandWorkers-1 take only jobs a draw (or a draw-blocking clear) waits for, so on-demand work
+// never queues behind speculative stage or prewarm compiles. Applies when there are more normal workers than this.
+constexpr unsigned kPetariOnDemandWorkers = 2;
 // Recent compile cost (exponential average of build_ms over every finished job,
 // cache hits included), guarded by g_pipelineMutex. The stage gate uses it to skip
 // waits that cannot finish within the budget: a frozen frame is worse than pop-in.
@@ -92,6 +109,34 @@ static bool petari_complete_scenes_enabled() {
 static std::atomic<bool> petariCompleteScenes{petari_complete_scenes_enabled()};
 extern "C" void petari_gx_pipeline_set_complete_scenes(bool complete) {
   petariCompleteScenes.store(petari_complete_scenes_enabled() && complete, std::memory_order_relaxed);
+  if (!complete) {  // Mario is in play: the global prewarm may start (once unlocked it stays unlocked)
+    bool unlocked = false;
+    {
+      std::lock_guard lock{g_pipelineMutex};
+      unlocked = !petariPrewarmUnlocked;
+      petariPrewarmUnlocked = true;
+    }
+    if (unlocked) {
+      g_pipelineQueueCv.notify_all();
+      std::fprintf(stderr, "[gx pipeline pool] prewarm unlocked (play reached) prewarm_workers=%u gameplay_backlog_cap=%u\n",
+                   petariBackgroundCap, PetariPipeline::gameplayBacklogCap());
+    }
+  }
+}
+
+// Called from the frame seam with each finished frame's interval: a gameplay frame over budget pauses the
+// global prewarm for kPetariBacklogHoldFrames frames.
+extern "C" void petari_gx_pipeline_note_frame(double intervalMs) {
+  bool resumed = false;
+  {
+    std::lock_guard lock{g_pipelineMutex};
+    if (petariGameplay && intervalMs > kPetariFrameBudgetMs) {
+      petariBacklogHoldFrames = kPetariBacklogHoldFrames;
+    } else if (petariBacklogHoldFrames > 0) {
+      resumed = --petariBacklogHoldFrames == 0;
+    }
+  }
+  if (resumed) g_pipelineQueueCv.notify_all();
 }
 
 extern "C" void petari_gx_pipeline_set_gameplay(bool gameplay) {
@@ -149,14 +194,18 @@ struct PetariPipelineWait {
 // workers (index >= petariNormalWorkers) take only draw-requested jobs.
 static std::deque<PendingPipeline>* petari_runnable_queue(unsigned workerIndex) {
   const bool burst = workerIndex >= petariNormalWorkers;
+  const bool onDemandOnly = petariNormalWorkers > kPetariOnDemandWorkers && workerIndex < kPetariOnDemandWorkers;
   if (!g_pipelineQueue.empty()) {
     const auto sample = petariPipelineSamples.find(g_pipelineQueue.front().hash);
     const bool drawn = sample != petariPipelineSamples.end() && sample->second.drawBlocking;
-    if (!petariGameplay || drawn || (!burst && petariStageSpeculativeInFlight < PetariPipeline::gameplayStageCap()))
+    if (drawn) return &g_pipelineQueue;
+    if (onDemandOnly) return nullptr;
+    if (!petariGameplay || (!burst && petariStageSpeculativeInFlight < PetariPipeline::gameplayStageCap()))
       return &g_pipelineQueue;
     return nullptr;
   }
-  if (burst && petariGameplay) return nullptr;
+  if (onDemandOnly || (burst && petariGameplay)) return nullptr;
+  if (!petariPrewarmUnlocked || (petariGameplay && petariBacklogHoldFrames > 0)) return nullptr;
   const unsigned backlogCap = petariGameplay ? PetariPipeline::gameplayBacklogCap() : petariBackgroundCap;
   if (!g_backgroundPipelineQueue.empty() && petariBackgroundInFlight < backlogCap) return &g_backgroundPipelineQueue;
   return nullptr;

@@ -493,5 +493,32 @@ Limits: the replay starts from a fresh user (a tape recorded on a save with prog
 it); the selected scenario is taken to be the placed one; presses during the loops between segments are not replayed (neutral reads);
 `PETARI_TEST_WARP` (a Level Select test driver in the GX app) is not replayed; pointer/mouse-only mods (PointToMove, the editor) are not taped.
 
+### Watch a tape in the game window (GX replay)
+
+A tape can also be replayed in the normal GX window, so you can *watch* the session you played:
+
+```sh
+sh native/play/play.sh --replay                      # the newest tape (menu: "Play Astral Italian.command", r)
+sh native/play/play.sh --replay ~/MacioGalaxy2-play/tapes/<folder> [--build NAME]
+```
+
+or `Petari --replay-tape <folder>` / `PETARI_TAPE_PLAY=<folder>` directly. Physical input is ignored (close the window to stop).
+`--replay` runs the chosen build only if its executable is the one that recorded the tape (`exe_sha256` in `route.tape.json`);
+otherwise it names the frozen build that is needed and stops, and never silently uses another (`--replay-any-build` runs it anyway;
+expect drift, and the report shows where). The replay uses a throwaway copy of your save (`ASTRAL_REPLAY_USER`), never your own.
+
+How it follows the tape is the headless rule (`native/app/tape_play.cpp`, feeding the recorded reads through the headless `Replay`):
+the first segment is entered like `--stage` (the app picks file 1 by itself); each segment starts at the first seam where the game's
+"ready for play" holds on the segment's stage and scenario, the recorded RNG seed is set there, and the segment's KPAD reads and mod
+buttons are fed from then on; between segments the pad is neutral. **The loops between segments are not on the tape** (menus, the
+world map, loading), so the app reaches each next segment with the Level Select warp: those transitions are jump cuts, not replays.
+
+At the end (or when the game reads differently than recorded and the replay gives up) the app prints a divergence report and writes
+`<tape>-replay-<time>/` next to the tape: a copy of the tape plus `divergence.json` / `divergence.txt`. Per segment it gives the rows
+compared, the row where the replayed position first leaves the recorded `route.csv` (more than 0.01, or another stage, scenario, alive
+or grounded state), and the largest error. A replay that drifts is shown as drifting; the headless replay is the exact reference.
+`PETARI_TAPE_PLAY_OUT=<dir>` chooses the report folder; `PETARI_TAPE_PLAY_QUIT=<loops>` closes the app that many loops after the end
+(scripted runs; otherwise the window stays open). CTest: `native_tape_play` (the session, game-free).
+
 The launcher keeps only the 20 newest session tapes in ~/MacioGalaxy2-play/tapes (about 150 MB an hour of play); older ones are removed
 when a new session starts. Copy a tape worth keeping (a star get, a bug) to ~/MacioGalaxy2-gamedata/rec-tapes first.

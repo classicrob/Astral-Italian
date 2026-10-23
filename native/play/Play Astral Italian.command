@@ -21,6 +21,7 @@ while :; do
     echo "  2) Fluffy Bluff Galaxy   (World 1)"
     echo "  3) Sky Station Galaxy    (World 1, fallback)"
     echo "  4) Title screen          (normal start, file select)"
+    echo "  r) Replay my last session (newest tape; needs the build that recorded it)"
     echo
     echo "  Frozen build: ${ASTRAL_APP%/Petari.app}"
     echo "  b) Choose another frozen build"
@@ -65,6 +66,12 @@ while :; do
     a|A) if [ "$audio" = off ]; then audio=on; else audio=off; fi; continue ;;
     u|U) if [ -n "$save" ]; then save=; else save=--unlocked; fi; continue ;;
     q|Q) exit 0 ;;
+    r|R) echo
+         sh "$play" --replay --audio "$audio"
+         echo
+         printf "Press Return for the menu. "
+         read -r _ || exit 0
+         continue ;;
     *) continue ;;
     esac
     echo

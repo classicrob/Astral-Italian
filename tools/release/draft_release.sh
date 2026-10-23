@@ -10,7 +10,9 @@ for f in "$prefix.zip" "$prefix.dSYM.zip" "$prefix.sha256" "$prefix.notes.md"; d
     [ -f "$f" ] || { echo "missing $f" >&2; exit 1; }
 done
 python3 -I "$(dirname "$0")/scan_bundle.py" "$prefix.zip"
-gh release create "v$version" --repo classicrob/Astral-Italian --draft --prerelease \
+# Tag the exact source commit the app was built from (a draft's tag is created only when it is published).
+commit=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["source_commit"])' "$prefix.manifest.json")
+gh release create "v$version" --repo classicrob/Astral-Italian --draft --prerelease --target "$commit" \
     --title "Astral Italian $version (tester build)" --notes-file "$prefix.notes.md" \
     "$prefix.zip" "$prefix.dSYM.zip" "$prefix.sha256"
 echo "Draft created. Review it at https://github.com/classicrob/Astral-Italian/releases and publish by hand."

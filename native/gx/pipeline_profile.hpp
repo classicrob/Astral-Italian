@@ -67,6 +67,12 @@ inline Clock::duration stageGateBudget() {
     static const unsigned ms = millisecondsSetting("PETARI_STAGE_GATE_MS", 33, 10000);
     return std::chrono::milliseconds(ms);
 }
+// Opt-in (default 0, off): the stage gate waits up to this long for the stage's hot targets with no estimate skip.
+// The wait freezes the screen like the old 1,500 ms gate, so it is measured, not on by default.
+inline Clock::duration stageGateLoadingBudget() {
+    static const unsigned ms = millisecondsSetting("PETARI_STAGE_GATE_LOADING_MS", 0, 10000);
+    return std::chrono::milliseconds(ms);
+}
 // Set on the GX recording thread while resolving a GX draw pipeline.
 inline thread_local bool boundedDraw = false;
 struct BoundedDrawScope {
@@ -146,6 +152,20 @@ inline unsigned gameplayStageCap() {
 inline unsigned gameplayBacklogCap() {
     static const unsigned cap = millisecondsSetting("PETARI_PIPELINE_GAMEPLAY_BACKLOG", 1, 32);
     return cap;
+}
+// The two workers reserved for draw-requested compiles (pipeline_runtime.inc) also take the current stage's
+// manifest outside active gameplay (loading, menus, pause), never the global backlog. Without it a stage's seed
+// compiled on 6 of 8 workers and a true-cold first entry (Metal's own cache empty) reached the scene with ~100 of
+// Yoshi's 191 hot variants pending: a 1.3 s freeze before play (r30 A/B, 2026-10-23). 0 restores the strict split.
+inline bool stageOnReservedWorkers() {
+    static const bool enabled = millisecondsSetting("PETARI_PIPELINE_STAGE_ON_DEMAND_WORKERS", 1, 1) != 0;
+    return enabled;
+}
+// 1: the global backlog may run in menus and loading (at PETARI_PIPELINE_PREWARM_WORKERS, never on the reserved
+// workers) instead of waiting until play is first reached. Default off (the 5.3.2 cold-start fix); measured opt-in.
+inline bool prewarmBeforePlay() {
+    static const bool enabled = millisecondsSetting("PETARI_PIPELINE_PREWARM_MENUS", 0, 1) != 0;
+    return enabled;
 }
 // Game, render and audio threads run at user-interactive or real-time priority,
 // above both compile classes: stage/draw requests use user-initiated, the global backlog utility.

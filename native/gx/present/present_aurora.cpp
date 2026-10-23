@@ -21,6 +21,8 @@
 #include <thread>
 #include <vector>
 
+#include <pthread.h>
+
 #include <petari/editor_view.hpp>
 #include <petari/efb_dump_mark.hpp>
 #include <petari/host_allocation.hpp>
@@ -682,12 +684,32 @@ aurora::webgpu::Viewport present_viewport(uint32_t surfaceWidth, uint32_t surfac
   return viewport;
 }
 
+// The render worker encodes, submits and presents every frame. Aurora starts it at the default QoS while the VI
+// thread is real-time and the game threads are user-interactive, so under desktop load (load 5-8: other apps, audio)
+// its few-millisecond scheduling delays pushed frames past the 120 Hz compositor latch: one frame on screen for 3
+// refreshes, the next for 1 (r30 A/B, 2026-10-23). Raised once, on the worker itself, when presentation starts.
+// PETARI_RENDER_WORKER_QOS=default keeps Aurora's.
+static void raise_render_worker_qos() noexcept {
+  static std::atomic<bool> done{false};
+  if (done.exchange(true)) return;
+  const char* value = std::getenv("PETARI_RENDER_WORKER_QOS");
+  if (value != nullptr && std::strcmp(value, "default") == 0) {
+    std::fputs("[present] render worker QoS: default (PETARI_RENDER_WORKER_QOS=default)\n", stderr);
+    return;
+  }
+  aurora::gfx::render_worker::enqueue_work([] {
+    const int result = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
+    std::fprintf(stderr, "[present] render worker QoS: %s\n", result == 0 ? "user-interactive" : "unchanged (failed)");
+  });
+}
+
 }  // namespace petari_present
 
 extern "C" {
 
 void petari_present_enable(void) {
   petari_present::gEnabled = true;
+  petari_present::raise_render_worker_qos();
   if (!petari_present::gAspectEnabled.exchange(true)) {
     aurora::window::request_frame_buffer_resize();
   }

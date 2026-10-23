@@ -280,10 +280,16 @@ extern "C" void petari_gx_pipeline_stage_wait() {
     // targets cannot compile within the budget at the recent per-compile cost.
     size_t gatePending = 0;
     for (const auto key : targets) gatePending += !g_pipelines.contains(key);
-    const double workers = std::max(1u, petariActiveWorkers);
+    // The reserved on-demand workers count only when they take stage jobs (outside gameplay, by default).
+    const unsigned reserved = petariNormalWorkers > kPetariOnDemandWorkers &&
+        !(PetariPipeline::stageOnReservedWorkers() && !petariGameplay) ? kPetariOnDemandWorkers : 0u;
+    const double workers = std::max(1u, petariActiveWorkers > reserved ? petariActiveWorkers - reserved : 1u);
     estimateMs = gatePending * petariCompileEwmaMs / workers;
+    const auto loadingBudget = PetariPipeline::stageGateLoadingBudget();
     const double budgetMs = PetariPipeline::milliseconds(PetariPipeline::stageGateBudget());
-    if (gatePending && petariCompileEwmaMs > 0 && estimateMs > budgetMs) skipped = true;
+    if (loadingBudget > PetariPipeline::Clock::duration::zero())
+      complete = g_pipelineReadyCv.wait_until(lock, start + loadingBudget, ready);
+    else if (gatePending && petariCompileEwmaMs > 0 && estimateMs > budgetMs) skipped = true;
     else complete = g_pipelineReadyCv.wait_until(lock, start + PetariPipeline::stageGateBudget(), ready);
     for (const auto key : targets) {
       const auto found = g_pipelines.find(key);

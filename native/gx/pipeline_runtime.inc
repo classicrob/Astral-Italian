@@ -62,6 +62,7 @@ constexpr unsigned kPetariBacklogHoldFrames = 30;
 constexpr double kPetariFrameBudgetMs = 20.0;
 // Workers 0..kPetariOnDemandWorkers-1 take only jobs a draw (or a draw-blocking clear) waits for, so on-demand work
 // never queues behind speculative stage or prewarm compiles. Applies when there are more normal workers than this.
+// Outside active gameplay they also take the current stage's manifest (PetariPipeline::stageOnReservedWorkers).
 constexpr unsigned kPetariOnDemandWorkers = 2;
 // Recent compile cost (exponential average of build_ms over every finished job,
 // cache hits included), guarded by g_pipelineMutex. The stage gate uses it to skip
@@ -199,13 +200,14 @@ static std::deque<PendingPipeline>* petari_runnable_queue(unsigned workerIndex) 
     const auto sample = petariPipelineSamples.find(g_pipelineQueue.front().hash);
     const bool drawn = sample != petariPipelineSamples.end() && sample->second.drawBlocking;
     if (drawn) return &g_pipelineQueue;
-    if (onDemandOnly) return nullptr;
+    if (onDemandOnly && (petariGameplay || !PetariPipeline::stageOnReservedWorkers())) return nullptr;
     if (!petariGameplay || (!burst && petariStageSpeculativeInFlight < PetariPipeline::gameplayStageCap()))
       return &g_pipelineQueue;
     return nullptr;
   }
   if (onDemandOnly || (burst && petariGameplay)) return nullptr;
-  if (!petariPrewarmUnlocked || (petariGameplay && petariBacklogHoldFrames > 0)) return nullptr;
+  if (!(petariPrewarmUnlocked || PetariPipeline::prewarmBeforePlay()) || (petariGameplay && petariBacklogHoldFrames > 0))
+    return nullptr;
   const unsigned backlogCap = petariGameplay ? PetariPipeline::gameplayBacklogCap() : petariBackgroundCap;
   if (!g_backgroundPipelineQueue.empty() && petariBackgroundInFlight < backlogCap) return &g_backgroundPipelineQueue;
   return nullptr;

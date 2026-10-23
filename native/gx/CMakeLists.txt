@@ -569,7 +569,8 @@ endif()
 add_executable(petari_pipeline_cache_inspect EXCLUDE_FROM_ALL "${CMAKE_SOURCE_DIR}/native/tools/pipeline_cache_inspect.cpp")
 target_compile_features(petari_pipeline_cache_inspect PRIVATE cxx_std_20)
 target_include_directories(petari_pipeline_cache_inspect PRIVATE "${aurora_SOURCE_DIR}/lib")
-target_link_libraries(petari_pipeline_cache_inspect PRIVATE aurora::gx aurora::core SQLite::SQLite3)
+# gx.hpp (Aurora internal) uses abseil, which Aurora links PRIVATE: link it here too (needed once abseil is fetched, not Homebrew).
+target_link_libraries(petari_pipeline_cache_inspect PRIVATE aurora::gx aurora::core SQLite::SQLite3 absl::btree absl::flat_hash_map)
 target_link_options(petari_pipeline_cache_inspect PRIVATE -Wl,-dead_strip)
 
 if(_petari_build_testing AND EXISTS "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files/LayoutData/GalaxyNamePlate.arc")

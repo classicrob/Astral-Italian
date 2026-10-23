@@ -10,6 +10,7 @@ static void petari_uber_unroll(std::string& src,std::string_view loop,char varia
   auto body=src.substr(bodyBegin,end-bodyBegin-1);std::string expanded;
   for(unsigned n=0;n<count;++n){
     expanded+="{\n";
+    if(loop.find("cfg(822u)")!=std::string_view::npos)expanded+=fmt::format("// petari_tev_stage {}\n",n);
     for(size_t p=0;p<body.size();){
       auto ident=[](char c){return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_';};
       if(ident(body[p])){auto q=p+1;while(q<body.size()&&ident(body[q]))++q;
@@ -81,6 +82,36 @@ fn run(in:VertexOutput)->vec4f {
     replaceAll(fmt::format("args[{}{}]",i,suffix),fmt::format("arg{}",i));
     replaceAll(fmt::format("aa[{}{}]",i,suffix),fmt::format("aa{}",i));
   }
+  if(variant&(1u<<13)) {
+    const auto begin=src.find("fn swizzle(");const auto end=src.find("fn konst(",begin);
+    src.replace(begin,end-begin,"fn swizzle(v:vec4f,s:u32)->vec4f {return v;}\n");
+  }
+  const unsigned programId=variant>>24;
+  if(programId) {
+    if(programId>PetariUberArgPrograms.size())std::abort();
+    const auto& program=PetariUberArgPrograms[programId-1];if(program.count!=(variant&31u))std::abort();
+    const auto colorExpr=[](unsigned a)->std::string {
+      if(a<8)return a&1?fmt::format("vec3f(r.r{}.a)",a/2):fmt::format("r.r{}.rgb",a/2);
+      switch(a){case 8:return "t.rgb";case 9:return "vec3f(t.a)";case 10:return "ras.rgb";case 11:return "vec3f(ras.a)";case 12:return "vec3f(1)";case 13:return "vec3f(0.5)";case 14:return "k.rgb";default:return "vec3f(0)";}
+    };
+    const auto alphaExpr=[](unsigned a)->std::string {
+      if(a<4)return fmt::format("r.r{}.a",a);
+      switch(a){case 4:return "t.a";case 5:return "ras.a";case 6:return "ka.a";default:return "0.0";}
+    };
+    for(unsigned stage=0;stage<program.count;++stage) {
+      const auto begin=src.find(fmt::format("// petari_tev_stage {}\n",stage));
+      const auto end=stage+1<program.count?src.find(fmt::format("// petari_tev_stage {}\n",stage+1),begin):src.find(" var color=",begin);
+      auto body=src.substr(begin,end-begin);const auto& args=program.stages[stage];
+      const auto substitute=[&](const std::string& from,const std::string& to){auto pos=body.find(from);if(pos==std::string::npos)std::abort();body.replace(pos,from.size(),to);};
+      for(unsigned j=0;j<4;++j) {
+        substitute(fmt::format("let a=cfg(o+{}u);var v=carg(a,r,t,ras,k)",j),fmt::format("let a={}u;var v={}",args[j],colorExpr(args[j])));
+        substitute(fmt::format("let a=cfg(o+4u+{}u);var x=aarg(a,r,t,ras,ka)",j),fmt::format("let a={}u;var x={}",args[j+4],alphaExpr(args[j+4])));
+      }
+      substitute("lastc=cfg(o+12u)",fmt::format("lastc={}u",args[8]));
+      substitute("lasta=cfg(o+17u)",fmt::format("lasta={}u",args[9]));
+      src.replace(begin,end-begin,body);
+    }
+  }
   // Diagnostic ablations deliberately change the image. Each removes one feature
   // from the same interpreter to locate GPU cost; never used for correctness gates.
   if (const char* ablation=std::getenv("PETARI_UBERSHADER_ABLATION")) {
@@ -100,7 +131,7 @@ fn run(in:VertexOutput)->vec4f {
   }
   return src;
 }
-std::string petari_uber_source(DstAlphaMode mode,uint32_t normal) {return petari_uber_source(mode,normal,16u|(8u<<5));}
+std::string petari_uber_source(DstAlphaMode mode,uint32_t normal) {return petari_uber_source(mode,normal,16u|(8u<<5)|(4u<<9)|(1u<<12));}
 wgpu::ShaderModule petari_uber_shader(const ShaderConfig& config,DstAlphaMode mode,uint32_t normal) {
  const auto variant=petari_uber_variant(config);
  static std::mutex mutex;static std::map<std::tuple<unsigned,uint32_t,uint32_t>,wgpu::ShaderModule> modules;
@@ -108,7 +139,7 @@ wgpu::ShaderModule petari_uber_shader(const ShaderConfig& config,DstAlphaMode mo
  auto start=std::chrono::steady_clock::now();auto src=petari_uber_source(mode,normal,variant);
  PetariPipeline::dumpSource(xxh3_hash_s(src.data(),src.size()),src);
  wgpu::ShaderSourceWGSL wgsl{};wgsl.code=src.c_str();wgpu::ShaderModuleDescriptor desc{.nextInChain=&wgsl,.label="Petari ubershader"};auto module=webgpu::g_device.CreateShaderModule(&desc);
- auto ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();petariUberShaderMs+=ms;std::fprintf(stderr,"[gx uber shader] mode=%u normal=%u source_bytes=%zu shader_ms=%.3f variant=%u tev=%u texgens=%u indirect=%u fog=%u\n",unsigned(mode),normal,src.size(),ms,variant,variant&31u,(variant>>5)&15u,(variant>>9)&7u,bool(variant&(1u<<12)));
+ auto ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();petariUberShaderMs+=ms;std::fprintf(stderr,"[gx uber shader] mode=%u normal=%u source_bytes=%zu shader_ms=%.3f variant=%u tev=%u texgens=%u indirect=%u fog=%u identity_swap=%u arg_program=%u\n",unsigned(mode),normal,src.size(),ms,variant,variant&31u,(variant>>5)&15u,(variant>>9)&7u,bool(variant&(1u<<12)),bool(variant&(1u<<13)),variant>>24);
  modules.emplace(key,module);return module;
 }
 }

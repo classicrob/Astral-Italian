@@ -15,11 +15,16 @@
 #include <exception>
 #include <csignal>
 #include <map>
+#include <set>
+#include <filesystem>
+#include "../gx/ubershader_programs.hpp"
 
 namespace aurora::gx {
 std::string petari_uber_source(DstAlphaMode, uint32_t);
 std::string petari_uber_source(DstAlphaMode, uint32_t, uint32_t);
 const char* petari_uber_reason(const ShaderConfig&);
+uint32_t petari_uber_arg_program(const ShaderConfig&);
+uint32_t petari_uber_variant(const ShaderConfig&);
 aurora::gfx::PipelineRef petari_uber_key(const PipelineConfig&,const aurora::gfx::RenderTargetLayout&);
 }
 using namespace aurora::gx;
@@ -337,8 +342,13 @@ int main(int argc, char** argv) {
         });
         if(instance.WaitAny(df,5000000000)!=wgpu::WaitStatus::Success || !device) return 3;
         unsigned checked=0;
-        // All shipped count pairs plus the maximum admitted stage/texgen extent.
-        for(auto variant:{1u,33u,2u,34u,66u,35u,67u,99u,36u,68u,100u,132u,101u,133u,198u,264u,272u,545u,578u,579u,4642u,6416u})
+        // Generic worst cases, identity swaps, and every bounded program.
+        std::vector<uint32_t> variants;
+        for(auto base:{1u,33u,2u,34u,66u,35u,67u,99u,36u,68u,100u,132u,101u,133u,198u,264u,272u,545u,578u,579u,4642u,6416u})
+          for(auto identity:{0u,1u})variants.push_back(base|(identity<<13));
+        for(unsigned i=0;i<PetariUberArgPrograms.size();++i)
+          for(auto identity:{0u,1u})variants.push_back(PetariUberArgPrograms[i].count|(8u<<5)|(4u<<9)|(1u<<12)|(identity<<13)|((i+1)<<24));
+        for(auto variant:variants)
         for(auto mode:{DstAlphaMode::None,DstAlphaMode::Replace,DstAlphaMode::DualSource}) for(auto normal:{UINT32_MAX,1u}) {
             if(mode==DstAlphaMode::DualSource && (normal!=UINT32_MAX || !device.HasFeature(wgpu::FeatureName::DualSourceBlending)))continue;
             const auto source=petari_uber_source(mode,normal,variant);
@@ -372,11 +382,25 @@ int main(int argc, char** argv) {
         expect(std::string(petari_uber_reason(c)) == "texgen_type", "emboss texgen cannot enter generic path");
         c.tcgs[0].type = GX_TG_MTX2x4; c.attrs[GX_VA_NRM] = {.attrType=GX_INDEX16,.cnt=9,.compType=GX_S16,.nbt3=true};
         expect(std::string(petari_uber_reason(c)) != "covered", "NBT3 decode cannot enter generic path");
+        auto swap=indirect_config();swap.tevStages[0].tevSwapTex=GXTevSwapSel(4);
+        expect(std::string(petari_uber_reason(swap))=="swap_selector","CPU swap specialization cannot index outside the swap table");
         auto indirect=indirect_config();
         indirect.numIndStages=5;
         expect(std::string(petari_uber_reason(indirect))=="indirect_count","indirect stage count remains bounded");
         auto fog=indirect_config();fog.fogType=3;
         expect(std::string(petari_uber_reason(fog))=="fog_type","invalid fog types retain old path");
+        for(unsigned p=0;p<PetariUberArgPrograms.size();++p) {
+          auto config=indirect_config();const auto& program=PetariUberArgPrograms[p];config.tevStageCount=program.count;
+          for(unsigned i=0;i<program.count;++i) {
+            const auto& a=program.stages[i];auto& t=config.tevStages[i];
+            t.colorPass={GXTevColorArg(a[0]),GXTevColorArg(a[1]),GXTevColorArg(a[2]),GXTevColorArg(a[3])};
+            t.alphaPass={GXTevAlphaArg(a[4]),GXTevAlphaArg(a[5]),GXTevAlphaArg(a[6]),GXTevAlphaArg(a[7])};
+            t.colorOp.outReg=GXTevRegID(a[8]);t.alphaOp.outReg=GXTevRegID(a[9]);
+          }
+          expect(petari_uber_arg_program(config)==p+1,"bounded argument program matches all selectors and destinations exactly");
+          config.tevStages[0].colorPass.a=GXTevColorArg((unsigned(config.tevStages[0].colorPass.a)+1)%16);
+          expect(petari_uber_arg_program(config)!=p+1,"different selectors cannot reuse a baked argument program");
+        }
         PipelineConfig first{};first.shaderConfig=indirect_config();
         first.shaderConfig.numIndStages=0;first.shaderConfig.tevStages[0].indTexMtxId=GX_ITM_OFF;
         aurora::gfx::RenderTargetLayout layout{};layout.key=123;
@@ -389,6 +413,26 @@ int main(int argc, char** argv) {
         auto secondLayout=layout;secondLayout.key=456;
         expect(petari_uber_key(first,layout)!=petari_uber_key(first,secondLayout),"target layout remains in the generic key");
         return failures ? 1 : 0;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--audit-uber-keys") {
+        std::set<aurora::gfx::PipelineRef> keys;std::set<uint32_t> variants;
+        unsigned databases=0,rows=0,rejected=0,fast=0,identity=0;
+        aurora::gfx::RenderTargetLayout layout{};layout.key=1;
+        for(const auto& file:std::filesystem::directory_iterator(argv[2])) {
+          if(file.path().extension()!=".db")continue;++databases;sqlite3* db=nullptr;
+          if(sqlite3_open_v2(file.path().c_str(),&db,SQLITE_OPEN_READONLY,nullptr)!=SQLITE_OK)return 2;
+          sqlite3_stmt* q=nullptr;
+          if(sqlite3_prepare_v2(db,"SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13",-1,&q,nullptr)!=SQLITE_OK)return 3;
+          while(sqlite3_step(q)==SQLITE_ROW) {
+            if(sqlite3_column_bytes(q,0)!=sizeof(PipelineConfig))return 4;
+            PipelineConfig c;std::memcpy(&c,sqlite3_column_blob(q,0),sizeof(c));
+            if(!petari_cached_shader_valid(c.shaderConfig,0) || std::string(petari_uber_reason(c.shaderConfig))!="covered"){++rejected;continue;}
+            ++rows;const auto variant=petari_uber_variant(c.shaderConfig);variants.insert(variant);keys.insert(petari_uber_key(c,layout));fast+=bool(variant>>24);identity+=bool(variant&(1u<<13));
+          }
+          sqlite3_finalize(q);sqlite3_close(db);
+        }
+        std::printf("databases=%u configs=%u rejected=%u keys_one_layout=%zu shader_variants=%zu fast_program_configs=%u identity_swap_configs=%u\n",databases,rows,rejected,keys.size(),variants.size(),fast,identity);
+        return 0;
     }
     if (argc == 3 && std::string(argv[1]) == "--audit-uber-cache") {
         sqlite3* db=nullptr;

@@ -24,5 +24,6 @@ void petari_uber_scheduled(gfx::PipelineRef);
 void petari_uber_release(); // after compilation workers have joined
 extern thread_local bool petariBuildingUber;
 uint32_t petari_uber_variant(const ShaderConfig&);
+uint32_t petari_uber_arg_program(const ShaderConfig&);
 wgpu::ShaderModule petari_uber_shader(const ShaderConfig&, DstAlphaMode, uint32_t);
 }

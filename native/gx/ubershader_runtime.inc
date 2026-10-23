@@ -1,5 +1,6 @@
 // Included in the GX shader TU, where the existing decode/TEV helpers are visible.
 #include "ubershader.hpp"
+#include "ubershader_programs.hpp"
 #include "../gfx/recording.hpp"
 #include "../gfx/encoding.hpp"
 
@@ -41,6 +42,7 @@ const char* petari_uber_reason(const ShaderConfig& c) {
   }
   for(unsigned i=0;i<c.tevStageCount;++i) {
     auto& s=c.tevStages[i];
+    if(unsigned(s.tevSwapTex)>=c.tevSwapTable.size() || unsigned(s.tevSwapRas)>=c.tevSwapTable.size())return "swap_selector";
     if(s.alphaOp.op!=GX_TEV_ADD && s.alphaOp.op!=GX_TEV_SUB && s.alphaOp.op!=GX_TEV_COMP_A8_GT && s.alphaOp.op!=GX_TEV_COMP_A8_EQ) return "alpha_op";
     if((s.kcSel>=8 && s.kcSel<12) || (s.kaSel>=8 && s.kaSel<16)) return "konst_selector";
     if(unsigned(s.indTexStage)>3 || unsigned(s.indTexFormat)>3 || unsigned(s.indTexBiasSel)>7 || unsigned(s.indTexAlphaSel)>3 ||
@@ -121,10 +123,24 @@ void petari_uber_report() {
       (unsigned long long)uberFailedDraws.load(),(unsigned long long)uberUnknownDraws.load(),
       (unsigned long long)uberSkippedUnready.load());
 }
+uint32_t petari_uber_arg_program(const ShaderConfig& c) {
+  for(unsigned p=0;p<PetariUberArgPrograms.size();++p) {
+    const auto& program=PetariUberArgPrograms[p];if(program.count!=c.tevStageCount)continue;bool match=true;
+    for(unsigned i=0;i<c.tevStageCount && match;++i) {
+      const auto& t=c.tevStages[i];const std::array<uint32_t,10> args={t.colorPass.a,t.colorPass.b,t.colorPass.c,t.colorPass.d,t.alphaPass.a,t.alphaPass.b,t.alphaPass.c,t.alphaPass.d,t.colorOp.outReg,t.alphaOp.outReg};
+      match=std::equal(args.begin(),args.end(),program.stages[i].begin());
+    }
+    if(match)return p+1;
+  }
+  return 0;
+}
 uint32_t petari_uber_variant(const ShaderConfig& c) {
   const auto info=build_shader_info(c);uint32_t extent=0;
   for(unsigned i=0;i<8;++i)if(info.sampledTexCoords.test(i))extent=i+1;
-  return c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12);
+  bool identity=true;
+  const auto isIdentity=[](const auto& s){return s.red==GX_CH_RED && s.green==GX_CH_GREEN && s.blue==GX_CH_BLUE && s.alpha==GX_CH_ALPHA;};
+  for(unsigned i=0;i<c.tevStageCount;++i){const auto& t=c.tevStages[i];identity&=isIdentity(c.tevSwapTable[t.tevSwapTex]) && isIdentity(c.tevSwapTable[t.tevSwapRas]);}
+  return c.tevStageCount | (extent<<5) | (c.numIndStages<<9) | (uint32_t(c.fogType!=GX_FOG_NONE)<<12) | (uint32_t(identity)<<13) | (petari_uber_arg_program(c)<<24);
 }
 gfx::PipelineRef petari_uber_key(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
   auto key=c;key.shaderConfig={};

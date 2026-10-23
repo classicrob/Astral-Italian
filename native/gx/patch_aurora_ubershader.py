@@ -19,7 +19,7 @@ else:
   text=f'#include "{header}"\n#include "{here / "ubershader.hpp"}"\n'+text
  if kind in ('frame','recording'):
   text='#include <cstdlib>\n#include <cstring>\n'+text
-  size='([]{ const auto* p=std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0) ? 8192u : gx::MaxUniformSize; }())'
+  size='([]{ const auto* p=std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0) ? 5120u : gx::MaxUniformSize; }())'
   text=text.replace('gx::MaxUniformSize',size)
  if kind=='shader':
   replace('  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);','  if (petariBuildingUber) return petari_uber_shader(dstAlphaMode, normalAttachment);\n  const auto shaderSource = build_shader_source(config, dstAlphaMode, normalAttachment);')

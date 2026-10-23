@@ -15,6 +15,10 @@
 #include <exception>
 #include <csignal>
 
+namespace aurora::gx {
+std::string petari_uber_source(DstAlphaMode, uint32_t);
+const char* petari_uber_reason(const ShaderConfig&);
+}
 using namespace aurora::gx;
 
 namespace {
@@ -303,6 +307,26 @@ void regression_tests() {
 
 int main(int argc, char** argv) {
     aurora::gfx::detail::resources().limits.minUniformBufferOffsetAlignment = 256;
+    if (argc == 3 && std::string(argv[1]) == "--dump-uber") {
+        std::ofstream out(argv[2]);
+        out << petari_uber_source(DstAlphaMode::None, UINT32_MAX);
+        return out.good() ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--test-uber-coverage") {
+        auto c = indirect_config();
+        expect(std::string(petari_uber_reason(c)) == "indirect", "indirect draws cannot enter generic path");
+        c.numIndStages = 0; c.tevStages[0].indTexMtxId = GX_ITM_OFF;
+        expect(std::string(petari_uber_reason(c)) == "covered", "matrix texgen with direct float position is covered");
+        c.fogType = GX_FOG_PERSP_LIN;
+        expect(std::string(petari_uber_reason(c)) == "fog", "fog retains specialized shader behavior");
+        c.fogType = GX_FOG_NONE; c.lineMode = 1;
+        expect(std::string(petari_uber_reason(c)) == "primitive", "line expansion retains specialized shader behavior");
+        c.lineMode = 0; c.tcgs[0].type = GX_TG_BUMP0;
+        expect(std::string(petari_uber_reason(c)) == "texgen_type", "emboss texgen cannot enter generic path");
+        c.tcgs[0].type = GX_TG_MTX2x4; c.attrs[GX_VA_NRM] = {.attrType=GX_INDEX16,.cnt=9,.compType=GX_S16,.nbt3=true};
+        expect(std::string(petari_uber_reason(c)) != "covered", "NBT3 decode cannot enter generic path");
+        return failures ? 1 : 0;
+    }
     if (argc == 3 && std::string(argv[1]) == "--validate-cache") {
         sqlite3* db = nullptr;
         if (sqlite3_open_v2(argv[2], &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) return 2;

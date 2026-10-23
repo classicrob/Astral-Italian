@@ -1,6 +1,6 @@
 struct Light { pos: vec3f, dir: vec3f, color: vec4f, cos_att: vec3f, dist_att: vec3f, };
 struct Uniform {
- cfg: array<vec4u,256>, proj: mat4x4f, postex_mtx: array<mat3x4f,20>, nrm_mtx: array<mat3x4f,10>,
+ cfg: array<vec4u,64>, proj: mat4x4f, postex_mtx: array<mat3x4f,20>, nrm_mtx: array<mat3x4f,10>,
  regs: array<vec4f,4>, lights: array<Light,8>, channels: array<vec4f,8>, konst: array<vec4f,4>,
  postmtx: array<mat3x4f,20>, size_bias: array<vec4f,8>,
 };
@@ -9,7 +9,7 @@ var<immediate> imm: Immediate;
 @group(0) @binding(0) var<storage,read> vbuf:array<u32>;
 @group(0) @binding(1) var<storage,read> abuf:array<u32>;
 @group(1) @binding(0) var<uniform> ubuf:Uniform;
-fn cfg(i:u32)->u32 {return ubuf.cfg[i/4u][i%4u];}
+fn cfg(i:u32)->u32 {return extractBits(ubuf.cfg[i/16u][(i/4u)%4u],(i%4u)*8u,8u);}
 fn array_start(a:u32)->u32 {let i=a-9u;if(i<4u){return imm.array_start0[i];}if(i<8u){return imm.array_start1[i-4u];}return imm.array_start2[i-8u];}
 fn scalar(p:ptr<storage,array<u32>>, o:u32,t:u32,f:u32,le:bool)->f32 {
  switch(t) {case 0u:{return fetch_u8_1(p,o,f,le);}case 1u:{return fetch_s8_1(p,o,f,le);}case 2u:{return fetch_u16_1(p,o,f,le);}case 3u:{return fetch_s16_1(p,o,f,le);}default:{return fetch_f32_1(p,o,le);}}

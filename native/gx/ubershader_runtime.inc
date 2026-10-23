@@ -11,6 +11,7 @@
 #include <filesystem>
 namespace aurora::gx {
 thread_local bool petariBuildingUber = false;
+thread_local double petariUberShaderMs = 0;
 bool petari_uber_enabled() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && (std::strcmp(p,"1")==0 || std::strcmp(p,"all")==0); }(); return b; }
 bool petari_uber_all() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && std::strcmp(p,"all")==0; }(); return b; }
 const char* petari_uber_reason(const ShaderConfig& c) {
@@ -65,12 +66,12 @@ bool petari_uber_ready(gfx::PipelineRef key,gfx::CompiledPipeline& out) { std::l
 void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
   if(!petari_uber_enabled() || std::strcmp(petari_uber_reason(c.shaderConfig),"covered")) return;
   auto key=petari_uber_key(c,l); { std::lock_guard lock(uberMutex);if(uberPipelines.contains(key)) return; }
-  auto start=std::chrono::steady_clock::now(); petariBuildingUber=true;auto p=create_pipeline(c,l);petariBuildingUber=false;
+  auto start=std::chrono::steady_clock::now(); petariUberShaderMs=0;petariBuildingUber=true;auto p=create_pipeline(c,l);petariBuildingUber=false;
   auto ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
-  std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u\n",(unsigned long long)key,(unsigned long long)l.key,0.0,ms,(bool)p.main);
+  std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u\n",(unsigned long long)key,(unsigned long long)l.key,petariUberShaderMs,std::max(0.0,ms-petariUberShaderMs),(bool)p.main);
   std::lock_guard lock(uberMutex);uberPipelines.emplace(key,std::move(p));
 }
-// Fixed layout: cfg 4096 bytes, projection, matrices, TEV regs, lights, channel state,
+// Fixed layout: cfg 1024 packed bytes, projection, matrices, TEV regs, lights, channel state,
 // konst colors, post matrices, texture size/bias. All arrays have 16-byte strides.
 static Vec4<float> petari_uber_texture_bias(const gfx::TextureBind& tex) {
   float bias=0;
@@ -81,7 +82,7 @@ static Vec4<float> petari_uber_texture_bias(const gfx::TextureBind& tex) {
   return {float(tex.texObj.width()),float(tex.texObj.height()),tex.texObj.lod_bias()+bias,0.f};
 }
 gfx::Range petari_uber_uniform(const ShaderConfig& c) {
-  ByteBuffer b; std::array<u32,1024> w{};
+  ByteBuffer b; std::array<u8,1024> w{};
   for(unsigned i=0;i<16;++i) { auto& s=c.tevStages[i];unsigned o=i*32;
     w[o]=s.colorPass.a;w[o+1]=s.colorPass.b;w[o+2]=s.colorPass.c;w[o+3]=s.colorPass.d;
     w[o+4]=s.alphaPass.a;w[o+5]=s.alphaPass.b;w[o+6]=s.alphaPass.c;w[o+7]=s.alphaPass.d;

@@ -714,3 +714,33 @@ endif()
 if(BUILD_TESTING)
     add_test(NAME native_pipeline_cache_identity COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_identity_tests.py")
 endif()
+
+# Ubershader spike composes over the final generated Aurora translation units.
+set(_uber_header "${CMAKE_CURRENT_BINARY_DIR}/ubershader/pipeline.hpp")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_ubershader.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ubershader.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/ubershader.wgsl"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_runtime.inc" "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_source.inc")
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_ubershader.py"
+    "${aurora_SOURCE_DIR}/lib/gx/pipeline.hpp" "${_uber_header}" header "${aurora_SOURCE_DIR}" "${_uber_header}" COMMAND_ERROR_IS_FATAL ANY)
+foreach(_pair
+    "${CMAKE_CURRENT_BINARY_DIR}/missing_texcoord/shader.cpp|shader|gx"
+    "${CMAKE_CURRENT_BINARY_DIR}/geometry/command_processor.cpp|command_processor|gx"
+    "${CMAKE_CURRENT_BINARY_DIR}/geometry/recording.cpp|recording|gfx"
+    "${CMAKE_CURRENT_BINARY_DIR}/geometry/encoding.cpp|encoding|gfx"
+    "${CMAKE_CURRENT_BINARY_DIR}/aurora-pipeline-cache.cpp|cache|gfx"
+    "${aurora_SOURCE_DIR}/lib/gx/pipeline.cpp|pipeline|gx")
+    string(REPLACE "|" ";" _parts "${_pair}")
+    list(GET _parts 0 _input)
+    list(GET _parts 1 _kind)
+    list(GET _parts 2 _folder)
+    set(_output "${CMAKE_CURRENT_BINARY_DIR}/ubershader/${_kind}.cpp")
+    execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_ubershader.py"
+        "${_input}" "${_output}" "${_kind}" "${aurora_SOURCE_DIR}" "${_uber_header}" COMMAND_ERROR_IS_FATAL ANY)
+    get_target_property(_sources aurora_gx SOURCES)
+    list(REMOVE_ITEM _sources "${_input}" "lib/gx/pipeline.cpp")
+    list(APPEND _sources "${_output}")
+    set_property(TARGET aurora_gx PROPERTY SOURCES "${_sources}")
+    set_source_files_properties("${_output}" TARGET_DIRECTORY aurora_gx PROPERTIES
+        COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/${_folder};-iquote${CMAKE_CURRENT_SOURCE_DIR}")
+endforeach()

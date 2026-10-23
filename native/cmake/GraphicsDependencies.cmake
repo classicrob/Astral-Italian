@@ -69,19 +69,18 @@ function(petari_record_pad_dependencies output)
             OR NOT SDL_HIDAPI_LIBUSB OR NOT SDL_HIDAPI_LIBUSB_SHARED)
         message(FATAL_ERROR "SDL must dynamically load the bundled libusb")
     endif()
-    # Options express intent; generated headers prove SDL actually found libusb
-    # and selected dynamic loading instead of silently disabling it.
-    file(GLOB _configs "${_sdl_binary}/include-config-*/build_config/SDL_build_config.h")
-    if(NOT _configs)
-        message(FATAL_ERROR "SDL generated build configuration is missing")
+    # Options express intent; the generated headers prove SDL actually found libusb and selected dynamic
+    # loading instead of silently disabling it. They exist only after generation, so check them in the build.
+    if(NOT TARGET SDL3-static)
+        message(FATAL_ERROR "Pinned SDL3 static target is missing")
     endif()
-    foreach(_config IN LISTS _configs)
-        file(READ "${_config}" _contents)
-        if(NOT _contents MATCHES "#define HAVE_LIBUSB 1"
-                OR NOT _contents MATCHES "#define SDL_LIBUSB_DYNAMIC \"")
-            message(FATAL_ERROR "SDL did not enable dynamic libusb in ${_config}")
-        endif()
-    endforeach()
+    if(NOT TARGET petari_sdl_libusb_config_check)
+        add_custom_target(petari_sdl_libusb_config_check
+            COMMAND "${CMAKE_COMMAND}" "-DSDL_BINARY_DIR=${_sdl_binary}"
+                -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CheckSDLLibusbConfig.cmake"
+            VERBATIM)
+        add_dependencies(SDL3-static petari_sdl_libusb_config_check)
+    endif()
     file(APPEND "${output}" "libusb\t${PETARI_LIBUSB_LIBRARY}\t${PETARI_LIBUSB_VERSION}\tSHA256=${PETARI_LIBUSB_SHA256}\n")
     foreach(_patch IN LISTS PETARI_SDL_PATCHES)
         get_filename_component(_name "${_patch}" NAME)

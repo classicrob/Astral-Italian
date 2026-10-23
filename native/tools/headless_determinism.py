@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare complete headless traces for two plain runs and a MallocScribble run.
+"""Compare headless repeats/Scribble runs, or traces from two different binaries.
 
 Each scenario uses the health sweep's fixed script, virtual epoch and fresh user
 directories. Every CSV cell is compared exactly, including float bit columns.
@@ -7,6 +7,12 @@ Wall-clock timing sidecars are deliberately separate from the game trace.
 
   python3 native/tools/headless_determinism.py --headless /path/petari_headless \
       --out /outside/checkout/determinism --scenarios 1 --jobs 3
+  python3 native/tools/headless_determinism.py --headless /path/pattern \
+      --headless-b /path/zero --out /outside/checkout/uninit --scenarios 1
+
+With --headless-b, run each binary once with the same plain environment. Only
+a scene_epoch offset that is constant across EVERY row may be ignored; it is
+reported separately along with the original, unfiltered differences.
 
 Omit --scenarios for all scenarios. Matching traces are removed by default;
 differences are retained. Completed results resume only with identical settings
@@ -32,6 +38,7 @@ import stage_sweep
 
 
 VARIANTS = ('plain-a', 'plain-b', 'scribble')
+CROSS_VARIANTS = ('binary-a', 'binary-b')
 
 
 def digest(path):
@@ -42,13 +49,15 @@ def digest(path):
     return result.hexdigest()
 
 
-def compare_traces(left, right):
+def compare_traces(left, right, ignore_constant_scene_epoch=False):
     """Find the first differing row/column and count every changed cell."""
     first = None
     columns = Counter()
     first_by_column = {}
     differing_rows = 0
     row_count = 0
+    other_rows = 0
+    epoch_offsets = set()
     missing = object()
     with left.open(newline='') as lf, right.open(newline='') as rf:
         lr, rr = csv.reader(lf), csv.reader(rf)
@@ -56,18 +65,27 @@ def compare_traces(left, right):
         if lh != rh:
             return {'identical': False, 'first': {'row': None, 'loop': None, 'column': '__columns__',
                     'left': lh, 'right': rh}, 'differing_rows': None, 'columns': {}}
+        epoch_col = lh.index('scene_epoch') if 'scene_epoch' in lh else None
+        epoch_complete = epoch_col is not None
         for index, (a, b) in enumerate(itertools.zip_longest(lr, rr, fillvalue=missing)):
             row_count += 1
+            if epoch_col is not None:
+                try:
+                    epoch_offsets.add(int(b[epoch_col]) - int(a[epoch_col]))
+                except (TypeError, ValueError, IndexError):
+                    epoch_complete = False
             if a == b:
                 continue
             differing_rows += 1
             if a is missing or b is missing:
+                other_rows += 1
                 diff = {'row': index, 'loop': index, 'column': '__rows__',
                         'left': 'EOF' if a is missing else a, 'right': 'EOF' if b is missing else b}
                 first = first or diff
                 columns['__rows__'] += 1
                 first_by_column.setdefault('__rows__', diff)
                 continue
+            other_changed = False
             for col, (av, bv) in enumerate(itertools.zip_longest(a, b, fillvalue=None)):
                 if av == bv:
                     continue
@@ -76,8 +94,23 @@ def compare_traces(left, right):
                 first = first or diff
                 columns[name] += 1
                 first_by_column.setdefault(name, diff)
-    return {'identical': first is None, 'rows': row_count, 'first': first,
-            'differing_rows': differing_rows, 'columns': dict(columns), 'first_by_column': first_by_column}
+                other_changed = other_changed or name != 'scene_epoch'
+            other_rows += other_changed
+    result = {'identical': first is None, 'rows': row_count, 'first': first,
+              'differing_rows': differing_rows, 'columns': dict(columns), 'first_by_column': first_by_column}
+    if ignore_constant_scene_epoch:
+        constant = epoch_complete and len(epoch_offsets) == 1
+        offset = next(iter(epoch_offsets)) if constant else None
+        ignored = constant and offset != 0
+        result.update(scene_epoch_constant=constant, scene_epoch_offset=offset,
+                      scene_epoch_offset_ignored=ignored, raw_identical=result['identical'],
+                      raw_first=first, raw_columns=dict(columns), raw_differing_rows=differing_rows)
+        if ignored:
+            filtered = {name: diff for name, diff in first_by_column.items() if name != 'scene_epoch'}
+            result.update(first=min(filtered.values(), key=lambda d: (d['row'], lh.index(d['column']) if d['column'] in lh else len(lh))) if filtered else None,
+                          first_by_column=filtered, columns={name: n for name, n in columns.items() if name != 'scene_epoch'},
+                          differing_rows=other_rows, identical=not filtered)
+    return result
 
 
 def run_variant(args, case, stage, scenario, variant, script):
@@ -90,7 +123,8 @@ def run_variant(args, case, stage, scenario, variant, script):
     # this variant's trace and sidecars; no earlier completion marker may survive.
     for artifact in run.glob('trace.csv*'):
         artifact.unlink()
-    cmd = [str(args.headless), '--disc', str(args.disc), '--user', str(user),
+    binary = args.headless_b if variant == 'binary-b' else args.headless
+    cmd = [str(binary), '--disc', str(args.disc), '--user', str(user),
            '--stage', stage, '--scenario', str(scenario), '--keyboard-script', str(script),
            '--trace', str(trace), '--epoch-ticks', '0']
     if re.fullmatch(r'WorldMap\d+Galaxy', stage):
@@ -122,7 +156,7 @@ def run_variant(args, case, stage, scenario, variant, script):
             shutil.rmtree(user)
     headless_sweep.trim_log(log)
     text = log.read_text(errors='replace')
-    info = {'variant': variant, 'rc': proc.returncode, 'timed_out': timed_out,
+    info = {'variant': variant, 'binary': str(binary), 'rc': proc.returncode, 'timed_out': timed_out,
             'elapsed': round(time.monotonic() - started, 2), 'trace': str(trace),
             'input_done': '[input-script] done' in text,
             'complete': trace.with_name(trace.name + '.complete').is_file()}
@@ -147,17 +181,21 @@ def run_case(args, stage, scenario, script, config):
             raise RuntimeError(f'cached settings/binary changed; use a new --out or --rerun: {case}')
         if not args.keep_traces or all(Path(run['trace']).is_file() for run in cached['runs']):
             return cached
-    variants = [run_variant(args, case, stage, scenario, variant, script) for variant in VARIANTS]
+    cross = bool(getattr(args, 'headless_b', None))
+    names = CROSS_VARIANTS if cross else VARIANTS
+    variants = [run_variant(args, case, stage, scenario, variant, script) for variant in names]
     result = {'stage': stage, 'scenario': scenario, 'config': config, 'runs': variants, 'comparisons': {}}
+    if all(Path(run['trace']).is_file() and run.get('columns') for run in variants):
+        for name, other in ((('binary', 1),) if cross else (('repeat', 1), ('scribble', 2))):
+            result['comparisons'][name] = compare_traces(Path(variants[0]['trace']), Path(variants[other]['trace']),
+                                                       ignore_constant_scene_epoch=cross)
     if all(run['ok'] for run in variants):
-        for name, other in (('repeat', 1), ('scribble', 2)):
-            result['comparisons'][name] = compare_traces(Path(variants[0]['trace']), Path(variants[other]['trace']))
         result['outcome'] = 'IDENTICAL' if all(c['identical'] for c in result['comparisons'].values()) else 'DIFFERENT'
     else:
         result['outcome'] = 'RUN_FAILED'
     result_path.write_text(json.dumps(result, indent=2) + '\n')
     if result['outcome'] == 'IDENTICAL' and not args.keep_traces:
-        for variant in VARIANTS:
+        for variant in names:
             for trace in (case / variant).glob('trace.csv*'):
                 trace.unlink()
     return result
@@ -168,19 +206,20 @@ def write_reports(out, results):
     (out / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
     counts = Counter(r['outcome'] for r in results)
     lines = ['# Headless determinism sweep', '', f'{len(results)} scenarios: ' + ', '.join(f'{n} {k}' for k, n in sorted(counts.items())), '',
-             '| stage | scenario | outcome | comparison | first loop | column | left | right |',
-             '|---|---:|---|---|---:|---|---|---|']
+             '| stage | scenario | outcome | comparison | first loop | column | left | right | constant epoch offset |',
+             '|---|---:|---|---|---:|---|---|---|---:|']
     with (out / 'results.csv').open('w', newline='') as stream:
         writer = csv.writer(stream)
-        writer.writerow(['stage', 'scenario', 'outcome', 'comparison', 'first_loop', 'column', 'left', 'right'])
+        writer.writerow(['stage', 'scenario', 'outcome', 'comparison', 'first_loop', 'column', 'left', 'right', 'constant_epoch_offset'])
         for result in results:
             comparisons = result['comparisons'] or {'': {}}
             for name, comparison in comparisons.items():
                 diff = comparison.get('first') or {}
                 row = [result['stage'], result['scenario'], result['outcome'], name,
-                       diff.get('loop', ''), diff.get('column', ''), diff.get('left', ''), diff.get('right', '')]
+                       diff.get('loop', ''), diff.get('column', ''), diff.get('left', ''), diff.get('right', ''),
+                       comparison.get('scene_epoch_offset', '')]
                 writer.writerow(row)
-                if result['outcome'] != 'IDENTICAL':
+                if result['outcome'] != 'IDENTICAL' or comparison.get('scene_epoch_offset_ignored'):
                     lines.append('| ' + ' | '.join(str(v).replace('|', '\\|').replace('\n', ' ')[:180] for v in row) + ' |')
     (out / 'table.md').write_text('\n'.join(lines) + '\n')
     return counts
@@ -189,6 +228,7 @@ def write_reports(out, results):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--headless', type=Path, required=True)
+    parser.add_argument('--headless-b', type=Path, help='compare a second binary; ignore only a constant scene_epoch offset')
     parser.add_argument('--disc', type=Path, default=Path.home() / 'MacioGalaxy2-gamedata/SB4E01-extracted')
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--stages', help='comma-separated galaxy names')
@@ -204,6 +244,8 @@ def main():
     if args.frames <= 0 or args.timeout <= 0:
         parser.error('--frames and --timeout must be positive')
     args.headless, args.disc, args.out = (p.resolve() for p in (args.headless, args.disc, args.out))
+    if args.headless_b:
+        args.headless_b = args.headless_b.resolve()
     source = headless_sweep.DEFAULT_SCRIPT if args.script == 'default' else Path(args.script).read_text()
     script_text = headless_sweep.script_text(args.frames, source)
     args.out.mkdir(parents=True, exist_ok=True)
@@ -211,6 +253,9 @@ def main():
     config = {'binary': str(args.headless), 'binary_sha256': digest(args.headless), 'disc': str(args.disc),
               'script_sha256': hashlib.sha256(script_text.encode()).hexdigest(), 'frames': args.frames,
               'epoch_ticks': 0, 'variants': list(VARIANTS), 'actor_trace': args.actor_trace}
+    if args.headless_b:
+        config.update(binary_b=str(args.headless_b), binary_b_sha256=digest(args.headless_b),
+                      variants=list(CROSS_VARIANTS), ignore_constant_scene_epoch=True)
     manifest = args.out / 'manifest.json'
     if manifest.is_file() and json.loads(manifest.read_text()) != config:
         parser.error('output directory belongs to different settings/binary; use a new --out')
@@ -232,6 +277,8 @@ def main():
             results.append(result)
             detail = []
             for name, comparison in result['comparisons'].items():
+                if comparison.get('scene_epoch_offset_ignored'):
+                    detail.append(f"{name}: constant scene_epoch offset {comparison['scene_epoch_offset']:+d} (ignored)")
                 if comparison.get('first'):
                     d = comparison['first']
                     fields = ','.join(comparison['columns'])

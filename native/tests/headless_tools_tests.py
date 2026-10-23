@@ -29,13 +29,13 @@ gx_spec.loader.exec_module(gx)
 
 
 class DeterminismTests(unittest.TestCase):
-    def compare(self, left, right):
+    def compare(self, left, right, **options):
         with tempfile.TemporaryDirectory() as directory:
             paths = [Path(directory) / name for name in ('left.csv', 'right.csv')]
             for path, rows in zip(paths, (left, right)):
                 with path.open('w', newline='') as stream:
                     csv.writer(stream).writerows(rows)
-            return determinism.compare_traces(*paths)
+            return determinism.compare_traces(*paths, **options)
 
     def test_identical_quoted_cells(self):
         rows = [['frame', 'state_ids', 'x_bits'], ['0', '[1,2]', '0x80000000']]
@@ -72,11 +72,55 @@ class DeterminismTests(unittest.TestCase):
         self.assertFalse(result['identical'])
         self.assertEqual(result['first']['column'], '__columns__')
 
+    def test_constant_epoch_offset_is_reported_separately(self):
+        header = ['frame', 'scene_epoch', 'x_bits']
+        result = self.compare(
+            [header, ['0', '6', '0x00000000'], ['1', '7', '0x80000000']],
+            [header, ['0', '8', '0x00000000'], ['1', '9', '0x80000000']],
+            ignore_constant_scene_epoch=True)
+        self.assertTrue(result['identical'])
+        self.assertFalse(result['raw_identical'])
+        self.assertEqual(result['scene_epoch_offset'], 2)
+        self.assertTrue(result['scene_epoch_offset_ignored'])
+        self.assertEqual(result['raw_columns'], {'scene_epoch': 2})
+
+    def test_epoch_offset_does_not_hide_first_gameplay_difference(self):
+        header = ['frame', 'scene_epoch', 'x_bits']
+        result = self.compare(
+            [header, ['0', '6', '0x00000000'], ['1', '6', '0x00000000']],
+            [header, ['0', '7', '0x00000000'], ['1', '7', '0x80000000']],
+            ignore_constant_scene_epoch=True)
+        self.assertFalse(result['identical'])
+        self.assertEqual(result['first']['column'], 'x_bits')
+        self.assertEqual(result['first']['loop'], '1')
+        self.assertEqual(result['raw_first']['loop'], '0')
+        self.assertEqual(result['differing_rows'], 1)
+
+    def test_changing_epoch_offset_is_not_ignored(self):
+        header = ['frame', 'scene_epoch']
+        for epochs in (('7', '8'), ('6', '7')):
+            with self.subTest(epochs=epochs):
+                result = self.compare([header, ['0', '6'], ['1', '6']],
+                                      [header, ['0', epochs[0]], ['1', epochs[1]]],
+                                      ignore_constant_scene_epoch=True)
+                self.assertFalse(result['identical'])
+                self.assertFalse(result['scene_epoch_constant'])
+                self.assertFalse(result['scene_epoch_offset_ignored'])
+
+    def test_short_trace_cannot_ignore_epoch_difference(self):
+        header = ['frame', 'scene_epoch']
+        result = self.compare([header, ['0', '6'], ['1', '6']], [header, ['0', '7']],
+                              ignore_constant_scene_epoch=True)
+        self.assertFalse(result['identical'])
+        self.assertFalse(result['scene_epoch_offset_ignored'])
+        self.assertIn('__rows__', result['columns'])
+
     def test_rerun_clears_artifacts_and_isolates_scribble_environment(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             args = SimpleNamespace(headless=root / 'binary', disc=root / 'disc', actor_trace=False, timeout=5, frames=1)
-            for variant in ('plain-a', 'scribble'):
+            args.headless_b = root / 'binary-zero'
+            for variant in ('plain-a', 'scribble', 'binary-b'):
                 with self.subTest(variant=variant):
                     run = root / variant
                     run.mkdir()
@@ -85,6 +129,7 @@ class DeterminismTests(unittest.TestCase):
                         Path(str(trace) + suffix).write_text('stale artifact')
 
                     def launch(cmd, stdout, stderr, env, start_new_session):
+                        self.assertEqual(cmd[0], str(args.headless_b if variant == 'binary-b' else args.headless))
                         self.assertFalse(any(run.glob('trace.csv*')))
                         self.assertFalse((run / 'user').exists())
                         if variant == 'scribble':

@@ -61,6 +61,7 @@ struct SegmentReport {
     std::uint64_t firstDivergenceRow = 0;  // segment-relative row k (route row startRow + k)
     double firstDivergenceDist = 0, maxDist = 0;
     std::string firstDivergenceWhy;
+    float firstReplay[3] = {0, 0, 0}, firstRecorded[3] = {0, 0, 0};  // positions at the first divergence
 };
 
 // After a segment ended, the game gets this many loops to reach the next segment by itself (the ship's helm -> the world map ->

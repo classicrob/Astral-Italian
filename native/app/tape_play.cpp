@@ -278,6 +278,8 @@ void Session::compare(const SeamState& s, std::uint64_t k) {
         rep.firstDivergenceRow = k;
         rep.firstDivergenceDist = dist;
         rep.firstDivergenceWhy = why;
+        rep.firstReplay[0] = s.x; rep.firstReplay[1] = s.y; rep.firstReplay[2] = s.z;
+        rep.firstRecorded[0] = r.x; rep.firstRecorded[1] = r.y; rep.firstRecorded[2] = r.z;
     }
 }
 
@@ -407,6 +409,8 @@ std::string Session::reportJson() const {
             << ", \"matched_rows\": " << (r.diverged ? r.firstDivergenceRow : r.rowsCompared) << ", \"diverged\": " << (r.diverged ? "true" : "false")
             << ", \"first_divergence_row\": " << (r.diverged ? std::to_string(r.firstDivergenceRow) : std::string("null"))
             << ", \"first_divergence_why\": " << jsonString(r.firstDivergenceWhy) << ", \"first_divergence_dist\": " << r.firstDivergenceDist
+            << ", \"first_divergence_replayed\": [" << r.firstReplay[0] << ", " << r.firstReplay[1] << ", " << r.firstReplay[2]
+            << "], \"first_divergence_recorded\": [" << r.firstRecorded[0] << ", " << r.firstRecorded[1] << ", " << r.firstRecorded[2] << "]"
             << ", \"max_position_error\": " << r.maxDist << "}";
     }
     out << "\n  ]\n}\n";

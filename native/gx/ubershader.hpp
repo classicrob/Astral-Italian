@@ -18,6 +18,10 @@ void petari_uber_begin_frame(uint64_t);
 void petari_uber_set_recording_frame(uint64_t);
 uint64_t petari_uber_recording_frame();
 void petari_uber_draw(bool fallback, bool forced, bool missing);
+// Counts covered draw attempts before the draw's possible early return.
+void petari_uber_not_ready(gfx::PipelineRef, bool skipped = false);
+void petari_uber_scheduled(gfx::PipelineRef);
+void petari_uber_release(); // after compilation workers have joined
 extern thread_local bool petariBuildingUber;
 uint32_t petari_uber_variant(const ShaderConfig&);
 wgpu::ShaderModule petari_uber_shader(const ShaderConfig&, DstAlphaMode, uint32_t);

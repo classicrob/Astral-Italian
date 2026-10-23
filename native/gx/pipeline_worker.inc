@@ -23,12 +23,21 @@ static void pipeline_worker(unsigned workerIndex = 0) {
       std::unique_lock lock{g_pipelineMutex};
       if (g_hasPipelineThread) {
         g_pipelineQueueCv.wait(lock, [workerIndex] {
-          return workerIndex >= petariActiveWorkers || petari_runnable_queue(workerIndex) || g_pipelineThreadEnd;
+          return workerIndex >= petariActiveWorkers || petari_runnable_queue(workerIndex) ||
+              petari_uber_worker_ready(workerIndex) || g_pipelineThreadEnd;
         });
       } else if (g_pipelineQueue.empty() && g_backgroundPipelineQueue.empty()) {
         return;
       }
       if (g_pipelineThreadEnd || (g_hasPipelineThread && workerIndex >= petariActiveWorkers)) break;
+      std::function<void()> uberJob;
+      if (g_hasPipelineThread && petari_take_uber_job(workerIndex, uberJob)) {
+        lock.unlock();
+        PetariPipeline::compilationQoS(false);
+        PetariPipelineAutoreleasePool pool;
+        uberJob();
+        continue;
+      }
       auto* runnable = g_hasPipelineThread ? petari_runnable_queue(workerIndex) : nullptr;
       background = runnable ? runnable == &g_backgroundPipelineQueue : g_pipelineQueue.empty();
       auto& source = background ? g_backgroundPipelineQueue : g_pipelineQueue;

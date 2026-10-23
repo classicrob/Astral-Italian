@@ -40,18 +40,25 @@ else:
  if kind=='pipeline':
   replace('''  if (!gfx::get_pipeline(data.pipeline, pipeline)) {
     return;
-  }''','''  const auto uberKey = data.uberUniformOffset != UINT32_MAX ? petari_uber_lookup(data.pipeline) : 0;
+  }''','''  const bool covered = data.uberUniformOffset != UINT32_MAX;
+  const auto uberKey = covered ? petari_uber_lookup(data.pipeline) : 0;
+  gfx::CompiledPipeline available;
+  bool fallbackReady = covered && petari_uber_ready(uberKey, available);
   bool uber = false;
-  bool force = petari_uber_enabled() && petari_uber_all() && uberKey;
-  bool missing = false;
-  if (force) uber = petari_uber_ready(uberKey, pipeline);
+  const bool force = petari_uber_enabled() && petari_uber_all() && covered;
+  const bool missing = petari_uber_enabled() && covered && !fallbackReady;
+  if (missing) petari_uber_not_ready(uberKey);
+  if (force && fallbackReady) { pipeline = available; uber = true; }
   if (!uber && !gfx::get_pipeline(data.pipeline, pipeline)) {
-    if (!uberKey || !petari_uber_ready(uberKey, pipeline)) return;
+    if (!fallbackReady) fallbackReady = covered && petari_uber_ready(uberKey, available);
+    if (!fallbackReady) {
+      if (missing) petari_uber_not_ready(uberKey, true);
+      return;
+    }
+    pipeline = available;
     uber = true;
   }
   if (petari_uber_enabled()) {
-    gfx::CompiledPipeline available;
-    missing = uberKey && !petari_uber_ready(uberKey, available);
     petari_uber_draw(uber, force && uber, missing);
   }''')
   replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
@@ -88,15 +95,26 @@ else:
     size_t pending = 0;''')
   # Covered draws with a boot-ready fallback queue their specialised pipeline without waiting.
   anchor='''  const PetariPipeline::BoundedDrawScope petariBoundedDraw{'''
-  replace(anchor,'''  if (gx::petari_uber_enabled() && std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered") == 0) {
-    gx::petari_uber_associate(xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX))), gx::petari_uber_key(config, layout));
+  replace(anchor,'''  if (gx::petari_uber_enabled()) {
+    const bool covered = std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered") == 0;
     CompiledPipeline uber;
-    if (gx::petari_uber_ready(gx::petari_uber_key(config, layout), uber))
-      return resolve_pipeline(ShaderType::GX, config, layout, PipelinePriority::Normal);
+    if (covered) {
+      const auto key = gx::petari_uber_key(config, layout);
+      gx::petari_uber_associate(xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX))), key);
+      const bool ready = gx::petari_uber_ready(key, uber);
+      if (!ready) petari_uber_schedule_draw(config, layout);
+      petari_uber_observe_title(true, ready);
+      if (ready) return resolve_pipeline(ShaderType::GX, config, layout, PipelinePriority::Normal);
+    } else petari_uber_observe_title(false, false);
   }
 '''+anchor)
-  replace('  const size_t loadedCount = load_pipeline_cache();','  const size_t loadedCount = load_pipeline_cache();\n  gx::petari_uber_boot();')
+  replace('  const size_t loadedCount = load_pipeline_cache();','  gx::petari_uber_boot();\n  const size_t loadedCount = load_pipeline_cache();\n  petari_uber_schedule_known();')
   replace('void shutdown_pipeline_cache() {', 'void shutdown_pipeline_cache() {\n  gx::petari_uber_report();')
+  replace('    g_pipelineThreads.clear();', '''    g_pipelineThreads.clear();
+    petari_uber_async_stop();
+    gx::petari_uber_report();
+    petari_uber_async_report();
+    gx::petari_uber_release();''')
   replace('    const auto sampleIt = petariPipelineSamples.find(ref);', '    CompiledPipeline uber;\n    if (gx::petari_uber_enabled() && gx::petari_uber_ready(gx::petari_uber_lookup(ref), uber)) return false;\n    const auto sampleIt = petariPipelineSamples.find(ref);')
   # Explicit reporting endpoint and shutdown both expose cumulative coverage.
   replace('extern "C" void petari_gx_pipeline_report() {','''extern "C" void petari_gx_pipeline_report() {
@@ -105,28 +123,12 @@ else:
     render_worker::enqueue_work([] { webgpu::gpu_prof::petari_csv_finish(); });
     render_worker::synchronize();
   }
-  gx::petari_uber_report();''')
-  text+='''
-#include <aurora/gfx.hpp>
-namespace aurora::gx {
-void petari_uber_boot() {
-  if (!petari_uber_enabled()) return;
-  auto scene=gfx::scene_render_target_layout();auto off=scene;off.colorAttachmentCount=1;off.sampleCount=1;gfx::detail::finalize_render_target_layout(off);
-  const auto prepare=[&](const PipelineConfig& c){petari_uber_prepare(c,scene);if(off.key!=scene.key)petari_uber_prepare(c,off);};
-  for(auto& [k,item]:gfx::g_knownPipelines) if(item.type==gfx::ShaderType::GX) prepare(std::get<PipelineConfig>(item.config));
-  const char* env=std::getenv("PETARI_PIPELINE_SEED_DIR");auto dir=env&&*env?std::filesystem::path(env):std::filesystem::path(g_config.resourcesPath?g_config.resourcesPath:"")/"pipeline-seeds";
-  std::error_code ec;
-  for(auto& file:std::filesystem::directory_iterator(dir,ec)) {
-    if(file.path().extension()!=".db")continue;
-    auto* db=gfx::open_pipeline_cache_seed_db(file.path().string());if(!db)continue;
-    sqlite3_stmt* stmt=nullptr;
-    if(sqlite3_prepare_v2(db,"SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13",-1,&stmt,nullptr)==SQLITE_OK) {
-      while(sqlite3_step(stmt)==SQLITE_ROW) if(sqlite3_column_bytes(stmt,0)==sizeof(PipelineConfig)){PipelineConfig c;std::memcpy(&c,sqlite3_column_blob(stmt,0),sizeof(c));if(gx::petari_cached_shader_valid(c.shaderConfig,0))prepare(c);}
-    }
-    sqlite3_finalize(stmt);sqlite3_close(db);
-  }
-}
-}
-'''
+  gx::petari_uber_report();
+  petari_uber_async_report();''')
+  replace('const auto petariReady = [=] { return g_pipelines.contains(runtimeKey) || g_pipelineThreadEnd; };',
+          'const auto petariReady = [=] { return petari_uber_or_specialized_ready(runtimeKey); };')
+  replace('std::all_of(keys.begin(), keys.end(), [](auto key) { return g_pipelines.contains(key); });',
+          'std::all_of(keys.begin(), keys.end(), [](auto key) { return petari_uber_or_specialized_ready(key); });')
+  text+='\n#include <aurora/gfx.hpp>\n'+(here/'ubershader_boot.inc').read_text()
 output.parent.mkdir(parents=True,exist_ok=True)
 if not output.exists() or output.read_text()!=text:output.write_text(text)

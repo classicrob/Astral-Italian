@@ -9,6 +9,7 @@
 #include <map>
 #include <sqlite3.h>
 #include <filesystem>
+#include <exception>
 namespace aurora::gx {
 thread_local bool petariBuildingUber = false;
 thread_local double petariUberShaderMs = 0;
@@ -48,6 +49,9 @@ const char* petari_uber_reason(const ShaderConfig& c) {
 namespace {
 std::mutex uberMutex;
 std::map<gfx::PipelineRef,gfx::CompiledPipeline> uberPipelines;
+enum class UberPreparation { Queued, Preparing, Ready, Failed };
+std::map<gfx::PipelineRef,UberPreparation> uberPreparation;
+std::atomic<uint64_t> uberPendingDraws{0},uberFailedDraws{0},uberUnknownDraws{0},uberSkippedUnready{0};
 std::map<HashType,bool> uberConfigs;
 std::map<gfx::PipelineRef,gfx::PipelineRef> uberAssociations;
 thread_local uint64_t uberEncodingFrame=0;
@@ -69,18 +73,43 @@ void petari_uber_begin_frame(uint64_t frame) {
   uberEncodingFrame=frame;uberFrameUsed=false;++uberFrames;
 }
 void petari_uber_draw(bool fallback,bool forced,bool missing) {
-  uberFallback+=fallback&&!forced;uberForced+=forced;uberSpecialized+=!fallback;uberMissing+=missing;
+  uberFallback+=fallback&&!forced;uberForced+=forced;uberSpecialized+=!fallback;
+  (void)missing; // observed once before the draw's possible early return
   if(fallback && !uberFrameUsed) {
     uberFrameUsed=true;
     if(forced)++uberForcedFrames;else ++uberFallbackFrames;
     std::fprintf(stderr,"[gx uber frame] frame=%llu fallback=1 forced=%u\n",(unsigned long long)uberEncodingFrame,forced);
   }
 }
+void petari_uber_not_ready(gfx::PipelineRef key, bool skipped) {
+  if (!petari_uber_enabled()) return;
+  if (skipped) { ++uberSkippedUnready; return; }
+  ++uberMissing;
+  std::lock_guard lock(uberMutex);
+  const auto it = uberPreparation.find(key);
+  if (it == uberPreparation.end()) ++uberUnknownDraws;
+  else if (it->second == UberPreparation::Failed) ++uberFailedDraws;
+  else ++uberPendingDraws; // readiness was observed before taking this mutex
+}
+void petari_uber_scheduled(gfx::PipelineRef key) {
+  std::lock_guard lock(uberMutex);
+  uberPreparation.try_emplace(key, UberPreparation::Queued);
+}
+void petari_uber_release() {
+  std::lock_guard lock(uberMutex);
+  uberPipelines.clear();
+  uberPreparation.clear();
+  uberAssociations.clear();
+}
 void petari_uber_report() {
   if(!petari_uber_enabled()) return;
   std::lock_guard lock(uberMutex); size_t covered=0;for(auto [k,v]:uberConfigs) covered+=v;
   std::fprintf(stderr,"[gx uber frames] encoded_frames=%llu fallback_frames=%llu forced_frames=%llu\n",(unsigned long long)uberFrames.load(),(unsigned long long)uberFallbackFrames.load(),(unsigned long long)uberForcedFrames.load());
   std::fprintf(stderr,"[gx uber summary] draws=%llu covered_draws=%llu fallback_draws=%llu forced_draws=%llu specialized_draws=%llu unsupported_draws=%llu missing_key_draws=%llu configs=%zu covered_configs=%zu\n",(unsigned long long)uberDraws.load(),(unsigned long long)uberCovered.load(),(unsigned long long)uberFallback.load(),(unsigned long long)uberForced.load(),(unsigned long long)uberSpecialized.load(),(unsigned long long)(uberDraws-uberCovered),(unsigned long long)uberMissing.load(),uberConfigs.size(),covered);
+  std::fprintf(stderr,"[gx uber readiness] not_ready_draws=%llu pending_draws=%llu failed_draws=%llu unknown_draws=%llu skipped_unready_draws=%llu\n",
+      (unsigned long long)uberMissing.load(),(unsigned long long)uberPendingDraws.load(),
+      (unsigned long long)uberFailedDraws.load(),(unsigned long long)uberUnknownDraws.load(),
+      (unsigned long long)uberSkippedUnready.load());
 }
 uint32_t petari_uber_variant(const ShaderConfig& c) {
   const auto info=build_shader_info(c);uint32_t extent=0;
@@ -96,11 +125,31 @@ gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef key) {std::lock_guard lock(
 bool petari_uber_ready(gfx::PipelineRef key,gfx::CompiledPipeline& out) { std::lock_guard lock(uberMutex);auto it=uberPipelines.find(key);if(it==uberPipelines.end() || !it->second.main) return false;out=it->second;return true; }
 void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l) {
   if(!petari_uber_enabled() || std::strcmp(petari_uber_reason(c.shaderConfig),"covered")) return;
-  auto key=petari_uber_key(c,l); { std::lock_guard lock(uberMutex);if(uberPipelines.contains(key)) return; }
-  auto start=std::chrono::steady_clock::now(); petariUberShaderMs=0;petariBuildingUber=true;auto p=create_pipeline(c,l);petariBuildingUber=false;
+  const auto key=petari_uber_key(c,l);
+  {
+    std::lock_guard lock(uberMutex);
+    // Claim before compiling: concurrent callers see Preparing, never build twice.
+    if (!uberPipelines.try_emplace(key).second) return;
+    uberPreparation.insert_or_assign(key, UberPreparation::Preparing);
+  }
+  const auto start=std::chrono::steady_clock::now();
+  const bool previousBuilding=petariBuildingUber;
+  const double previousShaderMs=petariUberShaderMs;
+  petariUberShaderMs=0;petariBuildingUber=true;
+  gfx::CompiledPipeline p;
+  try { p=create_pipeline(c,l); }
+  catch (const std::exception& e) { std::fprintf(stderr,"[gx uber async error] key=%016llx message=%s\n",(unsigned long long)key,e.what()); }
+  catch (...) { std::fprintf(stderr,"[gx uber async error] key=%016llx message=unknown_exception\n",(unsigned long long)key); }
+  const double shaderMs=petariUberShaderMs;
+  petariBuildingUber=previousBuilding;petariUberShaderMs=previousShaderMs;
   auto ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
-  std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u\n",(unsigned long long)key,(unsigned long long)l.key,petariUberShaderMs,std::max(0.0,ms-petariUberShaderMs),(bool)p.main);
-  std::lock_guard lock(uberMutex);uberPipelines.emplace(key,std::move(p));
+  const bool success=bool(p.main);
+  {
+    std::lock_guard lock(uberMutex);
+    uberPipelines.at(key)=std::move(p);
+    uberPreparation.at(key)=success ? UberPreparation::Ready : UberPreparation::Failed;
+  }
+  std::fprintf(stderr,"[gx uber compile] key=%016llx layout=%016llx shader_ms=%.3f pipeline_ms=%.3f success=%u\n",(unsigned long long)key,(unsigned long long)l.key,shaderMs,std::max(0.0,ms-shaderMs),success);
 }
 // Fixed layout: cfg 1024 packed bytes, projection, matrices, TEV regs, lights, channel state,
 // konst colors, post matrices, texture size/bias. All arrays have 16-byte strides.

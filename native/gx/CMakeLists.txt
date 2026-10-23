@@ -720,7 +720,8 @@ set(_uber_header "${CMAKE_CURRENT_BINARY_DIR}/ubershader/pipeline.hpp")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_ubershader.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/ubershader.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/ubershader.wgsl"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_runtime.inc" "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_source.inc")
+    "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_runtime.inc" "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_source.inc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ubershader_boot.inc")
 execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_ubershader.py"
     "${aurora_SOURCE_DIR}/lib/gx/pipeline.hpp" "${_uber_header}" header "${aurora_SOURCE_DIR}" "${_uber_header}" COMMAND_ERROR_IS_FATAL ANY)
 foreach(_pair

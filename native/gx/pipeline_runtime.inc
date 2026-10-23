@@ -65,6 +65,34 @@ constexpr double kPetariFrameBudgetMs = 20.0;
 // never queues behind speculative stage or prewarm compiles. Applies when there are more normal workers than this.
 // Outside active gameplay they also take the current stage's manifest (PetariPipeline::stageOnReservedWorkers).
 constexpr unsigned kPetariOnDemandWorkers = 2;
+// Populated only by opt-in fallback preparation. Existing reserved workers own
+// the callbacks; shutdown joins those workers before dropping queued callbacks.
+struct PetariUberJob {
+  PipelineRef key = 0; // zero is an enumeration task, never a compiled variant
+  unsigned priority = 3; // enumeration, front-end, draw-requested, remaining variants
+  std::function<void()> run;
+};
+static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
+static bool petari_uber_worker_ready(unsigned workerIndex) {
+  return workerIndex < std::min(kPetariOnDemandWorkers, petariNormalWorkers) && !petariUberJobs.empty();
+}
+static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
+  if (!petari_uber_worker_ready(workerIndex)) return false;
+  // A real draw gets the next slot; fallback preparation precedes speculation.
+  if (!g_pipelineQueue.empty()) {
+    const auto it = petariPipelineSamples.find(g_pipelineQueue.front().hash);
+    if (it != petariPipelineSamples.end() && it->second.drawBlocking) return false;
+  }
+  job = std::move(petariUberJobs.front().run);
+  petariUberJobs.pop_front();
+  return true;
+}
+static void petari_uber_schedule_known();
+static void petari_uber_schedule_draw(const gx::PipelineConfig&, const RenderTargetLayout&);
+static void petari_uber_observe_title(bool covered, bool fallbackReady);
+static void petari_uber_async_report();
+static void petari_uber_async_stop();
+static bool petari_uber_or_specialized_ready(PipelineRef);
 // Recent compile cost (exponential average of build_ms over every finished job,
 // cache hits included), guarded by g_pipelineMutex. The stage gate uses it to skip
 // waits that cannot finish within the budget: a frozen frame is worse than pop-in.

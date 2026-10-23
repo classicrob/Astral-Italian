@@ -1,0 +1,32 @@
+test_all_patches_apply_to_pristine_release_and_are_idempotent (__main__.LibUSBBundleTests.test_all_patches_apply_to_pristine_release_and_are_idempotent) ... ok
+test_pinned_release_and_recipe (__main__.LibUSBBundleTests.test_pinned_release_and_recipe) ... ok
+test_real_bundle_dependencies_and_clean_environment (__main__.LibUSBBundleTests.test_real_bundle_dependencies_and_clean_environment) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 10.812s
+
+OK
+Internal ctest changing into directory: /tmp/pad-sol-a-libusb/check-build
+Test project /tmp/pad-sol-a-libusb/check-build
+    Start 1: native_libusb_bundle
+1/1 Test #1: native_libusb_bundle .............   Passed   11.81 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+build-tooling    =  11.81 sec*proc (1 test)
+
+Total Test time (real) =  11.83 sec
+Internal ctest changing into directory: /tmp/pad-sol-a-libusb/root-build
+Test project /tmp/pad-sol-a-libusb/root-build
+    Start 16: native_graphics_dependency_build
+1/2 Test #16: native_graphics_dependency_build ...   Passed    8.22 sec
+    Start 17: native_libusb_bundle
+2/2 Test #17: native_libusb_bundle ...............   Passed    5.84 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+build-tooling    =  14.06 sec*proc (2 tests)
+
+Total Test time (real) =  14.07 sec

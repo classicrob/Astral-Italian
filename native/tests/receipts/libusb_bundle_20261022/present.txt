@@ -1,0 +1,5 @@
+Command: /usr/bin/env -i /private/tmp/pad-sol-a-libusb/check-build/check.app/Contents/MacOS/check --expect-loaded
+SDL_hid_init=0
+SDL_hid_enumerate: 0 devices
+libusb loaded from: /private/tmp/pad-sol-a-libusb/check-build/check.app/Contents/Frameworks/libusb-1.0.0.dylib
+result: PASS

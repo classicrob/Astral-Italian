@@ -1,5 +1,6 @@
 """Asset-free link and pinned-provider regressions using production CMake rules."""
 import contextlib
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -14,7 +15,7 @@ MODULE = Path(__file__).resolve().parents[1] / 'cmake/GraphicsDependencies.cmake
 
 @unittest.skipUnless(sys.platform == 'darwin' and shutil.which('ninja'), 'macOS and Ninja required')
 class GraphicsDependencyBuildTests(unittest.TestCase):
-    def exercise(self, label, link=True, wrong=None):
+    def exercise(self, label, link=True, wrong=None, pad=False):
         evidence = os.environ.get('PETARI_GRAPHICS_BUILD_TEST_ROOT')
         if evidence:
             root = Path(evidence) / label
@@ -55,6 +56,33 @@ class GraphicsDependencyBuildTests(unittest.TestCase):
                     lines.append(f'FetchContent_MakeAvailable({name})')
             if wrong == 'outside':
                 lines.append(f'set(FETCHCONTENT_SOURCE_DIR_IMGUI "{root}/elsewhere")')
+            if pad:
+                cmake = root / 'aurora/cmake'
+                cmake.mkdir()
+                (cmake / 'AuroraDependencyVersions.cmake').write_text(
+                    '_aurora_dependency_version(AURORA_SDL3_REF "refs/tags/release-3.4.10" "SDL pin")\n')
+                library = root / 'libusb-1.0.0.dylib'
+                library.touch()
+                patch = root / '0001.patch'
+                patch.write_text('fixture patch identity\n')
+                stamp = root / 'SDL/.petari-patches/0001.patch.sha256'
+                stamp.parent.mkdir()
+                stamp.write_text('wrong' if wrong == 'patch-hash' else hashlib.sha256(patch.read_bytes()).hexdigest())
+                ref = 'wrong-ref' if wrong == 'sdl-pin' else 'refs/tags/release-3.4.10'
+                lines.extend(['set(PETARI_SDL3_REF "refs/tags/release-3.4.10")',
+                              f'set(AURORA_SDL3_REF "{ref}")',
+                              f'set(PETARI_LIBUSB_LIBRARY "{library}")',
+                              f'set(LibUSB_LIBRARY "{library}")',
+                              'set(PETARI_LIBUSB_VERSION 1.0.30)',
+                              'set(PETARI_LIBUSB_SHA256 fixture-sha)',
+                              'set(SDL_HIDAPI_LIBUSB ON)', 'set(SDL_HIDAPI_LIBUSB_SHARED ON)',
+                              f'set(PETARI_SDL_PATCHES "{patch}")'])
+                config = '#define HAVE_LIBUSB 1\n'
+                if wrong != 'sdl-dynamic':
+                    config += '#define SDL_LIBUSB_DYNAMIC "libusb-1.0.dylib"\n'
+                lines.extend(['FetchContent_GetProperties(SDL BINARY_DIR sdl_binary)',
+                              'file(MAKE_DIRECTORY "${sdl_binary}/include-config-release/build_config")',
+                              f'file(WRITE "${{sdl_binary}}/include-config-release/build_config/SDL_build_config.h" [=[{config}]=])'])
             lines.extend(['petari_record_graphics_dependencies("${CMAKE_BINARY_DIR}/dependencies.tsv")',
                           'add_library(audio STATIC audio.cpp)', 'add_executable(probe main.cpp)',
                           'target_link_libraries(probe PRIVATE audio)'])
@@ -71,7 +99,10 @@ class GraphicsDependencyBuildTests(unittest.TestCase):
             result = run(['cmake', '-S', str(root), '-B', str(build), '-G', 'Ninja'])
             if wrong:
                 self.assertNotEqual(result.returncode,0,result.stdout)
-                self.assertIn('Pinned' if wrong in ('outside','missing') else 'SDL3 must be', result.stdout)
+                expected = {'sdl-pin': 'AURORA_SDL3_REF', 'patch-hash': 'SDL patch hash differs',
+                            'sdl-dynamic': 'SDL did not enable dynamic libusb'}.get(
+                    wrong, 'Pinned' if wrong in ('outside','missing') else 'SDL3 must be')
+                self.assertIn(expected, result.stdout)
                 return
             self.assertEqual(result.returncode,0,result.stdout)
             result = run(['cmake','--build',str(build),'--parallel','1'])
@@ -82,7 +113,7 @@ class GraphicsDependencyBuildTests(unittest.TestCase):
             self.assertEqual(result.returncode,0,result.stdout)
             result = run([str(build / 'probe')])
             self.assertEqual(result.returncode,0,result.stdout)
-            self.assertEqual(len((build/'dependencies.tsv').read_text().splitlines()),5)
+            self.assertEqual(len((build/'dependencies.tsv').read_text().splitlines()),7 if pad else 5)
 
     def test_explicit_framework_propagates_from_static_audio(self):
         self.exercise('positive')
@@ -101,6 +132,18 @@ class GraphicsDependencyBuildTests(unittest.TestCase):
 
     def test_unpopulated_dependency_rejected(self):
         self.exercise('missing',wrong='missing')
+
+    def test_pad_dependency_record(self):
+        self.exercise('pad', pad=True)
+
+    def test_changed_aurora_sdl_ref_rejected(self):
+        self.exercise('sdl-pin', pad=True, wrong='sdl-pin')
+
+    def test_unapplied_patch_hash_rejected(self):
+        self.exercise('patch-hash', pad=True, wrong='patch-hash')
+
+    def test_sdl_silently_disabling_dynamic_libusb_rejected(self):
+        self.exercise('sdl-dynamic', pad=True, wrong='sdl-dynamic')
 
 
 if __name__ == '__main__':

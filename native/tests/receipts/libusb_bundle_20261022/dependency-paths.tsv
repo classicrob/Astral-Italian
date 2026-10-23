@@ -1,0 +1,2 @@
+libusb	/tmp/pad-sol-a-libusb/check-build/petari-libusb/install/lib/libusb-1.0.0.dylib	1.0.30	SHA256=fea36f34f9156400209595e300840767ab1a385ede1dc7ee893015aea9c6dbaf
+SDL-patch	0001-libusb-load-from-app-bundle.patch	SHA256=66e6c228536120a6b73e1598bbec3a389a405a5f7f9de464a7ff9f782bdeeff2

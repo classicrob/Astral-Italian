@@ -1,0 +1,6 @@
+Bundled dylib moved aside for this run, then restored.
+Command: /usr/bin/env -i /private/tmp/pad-sol-a-libusb/check-build/check.app/Contents/MacOS/check --expect-absent
+SDL_hid_init=0
+SDL_hid_enumerate: 0 devices
+libusb not loaded; HID enumeration completed without libusb
+result: PASS

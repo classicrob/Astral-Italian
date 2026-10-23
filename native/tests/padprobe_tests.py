@@ -50,7 +50,7 @@ def main():
         f'PASS exit=0 elapsed={elapsed:.3f}s (<6s, requested -t 5)\n'
         f'PASS report={report.stat().st_size} bytes (<30000), identical to stdout\n'
         'PASS all eleven no-pad layer statuses and NO_PAD verdict\n'
-        'PASS SDL phase loaded libusb independently of the probe dlopen\n'
+        'PASS SDL-phase dyld image reports libusb after the independent probe handle closed\n'
         f'USB rows: {len(rows)}; non-Nintendo rows: {len(non_pad)}\n'
         + (hardware + '\n' if args.all_usb else '')
     )

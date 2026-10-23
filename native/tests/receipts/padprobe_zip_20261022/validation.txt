@@ -1,0 +1,6 @@
+Command (empty environment): /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/zipcheck-sol-c/PadProbe/bin/padprobe -t 5
+PASS exit=0 elapsed=5.205s (<6s, requested -t 5)
+PASS report=3418 bytes (<30000), identical to stdout
+PASS all eleven no-pad layer statuses and NO_PAD verdict
+PASS SDL-phase dyld image reports libusb after the independent probe handle closed
+USB rows: 0; non-Nintendo rows: 0

@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/build-sol-c
+Test project /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/build-sol-c
+    Start 1: padprobe_selftest
+1/1 Test #1: padprobe_selftest ................   Passed    0.02 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.03 sec

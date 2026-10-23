@@ -1,0 +1,3 @@
+libusb	/Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/build-sol-c/petari-libusb/install/lib/libusb-1.0.0.dylib	1.0.30	SHA256=fea36f34f9156400209595e300840767ab1a385ede1dc7ee893015aea9c6dbaf
+SDL-patch	0001-libusb-load-from-app-bundle.patch	SHA256=66e6c228536120a6b73e1598bbec3a389a405a5f7f9de464a7ff9f782bdeeff2
+SDL-patch	0002-switch2-macos-iokit-input-libusb-commands.patch	SHA256=17e067a19ccf92fe4fdf4accd34296a368841ff9cbc0e349495f05e7b8abcd0d

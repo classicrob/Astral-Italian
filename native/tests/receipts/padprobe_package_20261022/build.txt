@@ -1,0 +1,4 @@
+[0/2] Re-checking globbed directories...
+[1/4] cd /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/build-sol-c && /opt/homebrew/Cellar/cmake/3.27.7/bin/cmake -DSDL_BINARY_DIR=/Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/build-sol-c/_deps/sdl-build -P /Users/roberthaisfield/MacioGalaxy2-wt/pad-sol-c/native/cmake/CheckSDLLibusbConfig.cmake
+[2/4] Building C object CMakeFiles/padprobe.dir/padprobe.c.o
+[3/4] Linking C executable padprobe

@@ -1,0 +1,18 @@
+Executable=/Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/zipcheck-sol-c/PadProbe/bin/padprobe
+Identifier=padprobe-55554944266586cac4b83ee7ba896519ca6be210
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=22954 flags=0x2(adhoc) hashes=711+2 location=embedded
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12
+Executable=/Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/zipcheck-sol-c/PadProbe/Frameworks/libusb-1.0.0.dylib
+Identifier=libusb-1-5555494445c04f7a48dd36099703399a5ad2bad0
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=1482 flags=0x2(adhoc) hashes=40+2 location=embedded
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

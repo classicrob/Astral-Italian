@@ -1,0 +1,42 @@
+PadProbe git=0668c66c7dc1 date=2026-10-22 21:46:29 -0400 macOS=15.1 build=24B5070a arch=arm64
+SDL=3.4.10 revision=SDL-3.4.10-HEAD-HASH-NOTFOUND totalLimit=5.0 s allUSB=1
+Hints: native/app has no joystick-specific SDL_SetHint calls; foreground game mode mirrored.
+hint SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
+hint SDL_JOYSTICK_HIDAPI=(unset; SDL default)
+hint SDL_JOYSTICK_HIDAPI_SWITCH2=(unset; SDL default)
+hint SDL_JOYSTICK_HIDAPI_SWITCH=(unset; SDL default)
+hint SDL_JOYSTICK_MFI=(unset; SDL default)
+hint SDL_GAMECONTROLLER_USE_BUTTON_LABELS=(unset; SDL default)
+hint SDL_GAMECONTROLLERCONFIG=(unset; SDL default)
+hint SDL_JOYSTICK_HIDAPI_LIBUSB=(unset; SDL default)
+hint SDL_HIDAPI_LIBUSB=(unset; SDL default)
+DYLD_FALLBACK_LIBRARY_PATH=(none)
+USB claims/IOHID opens run with SDL shut down; handles released before SDL init.
+FAIL libusb dlopen @executable_path/Frameworks/libusb-1.0.0.dylib: dlopen(@executable_path/Frameworks/libusb-1.0.0.dylib, 0x0006): tried: '/Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/dist/PadProbe/bin/Frameworks/libusb-1.0.0.dylib' (no such file)
+PASS libusb dlopen @executable_path/../Frameworks/libusb-1.0.0.dylib: loaded
+PASS libusb load: own dlopen: /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/dist/PadProbe/Frameworks/libusb-1.0.0.dylib; libusb 1.0.30
+FAIL USB enumerate: libusb_get_device_list=0 (success); Nintendo devices=0; summary target=any 057e
+SKIP USB open: 0 target devices opened; handles closed; no detach/reset/transfers
+SKIP bulk interface claim: 0 vendor bulk IN+OUT settings; 0 claimed and released (Switch 2 only)
+SKIP IOHID open: 0 Nintendo HID devices; 0 target opens and closes succeeded
+PASS SDL init GAMEPAD|EVENTS: initialized
+SDL phase dyld libusb image (own dlopen already closed): /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/dist/PadProbe/Frameworks/libusb-1.0.0.dylib
+Plug the pad in now (USB data cable); leave other gamepads disconnected. Waiting up to 5.0 s total.
+SKIP SDL mapping/guided input/sensors/rumble: no SDL gamepad opened before deadline
+FAIL SDL driver attached: no SDL joystick/gamepad appeared before deadline
+
+FINAL SUMMARY (target Switch 2 057e:2069 preferred; diagnostics do not certify gameplay)
+PASS libusb load: own dlopen: /Users/roberthaisfield/MacioGalaxy2-team/scratch-pad/pad/dist/PadProbe/Frameworks/libusb-1.0.0.dylib; libusb 1.0.30
+FAIL USB enumerate: libusb_get_device_list=0 (success); Nintendo devices=0; summary target=any 057e
+SKIP USB open: 0 target devices opened; handles closed; no detach/reset/transfers
+SKIP bulk interface claim: 0 vendor bulk IN+OUT settings; 0 claimed and released (Switch 2 only)
+SKIP IOHID open: 0 Nintendo HID devices; 0 target opens and closes succeeded
+FAIL SDL driver attached: no SDL joystick/gamepad appeared before deadline
+SKIP SDL mapping: prerequisite absent or total time budget exhausted
+SKIP gamepad event flow: prerequisite absent or total time budget exhausted
+SKIP mapping of extras: prerequisite absent or total time budget exhausted
+SKIP sensors: prerequisite absent or total time budget exhausted
+SKIP rumble: prerequisite absent or total time budget exhausted
+VERDICT: NO_PAD: no Nintendo USB/HID device or SDL joystick seen before deadline
+Send me padprobe-report.txt
+Report path: /Users/roberthaisfield/MacioGalaxy2-wt/pad-sol-c/native/tests/receipts/padprobe_allusb_20261022/padprobe-report.txt

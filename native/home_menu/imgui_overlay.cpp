@@ -5,6 +5,7 @@
 #include "petari/launch_stage.hpp"
 #include "petari/progress.hpp"
 #include "petari/pipeline_startup.hpp"
+#include "petari/efb_dump_mark.hpp"
 
 #include "petari/galaxy_font.hpp"
 
@@ -764,6 +765,7 @@ void drawImGuiOverlay(float imageX, float imageY, float imageWidth, float imageH
     if (prompt && !sPromptWasActive) {
         HostAllocationScope scope;  // this may be a game thread
         sHint = Input::titleHint(Input::bindings());
+        EfbDump::mark("title-prompt");  // PETARI_SURFACE_DUMP_LABELS=title-prompt dumps the title with its overlays
     }
     sPromptWasActive = prompt;
     if (prompt && !view.visible) {

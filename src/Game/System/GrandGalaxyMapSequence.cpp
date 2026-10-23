@@ -74,7 +74,20 @@ void GrandGalaxyMapSequence::exeWait() {
     }
 
     MR::updateActorState(this);
+#ifdef GALAXY_NATIVE
+    // PartsWarpInfo overlays the 32-bit layout of GrandGalaxyMapStateWorldWarp (0x10 bytes of ActorStateBase, then
+    // mWarpParam0/mWarpParam1 at 0x10/0x14). Natively the state's header is wider, so the overlay wrote the star road
+    // warp into the header and left mWarpParam0 at -1: the warp then requested "WorldMap255Galaxy" (null scenario data).
+    // Hand getStarRoadWarp a real PartsWarpInfo and copy its result into the state's own fields.
+    PartsWarpInfo warp;
+    warp.mParam0 = mWorldWarp->mWarpParam0;
+    warp.mParam1 = mWorldWarp->mWarpParam1;
+    if (!tryPointMove() && mHost->tryWorldWarp(&warp)) {
+        mWorldWarp->mWarpParam0 = warp.mParam0;
+        mWorldWarp->mWarpParam1 = warp.mParam1;
+#else
     if (!tryPointMove() && mHost->tryWorldWarp(reinterpret_cast< PartsWarpInfo* >(mWorldWarp))) {
+#endif
         MR::startActionSound(mHost->getRocket(), "PushAButton", -1, -1, -1);
         mHost->requestEnd();
         setNerve(&GrandGalaxyMapSequenceWorldWarp::sInstance);

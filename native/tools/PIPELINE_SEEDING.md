@@ -80,7 +80,12 @@ added so they rank hot there, heaviest miss first. 2026-10-17 harvest round 1: 3
 global configs. 2026-10-23 harvest (5.3.3): the user's first playtest of 5.3.2 (title → Starship → World 1 → Fluffy
 Bluff) drew 106 GX configs no v13 seed had (Starship 32, Fluffy Bluff 38, ScenarioSelect 27, WorldMap01 24,
 FileSelect 16, Unknown 4); inserted hot with `add-rows` only (existing ranks unchanged): 2,419 → 2,525 global
-configs (scratch-port/gate53/harvest533.py, rows from a copy of that session's pipeline cache). Re-apply after every seed regeneration or closure. The pack keeps the order, but
+configs (scratch-port/gate53/harvest533.py, rows from a copy of that session's pipeline cache). Then the global backlog was
+ordered by ROUTE (scratch-port/gate53/reorder533.py): the configs of Unknown, FileSelect, MarioFaceShipGalaxy,
+WorldMap01Galaxy, ScenarioSelect, PeachCastleGalaxy and the World 1 galaxies come first, tier by tier in each stage's
+own hot order (1,042 rows), then the rest in its previous order. Only `__global__.db`'s `first_frame_used` changed,
+so stage gates are unchanged. Reason: a true-cold M1 Max compiles about 14 pipelines/s (the whole set takes about 3 min), so the
+hubs every session visits first must not wait behind "drawn in the most stages" rows. Re-apply after every seed regeneration or closure. The pack keeps the order, but
 regenerated databases do not. Test: `native_seed_order`.
 
 **Hot gate.** `petari_gx_pipeline_stage_wait` now waits only for the clear masks

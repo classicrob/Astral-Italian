@@ -46,6 +46,22 @@ fn run(in:VertexOutput)->vec4f {
     if(normal==UINT32_MAX) src+="@fragment fn fs_main(in:VertexOutput)->@location(0) vec4f {"+ret+"return c;}";
     else src+=fmt::format("struct Frag {{@location(0) color:vec4f,@location({}) normal:vec4f,}};@fragment fn fs_main(in:VertexOutput)->Frag {{ {} let n=in.normal;let len=dot(n,n);var out=vec4f(0.5,0.5,0.5,0);if(cfg(823u)!=0u){{out=vec4f(select(vec3f(0),normalize(n),len>1e-10)*0.5+0.5,select(0.0,1.0,len>1e-10));}}return Frag(c,out);}}",normal,ret);
   }
+  // Diagnostic ablations deliberately change the image. Each removes one feature
+  // from the same interpreter to locate GPU cost; never used for correctness gates.
+  if (const char* ablation=std::getenv("PETARI_UBERSHADER_ABLATION")) {
+    std::string_view a(ablation);
+    auto replaceFunction=[&](std::string_view first,std::string_view next,std::string_view replacement) {
+      auto begin=src.find(first);auto end=src.find(next,begin);
+      if(begin!=std::string::npos && end!=std::string::npos) src.replace(begin,end-begin,replacement);
+    };
+    if(a=="fragment") {
+      auto begin=src.find("fn run(");auto end=src.find("\n}\n",begin);
+      if(begin!=std::string::npos && end!=std::string::npos) src.replace(begin,end+3-begin,"fn run(in:VertexOutput)->vec4f {return vec4f(1); }\n");
+    }
+    if(a=="textures") replaceFunction("fn sample_tex(","fn cop(","fn sample_tex(i:u32,uv:vec2f)->vec4f {return vec4f(1); }\n");
+    if(a=="lighting") replaceFunction("fn channel(","@vertex", "fn channel(c:u32,clr:vec4f,pos:vec3f,nrm:vec3f)->vec4f {return clr;}\n");
+    std::fprintf(stderr,"[gx uber ablation] feature=%s diagnostic_image=1\n",ablation);
+  }
   return src;
 }
 wgpu::ShaderModule petari_uber_shader(DstAlphaMode mode,uint32_t normal) {

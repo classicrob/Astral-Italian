@@ -1008,6 +1008,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     App::FirstRun::installMenu(locations);
+    PetariNative::HomeMenu::setPreparationProgressSource(&petari_gx_pipeline_prewarm_progress);
     if (App::SmokeBackground::enabled) {
         auto* window = static_cast<SDL_Window*>(info.window);
         if (!SDL_SetWindowFocusable(window, false)) {

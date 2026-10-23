@@ -1,4 +1,6 @@
 #include <petari/pipeline_startup.hpp>
+#include <petari/home_menu.hpp>
+#include <string>
 #include <imgui.h>
 #include <cmath>
 #include <cstdio>
@@ -36,8 +38,33 @@ int main() try {
             }
         }
     }
+    // The title's "Preparing graphics N%" pill: under the title hint, in the top 12% of the image, readable at 480 lines.
+    for (float fraction : {0.0f, 0.37f, 1.0f}) {
+        const float w = 854.0f, h = 480.0f;
+        io.DisplaySize = ImVec2(1280.0f, 800.0f);
+        ImGui::NewFrame();
+        HomeMenu::drawPreparingGraphics(fraction, 0.0f, 0.0f, w, h);
+        ImGui::Render();
+        const HomeMenu::Rect hint = HomeMenu::titleHintRect();
+        const float hintBottom = (hint.y1 + 1.0f) * 0.5f * h;
+        float top = 1e9f, bottom = -1e9f, textTop = 1e9f, textBottom = -1e9f;
+        int vertices = 0;
+        const auto* data = ImGui::GetDrawData();
+        for (int list = 0; list < data->CmdListsCount; ++list) {
+            for (const auto& v : data->CmdLists[list]->VtxBuffer) {
+                ++vertices;
+                top = std::fmin(top, v.pos.y);
+                bottom = std::fmax(bottom, v.pos.y);
+                const ImVec4 c = ImGui::ColorConvertU32ToFloat4(v.col);
+                if (c.x > 0.9f && c.y > 0.9f && c.z > 0.97f) { textTop = std::fmin(textTop, v.pos.y); textBottom = std::fmax(textBottom, v.pos.y); }
+            }
+        }
+        check(vertices > 100, "preparing pill drawn");
+        check(top >= hintBottom - 0.5f && bottom <= 0.12f * h, "preparing pill under the title hint, in the top 12%");
+        check(textBottom - textTop >= 6.0f, ("preparing text readable at 480 lines: " + std::to_string(textBottom - textTop)).c_str());
+    }
     ImGui::DestroyContext();
-    std::puts("Preparation overlay: text/bar geometry, ETA states and four window sizes pass");
+    std::puts("Preparation overlay: text/bar geometry, ETA states and four window sizes pass; title pill placement passes");
 } catch (const std::exception& error) {
     std::fprintf(stderr, "FAIL: %s\n", error.what());
     return 1;

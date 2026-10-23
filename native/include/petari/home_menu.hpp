@@ -515,6 +515,15 @@ void drawImGuiOverlay(float imageX, float imageY, float imageWidth, float imageH
 // (Space by default) rather than showing the A icon. Any thread, set once.
 using HoldProgressFn = float (*)();
 void setHoldProgressSource(HoldProgressFn source);
+// "Preparing graphics N%" on the title screen (user decision 2026-10-23): on a cold first launch the global shader
+// backlog takes minutes (about 3 on an M1 Max), so the title shows a small, non-blocking progress pill while the
+// title prompt is up. The source reports compiled / total variants and the remaining work in seconds; the pill
+// appears only when that work exceeds 3 s (a warm launch never shows it), stays until 100 %, then never returns in
+// this process. The GX app points it at petari_gx_pipeline_prewarm_progress; null (the default) draws nothing.
+using PreparationProgressFn = bool (*)(unsigned* done, unsigned* total, double* remainingSeconds);
+void setPreparationProgressSource(PreparationProgressFn source);
+// Draws the pill for `fraction` (0..1) under the title hint (used by drawImGuiOverlay; exposed for tests).
+void drawPreparingGraphics(float fraction, float imageX, float imageY, float imageWidth, float imageHeight);
 // Draws the ring for `progress` (used by drawImGuiOverlay; exposed for the render tool and tests).
 // `key` is the name of the key being held ("Space"), shown in the ring; null or "" shows the
 // controller's A icon. Same thread and frame rules as drawImGuiOverlay.

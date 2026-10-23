@@ -599,6 +599,39 @@ void setHoldProgressSource(HoldProgressFn source) {
     gHoldProgress.store(source, std::memory_order_relaxed);
 }
 
+namespace {
+std::atomic<PreparationProgressFn> gPreparation{nullptr};
+}  // namespace
+
+void setPreparationProgressSource(PreparationProgressFn source) {
+    gPreparation.store(source, std::memory_order_relaxed);
+}
+
+void drawPreparingGraphics(float fraction, float imageX, float imageY, float imageWidth, float imageHeight) {
+    if (!(imageWidth > 0.0f) || !(imageHeight > 0.0f)) return;
+    fraction = std::clamp(fraction, 0.0f, 1.0f);
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    const ImageSpace image{imageX, imageY, imageWidth, imageHeight};
+    // Just under the title hint, narrower and fainter than it: information, not a prompt.
+    const ImVec2 pillMin = image.point(-0.30f, -0.835f);
+    const ImVec2 pillMax = image.point(0.30f, -0.775f);
+    const float height = pillMax.y - pillMin.y;
+    list->PushClipRect(image.point(-1.0f, -1.0f), image.point(1.0f, 1.0f), false);
+    list->AddRectFilled(pillMin, pillMax, color(0.02f, 0.03f, 0.08f, 0.50f), height * 0.5f);
+    char text[64];
+    std::snprintf(text, sizeof(text), "Preparing graphics... %u%%", static_cast<unsigned>(fraction * 100.0f));
+    centeredText(list, textFont(), imageHeight * 0.026f, (pillMax.x - pillMin.x) * 0.9f,
+                 ImVec2((pillMin.x + pillMax.x) * 0.5f, pillMin.y + height * 0.42f), color(0.92f, 0.95f, 1.0f, 0.88f), text);
+    const float inset = height * 0.5f;
+    const ImVec2 barMin(pillMin.x + inset, pillMax.y - height * 0.20f);
+    const ImVec2 barMax(pillMax.x - inset, pillMax.y - height * 0.12f);
+    list->AddRectFilled(barMin, barMax, color(0.16f, 0.22f, 0.34f, 0.80f), height * 0.05f);
+    if (fraction > 0.0f)
+        list->AddRectFilled(barMin, ImVec2(barMin.x + (barMax.x - barMin.x) * fraction, barMax.y),
+                            color(0.45f, 0.75f, 1.0f, 0.90f), height * 0.05f);
+    list->PopClipRect();
+}
+
 void drawHoldRing(float progress, float imageX, float imageY, float imageWidth, float imageHeight, const char* key) {
     if (!(progress > 0.0f) || !(imageWidth > 0.0f) || !(imageHeight > 0.0f) || !ImGui::GetCurrentContext()) {
         return;
@@ -735,6 +768,24 @@ void drawImGuiOverlay(float imageX, float imageY, float imageWidth, float imageH
     sPromptWasActive = prompt;
     if (prompt && !view.visible) {
         drawTitleHint(sHint.c_str(), imageX, imageY, imageWidth, imageHeight);
+    }
+    // Cold first launch: the backlog's real progress under the hint, polled every 15 frames. Shown only when the
+    // remaining work is over 3 s; once it reaches 100 % it never comes back in this process.
+    static bool sPrepShown = false, sPrepFinished = false;
+    static int sPrepPoll = 0;
+    static float sPrepFraction = 0.0f;
+    if (prompt && !view.visible && !sPrepFinished) {
+        if (const PreparationProgressFn source = gPreparation.load(std::memory_order_relaxed); source && sPrepPoll-- <= 0) {
+            sPrepPoll = 15;
+            unsigned done = 0, total = 0;
+            double remaining = 0.0;
+            if (source(&done, &total, &remaining) && total > 0) {
+                sPrepFraction = static_cast<float>(done) / static_cast<float>(total);
+                if (done >= total) sPrepFinished = true;
+                else if (!sPrepShown && remaining > 3.0) sPrepShown = true;
+            }
+        }
+        if (sPrepShown && !sPrepFinished) drawPreparingGraphics(sPrepFraction, imageX, imageY, imageWidth, imageHeight);
     }
 #endif
     if (!view.visible) {

@@ -25,3 +25,5 @@ extern "C" void petari_gx_pipeline_preparation_status(std::uint32_t* total, std:
 extern "C" bool petari_gx_pipeline_full_preparation();
 
 extern "C" void petari_gx_pipeline_startup_finished();
+// Global backlog progress for the title's "Preparing graphics N%" (native/gx/pipeline_stage.inc).
+extern "C" bool petari_gx_pipeline_prewarm_progress(unsigned* done, unsigned* total, double* remainingSeconds);

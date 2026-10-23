@@ -60,6 +60,11 @@ The **Home menu** (` or F1) is where you remap controls, switch mods on and off,
 - *Collect-all-Star-Bits* (G) pulls nearby Star Bits to Mario.
 - *Shoot-nearest* (V) fires a Star Bit at the nearest enemy in range.
 
+**On first launch, let the title screen sit until "Preparing graphics… N%" (under the title prompt) finishes**: about
+3 minutes on an M1 Mac, less on newer Macs. The game prepares its graphics for your Mac in the background. You can start
+playing earlier, but the game may pause briefly when it reaches places that are not ready yet. This happens once per new
+version of the game; later launches skip it.
+
 The first time a new effect appears the game can hitch for a moment while shaders compile; that settles down.
 
 ## What to test

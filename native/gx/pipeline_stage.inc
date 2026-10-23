@@ -306,6 +306,24 @@ extern "C" void petari_gx_pipeline_stage_wait() {
   petari_stage_flush_logs();
 }
 
+// The title's "Preparing graphics N%" (cold first launch, petari/home_menu.hpp setPreparationProgressSource): how many
+// of the global seed's variants are compiled, and the remaining work at the recent compile cost on the workers the
+// backlog may use. False when there is no global backlog. Any thread.
+extern "C" bool petari_gx_pipeline_prewarm_progress(unsigned* done, unsigned* total, double* remainingSeconds) {
+  std::lock_guard lock{g_pipelineMutex};
+  const auto it = petariStages.find("__global__");
+  if (it == petariStages.end() || it->second.targets.empty()) return false;
+  unsigned ready = 0;
+  for (const auto key : it->second.targets) ready += g_pipelines.contains(key);
+  const unsigned count = static_cast<unsigned>(it->second.targets.size());
+  const unsigned reserved = petariNormalWorkers > kPetariOnDemandWorkers ? kPetariOnDemandWorkers : 0u;
+  const double workers = std::max(1u, petariActiveWorkers > reserved ? petariActiveWorkers - reserved : 1u);
+  *done = ready;
+  *total = count;
+  *remainingSeconds = (count - ready) * petariCompileEwmaMs / workers / 1000.0;
+  return true;
+}
+
 extern "C" void petari_gx_pipeline_report() {
   PetariNative::HostAllocationScope petariHostAllocations;
   petari_stage_flush_logs();

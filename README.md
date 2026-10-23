@@ -4,7 +4,7 @@
 > **Astral Italian** is an independent, AI-agent-built continuation of the Super Mario Galaxy 2 decomp, plus a native macOS port.
 > It builds on the human work of [Garigari](https://github.com/SMGCommunity/Garigari) (project scaffolding, symbols, splits, initial matching)
 > and [Petari](https://github.com/SMGCommunity/Petari) (SMG1 code reused for shared engine code).
-> It isn't affiliated with or endorsed by either project. Everything here is CC0, like upstream; anyone may take anything.
+> It isn't affiliated with or endorsed by either project. Project code is CC0, like upstream; third-party dependencies retain their own licences.
 
 ![Code 83.65%](https://img.shields.io/badge/code-83.65%25-2185d0)
 ![Functions 94.9%](https://img.shields.io/badge/functions-94.9%25-2185d0)
@@ -140,3 +140,9 @@ See the [team playbook](docs/team/TEAM.md) and
 Credit to Garigari and Petari, and to the [doldecomp team](https://github.com/doldecomp),
 [Zelda TP](https://github.com/zeldaret/tp) and [OGWS](https://github.com/doldecomp/ogws/tree/master)
 for code and headers used by this project.
+
+Native app builds bundle libusb 1.0.30 under LGPL-2.1-or-later, from the exact source
+release https://github.com/libusb/libusb/releases/download/v1.0.30/libusb-1.0.30.tar.bz2.
+The library is a separate dynamically loaded file the user can replace at
+`Petari.app/Contents/Frameworks/libusb-1.0.0.dylib`. Its licence and notice ship in
+`Contents/Resources/licenses/`; see [third-party notices](native/licenses/THIRD_PARTY_NOTICES.txt).

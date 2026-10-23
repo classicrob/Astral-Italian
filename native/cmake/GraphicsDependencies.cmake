@@ -48,4 +48,52 @@ function(petari_record_graphics_dependencies output)
     if(imported OR NOT kind STREQUAL "STATIC_LIBRARY" OR NOT actual STREQUAL expected)
         message(FATAL_ERROR "SDL3 must be the static target from its pinned source directory")
     endif()
+    if(DEFINED PETARI_SDL3_REF)
+        petari_record_pad_dependencies("${output}")
+    endif()
+endfunction()
+
+function(petari_record_pad_dependencies output)
+    FetchContent_GetProperties(SDL SOURCE_DIR expected BINARY_DIR _sdl_binary)
+    FetchContent_GetProperties(aurora SOURCE_DIR _aurora)
+    # Check both Aurora's declared default and its effective cache value.
+    # A changed upstream pin must never silently use our older SDL tree.
+    file(STRINGS "${_aurora}/cmake/AuroraDependencyVersions.cmake" _sdl_ref_line
+        REGEX "^_aurora_dependency_version\\(AURORA_SDL3_REF ")
+    if(NOT _sdl_ref_line MATCHES "AURORA_SDL3_REF \"${PETARI_SDL3_REF}\" "
+            OR NOT AURORA_SDL3_REF STREQUAL PETARI_SDL3_REF)
+        message(FATAL_ERROR "Petari SDL pin differs from Aurora's AURORA_SDL3_REF")
+    endif()
+    if(NOT LibUSB_LIBRARY STREQUAL PETARI_LIBUSB_LIBRARY
+            OR NOT EXISTS "${PETARI_LIBUSB_LIBRARY}"
+            OR NOT SDL_HIDAPI_LIBUSB OR NOT SDL_HIDAPI_LIBUSB_SHARED)
+        message(FATAL_ERROR "SDL must dynamically load the bundled libusb")
+    endif()
+    # Options express intent; generated headers prove SDL actually found libusb
+    # and selected dynamic loading instead of silently disabling it.
+    file(GLOB _configs "${_sdl_binary}/include-config-*/build_config/SDL_build_config.h")
+    if(NOT _configs)
+        message(FATAL_ERROR "SDL generated build configuration is missing")
+    endif()
+    foreach(_config IN LISTS _configs)
+        file(READ "${_config}" _contents)
+        if(NOT _contents MATCHES "#define HAVE_LIBUSB 1"
+                OR NOT _contents MATCHES "#define SDL_LIBUSB_DYNAMIC \"")
+            message(FATAL_ERROR "SDL did not enable dynamic libusb in ${_config}")
+        endif()
+    endforeach()
+    file(APPEND "${output}" "libusb\t${PETARI_LIBUSB_LIBRARY}\t${PETARI_LIBUSB_VERSION}\tSHA256=${PETARI_LIBUSB_SHA256}\n")
+    foreach(_patch IN LISTS PETARI_SDL_PATCHES)
+        get_filename_component(_name "${_patch}" NAME)
+        file(SHA256 "${_patch}" _hash)
+        set(_stamp "${expected}/.petari-patches/${_name}.sha256")
+        if(NOT EXISTS "${_stamp}")
+            message(FATAL_ERROR "SDL patch was not applied: ${_name}")
+        endif()
+        file(READ "${_stamp}" _applied_hash)
+        if(NOT _applied_hash STREQUAL _hash)
+            message(FATAL_ERROR "SDL patch hash differs: ${_name}")
+        endif()
+        file(APPEND "${output}" "SDL-patch\t${_name}\tSHA256=${_hash}\n")
+    endforeach()
 endfunction()

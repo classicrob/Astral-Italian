@@ -13,6 +13,7 @@ set(AURORA_DAWN_PROVIDER package CACHE STRING "" FORCE)
 FetchContent_Declare(aurora
     GIT_REPOSITORY https://github.com/encounter/aurora.git
     GIT_TAG 08122911e8621acb7ded6563813b264bec1494b5)
+include("${CMAKE_SOURCE_DIR}/native/cmake/PadDependencies.cmake")
 FetchContent_MakeAvailable(aurora)
 petari_record_graphics_dependencies("${CMAKE_CURRENT_BINARY_DIR}/dependency-paths.tsv")
 

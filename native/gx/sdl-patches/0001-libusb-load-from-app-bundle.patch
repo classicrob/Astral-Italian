@@ -1,0 +1,17 @@
+--- a/src/misc/SDL_libusb.c
++++ b/src/misc/SDL_libusb.c
+@@ -42,7 +42,13 @@
+ {
+     if (SDL_AtomicIncRef(&SDL_libusb_refcount) == 0) {
+ #ifdef SDL_LIBUSB_DYNAMIC
+-        SDL_libusb_handle = SDL_LoadObject(SDL_LIBUSB_DYNAMIC);
++#ifdef SDL_PLATFORM_MACOS
++        SDL_libusb_handle = SDL_LoadObject("@executable_path/../Frameworks/libusb-1.0.0.dylib");
++        if (!SDL_libusb_handle)
++#endif
++        {
++            SDL_libusb_handle = SDL_LoadObject(SDL_LIBUSB_DYNAMIC);
++        }
+         if (SDL_libusb_handle)
+ #endif
+         {

@@ -57,6 +57,7 @@ if(NOT _petari_app_standalone)
         petari_host_runtime petari_app_smoke)
 
     add_executable(petari MACOSX_BUNDLE app_main.cpp smoke_storage.cpp pipeline_cache_dir.cpp latency_report.cpp display_link.cpp)
+    petari_bundle_libusb(petari)
     # The Odyssey movement mod (OdysseyCamera/MarioCappy) is ported separately; until it is linked, the app's
     # observers of its state see an inactive mod.
     option(GALAXY_ODYSSEY_MOD "Link the Odyssey movement mod (OdysseyCamera, MarioCappy)" OFF)

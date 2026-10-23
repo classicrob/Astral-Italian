@@ -1,0 +1,9 @@
+libusb 1.0.30
+
+libusb is licensed under the GNU Lesser General Public License, version 2.1
+or later (LGPL-2.1-or-later). The accompanying COPYING contains the licence.
+Exact source release:
+https://github.com/libusb/libusb/releases/download/v1.0.30/libusb-1.0.30.tar.bz2
+
+The library is a separate dynamically loaded file the user can replace.
+It is installed at Contents/Frameworks/libusb-1.0.0.dylib in the app bundle.

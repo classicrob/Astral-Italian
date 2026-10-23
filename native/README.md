@@ -186,6 +186,29 @@ Aurora is MIT licensed. Its source and build instructions are at
 [encounter/aurora](https://github.com/encounter/aurora). Keep its license and the
 licenses of its dependencies when packaging a future application.
 
+### Controllers: bundled libusb
+
+Native app builds include libusb 1.0.30 (LGPL-2.1-or-later) from
+https://github.com/libusb/libusb/releases/download/v1.0.30/libusb-1.0.30.tar.bz2.
+The library is a separate dynamically loaded file the user can replace:
+`Petari.app/Contents/Frameworks/libusb-1.0.0.dylib`. SDL tries this bundle path
+before its normal library name. No Homebrew libusb is needed. Its COPYING and
+THIRD_PARTY_NOTICES.txt ship in `Contents/Resources/licenses/`.
+
+The asset-free loader proof uses the same dependency and packaging rules:
+
+```sh
+cmake -S native/tools/libusb_load_check -B build/libusb-check -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/libusb-check --parallel 4
+ctest --test-dir build/libusb-check --output-on-failure
+env -i build/libusb-check/check.app/Contents/MacOS/check --expect-loaded
+```
+
+`native/tests/libusb_bundle_tests.py` checks the pins and applies every SDL patch
+to a fresh release extraction. Pass `--sdl-archive /path/to/release-3.4.10.tar.gz`
+to use a local archive. With `--executable` and `--library`, it also verifies
+Mach-O dependencies and runs clean-environment present/absent library checks.
+
 ## Resource validation
 
 The default build also produces `petari_asset_check`. It validates big-endian

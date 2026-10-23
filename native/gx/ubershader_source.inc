@@ -36,7 +36,7 @@ fn run(in:VertexOutput)->vec4f {
  var av=aop(cfg(o+13u),aa[0],aa[1],aa[2],aa[3]);if(cfg(o+13u)<2u){av=scale_bias(vec3f(av),cfg(o+14u),cfg(o+15u)).x;}let acl=cfg(o+16u)!=0u;lasta=cfg(o+17u);r[lasta].a=clamp(av,select(-4.0,0.0,acl),select(4.0,1.0,acl));an[lasta]=acl;
  }
  var color=r[lastc].rgb;var alpha=r[lasta].a;if(!cn[lastc]){color=tev_overflow_vec3f(color);}if(!an[lasta]){alpha=tev_overflow_f32(alpha);}
- let byte=u32(round(clamp(alpha,0.0,1.0)*255.0));let a=compare(byte,cfg(801u),cfg(800u));let b=compare(byte,cfg(803u),cfg(802u));var pass=false;switch(cfg(820u)){case 0u:{pass=a&&b;}case 1u:{pass=a||b;}case 2u:{pass=a!=b;}default:{pass=a==b;}}if(!pass){discard;}return vec4f(color,alpha);
+ let byte=u32(round(clamp(alpha,0.0,1.0)*255.0));let a=compare(byte,cfg(801u),cfg(800u));let b=compare(byte,cfg(803u),cfg(802u));var alpha_pass=false;switch(cfg(820u)){case 0u:{alpha_pass=a&&b;}case 1u:{alpha_pass=a||b;}case 2u:{alpha_pass=a!=b;}default:{alpha_pass=a==b;}}if(!alpha_pass){discard;}return vec4f(color,alpha);
 }
 )";
   if(mode==DstAlphaMode::DualSource) {

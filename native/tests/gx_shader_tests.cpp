@@ -307,6 +307,48 @@ void regression_tests() {
 
 int main(int argc, char** argv) {
     aurora::gfx::detail::resources().limits.minUniformBufferOffsetAlignment = 256;
+    if (argc == 2 && std::string(argv[1]) == "--validate-uber-wgsl") {
+        const wgpu::InstanceFeatureName timed = wgpu::InstanceFeatureName::TimedWaitAny;
+        wgpu::InstanceDescriptor id{.requiredFeatureCount=1,.requiredFeatures=&timed};
+        const char* unsafe = "allow_unsafe_apis";
+        wgpu::DawnTogglesDescriptor toggle(wgpu::DawnTogglesDescriptor::Init{.enabledToggleCount=1,.enabledToggles=&unsafe});
+        id.nextInChain=&toggle;
+        auto instance=wgpu::CreateInstance(&id);
+        wgpu::Adapter adapter;
+        wgpu::RequestAdapterOptions ao{.backendType=wgpu::BackendType::Null};
+        auto af=instance.RequestAdapter(&ao,wgpu::CallbackMode::WaitAnyOnly,[&](wgpu::RequestAdapterStatus status,wgpu::Adapter a,wgpu::StringView message){
+            if(status==wgpu::RequestAdapterStatus::Success) adapter=std::move(a);
+            else std::fprintf(stderr,"Null adapter: %.*s\n",int(message.length),message.data);
+        });
+        if(instance.WaitAny(af,5000000000)!=wgpu::WaitStatus::Success || !adapter) return 2;
+        wgpu::Device device;
+        wgpu::Limits limits; limits.maxImmediateSize=sizeof(DrawImmediateData);
+        std::vector<wgpu::FeatureName> features;
+        for(auto f:{wgpu::FeatureName::CoreFeaturesAndLimits,wgpu::FeatureName::DualSourceBlending}) if(adapter.HasFeature(f))features.push_back(f);
+        wgpu::DeviceDescriptor dd({.requiredFeatureCount=features.size(),.requiredFeatures=features.data(),.requiredLimits=&limits});
+        unsigned errors=0;
+        dd.SetUncapturedErrorCallback([](const wgpu::Device&,wgpu::ErrorType,wgpu::StringView message,unsigned* count){++*count;std::fprintf(stderr,"WGSL: %.*s\n",int(message.length),message.data);}, &errors);
+        auto df=adapter.RequestDevice(&dd,wgpu::CallbackMode::WaitAnyOnly,[&](wgpu::RequestDeviceStatus status,wgpu::Device d,wgpu::StringView message){
+            if(status==wgpu::RequestDeviceStatus::Success)device=std::move(d);
+            else std::fprintf(stderr,"Null device: %.*s\n",int(message.length),message.data);
+        });
+        if(instance.WaitAny(df,5000000000)!=wgpu::WaitStatus::Success || !device) return 3;
+        unsigned checked=0;
+        for(auto mode:{DstAlphaMode::None,DstAlphaMode::Replace,DstAlphaMode::DualSource}) for(auto normal:{UINT32_MAX,1u}) {
+            if(mode==DstAlphaMode::DualSource && (normal!=UINT32_MAX || !device.HasFeature(wgpu::FeatureName::DualSourceBlending)))continue;
+            const auto source=petari_uber_source(mode,normal);
+            wgpu::ShaderSourceWGSL wgsl{};wgsl.code=source.c_str();wgpu::ShaderModuleDescriptor sd{.nextInChain=&wgsl};
+            auto shader=device.CreateShaderModule(&sd);
+            auto sf=shader.GetCompilationInfo(wgpu::CallbackMode::WaitAnyOnly,[&](wgpu::CompilationInfoRequestStatus status,const wgpu::CompilationInfo* info){
+                if(status!=wgpu::CompilationInfoRequestStatus::Success || !info){++errors;return;}
+                for(size_t i=0;i<info->messageCount;++i){const auto& m=info->messages[i];if(m.type==wgpu::CompilationMessageType::Error){++errors;std::fprintf(stderr,"WGSL %llu:%llu %.*s\n",(unsigned long long)m.lineNum,(unsigned long long)m.linePos,int(m.message.length),m.message.data);}}
+            });
+            if(instance.WaitAny(sf,5000000000)!=wgpu::WaitStatus::Success)++errors;
+            ++checked;
+        }
+        std::printf("uber_wgsl variants=%u errors=%u\n",checked,errors);
+        return errors?1:0;
+    }
     if (argc == 3 && std::string(argv[1]) == "--dump-uber") {
         std::ofstream out(argv[2]);
         out << petari_uber_source(DstAlphaMode::None, UINT32_MAX);

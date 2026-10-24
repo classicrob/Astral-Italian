@@ -34,13 +34,14 @@ def all_groups(path):
     return result
 
 
-def build(seeds, provenances, output, report):
+def build(seeds, provenances, output, report, expected_stages=None):
     seeds, output, report = Path(seeds).resolve(), Path(output).resolve(), Path(report).resolve()
     if output.exists() or report.exists() or output == seeds or report.is_relative_to(output):
         raise ValueError('output/report must be new; report must stay outside the packed seed directory')
     output.mkdir(parents=True)
     for path in seeds.glob('*.db'): shutil.copyfile(path, output / path.name)
     results, frontend, planned, admitted = [], {}, set(), set()
+    expected = set(expected_stages) if expected_stages is not None else None
     dedicated_title = False
     build_identity = None
     provenance_bindings = []
@@ -78,6 +79,8 @@ def build(seeds, provenances, output, report):
                     launch = json.loads((folder / 'launch.json').read_text())
                     if launch['exe_sha256'] != arm['recording_exe_sha256'] or launch['renderer_key'] != arm['renderer_key']:
                         raise ValueError('recording build/renderer binding mismatch')
+                    if not re.fullmatch(r'[0-9a-f]{64}', arm['recording_exe_sha256']) or arm['renderer_key'] != identity[2]:
+                        raise ValueError('perf executable hash invalid or renderer differs from recording build')
                     if any(arm['checks'].get(k) is not True for k in ('valid_capture', 'no_pipeline_waits', 'no_pop_in')):
                         raise ValueError('record was not fully warm for drawn configs')
                     text = (folder / 'app.log').read_text(errors='replace')
@@ -136,9 +139,11 @@ def build(seeds, provenances, output, report):
         except ValueError as exc:
             item['reason'] = str(exc)
     unchanged = all(seedpack.database_rows(str(p)) == seedpack.database_rows(str(output / p.name)) for p in seeds.glob('*.db'))
-    missing = sorted(planned - admitted - {'Unknown', 'FileSelect'})
+    required = expected if expected is not None else planned - {'Unknown', 'FileSelect'}
+    missing = sorted(required - admitted)
     result = {'version': 1, 'passed': not missing and unchanged, 'all_database_rows_unchanged': unchanged,
               'planned_stages': sorted(planned), 'admitted_stages': sorted(admitted), 'missing_or_failed_stages': missing,
+              'expected_stages': sorted(required), 'unrecorded_stages': sorted(required - planned),
               'frontend_recording_failures': sorted((planned - admitted) & {'Unknown', 'FileSelect'}),
               'stage_results': results, 'frontend_results': front_results, 'provenance': provenance_bindings,
               'source_seed_dir': str(seeds), 'output_seed_dir': str(output),
@@ -150,11 +155,12 @@ def build(seeds, provenances, output, report):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--seed-dir', required=True, type=Path)
+    parser.add_argument('--disc', required=True, type=Path, help='Enumerate the complete scenario-1 sweep; partial batches cannot pass')
     parser.add_argument('--provenance', required=True, nargs='+', type=Path)
     parser.add_argument('--out', required=True, type=Path)
     parser.add_argument('--report', required=True, type=Path)
     args = parser.parse_args()
-    result = build(args.seed_dir, args.provenance, args.out, args.report)
+    result = build(args.seed_dir, args.provenance, args.out, args.report, recording.select(args.disc))
     print(json.dumps({'passed': result['passed'], 'admitted': len(result['admitted_stages']),
                       'missing': result['missing_or_failed_stages'], 'frontend': result['frontend_results']}, indent=2))
     return 0 if result['passed'] else 1

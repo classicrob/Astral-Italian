@@ -34,8 +34,8 @@ class Build(unittest.TestCase):
             (folder / 'first-use.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in capture))
             (folder / 'app.log').write_text('[input-script] done after 970 frames\n')
             (folder / 'frames.csv').write_text('frame,pipeline_wait_ms\n1,0.000\n')
-            (folder / 'launch.json').write_text(json.dumps({'exe_sha256': 'same-build', 'renderer_key': 'same-renderer', 'environment': {}}))
-            self.arms.append({'passed': True, 'name': name, 'recording_exe_sha256': 'same-build', 'renderer_key': 'same-renderer',
+            (folder / 'launch.json').write_text(json.dumps({'exe_sha256': '4'*64, 'renderer_key': '3'*64, 'environment': {}}))
+            self.arms.append({'passed': True, 'name': name, 'recording_exe_sha256': '4'*64, 'renderer_key': '3'*64,
                               'checks': dict(valid_capture=True, no_pipeline_waits=True, no_pop_in=True)})
             self.rehash(index)
         self.data = {'version': 1, 'recording_only': True, 'stages_planned': ['A'],
@@ -50,9 +50,9 @@ class Build(unittest.TestCase):
         for name, field in [('first-use.jsonl', 'capture_sha256'), ('app.log', 'app_log_sha256'), ('launch.json', 'launch_sha256')]:
             arm[field] = builder.sha(folder / name)
 
-    def run_build(self):
+    def run_build(self, expected=None):
         path = self.batch / 'PROVENANCE.json'; path.write_text(json.dumps(self.data))
-        return builder.build(self.seeds, [path], self.root / 'out', self.root / 'report.json')
+        return builder.build(self.seeds, [path], self.root / 'out', self.root / 'report.json', expected)
 
     def test_exact_pair(self):
         result = self.run_build(); self.assertTrue(result['passed'])
@@ -79,6 +79,16 @@ class Build(unittest.TestCase):
         for index in (1, 2):
             path = self.batch / f'A/warm-{index}/first-use.jsonl'
             path.write_text(path.read_text().replace('000000000000000c', '00000000000003e7')); self.rehash(index)
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_partial_batch_cannot_pass_complete_sweep(self):
+        result = self.run_build(['A', 'B'])
+        self.assertFalse(result['passed'])
+        self.assertEqual(result['unrecorded_stages'], ['B'])
+        self.assertEqual(result['missing_or_failed_stages'], ['B'])
+
+    def test_renderer_must_match_recording_build(self):
+        self.data['recording_build_metadata']['renderer_key'] = '5'*64
         self.assertFalse(self.run_build()['passed'])
 
 

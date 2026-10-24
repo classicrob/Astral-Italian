@@ -179,7 +179,9 @@ constexpr int kDisplayOptionCount = 4;
 struct DisplayOptions {
     bool fullscreen = false;
     int size = 0;
-    bool vsync = false;  // VI/display-link already paces the game
+    // VSync on = Fifo present (5.4 default): on a 120 Hz ProMotion panel Immediate put 16.3 % of warm presents off the
+    // 60 fps cadence vs 0.3 % with Fifo (server gate, 2026-10-23). Off = Immediate, for minimum latency.
+    bool vsync = true;
     bool restartNeeded = false;
     bool busy = false;
     bool ubershaders = true;

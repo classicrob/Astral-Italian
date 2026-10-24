@@ -34,7 +34,7 @@ private:
     std::mutex mMutex;
     std::filesystem::path mFile;
     Settings mSettings;
-    bool mStartupVsync = false;
+    bool mStartupVsync = true;
     bool mStartupUbershaders = true;
     int mPending = -1;
     int mDelta = 1;

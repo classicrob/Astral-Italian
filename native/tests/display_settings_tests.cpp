@@ -41,9 +41,9 @@ int main() {
     const std::filesystem::path root(directory), file = root / "user/display.txt";
     std::string error;
     DS::Settings settings;
-    settings.fullscreen = true; settings.size = 3; settings.vsync = true;
+    settings.fullscreen = true; settings.size = 3; settings.vsync = false;
     check(DS::load(file, &settings, &error) && error.empty(), "missing file is normal");
-    check(!settings.fullscreen && settings.size == 0 && !settings.vsync, "unchanged windowed/vsync-off defaults");
+    check(!settings.fullscreen && settings.size == 0 && settings.vsync, "windowed defaults, VSync (Fifo) on by default");
     check(settings.ubershaders && !settings.ubershadersSaved, "fresh display defaults to hybrid ubershaders");
     namespace Uber = PetariNative::Ubershaders;
     const auto mode = [](const char* env, std::optional<bool> saved, Uber::Mode expected, const char* source) {
@@ -64,6 +64,10 @@ int main() {
     settings = {true, 3, true};
     check(DS::save(file, settings, &error), "create user folder and save");
     check(DS::load(file, &settings, &error) && settings.fullscreen && settings.size == 3 && settings.vsync, "round trip");
+    settings = {true, 3, false};
+    check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.vsync, "VSync off round trips as vsync2=0");
+    { std::ofstream out(file); out << "fullscreen=0\nsize=1\nvsync=0\nubershaders=1\n"; }
+    check(DS::load(file, &settings, &error) && settings.size == 1 && settings.vsync, "a 5.3-era vsync=0 is ignored: the new default On applies");
     settings.ubershaders = false;
     check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.ubershaders && settings.ubershadersSaved,
           "ubershaders off round trips with explicit saved marker");
@@ -74,7 +78,7 @@ int main() {
     for (const char* invalid : {"fullscreen=2", "vsync=-1", "ubershaders=2", "ubershaders=-1", "ubershaders=", "size=2147483648", "size=", "size=2junk", "broken", "vsync=1\nsize=bad"}) {
         { std::ofstream out(file); out << invalid << '\n'; }
         check(!DS::load(file, &settings, &error) && !error.empty(), "malformed file reports action");
-        check(!settings.fullscreen && settings.size == 0 && !settings.vsync, "malformed file never partially applies");
+        check(!settings.fullscreen && settings.size == 0 && settings.vsync, "malformed file never partially applies");
     }
     { std::ofstream out(file); out << "# preferences\n\nsize=-99\n"; }
     check(DS::load(file, &settings, &error) && settings.size == 0 && error.empty(), "negative size clamps low");
@@ -94,7 +98,7 @@ int main() {
     check(window.fullscreenCalls == 0 && controller.settings().busy, "menu queues without touching window");
     controller.change(2, 1);
     controller.tick(window);
-    check(window.full && window.fullscreenCalls == 1 && !controller.settings().vsync, "one pending request; host applies fullscreen");
+    check(window.full && window.fullscreenCalls == 1 && controller.settings().vsync, "one pending request; host applies fullscreen");
     check(DS::load(file, &settings, &error) && settings.fullscreen, "accepted fullscreen persists");
     controller.change(1, 1); controller.tick(window);
     check(window.sizeCalls == 0 && controller.settings().size == 0, "fullscreen prevents resizing");
@@ -106,10 +110,10 @@ int main() {
     controller.change(1, 1); controller.tick(window);
     check(window.width == 1280 && window.height == 720, "right wraps to smallest preset");
     controller.change(2, 1); controller.tick(window);
-    check(controller.settings().vsync && controller.settings().restartNeeded && window.fullscreenCalls == 1,
+    check(!controller.settings().vsync && controller.settings().restartNeeded && window.fullscreenCalls == 1,
           "vsync is persisted only; needs relaunch");
     DS::Controller relaunched;
-    check(relaunched.configure(file, &error) && relaunched.settings().vsync && !relaunched.settings().restartNeeded,
+    check(relaunched.configure(file, &error) && !relaunched.settings().vsync && !relaunched.settings().restartNeeded,
           "new launch consumes vsync and clears restart note");
     controller.change(2, 1); controller.tick(window);
     check(!controller.settings().restartNeeded, "reverting vsync clears restart note");
@@ -137,7 +141,7 @@ int main() {
     std::filesystem::create_directory(file);
     controller.change(2, 1); controller.tick(window);
     controller.read(&settings, message, sizeof(message));
-    check(settings.vsync && std::string(message).find("Could not save") != std::string::npos, "save failure shown in menu");
+    check(!settings.vsync && std::string(message).find("Could not save") != std::string::npos, "save failure shown in menu");
     std::filesystem::remove_all(root);
     std::printf("display settings tests passed (%d checks)\n", checks);
 }

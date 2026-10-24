@@ -50,7 +50,7 @@ def summary(g):
  if name=='flipswap-cappy':return str(d['passing'])+'/23; failed: '+', '.join(d.get('failed_cases',[]))
  if name=='v2-cold-stall':
   rs=d['runs'];stalls=[x for r in rs for x in r['gameplay_over100']]
-  return str(sum(r['passed'] for r in rs))+'/9; menu p99 '+str(min(r['menu_p99'] for r in rs))+'–'+str(max(r['menu_p99'] for r in rs))+' ms; gameplay stalls '+str(len(stalls))+', worst '+str(max((x[1] for x in stalls),default=0))+' ms; holds >3s '+str(sum(len(r['holds_over3s']) for r in rs))
+  return str(sum(r['passed'] for r in rs))+'/9; menu p99 '+str(min(r['menu_p99'] for r in rs))+'–'+str(max(r['menu_p99'] for r in rs))+' ms; worst menu '+str(max(float(r['worst_menu_frame']['interval_ms']) for r in rs if r['worst_menu_frame']))+' ms; gameplay stalls '+str(len(stalls))+', worst '+str(max((x[1] for x in stalls),default=0))+' ms; holds >3s '+str(sum(len(r['holds_over3s']) for r in rs))
  if name=='v2-image-pair':return 'mean RGB '+str(d['diff']['mean_abs_rgb'])+'; '+str(len(d['diff']['pairs']))+' pairs; off guard '+str(d['off_guard_lines'])
  if name=='v2-warm-pairs':return '; '.join(st+': p99 delta '+('/'.join(f"{p["p99_delta_ms"]:+.2f}" for p in v['pairs']))+' ms' for st,v in d['stages'].items())
  if name=='fifo-default-cadence-latency':return '; '.join(r['case']+': late '+str(r['late_present_pct'])+'%, '+str(r['presses'])+' presses, frames '+str(r['frames_after_read']) for r in d['runs'])

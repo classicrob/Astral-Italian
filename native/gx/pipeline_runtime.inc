@@ -86,6 +86,10 @@ static bool petari_uber_job_eligible(const PetariUberJob& job) {
 static bool petari_uber_worker_ready(unsigned workerIndex) {
   const auto limit = petariUberTitleReleased ? petariActiveWorkers :
       std::min(petariActiveWorkers, kPetariOnDemandWorkers);
+  // Before the title is released, worker 0 stays free for draw-blocking jobs: a front-end Generic fallback compile already
+  // running there held the first boot screen's single pipeline for 0.1-1.05 s on true-cold boots (5.4 server gate; none
+  // with ubershaders off). A draw is preferred only when a worker picks its next job; it cannot preempt a running compile.
+  if (!petariUberTitleReleased && workerIndex == 0 && petariActiveWorkers > 1) return false;
   return workerIndex < limit && std::any_of(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {

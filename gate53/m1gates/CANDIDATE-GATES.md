@@ -55,6 +55,10 @@ requires bit-exact interactive positions, each identity observed within30 loops,
 `pointer_rows_compared == tape_frames`. Pointer comparisons include construction
 boundary loops. Missing new-schema fields fail. Existing c620 failures retain
 their original reports and verdicts; their executable lacks this correction.
+Patched pointer runs also require `pointer_valid_rows_compared >= 30` and
+`pointer_distinct_positions_compared >= 3` from successful actual WPad seam
+comparisons. Route CSV pointer columns describe physical BoundState and stay
+neutral during raw KPAD replay; they do not supply these coverage counters.
 
 The separate item3tier worker sweep is paused before workers8-r1 app launch;
 its three diagnostic arms and first cap2/cap4 runs remain intact. After the

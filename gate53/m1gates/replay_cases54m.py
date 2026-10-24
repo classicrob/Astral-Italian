@@ -24,6 +24,18 @@ def identity_offsets(parts):
   return bool(parts) and all(s.get('identity_offset_checked') is True and s.get('identity_offset_passed') is True and s['identity_offset_limit']==30 and all(type(s[k]) is int and s[k]>=0 for k in ('identity_recorded_frame','identity_replay_frame','identity_expected_replay_frame')) and type(s['identity_frame_offset']) is int and s['identity_replay_frame']-s['identity_expected_replay_frame']==s['identity_frame_offset'] and abs(s['identity_frame_offset'])<=30 for s in parts)
  except (KeyError,TypeError):return False
 
+def game_pointer_coverage(report):
+ """Coverage from successful actual-WPad seam checks, never host BoundState."""
+ parts=[s for s in report.get('segments',[]) if s.get('stage')=='WorldMap01Galaxy']
+ result={'passed':False,'valid_rows_compared':0,'distinct_positions_compared':0,'source':'successful recorded KPAD versus actual game WPad seam comparisons'}
+ try:
+  assert parts and all(type(s[k]) is int and s[k]>=0 for s in parts for k in ('pointer_valid_rows_compared','pointer_distinct_positions_compared','pointer_rows_compared'))
+  assert all(s['pointer_distinct_positions_compared']<=s['pointer_valid_rows_compared']<=s['pointer_rows_compared'] for s in parts)
+  result.update(valid_rows_compared=sum(s['pointer_valid_rows_compared'] for s in parts),distinct_positions_compared=max(s['pointer_distinct_positions_compared'] for s in parts))
+  result['passed']=result['valid_rows_compared']>=30 and result['distinct_positions_compared']>=3
+ except (AssertionError,KeyError,TypeError):pass
+ return result
+
 def anchor_checks(report,required_play_stage=None,require_identity=False):
  parts=report.get('segments',[])
  checks={'anchor_policy_applied':report.get('anchor_policy')==ANCHOR_POLICY,
@@ -86,8 +98,12 @@ def main():
   for arm in ('fresh','warm'):
    out=base/arm;res,text,rs=replay(app,out,a.tape,'WorldMap01Galaxy',a.allow_incomplete,warm=base/'fresh' if arm=='warm' else None,renderer_key=build['renderer_key'],promotion_pointer=True,require_identity=a.require_bounded_identity)
    valid=[r for r in rs if r['stage']=='WorldMap01Galaxy' and r['scenario']=='1' and r['valid']=='1' and r.get('dead','0')=='0'];pointer=[r for r in valid if r.get('pointer_valid')=='1'];positions={(r.get('pointer_x'),r.get('pointer_y')) for r in pointer}
-   extra={'pointer_readback_compared':sum(s.get('pointer_rows_compared',0) for s in res['replay'].get('segments',[]) if s.get('stage')=='WorldMap01Galaxy')>=30,'valid_requested_rows':len(valid)>=120,'recorded_pointer_rows':len(pointer)>=30 and len(positions)>=3,'existing_unlocked_file1':any(r.get('power_stars')=='242' for r in valid) and 'FileSelector.OpenFile' in text and 'FileSelector.Create' not in text and 'FileSelector.StartupCreate' not in text,'walk_and_idle':bool(valid) and any(abs(float(r[c])-float(valid[0][c]))>.01 for r in valid for c in ('x','y','z'))}
-   res['checks'].update(extra);res.update(arm=arm,valid_requested_rows=len(valid),pointer_rows=len(pointer),pointer_positions=len(positions),passed=all(res['checks'].values()),limitation='Recorded KPAD pointer replay verifies game pointer path, not physical host-coordinate mapping or screenshots.')
+   pointer_rows=len(pointer);pointer_positions=len(positions);pointer_pass=pointer_rows>=30 and pointer_positions>=3
+   if identity_contract(res['replay'],a.require_bounded_identity):
+    coverage=game_pointer_coverage(res['replay']);pointer_rows=coverage['valid_rows_compared'];pointer_positions=coverage['distinct_positions_compared'];pointer_pass=coverage['passed']
+    res.update(pointer_coverage=coverage,host_route_pointer_rows=len(pointer),host_route_pointer_positions=len(positions))
+   extra={'pointer_readback_compared':sum(s.get('pointer_rows_compared',0) for s in res['replay'].get('segments',[]) if s.get('stage')=='WorldMap01Galaxy')>=30,'valid_requested_rows':len(valid)>=120,'recorded_pointer_rows':pointer_pass,'existing_unlocked_file1':any(r.get('power_stars')=='242' for r in valid) and 'FileSelector.OpenFile' in text and 'FileSelector.Create' not in text and 'FileSelector.StartupCreate' not in text,'walk_and_idle':bool(valid) and any(abs(float(r[c])-float(valid[0][c]))>.01 for r in valid for c in ('x','y','z'))}
+   res['checks'].update(extra);res.update(arm=arm,valid_requested_rows=len(valid),pointer_rows=pointer_rows,pointer_positions=pointer_positions,passed=all(res['checks'].values()),limitation='Recorded KPAD pointer replay verifies game pointer path, not physical host-coordinate mapping or screenshots.')
    write(out/'RESULT.json',res);records.append(res)
    if arm=='warm':trim(out);trim(base/'fresh')
   checks={'fresh_warm_pointer_replays_passed':len(records)==2 and all(r['passed'] for r in records)}

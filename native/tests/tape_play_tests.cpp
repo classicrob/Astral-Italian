@@ -156,19 +156,21 @@ int main() {
             csv << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
             for (unsigned row = 0; row < kRows; ++row)
                 csv << row << ',' << (row < 3 ? "" : row < 10 ? "FileSelect" : "WorldMap01Galaxy")
-                    << ',' << (row == 2 ? -1 : 1) << ",0,0,0,0,0,0,0\n";
+                    << ',' << (row == 1 || row == 2 ? -1 : 1) << ",0,0,0,0,0,0,0\n";
         }
         const auto menu = [](const char* stage, bool ready) {
-            SeamState s; s.stage = stage; s.scenario = 1; s.initEnd = ready; return s;
+            SeamState s; s.stage = stage; s.scenario = 1; s.initEnd = ready;
+            s.pointerObserved = true; s.pointerValid = 1; return s;
         };
         Session menus(dir, Session::Mode::WholeSession);
         check(menus.segmentCount() == 3 && menus.wholeSession(), "whole session plans title and non-play-ready menus");
-        const auto title = menus.seam(menu("", false));
+        check(menus.seam(menu("", false)).kind == Step::Kind::None, "system setup is outside the first scene anchor");
+        auto titleState = menu("", false); titleState.scenario = -1;
+        const auto title = menus.seam(titleState);
         check(title.kind == Step::Kind::Start && !title.restoreSeed, "title anchors before play-ready without inventing an RNG checkpoint");
-        for (unsigned frame = 1; frame <= 2; ++frame) {
+        for (unsigned frame = 2; frame <= 2; ++frame) {
             check(hold(menus) == (0x100u | frame), "title input is replayed");
-            auto s = menu("", true); if (frame == 2) s.scenario = -1;
-            menus.seam(s);
+            auto s = titleState; s.pointerX = frame * 0.01f; menus.seam(s);
         }
         for (unsigned i = 0; i < kWarpDelaySeams + 2; ++i)
             check(menus.seam(menu("FileSelect", false)).kind == Step::Kind::None, "loading waits without warping");
@@ -177,35 +179,69 @@ int main() {
         check(step.kind == Step::Kind::Start && step.seed == 123, "FileSelect anchors at initialize-End without play-ready");
         for (unsigned frame = 5; frame <= 9; ++frame) {
             check(hold(menus) == (0x100u | frame), "FileSelect reads stay in recorded order");
-            menus.seam(menu("FileSelect", true));
+            auto s = menu("FileSelect", true); s.pointerX = frame * 0.01f; menus.seam(s);
         }
         menus.seam(menu("WorldMap01Galaxy", false));
         step = menus.seam(menu("WorldMap01Galaxy", true));
         check(step.kind == Step::Kind::Start && step.seed == 456, "map anchors without play-ready");
         for (unsigned frame = 12; frame <= 19; ++frame) {
             check(hold(menus) == (0x100u | frame), "map reads are delivered");
-            step = menus.seam(menu("WorldMap01Galaxy", true));
+            auto s = menu("WorldMap01Galaxy", true); s.pointerX = frame * 0.01f; step = menus.seam(s);
         }
         check(step.kind == Step::Kind::Finished && !menus.gaveUp(), "whole menu session finishes");
-        check(menus.report()[0].reads == 2 && menus.report()[1].reads == 5 && menus.report()[2].reads == 8,
+        check(menus.report()[0].reads == 1 && menus.report()[1].reads == 5 && menus.report()[2].reads == 8,
               "all menu input frames counted");
         check(menus.report()[2].pointingReads == 8 && menus.report()[2].replayedPointer[0] == 19 * 0.01f
-            && menus.report()[2].recordedPointer[0] == menus.report()[2].replayedPointer[0], "map pointer samples delivered exactly");
+            && menus.report()[2].recordedPointer[0] == menus.report()[2].replayedPointer[0]
+            && menus.report()[2].pointerRowsCompared == 8, "map pointer samples match the game read buffer exactly");
         Session bad(dir, Session::Mode::WholeSession);
-        bad.seam(menu("", false));
+        bad.seam(titleState);
         hold(bad);
         check(bad.seam(menu("WrongScene", true)).kind == Step::Kind::GaveUp, "whole session fails closed at first scene divergence");
         check(bad.report()[0].firstDivergenceRow == 1 && bad.report()[0].firstReplayStage == "WrongScene",
               "first divergence retains row and both stages");
-        check(hold(bad) == 0 && bad.error().find("route row 1") != std::string::npos, "failed session stops feeding recorded input");
+        check(hold(bad) == 0 && bad.error().find("route row 2") != std::string::npos, "failed session stops feeding recorded input");
         Session wrongRead(dir, Session::Mode::WholeSession);
-        wrongRead.seam(menu("", false));
+        wrongRead.seam(titleState);
         KPADStatus buffer[16] = {};
         wrongRead.read(0, 16, buffer, nullptr);
         check(wrongRead.gaveUp() && wrongRead.report()[0].diverged
               && wrongRead.report()[0].firstDivergenceRow == 1, "input-shape divergence retains absolute frame evidence");
         check(wrongRead.error().find("recorded frame=0") != std::string::npos
               && wrongRead.error().find("replayed channel=0 capacity=16") != std::string::npos, "read failure records expected and actual shape");
+        Session pointerDrift(dir, Session::Mode::WholeSession);
+        pointerDrift.seam(titleState); hold(pointerDrift);
+        check(pointerDrift.seam(titleState).kind == Step::Kind::GaveUp
+              && pointerDrift.report()[0].firstDivergenceWhy == "KPAD pointer in game read buffer", "pointer mismatch fails closed");
+        // ScenarioSelect has a destination stage and scenario -1, but schema-1 never gives it a Game/End checkpoint.
+        std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],"ready_seams":[
+            {"row":4,"stage":"FileSelect","scenario":1,"rng_seed":123},
+            {"row":16,"stage":"WorldMap01Galaxy","scenario":1,"rng_seed":456}]})";
+        {
+            std::ofstream csv(dir / "route.csv");
+            csv << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
+            for (unsigned row = 0; row < kRows; ++row)
+                csv << row << ',' << (row < 3 ? "" : row < 10 ? "FileSelect" : "WorldMap01Galaxy")
+                    << ',' << (row == 1 || row == 2 || (row >= 10 && row < 14) ? -1 : 1) << ",0,0,0,0,0,0,0\n";
+        }
+        Session scenarioSelect(dir, Session::Mode::WholeSession);
+        check(scenarioSelect.segmentCount() == 4, "scenario select is retained without a ready checkpoint");
+        scenarioSelect.seam(titleState); hold(scenarioSelect);
+        auto titleEnd = titleState; titleEnd.pointerX = 2 * 0.01f; scenarioSelect.seam(titleEnd);
+        scenarioSelect.seam(menu("FileSelect", true));
+        for (unsigned f = 5; f <= 9; ++f) {
+            hold(scenarioSelect); auto s = menu("FileSelect", true); s.pointerX = f * 0.01f; scenarioSelect.seam(s);
+        }
+        auto selecting = menu("WorldMap01Galaxy", false); selecting.scenario = -1;
+        step = scenarioSelect.seam(selecting);
+        check(step.kind == Step::Kind::Start && !step.restoreSeed, "scenario select starts on its identity, without invented RNG");
+        for (unsigned f = 11; f <= 13; ++f) {
+            check(hold(scenarioSelect) == (0x100u | f), "scenario selection reads are replayed");
+            auto s = selecting; s.pointerX = f * 0.01f; scenarioSelect.seam(s);
+        }
+        check(scenarioSelect.seam(menu("WorldMap01Galaxy", false)).kind == Step::Kind::None, "same-stage scenario loading waits");
+        step = scenarioSelect.seam(menu("WorldMap01Galaxy", true));
+        check(step.kind == Step::Kind::Start && step.restoreSeed && step.seed == 456, "scenario 1 anchors after scenario selection");
     }
     fs::remove_all(base);
     std::printf("tape play session checks passed (%d)\n", checks);

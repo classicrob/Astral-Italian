@@ -60,6 +60,25 @@ def prep_dev(src,expected,source):
  meta=json.loads((dest/'PREP.json').read_text());assert meta['source']==source and meta['source_exe_sha256']==expected and meta['resources_identical'] and sha(app/'Contents/MacOS/Petari')==meta['perf_exe_sha256']
  return app,meta
 
+def prep_candidate(directory):
+ directory=Path(directory).resolve();assert directory.is_relative_to(ROOT/'candidates')
+ build=json.loads((directory/'BUILD.json').read_text());src=directory/'Petari.app'
+ expected=build['binary_sha256'];source=build['source']
+ assert re.fullmatch('[0-9a-f]{40}',source) and sha(src/'Contents/MacOS/Petari')==expected
+ dest=ROOT/'apps'/('candidate-'+expected[:12]+'-perfm1a');app=dest/'Petari.app'
+ if not dest.exists():
+  disk();dest.mkdir(parents=True);subprocess.run(['/usr/bin/ditto',str(src),str(app)],check=True)
+  subprocess.run(['/usr/libexec/PlistBuddy','-c',f'Set :CFBundleIdentifier {ID}',str(app/'Contents/Info.plist')],check=True)
+  subprocess.run(['codesign','--force','--deep','-s','-',str(app)],check=True,capture_output=True)
+  write(dest/'PREP.json',{'build_kind':'server-candidate','source':source,'source_app':str(src),'source_exe_sha256':expected,'perf_exe_sha256':sha(app/'Contents/MacOS/Petari'),'bundle_id':ID,'resources_identical':tree(app/'Contents/Resources')==tree(src/'Contents/Resources')})
+ meta=json.loads((dest/'PREP.json').read_text())
+ assert meta['source']==source and meta['source_exe_sha256']==expected and meta['resources_identical'] and sha(app/'Contents/MacOS/Petari')==meta['perf_exe_sha256']
+ assert tree(app/'Contents/Resources')==tree(src/'Contents/Resources')
+ return app,{**meta,'renderer_key':build['renderer_key'],'candidate_directory':str(directory),'build_metadata':build,'frozen54_acceptance':False}
+
+def campaign_build(candidate_directory=None):
+ return prep_candidate(candidate_directory) if candidate_directory else prep()
+
 @contextlib.contextmanager
 def native_lock():
  LOCK.parent.mkdir(parents=True,exist_ok=True)

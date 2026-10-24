@@ -27,7 +27,7 @@ void number(std::ostream& out, std::uint64_t v, unsigned n) { for (unsigned i = 
 
 constexpr unsigned kRows = 20;
 // Segment 0: rows 2..6 (4 frames), segment 1: rows 10..13 (3 frames); the read of absolute frame f has hold = 0x100 + f.
-void writeTape(const fs::path& dir, unsigned rows = kRows) {
+void writeTape(const fs::path& dir, double wrongX = -1) {
     fs::create_directories(dir);
     std::ofstream(dir / "route.tape.json") <<
         "{\n \"schema\": 1, \"complete\": true, \"seams\": 20, \"exe_sha256\": \"abc\", \"mods\": [\"OdysseyJumpDive\"],\n"
@@ -36,14 +36,14 @@ void writeTape(const fs::path& dir, unsigned rows = kRows) {
     {
         std::ofstream csv(dir / "route.csv");
         csv << "frame,stage,scenario,zone_ground_id,valid,x,y,z,grounded,dead\n";
-        for (unsigned r = 0; r < rows; ++r) csv << r << ",\"TestGalaxy\",1,-1,1," << r << ".5,2,3,1,0\n";
+        for (unsigned r = 0; r < kRows; ++r) csv << r << ",\"TestGalaxy\",1,-1,1," << r << ".5,2,3,1,0\n";
     }
     std::ofstream(dir / "route.actions") << "# frame mod press held\n4 0 1 1\n5 0 0 1\n11 1 1 0\n";
     std::ofstream kpd(dir / "route.kpd", std::ios::binary);
     kpd << "SMG2KPD1";
-    number(kpd, rows, 8);
-    number(kpd, rows, 8);
-    for (unsigned f = 0; f < rows; ++f) {
+    number(kpd, kRows, 8);
+    number(kpd, kRows, 8);
+    for (unsigned f = 0; f < kRows; ++f) {
         number(kpd, f, 8); number(kpd, 0, 4); number(kpd, 0, 4); number(kpd, 120, 4);
         number(kpd, 1, 4); number(kpd, 0, 4); number(kpd, 0, 4); number(kpd, 1, 4); number(kpd, 1, 4);
         H::Sample sample{};
@@ -55,6 +55,7 @@ void writeTape(const fs::path& dir, unsigned rows = kRows) {
         sample[92] = 1; sample[94] = 1; sample[95] = 5;
         kpd.write(reinterpret_cast<const char*>(sample.data()), sample.size());
     }
+    (void)wrongX;
 }
 
 SeamState state(unsigned row, bool ready, float x = -1) {
@@ -144,156 +145,167 @@ int main() {
         try { Session s3(base / "bad"); } catch (const H::ReplayError&) { threw = true; }
         check(threw, "no segment");
     }
-    {   // Menus and scenario selection anchor before initialize-End and consume their loading reads too.
+    {   // A whole session has menu visits with no player and no play-ready segment at all.
         const auto dir = base / "menus";
         writeTape(dir);
         std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],"ready_seams":[
             {"row":4,"stage":"FileSelect","scenario":1,"rng_seed":123},
             {"row":11,"stage":"WorldMap01Galaxy","scenario":1,"rng_seed":456}]})";
-        const auto writeMenus = [&](bool selection) {
+        {
             std::ofstream csv(dir / "route.csv");
             csv << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
-            for (unsigned r = 0; r < kRows; ++r)
-                csv << r << ',' << (r < 3 ? "" : r < 10 ? "FileSelect" : "WorldMap01Galaxy")
-                    << ',' << (r == 1 || r == 2 || (selection && r >= 10 && r < 14) ? -1 : 1) << ",0,0,0,0,0,0\n";
-        };
-        const auto menu = [](const char* stage, int scenario, unsigned row, bool initialized = false) {
-            SeamState s; s.stage = stage; s.scenario = scenario; s.initEnd = initialized;
-            s.pointerObserved = true; s.pointerValid = 1; s.pointerX = row * 0.01f; return s;
-        };
-        writeMenus(false);
-        const auto titleState = menu("", -1, 1);
-        Session menus(dir, Session::Mode::WholeSession);
-        check(menus.segmentCount() == 3, "title and non-play-ready menus retained");
-        check(menus.seam(menu("", 1, 0)).kind == Step::Kind::None, "boot setup is not title identity");
-        auto step = menus.seam(titleState);
-        check(step.kind == Step::Kind::Start && !step.restoreSeed, "title identity has no invented RNG checkpoint");
-        hold(menus); menus.seam(menu("", -1, 2));
-        step = menus.seam(menu("FileSelect", 1, 3));
-        check(step.kind == Step::Kind::Start && !step.restoreSeed, "FileSelect starts at identity before ready row4");
-        for (unsigned f = 4; f <= 9; ++f) {
-            check(hold(menus) == (0x100u | f), "FileSelect loading/menu reads keep original order");
-            menus.seam(menu("FileSelect", 1, f, true));
+            for (unsigned row = 0; row < kRows; ++row)
+                csv << row << ',' << (row < 3 ? "" : row < 10 ? "FileSelect" : "WorldMap01Galaxy")
+                    << ',' << (row == 1 || row == 2 ? -1 : 1) << ",0,0,0,0,0,0,0\n";
         }
-        step = menus.seam(menu("WorldMap01Galaxy", 1, 10));
-        check(step.kind == Step::Kind::Start && !step.restoreSeed, "map starts at identity before ready row11");
-        for (unsigned f = 11; f < kRows; ++f) {
-            check(hold(menus) == (0x100u | f), "map reads include construction");
-            step = menus.seam(menu("WorldMap01Galaxy", 1, f, true));
+        const auto menu = [](const char* stage, bool ready) {
+            SeamState s; s.stage = stage; s.scenario = 1; s.initEnd = ready;
+            s.pointerObserved = true; s.pointerValid = 1; return s;
+        };
+        Session menus(dir, Session::Mode::WholeSession);
+        check(menus.segmentCount() == 3 && menus.wholeSession(), "whole session plans title and non-play-ready menus");
+        check(menus.seam(menu("", false)).kind == Step::Kind::None, "system setup is outside the first scene anchor");
+        auto titleState = menu("", false); titleState.scenario = -1;
+        const auto title = menus.seam(titleState);
+        check(title.kind == Step::Kind::Start && !title.restoreSeed, "title anchors before play-ready without inventing an RNG checkpoint");
+        for (unsigned frame = 2; frame <= 2; ++frame) {
+            check(hold(menus) == (0x100u | frame), "title input is replayed");
+            auto s = titleState; s.pointerX = frame * 0.01f; menus.seam(s);
+        }
+        for (unsigned i = 0; i < kWarpDelaySeams + 2; ++i)
+            check(menus.seam(menu("FileSelect", false)).kind == Step::Kind::None, "loading waits without warping");
+        check(hold(menus) == 0, "neutral only while constructing a scene");
+        auto step = menus.seam(menu("FileSelect", true));
+        check(step.kind == Step::Kind::Start && step.seed == 123, "FileSelect anchors at initialize-End without play-ready");
+        for (unsigned frame = 5; frame <= 9; ++frame) {
+            check(hold(menus) == (0x100u | frame), "FileSelect reads stay in recorded order");
+            auto s = menu("FileSelect", true); s.pointerX = frame * 0.01f; menus.seam(s);
+        }
+        menus.seam(menu("WorldMap01Galaxy", false));
+        step = menus.seam(menu("WorldMap01Galaxy", true));
+        check(step.kind == Step::Kind::Start && step.seed == 456, "map anchors without play-ready");
+        for (unsigned frame = 12; frame <= 19; ++frame) {
+            check(hold(menus) == (0x100u | frame), "map reads are delivered");
+            auto s = menu("WorldMap01Galaxy", true); s.pointerX = frame * 0.01f; step = menus.seam(s);
         }
         check(step.kind == Step::Kind::Finished && !menus.gaveUp(), "whole menu session finishes");
-        check(menus.report()[1].reads == 6 && menus.report()[2].pointerRowsCompared == 9,
-              "loading/menu pointer reads all compared");
-        check(menus.reportJson().find("\"anchor_policy\": \"scene-identity\"") != std::string::npos, "policy emitted");
+        check(menus.report()[0].reads == 1 && menus.report()[1].reads == 5 && menus.report()[2].reads == 8,
+              "all menu input frames counted");
+        check(menus.report()[2].pointingReads == 8 && menus.report()[2].replayedPointer[0] == 19 * 0.01f
+            && menus.report()[2].recordedPointer[0] == menus.report()[2].replayedPointer[0]
+            && menus.report()[2].pointerRowsCompared == 8, "map pointer samples match the game read buffer exactly");
         Session bad(dir, Session::Mode::WholeSession);
-        bad.seam(titleState); hold(bad);
-        check(bad.seam(menu("WrongScene", -1, 2)).kind == Step::Kind::GaveUp, "stage mismatch fails closed even without player");
+        bad.seam(titleState);
+        hold(bad);
+        check(bad.seam(menu("WrongScene", true)).kind == Step::Kind::GaveUp, "whole session fails closed at first scene divergence");
+        check(bad.report()[0].firstDivergenceRow == 1 && bad.report()[0].firstReplayStage == "WrongScene",
+              "first divergence retains row and both stages");
+        check(hold(bad) == 0 && bad.error().find("route row 2") != std::string::npos, "failed session stops feeding recorded input");
         Session wrongRead(dir, Session::Mode::WholeSession);
         wrongRead.seam(titleState);
         KPADStatus buffer[16] = {};
         wrongRead.read(0, 16, buffer, nullptr);
-        check(wrongRead.gaveUp() && wrongRead.report()[0].firstDivergenceRow == 1, "read-shape failure retains frame");
-        check(wrongRead.error().find("recorded frame=0") != std::string::npos &&
-              wrongRead.error().find("replayed channel=0 capacity=16") != std::string::npos, "read-shape evidence");
+        check(wrongRead.gaveUp() && wrongRead.report()[0].diverged
+              && wrongRead.report()[0].firstDivergenceRow == 1, "input-shape divergence retains absolute frame evidence");
+        check(wrongRead.error().find("recorded frame=0") != std::string::npos
+              && wrongRead.error().find("replayed channel=0 capacity=16") != std::string::npos, "read failure records expected and actual shape");
         Session pointerDrift(dir, Session::Mode::WholeSession);
         pointerDrift.seam(titleState); hold(pointerDrift);
-        check(pointerDrift.seam(titleState).kind == Step::Kind::GaveUp &&
-              pointerDrift.report()[0].firstDivergenceWhy == "KPAD pointer in game read buffer", "game pointer mismatch fails closed");
-        writeMenus(true);
+        check(pointerDrift.seam(titleState).kind == Step::Kind::GaveUp
+              && pointerDrift.report()[0].firstDivergenceWhy == "KPAD pointer in game read buffer", "pointer mismatch fails closed");
+        // ScenarioSelect has a destination stage and scenario -1, but schema-1 never gives it a Game/End checkpoint.
         std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],"ready_seams":[
             {"row":4,"stage":"FileSelect","scenario":1,"rng_seed":123},
             {"row":16,"stage":"WorldMap01Galaxy","scenario":1,"rng_seed":456}]})";
-        Session selection(dir, Session::Mode::WholeSession);
-        check(selection.segmentCount() == 4, "scenario selection retained without ready metadata");
-        selection.seam(titleState); hold(selection); selection.seam(menu("", -1, 2));
-        selection.seam(menu("FileSelect", 1, 3));
-        for (unsigned f = 4; f <= 9; ++f) { hold(selection); selection.seam(menu("FileSelect", 1, f)); }
-        step = selection.seam(menu("WorldMap01Galaxy", -1, 10));
-        check(step.kind == Step::Kind::Start, "scenario selection starts on identity");
-        for (unsigned f = 11; f <= 13; ++f) { hold(selection); selection.seam(menu("WorldMap01Galaxy", -1, f)); }
-        check(selection.seam(menu("WorldMap01Galaxy", 1, 14)).kind == Step::Kind::Start,
-              "same-stage scenario change is a new identity before initialize-End");
-    }
-    {   // Init validity can move; every position computed by both runs remains bit-exact on the scene clock.
-        const auto dir = base / "arrival";
-        const auto writeArrival = [&](unsigned rows, unsigned firstValid, bool checkpoint) {
-            writeTape(dir, rows);
-            std::ofstream meta(dir / "route.tape.json");
-            meta << "{\"complete\":true,\"seams\":" << rows << ",\"segments\":[],\"ready_seams\":[{\"row\":"
-                 << firstValid << ",\"stage\":\"TestGalaxy\",\"scenario\":1,\"rng_seed\":111}]";
-            if (checkpoint) meta << ",\"play_ready_seams\":[{\"row\":6,\"stage\":\"TestGalaxy\",\"scenario\":1,\"rng_seed\":222}]";
-            meta << '}';
+        {
             std::ofstream csv(dir / "route.csv");
             csv << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
-            for (unsigned r = 0; r < rows; ++r)
-                csv << r << ",TestGalaxy,1," << (r >= firstValid) << ',' << r << ".5,2,3," << (r >= firstValid) << ",0\n";
-        };
-        const auto observed = [](unsigned row, bool valid, bool ready = false) {
-            auto s = state(row, ready); s.valid = valid; s.grounded = valid; s.initEnd = valid;
+            for (unsigned row = 0; row < kRows; ++row)
+                csv << row << ',' << (row < 3 ? "" : row < 10 ? "FileSelect" : "WorldMap01Galaxy")
+                    << ',' << (row == 1 || row == 2 || (row >= 10 && row < 14) ? -1 : 1) << ",0,0,0,0,0,0,0\n";
+        }
+        Session scenarioSelect(dir, Session::Mode::WholeSession);
+        check(scenarioSelect.segmentCount() == 4, "scenario select is retained without a ready checkpoint");
+        scenarioSelect.seam(titleState); hold(scenarioSelect);
+        auto titleEnd = titleState; titleEnd.pointerX = 2 * 0.01f; scenarioSelect.seam(titleEnd);
+        scenarioSelect.seam(menu("FileSelect", true));
+        for (unsigned f = 5; f <= 9; ++f) {
+            hold(scenarioSelect); auto s = menu("FileSelect", true); s.pointerX = f * 0.01f; scenarioSelect.seam(s);
+        }
+        auto selecting = menu("WorldMap01Galaxy", false); selecting.scenario = -1;
+        step = scenarioSelect.seam(selecting);
+        check(step.kind == Step::Kind::Start && !step.restoreSeed, "scenario select starts on its identity, without invented RNG");
+        for (unsigned f = 11; f <= 13; ++f) {
+            check(hold(scenarioSelect) == (0x100u | f), "scenario selection reads are replayed");
+            auto s = selecting; s.pointerX = f * 0.01f; scenarioSelect.seam(s);
+        }
+        check(scenarioSelect.seam(menu("WorldMap01Galaxy", false)).kind == Step::Kind::None, "same-stage scenario loading waits");
+        step = scenarioSelect.seam(menu("WorldMap01Galaxy", true));
+        check(step.kind == Step::Kind::Start && step.restoreSeed && step.seed == 456, "scenario 1 anchors after scenario selection");
+    }
+    {   // Non-interactive arrivals may take fewer/more loops; exact play-ready is the hard boundary.
+        const auto dir = base / "arrival";
+        writeTape(dir);
+        std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],
+            "ready_seams":[{"row":2,"stage":"TestGalaxy","scenario":1,"rng_seed":111}],
+            "play_ready_seams":[{"row":6,"stage":"TestGalaxy","scenario":1,"rng_seed":222}]})";
+        const auto observed = [](unsigned row, bool ready) {
+            auto s = state(row, ready); s.initEnd = true;
             s.pointerObserved = true; s.pointerValid = 1; s.pointerX = row * 0.01f;
-            s.rngObserved = true; s.rngSeed = 222; return s;
+            s.rngObserved = true; s.rngSeed = 999; return s;
         };
-        writeArrival(kRows, 2, true);
-        for (unsigned actualInit : {0u, 4u}) {
-            Session replay(dir, Session::Mode::WholeSession);
-            auto step = replay.seam(observed(0, actualInit == 0));
-            check(step.kind == Step::Kind::Start && !step.restoreSeed, "arrival anchored at identity without resetting RNG");
-            for (unsigned f = 1; f < kRows; ++f) {
-                check(hold(replay) == (0x100u | f), "no cinematic read is skipped or re-anchored");
-                step = replay.seam(observed(f, f >= actualInit, f >= 6));
-                if (f == 6) check(step.kind == Step::Kind::Start && replay.acknowledgeSeed(222), "exact play-ready state and RNG verified");
-            }
-            check(step.kind == Step::Kind::Finished && !replay.gaveUp(), "offset init completes with strict cinematic comparisons");
-            const auto& r = replay.report()[0];
-            check(r.rowsAligned == 20 && r.rowsCompared == 18 && r.validityRowsSkipped == 2 && r.pointerRowsCompared == 19,
-                  "all rows and pointers accounted, only one-sided validity skipped");
-            check(r.replayFirstValid - r.recordedFirstValid == (actualInit == 0 ? -2 : 2), "signed scene-relative init offset");
+        Session early(dir, Session::Mode::WholeSession);
+        auto step = early.seam(observed(2, false));
+        check(step.kind == Step::Kind::Start && step.seed == 111, "arrival reads anchor at scene-ready");
+        check(hold(early) == 0x103u, "arrival receives recorded input before play-ready");
+        step = early.seam(observed(6, true));
+        check(step.kind == Step::Kind::Start && step.seed == 222, "short arrival re-anchors to recorded play-ready");
+        check(early.acknowledgeSeed(222), "restored RNG checkpoint is read back");
+        check(early.report()[0].rowsCompared == 1 && early.report()[0].playReadyPositionExact,
+              "only exact play-ready starts fidelity comparison");
+        for (unsigned f = 7; f < kRows; ++f) {
+            check(hold(early) == (0x100u | f), "gameplay reads re-anchor without replaying skipped arrival input");
+            step = early.seam(observed(f, true));
         }
-        Session cinematicDrift(dir, Session::Mode::WholeSession);
-        cinematicDrift.seam(observed(0, false));
-        for (unsigned f = 1; f <= 2; ++f) { hold(cinematicDrift); cinematicDrift.seam(observed(f, f >= 2)); }
-        hold(cinematicDrift); auto drift = observed(3, true); drift.x += 0.001f;
-        check(cinematicDrift.seam(drift).kind == Step::Kind::GaveUp &&
-              cinematicDrift.report()[0].firstDivergenceWhy == "position bits", "sub-tolerance cinematic difference fails before play-ready");
-        Session earlyReady(dir, Session::Mode::WholeSession);
-        earlyReady.seam(observed(0, false));
-        for (unsigned f = 1; f <= 4; ++f) { hold(earlyReady); earlyReady.seam(observed(f, f >= 2)); }
-        hold(earlyReady);
-        check(earlyReady.seam(observed(5, true, true)).kind == Step::Kind::GaveUp &&
-              !earlyReady.report()[0].playReadyStateMatches, "play-ready checkpoint checked separately from current matching row");
-        for (unsigned failure : {0u, 1u, 2u}) {
-            Session checkpoint(dir, Session::Mode::WholeSession);
-            checkpoint.seam(observed(0, false));
-            for (unsigned f = 1; f <= 5; ++f) { hold(checkpoint); checkpoint.seam(observed(f, f >= 2)); }
-            hold(checkpoint); auto s = observed(6, true, true); if (failure == 0) s.rngSeed = 223;
-            auto step = checkpoint.seam(s);
-            if (failure == 0) check(step.kind == Step::Kind::GaveUp, "natural RNG mismatch cannot be concealed by restoration");
-            if (failure == 1) check(!checkpoint.acknowledgeSeed(223), "wrong RNG read-back fails closed");
-            if (failure == 2) {
-                hold(checkpoint);
-                check(checkpoint.seam(observed(7, true, true)).kind == Step::Kind::GaveUp, "missing RNG acknowledgment fails closed");
-            }
+        check(step.kind == Step::Kind::Finished && !early.gaveUp(), "short arrival completes all strict gameplay rows");
+        check(early.report()[0].rowsCompared == 14 && early.report()[0].pointerRowsCompared == 13,
+              "comparison and pointer counts exclude only the arrival");
+        check(early.reportJson().find("\"arrival_frame_offset\":-3") != std::string::npos,
+              "report preserves the short arrival offset");
+
+        Session late(dir, Session::Mode::WholeSession);
+        late.seam(observed(2, false));
+        for (unsigned f = 3; f <= 6; ++f) {
+            check(hold(late) == (0x100u | f), "long arrival consumes recorded arrival reads in order");
+            auto unstable = observed(2, false); unstable.x = 1000; unstable.grounded = false;
+            check(late.seam(unstable).kind == Step::Kind::None && !late.gaveUp(),
+                  "non-interactive cinematic positions are not compared per frame");
         }
-        Session missingReady(dir, Session::Mode::WholeSession);
-        missingReady.seam(observed(0, false));
-        Step final;
-        for (unsigned f = 1; f < kRows; ++f) { hold(missingReady); final = missingReady.seam(observed(f, f >= 2)); }
-        check(final.kind == Step::Kind::GaveUp, "missing required play-ready checkpoint cannot complete");
-        writeArrival(65, 0, false);
-        for (unsigned init : {30u, 31u}) {
-            Session bounded(dir, Session::Mode::WholeSession);
-            bounded.seam(observed(0, false));
-            Step last;
-            for (unsigned f = 1; f < 65 && !bounded.finished(); ++f) {
-                hold(bounded); last = bounded.seam(observed(f, f >= init));
-            }
-            check(init == 30 ? last.kind == Step::Kind::Finished : last.kind == Step::Kind::GaveUp,
-                  "fixed init bound is inclusive30, rejects31");
-            if (init == 31) check(bounded.error().find("offset exceeds 30") != std::string::npos, "bound failure diagnostic");
+        for (unsigned wait = 0; wait < 2; ++wait) {
+            check(hold(late) == 0, "long arrival waits neutrally before gameplay input");
+            late.seam(observed(2, false));
         }
-        writeArrival(65, 40, false);
-        Session tooEarly(dir, Session::Mode::WholeSession);
-        check(tooEarly.seam(observed(0, true)).kind == Step::Kind::GaveUp, "negative init offset beyond30 also rejected");
+        check(hold(late) == 0, "recorded gameplay input is held until actual play-ready");
+        step = late.seam(observed(6, true));
+        check(step.kind == Step::Kind::Start && late.acknowledgeSeed(222), "long arrival passes exact state and RNG boundary");
+        check(late.reportJson().find("\"arrival_frame_offset\":3") != std::string::npos, "long arrival offset is reported");
+        check(hold(late) == 0x107u, "long arrival resumes at the exact first gameplay read");
+        late.seam(observed(7, true));
+
+        Session badPosition(dir, Session::Mode::WholeSession);
+        badPosition.seam(observed(2, false)); hold(badPosition);
+        auto drift = observed(6, true); drift.x += 0.001f;
+        check(badPosition.seam(drift).kind == Step::Kind::GaveUp &&
+              badPosition.report()[0].firstDivergenceWhy == "position bits at play-ready",
+              "play-ready rejects even sub-tolerance float-bit differences");
+        Session badSeed(dir, Session::Mode::WholeSession);
+        badSeed.seam(observed(2, false)); hold(badSeed); badSeed.seam(observed(6, true));
+        check(!badSeed.acknowledgeSeed(223) && badSeed.gaveUp(), "wrong RNG read-back fails closed");
+        Session missingSeed(dir, Session::Mode::WholeSession);
+        missingSeed.seam(observed(2, false)); hold(missingSeed); missingSeed.seam(observed(6, true));
+        hold(missingSeed);
+        check(missingSeed.seam(observed(7, true)).kind == Step::Kind::GaveUp,
+              "missing RNG read-back cannot continue gameplay");
     }
     fs::remove_all(base);
     std::printf("tape play session checks passed (%d)\n", checks);

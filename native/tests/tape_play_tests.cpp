@@ -243,6 +243,76 @@ int main() {
         step = scenarioSelect.seam(menu("WorldMap01Galaxy", true));
         check(step.kind == Step::Kind::Start && step.restoreSeed && step.seed == 456, "scenario 1 anchors after scenario selection");
     }
+    {   // Direct --stage boots construct FileSelect asynchronously before entering the requested galaxy map.
+        const auto dir = base / "direct-stage";
+        writeTape(dir);
+        std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],"ready_seams":[
+            {"row":10,"stage":"FileSelect","scenario":1,"rng_seed":123},
+            {"row":15,"stage":"WorldMap01Galaxy","scenario":1,"rng_seed":456}]})";
+        {
+            std::ofstream csv(dir / "route.csv");
+            csv << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
+            for (unsigned row = 0; row < kRows; ++row)
+                csv << row << ',' << (row < 8 ? "" : row < 13 ? "FileSelect" : "WorldMap01Galaxy")
+                    << ',' << (row > 0 && row < 8 ? -1 : 1) << ",0,0,0,0,0,0,0\n";
+        }
+        const auto menu = [](const char* stage, bool ready, unsigned readFrame = 0) {
+            SeamState s; s.stage = stage; s.scenario = stage[0] ? 1 : -1; s.initEnd = ready;
+            s.pointerObserved = true; s.pointerValid = 1; s.pointerX = readFrame * 0.01f; return s;
+        };
+        for (const int offset : {-1, 1, 30}) {
+            Session direct(dir, Session::Mode::WholeSession);
+            auto setup = menu("", false); setup.scenario = 1; direct.seam(setup);
+            direct.seam(menu("", false));
+            for (unsigned f = 2; f <= 7; ++f) {
+                check(hold(direct) == (0x100u | f), "direct-stage title reads remain authoritative");
+                direct.seam(menu(offset < 0 && f == 7 ? "FileSelect" : "", false, f));
+            }
+            // The old segment still checks its last actual game pointer buffer when only the identity differs.
+            const unsigned identity = 8 + offset;
+            for (unsigned row = 8; row < 10 + offset; ++row) {
+                check(hold(direct) == 0, "direct-stage construction waits neutrally");
+                direct.seam(menu(row >= identity ? "FileSelect" : "", false));
+            }
+            auto step = direct.seam(menu("FileSelect", true));
+            check(step.kind == Step::Kind::Start && step.seed == 123, "direct-stage FileSelect still anchors at init End");
+            for (unsigned f = 11; f <= 12; ++f) {
+                hold(direct); direct.seam(menu("FileSelect", true, f));
+            }
+            direct.seam(menu("WorldMap01Galaxy", false));
+            direct.seam(menu("WorldMap01Galaxy", false));
+            step = direct.seam(menu("WorldMap01Galaxy", true));
+            check(step.kind == Step::Kind::Start && step.seed == 456, "direct-stage map still anchors at init End");
+            for (unsigned f = 16; f <= 19; ++f) {
+                hold(direct); step = direct.seam(menu("WorldMap01Galaxy", true, f));
+            }
+            check(step.kind == Step::Kind::Finished && !direct.gaveUp(), "bounded early/late direct boot finishes");
+            check(direct.report()[1].identityObserved && direct.report()[1].identityOffset == offset,
+                  "direct-stage identity offset is recorded relative to previous interactive anchor");
+            check(direct.report()[0].identityRowsSkipped == (offset < 0 ? 1u : 0u) &&
+                  direct.report()[0].pointerRowsCompared == 6, "only one-sided identity state is excluded; every pointer remains checked");
+            check(direct.report()[2].identityOffset == 0, "identity bound does not accumulate previous init timing shifts");
+        }
+        Session late(dir, Session::Mode::WholeSession);
+        auto setup = menu("", false); setup.scenario = 1; late.seam(setup); late.seam(menu("", false));
+        for (unsigned f = 2; f <= 7; ++f) { hold(late); late.seam(menu("", false, f)); }
+        for (unsigned row = 8; row <= 38; ++row) late.seam(menu("", false));
+        check(late.seam(menu("FileSelect", false)).kind == Step::Kind::GaveUp &&
+              late.error().find("identity offset exceeds 30") != std::string::npos, "31-loop identity offset fails closed");
+        Session absent(dir, Session::Mode::WholeSession);
+        absent.seam(setup); absent.seam(menu("", false));
+        for (unsigned f = 2; f <= 7; ++f) { hold(absent); absent.seam(menu("", false, f)); }
+        for (unsigned row = 8; row <= 39; ++row) absent.seam(menu("", false));
+        check(absent.gaveUp() && absent.error().find("identity not reached within 30") != std::string::npos,
+              "missing next identity cannot wait past the fixed bound");
+        Session pointer(dir, Session::Mode::WholeSession);
+        pointer.seam(setup); pointer.seam(menu("", false));
+        for (unsigned f = 2; f <= 6; ++f) { hold(pointer); pointer.seam(menu("", false, f)); }
+        hold(pointer);
+        check(pointer.seam(menu("FileSelect", false)).kind == Step::Kind::GaveUp &&
+              pointer.report()[0].firstDivergenceWhy == "KPAD pointer in game read buffer",
+              "identity overlap cannot hide pointer divergence");
+    }
     {   // Non-interactive arrivals may take fewer/more loops; exact play-ready is the hard boundary.
         const auto dir = base / "arrival";
         writeTape(dir);
@@ -298,6 +368,13 @@ int main() {
         check(badPosition.seam(drift).kind == Step::Kind::GaveUp &&
               badPosition.report()[0].firstDivergenceWhy == "position bits at play-ready",
               "play-ready rejects even sub-tolerance float-bit differences");
+        Session badGameplay(dir, Session::Mode::WholeSession);
+        badGameplay.seam(observed(2, false)); hold(badGameplay); badGameplay.seam(observed(6, true));
+        badGameplay.acknowledgeSeed(222); hold(badGameplay);
+        auto gameplayDrift = observed(7, true); gameplayDrift.x += 0.001f;
+        check(badGameplay.seam(gameplayDrift).kind == Step::Kind::GaveUp &&
+              badGameplay.report()[0].firstDivergenceWhy == "position bits",
+              "every compared interactive position rejects sub-tolerance float-bit differences");
         Session badSeed(dir, Session::Mode::WholeSession);
         badSeed.seam(observed(2, false)); hold(badSeed); badSeed.seam(observed(6, true));
         check(!badSeed.acknowledgeSeed(223) && badSeed.gaveUp(), "wrong RNG read-back fails closed");

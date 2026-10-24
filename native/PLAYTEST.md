@@ -550,6 +550,13 @@ The failed receipts and mechanism remain under port53/m1g/solb/SCENE-IDENTITY-FI
 
 The report records scene/play-ready anchors, recorded/replayed frames and offsets, bit-exact play-ready state, and RNG restoration
 and read-back. Pointer samples are compared against the game's WPad read buffer in every compared interactive loop.
+Direct-stage boots also have asynchronous scene identity boundaries: the world-map tape entered FileSelect at recorded row225
+but candidate c6203f5f entered at row224, before either init-End. V1 bounds each incoming identity offset to +/-30 loops on the
+preceding interactive scene's clock (play-ready for gameplay); it records both identity frames, expected replay frame, offset and
+bound. Only rows where replay is constructing the known next init-End scene while the recording still has the old identity are
+excluded from state comparison, with a per-segment count. KPAD read shape and actual game pointer checks continue on every loop,
+including the boundary. Wrong stages, initialized/valid new scenes overlapping old input, missing identities and offsets outside
+the bound fail closed. New scene logic still anchors at init-End. All compared valid whole-session positions are float32 bit-exact.
 The normal_tape_gate.py RESULT includes the final policy and both clock observations; normal533 route checks retain their original
 meaning. Executable hash equality is evidence for cross-build tapes and does not decide pass/fail.
 Builds and replays take m1-heavy.lock before native.lock. The normal tape gate acquires heavy through lockf -k itself; callers must

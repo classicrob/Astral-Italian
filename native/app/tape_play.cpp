@@ -265,6 +265,7 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
                 }
                 for (std::size_t i = first; i < scenes.size(); ++i) {
                     auto& g = scenes[i];
+                    g.identityRow = begin;
                     if (mRoute[g.startRow].valid)
                         while (g.endRow > g.startRow && !mRoute[g.endRow].valid) --g.endRow;
                 }
@@ -321,6 +322,7 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
         r.stage = mMeta.segments[p.index].stage;
         r.scenario = mMeta.segments[p.index].scenario;
         r.sceneStartRow = p.start;
+        r.identityRecorded = mMeta.segments[p.index].identityRow;
         r.requiresPlayReady = p.hasPlayReady;
         r.rngRecorded = p.playSeed;
         r.startRow = p.hasPlayReady ? p.playRow : p.start;
@@ -329,12 +331,54 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
     }
 }
 
+std::int64_t Session::expectedIdentity(std::size_t index) const {
+    std::int64_t shift = 0;
+    if (index > 0) {
+        const auto& previous = mReport[index - 1];
+        // Measure each boundary on the preceding scene's last interactive clock, rather than accumulating
+        // unrelated load/cinematic shifts over the entire session.
+        const auto actual = previous.requiresPlayReady ? previous.replayPlayStart : previous.replaySceneStart;
+        shift = static_cast<std::int64_t>(actual) - static_cast<std::int64_t>(previous.startRow);
+    }
+    return static_cast<std::int64_t>(mReport[index].identityRecorded) + shift;
+}
+
+bool Session::observeIdentity(std::size_t index, const SeamState& s) {
+    auto& r = mReport[index];
+    if (r.identityObserved || s.stage != r.stage || s.scenario != r.scenario) return true;
+    r.identityObserved = true;
+    r.identityReplay = mSeams - 1;
+    r.identityExpected = expectedIdentity(index);
+    r.identityOffset = static_cast<std::int64_t>(r.identityReplay) - r.identityExpected;
+    if (std::abs(r.identityOffset) > kIdentityOffsetLimit) {
+        inputFailure("scene identity offset exceeds 30 loops for " + r.stage, s);
+        return false;
+    }
+    return true;
+}
+
 void Session::compare(const SeamState& s, std::uint64_t k, bool bitExact) {
     auto& rep = mReport[mSegIndex];
     const auto& r = mRoute[rep.startRow + k];
-    ++rep.rowsCompared;
+    bool constructionBoundary = false;
+    if (wholeSession() && !bitExact && mSegIndex + 1 < mPlan.size() &&
+        (s.stage != r.stage || s.scenario != r.scenario)) {
+        const auto next = mSegIndex + 1;
+        const auto& target = mMeta.segments[mPlan[next].index];
+        const auto& evidence = mReport[next];
+        const auto tapeRow = rep.startRow + k;
+        // Only the known next scene's async construction may overlap the old identity tail. Its logic has not
+        // begun; the recorded read shape and actual game pointer are still checked for this loop below.
+        constructionBoundary = target.sceneReady && evidence.identityObserved && !s.initEnd && !s.valid &&
+            s.stage == target.stage && s.scenario == target.scenario && tapeRow < target.identityRow &&
+            target.identityRow - tapeRow <= static_cast<std::uint64_t>(kIdentityOffsetLimit) &&
+            std::abs(evidence.identityOffset) <= kIdentityOffsetLimit;
+    }
+    if (constructionBoundary) ++rep.identityRowsSkipped;
+    else ++rep.rowsCompared;
     std::string why;
-    if (s.stage != r.stage) why = "stage " + s.stage + " vs " + r.stage;
+    if (constructionBoundary) {} // different construction identities: no per-frame state comparison
+    else if (s.stage != r.stage) why = "stage " + s.stage + " vs " + r.stage;
     else if (s.scenario != r.scenario) why = "scenario " + std::to_string(s.scenario) + " vs " + std::to_string(r.scenario);
     else if (s.valid != r.valid) why = std::string("valid ") + (s.valid ? "1" : "0") + " vs " + (r.valid ? "1" : "0");
     if (why.empty() && bitExact && (!s.valid || !r.valid)) why = "invalid player at play-ready";
@@ -346,13 +390,14 @@ void Session::compare(const SeamState& s, std::uint64_t k, bool bitExact) {
             why = "KPAD pointer in game read buffer";
     }
     double dist = 0;
-    if (s.valid && r.valid) {
+    if (!constructionBoundary && s.valid && r.valid) {
         if (why.empty() && (!std::isfinite(s.x) || !std::isfinite(s.y) || !std::isfinite(s.z))) why = "nonfinite position";
         dist = std::sqrt(std::pow(double(s.x) - r.x, 2) + std::pow(double(s.y) - r.y, 2) + std::pow(double(s.z) - r.z, 2));
         if (why.empty() && s.dead != r.dead) why = "dead";
         if (why.empty() && s.grounded != r.grounded) why = "grounded";
-        if (why.empty() && bitExact && (std::memcmp(&s.x, &r.x, sizeof(float)) ||
-            std::memcmp(&s.y, &r.y, sizeof(float)) || std::memcmp(&s.z, &r.z, sizeof(float)))) why = "position bits at play-ready";
+        if (why.empty() && (bitExact || wholeSession()) && (std::memcmp(&s.x, &r.x, sizeof(float)) ||
+            std::memcmp(&s.y, &r.y, sizeof(float)) || std::memcmp(&s.z, &r.z, sizeof(float))))
+            why = bitExact ? "position bits at play-ready" : "position bits";
         if (why.empty() && dist > kPositionLimit) why = "position";
     }
     rep.maxDist = std::max(rep.maxDist, dist);
@@ -434,6 +479,19 @@ Step Session::seam(const SeamState& s) {
         mDone = true;
         step.kind = Step::Kind::GaveUp;
         return step;
+    }
+    if (wholeSession()) {
+        if (!observeIdentity(mSegIndex, s) || (mActive && mSegIndex + 1 < mPlan.size() &&
+            !observeIdentity(mSegIndex + 1, s))) {
+            mDone = true;
+            return {Step::Kind::GaveUp};
+        }
+        if (!mActive && !mReport[mSegIndex].identityObserved &&
+            static_cast<std::int64_t>(mSeams - 1) > expectedIdentity(mSegIndex) + kIdentityOffsetLimit) {
+            inputFailure("scene identity not reached within 30 loops for " + mReport[mSegIndex].stage, s);
+            mDone = true;
+            return {Step::Kind::GaveUp};
+        }
     }
     const auto& plan = mPlan[mSegIndex];
     if (mActive) {
@@ -610,7 +668,9 @@ std::string Session::reportJson() const {
     out << std::setprecision(9);
     out << "{\n  \"mode\": " << jsonString(wholeSession() ? "whole-session" : "segments")
         << ",\n  \"anchor_policy\": " << jsonString(wholeSession() ? "interactive-and-play-ready-v1" : "legacy-play-ready")
-        << ",\n  \"position_limit\": " << kPositionLimit << ",\n  \"finished\": " << (mDone && mError.empty() ? "true" : "false")
+            << ",\n  \"position_limit\": " << kPositionLimit
+            << ",\n  \"interactive_position_bit_exact\": " << (wholeSession() ? "true" : "false")
+            << ",\n  \"finished\": " << (mDone && mError.empty() ? "true" : "false")
         << ",\n  \"stopped\": " << jsonString(mError) << ",\n  \"segments\": [";
     for (std::size_t i = 0; i < mReport.size(); ++i) {
         const auto& r = mReport[i];
@@ -628,6 +688,14 @@ std::string Session::reportJson() const {
             << ", \"scene_anchor_recorded_frame\": " << r.sceneStartRow
             << ", \"scene_anchor_replay_frame\": " << (r.started ? std::to_string(r.replaySceneStart) : "null")
             << ", \"scene_anchor_frame_offset\": " << (r.started ? std::to_string(static_cast<std::int64_t>(r.replaySceneStart) - static_cast<std::int64_t>(r.sceneStartRow)) : "null")
+            << ", \"identity_recorded_frame\": " << r.identityRecorded
+            << ", \"identity_replay_frame\": " << (r.identityObserved ? std::to_string(r.identityReplay) : "null")
+            << ", \"identity_expected_replay_frame\": " << (r.identityObserved ? std::to_string(r.identityExpected) : "null")
+            << ", \"identity_frame_offset\": " << (r.identityObserved ? std::to_string(r.identityOffset) : "null")
+            << ", \"identity_offset_limit\": " << kIdentityOffsetLimit
+            << ", \"identity_offset_checked\": " << (r.identityObserved ? "true" : "false")
+            << ", \"identity_offset_passed\": " << (r.identityObserved && std::abs(r.identityOffset) <= kIdentityOffsetLimit ? "true" : "false")
+            << ", \"identity_rows_skipped\": " << r.identityRowsSkipped
             << ", \"comparison_anchor\": " << jsonString(!wholeSession() || r.requiresPlayReady ? "play-ready" : "scene-start")
             << ", \"play_ready_required\": " << (r.requiresPlayReady ? "true" : "false")
             << ", \"route_start_row\": " << r.startRow << ", \"tape_frames\": " << r.frames << ", \"started\": " << (r.started ? "true" : "false")

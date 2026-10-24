@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Safety checks for measurement parsing and fail-closed acceptance; no game launch."""
-import csv,importlib.util,json,subprocess,sys,tempfile,unittest
+import csv,importlib.util,json,sqlite3,subprocess,sys,tempfile,unittest
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 from receipts54m import latency
@@ -15,6 +15,16 @@ class GateValidation(unittest.TestCase):
     for phase,iv,present in values:w.writerow({'phase':phase,'unfocused':'0','interval_ms':iv,'present_ms':present})
    p=subprocess.run([sys.executable,'-B',str(HERE/'gate533.py'),str(root)]+(['--warm'] if warm else []),capture_output=True,text=True)
    return p.returncode,json.loads(p.stdout)
+ def test_cache_parser_handles_both_storage_tables(self):
+  from promotion54m import inspect_cache
+  with tempfile.TemporaryDirectory(prefix='m1cache-test-') as raw:
+   for table in ('pipeline_cache','cache'):
+    path=Path(raw)/(table+'.db')
+    with sqlite3.connect(path) as db:
+     db.executescript('CREATE TABLE petari_cache_build(build_key); CREATE TABLE '+table+'(value);')
+     db.execute('INSERT INTO petari_cache_build VALUES(?)',('abc',));db.execute('INSERT INTO '+table+' VALUES(1)')
+    result=inspect_cache(path,'abc');self.assertEqual(result['rows'],1);self.assertEqual(result['table'],table)
+    with self.assertRaises(AssertionError):inspect_cache(path,'wrong-build')
  def test_gameplay_stall_preserved(self):
   code,r=self.case([('menu',16.7,16.7),('gameplay',101,101)],'[stall] frame 42 101.0 ms phase=gameplay cause=other stage YosshiHomeGalaxy\n')
   self.assertEqual(code,1);self.assertEqual(r['gameplay_over100'][0][:2],[42,101.0])

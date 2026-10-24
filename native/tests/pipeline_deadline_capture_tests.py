@@ -14,12 +14,14 @@ class Captures(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.path = Path(self.tmp.name) / 'capture.jsonl'
-        self.rows = [{'event': 'header', 'version': 2, 'gx_config_version': 13,
-                      'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo'},
+        self.rows = [{'event': 'header', 'version': 3, 'gx_config_version': 13,
+                      'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo', 'origin_policy': 'next-whole-packet'},
+                     {'event': 'stage_begin', 'stage': 'A', 'visit': 1, 'request_packet': 479, 'origin_frame': 480},
                      {'event': 'first_use', 'stage': 'A', 'visit': 1, 'origin_frame': 480,
                       'frame': 480, 'relative_frame': 0, 'config': '0000000000000001'},
                      {'event': 'end', 'complete': True, 'records': 1, 'clock_first_frame': 480,
-                      'clock_last_frame': 490, 'clock_transitions': 1, 'lookup_calls': 2}]
+                      'clock_last_frame': 490, 'clock_transitions': 1, 'lookup_calls': 2,
+                      'stage_requests': 1, 'stage_begins': 1, 'pending_stage_requests': 0}]
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -36,11 +38,11 @@ class Captures(unittest.TestCase):
         with self.assertRaises(ValueError): self.read()
 
     def test_wrong_origin(self):
-        self.rows[1]['relative_frame'] = 1
+        self.rows[2]['relative_frame'] = 1
         with self.assertRaises(ValueError): self.read()
 
     def test_duplicate(self):
-        self.rows.insert(2, dict(self.rows[1])); self.rows[-1]['records'] = 2
+        self.rows.insert(3, dict(self.rows[2])); self.rows[-1]['records'] = 2
         with self.assertRaises(ValueError): self.read()
 
     def test_wrong_clock(self):
@@ -53,6 +55,14 @@ class Captures(unittest.TestCase):
 
     def test_old_zero_clock_protocol_rejected(self):
         self.rows[0].update(version=1, clock='fifo-renderer-frame-id')
+        with self.assertRaises(ValueError): self.read()
+
+    def test_mid_packet_stage_boundary_rejected(self):
+        self.rows[1]['request_packet'] = 480
+        with self.assertRaises(ValueError): self.read()
+
+    def test_lookup_without_boundary_rejected(self):
+        self.rows.pop(1)
         with self.assertRaises(ValueError): self.read()
 
     def test_incomplete(self):

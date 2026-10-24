@@ -31,6 +31,8 @@ bool load(const std::filesystem::path& file, Settings* settings, std::string* er
     std::ifstream input(file);
     if (!input) return fail(error, "Could not read display.txt. Check that your user folder is readable.");
     Settings parsed;
+    bool modeSeen = false, vsync2Seen = false;
+    int vsync2 = 1;
     std::string line;
     while (std::getline(input, line)) {
         if (line.empty() || line[0] == '#') continue;
@@ -39,22 +41,25 @@ bool load(const std::filesystem::path& file, Settings* settings, std::string* er
         const std::string key = line.substr(0, equals);
         // VSync is saved as vsync2. The old vsync key (5.3 and earlier, written with the old default Off) is ignored, so
         // the 5.4 default On reaches existing user folders; older builds ignore vsync2 in turn.
-        if (key != "fullscreen" && key != "size" && key != "vsync" && key != "vsync2" && key != "ubershaders") continue;
+        if (key != "fullscreen" && key != "size" && key != "vsync" && key != "vsync2" && key != "vsyncmode" && key != "ubershaders") continue;
         const char* begin = line.data() + equals + 1;
         const char* end = line.data() + line.size();
         if (end > begin && end[-1] == '\r') --end;
         int value = 0;
         const auto result = std::from_chars(begin, end, value);
         if (result.ec != std::errc{} || result.ptr != end ||
-            (key != "size" && value != 0 && value != 1)) {
+            (key != "size" && key != "vsyncmode" && value != 0 && value != 1) || (key == "vsyncmode" && (value < 0 || value > 2))) {
             return fail(error, "Invalid display.txt. Remove it to restore the default display settings.");
         }
         if (key == "fullscreen") parsed.fullscreen = value != 0;
         if (key == "size") parsed.size = value;
-        if (key == "vsync2") parsed.vsync = value != 0;
+        // vsyncmode (5.4.1): 0 Off, 1 On, 2 Auto. A 5.4 file has only vsync2: 0 was an explicit Off; 1 was 5.4's default and becomes Auto.
+        if (key == "vsyncmode") { modeSeen = true; parsed.vsyncAuto = value == 2; parsed.vsync = value != 0; }
+        if (key == "vsync2") { vsync2Seen = true; vsync2 = value; }
         if (key == "ubershaders") { parsed.ubershaders = value != 0; parsed.ubershadersSaved = true; }
     }
     if (input.bad()) return fail(error, "Could not read display.txt. Check that your user folder is readable.");
+    if (!modeSeen && vsync2Seen && vsync2 == 0) { parsed.vsyncAuto = false; parsed.vsync = false; }
     *settings = clamp(parsed);
     return true;
 }
@@ -72,8 +77,8 @@ bool save(const std::filesystem::path& file, Settings settings, std::string* err
     FILE* output = fdopen(fd, "w");
     bool ok = output != nullptr;
     if (output) {
-        ok = std::fprintf(output, "# Display settings; size: 0=1280x720, 1=1600x900, 2=1920x1080, 3=2560x1440\nfullscreen=%d\nsize=%d\nvsync2=%d\nubershaders=%d\n",
-                          settings.fullscreen, settings.size, settings.vsync, settings.ubershaders) > 0;
+        ok = std::fprintf(output, "# Display settings; size: 0=1280x720, 1=1600x900, 2=1920x1080, 3=2560x1440\nfullscreen=%d\nsize=%d\nvsyncmode=%d\nubershaders=%d\n",
+                          settings.fullscreen, settings.size, settings.vsyncAuto ? 2 : settings.vsync ? 1 : 0, settings.ubershaders) > 0;
         if (std::fflush(output) != 0 || fsync(fd) != 0) ok = false;
         if (std::fclose(output) != 0) ok = false;
     } else {
@@ -95,10 +100,16 @@ bool Controller::configure(const std::filesystem::path& file, std::string* error
     mFile = file;
     const bool ok = load(file, &mSettings, error);
     mStartupVsync = mSettings.vsync;
+    mStartupVsyncAuto = mSettings.vsyncAuto;
     mStartupUbershaders = mSettings.ubershaders;
     mPending = -1;
     mMessage = ok ? "" : (error ? *error : "Could not read display.txt. Remove it to restore defaults.");
     return ok;
+}
+
+bool Controller::startupVsyncAuto() {
+    std::lock_guard lock(mMutex);
+    return mStartupVsyncAuto;
 }
 
 Settings Controller::settings() {
@@ -141,14 +152,17 @@ void Controller::tick(Window& window) {
         const auto preset = HomeMenu::kDisplaySizes[size];
         ok = window.setSize(preset.width, preset.height);
         if (ok) next.size = size;
-    } else if (row == 2) {
-        next.vsync = !next.vsync;
+    } else if (row == 2) {  // Auto -> On -> Off -> Auto (Left goes the other way)
+        const int mode = next.vsyncAuto ? 2 : next.vsync ? 1 : 0;
+        const int to = delta < 0 ? (mode + 1) % 3 : (mode + 2) % 3;
+        next.vsyncAuto = to == 2;
+        next.vsync = to != 0;
     } else if (row == 3) {
         next.ubershaders = !next.ubershaders;
     }
     next.fullscreen = window.fullscreen();
     next.busy = false;
-    next.restartNeeded = next.vsync != mStartupVsync;
+    next.restartNeeded = next.vsyncAuto != mStartupVsyncAuto || (!next.vsyncAuto && next.vsync != mStartupVsync);
     next.ubershadersRestartNeeded = next.ubershaders != mStartupUbershaders;
     if (!ok) message = "Could not change the window. Try again after the fullscreen animation finishes.";
     else if (!save(mFile, next, &message)) {

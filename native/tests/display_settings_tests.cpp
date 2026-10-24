@@ -41,9 +41,9 @@ int main() {
     const std::filesystem::path root(directory), file = root / "user/display.txt";
     std::string error;
     DS::Settings settings;
-    settings.fullscreen = true; settings.size = 3; settings.vsync = false;
+    settings.fullscreen = true; settings.size = 3; settings.vsync = false; settings.vsyncAuto = false;
     check(DS::load(file, &settings, &error) && error.empty(), "missing file is normal");
-    check(!settings.fullscreen && settings.size == 0 && settings.vsync, "windowed defaults, VSync (Fifo) on by default");
+    check(!settings.fullscreen && settings.size == 0 && settings.vsyncAuto && settings.vsync, "windowed defaults, VSync Auto by default");
     check(settings.ubershaders && !settings.ubershadersSaved, "fresh display defaults to hybrid ubershaders");
     namespace Uber = PetariNative::Ubershaders;
     const auto mode = [](const char* env, std::optional<bool> saved, Uber::Mode expected, const char* source) {
@@ -64,10 +64,20 @@ int main() {
     settings = {true, 3, true};
     check(DS::save(file, settings, &error), "create user folder and save");
     check(DS::load(file, &settings, &error) && settings.fullscreen && settings.size == 3 && settings.vsync, "round trip");
-    settings = {true, 3, false};
-    check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.vsync, "VSync off round trips as vsync2=0");
+    settings = {true, 3, false}; settings.vsyncAuto = false;
+    check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.vsyncAuto && !settings.vsync, "VSync Off round trips (vsyncmode=0)");
+    settings.vsync = true;
+    check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.vsyncAuto && settings.vsync, "VSync On round trips (vsyncmode=1)");
+    settings.vsyncAuto = true;
+    check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && settings.vsyncAuto, "VSync Auto round trips (vsyncmode=2)");
     { std::ofstream out(file); out << "fullscreen=0\nsize=1\nvsync=0\nubershaders=1\n"; }
-    check(DS::load(file, &settings, &error) && settings.size == 1 && settings.vsync, "a 5.3-era vsync=0 is ignored: the new default On applies");
+    check(DS::load(file, &settings, &error) && settings.size == 1 && settings.vsyncAuto, "a 5.3-era vsync=0 is ignored: the default Auto applies");
+    { std::ofstream out(file); out << "fullscreen=0\nsize=1\nvsync2=0\nubershaders=1\n"; }
+    check(DS::load(file, &settings, &error) && !settings.vsyncAuto && !settings.vsync, "a 5.4 explicit vsync2=0 stays Off");
+    { std::ofstream out(file); out << "fullscreen=0\nsize=1\nvsync2=1\nubershaders=1\n"; }
+    check(DS::load(file, &settings, &error) && settings.vsyncAuto, "a 5.4 vsync2=1 (its default) becomes Auto");
+    { std::ofstream out(file); out << "vsync2=0\nvsyncmode=1\n"; }
+    check(DS::load(file, &settings, &error) && !settings.vsyncAuto && settings.vsync, "vsyncmode wins over vsync2");
     settings.ubershaders = false;
     check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && !settings.ubershaders && settings.ubershadersSaved,
           "ubershaders off round trips with explicit saved marker");
@@ -75,10 +85,10 @@ int main() {
     check(DS::save(file, settings, &error) && DS::load(file, &settings, &error) && settings.size == 0, "save clamps low");
     { std::ofstream out(file); out << "size=999\r\nfullscreen=1\r\nvsync=0\r\nfuture=anything\n"; }
     check(DS::load(file, &settings, &error) && settings.size == 3 && settings.fullscreen, "load clamps high; CRLF and unknown keys");
-    for (const char* invalid : {"fullscreen=2", "vsync=-1", "ubershaders=2", "ubershaders=-1", "ubershaders=", "size=2147483648", "size=", "size=2junk", "broken", "vsync=1\nsize=bad"}) {
+    for (const char* invalid : {"fullscreen=2", "vsync=-1", "vsyncmode=3", "vsyncmode=-1", "ubershaders=2", "ubershaders=-1", "ubershaders=", "size=2147483648", "size=", "size=2junk", "broken", "vsync=1\nsize=bad"}) {
         { std::ofstream out(file); out << invalid << '\n'; }
         check(!DS::load(file, &settings, &error) && !error.empty(), "malformed file reports action");
-        check(!settings.fullscreen && settings.size == 0 && settings.vsync, "malformed file never partially applies");
+        check(!settings.fullscreen && settings.size == 0 && settings.vsyncAuto, "malformed file never partially applies");
     }
     { std::ofstream out(file); out << "# preferences\n\nsize=-99\n"; }
     check(DS::load(file, &settings, &error) && settings.size == 0 && error.empty(), "negative size clamps low");
@@ -110,13 +120,20 @@ int main() {
     controller.change(1, 1); controller.tick(window);
     check(window.width == 1280 && window.height == 720, "right wraps to smallest preset");
     controller.change(2, 1); controller.tick(window);
-    check(!controller.settings().vsync && controller.settings().restartNeeded && window.fullscreenCalls == 1,
-          "vsync is persisted only; needs relaunch");
+    check(!controller.settings().vsyncAuto && controller.settings().vsync && controller.settings().restartNeeded && window.fullscreenCalls == 1,
+          "VSync Auto -> On is persisted only; needs relaunch");
     DS::Controller relaunched;
-    check(relaunched.configure(file, &error) && !relaunched.settings().vsync && !relaunched.settings().restartNeeded,
+    check(relaunched.configure(file, &error) && !relaunched.settings().vsyncAuto && relaunched.settings().vsync &&
+          !relaunched.startupVsyncAuto() && !relaunched.settings().restartNeeded,
           "new launch consumes vsync and clears restart note");
     controller.change(2, 1); controller.tick(window);
-    check(!controller.settings().restartNeeded, "reverting vsync clears restart note");
+    check(!controller.settings().vsyncAuto && !controller.settings().vsync && controller.settings().restartNeeded, "On -> Off");
+    controller.change(2, 1); controller.tick(window);
+    check(controller.settings().vsyncAuto && !controller.settings().restartNeeded, "Off -> Auto: back to the launch mode clears the restart note");
+    controller.change(2, -1); controller.tick(window);
+    check(!controller.settings().vsyncAuto && !controller.settings().vsync, "Left goes Auto -> Off");
+    controller.change(2, 1); controller.tick(window);
+    check(controller.settings().vsyncAuto && controller.startupVsyncAuto(), "and Right back to Auto");
     const int fullCalls = window.fullscreenCalls, resizeCalls = window.sizeCalls;
     controller.change(3, 1); controller.tick(window);
     check(!controller.settings().ubershaders && controller.settings().ubershadersRestartNeeded,
@@ -141,7 +158,7 @@ int main() {
     std::filesystem::create_directory(file);
     controller.change(2, 1); controller.tick(window);
     controller.read(&settings, message, sizeof(message));
-    check(!settings.vsync && std::string(message).find("Could not save") != std::string::npos, "save failure shown in menu");
+    check(!settings.vsyncAuto && settings.vsync && std::string(message).find("Could not save") != std::string::npos, "save failure shown in menu");
     std::filesystem::remove_all(root);
     std::printf("display settings tests passed (%d checks)\n", checks);
 }

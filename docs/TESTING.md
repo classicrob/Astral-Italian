@@ -50,7 +50,7 @@ folder of any other Super Mario Galaxy port.
 | Quit | Cmd+Q |
 
 The **Home menu** (` or F1) is where you remap controls, switch mods on and off, pick a galaxy with Level Select, and change
-**Display** options (fullscreen, window size, VSync (On by default; Off = lowest latency), Ubershaders; VSync and Ubershaders take effect after a restart). Full lists:
+**Display** options (fullscreen, window size, VSync (Auto by default: on in a window, off in fullscreen; On/Off force one mode), Ubershaders; VSync and Ubershaders take effect after a restart). Full lists:
 [Controls](../native/CONTROLS.md), [Home menu](../native/HOME_MENU.md), [Mods](../native/MODS.md).
 
 **Mods** are all off until you enable them in the Home menu:

@@ -182,6 +182,10 @@ struct DisplayOptions {
     // VSync on = Fifo present (5.4 default): on a 120 Hz ProMotion panel Immediate put 16.3 % of warm presents off the
     // 60 fps cadence vs 0.3 % with Fifo (server gate, 2026-10-23). Off = Immediate, for minimum latency.
     bool vsync = true;
+    // 5.4.1 default: Auto = VSync on (Fifo) in a window, off (Immediate) in fullscreen, switched live when the window enters or
+    // leaves fullscreen. Windowed Immediate judders through the compositor; fullscreen Immediate is smooth and ~20 ms faster than
+    // Fifo (server 120 Hz study, 2026-10-24). When false, `vsync` is the explicit On/Off choice.
+    bool vsyncAuto = true;
     bool restartNeeded = false;
     bool busy = false;
     bool ubershaders = true;

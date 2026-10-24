@@ -136,7 +136,10 @@ public:
     }
     void change(int row, int) override {
         if (row == 0) options.fullscreen = !options.fullscreen;
-        if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = !options.restartNeeded; }
+        if (row == 2) {  // Auto -> On -> Off -> Auto
+            const int mode = options.vsyncAuto ? 2 : options.vsync ? 1 : 0, to = (mode + 2) % 3;
+            options.vsyncAuto = to == 2; options.vsync = to != 0; options.restartNeeded = !options.vsyncAuto;
+        }
         if (row == 3) { options.ubershaders = !options.ubershaders; options.ubershadersRestartNeeded = !options.ubershaders; }
     }
 };

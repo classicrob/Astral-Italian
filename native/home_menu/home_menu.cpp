@@ -277,7 +277,7 @@ void Menu::refreshDisplay() {
     const auto size = kDisplaySizes[mDisplay.size];
     std::snprintf(mDisplayLabels[0], sizeof(mDisplayLabels[0]), "Fullscreen: %s", mDisplay.fullscreen ? "On" : "Off");
     std::snprintf(mDisplayLabels[1], sizeof(mDisplayLabels[1]), "Window size: %d x %d", size.width, size.height);
-    std::snprintf(mDisplayLabels[2], sizeof(mDisplayLabels[2]), "VSync: %s%s", mDisplay.vsync ? "On" : "Off",
+    std::snprintf(mDisplayLabels[2], sizeof(mDisplayLabels[2]), "VSync: %s%s", mDisplay.vsyncAuto ? "Auto" : mDisplay.vsync ? "On" : "Off",
                   mDisplay.restartNeeded ? " (restart needed)" : "");
     std::snprintf(mDisplayLabels[3], sizeof(mDisplayLabels[3]), "Ubershaders: %s%s", mDisplay.ubershaders ? "On" : "Off",
                   mDisplay.ubershadersRestartNeeded ? " (restart needed)" : "");

@@ -62,7 +62,7 @@ void WorldMapResultStateWorldNews::kill() {
 // NONMATCHING: regalloc; equivalent signed range comparison lowering (FP order/grouping checked: no FP instructions).
 bool WorldMapResultStateWorldNews::isIndexInRange() const {
     u32 inRange = 0;
-    if (mIndex >= 1 && mIndex <= 5) {
+    if (1 <= mIndex && mIndex <= 5) {
         inRange = 1;
     }
     return inRange != 0;
@@ -177,11 +177,11 @@ void WorldMapResultStateWorldNews::nextTalkNerve() {
         setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
         return;
     }
-    if (mIndex >= 0 && mIndex <= 6) {
+    if (0 <= mIndex && mIndex <= 6) {
         setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
         return;
     }
-    if (mIndex >= 7 && mIndex <= 11) {
+    if (7 <= mIndex && mIndex <= 11) {
         setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
         return;
     }

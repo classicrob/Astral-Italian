@@ -232,9 +232,9 @@ void Pole::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(Pole, PoleNrvFree));
 
     mCenterPos.set(mUp);
-    mCenterPos.scale(mHeight * 0.5f);
+    mCenterPos.scale(mHeight / 2.0f);
     mCenterPos.add(mBasePos);
-    MR::setClippingTypeSphere(this, mHeight * 0.5f, &mCenterPos);
+    MR::setClippingTypeSphere(this, mHeight / 2.0f, &mCenterPos);
     MR::useStageSwitchAwake(this, rIter);
 
     if (MR::tryRegisterDemoCast(this, rIter)) {

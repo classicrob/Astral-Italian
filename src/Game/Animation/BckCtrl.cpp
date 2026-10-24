@@ -159,10 +159,10 @@ inline f32 calcPlayRate(const J3DFrameCtrl& rCtrl, s32 playFrame, f32 baseRate =
 // NONMATCHING: conversion stack slots, register allocation and instruction scheduling.
 void BckCtrlFunction::reflectBckCtrlDataToFrameCtrl(const BckCtrlData& rData, J3DFrameCtrl* pCtrl) {
     const s16 startFrame = rData.mStartFrame;
-    const s16 playFrame = rData.mPlayFrame;
-    const u8 attribute = rData.mLoopMode;
-    const s16 repeatFrame = rData.mRepeatFrame;
     const s16 endFrame = rData.mEndFrame;
+    const s16 repeatFrame = rData.mRepeatFrame;
+    const u8 attribute = rData.mLoopMode;
+    const s16 playFrame = rData.mPlayFrame;
     pCtrl->mAttribute = attribute;
     pCtrl->mStart = startFrame;
     pCtrl->mLoop = repeatFrame;

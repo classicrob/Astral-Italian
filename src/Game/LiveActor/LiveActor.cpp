@@ -52,7 +52,7 @@ bool LiveActor::receiveMessage(u32 msg, HitSensor* sender, HitSensor* receiver) 
     if (msg != 0 && msg < 0x26) isPlayerAttack = true;
     if (isPlayerAttack) return receiveMsgPlayerAttack(msg, sender, receiver);
     bool isEnemyAttack = false;
-    if (msg > 0x59 && msg < 0x75) isEnemyAttack = true;
+    if (0x59 < msg && msg < 0x75) isEnemyAttack = true;
     if (isEnemyAttack) return receiveMsgEnemyAttack(msg, sender, receiver);
     return receiveOtherMsg(msg, sender, receiver);
 }

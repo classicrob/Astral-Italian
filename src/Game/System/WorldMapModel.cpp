@@ -341,7 +341,7 @@ bool WorldMapFunction::isGreenStarDemoReady() {
     return false;
 }
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
-bool WorldMapFunction::isWorldNoMid(s32 world) { s32 result = 0; if (world >= 2) { if (world <= 6) result = 1; } return result; }
+bool WorldMapFunction::isWorldNoMid(s32 world) { s32 result = 0; if (2 <= world) { if (world <= 6) result = 1; } return result; }
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 namespace {
     const char* sExcludedResources[] = {"/ObjectData/WorldMap01Sky.arc"};

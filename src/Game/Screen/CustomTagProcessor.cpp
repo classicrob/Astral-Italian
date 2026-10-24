@@ -698,7 +698,7 @@ CustomTagProcessor::Operation CustomTagProcessor::exeSystemGroupColor(nw4r::ut::
     }
 
     if (mIsInfo) {
-        if (index >= 1) {
+        if (1 <= index) {
             if (index < 8) {
                 index += 7;
             }

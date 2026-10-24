@@ -35,9 +35,7 @@ namespace NrvWorldMapResultStatePointEvent {
     WMR_NERVE_DECL(WorldMapResultStatePointEventEnd);
 };  // namespace NrvWorldMapResultStatePointEvent
 
-// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass c-checked).
 WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ポイントイベント]", pHost) {
-    mIsDead = true;
     mRoute = NULL;
     mCount = 0;
     mIndex = -1;
@@ -51,17 +49,16 @@ WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHos
     mTalkCtrls = NULL;
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStatePointEvent::init() {
     initNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventStart), 0);
     mHost->declareCamera("イベント（スターチェックポイント：スター足りない）");
     MR::declareEventCameraProgrammable(sCameraName);
     mTalkCtrls = new TalkMessageCtrl*[3];
+    WorldMapOwner* owner;
     for (s32 i = 0; i < 3; i++) {
         if (sTalkNames[i] != NULL) {
-            WorldMapOwner* owner = mHost;
-            TVec3f zero(0.0f, 0.0f, 0.0f);
-            mTalkCtrls[i] = MR::createTalkCtrlDirect(owner->getMeister(), sTalkNames[i], zero, NULL);
+            owner = mHost;
+            mTalkCtrls[i] = MR::createTalkCtrlDirect(owner->getMeister(), sTalkNames[i], TVec3f(0.0f, 0.0f, 0.0f), NULL);
         }
     }
     mRoute = new WorldMapResultRoute();
@@ -190,7 +187,8 @@ void WorldMapResultStatePointEvent::exeEvent() {
 }
 
 void WorldMapResultStatePointEvent::exeExtend() {
-    bool result = mHost->updateRoute(mRoute, mCount, MR::calcNerveRate(this, 30));
+    WorldMapOwner* host = mHost;
+    bool result = host->updateRoute(mRoute, mCount, MR::calcNerveRate(this, 30));
     MR::startActionSound(mHost->getRocket(), "RoadExtend", -1, -1, -1);
     if (MR::isGreaterEqualStep(this, 30)) {
         if (result != 0) {

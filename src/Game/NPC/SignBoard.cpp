@@ -26,9 +26,9 @@ void SignBoard::init(const JMapInfoIter& rIter) {
     MR::getObjectName(&name, rIter);
     NPCActorCaps caps(name);
     caps.setDefault();
-    caps.mWaitNerve = GET_NERVE(SignBoard, SignBoardNrvWait);
     caps.mYoshiInteraction = false;
     caps.mMessageId = "SignBoard";
+    caps.mWaitNerve = GET_NERVE(SignBoard, SignBoardNrvWait);
 
     MR::getJMapInfoArg0NoInit(rIter, &mSupportPlayMode);
     if (mSupportPlayMode == 0) {

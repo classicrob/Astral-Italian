@@ -31,12 +31,11 @@ WorldMapResultStateGreenStarDemo::WorldMapResultStateGreenStarDemo(WorldMapOwner
     mTalkCtrl = NULL;
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::init() {
     initNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart), 0);
     MR::declareEventCameraProgrammable(sCameraName);
-    TVec3f zero(0.0f, 0.0f, 0.0f);
-    mTalkCtrl = MR::createTalkCtrlDirect(mHost->getMeister(), "WorldMapNewsStartWorld08", zero, NULL);
+    WorldMapOwner* owner = mHost;
+    mTalkCtrl = MR::createTalkCtrlDirect(owner->getMeister(), "WorldMapNewsStartWorld08", TVec3f(0.0f, 0.0f, 0.0f), NULL);
     mComet = new MiniGreenComet();
     mComet->initWithoutIter();
     mComet->makeActorDead();
@@ -85,6 +84,7 @@ void WorldMapResultStateGreenStarDemo::showComets() {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::exeStart() {
+    const TVec3f* cameraTable = sGreenStarDemoCameraTable;
     if (MR::isFirstStep(this)) {
         MR::forceOpenSystemWipeWhiteFade();
         MR::openWipeFade(60);
@@ -93,14 +93,9 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
         mComet->appear();
     }
     f32 rate = MR::calcNerveRate(this, 300);
-    TVec3f vec2c = sGreenStarDemoCameraTable[0] * (1.0f - rate);
-    TVec3f vec38 = sGreenStarDemoCameraTable[1] * rate;
-    TVec3f vec50 = vec38 + vec2c;
-    TVec3f vec14 = sGreenStarDemoCameraTable[2] * (1.0f - rate);
-    TVec3f vec20 = sGreenStarDemoCameraTable[3] * rate;
-    TVec3f vec44 = vec20 + vec14;
-    TVec3f vecUp(0.0f, 1.0f, 0.0f);
-    MR::setProgrammableCameraParam(sCameraName, vec44, vec50, vecUp, true);
+    TVec3f vec50 = cameraTable[1] * rate + cameraTable[0] * (1.0f - rate);
+    TVec3f vec44 = cameraTable[3] * rate + cameraTable[2] * (1.0f - rate);
+    MR::setProgrammableCameraParam(sCameraName, vec44, vec50, TVec3f(0.0f, 1.0f, 0.0f), true);
     if (MR::isStep(this, 240)) {
         MR::closeWipeFade(60);
     }
@@ -116,23 +111,30 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::exeShower() {
+    const TVec3f* cameraTable = sGreenStarDemoCameraTable;
     if (MR::isFirstStep(this)) {
         showComets();
         MR::startGlobalEventCameraNoTarget(sCameraName, 0);
         MR::openWipeFade(60);
     }
-    s32 steps[7] = {sFirstCometAppearStep, 40, 70, 150, 210, 290, 360};
-    for (s32 i = 0; i < 7; i++) {
+    s32 steps[7];
+    steps[0] = sFirstCometAppearStep;
+    steps[1] = 40;
+    steps[2] = 70;
+    steps[3] = 150;
+    steps[4] = 210;
+    steps[5] = 290;
+    steps[6] = 360;
+    for (u32 i = 0; i < 7; i++) {
         if (MR::isStep(this, steps[i])) {
             mCounts[i]->setComet(true);
         }
     }
     TVec3f vec20;
-    calcRoutePos(&vec20, sGreenStarDemoCameraTable[4], sGreenStarDemoCameraTable[5], getNerveStep(), 500);
+    calcRoutePos(&vec20, cameraTable[4], cameraTable[5], getNerveStep(), 500);
     TVec3f vec14;
-    calcRoutePos(&vec14, sGreenStarDemoCameraTable[6], sGreenStarDemoCameraTable[7], getNerveStep(), 500);
-    TVec3f vecUp(0.0f, 1.0f, 0.0f);
-    MR::setProgrammableCameraParam(sCameraName, vec14, vec20, vecUp, true);
+    calcRoutePos(&vec14, cameraTable[6], cameraTable[7], getNerveStep(), 500);
+    MR::setProgrammableCameraParam(sCameraName, vec14, vec20, TVec3f(0.0f, 1.0f, 0.0f), true);
     MR::setProgrammableCameraParamFovy(sCameraName, 26.0f);
     if (MR::isStep(this, 500)) {
         mShower->kill();

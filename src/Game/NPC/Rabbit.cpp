@@ -72,13 +72,20 @@ void Rabbit::init(const JMapInfoIter& rIter) {
         MR::startBckIfExist(this, "Wait2");
     }
     MR::setClippingFar100m(this);
-    const char* turn = "TurnSmall";
-    const char* wait = "Wait";
-    const char* talk = "Talk";
-    const char* reaction = "Reaction";
-    const char* pointing = "Pointing";
-    const char* press = "Press";
-    const char* spin = "Spin";
+    const char* reaction;
+    const char* pointing;
+    const char* press;
+    const char* spin;
+    const char* wait;
+    const char* turn;
+    const char* talk;
+    turn = "TurnSmall";
+    wait = "Wait";
+    talk = "Talk";
+    spin = "Spin";
+    press = "Press";
+    pointing = "Pointing";
+    reaction = "Reaction";
     mParam._14 = wait;
     mParam._18 = turn;
     mParam._1C = talk;

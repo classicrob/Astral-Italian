@@ -146,15 +146,17 @@ namespace {
 };  // namespace
 
 
-// NONMATCHING: floating-point register assignment and constant-load scheduling
 void TwoLegsCamera::calcFov(f32* pFov, TVec3f* pCenter) {
     TVec3f box[2];
     calcBox(&box[0]);
     f32 height;
     f32 fovy = sCameraFovyRadian;
     f32 tanHalf = JMath::sSinCosTable.sinRadian(0.5f * fovy) / JMath::sSinCosTable.cosRadian(0.5f * fovy);
-    f32 dist = (0.5f * static_cast< f32 >(MR::getScreenHeight())) / tanHalf;
-    f32 fovX = (dist * (box[1].x - box[0].x)) / 608.0f;
+    f32 width;
+    f32 halfHeight = 0.5f * static_cast<f32>(MR::getScreenHeight());
+    width = box[1].x - box[0].x;
+    f32 dist = halfHeight / tanHalf;
+    f32 fovX = (dist * width) / 608.0f;
     height = box[1].y - box[0].y;
     f32 fovY = (dist * height) / static_cast< f32 >(MR::getScreenHeight());
     fovX = (fovX >= fovY) ? fovX : fovY;

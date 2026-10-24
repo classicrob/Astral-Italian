@@ -85,8 +85,11 @@ bool ActorStateParamScale::isGreaterEqualStep(s32 step) {
 
 bool ActorStateParamScale::isIntervalStep(s32 interval, s32 offset) {
     bool result = false;
-    if (offset == (s32)mNerveStepRate % interval && isStep((s32)mNerveStepRate)) {
-        result = true;
+    if (offset == (s32)mNerveStepRate % interval) {
+        s32 step = (s32)mNerveStepRate;
+        if (isStep(step)) {
+            result = true;
+        }
     }
     return result;
 }

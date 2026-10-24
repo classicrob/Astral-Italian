@@ -52,8 +52,9 @@ bool SyncBckEffectChecker::isCreate(const SyncBckEffectInfo* info, bool checkFra
     f32 frame = info->mStartFrame;
     if (mIsReset) {
         if (ctrl->getRate() != 0.0f && MR::isNearZero(frame + ctrl->getRate() - ctrl->getFrame())) return true;
+        f32 zero = 0.0f;
         f32 delta = frame - ctrl->getFrame();
-        return 0.0f <= delta && delta < ctrl->getRate();
+        return zero <= delta && delta < ctrl->getRate();
     }
     return checkPass(frame);
 }

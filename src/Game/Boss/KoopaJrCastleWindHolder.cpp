@@ -176,7 +176,7 @@ bool KoopaJrCastleWind::calcWindInfo(const TVec3f* pPos, TVec3f* pDir, f32* pPow
     f32 power;
     TVec3f toTarget(0.0f);
     MR::calcVecToTargetHorizon(&toTarget, this, pPos, NULL);
-    f32 dist = PSVECMag(&toTarget);
+    f32 dist = toTarget.length();
     if (0.0f < dist && dist < 10000.0f && MR::calcDistanceVertical(this, *pPos) < 3000.0f) {
         f32 ease = dist >= 400.0f ? MR::getEaseInValueWithNormalize(dist, 400.0f, 10000.0f, 1.0f, 0.625f) :
                                     -MR::getEaseInValueWithNormalize(dist, 0.0f, 400.0f, 1.0f, 0.625f);

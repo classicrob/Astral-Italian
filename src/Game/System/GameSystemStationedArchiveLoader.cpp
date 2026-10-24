@@ -56,8 +56,8 @@ bool GameSystemStationedArchiveLoader::isDone() const {
 bool GameSystemStationedArchiveLoader::isPreparedReset() const {
     bool result = true;
     bool initialized = true;
-    if (!isNerve(GET_NERVE_ANON(GameSystemStationedArchiveLoaderInitialized)) &&
-        !isNerve(GET_NERVE_ANON(GameSystemStationedArchiveLoaderEnd))) {
+    if (!isInitialized() &&
+        !isDone()) {
         initialized = false;
     }
     if (!initialized && !isNerve(GET_NERVE_ANON(GameSystemStationedArchiveLoaderSuspended))) {

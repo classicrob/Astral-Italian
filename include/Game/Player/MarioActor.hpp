@@ -767,8 +767,6 @@ public:
         return _482 || _481;
     }
 
-    inline bool isRushing() const { return _934; }
-
     inline Mario* getMario() const {
         return mMario;
     }

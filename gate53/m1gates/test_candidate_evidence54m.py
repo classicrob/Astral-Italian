@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Candidate identity and authorized tier boundaries; no game launch."""
-import copy,json,tempfile,unittest
+import copy,json,tempfile,unittest,subprocess
 from pathlib import Path
 from unittest.mock import patch
 import candidate_evidence54m as ce
@@ -32,7 +32,7 @@ class CandidateEvidence(unittest.TestCase):
    write(prep_path,original);d=json.loads(paths[0].read_text());del d['checks']['play_ready_state_checks'];write(paths[0],d)
    with self.assertRaises(AssertionError):ce.normal_evidence(paths,directory)
  def test_failed_functional_or_missing_tier_measurement_refuses(self):
-  for name in ('flipswap-cappy','intro-skip','gx-fresh-warm','input-latency','normal-route-grandmap'):
+  for name in ('flipswap-cappy','intro-skip','gx-fresh-warm','input-latency','normal-route-grandmap','wii-proof'):
    self.assertTrue(requires_refusal(name,False,True,True),name)
   for name in ('v2-cold-stall','fifo-default-cadence-latency'):
    self.assertFalse(requires_refusal(name,False,True,True),name)
@@ -61,5 +61,20 @@ class CandidateEvidence(unittest.TestCase):
    write(root/'pointer/warm/RESULT.json',pointer['runs'][1])
    pointer['build']['source']='f'*40;write(root/'pointer/RESULT.json',pointer)
    with self.assertRaises(AssertionError):ce.combine_promotion(root/'direct/results.json',root/'pointer/RESULT.json',{**meta,'source':'c'*40},root/'bad/results.json')
+ def test_wii_requires_fresh_build_and_strict_dispatch_success(self):
+  import candidate_wii54m as cw
+  with tempfile.TemporaryDirectory() as raw:
+   root=Path(raw).resolve();directory=root/'candidates/candidate';exe=directory/'Petari.app/Contents/MacOS/Petari';exe.parent.mkdir(parents=True);exe.write_bytes(b'candidate')
+   write(directory/'BUILD.json',{'source':'c'*40,'binary_sha256':sha(exe)})
+   write(root/'MacioGalaxy2-team/main-report'/(cw.MAIN+'.json'),{'version':2,'units':[{}]})
+   log=root/'candidates/wii-proof-cccccccc.log'
+   def git(command,**kwargs):
+    text=''
+    if command[1:2]==['show']:
+     text='tools/team/nj.sh dispatchcheck.py --strict if [ "$gate_mode" = full ]; then main-report' if 'land.sh' in command[2] else 'checked allow list'
+    return subprocess.CompletedProcess(command,0,text,'')
+   with patch.object(cw,'ROOT',root),patch.object(cw,'HOME',root),patch.object(cw.subprocess,'run',side_effect=git):
+    for status,want in (('rc=0\ndispatch_rc=0\n',True),('rc=1\ndispatch_rc=0\n',False),('rc=0\ndispatch_rc=1\n',False),('rc=0\n',False)):
+     log.write_text(status);self.assertEqual(cw.evaluate(directory,log)['passed'],want,status)
 
 if __name__=='__main__':unittest.main()

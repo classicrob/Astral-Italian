@@ -61,7 +61,7 @@ def summary(g):
  if name=='v2-warm-pairs':return '; '.join(st+': p99 delta '+('/'.join(f"{p["p99_delta_ms"]:+.2f}" for p in v['pairs']))+' ms' for st,v in d['stages'].items())
  if name in ('fifo-default-cadence-latency','input-latency'):return '; '.join(r['case']+': late '+str(r['late_present_pct'])+'%, '+str(r['presses'])+' presses, frames '+str(r['frames_after_read']) for r in d['runs'])
  if name=='audio-thread-priority':return '; '.join(r['case']+': '+str(r['underrun_frames'])+' underrun frames / '+str(r['underrun_reports'])+' reports, baton >50ms '+str(r['baton_over50']) for r in d['runs'])
- if name=='wii-proof':return 'Release source lineage rechecked; original Wii build/oracle evidence reused'
+ if name=='wii-proof':return d['reason'] if d.get('proof_kind')=='main-lineage-and-fresh-candidate-wii' else 'Release source lineage rechecked; original Wii build/oracle evidence reused'
  return json.dumps(d,ensure_ascii=False,separators=(',',':'))[:220]
 
 def main():
@@ -72,7 +72,7 @@ def main():
    detail=fn();ok=detail.pop('passed') is True
   except Exception as e:ok=False;detail={'error':repr(e)}
   tier=is_tier_gate(name,candidate_mode)
-  record={'gate':name,'passed':ok,'status':('TIER ' if tier else 'PASS ' if ok else 'FAIL ')+status,'required_for_functional_acceptance':not tier,'measurement_verified':'error' not in detail,'receipt':str(paths[0]),'limits':list(limits),'nice':m['nice'],'build_kind':'server-candidate' if candidate_mode else 'frozen54','source':frozen['source'],'source_exe_sha256':frozen['binary_sha256'],'perf_exe_sha256':detail.get('normal_perf_sha256',expected),'evidence_sha256':{str(q):sha(q) for q in paths if q.is_file()},'details':detail}
+  record={'gate':name,'passed':ok,'classification':'tier' if tier else 'functional','status':('TIER ' if tier else 'PASS ' if ok else 'FAIL ')+status,'required_for_functional_acceptance':not tier,'measurement_verified':'error' not in detail,'receipt':str(paths[0]),'limits':list(limits),'nice':m['nice'],'build_kind':'server-candidate' if candidate_mode else 'frozen54','source':frozen['source'],'source_exe_sha256':frozen['binary_sha256'],'perf_exe_sha256':detail.get('normal_perf_sha256',expected),'evidence_sha256':{str(q):sha(q) for q in paths if q.is_file()},'details':detail}
   if not candidate_mode:record.update(frozen_source=frozen['source'],frozen_exe_sha256=frozen['binary_sha256'])
   else:record.update(frozen54_acceptance=False,tier_authority=m['tier_authority'] if tier else None)
   gates.append(record)
@@ -182,7 +182,12 @@ def main():
    data.append(item)
   return {'passed':all(d['passed'] for d in data),'runs':data}
  gate('audio-thread-priority',[runpath('audio-'+mode)/'RESULT.json' for mode in ('cold','warm')]+[base/('thr-'+mode+'.tsv') for mode in ('cold','warm')],audiocheck,'real CoreAudio thread probe, zero underruns')
- gate('wii-proof',[platform,base/'platform/wii-source-diff.log'],lambda:pcheck(('wii-source-unchanged',)),'release source has no Wii changes relative to a23609ca',('Original Wii build/hash/oracle evidence belongs to release; this M1 run rechecks source lineage only.',))
+ if candidate_mode:
+  old=pcheck(('wii-source-unchanged',))
+  gates.append({'gate':'wii-old-baseline-lineage','passed':old['passed'],'classification':'source-comparison','status':('PASS ' if old['passed'] else 'FAIL ')+'unchanged since a23609ca (preserved source comparison)','required_for_functional_acceptance':False,'measurement_verified':True,'receipt':str(platform),'build_kind':'server-candidate','source':meta['source'],'source_exe_sha256':meta['source_exe_sha256'],'perf_exe_sha256':expected,'nice':m['nice'],'limits':['PORT authorized main71353 lineage plus fresh candidate Wii/hash/oracle as the current functional proof; this older-source comparison remains unchanged.'],'evidence_sha256':{str(platform):sha(platform),str(base/'platform/wii-source-diff.log'):sha(base/'platform/wii-source-diff.log')},'details':old})
+  from candidate_wii54m import validate as validate_wii
+  gate('wii-proof',[base/'candidate-wii-proof.json'],lambda:validate_wii(base/'candidate-wii-proof.json',meta['candidate_directory']),'main71353 lineage plus fresh candidate Wii/hash and strict dispatch')
+ else:gate('wii-proof',[platform,base/'platform/wii-source-diff.log'],lambda:pcheck(('wii-source-unchanged',)),'release source has no Wii changes relative to a23609ca',('Original Wii build/hash/oracle evidence belongs to release; this M1 run rechecks source lineage only.',))
  identity=sha(Path(meta['source_app'])/'Contents/MacOS/Petari')==frozen['binary_sha256'] and meta['source_exe_sha256']==frozen['binary_sha256'] and m['nice']==0
  if candidate_mode:
   identity &= sha(Path(m['app'])/'Contents/MacOS/Petari')==expected
@@ -193,12 +198,12 @@ def main():
    assert readj(before)==readj(after)==protected_inputs(meta['candidate_directory'])
   except Exception as e:identity=False;issues.append('protected inputs: '+repr(e))
  if not identity:issues.append('selected build identity/priority')
- validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','frozen54_acceptance':not candidate_mode,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if not g['required_for_functional_acceptance'] and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
+ validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)
  lines=[('M1 server candidate '+frozen['source'] if candidate_mode else 'M1 frozen 5.4')+' versus server (actual evidence; nice 0 on M1)','',f"Source exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
  for g in gates:
   detail=summary(g)
-  lines.append('| '+g['gate']+' | '+SERVER.get(g['gate'],'Derived functional check')+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('M1 tier observation' if not g['required_for_functional_acceptance'] else 'Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
+  lines.append('| '+g['gate']+' | '+SERVER.get(g['gate'],'Derived functional check')+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('Preserved older-source comparison' if g['classification']=='source-comparison' else 'M1 tier observation' if g['classification']=='tier' else 'Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
  if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
  lines+=['','Each GX session holds heavy then native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate evidence is labelled separately; it does not change frozen54 gate status.']
  if candidate_mode:lines+=['The normal-route and normal-boot-ui rows reuse SOL B\'s actual perfm1b runs; their signed hashes are recorded separately and bound to the same original server candidate. Cold and cadence thresholds are tier observations; input latency remains functional.']

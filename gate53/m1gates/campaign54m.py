@@ -90,6 +90,8 @@ def main():
      command('candidate-normal-route',[sys.executable,'-B',HERE/'normal_tape_gate.py',a.candidate_app,a.candidate_sha,a.candidate_source,a.label+'-candidate-normal','--build-kind','server-candidate','--tape',a.tape]+(['--allow-incomplete'] if a.allow_incomplete_tape else []))
      a.tape_result=ROOT/(a.label+'-candidate-normal')/'RESULT.json'
     write(base/'tape-status.json',{'passed':False,'reason':'Frozen54 lacks full-session replay. PORT approved separate server-built candidate tape runs; never merge candidate evidence into frozen54 receipts.','candidate_result':str(a.tape_result) if a.tape_result else None})
+    if a.tape_result:
+     normal=json.loads(a.tape_result.read_text());write(base/'candidate-normal-boot-ui.json',{'passed':normal.get('acceptance_passed') is True,'build_kind':normal.get('build_kind'),'binary_sha256':normal.get('binary_sha256'),'source':normal.get('source'),'gate':'normal-boot-ui','receipt':str(a.tape_result),'checks':{k:normal.get('checks',{}).get(k) for k in ('scene_chain','existing_unlocked_file1','no_faults','no_divergence','whole_session_replay','replay_completed')},'limits':['Canonical normal-route tape includes ordinary title/FileSelect boot; same actual run proves this prefix. Candidate evidence only.']})
    else:raise ValueError('unknown gate '+gate)
   except Exception as e:
    write(base/(gate+'-error.json'),{'passed':False,'error':repr(e)});print('ERROR',gate,repr(e),flush=True)

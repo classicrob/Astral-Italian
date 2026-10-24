@@ -52,8 +52,7 @@ void MarioWallShadow::draw(JUTTexture* texture) {
     GXTexCoord2f32(0.0f, 0.0f);
     for (u32 i = 0; i <= 16; i++) {
         angle = 2.0f * ((i / 16.0f) * JGeometry::TUtil<f32>::PI());
-        TVec3f center = mPosition - mNormal * 5.0f;
-        TVec3f point = center + tangent * radius;
+        TVec3f point = (mPosition - mNormal * 5.0f) + tangent * radius;
         GXPosition3f32(point.x, point.y, point.z);
         GXColor1u32(1);
         GXTexCoord2f32(10.0f * JMACosRadian(angle), 10.0f * MR::sin(angle));

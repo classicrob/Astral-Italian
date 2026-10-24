@@ -1346,9 +1346,9 @@ f32 XanimePlayer::getAnimationFrame() const {
     if (isTerminate()) return mFrameCtrl->mEnd;
     return mFrameCtrl->mFrame;
 }
-// NONMATCHING: redundant rounding instruction and pointer-load scheduling.
 void XanimePlayer::setAnimationFrame(f32 frame) {
-    mFrameCtrl->mFrame = mCachedFrame = frame;
+    mCachedFrame = frame;
+    mFrameCtrl->mFrame = mCachedFrame;
 }
 void MarioAnimator::changeTrackAnim(u8 index, const char* name) {
     mXanimePlayer->changeTrackAnimation(index, name);

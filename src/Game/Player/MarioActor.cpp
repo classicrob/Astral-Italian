@@ -5841,11 +5841,12 @@ bool MarioActor::fn_803C3930() {
 
 // NONMATCHING: native-safe matrix column access and register scheduling.
 void MarioActor::scaleMtx(MtxPtr pRawMtx) {
+    TPos3f* matrix = reinterpret_cast<TPos3f*>(pRawMtx);
     TVec3f i, j, k;
     f32 scalar = 0.35f * (1.0f - _3B0) + 1.0f;
-    i.set<f32>(pRawMtx[0][0], pRawMtx[1][0], pRawMtx[2][0]);
-    j.set<f32>(pRawMtx[0][1], pRawMtx[1][1], pRawMtx[2][1]);
-    k.set<f32>(pRawMtx[0][2], pRawMtx[1][2], pRawMtx[2][2]);
+    matrix->getXDir(i);
+    matrix->getYDir(j);
+    matrix->getZDir(k);
     f32 elementX = MR::vecKillElement(i, mPressNormal6D8, &i);
     f32 elementY = MR::vecKillElement(j, mPressNormal6D8, &j);
     f32 elementZ = MR::vecKillElement(k, mPressNormal6D8, &k);
@@ -5858,15 +5859,9 @@ void MarioActor::scaleMtx(MtxPtr pRawMtx) {
     i += mPressNormal6D8 * elementX;
     j += mPressNormal6D8 * elementY;
     k += mPressNormal6D8 * elementZ;
-    pRawMtx[0][0] = i.x;
-    pRawMtx[1][0] = i.y;
-    pRawMtx[2][0] = i.z;
-    pRawMtx[0][1] = j.x;
-    pRawMtx[1][1] = j.y;
-    pRawMtx[2][1] = j.z;
-    pRawMtx[0][2] = k.x;
-    pRawMtx[1][2] = k.y;
-    pRawMtx[2][2] = k.z;
+    matrix->setXDir(i);
+    matrix->setYDir(j);
+    matrix->setZDir(k);
 }
 
 void MarioActor::calcAnimInMovement() {
@@ -7321,8 +7316,8 @@ bool MarioActor::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
         return mMario->_97C->passRing(pSender);
     case 0x4C: {
         mMario->touchWater();
-        TVec3f offset(*MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender));
         TVec3f horizontal;
+        TVec3f offset(*MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender));
         MR::vecKillElement(offset, *mMario->getGravityVec(), &horizontal);
         if (horizontal.length() >= MR::getSensorRadius(pSender)) {
             return receiveMsgPush(pSender, pReceiver);
@@ -7331,11 +7326,7 @@ bool MarioActor::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
             getFrontVec(&horizontal);
             horizontal.negate();
         }
-        TVec3f negativeGravity(-*mMario->getGravityVec());
-        TVec3f up(negativeGravity);
-        up.add(horizontal);
-        TVec3f impulse(up);
-        impulse.scale(10.0f);
+        TVec3f impulse((-*mMario->getGravityVec() + horizontal) * 10.0f);
         bool flowing = mMario->fn_803972D0(&impulse);
         if (flowing) {
             mMario->playSound("水弾かれ", -1);
@@ -10774,8 +10765,8 @@ bool MarioActor::tryJumpRush() {
         beginRush(jumpTarget);
         if (hasAutoBind) {
             applyAutoBindPlayerMode(autoBind);
-            return true;
         }
+        return true;
     }
     return false;
 }

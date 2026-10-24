@@ -970,7 +970,6 @@ void Mario::checkWallRiseAndSlipFront() {
     mMovementStates.mLowBits.mBit22 = 1;
 }
 
-// NONMATCHING: temporary/register allocation; complete SMG2 jump orchestration recovered.
 void Mario::tryJump() {
     bool stickJump;
     bool mud = false;

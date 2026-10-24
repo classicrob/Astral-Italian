@@ -58,7 +58,6 @@ bool SyncBckEffectChecker::isCreate(const SyncBckEffectInfo* info, bool checkFra
     return checkPass(frame);
 }
 
-// NONMATCHING: equivalent branch layout/regalloc
 bool SyncBckEffectChecker::isDelete(const SyncBckEffectInfo* info) const {
     bool registered = info->isRegisteredBck(mCurrentBckName) || info->isRegisteredBck(mCurrentAnimName);
     if (registered) {

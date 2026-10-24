@@ -118,7 +118,6 @@ bool MarioHang::start() {
     return true;
 }
 
-// NONMATCHING: equivalent state increment and stack allocation.
 bool MarioHang::update() {
     _14++;
     mActor->damageDropThrowMemoSensor();

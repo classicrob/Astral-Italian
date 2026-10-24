@@ -833,10 +833,16 @@ void Yoshi::fn_8040DF10(){
 }
 
 // NONMATCHING: GPR/FPR allocation and scalar-load scheduling differ.
-void Yoshi::fn_8040DFB0(){
-    if(MR::isFirstStep(this))MR::startActionSound(this,"YoshiDamageRunAway",-1,-1,-1);
-    if(mGroundChecker->isGrounded()){JMAVECScaleAdd(&mGravity,&mMovementVelocity,&mMovementVelocity,-mGravity.dot(mMovementVelocity));mMovementVelocity.x*=.9f;mMovementVelocity.y*=.9f;mMovementVelocity.z*=.9f;}
-    if(fn_8040F590(nullptr))fn_80410280();
+void Yoshi::fn_8040DFB0() {
+    if (MR::isFirstStep(this)) MR::startActionSound(this, "YoshiDamageRunAway", -1, -1, -1);
+    if (mGroundChecker->isGrounded()) {
+        const TVec3f* gravity = &mGravity;
+        JMAVECScaleAdd(gravity, &mMovementVelocity, &mMovementVelocity, -gravity->dot(mMovementVelocity));
+        mMovementVelocity.x *= .9f;
+        mMovementVelocity.y *= .9f;
+        mMovementVelocity.z *= .9f;
+    }
+    if (fn_8040F590(nullptr)) fn_80410280();
 }
 
 void Yoshi::fn_8040E080(){
@@ -1257,7 +1263,6 @@ void Yoshi::setTransformFromMtx(const f32 (*matrix)[4]) {
     MR::setRotation(this, rotation);
 }
 
-// NONMATCHING: vector copy/set inlining and local stack ordering differ.
 void Yoshi::control() {
     fn_80411ED0();
     if (MR::isPlayerDead()) {
@@ -1288,15 +1293,9 @@ void Yoshi::control() {
         fn_80410BA0();
     }
     mVelocityAdjustment->apply(this);
-    TVec3f previous(mPreviousVelocity);
-    previous.scale(0.5f);
-    TVec3f current(mMovementVelocity);
-    current.scale(0.5f);
-    TVec3f average(current);
-    average.add(previous);
+    TVec3f average(mMovementVelocity * 0.5f + mPreviousVelocity * 0.5f);
     mPreviousVelocity = mMovementVelocity;
-    TVec3f velocity(average);
-    velocity.add(mAdditionalVelocity);
+    TVec3f velocity(average + mAdditionalVelocity);
     mVelocity.set<f32>(velocity);
     _198 = fn_804113C0();
     fn_804117F0();
@@ -1308,9 +1307,10 @@ void Yoshi::calcAndSetBaseMtx() {
     MR::setBaseScale(this, mScale);
 }
 
-// NONMATCHING: pointer equality uses direct compare instead of boolean normalization.
 void Yoshi::attackSensor(HitSensor* sender, HitSensor* receiver) {
-    if (MR::isSensorPlayerOrRide(receiver) && getSensor("NpcBodyAttack") == sender && fn_804100E0()) {
+    if (!MR::isSensorPlayerOrRide(receiver)) return;
+    bool isBody = getSensor("NpcBodyAttack") == sender;
+    if (isBody && fn_804100E0()) {
         MR::sendMsgPush(receiver, sender);
     }
 }
@@ -1332,17 +1332,22 @@ bool Yoshi::receiveMsgPlayerAttack(u32 message, HitSensor* sender, HitSensor* re
         return false;
     }
     if (!fn_8040FEE0()) return false;
-    if (getSensor("Ride") == receiver || getSensor("NpcBodyReceive") == receiver) {
+    bool isBody = getSensor("Ride") == receiver;
+    if (!isBody) isBody = getSensor("NpcBodyReceive") == receiver;
+    if (isBody) {
         if (MR::isMsgPlayerTrample(message) || MR::isMsgPlayerHipDrop(message)) {
             mMountedBySpin = false;
             fn_8040CC40();
             return false;
         }
     }
-    else if (getSensor("SpinRide") == receiver && MR::isMsgPlayerSpinAttack(message)) {
-        mMountedBySpin = true;
-        fn_8040CC40();
-        return false;
+    else {
+        bool isSpinBody = getSensor("SpinRide") == receiver;
+        if (isSpinBody && MR::isMsgPlayerSpinAttack(message)) {
+            mMountedBySpin = true;
+            fn_8040CC40();
+            return false;
+        }
     }
     return false;
 }
@@ -1354,14 +1359,17 @@ bool Yoshi::receiveMsgPush(HitSensor* sender, HitSensor* receiver) {
     if (isNerve(&NrvYoshi::YoshiNrv80413840::sInstance)) return false;
     if (MR::isSensorPlayerOrRide(sender)) {
         if (!fn_80411D10()) return false;
-        if (getSensor("NpcBodyReceive2") != receiver) return false;
+        bool isBody = getSensor("NpcBodyReceive2") == receiver;
+        if (isBody == false) return false;
     }
     else {
         if (fn_804101D0()) return false;
-        if (getSensor("NpcBodyReceive") != receiver) return false;
+        bool isBody = getSensor("NpcBodyReceive") == receiver;
+        if (isBody == false) return false;
     }
     f32 senderRadius = MR::getSensorRadius(sender);
-    f32 combinedRadius = MR::getSensorRadius(receiver) + senderRadius;
+    f32 combinedRadius = MR::getSensorRadius(receiver);
+    combinedRadius += senderRadius;
     const TVec3f* senderPosition = MR::getSensorPos(sender);
     TVec3f displacement(*MR::getSensorPos(receiver));
     displacement.sub(*senderPosition);
@@ -1537,8 +1545,7 @@ void Yoshi::fn_80410570(f32 amount) {
             TQuat4f rotation;
             rotation.setRotate(mGravity, angle * amount);
             TPos3f matrix;
-            matrix.zeroTrans();
-            matrix.setQuat(rotation);
+            matrix.makeQuat(rotation);
             mBaseMtx.concat(matrix, mBaseMtx);
             mBaseMtx.setTrans(position);
             mBaseMtx.getEulerXYZ(mRotation);
@@ -1949,9 +1956,9 @@ void Yoshi::fn_804124D0(f32 speed) {
     mBaseMtx.getYDir(up);
     TVec3f front;
     mBaseMtx.getZDir(front);
+    TQuat4f rotation;
     TVec3f gravityUp;
     JGeometry::negateInternal(&mGravity.x, &gravityUp.x);
-    TQuat4f rotation;
     rotation.setRotate(up, gravityUp);
     rotation.transform(front);
     front.setLength(speed);

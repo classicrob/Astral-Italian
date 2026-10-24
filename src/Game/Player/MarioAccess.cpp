@@ -793,11 +793,10 @@ namespace MarioAccess {
     bool isVisible() { return !getPlayerActor()->_482; }
     void clearFootprints() { getPlayerActor()->fn_803BE6D0(); }
 
-    // NONMATCHING: equivalent bit test and sensor-selection branch order.
     void fn_803B6830(bool) {
         if (getPlayerActor()->getMario()->isStatusActive(0x13)
             || getPlayerActor()->getMario()->isStatusActive(0x22)
-            || (getPlayerActor()->getMario()->mFlags14.mHighWord & 0x80000000)
+            || (getPlayerActor()->getMario()->mFlags14.mHighWord >> 31)
             || !getPlayerActor()->_EA4) {
             MR::onPlayerControl(false);
             return;

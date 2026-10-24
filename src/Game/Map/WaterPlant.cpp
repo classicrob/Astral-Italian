@@ -184,10 +184,11 @@ void WaterPlant::initPlantAfterPlacement() {
     int i = 0;
     if (mPlantNum > 0) {
         for (; i < mPlantNum; i++) {
+            f32 randomZ;
             f32 randomBounds = mAreaRadius;
             TVec3f* currentPlantPos = &mPlantDataArray[i].mPosition;
             for (int j = 0; j < ::sPlantAddTime; j++) {
-                const f32 randomZ = MR::getRandom(-randomBounds, randomBounds) + mPosition.z;
+                randomZ = MR::getRandom(-randomBounds, randomBounds) + mPosition.z;
                 currentPlantPos->set< f32 >(MR::getRandom(-randomBounds, randomBounds) + mPosition.x, mPosition.y,
                                             randomZ);
 

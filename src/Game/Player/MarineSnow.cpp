@@ -153,19 +153,19 @@ void MarineSnow::draw(const TVec3f& rPosition, const TVec3f& rUp, f32 surfaceDis
                     lastParticle = pointCount;
                 }
 
-                for (u16 point = firstParticle; point < lastParticle; point += particleStride) {
+                for (u32 point = firstParticle; static_cast<u16>(point) < lastParticle; point += particleStride) {
                     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
                     {
-                        TDDraw::sendPoint(mParticlePositions[point] - diagonalDown);
+                        TDDraw::sendPoint(mParticlePositions[static_cast<u16>(point)] - diagonalDown);
                         GXTexCoord2f32(0.0f, 0.0f);
 
-                        TDDraw::sendPoint(mParticlePositions[point] + diagonalUp);
+                        TDDraw::sendPoint(mParticlePositions[static_cast<u16>(point)] + diagonalUp);
                         GXTexCoord2f32(1.0f, 0.0f);
 
-                        TDDraw::sendPoint(mParticlePositions[point] + diagonalDown);
+                        TDDraw::sendPoint(mParticlePositions[static_cast<u16>(point)] + diagonalDown);
                         GXTexCoord2f32(1.0f, 1.0f);
 
-                        TDDraw::sendPoint(mParticlePositions[point] - diagonalUp);
+                        TDDraw::sendPoint(mParticlePositions[static_cast<u16>(point)] - diagonalUp);
                         GXTexCoord2f32(0.0f, 1.0f);
                     }
 

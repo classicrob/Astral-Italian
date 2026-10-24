@@ -177,9 +177,11 @@ namespace db {
         Mtx44 projection;
         Mtx position;
         f32 left = x;
-        f32 right = x + width;
         f32 top = y;
-        f32 bottom = y + height;
+        x += width;
+        f32 right = x;
+        y += height;
+        f32 bottom = y;
         C_MTXOrtho(projection, top, bottom, left, right, 0.0f, 1.0f);
         GXSetProjection(projection, GX_ORTHOGRAPHIC);
         PSMTXIdentity(position);

@@ -121,11 +121,10 @@ void YoshiLockOnManager::clearActiveTargets() {
     }
 }
 
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 bool YoshiLockOnManager::tryLockOnMultipleTargets(YoshiLockOnTarget* target, s32 targetType, s32 selectionMode, u32 maxActiveTargets, f32 maxDistance) {
     if (!mContextActive || mSuspended) return false;
     if (PSVECDistance(&mContextActor->mPosition, &target->mActor->mPosition) >= maxDistance) return false;
-    if (mSelectionMode != selectionMode) clearActiveTargets();
+    if (static_cast<s32>(mSelectionMode) != selectionMode) clearActiveTargets();
     else if (tryRefreshActiveTarget(target)) return true;
     if (mActive.mCount >= maxActiveTargets) return false;
     if (tryReactivateFadingTarget(target)) return true;

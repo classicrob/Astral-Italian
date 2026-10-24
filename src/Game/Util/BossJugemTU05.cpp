@@ -44,7 +44,6 @@ void BossJugemStateThrowAll::appear() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowAll::exeMove() {
     BossJugem* host;
     if (MR::isFirstStep(this)) {
@@ -116,7 +115,6 @@ void BossJugemStateThrowAll::exeChance() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowAll::exeMoveBack() {
     BossJugem* host;
     if (MR::isFirstStep(this)) {

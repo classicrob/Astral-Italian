@@ -162,7 +162,7 @@ bool YoshiModelCtrl::calcSpine(TPos3f* mtx,const JointControllerInfo&) {
     TPos3f rot;rot.makeQuat(quat);mtx->concat(rot,*mtx);mtx->setTrans(trans);return true;
 }
 static inline void makeYoshiModelJointMtx(TPos3f& local, const TVec3f& scale, const TVec3f& angles, const TVec3f& trans) {
-    f32 sx, sy, sz, cx, cy, cz;
+    f32 cz, cy, cx, sz, sy, sx;
     double sxResult=sin(angles.x);f32 syArg=angles.y;sx=sxResult;
     double syResult=sin(syArg);f32 szArg=angles.z;sy=syResult;
     double szResult=sin(szArg);f32 cxArg=angles.x;sz=szResult;

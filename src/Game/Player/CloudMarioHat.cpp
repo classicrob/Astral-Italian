@@ -213,7 +213,6 @@ CloudHatSpring::CloudHatSpring(TPos3f* matrix, CloudHatPoint* start, CloudHatPoi
     mPreviousDirection.z = 0.0f;
 }
 
-// NONMATCHING: vector temporary stack placement and redundant single rounding.
 void CloudHatSpring::update(const TVec3f& acceleration) {
     MarioMtxPos matrix(mMatrix);
     TVec3f rest(mRestOffset);

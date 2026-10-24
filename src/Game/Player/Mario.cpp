@@ -2818,7 +2818,7 @@ void Mario::fn_803886B0() {
     }
     if (mActor->mBinderDirection5DC.dot(_368) >= 0.707f) {
         return;
-    } else {
+    }
     if (MR::isNearZero(mActor->mBinderDirection5DC, 1.0f)) {
         return;
     }
@@ -2861,7 +2861,6 @@ void Mario::fn_803886B0() {
     }
     mTargetWalkSpeedIndex = 0;
     mWalkSpeed *= weight;
-    }
 }
 
 // NONMATCHING: register/load scheduling.
@@ -2952,7 +2951,6 @@ void Mario::update() {
     doExtraServices();
 }
 
-// NONMATCHING: equivalent comet-condition boolean lowering.
 void Mario::fn_80388DB0() {
     if (!(static_cast<u32>(this->mMovementStates.mLowBits.mBit9))) {
         if (this->checkDamage() == false) {
@@ -3897,7 +3895,6 @@ void Mario::draw() const {
     drawTask();
 }
 
-// NONMATCHING: cached position pointers, integer conversion scheduling and stack allocation.
 void Mario::fn_8038B9F0() {
     TVec3f offset;
     offset.zero();

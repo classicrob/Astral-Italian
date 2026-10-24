@@ -65,6 +65,7 @@ void VolumeDrawer::setScaleDownRate(s32 frames) {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void VolumeDrawer::preScaleDrawPass(s32 pass) const {
+    TVec3f out;
     f32 mtx[3][4];
     PSMTXConcat(MR::getCameraViewMtx(), getBaseMtx(), mtx);
 
@@ -76,8 +77,6 @@ void VolumeDrawer::preScaleDrawPass(s32 pass) const {
     TVec3f one(1.0f);
     TVec3f diff(one);
     diff.sub(scale);
-
-    TVec3f out;
     out.mul(LiveActor::mScale, diff);
 
     MR::preScaleMtx(mtx, out);

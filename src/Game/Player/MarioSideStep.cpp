@@ -38,8 +38,8 @@ bool MarioSideStep::update() {
     if (mActor->_468) {
         return false;
     }
-    Mario* player = getPlayer();
-    bool cannotSideStep = !isSlipFloorCode(player->_960);
+    u16 floorCode = getPlayer()->_960;
+    bool cannotSideStep = !isSlipFloorCode(floorCode);
     if (cannotSideStep) {
         return false;
     }

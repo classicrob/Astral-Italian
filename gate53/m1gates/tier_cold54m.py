@@ -4,7 +4,7 @@ import argparse,json,re,subprocess,sys
 from common import *
 
 def analyze(out):
- lines=(out/'app.log').read_text(errors='replace').splitlines();frames=rows(out/'frames.csv');compiles={};coverage={};stall_lines={};blocking=[]
+ lines=(out/'app.log').read_text(errors='replace').splitlines();frames=rows(out/'frames.csv');compiles={};coverage={};stall_lines={};blocking=[];fallback_waits=[]
  for n,line in enumerate(lines):
   if line.startswith('[gx pipeline compile]'):
    info=dict(re.findall(r'(\w+)=([^\s]+)',line));compiles[info['key']]=info
@@ -12,6 +12,10 @@ def analyze(out):
    info=dict(re.findall(r'(\w+)=([^\s]+)',line));coverage[info['config']]=info
   match=re.search(r'\[gx pipeline\] blocking resolve ([\d.]+) ms key=([0-9a-f]+)',line)
   if match:blocking.append({'line':n+1,'milliseconds':float(match[1]),'key':match[2]})
+  if line.startswith('[gx uber wait]'):
+   fields=dict(re.findall(r'(\w+)=([^\s]+)',line))
+   fallback_waits.append({'line':n+1,'renderer_frame':int(fields['frame']),'fields':fields,
+    'fallback_ready_at_wait':fields.get('fallback_ready')=='1','raw':line})
   match=re.match(r'\[stall\] frame (\d+) ',line)
   if match:stall_lines[int(match[1])]=n+1
  selected=[]
@@ -27,11 +31,13 @@ def analyze(out):
     else:item['fallback_inference']='No matched covered config; do not infer fallback readiness.'
     near.append(item)
   dominant=max(lanes,key=lanes.get);fraction=lanes[dominant]/float(row['interval_ms'])
-  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':float(row['interval_ms']),'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','largest_measured_lane':dominant,'largest_lane_fraction':fraction,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'raw_frame':row})
+  exact_context=[w for w in fallback_waits if where and 0<where-w['line']<=40]
+  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':float(row['interval_ms']),'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','largest_measured_lane':dominant,'largest_lane_fraction':fraction,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'fallback_readiness_in_preceding_40_log_lines':exact_context,'raw_frame':row})
  return {'stall_frames_over100':selected,'gameplay_over100':sum(r['phase']=='gameplay' for r in selected),'max_gameplay_ms':max((float(r['interval_ms']) for r in frames if r['phase']=='gameplay'),default=None),
   'worker_policy_lines':[l for l in lines if l.startswith(('[gx pipeline] policy=','[gx pipeline pool]'))],
   'fallback_readiness_summary':[l for l in lines if l.startswith('[gx uber readiness]')],
-  'limitations':['Telemetry lanes overlap; do not sum them.','Nearby log lines provide key/config context, not a synchronized per-draw timestamp. Covered fallback inference follows the ready-fallback branch in native/gx/patch_aurora_ubershader.py; unavailable status is reported explicitly.']}
+  'fallback_readiness_at_each_complete_scene_wait':fallback_waits,
+  'limitations':['Telemetry lanes overlap; do not sum them.','Nearby log lines provide key/config context, not a synchronized per-draw timestamp. Renderer-frame IDs are retained separately from game frame CSV IDs. Exact readiness is available only at logged complete-scene waits; other fallback readiness remains unknown.']}
 
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('label');p.add_argument('--only',choices=('diag','sweep','both'),default='both');a=p.parse_args();assert re.fullmatch('[A-Za-z0-9_-]+',a.label)

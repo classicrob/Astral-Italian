@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 import shutil
 import re
+import sqlite3
 
 import pipeline_deadlines as deadlines
 import record_pipeline_deadlines as recording
@@ -32,6 +33,33 @@ def all_groups(path):
         try: result[stage] = recording.observations(path, stage)
         except ValueError: result[stage] = None
     return result
+
+
+def close_manifest(seeds, output, stage, frames):
+    """Only matching warm observations can name additions, copied verbatim from global."""
+    target = output / (stage + '.db')
+    existed = target.exists()
+    existing = seedpack.database_rows(str(target)) if existed else []
+    known = {(r[0], r[1] & deadlines.MASK): r for r in existing}
+    global_rows = {(r[0], r[1] & deadlines.MASK): r
+                   for r in seedpack.database_rows(str(seeds / '__global__.db'))}
+    missing = sorted(key for key in frames if (1, key) not in known)
+    unknown = [key for key in missing if (1, key) not in global_rows]
+    if unknown:
+        raise ValueError('observed configs absent from global: ' + ','.join(f'{key:016x}' for key in unknown))
+    additions = [global_rows[(1, key)] for key in missing]
+    with sqlite3.connect(target) as db:
+        if not existed:
+            db.executescript(seedpack.SCHEMA)
+            db.execute('INSERT INTO aurora_schema VALUES(1)')
+        db.executemany('INSERT INTO pipeline_cache VALUES(?,?,?,?,?,?)', additions)
+    after = seedpack.database_rows(str(target))
+    actual = {(r[0], r[1] & deadlines.MASK): r for r in after}
+    assert all(actual[key] == row for key, row in known.items()), 'existing stage row/rank changed'
+    assert all(actual[(1, key)] == global_rows[(1, key)] for key in missing), 'added global row differs'
+    return after, {'added_count': len(additions), 'added_hashes': [f'{key:016x}' for key in missing],
+                   'existing_rows_byte_identical': True, 'added_rows_byte_identical_to_global': True,
+                   'source_global_sha256': sha(seeds / '__global__.db')}
 
 
 def build(seeds, provenances, output, report, expected_stages=None):
@@ -96,18 +124,15 @@ def build(seeds, provenances, output, report, expected_stages=None):
                 differences = recording.disagreements(maps[0][stage], maps[1][stage])
                 if differences:
                     item['disagreements'] = differences; raise ValueError('raw warm maps differ')
-                rows = seedpack.database_rows(str(seeds / (stage + '.db')))
                 values = {int(k, 16): v for k, v in maps[0][stage].items()}
-                known = {r[1] & deadlines.MASK for r in rows if r[0] == 1}
-                unknown = sorted(k for k in values if k not in known)
-                if unknown:
-                    item['unknown_configs'] = [f'{k:016x}' for k in unknown]
-                    raise ValueError('recorded configurations absent from stage manifest; explicit closure required')
+                rows, closure = close_manifest(seeds, output, stage, values)
+                item['manifest_closure'] = closure
                 target = output / (stage + '.first-use.bin')
                 target.write_bytes(deadlines.encode(stage, rows, values))
                 assert deadlines.read(target, stage, rows) == values
                 item.update(admitted=True, configs=len(values), groups=len(set(values.values())),
-                            sidecar_sha256=sha(target), source_database_sha256=sha(seeds / (stage + '.db')))
+                            sidecar_sha256=sha(target), source_database_sha256=
+                            sha(seeds / (stage + '.db')) if (seeds / (stage + '.db')).exists() else None)
                 admitted.add(stage)
                 for front in ('Unknown', 'FileSelect'):
                     if maps[0].get(front) and maps[1].get(front):
@@ -131,23 +156,29 @@ def build(seeds, provenances, output, report, expected_stages=None):
                        for diff, values, s, _ in observations if diff or values != first]
         if differences:
             item.update(reason='frontend exact frame groups disagree', disagreements=differences); continue
-        rows = seedpack.database_rows(str(seeds / (stage + '.db')))
         try:
             values = {int(k, 16): v for k, v in first.items()}
+            rows, closure = close_manifest(seeds, output, stage, values)
+            item['manifest_closure'] = closure
             target = output / (stage + '.first-use.bin'); target.write_bytes(deadlines.encode(stage, rows, values))
             item.update(admitted=True, configs=len(values), groups=len(set(values.values())), sidecar_sha256=sha(target))
         except ValueError as exc:
             item['reason'] = str(exc)
     unchanged = all(seedpack.database_rows(str(p)) == seedpack.database_rows(str(output / p.name)) for p in seeds.glob('*.db'))
+    existing_unchanged = all(set(seedpack.database_rows(str(p))) <= set(seedpack.database_rows(str(output / p.name)))
+                             for p in seeds.glob('*.db'))
+    global_unchanged = seedpack.database_rows(str(seeds / '__global__.db')) == seedpack.database_rows(str(output / '__global__.db'))
     required = expected if expected is not None else planned - {'Unknown', 'FileSelect'}
     missing = sorted(required - admitted)
-    result = {'version': 1, 'passed': not missing and unchanged, 'all_database_rows_unchanged': unchanged,
+    result = {'version': 1, 'passed': not missing and existing_unchanged and global_unchanged,
+              'all_database_rows_unchanged': unchanged, 'all_existing_rows_and_ranks_byte_identical': existing_unchanged,
+              'global_rows_unchanged': global_unchanged,
               'planned_stages': sorted(planned), 'admitted_stages': sorted(admitted), 'missing_or_failed_stages': missing,
               'expected_stages': sorted(required), 'unrecorded_stages': sorted(required - planned),
               'frontend_recording_failures': sorted((planned - admitted) & {'Unknown', 'FileSelect'}),
               'stage_results': results, 'frontend_results': front_results, 'provenance': provenance_bindings,
               'source_seed_dir': str(seeds), 'output_seed_dir': str(output),
-              'policy': 'explicit frame deadlines only; unknown/mismatched frontend falls back; no ranks rewritten'}
+              'policy': 'explicit matching warm frames; additive stage closure only from exact global rows; unknown global configs fail; no existing ranks rewritten; mismatched frontend falls back'}
     report.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
     return result
 

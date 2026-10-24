@@ -92,5 +92,25 @@ class Build(unittest.TestCase):
         self.data['recording_build_metadata']['renderer_key'] = '5'*64
         self.assertFalse(self.run_build()['passed'])
 
+    def test_additive_global_closure_preserves_every_source_row(self):
+        import sqlite3
+        extra = (1, 13, 13, 3, b'new', 900)
+        with sqlite3.connect(self.seeds / '__global__.db') as db:
+            db.execute('INSERT INTO pipeline_cache VALUES(?,?,?,?,?,?)', extra)
+        for index in (1, 2):
+            path = self.batch / f'A/warm-{index}/first-use.jsonl'
+            path.write_text(path.read_text().replace('000000000000000c', '000000000000000d')); self.rehash(index)
+        result = self.run_build()
+        self.assertTrue(result['passed'])
+        self.assertFalse(result['all_database_rows_unchanged'])
+        self.assertTrue(result['all_existing_rows_and_ranks_byte_identical'])
+        self.assertEqual(set(seedpack.database_rows(str(self.root / 'out/A.db'))), set(self.rows + [extra]))
+        self.assertEqual(result['stage_results'][0]['manifest_closure']['added_count'], 1)
+        pack = str(self.root / 'v14.xz')
+        seedpack.pack(str(self.root / 'out'), pack)
+        self.assertEqual(seedpack.check(pack), [])
+        seedpack.expand(pack, str(self.root / 'expanded'))
+        self.assertEqual(seedpack.verify(str(self.root / 'out'), str(self.root / 'expanded')), 0)
+
 
 if __name__ == '__main__': unittest.main()

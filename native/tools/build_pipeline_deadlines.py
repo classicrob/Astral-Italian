@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create validated sidecars from TWO identical warm recordings, preserving seed rows/ranks.
 
---seed-dir V13_EXPANSION --provenance BATCH/PROVENANCE.json [...] --out NEW_DIR
+--seed-dir V13_EXPANSION --source-pack V13.xz --provenance BATCH/PROVENANCE.json [...] --out NEW_DIR
 --report OUTSIDE_PACK.json
 
 Creates a new DB+sidecar directory, never edits the input. No recording hashes,
@@ -24,6 +24,26 @@ import seedpack
 
 
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def validate_source(seeds, pack):
+    """Bind every input row/rank to the exact pack used by the recording build."""
+    errors = seedpack.check(str(pack))
+    if errors: raise ValueError('source pack check failed: ' + str(errors))
+    meta, blobs, stages, sidecars = seedpack.parse_full(pack)
+    if sidecars: raise ValueError('source must be the original seed pack without deadline metadata')
+    selected = {'__global__': [(i, row[4]) for i, row in enumerate(meta)], **dict(stages)}
+    if {p.stem for p in seeds.glob('*.db')} != set(selected):
+        raise ValueError('source seed database set differs from recording pack')
+    if list(seeds.glob('*.first-use.bin')):
+        raise ValueError('source seeds already contain deadline metadata')
+    for stage, entries in selected.items():
+        expected = {(meta[i][0], meta[i][1], meta[i][2], meta[i][3], blobs[i], rank) for i, rank in entries}
+        rows = seedpack.database_rows(str(seeds / (stage + '.db')))
+        if len(rows) != len(expected) or set(rows) != expected:
+            raise ValueError('source seed rows/ranks differ from recording pack: ' + stage)
+    return {'path': str(pack.resolve()), 'sha256': sha(pack), 'databases': len(selected),
+            'all_source_rows_and_ranks_match_recording_pack': True}
 
 
 def all_groups(path):
@@ -62,10 +82,11 @@ def close_manifest(seeds, output, stage, frames):
                    'source_global_sha256': sha(seeds / '__global__.db')}
 
 
-def build(seeds, provenances, output, report, expected_stages=None):
+def build(seeds, provenances, output, report, expected_stages=None, *, source_pack, require_cold_confirmation=False):
     seeds, output, report = Path(seeds).resolve(), Path(output).resolve(), Path(report).resolve()
     if output.exists() or report.exists() or output == seeds or report.is_relative_to(output):
         raise ValueError('output/report must be new; report must stay outside the packed seed directory')
+    source_binding = validate_source(seeds, Path(source_pack))
     output.mkdir(parents=True)
     for path in seeds.glob('*.db'): shutil.copyfile(path, output / path.name)
     results, frontend, planned, admitted = [], {}, set(), set()
@@ -80,6 +101,8 @@ def build(seeds, provenances, output, report, expected_stages=None):
         dedicated = data.get('mode') == 'no-input-title'
         dedicated_title |= dedicated
         identity = data['recording_build_metadata']
+        if identity.get('seed_pack_sha256') != source_binding['sha256']:
+            raise ValueError('source seed pack differs from recording build')
         identity = tuple(identity.get(k) for k in ('source', 'binary_sha256', 'renderer_key'))
         if not re.fullmatch(r'[0-9a-f]{40}', identity[0] or '') or any(not re.fullmatch(r'[0-9a-f]{64}', x or '') for x in identity[1:]):
             raise ValueError('invalid recording source/executable/renderer identity')
@@ -95,6 +118,8 @@ def build(seeds, provenances, output, report, expected_stages=None):
             item = {'stage': stage, 'admitted': False, 'provenance': str(path.resolve())}
             results.append(item)
             try:
+                if stage == 'Unknown':
+                    raise ValueError('protocol3 bootstrap scope unqualified; Unknown keeps first-use fallback')
                 if not result['passed'] or result['warm_disagreements'] or result['cold_disagreements']:
                     raise ValueError('recording stage failed or warm/cold groups disagreed')
                 warm = [r for r in result['arms'] if r['name'] in ('warm-1', 'warm-2')]
@@ -124,6 +149,22 @@ def build(seeds, provenances, output, report, expected_stages=None):
                 differences = recording.disagreements(maps[0][stage], maps[1][stage])
                 if differences:
                     item['disagreements'] = differences; raise ValueError('raw warm maps differ')
+                cold_checks = []
+                for arm in result['arms']:
+                    if not arm.get('cold_confirmation'): continue
+                    folder = path.parent / stage / arm['name']
+                    if not arm['passed'] or arm['checks'].get('valid_capture') is not True:
+                        raise ValueError('cold confirmation did not complete successfully')
+                    for name, field in [('first-use.jsonl', 'capture_sha256'), ('app.log', 'app_log_sha256'), ('launch.json', 'launch_sha256')]:
+                        if sha(folder / name) != arm[field]: raise ValueError('cold raw artifact hash mismatch')
+                    launch = json.loads((folder / 'launch.json').read_text())
+                    if launch['exe_sha256'] != arm['recording_exe_sha256'] or launch['renderer_key'] != identity[2] or launch.get('cold_namespace') is not True:
+                        raise ValueError('cold confirmation build/namespace binding mismatch')
+                    cold = recording.observations(folder / 'first-use.jsonl', stage)
+                    diff = recording.disagreements(maps[0][stage], cold)
+                    cold_checks.append({'capture_sha256': arm['capture_sha256'], 'disagreements': diff})
+                    if diff: raise ValueError('raw cold confirmation frame groups differ')
+                item['cold_confirmation_checks'] = cold_checks
                 values = {int(k, 16): v for k, v in maps[0][stage].items()}
                 rows, closure = close_manifest(seeds, output, stage, values)
                 item['manifest_closure'] = closure
@@ -177,7 +218,10 @@ def build(seeds, provenances, output, report, expected_stages=None):
     global_unchanged = seedpack.database_rows(str(seeds / '__global__.db')) == seedpack.database_rows(str(output / '__global__.db'))
     required = expected if expected is not None else planned - {'Unknown', 'FileSelect'}
     missing = sorted(required - admitted)
-    result = {'version': 1, 'passed': not missing and existing_unchanged and global_unchanged,
+    cold_stages = sorted(r['stage'] for r in results if r['admitted'] and r.get('cold_confirmation_checks'))
+    result = {'version': 1, 'passed': not missing and existing_unchanged and global_unchanged
+              and (not require_cold_confirmation or bool(cold_stages)),
+              'cold_confirmation_required': require_cold_confirmation, 'cold_confirmed_stages': cold_stages,
               'all_database_rows_unchanged': unchanged, 'all_existing_rows_and_ranks_byte_identical': existing_unchanged,
               'global_rows_unchanged': global_unchanged,
               'planned_stages': sorted(planned), 'admitted_stages': sorted(admitted), 'missing_or_failed_stages': missing,
@@ -185,6 +229,7 @@ def build(seeds, provenances, output, report, expected_stages=None):
               'frontend_recording_failures': sorted((planned - admitted) & {'Unknown', 'FileSelect'}),
               'stage_results': results, 'frontend_results': front_results, 'provenance': provenance_bindings,
               'source_seed_dir': str(seeds), 'output_seed_dir': str(output),
+              'source_pack_binding': source_binding,
               'policy': 'explicit matching warm frames; additive stage closure only from exact global rows; unknown global configs fail; no existing ranks rewritten; mismatched frontend falls back'}
     report.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
     return result
@@ -193,12 +238,14 @@ def build(seeds, provenances, output, report, expected_stages=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--seed-dir', required=True, type=Path)
+    parser.add_argument('--source-pack', required=True, type=Path, help='Exact original pack named by recording BUILD.json')
     parser.add_argument('--disc', required=True, type=Path, help='Enumerate the complete scenario-1 sweep; partial batches cannot pass')
     parser.add_argument('--provenance', required=True, nargs='+', type=Path)
     parser.add_argument('--out', required=True, type=Path)
     parser.add_argument('--report', required=True, type=Path)
     args = parser.parse_args()
-    result = build(args.seed_dir, args.provenance, args.out, args.report, recording.select(args.disc))
+    result = build(args.seed_dir, args.provenance, args.out, args.report, recording.select(args.disc),
+                   source_pack=args.source_pack, require_cold_confirmation=True)
     print(json.dumps({'passed': result['passed'], 'admitted': len(result['admitted_stages']),
                       'missing': result['missing_or_failed_stages'], 'frontend': result['frontend_results']}, indent=2))
     return 0 if result['passed'] else 1

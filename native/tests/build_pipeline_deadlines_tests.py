@@ -45,6 +45,12 @@ class Build(unittest.TestCase):
                      'recording_build_metadata': {'source': '1'*40, 'binary_sha256': '2'*64, 'renderer_key': '3'*64},
                      'recording_build_metadata_sha256': 'unit-metadata', 'stage_results': [
                          {'stage': 'A', 'passed': True, 'warm_disagreements': {}, 'cold_disagreements': None, 'arms': self.arms}]}
+        self.source_pack = self.root / 'v13.xz'
+        self.bind_pack()
+
+    def bind_pack(self):
+        seedpack.pack(str(self.seeds), str(self.source_pack))
+        self.data['recording_build_metadata']['seed_pack_sha256'] = builder.sha(self.source_pack)
 
     def tearDown(self): self.tmp.cleanup()
 
@@ -53,9 +59,10 @@ class Build(unittest.TestCase):
         for name, field in [('first-use.jsonl', 'capture_sha256'), ('app.log', 'app_log_sha256'), ('launch.json', 'launch_sha256')]:
             arm[field] = builder.sha(folder / name)
 
-    def run_build(self, expected=None):
+    def run_build(self, expected=None, require_cold=False):
         path = self.batch / 'PROVENANCE.json'; path.write_text(json.dumps(self.data))
-        return builder.build(self.seeds, [path], self.root / 'out', self.root / 'report.json', expected)
+        return builder.build(self.seeds, [path], self.root / 'out', self.root / 'report.json', expected,
+                             source_pack=self.source_pack, require_cold_confirmation=require_cold)
 
     def test_exact_pair(self):
         result = self.run_build(); self.assertTrue(result['passed'])
@@ -99,6 +106,7 @@ class Build(unittest.TestCase):
         extra = (1, 13, 13, 3, b'new', 900)
         with sqlite3.connect(self.seeds / '__global__.db') as db:
             db.execute('INSERT INTO pipeline_cache VALUES(?,?,?,?,?,?)', extra)
+        self.bind_pack()
         for index in (1, 2):
             path = self.batch / f'A/warm-{index}/first-use.jsonl'
             path.write_text(path.read_text().replace('000000000000000c', '000000000000000d')); self.rehash(index)
@@ -113,6 +121,51 @@ class Build(unittest.TestCase):
         self.assertEqual(seedpack.check(pack), [])
         seedpack.expand(pack, str(self.root / 'expanded'))
         self.assertEqual(seedpack.verify(str(self.root / 'out'), str(self.root / 'expanded')), 0)
+
+    def test_seed_rank_edit_rejected_against_original_pack(self):
+        import sqlite3
+        with sqlite3.connect(self.seeds / 'A.db') as db:
+            db.execute('UPDATE pipeline_cache SET first_frame_used=99 WHERE hash=11')
+        with self.assertRaisesRegex(ValueError, 'rows/ranks differ'):
+            self.run_build()
+
+    def test_pack_must_match_recording_build(self):
+        self.data['recording_build_metadata']['seed_pack_sha256'] = '0'*64
+        with self.assertRaisesRegex(ValueError, 'differs from recording build'):
+            self.run_build()
+
+    def test_full_pack_requires_a_raw_cold_confirmation(self):
+        result = self.run_build(require_cold=True)
+        self.assertFalse(result['passed'])
+        self.assertTrue(result['cold_confirmation_required'])
+        self.assertEqual(result['cold_confirmed_stages'], [])
+
+    def test_raw_cold_disagreement_overrides_summary(self):
+        import shutil
+        folder = self.batch / 'A/cold-confirm'
+        shutil.copytree(self.batch / 'A/warm-1', folder)
+        arm = dict(self.arms[0], name='cold-confirm', cold_confirmation=True)
+        self.arms.append(arm)
+        launch = json.loads((folder / 'launch.json').read_text()); launch['cold_namespace'] = True
+        (folder / 'launch.json').write_text(json.dumps(launch))
+        path = folder / 'first-use.jsonl'
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        rows[3].update(frame=482, relative_frame=2)
+        path.write_text(''.join(json.dumps(r)+'\n' for r in rows)); self.rehash(3)
+        result = self.run_build()
+        self.assertFalse(result['passed'])
+        self.assertIn('raw cold confirmation frame groups differ', result['stage_results'][0]['reason'])
+
+    def test_raw_cold_equal_pair_admitted(self):
+        import shutil
+        folder = self.batch / 'A/cold-confirm'
+        shutil.copytree(self.batch / 'A/warm-1', folder)
+        self.arms.append(dict(self.arms[0], name='cold-confirm', cold_confirmation=True))
+        launch = json.loads((folder / 'launch.json').read_text()); launch['cold_namespace'] = True
+        (folder / 'launch.json').write_text(json.dumps(launch)); self.rehash(3)
+        result = self.run_build(require_cold=True)
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['stage_results'][0]['cold_confirmation_checks'][0]['disagreements'], {})
 
     def test_equal_unknown_maps_do_not_hide_missing_bootstrap_scope(self):
         for index in (1,2):

@@ -941,6 +941,11 @@ and ranks remain byte-identical, the global database stays unchanged, additions
 are counted per stage, and configs absent globally remain failures. The sidecar
 fingerprint binds the resulting manifest. `seedpack.py check`, an expansion and
 `seedpack.py verify` cover rows and sidecars together; repacking is deterministic.
+The builder requires `--source-pack native/data/pipeline-seeds.v13.xz` as well as
+its `--seed-dir` expansion. It checks every input database row and rank against
+that pack and requires its SHA-256 to match each recording build's metadata.
+Cold confirmations are reparsed and hash-bound independently; a summary claiming
+agreement cannot override differing raw frame groups.
 
 The runtime registers a complete stage batch and every scene/offscreen alias
 before any of that batch's fallback work can dispatch. Specialised/UI queues can

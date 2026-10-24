@@ -26,8 +26,11 @@ import shutil
 import sqlite3
 import struct
 import sys
+from pathlib import Path
+import pipeline_deadlines as deadlines
 
 MAGIC = b"PSD1"
+MAGIC_DEADLINES = b"PSD2"
 MARKER = ".seedpack.json"
 GLOBAL = "__global__"
 NEVER = 0xFFFFFFFF
@@ -97,12 +100,22 @@ def pack(seed_dir, out):
     for r in rows:
         if r[3] != len(r[4]) or r[3] > 0xFFFF or r[2] > 0xFFFF:
             raise ValueError("config size/version out of range or inconsistent")
-    buf = bytearray(MAGIC + struct.pack("<I", len(rows)))
+    sidecars = {}
+    stages = stage_paths(seed_dir)
+    for path in stages:
+        name = os.path.basename(path)[:-3]
+        sidecar = os.path.join(seed_dir, name + '.first-use.bin')
+        if os.path.exists(sidecar):
+            sidecars[name] = deadlines.read(sidecar, name, database_rows(path))
+    unexpected = set(glob.glob(os.path.join(seed_dir, '*.first-use.bin'))) - {
+        os.path.join(seed_dir, os.path.basename(p)[:-3] + '.first-use.bin') for p in stages}
+    if unexpected:
+        raise ValueError('deadline sidecar has no matching stage: ' + str(sorted(unexpected)))
+    buf = bytearray((MAGIC_DEADLINES if sidecars else MAGIC) + struct.pack("<I", len(rows)))
     for r in rows:
         buf += struct.pack("<BqHHI", r[0], r[1], r[2], r[3], r[5])
     for r in rows:
         buf += r[4]
-    stages = stage_paths(seed_dir)
     buf += struct.pack("<I", len(stages))
     for path in stages:
         name = os.path.basename(path)[:-3].encode()
@@ -115,20 +128,38 @@ def pack(seed_dir, out):
             if known is None or rows[known][2] != v or rows[known][4] != c:
                 raise ValueError(f"{name.decode()}: row ({t}, {h}) is not in {GLOBAL}.db with the same config")
             buf += varint(known) + varint(0 if f == NEVER else f + 1)
+    if sidecars:
+        buf += struct.pack('<I', len(sidecars))
+        for stage_index, path in enumerate(stages):
+            name = os.path.basename(path)[:-3]
+            if name not in sidecars:
+                continue
+            entries = sidecars[name]
+            buf += varint(stage_index) + varint(len(entries))
+            for key, frame in sorted(entries.items()):
+                signed = key - (1 << 64) if key >= (1 << 63) else key
+                buf += varint(index[(1, signed)]) + varint(frame)
     data = lzma.compress(bytes(buf), format=lzma.FORMAT_XZ, check=lzma.CHECK_CRC64, preset=9)
     with open(out, "wb") as stream:
         stream.write(data)
     with open(out + ".sha256", "w") as stream:
         stream.write(f"{hashlib.sha256(data).hexdigest()}  {os.path.basename(out)}\n")
     versions = sorted({r[2] for r in rows if r[0] == 1})
-    return {"bytes": len(data), "configs": len(rows), "stages": len(stages), "gx_config_versions": versions}
+    return {"bytes": len(data), "configs": len(rows), "stages": len(stages), "gx_config_versions": versions,
+            "deadline_stages": len(sidecars)}
 
 
 def parse(pack_path):
-    buf = lzma.decompress(open(pack_path, "rb").read())
-    if buf[:4] != MAGIC:
+    return parse_full(pack_path)[:3]
+
+
+def parse_full(pack_path):
+    buf = lzma.decompress(Path(pack_path).read_bytes())
+    if buf[:4] not in (MAGIC, MAGIC_DEADLINES):
         raise ValueError("not a seed pack")
     count, = struct.unpack_from("<I", buf, 4)
+    if not 0 < count <= 65536:
+        raise ValueError('invalid global config count')
     at = 8
     meta = [struct.unpack_from("<BqHHI", buf, at + 17 * i) for i in range(count)]
     at += 17 * count
@@ -137,25 +168,59 @@ def parse(pack_path):
         blobs.append(buf[at:at + m[3]])
         at += m[3]
     stage_count, = struct.unpack_from("<I", buf, at)
+    if not 0 < stage_count <= 4096:
+        raise ValueError('invalid stage count')
     at += 4
     stages = []
     for _ in range(stage_count):
         length = buf[at]
         at += 1
         name = buf[at:at + length].decode()
+        if not re.fullmatch(r'[A-Za-z0-9_.-]{1,80}', name) or name in {s[0] for s in stages}:
+            raise ValueError('invalid/duplicate stage name')
         at += length
         rows, at = read_varint(buf, at)
+        if rows > count:
+            raise ValueError('too many stage configs')
         selected = []
+        seen = set()
         for _ in range(rows):
             i, at = read_varint(buf, at)
             f, at = read_varint(buf, at)
-            if i >= count:
+            if i >= count or i in seen or f > NEVER:
                 raise ValueError("stage index out of range")
+            seen.add(i)
             selected.append((i, NEVER if f == 0 else f - 1))
         stages.append((name, selected))
+    sidecars = {}
+    if buf[:4] == MAGIC_DEADLINES:
+        sidecar_count, = struct.unpack_from('<I', buf, at)
+        at += 4
+        if not 0 < sidecar_count <= len(stages):
+            raise ValueError('invalid deadline stage count')
+        for _ in range(sidecar_count):
+            stage_index, at = read_varint(buf, at)
+            count, at = read_varint(buf, at)
+            if stage_index >= len(stages) or not 0 < count <= deadlines.LIMIT:
+                raise ValueError('invalid deadline stage/count')
+            name, selected = stages[stage_index]
+            if name in sidecars:
+                raise ValueError('duplicate deadline stage')
+            members = {i for i, _ in selected}
+            entries = {}
+            for _ in range(count):
+                index, at = read_varint(buf, at)
+                frame, at = read_varint(buf, at)
+                if index not in members or meta[index][0] != 1 or meta[index][2] != 13 or frame >= NEVER:
+                    raise ValueError('unknown deadline config/version/frame')
+                key = meta[index][1] & deadlines.MASK
+                if key in entries:
+                    raise ValueError('duplicate deadline config')
+                entries[key] = frame
+            sidecars[name] = entries
     if at != len(buf):
         raise ValueError("trailing bytes in the pack")
-    return meta, blobs, stages
+    return meta, blobs, stages, sidecars
 
 
 def write_database(path, meta, blobs, selected):
@@ -172,13 +237,18 @@ def write_database(path, meta, blobs, selected):
 
 def expand(pack_path, out_dir, pack_hash=None):
     """Writes the databases into out_dir (created; must not hold other files) and the marker."""
-    meta, blobs, stages = parse(pack_path)
+    meta, blobs, stages, sidecars = parse_full(pack_path)
     os.makedirs(out_dir, exist_ok=True)
     write_database(os.path.join(out_dir, GLOBAL + ".db"), meta, blobs, [(i, meta[i][4]) for i in range(len(meta))])
     for name, selected in stages:
         write_database(os.path.join(out_dir, name + ".db"), meta, blobs, selected)
+        if name in sidecars:
+            rows = [(meta[i][0], meta[i][1], meta[i][2], meta[i][3], blobs[i], f) for i, f in selected]
+            with open(os.path.join(out_dir, name + '.first-use.bin'), 'wb') as stream:
+                stream.write(deadlines.encode(name, rows, sidecars[name]))
     marker = {"pack_sha256": pack_hash or sha256(pack_path), "global_sha256": sha256(os.path.join(out_dir, GLOBAL + ".db")),
-              "databases": sorted(os.path.basename(p)[:-3] for p in glob.glob(os.path.join(out_dir, "*.db")))}
+              "databases": sorted(os.path.basename(p)[:-3] for p in glob.glob(os.path.join(out_dir, "*.db"))),
+              "deadline_sidecars": {os.path.basename(p): sha256(p) for p in glob.glob(os.path.join(out_dir, '*.first-use.bin'))}}
     with open(os.path.join(out_dir, MARKER), "w") as stream:
         json.dump(marker, stream, indent=1)
         stream.write("\n")
@@ -201,6 +271,12 @@ def verify(a, b):
     for name in extra:
         print("extra", name)
         bad += 1
+    sidecars = {os.path.basename(p) for p in glob.glob(os.path.join(a, '*.first-use.bin'))}
+    other_sidecars = {os.path.basename(p) for p in glob.glob(os.path.join(b, '*.first-use.bin'))}
+    for name in sorted(sidecars | other_sidecars):
+        if name not in sidecars or name not in other_sidecars or Path(a, name).read_bytes() != Path(b, name).read_bytes():
+            print('DIFF deadline sidecar', name)
+            bad += 1
     print(f"verified {len(names)} databases, {bad} problems")
     return bad
 
@@ -215,14 +291,14 @@ def check(pack_path):
     if not os.path.isfile(sha_file):
         problems.append("missing " + sha_file)
     else:
-        recorded = open(sha_file).read().split()[0]
+        recorded = Path(sha_file).read_text().split()[0]
         if recorded != sha256(pack_path):
             problems.append("sha256 does not match the pack")
     try:
         meta, blobs, stages = parse(pack_path)
     except Exception as error:  # noqa: BLE001 - any parse failure is a problem to report
         return problems + [f"pack does not parse: {error}"]
-    raw = lzma.decompress(open(pack_path, "rb").read())
+    raw = lzma.decompress(Path(pack_path).read_bytes())
     for pattern, what in FORBIDDEN:
         found = pattern.search(raw)
         if found:
@@ -248,9 +324,10 @@ def local_state(out_dir):
     if not os.path.isfile(marker_path):
         return "local", None
     try:
-        marker = json.load(open(marker_path))
+        marker = json.loads(Path(marker_path).read_text())
         current = sorted(os.path.basename(p)[:-3] for p in glob.glob(os.path.join(out_dir, "*.db")))
-        if marker["databases"] == current and marker["global_sha256"] == sha256(os.path.join(out_dir, GLOBAL + ".db")):
+        sidecars = {os.path.basename(p): sha256(p) for p in glob.glob(os.path.join(out_dir, '*.first-use.bin'))}
+        if marker["databases"] == current and marker["global_sha256"] == sha256(os.path.join(out_dir, GLOBAL + ".db")) and marker.get('deadline_sidecars', {}) == sidecars:
             return "expansion", marker
     except (OSError, ValueError, KeyError):
         pass

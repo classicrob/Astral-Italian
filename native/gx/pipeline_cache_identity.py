@@ -2,6 +2,7 @@
 """Deterministic renderer identity and build-local seed stamping (no user DB writes)."""
 from pathlib import Path
 import hashlib,sys,sqlite3,shutil
+import re
 
 def identity(root,aurora):
     root,aurora=Path(root),Path(aurora)
@@ -12,6 +13,10 @@ def identity(root,aurora):
         digest.update(str(f.relative_to(root)).encode()+b'\0'+f.read_bytes()+b'\0')
     for name in ['lib/gx/pipeline.hpp','lib/gfx/clear.hpp','lib/gfx/pipeline_cache.cpp','lib/webgpu/gpu_cache.cpp']:
         digest.update(name.encode()+b'\0'+(aurora/name).read_bytes()+b'\0')
+    packs = list((root/'native/data').glob('pipeline-seeds.v*.xz'))
+    if packs:
+        selected = max(packs, key=lambda p: int(re.fullmatch(r'pipeline-seeds\.v(\d+)\.xz', p.name)[1]))
+        digest.update(str(selected.relative_to(root)).encode()+b'\0'+selected.read_bytes()+b'\0')
     return digest.hexdigest()
 
 def stamp(source,dest,key):

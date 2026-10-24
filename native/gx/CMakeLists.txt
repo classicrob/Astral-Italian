@@ -723,6 +723,8 @@ if(BUILD_TESTING)
     add_test(NAME native_pipeline_cache_identity COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_identity_tests.py")
     add_test(NAME native_pipeline_first_use COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_first_use_tests.py" "${CMAKE_CXX_COMPILER}")
     add_test(NAME native_pipeline_deadline_capture COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_deadline_capture_tests.py")
+    add_test(NAME native_pipeline_deadlines COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_deadlines_tests.py")
+    add_test(NAME native_pipeline_deadlines_cpp COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_deadlines_tests.py" --cxx "${CMAKE_CXX_COMPILER}")
 endif()
 
 # Ubershader spike composes over the final generated Aurora translation units.

@@ -96,7 +96,10 @@ const Read& Replay::consume(std::uint32_t channel, std::uint32_t capacity) {
     const auto& read = mReads[mNext];
     if (read.frame != mFrame || read.ordinal != mOrdinal || read.channel != channel || read.capacity != capacity)
         throw ReplayError("KPAD frame/read/channel/capacity mismatch at frame " + std::to_string(mFrame) +
-                          " read " + std::to_string(mOrdinal));
+                          " read " + std::to_string(mOrdinal) + ": recorded frame=" + std::to_string(read.frame) +
+                          " read=" + std::to_string(read.ordinal) + " channel=" + std::to_string(read.channel) +
+                          " capacity=" + std::to_string(read.capacity) + "; replayed channel=" + std::to_string(channel) +
+                          " capacity=" + std::to_string(capacity));
     ++mNext;
     ++mOrdinal;
     return read;

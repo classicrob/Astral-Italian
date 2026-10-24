@@ -192,7 +192,9 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
     if (!replayTape.empty()) {
         // The tape's first segment is entered like a normal --stage request (a save is still the player's own: use --user);
         // later segments are reached by the level-select warp (native/PLAYTEST.md "Replaying your tape").
-        if (!launchStage.empty() || fixture) {
+        const char* sessionMode = std::getenv("PETARI_TAPE_PLAY_SESSION");
+        const bool wholeSession = sessionMode && std::strcmp(sessionMode, "1") == 0;
+        if ((!launchStage.empty() && !wholeSession) || fixture) {
             std::fputs("petari: --replay-tape replaces --stage and cannot be combined with it\n", stderr);
             return false;
         }
@@ -203,9 +205,11 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
             return false;
         }
         const auto* first = App::TapePlay::firstSegment();
-        launchStage = first->stage;
-        launchScenario = first->scenario > 0 ? first->scenario : 1;
-        launchScenarioGiven = true;
+        if (first) {  // whole-session mode boots normally into the title, then drives FileSelect from the tape
+            launchStage = first->stage;
+            launchScenario = first->scenario > 0 ? first->scenario : 1;
+            launchScenarioGiven = true;
+        }
         std::fprintf(stderr, "PETARI TAPE PLAY: %s: %zu segment(s), mods [", replayTape.c_str(), App::TapePlay::meta()->segments.size());
         for (std::size_t i = 0; i < App::TapePlay::meta()->mods.size(); ++i)
             std::fprintf(stderr, "%s%s", i ? "," : "", App::TapePlay::meta()->mods[i].c_str());

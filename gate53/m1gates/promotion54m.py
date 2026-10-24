@@ -8,7 +8,10 @@ def inspect_cache(path,key):
   keys=db.execute('SELECT build_key FROM petari_cache_build').fetchall()
   assert keys==[(key,)],(path,keys,key)
   assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
-  return {'path':str(path),'rows':db.execute('SELECT count(*) FROM pipeline_cache').fetchone()[0],'build_key':key}
+  tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+  table='pipeline_cache' if 'pipeline_cache' in tables else 'cache' if 'cache' in tables else None
+  assert table is not None,(path,tables)
+  return {'path':str(path),'rows':db.execute('SELECT count(*) FROM '+table).fetchone()[0],'build_key':key,'table':table}
 
 def validate_review(*a):return False
 

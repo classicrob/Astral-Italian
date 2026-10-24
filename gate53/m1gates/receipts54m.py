@@ -99,8 +99,8 @@ def main():
      original=Path(r['actual_receipt']);actual_pointer=readj(original)
      assert sha(original)==r['actual_receipt_sha256'] and actual_pointer['passed']==r['passed'] and actual_pointer['checks']==r['checks'] and actual_pointer['app_sha256']==expected
      from replay_cases54m import anchor_checks,replay_accounting
-     native=readj(original.parent/'replay/divergence.json');assert native==actual_pointer['replay'] and all(anchor_checks(native,require_identity=m.get('require_bounded_identity',False)).values()) and replay_accounting(native,m.get('require_bounded_identity',False))
-     assert sum(s.get('pointer_rows_compared',0) for s in native['segments'] if s['stage']=='WorldMap01Galaxy')>=30
+     native=readj(original.parent/'replay/divergence.json');assert native==actual_pointer['replay']
+     ok &= all(anchor_checks(native,require_identity=m.get('require_bounded_identity',False)).values()) and replay_accounting(native,m.get('require_bounded_identity',False)) and sum(s.get('pointer_rows_compared',0) for s in native['segments'] if s['stage']=='WorldMap01Galaxy')>=30
   return {'passed':ok,'cases':len(rs),'passing':sum(r['passed'] for r in rs),'failed_checks':{r['case']+'/'+r['mode']:[k for k,v in r['checks'].items() if not v] for r in rs if not r['passed']}}
  gate('gx-fresh-warm',[promo],promotion,'15-case promotion',(('PORT authorized canonical KPAD pointer tape for the two world-map cases; physical host mapping is outside this check.',) if candidate_mode else ('Reference worldmap host-pointer evidence remains required; unavailable on frozen54 without host input.',)))
  tape=base/'tape-status.json'
@@ -120,12 +120,16 @@ def main():
    from replay_cases54m import anchor_checks
    assert d['build_kind']=='server-candidate' and d['build']['source']==meta['source'] and d['build']['perf_exe_sha256']==expected and len(d['runs'])==2
    assert d['passed']==all(d['checks'].values())
+   native_checks=[]
    for r in d['runs']:
     from replay_cases54m import replay_accounting
-    assert r['app_sha256']==expected and r['passed'] is True and all(r['checks'].values()) and all(anchor_checks(r['replay'],'RedBlueExGalaxy',m.get('require_bounded_identity',False)).values()) and replay_accounting(r['replay'],m.get('require_bounded_identity',False))
+    assert r['app_sha256']==expected
     assert readj(intro.parent/r['arm']/'replay/divergence.json')==r['replay']
+    native_checks.append(r['passed'] is True and all(r['checks'].values()) and all(anchor_checks(r['replay'],'RedBlueExGalaxy',m.get('require_bounded_identity',False)).values()) and replay_accounting(r['replay'],m.get('require_bounded_identity',False)))
    assert {r['arm'] for r in d['runs']}=={'none','skip'}
-   arms={r['arm']:r for r in d['runs']};assert 0<=arms['skip']['frames_from_stage_to_play']<arms['none']['frames_from_stage_to_play']
+   arms={r['arm']:r for r in d['runs']};skipped=arms['skip']['frames_from_stage_to_play'];unskipped=arms['none']['frames_from_stage_to_play']
+   d['collector_checks']={'native_reports_passed':all(native_checks),'skip_earlier_rechecked':type(skipped) is int and type(unskipped) is int and 0<=skipped<unskipped}
+   d['passed']=d['passed'] is True and all(d['collector_checks'].values())
   return d
  gate('intro-skip',[intro],introcheck,'intro skip without host input')
  cappy=runpath('cappy')/'receipt.json'

@@ -131,8 +131,8 @@ void KinopioBank::createGoodsTables() {
         mGoodsB[i]=MR::createNPCGoods(this,item.mGoods1,item.mGoodsJoint1);
         PartsModel* goods=mGoodsA[i];
         if(goods) { MR::registerDemoSimpleCastAll(goods); goods->makeActorDead(); }
-        goods=mGoodsB[i];
-        if(goods) { MR::registerDemoSimpleCastAll(goods); goods->makeActorDead(); }
+        PartsModel* goodsB=mGoodsB[i];
+        if(goodsB) { MR::registerDemoSimpleCastAll(goodsB); goodsB->makeActorDead(); }
     }
 }
 u32 KinopioBank::getBankData(PartsModel** a,PartsModel** b) {

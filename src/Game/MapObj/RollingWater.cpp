@@ -323,9 +323,7 @@ void RollingWater::exeRush() {
 
     f32 rate = MR::calcNerveEaseOutRate(this, 60);
     MR::vecBlend(&mBlendVec, mBlendVec, TVec3f(0.0f, 0.0f, 0.0f), rate);
-    TVec3f center(mPosition);
-    center += mBlendVec;
-    mCenterVec.set(center);
+    mCenterVec.set(mPosition + mBlendVec);
 
     if (MR::isGreaterStep(this, 20) && MR::isPadSwing(0)) {
         setNerve(GET_NERVE(RollingWater, Fall));

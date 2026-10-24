@@ -582,7 +582,9 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
 
     radius = pReceiver->mRadius;
     TVec3f pos = pReceiver->mPosition - dir.scaleInline(radius);
-    depth = scale * (pReceiver->mRadius + pSender->mRadius - len);
+    f32 senderRadius = pSender->mRadius;
+    f32 receiverRadius = pReceiver->mRadius;
+    depth = scale * (receiverRadius + senderRadius - len);
     dir.setLength(depth);
 
     mMover->collide(&pos, &dir);

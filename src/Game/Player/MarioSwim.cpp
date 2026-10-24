@@ -896,9 +896,7 @@ void MarioSwim::fn_803F9E90() {
     TVec3f translation;
     MR::extractMtxTrans(follow, &translation);
     if (_118 == mWaterInfo.mWaterArea) {
-        TVec3f movement(translation);
-        movement.sub(mAreaFollowMtxPos);
-        f32 distance = getAirGravityVec().dot(movement);
+        f32 distance = getAirGravityVec().dot(translation - mAreaFollowMtxPos);
         TVec3f velocity(getAirGravityVec());
         velocity.scale(distance);
         addVelocity(velocity);
@@ -3276,23 +3274,14 @@ void MarioSwim::fn_80401010() {
         playEffect("水エリア飛び込み飛沫");
         return;
     }
-    TVec3f velocity(fn_803EF300());
-    velocity.scale(10.0f);
-    TVec3f previous(mPreviousPos);
-    previous.sub(velocity);
+    TVec3f previous = mPreviousPos - fn_803EF300() * 10.0f;
     if (MR::func_80062020(&mWaterInfo, &mPreviousPos, &previous)) {
         mActor->emitEffectWaterColumn(mSurfacePos, mSurfaceNorm);
         return;
     }
     if (MR::func_800621A0(&mWaterInfo, &mPreviousPos, &previous)) {
         MarioActor* actor = mActor;
-        TVec3f normal(-mSurfacePos);
-        f32 distance = mDistToFloor;
-        TVec3f offset(mSurfacePos);
-        offset.scale(distance);
-        TVec3f position(mPreviousPos);
-        position.sub(offset);
-        actor->emitEffectWaterColumn(normal, position);
+        actor->emitEffectWaterColumn(-mSurfacePos, mPreviousPos - mSurfacePos * mDistToFloor);
         return;
     }
     playEffect("水エリア飛び込み飛沫");
@@ -4015,15 +4004,14 @@ void MarioSwimTilt::update() {
     }
     if (mSwim->isSwimTurnAnimation()) {
         f32 angle = MR::clamp(mSwim->getStickX() / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil<f32>::PI();
-        targetTiltX = angle * 0.125f;
+        targetTiltX = angle / 8.0f;
     }
     f32 targetTiltY = 0.0f;
     if (!mSwim->isOnWaterSurface()) {
         if (mSwim->mIdleWaitTimer == 0) {
             targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / 12.0f;
             if (mSwim->getStickY() > 0.0f && mSwim->mVerticalAngle <= 2.09439516068f) {
-                targetTiltY = mSwim->getStickY() * JGeometry::TUtil<f32>::PI();
-                targetTiltY *= 0.125f;
+                targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / 8.0f;
             }
         } else if (mSwim->getStickY() < 0.0f) {
             const MarioConstTable* table = mSwim->mActor->getConst().getTable();

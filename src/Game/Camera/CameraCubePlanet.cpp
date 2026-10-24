@@ -10,15 +10,6 @@
 #include "Game/Util/CameraUtil.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 
-CameraCubePlanet::CameraCubePlanet(const char* pName)
-    : Camera(pName), mDist(3000.0f), mAngleX(MR::pi() / 6.0f), mAngleY(0.35f), mUp(0.0f, 1.0f, 0.0f), mPadOrbitCtrl(new CameraPadOrbitCtrl()) {
-}
-
-void CameraCubePlanet::reset() {
-    mUp.set(-CameraLocalUtil::getTarget(this)->getGravityVector());
-    mPadOrbitCtrl->reset();
-}
-
 // NONMATCHING: regalloc
 CameraTargetObj* CameraCubePlanet::calc() {
     TVec3f pos = CameraLocalUtil::getPos(mCameraMan);
@@ -43,8 +34,8 @@ CameraTargetObj* CameraCubePlanet::calc() {
 
     TVec3f side = up.cross(front);
     TQuat4f rot;
-    f32 halfAngle = mAngleX;
-    halfAngle *= 0.5f;
+    f32 angle = mAngleX;
+    f32 halfAngle = 0.5f * angle;
     rot.toTvec()->scale(sin(halfAngle), side);
     rot.w = cos(halfAngle);
     rot.transform(up);
@@ -57,6 +48,15 @@ CameraTargetObj* CameraCubePlanet::calc() {
     CameraLocalUtil::setPos(this, newPos);
     CameraLocalUtil::setUpVec(this, up);
     return CameraLocalUtil::getTarget(this);
+}
+
+CameraCubePlanet::CameraCubePlanet(const char* pName)
+    : Camera(pName), mDist(3000.0f), mAngleX(MR::pi() / 6.0f), mAngleY(0.35f), mUp(0.0f, 1.0f, 0.0f), mPadOrbitCtrl(new CameraPadOrbitCtrl()) {
+}
+
+void CameraCubePlanet::reset() {
+    mUp.set(-CameraLocalUtil::getTarget(this)->getGravityVector());
+    mPadOrbitCtrl->reset();
 }
 
 CamTranslatorBase* CameraCubePlanet::createTranslator() {

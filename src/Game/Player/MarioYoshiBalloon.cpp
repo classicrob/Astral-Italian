@@ -212,7 +212,8 @@ void MarioYoshiBalloon::fn_80414B90(const TVec3f& vertical) {
         lift = -getAirGravityVec() * 7.0f;
         mAir -= 0.003f;
     }
-    addVelocity(vertical * 0.95f + lift * 0.05f);
+    TVec3f velocity = vertical * 0.95f + lift * 0.05f;
+    addVelocity(velocity);
 }
 
 // NONMATCHING: temporary stack slots, GPR allocation and multiply-result register.
@@ -292,11 +293,10 @@ void MarioYoshiBalloon::fn_80415030() {
 
 // NONMATCHING: temporary vector stack slots.
 void MarioYoshiBalloon::fn_80415150() {
-    TVec3f position = getTrans() - getAirGravityVec() * 80.0f;
     TVec3f normal;
-    if (fn_804153C0(&normal, position, 110.0f, 100.0f)) {
-        TVec3f horizontal;
+    if (fn_804153C0(&normal, getTrans() - getAirGravityVec() * 80.0f, 110.0f, 100.0f)) {
         TVec3f velocity(getVelocity());
+        TVec3f horizontal;
         JMAVECScaleAdd(normal, velocity, horizontal, -normal.dot(velocity));
         f32 scale = ((180.0f * normal.angle(getAirGravityVec())) / 3.1415927f - 100.0f) / -100.0f;
         if (scale < 0.0f) scale = 0.0f;

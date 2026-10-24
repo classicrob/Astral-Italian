@@ -4,6 +4,9 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+namespace {
+    extern const f32 sSoundDistance;
+}
 namespace NrvTubeSliderEnemy {
 NEW_NERVE(TubeSliderEnemyNrvWait, TubeSliderEnemy, Wait);
 NEW_NERVE(TubeSliderEnemyNrvWalk, TubeSliderEnemy, Walk);
@@ -30,7 +33,6 @@ void TubeSliderEnemy::initAfterPlacement() {
     mFront.y *= -1.0f;
     mFront.z *= -1.0f;
 }
-// NONMATCHING: vector register allocation and float-load scheduling differ.
 void TubeSliderEnemy::control() {
     mScaleController->updateNerve();
     if (!isNerve(&NrvTubeSliderEnemy::TubeSliderEnemyNrvSupportFreeze::sInstance) && mBindState->tryStartPointBind()) {
@@ -40,14 +42,13 @@ void TubeSliderEnemy::control() {
     f32 micDistance = MR::getMicDistance(this);
     f32 distance = MR::calcDistanceToPlayer(this);
     if (distance <= 450.0f) mPlayerPassed = true;
-    TVec3f velocity(*MR::getPlayerVelocity());
-    velocity -= mVelocity;
+    TVec3f velocity = *MR::getPlayerVelocity() - mVelocity;
     f32 speed = PSVECMag(&velocity);
     s32 baseVolume = 50;
     s32 basePitch = -100;
     f32 volume = MR::getLinerValueFromMinMax(speed, 27.0f, 34.0f, 0.0f, MR::clamp(baseVolume + 1000.0f * (100.0f * (2.3f / micDistance)), 0.0f, 1000.0f));
     f32 pitch = basePitch + 1000.0f * (50.0f / (50.0f + (micDistance - mPrevMicDistance)));
-    if (distance <= 1000.0f && mPlayerPassed) MR::startActionSound(this, "MarioPassLvSlider", volume, MR::clamp((s32)pitch, 50, 1000), -1);
+    if (distance <= sSoundDistance && mPlayerPassed) MR::startActionSound(this, "MarioPassLvSlider", volume, MR::clamp((s32)pitch, 50, 1000), -1);
     mPrevMicDistance = micDistance;
 }
 void TubeSliderEnemy::exeWait() {
@@ -76,4 +77,8 @@ bool TubeSliderEnemy::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) { 
 TubeSliderEnemy::~TubeSliderEnemy() {}
 void TubeSliderEnemy::exeSupportFreeze() {
     if (MR::updateActorState(this)) setNerve(&NrvTubeSliderEnemy::TubeSliderEnemyNrvWait::sInstance);
+}
+
+namespace {
+    const f32 sSoundDistance = 1000.0f;
 }

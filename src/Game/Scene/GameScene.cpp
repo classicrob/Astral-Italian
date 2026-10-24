@@ -167,6 +167,136 @@ GameScene::~GameScene() {
 }
 
 
+void GameScene::init() {
+    MR::isStageFileSelect();
+    SceneFunction::createHioBasicNode(this);
+    SceneFunction::startStageFileLoad();
+    bool changedPlayer = MR::requestChangeArchivePlayer(!MR::isPlayerLuigi());
+    bool loadPlayer = true;
+    if (!changedPlayer && MR::isPlayerArchiveChangePending()) {
+        loadPlayer = false;
+    }
+    initNerve(GET_NERVE(GameScene, GameSceneScenarioOpeningCamera), 0);
+    SceneFunction::initForNameObj();
+    SceneFunction::initForLiveActor();
+    initEffect();
+    MR::createSceneObj(0x18);
+    MR::createSceneObj(0x19);
+    MR::createSceneObj(0x3b);
+    MR::createSceneObj(0x15);
+    MR::createSceneObj(0x11);
+    MR::createSceneObj(0x12);
+    MR::createSceneObj(0x13);
+    MR::createSceneObj(0x14);
+    MR::createSceneObj(0x2c);
+    MR::createSceneObj(0x1b);
+    MR::createSceneObj(0x28);
+    MR::createSceneObj(0x29);
+    MR::createScreenAlphaSceneObj(0, 1.0f);
+    MR::createSceneObj(0x72);
+    MR::createSceneObj(0x7a);
+    MR::createSceneObj(0x7e);
+    MR::createSceneObj(0x7f);
+    MR::createSceneObj(0x90);
+    if (MR::isStageMarioFaceShipOrWorldMap()) {
+        MR::createSceneObj(0x37);
+    }
+    bool createStaff = false;
+    if (MR::isStageStaffRoll()) {
+        createStaff = true;
+    } else {
+        createStaff = MR::isStageMarioFaceShip();
+    }
+    if (createStaff) {
+        MR::createSceneObj(0x98);
+    }
+    SceneFunction::waitDoneStageFileLoad();
+    if (changedPlayer) {
+        MR::waitEndChangeArchivePlayer();
+    }
+    SceneFunction::startActorFileLoadCommon();
+    if (MR::isStageWorldMap()) {
+        WorldMapFunction::mountWorldMapResources();
+    }
+    if (MR::isScenarioSelecting()) {
+        MR::receiveAllRequestedFile();
+        MR::getGameSystemObjHolder()->mAudioSystem->setStageResourceLoading(loadPlayer);
+        while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
+#ifdef GALAXY_NATIVE
+            // The load finishes on higher-priority threads (ARAM stream, wave
+            // archive loader) that a Wii interrupt would let preempt this loop.
+            petari_os_preemption_point();
+#endif
+        }
+    }
+    MR::suspendAsyncExecuteThread("シーン初期化");
+    if (!MR::isScenarioDecided()) {
+        MR::receiveAllRequestedFile();
+        MR::getGameSystemObjHolder()->mAudioSystem->resetStageResources();
+    } else {
+        SceneFunction::initAfterScenarioSelected();
+        SceneFunction::startActorFileLoadScenario();
+        SceneFunction::startActorFileLoadPostCreation();
+        MR::createSceneObj(0x4);
+        MR::createSceneObj(0x3);
+        MR::initSceneMessage();
+        MR::createSceneObj(0x3a);
+        MR::createSceneObj(0x3d);
+        MR::createSceneObj(0x44);
+        MR::createSceneObj(0x25);
+        MR::createSceneObj(0x2a);
+        MR::createSceneObj(0x81);
+        if (MR::isStageScoreAttack()) {
+            MR::createSceneObj(0x35);
+        }
+        if (MR::isStageMarioFaceShip()) {
+            MR::createSceneObj(0x97);
+            MR::createSceneObj(0x93);
+            MR::createSceneObj(0x95);
+            MR::createSceneObj(0x96);
+        }
+        GameSequenceFunction::setupNameEntryTableIfRetryGalaxy();
+        LightFunction::initLightData();
+        initSequences();
+        if (MR::isStageMarioFaceShipNormal()) {
+            MR::setCurrentPlacementZoneId(0);
+            MR::createSceneObj(0x34);
+            MR::clearCurrentPlacementZoneId();
+        }
+        MR::createStarPiece();
+        SceneFunction::startActorPlacement();
+        if (MR::isStageStoryBook()) {
+            MR::createSceneObj(0x89);
+        }
+        if (!MR::isStageFileSelect() && !MR::isStageWorldMap()) {
+            MR::createSceneObj(0x62);
+        }
+        if (MR::isStageWorldMap()) {
+            MR::setCurrentPlacementZoneId(0);
+            MR::createSceneObj(0x33);
+            MR::clearCurrentPlacementZoneId();
+        }
+        GameSceneFunction::loadScenarioWaveData(loadPlayer);
+        MR::completeCameraParameters();
+        MR::initStarPointerGameScene();
+        MR::initEventSystemAfterPlacement();
+        MR::endInitLiveActorSystemInfo();
+        MR::setInitializeStateAfterPlacement();
+        MR::callMethodAllSceneNameObj(&NameObj::initAfterPlacement);
+        AwakeControlFunc::initSyncSleepController();
+        if (MR::isStageWorldMap()) {
+            MR::deactivateDefaultGameLayout();
+        }
+        while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
+#ifdef GALAXY_NATIVE
+            // As the wait above: the wave loads finish on higher-priority threads.
+            petari_os_preemption_point();
+#endif
+        }
+        MR::getGameSystemObjHolder()->mAudioSystem->finishStageResourceLoading();
+    }
+}
+
 void GameScene::start() {
     _2A = MR::isIslandFleetGalaxy1FirstTime();
     AudWrap::getSceneMgr()->resetForScene();
@@ -349,7 +479,7 @@ void GameScene::initSequences() {
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameScene::initEffect() {
     struct EffectInfo { const char* name; u32 particles; u32 emitters; };
-    static const EffectInfo info[] = {
+    static EffectInfo info[] = {
         {"DummyGalaxy", 3072, 512},
         {"StarCreekGalaxy", 3072, 512},
         {"MokumokuValleyGalaxy", 3072, 512},
@@ -450,12 +580,7 @@ void GameScene::startStagePlayRetry() {
 
 
 // NONMATCHING: equivalent branch block order
-bool GameScene::isDrawMirror() const {
-    if (MR::isExistMirrorCamera() == false) {
-        return false;
-    }
-    return MR::isPlayerInAreaObj("MirrorArea");
-}
+
 
 void GameScene::stageClear() {
     if (MR::isFirstStep(this)) {
@@ -492,135 +617,7 @@ namespace GameSequenceFunction {
     bool isNeedMoviePlayerForStorySequenceEvent();
 };  // namespace GameSequenceFunction
 
-void GameScene::init() {
-    MR::isStageFileSelect();
-    SceneFunction::createHioBasicNode(this);
-    SceneFunction::startStageFileLoad();
-    bool changedPlayer = MR::requestChangeArchivePlayer(!MR::isPlayerLuigi());
-    bool loadPlayer = true;
-    if (!changedPlayer && MR::isPlayerArchiveChangePending()) {
-        loadPlayer = false;
-    }
-    initNerve(GET_NERVE(GameScene, GameSceneScenarioOpeningCamera), 0);
-    SceneFunction::initForNameObj();
-    SceneFunction::initForLiveActor();
-    initEffect();
-    MR::createSceneObj(0x18);
-    MR::createSceneObj(0x19);
-    MR::createSceneObj(0x3b);
-    MR::createSceneObj(0x15);
-    MR::createSceneObj(0x11);
-    MR::createSceneObj(0x12);
-    MR::createSceneObj(0x13);
-    MR::createSceneObj(0x14);
-    MR::createSceneObj(0x2c);
-    MR::createSceneObj(0x1b);
-    MR::createSceneObj(0x28);
-    MR::createSceneObj(0x29);
-    MR::createScreenAlphaSceneObj(0, 1.0f);
-    MR::createSceneObj(0x72);
-    MR::createSceneObj(0x7a);
-    MR::createSceneObj(0x7e);
-    MR::createSceneObj(0x7f);
-    MR::createSceneObj(0x90);
-    if (MR::isStageMarioFaceShipOrWorldMap()) {
-        MR::createSceneObj(0x37);
-    }
-    bool createStaff = false;
-    if (MR::isStageStaffRoll()) {
-        createStaff = true;
-    } else {
-        createStaff = MR::isStageMarioFaceShip();
-    }
-    if (createStaff) {
-        MR::createSceneObj(0x98);
-    }
-    SceneFunction::waitDoneStageFileLoad();
-    if (changedPlayer) {
-        MR::waitEndChangeArchivePlayer();
-    }
-    SceneFunction::startActorFileLoadCommon();
-    if (MR::isStageWorldMap()) {
-        WorldMapFunction::mountWorldMapResources();
-    }
-    if (MR::isScenarioSelecting()) {
-        MR::receiveAllRequestedFile();
-        MR::getGameSystemObjHolder()->mAudioSystem->setStageResourceLoading(loadPlayer);
-        while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
-#ifdef GALAXY_NATIVE
-            // The load finishes on higher-priority threads (ARAM stream, wave
-            // archive loader) that a Wii interrupt would let preempt this loop.
-            petari_os_preemption_point();
-#endif
-        }
-    }
-    MR::suspendAsyncExecuteThread("シーン初期化");
-    if (!MR::isScenarioDecided()) {
-        MR::receiveAllRequestedFile();
-        MR::getGameSystemObjHolder()->mAudioSystem->resetStageResources();
-    } else {
-        SceneFunction::initAfterScenarioSelected();
-        SceneFunction::startActorFileLoadScenario();
-        SceneFunction::startActorFileLoadPostCreation();
-        MR::createSceneObj(0x4);
-        MR::createSceneObj(0x3);
-        MR::initSceneMessage();
-        MR::createSceneObj(0x3a);
-        MR::createSceneObj(0x3d);
-        MR::createSceneObj(0x44);
-        MR::createSceneObj(0x25);
-        MR::createSceneObj(0x2a);
-        MR::createSceneObj(0x81);
-        if (MR::isStageScoreAttack()) {
-            MR::createSceneObj(0x35);
-        }
-        if (MR::isStageMarioFaceShip()) {
-            MR::createSceneObj(0x97);
-            MR::createSceneObj(0x93);
-            MR::createSceneObj(0x95);
-            MR::createSceneObj(0x96);
-        }
-        GameSequenceFunction::setupNameEntryTableIfRetryGalaxy();
-        LightFunction::initLightData();
-        initSequences();
-        if (MR::isStageMarioFaceShipNormal()) {
-            MR::setCurrentPlacementZoneId(0);
-            MR::createSceneObj(0x34);
-            MR::clearCurrentPlacementZoneId();
-        }
-        MR::createStarPiece();
-        SceneFunction::startActorPlacement();
-        if (MR::isStageStoryBook()) {
-            MR::createSceneObj(0x89);
-        }
-        if (!MR::isStageFileSelect() && !MR::isStageWorldMap()) {
-            MR::createSceneObj(0x62);
-        }
-        if (MR::isStageWorldMap()) {
-            MR::setCurrentPlacementZoneId(0);
-            MR::createSceneObj(0x33);
-            MR::clearCurrentPlacementZoneId();
-        }
-        GameSceneFunction::loadScenarioWaveData(loadPlayer);
-        MR::completeCameraParameters();
-        MR::initStarPointerGameScene();
-        MR::initEventSystemAfterPlacement();
-        MR::endInitLiveActorSystemInfo();
-        MR::setInitializeStateAfterPlacement();
-        MR::callMethodAllSceneNameObj(&NameObj::initAfterPlacement);
-        AwakeControlFunc::initSyncSleepController();
-        if (MR::isStageWorldMap()) {
-            MR::deactivateDefaultGameLayout();
-        }
-        while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
-#ifdef GALAXY_NATIVE
-            // As the wait above: the wave loads finish on higher-priority threads.
-            petari_os_preemption_point();
-#endif
-        }
-        MR::getGameSystemObjHolder()->mAudioSystem->finishStageResourceLoading();
-    }
-}
+
 
 
 void GameScene::draw3D() const {
@@ -791,6 +788,13 @@ void GameScene::startWorldMapBgm() const {
         }
         MR::startStageBGMFromStageName("Game", MR::getCurrentStageName(), MR::getCurrentScenarioNo(), false, false);
     }
+}
+
+bool GameScene::isDrawMirror() const {
+    if (MR::isExistMirrorCamera() == false) {
+        return false;
+    }
+    return MR::isPlayerInAreaObj("MirrorArea");
 }
 
 void GameScene::drawNormalObjects() const {

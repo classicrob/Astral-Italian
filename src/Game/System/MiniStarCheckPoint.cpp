@@ -71,9 +71,7 @@ void MiniStarCheckPoint::init(const JMapInfoIter& rIter) {
     MR::setMessageBalloonFollowOffset(mTalkCtrl, sTalkBalloonOffset);
 
     if (mStarPointerTarget == nullptr) {
-        TVec3f pointerOffset;
-        pointerOffset.set(0.0f, 0.0f, 0.0f);
-        MR::initStarPointerTarget(this, 800.0f, pointerOffset);
+        MR::initStarPointerTarget(this, 800.0f, TVec3f(0.0f, 0.0f));
     }
 
     mChild = new MiniWorldMapMark(this, "MiniStarCheckPointMark");

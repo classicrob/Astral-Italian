@@ -1724,11 +1724,7 @@ bool Yoshi::fn_804112A0() const {
     TVec3f ray(front);
     ray.scale(150.0f);
     if (Collision::checkStrikeLineToMap(origin, ray, 0, nullptr, nullptr)) return false;
-    TVec3f end(origin);
-    end.add(ray);
-    TVec3f drop(TVec3f(-up));
-    drop.scale(300.0f);
-    return !Collision::checkStrikeLineToMap(end, drop, 0, nullptr, nullptr);
+    return !Collision::checkStrikeLineToMap(origin + ray, (-up).scaleInline(300.0f), 0, nullptr, nullptr);
 }
 
 bool Yoshi::fn_804113C0() {
@@ -1885,11 +1881,7 @@ void Yoshi::fn_80411ED0() {
                 if (MR::isBindedGroundWaterBottomH(this) || MR::isBindedGroundWaterBottomM(this) || MR::isBindedGroundWaterBottomL(this)) waterBottom = true;
                 if (waterBottom && fn_80412590(frame)) {
                     MR::emitEffect(this, "WaterSplashWalkAlone");
-                    TVec3f up(MR::getGroundNormal(this));
-                    up.scale(10.0f);
-                    TVec3f position(mPosition);
-                    position.add(up);
-                    fn_804121A0(position, MR::getGroundNormal(this));
+                    fn_804121A0(mPosition + MR::getGroundNormal(this).scaleInline(10.0f), MR::getGroundNormal(this));
                 }
             }
             _15C = frame;
@@ -1908,8 +1900,7 @@ void Yoshi::fn_80411ED0() {
                 if (waterBottom) {
                     ++_160;
                     if (_160 == 60) {
-                        TVec3f position = mPosition + MR::getGroundNormal(this).scaleInline(10.0f);
-                        fn_804121A0(position, MR::getGroundNormal(this));
+                        fn_804121A0(mPosition + MR::getGroundNormal(this).scaleInline(10.0f), MR::getGroundNormal(this));
                         _160 = 0;
                     }
                 }

@@ -99,7 +99,8 @@ void tryDestroyUseResourceHeap() {
     if (getUseResourceHeap() != nullptr) {
         if (GameSystemFunction::isCreatedGameDataHolder()) {
             bool isLuigi = GameDataFunction::isLuigiPlayer();
-            if (GameSystemFunction::isPlayerArchiveMario() != isLuigi) {
+            bool isMario = GameSystemFunction::isPlayerArchiveMario();
+            if (isMario != isLuigi) {
                 return;
             }
         }

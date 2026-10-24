@@ -162,7 +162,7 @@ void DrawSyncManager::reset(bool preparing) {
     }
 
     if (mPreparingReset) {
-        mPreparingReset = false;
+        mPreparingReset = preparing;
         mAborted = true;
         GXSetDrawSyncCallback(drawSyncCallback);
         SingletonHolder< GameSystem >::get()->initGX();

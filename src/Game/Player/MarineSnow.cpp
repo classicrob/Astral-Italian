@@ -47,12 +47,12 @@ void MarineSnow::draw(const TVec3f& rPosition, const TVec3f& rUp, f32 surfaceDis
 
     f32 fadeRate = static_cast< f32 >(mFadeStep) / 60.0f;
 
-    s32 cellX = static_cast< s32 >((rPosition.x + mCellSize / 2.0f) / mCellSize);
-    s32 originX = cellX * mCellSize;
-    s32 cellY = static_cast< s32 >((rPosition.y + mCellSize / 2.0f) / mCellSize);
-    s32 originY = cellY * mCellSize;
-    s32 cellZ = static_cast< s32 >((rPosition.z + mCellSize / 2.0f) / mCellSize);
-    s32 originZ = cellZ * mCellSize;
+    f32 cellX = (rPosition.x + mCellSize / 2.0f) / mCellSize;
+    f32 cellY = (rPosition.y + mCellSize / 2.0f) / mCellSize;
+    f32 cellZ = (rPosition.z + mCellSize / 2.0f) / mCellSize;
+    s32 originX = static_cast<s32>(cellX) * mCellSize;
+    s32 originY = static_cast<s32>(cellY) * mCellSize;
+    s32 originZ = static_cast<s32>(cellZ) * mCellSize;
 
     TDDraw::setup(0, 1, 0);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);

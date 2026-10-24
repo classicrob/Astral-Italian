@@ -164,8 +164,8 @@ public:
     void fn_803BE9E0();
     void fn_803BEA60(const char* a, const char* b);
     void fn_803BEA70(const char* a, const BckCtrlData* b);
-    bool fn_803BEA80(const char*);
-    bool fn_803BEAA0(const char*, const BckCtrlData&);
+    void fn_803BEA80(const char*);
+    void fn_803BEAA0(const char*, const BckCtrlData&);
     void fn_803BEAC0();
     void requestHairAndHatMovementOn();
     void fn_803BEB10(s32 a);

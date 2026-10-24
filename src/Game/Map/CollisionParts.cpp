@@ -61,7 +61,7 @@ void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, const vo
     mZone = MR::getCollisionDirector()->getCategoryKeeper(keeperIndex)->getZone(MR::getCurrentPlacementZoneId());
 
     s32 zoneId = mZone->mZoneID;
-    MR::initCameraCodeCollection(MR::getSensorHost(pHitSensor)->mName, zoneId);
+    MR::initCameraCodeCollection(MR::getSensorHost(pHitSensor)->getName(), zoneId);
     mServer->calcFarthestVertexDistance();
     MR::termCameraCodeCollection();
 

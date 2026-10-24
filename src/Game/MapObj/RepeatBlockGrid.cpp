@@ -440,7 +440,10 @@ void RepeatBlockShadowDrawer::makeTailFace() {
     TVec3f drop;
     calcDropOffset(&drop);
     RepeatBlockCell* pLast = &mHistory->getNode(mHistory->mCount - 1)->mCell;
-    mVolume->setup(pLast, calcDirection(pLast, &mHistory->getNode(mHistory->mCount - 2)->mCell), 1.0f - mOffset);
+    s32 direction = calcDirection(pLast, &mHistory->getNode(mHistory->mCount - 2)->mCell);
+    f32 rate = mOffset;
+    rate = 1.0f - rate;
+    mVolume->setup(pLast, direction, rate);
     TVec3f offset(drop);
     offset *= (f32)len;
     mHasTail = mVolume->calcFace(mTailPoints, mDirection, offset);
@@ -451,8 +454,8 @@ RepeatBlockVolume::RepeatBlockVolume(RepeatBlockGrid* pGrid) : mGrid(pGrid), mIs
 
 void RepeatBlockVolume::setup(const RepeatBlockCell* pCell, s32 dir, f32 rate) {
     TVec3f scale;
-    TVec3f center;
     TVec3f shift;
+    TVec3f center;
 
     switch (dir) {
     case 0:
@@ -517,9 +520,13 @@ void RepeatBlockVolume::setup(const RepeatBlockCell* pCell, s32 dir, f32 rate) {
     mPoints[7].y = -0.5f;
     mPoints[7].z = -0.5f;
     mGrid->calcCellPos(&center, *pCell);
-    TVec3f size(mGrid->mCellSize.x, mGrid->mCellSize.y, mGrid->mCellSize.z);
+    f32 z = mGrid->mCellSize.z;
+    f32 y = mGrid->mCellSize.y;
+    f32 x = mGrid->mCellSize.x;
+    TVec3f size(x, y, z);
+    TVec3f* pPoint;
     for (s32 i = 0; i < 8; i++) {
-        TVec3f* pPoint = &mPoints[i];
+        pPoint = &mPoints[i];
         pPoint->add(shift);
         pPoint->mul(scale);
         pPoint->sub(shift);

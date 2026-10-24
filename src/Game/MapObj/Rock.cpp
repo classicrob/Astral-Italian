@@ -938,8 +938,6 @@ void Rock::exeBreak() {
     }
 }
 
-#pragma push
-#pragma global_optimizer off
 // NONMATCHING: register allocation only (target keeps this/string base in r30/r31, we use a frame-pointer r31)
 void Rock::exeFreeze() {
     if (MR::isFirstStep(this)) {
@@ -947,10 +945,13 @@ void Rock::exeFreeze() {
 
         const char* name;
         bool isMini = mRockType == WanwanRollingMini;
-        if (isMini) {
+        switch (isMini) {
+        case true:
             name = "MiniTouch";
-        } else {
+            break;
+        default:
             name = "Touch";
+            break;
         }
         MR::emitEffect(this, name);
         MR::deleteEffect(this, "Smoke");
@@ -981,13 +982,15 @@ void Rock::exeFreeze() {
 
         const char* name;
         bool isMini = mRockType == WanwanRollingMini;
-        if (isMini) {
+        switch (isMini) {
+        case true:
             name = "MiniTouch";
-        } else {
+            break;
+        default:
             name = "Touch";
+            break;
         }
         MR::deleteEffect(this, name);
         setNerve(mUnfreezeNerve);
     }
 }
-#pragma pop

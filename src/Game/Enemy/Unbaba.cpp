@@ -268,11 +268,12 @@ bool Unbaba::updateUnbabaSink() {
     return 0.0f == this->mRiseProgress;
 }
 
-// NONMATCHING: constant and field load order differ.
 void Unbaba::updateUnbabaLaunchMatrix() {
     PSMTXCopy(getBaseMtx(), mLaunchMtx.toMtxPtr());
     MR::setMtxTrans(mLaunchMtx.toMtxPtr(), mHomePosition.x, mHomePosition.y, mHomePosition.z);
-    MR::addTransMtxLocalX(mLaunchMtx.toMtxPtr(), mDistance + -1000.0f);
+    f32 offset = mDistance;
+    offset += -1000.0f;
+    MR::addTransMtxLocalX(mLaunchMtx.toMtxPtr(), offset);
 }
 
 Unbaba::~Unbaba() {}

@@ -12,6 +12,7 @@
 #include "Game/System/WPadHolder.hpp"
 #include "Game/Util/WorldMapUtil.hpp"
 #include "Game/Util/Array.hpp"
+#include <algorithm>
 #ifdef GALAXY_NATIVE
 #include <petari/ppc_integer.hpp>
 #endif
@@ -139,7 +140,6 @@ bool MeisterTalkHolder::isGeneralTalkInitiallyEnabled(s32 index) {
     }
 }
 
-// NONMATCHING: equivalent signed-hour range uses a subtract-and-unsigned-range check.
 bool MeisterTalkHolder::isGeneralTalkEnabled(s32 index) {
     switch(index) {
     case 0: return GameDataFunction::getTicoFatStarPieceAlms(mHungryLumaId)<mRequiredStarPieces;
@@ -152,11 +152,7 @@ bool MeisterTalkHolder::isGeneralTalkEnabled(s32 index) {
     case 13: {
         OSCalendarTime time;
         OSTicksToCalendarTime(OSGetTime(),&time);
-        bool enabled = false;
-        if (time.hour >= 3) {
-            if (time.hour < 5) enabled = true;
-        }
-        return enabled;
+        return 3 <= time.hour && time.hour < 5;
     }
     default: return true;
     }
@@ -184,7 +180,6 @@ void MeisterTalkHolder::nextTalk() {
 #endif
 }
 
-// NONMATCHING: loop register allocation differs.
 void MeisterTalkHolder::removeInvalidTalk() {
     s32 count;
     s32 removed=0;
@@ -200,7 +195,7 @@ void MeisterTalkHolder::removeInvalidTalk() {
                 talks = mEventTalks;
                 for(j=i+1;j<static_cast<u32>(count);j++) {
                     TalkMessageCtrl* next=talks[j];
-                    if(next) { TalkMessageCtrl* previous=talks[i]; talks[i]=next; talks[j]=previous; break; }
+                    if(next) { std::swap(talks[i], talks[j]); break; }
                 }
             }
         }
@@ -219,14 +214,13 @@ TalkMessageCtrl* MeisterTalkHolder::getEventTalk() {
     return 0;
 }
 
-// NONMATCHING: array address evaluation and saved-register allocation differ.
 TalkMessageCtrl* MeisterTalkHolder::getGeneralTalk() {
     s32 index = -1;
     for (s32 i = 0; i < 15; i++) {
         if (mGeneralTalkFlags[i] && isGeneralTalkEnabled(i)) { index = i; break; }
     }
     if (index != -1) {
-        if (index == 6) { MR::setMessageArg(mGeneralTalks[index], MR::getStarPieceNum()); }
+        if (index == 6) { TalkMessageCtrl*& talk = mGeneralTalks[index]; MR::setMessageArg(talk, MR::getStarPieceNum()); }
         return mGeneralTalks[index];
     }
     return 0;

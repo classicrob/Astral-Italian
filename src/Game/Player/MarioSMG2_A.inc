@@ -503,18 +503,21 @@ void Mario::checkHang() {
             return;
         }
 
-        TVec3f horizontal;
         f32 distance = 0.0f;
         switch (edge) {
         case 0:
-        case 1:
+        case 1: {
+            TVec3f horizontal;
             distance = MR::vecKillElement(*_474->calcAndGetPos(0) - position, normal, &horizontal);
             position += normal * distance;
             break;
-        case 2:
+        }
+        case 2: {
+            TVec3f horizontal;
             distance = MR::vecKillElement(*_474->calcAndGetPos(1) - position, normal, &horizontal);
             position += normal * distance;
             break;
+        }
         }
 
         if (distance > 100.0f) {
@@ -1630,8 +1633,8 @@ bool Mario::tryTurnJump() {
     if (fn_803EF7C0() == 0x20) return false;
     if (getPlayerMode() == 4) return false;
     if (!(static_cast<u32>(mMovementStates.mLowBits.mBit27)) && (_3D2 == 0 || static_cast<u8>(checkStickFrontBack()) != 2)) return false;
-    MarioConstTable* table = mActor->mConst->getTable();
-    if (static_cast<s32>(table->mTurnSlipTime - _3D0) < table->mTurnJumpInhibitTime) {
+    if (static_cast<s32>(getActor()->getConst().getTable()->mTurnSlipTime - _3D0) <
+        getActor()->getConst().getTable()->mTurnJumpInhibitTime) {
         _3D0 = 0;
         mMovementStates.mLowBits.mBit27 = 0;
         return false;
@@ -5682,13 +5685,9 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
             if (mGroundPolygon->mSensor != _4C8->mSensor) {
                 f32 distance = _72C;
                 MR::isNearZero(mAirGravityVec, 0.001f);
-                TVec3f negativeGravity(-mAirGravityVec);
-                TVec3f ray(negativeGravity);
-                ray *= distance;
-                TVec3f point(getTrans());
-                point += ray;
+                TVec3f ray = -mAirGravityVec * distance;
                 TVec3f velocity;
-                MR::calcVelocityMovingPoint(_4C8, point, &velocity);
+                MR::calcVelocityMovingPoint(_4C8, getTrans() + ray, &velocity);
                 if (velocity.dot(ray) < 0.0f) {
                     mActor->mPressNormal6D8 = _368;
                     return true;
@@ -5698,33 +5697,16 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
     }
     TVec3f up(-*getGravityVec());
     Triangle ceiling;
-    TVec3f firstRay(up);
-    firstRay *= height;
-    TVec3f firstOffset(up);
-    firstOffset *= 10.0f;
-    TVec3f firstOrigin(position);
-    firstOrigin -= firstOffset;
     TVec3f ceilingPos;
-    bool ceilingHit;
-    if (fn_803B2950()) ceilingHit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&ceilingPos, &ceiling, firstOrigin, firstRay);
-    else ceilingHit = MR::getFirstPolyOnLineToMap(&ceilingPos, &ceiling, firstOrigin, firstRay);
+    bool ceilingHit = queryMarioWallPolygon(this, &ceilingPos, &ceiling, position - up * 10.0f, up * height);
     if (!ceilingHit) return false;
-    TVec3f ceilingDelta(ceilingPos);
-    ceilingDelta -= position;
-    f32 distance = up.dot(ceilingDelta);
+    f32 distance = up.dot(ceilingPos - position);
     const TVec3f* selected = distance < 150.0f ? &ceilingPos : &position;
     TVec3f origin(*selected);
     Triangle floor;
-    TVec3f secondRay(*ceiling.getNormal(0));
-    secondRay *= height;
-    TVec3f secondOffset(*ceiling.getNormal(0));
-    secondOffset *= 10.0f;
-    TVec3f secondOrigin(origin);
-    secondOrigin -= secondOffset;
     TVec3f floorPos;
-    bool floorHit;
-    if (fn_803B2950()) floorHit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&floorPos, &floor, secondOrigin, secondRay);
-    else floorHit = MR::getFirstPolyOnLineToMap(&floorPos, &floor, secondOrigin, secondRay);
+    bool floorHit = queryMarioWallPolygon(this, &floorPos, &floor, origin - *ceiling.getNormal(0) * 10.0f,
+                                         *ceiling.getNormal(0) * height);
     if (floorHit) {
         if (ceiling.mSensor != floor.mSensor && (fn_803B2E10(&ceiling) || MR::isSensorPressObj(floor.mSensor))) {
             if (!atCurrentPosition && mActor->_390 == 0) {
@@ -5743,32 +5725,22 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
         mDrawStates.mWord |= 2;
         TVec3f displacement;
         if (distance < 0.0f) {
-            TVec3f delta(ceilingPos);
-            delta -= position;
-            displacement = delta;
+            displacement = ceilingPos - position;
             displacement.setLength(height - distance);
         } else {
-            TVec3f delta(position);
-            delta -= ceilingPos;
-            displacement = delta;
+            displacement = position - ceilingPos;
             displacement.setLength(150.0f - distance);
         }
         if (static_cast<u32>(mMovementStates.mLowBits.mBit30)) {
             if (mGroundPolygon->mSensor == ceiling.mSensor) {
-                f32 length = PSVECMag(&displacement);
-                TVec3f pushDirection(*ceiling.getNormal(0));
-                pushDirection *= length;
-                push(pushDirection);
+                push(*ceiling.getNormal(0) * displacement.length());
             } else {
                 mActor->_F48 = ceiling.mSensor;
                 mActor->mPressNormal6D8 = _368;
                 return true;
             }
         } else {
-            f32 length = PSVECMag(&displacement);
-            TVec3f pushDirection(*ceiling.getNormal(0));
-            pushDirection *= length;
-            push(pushDirection);
+            push(*ceiling.getNormal(0) * displacement.length());
         }
     }
     return false;

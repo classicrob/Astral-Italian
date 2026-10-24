@@ -211,14 +211,13 @@ void PlayResultInStageHolder::clearAfterMiss() {
 
 void PlayResultInStageHolder::clearForRetry() {
     PlayResultInStageHolder* pHolder = this;
-    s32 padMode = pHolder->mPadMode;
     pHolder->mClearedCoinNum = 0;
     pHolder->mCoinAdded = 0;
     pHolder->mHasRetryGalaxy = false;
     pHolder->mPlayerHealth = 3;
     pHolder->mIsSuperDreamer = false;
     pHolder->mIsPurpleCoinFull = false;
-    if (padMode != 0) {
+    if (pHolder->mPadMode != 0) {
         pHolder->mPadMode = 0;
     }
 }

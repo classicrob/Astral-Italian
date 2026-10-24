@@ -724,15 +724,7 @@ u16 FileSelector::getUserFileMiiIndex(s32 id) const {
 
 // NONMATCHING: register allocation (result flag / index offset registers swapped)
 bool FileSelector::isUserFileComplete(s32 id) const {
-    bool result = false;
-
-    if (mUserFile[id - 1].calcNormalPowerStarNum() >= 120) {
-        if (mUserFile[id - 1].getPowerStarNum() >= 240) {
-            result = true;
-        }
-    }
-
-    return result;
+    return mUserFile[id - 1].calcNormalPowerStarNum() >= 120 && mUserFile[id - 1].getPowerStarNum() >= 240;
 }
 
 void FileSelector::storeSetMiiIdUserFile(s32 id, const FileSelectIconID& rIconId) {
@@ -852,10 +844,14 @@ void FileSelector::updateBgm() {
                 mBgmState = state;
             }
 
-            if (mTitleBgmRhythmFadeFrames > 0) {
-                s32 frame = mTitleBgmRhythmFadeFrames;
+            s32 target;
+            s32 volume;
+            s32 frame = mTitleBgmRhythmFadeFrames;
+            if (frame > 0) {
+                volume = mTitleBgmRhythmVolume;
+                target = mTargetTitleBgmRhythmVolume;
                 mTitleBgmRhythmFadeFrames = frame - 1;
-                mTitleBgmRhythmVolume += (mTargetTitleBgmRhythmVolume - mTitleBgmRhythmVolume) / frame;
+                mTitleBgmRhythmVolume = volume + (target - volume) / frame;
             }
 
             MR::startSystemLevelSE("SE_SY_LV_TITLE_BGM", -1, -1);

@@ -56,7 +56,9 @@ StoryBookDemo::StoryBookDemo() : LiveActor("遊べる絵本"), mArea(0), mText(0
         mNextTexture = new JUTTexture(MR::getFrameBufferWidth(), MR::getFrameBufferHeight(), GX_TF_RGB565);
     }
     s32 height = MR::getFrameBufferHeight();
-    s32 size = height * MR::getFrameBufferWidth() * 2;
+    s32 width = MR::getFrameBufferWidth();
+    width *= height;
+    s32 size = width * 2;
     MR::zeroMemory(mCurrentTexture->mImage, size);
     MR::zeroMemory(mNextTexture->mImage, size);
     MR::createDrawAdaptor("絵本用キャプチャ", 0x33, MR::FunctorV0M<StoryBookDemo*, void (StoryBookDemo::*)()>(this, &StoryBookDemo::capture));

@@ -37,7 +37,9 @@ void WanwanCreator::init(const JMapInfoIter& rIter) {
         MR::declareStarPiece(this, Wanwan::getAppearStarPieceNum((Rock::Type)mType));
     } else {
         s32 stay = Wanwan::getGoalStayStep();
-        mCount = (stay + (s32)(MR::getRailTotalLength(this) / mSpeed)) / mInterval + 2;
+        s32 travel = (s32)(MR::getRailTotalLength(this) / mSpeed);
+        travel += stay;
+        mCount = travel / mInterval + 2;
         MR::declareStarPiece(this, Wanwan::getAppearStarPieceNum((Rock::Type)mType) * 3);
     }
     mWanwans = new Wanwan[mCount];

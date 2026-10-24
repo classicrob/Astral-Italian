@@ -128,7 +128,6 @@ MogucchiShooter::MogucchiShooter(const char* pName) : LiveActor(pName) {
 
 MogucchiShooter::~MogucchiShooter() {}
 
-// NONMATCHING: callback stack placement and string-pool address-load scheduling; calls, literals and field offsets verified.
 void MogucchiShooter::init(const JMapInfoIter& rIter) {
     MR::initRotation(&mAimDirection, rIter);
     MR::initActor(this, rIter, "GliderBazooka", false);
@@ -147,11 +146,7 @@ void MogucchiShooter::init(const JMapInfoIter& rIter) {
         mProjectileKind = 0;
         MR::createSceneObj(0x8D);
     }
-    bool (MogucchiShooter::*callback)(TPos3f*, const JointControllerInfo&) = &MogucchiShooter::calcShooterPropellerJoint;
-    const char* jointName = "Propeller";
-    JointControlDelegator< MogucchiShooter >* pJoint = new JointControlDelegator< MogucchiShooter >(this, callback, nullptr);
-    MR::setJointControllerParam(pJoint, this, jointName);
-    mJointCtrl = pJoint;
+    mJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &MogucchiShooter::calcShooterPropellerJoint, "Propeller");
     MogucchiSpike* spike = new MogucchiSpike(this, MR::getJointMtx(this, "Cockpit"));
     mSpike = spike;
     mBreakModel = MR::createModelObjEnemy("壊れモデル", "GliderBazookaBreak", getBaseMtx());

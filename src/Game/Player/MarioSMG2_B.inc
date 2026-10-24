@@ -1752,7 +1752,7 @@ void Mario::startSwim() {
         stopJump();
         mSinkTimer = 0;
 
-        mMovementStates.mHighWord &= 0xFFFFFFFCU;
+        mMovementStates.mHighPairBits.mLowPair = 0;
         mMovementStates.mLowBits.mBit13 = 0;
         if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
             addVelocity(getWallNorm(), 50.0f);
@@ -3997,9 +3997,7 @@ void Mario::fn_803B0EF0() {
         MarioActor* actor = this->mActor;
         actor->getYoshi()->fn_8040CCD0(sp68 + sp5C + *this->getGravityVec() * 20.0f);
         f32 t31 = YoshiParam::fn_8041BD80();
-        TVec3f launch = sp68 - sp5C - *this->getGravityVec() * t31;
-        this->mMovementStates.mHighBits.mBit18 = 1;
-        this->_304 = launch;
+        this->tryForceJumpDelay(sp68 - sp5C - *this->getGravityVec() * t31);
         this->changeAnimation("ヨッシー離脱ジャンプ", "落下");
         this->mActor->setPlayerMode(0, true, true);
         TVec3f jointPosition;

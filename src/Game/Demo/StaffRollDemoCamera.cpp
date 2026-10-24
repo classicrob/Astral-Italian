@@ -29,9 +29,7 @@ TVec3f StaffRollDemoCamera::calcCameraPos() const {
     dir.y *= 100.0f;
     dir.z *= 100.0f;
     const TVec3f& target = TVec3f(mTarget);
-    TVec3f pos(target);
-    pos += dir;
-    return pos;
+    return target + dir;
 }
 
 const char* StaffRollDemoCamera::getCameraName() const {

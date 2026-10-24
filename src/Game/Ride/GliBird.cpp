@@ -925,23 +925,17 @@ void GliBird::reactionCollision(const TVec3f& rNormal, HitSensor* pSensor, bool 
 
         f32 velDot = mVelocity.dot(rNormal);
         if (velDot < 0.0f) {
-            TVec3f negNormal = -rNormal;
-            TVec3f a = negNormal * (1.0f + sReflectRate);
-            TVec3f b = a * velDot;
-            TVec3f c = rNormal * (1.0f + sReflectRate);
-            TVec3f d = c * velDot;
-            mVelocity -= d;
+            TVec3f b = (-rNormal) * (1.0f + sReflectRate) * velDot;
+            mVelocity -= rNormal * (1.0f + sReflectRate) * velDot;
         }
 
-        TVec3f push = rNormal * 15.0f;
-        mVelocity.add(push);
+        mVelocity.add(rNormal * 15.0f);
 
         if (mDamageTimer <= 0) {
             mSpeed *= 0.5f;
 
             if (frontDot < -sCollisionHeadOnThreshold) {
-                TVec3f extra = mGravity * -sCollisionPush;
-                mVelocity.add(extra);
+                mVelocity.add(mGravity * -sCollisionPush);
             }
         }
 

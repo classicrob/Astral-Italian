@@ -48,8 +48,11 @@ bool YoshiLockOnTargetControl::isInvalid() const {
 }
 
 bool YoshiLockOnTargetControl::isMarkDead() const {
-    if (!mMark) return true;
-    return MR::isDead(mMark);
+    if (mMark == nullptr) {
+        return true;
+    } else {
+        return MR::isDead(mMark);
+    }
 }
 
 void YoshiLockOnTargetControl::copyTargetInfo(YoshiLockOnTargetDesc* out) const {

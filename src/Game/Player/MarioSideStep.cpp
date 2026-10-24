@@ -69,7 +69,8 @@ bool MarioSideStep::update() {
             return false;
         } else {
             side *= (1.0f + 0.25f * forward) * getStickP();
-            if (side.dot(getPlayer()->mSideVec) < 0.0f) {
+            const TVec3f& sideVec = getPlayer()->mSideVec;
+            if (side.dot(sideVec) < 0.0f) {
                 if (!isAnimationRun("壁右歩き")) {
                     changeAnimation("壁右歩き");
                 }

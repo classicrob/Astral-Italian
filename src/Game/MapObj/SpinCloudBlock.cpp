@@ -499,8 +499,9 @@ void SpinCloudBlockGroup::updateBlockScale() {
 // NONMATCHING: boolean/index registers and vector component store scheduling differ.
 bool SpinCloudBlockGroup::spawnBlocks() {
     MR::resetPlayerFollowPass();
+    s32 count;
     bool result = false;
-    s32 count = 3 - mBlockNum;
+    count = 3 - mBlockNum;
     if (count > 0) {
         result = true;
     }

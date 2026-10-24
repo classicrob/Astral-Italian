@@ -100,17 +100,13 @@ bool MarioFrontStep::update() {
     }
 
     MarioActor* pMario = mActor;
-    TVec3f collisionOffset(getFrontVec());
-    collisionOffset.x *= 200.0f;
-    collisionOffset.y *= 200.0f;
-    collisionOffset.z *= 200.0f;
-    if (!getPlayer()->fn_803B2880(pMario->_240, collisionOffset)) {
+    if (!getPlayer()->fn_803B2880(pMario->_240, getFrontVec().multInLine(200.0f))) {
         return false;
     }
 
     if (!(getStickP() < 0.1f)) {
-        TVec3f vec;
         TVec3f worldDir(getWorldPadDir());
+        TVec3f vec;
         MR::vecKillElement(worldDir, getPlayer()->getAirGravityVec(), &worldDir);
 
         MR::normalizeOrZero(&worldDir);

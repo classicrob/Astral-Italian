@@ -320,7 +320,9 @@ void DiceMover::checkVelocityChange(TVec3f previous) {
     bool isSmall = difference.squared() <= 0.000003814697265625f;
     if (!isSmall) MR::normalize(&difference);
     f32 dot = newDirection.dot(difference);
-    if (dot * oldDirection.dot(difference) < -0.1) {
+    f32 oldDot = oldDirection.dot(difference);
+    oldDot *= dot;
+    if (oldDot < -0.1) {
         mVelocityChanged = true;
         mChangedSpeed = newSpeed;
     } else {

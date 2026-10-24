@@ -550,20 +550,20 @@ UserFile* SaveDataHandleSequence::getCurrentUserFile() {
 }
 
 
-void SaveDataHandleSequence::restoreUserFileConfigData(UserFile* pUserFile, int index) {
-    char dataName[16];
-    snprintf(dataName, sizeof(dataName), "config%1d", index);
-
-    mSaveDataHandler->restoreGameDataFile(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
-    pUserFile->loadFromConfigDataBinary(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
-}
-
 void SaveDataHandleSequence::restoreUserFileGameData(UserFile* pUserFile, int index) {
     char dataName[16];
     snprintf(dataName, sizeof(dataName), "%s%1d", "user", index);
 
     mSaveDataHandler->restoreGameDataFile(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
     pUserFile->loadFromGameDataBinary(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
+}
+
+void SaveDataHandleSequence::restoreUserFileConfigData(UserFile* pUserFile, int index) {
+    char dataName[16];
+    snprintf(dataName, sizeof(dataName), "config%1d", index);
+
+    mSaveDataHandler->restoreGameDataFile(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
+    pUserFile->loadFromConfigDataBinary(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
 }
 
 void SaveDataHandleSequence::restoreSysConfigFile() {

@@ -441,13 +441,12 @@ void MarioTeresa::checkWallCeilReflect() {
                 playSound("テレサ壁反射");
                 playSound("声壁反射");
                 mActor->changeTeresaAnimation("hit", -1);
-                MarioActor* actor = mActor;
-                const TVec3f& wallNormal = getPlayer()->getWallNorm();
-                actor->fn_803BB510(getPlayer()->getWallPos(), wallNormal);
+                getActor()->fn_803BB510(getPlayer()->getWallPos(), getPlayer()->getWallNorm());
                 mActor->_946 = 10;
                 _46 = mActor->getConst().getTable()->mTeresaWallReflectTime;
                 _14.zero();
-                getPlayer()->_418 = 0;
+                Mario* player = getPlayer();
+                player->_418 = 0;
             }
         }
         _42++;

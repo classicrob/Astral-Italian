@@ -49,13 +49,11 @@ void WorldMapResultStateWorldWarp::exeMove() {
         mPosA.set(pActor->mPosition);
         mPosB.set(mHost->getWorld()->getNode(mInt18)->mPos);
 
-        TVec3f diff(mPosB);
-        diff -= mPosA;
+        const TVec3f& diff = mPosB - mPosA;
         mDir.set(diff);
         MR::normalizeOrZero(&mDir);
 
-        TVec3f scaled = mDir * 9000.0f;
-        mPosB.set(mPosA + scaled);
+        mPosB.set(mPosA + mDir * 9000.0f);
         mHost->startRocketMoveSound();
     }
 
@@ -64,12 +62,8 @@ void WorldMapResultStateWorldWarp::exeMove() {
     }
 
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    f32 inv = 1.0f - rate;
-
-    TVec3f from = mPosA * inv;
-    TVec3f to = mPosB * rate;
-    TVec3f pos = to + from;
-    mHost->setRocketPos(pos, mDir);
+    WorldMapOwner* host = mHost;
+    host->setRocketPos(mPosB * rate + mPosA * (1.0f - rate), mDir);
 
     if (MR::isGreaterEqualStep(this, 30)) {
         mHost->disappearWorld();

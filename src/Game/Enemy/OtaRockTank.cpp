@@ -207,8 +207,9 @@ void OtaRockTank::appear() {
 void OtaRockTank::control() {
     TVec3f trans[6];
     TVec3f dir[6];
+    FixedPosition* pFixedPos;
     for (s32 i = 0; i < 6; i++) {
-        FixedPosition* pFixedPos = mFixedPositions[i];
+        pFixedPos = mFixedPositions[i];
         pFixedPos->calc();
         pFixedPos->mMtx.getTrans(trans[i]);
         pFixedPos->mMtx.getZDir(dir[i]);
@@ -1131,8 +1132,8 @@ void OtaRockTank::fireTankMouth() {
     f32 angle;
     f32 offs;
     s32 i;
-    f32 a;
     f32 speed;
+    f32 a;
 
     FixedPosition* pFixedPos = mFixedPositions[6];
     pFixedPos->calc();
@@ -1164,7 +1165,7 @@ void OtaRockTank::fireTankMouth() {
         do {
             a = 0.0f;
             if (i == 1) {
-                a = offs;
+                a = 30.0f;
             } else if (i == 2) {
                 a = -offs;
             }

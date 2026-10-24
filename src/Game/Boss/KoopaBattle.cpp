@@ -48,21 +48,22 @@ void KoopaBattle::init(const JMapInfoIter& rIter) {
     {
         TVec3f front;
         MR::calcFrontVec(&front, this);
-        TVec3f newPos(mPosition - front.scaleInline(4000.0f));
-        mPosition.set< f32 >(newPos);
+        mPosition.set< f32 >(mPosition - front.scaleInline(4000.0f));
     }
     mJointCtrl = new ActorJointCtrl(this);
     mJointCtrl->endFaceCtrl(0);
     mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::initActorCameraProgrammable(this);
-    if (level != 2) {
-        if (level != 3) {
-            mSequence = new KoopaStateLv1Sequence(this, rIter);
-        } else {
-            mSequence = new KoopaStateLv3Sequence(this, rIter);
-        }
-    } else {
+    switch (level) {
+    default:
+        mSequence = new KoopaStateLv1Sequence(this, rIter);
+        break;
+    case 2:
         mSequence = new KoopaStateLv2Sequence(this, rIter);
+        break;
+    case 3:
+        mSequence = new KoopaStateLv3Sequence(this, rIter);
+        break;
     }
     initNerve(&NrvKoopaBattle::KoopaBattleNrvBattle::sInstance, 1);
     MR::initActorState(this, mSequence, &NrvKoopaBattle::KoopaBattleNrvBattle::sInstance, "PhaseSequence");

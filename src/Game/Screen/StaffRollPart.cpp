@@ -143,10 +143,7 @@ void StaffRollPart::alignLines(s32 type) {
         getRectCenter(rect, &center);
         f32 x = center.x - getPosition().x;
         f32 y = rect.i.y - getPosition().y;
-        TVec2f offset;
-        offset.x = x;
-        offset.y = y;
-        addLinePosition(negatePosition(offset));
+        addLinePosition(negatePosition(TVec2f(x, y)));
     } else if (type == 2) {
         JGeometry::TBox2<f32> rect;
         calcTextRect(&rect);
@@ -154,10 +151,7 @@ void StaffRollPart::alignLines(s32 type) {
         getRectCenter(rect, &center);
         f32 x = center.x - getPosition().x;
         f32 y = rect.f.y - getPosition().y;
-        TVec2f offset;
-        offset.x = x;
-        offset.y = y;
-        addLinePosition(negatePosition(offset));
+        addLinePosition(negatePosition(TVec2f(x, y)));
     }
 }
 

@@ -3708,18 +3708,16 @@ void MarioActor::fn_803BEA70(const char* a, const BckCtrlData* b) {
     this->fn_803CAD10(a, nullptr, b);
 }
 
-bool MarioActor::fn_803BEA80(const char* pName) {
+void MarioActor::fn_803BEA80(const char* pName) {
     if (mHairAndHat1090 != nullptr) {
-        return mHairAndHat1090->fn_803EC7F0(pName);
+        mHairAndHat1090->fn_803EC7F0(pName);
     }
-    return false;
 }
 
-bool MarioActor::fn_803BEAA0(const char* pName, const BckCtrlData& rData) {
+void MarioActor::fn_803BEAA0(const char* pName, const BckCtrlData& rData) {
     if (mHairAndHat1090 != nullptr) {
-        return mHairAndHat1090->fn_803EC8A0(pName, rData);
+        mHairAndHat1090->fn_803EC8A0(pName, rData);
     }
-    return false;
 }
 
 void MarioActor::fn_803BEAC0() {
@@ -3736,13 +3734,8 @@ void MarioActor::requestHairAndHatMovementOn() {
 }
 
 void MarioActor::fn_803BEB10(s32 a) {
-    TVec3f up(*this->mMario->getGravityVec());
-    up.scale(150.0f);
-    TVec3f from(this->_240);
-    from -= up;
-    TVec3f dir(*this->mMario->getGravityVec());
-    dir.scale(100.0f);
-    if (this->mMario->fn_803B2880(from, dir)) {
+    TVec3f from = this->_240 - *this->mMario->getGravityVec() * 150.0f;
+    if (this->mMario->fn_803B2880(from, *this->mMario->getGravityVec() * 100.0f)) {
         mPressNormal6D8 = -*this->mMario->getGravityVec();
         this->setPress(4, a);
     }
@@ -6390,17 +6383,10 @@ bool MarioActor::fn_803C4FB0() {
 void MarioActor::fn_803C5090(MtxPtr mtx) {
     mGravityReferenceED0 = (this->mMario)->mAirGravityVec;
     f32 k = mConst->getTable()->mBeePoseHeadToFootLength;
-    TVec3f grav = -*this->mMario->getGravityVec();
-    TVec3f t1(grav);
-    t1.scale(k);
+    TVec3f t1 = -*this->mMario->getGravityVec() * k;
     MtxPtr m1 = MR::tmpMtxTrans(-t1);
     f32 k2 = mConst->getTable()->mBeePoseHeadToFootLength;
-    TVec3f e(mGravityReferenceED0);
-    e.scale(k2);
-    TVec3f p(this->mPosition);
-    p -= e;
-    TVec3f d(this->_33C);
-    d -= p;
+    TVec3f d = this->_33C - (this->mPosition - mGravityReferenceED0 * k2);
     f32 angle = 0.0f;
     TVec3f axis;
     if (!MR::normalizeOrZero(&d)) {
@@ -6423,20 +6409,10 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     TVec3f s110(mGravityReferenceED0);
     s110.scale(k3);
     MR::vecKillElement(s110, this->_360, &s110);
-    TVec3f b0(this->_354);
-    b0 += s110;
-    this->_354 = b0;
-    TVec3f a4(this->_33C);
-    a4 += this->_354;
-    this->_33C = a4;
+    this->_354 = this->_354 + s110;
+    this->_33C = this->_33C + this->_354;
     f32 k4 = mConst->getTable()->mBeePoseHeadToFootLength;
-    TVec3f s80(mGravityReferenceED0);
-    s80.scale(k4);
-    TVec3f s8c(this->mPosition);
-    s8c -= s80;
-    TVec3f s98(this->_33C);
-    s98 -= s8c;
-    this->_360 = s98;
+    this->_360 = this->_33C - (this->mPosition - mGravityReferenceED0 * k4);
     TVec3f s104(this->_360);
     TVec3f sF8(this->_360);
     MR::normalizeOrZero(&sF8);
@@ -6458,19 +6434,10 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     }
     this->_360.setLength(mConst->getTable()->mBeePoseHeadToFootLength);
     if (PSVECMag((Vec*)&s104) > mConst->getTable()->mBeePoseHeadToFootLength) {
-        TVec3f s68(s104);
-        s68 -= this->_360;
-        TVec3f n = -s68;
-        this->_354 += n;
+        this->_354 += -(s104 - this->_360);
     }
     f32 k5 = mConst->getTable()->mBeePoseHeadToFootLength;
-    TVec3f s44(mGravityReferenceED0);
-    s44.scale(k5);
-    TVec3f s50(this->mPosition);
-    s50 -= s44;
-    TVec3f s5c(s50);
-    s5c += this->_360;
-    this->_33C = s5c;
+    this->_33C = (this->mPosition - mGravityReferenceED0 * k5) + this->_360;
     MR::normalizeOrZero(&this->_360);
     if (PSVECMag((Vec*)&this->_354) > mConst->getTable()->mBeePoseDelaySpeedLimit) {
         this->_354.setLength(mConst->getTable()->mBeePoseDelaySpeedLimit);
@@ -6481,8 +6448,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     }
     this->_354.scale(sc);
     if (!MR::isSameDirection(this->_360, (this->mMario)->mFrontVec, 0.01f)) {
-        TVec3f neg = -this->_360;
-        MR::makeMtxUpFront((TPos3f*)mtx, neg, (this->mMario)->mFrontVec);
+        MR::makeMtxUpFront((TPos3f*)mtx, -this->_360, (this->mMario)->mFrontVec);
     } else if (!MR::isSameDirection((this->mMario)->_1FC, (this->mMario)->mFrontVec, 0.01f)) {
         MR::makeMtxUpFront((TPos3f*)mtx, (this->mMario)->_1FC, (this->mMario)->mFrontVec);
     } else {
@@ -6490,16 +6456,8 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     }
     if (mMario->mTargetWalkSpeedIndex > 2 || this->isJumping()) {
         f32 inv = 1.0f - mConst->getTable()->mBeePoseTransBlendingRatioMove;
-        TVec3f s8(this->_33C);
-        s8 -= this->mPosition;
-        TVec3f s14(s8);
-        s14.scale(inv);
-        f32 k6 = mConst->getTable()->mBeePoseTransBlendingRatioMove;
-        TVec3f s20(this->_348);
-        s20.scale(k6);
-        TVec3f s2c(s20);
-        s2c += s14;
-        this->_348 = s2c;
+        this->_348 = this->_348 * mConst->getTable()->mBeePoseTransBlendingRatioMove +
+                     (this->_33C - this->mPosition) * inv;
         MR::setMtxTrans(mtx, this->_348.x, this->_348.y, this->_348.z);
         return;
     }
@@ -13548,7 +13506,6 @@ bool MarioActor::fn_803D8B30(HitSensor* s) const {
     return true;
 }
 
-// NONMATCHING: local vector stack slots, registers, and elided value copy before scaling.
 void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
     f32 ma = PSVECMag((Vec*)a);
     if (PSVECMag((Vec*)&mVelocity) < ma) {
@@ -13566,9 +13523,7 @@ void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
                 if (m2 > 10.0f) {
                     v = 10.0f;
                 }
-                TVec3f up = TVec3f(-*this->mMario->getGravityVec());
-                up.scale(v);
-                (this->mMario)->mJumpVec += up;
+                (this->mMario)->mJumpVec += -*this->mMario->getGravityVec() * v;
             }
         }
     } else {
@@ -13579,13 +13534,9 @@ void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
         f32 f2 = MR::vecKillElement(mVelocity, n, &tmp);
         if (PSVECMag((Vec*)&mVelocity) > 20.0f && f1 < 0.5f * f2) {
             if (this->mMario->isAnimationRun("坂すべり下向きあおむけ")) {
-                TVec3f p((this->mMario)->mFrontVec);
-                p.scale(5.0f);
-                this->mMario->push(p);
+                this->mMario->push((this->mMario)->mFrontVec * 5.0f);
             } else if (this->mMario->isAnimationRun("坂すべり上向きうつぶせ")) {
-                TVec3f p((this->mMario)->mFrontVec);
-                p.scale(-5.0f);
-                this->mMario->push(p);
+                this->mMario->push((this->mMario)->mFrontVec * -5.0f);
             }
             (this->mMario)->mFlags14.mHighWord |= 0x20000000;
         }

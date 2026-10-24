@@ -11,72 +11,6 @@
 #include "Game/Util/FixedPosition.hpp"
 #include <cstdio>
 
-// Unnamed SMG2 helpers outside this unit.
-
-// Shared state helpers
-// 80100030
-bool sandyStateOpenStart(ActorStateBase< Sandy >* pState, s32 step) {
-    if (MR::isFirstStep(pState)) {
-        MR::startAction(pState->mHost, "OpenStart");
-    }
-    return MR::isGreaterEqualStep(pState, step);
-}
-
-// 80100090
-bool sandyStateOpenWait(ActorStateBase< Sandy >* pState, s32 step) {
-    if (MR::isFirstStep(pState)) {
-        MR::startAction(pState->mHost, "OpenWait");
-    }
-    return MR::isGreaterEqualStep(pState, step);
-}
-
-// 801000F0
-bool sandyStateClose(ActorStateBase< Sandy >* pState, bool isAll) {
-    if (MR::isFirstStep(pState)) {
-        if (isAll) {
-            pState->mHost->startActionAll("CloseStart", nullptr);
-        } else {
-            MR::startAction(pState->mHost, "CloseStart");
-        }
-    }
-    return MR::isActionEnd(pState->mHost);
-}
-
-// 80100170
-// NONMATCHING: commuted floating multiply operands in the half-interval conversion.
-bool sandyStateThrow(ActorStateBase< Sandy >* pState, s32 count, s32 interval, bool isBoth) {
-    if (MR::isFirstStep(pState)) {
-        MR::startAction(pState->mHost, "WaitNormal");
-        pState->mHost->getLeftHand()->setWait();
-        {
-            SandyHand* hand = pState->mHost->getLeftHand();
-            hand->mIsThrower = true;
-        }
-        pState->mHost->getLeftHand()->mWaitStep = interval;
-        if (isBoth) {
-            {
-                SandyHand* hand = pState->mHost->getRightHand();
-                hand->mIsThrower = false;
-            }
-            pState->mHost->getRightHand()->forceWait();
-        }
-        pState->mHost->resetCount();
-    }
-    if (isBoth && MR::isStep(pState, (s32)((f32)interval / 2.0f))) {
-        {
-            SandyHand* hand = pState->mHost->getRightHand();
-            hand->mIsThrower = true;
-        }
-        pState->mHost->getRightHand()->setWait();
-        pState->mHost->getRightHand()->mWaitStep = interval;
-    }
-    if (pState->mHost->isTotalCount(count)) {
-        pState->mHost->invalidateHands();
-        return true;
-    }
-    return false;
-}
-
 namespace NrvSandyStateDamage {
     class SandyStateDamageNrvWait : public Nerve {
     public:
@@ -203,11 +137,10 @@ void SandyStateDamage::exeDamageMini() {
         const char* pName;
         if (mDamageCount == 2) {
             pName = "DamageMini2nd";
+        } else if (mDamageCount == 3) {
+            pName = "DamageMini3rd";
         } else {
             pName = "DamageMini";
-            if (mDamageCount == 3) {
-                pName = "DamageMini3rd";
-            }
         }
         mHost->startActionAll(pName, nullptr);
         MR::startActionSound(mHost, "BmSandyDamageCount", mDamageCount * 2, -1, -1);
@@ -216,7 +149,8 @@ void SandyStateDamage::exeDamageMini() {
         TVec3f front;
         mHost->mTargetQuat.getZDir(front);
         MR::turnDirectionToTargetDegreeHorizon(mHost, &front, mPlayerPos, 3.0f);
-        MR::makeQuatUpFront(&mHost->mTargetQuat, -mHost->mGravity, front);
+        Sandy* host = mHost;
+        MR::makeQuatUpFront(&host->mTargetQuat, -host->mGravity, front);
     }
     if (MR::isActionEnd(mHost)) {
         setNerve(&NrvSandyStateDamage::SandyStateDamageNrvOpenWait::sInstance);
@@ -242,4 +176,70 @@ void SandyStateDamage::exeDamage() {
 
 // 80100A20
 SandyStateDamage::~SandyStateDamage() {
+}
+
+// Unnamed SMG2 helpers outside this unit.
+
+// Shared state helpers
+// 80100030
+bool sandyStateOpenStart(ActorStateBase< Sandy >* pState, s32 step) {
+    if (MR::isFirstStep(pState)) {
+        MR::startAction(pState->mHost, "OpenStart");
+    }
+    return MR::isGreaterEqualStep(pState, step);
+}
+
+// 80100090
+bool sandyStateOpenWait(ActorStateBase< Sandy >* pState, s32 step) {
+    if (MR::isFirstStep(pState)) {
+        MR::startAction(pState->mHost, "OpenWait");
+    }
+    return MR::isGreaterEqualStep(pState, step);
+}
+
+// 801000F0
+bool sandyStateClose(ActorStateBase< Sandy >* pState, bool isAll) {
+    if (MR::isFirstStep(pState)) {
+        if (isAll) {
+            pState->mHost->startActionAll("CloseStart", nullptr);
+        } else {
+            MR::startAction(pState->mHost, "CloseStart");
+        }
+    }
+    return MR::isActionEnd(pState->mHost);
+}
+
+// 80100170
+// NONMATCHING: commuted floating multiply operands in the half-interval conversion.
+bool sandyStateThrow(ActorStateBase< Sandy >* pState, s32 count, s32 interval, bool isBoth) {
+    if (MR::isFirstStep(pState)) {
+        MR::startAction(pState->mHost, "WaitNormal");
+        pState->mHost->getLeftHand()->setWait();
+        {
+            SandyHand* hand = pState->mHost->getLeftHand();
+            hand->mIsThrower = true;
+        }
+        pState->mHost->getLeftHand()->mWaitStep = interval;
+        if (isBoth) {
+            {
+                SandyHand* hand = pState->mHost->getRightHand();
+                hand->mIsThrower = false;
+            }
+            pState->mHost->getRightHand()->forceWait();
+        }
+        pState->mHost->resetCount();
+    }
+    if (isBoth && MR::isStep(pState, (s32)((f32)interval / 2.0f))) {
+        {
+            SandyHand* hand = pState->mHost->getRightHand();
+            hand->mIsThrower = true;
+        }
+        pState->mHost->getRightHand()->setWait();
+        pState->mHost->getRightHand()->mWaitStep = interval;
+    }
+    if (pState->mHost->isTotalCount(count)) {
+        pState->mHost->invalidateHands();
+        return true;
+    }
+    return false;
 }

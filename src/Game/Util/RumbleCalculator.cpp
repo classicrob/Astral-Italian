@@ -31,9 +31,7 @@ void RumbleCalculator::calc() {
         f32 attenuation = 1.0f + -progress;
 
         TVec3f phases;
-        f32 phase = progress;
-        phase *= TWO_PI;
-        phases.x = _18 * phase;
+        phases.x = _18 * (progress * TWO_PI);
         phases.y = phases.x + _1C;
         phases.z = phases.y + _1C;
 

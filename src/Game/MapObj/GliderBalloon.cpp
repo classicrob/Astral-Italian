@@ -41,10 +41,11 @@ void GliderBalloon::init(const JMapInfoIter& iter) {
     MR::startBtkAndSetFrameAndStop(this, "Burst", 0.0f);
     initNerve(&NrvGliderBalloon::GliderBalloonNrvWait::sInstance);
     MR::declareStarPiece(this, mPieceCount);
-    mPieces = new StarPieceTracking("スターピース", mPieceCount);
-    StarPieceTracking* group = mPieces;
+    StarPieceTracking* group = new StarPieceTracking("スターピース", mPieceCount);
+    mPieces = group;
+    const char* pieceName = "追尾スターピース";
     for (s32 i = 0; i < group->mObjNumMax; ++i) {
-        StarPieceTrackingPiece* piece = new StarPieceTrackingPiece("追尾スターピース");
+        StarPieceTrackingPiece* piece = new StarPieceTrackingPiece(pieceName);
         piece->initWithoutIter();
         group->registerActor(piece);
     }

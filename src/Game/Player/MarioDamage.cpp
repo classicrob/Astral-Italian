@@ -498,11 +498,10 @@ bool MarioFireRun::update() {
             break;
         }
 
-        const MarioConstTable* table = mActor->getConst().getTable();
-        if (_12 > table->mFireRunTimer3) {
-            addVelocity(getFrontVec() * table->mFireRunSpeed);
+        if (_12 > getActor()->getConst().getTable()->mFireRunTimer3) {
+            addVelocity(getFrontVec() * getActor()->getConst().getTable()->mFireRunSpeed);
         } else {
-            addVelocity(getFrontVec() * table->mFireRunSpeed * _12 / table->mFireRunTimer3);
+            addVelocity(getFrontVec() * getActor()->getConst().getTable()->mFireRunSpeed * _12 / getActor()->getConst().getTable()->mFireRunTimer3);
         }
 
         if (mActor->isEnableNerveChange()) {

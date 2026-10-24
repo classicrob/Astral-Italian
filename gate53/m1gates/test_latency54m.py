@@ -3,7 +3,7 @@ from latency54m import ledger_checks,script_without_space
 from common import REPO
 
 def fixture():
- es=[{'event':'start','ns':1,'clock':'CLOCK_UPTIME_RAW','planned_presses':27,'seed':12345,'gap_min_ms':1000,'gap_max_ms':1600,'hold_ms':60,'symbol_exports_verified':True}];text=[];plan=1
+ es=[{'event':'start','ns':1,'clock':'CLOCK_UPTIME_RAW','planned_presses':27,'seed':12345,'gap_min_ms':1000,'gap_max_ms':1600,'hold_ms':60,'symbol_exports_verified':True,'main_executable_file_verified':True}];text=[];plan=1
  for i in range(1,28):
   plan+=1_060_000_000;n=plan+100
   es.extend([{'event':'send','id':i,'ns':n,'native_press_ns':n+1,'return_ns':n+2,'planned_ns':plan,'gap_ms':1000,'stage_before':0},

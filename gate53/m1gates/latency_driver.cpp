@@ -8,12 +8,14 @@
 #include <dlfcn.h>
 #include <fstream>
 #include <mach-o/dyld.h>
+#include <mach-o/loader.h>
 #include <map>
 #include <pthread.h>
 #include <random>
 #include <string>
 #include <thread>
 #include <time.h>
+#include <sys/stat.h>
 
 namespace {
 using U64 = std::uint64_t;
@@ -34,12 +36,21 @@ void* run(void*) {
     auto error = [&](const char* reason) {
         std::fprintf(log, "{\"event\":\"error\",\"ns\":%" PRIu64 ",\"reason\":\"%s\"}\n", now(), reason);
     };
-    if (std::strcmp(exe, _dyld_get_image_name(0)) != 0) { error("executable path mismatch"); std::fclose(log); return nullptr; }
+    // DYLD_INSERT_LIBRARIES may put the injected image before the main executable.
+    std::uint32_t mainImage = _dyld_image_count();
+    for (std::uint32_t i = 0; i < _dyld_image_count(); ++i)
+        if (_dyld_get_image_header(i)->filetype == MH_EXECUTE) { mainImage = i; break; }
+    struct stat expectedFile{}, mainFile{};
+    if (mainImage == _dyld_image_count() || stat(exe, &expectedFile) != 0 ||
+        stat(_dyld_get_image_name(mainImage), &mainFile) != 0 ||
+        expectedFile.st_dev != mainFile.st_dev || expectedFile.st_ino != mainFile.st_ino) {
+        error("main executable file mismatch"); std::fclose(log); return nullptr;
+    }
     std::map<std::string, U64> addresses;
     std::ifstream input(symbols);
     std::string name, hex;
     while (input >> name >> hex) addresses[name] = std::strtoull(hex.c_str(), nullptr, 16);
-    const auto slide = _dyld_get_image_vmaddr_slide(0);
+    const auto slide = _dyld_get_image_vmaddr_slide(mainImage);
     auto address = [&](const char* name) -> void* {
         const auto it = addresses.find(name);
         return it == addresses.end() ? nullptr : reinterpret_cast<void*>(it->second + slide);
@@ -65,7 +76,7 @@ void* run(void*) {
         dlsym(RTLD_DEFAULT, "_ZN12PetariNative12LatencyProbe5stageE") != stage) {
         error("export/map mismatch"); std::fclose(log); return nullptr;
     }
-    std::fprintf(log, "{\"event\":\"start\",\"ns\":%" PRIu64 ",\"clock\":\"CLOCK_UPTIME_RAW\",\"planned_presses\":27,\"seed\":12345,\"gap_min_ms\":1000,\"gap_max_ms\":1600,\"hold_ms\":60,\"symbol_exports_verified\":true}\n", now());
+    std::fprintf(log, "{\"event\":\"start\",\"ns\":%" PRIu64 ",\"clock\":\"CLOCK_UPTIME_RAW\",\"planned_presses\":27,\"seed\":12345,\"gap_min_ms\":1000,\"gap_max_ms\":1600,\"hold_ms\":60,\"symbol_exports_verified\":true,\"main_executable_file_verified\":true,\"main_image_index\":%u}\n", now(), mainImage);
     std::mt19937 random(12345);
     std::uniform_int_distribution<int> gap(1000, 1600);
     const U64 deadline = now() + 150'000'000'000ULL;

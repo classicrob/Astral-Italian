@@ -32,7 +32,7 @@ def ledger_checks(events,text):
  checks={};checks['no_driver_errors_or_busy_skips']=not any(e['event'] in ('error','skip_busy') for e in events)
  starts=[e for e in events if e['event']=='start'];quits=[e for e in events if e['event']=='quit']
  sends=[e for e in events if e['event']=='send'];releases=[e for e in events if e['event']=='release'];matches=[e for e in events if e['event']=='match']
- checks['finite27_wall_time_config']=len(starts)==1 and all(starts[0].get(k)==v for k,v in {'clock':'CLOCK_UPTIME_RAW','planned_presses':27,'seed':12345,'gap_min_ms':1000,'gap_max_ms':1600,'hold_ms':60,'symbol_exports_verified':True}.items())
+ checks['finite27_wall_time_config']=len(starts)==1 and all(starts[0].get(k)==v for k,v in {'clock':'CLOCK_UPTIME_RAW','planned_presses':27,'seed':12345,'gap_min_ms':1000,'gap_max_ms':1600,'hold_ms':60,'symbol_exports_verified':True,'main_executable_file_verified':True}.items())
  ids=list(range(1,28))
  checks['exact27_sends_releases_matches']=all([e['id'] for e in es]==ids for es in (sends,releases,matches))
  checks['no_skipped_in_window']=not any(e['event']=='skip_not_gameplay' and e['id']!=1 for e in events)
@@ -100,7 +100,8 @@ def main():
  old=[a.prior_campaign/'VALIDATION.json',a.prior_campaign/'COMPARISON.md']
  for path in old:
   dest=path.with_name(path.stem+'-initial-input-latency-failure'+path.suffix)
-  assert not dest.exists();dest.write_bytes(path.read_bytes())
+  if dest.exists():assert dest.read_bytes()==path.read_bytes(),'retained initial refusal differs'
+  else:dest.write_bytes(path.read_bytes())
  prior=json.loads((a.prior_campaign/'VALIDATION.json').read_text());assert prior['failed_gates']==['input-latency']
  write(base/'command.json',{'argv':sys.argv,'build':build,'app':str(app),'source':meta['source'],'build_kind':'server-candidate','harness_fix_authority':'PORT: finite27 WALL-TIME driver and ledger approved; original27/27-at2frames unchanged','no_native_executable_changes':True})
  prime=ROOT/'runs'/(a.label+'-prime');proc=run(app,prime,stage='YosshiHomeGalaxy',script=movement,cold=True);assert proc['completed'] and proc['no_faults']

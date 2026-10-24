@@ -127,5 +127,7 @@ cat > "$out/$name.manifest.json" <<EOF
 EOF
 sed -e "s/__VERSION__/$version/g" -e "s/__COMMIT__/$commit/g" -e "s/__MINMACOS__/$minmacos/g" -e "s/__SHA256__/$sha_zip/g" \
     "$here/RELEASE-NOTES.template.md" > "$out/$name.notes.md"
+# Builds registry: lets intake map a tester's executable UUID back to its source commit.
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$exe_uuid" "$version" "$commit" "$(basename "$(dirname "$app")")" "$sha_zip" "$builddate" > "$out/$name.builds.tsv"
 echo "make_release: done"
 ls -la "$out/$name".* | awk '{print $5, $9}'

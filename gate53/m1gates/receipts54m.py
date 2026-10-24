@@ -112,11 +112,11 @@ def main():
   data=[]
   for n in (1,2):
    for mode in ('fifo','immediate'):
-    name=f'cadence-{mode}-r{n}';r,l,_=actual(name);text=(runpath(name)/'app.log').read_text(errors='replace');lat=latency(text)
+    name=f'cadence-{mode}-r{n}';r,l,_=actual(name);warm_path=runpath(name)/'WARM-GATE.json';warm_result=readj(warm_path) if warm_path.exists() else r;text=(runpath(name)/'app.log').read_text(errors='replace');lat=latency(text)
     modeok='present mode Fifo' in text and 'PETARI_PRESENT_MODE' not in l['environment'] if mode=='fifo' else 'present mode Immediate' in text
     # Two Fifo arms must pass stall/menu/cadence thresholds; Immediate is a latency comparison.
-    ok=bool(lat) and len(lat)==27 and all(fr==2 and math.isfinite(ms) for fr,ms in lat) and modeok and (mode!='fifo' or r['passed'] and r['late_present_pct']<1)
-    data.append({'case':name,'passed':ok,'late_present_pct':r['late_present_pct'],'presses':len(lat),'frames_after_read':sorted(set(fr for fr,_ in lat)),'latency_p50_ms':sorted(ms for _,ms in lat)[len(lat)//2] if lat else None,'latency_max_ms':max((ms for _,ms in lat),default=None),'present_summary':[line for line in text.splitlines() if 'Petari present intervals' in line]})
+    ok=bool(lat) and len(lat)==27 and all(fr==2 and math.isfinite(ms) for fr,ms in lat) and modeok and (mode!='fifo' or warm_result['result']=='PASS' and r['late_present_pct']<1)
+    data.append({'case':name,'passed':ok,'warm_assessment':str(warm_path) if warm_path.exists() else str(runpath(name)/'RESULT.json'),'late_present_pct':r['late_present_pct'],'presses':len(lat),'frames_after_read':sorted(set(fr for fr,_ in lat)),'latency_p50_ms':sorted(ms for _,ms in lat)[len(lat)//2] if lat else None,'latency_max_ms':max((ms for _,ms in lat),default=None),'present_summary':[line for line in text.splitlines() if 'Petari present intervals' in line]})
   return {'passed':all(d['passed'] for d in data),'runs':data}
  gate('fifo-default-cadence-latency',[runpath(f'cadence-{mode}-r{n}')/'RESULT.json' for n in (1,2) for mode in ('fifo','immediate')],cadencecheck,'Fifo late <1%, 27/27 latency presses at 2 frames after read')
  def audiocheck():

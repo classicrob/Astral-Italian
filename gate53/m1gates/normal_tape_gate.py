@@ -33,7 +33,7 @@ DISC = HOME / "MacioGalaxy2-gamedata/SB4E01-extracted"
 CHECKS = ("scene_chain", "destination_300_consecutive_valid", "no_faults",
           "no_invalid_worldmap_request", "existing_unlocked_file1", "seed_unchanged",
           "binary_unchanged", "no_divergence", "whole_session_replay", "replay_completed",
-          "lossless_tape", "tape_unchanged")
+          "lossless_tape", "tape_unchanged", "game_pointer_buffers_compared")
 
 
 def sha(path):
@@ -77,6 +77,8 @@ def evaluate(rows, log, replay):
         "no_divergence": complete and divergence is None and not replay.get("stopped"),
         "whole_session_replay": replay.get("mode") == "whole-session" and "jump cut" not in log,
         "replay_completed": complete,
+        "game_pointer_buffers_compared": bool(segments) and replay.get("mode") == "whole-session" and all(
+            s.get("pointer_rows_compared") == s.get("tape_frames", -1) for s in segments),
     }
     return checks, {"stage_order": order, "destination_max_consecutive_valid": best,
                     "faults": faults[:20], "first_divergence": divergence,

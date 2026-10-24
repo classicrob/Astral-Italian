@@ -249,26 +249,22 @@ f32 calcUnbabaHeightCurve(f32 t, f32 slope0, f32 time1, f32 value1, f32 slope1, 
     return calcUnbabaHermiteSegment(t, time2, 1.0f, slope2, 1.0f, 1.0f, 0.0f);
 }
 
-// NONMATCHING: float-load scheduling and product register assignment differ.
 bool Unbaba::updateUnbabaRise() {
     this->mRiseProgress += sOne / sRiseTime;
     MR::clamp01(&this->mRiseProgress);
     f32 t = calcUnbabaHeightCurve(this->mRiseProgress, gUnbabaInitialRiseSlope, sRiseTime1, 1.1f, sRiseSlope1, 0.85f, 0.3f);
     f32 height = this->mDistance * t;
-    height += -2500.0f * this->mScale.x;
-    this->mHeight = height;
+    this->mHeight = height + -2500.0f * this->mScale.x;
     return sOne == this->mRiseProgress;
 }
 
-// NONMATCHING: float-load scheduling and product register assignment differ.
 bool Unbaba::updateUnbabaSink() {
     s32 frames = 20;
     this->mRiseProgress -= sOne / f32(frames);
     MR::clamp01(&this->mRiseProgress);
     f32 t = calcUnbabaHeightCurve(this->mRiseProgress, 3.0f, 0.75f, 1.0f, -0.9f, 0.92f, 0.55f);
     f32 height = this->mDistance * t;
-    height += -2500.0f * this->mScale.x;
-    this->mHeight = height;
+    this->mHeight = height + -2500.0f * this->mScale.x;
     return 0.0f == this->mRiseProgress;
 }
 

@@ -170,8 +170,8 @@ void LavaProminence::setGravityAndMakeMtx() {
     f32 z = mScale.z;
     f32 y = mScale.y;
     f32 x = mScale.x;
-    _18C[0][1] = 0.0f;
     _18C[0][0] = x;
+    _18C[0][1] = 0.0f;
     _18C[0][2] = 0.0f;
     _18C[1][0] = 0.0f;
     _18C[1][1] = y;

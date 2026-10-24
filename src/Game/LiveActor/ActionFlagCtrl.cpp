@@ -96,8 +96,7 @@ void ActionFlagCtrl::startAction(const char* name) {
 }
 
 void ActionFlagCtrl::update() {
-    if (!mFlagData) return;
-    if (!mIsActive) return;
+    if (!mFlagData || !mIsActive) return;
     updateSensors();
 }
 

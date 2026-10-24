@@ -303,8 +303,8 @@ void BezierRail::calcCurrentRailCtrlPointIter(JMapInfoIter* pIter, f32 t, bool f
 }
 
 void BezierRail::calcRailCtrlPointIter(JMapInfoIter* pIter, int idx) const {
-    pIter->mIndex = idx;
     pIter->mInfo = mInfo;
+    pIter->mIndex = idx;
 }
 
 void BezierRail::getIncludedSection(const RailPart** pRailParts, f32* pPos, f32 t, int direction) const {

@@ -720,7 +720,6 @@ bool Mario::checkGroundOnSlope() {
     }
     Triangle ground;
     bool hit;
-    bool missingGround = false;
     mMovementStates.mLowBits.mBit11 = 1;
     f32 distance;
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising()) {
@@ -749,12 +748,7 @@ bool Mario::checkGroundOnSlope() {
     positionSum.zero();
     TVec3f groundPosition;
     TVec3f origin(mPosHolder->mPos - *getGravityVec() * 30.0f);
-    TVec3f queryDirection(*getGravityVec() * distance);
-    if (fn_803B2950()) {
-        hit = MR::getFirstPolyOnLineBFastToDashYoshiStepAndMap(origin, queryDirection, &hitPosition, &ground);
-    } else {
-        hit = MR::getFirstPolyOnLineBFast(origin, queryDirection, &hitPosition, &ground);
-    }
+    hit = fn_803B2B50(origin, *getGravityVec() * distance, &hitPosition, &ground);
     if (hit) {
         if (calcAngleD(*ground.getNormal(0)) >= 80.0f) {
             hit = false;
@@ -773,9 +767,6 @@ bool Mario::checkGroundOnSlope() {
             recordLastGround();
         }
     }
-    if (!groundCount) {
-        missingGround = true;
-    }
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit18)) && getGravityVec()->dot(mGroundPos - mPosHolder->mPos) >= 0.0f) {
         mMovementStates.mLowBits.mBit18 = 0;
         TVec3f offset(mGroundPos - mPosHolder->mPos);
@@ -786,7 +777,7 @@ bool Mario::checkGroundOnSlope() {
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising()) {
         return false;
     }
-    if (missingGround) {
+    if (!groundCount) {
         mMovementStates.mLowBits.mBit11 = 1;
         return false;
     }
@@ -2469,45 +2460,26 @@ void Mario::decideSquatWalkAnimation() {
         u32 flags = mDrawStates.mWord;
         if ((((flags >> 13) & 1) || ((flags >> 12) & 1)) && _738 < 160.0f) {
             if (isPlayerModeYoshi()) {
+                f32 frame = getAnimator()->getFrame();
                 f32 previous = mPrevAnimFrame;
-                if (previous > getAnimator()->getFrame() || (previous < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
+                if (previous > frame || (previous < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
                     playSound("水跳ね左足小");
                     playEffect("水はね弱");
                     f32 depth = _738;
-                    TVec3f offset(_368);
-                    offset *= depth;
-                    TVec3f position(mGroundPos);
-                    position += offset;
-                    playEffectSRT("水波紋", 0.2f, _73C, position);
+                    playEffectSRT("水波紋", 0.2f, _73C, mGroundPos + _368 * depth);
                 }
             } else {
                 if (mPrevAnimFrame > getAnimator()->getFrame()) {
                     playSound("水跳ね左足小");
                     playEffect("水はね左弱");
                     f32 depth = _738;
-                    TVec3f offset(_368);
-                    offset *= depth;
-                    TVec3f side(mSideVec);
-                    side *= 20.0f;
-                    TVec3f first(mGroundPos);
-                    first -= side;
-                    TVec3f position(first);
-                    position += offset;
-                    playEffectSRT("水波紋", 0.2f, _73C, position);
+                    playEffectSRT("水波紋", 0.2f, _73C, mGroundPos - mSideVec * 20.0f + _368 * depth);
                 }
                 if (mPrevAnimFrame < 30.0f && getAnimator()->getFrame() >= 30.0f) {
                     playSound("水跳ね右足小");
                     playEffect("水はね右弱");
                     f32 depth = _738;
-                    TVec3f offset(_368);
-                    offset *= depth;
-                    TVec3f side(mSideVec);
-                    side *= 20.0f;
-                    TVec3f first(mGroundPos);
-                    first += side;
-                    TVec3f position(first);
-                    position += offset;
-                    playEffectSRT("水波紋", 0.2f, _73C, position);
+                    playEffectSRT("水波紋", 0.2f, _73C, mGroundPos + mSideVec * 20.0f + _368 * depth);
                 }
             }
         }
@@ -2548,8 +2520,9 @@ void Mario::fn_803AD5B0() {
         if ((static_cast<u32>(mDrawStates.mBits.mBit13)) || (static_cast<u32>(mDrawStates.mBits.mBit12))) {
             if (_738 < 160.0f) {
                 if (isPlayerModeYoshi()) {
+                    f32 frame = getAnimator()->getFrame();
                     f32 previousFrame = mPrevAnimFrame;
-                    if (previousFrame > getAnimator()->getFrame() ||
+                    if (previousFrame > frame ||
                         (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
                         u8 index = mTargetWalkSpeedIndex;
                         if (index >= 2) {
@@ -2562,11 +2535,7 @@ void Mario::fn_803AD5B0() {
                             }
                         }
                         f32 depth = _738;
-                        TVec3f height(_368);
-                        height *= depth;
-                        TVec3f position(mGroundPos);
-                        position += height;
-                        playEffectSRT("水波紋", 0.2f, _73C, position);
+                        playEffectSRT("水波紋", 0.2f, _73C, mGroundPos + _368 * depth);
                     }
                 } else {
                     if (mPrevAnimFrame > getAnimator()->getFrame()) {
@@ -2581,15 +2550,7 @@ void Mario::fn_803AD5B0() {
                             }
                         }
                         f32 depth = _738;
-                        TVec3f height(_368);
-                        height *= depth;
-                        TVec3f side(mSideVec);
-                        side *= 20.0f;
-                        TVec3f offset(mGroundPos);
-                        offset -= side;
-                        TVec3f position(offset);
-                        position += height;
-                        playEffectSRT("水波紋", 0.2f, _73C, position);
+                        playEffectSRT("水波紋", 0.2f, _73C, mGroundPos - mSideVec * 20.0f + _368 * depth);
                     }
                     if (mPrevAnimFrame < 30.0f) {
                         if (getAnimator()->getFrame() >= 30.0f) {
@@ -2604,15 +2565,7 @@ void Mario::fn_803AD5B0() {
                                 }
                             }
                             f32 depth = _738;
-                            TVec3f height(_368);
-                            height *= depth;
-                            TVec3f side(mSideVec);
-                            side *= 20.0f;
-                            TVec3f offset(mGroundPos);
-                            offset += side;
-                            TVec3f position(offset);
-                            position += height;
-                            playEffectSRT("水波紋", 0.2f, _73C, position);
+                            playEffectSRT("水波紋", 0.2f, _73C, mGroundPos + mSideVec * 20.0f + _368 * depth);
                         }
                     }
                 }
@@ -3226,7 +3179,10 @@ void Mario::decideOnIceAnimation() {
 
 // NONMATCHING: equivalent early-exit branch orientation and register allocation.
 void Mario::updateOnSand() {
-    if ((static_cast<u32>(mMovementStates.mLowBits.mBit0)) || mCometFireDanceArea) {
+    if (static_cast<u32>(mMovementStates.mLowBits.mBit0)) {
+        return;
+    }
+    if (mCometFireDanceArea) {
         return;
     }
 
@@ -3606,8 +3562,10 @@ void Mario::fixWallingDir(bool immediate) {
 
 // NONMATCHING: stack allocation.
 bool Mario::fixWallingDist() {
-    const u32 backWall = (mMovementStates.mLowWord >> 6) & 1U;
-    const u32 frontWall = (mMovementStates.mLowWord >> 23) & 1U;
+    u32 backWall;
+    u32 frontWall;
+    frontWall = (mMovementStates.mLowWord >> 23) & 1U;
+    backWall = (mMovementStates.mLowWord >> 6) & 1U;
     if (backWall & frontWall) {
         return true;
     }
@@ -4148,8 +4106,9 @@ void Mario::fn_803B12B0() {
         actor = mActor;
         f32 maxSpeed = YoshiParam::fn_8041BDB0();
         f32 riseSpeed = actor->fn_803B9A90();
+        f32 acceleration;
         f32 ratio = (YoshiParam::fn_8041BDB0() - riseSpeed) / maxSpeed;
-        f32 acceleration = YoshiParam::fn_8041BDA0();
+        acceleration = YoshiParam::fn_8041BDA0();
         this->mJumpVec += -this->mActor->mAppliedGravityVec * ratio * acceleration;
     }
     this->mActor->fn_803B9A50();

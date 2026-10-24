@@ -26,12 +26,13 @@ void BrosBase::init(const JMapInfoIter& rIter) {
 }
 
 void BrosBase::calcHoldMtx(MtxPtr pDst) {
+    const TVec3f* rot;
     MtxPtr pJoint = MR::getJointMtx(this, "HandR");
     Mtx local;
     PSMTXIdentity(local);
-    const TVec3f& rot = getHoldRotate();
+    rot = &getHoldRotate();
     const TVec3f& trans = getHoldTrans();
-    MR::makeMtxTR(local, trans, rot);
+    MR::makeMtxTR(local, trans, *rot);
     PSMTXConcat(pJoint, local, pDst);
 }
 

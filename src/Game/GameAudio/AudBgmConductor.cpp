@@ -97,7 +97,7 @@ void AudBgmConductor::movement() {
         return;
     }
     JAISoundID id = bgm->getSoundID();
-    if (_14 != (u32)id) {
+    if (id.mID.mComposite != _14) {
         mState = -1;
     }
     u32 time = 90;

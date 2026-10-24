@@ -14,14 +14,7 @@ namespace NrvUFOKinoko {
 UFOKinoko::UFOKinoko(const char* pName) : MapObjActor(pName) {
 }
 
-void UFOKinoko::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
-    bool arg7 = false;
-    MR::getJMapInfoArg7NoInit(rIter, &arg7);
 
-    if (arg7) {
-        pCollector->addArchive("UFOKinokoLow");
-    }
-}
 
 void UFOKinoko::init(const JMapInfoIter& rIter) {
     MapObjActor::init(rIter);
@@ -102,5 +95,14 @@ void UFOKinoko::exeStop() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "OjUfoKinokoMoveEd");
         MR::StageEffect::tryStageEffectStop(this, mObjectName);
+    }
+}
+
+void UFOKinoko::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
+    bool arg7 = false;
+    MR::getJMapInfoArg7NoInit(rIter, &arg7);
+
+    if (arg7) {
+        pCollector->addArchive("UFOKinokoLow");
     }
 }

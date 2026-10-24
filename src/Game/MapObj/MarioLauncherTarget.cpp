@@ -12,13 +12,14 @@ namespace NrvMarioLauncherTarget {
     NEW_NERVE(MarioLauncherTargetNrvHit, MarioLauncherTarget, Hit);
     class MarioLauncherTargetNrvNoHit : public Nerve {
     public:
-        virtual void execute(Spine* spine) const {
-            MarioLauncherTarget* actor = static_cast<MarioLauncherTarget*>(spine->mExecutor);
-            if (MR::isFirstStep(actor)) MR::startAction(actor, "NoHit");
-        }
+        virtual void execute(Spine* spine) const;
         static MarioLauncherTargetNrvNoHit sInstance;
     };
     MarioLauncherTargetNrvNoHit MarioLauncherTargetNrvNoHit::sInstance ATTRIBUTE_WEAK;
+}
+void NrvMarioLauncherTarget::MarioLauncherTargetNrvNoHit::execute(Spine* spine) const {
+    MarioLauncherTarget* actor = static_cast<MarioLauncherTarget*>(spine->mExecutor);
+    if (MR::isFirstStep(actor)) MR::startAction(actor, "NoHit");
 }
 MarioLauncherTarget::MarioLauncherTarget(const char* name) : LiveActor(name), mRailMover(nullptr), mClippingCenter(0.0f, 0.0f, 0.0f) {}
 MarioLauncherTarget::~MarioLauncherTarget() {}

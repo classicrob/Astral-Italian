@@ -31,7 +31,7 @@ void BellyDragonFireGround::init(const JMapInfoIter& rIter) {
 
 void BellyDragonFireGround::appear() {
     LiveActor::appear();
-    mPosition.set<f32>(mBaseMtx.mMtx[0][3], mBaseMtx.mMtx[1][3], mBaseMtx.mMtx[2][3]);
+    mBaseMtx.getTrans(mPosition);
     MR::setSensorRadius(this, lbl_8066CEC4, lbl_807D7820);
     mBloom->appear();
     setNerve(&NrvBellyDragonFireGround::BellyDragonFireGroundNrvAppear::sInstance);

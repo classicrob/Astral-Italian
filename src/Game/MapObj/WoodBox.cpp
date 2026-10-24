@@ -170,17 +170,6 @@ bool WoodBox::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     return false;
 }
 
-void WoodBox::appear() {
-    mFloorTouchTimer = 0;
-    mHitPoint = 1;
-    mBreakModel->kill();
-    MR::validateCollisionParts(this);
-    MR::validateHitSensors(this);
-    MR::startBvaAndSetFrameAndStop(this, "Dust", 0.0f);
-    setNerve(GET_NERVE(WoodBox, WoodBoxNrvWait));
-    LiveActor::appear();
-}
-
 void WoodBox::kill() {
     if (!mIsNoRespawn) {
         LiveActor::kill();
@@ -240,6 +229,17 @@ void WoodBox::exeHit() {
     if (MR::isDead(mBreakModel)) {
         kill();
     }
+}
+
+void WoodBox::appear() {
+    mFloorTouchTimer = 0;
+    mHitPoint = 1;
+    mBreakModel->kill();
+    MR::validateCollisionParts(this);
+    MR::validateHitSensors(this);
+    MR::startBvaAndSetFrameAndStop(this, "Dust", 0.0f);
+    setNerve(GET_NERVE(WoodBox, WoodBoxNrvWait));
+    LiveActor::appear();
 }
 
 void WoodBox::doHit(HitSensor* pSender, HitSensor* pReceiver) {

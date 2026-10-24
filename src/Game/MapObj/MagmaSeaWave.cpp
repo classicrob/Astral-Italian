@@ -31,7 +31,6 @@ void MagmaSeaWave::init(const JMapInfoIter& iter) {
     mDrawer->makeActorAppeared();
     MR::setSoundPositionPtr(this, &mSensorPosition);
 }
-// NONMATCHING: component-load scheduling differs around the vector set call.
 void MagmaSeaWave::control() {
     TPos3f mtx;
     JMath::gekko_ps_copy12(&mtx, MR::getJointMtx(this, "VolumeCenter"));

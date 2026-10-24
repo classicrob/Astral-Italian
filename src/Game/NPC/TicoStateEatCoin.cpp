@@ -97,7 +97,9 @@ void TicoStateEatCoin::exeEat() {
             const TVec3f cameraPos = MR::getCamPos();
             JMAVECScaleAdd(&cameraX, &cameraPos, &position, 300.0f);
 #else
-            JMAVECScaleAdd(&MR::getCamXdir(), &MR::getCamPos(), &position, 300.0f);
+            const TVec3f& cameraPos = MR::getCamPos();
+            const TVec3f& cameraX = MR::getCamXdir();
+            JMAVECScaleAdd(&cameraX, &cameraPos, &position, 300.0f);
 #endif
             coin->shoot(position, &mMouthPosition);
             MR::stopCSSound(5, 0);

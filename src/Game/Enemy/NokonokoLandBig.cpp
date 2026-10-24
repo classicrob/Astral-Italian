@@ -279,7 +279,6 @@ void NokonokoLandBig::exeTurnStart() {
     }
 }
 
-// NONMATCHING: The three matrix-column loads are scheduled in a different order.
 void NokonokoLandBig::exeTurnLoop() {
     if (MR::isFirstStep(this)) {
         startBckBtp(this, "TurnLoopStart", "WalkWait");

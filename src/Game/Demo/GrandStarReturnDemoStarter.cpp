@@ -211,7 +211,7 @@ void GrandStarReturnDemoStarter::exeFlyWait() {
 
 void GrandStarReturnDemoStarter::exeRushToCore() {
     TVec3f position;
-    position.set< f32 >(mPrevTransform.mMtx[0][3], mPrevTransform.mMtx[1][3], mPrevTransform.mMtx[2][3]);
+    mPrevTransform.getTrans(position);
 
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("ResultFlyGrandStarRush", nullptr);

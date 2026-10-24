@@ -20,11 +20,11 @@ static Pmf forEachCall(It it, It end, Pmf pmf) {
     return pmf;
 }
 
-template < typename It, typename Pmf >
-static inline void forEachCallInline(It it, It end, Pmf pmf) {
+template < typename It, typename Fn >
+static inline void forEachCallInline(It it, It end, Fn fn) {
     It last = end;
     for (It first = it; first != last; ++first) {
-        pmf(*first);
+        fn(*first);
     }
 }
 
@@ -355,7 +355,6 @@ void KoopaJrRobotSeq::updateLauncherTransforms() {
     }
 }
 
-// NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
 void KoopaJrRobotSeq::movementLaunchers() {
     if (!mLaunchersDisabled) {
         forEachCallInline(mLaunchers, mLaunchers + 8, std::mem_fun(&LiveActor::movement));

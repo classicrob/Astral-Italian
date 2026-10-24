@@ -749,8 +749,8 @@ void OtaKing::exeWaitOnSwitch() {
     }
 }
 
-// NONMATCHING: saved pointer register allocation.
 void OtaKing::exeAppearDemo() {
+    PartsModel* foot;
     if (MR::isFirstStep(this)) {
         startDemo();
         startBckWithFrontFoot("Appear");
@@ -839,7 +839,7 @@ void OtaKing::exeAppearDemo() {
         if (MR::isDemoEndWaitCameraInterpolating()) {
             MR::startBckNoInterpole(this, "Wait");
             MR::tryForceDeleteEffectAll(this);
-            PartsModel* foot = mFeet[0];
+            foot = mFeet[0];
             MR::startBckNoInterpole(foot, "WaitR");
             MR::tryForceDeleteEffectAll(foot);
             foot = mFeet[1];

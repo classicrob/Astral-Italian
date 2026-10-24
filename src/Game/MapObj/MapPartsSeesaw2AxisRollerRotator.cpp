@@ -67,7 +67,8 @@ void MapPartsSeesaw2AxisRollerRotator::rotate() {
     if (!MR::isNearZero(distance, 0.001f) || !MR::isNearZero(axis, 0.001f)) {
         f32 alignment = axis.dot(mPreviousAxis);
         mPreviousAxis = axis;
-        mSpeed = mSpeed * MR::clamp(alignment, 0.0f, 1.0f) + 1.5f * acceleration;
+        f32 retainedSpeed = mSpeed * MR::clamp(alignment, 0.0f, 1.0f);
+        mSpeed = retainedSpeed + 1.5f * acceleration;
         MR::clamp(mSpeed, -mMaxSpeed, mMaxSpeed);
         mAngularVelocity = mPreviousAxis * mSpeed;
         MR::clampLength(&mAngularVelocity, mAngularVelocity, mMaxSpeed);

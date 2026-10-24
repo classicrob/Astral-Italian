@@ -15,6 +15,21 @@ PullTargetAnim::PullTargetAnim(LiveActor* pHost) {
     mIsPulling = false;
 }
 
+
+
+
+
+PullTarget::PullTarget(LiveActor* pHost) : PartsModel(pHost, "引っ張りターゲット", "PullTarget", nullptr, -1, false) {
+    mIsEnable = true;
+    mLockOnTarget = nullptr;
+    initWithoutIter();
+    initHitSensor(1);
+    MR::addHitSensorMapObjSimple(this, "Body", 32, 1.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    initFixedPosition("PullTargetPos");
+    MR::initStarPointerTarget(this, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    mLockOnTarget = MR::createYoshiLockOnTarget(this, (MtxPtr)nullptr, TVec3f(0.0f));
+}
+
 void PullTargetAnim::reset() {
     MR::startAction(mHost, "Wait");
     mPrevDist = 0.0f;
@@ -37,17 +52,6 @@ void PullTargetAnim::update(f32 dist) {
             mIsPulling = false;
         }
     }
-}
-
-PullTarget::PullTarget(LiveActor* pHost) : PartsModel(pHost, "引っ張りターゲット", "PullTarget", nullptr, -1, false) {
-    mIsEnable = true;
-    mLockOnTarget = nullptr;
-    initWithoutIter();
-    initHitSensor(1);
-    MR::addHitSensorMapObjSimple(this, "Body", 32, 1.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initFixedPosition("PullTargetPos");
-    MR::initStarPointerTarget(this, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    mLockOnTarget = MR::createYoshiLockOnTarget(this, (MtxPtr)nullptr, TVec3f(0.0f));
 }
 
 // Target inlines the matrix copy; the current shared helper stays out of line.

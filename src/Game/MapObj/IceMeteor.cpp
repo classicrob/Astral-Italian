@@ -81,7 +81,6 @@ void IceMeteor::resetMeteor() {
     mIsSpread = false;
     mIceRadius = 0.0f;
 }
-// NONMATCHING: paired-single subtraction uses different floating-point registers.
 void IceMeteor::updateMeteor() {
     TVec3f offset(mParts->getOffset());
     TVec3f distance(offset);

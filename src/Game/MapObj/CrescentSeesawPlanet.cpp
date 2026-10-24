@@ -32,7 +32,7 @@ void CrescentSeesawPlanet::control() {
         else if (mAngle > lbl_807DD17C) clamped = lbl_807DD17C;
         else clamped = mAngle;
         mAngle = clamped;
-        mAngularVelocity *= -lbl_807DD198;
+        mAngularVelocity = -lbl_807DD198 * mAngularVelocity;
     }
     f32 speed = __fabsf(mAngularVelocity);
     if (speed >= 0.1f) MR::startActionSound(this, "Move", static_cast<s32>(1000.0f * speed));

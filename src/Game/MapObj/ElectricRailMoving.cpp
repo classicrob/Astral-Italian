@@ -119,7 +119,8 @@ bool ElectricRailMoving::isTouchRail(const HitSensor* pSensor, TVec3f* pPos, TVe
     TVec3f nearest;
     coord = MR::calcNearestRailPos(&nearest, this, *MR::getSensorPos(pSensor));
     f32 railRadius = ElectricRailFunction::getHitSensorRadius();
-    radius = MR::getSensorRadius(const_cast< HitSensor* >(pSensor)) + railRadius;
+    radius = MR::getSensorRadius(const_cast< HitSensor* >(pSensor));
+    radius += railRadius;
 
     if (isValidCoord(coord) && nearest.squared(*MR::getSensorPos(pSensor)) < radius * radius) {
         if (pPos != nullptr) {

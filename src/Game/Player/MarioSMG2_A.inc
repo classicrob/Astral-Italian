@@ -70,7 +70,7 @@ bool Mario::doFlipJump(const TVec3f& rVec) {
     tryForcePowerJump(velocity, true);
     changeAnimation("壁はじき");
     stopPunch();
-    mMovementStates.mHighWord |= 0x100000;
+    mMovementStates.mHighBits.mBit20 = 1;
     _430 = 3;
     startPadVib(2);
     return true;
@@ -498,7 +498,8 @@ void Mario::checkHang() {
         }
 
         direction = -*mBackWallTriangle->getNormal(0);
-        if (MR::diffAngleAbsHorizontal(normal, -direction, getAirGravityVec()) > 0.08726647f) {
+        const TVec3f& opposite = -direction;
+        if (MR::diffAngleAbsHorizontal(normal, opposite, getAirGravityVec()) > 0.08726647f) {
             return;
         }
 
@@ -575,7 +576,8 @@ void Mario::checkHang() {
         }
 
         direction = -*mSideWallTriangle->getNormal(0);
-        if (MR::diffAngleAbsHorizontal(normal, -direction, getAirGravityVec()) > 0.08726647f) {
+        const TVec3f& opposite = -direction;
+        if (MR::diffAngleAbsHorizontal(normal, opposite, getAirGravityVec()) > 0.08726647f) {
             return;
         }
 
@@ -3621,7 +3623,10 @@ POST_LANDING:;
 }
 
 // NONMATCHING: temporary register allocation; verified collision-sensor and velocity gates.
-void Mario::fn_803A02F0(s32 keepSlip, s32 hard, s32 blend) {
+void Mario::fn_803A02F0(s32 keepSlipArg, s32 hardArg, s32 blendArg) {
+    s32 hard = hardArg;
+    s32 blend = blendArg;
+    s32 keepSlip = keepSlipArg;
     u32 mode = _430;
     if (mode - 4 <= 2 || mode == 8 || mode == 2 || mode == 11) keepSlip = 1;
     if ((static_cast<u32>(mFlags14.mLowBits.mBit8)) && _8D8 == _45C->mSensor) {
@@ -4864,8 +4869,8 @@ void Mario::retainMoveDir(f32 stickX, f32 stickY) {
     }
     if (difference < limit && isStickOn() && retain) {
         if (_40E == 0 || ((static_cast<u32>(mFlags14.mLowBits.mBit21)) && (static_cast<u32>(mMovementStates.mLowBits.mBit31)))) {
-            _40E = 0;
             mDrawStates.mBits.mBit18 = 1;
+            _40E = 0;
         } else {
             if (_40E != 0) {
                 _40E--;
@@ -5741,9 +5746,7 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
             mActor->mPressNormal6D8 = _368;
             return true;
         }
-        return false;
-    }
-    if (!atCurrentPosition) {
+    } else if (!atCurrentPosition) {
         if (mActor->_390 != 0) return false;
         if (!MR::isSensorPressObj(ceiling.mSensor)) return false;
         mDrawStates.mWord |= 2;

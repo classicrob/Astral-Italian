@@ -28,7 +28,11 @@ void LogoFader::draw() const {
 #ifdef GALAXY_NATIVE
         GXColor fillColor = {0, 0, 0, static_cast<u8>(mRate * 255.0f)};
 #else
-        GXColor fillColor = {0, 0, 0, mRate * 255.0f};
+        GXColor fillColor;
+        fillColor.r = 0;
+        fillColor.g = 0;
+        fillColor.b = 0;
+        fillColor.a = mRate * 255.0f;
 #endif
         MR::fillScreen(fillColor);
     }

@@ -206,7 +206,8 @@ void HomeButtonLayout::draw() const {
 
     Mtx44 projectionMtx;
     f32 screenHalfHeight = static_cast< s32 >(JUTGetVideoManager()->getEfbHeight()) / 2.0f;
-    f32 screenHalfWidth = 0.5f * (MR::isScreen16Per9() ? 832.0f : 608.0f);
+    f32 screenHalfWidth = MR::isScreen16Per9() ? 832.0f : 608.0f;
+    screenHalfWidth *= 0.5f;
     C_MTXOrtho(projectionMtx, screenHalfHeight, -screenHalfHeight, -screenHalfWidth, screenHalfWidth, 0.0f, 500.0f);
     GXSetProjection(projectionMtx, GX_ORTHOGRAPHIC);
 

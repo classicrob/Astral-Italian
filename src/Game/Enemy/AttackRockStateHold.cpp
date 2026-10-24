@@ -213,7 +213,6 @@ void AttackRockStateHold::exeHoldFloatEnd() {
     }
 }
 
-// NONMATCHING: Commutative floating-point multiply operand order differs.
 void AttackRockStateHold::exeHoldFallBreak() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this->mHost, "FallBreak");
@@ -224,7 +223,8 @@ void AttackRockStateHold::exeHoldFallBreak() {
         this->mRide->endRide();
     }
     AttackRock* pHost = this->mHost;
-    f32 base = pHost->getRockBaseRadius() * pHost->mScale.y;
+    f32 base = pHost->getRockBaseRadius();
+    base *= pHost->mScale.y;
     MR::setShadowVolumeSphereRadius(this->mHost, nullptr, MR::calcNerveValue(this, 30, 0.95f * base, 0.05f * base));
     if (MR::isStep(this, 1)) {
         MR::hideModelAndOnCalcAnim(this->mHost);

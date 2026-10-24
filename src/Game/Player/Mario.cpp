@@ -2265,7 +2265,6 @@ Mario::Mario(MarioActor* pActor)
     _428 = 0;
     _3D2 = 0;
     _404 = 0;
-    _406 = 0;
     _408 = 0;
     _40A = 0;
     _426 = 0;
@@ -2301,7 +2300,10 @@ Mario::Mario(MarioActor* pActor)
     mMorphResetTimer = 0;
     _41C = 0;
     _41E = 0;
+#ifdef GALAXY_NATIVE
+    // Preserve native compatibility initialization; the Wii constructor leaves these fields untouched.
     _410 = 0;
+#endif
     _420 = 0;
     _43A = 0;
     _3F4 = 0.0f;
@@ -2323,7 +2325,10 @@ Mario::Mario(MarioActor* pActor)
     _754 = 0;
     _40C = 0;
     _40E = 0;
+    _406 = 0;
+#ifdef GALAXY_NATIVE
     _412 = 0;
+#endif
     _558 = 0;
     _2A8 = -_368;
     _29C = _368;
@@ -3281,8 +3286,8 @@ void Mario::fixHeadFrontVecByGravity() {
 
 void Mario::fn_80389D90(f32 (*m)[4], const TVec3f* col2, const TVec3f* col1, const TVec3f* col0) {
     TVec3f a;
-    TVec3f b;
     TVec3f c;
+    TVec3f b;
     a = *col0;
     c = *col2;
     b = *col1;
@@ -3599,9 +3604,10 @@ void Mario::fn_8038AB10() {
 }
 
 void Mario::fn_8038AB70() {
+    u32 remaining;
     u32 count = this->_750;
     if (count != 0) {
-        u32 remaining = count - 1;
+        remaining = count - 1;
         this->_750 = remaining;
         this->_74C = (this->_74C * (f32)remaining) / (f32)count;
         if (remaining == 0) {
@@ -4187,6 +4193,7 @@ void Mario::fn_8038C620() {
     }
     if (this->isPlayerModeYoshi()) {
         if (MR::isPlayerElementModeYoshiDash() && !MR::fn_804225C0()) {
+            s32 temp_r29;
             s32 v28 = MR::clamp((s32)(500.0f * MarioAccess::fn_803B57A0()), 0, 1000);
             s32 v3 = MR::clamp((s32)(400.0f * MarioAccess::fn_803B57A0()) + 200, 400, 1000);
             s32 t5 = this->_A98;
@@ -4197,7 +4204,7 @@ void Mario::fn_8038C620() {
             } else {
                 var_r31 = MR::clamp(v3, t5 - 22, t5 + 22);
             }
-            s32 temp_r29 = this->mActor->getYoshi()->mDashTimer;
+            temp_r29 = this->mActor->getYoshi()->mDashTimer;
             MR::startActionSoundPlayer("DashLV", v28, var_r31);
             MR::startActionSoundPlayer("DashLVWind", v28, -1);
             MR::startActionSoundPlayer("DashLVFire", temp_r29, -1);
@@ -5860,10 +5867,14 @@ bool Mario::checkGround() {
     if (!isNoWalkFallOnDossun() && !isStatusActive(MarioStatus_Faint) && !isStatusActive(MarioStatus_Damage) && !isStatusActive(MarioStatus_Talk) &&
         !isStatusActive(MarioStatus_Hang) && (!(static_cast<u32>(mMovementStates.mLowBits.mBit7)) || (static_cast<u32>(mFlags14.mLowBits.mBit15)))) {
         while ((count == 4 && !hit[3]) || _960 == CollisionFloorCode_Slide) {
+            u8 anyHit;
             const u8 backHit = hit[2];
             const u8 frontHit = hit[0];
             const u8 sideHit = hit[1];
-            if (!(frontHit | sideHit | backHit)) {
+            anyHit = backHit;
+            anyHit |= frontHit;
+            anyHit |= sideHit;
+            if (!anyHit) {
                 return false;
             }
 

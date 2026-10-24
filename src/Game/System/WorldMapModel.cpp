@@ -70,7 +70,6 @@ void WorldMapOwnerContext::init(s32 world, s32 node) {
     mLayouts->initInfo();
 }
 WorldMapOwner::WorldMapOwner() : NameObj("ワールドマップ"), mContext(0), mSequence(0), mMainLayout(0) {}
-// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void WorldMapOwner::init(const JMapInfoIter&) {
     bool after = GameDataFunction::isOnGameEventFlag("グランドギャラクシーマップ初プレイ") ? GameSequenceFunction::isWorldMapAfterFileSelect() : false;
     if (MR::isEqualStageName("WorldMap01Galaxy")) GameDataFunction::setCurrentWorldId(1);

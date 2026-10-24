@@ -122,7 +122,6 @@ void GhostAttackGhostFootprint::addPrintFromGround() {
         mFootPrint->addPrint(position, direction, normal, false);
     }
 }
-// NONMATCHING: host pointer registers and matrix component load ordering.
 bool GhostAttackGhostFootprint::tryAddPrintOnSlide() {
     if (static_cast<GhostAttackGhost*>(mHost)->getRecordedAnimationName() == nullptr) return false;
     if (!MR::isEqualString(static_cast<GhostAttackGhost*>(mHost)->getRecordedAnimationName(), "チューブスライダー着地") && !MR::isEqualString(static_cast<GhostAttackGhost*>(mHost)->getRecordedAnimationName(), "チューブスライダー")) return false;

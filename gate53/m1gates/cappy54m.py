@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Server's 23 Cappy cases, isolated behind the M1 native lock; trim each completed case."""
-import argparse,importlib.util,json,os,sys
+import argparse,importlib.util,json,os,re,sys
 from common import ROOT,REPO,native_lock,prep,disk,trim,sha,write,wait_quiet,Path,ID
 p=REPO/'native/tests/cappy_spin_switch_tests.py'
 spec=importlib.util.spec_from_file_location('cappy_reference',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -18,6 +18,7 @@ def run(*args,**kwargs):
   return result
 m.run=run
 parser=argparse.ArgumentParser();parser.add_argument('label',nargs='?',default='cappy');parser.add_argument('--only');parser.add_argument('--app',type=Path);parser.add_argument('--sha');parser.add_argument('--source');parser.add_argument('--build-kind',choices=('dev-m1','server-candidate'));args=parser.parse_args()
+assert re.fullmatch('[A-Za-z0-9_-]+',args.label),'safe unique label required'
 if args.app:
  import plistlib
  app=args.app.resolve();assert app.is_relative_to(ROOT/'apps') and args.sha and args.source and args.build_kind

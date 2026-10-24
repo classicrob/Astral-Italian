@@ -119,6 +119,7 @@ FAULT = re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime e
 def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0):
  """The lock covers cache clearing, app lifetime and cleanup; terminate only this Popen PID."""
  out=Path(out);assert not out.exists(),out
+ assert out.resolve().is_relative_to(ROOT.resolve()) and out.resolve()!=ROOT.resolve(),'run output must stay inside owned m1g'
  app=Path(app);exe=app/'Contents/MacOS/Petari'
  assert nice in (0,19) and 0<=load_workers<=4
  assert ID == subprocess.check_output(['/usr/libexec/PlistBuddy','-c','Print :CFBundleIdentifier',str(app/'Contents/Info.plist')],text=True).strip()
@@ -181,7 +182,7 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
   return res
 
 def trim(out,cache=True,captures=True):
- out=Path(out)
+ out=Path(out).resolve();assert out.is_relative_to(ROOT.resolve()) and out!=ROOT.resolve(),'cleanup refuses paths outside owned m1g runs'
  for name in (['cache'] if cache else [])+(['captures','tmp','dump'] if captures else []):
   p=out/name
   if p.exists():

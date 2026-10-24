@@ -94,7 +94,10 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
   write(out/'launch.json',info)
   with (out/'app.log').open('wb') as log:
    p=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-   info['pid']=p.pid;write(out/'launch.json',info)
+   info['pid']=p.pid
+   try:info['child_nice_at_spawn']=os.getpriority(os.PRIO_PROCESS,p.pid)
+   except ProcessLookupError:info['child_nice_at_spawn']=None
+   write(out/'launch.json',info)
    try:p.wait(timeout=seconds)
    except subprocess.TimeoutExpired:
     timed_out=True;p.terminate()

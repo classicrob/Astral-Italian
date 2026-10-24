@@ -120,7 +120,7 @@ def main():
    command=[str(exe),'--disc',str(HOME/'MacioGalaxy2-gamedata/SB4E01-extracted'),'--user',str(user),'--stage',stage,'--scenario','2' if name in ('normal-route','normal-boot-ui') else '1']
    if name=='normal-boot-ui':command=command[:5]
    state('PROMOTION53_BEFORE_'+name+'_'+mode,out)
-   (out/'launch.json').write_text(json.dumps({'source':SOURCE,'binary_sha256':args.sha256,'command':command,'environment':{k:v for k,v in env.items() if k.startswith('PETARI_') or k in ('SDL_AUDIO_DRIVER','TMPDIR')}},indent=2)+'\n')
+   (out/'launch.json').write_text(json.dumps({'source':SOURCE,'binary_sha256':args.sha256,'nice':os.getpriority(os.PRIO_PROCESS,0),'loadavg_start':os.getloadavg(),'command':command,'environment':{k:v for k,v in env.items() if k.startswith('PETARI_') or k in ('SDL_AUDIO_DRIVER','TMPDIR')}},indent=2)+'\n')
    with (out/'app.log').open('wb') as log:
     active=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     state('PROMOTION53_RUNNING_'+name+'_'+mode,out);start=time.monotonic();print(json.dumps({'event':'app-spawn','case':name,'mode':mode,'pid':active.pid,'output':str(out),'pointer_receipt_required':name in ('worldmap','normal-route','normal-boot-ui')}),flush=True)

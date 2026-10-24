@@ -16,6 +16,7 @@ def run(*args,**kwargs):
  return result
 m.run=run
 app,meta=prep();out=ROOT/'runs'/(sys.argv[1] if len(sys.argv)>1 else 'cappy')
+assert not out.exists(),out
 sys.argv=[str(p),'--app',str(app/'Contents/MacOS/Petari'),'--disc',str(m.Path.home()/'MacioGalaxy2-gamedata/SB4E01-extracted'),'--out',str(out)]
 with native_lock():
  disk();write(out/'launch-m1.json',{'app_sha256':meta['perf_exe_sha256'],'frozen_exe_sha256':meta['source_exe_sha256'],'nice':os.getpriority(os.PRIO_PROCESS,0),'reference_runner_sha256':sha(p),'input_driver':'PETARI_INPUT_SCRIPT'})

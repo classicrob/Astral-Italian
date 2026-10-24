@@ -23,7 +23,7 @@ BASE_CHECKS = tuple(k for k in normal.CHECKS if k not in (
     "destination_300_consecutive_valid", "existing_unlocked_file1", "seed_unchanged"))
 CHECKS = BASE_CHECKS + ("app_unchanged", "fresh_user_zero_stars", "no_deaths", "star_get",
                        "star_row_aligned", "star_state_bit_exact", "zero_interactive_position_error",
-                       "all_play_ready_state_rng_checks", "actual_recording_complete")
+                       "all_play_ready_state_rng_checks", "actual_recording_complete", "route_rows_contiguous")
 
 
 def chain(rows):
@@ -142,6 +142,8 @@ def evaluate(rows, log, replay, meta, case, tape):
         star_state_bit_exact=star_exact,
         zero_interactive_position_error=bool(replay.get("segments")) and all(
             s.get("max_position_error") == 0 for s in replay.get("segments", [])),
+        route_rows_contiguous=bool(source) and bool(rows) and all(
+            str(i) == r.get("frame") for route in (source, rows) for i, r in enumerate(route)),
     )
     details.update(recorded_scene_chain=chain(source), scene_chain=chain(rows),
                    recorded_star_event=expected, star_event=observed, star_anchor_offset=star_offset,

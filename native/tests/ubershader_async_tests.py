@@ -122,7 +122,7 @@ gfx::PipelineRef petari_uber_lookup(gfx::PipelineRef key) { return associations[
 TESTS = r'''
 using namespace aurora;
 #define CHECK(x) do { if(!(x)) { std::fprintf(stderr,"failed line %d: %s\n",__LINE__,#x); return 1; } } while(0)
-static std::function<void()> take(unsigned worker=0) {
+static std::function<void()> take(unsigned worker=1) { // reserved worker 1 prepares before and after the title
  std::function<void()> job;
  std::lock_guard lock{gfx::g_pipelineMutex}; gfx::petari_take_uber_job(worker,job); return job;
 }
@@ -209,8 +209,9 @@ int main(int argc,char** argv) {
   gfx::petari_uber_queue_variant(d,l); // non-front-end generic is held
   gfx::petari_uber_queue_pair(c,l,1,true); // front-end generic + fast
   CHECK(gfx::petariUberJobs.size()==3);CHECK(!take(2));
+  CHECK(!gfx::petari_uber_worker_ready(0) && !take(0)); // pre-title, worker 0 stays free for the boot screen's draws
   auto job=take();CHECK(job);job();CHECK(gx::genericBuilds==1 && gx::fastBuilds==0);
-  CHECK(!gfx::petari_uber_worker_ready(0) && !take()); // held jobs cannot keep the CV predicate true
+  CHECK(!gfx::petari_uber_worker_ready(1) && !take()); // held jobs cannot keep the CV predicate true
   gfx::petariActiveStage="FileSelect";gfx::petari_uber_observe_title(true,true);
   job=take(3);CHECK(job);job(); // other generic precedes remaining fast
   CHECK(gx::genericBuilds==2 && gx::fastBuilds==0);

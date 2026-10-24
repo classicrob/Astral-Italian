@@ -17,6 +17,9 @@ record against the candidate's original executable hash and source. Each remaini
 GX run holds heavy then native.lock and checks both load averages plus compiler
 CPU deltas. No outer heavy lock is used. Candidate originals remain read only;
 SOL A runs a separate re-signed perfm1a copy.
+Candidate 07223918 uses VSync Auto by default. The harness remains windowed,
+so its default cadence arm still measures Fifo. Cadence receipts retain the
+actual `[display] vsync auto` boot line alongside present-mode statistics.
 
 Promotion uses thirteen unchanged script cases plus the fresh/warm world-map
 pointer tape cases, per PORT's ruling. The composition preserves each original

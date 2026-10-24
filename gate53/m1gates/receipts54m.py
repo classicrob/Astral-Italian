@@ -87,7 +87,7 @@ def main():
  def pcheck(keys):
   d=readj(platform);return {'passed':d['perf_exe_sha256']==expected and d['build']['source']==meta['source'] and all(d['checks'].get(k) is True for k in keys),'checks':{k:d['checks'].get(k) for k in keys},'macos':d['macos']}
  gate('macos-15-compat',[platform],lambda:pcheck(('weak-imports','scan-bundle','check-bundle','minos')),'platform compatibility')
- gate('seed-pack',[platform,base/'platform/seed-pack.json'],lambda:pcheck(('seed-pack-count','seed-integrity','resource-copy-identical')),'64 seed databases identical to frozen54 resources')
+ gate('seed-pack',[platform,base/'platform/seed-pack.json'],lambda:pcheck(('seed-pack-count','seed-integrity','resource-copy-identical')),'64 seed databases identical to selected source resources')
  promo=a.promotion_result.resolve() if a.promotion_result else runpath('promotion')/'results.json'
  def promotion():
   rs=readj(promo);want={(n,mode) for n in ('yoshi','flip','fluffy','unlocked-stage-adapter','worldmap','return') for mode in ('fresh','warm')}|{(n,'functional') for n in ('cappy-fluffy','cappy-panel','cappy-spin-after-throw')}
@@ -177,7 +177,7 @@ def main():
     modeok='present mode Fifo' in text and 'PETARI_PRESENT_MODE' not in l['environment'] if mode=='fifo' else 'present mode Immediate' in text
     # Two Fifo arms must pass stall/menu/cadence thresholds; Immediate is a latency comparison.
     ok=bool(lat) and len(lat)==27 and all(fr==2 and math.isfinite(ms) for fr,ms in lat) and modeok and (mode!='fifo' or warm_result['result']=='PASS' and r['late_present_pct']<1)
-    data.append({'case':name,'passed':ok,'latency_passed':len(lat)==27 and all(fr==2 and math.isfinite(ms) for fr,ms in lat) and modeok,'warm_assessment':str(warm_path) if warm_path.exists() else str(runpath(name)/'RESULT.json'),'late_present_pct':r['late_present_pct'],'presses':len(lat),'frames_after_read':sorted(set(fr for fr,_ in lat)),'latency_p50_ms':sorted(ms for _,ms in lat)[len(lat)//2] if lat else None,'latency_max_ms':max((ms for _,ms in lat),default=None),'present_summary':[line for line in text.splitlines() if 'Petari present intervals' in line]})
+    data.append({'case':name,'passed':ok,'latency_passed':len(lat)==27 and all(fr==2 and math.isfinite(ms) for fr,ms in lat) and modeok,'warm_assessment':str(warm_path) if warm_path.exists() else str(runpath(name)/'RESULT.json'),'late_present_pct':r['late_present_pct'],'presses':len(lat),'frames_after_read':sorted(set(fr for fr,_ in lat)),'latency_p50_ms':sorted(ms for _,ms in lat)[len(lat)//2] if lat else None,'latency_max_ms':max((ms for _,ms in lat),default=None),'display_policy_lines':[line for line in text.splitlines() if '[display]' in line and 'vsync' in line],'present_summary':[line for line in text.splitlines() if 'Petari present intervals' in line]})
   return {'passed':all(d['passed'] for d in data),'runs':data}
  gate('fifo-default-cadence-latency',[runpath(f'cadence-{mode}-r{n}')/'RESULT.json' for n in (1,2) for mode in ('fifo','immediate')],cadencecheck,'Fifo late <1%, 27/27 latency presses at 2 frames after read')
  if candidate_mode:

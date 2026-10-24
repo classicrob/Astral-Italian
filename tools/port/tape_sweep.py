@@ -17,7 +17,7 @@ from pathlib import Path
 
 import replay_tape
 
-DEFAULT_TAPES = ("tape-normal-54", "tape-user-flipswap-fullstar-541")
+DEFAULT_TAPES = ("tape-user-flipswap-fullstar-541",)
 
 
 def coverage(meta, route):

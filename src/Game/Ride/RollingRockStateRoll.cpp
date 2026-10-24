@@ -151,15 +151,10 @@ bool RollingRockStateRoll::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, Hi
                 changeState(3);
                 return false;
             }
-            TVec3f neg;
-            neg.negate(mHost->mGravity);
-            TVec3f dir(neg);
-            dir.scale(10.0f);
+            TVec3f dir = (-mHost->mGravity).scaleInline(10.0f);
             if (MR::reflectVelocityH(mHost, pReceiver, pSender, 1.0f)) {
                 dir.set(mHost->mVelocity);
-                TVec3f scaled(dir);
-                scaled.scale(1.0f);
-                dir = scaled;
+                dir = dir.scaleInline(1.0f);
             }
             mHost->endBindDamage(msg, dir);
             changeState(3);
@@ -170,15 +165,10 @@ bool RollingRockStateRoll::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, Hi
     if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvStart::sInstance)) {
         if (MR::isEqualSensor(pReceiver, mHost, "Body")) {
             if (MR::isMsgToEnemyAttackBlow(msg) && MR::isSensorEnemy(pSender)) {
-                TVec3f neg;
-                neg.negate(mHost->mGravity);
-                TVec3f dir(neg);
-                dir.scale(10.0f);
+                TVec3f dir = (-mHost->mGravity).scaleInline(10.0f);
                 if (MR::reflectVelocityH(mHost, pReceiver, pSender, 1.0f)) {
                     dir.set(mHost->mVelocity);
-                    TVec3f scaled(dir);
-                    scaled.scale(1.0f);
-                    dir = scaled;
+                    dir = dir.scaleInline(1.0f);
                 }
                 mHost->endBindFlip(msg, dir);
                 changeState(3);

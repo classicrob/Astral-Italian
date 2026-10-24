@@ -744,6 +744,7 @@ config.libs = [
                 NonMatching,
                 "JSystem/J3DGraphLoader/J3DJointFactory.cpp",
                 extra_cflags=["-ipa file", "-sym on"],
+                mw_version="Wii/1.3",
             ),
             Object(
                 NonMatching,
@@ -765,7 +766,7 @@ config.libs = [
             Object(NonMatching, "JSystem/JAudio2/JASDvdThread.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JASCallback.cpp"),
             Object(
-                NonMatching, "JSystem/JAudio2/JASHeapCtrl.cpp", mw_version="GC/3.0a3.2"
+                NonMatching, "JSystem/JAudio2/JASHeapCtrl.cpp", mw_version="Wii/1.0"
             ),
             Object(NonMatching, "JSystem/JAudio2/JASResArcLoader.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JASProbe.cpp"),
@@ -776,10 +777,10 @@ config.libs = [
                 "JSystem/JAudio2/JASTrack.cpp",
                 cflags=[*cflags_jsys_jaudio, "-inline off"],
             ),
-            Object(NonMatching, "JSystem/JAudio2/JASTrackPort.cpp"),
+            Object(NonMatching, "JSystem/JAudio2/JASTrackPort.cpp", mw_version="Wii/1.1"),
             Object(NonMatching, "JSystem/JAudio2/JASRegisterParam.cpp"),
-            Object(NonMatching, "JSystem/JAudio2/JASSeqCtrl.cpp"),
-            Object(NonMatching, "JSystem/JAudio2/JASSeqParser.cpp"),
+            Object(NonMatching, "JSystem/JAudio2/JASSeqCtrl.cpp", mw_version="Wii/1.1"),
+            Object(NonMatching, "JSystem/JAudio2/JASSeqParser.cpp", mw_version="Wii/0x4201_127"),
             Object(NonMatching, "JSystem/JAudio2/JASSeqReader.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JASAramStream.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JASBank.cpp"),
@@ -996,7 +997,7 @@ config.libs = [
                 "JSystem/JUtility/JUTException.cpp",
                 extra_cflags=["-ipa file", "-sym on"],
             ),
-            Object(NonMatching, "JSystem/JUtility/JUTDirectPrint.cpp"),
+            Object(NonMatching, "JSystem/JUtility/JUTDirectPrint.cpp", mw_version="Wii/1.1"),
             Object(NonMatching, "JSystem/JUtility/JUTAssert.cpp"),
             Object(
                 NonMatching,
@@ -1042,7 +1043,7 @@ config.libs = [
             Object(NonMatching, "Runtime/__init_cpp_exceptions.cpp"),
             Object(NonMatching, "Runtime/NMWException.cpp", cflags=[*cflags_runtime, "-Cpp_exceptions on"]),
             Object(NonMatching, "Runtime/__mem.c"),
-            Object(NonMatching, "Runtime/__va_arg.c"),
+            Object(NonMatching, "Runtime/__va_arg.c", mw_version="Wii/1.0"),
             Object(NonMatching, "Runtime/Gecko_ExceptionPPC.cpp"),
             Object(NonMatching, "Runtime/GCN_mem_alloc.c", extra_cflags=["-i libs/RVL_SDK/include"]),
         ],
@@ -3118,7 +3119,7 @@ config.libs = [
             Object(
                 NonMatching,
                 "RVL_SDK/vf/pf_driver.c",
-                mw_version="GC/3.0a3",
+                mw_version="Wii/1.0",
                 cflags=cflags_sdk_gc,
             ),
             Object(NonMatching, "RVL_SDK/vf/pdm_bpb.c"),
@@ -3165,7 +3166,7 @@ config.libs = [
             Object(
                 NonMatching,
                 "RVL_SDK/vf/d_vf.c",
-                mw_version="GC/3.0a3",
+                mw_version="Wii/1.0",
                 cflags=cflags_sdk_gc,
             ),
             Object(NonMatching, "RVL_SDK/vf/d_vf_sys.c"),
@@ -3249,7 +3250,7 @@ config.libs = [
             Object(
                 NonMatching,
                 "RVL_SDK/os/OSPlayTime.c",
-                mw_version="GC/3.0a5.2",
+                mw_version="Wii/1.0",
                 cflags=cflags_sdk_gc,
             ),
             Object(NonMatching, "RVL_SDK/os/OSCrc.c"),
@@ -3333,7 +3334,7 @@ config.libs = [
             Object(
                 NonMatching,
                 "RVL_SDK/dvd/dvdfs.c",
-                mw_version="GC/3.0a3",
+                mw_version="Wii/1.0",
                 cflags=cflags_sdk_gc,
             ),
             Object(NonMatching, "RVL_SDK/dvd/dvd.c"),
@@ -3343,7 +3344,7 @@ config.libs = [
             Object(
                 NonMatching,
                 "RVL_SDK/dvd/dvdFatal.c",
-                mw_version="GC/3.0a3",
+                mw_version="Wii/1.0",
                 cflags=cflags_sdk_gc,
             ),
             Object(NonMatching, "RVL_SDK/dvd/dvdDeviceError.c"),
@@ -3408,7 +3409,7 @@ config.libs = [
             Object(
                 NonMatching,
                 "RVL_SDK/nand/NANDCore.c",
-                mw_version="GC/3.0a3",
+                mw_version="Wii/1.0",
                 cflags=cflags_sdk_gc,
             ),
             Object(NonMatching, "RVL_SDK/nand/NANDCheck.c"),
@@ -3530,7 +3531,7 @@ config.libs = [
                 mw_version="Wii/1.0",
                 cflags=cflags_sdk_ipa,
             ),
-            Object(NonMatching, "RVL_SDK/bte/uusb_ppc.c", mw_version="GC/3.0a5.2"),
+            Object(NonMatching, "RVL_SDK/bte/uusb_ppc.c", mw_version="Wii/1.0"),
             Object(NonMatching, "RVL_SDK/bte/bta_dm_cfg.c"),
             Object(NonMatching, "RVL_SDK/bte/bta_hh_cfg.c"),
             Object(NonMatching, "RVL_SDK/bte/bta_sys_cfg.c"),
@@ -3543,7 +3544,7 @@ config.libs = [
                 cflags=cflags_sdk_ipa,
             ),
             Object(NonMatching, "RVL_SDK/bte/bte_main.c"),
-            Object(NonMatching, "RVL_SDK/bte/btu_task1.c"),
+            Object(NonMatching, "RVL_SDK/bte/btu_task1.c", mw_version="Wii/1.0"),
             Object(NonMatching, "RVL_SDK/bte/bd.c"),
             Object(NonMatching, "RVL_SDK/bte/bta_sys_conn.c"),
             Object(NonMatching, "RVL_SDK/bte/bta_sys_main.c"),

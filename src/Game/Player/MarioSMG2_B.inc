@@ -14,7 +14,7 @@ bool Mario::fn_803A3130() {
         return false;
     }
     this->_420--;
-    this->mFlags14.mHighWord |= 0x800000;
+    this->mFlags14.mHighBits.mBit23 = 1;
     return true;
 }
 
@@ -93,8 +93,8 @@ void fn_803B21D0(const MarioRotationMatrix* matrix, TQuat4f& rDest) {
 }
 
 void Mario::fn_803B3010() {
-    this->mMovementStates.mLowWord &= 0xFFFFFBFF;
-    this->mMovementStates.mHighWord &= 0xFFFFFFBF;
+    this->mMovementStates.mLowBits.mBit10 = 0;
+    this->mMovementStates.mHighBits.mBit6 = 0;
     this->_47C->mIdx = -1;
     this->_4E0 = 0.0f;
 }
@@ -145,7 +145,7 @@ void Mario::fn_803AD120() {
 
 void Mario::fn_803B14E0() {
     this->mActor->fn_803B9A30();
-    this->mFlags14.mHighWord &= 0xFFDFFFFF;
+    this->mFlags14.mHighBits.mBit21 = 0;
     this->mActor->fn_803B9830()->fn_8041BB90();
     this->changeAnimation("落下", (const char*)nullptr);
 }
@@ -304,20 +304,20 @@ bool Mario::fn_803B4850(const HitSensor* pSensor) const {
 
 
 s32 Mario::fn_803A2D80() {
-    if ((this->mFlags14.mLowWord >> 5) & 1) {
+    if (static_cast<u32>(this->mFlags14.mLowBits.mBit5)) {
         this->tryJump();
         if (this->isAnimationRun("その場足踏み上半身")) {
             this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
         }
         this->_420 = 0;
         this->mJumpVec = this->_184;
-        this->mFlags14.mLowWord &= 0xFFFFFFDF;
+        this->mFlags14.mLowBits.mBit5 = 0;
         return 1;
     }
-    if (!this->mActor->isRequestJump() && !((this->mFlags20.mWord >> 21) & 1) && !((this->mMovementStates.mHighWord >> 7) & 1)) {
+    if (!this->mActor->isRequestJump() && !(static_cast<u32>(this->mFlags20.mBits.mBit21)) && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit7))) {
         return 0;
     }
-    if (((this->mMovementStates.mLowWord >> 21) & 1) && this->calcDistToCeil(false) < 160.0f) {
+    if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit21)) && this->calcDistToCeil(false) < 160.0f) {
         this->mActor->sendMsgUpperPunch(this->_730);
         this->changeAnimation("しゃがみアッパー", (const char*)nullptr);
         return 0;
@@ -353,8 +353,8 @@ void Mario::fn_803A2EF0() {
 }
 
 s32 Mario::fn_803A3030() {
-    if (!((this->mMovementStates.mLowWord >> 30) & 1)) {
-        if (this->_3C0 != 0 && !((this->mMovementStates.mHighWord >> 28) & 1) && MR::isNearZero(this->_8F8, 0.001f)) {
+    if (!(static_cast<u32>(this->mMovementStates.mLowBits.mBit30))) {
+        if (this->_3C0 != 0 && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit28)) && MR::isNearZero(this->_8F8, 0.001f)) {
             this->_3C0 -= 1;
             return 0;
         }
@@ -368,7 +368,7 @@ s32 Mario::fn_803A3030() {
     MarioConstTable* entry = this->mActor->mConst->getTable();
     if (this->mStickPos.z < entry->mWallBackHangStickPower) {
         this->_3C0 = 0;
-    } else if ((this->mDrawStates.mWord >> 21) & 1) {
+    } else if (static_cast<u32>(this->mDrawStates.mBits.mBit21)) {
         this->_3C0 = 0;
     } else if (this->_3C0 < entry->mDropWaitTime) {
         this->_3C0 = entry->mDropWaitTime;
@@ -387,10 +387,10 @@ f32 Mario::fn_803A3780(f32 angle) {
     if (this->isSwimming()) {
         difference = 1.0f;
     }
-    if (this->mActor->isRequestSpin() && (this->mMovementStates.mLowWord >> 31) != 0 && this->mWorldPadDir.dot(this->_16C) < 0.0f) {
+    if (this->mActor->isRequestSpin() && (static_cast<u32>(this->mMovementStates.mLowBits.mBit31)) != 0 && this->mWorldPadDir.dot(this->_16C) < 0.0f) {
         difference = 1.0f;
     }
-    if ((this->mFlags14.mLowWord >> 20) & 1) {
+    if (static_cast<u32>(this->mFlags14.mLowBits.mBit20)) {
         difference = 1.0f;
     }
     return difference;
@@ -414,7 +414,7 @@ void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {
 }
 
 bool Mario::taskOnHipDropBlurHopper(u32) {
-    if (!((getPlayer()->mMovementStates.mLowWord >> 20) & 1U) || ((mMovementStates.mLowWord >> 30) & 1U) || isStatusActive(MarioStatus_Swim)) {
+    if (!(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit20)) || (static_cast<u32>(mMovementStates.mLowBits.mBit30)) || isStatusActive(MarioStatus_Swim)) {
         if (gIsLuigi) {
             stopEffect("ホッパー尻落ルイージ");
         } else {
@@ -427,7 +427,7 @@ bool Mario::taskOnHipDropBlurHopper(u32) {
 
 void Mario::fn_803ACC40() {
     this->_3F4 = 0.0f;
-    if (!((this->mMovementStates.mLowWord >> 21) & 1)) {
+    if (!(static_cast<u32>(this->mMovementStates.mLowBits.mBit21))) {
         this->fn_803ACD80();
         return;
     }
@@ -466,7 +466,7 @@ void Mario::fn_803ACD80() {
     } else {
         this->changeAnimation("しゃがみ終了", "基本");
     }
-    this->mMovementStates.mHighWord &= 0xFDFFFFFF;
+    this->mMovementStates.mHighBits.mBit25 = 0;
 }
 
 namespace {
@@ -483,12 +483,12 @@ void Mario::fn_803ACE60() {
     this->changeAnimation((const char*)nullptr, "しゃがみ基本");
     this->stopAnimation("飛び込み準備", static_cast<u32>(4));
     this->fn_803AF2F0(cSquatWalkStoppedWeights);
-    this->mMovementStates.mHighWord &= 0xFDFFFFFF;
+    this->mMovementStates.mHighBits.mBit25 = 0;
     if (this->isPlayerModeYoshi()) {
-        if (!((this->mFlags24.mLowWord >> 21) & 1)) {
+        if (!(static_cast<u32>(this->mFlags24.mLowBits.mBit21))) {
             MR::startActionSound(this->mActor->getYoshi(), "Squat", -1, -1, -1);
         }
-    } else if (((this->mMovementStates.mLowWord >> 31) == 0) && !this->isAnimationRun("サマーソルト")) {
+    } else if (((static_cast<u32>(this->mMovementStates.mLowBits.mBit31)) == 0) && !this->isAnimationRun("サマーソルト")) {
         this->playSound("声しゃがむ", -1);
     }
 }
@@ -500,11 +500,11 @@ void Mario::fn_803ACF70() {
             mWalkSpeed = mActor->mConst->getTable()->mSquatWalkMinSpeed;
             fn_803AF2F0(cSquatWalkMovingWeights);
             mTargetWalkSpeedIndex = 1;
-            mMovementStates.mHighWord |= 0x02000000;
+            mMovementStates.mHighBits.mBit25 = 1;
         } else {
             fn_803AF2F0(cSquatWalkStoppedWeights);
             mTargetWalkSpeedIndex = 0;
-            mMovementStates.mHighWord &= 0xFDFFFFFF;
+            mMovementStates.mHighBits.mBit25 = 0;
         }
         return;
     }
@@ -526,7 +526,7 @@ void Mario::fn_803ACF70() {
 
 void Mario::fn_803AD0B0() {
     f32 var_f31 = this->mWalkSpeed * (60.0f / this->mActor->mConst->getTable()->mSquatWalkStep);
-    if (!((this->mMovementStates.mHighWord >> 25) & 1)) {
+    if (!(static_cast<u32>(this->mMovementStates.mHighBits.mBit25))) {
         var_f31 = 1.0f;
     }
     this->getAnimator()->setSpeed(var_f31);
@@ -535,7 +535,7 @@ void Mario::fn_803AD0B0() {
 // NONMATCHING: equivalent direct exit replaces the target byte-gate trampoline.
 void Mario::fn_803AD4F0() {
     if (isPlayerModeYoshi() && mTargetWalkSpeedIndex != 0 &&
-        ((getPlayer()->mMovementStates.mLowWord >> 30) & 1) && _A7F != 0) {
+        (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) && _A7F != 0) {
         f32 frame = getAnimator()->getFrame();
         f32 previousFrame = mPrevAnimFrame;
         if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
@@ -547,7 +547,7 @@ void Mario::fn_803AD4F0() {
 // NONMATCHING: equivalent direct exit replaces the target byte-gate trampoline.
 void Mario::fn_803AD9C0() {
     if (isPlayerModeYoshi() && mTargetWalkSpeedIndex != 0 &&
-        ((getPlayer()->mMovementStates.mLowWord >> 30) & 1) && _A7F != 0) {
+        (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) && _A7F != 0) {
         f32 frame = getAnimator()->getFrame();
         f32 previousFrame = mPrevAnimFrame;
         if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
@@ -604,7 +604,7 @@ void Mario::fn_803A6BE0() {
             }
         }
     }
-    bool grounded = (mMovementStates.mLowWord >> 30) & 1;
+    bool grounded = static_cast<u32>(mMovementStates.mLowBits.mBit30);
     if (grounded) {
         const char* name = mGroundPolygon->mSensor->mHost->mName;
         if (strstr(name, "TriPod") || strstr(name, "Tripod")) press = false;
@@ -618,7 +618,7 @@ void Mario::fn_803A6BE0() {
 
 // NONMATCHING: register allocation.
 void Mario::fn_803A7540() {
-    if (!((this->mMovementStates.mHighWord >> 28) & 1)) {
+    if (!(static_cast<u32>(this->mMovementStates.mHighBits.mBit28))) {
         this->_1A8 = this->mVelocity;
         this->_3C2 = 0;
         this->_280 = 0.0f;
@@ -629,7 +629,7 @@ void Mario::fn_803A7540() {
     if (this->_3C4 != 0) {
         this->_3C4 -= 1;
     }
-    if (((this->mMovementStates.mLowWord >> 30) & 1) && ((this->mMovementStates.mLowWord >> 31) == 0)) {
+    if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) && ((static_cast<u32>(this->mMovementStates.mLowBits.mBit31)) == 0)) {
         if (this->isEnableSlopeMove()) {
             this->slopeMove();
         } else {
@@ -652,8 +652,8 @@ void Mario::fn_803B0E60() {
 void Mario::fn_803B0EF0() {
     if (this->isPlayerModeYoshi()) {
         this->mMorphResetTimer = 0;
-        this->getPlayer()->mMovementStates.mHighWord |= 0x40000000U;
-        this->getPlayer()->mMovementStates.mLowWord &= 0xFFDFFFFFU;
+        this->getPlayer()->mMovementStates.mHighBits.mBit30 = 1;
+        this->getPlayer()->mMovementStates.mLowBits.mBit21 = 0;
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD00();
         const TVec3f* gravity = this->getGravityVec();
@@ -679,7 +679,7 @@ void Mario::fn_803B0EF0() {
         sp14 -= sp5C;
         TVec3f sp20(sp14);
         sp20 -= sp8;
-        this->mMovementStates.mHighWord |= 0x40000U;
+        this->mMovementStates.mHighBits.mBit18 = 1;
         this->_304 = sp20;
         this->changeAnimation("ヨッシー離脱ジャンプ", "落下");
         this->mActor->setPlayerMode(0, true, true);
@@ -693,7 +693,7 @@ void Mario::fn_803B0EF0() {
 void Mario::fn_803B1100() {
     if (this->isPlayerModeYoshi()) {
         this->mMorphResetTimer = 0;
-        this->mMovementStates.mHighWord |= 0x40000000;
+        this->mMovementStates.mHighBits.mBit30 = 1;
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD80();
         TVec3f position;
@@ -730,21 +730,21 @@ void Mario::fn_803B1180() {
 
 // NONMATCHING: saved-register and stack allocation, pooled animation strings.
 void Mario::fn_803B12B0() {
-    if ((this->mMovementStates.mLowWord >> 20) & 1) {
-        this->mFlags14.mHighWord &= 0xFFDFFFFF;
+    if (static_cast<u32>(this->mMovementStates.mLowBits.mBit20)) {
+        this->mFlags14.mHighBits.mBit21 = 0;
         return;
     }
     if (!this->isPlayerModeYoshi()) {
-        this->mFlags14.mHighWord &= 0xFFDFFFFF;
-        if ((this->mMovementStates.mLowWord >> 30) & 1) {
+        this->mFlags14.mHighBits.mBit21 = 0;
+        if (static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) {
             this->changeAnimation("基本", (const char*)nullptr);
             return;
         }
         this->changeAnimation("落下", (const char*)nullptr);
         return;
     }
-    if ((this->mMovementStates.mLowWord >> 30) & 1) {
-        this->mFlags14.mHighWord &= 0xFFDFFFFF;
+    if (static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) {
+        this->mFlags14.mHighBits.mBit21 = 0;
         this->changeAnimation("基本", (const char*)nullptr);
         return;
     }
@@ -783,18 +783,18 @@ s32 Mario::fn_803B1540() {
     if (!this->isPlayerModeYoshi()) {
         return 0;
     }
-    if ((this->mFlags14.mHighWord >> 21) & 1) {
+    if (static_cast<u32>(this->mFlags14.mHighBits.mBit21)) {
         return 0;
     }
-    if ((this->mMovementStates.mLowWord >> 30) & 1) {
+    if (static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) {
         return 0;
     }
-    if ((this->mMovementStates.mLowWord >> 21) & 1) {
+    if (static_cast<u32>(this->mMovementStates.mLowBits.mBit21)) {
         return 0;
     }
     if (this->_430 - 0xBU <= 2U || this->_430 == 9) {
         if (this->isRising()) {
-            this->mMovementStates.mLowWord |= 0x1000;
+            this->mMovementStates.mLowBits.mBit12 = 1;
             return 0;
         }
     }
@@ -804,8 +804,8 @@ s32 Mario::fn_803B1540() {
     this->fn_8039A600();
     this->resetTornado();
     this->cancelTornadoJump();
-    this->mDrawStates.mWord |= 0x800000;
-    this->mMovementStates.mHighWord &= 0xBFFFFFFF;
+    this->mDrawStates.mBits.mBit23 = 1;
+    this->mMovementStates.mHighBits.mBit30 = 0;
     this->mFlags14.mHighWord |= 0x300000;
     this->mActor->fn_803B9A10();
     if (this->_430 == 4) {
@@ -828,7 +828,7 @@ bool Mario::fn_803B18C0() {
     if (mActor->_482 || mActor->_481) actorBusy = true;
     if (actorBusy) return false;
     if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) return false;
-    if ((getPlayer()->mMovementStates.mLowWord >> 31) || !((getPlayer()->mMovementStates.mLowWord >> 30) & 1)) return false;
+    if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit31)) || !(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30))) return false;
     if (getPlayer()->isStatusActive(6)) return false;
     if (getPlayer()->isStatusActive(5)) return false;
     if (getPlayer()->isStatusActive(0x1A)) return false;
@@ -836,9 +836,9 @@ bool Mario::fn_803B18C0() {
     if (getPlayer()->isStatusActive(0x12)) return false;
     if (getPlayer()->isStatusActive(0x11)) return false;
     if (getPlayer()->isStatusActive(0x22)) return false;
-    if ((getPlayer()->mFlags20.mWord >> 26) & 1) return false;
-    if ((getPlayer()->mMovementStates.mHighWord >> 28) & 1) return false;
-    if ((getPlayer()->mMovementStates.mLowWord >> 21) & 1) return false;
+    if (static_cast<u32>(getPlayer()->mFlags20.mBits.mBit26)) return false;
+    if (static_cast<u32>(getPlayer()->mMovementStates.mHighBits.mBit28)) return false;
+    if (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit21)) return false;
     if (mTargetWalkSpeedIndex != 0) return false;
     changeStatus(mYoshiDash);
     return true;
@@ -848,7 +848,7 @@ bool Mario::fn_803B18C0() {
 
 bool Mario::fn_803B2470() {
     if (!_60D && mActor->mAxisRotationDisabled6A0) return false;
-    if (!((mDrawStates.mWord >> 18) & 1)) return false;
+    if (!(static_cast<u32>(mDrawStates.mBits.mBit18))) return false;
     TVec3f difference(mHeadVec);
     difference -= _290;
     if (MR::isNearZero(difference, 0.001f)) return false;
@@ -859,11 +859,11 @@ bool Mario::fn_803B2470() {
 
 s32 Mario::fn_803B2530(bool squat) {
     if (fn_803EF7C0() == 0x20 || static_cast<u16>(getPlayerMode()) == 4 || isPlayerModeYoshi() || _430 == 3) return 0;
-    if (squat && mWalkSpeed > 0.3f && !((mMovementStates.mHighWord >> 28) & 1)) {
+    if (squat && mWalkSpeed > 0.3f && !(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
         trySquatJump();
         return 1;
     }
-    if (((mMovementStates.mLowWord >> 21) & 1) && !((mMovementStates.mHighWord >> 28) & 1)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21)) && !(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
         tryBackJump();
         return 1;
     }
@@ -984,12 +984,12 @@ void Mario::fn_803B3AE0(const HitInfo* hit, const TVec3f* origin) {
     }
     *mSideWallTriangle = hit->mParentTriangle;
     _500 = hit->mHitPos;
-    mMovementStates.mLowWord |= 0x20;
-    if (hit->isCollisionAtCorner() || hit->isCollisionAtEdge()) mMovementStates.mHighWord |= 0x1000;
+    mMovementStates.mLowBits.mBit5 = 1;
+    if (hit->isCollisionAtCorner() || hit->isCollisionAtEdge()) mMovementStates.mHighBits.mBit12 = 1;
 }
 
 void Mario::fn_803B3BB0(const HitInfo* hit, const TVec3f* origin) {
-    if ((mMovementStates.mLowWord >> 23) & 1) {
+    if (static_cast<u32>(mMovementStates.mLowBits.mBit23)) {
         TVec3f back(_4F4);
         back -= *origin;
         TVec3f front(_4E8);
@@ -1006,13 +1006,13 @@ void Mario::fn_803B3BB0(const HitInfo* hit, const TVec3f* origin) {
     }
     *mBackWallTriangle = hit->mParentTriangle;
     _4F4 = hit->mHitPos;
-    mMovementStates.mLowWord |= 0x40;
+    mMovementStates.mLowBits.mBit6 = 1;
 }
 
 void Mario::fn_803B3CE0() {
     if (mDashWallCooldown != 0) --mDashWallCooldown;
     if (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0) {
-        if (((mMovementStates.mLowWord >> 23) & 1) && !isAnimationRun("壁はじき")) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && !isAnimationRun("壁はじき")) {
             if (!mActor->sendMsgToSensor(mFrontWallTriangle->mSensor, 0xF7) && mDashWallCooldown == 0) {
                 MR::tryRumblePadStrong(mActor, 0);
                 MR::shakeCameraNormal();
@@ -1029,7 +1029,7 @@ void Mario::fn_803B3CE0() {
         } else {
             mDashWallSoundPlayed = false;
         }
-        if (((mMovementStates.mLowWord >> 30) & 1) && mGroundPolygon->isValid() && fn_803B3E90()) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && mGroundPolygon->isValid() && fn_803B3E90()) {
             mActor->getYoshi()->fn_8040F320();
             return;
         }
@@ -1064,7 +1064,7 @@ void Mario::fn_803B44F0(TVec3f* arg1) {
         this->_428 = 0x3C;
         this->mMovementStates.mHighWord = (this->mMovementStates.mHighWord | 0x100000U) & 0xFFFFFFFCU;
     } else if (this->_1FC.dot(*arg1) < 0.0f) {
-        this->mMovementStates.mLowWord |= 0x40000000U;
+        this->mMovementStates.mLowBits.mBit30 = 1;
         this->mJumpVec.zero();
         this->changeAnimation("空中一回転", static_cast<const char*>(nullptr));
     }
@@ -1162,7 +1162,7 @@ s32 Mario::fn_803B41F0() {
     s32 result = 0;
     s32 active = 0;
     if (mSinkTimer != 0) {
-        if ((getPlayer()->mMovementStates.mLowWord >> 30) & 1) {
+        if (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) {
             active = 1;
         }
     }
@@ -1182,19 +1182,19 @@ void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
     direction.sub(*center);
     MR::normalizeOrZero(&direction);
     f32 facing = direction.dot(*hit->mParentTriangle.getNormal(0));
-    if (facing < fn_803B3870()) mMovementStates.mLowWord |= 0x00800000U;
-    else mMovementStates.mHighWord |= 0x00002000U;
-    if (((mMovementStates.mLowWord >> 30) & 1U) && ((mMovementStates.mLowWord >> 10) & 1U) && ((mMovementStates.mHighWord >> 6) & 1U)) {
+    if (facing < fn_803B3870()) mMovementStates.mLowBits.mBit23 = 1;
+    else mMovementStates.mHighBits.mBit13 = 1;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && (static_cast<u32>(mMovementStates.mLowBits.mBit10)) && (static_cast<u32>(mMovementStates.mHighBits.mBit6))) {
         TVec3f delta(_4A4);
         delta.sub(_4E8);
-        if (delta.dot(*getGravityVec()) >= 0.0f) mMovementStates.mLowWord &= 0xFF7FFFFFU;
+        if (delta.dot(*getGravityVec()) >= 0.0f) mMovementStates.mLowBits.mBit23 = 0;
     }
-    if (!_60D && !((mMovementStates.mLowWord >> 23) & 1U)) {
+    if (!_60D && !(static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         if (calcAngleD(*mFrontWallTriangle->getNormal(0)) < mActor->getConst().getTable()->mSlipAngle &&
             !isSlipFloorCode(_95C->getCode(mFrontWallTriangle)) &&
             hit->mParentTriangle.getNormal(0)->dot(mFrontVec) < 0.0f && direction.dot(mFrontVec) > 0.0f &&
             direction.dot(*hit->mParentTriangle.getNormal(0)) < 0.0f) {
-            mDrawStates.mWord |= 0x00010000U;
+            mDrawStates.mBits.mBit16 = 1;
             _380 = *mFrontWallTriangle->getNormal(0);
         }
     }
@@ -1202,7 +1202,7 @@ void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
 
 // NONMATCHING: literal symbol identities; instruction words match after relocation masking.
 f32 Mario::fn_803B2CC0(TVec3f* arg1) {
-    if (((mFlags14.mLowWord >> 12) & 1) && ((mMovementStates.mLowWord >> 20) & 1)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit12)) && (static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         return 1.0f;
     }
     if (arg1->dot(this->mHeadVec) < 0.0f) {
@@ -1227,7 +1227,7 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     TVec3f start;
     TVec3f dir;
     bool hit;
-    if (((this->mMovementStates.mLowWord >> 23) & 1) && this->mFrontWallTriangle != nullptr) {
+    if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit23)) && this->mFrontWallTriangle != nullptr) {
         pOutPos->set(this->_4E8);
         start = this->mActor->_240;
         *pOutTri = *this->mFrontWallTriangle;
@@ -1237,7 +1237,7 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
             TVec3f up(this->mFrontVec);
             up.scale(115.0f);
             dir = up;
-        } else if (((this->mMovementStates.mLowWord >> 16) & 1) && !MR::isNearZero(this->_328.dot(*this->getGravityVec()), 0.001f)) {
+        } else if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit16)) && !MR::isNearZero(this->_328.dot(*this->getGravityVec()), 0.001f)) {
             MR::vecKillElement(this->_328, *this->getGravityVec(), &dir);
             dir.setLength(200.0f);
         } else {
@@ -1283,7 +1283,7 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     MR::isNearZero(this->mAirGravityVec, 0.001f);
     this->_4E0 = (rPos - hit).dot(this->mAirGravityVec);
     if (this->_4E0 > 0.0f) {
-        this->mMovementStates.mLowWord |= 0x400;
+        this->mMovementStates.mLowBits.mBit10 = 1;
     }
     f32 offset = 0.0f;
     MR::isNearZero(this->mAirGravityVec, 0.001f);
@@ -1299,8 +1299,8 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
         return;
     }
     this->_4A4 = hit;
-    if (!((this->mMovementStates.mLowWord >> 30) & 1) || this->calcAngleD(this->_368) < 25.0f) {
-        this->mMovementStates.mHighWord |= 0x40;
+    if (!(static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) || this->calcAngleD(this->_368) < 25.0f) {
+        this->mMovementStates.mHighBits.mBit6 = 1;
     }
     *this->_47C = tri;
 }
@@ -1315,7 +1315,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
     if (count != 0) {
         for (u32 i = 0; i < count; i++) {
             const HitInfo* pInfo = this->fn_803B2AA0(i);
-            if (((this->mMovementStates.mHighWord >> 8) & 1) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(this->mSwimSideVec694)) > ref) {
+            if ((static_cast<u32>(this->mMovementStates.mHighBits.mBit8)) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(this->mSwimSideVec694)) > ref) {
                 continue;
             }
             f32 angle = this->calcAngleD(*pInfo->mParentTriangle.getNormal(0));
@@ -1328,7 +1328,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
                 maxIdx = i;
             }
         }
-        if ((this->mMovementStates.mLowWord >> 30) & 1) {
+        if (static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) {
             ref = this->calcAngleD(this->_368);
             if (ref < minAngle) {
                 minAngle = ref;
@@ -1339,19 +1339,19 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
         }
         f32 range = maxAngle - minAngle;
         if (range < 60.0f && range > 5.0f && maxAngle < 80.0f) {
-            this->mDrawStates.mWord |= 0x10000;
+            this->mDrawStates.mBits.mBit16 = 1;
             if (maxAngle > ref) {
                 this->_380 = *this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0);
             } else if (minAngle < ref) {
                 this->_380 = *this->fn_803B2AA0(minIdx)->mParentTriangle.getNormal(0);
             }
         }
-        if (((this->mMovementStates.mLowWord >> 30) & 1) && maxAngle > 60.0f && maxAngle != ref && maxAngle < 80.0f) {
+        if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit30)) && maxAngle > 60.0f && maxAngle != ref && maxAngle < 80.0f) {
             TVec3f hitPos(this->fn_803B2AA0(maxIdx)->mHitPos);
             TVec3f toPos(rPos);
             toPos -= hitPos;
             if (!MR::normalizeOrZero(&toPos)) {
-                this->mDrawStates.mWord |= 0x100;
+                this->mDrawStates.mBits.mBit8 = 1;
                 MR::isNearZero(this->mAirGravityVec, 0.001f);
                 TVec3f side;
                 PSVECCrossProduct(this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0), &this->mAirGravityVec, &side);
@@ -1368,7 +1368,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
 // NONMATCHING: constant pool labels
 void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
     f32 offset = 110.0f;
-    if ((this->mMovementStates.mLowWord >> 21) & 1) {
+    if (static_cast<u32>(this->mMovementStates.mLowBits.mBit21)) {
         offset = 50.0f;
     }
     *pHeight = 40.0f;
@@ -1410,7 +1410,7 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
     f32 limit;
     if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(this->mActor->fn_803B9830()->mRideModelActor)) {
         limit = 0.707f;
-    } else if ((this->mMovementStates.mLowWord >> 31) != 0) {
+    } else if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit31)) != 0) {
         limit = 0.0f;
     } else {
         limit = -0.707f;
@@ -1450,7 +1450,7 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
 // NONMATCHING: stack allocation, cached animation frame and literal pool ordering.
 void Mario::fn_803AD5B0() {
     if (mTargetWalkSpeedIndex != 0) {
-        if (((mDrawStates.mWord >> 13) & 1) || ((mDrawStates.mWord >> 12) & 1)) {
+        if ((static_cast<u32>(mDrawStates.mBits.mBit13)) || (static_cast<u32>(mDrawStates.mBits.mBit12))) {
             if (_738 < 160.0f) {
                 if (isPlayerModeYoshi()) {
                     f32 previousFrame = mPrevAnimFrame;
@@ -1523,7 +1523,7 @@ void Mario::fn_803AD5B0() {
                 }
             }
         }
-    } else if ((mDrawStates.mWord >> 13) & 1) {
+    } else if (static_cast<u32>(mDrawStates.mBits.mBit13)) {
         f32 depth = _738;
         if (depth < 160.0f && (mActor->_37C & 0x3F) == 0) {
             TVec3f height(_368);

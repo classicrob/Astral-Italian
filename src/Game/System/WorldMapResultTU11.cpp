@@ -651,7 +651,9 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
     pRocket->resetAction();
     bool arrived = false;
     if (pCamera->mMoveFrame == 0) {
-        s32 next = mContext->mWorld->getPathNode(pCamera->mNext, pCamera->mPathStep);
+        s32 pathStep = pCamera->mPathStep;
+        s32 pathNext = pCamera->mNext;
+        s32 next = mContext->mWorld->getPathNode(pathNext, pathStep);
         if (pWorld->isLinked14(pCamera->mCurrent, next)) {
             pCamera->setNext(next);
             return true;
@@ -684,8 +686,8 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
 
         TVec3f from(pWorld->getNode(pCamera->mCurrent)->mPos);
         TVec3f to(pWorld->getNode(pCamera->mPathFrom)->mPos);
-        f32 toX = to.x;
         f32 fromX = from.x;
+        f32 toX = to.x;
         if (__fabsf(fromX - toX) > 1000.0f) {
             if (fromX < toX) {
                 pCamera->mMovingLeft = false;
@@ -737,7 +739,7 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
     TVec3f i = goal * rate2 + pCamera->mStartOffset * (1.0f - rate2);
     MR::setPosition(pCamera->mCameraTarget, i);
     pCamera->mMoveFrame++;
-    if ((arrived && pCamera->mMoveFrame > 0x1A) || (MR::isNear(pRocket, goal, 10.0f) && MR::isVelocityGreaterEqual(pRocket, 1.0f) == 0) ||
+    if ((arrived && pCamera->mMoveFrame > 0x1A) || (MR::isNear(pRocket, goal, 10.0f) && !MR::isVelocityGreaterEqual(pRocket, 1.0f)) ||
         (!arrived && MR::isNear(pRocket, goal, 1000.0f))) {
         if (!arrived) {
             pCamera->mMoveFrame = 0;

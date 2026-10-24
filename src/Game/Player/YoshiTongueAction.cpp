@@ -188,278 +188,56 @@ YoshiTongueAction::YoshiTongueAction(Yoshi* yoshi, YoshiTongue* tongue, Mario* p
     initNerve(&NrvYoshiTongueAction::State0::sInstance, 0);
 }
 
-YoshiTongueAction::~YoshiTongueAction() {}
-
 void YoshiTongueAction::fn_8041DF40() {
     updateNerve();
     if (mTarget->hasCurrentTarget() && fn_804201A0()) mTarget->calcCurrentTargetPosition(&mTargetPosition);
     if (!isNerve(&NrvYoshiTongueAction::State8::sInstance) && !isNerve(&NrvYoshiTongueAction::State9::sInstance)) MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
 }
 
-void YoshiLockOnManager::startLockOn(LiveActor* actor) {
-    mContextActive = true;
-    mSuspended = false;
-    mContextActor = actor;
-}
-void YoshiLockOnManager::endLockOn() {
-    mContextActive = false;
-    mHasUpdated = false;
-    clearActiveTargets();
-}
-
-bool YoshiTongueAction::fn_8041F8A0() const { return isNerve(&NrvYoshiTongueAction::State13::sInstance); }
-
-bool YoshiTongueAction::fn_8041F8B0() const { return isNerve(&NrvYoshiTongueAction::State13::sInstance); }
-
-bool YoshiTongueAction::fn_8041FA30() const { return isNerve(&NrvYoshiTongueAction::State0::sInstance); }
-
-bool YoshiTongueAction::fn_8041F8C0() const {
-    if (isNerve(&NrvYoshiTongueAction::State11::sInstance)) return _8C;
-    return false;
-}
-
-bool YoshiTongueAction::fn_8041F910() const {
-    bool result = false;
-    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) || isNerve(&NrvYoshiTongueAction::State8::sInstance)) result = true;
-    return result;
-}
-
-bool YoshiTongueAction::fn_8041FA40() const {
-    bool result = false;
-    if (isNerve(&NrvYoshiTongueAction::State8::sInstance) || isNerve(&NrvYoshiTongueAction::State9::sInstance)) result = true;
-    return result;
-}
-
-bool YoshiTongueAction::fn_8041FAA0() const {
-    bool result = false;
-    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) || isNerve(&NrvYoshiTongueAction::State8::sInstance) || isNerve(&NrvYoshiTongueAction::State5::sInstance) || isNerve(&NrvYoshiTongueAction::State6::sInstance)) result = true;
-    return result;
-}
-
-f32 YoshiTongueAction::fn_8041FB30() const { return 1.0f; }
-void YoshiTongueAction::fn_8041FB40(TVec3f* output) const { mTarget->calcCurrentTargetPosition(output); }
-f32 YoshiTongueAction::fn_8041FB50() { return 4.0f; }
-
-bool YoshiTongueAction::fn_8041FB60() {
-    if (_2C) _8D = true;
-    else {
-        setNerve(&NrvYoshiTongueAction::State15::sInstance);
-        _8D = true;
-        mTongue->fn_8041CBA0();
+void YoshiTongueAction::fn_8041DFD0() {
+    if (MR::isFirstStep(this)) {
+        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
+        mYoshi->mHeadCtrl->fn_8041AB50(1);
+        mYoshi->fn_8040EF30();
     }
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    return true;
-}
-bool YoshiTongueAction::fn_8041FBD0() {
-    if (isNerve(&NrvYoshiTongueAction::State11::sInstance)) {
-        mPlayer->fn_803B1780();
-        mTongue->fn_8041CBA0();
-        setNerve(&NrvYoshiTongueAction::State12::sInstance);
-        return true;
+    if (mYoshi->fn_8040F5B0("口を閉じる") && mYoshi->fn_8040F5F0()) mYoshi->fn_8040EE70(nullptr);
+    MR::requestStarPointerModeCommandStream(this);
+    if (MR::testCorePadTriggerB(0)) {
+        if (isPopoSticking()) {
+            tryReactStickingPopo();
+            return;
+        }
+        mTarget->takeLockOnTargets();
+        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
+        if (mTarget->hasCurrentTarget()) {
+            setNerve(&NrvYoshiTongueAction::State2::sInstance);
+            mTongue->fn_8041CB30(false);
+            return;
+        }
+        setNerve(&NrvYoshiTongueAction::State14::sInstance);
+        return;
     }
-    setNerve(&NrvYoshiTongueAction::State15::sInstance);
-    _8D = false;
-    mTongue->fn_8041CBA0();
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    return true;
-}
-bool YoshiTongueAction::fn_8041FC60() {
-    if (!isNerve(&NrvYoshiTongueAction::State11::sInstance)) return false;
-    _A8 = false;
-    setNerve(&NrvYoshiTongueAction::State17::sInstance);
-    mTongue->fn_8041CB70(false);
-    mPlayer->fn_803B1780();
-    return true;
-}
-bool YoshiTongueAction::fn_8041FCD0() { setNerve(&NrvYoshiTongueAction::State0::sInstance); return true; }
-bool YoshiTongueAction::fn_8041FD00() {
-    fn_804214C0();
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
-    mYoshi->fn_8040EE70(nullptr);
-    mYoshi->mHeadCtrl->fn_8041AB50(1);
-    mYoshi->fn_8040EF30();
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    setNerve(&NrvYoshiTongueAction::State0::sInstance);
-    return true;
-}
-bool YoshiTongueAction::fn_8041FD80() {
-    fn_804214C0();
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
-    mYoshi->fn_8040EE70(nullptr);
-    mYoshi->mHeadCtrl->fn_8041AB50(1);
-    mYoshi->fn_8040EF30();
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    setNerve(&NrvYoshiTongueAction::State0::sInstance);
-    return true;
-}
-bool YoshiTongueAction::fn_8041FE00() {
-    mPlayer->fn_803B1800();
-    mYoshi->fn_8040EE70(nullptr);
-    mYoshi->mHeadCtrl->fn_8041AB50(1);
-    mYoshi->fn_8040EF30();
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    setNerve(&NrvYoshiTongueAction::State1::sInstance);
-    return true;
-}
-bool YoshiTongueAction::fn_8041FE80() { setNerve(&NrvYoshiTongueAction::State0::sInstance); return true; }
-void YoshiTongueAction::fn_8041FEB0() {
-    fn_804214C0();
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
-    mYoshi->fn_8040EE70(nullptr);
-    mYoshi->mHeadCtrl->fn_8041AB50(1);
-    mYoshi->fn_8040EF30();
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    mTongue->fn_8041CC60();
-    if (mPlayer->fn_803B1B70()) {
-        mPlayer->fn_803B1B20();
-        mPlayer->changeAnimation(nullptr, static_cast<const char*>(nullptr));
+    TVec3f position;
+    fn_80421830(&position);
+    if (tryStartNearestAutoEat(position)) {
+        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
+        setNerve(&NrvYoshiTongueAction::State16::sInstance);
     }
-    setNerve(&NrvYoshiTongueAction::State0::sInstance);
-}
-bool YoshiTongueAction::fn_8041FF60() const { return mPlayer->fn_803B1850(); }
-void YoshiTongueAction::fn_8041FF70() { mArrow->fn_80414040(); }
-void YoshiTongueAction::fn_8041FF80() {
-    mYoshi->fn_8040EE70(nullptr);
-    mYoshi->mHeadCtrl->fn_8041AB50(1);
-    mYoshi->fn_8040EF30();
-    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
-    setNerve(&NrvYoshiTongueAction::State18::sInstance);
-}
-void YoshiTongueAction::fn_80420000() {
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
-    setNerve(&NrvYoshiTongueAction::State0::sInstance);
-}
-void YoshiTongueAction::fn_80420050() {
-    if (fn_80421410()) { setNerve(&NrvYoshiTongueAction::State13::sInstance); return; }
-    bool flag = _8D;
-    setNerve(&NrvYoshiTongueAction::State15::sInstance);
-    _8D = flag;
-    mTongue->fn_8041CBA0();
-}
-void YoshiTongueAction::fn_804200C0() {
-    if (fn_80421410()) { setNerve(&NrvYoshiTongueAction::State11::sInstance); return; }
-    bool flag = _8D;
-    setNerve(&NrvYoshiTongueAction::State15::sInstance);
-    _8D = flag;
-    mTongue->fn_8041CBA0();
-}
-#pragma push
-#pragma dont_inline on
-void YoshiTongueAction::fn_80420130() {
-    MtxPtr matrix = mYoshi->getBaseMtx();
-    TVec3f direction(-matrix[0][2], -matrix[1][2], -matrix[2][2]);
-    mPlayer->faint(direction);
-}
-#pragma pop
-bool YoshiTongueAction::fn_804201A0() const {
-    bool result = false;
-    if (!isNerve(&NrvYoshiTongueAction::State3::sInstance) && !isNerve(&NrvYoshiTongueAction::State4::sInstance) && !isNerve(&NrvYoshiTongueAction::State7::sInstance) && !isNerve(&NrvYoshiTongueAction::State8::sInstance)) result = true;
-    return result;
 }
 
-void YoshiTongueAction::fn_80420AC0(TVec3f* output, const TVec3f& target, const TVec3f& gravity, f32 progress) const {
-    TVec3f delta(target);
-    JMathInlineVEC::PSVECSubtract(&delta, &mStartPosition, &delta);
-    TVec3f planar;
-    JMAVECScaleAdd(&gravity, &delta, &planar, -gravity.dot(delta));
-    TVec3f vertical(delta);
-    JMathInlineVEC::PSVECSubtract(&vertical, &planar, &vertical);
-    f32 inverse = progress - 1.0f;
-    f32 square = inverse * inverse;
-    f32 polynomial = inverse * square;
-    polynomial += square;
-    f32 arc = 50.0f * (6.7f * polynomial);
-    vertical.scale(progress);
-    TVec3f negativeGravity;
-    JGeometry::negateInternal(&gravity.x, &negativeGravity.x);
-    TVec3f offset(negativeGravity);
-    offset.scale(arc);
-    vertical += offset;
-    f32 remaining = progress - 1.0f;
-    planar.scale(1.0f + -remaining * remaining);
-    TVec3f base(mStartPosition);
-    base += vertical;
-    TVec3f position(base);
-    position += planar;
-    output->set(position);
-}
-
-void YoshiTongueAction::fn_80420C30(TVec3f* position, const TVec3f& target, const TVec3f& gravity, f32 angle) const {
-    TVec3f center;
-    mTarget->calcCurrentTargetPosition(&center);
-    TVec3f direction(target);
-    JMathInlineVEC::PSVECSubtract(&direction, &center, &direction);
-    MR::normalize(&direction);
-    TVec3f axis;
-    PSVECCrossProduct(&direction, &gravity, &axis);
-    MR::normalize(&axis);
-    TQuat4f rotation;
-    rotation.setRotate(axis, angle);
-    TVec3f offset(*position);
-    JMathInlineVEC::PSVECSubtract(&offset, &center, &offset);
-    rotation.transform(offset);
-    TVec3f result(center);
-    result += offset;
-    position->set(result);
-}
-
-// NONMATCHING: temporary stack slots, quaternion copy instruction widths and argument scheduling differ.
-void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target, const TVec3f& gravity, f32 progress) {
-    TPos3f original;
-    original.set(mYoshi->getBaseMtx());
-    TVec3f up(target);
-    JMathInlineVEC::PSVECSubtract(&up, &mStartPosition, &up);
-    if (MR::normalizeOrZero(&up)) original.getYDir(up);
-    TVec3f side;
-    PSVECCrossProduct(&up, &gravity, &side);
-    if (MR::normalizeOrZero(&side)) {
-        f32 z = original.mMtx[2][0];
-        f32 y = original.mMtx[1][0];
-        f32 x = original.mMtx[0][0];
-        side.set<f32>(x, y, z);
+void YoshiTongueAction::fn_8041E150() {
+    if (MR::isFirstStep(this)) {
+        _A4 = 200.0f;
+        MR::startStarPointerModePictureBook(this);
     }
-    up = target - position;
-    if (MR::normalizeOrZero(&up)) original.getYDir(up);
-    TVec3f front;
-    PSVECCrossProduct(&side, &up, &front);
-    if (MR::normalizeOrZero(&front)) {
-        f32 z = original.mMtx[2][2];
-        f32 y = original.mMtx[1][2];
-        f32 x = original.mMtx[0][2];
-        front.set<f32>(x, y, z);
+    if (tryStartNearestAutoEat(mYoshi->getAutoEatSensorPosition())) {
+        sendAutoEatSensorMessage(0x100, _A0, MR::getMessageSensor());
+        LiveActor* actor = MR::getSensorHost(_A0);
+        if (actor) fn_80420230(actor);
+        if (_2D) MR::tryRumblePadMiddle(this, 0);
+        MR::stopScene(8);
+        mPlayer->_A72 = true;
     }
-    PSVECCrossProduct(&up, &front, &side);
-    TPos3f oriented;
-    oriented.identity();
-    oriented.setXYZDir(side, up, front);
-    TQuat4f originalRotation;
-    TQuat4f targetRotation;
-    original.getQuat(originalRotation);
-    oriented.getQuat(targetRotation);
-    TQuat4f rotation(static_cast<const Quaternion&>(originalRotation));
-    rotation.slerp(targetRotation, progress);
-    side.set<f32>((1.0f - 2.0f * (rotation.y * rotation.y)) - 2.0f * (rotation.z * rotation.z),
-                  2.0f * (rotation.x * rotation.y) + 2.0f * (rotation.w * rotation.z),
-                  2.0f * (rotation.x * rotation.z) - 2.0f * (rotation.w * rotation.y));
-    up.set<f32>(2.0f * (rotation.x * rotation.y) - 2.0f * (rotation.w * rotation.z),
-                (1.0f - 2.0f * (rotation.x * rotation.x)) - 2.0f * (rotation.z * rotation.z),
-                2.0f * (rotation.y * rotation.z) + 2.0f * (rotation.w * rotation.x));
-    front.set<f32>(2.0f * (rotation.x * rotation.z) + 2.0f * (rotation.w * rotation.y),
-                   2.0f * (rotation.y * rotation.z) - 2.0f * (rotation.w * rotation.x),
-                   (1.0f - 2.0f * (rotation.x * rotation.x)) - 2.0f * (rotation.y * rotation.y));
-    mPlayer->setSideVec(side);
-    mPlayer->setHeadVec(up);
-    mPlayer->setFrontVec(front);
-    mPlayer->clearVelocity();
-    const TVec3f& yoshiPosition = mYoshi->mPosition;
-    mPlayer->addVelocity(position - yoshiPosition);
-}
-
-void YoshiTongueAction::fn_80421830(TVec3f* output) const {
-    TPos3f matrix;
-    mTongue->fn_8041CD10(&matrix);
-    output->set<f32>(matrix.mMtx[0][3], matrix.mMtx[1][3], matrix.mMtx[2][3]);
 }
 
 void YoshiTongueAction::fn_8041E210() {
@@ -508,6 +286,113 @@ void YoshiTongueAction::fn_8041E210() {
     }
 }
 
+void YoshiTongueAction::fn_8041E470() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(mYoshi, "GrabTarget", -1, -1, -1);
+        mYoshi->mHeadCtrl->fn_8041AD20(1);
+    }
+    if (MR::isStep(this, 3)) MR::startActionSound(mYoshi, "PullToMouth", -1, -1, -1);
+    fn_80420480(MR::isFirstStep(this));
+    if (mTongue->fn_8041CB90()) {
+        if (mTarget->fn_8041C1E0() || mTarget->fn_8041C210()) {
+            _60 = false;
+            setNerve(&NrvYoshiTongueAction::State4::sInstance);
+            return;
+        }
+        if (!mTarget->hasNextTarget()) {
+            if (mTarget->fn_8041C140()) {
+                _60 = false;
+                setNerve(&NrvYoshiTongueAction::State7::sInstance);
+                return;
+            }
+            if (mTarget->fn_8041C120()) {
+                _60 = false;
+                setNerve(&NrvYoshiTongueAction::State4::sInstance);
+                return;
+            }
+        }
+    }
+    if (mTongue->fn_8041CB80()) {
+        fn_80421790();
+        mTarget->sendReleaseEatenMessage();
+        fn_804217B0();
+        fn_80420230(nullptr);
+        if (!isNerve(&NrvYoshiTongueAction::State1::sInstance)) {
+            if (isPopoSticking() || !isNerve(&NrvYoshiTongueAction::State3::sInstance)) {
+                _60 = false;
+                setNerve(&NrvYoshiTongueAction::State7::sInstance);
+                return;
+            }
+            mTarget->advanceTargetIfMore();
+            if (_2D) MR::tryRumblePadMiddle(this, 0);
+            setNerve(&NrvYoshiTongueAction::State2::sInstance);
+            mTongue->fn_8041CB30(true);
+        }
+    }
+}
+
+void YoshiTongueAction::fn_8041E680() {
+    if (MR::isFirstStep(this)) {
+        mYoshi->fn_8040EE30("食べる");
+        if (mPlayer->fn_803B18C0()) mPlayer->changeAnimation("食べる", static_cast<const char*>(nullptr));
+        MR::tryRumblePadMiddle(this, 0);
+        _60 = false;
+    }
+    if (MR::isStep(this, 3)) MR::startActionSound(mYoshi, "PullToMouth", -1, -1, -1);
+    if (MR::isStep(this, 8)) {
+        MR::startActionSound(mYoshi, "yoshieatstart", -1, -1, -1);
+        MR::startCSSound1P("CS_YOSHI_EAT", 2, 1.0f);
+        if (mTarget->fn_8041C210()) MR::startActionSound(mYoshi, "MouthPreShoot", -1, -1, -1);
+    }
+    if (!_60) {
+        fn_80420480(false);
+        if (mTongue->fn_8041CB80()) {
+            fn_804206E0();
+            _60 = true;
+        }
+    }
+    bool complete = false;
+    if (mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50)) complete = true;
+    if (complete && _60) {
+        mYoshi->mHeadCtrl->fn_8041AB50(1);
+        mTongue->fn_8041CC60();
+        if (mTarget->fn_8041C210()) {
+            mYoshi->fn_8040EE30("口に含む");
+            if (mPlayer->fn_803B1B70()) {
+                mPlayer->fn_803B1B20();
+                mPlayer->changeAnimation(nullptr, static_cast<const char*>(nullptr));
+            }
+            mYoshi->mDashTimer = 0;
+            fn_804217D0();
+            setNerve(&NrvYoshiTongueAction::State8::sInstance);
+            return;
+        }
+        if (mYoshi->mDashTimer > 0) {
+            mYoshi->fn_8040EE70(nullptr);
+            setNerve(&NrvYoshiTongueAction::State5::sInstance);
+            return;
+        }
+        mYoshi->fn_8040EE30("噛む");
+        if (mPlayer->fn_803B1B70()) mPlayer->changeAnimation("噛む", static_cast<const char*>(nullptr));
+        setNerve(&NrvYoshiTongueAction::State5::sInstance);
+    }
+}
+
+void YoshiTongueAction::fn_8041E8F0() {
+    if (fn_80421880()) MR::startActionSoundPlayer("Eating", -1, -1);
+    if (MR::isStep(this, 0) && fn_80421880()) {
+        MR::startActionSoundPlayer("Swallow", -1, -1);
+        MR::startCSSound1P("CS_YOSHI_SWALLOW", 4, 1.0f);
+    }
+    if (MR::isGreaterEqualStep(this, 1)) {
+        if (mYoshi->mDashTimer <= 0) {
+            mYoshi->fn_8040EE30("飲み下す");
+            if (mPlayer->fn_803B1B70()) mPlayer->changeAnimation("飲み下す", static_cast<const char*>(nullptr));
+        }
+        setNerve(&NrvYoshiTongueAction::State6::sInstance);
+    }
+}
+
 void YoshiTongueAction::fn_8041E9E0() {
     bool complete = false;
     if (mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50)) complete = true;
@@ -548,6 +433,49 @@ void YoshiTongueAction::fn_8041EAA0() {
     }
 }
 
+void YoshiTongueAction::fn_8041EBE0() {
+    if (MR::isFirstStep(this)) {
+        mYoshi->mHeadCtrl->fn_8041AA70(1, &mTargetPosition);
+        mArrow->appear();
+        mArrow->fn_80413FB0();
+    }
+    mPlayer->mWalkSpeed = 0.9789999723434448f * mPlayer->mWalkSpeed;
+    if (!fn_80421240()) {
+        TVec3f start;
+        fn_80421830(&start);
+        MtxPtr mtx = mYoshi->getBaseMtx();
+        TVec3f up(mtx[0][1], mtx[1][1], mtx[2][1]);
+        if (!MR::isDead(mArrow)) {
+            TVec3f offset(_90);
+            offset.scale(300.0f);
+            TVec3f target(start);
+            target += offset;
+            mArrow->fn_80413DC0(start, target, up);
+            mTargetPosition.set(target);
+        }
+    }
+    if (mTarget->getCurrentTargetActor()) {
+        if (MR::isDead(mTarget->getCurrentTargetActor())) {
+            setNerve(&NrvYoshiTongueAction::State0::sInstance);
+            mYoshi->fn_8040EE70(nullptr);
+            mYoshi->mHeadCtrl->fn_8041AC40(1);
+            fn_80421790();
+            fn_804217B0();
+            MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+            mYoshi->fn_8040F020();
+            mYoshi->fn_8040F0A0();
+            mYoshi->fn_8040F0D0();
+            return;
+        }
+    }
+    if (mPlayer->mActor->_934) {
+        mYoshi->mHeadCtrl->fn_8041AB50(1);
+        setNerve(&NrvYoshiTongueAction::State9::sInstance);
+        return;
+    }
+    if (fn_80421210()) setNerve(&NrvYoshiTongueAction::State10::sInstance);
+}
+
 void YoshiTongueAction::fn_8041EDE0() {
     if (mPlayer->mActor->_934) return;
     setNerve(&NrvYoshiTongueAction::State8::sInstance);
@@ -565,6 +493,33 @@ void YoshiTongueAction::fn_8041EE00() {
     }
     if (_9C == true) { setNerve(&NrvYoshiTongueAction::State0::sInstance); return; }
     mPlayer->fn_803B1880();
+}
+
+void YoshiTongueAction::fn_8041EEB0() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(mYoshi, "GrabTarget", -1, -1, -1);
+        _8C = false;
+        mYoshi->fn_8040EE70(nullptr);
+    }
+    if (!MR::testCorePadButtonB(0)) _18 = false;
+    if (fn_8041F8C0()) MR::startActionSound(mYoshi, "YoshiTonguePull", -1, -1, -1);
+    fn_80421790();
+    _8C = mTarget->sendLoopTongueMessage();
+    fn_804217B0();
+    TVec3f target;
+    mTarget->calcCurrentTargetPosition(&target);
+    mTongue->mTipPosition.set(target);
+    if (!_18 || MR::calcDistanceToPlayer(target) > 2000.0f) {
+        fn_80421790();
+        mTarget->sendReleaseEatenMessage();
+        fn_804217B0();
+        mPlayer->fn_803B17C0();
+        setNerve(&NrvYoshiTongueAction::State15::sInstance);
+        _8D = false;
+        mTongue->fn_8041CBA0();
+        return;
+    }
+    mPlayer->fn_803B1720();
 }
 
 void YoshiTongueAction::fn_8041F000() {
@@ -661,6 +616,32 @@ void YoshiTongueAction::fn_8041F520() {
     }
 }
 
+void YoshiTongueAction::fn_8041F590() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(mYoshi, "yoshieatstart", -1, -1, -1);
+        MR::startCSSound1P("CS_YOSHI_EAT", 2, 1.0f);
+        mYoshi->fn_8040EE30("自動で食べる");
+        mYoshi->fn_8040EF20();
+        sendAutoEatSensorMessage(0x100, _A0, MR::getMessageSensor());
+        LiveActor* actor = MR::getSensorHost(_A0);
+        if (actor) fn_80420230(actor);
+        if (_2D) MR::tryRumblePadMiddle(this, 0);
+        MR::stopScene(8);
+    }
+    bool complete = false;
+    if (mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50)) complete = true;
+    if (complete) {
+        if (_2E) {
+            mYoshi->fn_8040EE70(nullptr);
+            setNerve(&NrvYoshiTongueAction::State0::sInstance);
+            return;
+        }
+        if (mYoshi->mDashTimer > 0) mYoshi->fn_8040EE70(nullptr);
+        else mYoshi->fn_8040EE30("噛む");
+        setNerve(&NrvYoshiTongueAction::State5::sInstance);
+    }
+}
+
 void YoshiTongueAction::fn_8041F6F0() {
     if (MR::isFirstStep(this)) {
         mYoshi->fn_8040EE70(nullptr);
@@ -691,51 +672,270 @@ void YoshiTongueAction::fn_8041F6F0() {
     }
 }
 
-void YoshiTongueAction::fn_8041E8F0() {
-    if (fn_80421880()) MR::startActionSoundPlayer("Eating", -1, -1);
-    if (MR::isStep(this, 0) && fn_80421880()) {
-        MR::startActionSoundPlayer("Swallow", -1, -1);
-        MR::startCSSound1P("CS_YOSHI_SWALLOW", 4, 1.0f);
-    }
-    if (MR::isGreaterEqualStep(this, 1)) {
-        if (mYoshi->mDashTimer <= 0) {
-            mYoshi->fn_8040EE30("飲み下す");
-            if (mPlayer->fn_803B1B70()) mPlayer->changeAnimation("飲み下す", static_cast<const char*>(nullptr));
-        }
-        setNerve(&NrvYoshiTongueAction::State6::sInstance);
-    }
+bool YoshiTongueAction::fn_8041F8A0() const { return isNerve(&NrvYoshiTongueAction::State13::sInstance); }
+
+bool YoshiTongueAction::fn_8041F8B0() const { return isNerve(&NrvYoshiTongueAction::State13::sInstance); }
+
+bool YoshiTongueAction::fn_8041F8C0() const {
+    if (isNerve(&NrvYoshiTongueAction::State11::sInstance)) return _8C;
+    return false;
 }
 
-void YoshiTongueAction::fn_8041F590() {
-    if (MR::isFirstStep(this)) {
-        MR::startActionSound(mYoshi, "yoshieatstart", -1, -1, -1);
-        MR::startCSSound1P("CS_YOSHI_EAT", 2, 1.0f);
-        mYoshi->fn_8040EE30("自動で食べる");
-        mYoshi->fn_8040EF20();
-        sendAutoEatSensorMessage(0x100, _A0, MR::getMessageSensor());
-        LiveActor* actor = MR::getSensorHost(_A0);
-        if (actor) fn_80420230(actor);
-        if (_2D) MR::tryRumblePadMiddle(this, 0);
-        MR::stopScene(8);
+bool YoshiTongueAction::fn_8041F910() const {
+    bool result = false;
+    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) || isNerve(&NrvYoshiTongueAction::State8::sInstance)) result = true;
+    return result;
+}
+
+bool YoshiTongueAction::fn_8041F970() const {
+    if (isPopoSticking()) return false;
+    if (isNerve(&NrvYoshiTongueAction::State0::sInstance)) return true;
+    return isNerve(&NrvYoshiTongueAction::State1::sInstance);
+}
+
+bool YoshiTongueAction::fn_8041F9E0() const {
+    bool result = false;
+    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) && !isPopoSticking()) result = true;
+    return result;
+}
+
+bool YoshiTongueAction::fn_8041FA30() const { return isNerve(&NrvYoshiTongueAction::State0::sInstance); }
+
+bool YoshiTongueAction::fn_8041FA40() const {
+    bool result = false;
+    if (isNerve(&NrvYoshiTongueAction::State8::sInstance) || isNerve(&NrvYoshiTongueAction::State9::sInstance)) result = true;
+    return result;
+}
+
+bool YoshiTongueAction::fn_8041FAA0() const {
+    bool result = false;
+    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) || isNerve(&NrvYoshiTongueAction::State8::sInstance) || isNerve(&NrvYoshiTongueAction::State5::sInstance) || isNerve(&NrvYoshiTongueAction::State6::sInstance)) result = true;
+    return result;
+}
+
+f32 YoshiTongueAction::fn_8041FB30() const { return 1.0f; }
+
+void YoshiTongueAction::fn_8041FB40(TVec3f* output) const { mTarget->calcCurrentTargetPosition(output); }
+
+f32 YoshiTongueAction::fn_8041FB50() { return 4.0f; }
+
+bool YoshiTongueAction::fn_8041FB60() {
+    if (_2C) _8D = true;
+    else {
+        setNerve(&NrvYoshiTongueAction::State15::sInstance);
+        _8D = true;
+        mTongue->fn_8041CBA0();
     }
-    bool complete = false;
-    if (mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50)) complete = true;
-    if (complete) {
-        if (_2E) {
-            mYoshi->fn_8040EE70(nullptr);
-            setNerve(&NrvYoshiTongueAction::State0::sInstance);
-            return;
-        }
-        if (mYoshi->mDashTimer > 0) mYoshi->fn_8040EE70(nullptr);
-        else mYoshi->fn_8040EE30("噛む");
-        setNerve(&NrvYoshiTongueAction::State5::sInstance);
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    return true;
+}
+
+bool YoshiTongueAction::fn_8041FBD0() {
+    if (isNerve(&NrvYoshiTongueAction::State11::sInstance)) {
+        mPlayer->fn_803B1780();
+        mTongue->fn_8041CBA0();
+        setNerve(&NrvYoshiTongueAction::State12::sInstance);
+        return true;
     }
+    setNerve(&NrvYoshiTongueAction::State15::sInstance);
+    _8D = false;
+    mTongue->fn_8041CBA0();
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    return true;
+}
+
+bool YoshiTongueAction::fn_8041FC60() {
+    if (!isNerve(&NrvYoshiTongueAction::State11::sInstance)) return false;
+    _A8 = false;
+    setNerve(&NrvYoshiTongueAction::State17::sInstance);
+    mTongue->fn_8041CB70(false);
+    mPlayer->fn_803B1780();
+    return true;
+}
+
+bool YoshiTongueAction::fn_8041FCD0() { setNerve(&NrvYoshiTongueAction::State0::sInstance); return true; }
+
+bool YoshiTongueAction::fn_8041FD00() {
+    fn_804214C0();
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
+    mYoshi->fn_8040EE70(nullptr);
+    mYoshi->mHeadCtrl->fn_8041AB50(1);
+    mYoshi->fn_8040EF30();
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    setNerve(&NrvYoshiTongueAction::State0::sInstance);
+    return true;
+}
+
+bool YoshiTongueAction::fn_8041FD80() {
+    fn_804214C0();
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
+    mYoshi->fn_8040EE70(nullptr);
+    mYoshi->mHeadCtrl->fn_8041AB50(1);
+    mYoshi->fn_8040EF30();
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    setNerve(&NrvYoshiTongueAction::State0::sInstance);
+    return true;
+}
+
+bool YoshiTongueAction::fn_8041FE00() {
+    mPlayer->fn_803B1800();
+    mYoshi->fn_8040EE70(nullptr);
+    mYoshi->mHeadCtrl->fn_8041AB50(1);
+    mYoshi->fn_8040EF30();
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    setNerve(&NrvYoshiTongueAction::State1::sInstance);
+    return true;
+}
+
+bool YoshiTongueAction::fn_8041FE80() { setNerve(&NrvYoshiTongueAction::State0::sInstance); return true; }
+
+void YoshiTongueAction::fn_8041FEB0() {
+    fn_804214C0();
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
+    mYoshi->fn_8040EE70(nullptr);
+    mYoshi->mHeadCtrl->fn_8041AB50(1);
+    mYoshi->fn_8040EF30();
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    mTongue->fn_8041CC60();
+    if (mPlayer->fn_803B1B70()) {
+        mPlayer->fn_803B1B20();
+        mPlayer->changeAnimation(nullptr, static_cast<const char*>(nullptr));
+    }
+    setNerve(&NrvYoshiTongueAction::State0::sInstance);
+}
+
+bool YoshiTongueAction::fn_8041FF60() const { return mPlayer->fn_803B1850(); }
+
+void YoshiTongueAction::fn_8041FF70() { mArrow->fn_80414040(); }
+
+void YoshiTongueAction::fn_8041FF80() {
+    mYoshi->fn_8040EE70(nullptr);
+    mYoshi->mHeadCtrl->fn_8041AB50(1);
+    mYoshi->fn_8040EF30();
+    MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
+    setNerve(&NrvYoshiTongueAction::State18::sInstance);
+}
+
+void YoshiTongueAction::fn_80420000() {
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
+    setNerve(&NrvYoshiTongueAction::State0::sInstance);
+}
+
+void YoshiTongueAction::fn_80420050() {
+    if (fn_80421410()) { setNerve(&NrvYoshiTongueAction::State13::sInstance); return; }
+    bool flag = _8D;
+    setNerve(&NrvYoshiTongueAction::State15::sInstance);
+    _8D = flag;
+    mTongue->fn_8041CBA0();
+}
+
+void YoshiTongueAction::fn_804200C0() {
+    if (fn_80421410()) { setNerve(&NrvYoshiTongueAction::State11::sInstance); return; }
+    bool flag = _8D;
+    setNerve(&NrvYoshiTongueAction::State15::sInstance);
+    _8D = flag;
+    mTongue->fn_8041CBA0();
+}
+
+#pragma push
+#pragma dont_inline on
+void YoshiTongueAction::fn_80420130() {
+    MtxPtr matrix = mYoshi->getBaseMtx();
+    TVec3f direction(-matrix[0][2], -matrix[1][2], -matrix[2][2]);
+    mPlayer->faint(direction);
+}
+#pragma pop
+
+
+bool YoshiTongueAction::fn_804201A0() const {
+    bool result = false;
+    if (!isNerve(&NrvYoshiTongueAction::State3::sInstance) && !isNerve(&NrvYoshiTongueAction::State4::sInstance) && !isNerve(&NrvYoshiTongueAction::State7::sInstance) && !isNerve(&NrvYoshiTongueAction::State8::sInstance)) result = true;
+    return result;
 }
 
 void YoshiTongueAction::fn_80420230(LiveActor* actor) {
     LiveActor* target = actor == nullptr ? mTarget->getCurrentTargetActor() : actor;
     if (!MR::tryEmitEffect(target, "Get")) MR::tryEmitEffect(mYoshi, "Bite");
     mPlayer->mActor->fn_803CEF50(target);
+}
+
+bool YoshiTongueAction::tryStartNearestAutoEat(const TVec3f& position) {
+    if (isPopoSticking()) return false;
+    _A0 = nullptr;
+    s32 count = mYoshi->getAutoEatSensorCount();
+    if (!count) return false;
+    f32 nearest = 1000.0f;
+    bool alternate = false;
+    for (s32 i = 0; i < count; ++i) {
+        if (!MR::isSensorPlayerOrRide(mYoshi->getAutoEatSensor(i))) {
+            HitSensor* messageSensor = MR::getMessageSensor();
+            if (sendAutoEatSensorMessage(0xFD, mYoshi->getAutoEatSensor(i), messageSensor)) {
+                f32 distance = PSVECDistance(&mYoshi->getAutoEatSensor(i)->mPosition, &position);
+                if (nearest > distance) {
+                    _A0 = mYoshi->getAutoEatSensor(i);
+                    nearest = distance;
+                    alternate = false;
+                }
+            }
+            messageSensor = MR::getMessageSensor();
+            if (sendAutoEatSensorMessage(0xFE, mYoshi->getAutoEatSensor(i), messageSensor)) {
+                f32 distance = PSVECDistance(&mYoshi->getAutoEatSensor(i)->mPosition, &position);
+                if (nearest > distance) {
+                    _A0 = mYoshi->getAutoEatSensor(i);
+                    nearest = distance;
+                    alternate = true;
+                }
+            }
+        }
+    }
+    if (nearest > _A4) return false;
+    _2D = true;
+    _2E = alternate;
+    return sendAutoEatSensorMessage(0xFF, _A0, MR::getMessageSensor());
+}
+
+void YoshiTongueAction::fn_80420480(bool first) {
+    fn_80421790();
+    bool attached = mTarget->sendLoopTongueMessage();
+    fn_804217B0();
+    if (attached) {
+        TPos3f tongueMtx;
+        mTongue->fn_8041CD10(&tongueMtx);
+        if (first) {
+            TPos3f inverse(tongueMtx);
+            inverse.invert(inverse);
+            mTargetMtx.set(mTarget->getCurrentTargetActor()->getBaseMtx());
+            mTargetMtx.concat(inverse, mTargetMtx);
+        }
+        f32 scale = mTongue->fn_8041CEC0();
+        TPos3f local(mTargetMtx);
+        local.mMtx[0][3] *= scale;
+        local.mMtx[1][3] *= scale;
+        local.mMtx[2][3] *= scale;
+        TPos3f result;
+        result.concat(tongueMtx, local);
+        LiveActor* actor = mTarget->getCurrentTargetActor();
+        MR::setPosition(actor, result.mMtx[0][3], result.mMtx[1][3], result.mMtx[2][3]);
+        result.getEulerXYZ(actor->mRotation);
+        actor->mRotation.x *= 57.2957763671875f;
+        actor->mRotation.y *= 57.2957763671875f;
+        actor->mRotation.z *= 57.2957763671875f;
+        actor->mScale.setAll<f32>(scale);
+    }
+}
+
+bool YoshiTongueAction::fn_804206E0() {
+    if (!mTongue->fn_8041CB80()) return false;
+    fn_80421790();
+    if (mTarget->fn_8041C210()) mTarget->sendStartEatenMessage();
+    else {
+        mTarget->sendReleaseEatenMessage();
+        fn_80420230(nullptr);
+    }
+    fn_804217B0();
+    if (_2D) MR::tryRumblePadMiddle(this, 0);
+    return true;
 }
 
 void YoshiTongueAction::fn_80420780() {
@@ -789,126 +989,101 @@ f32 YoshiTongueAction::fn_80420A20() const {
     return progress;
 }
 
-bool YoshiTongueAction::sendAutoEatSensorMessage(u32 message, HitSensor* sender, HitSensor* receiver) {
-    mPlayer->mActor->mFlag1052 = true;
-    bool result = MR::sendArbitraryMsg(message, sender, receiver);
-    mPlayer->mActor->mFlag1052 = false;
-    return result;
-}
-void YoshiTongueAction::fn_80421790() { mPlayer->mActor->mFlag1052 = true; }
-void YoshiTongueAction::fn_804217B0() { mPlayer->mActor->mFlag1052 = false; }
-void YoshiTongueAction::fn_804217D0() {
-    if (MR::isEqualString(mTarget->getCurrentTargetActor()->mName, "ホーミングキラー")) MR::emitEffect(mYoshi, "KeepMouthKiller");
-}
-// NONMATCHING: positive countdown is tested directly instead of materializing a boolean.
-bool YoshiTongueAction::fn_80421880() const {
-    bool canEat = false;
-    if (mYoshi->mDashTimer <= 0 && !mYoshi->fn_8040F070()) canEat = true;
-    return canEat;
-}
-
-void YoshiTongueAction::fn_8041EEB0() {
-    if (MR::isFirstStep(this)) {
-        MR::startActionSound(mYoshi, "GrabTarget", -1, -1, -1);
-        _8C = false;
-        mYoshi->fn_8040EE70(nullptr);
-    }
-    if (!MR::testCorePadButtonB(0)) _18 = false;
-    if (fn_8041F8C0()) MR::startActionSound(mYoshi, "YoshiTonguePull", -1, -1, -1);
-    fn_80421790();
-    _8C = mTarget->sendLoopTongueMessage();
-    fn_804217B0();
-    TVec3f target;
-    mTarget->calcCurrentTargetPosition(&target);
-    mTongue->mTipPosition.set(target);
-    if (!_18 || MR::calcDistanceToPlayer(target) > 2000.0f) {
-        fn_80421790();
-        mTarget->sendReleaseEatenMessage();
-        fn_804217B0();
-        mPlayer->fn_803B17C0();
-        setNerve(&NrvYoshiTongueAction::State15::sInstance);
-        _8D = false;
-        mTongue->fn_8041CBA0();
-        return;
-    }
-    mPlayer->fn_803B1720();
+void YoshiTongueAction::fn_80420AC0(TVec3f* output, const TVec3f& target, const TVec3f& gravity, f32 progress) const {
+    TVec3f delta(target);
+    JMathInlineVEC::PSVECSubtract(&delta, &mStartPosition, &delta);
+    TVec3f planar;
+    JMAVECScaleAdd(&gravity, &delta, &planar, -gravity.dot(delta));
+    TVec3f vertical(delta);
+    JMathInlineVEC::PSVECSubtract(&vertical, &planar, &vertical);
+    f32 inverse = progress - 1.0f;
+    f32 square = inverse * inverse;
+    f32 polynomial = inverse * square;
+    polynomial += square;
+    f32 arc = 50.0f * (6.7f * polynomial);
+    vertical.scale(progress);
+    TVec3f negativeGravity;
+    JGeometry::negateInternal(&gravity.x, &negativeGravity.x);
+    TVec3f offset(negativeGravity);
+    offset.scale(arc);
+    vertical += offset;
+    f32 remaining = progress - 1.0f;
+    planar.scale(1.0f + -remaining * remaining);
+    TVec3f base(mStartPosition);
+    base += vertical;
+    TVec3f position(base);
+    position += planar;
+    output->set(position);
 }
 
-void YoshiTongueAction::fn_8041E680() {
-    if (MR::isFirstStep(this)) {
-        mYoshi->fn_8040EE30("食べる");
-        if (mPlayer->fn_803B18C0()) mPlayer->changeAnimation("食べる", static_cast<const char*>(nullptr));
-        MR::tryRumblePadMiddle(this, 0);
-        _60 = false;
-    }
-    if (MR::isStep(this, 3)) MR::startActionSound(mYoshi, "PullToMouth", -1, -1, -1);
-    if (MR::isStep(this, 8)) {
-        MR::startActionSound(mYoshi, "yoshieatstart", -1, -1, -1);
-        MR::startCSSound1P("CS_YOSHI_EAT", 2, 1.0f);
-        if (mTarget->fn_8041C210()) MR::startActionSound(mYoshi, "MouthPreShoot", -1, -1, -1);
-    }
-    if (!_60) {
-        fn_80420480(false);
-        if (mTongue->fn_8041CB80()) {
-            fn_804206E0();
-            _60 = true;
-        }
-    }
-    bool complete = false;
-    if (mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50)) complete = true;
-    if (complete && _60) {
-        mYoshi->mHeadCtrl->fn_8041AB50(1);
-        mTongue->fn_8041CC60();
-        if (mTarget->fn_8041C210()) {
-            mYoshi->fn_8040EE30("口に含む");
-            if (mPlayer->fn_803B1B70()) {
-                mPlayer->fn_803B1B20();
-                mPlayer->changeAnimation(nullptr, static_cast<const char*>(nullptr));
-            }
-            mYoshi->mDashTimer = 0;
-            fn_804217D0();
-            setNerve(&NrvYoshiTongueAction::State8::sInstance);
-            return;
-        }
-        if (mYoshi->mDashTimer > 0) {
-            mYoshi->fn_8040EE70(nullptr);
-            setNerve(&NrvYoshiTongueAction::State5::sInstance);
-            return;
-        }
-        mYoshi->fn_8040EE30("噛む");
-        if (mPlayer->fn_803B1B70()) mPlayer->changeAnimation("噛む", static_cast<const char*>(nullptr));
-        setNerve(&NrvYoshiTongueAction::State5::sInstance);
-    }
+void YoshiTongueAction::fn_80420C30(TVec3f* position, const TVec3f& target, const TVec3f& gravity, f32 angle) const {
+    TVec3f center;
+    mTarget->calcCurrentTargetPosition(&center);
+    TVec3f direction(target);
+    JMathInlineVEC::PSVECSubtract(&direction, &center, &direction);
+    MR::normalize(&direction);
+    TVec3f axis;
+    PSVECCrossProduct(&direction, &gravity, &axis);
+    MR::normalize(&axis);
+    TQuat4f rotation;
+    rotation.setRotate(axis, angle);
+    TVec3f offset(*position);
+    JMathInlineVEC::PSVECSubtract(&offset, &center, &offset);
+    rotation.transform(offset);
+    TVec3f result(center);
+    result += offset;
+    position->set(result);
 }
 
-void YoshiTongueAction::fn_80420480(bool first) {
-    fn_80421790();
-    bool attached = mTarget->sendLoopTongueMessage();
-    fn_804217B0();
-    if (attached) {
-        TPos3f tongueMtx;
-        mTongue->fn_8041CD10(&tongueMtx);
-        if (first) {
-            TPos3f inverse(tongueMtx);
-            inverse.invert(inverse);
-            mTargetMtx.set(mTarget->getCurrentTargetActor()->getBaseMtx());
-            mTargetMtx.concat(inverse, mTargetMtx);
-        }
-        f32 scale = mTongue->fn_8041CEC0();
-        TPos3f local(mTargetMtx);
-        local.mMtx[0][3] *= scale;
-        local.mMtx[1][3] *= scale;
-        local.mMtx[2][3] *= scale;
-        TPos3f result;
-        result.concat(tongueMtx, local);
-        LiveActor* actor = mTarget->getCurrentTargetActor();
-        MR::setPosition(actor, result.mMtx[0][3], result.mMtx[1][3], result.mMtx[2][3]);
-        result.getEulerXYZ(actor->mRotation);
-        actor->mRotation.x *= 57.2957763671875f;
-        actor->mRotation.y *= 57.2957763671875f;
-        actor->mRotation.z *= 57.2957763671875f;
-        actor->mScale.setAll<f32>(scale);
+void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target, const TVec3f& gravity, f32 progress) {
+    TPos3f original;
+    original.set(mYoshi->getBaseMtx());
+    TVec3f up(target);
+    JMathInlineVEC::PSVECSubtract(&up, &mStartPosition, &up);
+    if (MR::normalizeOrZero(&up)) original.getYDir(up);
+    TVec3f side;
+    PSVECCrossProduct(&up, &gravity, &side);
+    if (MR::normalizeOrZero(&side)) {
+        f32 z = original.mMtx[2][0];
+        f32 y = original.mMtx[1][0];
+        f32 x = original.mMtx[0][0];
+        side.set<f32>(x, y, z);
     }
+    up = target - position;
+    if (MR::normalizeOrZero(&up)) original.getYDir(up);
+    TVec3f front;
+    PSVECCrossProduct(&side, &up, &front);
+    if (MR::normalizeOrZero(&front)) {
+        f32 z = original.mMtx[2][2];
+        f32 y = original.mMtx[1][2];
+        f32 x = original.mMtx[0][2];
+        front.set<f32>(x, y, z);
+    }
+    PSVECCrossProduct(&up, &front, &side);
+    TPos3f oriented;
+    oriented.identity();
+    oriented.setXYZDir(side, up, front);
+    TQuat4f originalRotation;
+    TQuat4f targetRotation;
+    original.getQuat(originalRotation);
+    oriented.getQuat(targetRotation);
+    TQuat4f rotation(static_cast<const Quaternion&>(originalRotation));
+    rotation.slerp(targetRotation, progress);
+    side.set<f32>((1.0f - 2.0f * (rotation.y * rotation.y)) - 2.0f * (rotation.z * rotation.z),
+                  2.0f * (rotation.x * rotation.y) + 2.0f * (rotation.w * rotation.z),
+                  2.0f * (rotation.x * rotation.z) - 2.0f * (rotation.w * rotation.y));
+    up.set<f32>(2.0f * (rotation.x * rotation.y) - 2.0f * (rotation.w * rotation.z),
+                (1.0f - 2.0f * (rotation.x * rotation.x)) - 2.0f * (rotation.z * rotation.z),
+                2.0f * (rotation.y * rotation.z) + 2.0f * (rotation.w * rotation.x));
+    front.set<f32>(2.0f * (rotation.x * rotation.z) + 2.0f * (rotation.w * rotation.y),
+                   2.0f * (rotation.y * rotation.z) - 2.0f * (rotation.w * rotation.x),
+                   (1.0f - 2.0f * (rotation.x * rotation.x)) - 2.0f * (rotation.y * rotation.y));
+    mPlayer->setSideVec(side);
+    mPlayer->setHeadVec(up);
+    mPlayer->setFrontVec(front);
+    mPlayer->clearVelocity();
+    const TVec3f& yoshiPosition = mYoshi->mPosition;
+    mPlayer->addVelocity(position - yoshiPosition);
 }
 
 void YoshiTongueAction::fn_804210B0() {
@@ -940,212 +1115,10 @@ void YoshiTongueAction::fn_804210B0() {
     mPlayer->changeAnimation("フックジャンプ", static_cast<const char*>(nullptr));
 }
 
-bool YoshiTongueAction::tryStartNearestAutoEat(const TVec3f& position) {
-    if (isPopoSticking()) return false;
-    _A0 = nullptr;
-    s32 count = mYoshi->getAutoEatSensorCount();
-    if (!count) return false;
-    f32 nearest = 1000.0f;
-    bool alternate = false;
-    for (s32 i = 0; i < count; ++i) {
-        if (!MR::isSensorPlayerOrRide(mYoshi->getAutoEatSensor(i))) {
-            HitSensor* messageSensor = MR::getMessageSensor();
-            if (sendAutoEatSensorMessage(0xFD, mYoshi->getAutoEatSensor(i), messageSensor)) {
-                f32 distance = PSVECDistance(&mYoshi->getAutoEatSensor(i)->mPosition, &position);
-                if (nearest > distance) {
-                    _A0 = mYoshi->getAutoEatSensor(i);
-                    nearest = distance;
-                    alternate = false;
-                }
-            }
-            messageSensor = MR::getMessageSensor();
-            if (sendAutoEatSensorMessage(0xFE, mYoshi->getAutoEatSensor(i), messageSensor)) {
-                f32 distance = PSVECDistance(&mYoshi->getAutoEatSensor(i)->mPosition, &position);
-                if (nearest > distance) {
-                    _A0 = mYoshi->getAutoEatSensor(i);
-                    nearest = distance;
-                    alternate = true;
-                }
-            }
-        }
-    }
-    if (nearest > _A4) return false;
-    _2D = true;
-    _2E = alternate;
-    return sendAutoEatSensorMessage(0xFF, _A0, MR::getMessageSensor());
-}
-
-bool YoshiTongueAction::fn_8041F970() const {
-    if (isPopoSticking()) return false;
-    if (isNerve(&NrvYoshiTongueAction::State0::sInstance)) return true;
-    return isNerve(&NrvYoshiTongueAction::State1::sInstance);
-}
-bool YoshiTongueAction::fn_8041F9E0() const {
-    bool result = false;
-    if (isNerve(&NrvYoshiTongueAction::State0::sInstance) && !isPopoSticking()) result = true;
-    return result;
-}
-bool YoshiTongueAction::fn_804206E0() {
-    if (!mTongue->fn_8041CB80()) return false;
-    fn_80421790();
-    if (mTarget->fn_8041C210()) mTarget->sendStartEatenMessage();
-    else {
-        mTarget->sendReleaseEatenMessage();
-        fn_80420230(nullptr);
-    }
-    fn_804217B0();
-    if (_2D) MR::tryRumblePadMiddle(this, 0);
-    return true;
-}
-bool YoshiTongueAction::fn_80421410() {
-    _2C = true;
-    _2D = true;
-    fn_80421790();
-    bool hit = mTarget->sendStartTongueMessage();
-    fn_804217B0();
-    _2C = false;
-    if (hit) {
-        if (fn_804216C0()) MR::stopScene(8);
-        MR::tryRumblePadMiddle(this, 0);
-        TVec3f position;
-        fn_80421830(&position);
-        MR::emitEffectHit(mYoshi, position, "TongueHit");
-    }
-    return hit;
-}
-void YoshiTongueAction::fn_804214C0() {
-    if (fn_80421510()) {
-        fn_80421790();
-        mTarget->cancelTargetAndAdvance();
-        fn_804217B0();
-    }
-}
-bool YoshiTongueAction::fn_80421510() const {
-    if (mTarget->fn_8041C210()) {
-        if (isNerve(&NrvYoshiTongueAction::State3::sInstance)) return true;
-        if (isNerve(&NrvYoshiTongueAction::State4::sInstance)) return true;
-        if (isNerve(&NrvYoshiTongueAction::State8::sInstance)) return true;
-        return isNerve(&NrvYoshiTongueAction::State9::sInstance);
-    }
-    if (mTarget->fn_8041C120()) {
-        if (isNerve(&NrvYoshiTongueAction::State3::sInstance)) return true;
-        if (isNerve(&NrvYoshiTongueAction::State4::sInstance) && !_60) return true;
-        return false;
-    }
-    if (mTarget->fn_8041C140()) {
-        if (isNerve(&NrvYoshiTongueAction::State3::sInstance)) return true;
-        if (isNerve(&NrvYoshiTongueAction::State7::sInstance) && !_60) return true;
-        return false;
-    }
-    if (mTarget->fn_8041C1E0()) {
-        if (isNerve(&NrvYoshiTongueAction::State11::sInstance)) return true;
-        if (isNerve(&NrvYoshiTongueAction::State17::sInstance) && !_A8) return true;
-    }
-    return false;
-}
-bool YoshiTongueAction::fn_804216C0() const {
-    bool result = false;
-    if (mTarget->fn_8041C140() || mTarget->fn_8041C120() || mTarget->fn_8041C210()) result = true;
-    return result;
-}
-
-void YoshiTongueAction::fn_8041DFD0() {
-    if (MR::isFirstStep(this)) {
-        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
-        mYoshi->mHeadCtrl->fn_8041AB50(1);
-        mYoshi->fn_8040EF30();
-    }
-    if (mYoshi->fn_8040F5B0("口を閉じる") && mYoshi->fn_8040F5F0()) mYoshi->fn_8040EE70(nullptr);
-    MR::requestStarPointerModeCommandStream(this);
-    if (MR::testCorePadTriggerB(0)) {
-        if (isPopoSticking()) {
-            tryReactStickingPopo();
-            return;
-        }
-        mTarget->takeLockOnTargets();
-        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
-        if (mTarget->hasCurrentTarget()) {
-            setNerve(&NrvYoshiTongueAction::State2::sInstance);
-            mTongue->fn_8041CB30(false);
-            return;
-        }
-        setNerve(&NrvYoshiTongueAction::State14::sInstance);
-        return;
-    }
-    TVec3f position;
-    fn_80421830(&position);
-    if (tryStartNearestAutoEat(position)) {
-        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
-        setNerve(&NrvYoshiTongueAction::State16::sInstance);
-    }
-}
-void YoshiTongueAction::fn_8041E150() {
-    if (MR::isFirstStep(this)) {
-        _A4 = 200.0f;
-        MR::startStarPointerModePictureBook(this);
-    }
-    if (tryStartNearestAutoEat(mYoshi->getAutoEatSensorPosition())) {
-        sendAutoEatSensorMessage(0x100, _A0, MR::getMessageSensor());
-        LiveActor* actor = MR::getSensorHost(_A0);
-        if (actor) fn_80420230(actor);
-        if (_2D) MR::tryRumblePadMiddle(this, 0);
-        MR::stopScene(8);
-        mPlayer->_A72 = true;
-    }
-}
-void YoshiTongueAction::fn_8041E470() {
-    if (MR::isFirstStep(this)) {
-        MR::startActionSound(mYoshi, "GrabTarget", -1, -1, -1);
-        mYoshi->mHeadCtrl->fn_8041AD20(1);
-    }
-    if (MR::isStep(this, 3)) MR::startActionSound(mYoshi, "PullToMouth", -1, -1, -1);
-    fn_80420480(MR::isFirstStep(this));
-    if (mTongue->fn_8041CB90()) {
-        if (mTarget->fn_8041C1E0() || mTarget->fn_8041C210()) {
-            _60 = false;
-            setNerve(&NrvYoshiTongueAction::State4::sInstance);
-            return;
-        }
-        if (!mTarget->hasNextTarget()) {
-            if (mTarget->fn_8041C140()) {
-                _60 = false;
-                setNerve(&NrvYoshiTongueAction::State7::sInstance);
-                return;
-            }
-            if (mTarget->fn_8041C120()) {
-                _60 = false;
-                setNerve(&NrvYoshiTongueAction::State4::sInstance);
-                return;
-            }
-        }
-    }
-    if (mTongue->fn_8041CB80()) {
-        fn_80421790();
-        mTarget->sendReleaseEatenMessage();
-        fn_804217B0();
-        fn_80420230(nullptr);
-        if (!isNerve(&NrvYoshiTongueAction::State1::sInstance)) {
-            if (isPopoSticking() || !isNerve(&NrvYoshiTongueAction::State3::sInstance)) {
-                _60 = false;
-                setNerve(&NrvYoshiTongueAction::State7::sInstance);
-                return;
-            }
-            mTarget->advanceTargetIfMore();
-            if (_2D) MR::tryRumblePadMiddle(this, 0);
-            setNerve(&NrvYoshiTongueAction::State2::sInstance);
-            mTongue->fn_8041CB30(true);
-        }
-    }
-}
-void NrvYoshiTongueAction::State18::execute(Spine* spine) const {
-    YoshiTongueAction* action = static_cast<YoshiTongueAction*>(spine->mExecutor);
-    if (MR::isFirstStep(action)) MR::startStarPointerModePictureBook(action);
-}
-
-// NONMATCHING: redundant ori r3,r3,0 before boolean normalization is omitted.
 bool YoshiTongueAction::fn_80421210() const {
     return mPlayer->fn_803EF000() != 0;
 }
+
 bool YoshiTongueAction::fn_80421240() {
     TVec3f ground;
     mPlayer->mActor->getGroundPos(&ground);
@@ -1181,48 +1154,222 @@ bool YoshiTongueAction::fn_80421240() {
     }
     return true;
 }
-void YoshiTongueAction::fn_8041EBE0() {
-    if (MR::isFirstStep(this)) {
-        mYoshi->mHeadCtrl->fn_8041AA70(1, &mTargetPosition);
-        mArrow->appear();
-        mArrow->fn_80413FB0();
+
+bool YoshiTongueAction::fn_80421410() {
+    _2C = true;
+    _2D = true;
+    fn_80421790();
+    bool hit = mTarget->sendStartTongueMessage();
+    fn_804217B0();
+    _2C = false;
+    if (hit) {
+        if (fn_804216C0()) MR::stopScene(8);
+        MR::tryRumblePadMiddle(this, 0);
+        TVec3f position;
+        fn_80421830(&position);
+        MR::emitEffectHit(mYoshi, position, "TongueHit");
     }
-    mPlayer->mWalkSpeed = 0.9789999723434448f * mPlayer->mWalkSpeed;
-    if (!fn_80421240()) {
-        TVec3f start;
-        fn_80421830(&start);
-        MtxPtr mtx = mYoshi->getBaseMtx();
-        TVec3f up(mtx[0][1], mtx[1][1], mtx[2][1]);
-        if (!MR::isDead(mArrow)) {
-            TVec3f offset(_90);
-            offset.scale(300.0f);
-            TVec3f target(start);
-            target += offset;
-            mArrow->fn_80413DC0(start, target, up);
-            mTargetPosition.set(target);
-        }
-    }
-    if (mTarget->getCurrentTargetActor()) {
-        if (MR::isDead(mTarget->getCurrentTargetActor())) {
-            setNerve(&NrvYoshiTongueAction::State0::sInstance);
-            mYoshi->fn_8040EE70(nullptr);
-            mYoshi->mHeadCtrl->fn_8041AC40(1);
-            fn_80421790();
-            fn_804217B0();
-            MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-            mYoshi->fn_8040F020();
-            mYoshi->fn_8040F0A0();
-            mYoshi->fn_8040F0D0();
-            return;
-        }
-    }
-    if (mPlayer->mActor->_934) {
-        mYoshi->mHeadCtrl->fn_8041AB50(1);
-        setNerve(&NrvYoshiTongueAction::State9::sInstance);
-        return;
-    }
-    if (fn_80421210()) setNerve(&NrvYoshiTongueAction::State10::sInstance);
+    return hit;
 }
+
+void YoshiTongueAction::fn_804214C0() {
+    if (fn_80421510()) {
+        fn_80421790();
+        mTarget->cancelTargetAndAdvance();
+        fn_804217B0();
+    }
+}
+
+bool YoshiTongueAction::fn_80421510() const {
+    if (mTarget->fn_8041C210()) {
+        if (isNerve(&NrvYoshiTongueAction::State3::sInstance)) return true;
+        if (isNerve(&NrvYoshiTongueAction::State4::sInstance)) return true;
+        if (isNerve(&NrvYoshiTongueAction::State8::sInstance)) return true;
+        return isNerve(&NrvYoshiTongueAction::State9::sInstance);
+    }
+    if (mTarget->fn_8041C120()) {
+        if (isNerve(&NrvYoshiTongueAction::State3::sInstance)) return true;
+        if (isNerve(&NrvYoshiTongueAction::State4::sInstance) && !_60) return true;
+        return false;
+    }
+    if (mTarget->fn_8041C140()) {
+        if (isNerve(&NrvYoshiTongueAction::State3::sInstance)) return true;
+        if (isNerve(&NrvYoshiTongueAction::State7::sInstance) && !_60) return true;
+        return false;
+    }
+    if (mTarget->fn_8041C1E0()) {
+        if (isNerve(&NrvYoshiTongueAction::State11::sInstance)) return true;
+        if (isNerve(&NrvYoshiTongueAction::State17::sInstance) && !_A8) return true;
+    }
+    return false;
+}
+
+bool YoshiTongueAction::fn_804216C0() const {
+    bool result = false;
+    if (mTarget->fn_8041C140() || mTarget->fn_8041C120() || mTarget->fn_8041C210()) result = true;
+    return result;
+}
+
+bool YoshiTongueAction::sendAutoEatSensorMessage(u32 message, HitSensor* sender, HitSensor* receiver) {
+    mPlayer->mActor->mFlag1052 = true;
+    bool result = MR::sendArbitraryMsg(message, sender, receiver);
+    mPlayer->mActor->mFlag1052 = false;
+    return result;
+}
+
+void YoshiTongueAction::fn_80421790() { mPlayer->mActor->mFlag1052 = true; }
+
+void YoshiTongueAction::fn_804217B0() { mPlayer->mActor->mFlag1052 = false; }
+
+void YoshiTongueAction::fn_804217D0() {
+    if (MR::isEqualString(mTarget->getCurrentTargetActor()->mName, "ホーミングキラー")) MR::emitEffect(mYoshi, "KeepMouthKiller");
+}
+
+void YoshiTongueAction::fn_80421830(TVec3f* output) const {
+    TPos3f matrix;
+    mTongue->fn_8041CD10(&matrix);
+    output->set<f32>(matrix.mMtx[0][3], matrix.mMtx[1][3], matrix.mMtx[2][3]);
+}
+
+bool YoshiTongueAction::fn_80421880() const {
+    bool canEat = false;
+    if (mYoshi->mDashTimer <= 0 && !mYoshi->fn_8040F070()) canEat = true;
+    return canEat;
+}
+
+
+YoshiTongueAction::~YoshiTongueAction() {}
+
+
+
+void YoshiLockOnManager::startLockOn(LiveActor* actor) {
+    mContextActive = true;
+    mSuspended = false;
+    mContextActor = actor;
+}
+void YoshiLockOnManager::endLockOn() {
+    mContextActive = false;
+    mHasUpdated = false;
+    clearActiveTargets();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// NONMATCHING: temporary stack slots, quaternion copy instruction widths and argument scheduling differ.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// NONMATCHING: positive countdown is tested directly instead of materializing a boolean.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void NrvYoshiTongueAction::State18::execute(Spine* spine) const {
+    YoshiTongueAction* action = static_cast<YoshiTongueAction*>(spine->mExecutor);
+    if (MR::isFirstStep(action)) MR::startStarPointerModePictureBook(action);
+}
+
+// NONMATCHING: redundant ori r3,r3,0 before boolean normalization is omitted.
+
+
+
 
 bool MR::fn_80421D10() {
     return MR::getMarioHolder()->getMarioActor()->fn_803B9840();

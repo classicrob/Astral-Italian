@@ -923,8 +923,9 @@ bool HomingKiller::isUpdateChaseFrontVec(const TVec3f& rFront) const {
 
 // NONMATCHING: vector temporary stack-slot order.
 void HomingKiller::calcFrontVecToTarget(TVec3f* pFront) const {
-    TVec3f playerUp;
     TVec3f targetPos;
+    TVec3f playerUp;
+
     MR::getPlayerUpVec(&playerUp);
     MR::normalize(&playerUp);
     playerUp.scale(mType == Type_Torpedo ? ::cChaseTargetHeightTorpedo : ::cChaseTargetHeight);

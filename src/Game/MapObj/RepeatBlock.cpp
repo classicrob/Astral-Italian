@@ -225,9 +225,7 @@ void RepeatBlock::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     initHitSensor(1);
     initSound(3, "RepeatBlock", nullptr, TVec3f(0.0f));
-    TVec3f sensorOffset;
-    sensorOffset.x = sensorOffset.y = sensorOffset.z = 0.0f;
-    MR::addHitSensorMapObj(this, "Body", 32, 0.0f, sensorOffset);
+    MR::addHitSensorMapObj(this, "Body", 32, 0.0f, TVec3f(0, 0, 0));
     if (MR::isConnectedWithRail(rIter)) {
         initRailRider(rIter);
         MR::moveTransToCurrentRailPos(this);

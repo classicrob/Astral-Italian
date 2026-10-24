@@ -25,6 +25,7 @@ void __wudLinkKeyEventStackCallback(void* p1);
 void __wudPowerMangeEventStackCallback(BD_ADDR addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hciStatus);
 
 void __wudInitSub(void);
+void WUDiMoveTopOfUnusedStdDevice(WUDDevInfo* pInfo);
 static void ClearControlBlock(void);
 void WUDiResetAuthFailCount(void);
 
@@ -60,6 +61,35 @@ static u8 _normalTarget;
 static BOOL _readNand = FALSE;
 static volatile BOOL _abortSync = FALSE;
 BOOL _linkedWBC;
+
+// RPHealth.dat's pairing record is copied independently of the read workarea.
+// The checksum covers 16-bit words; byte fields below are used only after memcpy.
+typedef struct WUDWiiFitPairingRecord {
+    BD_ADDR address;
+    LINK_KEY linkKey;
+    u8 name[64];
+    u8 reserved[42];
+} WUDWiiFitPairingRecord;
+
+typedef struct WUDWiiFitPairingData {
+    WUDWiiFitPairingRecord record;
+    u32 checksum;
+} WUDWiiFitPairingData;
+
+typedef struct WUDWiiFitWorkArea {
+    u16 payload[0x4AF18 / sizeof(u16)];
+    u16 pairingWords[sizeof(WUDWiiFitPairingRecord) / sizeof(u16)];
+    u32 checksum;
+    u8 reserved[0x4B000 - 0x4AF9C];
+} WUDWiiFitWorkArea;
+
+// The linked DOL has no setter/allocation/free for this optional workarea.
+// Preserve the real null-initialized slot and the target's null/alignment assert.
+WUDWiiFitWorkArea* _wiiFitWork;
+static u32 _wiiFitChecksum;
+static WUDWiiFitPairingData _wiiFitPairingData ATTRIBUTE_ALIGN(32);
+static NANDFileInfo _wiiFitFileInfo;
+static NANDCommandBlock _wiiFitCommandBlock;
 
 // clang-format off
 static u8 descriptor[] = {
@@ -234,7 +264,6 @@ static void ReverseAddr(BD_ADDR_PTR pDst, BD_ADDR src) {
 static void __wudSyncFlushCallback(u32 status) {
     WUDCB* p = &_wcb;
 
-
     if (p->syncState == WUD_STATE_SYNC_START) {
         return;
     }
@@ -249,7 +278,6 @@ static void __wudSyncFlushCallback(u32 status) {
 static void DeleteFlushCallback(u32 status) {
     WUDCB* p = &_wcb;
 
-
     if (p->deleteState == WUD_STATE_DELETE_START) {
         return;
     }
@@ -263,7 +291,6 @@ static void DeleteFlushCallback(u32 status) {
 
 static void __wudShutdownFlushCallback(u32 result) {
     WUDCB* p_wcb = &_wcb;
-
 
     p_wcb->shutdownState = 3;
 }
@@ -425,12 +452,11 @@ static u8 WUDiNextStepBySearchResult() {
     u8 next = 1;
 
     if (_discNumResps) {
-        if (_normalTarget == 0) {
-            if (!memcmp(_discResp.devName, "Nintendo RVL-CNT", 16)
-
-            ) {
-                next = 5;
-            }
+        if (WUD_DEV_NAME_IS_CNT(_discResp.devName)) {
+            next = 5;
+        }
+        if (_linkedWBC && WUD_DEV_NAME_IS_WBC(_discResp.devName)) {
+            next = 5;
         }
 
         if (_discRssi < _wcb.syncRssi) {
@@ -507,11 +533,25 @@ static u8 WUDiUnknownDevice(void) {
     return WUD_STATE_SYNC_TRY_CONNECT;
 }
 
+static WUDDevInfo* WUDiGetStoredWbc(void) {
+    WUDCB* p = &_wcb;
+    WUDDevInfo* device;
+    WUDDevInfo* board = NULL;
+    WUDDevInfoList* node;
+    BOOL enabled = OSDisableInterrupts();
+    for (node = p->stdListHead; node != NULL; node = node->next) {
+        device = node->devInfo;
+        if (WUD_DEV_NAME_IS_WBC(device->conf.devName)) {
+            board = device;
+        }
+    }
+    OSRestoreInterrupts(enabled);
+    return board;
+}
+
 static u8 __wudSyncTryConnect(void) {
     WUDSyncState nextState = WUD_STATE_SYNC_ERROR;
     WUDDevInfo* board;
-    WUDDevInfoList* node;
-    BOOL enabled;
 
     if (WUD_DEV_NAME_IS_CNT(_discResp.devName)) {
         _work.status = 2;
@@ -519,14 +559,7 @@ static u8 __wudSyncTryConnect(void) {
         nextState = WUD_STATE_SYNC_6;
     }
     if (_linkedWBC && WUD_DEV_NAME_IS_WBC(_discResp.devName)) {
-        board = NULL;
-        enabled = OSDisableInterrupts();
-        for (node = _wcb.stdListHead; node != NULL; node = node->next) {
-            if (WUD_DEV_NAME_IS_WBC(node->devInfo->conf.devName)) {
-                board = node->devInfo;
-            }
-        }
-        OSRestoreInterrupts(enabled);
+        board = WUDiGetStoredWbc();
         if (board != NULL) {
             if (board->status > 1) {
                 return nextState;
@@ -567,7 +600,7 @@ static BOOL WUDiIsFinishLinkKeyCmd(void) {
 }
 
 static BOOL WUDiIsFinishScCmd(void) {
-    return SCCheckStatus() != SC_STATUS_BUSY ? TRUE : FALSE;
+    return SCCheckStatus() == SC_STATUS_BUSY ? FALSE : TRUE;
 }
 
 static u8 __wudSyncStoredDevInfoToNand(void) {
@@ -575,7 +608,7 @@ static u8 __wudSyncStoredDevInfoToNand(void) {
     u8 i;
     WUDDevInfoList* pIt;
 
-    if (!WUDiIsFinishScCmd()) {
+    if (WUDiIsFinishScCmd() == FALSE) {
         return WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND;
     }
 
@@ -589,11 +622,13 @@ static u8 __wudSyncStoredDevInfoToNand(void) {
         memcpy(&_scArray.info[i].bd_name, &pIt->devInfo->conf, sizeof(SCDevInfo));
     }
 
-
     if (!SCSetBtDeviceInfoArray(&_scArray)) {
-        nextState = WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND;
+        return WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND;
     } else {
         nextState = WUD_STATE_SYNC_SC_FLUSH;
+        if (_linkedWBC && WUD_DEV_NAME_IS_WBC(_work.conf.devName) && SCGetProductGameRegion() == 0) {
+            nextState = 100;
+        }
     }
 
     return nextState;
@@ -635,10 +670,39 @@ static u8 WUDiVirginSimpleSync(void) {
     return WUD_STATE_SYNC_COMPLETE;
 }
 
+static inline void WUDiSetWiiFitPairingRecord(const u8* address, const u8* key, const SCDevInfo* config) {
+    u32 checksum;
+    u32 sum;
+    u16 inverse;
+    const u16* word;
+    u32 i;
+
+    if (address) memcpy(_wiiFitPairingData.record.address, address, sizeof(BD_ADDR));
+    if (key) memcpy(_wiiFitPairingData.record.linkKey, key, sizeof(LINK_KEY));
+    if (config) memcpy(_wiiFitPairingData.record.name, config, sizeof(*config));
+    sum = _wiiFitChecksum >> 16;
+    inverse = _wiiFitChecksum;
+    word = (const u16*)&_wiiFitPairingData.record;
+    for (i = 0; i < sizeof(WUDWiiFitPairingRecord) / sizeof(u16); ++i) {
+        sum += *word;
+        inverse += ~*word++;
+    }
+    checksum = (sum << 16) | inverse;
+    memcpy(&_wiiFitPairingData.checksum, &checksum, sizeof(checksum));
+}
+
 static u8 __wudSyncVirginStandard(void) {
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
 
+    if (_linkedWBC && WUD_DEV_NAME_IS_CNT(_work.conf.devName)) {
+        pInfo = WUDiGetStoredWbc();
+        if (pInfo != NULL && WUDiGetDevNumber() == WUD_MAX_DEV_ENTRY_FOR_STD) {
+            pInfo = p->stdListTail->prev->devInfo;
+            WUDiMoveBottomStdDevInfoPtr(pInfo);
+            WUDiRemoveDevice(pInfo->devAddr);
+        }
+    }
     if (WUDiGetDevNumber() == WUD_MAX_DEV_ENTRY_FOR_STD) {
         pInfo = WUDiGetRemoveStdDevice();
         WUDiRemoveDevice(pInfo->devAddr);
@@ -656,6 +720,14 @@ static u8 __wudSyncVirginStandard(void) {
     WUDiRegisterDevice(pInfo->devAddr);
     WUDiMoveTopStdDevInfoPtr(pInfo);
 
+    if (_linkedWBC && WUD_DEV_NAME_IS_WBC(pInfo->conf.devName)) {
+        WUDiMoveTopOfUnusedStdDevice(pInfo);
+        memset(&_scArray.info[14], 0, sizeof(SCBtDeviceInfo));
+        memcpy(_scArray.info[14].bd_addr, pInfo->devAddr, sizeof(BD_ADDR));
+        memcpy(_scArray.info[14].bd_name, &pInfo->conf, sizeof(pInfo->conf));
+        memcpy(&_scArray.info[14].bd_name[20], pInfo->linkKey, sizeof(LINK_KEY));
+        WUDiSetWiiFitPairingRecord(pInfo->devAddr, pInfo->linkKey, &pInfo->conf);
+    }
     _dev_handle_to_bda[pInfo->devHandle] = pInfo->devAddr;
 
     return WUD_STATE_SYNC_STORED_LINK_KEY_TO_EEPROM;
@@ -719,11 +791,6 @@ static u8 WUDiStoredLinkKey(void) {
     }
 
     pInfo = WUDiGetDevInfo(_work.devAddr);
-
-    // clang-format off
-
-
-    // clang-format on
 
     p->linkKeyState = WUD_STATE_LINK_KEY_WRITING;
 
@@ -797,6 +864,7 @@ static void SyncHandler(void) {
     WUDCB* p = &_wcb;
 
     switch (p->syncState) {
+
     case WUD_STATE_SYNC_PREPARE_SEARCH: {
         p->syncState = WUDiIsSyncDisabled();
         break;
@@ -907,6 +975,36 @@ static void SyncHandler(void) {
         break;
     }
 
+    case 100: {
+        const char* path = "/title/00010004/52464e4a/data/RPHealth.dat";
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDOpenAsync(path, &_wiiFitFileInfo,
+                          NAND_ACCESS_WRITE, __wudOpenWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+    }
+    case 101:
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDSeekAsync(&_wiiFitFileInfo, 0x4AF18, 0, __wudSeekWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+    case 102:
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDWriteAsync(&_wiiFitFileInfo, &_wiiFitPairingData, sizeof(_wiiFitPairingData),
+                           __wudUpdateWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+    case 103:
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDCloseAsync(&_wiiFitFileInfo, __wudCloseWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+
+    case 9:
     case WUD_STATE_SYNC_6:
     case WUD_STATE_SYNC_13:
     case WUD_STATE_SYNC_CANCEL_SEARCH: {
@@ -954,7 +1052,7 @@ static WUDDeleteState WUDiTerminateDevice(void) {
     return WUD_STATE_DELETE_CLEANUP_DATABASE;
 }
 
-static WUDDeleteState WUDiDeleteDevice(void) {
+static WUDDeleteState __wudDeleteCleanupDatabase(void) {
     int i;
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
@@ -979,10 +1077,15 @@ static WUDDeleteState WUDiDeleteDevice(void) {
         }
     }
 
+    if (_linkedWBC && SCGetProductGameRegion() == 0) {
+        u8 zero_key[sizeof(LINK_KEY)] = {0};
+        WUDiSetWiiFitPairingRecord(NULL, zero_key, NULL);
+        return 100;
+    }
     return WUD_STATE_DELETE_CLEANUP_SETTING;
 }
 
-static void __wudDeleteCleanupDatabase() {
+static void WUDiCleanUp() {
     WUDCB* p_wcb = &_wcb;
 
     BOOL result = FALSE;
@@ -1014,7 +1117,7 @@ static WUDDeleteState WUDiDeleteAllComplete(void) {
     OSCancelAlarm(&p->alarm);
     p->deleteState = WUD_STATE_DELETE_START;
 
-    if (p->clearDevCB != NULL) {
+    if (p->clearDevCB) {
         p->clearDevCB(WUD_RESULT_DELETE_COMPLETE);
     }
 
@@ -1027,6 +1130,7 @@ static void DeleteAllHandler(void) {
     p->syncState = WUD_STATE_SYNC_START;
 
     switch (p->deleteState) {
+
     case WUD_STATE_DELETE_DISALLOW_INCOMING: {
         p->deleteState = WUDiDisallowIncoming();
         break;
@@ -1038,12 +1142,12 @@ static void DeleteAllHandler(void) {
     }
 
     case WUD_STATE_DELETE_CLEANUP_DATABASE: {
-        p->deleteState = WUDiDeleteDevice();
+        p->deleteState = __wudDeleteCleanupDatabase();
         break;
     }
 
     case WUD_STATE_DELETE_CLEANUP_SETTING: {
-        __wudDeleteCleanupDatabase();
+        WUDiCleanUp();
         break;
     }
 
@@ -1051,6 +1155,35 @@ static void DeleteAllHandler(void) {
         p->deleteState = WUDiDeleteAllComplete();
         break;
     }
+
+    case 100: {
+        const char* path = "/title/00010004/52464e4a/data/RPHealth.dat";
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDOpenAsync(path, &_wiiFitFileInfo,
+                          NAND_ACCESS_WRITE, __wudOpenWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+    }
+    case 101:
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDSeekAsync(&_wiiFitFileInfo, 0x4AF18, 0, __wudSeekWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+    case 102:
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDWriteAsync(&_wiiFitFileInfo, &_wiiFitPairingData, sizeof(_wiiFitPairingData),
+                           __wudUpdateWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
+    case 103:
+        if (!_nandBusy) {
+            _nandBusy = 1;
+            NANDCloseAsync(&_wiiFitFileInfo, __wudCloseWiiFitCallback, &_wiiFitCommandBlock);
+        }
+        break;
 
     case WUD_STATE_DELETE_7: {
         break;
@@ -1517,7 +1650,6 @@ void WUDShutdown(BOOL exec) {
     int i;
     WUDDevInfoList* ptr;
 
-
     enable = OSDisableInterrupts();
 
     if (WUDIsBusy()) {
@@ -1605,7 +1737,6 @@ WUDSyncDeviceCallback WUDSetSyncSimpleCallback(WUDSyncDeviceCallback pCallback) 
     BOOL enabled;
     WUDSyncDeviceCallback pOldCallback;
 
-
     enabled = OSDisableInterrupts();
 
     pOldCallback = p->syncSmpCB;
@@ -1619,7 +1750,6 @@ WUDClearDeviceCallback WUDSetClearDeviceCallback(WUDClearDeviceCallback pCallbac
     WUDCB* p = &_wcb;
     BOOL enabled;
     WUDClearDeviceCallback pOldCallback;
-
 
     enabled = OSDisableInterrupts();
 
@@ -1797,7 +1927,6 @@ BOOL WUDSetDisableChannel(s8 afhChannel) {
     u32 libStatus;
     tBTM_STATUS status;
 
-
     if (afhChannel < 0 || 13 < afhChannel) {
         return FALSE;
     }
@@ -1836,7 +1965,6 @@ WUDHidRecvCallback WUDSetHidRecvCallback(WUDHidRecvCallback pCallback) {
     BOOL enabled;
     WUDHidRecvCallback pOldCallback;
 
-
     enabled = OSDisableInterrupts();
 
     pOldCallback = p->hidRecvCB;
@@ -1850,7 +1978,6 @@ WUDHidConnCallback WUDSetHidConnCallback(WUDHidConnCallback pCallback) {
     WUDCB* p = &_wcb;
     BOOL enabled;
     WUDHidConnCallback pOldCallback;
-
 
     enabled = OSDisableInterrupts();
 
@@ -2045,7 +2172,6 @@ static void WUDiInstallPatch(void) {
 static void WUDiAppendRuntimePatch(void) {
     int i;
 
-
     size = 0;
     addr = 0;
 
@@ -2064,10 +2190,6 @@ void WUDiGetFirmwareVersion(void) {
     tBTM_VERSION_INFO version;
     BTM_ReadLocalVersion(&version);
 
-
-
-
-
     if ((version.hci_revision & 0xFFF) == 167) {
         WUDiAppendRuntimePatch();
     } else {
@@ -2082,7 +2204,6 @@ void __wudInitSub() {
 
     int i;
     BOOL enable;
-
 
     BTA_DmSetDeviceName((char*)RVL_DEV_NAME);
 
@@ -2136,7 +2257,6 @@ void WUDiAutoSync() {
     WUDSyncDeviceCallback callback;
     BOOL enable;
 
-
     if (!WUDIsBusy()) {
         enable = OSDisableInterrupts();
         callback = p_wcb->syncStdCB;
@@ -2154,7 +2274,6 @@ void WUDiCancelSync() {
     WUDCB* p_wcb = &_wcb;
     WUDSyncDeviceCallback callback;
     BOOL enable;
-
 
     enable = OSDisableInterrupts();
     if (p_wcb->syncState != 0) {
@@ -2232,11 +2351,9 @@ void WUDiRemoveDevice(BD_ADDR addr) {
     tBTM_STATUS status;
     BOOL enabled = OSDisableInterrupts();
 
-
     pInfo = WUDiGetDevInfo(addr);
 
     if (pInfo != NULL) {
-
 
         if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName) ||
             (WUD_DEV_NAME_IS_WBC(pInfo->conf.devName) && _linkedWBC)) {
@@ -2309,10 +2426,10 @@ WUDDevInfo* WUDiGetNewDevInfo(void) {
     BOOL enabled;
     int i;
 
-    pInfo = NULL;
     enabled = OSDisableInterrupts();
 
     if (p->syncType == WUD_SYNC_TYPE_STANDARD) {
+        pInfo = NULL;
         for (i = 0; i < WUD_MAX_DEV_ENTRY_FOR_STD; i++) {
             if (p->stdDevs[i].status == 0) {
                 pInfo = &p->stdDevs[i];
@@ -2607,6 +2724,67 @@ WUDDevInfo* WUDiGetRemoveStdDevice(void) {
     return _wcb.stdListTail->devInfo;
 }
 
+void WUDiMoveTopOfUnusedStdDevice(WUDDevInfo* pInfo) {
+    WUDCB* p = &_wcb;
+    int i;
+    BOOL enabled;
+    WUDDevInfoList* pIt;
+
+    enabled = OSDisableInterrupts();
+
+    for (i = 0; i < WUD_MAX_DEV_ENTRY_FOR_STD; i++) {
+        if (WUD_BDCMP(p->stdList[i].devInfo->devAddr, pInfo->devAddr) != 0) {
+            continue;
+        }
+
+        for (pIt = p->stdListHead; pIt; pIt = pIt->next) {
+            if (WUD_BDCMP(pIt->devInfo->devAddr, pInfo->devAddr) == 0) {
+                continue;
+            }
+
+            if (pIt->devInfo->status != 0 && pIt != p->stdListTail) {
+                continue;
+            }
+
+            if (WUD_BDCMP(p->stdListHead->devInfo->devAddr, p->stdList[i].devInfo->devAddr) == 0) {
+                if (pIt == p->stdListHead->next)
+                    break;
+
+                p->stdListHead = p->stdList[i].next;
+            } else {
+                p->stdList[i].prev->next = p->stdList[i].next;
+            }
+
+            p->stdList[i].next->prev = p->stdList[i].prev;
+
+            if (pIt == p->stdListTail && pIt->devInfo->status != 0) {
+                p->stdList[i].prev = pIt;
+                p->stdList[i].next = NULL;
+                pIt->next = &p->stdList[i];
+                p->stdListTail = &p->stdList[i];
+                break;
+            }
+            if (pIt != p->stdListHead) {
+                p->stdList[i].prev = pIt->prev;
+                p->stdList[i].next = pIt;
+
+                pIt->prev->next = &p->stdList[i];
+                pIt->prev = &p->stdList[i];
+            } else {
+                p->stdList[i].prev = pIt;
+                p->stdList[i].next = pIt->next;
+
+                pIt->next->prev = &p->stdList[i];
+                pIt->next = &p->stdList[i];
+            }
+
+            break;
+        }
+    }
+
+    OSRestoreInterrupts(enabled);
+}
+
 // NONMATCHING: Cached address/linked-state loads and pointer induction change GPRs/frame.
 void WUDiMoveTopOfDisconnectedStdDevice(WUDDevInfo* pInfo) {
     WUDCB* p = &_wcb;
@@ -2705,12 +2883,10 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     tBTA_DM_PIN_REQ* pPinReq;
     tBTA_DM_AUTH_CMPL* pAuthCmpl;
 
-
     switch (event) {
     case BTA_DM_ENABLE_EVT: {
         pEnable = &pData->enable;
         WUD_BDCPY(p->hostAddr, pEnable->bd_addr);
-
 
         WUDiEnableStack();
         p->libStatus = WUD_LIB_STATUS_2;
@@ -2726,7 +2902,6 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     case BTA_DM_PIN_REQ_EVT: {
         pPinReq = &pData->pin_req;
 
-
         WUDiSetPinCode(pPinReq->bd_addr);
         break;
     }
@@ -2734,11 +2909,8 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     case BTA_DM_AUTH_CMPL_EVT: {
         pAuthCmpl = &pData->auth_cmpl;
 
-
-
         // clang-format off
         // clang-format on
-
 
         if (pAuthCmpl->key_type == HCI_LKEY_TYPE_COMBINATION) {
             break;
@@ -2765,8 +2937,6 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     case BTA_DM_LINK_UP_EVT: {
         pLinkUp = &pData->link_up;
 
-
-
         pInfo = WUDiGetDevInfo(pLinkUp->bd_addr);
         if (pInfo == NULL && WUD_BDCMP(pLinkUp->bd_addr, _work.devAddr) == 0) {
             pInfo = &_work;
@@ -2785,9 +2955,6 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
 
     case BTA_DM_LINK_DOWN_EVT: {
         pLinkDown = &pData->link_down;
-
-
-
 
         pInfo = WUDiGetDevInfo(pLinkDown->bd_addr);
         if (pInfo != NULL) {
@@ -2944,13 +3111,11 @@ void __wudLinkKeyEventStackCallback(void* p1) {
     case BTM_CB_EVT_RETURN_LINK_KEYS: {
         pReturn = p1;
 
-
         pPair = (tBTM_BD_ADDR_LINK_KEY_PAIR*)(pReturn + 1);
         i = 0;
 
         while (i < pReturn->num_keys) {
             pInfo = WUDiGetDevInfo(pPair->bd_addr);
-
 
             // clang-format off
             // clang-format on
@@ -2996,7 +3161,6 @@ void __wudLinkKeyEventStackCallback(void* p1) {
     case BTM_CB_EVT_READ_STORED_LINK_KEYS: {
         pRead = p1;
 
-
         p->linkKeyState = WUD_STATE_LINK_KEY_START;
         break;
     }
@@ -3004,14 +3168,12 @@ void __wudLinkKeyEventStackCallback(void* p1) {
     case BTM_CB_EVT_WRITE_STORED_LINK_KEYS: {
         pWrite = p1;
 
-
         p->linkKeyState = WUD_STATE_LINK_KEY_START;
         break;
     }
 
     case BTM_CB_EVT_DELETE_STORED_LINK_KEYS: {
         pDelete = p1;
-
 
         if (pDelete->num_keys == 0) {
         }
@@ -3032,7 +3194,6 @@ void __wudLinkKeyEventStackCallback(void* p1) {
 void __wudPowerMangeEventStackCallback(BD_ADDR bd_addr, tBTM_PM_STATUS status, u16 value, u8 hci_status) {
     WUDCB* p_wcb = &_wcb;
     WUDDevInfo* p_info;
-
 
     p_info = WUDiGetDevInfo(bd_addr);
     if (p_info == NULL) {
@@ -3061,7 +3222,6 @@ BOOL _WUDEnableTestMode() {
     tBTM_STATUS status;
     BOOL enable;
 
-
     status = BTM_EnableTestMode();
     enable = (status == BTM_SUCCESS) ? TRUE : FALSE;
 
@@ -3074,7 +3234,6 @@ void _WUDStartSyncDevice(BD_ADDR bd_addr, u8* bd_name) {
     u32 syncStatus;
     u32 delStatus;
     s32 status;
-
 
     enable = OSDisableInterrupts();
     status = p_wcb->libStatus;
@@ -3098,7 +3257,6 @@ void _WUDStartSyncDevice(BD_ADDR bd_addr, u8* bd_name) {
 
 void _WUDDeleteStoredDevice() {
     WUDCB* p_wcb = &_wcb;
-
 
     WUDiDeleteAllLinkKeys();
 
@@ -3232,35 +3390,6 @@ void WUDiSetQueueSizeForHandle(u8 handle, u16 size) {
 void WUDiSetNotAckNumForHandle(u8 handle, u16 size) {
     _dev_handle_notack_num[handle] = size;
 }
-
-// RPHealth.dat's pairing record is copied independently of the read workarea.
-// The checksum covers 16-bit words; byte fields below are used only after memcpy.
-typedef struct WUDWiiFitPairingRecord {
-    BD_ADDR address;
-    LINK_KEY linkKey;
-    u8 name[64];
-    u8 reserved[42];
-} WUDWiiFitPairingRecord;
-
-typedef struct WUDWiiFitPairingData {
-    WUDWiiFitPairingRecord record;
-    u32 checksum;
-} WUDWiiFitPairingData;
-
-typedef struct WUDWiiFitWorkArea {
-    u16 payload[0x4AF18 / sizeof(u16)];
-    u16 pairingWords[sizeof(WUDWiiFitPairingRecord) / sizeof(u16)];
-    u32 checksum;
-    u8 reserved[0x4B000 - 0x4AF9C];
-} WUDWiiFitWorkArea;
-
-// The linked DOL has no setter/allocation/free for this optional workarea.
-// Preserve the real null-initialized slot and the target's null/alignment assert.
-WUDWiiFitWorkArea* _wiiFitWork;
-static u32 _wiiFitChecksum;
-static WUDWiiFitPairingData _wiiFitPairingData ATTRIBUTE_ALIGN(32);
-static NANDFileInfo _wiiFitFileInfo;
-static NANDCommandBlock _wiiFitCommandBlock;
 
 void __wudNandResultCallback(s32 result, NANDCommandBlock* block) {
 #pragma unused(block)

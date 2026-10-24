@@ -153,7 +153,6 @@ f32 getSwimValue(f32 stick, u32 index, const MarioConstTable* pTable) {
 #endif
 
 
-
 MarioSwim::MarioSwim(MarioActor* pActor) : MarioState(pActor, MarioStatus_Swim), mWaterInfo() {
     sWaterSearchCounter = 0;
     _18 = 0;
@@ -348,6 +347,7 @@ f32 MarioSwim::getSurface() const {
     return fr1f + wave * (fr1e * (MR::sin(ftmp + (mStateTimer * JMath::TAngleConstant_< f32 >::RADIAN_DEG360() / tmp)) - 1.0f));
 }
 
+// NONMATCHING: equivalent branch folding and temporary vector stack placement.
 bool MarioSwim::fn_803F7D90() {
     if (_22) {
         mNextAction = EXIT_ACTION_SLIDE;
@@ -400,6 +400,7 @@ bool MarioSwim::fn_803F7D90() {
     return true;
 }
 
+// NONMATCHING: collision-node pointer CSE and GPR allocation.
 void MarioSwim::fn_803F8060() {
     s32 side = 0;
     s32 top = 0;
@@ -501,6 +502,7 @@ void MarioSwim::fn_803F8430() {
     }
 }
 
+// NONMATCHING: temporary vector stack placement and GPR allocation.
 bool MarioSwim::fn_803F8490() {
     fn_80402720();
     if (mSpin->isActive()) _9C = false;
@@ -543,6 +545,7 @@ bool MarioSwim::fn_803F8490() {
     return true;
 }
 
+// NONMATCHING: equivalent compound boolean folding.
 bool MarioSwim::fn_803F8750(u32 frames) {
     if (mActor->fn_803BE0C0()) {
         mSurfacePaddleHoldTimer = frames;
@@ -576,6 +579,7 @@ bool MarioSwim::fn_803F88C0() {
     return true;
 }
 
+// NONMATCHING: equivalent high-word bit test and temporary stack placement.
 bool MarioSwim::fn_803F8930() {
     if (!mActionLockTimer && !mZSinkTimer && !mSinkTimer && !mJet->mJetTimer) {
         getAnimator()->forceSetBlendWeight(cWeightTable);
@@ -637,6 +641,7 @@ void MarioSwim::fn_803F8DA0() {
     }
 }
 
+// NONMATCHING: constant-table register allocation.
 bool MarioSwim::fn_803F8E10() {
     if (isPlayerModeYoshi())
         return false;
@@ -659,6 +664,7 @@ f32 MarioSwim::fn_803F8EF0() {
     return factor;
 }
 
+// NONMATCHING: equivalent input boolean folding, GPR allocation and stack placement.
 void MarioSwim::fn_803F8F60(f32) {
     if (_38) {
         _38--;
@@ -726,6 +732,7 @@ void MarioSwim::fn_803F8F60(f32) {
     }
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_803F9350() {
     f32 angle;
     f32 ratio;
@@ -767,6 +774,7 @@ void MarioSwim::fn_803F9350() {
     fn_80402070();
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_803F95A0(f32 input) {
     if ((!mIsSwimmingAtSurface && (!mIsOnSurface || !isStickOn())) || mJet->mJetTimer) {
         f32 angle = input + mActor->mConst->getTable()->mSwimRotSpeedZStop;
@@ -793,6 +801,7 @@ void MarioSwim::fn_803F95A0(f32 input) {
     }
 }
 
+// NONMATCHING: explicit quaternion components, temporary stack placement, FPR allocation and equivalent bit test.
 void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immediate) {
     f32 ratio = 0.1f;
     if (immediate) ratio = 1.0f;
@@ -864,6 +873,7 @@ void MarioSwim::fn_803F9AC0(TVec3f* pose, const TVec3f& front, const TVec3f& sid
     }
 }
 
+// NONMATCHING: temporary vector stack placement.
 void MarioSwim::fn_803F9B90() {
     TVec3f* pose = &mPoseVec;
     if (!mJet->mJetTimer)
@@ -909,6 +919,7 @@ void MarioSwim::fn_803F9DF0() {
         mIsOnSurface = false;
 }
 
+// NONMATCHING: temporary vector stack placement.
 void MarioSwim::fn_803F9E90() {
     if (!mIsOnSurface || mWaterInfo.mWaterArea == nullptr || !mWaterInfo.mWaterArea->isNotHemisphere() || !mWaterInfo.mWaterArea->getFollowMtx()) {
         _118 = nullptr;
@@ -937,6 +948,7 @@ void MarioSwim::fn_803F9FC0() {
     }
 }
 
+// NONMATCHING: negative angle bound loaded as literal instead of negated register.
 void MarioSwim::fn_803FA020() {
     if (mJet->mJetTimer)
         addVelocity(mWaterStreamVel, mActor->getConst().getTable()->mTurboReductionStream);
@@ -973,6 +985,7 @@ void MarioSwim::fn_803FA020() {
     }
 }
 
+// NONMATCHING: boolean register allocation and pooled string offsets.
 bool MarioSwim::isSwimTurnAnimation() const {
     bool result = false;
     if (isAnimationRun("水泳ターン左") || isAnimationRun("水泳ターン右") || isAnimationRun("水泳ターン下")) {
@@ -1002,6 +1015,7 @@ bool MarioSwim::fn_803FA350() const {
     return result;
 }
 
+// NONMATCHING: equivalent early-return register assignment.
 bool MarioSwim::fn_803FA3C0() const {
     if (_44 != 0)
         return true;
@@ -1013,6 +1027,7 @@ bool MarioSwim::fn_803FA3C0() const {
     return result;
 }
 
+// NONMATCHING: FP rounding schedule and register allocation; live strings resolve equally.
 void MarioSwim::fn_803FA450() {
     mStateTimer = 0;
     f32 factor = fn_803FB250();
@@ -1198,6 +1213,7 @@ bool MarioSwim::update() {
     return true;
 }
 
+// NONMATCHING: table-load reuse, instruction scheduling and register allocation.
 void MarioSwim::procBuoyancy() {
     if (mNextAction != EXIT_ACTION_NONE) {
         return;
@@ -1312,6 +1328,7 @@ void MarioSwim::procBuoyancy() {
     }
 }
 
+// NONMATCHING: relocation identities; target multiply operand order restored.
 f32 MarioSwim::fn_803FB250() {
     TVec3f velocity;
     Mario* mario = getPlayer();
@@ -1342,6 +1359,7 @@ void MarioSwim::fn_803FB300() {
     }
 }
 
+// NONMATCHING: boolean register allocation.
 bool MarioSwim::fn_803FB3D0() const {
     bool result = false;
     bool carried = false;
@@ -1382,6 +1400,7 @@ void MarioSwim::flowOnWave(f32 unused) {
     mWaveFlowTimer++;
 }
 
+// NONMATCHING: table-load scheduling, FPR allocation and equivalent bit test.
 void MarioSwim::fn_803FB570() {
     if (mRingDash->mTimer) return;
     if (checkLvlZ() || (checkLvlA() && _9C)) mIsSwimmingAtSurface = false;
@@ -1452,6 +1471,7 @@ bool MarioSwim::fn_803FB8E0() {
     return true;
 }
 
+// NONMATCHING: constant-load scheduling and FPR allocation.
 bool MarioSwim::fn_803FB9C0() {
     if (checkTrgA() && !mDamage->mTimer && !mSpin->isActive()) {
         if (!fn_803FC020()) return false;
@@ -1504,6 +1524,7 @@ bool MarioSwim::fn_803FBB90() {
     return true;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 bool MarioSwim::fn_803FBC70() {
     if (mIsSwimmingAtSurface && isStickOn()) fn_803FBF20();
     else if (checkTrgA() && !mDamage->mTimer && !mSpin->isActive()) {
@@ -1523,11 +1544,13 @@ bool MarioSwim::fn_803FBC70() {
     return true;
 }
 
+// NONMATCHING: equivalent high-word bit test.
 f32 MarioSwim::fn_803FBDA0() {
     if (getPlayer()->mMovementStates.mHighWord & 0x100) return mActor->mConst->getTable()->mSwimSpinSurfaceAccRatioYoshi;
     return mActor->mConst->getTable()->mSwimSpinSurfaceAccRatio;
 }
 
+// NONMATCHING: equivalent high-word bit test.
 f32 MarioSwim::fn_803FBE10() {
     if (getPlayer()->mMovementStates.mHighWord & 0x100) return mActor->mConst->getTable()->mSwimSpinAccRatioYoshi;
     return mActor->mConst->getTable()->mSwimSpinAccRatio;
@@ -1556,6 +1579,7 @@ void MarioSwim::fn_803FBF20() {
     }
 }
 
+// NONMATCHING: pooled-string offsets and commutative fmuls operand ordering.
 bool MarioSwim::fn_803FC020() {
     f32 threshold = 0.75f * (1.0f - 0.3f * MR::abs(getStickX()));
     if (mVerticalAngle < 1.5707964f && getStickY() > threshold && !mActionLockTimer && _1E) {
@@ -1594,6 +1618,7 @@ bool MarioSwim::fn_803FC020() {
     return true;
 }
 
+// NONMATCHING: equivalent flag extraction and instruction scheduling.
 void MarioSwim::decideAnimation() {
     f32 animSpeeds[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -1797,6 +1822,7 @@ bool MarioSwim::notice() {
     return getNoticedStatus() == MarioStatus_Paralyze;
 }
 
+// NONMATCHING: equivalent call-operand scheduling.
 bool MarioSwim::close() {
     if (mIsOnSurface) {
         mIsOnSurface = false;
@@ -1930,6 +1956,7 @@ bool MarioSwim::close() {
     return true;
 }
 
+// NONMATCHING: literal-pool relocation offsets; masked instructions are exact.
 void MarioSwim::fn_803FD140() {
     _1F0.zero();
     if (_180) {
@@ -1998,6 +2025,7 @@ void MarioSwim::fn_803FD140() {
     }
 }
 
+// NONMATCHING: temporary vector stack placement and instruction scheduling.
 bool MarioSwim::fn_803FD5E0(s32) {
     fn_803FD140();
     if (mSwimState == 0) {
@@ -2095,6 +2123,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
     return true;
 }
 
+// NONMATCHING: common-exit folding, stack temporaries and constant-load scheduling.
 void MarioSwim::updateUnderWater() {
     if (MarioModule::getPlayerMode() != 4 && MarioModule::getStickP() > 0.1f) {
         mWaterDistanceTarget = 0.0f;
@@ -2271,6 +2300,7 @@ bool MarioSwim::getWaterAreaInfo(WaterInfo* pInfo, const TVec3f& rPos, TVec2f* p
     return isInWater;
 }
 
+// NONMATCHING: temporary vector stack placement.
 void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3f& gravity, u32 flags) {
     if (MR::getWaterAreaInfo(info, position, gravity, true)) {
         if (flags & 1) {
@@ -2320,6 +2350,7 @@ const TVec3f& MarioSwim::getGravityVec() const {
     return MarioModule::getGravityVec();
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 bool MarioSwim::fn_803FE7E0() {
     if (mDashTimer) return false;
     stopAnimation(nullptr, static_cast<const char*>(nullptr));
@@ -2331,6 +2362,7 @@ bool MarioSwim::fn_803FE7E0() {
     return true;
 }
 
+// NONMATCHING: equivalent branch folding and register allocation.
 void MarioSwim::spin() {
     if (mJet->mJetTimer != 0) {
         if (mActor->isRequestSpin()) {
@@ -2353,6 +2385,7 @@ void MarioSwim::spin() {
     }
 }
 
+// NONMATCHING: scalar and animation-string relocation placement.
 void MarioSwim::hitPunch(const TVec3f& rPunchDir) {
     if (mSpin->mSpinTimer != 0) {
         mForwardSpeed = 0.0f;
@@ -2395,6 +2428,7 @@ void MarioSwim::resetJet() {
     mJet->mJetTimer = 0;
 }
 
+// NONMATCHING: equivalent early-return branch folding.
 void MarioSwim::dropJet(bool isDamage) {
     if (mJet->mCooldownTimer != 0 || mJet->mJetTimer == 0) {
         return;
@@ -2456,7 +2490,6 @@ void MarioSwim::forceStopSpin() {
     mSpin->mSpinDashTimer = 0;
     mSpin->mSpinTimer = 0;
     setYangleOffset(0.0f);
-
 
 
     // Swim Spin
@@ -2693,6 +2726,7 @@ void MarioSwim::hitPoly(const TVec3f& rNormal, HitSensor* pSensor) {
     }
 }
 
+// NONMATCHING: equivalent flag extraction and register allocation.
 void MarioSwim::hitWall(const TVec3f& rNormal, HitSensor* pSensor) {
     if (mActor->_424 == 0) {
         f32 floorDot = -rNormal.dot(getPlayer()->getAirGravityVec());
@@ -3030,6 +3064,7 @@ void MarioSwim::doDecLifeByCold() {
     }
 }
 
+// NONMATCHING: pooled string offsets differ; live arguments resolve equally.
 bool MarioSwim::passRing(const HitSensor* sensor) {
     const TVec3f& ringPos = *MR::getSensorPos(sensor);
     if (mRingDash->mTimer == 0) {
@@ -3046,6 +3081,7 @@ bool MarioSwim::passRing(const HitSensor* sensor) {
     return true;
 }
 
+// NONMATCHING: timer-load reuse and register allocation.
 f32 MarioSwim::calcRingAcc() {
     mRingDash->updateBlur();
     MarioSwimRingDash* ring = mRingDash;
@@ -3257,6 +3293,7 @@ void MarioSwim::fn_80400FC0(const TVec3f& normal) {
     else mNextAction = 1;
 }
 
+// NONMATCHING: temporary vectors occupy exchanged stack slots.
 void MarioSwim::fn_80401010() {
     if (fn_804026A0()) {
         playEffect("水エリア飛び込み飛沫");
@@ -3284,6 +3321,7 @@ void MarioSwim::fn_80401010() {
     playEffect("水エリア飛び込み飛沫");
 }
 
+// NONMATCHING: pooled string offsets differ; all live arguments resolve equally.
 void MarioSwim::fn_80401160() {
     _44 = 0;
     if (isAnimationRun("飛び込みジャンプ"))
@@ -3433,6 +3471,7 @@ void MarioSwim::fn_80401710() {
     fn_803F95A0(stick);
 }
 
+// NONMATCHING: temporary vector stack placement.
 void MarioSwim::fn_804017C0(bool turn) {
     if (!MR::isNearZero(mFrontVec, 0.001f)) {
         TVec3f side;
@@ -3444,6 +3483,7 @@ void MarioSwim::fn_804017C0(bool turn) {
     }
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_80401850(u32 frames) {
     if (checkLvlA()) {
         if (_9C && (!isAnimationRun("水上一掻き") || !mSurfacePaddleHoldTimer)) mSurfacePaddleHoldTimer++;
@@ -3468,6 +3508,7 @@ void MarioSwim::fn_80401960() {
     }
 }
 
+// NONMATCHING: constant-load scheduling and FPR allocation.
 void MarioSwim::fn_804019D0() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
@@ -3483,6 +3524,7 @@ void MarioSwim::fn_804019D0() {
     mStickInputXInertia *= scale;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_80401AE0() {
     stopAnimationUpper("水泳水面初期移動", nullptr);
     changeAnimation("水泳潜り", static_cast<const char*>(nullptr));
@@ -3491,6 +3533,7 @@ void MarioSwim::fn_80401AE0() {
     mZSinkTimer = mActor->mConst->getTable()->mZsinkStartTimer;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_80401B70() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stick = getStickP();
@@ -3498,6 +3541,7 @@ void MarioSwim::fn_80401B70() {
     mStickInputYInertia = stick * (1.0f - ratio) + mStickInputYInertia * ratio;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 bool MarioSwim::fn_80401BE0() {
     bool result = false;
     bool canDive = false;
@@ -3514,6 +3558,7 @@ bool MarioSwim::fn_80401BE0() {
     return result;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_80401CD0() {
     stopAnimation(nullptr, static_cast<const char*>(nullptr));
     changeAnimation("水泳潜り", static_cast<const char*>(nullptr));
@@ -3522,6 +3567,7 @@ void MarioSwim::fn_80401CD0() {
     mZSinkTimer = mActor->mConst->getTable()->mZsinkStartTimer;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_80401D60() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
@@ -3533,6 +3579,7 @@ void MarioSwim::fn_80401D60() {
     mStickInputXInertia = stickX * (1.0f - x) + mStickInputXInertia * x;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 void MarioSwim::fn_80401E10() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
@@ -3582,6 +3629,8 @@ void MarioSwim::fn_804020F0() {
     }
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
+// NONMATCHING: commutative multiply operand order and runtime angle-constant relocation placement.
 f32 MarioSwim::fn_80402120() {
     f32 ratio = fn_80402160();
     f32 angle = mVerticalAngle;
@@ -3600,6 +3649,7 @@ f32 MarioSwim::fn_804021B0() {
     return cNeutralAngleWait + (cUpperAngleWait - cNeutralAngleWait) * -getStickY();
 }
 
+// NONMATCHING: equivalent multiply operand order.
 f32 MarioSwim::fn_80402200() const {
     f32 speed = mForwardSpeed;
     if (speed < 2.0f) {
@@ -3619,6 +3669,7 @@ f32 MarioSwim::fn_80402250() {
     return factor * cLimitAngleWait + (1.0f - factor) * cLimitAngleSink;
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 f32 MarioSwim::fn_804022D0() {
     if (mDistToFloor < 300.0f && -mWaterDepth < 100.0f) return cNeutralAngleWait;
     f32 angle = fn_80402250() - cNeutralAngleWait;
@@ -3631,6 +3682,7 @@ f32 MarioSwim::fn_80402370() {
     return fn_804021B0();
 }
 
+// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 f32 MarioSwim::fn_80402400() {
     f32 speed = mForwardSpeed;
     f32 ratio = 0.05f;
@@ -3641,6 +3693,7 @@ f32 MarioSwim::fn_80402400() {
     return ratio * mJet->calcRotationRatio();
 }
 
+// NONMATCHING: equivalent spin boolean folding and branch order.
 void MarioSwim::fn_80402470(f32) {
     if (mIsOnSurface && !mZSinkTimer) {
         if (!_18 && !isPlayerModeYoshi()) {
@@ -3692,6 +3745,7 @@ void MarioSwim::fn_80402720() {
     }
 }
 
+// NONMATCHING: target reloads the dash timer; remaining pooled offsets resolve equally.
 void MarioSwimSpin::update() {
     if (mSpinTimer != 0) {
         if (mSwim->checkTrgA()) {
@@ -3744,6 +3798,7 @@ void MarioSwimSpin::update() {
     }
 }
 
+// NONMATCHING: pooled string offsets differ; all live arguments resolve equally.
 void MarioSwimSpin::startDash() {
     mSwim->stopEffect("水泳スピン");
     if (_8 != 0) {
@@ -3779,6 +3834,7 @@ u16 MarioSwimSpin::getReadyTimer() const {
     return mSwim->mActor->getConst().getTable()->mSwimSpinMissOfsTimeYoshi;
 }
 
+// NONMATCHING: equivalent multiply operands and pooled string offsets.
 void MarioSwimJet::update(f32 factor) {
     MR::setStageBGMStateBit(4);
     if (mCooldownTimer != 0) {
@@ -3843,6 +3899,7 @@ f32 MarioSwimJet::getMaxSpeed() const {
     return mSwim->fn_803FAB10();
 }
 
+// NONMATCHING: one equivalent multiply operand order.
 void MarioSwimJet::updateVelocity(f32 targetSpeed) {
     f32 speed = mSwim->mForwardSpeed;
     if (speed < targetSpeed) {
@@ -3924,6 +3981,7 @@ void MarioSwimDamage::reset() {
     mVelocity.zero();
 }
 
+// NONMATCHING: floating-point register allocation and operation scheduling.
 void MarioSwimTilt::update() {
     f32 targetTiltX = 0.0f;
     f32 blendX = 0.1f;
@@ -3987,19 +4045,6 @@ void MarioSwimTilt::update() {
     u16 joint = swim->getAnimator()->getUpperJointID();
     swim->setJointGlobalMtx(joint, mJointMtx.toMtxPtr());
 }
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: table-load reuse, instruction scheduling and register allocation.
-
-
 
 
 void MarioSwim::decideVelocity() {
@@ -4162,15 +4207,6 @@ void MarioSwim::decideVelocity() {
     }
 }
 
-// NONMATCHING: equivalent flag extraction and instruction scheduling.
-
-
-
-
-
-
-// NONMATCHING: equivalent call-operand scheduling.
-
 
 bool MarioSwim::checkWaterCube(bool checkOnly) {
     mUpVec = -getPlayer()->getAirGravityVec();
@@ -4277,16 +4313,6 @@ bool MarioSwim::checkWaterCube(bool checkOnly) {
     return false;
 }
 
-// NONMATCHING: common-exit folding, stack temporaries and constant-load scheduling.
-
-
-
-
-
-
-
-
-
 
 bool MarioSwim::surfacePaddle() {
     if (mDashTimer != 0) {
@@ -4302,85 +4328,6 @@ bool MarioSwim::surfacePaddle() {
     return true;
 }
 
-// NONMATCHING: equivalent branch folding and register allocation.
-
-
-// NONMATCHING: scalar and animation-string relocation placement.
-
-
-
-
-
-
-// NONMATCHING: equivalent early-return branch folding.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: equivalent flag extraction and register allocation.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: pooled string offsets differ; live arguments resolve equally.
-
-
-
-
-// NONMATCHING: timer-load reuse and register allocation.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 MarioSwimModule::~MarioSwimModule() {}
 
@@ -4392,15 +4339,11 @@ MarioSwimSpin::MarioSwimSpin(MarioSwim* swim) : MarioSwimModule(swim) {
 }
 
 
-
-
-
 MarioSwimJet::MarioSwimJet(MarioSwim* swim) : MarioSwimModule(swim) {
     _8 = 0;
     mJetTimer = 0;
     mCooldownTimer = 0;
 }
-
 
 
 MarioSwimRingDash::MarioSwimRingDash(MarioSwim* swim) : MarioSwimModule(swim) {
@@ -4410,9 +4353,6 @@ MarioSwimRingDash::MarioSwimRingDash(MarioSwim* swim) : MarioSwimModule(swim) {
     mSpeedScale = 0.0f;
     mBlurOffset = 0.0f;
 }
-
-
-
 
 
 MarioSwimDamage::MarioSwimDamage(MarioSwim* swim) : MarioSwimModule(swim) {
@@ -4425,638 +4365,10 @@ MarioSwimDamage::MarioSwimDamage(MarioSwim* swim) : MarioSwimModule(swim) {
 }
 
 
-
-
-
-
-
 MarioSwimTilt::MarioSwimTilt(MarioSwim* swim) : MarioSwimModule(swim) {
     mTiltX = 0.0f;
     mTiltY = 0.0f;
     PSMTXIdentity(mJointMtx.toMtxPtr());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: equivalent multiply operand order.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: target reloads the dash timer; remaining pooled offsets resolve equally.
-
-
-// NONMATCHING: pooled string offsets differ; all live arguments resolve equally.
-
-
-
-
-// NONMATCHING: equivalent multiply operands and pooled string offsets.
-
-
-
-
-
-
-// NONMATCHING: one equivalent multiply operand order.
-
-
-
-
-
-
-// NONMATCHING: boolean register allocation and pooled string offsets.
-
-
-// NONMATCHING: floating-point register allocation and operation scheduling.
-
-
-
-
-
-
-// NONMATCHING: equivalent early-return register assignment.
-
-
-// NONMATCHING: boolean register allocation.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: pooled string offsets differ; all live arguments resolve equally.
-
-
-
-
-// NONMATCHING: relocation identities; target multiply operand order restored.
-
-
-// NONMATCHING: FP rounding schedule and register allocation; live strings resolve equally.
-
-
-
-
-
-
-// NONMATCHING: temporary vectors occupy exchanged stack slots.
-
-
-
-
-// NONMATCHING: constant-table register allocation.
-
-
-
-
-// NONMATCHING: temporary vector stack placement.
-
-
-
-
-// NONMATCHING: temporary vector stack placement.
-
-
-
-
-
-
-
-
-// NONMATCHING: temporary vector stack placement.
-
-
-// NONMATCHING: negative angle bound loaded as literal instead of negated register.
-
-
-// NONMATCHING: equivalent branch folding and temporary vector stack placement.
-
-
-
-
-// NONMATCHING: temporary vector stack placement.
-
-
-// NONMATCHING: literal-pool relocation offsets; masked instructions are exact.
-
-
-// NONMATCHING: temporary vector stack placement and instruction scheduling.
-
-
-
-
-// NONMATCHING: collision-node pointer CSE and GPR allocation.
-
-
-
-
-
-
-// NONMATCHING: equivalent input boolean folding, GPR allocation and stack placement.
-
-
-// NONMATCHING: equivalent high-word bit test and temporary stack placement.
-
-
-
-
-
-
-
-
-// NONMATCHING: explicit quaternion components, temporary stack placement, FPR allocation and equivalent bit test.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-// NONMATCHING: commutative multiply operand order and runtime angle-constant relocation placement.
-
-
-
-
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-
-
-
-
-// NONMATCHING: constant-load scheduling and FPR allocation.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-
-
-
-
-
-
-// NONMATCHING: equivalent high-word bit test.
-
-
-// NONMATCHING: equivalent high-word bit test.
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: constant-load scheduling and FPR allocation.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: pooled-string offsets and commutative fmuls operand ordering.
-
-
-// NONMATCHING: table-load scheduling, FPR allocation and equivalent bit test.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
-
-
-// NONMATCHING: equivalent compound boolean folding.
-
-
-// NONMATCHING: temporary vector stack placement and GPR allocation.
-
-
-
-
-// NONMATCHING: equivalent spin boolean folding and branch order.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -315,16 +315,17 @@ void TicoFatStarPiece::updateEventCamera() {
     if (!start) return;
     CameraTargetArg cameraTarget(this);
     MR::startGlobalEventCamera(sEventCamera, cameraTarget, 120);
-    TVec3f x, y, z, position;
+    TVec3f y, z, x, position;
     MR::extractMtxXYZDir(getBaseMtx(), &x, &y, &z);
     MR::extractMtxTrans(getBaseMtx(), &position);
     x.set<f32>((1.0f - 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.y)) - 2.0f * (mInitOrientationQuat.z * mInitOrientationQuat.z), 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.y) + 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.z), 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.z) - 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.y));
     y.set<f32>(2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.y) - 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.z), (1.0f - 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.x)) - 2.0f * (mInitOrientationQuat.z * mInitOrientationQuat.z), 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.z) + 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.x));
     z.set<f32>(2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.z) + 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.y), 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.z) - 2.0f * (mInitOrientationQuat.w * mInitOrientationQuat.x), (1.0f - 2.0f * (mInitOrientationQuat.x * mInitOrientationQuat.x)) - 2.0f * (mInitOrientationQuat.y * mInitOrientationQuat.y));
     position = mInitPosition;
-    TVec3f eye = ((position + x * sStarPieceTicoCameraEyeSide) + y * 100.0f) + z * MR::getLinerValueFromMinMax(calcScale(), 1.0f, 1.9f, 1300.0f, 1700.0f);
-    TVec3f target = ((position + x * sStarPieceTicoCameraTargetSide) + y * 150.0f) + z * sStarPieceTicoCameraTargetFront;
-    MR::setProgrammableCameraParam(sEventCamera, target, eye, y, false);
+    MR::setProgrammableCameraParam(sEventCamera,
+        ((position + x * sStarPieceTicoCameraTargetSide) + y * 150.0f) + z * sStarPieceTicoCameraTargetFront,
+        ((position + x * sStarPieceTicoCameraEyeSide) + y * 100.0f) + z * MR::getLinerValueFromMinMax(calcScale(), 1.0f, 1.9f, 1300.0f, 1700.0f),
+        y, false);
 }
 
 

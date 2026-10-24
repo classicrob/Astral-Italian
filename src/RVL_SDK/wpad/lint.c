@@ -34,15 +34,14 @@ void LINTLshift(u32* result, const u32* input, u32 bits) {
     if (carry) ++*result;
 }
 
-// NONMATCHING: GPR allocation and one independent counter-update order.
 u32 LINTMsb(const u32* input) {
+    u32 i;
     u32 count = *input;
     u32 high = input[count];
     u32 bits = 32;
-    u32 i;
-    for (i = 0; i < 32; i++) {
+    i = 0;
+    for (; i < 32; i++, bits--) {
         if ((0x80000000u >> i) & high) break;
-        bits--;
     }
     return (count - 1) * 32 + bits;
 }

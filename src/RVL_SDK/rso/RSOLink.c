@@ -644,7 +644,7 @@ int cnvJumpCode(const RSOObjectHeader* rso, RSOImportTable* impTab, int impIndex
             if (x != 0 && x != y) {
                 i_sw = 1;
                 x = (u32)i_buff - (u32)p;
-                if ((s32)x > -0x01FFFFFF && (s32)x < 0x01FFFFFF) {
+                if (x < 0x01FFFFFF || x > 0xFE000001) {
                     *p = (*p & 0xFC000003) | (x & 0x03FFFFFC);
                     DCFlushRange(p, 0x20);
                     ICInvalidateRange(p, 0x20);

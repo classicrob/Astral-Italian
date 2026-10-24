@@ -67,13 +67,14 @@ TakoSho::~TakoSho() {}
 void TakoSho::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     mStartPos.set(mPosition);
+    s32 arg = -1;
     MR::calcFrontVec(&mFrontVec, this);
     TVec3f up;
     MR::calcUpVec(&up, this);
     TVec3f negUp = -up;
     mGravity.set(negUp);
 
-    s32 arg = -1;
+    arg = -1;
     MR::getJMapInfoArg1NoInit(rIter, &arg);
     if (arg == 0) {
         MR::calcSideVec(&mSideVec, this);

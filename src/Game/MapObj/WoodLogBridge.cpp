@@ -250,45 +250,14 @@ void drawLogQuad(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVe
                         const Color8* pCol2, f32 s1, f32 s2, f32 s3, f32 s4, f32 s5) NO_INLINE {
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 4);
 
-    TVec3f v0(*pC);
-    v0.scale(s2);
-    TVec3f v1(*pD);
-    v1.scale(s1);
-    TVec3f v2(*pA);
-    v2.add(v1);
-    TVec3f v3(v2);
-    v3.add(v0);
-    writeLogVertex(&v3, pCol1, 0.0f, 0.0f);
-
-    TVec3f v4(*pC);
-    v4.scale(s4);
-    TVec3f v5(*pD);
-    v5.scale(s3);
-    TVec3f v6(*pA);
-    v6.add(v5);
-    TVec3f v7(v6);
-    v7.add(v4);
-    writeLogVertex(&v7, pCol2, 1.0f, 0.0f);
-
-    TVec3f v8(*pC);
-    v8.scale(s2);
-    TVec3f v9(*pD);
-    v9.scale(s1);
-    TVec3f v10(*pB);
-    v10.add(v9);
-    TVec3f v11(v10);
-    v11.add(v8);
-    writeLogVertex(&v11, pCol1, 0.0f, s5);
-
-    TVec3f v12(*pC);
-    v12.scale(s4);
-    TVec3f v13(*pD);
-    v13.scale(s3);
-    TVec3f v14(*pB);
-    v14.add(v13);
-    TVec3f v15(v14);
-    v15.add(v12);
-    writeLogVertex(&v15, pCol2, 1.0f, s5);
+    TVec3f v0 = *pA + pD->scaleInline(s1) + pC->scaleInline(s2);
+    writeLogVertex(&v0, pCol1, 0.0f, 0.0f);
+    TVec3f v1 = *pA + pD->scaleInline(s3) + pC->scaleInline(s4);
+    writeLogVertex(&v1, pCol2, 1.0f, 0.0f);
+    TVec3f v2 = *pB + pD->scaleInline(s1) + pC->scaleInline(s2);
+    writeLogVertex(&v2, pCol1, 0.0f, s5);
+    TVec3f v3 = *pB + pD->scaleInline(s3) + pC->scaleInline(s4);
+    writeLogVertex(&v3, pCol2, 1.0f, s5);
 }
 
 // fn_8032C230: draws one log section as three quad strips.

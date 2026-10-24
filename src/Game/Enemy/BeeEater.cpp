@@ -312,9 +312,7 @@ bool BeeEater::updateBeeEaterDash() {
         MR::startAction(this, "Attack");
         mRot.getYDir(mFaceVec);
     }
-    TVec3f dash(mFaceVec);
-    dash.scale(1.5f);
-    MR::addVelocity(this, dash);
+    MR::addVelocity(this, mFaceVec.scaleInline(1.5f));
     MR::attenuateVelocity(this, 0.99f);
     f32 distance = MR::calcDistance(this, mBasePos);
     f32 rate = MR::normalize(distance, 445.5f, 450.0f);

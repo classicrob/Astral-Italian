@@ -714,6 +714,77 @@ public:
     void calcDir2D(f32, f32, TVec3f*);
 
     // instruction comments to make it easier to identify each bit
+    // Numeric masks and named bits describe the same 32-bit flag word on each host.
+    struct FlagBits32 {
+#if defined(GALAXY_NATIVE) && defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        u32 mBit0 : 1;
+        u32 mBit1 : 1;
+        u32 mBit2 : 1;
+        u32 mBit3 : 1;
+        u32 mBit4 : 1;
+        u32 mBit5 : 1;
+        u32 mBit6 : 1;
+        u32 mBit7 : 1;
+        u32 mBit8 : 1;
+        u32 mBit9 : 1;
+        u32 mBit10 : 1;
+        u32 mBit11 : 1;
+        u32 mBit12 : 1;
+        u32 mBit13 : 1;
+        u32 mBit14 : 1;
+        u32 mBit15 : 1;
+        u32 mBit16 : 1;
+        u32 mBit17 : 1;
+        u32 mBit18 : 1;
+        u32 mBit19 : 1;
+        u32 mBit20 : 1;
+        u32 mBit21 : 1;
+        u32 mBit22 : 1;
+        u32 mBit23 : 1;
+        u32 mBit24 : 1;
+        u32 mBit25 : 1;
+        u32 mBit26 : 1;
+        u32 mBit27 : 1;
+        u32 mBit28 : 1;
+        u32 mBit29 : 1;
+        u32 mBit30 : 1;
+        u32 mBit31 : 1;
+#else
+        u32 mBit31 : 1;
+        u32 mBit30 : 1;
+        u32 mBit29 : 1;
+        u32 mBit28 : 1;
+        u32 mBit27 : 1;
+        u32 mBit26 : 1;
+        u32 mBit25 : 1;
+        u32 mBit24 : 1;
+        u32 mBit23 : 1;
+        u32 mBit22 : 1;
+        u32 mBit21 : 1;
+        u32 mBit20 : 1;
+        u32 mBit19 : 1;
+        u32 mBit18 : 1;
+        u32 mBit17 : 1;
+        u32 mBit16 : 1;
+        u32 mBit15 : 1;
+        u32 mBit14 : 1;
+        u32 mBit13 : 1;
+        u32 mBit12 : 1;
+        u32 mBit11 : 1;
+        u32 mBit10 : 1;
+        u32 mBit9 : 1;
+        u32 mBit8 : 1;
+        u32 mBit7 : 1;
+        u32 mBit6 : 1;
+        u32 mBit5 : 1;
+        u32 mBit4 : 1;
+        u32 mBit3 : 1;
+        u32 mBit2 : 1;
+        u32 mBit1 : 1;
+        u32 mBit0 : 1;
+#endif
+    };
+
     struct MovementStates {
         enum Mask {
             Jumping = 0x80000000U,
@@ -722,8 +793,14 @@ public:
             DigitalJump = 0x00000002U
         };
 
-        u32 mLowWord;
-        u32 mHighWord;
+        union {
+            u32 mLowWord;
+            FlagBits32 mLowBits;
+        };
+        union {
+            u32 mHighWord;
+            FlagBits32 mHighBits;
+        };
     };
 
     struct DrawStates {
@@ -731,7 +808,10 @@ public:
             Underwater = 0x00002000U
         };
 
-        u32 mWord;
+        union {
+            u32 mWord;
+            FlagBits32 mBits;
+        };
     };
 
     inline const MovementStates& getMovementStates() const {

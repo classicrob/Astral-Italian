@@ -363,9 +363,7 @@ void DiceMoverAccumulator::addCollision(const TVec3f* center, const TVec3f* poin
         if (ratio > 1.0f) ratio = 1.0f;
         if (ratio < 0.0f) ratio = 0.01f;
         if (ratio > 0.0f) {
-            TVec3f linear(*force);
-            linear.scale(ratio * ratio);
-            DiceMoverUtil::expandBounds(&mVelocityMin, &mVelocityMax, linear);
+            DiceMoverUtil::expandBounds(&mVelocityMin, &mVelocityMax, (*force).scaleInline(ratio * ratio));
         }
         f32 rotationScale = 0.999f * inverseRadius;
         f32 inverseLength = 1.0f / MR::sqrt<f32>(squared);

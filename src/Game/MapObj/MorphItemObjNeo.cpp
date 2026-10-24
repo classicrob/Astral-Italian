@@ -922,12 +922,7 @@ void MorphItemObjNeo::exeFall() {
         TVec3f yDir;
         mtx.getYDir(yDir);
 
-        TVec3f offset(yDir);
-        offset.scale(50.0f);
-
-        TVec3f pos(mPosition);
-        pos += offset;
-        MR::setPosition(mContainerModel, pos);
+        MR::setPosition(mContainerModel, mPosition + yDir.scaleInline(50.0f));
     }
 
     if (mRailMover == nullptr || !MR::isGreaterEqualStep(this, 98)) {

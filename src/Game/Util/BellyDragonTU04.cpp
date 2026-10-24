@@ -130,8 +130,7 @@ void BellyDragonUtil::calcGroundHillMtx(TPos3f* pOut, NameObj* pObj, const f32 (
     TVec3f sp5C(mtx[0][0], mtx[1][0], mtx[2][0]);
     TVec3f sp50(mtx[0][2], mtx[1][2], mtx[2][2]);
     TVec3f sp44(mtx[0][3], mtx[1][3], mtx[2][3]);
-    TVec3f sp14 = sp50 * farg0;
-    sp44.add(sp14);
+    sp44.add((sp50 * farg0));
     TVec3f sp38(sp44);
     TVec3f sp2C;
     MR::calcGravityVector(pObj, sp44, &sp2C, NULL, 0);

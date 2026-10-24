@@ -273,9 +273,7 @@ void KoopaJrCastleStateBodyMove::exeMoveAroundCenter() {
     TVec3f axis((-pCastle->mGravity) * mTurnDirection);
     if (MR::turnVecToVecDegree(&pCastle->mFrontVec, pCastle->mFrontVec, target, 0.5f, axis) < 4.0f) {
         KoopaJrCastle* pCastle2 = KoopaJrCastleFunction::getCastle();
-        TVec3f vel(pCastle2->mFrontVec);
-        vel *= 1.0f;
-        MR::addVelocity(pCastle2, vel);
+        MR::addVelocity(pCastle2, pCastle2->mFrontVec * 1.0f);
         if (MR::calcVelocityLength(pCastle2) > 17.0f) {
             MR::normalize(&pCastle2->mVelocity);
             MR::attenuateVelocity(pCastle2, 14.0f);
@@ -306,8 +304,7 @@ void KoopaJrCastleStateBodyMove::exeMoveBackAroundCenter() {
     TVec3f axis((-pCastle->mGravity) * mTurnDirection);
     if (MR::turnVecToVecDegree(&pCastle->mFrontVec, pCastle->mFrontVec, target, 0.5f, axis) < 4.0f) {
         KoopaJrCastle* pCastle2 = KoopaJrCastleFunction::getCastle();
-        TVec3f vel((-pCastle2->mFrontVec) * 1.0f);
-        MR::addVelocity(pCastle2, vel);
+        MR::addVelocity(pCastle2, (-pCastle2->mFrontVec) * 1.0f);
         if (MR::calcVelocityLength(pCastle2) > 17.0f) {
             MR::normalize(&pCastle2->mVelocity);
             MR::attenuateVelocity(pCastle2, 14.0f);

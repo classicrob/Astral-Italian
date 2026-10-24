@@ -338,12 +338,14 @@ void BossBussunShot::exeFly() {
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void BossBussunShot::exeHold() {
+    TVec3f dir;
+    TVec3f dir2;
+
     if (MR::isFirstStep(this)) {
         mHoldVel.set(mVelocity);
         MR::zeroVelocity(this);
         MR::offBind(this);
     }
-    TVec3f dir;
     MR::calcDirToTarget(&dir, this, &mHoldPos);
     f32 prevDist = MR::calcDistance(this, mHoldPos);
     TVec3f accel = dir * 3.0f;
@@ -356,7 +358,6 @@ void BossBussunShot::exeHold() {
     f32 limit = 0.95f * prevDist;
     if (limit < dist) {
         f32 over = dist - limit;
-        TVec3f dir2;
         MR::calcDirToTarget(&dir2, this, &mHoldPos);
         TVec3f push = dir2 * over;
         mHoldVel.add(push);

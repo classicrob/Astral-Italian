@@ -587,8 +587,7 @@ void Takobo::calcAndSetBaseMtx() {
             MR::makeMtxUpFrontPos(&mtx, up, mFrontVec, mPosition);
             MR::setBaseTRMtx(this, mtx);
             MR::calcFrontVec(&mFrontVec, this);
-            TVec3f diff = -up;
-            mGravity.set(diff);
+            mGravity.set((-up));
         } else {
             TVec3f up;
             MR::calcUpVec(&up, this);

@@ -447,8 +447,10 @@ RepeatBlockVolume::RepeatBlockVolume(RepeatBlockGrid* pGrid) : mGrid(pGrid), mIs
 }
 
 void RepeatBlockVolume::setup(const RepeatBlockCell* pCell, s32 dir, f32 rate) {
-    TVec3f shift;
     TVec3f scale;
+    TVec3f center;
+    TVec3f shift;
+
     switch (dir) {
     case 0:
         scale.x = rate;
@@ -511,7 +513,6 @@ void RepeatBlockVolume::setup(const RepeatBlockCell* pCell, s32 dir, f32 rate) {
     mPoints[7].x = -0.5f;
     mPoints[7].y = -0.5f;
     mPoints[7].z = -0.5f;
-    TVec3f center;
     mGrid->calcCellPos(&center, *pCell);
     TVec3f size(mGrid->mCellSize.x, mGrid->mCellSize.y, mGrid->mCellSize.z);
     for (s32 i = 0; i < 8; i++) {

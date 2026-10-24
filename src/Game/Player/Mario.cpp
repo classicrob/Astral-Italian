@@ -2417,47 +2417,47 @@ void Mario::updateAndClearStrideParameter() {
     _34 = mFlags20.mWord;
     mDrawStates.mWord = 0;
     mFlags20.mWord = 0;
-    mMovementStates.mHighWord &= 0xFF7FFFFFU;
+    mMovementStates.mHighBits.mBit23 = 0;
     if (((mMovementStates.mLowWord >> 30) & 1U)) {
         mWall->_1C = 0;
     }
 
     if (((mFlags14.mHighWord >> 26) & 1U)) {
-        mFlags20.mWord |= 0x40000000U;
+        mFlags20.mBits.mBit30 = 1;
     }
 
     if (((mFlags14.mHighWord >> 25) & 1U)) {
-        mFlags20.mWord |= 0x20000000U;
+        mFlags20.mBits.mBit29 = 1;
     }
 
     if (((mFlags14.mHighWord >> 27) & 1U)) {
-        mFlags20.mWord |= 0x80000000U;
+        mFlags20.mBits.mBit31 = 1;
     }
 
-    mFlags14.mHighWord &= 0xFBFFFFFFU;
-    mFlags14.mHighWord &= 0xFDFFFFFFU;
+    mFlags14.mHighBits.mBit26 = 0;
+    mFlags14.mHighBits.mBit25 = 0;
 }
 
 
 void Mario::checkKeyLock() {
     if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
-        mMovementStates.mHighWord &= 0xDFFFFFFFU;
+        mMovementStates.mHighBits.mBit29 = 0;
     }
 
     if (mActor->_37C < 0x4b) {
-        mMovementStates.mHighWord |= 0x20000000U;
+        mMovementStates.mHighBits.mBit29 = 1;
     }
 
     if (mActor->isEnableNerveChange() == false) {
-        mMovementStates.mHighWord |= 0x20000000U;
+        mMovementStates.mHighBits.mBit29 = 1;
     }
 
     if (isSwimming()) {
-        mMovementStates.mHighWord &= 0xDFFFFFFFU;
+        mMovementStates.mHighBits.mBit29 = 0;
     }
 
     if (MR::testSubPadButtonC(WPAD_CHAN0)) {
-        mDrawStates.mWord |= 0x01000000U;
+        mDrawStates.mBits.mBit24 = 1;
     }
 }
 
@@ -2541,7 +2541,7 @@ void Mario::doExtraServices() {
     bool notBee = !isPlayerModeBee();
     if (notBee) {
         bool notTeresa = !isPlayerModeTeresa();
-        if (notTeresa && ((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && _3BC > 600 && !MR::isNearZero(*getGravityVec())) {
+        if (notTeresa && (static_cast<u32>(mMovementStates.mLowBits.mBit31)) && _3BC > 600 && !MR::isNearZero(*getGravityVec())) {
             TVec3f vec(*getGravityVec() * MR::vecKillElement(mJumpVec, *getGravityVec(), &stack_2c));
             mJumpVec = vec;
         }
@@ -2550,7 +2550,7 @@ void Mario::doExtraServices() {
     bool notFoo = !isPlayerModeFoo();
     if (notFoo) {
         bool notTeresa = !isPlayerModeTeresa();
-        if (notTeresa && ((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && _3BC > 300) {
+        if (notTeresa && (static_cast<u32>(mMovementStates.mLowBits.mBit31)) && _3BC > 300) {
             TVec3f stack_8(mPosHolder->mPos - *getLastSafetyTrans(nullptr));
 
             if (MR::isNearZero(mAirGravityVec)) {
@@ -2565,7 +2565,7 @@ void Mario::doExtraServices() {
     }
 
     if (getCurrentStatus() != 0 || mActor->_3C0 != 0 || mActor->_EA4) {
-        mFlags14.mLowWord &= 0xFFF7FFFFU;
+        mFlags14.mLowBits.mBit19 = 0;
     }
 }
 
@@ -2588,17 +2588,17 @@ void Mario::setGroundNorm(const TVec3f& rVec) {
 
 
 void Mario::checkForceGrounding() {
-    if ((((mMovementStates.mHighWord >> 8) & 1U) || ((mFlags14.mLowWord >> 10) & 1U)) && ((mMovementStates.mLowWord >> 30) & 1U) && MR::diffAngleAbs(_368, *_45C->getNormal(0)) < MR::toRadian(45.0f)) {
-        mDrawStates.mWord |= 0x80000000U;
+    if (((static_cast<u32>(mMovementStates.mHighBits.mBit8)) || (static_cast<u32>(mFlags14.mLowBits.mBit10))) && (static_cast<u32>(mMovementStates.mLowBits.mBit30)) && MR::diffAngleAbs(_368, *_45C->getNormal(0)) < MR::toRadian(45.0f)) {
+        mDrawStates.mBits.mBit31 = 1;
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U) || ((mMovementStates.mLowWord >> 5) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
         return;
     }
 
     // does not match if this if statement is an early return
-    if (!((mMovementStates.mLowWord >> 10) & 1U) && !((mMovementStates.mHighWord >> 28) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::DebugMode) >> 9) && ((mMovementStates.mLowWord >> 30) & 1U)) {
-        if (!((mDrawStates.mWord >> 31) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit10)) && !(static_cast<u32>(mMovementStates.mHighBits.mBit28)) && !((mMovementStates.mLowWord & Mario::MovementStates::DebugMode) >> 9) && (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
+        if (!(static_cast<u32>(mDrawStates.mBits.mBit31))) {
             TVec3f vec;
 
             f32 dot = getGravityVec()->dot(-_368);
@@ -2621,7 +2621,7 @@ void Mario::checkForceGrounding() {
                 return;
             }
 
-            if (((mMovementStates.mLowWord >> 23) & 1U)) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
                 dot2 = dot;
             }
 
@@ -2642,7 +2642,7 @@ void Mario::checkForceGrounding() {
             dot3 = mVerticalSpeed;
         }
 
-        if (!((mDrawStates.mWord >> 27) & 1U)) {
+        if (!(static_cast<u32>(mDrawStates.mBits.mBit27))) {
             f4 = MR::abs(dot3) > f4 ? 0.0f : MR::sqrt(f4 * f4 - dot3 * dot3);
         }
 
@@ -2758,7 +2758,7 @@ void Mario::createDirectionMtx(MtxPtr pMtx) {
     side = mSideVec;
     front = mFrontVec;
 
-    if (((mDrawStates.mWord >> 14) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit14))) {
         MR::normalize(&up);
         front.cross(side, up);
         MR::normalizeOrZero(&front);
@@ -2860,8 +2860,8 @@ bool Mario::createCorrectionMtx(MtxPtr pMtx, TVec3f* pOut) {
 
 
 void Mario::slopeTiltHead(TVec3f* pVec) {
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
-        if (_8F0 > 0.0f && !((mMovementStates.mHighWord >> 28) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
+        if (_8F0 > 0.0f && !(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
             f32 blendFactor = _8F0 / 5.0f;
             if (blendFactor > 1.0f) {
                 blendFactor = 1.0f;
@@ -2869,7 +2869,7 @@ void Mario::slopeTiltHead(TVec3f* pVec) {
 
             MR::vecBlend(_368, *pVec, pVec, blendFactor);
             MR::normalize(pVec);
-        } else if (((mDrawStates.mWord >> 27) & 1U)) {
+        } else if ((static_cast<u32>(mDrawStates.mBits.mBit27))) {
             MR::vecBlend(_368, *pVec, pVec, 0.2);
             MR::normalize(pVec);
         }
@@ -2887,7 +2887,7 @@ void Mario::fixFrontVecByGravity() {
 
     TVec3f up = -mAirGravityVec;
     MR::normalize(&up);
-    if (((mFlags14.mLowWord >> 12) & 1U)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit12))) {
         TVec3f side(mPosHolder->mPos);
         side -= _6F4;
         MR::vecKillElement(side, _700, &side);
@@ -2906,7 +2906,7 @@ void Mario::fixFrontVecByGravity() {
             mSideVec = -_344;
             MR::normalize(&mSideVec);
         }
-    } else if (((mFlags20.mWord >> 29) & 1U)) {
+    } else if ((static_cast<u32>(mFlags20.mBits.mBit29))) {
         TVec3f side2 = up.cross(mFrontVec);
         MR::normalizeOrZero(&side2);
         if (MR::isNearZero(side2) == false) {
@@ -2960,8 +2960,8 @@ void Mario::setHeadVec(const TVec3f& rHead) {
 void Mario::setFrontVec(const TVec3f& rFront) {
     TVec3f plusMinus6A0;
     TVec3f frontWithout6A0;
-    if (((mMovementStates.mHighWord >> 8) & 1U) && !isStatusActive(MarioStatus_Talk) && !isSwimming() &&
-        !((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit8)) && !isStatusActive(MarioStatus_Talk) && !isSwimming() &&
+        !(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit31))) {
         if (getCamDirZ().dot(mSwimSideVec694) > 0.0f) {
             plusMinus6A0 = mSwimSideVec694;
         } else {
@@ -3130,7 +3130,7 @@ void Mario::forceSetHeadVecKeepSide(const TVec3f& rVec) {
 
 // float regswap + bad stack ordering
 void Mario::draw() const {
-    if (((mDrawStates.mWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit30))) {
         TDDraw::cameraInit3D();
         TDDraw::setup(0, 1, 0);
         TDDraw::drawCylinder(mPosHolder->mPos, mShadowPos - mActor->_240, 32.0f, 0xffff0010, 0xff000004, 8);
@@ -3233,8 +3233,8 @@ bool Mario::isInvincible() const {
 
 void Mario::inputStick() {
     mActor->getStickValue(&mStickPos.x, &mStickPos.y);
-    if ((mFlags14.mHighWord >> 23) & 1) {
-        mFlags14.mHighWord &= 0xFF7FFFFF;
+    if (static_cast<u32>(mFlags14.mHighBits.mBit23)) {
+        mFlags14.mHighBits.mBit23 = 0;
         mStickPos.x = 0.0f;
         mStickPos.y = 0.0f;
     }
@@ -3275,7 +3275,7 @@ void Mario::inputStick() {
 
     f32 resultAngle = adjustedAngle + quarterTurn * static_cast< f32 >(quotient);
 
-    if (!((getPlayer()->mFlags14.mLowWord >> 14) & 1)) {
+    if (!(static_cast<u32>(getPlayer()->mFlags14.mLowBits.mBit14))) {
         mStickPos.x = mStickPos.z * MR::cos(resultAngle);
         mStickPos.y = mStickPos.z * MR::sin(resultAngle);
     }
@@ -3283,18 +3283,18 @@ void Mario::inputStick() {
     _524 = _528;
     _528 = resultAngle;
 
-    if (((mMovementStates.mHighWord >> 8) & 1) && !isSwimming()) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit8)) && !isSwimming()) {
         stick2DadjustGround(mStickPos.x, mStickPos.y);
-    } else if ((mFlags14.mLowWord >> 10) & 1) {
+    } else if (static_cast<u32>(mFlags14.mLowBits.mBit10)) {
         stick2Dadjust(mStickPos.x, mStickPos.y);
-    } else if ((mMovementStates.mHighWord >> 5) & 1) {
+    } else if (static_cast<u32>(mMovementStates.mHighBits.mBit5)) {
         update25Dmode();
         updateAxisFromMode(mAxisMode6A4);
-    } else if ((mFlags14.mLowWord >> 12) & 1) {
+    } else if (static_cast<u32>(mFlags14.mLowBits.mBit12)) {
         fn_803A56C0();
     }
     if (mStickPos.z <= 0.01f) {
-        mMovementStates.mLowWord &= 0xFFFFFFFB;
+        mMovementStates.mLowBits.mBit2 = 0;
     }
 
     calcWorldPadDir(&mWorldPadDir, mStickPos.x, mStickPos.y, false);
@@ -3314,8 +3314,8 @@ bool Mario::isCeiling() const {
 void Mario::setGravityVec(const TVec3f& rGravity) {
     if (MR::isSameDirection(mAirGravityVec, rGravity)) {
         if (MR::isOppositeDirection(mAirGravityVec, rGravity)) {
-            mFlags14.mHighWord |= 0x08000000U;
-            mFlags14.mHighWord |= 0x04000000U;
+            mFlags14.mHighBits.mBit27 = 1;
+            mFlags14.mHighBits.mBit26 = 1;
         }
 
         _1E4.zero();
@@ -3326,11 +3326,11 @@ void Mario::setGravityVec(const TVec3f& rGravity) {
         f32 sideDot = MR::abs(mSideVec.dot(_1E4));
         f32 headDot = MR::abs(mHeadVec.dot(_1E4));
         if (frontDot > sideDot && frontDot > headDot) {
-            mFlags14.mLowWord &= 0xFFDFFFFFU;
-            mFlags14.mHighWord |= 0x02000000U;
+            mFlags14.mLowBits.mBit21 = 0;
+            mFlags14.mHighBits.mBit25 = 1;
         }
 
-        mFlags14.mHighWord |= 0x08000000U;
+        mFlags14.mHighBits.mBit27 = 1;
     }
 
     TVec3f stack_8 = -_368;
@@ -3463,28 +3463,28 @@ void Mario::update() {
     }
     updateCubeCode();
     updateCometCode();
-    { const u32 flagValue = static_cast<u32>(updateBinderInfo()); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xFEFFFFFFU) | ((flagValue & 1U) << 24); }
+    { const u32 flagValue = static_cast<u32>(updateBinderInfo()); mMovementStates.mLowBits.mBit24 = flagValue; }
     checkEnforceMoveInner();
     updateOnimasu();
     if (!isStatusActive(22) && !isStatusActive(5)) {
         checkBaseTransPoint();
         checkHeadPoint();
     }
-    if (((mMovementStates.mLowWord >> 16) & 1) && _544 > 1) createAtField(true, 150.0f);
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit16)) && _544 > 1) createAtField(true, 150.0f);
     else createAtField(false, 40.0f);
     _72C = calcDistToCeil(true);
-    if (isPlayerModeYoshi() && getCurrentStatus() == 39) { const u32 flagValue = static_cast<u32>(_72C < 200.0f); u32& flags = mFlags20.mWord; flags = (flags & 0xFFFEFFFFU) | ((flagValue & 1U) << 16); }
-    else { const u32 flagValue = static_cast<u32>(_72C < 160.0f); u32& flags = mFlags20.mWord; flags = (flags & 0xFFFEFFFFU) | ((flagValue & 1U) << 16); }
-    if ((mFlags20.mWord >> 16) & 1) {
+    if (isPlayerModeYoshi() && getCurrentStatus() == 39) { const u32 flagValue = static_cast<u32>(_72C < 200.0f); mFlags20.mBits.mBit16 = flagValue; }
+    else { const u32 flagValue = static_cast<u32>(_72C < 160.0f); mFlags20.mBits.mBit16 = flagValue; }
+    if (static_cast<u32>(mFlags20.mBits.mBit16)) {
         if (_4C8->isValid()) damagePolygonCheck(_4C8);
     }
-    if (MR::getKarikariClingNum() != 0 && mActor->isEnableNerveChange()) mFlags20.mWord |= 0x04000000;
+    if (MR::getKarikariClingNum() != 0 && mActor->isEnableNerveChange()) mFlags20.mBits.mBit26 = 1;
     OSGetTime();
     checkAllWall(mActor->_240, 0.0f);
     OSGetTime();
     updateGroundInfo();
     OSGetTime();
-    if (((mMovementStates.mLowWord >> 30) & 1) && (!(mMovementStates.mLowWord >> 31) || ((mMovementStates.mLowWord >> 20) & 1))) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && (!(static_cast<u32>(mMovementStates.mLowBits.mBit31)) || (static_cast<u32>(mMovementStates.mLowBits.mBit20)))) {
         if (damageFloorCheck()) {
             writeBackPhyisicalVector();
             return;
@@ -3496,26 +3496,26 @@ void Mario::update() {
             MR::isNearZero(mAirGravityVec, 0.001f);
             TVec3f projected;
             if (MR::vecKillElement(groundToShadow, mAirGravityVec, &projected) >= 5.0f && groundToShadow.dot(mFrontVec) > 0.0f) {
-                mDrawStates.mWord |= 0x200000;
+                mDrawStates.mBits.mBit21 = 1;
                 groundToShadow.setLength(5.0f);
                 addVelocity(groundToShadow);
             }
         }
     }
-    mDrawStates.mWord |= 0x8000;
+    mDrawStates.mBits.mBit15 = 1;
     if (damageWallCheck()) return;
-    mDrawStates.mWord &= 0xFFFF7FFF;
+    mDrawStates.mBits.mBit15 = 0;
     OSGetTime();
     if (checkPressDamage()) return;
     OSGetTime();
     if (checkSliderMode()) startSlider();
     checkAndTryForceJump();
-    if ((mMovementStates.mHighWord >> 17) & 1) return;
+    if (static_cast<u32>(mMovementStates.mHighBits.mBit17)) return;
     if (checkStartSwim()) {
         writeBackPhyisicalVector();
         return;
     }
-    if (!((mMovementStates.mHighWord >> 29) & 1)) check2DMode();
+    if (!(static_cast<u32>(mMovementStates.mHighBits.mBit29))) check2DMode();
     fn_803896E0();
     inputStick();
     checkLockOnHoming();
@@ -3545,24 +3545,24 @@ void Mario::update() {
 void Mario::updateGroundInfo() {
     checkMap();
     if (fn_803890B0()) {
-        bool b1 = !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 30) & 1U);
+        bool b1 = !(static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit30));
 
-        { const u32 flagValue = static_cast<u32>(checkGround()); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xBFFFFFFFU) | ((flagValue & 1U) << 30); }
+        { const u32 flagValue = static_cast<u32>(checkGround()); mMovementStates.mLowBits.mBit30 = flagValue; }
 
-        if (((mDrawStates.mWord >> 7) & 1U)) {
+        if ((static_cast<u32>(mDrawStates.mBits.mBit7))) {
             _3C6++;
         } else {
             _3C6 = 0;
         }
 
-        if (b1 && ((mMovementStates.mLowWord >> 30) & 1U) && isDefaultAnimationRun("落下")) {
+        if (b1 && (static_cast<u32>(mMovementStates.mLowBits.mBit30)) && isDefaultAnimationRun("落下")) {
             changeAnimation(nullptr, "基本");
         }
 
         if (!isStatusActive(MarioStatus_13)) {
-            if (!isStatusActive(MarioStatus_13) && !((mMovementStates.mLowWord >> 30) & 1U) && ((mMovementStates.mHighWord >> 0) & 3U) == 1 && mJumpVec.dot(*getGravityVec()) > 0.0f &&
+            if (!isStatusActive(MarioStatus_13) && !(static_cast<u32>(mMovementStates.mLowBits.mBit30)) && ((mMovementStates.mHighWord >> 0) & 3U) == 1 && mJumpVec.dot(*getGravityVec()) > 0.0f &&
                 mJumpVec.dot(*_45C->getNormal(0)) < 0.0f && _1FC.dot(*getGravityVec()) > 0.0f && mVerticalSpeed < 170.0f) {
-                mMovementStates.mLowWord |= 0x40000000U;
+                mMovementStates.mLowBits.mBit30 = 1;
                 setGroundNorm(*_45C->getNormal(0));
                 setTrans(mShadowPos);
             }
@@ -3571,11 +3571,11 @@ void Mario::updateGroundInfo() {
 
     updateCameraPolygon();
 
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         mJumpFallTimer = 0;
-        mMovementStates.mHighWord &= 0xFFBFFFFFU;
+        mMovementStates.mHighBits.mBit22 = 0;
         if (_43A == 0 && isSlipPolygon(mGroundPolygon)) {
-            mDrawStates.mWord |= 0x00080000U;
+            mDrawStates.mBits.mBit19 = 1;
         }
     }
 
@@ -3589,7 +3589,7 @@ void Mario::updateGroundInfo() {
     updateOnWater();
     updateOnPoison();
 
-    if (mHang != nullptr && ((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (mHang != nullptr && (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         mHang->mHangTimer = 0;
     }
 }
@@ -3601,7 +3601,7 @@ bool Mario::postureCtrl(MtxPtr) {
     TVec3f vec2(mHeadVec);
     f32 blend;
     f32 f1 = mActor->getConst().getTable()->mHeadRotateRatio;
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         bool noSlip = !isSlipFloorCode(_960);
         if (noSlip) {
             if (mTargetWalkSpeedIndex < 3) {
@@ -3636,7 +3636,7 @@ bool Mario::postureCtrl(MtxPtr) {
             }
 
             MR::vecBlendSphere(vec2, -_374, &vec2, blend);
-        } else if (((mFlags20.mWord >> 12) & 1U) && ((mFlags20.mWord >> 11) & 1U)) {
+        } else if ((static_cast<u32>(mFlags20.mBits.mBit12)) && (static_cast<u32>(mFlags20.mBits.mBit11))) {
             vec2 = -_374;
         }
     }
@@ -3649,7 +3649,7 @@ bool Mario::postureCtrl(MtxPtr) {
             vec2 = mHeadVec;
         }
 
-        mDrawStates.mWord |= 0x00004000U;
+        mDrawStates.mBits.mBit14 = 1;
     }
 
     calcTornadoTilt();
@@ -3851,7 +3851,7 @@ const TVec3f* Mario::getGravityVec() const {
         return &_790;
     }
 
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         bool noSlip = !isSlipFloorCode(_960);
         if (noSlip) {
             if (mActor->mBeeWallWalk != 0) {
@@ -3862,18 +3862,18 @@ const TVec3f* Mario::getGravityVec() const {
                 return &mAirGravityVec;
             }
 
-            if (_3CE < 0x10 && _3BC > 3 && !((mMovementStates.mLowWord >> 20) & 1U)) {
+            if (_3CE < 0x10 && _3BC > 3 && !(static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
                 return &mAirGravityVec;
             }
 
-            if (MR::isNearZero(_374) == false && ((mFlags20.mWord >> 12) & 1U) && ((mFlags20.mWord >> 11) & 1U)) {
+            if (MR::isNearZero(_374) == false && (static_cast<u32>(mFlags20.mBits.mBit12)) && (static_cast<u32>(mFlags20.mBits.mBit11))) {
                 return &_374;
             }
         }
     }
 
     if (isSwimming()) {
-        if (mSwim->mWaterDepth >= -150.0f && ((mDrawStates.mWord >> 16) & 1U) && MR::isNearZero(_38C) == false) {
+        if (mSwim->mWaterDepth >= -150.0f && (static_cast<u32>(mDrawStates.mBits.mBit16)) && MR::isNearZero(_38C) == false) {
             return &_38C;
         }
 
@@ -3896,7 +3896,7 @@ const TVec3f* Mario::getGravityVec() const {
         if (noHopper) {
             bool noTeresa = !isPlayerModeTeresa();
             if (noTeresa && !isDamaging() && !isStatusActive(MarioStatus_Swim) && !isStatusActive(MarioStatus_Blown) &&
-                !isStatusActive(MarioStatus_13) && _430 != 5 && mActor->_334 == 0 && ((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mHighWord >> 29) & 1U) && _3BC < 8) {
+                !isStatusActive(MarioStatus_13) && _430 != 5 && mActor->_334 == 0 && (static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !(static_cast<u32>(mMovementStates.mHighBits.mBit29)) && _3BC < 8) {
                 return &_374;
             }
         }
@@ -3939,7 +3939,7 @@ void Mario::stick2DadjustGround(f32& rX, f32& rY) {
         return;
     }
 
-    if (((mFlags14.mLowWord & Mario::MovementStates::Turning) >> 28) && ((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if (((mFlags14.mLowWord & Mario::MovementStates::Turning) >> 28) && (static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         mFlags14.mLowWord &= ~Mario::MovementStates::Turning;
         clear2DStick();
         if (_66C) { _66C = false; }
@@ -4034,7 +4034,7 @@ void Mario::calcDir2D(f32 x, f32 y, TVec3f* pOut) {
 // ---- MarioBee.cpp ----
 
 void Mario::beeMarioOnGround() {
-    if (getPlayerMode() == PlayerMode_Bee && !((mDrawStates.mWord >> 19) & 1U) && ((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mHighWord >> 28) & 1U) && !isStatusActive(MarioStatus_Slider)) {
+    if (getPlayerMode() == PlayerMode_Bee && !(static_cast<u32>(mDrawStates.mBits.mBit19)) && (static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !(static_cast<u32>(mMovementStates.mHighBits.mBit28)) && !isStatusActive(MarioStatus_Slider)) {
         getPlayer()->incAirWalkTimer();
         getPlayer()->incAirWalkTimer();
         getPlayer()->incAirWalkTimer();
@@ -4047,7 +4047,7 @@ bool Mario::beeMarioOnAir() {
     if (_774) {
         _774--;
         if (!_774) {
-            mMovementStates.mHighWord &= 0xFFFEFFFFU;
+            mMovementStates.mHighBits.mBit16 = 0;
         }
     }
 
@@ -4084,15 +4084,15 @@ bool Mario::beeMarioOnAir() {
                 mJumpVec += getAirGravityVec() * verticalSpeed;
             }
 
-            if (!((mMovementStates.mLowWord >> 14) & 1U) && _402) {
+            if (!(static_cast<u32>(mMovementStates.mLowBits.mBit14)) && _402) {
                 if (_76C < 30) {
                     _76C = 30;
                     _770 = 0.0f;
                 }
 
-                mMovementStates.mLowWord |= 0x00002000U;
+                mMovementStates.mLowBits.mBit13 = 1;
                 _4B0 = mPosHolder->mPos;
-                mMovementStates.mLowWord |= 0x00004000U;
+                mMovementStates.mLowBits.mBit14 = 1;
             }
 
             s16 inhibitTime = mActor->getConst().getTable()->mBeeAirWalkInhibitTime;
@@ -4112,7 +4112,7 @@ bool Mario::beeMarioOnAir() {
 
                 u16 previousTime = _402;
                 if (_402) {
-                    if (!((mMovementStates.mLowWord >> 16) & 1U) && _402 > mActor->getConst().getTable()->mAirWalkTime) {
+                    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit16)) && _402 > mActor->getConst().getTable()->mAirWalkTime) {
                         _402 = mActor->getConst().getTable()->mAirWalkTime;
                     }
 
@@ -4124,10 +4124,10 @@ bool Mario::beeMarioOnAir() {
                         playSound("ハチ体力切れ");
                     }
 
-                    mMovementStates.mLowWord &= 0xFFFFBFFFU;
+                    mMovementStates.mLowBits.mBit14 = 0;
                     stopAnimation("ハチ飛行中");
                 } else {
-                    if (!((mMovementStates.mLowWord >> 16) & 1U)) {
+                    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit16))) {
                         if (!isAnimationRun("ハチ壁ジャンプ") && !isAnimationRun("ハチスピン空中")) {
                             changeAnimation("ハチ飛行中", "落下");
                         }
@@ -4175,7 +4175,7 @@ bool Mario::beeMarioOnAir() {
                     }
 
                     if (!_774) {
-                        if (!((getPlayer()->mFlags20.mWord >> 26) & 1U)) {
+                        if (!(static_cast<u32>(getPlayer()->mFlags20.mBits.mBit26))) {
                             if (_770 < -mActor->getConst().getTable()->mBeeUpSpeedMax) {
                                 _770 = -mActor->getConst().getTable()->mBeeUpSpeedMax;
                             }
@@ -4185,7 +4185,7 @@ bool Mario::beeMarioOnAir() {
                     }
 
                     addVelocity(*getGravityVec(), _770);
-                    if (!((getPlayer()->mFlags20.mWord >> 26) & 1U) && verticalSpeed > 0.0f) {
+                    if (!(static_cast<u32>(getPlayer()->mFlags20.mBits.mBit26)) && verticalSpeed > 0.0f) {
                         verticalSpeed *= mActor->getConst().getTable()->mBeePushRiseGravityEraser;
                     }
 
@@ -4245,8 +4245,8 @@ bool Mario::blown(const TVec3f& rVec) {
 
     mBlown->vecKillActor240(rVec);
 
-    mMovementStates.mHighWord |= 0x00080000U;
-    mMovementStates.mLowWord &= 0xFFDFFFFFU;
+    mMovementStates.mHighBits.mBit19 = 1;
+    mMovementStates.mLowBits.mBit21 = 0;
     _430 = 3;
 
     return true;
@@ -4255,12 +4255,12 @@ bool Mario::blown(const TVec3f& rVec) {
 // ---- MarioBump.cpp ----
 
 void Mario::checkBump() {
-    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 21) & 1U) && ((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit21)) && (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         if (!isStatusActive(MarioStatus_Hang) && !isStatusActive(MarioStatus_Wall) && !isStatusActive(MarioStatus_Swim) &&
             !isStatusActive(MarioStatus_Climb)) {
             if (!isDamaging() && getPlayerMode() != 5 && !isSwimming()) {
                 if (isStickOn()) {
-                    if (!_750 && (((mMovementStates.mHighWord >> 28) & 1U) == 0)) {
+                    if (!_750 && ((static_cast<u32>(mMovementStates.mHighBits.mBit28)) == 0)) {
                         if (_4DC->isValid()) {
                             const char* floor = MR::getFloorCodeString(_4DC);
 
@@ -4302,7 +4302,7 @@ void Mario::startBump(const TVec3f& rVec) {
     changeStatus(mBump);
     mVelocity.zero();
     _3D0 = 0;
-    mMovementStates.mLowWord &= 0xFFFF7FFFU;
+    mMovementStates.mLowBits.mBit15 = 0;
     _790 = -(*_4DC->getNormal(0));
     TVec3f v19;
     MR::vecKillElement(-(*_4DC->getNormal(0)), mSideVec, &v19);
@@ -4375,46 +4375,7 @@ void MarioCollision_FORCE_MATCH_SDATA2() {
 }
 
 
-void MarioCollision_FORCE_MATCH_STRINGS(const TVec3f& rPosition) {
-    MR::getAreaObj("Fur", rPosition);
-    MR::getAreaObj("めりこみ", rPosition);
-    MR::getAreaObj("空中一回転", rPosition);
-    MR::getAreaObj("Spine1", rPosition);
-    MR::getAreaObj("マンホールのふた(クッパ船)", rPosition);
-    MR::getAreaObj("GhostThroughCode", rPosition);
-    MR::getAreaObj("崖ふんばり", rPosition);
-    MR::getAreaObj("壁押し", rPosition);
-    MR::getAreaObj("前方WKFALL", rPosition);
-    MR::getAreaObj("+逆-左WKFALL", rPosition);
-    MR::getAreaObj("+左WKFALL", rPosition);
-    MR::getAreaObj("+逆-右WKFALL", rPosition);
-    MR::getAreaObj("+右WKFALL", rPosition);
-    MR::getAreaObj("+後ろ1WKFALL", rPosition);
-    MR::getAreaObj("+後ろ2WKFALL", rPosition);
-    MR::getAreaObj("+SIDEFALL", rPosition);
-    MR::getAreaObj("-L-SIDEFALL", rPosition);
-    MR::getAreaObj("+R-SIDEFALL", rPosition);
-    MR::getAreaObj("+F-SIDEFALL", rPosition);
-    MR::getAreaObj("force Trans", rPosition);
-    MR::getAreaObj("force Trs2", rPosition);
-    MR::getAreaObj("force Trs3", rPosition);
-    MR::getAreaObj("no-g(back)", rPosition);
-    MR::getAreaObj("no-g", rPosition);
-    MR::getAreaObj("CubeCamera", rPosition);
-    MR::getAreaObj("PullBackCube", rPosition);
-    MR::getAreaObj("PullBackCylinder", rPosition);
-    MR::getAreaObj("PlaneCollisionCube", rPosition);
-    MR::getAreaObj("TowerModeCylinder", rPosition);
-    MR::getAreaObj("ForbidTriangleJumpCube", rPosition);
-    MR::getAreaObj("GlaringLightArea", rPosition);
-    MR::getAreaObj("FallsCube", rPosition);
-    MR::getAreaObj("水壁ヒット", rPosition);
-    MR::getAreaObj("HeavySteeringCube", rPosition);
-    MR::getAreaObj("DashChargeCylinder", rPosition);
-    MR::getAreaObj("RasterScrollCube", rPosition);
-    MR::getAreaObj("ForbidJumpCube", rPosition);
-    MR::getAreaObj("DarkMatterCube", rPosition);
-}
+
 
 
 bool Mario::isIgnoreTriangle(const Triangle* pTriangle) {
@@ -4468,7 +4429,7 @@ void Mario::createAtField(bool force, f32 radius) {
         offset = 0.0f;
     }
 
-    if (((mMovementStates.mLowWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         checkRadius = 40.0f;
         count = 1;
         offset = 40.0f;
@@ -4490,7 +4451,7 @@ void Mario::createAtField(bool force, f32 radius) {
     for (u32 i = 0; i < count; i++) {
         TVec3f center = mPosHolder->mPos - getAirGravityVec() * offset * (i + 1);
 
-        if (force && ((mMovementStates.mLowWord >> 16) & 1U) && _544 > 1) {
+        if (force && (static_cast<u32>(mMovementStates.mLowBits.mBit16)) && _544 > 1) {
             hits = fn_803B29B0(center, checkRadius);
         } else {
             hits = fn_803B2A20(center, checkRadius, checkRadius);
@@ -4500,7 +4461,7 @@ void Mario::createAtField(bool force, f32 radius) {
             const HitInfo* hit = fn_803B2AA0(j);
             const Triangle* triangle = &hit->mParentTriangle;
 
-            if (force && ((mMovementStates.mLowWord >> 16) & 1U) && _544 > 1) {
+            if (force && (static_cast<u32>(mMovementStates.mLowBits.mBit16)) && _544 > 1) {
                 if (calcAngleD(*triangle->getNormal(0)) < minAngle) {
                     continue;
                 }
@@ -4539,7 +4500,7 @@ void Mario::createAtField(bool force, f32 radius) {
                     angle = 45.0f;
                 }
 
-                if (((mMovementStates.mHighWord >> 8) & 1U)) {
+                if ((static_cast<u32>(mMovementStates.mHighBits.mBit8))) {
                     if (!MR::isSameMtx(*triangle->getBaseMtx(), *triangle->getPrevBaseMtx()) && mGroundPolygon->mSensor != triangle->mSensor) {
                         angle = -1.0f;
                         push(*normal * hit->mDistance);
@@ -4628,12 +4589,12 @@ void Mario::checkMap() {
 
     TVec3f gravity(*getGravityVec());
 
-    if (((mMovementStates.mLowWord >> 30) & 1U) && isSlipPolygon(mGroundPolygon)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && isSlipPolygon(mGroundPolygon)) {
         gravity = _374;
     }
 
     if (isUseSimpleGroundCheck()) {
-        if (!((mMovementStates.mLowWord >> 11) & 1U)) {
+        if (!(static_cast<u32>(mMovementStates.mLowBits.mBit11))) {
             mVerticalSpeed = (mGroundPos - mPosHolder->mPos).dot(gravity);
         } else {
             mVerticalSpeed = (mShadowPos - mPosHolder->mPos).dot(gravity);
@@ -4647,11 +4608,11 @@ void Mario::checkMap() {
         mVerticalSpeed = 0.0f;
     }
 
-    if (((mMovementStates.mHighWord >> 28) & 1U) && calcAngleD(_368) >= 30.0f) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit28)) && calcAngleD(_368) >= 30.0f) {
         TVec3f start = mPosHolder->mPos + _368 * 100.0f;
-        { const u32 flagValue = static_cast<u32>(fn_803B2770(&_498, _460, start, -_904 * 150.0f)); u32& flags = mMovementStates.mHighWord; flags = (flags & 0xF7FFFFFFU) | ((flagValue & 1U) << 27); }
+        { const u32 flagValue = static_cast<u32>(fn_803B2770(&_498, _460, start, -_904 * 150.0f)); mMovementStates.mHighBits.mBit27 = flagValue; }
     } else {
-        mMovementStates.mHighWord &= 0xF7FFFFFFU;
+        mMovementStates.mHighBits.mBit27 = 0;
     }
 }
 
@@ -4759,21 +4720,21 @@ f32 Mario::calcDistWidth() {
     Triangle triangle;
     TVec3f hitPos;
 
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         if (fn_803B2770(&hitPos, &triangle, _4E8, *mFrontWallTriangle->getNormal(0) * 100.0f)) {
             fixTransBetweenWall(hitPos, _4E8);
             return (hitPos - _4E8).length();
         }
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         if (fn_803B2770(&hitPos, &triangle, _4F4, *mBackWallTriangle->getNormal(0) * 100.0f)) {
             fixTransBetweenWall(hitPos, _4F4);
             return (hitPos - _4F4).length();
         }
     }
 
-    if (((mMovementStates.mLowWord >> 5) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
         if (fn_803B2770(&hitPos, &triangle, _500, *mSideWallTriangle->getNormal(0) * 100.0f)) {
             fixTransBetweenWall(hitPos, _500);
             return (hitPos - _500).length();
@@ -4830,7 +4791,7 @@ void Mario::updateCameraPolygon() {
     HitSensor* sensor;
     const Triangle* triangle;
 
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         triangle = mGroundPolygon;
     } else {
         triangle = _45C;
@@ -4877,7 +4838,7 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
     TVec3f front(mFrontVec);
     _4D8->mIdx = -1;
     _4DC->mIdx = -1;
-    if (((mMovementStates.mLowWord >> 16) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit16))) {
         TVec3f direction;
         mActor->getLastMove(&direction);
         MR::vecKillElement(direction, *getGravityVec(), &direction);
@@ -4945,11 +4906,11 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
             walls[side] = &pointHit;
         }
     }
-    mMovementStates.mLowWord &= 0xFF7FFFFFU;
-    mMovementStates.mLowWord &= 0xFFFFFFBFU;
-    mMovementStates.mLowWord &= 0xFFFFFFDFU;
-    mMovementStates.mHighWord &= 0xFFFFDFFFU;
-    mMovementStates.mHighWord &= 0xFFFFEFFFU;
+    mMovementStates.mLowBits.mBit23 = 0;
+    mMovementStates.mLowBits.mBit6 = 0;
+    mMovementStates.mLowBits.mBit5 = 0;
+    mMovementStates.mHighBits.mBit13 = 0;
+    mMovementStates.mHighBits.mBit12 = 0;
     if (walls[0]) fn_803B38B0(walls[0], &center);
     if (!forwardCheck) {
         if (walls[1]) fn_803B3AE0(walls[1], &center);
@@ -4959,9 +4920,9 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
     _38C = -_380;
     if (_400) {
         _400--;
-        mMovementStates.mLowWord |= 0x00800000U;
+        mMovementStates.mLowBits.mBit23 = 1;
     }
-    if (isPlayerModeYoshi() && ((mMovementStates.mLowWord >> 23) & 1U) && mFrontWallTriangle->isValid() && getCurrentStatus() == 0) {
+    if (isPlayerModeYoshi() && (static_cast<u32>(mMovementStates.mLowBits.mBit23)) && mFrontWallTriangle->isValid() && getCurrentStatus() == 0) {
         TVec3f delta(_4E8);
         delta.sub(center);
         f32 distance = PSVECMag(&delta);
@@ -4987,8 +4948,8 @@ void Mario::calcFrontFloor() {
     TVec3f floorPos;
     TVec3f direction;
     Triangle* pFloor = _47C;
-    mMovementStates.mLowWord &= 0xFFFFFBFFU;
-    mMovementStates.mHighWord &= 0xFFFFFFBFU;
+    mMovementStates.mLowBits.mBit10 = 0;
+    mMovementStates.mHighBits.mBit6 = 0;
     pFloor->mIdx = -1;
     _4E0 = 0.0f;
     bool hit;
@@ -5029,7 +4990,7 @@ void Mario::calcFrontFloor() {
                 _4E0 = (wallPos - floorPos).dot(getAirGravityVec());
 
                 if (_4E0 > 0.0f) {
-                    mMovementStates.mLowWord |= 0x00000400U;
+                    mMovementStates.mLowBits.mBit10 = 1;
                 }
 
                 f32 offset = 0.0f;
@@ -5045,7 +5006,7 @@ void Mario::calcFrontFloor() {
                     floorPos = originalPos;
                 } else {
                     _4A4 = floorPos;
-                    mMovementStates.mHighWord |= 0x00000040U;
+                    mMovementStates.mHighBits.mBit6 = 1;
                     *_47C = floor;
                 }
 
@@ -5059,7 +5020,7 @@ void Mario::calcFrontFloor() {
     }
 
     if (((mMovementStates.mLowWord >> 30) & 1U) && calcAngleD(_368) >= 25.0f) {
-        mMovementStates.mHighWord &= 0xFFFFFFBFU;
+        mMovementStates.mHighBits.mBit6 = 0;
     }
 }
 #pragma pop
@@ -5293,7 +5254,7 @@ void Mario::saveLastSafetyTrans() {
         return;
     }
 
-    if (!((mFlags20.mWord >> 14) & 1U)) {
+    if (!(static_cast<u32>(mFlags20.mBits.mBit14))) {
         return;
     }
 
@@ -5328,27 +5289,27 @@ void Mario::saveLastSafetyTrans() {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         return;
     }
 
-    if (((mMovementStates.mHighWord >> 13) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit13))) {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 5) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
         return;
     }
 
-    if (((mDrawStates.mWord >> 19) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit19))) {
         return;
     }
 
-    if (((mFlags20.mWord >> 16) & 1U)) {
+    if ((static_cast<u32>(mFlags20.mBits.mBit16))) {
         return;
     }
 
@@ -5380,7 +5341,7 @@ void Mario::saveLastSafetyTrans() {
         _7D4 = mPosHolder->mPos + direction;
     }
 
-    mFlags20.mWord |= 0x00020000U;
+    mFlags20.mBits.mBit17 = 1;
 }
 
 
@@ -5526,13 +5487,13 @@ void Mario::checkHeadPoint() {
     if (isPlayerModeBee()) {
         for (u32 i = 0; i < count; i++) {
             const char* code = MR::getWallCodeString(&entries[i].mTriangle);
-            if (code && strcmp(code, "Fur") == 0) mDrawStates.mWord |= 0x00000400U;
+            if (code && strcmp(code, "Fur") == 0) mDrawStates.mBits.mBit10 = 1;
         }
     }
     if (isStatusActive(2)) {
         for (u32 i = 0; i < count; i++) mDamage->stopHead(*entries[i].mTriangle.getNormal(0));
     }
-    if ((((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && isRising()) || (isSwimming() && mSwim->fn_803FE9F0()) || isStatusActive(0x27)) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising()) || (isSwimming() && mSwim->fn_803FE9F0()) || isStatusActive(0x27)) {
         for (u32 i = 0; i < count; i++) {
             if (entries[i].mTriangle.getNormal(0)->dot(*getGravityVec()) > 0.707f)
                 mActor->sendMsgUpperPunch(entries[i].mTriangle.mSensor);
@@ -5566,9 +5527,9 @@ void Mario::calcShadowPos() {
     }
 
     for (u32 i = 0; i < count; i++) {
-        { const u32 flagValue = static_cast<u32>(fn_803B27F0(&mShadowPos, _45C, point, direction, nullptr, _458)); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xDFFFFFFFU) | ((flagValue & 1U) << 29); }
+        { const u32 flagValue = static_cast<u32>(fn_803B27F0(&mShadowPos, _45C, point, direction, nullptr, _458)); mMovementStates.mLowBits.mBit29 = flagValue; }
 
-        if (((mMovementStates.mLowWord >> 29) & 1U)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit29))) {
             break;
         }
 
@@ -5578,21 +5539,21 @@ void Mario::calcShadowPos() {
     f32 distance = 10.0f + (mShadowPos - mPosHolder->mPos).length();
     bool changed = false;
 
-    if (((mMovementStates.mLowWord >> 29) & 1U) && MR::abs(previousDistance - distance) > 100.0f) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit29)) && MR::abs(previousDistance - distance) > 100.0f) {
         changed = true;
     }
 
-    if (!((mMovementStates.mLowWord >> 29) & 1U) || changed) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit29)) || changed) {
         direction.setLength(100.0f + (50.0f + previousDistance));
         point = start + (mSideVec + mFrontVec) * 0.1f;
-        { const u32 flagValue = static_cast<u32>(fn_803B27F0(&mShadowPos, _45C, point, direction, nullptr, _458)); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xDFFFFFFFU) | ((flagValue & 1U) << 29); }
+        { const u32 flagValue = static_cast<u32>(fn_803B27F0(&mShadowPos, _45C, point, direction, nullptr, _458)); mMovementStates.mLowBits.mBit29 = flagValue; }
 
         if (changed) {
-            mMovementStates.mLowWord |= 0x20000000U;
+            mMovementStates.mLowBits.mBit29 = 1;
         }
     }
 
-    if (!((mMovementStates.mLowWord >> 29) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit29))) {
         mShadowPos = mPosHolder->mPos + *getGravityVec() * 2500.0f;
     }
 }
@@ -5638,9 +5599,9 @@ bool Mario::updateBinderInfo() {
         }
 
         if (dot < _3C) {
-            mDrawStates.mWord |= 0x02000000U;
+            mDrawStates.mBits.mBit25 = 1;
 
-            if (firstGround && ((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && mVerticalSpeed > 30.0f) {
+            if (firstGround && (static_cast<u32>(mMovementStates.mLowBits.mBit31)) && mVerticalSpeed > 30.0f) {
                 bool oblique = false;
                 TVec3f fromHit = mActor->_240 - hit->mHitPos;
 
@@ -5683,7 +5644,7 @@ bool Mario::updateBinderInfo() {
                         MR::normalizeOrZero(&pushDirection);
                     }
 
-                    if (((mMovementStates.mLowWord >> 11) & 1U)) {
+                    if ((static_cast<u32>(mMovementStates.mLowBits.mBit11))) {
                         if (MR::diffAngleAbsHorizontal(mActor->mBinderDirection5DC, pushDirection, getAirGravityVec()) >= 2.3561945f) {
                             if (_45C->isValid()) {
                                 if (triangle->getNormal(0)->dot(*_45C->getNormal(0)) <= 0.17f) {
@@ -5691,28 +5652,28 @@ bool Mario::updateBinderInfo() {
                                     mJumpVec += *triangle->getNormal(0) * component * 0.5f;
                                     mJumpVec += *_45C->getNormal(0);
                                 } else {
-                                    if (((mMovementStates.mLowWord >> 5) & 1U) && (MR::diffAngleAbs(pushDirection, getAirGravityVec()) >= 1.4959966f ||
+                                    if ((static_cast<u32>(mMovementStates.mLowBits.mBit5)) && (MR::diffAngleAbs(pushDirection, getAirGravityVec()) >= 1.4959966f ||
                                                                 MR::diffAngleAbsHorizontal(mJumpVec, pushDirection, getAirGravityVec()) < 0.0f)) {
                                         pushDirection = -pushDirection;
                                     }
 
-                                    mMovementStates.mLowWord &= 0xFFFFF7FFU;
+                                    mMovementStates.mLowBits.mBit11 = 0;
                                 }
 
                             } else {
-                                if (((mMovementStates.mLowWord >> 5) & 1U) && (MR::diffAngleAbs(pushDirection, getAirGravityVec()) >= 1.4959966f ||
+                                if ((static_cast<u32>(mMovementStates.mLowBits.mBit5)) && (MR::diffAngleAbs(pushDirection, getAirGravityVec()) >= 1.4959966f ||
                                                             MR::diffAngleAbsHorizontal(mJumpVec, pushDirection, getAirGravityVec()) < 0.0f)) {
                                     pushDirection = -pushDirection;
                                 }
 
-                                mMovementStates.mLowWord &= 0xFFFFF7FFU;
+                                mMovementStates.mLowBits.mBit11 = 0;
                             }
                         }
 
-                        if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !isRising()) {
+                        if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !isRising()) {
                             TVec3f horizontal;
                             if (MR::isNearZero(MR::vecKillElement(mActor->mBinderMotion5D0, getAirGravityVec(), &horizontal)) &&
-                                (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U) || ((mMovementStates.mLowWord >> 5) & 1U))) {
+                                ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5)))) {
                                 cutGravityElementFromJumpVec(true);
                                 mJumpVec += -getAirGravityVec() * 5.0f + getWallNorm() * 2.0f;
 
@@ -5728,11 +5689,11 @@ bool Mario::updateBinderInfo() {
                     push(pushDirection * hit->mDistance * scale);
                     firstGround = false;
 
-                    mFlags20.mWord |= 0x00040000U;
+                    mFlags20.mBits.mBit18 = 1;
                 }
             }
 
-            if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMovementStates.mLowWord >> 20) & 1U)) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && (static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
                 TVec3f lastMove;
                 mActor->getLastMove(&lastMove);
 
@@ -5775,7 +5736,7 @@ bool Mario::updateBinderInfo() {
         } else if (!(dot < ceilingThreshold)) {
             TVec3f horizontal;
 
-            if (firstCeiling && (MR::vecKillElement(mJumpVec, normal, &horizontal) < 0.0f || ((mPrevDrawStates.mWord >> 1) & 1U)) && calcAngleD(normal) > 100.0f) {
+            if (firstCeiling && (MR::vecKillElement(mJumpVec, normal, &horizontal) < 0.0f || (static_cast<u32>(mPrevDrawStates.mBits.mBit1))) && calcAngleD(normal) > 100.0f) {
                 if (strcmp(triangle->mSensor->mHost->mName, "マンホールのふた（クッパ船）")) {
                     mJumpVec = horizontal;
                 }
@@ -5817,13 +5778,13 @@ bool Mario::checkGround() {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 11) & 1U)) {
-        if (((mMovementStates.mHighWord >> 9) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit11))) {
+        if ((static_cast<u32>(mMovementStates.mHighBits.mBit9))) {
             bool ground = checkGroundOnSlope();
 
             if (ground) {
-                mFlags20.mWord |= 0x00001000U;
-                mFlags20.mWord |= 0x00000800U;
+                mFlags20.mBits.mBit12 = 1;
+                mFlags20.mBits.mBit11 = 1;
                 return true;
             }
 
@@ -5832,31 +5793,31 @@ bool Mario::checkGround() {
 
     } else {
         if (isUseSimpleGroundCheck()) {
-            if (!((mMovementStates.mHighWord >> 9) & 1U)) {
+            if (!(static_cast<u32>(mMovementStates.mHighBits.mBit9))) {
                 if (MR::isNearZero(getGravityVec()->y - 1.0f)) {
                     mActor->setBlendMtxTimer(4);
                 }
 
-                mMovementStates.mHighWord |= 0x00000200U;
+                mMovementStates.mHighBits.mBit9 = 1;
             }
 
             bool ground = checkGroundOnSlope();
 
             if (ground) {
-                mFlags20.mWord |= 0x00001000U;
-                mFlags20.mWord |= 0x00000800U;
+                mFlags20.mBits.mBit12 = 1;
+                mFlags20.mBits.mBit11 = 1;
                 return true;
             }
 
             return false;
         }
 
-        if (((mMovementStates.mHighWord >> 9) & 1U)) {
+        if ((static_cast<u32>(mMovementStates.mHighBits.mBit9))) {
             if (MR::isNearZero(getGravityVec()->y - 1.0f)) {
                 mActor->setBlendMtxTimer(4);
             }
 
-            mMovementStates.mHighWord &= 0xFFFFFDFFU;
+            mMovementStates.mHighBits.mBit9 = 0;
         }
     }
 
@@ -5889,7 +5850,7 @@ bool Mario::checkGround() {
     Triangle triangles[4];
     TVec3f positions[4];
     bool noGround = false;
-    mMovementStates.mLowWord &= 0xFFFFF7FFU;
+    mMovementStates.mLowBits.mBit11 = 0;
     f32 maxDistance;
 
     maxDistance = 30.0f;
@@ -5905,7 +5866,7 @@ bool Mario::checkGround() {
     TVec3f selectedPos;
     u32 count = 3;
 
-    if (!mTargetWalkSpeedIndex && ((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mHighWord >> 28) & 1U)) {
+    if (!mTargetWalkSpeedIndex && (static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
         count = 4;
     }
 
@@ -5957,7 +5918,7 @@ bool Mario::checkGround() {
                 sum += positions[i];
                 groundCount++;
 
-                if (((mMovementStates.mHighWord >> 28) & 1U) && !select) {
+                if ((static_cast<u32>(mMovementStates.mHighBits.mBit28)) && !select) {
                     TVec3f direction(_16C);
                     MR::normalizeOrZero(&direction);
 
@@ -5978,7 +5939,7 @@ bool Mario::checkGround() {
                 const char* wallCode = MR::getWallCodeString(&triangles[i]);
 
                 if (wallCode != nullptr && !strcmp(wallCode, "Fur")) {
-                    mDrawStates.mWord |= 0x00000040U;
+                    mDrawStates.mBits.mBit6 = 1;
                 }
             }
         }
@@ -5995,11 +5956,11 @@ bool Mario::checkGround() {
     }
 
     if (i == count) {
-        mFlags20.mWord |= 0x00004000U;
+        mFlags20.mBits.mBit14 = 1;
     }
 
     if (!isNoWalkFallOnDossun() && !isStatusActive(MarioStatus_Faint) && !isStatusActive(MarioStatus_Damage) && !isStatusActive(MarioStatus_Talk) &&
-        !isStatusActive(MarioStatus_Hang) && (!((mMovementStates.mLowWord >> 7) & 1U) || ((mFlags14.mLowWord >> 15) & 1U))) {
+        !isStatusActive(MarioStatus_Hang) && (!(static_cast<u32>(mMovementStates.mLowBits.mBit7)) || (static_cast<u32>(mFlags14.mLowBits.mBit15)))) {
         while ((count == 4 && !hit[3]) || _960 == CollisionFloorCode_Slide) {
             const u8 backHit = hit[2];
             const u8 frontHit = hit[0];
@@ -6011,7 +5972,7 @@ bool Mario::checkGround() {
             if (!frontHit) {
                 bool moved = false;
 
-                if (!((mMovementStates.mLowWord >> 23) & 1U)) {
+                if (!(static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
                     addTrans(mFrontVec * 6.0f);
                     moved = true;
                 }
@@ -6022,7 +5983,7 @@ bool Mario::checkGround() {
                     }
 
                 } else if (!sideHit) {
-                    if ((((mMovementStates.mLowWord >> 5) & 1U) || ((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U)) && mSideVec.dot(getWallNorm()) < 0.0f) {
+                    if (((static_cast<u32>(mMovementStates.mLowBits.mBit5)) || (static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6))) && mSideVec.dot(getWallNorm()) < 0.0f) {
                         if (moved) {
                             addTrans(-mSideVec * 3.0f - mFrontVec * 6.0f);
                         }
@@ -6034,7 +5995,7 @@ bool Mario::checkGround() {
                     }
 
                 } else {
-                    if ((((mMovementStates.mLowWord >> 5) & 1U) || ((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U)) && -mSideVec.dot(getWallNorm()) < 0.0f) {
+                    if (((static_cast<u32>(mMovementStates.mLowBits.mBit5)) || (static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6))) && -mSideVec.dot(getWallNorm()) < 0.0f) {
                         if (moved) {
                             addTrans(mSideVec * 3.0f - mFrontVec * 6.0f);
                         }
@@ -6047,7 +6008,7 @@ bool Mario::checkGround() {
                 }
 
                 if (moved) {
-                    mDrawStates.mWord |= 0x00200000U;
+                    mDrawStates.mBits.mBit21 = 1;
                 }
 
                 return true;
@@ -6055,16 +6016,16 @@ bool Mario::checkGround() {
                 stopWalk();
 
                 if (_3CE < 24 && mJumpVec.dot(mFrontVec) >= 0.0f && _960 != CollisionFloorCode_Slide) {
-                    if (!((mMovementStates.mLowWord >> 23) & 1U) && !((mMovementStates.mHighWord >> 13) & 1U)) {
+                    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit23)) && !(static_cast<u32>(mMovementStates.mHighBits.mBit13))) {
                         addTrans(mFrontVec * 3.0f);
-                        mDrawStates.mWord |= 0x00200000U;
+                        mDrawStates.mBits.mBit21 = 1;
                     }
 
                 } else {
-                    if (!((mMovementStates.mLowWord >> 6) & 1U)) {
-                        mDrawStates.mWord |= 0x00000080U;
+                    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
+                        mDrawStates.mBits.mBit7 = 1;
                         addTrans(mFrontVec * -6.0f);
-                        mDrawStates.mWord |= 0x00200000U;
+                        mDrawStates.mBits.mBit21 = 1;
                     }
 
                     if (_3C6 > 8) {
@@ -6083,7 +6044,7 @@ bool Mario::checkGround() {
                     addTrans(mFrontVec * 5.0f);
                 }
 
-                mDrawStates.mWord |= 0x00200000U;
+                mDrawStates.mBits.mBit21 = 1;
             }
 
             break;
@@ -6117,17 +6078,17 @@ bool Mario::checkGround() {
     }
 
     if (sameSensor > 0) {
-        mFlags20.mWord |= 0x00001000U;
+        mFlags20.mBits.mBit12 = 1;
     }
 
     if (sameSlope >= 3) {
-        mFlags20.mWord |= 0x00000800U;
+        mFlags20.mBits.mBit11 = 1;
     }
 
     _8EC = sameSensor;
 
-    if (((mMovementStates.mLowWord >> 18) & 1U)) {
-        mMovementStates.mLowWord &= 0xFFFBFFFFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit18))) {
+        mMovementStates.mLowBits.mBit18 = 0;
         TVec3f direction = mGroundPos - mPosHolder->mPos;
         f32 distance = MR::vecKillElement(direction, *getGravityVec(), &direction);
         addTrans(*getGravityVec() * distance);
@@ -6146,11 +6107,11 @@ bool Mario::checkGround() {
             distance = MR::vecKillElement(mGroundPos - mPosHolder->mPos, *getGravityVec(), &horizontal);
         }
 
-        if (MR::abs(distance) < 30.0f && MR::abs(distance) > 1.0f && ((mMovementStates.mLowWord >> 30) & 1U)) {
+        if (MR::abs(distance) < 30.0f && MR::abs(distance) > 1.0f && (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
             f32 dot = getGravityVec()->dot(-_368);
 
             if (dot > 0.99f) {
-                if (!((mDrawStates.mWord >> 22) & 1U) && !_4D8->isValid()) {
+                if (!(static_cast<u32>(mDrawStates.mBits.mBit22)) && !_4D8->isValid()) {
                     if (!isStatusActive(MarioStatus_Talk)) {
                         addTrans(*getGravityVec() * distance);
                     }
@@ -6158,7 +6119,7 @@ bool Mario::checkGround() {
                     return true;
                 }
 
-            } else if (dot > 0.0f && !((mDrawStates.mWord >> 22) & 1U) && ((mMovementStates.mHighWord >> 28) & 1U)) {
+            } else if (dot > 0.0f && !(static_cast<u32>(mDrawStates.mBits.mBit22)) && (static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
                 addTrans(-_368 * distance * dot);
                 return true;
             }
@@ -6177,11 +6138,11 @@ bool Mario::checkGround() {
         bool moveFront = true;
         bool moveBack = true;
 
-        if (((mMovementStates.mLowWord >> 23) & 1U)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
             moveFront = false;
         }
 
-        if (((mMovementStates.mLowWord >> 6) & 1U)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
             moveBack = false;
         }
 
@@ -6196,26 +6157,26 @@ bool Mario::checkGround() {
     }
 
     if (noGround) {
-        mMovementStates.mLowWord |= 0x00000800U;
+        mMovementStates.mLowBits.mBit11 = 1;
         return false;
     }
 
     if (!mActor->_EA4 && getCurrentStatus() != MarioStatus_Hang) {
-        if ((((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && groundCount) || (((mMovementStates.mLowWord >> 30) & 1U) && mVerticalSpeed >= 5.0f)) {
+        if ((((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && groundCount) || ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && mVerticalSpeed >= 5.0f)) {
             TVec3f direction;
             f32 distance = MR::vecKillElement(mGroundPos - mShadowPos, _368, &direction);
             f32 maxMove = 5.0f;
             direction = mShadowPos - mPosHolder->mPos;
 
-            if (((mMovementStates.mLowWord >> 23) & 1U) && direction.dot(getFrontWallNorm()) < -0.01f) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && direction.dot(getFrontWallNorm()) < -0.01f) {
                 maxMove = 0.0f;
             }
 
-            if (((mMovementStates.mLowWord >> 5) & 1U) && direction.dot(getSideWallNorm()) < -0.01f) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit5)) && direction.dot(getSideWallNorm()) < -0.01f) {
                 maxMove = 0.0f;
             }
 
-            if (((mMovementStates.mLowWord >> 23) & 1U) && direction.dot(getBackWallNorm()) < -0.01f) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && direction.dot(getBackWallNorm()) < -0.01f) {
                 maxMove = 0.0f;
             }
 
@@ -6236,9 +6197,9 @@ bool Mario::checkGround() {
             TVec3f direction = mShadowPos - mPosHolder->mPos;
             f32 distance = MR::vecKillElement(direction, *getGravityVec(), &direction);
 
-            if (!MR::isNearZero(distance, 1.0f) || !((mMovementStates.mLowWord >> 30) & 1U)) {
+            if (!MR::isNearZero(distance, 1.0f) || !(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
                 mVelocity += *getGravityVec() * distance;
-                mDrawStates.mWord |= 0x80000000U;
+                mDrawStates.mBits.mBit31 = 1;
             }
 
             return true;
@@ -6251,7 +6212,7 @@ bool Mario::checkGround() {
 
         if (!MR::isNearZero(distance, 1.0f)) {
             mVelocity += *getGravityVec() * distance;
-            mDrawStates.mWord |= 0x80000000U;
+            mDrawStates.mBits.mBit31 = 1;
         }
 
         return true;
@@ -6261,7 +6222,7 @@ bool Mario::checkGround() {
         return true;
     }
 
-    if (((mDrawStates.mWord >> 25) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit25))) {
         return true;
     }
 
@@ -6269,7 +6230,7 @@ bool Mario::checkGround() {
         return true;
     }
 
-    return ((mDrawStates.mWord >> 31) & 1U);
+    return (static_cast<u32>(mDrawStates.mBits.mBit31));
 }
 
 
@@ -6288,7 +6249,7 @@ void Mario::updateCubeCode() {
     s32 first;
     CubeCameraArea* camera;
 
-    if ((isSwimming() && mSwim->isOnWaterSurface()) || (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && isRising())) {
+    if ((isSwimming() && mSwim->isOnWaterSurface()) || ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising())) {
         camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos - *getGravityVec() * 100.0f));
     } else {
         camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos));
@@ -6300,10 +6261,10 @@ void Mario::updateCubeCode() {
         _564 = MR::getAreaObjArg(camera, 0);
         switch (MR::getAreaObjArg(camera, 1)) {
         case 1:
-            mDrawStates.mWord |= 0x20000000U;
+            mDrawStates.mBits.mBit29 = 1;
             break;
         case 2:
-            mDrawStates.mWord |= 0x10000000U;
+            mDrawStates.mBits.mBit28 = 1;
             break;
         }
 
@@ -6328,16 +6289,16 @@ void Mario::updateCubeCode() {
         doRecovery();
     }
 
-    mFlags14.mLowWord &= 0xFDFFFFFFU;
+    mFlags14.mLowBits.mBit25 = 0;
 
     if (MR::getAreaObj("PlaneCollisionCube", mPosHolder->mPos) != nullptr) {
-        mFlags14.mLowWord |= 0x02000000U;
+        mFlags14.mLowBits.mBit25 = 1;
     }
 
-    { const u32 flagValue = static_cast<u32>(MR::isInTowerModeCylinder(mPosHolder->mPos, &_6F4, &_700, &_718)); u32& flags = mFlags14.mLowWord; flags = (flags & 0xFFFFEFFFU) | ((flagValue & 1U) << 12); }
+    { const u32 flagValue = static_cast<u32>(MR::isInTowerModeCylinder(mPosHolder->mPos, &_6F4, &_700, &_718)); mFlags14.mLowBits.mBit12 = flagValue; }
 
     if (MR::getAreaObj("ForbidTriangleJump", mPosHolder->mPos) != nullptr) {
-        mDrawStates.mWord |= 0x10000000U;
+        mDrawStates.mBits.mBit28 = 1;
     }
 
     if (getPlayerMode() == PlayerMode_Teresa) {
@@ -6356,11 +6317,11 @@ void Mario::updateCubeCode() {
     }
 
     if (MR::getAreaObj("HeavySteeringCube", mPosHolder->mPos) != nullptr) {
-        mFlags14.mLowWord |= 0x00004000U;
-        mFlags14.mLowWord |= 0x00002000U;
+        mFlags14.mLowBits.mBit14 = 1;
+        mFlags14.mLowBits.mBit13 = 1;
     } else {
-        mFlags14.mLowWord &= 0xFFFFBFFFU;
-        mFlags14.mLowWord &= 0xFFFFDFFFU;
+        mFlags14.mLowBits.mBit14 = 0;
+        mFlags14.mLowBits.mBit13 = 0;
     }
 
     if (MR::getAreaObj("DashChargeArea", mPosHolder->mPos) != nullptr) {
@@ -6376,7 +6337,7 @@ void Mario::updateCubeCode() {
     }
 
     if (MR::getAreaObj("ForbidJumpCube", mPosHolder->mPos) != nullptr) {
-        mFlags20.mWord |= 0x01000000U;
+        mFlags20.mBits.mBit24 = 1;
     }
 
     if (!isStatusActive(MarioStatus_DarkDamage)) {
@@ -6421,27 +6382,27 @@ bool Mario::isDamaging() const {
         return true;
     }
 
-    if (((mMovementStates.mLowWord >> 4) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit4))) {
         return true;
     }
 
-    if (((mMovementStates.mHighWord >> 24) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit24))) {
         return true;
     }
 
-    if (((mMovementStates.mHighWord >> 19) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit19))) {
         return true;
     }
 
-    if (((mFlags14.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit31))) {
         return true;
     }
 
-    if (((mFlags14.mLowWord >> 11) & 1U)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit11))) {
         return true;
     }
 
-    if (((mFlags14.mLowWord >> 7) & 1U)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit7))) {
         return true;
     }
 
@@ -6510,7 +6471,7 @@ void Mario::decDamageAfterTimer() {
 
 bool Mario::checkDamage() {
     decDamageAfterTimer();
-    if (((mMovementStates.mLowWord >> 0) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit0))) {
         return false;
     }
 
@@ -6527,36 +6488,36 @@ bool Mario::checkDamage() {
     }
 
     if (isStatusActive(MarioStatus_Recovery) || isInvincible()) {
-        mMovementStates.mLowWord &= 0xFFFFFFEFU;
-        mMovementStates.mHighWord &= 0xFEFFFFFFU;
-        mMovementStates.mHighWord &= 0xFFF7FFFFU;
-        mFlags14.mLowWord &= ~Mario::MovementStates::Jumping;
-        mFlags14.mLowWord &= 0xFFFFF7FFU;
-        mFlags14.mLowWord &= 0xFFFFFF7FU;
+        mMovementStates.mLowBits.mBit4 = 0;
+        mMovementStates.mHighBits.mBit24 = 0;
+        mMovementStates.mHighBits.mBit19 = 0;
+        mFlags14.mLowBits.mBit31 = 0;
+        mFlags14.mLowBits.mBit11 = 0;
+        mFlags14.mLowBits.mBit7 = 0;
         mFaint->mNoDamage = false;
         return false;
     }
 
     if (isStatusActive(MarioStatus_Swim)) {
         checkWaterDamage();
-        mMovementStates.mHighWord &= 0xFFF7FFFFU;
+        mMovementStates.mHighBits.mBit19 = 0;
         mFlags14.mLowWord &= 0x7FFFF77FU;
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 4) & 1U) ||
-        (((mMovementStates.mHighWord >> 24) & 1U) && MR::isGalaxyHorrorCometAppearInCurrentStage())) {
-        mMovementStates.mLowWord &= 0xFFFFFFEFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit4)) ||
+        ((static_cast<u32>(mMovementStates.mHighBits.mBit24)) && MR::isGalaxyHorrorCometAppearInCurrentStage())) {
+        mMovementStates.mLowBits.mBit4 = 0;
         changeStatus(mDamage);
-        mMovementStates.mHighWord &= 0xFEFFFFFFU;
+        mMovementStates.mHighBits.mBit24 = 0;
         mFaint->mNoDamage = false;
-        mMovementStates.mHighWord &= 0xFFF7FFFFU;
+        mMovementStates.mHighBits.mBit19 = 0;
         return true;
     }
 
-    if (((mMovementStates.mHighWord >> 24) & 1U)) {
-        mMovementStates.mHighWord &= 0xFEFFFFFFU;
-        mMovementStates.mHighWord &= 0xFFF7FFFFU;
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit24))) {
+        mMovementStates.mHighBits.mBit24 = 0;
+        mMovementStates.mHighBits.mBit19 = 0;
         if (isPlayerModeYoshi()) {
             mDamage->_30 = true;
             changeStatus(mDamage);
@@ -6566,26 +6527,26 @@ bool Mario::checkDamage() {
         return true;
     }
 
-    if (((mMovementStates.mHighWord >> 19) & 1U)) {
-        mMovementStates.mHighWord &= 0xFFF7FFFFU;
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit19))) {
+        mMovementStates.mHighBits.mBit19 = 0;
         changeStatus(mBlown);
         return true;
     }
 
-    if (((mFlags14.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
-        mFlags14.mLowWord &= ~Mario::MovementStates::Jumping;
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit31))) {
+        mFlags14.mLowBits.mBit31 = 0;
         doFireDanceWithInitialDamage(1);
         return true;
     }
 
-    if (((mFlags14.mLowWord >> 11) & 1U)) {
-        mFlags14.mLowWord &= 0xFFFFF7FFU;
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit11))) {
+        mFlags14.mLowBits.mBit11 = 0;
         doParalyze();
         return true;
     }
 
-    if (((mFlags14.mLowWord >> 7) & 1U)) {
-        mFlags14.mLowWord &= 0xFFFFFF7FU;
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit7))) {
+        mFlags14.mLowBits.mBit7 = 0;
         if (tryCrush()) {
             return true;
         }
@@ -6686,7 +6647,7 @@ bool Mario::damageFloorCheck() {
 
 
 bool Mario::damageWallCheck() {
-    if (((mMovementStates.mLowWord >> 0) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit0))) {
         return false;
     }
 
@@ -6838,7 +6799,7 @@ bool Mario::damage(const TVec3f& rDirection) {
     }
     mActor->damageDropThrowMemoSensor();
 
-    mMovementStates.mLowWord |= 0x00000010U;
+    mMovementStates.mLowBits.mBit4 = 1;
     return true;
 }
 
@@ -6909,7 +6870,7 @@ bool Mario::doFireObjHitWithInitialDamage() {
 
 
 bool Mario::doNeedleWithInitialDamage(u8 amount) {
-    if (((mMovementStates.mLowWord >> 0) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit0))) {
         return false;
     }
 
@@ -6936,7 +6897,7 @@ bool Mario::doNeedleWithInitialDamage(u8 amount) {
 
 
 bool Mario::doNeedleWithInitialDamage(const Triangle* pTriangle) {
-    if (((mMovementStates.mLowWord >> 0) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit0))) {
         return false;
     }
 
@@ -6989,8 +6950,8 @@ bool Mario::doNeedle(const Triangle* pTriangle) {
     }
 
     mActor->fn_803B94E0();
-    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
-    getPlayer()->mMovementStates.mLowWord &= 0xFFDFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit21 = 0;
     mFireDance->_29 = 1;
     changeStatus(mFireDance);
     mActor->damageDropThrowMemoSensor();
@@ -7028,8 +6989,8 @@ bool Mario::doFireDance() {
     }
 
     mActor->fn_803B94E0();
-    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
-    getPlayer()->mMovementStates.mLowWord &= 0xFFDFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit21 = 0;
     mFireDance->_29 = 0;
     changeStatus(mFireDance);
     mActor->damageDropThrowMemoSensor();
@@ -7039,7 +7000,7 @@ bool Mario::doFireDance() {
 
 
 void Mario::checkKarikariDamage() {
-    if (!((mFlags20.mWord >> 26) & 1U) || isDamaging()) {
+    if (!(static_cast<u32>(mFlags20.mBits.mBit26)) || isDamaging()) {
         _7D0 = 120;
         return;
     }
@@ -7056,7 +7017,7 @@ void Mario::checkKarikariDamage() {
         return;
     }
 
-    if (((mFlags20.mWord >> 26) & 1U) && _7D0) {
+    if ((static_cast<u32>(mFlags20.mBits.mBit26)) && _7D0) {
         _7D0--;
         if (!_7D0) {
             if (mActor->mHealth == 1) {
@@ -7097,7 +7058,7 @@ bool Mario::doDarkDamage() {
 // ---- MarioDamageCrush.cpp ----
 
 bool Mario::requestCrush() {
-    mFlags14.mLowWord |= 0x00000080U;
+    mFlags14.mLowBits.mBit7 = 1;
     return true;
 }
 
@@ -7232,9 +7193,9 @@ void Mario::checkEnforceMove() {
 
 
 void Mario::checkEnforceMoveInner() {
-    mMovementStates.mLowWord &= 0xFFFFFF7FU;
+    mMovementStates.mLowBits.mBit7 = 0;
     TVec3f v15(_184);
-    if (((mMovementStates.mLowWord >> 30) & 1U) != 0 || ((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) != 0) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) != 0 || (static_cast<u32>(mMovementStates.mLowBits.mBit31)) != 0) {
         _184.zero();
     }
 
@@ -7246,7 +7207,7 @@ void Mario::checkEnforceMoveInner() {
             f32 verticalLimit = ((getMovementStates().mLowWord >> 30) & 1U) ? 0.0f : mVerticalSpeed;
 
             if (mVelocity.dot(_368) < 0.0f) {
-                if (!((mMovementStates.mLowWord >> 30) & 1U)) {
+                if (!(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
                     f32 element = MR::vecKillElement(mVelocity, _368, &mVelocity);
                     f32 v8 = element;
 
@@ -7261,7 +7222,7 @@ void Mario::checkEnforceMoveInner() {
             }
         }
 
-        mDrawStates.mWord |= 0x00100000U;
+        mDrawStates.mBits.mBit20 = 1;
 
         if (!mActor->_F44) {
             addTrans(mVelocity);
@@ -7269,7 +7230,7 @@ void Mario::checkEnforceMoveInner() {
             bool v11 = false;
             TVec3f v14(mPosHolder->mPos);
 
-            if (((mMovementStates.mLowWord >> 21) & 1U) == 0) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit21)) == 0) {
                 if (200.0f == _72C) {
                     v11 = true;
                 }
@@ -7280,7 +7241,7 @@ void Mario::checkEnforceMoveInner() {
             if (v11) {
                 if (calcDistToCeil(false) < 200.0f) {
                     mPosHolder->fn_80405F90(v14);
-                    mFlags20.mWord |= 0x00008000U;
+                    mFlags20.mBits.mBit15 = 1;
                 }
             }
 
@@ -7303,11 +7264,11 @@ void Mario::recordRelativePosition() {
     _8CC[1]->mIdx = -1;
 
     f32 strikeRadius = 85.0f;
-    if (((mMovementStates.mLowWord >> 30) & 1U) && _45C->isValid() && MR::isSameMtx(*_45C->getBaseMtx(), *_45C->getPrevBaseMtx())) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && _45C->isValid() && MR::isSameMtx(*_45C->getBaseMtx(), *_45C->getPrevBaseMtx())) {
         strikeRadius = 81.0f;
     }
 
-    if (((mMovementStates.mLowWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         strikeRadius = 51.0f;
     }
 
@@ -7365,8 +7326,8 @@ void Mario::recordRelativePosition() {
     if (sameSensorFloor == nullptr) {
         if (isStatusActive(MarioStatus_Wall)) {
             *_8C8 = *mFrontWallTriangle;
-        } else if (((mMovementStates.mLowWord >> 30) & 1U)) {
-            if (((mFlags20.mWord >> 12) & 1U)) {
+        } else if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
+            if ((static_cast<u32>(mFlags20.mBits.mBit12))) {
                 *_8C8 = *mGroundPolygon;
             } else if (isUseAnotherMovingPolygon()) {
                 *_8C8 = *mGroundPolygon;
@@ -7376,7 +7337,7 @@ void Mario::recordRelativePosition() {
         } else {
             invalidateRelativePosition();
         }
-    } else if (((mFlags20.mWord >> 12) & 1U)) {
+    } else if ((static_cast<u32>(mFlags20.mBits.mBit12))) {
         if (sameSensorFloor->mSensor == mGroundPolygon->mSensor) {
             *_8C8 = *sameSensorFloor;
         } else if (isUseAnotherMovingPolygon()) {
@@ -7479,16 +7440,16 @@ u32 Mario::moveRelativePosition(u32) {
     }
 
     if (!MR::isSameMtxRot(*rTri->getBaseMtx(), *rTri->getPrevBaseMtx())) {
-        mMovementStates.mLowWord |= 0x00000080U;
+        mMovementStates.mLowBits.mBit7 = 1;
 
         if (MR::isRotAxisY(*rTri->getBaseMtx(), *rTri->getPrevBaseMtx())) {
-            mFlags14.mLowWord |= 0x00008000U;
+            mFlags14.mLowBits.mBit15 = 1;
         }
 
         TVec3f rotAxis;
         MR::calcMtxRotAxis(&rotAxis, *rTri->getBaseMtx(), *rTri->getPrevBaseMtx());
         if (MR::isSameDirection(rotAxis, getAirGravityVec())) {
-            mFlags14.mLowWord |= 0x00008000U;
+            mFlags14.mLowBits.mBit15 = 1;
         }
     }
 
@@ -7527,7 +7488,7 @@ u32 Mario::moveRelativePositionWall() {
         }
 
         if (!MR::isSameMtxRot(*tri->getBaseMtx(), *tri->getPrevBaseMtx())) {
-            mMovementStates.mLowWord |= 0x00000080U;
+            mMovementStates.mLowBits.mBit7 = 1;
         }
 
         if (_8D4 == nullptr || tri->mSensor != mHang->mWallSensor) {
@@ -7640,7 +7601,7 @@ void Mario::tryPushToVelocity() {
             if (isStatusActive(MarioStatus_Bury)) {
                 closeStatus(mBury);
             } else {
-                if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 30) & 1U)) {
+                if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
                     TVec3f pushDir(_350);
                     MR::normalizeOrZero(&pushDir);
 
@@ -7651,7 +7612,7 @@ void Mario::tryPushToVelocity() {
                     if (mVelocity.dot(_350) < 0.0f) {
                         MR::vecKillElement(mVelocity, pushDir, &mVelocity);
                     }
-                } else if (isDamaging() && ((mMovementStates.mLowWord >> 30) & 1U)) {
+                } else if (isDamaging() && (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
                     MR::vecKillElement(_350, *getGravityVec(), &_350);
                 }
 
@@ -7659,7 +7620,7 @@ void Mario::tryPushToVelocity() {
             }
         }
 
-        mFlags20.mWord |= 0x00000400U;
+        mFlags20.mBits.mBit10 = 1;
     }
 
     mVelocity += _35C;
@@ -7670,21 +7631,21 @@ void Mario::tryPushToVelocity() {
 
 void Mario::push(const TVec3f& rVec) {
     _350 += rVec;
-    mFlags20.mWord |= 0x00000400U;
+    mFlags20.mBits.mBit10 = 1;
 }
 
 
 void Mario::push2(const TVec3f& rVec) {
     _35C += rVec;
-    mFlags20.mWord |= 0x00000400U;
+    mFlags20.mBits.mBit10 = 1;
 }
 
 
 void Mario::powerAreaMove() {
     _190.zero();
 
-    if (((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && _960 == 28 && MR::calcAreaMoveVelocity(&_190, mPosHolder->mPos)) {
-        if (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U) || ((mMovementStates.mLowWord >> 5) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit31)) && _960 == 28 && MR::calcAreaMoveVelocity(&_190, mPosHolder->mPos)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
             const TVec3f* norm = &getWallNorm();
             f32 dot = norm->dot(_190);
 
@@ -7702,7 +7663,7 @@ void Mario::powerAreaMove() {
 void Mario::powerRailMove() {
     _19C.zero();
 
-    if (((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && _960 == 0x1B) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit31)) && _960 == 0x1B) {
         const LiveActor* host = getGroundPolygon()->mSensor->mHost;
         if (host == nullptr) {
             return;
@@ -7720,7 +7681,7 @@ void Mario::powerRailMove() {
 
         MR::normalizeOrZero(&railDir);
 
-        if (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U) || ((mMovementStates.mLowWord >> 5) & 1U)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
             const TVec3f* wallNorm = &getWallNorm();
             if (wallNorm->dot(railDir) < 0.0f) {
                 MR::vecKillElement(railDir, *wallNorm, &railDir);
@@ -7737,7 +7698,7 @@ void Mario::powerRailMove() {
 
 
 void Mario::recordJumpEnforceMove() {
-    mFlags14.mLowWord |= 0x00000100U;
+    mFlags14.mLowBits.mBit8 = 1;
     _8D8 = _8D4;
     _8DC = _184;
     *_8E8 = *_8C8;
@@ -7746,7 +7707,7 @@ void Mario::recordJumpEnforceMove() {
 
 void Mario::doEnforceJump(f32 param) {
     if (mJumpVec.dot(_184) < 0.0f) {
-        mDrawStates.mWord |= 0x00000010U;
+        mDrawStates.mBits.mBit4 = 1;
         initActiveJumpVec();
     }
 
@@ -7781,13 +7742,13 @@ void Mario::pushedByWind() {
             stopAnimation("向かい風走り");
         }
 
-        if ((mFlags14.mLowWord >> 9) & 1) {
-            mFlags14.mLowWord &= 0xFFFFFDFF;
+        if (static_cast<u32>(mFlags14.mLowBits.mBit9)) {
+            mFlags14.mLowBits.mBit9 = 0;
         }
         return;
     }
 
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         const MarioConstTable* table = mActor->getConst().getTable();
         mJumpVec += _91C * table->mWindJumpingFriction;
         return;
@@ -7882,7 +7843,7 @@ bool Mario::faint(const TVec3f& rVec) {
     mActor->damageDropThrowMemoSensor();
 
     if (getCurrentStatus() != MarioStatus_Faint) {
-        mMovementStates.mHighWord |= 0x01000000U;
+        mMovementStates.mHighBits.mBit24 = 1;
         return true;
     }
 
@@ -7908,7 +7869,7 @@ bool Mario::doFlipJump(const TVec3f& rVec) {
     changeAnimation("壁はじき");
     stopPunch();
     _430 = 3;
-    mMovementStates.mHighWord |= 0x100000;
+    mMovementStates.mHighBits.mBit20 = 1;
     startPadVib(2);
     return true;
 }
@@ -8156,7 +8117,7 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (((mFlags14.mLowWord >> 10) & 1U)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit10))) {
         return true;
     }
 
@@ -8221,11 +8182,11 @@ bool Mario::doFrontStep() {
         return false;
     }
 
-    if (((mFlags20.mWord >> 26) & 1U)) {
+    if ((static_cast<u32>(mFlags20.mBits.mBit26))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         return false;
     }
 
@@ -8333,19 +8294,19 @@ void Mario::checkHang() {
         return;
     }
 
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && isRising()) {
-        mMovementStates.mHighWord &= 0xFFFF7FFFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising()) {
+        mMovementStates.mHighBits.mBit15 = 0;
     }
 
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && _3BC > 20) {
-        mMovementStates.mHighWord &= 0xFFFF7FFFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && _3BC > 20) {
+        mMovementStates.mHighBits.mBit15 = 0;
     }
 
     if (isCeiling()) {
-        mMovementStates.mHighWord &= 0xFFFFBFFFU;
+        mMovementStates.mHighBits.mBit14 = 0;
     }
 
-    if (!((mMovementStates.mHighWord >> 14) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mHighBits.mBit14))) {
         return;
     }
 
@@ -8376,7 +8337,7 @@ void Mario::checkHang() {
     bool front = true;
     bool back = true;
     bool side = true;
-    if (((mMovementStates.mLowWord >> 5) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
         const Triangle* pTriangle = mSideWallTriangle;
         if (!MR::isSameMtx(pTriangle->getBaseMtx()->toMtxPtr(), pTriangle->getPrevBaseMtx()->toMtxPtr())) {
             front = false;
@@ -8384,7 +8345,7 @@ void Mario::checkHang() {
         }
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         const Triangle* pTriangle = mFrontWallTriangle;
         if (!MR::isSameMtx(pTriangle->getBaseMtx()->toMtxPtr(), pTriangle->getPrevBaseMtx()->toMtxPtr())) {
             side = false;
@@ -8392,7 +8353,7 @@ void Mario::checkHang() {
         }
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         const Triangle* pTriangle = mBackWallTriangle;
         if (!MR::isSameMtx(pTriangle->getBaseMtx()->toMtxPtr(), pTriangle->getPrevBaseMtx()->toMtxPtr())) {
             front = false;
@@ -8401,7 +8362,7 @@ void Mario::checkHang() {
     }
 
     TVec3f previousPosition(mPosHolder->mPos);
-    if (front && ((mMovementStates.mHighWord >> 6) & 1U) && isEnableHang()) {
+    if (front && (static_cast<u32>(mMovementStates.mHighBits.mBit6)) && isEnableHang()) {
         TVec3f direction(_4A4 - mPosHolder->mPos);
         MR::vecKillElement(direction, getAirGravityVec(), &direction);
         MR::normalizeOrZero(&direction);
@@ -8487,7 +8448,7 @@ void Mario::checkHang() {
             bool found = fixHangDir(position, &hangDirection);
             setTrans(position);
             setFrontVecKeepUp(normal);
-            mMovementStates.mLowWord |= 0x00000004U;
+            mMovementStates.mLowBits.mBit2 = 1;
             if (!found) {
                 mHang->recordWallPolygon(mBackWallTriangle);
             }
@@ -8546,7 +8507,7 @@ void Mario::checkHang() {
             bool found = fixHangDir(position, &hangDirection);
             setTrans(position);
             setFrontVecKeepUp(normal);
-            mMovementStates.mLowWord |= 0x00000004U;
+            mMovementStates.mLowBits.mBit2 = 1;
             if (!found) {
                 mHang->recordWallPolygon(mSideWallTriangle);
             }
@@ -8560,7 +8521,7 @@ void Mario::checkHang() {
         _414 = 0;
         for (u32 i = 0; i < 10; i++) {
             updateGroundInfo();
-            if (((mMovementStates.mLowWord >> 30) & 1U)) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
                 return;
             }
 
@@ -8571,19 +8532,19 @@ void Mario::checkHang() {
 
 
 bool Mario::isEnableHang() {
-    if (!((mMovementStates.mLowWord >> 23) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         return false;
     }
 
-    if (!((mMovementStates.mLowWord >> 10) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit10))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 20) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         return false;
     }
 
-    if (((mDrawStates.mWord >> 1) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit1))) {
         return false;
     }
 
@@ -8649,15 +8610,15 @@ bool Mario::isEnableBackHang() {
         }
 
         turn = true;
-    } else if (!((mMovementStates.mHighWord >> 15) & 1U)) {
+    } else if (!(static_cast<u32>(mMovementStates.mHighBits.mBit15))) {
         return false;
     }
 
-    if (!((mMovementStates.mLowWord >> 6) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 20) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         return false;
     }
 
@@ -8715,15 +8676,15 @@ bool Mario::isEnableBackHang() {
 
 
 bool Mario::isEnableSideHang() {
-    if (((mFlags20.mWord >> 30) & 1U) || ((mFlags20.mWord >> 29) & 1U)) {
+    if ((static_cast<u32>(mFlags20.mBits.mBit30)) || (static_cast<u32>(mFlags20.mBits.mBit29))) {
         return false;
     }
 
-    if (!((mMovementStates.mHighWord >> 15) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mHighBits.mBit15))) {
         return false;
     }
 
-    if (!((mMovementStates.mLowWord >> 5) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
         return false;
     }
 
@@ -8768,7 +8729,7 @@ bool Mario::isEnableSideHang() {
         }
     }
 
-    if (!((mMovementStates.mHighWord >> 12) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mHighBits.mBit12))) {
         return false;
     }
 
@@ -8946,14 +8907,14 @@ bool Mario::isRising() const {
 
 
 void Mario::checkWallRiseAndSlipFront() {
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
-        mMovementStates.mLowWord &= 0xFFBFFFFFU;
+    mMovementStates.mLowBits.mBit25 = 0;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
+        mMovementStates.mLowBits.mBit22 = 0;
         mWalkSpeed = 0.0f;
         return;
     }
 
-    mMovementStates.mLowWord |= 0x00400000U;
+    mMovementStates.mLowBits.mBit22 = 1;
 }
 
 
@@ -8962,32 +8923,32 @@ void Mario::tryJump() {
     bool mud = false;
     TVec3f stickTotal(_190);
     stickTotal += _19C;
-    if ((mMovementStates.mLowWord >> 31) || fn_80399D30()) return;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) || fn_80399D30()) return;
     playEffect("共通跳躍");
     stopEffectForce("スピンリング");
     bool squat = checkSquat(true);
     mMovementStates.mHighWord = (mMovementStates.mHighWord | 0x40000000) & 0xFFBFFFFF & 0xFFFFFF7F;
-    mFlags14.mHighWord |= 0x10000000;
-    mMovementStates.mLowWord &= 0xFFEFFFFF;
+    mFlags14.mHighBits.mBit28 = 1;
+    mMovementStates.mLowBits.mBit20 = 0;
     fn_80399E60(&stickTotal);
     forceStopTornado();
     if (tryTurnJump()) return;
     checkWallRiseAndSlipFront();
     f32 floorAngle = calcPolygonAngleD(mGroundPolygon);
     bool stickJump = false;
-    if (!MR::isNearZero(_8F8, 0.001f) && ((mMovementStates.mHighWord >> 28) & 1)) stickJump = true;
+    if (!MR::isNearZero(_8F8, 0.001f) && (static_cast<u32>(mMovementStates.mHighBits.mBit28))) stickJump = true;
     if (floorAngle < 15.0f) {
-        mMovementStates.mHighWord &= 0xEFFFFFFF;
+        mMovementStates.mHighBits.mBit28 = 0;
         _8F8.zero();
     }
-    if (getPlayerMode() != 6 && !((mFlags14.mLowWord >> 5) & 1)) {
-        if ((((mDrawStates.mWord >> 19) & 1) && isSlipPolygon(_45C)) || isStatusActive(7)) {
+    if (getPlayerMode() != 6 && !(static_cast<u32>(mFlags14.mLowBits.mBit5))) {
+        if (((static_cast<u32>(mDrawStates.mBits.mBit19)) && isSlipPolygon(_45C)) || isStatusActive(7)) {
             MR::isNearZero(mAirGravityVec, 0.001f);
             if (MR::diffAngleAbsHorizontal(_16C, _368, mAirGravityVec) > 1.5707964f) mWalkSpeed = 0.0f;
             if (getPlayerMode() != 4) {
                 _402 = 0;
                 _430 = 3;
-                mMovementStates.mHighWord |= 0x100000;
+                mMovementStates.mHighBits.mBit20 = 1;
             }
         }
         if (_960 == 0x11) {
@@ -8999,14 +8960,14 @@ void Mario::tryJump() {
 #ifdef GALAXY_NATIVE
     // OdysseyMovement: jumping out of a roll is a long jump.
     if (fn_803EF7C0() != 0x20 && getPlayerMode() != 4 && _430 != 3 && PetariNative::Odyssey::Live::roll.rolling && odysseyOn() &&
-        !((mMovementStates.mHighWord >> 28) & 1U)) {
+        !(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
         PetariNative::Odyssey::Live::roll.rolling = false;
         trySquatJump();
         return;
     }
 #endif
     if (fn_803B2530(squat)) return;
-    if ((mDrawStates.mWord >> 26) & 1) {
+    if (static_cast<u32>(mDrawStates.mBits.mBit26)) {
         f32 speed = fn_803B1CA0();
         f32 walkSpeed = mWalkSpeed;
         TVec3f first(_334);
@@ -9023,8 +8984,8 @@ void Mario::tryJump() {
         second *= speed;
         mJumpVec = second;
     }
-    mFlags14.mLowWord &= 0xFFFFFEFF;
-    if ((mDrawStates.mWord >> 20) & 1) {
+    mFlags14.mLowBits.mBit8 = 0;
+    if (static_cast<u32>(mDrawStates.mBits.mBit20)) {
         recordJumpEnforceMove();
         f32 enforce;
         if (getStickP() == 0.0f) {
@@ -9068,13 +9029,13 @@ void Mario::tryJump() {
     if (_340 < 0.0f) _340 = 0.0f;
     f32 ratio = 1.0f;
     if (fn_803EF7C0() == 0x20) ratio = mActor->mConst->getTable()->mMudFloorJumpWeakRatio;
-    if ((mFlags20.mWord >> 20) & 1) ratio = 0.9f;
+    if (static_cast<u32>(mFlags20.mBits.mBit20)) ratio = 0.9f;
 #ifdef GALAXY_NATIVE
     // OdysseyMovement: SMO's chain rules choose single/double/triple (within 10
     // grounded frames, at full speed, within 45 degrees of the last jump).
     // getJumpHeight() below reads the new _430.
-    const bool odysseyJump = petari_mod_enabled(kModOdysseyMovement) && _430 >= 0 && _430 <= 2 && !((mFlags20.mWord >> 21) & 1U) &&
-                             !((mFlags20.mWord >> 20) & 1U) && fn_803EF7C0() != 0x20 && !((mFlags14.mLowWord >> 5) & 1U) &&
+    const bool odysseyJump = petari_mod_enabled(kModOdysseyMovement) && _430 >= 0 && _430 <= 2 && !(static_cast<u32>(mFlags20.mBits.mBit21)) &&
+                             !(static_cast<u32>(mFlags20.mBits.mBit20)) && fn_803EF7C0() != 0x20 && !(static_cast<u32>(mFlags14.mLowBits.mBit5)) &&
                              // SMG2: only plain Mario (mode 0, not riding Yoshi) gets SMO's chain;
                              // power-ups and rides keep Galaxy's jumps (docs: native/MODS.md).
                              getPlayerMode() == 0 && !isPlayerModeYoshi();
@@ -9107,9 +9068,9 @@ void Mario::tryJump() {
     if (getPlayerMode() != 4 && fn_803EF7C0() == 0x20) {
         _430 = 3;
         mud = true;
-        mMovementStates.mHighWord |= 0x100000;
+        mMovementStates.mHighBits.mBit20 = 1;
     }
-    if ((mFlags14.mLowWord >> 5) & 1) _430 = 0;
+    if (static_cast<u32>(mFlags14.mLowBits.mBit5)) _430 = 0;
 #ifdef GALAXY_NATIVE
     sOdyssey.active = false;
     sCappyDiveReady = false;
@@ -9130,11 +9091,11 @@ void Mario::tryJump() {
     sOdysseyGroundPoundJump = false;
 #endif
     procJump(true);
-    mMovementStates.mLowWord |= 0x80000000;
+    mMovementStates.mLowBits.mBit31 = 1;
     if (_42A == 1 && _430 == 1) _430 = 2;
     switch (_430) {
     case 0:
-        if ((mMovementStates.mLowWord >> 8) & 1) changeAnimation("壁上昇", "落下");
+        if (static_cast<u32>(mMovementStates.mLowBits.mBit8)) changeAnimation("壁上昇", "落下");
         else if (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0) {
             MR::startCenterScreenBlur(35, 15.0f, 80, 5, 30);
             playEffect("ダッシュジャンプ煙");
@@ -9151,7 +9112,7 @@ void Mario::tryJump() {
             changeAnimation("ハチジャンプ");
             mActor->syncJumpBeeStickMode();
         }
-        if ((mFlags14.mLowWord >> 5) & 1) changeAnimation("ショートジャンプ", "落下");
+        if (static_cast<u32>(mFlags14.mLowBits.mBit5)) changeAnimation("ショートジャンプ", "落下");
         break;
     case 1:
         changeAnimationNonStop("ジャンプB");
@@ -9168,7 +9129,7 @@ void Mario::tryJump() {
         playSound("声大ジャンプ");
         playSound("ジャンプ踏切");
         playEffect("共通ハイジャンプ");
-        if ((mFlags20.mWord >> 20) & 1) changeAnimation("スカイラブジャンプ", "落下");
+        if (static_cast<u32>(mFlags20.mBits.mBit20)) changeAnimation("スカイラブジャンプ", "落下");
         else if (getPlayerMode() == 1 && mWalkSpeed > 1.0f) changeAnimation("ダッシュジャンプ", "落下");
         else changeAnimation("ジャンプC", "落下");
         break;
@@ -9185,7 +9146,7 @@ void Mario::tryJump() {
     }
     if (_42A == 1 && _430 == 2) _430 = 1;
     if (mSwim->checkUnderWaterFull(mFrontVec) > 500.0f && mStickPos.z == 0.0f) {
-        mMovementStates.mLowWord |= 0x20000;
+        mMovementStates.mLowBits.mBit17 = 1;
         changeAnimationNonStop("飛び込みジャンプ");
         if (isPlayerModeYoshi()) MR::startActionSound(mActor->getYoshi(), "PreLandTurn", -1, -1, -1);
         else playSound("声高飛び込み");
@@ -9196,7 +9157,7 @@ void Mario::tryJump() {
             mJumpVec += extra;
         }
     }
-    mMovementStates.mLowWord |= 0x04000000;
+    mMovementStates.mLowBits.mBit26 = 1;
 }
 
 
@@ -9204,11 +9165,11 @@ void Mario::tryJump() {
 bool Mario::tryTurnJump() {
     if (fn_803EF7C0() == 0x20) return false;
     if (getPlayerMode() == 4) return false;
-    if (!((mMovementStates.mLowWord >> 27) & 1) && (_3D2 == 0 || static_cast<u8>(checkStickFrontBack()) != 2)) return false;
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit27)) && (_3D2 == 0 || static_cast<u8>(checkStickFrontBack()) != 2)) return false;
     MarioConstTable* table = mActor->mConst->getTable();
     if (static_cast<s32>(table->mTurnSlipTime - _3D0) < table->mTurnJumpInhibitTime) {
         _3D0 = 0;
-        mMovementStates.mLowWord &= 0xF7FFFFFF;
+        mMovementStates.mLowBits.mBit27 = 0;
         return false;
     }
     _430 = 0x4;
@@ -9237,13 +9198,13 @@ bool Mario::tryTurnJump() {
     const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
-    mFlags14.mLowWord &= 0xFFFFFEFFU;
-    if (((mDrawStates.mWord >> 20) & 1U)) {
+    mFlags14.mLowBits.mBit8 = 0;
+    if ((static_cast<u32>(mDrawStates.mBits.mBit20))) {
         recordJumpEnforceMove();
         doEnforceJump(1.0f);
     }
 
-    mMovementStates.mLowWord |= 0x00020000U;
+    mMovementStates.mLowBits.mBit17 = 1;
 #ifdef GALAXY_NATIVE
     sOdyssey.active = false;
     if (odysseyOn()) {
@@ -9263,18 +9224,18 @@ bool Mario::tryTurnJump() {
     else playSound("声後ジャンプ");
 
     _3D0 = 0;
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    mMovementStates.mLowWord &= 0xF7FFFFFFU;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 1;
+    mMovementStates.mLowBits.mBit30 = 0;
+    mMovementStates.mLowBits.mBit27 = 0;
+    mMovementStates.mLowBits.mBit26 = 0;
     mWalkSpeed = 0.0f;
-    mFlags14.mLowWord &= 0xFFDFFFFFU;
+    mFlags14.mLowBits.mBit21 = 0;
     return true;
 }
 
 
 void Mario::trySquatJump() {
-    mMovementStates.mHighWord &= 0xBFFFFFFFU;
+    mMovementStates.mHighBits.mBit30 = 0;
     _430 = 0x5;
 
     mJumpVec = getAirFrontVec() * mActor->getConst().getTable()->mSquatJumpFrontSpeed;
@@ -9292,8 +9253,8 @@ void Mario::trySquatJump() {
     const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
-    mFlags14.mLowWord &= 0xFFFFFEFFU;
-    if (((mDrawStates.mWord >> 20) & 1U)) {
+    mFlags14.mLowBits.mBit8 = 0;
+    if ((static_cast<u32>(mDrawStates.mBits.mBit20))) {
         recordJumpEnforceMove();
 
         TVec3f moveKeep;
@@ -9310,7 +9271,7 @@ void Mario::trySquatJump() {
         enforceScale = MR::clamp(enforceScale, 0.0f, 1.0f);
 
         if (mJumpVec.dot(moveKeep) < 0.0f) {
-            mDrawStates.mWord |= 0x00000010U;
+            mDrawStates.mBits.mBit4 = 1;
             initActiveJumpVec();
         }
 
@@ -9325,8 +9286,8 @@ void Mario::trySquatJump() {
         invalidateRelativePosition();
     }
 
-    mMovementStates.mLowWord |= 0x00020000U;
-    mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    mMovementStates.mLowBits.mBit17 = 1;
+    mMovementStates.mLowBits.mBit30 = 0;
 #ifdef GALAXY_NATIVE
     sOdyssey.active = false;
     if (odysseyOn()) {
@@ -9345,17 +9306,17 @@ void Mario::trySquatJump() {
     playSound("声幅ジャンプ");
     playSound("ジャンプ踏切");
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    mMovementStates.mLowBits.mBit31 = 1;
     _3D0 = 0;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    mMovementStates.mLowWord &= 0xF7FFFFFFU;
+    mMovementStates.mLowBits.mBit26 = 0;
+    mMovementStates.mLowBits.mBit27 = 0;
     return;
 }
 
 
 void Mario::tryBackJump() {
-    mMovementStates.mHighWord |= 0x40000000U;
-    mMovementStates.mLowWord &= 0xFFDFFFFFU;
+    mMovementStates.mHighBits.mBit30 = 1;
+    mMovementStates.mLowBits.mBit21 = 0;
     _430 = 0x6;
 
     const f32 backSpeed = mActor->getConst().getTable()->mSquatJumpBackSpeed;
@@ -9364,13 +9325,13 @@ void Mario::tryBackJump() {
     const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
-    mFlags14.mLowWord &= 0xFFFFFEFFU;
-    if (((mDrawStates.mWord >> 20) & 1U)) {
+    mFlags14.mLowBits.mBit8 = 0;
+    if ((static_cast<u32>(mDrawStates.mBits.mBit20))) {
         recordJumpEnforceMove();
         doEnforceJump(1.0f);
     }
 
-    mMovementStates.mLowWord |= 0x00020000U;
+    mMovementStates.mLowBits.mBit17 = 1;
 #ifdef GALAXY_NATIVE
     sOdyssey.active = false;
     if (odysseyOn()) {
@@ -9401,11 +9362,11 @@ void Mario::tryBackJump() {
     }
 
     mWalkSpeed = 0.0f;
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    mMovementStates.mLowBits.mBit31 = 1;
     _3D0 = 0;
-    mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    mMovementStates.mLowWord &= 0xF7FFFFFFU;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
+    mMovementStates.mLowBits.mBit30 = 0;
+    mMovementStates.mLowBits.mBit27 = 0;
+    mMovementStates.mLowBits.mBit26 = 0;
     return;
 }
 
@@ -9422,8 +9383,8 @@ void Mario::tryTornadoJump() {
     const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
-    mMovementStates.mLowWord &= 0xFFFDFFFFU;
-    mMovementStates.mLowWord |= 0x00010000U;
+    mMovementStates.mLowBits.mBit17 = 0;
+    mMovementStates.mLowBits.mBit16 = 1;
     procJump(true);
     changeAnimation("ジャンプ", "落下");
     playSound("トルネードジャンプ");
@@ -9433,11 +9394,11 @@ void Mario::tryTornadoJump() {
         playSound("声スピン");
     }
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    mMovementStates.mLowBits.mBit31 = 1;
     _3D0 = 0;
-    mMovementStates.mLowWord &= 0xF7FFFFFFU;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    mMovementStates.mLowWord &= 0xFFFFFFFBU;
+    mMovementStates.mLowBits.mBit27 = 0;
+    mMovementStates.mLowBits.mBit26 = 0;
+    mMovementStates.mLowBits.mBit2 = 0;
     mWalkSpeed = 0.0f;
 
     _402 = mActor->getConst().getTable()->mAirWalkTimeTornado;
@@ -9488,7 +9449,7 @@ bool Mario::taskOnTornadoCentering(u32 a1) {
 
 // NONMATCHING: literal pool offsets; full string arguments verified.
 void Mario::trySpinJump(u8 a1) {
-    if (((mMovementStates.mLowWord >> 20) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         return;
     }
 #ifdef GALAXY_NATIVE
@@ -9543,11 +9504,11 @@ void Mario::trySpinJump(u8 a1) {
     const f32 spinJumpHeight = mActor->getConst().getTable()->mSpinJumpHeight;
     mJumpVec += -mActor->mAppliedGravityVec * spinJumpHeight;
 
-    mMovementStates.mLowWord &= 0xFFFDFFFFU;
+    mMovementStates.mLowBits.mBit17 = 0;
     _402 = mActor->getConst().getTable()->mAirWalkTimeSpin;
     procJump(true);
 
-    if (!((mMovementStates.mLowWord >> 20) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         stopAnimationUpper(nullptr);
         if (isPlayerModeCloud()) {
             changeAnimation("雲スピン空中", "落下");
@@ -9562,14 +9523,14 @@ void Mario::trySpinJump(u8 a1) {
         }
         startPadVib(2);
 
-        mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-        mMovementStates.mLowWord &= 0xF7FFFFFFU;
-        mMovementStates.mLowWord &= 0xFBFFFFFFU;
-        mMovementStates.mLowWord &= 0xFFFFFFFBU;
-        mFlags14.mLowWord |= 0x00000040U;
+        mMovementStates.mLowBits.mBit31 = 1;
+        mMovementStates.mLowBits.mBit27 = 0;
+        mMovementStates.mLowBits.mBit26 = 0;
+        mMovementStates.mLowBits.mBit2 = 0;
+        mFlags14.mLowBits.mBit6 = 1;
         _3D0 = 0;
         mWalkSpeed = 0.0f;
-        mFlags14.mLowWord |= 0x40000000U;
+        mFlags14.mLowBits.mBit30 = 1;
 
         tryShootStickingPopo();
 
@@ -9581,27 +9542,27 @@ void Mario::trySpinJump(u8 a1) {
 
 
 void Mario::tryForceJumpDelay(const TVec3f& rVec) {
-    mMovementStates.mHighWord |= 0x00040000U;
+    mMovementStates.mHighBits.mBit18 = 1;
     _304 = rVec;
 }
 
 
 void Mario::tryFreeJumpDelay(const TVec3f& rVec) {
-    mMovementStates.mHighWord |= 0x00020000U;
+    mMovementStates.mHighBits.mBit17 = 1;
     _304 = rVec;
 }
 
 
 void Mario::tryForceJump(const TVec3f& rVec, bool a2) {
     if (rVec.dot(*getGravityVec()) > 0.0f) {
-        mMovementStates.mHighWord |= 0x80000000U;
+        mMovementStates.mHighBits.mBit31 = 1;
     }
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    { const u32 flagValue = static_cast<u32>(a2); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xFFFDFFFFU) | ((flagValue & 1U) << 17); }
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 1;
+    mMovementStates.mLowBits.mBit30 = 0;
+    mMovementStates.mLowBits.mBit26 = 0;
+    { const u32 flagValue = static_cast<u32>(a2); mMovementStates.mLowBits.mBit17 = flagValue; }
+    mMovementStates.mLowBits.mBit20 = 0;
     mJumpVec = rVec;
 
     if (getPlayerMode() == 4 || getPlayerMode() == 6) {
@@ -9613,9 +9574,9 @@ void Mario::tryForceJump(const TVec3f& rVec, bool a2) {
     _3BC = 0;
     _3CA = 0;
     _3CC = 0;
-    mMovementStates.mLowWord |= 0x00001000U;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
-    mFlags14.mLowWord &= 0xFF7FFFFFU;
+    mMovementStates.mLowBits.mBit12 = 1;
+    mMovementStates.mLowBits.mBit14 = 0;
+    mFlags14.mLowBits.mBit23 = 0;
     _3BE = 0;
     _344 = mSideVec;
     _4B0 = mPosHolder->mPos;
@@ -9629,14 +9590,14 @@ void Mario::tryForceJump(const TVec3f& rVec, bool a2) {
 
 
 void Mario::tryForceFreeJump(const TVec3f& rVec) {
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
+    mMovementStates.mLowBits.mBit25 = 0;
     _430 = 0xC;
-    mMovementStates.mHighWord |= 0x00200000U;
-    mMovementStates.mLowWord &= 0xFFBFFFFFU;
+    mMovementStates.mHighBits.mBit21 = 1;
+    mMovementStates.mLowBits.mBit22 = 0;
 
     tryForceJump(rVec, true);
     _3BC = 0;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
+    mMovementStates.mLowBits.mBit14 = 0;
     _402 = mActor->getConst().getTable()->mAirWalkTime;
 
     if (getPlayerMode() == 4) {
@@ -9649,16 +9610,16 @@ void Mario::tryForceFreeJump(const TVec3f& rVec) {
 
 
 void Mario::tryForcePowerJump(const TVec3f& rVec, bool a2) {
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
+    mMovementStates.mLowBits.mBit25 = 0;
     _430 = 0xD;
-    mMovementStates.mHighWord |= 0x00200000U;
-    mMovementStates.mLowWord &= 0xFFBFFFFFU;
-    const bool _2FPrev = ((mMovementStates.mHighWord >> 16) & 1U);
-    mMovementStates.mHighWord |= 0x00010000U;
+    mMovementStates.mHighBits.mBit21 = 1;
+    mMovementStates.mLowBits.mBit22 = 0;
+    const bool _2FPrev = (static_cast<u32>(mMovementStates.mHighBits.mBit16));
+    mMovementStates.mHighBits.mBit16 = 1;
     tryForceJump(rVec, true);
-    { const u32 flagValue = static_cast<u32>(_2FPrev); u32& flags = mMovementStates.mHighWord; flags = (flags & 0xFFFEFFFFU) | ((flagValue & 1U) << 16); }
+    { const u32 flagValue = static_cast<u32>(_2FPrev); mMovementStates.mHighBits.mBit16 = flagValue; }
     _3BC = 0;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
+    mMovementStates.mLowBits.mBit14 = 0;
 
     if (!a2) {
         _402 = mActor->getConst().getTable()->mAirWalkTime;
@@ -9677,22 +9638,22 @@ void Mario::tryFreeJump(const TVec3f& rVec, bool a2) {
     _430 = 0;
 
     if (rVec.dot(*getGravityVec()) > 0.0f) {
-        mMovementStates.mHighWord |= 0x80000000U;
+        mMovementStates.mHighBits.mBit31 = 1;
     }
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    { const u32 flagValue = static_cast<u32>(a2); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xFFFDFFFFU) | ((flagValue & 1U) << 17); }
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 1;
+    mMovementStates.mLowBits.mBit30 = 0;
+    mMovementStates.mLowBits.mBit26 = 0;
+    { const u32 flagValue = static_cast<u32>(a2); mMovementStates.mLowBits.mBit17 = flagValue; }
+    mMovementStates.mLowBits.mBit20 = 0;
     mJumpVec = rVec;
     resetTornado();
 
     _3BC = 0;
     _3CA = 0;
     _3CC = 0;
-    mMovementStates.mLowWord |= 0x00001000U;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
+    mMovementStates.mLowBits.mBit12 = 1;
+    mMovementStates.mLowBits.mBit14 = 0;
     _3BE = 0;
     _76C = 0;
     _344 = mSideVec;
@@ -9706,30 +9667,30 @@ void Mario::tryFreeJump(const TVec3f& rVec, bool a2) {
 void Mario::tryWallJump(const TVec3f& rVec, bool a2) {
     _430 = 0x7;
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    mMovementStates.mLowWord |= 0x00020000U;
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
-    mMovementStates.mHighWord &= 0xFF7FFFFFU;
-    mFlags24.mHighWord &= 0xFF7FFFFFU;
-    mMovementStates.mHighWord &= 0xFFBFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 1;
+    mMovementStates.mLowBits.mBit26 = 0;
+    mMovementStates.mLowBits.mBit17 = 1;
+    mMovementStates.mLowBits.mBit20 = 0;
+    mMovementStates.mLowBits.mBit25 = 0;
+    mMovementStates.mHighBits.mBit23 = 0;
+    mFlags24.mHighBits.mBit23 = 0;
+    mMovementStates.mHighBits.mBit22 = 0;
 
     if (a2) {
-        mMovementStates.mLowWord |= 0x00400000U;
+        mMovementStates.mLowBits.mBit22 = 1;
     } else {
-        mMovementStates.mLowWord &= 0xFFBFFFFFU;
+        mMovementStates.mLowBits.mBit22 = 0;
     }
 
     mJumpVec = rVec;
     _4B0 = mPosHolder->mPos;
     _3BC = 0;
-    mMovementStates.mLowWord |= 0x00001000U;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
+    mMovementStates.mLowBits.mBit12 = 1;
+    mMovementStates.mLowBits.mBit14 = 0;
     _3CA = 0;
     _3CC = 0;
     _3BE = 0;
-    mMovementStates.mLowWord |= 0x00000004U;
+    mMovementStates.mLowBits.mBit2 = 1;
 
     if (getPlayerMode() == 5) {
         changeAnimationNonStop("ホッパー壁ジャンプ");
@@ -9768,23 +9729,23 @@ void Mario::tryStickJump(const TVec3f& rVec) {
     stopJump();
     initJumpParam();
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    mMovementStates.mLowWord |= 0x00020000U;
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 1;
+    mMovementStates.mLowBits.mBit26 = 0;
+    mMovementStates.mLowBits.mBit17 = 1;
+    mMovementStates.mLowBits.mBit20 = 0;
     _430 = 0;
-    mFlags24.mHighWord &= 0xFF7FFFFFU;
-    mMovementStates.mHighWord &= 0xFF7FFFFFU;
-    mMovementStates.mHighWord &= 0xFFBFFFFFU;
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
-    mMovementStates.mLowWord |= 0x00400000U;
+    mFlags24.mHighBits.mBit23 = 0;
+    mMovementStates.mHighBits.mBit23 = 0;
+    mMovementStates.mHighBits.mBit22 = 0;
+    mMovementStates.mLowBits.mBit25 = 0;
+    mMovementStates.mLowBits.mBit22 = 1;
     mJumpVec = rVec;
     _3CA = 0;
     _3CC = 0;
     _3BE = 0;
-    mMovementStates.mLowWord |= 0x00001000U;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
-    mMovementStates.mLowWord |= 0x00000004U;
+    mMovementStates.mLowBits.mBit12 = 1;
+    mMovementStates.mLowBits.mBit14 = 0;
+    mMovementStates.mLowBits.mBit2 = 1;
     _76C = mActor->getConst().getTable()->mBeeGravityReviveTime;
     _770 = 0.0f;
     _3BC = 0xA;
@@ -9797,9 +9758,9 @@ void Mario::tryStickJump(const TVec3f& rVec) {
 
 
 void Mario::trySlipUpJump() {
-    if (((mMovementStates.mLowWord >> 30) & 1U) || isPlayerModeYoshi()) {
-        mMovementStates.mLowWord &= 0xFDFFFFFFU;
-        mMovementStates.mHighWord &= 0xFF7FFFFFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) || isPlayerModeYoshi()) {
+        mMovementStates.mLowBits.mBit25 = 0;
+        mMovementStates.mHighBits.mBit23 = 0;
         return;
     }
 
@@ -9834,15 +9795,15 @@ void Mario::trySlipUpJump() {
     ratio *= static_cast< f32 >(hitCount) / 10.0f;
     cutVecElementFromJumpVec(mFrontVec);
 
-    if (((mMovementStates.mLowWord >> 22) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit22))) {
         mJumpVec += mFrontVec * mActor->getConst().getTable()->mSlipUpFront * ratio;
-        mMovementStates.mHighWord |= 0x00400000U;
+        mMovementStates.mHighBits.mBit22 = 1;
     } else {
         mJumpVec += mFrontVec * mActor->getConst().getTable()->mSlipUpFrontWeak * ratio;
     }
 
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
-    mMovementStates.mLowWord |= 0x00020000U;
+    mMovementStates.mLowBits.mBit25 = 0;
+    mMovementStates.mLowBits.mBit17 = 1;
     initJumpParam();
     _430 = 0xA;
     return;
@@ -9850,7 +9811,7 @@ void Mario::trySlipUpJump() {
 
 
 void Mario::tryHangSlipUp() {
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
+    mMovementStates.mLowBits.mBit26 = 0;
     getPlayer()->tryJump();
     changeAnimation("つかまりスリップアップ");
     playSound("スリップアップ");
@@ -9864,8 +9825,8 @@ void Mario::tryHangSlipUp() {
     const f32 slipUpFront = mActor->getConst().getTable()->mSlipUpFrontHang;
     mJumpVec += mFrontVec * slipUpFront;
 
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
-    mMovementStates.mLowWord |= 0x00020000U;
+    mMovementStates.mLowBits.mBit25 = 0;
+    mMovementStates.mLowBits.mBit17 = 1;
     _430 = 0xA;
     mActor->setBlendMtxTimer(0x8);
     mTargetWalkSpeedIndex = 0x7;
@@ -9875,34 +9836,34 @@ void Mario::tryHangSlipUp() {
 
 
 void Mario::tryDrop() {
-    if ((((mMovementStates.mLowWord >> 23) & 1U)) && !((mDrawStates.mWord >> 20) & 1U)) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit23))) && !(static_cast<u32>(mDrawStates.mBits.mBit20))) {
         TVec3f horizontal;
         MR::vecKillElement(_4E8 - mGroundPos, *getGravityVec(), &horizontal);
 
         if (horizontal.dot(*mFrontWallTriangle->getNormal(0)) < 0.0f && horizontal.length() < 80.0f) {
-            getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+            getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
             push(*mFrontWallTriangle->getNormal(0) * (80.0f - horizontal.length()) * 0.1f);
             return;
         }
     }
 
-    if ((((mMovementStates.mLowWord >> 5) & 1U)) && !((mDrawStates.mWord >> 20) & 1U)) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit5))) && !(static_cast<u32>(mDrawStates.mBits.mBit20))) {
         TVec3f horizontal;
         MR::vecKillElement(_500 - mGroundPos, *getGravityVec(), &horizontal);
 
         if (horizontal.dot(*mSideWallTriangle->getNormal(0)) < 0.0f && horizontal.length() < 80.0f) {
             push(*mSideWallTriangle->getNormal(0) * (80.0f - horizontal.length()) * 0.1f);
-            getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+            getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
             return;
         }
     }
 
-    mMovementStates.mHighWord |= 0x40000000U;
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    mMovementStates.mHighBits.mBit30 = 1;
+    mMovementStates.mLowBits.mBit20 = 0;
 
     mJumpVec = mFrontVec * mWalkSpeed * ::cDropFrontSpeed;
 
-    if (MR::isNearZero(_8F8) && (((mMovementStates.mHighWord >> 28) & 1U))) {
+    if (MR::isNearZero(_8F8) && ((static_cast<u32>(mMovementStates.mHighBits.mBit28)))) {
         TVec3f side;
         side.cross(getAirGravityVec(), _368);
         MR::normalizeOrZero(&side);
@@ -9948,11 +9909,11 @@ void Mario::tryDrop() {
     _430 = 0;
     procJump(true);
 
-    mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xFBFFFFFFU;
-    mMovementStates.mLowWord |= 0x00020000U;
-    mFlags14.mHighWord &= 0xEFFFFFFFU;
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 1;
+    mMovementStates.mLowBits.mBit26 = 0;
+    mMovementStates.mLowBits.mBit17 = 1;
+    mFlags14.mHighBits.mBit28 = 0;
+    mMovementStates.mLowBits.mBit20 = 0;
 
     if (isAnimationRun("坂すべり上向きうつぶせ", 2) || isAnimationRun("坂すべり下向きあおむけ", 3)) {
         _428 = 0xF;
@@ -9966,10 +9927,10 @@ void Mario::tryDrop() {
     }
 
     if (isAnimationRun("ショート着地")) {
-        mMovementStates.mHighWord |= 0x10000000U;
+        mMovementStates.mHighBits.mBit28 = 1;
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         stopWalk();
     }
 
@@ -9994,18 +9955,18 @@ void Mario::initActiveJumpVec() {
 
 void Mario::initJumpParam() {
     const u32 flags1 = mFlags20.mWord;
-    mMovementStates.mLowWord |= 0x00001000U;
+    mMovementStates.mLowBits.mBit12 = 1;
 
-    if ((((mFlags20.mWord >> 21) & 1U)) || (((mFlags20.mWord >> 20) & 1U))) {
-        mFlags14.mLowWord |= 0x00000001U;
+    if (((static_cast<u32>(mFlags20.mBits.mBit21))) || ((static_cast<u32>(mFlags20.mBits.mBit20)))) {
+        mFlags14.mLowBits.mBit0 = 1;
     }
 
-    mMovementStates.mHighWord &= 0xFFFFFF7FU;
-    mFlags14.mLowWord &= 0xFF7FFFFFU;
-    mMovementStates.mHighWord &= 0xFFFEFFFFU;
-    mFlags14.mLowWord &= 0xFFFDFFFFU;
+    mMovementStates.mHighBits.mBit7 = 0;
+    mFlags14.mLowBits.mBit23 = 0;
+    mMovementStates.mHighBits.mBit16 = 0;
+    mFlags14.mLowBits.mBit17 = 0;
 
-    if (!((mDrawStates.mWord >> 4) & 1U)) {
+    if (!(static_cast<u32>(mDrawStates.mBits.mBit4))) {
         initActiveJumpVec();
     }
 
@@ -10014,21 +9975,21 @@ void Mario::initJumpParam() {
     _3CA = 0;
     _3CC = 0;
     _774 = 0;
-    mMovementStates.mLowWord &= 0xFFFFBFFFU;
+    mMovementStates.mLowBits.mBit14 = 0;
     _3BE = 0;
     _344 = mSideVec;
 
     _408 = 0;
     _76C = 0;
-    mMovementStates.mLowWord &= 0xFFF7FFFFU;
-    mMovementStates.mLowWord &= 0xFFFF7FFFU;
-    mMovementStates.mLowWord &= 0xF7FFFFFFU;
-    mMovementStates.mHighWord &= 0x7FFFFFFFU;
-    mFlags14.mLowWord &= 0xFFF7FFFFU;
+    mMovementStates.mLowBits.mBit19 = 0;
+    mMovementStates.mLowBits.mBit15 = 0;
+    mMovementStates.mLowBits.mBit27 = 0;
+    mMovementStates.mHighBits.mBit31 = 0;
+    mFlags14.mLowBits.mBit19 = 0;
     _3D2 = 0;
     _3D0 = 0;
     _3CE = 0;
-    { const u32 flagValue = static_cast<u32>(((mMovementStates.mLowWord >> 23) & 1U)); u32& flags = mMovementStates.mHighWord; flags = (flags & 0xFFDFFFFFU) | ((flagValue & 1U) << 21); }
+    { const u32 flagValue = static_cast<u32>((static_cast<u32>(mMovementStates.mLowBits.mBit23))); mMovementStates.mHighBits.mBit21 = flagValue; }
 
     if (_430 != 5) {
         cancelSquatMode();
@@ -10062,23 +10023,23 @@ bool Mario::isEnableFutureJump() const {
 
 
 void Mario::procJump(bool a1) {
-    if(((mFlags14.mHighWord >> 21) & 1U)) fn_803B12B0();
-    if(((mMovementStates.mLowWord >> 20) & 1U)) { procHipDrop();return; }
+    if((static_cast<u32>(mFlags14.mHighBits.mBit21))) fn_803B12B0();
+    if((static_cast<u32>(mMovementStates.mLowBits.mBit20))) { procHipDrop();return; }
     if(_424!=0) { _424--;return; }
     procRocketBooster();
-    if(((mFlags14.mLowWord >> 12) & 1U)) fixFrontVecByGravity();
+    if((static_cast<u32>(mFlags14.mLowBits.mBit12))) fixFrontVecByGravity();
     if(isPlayerModeYoshi()) {
         if(checkSquat(true)) {
             if(isAnimationRun("カリカリ限界")) stopAnimationUpper(nullptr,nullptr);
             stopAnimation(nullptr,"しゃがみ基本");
-            mMovementStates.mLowWord |= 0x00200000U;
-            mFlags14.mHighWord &= 0xFFDFFFFFU;mFlags14.mHighWord |= 0x00100000U;
+            mMovementStates.mLowBits.mBit21 = 1;
+            mFlags14.mHighBits.mBit21 = 0;mFlags14.mHighBits.mBit20 = 1;
         } else if(isAnimationRun("しゃがみ基本")) {
-            mMovementStates.mLowWord &= 0xFFDFFFFFU;
+            mMovementStates.mLowBits.mBit21 = 0;
             stopAnimation(nullptr,"落下");
         }
     } else if(isAnimationRun("しゃがみ基本")) {
-        mMovementStates.mLowWord &= 0xFFDFFFFFU;
+        mMovementStates.mLowBits.mBit21 = 0;
         stopAnimation(nullptr,"落下");
     }
     fn_8039A020();fn_8039A090();
@@ -10098,11 +10059,11 @@ void Mario::procJump(bool a1) {
         if(fn_8039A430()) return;
         fn_8039A460();
     }
-    mMovementStates.mLowWord &= 0xFFFFDFFFU;
+    mMovementStates.mLowBits.mBit13 = 0;
     fn_8039A480();fn_8039A5B0();
     if(_76C) _76C--;
     fn_8039A600();checkWallRising();checkWallJumpHit();
-    if(!((mMovementStates.mLowWord >> 30) & 1U)) fixFrontVecFromUpSide();
+    if(!(static_cast<u32>(mMovementStates.mLowBits.mBit30))) fixFrontVecFromUpSide();
     decideSlipUp();fn_8039AB50();
 #ifdef GALAXY_NATIVE
     if(((mMovementStates.mLowWord >> 30) & 1U) && !a1) {
@@ -10130,7 +10091,7 @@ void Mario::checkWallRising() {
 
 void Mario::checkWallJumpHit() {
     if (_430 == 0x5) {
-        if ((((mMovementStates.mLowWord >> 23) & 1U)) && !checkWallJumpCode()) {
+        if (((static_cast<u32>(mMovementStates.mLowBits.mBit23))) && !checkWallJumpCode()) {
             const f32 wallDot = cutVecElementFromJumpVec(getWallNorm());
             if (checkWallCode("NoAction", true)) {
                 return;
@@ -10148,7 +10109,7 @@ void Mario::checkWallJumpHit() {
                 setFrontVecKeepUp(-horizontal);
             }
 
-            mMovementStates.mHighWord |= 0x00100000U;
+            mMovementStates.mHighBits.mBit20 = 1;
             _402 = 0;
             _428 = 0x3C;
         }
@@ -10156,10 +10117,10 @@ void Mario::checkWallJumpHit() {
         return;
     }
 
-    if (!isRising() && _3BC > 10 && (((mMovementStates.mLowWord >> 23) & 1U)) && calcPolygonAngleD(mFrontWallTriangle) < 80.0f) {
-        if ((((mFlags14.mLowWord >> 17) & 1U)) == 0) {
+    if (!isRising() && _3BC > 10 && ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) && calcPolygonAngleD(mFrontWallTriangle) < 80.0f) {
+        if (((static_cast<u32>(mFlags14.mLowBits.mBit17))) == 0) {
             mJumpVec = *mFrontWallTriangle->getNormal(0) * 5.0f + getAirGravityVec() * cutGravityElementFromJumpVec(true);
-            mFlags14.mLowWord |= 0x00020000U;
+            mFlags14.mLowBits.mBit17 = 1;
             changeAnimation("壁はじき");
         } else {
             const f32 jumpMag = mJumpVec.length();
@@ -10175,16 +10136,16 @@ void Mario::decideSlipUp() {
         return;
     }
 
-    if (!((mMovementStates.mLowWord >> 22) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit22))) {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 16) & 1U)) {
-        mMovementStates.mLowWord &= 0xFDFFFFFFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit16))) {
+        mMovementStates.mLowBits.mBit25 = 0;
         return;
     }
 
-    if (!((mMovementStates.mLowWord >> 25) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit25))) {
         if (checkWallCode("NotWallSlip", true)) {
             return;
         }
@@ -10205,21 +10166,21 @@ void Mario::decideSlipUp() {
             slipFront = true;
         }
 
-        if ((((mMovementStates.mHighWord >> 21) & 1U)) == 0 && (((mMovementStates.mLowWord >> 23) & 1U)) && isRising() && slipFront) {
-            mMovementStates.mLowWord |= 0x02000000U;
+        if (((static_cast<u32>(mMovementStates.mHighBits.mBit21))) == 0 && ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) && isRising() && slipFront) {
+            mMovementStates.mLowBits.mBit25 = 1;
         }
 
         if (isRising() && getPlayerMode() != 4 && getPlayerMode() != 6 && getPlayerMode() != 5) {
             if (_4E0 < mActor->getConst().getTable()->mSlipUpContinueHeight) {
-                if (((mMovementStates.mLowWord >> 23) & 1U) && ((mMovementStates.mLowWord >> 22) & 1U) && slipFront && ((mMovementStates.mHighWord >> 22) & 1U)) {
-                    mMovementStates.mLowWord |= 0x02000000U;
+                if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && (static_cast<u32>(mMovementStates.mLowBits.mBit22)) && slipFront && (static_cast<u32>(mMovementStates.mHighBits.mBit22))) {
+                    mMovementStates.mLowBits.mBit25 = 1;
                     cutGravityElementFromJumpVec(true);
 
                     mJumpVec += -getAirGravityVec() * 30.0f;
                 }
             }
         }
-    } else if (!((mMovementStates.mLowWord >> 24) & 1U) && isRising() && !((mMovementStates.mLowWord >> 23) & 1U) && (((mMovementStates.mLowWord >> 10) & 1U))) {
+    } else if (!(static_cast<u32>(mMovementStates.mLowBits.mBit24)) && isRising() && !(static_cast<u32>(mMovementStates.mLowBits.mBit23)) && ((static_cast<u32>(mMovementStates.mLowBits.mBit10)))) {
         trySlipUpJump();
     }
 }
@@ -10247,7 +10208,7 @@ void Mario::moveWallSlide(f32 a1) {
 
 
 bool Mario::jumpToHipDrop() {
-    if (((mMovementStates.mLowWord >> 20) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         return false;
     }
 
@@ -10284,9 +10245,9 @@ bool Mario::jumpToHipDrop() {
     resetTornado();
     cancelTornadoJump();
 
-    mDrawStates.mWord |= 0x00800000U;
-    mMovementStates.mHighWord &= 0xBFFFFFFFU;
-    mMovementStates.mLowWord |= 0x00100000U;
+    mDrawStates.mBits.mBit23 = 1;
+    mMovementStates.mHighBits.mBit30 = 0;
+    mMovementStates.mLowBits.mBit20 = 1;
     mJumpVec.zero();
     _422 = 0;
 
@@ -10318,7 +10279,7 @@ bool Mario::jumpToHipDrop() {
         _724 = getAnimationStringPointer("スピンヒップドロップ");
         _728 = getAnimationStringPointer("スピンヒップドロップ着地");
         stopEffect("スピンライト");
-        mFlags14.mHighWord |= 0x01000000U;
+        mFlags14.mHighBits.mBit24 = 1;
     } else {
         _720 = getAnimationStringPointer("ヒップドロップ開始");
         _724 = getAnimationStringPointer("ヒップドロップ");
@@ -10399,7 +10360,7 @@ void Mario::procHipDrop() {
         mJumpVec.z *= 0.5f;
     }
 
-    if ((((mMovementStates.mLowWord >> 30) & 1U)) != 0 || isAnimationRun(_728)) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit30))) != 0 || isAnimationRun(_728)) {
         fixFrontVecByGravity();
 
         if (isAnimationRun(_728)) {
@@ -10407,7 +10368,7 @@ void Mario::procHipDrop() {
 
             if (mActor->_334 != 0) {
                 shouldEnd = true;
-            } else if ((((mMovementStates.mLowWord >> 30) & 1U)) == 0 && _3BC > 3 && mVerticalSpeed > 10.0f) {
+            } else if (((static_cast<u32>(mMovementStates.mLowBits.mBit30))) == 0 && _3BC > 3 && mVerticalSpeed > 10.0f) {
                 changeAnimation(_724);
                 mJumpVec = _2F8;
                 goto PROC_HIP_DROP_MOVE;
@@ -10423,7 +10384,7 @@ void Mario::procHipDrop() {
                     shouldEnd = true;
                 }
 
-                if (((mDrawStates.mWord >> 19) & 1U)) {
+                if ((static_cast<u32>(mDrawStates.mBits.mBit19))) {
                     shouldEnd = true;
                 }
             }
@@ -10442,8 +10403,8 @@ void Mario::procHipDrop() {
             }
 
             if (isAnimationTerminate(nullptr) || shouldEnd) {
-                mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-                mMovementStates.mLowWord &= 0xFFEFFFFFU;
+                mMovementStates.mLowBits.mBit31 = 0;
+                mMovementStates.mLowBits.mBit20 = 0;
                 stopAnimation(nullptr, "基本");
                 stopEffect("属性尻ドロップ");
 
@@ -10468,8 +10429,8 @@ void Mario::procHipDrop() {
             }
 
             if (isCurrentFloorSink()) {
-                mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-                mMovementStates.mLowWord &= 0xFFEFFFFFU;
+                mMovementStates.mLowBits.mBit31 = 0;
+                mMovementStates.mLowBits.mBit20 = 0;
                 stopAnimation(nullptr, "基本");
                 mSinkTimer = 200;
                 return;
@@ -10480,12 +10441,12 @@ void Mario::procHipDrop() {
             playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
             startPadVib("最強");
             startCamVib(0);
-            mDrawStates.mWord |= 0x00000800U;
+            mDrawStates.mBits.mBit11 = 1;
             MR::removeAllClingingKarikari();
 
             if (_960 == 0x1B || _960 == 0x1C || _960 == 9) {
-                mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-                mMovementStates.mLowWord &= 0xFFEFFFFFU;
+                mMovementStates.mLowBits.mBit31 = 0;
+                mMovementStates.mLowBits.mBit20 = 0;
                 stopAnimation(nullptr, "基本");
                 return;
             }
@@ -10495,8 +10456,8 @@ void Mario::procHipDrop() {
             clearSlope();
 
             if (mActor->_B90) {
-                mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-                mMovementStates.mLowWord &= 0xFFEFFFFFU;
+                mMovementStates.mLowBits.mBit31 = 0;
+                mMovementStates.mLowBits.mBit20 = 0;
             }
         }
 
@@ -10508,10 +10469,10 @@ void Mario::procHipDrop() {
             _422++;
             if (_422 == 0xF) {
                 stopAnimation(nullptr, "基本");
-                mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-                mMovementStates.mLowWord &= 0xFFEFFFFFU;
+                mMovementStates.mLowBits.mBit31 = 0;
+                mMovementStates.mLowBits.mBit20 = 0;
                 mJumpVec.zero();
-                mMovementStates.mLowWord |= 0x40000000U;
+                mMovementStates.mLowBits.mBit30 = 1;
                 return;
             }
         }
@@ -10525,7 +10486,7 @@ PROC_HIP_DROP_MOVE:
 
     addVelocity(moveVec);
 
-    if (!((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         const f32 speedRate = MR::clamp(0.1f + (1.0f - (mJumpVec.length() / mActor->getConst().getTable()->mLimitSpeedHipDrop)), 0.0f, 1.0f);
         gravityHipDrop = mActor->getConst().getTable()->mGravityHipDrop;
 
@@ -10552,7 +10513,7 @@ PROC_HIP_DROP_MOVE:
             mJumpVec.setLength(mActor->getConst().getTable()->mLimitSpeedHipDrop);
         }
 
-        if (((mFlags14.mHighWord >> 24) & 1U) && isAnimationRun("スピンヒップドロップ")) {
+        if ((static_cast<u32>(mFlags14.mHighBits.mBit24)) && isAnimationRun("スピンヒップドロップ")) {
             playSound("スピン尻ドロップ落下");
 
             Triangle strikeTriangles[0x20];
@@ -10597,8 +10558,8 @@ PROC_HIP_DROP_MOVE:
                 }
             }
 
-            if ((((mMovementStates.mLowWord >> 23) & 1U)) || (((mMovementStates.mLowWord >> 5) & 1U)) || (((mMovementStates.mLowWord >> 6) & 1U))) {
-                mFlags14.mHighWord &= 0xFEFFFFFFU;
+            if (((static_cast<u32>(mMovementStates.mLowBits.mBit23))) || ((static_cast<u32>(mMovementStates.mLowBits.mBit5))) || ((static_cast<u32>(mMovementStates.mLowBits.mBit6)))) {
+                mFlags14.mHighBits.mBit24 = 0;
             }
         }
 
@@ -10616,7 +10577,7 @@ void Mario::doAirWalk() {
         return;
     }
 
-    if (((mMovementStates.mHighWord >> 16) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit16))) {
         return;
     }
 
@@ -10624,9 +10585,9 @@ void Mario::doAirWalk() {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 2) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit2))) {
         if (_3BC > mActor->getConst().getTable()->mWaitNeutralTimer) {
-            mMovementStates.mLowWord &= 0xFFFFFFFBU;
+            mMovementStates.mLowBits.mBit2 = 0;
         }
 
         return;
@@ -10652,7 +10613,7 @@ void Mario::doAirWalk() {
         moveDir.zero();
     }
 
-    if (((mDrawStates.mWord >> 18) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit18))) {
         if (MR::diffAngleAbs(getAirGravityVec(), _2EC) > 0.7853982f) {
             TVec3f sideVec;
             sideVec.cross(mFrontVec, getAirGravityVec());
@@ -10686,7 +10647,7 @@ void Mario::doAirWalk() {
             reduceBegin = mActor->getConst().getTable()->mSquatJumpFrontReductionBTime;
         }
 
-        if (((mFlags14.mLowWord >> 8) & 1U) && _8D8 == _45C->mSensor) {
+        if ((static_cast<u32>(mFlags14.mLowBits.mBit8)) && _8D8 == _45C->mSensor) {
             reduceBegin = 0xB4;
             if (MR::isSameMtx(_8E8->getBaseMtx()->toMtxPtr(), _8E8->getPrevBaseMtx()->toMtxPtr())) {
                 MR::vecKillElement(_8DC, getAirGravityVec(), &_8DC);
@@ -10695,7 +10656,7 @@ void Mario::doAirWalk() {
             }
         }
 
-        if ((((mMovementStates.mLowWord >> 14) & 1U)) == 0 && _3BC > reduceBegin) {
+        if (((static_cast<u32>(mMovementStates.mLowBits.mBit14))) == 0 && _3BC > reduceBegin) {
             const f32 jumpGravity = cutGravityElementFromJumpVec(true);
             const f32 jumpMag = mJumpVec.length();
             mJumpVec.setLength(frontReduction * jumpMag);
@@ -10703,8 +10664,8 @@ void Mario::doAirWalk() {
             mJumpVec += getAirGravityVec() * jumpGravity;
         }
     } else {
-        if (!isRising() && mVerticalSpeed < mActor->getConst().getTable()->mLandTurnHeight && (((mMovementStates.mLowWord >> 14) & 1U)) == 0) {
-            mMovementStates.mLowWord |= 0x00008000U;
+        if (!isRising() && mVerticalSpeed < mActor->getConst().getTable()->mLandTurnHeight && ((static_cast<u32>(mMovementStates.mLowBits.mBit14))) == 0) {
+            mMovementStates.mLowBits.mBit15 = 1;
         } else {
             _3CA++;
         }
@@ -10720,7 +10681,7 @@ void Mario::doAirWalk() {
             speedKiller = 0.0f;
         }
 
-        if (((mMovementStates.mLowWord >> 14) & 1U)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit14))) {
             moveDir = sideMove + mFrontVec * mActor->getConst().getTable()->mAirWalkBackBonus * frontDot;
         } else {
             moveDir = sideMove + mFrontVec * frontDot * speedKiller;
@@ -10822,16 +10783,16 @@ void Mario::stopJump() {
     fixFrontVecByGravity();
     mJumpVec.zero();
 
-    mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-    mMovementStates.mLowWord &= 0xFFEFFFFFU;
-    mMovementStates.mLowWord &= 0xFDFFFFFFU;
+    mMovementStates.mLowBits.mBit31 = 0;
+    mMovementStates.mLowBits.mBit20 = 0;
+    mMovementStates.mLowBits.mBit25 = 0;
 
-    mMovementStates.mHighWord &= 0xFF7FFFFFU;
-    mMovementStates.mHighWord &= 0xFFEFFFFFU;
+    mMovementStates.mHighBits.mBit23 = 0;
+    mMovementStates.mHighBits.mBit20 = 0;
 
-    mFlags14.mLowWord &= 0xFFFFFEFFU;
-    mFlags14.mLowWord &= 0xFFFFFFBFU;
-    mFlags14.mLowWord &= 0xFFFFFFFEU;
+    mFlags14.mLowBits.mBit8 = 0;
+    mFlags14.mLowBits.mBit6 = 0;
+    mFlags14.mLowBits.mBit0 = 0;
 
     if (getPlayerMode() != 4) {
         _402 = mActor->getConst().getTable()->mAirWalkTime;
@@ -10857,14 +10818,14 @@ void Mario::stopJump() {
 void Mario::cancelTornadoJump() {
     _430 = 0;
 
-    if ((((mMovementStates.mLowWord >> 30) & 1U)) == 0) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit30))) == 0) {
         stopAnimation("スピンジャンプ", "落下");
     } else {
         stopAnimation("スピンジャンプ");
     }
 
     _4B0 = mPosHolder->mPos;
-    mMovementStates.mHighWord |= 0x00100000U;
+    mMovementStates.mHighBits.mBit20 = 1;
     _426 = 0;
 }
 
@@ -10906,7 +10867,7 @@ void Mario::checkAndTryForceJump() {
     bool doForceJump = false;
     TVec3f forceJumpVec;
 
-    if ((((getMovementStates().mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) || isAnimationRun(_728)) {
+    if ((((getMovementStates().mLowWord >> 30) & 1U) && !(static_cast<u32>(mMovementStates.mLowBits.mBit31))) || isAnimationRun(_728)) {
         switch (_960) {
         case 0x6:
         case 0x22: {
@@ -10945,7 +10906,7 @@ void Mario::checkAndTryForceJump() {
         }
     }
 
-    if (((mMovementStates.mHighWord >> 18) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit18))) {
         doForceJump = false;
 
         if (mActor->mHealth != 0) {
@@ -10957,10 +10918,10 @@ void Mario::checkAndTryForceJump() {
             tryForceFreeJump(_304);
         }
 
-        mMovementStates.mHighWord &= 0xFFFBFFFFU;
+        mMovementStates.mHighBits.mBit18 = 0;
     }
 
-    if (((mMovementStates.mHighWord >> 17) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit17))) {
         doForceJump = false;
 
         if (mActor->mHealth != 0) {
@@ -10971,7 +10932,7 @@ void Mario::checkAndTryForceJump() {
             tryFreeJump(_304, true);
         }
 
-        mMovementStates.mHighWord &= 0xFFFDFFFFU;
+        mMovementStates.mHighBits.mBit17 = 0;
     }
 
     if (doForceJump) {
@@ -10985,8 +10946,8 @@ void Mario::checkAndTryForceJump() {
             closeStatus(nullptr);
         }
 
-        mMovementStates.mHighWord |= 0x40000000U;
-        mMovementStates.mHighWord |= 0x00020000U;
+        mMovementStates.mHighBits.mBit30 = 1;
+        mMovementStates.mHighBits.mBit17 = 1;
         _304 = forceJumpVec;
         changeAnimation("フリージャンプ");
 
@@ -11009,11 +10970,11 @@ void Mario::doLanding() {
     bool blend = false;
     bool keepSlip = false;
     if (getPlayerMode() == 6) return;
-    mMovementStates.mLowWord &= 0x7FFFFFFF;
-    mFlags14.mLowWord &= 0xFFFFFFFE;
-    mFlags14.mHighWord &= 0xBFFFFFFF;
+    mMovementStates.mLowBits.mBit31 = 0;
+    mFlags14.mLowBits.mBit0 = 0;
+    mFlags14.mHighBits.mBit30 = 0;
     _3CE = 0;
-    mFlags20.mWord |= 0x2000;
+    mFlags20.mBits.mBit13 = 1;
     TVec3f delta(mPosHolder->mPos);
     delta -= _4B0;
     f32 distance = MR::abs(delta.dot(*getGravityVec()));
@@ -11021,9 +10982,9 @@ void Mario::doLanding() {
         stopAnimation(nullptr, "基本");
         return;
     }
-    if (mActor->_EEB && ((mMovementStates.mHighWord >> 20) & 1)) {
-        if (((mFlags14.mLowWord >> 6) & 1) && _430 != 3) {
-            mFlags14.mLowWord &= 0xFFFFFFBF;
+    if (mActor->_EEB && (static_cast<u32>(mMovementStates.mHighBits.mBit20))) {
+        if ((static_cast<u32>(mFlags14.mLowBits.mBit6)) && _430 != 3) {
+            mFlags14.mLowBits.mBit6 = 0;
             mActor->_946 = 16;
         }
     }
@@ -11043,7 +11004,7 @@ void Mario::doLanding() {
     }
     if (_430 == 5 && isSkatableFloor()) {
         if (checkSquat(false)) {
-            mMovementStates.mLowWord |= 0x200000;
+            mMovementStates.mLowBits.mBit21 = 1;
             mWalkSpeed = 1.0f;
             if (isAnimationRun("カリカリ限界")) stopAnimationUpper(nullptr, nullptr);
             stopAnimation(nullptr, "しゃがみ基本");
@@ -11058,7 +11019,7 @@ void Mario::doLanding() {
         stopAnimation(nullptr, "基本");
         return;
     }
-    if ((getPlayer()->mFlags14.mLowWord >> 29) & 1) {
+    if (static_cast<u32>(getPlayer()->mFlags14.mLowBits.mBit29)) {
         Mario* player = getPlayer();
         player->mFlags14.mLowWord &= ~0x20000000;
         _430 = 14;
@@ -11118,7 +11079,7 @@ COMMON_LANDING:
         else startPadVib(3);
     } else startPadVib(static_cast<u32>(0));
     getAnimator()->addRumblePower(5.0f, 60);
-    mMovementStates.mHighWord &= 0xBFFFFFFF;
+    mMovementStates.mHighBits.mBit30 = 0;
     if (getPlayerMode() != 4) _402 = mActor->mConst->getTable()->mAirWalkTime;
     else _71E = 0;
     if (!isSoftLandingFloor()) {
@@ -11182,18 +11143,18 @@ COMMON_LANDING:
         }
     }
 #endif
-    if (hard || ((mDrawStates.mWord >> 19) & 1) || _430 == 14 || isAnimationRun("飛び込みジャンプ") || isAnimationRun("後方飛び込みジャンプ") || ((mFlags14.mLowWord >> 23) & 1) || isAnimationRun("水上ダメージ中")) {
+    if (hard || (static_cast<u32>(mDrawStates.mBits.mBit19)) || _430 == 14 || isAnimationRun("飛び込みジャンプ") || isAnimationRun("後方飛び込みジャンプ") || (static_cast<u32>(mFlags14.mLowBits.mBit23)) || isAnimationRun("水上ダメージ中")) {
         fn_803A0490(hard, blend);
         return;
     }
     if (_430 == 5 && checkSquat(false)) {
-        mMovementStates.mLowWord |= 0x200000;
+        mMovementStates.mLowBits.mBit21 = 1;
         mWalkSpeed = 1.0f;
         if (isAnimationRun("カリカリ限界")) stopAnimationUpper(nullptr, nullptr);
         stopAnimation(nullptr, "しゃがみ基本");
-    } else if (((isStickFull() || _60D) && _3CA == 0) || (!((mMovementStates.mLowWord >> 20) & 1) && checkSquat(false))) {
+    } else if (((isStickFull() || _60D) && _3CA == 0) || (!(static_cast<u32>(mMovementStates.mLowBits.mBit20)) && checkSquat(false))) {
         stopAnimation(nullptr, "基本");
-        if (!((mFlags14.mLowWord >> 21) & 1)) recordTurnSlipAngle();
+        if (!(static_cast<u32>(mFlags14.mLowBits.mBit21))) recordTurnSlipAngle();
         if (_430 == 5) cancelSquatMode();
     } else {
         fn_803A02F0(keepSlip, hard, blend);
@@ -11201,11 +11162,11 @@ COMMON_LANDING:
 #ifdef GALAXY_NATIVE
 POST_LANDING:;
 #endif
-    if ((mDrawStates.mWord >> 19) & 1) {
+    if (static_cast<u32>(mDrawStates.mBits.mBit19)) {
         TVec3f horizontal;
         MR::vecKillElement(mJumpVec, *getGravityVec(), &horizontal);
         if (horizontal.dot(*mGroundPolygon->getNormal(0)) > 0.0f) {
-            mMovementStates.mHighWord |= 0x10000000;
+            mMovementStates.mHighBits.mBit28 = 1;
             _8F0 = 10.0f;
         } else {
             f32 ratio = (90.0f - calcPolygonAngleD(mGroundPolygon)) / 90.0f;
@@ -11247,7 +11208,7 @@ void MarioJump_FORCE_MATCH_DATA() {
 bool Mario::taskOnWallRising(u32 a1) {
     (void)a1;
 
-    if ((((mMovementStates.mLowWord >> 8) & 1U)) == 0) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit8))) == 0) {
         stopEffect("共通壁上昇");
         return false;
     }
@@ -11314,7 +11275,7 @@ void Mario::startMagic() {
                         clearSlope();
                         changeStatus(mMagic);
                         stopAnimationUpper(nullptr);
-                        mFlags14.mLowWord |= 0x40000000U;
+                        mFlags14.mLowBits.mBit30 = 1;
                     }
                 }
             }
@@ -11328,31 +11289,31 @@ void Mario::startMagic() {
 
 
 bool Mario::isEnableTurn() {
-    if (!((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 27) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit27))) {
         return false;
     }
 
-    if (((mDrawStates.mWord >> 26) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit26))) {
         return false;
     }
 
-    if (((mMovementStates.mHighWord >> 28) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
         return false;
     }
 
-    if (((mMovementStates.mHighWord >> 11) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit11))) {
         return false;
     }
 
-    if (((mDrawStates.mWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit21))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         return false;
     }
 
@@ -11408,7 +11369,7 @@ bool Mario::isEnableTurn() {
         return false;
     }
 
-    if (((mMovementStates.mHighWord >> 8) & 1U) || ((mFlags14.mLowWord >> 10) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit8)) || (static_cast<u32>(mFlags14.mLowBits.mBit10))) {
         return false;
     }
 
@@ -11461,7 +11422,7 @@ void Mario::calcShadowDir(const TVec3f& rInput, TVec3f* pShadowDir) {
         MR::normalizeOrZero(&direction);
     }
 
-    if (((mMovementStates.mHighWord >> 8) & 1U) || ((mFlags14.mLowWord >> 10) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit8)) || (static_cast<u32>(mFlags14.mLowBits.mBit10))) {
         calcShadowDir2D(direction, pShadowDir);
         return;
     }
@@ -11482,28 +11443,28 @@ void Mario::calcShadowDir(const TVec3f& rInput, TVec3f* pShadowDir) {
 void Mario::retainMoveDir(f32 stickX, f32 stickY) {
     f32 angle = MR::atan2(stickY, stickX);
     f32 difference = fn_803A3780(angle);
-    if (((mFlags14.mLowWord >> 20) & 1) && isStickOn()) {
-        mFlags14.mLowWord &= 0xFFEFFFFF;
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit20)) && isStickOn()) {
+        mFlags14.mLowBits.mBit20 = 0;
     }
     f32 limit = 0.06f;
     if (_3CE < 2) {
         limit = 0.1f;
     }
     bool retain = true;
-    mDrawStates.mWord |= 0x200;
-    if ((mMovementStates.mLowWord >> 31) && !((mFlags14.mLowWord >> 21) & 1)) {
+    mDrawStates.mBits.mBit9 = 1;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !(static_cast<u32>(mFlags14.mLowBits.mBit21))) {
         retain = false;
     }
-    if ((mMovementStates.mLowWord >> 31) && ((mMovementStates.mLowWord >> 23) & 1)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && (static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         retain = false;
     }
-    if ((mMovementStates.mLowWord >> 31) && !isAnimationRun(nullptr)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && !isAnimationRun(nullptr)) {
         retain = false;
     }
     if (difference < limit && isStickOn() && retain) {
-        if (_40E == 0 || (((mFlags14.mLowWord >> 21) & 1) && (mMovementStates.mLowWord >> 31))) {
+        if (_40E == 0 || ((static_cast<u32>(mFlags14.mLowBits.mBit21)) && (static_cast<u32>(mMovementStates.mLowBits.mBit31)))) {
             _40E = 0;
-            mDrawStates.mWord |= 0x40000;
+            mDrawStates.mBits.mBit18 = 1;
         } else {
             if (_40E != 0) {
                 _40E--;
@@ -11512,19 +11473,19 @@ void Mario::retainMoveDir(f32 stickX, f32 stickY) {
             _2A8 = *getGravityVec();
         }
     } else {
-        if (mMovementStates.mLowWord >> 31) {
+        if (static_cast<u32>(mMovementStates.mLowBits.mBit31)) {
             if (isStickOn()) {
-                mFlags14.mLowWord &= 0xFFDFFFFF;
+                mFlags14.mLowBits.mBit21 = 0;
             }
         } else {
-            mFlags14.mLowWord |= 0x200000;
+            mFlags14.mLowBits.mBit21 = 1;
         }
         if (_40E == 0) {
             _3D4 = 0;
         }
         _40E = 30;
         if (!isStickOn()) {
-            mFlags14.mLowWord |= 0x100000;
+            mFlags14.mLowBits.mBit20 = 1;
         }
         _29C = _368;
         _2A8 = *getGravityVec();
@@ -11534,15 +11495,15 @@ void Mario::retainMoveDir(f32 stickX, f32 stickY) {
 
 
 void Mario::calcMoveDir(float stickX, float stickY, TVec3f* pMoveDir, bool isDisableMove) {
-    if ((mMovementStates.mHighWord >> 8) & 1) {
+    if (static_cast<u32>(mMovementStates.mHighBits.mBit8)) {
         calcDir2D(stickX, stickY, pMoveDir);
         return;
     }
-    if ((mFlags14.mLowWord >> 10) & 1) {
+    if (static_cast<u32>(mFlags14.mLowBits.mBit10)) {
         calcMoveDir2D(stickX, stickY, pMoveDir);
         return;
     }
-    if ((mMovementStates.mHighWord >> 5) & 1) {
+    if (static_cast<u32>(mMovementStates.mHighBits.mBit5)) {
         calcMoveDir25D(stickX, stickY, pMoveDir);
         return;
     }
@@ -11585,7 +11546,7 @@ void Mario::calcMoveDir(float stickX, float stickY, TVec3f* pMoveDir, bool isDis
         groundX = screenX;
     }
     *pMoveDir = groundX * stickX - groundY * stickY;
-    if ((mFlags14.mLowWord >> 12) & 1) {
+    if (static_cast<u32>(mFlags14.mLowBits.mBit12)) {
         MR::calcPlayerKillVecOnPlane(pMoveDir, *pMoveDir, mPosHolder->mPos, _6F4, _700);
     }
 }
@@ -11608,8 +11569,8 @@ bool Mario::checkLockOnHoming() {
         return false;
     }
 
-    mMovementStates.mLowWord &= 0xFFDFFFFFU;
-    mDrawStates.mWord |= 0x04000000U;
+    mMovementStates.mLowBits.mBit21 = 0;
+    mDrawStates.mBits.mBit26 = 1;
     doLockOnHoming();
     return true;
 }
@@ -11667,7 +11628,7 @@ void Mario::set25Dmode(const AreaObj* pArea) {
     _6DC = up;
     _6E8.cross(_6D0, _6DC);
     MR::normalize(&_6E8);
-    mMovementStates.mHighWord |= 0x00000020U;
+    mMovementStates.mHighBits.mBit5 = 1;
 }
 
 
@@ -11723,11 +11684,11 @@ void Mario::update25Dmode() {
 
     if (!isStickOn()) {
         mAxisMode6A4 = mode;
-        mMovementStates.mHighWord &= 0xFFFFFFEFU;
-    } else if (!((mMovementStates.mHighWord >> 4) & 1U) && mStickPos.z > 0.7f) {
+        mMovementStates.mHighBits.mBit4 = 0;
+    } else if (!(static_cast<u32>(mMovementStates.mHighBits.mBit4)) && mStickPos.z > 0.7f) {
         _6C8.set(mStickPos.x, mStickPos.y);
         mAxisMode6A4 = mode;
-        mMovementStates.mHighWord |= 0x00000010U;
+        mMovementStates.mHighBits.mBit4 = 1;
     } else {
         TVec2f stick(mStickPos.x, mStickPos.y);
         if (MR::diffAngleAbs(_6C8, stick) >= 0.7853982f) {
@@ -11739,7 +11700,7 @@ void Mario::update25Dmode() {
 
 
 void Mario::updateAxisFromMode(u8 mode) {
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         return;
     }
 
@@ -11834,14 +11795,14 @@ void Mario::calcMoveDir25D(f32 x, f32 y, TVec3f* pDirection) {
 // ---- MarioMove2D.cpp ----
 
 void Mario::check2DMode() {
-    mMovementStates.mHighWord &= 0xFFFFFEFFU;
-    mFlags14.mLowWord &= 0xFFFFFBFFU;
+    mMovementStates.mHighBits.mBit8 = 0;
+    mFlags14.mLowBits.mBit10 = 0;
 
     AreaObj* previousArea = mPlaneModeArea;
     AreaObj* area = MR::getAreaObj("PlaneModeCube", mPosHolder->mPos);
     mPlaneModeArea = area;
     if (area != nullptr) {
-        mMovementStates.mHighWord |= 0x00000100U;
+        mMovementStates.mHighBits.mBit8 = 1;
 
         TVec3f rotate;
         MR::calcCubeRotate(area, &rotate);
@@ -11859,7 +11820,7 @@ void Mario::check2DMode() {
             TVec3f rotate;
             MR::calcCubeRotate(area, &rotate);
             PSMTXCopy(MR::tmpMtxRotYDeg(rotate.y), _F4);
-            mFlags14.mLowWord |= 0x00000400U;
+            mFlags14.mLowBits.mBit10 = 1;
 
             if (!((_28 >> 10) & 1)) {
                 _688 = mPosHolder->mPos;
@@ -11869,12 +11830,12 @@ void Mario::check2DMode() {
         }
     }
 
-    mMovementStates.mHighWord &= 0xFFFFFFDFU;
+    mMovementStates.mHighBits.mBit5 = 0;
     area = MR::getAreaObj("PipeModeCube", mPosHolder->mPos);
     if (area != nullptr) {
         set25Dmode(area);
     }
-    mActor->fn_803D8A30((mMovementStates.mHighWord >> 8) & 1U, mSwimSideVec694);
+    mActor->fn_803D8A30(static_cast<u32>(mMovementStates.mHighBits.mBit8), mSwimSideVec694);
 
 }
 
@@ -11930,7 +11891,7 @@ void Mario::calcShadowDir2D(const TVec3f& rVec, TVec3f* pOut) {
 void Mario::stick2Dadjust(f32& rStickX, f32& rStickY) {
     bool isNearHalfPi = false;
 
-    if (((mFlags14.mLowWord & Mario::MovementStates::Turning) >> 28) && ((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if (((mFlags14.mLowWord & Mario::MovementStates::Turning) >> 28) && (static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         mFlags14.mLowWord &= ~Mario::MovementStates::Turning;
         clear2DStick();
     }
@@ -12218,15 +12179,15 @@ bool Mario::checkPressDamage() {
 
 // NONMATCHING: temporary/register allocation and independent load scheduling.
 bool Mario::checkVerticalPress(bool atCurrentPosition) {
-    if ((mMovementStates.mLowWord >> 9) & 1) return false;
+    if (static_cast<u32>(mMovementStates.mLowBits.mBit9)) return false;
     TVec3f position;
     if (isStatusActive(5)) position = mActor->_240;
     else position = mPosHolder->mPos;
     if (!atCurrentPosition && mActor->_390 == 0) position += mVelocity;
     f32 height;
-    if ((mMovementStates.mLowWord >> 21) & 1) height = 80.0f;
+    if (static_cast<u32>(mMovementStates.mLowBits.mBit21)) height = 80.0f;
     else height = 160.0f;
-    if (((getPlayer()->mFlags20.mWord >> 16) & 1) && ((getPlayer()->mMovementStates.mLowWord >> 30) & 1)) {
+    if ((static_cast<u32>(getPlayer()->mFlags20.mBits.mBit16)) && (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30))) {
         if (_4C8->isValid() && MR::isGroundCodePress(_4C8)) {
             if (mGroundPolygon->mSensor != _4C8->mSensor) {
                 f32 distance = _72C;
@@ -12304,7 +12265,7 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
             displacement = delta;
             displacement.setLength(150.0f - distance);
         }
-        if ((mMovementStates.mLowWord >> 30) & 1) {
+        if (static_cast<u32>(mMovementStates.mLowBits.mBit30)) {
             if (mGroundPolygon->mSensor == ceiling.mSensor) {
                 f32 length = PSVECMag(&displacement);
                 TVec3f pushDirection(*ceiling.getNormal(0));
@@ -12331,7 +12292,7 @@ bool Mario::checkSidePressPre() {
     if (_5FC) {
         return false;
     }
-    if (((mMovementStates.mLowWord >> 23) & 1U) && ((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && (static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         if ((_4F4 - _4E8).length() < 100.0f && mFrontWallTriangle->mSensor != mBackWallTriangle->mSensor &&
             (MR::isSensorPressObj(mFrontWallTriangle->mSensor) || MR::isSensorPressObj(mBackWallTriangle->mSensor))) {
             if (isDossun(mFrontWallTriangle) || isDossun(mBackWallTriangle)) {
@@ -12342,7 +12303,7 @@ bool Mario::checkSidePressPre() {
                 return true;
             }
         }
-    } else if (isStatusActive(MarioStatus_Hang) && ((mMovementStates.mLowWord >> 6) & 1U) && _8C8->isValid() && _8C8->mSensor != mBackWallTriangle->mSensor &&
+    } else if (isStatusActive(MarioStatus_Hang) && (static_cast<u32>(mMovementStates.mLowBits.mBit6)) && _8C8->isValid() && _8C8->mSensor != mBackWallTriangle->mSensor &&
                (MR::isSensorPressObj(_8C8->mSensor) || MR::isSensorPressObj(mBackWallTriangle->mSensor))) {
         if (isDossun(_8C8) || isDossun(mBackWallTriangle)) {
             return false;
@@ -12367,7 +12328,7 @@ bool Mario::checkSidePress() {
     }
     f32 radius;
     f32 height;
-    if (((mMovementStates.mLowWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         radius = 50.0f;
         height = 40.0f;
     } else {
@@ -12415,16 +12376,16 @@ bool Mario::checkSidePress() {
                 if (fn_803B4850(first->mParentTriangle.mSensor) || fn_803B4850(second->mParentTriangle.mSensor) ||
                     (first->mParentTriangle.mSensor != second->mParentTriangle.mSensor && (fn_803B2E10(&first->mParentTriangle) || fn_803B2E10(&second->mParentTriangle)))) {
                     if (isStatusActive(MarioStatus_Hang)) {
-                        mMovementStates.mLowWord &= 0xBFFFFFFFU;
+                        mMovementStates.mLowBits.mBit30 = 0;
                         closeStatus(mHang);
                     }
-                    if (!((mMovementStates.mLowWord >> 30) & 1U) && MR::abs(firstNormal.dot(*getGravityVec())) < 0.707f) {
+                    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit30)) && MR::abs(firstNormal.dot(*getGravityVec())) < 0.707f) {
                         if (!first->isCollisionAtFace()) {
                             TVec3f horizontal;
                             f32 vertical = MR::vecKillElement(first->mHitPos - center, *getGravityVec(), &horizontal);
                             if (vertical != 0.0f) {
                                 addVelocity(*getGravityVec() * -vertical);
-                                mDrawStates.mWord |= 0x00000002U;
+                                mDrawStates.mBits.mBit1 = 1;
                                 continue;
                             }
                         }
@@ -12433,7 +12394,7 @@ bool Mario::checkSidePress() {
                             f32 vertical = MR::vecKillElement(second->mHitPos - center, *getGravityVec(), &horizontal);
                             if (vertical != 0.0f) {
                                 addVelocity(*getGravityVec() * -vertical);
-                                mDrawStates.mWord |= 0x00000002U;
+                                mDrawStates.mBits.mBit1 = 1;
                                 continue;
                             }
                         }
@@ -12473,7 +12434,7 @@ bool Mario::checkSidePress() {
                     s32 previousFloorCode = _95C->getCode(_45C);
                     if (previousFloorCode != _95C->getCode(mGroundPolygon) && MR::isSensorPressObj(mGroundPolygon->mSensor) &&
                         mVerticalSpeed >= 200.0f) {
-                        mDrawStates.mWord |= 0x00200000U;
+                        mDrawStates.mBits.mBit21 = 1;
                         TVec3f delta(mShadowPos);
                         delta -= mGroundPos;
                         MR::isNearZero(mAirGravityVec, 0.001f);
@@ -12500,7 +12461,7 @@ bool Mario::checkSidePress() {
                     return true;
                 }
             }
-            if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit31))) {
                 MR::diffAngleAbsHorizontal(firstNormal, secondNormal, getAirGravityVec());
                 f32 normalDot = firstNormal.dot(secondNormal);
                 TVec3f tangent;
@@ -12523,7 +12484,7 @@ bool Mario::checkSidePress() {
                     }
                 } else if (normalDot < -0.707f && separation < 100.0f && distance < 80.0f) {
                     cutGravityElementFromJumpVec(true);
-                    mMovementStates.mLowWord |= 0x40000000U;
+                    mMovementStates.mLowBits.mBit30 = 1;
                     stopJump();
                 }
             }
@@ -12588,7 +12549,7 @@ bool Mario::doRecovery() {
 
 bool Mario::checkWallJumpCode() {
     if (checkWallFloorCode(11) || checkWallFloorCode(6) || checkWallFloorCode(34) || checkWallFloorCode(7) || checkWallFloorCode(8)) {
-        if (((mMovementStates.mLowWord >> 30) & 1U) || isAnimationRun(_728)) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) || isAnimationRun(_728)) {
             stopWalk();
             push(getWallNorm() * 10.0f);
             tryPushToVelocity();
@@ -12629,7 +12590,7 @@ bool Mario::doSideStep() {
     if (mActor->_468) {
         return false;
     }
-    if ((mFlags20.mWord >> 26) & 1) {
+    if (static_cast<u32>(mFlags20.mBits.mBit26)) {
         return false;
     }
     if (_72C < 200.0f) {
@@ -12655,7 +12616,7 @@ bool Mario::doSideStep() {
     if (_960 == 2) {
         return false;
     }
-    if (!((getPlayer()->mMovementStates.mLowWord >> 23) & 1)) {
+    if (!(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit23))) {
         return false;
     }
     const Triangle* wall = getPlayer()->getWallPolygon();
@@ -12727,9 +12688,9 @@ bool Mario::checkSliderMode() const {
 
 void Mario::startSlider() {
     if (!isStatusActive(mSlider->mStatusId)) {
-        if (((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
-            if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
-                mDrawStates.mWord |= 0x00000800U;
+        if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit20))) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit31))) {
+                mDrawStates.mBits.mBit11 = 1;
                 playSound("尻ドロップ着地");
                 playSound("声尻ドロップ着地");
                 playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
@@ -12749,7 +12710,7 @@ void Mario::startSlider() {
 
 void Mario::clearSlope() {
     _8F0 = 0.0f;
-    mMovementStates.mHighWord &= 0xEFFFFFFFU;
+    mMovementStates.mHighBits.mBit28 = 0;
     _8F8.zero();
     _280 = 0.0f;
     _910.zero();
@@ -12764,7 +12725,7 @@ void Mario::clearSlope() {
 bool Mario::isEnableSlopeMove() const {
     const bool isNotSlipFloor = !isSlipFloorCode(_960);
     if (isNotSlipFloor) {
-        if (!((mMovementStates.mHighWord >> 28) & 1U)) {
+        if (!(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
             if (MR::isNearZero(_8F8)) {
                 return false;
             }
@@ -13144,7 +13105,7 @@ void Mario::slopeMove() {
 
 void Mario::moveSlopeSlide() {
     if (calcAngleD(_368) < 5.8f) {
-        if (((mDrawStates.mWord >> 19) & 1U)) {
+        if ((static_cast<u32>(mDrawStates.mBits.mBit19))) {
             const TVec3f* pWorldPadDir = &getWorldPadDir();
             f32 speed = _16C.length();
             if (_910.length() < speed) {
@@ -13210,32 +13171,32 @@ bool Mario::taskOnSlipTurn(u32) {
 
 void Mario::lockGroundCheck(void* owner, bool simple) {
     _574 = owner;
-    { const u32 flagValue = static_cast<u32>(simple); u32& flags = mFlags14.mLowWord; flags = (flags & 0xFBFFFFFFU) | ((flagValue & 1U) << 26); }
-    mFlags14.mLowWord |= 0x08000000U;
-    { const u32 flagValue = static_cast<u32>(simple); u32& flags = mMovementStates.mHighWord; flags = (flags & 0xFFFFFDFFU) | ((flagValue & 1U) << 9); }
+    mFlags14.mLowBits.mBit26 = simple;
+    mFlags14.mLowBits.mBit27 = 1;
+    mMovementStates.mHighBits.mBit9 = simple;
 }
 
 
 void Mario::unlockGroundCheck(void* owner) {
     if (!owner || _574 == owner) {
         _574 = nullptr;
-        mFlags14.mLowWord &= 0xF7FFFFFFU;
+        mFlags14.mLowBits.mBit27 = 0;
     }
 }
 
 
 bool Mario::isUseSimpleGroundCheck() const {
-    if (((mFlags14.mLowWord >> 27) & 1U)) {
-        return ((mFlags14.mLowWord >> 26) & 1U);
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit27))) {
+        return (static_cast<u32>(mFlags14.mLowBits.mBit26));
     }
-    if (((mMovementStates.mHighWord >> 28) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
         return true;
     }
     if (isPlayerModeTeresa()) {
         return true;
     }
-    if (!((mMovementStates.mLowWord >> 30) & 1U)) {
-        return ((mMovementStates.mHighWord >> 28) & 1U);
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
+        return (static_cast<u32>(mMovementStates.mHighBits.mBit28));
     }
     if (calcAngleD(_368) > mActor->getConst().getTable()->mFlatAngle - 5.0f) {
         Triangle ground;
@@ -13279,16 +13240,16 @@ bool Mario::checkGroundOnSlope() {
     Triangle ground;
     bool hit;
     bool missingGround = false;
-    mMovementStates.mLowWord |= 0x00000800U;
+    mMovementStates.mLowBits.mBit11 = 1;
     f32 distance;
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && isRising()) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising()) {
         distance = 10.0f;
     } else if (_414) {
         distance = 20.0f;
     } else {
         distance = 60.0f;
     }
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         f32 angle = calcAngleD(_368) - 30.0f;
         if (angle < 0.0f) {
             angle = 0.0f;
@@ -13334,39 +13295,39 @@ bool Mario::checkGroundOnSlope() {
     if (!groundCount) {
         missingGround = true;
     }
-    if (((mMovementStates.mLowWord >> 18) & 1U) && getGravityVec()->dot(mGroundPos - mPosHolder->mPos) >= 0.0f) {
-        mMovementStates.mLowWord &= 0xFFFBFFFFU;
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit18)) && getGravityVec()->dot(mGroundPos - mPosHolder->mPos) >= 0.0f) {
+        mMovementStates.mLowBits.mBit18 = 0;
         TVec3f offset(mGroundPos - mPosHolder->mPos);
         f32 vertical = MR::vecKillElement(offset, *getGravityVec(), &offset);
         addTrans(*getGravityVec() * vertical);
         return true;
     }
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && isRising()) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && isRising()) {
         return false;
     }
     if (missingGround) {
-        mMovementStates.mLowWord |= 0x00000800U;
+        mMovementStates.mLowBits.mBit11 = 1;
         return false;
     }
-    mMovementStates.mLowWord &= 0xFFFFF7FFU;
+    mMovementStates.mLowBits.mBit11 = 0;
     TVec3f down(-_368);
     TVec3f position(mGroundPos);
-    if (((mFlags14.mHighWord >> 29) & 1U)) {
-        mFlags14.mHighWord &= 0xDFFFFFFFU;
-        mFlags20.mWord |= 0x00080000U;
-    } else if ((((mMovementStates.mHighWord >> 28) & 1U) || mTargetWalkSpeedIndex) && getPlayerMode() != PlayerMode_Teresa) {
+    if ((static_cast<u32>(mFlags14.mHighBits.mBit29))) {
+        mFlags14.mHighBits.mBit29 = 0;
+        mFlags20.mBits.mBit19 = 1;
+    } else if (((static_cast<u32>(mMovementStates.mHighBits.mBit28)) || mTargetWalkSpeedIndex) && getPlayerMode() != PlayerMode_Teresa) {
         if (MR::abs((position - mPosHolder->mPos).dot(down)) < distance) {
             TVec3f offset(position - mPosHolder->mPos);
             f32 vertical = MR::vecKillElement(offset, down, &offset);
             if (!MR::isNearZero(vertical, 1.0f)) {
-                mDrawStates.mWord &= 0x7FFFFFFFU;
+                mDrawStates.mBits.mBit31 = 0;
                 TVec3f displacement(down * vertical);
                 f32 ratio = MR::clamp(mWalkSpeed, 0.0f, 1.0f);
-                if (!((mMovementStates.mHighWord >> 28) & 1U)) {
+                if (!(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
                     displacement *= ratio;
                 }
                 bool notSlipping = !isSlipFloorCode(_960);
-                if (!notSlipping && !((mDrawStates.mWord >> 27) & 1U) && !((mPrevDrawStates.mWord >> 27) & 1U)) {
+                if (!notSlipping && !(static_cast<u32>(mDrawStates.mBits.mBit27)) && !(static_cast<u32>(mPrevDrawStates.mBits.mBit27))) {
                     mVelocityAfter += displacement;
                 }
             }
@@ -13376,13 +13337,13 @@ bool Mario::checkGroundOnSlope() {
     if (mVerticalSpeed < 5.0f) {
         return true;
     }
-    if (((mDrawStates.mWord >> 25) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit25))) {
         return true;
     }
     if (groundCount) {
         return true;
     }
-    return ((mDrawStates.mWord >> 31) & 1U);
+    return (static_cast<u32>(mDrawStates.mBits.mBit31));
 }
 
 // ---- MarioSound.cpp ----
@@ -13465,7 +13426,7 @@ void Mario::playSoundJ(const char* pSoundName, s32 timing) {
         switch (soundlist[index]._8.mPolicy & ~0x3) {
         case 0x4:
         case 0x8:
-            if (((mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13) || ((mDrawStates.mWord >> 12) & 1U)) {
+            if (((mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13) || (static_cast<u32>(mDrawStates.mBits.mBit12))) {
                 playSoundJ(soundlist[index]._C, -1);
             }
             break;
@@ -13695,7 +13656,7 @@ void Mario::updateOnimasu() {
         return;
     }
 
-    if (!((mFlags14.mLowWord >> 2) & 1U)) {
+    if (!(static_cast<u32>(mFlags14.mLowBits.mBit2))) {
         if (previousPosition.y < -400.0f && localPosition.y > -400.0f) {
             if (MR::isInRange(localPosition.x, -400.0f, 400.0f) && MR::isInRange(localPosition.z, -400.0f, 400.0f)) {
                 localPosition = _600;
@@ -13706,7 +13667,7 @@ void Mario::updateOnimasu() {
             }
         } else if (previousPosition.y > 400.0f && localPosition.y <= 400.0f) {
             if (MR::isInRange(localPosition.x, -400.0f, 400.0f) && MR::isInRange(localPosition.z, -400.0f, 400.0f)) {
-                mFlags14.mLowWord |= 0x00000004U;
+                mFlags14.mLowBits.mBit2 = 1;
                 if (previousPosition.x < -320.0f) {
                     previousPosition.x = -320.0f;
                 } else if (previousPosition.x > 320.0f) {
@@ -13853,7 +13814,7 @@ void Mario::updateOnimasu() {
         if (correctX | correctY | correctZ) {
             TVec3f position;
             PSMTXMultVec(MR::getSensorHost(sensor)->mCollisionParts->mBaseMatrix, &localPosition, &position);
-            if (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U) || ((mMovementStates.mLowWord >> 5) & 1U)) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
                 TVec3f displacement(position - mPosHolder->mPos);
                 if (getWallNorm().dot(displacement) < 0.0f) {
                     addVelocity(-displacement);
@@ -13863,7 +13824,7 @@ void Mario::updateOnimasu() {
             }
         }
     } else if (localPosition.y > 400.0f) {
-        mFlags14.mLowWord &= 0xFFFFFFFBU;
+        mFlags14.mLowBits.mBit2 = 0;
     } else {
         bool corrected = false;
         if (previousPosition.y >= -320.0f && localPosition.y < -320.0f) {
@@ -13934,7 +13895,7 @@ bool Mario::isOnimasuBinderPressSkip() const {
 
 void Mario::checkTornado() {
     if (((mMovementStates.mLowWord >> 30) & 1U)) {
-        mMovementStates.mHighWord &= 0xFFEFFFFFU;
+        mMovementStates.mHighBits.mBit20 = 0;
     }
 }
 
@@ -13943,7 +13904,7 @@ void Mario::resetTornado() {
     _530 = 0.0f;
     _534 = 0;
     _538 = 0.0f;
-    mMovementStates.mLowWord &= 0xFFFEFFFFU;
+    mMovementStates.mLowBits.mBit16 = 0;
     _544 = 0;
     mYAngleOffset = 0.0f;
     _3F0 = 1.0f;
@@ -14005,13 +13966,13 @@ void Mario::forceStopTornado() {
         cancelTornadoJump();
     }
 
-    mDrawStates.mWord |= 0x00800000U;
+    mDrawStates.mBits.mBit23 = 1;
 }
 
 
 void Mario::doSpinWallEffect() {
-    if ((!((mMovementStates.mLowWord >> 23) & 1U) || !mFrontWallTriangle->mSensor->isType(0x4F)) && (!((mMovementStates.mLowWord >> 6) & 1U) || !mBackWallTriangle->mSensor->isType(0x4F)) &&
-        (!((mMovementStates.mLowWord >> 5) & 1U) || !mSideWallTriangle->mSensor->isType(0x4F))) {
+    if ((!(static_cast<u32>(mMovementStates.mLowBits.mBit23)) || !mFrontWallTriangle->mSensor->isType(0x4F)) && (!(static_cast<u32>(mMovementStates.mLowBits.mBit6)) || !mBackWallTriangle->mSensor->isType(0x4F)) &&
+        (!(static_cast<u32>(mMovementStates.mLowBits.mBit5)) || !mSideWallTriangle->mSensor->isType(0x4F))) {
         playSound("壁反射");
         playSound("声スピンキャンセル");
         playEffect("壁スパーク");
@@ -14167,15 +14128,15 @@ bool Mario::isStatusActive(u32 statusId) const {
 
 // NONMATCHING: relocation label; all scalar values verified.
 void Mario::checkStep() {
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         return;
     }
 
-    if (!((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         return;
     }
 
@@ -14216,7 +14177,7 @@ void Mario::checkStep() {
         return;
     }
 
-    if (((mDrawStates.mWord >> 19) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit19))) {
         return;
     }
 
@@ -14224,11 +14185,11 @@ void Mario::checkStep() {
         return;
     }
 
-    if (!((mMovementStates.mLowWord >> 10) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit10))) {
         return;
     }
 
-    if (!((mMovementStates.mHighWord >> 6) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mHighBits.mBit6))) {
         return;
     }
 
@@ -14306,7 +14267,7 @@ void Mario::startStep(const TVec3f& rVec) {
     changeStatus(mStep);
     mVelocity.zero();
     _3D0 = 0;
-    mMovementStates.mLowWord &= 0xFFFF7FFF;
+    mMovementStates.mLowBits.mBit15 = 0;
 }
 
 // ---- MarioStick.cpp ----
@@ -14480,9 +14441,9 @@ bool Mario::checkStartSwim() {
         return false;
     }
 
-    if (((mFlags14.mLowWord >> 24) & 1U) && ((getMovementStates().mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mFlags14.mLowBits.mBit24)) && ((getMovementStates().mLowWord >> 30) & 1U)) {
         getAnimator()->waterToGround();
-        mFlags14.mLowWord &= 0xFEFFFFFFU;
+        mFlags14.mLowBits.mBit24 = 0;
     }
 
     if (!fn_803B2950() && isPlayerModeYoshi()) {
@@ -14547,8 +14508,8 @@ void Mario::startSwim() {
         mSinkTimer = 0;
 
         mMovementStates.mHighWord &= 0xFFFFFFFCU;
-        mMovementStates.mLowWord &= 0xFFFFDFFFU;
-        if (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mLowWord >> 5) & 1U) || ((mMovementStates.mLowWord >> 6) & 1U)) {
+        mMovementStates.mLowBits.mBit13 = 0;
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mLowBits.mBit5)) || (static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
             addVelocity(getWallNorm(), 50.0f);
         }
 
@@ -14562,12 +14523,12 @@ void Mario::startSwim() {
 
 bool Mario::checkWaterDamage() {
     if (((mMovementStates.mLowWord >> 4) & 1U)) {
-        mMovementStates.mLowWord &= 0xFFFFFFEFU;
+        mMovementStates.mLowBits.mBit4 = 0;
         mActor->fn_803BE840(_7C4);
         mSwim->addDamage(_7C4);
         return true;
     } else if (((mMovementStates.mHighWord >> 24) & 1U)) {
-        mMovementStates.mHighWord &= 0xFEFFFFFFU;
+        mMovementStates.mHighBits.mBit24 = 0;
         mActor->fn_803BE840(_7C4);
         mSwim->addFaint(_7C4);
         return true;
@@ -14837,7 +14798,7 @@ void Mario::startHipDropBlur() {
 
 
 bool Mario::taskOnHipDropBlurCloud(u32) {
-    if (!((getPlayer()->mMovementStates.mLowWord >> 20) & 1U) || ((mMovementStates.mLowWord >> 30) & 1U) || isStatusActive(MarioStatus_Swim)) {
+    if (!(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit20)) || (static_cast<u32>(mMovementStates.mLowBits.mBit30)) || isStatusActive(MarioStatus_Swim)) {
         if (gIsLuigi) {
             stopEffect("雲尻落ルイージ");
         } else {
@@ -14852,7 +14813,7 @@ bool Mario::taskOnHipDropBlurCloud(u32) {
 
 
 bool Mario::taskOnHipDropBlur(u32) {
-    if (!((getPlayer()->mMovementStates.mLowWord >> 20) & 1U) || ((mMovementStates.mLowWord >> 30) & 1U) || isStatusActive(MarioStatus_Swim)) {
+    if (!(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit20)) || (static_cast<u32>(mMovementStates.mLowBits.mBit30)) || isStatusActive(MarioStatus_Swim)) {
         if (gIsLuigi) {
             stopEffect("尻落ルイージ");
         } else {
@@ -14868,7 +14829,7 @@ bool Mario::taskOnHipDropBlur(u32) {
 
 bool Mario::taskOnHipDropSlide(u32 flags) {
     if (flags == 0x100) {
-        if (!((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
+        if (!(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit20))) {
             return false;
         }
     }
@@ -14877,7 +14838,7 @@ bool Mario::taskOnHipDropSlide(u32 flags) {
         return false;
     }
 
-    if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) || !((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) || isStatusActive(MarioStatus_Swim)) {
+    if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) || !(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit31)) || isStatusActive(MarioStatus_Swim)) {
         return false;
     }
 
@@ -15044,9 +15005,9 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
 void Mario::startTeresaMode() {
     _418 = 0;
     _428 = 0;
-    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mHighWord &= 0xDFFFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+    getPlayer()->mMovementStates.mHighBits.mBit29 = 0;
     mJumpVec.zero();
     changeStatus(mTeresa);
 }
@@ -15146,8 +15107,8 @@ void Mario::stopWalk() {
     getAnimator()->initWalkWeight();
     getAnimator()->resetTilt();
 
-    mMovementStates.mLowWord &= 0xFFFF7FFFU;
-    mMovementStates.mHighWord &= 0xEFFFFFFFU;
+    mMovementStates.mLowBits.mBit15 = 0;
+    mMovementStates.mHighBits.mBit28 = 0;
     cancelSquatMode();
 
     mMovementStates.mLowWord &= ~Mario::MovementStates::Turning;
@@ -15162,26 +15123,26 @@ void Mario::stopWalk() {
 
 
 void Mario::cancelSquatMode() {
-    if (!((mMovementStates.mLowWord >> 21) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         return;
     }
 
     calcDistToCeil(false);
 
-    if (((mFlags24.mLowWord >> 21) & 1U) || ((mMovementStates.mLowWord >> 21) & 1U)) {
-        mFlags14.mLowWord |= 0x00010000U;
+    if ((static_cast<u32>(mFlags24.mLowBits.mBit21)) || (static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
+        mFlags14.mLowBits.mBit16 = 1;
     }
 
-    mMovementStates.mLowWord &= 0xFFDFFFFFU;
-    mFlags24.mLowWord &= 0xFFDFFFFFU;
+    mMovementStates.mLowBits.mBit21 = 0;
+    mFlags24.mLowBits.mBit21 = 0;
     stopAnimation("しゃがみ基本");
 
-    if (((mMovementStates.mLowWord >> 30) & 1U) || !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) || !(static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         if (!isSwimming()) {
             changeAnimation(nullptr, "基本");
         }
 
-        if (!isAnimationRun("サマーソルト") && ((mFlags14.mLowWord >> 16) & 1U)) {
+        if (!isAnimationRun("サマーソルト") && (static_cast<u32>(mFlags14.mLowBits.mBit16))) {
             if (mWalkSpeed > 0.1f) {
                 if (!isPlayerModeYoshi()) {
                     fn_803EEC20("しゃがみ終了", nullptr);
@@ -15192,12 +15153,12 @@ void Mario::cancelSquatMode() {
         }
     }
 
-    mMovementStates.mHighWord &= 0xFDFFFFFFU;
+    mMovementStates.mHighBits.mBit25 = 0;
 }
 
 
 f32 Mario::getTargetWalkSpeed() const {
-    if (((mMovementStates.mLowWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit21))) {
         return 0.0f;
     }
 
@@ -15275,7 +15236,7 @@ void Mario::decideSquatWalkAnimation() {
                 }
             }
         }
-    } else if ((mDrawStates.mWord >> 13) & 1) {
+    } else if (static_cast<u32>(mDrawStates.mBits.mBit13)) {
         f32 depth = _738;
         if (depth < 160.0f && !(mActor->_37C & 0x3F)) {
             TVec3f offset(_368);
@@ -15383,7 +15344,7 @@ void Mario::decideWalkAnimation() {
     if (mTargetWalkSpeedIndex == 0 && mWalkSpeed < 0.2f && isBlendWaitGround()) {
         getAnimator()->fn_803DE880();
     } else {
-        getPlayer()->mFlags14.mLowWord &= 0xFFFEFFFFU;
+        getPlayer()->mFlags14.mLowBits.mBit16 = 0;
 
         if (mTargetWalkSpeedIndex == 0 && mSwim->_1B2) {
             bool prepare = !isPlayerModeBee();
@@ -15458,7 +15419,7 @@ void Mario::decideWalkAnimation() {
         animationSpeed = 0.5f * (60.0f * ((0.01f * (mWalkSpeed * walkScale)) / f3));
     }
 
-    if (_8F0 > 0.0f && !((mDrawStates.mWord >> 27) & 1U)) {
+    if (_8F0 > 0.0f && !(static_cast<u32>(mDrawStates.mBits.mBit27))) {
         animationSpeed *= 1.0f + ((_8F0 / 10.0f) * mActor->mConst->mTable[mActor->mConst->mCurrentTable]->mSlopeAnimeRatio);
 
         if (_8F0 > 5.0f && animationSpeed > 4.0f) {
@@ -15531,7 +15492,7 @@ void Mario::decideWalkAnimation() {
         f7 = 0.3f;
     }
 
-    if (mTargetWalkSpeedIndex > 5 && mWalkSpeed > f7 && !((mDrawStates.mWord >> 27) & 1U) && !((mMovementStates.mHighWord >> 10) & 1U)) {
+    if (mTargetWalkSpeedIndex > 5 && mWalkSpeed > f7 && !(static_cast<u32>(mDrawStates.mBits.mBit27)) && !(static_cast<u32>(mMovementStates.mHighBits.mBit10))) {
         _71E = mActor->mConst->mTable[mActor->mConst->mCurrentTable]->mBrakeFirstTimer;
     }
 
@@ -15540,7 +15501,7 @@ void Mario::decideWalkAnimation() {
     }
 
     if (mTargetWalkSpeedIndex == 0) {
-        if (_71E != 0 && !isSlipPolygon(mGroundPolygon) && !((mDrawStates.mWord >> 26) & 1U)) {
+        if (_71E != 0 && !isSlipPolygon(mGroundPolygon) && !(static_cast<u32>(mDrawStates.mBits.mBit26))) {
             doBrakingAnimation();
             _71F = mActor->mConst->mTable[mActor->mConst->mCurrentTable]->mBrakeSecondTimer;
         }
@@ -15578,7 +15539,7 @@ void Mario::doBrakingAnimation() {
 
 
 void Mario::checkWallPush() {
-    if (mTargetWalkSpeedIndex != 0 && (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mHighWord >> 13) & 1U)) && checkWallJumpCode()) {
+    if (mTargetWalkSpeedIndex != 0 && ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mHighBits.mBit13))) && checkWallJumpCode()) {
         return;
     }
 
@@ -15586,23 +15547,23 @@ void Mario::checkWallPush() {
     bool sideStep = false;
     f32 wallPushAngleRange = getActor()->getConst().getTable()->mWallPushAngleRange;
 
-    bool checkAngle = mTargetWalkSpeedIndex != 0 && ((mMovementStates.mLowWord >> 23) & 1U);
+    bool checkAngle = mTargetWalkSpeedIndex != 0 && (static_cast<u32>(mMovementStates.mLowBits.mBit23));
 
     if (checkAngle && angle < MR::toRadian(wallPushAngleRange)) {
         sideStep = true;
     }
 
-    if (((mDrawStates.mWord >> 21) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit21))) {
         sideStep = false;
     }
 
-    if (((mDrawStates.mWord >> 19) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit19))) {
         sideStep = false;
     }
 
     if (calcAngleD(getWallNorm()) < getActor()->getConst().getTable()->mForceWallAngle) {
         sideStep = false;
-        if (((mMovementStates.mLowWord >> 23) & 1U) && mTargetWalkSpeedIndex != 0) {
+        if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && mTargetWalkSpeedIndex != 0) {
             mTargetWalkSpeedIndex = 1;
             mWalkSpeed = 0.0f;
         }
@@ -15641,13 +15602,13 @@ void Mario::updateBrakeAnimation() {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mHighWord >> 13) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mHighBits.mBit13))) {
         stopAnimation(nullptr);
         _71F = 0;
         _71E = 0;
         _3D0 = 0;
         _3D2 = 0;
-    } else if (!MR::isDemoActive() && ((mMovementStates.mLowWord >> 30) & 1U)) {
+    } else if (!MR::isDemoActive() && (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         playSound("ルイージ滑り");
     }
 }
@@ -15679,11 +15640,11 @@ void Mario::decideOnIceAnimation() {
 
 // NONMATCHING: equivalent early-exit branch orientation and register allocation.
 void Mario::updateOnSand() {
-    if (((mMovementStates.mLowWord >> 0) & 1U) || mCometFireDanceArea) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit0)) || mCometFireDanceArea) {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         if (_960 == 27 || _960 == 28) {
             if (!strcmp(MR::getSoundCodeString(_45C), "Sand") && mSinkTimer < 64) {
                 mSinkTimer++;
@@ -15742,7 +15703,7 @@ void Mario::updateOnSand() {
         }
     }
 
-    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         mSinkTimer = 0;
     }
 
@@ -15753,7 +15714,7 @@ void Mario::updateOnSand() {
 
 
 void Mario::updateOnPoison() {
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         if (_960 == 18) {
             if (mPoisonTimer == 0) {
                 mActor->decLife(0);
@@ -15776,7 +15737,7 @@ void Mario::updateOnPoison() {
         } else {
             mPoisonTimer = 0;
         }
-    } else if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && _3BC > 10) {
+    } else if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) && _3BC > 10) {
         mPoisonTimer = 0;
     }
 
@@ -15787,7 +15748,7 @@ void Mario::updateOnPoison() {
 
 
 void Mario::updateOnWater() {
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         switch (_960) {
         case 20:
         case 21:
@@ -15808,7 +15769,7 @@ void Mario::updateOnWater() {
 
         if (_960 == 23 && _962 == 23) {
             touchWater();
-            mDrawStates.mWord |= 0x00001000U;
+            mDrawStates.mBits.mBit12 = 1;
             _738 = 3.0f;
             _73C = _368;
         }
@@ -15819,7 +15780,7 @@ void Mario::updateOnWater() {
     case 21:
     case 22:
     case 23:
-        mDrawStates.mWord |= 0x00000004U;
+        mDrawStates.mBits.mBit2 = 1;
     }
 }
 
@@ -15848,10 +15809,10 @@ void Mario::checkWallStick() {
 
         changeStatus(mWall);
         stopWalk();
-        mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-        mMovementStates.mLowWord &= 0xFFEFFFFFU;
-        mMovementStates.mLowWord &= 0xFDFFFFFFU;
-        mMovementStates.mLowWord &= 0xFFFFFEFFU;
+        mMovementStates.mLowBits.mBit31 = 0;
+        mMovementStates.mLowBits.mBit20 = 0;
+        mMovementStates.mLowBits.mBit25 = 0;
+        mMovementStates.mLowBits.mBit8 = 0;
         fixWallingPosition(true);
         resetTornado();
     }
@@ -15865,7 +15826,7 @@ u8 Mario::checkStickWallSide() {
             return 1;
         }
 
-        if (direction.dot(getWallNorm()) > 0.5f && !((mMovementStates.mLowWord >> 2) & 1U)) {
+        if (direction.dot(getWallNorm()) > 0.5f && !(static_cast<u32>(mMovementStates.mLowBits.mBit2))) {
             return 2;
         }
     }
@@ -15881,7 +15842,7 @@ s32 Mario::checkStickFrontBack() {
             return 1;
         }
 
-        if (direction.dot(-mFrontVec) > 0.5f && !((mMovementStates.mLowWord >> 2) & 1U)) {
+        if (direction.dot(-mFrontVec) > 0.5f && !(static_cast<u32>(mMovementStates.mLowBits.mBit2))) {
             return 2;
         }
     }
@@ -15906,7 +15867,7 @@ void Mario::fixWallingDir(bool immediate) {
         back = false;
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U) && back) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6)) && back) {
         if (immediate) {
             setFrontVecKeepUp(-*mBackWallTriangle->getNormal(0));
             return;
@@ -15916,7 +15877,7 @@ void Mario::fixWallingDir(bool immediate) {
         return;
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         if (immediate) {
             setFrontVecKeepUp(-*mFrontWallTriangle->getNormal(0));
             return;
@@ -15947,15 +15908,15 @@ bool Mario::fixWallingTop() {
 
 
 bool Mario::checkWallFloorCode(u16 code) const {
-    if ((((mMovementStates.mLowWord >> 23) & 1U) || ((mMovementStates.mHighWord >> 13) & 1U)) && _964[0] == code) {
+    if (((static_cast<u32>(mMovementStates.mLowBits.mBit23)) || (static_cast<u32>(mMovementStates.mHighBits.mBit13))) && _964[0] == code) {
         return true;
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U) && _964[1] == code) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6)) && _964[1] == code) {
         return true;
     }
 
-    if (((mMovementStates.mLowWord >> 5) & 1U) && _964[2] == code) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit5)) && _964[2] == code) {
         return true;
     }
 
@@ -16042,7 +16003,7 @@ void Mario::setWallCancel() {
 
 
 void Mario::keepDistFrontWall() {
-    if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
         TVec3f horizontal;
         MR::vecKillElement(_4E8 - mGroundPos, *getGravityVec(), &horizontal);
         if (horizontal.length() < 80.0f) {
@@ -16067,31 +16028,31 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) || ((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit31)) || (static_cast<u32>(mMovementStates.mLowBits.mBit30))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 20) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit20))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 16) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit16))) {
         return false;
     }
 
-    if (((mDrawStates.mWord >> 1) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit1))) {
         return false;
     }
 
-    if (!((mMovementStates.mLowWord >> 23) & 1U) && !((mMovementStates.mLowWord >> 6) & 1U)) {
+    if (!(static_cast<u32>(mMovementStates.mLowBits.mBit23)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 29) & 1U) && mVerticalSpeed < mActor->getConst().getTable()->mWallStickGrHeight) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit29)) && mVerticalSpeed < mActor->getConst().getTable()->mWallStickGrHeight) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 10) & 1U) && _4E0 < mActor->getConst().getTable()->mWallStickFrHeight && !getWallPolygon()->mSensor->isType(0x51)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit10)) && _4E0 < mActor->getConst().getTable()->mWallStickFrHeight && !getWallPolygon()->mSensor->isType(0x51)) {
         return false;
     }
 
@@ -16103,14 +16064,14 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 10) & 1U) && ((mMovementStates.mLowWord >> 29) & 1U) && ((mMovementStates.mHighWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit10)) && (static_cast<u32>(mMovementStates.mLowBits.mBit29)) && (static_cast<u32>(mMovementStates.mHighBits.mBit6))) {
         if ((_4A4 - mShadowPos).dot(-*getGravityVec()) < mActor->getConst().getTable()->mWallStickStepHeight) {
             return false;
         }
     }
 
     TVec3f horizontal;
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         MR::vecKillElement(mJumpVec, mActor->mAppliedGravityVec, &horizontal);
         if (mBackWallTriangle->getNormal(0)->dot(horizontal) > 0.0f) {
             return false;
@@ -16121,11 +16082,11 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 23) & 1U) && calcPolygonAngleD(mFrontWallTriangle) < 80.0f) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit23)) && calcPolygonAngleD(mFrontWallTriangle) < 80.0f) {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U) && calcPolygonAngleD(mBackWallTriangle) < 80.0f) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6)) && calcPolygonAngleD(mBackWallTriangle) < 80.0f) {
         return false;
     }
 
@@ -16135,7 +16096,7 @@ bool Mario::isEnableStickWall() {
     }
 
     if (!checkWallCode("NotWallSlip", true)) {
-        mMovementStates.mHighWord |= 0x00800000U;
+        mMovementStates.mHighBits.mBit23 = 1;
     }
 
     if (checkWallCode("NoAction", true)) {
@@ -16146,15 +16107,15 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         if (!isAnimationRun("壁ジャンプ") && getPlayer()->checkStickWallSide() != 1) {
             return false;
         }
-    } else if (!isAnimationRun("壁ジャンプ") && !((mMovementStates.mLowWord >> 22) & 1U) && getPlayer()->checkStickWallSide() != 1) {
+    } else if (!isAnimationRun("壁ジャンプ") && !(static_cast<u32>(mMovementStates.mLowBits.mBit22)) && getPlayer()->checkStickWallSide() != 1) {
         return false;
     }
 
-    if (((mMovementStates.mHighWord >> 15) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mHighBits.mBit15))) {
         return false;
     }
 
@@ -16170,7 +16131,7 @@ bool Mario::isEnableStickWall() {
 
     TVec3f position(mActor->mCapPosition);
     f32 distance = 120.0f;
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if ((static_cast<u32>(mMovementStates.mLowBits.mBit6))) {
         distance = -120.0f;
     }
 
@@ -16232,7 +16193,7 @@ bool Mario::fixWallingDist() {
 
 
 bool Mario::isInhibitWall() const {
-    if (((mDrawStates.mWord >> 29) & 1U)) {
+    if ((static_cast<u32>(mDrawStates.mBits.mBit29))) {
         return true;
     }
 
@@ -16245,42 +16206,42 @@ bool Mario::isInhibitWall() const {
 
 
 void Mario::tryWallPunch() {
-    if (!((mMovementStates.mHighWord >> 20) & 1U) && !checkWallCodeNorm(8, nullptr, false) && (!isStatusActive(MarioStatus_Skate) || !checkWallFloorCode(0x21))) {
+    if (!(static_cast<u32>(mMovementStates.mHighBits.mBit20)) && !checkWallCodeNorm(8, nullptr, false) && (!isStatusActive(MarioStatus_Skate) || !checkWallFloorCode(0x21))) {
         if (isSwimming()) {
-            if (((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit23))) {
                 mSwim->hitWall(*mFrontWallTriangle->getNormal(0), mFrontWallTriangle->mSensor);
             }
 
-            if (((getPlayer()->mMovementStates.mLowWord >> 6) & 1U)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit6))) {
                 mSwim->hitWall(*mBackWallTriangle->getNormal(0), mBackWallTriangle->mSensor);
             }
 
-            if (((getPlayer()->mMovementStates.mLowWord >> 5) & 1U)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit5))) {
                 mSwim->hitWall(*mSideWallTriangle->getNormal(0), mSideWallTriangle->mSensor);
             }
         } else {
             stopWalk();
             TVec3f velocity(getWallNorm() * mActor->getConst().getTable()->mWallSpinFlipGround);
-            if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+            if ((static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
                 velocity.scale(mActor->getConst().getTable()->mWallSpinFlipAirRatio);
             }
 
             velocity -= *getGravityVec() * mActor->getConst().getTable()->mWallSpinHopGround;
             tryForcePowerJump(velocity, true);
-            mMovementStates.mHighWord |= 0x00100000U;
+            mMovementStates.mHighBits.mBit20 = 1;
             startPadVib(2);
             playSound("壁反射");
             playSound("声スピンキャンセル");
             playEffectTrans("壁ヒット", getWallPos());
-            if (((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit23))) {
                 sendPunch(mFrontWallTriangle->mSensor, mFrontWallTriangle, true);
             }
 
-            if (((getPlayer()->mMovementStates.mLowWord >> 6) & 1U)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit6))) {
                 sendPunch(mBackWallTriangle->mSensor, mBackWallTriangle, true);
             }
 
-            if (((getPlayer()->mMovementStates.mLowWord >> 5) & 1U)) {
+            if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit5))) {
                 sendPunch(mSideWallTriangle->mSensor, mSideWallTriangle, true);
             }
 

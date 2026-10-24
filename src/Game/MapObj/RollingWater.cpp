@@ -235,8 +235,7 @@ bool RollingWater::moveOnRail() {
 // NONMATCHING: the two scaled-vector temporaries occupy reversed stack slots.
 void RollingWater::updateRollMoment() {
     TVec3f moment;
-    TVec3f negGravity = -mGravity;
-    MR::calcMomentRollBall(&moment, mVelocity, negGravity, 125.0f);
+    MR::calcMomentRollBall(&moment, mVelocity, (-mGravity), 125.0f);
     f32 ease = MR::calcNerveEaseInOutRate(this, 40);
     TVec3f a(moment);
     a *= 0.2f;

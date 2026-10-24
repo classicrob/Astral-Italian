@@ -117,7 +117,8 @@ def evaluate(rows, log, replay):
                         "play_ready_required", "play_ready_state_check", "identity_recorded_frame", "identity_replay_frame",
                         "identity_expected_replay_frame", "identity_frame_offset", "identity_offset_limit",
                         "identity_offset_checked", "identity_offset_passed", "identity_rows_skipped")} for s in segments],
-                    "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_rows_compared", "pointer_source",
+                    "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_rows_compared",
+                        "pointer_valid_rows_compared", "pointer_distinct_positions_compared", "pointer_source",
                         "last_pointer_recorded", "last_pointer_replayed", "last_pointer_valid")} for s in segments]}
 
 

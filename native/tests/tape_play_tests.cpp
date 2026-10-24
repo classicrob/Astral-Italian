@@ -340,6 +340,8 @@ int main() {
         check(step.kind == Step::Kind::Finished && !early.gaveUp(), "short arrival completes all strict gameplay rows");
         check(early.report()[0].rowsCompared == 14 && early.report()[0].pointerRowsCompared == 13,
               "comparison and pointer counts exclude only the arrival");
+        check(early.report()[0].pointerValidRowsCompared == 13 && early.report()[0].pointerPositionsCompared.size() == 13,
+              "valid pointer rows and distinct positions come from successful actual game read-buffer comparisons");
         check(early.reportJson().find("\"arrival_frame_offset\":-3") != std::string::npos,
               "report preserves the short arrival offset");
 

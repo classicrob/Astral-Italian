@@ -16,6 +16,7 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -84,6 +85,8 @@ struct SegmentReport {
     float recordedPointer[2] = {0, 0}, replayedPointer[2] = {0, 0};
     int pointerValid = 0;
     std::uint64_t pointerRowsCompared = 0;
+    std::uint64_t pointerValidRowsCompared = 0;
+    std::set<std::pair<float, float>> pointerPositionsCompared;
     std::uint64_t sceneStartRow = 0, replaySceneStart = 0, replayPlayStart = 0, cinematicFrames = 0;
     bool requiresPlayReady = false, playReadyChecked = false, playReadyStateMatches = false;
     bool playReadyPositionExact = false, rngCheckpointVerified = false;

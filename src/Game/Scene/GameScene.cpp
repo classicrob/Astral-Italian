@@ -485,13 +485,16 @@ void GameScene::initEffect() {
         {"MokumokuValleyGalaxy", 3072, 512},
         {"VsKoopaGravityGalaxy", 3072, 512},
     };
-    const EffectInfo* found = nullptr;
+    const EffectInfo* found;
     for (u32 i = 0; i < 4; i++) {
         if (MR::isEqualStageName(info[i].name)) {
             found = &info[i];
-            break;
+            goto initEffectSystem;
         }
     }
+    found = nullptr;
+
+initEffectSystem:
     if (found) {
         SceneFunction::initEffectSystem(found->particles, found->emitters);
     } else {

@@ -171,7 +171,6 @@ namespace MR {
         makeFileNameConsideringLanguage(pDst, size, pFilePath, true);
     }
 
-    // NONMATCHING: the false branch passes its known-false boolean register instead of loading zero (FP order/grouping checked: no FP instructions).
     void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath, bool checkLocalized) {
         char prefix[256];
         snprintf(prefix, sizeof(prefix), "/LocalizeData/%s", getCurrentLanguagePrefix());
@@ -179,9 +178,9 @@ namespace MR {
 
         bool exists;
         if (checkLocalized) {
-            exists = isFileExist(pDst, false);
+            exists = isFileExistOnDisc(pDst, false);
         } else {
-            exists = isFileExist(pDst, checkLocalized);
+            exists = isFileExist(pDst, false);
         }
         if (!exists) {
             snprintf(pDst, size, "%s", pFilePath);

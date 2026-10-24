@@ -20,7 +20,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void exeHit();
-    void doHit(HitSensor*, HitSensor*);
+    void doHit();
     void forceReappear();
     void registerBreakModelDemoCast();
 

@@ -40,20 +40,21 @@ void GameScenePauseControl::exeNormal() {
 }
 
 bool GameScenePauseControl::tryStartPauseMenu() {
-    if (!mScene->permitsStartPauseMenu() || MR::isStageDisablePauseMenu()) {
+    if (!mScene->permitsStartPauseMenu()) {
         return false;
     }
+    if (!MR::isStageDisablePauseMenu()) {
+        mPauseChecker->update();
 
-    mPauseChecker->update();
+        if (mPauseChecker->isPermitToMinusPause()) {
+            startPauseMenu();
+            return true;
+        }
 
-    if (mPauseChecker->isPermitToMinusPause()) {
-        startPauseMenu();
-        return true;
-    }
-
-    if (mPauseChecker->isPermitToPlusPause()) {
-        startPauseMenu();
-        return true;
+        if (mPauseChecker->isPermitToPlusPause()) {
+            startPauseMenu();
+            return true;
+        }
     }
 
     return false;

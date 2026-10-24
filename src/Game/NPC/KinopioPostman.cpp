@@ -270,11 +270,7 @@ bool KinopioPostman::branchImportant(u32 step) {
         return false;
     }
     if (step == 1) {
-        if (!MR::isPlayerLuigi()) {
-            return false;
-        } else {
-            return (this->mLayout->getCurrentLetterId() - 1) == 0;
-        }
+        return !MR::isPlayerLuigi() ? false : (this->mLayout->getCurrentLetterId() - 1) == 0;
     }
     return false;
 }

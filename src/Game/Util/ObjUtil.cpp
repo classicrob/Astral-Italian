@@ -648,12 +648,13 @@ const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuf
         }
 
         snprintf(archive, 0x100, "/StageData/%s/%s%s.arc", pStage, pStage, pSuffix);
+        void* pEntry;
         if (!MR::isFileExistOnDisc(archive, false)) {
-            return nullptr;
+            pEntry = nullptr;
+        } else {
+            JKRArchive* pArchive = MR::mountArchive(archive, nullptr, true);
+            pEntry = pArchive->getResource(QUESTIONMARK_MAGIC, fileName);
         }
-
-        JKRArchive* pArchive = MR::mountArchive(archive, nullptr, true);
-        void* pEntry = pArchive->getResource(QUESTIONMARK_MAGIC, fileName);
         if (pEntry == nullptr) {
             return nullptr;
         }

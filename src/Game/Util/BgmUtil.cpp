@@ -431,7 +431,8 @@ namespace MR {
             pStageBgm->stop(10);
         }
 
-        AudWrap::getSceneMgr()->_1D = true;
+        AudSceneMgr* sceneMgr = AudWrap::getSceneMgr();
+        sceneMgr->_1D = true;
         AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
     }
 

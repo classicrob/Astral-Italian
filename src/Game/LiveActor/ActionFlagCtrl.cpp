@@ -9,7 +9,11 @@
 #include <cstdio>
 
 extern char lbl_80694810[];
+#ifdef GALAXY_NATIVE
 extern const char* lbl_807CFA18;
+#else
+const char* lbl_807CFA18 = "ActionFlagCtrl";
+#endif
 
 ActionFlagSensorInfo::ActionFlagSensorInfo() : mName(nullptr), mFlag(0), mStartFrame(-1), mEndFrame(-1) {}
 
@@ -33,17 +37,22 @@ namespace {
 }
 
 void ActionFlagCtrl::init() {
+    const char* minSuffix;
+    const char* maxSuffix;
+    ActionFlagInfo* info;
+    const char* sensorValue;
     mHitSensorKeeper = mHost->mSensorKeeper;
     JMapInfo* csv = MR::tryCreateCsvParser(MR::getResourceHolder(mHost), "%s.bcsv", lbl_807CFA18);
     if (!csv) return;
     mNumEntries = MR::getCsvDataElementNum(csv);
     mEntries = new ActionFlagInfo[mNumEntries];
     for (s32 i = 0; i < mNumEntries; i++) {
-        ActionFlagInfo* info = &mEntries[i];
+        info = &mEntries[i];
         MR::getCsvDataStr(&info->mName, csv, "ActionName", i);
         info->mFlags = new u16[8];
+        const char* name;
         for (s32 j = 0; j < 8; j++) {
-            const char* name = sFlagNames[j];
+            name = sFlagNames[j];
             u16 flag;
             if (!MR::hasCsvItem(csv, name)) flag = 0;
             else {
@@ -61,16 +70,18 @@ void ActionFlagCtrl::init() {
                 char column[128];
                 snprintf(column, sizeof(column), "Sensor%s", mHitSensorKeeper->getNthSensorInfo(j)->mSensorName);
                 if (csv->searchItemInfo(column) >= 0) {
-                    const char* value = nullptr;
-                    MR::getCsvDataStr(&value, csv, column, i);
-                    sensor->mFlag = parseActionFlag(value);
+                    sensorValue = nullptr;
+                    MR::getCsvDataStr(&sensorValue, csv, column, i);
+                    sensor->mFlag = parseActionFlag(sensorValue);
                     char minColumn[128];
-                    snprintf(minColumn, sizeof(minColumn), "Sensor%sStep%s", mHitSensorKeeper->getNthSensorInfo(j)->mSensorName, "Min");
+                    minSuffix = "Min";
+                    snprintf(minColumn, sizeof(minColumn), "Sensor%sStep%s", mHitSensorKeeper->getNthSensorInfo(j)->mSensorName, minSuffix);
                     s16 min = -1;
                     MR::getCsvDataS16(&min, csv, minColumn, i);
                     sensor->mStartFrame = min;
                     char maxColumn[128];
-                    snprintf(maxColumn, sizeof(maxColumn), "Sensor%sStep%s", mHitSensorKeeper->getNthSensorInfo(j)->mSensorName, "Max");
+                    maxSuffix = "Max";
+                    snprintf(maxColumn, sizeof(maxColumn), "Sensor%sStep%s", mHitSensorKeeper->getNthSensorInfo(j)->mSensorName, maxSuffix);
                     s16 max = -1;
                     MR::getCsvDataS16(&max, csv, maxColumn, i);
                     sensor->mEndFrame = max;

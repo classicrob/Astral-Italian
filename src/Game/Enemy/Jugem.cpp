@@ -1119,8 +1119,7 @@ void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
                 if (!MR::isDead(mChildObjs[i]) && !MR::isClipped(mChildObjs[i]) && !mChildObjs[i]->isYoshiState()) {
                     TVec3f pos = mChildObjs[i]->mPosition - mChildObjs[i]->mGravity * offset;
                     player = MR::getPlayerPos();
-                    TVec3f diff = pos - *player;
-                    if (!(PSVECMag(&diff) > cChildRange * cChildRangeScale)) {
+                    if (!((pos - *player).length() > cChildRange * cChildRangeScale)) {
                         sum += pos;
                         count++;
                     }

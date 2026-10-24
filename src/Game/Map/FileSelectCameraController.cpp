@@ -38,14 +38,12 @@ void FileSelectCameraController::init(const JMapInfoIter& rIter) {
     makeActorDead();
 }
 
-// NONMATCHING: chained vector-assignment code generation differs; camera state and parameters match.
 void FileSelectCameraController::appear() {
     LiveActor::appear();
     setNerve(GET_NERVE(FileSelectCameraController, FileSelectCameraControllerNrvFarPoint));
     MR::startActorCameraProgrammable(this, 0);
     mUpVec.set(0.0f, 1.0f, 0.0f);
-    mPrevWPoint = TVec3f(::cFarTarget);
-    mWPoint = mPrevWPoint;
+    mWPoint = mPrevWPoint = TVec3f(::cFarTarget);
     mFovy = mPrevFovy = ::cFarFovy;
     MR::setPosition(this, TVec3f(::cFarPoint));
     MR::setProgrammableCameraParam(this, mPrevWPoint, mPosition, mUpVec);

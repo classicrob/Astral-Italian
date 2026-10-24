@@ -131,7 +131,7 @@ void TwoLegs::init(const JMapInfoIter& rIter) {
 
 void TwoLegs::kill() {
     LiveActor::kill();
-    mCamera->end(false);
+    mCamera->end();
 }
 
 void TwoLegs::startFirstNerve() {
@@ -236,7 +236,7 @@ bool TwoLegs::tryReflectEnemy(HitSensor* pOther, HitSensor* pMine) {
     return true;
 }
 
-bool TwoLegs::tryDrillDamage(HitSensor* pMine, HitSensor* pOther) {
+bool TwoLegs::tryDrillDamage(HitSensor* pMine) {
     if (!MR::isEqualSensor(pMine, this, "Body")) {
         return false;
     }
@@ -251,7 +251,7 @@ bool TwoLegs::tryDrillDamage(HitSensor* pMine, HitSensor* pOther) {
     return true;
 }
 
-bool TwoLegs::tryReflectDrill(HitSensor* pOther, HitSensor* pMine, HitSensor*) {
+bool TwoLegs::tryReflectDrill(HitSensor* pOther, HitSensor* pMine) {
     if (!MR::isEqualSensor(pMine, this, "Body") && !MR::isEqualSensor(pMine, this, "StampLeft") && !MR::isEqualSensor(pMine, this, "StampRight")) {
         return false;
     }
@@ -397,10 +397,10 @@ bool TwoLegs::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         return false;
     }
     if (MR::isMsgDrillAttack(msg)) {
-        if (tryDrillDamage(pReceiver, pSender)) {
+        if (tryDrillDamage(pReceiver)) {
             return true;
         }
-        return tryReflectDrill(pSender, pReceiver, pSender);
+        return tryReflectDrill(pSender, pReceiver);
     }
     return false;
 }

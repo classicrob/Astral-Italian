@@ -60,7 +60,7 @@ public:
     void appearMark() NO_INLINE;
     void disappearMark() NO_INLINE;
     void update(const TVec3f& contextPosition, f32 maxDistance);
-    void calcScreenPosition();
+    void calcScreenPosition() const;
     void updateMarkPosition();
     void invalidate();
 

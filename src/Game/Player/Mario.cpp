@@ -2890,7 +2890,7 @@ void Mario::update() {
     }
     if (MR::getKarikariClingNum() != 0 && mActor->isEnableNerveChange()) mFlags20.mBits.mBit26 = 1;
     OSGetTime();
-    checkAllWall(mActor->_240, 0.0f);
+    checkAllWall(mActor->_240);
     OSGetTime();
     updateGroundInfo();
     OSGetTime();
@@ -5503,7 +5503,7 @@ void Mario::updateCameraPolygon() {
     }
 }
 
-void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
+void Mario::checkAllWall(const TVec3f& rPosition) {
     TVec3f center(rPosition);
     TVec3f front(mFrontVec);
     _4D8->mIdx = -1;
@@ -5518,6 +5518,7 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
         }
     }
     s32 count;
+    f32 radius;
     bool forwardCheck = false;
     if (getPlayerMode() == 6) {
         radius = 110.0f;
@@ -5525,8 +5526,8 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
         if (!count) {
             forwardCheck = true;
             center.add(mFrontVec * 120.0f);
-            if (fn_803B2950()) count = Collision::checkStrikeBallToDashYoshiStepAndMapWithThickness(center, 25.0f, 25.0f, nullptr, nullptr);
-            else count = Collision::checkStrikeBallToMapWithThickness(center, 25.0f, 25.0f, nullptr, nullptr);
+            count = fn_803B2950() ? Collision::checkStrikeBallToDashYoshiStepAndMapWithThickness(center, 25.0f, 25.0f, nullptr, nullptr)
+                                 : Collision::checkStrikeBallToMapWithThickness(center, 25.0f, 25.0f, nullptr, nullptr);
         }
     } else if (isPlayerModeYoshi()) {
         radius = 110.0f;

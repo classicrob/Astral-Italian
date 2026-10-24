@@ -1199,17 +1199,16 @@ void MarioSwim::procBuoyancy() {
         }
 
         f32 waterDepthNeg = -mWaterDepth;
-        const MarioConstTable* table = mActor->getConst().getTable();
-        bool isBelowStrongSwimDepth = table->mSwimUpStrongDist > waterDepthNeg;
+        bool isBelowStrongSwimDepth = getActor()->getConst().getTable()->mSwimUpStrongDist > waterDepthNeg;
 
-        f32 swimUpWeakDist = table->mSwimUpWeakDist;
-        f32 swimUpBottomDist = table->mSwimUpBottomDist;
+        f32 swimUpWeakDist = getActor()->getConst().getTable()->mSwimUpWeakDist;
+        f32 swimUpBottomDist = getActor()->getConst().getTable()->mSwimUpBottomDist;
         f32 floorDepthSum = waterDepthNeg + mDistToFloor;
 
         if (floorDepthSum < 2000.0f) {
             f32 ratio = floorDepthSum / 2000.0f;
-            swimUpWeakDist = table->mSwimUpWeakDist * ratio;
-            swimUpBottomDist = table->mSwimUpBottomDist * ratio;
+            swimUpWeakDist *= ratio;
+            swimUpBottomDist *= ratio;
         }
 
         bool shouldSink = (swimUpWeakDist > mDistToFloor);
@@ -1237,20 +1236,18 @@ void MarioSwim::procBuoyancy() {
                     }
 
                     buoyancyScale =
-                        mActor->getConst().getTable()->mSwimUpWeakRatio + (distRatio * (1.0f - mActor->getConst().getTable()->mSwimUpWeakRatio));
+                        getActor()->getConst().getTable()->mSwimUpWeakRatio + (distRatio * (1.0f - getActor()->getConst().getTable()->mSwimUpWeakRatio));
                 } else {
                     buoyancyScale = 1.0f + (1.0f - (static_cast< f32 >(mStateTimer) / 300.0f));
                 }
 
                 mIsSinking = true;
             } else if (isBelowStrongSwimDepth) {
-                const MarioConst& marioConst = mActor->getConst();
-                MarioConstTable* table = mActor->getConst().getTable();
                 waterDepthNeg = -mWaterDepth;
-                if (table->mSwimUpSurfaceDist > waterDepthNeg) {
-                    buoyancyScale = table->mSwimUpStrongRatio;
+                if (getActor()->getConst().getTable()->mSwimUpSurfaceDist > waterDepthNeg) {
+                    buoyancyScale = getActor()->getConst().getTable()->mSwimUpStrongRatio;
                 } else {
-                    f32 strongRatio = (waterDepthNeg - table->mSwimUpSurfaceDist) / (table->mSwimUpStrongDist - table->mSwimUpSurfaceDist);
+                    f32 strongRatio = (waterDepthNeg - getActor()->getConst().getTable()->mSwimUpSurfaceDist) / (getActor()->getConst().getTable()->mSwimUpStrongDist - getActor()->getConst().getTable()->mSwimUpSurfaceDist);
                     if (strongRatio < 0.0f) {
                         strongRatio = 0.0f;
                     }
@@ -1259,7 +1256,7 @@ void MarioSwim::procBuoyancy() {
                         strongRatio = 1.0f;
                     }
 
-                    buoyancyScale = strongRatio + ((1.0f - strongRatio) * marioConst.getTable()->mSwimUpStrongRatio);
+                    buoyancyScale = strongRatio + ((1.0f - strongRatio) * getActor()->getConst().getTable()->mSwimUpStrongRatio);
                 }
             }
         }
@@ -1279,8 +1276,8 @@ void MarioSwim::procBuoyancy() {
         }
 
         if (mIsSinking) {
-            if (mDistToFloor < mActor->getConst().getTable()->mSwimUpBottomDist) {
-                f32 sinkFactor = 0.1f * mActor->getConst().getTable()->mSwimReverseSinkRatio;
+            if (mDistToFloor < getActor()->getConst().getTable()->mSwimUpBottomDist) {
+                f32 sinkFactor = 0.1f * getActor()->getConst().getTable()->mSwimReverseSinkRatio;
 
                 if (!MR::isNearZero(mWaterStreamVel)) {
                     sinkFactor = 1.0f;
@@ -2092,13 +2089,12 @@ bool MarioSwim::fn_803FD5E0(s32) {
     if (mIsOnSurface) {
         f32 offset = mSurfaceOffset;
         if (offset > 0.0f) {
-            f32 retained = 0.97f * offset;
-            f32 wave = 0.03f * mPreviousWaterInfo.mWaveHeight;
-            mSurfaceOffset = retained + wave;
+            f32 wave = mPreviousWaterInfo.mWaveHeight;
+            mSurfaceOffset = 0.97f * offset + 0.03f * wave;
         }
         else mSurfaceOffset = 0.99f * offset + 0.01f * (0.5f * mPreviousWaterInfo.mWaveHeight);
     } else {
-        mSurfaceOffset *= 0.8f;
+        mSurfaceOffset = 0.8f * mSurfaceOffset;
     }
     _178 = mPreviousWaterInfo.mEdgePos;
     mDistanceToWaterSurface = mPreviousWaterInfo.mEdgeDistance;
@@ -3440,10 +3436,10 @@ void MarioSwim::fn_80401710() {
 // NONMATCHING: temporary vector stack placement.
 void MarioSwim::fn_804017C0(bool turn) {
     if (!MR::isNearZero(mFrontVec, 0.001f)) {
+        TVec3f front;
         TVec3f side;
         PSVECCrossProduct(&mUpVec, &mFrontVec, &side);
         MR::normalize(&side);
-        TVec3f front;
         MR::rotAxisVecRad(mFrontVec, side, &front, mVerticalAngle);
         fn_803F9750(front, side, turn);
     }

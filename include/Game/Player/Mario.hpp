@@ -375,7 +375,7 @@ public:
     f32 calcDistWidth();
     void updateCameraPolygon();
     void setCameraPolygon(const Triangle*);
-    void checkAllWall(const TVec3f&, f32);
+    void checkAllWall(const TVec3f&);
     void calcFrontFloor();
     const TVec3f& getWallNorm() const;
     const TVec3f& getSideWallNorm() const;

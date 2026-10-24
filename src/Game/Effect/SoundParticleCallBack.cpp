@@ -19,7 +19,7 @@ void SoundParticleCallBack::execute(JPABaseEmitter*, JPABaseParticle* pParticle)
     MR::startActionSound(mHost, mName, -1, -1, -1);
 }
 
-PlayerRocketSmokeMoveParticleCallBack::PlayerRocketSmokeMoveParticleCallBack(LiveActor* host, const char*, s32)
+PlayerRocketSmokeMoveParticleCallBack::PlayerRocketSmokeMoveParticleCallBack(LiveActor* host)
     : SoundParticleCallBack(host, "dummy", 0), mState(0) {
 }
 
@@ -29,8 +29,7 @@ SoundParticleCallBack::~SoundParticleCallBack() {
 void PlayerRocketSmokeMoveParticleCallBack::execute(JPABaseEmitter*, JPABaseParticle*) {
 }
 
-PlayerRocketSmokeWaitParticleCallBack::PlayerRocketSmokeWaitParticleCallBack(LiveActor* pHost, const char* pName,
-                                                                              s32 id)
+PlayerRocketSmokeWaitParticleCallBack::PlayerRocketSmokeWaitParticleCallBack(LiveActor* pHost)
     : SoundParticleCallBack(pHost, "dummy", 0) {
     mState = 0;
 }

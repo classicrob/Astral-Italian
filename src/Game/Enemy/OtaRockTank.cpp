@@ -957,7 +957,6 @@ void OtaRockTank::syncTankRailCoordinate() {
     }
 }
 
-// NONMATCHING: integer conversion and floating-point scheduling differ
 void OtaRockTank::updateTankEaseOutSpeed(s32 step, f32 target) {
     f32 base = 3.0f;
     bool flag = false;
@@ -968,11 +967,11 @@ void OtaRockTank::updateTankEaseOutSpeed(s32 step, f32 target) {
         base = 8.0f;
     }
     s32 totalStep = 65;
+    f32 len = totalStep;
     f32 frame = step;
     f32 difference = target - base;
-    f32 len = totalStep;
     if (mLife == 1) {
-        len *= 0.9f;
+        len = 0.9f * len;
     }
     f32 contribution = 1.0f - MR::getEaseInValue(frame / len, 0.0f, 1.0f, 1.0f);
     contribution *= difference;
@@ -1002,12 +1001,11 @@ void OtaRockTank::updateTankBrake(f32 target) {
     updateTankBrakeSpeed(steps, target, base);
 }
 
-// NONMATCHING: floating-point operand scheduling differs
 void OtaRockTank::updateTankBrakeSpeed(s32 steps, f32 from, f32 to) {
     f32 diff = from - to;
     if (!(diff < 0.0f)) {
-        f32 rate = MR::calcNerveRate(this, steps);
-        f32 contribution = MR::getEaseInValue(1.0f - rate, 0.0f, 1.0f, 1.0f);
+        f32 rate = 1.0f - MR::calcNerveRate(this, steps);
+        f32 contribution = MR::getEaseInValue(rate, 0.0f, 1.0f, 1.0f);
         contribution *= diff;
         mSpeed = to + contribution;
     }

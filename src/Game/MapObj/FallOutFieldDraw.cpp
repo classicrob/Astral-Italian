@@ -192,7 +192,7 @@ void FallOutFieldDraw::draw() const {
 }
 
 namespace MR {
-    NameObj* createFallOutFieldDraw(const char*) {
+    NameObj* createFallOutFieldDraw() {
         return MR::createSceneObj(SceneObj_FallOutFieldDraw);
     }
 };  // namespace MR

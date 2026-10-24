@@ -373,10 +373,12 @@ void Yoshi::calcAnim() {
     if (mUpperAnimationActive) {
         mXanimePlayerUpper->clearAnm(MR::getJointIndex(this, "Head"));
     }
-    mXanimePlayer->mHasUpdatedFrame = false;
-    mXanimePlayer->mAnimationChanged = false;
-    mXanimePlayerUpper->mHasUpdatedFrame = false;
-    mXanimePlayerUpper->mAnimationChanged = false;
+    XanimePlayer* player = mXanimePlayer;
+    player->mHasUpdatedFrame = false;
+    player->mAnimationChanged = false;
+    player = mXanimePlayerUpper;
+    player->mHasUpdatedFrame = false;
+    player->mAnimationChanged = false;
 }
 
 void Yoshi::fn_8040C960() {
@@ -1333,15 +1335,20 @@ bool Yoshi::receiveMsgPlayerAttack(u32 message, HitSensor* sender, HitSensor* re
     }
     if (!fn_8040FEE0()) return false;
     bool isBody = getSensor("Ride") == receiver;
-    if (!isBody) isBody = getSensor("NpcBodyReceive") == receiver;
-    if (isBody) {
+    if (!isBody) {
+        bool isNpcBody = getSensor("NpcBodyReceive") == receiver;
+        if (!isNpcBody) goto SPIN_RIDE;
+    }
+    {
         if (MR::isMsgPlayerTrample(message) || MR::isMsgPlayerHipDrop(message)) {
             mMountedBySpin = false;
             fn_8040CC40();
             return false;
         }
     }
-    else {
+    goto ATTACK_DONE;
+SPIN_RIDE:
+    {
         bool isSpinBody = getSensor("SpinRide") == receiver;
         if (isSpinBody && MR::isMsgPlayerSpinAttack(message)) {
             mMountedBySpin = true;
@@ -1349,6 +1356,7 @@ bool Yoshi::receiveMsgPlayerAttack(u32 message, HitSensor* sender, HitSensor* re
             return false;
         }
     }
+ATTACK_DONE:
     return false;
 }
 #pragma pool_data reset

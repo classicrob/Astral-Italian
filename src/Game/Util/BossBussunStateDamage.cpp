@@ -61,6 +61,7 @@ void BossBussunStateDamage::updateDamagePos() {
 
     TVec3f up;
     MR::calcUpVec(&up, mHost);
+    TVec3f killed;
     TVec3f upOffset(up);
     upOffset.scale(400.0f);
     target.add(upOffset);
@@ -71,11 +72,7 @@ void BossBussunStateDamage::updateDamagePos() {
     down.scale(-800.0f);
     MR::getFirstPolyOnLineToMap(&mPosB, nullptr, target, down);
 
-    TVec3f diff(mPosA);
-    diff -= mPosB;
-
-    TVec3f killed;
-    JMAVECScaleAdd(&up, &diff, &killed, -up.dot(diff));
+    killed.killElement2(mPosA - mPosB, up);
     if (!MR::normalizeOrZero(&killed)) {
         mPosC.set(killed);
         return;

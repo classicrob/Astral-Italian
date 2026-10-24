@@ -125,24 +125,24 @@ bool WoodBox::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgPlayerUpperPunch(msg)) {
-        doHit(pSender, pReceiver);
+        doHit();
         MR::sendMsgReflectV(pSender, pReceiver);
         return true;
     }
 
     if (MR::isMsgFireBallAttack(msg)) {
-        doHit(pSender, pReceiver);
+        doHit();
         return false;
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        doHit(pSender, pReceiver);
+        doHit();
         return true;
     }
 
     if (MR::isMsgPlayerHipDrop(msg) || MR::isMsgPlayerHipDropFloor(msg)) {
         if (mFloorTouchTimer != 0) {
-            doHit(pSender, pReceiver);
+            doHit();
             return true;
         }
 
@@ -163,7 +163,7 @@ bool WoodBox::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 // NONMATCHING: same doHit argument-register pattern as receiveMsgPlayerAttack.
 bool WoodBox::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (mHitPoint != 0) {
-        doHit(pSender, pReceiver);
+        doHit();
         return true;
     }
 
@@ -242,7 +242,7 @@ void WoodBox::appear() {
     LiveActor::appear();
 }
 
-void WoodBox::doHit(HitSensor* pSender, HitSensor* pReceiver) {
+void WoodBox::doHit() {
     if (mHitPoint != 0) {
         if (mHitPoint != 0) {
             mHitPoint--;

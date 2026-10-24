@@ -103,7 +103,6 @@ bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
     return false;
 }
 
-// NONMATCHING: Commutative FP multiply operand order and FP register allocation differ.
 void AttackRockStateFall::updateLandSensorRadius() {
     f32 half;
     f32 dist = PSVECDistance(&this->mLandPos, &this->mHost->mPosition);
@@ -111,10 +110,13 @@ void AttackRockStateFall::updateLandSensorRadius() {
     f32 fnRadius = pHost->getRockBaseRadius();
     f32 radius = 1.5f + fnRadius * pHost->mScale.y;
     if (dist < radius) {
+        pHost = this->mHost;
         f32 fnBase = pHost->getRockBaseRadius();
         f32 base = fnBase * pHost->mScale.y;
         half = 0.5f * base;
-        MR::setSensorRadius(this->mHost, "Land", MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->getRockBaseRadius() * pHost->mScale.y, half));
+        f32 sensorRadius = pHost->getRockBaseRadius();
+        sensorRadius *= pHost->mScale.y;
+        MR::setSensorRadius(this->mHost, "Land", MR::getLinerValueFromMinMax(dist, 0.0f, radius, sensorRadius, half));
         this->mIsNear = true;
         return;
     }
@@ -163,9 +165,8 @@ void AttackRockStateFall::exeFallAppear() {
     MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
     this->mHost->mGravity.set(-this->mLandNormal);
     this->mStartPos.set(this->mLandPos + this->mLandNormal * 4000.0f);
-    TVec3f toHost = this->mHost->mPosition - this->mLandPos;
     TVec3f horizon;
-    JMAVECScaleAdd(&mLandNormal, &toHost, &horizon, -mLandNormal.dot(toHost));
+    horizon.killElement2(this->mHost->mPosition - this->mLandPos, mLandNormal);
     if (MR::normalizeOrZero(&horizon)) {
         mFallPos.set(mLandPos + mLandNormal * 6000.0f);
     } else {

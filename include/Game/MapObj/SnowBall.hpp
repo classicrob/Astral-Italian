@@ -15,6 +15,7 @@ public:
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
 
+    f32 calcSensorRadius(f32) NO_INLINE;
     void setRadius(f32);
     void tryDropSnowStep(const TVec3f&);
     void launch(const TVec3f&, const TVec3f&, bool);

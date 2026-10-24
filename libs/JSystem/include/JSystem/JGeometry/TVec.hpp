@@ -554,9 +554,9 @@ namespace JGeometry {
         }
 
 #ifdef JGEOMETRY_VEC3_ASSIGN_NOINLINE
-        void operator=(const TVec3& vec) NO_INLINE {
+        TVec3& operator=(const TVec3& vec) NO_INLINE {
 #else
-        void operator=(const TVec3& vec) {
+        TVec3& operator=(const TVec3& vec) {
 #endif
 #ifdef __MWERKS__
             const register Vec* v_a = &vec;
@@ -577,6 +577,7 @@ namespace JGeometry {
             y = vec.y;
             z = vec.z;
 #endif
+            return *this;
         }
 
         template < typename T >

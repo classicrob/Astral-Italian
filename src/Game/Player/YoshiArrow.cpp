@@ -26,13 +26,13 @@ void YoshiArrow::init(const JMapInfoIter& iter) {
 // NONMATCHING: paired-single register allocation and instruction order only.
 void YoshiArrow::fn_80413DC0(const TVec3f& start, const TVec3f& end, const TVec3f& up) {
     TVec3f direction(end);
-    direction -= start;
+    direction.sub(start);
     mTargetLength = PSVECMag(&direction);
     direction.scale(1.0f / mTargetLength);
     if (mTargetLength < 250.0f) mTargetLength = 250.0f;
     else if (mTargetLength > 600.0f) mTargetLength = 600.0f;
     mPosition.set(start);
-    mPosition += up * 60.0f;
+    mPosition.add(up * 60.0f);
     TQuat4f rotation;
     rotation.setRotate(TVec3f(0.0f,0.0f,1.0f), direction);
     mArrowMtx.makeQuat(rotation);

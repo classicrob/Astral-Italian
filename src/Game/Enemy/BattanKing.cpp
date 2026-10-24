@@ -568,20 +568,20 @@ void BattanKing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 MR::sendMsgPush(pReceiver, pSender);
                 return;
             }
+            return;
         } else {
-            bool isWalking = false;
-            if (isNerve(&NrvBattanKing::BattanKingNrvTurn::sInstance) || isNerve(&NrvBattanKing::BattanKingNrvRun::sInstance)) isWalking = true;
+            bool isWalking = isNerve(&NrvBattanKing::BattanKingNrvTurn::sInstance) || isNerve(&NrvBattanKing::BattanKingNrvRun::sInstance);
             if (isWalking) {
                 if (MR::isEqualSensor(pSender, this, "LegL") || MR::isEqualSensor(pSender, this, "LegR") ||
                     MR::isEqualSensor(pSender, this, "FootL") || MR::isEqualSensor(pSender, this, "FootR")) {
                     MR::sendMsgPush(pReceiver, pSender);
                     return;
                 }
+                return;
             }
         }
     } else {
-        bool isWalking = false;
-        if (isNerve(&NrvBattanKing::BattanKingNrvTurn::sInstance) || isNerve(&NrvBattanKing::BattanKingNrvRun::sInstance)) isWalking = true;
+        bool isWalking = isNerve(&NrvBattanKing::BattanKingNrvTurn::sInstance) || isNerve(&NrvBattanKing::BattanKingNrvRun::sInstance);
         if (isWalking && MR::isSensorEnemy(pReceiver)) {
             if (MR::sendArbitraryMsg(0xF4, pReceiver, pSender)) return;
         }

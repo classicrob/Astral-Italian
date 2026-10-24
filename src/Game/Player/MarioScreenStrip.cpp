@@ -73,15 +73,15 @@ void MarioScreenStrip::fn_803DBB10(u32 position, u32 phase) {
     fn_803DBB50(&offset);
 }
 
-#pragma push
-#pragma opt_propagation off
 // NONMATCHING: GPR/stack allocation and unsigned-to-float conversion scheduling.
 void MarioScreenStrip::fn_803DBB50(MarioScreenStripOffset* offset) {
     GXDrawDone();
     GXTexModeSync();
     GXPixModeSync();
+    u32 next;
     u16 width = MR::getFrameBufferWidth();
     TDDraw::setup(1, 0, 2);
+    u16 current = 0;
     GXTexObj textures[2];
     GXInitTexObj(&textures[0], mBuffers[0], width, 4, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
     GXInitTexObj(&textures[1], mBuffers[1], width, 4, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
@@ -89,14 +89,13 @@ void MarioScreenStrip::fn_803DBB50(MarioScreenStripOffset* offset) {
     GXSetTexCopyDst(width, 4, GX_TF_RGB565, GX_FALSE);
     GXSetTexCopySrc(0, 0, width, 4);
     GXCopyTex(mBuffers[0], GX_FALSE);
-    u16 current = 0;
     u32 stripHeight = 4;
     f32 texStep = 1.0f / static_cast<f32>(stripHeight);
     for (u32 row = 0; row < MR::getScreenHeight(); row += 4) {
         GXTexModeSync();
         GXPixModeSync();
         GXSetTexCopySrc(0, row + 4, width, 4);
-        u32 next = 1 - current;
+        next = 1 - current;
         GXCopyTex(mBuffers[next], GX_FALSE);
         GXLoadTexObj(&textures[current], GX_TEXMAP0);
         f32 texY = 0.0f;
@@ -113,5 +112,3 @@ void MarioScreenStrip::fn_803DBB50(MarioScreenStripOffset* offset) {
     }
     GXDrawDone();
 }
-
-#pragma pop

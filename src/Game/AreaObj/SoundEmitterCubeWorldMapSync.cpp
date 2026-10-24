@@ -3,7 +3,8 @@
 
 void SoundEmitterCubeWorldMapSync::init(const JMapInfoIter& rIter) {
     SoundEmitterCube::init(rIter);
-    if (GameDataFunction::getCurrentWorldId() != mObjArg7) {
+    s32 world = GameDataFunction::getCurrentWorldId();
+    if (world != mObjArg7) {
         invalidate();
     }
 }

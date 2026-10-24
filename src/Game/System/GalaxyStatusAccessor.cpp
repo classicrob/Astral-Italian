@@ -101,11 +101,11 @@ const char* GalaxyStatusAccessor::getCometName(s32 scenarioNo) const {
 s32 GalaxyStatusAccessor::getCometLimitTimer(s32 scenario) const {
     s32 timer;
     bool valid = mScenarioData->getValueU32("CometLimitTimer", scenario, &timer);
-    if (valid) {
-        valid = false;
-        if (timer != 0) valid = true;
+    bool hasTimer = false;
+    if (valid && timer != 0) {
+        hasTimer = true;
     }
-    return valid ? timer : 0;
+    return hasTimer ? timer : 0;
 }
 
 bool GalaxyStatusAccessor::isHiddenStar(s32 scenario) const {

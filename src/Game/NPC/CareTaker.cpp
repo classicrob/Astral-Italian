@@ -178,9 +178,6 @@ bool Caretaker::branchFuncStar(u32 msg) {
     }
 }
 
-// NONMATCHING: saved-register/frame-pointer allocation differs; selector branches and signed range tests match.
-#pragma global_optimizer off
-
 bool Caretaker::branchFuncComet(u32 msg) {
     s32 purpleCoinNum = MR::getPurpleCoinNum();
     if (msg == 0) goto case0;
@@ -195,35 +192,35 @@ case0:
     return purpleCoinNum == 0;
 case1: {
     bool result = false;
-    if (purpleCoinNum >= 1 && purpleCoinNum < 50) {
+    if (1 <= purpleCoinNum && purpleCoinNum < 50) {
         result = true;
     }
     return result;
 }
 case2: {
     bool result = false;
-    if (purpleCoinNum >= 50 && purpleCoinNum < 80) {
+    if (50 <= purpleCoinNum && purpleCoinNum < 80) {
         result = true;
     }
     return result;
 }
 case3: {
     bool result = false;
-    if (purpleCoinNum >= 80 && purpleCoinNum < 90) {
+    if (80 <= purpleCoinNum && purpleCoinNum < 90) {
         result = true;
     }
     return result;
 }
 case4: {
     bool result = false;
-    if (purpleCoinNum >= 90 && purpleCoinNum < 95) {
+    if (90 <= purpleCoinNum && purpleCoinNum < 95) {
         result = true;
     }
     return result;
 }
 case5: {
     bool result = false;
-    if (purpleCoinNum >= 95 && purpleCoinNum < 100) {
+    if (95 <= purpleCoinNum && purpleCoinNum < 100) {
         result = true;
     }
     return result;
@@ -233,7 +230,6 @@ case6:
 fallback:
     return false;
 }
-#pragma global_optimizer on
 
 bool Caretaker::eventFuncComet(u32 msg) {
     if(msg==0) return mTakeOutStar->takeOut();

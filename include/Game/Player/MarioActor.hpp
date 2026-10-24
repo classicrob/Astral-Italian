@@ -169,7 +169,7 @@ public:
     void fn_803BEAC0();
     void requestHairAndHatMovementOn();
     void fn_803BEB10(s32 a);
-    bool fn_803BEBE0();
+    bool fn_803BEBE0() const;
     LiveActor* fn_803BECC0();
     bool fn_803BED10();
     void fn_803BF6F0();
@@ -249,14 +249,14 @@ public:
     void fn_803CCE60(HitSensor* a, s16 b);
     void fn_803CCF20(HitSensor* s);
     void fn_803CCF90(HitSensor* sensor);
-    bool fn_803CD000();
+    bool fn_803CD000() const;
     bool fn_803CD0A0();
     bool fn_803CD180();
     bool fn_803CD1F0(HitSensor* s);
     f32 fn_803CD250(HitSensor* s) const;
     bool fn_803CD2C0();
     bool fn_803CD380();
-    bool fn_803CD3C0();
+    bool fn_803CD3C0() const;
     void fn_803CD450(HitSensor* s);
     bool fn_803CD4B0(HitSensor* s, f32 f0, f32 f1);
     bool fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2);

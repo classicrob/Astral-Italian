@@ -55,10 +55,17 @@ void KoopaJrCastleCannonBall::shoot(MtxPtr mtx, const f32& speed) {
     setNerve(&NrvKoopaJrCastleCannonBall::KoopaJrCastleCannonBallNrvMove::sInstance);
 }
 
+namespace {
+    inline void breakLong(LiveActor* actor) {
+        MR::tryHitReaction(actor, "\x94\x6a\x89\xf3\x81\x69\x97\x5d\x89\x43\x82\xa0\x82\xe8\x81\x6a");
+        MR::emitEffect(actor, "BreakLong");
+        MR::startActionSound(actor, "EmElecbublletBreak", -1, -1, -1);
+        actor->LiveActor::kill();
+    }
+}
+
 // NONMATCHING: string-address registers and vector temporary stack placement
 void KoopaJrCastleCannonBall::exeMove() {
-    const char* const reaction = "\x94\x6a\x89\xf3\x81\x69\x97\x5d\x89\x43\x82\xa0\x82\xe8\x81\x6a";
-    const char* const effect = "BreakLong";
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shot");
         MR::startBtk(this, "ElectricBullet");
@@ -97,27 +104,16 @@ void KoopaJrCastleCannonBall::exeMove() {
             HitSensor* sensor = getSensor(nullptr);
             MR::sendMsgEnemyAttackElectric(MR::getWallSensor(this), sensor);
         }
-        MR::tryHitReaction(this, reaction);
-        MR::emitEffect(this, effect);
-        MR::startActionSound(this, "EmElecbublletBreak", -1, -1, -1);
-        LiveActor::kill();
+        breakLong(this);
         return;
     }
     f32 length = 200.0f;
-    TVec3f offset(mDir * 150.0f);
-    TVec3f ahead(mPosition);
-    ahead += offset;
-    TVec3f halfGravity((mGravity * length) * 0.5f);
-    TVec3f origin(ahead);
-    JMathInlineVEC::PSVECSubtract(&origin, &halfGravity, &origin);
+    TVec3f origin(mPosition + mDir * 150.0f - (mGravity * length) * 0.5f);
     TVec3f hitPos(0.0f);
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, origin, mGravity * length) && MR::getSensor(nullptr)) {
         HitSensor* sensor = getSensor(nullptr);
         if (MR::sendMsgEnemyAttackElectric(MR::getSensor(nullptr), sensor)) {
-            MR::tryHitReaction(this, reaction);
-            MR::emitEffect(this, effect);
-            MR::startActionSound(this, "EmElecbublletBreak", -1, -1, -1);
-            LiveActor::kill();
+            breakLong(this);
         }
     } else if (MR::isStep(this, 600)) kill();
 }

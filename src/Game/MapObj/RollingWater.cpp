@@ -347,22 +347,13 @@ void RollingWater::exeFall() {
     MR::turnQuatUpToGravity(&mQuatRail, mQuatRail, this);
 
     f32 rate = MR::calcNerveEaseOutRate(this, 60);
-    TVec3f zero(0.0f, 0.0f, 0.0f);
-    MR::vecBlend(&mBlendVec, mBlendVec, zero, rate);
-    TVec3f center(mPosition);
-    center += mBlendVec;
-    mCenterVec.set(center);
+    MR::vecBlend(&mBlendVec, mBlendVec, TVec3f(0.0f, 0.0f, 0.0f), rate);
+    mCenterVec.set(mPosition + mBlendVec);
 
     if (MR::isGreaterStep(this, 5)) {
-        TVec3f diff = mCenterVec - prevCenter;
-        f32 dot = mGravity.dot(diff);
         TVec3f out;
-        JMAVECScaleAdd(&mGravity, &diff, &out, -dot);
-        TVec3f force(mGravity);
-        force.x *= -15.0f;
-        force.y *= -15.0f;
-        force.z *= -15.0f;
-        MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, force);
+        out.killElement(mCenterVec - prevCenter, mGravity);
+        MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, mGravity.multInLine(-15.0f));
         kill();
     }
 }

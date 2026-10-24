@@ -957,21 +957,12 @@ namespace GameSequenceFunction {
             return true;
         }
         s32 placed = getPlacedGreenStarScenarioNo(pStageName, scenarioNo);
-        if (!MR::isOnGameEventFlagPowerStarSuccess(pStageName, placed)) {
-            return false;
-        }
-        return GameDataFunction::isOnGalaxyScenarioFlagGhostLuigi(pStageName, placed);
+        return !MR::isOnGameEventFlagPowerStarSuccess(pStageName, placed) ? false : GameDataFunction::isOnGalaxyScenarioFlagGhostLuigi(pStageName, placed);
     }
 
-    // NONMATCHING: branch layout of the empty if-branch (same logic)
     s32 getPlacedGreenStarScenarioNo(const char* pStageName, s32 scenarioNo) {
-        s32 result = scenarioNo;
         GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(pStageName);
-        if (!accessor.isGreenStar(scenarioNo)) {
-        } else {
-            result = MR::getPlacedHiddenStarScenarioNo(pStageName, scenarioNo);
-        }
-        return result;
+        return !accessor.isGreenStar(scenarioNo) ? scenarioNo : MR::getPlacedHiddenStarScenarioNo(pStageName, scenarioNo);
     }
 
     void collectTicoCoinInStage() {

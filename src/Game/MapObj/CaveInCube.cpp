@@ -134,7 +134,7 @@ void CaveInCube::exeGenerate() {
         pParts->setLifeAndSpeed(1200, 25.0f, 0.1f, speed);
         pParts->appear();
 
-        mNumGenerated++;
         mTypeIdx = (mTypeIdx + 1) % 5;
+        mNumGenerated++;
     }
 }

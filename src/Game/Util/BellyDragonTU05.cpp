@@ -90,10 +90,11 @@ void BellyDragonPod::updateFireEffect(BellyDragon* pHost) {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BellyDragonPod::appearFireGround(s32 isShort, const TVec3f* pVec) {
+    BellyDragon* host;
+    LiveActor* pActor;
     if (BellyDragonUtil::isLv2(mHost)) {
-        LiveActor* pActor = mGroupA->getDeadActor();
+        pActor = mGroupA->getDeadActor();
         if (pActor != NULL) {
             if (pVec != NULL) {
 #ifdef GALAXY_NATIVE
@@ -106,10 +107,11 @@ void BellyDragonPod::appearFireGround(s32 isShort, const TVec3f* pVec) {
                 if (isShort != 0) {
                     scale = lbl_807D7850;
                 }
+                host = mHost;
 #ifdef GALAXY_NATIVE
-                BellyDragonUtil::calcGroundHillMtx(&static_cast<BellyDragonFireGround*>(pActor)->mBaseMtx, mHost, mHost->getBaseMtx(), scale);
+                BellyDragonUtil::calcGroundHillMtx(&static_cast<BellyDragonFireGround*>(pActor)->mBaseMtx, host, host->getBaseMtx(), scale);
 #else
-                BellyDragonUtil::calcGroundHillMtx((TPos3f*)((u8*)pActor + 0x90), mHost, mHost->getBaseMtx(), scale);
+                BellyDragonUtil::calcGroundHillMtx((TPos3f*)((u8*)pActor + 0x90), host, host->getBaseMtx(), scale);
 #endif
             }
             pActor->appear();

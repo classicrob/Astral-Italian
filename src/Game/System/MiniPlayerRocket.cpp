@@ -56,8 +56,8 @@ void MiniPlayerRocket::init(const JMapInfoIter& rIter) {
     mScaleParam->mVelocityDamping = 0.7f;
     mScaleCtrl = new AnimScaleController(mScaleParam);
 
-    mSmokeMoveCb = new PlayerRocketSmokeMoveParticleCallBack(this, nullptr, 0);
-    mSmokeWaitCb = new PlayerRocketSmokeWaitParticleCallBack(this, nullptr, 0);
+    mSmokeMoveCb = new PlayerRocketSmokeMoveParticleCallBack(this);
+    mSmokeWaitCb = new PlayerRocketSmokeWaitParticleCallBack(this);
 
     MR::startAction(this, "Wait");
     MR::startBckNoInterpole(this, "Wait");

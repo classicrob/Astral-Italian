@@ -412,7 +412,7 @@ void AudSystem::frameWork() {
     mAudEffector->update();
     mAudience.updateSetting();
 
-    if (mHomeButtonMenuState == MenuState_Off && mPauseMenuState == MenuState_Off) {
+    if (!(mHomeButtonMenuState != MenuState_Off) == true && !(mPauseMenuState != MenuState_Off) == true) {
         mSeLifeTable->update();
     }
 }

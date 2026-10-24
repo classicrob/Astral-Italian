@@ -323,8 +323,7 @@ namespace MR {
 
     // NONMATCHING: equivalent guard branch arrangement
     bool isTimerSwitchingPlatformGalaxyPowerStarAppeared() {
-        if (!isStageStatePowerStarAppeared()) return false;
-        return isEqualStageName("TimerSwitchingPlatformGalaxy");
+        return !isStageStatePowerStarAppeared() ? false : isEqualStageName("TimerSwitchingPlatformGalaxy");
     }
 
     bool isBigTreeCloudGardenPairedStarUncollected(const char* pStageName, s32 scenarioNo) {

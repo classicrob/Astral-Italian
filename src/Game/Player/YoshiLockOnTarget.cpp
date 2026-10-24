@@ -76,13 +76,14 @@ void YoshiLockOnTargetControl::update(const TVec3f& pos, f32 distance) {
     if (PSVECDistance(&mTarget->mActor->mPosition, &pos) > distance) mFramesUntilExpiry = 0;
 }
 
-void YoshiLockOnTargetControl::calcScreenPosition() {
+void YoshiLockOnTargetControl::calcScreenPosition() const {
     if (mMark) return;
     TVec3f pos, x, y, z;
     if (!mTarget->mMtx) {
-        pos.x = mTarget->mActor->mPosition.x;
-        pos.y = mTarget->mActor->mPosition.y;
-        pos.z = mTarget->mActor->mPosition.z;
+        const TVec3f& position = mTarget->mActor->mPosition;
+        pos.x = position.x;
+        pos.y = position.y;
+        pos.z = position.z;
     } else pos.set<f32>(mTarget->mMtx[0][3], mTarget->mMtx[1][3], mTarget->mMtx[2][3]);
     if (mTarget->mMtx) {
         x.set<f32>(mTarget->mMtx[0][0], mTarget->mMtx[1][0], mTarget->mMtx[2][0]);
@@ -127,7 +128,7 @@ void YoshiLockOnTargetControl::invalidate() {
 
 // NONMATCHING: copy load/store scheduling and FPR allocation differ.
 YoshiLockOnTarget::YoshiLockOnTarget(LiveActor* actor, MtxPtr mtx, const TVec3f& offset) : mActor(actor), mMtx(mtx) {
-    JMathInlineVEC::PSVECCopy(&offset, &mOffset);
+    mOffset.set(offset);
     mEligibleThisFrame = false;
 }
 

@@ -26,7 +26,7 @@ public:
 };
 
 namespace MR {
-    NameObj* createFallOutFieldDraw(const char*);
+    NameObj* createFallOutFieldDraw();
 };  // namespace MR
 
 #include <revolution.h>

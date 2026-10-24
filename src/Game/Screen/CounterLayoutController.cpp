@@ -125,7 +125,8 @@ namespace {
 
 // NONMATCHING: only the order of the flag-zeroing li instructions (r29..r26) differs
 bool CounterLayoutController::isHiddenOrWaitAllLayout() const {
-    return ::isHiddenOrWait(mCoinCounter) && ::isHiddenOrWait(mStarPieceCounter) && ::isHiddenOrWait(mPlayerLeft) && ::isHiddenOrWait(mCometMedalCounter) &&
+    bool coinReady = ::isHiddenOrWait(mCoinCounter);
+    return coinReady && ::isHiddenOrWait(mStarPieceCounter) && ::isHiddenOrWait(mPlayerLeft) && ::isHiddenOrWait(mCometMedalCounter) &&
            ::isHiddenOrWait(mStarCounter);
 }
 

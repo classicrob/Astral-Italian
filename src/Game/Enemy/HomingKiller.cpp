@@ -292,13 +292,10 @@ void HomingKiller::initSpeed() {
     }
 }
 
-// NONMATCHING: local boolean registers and effect-argument scheduling.
 void HomingKiller::control() {
-    bool isInactive = false;
-    if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) ||
-        isNerve(GET_NERVE(HomingKiller, HomingKillerNrvEaten))) {
-        isInactive = true;
-    }
+    const char* effectName;
+    bool isInactive = isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) ||
+        isNerve(GET_NERVE(HomingKiller, HomingKillerNrvEaten));
 
     if (!isInactive) {
         if (!isValidShowModel()) {
@@ -320,13 +317,17 @@ void HomingKiller::control() {
                     mType != Type_HomingKiller) {
                     isMoving = true;
                 }
-                MR::emitEffect(this, isMoving ? "Smoke" : "SmokeChase");
+                effectName = "SmokeChase";
+                if (isMoving) effectName = "Smoke";
+                MR::emitEffect(this, effectName);
             } else {
                 bool isMoving = false;
                 if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvMoveStart)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvMove))) {
                     isMoving = true;
                 }
-                MR::emitEffect(this, isMoving ? "Bubble" : "BubbleChase");
+                effectName = "BubbleChase";
+                if (isMoving) effectName = "Bubble";
+                MR::emitEffect(this, effectName);
             }
         }
 
@@ -454,11 +455,8 @@ void HomingKiller::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool HomingKiller::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    bool isInactive = false;
-    if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) ||
-        isNerve(GET_NERVE(HomingKiller, HomingKillerNrvEaten))) {
-        isInactive = true;
-    }
+    bool isInactive = isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) ||
+        isNerve(GET_NERVE(HomingKiller, HomingKillerNrvEaten));
 
     if (isInactive) {
         return false;

@@ -70,11 +70,7 @@ StaffRollPart::~StaffRollPart() {
 
 // NONMATCHING: target keeps `this` in r3 across setNerve; ours emits an extra mr r3, r31.
 void StaffRollPart::appear() {
-    const Nerve* nerve = GET_NERVE(StaffRollPart, StaffRollPartNrvPart);
-    if (mWaitFrames > 0) {
-        nerve = GET_NERVE(StaffRollPart, StaffRollPartNrvWaitBeforePart);
-    }
-    setNerve(nerve);
+    setNerve(mWaitFrames > 0 ? static_cast<const Nerve*>(GET_NERVE(StaffRollPart, StaffRollPartNrvWaitBeforePart)) : GET_NERVE(StaffRollPart, StaffRollPartNrvPart));
     mScrollFrames = 0;
     mIsAlive = true;
 }

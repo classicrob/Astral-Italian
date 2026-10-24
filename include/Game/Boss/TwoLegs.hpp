@@ -58,7 +58,7 @@ public:
     TwoLegsCamera(LiveActor*);       // fn_80105C70
     void start();                    // fn_80105CD0
     void keepAlive();                // fn_80105D20
-    void end(bool);                  // fn_80105D70
+    void end();                  // fn_80105D70
     void update();                   // fn_80105D90
     void addTarget(LiveActor*);      // fn_80105F30
     void reset();                    // fn_80105F60
@@ -373,8 +373,8 @@ public:
     bool tryAttackSensorStateEnemy(HitSensor*, HitSensor*);  // fn_80103710
     bool tryPush(HitSensor*, HitSensor*);            // fn_80103840
     bool tryReflectEnemy(HitSensor*, HitSensor*);    // fn_801038A0
-    bool tryDrillDamage(HitSensor*, HitSensor*);     // fn_80103960
-    bool tryReflectDrill(HitSensor*, HitSensor*, HitSensor*);  // fn_80103A30
+    bool tryDrillDamage(HitSensor*);     // fn_80103960
+    bool tryReflectDrill(HitSensor*, HitSensor*);  // fn_80103A30
     void startBva();                                 // fn_80103B40
     void damage();                                   // fn_80103BA0
     bool isInvincible();                             // fn_80103C60
@@ -388,7 +388,7 @@ public:
     void startActionDown();                          // fn_80109EB0
     bool isPhase0() const;                           // fn_80109EF0
     bool isLastPhase() const;                        // fn_80109F00
-    static s32 getPhaseNum();                        // fn_80109F20
+    s32 getPhaseNum();                        // fn_80109F20
     void getAllRootPos(TVec3f*);                     // fn_80109F30
     void calcAllRootPosOnPlane(TVec3f*);             // fn_80109F40
     void calcPosOnPlane(TVec3f*, const TVec3f*);     // fn_80109FA0

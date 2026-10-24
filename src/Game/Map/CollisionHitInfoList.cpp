@@ -35,8 +35,7 @@ namespace {
             for (u32 i = 0; i < found; ++i) {
                 if (remaining[i]) {
                     const HitInfo* candidate = query->getHit(i);
-                    TVec3f delta(origin);
-                    delta.sub(candidate->mHitPos);
+                    TVec3f delta = origin - candidate->mHitPos;
                     const f32 distance = PSVECMag(&delta);
                     if (nearestDistance > distance) {
                         nearest = i;

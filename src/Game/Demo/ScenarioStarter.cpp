@@ -198,12 +198,7 @@ void ScenarioStarter::exeRailMove() {
     }
 
     s32 timing = AudStageBgmTable::getWelcomeStartOffset(MR::getCurrentStageName(), MR::getCurrentScenarioNo());
-    if (timing < -mFlightTime) {
-        timing = -mFlightTime;
-    }
-    if (timing > 0) {
-        timing = 0;
-    }
+    timing = MR::min(MR::max(timing, -mFlightTime), 0L);
     if (MR::isStep(this, mFlightTime + timing)
         && AudStageBgmTable::isStartOnWelcome(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
         isStartBgmOnWelcome();

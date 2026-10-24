@@ -490,10 +490,11 @@ void MarioAnimator::update() {
 
 // NONMATCHING: saved-register assignment and reuse of the unchanged animation-state byte.
 void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
+    const char* queuedAnimation;
     bool shouldStart = false;
 
     // Check if player has a special animation queued
-    const char* queuedAnimation = getPlayer()->_970;
+    queuedAnimation = getPlayer()->_970;
     if (queuedAnimation) {
         const char* currentBck = mXanimePlayer->getCurrentBckName();
 
@@ -610,15 +611,19 @@ void MarioAnimator::setTilt() {
         _58 = 0.95f * _58 + 0.05f * tiltAngle;
     }
 
+    f32 f5;
+    f32 f4;
+    f32 vertAngle;
+    f32 lookDown;
     table = mActor->mConst->getTable();
     Mario* player2 = getPlayer();
-    f32 lookDown = player2->mWalkSpeed * table->mLookDownRatio;
+    lookDown = player2->mWalkSpeed * table->mLookDownRatio;
 
     Mario* player3 = getPlayer();
-    f32 vertAngle = -player3->_3F4;
+    vertAngle = -player3->_3F4;
     vertAngle *= PI;
-    f32 f4 = 0.9f * _5C + 0.1f * lookDown;
-    f32 f5 = vertAngle / 4.0f;
+    f4 = 0.9f * _5C + 0.1f * lookDown;
+    f5 = vertAngle / 4.0f;
     _5C = 0.97f * f4 + 0.03f * f5;
 
     TVec3f rotation(0.0f, _58, _5C);
@@ -874,7 +879,10 @@ void MarioAnimator::calc() {
 void MarioAnimator::fn_803E0E40(const char* pName) {
     const XanimeGroupInfo* info = mXanimePlayer->mCurrentAnimation;
     if (info->mAttribute == 2) {
-        mActor->mMario->startBas(pName, false, info->mLoop, info->mEnd);
+        MarioActor* actor = mActor;
+        f32 loop = info->mLoop;
+        f32 end = info->mEnd;
+        actor->mMario->startBas(pName, false, loop, end);
     } else {
         mActor->mMario->startBas(pName, false, 0.0f, 0.0f);
     }

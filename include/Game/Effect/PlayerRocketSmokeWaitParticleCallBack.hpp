@@ -4,7 +4,7 @@
 
 class PlayerRocketSmokeWaitParticleCallBack : public SoundParticleCallBack {
 public:
-    PlayerRocketSmokeWaitParticleCallBack(LiveActor* pHost, const char* pName, s32 id);
+    PlayerRocketSmokeWaitParticleCallBack(LiveActor* pHost);
 
     virtual void execute(JPABaseEmitter* pEmitter, JPABaseParticle* pParticle);
 

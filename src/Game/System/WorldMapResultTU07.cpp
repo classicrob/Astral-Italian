@@ -440,12 +440,11 @@ void WorldMapResultWorld::setupRoute(WorldMapResultRoute* pRoute) {
     mUnit14->resetAll();
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
 void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 node) {
     mLinks->openFrom(0);
     WorldMapResultRoute route;
-    route.mCount = 0;
     MiniRouteLineList* pLinks = mLinks;
+    route.mCount = 0;
     s32 num = mMapData->mNum;
 
     for (s32 i = 0; i < num; i++) {

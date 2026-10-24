@@ -47,7 +47,7 @@ void MarioAllModel::fn_803E7880(s32 index) {
 
 // NONMATCHING: redundant model-index reload and first joint-copy register allocation.
 void MarioAllModel::fn_803E78F0() {
-    if (mCurrentModel == 0) return;
+    if (getCurrentModel() == 0) return;
     {
         MtxPtr base;
         J3DModelX* model = mModels[mCurrentModel];

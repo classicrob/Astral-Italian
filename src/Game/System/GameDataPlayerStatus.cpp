@@ -17,7 +17,8 @@ GameDataPlayerStatus::GameDataPlayerStatus() : mHeaderSerializer(), mFlag() {
 
 u32 GameDataPlayerStatus::makeHeaderHashCode() const {
     s32 dataSize = mHeaderSerializer->getDataSize();
-    return dataSize + mHeaderSerializer->getHeaderSize();
+    s32 headerSize = mHeaderSerializer->getHeaderSize();
+    return headerSize + dataSize;
 }
 
 u32 GameDataPlayerStatus::getSignature() const {

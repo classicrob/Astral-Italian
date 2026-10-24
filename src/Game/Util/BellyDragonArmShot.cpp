@@ -110,7 +110,8 @@ void BellyDragonArmShot::exeDown() {
     if (MR::isLessStep(this, *mDiveTime)) {
         MR::addVelocityToGravity(mHost, -*mGravity);
         f32 rate = MR::calcNerveEaseInRate(this, *mDiveTime);
-        f32 turnRate = MR::sinDegree(180.0f * rate) * (1.0f - rate);
+        f32 turnRate = MR::sinDegree(180.0f * rate);
+        turnRate *= 1.0f - rate;
         MR::turnVecToVecDegree(&mHost->mFront, mHost->mFront, -mHost->mGravity, *mTurnRate * turnRate, TVec3f(0, 1, 0));
     }
     if (MR::isStep(this, *mDiveTime - cEffectLead))

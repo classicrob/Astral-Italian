@@ -232,12 +232,13 @@ namespace MR {
         f32 totalLength = getRailTotalLength(pActor);
         s32 numPoints = totalLength / delta;
         TBox3f clipBox;
-        TBox3f box;
-        pActor->mRailRider->calcPosAtCoord(&box.f, 0.0f);
-        pActor->mRailRider->calcPosAtCoord(&box.i, totalLength);
+        TVec3f startPos;
+        TVec3f endPos;
+        pActor->mRailRider->calcPosAtCoord(&startPos, 0.0f);
+        pActor->mRailRider->calcPosAtCoord(&endPos, totalLength);
 
-        clipBox.set(TVec3f(MR::min(box.f.x, box.i.x), MR::min(box.f.y, box.i.y), MR::min(box.f.z, box.i.z)),
-                    TVec3f(MR::max(box.f.x, box.i.x), MR::max(box.f.y, box.i.y), MR::max(box.f.z, box.i.z)));
+        clipBox.set(TVec3f(MR::min(startPos.x, endPos.x), MR::min(startPos.y, endPos.y), MR::min(startPos.z, endPos.z)),
+                    TVec3f(MR::max(startPos.x, endPos.x), MR::max(startPos.y, endPos.y), MR::max(startPos.z, endPos.z)));
 
         TVec3f pos;
         for (s32 idx = 1; idx < numPoints; idx++) {

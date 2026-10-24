@@ -280,8 +280,7 @@ s32 WorldMapFunction::getGalaxyWorldNo(const char* name) { return MR::makeGalaxy
 bool WorldMapFunction::hasIncompleteGreenStar(const char* name) {
     GalaxyStatusAccessor status = MR::makeGalaxyStatusAccessor(name);
     if (!GameDataFunction::isOnGameEventFlagEnding120Stars()) return false;
-    if (!status.getGreenStarNum()) return false;
-    return !status.isCompletedGreenStars();
+    return !status.getGreenStarNum() ? false : !status.isCompletedGreenStars();
 }
 void WorldMapOwner::showGalaxyInfo(const char* name) { mContext->mLayouts->mInfoLayout->showGalaxy(name, 4); }
 bool WorldMapOwner::isGalaxyInfoAppeared() const { return mContext->mLayouts->mInfoLayout->isAppeared(); }

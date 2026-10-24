@@ -81,8 +81,7 @@ public:
 };
 SnowBallNrvHide SnowBallNrvHide::sInstance ATTRIBUTE_WEAK;
 
-static f32 calcSensorRadius(f32 radius) NO_INLINE;
-static f32 calcSensorRadius(f32 radius) {
+f32 SnowBall::calcSensorRadius(f32 radius) {
     if (radius <= 50.0f) {
         return radius;
     }

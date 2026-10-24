@@ -49,18 +49,8 @@ void NameObjHolder::syncWithFlags() {
     callMethodAllObj(&NameObj::syncWithFlags);
 }
 
-// NONMATCHING: stack frame (target keeps two ptmf copies on the stack)
 void NameObjHolder::callMethodAllObj(func functionPtr) {
-    func function = functionPtr;
-
-    NameObj** end = &mObjs[mObjCount];
-    NameObj** start = mObjs;
-    function = functionPtr;
-
-    while (start != end) {
-        (*start->*function)();
-        start++;
-    }
+    std::for_each(mObjs, mObjs + mObjCount, std::mem_func(functionPtr));
 }
 
 NameObj* NameObjHolder::find(const char* pName) {

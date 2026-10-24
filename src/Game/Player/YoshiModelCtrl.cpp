@@ -202,6 +202,7 @@ void YoshiModelTargetState::calc(const TPos3f& input,TPos3f* out) {
     if(MR::normalizeOrZero(&targetDir)) {JMath::gekko_ps_copy12(out,&input);out->concat(mInitialMtx);return;}
     TQuat4f targetQuat;calcTargetRotation(input,&targetQuat);
     TPos3f original;original.concat(input,mInitialMtx);TVec3f originalScale,originalTrans;TQuat4f originalQuat;decomposeYoshiModelMtx(original,&originalScale,&originalTrans,&originalQuat);
+    f32 targetAngle,upper,lower,baseAngle;
     f32 factor=0.1f;if(mCtrl->mBlend->mMode) factor=1.0f;
     TVec3f originalZ,originalY,originalX,targetZ,targetY,targetX;
     targetQuat.getXDir(targetX);targetQuat.getYDir(targetY);targetQuat.getZDir(targetZ);
@@ -211,14 +212,15 @@ void YoshiModelTargetState::calc(const TPos3f& input,TPos3f* out) {
         TQuat4f q;if(originalX.dot(targetY)>0.0f) q.setRotate(originalZ,-1.5707963705062866f);else q.setRotate(originalZ,1.5707963705062866f);
         projected.x=originalX.x;projected.y=originalX.y;projected.z=originalX.z;q.transform(projected);JMAVECScaleAdd(&targetY,&projected,&projected,-targetY.dot(projected));MR::normalize(&projected);
     }
-    f32 baseAngle=projected.angle(targetX);if(targetZ.dot(projected)>0.0f) baseAngle=-baseAngle;
+    baseAngle=projected.angle(targetX);if(targetZ.dot(projected)>0.0f) baseAngle=-baseAngle;
     f32 limit=1.919862151145935f;
-    f32 upper=limit-baseAngle,lower=-limit-baseAngle;
+    upper=limit-baseAngle;lower=-limit-baseAngle;
     TVec3f targetProjected;JMAVECScaleAdd(&targetY,&targetDir,&targetProjected,-targetY.dot(targetDir));TVec3f cross;PSVECCrossProduct(&projected,&targetY,&cross);MR::normalize(&cross);
-    f32 targetAngle=projected.angle(targetProjected);if(cross.dot(targetProjected)>0.0f) targetAngle=-targetAngle;
+    targetAngle=projected.angle(targetProjected);if(cross.dot(targetProjected)>0.0f) targetAngle=-targetAngle;
     if(targetAngle>upper) targetAngle=upper;if(targetAngle<lower) targetAngle=lower;
     f32 yaw=baseAngle+targetAngle*factor;
-    TVec3f up;targetQuat.getYDir(up);f32 elevation=up.angle(targetDir);if(elevation>2.356194496154785f) elevation=2.356194496154785f;else if(elevation<0.7853981852531433f) elevation=0.7853981852531433f;
+    upper=2.356194496154785f;lower=0.7853981852531433f;
+    TVec3f up;targetQuat.getYDir(up);f32 elevation=up.angle(targetDir);if(elevation>upper) elevation=upper;else if(elevation<lower) elevation=lower;
     f32 pitch=1.5707963705062866f + -elevation;
     TQuat4f pitchQuat,yawQuat,result;
     pitchQuat.setRotate(TVec3f(0.0f,0.0f,1.0f),pitch);yawQuat.setRotate(TVec3f(0.0f,1.0f,0.0f),yaw);

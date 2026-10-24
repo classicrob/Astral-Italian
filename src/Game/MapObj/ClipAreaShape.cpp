@@ -91,11 +91,7 @@ ClipAreaShapeCylinder::ClipAreaShapeCylinder() : ClipAreaShape("VolumeCylinder")
 // NONMATCHING: branch layout only (target emits the in-range compare block out of line: bne over li r3,0 / b); logic matches.
 bool ClipAreaShapeCylinder::isInArea(const TVec3f& rVec) const {
     f32 v = (rVec.y / mHeight);
-    if (!MR::isInRange(v, 0.0f, 1.0f)) {
-        return false;
-    }
-
-    return ((rVec.x * rVec.x) + (rVec.z * rVec.z)) < (mRadius * mRadius);
+    return !MR::isInRange(v, 0.0f, 1.0f) ? false : ((rVec.x * rVec.x) + (rVec.z * rVec.z)) < (mRadius * mRadius);
 }
 
 void ClipAreaShapeCylinder::calcBaseScale(TVec3f* pOut) const {

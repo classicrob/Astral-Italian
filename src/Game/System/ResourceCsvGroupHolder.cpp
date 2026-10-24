@@ -34,7 +34,6 @@ const ResourceCsvGroupInfo* ResourceCsvGroupHolder::findGroup(const char* name) 
     for(s32 i=0;i<mCount;++i){group=&mGroups[i];if(MR::isEqualStringCase(group->mName,name))return group;}
     return NULL;
 }
-// NONMATCHING: equivalent grouping branches and register allocation; savegpr24 rather than25 (FP order/grouping checked: no FP instructions).
 void ResourceCsvGroupHolder::initActionSoundGroups(){
     const char* csv = sActionSoundCsv;
     JKRArchive* archive = MR::receiveArchive(sActionSoundArchive);
@@ -45,7 +44,10 @@ void ResourceCsvGroupHolder::initActionSoundGroups(){
         MR::getCsvDataStr(&name,mActionSoundCsv,"ObjName",i);
         if(name[0]=='\0')continue;
         ResourceCsvGroupInfo* group=NULL;
-        if(mCount>0 && MR::isEqualStringCase(mGroups[mCount-1].mName,name))group=&mGroups[mCount-1];
+        if(mCount>0) {
+            u32 lastIndex = mCount - 1;
+            if (MR::isEqualStringCase(mGroups[lastIndex].mName,name)) group=&mGroups[mCount-1];
+        }
         if(group==NULL){group=&mGroups[mCount];group->mName=name;group->mCount=1;++mCount;}
         else ++group->mCount;
         if(group->mCount==1)group->mStartIndex=i;

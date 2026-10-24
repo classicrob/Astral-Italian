@@ -484,7 +484,7 @@ namespace MiiSelectSub {
     }
 
     inline void setPointedMiiName(MiiSelect* pHost, s32 index) {
-        wchar_t name[RFL_NAME_LEN + 1];
+        wchar_t name[RFL_NAME_LEN + 2];
         FileSelectFunc::copyMiiName(reinterpret_cast< u16* >(name), pHost->makeIconID(index));
         MR::setTextBoxMessageRecursive(pHost, "TxtName", name);
     }

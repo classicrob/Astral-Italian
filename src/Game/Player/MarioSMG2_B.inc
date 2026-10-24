@@ -3037,15 +3037,15 @@ void Mario::updateWalkSpeed() {
     if (remaining != 0) {
         constants = mActor->mConst;
         u16 duration = constants->mTable[constants->mCurrentTable]->_282;
-        _404 = remaining - 1;
-        ramp = static_cast<f32>(duration - remaining) / static_cast<f32>(duration);
+        ramp = static_cast<f32>(duration - _404) / static_cast<f32>(duration);
+        _404--;
     }
     target *= ramp * ramp;
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit16)) || isStatusActive(17)) {
         constants = mActor->mConst;
         target *= constants->mTable[constants->mCurrentTable]->mTornadoMultiply;
     }
-    s32 wasSquatting = static_cast<u32>(mMovementStates.mLowBits.mBit21);
+    bool wasSquatting = static_cast<u32>(mMovementStates.mLowBits.mBit21);
     if (wasSquatting && (static_cast<u32>(mFlags20.mBits.mBit16))) {
         fn_803A6BE0();
     } else {
@@ -3071,7 +3071,7 @@ void Mario::updateWalkSpeed() {
     if (_3D0 != 0) target = 0.0f;
     if (static_cast<u32>(mMovementStates.mLowBits.mBit15)) target = 0.0f;
     f32 inertia = decideInertia(target);
-    if (sPreviousInertiaName != sInertiaName) sPreviousInertiaName = sInertiaName;
+    if (sInertiaName != sPreviousInertiaName) sPreviousInertiaName = sInertiaName;
     if (mCometFireDanceArea && mTargetWalkSpeedIndex != 0) {
         inertia = 1.0f;
         target = inertia;
@@ -3134,7 +3134,8 @@ void Mario::updateWalkSpeed() {
         return;
     }
 #endif
-    mWalkSpeed = mWalkSpeed * inertia + target * static_cast<f32>(256 - mSinkTimer) * 0.00390625f * (1.0f - inertia);
+    f32 targetSpeed = target * static_cast<f32>(256 - mSinkTimer) / 256.0f;
+    mWalkSpeed = mWalkSpeed * inertia + targetSpeed * (1.0f - inertia);
 }
 
 void Mario::decideOnIceAnimation() {
@@ -4664,12 +4665,15 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
 
 // NONMATCHING: float register allocation / constant pool labels
 void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
-    f32 minAngle = 180.0f;
-    f32 maxAngle = 0.0f;
-    f32 ref = 0.707f;
-    u32 minIdx = 0;
-    u32 maxIdx = 0;
     if (count != 0) {
+        f32 ref;
+        f32 minAngle;
+        f32 maxAngle;
+        minAngle = 180.0f;
+        maxAngle = 0.0f;
+        ref = 0.707f;
+        u32 minIdx = 0;
+        u32 maxIdx = 0;
         for (u32 i = 0; i < count; i++) {
             const HitInfo* pInfo = this->fn_803B2AA0(i);
             if ((static_cast<u32>(this->mMovementStates.mHighBits.mBit8)) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(this->mSwimSideVec694)) > ref) {
@@ -4739,18 +4743,20 @@ void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
     f32 facing = direction.dot(*hit->mParentTriangle.getNormal(0));
     if (facing < fn_803B3870()) mMovementStates.mLowBits.mBit23 = 1;
     else mMovementStates.mHighBits.mBit13 = 1;
-    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && (static_cast<u32>(mMovementStates.mLowBits.mBit10)) && (static_cast<u32>(mMovementStates.mHighBits.mBit6))) {
+    if (getMovementStates().mLowBits.mBit30 && mMovementStates.mLowBits.mBit10 && mMovementStates.mHighBits.mBit6) {
         TVec3f delta(_4A4);
         delta.sub(_4E8);
         if (delta.dot(*getGravityVec()) >= 0.0f) mMovementStates.mLowBits.mBit23 = 0;
     }
     if (!_60D && !(static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
-        if (calcAngleD(*mFrontWallTriangle->getNormal(0)) < mActor->getConst().getTable()->mSlipAngle &&
-            !isSlipFloorCode(_95C->getCode(mFrontWallTriangle)) &&
-            hit->mParentTriangle.getNormal(0)->dot(mFrontVec) < 0.0f && direction.dot(mFrontVec) > 0.0f &&
-            direction.dot(*hit->mParentTriangle.getNormal(0)) < 0.0f) {
-            mDrawStates.mBits.mBit16 = 1;
-            _380 = *mFrontWallTriangle->getNormal(0);
+        if (calcAngleD(*mFrontWallTriangle->getNormal(0)) < mActor->getConst().getTable()->mSlipAngle) {
+            bool canSlide = !isSlipFloorCode(_95C->getCode(mFrontWallTriangle));
+            if (canSlide &&
+                hit->mParentTriangle.getNormal(0)->dot(mFrontVec) < 0.0f && direction.dot(mFrontVec) > 0.0f &&
+                direction.dot(*hit->mParentTriangle.getNormal(0)) < 0.0f) {
+                mDrawStates.mBits.mBit16 = 1;
+                _380 = *mFrontWallTriangle->getNormal(0);
+            }
         }
     }
 }
@@ -4900,6 +4906,7 @@ void Mario::fn_803B4280() {
 // NONMATCHING: register allocation
 s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3f& rPos, f32 radius) {
     u32 count = this->fn_803B29B0(rPos, radius);
+    f32 depth;
     f32 limit;
     if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(this->mActor->fn_803B9830()->mRideModelActor)) {
         limit = 0.707f;
@@ -4923,14 +4930,12 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
             continue;
         }
         TVec3f rest;
-        f32 depth = pInfo->mDistance;
-        if (MR::vecKillElement(*pOutVec, *pNrm, &rest) >= depth) {
+        f32 projected = MR::vecKillElement(*pOutVec, *pNrm, &rest);
+        depth = pInfo->mDistance;
+        if (projected >= depth) {
             continue;
         }
-        TVec3f push(*pNrm);
-        push.scale(depth);
-        TVec3f sum(rest);
-        sum += push;
+        TVec3f sum = rest + *pNrm * depth;
         *pOutVec = sum;
         pOut[n].mTriangle = pInfo->mParentTriangle;
         pOut[n].mHitPos = pInfo->mHitPos;
@@ -4948,9 +4953,10 @@ void Mario::fn_803B44F0(TVec3f* arg1) {
         TVec3f sp8(*arg1);
         sp8 *= 0.2f;
         this->blown(sp8);
+        this->mMovementStates.mHighBits.mBit20 = 1;
         this->_402 = 0;
         this->_428 = 0x3C;
-        this->mMovementStates.mHighWord = (this->mMovementStates.mHighWord | 0x100000U) & 0xFFFFFFFCU;
+        this->mMovementStates.mHighPairBits.mLowPair = 0;
     } else if (this->_1FC.dot(*arg1) < 0.0f) {
         this->mMovementStates.mLowBits.mBit30 = 1;
         this->mJumpVec.zero();

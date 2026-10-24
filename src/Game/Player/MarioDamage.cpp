@@ -29,12 +29,6 @@
 
 
 
-namespace {
-    const char sDamageAirAnimation[] = "中ダメージ空中";
-    const char sDamageLandAnimation[] = "中ダメージ着地";
-    const char sBackDamageAirAnimation[] = "中後ダメージ空中";
-    const char sBackDamageLandAnimation[] = "中後ダメージ着地";
-}
 
 // native: defined in Mario.cpp (DOL split owner); misplaced copy
 #ifndef GALAXY_NATIVE
@@ -61,6 +55,10 @@ MarioDamage::MarioDamage(MarioActor* pActor)
 
 // NONMATCHING: read-only animation array base hoisting and register scheduling differ.
 bool MarioDamage::start() {
+    static const char sDamageAirAnimation[] = "中ダメージ空中";
+    static const char sDamageLandAnimation[] = "中ダメージ着地";
+    static const char sBackDamageAirAnimation[] = "中後ダメージ空中";
+    static const char sBackDamageLandAnimation[] = "中後ダメージ着地";
     _14 = 0;
     _18 = 0;
     if (_30) {
@@ -90,7 +88,7 @@ bool MarioDamage::start() {
     getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
     getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
     getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
-    getPlayer()->mMovementStates.mHighWord &= 0xFFFFFFFCU;
+    getPlayer()->mMovementStates.mHighPairBits.mLowPair = 0;
     _1C += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightDamage;
     getPlayer()->mJumpVec = _1C;
     addVelocity(_1C);

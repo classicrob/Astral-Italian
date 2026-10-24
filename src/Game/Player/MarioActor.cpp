@@ -3741,7 +3741,7 @@ void MarioActor::fn_803BEB10(s32 a) {
     }
 }
 
-bool MarioActor::fn_803BEBE0() {
+bool MarioActor::fn_803BEBE0() const {
     if (_934 == 0) {
         return false;
     }
@@ -6027,7 +6027,8 @@ void MarioActor::fn_803C4100() {
 void MarioActor::calcAnim() {
     CollisionShadow* pShadow;
     if (mMario->isPlayerModeYoshi()) {
-        bool hideYoshi = is481or482On();
+        bool hideYoshi = true;
+        if (!_482 && !_481) hideYoshi = false;
         if (hideYoshi == false) hideYoshi = !_482 && _483;
         if (hideYoshi) mYoshiHolder->mYoshi->fn_8040CBF0();
         else mYoshiHolder->mYoshi->fn_8040CBD0();
@@ -6278,9 +6279,6 @@ void MarioActor::calcAnimHorrorBone() {
     }
 }
 
-#pragma push
-#pragma opt_propagation off
-// NONMATCHING: Equivalent entry-guard branches, matrix stack slots, and argument scheduling.
 void MarioActor::calcAndSetBaseMtx() {
     if (!fn_803C5990()) return;
     if (fn_803C4F70()) return;
@@ -6345,7 +6343,6 @@ void MarioActor::calcAndSetBaseMtx() {
     }
     _EA5 = false;
 }
-#pragma pop
 
 
 bool MarioActor::fn_803C4F70() {
@@ -6917,8 +6914,9 @@ bool MarioActor::tryAttackMsg(u32 msg, const HitSensor* pSensor, bool* pHandled)
 
     case 0x65:
     case 0x66:
-    case 0x67:
-        if (mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "青い炎エフェクト")) {
+    case 0x67: {
+        const char* effect = "青い炎エフェクト";
+        if (mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, effect)) {
             _1B4 = true;
         } else {
             _1B4 = false;
@@ -6927,6 +6925,7 @@ bool MarioActor::tryAttackMsg(u32 msg, const HitSensor* pSensor, bool* pHandled)
         mMario->fn_803949E0();
 
         return true;
+    }
 
     case 0x68:
     case 0x69:
@@ -7703,11 +7702,8 @@ void MarioActor::copyMaterial(J3DModel* pModel, u16 materialNo, s32 packetIndex)
 
 // NONMATCHING: equivalent model switch lowering, Animator receiver load scheduling, and verified literal.
 void MarioActor::updateFace() {
-    switch (mAllModel->mCurrentModel) {
-    case 1:
-    case 3:
-    case 4:
-    case 6:
+    s32 model = mAllModel->mCurrentModel;
+    if ((3 <= model && model <= 4) || model == 1 || model == 6) {
         MR::hideModel(mModelF38);
         return;
     }
@@ -8264,7 +8260,9 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
         }
         if (_934 == 0) {
             if (((this->mMario->mMovementStates.mLowWord >> (0x14)) & 1)) {
-                this->mMario->changeAnimation("ショートジャンプ", "落下");
+                const char* fall = "落下";
+                const char* jump = "ショートジャンプ";
+                this->mMario->changeAnimation(jump, fall);
             } else {
                 this->mMario->changeAnimation("ショートジャンプ", (const char*)nullptr);
             }
@@ -8283,14 +8281,11 @@ bool MarioActor::fn_803CA440(TVec3f& a, TVec3f& b) {
             this->mMario->cutGravityElementFromJumpVec(false);
             (this->mMario)->mJumpVec.scale(0.5f);
         } else {
-            TVec3f& jv = (this->mMario)->mJumpVec;
-            f32 k = MR::vecKillElement(jv, *this->mMario->getGravityVec(), &jv);
-            jv.scale(0.75f);
-            TVec3f g(*this->mMario->getGravityVec());
-            g.scale(k);
-            TVec3f g2(g);
-            g2.scale(0.75f);
-            jv += g2;
+            const TVec3f& gravity = *this->mMario->getGravityVec();
+            Mario* player = this->mMario;
+            f32 k = MR::vecKillElement(player->mJumpVec, gravity, &player->mJumpVec);
+            this->mMario->mJumpVec.scale(0.75f);
+            this->mMario->mJumpVec += (*this->mMario->getGravityVec() * k) * 0.75f;
         }
     }
     this->mMario->clear2DStick();
@@ -8383,39 +8378,30 @@ void MarioActor::fn_803CAA00() {
     }
     TVec3f old(this->mVector60C);
     m = this->mMario;
-    if (((m->mMovementStates.mLowWord >> (0x15)) & 1)) {
+    if (m->mMovementStates.mLowBits.mBit21) {
         len = 50.0f;
     }
-    if (((m->mMovementStates.mLowWord >> (0x1E)) & 1)) {
-        TVec3f t(blend);
-        t.scale(len);
-        this->mVector60C = t;
-    } else if (((m->mFlags14.mHighWord >> (0x1C)) & 1) || _934 != 0) {
-        TVec3f neg = -mAppliedGravityVec;
-        TVec3f t(neg);
-        t.scale(70.0f);
-        if (this->_334 != 0 || mMario->calcPolygonAngleD(mMario->mGroundPolygon) >= 59.0f) {
-            MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.1f);
-        } else {
-            MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.5f);
-        }
+    if (m->mMovementStates.mLowBits.mBit30) {
+        this->mVector60C = blend * len;
     } else {
-        TVec3f neg = -mAppliedGravityVec;
-        TVec3f t(neg);
-        t.scale(70.0f);
-        MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.1f);
+        len = 70.0f;
+        if (((m->mFlags14.mHighWord >> (0x1C)) & 1) || _934 != 0) {
+            TVec3f t = -mAppliedGravityVec * len;
+            if (this->_334 != 0 || mMario->calcPolygonAngleD(mMario->mGroundPolygon) >= 59.0f) {
+                MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.1f);
+            } else {
+                MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.5f);
+            }
+        } else {
+            TVec3f t = -mAppliedGravityVec * len;
+            MR::vecBlend(&this->mVector60C, this->mVector60C, t, 0.1f);
+        }
     }
     u16 c = this->_3AA;
     if (c != 0) {
         this->_3AA = c - 1;
         f32 r = (f32)(u16)(c - 1) / 15.0f;
-        TVec3f a(old);
-        a.scale(r);
-        TVec3f b(this->mVector60C);
-        b.scale(1.0f - r);
-        TVec3f s(b);
-        s += a;
-        this->mVector60C = s;
+        this->mVector60C = this->mVector60C * (1.0f - r) + old * r;
         (this->mMario)->mFlags14.mLowWord |= 0x10000000;
     }
     if (this->_334 != 0) {
@@ -8428,9 +8414,7 @@ void MarioActor::fn_803CAA00() {
             TVec3f c2(b);
             c2 -= a;
             f32 k = MR::vecKillElement(c2, mAppliedGravityVec, &c2);
-            TVec3f push(mAppliedGravityVec);
-            push.scale(k);
-            this->mMario->push2(push);
+            this->mMario->push2(mAppliedGravityVec * k);
             this->_legacy2AC = (this->mMario)->mHeadVec;
         }
         this->_334 = this->_334 - 1;
@@ -9281,7 +9265,7 @@ void MarioActor::fn_803CCF90(HitSensor* sensor) {
     mSensor794 = sensor;
 }
 
-bool MarioActor::fn_803CD000() {
+bool MarioActor::fn_803CD000() const {
     if (_934 != 0) {
         return false;
     }
@@ -9376,7 +9360,7 @@ bool MarioActor::fn_803CD380() {
     return (this->mMario)->mMorphResetTimer == 0;
 }
 
-bool MarioActor::fn_803CD3C0() {
+bool MarioActor::fn_803CD3C0() const {
     if (_934 != 0) {
         return false;
     }
@@ -13402,10 +13386,11 @@ s32 MarioActor::fn_803D8490() const {
 
 // NONMATCHING: registers, pooled color/bias addressing, equivalent color packing and redundant target branches.
 void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
+    J3DMaterial* mat;
     J3DModelX* m = static_cast<J3DModelX*>(MR::getJ3DModel(mSearchLight));
     u32 t = mSearchLightTimer;
     f32 f = 1.0f;
-    J3DMaterial* mat = m->getModelData()->getMaterialNodePointer(0);
+    mat = m->getModelData()->getMaterialNodePointer(0);
     if (t < 0x1E) {
         f = 0.0f;
     } else if (t < 0xB4) {
@@ -13418,9 +13403,10 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_NOOP);
     GXSetDstAlpha(GX_TRUE, 0);
     const MarioConstTable* tbl = mConst->getTable();
-    u32 col = static_cast<u32>(tbl->mSearchLightColor[0]) << 24;
-    col |= static_cast<u32>(tbl->mSearchLightColor[1]) << 16;
-    col |= static_cast<u32>(tbl->mSearchLightColor[2]) << 8;
+    u32 red = tbl->mSearchLightColor[0];
+    u32 blue = tbl->mSearchLightColor[2];
+    u32 green = tbl->mSearchLightColor[1];
+    u32 col = (red << 24) | (green << 16) | (blue << 8);
     TDDraw::drawFillBox(*a, *b, col);
     GXSetDstAlpha(GX_FALSE, 0);
     GXSetAlphaUpdate(GX_FALSE);
@@ -13430,8 +13416,7 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     bool ok = m->simpleDrawSetup(mat);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-    static const GXColorS10 c0 = {255, 255, 255, 0};
-    GXColorS10 c = c0;
+    GXColorS10 c = {255, 255, 255, 0};
     c.a = (u8)(s32)(f * (f32)(mConst->getTable())->mSearchLightAlphaLevel);
     GXSetTevColorS10(GX_TEVREG0, c);
     GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_1);
@@ -13441,10 +13426,10 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
         m->simpleDrawShape(mat);
         GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A1, GX_CA_A0, GX_CA_RASA, GX_CA_ZERO);
         GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
-        static const GXColorS10 c1 = {255, 255, 255, 0};
-        static const GXColorS10 c2 = {255, 255, 255, 4};
         u32 i = 0;
         do {
+            const GXColorS10 c1 = {255, 255, 255, 0};
+            const GXColorS10 c2 = {255, 255, 255, 4};
             m->setDrawView(i + 1);
             GXColorS10 d = c1;
             d.a = (u8)(s32)(f * (f32)mConst->getTable()->mSearchLightBlurAlpha[i]);
@@ -13545,10 +13530,7 @@ void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
 
 void MarioActor::fn_803D8E30(TVec3f* v) {
     if (v->dot(*this->mMario->getGravityVec()) < -40.0f) {
-        TVec3f up(*this->mMario->getGravityVec());
-        up.scale(100.0f);
-        TVec3f start(this->mPosition);
-        start -= up;
+        TVec3f start = this->mPosition - *this->mMario->getGravityVec() * 100.0f;
         TVec3f dir(*this->mMario->getGravityVec());
         dir.scale(200.0f);
         Triangle* tri = this->mMario->fn_803EFA20();
@@ -13571,15 +13553,14 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
             }
         }
     } else if (v->dot(*this->mMario->getGravityVec()) > 40.0f) {
-        Triangle* gt = (this->mMario)->_4C8;
-        if (gt->isValid()) {
-            if (MR::isSensorPressObj(gt->getSensor()) || MR::getFloorCodeIndex((this->mMario)->_4C8) == 0x1D ||
+        if (this->mMario->_4C8->isValid()) {
+            if (MR::isSensorPressObj(this->mMario->_4C8->getSensor()) || MR::getFloorCodeIndex((this->mMario)->_4C8) == 0x1D ||
                 MR::getFloorCodeIndex((this->mMario)->_4C8) == 0x27) {
                 (this->mMario)->mDrawStates.mWord |= 2;
             }
         } else {
-            u32 i = 0;
             u32 n = (this->mBinder)->mPlaneNum;
+            u32 i = 0;
             while (i < n) {
                 const HitInfo* p = this->mBinder->getPlane(i);
                 if (MR::isSensorPressObj(p->mParentTriangle.getSensor())) {
@@ -13612,22 +13593,21 @@ void MarioActor::fn_803D9170(TVec3f* v) {
     s32 hit;
     u32 n = (this->mBinder)->mPlaneNum;
     hit = 0;
-    f32 zero = 0.0f;
     i = 0;
     while (i < n) {
         tri = (Triangle*)this->mBinder->getPlane(i);
         if (MR::isSensorPressObj(tri->getSensor())) {
-            if ((this->mMario)->_368.dot(*tri->getNormal(0)) > zero) {
+            if ((this->mMario)->_368.dot(*tri->getNormal(0)) > 0.0f) {
                 if ((this->mMario)->_72C < 200.0f) {
                     hit = 1;
-                } else if (tri->getNormal(0)->dot(*v) < zero) {
+                } else if (tri->getNormal(0)->dot(*v) < 0.0f) {
                     hit = 1;
                 } else {
                     hit = 0;
                 }
             } else {
                 f32 d = tri->getNormal(0)->dot(*v);
-                if (d < zero) {
+                if (d < 0.0f) {
                     hit = 1;
                 } else if (this->mMario->_5FC != nullptr) {
                     if (!MR::isWallCodeNoAction(tri) && !this->mMario->isOnimasuBinderPressSkip()) {

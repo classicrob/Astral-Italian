@@ -410,7 +410,8 @@ bool RepeatBlock::stepForward() {
         do {
             MR::moveCoord(this, mSpeed);
             mGrid->worldToCell(&mRailCell, MR::getRailPos(this));
-            if (!mRailCell.isEqual(mCell)) {
+            bool isDifferent = !mRailCell.isEqual(mCell);
+            if (isDifferent) {
                 break;
             }
             if (MR::isRailReachedGoal(this)) {

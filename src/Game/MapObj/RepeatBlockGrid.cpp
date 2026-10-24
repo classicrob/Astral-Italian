@@ -420,7 +420,9 @@ void RepeatBlockShadowDrawer::makeHeadFace() {
     TVec3f drop;
     calcDropOffset(&drop);
     RepeatBlockCell* pFirst = &mHistory->getNode(0)->mCell;
-    mVolume->setup(pFirst, calcDirection(pFirst, &mHistory->getNode(1)->mCell), mOffset);
+    s32 direction = calcDirection(pFirst, &mHistory->getNode(1)->mCell);
+    f32 rate = mOffset;
+    mVolume->setup(pFirst, direction, rate);
     TVec3f offset(drop);
     offset *= (f32)len;
     mHasHead = mVolume->calcFace(mHeadPoints, mDirection, offset);

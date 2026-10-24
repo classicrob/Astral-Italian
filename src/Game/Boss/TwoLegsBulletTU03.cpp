@@ -44,7 +44,7 @@ void TwoLegsCamera::keepAlive() {
     }
 }
 
-void TwoLegsCamera::end(bool) {
+void TwoLegsCamera::end() {
     mActive = false;
     MR::endActorCameraProgrammable(mHost, -1, true);
 }
@@ -183,7 +183,6 @@ void TwoLegsCoin::appear(const TVec3f& rPos) {
 // TwoLegsJointCtrl
 // ---------------------------------------------------------------------------------------------
 
-// NONMATCHING: callback member-pointer stack slots and literal-base register assignment
 TwoLegsJointCtrl::TwoLegsJointCtrl(LiveActor* pHost) {
     mSpin = false;
     mJointL = nullptr;
@@ -199,11 +198,7 @@ TwoLegsJointCtrl::TwoLegsJointCtrl(LiveActor* pHost) {
     mJointR = MR::getJointTransform(pHost, "BoltR");
     mJointL->mPostTransform = mMtxR.toMtxPtr();
     mJointR->mPostTransform = mMtxL.toMtxPtr();
-    bool (TwoLegs::*callback)(TPos3f*, const JointControllerInfo&) = &TwoLegs::calcJointCallback;
-    bool (TwoLegs::*before)(TPos3f*, const JointControllerInfo&) = nullptr;
-    JointController* ctrl = new JointControlDelegator< TwoLegs >(static_cast< TwoLegs* >(pHost), before, callback);
-    MR::setJointControllerParam(ctrl, pHost, "EyeBall");
-    mCtrl = ctrl;
+    mCtrl = MR::createJointDelegator<TwoLegs>(static_cast<TwoLegs*>(pHost), pHost, nullptr, &TwoLegs::calcJointCallback, "EyeBall");
 }
 
 void TwoLegsJointCtrl::update() {

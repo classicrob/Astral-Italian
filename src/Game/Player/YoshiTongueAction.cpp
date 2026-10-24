@@ -445,10 +445,7 @@ void YoshiTongueAction::fn_8041EBE0() {
         MtxPtr mtx = mYoshi->getBaseMtx();
         TVec3f up(mtx[0][1], mtx[1][1], mtx[2][1]);
         if (!MR::isDead(mArrow)) {
-            TVec3f offset(_90);
-            offset.scale(300.0f);
-            TVec3f target(start);
-            target += offset;
+            TVec3f target = start + _90.scaleInline(300.0f);
             mArrow->fn_80413DC0(start, target, up);
             mTargetPosition.set(target);
         }
@@ -865,8 +862,7 @@ bool YoshiTongueAction::tryStartNearestAutoEat(const TVec3f& position) {
     bool alternate = false;
     for (s32 i = 0; i < count; ++i) {
         if (!MR::isSensorPlayerOrRide(mYoshi->getAutoEatSensor(i))) {
-            HitSensor* messageSensor = MR::getMessageSensor();
-            if (sendAutoEatSensorMessage(0xFD, mYoshi->getAutoEatSensor(i), messageSensor)) {
+            if (sendAutoEatSensorMessage(0xFD, mYoshi->getAutoEatSensor(i), MR::getMessageSensor())) {
                 f32 distance = PSVECDistance(&mYoshi->getAutoEatSensor(i)->mPosition, &position);
                 if (nearest > distance) {
                     _A0 = mYoshi->getAutoEatSensor(i);
@@ -874,8 +870,7 @@ bool YoshiTongueAction::tryStartNearestAutoEat(const TVec3f& position) {
                     alternate = false;
                 }
             }
-            messageSensor = MR::getMessageSensor();
-            if (sendAutoEatSensorMessage(0xFE, mYoshi->getAutoEatSensor(i), messageSensor)) {
+            if (sendAutoEatSensorMessage(0xFE, mYoshi->getAutoEatSensor(i), MR::getMessageSensor())) {
                 f32 distance = PSVECDistance(&mYoshi->getAutoEatSensor(i)->mPosition, &position);
                 if (nearest > distance) {
                     _A0 = mYoshi->getAutoEatSensor(i);

@@ -29,7 +29,6 @@ namespace {
 bool KoopaJrCastleWindHolder::calcWindInfo(const TVec3f& rPos, TVec3f* pDir, f32* pPower) const {
     pDir->zero();
     *pPower = -1.0f;
-    f32 zero = 0.0f;
     f32 minPower = 1000000.0f;
     TVec3f sum(0.0f, 0.0f, 0.0f);
     LiveActor* pActor;
@@ -38,7 +37,7 @@ bool KoopaJrCastleWindHolder::calcWindInfo(const TVec3f& rPos, TVec3f* pDir, f32
         pActor = getActor(i);
         if (!MR::isDead(pActor)) {
             TVec3f dir(0.0f, 0.0f, 0.0f);
-            f32 power = zero;
+            f32 power = 0.0f;
             if (static_cast< KoopaJrCastleWindBase* >(pActor)->calcWindInfo(&rPos, &dir, &power)) {
                 found = true;
                 sum += dir;

@@ -1502,14 +1502,14 @@ void Mario::fn_8039A600() {
 
 // NONMATCHING: explicit typed mode14 storage dispatch, register allocation and boolean lowering.
 f32 Mario::calcJumpGravity() {
-    u16 timer = this->_76C;
-    if (timer != 0) {
-        MarioConstTable* entry = this->mActor->mConst->getTable();
-        f32 ratio = static_cast<f32>(timer) / static_cast<f32>(entry->mBeeGravityReviveTime);
+    MarioConstTable* entry;
+    if (this->_76C != 0) {
+        entry = getActor()->getConst().getTable();
+        f32 ratio = static_cast<f32>(this->_76C) / static_cast<f32>(entry->mBeeGravityReviveTime);
         f32 multiplier = this->fn_8039ADC0();
         f32 gravity = (1.0f - ratio) + ratio * entry->mGravityAirWalk;
-        gravity *= multiplier;
-        return gravity;
+        multiplier = gravity * multiplier;
+        return multiplier;
     }
     if (this->_3CC != 0) {
         return this->mActor->mConst->getTable()->mGravityAirWalk;
@@ -1526,18 +1526,22 @@ f32 Mario::calcJumpGravity() {
         } else if (mode == 0xD) {
             gravity = this->mActor->mConst->getTable()->mGravityJumping[9];
         } else {
-            MarioConstTable* entry = this->mActor->mConst->getTable();
-            // Completed mode writers produce 0..14; mode14 selects the adjacent front-speed field.
+            entry = this->mActor->mConst->getTable();
+#ifdef GALAXY_NATIVE
             gravity = mode == 14 ? entry->mJumpFrontSpeed : entry->mGravityJumping[mode];
+#else
+            gravity = entry->mGravityJumping[mode];
+#endif
         }
     }
     if (this->isPlayerModeCloud() && !this->isRising()) {
         gravity *= 0.5f;
     }
-    if (this->_430 == 8 && !this->isRising()) {
-        gravity *= 0.25f;
-    }
-    return gravity * this->fn_8039ADC0();
+    bool fallingSpin = false;
+    if (this->_430 == 8 && !this->isRising()) fallingSpin = true;
+    if (fallingSpin) gravity *= 0.25f;
+    gravity *= this->fn_8039ADC0();
+    return gravity;
 }
 
 f32 Mario::fn_8039AA40() {
@@ -1581,9 +1585,8 @@ f32 Mario::getMaxDropSpeed() {
         return this->mActor->mConst->getTable()->mMaxDropSpeed[4];
     }
     if (this->_430 == 11 && !this->isRising()) {
-        MarioConstTable* entry = this->mActor->mConst->getTable();
-        if (this->_3BE >= entry->mTrampleBegomaOpenTime) {
-            return entry->mMaxDropSpeed[3];
+        if (this->_3BE >= getActor()->getConst().getTable()->mTrampleBegomaOpenTime) {
+            return getActor()->getConst().getTable()->mMaxDropSpeed[3];
         }
     }
     MarioConstTable* entry = this->mActor->mConst->getTable();
@@ -3452,16 +3455,14 @@ void Mario::doLanding() {
         return;
     }
     if (static_cast<u32>(getPlayer()->mFlags14.mLowBits.mBit29)) {
-        Mario* player = getPlayer();
-        player->mFlags14.mLowBits.mBit29 = 0;
+        getPlayer()->mFlags14.mLowBits.mBit29 = 0;
         _430 = 14;
         goto COMMON_LANDING;
     }
     {
         u32 type = mMovementStates.mHighWord & 3;
         if (type == 2) {
-            Mario* player = getPlayer();
-            player->mMovementStates.mHighWord &= ~3;
+            getPlayer()->mMovementStates.mHighPairBits.mLowPair = 0;
             stopWalk();
             playSound("声ステージイン着地");
             playSound("重い着地");
@@ -3470,8 +3471,7 @@ void Mario::doLanding() {
             return;
         }
         if (type == 1) {
-            Mario* player = getPlayer();
-            player->mMovementStates.mHighWord &= ~3;
+            getPlayer()->mMovementStates.mHighPairBits.mLowPair = 0;
             playEffect("スーパースピンドライバ終了");
             playEffect("共通着地大");
             if (!isStickFull()) keepSlip = true;
@@ -3507,10 +3507,22 @@ void Mario::doLanding() {
     }
     if (_3BC > 10) playEffect("共通着地普通");
 COMMON_LANDING:
-    if (static_cast<u32>(_430 - 10) > 1 && _430 != 0 && _430 != 14) {
-        if (_430 != 2 && _430 != 6 && _430 != 4) startPadVib(2);
-        else startPadVib(3);
-    } else startPadVib(static_cast<u32>(0));
+    switch (_430) {
+    case 10:
+    case 11:
+    case 0:
+    case 14:
+        startPadVib(static_cast<u32>(0));
+        break;
+    default:
+        startPadVib(2);
+        break;
+    case 2:
+    case 6:
+    case 4:
+        startPadVib(3);
+        break;
+    }
     getAnimator()->addRumblePower(5.0f, 60);
     mMovementStates.mHighBits.mBit30 = 0;
     if (getPlayerMode() != 4) _402 = mActor->mConst->getTable()->mAirWalkTime;
@@ -3611,7 +3623,9 @@ POST_LANDING:;
         f32 length = PSVECMag(&_8F8);
         if (PSVECMag(&horizontal) < length) {
             f32 speed = PSVECMag(&horizontal);
-            _8F8.setLength(0.5f * (PSVECMag(&_8F8) + speed));
+            f32 average = PSVECMag(&_8F8);
+            average += speed;
+            _8F8.setLength(0.5f * average);
         }
     } else _8F8.zero();
 }
@@ -4415,7 +4429,8 @@ void Mario::fn_803A2530(TVec3f* out) {
 
 void Mario::fn_803A2570(f32 x, TVec3f* arg) {
     f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);
-    f32 s = MR::clamp(x / d, 0.0f, 1.0f);
+    f32 s = x / d;
+    s = MR::clamp(s, 0.0f, 1.0f);
     this->fn_803A2690(&s);
     if ((this->getPlayer()->mFlags14.mLowWord >> 13) & 1) {
         s *= this->fn_803A26C0(d);
@@ -4743,9 +4758,8 @@ f32 Mario::decideInertia(f32 speed) {
     }
     if (static_cast<u32>(mMovementStates.mLowBits.mBit16)) {
         sInertiaName = "トルネード";
-        c = mActor->mConst;
-        if (mWalkSpeed >= speed) inertia = c->mTable[c->mCurrentTable]->mInertiaTornadoBrake;
-        else inertia = c->mTable[c->mCurrentTable]->mInertiaTornadoAccel;
+        if (mWalkSpeed >= speed) inertia = getActor()->getConst().getTable()->mInertiaTornadoBrake;
+        else inertia = getActor()->getConst().getTable()->mInertiaTornadoAccel;
     }
     if (_3F8 != 0) {
         sInertiaName = "反射";
@@ -4766,7 +4780,7 @@ f32 Mario::decideInertia(f32 speed) {
         if (_3FA == 0) _3FC = 60;
     }
     if (_3FC != 0) _3FC--;
-    if (fn_803EF7C0() == 32 && mWalkSpeed > 0.4f) inertia *= 0.5f;
+    if (fn_803EF7C0() == 32 && mWalkSpeed > 0.4f) inertia = 0.5f * inertia;
     return inertia;
 }
 
@@ -5421,20 +5435,20 @@ void Mario::stick2Dadjust(f32& rStickX, f32& rStickY) {
 
     if (_66C) {
         if (MR::isNearZero(mStickPos.z)) {
-            _66C = false;
+            if (_66C) { _66C = false; }
         } else {
             TVec3f stickVec(rStickX, rStickY, 0.0f);
             const f32 diff = MR::diffAngleAbs(stickVec, _670);
 
             if (_670.x * rStickX < 0.0f) {
-                _66C = false;
+                if (_66C) { _66C = false; }
             } else if (_670.y * rStickY < 0.0f) {
-                _66C = false;
+                if (_66C) { _66C = false; }
             } else if (diff < 0.3f) {
                 rStickX = _67C.x;
                 rStickY = _67C.y;
             } else {
-                _66C = false;
+                if (_66C) { _66C = false; }
             }
         }
     }
@@ -5463,7 +5477,7 @@ void Mario::stick2Dadjust(f32& rStickX, f32& rStickY) {
             rStickX = stickVec.x;
             rStickY = stickVec.y;
             _67C = stickVec;
-            _66C = true;
+            if (_66C != true) { _66C = true; }
         }
     }
 
@@ -5777,7 +5791,6 @@ bool Mario::checkSidePressPre() {
     return false;
 }
 
-#pragma opt_propagation off
 // NONMATCHING: temporary/register allocation; canonical SMG2 strike records and gates recovered.
 bool Mario::checkSidePress() {
     TVec3f position;
@@ -5911,9 +5924,7 @@ bool Mario::checkSidePress() {
                             TVec3f hitPosition;
                             if (!first->mParentTriangle.isHostMoved()) hitPosition = first->mHitPos;
                             else hitPosition = second->mHitPos;
-                            TVec3f displacement(hitPosition);
-                            displacement -= center;
-                            mPosHolder->fn_80406010(displacement);
+                            mPosHolder->fn_80406010(hitPosition - center);
                         }
                         mActor->setPress(1, 0);
                     }
@@ -5953,7 +5964,6 @@ bool Mario::checkSidePress() {
     return false;
 }
 
-#pragma opt_propagation on
 
 // NONMATCHING: saved register allocation and independent load scheduling.
 void Mario::fn_803A6BE0() {
@@ -5973,7 +5983,7 @@ void Mario::fn_803A6BE0() {
             }
         }
     }
-    bool grounded = static_cast<u32>(mMovementStates.mLowBits.mBit30);
+    u32 grounded = static_cast<u32>(mMovementStates.mLowBits.mBit30);
     if (grounded) {
         const char* name = mGroundPolygon->mSensor->mHost->mName;
         if (strstr(name, "TriPod") || strstr(name, "Tripod")) press = false;

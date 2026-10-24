@@ -44,7 +44,7 @@ class CandidateEvidence(unittest.TestCase):
    root=Path(raw).resolve();directory,paths,_=self.normal_fixture(root)
    tape=root/'tapes/tape-user-flipswap-fullstar-541';write(tape/'route.tape.json',{'seams':10866});(tape/'route.csv').write_text('frame\n0\n')
    points=[{'recorded':{'stage':stage,'row':row},'passed':True,'position_bit_exact':True,'rng':{'verified':True,'recorded':123,'readback':123,'restored_at_this_checkpoint':restore}} for stage,row,restore in (('RedBlueExGalaxy',1255,True),('RedBlueExGalaxy',4222,False),('RedBlueExGalaxy',5464,False),('MarioFaceShipGalaxy',10750,True))]
-   event={'row':8426,'stage':'RedBlueExGalaxy','scenario':1,'previous':0,'power_stars':1}
+   event={'row':8426,'stage':'MarioFaceShipGalaxy','scenario':2,'previous':0,'power_stars':1}
    proof={'recorded_star_event':event,'star_event':event,'star_anchor_offset':0,'scene_chain':['FileSelect','RedBlueExGalaxy','MarioFaceShipGalaxy'],'recorded_scene_chain':['FileSelect','RedBlueExGalaxy','MarioFaceShipGalaxy'],'recorded_play_ready_count':4,'actual_play_ready_count':4,'all_play_ready_checkpoints':points,'tape_prefix':{'declared_seams':10866,'available_complete_csv_rows':10860}}
    for path in paths:
     native=json.loads((path.parent/'replay/divergence.json').read_text());native['interactive_position_bit_exact']=True

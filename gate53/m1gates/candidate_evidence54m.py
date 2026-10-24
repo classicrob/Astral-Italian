@@ -63,7 +63,7 @@ def full_star_evidence(paths,directory):
   assert checks and all(v is True for v in checks.values()) and all(d['checks'].get(k)==v for k,v in checks.items())
   for key in ('recorded_star_event','star_event','star_anchor_offset','scene_chain','recorded_scene_chain','recorded_play_ready_count','actual_play_ready_count','all_play_ready_checkpoints','tape_prefix'):
    assert d[key]==proof[key]
-  expected=proof['recorded_star_event'];assert expected=={'row':8426,'stage':'RedBlueExGalaxy','scenario':1,'previous':0,'power_stars':1}
+  expected=proof['recorded_star_event'];assert expected=={'row':8426,'stage':'MarioFaceShipGalaxy','scenario':2,'previous':0,'power_stars':1}
   points=proof['all_play_ready_checkpoints'];assert proof['recorded_play_ready_count']==proof['actual_play_ready_count']==len(points)==4
   assert [(p['recorded']['stage'],p['recorded']['row']) for p in points]==[('RedBlueExGalaxy',1255),('RedBlueExGalaxy',4222),('RedBlueExGalaxy',5464),('MarioFaceShipGalaxy',10750)]
   assert all(p['rng']['restored_at_this_checkpoint'] is value for p,value in zip(points,(True,False,False,True)))

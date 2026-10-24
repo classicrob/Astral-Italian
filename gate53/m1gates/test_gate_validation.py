@@ -76,4 +76,15 @@ class GateValidation(unittest.TestCase):
   self.assertFalse(all(anchor_checks(bad,require_identity=True).values()))
   bad=copy.deepcopy(report);bad['segments'][0]['rows_compared']=9
   self.assertFalse(replay_accounting(bad,True))
+ def test_pointer_coverage_requires_actual_game_buffer_counters(self):
+  from replay_cases54m import game_pointer_coverage
+  report={'segments':[{'stage':'WorldMap01Galaxy','pointer_rows_compared':100,'pointer_valid_rows_compared':30,'pointer_distinct_positions_compared':3}]}
+  self.assertTrue(game_pointer_coverage(report)['passed'])
+  for field,value in (('pointer_valid_rows_compared',29),('pointer_distinct_positions_compared',2),('pointer_valid_rows_compared',101),('pointer_distinct_positions_compared',31),('pointer_valid_rows_compared',True)):
+   bad=copy.deepcopy(report);bad['segments'][0][field]=value
+   self.assertFalse(game_pointer_coverage(bad)['passed'],(field,value))
+  for field in ('pointer_valid_rows_compared','pointer_distinct_positions_compared'):
+   bad=copy.deepcopy(report);del bad['segments'][0][field]
+   self.assertFalse(game_pointer_coverage(bad)['passed'],field)
+  self.assertFalse(game_pointer_coverage({'segments':[]})['passed'])
 if __name__=='__main__':unittest.main()

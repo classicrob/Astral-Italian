@@ -31,6 +31,25 @@ def readj(path):
 def latency(text):
  return [(int(n),float(ms)) for n,ms in re.findall(r'\[latency\] press:.*\(frame \d+, (\d+) frames after the read\).*on screen ([\d.]+) ms',text)]
 
+def summary(g):
+ d=g['details'];name=g['gate']
+ if 'error' in d:return d['error'][:220]
+ if name=='macos-15-compat':return 'macOS '+d['macos']+'; '+', '.join(k+'='+str(v) for k,v in d['checks'].items())
+ if name=='seed-pack':return '64 DBs; frozen resources identical; SQLite integrity checked'
+ if name=='gx-fresh-warm':return str(d['passing'])+'/'+str(d['cases'])+'; failed: '+', '.join(d['failed_checks'])
+ if name=='normal-route-grandmap':return d.get('reason','Unavailable')
+ if name=='intro-skip':return '; '.join(d.get('no_press_play_ready',[]))+'; skip arm unavailable without host input'
+ if name=='flipswap-cappy':return str(d['passing'])+'/23; failed: '+', '.join(d.get('failed_cases',[]))
+ if name=='v2-cold-stall':
+  rs=d['runs'];stalls=[x for r in rs for x in r['gameplay_over100']]
+  return str(sum(r['passed'] for r in rs))+'/9; menu p99 '+str(min(r['menu_p99'] for r in rs))+'–'+str(max(r['menu_p99'] for r in rs))+' ms; gameplay stalls '+str(len(stalls))+', worst '+str(max((x[1] for x in stalls),default=0))+' ms; holds >3s '+str(sum(len(r['holds_over3s']) for r in rs))
+ if name=='v2-image-pair':return 'mean RGB '+str(d['diff']['mean_abs_rgb'])+'; '+str(len(d['diff']['pairs']))+' pairs; off guard '+str(d['off_guard_lines'])
+ if name=='v2-warm-pairs':return '; '.join(st+': p99 delta '+('/'.join(f"{p["p99_delta_ms"]:+.2f}" for p in v['pairs']))+' ms' for st,v in d['stages'].items())
+ if name=='fifo-default-cadence-latency':return '; '.join(r['case']+': late '+str(r['late_present_pct'])+'%, '+str(r['presses'])+' presses, frames '+str(r['frames_after_read']) for r in d['runs'])
+ if name=='audio-thread-priority':return '; '.join(r['case']+': '+str(r['underrun_frames'])+' underrun frames / '+str(r['underrun_reports'])+' reports, baton >50ms '+str(r['baton_over50']) for r in d['runs'])
+ if name=='wii-proof':return 'Release source lineage rechecked; original Wii build/oracle evidence reused'
+ return json.dumps(d,ensure_ascii=False,separators=(',',':'))[:220]
+
 def main():
  p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');a=p.parse_args()
  base=a.campaign.resolve();m=readj(base/'MANIFEST.json');label=m['label'];expected=m['frozen']['perf_exe_sha256'];frozen=readj(FROZEN/'BUILD.json');gates=[];issues=[]
@@ -64,7 +83,7 @@ def main():
  gate('intro-skip',[intro],lambda:readj(intro),'intro skip without host input')
  cappy=runpath('cappy')/'receipt.json'
  def cappycheck():
-  d=readj(cappy);return {'passed':d['passed']==23 and d['failed']==0 and len(d['results'])==23 and all(r['passed'] for r in d['results']) and d['app_sha256']==expected,'passing':d['passed'],'failing':d['failed']}
+  d=readj(cappy);return {'passed':d['passed']==23 and d['failed']==0 and len(d['results'])==23 and all(r['passed'] for r in d['results']) and d['app_sha256']==expected,'passing':d['passed'],'failing':d['failed'],'failed_cases':[r['name'] for r in d['results'] if not r['passed']]}
  gate('flipswap-cappy',[cappy],cappycheck,'23 Cappy cases')
  cold=[runpath(f'cold-{st}-r{n}') for st in ('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy') for n in (1,2,3)]
  def coldcheck():
@@ -116,8 +135,7 @@ def main():
  write(base/'VALIDATION.json',validation)
  lines=['M1 frozen 5.4 versus server (actual evidence; nice 0 on M1)','',f"Frozen exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
  for g in gates:
-  detail=json.dumps(g['details'],ensure_ascii=False,separators=(',',':'))
-  if len(detail)>1200:detail=detail[:1200]+'… (full VALIDATION.json)'
+  detail=summary(g)
   lines.append('| '+g['gate']+' | '+SERVER[g['gate']]+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
  if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
  lines+=['','Each GX session holds native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate tape checks are labelled separately; they do not change frozen54 gate status.']

@@ -1,8 +1,12 @@
 # Testing Astral Italian
 
-Astral Italian is a native Apple Silicon Mac port of Super Mario Galaxy 2, built on a community decompilation. It is an
-early tester build: parts of the game are well covered, others are not. This page tells you how to install it, play it and
-report what goes wrong.
+> **No game assets are included, ever.** Astral Italian is a native Apple Silicon Mac port of Super Mario Galaxy 2 built on a
+> community decompilation. You **import your own copy of the game (USA disc image, game ID SB4E01)** the first time you open the
+> app; it never leaves your Mac and is not part of any download here.
+
+It is an early tester build: parts of the game are well covered, others are not. This page tells you how to install it, play
+it and report what goes wrong. If you know this game well, the [expert tester brief](#expert-tester-brief-what-felt-different)
+below is the most useful thing you can do for us.
 
 ## What you need
 
@@ -64,12 +68,49 @@ Anything you like: the title screen and file select, the Starship, the World 1 m
 mostly want to hear about crashes, hangs, wrong visuals or sound, controls that feel off, and anything that differs from the
 original game. Coverage of the full game is limited; do not expect every galaxy to work yet.
 
+## Expert tester brief: what felt different?
+
+If you have played Super Mario Galaxy 2 a lot, your hands know things we cannot measure. We do not need "any bugs"; we need
+**"what felt different from the original?"** Play the same moment on the Wii (or Dolphin) if you can, then here (for the Odyssey mod moves, compare with Super Mario Odyssey), and tell us
+which one felt different and how. "Feels floatier", "the spin is a hair late", "the camera trails me" are exactly the right
+level. You do not need numbers. Press **M** (or F9) *right after* a moment that felt off: the game then keeps the last 5 seconds
+of what you did, and the exact tape of the session lets us replay it frame by frame.
+
+Try these, in roughly this order, and answer what you can:
+
+| Area | What to try | What to tell us |
+| --- | --- | --- |
+| **Spin** | Spin on the ground, in the air, and while running, then spin into a Star Bit or an enemy. | Does the spin start at the moment you press? Is the airborne spin height/hover the same? Is the cooldown (when you can spin again) the same? |
+| **Long jump** (the Odyssey movement *mod*, off until you enable it in the Home menu; run, then Shift, then Space) | A long jump along flat ground; a long jump off a ledge; dive and roll out of it. | These moves are not in the original game: compare with Super Mario Odyssey. Are the distance and arc what you expect? Does the landing keep your speed the way Odyssey does? |
+| **Jumps and wall kicks** | Triple jump, backflip, side flip, and wall kicks against a wall: timing window, height, direction after the kick. | Is the wall-kick window the same? Does Mario stick or slide differently? |
+| **Camera** | Run in circles, turn quickly, enter and leave narrow spaces, use Q/E and C to recenter. | Does the camera lag behind more, or snap, compared with the original? Does it ever fight you or clip through geometry? |
+| **Star Pointer** | Collect Star Bits with the mouse, shoot them at enemies, hold the pointer target (right click). | Is the pointer position where you expect (no offset, no lag)? Is the pickup/shoot timing the same? Does it feel right at the screen edges and at different window sizes? |
+| **Launch stars and cannons** | Fly through several launch stars; fire cannons. | Is the arc, speed and landing spot the same? Is the pointer-to-aim feel right? |
+| **Water** | Swim, dive, surface, spin-swim, enter and leave water in a galaxy that has it. | Swimming speed and turning, the surface bob, camera behaviour, any odd visuals or sound. |
+| **Frame rate / 120 Hz** | Play a while; if you have a 120 Hz (ProMotion) display, also watch pans and fast turns. | Does motion look smooth and evenly spaced, or stuttery/doubled? Any hitch when something new appears (shaders compiling)? Does it feel like 60 or like 120? |
+| **Sound and music** | Listen through a galaxy and a world map. | Missing or doubled sounds, music that loops wrong or cuts, anything delayed relative to the picture. |
+
+Also welcome: anything that is not in the original (a crash, a hang, a wrong colour or missing object, a place you cannot reach
+that you can reach on the Wii) and anything you only notice when you compare side by side.
+
+### Sending it
+
+1. Press **M** (or F9) when it happens, and keep playing or quit normally.
+2. Quit, then run **Collect Bug Report.command** from the download. It asks for one or two sentences; write what felt different
+   and where (galaxy and mission if you know). It makes a zip on your Desktop with your newest session tape, build version,
+   logs, captures and crash reports. **README-PRIVACY.txt** inside lists exactly what is in it; no saves and no game files.
+3. Send the zip to the developers (cloud-drive link or direct message works best; GitHub issues take files up to 25 MB, and a
+   second smaller zip *without the tape* is made automatically when the full one is large), or
+   [open an issue](https://github.com/classicrob/Astral-Italian/issues/new/choose) and attach it or its link.
+
+
 ## Reporting a problem
 
 1. **Right after it happens, press M (or F9).** The game saves the last 5 seconds of your inputs and Mario's movement, his
    state at that moment and a screenshot. Nothing shows on screen; keep playing.
 2. Quit the app, then double-click **Collect Bug Report.command** (from the download). It bundles the newest logs, captures,
-   crash reports and session tape plus basic system info into a zip on your Desktop. Nothing is uploaded.
+   crash reports, your latest exact session tape and the build identity into a zip on your Desktop (see
+   README-PRIVACY.txt inside it). Nothing is uploaded.
 3. [Open an issue](https://github.com/classicrob/Astral-Italian/issues/new/choose), say what you expected and what happened,
    and attach the zip. If a zip is too big for GitHub, say so and describe it; we will find another way.
 

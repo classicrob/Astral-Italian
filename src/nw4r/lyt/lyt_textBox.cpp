@@ -37,41 +37,52 @@ namespace nw4r {
             }
 
             template<typename CharT>
-            // NONMATCHING: character narrowing, spacing-state initialization and registers differ.
             int CalcLineRectImpl(ut::Rect* rect, ut::TextWriterBase<CharT>* writer, const CharT* str, int len, f32 width, bool* wrap) {
-                ut::PrintContext<CharT> context = {};
+                ut::PrintContext<CharT> context = {writer, str, 0.0f, 0.0f, 0};
                 f32 x = 0.0f;
-                context.writer = writer;
-                context.str = str;
-                ut::CharStrmReader reader = writer->GetFont()->GetCharStrmReader();
+
+                const ut::Font* font = writer->GetFont();
+                bool charSpace = false;
+                ut::CharStrmReader reader = font->GetCharStrmReader();
+
                 const CharT* previous = static_cast<const CharT*>(reader.GetCurrentPos());
-                rect->left = rect->right = 0.0f;
+
+                rect->left = 0.0f;
+                rect->right = 0.0f;
                 rect->top = ut::Min(0.0f, writer->GetLineHeight());
                 rect->bottom = ut::Max(0.0f, writer->GetLineHeight());
+
                 *wrap = false;
+
                 reader.Set(str);
                 ut::Rect previousRect = *rect;
-                bool charSpace = false;
-                int ch = reader.Next();
+                u16 ch = reader.Next();
                 while (static_cast<const CharT*>(reader.GetCurrentPos()) - str <= len) {
                     if (ch < 0x20) {
-                        // Preserve the running left edge for control codes that leave the rectangle unchanged.
+                        typename ut::TagProcessorBase<CharT>::Operation operation;
                         ut::Rect tagRect(x, 0.0f, 0.0f, 0.0f);
+
                         context.str = static_cast<const CharT*>(reader.GetCurrentPos());
                         context.flags = !charSpace;
+
                         writer->SetCursorX(x);
-                        typename ut::TagProcessorBase<CharT>::Operation operation = writer->GetTagProcessor().CalcRect(&tagRect, ch, &context);
+                        operation = writer->GetTagProcessor().CalcRect(&tagRect, ch, &context);
                         reader.Set(context.str);
-                        UnionRect(rect, tagRect);
+
+                        rect->left = ut::Min(rect->left, tagRect.left);
+                        rect->top = ut::Min(rect->top, tagRect.top);
+                        rect->right = ut::Max(rect->right, tagRect.right);
+                        rect->bottom = ut::Max(rect->bottom, tagRect.bottom);
+
                         x = writer->GetCursorX();
+
                         if (rect->GetWidth() > width) {
                             *wrap = true;
                             break;
                         }
                         if (operation == ut::TagProcessorBase<CharT>::OPERATION_END_DRAW) {
                             return len;
-                        }
-                        if (operation == ut::TagProcessorBase<CharT>::OPERATION_NO_CHAR_SPACE) {
+                        } else if (operation == ut::TagProcessorBase<CharT>::OPERATION_NO_CHAR_SPACE) {
                             charSpace = false;
                         } else if (operation == ut::TagProcessorBase<CharT>::OPERATION_CHAR_SPACE) {
                             charSpace = true;
@@ -90,6 +101,7 @@ namespace nw4r {
                         }
                         rect->left = ut::Min(rect->left, x);
                         rect->right = ut::Max(rect->right, x);
+
                         if (rect->GetWidth() > width) {
                             *wrap = true;
                             break;
@@ -99,18 +111,22 @@ namespace nw4r {
                     ch = reader.Next();
                     previousRect = *rect;
                 }
-                if (*wrap && previous != NULL) {
-                    *rect = previousRect;
-                    return previous - str;
+
+                if (*wrap) {
+                    if (previous != NULL) {
+                        *rect = previousRect;
+                        return previous - str;
+                    }
                 }
                 return static_cast<const CharT*>(reader.GetCurrentPos()) - str;
             }
 
             template<typename CharT>
-            // NONMATCHING: initial rectangle stores are ordered differently.
             NO_INLINE void CalcStringRectImpl(ut::Rect* rect, ut::TextWriterBase<CharT>* writer, const CharT* str, int len, f32 width) {
-                rect->left = rect->right = 0.0f;
-                rect->top = rect->bottom = 0.0f;
+                rect->left = 0.0f;
+                rect->right = 0.0f;
+                rect->top = 0.0f;
+                rect->bottom = 0.0f;
                 writer->SetCursor(0.0f, 0.0f);
                 do {
                     ut::Rect lineRect;
@@ -124,6 +140,23 @@ namespace nw4r {
                         UnionRect(rect, lineRect);
                     }
                 } while (len > 0);
+            }
+
+            template<typename CharT>
+            int CalcLineStrNum(f32* width, ut::TextWriterBase<CharT>* writer, const CharT* str, int len, f32 maxWidth, bool* wrap) {
+                ut::Rect rect;
+                ut::TextWriterBase<CharT> writerCopy = *writer;
+                writerCopy.SetCursor(0.0f, 0.0f);
+                int count = CalcLineRectImpl(&rect, &writerCopy, str, len, maxWidth, wrap);
+
+                *width = rect.GetWidth();
+                return count;
+            }
+
+            template<typename CharT>
+            void CalcStringRect(ut::Rect* rect, ut::TextWriterBase<CharT>* writer, const CharT* str, int len, f32 width) {
+                ut::TextWriterBase<CharT> writerCopy = *writer;
+                CalcStringRectImpl(rect, &writerCopy, str, len, width);
             }
         }
 
@@ -254,27 +287,22 @@ namespace nw4r {
 
             GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
             const f32 align = GetTextAlignMag();
+            const wchar_t* str = mTextBuf;
             writer.SetCursor(textRect.left, -textRect.top);
             const f32 textWidth = textRect.GetWidth();
-            const wchar_t* str = mTextBuf;
             int len = mTextLen;
             while (len > 0) {
-                ut::Rect lineRect;
                 bool wrap;
-                int count;
-                {
-                    ut::WideTextWriter lineWriter = writer;
-                    lineWriter.SetCursor(0.0f, 0.0f);
-                    count = CalcLineRectImpl(&lineRect, &lineWriter, str, len, mSize.width, &wrap);
-                }
-                const f32 lineWidth = lineRect.GetWidth();
-                writer.SetCursorX(textRect.left + align * (textWidth - lineWidth));
+                f32 lineWidth;
+                int count = CalcLineStrNum(&lineWidth, &writer, str, len, mSize.width, &wrap);
+                f32 textPosX = textRect.left + align * (textWidth - lineWidth);
+                writer.SetCursorX(textPosX);
                 writer.PrintMutable(str, count);
                 if (wrap) {
                     writer.PrintMutable(L"\n", 1);
                 }
-                len -= count;
                 str += count;
+                len -= count;
             }
         }
 
@@ -310,11 +338,12 @@ namespace nw4r {
                 return;
             }
 
+            u32 allocLen = len;
             const u32 bytes = (len + 1) * sizeof(wchar_t);
 
             if (bytes > mTextBufBytes) {
                 FreeStringBuffer();
-                mTextBuf = Layout::NewArray<wchar_t>(len + 1);
+                mTextBuf = Layout::NewArray<wchar_t>(allocLen + 1);
 
                 if (mTextBuf != NULL) {
                     mTextBufBytes = bytes;
@@ -393,10 +422,7 @@ namespace nw4r {
             if (mpTagProcessor != NULL) {
                 pWriter->SetTagProcessor(mpTagProcessor);
             }
-            {
-                ut::WideTextWriter writer = *pWriter;
-                CalcStringRectImpl(&rect, &writer, mTextBuf, mTextLen, mSize.width);
-            }
+            CalcStringRect(&rect, pWriter, mTextBuf, mTextLen, mSize.width);
             const Size size(rect.GetWidth(), rect.GetHeight());
             math::VEC2 base = GetVtxPos();
             base.x += (mSize.width - size.width) * GetTextMagH();
@@ -481,11 +507,10 @@ namespace nw4r {
 
         f32 TextBox::GetTextAlignMag() const {
             switch (GetTextAlignment()) {
-            case 0:
             default:
                 return GetTextMagH();
             case 1:
-                return 0;
+                return 0.0f;
             case 2:
                 return 0.5f;
             case 3:

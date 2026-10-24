@@ -14,6 +14,7 @@ import seedpack
 
 class Build(unittest.TestCase):
     def setUp(self):
+        self.stage = 'A'
         self.tmp = tempfile.TemporaryDirectory(); self.root = Path(self.tmp.name)
         self.seeds = self.root / 'seeds'; self.seeds.mkdir()
         import sqlite3
@@ -22,6 +23,7 @@ class Build(unittest.TestCase):
             with sqlite3.connect(self.seeds / (name + '.db')) as db:
                 db.executescript(seedpack.SCHEMA); db.execute('INSERT INTO aurora_schema VALUES(1)')
                 db.executemany('INSERT INTO pipeline_cache VALUES(?,?,?,?,?,?)', self.rows)
+            db.close()
         self.batch = self.root / 'batch'; self.batch.mkdir()
         self.arms = []
         for index in (1, 2):
@@ -55,7 +57,7 @@ class Build(unittest.TestCase):
     def tearDown(self): self.tmp.cleanup()
 
     def rehash(self, index):
-        arm = self.arms[index-1]; folder = self.batch / 'A' / arm['name']
+        arm = self.arms[index-1]; folder = self.batch / self.stage / arm['name']
         for name, field in [('first-use.jsonl', 'capture_sha256'), ('app.log', 'app_log_sha256'), ('launch.json', 'launch_sha256')]:
             arm[field] = builder.sha(folder / name)
 
@@ -106,6 +108,7 @@ class Build(unittest.TestCase):
         extra = (1, 13, 13, 3, b'new', 900)
         with sqlite3.connect(self.seeds / '__global__.db') as db:
             db.execute('INSERT INTO pipeline_cache VALUES(?,?,?,?,?,?)', extra)
+        db.close()
         self.bind_pack()
         for index in (1, 2):
             path = self.batch / f'A/warm-{index}/first-use.jsonl'
@@ -126,6 +129,7 @@ class Build(unittest.TestCase):
         import sqlite3
         with sqlite3.connect(self.seeds / 'A.db') as db:
             db.execute('UPDATE pipeline_cache SET first_frame_used=99 WHERE hash=11')
+        db.close()
         with self.assertRaisesRegex(ValueError, 'rows/ranks differ'):
             self.run_build()
 
@@ -196,6 +200,53 @@ class Build(unittest.TestCase):
         self.assertTrue(result['passed'])
         self.assertEqual([r['admitted'] for r in result['stage_results']],[False,True])
         self.assertEqual(result['stage_results'][1]['previous_failed_attempts'],[str(original.resolve())])
+
+    def prepare_map(self):
+        self.stage='WorldMap01Galaxy'
+        (self.seeds/'A.db').rename(self.seeds/(self.stage+'.db'))
+        (self.batch/'A').rename(self.batch/self.stage)
+        self.data.update(mode='no-input-map',map_frames=970,stages_planned=[self.stage])
+        self.data['stage_results'][0]['stage']=self.stage
+        for index,arm in enumerate(self.arms,1):
+            folder=self.batch/self.stage/arm['name']
+            capture=folder/'first-use.jsonl';capture.write_text(capture.read_text().replace('"A"','"'+self.stage+'"'))
+            (folder/'app.log').write_text('')
+            launch=json.loads((folder/'launch.json').read_text());launch.update(mode='no-input-map',map_frames=970)
+            (folder/'launch.json').write_text(json.dumps(launch))
+            rows=[{'frame':str(n),'stage':self.stage if n>=479 else 'FileSelect','scenario':'1','valid':'1','jump':'0'} for n in range(1450)]
+            with (folder/'route.csv').open('w') as file:
+                writer=csv.DictWriter(file,fieldnames=rows[0]);writer.writeheader();writer.writerows(rows)
+            (folder/'route.tape.json').write_text(json.dumps({'complete':True,'ready_seams':[{'stage':self.stage,'scenario':1,'row':480}]}))
+            (folder/'orderly-quit.json').write_text(json.dumps({'exit':0}))
+            arm.update(quit_error=None,map_quit_request=builder.recording.map_observation(rows,self.stage,970),
+                       route_csv_sha256=builder.sha(folder/'route.csv'),route_sidecar_sha256=builder.sha(folder/'route.tape.json'),
+                       orderly_quit_sha256=builder.sha(folder/'orderly-quit.json'))
+            self.rehash(index)
+        self.bind_pack()
+
+    def test_explicit_map_observation(self):
+        self.prepare_map()
+        self.assertTrue(self.run_build()['passed'])
+
+    def test_map_raw_input_overrides_passed_summary(self):
+        self.prepare_map();folder=self.batch/self.stage/'warm-2';path=folder/'route.csv'
+        with path.open() as file:rows=list(csv.DictReader(file))
+        rows[700]['jump']='1'
+        with path.open('w') as file:
+            writer=csv.DictWriter(file,fieldnames=rows[0]);writer.writeheader();writer.writerows(rows)
+        self.arms[1]['route_csv_sha256']=builder.sha(path)
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_map_needs_actual_ready_scene(self):
+        self.prepare_map();path=self.batch/self.stage/'warm-2/route.tape.json'
+        path.write_text(json.dumps({'complete':True,'ready_seams':[]}))
+        self.arms[1]['route_sidecar_sha256']=builder.sha(path)
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_map_failed_orderly_quit_rejected(self):
+        self.prepare_map();path=self.batch/self.stage/'warm-2/orderly-quit.json'
+        path.write_text(json.dumps({'exit':1}));self.arms[1]['orderly_quit_sha256']=builder.sha(path)
+        self.assertFalse(self.run_build()['passed'])
 
     def test_equal_unknown_maps_do_not_hide_missing_bootstrap_scope(self):
         for index in (1,2):

@@ -10,6 +10,7 @@ all missing stages, unknown configs and warm disagreements; these are not passes
 Frontend metadata is optional and admitted only if ALL observed warm pairs agree.
 """
 import argparse
+from contextlib import closing
 import csv
 import hashlib
 import json
@@ -68,7 +69,7 @@ def close_manifest(seeds, output, stage, frames):
     if unknown:
         raise ValueError('observed configs absent from global: ' + ','.join(f'{key:016x}' for key in unknown))
     additions = [global_rows[(1, key)] for key in missing]
-    with sqlite3.connect(target) as db:
+    with closing(sqlite3.connect(target)) as db, db:
         if not existed:
             db.executescript(seedpack.SCHEMA)
             db.execute('INSERT INTO aurora_schema VALUES(1)')
@@ -101,6 +102,7 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
             raise ValueError('unsupported/non-recording provenance')
         dedicated = data.get('mode') == 'no-input-title'
         tape_driven = data.get('mode') == 'tape-driven'
+        map_mode = data.get('mode') == 'no-input-map'
         dedicated_title |= dedicated
         identity = data['recording_build_metadata']
         if identity.get('seed_pack_sha256') != source_binding['sha256']:
@@ -145,8 +147,27 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                     with (folder / 'frames.csv').open() as file: timing = list(csv.DictReader(file))
                     if not timing or any(float(r['pipeline_wait_ms']) != 0 for r in timing) or re.search(r'^\[gx uber wait\]|^\[pop-in\] frame \d+ skipped_draws [1-9]', text, re.M):
                         raise ValueError('raw log/timing proves pipeline wait or pop-in in warm record')
-                    if not dedicated and not tape_driven and '[input-script] done after 970 frames' not in text:
+                    if not dedicated and not tape_driven and not map_mode and '[input-script] done after 970 frames' not in text:
                         raise ValueError('perf input script did not complete')
+                    if map_mode:
+                        if launch.get('mode') != 'no-input-map' or 'PETARI_INPUT_SCRIPT' in launch['environment'] or launch.get('map_frames') != data.get('map_frames'):
+                            raise ValueError('map observation mode/window binding mismatch')
+                        if sha(folder / 'route.csv') != arm['route_csv_sha256'] or sha(folder / 'route.tape.json') != arm['route_sidecar_sha256']:
+                            raise ValueError('map route artifacts differ from provenance')
+                        with (folder / 'route.csv').open() as route_file: route = list(csv.DictReader(route_file))
+                        map_status = recording.map_observation(route, stage, data['map_frames'])
+                        if not all(map_status['checks'].values()):
+                            raise ValueError('raw map observation did not complete its neutral fixed window')
+                        sidecar = json.loads((folder / 'route.tape.json').read_text())
+                        if sidecar.get('complete') is not True or not any(r['stage'] == stage and r['scenario'] == 1 for r in sidecar.get('ready_seams',[])):
+                            raise ValueError('map scene did not finish initializing or exit normally')
+                        request = arm.get('map_quit_request')
+                        if not request or any(request.get('checks',{}).get(k) is not True for k in map_status['checks']) or arm.get('quit_error') is not None:
+                            raise ValueError('map observation lacks its orderly quit request')
+                        if any(request.get(k) != map_status[k] for k in ('stage_identity_route_row','requested_frames','requested_end_route_row')) or not map_status['requested_end_route_row'] <= request.get('last_target_route_row', -1) <= map_status['last_target_route_row']:
+                            raise ValueError('map quit window arithmetic is incoherent')
+                        if sha(folder / 'orderly-quit.json') != arm['orderly_quit_sha256'] or json.loads((folder / 'orderly-quit.json').read_text()).get('exit') != 0:
+                            raise ValueError('raw orderly map quit did not succeed')
                     if tape_driven:
                         if launch.get('mode') != 'tape-driven' or 'PETARI_INPUT_SCRIPT' in launch['environment'] or launch['environment'].get('PETARI_TAPE_PLAY_SESSION') != '1':
                             raise ValueError('recording did not use the declared whole-session tape')

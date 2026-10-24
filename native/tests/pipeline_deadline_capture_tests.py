@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
-from record_pipeline_deadlines import observations, disagreements, seed_identity, replay_checks
+from record_pipeline_deadlines import observations, disagreements, seed_identity, replay_checks, map_observation
 
 
 class Captures(unittest.TestCase):
@@ -81,12 +81,43 @@ class Captures(unittest.TestCase):
         with sqlite3.connect(seeds / '__global__.db') as db:
             db.execute('CREATE TABLE petari_cache_build(build_key TEXT)')
             db.execute('INSERT INTO petari_cache_build VALUES(?)', ('a' * 64,))
+        db.close()
         result = seed_identity(app, 'StaffRollGalaxy')
         self.assertTrue(result['stage_seed_missing'])
         self.assertIsNone(result['stage_seed_sha256'])
         self.assertEqual(result['renderer_key'], 'a' * 64)
         self.assertEqual(result['identity_seed'], '__global__.db')
         self.assertFalse((seeds / 'StaffRollGalaxy.db').exists())
+
+
+class MapWindow(unittest.TestCase):
+    def rows(self):
+        return [{'frame':str(n),'stage':'WorldMap01Galaxy' if n>=10 else 'FileSelect',
+                 'scenario':'1','valid':'1'} for n in range(981)]
+
+    def test_fixed_window(self):
+        result=map_observation(self.rows(),'WorldMap01Galaxy',970)
+        self.assertTrue(all(result['checks'].values()))
+        self.assertEqual(result['requested_end_route_row'],980)
+
+    def test_short_window_fails(self):
+        result=map_observation(self.rows()[:-1],'WorldMap01Galaxy',970)
+        self.assertFalse(result['checks']['fixed_window_complete'])
+
+    def test_scene_departure_fails(self):
+        rows=self.rows();rows[600]['stage']='MarioFaceShipGalaxy'
+        self.assertFalse(map_observation(rows,'WorldMap01Galaxy',970)['checks']['no_scene_departure'])
+
+    def test_input_fails(self):
+        rows=self.rows();rows[600]['jump']='1'
+        self.assertFalse(map_observation(rows,'WorldMap01Galaxy',970)['checks']['no_input'])
+
+    def test_missing_map_fails(self):
+        self.assertFalse(all(map_observation(self.rows(),'WorldMap02Galaxy',970)['checks'].values()))
+
+    def test_nonmap_or_shorter_configuration_rejected(self):
+        for stage,count in [('WorldMap09Galaxy',970),('YosshiHomeGalaxy',970),('WorldMap01Galaxy',969)]:
+            with self.assertRaises(ValueError):map_observation(self.rows(),stage,count)
 
 
 class TapeReplay(unittest.TestCase):

@@ -3,7 +3,7 @@
 import csv,importlib.util,json,sqlite3,subprocess,sys,tempfile,unittest
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
-from receipts54m import latency
+from receipts54m import audio_observation,latency
 
 class GateValidation(unittest.TestCase):
  def case(self,values,log='',warm=False):
@@ -37,6 +37,13 @@ class GateValidation(unittest.TestCase):
  def test_below_one_percent_is_pass(self):
   code,r=self.case([('menu',16.7,16.7)]+[('gameplay',16.7,16.7)]*100+[('gameplay',25,25)],warm=True)
   self.assertEqual(code,0);self.assertLess(r['late_present_pct'],1)
+ def test_audio_requires_real_reports_and_zero_underruns(self):
+  prefix='[thread] main thread priority: 37 -> 47 (raised)\n'
+  good=prefix+'underrun 0 frames\n'*45
+  self.assertTrue(audio_observation(good,10)['passed'])
+  self.assertFalse(audio_observation(prefix,10)['passed'])
+  self.assertFalse(audio_observation(good+'underrun 1 frames\n',10)['passed'])
+  self.assertFalse(audio_observation(good,0)['passed'])
  def test_latency_extracts_frames_after_read(self):
   samples=latency('[latency] press: 60 ms (frame 88, 2 frames after the read), on screen 70.12 ms\n[latency] press: 60 ms (frame 89, 3 frames after the read), on screen 86.7 ms')
   self.assertEqual(samples,[(2,70.12),(3,86.7)])

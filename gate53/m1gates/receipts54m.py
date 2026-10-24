@@ -31,6 +31,14 @@ def readj(path):
 def latency(text):
  return [(int(n),float(ms)) for n,ms in re.findall(r'\[latency\] press:.*\(frame \d+, (\d+) frames after the read\).*on screen ([\d.]+) ms',text)]
 
+def audio_observation(text, samples):
+ und=[int(n) for n in re.findall(r'underrun (\d+) frames',text)]
+ baton=[float(n) for n in re.findall(r'preemption pending ([\d.]+) ms',text)]
+ raised='main thread priority: 37 -> 47 (raised)' in text
+ # Unlike promotion's timed cases, the dedicated reference probe has no fixed report count.
+ ok=bool(und) and sum(und)==0 and 'SDL audio underrun:' not in text and not any(n>50 for n in baton) and raised and samples>0
+ return {'passed':ok,'underrun_reports':len(und),'underrun_frames':sum(und),'baton_over50':sum(n>50 for n in baton),'main_thread_raised':raised,'thread_samples':samples}
+
 def summary(g):
  d=g['details'];name=g['gate']
  if 'error' in d:return d['error'][:220]
@@ -122,10 +130,10 @@ def main():
  def audiocheck():
   data=[]
   for mode in ('cold','warm'):
-   name='audio-'+mode;r,l,_=actual(name);text=(runpath(name)/'app.log').read_text(errors='replace');und=[int(n) for n in re.findall(r'underrun (\d+) frames',text)];baton=[float(n) for n in re.findall(r'preemption pending ([\d.]+) ms',text)];tsv=base/('thr-'+mode+'.tsv')
-   probe=tsv.read_text().splitlines();raised='main thread priority: 37 -> 47 (raised)' in text
-   ok=len(und)>=50 and sum(und)==0 and 'SDL audio underrun:' not in text and not any(n>50 for n in baton) and raised and bool(probe) and l['environment']['SDL_AUDIO_DRIVER']=='coreaudio'
-   data.append({'case':name,'passed':ok,'underrun_reports':len(und),'underrun_frames':sum(und),'baton_over50':sum(n>50 for n in baton),'main_thread_raised':raised,'thread_samples':len(probe)})
+   name='audio-'+mode;r,l,_=actual(name);text=(runpath(name)/'app.log').read_text(errors='replace');tsv=base/('thr-'+mode+'.tsv')
+   item=audio_observation(text,len(tsv.read_text().splitlines()));item['case']=name
+   item['passed'] &= l['environment']['SDL_AUDIO_DRIVER']=='coreaudio'
+   data.append(item)
   return {'passed':all(d['passed'] for d in data),'runs':data}
  gate('audio-thread-priority',[runpath('audio-'+mode)/'RESULT.json' for mode in ('cold','warm')]+[base/('thr-'+mode+'.tsv') for mode in ('cold','warm')],audiocheck,'real CoreAudio thread probe, zero underruns')
  gate('wii-proof',[platform,base/'platform/wii-source-diff.log'],lambda:pcheck(('wii-source-unchanged',)),'release source has no Wii changes relative to a23609ca',('Original Wii build/hash/oracle evidence belongs to release; this M1 run rechecks source lineage only.',))

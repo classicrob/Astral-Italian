@@ -411,7 +411,6 @@ void GameScene::draw2D() const {
     CategoryList::execute(static_cast< MR::DrawType >(0x4a));
 }
 
-// NONMATCHING: equivalent branch block order
 bool GameScene::isValidScenarioOpeningCamera() const {
     if (MR::hasStartAnimCamera() == false) {
         return false;
@@ -452,10 +451,10 @@ void GameScene::startStagePlayRetry() {
 
 // NONMATCHING: equivalent branch block order
 bool GameScene::isDrawMirror() const {
-    if (MR::isExistMirrorCamera()) {
-        return MR::isPlayerInAreaObj("MirrorArea");
+    if (MR::isExistMirrorCamera() == false) {
+        return false;
     }
-    return false;
+    return MR::isPlayerInAreaObj("MirrorArea");
 }
 
 void GameScene::stageClear() {

@@ -157,12 +157,10 @@ namespace ScoreAttackFunction {
     void scoreCombo(const LiveActor* actor, u32 count) { if (MR::isExistSceneObj(SceneObj_ScoreAttackAccessor)) getScoreAttackCounter()->scoreCombo(actor, count); }
 }
 namespace MR {
-    // NONMATCHING: equivalent absent-scene return block is emitted after the score load.
     s32 getScoreAttackScore() {
         if (isExistSceneObj(SceneObj_ScoreAttackAccessor) == false) return -1;
         return getScoreAttackCounter()->mScoreLayout->mScore;
     }
-    // NONMATCHING: equivalent absent-scene return block is emitted after the score load.
     s32 getScoreAttackTargetScore() {
         if (isExistSceneObj(SceneObj_ScoreAttackAccessor) == false) return -1;
         return getScoreAttackCounter()->mScoreLayout->mTargetScore;

@@ -33,39 +33,11 @@ namespace {
     TVec3f sOffset7;
     TVec3f sMiniEye;
     TVec3f sMiniTarget;
-    const char* sExcludedResources[] = {"/ObjectData/WorldMap01Sky.arc"};
 }
 
 WorldMapModel::WorldMapModel(const char* pName) : LiveActor(pName), mChildren() {}
 
-void WorldMapModel::init(const JMapInfoIter& rIter) {
-    const char* name = "";
-    MR::getObjectName(&name, rIter);
-    char path[0x80];
-    snprintf(path, sizeof(path), "/ObjectData/%s.arc", name);
-    if (MR::isFileExist(path, true)) {
-        if (!MR::initActor(this, rIter, name, false)) {
-            MR::connectToSceneMapObj(this);
-            initEffectKeeper(0, 0, false);
-        }
-        MR::tryStartAllAnim(this, name);
-    } else {
-        MR::connectToSceneMapObjMovement(this);
-    }
-    MR::invalidateClipping(this);
-    MR::registerDemoSimpleCastAll(this);
-    makeActorAppeared();
-    s32 num = MR::getChildObjNum(rIter);
-    if (num > 0) {
-        mChildren.mArr = new LiveActor*[num];
-        mChildren.mMaxSize = num;
-        for (LiveActor** it = mChildren.mArr; it != mChildren.mArr + mChildren.mMaxSize; ++it) {
-            const char* childName = 0;
-            MR::getChildObjName(&childName, rIter, it - mChildren.mArr);
-            *it = static_cast<LiveActor*>(NameObjFactory::initChildObj(rIter, it - mChildren.mArr));
-        }
-    }
-}
+
 void WorldMapModel::appearAll() {
     for (LiveActor** it = mChildren.mArr; it != mChildren.mArr + mChildren.mMaxSize; ++it) (*it)->makeActorAppeared();
     makeActorAppeared();
@@ -121,6 +93,34 @@ void WorldMapOwner::init(const JMapInfoIter&) {
     if (GameSequenceFunction::isWorldMapAfterFileSelect()) GameSequenceFunction::clearWorldMapAfterFileSelect();
     GameSequenceFunction::clearWorldMapFlag22D();
     GameSequenceFunction::clearWorldMapFlag22C();
+}
+void WorldMapModel::init(const JMapInfoIter& rIter) {
+    const char* name = "";
+    MR::getObjectName(&name, rIter);
+    char path[0x80];
+    snprintf(path, sizeof(path), "/ObjectData/%s.arc", name);
+    if (MR::isFileExist(path, true)) {
+        if (!MR::initActor(this, rIter, name, false)) {
+            MR::connectToSceneMapObj(this);
+            initEffectKeeper(0, 0, false);
+        }
+        MR::tryStartAllAnim(this, name);
+    } else {
+        MR::connectToSceneMapObjMovement(this);
+    }
+    MR::invalidateClipping(this);
+    MR::registerDemoSimpleCastAll(this);
+    makeActorAppeared();
+    s32 num = MR::getChildObjNum(rIter);
+    if (num > 0) {
+        mChildren.mArr = new LiveActor*[num];
+        mChildren.mMaxSize = num;
+        for (LiveActor** it = mChildren.mArr; it != mChildren.mArr + mChildren.mMaxSize; ++it) {
+            const char* childName = 0;
+            MR::getChildObjName(&childName, rIter, it - mChildren.mArr);
+            *it = static_cast<LiveActor*>(NameObjFactory::initChildObj(rIter, it - mChildren.mArr));
+        }
+    }
 }
 void WorldMapOwner::movement() { mSequence->updateNerve(); }
 WorldMapOwner::~WorldMapOwner() {}
@@ -344,6 +344,9 @@ bool WorldMapFunction::isGreenStarDemoReady() {
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool WorldMapFunction::isWorldNoMid(s32 world) { s32 result = 0; if (world >= 2) { if (world <= 6) result = 1; } return result; }
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
+namespace {
+    const char* sExcludedResources[] = {"/ObjectData/WorldMap01Sky.arc"};
+}
 bool WorldMapFunction::mountWorldMapResources() {
     if (!GameSequenceFunction::isWorldMapEnterType5()) return false;
     const JMapInfo* parser = MR::tryCreateStageUseResourceCsvParser("MarioFaceShipGalaxy", "scenario_2");

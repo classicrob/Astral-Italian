@@ -99,7 +99,7 @@ void BellyDragonWeakPoint::exeBurn() {
 void BellyDragonWeakPoint::updateMtx() {
     TPos3f* pBaseMtx = (TPos3f*)mPart->getBaseMtx();
     mMtx.set(pBaseMtx->mMtx);
-    mPosition.set<f32>(mMtx.mMtx[0][3], mMtx.mMtx[1][3], mMtx.mMtx[2][3]);
+    mMtx.getTrans(mPosition);
 }
 
 void BellyDragonWeakPoint::calcAndSetBaseMtx() {

@@ -208,7 +208,6 @@ void TimeLimitLayout::control() {
     MR::setLayoutAlphaFloat(this, MR::getEaseInOutValue(mFadeControl->getValue(), 0.0f, 1.0f, 1.0f));
 }
 
-// NONMATCHING: the timing-window bound and remaining-frame count use swapped r0/r6 registers.
 const Timing* TimeLimitLayout::getCurrentTiming() const {
     for (s32 i = 0; i < ARRAY_SIZE(::sTimingTable); i++) {
         u32 scaleStartFrame = ::sTimingTable[i].mScaleStartFrame;

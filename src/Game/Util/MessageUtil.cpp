@@ -22,7 +22,6 @@ namespace MR {
         return reinterpret_cast< wchar_t* >(messageInfo.mMessageText);
     }
 
-    // NONMATCHING: equivalent null-return branch arrangement
     const wchar_t* getGameMessageDirect(const char* pMessageId) {
         TalkMessageInfo messageInfo = TalkMessageInfo();
 

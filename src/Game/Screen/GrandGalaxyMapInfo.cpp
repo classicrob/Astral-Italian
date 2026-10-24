@@ -127,7 +127,6 @@ void GrandGalaxyMapInfo::exeNextEnd() {
     }
 }
 
-// NONMATCHING: the equivalent early-return blocks are emitted in reverse order.
 const char* GrandGalaxyMapInfo::getSelectedIconState() {
     if (mSelectedIcon == nullptr) return nullptr;
     return mSelectedIcon->mState;

@@ -100,7 +100,6 @@ void StationedArchiveLoader::loadScenarioData(JKRHeap* pHeap) {
     DVDCloseDir(&dir);
 }
 
-// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 bool StationedArchiveLoader::createAndAddResourcesFromTable(const Condition& rCondition, s32 start, s32 end) {
     s32 count;
     const MR::StationedFileInfo* pInfo = MR::getStationedFileInfoTable();

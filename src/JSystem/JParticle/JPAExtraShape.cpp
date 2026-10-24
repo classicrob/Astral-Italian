@@ -118,6 +118,6 @@ void JPAExtraShape::init() {
     }
 }
 
-static void OSf32tou8(f32* f, u8* out) {
+static void OSf32tou8(f32* f, volatile u8* out) {
     *out = __OSf32tou8(*f);
 }

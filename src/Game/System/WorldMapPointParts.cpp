@@ -147,14 +147,13 @@ void PointPartsHolder::init() {
             }
             MR::setClippingFarMax(pPart->mActor);
             pPart->mActor->makeActorDead();
-            if (!isStarRoadWarpPoint(pPart->mType)) {
+            if (isStarRoadWarpPoint(pPart->mType) == false) {
                 MR::invalidateClipping(pPart->mActor);
             }
         }
     }
 }
 
-// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool PointPartsHolder::getWorldWarp(s32 pointIndex, WorldMapResultStateWorldWarp* pOut) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {
@@ -176,7 +175,7 @@ bool PointPartsHolder::getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     if (pPart == nullptr) {
         return false;
     }
-    if (!isStarRoadWarpPoint(pPart->mType)) {
+    if (isStarRoadWarpPoint(pPart->mType) == false) {
         return false;
     }
     const s32 param1 = pPart->mParam1;
@@ -338,13 +337,12 @@ bool PointPartsHolder::isAnyStarCheckPointPending() {
     return false;
 }
 
-// NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 bool PointPartsHolder::isWarpOpen(s32 pointIndex) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {
         return false;
     }
-    if (!isStarRoadWarpPoint(pPart->mType)) {
+    if (isStarRoadWarpPoint(pPart->mType) == false) {
         return false;
     }
     bool result = mUnkC <= pPart->mParam0;

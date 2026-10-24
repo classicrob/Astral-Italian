@@ -30,7 +30,6 @@ StarPointerDirector::StarPointerDirector()
     mMovePositionHolders = new StarPointerMovePositionHolder[StarPointerFunction::getNumStarPointer()];
 }
 
-// NONMATCHING: loop indices and input-state temporaries use different registers.
 void StarPointerDirector::update() {
     bool inScreen;
     if (MR::isStarPointerModeHomeButton() || MR::isStarPointerModeErrorWindow()) {

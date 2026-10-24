@@ -366,14 +366,9 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: register allocation and redundant initial null materialization (FP order/grouping checked: no FP instructions).
     bool isAnyAnimPlaying(const LiveActor* pActor, const char* pName) {
-        ActorAnimKeeper* pAnimKeeper = nullptr;
-        if (pActor->mActionKeeper != nullptr) {
-            pAnimKeeper = pActor->mActionKeeper->mAnimKeeper;
-        }
-
-        if (pAnimKeeper == nullptr) {
+        ActorAnimKeeper* pAnimKeeper;
+        if (pActor->mActionKeeper == nullptr || (pAnimKeeper = pActor->mActionKeeper->mAnimKeeper) == nullptr) {
             if (isExistBck(pActor, nullptr)) {
                 return isBckPlaying(pActor->mModelManager->mXanimePlayer, pName);
             }

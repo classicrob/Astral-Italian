@@ -316,7 +316,7 @@ void NokonokoLandBig::exeFall() {
         TPos3f mtx;
         mtx.set(getBaseMtx());
         TVec3f front;
-        front.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+        mtx.getZDir(front);
         front = -front;
         MR::normalize(&front);
         TVec3f up = -mGravity;

@@ -195,7 +195,6 @@ namespace GameDataFunction {
     }
 
 #pragma dont_inline off
-    // NONMATCHING: regalloc; string address materialization order (FP order/grouping checked: no FP instructions).
     void tryOnDimensionBigCastleGalaxyComet() {
         if (!isOnGameEventFlagFinalGalaxyAppearance()) {
             return;
@@ -504,7 +503,6 @@ namespace GameDataFunction {
         return getCurrentGameDataPlayerStatus()->getStockedCoinNum();
     }
 
-    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
     s32 tryOnGameEventFlagCoinCounterStop(int num) {
         const char* eventName21;
         s32 stockedCoinNum = getCurrentGameDataPlayerStatus()->addStockedCoinNum(num);

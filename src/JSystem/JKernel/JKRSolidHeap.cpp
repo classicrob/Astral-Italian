@@ -216,7 +216,7 @@ s32 JKRSolidHeap::adjustSize() {
         lock();
         u32 parentSize;
         u32 size = (mSolidHead - mStart + 0x1F) & ~0x1F;
-        parentSize = size + (reinterpret_cast<uintptr_t>(mStart) - reinterpret_cast<uintptr_t>(this));
+        parentSize = reinterpret_cast<uintptr_t>(mStart) - reinterpret_cast<uintptr_t>(this) + size;
         if (parent->resize(this, parentSize) != -1) {
             mFreeSize = 0;
             mSize = size;

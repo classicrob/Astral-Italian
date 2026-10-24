@@ -4,7 +4,6 @@
 #include "Game/Enemy/RingBeam.hpp"
 
 // ---- Beam ("ビーム") ----
-// NONMATCHING: floating-point register assignment in the vector copy
 KoopaJrRobotBeam::KoopaJrRobotBeam(const char* pName, LiveActor* pHost, MtxPtr pMtx, const TVec3f& rOffset, s32 life, f32 speed, f32 startRadius, f32 maxRadius)
     : LiveActor(pName), mHost(pHost), mRingBeam(nullptr), mMtx(pMtx), mOffset(rOffset) {
     mSpeed = speed;

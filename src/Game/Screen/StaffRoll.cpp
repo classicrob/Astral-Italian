@@ -155,7 +155,6 @@ bool StaffRoll::isCurrentPartEnd() const {
     return false;
 }
 
-// NONMATCHING: equivalent equality comparison uses reversed register operands.
 bool StaffRoll::isLastPartEnd() const {
     if (mCurrentPart == mParts) {
         return false;

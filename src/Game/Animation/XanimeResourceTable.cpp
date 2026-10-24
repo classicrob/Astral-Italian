@@ -110,7 +110,6 @@ void XanimeResourceTable::init() {
     mSwapTable = nullptr;
 }
 
-// NONMATCHING: local table arrays occupy different stack slots.
 u32 XanimeResourceTable::initGroupInfo(ResourceHolder* pResourceHolder, XanimeGroupInfo* pInfo,  XanimeOfsInfo* pOfsInfo,
                                        XanimeBckTable1* pBckTable1, XanimeBckTable2* pBckTable2, XanimeBckTable3* pBckTable3,
                                        XanimeBckTable4* pBckTable4, XanimeSwapTable* pSwapTable) {

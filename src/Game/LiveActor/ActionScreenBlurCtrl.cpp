@@ -18,7 +18,6 @@ ActionScreenBlurCtrl* ActionScreenBlurCtrl::tryCreate(const ModelManager* pModel
     return NULL;
 }
 
-// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionScreenBlurCtrl::update() {
     ActionScreenBlurInfo* pInfo;
     if (mPlayingBckName != mModelManager->getPlayingBckName()) {
@@ -59,7 +58,6 @@ ActionScreenBlurCtrl::ActionScreenBlurCtrl(const ModelManager* pModelManager) : 
     MR::createCenterScreenBlur();
 }
 
-// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionScreenBlurCtrl::updateInfoEnabled() {
     ActionScreenBlurInfo* pInfo;
     if (mPlayingBckName != NULL) {

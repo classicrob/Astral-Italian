@@ -99,7 +99,6 @@ void PowerStarEventKeeper::initStarInfoTable() {
     }
 }
 
-// NONMATCHING: equivalent green-star predicate branches are scheduled in the opposite order.
 void PowerStarEventKeeper::initStarInfoTableAfterPlacement() {
     for (s32 i = 0; i < mPowerStarNum; i++) {
         s32 starID = i + mStartScenario;

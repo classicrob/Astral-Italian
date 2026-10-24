@@ -19,7 +19,6 @@ ActionFootPrintCtrl* ActionFootPrintCtrl::tryCreate(LiveActor* pActor) {
     return NULL;
 }
 
-// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionFootPrintCtrl::update() {
     ActionFootPrintInfo* pInfo;
     if (mPlayingBckName != MR::getPlayingBckName(mActor)) {
@@ -68,7 +67,6 @@ ActionFootPrintCtrl::ActionFootPrintCtrl(LiveActor* pActor) : mActor(pActor), mP
     }
 }
 
-// NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionFootPrintCtrl::updateInfoEnabled() {
     ActionFootPrintInfo* pInfo;
     if (mPlayingBckName != NULL) {

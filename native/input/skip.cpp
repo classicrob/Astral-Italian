@@ -1,20 +1,18 @@
 #include "petari/skip.hpp"
 
 #include <atomic>
-#include <chrono>
 #include <cstdio>
 
 #include "petari/mods.hpp"
 
 namespace PetariNative::Skip {
 
-unsigned Machine::frame(bool aHeld, unsigned context, bool enabled, double frameSeconds) {
+unsigned Machine::frame(bool aHeld, unsigned context, bool enabled) {
     mJustLatched = false;
     mJustEnded = End::None;
     if (!enabled) {
         if (mLatched) end(End::Disabled);
         mHold = 0;
-        mHoldSeconds = 0.0;
         mSwallow = false;
         return 0;
     }
@@ -46,10 +44,8 @@ unsigned Machine::frame(bool aHeld, unsigned context, bool enabled, double frame
     // that began in gameplay counts from when the cutscene or talk appears.
     if (!mSwallow && aHeld && (context & kSkippable) != 0 && (context & kChoice) == 0) {
         ++mHold;
-        mHoldSeconds += frameSeconds < kMaxFrameSeconds ? frameSeconds : kMaxFrameSeconds;
-        if (mHold >= kHoldFrames || (mHold >= kMinHoldFrames && mHoldSeconds >= kHoldSeconds)) {
+        if (mHold >= kHoldFrames) {
             mHold = 0;
-            mHoldSeconds = 0.0;
             mLatched = true;
             mSwallow = true;
             mSettle = 0;
@@ -59,7 +55,6 @@ unsigned Machine::frame(bool aHeld, unsigned context, bool enabled, double frame
         }
     } else {
         mHold = 0;
-        mHoldSeconds = 0.0;
     }
     return hide;
 }
@@ -73,9 +68,7 @@ void Machine::end(End reason) {
 float Machine::progress() const {
     if (mLatched) return 1.0f;
     const double frames = static_cast<double>(mHold) / kHoldFrames;
-    const double seconds = mHoldSeconds / kHoldSeconds;
-    const double p = frames > seconds ? frames : seconds;
-    return static_cast<float>(p < 1.0 ? p : 1.0);
+    return static_cast<float>(frames < 1.0 ? frames : 1.0);
 }
 
 const char* endName(End reason) {
@@ -99,8 +92,6 @@ std::atomic<bool> gNewStage{false};
 std::atomic<bool> gActive{false};
 std::atomic<float> gProgress{0.0f};
 unsigned long gFrame = 0;
-bool gFixedFrameTime = false;  // tests: every frame is 1/60 s
-std::chrono::steady_clock::time_point gLastPad;
 }  // namespace
 
 Machine& machine() { return gMachine; }
@@ -112,7 +103,6 @@ void resetForTesting() {
     gActive.store(false);
     gProgress.store(0.0f);
     gFrame = 0;
-    gFixedFrameTime = true;
 }
 
 }  // namespace PetariNative::Skip
@@ -128,14 +118,9 @@ extern "C" unsigned petari_skip_pad(unsigned rawHold) {
     ++Skip::gFrame;
     unsigned context = Skip::gContext.load(std::memory_order_relaxed);
     if (Skip::gNewStage.exchange(false, std::memory_order_relaxed)) context |= Skip::kNewStage;
-    // The game's frame clock, with wall time for frames slower than 1/60 s (the hold is 1.5 s).
-    const auto now = std::chrono::steady_clock::now();
-    double seconds = 1.0 / 60.0;
-    if (!Skip::gFixedFrameTime && Skip::gFrame > 1) seconds = std::chrono::duration<double>(now - Skip::gLastPad).count();
-    Skip::gLastPad = now;
     Skip::Machine& m = Skip::gMachine;
     const int heldBefore = m.holdFrames();
-    const unsigned hide = m.frame((rawHold & Skip::kButtonA) != 0, context, Mods::enabled(Mods::Mod::SkipCutscenes), seconds);
+    const unsigned hide = m.frame((rawHold & Skip::kButtonA) != 0, context, Mods::enabled(Mods::Mod::SkipCutscenes));
     if (m.justLatched()) {
         std::fprintf(stderr, "[skip] latched at frame %lu after %d frames held (context 0x%x)\n", Skip::gFrame, heldBefore + 1,
                      context);

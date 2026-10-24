@@ -3,9 +3,9 @@
 // host input functions (wpad_host.cpp) feed it only while the mod is on.
 #include "petari/camera_settings.hpp"
 #include "petari/camera_input.h"
+#include "petari/input.hpp"
 
 #include <atomic>
-#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -32,10 +32,7 @@ std::atomic<bool> gRecenter{false};
 // Photo mode.
 std::atomic<bool> gPhotoEnabled{false};
 std::atomic<bool> gPhotoActive{false}, gPhotoRequested{false};
-std::atomic<long long> gPhotoRequestTime{0};  // steady clock, ns
-long long nowNs() {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-}
+std::atomic<std::uint64_t> gPhotoRequestFrame{0};
 std::atomic<int> gPhotoToggles{0}, gPhotoLeaves{0}, gPhotoShots{0};
 std::atomic<float> gPhotoMoveRight{0}, gPhotoMoveForward{0}, gPhotoMoveUp{0};
 std::atomic<float> gPhotoStickX{0}, gPhotoStickY{0};
@@ -206,15 +203,15 @@ void setPhotoEnabled(bool on) {
 }
 bool photoActive() { return gPhotoActive.load(std::memory_order_acquire); }
 // A request no scene answers (file select, a movie: only GameScene takes it) lapses
-// after 0.3 s, so input is never held back for long.
+// after 18 game frames (0.3 s at 60 Hz), regardless of host stalls.
 bool photoCapturing() {
     return photoActive() || (gPhotoRequested.load(std::memory_order_acquire) &&
-                             nowNs() - gPhotoRequestTime.load(std::memory_order_relaxed) < 300'000'000LL);
+                             Input::gameFrame() - gPhotoRequestFrame.load(std::memory_order_relaxed) < 18);
 }
 void photoToggle() {
     if (!photoEnabled()) return;
     if (!photoActive()) {
-        gPhotoRequestTime.store(nowNs(), std::memory_order_relaxed);
+        gPhotoRequestFrame.store(Input::gameFrame(), std::memory_order_relaxed);
         gPhotoRequested.store(true, std::memory_order_release);
     }
     gPhotoToggles.fetch_add(1, std::memory_order_relaxed);

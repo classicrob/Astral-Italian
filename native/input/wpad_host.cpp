@@ -2,8 +2,9 @@
 // src/RVL_SDK/wpad (and the WUD/BTE Bluetooth stack under it). The SDK's
 // KPAD.c runs unchanged on top.
 //
-// Every 5 ms a report tick runs with interrupts disabled, as WPAD's
-// Bluetooth receive path does on the Wii:
+// The default clock advances 200 Hz virtual device time at each 60 Hz KPAD
+// read (3/3/4 reports). Host frame stalls cannot move a synthetic action to a
+// different game frame. A report tick runs with interrupts disabled:
 // 1. host requests (connect, disconnect, Nunchuk) are applied;
 // 2. connection and extension changes complete, calling the connect and
 //    extension callbacks;
@@ -144,7 +145,16 @@ bool gCallbackByKpad = false;
 std::atomic<bool> gWantConnected[kChannels] = {true, false, false, false};
 std::atomic<bool> gWantNunchuk[kChannels] = {true, true, true, true};
 std::atomic<bool> gRumble[kChannels] = {};
-std::atomic<Clock> gClock{Clock::Alarm};
+std::atomic<Clock> gClock{Clock::GameRead};
+Detail::GameReadClock gReadClock[kChannels];
+std::atomic<std::uint64_t> gInputGameFrame{0};
+Detail::PadShakeDetector gPadShake;
+double gGyroLast = 0.0;
+std::uint64_t gSensorReports = 0;
+float gSensorGyro[3] = {}, gSensorAccel[3] = {};
+bool gHaveSensorGyro = false, gHaveSensorAccel = false;
+void processPadSensors();
+bool editorCapturing();
 // A host input event (any key, including unbound keys and OS repeats, a mouse
 // button, mouse motion) since the last report tick.
 std::atomic<bool> gHostActivity{false};
@@ -460,6 +470,8 @@ void tickChannel(s32 chan) {
         ~TickScope() { gInReportTick = false; }
     } tickScope;
 
+    if (chan == 0) processPadSensors();
+
     Report input;
     SpeakerSink sink = nullptr;
     void* sinkUser = nullptr;
@@ -567,9 +579,6 @@ namespace {
 // Controller layout (PadLayout): a pad with Nintendo labels, and the OdysseyMovement
 // mod, read at each controller event and bindings call. Caller holds gHostMutex.
 bool gNintendoPad = false;
-Detail::PadShakeDetector gPadShake;
-double gGyroLast = 0.0;
-
 PadLayout wantedLayout() {
     return padLayoutFor(gNintendoPad, Mods::enabled(Mods::Mod::OdysseyMovement));
 }
@@ -592,6 +601,31 @@ bool gyroPointerOn(const Bindings& b) {
     case PadOptions::Gyro::Auto: return b.layout() == PadLayout::ProOdyssey;
     }
     return false;
+}
+
+// Sensor event timestamps describe host arrival, not simulation time. Sample
+// the latest physical values once per virtual report; detector hold/refractory
+// windows and gyro integration advance only with the report's game clock.
+void processPadSensors() {
+    bool changed = false, held = false;
+    {
+        std::lock_guard<std::mutex> lock(gHostMutex);
+        const double seconds = ++gSensorReports * Detail::kReportSeconds;
+        syncLayout();
+        const auto& b = model().bindings();
+        if (gHaveSensorGyro) {
+            float dx, dy;
+            if (Detail::gyroPointerDelta(gSensorGyro, seconds, &gGyroLast, b.options(), &dx, &dy) && gyroPointerOn(b) &&
+                !editorCapturing() && !(CameraSettings::photoEnabled() && CameraSettings::photoCapturing()))
+                model().padPointerMove(dx, dy);
+        }
+        if (gHaveSensorAccel) {
+            const bool before = gPadShake.held();
+            held = gPadShake.update(gSensorAccel, seconds, b.options().shakeG);
+            changed = before != held;
+        }
+    }
+    if (changed) padButtonEvent(PadButton::Shake, held);
 }
 }  // namespace
 
@@ -617,6 +651,7 @@ void padConnected(bool nintendoLabels) {
     gNintendoPad = nintendoLabels;
     gPadShake.reset();
     gGyroLast = 0.0;
+    gHaveSensorGyro = gHaveSensorAccel = false;
     syncLayout();
 }
 
@@ -1021,31 +1056,15 @@ void padDisconnected() {
     coStarModel().padDisconnected();
     gPadShake.reset();
     gGyroLast = 0.0;
+    gHaveSensorGyro = gHaveSensorAccel = false;
 }
 
-void padSensorEvent(PadSensor sensor, const float data[3], double seconds) {
-    bool shakeChanged = false;
-    bool shakeHeld = false;
-    {
-        std::lock_guard<std::mutex> lock(gHostMutex);
-        syncLayout();
-        const Bindings& b = model().bindings();
-        if (sensor == PadSensor::Gyro) {
-            float dx;
-            float dy;
-            if (Detail::gyroPointerDelta(data, seconds, &gGyroLast, b.options(), &dx, &dy) && gyroPointerOn(b) &&
-                !editorCapturing() && !(CameraSettings::photoEnabled() && CameraSettings::photoCapturing())) {
-                model().padPointerMove(dx, dy);
-            }
-            return;
-        }
-        const bool before = gPadShake.held();
-        shakeHeld = gPadShake.update(data, seconds, b.options().shakeG);
-        shakeChanged = shakeHeld != before;
-        if (shakeChanged && shakeHeld) gHostActivity = true;
-    }
-    // A shake is a controller button (Pad:Shake): remappable, captured by the Controls page.
-    if (shakeChanged) padButtonEvent(PadButton::Shake, shakeHeld);
+void padSensorEvent(PadSensor sensor, const float data[3], double /*hostSeconds*/) {
+    if (!std::isfinite(data[0]) || !std::isfinite(data[1]) || !std::isfinite(data[2])) return;
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    float* dest = sensor == PadSensor::Gyro ? gSensorGyro : gSensorAccel;
+    std::copy(data, data + 3, dest);
+    (sensor == PadSensor::Gyro ? gHaveSensorGyro : gHaveSensorAccel) = true;
 }
 
 void mouseMoved(float x, float y) {
@@ -1222,6 +1241,8 @@ void setClock(Clock clock) {
     gClock = clock;
 }
 
+std::uint64_t gameFrame() { return gInputGameFrame.load(std::memory_order_relaxed); }
+
 void pumpReports(int count) {
     Interrupts guard;
     if (!gInitialized) {
@@ -1285,7 +1306,9 @@ void resetForTesting() {
             gWantNunchuk[i] = true;
             gRumble[i] = false;
         }
-        gClock = Clock::Alarm;
+        gClock = Clock::GameRead;
+        for (auto& clock : gReadClock) clock = {};
+        gInputGameFrame.store(0, std::memory_order_relaxed);
         gHostActivity = false;
         gLastReport = Report();
     }
@@ -1293,6 +1316,10 @@ void resetForTesting() {
     std::lock_guard<std::mutex> lock(gHostMutex);
     model() = Detail::RemoteModel();
     coStarModel() = Detail::RemoteModel(true);
+    gPadShake.reset();
+    gGyroLast = 0.0;
+    gSensorReports = 0;
+    gHaveSensorGyro = gHaveSensorAccel = false;
     for (auto& reads : gGameReads) reads.store(0, std::memory_order_relaxed);
     gSpeakerSink = nullptr;
     gSpeakerUser = nullptr;
@@ -1421,6 +1448,15 @@ s32 WPADProbe(s32 chan, u32* type) {
         return gReplayProbeErrors[chan];
     }
     snapshotCalibration(chan, ch);
+    // KPADiRead marks readLocked before probing. Other probes (including the
+    // sampling callback itself) must never advance gameplay's input clock.
+    if (!gInReportTick && inside_kpads[chan].readLocked && std::this_thread::get_id() == gKpadThread) {
+        if (chan == 0) gInputGameFrame.fetch_add(1, std::memory_order_relaxed);
+        if (gClock == Clock::GameRead) {
+            const int count = gReadClock[chan].step();
+            for (int i = 0; i < count; ++i) tickChannel(chan);
+        }
+    }
     if (type != nullptr) {
         *type = ch.devType;
     }

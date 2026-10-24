@@ -2,16 +2,12 @@
 #include "petari/editor_input.h"
 #include "petari/editor_settings.hpp"
 #include "petari/mods.hpp"
+#include "petari/input.hpp"
 
 #include <atomic>
-#include <chrono>
 
 namespace PetariNative::EditorSettings {
 namespace {
-
-long long nowNs() {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-}
 
 void addFloat(std::atomic<float>& value, float delta) {
     float current = value.load(std::memory_order_relaxed);
@@ -21,7 +17,7 @@ void addFloat(std::atomic<float>& value, float delta) {
 
 std::atomic<bool> gActive{false};
 std::atomic<bool> gRequested{false};
-std::atomic<long long> gRequestTime{0};
+std::atomic<std::uint64_t> gRequestFrame{0};
 std::atomic<int> gToggles{0}, gEnters{0}, gLeaves{0}, gFrames{0}, gRepivots{0};
 std::atomic<float> gOrbitYaw{0}, gOrbitPitch{0}, gLookYaw{0}, gLookPitch{0}, gPanRight{0}, gPanUp{0}, gDolly{0};
 std::atomic<float> gMoveRight{0}, gMoveForward{0}, gMoveUp{0}, gSpeed{1}, gCursorX{0}, gCursorY{0};
@@ -30,7 +26,7 @@ std::atomic<int> gPlayFrom{0};
 std::atomic<bool> gTyping{false}, gDeferredToggle{false};
 
 void request() {
-    gRequestTime.store(nowNs(), std::memory_order_relaxed);
+    gRequestFrame.store(Input::gameFrame(), std::memory_order_relaxed);
     gRequested.store(true, std::memory_order_release);
 }
 
@@ -55,7 +51,7 @@ bool takeDeferredToggle() { return gDeferredToggle.exchange(false, std::memory_o
 
 bool capturing() {
     return active() || (gRequested.load(std::memory_order_acquire) &&
-                        nowNs() - gRequestTime.load(std::memory_order_relaxed) < 300'000'000LL);
+                        Input::gameFrame() - gRequestFrame.load(std::memory_order_relaxed) < 18);
 }
 void toggle() {
     if (!enabled()) return;

@@ -1,6 +1,7 @@
 import copy,unittest
 from latency54m import ledger_checks,script_without_space
 from common import REPO
+from receipts54m import latency_exact27
 
 def fixture():
  es=[{'event':'start','ns':1,'clock':'CLOCK_UPTIME_RAW','planned_presses':27,'seed':12345,'gap_min_ms':1000,'gap_max_ms':1600,'hold_ms':60,'symbol_exports_verified':True,'main_executable_file_verified':True}];text=[];plan=1
@@ -14,6 +15,9 @@ def fixture():
  return es,'\n'.join(text)
 
 class Latency(unittest.TestCase):
+ def test_original_log_predicate_preserved(self):
+  _,t=fixture();self.assertTrue(latency_exact27(t));self.assertFalse(latency_exact27(t.replace('on screen 50.0','on screen -1.0',1)))
+  self.assertFalse(latency_exact27(t+'\n'+t.splitlines()[0]));self.assertFalse(latency_exact27(t.replace('2 frames after','3 frames after',1)))
  def test_complete_independent_wall_train(self):
   e,t=fixture();self.assertTrue(ledger_checks(e,t)['passed'])
  def test_missing_actual_read_refuses(self):

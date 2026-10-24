@@ -37,6 +37,10 @@ def readj(path):
 def latency(text):
  return [(int(n),float(ms)) for n,ms in re.findall(r'\[latency\] press:.*\(frame \d+, (\d+) frames after the read\).*on screen ([\d.]+) ms',text)]
 
+def latency_exact27(text):
+ values=latency(text)
+ return len(values)==27 and all(fr==2 and math.isfinite(ms) for fr,ms in values)
+
 def audio_observation(text, samples):
  und=[int(n) for n in re.findall(r'underrun (\d+) frames',text)]
  baton=[float(n) for n in re.findall(r'preemption pending ([\d.]+) ms',text)]
@@ -192,7 +196,10 @@ def main():
   def inputlatency():
    if a.latency_result:
     from latency54m import validate_result
-    return validate_result(a.latency_result,meta)
+    result=validate_result(a.latency_result,meta)
+    assert all(latency_exact27((Path(r['path'])/'app.log').read_text(errors='replace')) for r in result['runs']),'original27/27 at2frames predicate'
+    result['original_latency_predicate_rechecked']=True
+    return result
    result=cadencecheck();return {'passed':all(r['latency_passed'] for r in result['runs']),'runs':result['runs']}
   gate('input-latency',[a.latency_result] if a.latency_result else [runpath(f'cadence-{mode}-r{n}')/'app.log' for n in (1,2) for mode in ('fifo','immediate')],inputlatency,'27/27 input latency presses at two frames after read; cadence threshold is a separate tier row')
  def audiocheck():

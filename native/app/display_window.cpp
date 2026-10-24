@@ -11,6 +11,10 @@ namespace PetariNative::App::DisplayWindow {
 namespace {
 SDL_Window* gWindow = nullptr;
 int gApplied = -1;  // the VSync state Aurora presents with now (1 Fifo, 0 Immediate); -1 unknown
+int gHeld = 0;      // consecutive updates the window has disagreed with gApplied
+// The window must keep its new state this long (~1 s of host updates) before Auto switches: a launch into fullscreen first
+// reports "windowed" for the length of macOS's fullscreen animation, which flipped Fifo on and off again (server check, 5.4.1).
+constexpr int kSwitchAfterUpdates = 60;
 class SdlWindow final : public DisplaySettings::Window {
 public:
     bool fullscreen() override { return (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN) != 0; }
@@ -44,7 +48,9 @@ void update() {
     if (const char* pinned = std::getenv("PETARI_PRESENT_MODE"); pinned && pinned[0]) return;
     const bool full = window.fullscreen();
     const int want = full ? 0 : 1;
-    if (want == gApplied) return;
+    if (want == gApplied) { gHeld = 0; return; }
+    if (++gHeld < kSwitchAfterUpdates) return;
+    gHeld = 0;
     aurora_enable_vsync(want != 0);
     gApplied = want;
     std::fprintf(stderr, "[display] vsync auto: %s, now %s\n", full ? "fullscreen" : "windowed",

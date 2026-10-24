@@ -204,9 +204,12 @@ void gameplayThrottleTest() {
     petari_gx_pipeline_set_gameplay(false);
     {
         std::unique_lock lock(g_pipelineMutex);
-        require(g_pipelineReadyCv.wait_for(lock, std::chrono::seconds(5), [] { return g_pipelines.count(75) && g_pipelines.count(73); }),
-                "leaving gameplay did not release speculative work");
+        require(g_pipelineReadyCv.wait_for(lock, std::chrono::seconds(5), [] { return g_pipelines.count(75); }),
+                "leaving gameplay did not release the queued stage job");
     }
+    // Workers 2/3 still hold A/B. Reserved workers 0/1 may take stage work
+    // outside play, but must not take the global backlog even then.
+    require(!startedG, "global backlog consumed a reserved draw/stage worker");
     release.set_value();
     waitReady(5);
     require(petariStageSpeculativeInFlight == 0 && petariBackgroundInFlight == 0, "speculative accounting unbalanced");

@@ -9,7 +9,22 @@ from common import *
 
 ANCHOR_POLICY='interactive-and-play-ready-v1'
 
-def anchor_checks(report,required_play_stage=None):
+def identity_contract(report,required=False):
+ return required or 'interactive_position_bit_exact' in report or any('identity_rows_skipped' in s for s in report.get('segments',[]))
+
+def replay_accounting(report,require_identity=False):
+ parts=report.get('segments',[])
+ try:
+  if not identity_contract(report,require_identity):return bool(parts) and all(s['rows_compared']==s['tape_frames']+1 for s in parts)
+  return bool(parts) and report.get('interactive_position_bit_exact') is True and all(type(s[k]) is int and s[k]>=0 for s in parts for k in ('rows_compared','identity_rows_skipped','tape_frames','pointer_rows_compared')) and all(s['rows_compared']+s['identity_rows_skipped']==s['tape_frames']+1 and s['pointer_rows_compared']==s['tape_frames'] for s in parts)
+ except (KeyError,TypeError):return False
+
+def identity_offsets(parts):
+ try:
+  return bool(parts) and all(s.get('identity_offset_checked') is True and s.get('identity_offset_passed') is True and s['identity_offset_limit']==30 and all(type(s[k]) is int and s[k]>=0 for k in ('identity_recorded_frame','identity_replay_frame','identity_expected_replay_frame')) and type(s['identity_frame_offset']) is int and s['identity_replay_frame']-s['identity_expected_replay_frame']==s['identity_frame_offset'] and abs(s['identity_frame_offset'])<=30 for s in parts)
+ except (KeyError,TypeError):return False
+
+def anchor_checks(report,required_play_stage=None,require_identity=False):
  parts=report.get('segments',[])
  checks={'anchor_policy_applied':report.get('anchor_policy')==ANCHOR_POLICY,
          'play_ready_state_checks':bool(parts) and all(s.get('play_ready_required') is False or
@@ -18,6 +33,8 @@ def anchor_checks(report,required_play_stage=None):
            ((s.get('play_ready_state_check') or {}).get('rng') or {}).get('verified') is True) for s in parts)}
  if required_play_stage:
   checks['requested_play_ready_anchor']=any(s.get('stage')==required_play_stage and s.get('play_ready_required') is True for s in parts)
+ if identity_contract(report,require_identity):
+  checks.update(interactive_position_bit_exact=report.get('interactive_position_bit_exact') is True,bounded_scene_identities=identity_offsets(parts),strict_pointer_and_state_row_accounting=replay_accounting(report,True),zero_interactive_position_error=bool(parts) and all(s.get('max_position_error')==0 for s in parts))
  return checks
 
 def candidate(src,expected,source):
@@ -26,7 +43,7 @@ def candidate(src,expected,source):
  assert Path(meta['source_app'])==src and meta['source']==source and meta['source_exe_sha256']==expected
  return app,meta
 
-def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promotion_pointer=False):
+def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promotion_pointer=False,require_identity=False):
  tape=tape.resolve();meta=json.loads((tape/'route.tape.json').read_text());before=tree(tape)
  assert meta.get('complete') or allow_incomplete,'incomplete recording requires explicit --allow-incomplete'
  assert not meta.get('lossy_samples',0) and not meta.get('unencodable_samples',0),'lossy tape refused'
@@ -40,8 +57,8 @@ def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promo
  if promotion_pointer and warm:env.update(SDL_AUDIO_DRIVER='coreaudio',PETARI_SMOKE_REAL_AUDIO='1',PETARI_AUDIO_DIAG='1')
  proc=run(app,out,stage=stage,scenario=1,copied=True,fixture=fixture,verify_fixture_attrs=True,extra=env,warm=warm,cold=not warm,seconds=540)
  report=json.loads((out/'replay/divergence.json').read_text());parts=report.get('segments',[]);text=(out/'app.log').read_text(errors='replace');rs=rows(out/'route.csv')
- checks={'completed_process':proc['completed'],'no_faults':proc['no_faults'],'seed_unchanged':proc['seed_unchanged'],'binary_unchanged':proc['binary_unchanged'],'tape_unchanged':tree(tape)==before,'whole_session_replay':report.get('mode')=='whole-session' and 'jump cut' not in text,'replay_completed':report.get('finished') is True and bool(parts) and all(s.get('started') and s.get('completed') and s.get('rows_compared')==s.get('tape_frames',-2)+1 for s in parts),'no_divergence':not report.get('stopped') and bool(parts) and not any(s.get('diverged') for s in parts)}
- checks.update(anchor_checks(report,stage if stage=='RedBlueExGalaxy' else None))
+ checks={'completed_process':proc['completed'],'no_faults':proc['no_faults'],'seed_unchanged':proc['seed_unchanged'],'binary_unchanged':proc['binary_unchanged'],'tape_unchanged':tree(tape)==before,'whole_session_replay':report.get('mode')=='whole-session' and 'jump cut' not in text,'replay_completed':report.get('finished') is True and bool(parts) and all(s.get('started') and s.get('completed') for s in parts) and replay_accounting(report,require_identity),'no_divergence':not report.get('stopped') and bool(parts) and not any(s.get('diverged') for s in parts)}
+ checks.update(anchor_checks(report,stage if stage=='RedBlueExGalaxy' else None,require_identity))
  if promotion_pointer:
   frame_rows=rows(out/'frames.csv');after_cache=caches(out/'cache');audio=[int(n) for n in re.findall(r'underrun (\d+) frames',text)]
   checks.update(menu_frames=any(r['phase']=='menu' for r in frame_rows),gameplay_frames=sum(r['phase']=='gameplay' for r in frame_rows)>=120,matching_key_cache_written=any(r['rows'] for r in after_cache),cache_arm_verified=any(r['rows'] for r in before_cache) if warm else not before_cache)
@@ -55,19 +72,19 @@ def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promo
  return result,text,rs
 
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('kind',choices=('intro','pointer'));p.add_argument('label');p.add_argument('--app',type=Path,required=True);p.add_argument('--sha',required=True);p.add_argument('--source',required=True);p.add_argument('--tape',type=Path,required=True);p.add_argument('--none-tape',type=Path);p.add_argument('--allow-incomplete',action='store_true');a=p.parse_args()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('kind',choices=('intro','pointer'));p.add_argument('label');p.add_argument('--app',type=Path,required=True);p.add_argument('--sha',required=True);p.add_argument('--source',required=True);p.add_argument('--tape',type=Path,required=True);p.add_argument('--none-tape',type=Path);p.add_argument('--allow-incomplete',action='store_true');p.add_argument('--require-bounded-identity',action='store_true');a=p.parse_args()
  assert re.fullmatch('[A-Za-z0-9_-]+',a.label);app,build=candidate(a.app,a.sha,a.source);base=ROOT/'runs'/a.label;base.mkdir(parents=True,exist_ok=False);records=[]
  if a.kind=='intro':
   assert a.none_tape,'intro requires no-press twin tape'
   for arm,tape in (('none',a.none_tape),('skip',a.tape)):
-   out=base/arm;res,text,rs=replay(app,out,tape,'RedBlueExGalaxy',a.allow_incomplete)
+   out=base/arm;res,text,rs=replay(app,out,tape,'RedBlueExGalaxy',a.allow_incomplete,require_identity=a.require_bounded_identity)
    ready=[int(n) for n in re.findall(r'^\[play ready\] frame (\d+)',text,re.M)];first=next((int(r['frame']) for r in rs if r['stage']=='RedBlueExGalaxy'),None)
    res.update(arm=arm,play_ready_frame=ready[0] if ready else None,first_stage_frame=first,frames_from_stage_to_play=ready[0]-first if ready and first is not None else None)
    write(out/'RESULT.json',res);records.append(res);trim(out)
   no,skip=records;checks={'both_replays_passed':all(r['passed'] for r in records),'both_play_ready':all(r['play_ready_frame'] is not None for r in records),'skip_earlier_than_no_press':skip['frames_from_stage_to_play'] is not None and no['frames_from_stage_to_play'] is not None and skip['frames_from_stage_to_play']<no['frames_from_stage_to_play']}
  else:
   for arm in ('fresh','warm'):
-   out=base/arm;res,text,rs=replay(app,out,a.tape,'WorldMap01Galaxy',a.allow_incomplete,warm=base/'fresh' if arm=='warm' else None,renderer_key=build['renderer_key'],promotion_pointer=True)
+   out=base/arm;res,text,rs=replay(app,out,a.tape,'WorldMap01Galaxy',a.allow_incomplete,warm=base/'fresh' if arm=='warm' else None,renderer_key=build['renderer_key'],promotion_pointer=True,require_identity=a.require_bounded_identity)
    valid=[r for r in rs if r['stage']=='WorldMap01Galaxy' and r['scenario']=='1' and r['valid']=='1' and r.get('dead','0')=='0'];pointer=[r for r in valid if r.get('pointer_valid')=='1'];positions={(r.get('pointer_x'),r.get('pointer_y')) for r in pointer}
    extra={'pointer_readback_compared':sum(s.get('pointer_rows_compared',0) for s in res['replay'].get('segments',[]) if s.get('stage')=='WorldMap01Galaxy')>=30,'valid_requested_rows':len(valid)>=120,'recorded_pointer_rows':len(pointer)>=30 and len(positions)>=3,'existing_unlocked_file1':any(r.get('power_stars')=='242' for r in valid) and 'FileSelector.OpenFile' in text and 'FileSelector.Create' not in text and 'FileSelector.StartupCreate' not in text,'walk_and_idle':bool(valid) and any(abs(float(r[c])-float(valid[0][c]))>.01 for r in valid for c in ('x','y','z'))}
    res['checks'].update(extra);res.update(arm=arm,valid_requested_rows=len(valid),pointer_rows=len(pointer),pointer_positions=len(positions),passed=all(res['checks'].values()),limitation='Recorded KPAD pointer replay verifies game pointer path, not physical host-coordinate mapping or screenshots.')

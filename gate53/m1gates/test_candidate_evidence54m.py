@@ -18,6 +18,7 @@ class CandidateEvidence(unittest.TestCase):
   paths=[]
   for n in range(3):
    path=root/f'normal-r{n}/RESULT.json';command={'command':[str(exe)],'binary_sha256':sha(exe)};write(path.parent/'command.json',command)
+   write(path.parent/'replay/divergence.json',{'mode':'whole-session','finished':True,'stopped':'','anchor_policy':'interactive-and-play-ready-v1','segments':[{'stage':'FileSelect','started':True,'completed':True,'diverged':False,'play_ready_required':False,'rows_compared':2,'tape_frames':1}]})
    write(path,{'build_kind':'server-candidate','binary_sha256':sha(exe),'passed':True,'acceptance_passed':True,'checks':dict.fromkeys(ce.NORMAL_CHECKS,True),'priority':{'nice':0},'host_input_used':False,'anchor_policy':{'id':'interactive-and-play-ready-v1'},'scene_anchors':[{'stage':''},{'stage':'FileSelect'}]});paths.append(path)
   return directory,paths,app.parent/'PREP.json'
  def test_normal_joins_three_real_identity_records(self):

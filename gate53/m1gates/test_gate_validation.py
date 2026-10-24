@@ -64,4 +64,16 @@ class GateValidation(unittest.TestCase):
   self.assertFalse(all(anchor_checks({'segments':[]}).values()))
   report['segments'][0]['play_ready_required']=False;report['anchor_policy']='legacy-play-ready'
   self.assertFalse(all(anchor_checks(report).values()))
+ def test_bounded_identity_still_requires_every_pointer_row(self):
+  from replay_cases54m import anchor_checks,replay_accounting,ANCHOR_POLICY
+  report={'anchor_policy':ANCHOR_POLICY,'interactive_position_bit_exact':True,'segments':[{'stage':'FileSelect','play_ready_required':False,'rows_compared':10,'identity_rows_skipped':1,'tape_frames':10,'pointer_rows_compared':10,'identity_recorded_frame':225,'identity_replay_frame':224,'identity_expected_replay_frame':225,'identity_frame_offset':-1,'identity_offset_limit':30,'identity_offset_checked':True,'identity_offset_passed':True,'max_position_error':0}]}
+  self.assertTrue(all(anchor_checks(report,require_identity=True).values()));self.assertTrue(replay_accounting(report,True))
+  bad=copy.deepcopy(report);bad['segments'][0]['pointer_rows_compared']=9
+  self.assertFalse(all(anchor_checks(bad,require_identity=True).values()));self.assertFalse(replay_accounting(bad,True))
+  bad=copy.deepcopy(report);bad['segments'][0].update(identity_replay_frame=256,identity_frame_offset=31)
+  self.assertFalse(all(anchor_checks(bad,require_identity=True).values()))
+  bad=copy.deepcopy(report);del bad['interactive_position_bit_exact']
+  self.assertFalse(all(anchor_checks(bad,require_identity=True).values()))
+  bad=copy.deepcopy(report);bad['segments'][0]['rows_compared']=9
+  self.assertFalse(replay_accounting(bad,True))
 if __name__=='__main__':unittest.main()

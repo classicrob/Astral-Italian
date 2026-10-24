@@ -12,6 +12,10 @@ All game sessions hold `~/MacioGalaxy2-team/slots/native.lock`. The app is copie
 
 PORT approved **nice 0** for all M1 gates. The server used nice 19 for promotion, normal route, intro skip and Cappy. This is recorded in the manifest and per-run evidence, because the server harness was load-sensitive (BACKLOG-541).
 
+Promotion first prepares an owned M1 save template under `m1g/fixtures/unlocked-242/`. macOS assigns its normal local provenance during `ditto`; PREP.json records those actual metadata differences and proves that every game-save byte and NAND marker matches the canonical fixture. No attributes are removed or rewritten. Every runtime copy must still match **all** files and **all** attributes of this local template. The canonical fixture and live source save remain protected.
+
+If a harness precondition interrupts promotion after completed cases, `merge_promotion54m.py` can combine disjoint actual case receipts. It requires exactly all 15 cases, matching executable/source/key/priority, byte-identical original receipt records, and unchanged live-save inventories. It preserves every failed verdict. The collector's explicit `--promotion-result` option records this composite source; original attempts remain in place.
+
 The frozen executable supports play-ready keyboard scripts, but cannot replay title/FileSelect/menu input. The reference scripts also use host pointer input for promotion worldmap and host Space for intro skip. Those checks remain failing when that evidence is unavailable; no AX commands are called. The no-press intro arm still runs. Promotion runs all 15 cases and preserves failed pointer checks while completing the independent cases.
 
 PORT approved testing whole-session tape input on a **separate server-built candidate**, with source/app/tape identities labelled. To invoke SOL B's normal-route gate after the frozen tests:

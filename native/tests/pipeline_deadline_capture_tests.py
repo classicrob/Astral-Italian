@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
-from record_pipeline_deadlines import observations, disagreements
+from record_pipeline_deadlines import observations, disagreements, seed_identity
 
 
 class Captures(unittest.TestCase):
@@ -53,6 +53,21 @@ class Captures(unittest.TestCase):
     def test_disagreement_retained(self):
         self.assertEqual(disagreements({'a': 0, 'b': 1}, {'a': 1, 'c': 0}),
                          {'a': [0, 1], 'b': [1, None], 'c': [None, 0]})
+
+    def test_missing_stage_seed_keeps_recording_case(self):
+        import sqlite3
+        app = Path(self.tmp.name) / 'Petari.app'
+        seeds = app / 'Contents/Resources/pipeline-seeds'
+        seeds.mkdir(parents=True)
+        with sqlite3.connect(seeds / '__global__.db') as db:
+            db.execute('CREATE TABLE petari_cache_build(build_key TEXT)')
+            db.execute('INSERT INTO petari_cache_build VALUES(?)', ('a' * 64,))
+        result = seed_identity(app, 'StaffRollGalaxy')
+        self.assertTrue(result['stage_seed_missing'])
+        self.assertIsNone(result['stage_seed_sha256'])
+        self.assertEqual(result['renderer_key'], 'a' * 64)
+        self.assertEqual(result['identity_seed'], '__global__.db')
+        self.assertFalse((seeds / 'StaffRollGalaxy.db').exists())
 
 
 if __name__ == '__main__': unittest.main()

@@ -9,6 +9,7 @@
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/GameSystemFunction.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
+#include "Game/System/WPadHolder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/Player/Mario.hpp"
 #include "Game/Player/MarioActor.hpp"
@@ -280,6 +281,15 @@ void recordRouteFrame(bool background) {
         state.x = row.x; state.y = row.y; state.z = row.z;
         state.playReady = Host::playerInPlay();  // as of the previous seam's update, like the recorder and the headless driver
         state.initEnd = controller && controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
+        if (system && system->mObjHolder && system->mObjHolder->mWPadHolder) {
+            const auto* pad = system->mObjHolder->mWPadHolder;
+            const auto* sample = pad->mReadDataInfoArray ? pad->mReadDataInfoArray[0].getKPadStatus(0) : nullptr;
+            if (sample) {
+                state.pointerObserved = true;
+                state.pointerX = sample->pos.x; state.pointerY = sample->pos.y;
+                state.pointerValid = sample->dpd_valid_fg;
+            }
+        }
         const auto step = TapePlay::seam(state);
         if (step.kind == TapePlay::Step::Kind::Start && step.restoreSeed && system && system->mObjHolder) system->mObjHolder->mRandom.mSeed = step.seed;
         if (step.kind == TapePlay::Step::Kind::Warp) {

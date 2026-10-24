@@ -81,7 +81,7 @@ def evaluate(rows, log, replay):
     return checks, {"stage_order": order, "destination_max_consecutive_valid": best,
                     "faults": faults[:20], "first_divergence": divergence,
                     "replay_stopped": replay.get("stopped"),
-                    "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_source",
+                    "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_rows_compared", "pointer_source",
                         "last_pointer_recorded", "last_pointer_replayed", "last_pointer_valid")} for s in segments]}
 
 

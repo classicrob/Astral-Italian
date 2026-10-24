@@ -184,6 +184,7 @@ Meta parseSidecar(const std::string& text) {
             seg.stage = r.find("stage") ? r.find("stage")->text : std::string();
             seg.scenario = static_cast<int>(number(r, "scenario"));
             seg.seed = static_cast<std::uint32_t>(number(r, "rng_seed"));
+            seg.sceneReady = true;
             meta.sceneStarts.push_back(std::move(seg));
         }
     return meta;
@@ -222,30 +223,43 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
     const std::uint64_t rows = std::min<std::uint64_t>(mMeta.seams, mRoute.size());
     if (rows < 2) throw H::ReplayError("the tape has no complete game loop");
     if (wholeSession()) {
-        // Title starts at row 0. Later visits start at their first Game/End seam, including menus that never reach
-        // play-ready. Only asynchronous scene construction is excluded; no menu input or level-select warp is substituted.
-        std::vector<SegmentMeta> scenes(1);
-        scenes[0].stage = mRoute[0].stage;
-        scenes[0].scenario = mRoute[0].scenario;
-        for (const auto& start : mMeta.sceneStarts) {
-            if (start.startRow >= rows) continue;
-            if (start.startRow == 0) scenes[0] = start;
-            else {
-                if (start.startRow <= scenes.back().startRow) throw H::ReplayError("unordered scene-start seams");
-                scenes.push_back(start);
+        // Game/End anchors cover FileSelect, helm and map, but schema 1 has no ready checkpoint for Logo/Title or
+        // ScenarioSelect (stage=the destination, scenario=-1). Those visits must also feed their inputs: anchor on the
+        // scene identity assignment. Initial setup and asynchronous construction/teardown around Game/End are neutral.
+        std::vector<SegmentMeta> scenes;
+        for (std::uint64_t begin = 0; begin < rows;) {
+            std::uint64_t end = begin;
+            while (end + 1 < rows && mRoute[end + 1].stage == mRoute[begin].stage &&
+                   mRoute[end + 1].scenario == mRoute[begin].scenario) ++end;
+            const bool setup = begin == 0 && mRoute[begin].stage.empty() && mRoute[begin].scenario == 1 &&
+                end + 1 < rows && mRoute[end + 1].stage.empty() && mRoute[end + 1].scenario == -1;
+            const auto first = scenes.size();
+            if (!setup) {
+                for (const auto& checkpoint : mMeta.sceneStarts) {
+                    if (checkpoint.startRow < begin || checkpoint.startRow > end) continue;
+                    if (checkpoint.stage != mRoute[begin].stage || checkpoint.scenario != mRoute[begin].scenario)
+                        throw H::ReplayError("scene-start seam disagrees with route.csv");
+                    if (scenes.size() > first) {
+                        if (checkpoint.startRow <= scenes.back().startRow) throw H::ReplayError("unordered scene-start seams");
+                        scenes.back().endRow = checkpoint.startRow - 1;
+                    }
+                    scenes.push_back(checkpoint);
+                    scenes.back().endRow = end;
+                }
+                if (scenes.size() == first) {
+                    SegmentMeta identity;
+                    identity.startRow = begin; identity.endRow = end;
+                    identity.stage = mRoute[begin].stage; identity.scenario = mRoute[begin].scenario;
+                    identity.hasSeed = false;
+                    scenes.push_back(std::move(identity));
+                }
+                for (std::size_t i = first; i < scenes.size(); ++i) {
+                    auto& g = scenes[i];
+                    if (mRoute[g.startRow].valid)
+                        while (g.endRow > g.startRow && !mRoute[g.endRow].valid) --g.endRow;
+                }
             }
-        }
-        for (std::size_t i = 0; i < scenes.size(); ++i) {
-            auto& g = scenes[i];
-            if (mRoute[g.startRow].stage != g.stage || mRoute[g.startRow].scenario != g.scenario)
-                throw H::ReplayError("scene-start seam disagrees with route.csv");
-            g.endRow = i + 1 < scenes.size() ? scenes[i + 1].startRow - 1 : rows - 1;
-            // Stop before the next scene's loading rows (stage identity changes before its initialize-End anchor).
-            if (i + 1 < scenes.size())
-                while (g.endRow > g.startRow && (mRoute[g.endRow].stage != g.stage ||
-                    (!g.stage.empty() && mRoute[g.endRow].scenario != g.scenario))) --g.endRow;
-            else if (mRoute[g.startRow].valid)
-                while (g.endRow > g.startRow && !mRoute[g.endRow].valid) --g.endRow;
+            begin = end + 1;
         }
         mMeta.segments = std::move(scenes);
     }
@@ -302,6 +316,13 @@ void Session::compare(const SeamState& s, std::uint64_t k) {
     if (s.stage != r.stage) why = "stage " + s.stage + " vs " + r.stage;
     else if (s.scenario != r.scenario) why = "scenario " + std::to_string(s.scenario) + " vs " + std::to_string(r.scenario);
     else if (s.valid != r.valid) why = std::string("valid ") + (s.valid ? "1" : "0") + " vs " + (r.valid ? "1" : "0");
+    if (wholeSession() && k > 0 && mPointerReadMade) {
+        ++rep.pointerRowsCompared;
+        rep.replayedPointer[0] = s.pointerX; rep.replayedPointer[1] = s.pointerY;
+        if (why.empty() && (s.pointerObserved != mExpectedPointer || (mExpectedPointer &&
+            (s.pointerValid != mExpectedPointerValid || s.pointerX != mExpectedPointerX || s.pointerY != mExpectedPointerY))))
+            why = "KPAD pointer in game read buffer";
+    }
     double dist = 0;
     if (s.valid && r.valid) {
         if (why.empty() && (!std::isfinite(s.x) || !std::isfinite(s.y) || !std::isfinite(s.z))) why = "nonfinite position";
@@ -365,20 +386,22 @@ Step Session::seam(const SeamState& s) {
         step.kind = Step::Kind::GaveUp;
         return step;
     }
-    const bool ready = wholeSession() ? s.initEnd : s.playReady;
-    if (mNeedEdge && !ready) mNeedEdge = false;
     const auto& seg = mMeta.segments[plan.index];
+    const bool ready = wholeSession() ? (!seg.sceneReady || s.initEnd) : s.playReady;
+    if (mNeedEdge && !ready) mNeedEdge = false;
     // A different stage also proves a new visit if construction completed between two seams.
-    if (wholeSession() && mSegIndex > 0 && s.stage != mReport[mSegIndex - 1].stage) mNeedEdge = false;
-    const bool initialTitle = wholeSession() && mSegIndex == 0 && seg.startRow == 0;
-    if (!mNeedEdge && (ready || initialTitle) && s.stage == seg.stage && s.scenario == seg.scenario) {
+    if (wholeSession() && mSegIndex > 0 && (s.stage != mReport[mSegIndex - 1].stage ||
+        s.scenario != mReport[mSegIndex - 1].scenario)) mNeedEdge = false;
+    if (!mNeedEdge && ready && s.stage == seg.stage && s.scenario == seg.scenario) {
         mActive = true;
+        mExpectedPointer = false;
+        mPointerReadMade = false;
         mSegRow = 0;
         mReport[mSegIndex].started = true;
         mReplay->startInputs();
         step.kind = Step::Kind::Start;
         step.seed = seg.seed;
-        step.restoreSeed = !initialTitle || (!mMeta.sceneStarts.empty() && mMeta.sceneStarts.front().startRow == 0);
+        step.restoreSeed = !wholeSession() || seg.hasSeed;
         compare(s, mSegRow);  // row 0, the sync seam, is compared with the recorded start row
         ++mSegRow;
         if (!mError.empty()) { mDone = true; step.kind = Step::Kind::GaveUp; }
@@ -417,11 +440,18 @@ std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* b
         if (mActive && mError.empty() && !mReplay->waitingForSync()) {
             auto& report = mReport[mSegIndex];
             ++report.reads;
+            if (channel == 0) {
+                mPointerReadMade = true;
+                mExpectedPointer = input.returned > 0;
+            }
             if (channel == 0 && input.returned > 0) {
                 const auto recorded = H::decodeSample(input.samples[0]);
                 report.recordedPointer[0] = recorded.pos.x; report.recordedPointer[1] = recorded.pos.y;
                 report.replayedPointer[0] = out[0].pos.x; report.replayedPointer[1] = out[0].pos.y;
                 report.pointerValid = out[0].dpd_valid_fg;
+                mExpectedPointer = true;
+                mExpectedPointerX = recorded.pos.x; mExpectedPointerY = recorded.pos.y;
+                mExpectedPointerValid = recorded.dpd_valid_fg;
                 if (out[0].dpd_valid_fg > 0) ++report.pointingReads;
             }
         }
@@ -484,6 +514,8 @@ std::string Session::reportJson() const {
     for (std::size_t i = 0; i < mReport.size(); ++i) {
         const auto& r = mReport[i];
         out << (i ? "," : "") << "\n    {\"segment\": " << r.index << ", \"stage\": " << jsonString(r.stage) << ", \"scenario\": " << r.scenario
+            << ", \"anchor\": " << jsonString(!wholeSession() ? "play-ready" : mMeta.segments[mPlan[i].index].sceneReady ? "initialize-End" : "scene-identity")
+            << ", \"rng_checkpoint_available\": " << (mMeta.segments[mPlan[i].index].hasSeed ? "true" : "false")
             << ", \"route_start_row\": " << r.startRow << ", \"tape_frames\": " << r.frames << ", \"started\": " << (r.started ? "true" : "false")
             << ", \"completed\": " << (r.completed ? "true" : "false") << ", \"rows_compared\": " << r.rowsCompared
             << ", \"matched_rows\": " << (r.diverged ? r.firstDivergenceRow : r.rowsCompared) << ", \"diverged\": " << (r.diverged ? "true" : "false")
@@ -495,7 +527,8 @@ std::string Session::reportJson() const {
             << ", \"first_divergence_replayed\": [" << r.firstReplay[0] << ", " << r.firstReplay[1] << ", " << r.firstReplay[2]
             << "], \"first_divergence_recorded\": [" << r.firstRecorded[0] << ", " << r.firstRecorded[1] << ", " << r.firstRecorded[2] << "]"
             << ", \"reads\": " << r.reads << ", \"pointing_reads\": " << r.pointingReads
-            << ", \"pointer_source\": \"recorded KPAD and delivered KPAD, not screen coordinates\""
+            << ", \"pointer_rows_compared\": " << r.pointerRowsCompared
+            << ", \"pointer_source\": \"recorded KPAD versus game WPad read buffer, not screen coordinates\""
             << ", \"last_pointer_recorded\": [" << r.recordedPointer[0] << ", " << r.recordedPointer[1] << "]"
             << ", \"last_pointer_replayed\": [" << r.replayedPointer[0] << ", " << r.replayedPointer[1] << "]"
             << ", \"last_pointer_valid\": " << r.pointerValid

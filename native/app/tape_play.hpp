@@ -27,6 +27,7 @@ struct SegmentMeta {
     std::string stage;
     int scenario = 0;
     std::uint32_t seed = 0;
+    bool sceneReady = false, hasSeed = true;
 };
 struct Meta {
     std::uint64_t seams = 0;
@@ -47,6 +48,9 @@ struct SeamState {
     float x = 0, y = 0, z = 0;
     bool playReady = false;  // Host::playerInPlay() as of the previous seam's update (read before this seam's update)
     bool initEnd = false;
+    bool pointerObserved = false;
+    int pointerValid = 0;
+    float pointerX = 0, pointerY = 0; // actual WPad read buffer's first KPAD sample, in KPAD coordinates
 };
 // What the glue must do after a seam.
 struct Step {
@@ -72,6 +76,7 @@ struct SegmentReport {
     std::uint64_t reads = 0, pointingReads = 0;
     float recordedPointer[2] = {0, 0}, replayedPointer[2] = {0, 0};
     int pointerValid = 0;
+    std::uint64_t pointerRowsCompared = 0;
 };
 
 // After a segment ended, the game gets this many loops to reach the next segment by itself (the ship's helm -> the world map ->
@@ -120,6 +125,10 @@ private:
     void inputFailure(const std::string& why, const SeamState& lastObserved);
     Mode mMode;
     SeamState mLastObserved;
+    bool mExpectedPointer = false;
+    bool mPointerReadMade = false;
+    int mExpectedPointerValid = 0;
+    float mExpectedPointerX = 0, mExpectedPointerY = 0;
     Meta mMeta;
     std::vector<Planned> mPlan;
     std::vector<CsvRow> mRoute;

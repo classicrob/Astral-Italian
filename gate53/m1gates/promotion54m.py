@@ -1,7 +1,7 @@
 """Owned-session, source-bound GX gates; private evidence only."""
 import sys,argparse,atexit,csv,hashlib,json,math,os,re,signal,sqlite3,subprocess,time
 from pathlib import Path
-from common import ROOT, FROZEN, HERE, ID, native_lock, prep, trim, disk
+from common import ROOT, FROZEN, HERE, ID, native_lock, prep, trim, disk, wait_quiet
 
 def inspect_cache(path,key):
  with sqlite3.connect('file:'+str(path)+'?mode=ro',uri=True) as db:
@@ -127,7 +127,7 @@ def main():
  for name,stage,seconds,copied,hook,mode in cases:
   with native_lock():
    disk()
-   out=root/(name+'-'+mode);out.mkdir();user=out/'user'
+   out=root/(name+'-'+mode);out.mkdir();wait_quiet(out/'quiet.json');user=out/'user'
    if copied:
     subprocess.run(['/usr/bin/ditto','--rsrc','--extattr',str(fixture),str(user)],check=True)
     assert inventory(user)=={k:save[k] for k in ('files','xattrs')}

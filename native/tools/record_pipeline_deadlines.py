@@ -17,6 +17,7 @@ import fcntl
 import hashlib
 import json
 import os
+import plistlib
 from pathlib import Path
 import re
 import signal
@@ -28,6 +29,18 @@ import time
 TOOLS = Path(__file__).resolve().parent
 SCRIPT = TOOLS / 'perf_sweep_move.script'
 VERSION = 1
+QUIT_PID = r'''
+ObjC.import('AppKit');
+function run(argv) {
+  var pid=Number(argv[0]), expectedPath=argv[1], expectedId=argv[2];
+  if (!Number.isInteger(pid) || pid<=1 || expectedId!=='dev.petari.Petari.perfrec') throw new Error('Invalid recording owner');
+  var app=$.NSRunningApplication.runningApplicationWithProcessIdentifier(pid);
+  if (!app || app.isTerminated || ObjC.unwrap(app.bundleIdentifier)!==expectedId || ObjC.unwrap(app.bundleURL.path)!==expectedPath)
+    throw new Error('Refusing PID outside the exact recording perf app');
+  if (!app.terminate) throw new Error('Orderly quit rejected');
+  return JSON.stringify({pid:pid,app:expectedPath,bundle_id:expectedId,orderly_quit_requested:true});
+}
+'''
 
 
 def sha(path):
@@ -115,9 +128,10 @@ def launch(args, stage, name, app=None, cold=False):
         if key.startswith('PETARI_'):
             del env[key]
     env.update(SDL_AUDIO_DRIVER='dummy', PETARI_MODS='none', PETARI_CACHE_DIR=str(cache),
-               PETARI_INPUT_SCRIPT=str(SCRIPT), PETARI_INPUT_SCRIPT_STEADY='60', PETARI_INPUT_SCRIPT_QUIT='1',
                PETARI_FRAME_CSV=str(folder / 'frames.csv'), PETARI_FRAME_STATS='1', PETARI_PIPELINE_DIAG='1',
                PETARI_ROUTE_RECORD=str(folder / 'route.csv'))
+    if not args.title:
+        env.update(PETARI_INPUT_SCRIPT=str(SCRIPT), PETARI_INPUT_SCRIPT_STEADY='60', PETARI_INPUT_SCRIPT_QUIT='1')
     recording = not name.startswith('prime')
     if recording:
         env['PETARI_PIPELINE_RECORD_FIRST_USE'] = str(capture)
@@ -126,34 +140,59 @@ def launch(args, stage, name, app=None, cold=False):
     seed = app / 'Contents/Resources/pipeline-seeds' / (stage + '.db')
     with sqlite3.connect(seed.as_uri() + '?mode=ro', uri=True) as db:
         renderer = db.execute('SELECT build_key FROM petari_cache_build').fetchone()[0]
-    cmd = [str(executable), '--disc', str(args.disc), '--user', str(folder / 'user'),
-           '--stage', stage, '--scenario', '1']
+    cmd = [str(executable), '--disc', str(args.disc), '--user', str(folder / 'user')]
+    if not args.title:
+        cmd += ['--stage', stage, '--scenario', '1']
     write(folder / 'launch.json', {'command': cmd, 'environment': {k: v for k, v in env.items()
-          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': sha(SCRIPT),
+          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title else sha(SCRIPT),
           'nice': os.getpriority(os.PRIO_PROCESS, 0), 'cold_namespace': cold, 'renderer_key': renderer,
           'stage_seed_sha256': sha(seed),
-          'purpose': 'recording only; not performance acceptance', 'load': os.getloadavg()})
+          'purpose': 'recording only; not performance acceptance', 'mode': 'no-input-title' if args.title else 'direct-stage',
+          'load': os.getloadavg()})
     started = time.monotonic()
     with (folder / 'app.log').open('wb') as log:
         process = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, env=env)
-        timed_out = False
+        timed_out, quit_error = False, None
         try:
-            process.wait(timeout=args.seconds)
+            if args.title:
+                try:
+                    process.wait(timeout=args.title_seconds)
+                except subprocess.TimeoutExpired:
+                    with (app / 'Contents/Info.plist').open('rb') as info:
+                        bundle = plistlib.load(info)['CFBundleIdentifier']
+                    sent = subprocess.run(['/usr/bin/osascript', '-l', 'JavaScript', '-e', QUIT_PID,
+                                           str(process.pid), str(app), bundle], capture_output=True, text=True, timeout=30)
+                    write(folder / 'orderly-quit.json', {'exit': sent.returncode, 'stdout': sent.stdout,
+                                                       'stderr': sent.stderr, 'pid': process.pid, 'bundle_id': bundle})
+                    if sent.returncode != 0: raise RuntimeError('Orderly recording-title quit rejected')
+                    process.wait(timeout=30)
+            else:
+                process.wait(timeout=args.seconds)
         except subprocess.TimeoutExpired:
             timed_out = True
-            process.send_signal(signal.SIGTERM)
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill(); process.wait()
+        except Exception as exc:
+            quit_error = str(exc)
+        finally:
+            if process.poll() is None:
+                process.send_signal(signal.SIGTERM)
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill(); process.wait()
     text = (folder / 'app.log').read_text(errors='replace')
     frames = list(csv.DictReader((folder / 'frames.csv').open())) if (folder / 'frames.csv').exists() else []
     fault = bool(re.search(r'EXC_BAD_ACCESS|\[hang\]|AddressSanitizer|UndefinedBehaviorSanitizer|Assertion failed', text))
     no_wait = not re.search(r'^\[gx uber wait\]', text, re.M) and all(float(r['pipeline_wait_ms']) == 0 for r in frames)
     no_pop = not re.search(r'^\[pop-in\] frame \d+ skipped_draws [1-9]', text, re.M)
     checks = {'exit_zero': process.returncode == 0, 'not_timed_out': not timed_out, 'no_faults': not fault,
-              'script_done': '[input-script] done after 970 frames' in text, 'exe_unchanged': sha(executable) == before,
+              'script_done': args.title or '[input-script] done after 970 frames' in text, 'exe_unchanged': sha(executable) == before,
               'frame_rows': bool(frames)}
+    if args.title:
+        route = list(csv.DictReader((folder / 'route.csv').open())) if (folder / 'route.csv').exists() else []
+        checks.update(no_quit_error=quit_error is None, title_300seconds=time.monotonic()-started >= 300,
+                      no_stage_entry=bool(route) and all(r['stage'] in ('', 'FileSelect') for r in route),
+                      no_input='PETARI_INPUT_SCRIPT' not in env and all(not any(float(r.get(k, 0)) for k in
+                          ('move_x', 'move_y', 'jump', 'spin', 'crouch', 'shoot', 'pointer_valid')) for r in route))
     groups, error = {}, None
     if recording:
         try:
@@ -165,7 +204,7 @@ def launch(args, stage, name, app=None, cold=False):
             checks.update(no_pipeline_waits=no_wait, no_pop_in=no_pop)
     result = {'passed': all(checks.values()), 'checks': checks, 'stage': stage, 'scenario': 1,
               'name': name, 'folder': str(folder), 'process_exit': process.returncode, 'seconds': time.monotonic() - started,
-              'capture_error': error, 'groups': groups, 'cold_confirmation': cold, 'no_pipeline_waits': no_wait,
+              'capture_error': error, 'quit_error': quit_error, 'groups': groups, 'cold_confirmation': cold, 'no_pipeline_waits': no_wait,
               'no_pop_in': no_pop, 'recording_exe_sha256': before, 'launch_sha256': sha(folder / 'launch.json'),
               'renderer_key': renderer, 'stage_seed_sha256': sha(seed),
               'app_log_sha256': sha(folder / 'app.log'), 'capture_sha256': sha(capture) if capture.exists() else None}
@@ -178,6 +217,8 @@ def main():
     parser.add_argument('command', choices=['plan', 'run'])
     parser.add_argument('--disc', type=Path, required=True)
     parser.add_argument('--stage', action='append', default=[])
+    parser.add_argument('--title', action='store_true', help='No-input FileSelect title, prime + two >=300s warm recordings')
+    parser.add_argument('--title-seconds', type=float, default=315)
     parser.add_argument('--batch')
     parser.add_argument('--app', type=Path)
     parser.add_argument('--out', type=Path)
@@ -189,11 +230,13 @@ def main():
     parser.add_argument('--cold-confirm-stage')
     parser.add_argument('--cold-confirm-app', type=Path)
     args = parser.parse_args()
-    stages = select(args.disc, args.stage, args.batch)
+    if args.title and (args.stage or args.batch or args.cold_confirm_stage or args.title_seconds < 300):
+        parser.error('--title needs its own batch/output, no --stage/--batch/--cold-confirm-stage; title-seconds>=300')
+    stages = ['FileSelect'] if args.title else select(args.disc, args.stage, args.batch)
     if args.command == 'plan':
         print(json.dumps({'count': len(stages), 'stages': stages, 'scenario': 1,
                           'launches': len(stages) * (args.prime_count + 2),
-                          'estimated_hours_at_50s_per_launch': len(stages) * (args.prime_count + 2) * 50 / 3600}, indent=2))
+                          'estimated_hours': len(stages) * (args.prime_count + 2) * (args.title_seconds if args.title else 50) / 3600}, indent=2))
         return 0
     if not args.app or not args.out or not args.heavy_lock or not args.build_metadata or args.prime_count < 1:
         parser.error('run requires --app --out --heavy-lock --build-metadata and prime-count>=1')
@@ -225,7 +268,8 @@ def main():
                   and (cold_diff is None or not cold_diff)}
         results.append(result)
         write(args.out / 'PROVENANCE.json', {'version': 1, 'recording_only': True, 'stages_planned': stages,
-              'stage_results': results, 'script': str(SCRIPT), 'script_sha256': sha(SCRIPT),
+              'stage_results': results, 'script': None if args.title else str(SCRIPT), 'script_sha256': None if args.title else sha(SCRIPT),
+              'mode': 'no-input-title' if args.title else 'direct-stage',
               'recording_build_metadata': json.loads(args.build_metadata.read_text()),
               'recording_build_metadata_sha256': sha(args.build_metadata),
               'all_completed': len(results) == len(stages), 'passed': len(results) == len(stages)

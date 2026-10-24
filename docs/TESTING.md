@@ -50,7 +50,7 @@ folder of any other Super Mario Galaxy port.
 | Quit | Cmd+Q |
 
 The **Home menu** (` or F1) is where you remap controls, switch mods on and off, pick a galaxy with Level Select, and change
-**Display** options (fullscreen, window size, VSync; VSync takes effect after a restart). Full lists:
+**Display** options (fullscreen, window size, VSync (On by default; Off = lowest latency), Ubershaders; VSync and Ubershaders take effect after a restart). Full lists:
 [Controls](../native/CONTROLS.md), [Home menu](../native/HOME_MENU.md), [Mods](../native/MODS.md).
 
 **Mods** are all off until you enable them in the Home menu:
@@ -60,7 +60,7 @@ The **Home menu** (` or F1) is where you remap controls, switch mods on and off,
 - *Collect-all-Star-Bits* (G) pulls nearby Star Bits to Mario.
 - *Shoot-nearest* (V) fires a Star Bit at the nearest enemy in range.
 
-**On first launch, let the title screen sit until "Preparing graphics… N%" (under the title prompt) finishes**: about
+**On first launch, let the title screen sit until "Preparing graphics… N%" (bottom-right corner) finishes**: about
 3 minutes on an M1 Mac, less on newer Macs. The game prepares its graphics for your Mac in the background. You can start
 playing earlier, but the game may pause briefly when it reaches places that are not ready yet. This happens once per new
 version of the game; later launches skip it.

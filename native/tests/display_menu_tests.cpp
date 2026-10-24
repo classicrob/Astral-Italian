@@ -28,7 +28,7 @@ public:
         ++changes;
         if (row == 0) options.fullscreen = !options.fullscreen;
         if (row == 1) options.size = (options.size + delta + HM::kDisplaySizeCount) % HM::kDisplaySizeCount;
-        if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = options.vsync; }
+        if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = !options.restartNeeded; }
         if (row == 3) { options.ubershaders = !options.ubershaders; options.ubershadersRestartNeeded = !options.ubershaders; }
     }
 };

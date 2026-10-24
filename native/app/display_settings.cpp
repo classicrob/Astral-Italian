@@ -37,7 +37,9 @@ bool load(const std::filesystem::path& file, Settings* settings, std::string* er
         const auto equals = line.find('=');
         if (equals == std::string::npos) return fail(error, "Invalid display.txt. Remove it to restore the default display settings.");
         const std::string key = line.substr(0, equals);
-        if (key != "fullscreen" && key != "size" && key != "vsync" && key != "ubershaders") continue;
+        // VSync is saved as vsync2. The old vsync key (5.3 and earlier, written with the old default Off) is ignored, so
+        // the 5.4 default On reaches existing user folders; older builds ignore vsync2 in turn.
+        if (key != "fullscreen" && key != "size" && key != "vsync" && key != "vsync2" && key != "ubershaders") continue;
         const char* begin = line.data() + equals + 1;
         const char* end = line.data() + line.size();
         if (end > begin && end[-1] == '\r') --end;
@@ -49,7 +51,7 @@ bool load(const std::filesystem::path& file, Settings* settings, std::string* er
         }
         if (key == "fullscreen") parsed.fullscreen = value != 0;
         if (key == "size") parsed.size = value;
-        if (key == "vsync") parsed.vsync = value != 0;
+        if (key == "vsync2") parsed.vsync = value != 0;
         if (key == "ubershaders") { parsed.ubershaders = value != 0; parsed.ubershadersSaved = true; }
     }
     if (input.bad()) return fail(error, "Could not read display.txt. Check that your user folder is readable.");
@@ -70,7 +72,7 @@ bool save(const std::filesystem::path& file, Settings settings, std::string* err
     FILE* output = fdopen(fd, "w");
     bool ok = output != nullptr;
     if (output) {
-        ok = std::fprintf(output, "# Display settings; size: 0=1280x720, 1=1600x900, 2=1920x1080, 3=2560x1440\nfullscreen=%d\nsize=%d\nvsync=%d\nubershaders=%d\n",
+        ok = std::fprintf(output, "# Display settings; size: 0=1280x720, 1=1600x900, 2=1920x1080, 3=2560x1440\nfullscreen=%d\nsize=%d\nvsync2=%d\nubershaders=%d\n",
                           settings.fullscreen, settings.size, settings.vsync, settings.ubershaders) > 0;
         if (std::fflush(output) != 0 || fsync(fd) != 0) ok = false;
         if (std::fclose(output) != 0) ok = false;

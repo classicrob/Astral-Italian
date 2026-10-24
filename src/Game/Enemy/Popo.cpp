@@ -463,15 +463,10 @@ void Popo::exeStickCancel() {
         Triangle tri;
         f32 radius = MR::getSensorRadius(this, "Body");
         TVec3f hitPos;
-        TVec3f offset = mGravity * radius;
-        TVec3f from(mPosition);
-        from -= offset;
+        TVec3f from(mPosition - mGravity * radius);
         TVec3f line = mGravity * radius * 2.0f;
         if (MR::getFirstPolyOnLineToMap(&hitPos, &tri, from, line)) {
-            TVec3f up = *tri.getNormal(0) * radius;
-            TVec3f pos(hitPos);
-            pos.add(up);
-            MR::setPosition(this, pos);
+            MR::setPosition(this, hitPos + *tri.getNormal(0) * radius);
         }
     }
     if (MR::isActionEnd(this)) {

@@ -99,9 +99,7 @@ Plant::Plant(const char* pName)
     mTopMtx.identity();
 }
 
-// NONMATCHING: stack slot order of the zero TVec3f for initStarPointerTarget
 void Plant::init(const JMapInfoIter& pMapInfoIter) {
-    TVec3f starOffset;
     MR::createSceneObj(SceneObj_PlantStalkDrawInit);
     MR::createSceneObj(SceneObj_PlantLeafDrawInit);
 
@@ -128,10 +126,7 @@ void Plant::init(const JMapInfoIter& pMapInfoIter) {
     MR::initShadowVolumeSphere(mSeedPartsModel, 50.0f);
     MR::setPosition(mSeedPartsModel, mPosition);
     mSeedMtx.setTrans(mPosition);
-    starOffset.x = 0.0f;
-    starOffset.y = 0.0f;
-    starOffset.z = 0.0f;
-    MR::initStarPointerTarget(mSeedPartsModel, 50.0f, starOffset);
+    MR::initStarPointerTarget(mSeedPartsModel, 50.0f, TVec3f(0, 0, 0));
 
     updateTopMtx();
     mTopPartsModel = new PartsModel(this, "先端（伸び植物）", "PlantTop", mTopMtx, -1, false);

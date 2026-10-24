@@ -234,9 +234,9 @@ namespace MR {
 
     // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     f32 calcNearestPointToPlayerOnSideLine(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pOffset, f32 scaleA, f32 scaleB) {
+        TVec3f side;
         TVec3f lineA;
         TVec3f lineB;
-        TVec3f side;
         calcSideVec(&side, pActor);
         lineA = *pOffset + side * scaleA;
         lineB = *pOffset + side * scaleB;

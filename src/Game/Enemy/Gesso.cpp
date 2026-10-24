@@ -99,11 +99,7 @@ void Gesso::init(const JMapInfoIter& rIter) {
     initEffectKeeper(2, nullptr, false);
     MR::addEffectHitNormal(this, nullptr);
     initSound(4, "Gesso", nullptr, TVec3f(0.0f));
-    TVec3f pointerOffset;
-    pointerOffset.x = 0.0f;
-    pointerOffset.y = 0.0f;
-    pointerOffset.z = 0.0f;
-    MR::initStarPointerTarget(this, 100.0f, pointerOffset);
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0, 0, 0));
     mScaleController = new AnimScaleController(nullptr);
     mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::initShadowVolumeSphere(this, 90.0f);

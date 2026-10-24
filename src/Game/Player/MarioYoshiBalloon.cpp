@@ -58,13 +58,15 @@ bool MarioYoshiBalloon::close() {
     mActor->getYoshi()->fn_8040EFB0();
     setJumpVec(fn_803EF300());
     mActor->fn_803B9810()->fn_8041FE80();
-    static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->mSuspended = false;
+    YoshiLockOnManager* lockOn = static_cast<YoshiLockOnManager*>(mActor->fn_803B9820());
+    lockOn->mSuspended = false;
     mActor->getYoshi()->fn_8040CC00();
     mActor->fn_803B9830()->mRideModelActor->kill();
     mActor->mMarioAnim->disableExtraAnimation();
     changeAnimation("落下", "落下");
     MR::startActionSound(mActor->fn_803B9830()->mRideModelActor, "Burst", -1, -1, -1);
-    if (!(mAir <= 0.0f)) {
+    bool empty = mAir <= 0.0f;
+    if (empty == false) {
         MR::emitEffect(mActor->getYoshi(), "BalloonDamage");
     }
     return true;
@@ -99,13 +101,15 @@ bool MarioYoshiBalloon::fn_80414580() {
         addVelocity(-getAirGravityVec() * 5.0f);
         break;
     case 1:
-        if (mAir <= 0.0f) {
+        bool empty = mAir <= 0.0f;
+        if (empty == true) {
             return false;
         }
+        const TVec3f* gravity;
         const TVec3f& velocity = fn_803EF300();
-        const TVec3f& gravity = getAirGravityVec();
+        gravity = &getAirGravityVec();
         TVec3f horizontal;
-        JMAVECScaleAdd(gravity, velocity, horizontal, -gravity.dot(velocity));
+        JMAVECScaleAdd(*gravity, velocity, horizontal, -gravity->dot(velocity));
         TVec3f vertical;
         JMathInlineVEC::PSVECSubtract(fn_803EF300(), horizontal, vertical);
         fn_80415330();
@@ -318,7 +322,8 @@ void MarioYoshiBalloon::fn_80415150() {
 void MarioYoshiBalloon::fn_80415330() {
     if (getPlayer()->_A72) {
         fn_80415390(5);
-        getPlayer()->_A72 = 0;
+        Mario* player = getPlayer();
+        player->_A72 = 0;
     }
 }
 

@@ -784,7 +784,7 @@ void Menbo::updateGravityWater() {
 
 // NONMATCHING: operand floating-point registers are swapped for the damping multiply.
 void Menbo::updateMenboTurn() {
-    mTurnRate = mTurnRate * 0.985f;
+    mTurnRate *= 0.985f;
     mTurnRate = mTurnRate + calcMenboTurnImpulse();
     MR::rotateVecDegree(&mFront, mFront, mUp, mTurnRate * mTurnDir);
 }

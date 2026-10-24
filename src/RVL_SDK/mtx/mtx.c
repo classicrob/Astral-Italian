@@ -125,7 +125,7 @@ asm void PSMTXConcat
     psq_st  D22_D23, 40(mAB), 0, 0
     lfd    fp31, 40(r1)
     addi   r1, r1, 64
-    blr 
+    blr
 
 #undef A00_A01
 #undef A02_A03
@@ -183,7 +183,7 @@ asm u32 PSMTXInverse(const register Mtx src, register Mtx inv)
     ps_cmpo0    cr0, fp7, fp6
     bne         _regular
     addi        r3, 0, 0
-    blr         
+    blr
 
 _regular:
 
@@ -219,7 +219,7 @@ _regular:
     psq_st      fp4, 24(inv), 0, 0
     psq_st      fp7, 44(inv), 1, 0
     addi        r3, 0, 1
-    blr         
+    blr
 }
 
 
@@ -255,7 +255,7 @@ asm u32 PSMTXInvXpose ( const register Mtx src, register Mtx invX )
     ps_cmpo0    cr0, fp7, fp6
     bne         _regular
     addi        r3, 0, 0
-    blr         
+    blr
 
 _regular:
 
@@ -279,7 +279,7 @@ _regular:
     psq_st      fp9, 24(invX), 1, 0
     psq_st      fp8, 40(invX), 1, 0
     addi        r3, 0, 1
-    blr         
+    blr
 }
 
 void PSMTXRotTrig (

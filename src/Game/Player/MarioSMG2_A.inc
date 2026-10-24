@@ -687,7 +687,8 @@ bool Mario::isEnableHang() {
     }
 
     if (getPlayer()->getShadowNorm().dot(*getGravityVec()) < -0.707f) {
-        if ((_4A4 - mShadowPos).dot(-*getGravityVec()) < height) {
+        const TVec3f& shadowDelta = _4A4 - mShadowPos;
+        if (shadowDelta.dot(-*getGravityVec()) < height) {
             return false;
         }
     }

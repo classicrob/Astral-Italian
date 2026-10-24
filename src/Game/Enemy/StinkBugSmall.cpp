@@ -49,21 +49,13 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg7NoInit(rIter, &mIsSensorOnly);
     initSound(4, "StinkBugSmall", nullptr, TVec3f(0.0f));
     initHitSensor(3);
-    TVec3f v9;
     if (mIsSensorOnly) {
-        v9.y = 10.0f * mScale.x;
-        v9.x = 0.0f;
-        v9.z = 0.0f;
-        MR::addHitSensorEnemy(this, "Body", 8, 110.0f * mScale.x, v9);
+        MR::addHitSensorEnemy(this, "Body", 8, 110.0f * mScale.x, TVec3f(0.0f, 10.0f * mScale.x, 0.0f));
     } else {
         MR::addBodyMessageSensorEnemy(this);
     }
 
-    TVec3f v8;
-    v8.y = -30.0f * mScale.x;
-    v8.x = 0.0f;
-    v8.z = 0.0f;
-    MR::addHitSensorAtJointEnemyAttack(this, "head", "Face", 8, 100.0f * mScale.x, v8);
+    MR::addHitSensorAtJointEnemyAttack(this, "head", "Face", 8, 100.0f * mScale.x, TVec3f(0.0f, -30.0f * mScale.x, 0.0f));
     if (!mIsSensorOnly) {
         MR::initCollisionParts(this, "Switch", getSensor("Body"), nullptr);
     }
@@ -75,11 +67,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
         MR::declareCoin(this, 1);
     }
 
-    TVec3f v7;
-    v7.y = 50.0f * mScale.x;
-    v7.x = 0.0f;
-    v7.z = 0.0f;
-    MR::initStarPointerTarget(this, 130.0f * mScale.x, v7);
+    MR::initStarPointerTarget(this, 130.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 0.0f));
     mScaleController = new AnimScaleController(nullptr);
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::initUseStageSwitchReadA(this, rIter);

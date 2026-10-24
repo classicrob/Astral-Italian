@@ -376,74 +376,67 @@ void ElectricRailMoving::updateHitSensorPos() {
     }
 }
 
-namespace {
-    inline bool updateMovingPoints(ElectricRailMoving* pActor) {
-        s32 i;
-        f32 railTotalLength = MR::getRailTotalLength(pActor);
-        s32 segmentNum = pActor->mSegmentNum;
+bool ElectricRailMoving::updatePointPos() {
+    bool reachedEnd;
+    s32 pointIndex;
+    s32 i;
+    f32 railTotalLength = MR::getRailTotalLength(this);
+    s32 segmentNum = mSegmentNum;
 
-        f32 railCoord;
-        f32 segmentLength;
-        s32 pointIndex;
-        bool reachedEnd;
-        segmentLength = railTotalLength / segmentNum;
-        reachedEnd = false;
-        pointIndex = 0;
-        railCoord = pActor->mScrollCoord;
+    f32 segmentLength;
+    f32 railCoord;
+    segmentLength = railTotalLength / segmentNum;
+    reachedEnd = false;
+    pointIndex = 0;
+    railCoord = mScrollCoord;
 
-        TVec3f stackPosition;
-        TVec3f gravity;
-        TVec3f previousPosition;
-        TVec3f position;
+    TVec3f position;
+    TVec3f previousPosition;
+    TVec3f gravity;
+    TVec3f stackPosition;
 
-        for (i = 0; i < pActor->mSegmentNum; i++) {
-            f32 coord = pActor->getRepeatedCoord(railCoord);
+    for (i = 0; i < mSegmentNum; i++) {
+        f32 coord = getRepeatedCoord(railCoord);
 
-            pActor->calcPointPos(&position, coord);
-            f32 previousCoord = pActor->getRepeatedCoord(railCoord - pActor->mSegmentLength);
+        calcPointPos(&position, coord);
+        f32 previousCoord = getRepeatedCoord(railCoord - mSegmentLength);
 
-            pActor->calcPointPos(&previousPosition, previousCoord);
+        calcPointPos(&previousPosition, previousCoord);
 
-            MR::setPosition(&pActor->mMovingPoints[pointIndex++], position);
-            MR::setPosition(&pActor->mMovingPoints[pointIndex++], previousPosition);
+        MR::setPosition(&mMovingPoints[pointIndex++], position);
+        MR::setPosition(&mMovingPoints[pointIndex++], previousPosition);
 
-            if (pActor->mStackHeight > 1) {
-                MR::calcGravityVector(pActor, position, &gravity, nullptr, 0);
-                gravity *= -100.0f;
+        if (mStackHeight > 1) {
+            MR::calcGravityVector(this, position, &gravity, nullptr, 0);
+            gravity *= -100.0f;
 
-                stackPosition.set(position);
+            stackPosition.set(position);
 
-                for (s32 j = 1; j < pActor->mStackHeight; j++) {
-                    stackPosition += gravity;
-                    MR::setPosition(&pActor->mMovingPoints[pointIndex++], stackPosition);
-                }
-
-                MR::calcGravityVector(pActor, previousPosition, &gravity, nullptr, 0);
-                gravity *= -100.0f;
-
-                stackPosition.set(previousPosition);
-
-                for (s32 j = 1; j < pActor->mStackHeight; j++) {
-                    stackPosition += gravity;
-                    MR::setPosition(&pActor->mMovingPoints[pointIndex++], stackPosition);
-                }
+            for (s32 j = 1; j < mStackHeight; j++) {
+                stackPosition += gravity;
+                MR::setPosition(&mMovingPoints[pointIndex++], stackPosition);
             }
 
-            if (!MR::isLoopRail(pActor) &&
-                (pActor->getRepeatedCoord(railCoord + pActor->mMovementSpeed) - (pActor->mSegmentLength + (3.0f * pActor->mMovementSpeed))) < 0.0f) {
-                reachedEnd = true;
-            }
+            MR::calcGravityVector(this, previousPosition, &gravity, nullptr, 0);
+            gravity *= -100.0f;
 
-            railCoord = pActor->getRepeatedCoord(railCoord + segmentLength);
+            stackPosition.set(previousPosition);
+
+            for (s32 j = 1; j < mStackHeight; j++) {
+                stackPosition += gravity;
+                MR::setPosition(&mMovingPoints[pointIndex++], stackPosition);
+            }
         }
 
-        return reachedEnd;
-    }
-};  // namespace
+        if (!MR::isLoopRail(this) &&
+            (getRepeatedCoord(railCoord + mMovementSpeed) - (mSegmentLength + (3.0f * mMovementSpeed))) < 0.0f) {
+            reachedEnd = true;
+        }
 
-// NONMATCHING: loop state uses different saved registers
-bool ElectricRailMoving::updatePointPos() {
-    return ::updateMovingPoints(this);
+        railCoord = getRepeatedCoord(railCoord + segmentLength);
+    }
+
+    return reachedEnd;
 }
 
 void ElectricRailMoving::updatePointPosAndModel() {

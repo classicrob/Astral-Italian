@@ -133,7 +133,6 @@ void TubeSlider::exeEnd() {
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvWait));
 }
 
-// NONMATCHING: f-reg allocation in wind block
 void TubeSlider::exeRideAir() {
     if (MR::isFirstStep(this))
         _118 = 0;
@@ -185,7 +184,8 @@ void TubeSlider::exeRideAir() {
         s32 pitchBase = 50;
         s32 scale = 10;
         f32 spd = mForwardSpeed;
-        s32 windPitch = (s32)((f32)pitchBase + __fabsf(spd) * (f32)scale);
+        f32 absoluteSpeed = __fabsf(spd);
+        s32 windPitch = (s32)((f32)pitchBase + (f32)scale * absoluteSpeed);
         s32 windVol = MR::clamp((s32)(spd * (f32)scale) + 600, 0, 1000);
         MR::startActionSound(this, "Wind", windPitch, windVol, -1);
     }
@@ -614,7 +614,6 @@ bool TubeSlider::updateOnGround() {
     return false;
 }
 
-// NONMATCHING: stack temp slot order, f-reg allocation in wind block and wall-hit frsp ordering
 bool TubeSlider::updatePlayer() {
     TVec3f railDir(MR::getRailDirection(this));
     mForwardSpeed += 1.0f;
@@ -637,7 +636,9 @@ bool TubeSlider::updatePlayer() {
     TVec3f cross(1.0f, 0.0f, 0.0f);
     PSVECCrossProduct(railDir, _A4, &cross);
     MR::normalizeOrZero(&cross);
-    _EC -= cross.dot(MR::getRailDirection(this)) * 7.0f;
+    f32 acceleration = cross.dot(MR::getRailDirection(this));
+    acceleration *= 7.0f;
+    _EC -= acceleration;
     TVec3f vec(0.0f);
     mRiderMtx.getTrans(vec);
     TVec3f vec2(0.0f);
@@ -717,7 +718,8 @@ bool TubeSlider::updatePlayer() {
         s32 pitchBase = 50;
         s32 scale = 10;
         f32 spd = mForwardSpeed;
-        s32 windPitch = (s32)((f32)pitchBase + __fabsf(spd) * (f32)scale);
+        f32 absoluteSpeed = __fabsf(spd);
+        s32 windPitch = (s32)((f32)pitchBase + (f32)scale * absoluteSpeed);
         s32 windVol = MR::clamp((s32)(spd * (f32)scale) + 600, 0, 1000);
         MR::startActionSound(this, "Wind", windPitch, windVol, -1);
     }

@@ -53,9 +53,11 @@ void WorldMapResultCommand::appearRocketAtNode(s32 worldId, s32 nodeIndex) {
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void WorldMapResultCommand::setupTicoRouteCreate() {
+    s32 from;
+    s32 to;
     WorldMapResultLinkItem* pItem = getCurrentTicoItem();
-    s32 from = pItem->mUnkA4;
-    s32 to = pItem->mUnkA8;
+    from = pItem->mUnkA4;
+    to = pItem->mUnkA8;
     getCurrentWorld()->setLinkProgress(from, to, 1.0f);
     getCurrentWorld()->mLinks->openFrom(from);
     updateTicoRoad(this, 0.0f);

@@ -667,6 +667,13 @@ void Mario::unlockGroundCheck(void* owner) {
     }
 }
 
+static inline bool queryMarioGroundLine(const Mario* mario, Triangle* triangle, const TVec3f& origin, const TVec3f& direction) {
+    if (mario->fn_803B2950()) {
+        return MR::getFirstPolyOnLineToDashYoshiStepAndMap(nullptr, triangle, origin, direction);
+    }
+    return MR::getFirstPolyOnLineToMap(nullptr, triangle, origin, direction);
+}
+
 bool Mario::isUseSimpleGroundCheck() const {
     if ((static_cast<u32>(mFlags14.mLowBits.mBit27))) {
         return (static_cast<u32>(mFlags14.mLowBits.mBit26));
@@ -682,16 +689,8 @@ bool Mario::isUseSimpleGroundCheck() const {
     }
     if (calcAngleD(_368) > mActor->getConst().getTable()->mFlatAngle - 5.0f) {
         Triangle ground;
-        TVec3f direction(*getGravityVec() * 100.0f);
-        TVec3f offset(*getGravityVec() * 30.0f);
-        TVec3f origin(mPosHolder->mPos);
-        origin -= offset;
-        bool hit;
-        if (fn_803B2950()) {
-            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(nullptr, &ground, origin, direction);
-        } else {
-            hit = MR::getFirstPolyOnLineToMap(nullptr, &ground, origin, direction);
-        }
+        bool hit = queryMarioGroundLine(this, &ground, mPosHolder->mPos - *getGravityVec() * 30.0f,
+                                        *getGravityVec() * 100.0f);
         if (hit) {
             if (calcAngleD(*ground.getNormal(0)) < mActor->getConst().getTable()->mFlatAngle - 5.0f) {
                 return false;
@@ -3401,7 +3400,10 @@ bool Mario::isEnableStickWall() {
     }
 
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit10)) && (static_cast<u32>(mMovementStates.mLowBits.mBit29)) && (static_cast<u32>(mMovementStates.mHighBits.mBit6))) {
-        if ((_4A4 - mShadowPos).dot(-*getGravityVec()) < mActor->getConst().getTable()->mWallStickStepHeight) {
+        TVec3f shadowDelta = _4A4 - mShadowPos;
+        const TVec3f& up = -*getGravityVec();
+        const MarioConstTable* table = mActor->getConst().getTable();
+        if (shadowDelta.dot(up) < table->mWallStickStepHeight) {
             return false;
         }
     }

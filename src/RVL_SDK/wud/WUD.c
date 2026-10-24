@@ -775,9 +775,9 @@ static inline void WUDiSetWiiFitPairingRecord(const u8* address, const u8* key, 
     if (address) memcpy(_wiiFitPairingData.record.bytes.address, address, sizeof(BD_ADDR));
     if (key) memcpy(_wiiFitPairingData.record.bytes.linkKey, key, sizeof(LINK_KEY));
     if (config) memcpy(_wiiFitPairingData.record.bytes.name, config, sizeof(*config));
+    word = _wiiFitPairingData.record.words;
     sum = _wiiFitChecksum >> 16;
     inverse = _wiiFitChecksum;
-    word = _wiiFitPairingData.record.words;
     for (i = 0; i < sizeof(WUDWiiFitPairingRecord) / sizeof(u16); ++i) {
         sum += *word;
         inverse += ~*word++;

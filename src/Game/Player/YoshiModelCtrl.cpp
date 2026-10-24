@@ -146,7 +146,7 @@ bool YoshiModelCtrl::calcSpine(TPos3f* mtx,const JointControllerInfo&) {
     JMAVECScaleAdd(&x,&headZ,&headZ,-x.dot(headZ));if(MR::normalizeOrZero(&headZ)) return false;
     mtx->getZDir(z);if(MR::normalizeOrZero(&z)) return false;
     mtx->getTrans(trans);f32 ratio=(0.5f*static_cast<f32>(mSpineBlend))/10.0f;
-    TVec3f axis;PSVECCrossProduct(&z,&headZ,&axis);f32 mag=PSVECMag(&axis);TQuat4f quat;
+    TQuat4f quat;TVec3f axis;PSVECCrossProduct(&z,&headZ,&axis);f32 mag=axis.length();
     if(mag<=0.000003814697265625f) quat.set(0.0f,0.0f,0.0f,1.0f);
     else {
         f32 angle=ratio*(0.5f*JMath::sAtanTable.atan2_(mag,z.dot(headZ)));

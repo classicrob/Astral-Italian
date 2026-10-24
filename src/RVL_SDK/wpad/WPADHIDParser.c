@@ -744,7 +744,7 @@ void __a1_20_status_report(u8 chan, u8* data, WPADStatus* p_status) {
     }
     p_copy = _wpdcb[chan];
     memcpy(p_status, p_copy->rxBuf + (u32)(p_copy->rxBufIndex == 0) * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
-    p_status->button = ((data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
+    p_status->button = ((data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
     if (p_status->dev != p_cb->devType) {
         p_status->dev = p_cb->devType;
         p_status->err = WPAD_ERR_INVALID;
@@ -819,7 +819,7 @@ void __a1_21_user_data(u8 chan, u8* data, WPADStatus* p_status) {
     }
     p_copy = _wpdcb[chan];
     memcpy(p_status, p_copy->rxBuf + (u32)(p_copy->rxBufIndex == 0) * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
-    p_status->button = ((data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
+    p_status->button = ((data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
     if (p_status->dev != p_cb->devType) {
         p_status->dev = p_cb->devType;
         p_status->err = WPAD_ERR_INVALID;
@@ -931,18 +931,16 @@ void __parse_dpd_data(s32 chan, WPADStatus** p_status, u8 fmt, u8* p_data, u8 le
     }
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_30_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_31_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADControlBlock* p_cal;
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
     p_cal = _wpdcb[chan];
     p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - p_cal->conf.acc_0g.x;
@@ -950,7 +948,6 @@ void __a1_31_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     p_status->accZ = (s16)((s16)((s16)(data[5] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 5) & 2)) - p_cal->conf.acc_0g.z;
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_32_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
@@ -970,7 +967,6 @@ void __a1_33_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     __parse_dpd_data(chan, &p_status, p_cb->dpdFormat, data + 6, 12);
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_34_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
@@ -978,11 +974,10 @@ void __a1_34_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 3, 19);
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_35_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cal;
     WPADControlBlock* p_cb = _wpdcb[chan];
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
     p_cal = _wpdcb[chan];
     p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - p_cal->conf.acc_0g.x;
@@ -1091,15 +1086,14 @@ void __a1_3f_data_type(u8 chan, u8* data, WPADStatus* p_status) {
 
 void __a1_unused_report(u8 chan, u8* data, WPADStatus* p_status) {}
 
-// NONMATCHING: initial control-block lookup scheduling/register allocation differs.
 void __parse_bl_data(s32 chan, WPADStatus** p_status, u8 fmt, u8* p_data, u8 len) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     s32 level;
 
-    ((WPADBLStatus*)*p_status)->pressure[0] = (p_data[0] << 8) | p_data[1];
-    ((WPADBLStatus*)*p_status)->pressure[1] = (p_data[2] << 8) | p_data[3];
-    ((WPADBLStatus*)*p_status)->pressure[2] = (p_data[4] << 8) | p_data[5];
-    ((WPADBLStatus*)*p_status)->pressure[3] = (p_data[6] << 8) | p_data[7];
+    ((WPADBLStatus*)*p_status)->pressure[0] = (u16)((u16)(p_data[0] << 8) & 0xFF00) | p_data[1];
+    ((WPADBLStatus*)*p_status)->pressure[1] = (u16)((u16)(p_data[2] << 8) & 0xFF00) | p_data[3];
+    ((WPADBLStatus*)*p_status)->pressure[2] = (u16)((u16)(p_data[4] << 8) & 0xFF00) | p_data[5];
+    ((WPADBLStatus*)*p_status)->pressure[3] = (u16)((u16)(p_data[6] << 8) & 0xFF00) | p_data[7];
     ((WPADBLStatus*)*p_status)->temperature = p_data[8];
     ((WPADBLStatus*)*p_status)->battery = p_data[10];
 

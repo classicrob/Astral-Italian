@@ -549,11 +549,12 @@ updatePrevState:
 
 void MarioAnimator::setHand() {
     TVec3f scale;
-    scale.x = getPlayer()->_3F0;
+    MarioActor* actor = mActor;
+    scale.x = actor->mMario->_3F0;
     scale.y = 1.0f;
     scale.z = 1.0f;
     XanimeCore* core = mXanimePlayer->mCore;
-    u8 armR = MR::getJointIndex(mActor, "ArmR1");
+    u8 armR = MR::getJointIndex(actor, "ArmR1");
     XjointTransform* armRJoint = core->getJointTransform(armR);
     armRJoint->mScaleModifier = scale;
     core = mXanimePlayer->mCore;
@@ -1569,13 +1570,13 @@ void MarioAnimator::fn_803E1060() {
 
 // NONMATCHING: equivalent short-circuit branch layout.
 bool MarioAnimator::fn_803E1110() const {
+    bool result = true;
     if (!((getPlayer()->mMovementStates.mLowWord >> 21) & 1U)) {
         bool squat = false;
         if (((getPlayer()->mFlags24.mLowWord >> 21) & 1U) && !((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && ((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) == 1) squat = true;
-        if (!squat) return false;
-        return true;
+        if (!squat) result = false;
     }
-    return true;
+    return result;
 }
 
 void MarioAnimator::fn_803E1160() {

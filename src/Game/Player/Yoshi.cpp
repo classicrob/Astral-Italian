@@ -1488,19 +1488,19 @@ void Yoshi::fn_804103F0() {
     mBaseMtx.getZDir(front);
     TVec3f side;
     mBaseMtx.getXDir(side);
+    TQuat4f rotation;
+    TVec3f angles;
     TVec3f gravityUp;
     JGeometry::negateInternal(&mGravity.x, &gravityUp.x);
     TVec3f axis;
     PSVECCrossProduct(&up, &gravityUp, &axis);
-    f32 length = PSVECMag(&axis);
-    TQuat4f rotation;
+    f32 angle;
+    f32 length = axis.length();
     if (length <= 0.000003814697265625f) rotation.set<f32>(0.0f, 0.0f, 0.0f, 1.0f);
     else {
-        f32 angle = 0.1f * (0.5f * JMAATan2(length, up.dot(gravityUp)));
+        angle = 0.1f * (0.5f * JMAATan2(length, up.dot(gravityUp)));
         f32 factor = static_cast<f32>(::sin(angle)) / length;
-        rotation.x = axis.x * factor;
-        rotation.y = axis.y * factor;
-        rotation.z = axis.z * factor;
+        rotation.toTvec()->scale(factor, axis);
         rotation.w = static_cast<f32>(::cos(angle));
     }
     rotation.transform(up);
@@ -1509,7 +1509,6 @@ void Yoshi::fn_804103F0() {
     mBaseMtx.setXDir(side);
     mBaseMtx.setYDir(up);
     mBaseMtx.setZDir(front);
-    TVec3f angles;
     mBaseMtx.getEulerXYZ(angles);
     MR::setRotation(this, angles);
 }
@@ -1755,10 +1754,7 @@ bool Yoshi::fn_804112A0() const {
     mBaseMtx.getYDir(up);
     TVec3f front;
     mBaseMtx.getZDir(front);
-    TVec3f rise(up);
-    rise.scale(100.0f);
-    TVec3f origin(mPosition);
-    origin.add(rise);
+    TVec3f origin = mPosition + up.scaleInline(100.0f);
     TVec3f ray(front);
     ray.scale(150.0f);
     if (Collision::checkStrikeLineToMap(origin, ray, 0, nullptr, nullptr)) return false;
@@ -1789,10 +1785,7 @@ bool Yoshi::fn_80411410() {
     TVec3f displacement(mPosition);
     displacement.sub(origin);
     f32 distance = axis.dot(displacement);
-    TVec3f normalOffset(axis);
-    normalOffset.scale(distance);
-    TVec3f position(mPosition);
-    position.sub(normalOffset);
+    TVec3f position = mPosition - axis.scaleInline(distance);
     MR::setPosition(this, position);
     MR::calcCubeAxisZ(area, &_18C);
     return true;
@@ -1949,10 +1942,7 @@ void Yoshi::fn_80411ED0() {
                 if (waterBottom) {
                     ++_160;
                     if (_160 == 60) {
-                        TVec3f up(MR::getGroundNormal(this));
-                        up.scale(10.0f);
-                        TVec3f position(mPosition);
-                        position.add(up);
+                        TVec3f position = mPosition + MR::getGroundNormal(this).scaleInline(10.0f);
                         fn_804121A0(position, MR::getGroundNormal(this));
                         _160 = 0;
                     }

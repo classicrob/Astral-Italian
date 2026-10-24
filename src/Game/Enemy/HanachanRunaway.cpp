@@ -184,11 +184,13 @@ void HanachanRunaway::control() {
     mPrevRailCoord = micDist;
 }
 
-// NONMATCHING: Remaining FP register allocation and load scheduling differ.
 void HanachanRunaway::exeWhistle() {
     MR::isFirstStep(this);
-    mRailCoord += 0.1f * static_cast<f32>(-mSpeedA);
-    mRotation += 0.1f * static_cast<f32>(mSpeedB);
+    f32 rotationDelta;
+    f32 railDelta = 0.1f * static_cast<f32>(-mSpeedA);
+    rotationDelta = 0.1f * static_cast<f32>(mSpeedB);
+    mRailCoord += railDelta;
+    mRotation += rotationDelta;
     MR::repeatDegree(&mRotation);
     updateTubeSliderParts();
     if (mIsStrong && MR::calcDistanceToPlayer(this) <= 1000.0f) {

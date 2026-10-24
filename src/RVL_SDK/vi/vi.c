@@ -165,7 +165,7 @@ GXRenderModeObj GXPal524ProgAa = {
 static BOOL OnShutdown(BOOL final, u32 event);
 static OSShutdownFunctionInfo ShutdownFunctionInfo = {OnShutdown, 127};
 
-// NONMATCHING: explicit FALSE default adds one redundant zero load; target retains the incoming FALSE in r3.
+// NONMATCHING: instruction sequence matches; remaining pooled relocation identities differ.
 static BOOL OnShutdown(BOOL final, u32 event) {
     BOOL retval = final;
     static BOOL first = TRUE;

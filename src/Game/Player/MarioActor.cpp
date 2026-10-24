@@ -1541,7 +1541,7 @@ bool MarioActor::fn_803B9920() {
     if (((m)->mMovementStates.mLowWord >> 0x1F) == 1 && !m->isRising() && (((this->mMario)->mMovementStates.mLowWord >> 0xC) & 1)) {
         return true;
     }
-    return checkButtonType(mInputConfig->_8, false);
+    return this->checkButtonType(mInputConfig->_8, false);
 }
 
 void MarioActor::fn_803B9A10() {
@@ -1796,9 +1796,8 @@ void MarioActor::tryTornadoPull(HitSensor* pSensor) {
                 return;
             }
 
-            TVec3f collisionOffset(*MR::getSensorPos(pSensor));
-            collisionOffset -= _240;
-            if (mMario->fn_803B2880(_240, collisionOffset)) {
+            Mario* player = mMario;
+            if (player->fn_803B2880(_240, *MR::getSensorPos(pSensor) - _240)) {
                 return;
             }
 
@@ -2289,9 +2288,13 @@ bool MarioActor::fn_803BB5F0() {
 }
 
 void MarioActor::syncJumpBeeStickMode() {
-    if (mBeeWallWalk != 0 && selectQuickResetBeeWallGravity(MR::getSensorHost(mMario->_45C->mSensor)->mName)) {
-        mBeeWallWalk = 0;
-        _9F2 = 30;
+    if (mBeeWallWalk != 0) {
+        LiveActor* host = MR::getSensorHost(mMario->_45C->mSensor);
+        const char* effect = "ハチ出立";
+        if (mActionTable1080->testEffect(host->mName, effect)) {
+            mBeeWallWalk = 0;
+            _9F2 = 30;
+        }
     }
 
     if (!(MR::diffAngleAbs(_360, getGravityVec()) < MR::pi() / 36.0f)) {
@@ -4960,11 +4963,11 @@ void MarioActor::fn_803C1940() {
         if (((this->mMario->mMovementStates.mHighWord >> (0x1C)) & 1)) {
             this->fn_803D8BD0(&a, &b);
         }
-        if (((this->mMario)->mMovementStates.mLowWord >> 0x1F) != 0 && this->mBeeWallWalk == 0) {
+        if (getMovementStates().mLowBits.mBit31 && this->mBeeWallWalk == 0) {
             this->fn_803D8E30(&b);
             return;
         }
-        if (((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1)) {
+        if (getMovementStates().mLowBits.mBit30) {
             this->fn_803D9170(&a);
         }
     }
@@ -5295,10 +5298,10 @@ void MarioActor::fn_803C26A0() {
 }
 
 bool MarioActor::fn_803C2710() {
-    bool releaseAnimation;
-    bool actorGateClear;
-    bool playerGateClear;
     bool requested;
+    bool playerGateClear;
+    bool actorGateClear;
+    bool releaseAnimation;
     releaseAnimation = false;
     actorGateClear = false;
     playerGateClear = false;
@@ -5367,14 +5370,12 @@ void MarioActor::fn_803C2900() {
                 MarioSwim* sw3 = this->mMario->mSwim;
                 this->emitEffectWaterColumn((sw3)->mSurfacePos, (sw3)->mSurfaceNorm);
             }
-            switch (after) {
-            case 0:
+            if (after == 0) {
                 MR::getGameSceneLayoutHolder()->changeLifeMeterModeGround();
                 this->mMario->forceExitSwim();
                 return;
-            case 2:
+            } else if (after == 2) {
                 MR::getGameSceneLayoutHolder()->changeLifeMeterModeWater();
-                break;
             }
         }
     }
@@ -5799,24 +5800,22 @@ void MarioActor::careMovingObject() {
 // NONMATCHING: equivalent entry guard, local stack slots, and redundant Mario receiver load.
 bool MarioActor::doStun() {
     if (_38C == 0) return false;
-    {
-        mMario->mDrawStates.mWord |= 0x00000020U;
-        resetSensorCount();
-        fn_803C38D0();
+    mMario->mDrawStates.mWord |= 0x00000020U;
+    resetSensorCount();
+    fn_803C38D0();
 
-        if (!--_38C) {
-            f32 stickY, stickX;
-            getStickValue(&stickX, &stickY);
-            bool noStick = false;
-            if (MR::isNearZero(stickX) && MR::isNearZero(stickY)) noStick = true;
-            if (noStick && !((mMario->mMovementStates.mLowWord >> 21) & 1U)) {
-                mMario->stopWalk();
-            }
+    if (!--_38C) {
+        f32 stickY, stickX;
+        getStickValue(&stickX, &stickY);
+        bool noStick = false;
+        if (MR::isNearZero(stickX) && MR::isNearZero(stickY)) noStick = true;
+        if (noStick && !((mMario->mMovementStates.mLowWord >> 21) & 1U)) {
+            mMario->stopWalk();
         }
-
-        mMario->inputStick();
-        return true;
     }
+
+    mMario->inputStick();
+    return true;
 }
 
 void MarioActor::fn_803C38D0() {
@@ -6585,7 +6584,7 @@ bool MarioActor::fn_803C5990() {
 }
 
 void MarioActor::fn_803C59C0() {
-    TVec3f front, side, head;
+    TVec3f front, head, side;
     TPos3f* bm = (TPos3f*)this->getBaseMtx();
     bm->getZDir(front);
     this->mMario->setFrontVec(front);
@@ -6867,11 +6866,17 @@ void MarioActor::updateForCamera() {
 }
 
 void MarioActor::bodyClap() {
-    for (u32 i = 0; i < _7DC; i++) {
-        TVec3f stack_14(mTornadoSensors[i]->mPosition);
-        TVec3f stack_8(stack_14 - _240);
+    const TVec3f* origin;
+    HitSensor** sensorSlot;
+    u32 i = 0;
+    if (_7DC == 0) return;
+    origin = &_240;
+    for (; i < _7DC; i++) {
+        sensorSlot = &mTornadoSensors[i];
+        TVec3f stack_14((*sensorSlot)->mPosition);
+        TVec3f stack_8(stack_14 - *origin);
         if (stack_8.length() < 100.0f) {
-            mTornadoSensors[i]->receiveMessage(ACTMES_ITEM_GET, getSensor("Body"));
+            (*sensorSlot)->receiveMessage(ACTMES_ITEM_GET, getSensor("Body"));
         }
     }
 }
@@ -9155,7 +9160,7 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
 // NONMATCHING: equivalent fadds operand order and verified equal scalar pools.
 void MarioActor::attackOrPushSensorInRush(HitSensor* pSensor, f32 radius) {
     f32 sensorRadius = MR::getSensorRadius(pSensor);
-    if (radius < sensorRadius + mSensorRadiusAttack) {
+    if (radius < mSensorRadiusAttack + sensorRadius) {
         f32 width = 20.0f + mBodyRadius7A0;
         f32 height = mBodyHeight7A4;
         if (fn_803CD4B0(pSensor, width, height)) {
@@ -9169,7 +9174,7 @@ void MarioActor::attackOrPushSensorInRush(HitSensor* pSensor, f32 radius) {
         addRushSensor(pSensor, false);
     }
 
-    if (radius < sensorRadius + mSensorRadiusClapCatch) {
+    if (radius < mSensorRadiusClapCatch + sensorRadius) {
         tryAddClapCoin(pSensor);
     }
 
@@ -9200,11 +9205,13 @@ bool MarioActor::isUnderTarget(HitSensor* pSensor) {
         MR::calcGravityVectorOrZero(this, *MR::getSensorPos(pSensor), &down, mGravityInfo, 0);
     }
 
-    if (down.dot(mPosition - *MR::getSensorPos(pSensor)) <= 0.0f && mMario->_424 == 0) {
-        return true;
+    TVec3f delta(mPosition - *MR::getSensorPos(pSensor));
+    bool result = false;
+    if (down.dot(delta) <= 0.0f && mMario->_424 == 0) {
+        result = true;
     }
 
-    return false;
+    return result;
 }
 
 bool MarioActor::tryHipDropAttack(HitSensor* pSensor) {
@@ -10034,13 +10041,17 @@ void MarioActor::updateBaseMtxTeresa(MtxPtr mtx) {
     f32 k = MR::vecKillElement(mVelocity, *this->mMario->getGravityVec(), &tmp);
     f32 v = MR::clamp(k / 10.0f, -1.0f, 1.0f);
     if (!MR::isNearZero(this->mMario->getWorldPadDir(), 0.001f)) {
+        const TVec3f* g = this->mMario->getGravityVec();
         Mario* m = this->mMario;
-        const TVec3f* g = m->getGravityVec();
         if (MR::diffAngleAbsHorizontal(m->getWorldPadDir(), m->mFrontVec, *g) > 0.3926991f) {
             v = 0.0f;
         }
     }
-    mTeresaModel->_8 = 0.02f * v + 0.98f * mTeresaModel->_8;
+    f32 nextTilt;
+    f32 oldTilt = mTeresaModel->_8;
+    nextTilt = 0.02f * v;
+    f32 previousTilt = 0.98f * oldTilt;
+    mTeresaModel->_8 = nextTilt + previousTilt;
     f32 var = mConst->getTable()->mTeresaAngleDown;
     if (mTeresaModel->_8 > 0.0f) {
         var = mConst->getTable()->mTeresaAngleUp;
@@ -10318,7 +10329,8 @@ bool MarioActor::isFixJumpRushSensor(const HitSensor* sensor) const {
     if (type - 0x62 <= 3 || type - 0x5E <= 1 || type == 0x5C) {
         return true;
     }
-    return mActionTable1080->testEffect(MR::getSensorHost(sensor)->mName, "乗換センサ");
+    const char* effect = "乗換センサ";
+    return mActionTable1080->testEffect(MR::getSensorHost(sensor)->mName, effect);
 }
 
 bool MarioActor::isLandEffectRushSensor(const HitSensor* pSensor) const {
@@ -10640,14 +10652,20 @@ bool MarioActor::tryStartRush(HitSensor* target, bool automatic) {
     if (((mMario->mMovementStates.mLowWord >> 16) & 1U) && mMario->isRising() && target == _928) return false;
     if (!fn_803CB0B0()) return false;
     if (automatic) {
-        if (_468 && mActionTable1080->testEffect(MR::getSensorHost(target)->mName, "カメを捨てない")) return false;
+        if (_468) {
+            const char* effect = "カメを捨てない";
+            if (mActionTable1080->testEffect(MR::getSensorHost(target)->mName, effect)) return false;
+        }
         u8 autoBind;
         if (mActionTable1080->selectAutoBind(MR::getSensorHost(target)->mName, &autoBind)) {
             if (!autoBind) return false;
             applyAutoBindPlayerMode(autoBind);
         }
     }
-    if (target == _928 && mActionTable1080->testEffect(MR::getSensorHost(target)->mName, "リバインド制限") && static_cast<u32>(_37C - mLastRushEndFrameE1C) < 120) return false;
+    if (target == _928) {
+        const char* effect = "リバインド制限";
+        if (mActionTable1080->testEffect(MR::getSensorHost(target)->mName, effect) && static_cast<u32>(_37C - mLastRushEndFrameE1C) < 120) return false;
+    }
     u32 message = 0x92;
     if (automatic) message = 0x93;
     if (!target->receiveMessage(message, getSensor("Body"))) return false;
@@ -10659,25 +10677,25 @@ bool MarioActor::tryStartRush(HitSensor* target, bool automatic) {
 
 // NONMATCHING: sensor-loop register allocation and verified constant-pool addresses.
 HitSensor* MarioActor::fn_803D0CE0(s32 a) {
-    if (this->mHealth == 0 || this->_930 == 0) {
-        return nullptr;
-    }
+    if (this->mHealth == 0) return nullptr;
+    if (this->_930 == 0) return nullptr;
     f32 best = 100000.0f;
+    HitSensor** currentSlot;
     HitSensor* res = nullptr;
     for (u32 i = 0; i < _930; ++i) {
-        HitSensor* cur = _7E4[i];
-        if (isFixJumpRushSensor(cur) || (a != 0 && !MR::isSensorAutoRush(cur))) {
+        currentSlot = &_7E4[i];
+        if (isFixJumpRushSensor(*currentSlot) || (a != 0 && !MR::isSensorAutoRush(*currentSlot))) {
             continue;
         }
         if (getCarrySensor() != nullptr) {
-            LiveActor* host = MR::getSensorHost(cur);
+            LiveActor* host = MR::getSensorHost(*currentSlot);
             if (MR::getSensorHost(getCarrySensor()) == host) {
                 continue;
             }
         }
-        const f32 distance = fn_803D1470(cur);
-        if ((mRushTouchingDD4[i] || a == 0 || !(20.0f + cur->mRadius < distance)) && distance < best) {
-            res = cur;
+        const f32 distance = fn_803D1470(*currentSlot);
+        if ((mRushTouchingDD4[i] || a == 0 || !(20.0f + (*currentSlot)->mRadius < distance)) && distance < best) {
+            res = *currentSlot;
             best = distance;
         }
     }
@@ -10699,15 +10717,15 @@ HitSensor* MarioActor::fn_803D0E40(s32 a) {
     }
     if (!this->mMario->isStateHanging()) {
         if (!this->mMario->isDamaging()) {
+            const char* effect = "HD中ラッシュ";
+            HitSensor** currentSlot;
             u32 i = 0;
-            s32 off = 0;
             while (i < this->_930) {
-                HitSensor* cur = _7E4[i];
-                if (mActionTable1080->testEffect(MR::getSensorHost(cur)->mName, "HD中ラッシュ")) {
-                    return cur;
+                currentSlot = &_7E4[i];
+                if (mActionTable1080->testEffect(MR::getSensorHost(*currentSlot)->mName, effect)) {
+                    return *currentSlot;
                 }
                 i++;
-                off += 4;
             }
         }
     }
@@ -10742,30 +10760,30 @@ bool MarioActor::fn_803D0F60(HitSensor* s) {
 // NONMATCHING: equivalent early guards, saved registers, and verified pooled literals.
 bool MarioActor::tryJumpRush() {
     HitSensor* jumpTarget = getNearestJumpTarget();
-    if (jumpTarget == nullptr || fn_803D11C0()) {
-        return false;
-    }
+    if (jumpTarget == nullptr) return false;
+    if (fn_803D11C0()) return false;
     u8 autoBind;
     const bool hasAutoBind = mActionTable1080->selectAutoBind(MR::getSensorHost(jumpTarget)->mName, &autoBind);
     if (!hasAutoBind && !mActionTable1080->isActionOk("ジャンプ系バインド")) {
         return false;
     }
-    if (_468 != 0 && selectHandyRush(jumpTarget)) {
-        return false;
+    if (_468 != 0) {
+        const char* effect = "カメを捨てない";
+        if (mActionTable1080->testEffect(MR::getSensorHost(jumpTarget)->mName, effect)) return false;
     }
     if (hasAutoBind && autoBind == 0) {
         return false;
     }
-    if (!jumpTarget->receiveMessage(ACTMES_AUTORUSH_BEGIN, getSensor("Body"))) {
-        return false;
+    if (jumpTarget->receiveMessage(ACTMES_AUTORUSH_BEGIN, getSensor("Body"))) {
+        resetSensorCount();
+        mVelocity.zero();
+        beginRush(jumpTarget);
+        if (hasAutoBind) {
+            applyAutoBindPlayerMode(autoBind);
+            return true;
+        }
     }
-    resetSensorCount();
-    mVelocity.zero();
-    beginRush(jumpTarget);
-    if (hasAutoBind) {
-        applyAutoBindPlayerMode(autoBind);
-    }
-    return true;
+    return false;
 }
 
 bool MarioActor::fn_803D11C0() {
@@ -10797,7 +10815,7 @@ void MarioActor::tryRushInRush() {
     if (!fn_803D8B30(target)) return;
     if (!target->receiveMessage(0x9A, getSensor("Body"))) return;
     HitSensor* previous = _924;
-    if (!previous->receiveMessage(0x95, getSensor("Body"))) return;
+    if (!_924->receiveMessage(0x95, getSensor("Body"))) return;
     u8 policy;
     if (mActionTable1080->selectAutoBind(MR::getSensorHost(target)->mName, &policy)) {
         if (!policy) return;
@@ -10811,7 +10829,9 @@ void MarioActor::tryRushInRush() {
         return;
     }
     if (isFixJumpRushSensor(target)) {
-        bool special = previous->mType == 0x5F || previous->mType == 0x65;
+        bool special;
+        if (previous->mType == 0x5F || previous->mType == 0x65) special = true;
+        else special = false;
         if (special) {
             mMario->mMovementStates.mHighWord &= 0xFFFFFFFCU;
             playEffect("スーパースピンドライバ終了");
@@ -10887,14 +10907,16 @@ void MarioActor::updateHitSensor(HitSensor* pSensor) {
 void MarioActor::fn_803D1740(HitSensor* s) {
     if (this->mMario->isStatusActive(5)) {
         Mtx m;
-        this->getRealMtx(m, "Spine1");
+        const char* spineJoint = "Spine1";
+        this->getRealMtx(m, spineJoint);
         MR::extractMtxTrans(m, &(s)->mPosition);
         (s)->mRadius = 60.0f;
         return;
     }
     if (this->mMario->isStatusActive(6)) {
         Mtx m;
-        this->getRealMtx(m, "Spine1");
+        const char* spineJoint = "Spine1";
+        this->getRealMtx(m, spineJoint);
         MR::extractMtxTrans(m, &(s)->mPosition);
         (s)->mRadius = 70.0f;
         return;
@@ -10967,9 +10989,8 @@ void MarioActor::fn_803D1940() {
 
 // NONMATCHING: equivalent conditional branch layout and verified pooled literals.
 void MarioActor::attackSensor(HitSensor* pOwn, HitSensor* pOther) {
-    if (MR::isSensorType(pOther, 0x3D) || !isEnableNerveChange()) {
-        return;
-    }
+    if (MR::isSensorType(pOther, 0x3D)) return;
+    if (!isEnableNerveChange()) return;
 
     if (pOwn->mType == ATYPE_PLAYER) {
         if (_934 && !getSensor("eye")->isValid()) {
@@ -12160,12 +12181,13 @@ void MarioActor::memorizeSensorThrow(HitSensor* pSensor) {
     _428[_468] = pSensor;
     mThrowMemoRotations[_468] = MR::getSensorHost(pSensor)->mRotation - mRotation;
 
-    _424 = nullptr;
     _468++;
+    Mario* player = mMario;
+    _424 = nullptr;
     mCarryWobblePhase778 = 0.0f;
     _EF6 = 30;
 
-    mMario->startHandy();
+    player->startHandy();
 
     if (pSensor == _470) {
         _470 = nullptr;
@@ -12492,35 +12514,34 @@ void MarioActor::initMaterialEffect() {
 MultiEmitter* MarioActor::playMaterialEffect(const char* pName) {
     uintptr_t payload = 0;
     mMaterialEffectsFC8->search(pName, &payload);
-    MaterialEffectEntry* entry = reinterpret_cast< MaterialEffectEntry* >(payload);
 
-    const s32 materialIndex = getFloorMaterialIndex(entry->mFlag.mSelectionOptions);
+    const s32 materialIndex = getFloorMaterialIndex(reinterpret_cast< MaterialEffectEntry* >(payload)->mFlag.mSelectionOptions);
     if (materialIndex == -1) {
         return nullptr;
     }
 
     const u32 materialOffset = static_cast< u32 >(materialIndex);
-    const char* effectName = entry->mEffects[materialOffset];
+    const char* effectName = reinterpret_cast< MaterialEffectEntry* >(payload)->mEffects[materialOffset];
     if (effectName == nullptr) {
         return nullptr;
     }
 
-    if (entry->mFlag.mSelectionOptions == 1) {
-        const char* current = entry->mCurrent;
+    if (reinterpret_cast< MaterialEffectEntry* >(payload)->mFlag.mSelectionOptions == 1) {
+        const char* current = reinterpret_cast< MaterialEffectEntry* >(payload)->mCurrent;
         if (current != nullptr && current == effectName) {
-            return entry->mEmitter;
+            return reinterpret_cast< MaterialEffectEntry* >(payload)->mEmitter;
         }
     }
 
     MultiEmitter* emitter = MR::emitEffect(this, effectName);
 
-    const char* current = entry->mCurrent;
-    if (current != nullptr && current != entry->mEffects[materialOffset]) {
+    const char* current = reinterpret_cast< MaterialEffectEntry* >(payload)->mCurrent;
+    if (current != nullptr && current != reinterpret_cast< MaterialEffectEntry* >(payload)->mEffects[materialOffset]) {
         MR::deleteEffect(this, current);
     }
 
-    entry->mCurrent = entry->mEffects[materialOffset];
-    entry->mEmitter = emitter;
+    reinterpret_cast< MaterialEffectEntry* >(payload)->mCurrent = reinterpret_cast< MaterialEffectEntry* >(payload)->mEffects[materialOffset];
+    reinterpret_cast< MaterialEffectEntry* >(payload)->mEmitter = emitter;
 
     if (emitter != nullptr) {
         MarioEffect* marioEffect = mMarioEffect;
@@ -12539,12 +12560,11 @@ MultiEmitter* MarioActor::playMaterialEffect(const char* pName) {
 void MarioActor::stopMaterialEffect(const char* pName) {
     uintptr_t payload = 0;
     mMaterialEffectsFC8->search(pName, &payload);
-    MaterialEffectEntry* entry = reinterpret_cast< MaterialEffectEntry* >(payload);
 
-    if (entry->mCurrent != nullptr) {
-        MR::deleteEffect(this, entry->mCurrent);
-        entry->mCurrent = nullptr;
-        entry->mEmitter = nullptr;
+    if (reinterpret_cast< MaterialEffectEntry* >(payload)->mCurrent != nullptr) {
+        MR::deleteEffect(this, reinterpret_cast< MaterialEffectEntry* >(payload)->mCurrent);
+        reinterpret_cast< MaterialEffectEntry* >(payload)->mCurrent = nullptr;
+        reinterpret_cast< MaterialEffectEntry* >(payload)->mEmitter = nullptr;
     }
 }
 
@@ -13650,14 +13670,13 @@ void MarioActor::fn_803D9170(TVec3f* v) {
     s32 hit;
     u32 n = (this->mBinder)->mPlaneNum;
     hit = 0;
-    f32 threshold = 200.0f;
     f32 zero = 0.0f;
     i = 0;
     while (i < n) {
         tri = (Triangle*)this->mBinder->getPlane(i);
         if (MR::isSensorPressObj(tri->getSensor())) {
             if ((this->mMario)->_368.dot(*tri->getNormal(0)) > zero) {
-                if ((this->mMario)->_72C < threshold) {
+                if ((this->mMario)->_72C < 200.0f) {
                     hit = 1;
                 } else if (tri->getNormal(0)->dot(*v) < zero) {
                     hit = 1;

@@ -81,7 +81,8 @@ void ScenarioStarter::init(const JMapInfoIter& rIter) {
     mSpinDriverCamera->init(rIter, this);
 
     initHitSensor(1);
-    MR::addHitSensor(this, "Body", 0x67, 8, 200.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    TVec3f sensorOffset(0, 0, 0);
+    MR::addHitSensor(this, "Body", 0x67, 8, 200.0f, sensorOffset);
     MR::invalidateClipping(this);
     mWelcomeLayout = MR::createSimpleLayout("Welcome表示", "Welcome", 1);
     mWelcomeLayout->kill();

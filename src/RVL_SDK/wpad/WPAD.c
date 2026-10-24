@@ -2108,7 +2108,6 @@ _exit:
     return result;
 }
 
-// NONMATCHING: incoming report/index GPR allocation and canonical data labels differ; target452B control flow and typed fields retained.
 static s32 __wpadSendDataSub(s32 chan, WPADCommand cmd) {
     BOOL enable;
     BOOL motor;
@@ -2186,7 +2185,7 @@ static s32 __wpadSendDataSub(s32 chan, WPADCommand cmd) {
     return WPAD_ERR_NONE;
 }
 
-// NONMATCHING: switch-table/block ordering differs; target report IDs, command fields and queue behavior retained.
+// NONMATCHING: instruction sequence matches; generated table/literal relocation identities differ.
 BOOL WPADiSendSetReportType(WPADCmdQueue* queue, u32 fmt, BOOL powerSave, WPADCallback callback) {
     WPADCommand cmd;
     BOOL result;
@@ -2546,7 +2545,6 @@ static const u32 __wpadCertMultiplier[18] = {
     0x25b8f224, 0x8f0f42c0, 0x15ea9941, 0xfdd1903e, 0x1af308b6, 0
 };
 
-// NONMATCHING: two independent header stores are scheduled in a different order.
 void __wpadCertFailed(s32 chan) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     p_cb->certValidity = -1;

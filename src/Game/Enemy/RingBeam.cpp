@@ -370,10 +370,12 @@ void RingBeam::exeSpread() {
         TVec3f temp12 = MR::getCamPos() - ec;
         if (!MR::isNearZero(temp12)) {
             f32 radius;
+            f32 dot;
             f32 float2;
             TVec3f temp13;
             MR::extractMtxYDir(mHost->getBaseMtx(), &temp13);
-            TVec3f temp15 = temp12 - temp13 * (temp12.dot(temp13));
+            dot = temp12.dot(temp13);
+            TVec3f temp15 = temp12 - temp13 * dot;
             MR::normalizeOrZero(&temp15);
             MR::normalizeOrZero(&temp12);
             float2 = 1.0f - MR::abs(temp13.dot(temp12));

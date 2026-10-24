@@ -4719,10 +4719,13 @@ void Mario::startBump(const TVec3f& rVec) {
     const TVec3f* norm = _4DC->getNormal(0);
     MR::vecKillElement(*norm, *grav, &v21);
 
-    if (!MR::normalizeOrZero(&v21) && MR::diffAngleAbsHorizontal(mFrontVec, -v21, getAirGravityVec()) > 0.52359879f) {
-        TVec3f v20;
-        if (MR::vecKillElement(getTrans() - rVec, getAirGravityVec(), &v20) > 0.0f) {
-            return;
+    if (!MR::normalizeOrZero(&v21)) {
+        const TVec3f& opposite = -v21;
+        if (MR::diffAngleAbsHorizontal(mFrontVec, opposite, getAirGravityVec()) > 0.52359879f) {
+            TVec3f v20;
+            if (MR::vecKillElement(getTrans() - rVec, getAirGravityVec(), &v20) > 0.0f) {
+                return;
+            }
         }
     }
 
@@ -4926,8 +4929,11 @@ void Mario::createAtField(bool force, f32 radius) {
                     continue;
                 }
 
-                if (hit->isCollisionAtEdge() && MR::diffAngleAbsHorizontal(mJumpVec, -*triangle->getNormal(0), getAirGravityVec()) < 0.7853982f) {
-                    continue;
+                if (hit->isCollisionAtEdge()) {
+                    const TVec3f& opposite = -*triangle->getNormal(0);
+                    if (MR::diffAngleAbsHorizontal(mJumpVec, opposite, getAirGravityVec()) < 0.7853982f) {
+                        continue;
+                    }
                 }
             }
 
@@ -5869,7 +5875,7 @@ bool Mario::checkGround() {
         while ((count == 4 && !hit[3]) || _960 == CollisionFloorCode_Slide) {
             u8 anyHit;
             const u8 backHit = hit[2];
-            const u8 frontHit = hit[0];
+            const u32 frontHit = hit[0];
             const u8 sideHit = hit[1];
             anyHit = backHit;
             anyHit |= frontHit;

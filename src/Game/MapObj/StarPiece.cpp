@@ -217,7 +217,7 @@ void StarPiece::init(const JMapInfoIter& rIter) {
 
 // NONMATCHING: color comparison operand registers differ.
 void StarPiece::initAfterPlacement() {
-    if (MR::isExistSceneObj(SceneObj_CollectTicoHolder) && *(u32*)&mColor == *(u32*)&initColors[Color_Silver]) {
+    if (MR::isExistSceneObj(SceneObj_CollectTicoHolder) && *(u32*)&initColors[Color_Silver] == *(u32*)&mColor) {
         mColor = initColors[MR::getRandom((s32)0, (s32)4)];
     }
 

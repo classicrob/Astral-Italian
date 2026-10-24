@@ -186,16 +186,19 @@ void MeisterTalkHolder::nextTalk() {
 
 // NONMATCHING: loop register allocation differs.
 void MeisterTalkHolder::removeInvalidTalk() {
+    s32 count;
     s32 removed=0;
-    s32 count=mEventTalkCount;
+    count=mEventTalkCount;
     for(u32 i=0;i<static_cast<u32>(mEventTalkCount);i++) {
         if(!MR::isMarioFaceShipEventTalkValid(i)) { ++removed; mEventTalks[i]=nullptr; }
     }
     if(removed) {
+        u32 j;
+        TalkMessageCtrl** talks;
         for(u32 i=0;i<static_cast<u32>(count);i++) {
             if(!mEventTalks[i]) {
-                TalkMessageCtrl** talks = mEventTalks;
-                for(u32 j=i+1;j<static_cast<u32>(count);j++) {
+                talks = mEventTalks;
+                for(j=i+1;j<static_cast<u32>(count);j++) {
                     TalkMessageCtrl* next=talks[j];
                     if(next) { TalkMessageCtrl* previous=talks[i]; talks[i]=next; talks[j]=previous; break; }
                 }

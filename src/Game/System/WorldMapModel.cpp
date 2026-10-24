@@ -347,10 +347,12 @@ namespace {
     const char* sExcludedResources[] = {"/ObjectData/WorldMap01Sky.arc"};
 }
 bool WorldMapFunction::mountWorldMapResources() {
+    s32 count;
+    s32 i;
     if (!GameSequenceFunction::isWorldMapEnterType5()) return false;
     const JMapInfo* parser = MR::tryCreateStageUseResourceCsvParser("MarioFaceShipGalaxy", "scenario_2");
-    s32 count = parser->getNumEntries();
-    for (s32 i = 0; i < count; ++i) {
+    count = parser->getNumEntries();
+    for (i = 0; i < count; ++i) {
         const char* name;
         if (parser->getValue<const char*>(i, "ResourceName", &name) && !MR::isExistString(name, sExcludedResources, 1)) {
             if (MR::isFileExist(name, true)) MR::mountAsyncArchive(name, MR::getWorldMapHeap(), false, true);

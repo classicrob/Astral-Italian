@@ -32,7 +32,7 @@ def latency(text):
  return [(int(n),float(ms)) for n,ms in re.findall(r'\[latency\] press:.*\(frame \d+, (\d+) frames after the read\).*on screen ([\d.]+) ms',text)]
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');a=p.parse_args()
  base=a.campaign.resolve();m=readj(base/'MANIFEST.json');label=m['label'];expected=m['frozen']['perf_exe_sha256'];frozen=readj(FROZEN/'BUILD.json');gates=[];issues=[]
  def gate(name,paths,fn,status,limits=()):
   try:
@@ -52,7 +52,7 @@ def main():
   d=readj(platform);return {'passed':d['perf_exe_sha256']==expected and all(d['checks'].get(k) is True for k in keys),'checks':{k:d['checks'].get(k) for k in keys},'macos':d['macos']}
  gate('macos-15-compat',[platform],lambda:pcheck(('weak-imports','scan-bundle','check-bundle','minos')),'platform compatibility')
  gate('seed-pack',[platform,base/'platform/seed-pack.json'],lambda:pcheck(('seed-pack-count','seed-integrity','resource-copy-identical')),'64 seed databases identical to frozen54 resources')
- promo=runpath('promotion')/'results.json'
+ promo=a.promotion_result.resolve() if a.promotion_result else runpath('promotion')/'results.json'
  def promotion():
   rs=readj(promo);want={(n,mode) for n in ('yoshi','flip','fluffy','unlocked-stage-adapter','worldmap','return') for mode in ('fresh','warm')}|{(n,'functional') for n in ('cappy-fluffy','cappy-panel','cappy-spin-after-throw')}
   ok=len(rs)==15 and {(r['case'],r['mode']) for r in rs}==want and all(r['passed'] and all(r['checks'].values()) and r['binary_sha256']==expected and r['nice']==0 for r in rs)
@@ -112,13 +112,14 @@ def main():
  gate('wii-proof',[platform,base/'platform/wii-source-diff.log'],lambda:pcheck(('wii-source-unchanged',)),'release source has no Wii changes relative to a23609ca',('Original Wii build/hash/oracle evidence belongs to release; this M1 run rechecks source lineage only.',))
  identity=sha(FROZEN/'Petari.app/Contents/MacOS/Petari')==frozen['binary_sha256'] and m['frozen']['source_exe_sha256']==frozen['binary_sha256'] and m['nice']==0
  if not identity:issues.append('frozen identity/priority')
- validation={'passed':not issues,'failed_gates':issues,'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
+ validation={'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)
  lines=['M1 frozen 5.4 versus server (actual evidence; nice 0 on M1)','',f"Frozen exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
  for g in gates:
   detail=json.dumps(g['details'],ensure_ascii=False,separators=(',',':'))
   if len(detail)>1200:detail=detail[:1200]+'… (full VALIDATION.json)'
   lines.append('| '+g['gate']+' | '+SERVER[g['gate']]+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
+ if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
  lines+=['','Each GX session holds native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate tape checks are labelled separately; they do not change frozen54 gate status.']
  (base/'COMPARISON.md').write_text('\n'.join(lines)+'\n')
  if issues:

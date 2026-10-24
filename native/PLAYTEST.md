@@ -475,6 +475,8 @@ The recording build and candidate executable hashes are evidence; equality is no
 regression sweep. It requires float32 bit equality (`replay_tape.py --require-bit-exact`) and explicitly reports uncovered star
 events. This tape's star count first becomes one during the Starship arrival, outside the headless play-ready segments;
 headless segment success therefore cannot establish full-star mission acceptance. GX checks that transition and all checkpoints.
+The headless sweep selects the full Flip-Swap gameplay visit explicitly; its Starship visit needs recorded session input before
+play-ready, whereas the existing headless inter-segment feeder is neutral. `--all-segments` diagnoses that unsupported wait.
 Copied tapes use their adjacent CSV/KPAD/action files; absolute recording-host paths in sidecars remain provenance.
 
 The folder holds `route.csv` (every game loop; positions at `%.9g`, the float32 exactly), `route.kpd` (every KPADReadEx the game made:

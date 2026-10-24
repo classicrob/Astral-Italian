@@ -2,7 +2,9 @@
 """Headless regression sweep of canonical raw-KPAD gameplay segments.
 
 --headless BIN --disc DIR --tapes DIR --out NEW [--names NAME ...]
-Includes the real-player full-star tape by default. This checks the segments the
+Includes the real-player full-star tape's RedBlue gameplay visit by default.
+Its Starship arrival needs session input between play-ready segments; use
+--all-segments to diagnose that unsupported path. This checks the segments the
 headless harness supports, not GX menus/arrival/pause-resume RNG checkpoints.
 The GX full_star_tape_gate remains the mission acceptance gate. A star-count
 transition in a gap between segments is explicitly uncovered, never a PASS.
@@ -22,13 +24,14 @@ import replay_tape
 DEFAULT_TAPES = ("tape-user-flipswap-fullstar-541",)
 
 
-def coverage(meta, route):
+def coverage(meta, route, selected):
     import csv
     rows = list(csv.DictReader(route.open()))[:meta["seams"]]
     events = replay_tape.star_events(rows)
-    covered = [e for e in events if any(s["start_row"] <= e["route_row"] <= s["end_row"] for s in meta["segments"])]
+    covered = [e for e in events if any(s["start_row"] <= e["route_row"] <= s["end_row"] for s in selected)]
     return {"recorded_star_events": events, "covered_star_events": covered,
             "uncovered_star_events": [e for e in events if e not in covered],
+            "selected_segments": selected,
             "mission_acceptance_supported": False,
             "reason": "Headless segment replay omits GX session boundaries and repeated play-ready/RNG checkpoints; full_star_tape_gate is authoritative."}
 
@@ -41,6 +44,7 @@ def main(argv=None):
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--names", nargs="+", default=DEFAULT_TAPES)
     p.add_argument("--timeout", type=float, default=360)
+    p.add_argument("--all-segments", action="store_true", help="diagnose even scene visits that need unsupported session input between headless segments")
     a = p.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=False)
     results = []
@@ -50,10 +54,17 @@ def main(argv=None):
         tape = (a.tapes / name).resolve()
         sidecar = replay_tape.locate_sidecar(str(tape))
         meta = json.loads(sidecar.read_text())
+        selected = meta["segments"]
+        supported_prefix = name == "tape-user-flipswap-fullstar-541" and not a.all_segments
+        if supported_prefix:
+            assert selected[0]["stage"] == "RedBlueExGalaxy" and selected[0]["scenario"] == 1
+            selected = selected[:1]
         cmd = [sys.executable, "-B", str(Path(replay_tape.__file__)), str(tape), "--headless", str(a.headless.resolve()),
                "--disc", str(a.disc.resolve()), "--out", str((a.out / name).resolve()), "--require-bit-exact"]
         if not meta.get("complete"):
             cmd.append("--allow-incomplete")
+        if supported_prefix:
+            cmd += ["--max-frames", str(selected[0]["end_row"] - selected[0]["start_row"])]
         with (a.out / (name + ".log")).open("wb") as log:
             proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             timed_out = False
@@ -72,9 +83,13 @@ def main(argv=None):
         results.append({"tape": str(tape), "exit": proc.returncode, "timed_out": timed_out,
                         "gameplay_segments_passed": not timed_out and proc.returncode == 0 and report.get("all_segments_matched") is True
                         and report.get("bit_exact") is True,
-                        "scope": coverage(meta, replay_tape.tape_files(sidecar, meta)[2]), "report": str(report_path), "command": cmd})
+                        "scope": coverage(meta, replay_tape.tape_files(sidecar, meta)[2], selected),
+                        "supported_gameplay_prefix_only": supported_prefix,
+                        "report": str(report_path), "command": cmd})
     result = {"all_gameplay_segments_passed": all(r["gameplay_segments_passed"] for r in results),
               "headless_sha256": hashlib.sha256(a.headless.read_bytes()).hexdigest(), "runs": results,
+              "sweep_script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "replay_script_sha256": hashlib.sha256(Path(replay_tape.__file__).read_bytes()).hexdigest(),
               "full_star_acceptance": False, "full_star_gate": "gate53/m1gates/full_star_tape_gate.py"}
     (a.out / "RESULT.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))

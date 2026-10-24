@@ -45,6 +45,10 @@ def analyze(out):
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('label');p.add_argument('--only',choices=('diag','sweep','both'),default='both');a=p.parse_args();assert re.fullmatch('[A-Za-z0-9_-]+',a.label)
  app,meta=prep();base=ROOT/'campaigns'/a.label;base.mkdir(parents=True,exist_ok=False);plan=[]
+ hardware={}
+ for name in ('hw.physicalcpu','hw.logicalcpu','hw.perflevel0.physicalcpu','hw.perflevel1.physicalcpu'):
+  probe=subprocess.run(['/usr/sbin/sysctl','-n',name],capture_output=True,text=True)
+  hardware[name]=int(probe.stdout.strip()) if probe.returncode==0 else None
  if a.only in ('diag','both'):
   plan.extend(('diag-'+stage,stage,None,1) for stage in ('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy'))
  if a.only in ('sweep','both'):
@@ -58,7 +62,7 @@ def main():
   parsed=analyze(out);gate=subprocess.run([sys.executable,'-B',str(HERE/'gate533.py'),str(out)],capture_output=True,text=True)
   record={'case':name,'stage':stage,'requested_prewarm_workers':workers,'pipeline_diag':diagnostics,'item':'item3tier','gate_arm':False,'functional_acceptance_claimed':False,'build_kind':'frozen54','frozen_build':{k:v for k,v in meta.items() if k!='resource_tree'},'process':proc,'measurements':parsed,'legacy_gate_observation':json.loads(gate.stdout),'legacy_gate_exit':gate.returncode,'load_and_compiler_evidence':str(out/'quiet.json'),'launch':str(out/'launch.json')}
   write(out/'TIER.json',record);results.append(record);trim(out)
-  write(base/'TIER.json',{'item':'item3tier','functional_acceptance_claimed':False,'source_exe_sha256':meta['source_exe_sha256'],'nice':0,'runs':results,'completed_all_runs':len(results)==len(plan) and all(r['process']['completed'] and r['process']['no_faults'] for r in results),'target':'0 gameplay frames >100ms in true-cold Yoshi/Fluffy/Starship; original legacy gate results remain unchanged.'})
+  write(base/'TIER.json',{'item':'item3tier','functional_acceptance_claimed':False,'source_exe_sha256':meta['source_exe_sha256'],'nice':0,'hardware_cpu_counts':hardware,'runs':results,'completed_all_runs':len(results)==len(plan) and all(r['process']['completed'] and r['process']['no_faults'] for r in results),'target':'0 gameplay frames >100ms in true-cold Yoshi/Fluffy/Starship; original legacy gate results remain unchanged.'})
   print('END',name,'gameplay>100',parsed['gameplay_over100'],'max',parsed['max_gameplay_ms'],flush=True)
  return 0 if all(r['process']['completed'] and r['process']['no_faults'] for r in results) else 1
 

@@ -21,7 +21,7 @@ def analyze(out):
  selected=[]
  for row in frames:
   if float(row['interval_ms'])<=100:continue
-  lanes={k:float(row.get(k) or 0) for k in ('pipeline_wait_ms','game_work_ms','draw_done_wait_ms','frame_submit_ms','drawable_acquire_ms','efb_staging_wait_ms','efb_submit_wait_ms','stage_prep_wait_ms','retrace_wait_ms')}
+  lanes={k:float(row.get(k) or 0) for k in ('pipeline_wait_ms','stage_prep_wait_ms','token_barrier_wait_ms','efb_capture_max_ms','efb_staging_wait_ms','efb_submit_wait_ms','texture_hash_ms','texture_upload_ms','frame_submit_ms','drawable_acquire_ms','present_call_ms','draw_done_wait_ms','seam_compose_ms','seam_end_frame_ms','seam_begin_frame_ms','seam_reacquire_ms','retrace_wait_ms','game_work_ms')}
   where=stall_lines.get(int(row['frame']));near=[]
   if where:
    for wait in blocking:

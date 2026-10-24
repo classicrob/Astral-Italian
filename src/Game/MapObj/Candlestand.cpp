@@ -134,7 +134,9 @@ void Candlestand::calcAndSetBaseMtx() {
 
 void Candlestand::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    ::getParam(mObjectName);
+    if (::getParam(mObjectName)) {
+        return;
+    }
 }
 
 void Candlestand::startClipped() {

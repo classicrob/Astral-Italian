@@ -106,14 +106,12 @@ void AllStarList::exeAppear() {
 
 // NONMATCHING: literal-pool base and temporary use r30/r31 in the opposite order.
 void AllStarList::exeWait() {
-    bool pointing;
     if (MR::isFirstStep(this)) {
         const char* anim = "Wait";
         MR::startPaneAnim(this, "AllStarList", anim, 0);
         MR::startPaneAnim(this, "BG", anim, 0);
     }
-    pointing = false;
-    if (mRightButton->isPointingTrigger() || mLeftButton->isPointingTrigger()) pointing = true;
+    bool pointing = mRightButton->isPointingTrigger() || mLeftButton->isPointingTrigger();
     if (pointing) {
         MR::startSystemSE("SE_SY_SELECT_PAUSE_ITEM", -1, -1);
     }

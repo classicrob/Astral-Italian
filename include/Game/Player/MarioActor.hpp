@@ -60,6 +60,9 @@ class MarioWallShadow;
 
 struct MarioInputConfig {
     MarioInputConfig();
+    s16 getButton0() const { return _0; }
+    s16 getButton2() const { return _2; }
+    s16 getButton8() const { return _8; }
     s16 _0;
     s16 _2;
     s16 mSpinButton;

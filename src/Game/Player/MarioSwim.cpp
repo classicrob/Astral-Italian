@@ -692,16 +692,7 @@ void MarioSwim::fn_803F8F60(f32) {
             } else mFrontVec = direction;
         }
         if (!_18) {
-            f32 xx;
-            f32 x = getStickX();
-            xx = getStickX();
-            xx *= x;
-            f32 yy;
-            f32 y = getStickY();
-            yy = getStickY();
-            yy *= y;
-            yy += xx;
-            if (yy > 0.2f) {
+            if (getStickY() * getStickY() + getStickX() * getStickX() > 0.2f) {
                 angle = JMAAcosRadian(mUpVec.dot(getWorldPadDir()));
                 old = mVerticalAngle * (1.0f - fn_803FA2C0());
                 f32 next = angle * fn_803FA2C0();
@@ -1045,10 +1036,11 @@ void MarioSwim::fn_803FA450() {
             mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[2];
             break;
         }
+        f32 diveAngle;
         f32 sinkAngle = cLimitAngleSink * (1.0f - factor);
-        f32 diveAngle = factor * 1.74532938f;
-        sinkAngle += diveAngle;
-        mVerticalAngle = sinkAngle;
+        diveAngle = factor;
+        diveAngle *= 1.74532938f;
+        mVerticalAngle = sinkAngle + diveAngle;
         const TVec3f& gravity = getAirGravityVec();
         getPlayer()->forceSetHeadVecKeepSide(gravity);
         return;
@@ -1417,14 +1409,13 @@ void MarioSwim::fn_803FB570() {
                 f32 acceleration = cFrontAcc[40 - timer];
                 const MarioConstTable* table = mActor->mConst->getTable();
                 f32 maximum = fn_803FA8E0();
+                f32 minimum;
+                f32 ratio;
                 f32 speed = mForwardSpeed;
-                f32 minimum = table->mSwimAccMinRatio;
-                f32 weight = speed / maximum;
-                weight *= 1.0f - minimum;
-                weight = minimum + weight;
-                f32 scaledAcceleration = acceleration * mActor->mConst->getTable()->mSwimAccRatio;
-                weight *= scaledAcceleration;
-                mForwardSpeed = speed + weight;
+                ratio = speed / maximum;
+                minimum = table->mSwimAccMinRatio;
+                mForwardSpeed = speed + (minimum + ratio * (1.0f - minimum))
+                    * (acceleration * mActor->mConst->getTable()->mSwimAccRatio);
             }
         }
         mDashTimer--;
@@ -1579,12 +1570,11 @@ bool MarioSwim::fn_803FC020() {
     if (mVerticalAngle < 1.5707964f && getStickY() > threshold && !mActionLockTimer && _1E) {
         f32 input = getStickY() - threshold;
         input /= 1.0f - threshold;
-        f32 lowerAngle = 1.0f - input;
-        f32 upperAngle = input;
+        f32 upperAngle;
+        f32 lowerAngle = (1.0f - input) * 2.0943952f;
+        upperAngle = input;
         upperAngle *= 2.6179938f;
-        lowerAngle *= 2.0943952f;
-        lowerAngle += upperAngle;
-        mVerticalAngle = lowerAngle;
+        mVerticalAngle = lowerAngle + upperAngle;
     } else if (mVerticalAngle < 1.5707964f && MR::abs(getStickY()) < 0.1f && !mActionLockTimer && _1E) {
         mVerticalAngle = 1.5707964f;
     }

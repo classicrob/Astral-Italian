@@ -2897,7 +2897,7 @@ void Mario::update() {
     OSGetTime();
     updateGroundInfo();
     OSGetTime();
-    if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && (!(static_cast<u32>(mMovementStates.mLowBits.mBit31)) || (static_cast<u32>(mMovementStates.mLowBits.mBit20)))) {
+    if ((static_cast<u32>(getMovementStates().mLowBits.mBit30)) && (!(static_cast<u32>(mMovementStates.mLowBits.mBit31)) || (static_cast<u32>(mMovementStates.mLowBits.mBit20)))) {
         if (damageFloorCheck()) {
             writeBackPhyisicalVector();
             return;

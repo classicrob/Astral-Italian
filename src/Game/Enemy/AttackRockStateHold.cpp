@@ -77,11 +77,8 @@ void AttackRockStateHold::appear() {
     const TVec3f& hostPos = mHost->mPosition;
     TVec3f target;
     target.set(hostPos + up * 700.0f);
-    TVec3f toTarget = target - dir;
-    MR::normalizeOrZero(&dir, toTarget);
-    TVec3f scaled = dir * (0.5f * up.dot(dir));
-    TVec3f side = up - scaled;
-    mUpVec.set(side);
+    MR::normalizeOrZero(&dir, target - dir);
+    mUpVec.set(up - dir * (0.5f * up.dot(dir)));
     MR::normalizeOrZero(&mUpVec);
     mRate = 0.0f;
     mStartPos.set(mHost->mPosition);

@@ -252,7 +252,9 @@ void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
         if (MR::isEqualString(pName, "StarPieceGroup")) {
             mStarPieceGroup = static_cast< StarPieceGroup* >(NameObjFactory::initChildObj(rIter, i));
         } else {
-            mChildren.mArr[mChildCount++] = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
+            LiveActor* child = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
+            s32 index = mChildCount++;
+            mChildren.mArr[index] = child;
         }
     }
 }

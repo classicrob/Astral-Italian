@@ -408,6 +408,7 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
+        TVec3f up;
         if (tryThrow()) {
             return false;
         }
@@ -416,9 +417,7 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
             MtxPtr pMtx = getBaseMtx();
             TPos3f mtx;
             JMath::gekko_ps_copy12(&mtx, pMtx);
-            TVec3f vel(mGravity);
-            vel.scale(10.0f);
-            TVec3f pos = mPosition - vel;
+            TVec3f pos = mPosition - mGravity.scaleInline(10.0f);
             mtx.setTrans(pos);
             mMover->setMtx(mtx.toMtxPtr());
             MR::stopSceneForDefaultHit(6);
@@ -426,7 +425,6 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         }
         MR::tryHitReaction(this, "\222\274\220\332\203q\203b\203g");
         startHitStop();
-        TVec3f up;
         MR::getPlayerUpVec(&up);
         calcPushVec(*MR::getSensorPos(pSender), up);
         return true;

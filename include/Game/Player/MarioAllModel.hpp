@@ -25,6 +25,7 @@ public:
     MarioAllModel(MarioActor*);
     void registerModel(s32, LiveActor*, bool, bool);
     J3DModel* getJ3DModel() const;
+    s32 getCurrentModel() const { return mCurrentModel; }
 
     void fn_803E7880(s32);
     void fn_803E78F0();

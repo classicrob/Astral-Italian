@@ -50,7 +50,6 @@ namespace NrvCaretaker {
 Caretaker::Caretaker(const char* pName) : NPCActor(pName), mCountdown(nullptr), mBombTimerLayout(nullptr), mObjArg0(-1), mTidyTimeLimit(::sTidyTimeLimit), mResult(-1) {
 }
 
-// NONMATCHING: register allocation and member-pointer constant-table addressing differ.
 void Caretaker::init(const JMapInfoIter& rIter) {
     s32 arg0=-1;
     MR::getJMapInfoArg0NoInit(rIter,&arg0);
@@ -66,14 +65,9 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     mBodyColorFrame=arg3;
     MR::startBrk(this,"BodyColor");
     MR::setBrkFrameAndStop(this,mBodyColorFrame);
-    mTrampledAction="BTrampled";
-    mSpinAction="BSpinHit";
-    mReactionAction="BSpinHit";
-    mPointingAction="BTalkHelp";
-    mParam._14="BWaitStand";
-    mParam._18="BWaitStand";
-    mRailTalkAction="BRunTalk";
-    mRailMoveAction="BWaitRun";
+    setDefaults3("BTalkHelp", "BSpinHit", "BSpinHit", "BTrampled");
+    mParam.setMoveAction("BWaitStand", "BWaitStand");
+    setTalkAction("BWaitRun", "BRunTalk");
     mParam._0=0;
     mParam._1=1;
     mParam._8=3.0f;
@@ -98,16 +92,10 @@ void Caretaker::init(const JMapInfoIter& rIter) {
         else mTakeOutStar=new TakeOutStar(this,"TakeOutStarCaretaker","TakeOutStarCaretaker",GET_NERVE(Caretaker,CaretakerNrvTakeOutStar),nullptr);
     }
     if(mObjArg0==0) {
-        mSpinAction="SpinHit";
-        mReactionAction="SpinHit";
-        mTrampledAction="Trampled";
-        mPointingAction="TalkAngry";
-        mParam._14="Wait";
-        mParam._18="Wait";
-        mParam._1C="TalkNormal";
-        mParam._20="TalkNormal";
-        mRailMoveAction="WaitRun";
-        mRailTalkAction="WaitRun";
+        setDefaults4("TalkAngry", "SpinHit", "Trampled", "SpinHit");
+        mParam.setMoveAction("Wait", "Wait");
+        mParam.setTalkAction("TalkNormal", "TalkNormal");
+        setTalkAction("WaitRun");
         MR::getNPCItemData(&item,0);
         equipment(item,false);
         if(MR::isExistRail(this)) { MR::moveCoordAndFollowTrans(this); mInitPosition.set(mPosition); }

@@ -1043,9 +1043,7 @@ void BegomanBase::doChange(ChangeObj* pOther) {
     mPreviousGravity = mGravity;
     MR::setRotation(this, 0.0f);
 
-    TVec3f gravityOffset(TVec3f(-mGravity));
-    gravityOffset.scale(10.0f);
-    mPosition.add(gravityOffset);
+    mPosition.add(-mGravity * 10.0f);
 
     calcAndSetBaseMtx();
     setNerve(getNerveWait());

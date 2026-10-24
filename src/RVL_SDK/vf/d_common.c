@@ -105,7 +105,19 @@ u32 dCommon_GetRootEntNumFromFatType(enum FatType fatType) {
 void dCommon_MakeBootSector(u8* buf, enum FatType* type, u32 SPU, u32 SPC, u32 BPS, u8 jump0_1, u8 jump2, u32 secPerTrack, u32 reservedSecNum,
                             u32 rootEntNum, u8 mediaDesc) {
     u32 spf;
-    *type = dCommon_GetNiceFatType(&spf, SPU, SPC, BPS);
+    u32 clusters = SPU / SPC;
+    enum FatType fatType;
+    if (clusters < 0xff5) {
+        spf = (((clusters * 3) / 2) + BPS - 1) / BPS;
+        fatType = FAT_12;
+    } else if (clusters < 0xfff5) {
+        spf = ((clusters * 2) + BPS - 1) / BPS;
+        fatType = FAT_16;
+    } else {
+        spf = ((clusters * 4) + BPS - 1) / BPS;
+        fatType = FAT_32;
+    }
+    *type = fatType;
 
     VFipf_memset(buf, 0, 0x200);
 

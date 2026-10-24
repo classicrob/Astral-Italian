@@ -128,7 +128,8 @@ bool KoopaJrCastleCloudStep::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSen
     if (MR::isPlayerElementModeBee() || MR::isPlayerElementModeCloud()) {
         if (MR::isMsgFloorTouch(msg)) {
             if (mBounceTimer == 0) {
-                mSpring->mVelocity = 8.0f + mSpring->mVelocity;
+                f32 impulse = 8.0f;
+                mSpring->mVelocity = mSpring->mVelocity + impulse;
             }
             mBounceTimer = 10;
         }

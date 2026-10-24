@@ -18,13 +18,27 @@ enum {
 };
 
 J3DShapeFactory::J3DShapeFactory(J3DShapeBlock const& block) {
-    mShapeInitData = JSUConvertOffsetToPtr< J3DShapeInitData >(&block, (uintptr_t)block.mpShapeInitData);
-    mIndexTable = JSUConvertOffsetToPtr< u16 >(&block, (uintptr_t)block.mpIndexTable);
-    mVtxDescList = JSUConvertOffsetToPtr< GXVtxDescList >(&block, (uintptr_t)block.mpVtxDescList),
-    mMtxTable = JSUConvertOffsetToPtr< u16 >(&block, (uintptr_t)block.mpMtxTable);
-    mDisplayListData = JSUConvertOffsetToPtr< u8 >(&block, (uintptr_t)block.mpDisplayListData),
-    mMtxInitData = JSUConvertOffsetToPtr< J3DShapeMtxInitData >(&block, (uintptr_t)block.mpMtxInitData),
-    mDrawInitData = JSUConvertOffsetToPtr< J3DShapeDrawInitData >(&block, (uintptr_t)block.mpDrawInitData), mVcdVatCmdBuffer = NULL;
+    J3DShapeInitData* shapeInitData = JSUConvertOffsetToPtr< J3DShapeInitData >(&block, (uintptr_t)block.mpShapeInitData);
+    J3DBlockOffset indexTableOffset = block.mpIndexTable;
+    mShapeInitData = shapeInitData;
+    u16* indexTable = JSUConvertOffsetToPtr< u16 >(&block, indexTableOffset);
+    J3DBlockOffset vtxDescListOffset = block.mpVtxDescList;
+    mIndexTable = indexTable;
+    GXVtxDescList* vtxDescList = JSUConvertOffsetToPtr< GXVtxDescList >(&block, vtxDescListOffset);
+    J3DBlockOffset mtxTableOffset = block.mpMtxTable;
+    mVtxDescList = vtxDescList;
+    u16* mtxTable = JSUConvertOffsetToPtr< u16 >(&block, mtxTableOffset);
+    J3DBlockOffset displayListDataOffset = block.mpDisplayListData;
+    mMtxTable = mtxTable;
+    u8* displayListData = JSUConvertOffsetToPtr< u8 >(&block, displayListDataOffset);
+    J3DBlockOffset mtxInitDataOffset = block.mpMtxInitData;
+    mDisplayListData = displayListData;
+    J3DShapeMtxInitData* mtxInitData = JSUConvertOffsetToPtr< J3DShapeMtxInitData >(&block, mtxInitDataOffset);
+    J3DBlockOffset drawInitDataOffset = block.mpDrawInitData;
+    mMtxInitData = mtxInitData;
+    J3DShapeDrawInitData* drawInitData = JSUConvertOffsetToPtr< J3DShapeDrawInitData >(&block, drawInitDataOffset);
+    mDrawInitData = drawInitData;
+    mVcdVatCmdBuffer = NULL;
 }
 
 J3DShape* J3DShapeFactory::create(int no, u32 flag, GXVtxDescList* vtxDesc) {

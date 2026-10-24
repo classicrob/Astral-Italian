@@ -554,15 +554,11 @@ void WorldMapResultBox::extendByWorld(WorldMapResultWorld* pWorld) {
 
 // NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void calcRoutePos(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, s32 step, s32 maxStep) {
-    s32 splitStep = (s32)(0.8f * (f32)maxStep);
+    s32 splitStep = maxStep;
+    splitStep *= 0.8f;
     f32 rate = MR::getLinerValue(MR::normalizeAndClamp01((f32)step, 0.0f, (f32)splitStep), 0.0f, 1.0f - sRouteTailRate, 1.0f);
     rate += MR::getEaseOutValue(MR::normalizeAndClamp01((f32)step, (f32)splitStep, (f32)maxStep), 0.0f, 0.12f, 1.0f);
-    TVec3f to(rTo);
-    to.scale(rate);
-    TVec3f from(rFrom);
-    from.scale(1.0f - rate);
-    TVec3f pos = from + to;
-    pDst->set<f32>(pos);
+    pDst->set<f32>(rFrom.scaleInline(1.0f - rate) + rTo.scaleInline(rate));
 }
 
 void WorldMapResultWorld::setNum(s32 num) {

@@ -36,7 +36,7 @@ struct JASWaveInfo {
     /* 0x1C */ int mSampleCount;
     /* 0x20 */ s16 mpLastSample;
     /* 0x22 */ s16 mpPenultSample;
-    /* 0x24 */ const u32* _24;
+    /* 0x24 */ const volatile u32* _24;
 
     static u32 one;
 };

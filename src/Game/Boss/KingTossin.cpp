@@ -548,7 +548,9 @@ void KingTossin::exeRun() {
         mMoveDir = mFront;
     }
 
-    MR::moveAndTurnToDirection(this, &mFront, mMoveDir, sRunParam._0, sRunParam._4, sRunParam._8 + -0.0425f, sRunParam._C);
+    f32 turnRate = sRunParam._8;
+    turnRate += -0.0425f;
+    MR::moveAndTurnToDirection(this, &mFront, mMoveDir, sRunParam._0, sRunParam._4, turnRate, sRunParam._C);
 
     if (isTargetInSight(30.0f, 1700.0f)) {
         MR::zeroVelocity(this);

@@ -60,7 +60,7 @@ static u8 __bte_trace_level = 0;
 static u8 _normalTarget;
 static BOOL _readNand = FALSE;
 static volatile BOOL _abortSync = FALSE;
-BOOL _linkedWBC;
+volatile BOOL _linkedWBC;
 
 // RPHealth.dat's pairing record is copied independently of the read workarea.
 // The named union gives the checksum a halfword view of the on-disk byte record.

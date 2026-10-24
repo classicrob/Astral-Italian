@@ -58,9 +58,7 @@ void Shellfish::init(const JMapInfoIter& rIter) {
     shadowPosition.scaleAdd(30.0f, front, mPosition);
     shadowPosition.scaleAdd(5.0f, up, shadowPosition);
     MR::setShadowDropPosition(this, nullptr, shadowPosition);
-    TVec3f shadowDirection;
-    shadowDirection.negate(up);
-    MR::setShadowDropDirection(this, nullptr, shadowDirection);
+    MR::setShadowDropDirection(this, nullptr, -up);
     MR::offCalcShadow(this, nullptr);
     MR::addEffectHitNormal(this, nullptr);
     mScaleController = new AnimScaleController(nullptr);

@@ -356,7 +356,9 @@ void SamboHead::exeBindStarPointer() {
     }
 
     MR::startDPDFreezeLevelSound(this);
-    MR::updateActorStateAndNextNerve(this, GET_NERVE(SamboHead, HostTypeNrvBindStarPointerEnd));
+    if (MR::updateActorStateAndNextNerve(this, GET_NERVE(SamboHead, HostTypeNrvBindStarPointerEnd))) {
+        return;
+    }
 }
 
 void SamboHead::exeBindStarPointerEnd() {

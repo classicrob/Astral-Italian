@@ -189,18 +189,12 @@ void SnowMound::launchSnowBalls() {
     TVec3f front(0.0f);
     MR::calcUpVec(&up, this);
     MR::calcFrontVec(&front, this);
-    TVec3f upOffset = up * 200.0f;
-    pos += upOffset;
+    pos += up * 200.0f;
     for (s32 i = 0; i < mSnowBallNum; i++) {
         TVec3f dir(0.0f);
         MR::rotateVecDegree(&dir, front, up, (360.0f / (f32)mSnowBallNum) * (f32)i);
-        TVec3f sp44 = dir * 100.0f;
-        TVec3f launchPos(pos);
-        launchPos += sp44;
-        TVec3f sp8 = dir * 8.0f;
-        TVec3f sp20 = up * 30.0f;
-        TVec3f launchVel(sp20);
-        launchVel += sp8;
+        TVec3f launchPos = pos + dir * 100.0f;
+        TVec3f launchVel = up * 30.0f + dir * 8.0f;
         mSnowBalls[i]->launch(launchPos, launchVel, false);
     }
 }

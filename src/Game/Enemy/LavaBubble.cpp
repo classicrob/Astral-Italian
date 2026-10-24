@@ -160,14 +160,12 @@ void LavaBubble::exeLaunch() {
     if (mLaunchCount == mLaunchDuration - 14) {
         MR::startActionSound(this, "BackInMagma", -1, -1, -1);
     }
-    s32 duration = mLaunchDuration;
-    s32 count = mLaunchCount;
-    if (duration < count) {
+    if (mLaunchDuration < mLaunchCount) {
         setNerve(GET_LAVABUBBLE_NERVE(LavaBubbleNrvWait));
         MR::zeroVelocity(this);
         return;
     }
-    mLaunchCount = count + 1;
+    mLaunchCount++;
 }
 
 void LavaBubble::initPose() {

@@ -68,11 +68,7 @@ void WorldMapResultStateTicoRouteCreate::control() {
 }
 
 void WorldMapResultStateTicoRouteCreate::updateRoutePosition(f32 pT) {
-    TVec3f base(mPos + lbl_8072BB20);
-    TVec3f scaled(base * (1.0f - pT));
-    TVec3f moved(mPos * pT);
-    TVec3f pos(moved + scaled);
-    MR::setPosition(mHost->getRocket(), pos);
+    MR::setPosition(mHost->getRocket(), mPos * pT + (mPos + lbl_8072BB20) * (1.0f - pT));
 }
 
 // NONMATCHING: independent subtraction/FMR scheduling (FP operand order/grouping checked).

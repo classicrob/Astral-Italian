@@ -313,10 +313,16 @@ void J3DModelLoader::readInformation(J3DModelInfoBlock const* i_block, u32 i_fla
         mtx_calc = new J3DMtxCalcNoAnm< J3DMtxCalcCalcTransformMaya, J3DMtxCalcJ3DSysInitMaya >();
         break;
     }
-    mpModelData->setBasicMtxCalc(mtx_calc);
-    mpModelData->getVertexData().mPacketNum = i_block->mPacketNum;
-    mpModelData->getVertexData().mVtxNum = i_block->mVtxNum;
-    mpModelData->setHierarchy(JSUConvertOffsetToPtr< J3DModelHierarchy >(i_block, i_block->mpHierarchy));
+    u32 packetNum;
+    J3DBlockOffset hierarchyOffset;
+    J3DModelData* modelData = mpModelData;
+    hierarchyOffset = i_block->mpHierarchy;
+    modelData->setBasicMtxCalc(mtx_calc);
+    packetNum = i_block->mPacketNum;
+    u32 vtxNum = i_block->mVtxNum;
+    mpModelData->getVertexData().mPacketNum = packetNum;
+    mpModelData->getVertexData().mVtxNum = vtxNum;
+    mpModelData->setHierarchy(JSUConvertOffsetToPtr< J3DModelHierarchy >(i_block, hierarchyOffset));
 }
 
 inline J3DMtxCalcNoAnmBase::J3DMtxCalcNoAnmBase() {

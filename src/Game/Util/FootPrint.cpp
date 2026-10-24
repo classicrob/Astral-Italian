@@ -248,8 +248,9 @@ namespace MR {
     bool addFootPrintOnGround(FootPrint* handle, LiveActor* actor, const TVec3f* pos, const TVec3f* front, bool right, f32 distance) {
         TVec3f groundPos(0.0f);
         TVec3f normal;
-        normal.negate(actor->mGravity);
-        TVec3f ray = actor->mGravity * distance;
+        const TVec3f& gravity = actor->mGravity;
+        normal.negate(gravity);
+        TVec3f ray = gravity * distance;
         if (MR::getFirstPolyNormalOnLineToMap(&normal, *pos, ray, &groundPos, nullptr)) {
             handle->addPrint(groundPos, *front, normal, right);
             return true;

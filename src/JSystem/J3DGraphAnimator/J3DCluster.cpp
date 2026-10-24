@@ -88,15 +88,19 @@ void J3DDeformer::deform_VtxNrmF32(J3DVertexBuffer* i_buffer, J3DCluster* i_clus
 
     for (u16 i = 0; i < i_cluster->field_0x14; i++) {
         int index = i * 3;
+        int indexY = index + 1;
+        int indexZ = index + 2;
         iVar13[index] = 0.0f;
-        iVar13[index + 1] = 0.0f;
-        iVar13[index + 2] = 0.0f;
+        iVar13[indexY] = 0.0f;
+        iVar13[indexZ] = 0.0f;
         for (u16 j = 0; j < keyNum; j++) {
             J3DClusterKey* key = &i_key[j];
             int uVar3 = ((u16*)key->field_0x8)[i];
             int uVar4 = uVar3;
             uVar3 &= ~0xE000;
             uVar3 *= 3;
+            int deformY = uVar3 + 1;
+            int deformZ = uVar3 + 2;
             Vec deform0;
             if (uVar4 & 0x8000) {
                 deform0.x = -deformVtxNrm[uVar3];
@@ -104,18 +108,18 @@ void J3DDeformer::deform_VtxNrmF32(J3DVertexBuffer* i_buffer, J3DCluster* i_clus
                 deform0.x = deformVtxNrm[uVar3];
             }
             if (uVar4 & 0x4000) {
-                deform0.y = -deformVtxNrm[uVar3 + 1];
+                deform0.y = -deformVtxNrm[deformY];
             } else {
-                deform0.y = deformVtxNrm[uVar3 + 1];
+                deform0.y = deformVtxNrm[deformY];
             }
             if (uVar4 & 0x2000) {
-                deform0.z = -deformVtxNrm[uVar3 + 2];
+                deform0.z = -deformVtxNrm[deformZ];
             } else {
-                deform0.z = deformVtxNrm[uVar3 + 2];
+                deform0.z = deformVtxNrm[deformZ];
             }
             iVar13[index] += deform0.x * i_weights[j];
-            iVar13[index + 1] += deform0.y * i_weights[j];
-            iVar13[index + 2] += deform0.z * i_weights[j];
+            iVar13[indexY] += deform0.y * i_weights[j];
+            iVar13[indexZ] += deform0.z * i_weights[j];
         }
         normalize(&iVar13[index]);
     }
@@ -129,9 +133,11 @@ void J3DDeformer::deform_VtxNrmF32(J3DVertexBuffer* i_buffer, J3DCluster* i_clus
         f32 scale = 1.0f / clusterVtx->mNum;
         for (u16 j = 0; j < clusterVtx->mNum; j++) {
             int index = clusterVtx->field_0x4[j] * 3;
+            int indexY = index + 1;
+            int indexZ = index + 2;
             vec.x += scale * iVar13[index];
-            vec.y += scale * iVar13[index + 1];
-            vec.z += scale * iVar13[index + 2];
+            vec.y += scale * iVar13[indexY];
+            vec.z += scale * iVar13[indexZ];
         }
         normalize((f32*)&vec);
 
@@ -141,10 +147,14 @@ void J3DDeformer::deform_VtxNrmF32(J3DVertexBuffer* i_buffer, J3DCluster* i_clus
                 continue;
             }
             int index = tmp * 3;
+            int indexY = index + 1;
+            int indexZ = index + 2;
             u16 iVar4 = clusterVtx->field_0x4[j];
             int index2 = iVar4 * 3;
+            int sourceY = index2 + 1;
+            int sourceZ = index2 + 2;
 
-            f32 dot = vec.x * iVar13[index2] + vec.y * iVar13[index2 + 1] + vec.z * iVar13[index2 + 2];
+            f32 dot = vec.x * iVar13[index2] + vec.y * iVar13[sourceY] + vec.z * iVar13[sourceZ];
             f32 angle;
             if (dot >= 1.0f) {
                 angle = 0.0f;
@@ -156,19 +166,19 @@ void J3DDeformer::deform_VtxNrmF32(J3DVertexBuffer* i_buffer, J3DCluster* i_clus
 
             if (angle <= i_cluster->mMinAngle) {
                 vtxNrmArray[index] = vec.x;
-                vtxNrmArray[index + 1] = vec.y;
-                vtxNrmArray[index + 2] = vec.z;
+                vtxNrmArray[indexY] = vec.y;
+                vtxNrmArray[indexZ] = vec.z;
             } else if (angle > i_cluster->mMaxAngle) {
                 vtxNrmArray[index] = iVar13[iVar4 * 3];
-                vtxNrmArray[index + 1] = iVar13[iVar4 * 3 + 1];
-                vtxNrmArray[index + 2] = iVar13[iVar4 * 3 + 2];
+                vtxNrmArray[indexY] = iVar13[iVar4 * 3 + 1];
+                vtxNrmArray[indexZ] = iVar13[iVar4 * 3 + 2];
             } else {
                 f32 weights[2];
                 weights[0] = (angle - i_cluster->mMinAngle) / (i_cluster->mMaxAngle - i_cluster->mMinAngle);
                 weights[1] = 1.0f - weights[0];
                 vtxNrmArray[index] = weights[0] * iVar13[index2] + weights[1] * vec.x;
-                vtxNrmArray[index + 1] = weights[0] * iVar13[index2 + 1] + weights[1] * vec.y;
-                vtxNrmArray[index + 2] = weights[0] * iVar13[index2 + 2] + weights[1] * vec.z;
+                vtxNrmArray[indexY] = weights[0] * iVar13[sourceY] + weights[1] * vec.y;
+                vtxNrmArray[indexZ] = weights[0] * iVar13[sourceZ] + weights[1] * vec.z;
             }
         }
     }

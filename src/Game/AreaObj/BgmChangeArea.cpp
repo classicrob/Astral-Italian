@@ -98,15 +98,18 @@ void BgmChangeArea::movement() {
         if (mIsBgmApplied) {
             return;
         }
+        s32 scenario;
+        u32 bgmId;
+        s32 arg2;
         s32 arg1 = mObjArg1;
-        s32 arg2 = mObjArg2;
+        arg2 = mObjArg2;
         switch (mObjArg0) {
         case 0:
             if (arg1 < 0) {
                 MR::startCurrentStageBGM(true);
             } else {
-                s32 scenario = MR::getCurrentScenarioNo();
-                u32 bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg1);
+                scenario = MR::getCurrentScenarioNo();
+                bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg1);
                 if (bgmId != 0xFFFFFFFF) {
                     if (AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage] == bgmId && MR::isPlayingStageBgm()) {
                         break;
@@ -132,8 +135,8 @@ void BgmChangeArea::movement() {
                 arg1 = 90;
             }
             if (arg2 >= 0) {
-                s32 scenario = MR::getCurrentScenarioNo();
-                u32 bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg2);
+                scenario = MR::getCurrentScenarioNo();
+                bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg2);
                 if (bgmId != 0xFFFFFFFF) {
                     if (AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage] == bgmId && MR::isPlayingStageBgm()) {
                         break;

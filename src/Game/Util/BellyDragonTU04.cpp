@@ -101,7 +101,12 @@ void BellyDragonUtil::setBodyPartMtx(BellyDragonBodyPart* pObj, const f32 (*mtx)
     pObj->mPosition.set< f32 >(pObj->mMtx.mMtx[0][3], pObj->mMtx.mMtx[1][3], pObj->mMtx.mMtx[2][3]);
 #else
     ((TPos3f*)((u8*)pObj + 0xA8))->set(mtx);
-    ((TVec3f*)((u8*)pObj + 0x14))->set< f32 >(*(f32*)((u8*)pObj + 0xB4), *(f32*)((u8*)pObj + 0xC4), *(f32*)((u8*)pObj + 0xD4));
+    f32 x;
+    f32 y;
+    f32 z = *(f32*)((u8*)pObj + 0xD4);
+    y = *(f32*)((u8*)pObj + 0xC4);
+    x = *(f32*)((u8*)pObj + 0xB4);
+    ((TVec3f*)((u8*)pObj + 0x14))->set< f32 >(x, y, z);
 #endif
 }
 
@@ -135,8 +140,7 @@ void BellyDragonUtil::calcGroundHillMtx(TPos3f* pOut, NameObj* pObj, const f32 (
     TVec3f sp2C;
     MR::calcGravityVector(pObj, sp44, &sp2C, NULL, 0);
     TVec3f sp20 = -sp2C;
-    TVec3f sp8 = sp20 * lbl_807D7830;
-    sp44.add(sp8);
+    sp44.add(sp20 * lbl_807D7830);
     MR::calcMapHitAlongDirection(sp44, &sp38, sp2C, NULL, NULL, NULL, NULL, lbl_807D7834);
     MR::makeMtxUpSidePos(pOut, sp20, sp5C, sp38);
 }
@@ -230,8 +234,8 @@ bool BellyDragonUtil::isSensorWeakPoint(HitSensor* pSensor) {
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 s32 BellyDragonUtil::isEnoughWeakPointsBroken(BellyDragon* pHost, s32 flag) {
     s32 count;
-    s32 ok;
     s32 need;
+    s32 ok;
 
     if (isAttackNerve(pHost)) {
         return 0;
@@ -298,9 +302,9 @@ void BellyDragonUtil::initPodAnimCamera(BellyDragon* pHost, const char* pName) {
 
 // NONMATCHING: callee symbol alias and matrix load scheduling (FP argument order/grouping checked).
 void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
-    BellyDragonPod* pPod = pHost->mPod;
-    pHost->mBaseMtx.set(pPod->mHostMtx.mMtx);
-    TVec3f sp8(pPod->mHostMtx.mMtx[0][3], pPod->mHostMtx.mMtx[1][3], pPod->mHostMtx.mMtx[2][3]);
+    const TPos3f& hostMtx = pHost->mPod->mHostMtx;
+    pHost->mBaseMtx.set(hostMtx.mMtx);
+    TVec3f sp8(hostMtx.mMtx[0][3], hostMtx.mMtx[1][3], hostMtx.mMtx[2][3]);
     MR::setPosition(pHost, sp8);
     MR::zeroVelocity(pHost);
     pHost->mBody->freeze();

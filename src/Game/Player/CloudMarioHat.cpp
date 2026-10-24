@@ -173,7 +173,8 @@ void CloudMarioHat::updateJoint(TPos3f* matrix, s32 index) {
         MarioMtxPos rotation;
         rotation.fn_80409710(x, direction);
         rotation.fn_80409650(original);
-        matrix->set(*rotation.fn_vf0());
+        MarioMtxPos& result = rotation;
+        matrix->set(*result.fn_vf0());
     }
     matrix->setTrans(start);
 }

@@ -27,8 +27,8 @@ void wpad_callback_func(s32 chan, s32 result) {
 }
 
 static void invalidate_calibration_history(s32 chan) {
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     if (kmplsWork) {
-        KMPLSState* state = &kmplsWork->channels[chan];
         u32 index = (state->historyHead + 255) & 255;
         state->history[2][index] = 0x80000000;
         state->history[1][index] = 0x80000000;
@@ -39,8 +39,8 @@ static void invalidate_calibration_history(s32 chan) {
 
 // NONMATCHING: Register allocation, null-check placement, and scheduling around the same calibration command/history invalidation.
 void work_calibration(s32 chan) {
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     if (kmplsWork) {
-        KMPLSState* state = &kmplsWork->channels[chan];
         if (state->calibrationResult == 0) {
             invalidate_calibration_history(chan);
         } else if (state->calibrationResult < 0) {
@@ -124,7 +124,7 @@ f32 move_mpls_orient(KMPLSState* state, Vec* direction, Vec* previous, Vec* chan
 
 // NONMATCHING: Temporary matrices/vector copies, stack slots, and FP registers differ; aiming/height refresh, valid-report gate, ordered math-call inputs, and max-error branches are retained.
 f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* context) {
-    KMPLSState* state;
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     f32 scale = 0.383864f;
     KPADMPLSDirection horizon;
     KPADMPLSDirection rotation;
@@ -134,7 +134,6 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* con
     f32 length;
     f32 errorX, errorY, errorZ;
     if (!kmplsWork) return 0.0f;
-    state = &kmplsWork->channels[chan];
     if ((s32)kmplsWork->channels[chan].aimingMode != (s32)(u8)KPADIsEnableAimingMode(chan) ||
         kmplsWork->channels[chan].dpdYOffset != KPADGetSensorHeight(chan)) {
         kmplsWork->channels[chan].aimingMode = (u8)KPADIsEnableAimingMode(chan);
@@ -235,7 +234,7 @@ void calc_mpls_dir(KMPLSState* state) {
 
 // NONMATCHING: Temporary vector/matrix stack slots and FP register lifetimes differ; all correction calls, ordered FP expressions, and cutoff branches are retained.
 f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* acceleration) {
-    KMPLSState* state;
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     Vec current;
     Vec desired;
     Vec normalized;
@@ -246,7 +245,6 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
     f32 weight;
     f32 inverse;
     if (!kmplsWork) return 0.0f;
-    state = &kmplsWork->channels[chan];
     lengthSquared = acceleration->z * acceleration->z +
                      (acceleration->x * acceleration->x + acceleration->y * acceleration->y);
     if (lengthSquared == 0.0f) return 0.0f;
@@ -288,7 +286,7 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
 
 // NONMATCHING: Integer/FP register allocation, stack-slot choices, and equivalent signed/unsigned ring comparisons differ. Target history traversal, limits, invalid-sample handling, ordered filtering/integration, and callback behavior are retained.
 void read_mpls(s32 chan, s32 ringEnd, s32 count) {
-    KMPLSState* state;
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     s32 threshold[3];
     s32 historyWindow;
     u8 adjustZero;
@@ -297,7 +295,6 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
     s32 limits[3];
     s32 minimum[3];
     if (count <= 0 || !kmplsWork) return;
-    state = &kmplsWork->channels[chan];
     if (state->calibrating) {
         adjustZero = 1;
         window = state->calibrationWindow;
@@ -556,8 +553,8 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
 
 // NONMATCHING: Register/stack allocation and scheduling of the same six zero-scale tests, double conversion coefficients, and calibration/history stores.
 void set_calibration_data(s32 chan) {
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     if (kmplsWork) {
-        KMPLSState* state = &kmplsWork->channels[chan];
         f64 lowRate;
         f64 highRate;
         if (state->reportMode >= 2) {
@@ -583,10 +580,13 @@ void set_calibration_data(s32 chan) {
         state->rateConversion[1][1] = highRate / state->calibration[1].axis[1].scale;
         state->rateConversion[1][2] = highRate / state->calibration[1].axis[2].scale;
         state->calibrationResult = 1;
-        if (kmplsWork) {
-            kmplsWork->channels[chan].calibrating = 1;
-            kmplsWork->channels[chan].calibrationWindow = 0.03f;
-            invalidate_calibration_history(chan);
+        {
+            KMPLSState* current = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+            if (kmplsWork) {
+                current->calibrating = 1;
+                current->calibrationWindow = 0.03f;
+                invalidate_calibration_history(chan);
+            }
         }
     }
 }
@@ -692,11 +692,11 @@ void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
 // NONMATCHING: Initial null-check/address scheduling and literal references differ.
 void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
                const KPADStatus* context, f64 samplePeriod) {
-    KMPLSState* state;
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     WPADDeviceType device;
-    s32 mode = 2;
+    s32 mode;
     if (!kmplsWork) return;
-    state = &kmplsWork->channels[chan];
+    mode = 2;
     if (WPADProbe(chan, &device) != -1 &&
         ((u32)(device - 5) <= 2 || device == 250)) {
         u8 status = WPADiGetMplsStatus(chan);
@@ -706,13 +706,15 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
             state->reportMode = mode;
         }
     }
-    if (kmplsWork) {
-        KMPLSState* current = &kmplsWork->channels[chan];
-        if (current->reportMode != mode) current->rateConversion[0][0] = 0.0;
-        current->reportMode = mode;
-        current->rateScale.x = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][0]) * s_rawRange[current->reportMode][0]));
-        current->rateScale.y = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][1]) * s_rawRange[current->reportMode][1]));
-        current->rateScale.z = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][2]) * s_rawRange[current->reportMode][2]));
+    {
+        KMPLSState* current = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+        if (kmplsWork) {
+            if (current->reportMode != mode) current->rateConversion[0][0] = 0.0;
+            current->reportMode = mode;
+            current->rateScale.x = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][0]) * s_rawRange[current->reportMode][0]));
+            current->rateScale.y = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][1]) * s_rawRange[current->reportMode][1]));
+            current->rateScale.z = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][2]) * s_rawRange[current->reportMode][2]));
+        }
     }
     if (count > 0 && context && mode != 2) {
         state->samplePeriod = (f32)samplePeriod;
@@ -724,10 +726,10 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
         if (state->calibrating) work_calibration(chan);
         if (state->orientationCorrection) {
             f32 trust;
+            KMPLSState* current = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
             if (!kmplsWork) {
                 trust = 0.0f;
             } else {
-                KMPLSState* current = &kmplsWork->channels[chan];
                 f32 value;
                 trust = move_mpls_orient(current, &current->sample.direction.X,
                                          &current->previousDirection.X, &current->directionChange.X);

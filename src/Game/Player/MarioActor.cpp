@@ -1542,7 +1542,7 @@ bool MarioActor::fn_803B9920() {
     if (((m)->mMovementStates.mLowWord >> 0x1F) == 1 && !m->isRising() && (((this->mMario)->mMovementStates.mLowWord >> 0xC) & 1)) {
         return true;
     }
-    return this->checkButtonType(mInputConfig->_8, false);
+    return this->checkButtonType(mInputConfig->getButton8(), false);
 }
 
 void MarioActor::fn_803B9A10() {
@@ -3380,7 +3380,7 @@ bool MarioActor::fn_803BDE10() {
     if (this->_935 != 0) {
         return false;
     }
-    return checkButtonType(mInputConfig->_0, false);
+    return checkButtonType(mInputConfig->getButton0(), false);
 }
 
 bool MarioActor::isRequestRush() const {
@@ -3412,7 +3412,7 @@ bool MarioActor::isRequestRush() const {
         return false;
     }
 
-    bool out = checkButtonType(mInputConfig->_2, false);
+    bool out = checkButtonType(mInputConfig->getButton2(), false);
     if (((mMario->mFlags14.mLowWord >> 18) & 1U)) {
         if (!out) {
             mMario->mFlags14.mLowWord &= 0xFFFBFFFFU;
@@ -3433,7 +3433,7 @@ bool MarioActor::isRequestThrow() const {
         return false;
     }
 
-    bool out = checkButtonType(mInputConfig->_2, false);
+    bool out = checkButtonType(mInputConfig->getButton2(), false);
     if (((mMario->mFlags14.mLowWord >> 18) & 1U)) {
         if (!out) {
             mMario->mFlags14.mLowWord &= 0xFFFBFFFFU;
@@ -4759,7 +4759,7 @@ void MarioActor::drawPreWipe() const {
         TVec3f size(width, height, 0.0f);
         u16 timer = mActorEffectState->mTimer;
         TDDraw::drawFillBox(position, size,
-                            (timer <= 0x80 ? (static_cast<s32>(timer) >> 2) + timer + (timer >> 1) : 0xE0U) | 0x28282800U);
+                            (timer <= 0x80 ? (timer >> 1) + timer + (static_cast<s32>(timer) >> 2) : 0xE0U) | 0x28282800U);
     }
     MR::loadViewMtx();
     MR::loadProjectionMtx();
@@ -4968,7 +4968,7 @@ void MarioActor::fn_803C1940() {
             this->fn_803D8E30(&b);
             return;
         }
-        if (getMovementStates().mLowBits.mBit30) {
+        if (mMario->mMovementStates.mLowBits.mBit30) {
             this->fn_803D9170(&a);
         }
     }
@@ -5571,7 +5571,7 @@ void MarioActor::updateSwingAction() {
                 }
 
                 mMario->changeAnimation("ハチスピン空中");
-            } else if (((mMario->mMovementStates.mLowWord >> 21) & 1U) || mBeeWallWalk != 0) {
+            } else if (((getMario()->mMovementStates.mLowWord >> 21) & 1U) || mBeeWallWalk != 0) {
                 mMario->changeAnimation("サマーソルト");
             } else {
                 mMario->changeAnimation("ハチスピン");
@@ -5615,7 +5615,7 @@ void MarioActor::updateSwingAction() {
         if (isJumping()) {
             mMario->changeAnimation("ハチスピン空中");
         } else {
-            if (((mMario->mMovementStates.mLowWord >> 21) & 1U) || mBeeWallWalk != 0) {
+            if (((getMario()->mMovementStates.mLowWord >> 21) & 1U) || mBeeWallWalk != 0) {
                 mMario->changeAnimation("サマーソルト");  // Summersault
             } else {
                 mMario->changeAnimation("ハチスピン");
@@ -6260,7 +6260,7 @@ void MarioActor::calcAnimHorrorBone() {
             }
         } else {
             MarioAllModel* p = mAllModel;
-            if (p->mCurrentModel != 6) {
+            if (p->getCurrentModel() != 6) {
                 p->mPreviousModel = p->mCurrentModel;
                 this->playEffect("ホラーマリオ変身");
             }
@@ -6269,7 +6269,7 @@ void MarioActor::calcAnimHorrorBone() {
     } else {
         if (this->mMario->isStatusActive(0xB)) {
             MarioAllModel* p = mAllModel;
-            if (p->mCurrentModel != 1) {
+            if (p->getCurrentModel() != 1) {
                 p->mPreviousModel = p->mCurrentModel;
             }
             if ((this->_37C & 3) && (this->isNerve(&NrvMarioActor::MarioActorNrvWait::sInstance) || this->isNerve(&NrvMarioActor::MarioActorNrvNoRush::sInstance))) {
@@ -6755,7 +6755,9 @@ void MarioActor::calcCenterPos() {
 
     f32 val;
     if (mMario->isPlayerModeYoshi() && mMario->isStatusActive(0x27) && !MR::isDead(mYoshiHolder->mRideModelActor)) {
-        val = 20.0f + 0.8f * mBinder->mRadius;
+        f32 reduction = 0.8f;
+        f32 radius = mBinder->mRadius;
+        val = 20.0f + reduction * radius;
         mBinder->mRadius = val;
     } else if (((mMario->getMovementStates().mLowWord >> 21) & 1U)) {
         f32 radius = mBinder->mRadius;
@@ -9535,7 +9537,7 @@ bool MarioActor::fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2) {
         }
     }
     Mario* m = this->mMario;
-    if (((m->mMovementStates.mLowWord >> 21) & 1U) && ((m->mMovementStates.mLowWord >> 30) & 1U)) {
+    if (((m->getMovementStates().mLowWord >> 21) & 1U) && ((m->mMovementStates.mLowWord >> 30) & 1U)) {
         return false;
     }
     f32 d2 = MR::vecKillElement(p, mBodyUpDirection, &perp);
@@ -12457,7 +12459,7 @@ void MarioActor::tryReleaseBombTeresa() {
     mMario->stopAnimationUpper(nullptr);
 
     if (!((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
-        MarioStopWalk();
+        mMario->stopWalk();
         _38C = 5;
         mMario->_420 = 25;
     }

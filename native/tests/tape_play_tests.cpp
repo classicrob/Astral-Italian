@@ -243,6 +243,70 @@ int main() {
         step = scenarioSelect.seam(menu("WorldMap01Galaxy", true));
         check(step.kind == Step::Kind::Start && step.restoreSeed && step.seed == 456, "scenario 1 anchors after scenario selection");
     }
+    {   // Non-interactive arrivals may take fewer/more loops; exact play-ready is the hard boundary.
+        const auto dir = base / "arrival";
+        writeTape(dir);
+        std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],
+            "ready_seams":[{"row":2,"stage":"TestGalaxy","scenario":1,"rng_seed":111}],
+            "play_ready_seams":[{"row":6,"stage":"TestGalaxy","scenario":1,"rng_seed":222}]})";
+        const auto observed = [](unsigned row, bool ready) {
+            auto s = state(row, ready); s.initEnd = true;
+            s.pointerObserved = true; s.pointerValid = 1; s.pointerX = row * 0.01f;
+            s.rngObserved = true; s.rngSeed = 999; return s;
+        };
+        Session early(dir, Session::Mode::WholeSession);
+        auto step = early.seam(observed(2, false));
+        check(step.kind == Step::Kind::Start && step.seed == 111, "arrival reads anchor at scene-ready");
+        check(hold(early) == 0x103u, "arrival receives recorded input before play-ready");
+        step = early.seam(observed(6, true));
+        check(step.kind == Step::Kind::Start && step.seed == 222, "short arrival re-anchors to recorded play-ready");
+        check(early.acknowledgeSeed(222), "restored RNG checkpoint is read back");
+        check(early.report()[0].rowsCompared == 1 && early.report()[0].playReadyPositionExact,
+              "only exact play-ready starts fidelity comparison");
+        for (unsigned f = 7; f < kRows; ++f) {
+            check(hold(early) == (0x100u | f), "gameplay reads re-anchor without replaying skipped arrival input");
+            step = early.seam(observed(f, true));
+        }
+        check(step.kind == Step::Kind::Finished && !early.gaveUp(), "short arrival completes all strict gameplay rows");
+        check(early.report()[0].rowsCompared == 14 && early.report()[0].pointerRowsCompared == 13,
+              "comparison and pointer counts exclude only the arrival");
+        check(early.reportJson().find("\"arrival_frame_offset\":-3") != std::string::npos,
+              "report preserves the short arrival offset");
+
+        Session late(dir, Session::Mode::WholeSession);
+        late.seam(observed(2, false));
+        for (unsigned f = 3; f <= 6; ++f) {
+            check(hold(late) == (0x100u | f), "long arrival consumes recorded arrival reads in order");
+            auto unstable = observed(2, false); unstable.x = 1000; unstable.grounded = false;
+            check(late.seam(unstable).kind == Step::Kind::None && !late.gaveUp(),
+                  "non-interactive cinematic positions are not compared per frame");
+        }
+        for (unsigned wait = 0; wait < 2; ++wait) {
+            check(hold(late) == 0, "long arrival waits neutrally before gameplay input");
+            late.seam(observed(2, false));
+        }
+        check(hold(late) == 0, "recorded gameplay input is held until actual play-ready");
+        step = late.seam(observed(6, true));
+        check(step.kind == Step::Kind::Start && late.acknowledgeSeed(222), "long arrival passes exact state and RNG boundary");
+        check(late.reportJson().find("\"arrival_frame_offset\":3") != std::string::npos, "long arrival offset is reported");
+        check(hold(late) == 0x107u, "long arrival resumes at the exact first gameplay read");
+        late.seam(observed(7, true));
+
+        Session badPosition(dir, Session::Mode::WholeSession);
+        badPosition.seam(observed(2, false)); hold(badPosition);
+        auto drift = observed(6, true); drift.x += 0.001f;
+        check(badPosition.seam(drift).kind == Step::Kind::GaveUp &&
+              badPosition.report()[0].firstDivergenceWhy == "position bits at play-ready",
+              "play-ready rejects even sub-tolerance float-bit differences");
+        Session badSeed(dir, Session::Mode::WholeSession);
+        badSeed.seam(observed(2, false)); hold(badSeed); badSeed.seam(observed(6, true));
+        check(!badSeed.acknowledgeSeed(223) && badSeed.gaveUp(), "wrong RNG read-back fails closed");
+        Session missingSeed(dir, Session::Mode::WholeSession);
+        missingSeed.seam(observed(2, false)); hold(missingSeed); missingSeed.seam(observed(6, true));
+        hold(missingSeed);
+        check(missingSeed.seam(observed(7, true)).kind == Step::Kind::GaveUp,
+              "missing RNG read-back cannot continue gameplay");
+    }
     fs::remove_all(base);
     std::printf("tape play session checks passed (%d)\n", checks);
 }

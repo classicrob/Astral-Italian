@@ -30,10 +30,20 @@ HOME = Path.home()
 ROOT = HOME / "MacioGalaxy2-gamedata/port53/m1g"
 SEED = HOME / "MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
 DISC = HOME / "MacioGalaxy2-gamedata/SB4E01-extracted"
+ANCHOR_POLICY = {
+    "id": "interactive-and-play-ready-v1",
+    "authority": "PORT ruling 2026-10-24 on non-interactive Starship arrival timing",
+    "interactive": "Strict per-frame comparison in title, FileSelect, galaxy map, scenario selection and gameplay after play-ready.",
+    "arrival": "Feed recorded reads from scene-ready without per-frame state comparison through non-interactive arrival; wait neutrally if recorded arrival reads end first.",
+    "play_ready": "Require stage/scenario/valid/alive/grounded and float32 position bits to match; restore recorded RNG, verify immediate read-back, re-anchor reads to play-ready.",
+    "evidence": "Per-scene scene/play-ready anchors, actual and recorded frames, offsets, exact state and RNG read-back.",
+    "normal533_checks": "Unchanged.",
+}
 CHECKS = ("scene_chain", "destination_300_consecutive_valid", "no_faults",
           "no_invalid_worldmap_request", "existing_unlocked_file1", "seed_unchanged",
           "binary_unchanged", "no_divergence", "whole_session_replay", "replay_completed",
-          "lossless_tape", "tape_unchanged", "game_pointer_buffers_compared")
+          "lossless_tape", "tape_unchanged", "game_pointer_buffers_compared",
+          "anchor_policy_applied", "play_ready_state_checks")
 
 
 def sha(path):
@@ -79,10 +89,18 @@ def evaluate(rows, log, replay):
         "replay_completed": complete,
         "game_pointer_buffers_compared": bool(segments) and replay.get("mode") == "whole-session" and all(
             s.get("pointer_rows_compared") == s.get("tape_frames", -1) for s in segments),
+        "anchor_policy_applied": replay.get("anchor_policy") == ANCHOR_POLICY["id"],
+        "play_ready_state_checks": bool(segments) and all(s.get("play_ready_required") is False or
+            (s.get("play_ready_required") is True and
+             all((s.get("play_ready_state_check") or {}).get(k) is True for k in ("checked", "passed", "position_bit_exact")) and
+             ((s.get("play_ready_state_check") or {}).get("rng") or {}).get("verified") is True) for s in segments),
     }
     return checks, {"stage_order": order, "destination_max_consecutive_valid": best,
                     "faults": faults[:20], "first_divergence": divergence,
                     "replay_stopped": replay.get("stopped"),
+                    "scene_anchors": [{k: s.get(k) for k in ("stage", "scenario", "anchor", "scene_anchor_recorded_frame",
+                        "scene_anchor_replay_frame", "scene_anchor_frame_offset", "comparison_anchor",
+                        "play_ready_required", "play_ready_state_check")} for s in segments],
                     "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_rows_compared", "pointer_source",
                         "last_pointer_recorded", "last_pointer_replayed", "last_pointer_valid")} for s in segments]}
 
@@ -140,6 +158,7 @@ def main(argv=None):
     cmd = [str(exe), "--disc", str(DISC), "--user", str(case / "user"), "--replay-tape", str(tape)]
     checks = dict.fromkeys(CHECKS, False)
     result = {"passed": False, "checks": checks, "source": a.source, "build_kind": a.build_kind,
+              "anchor_policy": ANCHOR_POLICY, "gate_script_sha256": sha(Path(__file__)),
               "binary_sha256": a.sha256, "tape_exe_sha256": meta.get("exe_sha256"),
               "tape_exe_hash_matches_app": meta.get("exe_sha256") == a.sha256,
               "hash_comparison_gated": False, "tape": str(tape), "case": str(case), "bundle_id": bundle,

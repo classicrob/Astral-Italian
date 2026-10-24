@@ -290,8 +290,12 @@ void recordRouteFrame(bool background) {
                 state.pointerValid = sample->dpd_valid_fg;
             }
         }
-        const auto step = TapePlay::seam(state);
-        if (step.kind == TapePlay::Step::Kind::Start && step.restoreSeed && system && system->mObjHolder) system->mObjHolder->mRandom.mSeed = step.seed;
+        if (system && system->mObjHolder) { state.rngObserved = true; state.rngSeed = system->mObjHolder->mRandom.mSeed; }
+        auto step = TapePlay::seam(state);
+        if (step.kind == TapePlay::Step::Kind::Start && step.restoreSeed && system && system->mObjHolder) {
+            system->mObjHolder->mRandom.mSeed = step.seed;
+            if (!TapePlay::acknowledgeSeed(system->mObjHolder->mRandom.mSeed)) step.kind = TapePlay::Step::Kind::GaveUp;
+        }
         if (step.kind == TapePlay::Step::Kind::Warp) {
             // A jump cut to the next segment's galaxy: the game's own stage change (what the Level Select warp calls), taken from
             // wherever the game is (the world map included). The name must outlive the move: PlayerLaunch::warpStage.

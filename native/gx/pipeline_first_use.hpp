@@ -20,6 +20,7 @@ class Recorder {
     bool opened = false, finished = false, failed = false;
     std::string stage;
     std::uint64_t visit = 0, origin = UINT64_MAX, records = 0;
+    std::uint64_t firstFrame = UINT64_MAX, lastFrame = 0, transitions = 0, lookups = 0;
     std::set<std::uint64_t> seen;
 
     void open() {
@@ -31,8 +32,8 @@ class Recorder {
             std::fputs("[gx first use] cannot create capture; observations unavailable\n", stderr);
             return;
         }
-        std::fputs("{\"event\":\"header\",\"version\":1,\"gx_config_version\":13,"
-                   "\"clock\":\"fifo-renderer-frame-id\",\"source\":\"find_pipeline-before-memo\"}\n", file);
+        std::fputs("{\"event\":\"header\",\"version\":2,\"gx_config_version\":13,"
+                   "\"clock\":\"active-frame-packet-id\",\"source\":\"find_pipeline-before-memo\"}\n", file);
     }
 public:
     void begin(const std::string& name) {
@@ -42,7 +43,12 @@ public:
     }
     void note(std::uint64_t config, std::uint64_t frame) {
         std::lock_guard lock{mutex};
-        if (finished || stage.empty() || frame == UINT64_MAX || !seen.insert(config).second) return;
+        if (finished || stage.empty() || frame == UINT64_MAX) return;
+        if (firstFrame == UINT64_MAX) firstFrame = frame;
+        if (lookups && frame < lastFrame) failed = true;
+        if (lookups && frame != lastFrame) ++transitions;
+        lastFrame = frame; ++lookups;
+        if (!seen.insert(config).second) return;
         open();
         if (!file) return;
         if (origin == UINT64_MAX) origin = frame;
@@ -60,8 +66,13 @@ public:
         open(); finished = true;
         if (!file) return;
         if (std::ferror(file)) failed = true;
-        std::fprintf(file, "{\"event\":\"end\",\"complete\":%s,\"records\":%llu}\n",
-                     failed ? "false" : "true", (unsigned long long)records);
+        const bool advanced = firstFrame != UINT64_MAX && lastFrame > firstFrame && transitions;
+        failed |= !advanced;
+        std::fprintf(file, "{\"event\":\"end\",\"complete\":%s,\"records\":%llu,"
+                     "\"clock_first_frame\":%llu,\"clock_last_frame\":%llu,\"clock_transitions\":%llu,\"lookup_calls\":%llu}\n",
+                     failed ? "false" : "true", (unsigned long long)records,
+                     (unsigned long long)firstFrame, (unsigned long long)lastFrame,
+                     (unsigned long long)transitions, (unsigned long long)lookups);
         if (std::fclose(file) != 0) failed = true;
         file = nullptr;
         std::fprintf(stderr, "[gx first use] complete=%u records=%llu\n", !failed, (unsigned long long)records);

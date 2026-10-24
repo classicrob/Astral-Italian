@@ -652,8 +652,10 @@ only the `.ips` files it created from DiagnosticReports.
 
 ## 5.4.2 cold title and frame-deadline evidence
 
-`PETARI_PIPELINE_RECORD_FIRST_USE=/new/owned/path.jsonl` records actual FIFO renderer frame IDs at the first GX pipeline lookup,
-before memoization. Each scene visit has its own origin; the JSONL normal-exit footer is required. This is a separate recording
+`PETARI_PIPELINE_RECORD_FIRST_USE=/new/owned/path.jsonl` records the active frame packet ID at the first GX pipeline lookup,
+before memoization. Each scene visit has its own origin; the JSONL v2 normal-exit footer also proves that the clock advanced across lookups.
+The frame comes directly from recording.cpp's process-wide active packet, which pipeline_ref also reads. A thread-local copy
+set by begin_frame is not valid across the native game threads. Version1 zero-clock captures are rejected, never repaired. This is a separate recording
 build, not a release performance run. The recording runner primes and records two warm captures for every scenario-1 stage;
 all explicit per-config frame groups must agree exactly. Raw captures and executable provenance stay outside the seed pack.
 The dedicated no-input title pair runs for at least 300 seconds, because a short direct-stage frontend visit misses later title

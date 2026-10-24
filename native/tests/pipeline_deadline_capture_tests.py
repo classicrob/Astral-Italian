@@ -14,11 +14,12 @@ class Captures(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.path = Path(self.tmp.name) / 'capture.jsonl'
-        self.rows = [{'event': 'header', 'version': 1, 'gx_config_version': 13,
-                      'clock': 'fifo-renderer-frame-id', 'source': 'find_pipeline-before-memo'},
+        self.rows = [{'event': 'header', 'version': 2, 'gx_config_version': 13,
+                      'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo'},
                      {'event': 'first_use', 'stage': 'A', 'visit': 1, 'origin_frame': 480,
                       'frame': 480, 'relative_frame': 0, 'config': '0000000000000001'},
-                     {'event': 'end', 'complete': True, 'records': 1}]
+                     {'event': 'end', 'complete': True, 'records': 1, 'clock_first_frame': 480,
+                      'clock_last_frame': 490, 'clock_transitions': 1, 'lookup_calls': 2}]
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -44,6 +45,14 @@ class Captures(unittest.TestCase):
 
     def test_wrong_clock(self):
         self.rows[0]['clock'] = 'host-time'
+        with self.assertRaises(ValueError): self.read()
+
+    def test_frozen_clock_rejected(self):
+        self.rows[-1].update(clock_last_frame=480, clock_transitions=0)
+        with self.assertRaises(ValueError): self.read()
+
+    def test_old_zero_clock_protocol_rejected(self):
+        self.rows[0].update(version=1, clock='fifo-renderer-frame-id')
         with self.assertRaises(ValueError): self.read()
 
     def test_incomplete(self):

@@ -2,8 +2,12 @@
 #include "gx.hpp"
 
 namespace aurora::gx {
+struct DrawData;
 bool petari_uber_enabled();
 bool petari_uber_all();
+bool petari_uber_diagnostics();
+bool petari_uber_needs_uniform(gfx::PipelineRef, bool& specializedReady);
+bool petari_uber_select_pipeline(const DrawData&, gfx::CompiledPipeline&, bool& uber);
 const char* petari_uber_reason(const ShaderConfig&);
 gfx::Range petari_uber_uniform(const ShaderConfig&);
 enum class PetariUberTier { Generic, Fast };
@@ -34,4 +38,8 @@ uint32_t petari_uber_variant(const ShaderConfig&);
 uint32_t petari_uber_variant(const ShaderConfig&, PetariUberTier);
 uint32_t petari_uber_arg_program(const ShaderConfig&);
 wgpu::ShaderModule petari_uber_shader(const ShaderConfig&, DstAlphaMode, uint32_t);
+}
+namespace aurora::gfx {
+// A read-only specialised readiness probe: no fallback lookup, copy or skip counters.
+bool petari_specialized_ready(PipelineRef);
 }

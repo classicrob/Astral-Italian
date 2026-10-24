@@ -18,6 +18,48 @@ thread_local PetariUberTier petariBuildingUberTier = PetariUberTier::Fast;
 thread_local double petariUberShaderMs = 0;
 bool petari_uber_enabled() { static const bool b = [] { return PetariNative::Ubershaders::resolve(std::getenv("PETARI_UBERSHADER")).mode != PetariNative::Ubershaders::Mode::Off; }(); return b; }
 bool petari_uber_all() { static const bool b = [] { auto p = std::getenv("PETARI_UBERSHADER"); return p && std::strcmp(p,"all")==0; }(); return b; }
+bool petari_uber_diagnostics() {
+  static const bool enabled = [] {
+    const auto on = [](const char* key) { auto p = std::getenv(key); return p && std::strcmp(p,"1")==0; };
+    return on("PETARI_UBERSHADER_DIAG") || on("PETARI_PIPELINE_DIAG");
+  }();
+  return enabled;
+}
+bool petari_uber_needs_uniform(gfx::PipelineRef key, bool& specializedReady) {
+  if (!petari_uber_enabled()) return false;
+  if (petari_uber_all()) return true;
+  // Published specialised pipelines remain ready for the device/cache lifetime.
+  if (!specializedReady) specializedReady = gfx::petari_specialized_ready(key);
+  return !specializedReady;
+}
+bool petari_uber_select_pipeline(const DrawData& data, gfx::CompiledPipeline& pipeline, bool& uber) {
+  uber = false;
+  const bool enabled = petari_uber_enabled();
+  const bool covered = data.uberUniformOffset != UINT32_MAX;
+  const bool force = enabled && covered && petari_uber_all();
+  if (!force && gfx::get_pipeline(data.pipeline, pipeline)) {
+    if (enabled) petari_uber_draw(false, false, false, false);
+    return true;
+  }
+  if (enabled && covered) {
+    bool fast = false;
+    const auto key = petari_uber_lookup(data.pipeline, &fast);
+    if (petari_uber_ready(key, pipeline)) {
+      uber = true;
+      petari_uber_draw(true, force, false, fast);
+      return true;
+    }
+    petari_uber_not_ready(key);
+    // Forced mode retains the existing specialised wait/skip when fallback prep
+    // is pending. A native pipeline can become ready between record and encode.
+    if (force && gfx::get_pipeline(data.pipeline, pipeline)) {
+      petari_uber_draw(false, false, true, false);
+      return true;
+    }
+    petari_uber_not_ready(key, true);
+  }
+  return false;
+}
 const char* petari_uber_reason(const ShaderConfig& c) {
   if (c.lineMode) return "primitive";
   switch(c.fogType) {
@@ -76,7 +118,7 @@ std::atomic<uint64_t> uberGenericFrames{0},uberFastFrames{0},uberMixedFrames{0},
 std::atomic<uint64_t> uberDraws{0},uberCovered{0},uberFallback{0},uberForced{0},uberSpecialized{0},uberMissing{0};
 }
 void petari_uber_note(const ShaderConfig& c) {
-  if(!petari_uber_enabled()) return;
+  if(!petari_uber_enabled() || !petari_uber_diagnostics()) return;
   ++uberDraws; const auto reason=petari_uber_reason(c); const bool covered=std::strcmp(reason,"covered")==0; uberCovered+=covered;
   const auto key=xxh3_hash(c); std::lock_guard lock(uberMutex);
   if(uberConfigs.emplace(key,covered).second) std::fprintf(stderr,"[gx uber config] config=%016llx covered=%u reason=%s\n",(unsigned long long)key,covered,reason);

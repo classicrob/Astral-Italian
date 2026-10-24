@@ -19,6 +19,9 @@ else:
   text=f'#include "{header}"\n#include "{here / "ubershader.hpp"}"\n'+text
  if kind in ('frame','recording'):
   text='#include <cstdlib>\n#include <cstring>\n'+text
+  # This is the shared dynamic binding span and once-per-pass trailing padding,
+  # NOT a per-draw allocation. push_uniform allocates its actual input length.
+  # Every draw uses that binding; its span must accommodate a fallback uniform.
   size='(gx::petari_uber_enabled() ? 5120u : gx::MaxUniformSize)'
   text=text.replace('gx::MaxUniformSize',size)
  if kind=='shader':
@@ -31,43 +34,39 @@ else:
   replace('    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);', '    gx::petari_uber_begin_frame(g_framePackets[frameSlot].frameId);\n    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);')
   replace('    auto& packet = g_framePackets[frameSlot];','    gx::petari_uber_end_frame();\n    auto& packet = g_framePackets[frameSlot];')
  if kind=='command_processor':
+  replace('  bool hasPipeline = false;', '  bool hasPipeline = false;\n  bool specializedReady = false;')
+  replace('    cache.pipelineRef = gfx::pipeline_ref(cache.config);', '    cache.pipelineRef = gfx::pipeline_ref(cache.config);\n    cache.specializedReady = false;')
   replace('  gfx::Range uniformRange{};','  gfx::Range uniformRange{};\n  gfx::Range uberUniformRange{};')
   replace('    cache.uniformRange = build_uniform(cache.shaderInfo);','''    cache.uniformRange = build_uniform(cache.shaderInfo);
     cache.uberUniformRange = {};
-    if (petari_uber_enabled() && std::strcmp(petari_uber_reason(cache.config.shaderConfig), "covered") == 0)
+    if (petari_uber_needs_uniform(cache.pipelineRef, cache.specializedReady) &&
+        std::strcmp(petari_uber_reason(cache.config.shaderConfig), "covered") == 0)
       cache.uberUniformRange = petari_uber_uniform(cache.config.shaderConfig);''')
   replace('  gfx::push_draw_command(DrawData{','  petari_uber_note(cache.config.shaderConfig);\n  gfx::push_draw_command(DrawData{')
   replace('      .uniformRange = cache.uniformRange,','      .uniformRange = cache.uniformRange,\n      .uberUniformOffset = cache.uberUniformRange.size ? cache.uberUniformRange.offset : UINT32_MAX,')
  if kind=='pipeline':
   replace('''  if (!gfx::get_pipeline(data.pipeline, pipeline)) {
     return;
-  }''','''  const bool covered = data.uberUniformOffset != UINT32_MAX;
-  bool fast = false;
-  auto uberKey = covered ? petari_uber_lookup(data.pipeline, &fast) : 0;
-  gfx::CompiledPipeline available;
-  bool fallbackReady = covered && petari_uber_ready(uberKey, available);
-  bool uber = false;
-  const bool force = petari_uber_enabled() && petari_uber_all() && covered;
-  const bool missing = petari_uber_enabled() && covered && !fallbackReady;
-  if (missing) petari_uber_not_ready(uberKey);
-  if (force && fallbackReady) { pipeline = available; uber = true; }
-  if (!uber && !gfx::get_pipeline(data.pipeline, pipeline)) {
-    if (!fallbackReady && covered) {
-      uberKey = petari_uber_lookup(data.pipeline, &fast);
-      fallbackReady = petari_uber_ready(uberKey, available);
-    }
-    if (!fallbackReady) {
-      if (missing) petari_uber_not_ready(uberKey, true);
-      return;
-    }
-    pipeline = available;
-    uber = true;
-  }
-  if (petari_uber_enabled()) {
-    petari_uber_draw(uber, force && uber, missing, fast);
-  }''')
+  }''','''  bool uber = false;
+  if (!petari_uber_select_pipeline(data, pipeline, uber)) return;''')
   replace('  const std::array offsets{data.uniformRange.offset};','  const std::array offsets{uber ? data.uberUniformOffset : data.uniformRange.offset};')
  if kind=='cache':
+  replace('bool get_pipeline(PipelineRef ref, CompiledPipeline& pipeline) {','''bool petari_specialized_ready(PipelineRef ref) {
+  // Readiness remains true until cache shutdown. Avoid adding a record-thread
+  // pipeline mutex to every warm draw/config change; use the existing generation
+  // invalidation, but cache only non-null GPU pipelines (never failed entries).
+  static thread_local std::array<PetariFastPipeline::Entry, PetariFastPipeline::kEntries> ready;
+  const auto generation = PetariFastPipeline::current();
+  auto& entry = ready[(ref ^ (ref >> 32)) & (PetariFastPipeline::kEntries - 1)];
+  if (entry.key == ref && entry.generation == generation) return true;
+  std::lock_guard guard{g_pipelineMutex};
+  const auto it = g_pipelines.find(ref);
+  if (it == g_pipelines.end() || !it->second.main) return false;
+  entry = {ref, generation};
+  return true;
+}
+
+bool get_pipeline(PipelineRef ref, CompiledPipeline& pipeline) {''')
   text=f'#include <type_traits>\n#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
   # Emit exact pending key membership before a complete-scene wait. Normal
   # pipeline diagnostics do not retain that vector after the frame completes.

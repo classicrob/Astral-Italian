@@ -48,6 +48,18 @@ def prep():
        'bundle_id':ID,'resource_tree':tree(app/'Contents/Resources'),'frozen_tree_sha256':hashlib.sha256(json.dumps(before,sort_keys=True).encode()).hexdigest()}
  write(meta,data);return app,data
 
+def prep_dev(src,expected,source):
+ src=Path(src).resolve();assert src.is_relative_to(REPO/'build') and re.fullmatch('[0-9a-f]{40}',source)
+ assert sha(src/'Contents/MacOS/Petari')==expected
+ dest=ROOT/'apps'/('dev-input-'+expected[:12]+'-perfm1a');app=dest/'Petari.app'
+ if not dest.exists():
+  disk();dest.mkdir(parents=True);subprocess.run(['/usr/bin/ditto',str(src),str(app)],check=True)
+  subprocess.run(['/usr/libexec/PlistBuddy','-c',f'Set :CFBundleIdentifier {ID}',str(app/'Contents/Info.plist')],check=True)
+  subprocess.run(['codesign','--force','--deep','-s','-',str(app)],check=True,capture_output=True)
+  write(dest/'PREP.json',{'build_kind':'dev-m1','source':source,'source_app':str(src),'source_exe_sha256':expected,'perf_exe_sha256':sha(app/'Contents/MacOS/Petari'),'bundle_id':ID,'resources_identical':tree(app/'Contents/Resources')==tree(src/'Contents/Resources'),'frozen54_acceptance':False})
+ meta=json.loads((dest/'PREP.json').read_text());assert meta['source']==source and meta['source_exe_sha256']==expected and meta['resources_identical'] and sha(app/'Contents/MacOS/Petari')==meta['perf_exe_sha256']
+ return app,meta
+
 @contextlib.contextmanager
 def native_lock():
  LOCK.parent.mkdir(parents=True,exist_ok=True)
@@ -104,10 +116,11 @@ def rows(path):
 
 FAULT = re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|more than 2 GiB|unhandled tcg| in ".*" on line \d+\.')
 
-def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False):
+def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0):
  """The lock covers cache clearing, app lifetime and cleanup; terminate only this Popen PID."""
  out=Path(out);assert not out.exists(),out
  app=Path(app);exe=app/'Contents/MacOS/Petari'
+ assert nice in (0,19) and 0<=load_workers<=4
  assert ID == subprocess.check_output(['/usr/libexec/PlistBuddy','-c','Print :CFBundleIdentifier',str(app/'Contents/Info.plist')],text=True).strip()
  with native_lock():
   disk();out.mkdir(parents=True);wait_quiet(out/'quiet.json')
@@ -128,26 +141,39 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
   env.update(extra or {})
   command=[str(exe),'--disc',str(DISC),'--user',str(user)]
   if stage:command+=['--stage',stage,'--scenario',str(scenario)]
+  if nice:command=['/usr/bin/nice','-n',str(nice),*command]
   before=sha(exe);start=time.monotonic(); timed_out=False
   info={'command':command,'environment':{k:v for k,v in env.items() if k.startswith(('PETARI_','SDL_','THRPROBE_','DYLD_'))},'app_sha256':before,'host':platform.node(),'machine':platform.machine(),'nice':os.getpriority(os.PRIO_PROCESS,0),'cold_metal_cleared':cold,'warm_from':str(warm) if warm else None,'free_bytes':disk(),'load':os.getloadavg(),'start_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'bound_seconds':seconds,'bound_intentional':bound}
   write(out/'launch.json',info)
-  with (out/'app.log').open('wb') as log:
-   p=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-   info['pid']=p.pid
-   try:info['child_nice_at_spawn']=os.getpriority(os.PRIO_PROCESS,p.pid)
-   except ProcessLookupError:info['child_nice_at_spawn']=None
-   write(out/'launch.json',info)
-   try:p.wait(timeout=seconds)
-   except subprocess.TimeoutExpired:
-    timed_out=True;p.terminate()
-    try:p.wait(timeout=20)
-    except subprocess.TimeoutExpired:p.kill();p.wait()
-   except BaseException:
-    if p.poll() is None:
-     p.terminate()
+  loads=[]
+  try:
+   for _ in range(load_workers):loads.append(subprocess.Popen(['/usr/bin/yes'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL))
+   info.update(requested_app_nice=nice,controlled_cpu_load_pids=[p.pid for p in loads],controlled_cpu_load_workers=load_workers)
+   with (out/'app.log').open('wb') as log:
+    p=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+    info['pid']=p.pid
+    if nice:time.sleep(.05)
+    try:info['child_nice_at_spawn']=os.getpriority(os.PRIO_PROCESS,p.pid)
+    except ProcessLookupError:info['child_nice_at_spawn']=None
+    write(out/'launch.json',info)
+    try:p.wait(timeout=seconds)
+    except subprocess.TimeoutExpired:
+     timed_out=True;p.terminate()
      try:p.wait(timeout=20)
      except subprocess.TimeoutExpired:p.kill();p.wait()
-    raise
+    except BaseException:
+     if p.poll() is None:
+      p.terminate()
+      try:p.wait(timeout=20)
+      except subprocess.TimeoutExpired:p.kill();p.wait()
+     raise
+  finally:
+   for worker in loads:
+    if worker.poll() is None:worker.terminate()
+   for worker in loads:
+    try:worker.wait(timeout=5)
+    except subprocess.TimeoutExpired:worker.kill();worker.wait()
+   write(out/'controlled-load.json',{'owned_pids':[p.pid for p in loads],'all_reaped':all(p.poll() is not None for p in loads)})
   text=(out/'app.log').read_text(errors='replace')
   res={'exit':p.returncode,'timed_out':timed_out,'seconds':round(time.monotonic()-start,3),'binary_unchanged':sha(exe)==before,'seed_unchanged':not copied or tree(FIXTURE)==seed_before,'no_faults':not FAULT.search(text),'load_end':os.getloadavg(),'completed':p.returncode==0 and (bound or not timed_out)}
   write(out/'process.json',res)

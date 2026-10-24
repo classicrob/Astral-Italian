@@ -23,8 +23,9 @@ int main(int argc,char** argv) {
         PetariNative::App::RouteRecordWriter writer;
         require(writer.open(TR::routePath(),false),"open CSV");
         TR::Seam seam; seam.scene="Game"; seam.stage="TestGalaxy"; seam.scenario=1; seam.initEnd=true; seam.seedValid=true;
+        KPADStatus empty{}; // the tape preserves slot zero even when KPAD returns zero samples
         for(unsigned i=0;i<307;++i) {
-            if(i) KP::read(0,120,0,0,0,0,nullptr);
+            if(i) KP::read(0,120,0,0,0,0,&empty);
             PetariNative::App::RouteRecordFrame row; row.stage="TestGalaxy"; row.valid=true; row.x=i;
             writer.write(row); TR::seam(seam);
         }

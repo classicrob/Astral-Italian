@@ -24,7 +24,7 @@ bash gate53/m1gates/m1gates54.sh tape-candidate-r1 --only tape \
   --allow-incomplete-tape
 ```
 
-`--allow-incomplete-tape` is only for the server recording harness's explicitly documented termination checkpoint. SOL B's runner owns tape validation and labels its use. Candidate results never satisfy frozen54 executable identity.
+`--allow-incomplete-tape` is only for the server recording harness's explicitly documented termination checkpoint. SOL B's runner owns tape validation and labels its use. Candidate results never satisfy frozen54 executable identity. Add `--candidate-original-app /absolute/path/under/m1g/candidates/Petari.app --candidate-original-sha FULL_ORIGINAL_EXE_SHA256` to run the intro-skip twins and fresh/warm pointer replay adapters too; they copy the server candidate to SOL A’s perfm1a namespace.
 
 Evidence is under `~/MacioGalaxy2-gamedata/port53/m1g/`:
 
@@ -40,5 +40,7 @@ Revalidate evidence without running GX:
 python3 -B gate53/m1gates/receipts54m.py CAMPAIGN_DIR NEW_RECEIPT_DIR
 python3 -B gate53/m1gates/test_gate_validation.py
 ```
+
+Stage files also record reference stall diagnostics for the image/off and warm-prime arms. Image and warm-cost verdicts use their own reference criteria; the off image arm is expected to compile pipelines synchronously. These diagnostics do not replace the nine required cold-stall runs.
 
 The reference gate parsers (`gate533.py`, `imgdiff54.py`, `warmpairs54.py`) and thread probe are copied from the server's `srv-ref`, not the older M1 copies. Missing phase data and incomplete game processes are rejected in addition to reference thresholds. The M1 rechecks release Wii source lineage; it does not claim a new Wii build or redispatch the release oracle.

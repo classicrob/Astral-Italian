@@ -143,7 +143,8 @@ if(NOT _petari_app_standalone)
     endif()
     if(IS_DIRECTORY "${PETARI_PIPELINE_STAGE_SEEDS}")
         file(GLOB _petari_stage_seeds CONFIGURE_DEPENDS
-            "${PETARI_PIPELINE_STAGE_SEEDS}/*.db" "${PETARI_PIPELINE_STAGE_SEEDS}/*.json")
+            "${PETARI_PIPELINE_STAGE_SEEDS}/*.db" "${PETARI_PIPELINE_STAGE_SEEDS}/*.json"
+            "${PETARI_PIPELINE_STAGE_SEEDS}/*.first-use.bin")
         list(FILTER _petari_stage_seeds EXCLUDE REGEX "/\\.seedpack\\.json$")
         foreach(_seed IN LISTS _petari_stage_seeds)
             get_filename_component(_seed_name "${_seed}" NAME)

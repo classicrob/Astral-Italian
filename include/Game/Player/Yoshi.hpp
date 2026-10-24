@@ -244,7 +244,7 @@ public:
     void fn_8040EF40();
     void fn_8040EFB0();
     void fn_8040EE00(const char*);
-    bool fn_8040F450(const char*);
+    bool fn_8040F450(const char*) const;
     bool fn_8040F490(const char*);
     bool fn_8040F540(const char*);
     bool fn_8040F570();
@@ -252,7 +252,7 @@ public:
     bool fn_8040F0E0() const;
     void fn_8040F370();
     void fn_8040F320();
-    bool fn_8040F5B0(const char*);
+    bool fn_8040F5B0(const char*) const;
     f32 fn_8040F620() const;
     void setTransformFromMtx(const f32 (*)[4]);
     void fn_80410570(f32);

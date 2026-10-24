@@ -28,10 +28,8 @@ public:
     void exePause();
     bool appearItem();
 
-    // NONMATCHING: target compiles this range test as an inlined cmpwi/ble/cmpwi/bge into a bool temp; the plain
-    // `return` form here folds to a single cmplwi (init/initAfterPlacement/isCalcShadowAlways lose a few rows).
     inline bool isShadowValid(s32 val) const {
-        return val > -1 && val < 2;
+        return -1 < val && val < 2;
     }
 
     /* 0xD0 */ f32 mRotateSpeed;

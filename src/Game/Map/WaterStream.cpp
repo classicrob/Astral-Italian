@@ -138,13 +138,13 @@ f32 WaterStream::calcNearestPos(const TVec3f& rPos, TVec3f* pPos, TVec3f* pDir, 
     f32 coord = MR::calcNearestRailCoord(this, rPos);
     MR::calcRailPosAtCoord(pPos, this, coord);
     if (pSide != NULL) {
-        TVec3f railPos;
         TVec3f railDir;
+        TVec3f railPos;
         MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, coord);
         TVec3f up(0.0f, -1.0f, 0.0f);
         MR::calcGravityVector(this, railPos, &up, NULL, 0);
-        TVec3f invUp = -up;
         TVec3f cross;
+        TVec3f invUp = -up;
         PSVECCrossProduct(&MR::getRailDirection(this), &invUp, &cross);
         f32 halfWidth = mWidth * calcCurrentWidthRate(coord);
         TVec3f offsetA = cross;

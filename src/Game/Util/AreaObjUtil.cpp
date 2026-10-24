@@ -237,12 +237,7 @@ namespace MR {
             if (end.y == start.y) return false;
             f32 rate = (cube->mBounding.f.y - start.y) / (end.y - start.y);
             if (rate < 0.0f || rate > 1.0f) return false;
-            TVec3f delta(end);
-            delta -= start;
-            TVec3f scaled(delta);
-            scaled.scale(rate);
-            TVec3f hit(scaled);
-            hit += start;
+            TVec3f hit = (end - start).scaleInline(rate) + start;
             return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
                    hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
         }
@@ -261,12 +256,7 @@ namespace MR {
             if (end.y == start.y) return false;
             f32 rate = (cube->mBounding.i.y - start.y) / (end.y - start.y);
             if (rate < 0.0f || rate > 1.0f) return false;
-            TVec3f delta(end);
-            delta -= start;
-            TVec3f scaled(delta);
-            scaled.scale(rate);
-            TVec3f hit(scaled);
-            hit += start;
+            TVec3f hit = (end - start).scaleInline(rate) + start;
             return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
                    hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
         }

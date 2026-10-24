@@ -192,7 +192,8 @@ void calc_mpls_dir(KMPLSState* state) {
     Vec originalY = state->sample.direction.Y;
     Vec originalX = state->sample.direction.X;
     Vec originalZ;
-    Vec xAfterY, yAfterX;
+    f32 xAfterYx, xAfterYy, xAfterYz;
+    f32 yAfterXx, yAfterXy, yAfterXz;
     f32 x = state->rotationStep * state->sample.angularVelocity.x;
     f32 y = state->rotationStep * state->sample.angularVelocity.y;
     f32 z;
@@ -209,26 +210,26 @@ void calc_mpls_dir(KMPLSState* state) {
     stepX *= state->radiansPerSample * x;
     stepY *= state->radiansPerSample * y;
     originalZ = state->sample.direction.Z;
-    state->sample.direction.Z.x = (originalZ.x - stepX * originalY.x) + stepY * originalX.x;
-    state->sample.direction.Z.y = (originalZ.y - stepX * originalY.y) + stepY * originalX.y;
-    state->sample.direction.Z.z = (originalZ.z - stepX * originalY.z) + stepY * originalX.z;
-    xAfterY.x = originalX.x - stepY * originalZ.x;
-    xAfterY.y = originalX.y - stepY * originalZ.y;
-    xAfterY.z = originalX.z - stepY * originalZ.z;
-    yAfterX.x = originalY.x + stepX * originalZ.x;
-    yAfterX.y = originalY.y + stepX * originalZ.y;
-    yAfterX.z = originalY.z + stepX * originalZ.z;
+    state->sample.direction.Z.x = (state->sample.direction.Z.x - stepX * originalY.x) + stepY * originalX.x;
+    state->sample.direction.Z.y = (state->sample.direction.Z.y - stepX * originalY.y) + stepY * originalX.y;
+    state->sample.direction.Z.z = (state->sample.direction.Z.z - stepX * originalY.z) + stepY * originalX.z;
+    xAfterYx = state->sample.direction.X.x - stepY * originalZ.x;
+    xAfterYy = state->sample.direction.X.y - stepY * originalZ.y;
+    xAfterYz = state->sample.direction.X.z - stepY * originalZ.z;
+    yAfterXx = state->sample.direction.Y.x + stepX * originalZ.x;
+    yAfterXy = state->sample.direction.Y.y + stepX * originalZ.y;
+    yAfterXz = state->sample.direction.Y.z + stepX * originalZ.z;
     z = state->rotationStep * state->sample.angularVelocity.z;
     degreesZ = state->degreesPerSample * z;
     degreesZ *= degreesZ;
     stepZ = 1.0f + 0.0001f * degreesZ;
     stepZ *= state->radiansPerSample * z;
-    state->sample.direction.X.x = xAfterY.x + stepZ * originalY.x;
-    state->sample.direction.X.y = xAfterY.y + stepZ * originalY.y;
-    state->sample.direction.X.z = xAfterY.z + stepZ * originalY.z;
-    state->sample.direction.Y.x = yAfterX.x - stepZ * originalX.x;
-    state->sample.direction.Y.y = yAfterX.y - stepZ * originalX.y;
-    state->sample.direction.Y.z = yAfterX.z - stepZ * originalX.z;
+    state->sample.direction.X.x = xAfterYx + stepZ * originalY.x;
+    state->sample.direction.X.y = xAfterYy + stepZ * originalY.y;
+    state->sample.direction.X.z = xAfterYz + stepZ * originalY.z;
+    state->sample.direction.Y.x = yAfterXx - stepZ * originalX.x;
+    state->sample.direction.Y.y = yAfterXy - stepZ * originalX.y;
+    state->sample.direction.Y.z = yAfterXz - stepZ * originalX.z;
     __KMPLS_normalize_directionXYZ(&state->sample.direction, 2.999f);
 }
 
@@ -240,6 +241,7 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
     Vec normalized;
     KPADMPLSDirection rotation;
     KPADMPLSDirection result;
+    f32 tolerance;
     f32 lengthSquared;
     f32 length;
     f32 weight;
@@ -250,13 +252,17 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
     if (lengthSquared == 0.0f) return 0.0f;
     length = (f32)sqrt(lengthSquared);
     if (length < 1.0f) {
-        f32 low = 1.0f - state->accelMagnitudeTolerance;
+        f32 low;
+        tolerance = state->accelMagnitudeTolerance;
+        low = 1.0f - tolerance;
         if (length <= low) return 0.0f;
-        weight = (1.0f / state->accelMagnitudeTolerance) * (length - low);
+        weight = (1.0f / tolerance) * (length - low);
     } else {
-        f32 high = 1.0f + state->accelMagnitudeTolerance;
+        f32 high;
+        tolerance = state->accelMagnitudeTolerance;
+        high = 1.0f + tolerance;
         if (length >= high) return 0.0f;
-        weight = (-1.0f / state->accelMagnitudeTolerance) * (length - high);
+        weight = (-1.0f / tolerance) * (length - high);
     }
     weight *= weight;
     weight *= state->accelCorrectionRate;

@@ -475,10 +475,7 @@ void Battan::exeBattanDown() {
         if (!MR::isHiddenModel(this)) {
             appearBattanBreakParts();
             if (mIsDropStarPiece) {
-                TVec3f off(mFront);
-                off.scale(400.0f);
-                TVec3f pos = mPosition + off;
-                MR::appearStarPiece(this, pos, 7, 10.0f, 40.0f, false);
+                MR::appearStarPiece(this, mPosition + mFront.scaleInline(400.0f), 7, 10.0f, 40.0f, false);
             }
             MR::tryHitReactionDead(this);
             MR::hideModel(this);
@@ -741,12 +738,15 @@ void Battan::appearBattanBreakParts() {
             PSMTXCopy(getBaseMtx(), mtx);
             MR::rotateMtxLocalYDegree(mtx, MR::getRandomDegree());
             mtx.getEuler(rot);
-            f32 rz = rot.z;
-            f32 ry = rot.y;
             f32 rx = rot.x;
-            rot.x = 57.29578f * rx;
-            rot.y = 57.29578f * ry;
-            rot.z = 57.29578f * rz;
+            f32 ry = rot.y;
+            f32 rz = rot.z;
+            rx = 57.29578f * rx;
+            ry = 57.29578f * ry;
+            rz = 57.29578f * rz;
+            rot.x = rx;
+            rot.y = ry;
+            rot.z = rz;
             MR::setPosition(mBreakParts[i], pos);
             MR::setRotation(mBreakParts[i], rot);
             mBreakParts[i]->appear();
@@ -864,10 +864,7 @@ void Battan::updateHitSensor(HitSensor* pSensor) {
         if (MR::normalizeOrZero(&side)) {
             side = mFront;
         }
-        TVec3f neg = -side;
-        TVec3f off(neg);
-        off.scale(100.0f);
-        MR::getSensorPos2(pSensor)->add(off);
+        MR::getSensorPos2(pSensor)->add((-side).scaleInline(100.0f));
     }
 }
 

@@ -13,8 +13,8 @@ J3DMaterialFactory::J3DMaterialFactory(J3DMaterialBlock const& i_block) {
     u16* materialID = JSUConvertOffsetToPtr< u16 >(&i_block, materialIDOffset);
     J3DBlockOffset indInitOffset = i_block.mpIndInitData;
     mpMaterialID = materialID;
-    if (indInitOffset != 0 && (uintptr_t)i_block.mpIndInitData - (uintptr_t)i_block.mpNameTable > 4) {
-        mpIndInitData = JSUConvertOffsetToPtr< J3DIndInitData >(&i_block, i_block.mpIndInitData);
+    if (indInitOffset != 0 && (uintptr_t)indInitOffset - (uintptr_t)i_block.mpNameTable > 4) {
+        mpIndInitData = JSUConvertOffsetToPtr< J3DIndInitData >(&i_block, indInitOffset);
     } else {
         mpIndInitData = nullptr;
     }

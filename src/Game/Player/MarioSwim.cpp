@@ -938,15 +938,16 @@ void MarioSwim::fn_803FA020() {
     }
     if (!mJet->mJetTimer && !mIsOnSurface && !MR::isNearZero(mWaterStreamDir, 0.001f)) {
         f32 angle = MR::diffAngleSignedHorizontal(mWaterStreamDir, mFrontVec, getPlayer()->getAirGravityVec());
-        if (angle > 1.04719758f) {
+        f32 maxAngle = JGeometry::TUtil< f32 >::PI() / 3.0f;
+        if (angle > maxAngle) {
             Mtx rotation;
-            PSMTXRotAxisRad(rotation, &mUpVec, angle - 1.04719758f);
+            PSMTXRotAxisRad(rotation, &mUpVec, angle - maxAngle);
             PSMTXMultVecSR(rotation, &mFrontVec, &mFrontVec);
             return;
         }
-        if (angle < -1.04719758f) {
+        if (angle < -maxAngle) {
             Mtx rotation;
-            PSMTXRotAxisRad(rotation, &mUpVec, -(-angle - 1.04719758f));
+            PSMTXRotAxisRad(rotation, &mUpVec, -(-angle - maxAngle));
             PSMTXMultVecSR(rotation, &mFrontVec, &mFrontVec);
         }
     }
@@ -1571,7 +1572,7 @@ bool MarioSwim::fn_803FC020() {
         f32 input = getStickY() - threshold;
         input /= 1.0f - threshold;
         f32 upperAngle;
-        f32 lowerAngle = (1.0f - input) * 2.0943952f;
+        f32 lowerAngle = (1.0f - input) * ((2.0f * JGeometry::TUtil< f32 >::PI()) / 3.0f);
         upperAngle = input;
         upperAngle *= 2.6179938f;
         mVerticalAngle = lowerAngle + upperAngle;
@@ -2346,22 +2347,19 @@ bool MarioSwim::fn_803FE7E0() {
 void MarioSwim::spin() {
     if (mJet->mJetTimer != 0) {
         if (mActor->isRequestSpin()) {
-            bool active = false;
-            if (mSpin->mSpinTimer || mSpin->mSpinDashTimer) {
-                active = true;
-            }
+            bool active;
+            MarioSwimSpin* spin = mSpin;
+            active = false;
+            if (spin->mSpinTimer || spin->mSpinDashTimer) active = true;
             if (!active) {
                 dropJet(false);
             }
         }
     } else {
-        if (mDamage->mTimer == 0) {
-            if (mZSinkTimer != 0) {
-                return;
-            } else {
-                mSpin->update();
-            }
+        if (mDamage->mTimer != 0 || mZSinkTimer != 0) {
+            return;
         }
+        mSpin->update();
     }
 }
 
@@ -3656,7 +3654,7 @@ f32 MarioSwim::fn_80402200() const {
     if (speed > 10.0f) {
         return 0.0f;
     }
-    return 1.0f - (0.125f * (speed - 2.0f));
+    return 1.0f - ((speed - 2.0f) / 8.0f);
 }
 
 f32 MarioSwim::fn_80402250() {
@@ -3868,11 +3866,9 @@ void MarioSwimJet::update(f32 factor) {
         mSwim->getPlayer()->mFlags20.mBits.mBit22 = 1;
         f32 speed = mSwim->mForwardSpeed;
         if (speed > targetSpeed) {
-            speed *= 0.95f;
-            mSwim->mForwardSpeed = speed;
+            mSwim->mForwardSpeed *= 0.95f;
         } else if (speed > (0.1f * targetSpeed)) {
-            speed *= 0.96f;
-            mSwim->mForwardSpeed = speed;
+            mSwim->mForwardSpeed *= 0.96f;
         } else {
             updateVelocity(targetSpeed);
         }
@@ -3922,7 +3918,7 @@ void MarioSwimJet::updateVelocity(f32 targetSpeed) {
         return;
     }
     if (speed > targetSpeed) {
-        mSwim->mForwardSpeed = 0.98f * speed;
+        mSwim->mForwardSpeed *= 0.98f;
         return;
     }
     mSwim->mForwardSpeed = targetSpeed;

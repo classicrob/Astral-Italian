@@ -155,8 +155,9 @@ s32 VFiPFFAT32_WriteFATEntry(struct PF_VOLUME* p_vol, u32 cluster, u32 value) {
     offset_in_sector = fat_offset & (p_vol->bpb.bytes_per_sector - 1);
 
     err = VFiPFSEC_ReadFAT(p_vol, buf, fat_sector, offset_in_sector, 4);
-    switch (err) {
-    case 0: {
+    if (err != 0) {
+        return err;
+    } else {
         {
             u32 v = *(u32*)buf;
             u32 old_swapped = (v & 0xff000000) >> 24 | (v & 0x00ff0000) >> 8 | (v & 0x0000ff00) << 8 | (v & 0x000000ff) << 24;
@@ -164,10 +165,7 @@ s32 VFiPFFAT32_WriteFATEntry(struct PF_VOLUME* p_vol, u32 cluster, u32 value) {
             *(u32*)buf = (new_val & 0xff000000) >> 24 | (new_val & 0x00ff0000) >> 8 | (new_val & 0x0000ff00) << 8 | (new_val & 0x000000ff) << 24;
         }
         err = VFiPFSEC_WriteFAT(p_vol, buf, fat_sector, offset_in_sector, 4);
-        break;
-    }
-    default:
-        break;
+        return err;
     }
 
     return err;

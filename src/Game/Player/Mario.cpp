@@ -2813,10 +2813,7 @@ void Mario::fn_803885F0() {
 // NONMATCHING: 0x274 bookkeeping approximated
 // NONMATCHING: equivalent early-exit branch orientation and stack allocation.
 void Mario::fn_803886B0() {
-    if (static_cast<u32>(mFlags20.mBits.mBit19)) {
-        return;
-    }
-    if (mActor->mBinderDirection5DC.dot(_368) >= 0.707f) {
+    if (static_cast<u32>(mFlags20.mBits.mBit19) || mActor->mBinderDirection5DC.dot(_368) >= 0.707f) {
         return;
     }
     if (MR::isNearZero(mActor->mBinderDirection5DC, 1.0f)) {
@@ -3182,26 +3179,21 @@ void Mario::fn_803896E0() {
 
 void Mario::fn_803897A0() {
     u32 temp_r4 = this->mMovementStates.mHighWord;
-    if ((temp_r4 >> 28) & 1) {
-        if (!(static_cast<u32>(this->mMovementStates.mLowBits.mBit30))) {
-            return;
-        }
-        if ((temp_r4 >> 27) & 1) {
-            if (!this->isSlipPolygon(this->_460)) {
-                return;
-            }
-            const TVec3f* nrm = this->_460->getNormal(0);
-            f32 temp_f31 = MR::vecKillElement(this->mVelocity, *nrm, &this->mVelocity);
-            nrm = this->_460->getNormal(0);
-            TVec3f sp14(this->_368);
-            sp14 -= *nrm;
-            TVec3f sp20(sp14);
-            sp20 *= 0.5f;
-            f32 temp_f31_2 = MR::abs(temp_f31);
-            TVec3f sp8(sp20);
-            sp8 *= temp_f31_2;
-            this->mVelocity += sp8;
-        }
+    if (!((temp_r4 >> 28) & 1) || !(static_cast<u32>(this->mMovementStates.mLowBits.mBit30))) {
+        return;
+    }
+    if (((temp_r4 >> 27) & 1) && this->isSlipPolygon(this->_460)) {
+        const TVec3f* nrm = this->_460->getNormal(0);
+        f32 temp_f31 = MR::vecKillElement(this->mVelocity, *nrm, &this->mVelocity);
+        nrm = this->_460->getNormal(0);
+        TVec3f sp14(this->_368);
+        sp14 -= *nrm;
+        TVec3f sp20(sp14);
+        sp20 *= 0.5f;
+        f32 temp_f31_2 = MR::abs(temp_f31);
+        TVec3f sp8(sp20);
+        sp8 *= temp_f31_2;
+        this->mVelocity += sp8;
     }
 }
 
@@ -5349,7 +5341,7 @@ bool Mario::fn_80390210(const Triangle* triangle) {
     return result;
 }
 
-bool Mario::fn_803902B0() {
+bool Mario::fn_803902B0() const {
     const HitSensor* sensor = this->mGroundPolygon->mSensor;
     return sensor != nullptr && MR::isSensorPressObj(sensor);
 }

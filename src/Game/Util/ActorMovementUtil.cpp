@@ -657,11 +657,7 @@ namespace MR {
         direction.scale(length + offset);
         TVec3f normal = -pActor->mGravity;
         TVec3f position(pActor->mPosition);
-        TVec3f shift(pActor->mGravity);
-        shift.scale(-offset);
-        TVec3f start(pActor->mPosition);
-        start.add(shift);
-        if (!getFirstPolyNormalOnLineToMap(&normal, start, direction, &position, nullptr)) {
+        if (!getFirstPolyNormalOnLineToMap(&normal, pActor->mPosition + pActor->mGravity.scaleInline(-offset), direction, &position, nullptr)) {
             return false;
         }
 
@@ -972,15 +968,10 @@ namespace MR {
         }
 
         TVec3f gravity(pActor->mGravity);
-        TVec3f gravityScaled(gravity);
-        gravityScaled.scale(coefGravity);
-        TVec3f start(pActor->mPosition);
-        JMathInlineVEC::PSVECSubtract(&start, &gravityScaled, &start);
+        TVec3f start = pActor->mPosition - gravity.scaleInline(coefGravity);
 
         TVec3f hit(0.0f, 0.0f, 0.0f);
-        TVec3f dirScaled(gravity);
-        dirScaled.scale(coefDir);
-        if (MR::getFirstPolyOnLineToMap(&hit, nullptr, start, dirScaled)) {
+        if (MR::getFirstPolyOnLineToMap(&hit, nullptr, start, gravity.scaleInline(coefDir))) {
             pActor->mPosition.set(hit);
         }
     }
@@ -1113,30 +1104,12 @@ namespace MR {
         addVelocityJump(pActor, a3);
     }
 
-    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void setVelocityDirectionAndJump(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
-        f32 gravCoef = pCoef[1];
-        TVec3f gravity(pActor->mGravity);
-        gravity.scale(gravCoef);
-        f32 dirCoef = pCoef[0];
-        TVec3f dirScaled(*pDir);
-        dirScaled.scale(dirCoef);
-        TVec3f vel(dirScaled);
-        JMathInlineVEC::PSVECSubtract(&vel, &gravity, &vel);
-        pActor->mVelocity.set(vel);
+        pActor->mVelocity.set(pDir->scaleInline(pCoef[0]) - pActor->mGravity.scaleInline(pCoef[1]));
     }
 
-    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     void addVelocityDirectionAndJump(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
-        f32 gravCoef = pCoef[1];
-        TVec3f gravity(pActor->mGravity);
-        gravity.scale(gravCoef);
-        f32 dirCoef = pCoef[0];
-        TVec3f dirScaled(*pDir);
-        dirScaled.scale(dirCoef);
-        TVec3f vel(dirScaled);
-        JMathInlineVEC::PSVECSubtract(&vel, &gravity, &vel);
-        pActor->mVelocity.add(vel);
+        pActor->mVelocity.add(pDir->scaleInline(pCoef[0]) - pActor->mGravity.scaleInline(pCoef[1]));
     }
 
     bool sendMsgPushAndKillVelocityToTarget(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
@@ -1795,9 +1768,7 @@ namespace MR {
         fn_800140B0(pOut, *pOut, pActor->mPosition, scale);
     }
 
-#pragma dont_inline on
     // Moves pPos onto the plane of the PlaneModeCube area, or onto the inner wall (radius - 200) of the TowerModeCylinder area.
-    // NONMATCHING: stack slot order only (target places the copy/scale/add temporaries below the cylinder locals)
     void fn_800143D0(TVec3f* pPos) {
         AreaObj* pArea = getAreaObj("PlaneModeCube", *pPos);
         if (pArea != nullptr) {
@@ -1807,9 +1778,7 @@ namespace MR {
             getAreaFrontVec(&front, pArea, center);
             vecKillElement(*pPos, front, pPos);
             f32 depth = front.dot(center);
-            TVec3f offset(front);
-            offset.scale(depth);
-            pPos->add(offset);
+            pPos->add(front.scaleInline(depth));
         } else {
             pArea = getAreaObj("TowerModeCylinder", *pPos);
             if (pArea != nullptr) {
@@ -1822,17 +1791,12 @@ namespace MR {
                 JMathInlineVEC::PSVECSubtract(&diff, &center, &diff);
                 f32 height = vecKillElement(diff, up, &diff);
                 diff.setLength(radius - 200.0f);
-                TVec3f upOffset(up);
-                upOffset.scale(height);
-                diff.add(upOffset);
-                TVec3f pos(center);
-                pos.add(diff);
-                *pPos = pos;
+                diff.add(up.scaleInline(height));
+                *pPos = center + diff;
             }
         }
     }
 
-#pragma dont_inline reset
 
     void fn_800145C0(LiveActor* pActor) {
         fn_800143D0(&pActor->mPosition);

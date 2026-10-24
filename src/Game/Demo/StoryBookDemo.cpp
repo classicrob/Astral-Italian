@@ -277,9 +277,7 @@ void StoryBookDemo::calcAndSetBaseMtx() {
     TVec3f camY = MR::getCamYdir();
     JMAVECScaleAdd(&camY, &pos, &pos, 0.05f);
     mtx.setTrans(pos);
-    TVec3f front = -MR::getCamZdir();
-    TVec3f up = MR::getCamYdir();
-    MR::makeMtxUpFrontPos(&mtx, up, front, pos);
+    MR::makeMtxUpFrontPos(&mtx, MR::getCamYdir(), -MR::getCamZdir(), pos);
     MR::setBaseTRMtx(this, mtx);
     if (mShadow) MR::setBaseTRMtx(mShadow, mtx);
 }

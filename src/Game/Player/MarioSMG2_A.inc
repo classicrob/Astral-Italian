@@ -4220,7 +4220,7 @@ void Mario::fn_803A1D60() {
 
 // NONMATCHING: prologue scalar-load scheduling only; calls and arithmetic verified.
 #pragma dont_inline on
-f32 Mario::fn_803A1DB0() {
+f32 Mario::fn_803A1DB0() const {
     u16 v = _3D4;
     MarioConst* table = mActor->mConst;
     f32 ratio = 1.0f;

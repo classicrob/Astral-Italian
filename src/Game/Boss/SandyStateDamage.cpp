@@ -62,7 +62,7 @@ bool sandyStateThrow(ActorStateBase< Sandy >* pState, s32 count, s32 interval, b
         }
         pState->mHost->resetCount();
     }
-    if (isBoth && MR::isStep(pState, (s32)((f32)interval * 0.5f))) {
+    if (isBoth && MR::isStep(pState, (s32)((f32)interval / 2.0f))) {
         {
             SandyHand* hand = pState->mHost->getRightHand();
             hand->mIsThrower = true;

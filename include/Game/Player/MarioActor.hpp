@@ -62,6 +62,8 @@ struct MarioInputConfig {
     MarioInputConfig();
     s16 getButton0() const { return _0; }
     s16 getButton2() const { return _2; }
+    s16 getSpinButton() const { return mSpinButton; }
+    s16 getButton6() const { return _6; }
     s16 getButton8() const { return _8; }
     s16 _0;
     s16 _2;
@@ -132,7 +134,7 @@ public:
     void fn_803B9A50();
     s32 fn_803B9A70();
     f32 fn_803B9A90();
-    bool fn_803B9AB0();
+    bool fn_803B9AB0() const;
     void fn_803B9F10();
     void fn_803BA070();
     void fn_803BA220();
@@ -155,7 +157,7 @@ public:
     void requestMovementOn();
     void fn_803BE6D0();
     void fn_803BE6F0();
-    bool fn_803BE800();
+    bool fn_803BE800() const;
     void fn_803BE840(const TVec3f&);
     void fn_803BE8D0(const TVec3f&);
     void fn_803BE960();
@@ -190,7 +192,7 @@ public:
     bool fn_803C1D30();
     bool fn_803C1E40();
     void fn_803C1E80();
-    bool fn_803C1F30();
+    bool fn_803C1F30() const;
     void fn_803C2010();
     void fn_803C2030();
     void fn_803C2320();
@@ -207,7 +209,7 @@ public:
     bool fn_803C33D0();
     void fn_803C34F0();
     void fn_803C38D0();
-    bool fn_803C3930();
+    bool fn_803C3930() const;
     void fn_803C3C90();
     void fn_803C3D10();
     bool fn_803C3DF0();
@@ -284,7 +286,7 @@ public:
     void fn_803D86B0(TVec2f* a, TVec2f* b) const;
     void fn_803D8A30(s32 a, TVec3f& v);
     void fn_803D8A70(s32 mode);
-    bool fn_803D8B30(HitSensor* s);
+    bool fn_803D8B30(HitSensor* s) const;
     void fn_803D8BD0(TVec3f* a, TVec3f* b);
     void fn_803D8E30(TVec3f* v);
     void fn_803D9170(TVec3f* v);

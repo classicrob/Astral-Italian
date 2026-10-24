@@ -154,9 +154,8 @@ void AttackRockStateFall::exeFallAppear() {
         MR::startAction(this->mHost, "Wait");
         MR::invalidateCollisionParts(this->mHost);
     }
-    TVec3f move = *MR::getPlayerLastMove() * 60.0f;
     TVec3f playerPos;
-    playerPos.set(*MR::getPlayerPos() + move);
+    playerPos.set(*MR::getPlayerPos() + *MR::getPlayerLastMove() * 60.0f);
     MR::calcKoopaBattleEdgePos(&mLandPos, playerPos);
     MR::calcKoopaBattleDirFromBase(&mLandNormal, playerPos);
     MR::makeQuatUpNoSupport(&this->mHost->mQuatF0, this->mLandNormal);
@@ -177,7 +176,9 @@ void AttackRockStateFall::exeFallAppear() {
     MR::showModel(this->mHost);
     MR::validateHitSensors(this->mHost);
     AttackRock* pHost = this->mHost;
-    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, 0.05f * pHost->getRockBaseRadius() * pHost->mScale.y);
+    f32 radius = 0.05f * pHost->getRockBaseRadius();
+    radius *= pHost->mScale.y;
+    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, radius);
 }
 #pragma auto_inline on
 

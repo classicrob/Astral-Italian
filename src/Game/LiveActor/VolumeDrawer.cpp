@@ -91,8 +91,7 @@ void VolumeDrawer::draw() const {
 
     MR::loadProjectionMtx();
 
-    u8 alpha = (u8)(s32)((f32)mColor.a * mScaleRate);
-    Color8 color(mColor.r, mColor.g, mColor.b, alpha);
+    Color8 color(mColor.r, mColor.g, mColor.b, (u8)((f32)mColor.a * mScaleRate));
 
     for (s32 i = 0; i < mDrawPasses; i++) {
         preScaleDrawPass(i);
@@ -104,10 +103,9 @@ void VolumeDrawer::draw() const {
         GXSetTevColor(GX_TEVREG0, color);
         if (i == 0) {
             GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
+            GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ZERO, GX_LO_COPY);
+            MR::drawSimpleModel(MR::getJ3DModelData(this));
         }
-
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ZERO, GX_LO_COPY);
-        MR::drawSimpleModel(MR::getJ3DModelData(this));
 
         GXSetDstAlpha(0, 0);
         GXSetZMode(GX_TRUE, GX_GEQUAL, GX_FALSE);

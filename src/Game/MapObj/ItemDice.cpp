@@ -1,5 +1,6 @@
 #define JGEOMETRY_OUTLINE_MATRIX_POSITION
 #define JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_VEC3_WMR_INLINE_OPS
 #define JGEOMETRY_QUAT_TRANSFORM_NOINLINE
 #define JGEOMETRY_VEC3_NEG_NOINLINE
 #include "Game/MapObj/ItemDiceFunction.hpp"
@@ -147,16 +148,15 @@ DiceBase::DiceBase(const char* pName) : LiveActor(pName) {
 void DiceBase::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
-    s32 arg1;
-    MR::getJMapInfoArg1WithInit(rIter, &arg1);
-    if (arg1 != -1) {
-        mThrowScaleA = (f32)arg1 / 10.0f;
+    s32 arg;
+    MR::getJMapInfoArg1WithInit(rIter, &arg);
+    if (arg != -1) {
+        mThrowScaleA = (f32)arg / 10.0f;
     }
 
-    s32 arg2;
-    MR::getJMapInfoArg2WithInit(rIter, &arg2);
-    if (arg2 != -1) {
-        mThrowScaleB = (f32)arg2 / 10.0f;
+    MR::getJMapInfoArg2WithInit(rIter, &arg);
+    if (arg != -1) {
+        mThrowScaleB = (f32)arg / 10.0f;
     }
 
     initEffectKeeper(0, "ItemDice", false);
@@ -174,11 +174,7 @@ void DiceBase::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
     createMover(pSensor);
 
-    TVec3f zero;
-    zero.x = 0.0f;
-    zero.y = 0.0f;
-    zero.z = 0.0f;
-    MR::initStarPointerTarget(this, 145.0f, zero);
+    MR::initStarPointerTarget(this, 145.0f, TVec3f(0.0f, 0.0f));
     MR::useStageSwitchAwake(this, rIter);
     initItems(rIter);
 }
@@ -308,11 +304,10 @@ void DiceBase::exeLand() {
     if (MR::isFirstStep(this)) {
 #ifdef GALAXY_NATIVE
         const TVec3f velocity(mGravity);
-        const TVec3f* pVel = &velocity;
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), &velocity);
 #else
-        const TVec3f* pVel = &TVec3f(mGravity);
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), &TVec3f(mGravity));
 #endif
-        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         if (isGoodResult(result)) {
             MR::startActionSound(this, "FixedGood", -1, -1, -1);
         } else {
@@ -323,11 +318,10 @@ void DiceBase::exeLand() {
     if (MR::isStep(this, 10)) {
 #ifdef GALAXY_NATIVE
         const TVec3f velocity(mGravity);
-        const TVec3f* pVel = &velocity;
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), &velocity);
 #else
-        const TVec3f* pVel = &TVec3f(mGravity);
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), &TVec3f(mGravity));
 #endif
-        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         setResultFrame(result);
     }
 
@@ -337,11 +331,10 @@ void DiceBase::exeLand() {
 
 #ifdef GALAXY_NATIVE
         const TVec3f velocity(mGravity);
-        const TVec3f* pVel = &velocity;
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), &velocity);
 #else
-        const TVec3f* pVel = &TVec3f(mGravity);
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), &TVec3f(mGravity));
 #endif
-        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         mIsGood = makeResult(result);
         if (mIsGood) {
             MR::startActionSound(this, "VanishGood", -1, -1, -1);
@@ -502,9 +495,12 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
         proj.scale(100.0f);
         proj.add(mPosition);
         f32 scaleA = mThrowScaleA;
-        TVec3f tmp(axis);
-        tmp.scale(scaleA);
+#ifdef GALAXY_NATIVE
+        TVec3f tmp = axis.scaleInline(scaleA);
         mMover->collide(&proj, &tmp);
+#else
+        mMover->collide(&proj, &axis.scaleInline(scaleA));
+#endif
     }
 
     TVec3f pos = rPos - mPosition;
@@ -512,10 +508,12 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     pos.scale(50.0f);
     pos.add(mPosition);
     f32 scaleB = mThrowScaleB;
-    TVec3f grav = -mGravity;
-    TVec3f vel = grav;
-    vel.scale(scaleB);
+#ifdef GALAXY_NATIVE
+    TVec3f vel = (-mGravity).scaleInline(scaleB);
     mMover->collide(&pos, &vel);
+#else
+    mMover->collide(&pos, &(-mGravity).scaleInline(scaleB));
+#endif
 }
 
 // NONMATCHING: float constant scheduling around 2.0f*acos / fabs compare (instruction set identical)
@@ -567,7 +565,6 @@ bool DiceBase::isSettled() {
 
 // NONMATCHING: calls match; float expression scheduling differs.
 void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 scale) {
-    f32 sq;
     f32 depth;
     f32 radius;
     f32 len;
@@ -584,16 +581,9 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
     }
 
     radius = pReceiver->mRadius;
-    TVec3f offset(dir);
-    offset.scale(radius);
-    TVec3f pos = pReceiver->mPosition - offset;
+    TVec3f pos = pReceiver->mPosition - dir.scaleInline(radius);
     depth = scale * (pReceiver->mRadius + pSender->mRadius - len);
-
-    sq = dir.squared();
-    if (sq <= 0.000003814697265625f) {
-    } else {
-        dir.scale(JGeometry::TUtil<f32>::inv_sqrt(sq) * depth);
-    }
+    dir.setLength(depth);
 
     mMover->collide(&pos, &dir);
 }
@@ -913,15 +903,18 @@ void LuckyDice::shootItems(s32 count) {
         q.transform(toPlayer);
     }
 
-    TVec3f negGravity = -mGravity;
     TVec3f axis;
+#ifdef GALAXY_NATIVE
+    TVec3f negGravity = -mGravity;
     PSVECCrossProduct(&negGravity, &toPlayer, &axis);
+#else
+    PSVECCrossProduct(&-mGravity, &toPlayer, &axis);
+#endif
     MR::normalizeOrZero(&axis);
 
     TRot3f rot;
     rot.setXDir(axis);
-    TVec3f negGravity2 = -mGravity;
-    rot.setYDir(negGravity2);
+    rot.setYDir(-mGravity);
     rot.setZDir(toPlayer);
     reinterpret_cast<TPos3f&>(rot).setTrans(TVec3f(0.0f, 0.0f, 0.0f));
 
@@ -938,19 +931,8 @@ void LuckyDice::shootItems(s32 count) {
 
         TVec3f zDir;
         rot.getZDir(zDir);
-        TVec3f off(zDir);
-        off.scale(80.0f);
-        TVec3f pos(mPosition);
-        pos.add(off);
-        MR::setPosition(mItems[i], pos);
-
-        TVec3f up(yDir);
-        up.scale(20.0f);
-        TVec3f out(zDir);
-        out.scale(10.0f);
-        TVec3f vel(out);
-        vel.add(up);
-        mItems[i]->appearThrow(vel);
+        MR::setPosition(mItems[i], mPosition + zDir.scaleInline(80.0f));
+        mItems[i]->appearThrow(zDir.scaleInline(10.0f) + yDir.scaleInline(20.0f));
 
         if (i != 4) {
             rot.concat(spin);

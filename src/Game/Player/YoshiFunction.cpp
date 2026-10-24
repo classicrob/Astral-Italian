@@ -224,8 +224,7 @@ namespace MR {
 #pragma global_optimizer reset
 // NONMATCHING: equivalent final early-return blocks are merged.
     void incYoshiFruitEaten() {
-        if (!getMarioHolder()->getMarioActor()->fn_803B9840()) return;
-        if (!isPlayerElementModeYoshi()) return;
+        if (!getMarioHolder()->getMarioActor()->fn_803B9840() || !isPlayerElementModeYoshi()) return;
         getMarioHolder()->getMarioActor()->fn_803B9830()->fn_8041BA10();
     }
 }

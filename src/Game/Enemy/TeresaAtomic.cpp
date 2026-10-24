@@ -275,12 +275,9 @@ void TeresaAtomic::exeChase() {
         MR::calcRailDirectionAtOffset(&front, this, 100.0f);
         MR::turnDirectionDegree(this, &mFrontVec, front, 4.0f);
         MR::moveCoordAndFollowTrans(this, mSpeed);
-        TVec3f offset = mGravity * -900.0f;
-        TVec3f pos = mPosition + offset;
-        MR::setPosition(this, pos);
+        MR::setPosition(this, mPosition + mGravity * -900.0f);
     } else {
-        TVec3f vel = mFrontVec * mSpeed;
-        MR::setVelocity(this, vel);
+        MR::setVelocity(this, mFrontVec * mSpeed);
     }
     if (!this->tryBecomeShy() && !tryDead()) {
         if (tryDisappear()) {
@@ -298,12 +295,7 @@ void TeresaAtomic::exeShay() {
         MR::zeroVelocity(this);
         MR::stopBck(mPartsHost);
     }
-    bool isShay = false;
-    if (!MR::isPlayerSquat()) {
-        if (this->isPlayerFacingTeresa() && MR::isNearPlayer(this, 3500.0f)) {
-            isShay = true;
-        }
-    }
+    bool isShay = !MR::isPlayerSquat() && isPlayerFacingTeresa() && MR::isNearPlayer(this, 3500.0f);
     if (!isShay) {
         setNerve(NRV(Aggressive));
         return;

@@ -682,11 +682,8 @@ void BombHei::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (!mExplosionIgnoreCollision && MR::isExistCollisionParts(MR::getSensorHost(pReceiver)) &&
             MR::isValidCollisionParts(MR::getSensorHost(pReceiver))) {
             Triangle hitPoly;
-            const TVec3f& rSenderPos = *MR::getSensorPos(pSender);
-            TVec3f dir(*MR::getSensorPos(pReceiver));
-            dir -= rSenderPos;
-
-            if (!MR::getFirstPolyOnLineToMap(nullptr, &hitPoly, *MR::getSensorPos(pSender), dir)) {
+            if (!MR::getFirstPolyOnLineToMap(nullptr, &hitPoly, *MR::getSensorPos(pSender),
+                                           *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender))) {
                 return;
             }
 

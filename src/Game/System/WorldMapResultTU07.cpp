@@ -62,10 +62,7 @@ void WorldMapResultBox::extend(const TVec3f& rPos) {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultBox::getCenter(TVec3f* pDst) const {
-    TVec3f sum = mMax + mMin;
-    TVec3f center(sum);
-    center.scale(0.5f);
-    pDst->set<f32>(center);
+    pDst->set<f32>((mMax + mMin).scaleInline(0.5f));
     pDst->z -= 2000.0f;
 }
 
@@ -91,17 +88,13 @@ void WorldMapResultBox::getCameraPos(TVec3f* pDst) const {
     pDst->set<f32>(pos);
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 f32 WorldMapResultBox::calcCameraDistance() const {
     f32 fov = 0.4537856f;
     f32 tanHalf = JMASinRadian(0.5f * fov) / JMACosRadian(0.5f * fov);
     f32 dist = (0.5f * (f32)MR::getScreenHeight()) / tanHalf;
     f32 width = (dist * (mMax.x - mMin.x)) / (sCameraWidthScale * sCameraScreenWidth);
     f32 depth = (dist * (mMax.z - mMin.z)) / (0.75f * (f32)MR::getScreenHeight());
-    if (width >= depth) {
-    } else {
-        width = depth;
-    }
+    width = width >= depth ? width : depth;
 
     return width;
 }

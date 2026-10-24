@@ -183,10 +183,7 @@ void MiniTicoMaster::exeGoMarioPlanet() {
 void MiniTicoMaster::setPosOnRoute(f32 t) {
     TVec3f a = mUnk90->getNode(mUnkA4)->mPos;
     TVec3f b = mUnk90->getNode(mUnkA8)->mPos;
-    TVec3f c = b * t;
-    TVec3f d = a * (1.0f - t);
-    TVec3f e = d + c;
-    MR::setPosition(this, e);
+    MR::setPosition(this, a * (1.0f - t) + b * t);
 }
 
 bool MiniTicoMaster::tryTalk() {

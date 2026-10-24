@@ -199,8 +199,7 @@ f32 MarinePlant::calcMemberBounds(const TVec3f& rCenter) {
         }
     }
 
-    TVec3f half((max + min) * 0.5f);
-    MR::setPosition(this, half);
+    MR::setPosition(this, (max + min) * 0.5f);
     TVec3f extent(max);
     extent -= min;
     if (extent.x < extent.y) {

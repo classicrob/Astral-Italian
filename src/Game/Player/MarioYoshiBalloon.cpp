@@ -102,7 +102,7 @@ bool MarioYoshiBalloon::fn_80414580() {
         break;
     case 1:
         bool empty = mAir <= 0.0f;
-        if (empty == true) {
+        if (empty) {
             return false;
         }
         const TVec3f* gravity;
@@ -269,7 +269,7 @@ void MarioYoshiBalloon::fn_80414CD0() {
     speed *= 0.125f;
     if (speed > 1.0f) speed = 1.0f;
     TQuat4f tilt;
-    tilt.setRotate(axis, speed * (-0.34906584f * alignment));
+    tilt.setRotate(axis, speed * (MR::toRadian(-20.0f) * alignment));
     tilt.transform(adjusted);
     getPlayer()->setFrontVecKeepSide(adjusted);
 }

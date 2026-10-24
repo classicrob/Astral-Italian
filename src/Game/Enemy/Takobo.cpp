@@ -212,14 +212,8 @@ void Takobo::exeMove() {
         } else {
             dir = -1.0f;
         }
-        TVec3f scaled = mSideVec * mSpeed;
-        TVec3f dirScaled = scaled * dir;
-        TVec3f target(mStartPos);
-        target -= dirScaled;
-        mTargetPos = target;
-        TVec3f diff(mTargetPos);
-        diff -= mPosition;
-        mMoveStep = (s32)((f32)(s32)(PSVECMag(&diff) / mMoveRange) * 1.3f);
+        mTargetPos = mStartPos - (mSideVec * mSpeed) * dir;
+        mMoveStep = (s32)((f32)(s32)((mTargetPos - mPosition).length() / mMoveRange) * 1.3f);
     }
     f32 fall = MR::calcGravitySpeedAbs(this);
     if (MR::isBindedGround(this)) {
@@ -232,11 +226,7 @@ void Takobo::exeMove() {
     MR::vecKillElement(dirVec, mGravity, &dirVec);
     MR::normalizeOrZero(&dirVec);
     f32 speed = mMoveRange / 1.3f;
-    TVec3f gravPart = mGravity * fall;
-    TVec3f movePart = dirVec * speed;
-    TVec3f vel(movePart);
-    vel -= gravPart;
-    MR::setVelocity(this, vel);
+    MR::setVelocity(this, dirVec * speed - mGravity * fall);
     if (MR::isGreaterStep(this, mMoveStep)) {
         mIsRight = !mIsRight;
         MR::zeroVelocity(this);

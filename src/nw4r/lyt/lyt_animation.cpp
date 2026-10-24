@@ -421,14 +421,18 @@ namespace nw4r {
         }
 
         u32 AnimResource::CalcAnimationNum(Pane* pane, bool recursive) const {
-            u16 count = 0;
+            u32 count = 0;
             const u32* offsets = detail::ConvertOffsToPtr<u32>(mpResBlock, mpResBlock->animContOffsetsOffset);
             for (u16 i = 0; i < mpResBlock->animContNum; ++i) {
                 const res::AnimationContent* content = detail::ConvertOffsToPtr<res::AnimationContent>(mpResBlock, offsets[i]);
                 if (content->type == ANIMCONTENTTYPE_PANE) {
                     if (pane->FindPaneByName(content->name, recursive) != NULL) ++count;
                 } else {
-                    if (pane->FindMaterialByName(content->name, recursive) != NULL) ++count;
+                    if (pane->FindMaterialByName(content->name, recursive) != NULL) {
+                        u16 materialCount = count;
+                        ++materialCount;
+                        count = materialCount;
+                    }
                 }
             }
             return count;

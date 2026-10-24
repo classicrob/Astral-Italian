@@ -109,8 +109,9 @@ void CShader::calc(J3DModel* pModel) {
     s32 spanV = 0.45f + rangeV;
 
     for (u32 i = 0; i < count; i++) {
+        u16 texCoordIndex;
         u16 normalIndex = mIndexArray[i]._0;
-        u16 texCoordIndex = mIndexArray[i]._2;
+        texCoordIndex = mIndexArray[i]._2;
 
         if (normalIndex != 0xFFFF && texCoordIndex != 0xFFFF) {
             u32 offset = i * 3;

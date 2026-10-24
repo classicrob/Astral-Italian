@@ -446,7 +446,7 @@ void DinoPackun::updateCameraInfo() {
         if (mTailCameraBlendRate > 0.0f) {
             TVec3f v4;
             mTail->getEndTailPosition(&v4);
-            MR::vecBlend(v6, v4, &v6, (0.60f * mTailCameraBlendRate));
+            MR::vecBlend(v4, v6, &v6, (0.60f * mTailCameraBlendRate));
         }
 
         mCameraVec.set(v6);

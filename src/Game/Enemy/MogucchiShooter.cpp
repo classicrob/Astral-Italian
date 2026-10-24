@@ -387,7 +387,7 @@ void MogucchiShooter::exeShooterShotSignWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mSpike, "ShotSignWait");
     }
-    tryStartShooterShot();
+    if (tryStartShooterShot()) return;
 }
 
 void MogucchiShooter::exeShooterShotStart() {

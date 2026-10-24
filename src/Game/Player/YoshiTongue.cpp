@@ -145,10 +145,10 @@ void YoshiTongue::fn_8041CB70(bool) { mRetractFrames = 12; setNerve(&NrvYoshiTon
 bool YoshiTongue::fn_8041CB80() const { return MR::isGreaterEqualStep(this, mRetractFrames); }
 bool YoshiTongue::fn_8041CB90() const { return MR::isGreaterEqualStep(this, mRetractFrames - 12); }
 void YoshiTongue::fn_8041CBA0() {
-    if (!isNerve(&NrvYoshiTongue::State7::sInstance)) {
-        if (isNerve(&NrvYoshiTongue::State0::sInstance)) return;
-        setNerve(&NrvYoshiTongue::State7::sInstance);
+    if (isNerve(&NrvYoshiTongue::State7::sInstance) || isNerve(&NrvYoshiTongue::State0::sInstance)) {
+        return;
     }
+    setNerve(&NrvYoshiTongue::State7::sInstance);
 }
 bool YoshiTongue::fn_8041CC00() const {
     bool complete = false;
@@ -299,8 +299,8 @@ void YoshiTongue::calcAndSetBaseMtx() {
     for (u32 index = 0; index < 4; ++index) {
         TVec3f start;
         TVec3f end;
-        mCurve->fn_8041DA20(&start, fn_8041D290(mProgress, static_cast<f32>(index) * 0.25f));
-        mCurve->fn_8041DA20(&end, fn_8041D290(mProgress, static_cast<f32>(index + 1) * 0.25f));
+        mCurve->fn_8041DA20(&start, fn_8041D290(mProgress, static_cast<f32>(index) / 4.0f));
+        mCurve->fn_8041DA20(&end, fn_8041D290(mProgress, static_cast<f32>(index + 1) / 4.0f));
         TVec3f tangent;
         JMathInlineVEC::PSVECSubtract(&end, &start, &tangent);
         if (!MR::normalizeOrZero(&tangent)) direction = tangent;

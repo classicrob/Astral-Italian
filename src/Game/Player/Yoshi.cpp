@@ -1202,7 +1202,7 @@ u16 Yoshi::fn_8040F440() {
 }
 
 // NONMATCHING: player load is scheduled after the prologue stores.
-bool Yoshi::fn_8040F450(const char* animation) {
+bool Yoshi::fn_8040F450(const char* animation) const {
     return strcmp(mXanimePlayer->getDefaultAnimationName(), animation) == 0;
 }
 
@@ -1242,7 +1242,7 @@ bool Yoshi::fn_8040F590(const char* animation) {
 }
 
 // NONMATCHING: player load is scheduled after the prologue stores.
-bool Yoshi::fn_8040F5B0(const char* animation) {
+bool Yoshi::fn_8040F5B0(const char* animation) const {
     return strcmp(mXanimePlayerUpper->getCurrentAnimationName(), animation) == 0;
 }
 

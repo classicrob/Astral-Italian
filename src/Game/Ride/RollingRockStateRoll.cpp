@@ -142,7 +142,12 @@ bool RollingRockStateRoll::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiv
     return false;
 }
 
-// NONMATCHING: vector temporary placement and boolean branch layout differ.
+static inline TVec3f makeZeroVec() {
+    TVec3f v;
+    v.setAll< f32 >(0.0f);
+    return v;
+}
+
 bool RollingRockStateRoll::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (msg == 0x62 && RollingRock::isNotBreakableSensor(pSender) && MR::isEqualSensor(pReceiver, mHost, "Body")) {
         if (!mIsDead) {
@@ -174,9 +179,7 @@ bool RollingRockStateRoll::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, Hi
                 changeState(3);
                 return false;
             }
-            TVec3f zero;
-            zero.setAll< f32 >(0.0f);
-            mHost->endBindDamage(msg, zero);
+            mHost->endBindDamage(msg, makeZeroVec());
             changeState(2);
             return true;
         }
@@ -394,16 +397,13 @@ void RollingRockStateRoll::updateStep() {
     }
 }
 
-// NONMATCHING: vector temporary stack slots differ.
 void RollingRockStateRoll::updateMoment() {
     TVec3f moment;
     moment.setAll< f32 >(0.0f);
     if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
         TVec3f vel(mDir);
         vel.scale(48.0f);
-        TVec3f up;
-        up.negate(mHost->mGravity);
-        MR::calcMomentRollBall(&moment, vel, up, MR::getSensorRadius(mHost, "Body"));
+        MR::calcMomentRollBall(&moment, vel, -mHost->mGravity, MR::getSensorRadius(mHost, "Body"));
     } else if (&NrvRollingRockStateRoll::RollingRockStateRollNrvMove::sInstance) {
         TVec3f up;
         up.negate(mHost->mGravity);

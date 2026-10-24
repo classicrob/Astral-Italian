@@ -68,7 +68,8 @@ void DsetMixerLevel(f32 level) {
 
 void DsyncFrame2ch(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
     u32 msgs[5];
-    msgs[0] = (param_0 & 0xff) << 0x10 | 0x82000000 | DSP_MIXERLEVEL;
+    msgs[0] = ((param_0 & 0xff) << 16) | 0x82000000;
+    msgs[0] |= DSP_MIXERLEVEL;
 #ifdef GALAXY_NATIVE
     msgs[1] = DSP_MAIL_ADDR(param_1);
     msgs[2] = DSP_MAIL_ADDR(param_2);
@@ -83,7 +84,8 @@ void DsyncFrame2ch(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
 
 void DsyncFrame4ch(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr param_3, JASDspAddr param_4) {
     u32 msgs[5];
-    msgs[0] = (param_0 & 0xff) << 0x10 | 0x82000000 | DSP_MIXERLEVEL;
+    msgs[0] = ((param_0 & 0xff) << 16) | 0x82000000;
+    msgs[0] |= DSP_MIXERLEVEL;
 #ifdef GALAXY_NATIVE
     msgs[1] = DSP_MAIL_ADDR(param_1);
     msgs[2] = DSP_MAIL_ADDR(param_2);

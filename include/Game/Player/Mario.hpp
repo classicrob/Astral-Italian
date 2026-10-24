@@ -114,7 +114,7 @@ public:
     void fn_8038CE40();
     void fn_8038E1A0(const HitInfo* hit, s32 arg2);
     bool fn_80390210(const Triangle* triangle);
-    bool fn_803902B0();
+    bool fn_803902B0() const;
     bool fn_80391260(const Triangle*);
     void fn_803912D0(const HitInfo*, const TVec3f&, const TVec3f&);
     bool fn_80391330(const HitInfo*, const TVec3f&, const TVec3f&);
@@ -167,7 +167,7 @@ public:
     void fn_803A1BB0();
     void fn_803A1C90();
     void fn_803A1D60();
-    f32 fn_803A1DB0();
+    f32 fn_803A1DB0() const;
     void fn_803A1E40();
     s32 fn_803A1E60(f32 f);
     void fn_803A1F60();
@@ -207,7 +207,7 @@ public:
     void fn_803A56C0();
     void fn_803A6BE0();
     void fn_803A7540();
-    bool fn_803A9690(const char* pName);
+    bool fn_803A9690(const char* pName) const;
     void fn_803A96D0(f32);
     bool fn_803AA2C0();
     bool fn_803AA340(const TVec3f*, TVec3f*);
@@ -253,7 +253,7 @@ public:
     s32 fn_803B2530(bool squat);
     void fn_803B2610();
     bool fn_803B26C0();
-    bool fn_803B2730();
+    bool fn_803B2730() const;
     bool fn_803B2770(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
     bool fn_803B27F0(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     bool fn_803B2880(const TVec3f&, const TVec3f&);
@@ -280,7 +280,7 @@ public:
     void fn_803B3AE0(const HitInfo*, const TVec3f*);
     void fn_803B3BB0(const HitInfo*, const TVec3f*);
     void fn_803B3CE0();
-    bool fn_803B3E90();
+    bool fn_803B3E90() const;
     void fn_803B3EE0(TVec3f* pPos, f32* pHeight);
     s32 fn_803B41F0();
     void fn_803B4280();

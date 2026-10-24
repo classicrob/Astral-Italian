@@ -217,13 +217,8 @@ void TakoSho::exeWait() {
 void TakoSho::exeMove() {
     if (MR::isFirstStep(this)) {
         f32 sign = mIsRight ? 1.0f : -1.0f;
-        TVec3f offset = (mSideVec * mSpeed) * sign;
-        TVec3f target(mStartPos);
-        target -= offset;
-        mTargetPos = target;
-        TVec3f delta(mTargetPos);
-        delta -= mPosition;
-        mShotStep = static_cast<s32>(static_cast<s32>(PSVECMag(&delta) / mMoveRange) * 1.3f);
+        mTargetPos = mStartPos - (mSideVec * mSpeed) * sign;
+        mShotStep = static_cast<s32>(static_cast<s32>((mTargetPos - mPosition).length() / mMoveRange) * 1.3f);
     }
     f32 gravitySpeed = MR::calcGravitySpeedAbs(this);
     if (MR::isBindedGround(this)) {
@@ -236,11 +231,7 @@ void TakoSho::exeMove() {
     MR::vecKillElement(dir, mGravity, &dir);
     MR::normalizeOrZero(&dir);
     f32 moveSpeed = mMoveRange / 1.3f;
-    TVec3f gravity = mGravity * gravitySpeed;
-    TVec3f scaled = dir * moveSpeed;
-    TVec3f velocity(scaled);
-    velocity -= gravity;
-    MR::setVelocity(this, velocity);
+    MR::setVelocity(this, dir * moveSpeed - mGravity * gravitySpeed);
     if (MR::isGreaterStep(this, mShotStep)) {
         mIsRight = !mIsRight;
         MR::zeroVelocity(this);
@@ -278,15 +269,9 @@ void TakoSho::exeAttack1st() {
         TVec3f pos(mPosition);
         TVec3f up;
         MR::calcUpVec(&up, this);
-        TVec3f a = mFrontVec * 150.0f;
-        pos += a;
-        TVec3f b = up * 120.0f;
-        pos += b;
-        TVec3f c = up * 4.0f;
-        TVec3f d = mFrontVec * 17.0f;
-        TVec3f dir(d);
-        dir += c;
-        mInkHolder->spurtTakoboInk(pos, dir);
+        pos += mFrontVec * 150.0f;
+        pos += up * 120.0f;
+        mInkHolder->spurtTakoboInk(pos, mFrontVec * 17.0f + up * 4.0f);
     }
     updateFallVelocity();
     if (MR::isGreaterStep(this, shotStep + 20)) {
@@ -306,15 +291,9 @@ void TakoSho::exeAttack2nd() {
         TVec3f pos(mPosition);
         TVec3f up;
         MR::calcUpVec(&up, this);
-        TVec3f a = mFrontVec * 150.0f;
-        pos += a;
-        TVec3f b = up * 120.0f;
-        pos += b;
-        TVec3f c = up * 4.0f;
-        TVec3f d = mFrontVec * 17.0f;
-        TVec3f dir(d);
-        dir += c;
-        mInkHolder->spurtTakoboInk(pos, dir);
+        pos += mFrontVec * 150.0f;
+        pos += up * 120.0f;
+        mInkHolder->spurtTakoboInk(pos, mFrontVec * 17.0f + up * 4.0f);
     }
     updateFallVelocity();
     if (MR::isActionEnd(this)) {

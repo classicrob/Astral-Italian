@@ -365,7 +365,7 @@ void GliBird::exeGlide() {
             MR::startBckPlayerJ("グライバード滑空Wait");
         }
     } else {
-        if (mSpeed == 50.0f) {
+        if (mSpeed == sGlideSpeedMax) {
             if (MR::tryStartActionNotPlaying(this, "GlideDownFast")) {
                 MR::startBckPlayerJ("グライバード滑空Fast");
             }

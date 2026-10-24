@@ -508,7 +508,8 @@ BOOL nandCheckPathName(const char* path) {
         "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_./"};
     u32 i;
     for (i = 0; i < length; i++) {
-      if (!nandIsPathCharacter(*path, allowed)) {
+      char character = *path;
+      if (!nandIsPathCharacter(character, allowed)) {
         return FALSE;
       }
       path++;
@@ -526,7 +527,8 @@ BOOL nandCheckPathName(const char* path) {
       const char* name = relativeName;
       u32 i;
       for (i = 0; i < length; i++) {
-        if (!nandIsPathCharacter(*name, allowed)) {
+        char character = *name;
+        if (!nandIsPathCharacter(character, allowed)) {
           return FALSE;
         }
         name++;

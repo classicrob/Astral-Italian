@@ -121,8 +121,8 @@ void TalkBalloon::updateBalloon() {
 
         TVec2f position(mMessageCtrl->mBalloonScreenPosition.x, mMessageCtrl->mBalloonScreenPosition.y);
         if (mMessageCtrl->mCenterBalloonBeak) {
-            f32 halfHeight = 0.5f * MR::getScreenHeight();
-            position.set(0.5f * MR::getScreenWidth(), halfHeight);
+            f32 halfHeight = MR::getScreenHeight() / 2.0f;
+            position.set(MR::getScreenWidth() / 2.0f, halfHeight);
         }
         TVec2f v2(position.x - paneTrans.x, position.y - paneTrans.y);
         TVec2f v3(0.0f, 1.0f);

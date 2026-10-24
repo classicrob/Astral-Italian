@@ -1579,7 +1579,7 @@ f32 MarioActor::fn_803B9A90() {
     return 0.0f;
 }
 
-bool MarioActor::fn_803B9AB0() {
+bool MarioActor::fn_803B9AB0() const {
     YoshiHolder* p = mYoshiHolder;
     if (p == nullptr) {
         return false;
@@ -3449,7 +3449,7 @@ bool MarioActor::isRequestSpin() const {
     if (_935) {
         return false;
     }
-    return checkButtonType(mInputConfig->mSpinButton, false);
+    return checkButtonType(mInputConfig->getSpinButton(), false);
 }
 
 bool MarioActor::isRequestJump() const {
@@ -3461,7 +3461,7 @@ bool MarioActor::isRequestJump() const {
         return false;
     }
 
-    return checkButtonType(mInputConfig->_6, false);
+    return checkButtonType(mInputConfig->getButton6(), false);
 }
 
 void* MarioActor::fn_803BE0C0() const {
@@ -3662,7 +3662,7 @@ void MarioActor::fn_803BE6F0() {
     }
 }
 
-bool MarioActor::fn_803BE800() {
+bool MarioActor::fn_803BE800() const {
     MarioAllModel* m = mAllModel;
     J3DModel* c = m->mModels[0];
     return m->getJ3DModel() == c;
@@ -5069,7 +5069,7 @@ void MarioActor::fn_803C1E80() {
     }
 }
 
-bool MarioActor::fn_803C1F30() {
+bool MarioActor::fn_803C1F30() const {
     MtxPtr prev;
     Mario* m = this->mMario;
     bool r = false;
@@ -5827,7 +5827,7 @@ void MarioActor::fn_803C38D0() {
     }
 }
 
-bool MarioActor::fn_803C3930() {
+bool MarioActor::fn_803C3930() const {
     MtxPtr prev;
     Mario* m = this->mMario;
     bool r = false;
@@ -6664,7 +6664,7 @@ void MarioActor::fn_803C5B30(MtxPtr mtx) {
     }
     case 4:
         f32 angle = static_cast<f32>(this->_390) / 120.0f;
-        angle = 3.1415927f * angle;
+        angle = JGeometry::TUtil< f32 >::PI() * angle;
         angle = 0.5f * angle;
         f32 height = 1.0f - JMACosRadian(angle);
         height = 160.0f * height;
@@ -6677,7 +6677,7 @@ void MarioActor::fn_803C5B30(MtxPtr mtx) {
 void MarioActor::fn_803C5E20(MtxPtr mtx) {
     u32 t = this->_394 - 1;
     this->_394 = t;
-    this->_3B0 = 1.0f + (((0.15f * (f32)this->_394) / 30.0f) * JMASinRadian((2.0f * ((f32)t * 3.1415927f)) / 15.0f));
+    this->_3B0 = 1.0f + (((0.15f * (f32)this->_394) / 30.0f) * JMASinRadian((2.0f * ((f32)t * JGeometry::TUtil< f32 >::PI())) / 15.0f));
 }
 
 void MarioActor::fn_803C5ED0(MtxPtr m1, MtxPtr m2) {
@@ -13351,16 +13351,14 @@ void MarioActor::calcViewSearchLight() {
 
 void MarioActor::drawSearchLight() const {
     TVec2f a, b;
-    if (mSearchLight != nullptr && this->mMario->isStatusActive(6)) {
-        if (!this->mMario->mSwim->fn_80400910()) {
-            return;
-        }
-        if (!MR::isSystemTalking() && !this->mMario->mSwim->fn_80400930()) {
-            this->fn_803D82C0(&a, &b);
-            this->fn_803D8400(&a, &b);
-            if (this->fn_803D8490()) {
-                this->fn_803D86B0(&a, &b);
-            }
+    if (mSearchLight == nullptr || !this->mMario->isStatusActive(6) || !this->mMario->mSwim->fn_80400910()) {
+        return;
+    }
+    if (!MR::isSystemTalking() && !this->mMario->mSwim->fn_80400930()) {
+        this->fn_803D82C0(&a, &b);
+        this->fn_803D8400(&a, &b);
+        if (this->fn_803D8490()) {
+            this->fn_803D86B0(&a, &b);
         }
     }
 }
@@ -13526,7 +13524,7 @@ void MarioActor::fn_803D8A70(s32 mode) {
     }
 }
 
-bool MarioActor::fn_803D8B30(HitSensor* s) {
+bool MarioActor::fn_803D8B30(HitSensor* s) const {
     HitSensor* hs = _924;
     if (hs == nullptr) {
         return true;

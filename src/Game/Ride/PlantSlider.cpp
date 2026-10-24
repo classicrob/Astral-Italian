@@ -1,4 +1,5 @@
 #define JGEOMETRY_VEC3_MI_NOINLINE
+#define JGEOMETRY_OUTLINE_MATRIX_SET
 #include "Game/Ride/PlantSlider.hpp"
 #include "Game/Util.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
@@ -41,6 +42,11 @@ namespace {
     extern s32 sLeafPointStart;
     extern const s32 sSpringRange;
     extern const f32 sTaperRange;
+    extern const f32 sSlideGravityAccel;
+    extern const f32 sSlideSpeedDamp;
+    extern const f32 sRideSpringRate;
+    extern const f32 sRideDampRate;
+    extern const f32 sRideFlatBias;
     Color8 sColorWhite(0xFF, 0xFF, 0xFF, 0xFF);
     Color8 sColorGray(0x64, 0x64, 0x64, 0xFF);
     Color8 sColorLight(0x96, 0x96, 0x96, 0xFF);
@@ -382,8 +388,8 @@ bool PlantSlider::tryReachGoal() {
 // NONMATCHING: matrix-copy helper inlining and register scheduling differ.
 void PlantSlider::updateSlide() {
     f32 gravityComp = MR::clamp(-MR::getRailDirection(this).y, 0.0f, 1.0f);
-    mSlideSpeed *= 0.998f;
-    mSlideSpeed += gravityComp * 1.3f;
+    mSlideSpeed *= sSlideSpeedDamp;
+    mSlideSpeed += gravityComp * sSlideGravityAccel;
     mSlideSpeed = MR::clamp(mSlideSpeed, 5.0f, 23.0f);
     MR::moveCoordAndFollowTrans(this, mSlideSpeed);
     mRailDirection.set(MR::getRailDirection(this));
@@ -401,18 +407,14 @@ void PlantSlider::updateSlide() {
     f32 length = MR::getRailTotalLength(this);
     f32 ease = MR::getEaseOutValue(MR::getRailCoord(this) / length, 0.0f, 1.0f, 1.0f);
     f32 flat = MR::getEaseOutValue(1.0f - __fabsf(MR::getRailDirection(this).y), 0.0f, 1.0f, 1.0f);
-    f32 dampedAccel = mRideAccel;
-    dampedAccel *= 0.95f;
-    f32 springAccel = mRideSpeed;
-    springAccel *= 0.005f;
-    mRideAccel = dampedAccel - springAccel;
-    mRideAccel += ease * (mSlideSpeedFactor * MR::clamp(flat + 0.2f, 0.0f, 1.0f));
+    mRideAccel = mRideAccel * sRideDampRate - mRideSpeed * sRideSpringRate;
+    mRideAccel += ease * (mSlideSpeedFactor * MR::clamp(flat + sRideFlatBias, 0.0f, 1.0f));
     mRideSpeed += mRideAccel;
     updateSpringPoints();
     TPos3f mtx;
     mtx.set(MR::getPlayerBaseMtx());
     mtx.setTrans(mPosition);
-    mCameraTargetMtx->mMatrix.set(mtx);
+    mCameraTargetMtx->mMatrix.set(mtx.mMtx);
 }
 
 #pragma dont_inline on
@@ -637,4 +639,9 @@ namespace {
     s32 sLeafPointStart = 0;
     const s32 sSpringRange = 60;
     const f32 sTaperRange = 16.0f;
+    const f32 sSlideGravityAccel = 1.3f;
+    const f32 sSlideSpeedDamp = 0.998f;
+    const f32 sRideSpringRate = 0.005f;
+    const f32 sRideDampRate = 0.95f;
+    const f32 sRideFlatBias = 0.2f;
 }

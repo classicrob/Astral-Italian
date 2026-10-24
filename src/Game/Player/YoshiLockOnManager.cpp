@@ -51,13 +51,11 @@ void YoshiLockOnManager::init(const JMapInfoIter&) {
 
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiLockOnManager::movement() {
-    if (mContextActive) {
-        if (mSuspended) return;
-        if (MR::isPlayerInRushOrDemoOrTalk()) clearActiveTargets();
-        updateFadingTargets();
-        updateActiveTargets();
-        mHasUpdated = true;
-    }
+    if (!mContextActive || mSuspended) return;
+    if (MR::isPlayerInRushOrDemoOrTalk()) clearActiveTargets();
+    updateFadingTargets();
+    updateActiveTargets();
+    mHasUpdated = true;
 }
 
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.

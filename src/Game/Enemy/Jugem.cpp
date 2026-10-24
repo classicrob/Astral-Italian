@@ -328,15 +328,7 @@ void Jugem::exeApproach() {
     f32 d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
     if (PSVECMag(&diff) > 900.0f) {
         MR::normalize(&diff);
-        TVec3f a(diff);
-        a *= 900.0f;
-        TVec3f b(*MR::getPlayerGravity());
-        b *= d;
-        TVec3f c(*MR::getPlayerPos());
-        c += b;
-        TVec3f e(c);
-        e += a;
-        target = e;
+        target = *MR::getPlayerPos() + *MR::getPlayerGravity() * d + diff * 900.0f;
     }
     moveJugemKeepingHeight(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, cHeight);
     turnJugemFrontToTarget(&mFrontVec, this, *MR::getPlayerPos(), 0.06f);
@@ -344,9 +336,7 @@ void Jugem::exeApproach() {
     toTarget -= mPosition;
     MR::vecKillElement(toTarget, mGravity, &toTarget);
     f32 mag = PSVECMag(&toTarget);
-    TVec3f toTarget2(target);
-    toTarget2 -= mPosition;
-    f32 dotVal = toTarget2.dot(mGravity);
+    f32 dotVal = (target - mPosition).dot(mGravity);
     if (150.0f < mag && mag < 900.0f && __fabsf(dotVal) < 200.0f) {
         mStepCounter++;
     }
@@ -518,26 +508,10 @@ void Jugem::exeDead() {
         f32 d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
         if (PSVECMag(&diff) > 900.0f) {
             MR::normalize(&diff);
-            TVec3f a(diff);
-            a *= 900.0f;
-            TVec3f b(*MR::getPlayerGravity());
-            b *= d;
-            TVec3f c(*MR::getPlayerPos());
-            c += b;
-            TVec3f e(c);
-            e += a;
-            pos = e;
+            pos = *MR::getPlayerPos() + *MR::getPlayerGravity() * d + diff * 900.0f;
         }
-        TVec3f g(mGravity);
-        g *= cRayLength;
-        TVec3f from(pos);
-        from -= g;
-        TVec3f g2(mGravity);
-        g2 *= (cRayLength + cHeight);
-        if (MR::getFirstPolyOnLineToMap(&pos, nullptr, from, g2)) {
-            TVec3f h(mGravity);
-            h *= cHeight;
-            pos -= h;
+        if (MR::getFirstPolyOnLineToMap(&pos, nullptr, pos - mGravity * cRayLength, mGravity * (cRayLength + cHeight))) {
+            pos -= mGravity * cHeight;
         }
         MR::setPosition(this, pos);
         MR::showModelAndEffects(this);
@@ -1097,44 +1071,28 @@ void Jugem::calcJugemPickupPosition(TVec3f* pOut, s32 index) {
     TVec3f pos(mChildPoses[index]);
     TVec3f grav(0.0f);
     MR::calcGravityVector(mChildObjs[index], pos, &grav, nullptr, 0);
-    TVec3f up(-grav);
-    TVec3f up2(up);
-    up2 *= cHeight;
-    pos += up2;
+    pos += (-grav) * cHeight;
     TVec3f ref(0.0f);
     calcJugemFollowPosition(&ref, cHeight);
     TVec3f dir(pos);
     dir -= ref;
     MR::vecKillElement(dir, grav, &dir);
     if (MR::normalizeOrZero(&dir)) {
-        TVec3f toMe(mPosition);
-        toMe -= pos;
-        dir = toMe;
+        dir = mPosition - pos;
         MR::vecKillElement(dir, grav, &dir);
         if (MR::normalizeOrZero(&dir)) {
             dir = mFrontVec;
             MR::normalizeOrZero(&dir);
         }
     }
-    TVec3f retreat(-dir);
-    TVec3f retreatOffset(retreat);
-    retreatOffset *= 1500.0f;
-    pos += retreatOffset;
+    pos += (-dir) * 1500.0f;
     const TVec3f& player = *MR::getPlayerPos();
     TVec3f diff(pos);
     diff -= player;
     f32 d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
     if (PSVECMag(&diff) < 900.0f) {
         MR::normalize(&diff);
-        TVec3f a(diff);
-        a *= 900.0f;
-        TVec3f b(*MR::getPlayerGravity());
-        b *= d;
-        TVec3f c(*MR::getPlayerPos());
-        c += b;
-        TVec3f e(c);
-        e += a;
-        pos = e;
+        pos = *MR::getPlayerPos() + *MR::getPlayerGravity() * d + diff * 900.0f;
     }
     *pOut = pos;
 }
@@ -1143,6 +1101,7 @@ void Jugem::calcJugemPickupPosition(TVec3f* pOut, s32 index) {
 void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
     f32 d;
     f32 scale;
+    const TVec3f* player;
     s32 count;
     s32 arg;
     s32 idx;
@@ -1158,13 +1117,9 @@ void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
         for (s32 i = 0; i < mChildNum; i++) {
             if (mChildObjs[i] != nullptr) {
                 if (!MR::isDead(mChildObjs[i]) && !MR::isClipped(mChildObjs[i]) && !mChildObjs[i]->isYoshiState()) {
-                    TVec3f vel(mChildObjs[i]->mGravity);
-                    vel *= offset;
-                    TVec3f pos(mChildObjs[i]->mPosition);
-                    pos -= vel;
-                    const TVec3f& player = *MR::getPlayerPos();
-                    TVec3f diff(pos);
-                    diff -= player;
+                    TVec3f pos = mChildObjs[i]->mPosition - mChildObjs[i]->mGravity * offset;
+                    player = MR::getPlayerPos();
+                    TVec3f diff = pos - *player;
                     if (!(PSVECMag(&diff) > cChildRange * cChildRangeScale)) {
                         sum += pos;
                         count++;
@@ -1173,32 +1128,17 @@ void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
             }
         }
         if (count == 1) {
-            TVec3f t(*pOut);
-            t += sum;
-            TVec3f u(t);
-            u *= 0.5f;
-            *pOut = u;
+            *pOut = (*pOut + sum) * 0.5f;
         } else if (count > 0) {
             scale = 1.0f / count;
-            TVec3f t(sum);
-            t *= scale;
-            *pOut = t;
+            *pOut = sum * scale;
         }
-        const TVec3f& player = *MR::getPlayerPos();
-        TVec3f diff(*pOut);
-        diff -= player;
+        player = MR::getPlayerPos();
+        TVec3f diff = *pOut - *player;
         d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
         if (PSVECMag(&diff) < 900.0f) {
             MR::normalize(&diff);
-            TVec3f a(diff);
-            a *= 900.0f;
-            TVec3f b(mGravity);
-            b *= d;
-            TVec3f c(*MR::getPlayerPos());
-            c += b;
-            TVec3f e(c);
-            e += a;
-            *pOut = e;
+            *pOut = *MR::getPlayerPos() + mGravity * d + diff * 900.0f;
         }
     }
 }

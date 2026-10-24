@@ -243,14 +243,11 @@ void BossBussun::calcNearestHomePos(TVec3f* pOut) {
         }
     }
 
-    TVec3f diff = ::sHomePos[nearest] - mCenterPos;
     TVec3f dir;
+    TVec3f diff = ::sHomePos[nearest] - mCenterPos;
     JMAVECScaleAdd(&mUpVec, &diff, &dir, -mUpVec.dot(diff));
     MR::normalizeOrZero(&dir);
-    TVec3f offset = dir * 2350.0f;
-    TVec3f result(mCenterPos);
-    result.add(offset);
-    pOut->set(result);
+    pOut->set(mCenterPos + dir * 2350.0f);
 }
 
 void BossBussun::kill() {
@@ -376,9 +373,7 @@ void BossBussun::updateVelocityOnGround() {
 bool BossBussun::isPlayerAttackable() {
     TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
-    TVec3f offset = up * 250.0f;
-    TVec3f from(mPosition);
-    from.add(offset);
+    TVec3f from = mPosition + up * 250.0f;
     TVec3f dir = *MR::getPlayerCenterPos() - from;
     if (MR::isExistMapCollision(from, dir)) {
         return false;

@@ -93,10 +93,13 @@ Pole::Pole(const char* pName)
     mBaseMtx.identity();
 }
 
-// NONMATCHING: sound-offset and sensor temporary stack slots differ.
+static inline TVec3f makeZeroVec() {
+    TVec3f v;
+    v.setAll< f32 >(0.0f);
+    return v;
+}
+
 void Pole::init(const JMapInfoIter& rIter) {
-    TVec3f soundOffsetTree;
-    TVec3f soundOffset;
     MR::initDefaultPos(this, rIter);
     mBasePos.set(mPosition);
     mHeight = ::sHeightRate * mScale.y;
@@ -219,13 +222,9 @@ void Pole::init(const JMapInfoIter& rIter) {
     }
 
     if (isTree()) {
-        soundOffsetTree.x = 0.0f;
-        soundOffsetTree.y = 0.0f;
-        soundOffsetTree.z = 0.0f;
-        initSound(4, "PoleTree", nullptr, soundOffsetTree);
+        initSound(4, "PoleTree", nullptr, TVec3f(0.0f, 0.0f));
     } else {
-        soundOffset.setAll<f32>(0.0f);
-        initSound(4, "Pole", nullptr, soundOffset);
+        initSound(4, "Pole", nullptr, makeZeroVec());
     }
 
     MR::initActorCamera(this, rIter, &mCameraInfo);

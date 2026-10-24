@@ -630,14 +630,12 @@ static u8 WUDiUnknownDevice(void) {
 
 static WUDDevInfo* WUDiGetStoredWbc(void) {
     WUDCB* p = &_wcb;
-    WUDDevInfo* device;
     WUDDevInfo* board = NULL;
     WUDDevInfoList* node;
     BOOL enabled = OSDisableInterrupts();
-    for (node = p->stdListHead; node != NULL; node = node->next) {
-        device = node->devInfo;
-        if (WUD_DEV_NAME_IS_WBC(device->conf.devName)) {
-            board = device;
+    for (node = p->stdListHead; node; node = node->next) {
+        if (WUD_DEV_NAME_IS_WBC(node->devInfo->conf.devName)) {
+            board = node->devInfo;
         }
     }
     OSRestoreInterrupts(enabled);
@@ -695,7 +693,11 @@ static BOOL WUDiIsFinishLinkKeyCmd(void) {
 }
 
 static BOOL WUDiIsFinishScCmd(void) {
-    return SCCheckStatus() == SC_STATUS_BUSY ? FALSE : TRUE;
+    BOOL busy = SCCheckStatus() == SC_STATUS_BUSY;
+    if (busy) {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 static u8 __wudSyncStoredDevInfoToNand(void) {
@@ -792,7 +794,7 @@ static u8 __wudSyncVirginStandard(void) {
 
     if (_linkedWBC && WUD_DEV_NAME_IS_CNT(_work.conf.devName)) {
         pInfo = WUDiGetStoredWbc();
-        if (pInfo != NULL && WUDiGetDevNumber() == WUD_MAX_DEV_ENTRY_FOR_STD) {
+        if (pInfo && WUDiGetDevNumber() == WUD_MAX_DEV_ENTRY_FOR_STD) {
             pInfo = p->stdListTail->prev->devInfo;
             WUDiMoveBottomStdDevInfoPtr(pInfo);
             WUDiRemoveDevice(pInfo->devAddr);
@@ -804,7 +806,7 @@ static u8 __wudSyncVirginStandard(void) {
     }
 
     pInfo = WUDiGetNewDevInfo();
-    if (pInfo == NULL) {
+    if (!pInfo) {
         return WUD_STATE_SYNC_ERROR;
     }
     if (pInfo->status != 0) {
@@ -1172,12 +1174,16 @@ static WUDDeleteState __wudDeleteCleanupDatabase(void) {
         }
     }
 
-    if (_linkedWBC && SCGetProductGameRegion() == 0) {
-        u8 zero_key[sizeof(LINK_KEY)] = {0};
-        WUDiSetWiiFitPairingRecord(NULL, zero_key, NULL);
-        return 100;
+    if (_linkedWBC) {
+        if (SCGetProductGameRegion() == 0) {
+            u8 zero_key[sizeof(LINK_KEY)] = {0};
+            WUDiSetWiiFitPairingRecord(NULL, zero_key, NULL);
+            return 100;
+        }
+        return WUD_STATE_DELETE_CLEANUP_SETTING;
+    } else {
+        return WUD_STATE_DELETE_CLEANUP_SETTING;
     }
-    return WUD_STATE_DELETE_CLEANUP_SETTING;
 }
 
 static void WUDiCleanUp() {

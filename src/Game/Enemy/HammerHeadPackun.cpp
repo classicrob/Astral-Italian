@@ -594,17 +594,17 @@ bool HammerHeadPackun::isAttackSensorValid() const {
     return valid;
 }
 
-// NONMATCHING: Early-return register and epilogue load scheduling differ.
 bool HammerHeadPackun::isChance() const {
+    bool isChance;
     if (mIsSpike) {
-        return false;
-    }
-
-    bool isChance = false;
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) && !MR::isNewNerve(this) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) ||
-        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 50) ||
-        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessEqualStep(this, 30) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
-        isChance = true;
+        isChance = false;
+    } else {
+        isChance = false;
+        if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) && !MR::isNewNerve(this) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) ||
+            isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 50) ||
+            isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessEqualStep(this, 30) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
+            isChance = true;
+        }
     }
     return isChance;
 }

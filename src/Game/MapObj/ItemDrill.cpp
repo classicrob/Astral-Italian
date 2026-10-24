@@ -352,12 +352,8 @@ bool ItemDrill::startDrill() {
     bool isAdjusted = mLimitPos->adjustPositionByCollision(playerPos, nullptr);
     mUnk20C = -1;
     if (isAdjusted) {
-        TVec3f scaled(gravity);
-        scaled.scale(50.0f);
-        TVec3f limitPos(mLimitPos->mPosition);
-        JMathInlineVEC::PSVECAdd(&limitPos, &scaled, &limitPos);
-        TVec3f diff(limitPos);
-        JMathInlineVEC::PSVECSubtract(&playerPos, &diff, &diff);
+        TVec3f limitPos = mLimitPos->mPosition + gravity.scaleInline(50.0f);
+        TVec3f diff = playerPos - limitPos;
         if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, playerPos, diff)) {
             mMtx12C.setTrans(mLimitPos->mPosition);
             mUnk20C = 0;
@@ -547,12 +543,7 @@ s32 ItemDrill::calcDiveStep() {
     mMtx15C.getTrans(to);
     s32 steps = static_cast< s32 >(PSVECDistance(&from, &to) / 30.0f) + 1;
 
-    TVec3f delta(to);
-    JMathInlineVEC::PSVECSubtract(&delta, &from, &delta);
-    TVec3f step(delta);
-    step.scale(1.0f / static_cast< f32 >(steps));
-
-    if (updateDrillMove(step)) {
+    if (updateDrillMove((to - from).scaleInline(1.0f / static_cast< f32 >(steps)))) {
         return -1;
     }
     return steps;

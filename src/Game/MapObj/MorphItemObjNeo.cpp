@@ -513,9 +513,7 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
             setNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvFly));
 
             const TVec3f* senderPos = MR::getSensorPos(pSender);
-            TVec3f velocity(*MR::getSensorPos(pReceiver));
-            velocity -= *senderPos;
-            mVelocity = velocity;
+            mVelocity = *MR::getSensorPos(pReceiver) - *senderPos;
             mVelocity.setLength(50.0f);
 
             MR::calcGravity(this);

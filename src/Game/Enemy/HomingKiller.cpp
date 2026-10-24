@@ -113,6 +113,12 @@ HomingKiller::HomingKiller(const char* pName)
 }
 
 // NONMATCHING: vector temporary stack-slot order.
+static inline TVec3f makeZeroVec() {
+    TVec3f v;
+    v.setAll< f32 >(0.0f);
+    return v;
+}
+
 void HomingKiller::init(const JMapInfoIter& rIter) {
     const char* objectName = "HomingKiller";
     if (MR::isValidInfo(rIter)) {
@@ -188,17 +194,11 @@ void HomingKiller::init(const JMapInfoIter& rIter) {
     }
 
     if (mType == Type_Torpedo) {
-        TVec3f soundOffset;
-        soundOffset.setAll< f32 >(0.0f);
-        initSound(12, "Torpedo", nullptr, soundOffset);
+        initSound(12, "Torpedo", nullptr, makeZeroVec());
     } else if (mType == Type_MagnumKiller) {
-        TVec3f soundOffset;
-        soundOffset.setAll< f32 >(0.0f);
-        initSound(12, "MagnumKiller", nullptr, soundOffset);
+        initSound(12, "MagnumKiller", nullptr, makeZeroVec());
     } else {
-        TVec3f soundOffset;
-        soundOffset.setAll< f32 >(0.0f);
-        initSound(12, "HomingKiller", nullptr, soundOffset);
+        initSound(12, "HomingKiller", nullptr, makeZeroVec());
     }
 
     if (mType == Type_MagnumKiller) {
@@ -212,9 +212,7 @@ void HomingKiller::init(const JMapInfoIter& rIter) {
     MR::addToAttributeGroupSearchTurtle(this);
     MR::invalidateClipping(this);
 
-    TVec3f lockOnOffset;
-    lockOnOffset.setAll< f32 >(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), lockOnOffset);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), makeZeroVec());
 
     mScaleParam = new AnimScaleParam();
     mScaleController = new AnimScaleController(mScaleParam);

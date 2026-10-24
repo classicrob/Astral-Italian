@@ -290,8 +290,8 @@ void Popo::exeReturn() {
         v.scale(along);
         mVelocity.set(v);
     }
-    TVec3f* pVel = &mVelocity;
-    if (PSVECMag(pVel) > 10.0f) {
+    if (PSVECMag(&mVelocity) > 10.0f) {
+        TVec3f* pVel = &mVelocity;
         pVel->setLength(10.0f);
     }
     if (!tryFindYoshi() && (PSVECDistance(&mPosition, &mHomePos) < 1.0f || MR::isGreaterEqualStep(this, 600))) {

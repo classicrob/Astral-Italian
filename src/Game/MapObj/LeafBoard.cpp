@@ -73,7 +73,7 @@ void LeafBoard::init(const JMapInfoIter& rIter) {
     MR::setShadowSurfaceOvalColor(this, "Water", Color8(0, 64, 64, 128));
     MR::setShadowSurfaceOvalAlpha(this, "Water", 64);
     MR::setShadowProjectionPtr(this, "Water", &mShadowPos, &mShadowNormal);
-    MR::setShadowSurfaceOvalAlpha(this, "Water", (u8)(s32)mShadowAlpha);
+    MR::setShadowSurfaceOvalAlpha(this, "Water", (u8)mShadowAlpha);
     MR::setEffectHostMtx(this, "Ripple", mWaterMtx);
     MR::emitEffect(this, "Ripple");
     initNerve(GET_NERVE(LeafBoard, LeafBoardNrvWait), 0);

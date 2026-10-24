@@ -320,14 +320,9 @@ bool WorldMapOwner::tryWorldWarpFromNext(WorldMapResultStateWorldWarp* pInfo) {
     return false;
 }
 
-// NONMATCHING: MWCC folds `id < 2 || id > 6` into the range check (addi/cmplwi); the target keeps two cmpwi (same control flow otherwise)
 bool WorldMapOwner::isAllNeededForGrandGalaxy() {
     s32 worldId = mContext->mWorld->mWorldId;
-    if (worldId < 2) {
-        return false;
-    }
-
-    if (worldId > 6) {
+    if (2 > worldId || worldId > 6) {
         return false;
     }
 
@@ -338,8 +333,8 @@ bool WorldMapOwner::isAllNeededForGrandGalaxy() {
     if (!getPointParts()->isAnyStarCheckPointPending()) {
         return false;
     }
-
-    return getInfoHolder()->isAllCompleted();
+    bool completed = getInfoHolder()->isAllCompleted();
+    return completed;
 }
 
 // NONMATCHING: saved-register allocation and normalization scheduling.
@@ -739,7 +734,7 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
     TVec3f i = goal * rate2 + pCamera->mStartOffset * (1.0f - rate2);
     MR::setPosition(pCamera->mCameraTarget, i);
     pCamera->mMoveFrame++;
-    if ((arrived && pCamera->mMoveFrame > 0x1A) || (MR::isNear(pRocket, goal, 10.0f) && !MR::isVelocityGreaterEqual(pRocket, 1.0f)) ||
+    if ((arrived && pCamera->mMoveFrame > 0x1A) || (MR::isNear(pRocket, goal, 10.0f) && (MR::isVelocityGreaterEqual(pRocket, 1.0f) ? false : true)) ||
         (!arrived && MR::isNear(pRocket, goal, 1000.0f))) {
         if (!arrived) {
             pCamera->mMoveFrame = 0;

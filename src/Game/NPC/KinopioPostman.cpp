@@ -498,9 +498,7 @@ void KinopioPostman::exeDemo() {
         this->trySelectDefaultTalk();
         TVec3f sp8;
         MR::findNamePos(sMarioPosName, &sp8, nullptr);
-        TVec3f sp20 = sp8 - this->mPosition;
-        TVec3f sp14 = -this->mGravity;
-        KinopioPostmanFunction::turnQuaternion(&this->mOrientationQuat, sp14, sp20, -1.0f);
+        KinopioPostmanFunction::turnQuaternion(&this->mOrientationQuat, -this->mGravity, sp8 - this->mPosition, -1.0f);
         MR::startAction(this, "Talk");
     }
     if (!MR::isTimeKeepDemoActive()) {

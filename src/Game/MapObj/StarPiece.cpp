@@ -669,7 +669,7 @@ void StarPiece::exeToTarget() {
             if (mFlags.isGoToPlayer) {
                 mVelocity += *MR::getPlayerVelocity() * mTargetSpeedRate * dot;
             } else {
-                mVelocity += MR::getSensorHost(mTargetSensor)->mVelocity * mTargetSpeedRate * dot;
+                mVelocity += *MR::getSensorHost(mTargetSensor)->getVelocity() * mTargetSpeedRate * dot;
             }
         }
     }

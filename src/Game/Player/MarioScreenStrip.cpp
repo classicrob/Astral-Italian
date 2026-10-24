@@ -7,7 +7,7 @@
 
 // NONMATCHING: equivalent commutative floating-point operand order.
 MarioScreenStripWave::MarioScreenStripWave(f32 amplitude, u32 phase, s32 period, f32 frequency)
-    : mAmplitude(amplitude), mPhase(6.2831855f * phase / period), mFrequency(6.2831855f / frequency) {
+    : mAmplitude(amplitude), mPhase(2.0f * JGeometry::TUtil< f32 >::PI() * phase / period), mFrequency(6.2831855f / frequency) {
 }
 
 // NONMATCHING: equivalent scalar literal relocation labels.

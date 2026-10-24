@@ -185,14 +185,15 @@ bool KinopioBank::eventFunc(u32 id) {
     }
     if(id==1) {
         if(isNerve(&NrvKinopioBank::TradeEnd::sInstance)) { setNerve(mTalkNerve); return true; }
-        if(!isNerve(&NrvKinopioBank::StarPieceWait::sInstance) && !isNerve(&NrvKinopioBank::WaitSelect::sInstance)) setNerve(&NrvKinopioBank::WaitSelect::sInstance);
+        if(!isNerve(&NrvKinopioBank::StarPieceWait::sInstance) && !isNerve(&NrvKinopioBank::WaitSelect::sInstance)) { setNerve(&NrvKinopioBank::WaitSelect::sInstance); return false; }
         return false;
     }
     if(id==2) { TalkMessageCtrl* ctrl = mMsgCtrl; MR::setMessageArg(ctrl,GameDataFunction::getBankInterest()); return true; }
     if(id==3) { GameSequenceFunction::setFaceShipSkipBankInfo(); return true; }
     if(id==4) {
         if(!isNerve(&NrvKinopioBank::CountUp::sInstance) && !isNerve(&NrvKinopioBank::Complete::sInstance) && !isNerve(&NrvKinopioBank::End::sInstance)) {
-            if(GameDataFunction::getMaxBankedStarPieceNum()>=sLifeThresholds[mBankIndex]) setNerve(&NrvKinopioBank::CountUp::sInstance);
+            bool canCountUp = GameDataFunction::getMaxBankedStarPieceNum()>=sLifeThresholds[mBankIndex];
+            if(canCountUp) setNerve(&NrvKinopioBank::CountUp::sInstance);
             else if(needsGoodsUpdate()) setNerve(&NrvKinopioBank::End::sInstance);
             else setNerve(&NrvKinopioBank::Complete::sInstance);
             return false;

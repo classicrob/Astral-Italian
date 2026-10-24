@@ -939,7 +939,7 @@ void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {
     }
 }
 
-bool Mario::fn_803A9690(const char* pName) {
+bool Mario::fn_803A9690(const char* pName) const {
     if (this->_970 == nullptr) {
         return false;
     }
@@ -2496,13 +2496,14 @@ void Mario::decideSquatWalkAnimation() {
 
 // NONMATCHING: equivalent direct exit replaces the target byte-gate trampoline.
 void Mario::fn_803AD4F0() {
-    if (isPlayerModeYoshi() && mTargetWalkSpeedIndex != 0 &&
-        (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) && _A7F != 0) {
-        f32 frame = getAnimator()->getFrame();
-        f32 previousFrame = mPrevAnimFrame;
-        if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
-            playEffect("ヨッシー泥移動");
-        }
+    if (!isPlayerModeYoshi() || mTargetWalkSpeedIndex == 0 ||
+        !(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) || _A7F == 0) {
+        return;
+    }
+    f32 frame = getAnimator()->getFrame();
+    f32 previousFrame = mPrevAnimFrame;
+    if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
+        playEffect("ヨッシー泥移動");
     }
 }
 
@@ -2574,14 +2575,15 @@ void Mario::fn_803AD5B0() {
 
 // NONMATCHING: equivalent direct exit replaces the target byte-gate trampoline.
 void Mario::fn_803AD9C0() {
-    if (isPlayerModeYoshi() && mTargetWalkSpeedIndex != 0 &&
-        (static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) && _A7F != 0) {
-        f32 frame = getAnimator()->getFrame();
-        f32 previousFrame = mPrevAnimFrame;
-        if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
-            if (mTargetWalkSpeedIndex >= 2) {
-                playEffect("ヨッシー泥移動");
-            }
+    if (!isPlayerModeYoshi() || mTargetWalkSpeedIndex == 0 ||
+        !(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30)) || _A7F == 0) {
+        return;
+    }
+    f32 frame = getAnimator()->getFrame();
+    f32 previousFrame = mPrevAnimFrame;
+    if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
+        if (mTargetWalkSpeedIndex >= 2) {
+            playEffect("ヨッシー泥移動");
         }
     }
 }
@@ -4434,7 +4436,7 @@ bool Mario::fn_803B26C0() {
     return false;
 }
 
-bool Mario::fn_803B2730() {
+bool Mario::fn_803B2730() const {
     return strcmp(MR::getSoundCodeString(this->_45C), "Sand") == 0;
 }
 
@@ -4819,7 +4821,7 @@ void Mario::fn_803B3CE0() {
     if (isPlayerModeYoshi()) mActor->getYoshi()->fn_8040F370();
 }
 
-bool Mario::fn_803B3E90() {
+bool Mario::fn_803B3E90() const {
     HitSensor* pSensor = MR::getSensor(this->mGroundPolygon);
     if (pSensor != nullptr) {
         LiveActor* pHost = MR::getSensorHost(pSensor);

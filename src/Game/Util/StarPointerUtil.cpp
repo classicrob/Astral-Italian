@@ -606,24 +606,18 @@ namespace MR {
             return true;
         }
 
-        TVec3f backOffset(camNorm);
-        backOffset.scale(-50000.0f);
-        TVec3f fallbackPlanePos(camPos);
-        fallbackPlanePos.add(backOffset);
         TVec3f forceIntersectPos;
 #ifdef GALAXY_NATIVE
-        if (!MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, fallbackPlanePos, camNorm)) {
+        if (!MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, camPos + camNorm.scaleInline(-50000.0f), camNorm)) {
             pPos->set(rPlaneBasePos);
             return false;
         }
 #else
-        MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, fallbackPlanePos, camNorm);
+        MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, camPos + camNorm.scaleInline(-50000.0f), camNorm);
 #endif
 
         TVec3f forceNorm;
-        TVec3f checkDir(rPlaneBasePos);
-        checkDir.sub(forceIntersectPos);
-        if (checkDir.dot(planeNorm) < 0.0f) {
+        if ((rPlaneBasePos - forceIntersectPos).dot(planeNorm) < 0.0f) {
             forceNorm = -planeNorm;
         } else {
             forceNorm = planeNorm;

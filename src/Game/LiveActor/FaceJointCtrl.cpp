@@ -77,7 +77,6 @@ void FaceJointCtrl::setCallBackFunction() {
     mJointController->registerCallBack();
 }
 
-// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointControllerInfo&) {
     TVec3f scale;
     matrix->getScale(scale);
@@ -127,8 +126,8 @@ bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointController
     if (!MR::normalizeOrZero(&vertical) && factor > 0.0f) {
         f32 rate = mJointCtrlRate->_0;
         f32 angle = mParam->mDegreeVertical * factor;
-        angle *= rate;
-        MR::turnMtxToXDirDegree(&desired, vertical, angle);
+        rate = angle * rate;
+        MR::turnMtxToXDirDegree(&desired, vertical, rate);
     }
     TVec3f oldSide, baseSide, newSide;
     previous.getXDir(oldSide);

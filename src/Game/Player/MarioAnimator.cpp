@@ -1004,9 +1004,7 @@ void MarioAnimator::updateJointRumble() {
     if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) && !((getPlayer()->mMovementStates.mHighWord >> 8) & 1U) && getPlayer()->mTargetWalkSpeedIndex == 0 &&
         getPlayer()->calcAngleD(getPlayer()->_368) > 5.0f) {
         TVec3f dir;
-        Mario* playerVec = getPlayer();
-        const TVec3f* airGrav = &playerVec->getAirGravityVec();
-        MR::vecKillElement(playerVec->_368, *airGrav, &dir);
+        MR::vecKillElement(getPlayer()->_368, getPlayer()->getAirGravityVec(), &dir);
         MR::normalizeOrZero(&dir);
 
         if (getPlayer()->mFrontVec.dot(dir) < -0.707f) {

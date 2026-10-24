@@ -319,18 +319,10 @@ void NokonokoLandBig::exeFall() {
         front = -front;
         MR::normalize(&front);
         TVec3f up = -mGravity;
-        TVec3f lift(up);
-        lift.scale(45.0f);
-        TVec3f forward(front);
-        forward.scale(5.0f);
-        TVec3f velocity(forward);
-        velocity.add(lift);
-        mVelocity.set(velocity);
+        mVelocity.set(front.scaleInline(5.0f) + up.scaleInline(45.0f));
         MR::makeQuatFromVec(&mQuat, -front, -mGravity);
     }
-    TVec3f acceleration(mGravity);
-    acceleration.scale(1.2f);
-    mVelocity.add(acceleration);
+    mVelocity.add(mGravity.scaleInline(1.2f));
     mVelocity.scale(0.99f);
     if (MR::isStep(this, 45)) {
         mVelocity.z = 0.0f;

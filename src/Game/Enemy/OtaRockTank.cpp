@@ -1210,17 +1210,14 @@ void OtaRockTank::fireTankMeteorForward(u32 a, s32 b) {
 #pragma dont_inline on
 // NONMATCHING: vector temporary stack slots and multiply operand order differ
 void OtaRockTank::fireTankMeteorAtTarget(u32 a, s32 b) {
-    TVec3f vel = mGravity * (2900.0f + (f32)a * 100.0f);
-    TVec3f pos = mTargetPoses[a] - vel;
+    TVec3f pos = mTargetPoses[a] - mGravity * (2900.0f + (f32)a * 100.0f);
     if (!isTankMeteorCoconut(a, b)) {
         ScatterFireBall* pBall = findFreeTankScatterBall();
-        TVec3f v = mGravity * 8.0f;
-        pBall->shootFalling(pos, v);
+        pBall->shootFalling(pos, mGravity * 8.0f);
         return;
     }
     CocoNutBall* pBall = findFreeTankCoconutBall();
-    TVec3f v = mGravity * 8.0f;
-    pBall->launchFallingCoconut(pos, v);
+    pBall->launchFallingCoconut(pos, mGravity * 8.0f);
 }
 
 void OtaRockTank::fireTankFlame(const TVec3f& rPos, const TVec3f& rDir) {

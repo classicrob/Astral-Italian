@@ -9,7 +9,7 @@ typedef struct ProcessInfo {
 	int active;
 } ProcessInfo;
 
-static ProcessInfo fragmentinfo[1];
+static ProcessInfo fragmentinfo[32];
 
 int __register_fragment(struct __eti_init_info *info, char *TOC) {
 	ProcessInfo* f = fragmentinfo;

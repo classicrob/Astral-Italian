@@ -207,7 +207,6 @@ void WorldMapResultStateEnterGalaxy::exeZoomOut() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateEnterGalaxy::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::showPlayer();
@@ -215,12 +214,9 @@ void WorldMapResultStateEnterGalaxy::exeDemo() {
         MR::startAction(MR::getPlayerDemoActor(), mAnimName);
         mHost->changeRocketAction(lbl_807D0550);
         MR::startAnimCameraTargetPlayer(MR::getPlayerDemoActor(), mCamInfo, mAnimName, -1, false, 1.0f);
-        TVec3f camZ = MR::getCamZdir();
-        TVec3f negCamZ = -camZ;
+        TVec3f negCamZ = -MR::getCamZdir();
         WorldMapOwner* host = mHost;
-        const TVec3f* pRocketPos = host->getRocketPos();
-        TVec3f camY = MR::getCamYdir();
-        host->setRocketFrontUpPos(negCamZ, camY, *pRocketPos);
+        host->setRocketFrontUpPos(negCamZ, MR::getCamYdir(), *host->getRocketPos());
     }
     MR::isLessEqualStep(this, 170);
     if (MR::isStep(this, 170)) {

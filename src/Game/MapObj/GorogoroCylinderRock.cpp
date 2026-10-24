@@ -254,15 +254,13 @@ void GorogoroCylinderRock::updateRotateNoGravity() {
 // NONMATCHING: vector temporaries occupy different stack slots.
 bool GorogoroCylinderRock::tryLandOnGround() {
     TVec3f gravityScaled = mGravity * 1010.0f;
-    TVec3f gravityOffset = mGravity * 5.0f;
-    TVec3f start = mPosition - gravityOffset;
+    TVec3f start = mPosition - mGravity * 5.0f;
     TVec3f hitPos(0.0f);
     mGroundPos = hitPos;
 
     Triangle tri;
     if (MR::getFirstPolyOnLineToMapExceptActor(&hitPos, &tri, start, gravityScaled, this)) {
-        TVec3f newPos = hitPos - gravityScaled;
-        mPosition = newPos;
+        mPosition = hitPos - gravityScaled;
         mGroundPos = hitPos;
         return true;
     }

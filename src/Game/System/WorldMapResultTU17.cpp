@@ -78,10 +78,7 @@ void WorldMapResultStatePointEvent::appear() {
     } else if (mIndex == 2) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEaseIn));
         const TVec3f* galaxyOffset = WorldMapFunction::getRocketOffsetGalaxy();
-        TVec3f sp8(mPos);
-        sp8 -= *galaxyOffset;
-        TVec3f sp14 = sp8 + *WorldMapFunction::getRocketOffsetPoint();
-        mOffset.set(sp14);
+        mOffset.set(mPos - *galaxyOffset + *WorldMapFunction::getRocketOffsetPoint());
     }
     GameSequenceFunction::setWorldMapCurrentNode(mHost->getCurrentNode());
 }

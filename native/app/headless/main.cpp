@@ -436,7 +436,7 @@ int main(int argc,char** argv) {
         if (actorTrace) actors=std::make_unique<H::ActorTraceFiles>(path);
         Driver driver(replay.get(),keyboard.get(),trace,actors.get(),path,n,d,std::move(sync),startupRequested,std::move(laterSegments)); gDriver=&driver;
         gSourceFrame.store(0,std::memory_order_relaxed);
-        PetariNative::Input::setClock(keyboard ? PetariNative::Input::Clock::Alarm : PetariNative::Input::Clock::Manual);
+        PetariNative::Input::setClock(keyboard ? PetariNative::Input::Clock::GameRead : PetariNative::Input::Clock::Manual);
         if (replay) PetariNative::Input::setKpadReplayHooks({Driver::read,&driver});
         P::VI::setClock(P::VI::Clock::External); P::VI::setWaitDriver({Driver::viWait,&driver});
         H::configurePlatform(disc.c_str(),user.c_str());

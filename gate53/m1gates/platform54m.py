@@ -10,7 +10,7 @@ for name,cmd,marker in (
  ('minos',['otool','-l',app/'Contents/MacOS/Petari'],'minos 15.0')):
  r=subprocess.run([str(x) for x in cmd],capture_output=True,text=True);(out/(name+'.log')).write_text(r.stdout+r.stderr);checks[name]=r.returncode==0 and marker in r.stdout
 resources=app/'Contents/Resources';seeds=list((resources/'pipeline-seeds').glob('*.db'));build=meta['build_metadata'] if a.candidate_dir else json.loads((FROZEN/'BUILD.json').read_text())
-checks['seed-pack-count']=len(seeds)==build['bundled_seed_dbs']
+checks['seed-pack-count']=len(seeds)==build['bundled_seed_dbs']==64
 checks['resource-copy-identical']=tree(resources)==tree(Path(meta['source_app'])/'Contents/Resources')
 seedrows=[]
 for seed in seeds:

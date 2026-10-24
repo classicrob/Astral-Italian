@@ -123,7 +123,7 @@ def main():
    def fullstarcheck():
     from candidate_evidence54m import full_star_evidence
     value=full_star_evidence(m['full_star_results'],meta['candidate_directory']);assert value==readj(base/'full-star-status.json');return value
-   gate('full-star-flipswap',[base/'full-star-status.json']+[Path(q) for q in m.get('full_star_results') or []],fullstarcheck,'three complete Flip-Swap Star sessions from fresh private users',('Each original tape_prefix retains the native min(declared seams, complete CSV rows) accounting; no input tape mutation.',))
+   gate('full-star-flipswap',[base/'full-star-status.json']+[Path(q) for q in m.get('full_star_results') or []],fullstarcheck,'three Flip-Swap Star replays from fresh private users',('Each original tape_prefix retains the native min(declared seams, complete CSV rows) accounting; no input tape mutation.',))
  else:gate('normal-route-grandmap',[tape],lambda:{'passed':False,**readj(tape)},'whole normal route on frozen54',('Candidate tape runs are separate and cannot prove frozen54 whole-session replay.',))
  intro=runpath('intro')/'RESULT.json'
  def introcheck():

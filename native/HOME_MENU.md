@@ -102,17 +102,19 @@ The size row is disabled in fullscreen. Sizes are requested window points;
 macOS can constrain them to the usable screen area. The existing presentation
 viewport keeps the game's aspect ratio and letterboxing.
 
-VSync is saved for the **next application launch**. A changed value shows
-“restart needed”; quit and reopen the app to apply it. **Restart from Title**
-does not recreate the window or apply VSync. The default is **On** (Fifo
-presentation) since 5.4: the game still paces itself from VI/display-link
-retraces, but with VSync off (Immediate) a 120 Hz ProMotion panel put 16.3 % of
-warm frames off the 60 fps cadence (visible judder) against 0.3 % with Fifo.
-**Off** (Immediate) remains for anyone who wants the lowest latency. 5.4 saves
-the choice as `vsync2`; the `vsync` key that 5.3 and earlier wrote (with the old
-default Off) is ignored, so existing user folders get the new default. No pacing
-or runtime surface-mode changes are made by this page. Developer launches using
-`PETARI_PRESENT_MODE` still override the present mode.
+**VSync: Auto / On / Off** (Left/Right or confirm cycles Auto -> On -> Off). The
+default is **Auto** since 5.4.1: VSync on (Fifo) in a window, off (Immediate) in
+fullscreen, switched live as the window enters or leaves fullscreen. Measured on
+the 120 Hz ProMotion panel (warm Yoshi): windowed Fifo is smooth (0.2 % late
+frames) but ~20 ms slower to the screen than Immediate; windowed Immediate
+judders (the compositor puts 15-30 % of frames off the 60 fps cadence);
+fullscreen Immediate is both smooth and the fastest (46-48 ms press-to-screen
+vs 67-70 ms for Fifo). **On** and **Off** force one mode everywhere and apply at
+the **next application launch** (“restart needed”); **Restart from Title** does
+not recreate the window. 5.4.1 saves the choice as `vsyncmode` (0 Off, 1 On, 2
+Auto). A 5.4 `vsync2=0` (an explicit Off) stays Off; `vsync2=1` (5.4's default)
+becomes Auto; the 5.3-era `vsync` key is ignored. Developer launches using
+`PETARI_PRESENT_MODE` override the present mode and disable the Auto switching.
 
 **Ubershaders: On/Off** defaults to On (hybrid rendering). It reduces stalls while
 new shaders compile. The preference applies after quitting and reopening the app;
@@ -130,8 +132,8 @@ and remapper. The default key table remains in `native/CONTROLS.md`.
 
 `native/app/display_settings.{hpp,cpp}` loads `display.txt` in the selected
 user directory before Aurora creates its window. Missing files retain the
-defaults: windowed, 1280×720, VSync On, Ubershaders On. The text file contains
-`fullscreen=0|1`, `size=0..3` (presets in the order above), `vsync2=0|1`, and `ubershaders=0|1`. Older files without the new key retain default On.
+defaults: windowed, 1280×720, VSync Auto, Ubershaders On. The text file contains
+`fullscreen=0|1`, `size=0..3` (presets in the order above), `vsyncmode=0|1|2`, and `ubershaders=0|1`. Older files without the new key retain default On.
 Out-of-range numeric preset indices are clamped; malformed known values reset
 the load to defaults and produce an actionable message. Changes use a unique
 sibling `display.txt.tmp-XXXXXX`, flush it and atomically rename it over the

@@ -28,7 +28,10 @@ public:
         ++changes;
         if (row == 0) options.fullscreen = !options.fullscreen;
         if (row == 1) options.size = (options.size + delta + HM::kDisplaySizeCount) % HM::kDisplaySizeCount;
-        if (row == 2) { options.vsync = !options.vsync; options.restartNeeded = !options.restartNeeded; }
+        if (row == 2) {  // Auto -> On -> Off -> Auto
+            const int mode = options.vsyncAuto ? 2 : options.vsync ? 1 : 0, to = (mode + 2) % 3;
+            options.vsyncAuto = to == 2; options.vsync = to != 0; options.restartNeeded = !options.vsyncAuto;
+        }
         if (row == 3) { options.ubershaders = !options.ubershaders; options.ubershadersRestartNeeded = !options.ubershaders; }
     }
 };
@@ -75,8 +78,10 @@ int main() {
     check(backend.options.size == 3, "left wraps");
     press(menu, HM::Button::Right);
     check(backend.options.size == 0, "right wraps");
+    check(std::strstr(menu.view().items[2].label, "VSync: Auto"), "VSync defaults to Auto");
     click(menu, 2);
-    check(std::strstr(menu.view().items[2].label, "restart needed"), "vsync restart note");
+    check(std::strstr(menu.view().items[2].label, "VSync: On") && std::strstr(menu.view().items[2].label, "restart needed"),
+          "Auto -> On with the restart note");
     backend.options.busy = true; menu.update({});
     const int changes = backend.changes; click(menu, 0); press(menu, HM::Button::Right);
     check(backend.changes == changes && !menu.view().items[0].enabled, "pending host request disables edits");

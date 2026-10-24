@@ -29,12 +29,14 @@ public:
     void read(Settings* out, char* message, std::size_t capacity) override;
     void change(int row, int delta) override;
     void tick(Window& window);
+    bool startupVsyncAuto();  // the mode this launch started with (Auto switches live; On/Off apply at the next launch)
 
 private:
     std::mutex mMutex;
     std::filesystem::path mFile;
     Settings mSettings;
     bool mStartupVsync = true;
+    bool mStartupVsyncAuto = true;
     bool mStartupUbershaders = true;
     int mPending = -1;
     int mDelta = 1;

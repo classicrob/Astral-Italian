@@ -1,5 +1,6 @@
 #include "editor_m4_smoke.hpp"
 #include "display_settings.hpp"
+#include "display_window.hpp"
 #include <petari/ubershader_mode.hpp>
 extern "C" bool aurora_imgui_update_texture(unsigned long long, unsigned, unsigned, const void*);
 // Native entry point: window, platform start-up, then the game's main loop
@@ -997,7 +998,11 @@ int main(int argc, char** argv) {
         return 1;
     }
     std::fprintf(stderr, "[gx uber] mode=%s source=%s\n", PetariNative::Ubershaders::name(uberMode.mode), uberMode.source);
-    config.vsync = display.vsync;
+    // VSync Auto (default): Fifo in a window, Immediate in fullscreen; DisplayWindow::update switches it live afterwards.
+    config.vsync = display.vsyncAuto ? !display.fullscreen : display.vsync;
+    std::fprintf(stderr, "[display] vsync %s: starting %s\n", display.vsyncAuto ? "auto" : display.vsync ? "on" : "off",
+                 config.vsync ? "with VSync (Fifo)" : "without VSync (Immediate)");
+    App::DisplayWindow::setStartupVsync(config.vsync);
     config.startFullscreen = display.fullscreen;
     // The game keeps running without focus, as on the console. Input releases
     // held keys on focus loss.

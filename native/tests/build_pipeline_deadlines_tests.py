@@ -59,10 +59,10 @@ class Build(unittest.TestCase):
         for name, field in [('first-use.jsonl', 'capture_sha256'), ('app.log', 'app_log_sha256'), ('launch.json', 'launch_sha256')]:
             arm[field] = builder.sha(folder / name)
 
-    def run_build(self, expected=None, require_cold=False):
+    def run_build(self, expected=None, require_cold=False, fallback=()):
         path = self.batch / 'PROVENANCE.json'; path.write_text(json.dumps(self.data))
         return builder.build(self.seeds, [path], self.root / 'out', self.root / 'report.json', expected,
-                             source_pack=self.source_pack, require_cold_confirmation=require_cold)
+                             source_pack=self.source_pack, require_cold_confirmation=require_cold, fallback_stages=fallback)
 
     def test_exact_pair(self):
         result = self.run_build(); self.assertTrue(result['passed'])
@@ -166,6 +166,36 @@ class Build(unittest.TestCase):
         result = self.run_build(require_cold=True)
         self.assertTrue(result['passed'])
         self.assertEqual(result['stage_results'][0]['cold_confirmation_checks'][0]['disagreements'], {})
+
+    def test_explicit_fallback_preserves_original_failure(self):
+        self.data['stage_results'][0]['passed']=False
+        result=self.run_build(fallback=['A'])
+        self.assertTrue(result['passed'])
+        self.assertFalse(result['all_requested_deadlines_qualified'])
+        self.assertEqual(result['missing_or_failed_stages'],['A'])
+        self.assertEqual(result['explicit_whole_stage_fallbacks'],['A'])
+        self.assertFalse(result['stage_results'][0]['admitted'])
+        self.assertFalse((self.root/'out/A.first-use.bin').exists())
+
+    def test_unrecorded_stage_cannot_be_explicit_fallback(self):
+        with self.assertRaisesRegex(ValueError,'attempted, unqualified'):
+            self.run_build(expected=['A','B'],fallback=['B'])
+
+    def test_retry_cannot_replace_success(self):
+        path=self.batch/'PROVENANCE.json';path.write_text(json.dumps(self.data))
+        with self.assertRaisesRegex(ValueError,'already admitted'):
+            builder.build(self.seeds,[path,path],self.root/'out',self.root/'report.json',source_pack=self.source_pack)
+
+    def test_retry_keeps_failed_original_visible(self):
+        import shutil
+        retry=self.root/'retry';shutil.copytree(self.batch,retry)
+        success=retry/'PROVENANCE.json';success.write_text(json.dumps(self.data))
+        self.data['stage_results'][0]['passed']=False
+        original=self.batch/'PROVENANCE.json';original.write_text(json.dumps(self.data))
+        result=builder.build(self.seeds,[original,success],self.root/'out',self.root/'report.json',source_pack=self.source_pack)
+        self.assertTrue(result['passed'])
+        self.assertEqual([r['admitted'] for r in result['stage_results']],[False,True])
+        self.assertEqual(result['stage_results'][1]['previous_failed_attempts'],[str(original.resolve())])
 
     def test_equal_unknown_maps_do_not_hide_missing_bootstrap_scope(self):
         for index in (1,2):

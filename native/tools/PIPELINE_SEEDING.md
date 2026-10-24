@@ -947,6 +947,22 @@ that pack and requires its SHA-256 to match each recording build's metadata.
 Cold confirmations are reparsed and hash-bound independently; a summary claiming
 agreement cannot override differing raw frame groups.
 
+Failed recording attempts remain visible when a later retry qualifies the same
+stage. A retry cannot replace an already admitted successful stage. An explicit
+`--fallback-stage` names only an attempted, unqualified stage and writes no
+sidecar for it; the report keeps its failure and distinguishes complete recording
+coverage from `all_requested_deadlines_qualified`.
+
+The runner's `--tape` mode captures first use during a whole-session KPAD replay
+on the same recording executable, using `--tape-user-fixture` and its certified
+`--tape-user-receipt`. It primes once, then records two fully warm runs. It
+requires strict v1 replay completion, bounded identities, exact state and RNG
+checkpoints, all pointer rows, and no jump cut in addition to exact warm frame
+groups. Tape/source executable hashes are recorded, not gated equal. The normal
+route is an existing-unlocked-file path; it is not labelled a fresh-file tutorial
+start. `--build-provenance` can reuse the original batch's bound recording BUILD
+metadata without constructing a new build identity.
+
 The runtime registers a complete stage batch and every scene/offscreen alias
 before any of that batch's fallback work can dispatch. Specialised/UI queues can
 still run during admission. Within active Generic work, recorded frame is the

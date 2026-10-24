@@ -62,6 +62,32 @@ def write(path, value):
     Path(path).write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
 
+def tree(path):
+    return {str(p.relative_to(path)): sha(p) for p in sorted(path.rglob('*')) if p.is_file()}
+
+
+def replay_checks(report):
+    """Whole-session replay must retain all v1 state, pointer and checkpoint checks."""
+    segments = report.get('segments', [])
+    return {
+        'whole_session': report.get('mode') == 'whole-session',
+        'finished': report.get('finished') is True and not report.get('stopped') and bool(segments),
+        'v1_policy': report.get('anchor_policy') == 'interactive-and-play-ready-v1',
+        'bit_exact': report.get('interactive_position_bit_exact') is True,
+        'zero_position_error': bool(segments) and all(s.get('max_position_error') == 0 for s in segments),
+        'segments_complete': bool(segments) and all(s.get('started') is True and s.get('completed') is True and not s.get('diverged') for s in segments),
+        'all_state_and_pointer_rows': bool(segments) and all(
+            type(s.get('identity_rows_skipped')) is int and 0 <= s['identity_rows_skipped'] <= 30 and
+            s.get('rows_compared', -1) + s['identity_rows_skipped'] == s.get('tape_frames', -2) + 1 and
+            s.get('pointer_rows_compared') == s.get('tape_frames', -1) for s in segments),
+        'bounded_identity': bool(segments) and all(s.get('identity_offset_checked') is True and s.get('identity_offset_passed') is True and
+            s.get('identity_offset_limit') == 30 and type(s.get('identity_frame_offset')) is int and abs(s['identity_frame_offset']) <= 30 for s in segments),
+        'exact_checkpoints': bool(segments) and all(s.get('play_ready_required') is False or
+            (s.get('play_ready_required') is True and all((s.get('play_ready_state_check') or {}).get(k) is True for k in ('checked','passed','position_bit_exact')) and
+             ((s.get('play_ready_state_check') or {}).get('rng') or {}).get('verified') is True) for s in segments),
+    }
+
+
 def observations(path, stage):
     rows = [json.loads(line) for line in Path(path).read_text().splitlines()]
     if not rows or rows[0] != {'event': 'header', 'version': VERSION, 'gx_config_version': 13,
@@ -179,7 +205,24 @@ def launch(args, stage, name, app=None, cold=False):
     env.update(SDL_AUDIO_DRIVER='dummy', PETARI_MODS='none', PETARI_CACHE_DIR=str(cache),
                PETARI_FRAME_CSV=str(folder / 'frames.csv'), PETARI_FRAME_STATS='1', PETARI_PIPELINE_DIAG='1',
                PETARI_ROUTE_RECORD=str(folder / 'route.csv'))
-    if not args.title:
+    tape = getattr(args, 'tape', None)
+    fixture_before = None
+    if tape:
+        fixture_before = tree(args.tape_user_fixture)
+        certified = json.loads(args.tape_user_receipt.read_text())
+        if fixture_before != certified['files']: raise ValueError('tape fixture differs from receipt')
+        subprocess.run(['/usr/bin/ditto', '--rsrc', '--extattr', str(args.tape_user_fixture), str(folder / 'user')], check=True)
+        if tree(folder / 'user') != fixture_before: raise ValueError('tape user copy differs from fixture')
+        meta = json.loads((tape / 'route.tape.json').read_text())
+        if meta.get('lossy_samples') or meta.get('unencodable_samples'): raise ValueError('tape is not lossless')
+        tape_before = {n: sha(tape / n) for n in ('route.kpd','route.csv','route.actions','route.tape.json')}
+        mods = meta.get('mods', [])
+        env.update(PETARI_MODS=','.join(mods + (['-OdysseyJumpDive'] if 'OdysseyJumpDive' not in mods else [])),
+                   PETARI_TAPE_PLAY_SESSION='1', PETARI_TAPE_PLAY_QUIT='1', PETARI_TAPE_PLAY_OUT=str(folder / 'replay'))
+        for key, value in (meta.get('replay_env') or {}).items():
+            if key != 'PETARI_TEST_RETURN_TO_SHIP': raise ValueError('unsupported recorded scene hook')
+            env[key] = str(value)
+    elif not args.title:
         env.update(PETARI_INPUT_SCRIPT=str(script), PETARI_INPUT_SCRIPT_STEADY='60', PETARI_INPUT_SCRIPT_QUIT='1')
     recording = not name.startswith('prime')
     if recording:
@@ -189,14 +232,18 @@ def launch(args, stage, name, app=None, cold=False):
     identity = seed_identity(app, stage)
     renderer = identity['renderer_key']
     cmd = [str(executable), '--disc', str(args.disc), '--user', str(folder / 'user')]
-    if not args.title:
+    if tape:
+        cmd += ['--replay-tape', str(tape)]
+    elif not args.title:
         cmd += ['--stage', stage, '--scenario', '1']
     write(folder / 'launch.json', {'command': cmd, 'environment': {k: v for k, v in env.items()
-          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title else sha(script),
+          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title or tape else sha(script),
           'stationary_stage_override': stage in args.stationary_stage,
           'nice': os.getpriority(os.PRIO_PROCESS, 0), 'cold_namespace': cold, 'renderer_key': renderer,
           **identity,
-          'purpose': 'recording only; not performance acceptance', 'mode': 'no-input-title' if args.title else 'direct-stage',
+          'purpose': 'recording only; not performance acceptance', 'mode': 'tape-driven' if tape else 'no-input-title' if args.title else 'direct-stage',
+          'tape_files_sha256': tape_before if tape else None, 'save_fixture': str(args.tape_user_fixture) if tape else None,
+          'fixture_files': fixture_before, 'tape_executable_hash_gated': False,
           'load': os.getloadavg()})
     started = time.monotonic()
     with (folder / 'app.log').open('wb') as log:
@@ -234,8 +281,19 @@ def launch(args, stage, name, app=None, cold=False):
     no_wait = not re.search(r'^\[gx uber wait\]', text, re.M) and all(float(r['pipeline_wait_ms']) == 0 for r in frames)
     no_pop = not re.search(r'^\[pop-in\] frame \d+ skipped_draws [1-9]', text, re.M)
     checks = {'exit_zero': process.returncode == 0, 'not_timed_out': not timed_out, 'no_faults': not fault,
-              'script_done': args.title or '[input-script] done after 970 frames' in text, 'exe_unchanged': sha(executable) == before,
+              'exe_unchanged': sha(executable) == before,
               'frame_rows': bool(frames)}
+    native_replay, replay_sha = None, None
+    if tape:
+        report_path = folder / 'replay/divergence.json'
+        native_replay = replay_checks(json.loads(report_path.read_text())) if report_path.exists() else {'report_present': False}
+        replay_sha = sha(report_path) if report_path.exists() else None
+        checks.update(strict_tape_replay=all(native_replay.values()),
+                      tape_unchanged=tape_before == {n: sha(tape / n) for n in tape_before},
+                      fixture_unchanged=tree(args.tape_user_fixture) == fixture_before,
+                      no_jump_cut='jump cut' not in text)
+    else:
+        checks['script_done'] = args.title or '[input-script] done after 970 frames' in text
     if args.title:
         route = list(csv.DictReader((folder / 'route.csv').open())) if (folder / 'route.csv').exists() else []
         checks.update(no_quit_error=quit_error is None, title_300seconds=time.monotonic()-started >= 300,
@@ -257,6 +315,7 @@ def launch(args, stage, name, app=None, cold=False):
               'no_pop_in': no_pop, 'recording_exe_sha256': before, 'launch_sha256': sha(folder / 'launch.json'),
               **identity,
               'app_log_sha256': sha(folder / 'app.log'), 'capture_sha256': sha(capture) if capture.exists() else None}
+    if tape: result.update(replay_checks=native_replay, replay_report_sha256=replay_sha)
     write(folder / 'RESULT.json', result)
     return result
 
@@ -269,17 +328,27 @@ def main():
     parser.add_argument('--stationary-stage', action='append', default=[], help='Explicit stage-only camera/jump/spin probe; preserves 970-frame duration')
     parser.add_argument('--title', action='store_true', help='No-input FileSelect title, prime + two >=300s warm recordings')
     parser.add_argument('--title-seconds', type=float, default=315)
+    parser.add_argument('--tape', type=Path, help='Whole-session native KPAD replay instead of the direct-stage script')
+    parser.add_argument('--tape-user-fixture', type=Path)
+    parser.add_argument('--tape-user-receipt', type=Path)
     parser.add_argument('--batch')
     parser.add_argument('--app', type=Path)
     parser.add_argument('--out', type=Path)
     parser.add_argument('--heavy-lock', type=Path)
     parser.add_argument('--native-lock', type=Path)
     parser.add_argument('--build-metadata', type=Path)
+    parser.add_argument('--build-provenance', type=Path, help='Reuse the exact recording BUILD metadata bound by an earlier batch')
     parser.add_argument('--prime-count', type=int, default=1)
     parser.add_argument('--seconds', type=int, default=240)
     parser.add_argument('--cold-confirm-stage')
     parser.add_argument('--cold-confirm-app', type=Path)
     args = parser.parse_args()
+    if args.tape and (args.title or args.batch or not args.stage or args.stationary_stage or args.cold_confirm_stage or
+                      not args.tape_user_fixture or not args.tape_user_receipt):
+        parser.error('--tape needs explicit --stage target(s), fixture and receipt; no title/batch/stationary/cold mode')
+    if args.tape:
+        args.tape = args.tape.resolve(); args.tape_user_fixture = args.tape_user_fixture.resolve()
+        args.tape_user_receipt = args.tape_user_receipt.resolve()
     if args.title and (args.stage or args.batch or args.stationary_stage or args.cold_confirm_stage or args.title_seconds < 300):
         parser.error('--title needs its own batch/output, no --stage/--batch/--cold-confirm-stage; title-seconds>=300')
     stages = ['FileSelect'] if args.title else select(args.disc, args.stage, args.batch)
@@ -290,8 +359,17 @@ def main():
                           'launches': len(stages) * (args.prime_count + 2),
                           'estimated_hours': len(stages) * (args.prime_count + 2) * (args.title_seconds if args.title else 50) / 3600}, indent=2))
         return 0
-    if not args.app or not args.out or not args.heavy_lock or not args.build_metadata or args.prime_count < 1:
-        parser.error('run requires --app --out --heavy-lock --build-metadata and prime-count>=1')
+    if not args.app or not args.out or not args.heavy_lock or bool(args.build_metadata) == bool(args.build_provenance) or args.prime_count < 1:
+        parser.error('run requires --app --out --heavy-lock, exactly one of --build-metadata/--build-provenance, and prime-count>=1')
+    if args.build_provenance:
+        earlier = json.loads(args.build_provenance.read_text())
+        if earlier.get('version') != 1 or earlier.get('recording_only') is not True:
+            parser.error('unsupported source recording provenance')
+        build_metadata = earlier['recording_build_metadata']
+        build_metadata_sha = earlier['recording_build_metadata_sha256']
+    else:
+        build_metadata = json.loads(args.build_metadata.read_text())
+        build_metadata_sha = sha(args.build_metadata)
     args.app, args.disc, args.out = args.app.resolve(), args.disc.resolve(), args.out.resolve()
     if '/port53/m1g/' not in str(args.out) or args.out.exists():
         parser.error('out must be a NEW owned directory under port53/m1g')
@@ -320,12 +398,16 @@ def main():
                   and (cold_diff is None or not cold_diff)}
         results.append(result)
         write(args.out / 'PROVENANCE.json', {'version': 1, 'recording_only': True, 'stages_planned': stages,
-              'stage_results': results, 'script': None if args.title else str(SCRIPT), 'script_sha256': None if args.title else sha(SCRIPT),
-              'mode': 'no-input-title' if args.title else 'direct-stage',
+              'stage_results': results, 'script': None if args.title or args.tape else str(SCRIPT), 'script_sha256': None if args.title or args.tape else sha(SCRIPT),
+              'mode': 'tape-driven' if args.tape else 'no-input-title' if args.title else 'direct-stage',
+              'tape': str(args.tape) if args.tape else None,
+              'tape_user_fixture': str(args.tape_user_fixture) if args.tape else None,
+              'tape_user_receipt_sha256': sha(args.tape_user_receipt) if args.tape else None,
               'stationary_stage_overrides': {stage: {'script': str(STATIONARY_SCRIPT), 'sha256': sha(STATIONARY_SCRIPT)}
                                             for stage in args.stationary_stage},
-              'recording_build_metadata': json.loads(args.build_metadata.read_text()),
-              'recording_build_metadata_sha256': sha(args.build_metadata),
+              'recording_build_metadata': build_metadata,
+              'recording_build_metadata_sha256': build_metadata_sha,
+              'build_metadata_source_provenance': {'path': str(args.build_provenance.resolve()), 'sha256': sha(args.build_provenance)} if args.build_provenance else None,
               'all_completed': len(results) == len(stages), 'passed': len(results) == len(stages)
               and all(x['passed'] for x in results), 'failed_stages': [x['stage'] for x in results if not x['passed']]})
         print(json.dumps({'stage': stage, 'passed': result['passed'], 'warm_disagreements': len(differences),

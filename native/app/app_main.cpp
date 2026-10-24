@@ -16,6 +16,7 @@ extern "C" bool aurora_imgui_update_texture(unsigned long long, unsigned, unsign
 #include <objc/message.h>
 #include <objc/runtime.h>
 #include <pthread/qos.h>
+#include <petari/thread_priority.hpp>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_dialog.h>
@@ -832,21 +833,11 @@ App::FrameStats::Phase framePhaseForPipelines() {
 }  // namespace
 
 int main(int argc, char** argv) {
-    // The host main thread runs the main game thread. A Finder launch starts it at user-interactive QoS; a shell launch (play.sh,
-    // the .command launcher, harnesses) leaves it at the default (31-32), below the user-initiated compile workers (37), and nice
-    // lowers only threads without a QoS (17 at nice 19, while the utility prewarm workers keep 20). 5.4's boot prewarm then
-    // descheduled it while it held the emulated CPU: 100 ms baton preemption waits, audio underruns and 3x slower menus (server
-    // thread probe, 2026-10-23). Raised before any thread starts, so later threads inherit it as after a Finder launch; compile
-    // workers still set their own lower classes for every job.
-    const qos_class_t mainQosBefore = qos_class_self();
-    const int mainQosResult = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
     App::AppLocations locations;
     App::Paths paths;
     try {
         locations = App::AppLocations::fromEnvironment();
         App::redirectAppLog(locations);
-        std::fprintf(stderr, "[thread] main thread QoS: user-interactive (%s; was 0x%x)\n",
-                     mainQosResult == 0 ? "set" : "unchanged, failed", static_cast<unsigned>(mainQosBefore));
         // Before SDL starts AppKit; Finder logs also include startup diagnostics.
         disableWindowRestoration();
         // Build the allocation-site symbol table before any game thread runs.
@@ -1017,6 +1008,8 @@ int main(int argc, char** argv) {
         aurora_shutdown();
         return 1;
     }
+    // Aurora has just given this thread (the main game thread) an explicit SDL policy; see petari/thread_priority.hpp.
+    PetariNative::ThreadPriority::raiseToSchedOtherMax("main thread");
     App::FirstRun::installMenu(locations);
     PetariNative::HomeMenu::setPreparationProgressSource(&petari_gx_pipeline_prewarm_progress);
     if (App::SmokeBackground::enabled) {

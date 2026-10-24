@@ -3,6 +3,7 @@
 // configs, shaders or coverage. A malformed/missing sidecar is an order fallback.
 #include <algorithm>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -72,7 +73,7 @@ inline Result load(const std::filesystem::path& path, const std::string& stage, 
     try {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
         if (!file) return {false, "missing-unreadable", {}};
-        const auto length = file.tellg();
+        const auto length = static_cast<std::streamoff>(file.tellg());
         if (length < 24 || length > 24 + 80 + 65536 * 12) return {false, "file-size", {}};
         std::vector<unsigned char> data(static_cast<std::size_t>(length));
         file.seekg(0);

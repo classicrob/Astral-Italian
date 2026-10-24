@@ -3497,6 +3497,13 @@ config.libs = [
         ],
     ),
     RVLLibGC(
+        "NdevExi2AD",
+        [
+            Object(NonMatching, "NDEV/DebuggerDriver.c"),
+            Object(NonMatching, "NDEV/exi2.c"),
+        ],
+    ),
+    RVLLibGC(
         "bte",
         [
             Object(

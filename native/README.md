@@ -1,7 +1,10 @@
-# Native Apple Silicon port (MacioGalaxy2 / SMG2)
+# Native Apple Silicon port (Astral Italian / SMG2)
 
-MacioGalaxy2 ports the Garigari Super Mario Galaxy 2 decompilation for the USA
-`SB4E01` disc to native macOS arm64. **Status: skeleton; nothing boots yet.**
+Astral Italian ports the Super Mario Galaxy 2 decompilation for the USA
+`SB4E01` disc to native macOS arm64. **Status: playable.** The current frozen build and its
+known issues are listed in [PLAY.md](../PLAY.md); how the game code is organised is in
+[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md). Some sections below date from the early
+port and are kept for history.
 The native platform, resources, input, memory and CMake scaffolding were imported
 from the SMG1 MacioGalaxy port. Game/library ABI hooks and SMG2 behavior still need
 adaptation. Component compilation is separate from game compatibility.

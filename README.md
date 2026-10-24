@@ -110,8 +110,8 @@ The upstream dependency, build and diffing instructions now live in
 
 The native port uses CMake and native platform replacements with
 `GALAXY_NATIVE` hooks. [native/README.md](native/README.md) describes the
-architecture and build setup; its opening status and imported SMG1 sections
-are historical. Use [PLAY.md](PLAY.md) for current play instructions.
+build setup and native platform layer. For how the game itself is structured, see
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Use [PLAY.md](PLAY.md) for current play instructions.
 
 ## How the work is done
 
@@ -132,6 +132,7 @@ See the [team playbook](docs/team/TEAM.md) and
 
 | Document | Purpose |
 | --- | --- |
+| [How SMG2's code works](docs/ARCHITECTURE.md) | Architecture guide with diagrams: layers, frame loop, actors, nerves, sensors, levels, Mario |
 | [Tester guide](docs/TESTING.md) | Install the packaged app, controls, reporting bugs |
 | [Releasing](docs/RELEASING.md) | How tester packages are built (maintainers) |
 | [PLAY.md](PLAY.md) | Start playing; build choices and known issues |

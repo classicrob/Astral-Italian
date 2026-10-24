@@ -1,9 +1,14 @@
 """Explicit candidate evidence joins; never substitutes for frozen54 results."""
 import json
 from pathlib import Path
-from common import ROOT,sha,tree,write
+from common import ROOT,HOME,FIXTURE,FROZEN,sha,tree,write
 NORMAL_CHECKS=('scene_chain','destination_300_consecutive_valid','no_faults','no_invalid_worldmap_request','existing_unlocked_file1','seed_unchanged','binary_unchanged','no_divergence','whole_session_replay','replay_completed','lossless_tape','tape_unchanged','game_pointer_buffers_compared','anchor_policy_applied','play_ready_state_checks')
 POINTER_CHECKS=('completed_process','no_faults','seed_unchanged','binary_unchanged','tape_unchanged','whole_session_replay','replay_completed','no_divergence','anchor_policy_applied','play_ready_state_checks','pointer_readback_compared','valid_requested_rows','recorded_pointer_rows','existing_unlocked_file1','walk_and_idle')
+
+def protected_inputs(directory):
+ from promotion54m import inventory
+ package=ROOT/'fixtures/unlocked-242';receipt=json.loads((package/'receipt.json').read_text())
+ return {'candidate_app':tree(Path(directory)/'Petari.app'),'frozen_exe_sha256':sha(FROZEN/'Petari.app/Contents/MacOS/Petari'),'canonical_fixture':inventory(FIXTURE),'local_fixture':inventory(package/'fixture'),'live_save':inventory(Path(receipt['source'])),'user_cache_files':tree(HOME/'Library/Caches/AstralItalian')}
 
 def normal_evidence(paths,directory):
  directory=Path(directory).resolve();build=json.loads((directory/'BUILD.json').read_text())
@@ -44,6 +49,8 @@ def combine_promotion(direct_path,pointer_path,meta,out):
   receipt=pointer_path.parent/r['arm']/'RESULT.json';assert json.loads(receipt.read_text())==r
   assert r['app_sha256']==meta['perf_exe_sha256'] and r['nice']==0 and r['passed']==all(r['checks'].values())
   assert set(POINTER_CHECKS).issubset(r['checks'])
+  assert all(k in r['checks'] for k in ('menu_frames','gameplay_frames','matching_key_cache_written','cache_arm_verified'))
+  if r['arm']=='warm':assert 'real_audio_zero_underruns' in r['checks']
   records.append({'case':'worldmap','mode':r['arm'],'passed':r['passed'],'checks':r['checks'],'source':meta['source'],'binary_sha256':meta['perf_exe_sha256'],'renderer_key':meta['renderer_key'],'nice':0,'build_kind':'server-candidate','input_driver':'canonical whole-session KPAD pointer tape','equivalence_authority':'PORT final candidate ruling: promotion world map via pointer tape adapter','actual_receipt':str(receipt),'actual_receipt_sha256':sha(receipt),'limitation':r['limitation']})
   evidence.append({'case':'worldmap','mode':r['arm'],'receipt':str(receipt),'sha256':sha(receipt)})
  write(out,records);write(Path(out).with_name('promotion-evidence.json'),{'build_kind':'server-candidate','source':meta['source'],'source_exe_sha256':meta['source_exe_sha256'],'perf_exe_sha256':meta['perf_exe_sha256'],'cases':evidence,'failed_verdicts_preserved':True,'frozen54_acceptance':False})

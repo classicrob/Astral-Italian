@@ -135,21 +135,29 @@ def rows(path):
 
 FAULT = re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|more than 2 GiB|unhandled tcg| in ".*" on line \d+\.')
 
-def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0):
+def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0,fixture=None,verify_fixture_attrs=False):
  """The lock covers cache clearing, app lifetime and cleanup; terminate only this Popen PID."""
  out=Path(out);assert not out.exists(),out
  assert out.resolve().is_relative_to(ROOT.resolve()) and out.resolve()!=ROOT.resolve(),'run output must stay inside owned m1g'
  app=Path(app);exe=app/'Contents/MacOS/Petari'
  assert nice in (0,19) and 0<=load_workers<=4
+ assert not verify_fixture_attrs or copied
  assert ID == subprocess.check_output(['/usr/libexec/PlistBuddy','-c','Print :CFBundleIdentifier',str(app/'Contents/Info.plist')],text=True).strip()
  with native_lock():
   disk();out.mkdir(parents=True);wait_quiet(out/'quiet.json')
   user=out/'user';cache=out/'cache'
-  seed_before=tree(FIXTURE) if copied else None
+  seed=Path(fixture) if fixture else FIXTURE
+  assert seed.resolve() in (FIXTURE.resolve(),(ROOT/'fixtures/unlocked-242/fixture').resolve())
+  seed_before=tree(seed) if copied else None;seed_inventory=None
   if copied:
-   assert seed_before==json.loads((FIXTURE.parent/'receipt.json').read_text())['files'],'unlocked fixture differs from receipt'
-   subprocess.run(['/usr/bin/ditto','--rsrc','--extattr',str(FIXTURE),str(user)],check=True)
+   certified=json.loads((seed.parent/'receipt.json').read_text())
+   assert seed_before==certified['files'],'unlocked fixture differs from receipt'
+   if verify_fixture_attrs:
+    from promotion54m import inventory
+    seed_inventory=inventory(seed);assert seed_inventory=={k:certified[k] for k in ('files','xattrs')}
+   subprocess.run(['/usr/bin/ditto','--rsrc','--extattr',str(seed),str(user)],check=True)
    assert tree(user)==seed_before,'private save copy differs from fixture'
+   if verify_fixture_attrs:assert inventory(user)==seed_inventory,'private save xattrs differ from certified local fixture'
   else:user.mkdir()
   if warm:shutil.copytree(Path(warm)/'cache',cache)
   else:cache.mkdir()
@@ -195,7 +203,8 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
     except subprocess.TimeoutExpired:worker.kill();worker.wait()
    write(out/'controlled-load.json',{'owned_pids':[p.pid for p in loads],'all_reaped':all(p.poll() is not None for p in loads)})
   text=(out/'app.log').read_text(errors='replace')
-  res={'exit':p.returncode,'timed_out':timed_out,'seconds':round(time.monotonic()-start,3),'binary_unchanged':sha(exe)==before,'seed_unchanged':not copied or tree(FIXTURE)==seed_before,'no_faults':not FAULT.search(text),'load_end':os.getloadavg(),'completed':p.returncode==0 and (bound or not timed_out)}
+  res={'exit':p.returncode,'timed_out':timed_out,'seconds':round(time.monotonic()-start,3),'binary_unchanged':sha(exe)==before,'seed_unchanged':not copied or tree(seed)==seed_before and (not verify_fixture_attrs or inventory(seed)==seed_inventory),'no_faults':not FAULT.search(text),'load_end':os.getloadavg(),'completed':p.returncode==0 and (bound or not timed_out)}
+  if copied:res.update(fixture=str(seed),all_fixture_xattrs_verified=verify_fixture_attrs)
   write(out/'process.json',res)
   shutil.rmtree(user)
   return res

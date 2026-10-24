@@ -26,19 +26,29 @@ def candidate(src,expected,source):
  assert Path(meta['source_app'])==src and meta['source']==source and meta['source_exe_sha256']==expected
  return app,meta
 
-def replay(app,out,tape,stage,allow_incomplete,warm=None):
+def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promotion_pointer=False):
  tape=tape.resolve();meta=json.loads((tape/'route.tape.json').read_text());before=tree(tape)
  assert meta.get('complete') or allow_incomplete,'incomplete recording requires explicit --allow-incomplete'
  assert not meta.get('lossy_samples',0) and not meta.get('unencodable_samples',0),'lossy tape refused'
  mods=meta.get('mods',[]);env={'PETARI_TAPE_PLAY':str(tape),'PETARI_TAPE_PLAY_SESSION':'1','PETARI_TAPE_PLAY_QUIT':'1','PETARI_TAPE_PLAY_OUT':str(out/'replay'),'PETARI_TRACE_BOOT':'1','PETARI_MODS':','.join(mods+(['-OdysseyJumpDive'] if 'OdysseyJumpDive' not in mods else []))}
  for k,v in (meta.get('replay_env') or {}).items():
   assert k=='PETARI_TEST_RETURN_TO_SHIP',f'unsupported tape hook {k}';env[k]=str(v)
- proc=run(app,out,stage=stage,scenario=1,copied=True,extra=env,warm=warm,cold=not warm,seconds=540)
+ from promotion54m import prepare_m1_fixture,inspect_cache
+ fixture=prepare_m1_fixture()/'fixture'
+ def caches(path):return [inspect_cache(p,renderer_key) for p in sorted(path.glob('*.db')) if renderer_key in p.name]
+ before_cache=caches(Path(warm)/'cache') if promotion_pointer and warm else []
+ if promotion_pointer and warm:env.update(SDL_AUDIO_DRIVER='coreaudio',PETARI_SMOKE_REAL_AUDIO='1',PETARI_AUDIO_DIAG='1')
+ proc=run(app,out,stage=stage,scenario=1,copied=True,fixture=fixture,verify_fixture_attrs=True,extra=env,warm=warm,cold=not warm,seconds=540)
  report=json.loads((out/'replay/divergence.json').read_text());parts=report.get('segments',[]);text=(out/'app.log').read_text(errors='replace');rs=rows(out/'route.csv')
  checks={'completed_process':proc['completed'],'no_faults':proc['no_faults'],'seed_unchanged':proc['seed_unchanged'],'binary_unchanged':proc['binary_unchanged'],'tape_unchanged':tree(tape)==before,'whole_session_replay':report.get('mode')=='whole-session' and 'jump cut' not in text,'replay_completed':report.get('finished') is True and bool(parts) and all(s.get('started') and s.get('completed') and s.get('rows_compared')==s.get('tape_frames',-2)+1 for s in parts),'no_divergence':not report.get('stopped') and bool(parts) and not any(s.get('diverged') for s in parts)}
  checks.update(anchor_checks(report,stage if stage=='RedBlueExGalaxy' else None))
+ if promotion_pointer:
+  frame_rows=rows(out/'frames.csv');after_cache=caches(out/'cache');audio=[int(n) for n in re.findall(r'underrun (\d+) frames',text)]
+  checks.update(menu_frames=any(r['phase']=='menu' for r in frame_rows),gameplay_frames=sum(r['phase']=='gameplay' for r in frame_rows)>=120,matching_key_cache_written=any(r['rows'] for r in after_cache),cache_arm_verified=any(r['rows'] for r in before_cache) if warm else not before_cache)
+  if warm:checks['real_audio_zero_underruns']=len(audio)>=50 and sum(audio)==0 and 'SDL audio underrun:' not in text
  result={'passed':all(checks.values()),'checks':checks,'process':proc,'replay':report,'build_kind':'server-candidate','tape':str(tape),'tape_exe_sha256':meta.get('exe_sha256'),'app_sha256':sha(app/'Contents/MacOS/Petari'),'tape_exe_hash_matches_app':meta.get('exe_sha256')==sha(app/'Contents/MacOS/Petari'),'hash_comparison_gated':False,'recording_complete':meta.get('complete'),'allow_incomplete':allow_incomplete,'launch_stage':stage,'nice':os.getpriority(os.PRIO_PROCESS,0),'host_input_used':False}
  result['first_divergence']=next((s for s in parts if s.get('diverged')),None)
+ if promotion_pointer:result.update(before_cache=before_cache,after_cache=after_cache,real_audio=bool(warm),audio_reports=len(audio),audio_underrun_frames=sum(audio),frame_counts={phase:sum(r['phase']==phase for r in frame_rows) for phase in ('startup','loading','menu','gameplay')})
  write(out/'RESULT.json',result)
  # Replay output duplicates the input tape; retain only divergence report and logs.
  for name in ('route.csv','route.kpd','route.actions','route.tape.json'):(out/'replay'/name).unlink(missing_ok=True)
@@ -57,7 +67,7 @@ def main():
   no,skip=records;checks={'both_replays_passed':all(r['passed'] for r in records),'both_play_ready':all(r['play_ready_frame'] is not None for r in records),'skip_earlier_than_no_press':skip['frames_from_stage_to_play'] is not None and no['frames_from_stage_to_play'] is not None and skip['frames_from_stage_to_play']<no['frames_from_stage_to_play']}
  else:
   for arm in ('fresh','warm'):
-   out=base/arm;res,text,rs=replay(app,out,a.tape,'WorldMap01Galaxy',a.allow_incomplete,warm=base/'fresh' if arm=='warm' else None)
+   out=base/arm;res,text,rs=replay(app,out,a.tape,'WorldMap01Galaxy',a.allow_incomplete,warm=base/'fresh' if arm=='warm' else None,renderer_key=build['renderer_key'],promotion_pointer=True)
    valid=[r for r in rs if r['stage']=='WorldMap01Galaxy' and r['scenario']=='1' and r['valid']=='1' and r.get('dead','0')=='0'];pointer=[r for r in valid if r.get('pointer_valid')=='1'];positions={(r.get('pointer_x'),r.get('pointer_y')) for r in pointer}
    extra={'pointer_readback_compared':sum(s.get('pointer_rows_compared',0) for s in res['replay'].get('segments',[]) if s.get('stage')=='WorldMap01Galaxy')>=30,'valid_requested_rows':len(valid)>=120,'recorded_pointer_rows':len(pointer)>=30 and len(positions)>=3,'existing_unlocked_file1':any(r.get('power_stars')=='242' for r in valid) and 'FileSelector.OpenFile' in text and 'FileSelector.Create' not in text and 'FileSelector.StartupCreate' not in text,'walk_and_idle':bool(valid) and any(abs(float(r[c])-float(valid[0][c]))>.01 for r in valid for c in ('x','y','z'))}
    res['checks'].update(extra);res.update(arm=arm,valid_requested_rows=len(valid),pointer_rows=len(pointer),pointer_positions=len(positions),passed=all(res['checks'].values()),limitation='Recorded KPAD pointer replay verifies game pointer path, not physical host-coordinate mapping or screenshots.')

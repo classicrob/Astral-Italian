@@ -11,6 +11,8 @@ The caller must serialize builds/replays with the host's heavy->native locks.
 import argparse
 import hashlib
 import json
+import os
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -38,6 +40,7 @@ def main(argv=None):
     p.add_argument("--tapes", type=Path, required=True)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--names", nargs="+", default=DEFAULT_TAPES)
+    p.add_argument("--timeout", type=float, default=360)
     a = p.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=False)
     results = []
@@ -52,11 +55,22 @@ def main(argv=None):
         if not meta.get("complete"):
             cmd.append("--allow-incomplete")
         with (a.out / (name + ".log")).open("wb") as log:
-            proc = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT)
+            proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            timed_out = False
+            try:
+                proc.wait(timeout=a.timeout)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                os.killpg(proc.pid, signal.SIGTERM)
+                try:
+                    proc.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                    proc.wait()
         report_path = a.out / name / "first-divergence.json"
         report = json.loads(report_path.read_text()) if report_path.exists() else {}
-        results.append({"tape": str(tape), "exit": proc.returncode,
-                        "gameplay_segments_passed": proc.returncode == 0 and report.get("all_segments_matched") is True
+        results.append({"tape": str(tape), "exit": proc.returncode, "timed_out": timed_out,
+                        "gameplay_segments_passed": not timed_out and proc.returncode == 0 and report.get("all_segments_matched") is True
                         and report.get("bit_exact") is True,
                         "scope": coverage(meta, replay_tape.tape_files(sidecar, meta)[2]), "report": str(report_path), "command": cmd})
     result = {"all_gameplay_segments_passed": all(r["gameplay_segments_passed"] for r in results),

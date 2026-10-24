@@ -116,6 +116,11 @@ class Verdict(unittest.TestCase):
 
 
 class Compare(unittest.TestCase):
+    def test_signed_zero_is_a_bit_difference(self):
+        r = rt.compare([trace_row(x="-0")], [route_row(x="0")], 0)
+        self.assertEqual(r["rows_with_any_difference"], 1)
+        self.assertEqual(r["max_position_error"], 0)
+
     def test_identical_rows_match(self):
         route = [route_row() for _ in range(10)]
         r = rt.compare([trace_row() for _ in range(6)], route, 4)

@@ -166,7 +166,7 @@ def compare(trace_rows, route_rows, route_start):
         dist = 0.0
         if t["player_valid"] == "1" and r["valid"] == "1":
             for key in ("x", "y", "z"):
-                if f32(t[key]) != f32(r[key]):
+                if struct.pack(">f", float(t[key])) != struct.pack(">f", float(r[key])):
                     diffs[key] = [t[key], r[key]]
             dist = math.dist([f32(t[c]) for c in "xyz"], [f32(r[c]) for c in "xyz"])
             grounded = str((int(t["movement_lo"]) >> 30) & 1)

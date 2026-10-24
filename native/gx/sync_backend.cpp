@@ -8,6 +8,7 @@
 
 #include "petari/platform/gx_sync.hpp"
 #include "petari/platform/os_host.hpp"
+#include "petari/thread_priority.hpp"
 
 namespace GXSync = PetariNative::Platform::GXSync;
 
@@ -23,6 +24,12 @@ constexpr std::uint32_t kBpTokenInterrupt = 0x48;
 extern "C" {
 
 uint64_t petari_gx_sync_process_limit(uint64_t processed, uint64_t target) {
+    // Runs on Aurora's FIFO processor thread, which Aurora gave an explicit SDL policy (petari/thread_priority.hpp).
+    static thread_local bool raised = false;
+    if (!raised) {
+        raised = true;
+        PetariNative::ThreadPriority::raiseToSchedOtherMax("FIFO processor");
+    }
     return GXSync::processLimit(processed, target);
 }
 

@@ -256,7 +256,8 @@ void PullTargetDrawer::updateCollisionValid() {
     if (index > mValidIndex) {
         s32 n = index - mValidIndex;
         for (s32 i = 0; i < n; i++) {
-            MR::validateCollisionParts(mParts[++mValidIndex]);
+            mValidIndex++;
+            MR::validateCollisionParts(mParts[mValidIndex]);
         }
     } else if (index < mValidIndex) {
         s32 n = mValidIndex - index;

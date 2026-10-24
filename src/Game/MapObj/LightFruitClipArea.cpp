@@ -67,18 +67,17 @@ void LightFruitClipArea::control() {
 void LightFruitClipArea::exeAppear() {
     if (MR::isFirstStep(this)) { YoshiFunction::emitGlowEffect(); MR::startActionSound(this, "SyLightFruitGet"); }
     bool done = false;
-    f32 radius = mCylinder->mRadius;
-    radius += 15.0f;
+    f32 radius = mCylinder->mRadius + 15.0f;
     if (radius > 800.0f) { radius = 800.0f; done = true; }
     mCylinder->mRadius = radius;
     if (done) setNerve(&NrvLightFruitClipArea::LightFruitClipAreaNrvTimer::sInstance);
 }
 void LightFruitClipArea::exeTimer() { playTimerSound(); if (MR::isGreaterStep(this, 180)) setNerve(&NrvLightFruitClipArea::LightFruitClipAreaNrvDisappear::sInstance); }
 void LightFruitClipArea::exeDisappear() {
-    f32 radius = mCylinder->mRadius;
+    f32 previousRadius = mCylinder->mRadius;
     bool done = false;
     playTimerSound();
-    radius -= 1.2f;
+    f32 radius = previousRadius - 1.2f;
     if (radius < 30.0f) { radius = 30.0f; done = true; }
     mCylinder->mRadius = radius;
     if (done) { YoshiFunction::deleteGlowEffect(); MR::resetFallOutFieldDrawEdgeColor(); MR::startActionSound(this, "SyLightFruitTimerEnd"); kill(); }

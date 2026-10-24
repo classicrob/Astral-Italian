@@ -297,7 +297,7 @@ namespace MR {
 
     // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
     void initEffectAfterPlacement(LiveActor* pActor, MtxPtr pMtx) {
-        if (!pMtx) pMtx = pActor->getBaseMtx();
+        pMtx = pMtx ? pMtx : pActor->getBaseMtx();
         ::getEffectKeeper(pActor)->initAfterPlacementForAttributeEffect(pMtx);
     }
 

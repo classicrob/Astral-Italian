@@ -179,8 +179,9 @@ void KoopaStateLastChase::exeMoveEnd() {
     }
     bool isEnd = moveToTarget();
     f32 rate = MR::calcNerveEaseInOutRate(this, mHoldStep);
+    TQuat4f* pQuat;
     KoopaBattle* pHost = mHost;
-    TQuat4f* pQuat = &pHost->mPoseQuat;
+    pQuat = &pHost->mPoseQuat;
     pQuat->set< f32 >(mQuat);
     pQuat->slerp(pHost->mBattleQuat, rate);
     if (MR::isGreaterStep(this, mHoldStep)) {

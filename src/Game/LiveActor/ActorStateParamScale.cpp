@@ -175,7 +175,8 @@ f32 ActorStateParamScale::calcStepRatio(s32 maxStep) {
     if (maxStep <= 0) {
         return 1.0f;
     }
-    f32 rate = mNerveStepRate / (f32)maxStep;
+    f32 step = mNerveStepRate;
+    f32 rate = step / (f32)maxStep;
     return MR::clamp(rate, 0.0f, 1.0f);
 }
 
@@ -184,7 +185,8 @@ f32 ActorStateParamScale::calcStepRatioEase(s32 maxStep) {
     if (maxStep <= 0) {
         ratio = 1.0f;
     } else {
-        f32 rate = mNerveStepRate / (f32)maxStep;
+        f32 step = mNerveStepRate;
+        f32 rate = step / (f32)maxStep;
         ratio = MR::clamp(rate, 0.0f, 1.0f);
     }
     return MR::getEaseOutValue(ratio, 0.0f, 1.0f, 1.0f);

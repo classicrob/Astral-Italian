@@ -2157,12 +2157,15 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
     _A64 = MR::getSensorRadius(const_cast< HitSensor* >(pSensor));
     _70C = getAirGravityVec();
 
-    if (mActor->_468 == 0 && !isPlayerModeHopper() && dot > sHopperJumpSlideDotMin) {
-        f32 frontDot = mFrontVec.dot(slideDir);
-        if (frontDot > sZero) {
-            changeAnimation("ジャンプ順滑り");
-        } else {
-            changeAnimation("ジャンプ逆滑り");
+    if (mActor->_468 == 0) {
+        bool notHopper = !isPlayerModeHopper();
+        if (notHopper && dot > sHopperJumpSlideDotMin) {
+            f32 frontDot = mFrontVec.dot(slideDir);
+            if (frontDot > sZero) {
+                changeAnimation("ジャンプ順滑り");
+            } else {
+                changeAnimation("ジャンプ逆滑り");
+            }
         }
     }
 
@@ -2486,18 +2489,8 @@ void Mario::decideSquatWalkAnimation() {
     } else if (static_cast<u32>(mDrawStates.mBits.mBit13)) {
         f32 depth = _738;
         if (depth < 160.0f && !(mActor->_37C & 0x3F)) {
-            TVec3f offset(_368);
-            offset *= depth;
-            f32 random = MR::getRandom() - 0.5f;
-            TVec3f side(mSideVec);
-            side *= random;
-            TVec3f displacement(side);
-            displacement *= 20.0f;
-            TVec3f first(mShadowPos);
-            first += displacement;
-            TVec3f position(first);
-            position += offset;
-            playEffectSRT("水波紋", 0.2f, _73C, position);
+            playEffectSRT("水波紋", 0.2f, _73C,
+                          mShadowPos + mSideVec * (MR::getRandom() - 0.5f) * 20.0f + _368 * depth);
         }
     }
 }
@@ -2574,18 +2567,8 @@ void Mario::fn_803AD5B0() {
     } else if (static_cast<u32>(mDrawStates.mBits.mBit13)) {
         f32 depth = _738;
         if (depth < 160.0f && (mActor->_37C & 0x3F) == 0) {
-            TVec3f height(_368);
-            height *= depth;
-            f32 randomOffset = MR::getRandom() - 0.5f;
-            TVec3f side(mSideVec);
-            side *= randomOffset;
-            TVec3f scaledSide(side);
-            scaledSide *= 20.0f;
-            TVec3f offset(mShadowPos);
-            offset += scaledSide;
-            TVec3f position(offset);
-            position += height;
-            playEffectSRT("水波紋", 0.2f, _73C, position);
+            playEffectSRT("水波紋", 0.2f, _73C,
+                          mShadowPos + mSideVec * (MR::getRandom() - 0.5f) * 20.0f + _368 * depth);
         }
     }
 }
@@ -4008,22 +3991,11 @@ void Mario::fn_803B0EF0() {
             sp5C *= YoshiParam::fn_8041BD90();
         }
         MarioActor* actor = this->mActor;
-        TVec3f sp2C(*this->getGravityVec());
-        sp2C *= 20.0f;
-        TVec3f sp38(sp68);
-        sp38 += sp5C;
-        TVec3f sp44(sp38);
-        sp44 += sp2C;
-        actor->getYoshi()->fn_8040CCD0(sp44);
+        actor->getYoshi()->fn_8040CCD0(sp68 + sp5C + *this->getGravityVec() * 20.0f);
         f32 t31 = YoshiParam::fn_8041BD80();
-        TVec3f sp8(*this->getGravityVec());
-        sp8 *= t31;
-        TVec3f sp14(sp68);
-        sp14 -= sp5C;
-        TVec3f sp20(sp14);
-        sp20 -= sp8;
+        TVec3f launch = sp68 - sp5C - *this->getGravityVec() * t31;
         this->mMovementStates.mHighBits.mBit18 = 1;
-        this->_304 = sp20;
+        this->_304 = launch;
         this->changeAnimation("ヨッシー離脱ジャンプ", "落下");
         this->mActor->setPlayerMode(0, true, true);
         TVec3f jointPosition;
@@ -4057,13 +4029,8 @@ void Mario::fn_803B1180() {
         if (!MR::normalizeOrZero(&sp38)) {
             sp38 *= YoshiParam::fn_8041BD90();
         }
-        TVec3f sp8(*this->getGravityVec());
-        sp8 *= 20.0f;
-        TVec3f sp14(sp44);
-        sp14 += sp38;
-        TVec3f sp20(sp14);
-        sp20 += sp8;
-        this->mActor->getYoshi()->fn_8040CCD0(sp20);
+        MarioActor* actor = this->mActor;
+        actor->getYoshi()->fn_8040CCD0(sp44 + sp38 + *this->getGravityVec() * 20.0f);
         this->mActor->mMarioAnim->fn_803DF9D0();
         TVec3f position;
         MR::copyJointPos(this->mActor->getYoshi(), "MarioPos", &position);

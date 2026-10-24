@@ -182,15 +182,7 @@ void KingTossin::control() {
 
 // NONMATCHING: conditional branch scheduling.
 void KingTossin::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isEnableAttack()) {
-        return;
-    }
-
-    if (!MR::isSensorPlayerOrRide(pReceiver)) {
-        return;
-    }
-
-    if (!MR::isSensorEnemyAttack(pSender)) {
+    if (!isEnableAttack() || !MR::isSensorPlayerOrRide(pReceiver) || !MR::isSensorEnemyAttack(pSender)) {
         return;
     }
 

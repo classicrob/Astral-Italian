@@ -672,7 +672,7 @@ void FileSelector::updateChildObjs() {
 
         pActor = mChildActors[i];
         mtx.getEulerXYZ(pActor->mRotation);
-        pActor->mRotation.scale(radToDeg);
+        mChildActors[i]->mRotation.scale(radToDeg);
     }
 }
 

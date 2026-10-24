@@ -895,8 +895,8 @@ bool OtaRockTank::tryReachTankRailPoint() {
 
 // NONMATCHING: vector subtraction inlining and temporary stack slots differ
 void OtaRockTank::moveTankAlongRail() {
-    TVec3f railPos;
     TVec3f railDir;
+    TVec3f railPos;
     MR::moveCoord(this, mSpeed);
     MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
     TVec3f diff = railPos - mPosition;
@@ -945,8 +945,8 @@ void OtaRockTank::moveTankTowardRailDirection(const TVec3f& rDir, f32 scale) {
 
 // NONMATCHING: vector subtraction is inlined into copy construction and subtraction assignment
 void OtaRockTank::syncTankRailCoordinate() {
-    TVec3f railPos;
     TVec3f railDir;
+    TVec3f railPos;
     MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
     TVec3f diff = mPosition - railPos;
     MR::vecKillElement(diff, mGravity, &diff);
@@ -1258,7 +1258,7 @@ bool OtaRockTank::calcTankChiefJoint(TPos3f* pMtx, const JointControllerInfo&) {
     }
     if ((!isNerve(NT(StartDemo)) && !isNerve(NT(DownDemo))) || MR::isFirstStep(this)) {
         TVec3f up;
-        up.set<f32>(pMtx->mMtx[0][1], pMtx->mMtx[1][1], pMtx->mMtx[2][1]);
+        pMtx->getYDir(up);
         MR::makeMtxFrontUp(pMtx, mPrevRailDirection, up);
     }
     return true;

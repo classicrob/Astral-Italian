@@ -9,9 +9,10 @@ namespace NrvRailMoveObjGenerator {
     class RailMoveObjGeneratorNrvGenerate : public Nerve {
     public:
         virtual void execute(Spine* spine) const {
+            RailMoveObj* obj;
             RailMoveObjGenerator* actor=static_cast<RailMoveObjGenerator*>(spine->mExecutor);
             actor->beforeGenerate();
-            RailMoveObj* obj=actor->getDeadRailMoveObj();
+            obj=actor->getDeadRailMoveObj();
             obj->appear();
             obj->setNerveMove();
             actor->setNerve(&RailMoveObjGeneratorNrvRepeat::sInstance);

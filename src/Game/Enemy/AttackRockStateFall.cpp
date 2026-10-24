@@ -125,18 +125,14 @@ void AttackRockStateFall::updateLandSensorRadius() {
 void AttackRockStateFall::updateFallBezierVelocity() {
     TVec3f start(this->mHost->mPosition);
     f32 t = MR::calcNerveRate(this, 110);
+    f32 a = t * t;
     f32 s = 1.0f - t;
     f32 b = s * s;
     f32 m = 2.0f * t * s;
-    TVec3f p0 = this->mLandPos * (t * t);
-    TVec3f p1 = this->mStartPos * m;
-    TVec3f p2 = this->mFallPos * b;
-    TVec3f sum = (p2 + p1) + p0;
     TVec3f pos;
-    pos.set(sum);
+    pos.set((this->mFallPos * b + this->mStartPos * m) + this->mLandPos * a);
     AttackRock* pHost = this->mHost;
-    TVec3f vel = pos - start;
-    MR::setVelocity(pHost, vel);
+    MR::setVelocity(pHost, pos - start);
 }
 #pragma auto_inline on
 

@@ -5539,8 +5539,8 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
             front = direction;
         }
     }
-    bool forwardCheck = false;
     s32 count;
+    bool forwardCheck = false;
     if (getPlayerMode() == 6) {
         radius = 110.0f;
         count = fn_803B2A20(center, 110.0f, 110.0f);

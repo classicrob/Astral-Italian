@@ -165,7 +165,7 @@ void MeetKoopaDemoObj::exeDemo() {
         MR::resetPosition(mTicoBaby, sPeachKidnapPosName);
     }
     if (MR::isDemoPartActive("ピーチ発見") && MR::isStoryBookDemoActive() == 0) {
-        JMath::gekko_ps_copy12(&mMtx, MR::getJointMtx(mPeach, "All_Root"));
+        mMtx.set(MR::getJointMtx(mPeach, "All_Root"));
         MR::tryTalkTimeKeepDemoForceWithoutDemo(mTalkCtrl);
     }
     MR::requestStageBGMVolumeDown(0, 0);

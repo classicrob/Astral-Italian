@@ -4448,9 +4448,9 @@ void Mario::fn_803A2690(f32* p) {
 f32 Mario::fn_803A26C0(f32 x) {
     // NONMATCHING: floating-point register allocation only.
     MarioConstTable* e = this->mActor->mConst->getTable();
-    f32 f4 = e->mStickHeavyMaxAngle;
     f32 f3 = e->mStickHeavyMinRatio;
     f32 f0 = e->mStickHeavyMinAngle;
+    f32 f4 = e->mStickHeavyMaxAngle;
     if (x > f4) {
         return 1.0f;
     }

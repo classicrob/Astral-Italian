@@ -52,10 +52,6 @@ namespace MR {
         return isFileExist(path, language);
     }
 
-    void makeDemoArchiveFileName(char* dst, u32 size, const char* stage) {
-        StageFileLoader::makeStageArchivePath(dst, size, stage, "Demo");
-    }
-
     void* loadToMainRAM(const char* path, u8* dst, JKRHeap* heap, int direction) {
         char loadPath[256];
         makeFileNameConsideringLanguage(loadPath, sizeof(loadPath), path, false);
@@ -256,6 +252,10 @@ namespace MR {
         makeLayoutArchiveFileName(pDst, size, fileName);
 
         return true;
+    }
+
+    void makeDemoArchiveFileName(char* dst, u32 size, const char* stage) {
+        StageFileLoader::makeStageArchivePath(dst, size, stage, "Demo");
     }
 
     void makeScenarioArchiveFileName(char* pDst, u32 size, const char* pStageName) {

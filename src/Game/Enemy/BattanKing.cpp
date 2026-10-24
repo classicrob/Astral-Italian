@@ -534,15 +534,12 @@ void BattanKing::calcAndSetBaseMtx() {
 // NONMATCHING: regalloc
 void BattanKing::calcAnim() {
     LiveActor::calcAnim();
-    if (!MR::isDead(this) && !MR::isNoCalcAnim(this)) {
-        if (MR::isClipped(this)) {
-            return;
-        } else {
-            for (s32 i = 0; i < 5; i++) {
-                mCollisions[i]->calcAnim();
-                mCollisionPresses[i]->calcAnim();
-            }
-        }
+    if (MR::isDead(this) || MR::isNoCalcAnim(this) || MR::isClipped(this)) {
+        return;
+    }
+    for (s32 i = 0; i < 5; i++) {
+        mCollisions[i]->calcAnim();
+        mCollisionPresses[i]->calcAnim();
     }
 }
 

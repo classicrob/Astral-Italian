@@ -61,7 +61,8 @@ void KaninaYoshiState::control() {
         PSMTXMultVecSR(mHost->getBaseMtx(), &mLocalVelocity, &velocity);
         MR::setVelocity(mHost, velocity);
     } else {
-        MR::setVelocity(mHost, TVec3f(0.0f));
+        Kanina* host = mHost;
+        MR::setVelocity(host, TVec3f(0.0f));
     }
 }
 
@@ -97,7 +98,8 @@ bool KaninaYoshiState::tryStartTongue() {
 
 // NONMATCHING: equivalent termination tests use a different branch arrangement.
 bool KaninaYoshiState::tryKill() {
-    if (MR::isInDeath(mHost, TVec3f(0.0f, 0.0f, 0.0f))) {
+    Kanina* host = mHost;
+    if (MR::isInDeath(host, TVec3f(0.0f, 0.0f, 0.0f))) {
         kill();
         return true;
     }
@@ -148,7 +150,7 @@ bool KaninaYoshiState::isYoshiNerve() const {
 void KaninaYoshiState::followYoshiMouth() {
     TPos3f mtx;
     MR::calcYoshiTongueTipMtx(&mtx);
-    mHost->mPosition.set<f32>(mtx.mMtx[0][3], mtx.mMtx[1][3], mtx.mMtx[2][3]);
+    mtx.getTrans(mHost->mPosition);
     mtx.getEuler(mHost->mRotation);
     MR::setRotation(mHost, mHost->mRotation * 57.29578f);
 }

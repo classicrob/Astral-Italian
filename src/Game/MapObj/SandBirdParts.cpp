@@ -90,7 +90,7 @@ void SandBirdParts::control() {}
 void SandBirdParts::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     mConnector->connect();
-    JMath::gekko_ps_copy12(&mCollisionMtx, getBaseMtx());
+    mCollisionMtx.set(getBaseMtx());
 }
 
 void SandBirdParts::exeBreak() {

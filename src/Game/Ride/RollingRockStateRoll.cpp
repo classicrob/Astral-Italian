@@ -449,10 +449,12 @@ void RollingRockStateRoll::updatePose() {
 
 // NONMATCHING: equivalent early-return branch layout differs.
 void RollingRockStateRoll::updateEffect() {
-    if (!isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvStart::sInstance)) {
-        if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
-            return;
-        } else {
+    if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvStart::sInstance) ||
+        isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
+        return;
+    }
+    {
+        {
             if (mAirStep > 5) {
                 if (MR::isEffectValid(mHost, "Move")) {
                     MR::deleteEffect(mHost, "Move");

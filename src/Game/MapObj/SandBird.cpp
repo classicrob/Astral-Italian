@@ -218,11 +218,7 @@ void SandBird::exeReturn() {
         MR::moveCoordAndTransToNearestRailPos(this);
         mQuat.set(mQuat2);
 
-        f32 x = mQuat.x;
-        f32 y = mQuat.y;
-        f32 z = mQuat.z;
-        f32 w = mQuat.w;
-        mUp.set<f32>(2.0f * (x * y) - 2.0f * (w * z), 1.0f - 2.0f * (x * x) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
+        mQuat.getYDir(mUp);
         mQuat.getZDir(mZDir);
 
         setAllPartsAppear();

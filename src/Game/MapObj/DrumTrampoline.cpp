@@ -40,8 +40,7 @@ void DrumTrampoline::init(const JMapInfoIter& rIter) {
 void DrumTrampoline::control() {
     TVec3f up;
     MR::calcActorAxisY(&up, this);
-    TVec3f diff(*MR::getPlayerPos());
-    diff -= mPosition;
+    TVec3f diff = *MR::getPlayerPos() - mPosition;
     up.dot(diff);
     f32 vDist = MR::clamp(MR::calcDistanceToPlayerVGravity(this) - 1000.0f, 0.0f, 100000.0f);
     f32 hDist = MR::calcDistanceToPlayerH(this);

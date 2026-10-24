@@ -642,12 +642,11 @@ bool MarioSwim::fn_803F8E10() {
         return false;
     if (--mZSinkTimer != 0)
         return false;
-    const MarioConst* constants;
     MarioActor* actor = mActor;
-    mVerticalAngle = (constants = actor->mConst)->getTable()->mZsinkAngleX;
-    mActionLockTimer = (constants = actor->mConst)->getTable()->mZsinkMoveTimer;
-    mSinkTimer = (constants = actor->mConst)->getTable()->mZsinkSinkTimer;
-    mForwardSpeed = (constants = actor->mConst)->getTable()->mZsinkFrontSpeed;
+    mVerticalAngle = actor->getConst().getTable()->mZsinkAngleX;
+    mActionLockTimer = actor->getConst().getTable()->mZsinkMoveTimer;
+    mSinkTimer = actor->getConst().getTable()->mZsinkSinkTimer;
+    mForwardSpeed = actor->getConst().getTable()->mZsinkFrontSpeed;
     _38 = 20;
     return true;
 }
@@ -1350,12 +1349,10 @@ void MarioSwim::fn_803FB300() {
 
 // NONMATCHING: boolean register allocation.
 bool MarioSwim::fn_803FB3D0() const {
-    bool carried;
     bool turtle;
     bool result = false;
-    MarioActor* actor = mActor;
-    carried = false;
-    if (actor->_468 && mJet->mJetTimer == 0)
+    bool carried = false;
+    if (mActor->_468 && mJet->mJetTimer == 0)
         carried = true;
     if (carried) {
         turtle = false;
@@ -2294,9 +2291,7 @@ bool MarioSwim::getWaterAreaInfo(WaterInfo* pInfo, const TVec3f& rPos, TVec2f* p
 void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3f& gravity, u32 flags) {
     if (MR::getWaterAreaInfo(info, position, gravity, true)) {
         if (flags & 1) {
-            TVec3f step(gravity * 10.0f);
-            TVec3f probe(info->mSurfacePos);
-            probe.sub(step);
+            TVec3f probe(info->mSurfacePos - gravity * 10.0f);
             WaterInfo next;
             WaterInfo previous;
             previous.clear();
@@ -2307,19 +2302,14 @@ void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3
                 probe.set(next.mSurfacePos - gravity * 10.0f);
                 previous = next;
             }
-            TVec3f difference(info->mSurfacePos);
-            difference.sub(position);
-            info->mCamWaterDepth = -difference.dot(gravity);
+            info->mCamWaterDepth = -(info->mSurfacePos - position).dot(gravity);
         }
         if (flags & 2) {
-            f32 distance = 10.0f + info->mBottomDepth;
-            TVec3f step(gravity * distance);
-            TVec3f probe(position);
-            probe.add(step);
+            f32 distance = info->mBottomDepth;
+            distance += 10.0f;
+            TVec3f probe(position + gravity * distance);
             f32 depth = info->mBottomDepth;
-            TVec3f bottomStep(gravity * depth);
-            TVec3f bottom(position);
-            bottom.add(bottomStep);
+            TVec3f bottom(position + gravity * depth);
             WaterInfo next;
             WaterInfo previous;
             previous.clear();
@@ -2329,9 +2319,7 @@ void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3
                 probe.set(bottom + gravity * 10.0f);
                 previous = next;
             }
-            TVec3f difference(bottom);
-            difference.sub(position);
-            info->mBottomDepth = difference.dot(gravity);
+            info->mBottomDepth = (bottom - position).dot(gravity);
         }
     }
 }
@@ -2420,9 +2408,8 @@ void MarioSwim::resetJet() {
 
 // NONMATCHING: equivalent early-return branch folding.
 void MarioSwim::dropJet(bool isDamage) {
-    if (mJet->mCooldownTimer != 0 || mJet->mJetTimer == 0) {
-        return;
-    }
+    if (mJet->mCooldownTimer != 0) return;
+    if (mJet->mJetTimer == 0) return;
 
     mJet->mJetTimer = 0;
 

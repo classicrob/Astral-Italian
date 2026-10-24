@@ -761,17 +761,18 @@ namespace MR {
         sums[1] = source[0][1] * source[0][1] + source[1][1] * source[1][1] + source[2][1] * source[2][1];
         sums[2] = source[0][2] * source[0][2] + source[1][2] * source[1][2] + source[2][2] * source[2][2];
 
+        f32 sy;
         f32 sz = MR::sqrt< f32 >(sums[2]);
-        f32 sy = MR::sqrt< f32 >(sums[1]);
+        sy = MR::sqrt< f32 >(sums[1]);
         f32 sx = MR::sqrt< f32 >(sums[0]);
         PSMTXScale(scale, sx, sy, sz);
 
-        f32 scaleZ = scale[2][2];
-        f32 invZ = isNearZero(scaleZ, 0.001f) ? 0.0f : 1.0f / scaleZ;
-        f32 scaleY = scale[1][1];
-        f32 invY = isNearZero(scaleY, 0.001f) ? 0.0f : 1.0f / scaleY;
-        f32 scaleX = scale[0][0];
-        f32 invX = isNearZero(scaleX, 0.001f) ? 0.0f : 1.0f / scaleX;
+        f32 axisScale = scale[2][2];
+        f32 invZ = isNearZero(axisScale, 0.001f) ? 0.0f : 1.0f / axisScale;
+        axisScale = scale[1][1];
+        f32 invY = isNearZero(axisScale, 0.001f) ? 0.0f : 1.0f / axisScale;
+        axisScale = scale[0][0];
+        f32 invX = isNearZero(axisScale, 0.001f) ? 0.0f : 1.0f / axisScale;
 
         f32 invScale[3][4];
         PSMTXScale(invScale, invX, invY, invZ);

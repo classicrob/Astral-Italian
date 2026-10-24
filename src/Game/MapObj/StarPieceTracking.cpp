@@ -85,7 +85,8 @@ void StarPieceTrackingPiece::updateTrackingVelocity(bool) {
     direction = playerPosition - mPosition;
     f32 distance = PSVECMag(&direction);
     MR::normalizeOrZero(&direction, direction);
-    f32 acceleration = 0.01f * (distance * 0.3f);
+    distance *= 0.3f;
+    f32 acceleration = 0.01f * distance;
     mTrackingVelocity *= 0.98f;
     mTrackingVelocity += direction * acceleration;
 }

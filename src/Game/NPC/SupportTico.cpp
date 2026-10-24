@@ -284,7 +284,7 @@ void SupportTico::updateTarget() {
     mTargetTimer--;
     if (pTarget != nullptr) {
         if (!mTargetRefreshed || MR::isDead(pTarget) || MR::isStarPointerTargetClipped(mTarget) ||
-            MR::isNearPlayerAnyTime(mTarget, 1.2f * mAttachRange) == false) {
+            MR::isNearPlayerAnyTime(mTarget, 1.2f * mAttachRange) != true) {
             mAttachGroup->clear();
             mNearTarget = nullptr;
             mTarget = nullptr;

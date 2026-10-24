@@ -224,7 +224,7 @@ void GorogoroCylinderRock::updateRotateOnRail() {
     mPosition += offset;
     MR::addVelocityToGravity(this, 0.2f);
 
-    if (mRailPointNo != oldPointNo) {
+    if (oldPointNo != mRailPointNo) {
         if (tryUpdateNerve()) {
             MR::zeroVelocity(this);
         }
@@ -245,7 +245,7 @@ void GorogoroCylinderRock::updateRotateNoGravity() {
 
     TVec3f offset = mRailDirection * mRailSpeed;
     mPosition += offset;
-    if (mRailPointNo != oldPointNo) {
+    if (oldPointNo != mRailPointNo) {
         tryUpdateNerve();
     }
 

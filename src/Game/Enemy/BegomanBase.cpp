@@ -240,7 +240,8 @@ void BegomanBase::control() {
     TVec3f blendVec;
     TQuat4f yRotationQuat;
 
-    MR::vecBlend(&blendVec, upVec, -mGravity, ::hBlendGravityRate);
+    const TVec3f& gravityUp = -mGravity;
+    MR::vecBlend(&blendVec, upVec, gravityUp, ::hBlendGravityRate);
     MR::normalizeOrZero(&blendVec);
 
     if (MR::isNearZero(blendVec)) {

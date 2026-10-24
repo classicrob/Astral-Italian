@@ -325,23 +325,9 @@ bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
 // NONMATCHING: floating-point register allocation differs; instructions and field accesses agree.
 void KuriboChief::setPositionRotationVelocity(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {
     MR::setPosition(this, position);
-    f32 x = rotation.x;
-    f32 y = rotation.y;
-    f32 z = rotation.z;
-    f32 w = rotation.w;
-    f32 vx = velocity.x;
-    f32 vy = velocity.y;
-    f32 vz = velocity.z;
-    mVelocity.x = vx;
-    mVelocity.y = vy;
-    mVelocity.z = vz;
-    mUpFrontQuat.x = x;
-    mUpFrontQuat.y = y;
-    mUpFrontQuat.z = z;
-    mUpFrontQuat.w = w;
-    mFront.set<f32>(2.0f * (x * z) + 2.0f * (w * y),
-                 2.0f * (y * z) - 2.0f * (w * x),
-                 (1.0f - 2.0f * (x * x)) - 2.0f * (y * y));
+    mVelocity.set(velocity);
+    mUpFrontQuat.set(rotation);
+    rotation.getZDir(mFront);
 }
 
 void KuriboChief::appearAndWander(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {

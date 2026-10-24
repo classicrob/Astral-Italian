@@ -26,7 +26,8 @@ def analyze(out):
     if (item['coverage'] or {}).get('covered')=='1':item['fallback_inference']='Covered config waited for a specialized pipeline: the ready-fallback fast path did not resolve this draw. Exact preparation status at request is not logged.'
     else:item['fallback_inference']='No matched covered config; do not infer fallback readiness.'
     near.append(item)
-  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':float(row['interval_ms']),'dominant_measured_lane':max(lanes,key=lanes.get),'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'raw_frame':row})
+  dominant=max(lanes,key=lanes.get);fraction=lanes[dominant]/float(row['interval_ms'])
+  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':float(row['interval_ms']),'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','largest_measured_lane':dominant,'largest_lane_fraction':fraction,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'raw_frame':row})
  return {'stall_frames_over100':selected,'gameplay_over100':sum(r['phase']=='gameplay' for r in selected),'max_gameplay_ms':max((float(r['interval_ms']) for r in frames if r['phase']=='gameplay'),default=None),
   'worker_policy_lines':[l for l in lines if l.startswith(('[gx pipeline] policy=','[gx pipeline pool]'))],
   'fallback_readiness_summary':[l for l in lines if l.startswith('[gx uber readiness]')],

@@ -28,7 +28,14 @@ template<class... Args> std::string format(const char* text, Args&&...) { return
 namespace aurora::gfx {
 using HashType = uint64_t;
 using PipelineRef = uint64_t;
-namespace gx { constexpr unsigned GXPipelineConfigVersion = 13; struct PipelineConfig { unsigned version = 13, id = 0; }; }
+namespace gx {
+constexpr unsigned GXPipelineConfigVersion = 13;
+struct ShaderConfig { bool valid = true; };
+struct PipelineConfig { unsigned version = 13, id = 0; ShaderConfig shaderConfig; };
+// This harness tests manifest scheduling/admission; shader validation itself is
+// covered by the GX tests. Keep an explicit rejection case at this boundary.
+static bool petari_cached_shader_valid(const ShaderConfig& shader, HashType) { return shader.valid; }
+}
 namespace clear { constexpr unsigned ClearPipelineConfigVersion = 1; struct PipelineConfig { unsigned version = 1; bool clearColor = false, clearAlpha = false, clearDepth = false; }; }
 enum class ShaderType { Clear, GX };
 enum class PipelinePriority { Background, Normal, Blocking };
@@ -82,7 +89,7 @@ static void remember_pipeline_config(ShaderType type, const Config& config, uint
     if (!persist || firstUse != UINT32_MAX) throw std::runtime_error("global speculation must persist as never drawn");
     g_knownPipelines.try_emplace(xxh3_hash(config, static_cast<HashType>(type)), KnownPipeline{type, config, firstUse});
 }
-enum class ManifestFixture { OpenFailure, QueryFailure, StepFailure, Empty, InvalidRow, Valid, HotOrdered };
+enum class ManifestFixture { OpenFailure, QueryFailure, StepFailure, Empty, InvalidRow, InvalidShader, Valid, HotOrdered };
 static ManifestFixture manifestFixture = ManifestFixture::OpenFailure;
 static sqlite3* open_pipeline_cache_seed_db(const std::string&) {
     if (manifestFixture == ManifestFixture::OpenFailure) return nullptr;
@@ -107,14 +114,15 @@ static sqlite3* open_pipeline_cache_seed_db(const std::string&) {
         sqlite3_stmt* insert = nullptr;
         if (sqlite3_prepare_v2(db, "INSERT INTO pipeline_cache VALUES(1,13,?,?)", -1, &insert, nullptr) != SQLITE_OK)
             throw std::runtime_error("fixture insert prepare failed");
-        const gx::PipelineConfig config{13, id};
+        gx::PipelineConfig config{13, id};
+        if (manifestFixture == ManifestFixture::InvalidShader) config.shaderConfig.valid = false;
         sqlite3_bind_blob(insert, 1, &config, sizeof(config), SQLITE_TRANSIENT);
         sqlite3_bind_int64(insert, 2, firstUse);
         const auto result = sqlite3_step(insert);
         sqlite3_finalize(insert);
         if (result != SQLITE_DONE) throw std::runtime_error("fixture insert failed");
     };
-    if (manifestFixture == ManifestFixture::Valid) insertRow(42, 0);
+    if (manifestFixture == ManifestFixture::Valid || manifestFixture == ManifestFixture::InvalidShader) insertRow(42, 0);
     if (manifestFixture == ManifestFixture::HotOrdered) {
         // order_pipeline_seeds.py layout: hot ranks, other observed at 1,000,000 + rank, speculative never.
         insertRow(61, 4294967295LL);
@@ -175,7 +183,7 @@ static void manifestFailureTest() {
     setenv("PETARI_PIPELINE_SEED_DIR", root.c_str(), 1);
     unsigned failures = 0;
     for (const auto mode : {ManifestFixture::OpenFailure, ManifestFixture::QueryFailure, ManifestFixture::StepFailure,
-                           ManifestFixture::Empty, ManifestFixture::InvalidRow, ManifestFixture::Valid}) {
+                           ManifestFixture::Empty, ManifestFixture::InvalidRow, ManifestFixture::InvalidShader, ManifestFixture::Valid}) {
         manifestFixture = mode;
         const auto stage = "ManifestCase" + std::to_string(static_cast<unsigned>(mode));
         { std::ofstream marker(root / (stage + ".db")); marker << "fixture"; }

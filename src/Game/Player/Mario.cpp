@@ -1535,17 +1535,17 @@ void Mario::inputStick() {
         quotient++;
     }
 
-    f32 resultAngle;
+    f32 adjustedAngle;
 
     if (angle >= quarterTurn - stickAngleMargin) {
-        resultAngle = quarterTurn;
+        adjustedAngle = quarterTurn;
     } else if (angle <= stickAngleMargin) {
-        resultAngle = 0.0f;
+        adjustedAngle = 0.0f;
     } else {
-        resultAngle = (quarterTurn / (quarterTurn - 2.0f * stickAngleMargin)) * (angle - stickAngleMargin);
+        adjustedAngle = (quarterTurn / (quarterTurn - 2.0f * stickAngleMargin)) * (angle - stickAngleMargin);
     }
 
-    resultAngle += quarterTurn * static_cast< f32 >(quotient);
+    f32 resultAngle = adjustedAngle + quarterTurn * static_cast< f32 >(quotient);
 
     if (!((getPlayer()->mFlags14.mLowWord >> 14) & 1)) {
         mStickPos.x = mStickPos.z * MR::cos(resultAngle);
@@ -3010,14 +3010,7 @@ f32 Mario::calcDistToCeilHead() {
     TVec3f hitPos;
     TVec3f start = mActor->mCapPosition - mFrontVec * 40.0f;
 
-    TVec3f direction(-getAirGravityVec() * 80.0f);
-    bool hit;
-    if (fn_803B2950()) {
-        hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, start, direction);
-    } else {
-        hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, direction);
-    }
-    if (hit) {
+    if (fn_803B2770(&hitPos, &triangle, start, -getAirGravityVec() * 80.0f)) {
         *fn_803EFA20() = triangle;
         return (hitPos - mPosHolder->mPos).length();
     }
@@ -3039,45 +3032,21 @@ f32 Mario::calcDistWidth() {
     TVec3f hitPos;
 
     if (((mMovementStates.mLowWord >> 23) & 1U)) {
-        TVec3f direction(*mFrontWallTriangle->getNormal(0));
-        direction *= 100.0f;
-        bool hit;
-        if (fn_803B2950()) {
-            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, _4E8, direction);
-        } else {
-            hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4E8, direction);
-        }
-        if (hit) {
+        if (fn_803B2770(&hitPos, &triangle, _4E8, *mFrontWallTriangle->getNormal(0) * 100.0f)) {
             fixTransBetweenWall(hitPos, _4E8);
             return (hitPos - _4E8).length();
         }
     }
 
     if (((mMovementStates.mLowWord >> 6) & 1U)) {
-        TVec3f direction(*mBackWallTriangle->getNormal(0));
-        direction *= 100.0f;
-        bool hit;
-        if (fn_803B2950()) {
-            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, _4F4, direction);
-        } else {
-            hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4F4, direction);
-        }
-        if (hit) {
+        if (fn_803B2770(&hitPos, &triangle, _4F4, *mBackWallTriangle->getNormal(0) * 100.0f)) {
             fixTransBetweenWall(hitPos, _4F4);
             return (hitPos - _4F4).length();
         }
     }
 
     if (((mMovementStates.mLowWord >> 5) & 1U)) {
-        TVec3f direction(*mSideWallTriangle->getNormal(0));
-        direction *= 100.0f;
-        bool hit;
-        if (fn_803B2950()) {
-            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, _500, direction);
-        } else {
-            hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _500, direction);
-        }
-        if (hit) {
+        if (fn_803B2770(&hitPos, &triangle, _500, *mSideWallTriangle->getNormal(0) * 100.0f)) {
             fixTransBetweenWall(hitPos, _500);
             return (hitPos - _500).length();
         }
@@ -3797,11 +3766,7 @@ bool Mario::isCurrentShadowFloorDangerAction() const {
 
 
 void Mario::checkBaseTransPoint() {
-    TVec3f gravity(*getGravityVec());
-    gravity.scale(30.0f);
-    TVec3f point(mPosHolder->mPos);
-    point.sub(gravity);
-    s32 inside=fn_803B2AF0(point,nullptr);
+    s32 inside = fn_803B2AF0(mPosHolder->mPos - *getGravityVec() * 30.0f, nullptr);
     const TVec3f& position=mPosHolder->mPos;
     u32 count;
     if(fn_803B2950()) count=Collision::checkStrikeBallToDashYoshiStepAndMap(position,1.0f,nullptr,nullptr);
@@ -8130,14 +8095,7 @@ void Mario::trySlipUpJump() {
         Triangle* pTmpPolygon = fn_803EFA20();
         predictPos += frontVec * step;
 
-        TVec3f direction(*getGravityVec() * 150.0f);
-        bool hit;
-        if (fn_803B2950()) {
-            hit = MR::getFirstPolyOnLineBFastToDashYoshiStepAndMap(predictPos, direction, &hitPos, pTmpPolygon);
-        } else {
-            hit = MR::getFirstPolyOnLineBFast(predictPos, direction, &hitPos, pTmpPolygon);
-        }
-        if (!hit) {
+        if (!fn_803B2B50(predictPos, *getGravityVec() * 150.0f, &hitPos, pTmpPolygon)) {
             break;
         }
     }
@@ -10657,11 +10615,8 @@ bool Mario::checkSidePressPre() {
         if (isDossun(_8C8) || isDossun(mBackWallTriangle)) {
             return false;
         }
-        TVec3f delta(mPosHolder->mPos);
-        delta -= _4F4;
-        MR::isNearZero(mAirGravityVec, 0.001f);
         TVec3f horizontal;
-        MR::vecKillElement(delta, mAirGravityVec, &horizontal);
+        MR::vecKillElement(mPosHolder->mPos - _4F4, getAirGravityVec(), &horizontal);
         if (horizontal.length() < 100.0f) {
             mActor->mPressNormal6D8 = getWallNorm();
             return true;
@@ -13973,15 +13928,15 @@ void Mario::resetTornado() {
 
 
 void Mario::calcTornadoTilt() {
-    bool spinning = ((mMovementStates.mLowWord >> 16) & 1U) != 0;
     bool flying = false;
+    bool spinning = ((mMovementStates.mLowWord >> 16) & 1U) != 0;
     if (getPlayerMode() == PlayerMode_Bee) {
         if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMovementStates.mLowWord >> 14) & 1U)) {
             flying = true;
         }
     }
 
-    bool tilted = spinning | flying;
+    bool tilted = flying | spinning;
     if (!isStickOn() || !tilted) {
         _548 *= mActor->getConst().getTable()->mTornadoTiltCancel;
         bool blended;
@@ -16224,11 +16179,13 @@ bool Mario::isEnableStickWall() {
 
 // NONMATCHING: stack allocation.
 bool Mario::fixWallingDist() {
-    if (((mMovementStates.mLowWord >> 6) & 1U) & ((mMovementStates.mLowWord >> 23) & 1U)) {
+    const u32 backWall = (mMovementStates.mLowWord >> 6) & 1U;
+    const u32 frontWall = (mMovementStates.mLowWord >> 23) & 1U;
+    if (backWall & frontWall) {
         return true;
     }
 
-    if (((mMovementStates.mLowWord >> 6) & 1U)) {
+    if (backWall) {
         TVec3f position(_4F4 + *mBackWallTriangle->getNormal(0) * 79.0f);
         f32 distance = MR::vecKillElement(position - mPosHolder->mPos, *mBackWallTriangle->getNormal(0), &position);
         mPosHolder->fn_80406010(*mBackWallTriangle->getNormal(0) * distance);
@@ -16237,7 +16194,7 @@ bool Mario::fixWallingDist() {
         }
         mPosHolder->fn_80405F90(_4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
 
-    } else if (((mMovementStates.mLowWord >> 23) & 1U)) {
+    } else if (frontWall) {
         if (!fixWallingTop()) {
             return false;
         }

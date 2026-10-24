@@ -43,7 +43,7 @@ void YoshiArrow::fn_80413FB0() { mLength = 0.0f; }
 void YoshiArrow::appear() { LiveActor::appear(); mVolume->appear(); }
 void YoshiArrow::kill() { LiveActor::kill(); mVolume->kill(); }
 void YoshiArrow::fn_80414040() { MR::requestMovementOn(this); MR::requestMovementOn(mVolume); }
-// NONMATCHING: reversed independent float-load order only.
+// NONMATCHING: scalar literal relocation labels.
 void YoshiArrow::control() {
     if (MR::isPlayerDead()) {
         if (!MR::isHiddenModel(this)) { MR::hideModel(this); mVolume->setScaleDownRate(0); }
@@ -53,7 +53,7 @@ void YoshiArrow::control() {
     mLength = mLength + 0.2f * (mTargetLength - mLength);
     mArrowJoint->getTransformInfo().mScale.x = mLength / 6.0f;
     TVec3f front;
-    front.set<f32>(mArrowMtx.mMtx[0][2],mArrowMtx.mMtx[1][2],mArrowMtx.mMtx[2][2]);
+    mArrowMtx.getZDir(front);
     JMAVECScaleAdd(&mUp, &front, &front, -mUp.dot(front));
     front.scale(0.00125f * mLength);
     TVec3f side;

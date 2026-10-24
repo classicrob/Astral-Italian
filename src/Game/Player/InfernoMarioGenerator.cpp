@@ -52,9 +52,10 @@ void InfernoMarioGenerator::init(const JMapInfoIter& iter) {
 }
 void InfernoMarioGenerator::end() {
     setNerve(&NrvInfernoMarioGenerator::InfernoMarioGeneratorNrvEnd::sInstance);
+    LiveActor* actor;
     s32 count=mGroup->getObjNum();
     for(s32 i=0;i<count;i++) {
-        LiveActor* actor=mGroup->getActor(i);
+        actor=mGroup->getActor(i);
         if(!MR::isDead(actor)) { MR::emitItem(actor,"特別報酬");MR::startActionSound(actor,"Dead",-1,-1,-1); }
     }
     makeActorDead();

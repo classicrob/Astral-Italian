@@ -404,7 +404,6 @@ static f32 clamp_acc(f32 acc, f32 clamp) {
     return acc;
 }
 
-// NONMATCHING: extension gate is equivalent (gate-check.py); one inverted conditional/shared-tail jump remains.
 void read_kpad_acc(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
     KPADStatus* sp = &kp->status;
     Vec fsrc;
@@ -435,38 +434,37 @@ void read_kpad_acc(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
     sp->acc_speed = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
     calc_acc_horizon(kp);
     calc_acc_vertical(kp);
-    if (!(uwp->u.fs.err == WPAD_ERR_NONE && uwp->u.fs.dev == WPAD_DEV_FREESTYLE &&
-          (uwp->fmt == WPAD_FMT_FREESTYLE_ACC || uwp->fmt == WPAD_FMT_FREESTYLE_ACC_DPD)) &&
-        !(uwp->u.core.dev == WPAD_DEV_MPLS_FREESTYLE && uwp->fmt == 16 && (uwp->u.mp.status & 0x40))) {
-        return;
+    if ((uwp->u.fs.err == WPAD_ERR_NONE && uwp->u.fs.dev == WPAD_DEV_FREESTYLE &&
+          (uwp->fmt == WPAD_FMT_FREESTYLE_ACC || uwp->fmt == WPAD_FMT_FREESTYLE_ACC_DPD)) ||
+        (uwp->u.core.dev == WPAD_DEV_MPLS_FREESTYLE && uwp->fmt == 16 && (uwp->u.mp.status & 0x40))) {
+        // Both report formats place extension acceleration at the same offsets.
+        if (uwp->u.core.dev == WPAD_DEV_FREESTYLE) {
+            fsrc.x = clamp_acc((f32)(s32)-uwp->u.fs.fsAccX * kp->fs_acc_scale_x, kp_fs_acc_max);
+            fsrc.y = clamp_acc((f32)(s32)-uwp->u.fs.fsAccZ * kp->fs_acc_scale_z, kp_fs_acc_max);
+            fsrc.z = clamp_acc((f32)(s32)uwp->u.fs.fsAccY * kp->fs_acc_scale_y, kp_fs_acc_max);
+        } else {
+            fsrc.x = clamp_acc((f32)(s32)-uwp->u.fs.fsAccX * kp->fs_acc_scale_x, kp_fs_acc_max);
+            fsrc.y = clamp_acc((f32)(s32)-uwp->u.fs.fsAccZ * kp->fs_acc_scale_z, kp_fs_acc_max);
+            fsrc.z = clamp_acc((f32)(s32)uwp->u.fs.fsAccY * kp->fs_acc_scale_y, kp_fs_acc_max);
+        }
+
+        if (kp->fsAccRevise) {
+            PSMTXMultVec(kp_fs_rot, &fsrc, &fsrc);
+        }
+
+        vec = sp->ex_status.fs.acc;
+
+        calc_acc(kp, &sp->ex_status.fs.acc.x, fsrc.x);
+        calc_acc(kp, &sp->ex_status.fs.acc.y, fsrc.y);
+        calc_acc(kp, &sp->ex_status.fs.acc.z, fsrc.z);
+        sp->ex_status.fs.acc_value = sqrt(sp->ex_status.fs.acc.x * sp->ex_status.fs.acc.x + sp->ex_status.fs.acc.y * sp->ex_status.fs.acc.y +
+                                          sp->ex_status.fs.acc.z * sp->ex_status.fs.acc.z);
+
+        vec.x -= sp->ex_status.fs.acc.x;
+        vec.y -= sp->ex_status.fs.acc.y;
+        vec.z -= sp->ex_status.fs.acc.z;
+        sp->ex_status.fs.acc_speed = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
     }
-    // Both report formats place extension acceleration at the same offsets.
-    if (uwp->u.core.dev == WPAD_DEV_FREESTYLE) {
-        fsrc.x = clamp_acc((f32)(s32)-uwp->u.fs.fsAccX * kp->fs_acc_scale_x, kp_fs_acc_max);
-        fsrc.y = clamp_acc((f32)(s32)-uwp->u.fs.fsAccZ * kp->fs_acc_scale_z, kp_fs_acc_max);
-        fsrc.z = clamp_acc((f32)(s32)uwp->u.fs.fsAccY * kp->fs_acc_scale_y, kp_fs_acc_max);
-    } else {
-        fsrc.x = clamp_acc((f32)(s32)-uwp->u.fs.fsAccX * kp->fs_acc_scale_x, kp_fs_acc_max);
-        fsrc.y = clamp_acc((f32)(s32)-uwp->u.fs.fsAccZ * kp->fs_acc_scale_z, kp_fs_acc_max);
-        fsrc.z = clamp_acc((f32)(s32)uwp->u.fs.fsAccY * kp->fs_acc_scale_y, kp_fs_acc_max);
-    }
-
-    if (kp->fsAccRevise) {
-        PSMTXMultVec(kp_fs_rot, &fsrc, &fsrc);
-    }
-
-    vec = sp->ex_status.fs.acc;
-
-    calc_acc(kp, &sp->ex_status.fs.acc.x, fsrc.x);
-    calc_acc(kp, &sp->ex_status.fs.acc.y, fsrc.y);
-    calc_acc(kp, &sp->ex_status.fs.acc.z, fsrc.z);
-    sp->ex_status.fs.acc_value = sqrt(sp->ex_status.fs.acc.x * sp->ex_status.fs.acc.x + sp->ex_status.fs.acc.y * sp->ex_status.fs.acc.y +
-                                      sp->ex_status.fs.acc.z * sp->ex_status.fs.acc.z);
-
-    vec.x -= sp->ex_status.fs.acc.x;
-    vec.y -= sp->ex_status.fs.acc.y;
-    vec.z -= sp->ex_status.fs.acc.z;
-    sp->ex_status.fs.acc_speed = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 }
 
 static f32 calc_horizon(KPADInsideStatus* kp, Vec2* p1, Vec2* p2, Vec2* hori) {
@@ -1782,7 +1780,9 @@ static void KPADiSamplingCallback(s32 chan) {
             kp->acc_scale_z = 1.0f / gravity.z;
             kp->gravityUnitResetReq = FALSE;
         } else {
-            kp->acc_scale_x = kp->acc_scale_y = kp->acc_scale_z = 0.01f;
+            kp->acc_scale_x = 0.01f;
+            kp->acc_scale_y = 0.01f;
+            kp->acc_scale_z = 0.01f;
         }
         WPADGetAccGravityUnit(chan, WPAD_DEV_FREESTYLE, &gravity);
         if (gravity.x * gravity.y * gravity.z != 0) {
@@ -1790,7 +1790,9 @@ static void KPADiSamplingCallback(s32 chan) {
             kp->fs_acc_scale_y = 1.0f / gravity.y;
             kp->fs_acc_scale_z = 1.0f / gravity.z;
         } else {
-            kp->fs_acc_scale_x = kp->fs_acc_scale_y = kp->fs_acc_scale_z = 0.005f;
+            kp->fs_acc_scale_x = 0.005f;
+            kp->fs_acc_scale_y = 0.005f;
+            kp->fs_acc_scale_z = 0.005f;
         }
     }
     if (kp->aimReq) {
@@ -1939,17 +1941,13 @@ static void KPADiSamplingCallback(s32 chan) {
             if (!kp->mplsPreCallbackDone) {
                 kp->mplsPreCallbackDone = TRUE;
                 if (kp->mpls_ctrl_callback) {
-                    if (!currentMpls && kp->mplsTargetMode &&
-                        ((u32)(kp->deviceType - WPAD_DEV_MPLS) <= 2 || kp->deviceType == WPAD_DEV_MPLS_FUTURE)) {
-                        if (kp->mplsTargetMode == 5) {
-                            reason = -2;
-                        } else if (kp->mplsTargetMode == 7) {
-                            reason = -3;
-                        } else {
-                            reason = -1;
-                        }
-                    } else {
+                    if (currentMpls || !kp->mplsTargetMode ||
+                        ((u32)(kp->deviceType - WPAD_DEV_MPLS) > 2 && kp->deviceType != WPAD_DEV_MPLS_FUTURE)) {
                         reason = 0;
+                    } else if (kp->mplsTargetMode == 5) {
+                        reason = -2;
+                    } else {
+                        reason = kp->mplsTargetMode == 7 ? -3 : -1;
                     }
                     kp->mpls_ctrl_callback(chan, reason);
                     if (reason < 0 && !kp->mplsRequestedMode) {
@@ -1965,7 +1963,7 @@ static void KPADiSamplingCallback(s32 chan) {
         }
     }
     if (!currentMpls && !kp->mplsRequestedMode) {
-        kp->mplsTargetMode = 0;
+        kp->mplsTargetMode = kp->mplsRequestedMode;
     }
 finish:
     kp->deviceType = type;

@@ -33,7 +33,7 @@ bool YoshiTongueTarget::hasMultipleRemainingTargets()const{return mCount-mIndex>
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 bool YoshiTongueTarget::hasCurrentTarget()const{return mIndex<mCount;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::hasNextTarget()const{return mIndex<mCount-1;}
+bool YoshiTongueTarget::hasNextTarget()const{return mCount-1>mIndex;}
 bool YoshiTongueTarget::fn_8041C120()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Eat;}
 bool YoshiTongueTarget::fn_8041C140()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Lick;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
@@ -73,8 +73,9 @@ YoshiLockOnTargetDesc::YoshiLockOnTargetDesc():mActor(nullptr),mMtx(nullptr){
 void* YoshiHolder::fn_8041B6F0(){return mYoshi->mTongue;}
 // NONMATCHING: index and array pointer registers are swapped.
 void YoshiHolder::fn_8041B820(LiveActor* egg){
+    YoshiEgg** eggs;
     s32 index = mCount;
-    YoshiEgg** eggs = mEggs;
+    eggs = mEggs;
     mCount = index + 1;
     eggs[index] = static_cast<YoshiEgg*>(egg);
 }

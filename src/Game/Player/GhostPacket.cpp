@@ -23,72 +23,74 @@ void GhostPacket::read(char** output) {
 
 // NONMATCHING: local stack placement and redundant initial flags reload.
 u8 GhostPacket::read(GhostPacketData* output) {
-    u8 frameIndex;
-    u8 length;
-    u16 flags;
+    struct {
+        u8 frameIndex;
+        u8 length;
+        u16 flags;
+    } header;
     mCurOffs = 0;
-    read(&frameIndex, 1);
-    read(&length, 1);
-    GhostPacketWire::readU16(*this, flags);
-    output->mUpdateFlags = flags;
-    if (flags & 1) {
+    read(&header.frameIndex, 1);
+    read(&header.length, 1);
+    GhostPacketWire::readU16(*this, header.flags);
+    output->mUpdateFlags = header.flags;
+    if (header.flags & 1) {
         TVec3s position;
         GhostPacketWire::readS16(*this, position.x);
         GhostPacketWire::readS16(*this, position.y);
         GhostPacketWire::readS16(*this, position.z);
         MR::convToFloat(position, -2, &output->mPosition);
-    } else if (flags & 0x4000) {
+    } else if (header.flags & 0x4000) {
         GhostPacketWire::readF32(*this, output->mPosition.x);
         GhostPacketWire::readF32(*this, output->mPosition.y);
         GhostPacketWire::readF32(*this, output->mPosition.z);
     }
-    if (flags & 0x800) {
+    if (header.flags & 0x800) {
         TVec3Sc velocity;
         read(reinterpret_cast<u8*>(&velocity.x), 1);
         read(reinterpret_cast<u8*>(&velocity.y), 1);
         read(reinterpret_cast<u8*>(&velocity.z), 1);
         MR::convToFloat(velocity, 0, &output->mVelocity);
     }
-    if (flags & 0x400) {
+    if (header.flags & 0x400) {
         TVec3Sc scale;
         read(reinterpret_cast<u8*>(&scale.x), 1);
         read(reinterpret_cast<u8*>(&scale.y), 1);
         read(reinterpret_cast<u8*>(&scale.z), 1);
         MR::convToFloat(scale, 3, &output->mScale);
     }
-    if (flags & 2) {
+    if (header.flags & 2) {
         s8 value;
         read(reinterpret_cast<u8*>(&value), 1);
         MR::convToFloatRotation(&output->mRotation.x, value);
     }
-    if (flags & 4) {
+    if (header.flags & 4) {
         s8 value;
         read(reinterpret_cast<u8*>(&value), 1);
         MR::convToFloatRotation(&output->mRotation.y, value);
     }
-    if (flags & 8) {
+    if (header.flags & 8) {
         s8 value;
         read(reinterpret_cast<u8*>(&value), 1);
         MR::convToFloatRotation(&output->mRotation.z, value);
     }
-    if (flags & 0x10) read(&output->mActionName);
-    if (flags & 0x2000) GhostPacketWire::readU32(*this, output->mActionHash);
-    if (flags & 0x20) {
+    if (header.flags & 0x10) read(&output->mActionName);
+    if (header.flags & 0x2000) GhostPacketWire::readU32(*this, output->mActionHash);
+    if (header.flags & 0x20) {
         s16 value;
         GhostPacketWire::readS16(*this, value);
         MR::convToFloat(value, 5, &output->mBckFrame);
     }
-    if (flags & 0x1000) {
+    if (header.flags & 0x1000) {
         s8 value;
         read(reinterpret_cast<u8*>(&value), 1);
         MR::convToFloatBckRate(&output->mBckRate, value);
     }
     for (u32 index = 0; index < 4; ++index) {
-        if (flags & (0x40 << index)) {
+        if (header.flags & (0x40 << index)) {
             s8 value;
             read(reinterpret_cast<u8*>(&value), 1);
             MR::convToFloatTrackWeight(&output->mTrackWeights[index], value);
         }
     }
-    return length;
+    return header.length;
 }

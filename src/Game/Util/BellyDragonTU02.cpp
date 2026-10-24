@@ -576,9 +576,24 @@ bool BellyDragonBodyPart::calcJoint(TPos3f* pMtx, const JointControllerInfo& rIn
         }
     }
     TVec3f scale(1.0f);
-    scale.x = JGeometry::TUtil< f32 >::sqrt(pMtx->mMtx[0][0] * pMtx->mMtx[0][0] + pMtx->mMtx[1][0] * pMtx->mMtx[1][0] + pMtx->mMtx[2][0] * pMtx->mMtx[2][0]);
-    scale.y = JGeometry::TUtil< f32 >::sqrt(pMtx->mMtx[0][1] * pMtx->mMtx[0][1] + pMtx->mMtx[1][1] * pMtx->mMtx[1][1] + pMtx->mMtx[2][1] * pMtx->mMtx[2][1]);
-    scale.z = JGeometry::TUtil< f32 >::sqrt(pMtx->mMtx[0][2] * pMtx->mMtx[0][2] + pMtx->mMtx[1][2] * pMtx->mMtx[1][2] + pMtx->mMtx[2][2] * pMtx->mMtx[2][2]);
+    {
+        f32 y = pMtx->mMtx[1][0];
+        f32 x = pMtx->mMtx[0][0];
+        f32 z = pMtx->mMtx[2][0];
+        scale.x = JGeometry::TUtil< f32 >::sqrt(x * x + y * y + z * z);
+    }
+    {
+        f32 y = pMtx->mMtx[1][1];
+        f32 x = pMtx->mMtx[0][1];
+        f32 z = pMtx->mMtx[2][1];
+        scale.y = JGeometry::TUtil< f32 >::sqrt(x * x + y * y + z * z);
+    }
+    {
+        f32 y = pMtx->mMtx[1][2];
+        f32 x = pMtx->mMtx[0][2];
+        f32 z = pMtx->mMtx[2][2];
+        scale.z = JGeometry::TUtil< f32 >::sqrt(x * x + y * y + z * z);
+    }
     TPos3f orig = *pMtx;
     MR::blendMtx(orig.mMtx, newMtx.mMtx, 1.0f, pMtx->mMtx);
     MR::preScaleMtx(pMtx->mMtx, scale);

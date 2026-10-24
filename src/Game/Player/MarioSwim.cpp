@@ -3900,7 +3900,7 @@ void MarioSwim::fn_804019D0() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
     f32 y = table->mSwimRotXIneT;
-    mStickInputYInertia = mStickInputYInertia * y + stickY * (1.0f - y);
+    mStickInputYInertia = stickY * (1.0f - y) + mStickInputYInertia * y;
     table = mActor->mConst->getTable();
     f32 stickX = getStickX();
     f32 scale = 1.0f;
@@ -3925,7 +3925,7 @@ void MarioSwim::fn_80401B70() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stick = getStickP();
     f32 ratio = table->mSwimRotXIne;
-    mStickInputYInertia = mStickInputYInertia * ratio + stick * (1.0f - ratio);
+    mStickInputYInertia = stick * (1.0f - ratio) + mStickInputYInertia * ratio;
 }
 
 // NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
@@ -3959,11 +3959,11 @@ void MarioSwim::fn_80401D60() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
     f32 y = table->mSwimRotXIneT;
-    mStickInputYInertia = mStickInputYInertia * y + stickY * (1.0f - y);
+    mStickInputYInertia = stickY * (1.0f - y) + mStickInputYInertia * y;
     table = mActor->mConst->getTable();
     f32 stickX = getStickX();
     f32 x = table->mSwimRotZIneT;
-    mStickInputXInertia = mStickInputXInertia * x + stickX * (1.0f - x);
+    mStickInputXInertia = stickX * (1.0f - x) + mStickInputXInertia * x;
 }
 
 // NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
@@ -3971,11 +3971,11 @@ void MarioSwim::fn_80401E10() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
     f32 y = table->mSwimRotXIne;
-    mStickInputYInertia = mStickInputYInertia * y + stickY * (1.0f - y);
+    mStickInputYInertia = stickY * (1.0f - y) + mStickInputYInertia * y;
     table = mActor->mConst->getTable();
     f32 stickX = getStickX();
     f32 x = table->mSwimRotZIne;
-    mStickInputXInertia = mStickInputXInertia * x + stickX * (1.0f - x);
+    mStickInputXInertia = stickX * (1.0f - x) + mStickInputXInertia * x;
 }
 
 void MarioSwim::fn_80401F00(f32 input) {

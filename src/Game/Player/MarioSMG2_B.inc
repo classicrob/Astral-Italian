@@ -515,8 +515,9 @@ void Mario::fn_803ACF70() {
     }
     if ((mMovementStates.mHighWord >> 25) & 1) {
         MarioConstTable* table = mActor->mConst->getTable();
+        f32 maxSpeed = table->mSquatWalkMaxSpeed;
         f32 minSpeed = table->mSquatWalkMinSpeed;
-        f32 speedRange = table->mSquatWalkMaxSpeed - minSpeed;
+        f32 speedRange = maxSpeed - minSpeed;
         mWalkSpeed = minSpeed + mStickPos.z * speedRange;
         fn_803AF2F0(cSquatWalkMovingWeights);
         mTargetWalkSpeedIndex = 1;
@@ -1267,20 +1268,9 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
 // NONMATCHING: register allocation / constant pool labels
 void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     Triangle tri;
-    TVec3f up(this->mFrontVec);
-    up.scale(20.0f);
-    MR::isNearZero(this->mAirGravityVec, 0.001f);
-    TVec3f back(this->mAirGravityVec);
-    back.scale(200.0f);
-    TVec3f p(rPos);
-    p -= back;
-    TVec3f start(p);
-    start += up;
-    MR::isNearZero(this->mAirGravityVec, 0.001f);
-    TVec3f dir(this->mAirGravityVec);
-    dir.scale(210.0f);
     TVec3f hit;
-    if (!this->fn_803B2B50(start, dir, &hit, &tri)) {
+    TVec3f start = rPos - getAirGravityVec() * 200.0f + mFrontVec * 20.0f;
+    if (!fn_803B2B50(start, getAirGravityVec() * 210.0f, &hit, &tri)) {
         this->_4E0 = 400.0f;
         return;
     }
@@ -1290,11 +1280,8 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
         return;
     }
     MR::isNearZero(this->mAirGravityVec, 0.001f);
-    TVec3f diff(rPos);
-    diff -= hit;
-    f32 dist = diff.dot(this->mAirGravityVec);
-    this->_4E0 = dist;
-    if (dist > 0.0f) {
+    this->_4E0 = (rPos - hit).dot(this->mAirGravityVec);
+    if (this->_4E0 > 0.0f) {
         this->mMovementStates.mLowWord |= 0x400;
     }
     f32 offset = 0.0f;
@@ -1304,17 +1291,8 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
         offset = this->_4E0 / (JMASinRadian(angle) / JMACosRadian(angle));
     }
     TVec3f savedHit(hit);
-    TVec3f lift(this->mFrontVec);
-    lift.scale(15.0f + offset);
-    hit -= lift;
-    MR::isNearZero(this->mAirGravityVec, 0.001f);
-    TVec3f inward(this->mAirGravityVec);
-    inward.scale(5.0f);
-    TVec3f rayStart(hit);
-    rayStart -= inward;
-    TVec3f rayDir(*this->getGravityVec());
-    rayDir.scale(10.0f);
-    if (!this->fn_803B2880(rayStart, rayDir)) {
+    hit -= mFrontVec * (15.0f + offset);
+    if (!fn_803B2880(hit - getAirGravityVec() * 5.0f, *getGravityVec() * 10.0f)) {
         hit.set(savedHit);
         *this->_47C = tri;
         return;
@@ -1393,11 +1371,7 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
         offset = 50.0f;
     }
     *pHeight = 40.0f;
-    TVec3f down(*this->getGravityVec());
-    down.scale(offset);
-    TVec3f base(this->mPosHolder->mPos);
-    base -= down;
-    pPos->set(base);
+    pPos->set(this->mPosHolder->mPos - *this->getGravityVec() * offset);
     if (this->isStatusActive(2)) {
         this->mActor->calcHeadPos();
         pPos->set(this->mActor->mCapPosition);
@@ -1407,11 +1381,7 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
     }
     if ((this->mMovementStates.mHighWord & 3) != 0) {
         this->mActor->calcHeadPos();
-        TVec3f side(this->_16C);
-        side.scale(2.0f);
-        TVec3f head(this->mActor->mCapPosition);
-        head += side;
-        pPos->set(head);
+        pPos->set(this->mActor->mCapPosition + this->_16C * 2.0f);
     }
     if (this->getPlayerMode() == 4 && !((this->getPlayer()->mMovementStates.mHighWord >> 28) & 1) && !((this->getPlayer()->mMovementStates.mLowWord >> 21) & 1) &&
         !this->isStatusActive(28) && !this->isStatusActive(21) && !this->isStatusActive(27) && this->mActor->mBeeWallWalk == 0) {
@@ -1425,21 +1395,11 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
         TVec3f zAxis;
         mtx.getZAxis(&zAxis);
         mtx.getTranslation(pPos);
-        TVec3f zOff(zAxis);
-        zOff.scale(20.0f);
-        TVec3f yOff(yAxis);
-        yOff.scale(50.0f);
-        TVec3f off(yOff);
-        off -= zOff;
-        pPos->add(off);
+        pPos->add(yAxis * 50.0f - zAxis * 20.0f);
         *pHeight = 80.0f;
     }
     if (this->isSwimming()) {
-        TVec3f swim(this->mHeadVec);
-        swim.scale(60.0f);
-        TVec3f pos(this->mPosHolder->mPos);
-        pos += swim;
-        pPos->set(pos);
+        pPos->set(this->mPosHolder->mPos + this->mHeadVec * 60.0f);
     }
 }
 

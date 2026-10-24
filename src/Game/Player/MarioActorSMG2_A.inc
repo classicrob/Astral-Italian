@@ -1163,10 +1163,14 @@ void MarioActor::fn_803C26A0() {
 }
 
 bool MarioActor::fn_803C2710() {
-    bool releaseAnimation = false;
-    bool actorGateClear = false;
-    bool playerGateClear = false;
-    bool requested = false;
+    bool requested;
+    bool playerGateClear;
+    bool actorGateClear;
+    bool releaseAnimation;
+    releaseAnimation = false;
+    actorGateClear = false;
+    playerGateClear = false;
+    requested = false;
     if (mMario->isAnimationRun("ハンマー投げリリース") &&
         ((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
         releaseAnimation = true;
@@ -1916,7 +1920,9 @@ void MarioActor::fn_803C5E20(MtxPtr mtx) {
 void MarioActor::fn_803C5ED0(MtxPtr m1, MtxPtr m2) {
     u16 t = this->mBlendMtxTimer;
     if (t != 0) {
-        f32 f = 1.0f - ((1.0f - this->_EA0) * ((f32)(t - 1) / (f32)t));
+        f32 inverseBlend = 1.0f - this->_EA0;
+        inverseBlend *= (f32)(t - 1) / (f32)t;
+        f32 f = 1.0f - inverseBlend;
         this->_EA0 = f;
         MR::blendMtx(m2, m1, f, m1);
         this->mBlendMtxTimer = this->mBlendMtxTimer - 1;

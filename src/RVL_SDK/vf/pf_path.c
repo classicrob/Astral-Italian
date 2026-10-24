@@ -197,7 +197,7 @@ u16 VFiPFPATH_GetNextCharOfPattern(struct PF_STR* p_pattern, u32 is_long_name) {
         }
     }
 
-    twc = (twc >= 0x61 && twc <= 0x7A) ? twc - 0x20 : twc;
+    twc = ((u32)twc >= 0x61 && (u32)twc <= 0x7A) ? twc - 0x20 : twc;
 
     if (is_long_name == 1) {
         if (VFiPFPATH_UNI_ConvertFWchar(twc, &tmp_wc) == 1) {

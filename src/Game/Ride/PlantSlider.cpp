@@ -229,12 +229,15 @@ void PlantSlider::endClipped() {
 
 // NONMATCHING: loop setup scheduling and stack temporary placement differ.
 void PlantSlider::control() {
+    const TVec3f* gravityPos;
+    s32 leafStart;
+    PlantSliderPoint* pPoint;
     s32 i = 0;
     if (mNumLeaves <= 0) return;
-    s32 leafStart = sLeafPointStart;
-    const TVec3f* gravityPos = &mGravity;
+    leafStart = sLeafPointStart;
+    gravityPos = &mGravity;
     for (; i < mNumLeaves; i++) {
-        PlantSliderPoint* pPoint = mSliderPoints[leafStart + i * 30];
+        pPoint = mSliderPoints[leafStart + i * 30];
 
         TVec3f front = (pPoint->mUp + pPoint->mSide.scaleInline(1.5f)) + gravityPos->scaleInline(2.0f);
         MR::normalize(&front);
@@ -416,8 +419,9 @@ TVec3f* PlantSlider::getPointUp(PlantRailInfo* pRailInfo, s32 index) {
 #pragma dont_inline reset
 // NONMATCHING: loop load scheduling and register allocation differ.
 void PlantSlider::updatePoints() {
+    PlantSliderPoint* point;
     for (s32 i = 0; i < mNumPoints; i++) {
-        PlantSliderPoint* point = mSliderPoints[i];
+        point = mSliderPoints[i];
         f32 t = (f32)i / (f32)(mNumPoints - 1);
         f32 value = MR::getLinerValue(t, 0.15f, 0.035f, 1.0f);
         point->updateSpring(value, 0.92f);
@@ -490,8 +494,9 @@ void PlantSlider::draw() const {
     }
     initDrawSetting();
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, mNumPoints * 2);
+    const PlantSliderPoint* pPoint;
     for (s32 i = 0; i < mNumPoints; i++) {
-        const PlantSliderPoint* pPoint = mSliderPoints[i];
+        pPoint = mSliderPoints[i];
         TVec3f side(pPoint->mSide);
         TVec3f front(mSliderPoints[i]->mFront);
         side.scale(mSliderPoints[i]->mThickness);

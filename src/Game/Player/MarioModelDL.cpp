@@ -18,8 +18,10 @@ MarioModelDL::MarioModelDL(LiveActor* actor, const char* material, const char* t
     mMaterialIndex = MR::getMaterialNo(MR::getJ3DModelData(actor), material);
     s32 textureIndex = MR::getTextureIndex(actor, texture);
     mDisplayLists = new DLholder[4];
+    DLholder* holder;
+    u32 alignedSize;
     for (s32 i = 0; i < 4; ++i) {
-        DLholder* holder = &mDisplayLists[i];
+        holder = &mDisplayLists[i];
         MR::ProhibitSchedulerAndInterrupts guard(false);
         GDLObj object;
         u8 buffer[512] ATTRIBUTE_ALIGN(32);
@@ -30,7 +32,7 @@ MarioModelDL::MarioModelDL(LiveActor* actor, const char* material, const char* t
         GDPadCurr32();
         u32 size = object.ptr - object.start;
         holder->mSize = size;
-        u32 alignedSize = (size + 31) & ~31;
+        alignedSize = (size + 31) & ~31;
         holder->mDL = new (32) u8[alignedSize];
         MR::copyMemory(holder->mDL, buffer, alignedSize);
         DCStoreRange(holder->mDL, alignedSize);

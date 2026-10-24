@@ -19,7 +19,7 @@ GhostPacketSyncData::GhostPacketSyncData() : mPosition(0.0f), mPackedPosition(0,
 
 void GhostPacketSyncData::syncWithPlayer() { syncWithActor(MarioAccess::getPlayerActor(), true); }
 
-// NONMATCHING: track-weight loop address registers.
+// NONMATCHING: integer-to-float scalar literal labels.
 void GhostPacketSyncData::syncWithActor(const LiveActor* actor, bool syncAction) {
     XanimePlayer* player = actor->mModelManager->mXanimePlayer;
     MR::extractMtxTrans(actor->getBaseMtx(), &mPosition);
@@ -44,5 +44,8 @@ void GhostPacketSyncData::syncWithActor(const LiveActor* actor, bool syncAction)
     else frame = player->mFrameCtrl->mFrame;
     MR::fn_8037FC50(&mBckFrame, frame);
     MR::fn_8037FC70(&mBckRate, player->mFrameCtrl->mRate);
-    for (u32 index = 0; index < 4; ++index) MR::fn_8037FC60(&mTrackWeights[index], player->mWeights[index]);
+    for (u32 index = 0; index < 4; ++index) {
+        f32 weight = player->mWeights[index];
+        MR::fn_8037FC60(&mTrackWeights[index], weight);
+    }
 }

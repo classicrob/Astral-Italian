@@ -113,7 +113,7 @@ void PostFog::drawFog(s16 left, s16 top, s16 right, s16 bottom, bool replaceColo
     }
     f32 indirectMatrix[2][3] = {};
     indirectMatrix[0][1] = scale;
-    indirectMatrix[0][0] = scale * (1.0f / 256.0f);
+    indirectMatrix[0][0] = scale / 256.0f;
     GXSetIndTexMtx(GX_ITM_0, indirectMatrix, exponent - 1);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
     GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_K0_A);

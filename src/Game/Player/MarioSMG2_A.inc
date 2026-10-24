@@ -615,11 +615,7 @@ void Mario::fn_8039AB50() {
     f32 old = MR::vecKillElement(this->mJumpVec, *this->getGravityVec(), &sp32);
     f32 limit = this->getMaxDropSpeed();
     if (old >= limit) {
-        TVec3f sp8(*this->getGravityVec());
-        sp8 *= limit;
-        TVec3f sp20(sp8);
-        sp20 += sp32;
-        this->mJumpVec = sp20;
+        this->mJumpVec = *this->getGravityVec() * limit + sp32;
     }
 }
 
@@ -754,12 +750,12 @@ void Mario::fn_803A1BB0() {
     if (MR::isInRange(d, 0.0f, 0.707f)) {
         TVec3f s;
         PSVECCrossProduct(&this->_214, &this->_22C, &s);
-        if (this->_274 == 0) {
-            if (s.dot(this->mHeadVec) < 0.0f) {
+        if (this->_274 != 0) {
+            if (s.dot(this->mHeadVec) > 0.0f) {
                 this->mFlags14.mLowWord &= 0xFFF7FFFF;
             }
         } else {
-            if (s.dot(this->mHeadVec) > 0.0f) {
+            if (s.dot(this->mHeadVec) < 0.0f) {
                 this->mFlags14.mLowWord &= 0xFFF7FFFF;
             }
         }
@@ -912,18 +908,14 @@ void Mario::fn_803A28D0(TVec3f* arg) {
         if (this->_4E0 > 120.0f) {
             const TVec3f* n = this->mFrontWallTriangle->getNormal(0);
             if (this->mVelocity.dot(*n) < 0.0f) {
-                TVec3f sp20(this->mPosHolder->mPos);
-                sp20 -= this->_4E8;
                 TVec3f sp56;
-                MR::vecKillElement(sp20, *this->mFrontWallTriangle->getNormal(0), &sp56);
+                MR::vecKillElement(this->mPosHolder->mPos - this->_4E8, *this->mFrontWallTriangle->getNormal(0), &sp56);
                 MR::vecKillElement(sp56, *this->getGravityVec(), &sp56);
                 MR::vecKillElement(sp56, this->mFrontVec, &sp56);
                 MR::normalizeOrZero(&sp56);
                 if (!MR::isNearZero(sp56, 0.001f)) {
                     f32 m = PSVECMag(&this->mVelocity);
-                    TVec3f a(sp56);
-                    a.scale(m);
-                    this->mVelocity = a;
+                    this->mVelocity = sp56 * m;
                 }
             }
         }
@@ -1834,20 +1826,10 @@ void Mario::fn_803A2A70() {
         return;
     }
     if ((this->mDrawStates.mWord >> 26) & 1) {
-        f32 walkSpeed = mWalkSpeed;
-        TVec3f direction(this->_22C);
-        direction *= speed;
-        TVec3f scaled(direction);
-        scaled *= walkSpeed;
-        addVelocity(scaled);
+        addVelocity(this->_22C * speed * mWalkSpeed);
         return;
     }
-    f32 walkSpeed = mWalkSpeed;
-    TVec3f direction(this->mFrontVec);
-    direction *= speed;
-    TVec3f scaled(direction);
-    scaled *= walkSpeed;
-    addVelocity(scaled);
+    addVelocity(this->mFrontVec * speed * mWalkSpeed);
 }
 
 // NONMATCHING: temporary/register scheduling; full landing switch and return structure recovered.

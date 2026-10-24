@@ -46,8 +46,10 @@ static void VFipdm_bpb_calculate_specific_bpb_fields(PDM_BPB* p_bpb) {
     switch ((s32)p_bpb->fat_type) {
     case PDM_FAT_12:
     case PDM_FAT_16: {
-        p_bpb->active_FAT_sector = p_bpb->num_reserved_sectors;
-        p_bpb->num_active_FATs = p_bpb->num_FATs;
+        u32 num_fats = p_bpb->num_FATs;
+        u32 reserved_sectors = p_bpb->num_reserved_sectors;
+        p_bpb->num_active_FATs = num_fats;
+        p_bpb->active_FAT_sector = reserved_sectors;
         p_bpb->first_root_dir_sector = p_bpb->num_reserved_sectors + (p_bpb->num_FATs * p_bpb->sectors_per_FAT);
     } break;
     case PDM_FAT_32: {
@@ -106,8 +108,8 @@ s32 VFipdm_bpb_get_bpb_information(u8* buf, struct PDM_BPB* p_bpb) {
     if (p_bpb->sectors_per_FAT16 == 0) {
         p_bpb->sectors_per_FAT = (p_bpb->sectors_per_FAT32 = buf[0x24] | (buf[0x25] << 8) | (buf[0x26] << 16) | (buf[0x27] << 24));
     } else {
-        p_bpb->sectors_per_FAT = p_bpb->sectors_per_FAT16;
         p_bpb->sectors_per_FAT32 = 0;
+        p_bpb->sectors_per_FAT = p_bpb->sectors_per_FAT16;
     }
 
     VFipdm_bpb_calculate_common_bpb_fields(p_bpb);

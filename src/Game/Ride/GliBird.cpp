@@ -867,11 +867,7 @@ bool GliBird::updateCollision() {
     TVec3f front(jointMtx[0][2], jointMtx[1][2], jointMtx[2][2]);
 
     f32 radius = *mParam->mRadius;
-    TVec3f upOffset = up * *mParam->mOffsetUp;
-    TVec3f frontOffset = front * *mParam->mOffsetFront;
-    TVec3f offset(frontOffset);
-    offset.add(upOffset);
-    pos.add(offset);
+    pos.add(front * *mParam->mOffsetFront + up * *mParam->mOffsetUp);
 
     TVec3f hitPos(0.0f);
     TVec3f hitNormal(0.0f);

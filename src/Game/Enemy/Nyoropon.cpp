@@ -88,11 +88,7 @@ void Nyoropon::init(const JMapInfoIter& rIter) {
     }
     MR::calcUpVec(&mGravity, this);
     mGravity.negate();
-    TVec3f offset(mGravity);
-    offset *= 50.0f;
-    TVec3f pos(mPosition);
-    pos += offset;
-    mPosition = pos;
+    mPosition = mPosition + mGravity * 50.0f;
     LiveActor::calcAndSetBaseMtx();
     MR::calcFrontVec(&mFront, this);
     mHead = new PartsModel(this, "ニョロポン頭", "NyoroponHead", MR::getJointMtx(this, "HeadPos"), 0x13, false);
@@ -474,10 +470,12 @@ void Nyoropon::setFaceAttack() {
 // NONMATCHING: joint controller and loop registers differ
 void Nyoropon::initBodyJointControllers() {
     mJointCtrls = new JointController*[7];
+    JointControlDelegator< Nyoropon >* pCtrl;
+    const char* pName;
     for (s32 i = 0; i < 7; i++) {
         JointControlDelegator< Nyoropon >::func calcFunc = &Nyoropon::calcJointMatrix;
-        const char* pName = sJointNames[i];
-        JointControlDelegator< Nyoropon >* pCtrl = new JointControlDelegator< Nyoropon >(this, calcFunc, nullptr);
+        pName = sJointNames[i];
+        pCtrl = new JointControlDelegator< Nyoropon >(this, calcFunc, nullptr);
         MR::setJointControllerParam(pCtrl, this, pName);
         mJointCtrls[i] = pCtrl;
     }
@@ -544,19 +542,11 @@ void Nyoropon::updatePlayerTarget() {
             local = mTarget;
         } else {
             MR::normalize(&diff);
-            TVec3f a(diff);
-            a *= 500.0f;
-            TVec3f b(sTmpVec);
-            b += a;
-            local = b;
+            local = sTmpVec + diff * 500.0f;
         }
     } else {
         MR::normalize(&diff);
-        TVec3f a(diff);
-        a *= 500.0f;
-        TVec3f b(sTmpVec);
-        b += a;
-        local = b;
+        local = sTmpVec + diff * 500.0f;
     }
     if (local.y < 150.0f) {
         local.y = 150.0f;
@@ -565,9 +555,7 @@ void Nyoropon::updatePlayerTarget() {
     cur -= sTmpVec;
     local -= sTmpVec;
     MR::vecBlendSphere(&cur, cur, local, 0.03f);
-    TVec3f res(cur);
-    res += sTmpVec;
-    mTarget = res;
+    mTarget = cur + sTmpVec;
 }
 
 // NONMATCHING: vector temporary stack slots, saved float registers, and arithmetic scheduling differ

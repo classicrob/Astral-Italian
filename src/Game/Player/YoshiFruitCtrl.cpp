@@ -52,11 +52,11 @@ void YoshiFruitCtrl::fn_80415800() { _8=0; }
 void YoshiFruitCtrl::fn_80415810() { _C=1; }
 void YoshiFruitCtrl::fn_80415820() { _C=0; }
 void YoshiFruitCtrl::fn_80415830(const char* name) { _18=name;_14=name;MR::startBrk(mActor,name);mActor->fn_8040CC30(name); }
-// NONMATCHING: old-name and new-index temporary registers are swapped.
 void YoshiFruitCtrl::fn_80415880(const char* name) {
     if (!MR::isEqualString(name,_18)) {
+        s32 to;
         const char* oldName=_18;
-        s32 to=findFruitIndex(name);
+        to=findFruitIndex(name);
         const char* transition=findFruitTransition(findFruitIndex(oldName),to);
         if (transition) { _14=transition;MR::startBrk(mActor,transition);mActor->fn_8040CC30(transition); }
         else { _14=name;MR::startBrk(mActor,name);mActor->fn_8040CC30(name); }

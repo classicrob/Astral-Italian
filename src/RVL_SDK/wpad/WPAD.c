@@ -1104,9 +1104,7 @@ static void firmwareCheckCallback(s32 chan, s32 result) {
     OSRestoreInterrupts(enable);
     size = (u16)((result == WPAD_ERR_NONE) ? 20 : 42);
     addr = (u32)((result == WPAD_ERR_NONE) ? 0x176c : 0);
-    port = (u8)(0x01 << chan);
-
-    DEBUGPrint(" ==>this error means that the firmware is for NDEV %s\n", (p_wpd->oldFw) ? "2.0" : "2.1 or later");
+    port = (u8)(p_wpd->devType == 3 ? 1 : 0x01 << chan);
     WPADiSendSetReportType(&p_wpd->cmdq, WPAD_FMT_CORE, p_wpd->pwrSave, __wpadAbortConnectionCallback);
     WPADiSendDPDCSB(&p_wpd->cmdq, FALSE, __wpadAbortConnectionCallback);
     WPADiSendSetPort(&p_wpd->cmdq, port, __wpadAbortConnectionCallback);
@@ -1328,14 +1326,11 @@ WPADConnectCallback WPADSetConnectCallback(s32 chan, WPADConnectCallback callbac
 }
 
 WPADExtensionCallback WPADSetExtensionCallback(s32 chan, WPADExtensionCallback callback) {
-    WPADControlBlock* p_wpd;
+    WPADControlBlock* p_wpd = _wpdcb[chan];
     WPADExtensionCallback prev;
     BOOL enable;
 
-    DEBUGPrint("WPADSetExtensionCallback()\n");
-
     enable = OSDisableInterrupts();
-    p_wpd = _wpdcb[chan];
     prev = p_wpd->extensionCallback;
     p_wpd->extensionCallback = callback;
     OSRestoreInterrupts(enable);
@@ -1344,16 +1339,14 @@ WPADExtensionCallback WPADSetExtensionCallback(s32 chan, WPADExtensionCallback c
 }
 
 u32 WPADGetDataFormat(s32 chan) {
-    WPADControlBlock* p_wpd;
+    WPADControlBlock* p_wpd = _wpdcb[chan];
     u32 fmt;
     BOOL enable = OSDisableInterrupts();
-    p_wpd = _wpdcb[chan];
     fmt = p_wpd->dataFormat;
     OSRestoreInterrupts(enable);
     return fmt;
 }
 
-// NONMATCHING: compiler merges return paths and retains the result in a saved register.
 s32 WPADSetDataFormat(s32 chan, u32 fmt) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     s32 ret;
@@ -1368,25 +1361,24 @@ s32 WPADSetDataFormat(s32 chan, u32 fmt) {
     prevFmt = p_wpd->dataFormat;
     OSRestoreInterrupts(enable);
 
-    if (ret != WPAD_ERR_NO_CONTROLLER) {
-        if (!setup) {
-            ret = WPAD_ERR_BUSY;
-        } else if (prevFmt != fmt) {
-            busy = WPADiSendSetReportType(&p_wpd->cmdq, fmt, p_wpd->pwrSave, NULL);
-            if (!busy) {
-                ret = WPAD_ERR_BUSY;
-            } else {
-                enable = OSDisableInterrupts();
-                p_wpd->dataFormat = fmt;
-                p_wpd->dpdExtendedReportMask = 0;
-                OSRestoreInterrupts(enable);
-                ret = WPAD_ERR_NONE;
-            }
-        } else {
-            ret = WPAD_ERR_NONE;
-        }
+    if (ret == WPAD_ERR_NO_CONTROLLER) {
+        return WPAD_ERR_NO_CONTROLLER;
     }
-    return ret;
+    if (!setup) {
+        return WPAD_ERR_BUSY;
+    }
+    if (prevFmt == fmt) {
+        return WPAD_ERR_NONE;
+    }
+    busy = WPADiSendSetReportType(&p_wpd->cmdq, fmt, p_wpd->pwrSave, NULL);
+    if (busy) {
+        enable = OSDisableInterrupts();
+        p_wpd->dataFormat = fmt;
+        p_wpd->dpdExtendedReportMask = 0;
+        OSRestoreInterrupts(enable);
+        return WPAD_ERR_NONE;
+    }
+    return WPAD_ERR_BUSY;
 }
 
 void __infoCallback(s32 chan, s32 result) {
@@ -1599,7 +1591,7 @@ void WPADRead(s32 chan, void* status) {
     WPADStatus* data;
     BOOL enabled = OSDisableInterrupts();
     u32 size;
-    data = (WPADStatus*)(p_cb->rxBuf + !p_cb->rxBufIndex * WPAD_RX_DATASIZE);
+    data = (WPADStatus*)(p_cb->rxBuf + (p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
     size = __wpadGetReportSize(p_cb->dataFormat);
     if (data->err != WPAD_ERR_NONE) size = sizeof(WPADStatus);
     memcpy(status, data, size);
@@ -1615,7 +1607,7 @@ void WPADSetAutoSamplingBuf(s32 chan, void* buf, u32 length) {
     u32 i;
     if (buf) {
         memset(buf, 0, size * length);
-        for (i = 0; i < length; i++) ((WPADStatus*)((u8*)buf + i * size))->err = err;
+        for (i = 0; i != length; i++) ((WPADStatus*)((u8*)buf + i * size))->err = err;
         p_cb->bufLatestIndex = 0xFFFFFFFF;
         p_cb->bufLength = length;
     }
@@ -1667,7 +1659,7 @@ void WPADiCopyOut(s32 chan) {
     WPADStatus* data;
     u32 size;
     BOOL enabled = OSDisableInterrupts();
-    data = (WPADStatus*)(p_cb->rxBuf + !p_cb->rxBufIndex * WPAD_RX_DATASIZE);
+    data = (WPADStatus*)(p_cb->rxBuf + (p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
     size = __wpadGetReportSize(p_cb->dataFormat);
     if (p_cb->samplingBufs_ptr) {
         p_cb->bufLatestIndex++;
@@ -2371,7 +2363,7 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
     switch (p_cb->mplsControlState) {
     case 1:
         if (result == WPAD_ERR_NONE) {
-            if ((u8)(p_cb->mplsModeReadback[1] - 5) > 2 && p_cb->mplsModeReadback[1] != 250) {
+            if ((u8)(p_cb->mplsModeReadback[1] + 251) > 2 && p_cb->mplsModeReadback[1] != 250) {
                 if (--p_cb->mplsControlRetries == 0) {
                     result = WPAD_ERR_TRANSFER;
                     break;
@@ -2382,23 +2374,23 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
                     p_cb->mplsRegisterAddress = 0x04a400fe;
                 }
                 result = WPADiSendReadData(&p_cb->cmdq, p_cb->mplsModeReadback, 2,
-                    p_cb->mplsRegisterAddress, __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                    p_cb->mplsRegisterAddress, __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
             } else {
                 u32 address = (p_cb->mplsRegisterAddress & ~0xffU) | 0xf0;
                 if (address == 0x04a600f0) {
                     p_cb->mplsControlState = 3;
                     result = WPADiSendWriteDataCmd(&p_cb->cmdq, 0x55, address,
-                        __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                        __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
                 } else if (p_cb->mplsModeReadback[0] == p_cb->mplsRequestedMode) {
                     p_cb->mplsControlState = 0;
                 } else if (--p_cb->mplsControlRetries != 0) {
                     p_cb->mplsRegisterAddress = 0x04a400fe;
                     result = WPADiSendReadData(&p_cb->cmdq, p_cb->mplsModeReadback, 2,
-                        p_cb->mplsRegisterAddress, __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                        p_cb->mplsRegisterAddress, __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
                 } else {
                     p_cb->mplsControlState = 6;
                     result = WPADiSendWriteDataCmd(&p_cb->cmdq, 0, 0x04a400fe,
-                        __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                        __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
                 }
             }
         } else if (result == WPAD_ERR_TRANSFER && p_cb->mplsControlRetries != 0) {
@@ -2409,15 +2401,15 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
                 p_cb->mplsRegisterAddress = 0x04a400fe;
             }
             result = WPADiSendReadData(&p_cb->cmdq, p_cb->mplsModeReadback, 2,
-                p_cb->mplsRegisterAddress, __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                p_cb->mplsRegisterAddress, __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
         }
         break;
     case 2:
         if (result == WPAD_ERR_NONE) {
-            if ((u8)(p_cb->mplsModeReadback[1] - 5) <= 2 || p_cb->mplsModeReadback[1] == 250) {
+            if ((u8)(p_cb->mplsModeReadback[1] + 251) <= 2 || p_cb->mplsModeReadback[1] == 250) {
                 p_cb->mplsControlState = 7;
                 result = WPADiSendWriteDataCmd(&p_cb->cmdq, 0, 0x04a400fe,
-                    __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                    __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
             } else {
                 result = WPAD_ERR_TRANSFER;
             }
@@ -2427,7 +2419,7 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
         if (result == WPAD_ERR_NONE) {
             p_cb->mplsControlState = 4;
             result = WPADiSendWriteDataCmd(&p_cb->cmdq, p_cb->mplsRequestedMode, 0x04a600fe,
-                __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
         }
         break;
     case 4:
@@ -2438,10 +2430,10 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
         break;
     case 5:
         if (result == WPAD_ERR_NONE) {
-            if ((u8)(p_cb->mplsModeReadback[1] - 5) <= 2 || p_cb->mplsModeReadback[1] == 250) {
+            if ((u8)(p_cb->mplsModeReadback[1] + 251) <= 2 || p_cb->mplsModeReadback[1] == 250) {
                 p_cb->mplsControlState = 8;
                 result = WPADiSendWriteDataCmd(&p_cb->cmdq, 0, 0x04a400f2,
-                    __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                    __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
             } else {
                 result = WPAD_ERR_TRANSFER;
             }
@@ -2452,7 +2444,7 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
             p_cb->mplsControlRetries = 4;
             p_cb->mplsControlState = 1;
             result = WPADiSendReadData(&p_cb->cmdq, p_cb->mplsModeReadback, 1, 0x04a600ff,
-                __wpadMplsControlCallback) ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
+                __wpadMplsControlCallback) == FALSE ? WPAD_ERR_BUSY : WPAD_ERR_NONE;
         }
         break;
     case 7:
@@ -2649,16 +2641,15 @@ void __wpadCertProbeReadyCallback(s32 chan, s32 result) {
     if (p_cb->certTransferRetries > 100) __wpadCertFailed(chan);
 }
 
-// NONMATCHING: register allocation and independent byte-load placement differ.
 void __wpadCertGetParamCallback(s32 chan, s32 result) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     p_cb->certBusy = 0;
     if (result == WPAD_ERR_NONE) {
         u32 i;
         for (i = 0; i < p_cb->readLength / 4; ++i) {
-            const u8* bytes = &p_cb->readBuf[i * 4];
-            p_cb->certParam[p_cb->certParamBytes / 4 + i + 1] =
-                (u32)bytes[0] | ((u32)bytes[1] << 8) | ((u32)bytes[2] << 16) | ((u32)bytes[3] << 24);
+            p_cb->certParam[i + p_cb->certParamBytes / 4 + 1] =
+                (u32)p_cb->readBuf[i * 4] | ((u32)p_cb->readBuf[i * 4 + 1] << 8) |
+                ((u32)p_cb->readBuf[i * 4 + 2] << 16) | ((u32)p_cb->readBuf[i * 4 + 3] << 24);
         }
         p_cb->certTransferRetries = 0;
         p_cb->certParamBytes += p_cb->readLength;

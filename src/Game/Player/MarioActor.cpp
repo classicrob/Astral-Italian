@@ -7933,7 +7933,7 @@ f32 MarioActor::calcCylinderToCenter(const AreaObj* pAreaObj, TVec3f* pVec) {
             return -1.0f;
         }
 
-        mWallShadow574->mDistance += 10.0f;
+        mWallShadow574->mDistance = 10.0f + mWallShadow574->mDistance;
 
         if (mWallShadow574->mDistance >= 1000.0f) {
             mWallShadow574->mDistance = 1000.0f;
@@ -10896,8 +10896,8 @@ bool MarioActor::fn_803CAEE0() const {
 }
 
 bool MarioActor::fn_803CAF80() const {
-    const HitSensor* sensor = getCarrySensor();
     bool result;
+    const HitSensor* sensor = getCarrySensor();
     if (!sensor) {
         result = false;
     } else {

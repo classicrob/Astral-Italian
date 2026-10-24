@@ -35,16 +35,19 @@ bool MarioModule::checkSquat(bool a1) {
             return false;
         }
     }
-    if (((mActor->mMario->mMovementStates.mHighWord >> 28) & 1U)) {
+    u32 flags;
+    Mario* player = mActor->mMario;
+    flags = player->mMovementStates.mHighWord;
+    if (((flags >> 28) & 1U)) {
         return false;
     }
-    if (((mActor->mMario->mMovementStates.mHighWord >> 30) & 1U)) {
+    if (((flags >> 30) & 1U)) {
         if (!mActor->checkButtonType(9, false)) {
             mActor->mMario->mMovementStates.mHighWord &= 0xBFFFFFFFU;
         }
         return false;
     }
-    if (!a1 && mActor->mMario->mVerticalSpeed > 100.0f) {
+    if (!a1 && player->mVerticalSpeed > 100.0f) {
         return false;
     }
     return mActor->checkButtonType(9, false);

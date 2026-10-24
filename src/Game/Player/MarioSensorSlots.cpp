@@ -26,13 +26,13 @@ void MarioSensorSlots::fn_803DAB10(LiveActor* actor) {
     }
 }
 
-// NONMATCHING: loop index and slot pointer exchange r28/r29.
 void MarioSensorSlots::fn_803DAB90() {
+    Slot* slot;
     for (s32 i = 0; i < 16; ++i) {
-        Slot& slot = mSlots[i];
-        if (slot.mActor && --slot.mTimer <= 0) {
-            MR::appearItemYoshiEatToPlayer(slot.mActor);
-            slot.mActor = nullptr;
+        slot = &mSlots[i];
+        if (slot->mActor && --slot->mTimer <= 0) {
+            MR::appearItemYoshiEatToPlayer(slot->mActor);
+            slot->mActor = nullptr;
             --mCount;
         }
     }

@@ -98,12 +98,15 @@ def main():
     if r['case']=='worldmap':
      original=Path(r['actual_receipt']);actual_pointer=readj(original)
      assert sha(original)==r['actual_receipt_sha256'] and actual_pointer['passed']==r['passed'] and actual_pointer['checks']==r['checks'] and actual_pointer['app_sha256']==expected
-     from replay_cases54m import anchor_checks,replay_accounting,identity_contract,game_pointer_coverage
+     from replay_cases54m import anchor_checks,replay_accounting,identity_contract,game_pointer_coverage,pointer_observation_checks
      native=readj(original.parent/'replay/divergence.json');assert native==actual_pointer['replay']
      ok &= all(anchor_checks(native,require_identity=m.get('require_bounded_identity',False)).values()) and replay_accounting(native,m.get('require_bounded_identity',False)) and sum(s.get('pointer_rows_compared',0) for s in native['segments'] if s['stage']=='WorldMap01Galaxy')>=30
      if identity_contract(native,m.get('require_bounded_identity',False)):
       coverage=game_pointer_coverage(native)
       ok &= coverage['passed'] and actual_pointer.get('pointer_coverage')==coverage and actual_pointer.get('pointer_rows')==coverage['valid_rows_compared'] and actual_pointer.get('pointer_positions')==coverage['distinct_positions_compared']
+      launch=readj(original.parent/'launch.json');process=readj(original.parent/'process.json')
+      assert launch['environment'].get('PETARI_TAPE_PLAY_OBSERVE_SECONDS')=='90' and process==actual_pointer['process']
+      ok &= all(pointer_observation_checks(native,process).values())
   return {'passed':ok,'cases':len(rs),'passing':sum(r['passed'] for r in rs),'failed_checks':{r['case']+'/'+r['mode']:[k for k,v in r['checks'].items() if not v] for r in rs if not r['passed']}}
  gate('gx-fresh-warm',[promo],promotion,'15-case promotion',(('PORT authorized canonical KPAD pointer tape for the two world-map cases; physical host mapping is outside this check.',) if candidate_mode else ('Reference worldmap host-pointer evidence remains required; unavailable on frozen54 without host input.',)))
  tape=base/'tape-status.json'

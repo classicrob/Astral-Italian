@@ -6696,7 +6696,7 @@ Game/Player/MarioActor.cpp:
 	.text       start:0x803B7340 end:0x803D9A80
 	.ctors      start:0x806447C8 end:0x806447CC
 	.rodata     start:0x8064BCA8 end:0x8064BD70
-	.data       start:0x806C73D8 end:0x806C7588
+	.data       start:0x806C4C28 end:0x806C7588
 	.bss        start:0x80729C40 end:0x80729C68
 	.sdata      start:0x807CFFD8 end:0x807D0004
 	.sbss       start:0x807D4E34 end:0x807D4E60

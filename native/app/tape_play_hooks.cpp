@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -18,8 +19,11 @@ namespace {
 std::unique_ptr<Session> gSession;
 std::filesystem::path gTapeDir;
 bool gReported = false;
+Observation gObservation;
+std::chrono::steady_clock::time_point gObservationStart;
 
 std::int32_t hookRead(std::int32_t channel, KPADStatus* buffer, std::uint32_t capacity, std::int32_t* error, void*) {
+    if (gObservation.pending() && gSession->finished() && !gSession->gaveUp()) ++gObservation.neutralReads;
     return gSession->read(channel, capacity, buffer, error);
 }
 bool hookPress(int mod, void*) { return gSession->press(mod); }
@@ -64,8 +68,9 @@ std::string stamp() {
     return text;
 }
 
-void writeReport() {
-    if (gReported || !gSession) return;
+void writeReport(bool update = false) {
+    if ((gReported && !update) || !gSession) return;
+    const bool first = !gReported;
     gReported = true;
     std::fputs(gSession->reportText().c_str(), stderr);
     // Next to a copy of the tape (the tape itself is never modified): <out>/{route.*, divergence.json, divergence.txt}.
@@ -74,9 +79,15 @@ void writeReport() {
         : gTapeDir.parent_path() / (gTapeDir.filename().string() + "-replay-" + stamp());
     std::error_code ec;
     std::filesystem::create_directories(out, ec);
-    for (const char* name : {"route.tape.json", "route.csv", "route.kpd", "route.actions"})
-        std::filesystem::copy_file(gTapeDir / name, out / name, std::filesystem::copy_options::overwrite_existing, ec);
-    std::ofstream(out / "divergence.json") << gSession->reportJson();
+    if (first)
+        for (const char* name : {"route.tape.json", "route.csv", "route.kpd", "route.actions"})
+            std::filesystem::copy_file(gTapeDir / name, out / name, std::filesystem::copy_options::overwrite_existing, ec);
+    auto report = gSession->reportJson();
+    if (gObservation.requestedSeconds > 0) {
+        const double start = std::chrono::duration<double>(gObservationStart.time_since_epoch()).count();
+        report.insert(report.rfind('}'), ",\n  \"observation\": " + gObservation.reportJson(start) + "\n");
+    }
+    std::ofstream(out / "divergence.json") << report;
     std::ofstream(out / "divergence.txt") << gSession->reportText();
     std::fprintf(stderr, "PETARI TAPE PLAY: report written to %s\n", out.string().c_str());
 }
@@ -84,6 +95,14 @@ void writeReport() {
 
 bool configure(const std::string& dir, std::string* error) {
     try {
+        gObservationStart = std::chrono::steady_clock::now();
+        if (const char* seconds = std::getenv("PETARI_TAPE_PLAY_OBSERVE_SECONDS"); seconds && *seconds) {
+            char* end = nullptr;
+            const double value = std::strtod(seconds, &end);
+            if (!end || *end || !std::isfinite(value) || value <= 0 || value > 3600)
+                throw H::ReplayError("PETARI_TAPE_PLAY_OBSERVE_SECONDS must be in (0, 3600]");
+            gObservation.requestedSeconds = value;
+        }
         gTapeDir = std::filesystem::absolute(dir);
         const char* whole = std::getenv("PETARI_TAPE_PLAY_SESSION");
         gSession = std::make_unique<Session>(gTapeDir, whole && std::string(whole) == "1"
@@ -112,14 +131,19 @@ Step seam(const SeamState& state) {
     const auto before = gSession->currentSegment();
     const bool wasDone = gSession->finished();
     const Step step = gSession->seam(state);
+    const bool observed = gObservation.completed;
+    gObservation.update(std::chrono::duration<double>(std::chrono::steady_clock::now() - gObservationStart).count(),
+                        gSession->seams() - 1, gSession->finished() && !gSession->gaveUp());
     if (!wasDone && gSession->currentSegment() != before)
         std::fprintf(stderr, "PETARI TAPE PLAY: %s\n", gSession->segmentLine(before).c_str());
     if (gFeeder) gFeeder->publish();
     if (step.kind == Step::Kind::Finished || step.kind == Step::Kind::GaveUp) writeReport();
+    if (!observed && gObservation.completed) writeReport(true);
     return step;
 }
 
 bool shouldQuit() { return gSession && gSession->finished(); }
+bool observationPending() { return gSession && !gSession->gaveUp() && gObservation.pending(); }
 bool acknowledgeSeed(std::uint32_t seed) {
     if (!gSession) return true;
     const bool ok = gSession->acknowledgeSeed(seed);

@@ -24,6 +24,9 @@ const char* routePath();
 bool background();  // PETARI_TAPE_RECORD: recording is allowed in background mode
 // Once per post-endFrame seam, right after the route row of that seam was written.
 void seam(const Seam& s);
+// Normal app shutdown only: flush the final CSV/KPAD frames and write complete=true. Safe to call repeatedly;
+// atexit remains a backup. Crash/forced-exit paths must leave the last incomplete checkpoint untouched.
+void finish();
 
 // For tests: the sidecar text for a state.
 struct Ready {

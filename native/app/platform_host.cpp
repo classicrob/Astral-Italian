@@ -22,6 +22,7 @@
 
 #include "host.hpp"
 #include "smoke.hpp"
+#include "tape_record.hpp"
 
 extern "C" void petari_game_main(void);          // src/Game/System/GameSystem.cpp
 extern "C" void petari_attach_vi_renderer(void);  // native/gx/vi_bridge.cpp
@@ -37,9 +38,10 @@ namespace {
 // The OS exit functions (OSShutdownSystem, OSReturnToMenu, OSRestart, ...)
 // end here after the game's shutdown functions ran, on the game thread that
 // called them. NAND data is durable once NANDClose/NANDSafeClose returned, so
-// nothing needs flushing but stdio; process exit releases the audio device and
+// final recordings and stdio are flushed here; process exit releases the audio device and
 // the window, so no platform shutdowns (which join their threads) run here.
 void leave(const Platform::Power::Exit& exit, void*) {
+    TapeRecord::finish(); // the normal power/quit path reaches _Exit, which bypasses atexit
     Seam::reportFrameStats();
     petari_platform_report_diagnostics();
     std::fflush(stdout);

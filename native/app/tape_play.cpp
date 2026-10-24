@@ -597,7 +597,7 @@ void Session::inputFailure(const std::string& why, const SeamState& observed) {
 std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* buffer, std::int32_t* error) {
     auto* out = static_cast<KPADStatus*>(buffer);
     try {
-        const H::Read& input = mError.empty() ? mReplay->consume(channel, capacity) : mReplay->neutral(channel, capacity);
+        const H::Read& input = !mDone && mError.empty() ? mReplay->consume(channel, capacity) : mReplay->neutral(channel, capacity);
         for (std::size_t i = 0; i < input.samples.size(); ++i) out[i] = H::decodeSample(input.samples[i]);
         if (mActive && mError.empty() && !mReplay->waitingForSync()) {
             auto& report = mReport[mSegIndex];
@@ -629,7 +629,7 @@ std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* b
 }
 
 bool Session::press(int mod) {
-    if (mReplay->waitingForSync() || !mError.empty()) return false;
+    if (mDone || mReplay->waitingForSync() || !mError.empty()) return false;
     const auto f = mReplay->frame();
     const auto it = mActions.find({f, mod});
     if (it == mActions.end() || !it->second.first) return false;
@@ -640,12 +640,44 @@ bool Session::press(int mod) {
 }
 
 bool Session::held(int mod) {
-    if (mReplay->waitingForSync() || !mError.empty()) return false;
+    if (mDone || mReplay->waitingForSync() || !mError.empty()) return false;
     const auto it = mActions.find({mReplay->frame(), mod});
     return it != mActions.end() && it->second.second;
 }
 
 const H::Read* Session::connection(std::uint32_t channel) const { return mReplay->connection(channel); }
+
+void Observation::update(double elapsed, std::uint64_t row, bool replaySucceeded) {
+    if (requestedSeconds <= 0 || completed) return;
+    elapsedSeconds = elapsed;
+    if (!replaySucceeded) return;
+    if (!postStarted) {
+        postStarted = true;
+        postStartSeconds = elapsed;
+        postStartRow = row;
+    }
+    endRow = row;
+    if (elapsed >= requestedSeconds) {
+        completed = true;
+        stopSeconds = elapsed;
+    }
+}
+
+std::string Observation::reportJson(double startMonotonicSeconds) const {
+    std::ostringstream out;
+    out << std::setprecision(17) << "{\"requested_seconds\":" << requestedSeconds
+        << ",\"clock\":\"steady_clock; quit scheduling only\",\"start_monotonic_seconds\":" << startMonotonicSeconds
+        << ",\"stop_monotonic_seconds\":" << (completed ? std::to_string(startMonotonicSeconds + stopSeconds) : "null")
+        << ",\"elapsed_seconds\":" << elapsedSeconds << ",\"completed\":" << (completed ? "true" : "false")
+        << ",\"post_roll\":{\"started\":" << (postStarted ? "true" : "false")
+        << ",\"start_route_row\":" << (postStarted ? std::to_string(postStartRow) : "null")
+        << ",\"end_route_row\":" << (postStarted ? std::to_string(endRow) : "null")
+        << ",\"start_elapsed_seconds\":" << (postStarted ? std::to_string(postStartSeconds) : "null")
+        << ",\"elapsed_seconds\":" << (postStarted ? elapsedSeconds - postStartSeconds : 0)
+        << ",\"loops\":" << (postStarted ? endRow - postStartRow : 0)
+        << ",\"input\":\"neutral\",\"input_source\":\"Headless::Replay::neutral\",\"neutral_read_calls\":" << neutralReads << "}}";
+    return out.str();
+}
 
 std::string Session::segmentLine(std::size_t index) const {
     const auto& r = mReport[index];

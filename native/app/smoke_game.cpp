@@ -316,7 +316,9 @@ void recordRouteFrame(bool background) {
             const char* after = std::getenv("PETARI_TAPE_PLAY_QUIT");
             if (after && *after) quitIn = std::atol(after);
         }
-        if (quitIn == 0) { quitIn = -1; Host::requestQuit(); }
+        if (quitIn == 0) {
+            if (!TapePlay::observationPending()) { quitIn = -1; Host::requestQuit(); }
+        }
         else if (quitIn > 0) --quitIn;
         if (step.kind == TapePlay::Step::Kind::Start)
             std::fprintf(stderr, "PETARI TAPE PLAY: segment starts at %s scenario %d (seed %u)\n", row.stage, row.scenario, step.seed);

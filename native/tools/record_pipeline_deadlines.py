@@ -29,7 +29,7 @@ import time
 TOOLS = Path(__file__).resolve().parent
 SCRIPT = TOOLS / 'perf_sweep_move.script'
 STATIONARY_SCRIPT = TOOLS / 'perf_sweep_stationary.script'
-VERSION = 2
+VERSION = 3
 QUIT_PID = r'''
 ObjC.import('AppKit');
 function run(argv) {
@@ -65,24 +65,47 @@ def write(path, value):
 def observations(path, stage):
     rows = [json.loads(line) for line in Path(path).read_text().splitlines()]
     if not rows or rows[0] != {'event': 'header', 'version': VERSION, 'gx_config_version': 13,
-                               'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo'}:
+                               'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo',
+                               'origin_policy': 'next-whole-packet'}:
         raise ValueError('invalid first-use header')
     if rows[-1].get('event') != 'end' or rows[-1].get('complete') is not True:
         raise ValueError('capture lacks normal-exit completion footer')
-    data = rows[1:-1]
+    body = rows[1:-1]
+    data = [r for r in body if r.get('event') == 'first_use']
+    starts = [r for r in body if r.get('event') == 'stage_begin']
+    if any(r.get('event') not in ('first_use', 'stage_begin') for r in body):
+        raise ValueError('unknown capture event')
     if rows[-1].get('records') != len(data):
         raise ValueError('footer record count mismatch')
     footer = rows[-1]
-    for field in ('clock_first_frame', 'clock_last_frame', 'clock_transitions', 'lookup_calls'):
+    if not starts or footer.get('stage_requests') != len(starts) or footer.get('stage_begins') != len(starts) or footer.get('pending_stage_requests') != 0:
+        raise ValueError('stage boundary accounting mismatch')
+    for field in ('clock_first_frame', 'clock_last_frame', 'clock_transitions', 'lookup_calls',
+                  'stage_requests', 'stage_begins', 'pending_stage_requests'):
         if type(footer.get(field)) is not int or not 0 <= footer[field] < (1 << 64):
             raise ValueError('missing/invalid clock progression evidence')
     if not (footer['clock_last_frame'] > footer['clock_first_frame'] and
             0 < footer['clock_transitions'] < footer['lookup_calls'] and footer['lookup_calls'] >= len(data)):
         raise ValueError('capture clock did not progress')
-    visits = {}
-    for row in data:
-        if row.get('event') != 'first_use' or not re.fullmatch(r'[A-Za-z0-9_-]{1,96}', row.get('stage', '')):
+    visits, current = {}, None
+    for row in body:
+        if not re.fullmatch(r'[A-Za-z0-9_-]{1,96}', row.get('stage', '')):
             raise ValueError('invalid stage/event')
+        if row.get('event') == 'stage_begin':
+            for field in ('visit', 'origin_frame'):
+                if type(row.get(field)) is not int or not 0 <= row[field] < (1 << 64):
+                    raise ValueError('invalid stage boundary')
+            if 'request_packet' not in row:
+                raise ValueError('missing explicit stage request packet')
+            request = row['request_packet']
+            if request is not None and (type(request) is not int or request < 0 or row['origin_frame'] != request + 1):
+                raise ValueError('stage did not begin on the next whole packet')
+            key = (row['stage'], row['visit'])
+            if key in visits or current is not None and row['visit'] <= current[1]:
+                raise ValueError('duplicate/backward stage boundary')
+            visits[key] = {'origin': row['origin_frame'], 'configs': {}}
+            current = key
+            continue
         for field in ('visit', 'origin_frame', 'frame', 'relative_frame'):
             if type(row.get(field)) is not int or not 0 <= row[field] < (1 << 64):
                 raise ValueError('invalid frame/visit integer')
@@ -92,7 +115,10 @@ def observations(path, stage):
             raise ValueError('recorded frame outside clock progression')
         if not re.fullmatch(r'[0-9a-f]{16}', row.get('config', '')):
             raise ValueError('invalid config hash')
-        visit = visits.setdefault((row['stage'], row['visit']), {'origin': row['origin_frame'], 'configs': {}})
+        key = (row['stage'], row['visit'])
+        if key != current:
+            raise ValueError('lookup lacks its explicit packet stage boundary')
+        visit = visits[key]
         if visit['origin'] != row['origin_frame'] or row['config'] in visit['configs']:
             raise ValueError('inconsistent origin/duplicate config in visit')
         visit['configs'][row['config']] = row['relative_frame']

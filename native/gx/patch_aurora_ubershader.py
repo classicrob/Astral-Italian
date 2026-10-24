@@ -34,6 +34,8 @@ else:
   replace('    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);', '    gx::petari_uber_begin_frame(g_framePackets[frameSlot].frameId);\n    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);')
   replace('    auto& packet = g_framePackets[frameSlot];','    gx::petari_uber_end_frame();\n    auto& packet = g_framePackets[frameSlot];')
  if kind=='recording':
+  text = f'#include "{here / "pipeline_first_use.hpp"}"\n' + text
+  replace('  g_recorder.packet = &packet;', '  g_recorder.packet = &packet;\n  PetariFirstUse::packet(packet.frameId);')
   text += '\n' + (here/'pipeline_first_use_clock.inc').read_text()
  if kind=='command_processor':
   replace('  bool hasPipeline = false;', '  bool hasPipeline = false;\n  bool specializedReady = false;')

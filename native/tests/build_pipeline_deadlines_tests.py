@@ -26,12 +26,14 @@ class Build(unittest.TestCase):
         self.arms = []
         for index in (1, 2):
             name = f'warm-{index}'; folder = self.batch / 'A' / name; folder.mkdir(parents=True)
-            capture = [{'event': 'header', 'version': 2, 'gx_config_version': 13,
-                        'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo'}]
+            capture = [{'event': 'header', 'version': 3, 'gx_config_version': 13,
+                        'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo', 'origin_policy': 'next-whole-packet'},
+                       {'event': 'stage_begin', 'stage': 'A', 'visit': 1, 'request_packet': 479, 'origin_frame': 480}]
             capture += [{'event': 'first_use', 'stage': 'A', 'visit': 1, 'origin_frame': 480, 'frame': 480+n,
                          'relative_frame': n, 'config': f'{key:016x}'} for n, key in enumerate((11, 12))]
             capture += [{'event': 'end', 'complete': True, 'records': 2, 'clock_first_frame': 480,
-                         'clock_last_frame': 490, 'clock_transitions': 1, 'lookup_calls': 2}]
+                         'clock_last_frame': 490, 'clock_transitions': 1, 'lookup_calls': 2,
+                         'stage_requests': 1, 'stage_begins': 1, 'pending_stage_requests': 0}]
             (folder / 'first-use.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in capture))
             (folder / 'app.log').write_text('[input-script] done after 970 frames\n')
             (folder / 'frames.csv').write_text('frame,pipeline_wait_ms\n1,0.000\n')
@@ -71,7 +73,7 @@ class Build(unittest.TestCase):
     def test_disagreement_overrides_claim(self):
         path = self.batch / 'A/warm-2/first-use.jsonl'
         rows = [json.loads(line) for line in path.read_text().splitlines()]
-        rows[2].update(frame=482, relative_frame=2)
+        rows[3].update(frame=482, relative_frame=2)
         path.write_text(''.join(json.dumps(r)+'\n' for r in rows)); self.rehash(2)
         result = self.run_build(); self.assertFalse(result['passed'])
         self.assertTrue(result['stage_results'][0]['disagreements'])

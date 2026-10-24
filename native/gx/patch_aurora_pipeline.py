@@ -219,7 +219,7 @@ PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLa
                    'extern "C" void petari_gx_pipeline_stage_begin(const char* name, const char* seedPath) {\n'):
         text = replace(anchor, anchor + '  const PetariFastPipeline::InvalidateScope petariFastInvalidate;\n')
     text = replace('      petariActiveStage = stageName;\n',
-                   '      petariActiveStage = stageName;\n      PetariFirstUse::begin(stageName);\n')
+                   '      petariActiveStage = stageName;\n      PetariFirstUse::begin(stageName, petari_pipeline_recording_frame_id());\n')
     text += '\nextern "C" void petari_gx_pipeline_first_use_finish() { PetariFirstUse::finish(); }\n'
     anchor = 'extern "C" void petari_gx_pipeline_report() {\n'
     text = replace(anchor, anchor + '  PetariFastPipeline::reportIfChecking();\n')

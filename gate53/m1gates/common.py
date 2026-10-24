@@ -77,7 +77,10 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
   disk();out.mkdir(parents=True)
   user=out/'user';cache=out/'cache'
   seed_before=tree(FIXTURE) if copied else None
-  if copied:subprocess.run(['/usr/bin/ditto','--rsrc','--extattr',str(FIXTURE),str(user)],check=True)
+  if copied:
+   assert seed_before==json.loads((FIXTURE.parent/'receipt.json').read_text())['files'],'unlocked fixture differs from receipt'
+   subprocess.run(['/usr/bin/ditto','--rsrc','--extattr',str(FIXTURE),str(user)],check=True)
+   assert tree(user)==seed_before,'private save copy differs from fixture'
   else:user.mkdir()
   if warm:shutil.copytree(Path(warm)/'cache',cache)
   else:cache.mkdir()

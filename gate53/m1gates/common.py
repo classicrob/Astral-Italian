@@ -72,7 +72,7 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
  """The lock covers cache clearing, app lifetime and cleanup; terminate only this Popen PID."""
  out=Path(out);assert not out.exists(),out
  app=Path(app);exe=app/'Contents/MacOS/Petari'
- assert ID in subprocess.check_output(['/usr/libexec/PlistBuddy','-c','Print :CFBundleIdentifier',str(app/'Contents/Info.plist')],text=True)
+ assert ID == subprocess.check_output(['/usr/libexec/PlistBuddy','-c','Print :CFBundleIdentifier',str(app/'Contents/Info.plist')],text=True).strip()
  with native_lock():
   disk();out.mkdir(parents=True)
   user=out/'user';cache=out/'cache'

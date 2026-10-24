@@ -15,9 +15,11 @@ class VerdictTests(unittest.TestCase):
     def setUp(self):
         self.rows = [dict(stage=s, scenario="1", valid="1", dead="0", x="0", y="0", z="0", power_stars="242")
                      for s in ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy"] + ["IslandFleetGalaxy"] * 300]
-        self.replay = dict(mode="whole-session", anchor_policy=gate.ANCHOR_POLICY["id"], finished=True, stopped="", segments=[dict(
+        self.replay = dict(mode="whole-session", anchor_policy=gate.ANCHOR_POLICY["id"], interactive_position_bit_exact=True,
+            finished=True, stopped="", segments=[dict(
             started=True, completed=True, rows_compared=301, tape_frames=300, pointer_rows_compared=300, diverged=False,
-            play_ready_required=False)])
+            play_ready_required=False, identity_rows_skipped=0, identity_offset_checked=True, identity_offset_passed=True,
+            identity_frame_offset=0, identity_offset_limit=30)])
 
     def evaluate(self, log="", report=None):
         return gate.evaluate(self.rows, log, self.replay if report is None else report)[0]
@@ -57,6 +59,20 @@ class VerdictTests(unittest.TestCase):
     def test_withdrawn_scene_identity_policy_cannot_pass_final_gate(self):
         self.replay["anchor_policy"] = "scene-identity"
         self.assertFalse(self.evaluate()["anchor_policy_applied"])
+
+    def test_identity_boundary_excludes_state_only_and_requires_bounded_evidence(self):
+        segment = self.replay["segments"][0]
+        segment.update(rows_compared=300, identity_rows_skipped=1, identity_frame_offset=-1)
+        self.assertTrue(all(self.evaluate().values()))
+        segment["pointer_rows_compared"] = 299
+        self.assertFalse(self.evaluate()["game_pointer_buffers_compared"])
+        segment["pointer_rows_compared"] = 300
+        for key, value in [("identity_offset_checked", False), ("identity_offset_passed", False),
+                           ("identity_frame_offset", 31), ("identity_offset_limit", 31), ("identity_rows_skipped", 31)]:
+            saved = segment[key]
+            segment[key] = value
+            self.assertFalse(self.evaluate()["identity_offsets_bounded"])
+            segment[key] = saved
 
     def test_destination_requires_300_finite_alive_consecutive_rows(self):
         for key, value in [("dead", "1"), ("valid", "0"), ("x", "nan"), ("scenario", "2")]:

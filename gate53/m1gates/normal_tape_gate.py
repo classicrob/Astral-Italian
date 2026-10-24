@@ -41,6 +41,8 @@ ANCHOR_POLICY = {
         "decision": "Use each interactive scene's logic anchor and exact play-ready state/RNG checkpoints across non-interactive arrivals; do not impose one clock on every scene.",
     },
     "interactive": "Strict per-frame comparison in title, FileSelect, galaxy map, scenario selection and gameplay after play-ready.",
+    "identity_boundary": "Bound each incoming scene identity to +/-30 loops relative to the preceding interactive anchor; exclude only overlapping old/new construction state rows. Read shape and game pointer remain checked on every loop. Anchor new scene logic at init End.",
+    "interactive_position": "Float32 position bits must match on every compared valid whole-session row.",
     "arrival": "Feed recorded reads from scene-ready without per-frame state comparison through non-interactive arrival; wait neutrally if recorded arrival reads end first.",
     "play_ready": "Require stage/scenario/valid/alive/grounded and float32 position bits to match; restore recorded RNG, verify immediate read-back, re-anchor reads to play-ready.",
     "evidence": "Per-scene scene/play-ready anchors, actual and recorded frames, offsets, exact state and RNG read-back.",
@@ -50,7 +52,7 @@ CHECKS = ("scene_chain", "destination_300_consecutive_valid", "no_faults",
           "no_invalid_worldmap_request", "existing_unlocked_file1", "seed_unchanged",
           "binary_unchanged", "no_divergence", "whole_session_replay", "replay_completed",
           "lossless_tape", "tape_unchanged", "game_pointer_buffers_compared",
-          "anchor_policy_applied", "play_ready_state_checks")
+          "anchor_policy_applied", "play_ready_state_checks", "identity_offsets_bounded")
 
 
 def sha(path):
@@ -82,7 +84,8 @@ def evaluate(rows, log, replay):
     segments = replay.get("segments", [])
     complete = bool(segments) and replay.get("finished") is True and all(
         s.get("started") is True and s.get("completed") is True
-        and s.get("rows_compared") == s.get("tape_frames", -2) + 1 for s in segments)
+        and isinstance(s.get("identity_rows_skipped"), int) and s["identity_rows_skipped"] >= 0
+        and s.get("rows_compared", -1) + s["identity_rows_skipped"] == s.get("tape_frames", -2) + 1 for s in segments)
     divergence = next((s for s in segments if s.get("diverged")), None)
     checks = {
         "scene_chain": order[:4] == ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy", "IslandFleetGalaxy"],
@@ -97,6 +100,10 @@ def evaluate(rows, log, replay):
         "game_pointer_buffers_compared": bool(segments) and replay.get("mode") == "whole-session" and all(
             s.get("pointer_rows_compared") == s.get("tape_frames", -1) for s in segments),
         "anchor_policy_applied": replay.get("anchor_policy") == ANCHOR_POLICY["id"],
+        "identity_offsets_bounded": replay.get("interactive_position_bit_exact") is True and bool(segments) and all(
+            s.get("identity_offset_checked") is True and s.get("identity_offset_passed") is True and
+            s.get("identity_offset_limit") == 30 and isinstance(s.get("identity_frame_offset"), int) and
+            abs(s["identity_frame_offset"]) <= 30 and 0 <= s.get("identity_rows_skipped", -1) <= 30 for s in segments),
         "play_ready_state_checks": bool(segments) and all(s.get("play_ready_required") is False or
             (s.get("play_ready_required") is True and
              all((s.get("play_ready_state_check") or {}).get(k) is True for k in ("checked", "passed", "position_bit_exact")) and
@@ -107,7 +114,9 @@ def evaluate(rows, log, replay):
                     "replay_stopped": replay.get("stopped"),
                     "scene_anchors": [{k: s.get(k) for k in ("stage", "scenario", "anchor", "scene_anchor_recorded_frame",
                         "scene_anchor_replay_frame", "scene_anchor_frame_offset", "comparison_anchor",
-                        "play_ready_required", "play_ready_state_check")} for s in segments],
+                        "play_ready_required", "play_ready_state_check", "identity_recorded_frame", "identity_replay_frame",
+                        "identity_expected_replay_frame", "identity_frame_offset", "identity_offset_limit",
+                        "identity_offset_checked", "identity_offset_passed", "identity_rows_skipped")} for s in segments],
                     "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_rows_compared", "pointer_source",
                         "last_pointer_recorded", "last_pointer_replayed", "last_pointer_valid")} for s in segments]}
 

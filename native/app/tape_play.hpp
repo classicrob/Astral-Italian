@@ -26,6 +26,7 @@ namespace PetariNative::App::TapePlay {
 
 struct SegmentMeta {
     std::uint64_t startRow = 0, endRow = 0;
+    std::uint64_t identityRow = 0;
     std::string stage;
     int scenario = 0;
     std::uint32_t seed = 0;
@@ -89,11 +90,15 @@ struct SegmentReport {
     std::uint32_t rngNatural = 0, rngRecorded = 0, rngReadback = 0;
     float playReplay[3] = {0, 0, 0};
     SeamState playState;
+    std::uint64_t identityRecorded = 0, identityReplay = 0, identityRowsSkipped = 0;
+    std::int64_t identityExpected = 0, identityOffset = 0;
+    bool identityObserved = false;
 };
 
 // After a segment ended, the game gets this many loops to reach the next segment by itself (the ship's helm -> the world map ->
 // the galaxy are the player's untaped menu presses); then the glue jumps there with a direct stage change.
 constexpr std::uint64_t kWarpDelaySeams = 300;
+constexpr std::int64_t kIdentityOffsetLimit = 30;
 
 class Session {
 public:
@@ -138,6 +143,8 @@ private:
         float x = 0, y = 0, z = 0;
     };
     void compare(const SeamState& state, std::uint64_t k, bool bitExact = false);
+    bool observeIdentity(std::size_t index, const SeamState& state);
+    std::int64_t expectedIdentity(std::size_t index) const;
     Step startPlay(const SeamState& state);
     void inputFailure(const std::string& why, const SeamState& lastObserved);
     Mode mMode;

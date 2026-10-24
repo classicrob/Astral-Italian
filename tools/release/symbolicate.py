@@ -225,7 +225,7 @@ def main(argv=None):
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
     try:
-        text = args.report.read_text()
+        text = args.report.read_text(encoding="utf-8", errors="replace")  # a crash report can hold raw game bytes (OSReport ring)
         result, images, locations, lines = parse_report(text)
         wanted = uuid_key(result['build']['executable_uuid'])
         if not re.fullmatch(r'[0-9A-F]{32}', wanted):

@@ -4,7 +4,7 @@
 here=$(cd "$(dirname "$0")" && pwd)
 play="$here/play.sh"
 . "$here/frozen_app.sh"
-app=$(frozen_app_validate "${ASTRAL_APP:-$HOME/MacioGalaxy2-play/build5.2.1/Petari.app}") || exit 1
+app=$(frozen_app_validate "${ASTRAL_APP:-$HOME/MacioGalaxy2-play/$frozen_default/Petari.app}") || exit 1
 export ASTRAL_APP="$app"
 odyssey=
 audio=${ASTRAL_AUDIO:-on}
@@ -13,9 +13,10 @@ while :; do
     clear 2>/dev/null
     echo "Astral Italian (Super Mario Galaxy 2, native)"
     echo
-    echo "  c) 5.2.1 with Cappy (default)"
-    echo "  f) 5.1 (fallback)"
-    echo "  n) 5.3 candidate (not default; pad untested; build5.3)"
+    echo "  d) 5.4 (default)"
+    echo "  p) 5.3.2 (fallback)"
+    echo "  c) 5.2.1 with Cappy (fallback)"
+    echo "  f) 5.1 (old fallback)"
     echo
     echo "  1) Flip-Swap Galaxy      (World 1)"
     echo "  2) Fluffy Bluff Galaxy   (World 1)"
@@ -39,18 +40,21 @@ while :; do
     2) galaxy=fluffy-bluff ;;
     3) galaxy=sky-station ;;
     4) galaxy=title ;;
-    c|C) selected_app=$(frozen_app_named build5.2.1) || exit 1
+    d|D) selected_app=$(frozen_app_named default) || exit 1
          export ASTRAL_APP="$selected_app"
          continue ;;
-    f|F) selected_app=$(frozen_app_named build5.1) || exit 1
-         export ASTRAL_APP="$selected_app"
-         continue ;;
-    n|N) if selected_app=$(frozen_app_named build5.3); then
+    p|P) if selected_app=$(frozen_app_named build5.3.2); then
              export ASTRAL_APP="$selected_app"
          else
              printf "Press Return to continue. "
              read -r _ || exit 0
          fi
+         continue ;;
+    c|C) selected_app=$(frozen_app_named build5.2.1) || exit 1
+         export ASTRAL_APP="$selected_app"
+         continue ;;
+    f|F) selected_app=$(frozen_app_named build5.1) || exit 1
+         export ASTRAL_APP="$selected_app"
          continue ;;
     b|B) frozen_app_list
          printf "Frozen build name (default or directory name): "

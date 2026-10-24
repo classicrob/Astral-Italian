@@ -1,5 +1,7 @@
 #!/bin/sh
 # Shared frozen-build discovery and validation for the player launchers.
+# The default frozen build (head promoted 5.4 on 2026-10-24); 5.3.2 and 5.2.1 stay as fallbacks in the menu.
+frozen_default=build5.4
 frozen_app_validate() {
     frozen_root=$(cd "$HOME/MacioGalaxy2-play" 2>/dev/null && pwd -P) || {
         echo "play: no frozen builds under ~/MacioGalaxy2-play" >&2; return 1;
@@ -26,7 +28,9 @@ frozen_app_validate() {
 
 frozen_app_named() {
     case "$1" in
-    default) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.2.1/Petari.app" ;;
+    default) frozen_app_validate "$HOME/MacioGalaxy2-play/$frozen_default/Petari.app" ;;
+    "5.4"|build5.4) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.4/Petari.app" ;;
+    "5.3.2"|build5.3.2) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.3.2/Petari.app" ;;
     "5.2.1 with Cappy"|build5.2.1) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.2.1/Petari.app" ;;
     "5.3"|"5.3 candidate"|build5.3) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.3/Petari.app" ;;
     "5.2 with Cappy"|build5.2) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.2/Petari.app" ;;
@@ -37,21 +41,25 @@ frozen_app_named() {
 }
 
 frozen_app_list() {
-    frozen_seen_default=
-    frozen_seen_fallback=
-    for frozen_candidate in "$HOME/MacioGalaxy2-play/build5.2.1/Petari.app" "$HOME/MacioGalaxy2-play/build5.1/Petari.app" "$HOME/MacioGalaxy2-play/Petari.app" "$HOME/MacioGalaxy2-play/"*/Petari.app; do
-        [ "$frozen_candidate" != "$frozen_seen_default" ] && [ "$frozen_candidate" != "$frozen_seen_fallback" ] || continue
+    frozen_seen=" "
+    for frozen_candidate in "$HOME/MacioGalaxy2-play/$frozen_default/Petari.app" "$HOME/MacioGalaxy2-play/build5.3.2/Petari.app" \
+        "$HOME/MacioGalaxy2-play/build5.2.1/Petari.app" "$HOME/MacioGalaxy2-play/build5.1/Petari.app" \
+        "$HOME/MacioGalaxy2-play/Petari.app" "$HOME/MacioGalaxy2-play/"*/Petari.app; do
+        case "$frozen_seen" in *" $frozen_candidate "*) continue ;; esac
+        frozen_seen="$frozen_seen$frozen_candidate "
         if frozen_verified=$(frozen_app_validate "$frozen_candidate" 2>/dev/null); then
             if [ "$frozen_candidate" = "$HOME/MacioGalaxy2-play/Petari.app" ]; then
                 printf '  build4  %s\n' "$frozen_verified"
             else
                 frozen_name=${frozen_candidate%/Petari.app}
-                if [ "${frozen_name##*/}" = build5.1 ]; then
-                    frozen_seen_fallback=$frozen_candidate
-                    printf '  5.1 (fallback; build5.1)  %s\n' "$frozen_verified"
+                if [ "${frozen_name##*/}" = "$frozen_default" ]; then
+                    printf '  %s (default; %s)  %s\n' "${frozen_default#build}" "$frozen_default" "$frozen_verified"
+                elif [ "${frozen_name##*/}" = build5.3.2 ]; then
+                    printf '  5.3.2 (fallback; build5.3.2)  %s\n' "$frozen_verified"
+                elif [ "${frozen_name##*/}" = build5.1 ]; then
+                    printf '  5.1 (old fallback; build5.1)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.2.1 ]; then
-                    frozen_seen_default=$frozen_candidate
-                    printf '  5.2.1 with Cappy (default; build5.2.1)  %s\n' "$frozen_verified"
+                    printf '  5.2.1 with Cappy (fallback; build5.2.1)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.3 ]; then
                     printf '  5.3 candidate (not default; pad untested; build5.3)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.2 ]; then

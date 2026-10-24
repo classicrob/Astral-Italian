@@ -40,19 +40,19 @@ class FrozenLauncherTests(unittest.TestCase):
 
     def test_default_and_named_frozen_dry_launch(self):
         self.app(self.root)
-        self.app(self.root / "build5.1")
+        self.app(self.root / "build5.4")
         self.app(self.root / "build3")
         for args in (("--dry-run",), ("--build", "default", "--dry-run"),
                      ("--build", "build4", "--dry-run"), ("--build", "build3", "--dry-run")):
             result = self.run_play(*args)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("  run  ", result.stdout)
-            expected = self.root / "Petari.app" if "build4" in args else self.root / ("build3" if "build3" in args else "build5.1") / "Petari.app"
+            expected = self.root / "Petari.app" if "build4" in args else self.root / ("build3" if "build3" in args else "build5.4") / "Petari.app"
             self.assertIn(str(expected / "Contents/MacOS/Petari"), result.stdout)
 
-    def test_no_argument_menu_selects_build5_1(self):
+    def test_no_argument_menu_selects_default_build5_4(self):
         self.app(self.root)
-        app = self.app(self.root / "build5.1")
+        app = self.app(self.root / "build5.4")
         result = subprocess.run(["sh", str(PLAY.parents[1] / "Play Astral Italian.command")],
                                 input="q\n", env=self.env, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -78,8 +78,8 @@ class FrozenLauncherTests(unittest.TestCase):
 
     def test_discovery_omits_unfrozen_and_external_apps(self):
         self.app(self.root)
-        self.app(self.root / "build5.1")
-        self.app(self.root / "build3")
+        for name in ("build5.4", "build5.3.2", "build5.2.1", "build5.1", "build3"):
+            self.app(self.root / name)
         self.app(self.root / "unfrozen", frozen=False)
         outside = self.app(self.home / "outside")
         (self.root / "escaped").mkdir()
@@ -87,7 +87,10 @@ class FrozenLauncherTests(unittest.TestCase):
         (self.root / "escaped/FROZEN.txt").write_text("Not sufficient\n")
         result = self.run_play("--list-builds")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("build5.1 (default)", result.stdout)
+        self.assertIn("5.4 (default; build5.4)", result.stdout)
+        self.assertIn("5.3.2 (fallback; build5.3.2)", result.stdout)
+        self.assertIn("5.2.1 with Cappy (fallback; build5.2.1)", result.stdout)
+        self.assertEqual(result.stdout.count("build5.4)"), 1)  # listed once, not again from the directory glob
         self.assertIn("build4", result.stdout)
         self.assertIn("build3", result.stdout)
         self.assertNotIn("unfrozen", result.stdout)

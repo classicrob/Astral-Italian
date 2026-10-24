@@ -21,13 +21,15 @@ Astral Italian is the Mac build of the Super Mario Galaxy 2 decompilation. It ru
 machine that holds your extracted disc. Nothing here touches MacioGalaxy (the SMG1 port) or its saves.
 
 
-## Build 5.2.1 with Cappy (default)
+## Build 5.4 (default)
 
-The default frozen app is `~/MacioGalaxy2-play/build5.2.1/Petari.app`. Pick **c) 5.2.1 with Cappy (default)** or **f) 5.1 (fallback)** in the launcher. **n) 5.3 candidate (not default; pad untested; build5.3)** is selectable once `~/MacioGalaxy2-play/build5.3` has been frozen (until then it reports "no app" and returns to the menu; `--build build5.3` is the same). Build 5.2 also remains available through `--build build5.2`.
+The default frozen app is `~/MacioGalaxy2-play/build5.4/Petari.app` (promoted 2026-10-24; `frozen_default` in `frozen_app.sh`). 5.4 turns on hybrid ubershaders (fewer first-time shader pauses in play) and VSync (smooth 60 fps on 120 Hz screens); both can be switched off in the Home menu's Display page. On the first launch of a new build a small "Preparing graphics… N%" pill sits in the bottom-right corner of the title screen while it prepares graphics in the background; you can start playing at any time.
+
+Pick **d) 5.4 (default)**, **p) 5.3.2 (fallback)**, **c) 5.2.1 with Cappy (fallback)** or **f) 5.1 (old fallback)** in the launcher; **b)** lists every frozen build (5.3 and 5.2 too, or `--build build5.3` / `--build build5.2`).
 
 Controller (5.3 candidate): the Switch Pro Controller layouts in 5.3 have not yet been tested with a real pad. If the pad misbehaves, switch it off or disconnect it (System Settings > Bluetooth > Disconnect, or unplug the USB cable): the keyboard works the same with or without a pad, and 5.3 has no in-game switch to ignore a connected pad.
 
-If 5.2.1 misbehaves, pick 5.1 in the launcher or run `native/play/play.sh --build build5.1`; press M to capture the problem.
+If 5.4 misbehaves, pick 5.3.2 (or 5.2.1) in the launcher or run `native/play/play.sh --build build5.3.2`; press M to capture the problem.
 
 ## Build 5.1 (fallback)
 
@@ -49,7 +51,7 @@ native/play/play.sh --list-builds
 native/play/play.sh --build build3 flip-swap
 ```
 
-`--build default` selects `~/MacioGalaxy2-play/build5.2.1/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
+`--build default` selects `~/MacioGalaxy2-play/build5.4/Petari.app`. Use --build build4 for the preserved build-4 app at the root. `ASTRAL_APP` may
 select another frozen app under the same tree and is checked by the same rule.
 A marker records the build owner's freeze; it does not isolate saves or caches.
 The versioned [persistent-state inventory](PERSISTENT-STATE.md)
@@ -61,9 +63,10 @@ builds share `~/Library/Caches/AstralItalian` even with separate user folders.
 Double-click **Play Astral Italian.command** (in this folder). A Terminal window opens with a menu:
 
 ```
-  c) 5.2.1 with Cappy (default)
-  f) 5.1 (fallback)
-  n) 5.3 candidate (not default; pad untested; build5.3)
+  d) 5.4 (default)
+  p) 5.3.2 (fallback)
+  c) 5.2.1 with Cappy (fallback)
+  f) 5.1 (old fallback)
   1) Flip-Swap Galaxy      (World 1)
   2) Fluffy Bluff Galaxy   (World 1)
   3) Sky Station Galaxy    (World 1, fallback)
@@ -97,7 +100,7 @@ native/play/play.sh flip-swap --scenario 2 --odyssey --audio off
 | Audio | `a` | `--audio off` | On by default since build 4. Off runs the game's audio through a silent driver. |
 
 Paths can be changed with environment variables: `ASTRAL_APP` (the frozen `Petari.app`, default
-`~/MacioGalaxy2-play/build5.2.1/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
+`~/MacioGalaxy2-play/build5.4/Petari.app`), `ASTRAL_DISC` (the extracted disc, the folder holding `files/`, default
 `~/MacioGalaxy2-gamedata/SB4E01-extracted`), `ASTRAL_USER` (saves, settings, controls, logs; default
 `~/MacioGalaxy2-play/user`). The scripts refuse MacioGalaxy's own user folder
 (`~/Library/Application Support/Petari`), so its saves are never read or written.

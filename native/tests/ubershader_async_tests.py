@@ -29,6 +29,7 @@ PREFIX = r'''
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <deque>
@@ -45,6 +46,8 @@ PREFIX = r'''
 namespace PetariPipeline {
 using Clock=std::chrono::steady_clock;
 double milliseconds(Clock::duration d) { return std::chrono::duration<double,std::milli>(d).count(); }
+bool diagnostics() { return false; }
+bool demandFallbackPriority() { return true; }
 }
 namespace aurora {
 struct { const char* resourcesPath=""; } g_config;
@@ -63,13 +66,13 @@ std::mutex g_pipelineMutex;
 bool g_hasPipelineThread=true;
 std::atomic<bool> g_pipelineThreadEnd=false;
 std::condition_variable g_pipelineQueueCv,g_pipelineReadyCv;
-enum class ShaderType { GX };
+enum class ShaderType { GX, Clear };
 struct Known { ShaderType type=ShaderType::GX; std::variant<gx::PipelineConfig> config; };
 std::map<uint64_t,Known> g_knownPipelines;
 std::map<PipelineRef,CompiledPipeline> g_pipelines;
 struct Pending { PipelineRef hash; };
 std::deque<Pending> g_pipelineQueue;
-struct Sample { bool drawBlocking=false; };
+struct Sample { bool drawBlocking=false; ShaderType type=ShaderType::GX; };
 std::map<PipelineRef,Sample> petariPipelineSamples;
 unsigned petariNormalWorkers=4,petariActiveWorkers=4;
 constexpr unsigned kPetariOnDemandWorkers=2;
@@ -124,7 +127,11 @@ using namespace aurora;
 #define CHECK(x) do { if(!(x)) { std::fprintf(stderr,"failed line %d: %s\n",__LINE__,#x); return 1; } } while(0)
 static std::function<void()> take(unsigned worker=1) { // reserved worker 1 prepares before and after the title
  std::function<void()> job;
- std::lock_guard lock{gfx::g_pipelineMutex}; gfx::petari_take_uber_job(worker,job); return job;
+ { std::lock_guard lock{gfx::g_pipelineMutex}; gfx::petari_take_uber_job(worker,job); }
+ if(!job)return {};
+ // This fake-GPU harness invokes callbacks directly rather than running the
+ // production worker body; balance its dispatch counter at the same boundary.
+ return [job=std::move(job)] { job(); std::lock_guard lock{gfx::g_pipelineMutex}; --gfx::petariUberInFlight; };
 }
 int main(int argc,char** argv) {
  const std::string test=argv[1];
@@ -178,8 +185,10 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.size()==2);
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic));
   gfx::g_pipelineQueue.push_back({9});gfx::petariPipelineSamples[9].drawBlocking=true;
-  CHECK(!take()); // a real draw gets the reserved slot first
-  gfx::g_pipelineQueue.clear();auto run=take();CHECK(run);run();
+  CHECK(!take(0)); // specialised/unsupported GX keeps worker 0
+  auto run=take(1);CHECK(run);run(); // another worker can satisfy demanded Generic fallback first
+  CHECK(gfx::g_pipelineQueue.size()==1); // specialised work remains queued
+  gfx::g_pipelineQueue.clear();
   CHECK(gfx::petariUberBoot.completed.contains(gx::petari_uber_key(d,l,gx::PetariUberTier::Generic)));
  } else if(test=="stage") {
   auto d=c;d.shaderConfig.variant=2;
@@ -229,7 +238,7 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
   gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy"); // old stage jobs lose their priority
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
- } else if(test=="cost_order") {
+ } else if(test=="manifest_order") {
   gfx::petariUberTitleReleased=true;
   auto nonind=c;nonind.fixed=10;nonind.shaderConfig.tevStageCount=16;
   auto ind=c;ind.fixed=11;ind.shaderConfig.numIndStages=1;
@@ -239,17 +248,20 @@ int main(int argc,char** argv) {
   for(const auto& cfg:{nonind,ind,tev,tex,tie})gfx::petari_uber_schedule_stage(cfg,l,l,"MokumokuValleyGalaxy");
   std::vector<uint64_t> generic,fast;
   for(const auto& job:gfx::petariUberJobs)(job.tier==gx::PetariUberTier::Generic?generic:fast).push_back(job.key);
-  CHECK(generic==std::vector<uint64_t>({gx::petari_uber_keys(tex,l).generic,gx::petari_uber_keys(tie,l).generic,
-    gx::petari_uber_keys(tev,l).generic,gx::petari_uber_keys(ind,l).generic,gx::petari_uber_keys(nonind,l).generic}));
+  CHECK(generic==std::vector<uint64_t>({gx::petari_uber_keys(nonind,l).generic,gx::petari_uber_keys(ind,l).generic,
+    gx::petari_uber_keys(tev,l).generic,gx::petari_uber_keys(tex,l).generic,gx::petari_uber_keys(tie,l).generic}));
   CHECK(fast==std::vector<uint64_t>({gx::petari_uber_keys(nonind,l).fast,gx::petari_uber_keys(ind,l).fast,
     gx::petari_uber_keys(tev,l).fast,gx::petari_uber_keys(tex,l).fast,gx::petari_uber_keys(tie,l).fast}));
-  // Stage switches demote to the unchanged stable order; activation re-sorts.
+  const auto rank=gfx::petariUberBoot.stageOrder.at("MokumokuValleyGalaxy").at(gx::petari_uber_keys(ind,l).generic);
+  gfx::petari_uber_schedule_stage(ind,l,l,"MokumokuValleyGalaxy");
+  CHECK(gfx::petariUberBoot.stageOrder.at("MokumokuValleyGalaxy").at(gx::petari_uber_keys(ind,l).generic)==rank);
+  // Stage switches use that stage's remembered first occurrence, even on revisit.
   gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy");
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
   gfx::petari_uber_schedule_stage(nonind,l,l,"MokumokuValleyGalaxy");
-  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(tex,l).generic);
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(nonind,l).generic);
   gfx::g_pipelineQueue.push_back({99});gfx::petariPipelineSamples[99].drawBlocking=true;
-  CHECK(!take()); // cost sorting cannot preempt a draw-blocking specialised compile
+  CHECK(!take()); // preparation cannot preempt specialised work without a demanded Generic
  } else if(test=="alias") {
   c.shaderConfig.variant=0;gfx::petari_uber_queue_pair(c,l,1,true);
   CHECK(gfx::petariUberJobs.size()==1 && gfx::petariUberBoot.genericKeys.size()==1 && gfx::petariUberBoot.fastKeys.empty());
@@ -299,7 +311,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "cost_order", "alias"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "manifest_order", "alias"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

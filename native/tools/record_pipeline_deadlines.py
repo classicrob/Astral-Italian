@@ -28,6 +28,7 @@ import time
 
 TOOLS = Path(__file__).resolve().parent
 SCRIPT = TOOLS / 'perf_sweep_move.script'
+STATIONARY_SCRIPT = TOOLS / 'perf_sweep_stationary.script'
 VERSION = 2
 QUIT_PID = r'''
 ObjC.import('AppKit');
@@ -139,6 +140,7 @@ def slots(heavy, native):
 
 def launch(args, stage, name, app=None, cold=False):
     app = app or args.app
+    script = STATIONARY_SCRIPT if stage in args.stationary_stage else SCRIPT
     folder = args.out / stage / name
     folder.mkdir(parents=True, exist_ok=False)
     cache = args.out / stage / ('cold-cache' if cold else 'warm-cache')
@@ -152,7 +154,7 @@ def launch(args, stage, name, app=None, cold=False):
                PETARI_FRAME_CSV=str(folder / 'frames.csv'), PETARI_FRAME_STATS='1', PETARI_PIPELINE_DIAG='1',
                PETARI_ROUTE_RECORD=str(folder / 'route.csv'))
     if not args.title:
-        env.update(PETARI_INPUT_SCRIPT=str(SCRIPT), PETARI_INPUT_SCRIPT_STEADY='60', PETARI_INPUT_SCRIPT_QUIT='1')
+        env.update(PETARI_INPUT_SCRIPT=str(script), PETARI_INPUT_SCRIPT_STEADY='60', PETARI_INPUT_SCRIPT_QUIT='1')
     recording = not name.startswith('prime')
     if recording:
         env['PETARI_PIPELINE_RECORD_FIRST_USE'] = str(capture)
@@ -164,7 +166,8 @@ def launch(args, stage, name, app=None, cold=False):
     if not args.title:
         cmd += ['--stage', stage, '--scenario', '1']
     write(folder / 'launch.json', {'command': cmd, 'environment': {k: v for k, v in env.items()
-          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title else sha(SCRIPT),
+          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title else sha(script),
+          'stationary_stage_override': stage in args.stationary_stage,
           'nice': os.getpriority(os.PRIO_PROCESS, 0), 'cold_namespace': cold, 'renderer_key': renderer,
           **identity,
           'purpose': 'recording only; not performance acceptance', 'mode': 'no-input-title' if args.title else 'direct-stage',
@@ -237,6 +240,7 @@ def main():
     parser.add_argument('command', choices=['plan', 'run'])
     parser.add_argument('--disc', type=Path, required=True)
     parser.add_argument('--stage', action='append', default=[])
+    parser.add_argument('--stationary-stage', action='append', default=[], help='Explicit stage-only camera/jump/spin probe; preserves 970-frame duration')
     parser.add_argument('--title', action='store_true', help='No-input FileSelect title, prime + two >=300s warm recordings')
     parser.add_argument('--title-seconds', type=float, default=315)
     parser.add_argument('--batch')
@@ -250,9 +254,11 @@ def main():
     parser.add_argument('--cold-confirm-stage')
     parser.add_argument('--cold-confirm-app', type=Path)
     args = parser.parse_args()
-    if args.title and (args.stage or args.batch or args.cold_confirm_stage or args.title_seconds < 300):
+    if args.title and (args.stage or args.batch or args.stationary_stage or args.cold_confirm_stage or args.title_seconds < 300):
         parser.error('--title needs its own batch/output, no --stage/--batch/--cold-confirm-stage; title-seconds>=300')
     stages = ['FileSelect'] if args.title else select(args.disc, args.stage, args.batch)
+    if any(stage not in stages for stage in args.stationary_stage):
+        parser.error('every --stationary-stage must be selected in this run')
     if args.command == 'plan':
         print(json.dumps({'count': len(stages), 'stages': stages, 'scenario': 1,
                           'launches': len(stages) * (args.prime_count + 2),
@@ -290,6 +296,8 @@ def main():
         write(args.out / 'PROVENANCE.json', {'version': 1, 'recording_only': True, 'stages_planned': stages,
               'stage_results': results, 'script': None if args.title else str(SCRIPT), 'script_sha256': None if args.title else sha(SCRIPT),
               'mode': 'no-input-title' if args.title else 'direct-stage',
+              'stationary_stage_overrides': {stage: {'script': str(STATIONARY_SCRIPT), 'sha256': sha(STATIONARY_SCRIPT)}
+                                            for stage in args.stationary_stage},
               'recording_build_metadata': json.loads(args.build_metadata.read_text()),
               'recording_build_metadata_sha256': sha(args.build_metadata),
               'all_completed': len(results) == len(stages), 'passed': len(results) == len(stages)

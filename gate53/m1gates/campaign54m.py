@@ -29,6 +29,7 @@ def main():
  def stage(name,st,*,warm=None,extra=None,script=None):
   label=a.label+'-'+name;args=[sys.executable,'-B',HERE/'stage54m.py',label,st]
   if warm:args+=['--warm',a.label+'-'+warm]
+  if name.startswith('cadence-') and name!='cadence-prime':args+=['--cadence-check']
   if extra:args+=['--extra',json.dumps(extra)]
   if script:args+=['--script',script]
   command(name,args);return ROOT/'runs'/label

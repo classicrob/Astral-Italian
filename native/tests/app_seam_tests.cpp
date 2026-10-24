@@ -120,6 +120,7 @@ HostAllocationScope::~HostAllocationScope() {
 }  // namespace PetariNative
 
 namespace PetariNative::HomeMenu {
+GraphicsPreparationState graphicsPreparationState() { return {}; }
 void drawImGuiOverlay(float x, float y, float width, float height) {
     hostCall("overlay");
     overlay[0] = x;

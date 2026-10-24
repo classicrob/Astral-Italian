@@ -602,7 +602,10 @@ void setHoldProgressSource(HoldProgressFn source) {
 
 namespace {
 std::atomic<PreparationProgressFn> gPreparation{nullptr};
+GraphicsPreparationState gPreparationState;
 }  // namespace
+
+GraphicsPreparationState graphicsPreparationState() { return gPreparationState; }
 
 void setPreparationProgressSource(PreparationProgressFn source) {
     gPreparation.store(source, std::memory_order_relaxed);
@@ -724,6 +727,7 @@ void drawSteerCue(float marioX, float marioY, float pointerX, float pointerY, fl
 }
 
 void drawImGuiOverlay(float imageX, float imageY, float imageWidth, float imageHeight) {
+    gPreparationState.visible = false;
     const View view = publishedView();
     if (!view.visible) {
         if (const SteerCueFn source = gSteerCue.load(std::memory_order_relaxed)) {
@@ -782,13 +786,21 @@ void drawImGuiOverlay(float imageX, float imageY, float imageWidth, float imageH
             sPrepPoll = 15;
             unsigned done = 0, total = 0;
             double remaining = 0.0;
-            if (source(&done, &total, &remaining) && total > 0) {
+            const bool valid = source(&done, &total, &remaining) && total > 0;
+            gPreparationState.polled = true;
+            gPreparationState.valid = valid;
+            gPreparationState.done = done; gPreparationState.total = total;
+            if (valid) {
                 sPrepFraction = static_cast<float>(done) / static_cast<float>(total);
                 if (done >= total) sPrepFinished = true;
                 else if (!sPrepShown && remaining > 3.0) sPrepShown = true;
+                gPreparationState.complete = sPrepFinished;
             }
         }
-        if (sPrepShown && !sPrepFinished) drawPreparingGraphics(sPrepFraction, imageX, imageY, imageWidth, imageHeight);
+        if (sPrepShown && !sPrepFinished) {
+            gPreparationState.visible = true;
+            drawPreparingGraphics(sPrepFraction, imageX, imageY, imageWidth, imageHeight);
+        }
     }
 #endif
     if (!view.visible) {

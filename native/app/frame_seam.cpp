@@ -32,6 +32,7 @@ extern "C" void petari_gx_pipeline_report();
 extern "C" void petari_gx_pipeline_note_frame(double intervalMs);
 
 #include "frame_stats.hpp"
+#include "title_observation.hpp"
 #include "display_window.hpp"
 #include "launch_stage.hpp"
 #include "spike_profiler.hpp"
@@ -1017,6 +1018,49 @@ extern "C" void petari_host_frame_seam(void) {
     traceEditorMouse();
 #endif
     PetariNative::HomeMenu::drawImGuiOverlay(image.x, image.y, image.width, image.height);
+    {
+        const auto state = PetariNative::HomeMenu::graphicsPreparationState();
+        static bool initial = true, wasVisible = false, wasComplete = false;
+        const auto now = std::chrono::steady_clock::now();
+        static const auto first = now;
+        const double elapsed = std::chrono::duration<double>(now - first).count();
+        // The overlay is composed in the interval whose CSV row is next added.
+        const auto frame = static_cast<unsigned long long>(gTiming.frames + 1);
+        const auto event = [&](const char* name) {
+            std::fprintf(stderr, "[graphics preparation] event=%s version=1 frame=%llu "
+                         "clock=frame-csv-interval source=ui-specialized-global elapsed_s=%.6f "
+                         "polled=%u valid=%u visible=%u complete=%u done=%u total=%u\n",
+                         name, frame, elapsed, state.polled, state.valid, state.visible,
+                         state.complete, state.done, state.total);
+        };
+        if (initial) { event("initial"); initial = false; }
+        if (state.visible && !wasVisible) event("shown");
+        if (!state.visible && wasVisible) event("hidden");
+        if (state.complete && !wasComplete) event("actual-global-100");
+        wasVisible = state.visible; wasComplete = state.complete;
+        static const bool observeTitle = [] {
+            const auto* value = std::getenv("PETARI_TITLE_OBSERVE");
+            return value && std::strcmp(value, "1") == 0;
+        }();
+        if (observeTitle) {
+            static double lastObservationReport = -5;
+            if (elapsed - lastObservationReport >= 5) {
+                event("title-observation-progress"); lastObservationReport = elapsed;
+            }
+            static TitleObservation observation([] {
+                const auto* value = std::getenv("PETARI_TITLE_OBSERVE_MIN_SECONDS");
+                char* end = nullptr;
+                const double seconds = value ? std::strtod(value, &end) : 315.0;
+                return value && (!end || *end || !(seconds >= 0 && seconds <= 870)) ? 315.0 : seconds;
+            }());
+            const auto step = observation.tick(elapsed, state.valid && state.complete && state.total && state.done >= state.total);
+            if (step != TitleObservation::Step::Running) {
+                event(step == TitleObservation::Step::Complete ? "title-observation-complete" : "title-observation-timeout");
+                if (step == TitleObservation::Step::TimedOut) Smoke::setProcessResult(Smoke::Result::Fail);
+                Host::requestQuit();
+            }
+        }
+    }
     const std::uint64_t endStart = Telemetry::nowNs();
     aurora_end_frame();
 

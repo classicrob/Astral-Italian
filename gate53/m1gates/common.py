@@ -7,6 +7,7 @@ FROZEN = HOME / 'MacioGalaxy2-team/scratch-release/frozen54'
 FIXTURE = HOME / 'MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture'
 DISC = HOME / 'MacioGalaxy2-gamedata/SB4E01-extracted'
 LOCK = HOME / 'MacioGalaxy2-team/slots/native.lock'
+HEAVY = HOME / 'MacioGalaxy2-team/slots/m1-heavy.lock'
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 ID = 'dev.petari.Petari.perfm1a'
@@ -50,10 +51,30 @@ def prep():
 @contextlib.contextmanager
 def native_lock():
  LOCK.parent.mkdir(parents=True,exist_ok=True)
- with LOCK.open('a') as lock:
+ with HEAVY.open('a') as heavy,LOCK.open('a') as lock:
+  fcntl.lockf(heavy,fcntl.LOCK_EX)
   fcntl.lockf(lock,fcntl.LOCK_EX)
   try:yield
-  finally:fcntl.lockf(lock,fcntl.LOCK_UN)
+  finally:
+   fcntl.lockf(lock,fcntl.LOCK_UN);fcntl.lockf(heavy,fcntl.LOCK_UN)
+
+def quiet_snapshot():
+ processes=subprocess.check_output(['ps','-axo','pid,ppid,ni,%cpu,comm'],text=True).splitlines()[1:]
+ return {'load':os.getloadavg(),'metal_compilers':[p for p in processes if 'MTLCompilerService' in p],
+         'top_processes':sorted(processes,key=lambda s:float(s.split()[3]),reverse=True)[:12]}
+
+def wait_quiet(evidence,seconds=900,limit=8):
+ """Keep camera load real; never wait for camera PIDs or kill a compiler."""
+ start=time.monotonic();samples=[]
+ while True:
+  sample=quiet_snapshot();sample['elapsed_seconds']=round(time.monotonic()-start,3);samples.append(sample)
+  ready=sample['load'][0]<=limit and sample['load'][1]<=limit and not sample['metal_compilers']
+  write(evidence,{'quiet':ready,'limit_1min_load':limit,'limit_5min_load':limit,'wait_limit_seconds':seconds,
+        'background_policy':'Front Door camera ffmpeg/python retained as real background load; no process-specific wait.',
+        'samples':samples})
+  if ready:return sample
+  if time.monotonic()-start>=seconds:raise RuntimeError('quiet precondition failed: 1/5-minute load or lingering MTLCompilerService; see '+str(evidence))
+  time.sleep(min(5,max(.1,seconds-(time.monotonic()-start))))
 
 def clear_metal():
  base=Path(subprocess.check_output(['/usr/bin/getconf','DARWIN_USER_CACHE_DIR'],text=True).strip())
@@ -74,7 +95,7 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
  app=Path(app);exe=app/'Contents/MacOS/Petari'
  assert ID == subprocess.check_output(['/usr/libexec/PlistBuddy','-c','Print :CFBundleIdentifier',str(app/'Contents/Info.plist')],text=True).strip()
  with native_lock():
-  disk();out.mkdir(parents=True)
+  disk();out.mkdir(parents=True);wait_quiet(out/'quiet.json')
   user=out/'user';cache=out/'cache'
   seed_before=tree(FIXTURE) if copied else None
   if copied:

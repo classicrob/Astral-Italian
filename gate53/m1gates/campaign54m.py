@@ -14,11 +14,7 @@ def main():
  manifest={'schema':1,'label':a.label,'host':platform.node(),'platform':platform.platform(),'nice':0,'priority_reason':'Normal priority approved by PORT; server promotion/normal/intro/Cappy ran nice 19, a documented load-sensitive harness difference.','frozen':{k:v for k,v in meta.items() if k!='resource_tree'},'steps':[],'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'reference_root':str(HOME/'MacioGalaxy2-team/scratch-port/gate53/m1gates/srv-ref')}
  write(base/'MANIFEST.json',manifest)
  def quiet(name):
-  deadline=time.monotonic()+a.quiet_seconds
-  while os.getloadavg()[0]>8 and time.monotonic()<deadline:time.sleep(min(5,max(.1,deadline-time.monotonic())))
-  data={'load':os.getloadavg(),'quiet':os.getloadavg()[0]<=8,'limit_1min_load':8,'wait_limit_seconds':a.quiet_seconds,'top_processes':subprocess.check_output(['ps','-axo','pid,ppid,ni,%cpu,comm'],text=True)}
-  data['top_processes']='\n'.join(sorted(data['top_processes'].splitlines()[1:],key=lambda s:float(s.split()[3]),reverse=True)[:12])
-  write(base/(name+'-quiet.json'),data)
+  wait_quiet(base/(name+'-quiet.json'),seconds=a.quiet_seconds)
  def command(name,cmd):
   disk();print('START',name,time.strftime('%H:%M:%S'),flush=True)
   with (base/(name+'.out')).open('w') as f:

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Server's 23 Cappy cases, isolated behind the M1 native lock; trim each completed case."""
 import argparse,importlib.util,json,os,sys
-from common import ROOT,REPO,native_lock,prep,disk,trim,sha,write
+from common import ROOT,REPO,native_lock,prep,disk,trim,sha,write,wait_quiet
 p=REPO/'native/tests/cappy_spin_switch_tests.py'
 spec=importlib.util.spec_from_file_location('cappy_reference',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 original=m.run
 def run(*args,**kwargs):
  with native_lock():
   disk()
+  wait_quiet(args[2]/args[3]/'quiet.json')
   result=original(*args,**kwargs)
   # Caller inspects app.log for extra cases. Raw caches/user can go immediately.
   out=args[2]/args[3]

@@ -10,7 +10,7 @@ def protected_inputs(directory):
  package=ROOT/'fixtures/unlocked-242';receipt=json.loads((package/'receipt.json').read_text())
  return {'candidate_app':tree(Path(directory)/'Petari.app'),'frozen_exe_sha256':sha(FROZEN/'Petari.app/Contents/MacOS/Petari'),'canonical_fixture':inventory(FIXTURE),'local_fixture':inventory(package/'fixture'),'live_save':inventory(Path(receipt['source'])),'user_cache_files':tree(HOME/'Library/Caches/AstralItalian')}
 
-def normal_evidence(paths,directory):
+def normal_evidence(paths,directory,require_identity=False):
  directory=Path(directory).resolve();build=json.loads((directory/'BUILD.json').read_text())
  assert directory.is_relative_to(ROOT/'candidates') and len(paths)==3 and len({str(Path(p).resolve()) for p in paths})==3
  records=[]
@@ -27,6 +27,11 @@ def normal_evidence(paths,directory):
   assert d['priority']['nice']==0 and d['passed'] is True and d['acceptance_passed'] is True and all(d['checks'].get(k) is True for k in NORMAL_CHECKS) and all(v is True for v in d['checks'].values())
   stages=[s['stage'] for s in d['scene_anchors']]
   assert '' in stages and 'FileSelect' in stages
+  from replay_cases54m import anchor_checks,replay_accounting
+  native=json.loads((path.parent/'replay/divergence.json').read_text())
+  assert native.get('finished') is True and not native.get('stopped') and native.get('mode')=='whole-session'
+  assert all(s.get('started') and s.get('completed') and not s.get('diverged') for s in native['segments'])
+  assert all(anchor_checks(native,require_identity=require_identity).values()) and replay_accounting(native,require_identity)
   records.append({'receipt':str(path),'sha256':sha(path),'command':str(command_path),'command_sha256':sha(command_path),'prep':str(prep_path),'prep_sha256':sha(prep_path),'normal_perf_sha256':d['binary_sha256'],'anchor_policy':d['anchor_policy'],'checks':d['checks']})
  assert len({r['normal_perf_sha256'] for r in records})==1
  return {'passed':True,'build_kind':'server-candidate','source':build['source'],'source_exe_sha256':build['binary_sha256'],'normal_perf_sha256':records[0]['normal_perf_sha256'],'acceptance_runs':3,'records':records,'reason':'Three whole-session normal-route passes also prove the title/FileSelect normal-boot-ui prefix, per PORT ruling.'}

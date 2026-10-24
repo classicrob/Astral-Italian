@@ -98,8 +98,8 @@ def main():
     if r['case']=='worldmap':
      original=Path(r['actual_receipt']);actual_pointer=readj(original)
      assert sha(original)==r['actual_receipt_sha256'] and actual_pointer['passed']==r['passed'] and actual_pointer['checks']==r['checks'] and actual_pointer['app_sha256']==expected
-     from replay_cases54m import anchor_checks
-     native=readj(original.parent/'replay/divergence.json');assert native==actual_pointer['replay'] and all(anchor_checks(native).values())
+     from replay_cases54m import anchor_checks,replay_accounting
+     native=readj(original.parent/'replay/divergence.json');assert native==actual_pointer['replay'] and all(anchor_checks(native,require_identity=m.get('require_bounded_identity',False)).values()) and replay_accounting(native,m.get('require_bounded_identity',False))
      assert sum(s.get('pointer_rows_compared',0) for s in native['segments'] if s['stage']=='WorldMap01Galaxy')>=30
   return {'passed':ok,'cases':len(rs),'passing':sum(r['passed'] for r in rs),'failed_checks':{r['case']+'/'+r['mode']:[k for k,v in r['checks'].items() if not v] for r in rs if not r['passed']}}
  gate('gx-fresh-warm',[promo],promotion,'15-case promotion',(('PORT authorized canonical KPAD pointer tape for the two world-map cases; physical host mapping is outside this check.',) if candidate_mode else ('Reference worldmap host-pointer evidence remains required; unavailable on frozen54 without host input.',)))
@@ -107,7 +107,7 @@ def main():
  if candidate_mode:
   from candidate_evidence54m import normal_evidence
   def normalcheck():
-   result=normal_evidence(m['normal_results'],meta['candidate_directory']);assert result==readj(tape);return result
+   result=normal_evidence(m['normal_results'],meta['candidate_directory'],m.get('require_bounded_identity',False));assert result==readj(tape);return result
   gate('normal-route-grandmap',[tape]+[Path(q) for q in m['normal_results']],normalcheck,'three whole-session normal-route acceptance runs')
   def bootcheck():
    result=normalcheck();boot=readj(base/'candidate-normal-boot-ui.json');assert boot=={**result,'gate':'normal-boot-ui','frozen54_acceptance':False};return result
@@ -121,7 +121,8 @@ def main():
    assert d['build_kind']=='server-candidate' and d['build']['source']==meta['source'] and d['build']['perf_exe_sha256']==expected and len(d['runs'])==2
    assert d['passed']==all(d['checks'].values())
    for r in d['runs']:
-    assert r['app_sha256']==expected and r['passed'] is True and all(r['checks'].values()) and all(anchor_checks(r['replay'],'RedBlueExGalaxy').values())
+    from replay_cases54m import replay_accounting
+    assert r['app_sha256']==expected and r['passed'] is True and all(r['checks'].values()) and all(anchor_checks(r['replay'],'RedBlueExGalaxy',m.get('require_bounded_identity',False)).values()) and replay_accounting(r['replay'],m.get('require_bounded_identity',False))
     assert readj(intro.parent/r['arm']/'replay/divergence.json')==r['replay']
    assert {r['arm'] for r in d['runs']}=={'none','skip'}
    arms={r['arm']:r for r in d['runs']};assert 0<=arms['skip']['frames_from_stage_to_play']<arms['none']['frames_from_stage_to_play']

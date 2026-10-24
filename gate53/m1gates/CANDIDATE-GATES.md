@@ -41,6 +41,21 @@ candidate original, frozen executable, canonical and local fixtures, the live
 save, and the user's AstralItalian cache files. Candidate receipts verify these
 inventories remain identical and still match the current protected inputs.
 
+The candidate Wii proof uses PORT's authorized main71353 lineage, zero
+src/include/libs changes after that main, and the fresh candidate build/hash
+plus strict dispatch status log. Create its separate artifact with
+`candidate_wii54m.py CANDIDATE_DIR CAMPAIGN_DIR/candidate-wii-proof.json --server-log LOG`.
+The collector revalidates it and keeps the failed unchanged-since-a23609ca
+comparison as a separate source observation.
+
+For a new candidate containing SOL B's e546b8fe boundary correction, add
+`--require-bounded-identity` to the campaign or direct replay adapter. This
+requires bit-exact interactive positions, each identity observed within30 loops,
+`rows_compared + identity_rows_skipped == tape_frames + 1`, and
+`pointer_rows_compared == tape_frames`. Pointer comparisons include construction
+boundary loops. Missing new-schema fields fail. Existing c620 failures retain
+their original reports and verdicts; their executable lacks this correction.
+
 The separate item3tier worker sweep is paused before workers8-r1 app launch;
 its three diagnostic arms and first cap2/cap4 runs remain intact. Resume remaining
 sweep work only after the candidate campaign, following PORT's priority order.

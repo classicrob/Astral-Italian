@@ -103,6 +103,16 @@ struct SegmentReport {
 constexpr std::uint64_t kWarpDelaySeams = 300;
 constexpr std::int64_t kIdentityOffsetLimit = 30;
 
+// Wall time controls observation/quit only; it never advances the input tape or changes fidelity anchors.
+struct Observation {
+    double requestedSeconds = 0, elapsedSeconds = 0, postStartSeconds = 0, stopSeconds = 0;
+    std::uint64_t postStartRow = 0, endRow = 0, neutralReads = 0;
+    bool postStarted = false, completed = false;
+    void update(double elapsed, std::uint64_t row, bool replaySucceeded);
+    bool pending() const { return requestedSeconds > 0 && postStarted && !completed; }
+    std::string reportJson(double startMonotonicSeconds) const;
+};
+
 class Session {
 public:
     enum class Mode { Segments, WholeSession };
@@ -181,4 +191,5 @@ const Meta* meta();
 Step seam(const SeamState& state);
 bool acknowledgeSeed(std::uint32_t seed);
 bool shouldQuit();                   // the replay finished or gave up: the app may close itself
+bool observationPending();         // delay successful replay's quit until its optional wall-clock observation ends
 }  // namespace PetariNative::App::TapePlay

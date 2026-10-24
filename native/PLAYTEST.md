@@ -457,8 +457,10 @@ input reads).
 `PETARI_TAPE_RECORD=~/MacioGalaxy2-play/tapes/<galaxy>-<time>/` for builds from 5.3 on (older builds ignore it). About 150 MB an hour.
 `ASTRAL_TAPE=off` turns it off, `ASTRAL_TAPES=<dir>` moves the folder. By hand: `PETARI_TAPE_RECORD=<dir> <the usual launch>`, or
 `PETARI_ROUTE_RECORD=<x>.csv` (the files go beside it). It also works in background mode, so scripted sessions (`PETARI_INPUT_SCRIPT`) can
-be taped. **Quit the game normally** (a session that is killed leaves a tape valid up to its last checkpoint, 60 loops, with
-`"complete": false`; `replay_tape.py --allow-incomplete` replays that part).
+be taped. **Quit the game normally**: the power/quit exit explicitly finalizes the recorder before `_Exit`, flushes the CSV's final
+partial block, closes the KPAD tape and writes `"complete": true` covering every seam. The finalizer is idempotent; atexit remains
+a backup. Crash/forced exits retain the incomplete checkpoint: KPAD/CSV flush every60 loops, sidecar every300 loops (or scene seam).
+`replay_tape.py --allow-incomplete` uses the sidecar's declared prefix without changing the tape.
 
 The folder holds `route.csv` (every game loop; positions at `%.9g`, the float32 exactly), `route.kpd` (every KPADReadEx the game made:
 count, error, **every sample**, the connection it saw; the format `tools/headless.py pack` writes and `petari_headless --inputs`
@@ -560,6 +562,12 @@ bound. Only rows where replay is constructing the known next init-End scene whil
 excluded from state comparison, with a per-segment count. KPAD read shape and actual game pointer checks continue on every loop,
 including the boundary. Wrong stages, initialized/valid new scenes overlapping old input, missing identities and offsets outside
 the bound fail closed. New scene logic still anchors at init-End. All compared valid whole-session positions are float32 bit-exact.
+For measurement gates, `PETARI_TAPE_PLAY_OBSERVE_SECONDS=90` retains the original total observation duration. A successful tape is
+fully compared, then KPAD/mod input becomes neutral until 90 wall-clock seconds since replay configuration. The wall clock only
+schedules quit; it never advances recorded input or changes anchors. `PETARI_TAPE_PLAY_QUIT=1` requests the normal quit afterward.
+The report's `observation` records monotonic start/stop, elapsed time and post-roll rows/loops plus neutral read count/source. Failed
+replays quit promptly and cannot claim a completed post-roll. Fresh/warm world-map gates retain >=50 warm audio reports and zero
+underruns across the full observation; shorter tapes do not lower those requirements.
 The normal_tape_gate.py RESULT includes the final policy and both clock observations; normal533 route checks retain their original
 meaning. Executable hash equality is evidence for cross-build tapes and does not decide pass/fail.
 Builds and replays take m1-heavy.lock before native.lock. The normal tape gate acquires heavy through lockf -k itself; callers must

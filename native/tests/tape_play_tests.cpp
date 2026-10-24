@@ -342,6 +342,10 @@ int main() {
               "comparison and pointer counts exclude only the arrival");
         check(early.report()[0].pointerValidRowsCompared == 13 && early.report()[0].pointerPositionsCompared.size() == 13,
               "valid pointer rows and distinct positions come from successful actual game read-buffer comparisons");
+        check(hold(early, 0, 16) == 0 && !early.press(0) && !early.held(0) && !early.gaveUp(),
+              "successful post-roll returns neutral KPAD/mod input without consuming past the tape");
+        early.seam(observed(7, true));
+        check(early.report()[0].rowsCompared == 14 && !early.gaveUp(), "post-roll cannot alter completed fidelity evidence");
         check(early.reportJson().find("\"arrival_frame_offset\":-3") != std::string::npos,
               "report preserves the short arrival offset");
 
@@ -385,6 +389,22 @@ int main() {
         hold(missingSeed);
         check(missingSeed.seam(observed(7, true)).kind == Step::Kind::GaveUp,
               "missing RNG read-back cannot continue gameplay");
+    }
+    {
+        Observation observation; observation.requestedSeconds = 90;
+        observation.update(10, 500, false);
+        check(!observation.postStarted && !observation.completed, "unfinished/failed replay cannot start successful post-roll");
+        observation.update(30, 1800, true);
+        check(observation.pending() && observation.postStartRow == 1800, "post-roll begins only after successful replay");
+        observation.update(89.99, 5399, true);
+        check(!observation.completed, "observation cannot finish before the full wall-clock duration");
+        observation.update(90.01, 5401, true);
+        check(observation.completed && !observation.pending() && observation.endRow - observation.postStartRow == 3601,
+              "wall time controls quit only and post-roll loop extent is recorded");
+        observation.update(91, 5460, true);
+        check(observation.elapsedSeconds == 90.01, "observation stop is frozen before graceful shutdown");
+        check(observation.reportJson(100).find("\"input\":\"neutral\"") != std::string::npos,
+              "observation report declares the authoritative neutral input source");
     }
     fs::remove_all(base);
     std::printf("tape play session checks passed (%d)\n", checks);

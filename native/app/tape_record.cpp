@@ -18,7 +18,7 @@ namespace PetariNative::App::TapeRecord {
 namespace {
 
 std::string gRoute, gBase;
-bool gInit = false, gOpen = false, gBackground = false;
+bool gInit = false, gOpen = false, gBackground = false, gFinished = false;
 std::uint64_t gRow = 0;
 std::vector<Ready> gReadys, gPlayReadys;
 bool gWasPlayReady = false;
@@ -124,13 +124,6 @@ void writeSidecar(bool final) {
     std::rename((path + ".tmp").c_str(), path.c_str());
 }
 
-void finish() {
-    if (!gOpen) return;
-    Input::KpadRecord::close();
-    writeSidecar(true);
-    gOpen = false;
-}
-
 void init() {
     gInit = true;
     const char* dir = std::getenv("PETARI_TAPE_RECORD");
@@ -150,6 +143,19 @@ void init() {
 
 }  // namespace
 
+void finish() {
+    if (gFinished) return;
+    gFinished = true;
+    if (!gOpen) return;
+    Input::KpadRecord::close();
+    // RouteRecordWriter buffers its final partial 60-row block. _Exit does not flush it or run destructors.
+    // Flush it before declaring that the sidecar covers all seams; normal shutdown already flushes stdio.
+    const bool flushed = std::fflush(nullptr) == 0;
+    if (flushed) writeSidecar(true);
+    else std::fputs("PETARI TAPE RECORD: final flush failed; retaining incomplete checkpoint\n", stderr);
+    gOpen = false;
+}
+
 const char* routePath() {
     if (!gInit) init();
     return gRoute.empty() ? nullptr : gRoute.c_str();
@@ -161,6 +167,7 @@ bool background() {
 }
 
 void seam(const Seam& s) {
+    if (gFinished) return;
     if (!gInit) init();
     if (gRoute.empty()) return;
     if (!gOpen) {

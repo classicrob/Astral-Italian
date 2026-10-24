@@ -23,6 +23,9 @@ public:
     explicit Replay(std::istream& input, bool inputsFromSync = false);
     bool waitingForSync() const { return mWaitingForSync; }
     void startInputs() { mWaitingForSync = false; }
+    void pauseInputs() { mWaitingForSync = true; }
+    // Frame-boundary re-anchor after a non-interactive cinematic. Never rewinds or discards a partially consumed frame.
+    void seekForwardFrame(std::uint64_t frame);
     // Several tape segments (one per scene visit, each starting at its own sync seam): after the last frame of a segment the
     // replay waits for the next sync again (neutral boot-style reads); frames stay globally contiguous.
     void setSegments(std::vector<std::uint64_t> lengths);

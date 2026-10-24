@@ -4,6 +4,8 @@
 // (the headless --sync-play rule), the recorded RNG seed is set there, and the segment's recorded KPAD reads and mod buttons
 // are fed; between segments the reads are neutral. PETARI_TAPE_PLAY_SESSION=1 instead boots normally, anchors title and every
 // Game/End scene visit (including FileSelect and WorldMap), feeds menu reads too, never warps, and stops at the first divergence.
+// Non-interactive arrivals feed recorded reads without per-frame state comparisons, then re-anchor at play-ready with a
+// bit-exact position/grounded/state check and a restored, read-back RNG checkpoint. Interactive comparisons remain strict.
 // Scene construction loops are neutral while waiting for initialize-End; their asynchronous lengths are not replay anchors.
 // The feeder is the headless Replay (native/app/headless/replay.hpp).
 //
@@ -36,6 +38,7 @@ struct Meta {
     std::vector<std::string> mods;
     std::vector<SegmentMeta> segments;
     std::vector<SegmentMeta> sceneStarts;  // ready_seams: includes FileSelect and the galaxy map
+    std::vector<SegmentMeta> playStarts;
 };
 // The sidecar (<dir>/route.tape.json) text -> Meta. Throws Headless::ReplayError.
 Meta parseSidecar(const std::string& text);
@@ -51,6 +54,8 @@ struct SeamState {
     bool pointerObserved = false;
     int pointerValid = 0;
     float pointerX = 0, pointerY = 0; // actual WPad read buffer's first KPAD sample, in KPAD coordinates
+    bool rngObserved = false;
+    std::uint32_t rngSeed = 0;
 };
 // What the glue must do after a seam.
 struct Step {
@@ -69,6 +74,7 @@ struct SegmentReport {
     bool started = false, completed = false;
     bool diverged = false;
     std::uint64_t firstDivergenceRow = 0;  // segment-relative row k (route row startRow + k)
+    std::uint64_t firstDivergenceTapeRow = 0;
     double firstDivergenceDist = 0, maxDist = 0;
     std::string firstDivergenceWhy;
     float firstReplay[3] = {0, 0, 0}, firstRecorded[3] = {0, 0, 0};  // positions at the first divergence
@@ -77,6 +83,12 @@ struct SegmentReport {
     float recordedPointer[2] = {0, 0}, replayedPointer[2] = {0, 0};
     int pointerValid = 0;
     std::uint64_t pointerRowsCompared = 0;
+    std::uint64_t sceneStartRow = 0, replaySceneStart = 0, replayPlayStart = 0, cinematicFrames = 0;
+    bool requiresPlayReady = false, playReadyChecked = false, playReadyStateMatches = false;
+    bool playReadyPositionExact = false, rngCheckpointVerified = false;
+    std::uint32_t rngNatural = 0, rngRecorded = 0, rngReadback = 0;
+    float playReplay[3] = {0, 0, 0};
+    SeamState playState;
 };
 
 // After a segment ended, the game gets this many loops to reach the next segment by itself (the ship's helm -> the world map ->
@@ -110,10 +122,14 @@ public:
     std::size_t currentSegment() const { return mSegIndex; }
     bool active() const { return mActive; }
     bool wholeSession() const { return mMode == Mode::WholeSession; }
+    bool acknowledgeSeed(std::uint32_t seed); // glue reads back the just-restored play-ready RNG checkpoint
 private:
     struct Planned {
         std::size_t index;
         std::uint64_t start, end, frames, offset;
+        bool hasPlayReady = false;
+        std::uint64_t playRow = 0;
+        std::uint32_t playSeed = 0;
     };
     struct CsvRow {
         std::string stage;
@@ -121,7 +137,8 @@ private:
         bool valid = false, grounded = false, dead = false;
         float x = 0, y = 0, z = 0;
     };
-    void compare(const SeamState& state, std::uint64_t k);
+    void compare(const SeamState& state, std::uint64_t k, bool bitExact = false);
+    Step startPlay(const SeamState& state);
     void inputFailure(const std::string& why, const SeamState& lastObserved);
     Mode mMode;
     SeamState mLastObserved;
@@ -140,6 +157,7 @@ private:
     std::size_t mSegIndex = 0;
     std::uint64_t mSegRow = 0, mSeams = 0, mWaitSeams = 0;
     bool mActive = false, mDone = false, mNeedEdge = false, mWarpSent = false;
+    bool mStrict = true, mPendingSeed = false;
     std::string mError;
 };
 
@@ -151,5 +169,6 @@ const SegmentMeta* firstSegment();   // legacy stage to launch into; null for wh
 const Meta* meta();
 // Frame seam; returns what the glue must do (the caller sets the RNG seed / queues the warp). Also writes the report at the end.
 Step seam(const SeamState& state);
+bool acknowledgeSeed(std::uint32_t seed);
 bool shouldQuit();                   // the replay finished or gave up: the app may close itself
 }  // namespace PetariNative::App::TapePlay

@@ -120,5 +120,11 @@ Step seam(const SeamState& state) {
 }
 
 bool shouldQuit() { return gSession && gSession->finished(); }
+bool acknowledgeSeed(std::uint32_t seed) {
+    if (!gSession) return true;
+    const bool ok = gSession->acknowledgeSeed(seed);
+    if (!ok) writeReport();
+    return ok;
+}
 
 }  // namespace PetariNative::App::TapePlay

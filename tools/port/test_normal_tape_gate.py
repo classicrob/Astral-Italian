@@ -15,8 +15,9 @@ class VerdictTests(unittest.TestCase):
     def setUp(self):
         self.rows = [dict(stage=s, scenario="1", valid="1", dead="0", x="0", y="0", z="0", power_stars="242")
                      for s in ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy"] + ["IslandFleetGalaxy"] * 300]
-        self.replay = dict(mode="whole-session", finished=True, stopped="", segments=[dict(
-            started=True, completed=True, rows_compared=301, tape_frames=300, pointer_rows_compared=300, diverged=False)])
+        self.replay = dict(mode="whole-session", anchor_policy=gate.ANCHOR_POLICY["id"], finished=True, stopped="", segments=[dict(
+            started=True, completed=True, rows_compared=301, tape_frames=300, pointer_rows_compared=300, diverged=False,
+            play_ready_required=False)])
 
     def evaluate(self, log="", report=None):
         return gate.evaluate(self.rows, log, self.replay if report is None else report)[0]
@@ -38,6 +39,20 @@ class VerdictTests(unittest.TestCase):
         for count in [None, 0, 299]:
             self.replay["segments"][0]["pointer_rows_compared"] = count
             self.assertFalse(self.evaluate()["game_pointer_buffers_compared"])
+
+    def test_play_ready_requires_exact_state_and_rng_readback(self):
+        segment = self.replay["segments"][0]
+        segment["play_ready_required"] = True
+        segment["play_ready_state_check"] = dict(checked=True, passed=True, position_bit_exact=True, rng=dict(verified=True))
+        self.assertTrue(all(self.evaluate().values()))
+        for key in ("checked", "passed", "position_bit_exact"):
+            segment["play_ready_state_check"][key] = False
+            self.assertFalse(self.evaluate()["play_ready_state_checks"])
+            segment["play_ready_state_check"][key] = True
+        segment["play_ready_state_check"]["rng"]["verified"] = False
+        self.assertFalse(self.evaluate()["play_ready_state_checks"])
+        self.replay["anchor_policy"] = "old-strict-scene-ready"
+        self.assertFalse(self.evaluate()["anchor_policy_applied"])
 
     def test_destination_requires_300_finite_alive_consecutive_rows(self):
         for key, value in [("dead", "1"), ("valid", "0"), ("x", "nan"), ("scenario", "2")]:

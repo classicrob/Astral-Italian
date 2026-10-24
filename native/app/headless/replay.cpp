@@ -114,6 +114,16 @@ void Replay::setSegments(std::vector<std::uint64_t> lengths) {
     }
     if (end != mFrames) throw ReplayError("tape segments must cover exactly the tape frames");
 }
+void Replay::seekForwardFrame(std::uint64_t frame) {
+    if (mOrdinal || frame < mFrame || frame > mFrames) throw ReplayError("invalid KPAD frame-boundary re-anchor");
+    mFrame = frame;
+    mNext = static_cast<std::size_t>(std::lower_bound(mReads.begin(), mReads.end(), frame,
+        [](const Read& read, std::uint64_t target) { return read.frame < target; }) - mReads.begin());
+    mFrameStart = mNext;
+    mSegment = static_cast<std::size_t>(std::upper_bound(mSegmentEnds.begin(), mSegmentEnds.end(), frame) - mSegmentEnds.begin());
+    mSegmentJustEnded = false;
+    mWaitingForSync = false;
+}
 void Replay::keepSegments(const std::vector<SegmentRange>& ranges) {
     if (ranges.empty() || mNext || mFrame) throw ReplayError("keepSegments needs segments and an unread tape");
     std::vector<Read> kept;

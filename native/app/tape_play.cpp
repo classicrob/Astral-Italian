@@ -9,6 +9,7 @@
 #include <chrono>
 #include <ctime>
 #include <mutex>
+#include <iomanip>
 #include <sstream>
 #include <thread>
 
@@ -187,6 +188,15 @@ Meta parseSidecar(const std::string& text) {
             seg.sceneReady = true;
             meta.sceneStarts.push_back(std::move(seg));
         }
+    if (const Json* starts = root.find("play_ready_seams"))
+        for (const auto& r : starts->items) {
+            SegmentMeta seg;
+            seg.startRow = number(r, "row");
+            seg.stage = r.find("stage") ? r.find("stage")->text : std::string();
+            seg.scenario = static_cast<int>(number(r, "scenario"));
+            seg.seed = static_cast<std::uint32_t>(number(r, "rng_seed"));
+            meta.playStarts.push_back(std::move(seg));
+        }
     return meta;
 }
 
@@ -273,6 +283,15 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
             while (end > g.startRow && !mRoute[end].valid) --end;  // a session that was quit ends in teardown loops
         if (end <= g.startRow) continue;
         mPlan.push_back({i, g.startRow, end, end - g.startRow, offset});
+        if (wholeSession())
+            for (const auto& ready : mMeta.playStarts)
+                if (ready.startRow >= g.startRow && ready.startRow <= end && ready.stage == g.stage && ready.scenario == g.scenario) {
+                    if (ready.startRow == end) throw H::ReplayError("no complete gameplay loop after play-ready");
+                    mPlan.back().hasPlayReady = true;
+                    mPlan.back().playRow = ready.startRow;
+                    mPlan.back().playSeed = ready.seed;
+                    break;
+                }
         offset += end - g.startRow;
     }
     if (mPlan.empty()) throw H::ReplayError("no complete game loop after a ready seam");
@@ -301,21 +320,24 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
         r.index = static_cast<int>(mReport.size());
         r.stage = mMeta.segments[p.index].stage;
         r.scenario = mMeta.segments[p.index].scenario;
-        r.startRow = p.start;
-        r.frames = p.frames;
+        r.sceneStartRow = p.start;
+        r.requiresPlayReady = p.hasPlayReady;
+        r.rngRecorded = p.playSeed;
+        r.startRow = p.hasPlayReady ? p.playRow : p.start;
+        r.frames = p.end - r.startRow;
         mReport.push_back(std::move(r));
     }
 }
 
-void Session::compare(const SeamState& s, std::uint64_t k) {
+void Session::compare(const SeamState& s, std::uint64_t k, bool bitExact) {
     auto& rep = mReport[mSegIndex];
-    const auto& p = mPlan[mSegIndex];
-    const auto& r = mRoute[p.start + k];
+    const auto& r = mRoute[rep.startRow + k];
     ++rep.rowsCompared;
     std::string why;
     if (s.stage != r.stage) why = "stage " + s.stage + " vs " + r.stage;
     else if (s.scenario != r.scenario) why = "scenario " + std::to_string(s.scenario) + " vs " + std::to_string(r.scenario);
     else if (s.valid != r.valid) why = std::string("valid ") + (s.valid ? "1" : "0") + " vs " + (r.valid ? "1" : "0");
+    if (why.empty() && bitExact && (!s.valid || !r.valid)) why = "invalid player at play-ready";
     if (wholeSession() && k > 0 && mPointerReadMade) {
         ++rep.pointerRowsCompared;
         rep.replayedPointer[0] = s.pointerX; rep.replayedPointer[1] = s.pointerY;
@@ -329,26 +351,81 @@ void Session::compare(const SeamState& s, std::uint64_t k) {
         dist = std::sqrt(std::pow(double(s.x) - r.x, 2) + std::pow(double(s.y) - r.y, 2) + std::pow(double(s.z) - r.z, 2));
         if (why.empty() && s.dead != r.dead) why = "dead";
         if (why.empty() && s.grounded != r.grounded) why = "grounded";
+        if (why.empty() && bitExact && (std::memcmp(&s.x, &r.x, sizeof(float)) ||
+            std::memcmp(&s.y, &r.y, sizeof(float)) || std::memcmp(&s.z, &r.z, sizeof(float)))) why = "position bits at play-ready";
         if (why.empty() && dist > kPositionLimit) why = "position";
     }
     rep.maxDist = std::max(rep.maxDist, dist);
     if (!why.empty() && !rep.diverged) {
         rep.diverged = true;
         rep.firstDivergenceRow = k;
+        rep.firstDivergenceTapeRow = rep.startRow + k;
         rep.firstDivergenceDist = dist;
         rep.firstDivergenceWhy = why;
         rep.firstReplayStage = s.stage;
         rep.firstRecordedStage = r.stage;
         rep.firstReplay[0] = s.x; rep.firstReplay[1] = s.y; rep.firstReplay[2] = s.z;
         rep.firstRecorded[0] = r.x; rep.firstRecorded[1] = r.y; rep.firstRecorded[2] = r.z;
-        if (wholeSession()) mError = "state divergence at route row " + std::to_string(p.start + k) + ": " + why;
+        if (wholeSession()) mError = "state divergence at route row " + std::to_string(rep.startRow + k) + ": " + why;
     }
+}
+
+Step Session::startPlay(const SeamState& s) {
+    const auto& plan = mPlan[mSegIndex];
+    auto& report = mReport[mSegIndex];
+    report.playReadyChecked = true;
+    report.playState = s;
+    report.replayPlayStart = mSeams - 1;
+    report.cinematicFrames = report.replayPlayStart - report.replaySceneStart;
+    report.playReplay[0] = s.x; report.playReplay[1] = s.y; report.playReplay[2] = s.z;
+    report.rngNatural = s.rngSeed;
+    report.rngRecorded = plan.playSeed;
+    const auto& recorded = mRoute[plan.playRow];
+    report.playReadyPositionExact = !std::memcmp(&s.x, &recorded.x, sizeof(float)) &&
+        !std::memcmp(&s.y, &recorded.y, sizeof(float)) && !std::memcmp(&s.z, &recorded.z, sizeof(float));
+    mPointerReadMade = false; // the boundary checks state, before any reads from the re-anchored gameplay stream
+    compare(s, 0, true);
+    report.playReadyStateMatches = !report.diverged;
+    if (!mError.empty()) { mDone = true; return {Step::Kind::GaveUp}; }
+    mReplay->seekForwardFrame(plan.offset + plan.playRow - plan.start);
+    mStrict = true;
+    mSegRow = 1;
+    mPendingSeed = true;
+    mConsumedFrame = UINT64_MAX;
+    Step step;
+    step.kind = Step::Kind::Start;
+    step.seed = plan.playSeed;
+    return step;
+}
+
+bool Session::acknowledgeSeed(std::uint32_t seed) {
+    if (!mPendingSeed) return mError.empty();
+    mPendingSeed = false;
+    auto& r = mReport[mSegIndex];
+    r.rngReadback = seed;
+    r.rngCheckpointVerified = seed == r.rngRecorded;
+    if (!r.rngCheckpointVerified) {
+        r.diverged = true;
+        r.firstDivergenceRow = 0;
+        r.firstDivergenceTapeRow = r.startRow;
+        r.firstDivergenceWhy = "RNG checkpoint read-back at play-ready";
+        r.firstReplayStage = r.firstRecordedStage = r.stage;
+        for (int i = 0; i < 3; ++i) { r.firstReplay[i] = r.playReplay[i]; r.firstRecorded[i] = r.playReplay[i]; }
+        mError = r.firstDivergenceWhy;
+        mDone = true;
+    }
+    return r.rngCheckpointVerified;
 }
 
 Step Session::seam(const SeamState& s) {
     Step step;
     ++mSeams;
     if (mDone) return step;
+    if (mPendingSeed) {
+        inputFailure("play-ready RNG checkpoint was not acknowledged", s);
+        mDone = true;
+        return {Step::Kind::GaveUp};
+    }
     if (mError.empty()) {
         try { mReplay->endFrame(); } catch (const std::exception& e) { inputFailure(e.what(), s); }
     }
@@ -360,6 +437,20 @@ Step Session::seam(const SeamState& s) {
     }
     const auto& plan = mPlan[mSegIndex];
     if (mActive) {
+        if (!mStrict) {
+            if (s.playReady) return startPlay(s);
+            ++mSegRow;
+            if (++mWaitSeams > kWaitSeamLimit || s.stage != mMeta.segments[plan.index].stage ||
+                s.scenario != mMeta.segments[plan.index].scenario) {
+                inputFailure("scene never reached its recorded play-ready seam", s);
+                mDone = true;
+                return {Step::Kind::GaveUp};
+            }
+            // A longer host cinematic gets neutral input after the recorded cinematic reads end. Gameplay reads begin
+            // only after the actual play-ready state passes; a shorter cinematic skips only the remaining arrival reads.
+            if (mReplay->frame() >= plan.offset + plan.playRow - plan.start) mReplay->pauseInputs();
+            return step;
+        }
         compare(s, mSegRow);
         ++mSegRow;
         if (!mError.empty()) { mDone = true; step.kind = Step::Kind::GaveUp; return step; }
@@ -398,11 +489,17 @@ Step Session::seam(const SeamState& s) {
         mPointerReadMade = false;
         mSegRow = 0;
         mReport[mSegIndex].started = true;
+        mReport[mSegIndex].replaySceneStart = mSeams - 1;
+        mStrict = !plan.hasPlayReady;
         mReplay->startInputs();
         step.kind = Step::Kind::Start;
         step.seed = seg.seed;
         step.restoreSeed = !wholeSession() || seg.hasSeed;
-        compare(s, mSegRow);  // row 0, the sync seam, is compared with the recorded start row
+        if (mStrict) compare(s, mSegRow);  // menus compare immediately; arrivals compare only at play-ready
+        else {
+            if (s.playReady) return startPlay(s);
+            if (plan.playRow == plan.start) mReplay->pauseInputs();
+        }
         ++mSegRow;
         if (!mError.empty()) { mDone = true; step.kind = Step::Kind::GaveUp; }
         return step;
@@ -424,8 +521,10 @@ void Session::inputFailure(const std::string& why, const SeamState& observed) {
     if (r.diverged) return;
     r.diverged = true;
     r.firstDivergenceRow = mSegRow;
+    r.firstDivergenceTapeRow = mStrict ? r.startRow + std::min(mSegRow, r.frames)
+                                     : mPlan[mSegIndex].start + std::min(mSegRow, mPlan[mSegIndex].frames);
     r.firstDivergenceWhy = why + " (position is last observed seam; KPAD read failed before next seam)";
-    const auto& recorded = mRoute[mPlan[mSegIndex].start + std::min(mSegRow, mPlan[mSegIndex].frames)];
+    const auto& recorded = mRoute[r.firstDivergenceTapeRow];
     r.firstReplayStage = observed.stage;
     r.firstRecordedStage = recorded.stage;
     r.firstReplay[0] = observed.x; r.firstReplay[1] = observed.y; r.firstReplay[2] = observed.z;
@@ -508,20 +607,35 @@ std::string Session::reportText() const {
 }
 std::string Session::reportJson() const {
     std::ostringstream out;
+    out << std::setprecision(9);
     out << "{\n  \"mode\": " << jsonString(wholeSession() ? "whole-session" : "segments")
+        << ",\n  \"anchor_policy\": " << jsonString(wholeSession() ? "interactive-and-play-ready-v1" : "legacy-play-ready")
         << ",\n  \"position_limit\": " << kPositionLimit << ",\n  \"finished\": " << (mDone && mError.empty() ? "true" : "false")
         << ",\n  \"stopped\": " << jsonString(mError) << ",\n  \"segments\": [";
     for (std::size_t i = 0; i < mReport.size(); ++i) {
         const auto& r = mReport[i];
+        const auto& p = mPlan[i];
+        const auto stateJson = [&](const auto& s) {
+            const auto bits = [](float f) { std::uint32_t b; std::memcpy(&b, &f, 4); return b; };
+            out << "{\"stage\":" << jsonString(s.stage) << ",\"scenario\":" << s.scenario
+                << ",\"valid\":" << (s.valid ? "true" : "false") << ",\"grounded\":" << (s.grounded ? "true" : "false")
+                << ",\"dead\":" << (s.dead ? "true" : "false") << ",\"position\":[" << s.x << ',' << s.y << ',' << s.z
+                << "],\"position_bits\":[" << bits(s.x) << ',' << bits(s.y) << ',' << bits(s.z) << "]}";
+        };
         out << (i ? "," : "") << "\n    {\"segment\": " << r.index << ", \"stage\": " << jsonString(r.stage) << ", \"scenario\": " << r.scenario
             << ", \"anchor\": " << jsonString(!wholeSession() ? "play-ready" : mMeta.segments[mPlan[i].index].sceneReady ? "initialize-End" : "scene-identity")
             << ", \"rng_checkpoint_available\": " << (mMeta.segments[mPlan[i].index].hasSeed ? "true" : "false")
+            << ", \"scene_anchor_recorded_frame\": " << r.sceneStartRow
+            << ", \"scene_anchor_replay_frame\": " << (r.started ? std::to_string(r.replaySceneStart) : "null")
+            << ", \"scene_anchor_frame_offset\": " << (r.started ? std::to_string(static_cast<std::int64_t>(r.replaySceneStart) - static_cast<std::int64_t>(r.sceneStartRow)) : "null")
+            << ", \"comparison_anchor\": " << jsonString(!wholeSession() || r.requiresPlayReady ? "play-ready" : "scene-start")
+            << ", \"play_ready_required\": " << (r.requiresPlayReady ? "true" : "false")
             << ", \"route_start_row\": " << r.startRow << ", \"tape_frames\": " << r.frames << ", \"started\": " << (r.started ? "true" : "false")
             << ", \"completed\": " << (r.completed ? "true" : "false") << ", \"rows_compared\": " << r.rowsCompared
             << ", \"matched_rows\": " << (r.diverged ? r.firstDivergenceRow : r.rowsCompared) << ", \"diverged\": " << (r.diverged ? "true" : "false")
             << ", \"first_divergence_row\": " << (r.diverged ? std::to_string(r.firstDivergenceRow) : std::string("null"))
             << ", \"first_divergence_why\": " << jsonString(r.firstDivergenceWhy) << ", \"first_divergence_dist\": " << r.firstDivergenceDist
-            << ", \"first_divergence_frame\": " << (r.diverged ? std::to_string(r.startRow + r.firstDivergenceRow) : "null")
+            << ", \"first_divergence_frame\": " << (r.diverged ? std::to_string(r.firstDivergenceTapeRow) : "null")
             << ", \"first_divergence_stage_replayed\": " << jsonString(r.firstReplayStage)
             << ", \"first_divergence_stage_recorded\": " << jsonString(r.firstRecordedStage)
             << ", \"first_divergence_replayed\": [" << r.firstReplay[0] << ", " << r.firstReplay[1] << ", " << r.firstReplay[2]
@@ -532,7 +646,28 @@ std::string Session::reportJson() const {
             << ", \"last_pointer_recorded\": [" << r.recordedPointer[0] << ", " << r.recordedPointer[1] << "]"
             << ", \"last_pointer_replayed\": [" << r.replayedPointer[0] << ", " << r.replayedPointer[1] << "]"
             << ", \"last_pointer_valid\": " << r.pointerValid
-            << ", \"max_position_error\": " << r.maxDist << "}";
+            << ", \"max_position_error\": " << r.maxDist
+            << ", \"play_ready_state_check\": ";
+        if (!r.requiresPlayReady) out << "null";
+        else {
+            out << "{\"checked\":" << (r.playReadyChecked ? "true" : "false")
+                << ",\"passed\":" << (r.playReadyStateMatches && r.rngCheckpointVerified ? "true" : "false")
+                << ",\"recorded_frame\":" << p.playRow
+                << ",\"replay_frame\":" << (r.playReadyChecked ? std::to_string(r.replayPlayStart) : "null")
+                << ",\"frame_offset\":" << (r.playReadyChecked ? std::to_string(static_cast<std::int64_t>(r.replayPlayStart) - static_cast<std::int64_t>(p.playRow)) : "null")
+                << ",\"arrival_recorded_frames\":" << p.playRow - p.start
+                << ",\"arrival_replay_frames\":" << r.cinematicFrames
+                << ",\"arrival_frame_offset\":" << (r.playReadyChecked ? std::to_string(static_cast<std::int64_t>(r.cinematicFrames) - static_cast<std::int64_t>(p.playRow - p.start)) : "null")
+                << ",\"position_bit_exact\":" << (r.playReadyPositionExact ? "true" : "false") << ",\"expected\":";
+            stateJson(mRoute[p.playRow]);
+            out << ",\"replayed\":";
+            if (r.playReadyChecked) stateJson(r.playState); else out << "null";
+            out << ",\"rng\":{\"recorded\":" << r.rngRecorded << ",\"natural_before_restore\":" << r.rngNatural
+                << ",\"natural_observed\":" << (r.playState.rngObserved ? "true" : "false")
+                << ",\"readback_after_restore\":" << r.rngReadback
+                << ",\"verified\":" << (r.rngCheckpointVerified ? "true" : "false") << "}}";
+        }
+        out << "}";
     }
     out << "\n  ]\n}\n";
     return out.str();

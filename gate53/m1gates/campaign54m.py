@@ -87,7 +87,7 @@ def main():
     # Candidate replay receipts cannot satisfy frozen54 identity. SOL B owns its runner.
     if a.candidate_app:
      assert a.candidate_sha and a.candidate_source, 'candidate app requires explicit SHA and source'
-     command('candidate-normal-route',[sys.executable,'-B',HERE/'normal_tape_gate.py',a.candidate_app,a.candidate_sha,a.candidate_source,a.label+'-candidate-normal','--build-kind','server-candidate','--tape',a.tape]+(['--allow-incomplete'] if a.allow_incomplete_tape else []))
+     command('candidate-normal-route',[sys.executable,'-B',HERE/'normal_tape_gate.py',a.candidate_app,a.candidate_sha,a.candidate_source,a.label+'-candidate-normal','--build-kind','server-candidate','--tape',a.tape,'--bound','600']+(['--allow-incomplete'] if a.allow_incomplete_tape else []))
      a.tape_result=ROOT/(a.label+'-candidate-normal')/'RESULT.json'
     if a.candidate_original_app:
      assert a.candidate_original_sha and a.candidate_source,'candidate original app requires its SHA and source'

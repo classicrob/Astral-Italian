@@ -66,8 +66,8 @@ copy_newest "$support/Crashes" 3 "$out/crashes"
 # macOS's own crash reports for the app (these also say what the system saw), newest three
 if [ -d "$HOME/Library/Logs/DiagnosticReports" ]; then
     # only the last 14 days, and only the app itself (Petari-... / Astral Italian-...), not other tools' reports
-    find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f -mtime -14 \( -name 'Petari-*' -o -name 'Astral Italian-*' \) 2>/dev/null \
-        | xargs -I{} ls -1dt "{}" 2>/dev/null | head -n 3 | while IFS= read -r f; do cp "$f" "$out/crashes/" 2>/dev/null; done
+    find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f -mtime -14 \( -name 'Petari-*' -o -name 'Astral Italian-*' \) -print0 2>/dev/null \
+        | xargs -0 ls -1t 2>/dev/null | head -n 3 | while IFS= read -r f; do cp "$f" "$out/crashes/" 2>/dev/null; done
 fi
 for f in mods.txt settings.txt display.txt controls.txt camera.txt; do
     [ -f "$support/$f" ] && cp "$support/$f" "$out/settings/"

@@ -170,7 +170,7 @@ def patch_fast_path(text, here):
             raise ValueError(f'Aurora pipeline fast-path anchor mismatch: {old}')
         return text.replace(old, new)
 
-    text = f'#include "{here / "pipeline_fast_path.hpp"}"\n#include "{here / "pipeline_first_use.hpp"}"\n' + text
+    text = f'#include "{here / "pipeline_fast_path.hpp"}"\n#include "{here / "pipeline_first_use.hpp"}"\nnamespace aurora::gfx {{ uint64_t petari_pipeline_recording_frame_id() noexcept; }}\n' + text
     old = '''PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
   petari_note_stage_config('''
     text = replace(old, '''static PipelineRef petari_find_pipeline_full(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
@@ -184,7 +184,7 @@ def patch_fast_path(text, here):
 // resolve_pipeline computes, without repeating that bookkeeping.
 PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
   if (PetariFirstUse::capturePath())
-    PetariFirstUse::note(xxh3_hash(config, static_cast<HashType>(ShaderType::GX)), gx::petari_uber_recording_frame());
+    PetariFirstUse::note(xxh3_hash(config, static_cast<HashType>(ShaderType::GX)), petari_pipeline_recording_frame_id());
   const auto petariKey = xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX)));
   const auto petariGeneration = PetariFastPipeline::current();
   if (PetariFastPipeline::hit(petariKey, petariGeneration)) {

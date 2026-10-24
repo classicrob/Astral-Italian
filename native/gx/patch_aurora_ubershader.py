@@ -33,6 +33,8 @@ else:
   replace('  begin_pipeline_frame();','  gx::petari_uber_set_recording_frame(frame.frameId);\n  begin_pipeline_frame();')
   replace('    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);', '    gx::petari_uber_begin_frame(g_framePackets[frameSlot].frameId);\n    webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);')
   replace('    auto& packet = g_framePackets[frameSlot];','    gx::petari_uber_end_frame();\n    auto& packet = g_framePackets[frameSlot];')
+ if kind=='recording':
+  text += '\n' + (here/'pipeline_first_use_clock.inc').read_text()
  if kind=='command_processor':
   replace('  bool hasPipeline = false;', '  bool hasPipeline = false;\n  bool specializedReady = false;')
   replace('    cache.pipelineRef = gfx::pipeline_ref(cache.config);', '    cache.pipelineRef = gfx::pipeline_ref(cache.config);\n    cache.specializedReady = false;')

@@ -28,12 +28,12 @@ import time
 
 TOOLS = Path(__file__).resolve().parent
 SCRIPT = TOOLS / 'perf_sweep_move.script'
-VERSION = 1
+VERSION = 2
 QUIT_PID = r'''
 ObjC.import('AppKit');
 function run(argv) {
   var pid=Number(argv[0]), expectedPath=argv[1], expectedId=argv[2];
-  if (!Number.isInteger(pid) || pid<=1 || expectedId!=='dev.petari.Petari.perfrec') throw new Error('Invalid recording owner');
+  if (!Number.isInteger(pid) || pid<=1 || !/^dev\.petari\.Petari\.perfrec[0-9]*$/.test(expectedId)) throw new Error('Invalid recording owner');
   var app=$.NSRunningApplication.runningApplicationWithProcessIdentifier(pid);
   if (!app || app.isTerminated || ObjC.unwrap(app.bundleIdentifier)!==expectedId || ObjC.unwrap(app.bundleURL.path)!==expectedPath)
     throw new Error('Refusing PID outside the exact recording perf app');
@@ -64,13 +64,20 @@ def write(path, value):
 def observations(path, stage):
     rows = [json.loads(line) for line in Path(path).read_text().splitlines()]
     if not rows or rows[0] != {'event': 'header', 'version': VERSION, 'gx_config_version': 13,
-                               'clock': 'fifo-renderer-frame-id', 'source': 'find_pipeline-before-memo'}:
+                               'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo'}:
         raise ValueError('invalid first-use header')
     if rows[-1].get('event') != 'end' or rows[-1].get('complete') is not True:
         raise ValueError('capture lacks normal-exit completion footer')
     data = rows[1:-1]
     if rows[-1].get('records') != len(data):
         raise ValueError('footer record count mismatch')
+    footer = rows[-1]
+    for field in ('clock_first_frame', 'clock_last_frame', 'clock_transitions', 'lookup_calls'):
+        if type(footer.get(field)) is not int or not 0 <= footer[field] < (1 << 64):
+            raise ValueError('missing/invalid clock progression evidence')
+    if not (footer['clock_last_frame'] > footer['clock_first_frame'] and
+            0 < footer['clock_transitions'] < footer['lookup_calls'] and footer['lookup_calls'] >= len(data)):
+        raise ValueError('capture clock did not progress')
     visits = {}
     for row in data:
         if row.get('event') != 'first_use' or not re.fullmatch(r'[A-Za-z0-9_-]{1,96}', row.get('stage', '')):
@@ -80,6 +87,8 @@ def observations(path, stage):
                 raise ValueError('invalid frame/visit integer')
         if row['frame'] - row['origin_frame'] != row['relative_frame'] or row['relative_frame'] >= 0xFFFFFFFF:
             raise ValueError('incoherent/unrepresentable frame origin')
+        if not footer['clock_first_frame'] <= row['frame'] <= footer['clock_last_frame']:
+            raise ValueError('recorded frame outside clock progression')
         if not re.fullmatch(r'[0-9a-f]{16}', row.get('config', '')):
             raise ValueError('invalid config hash')
         visit = visits.setdefault((row['stage'], row['visit']), {'origin': row['origin_frame'], 'configs': {}})
@@ -87,6 +96,8 @@ def observations(path, stage):
             raise ValueError('inconsistent origin/duplicate config in visit')
         visit['configs'][row['config']] = row['relative_frame']
     target = [v for (s, _), v in visits.items() if s == stage]
+    if not any(row['frame'] > 0 for row in data):
+        raise ValueError('all recorded frame IDs are zero')
     if len(target) != 1 or not target[0]['configs']:
         raise ValueError('expected one nonempty target-stage visit')
     return target[0]['configs']

@@ -26,11 +26,12 @@ class Build(unittest.TestCase):
         self.arms = []
         for index in (1, 2):
             name = f'warm-{index}'; folder = self.batch / 'A' / name; folder.mkdir(parents=True)
-            capture = [{'event': 'header', 'version': 1, 'gx_config_version': 13,
-                        'clock': 'fifo-renderer-frame-id', 'source': 'find_pipeline-before-memo'}]
+            capture = [{'event': 'header', 'version': 2, 'gx_config_version': 13,
+                        'clock': 'active-frame-packet-id', 'source': 'find_pipeline-before-memo'}]
             capture += [{'event': 'first_use', 'stage': 'A', 'visit': 1, 'origin_frame': 480, 'frame': 480+n,
                          'relative_frame': n, 'config': f'{key:016x}'} for n, key in enumerate((11, 12))]
-            capture += [{'event': 'end', 'complete': True, 'records': 2}]
+            capture += [{'event': 'end', 'complete': True, 'records': 2, 'clock_first_frame': 480,
+                         'clock_last_frame': 490, 'clock_transitions': 1, 'lookup_calls': 2}]
             (folder / 'first-use.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in capture))
             (folder / 'app.log').write_text('[input-script] done after 970 frames\n')
             (folder / 'frames.csv').write_text('frame,pipeline_wait_ms\n1,0.000\n')

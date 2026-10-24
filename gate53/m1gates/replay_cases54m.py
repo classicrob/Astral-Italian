@@ -7,6 +7,19 @@ re-signed hashes. Never changes frozen54 results or invokes host input.
 import argparse,json,os,re,shutil,subprocess,sys
 from common import *
 
+ANCHOR_POLICY='interactive-and-play-ready-v1'
+
+def anchor_checks(report,required_play_stage=None):
+ parts=report.get('segments',[])
+ checks={'anchor_policy_applied':report.get('anchor_policy')==ANCHOR_POLICY,
+         'play_ready_state_checks':bool(parts) and all(s.get('play_ready_required') is False or
+          (s.get('play_ready_required') is True and
+           all((s.get('play_ready_state_check') or {}).get(k) is True for k in ('checked','passed','position_bit_exact')) and
+           ((s.get('play_ready_state_check') or {}).get('rng') or {}).get('verified') is True) for s in parts)}
+ if required_play_stage:
+  checks['requested_play_ready_anchor']=any(s.get('stage')==required_play_stage and s.get('play_ready_required') is True for s in parts)
+ return checks
+
 def candidate(src,expected,source):
  src=src.resolve();assert src.is_relative_to(ROOT/'candidates'), 'use PORT server-built candidate under m1g/candidates'
  assert re.fullmatch('[0-9a-f]{40}',source)
@@ -30,6 +43,7 @@ def replay(app,out,tape,stage,allow_incomplete,warm=None):
  proc=run(app,out,stage=stage,scenario=1,copied=True,extra=env,warm=warm,cold=not warm,seconds=540)
  report=json.loads((out/'replay/divergence.json').read_text());parts=report.get('segments',[]);text=(out/'app.log').read_text(errors='replace');rs=rows(out/'route.csv')
  checks={'completed_process':proc['completed'],'no_faults':proc['no_faults'],'seed_unchanged':proc['seed_unchanged'],'binary_unchanged':proc['binary_unchanged'],'tape_unchanged':tree(tape)==before,'whole_session_replay':report.get('mode')=='whole-session' and 'jump cut' not in text,'replay_completed':report.get('finished') is True and bool(parts) and all(s.get('started') and s.get('completed') and s.get('rows_compared')==s.get('tape_frames',-2)+1 for s in parts),'no_divergence':not report.get('stopped') and bool(parts) and not any(s.get('diverged') for s in parts)}
+ checks.update(anchor_checks(report,stage if stage=='RedBlueExGalaxy' else None))
  result={'passed':all(checks.values()),'checks':checks,'process':proc,'replay':report,'build_kind':'server-candidate','tape':str(tape),'tape_exe_sha256':meta.get('exe_sha256'),'app_sha256':sha(app/'Contents/MacOS/Petari'),'tape_exe_hash_matches_app':meta.get('exe_sha256')==sha(app/'Contents/MacOS/Petari'),'hash_comparison_gated':False,'recording_complete':meta.get('complete'),'allow_incomplete':allow_incomplete,'launch_stage':stage,'nice':os.getpriority(os.PRIO_PROCESS,0),'host_input_used':False}
  result['first_divergence']=next((s for s in parts if s.get('diverged')),None)
  write(out/'RESULT.json',result)

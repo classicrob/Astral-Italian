@@ -30,6 +30,8 @@ bash gate53/m1gates/m1gates54.sh tape-candidate-r1 --only tape \
 
 `--allow-incomplete-tape` is only for the server recording harness's explicitly documented termination checkpoint. SOL B's runner owns tape validation and labels its use. Candidate results never satisfy frozen54 executable identity. Add `--candidate-original-app /absolute/path/under/m1g/candidates/Petari.app --candidate-original-sha FULL_ORIGINAL_EXE_SHA256` to run the intro-skip twins and fresh/warm pointer replay adapters too; they copy the server candidate to SOL A’s perfm1a namespace.
 
+PORT's revised candidate anchor policy is `interactive-and-play-ready-v1`: interactive scenes retain per-frame comparisons; non-interactive arrivals feed recorded reads until a bit-exact play-ready state check, followed by RNG restore/read-back and input re-anchoring. The intro and pointer adapters require that policy and successful state/RNG checks wherever play-ready is required. Each intro arm must include its RedBlueEx play-ready anchor. The full replay report, including every `play_ready_state_check`, recorded/replayed state, RNG evidence and frame offsets, remains in both `replay/divergence.json` and the run's `RESULT.json`. These checks await SOL B's three passing dev runs and PORT's server-built candidate; adapter tests alone are not acceptance.
+
 Evidence is under `~/MacioGalaxy2-gamedata/port53/m1g/`:
 
 - `apps/frozen54-perfm1a/PREP.json`: immutable frozen/perf copy identity and resource hashes.

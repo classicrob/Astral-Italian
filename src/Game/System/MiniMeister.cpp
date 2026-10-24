@@ -113,15 +113,11 @@ void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
     TVec3f root;
     MR::extractMtxTrans(MR::getJointMtx(this, "All_Root"), &root);
     MR::extractMtxTrans(MR::getJointMtx(this, "Center"), &center);
-    TVec3f offset = root - center;
-    TVec3f pos = offset + rPos;
-    MR::setPosition(this, pos);
+    MR::setPosition(this, (root - center) + rPos);
     TVec3f direction = MR::getCamPos() - mPosition;
     MR::normalizeOrZero(&direction);
     if (!MR::isSameDirection(direction, mGravity, 0.01f)) {
-        TVec3f negative;
-        negative.negate(direction);
-        if (!MR::isSameDirection(negative, mGravity, 0.01f)) {
+        if (!MR::isSameDirection(-direction, mGravity, 0.01f)) {
             mFront.set<f32>(direction);
         }
     }
@@ -129,13 +125,14 @@ void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
 
 // NONMATCHING: TVec2 word/FP copy lowering and stack layout (FP arithmetic order/grouping checked).
 void MiniMeister::updateTalkScreenPos(f32 ratio) {
-    TVec2f screen(mScreenPos);
+    TVec2f screen;
+    screen = mScreenPos;
     f32 halfFovy = MR::getFovy();
     halfFovy *= 0.5f;
     f32 halfTan = MR::tan(0.017453292f * halfFovy);
+    TVec3f anchor;
     TVec3f worldPos;
     MR::calcWorldPositionFromCenterScreen(&worldPos, screen, (875.0f * MR::tan(0.3926991f)) / halfTan);
-    TVec3f anchor;
     anchor.set<f32>(mOwner->mRocket->mPosition + sTalkOffset);
     TVec2f anchorScreen;
     MR::calcScreenPosition(&anchorScreen, anchor);
@@ -145,14 +142,10 @@ void MiniMeister::updateTalkScreenPos(f32 ratio) {
     f32 distB = (worldPos - MR::getCamPos()).length();
     f32 scale = distB / distA;
     f32 blend = scale + (ratio * (1.0f - scale));
-    TVec2f mix = anchorScreen * (1.0f - blend) + worldScreen * blend;
     TVec3f dir;
-    MR::calcWorldRayDirectionFromScreen(&dir, mix);
+    MR::calcWorldRayDirectionFromScreen(&dir, anchorScreen * (1.0f - blend) + worldScreen * blend);
     MR::normalize(&dir);
-    TVec3f scaled = dir * (1.0f / blend);
-    TVec3f delta = scaled * distB;
-    TVec3f pos = MR::getCamPos() + delta;
-    calcPositionFromCamera(pos);
+    calcPositionFromCamera(MR::getCamPos() + (dir * (1.0f / blend)) * distB);
 }
 
 // fn_804E3F80: starts one of the talk actions by type; always returns 1.

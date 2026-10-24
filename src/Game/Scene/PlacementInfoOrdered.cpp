@@ -117,12 +117,14 @@ void PlacementInfoOrdered::sort() {
         sets[i++] = &*it;
     }
 
-    u32 gap = 13;
+    s32 gap = 13;
     while (gap < count) {
         gap = gap * 3 + 1;
     }
 
-    for (s32 h = (s32)gap / 9; h > 0; h /= 3) {
+    gap /= 9;
+    for (; gap > 0; gap /= 3) {
+        s32 h = gap;
         for (s32 j = h; j < count; j++) {
             SameIdSet* pSet = sets[j];
             s32 k = j - h;

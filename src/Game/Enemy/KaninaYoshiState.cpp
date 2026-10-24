@@ -152,7 +152,8 @@ void KaninaYoshiState::followYoshiMouth() {
     MR::calcYoshiTongueTipMtx(&mtx);
     mtx.getTrans(mHost->mPosition);
     mtx.getEuler(mHost->mRotation);
-    MR::setRotation(mHost, mHost->mRotation * 57.29578f);
+    Kanina* host = mHost;
+    MR::setRotation(host, host->mRotation * 57.29578f);
 }
 
 void KaninaYoshiState::exeWait() {}

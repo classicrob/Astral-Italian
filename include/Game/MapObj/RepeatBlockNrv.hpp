@@ -35,7 +35,9 @@ namespace NrvRepeatBlock {
         virtual void execute(Spine* pSpine) const {
             LiveActor* pActor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
             f32 rate = MR::getBtkRate(pActor);
-            if (rate + MR::getBtkFrame(pActor) <= 0.0f) {
+            f32 frame = MR::getBtkFrame(pActor);
+            frame += rate;
+            if (frame <= 0.0f) {
                 pActor->kill();
             }
         }

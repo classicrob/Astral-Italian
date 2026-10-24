@@ -17,7 +17,7 @@
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 YoshiTongueTarget::YoshiTongueTarget(YoshiLockOnManager* manager)
     : mCapacity(0), mCount(0), mIndex(0), mTargets(nullptr), mManager(manager), mSensor(nullptr) {
-    mCapacity = manager->getTargetCapacity();
+    mCapacity = YoshiLockOnManager::getTargetCapacity();
     mTargets = new YoshiLockOnTargetDesc[mCapacity];
 }
 void YoshiTongueTarget::takeLockOnTargets() { mCount=mManager->takeActiveTargets(mTargets,mCapacity);mIndex=0; }
@@ -28,7 +28,7 @@ void YoshiTongueTarget::sendReleaseEatenMessage() {sendMessageToCurrentTarget(0x
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiTongueTarget::advanceTargetIfMore() {if(mCount-1>mIndex)++mIndex;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-void YoshiTongueTarget::cancelTargetAndAdvance() {sendMessageToCurrentTarget(0xFC);++mIndex;}
+bool YoshiTongueTarget::cancelTargetAndAdvance() {bool sent=sendMessageToCurrentTarget(0xFC);++mIndex;return sent;}
 bool YoshiTongueTarget::hasMultipleRemainingTargets()const{return mCount-mIndex>1;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 bool YoshiTongueTarget::hasCurrentTarget()const{return mCount>mIndex;}

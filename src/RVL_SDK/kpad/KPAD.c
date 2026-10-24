@@ -25,7 +25,6 @@ u16 kp_ah_circle_ct = 100;
 BOOL kp_stick_clamp_cross = FALSE;
 
 f32 kp_err_outside_frame = 0.050f;
-f32 kp_err_dist_min;
 f32 kp_err_dist_max = 3.000f;
 f32 kp_err_dist_speed = 0.040f;
 f32 kp_err_first_inpr = 0.900f;
@@ -38,7 +37,6 @@ static Vec2 kobj_frame_min, kobj_frame_max;
 static f32 kp_err_dist_speed_1;
 static f32 kp_err_dist_speedM_1;
 static f32 kp_ah_circle_radius2;
-static f32 kp_dist_vv1;
 
 static s32 kp_fs_fstick_min = 15;
 static s32 kp_fs_fstick_max = 71;
@@ -56,31 +54,33 @@ static f32 kp_rm_acc_max = 3.4f;
 static f32 kp_fs_acc_max = 2.1f;
 
 KPADInsideStatus inside_kpads[4];
-static Vec2 Vec2_0 = {0.0f, 0.0f};
 static Mtx kp_fs_rot;
-static f32 kp_fs_revise_deg = 24.0f;
 
-static u8 kpadInitialized;
-static f64 wbcWeightWork;       // 807D6348: stability delta, then maximum sampled weight
-static f64 wbcWeightBaseline;   // 807D6350: adaptive baseline, then minimum sampled weight
-static f64 wbcTgcWeight;        // 807D6358
-static u16 wbcSampleCount;      // 807D6360
-static u8 wbcSetupRetryCount;   // 807D6362
-static s8 wbcCalibrationState; // 807D6363: temp request/settle/average/calibrated
-static u8 wbcSettleCount;       // 807D6364
-static u8 wbcTgcState;          // 807D6365: load/stability/sample
-static s16 wbcTgcTimeout;       // 807D6366
-static s8 wbcTgcResult;         // 807D6368
-static s8 wbcSetupState;        // 807D6369: request/verify/calibrate/ready
-static u8 wbcCommandPending;   // 807D636A
+static s32 kp_ext_trigger_min = 0;       // 807D6334
+static s32 kp_ext_axis_min = 0;          // 807D6338
+static u8 kpadInitialized = 0;
+static Vec2 Vec2_0 = {0.0f, 0.0f};
+static f64 wbcWeightWork = 0;       // 807D6348: stability delta, then maximum sampled weight
+static f64 wbcWeightBaseline = 0;   // 807D6350: adaptive baseline, then minimum sampled weight
+static f64 wbcTgcWeight = 0;        // 807D6358
+static u16 wbcSampleCount = 0;      // 807D6360
+static u8 wbcSetupRetryCount = 0;   // 807D6362
+static s8 wbcCalibrationState = 0; // 807D6363: temp request/settle/average/calibrated
+static u8 wbcSettleCount = 0;       // 807D6364
+static u8 wbcTgcState = 0;          // 807D6365: load/stability/sample
+static s16 wbcTgcTimeout = 0;       // 807D6366
+static s8 wbcTgcResult = 0;         // 807D6368
+static s8 wbcSetupState = 0;        // 807D6369: request/verify/calibrate/ready
+static u8 wbcCommandPending = 0;   // 807D636A
+static f32 kp_dist_vv1 = 0.0f;
+f32 kp_err_dist_min = 0.0f;
 static f64 wbcFilteredWeight[4]; // 80752450
 static f64 wbcSampleWeight[4];   // 80752470
+static s32 kp_ext_trigger_max = 256;     // 807D06DC
+static s32 kp_ext_axis_max = 1024;       // 807D06E0
 static f32 kp_wbc_average_count = 400.0f; // 807D06E4
 static u8 kp_wbc_setup_wait = 200;       // 807D06E8
-static s32 kp_ext_trigger_min = 0;       // 807D6334
-static s32 kp_ext_trigger_max = 256;     // 807D06DC
-static s32 kp_ext_axis_min = 0;          // 807D6338
-static s32 kp_ext_axis_max = 1024;       // 807D06E0
+static f32 kp_fs_revise_deg = 24.0f;
 static void KPADiControlWbcCallback(s32 chan, s32 result);
 static void KPADiUpdateTempWbcCallback(s32 chan, s32 result);
 
@@ -123,14 +123,6 @@ void KPADSetAccParam(s32 chan, f32 play_radius, f32 sensitivity) {
 void KPADEnableAimingMode(s32 chan) {
     inside_kpads[chan].aimReq = TRUE;
     inside_kpads[chan].aimEnabled = TRUE;
-}
-
-void KPADSetObjInterval(f32 interval) {
-    BOOL enabled = OSDisableInterrupts();
-    kp_obj_interval = interval;
-    kp_err_dist_min = interval / 0.383864f;
-    kp_dist_vv1 = interval / 0.383864f;
-    OSRestoreInterrupts(enabled);
 }
 
 static void calc_dpd2pos_scale(KPADInsideStatus* kp) {
@@ -906,7 +898,7 @@ void calc_obj_horizon(KPADInsideStatus* kp) {
     kp->obj_horizon.y = kp->sec_nrm_hori.y * vx - kp->sec_nrm_hori.x * vy;
 }
 
-void get_kobj(KPADInsideStatus* kp, DPDObject* wobj_p) {
+static void get_kobj(KPADInsideStatus* kp, DPDObject* wobj_p) {
     const f32 dpd_scale = 2.0f / (f32)KPAD_DPD_RESO_WX;
     const f32 dpd_cx = (f32)(KPAD_DPD_RESO_WX - 1) / (f32)KPAD_DPD_RESO_WX;
     const f32 dpd_cy = (f32)(KPAD_DPD_RESO_WY - 1) / (f32)KPAD_DPD_RESO_WX;
@@ -1628,6 +1620,14 @@ finish:
         *error = result;
     }
     return returnCount;
+}
+
+void KPADSetObjInterval(f32 interval) {
+    BOOL enabled = OSDisableInterrupts();
+    kp_obj_interval = interval;
+    kp_err_dist_min = interval / 0.383864f;
+    kp_dist_vv1 = interval / 0.383864f;
+    OSRestoreInterrupts(enabled);
 }
 
 // NONMATCHING: GPR/stack allocation, integer ring-offset strength reduction, and data order; canonical board globals and target ordering documented separately.

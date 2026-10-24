@@ -336,12 +336,7 @@ void StemFruitChild::exeAppear() {
     }
 
     f32 step = static_cast<f32>(getNerveStep());
-    TVec3f diff = mBaseScale - mScale;
-    TVec3f stepScale(diff);
-    stepScale.scale(step);
-    TVec3f scaled(stepScale);
-    scaled.scale(1.0f / 30.0f);
-    mScale.add(scaled);
+    mScale.add((mBaseScale - mScale).scaleInline(step).scaleInline(1.0f / 30.0f));
 
     if (MR::isGreaterEqualStep(this, 30)) {
         setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvWait));

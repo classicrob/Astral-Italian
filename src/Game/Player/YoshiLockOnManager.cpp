@@ -100,7 +100,7 @@ bool YoshiLockOnManager::tryLockOnProjectileTarget(YoshiLockOnTarget* target) {
     return tryLockOnSingleTarget(target, YoshiLockOnTargetType::Projectile, sDistance5);
 }
 
-u32 YoshiLockOnManager::getTargetCapacity() const {
+u32 YoshiLockOnManager::getTargetCapacity() {
     return 16;
 }
 

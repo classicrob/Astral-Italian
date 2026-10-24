@@ -277,7 +277,9 @@ void Battan::exeBattanWalk() {
             setNerve(GET_BATTAN_NERVE(BattanNrvFind));
             return;
         }
-        moveBattanOnRail(mWalkSpeed * 0.01f);
+        f32 speed = mWalkSpeed;
+        speed = 0.01f * speed;
+        moveBattanOnRail(speed);
         if (isRailEndReached()) {
             tryRailEndTurn();
         }
@@ -370,7 +372,9 @@ void Battan::exeBattanRun() {
                 setNerve(GET_BATTAN_NERVE(BattanNrvAttackSign));
                 return;
             }
-            moveBattanOnRail(mRunSpeed * 0.01f);
+            f32 speed = mRunSpeed;
+            speed = 0.01f * speed;
+            moveBattanOnRail(speed);
             if (isRailEndReached()) {
                 mIsTurnBack = true;
                 MR::zeroVelocity(this);

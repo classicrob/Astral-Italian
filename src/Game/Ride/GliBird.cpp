@@ -32,6 +32,12 @@ namespace {
     extern const f32 sPadBackLimit;
     extern const f32 sSideSpeedLimit;
     extern const f32 sControlFrontBlend;
+    extern const f32 sGroundApproachFar;
+    extern const f32 sGroundApproachNear;
+    extern const f32 sSoundSpeedMin;
+    extern const f32 sSoundSpeedMax;
+    extern const f32 sSoundTurnMin;
+    extern const f32 sSoundTurnMax;
     extern const f32 sReflectRate;
     extern const f32 sCollisionHeadOnThreshold;
     extern const f32 sCollisionPush;
@@ -212,10 +218,7 @@ void GliBird::control() {
         MR::preScaleMtx(mVolumeMtx, volumeScale);
     }
 
-    TVec3f gravityPart = mGravity * (1.0f - sControlFrontBlend);
-    TVec3f frontPart = mFront * sControlFrontBlend;
-    TVec3f checkDir(frontPart);
-    checkDir.add(gravityPart);
+    TVec3f checkDir = mFront * sControlFrontBlend + mGravity * (1.0f - sControlFrontBlend);
     MR::normalizeOrZero(&checkDir);
 
     bool isWater = false;
@@ -223,7 +226,7 @@ void GliBird::control() {
     s32 isHit = MR::calcMapHitAlongDirection(mPosition, &mGroundHitPos, checkDir, &checkUp, nullptr, &isWater, nullptr, 5000.0f);
     f32 dist = PSVECDistance(&mGroundHitPos, &mPosition);
 
-    if (isHit && dist < 5000.0f) {
+    if (isHit && dist < sGroundApproachFar) {
         if (!mIsNearGround || PSVECDistance(&mGroundSmoothPos, &mGroundHitPos) > 1000.0f) {
             mGroundSmoothPos = mGroundHitPos;
             mIsNearGround = true;
@@ -231,13 +234,11 @@ void GliBird::control() {
 
         MR::vecBlend(mGroundSmoothPos, mGroundHitPos, &mGroundSmoothPos, 0.15f);
         mApproachMtx.identity();
-        TVec3f offset = checkUp * 30.0f;
-        TVec3f effectPos(mGroundSmoothPos);
-        effectPos.add(offset);
-        MR::makeMtxUpNoSupportPos(&mApproachMtx, checkUp, effectPos);
+        MR::makeMtxUpNoSupportPos(&mApproachMtx, checkUp, mGroundSmoothPos + checkUp * 30.0f);
 
-        f32 rate = MR::clamp((dist - 2500.0f) / (5000.0f - 2500.0f), 0.0f, 1.0f);
-        s32 alpha = 255.0f * MR::getEaseInValue(1.0f - rate, 0.0f, 1.0f, 1.0f);
+        f32 rate = MR::clamp((dist - sGroundApproachNear) / (sGroundApproachFar - sGroundApproachNear), 0.0f, 1.0f);
+        rate = 1.0f - rate;
+        s32 alpha = 255.0f * MR::getEaseInValue(rate, 0.0f, 1.0f, 1.0f);
 
         if (isWater) {
             MR::tryEmitEffect(this, "WaterApproach");
@@ -259,11 +260,11 @@ void GliBird::control() {
     MR::startActionSound(this, "FlyLowSpeed", volume, -1, -1);
     MR::startActionSound(this, "FlyRustle", volume, -1, -1);
 
-    f32 speedRate = (speed - 10.0f) / (38.0f - 10.0f);
+    f32 speedRate = (speed - sSoundSpeedMin) / (sSoundSpeedMax - sSoundSpeedMin);
     speedRate = speedRate >= 0.0f ? speedRate : 0.0f;
     f32 speedClamp = speedRate >= 1.0f ? 1.0f : speedRate;
 
-    f32 turnRate = (MR::abs(mRollAngle) - 0.0f) / (25.0f - 0.0f);
+    f32 turnRate = (MR::abs(mRollAngle) - sSoundTurnMin) / (sSoundTurnMax - sSoundTurnMin);
     turnRate = turnRate >= 0.0f ? turnRate : 0.0f;
     f32 turnClamp = turnRate >= 1.0f ? 1.0f : turnRate;
 
@@ -695,7 +696,8 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     f32 speedRate = (mSpeed - sGlideSpeedMin) / (sGlideSpeedMax - sGlideSpeedMin);
     f32 ease = MR::getEaseOutValue(speedRate, 0.0f, 1.0f, 1.0f);
     ease = MR::getEaseOutValue(ease, 0.0f, 1.0f, 1.0f);
-    mPitchAngle = MR::clamp(mPitchAngle, -(sPitchAngleMin * ease), 60.0f);
+    ease = sPitchAngleMin * ease;
+    mPitchAngle = MR::clamp(mPitchAngle, -ease, 60.0f);
     MR::rotateVecDegree(&mDirFront, mFront, mSide, mPitchAngle);
 
     mYawAccel *= 0.98f;
@@ -728,13 +730,10 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     TVec3f sideTmp(0.0f);
     MR::makeAxisFrontUp(&sideTmp, &mDirUp, mDirFront, mDirUp);
 
-    TVec3f negUp = -mUp;
-    mVelocity.set(negUp);
+    mVelocity.set(-mUp);
     MR::attenuateVelocity(this, -mFriction);
-    TVec3f frontVel = mDirFront * mSpeed;
-    MR::addVelocity(this, frontVel);
-    TVec3f sideVel = mSide * mSideAccel;
-    MR::addVelocity(this, sideVel);
+    MR::addVelocity(this, mDirFront * mSpeed);
+    MR::addVelocity(this, mSide * mSideAccel);
 
     bool canRumble = !mNoRumble;
     if (MR::isEndGliBirdTutorialTalk()) {
@@ -1111,6 +1110,12 @@ namespace {
     const f32 sPadBackLimit = 0.7f;
     const f32 sSideSpeedLimit = 50.0f;
     const f32 sControlFrontBlend = 0.55f;
+    const f32 sGroundApproachFar = 5000.0f;
+    const f32 sGroundApproachNear = 2500.0f;
+    const f32 sSoundSpeedMin = 10.0f;
+    const f32 sSoundSpeedMax = 38.0f;
+    const f32 sSoundTurnMin = 0.0f;
+    const f32 sSoundTurnMax = 25.0f;
     const f32 sReflectRate = 1.0f;
     const f32 sCollisionHeadOnThreshold = 0.08f;
     const f32 sCollisionPush = 30.0f;

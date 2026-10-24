@@ -38,7 +38,9 @@ void RepeatBlockAtom::startDisappear(RepeatBlock* host, s32 direction) {
 void RepeatBlockAtom::exeAppear() {
     f32 frameMax = MR::getBtkFrameMax(this);
     f32 rate = MR::getBtkRate(this);
-    if (rate + MR::getBtkFrame(this) >= frameMax) {
+    f32 frame = MR::getBtkFrame(this);
+    frame += rate;
+    if (frame >= frameMax) {
         setNerve(&NrvRepeatBlock::RepeatBlockNrvAtomWait::sInstance);
     }
 }

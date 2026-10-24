@@ -558,8 +558,9 @@ void __wpadGetExtType(s32 chan, s32 result) {
                     p_cb->trnFormatSelector = 0;
                 } else _devType[chan] = 251;
                 break;
-            case 5:
-                if (data[14] == 4 || data[14] == 5 || data[14] == 7) {
+            case 5: {
+                s32 mode = data[14];
+                if ((4 <= mode && mode <= 5) || mode == 7) {
                     _devType[chan] = 5;
                 } else {
                     _devType[chan] = 251;
@@ -571,6 +572,7 @@ void __wpadGetExtType(s32 chan, s32 result) {
                 _mplsExtensionSubtype[chan] = data[8];
                 p_cb->mplsInitTicks = 0;
                 break;
+            }
             default: _devType[chan] = 251; break;
             }
         }
@@ -1316,28 +1318,34 @@ void __parse_cl_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
     switch (mode) {
     case 2:
         CL_STATUS->clLStickX = (s16)((s16)(data[0] << 2) & (s16)0xFFFC) | (data[4] & 3);
-        CL_STATUS->clRStickX = (s16)((s16)(data[1] << 2) & (s16)0xFFFC) | ((data[4] >> 2) & 3);
-        CL_STATUS->clLStickY = (s16)((s16)(data[2] << 2) & (s16)0xFFFC) | ((data[4] >> 4) & 3);
+        CL_STATUS->clRStickX = (s16)((s16)(data[1] << 2) & (s16)0xFFFC) | ((s16)(data[4] >> 2) & 3);
+        CL_STATUS->clLStickY = (s16)((s16)(data[2] << 2) & (s16)0xFFFC) | ((s16)(data[4] >> 4) & 3);
         CL_STATUS->clRStickY = (s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)(data[4] >> 6);
         CL_STATUS->clTriggerL = data[5];
         CL_STATUS->clTriggerR = len < 9 ? 0 : data[6];
         CL_STATUS->clButton = len < 9 ? 0 : ((data[7] << 8) | data[8]) ^ 0xFFFF;
         break;
-    case 3:
-        CL_STATUS->clLStickX = (s16)data[0] << 2;
-        CL_STATUS->clRStickX = (s16)data[1] << 2;
-        CL_STATUS->clLStickY = (s16)data[2] << 2;
-        CL_STATUS->clRStickY = (s16)data[3] << 2;
+    case 3: {
+        s16 raw;
+        raw = data[0];
+        CL_STATUS->clLStickX = raw << 2;
+        raw = data[1];
+        CL_STATUS->clRStickX = raw << 2;
+        raw = data[2];
+        CL_STATUS->clLStickY = raw << 2;
+        raw = data[3];
+        CL_STATUS->clRStickY = raw << 2;
         CL_STATUS->clTriggerL = data[4];
         CL_STATUS->clTriggerR = data[5];
         CL_STATUS->clButton = len < 8 ? 0 : ((data[6] << 8) | data[7]) ^ 0xFFFF;
         break;
+    }
     default:
         CL_STATUS->clLStickX = (data[0] & 0x3F) << 4;
         CL_STATUS->clLStickY = (data[1] & 0x3F) << 4;
-        CL_STATUS->clRStickX = (s16)((s16)(data[2] >> 7) | (((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18))) << 5;
+        CL_STATUS->clRStickX = (s16)((s16)(data[2] >> 7) | (((s16)(data[0] >> 3) & 0x18) | ((s16)(data[1] >> 5) & 6))) << 5;
         CL_STATUS->clRStickY = (data[2] & 0x1F) << 5;
-        CL_STATUS->clTriggerL = (s16)(((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
+        CL_STATUS->clTriggerL = (s16)(((s16)(data[2] >> 2) & 0x18) | ((s16)(data[3] >> 5) & 7)) << 3;
         CL_STATUS->clTriggerR = (data[3] & 0x1F) << 3;
         CL_STATUS->clButton = ((data[4] << 8) | data[5]) ^ 0xFFFF;
         break;

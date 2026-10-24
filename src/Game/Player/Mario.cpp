@@ -6592,8 +6592,14 @@ bool Mario::checkCurrentFloorCodeSevere(u32 code) const {
 
 bool Mario::isCurrentFloorSink() const {
     bool sink = false;
+#ifdef GALAXY_NATIVE
     u16 shifted = _960 + 0xFFEF;
     if (shifted <= 14 && ((1 << shifted) & 0x4103)) {
+#else
+    // The original shifts by the untruncated sum (slw uses its low six bits).
+    u32 shifted = _960 + 0xFFEF;
+    if (static_cast<u16>(shifted) <= 14 && ((1 << shifted) & 0x4103)) {
+#endif
         sink = true;
     }
     return sink;

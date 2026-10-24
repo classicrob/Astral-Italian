@@ -93,7 +93,8 @@ void WorldMapResultStateWait::exeMain() {
     mHost->tryTalkPoint(-1);
 
     if (MR::isStep(this, 30) && !mFlagA) {
-        mFlagA = mHost->isGalaxyInfoAppeared() == 0;
+        bool hidden = !mHost->isGalaxyInfoAppeared();
+        mFlagA = hidden;
     }
 
     if (MR::isStep(this, 180)) {

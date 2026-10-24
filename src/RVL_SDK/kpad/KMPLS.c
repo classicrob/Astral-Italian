@@ -333,7 +333,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
         s32 index = ringEnd - count - 1;
         const KPADUnifiedWpadStatus* report;
         Vec previous;
-        s32 stable[3] = {1, 1, 1};
+        s32 stable[3];
         if (index < 0) index += state->externalLength + 16;
         if (index >= 16) report = state->externalRing + (index - 16);
         else report = state->internalRing + index;
@@ -356,6 +356,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 s32 difference;
                 if (state->reportMode < 2) raw = get_mpls_data_x(state, &report->u.mp);
                 else raw = report->u.fs.fsAccZ;
+                stable[0] = 1;
                 state->history[0][state->historyHead] = raw;
                 sum = raw;
                 difference = raw - __KMPLS_f2i(state->zeroCenter.x);
@@ -417,6 +418,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 s32 difference;
                 if (state->reportMode < 2) raw = get_mpls_data_y(state, &report->u.mp);
                 else raw = -report->u.fs.fsAccX;
+                stable[1] = 1;
                 state->history[1][state->historyHead] = raw;
                 sum = raw;
                 difference = raw - __KMPLS_f2i(state->zeroCenter.y);
@@ -478,6 +480,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 s32 difference;
                 if (state->reportMode < 2) raw = get_mpls_data_z(state, &report->u.mp);
                 else raw = -report->u.fs.fsAccY;
+                stable[2] = 1;
                 state->history[2][state->historyHead] = raw;
                 sum = raw;
                 difference = raw - __KMPLS_f2i(state->zeroCenter.z);

@@ -6,68 +6,6 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-// native: defined in Mario.cpp (DOL split owner); misplaced copy
-#ifndef GALAXY_NATIVE
-void Mario::checkBump() {
-    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 21) & 1U) && ((mMovementStates.mLowWord >> 30) & 1U)) {
-        if (!isStatusActive(MarioStatus_Hang) && !isStatusActive(MarioStatus_Wall) && !isStatusActive(MarioStatus_Swim) &&
-            !isStatusActive(MarioStatus_Climb)) {
-            if (!isDamaging() && getPlayerMode() != 5 && !isSwimming()) {
-                if (isStickOn()) {
-                    if (!_750 && (((mMovementStates.mHighWord >> 28) & 1U) == 0)) {
-                        if (_4DC->isValid()) {
-                            const char* floor = MR::getFloorCodeString(_4DC);
-
-                            if (!isSlipPolygon(_4DC) || !strcmp(floor, "NoSlip") || !strcmp(floor, "Sand")) {
-                                startBump(_518);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-#endif
-
-// native: defined in Mario.cpp (DOL split owner); misplaced copy
-#ifndef GALAXY_NATIVE
-void Mario::startBump(const TVec3f& rVec) {
-    if ((getTrans() - rVec).length() >= 100.0f) {
-        return;
-    }
-
-    TVec3f v21;
-    const TVec3f* grav = &getAirGravityVec();
-    const TVec3f* norm = _4DC->getNormal(0);
-    MR::vecKillElement(*norm, *grav, &v21);
-
-    if (!MR::normalizeOrZero(&v21) && MR::diffAngleAbsHorizontal(mFrontVec, -v21, getAirGravityVec()) > 0.52359879f) {
-        TVec3f v20;
-        if (MR::vecKillElement(getTrans() - rVec, getAirGravityVec(), &v20) > 0.0f) {
-            return;
-        }
-    }
-
-    if (getCurrentStatus() == 30) {
-        closeStatus(mBump);
-    }
-
-    setTrans(rVec);
-    changeStatus(mBump);
-    mVelocity.zero();
-    _3D0 = 0;
-    mMovementStates.mLowWord &= 0xFFFF7FFFU;
-    _790 = -(*_4DC->getNormal(0));
-    TVec3f v19;
-    MR::vecKillElement(-(*_4DC->getNormal(0)), mSideVec, &v19);
-
-    if (!MR::normalizeOrZero(&v19)) {
-        _790 = v19;
-    }
-}
-#endif
-
 // NONMATCHING: zero scalar relocation label.
 MarioBump::MarioBump(MarioActor* pActor) : MarioState(pActor, MarioStatus_Bump) {
     _12 = 0;
@@ -75,7 +13,6 @@ MarioBump::MarioBump(MarioActor* pActor) : MarioState(pActor, MarioStatus_Bump) 
     _18.x = _18.y = _18.z = 0.0f;
 }
 
-// NONMATCHING: equivalent front-vector assignment helper remains out of line.
 bool MarioBump::start() {
     _14 = getPlayer()->mWalkSpeed;
 

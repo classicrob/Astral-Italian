@@ -7855,7 +7855,7 @@ void MarioActor::updateBlink() {
 }
 
 // NONMATCHING: scalar literal symbol identities; instruction words match after relocation masking.
-bool MarioActor::fn_803C9300() {
+bool MarioActor::fn_803C9300(TVec3f&) {
     bool c = this->mMario->isCeiling();
     if ((c || ((this->mMario->mDrawStates.mWord >> (0xA)) & 1)) && this->mBeeWallWalk == 0 && this->_9F2 == 0) {
         Mario* m = this->mMario;
@@ -8010,7 +8010,7 @@ void MarioActor::fn_803C9920(TVec3f& vec) {
     if (timer != 0) {
         this->_9F2 = timer - 1;
     }
-    if (this->_9F2 != 0 || (!this->fn_803C9300() && !this->checkBeeWallStick(vec) && !this->checkBeeFloorStick(vec))) {
+    if (this->_9F2 != 0 || (!this->fn_803C9300(vec) && !this->checkBeeWallStick(vec) && !this->checkBeeFloorStick(vec))) {
         this->updateBeeStickMode(vec);
     }
     u8 cur = this->mBeeWallWalk;
@@ -9382,7 +9382,7 @@ bool MarioActor::fn_803CD1F0(HitSensor* s) {
     return MR::isNearZero(MR::getSensorHost(s)->mVelocity, 0.001f);
 }
 
-f32 MarioActor::fn_803CD250(HitSensor* s) {
+f32 MarioActor::fn_803CD250(HitSensor* s) const {
     TVec3f b;
     TVec3f a((this->mMario)->mShadowPos);
     a -= (s)->mPosition;
@@ -12035,7 +12035,12 @@ void MarioActor::drawSpinEffect() const {
     for (u32 i = 0; i <= 64; i++) {
         TVec3f point(direction);
         point.setLength(mSpinRadius);
+#ifdef GALAXY_NATIVE
         point += mMario->mHeadVec * (i == 64 ? readSpinJitterBoundary(mTornadoSensors[0]) : mSpinNoise[64 + i]) * 10.0f;
+#else
+        // The original reads one past mSpinNoise at i == 64 (the first mTornadoSensors word).
+        point += mMario->mHeadVec * mSpinNoise[64 + i] * 10.0f;
+#endif
         f32 wave = MR::sin((((_37C + i) & 31) / 32.0f) * JGeometry::TUtil< f32 >::PI());
         f32 square = wave * wave;
         u32 alpha = 160.0f * (square * square);
@@ -12166,7 +12171,8 @@ bool MarioActor::drawDarkMask() const {
 // NONMATCHING: register moves and independent count/sensor-store scheduling.
 void MarioActor::memorizeSensorThrow(HitSensor* pSensor) {
     _428[_468] = pSensor;
-    mThrowMemoRotations[_468] = MR::getSensorHost(pSensor)->mRotation - mRotation;
+    LiveActor* host = MR::getSensorHost(pSensor);
+    mThrowMemoRotations[_468] = host->mRotation - mRotation;
 
     _468++;
     Mario* player = mMario;
@@ -13560,7 +13566,7 @@ void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
                 if (m2 > 10.0f) {
                     v = 10.0f;
                 }
-                TVec3f up = -*this->mMario->getGravityVec();
+                TVec3f up = TVec3f(-*this->mMario->getGravityVec());
                 up.scale(v);
                 (this->mMario)->mJumpVec += up;
             }

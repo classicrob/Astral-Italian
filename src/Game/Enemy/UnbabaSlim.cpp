@@ -175,7 +175,9 @@ void UnbabaSlim::updateRotatingBaseMtx() {
     TPos3f mtx;
     mtx.identity();
     if (mRotator != nullptr) mtx.concat(mRotator->getRotateMtx(), mtx);
-    MR::rotateMtxLocalY(mtx, mRotateSpeed * 0.017453292f);
+    f32 angle = mRotateSpeed;
+    angle = 0.017453292f * angle;
+    MR::rotateMtxLocalY(mtx, angle);
     mtx.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx);
 }

@@ -4117,7 +4117,7 @@ f32 Mario::fn_803A1800() {
     return mActor->mConst->getTable()->mTurnAngleSpeed2;
 }
 
-bool Mario::fn_803A1920() {
+bool Mario::fn_803A1920() const {
     TVec3f stick;
     this->mActor->getStickValue(&stick.x, &stick.y);
     stick.z = 0.0f;
@@ -4137,7 +4137,7 @@ bool Mario::fn_803A19C0() {
     return s.dot(this->_244) > 0.0f;
 }
 
-void Mario::fn_803A1A20(f32* out) {
+void Mario::fn_803A1A20(f32* out) const {
     this->mActor->getStickValue(&out[0], &out[1]);
     out[2] = 0.0f;
 }
@@ -5303,7 +5303,7 @@ void Mario::check2DMode() {
         if (previousArea != area) {
             _688 = mPosHolder->mPos;
             MR::getRotatedAxisZ(&mSwimSideVec694, rotate);
-            mSwimSideVec694 = -mSwimSideVec694;
+            mSwimSideVec694.negate();
             MR::calcCubePos(area, &_694);
         }
     } else {

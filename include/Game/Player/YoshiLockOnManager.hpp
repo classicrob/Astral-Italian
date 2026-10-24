@@ -21,7 +21,7 @@ public:
     bool tryLockOnCaptureTarget(YoshiLockOnTarget* target, bool alternateCapture);
     bool tryLockOnPullTarget(YoshiLockOnTarget* target);
     bool tryLockOnProjectileTarget(YoshiLockOnTarget* target);
-    u32 getTargetCapacity() const;
+    static u32 getTargetCapacity();
     // Copies active descriptors, then moves those controls to fading. The capacity argument is unused.
     u32 takeActiveTargets(YoshiLockOnTargetDesc* output, u32 capacity);
     void clearActiveTargets();

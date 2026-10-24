@@ -20,10 +20,16 @@ void Monte::init(const JMapInfoIter& iter) {
     MR::startBrkAndSetFrameAndStop(this,"ColorChange",mColor);
     MR::getJMapInfoArg1NoInit(iter,&mType);
     if(mType==-1) {
-        mParam._14="Wait";
-        mParam._18="Turn";
-        mParam._1C="Talk";
-        mParam._20="Turn";
+        const char* wait;
+        const char* turn;
+        const char* talk;
+        turn = "Turn";
+        wait = "Wait";
+        talk = "Talk";
+        mParam._14=wait;
+        mParam._18=turn;
+        mParam._1C=talk;
+        mParam._20=turn;
     } else if(mType==0) {
         mParam._14="WaitThrow";
         mParam._1C="WaitThrow";

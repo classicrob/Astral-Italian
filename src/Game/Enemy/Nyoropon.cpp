@@ -650,17 +650,17 @@ void Nyoropon::updateBodyWaveMatrices(f32 ampScale) {
     f32 step = cBodyHeight * segmentFraction;
     TVec3f d = mTarget - mPoints[0];
     f32 n = MR::clamp(MR::normalize(PSVECMag(&d), 0.0f, 200.0f), 0.0f, 1.0f);
-    f32 amp = ampScale * (1.0f - n);
-    f32 diff = amp - mAmp;
+    ampScale *= 1.0f - n;
+    f32 diff = ampScale - mAmp;
     if (__fabsf(diff) <= 0.01f) {
-        mAmp = amp;
+        mAmp = ampScale;
     }
-    f32 ampStep = 0.01f * MR::sign(diff);
+    f32 direction = MR::sign(diff);
     s32 frame = mFrame;
     s32 period = cWavePeriod;
     mFrame = frame + 1;
     f32 phase = (360.0f * (f32)frame) / (f32)period;
-    mAmp += ampStep;
+    mAmp += 0.01f * direction;
     if (mFrame > period) {
         mFrame = 0;
     }

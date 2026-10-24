@@ -14,7 +14,7 @@ public:
     bool sendStartTongueMessage();
     void sendStartEatenMessage();
     void advanceTargetIfMore();
-    void cancelTargetAndAdvance();
+    bool cancelTargetAndAdvance();
     bool hasNextTarget() const;
     bool hasCurrentTarget() const;
     bool hasMultipleRemainingTargets() const;

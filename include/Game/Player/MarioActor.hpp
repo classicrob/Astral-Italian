@@ -231,7 +231,7 @@ public:
     void fn_803C5E20(MtxPtr mtx);
     void fn_803C5ED0(MtxPtr m1, MtxPtr m2);
     void fn_803C8AA0();
-    bool fn_803C9300();
+    bool fn_803C9300(TVec3f&);
     void fn_803C9920(TVec3f& vec);
     void fn_803CA1F0();
     void fn_803CA270(TVec3f* out, s32 isStatic);
@@ -253,7 +253,7 @@ public:
     bool fn_803CD0A0();
     bool fn_803CD180();
     bool fn_803CD1F0(HitSensor* s);
-    f32 fn_803CD250(HitSensor* s);
+    f32 fn_803CD250(HitSensor* s) const;
     bool fn_803CD2C0();
     bool fn_803CD380();
     bool fn_803CD3C0();

@@ -159,9 +159,9 @@ public:
     void fn_803A1330(u8* arg1);
     void fn_803A1600(u8* arg1);
     f32 fn_803A1800();
-    bool fn_803A1920();
+    bool fn_803A1920() const;
     bool fn_803A19C0();
-    void fn_803A1A20(f32* out);
+    void fn_803A1A20(f32* out) const;
     void fn_803A1A60(TVec3f* arg);
     void fn_803A1AC0();
     void fn_803A1BB0();

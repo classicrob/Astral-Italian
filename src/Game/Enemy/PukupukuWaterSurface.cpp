@@ -458,11 +458,7 @@ void PukupukuWaterSurface::updateUpVecFromWater() {
 // NONMATCHING: vector locals occupy reversed stack slots; calls and field offsets match.
 void PukupukuWaterSurface::snapToWaterSurface() {
     if (mWaterInfo->isInWater()) {
-        TVec3f sp8(mUpVec);
-        sp8.scale(-60.0f);
-        TVec3f sp14(mWaterInfo->mSurfacePos);
-        sp14.add(sp8);
-        mPosition = sp14;
+        mPosition = mWaterInfo->mSurfacePos + mUpVec.scaleInline(-60.0f);
     }
 }
 

@@ -2147,10 +2147,10 @@ void YoshiVelocityAdjustment::apply(Yoshi* actor) {
     f32 speed = direction.dot(actor->mMovementVelocity);
     if (speed < 0.0f) {
         TVec3f* velocity = &actor->mMovementVelocity;
-        JMAVECScaleAdd(&direction, velocity, velocity, -direction.dot(*velocity));
-        f32 rebound = speed * 0.95f;
+        JMAVECScaleAdd(&direction, velocity, &actor->mMovementVelocity, -direction.dot(*velocity));
+        speed *= 0.95f;
         TVec3f impulse(direction);
-        impulse.scale(rebound);
+        impulse.scale(speed);
         velocity->add(impulse);
     }
     actor->mMovementVelocity.add(adjustment);

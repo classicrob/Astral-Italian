@@ -40,27 +40,9 @@ SCBtDeviceInfoArray _scArray;
 SCBtCmpDevInfoArray _spArray;
 u8 __WUDHandlerStack[0x1000] ATTRIBUTE_ALIGN(32);
 
-u8 _scFlush;
-
 BD_ADDR_PTR _dev_handle_to_bda[WUD_MAX_DEV_ENTRY];
 u16 _dev_handle_queue_size[WUD_MAX_DEV_ENTRY];
 u16 _dev_handle_notack_num[WUD_MAX_DEV_ENTRY];
-
-static u8 _nandBusy;
-static s32 _nandState;
-
-// Optional board initialization hook: the linked DOL has this reader, but no setter.
-static void (*_wbcInitCallback)(void);
-
-static u8 _discNumResps;
-static s8 _discRssi;
-
-static BOOL _initialized = FALSE;
-static u8 __bte_trace_level = 0;
-static u8 _normalTarget;
-static BOOL _readNand = FALSE;
-static volatile BOOL _abortSync = FALSE;
-volatile BOOL _linkedWBC;
 
 // RPHealth.dat's pairing record is copied independently of the read workarea.
 // The named union gives the checksum a halfword view of the on-disk byte record.
@@ -88,10 +70,29 @@ typedef struct WUDWiiFitWorkArea {
     u8 reserved[0x4B000 - 0x4AF9C];
 } WUDWiiFitWorkArea;
 
+static BOOL _initialized = FALSE;
+static BOOL _readNand = FALSE;
+static volatile BOOL _abortSync = FALSE;
+static u8 remove_patch[] = {0x00};
+static u8 __bte_trace_level = 0;
 // The linked DOL has no setter/allocation/free for this optional workarea.
 // Preserve the real null-initialized slot and the target's null/alignment assert.
-WUDWiiFitWorkArea* _wiiFitWork;
-static u32 _wiiFitChecksum;
+WUDWiiFitWorkArea* _wiiFitWork = NULL;
+// Optional board initialization hook: the linked DOL has this reader, but no setter.
+static void (*_wbcInitCallback)(void) = NULL;
+volatile BOOL _linkedWBC = FALSE;
+static u32 _wiiFitChecksum = 0;
+static s32 _nandState = 0;
+static u8 _nandBusy = 0;
+static u8 install_num = 0;
+static u8 patch_num = 0;
+static u32 addr = 0;
+static s32 offset = 0;
+static u32 size = 0;
+u8 _scFlush = 0;
+static u8 _normalTarget = 0;
+static s8 _discRssi = 0;
+static u8 _discNumResps = 0;
 static WUDWiiFitPairingData _wiiFitPairingData ATTRIBUTE_ALIGN(32);
 static NANDFileInfo _wiiFitFileInfo;
 static NANDCommandBlock _wiiFitCommandBlock;
@@ -308,16 +309,6 @@ static WUDPatchList patch_install = {
     }
 };
 // clang-format on
-
-static u8 remove_patch[] = {0x00};
-
-static u8 install_num = 0;
-static u8 patch_num = 0;
-
-static u32 addr = 0;
-static s32 offset = 0;
-static u32 size = 0;
-
 
 static u8 write_ram_params[] = {
     // bytes 0-3: destination address
@@ -575,7 +566,7 @@ static u8 WUDiCheckDeviceDataBase(void) {
 
     pInfo = WUDiGetDevInfo(_discResp.devAddr);
 
-    if (pInfo != NULL) {
+    if (pInfo) {
         memcpy(&_work, pInfo, sizeof(WUDDevInfo));
         nextState = WUD_STATE_SYNC_PREPARE_FOR_EXISTED_DEVICE;
     }
@@ -689,7 +680,10 @@ static int WUDiSetPinCode(BD_ADDR addr) {
 }
 
 static BOOL WUDiIsFinishLinkKeyCmd(void) {
-    return _wcb.linkKeyState == WUD_STATE_LINK_KEY_START ? TRUE : FALSE;
+    if (_wcb.linkKeyState != WUD_STATE_LINK_KEY_START) {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 static BOOL WUDiIsFinishScCmd(void) {
@@ -751,7 +745,7 @@ static u8 WUDiVirginSimpleSync(void) {
     }
 
     pInfo = WUDiGetNewDevInfo();
-    if (pInfo == NULL) {
+    if (!pInfo) {
         return WUD_STATE_SYNC_ERROR;
     }
     if (pInfo->status != 0) {
@@ -885,6 +879,10 @@ static u8 WUDiStoredLinkKey(void) {
 
     if (!WUDiIsFinishLinkKeyCmd()) {
         return WUD_STATE_SYNC_STORED_LINK_KEY_TO_EEPROM;
+    }
+
+    if (_linkedWBC && WUD_DEV_NAME_IS_WBC(_work.conf.devName)) {
+        return WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND;
     }
 
     pInfo = WUDiGetDevInfo(_work.devAddr);
@@ -2271,9 +2269,9 @@ static void __wudWritePatchCallback(tBTM_VSC_CMPL* p1) {
 }
 
 static void WUDiWritePatch(void) {
-    u8 buf[WUD_PATCH_BUFFER_SIZE];
-    u8 length;
     int i;
+    u8 length;
+    u8 buf[WUD_PATCH_BUFFER_SIZE];
 
     length = MIN(size - offset, WUD_PATCH_BUFFER_SIZE - sizeof(u32));
 

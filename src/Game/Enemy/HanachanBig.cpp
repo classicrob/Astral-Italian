@@ -201,7 +201,6 @@ void HanachanBig::exeStandby() {
 
 // NONMATCHING: float register allocation (f28/f29 swap) in the body loop
 void HanachanBig::moveAlongRail(f32 speed) {
-    f32 a;
     MR::moveCoord(this, speed);
     f32 railCoord = MR::getRailCoord(this);
     MR::moveTransToOtherActorRailPos(mParts[0], this);
@@ -209,8 +208,9 @@ void HanachanBig::moveAlongRail(f32 speed) {
     MR::reverseRailDirection(this);
     const f32 headRatio = 0.9f;
     for (s32 i = 1; i < mPartsCount; i++) {
-        a = headRatio * MR::getSensorRadius(mParts[i], "BodySpace");
-        f32 b = 0.5f * MR::getSensorRadius(mParts[i - 1], "BodySpace");
+        f32 a = MR::getSensorRadius(mParts[i], "BodySpace");
+        a = headRatio * a;
+        f32 b = MR::getSensorRadius(mParts[i - 1], "BodySpace") / 2.0f;
         MR::moveCoord(this, b + a);
         MR::moveTransToOtherActorRailPos(mParts[i], this);
         MR::calcRailDirection(&mParts[i]->mRailDirection, this);

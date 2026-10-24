@@ -201,8 +201,9 @@ bool SupportTico::tryAttachToTarget(const LiveActor* pActor) {
         if (mAttachGroup->isFull()) {
             return false;
         }
+        s32 num;
         bool found = false;
-        s32 num = mAttachGroup->mObjNum;
+        num = mAttachGroup->mObjNum;
         for (s32 i = 0; i < num; i++) {
             if (mAttachGroup->getActor(i) == pActor) {
                 found = true;
@@ -218,7 +219,9 @@ bool SupportTico::tryAttachToTarget(const LiveActor* pActor) {
     }
     TVec3f pos2;
     pTarget->calcPosition(&pos2);
-    bool near = MR::isNear(this, pos2, 50.0f + pTarget->mRadius3d);
+    f32 radius = pTarget->mRadius3d;
+    radius = 50.0f + radius;
+    bool near = MR::isNear(this, pos2, radius);
     if (near) {
         mNearTarget = pActor;
     }

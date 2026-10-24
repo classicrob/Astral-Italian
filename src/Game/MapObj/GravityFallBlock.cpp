@@ -51,8 +51,7 @@ void GravityFallBlock::exeWait() {
         MR::onCalcGravity(this);
         MR::offBind(this);
     }
-    TVec3f up = mUpDir * 150.0f;
-    TVec3f pos = mPosition + up;
+    TVec3f pos = mPosition + mUpDir * 150.0f;
     TVec3f dir = mGravity * 155.0f;
     if (!MR::isExistMapCollisionExceptSensor(pos, dir, reinterpret_cast< const LiveActor* >(getSensor("Body")))) {
         setNerve(&NrvGravityFallBlock::GravityFallBlockNrvStartFall::sInstance);
@@ -68,9 +67,7 @@ void GravityFallBlock::exeFall() {
     if (MR::isGreaterStep(this, 30) && MR::isBindedGround(this) && MR::isNearZero(MR::getGroundActor(this)->mVelocity, 0.001f)) {
         TVec3f diff(mPosition);
         diff -= mBasePos;
-        TVec3f proj = mGravity * diff.dot(mGravity);
-        TVec3f pos = proj + mBasePos;
-        mPosition.set(pos);
+        mPosition.set(mGravity * diff.dot(mGravity) + mBasePos);
         MR::zeroVelocity(this);
         MR::offBind(this);
         MR::offCalcGravity(this);

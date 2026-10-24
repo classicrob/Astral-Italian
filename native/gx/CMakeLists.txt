@@ -634,6 +634,10 @@ if(_petari_build_testing)
         "${CMAKE_SOURCE_DIR}/native/tests/pipeline_autorelease_tests.py" "${CMAKE_CXX_COMPILER}")
     set_tests_properties(native_pipeline_autorelease PROPERTIES
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" TIMEOUT 60)
+    add_test(NAME native_pipeline_uber_order COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_SOURCE_DIR}/native/tests/ubershader_order_tests.py" "${CMAKE_CXX_COMPILER}")
+    set_tests_properties(native_pipeline_uber_order PROPERTIES
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" TIMEOUT 60)
     target_link_libraries(petari_pipeline_stage_tests PRIVATE SQLite::SQLite3)
     target_link_libraries(petari_pipeline_seed_sort_tests PRIVATE SQLite::SQLite3)
 

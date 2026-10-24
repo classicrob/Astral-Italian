@@ -12,6 +12,6 @@ A native Apple Silicon Mac port of Super Mario Galaxy 2, built on the community 
 
 ### Known limits
 - Not a full-game completion claim: free movement and mission coverage are partial. Switch 2 Pro Controller does not work yet.
-- First play in a new area can hitch while shaders compile.
+- First play in a new area can hitch while shaders compile. On M1-class Macs the first run after install can still pause for a second or more when a new effect first appears (a fix is in progress); the title screen can occasionally hold for a moment before it appears. Windowed play adds some input latency compared with fullscreen (VSync Auto turns VSync off in fullscreen).
 
 SHA-256 of the zip: `__SHA256__`

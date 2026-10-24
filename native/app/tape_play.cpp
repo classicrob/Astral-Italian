@@ -400,6 +400,11 @@ void Session::compare(const SeamState& s, std::uint64_t k, bool bitExact) {
             why = bitExact ? "position bits at play-ready" : "position bits";
         if (why.empty() && dist > kPositionLimit) why = "position";
     }
+    if (why.empty() && !constructionBoundary && wholeSession() && k > 0 && mPointerReadMade &&
+        s.valid && r.valid && mExpectedPointer && s.pointerObserved && mExpectedPointerValid && s.pointerValid) {
+        ++rep.pointerValidRowsCompared;
+        rep.pointerPositionsCompared.emplace(s.pointerX, s.pointerY);
+    }
     rep.maxDist = std::max(rep.maxDist, dist);
     if (!why.empty() && !rep.diverged) {
         rep.diverged = true;
@@ -710,6 +715,8 @@ std::string Session::reportJson() const {
             << "], \"first_divergence_recorded\": [" << r.firstRecorded[0] << ", " << r.firstRecorded[1] << ", " << r.firstRecorded[2] << "]"
             << ", \"reads\": " << r.reads << ", \"pointing_reads\": " << r.pointingReads
             << ", \"pointer_rows_compared\": " << r.pointerRowsCompared
+            << ", \"pointer_valid_rows_compared\": " << r.pointerValidRowsCompared
+            << ", \"pointer_distinct_positions_compared\": " << r.pointerPositionsCompared.size()
             << ", \"pointer_source\": \"recorded KPAD versus game WPad read buffer, not screen coordinates\""
             << ", \"last_pointer_recorded\": [" << r.recordedPointer[0] << ", " << r.recordedPointer[1] << "]"
             << ", \"last_pointer_replayed\": [" << r.replayedPointer[0] << ", " << r.replayedPointer[1] << "]"

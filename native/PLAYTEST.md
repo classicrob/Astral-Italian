@@ -550,6 +550,9 @@ The failed receipts and mechanism remain under port53/m1g/solb/SCENE-IDENTITY-FI
 
 The report records scene/play-ready anchors, recorded/replayed frames and offsets, bit-exact play-ready state, and RNG restoration
 and read-back. Pointer samples are compared against the game's WPad read buffer in every compared interactive loop.
+`pointer_valid_rows_compared` and `pointer_distinct_positions_compared` count successful comparisons with a valid player and
+valid recorded/actual pointer. They provide the pointer movement evidence during raw replay: route.csv's existing pointer columns
+describe the physical host BoundState, which raw KPAD replay bypasses.
 Direct-stage boots also have asynchronous scene identity boundaries: the world-map tape entered FileSelect at recorded row225
 but candidate c6203f5f entered at row224, before either init-End. V1 bounds each incoming identity offset to +/-30 loops on the
 preceding interactive scene's clock (play-ready for gameplay); it records both identity frames, expected replay frame, offset and

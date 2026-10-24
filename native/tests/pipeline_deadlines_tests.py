@@ -92,7 +92,7 @@ class Sidecars(unittest.TestCase):
 
 def cpp(cxx):
     source = r'''
-#include "pipeline_deadlines.hpp"
+#include "pipeline_deadline_manifest.hpp"
 #include <cstdio>
 int main(int argc, char** argv) {
   const unsigned char clear[]{'c','c'}, a[]{'a','b','c'}, b[]{'d','e','f'};
@@ -101,6 +101,15 @@ int main(int argc, char** argv) {
   if (!good.valid || good.frames.at(11)!=1 || good.frames.at(UINT64_MAX-4)!=0) return 1;
   if (PetariDeadlines::load(std::filesystem::path(argv[1]) / "absent.bin", "A", rows).valid) return 2;
   if (PetariDeadlines::load(std::filesystem::path(argv[1]) / "valid.bin", "B", rows).valid) return 3;
+  sqlite3* db = nullptr;
+  if (sqlite3_open((std::filesystem::path(argv[1]) / "rows.db").string().c_str(), &db) != SQLITE_OK) return 5;
+  auto fromSql = PetariDeadlines::loadManifest(db, std::filesystem::path(argv[1]) / "valid.bin", "A");
+  if (!fromSql.valid || fromSql.frames != good.frames) return 6;
+  sqlite3_exec(db, "UPDATE pipeline_cache SET first_frame_used=84 WHERE hash=-5", nullptr, nullptr, nullptr);
+  if (PetariDeadlines::loadManifest(db, std::filesystem::path(argv[1]) / "valid.bin", "A").valid) return 7;
+  sqlite3_exec(db, "UPDATE pipeline_cache SET config_size=9 WHERE hash=-5", nullptr, nullptr, nullptr);
+  if (PetariDeadlines::loadManifest(db, std::filesystem::path(argv[1]) / "valid.bin", "A").valid) return 8;
+  sqlite3_close(db);
   for (unsigned i=0; i<49; ++i) {
     auto result=PetariDeadlines::load(std::filesystem::path(argv[1]) / (std::to_string(i)+".bin"), "A", rows);
     if (result.valid || !result.frames.empty()) return 4;
@@ -112,12 +121,13 @@ int main(int argc, char** argv) {
         tmp = Path(directory); data = deadlines.encode('A', ROWS, FRAMES)
         assert len(data) == 49
         (tmp / 'valid.bin').write_bytes(data)
+        database(tmp / 'rows.db', ROWS)
         for n in range(len(data)): (tmp / f'{n}.bin').write_bytes(data[:n])
         src, binary = tmp / 'test.cpp', tmp / 'test'; src.write_text(source)
         cmd = [cxx, '-std=c++20', '-O2', '-I', str(ROOT / 'native/gx')]
         if sys.platform == 'darwin':
             cmd += ['-isysroot', subprocess.check_output(['xcrun', '--show-sdk-path'], text=True).strip()]
-        subprocess.run(cmd + [str(src), '-o', str(binary)], check=True)
+        subprocess.run(cmd + [str(src), '-lsqlite3', '-o', str(binary)], check=True)
         subprocess.run([str(binary), str(tmp)], check=True)
 
 

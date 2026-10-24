@@ -128,7 +128,6 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* con
     KPADMPLSDirection horizon;
     KPADMPLSDirection rotation;
     KPADMPLSDirection intermediate;
-    KPADMPLSDirection previous;
     Vec from;
     Vec desired;
     f32 length;
@@ -142,53 +141,58 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* con
         dpd_revise_scale(chan);
     }
     scale /= state->dpdReviseScale;
-    if ((u8)context->dpd_valid_fg != 2) return 0.0f;
-    horizon.X.x = context->horizon.x;
-    horizon.X.y = context->horizon.y;
-    horizon.X.z = 0.0f;
-    horizon.Y.x = -context->horizon.y;
-    horizon.Y.y = context->horizon.x;
-    horizon.Y.z = 0.0f;
-    horizon.Z = kmplsIdentity.Z;
-    from = kmplsIdentity.Z;
-    desired = kmplsIdentity.Z;
-    desired.x = (-scale) * context->pos.x;
-    __KMPLS_normalize_Fxyz(&desired);
-    __KMPLS_make_vec_dir(&rotation, &from, &desired);
-    __KMPLS_mult_dir(&rotation, &horizon, &intermediate);
-    from = intermediate.Z;
-    desired = from;
-    length = (f32)sqrt(direction->Z.x * direction->Z.x + direction->Z.z * direction->Z.z);
-    desired.x *= length;
-    desired.z *= length;
-    desired.y = direction->Z.y;
-    __KMPLS_make_vec_dir(&rotation, &from, &desired);
-    __KMPLS_mult_dir(&rotation, &intermediate, &horizon);
-    previous = *direction;
-    __KMPLS_linear_Direction(direction, &horizon, direction, state->dpdCorrectionRate);
-    previous.X.x -= direction->X.x;
-    previous.X.y -= direction->X.y;
-    previous.X.z -= direction->X.z;
-    errorX = previous.X.z * previous.X.z + (previous.X.x * previous.X.x + previous.X.y * previous.X.y);
-    previous.Y.x -= direction->Y.x;
-    previous.Y.y -= direction->Y.y;
-    previous.Y.z -= direction->Y.z;
-    errorY = previous.Y.z * previous.Y.z + (previous.Y.x * previous.Y.x + previous.Y.y * previous.Y.y);
-    previous.Z.x -= direction->Z.x;
-    previous.Z.y -= direction->Z.y;
-    previous.Z.z -= direction->Z.z;
-    errorZ = previous.Z.z * previous.Z.z + (previous.Z.x * previous.Z.x + previous.Z.y * previous.Z.y);
-    if (errorX > errorY) {
-        if (errorX > errorZ) return (f32)sqrt(errorX);
+    if ((s32)(u8)context->dpd_valid_fg == 2) {
+        horizon.X.x = context->horizon.x;
+        horizon.X.y = context->horizon.y;
+        horizon.X.z = 0.0f;
+        horizon.Y.x = -context->horizon.y;
+        horizon.Y.y = context->horizon.x;
+        horizon.Y.z = 0.0f;
+        horizon.Z = kmplsIdentity.Z;
+        from = kmplsIdentity.Z;
+        desired = kmplsIdentity.Z;
+        desired.x = (-scale) * context->pos.x;
+        __KMPLS_normalize_Fxyz(&desired);
+        __KMPLS_make_vec_dir(&rotation, &from, &desired);
+        __KMPLS_mult_dir(&rotation, &horizon, &intermediate);
+        from = intermediate.Z;
+        desired = from;
+        length = (f32)sqrt(direction->Z.x * direction->Z.x + direction->Z.z * direction->Z.z);
+        desired.x *= length;
+        desired.z *= length;
+        desired.y = direction->Z.y;
+        __KMPLS_make_vec_dir(&rotation, &from, &desired);
+        __KMPLS_mult_dir(&rotation, &intermediate, &horizon);
+        intermediate = *direction;
+        __KMPLS_linear_Direction(direction, &horizon, direction, state->dpdCorrectionRate);
+        intermediate.X.x -= direction->X.x;
+        intermediate.X.y -= direction->X.y;
+        intermediate.X.z -= direction->X.z;
+        errorX = intermediate.X.z * intermediate.X.z + (intermediate.X.x * intermediate.X.x + intermediate.X.y * intermediate.X.y);
+        intermediate.Y.x -= direction->Y.x;
+        intermediate.Y.y -= direction->Y.y;
+        intermediate.Y.z -= direction->Y.z;
+        errorY = intermediate.Y.z * intermediate.Y.z + (intermediate.Y.x * intermediate.Y.x + intermediate.Y.y * intermediate.Y.y);
+        intermediate.Z.x -= direction->Z.x;
+        intermediate.Z.y -= direction->Z.y;
+        intermediate.Z.z -= direction->Z.z;
+        errorZ = intermediate.Z.z * intermediate.Z.z + (intermediate.Z.x * intermediate.Z.x + intermediate.Z.y * intermediate.Z.y);
+        if (errorX > errorY) {
+            if (errorX > errorZ) return (f32)sqrt(errorX);
+            return (f32)sqrt(errorZ);
+        }
+        if (errorY > errorZ) return (f32)sqrt(errorY);
         return (f32)sqrt(errorZ);
     }
-    if (errorY > errorZ) return (f32)sqrt(errorY);
-    return (f32)sqrt(errorZ);
+    return 0.0f;
 }
 
 // NONMATCHING: Shorter FPR save set and fewer temporary spills; all nine ordered direction-update expressions and normalization argument agree.
 void calc_mpls_dir(KMPLSState* state) {
-    KPADMPLSDirection original = state->sample.direction;
+    Vec originalY = state->sample.direction.Y;
+    Vec originalX = state->sample.direction.X;
+    Vec originalZ;
+    Vec xAfterY, yAfterX;
     f32 x = state->rotationStep * state->sample.angularVelocity.x;
     f32 y = state->rotationStep * state->sample.angularVelocity.y;
     f32 z;
@@ -204,29 +208,36 @@ void calc_mpls_dir(KMPLSState* state) {
     stepY = 1.0f + 0.0001f * degreesY;
     stepX *= state->radiansPerSample * x;
     stepY *= state->radiansPerSample * y;
-    state->sample.direction.Z.x = (original.Z.x - stepX * original.Y.x) + stepY * original.X.x;
-    state->sample.direction.Z.y = (original.Z.y - stepX * original.Y.y) + stepY * original.X.y;
-    state->sample.direction.Z.z = (original.Z.z - stepX * original.Y.z) + stepY * original.X.z;
+    originalZ = state->sample.direction.Z;
+    state->sample.direction.Z.x = (originalZ.x - stepX * originalY.x) + stepY * originalX.x;
+    state->sample.direction.Z.y = (originalZ.y - stepX * originalY.y) + stepY * originalX.y;
+    state->sample.direction.Z.z = (originalZ.z - stepX * originalY.z) + stepY * originalX.z;
+    xAfterY.x = originalX.x - stepY * originalZ.x;
+    xAfterY.y = originalX.y - stepY * originalZ.y;
+    xAfterY.z = originalX.z - stepY * originalZ.z;
+    yAfterX.x = originalY.x + stepX * originalZ.x;
+    yAfterX.y = originalY.y + stepX * originalZ.y;
+    yAfterX.z = originalY.z + stepX * originalZ.z;
     z = state->rotationStep * state->sample.angularVelocity.z;
     degreesZ = state->degreesPerSample * z;
     degreesZ *= degreesZ;
     stepZ = 1.0f + 0.0001f * degreesZ;
     stepZ *= state->radiansPerSample * z;
-    state->sample.direction.X.x = (original.X.x - stepY * original.Z.x) + stepZ * original.Y.x;
-    state->sample.direction.X.y = (original.X.y - stepY * original.Z.y) + stepZ * original.Y.y;
-    state->sample.direction.X.z = (original.X.z - stepY * original.Z.z) + stepZ * original.Y.z;
-    state->sample.direction.Y.x = (original.Y.x + stepX * original.Z.x) - stepZ * original.X.x;
-    state->sample.direction.Y.y = (original.Y.y + stepX * original.Z.y) - stepZ * original.X.y;
-    state->sample.direction.Y.z = (original.Y.z + stepX * original.Z.z) - stepZ * original.X.z;
+    state->sample.direction.X.x = xAfterY.x + stepZ * originalY.x;
+    state->sample.direction.X.y = xAfterY.y + stepZ * originalY.y;
+    state->sample.direction.X.z = xAfterY.z + stepZ * originalY.z;
+    state->sample.direction.Y.x = yAfterX.x - stepZ * originalX.x;
+    state->sample.direction.Y.y = yAfterX.y - stepZ * originalX.y;
+    state->sample.direction.Y.z = yAfterX.z - stepZ * originalX.z;
     __KMPLS_normalize_directionXYZ(&state->sample.direction, 2.999f);
 }
 
 // NONMATCHING: Temporary vector/matrix stack slots and FP register lifetimes differ; all correction calls, ordered FP expressions, and cutoff branches are retained.
 f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* acceleration) {
     KMPLSState* state;
-    Vec normalized;
     Vec current;
     Vec desired;
+    Vec normalized;
     KPADMPLSDirection rotation;
     KPADMPLSDirection result;
     f32 lengthSquared;
@@ -249,6 +260,7 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
         weight = (-1.0f / state->accelMagnitudeTolerance) * (length - high);
     }
     weight *= weight;
+    weight *= state->accelCorrectionRate;
     inverse = 1.0f / length;
     normalized.x = inverse * acceleration->x;
     normalized.y = inverse * acceleration->y;
@@ -259,7 +271,6 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
                 (normalized.x * direction->X.y + normalized.y * direction->Y.y);
     current.z = normalized.z * direction->Z.z +
                 (normalized.x * direction->X.z + normalized.y * direction->Y.z);
-    weight *= state->accelCorrectionRate;
     desired.x = current.x + (-current.x) * weight;
     desired.y = current.y + (-1.0f - current.y) * weight;
     desired.z = current.z + (-current.z) * weight;

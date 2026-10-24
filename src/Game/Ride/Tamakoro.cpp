@@ -735,7 +735,6 @@ void Tamakoro::exeJump() {
     updateMarioPose(3.0f);
 }
 
-// NONMATCHING: equivalent early-return branch layout differs.
 void Tamakoro::exeBumpWall() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("BallHit", nullptr);
@@ -758,7 +757,6 @@ void Tamakoro::exeBumpWall() {
     }
 }
 
-// NONMATCHING: equivalent early-return branch layout differs.
 void Tamakoro::exeLand() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("Land", nullptr);

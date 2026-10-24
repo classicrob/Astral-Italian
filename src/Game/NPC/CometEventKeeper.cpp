@@ -8,7 +8,6 @@
 
 CometEventKeeper::CometEventKeeper() : mExecutor(nullptr), mScreenFilter(nullptr), mCometName(nullptr) {}
 
-// NONMATCHING: the green-star flag uses r30 instead of r31.
 void CometEventKeeper::init() {
     s32 green;
     initCometStatus();

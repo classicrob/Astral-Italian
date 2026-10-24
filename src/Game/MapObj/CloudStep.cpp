@@ -67,8 +67,10 @@ void CloudStep::calcAndSetBaseMtx() {
     f32 springValue = mSpring->mSpringValue;
     MR::addTransMtx(mtx.mMtx, mGravity.multInLine2(springValue));
     MR::setBaseTRMtx(this, mtx);
+    f32 currentSpringValue;
     f32 k = mIsHeavy ? 0.12f : 0.25f;
-    f32 s = MR::clamp(1.0f - k * (mSpring->mSpringValue / 60.0f), 0.05f, 2.0f);
+    currentSpringValue = mSpring->mSpringValue;
+    f32 s = MR::clamp(1.0f - k * (currentSpringValue / 60.0f), 0.05f, 2.0f);
     TVec3f scale(mScale);
     f32 r = MR::sqrt(1.0f / s);
     scale *= TVec3f(r, s, r);

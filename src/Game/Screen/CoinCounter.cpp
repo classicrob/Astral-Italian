@@ -116,7 +116,6 @@ void CoinCounter::updateCounter() {
     MR::setTextBoxNumberRecursive(this, "Counter", mCoinDisplayNum);
 }
 
-// NONMATCHING: displayed count and delay temporary registers.
 void CoinCounter::changeDisplayCount(s32 delta) {
     if (isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
         s32 displayCount = mCoinDisplayNum;

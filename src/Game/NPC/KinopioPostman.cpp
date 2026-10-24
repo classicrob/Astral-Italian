@@ -67,6 +67,8 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
     MR::setScale(this, 1.2f);
     bool isTalkReady = this->initTalkCtrl();
 
+    const char* talk = "Talk";
+    const char* walk = "Walk";
     mSpinAction = cNPCSpinDefault;
     mTrampledAction = cNPCTrampledDefault;
     mPointingAction = cNPCPointingDefault;
@@ -74,10 +76,10 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
     mSpinAttackRange = 450.0f;
     mParam._14 = cNPCWaitDefault;
     mParam._18 = cNPCTurnDefault;
-    mParam._1C = "Talk";
-    mParam._20 = "Talk";
-    mRailMoveAction = "Walk";
-    mRailTalkAction = "Walk";
+    mParam._1C = talk;
+    mParam._20 = talk;
+    mRailMoveAction = walk;
+    mRailTalkAction = walk;
     mFollowRailOnGround = 1;
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, 2.0f);

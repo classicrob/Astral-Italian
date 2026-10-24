@@ -706,7 +706,10 @@ void CameraDirector::createTalkCamera() {
 void CameraDirector::controlCameraSE() {
     mIsCameraNG = false;
 
-    if (MR::isPlayerDead() || MR::isStageStoryBook()) {
+    if (MR::isPlayerDead()) {
+        return;
+    }
+    if (MR::isStageStoryBook()) {
         return;
     }
 

@@ -1023,9 +1023,9 @@ void __a1_3d_data_type(u8 chan, u8* data, WPADStatus* p_status) {
 // NONMATCHING: compiler register allocation and expression lowering differ.
 void __parse_dpdex_data(s32 chan, WPADStatus** p_status, u8 index, u8* data, u8 len) {
 #define EX_STATUS ((WPADStatusEx*)*p_status)
-    EX_STATUS->obj[index].x = data[0] | ((data[2] & 0x30) << 4);
-    EX_STATUS->obj[index].y = 767 - (s16)(data[1] | ((data[2] & 0xC0) << 2));
-    EX_STATUS->exp[index].pixel = ((data[7] << 8) | data[8]) * 64;
+    EX_STATUS->obj[index].x = (s16)((data[2] & 0x30) << 4) | (s16)data[0];
+    EX_STATUS->obj[index].y = 767 - (s16)((s16)((data[2] & 0xC0) << 2) | (s16)data[1]);
+    EX_STATUS->exp[index].pixel = ((s16)((u8)data[7] << 8) | data[8]) * 64;
     EX_STATUS->exp[index].radius = data[2] & 0xF;
     EX_STATUS->exp[index].range_x1 = (s8)data[3] == -1 ? 0 : data[3];
     EX_STATUS->exp[index].range_y1 = (s8)data[4] == -1 ? 0 : data[4];

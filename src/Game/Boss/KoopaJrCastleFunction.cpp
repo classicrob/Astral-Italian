@@ -164,25 +164,23 @@ namespace KoopaJrCastleFunction {
     }
 
     // hideBattlePartsUnlessDemo: end-of-battle kill pass on the parts (unless the castle is in a cutscene).
-    // NONMATCHING: early-return branch shape: target emits beq+b around the cutscene return
     void hideBattlePartsUnlessDemo() {
         KoopaJrCastle* pCastle = CASTLE();
-        if (!MR::isOnSwitchB(pCastle)) {
-            if (!MR::isStageStateScenarioOpeningCamera()) {
-                pCastle->mBody->offFlagF4();
-                if (!MR::isDead(pCastle->mHead)) {
-                    pCastle->mHead->kill();
-                }
-                if (!MR::isDead(pCastle->mCapsule)) {
-                    pCastle->mCapsule->kill();
-                }
-                if (!MR::isDead(pCastle->mKoopaJr)) {
-                    pCastle->mKoopaJr->kill();
-                }
-                stopBattleHelpers();
-                killFireBar();
-            }
+        if (MR::isOnSwitchB(pCastle) || MR::isStageStateScenarioOpeningCamera()) {
+            return;
         }
+        pCastle->mBody->offFlagF4();
+        if (!MR::isDead(pCastle->mHead)) {
+            pCastle->mHead->kill();
+        }
+        if (!MR::isDead(pCastle->mCapsule)) {
+            pCastle->mCapsule->kill();
+        }
+        if (!MR::isDead(pCastle->mKoopaJr)) {
+            pCastle->mKoopaJr->kill();
+        }
+        stopBattleHelpers();
+        killFireBar();
     }
 
     // showBattlePartsDuringDemo: switch-B / cutscene branch of the reappear pass.

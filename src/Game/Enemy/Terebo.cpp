@@ -140,7 +140,6 @@ void Terebo::exeHitReaction() {
     updateOnRail();
 }
 
-// NONMATCHING: last fmuls ((1-t*t)*90) has its operands swapped; CW normalizes commutative operands.
 void Terebo::exeSpinReaction() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "SpinReaction");
@@ -157,7 +156,6 @@ void Terebo::exeSpinReaction() {
     updateOnRail();
 }
 
-// NONMATCHING: last fmuls ((1-t*t)*90) has its operands swapped; CW normalizes commutative operands.
 void Terebo::exeTongue() {
     if (MR::isFirstStep(this)) {
         MR::startBrk(this, "SpinReaction");
@@ -399,7 +397,6 @@ bool Terebo::moveOnRailAndCheckNextPoint() {
 
 TereboGroup::TereboGroup(const char* pName) : LiveActor(pName) {}
 
-// NONMATCHING: target keeps `x - 0.0f` and `0.0f + x` as fsubs/fadds with a loaded 0.0 (CW folds them away here).
 namespace {
     extern const f32 sTereboGroupZero;
 }

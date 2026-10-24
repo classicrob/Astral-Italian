@@ -42,12 +42,8 @@ void Garigari::init(const JMapInfoIter& rIter) {
         MR::initActorPoseTQ(mPose, this);
     } else {
         MR::initActorPoseFromRotation(mPose, this);
-        f32 x = mPose->x;
-        f32 y = mPose->y;
-        f32 z = mPose->z;
-        f32 w = mPose->w;
         TVec3f sp1C;
-        sp1C.set<f32>(2.0f * (x * y) - 2.0f * (w * z), 1.0f - 2.0f * (x * x) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
+        mPose->getYDir(sp1C);
         TVec3f sp10 = -sp1C;
         mGravity.set<f32>(sp10);
     }

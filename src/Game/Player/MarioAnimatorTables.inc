@@ -1,5 +1,6 @@
-// SB4E01 animation resources, decoded from the original DOL. The same typed
-// rows are used by PlayerAnimeTablesNative.cpp; native keeps its own definitions.
+// Shared SB4E01 Mario/Mario-ride animation resources, decoded from the original DOL.
+// Extracted from PlayerAnimeTablesNative.cpp, with hexadecimal f32 constants
+// converted to exact decimal values for MWCC. Both builds include these rows.
 // Definition order follows the original MarioAnimator data section.
 
 XanimeBckTable4 tripleAnimeTable[] = {

@@ -111,7 +111,6 @@ void RepeatTimerSwitchingBlock::exeWait() {
     }
 }
 
-// NONMATCHING: string-pool offsets (target pool starts with "ChangeOn" at lbl+0; ours orders literals differently, addi rX,rX,off differs)
 void RepeatTimerSwitchingBlock::exeSwitchOn() {
     if (MR::isFirstStep(this)) {
         mIsActing = false;
@@ -181,7 +180,6 @@ void RepeatTimerSwitchingBlock::exeSwitchOn() {
     }
 }
 
-// NONMATCHING: string-pool offsets (target pool starts with "ChangeOn" at lbl+0; ours orders literals differently, addi rX,rX,off differs)
 void RepeatTimerSwitchingBlock::exeSwitchOff() {
     if (MR::isFirstStep(this)) {
         mIsActing = false;

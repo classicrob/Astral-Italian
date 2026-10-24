@@ -8,7 +8,6 @@
 
 
 namespace MR {
-// NONMATCHING: the offset and copied probe occupy opposite stack slots from the target.
 bool addVelocityKeepHeightUseShadowAndWater(LiveActor* actor, const char* shadowName, f32 height, f32 accel, f32 maxCorrection) {
     f32 distance = 100000.0f;
     bool inWater = false;
@@ -99,7 +98,6 @@ void LeafBoard::control() {
     updateMoveSound();
 }
 
-// NONMATCHING: target calls out-of-line TVec3 operator+ (__pl) for mPosition + sp8; ours inlines it (shared header inline).
 void LeafBoard::updateWaterShadow() {
     TVec3f sp20;
     TVec3f sp14 = mPosition + mGravity * 500.0f;
@@ -227,7 +225,6 @@ void LeafBoard::exeFloat() {
     }
 }
 
-// NONMATCHING: stack slots of sp8/sp14 are swapped vs target (same calls and order).
 void LeafBoard::exeWind() {
     TVec3f up = -mGravity;
     TVec3f dir(up);

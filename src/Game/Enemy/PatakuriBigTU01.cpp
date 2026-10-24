@@ -254,7 +254,6 @@ TVec3f PatakuriBig::calcBigBodyOffsetPos(PatakuriBig* pPatakuri) {
     return result;
 }
 
-// NONMATCHING: stack offsets of revDir/toPlayer/axis temporaries only
 void PatakuriBig::exeBigRail() {
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startAction(mWing, "Wait");

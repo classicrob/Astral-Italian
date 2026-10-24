@@ -91,7 +91,6 @@ s32 VFiPFCLUSTER_AppendCluster(PF_FILE* p_file, u32 byte, u32* p_success, u32* s
     return 0;
 }
 
-// NONMATCHING: temporary register allocation in the retained-tail cluster-count update.
 s32 VFiPFCLUSTER_FreeAppendCluster(PF_FILE* p_file) {
     PF_VOLUME* p_vol;
     u32 chain_index;

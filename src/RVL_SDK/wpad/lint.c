@@ -50,22 +50,24 @@ u32 LINTMsb(const u32* input) {
 
 // NONMATCHING: dead high-word subtraction, saved GPR range and loop-alignment NOP.
 void LINTSub(u32* result, const u32* left, const u32* right) {
-    u32 count = *left++;
-    u32 otherCount = *right++;
+    u32 count = *left;
     u32* output = result + 1;
-    u64 borrow = 0;
     u32* digit = output;
+    const u32* leftDigits = left + 1;
+    const u32* rightDigits = right + 1;
+    u32 otherCount = *right;
+    u64 borrow = 0;
     u32 i;
     for (i = 0; i < count; i++) {
-        *digit = *left - borrow;
+        *digit = *leftDigits - borrow;
         borrow = *digit > 0xFFFFFFFFULL - borrow;
         if (i < otherCount) {
-            *digit -= *right;
+            *digit -= *rightDigits;
         }
-        if (*digit > 0xFFFFFFFF - *right) borrow++;
-        left++;
+        if (*digit > 0xFFFFFFFF - *rightDigits) borrow++;
+        leftDigits++;
         digit++;
-        right++;
+        rightDigits++;
     }
     digit = output + count;
     // The SDK probes the next limb before walking back to the highest nonzero limb.

@@ -110,6 +110,7 @@ void StageResultInformer::kill() {
 
 // NONMATCHING: literal-pool and star-ID register allocation.
 void StageResultInformer::exeAppearGetPowerStar() {
+    s32 starId;
     if (MR::isFirstStep(this)) {
         MR::showLayout(this);
         hideCounterPanes();
@@ -117,7 +118,7 @@ void StageResultInformer::exeAppearGetPowerStar() {
         MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
         MR::startPaneAnim(this, cPaneClearTime, "Appear", 0);
         GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
-        s32 starId = GameSequenceFunction::getClearedPowerStarId();
+        starId = GameSequenceFunction::getClearedPowerStarId();
         const char* message;
         if (galaxy.isOwnBronzeStar(starId)) message = cMessageBronzeStar;
         else if (galaxy.isGrandStar(starId)) message = cMessageGrandStar;

@@ -170,7 +170,6 @@ void PauseMenu::control() {
     if (mListButton != nullptr) mListButton->update();
 }
 
-// NONMATCHING: buffer and output pointer register allocation differ.
 void PauseMenu::updateStarPane() {
     if (isInvalidBackMarioFaceShipOrWorldMap()) return;
     if (isRestrictedStage()) return;
@@ -185,7 +184,6 @@ void PauseMenu::updateStarPane() {
     MR::setTextBoxMessageRecursive(this, "ShaStars", storage);
 }
 
-// NONMATCHING: boolean temporary allocation and literal addressing differ.
 void PauseMenu::startPaneAnimWithoutButton(const char* animation) {
     MR::startAnim(this, animation, 0);
     MR::startPaneAnim(this, "BG", animation, 0);

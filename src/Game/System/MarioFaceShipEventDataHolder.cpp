@@ -356,9 +356,10 @@ bool MarioFaceShipEventDataHolder::hasItemEventAtResult() const {
 
 // NONMATCHING: initial flag scheduling (FP order/grouping checked: no FP instructions).
 bool MarioFaceShipEventDataHolder::isAttentionTalkEvent(const MarioFaceShipEventInfo* pInfo) {
-    bool isAttention = false;
+    bool isAttention;
     const char* pType = pInfo->mEventType;
     MR::getSceneObj< MarioFaceShipEventDataHolder >(SceneObj_MarioFaceShipEventDataHolder);
+    isAttention = false;
     if (MR::isEqualString(pType, "注目会話") || MR::isEqualString(pType, "注目会話[注目先行]")) {
         isAttention = true;
     }

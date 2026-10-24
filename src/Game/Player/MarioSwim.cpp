@@ -3513,7 +3513,9 @@ void MarioSwim::fn_804019D0() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
     f32 y = table->mSwimRotXIneT;
-    mStickInputYInertia = stickY * (1.0f - y) + mStickInputYInertia * y;
+    f32 inputY = stickY * (1.0f - y);
+    mStickInputYInertia *= y;
+    mStickInputYInertia += inputY;
     table = mActor->mConst->getTable();
     f32 stickX = getStickX();
     f32 scale = 1.0f;
@@ -3538,7 +3540,9 @@ void MarioSwim::fn_80401B70() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stick = getStickP();
     f32 ratio = table->mSwimRotXIne;
-    mStickInputYInertia = stick * (1.0f - ratio) + mStickInputYInertia * ratio;
+    f32 input = stick * (1.0f - ratio);
+    mStickInputYInertia *= ratio;
+    mStickInputYInertia += input;
 }
 
 // NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
@@ -3572,11 +3576,15 @@ void MarioSwim::fn_80401D60() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
     f32 y = table->mSwimRotXIneT;
-    mStickInputYInertia = stickY * (1.0f - y) + mStickInputYInertia * y;
+    f32 inputY = stickY * (1.0f - y);
+    mStickInputYInertia *= y;
+    mStickInputYInertia += inputY;
     table = mActor->mConst->getTable();
     f32 stickX = getStickX();
     f32 x = table->mSwimRotZIneT;
-    mStickInputXInertia = stickX * (1.0f - x) + mStickInputXInertia * x;
+    f32 inputX = stickX * (1.0f - x);
+    mStickInputXInertia *= x;
+    mStickInputXInertia += inputX;
 }
 
 // NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
@@ -3584,11 +3592,15 @@ void MarioSwim::fn_80401E10() {
     const MarioConstTable* table = mActor->mConst->getTable();
     f32 stickY = getStickY();
     f32 y = table->mSwimRotXIne;
-    mStickInputYInertia = stickY * (1.0f - y) + mStickInputYInertia * y;
+    f32 inputY = stickY * (1.0f - y);
+    mStickInputYInertia *= y;
+    mStickInputYInertia += inputY;
     table = mActor->mConst->getTable();
     f32 stickX = getStickX();
     f32 x = table->mSwimRotZIne;
-    mStickInputXInertia = stickX * (1.0f - x) + mStickInputXInertia * x;
+    f32 inputX = stickX * (1.0f - x);
+    mStickInputXInertia *= x;
+    mStickInputXInertia += inputX;
 }
 
 bool MarioSwim::fn_80401EC0() const {
@@ -4370,5 +4382,3 @@ MarioSwimTilt::MarioSwimTilt(MarioSwim* swim) : MarioSwimModule(swim) {
     mTiltY = 0.0f;
     PSMTXIdentity(mJointMtx.toMtxPtr());
 }
-
-

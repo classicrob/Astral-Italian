@@ -1121,7 +1121,7 @@ void read_kpad_stick(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
     f64 totalWeight, sampleWeight;
     u32 i;
     clampStickFuncp = kp_stick_clamp_cross ? clamp_stick_cross : clamp_stick_circle;
-    if (uwp->u.core.dev == WPAD_DEV_FREESTYLE && (u8)(uwp->fmt - 3) <= 2) {
+    if (uwp->u.core.dev == WPAD_DEV_FREESTYLE && (u8)(uwp->fmt + 253) <= 2) {
         if (kp->exResetReq) {
             kp->exResetReq = FALSE;
             ep->fs.stick = Vec2_0;
@@ -1131,7 +1131,7 @@ void read_kpad_stick(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
             ep->fs.acc_speed = 0.0f;
         }
         clampStickFuncp(&ep->fs.stick, uwp->u.fs.fsStickX, uwp->u.fs.fsStickY, kp_fs_fstick_min, kp_fs_fstick_max);
-    } else if (uwp->u.core.dev == WPAD_DEV_CLASSIC && (u8)(uwp->fmt - 6) <= 2) {
+    } else if (uwp->u.core.dev == WPAD_DEV_CLASSIC && (u8)(uwp->fmt + 250) <= 2) {
         if (kp->exResetReq) {
             kp->exResetReq = FALSE;
             ep->cl.lstick = Vec2_0;
@@ -1234,7 +1234,7 @@ void read_kpad_stick(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
             ep->bl.weight_err = -5;
             goto finish_board;
         }
-        if ((u8)(wbcTgcState - 1) <= 1) {
+        if ((u8)(wbcTgcState + 255) <= 1) {
             ++wbcTgcTimeout;
             wbcTgcResult = 1;
             if (wbcTgcTimeout > 2000) {
@@ -1298,7 +1298,7 @@ void read_kpad_stick(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
     finish_board:
         ep->bl.tgc_weight = wbcTgcWeight;
         ep->bl.tgc_weight_err = wbcTgcResult;
-    } else if (((u8)(uwp->u.core.dev - 5) <= 2 || uwp->u.core.dev == WPAD_DEV_MPLS_FUTURE) && uwp->fmt == 16) {
+    } else if (((u8)(uwp->u.core.dev + 251) <= 2 || uwp->u.core.dev == WPAD_DEV_MPLS_FUTURE) && uwp->fmt == 16) {
         if (kp->exResetReq) {
             kp->exResetReq = FALSE;
             if (uwp->u.core.dev == WPAD_DEV_MPLS_FREESTYLE && (uwp->u.mp.status & 0x40)) {

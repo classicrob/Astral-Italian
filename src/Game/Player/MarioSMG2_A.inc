@@ -19,19 +19,15 @@ void Mario::fn_803880D0() {
 void Mario::fn_80388150() {
     if ((static_cast<u32>(this->mMovementStates.mHighBits.mBit8)) || (static_cast<u32>(this->mFlags14.mLowBits.mBit10))) {
         TVec3f sp38(this->mPosHolder->mPos);
+        TVec3f sp2C;
         sp38 -= this->_688;
         MR::vecKillElement(sp38, this->mSwimSideVec694, &sp38);
         TVec3f* temp_r31 = &this->mPosHolder->mPos;
-        TVec3f sp14(this->_688);
-        sp14 += sp38;
-        TVec3f sp20(sp14);
+        TVec3f sp20(TVec3f(this->_688 + sp38));
         sp20 -= *temp_r31;
         this->mPosHolder->fn_80406010(sp20);
         MR::vecKillElement(this->mVelocity, this->mSwimSideVec694, &this->mVelocity);
-        TVec3f sp8(this->_694);
-        sp8 -= this->_688;
-        TVec3f sp2C;
-        f32 temp_f1 = MR::vecKillElement(sp8, this->mSwimSideVec694, &sp2C);
+        f32 temp_f1 = MR::vecKillElement(this->_694 - this->_688, this->mSwimSideVec694, &sp2C);
         f32 var_f31 = temp_f1;
         if (temp_f1 > 1.0f) {
             var_f31 = 1.0f;
@@ -534,7 +530,8 @@ f32 Mario::fn_803A1DB0() {
 void Mario::fn_803A11A0(TVec3f* arg) {
     f32 sp12 = this->mStickPos.x;
     f32 sp8 = this->mStickPos.y;
-    if (!(this->getPlayer()->mFlags14.mLowWord & 0x4000)) {
+    u32 allowAdjustment = static_cast<u32>(this->getPlayer()->mFlags14.mLowBits.mBit14) ^ 1;
+    if (allowAdjustment) {
         this->fn_803A1240(&sp12, &sp8);
     }
     this->calcMoveDir(sp12, sp8, arg, true);
@@ -633,7 +630,9 @@ f32 Mario::fn_8039ADC0() {
         return 1.0f;
     }
     f32 n = (f32)MR::getKarikariClingNum();
-    return (n + 2.0f) * 0.5f;
+    f32 factor = n + 2.0f;
+    factor *= 0.5f;
+    return factor;
 }
 
 void Mario::fn_803A27A0(TVec3f* arg) {
@@ -727,7 +726,13 @@ bool Mario::fn_803A1920() {
     TVec3f stick;
     this->mActor->getStickValue(&stick.x, &stick.y);
     stick.z = 0.0f;
-    return !this->_250.epsilonEquals(stick, 0.000003814697265625f);
+    bool changed = false;
+    if (!JGeometry::TUtil<f32>::epsilonEquals(this->_250.x, stick.x, 0.000003814697265625f) ||
+        !JGeometry::TUtil<f32>::epsilonEquals(this->_250.y, stick.y, 0.000003814697265625f) ||
+        !JGeometry::TUtil<f32>::epsilonEquals(this->_250.z, stick.z, 0.000003814697265625f)) {
+        changed = true;
+    }
+    return changed;
 }
 
 void Mario::fn_803A20E0(f32 rate, s32 arg) {
@@ -871,7 +876,8 @@ void Mario::fn_803A22D0(f32 x, s32 arg) {
         this->fn_803A24C0(&sp8);
     } else {
         f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);
-        if (d < 0.1f) {
+        bool close = d < 0.1f;
+        if (close) {
             this->fn_803A2530(&sp8);
         } else {
             this->fn_803A2570(x, &sp8);
@@ -940,16 +946,19 @@ void Mario::fn_803A1AC0() {
     if (MR::isNearZero(this->mStickPos.z, 0.001f)) {
         this->mFlags14.mLowBits.mBit19 = 0;
         this->mMovementStates.mLowBits.mBit28 = 0;
-    } else if (MR::isNearZero(this->_244, 0.001f) && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit8))) {
-        if (this->fn_803A1920()) {
+    } else {
+        bool moving = !MR::isNearZero(this->_244, 0.001f);
+        if (!moving && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit8))) {
+            if (this->fn_803A1920()) {
+                this->mMovementStates.mLowBits.mBit28 = 1;
+            } else {
+                this->fn_803A1BB0();
+            }
+        } else if (this->fn_803A19C0() && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit8))) {
             this->mMovementStates.mLowBits.mBit28 = 1;
         } else {
             this->fn_803A1BB0();
         }
-    } else if (this->fn_803A19C0() && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit8))) {
-        this->mMovementStates.mLowBits.mBit28 = 1;
-    } else {
-        this->fn_803A1BB0();
     }
     this->fn_803A1A20(&this->_250.x);
 }
@@ -1773,7 +1782,7 @@ void Mario::fn_803A02F0(s32 keepSlip, s32 hard, s32 blend) {
 // NONMATCHING: temporary allocation and register scheduling.
 void Mario::fn_803A0BE0() {
     this->fn_803A2CC0();
-    this->mMovementStates.mHighWord = (this->mMovementStates.mHighWord & ~0x400u) | ((this->isSkatableFloor() << 10) & 0x400u);
+    this->mMovementStates.mHighBits.mBit10 = this->isSkatableFloor();
     this->fn_803A2CF0();
     u8 sp8 = this->fn_803A2D10();
     this->fn_803A2D50();
@@ -1783,8 +1792,9 @@ void Mario::fn_803A0BE0() {
         TVec3f spC;
         MR::setNan(spC);
         s32 var_r31 = 0;
+        f32 stickX = mStickPos.x;
         f32 t31 = mStickPos.y;
-        if (MR::isNearZero(mStickPos.x, 0.001f) && MR::isNearZero(t31, 0.001f)) {
+        if (MR::isNearZero(stickX, 0.001f) && MR::isNearZero(t31, 0.001f)) {
             var_r31 = 1;
         }
         if (var_r31 != 0) {

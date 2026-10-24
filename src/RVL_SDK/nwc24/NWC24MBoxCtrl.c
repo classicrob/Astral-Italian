@@ -695,19 +695,24 @@ static NWC24Err GetCachedMBCHeader(NWC24MsgBoxId id, NWC24iMBCHeader** ppHeader)
             return result;
         }
 
-        result = LoadMBCHeader(*ppHeader, &file);
-        closeResult = NWC24FClose(&file);
-
-        if (result == NWC24_OK && closeResult != NWC24_OK) {
+        {
+            NWC24Err loadResult = LoadMBCHeader(*ppHeader, &file);
+            closeResult = NWC24FClose(&file);
+            if (loadResult != NWC24_OK) {
+                closeResult = loadResult;
+            }
             result = closeResult;
         }
     }
 
-    if ((*ppHeader)->version != MBOX_CTRL_VERSION) {
-        return NWC24_ERR_VER_MISMATCH;
+    if (result != NWC24_OK) {
+        return result;
     }
     if ((*ppHeader)->freeChain & 31) {
         return NWC24_ERR_BROKEN;
+    }
+    if ((*ppHeader)->version != MBOX_CTRL_VERSION) {
+        return NWC24_ERR_VER_MISMATCH;
     }
 
     return result;

@@ -1035,6 +1035,7 @@ void YoshiTongueAction::fn_80420C30(TVec3f* position, const TVec3f& target, cons
     position->set(result);
 }
 
+// NONMATCHING: temporary stack slots, quaternion copy instruction widths and argument scheduling differ.
 void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target, const TVec3f& gravity, f32 progress) {
     TPos3f original;
     original.set(mYoshi->getBaseMtx());
@@ -1115,6 +1116,7 @@ void YoshiTongueAction::fn_804210B0() {
     mPlayer->changeAnimation("フックジャンプ", static_cast<const char*>(nullptr));
 }
 
+// NONMATCHING: redundant ori r3,r3,0 before boolean normalization is omitted.
 bool YoshiTongueAction::fn_80421210() const {
     return mPlayer->fn_803EF000() != 0;
 }
@@ -1231,6 +1233,7 @@ void YoshiTongueAction::fn_80421830(TVec3f* output) const {
     output->set<f32>(matrix.mMtx[0][3], matrix.mMtx[1][3], matrix.mMtx[2][3]);
 }
 
+// NONMATCHING: positive countdown is tested directly instead of materializing a boolean.
 bool YoshiTongueAction::fn_80421880() const {
     bool canEat = false;
     if (mYoshi->mDashTimer <= 0 && !mYoshi->fn_8040F070()) canEat = true;
@@ -1239,7 +1242,6 @@ bool YoshiTongueAction::fn_80421880() const {
 
 
 YoshiTongueAction::~YoshiTongueAction() {}
-
 
 
 void YoshiLockOnManager::startLockOn(LiveActor* actor) {
@@ -1254,121 +1256,10 @@ void YoshiLockOnManager::endLockOn() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: temporary stack slots, quaternion copy instruction widths and argument scheduling differ.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NONMATCHING: positive countdown is tested directly instead of materializing a boolean.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void NrvYoshiTongueAction::State18::execute(Spine* spine) const {
     YoshiTongueAction* action = static_cast<YoshiTongueAction*>(spine->mExecutor);
     if (MR::isFirstStep(action)) MR::startStarPointerModePictureBook(action);
 }
-
-// NONMATCHING: redundant ori r3,r3,0 before boolean normalization is omitted.
-
-
 
 
 bool MR::fn_80421D10() {

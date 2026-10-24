@@ -1141,13 +1141,19 @@ void Jugem::calcJugemPickupPosition(TVec3f* pOut, s32 index) {
 
 // NONMATCHING: vector stack slots and loop register allocation differ
 void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
+    f32 d;
+    f32 scale;
+    s32 count;
+    s32 arg;
+    s32 idx;
+
     TVec3f nearest;
-    s32 idx = findJugemNearestRailPoint(&nearest, this, *MR::getPlayerPos());
+    idx = findJugemNearestRailPoint(&nearest, this, *MR::getPlayerPos());
     *pOut = nearest;
-    s32 arg = -1;
+    arg = -1;
     MR::getRailPointArg0WithInit(this, idx, &arg);
     if (arg != 1) {
-        s32 count = 0;
+        count = 0;
         TVec3f sum(0.0f);
         for (s32 i = 0; i < mChildNum; i++) {
             if (mChildObjs[i] != nullptr) {
@@ -1173,7 +1179,7 @@ void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
             u *= 0.5f;
             *pOut = u;
         } else if (count > 0) {
-            f32 scale = 1.0f / count;
+            scale = 1.0f / count;
             TVec3f t(sum);
             t *= scale;
             *pOut = t;
@@ -1181,7 +1187,7 @@ void Jugem::calcJugemFollowPosition(TVec3f* pOut, f32 offset) {
         const TVec3f& player = *MR::getPlayerPos();
         TVec3f diff(*pOut);
         diff -= player;
-        f32 d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
+        d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
         if (PSVECMag(&diff) < 900.0f) {
             MR::normalize(&diff);
             TVec3f a(diff);

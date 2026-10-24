@@ -298,12 +298,34 @@ void ScenarioStarter::updateBindActorMtx() {
     if (isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterRailMove))) {
         TPos3f rotateY;
         rotateY.identity();
-        rotateY.setEulerY(mRollY);
+        f32 angle = mRollY;
+        f32 sinRoll = sin(angle);
+        f32 cosRoll = cos(angle);
+        rotateY.mMtx[1][1] = 1.0f;
+        rotateY.mMtx[0][0] = cosRoll;
+        rotateY.mMtx[0][2] = sinRoll;
+        rotateY.mMtx[2][0] = -sinRoll;
+        rotateY.mMtx[2][2] = cosRoll;
+        rotateY.mMtx[2][1] = 0.0f;
+        rotateY.mMtx[1][2] = 0.0f;
+        rotateY.mMtx[1][0] = 0.0f;
+        rotateY.mMtx[0][1] = 0.0f;
         rotateY.zeroTrans();
 
         TPos3f rotateX;
         rotateX.identity();
-        rotateX.setEulerX(mPitchX);
+        angle = mPitchX;
+        f32 sinPitch = sin(angle);
+        f32 cosPitch = cos(angle);
+        rotateX.mMtx[0][0] = 1.0f;
+        rotateX.mMtx[1][1] = cosPitch;
+        rotateX.mMtx[1][2] = -sinPitch;
+        rotateX.mMtx[2][1] = sinPitch;
+        rotateX.mMtx[2][2] = cosPitch;
+        rotateX.mMtx[2][0] = 0.0f;
+        rotateX.mMtx[0][2] = 0.0f;
+        rotateX.mMtx[1][0] = 0.0f;
+        rotateX.mMtx[0][1] = 0.0f;
 
         TPos3f mtx;
         mtx.setQT(mBindQuat, mPosition);

@@ -145,10 +145,7 @@ void WorldMapResultStateEnterGalaxy::exeZoomIn() {
         infoHost->showGalaxyInfo(infoHost->getCurrentGalaxyName());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    TVec3f sum = mPos + *mTargetPos;
-    TVec3f scaled = sum * rate;
-    TVec3f rest = mPos * (lbl_807E1D00 - rate);
-    TVec3f merged = rest + scaled;
+    TVec3f merged = (mPos * (lbl_807E1D00 - rate)) + ((mPos + *mTargetPos) * rate);
     mHost->setRocketPosWithTarget(&merged);
     f32 ease = MR::calcNerveEaseInRate(this, 30);
     WorldMapOwner* host = mHost;
@@ -191,10 +188,7 @@ void WorldMapResultStateEnterGalaxy::exeZoomOut() {
         MR::startActionSound(mHost->getRocket(), "ZoomOutGalaxy", -1, -1, -1);
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    TVec3f scaled = mPos * rate;
-    TVec3f sum = mPos + *mTargetPos;
-    TVec3f rest = sum * (lbl_807E1D00 - rate);
-    TVec3f merged = rest + scaled;
+    TVec3f merged = ((mPos + *mTargetPos) * (lbl_807E1D00 - rate)) + (mPos * rate);
     mHost->setRocketPosWithTarget(&merged);
     WorldMapOwner* host = mHost;
 #ifdef GALAXY_NATIVE

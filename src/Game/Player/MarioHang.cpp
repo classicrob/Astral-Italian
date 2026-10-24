@@ -394,12 +394,13 @@ bool MarioHang::fn_803ED940() {
     return true;
 }
 
-// NONMATCHING: equivalent flag extraction.
+// NONMATCHING: equivalent scalar literal relocation label.
 void MarioHang::fn_803ED990() {
     if (((getPlayer()->mMovementStates.mLowWord >> 5) & 1U) && _14 > 2) {
+        const TVec3f* normal;
         MarioActor* actor = mActor;
-        const TVec3f& normal = getPlayer()->getSideWallNorm();
-        if (actor->getLastMove().dot(normal) < 0.0f)
+        normal = &getPlayer()->getSideWallNorm();
+        if (actor->getLastMove().dot(*normal) < 0.0f)
             _1C = 1;
     }
 }

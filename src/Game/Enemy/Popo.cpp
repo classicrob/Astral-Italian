@@ -193,14 +193,16 @@ void Popo::exeWalk() {
         TVec3f shadowPos;
         MR::getShadowProjectionPos(this, nullptr, &shadowPos);
         f32 heightRate = 1.0f - PSVECDistance(&shadowPos, &mPosition) / 400.0f;
-        f32 heightScale = clampRate01(heightRate * heightRate);
+        heightRate *= heightRate;
+        f32 heightScale = clampRate01(heightRate);
         TVec3f horizontal;
         const TVec3f* pPlayerPos = MR::getPlayerPos();
         TVec3f toPlayer(mPosition);
         toPlayer -= *pPlayerPos;
         MR::vecKillElement(toPlayer, mGravity, &horizontal);
         f32 distRate = PSVECMag(&horizontal) / 300.0f;
-        f32 distScale = clampRate01(distRate * distRate);
+        distRate *= distRate;
+        f32 distScale = clampRate01(distRate);
         mVelocity.add(-mGravity * 0.05f * heightScale * distScale);
     }
     calcTurnVelocity(0.95f);

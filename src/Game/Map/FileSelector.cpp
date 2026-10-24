@@ -644,8 +644,12 @@ void FileSelector::initChildObjs(const JMapInfoIter& rIter) {
 
 // NONMATCHING: register allocation (loop counter / actor pointer registers swapped)
 void FileSelector::updateChildObjs() {
-    f32 degToRad = PI / 180.0f;
-    f32 radToDeg = 180.0f / PI;
+    f32 degToRad;
+    f32 radToDeg;
+    LiveActor* pActor;
+
+    degToRad = PI / 180.0f;
+    radToDeg = 180.0f / PI;
 
     TPos3f mtxA;
     mtxA.identity();
@@ -666,7 +670,7 @@ void FileSelector::updateChildObjs() {
         mtx.setRotate(rot.x, rot.y, rot.z);
         mtx.concat(mtxB, mtx);
 
-        LiveActor* pActor = mChildActors[i];
+        pActor = mChildActors[i];
         mtx.getEulerXYZ(pActor->mRotation);
         pActor->mRotation.scale(radToDeg);
     }

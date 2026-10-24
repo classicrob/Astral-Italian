@@ -10,9 +10,12 @@ MarioScreenStripWave::MarioScreenStripWave(f32 amplitude, u32 phase, s32 period,
     : mAmplitude(amplitude), mPhase(6.2831855f * phase / period), mFrequency(6.2831855f / frequency) {
 }
 
-// NONMATCHING: equivalent commutative floating-point operand order.
+// NONMATCHING: equivalent scalar literal relocation labels.
 f32 MarioScreenStripWave::calcOffset(u32 row) {
-    return mAmplitude * MR::sin(MR::sin(mFrequency * row) * 3.1415927f + mPhase);
+    f32 angle = MR::sin(mFrequency * row);
+    angle *= 3.1415927f;
+    angle += mPhase;
+    return mAmplitude * MR::sin(angle);
 }
 
 MarioScreenStripCurve::MarioScreenStripCurve(u32 position, u32 phase) {

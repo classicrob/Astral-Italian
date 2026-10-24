@@ -745,9 +745,12 @@ void Battan::appearBattanBreakParts() {
             PSMTXCopy(getBaseMtx(), mtx);
             MR::rotateMtxLocalYDegree(mtx, MR::getRandomDegree());
             mtx.getEuler(rot);
-            rot.x = 57.29578f * rot.x;
-            rot.y = 57.29578f * rot.y;
-            rot.z = 57.29578f * rot.z;
+            f32 rz = rot.z;
+            f32 ry = rot.y;
+            f32 rx = rot.x;
+            rot.x = 57.29578f * rx;
+            rot.y = 57.29578f * ry;
+            rot.z = 57.29578f * rz;
             MR::setPosition(mBreakParts[i], pos);
             MR::setRotation(mBreakParts[i], rot);
             mBreakParts[i]->appear();

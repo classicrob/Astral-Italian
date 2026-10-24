@@ -131,9 +131,15 @@ static void ConfigureVideo(u16 xfbW, u16 xfbH) {
         break;
 
       case VI_EURGB60:
-        mode.viTVmode = VI_TVMODE_EURGB60_INT;
-        mode.viYOrigin = (480 - 480) / 2;
-        mode.xFBmode = VI_XFBMODE_DF;
+        if (__VIRegs[0x36] & 1) {
+            mode.viTVmode = VI_TVMODE_EURGB60_PROG;
+            mode.viYOrigin = (480 - 480) / 2;
+            mode.xFBmode = VI_XFBMODE_SF;
+        } else {
+            mode.viTVmode = VI_TVMODE_EURGB60_INT;
+            mode.viYOrigin = (480 - 480) / 2;
+            mode.xFBmode = VI_XFBMODE_DF;
+        }
         break;
 
       case VI_PAL:

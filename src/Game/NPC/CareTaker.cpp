@@ -86,8 +86,7 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     MR::startBckNoInterpole(this,"Wait");
     s32 arg4=0;
     MR::getJMapInfoArg4NoInit(rIter,&arg4);
-    mObjArg4=arg4;
-    setAnim(arg4);
+    setAnim(mObjArg4=arg4);
     MR::calcAnimDirect(this);
     if(getMsgCtrl()) {
         MR::registerBranchFunc(getMsgCtrl(),TalkMessageFunc(this,&Caretaker::branchFuncComet));

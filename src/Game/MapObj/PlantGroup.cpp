@@ -216,8 +216,9 @@ void PlantGroup::initMember(s32 itemCount, const JMapInfoIter&) {
     if (!MR::isValidSwitchAppear(this)) {
         for (s32 i = 0; i < mMemberCount; i++) {
             s32 index = MR::getRandom(0L, i + 1);
-            bool hasItem = mMembers[i]->mHasItem;
-            mMembers[i]->mHasItem = mMembers[index]->mHasItem;
+            PlantMember* member = mMembers[i];
+            bool hasItem = member->mHasItem;
+            member->mHasItem = mMembers[index]->mHasItem;
             mMembers[index]->mHasItem = hasItem;
         }
     }

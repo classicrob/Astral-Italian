@@ -17,15 +17,17 @@ s32 LINTCmp(const u32* left, const u32* right) {
 
 // NONMATCHING: carry-zero placement and GPR allocation; same loop CFG and integer operations.
 void LINTLshift(u32* result, const u32* input, u32 bits) {
-    u32 count = *input++;
+    u32 count = *input;
     u32* output = result + 1;
+    const u32* digits = input + 1;
     u32 whole = bits / 32;
     u32 partial = bits % 32;
-    u64 carry = 0;
+    u64 carry;
     u32 i;
     for (i = 0; i < whole; i++) output[i] = 0;
+    carry = 0;
     for (i = 0; i < count; i++) {
-        carry += (u64)input[i] << partial;
+        carry += (u64)digits[i] << partial;
         output[i + whole] = carry & 0xFFFFFFFF;
         carry = (carry >> 32) & 0xFFFFFFFF;
     }

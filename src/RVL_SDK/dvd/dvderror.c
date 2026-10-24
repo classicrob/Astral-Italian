@@ -25,6 +25,9 @@ void cbForNandWrite(s32 result, NANDCommandBlock* block) {
 
 void cbForNandSeek(s32 result, NANDCommandBlock* block) {
     if (result == sizeof(DVDErrorInfo) * (1 + NextOffset)) {
+        if (NextOffset == 0) {
+            __ErrorInfo.nextOffset = (NextOffset + 1) % 7;
+        }
         DCFlushRange((void*)&__ErrorInfo, sizeof(__ErrorInfo));
 
         if (NANDWriteAsync(&NandInfo, (void*)&__ErrorInfo, sizeof(__ErrorInfo), cbForNandWrite, &NandCb) != 0) {

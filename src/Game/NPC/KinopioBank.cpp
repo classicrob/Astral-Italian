@@ -68,7 +68,7 @@ void KinopioBank::init(const JMapInfoIter& iter) {
     MR::invalidateHitSensor(this,"Pickel");
     MR::offBind(this);
     mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault; mParam._1C="Talk"; mParam._20="Talk";
-    mRailMoveAction="Walk"; mRailTalkAction="Walk";
+    setTalkAction("Walk");
     mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
     mSpinAttackRange=450.0f;
     initTalkCtrlDirect(iter,"KinopioBank",TVec3f(0.0f,150.0f,0.0f),nullptr);
@@ -76,8 +76,9 @@ void KinopioBank::init(const JMapInfoIter& iter) {
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&KinopioBank::eventFunc));
     mStarPieceBank=new StarPieceBank("銀行レイアウト");
     s32 count=GameDataFunction::getMaxBankedStarPieceNum();
+    s32 i;
     s32 bankIndex=0;
-    for(s32 i=0;i<11;i++) if(sLifeThresholds[i]<=count) bankIndex=i+1;
+    for(i=0;i<11;i++) if(sLifeThresholds[i]<=count) bankIndex=i+1;
     mBankIndex=bankIndex;
     MR::startBrk(this,"ColorChange");
     MR::setBrkFrameAndStop(this,1.0f);

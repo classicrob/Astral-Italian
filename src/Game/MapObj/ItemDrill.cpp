@@ -261,11 +261,12 @@ bool ItemDrill::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
         if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
             emitInvalidEffect();
             TMtx34f tmpL = mMtx15C;
+            TMtx34f m2;
             TMtx34f m1;
             JMath::gekko_ps_copy12(&m1, &tmpL);
             MR::rotateMtxLocalZ(m1, PI);
             MR::stopSceneForDefaultHit(4);
-            TMtx34f m2 = m1;
+            m2 = m1;
             reflectDrillAt(&m2);
             return true;
         }

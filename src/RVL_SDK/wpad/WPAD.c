@@ -1116,9 +1116,10 @@ static void firmwareCheckCallback(s32 chan, s32 result) {
 
 // NONMATCHING: compiler register allocation and scheduling differ.
 s32 __wpadRetrieveChannel(WUDDevInfo* info) {
+    u8* address;
     s32 chan;
     s32 selected = -1;
-    u8* address = _WUDGetDevAddr(info->devHandle);
+    address = _WUDGetDevAddr(info->devHandle);
     if (!memcmp(info->conf.devName, "Nintendo RVL-WBC", 16)) {
         selected = 3;
         if (_wpdcb[3]->used) {
@@ -2347,12 +2348,11 @@ void WPADiClearQueue(WPADCmdQueue* queue) {
     OSRestoreInterrupts(enable);
 }
 
-// NONMATCHING: r30/r31 allocation is exchanged; real status/interrupt behavior retained.
 u8 WPADiGetMplsStatus(s32 chan) {
-    WPADControlBlock* p_cb = _wpdcb[chan];
     u8 mode = 0;
+    WPADControlBlock* p_cb = _wpdcb[chan];
     BOOL enabled = OSDisableInterrupts();
-    if ((u8)(p_cb->devType - 5) <= 2 || p_cb->devType == 250) mode = p_cb->devMode;
+    if ((u8)(p_cb->devType + 251) <= 2 || p_cb->devType == 250) mode = p_cb->devMode;
     OSRestoreInterrupts(enabled);
     return mode;
 }

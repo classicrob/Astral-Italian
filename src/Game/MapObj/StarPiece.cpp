@@ -1000,10 +1000,10 @@ void StarPiece::launch(const TVec3f& launchPos, f32 randomSpeed, f32 verticalSpe
         trySetGravityAndFront(mGravity);
     }
 
-    // NONMATCHING: explicit Z/Y/X RNG sequencing changes temporary FPR allocation.
-    // Keep the DOL's sampling order on native compilers; see team scratch-objects7/B-StarPiece-rng-order/REPORT.md.
+    // Keep the DOL's Z/Y/X sampling order on native compilers; see team scratch-objects7/B-StarPiece-rng-order/REPORT.md.
+    f32 randomY;
     const f32 randomZ = MR::getRandom(-randomSpeed, randomSpeed);
-    const f32 randomY = MR::getRandom(-randomSpeed, randomSpeed);
+    randomY = MR::getRandom(-randomSpeed, randomSpeed);
     TVec3f randomVelocity(MR::getRandom(-randomSpeed, randomSpeed), randomY, randomZ);
     mVelocity.set(-mGravity * verticalSpeed);
     mVelocity += randomVelocity;
@@ -1043,10 +1043,10 @@ void StarPiece::launch(const TVec3f& launchPos, const TVec3f& launchDirection, f
     MR::fn_800145C0(this);
     trySetGravityAndFront(-launchDirection);
 
-    // NONMATCHING: explicit Z/Y/X RNG sequencing changes temporary FPR allocation.
-    // Keep the DOL's sampling order on native compilers; see team scratch-objects7/B-StarPiece-rng-order/REPORT.md.
+    // Keep the DOL's Z/Y/X sampling order on native compilers; see team scratch-objects7/B-StarPiece-rng-order/REPORT.md.
+    f32 randomY;
     const f32 randomZ = MR::getRandom(-randomSpeed, randomSpeed);
-    const f32 randomY = MR::getRandom(-randomSpeed, randomSpeed);
+    randomY = MR::getRandom(-randomSpeed, randomSpeed);
     TVec3f randomVelocity(MR::getRandom(-randomSpeed, randomSpeed), randomY, randomZ);
     mVelocity.set(launchDirection * speed);
     mVelocity += randomVelocity;

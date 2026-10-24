@@ -121,7 +121,7 @@ bool MarioYoshiBalloon::fn_80414580() {
 
 // NONMATCHING: initial state loads and comparison operand order.
 void MarioYoshiBalloon::fn_80414730() {
-    if (mRequestedAnimation != mAnimation) {
+    if (mAnimation != mRequestedAnimation) {
         mAnimation = mRequestedAnimation;
         mAnimationFrame = 0;
     }

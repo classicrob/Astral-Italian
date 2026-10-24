@@ -73,9 +73,7 @@ static inline void calcEulerHand(const TPos3f& rMtx, TVec3f& rDest) {
         f32 px = tmp.x;
         f32 py = tmp.y;
         f32 pz = rDest.z;
-        tmp.x = px * k;
-        tmp.y = py * k;
-        tmp.z = pz * k;
+        tmp.set(k * px, k * py, k * pz);
         const register f32* c = &tmp.x;
         register f32* d = &rDest.x;
         register f32 xy2;

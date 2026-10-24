@@ -175,16 +175,17 @@ BattanKing::BattanKing(const char* pName) : LiveActor(pName) {
 }
 
 void BattanKing::init(const JMapInfoIter& rIter) {
+    PattanHolder* pHolder;
+    const char* pPattanName;
     MR::initActor(this, rIter, "BattanKing", false);
 
     mCollisions = new BattanKingCollision*[5];
     mCollisionPresses = new BattanKingCollisionPress*[5];
     for (s32 i = 0; i < 5; i++) {
-        const CollisionPartsInfo& info = sCollisionPartsInfo[i];
-        mCollisions[i] = new BattanKingCollision(this, info.mActorName, info.mPartsName, NULL, MR::getJointMtx(this, info.mJointName), 0x1E);
+        mCollisions[i] = new BattanKingCollision(this, sCollisionPartsInfo[i].mActorName, sCollisionPartsInfo[i].mPartsName, NULL, MR::getJointMtx(this, sCollisionPartsInfo[i].mJointName), 0x1E);
         mCollisions[i]->initWithoutIter();
 
-        mCollisionPresses[i] = new BattanKingCollisionPress(this, info.mActorName, info.mPartsName, NULL, MR::getJointMtx(this, info.mJointName), 0x1E);
+        mCollisionPresses[i] = new BattanKingCollisionPress(this, sCollisionPartsInfo[i].mActorName, sCollisionPartsInfo[i].mPartsName, NULL, MR::getJointMtx(this, sCollisionPartsInfo[i].mJointName), 0x1E);
         mCollisionPresses[i]->initWithoutIter();
     }
 
@@ -200,10 +201,11 @@ void BattanKing::init(const JMapInfoIter& rIter) {
     mVolumeDrawers[6] = MR::createVolumeDrawer("LegR", "VolumeBox", mVolumeMtxs[6]);
     mEarthquakeDrawer = MR::createVolumeDrawer("地震範囲描画", "VolumeBox", mEarthquakeMtx);
 
-    PattanHolder* pHolder = new PattanHolder("パタン保持", 10);
+    pHolder = new PattanHolder("パタン保持", 10);
     mPattanHolder = pHolder;
+    pPattanName = "パタン";
     for (s32 i = 0; i < pHolder->mObjNumMax; i++) {
-        Pattan* pPattan = new Pattan("パタン");
+        Pattan* pPattan = new Pattan(pPattanName);
         pPattan->initWithoutIter();
         pHolder->registerActor(pPattan);
     }

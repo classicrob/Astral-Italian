@@ -43,7 +43,7 @@ void YoshiModelCtrl::fn_80418130() { mAlignEnabled=true; }
 void YoshiModelCtrl::updateState() {
     YoshiModelState* next=mCurrentState->next();
     if(next) {
-        if(mImmediate) { mBlend->mMode=0;mBlend->mStep=0; }
+        if(mImmediate) { YoshiModelBlend* blend=mBlend;blend->mMode=0;blend->mStep=0; }
         else mBlend->start(mCurrentState,next,mBlendDuration);
         mCurrentState->leave();mCurrentState=next;next->enter();
     }

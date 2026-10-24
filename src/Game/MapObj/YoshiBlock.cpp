@@ -161,7 +161,7 @@ void YoshiBlock::init(const JMapInfoIter& rIter) {
     mCollision->addCollisionPoint(&TVec3f(0.5f * -mSize.x, 0.5f * -mSize.y, 0.5f * -mSize.z));
 #endif
     mCollision->calcRadius();
-    mCollision->mRadius = 1.5f * mCollision->mRadius;
+    mCollision->mRadius *= 1.5f;
     updateCollisionMtx();
 
     mCollisionActor = new YoshiBlockCollision(this);

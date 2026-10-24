@@ -1245,10 +1245,7 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
             up.scale(100.0f);
             dir = up;
         }
-        TVec3f down(*this->getGravityVec());
-        down.scale(8.0f);
-        TVec3f origin(this->mPosHolder->mPos);
-        origin -= down;
+        TVec3f origin(this->mPosHolder->mPos - *this->getGravityVec() * 8.0f);
         start = origin;
         hit = this->fn_803B2770(pOutPos, pOutTri, start, dir);
     }
@@ -1256,12 +1253,10 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
         return false;
     }
     MR::isNearZero(this->mAirGravityVec, 0.001f);
-    if (__fabs(this->mAirGravityVec.dot(*pOutTri->getNormal(0))) >= 0.1f) {
+    if (MR::abs(this->mAirGravityVec.dot(*pOutTri->getNormal(0))) >= 0.1f) {
         return false;
     }
-    TVec3f diff(*pOutPos);
-    diff -= start;
-    this->_4E4 = diff.dot(this->mFrontVec);
+    this->_4E4 = (*pOutPos - start).dot(this->mFrontVec);
     return true;
 }
 

@@ -62,20 +62,22 @@ void dpd_revise_scale(s32 chan) {
     if (kmplsWork) {
         KMPLSState* state = &kmplsWork->channels[chan];
         f32 y;
-        f32 width = 1.0f;
-        f32 height = 0.75f;
+        f32 width;
+        f32 height;
         f32 diagonal;
         if (state->aimingMode) {
             y = WPADGetSensorBarPosition() == 1 ? -0.2f : 0.2f;
         } else {
             y = -state->dpdYOffset;
         }
+        width = 1.0f;
+        height = 0.75f;
         diagonal = (f32)sqrt(width * width + height * height);
         if (x < 0.0f) width += x;
         else width -= x;
         if (y < 0.0f) height += y;
         else height -= y;
-        if (!(width < height)) width = height;
+        width = width < height ? width : height;
         kmplsWork->channels[chan].dpdReviseScale = diagonal / width;
     }
 }

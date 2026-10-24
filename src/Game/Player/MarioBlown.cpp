@@ -35,9 +35,10 @@ bool Mario::blown(const TVec3f& rVec) {
 }
 #endif
 
-// NONMATCHING: independent initialization scheduling.
 MarioBlown::MarioBlown(MarioActor* pActor) : MarioState(pActor, MarioStatus_Blown), mTimer(), _14() {
-    _18.zero();
+    _18.x = 0.0f;
+    _18.y = 0.0f;
+    _18.z = 0.0f;
     _24 = false;
     _25 = false;
 }

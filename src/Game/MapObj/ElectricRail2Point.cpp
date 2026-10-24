@@ -108,7 +108,18 @@ void ElectricRail2Point::makeActorDead() {
 
 // NONMATCHING: register allocation and vector temporary scheduling differ.
 void ElectricRail2Point::exeMove() {
-    bool anyAttached = false;
+    s32 railCount;
+    LiveActor* pRail;
+    s32 index;
+    f32 total;
+    f32 coord;
+    LiveActor* pA;
+    LiveActor* pB;
+    LiveActor* firstActor;
+    LiveActor* lastActor;
+    bool anyAttached;
+
+    anyAttached = false;
     for (s32 i = 0; i < mElemCount; i++) {
         if (MR::attachSupportTicoToTarget(&mElems[i])) {
             MR::tryEmitEffect(&mElems[i], "PointerTouch");
@@ -120,7 +131,7 @@ void ElectricRail2Point::exeMove() {
 
     MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);
 
-    s32 railCount = mRailGroup->getObjNum();
+    railCount = mRailGroup->getObjNum();
     TVec3f playerPos = *MR::getPlayerPos();
 
     if (!anyAttached) {
@@ -129,11 +140,11 @@ void ElectricRail2Point::exeMove() {
             mCurIndex = 0;
         }
         for (s32 i = 0; i < railCount; i++) {
-            LiveActor* pRail = mRailGroup->getActor(i);
+            pRail = mRailGroup->getActor(i);
             if (static_cast<RailObj*>(pRail)->mArg0 == -1) {
-                s32 index = mCurIndex;
-                f32 total = MR::getRailTotalLength(pRail);
-                f32 coord = total / (f32)mDivCount;
+                index = mCurIndex;
+                total = MR::getRailTotalLength(pRail);
+                coord = total / (f32)mDivCount;
                 coord *= (f32)index;
                 if (!MR::isLoopRail(pRail)) {
                     if (!MR::isRailGoingToEnd(pRail)) {
@@ -149,8 +160,8 @@ void ElectricRail2Point::exeMove() {
     }
 
     for (s32 i = 0; i < railCount - 1; i++) {
-        LiveActor* pA = mRailGroup->getActor(i);
-        LiveActor* pB = mRailGroup->getActor(i + 1);
+        pA = mRailGroup->getActor(i);
+        pB = mRailGroup->getActor(i + 1);
         TVec3f b = MR::getRailPos(pA);
         TVec3f a = MR::getRailPos(pB);
         TVec3f ab = b - a;
@@ -158,8 +169,8 @@ void ElectricRail2Point::exeMove() {
         (void)ab;
     }
 
-    LiveActor* firstActor = mRailGroup->getActor(0);
-    LiveActor* lastActor = mRailGroup->getActor(railCount - 1);
+    firstActor = mRailGroup->getActor(0);
+    lastActor = mRailGroup->getActor(railCount - 1);
     TVec3f first = MR::getRailPos(firstActor);
     TVec3f last = MR::getRailPos(lastActor);
     TVec3f sideDir = last - first;

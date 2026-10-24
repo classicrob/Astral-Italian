@@ -1277,13 +1277,14 @@ void HomingKiller::exeEaten() {
 
 // NONMATCHING: matrix/quaternion temporary stack slots.
 void HomingKiller::exeShot() {
+    TPos3f mtx;
+    TQuat4f quat;
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
         MR::tryStartBck(this, "chaseStart", nullptr);
         MR::startActionSound(this, "YoshiShot");
         mMoveTime = 0;
 
-        TPos3f mtx;
         MR::calcYoshiTongueTipMtx(&mtx);
         mtx.getTrans(mPosition);
         MR::getPlayerThrowVec(&mFront);
@@ -1300,7 +1301,6 @@ void HomingKiller::exeShot() {
     mScale.setAll< f32 >(0.1f + 0.9f * mScale.x);
 
     if (mShotBindTime > 0 && MR::isBindedGround(this)) {
-        TQuat4f quat;
         quat.setRotate(mUp, MR::getGroundNormal(this));
         mUp.set(MR::getGroundNormal(this));
         quat.rotate(mFront);

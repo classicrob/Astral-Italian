@@ -231,6 +231,96 @@ static u8 descriptor[] = {
 };
 // clang-format on
 
+extern BOOL __OSInIPL;
+
+static u8 super_peek_poke[] = {0x05, 0x00, 0x9A, 0x0E, 0x00, 0x01, 0x00, 0x00, 0x00};
+
+// clang-format off
+static u8 patch_binary[] = {
+    0x70, 0x99, 0x08, 0x00, // address (little-endian)
+    0xB4, 0x00, 0x00, 0x00, // size (little-endian)
+
+    // patch data
+    0x88, 0x43, 0xD1, 0x07,
+    0x09, 0x0C, 0x08, 0x43,
+    0xA0, 0x62, 0x19, 0x23,
+    0xDB, 0x01, 0x33, 0x80,
+    0x7C, 0xF7, 0x88, 0xF8,
+    0x28, 0x76, 0x80, 0xF7,
+    0x17, 0xFF, 0x43, 0x78,
+    0xEB, 0x70, 0x19, 0x23,
+    0xDB, 0x01, 0x33, 0x87,
+    0x7C, 0xF7, 0xBC, 0xFB,
+    0x0B, 0x60, 0xA3, 0x7B,
+    0x01, 0x49, 0x0B, 0x60,
+    0x90, 0xF7, 0x96, 0xFB,
+    0xD8, 0x1D, 0x08, 0x00,
+    0x00, 0xF0, 0x04, 0xF8,
+    0x00, 0x23, 0x79, 0xF7,
+    0xE3, 0xFA, 0x00, 0x00,
+    0x00, 0xB5, 0x00, 0x23,
+    0x11, 0x49, 0x0B, 0x60,
+    0x1D, 0x21, 0xC9, 0x03,
+    0x0B, 0x60, 0x7D, 0x20,
+    0x80, 0x01, 0x01, 0x38,
+    0xFD, 0xD1, 0x0E, 0x4B,
+    0x0E, 0x4A, 0x13, 0x60,
+    0x47, 0x20, 0x00, 0x21,
+    0x96, 0xF7, 0x96, 0xFF,
+    0x46, 0x20, 0x00, 0x21,
+    0x96, 0xF7, 0x92, 0xFF,
+    0x0A, 0x4A, 0x13, 0x68,
+    0x0A, 0x48, 0x03, 0x40,
+    0x13, 0x60, 0x0A, 0x4A,
+    0x13, 0x68, 0x0A, 0x48,
+    0x03, 0x40, 0x13, 0x60,
+    0x09, 0x4A, 0x13, 0x68,
+    0x09, 0x48, 0x03, 0x40,
+    0x13, 0x60, 0x00, 0xBD,
+    0x24, 0x80, 0x0E, 0x00,
+    0x81, 0x03, 0x0F, 0xFE,
+    0x5C, 0x00, 0x0F, 0x00,
+    0x60, 0xFC, 0x0E, 0x00,
+    0xFE, 0xFF, 0x00, 0x00,
+    0xFC, 0xFC, 0x0E, 0x00,
+    0xFF, 0x9F, 0x00, 0x00,
+    0x30, 0xFC, 0x0E, 0x00,
+    0x7F, 0xFF, 0x00, 0x00
+};
+// clang-format on
+
+// clang-format off
+static WUDPatchList patch_install = {
+    7,
+    {
+        {0x20, 0xBC, 0x65, 0x01, 0x00, 0x84, 0x42, 0x09, 0xD2, 0x84, 0x42, 0x09, 0xD1},
+        {0x21, 0x84, 0x5A, 0x00, 0x00, 0x83, 0xF0, 0x74, 0xFF, 0x09, 0x0C, 0x08, 0x43},
+        {0x22, 0x00, 0x61, 0x00, 0x00, 0x83, 0xF0, 0x40, 0xFC, 0x00, 0x00, 0x00, 0x00},
+        {0x23, 0xCC, 0x9F, 0x01, 0x00, 0x6F, 0xF0, 0xE4, 0xFC, 0x03, 0x28, 0x7D, 0xD1},
+        {0x24, 0x3C, 0x62, 0x01, 0x00, 0x28, 0x20, 0x00, 0xE0, 0x60, 0x8D, 0x23, 0x68},
+        {0x25, 0x04, 0x12, 0x01, 0x00, 0x20, 0x1C, 0x20, 0x1C, 0x24, 0xE0, 0xB0, 0x21},
+        {0x26, 0x74, 0x2F, 0x00, 0x00, 0x86, 0xF0, 0x18, 0xFD, 0x21, 0x4F, 0x3B, 0x60}
+    }
+};
+// clang-format on
+
+static u8 remove_patch[] = {0x00};
+
+static u8 install_num = 0;
+static u8 patch_num = 0;
+
+static u32 addr = 0;
+static s32 offset = 0;
+static u32 size = 0;
+
+
+static u8 write_ram_params[] = {
+    // bytes 0-3: destination address
+    (0x00083630) & 0xFF, (0x00083630 >> 8) & 0xFF, (0x00083630 >> 16) & 0xFF, (0x00083630 >> 24) & 0xFF,
+
+    // data (24 zeroes)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
 BOOL WUDIsLinkedWBC(void) {
     return _linkedWBC;
 }
@@ -1450,6 +1540,128 @@ static WUDInitState WUDiInitComplete(void) {
     return WUD_STATE_INIT_INITIALIZED;
 }
 
+void __wudNandResultCallback(s32 result, NANDCommandBlock* block) {
+#pragma unused(block)
+    s32 state = _nandState;
+    _nandBusy = 0;
+    switch (state) {
+    case 1:
+        _nandState = result == 0 ? state + 1 : 255;
+        break;
+    case 2:
+        _nandState = result == 0 ? state + 1 : 5;
+        break;
+    case 3:
+        _nandState = result == 0x4B000 ? state + 1 : 5;
+        break;
+    default:
+        _nandState = 6;
+        break;
+    }
+}
+
+void __wudNandFlushCallback(u32 result) {
+#pragma unused(result)
+    _nandBusy = 0;
+    _nandState++;
+}
+
+// NONMATCHING: independent BSS object placement and literal-address lifetimes change
+// saved GPRs/instruction scheduling; calls, byte extents, state transitions and
+// ordered 16-bit checksum operations agree with the target. Two source forms.
+u8 __wudGetDevInfoFromWiiFit(void) {
+    u8 nextState = 3;
+    u8 zero[16] = {0};
+    u32 checksum;
+    u32 sum;
+    u16 inverse;
+    u32 i;
+    const u16* word;
+
+    if (_nandBusy) {
+        return 3;
+    }
+    if (_wiiFitWork == NULL || ((uintptr_t)_wiiFitWork & 31) != 0) {
+        OSPanic("WUD.c", 2745,
+                "Error: the workarea for synchronizing WBC pairing information is not allocated.\n");
+    }
+
+    switch (_nandState) {
+    case 0:
+        _nandState = NANDInit() == 0 ? 1 : 255;
+        break;
+    case 1:
+        if (SCGetProductGameRegion() == 0) {
+            _nandBusy = 1;
+            _wiiFitChecksum = 0;
+            NANDOpenAsync("/title/00010004/52464e4a/data/RPHealth.dat", &_wiiFitFileInfo,
+                          NAND_ACCESS_READ, __wudNandResultCallback, &_wiiFitCommandBlock);
+        } else {
+            _nandState = 6;
+        }
+        break;
+    case 2:
+        _nandBusy = 1;
+        NANDSeekAsync(&_wiiFitFileInfo, 0, 0, __wudNandResultCallback, &_wiiFitCommandBlock);
+        break;
+    case 3:
+        _nandBusy = 1;
+        NANDReadAsync(&_wiiFitFileInfo, _wiiFitWork, sizeof(WUDWiiFitWorkArea),
+                      __wudNandResultCallback, &_wiiFitCommandBlock);
+        break;
+    case 4:
+        memcpy(&_wiiFitPairingData.record, _wiiFitWork->pairingWords, sizeof(WUDWiiFitPairingRecord));
+        memcpy(&checksum, &_wiiFitWork->checksum, sizeof(checksum));
+        sum = 0;
+        inverse = 0;
+        word = _wiiFitWork->payload;
+        for (i = 0; i < sizeof(_wiiFitWork->payload) / sizeof(u16); i++) {
+            sum += *word;
+            inverse += ~*word++;
+        }
+        _wiiFitChecksum = (sum << 16) | inverse;
+        sum = _wiiFitChecksum >> 16;
+        inverse = _wiiFitChecksum;
+        word = _wiiFitWork->pairingWords;
+        for (i = 0; i < sizeof(_wiiFitWork->pairingWords) / sizeof(u16); i++) {
+            sum += *word;
+            inverse += ~*word++;
+        }
+        if (checksum != ((sum << 16) | inverse)) {
+            _nandState = 5;
+            break;
+        }
+        if (memcmp(_wiiFitPairingData.record.address, zero, sizeof(BD_ADDR)) == 0) {
+            _nandState = 5;
+            break;
+        }
+        if (memcmp(OSGetAppGamename(), "RFNJ", 4) != 0 &&
+            memcmp(_wiiFitPairingData.record.linkKey, zero, sizeof(LINK_KEY)) == 0) {
+            _nandState = 5;
+            break;
+        }
+        memset(_wiiFitWork, 0, sizeof(WUDWiiFitWorkArea));
+        memset(&_scArray, 0, sizeof(_scArray));
+        SCGetBtDeviceInfoArray(&_scArray);
+        memcpy(_scArray.info[14].bd_addr, _wiiFitPairingData.record.address, sizeof(BD_ADDR));
+        memcpy(_scArray.info[14].bd_name, _wiiFitPairingData.record.name, sizeof(_wiiFitPairingData.record.name));
+        // This SC record embeds the key after the controller name's first 20 bytes.
+        memcpy(&_scArray.info[14].bd_name[20], _wiiFitPairingData.record.linkKey, sizeof(LINK_KEY));
+        SCSetBtDeviceInfoArray(&_scArray);
+        _nandBusy = 1;
+        SCFlushAsync(__wudNandFlushCallback);
+        break;
+    case 5:
+        _nandBusy = 1;
+        NANDCloseAsync(&_wiiFitFileInfo, __wudNandResultCallback, &_wiiFitCommandBlock);
+        break;
+    default:
+        nextState = 4;
+        break;
+    }
+    return nextState;
+}
+
 static void InitHandler(void) {
     WUDCB* p = &_wcb;
 
@@ -1927,7 +2139,7 @@ BOOL WUDSetDisableChannel(s8 afhChannel) {
     u32 libStatus;
     tBTM_STATUS status;
 
-    if (afhChannel < 0 || 13 < afhChannel) {
+    if ((u8)afhChannel > 13) {
         return FALSE;
     }
 
@@ -2020,90 +2232,12 @@ void reset_again(void) {
     BTM_DeviceReset(__wudModuleRebootCallback);
 }
 
-// clang-format off
-static u8 patch_binary[] = {
-    0x70, 0x99, 0x08, 0x00, // address (little-endian)
-    0xB4, 0x00, 0x00, 0x00, // size (little-endian)
-
-    // patch data
-    0x88, 0x43, 0xD1, 0x07,
-    0x09, 0x0C, 0x08, 0x43,
-    0xA0, 0x62, 0x19, 0x23,
-    0xDB, 0x01, 0x33, 0x80,
-    0x7C, 0xF7, 0x88, 0xF8,
-    0x28, 0x76, 0x80, 0xF7,
-    0x17, 0xFF, 0x43, 0x78,
-    0xEB, 0x70, 0x19, 0x23,
-    0xDB, 0x01, 0x33, 0x87,
-    0x7C, 0xF7, 0xBC, 0xFB,
-    0x0B, 0x60, 0xA3, 0x7B,
-    0x01, 0x49, 0x0B, 0x60,
-    0x90, 0xF7, 0x96, 0xFB,
-    0xD8, 0x1D, 0x08, 0x00,
-    0x00, 0xF0, 0x04, 0xF8,
-    0x00, 0x23, 0x79, 0xF7,
-    0xE3, 0xFA, 0x00, 0x00,
-    0x00, 0xB5, 0x00, 0x23,
-    0x11, 0x49, 0x0B, 0x60,
-    0x1D, 0x21, 0xC9, 0x03,
-    0x0B, 0x60, 0x7D, 0x20,
-    0x80, 0x01, 0x01, 0x38,
-    0xFD, 0xD1, 0x0E, 0x4B,
-    0x0E, 0x4A, 0x13, 0x60,
-    0x47, 0x20, 0x00, 0x21,
-    0x96, 0xF7, 0x96, 0xFF,
-    0x46, 0x20, 0x00, 0x21,
-    0x96, 0xF7, 0x92, 0xFF,
-    0x0A, 0x4A, 0x13, 0x68,
-    0x0A, 0x48, 0x03, 0x40,
-    0x13, 0x60, 0x0A, 0x4A,
-    0x13, 0x68, 0x0A, 0x48,
-    0x03, 0x40, 0x13, 0x60,
-    0x09, 0x4A, 0x13, 0x68,
-    0x09, 0x48, 0x03, 0x40,
-    0x13, 0x60, 0x00, 0xBD,
-    0x24, 0x80, 0x0E, 0x00,
-    0x81, 0x03, 0x0F, 0xFE,
-    0x5C, 0x00, 0x0F, 0x00,
-    0x60, 0xFC, 0x0E, 0x00,
-    0xFE, 0xFF, 0x00, 0x00,
-    0xFC, 0xFC, 0x0E, 0x00,
-    0xFF, 0x9F, 0x00, 0x00,
-    0x30, 0xFC, 0x0E, 0x00,
-    0x7F, 0xFF, 0x00, 0x00
-};
-// clang-format on
-
-// clang-format off
-static WUDPatchList patch_install = {
-    7,
-    {
-        {0x20, 0xBC, 0x65, 0x01, 0x00, 0x84, 0x42, 0x09, 0xD2, 0x84, 0x42, 0x09, 0xD1},
-        {0x21, 0x84, 0x5A, 0x00, 0x00, 0x83, 0xF0, 0x74, 0xFF, 0x09, 0x0C, 0x08, 0x43},
-        {0x22, 0x00, 0x61, 0x00, 0x00, 0x83, 0xF0, 0x40, 0xFC, 0x00, 0x00, 0x00, 0x00},
-        {0x23, 0xCC, 0x9F, 0x01, 0x00, 0x6F, 0xF0, 0xE4, 0xFC, 0x03, 0x28, 0x7D, 0xD1},
-        {0x24, 0x3C, 0x62, 0x01, 0x00, 0x28, 0x20, 0x00, 0xE0, 0x60, 0x8D, 0x23, 0x68},
-        {0x25, 0x04, 0x12, 0x01, 0x00, 0x20, 0x1C, 0x20, 0x1C, 0x24, 0xE0, 0xB0, 0x21},
-        {0x26, 0x74, 0x2F, 0x00, 0x00, 0x86, 0xF0, 0x18, 0xFD, 0x21, 0x4F, 0x3B, 0x60}
-    }
-};
-// clang-format on
-
-static u8 remove_patch[] = {0x00};
-
-static u8 install_num = 0;
-static u8 patch_num = 0;
-
-static u32 addr = 0;
-static s32 offset = 0;
-static u32 size = 0;
-
 static void __wudRemovePatchCallback(tBTM_VSC_CMPL* p1) {
-    if (p1 == NULL) {
-        reset_again();
-    } else {
+    if (p1 != NULL) {
         offset = 0;
         WUDiWritePatch();
+    } else {
+        reset_again();
     }
 }
 
@@ -2145,14 +2279,10 @@ static void WUDiWritePatch(void) {
 }
 
 static void __wudInstallPatchCallback(tBTM_VSC_CMPL* p1) {
-    if (p1 != NULL) {
-        if (patch_num == install_num) {
-            reset_again();
-        } else {
-            WUDiInstallPatch();
-        }
-    } else {
+    if ((patch_num == install_num && p1 != NULL) || p1 == NULL) {
         reset_again();
+    } else {
+        WUDiInstallPatch();
     }
 }
 
@@ -2169,6 +2299,10 @@ static void WUDiInstallPatch(void) {
     BTM_VendorSpecificCommand(BT_VSC_NINTENDO_INSTALL_PATCH, sizeof(num) + num * sizeof(WUDPatchCmd), buf, __wudInstallPatchCallback);
 }
 
+static void __wudSuperPeekPokeCallback(tBTM_VSC_CMPL* result) {
+    WUDiRemovePatch();
+}
+
 static void WUDiAppendRuntimePatch(void) {
     int i;
 
@@ -2183,7 +2317,11 @@ static void WUDiAppendRuntimePatch(void) {
         size += patch_binary[7 - i];
     }
 
-    WUDiRemovePatch();
+    if (__OSInIPL) {
+        BTM_VendorSpecificCommand(0xFC0A, sizeof(super_peek_poke), super_peek_poke, __wudSuperPeekPokeCallback);
+    } else {
+        WUDiRemovePatch();
+    }
 }
 
 void WUDiGetFirmwareVersion(void) {
@@ -2410,7 +2548,7 @@ WUDDevInfo* WUDiGetDevInfoIndex(int idx) {
 
     enabled = OSDisableInterrupts();
 
-    if (0 <= idx && idx < WUD_MAX_DEV_ENTRY_FOR_STD) {
+    if ((u32)idx <= WUD_MAX_DEV_ENTRY_FOR_STD - 1) {
         pInfo = &p->stdDevs[idx];
     } else {
         pInfo = &p->smpDevs[idx - WUD_MAX_DEV_ENTRY_FOR_STD];
@@ -3285,8 +3423,8 @@ u16 _WUDGetQueuedSize(s8 handle) {
     u16 queuedSize;
     BOOL enabled = OSDisableInterrupts();
 
-    if (0 <= handle && handle < WUD_MAX_DEV_ENTRY) {
-        queuedSize = _dev_handle_queue_size[handle];
+    if ((u8)handle < WUD_MAX_DEV_ENTRY) {
+        queuedSize = _dev_handle_queue_size[(u8)handle];
 
     } else {
         queuedSize = 0;
@@ -3300,8 +3438,8 @@ u16 _WUDGetNotAckedSize(s8 handle) {
     u16 notAckedSize;
     BOOL enabled = OSDisableInterrupts();
 
-    if (0 <= handle && handle < WUD_MAX_DEV_ENTRY) {
-        notAckedSize = _dev_handle_notack_num[handle];
+    if ((u8)handle < WUD_MAX_DEV_ENTRY) {
+        notAckedSize = _dev_handle_notack_num[(u8)handle];
     } else {
         notAckedSize = 0;
     }
@@ -3320,12 +3458,7 @@ u8 _WUDGetLinkNumber(void) {
     return num;
 }
 
-static u8 write_ram_params[] = {
-    // bytes 0-3: destination address
-    (0x00083630) & 0xFF, (0x00083630 >> 8) & 0xFF, (0x00083630 >> 16) & 0xFF, (0x00083630 >> 24) & 0xFF,
 
-    // data (24 zeroes)
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 void WUDiResetAuthFailCount(void) {
     BTM_VendorSpecificCommand(0xFC4C, sizeof(write_ram_params), (u8*)write_ram_params, NULL);
@@ -3389,126 +3522,4 @@ void WUDiSetQueueSizeForHandle(u8 handle, u16 size) {
 }
 void WUDiSetNotAckNumForHandle(u8 handle, u16 size) {
     _dev_handle_notack_num[handle] = size;
-}
-
-void __wudNandResultCallback(s32 result, NANDCommandBlock* block) {
-#pragma unused(block)
-    s32 state = _nandState;
-    _nandBusy = 0;
-    switch (state) {
-    case 1:
-        _nandState = result == 0 ? state + 1 : 255;
-        break;
-    case 2:
-        _nandState = result == 0 ? state + 1 : 5;
-        break;
-    case 3:
-        _nandState = result == 0x4B000 ? state + 1 : 5;
-        break;
-    default:
-        _nandState = 6;
-        break;
-    }
-}
-
-void __wudNandFlushCallback(u32 result) {
-#pragma unused(result)
-    _nandBusy = 0;
-    _nandState++;
-}
-
-// NONMATCHING: independent BSS object placement and literal-address lifetimes change
-// saved GPRs/instruction scheduling; calls, byte extents, state transitions and
-// ordered 16-bit checksum operations agree with the target. Two source forms.
-u8 __wudGetDevInfoFromWiiFit(void) {
-    u8 nextState = 3;
-    u8 zero[16] = {0};
-    u32 checksum;
-    u32 sum;
-    u16 inverse;
-    u32 i;
-    const u16* word;
-
-    if (_nandBusy) {
-        return 3;
-    }
-    if (_wiiFitWork == NULL || ((uintptr_t)_wiiFitWork & 31) != 0) {
-        OSPanic("WUD.c", 2745,
-                "Error: the workarea for synchronizing WBC pairing information is not allocated.\n");
-    }
-
-    switch (_nandState) {
-    case 0:
-        _nandState = NANDInit() == 0 ? 1 : 255;
-        break;
-    case 1:
-        if (SCGetProductGameRegion() == 0) {
-            _nandBusy = 1;
-            _wiiFitChecksum = 0;
-            NANDOpenAsync("/title/00010004/52464e4a/data/RPHealth.dat", &_wiiFitFileInfo,
-                          NAND_ACCESS_READ, __wudNandResultCallback, &_wiiFitCommandBlock);
-        } else {
-            _nandState = 6;
-        }
-        break;
-    case 2:
-        _nandBusy = 1;
-        NANDSeekAsync(&_wiiFitFileInfo, 0, 0, __wudNandResultCallback, &_wiiFitCommandBlock);
-        break;
-    case 3:
-        _nandBusy = 1;
-        NANDReadAsync(&_wiiFitFileInfo, _wiiFitWork, sizeof(WUDWiiFitWorkArea),
-                      __wudNandResultCallback, &_wiiFitCommandBlock);
-        break;
-    case 4:
-        memcpy(&_wiiFitPairingData.record, _wiiFitWork->pairingWords, sizeof(WUDWiiFitPairingRecord));
-        memcpy(&checksum, &_wiiFitWork->checksum, sizeof(checksum));
-        sum = 0;
-        inverse = 0;
-        word = _wiiFitWork->payload;
-        for (i = 0; i < sizeof(_wiiFitWork->payload) / sizeof(u16); i++) {
-            sum += *word;
-            inverse += ~*word++;
-        }
-        _wiiFitChecksum = (sum << 16) | inverse;
-        sum = _wiiFitChecksum >> 16;
-        inverse = _wiiFitChecksum;
-        word = _wiiFitWork->pairingWords;
-        for (i = 0; i < sizeof(_wiiFitWork->pairingWords) / sizeof(u16); i++) {
-            sum += *word;
-            inverse += ~*word++;
-        }
-        if (checksum != ((sum << 16) | inverse)) {
-            _nandState = 5;
-            break;
-        }
-        if (memcmp(_wiiFitPairingData.record.address, zero, sizeof(BD_ADDR)) == 0) {
-            _nandState = 5;
-            break;
-        }
-        if (memcmp(OSGetAppGamename(), "RFNJ", 4) != 0 &&
-            memcmp(_wiiFitPairingData.record.linkKey, zero, sizeof(LINK_KEY)) == 0) {
-            _nandState = 5;
-            break;
-        }
-        memset(_wiiFitWork, 0, sizeof(WUDWiiFitWorkArea));
-        memset(&_scArray, 0, sizeof(_scArray));
-        SCGetBtDeviceInfoArray(&_scArray);
-        memcpy(_scArray.info[14].bd_addr, _wiiFitPairingData.record.address, sizeof(BD_ADDR));
-        memcpy(_scArray.info[14].bd_name, _wiiFitPairingData.record.name, sizeof(_wiiFitPairingData.record.name));
-        // This SC record embeds the key after the controller name's first 20 bytes.
-        memcpy(&_scArray.info[14].bd_name[20], _wiiFitPairingData.record.linkKey, sizeof(LINK_KEY));
-        SCSetBtDeviceInfoArray(&_scArray);
-        _nandBusy = 1;
-        SCFlushAsync(__wudNandFlushCallback);
-        break;
-    case 5:
-        _nandBusy = 1;
-        NANDCloseAsync(&_wiiFitFileInfo, __wudNandResultCallback, &_wiiFitCommandBlock);
-        break;
-    default:
-        nextState = 4;
-        break;
-    }
-    return nextState;
 }

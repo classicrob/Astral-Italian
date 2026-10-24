@@ -473,6 +473,8 @@ bool MorphItemObjNeo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
 // NONMATCHING: sensor/vector temporary register allocation differs
 // NONMATCHING: regalloc (pSender/pReceiver saved-register order) and the resulting psq load order in velocity -= senderPos
 bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
+    bool isInvalid;
+
     if (MR::isHiddenModel(this)) {
         return false;
     }
@@ -525,7 +527,7 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     int powerUp = getPowerUp();
-    bool isInvalid = false;
+    isInvalid = false;
 
     switch (powerUp) {
     case PowerUpIce:

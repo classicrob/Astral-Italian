@@ -1,8 +1,11 @@
 #include "revolution/vf/pf_clib.h"
 
 s32 VFipf_toupper(s32 c) {
-    if (c >= 97 && c <= 122) {
-        c -= 32;
+    if (c < 97) {
+        return c;
+    }
+    if (c <= 122) {
+        return c - 32;
     }
     return c;
 }

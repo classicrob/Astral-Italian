@@ -71,16 +71,6 @@ namespace {
     f32 cUpperAngleWait = JGeometry::TUtil< f32 >::PI() / 100.0f;
 };  // namespace
 
-// native: defined in Mario.cpp (DOL split owner); misplaced copy
-#ifndef GALAXY_NATIVE
-void Mario::tryStartFoo() {
-    if (MR::getAreaObj("CelestrialArea", getTrans()) || !mFoo->_48) {
-        changeStatus(mFoo);
-        mFoo->setStartSpeed(mActor->getConst().getTable()->mSwimFrontMaxSpeed);
-    }
-}
-#endif
-
 MarioFoo::MarioFoo(MarioActor* pActor) : MarioState(pActor, MarioStatus_Foo) {
     _11 = 0;
     _12 = 0;
@@ -127,7 +117,7 @@ void MarioFoo::init() {
     _6B8 = new JUTTexture(MR::getTexture(MR::getModelResourceHolder(mActor), "FooLine.bti"), 0);
 }
 
-// NONMATCHING: equivalent string-pool offsets.
+// NONMATCHING: equivalent scalar relocation labels or flag lowering.
 bool MarioFoo::start() {
     _20 = 0.0f;
     _24 = 0.0f;
@@ -167,7 +157,7 @@ bool MarioFoo::start() {
     return true;
 }
 
-// NONMATCHING: equivalent string-pool offsets.
+// NONMATCHING: equivalent scalar relocation labels or flag lowering.
 bool MarioFoo::update() {
     _14++;
     if (checkTrgZ()) {
@@ -642,7 +632,7 @@ bool MarioFoo::passRing(const HitSensor* pSensor) {
     return true;
 }
 
-// NONMATCHING: equivalent string-pool offsets.
+// NONMATCHING: equivalent scalar relocation labels or flag lowering.
 f32 MarioFoo::calcRingAcc() {
     if (_4E) {
         if (_50) {

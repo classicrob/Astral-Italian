@@ -245,19 +245,20 @@ void writeLogVertex(const TVec3f* pPos, const Color8* pColor, f32 s, f32 t) NO_I
 #endif
 }
 
+// Accept computed positions without taking the address of a temporary.
+inline void writeLogVertex(const TVec3f& pos, const Color8* pColor, f32 s, f32 t) {
+    writeLogVertex(&pos, pColor, s, t);
+}
+
 // fn_8032BFA0: emits one quad strip (4 vertices) of a log segment.
 void drawLogQuad(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVec3f* pD, const Color8* pCol1,
                         const Color8* pCol2, f32 s1, f32 s2, f32 s3, f32 s4, f32 s5) NO_INLINE {
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 4);
 
-    TVec3f v0 = *pA + pD->scaleInline(s1) + pC->scaleInline(s2);
-    writeLogVertex(&v0, pCol1, 0.0f, 0.0f);
-    TVec3f v1 = *pA + pD->scaleInline(s3) + pC->scaleInline(s4);
-    writeLogVertex(&v1, pCol2, 1.0f, 0.0f);
-    TVec3f v2 = *pB + pD->scaleInline(s1) + pC->scaleInline(s2);
-    writeLogVertex(&v2, pCol1, 0.0f, s5);
-    TVec3f v3 = *pB + pD->scaleInline(s3) + pC->scaleInline(s4);
-    writeLogVertex(&v3, pCol2, 1.0f, s5);
+    writeLogVertex(*pA + pD->scaleInline(s1) + pC->scaleInline(s2), pCol1, 0.0f, 0.0f);
+    writeLogVertex(*pA + pD->scaleInline(s3) + pC->scaleInline(s4), pCol2, 1.0f, 0.0f);
+    writeLogVertex(*pB + pD->scaleInline(s1) + pC->scaleInline(s2), pCol1, 0.0f, s5);
+    writeLogVertex(*pB + pD->scaleInline(s3) + pC->scaleInline(s4), pCol2, 1.0f, s5);
 }
 
 // fn_8032C230: draws one log section as three quad strips.
@@ -311,83 +312,34 @@ void setupLogDraw(const WoodLogBridge* pBridge) NO_INLINE {
     GXSetCullMode(GX_CULL_BACK);
 }
 
-// NONMATCHING: 98%; stack slot order of the temporaries (stack offsets only)
+// NONMATCHING: temporary vector stack offsets differ.
 void WoodLogBridge::draw() const {
     setupLogDraw(this);
 
     f32 h = mIsShort ? -15.0f : 50.0f;
 
-    TVec3f up0(0.0f, 1.0f, 0.0f);
-    TVec3f up1(up0);
-    up1.scale(880.0f);
-    TVec3f dz(mDirZ);
-    dz.scale(h);
-    TVec3f p1(mPosition);
-    p1.add(dz);
-    TVec3f p2(p1);
-    p2.add(up1);
-
-    TVec3f up2(0.0f, 1.0f, 0.0f);
-    TVec3f up3(up2);
-    up3.scale(880.0f);
-
-    f32 k = 100.0f * (f32)mParts->getObjNum() - h;
-    TVec3f dz2(mDirZ);
-    dz2.scale(k);
-    TVec3f p3(mPosition);
-    p3.add(dz2);
-    TVec3f p4(p3);
-    p4.add(up3);
+    TVec3f p2 = mPosition + mDirZ.scaleInline(h) + TVec3f(0.0f, 1.0f, 0.0f).scaleInline(880.0f);
+    TVec3f p4 = mPosition + mDirZ.scaleInline(100.0f * (f32)mParts->getObjNum() - h) + TVec3f(0.0f, 1.0f, 0.0f).scaleInline(880.0f);
 
     for (s32 i = 0; i < mParts->getObjNum(); i += *mPtrE8) {
         LiveActor* pActor = mParts->getActor(i);
         if (i < mParts->getObjNum() / 2) {
-            f32 k_a0 = *mPtrE4;
-            TVec3f a0(mDirX);
-            a0.scale(k_a0);
-            TVec3f a1(p2);
-            a1.add(a0);
-            f32 k_a2 = *mPtrE4;
-            TVec3f a2(mDirX);
-            a2.scale(k_a2);
-            TVec3f a3(pActor->mPosition);
-            a3.add(a2);
+            const TVec3f& a1 = p2 + mDirX.scaleInline(*mPtrE4);
+            const TVec3f& a3 = pActor->mPosition + mDirX.scaleInline(*mPtrE4);
             drawLogSection(&a1, &a3, &mDirZ, &mDirX, &mGravity);
-
-            f32 k_a4 = *mPtrE4;
-
-            TVec3f a4(mDirX);
-
-            a4.scale(k_a4);
-            f32 k_a5 = *mPtrE4;
-            TVec3f a5(mDirX);
-            a5.scale(k_a5);
-            TVec3f a6 = pActor->mPosition - a5;
-            TVec3f a7 = p2 - a4;
+            const TVec3f& a4 = mDirX.scaleInline(*mPtrE4);
+            const TVec3f& a5 = mDirX.scaleInline(*mPtrE4);
+            const TVec3f& a6 = pActor->mPosition - a5;
+            const TVec3f& a7 = p2 - a4;
             drawLogSection(&a7, &a6, &mDirZ, &mDirX, &mGravity);
         } else {
-            f32 k_b0 = *mPtrE4;
-            TVec3f b0(mDirX);
-            b0.scale(k_b0);
-            TVec3f b1(p4);
-            b1.add(b0);
-            f32 k_b2 = *mPtrE4;
-            TVec3f b2(mDirX);
-            b2.scale(k_b2);
-            TVec3f b3(pActor->mPosition);
-            b3.add(b2);
+            const TVec3f& b1 = p4 + mDirX.scaleInline(*mPtrE4);
+            const TVec3f& b3 = pActor->mPosition + mDirX.scaleInline(*mPtrE4);
             drawLogSection(&b1, &b3, &mDirZ, &mDirX, &mGravity);
-
-            f32 k_b4 = *mPtrE4;
-
-            TVec3f b4(mDirX);
-
-            b4.scale(k_b4);
-            f32 k_b5 = *mPtrE4;
-            TVec3f b5(mDirX);
-            b5.scale(k_b5);
-            TVec3f b6 = pActor->mPosition - b5;
-            TVec3f b7 = p4 - b4;
+            const TVec3f& b4 = mDirX.scaleInline(*mPtrE4);
+            const TVec3f& b5 = mDirX.scaleInline(*mPtrE4);
+            const TVec3f& b6 = pActor->mPosition - b5;
+            const TVec3f& b7 = p4 - b4;
             drawLogSection(&b7, &b6, &mDirZ, &mDirX, &mGravity);
         }
     }

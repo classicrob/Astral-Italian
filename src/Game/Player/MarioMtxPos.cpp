@@ -9,15 +9,14 @@ MarioMtxPos::MarioMtxPos(TPos3f* src) { mMtx.set(*src); }
 MarioMtxPos::MarioMtxPos(const TMtx34f& src) { mMtx.set(src); }
 
 void MarioMtxPos::fn_80409650(const MarioMtxPos& src) { mMtx.concat(src.mMtx); }
-// NONMATCHING: the three component getters load floating-point arguments in a different order.
 void MarioMtxPos::getTranslation(TVec3f* out) const {
-    out->set<f32>(mMtx.mMtx[0][3], mMtx.mMtx[1][3], mMtx.mMtx[2][3]);
+    mMtx.getTrans(*out);
 }
 void MarioMtxPos::getYAxis(TVec3f* out) const {
-    out->set<f32>(mMtx.mMtx[0][1], mMtx.mMtx[1][1], mMtx.mMtx[2][1]);
+    mMtx.getYDir(*out);
 }
 void MarioMtxPos::getZAxis(TVec3f* out) const {
-    out->set<f32>(mMtx.mMtx[0][2], mMtx.mMtx[1][2], mMtx.mMtx[2][2]);
+    mMtx.getZDir(*out);
 }
 void MarioMtxPos::identity() { mMtx.identity(); }
 bool MarioMtxPos::invert() { return mMtx.invert(mMtx); }

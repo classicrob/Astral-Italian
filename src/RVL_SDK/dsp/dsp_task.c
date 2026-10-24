@@ -99,7 +99,7 @@ void __DSP_remove_task(DSPTaskInfo *pTask) {
     if (__DSP_first_task == pTask) {
         if (pTask->next != NULL) {
             __DSP_first_task = pTask->next;
-            pTask->next->prev = NULL;
+            __DSP_first_task->prev = NULL;
         }
         else {
             __DSP_first_task = __DSP_last_task = __DSP_curr_task = NULL;
@@ -107,12 +107,12 @@ void __DSP_remove_task(DSPTaskInfo *pTask) {
     }
     else if (__DSP_last_task == pTask) {
         __DSP_last_task = pTask->prev;
-        pTask->prev->next = NULL;
+        __DSP_last_task->next = NULL;
         __DSP_curr_task = __DSP_first_task;
     }
     else {
         __DSP_curr_task = pTask->next;
-        pTask->prev->next = pTask->next;
+        pTask->prev->next = __DSP_curr_task;
         pTask->next->prev = pTask->prev;
     }
 }

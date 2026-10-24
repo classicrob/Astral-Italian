@@ -274,9 +274,11 @@ static bool isBreakCageSensor(const HitSensor* pSensor) {
 
 // NONMATCHING: host and sensor registers are exchanged.
 bool RollingRockStateRoll::tryReflect() {
+    LiveActor* pHost;
+    HitSensor* pAttack;
     if (MR::isBindedWall(mHost)) {
         LiveActor* pHost = mHost;
-        HitSensor* pAttack = pHost->getSensor("Attack");
+        pAttack = pHost->getSensor("Attack");
         if (MR::sendMsgReflect(MR::getWallSensor(pHost), pAttack)) {
             MR::tryHitReaction(mHost, sRumbleBoardReflect);
             mDashStep = 0;
@@ -290,7 +292,7 @@ bool RollingRockStateRoll::tryReflect() {
             return true;
         }
     }
-    LiveActor* pHost = mHost;
+    pHost = mHost;
     bool hit;
     if (!MR::isBinded(pHost)) {
         hit = false;

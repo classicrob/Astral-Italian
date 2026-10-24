@@ -245,9 +245,9 @@ void Wanwan::calcAndSetBaseMtx() {
             up.negate(grav);
         }
         f32 radius = mRadius;
+        TVec3f pos;
         TVec3f off(up);
         off.scale(radius);
-        TVec3f pos;
         JMathInlineVEC::PSVECSubtract(&mPosition, &off, &pos);
         if (MR::isSameDirection(up, mFront, 0.01f)) {
             MR::makeMtxUpNoSupportPos(&mBaseMtx, up, pos);

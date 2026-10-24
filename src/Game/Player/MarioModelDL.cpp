@@ -40,11 +40,14 @@ MarioModelDL::MarioModelDL(LiveActor* actor, const char* material, const char* t
 }
 
 void MarioModelDL::setDisplayList(u32 index) {
+    J3DModelX* model;
+    u8* list;
+    u16 size;
     DLholder* holders = mDisplayLists;
     u32 material = mMaterialIndex;
-    u8* list = holders[index].mDL;
-    u16 size = holders[index].mSize;
-    J3DModelX* model = mModel;
+    list = holders[index].mDL;
+    size = holders[index].mSize;
+    model = mModel;
     if (!list) size = 0;
     model->_1C8[static_cast<u16>(material)] = list;
     model->_1CC[static_cast<u16>(material)] = size;

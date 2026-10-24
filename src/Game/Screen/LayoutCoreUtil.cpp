@@ -58,13 +58,15 @@ namespace LayoutCoreUtil {
 
     // NONMATCHING: register allocation and equivalent single/double load of the initial 1.0 scale.
     void setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg) {
+        CustomTagProcessor* processor;
         wchar_t buffer[512];
         ReplaceTagProcessor::Replace(buffer, pMsg);
         u16 length = MR::getStringLengthWithMessageTag(buffer);
         pTextBox->SetString(buffer, 0, length);
 
-        CustomTagProcessor* processor = static_cast<CustomTagProcessor*>(pTextBox->mpTagProcessor);
-        processor->setFontScale(1.0f);
+        processor = static_cast<CustomTagProcessor*>(pTextBox->mpTagProcessor);
+        f32 initialScale = 1.0f;
+        processor->setFontScale(initialScale);
 
         nw4r::ut::TextWriterBase<wchar_t> writer;
         writer.SetCursor(0.0f, 0.0f);

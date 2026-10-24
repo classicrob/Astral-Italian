@@ -34,5 +34,3 @@ void J3DModelX::setDynamicDL(u8* dl, u32 size) {
     _1B8 = dl;
     _1BC = size;
 }
-
-

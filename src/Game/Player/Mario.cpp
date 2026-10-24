@@ -2576,10 +2576,11 @@ bool Mario::isEnableCheckGround() {
 
 
 void Mario::setGroundNorm(const TVec3f& rVec) {
+    TVec3f opposite(-rVec);
     if (MR::isNearZero(mAirGravityVec)) {
     }
 
-    if (MR::diffAngleAbs(-rVec, mAirGravityVec) > 1.4959966f) {
+    if (MR::diffAngleAbs(opposite, mAirGravityVec) > 1.4959966f) {
     } else {
         _368 = rVec;
         _374 = -rVec;
@@ -2619,10 +2620,6 @@ void Mario::checkForceGrounding() {
 
             if (!(MR::abs(dot) < 30.0f)) {
                 return;
-            }
-
-            if ((static_cast<u32>(mMovementStates.mLowBits.mBit23))) {
-                dot2 = dot;
             }
 
             if (dot2 > dot) {
@@ -2788,7 +2785,11 @@ void Mario::createDirectionMtx(MtxPtr pMtx) {
         }
     }
 
+#ifdef GALAXY_NATIVE
     createMtxDir(pMtx, front, up, side);
+#else
+    fn_80389D90(pMtx, &front, &up, &side);
+#endif
     MR::setMtxTrans(pMtx, 0.0f, 0.0f, 0.0f);
 }
 
@@ -2888,10 +2889,8 @@ void Mario::fixFrontVecByGravity() {
     TVec3f up = -mAirGravityVec;
     MR::normalize(&up);
     if ((static_cast<u32>(mFlags14.mLowBits.mBit12))) {
-        TVec3f side(mPosHolder->mPos);
-        side -= _6F4;
-        MR::vecKillElement(side, _700, &side);
-        MR::normalizeOrZero(&side);
+        TVec3f side;
+        MR::calcPlayerKillDiffVec(&side, mPosHolder->mPos, _6F4, _700);
         if (_344.dot(side) >= 0.0f) {
             _344 = side;
         } else {
@@ -2987,8 +2986,8 @@ void Mario::setFrontVec(const TVec3f& rFront) {
 
 
 void Mario::setFrontVecKeepUp(const TVec3f& rFront, f32 blendFactor) {
-    TVec3f blendedFront;
     if (MR::isNearZero(rFront) == false) {
+        TVec3f blendedFront(rFront);
         TVec3f normalizedFront(rFront);
         MR::normalize(&normalizedFront);
         s32 blend = 0;
@@ -4005,7 +4004,8 @@ void Mario::stick2DadjustGround(f32& rX, f32& rY) {
     MR::normalizeOrZero(&vec2);
     f32 diff = MR::diffAngleAbs(stickDir2D, vec2);
 
-    if (getCurrentStatus() != 39 && !isSwimming() && (diff < 0.5235988f || diff > 2.617994f)) {
+    bool hanging = getCurrentStatus() == 39;
+    if (!hanging && !isSwimming() && (diff < 0.5235988f || diff > 2.617994f)) {
         rX = 0.0f;
         rY = 0.0f;
         mStickPos.z = 0.0f;
@@ -5382,7 +5382,8 @@ bool Mario::checkCurrentFloorCodeSevere(u32 code) const {
 
     TVec3f horizontal;
 
-    if (MR::vecKillElement(mShadowPos - mGroundPos, getAirGravityVec(), &horizontal) > 30.0f) {
+    TVec3f delta(mShadowPos - mGroundPos);
+    if (MR::vecKillElement(delta, getAirGravityVec(), &horizontal) > 30.0f) {
         return code == _95C->getCode(mGroundPolygon);
     }
 
@@ -5505,11 +5506,12 @@ void Mario::checkHeadPoint() {
 
 
 void Mario::calcShadowPos() {
+    f32 offset = 100.0f;
     f32 alignment = _1FC.dot(-*getGravityVec());
     if (alignment < 0.0f) {
         alignment = 0.0f;
     }
-    f32 offset = 100.0f * alignment;
+    offset *= alignment;
     TVec3f start = mPosHolder->mPos - *getGravityVec() * offset;
 
     if ((getCurrentStatus() == MarioStatus_Hang && mHang->_12 < 2) || mActor->_EA4) {
@@ -6818,18 +6820,6 @@ bool Mario::doAbyssDamage() {
 }
 
 
-const char* MarioDamage_FORCE_MATCH_DATA(u32 index) {
-    switch (index) {
-    case 0:
-        return "炎ダメージ";
-    case 1:
-        return "炎ダメージ青煙";
-    default:
-        return "炎ダメージ煙";
-    }
-}
-
-
 void Mario::connectToFireRun() {
     if (mActor->mHealth) {
         changeStatus(mFireRun);
@@ -6879,13 +6869,16 @@ bool Mario::doNeedleWithInitialDamage(u8 amount) {
         return false;
     }
 
+    MarioActor* actor;
     bool started = doNeedle(nullptr);
     if (started) {
         for (u32 i = 0; i < amount; i++) {
             mActor->decLife(0);
         }
 
-        mActor->fn_803BE840(getWallNorm());
+        actor = mActor;
+        const TVec3f& normal = getWallNorm();
+        actor->fn_803BE840(normal);
 
         if (!mActor->mHealth) {
             mActor->forceGameOverNonStop();
@@ -6906,10 +6899,13 @@ bool Mario::doNeedleWithInitialDamage(const Triangle* pTriangle) {
         return false;
     }
 
+    MarioActor* actor;
     bool started = doNeedle(pTriangle);
     if (started) {
         mActor->decLife(0);
-        mActor->fn_803BE840(*MR::getNormal(pTriangle));
+        actor = mActor;
+        const TVec3f& normal = *MR::getNormal(pTriangle);
+        actor->fn_803BE840(normal);
 
         if (!mActor->mHealth) {
             mActor->forceGameOverNonStop();
@@ -7029,7 +7025,7 @@ void Mario::checkKarikariDamage() {
             startPadVib(2);
             playSound("声小ダメージ");
             playSound("ダメージ");
-            mActor->decLifeSmall();
+            mActor->fn_803B9270();
             mActor->_BC4 = 16;
             _7D0 = 120;
             if (!mActor->mHealth) {
@@ -7868,8 +7864,8 @@ bool Mario::doFlipJump(const TVec3f& rVec) {
     tryForcePowerJump(velocity, true);
     changeAnimation("壁はじき");
     stopPunch();
+    mMovementStates.mHighWord |= 0x100000;
     _430 = 3;
-    mMovementStates.mHighBits.mBit20 = 1;
     startPadVib(2);
     return true;
 }
@@ -8015,11 +8011,6 @@ void Mario::tryStartFoo() {
     }
 }
 
-
-const char* MarioFoo_FORCE_MATCH_DATA(u32 index) {
-    static const char* const strings[] = {"水泳ダメージ", "水中ダメージ", "声小ダメージ", "ダメージ", "水泳ダメージ中"};
-    return strings[index];
-}
 
 // ---- MarioFpView.cpp ----
 
@@ -8960,7 +8951,7 @@ void Mario::tryJump() {
 #ifdef GALAXY_NATIVE
     // OdysseyMovement: jumping out of a roll is a long jump.
     if (fn_803EF7C0() != 0x20 && getPlayerMode() != 4 && _430 != 3 && PetariNative::Odyssey::Live::roll.rolling && odysseyOn() &&
-        !(static_cast<u32>(mMovementStates.mHighBits.mBit28))) {
+        !((mMovementStates.mHighWord >> 28) & 1U)) {
         PetariNative::Odyssey::Live::roll.rolling = false;
         trySquatJump();
         return;
@@ -9034,8 +9025,8 @@ void Mario::tryJump() {
     // OdysseyMovement: SMO's chain rules choose single/double/triple (within 10
     // grounded frames, at full speed, within 45 degrees of the last jump).
     // getJumpHeight() below reads the new _430.
-    const bool odysseyJump = petari_mod_enabled(kModOdysseyMovement) && _430 >= 0 && _430 <= 2 && !(static_cast<u32>(mFlags20.mBits.mBit21)) &&
-                             !(static_cast<u32>(mFlags20.mBits.mBit20)) && fn_803EF7C0() != 0x20 && !(static_cast<u32>(mFlags14.mLowBits.mBit5)) &&
+    const bool odysseyJump = petari_mod_enabled(kModOdysseyMovement) && _430 >= 0 && _430 <= 2 && !((mFlags20.mWord >> 21) & 1U) &&
+                             !((mFlags20.mWord >> 20) & 1U) && fn_803EF7C0() != 0x20 && !((mFlags14.mLowWord >> 5) & 1U) &&
                              // SMG2: only plain Mario (mode 0, not riding Yoshi) gets SMO's chain;
                              // power-ups and rides keep Galaxy's jumps (docs: native/MODS.md).
                              getPlayerMode() == 0 && !isPlayerModeYoshi();
@@ -9876,14 +9867,14 @@ void Mario::tryDrop() {
         cutGravityElementFromJumpVec(false);
 
         if (_16C.length() > 20.0f) {
-            mJumpVec += -mActor->getAirGravityVec() * 10.0f;
+            mJumpVec += -mActor->fn_803B8520() * 10.0f;
         } else {
             f32 gravScale = mActor->mBinderDirection5DC.length();
             if (gravScale > 8.0f) {
                 gravScale = 8.0f;
             }
 
-            mJumpVec += -mActor->getAirGravityVec() * gravScale;
+            mJumpVec += -mActor->fn_803B8520() * gravScale;
             _8F8.zero();
         }
     }
@@ -10975,6 +10966,7 @@ void Mario::doLanding() {
     mFlags14.mHighBits.mBit30 = 0;
     _3CE = 0;
     mFlags20.mBits.mBit13 = 1;
+    TVec3f horizontal;
     TVec3f delta(mPosHolder->mPos);
     delta -= _4B0;
     f32 distance = MR::abs(delta.dot(*getGravityVec()));
@@ -11021,7 +11013,7 @@ void Mario::doLanding() {
     }
     if (static_cast<u32>(getPlayer()->mFlags14.mLowBits.mBit29)) {
         Mario* player = getPlayer();
-        player->mFlags14.mLowWord &= ~0x20000000;
+        player->mFlags14.mLowBits.mBit29 = 0;
         _430 = 14;
         goto COMMON_LANDING;
     }
@@ -11065,7 +11057,8 @@ void Mario::doLanding() {
         return;
     }
     if (static_cast<u16>(_960 + 0xFFE5) <= 1) {
-        if (!strcmp(MR::getSoundCodeString(_45C), "Sand")) {
+        bool sand = strcmp(MR::getSoundCodeString(_45C), "Sand") == 0;
+        if (sand) {
             stopAnimation(nullptr, "基本");
             mSinkTimer = 32;
             return;
@@ -11087,7 +11080,8 @@ COMMON_LANDING:
         TVec3f fall(_4B0);
         fall -= position;
         TVec3f negativeGravity(-*getGravityVec());
-        if (fall.dot(negativeGravity) > mActor->mConst->getTable()->mHardLandingHeight) hard = true;
+        f32 height = fall.dot(negativeGravity);
+        if (height > mActor->mConst->getTable()->mHardLandingHeight) hard = true;
     }
     if (hard && isCurrentFloorSand() && !isPlayerModeYoshi()) {
         changeStatus(mBury);
@@ -11163,7 +11157,6 @@ COMMON_LANDING:
 POST_LANDING:;
 #endif
     if (static_cast<u32>(mDrawStates.mBits.mBit19)) {
-        TVec3f horizontal;
         MR::vecKillElement(mJumpVec, *getGravityVec(), &horizontal);
         if (horizontal.dot(*mGroundPolygon->getNormal(0)) > 0.0f) {
             mMovementStates.mHighBits.mBit28 = 1;
@@ -13157,8 +13150,8 @@ void Mario::moveSlopeSlide() {
 bool Mario::taskOnSlipTurn(u32) {
     if (!isAnimationRun("ターンブレーキ滑り床")) {
         setFrontVecKeepUp(-_220);
-        _754 = 0;
         _74C = 0.0f;
+        _754 = 0;
         return false;
     }
 
@@ -13572,34 +13565,6 @@ bool Mario::isNoWalkFallOnDossun() const {
 }
 
 
-bool Mario::isNotReflectGlassGround() const {
-    if (!MR::isEqualStageName("AstroGalaxy")) {
-        return false;
-    }
-
-    TVec3f vec(1627.0f, 783.0f, -2152.0f);
-    TVec3f v10 = mPosHolder->mPos - vec;
-
-    f32 v4 = MR::diffAngleAbs(getCamDirZ(), v10);
-    f32 v5 = v4;
-    if (v4 >= 1.5707964f) {
-        v5 = (PI - v4);
-    }
-
-    f32 v7 = (400.0f + (300.0f * (MR::sin(v5) * MR::sin(v5))));
-    MR::vecKillElement(v10, getAirGravityVec(), &v10);
-    f32 length = v10.length();
-
-    if (length >= v7) {
-        if (length <= 700.0f) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
 bool Mario::isUseAnotherMovingPolygon() const {
     if (MR::isEqualStageName("BattleShipGalaxy")) {
         return true;
@@ -13610,23 +13575,6 @@ bool Mario::isUseAnotherMovingPolygon() const {
     }
 
     if (MR::isEqualStageName("TriLegLv1Galaxy")) {
-        return true;
-    }
-
-    return false;
-}
-
-
-bool Mario::isUseFooSpecialGravity(const TVec3f& rA1, TVec3f* pA2) const {
-    if (!isStatusActive(MarioStatus_Foo)) {
-        return false;
-    }
-
-    if (MR::isEqualStageName("HeavensDoorGalaxy") && MR::getCurrentScenarioNo() == 2) {
-        TVec3f vec(14760.0f, -10676.2f, 6770.0f);
-        TVec3f res = vec - rA1;
-        pA2->set(res);
-        MR::normalizeOrZero(pA2);
         return true;
     }
 

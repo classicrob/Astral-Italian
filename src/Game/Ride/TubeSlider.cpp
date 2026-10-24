@@ -138,12 +138,13 @@ void TubeSlider::exeRideAir() {
     if (MR::isFirstStep(this))
         _118 = 0;
 
+    TVec3f* center;
     bool isReachedGoal = MR::isRailReachedNearGoal(this, 50.0f);
     if (!isReachedGoal) {
         TVec3f railEndPos(0.0f);
         MR::calcRailEndPos(&railEndPos, this);
         f32 distToEnd = PSVECDistance(railEndPos, MR::getPlayerCenterPos());
-        TVec3f* center = MR::getPlayerCenterPos();
+        center = MR::getPlayerCenterPos();
         f32 distToRailPos = PSVECDistance(MR::getRailPos(this), center);
         if (distToEnd <= distToRailPos)
             isReachedGoal = true;
@@ -697,8 +698,9 @@ bool TubeSlider::updatePlayer() {
     }
     if (_EC >= 0.0f && TubeSliderFunction::isHitRightWall(this, &mPlayerTheta)) {
         f32 lim = 2.0f;
-        mPlayerTheta += (f32)(-(f64)lim);
+        f32 oldTheta = mPlayerTheta;
         _EC = -lim;
+        mPlayerTheta = oldTheta + (f32)(-(f64)lim);
         MR::repeatDegree(&mPlayerTheta);
         mForwardSpeed *= 0.2f;
         MR::tryRumblePadMiddle(this, 0);

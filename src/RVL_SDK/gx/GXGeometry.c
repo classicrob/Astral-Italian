@@ -199,6 +199,7 @@ void GXSetCoPlanar(GXBool enable) {
     reg = SU_SSMASK(0x80000, 0xFE);
     GX_WRITE_RA_REG(reg);
     GX_WRITE_RA_REG(gx->genMode);
+    gx->bpSentNot = GX_FALSE;
 }
 
 void __GXSetGenMode(void) {

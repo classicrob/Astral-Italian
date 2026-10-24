@@ -659,7 +659,10 @@ static void OSClearStack(u8 val) {
 BOOL OSSetThreadPriority(OSThread* thread, OSPriority priority) {
     BOOL enabled;
 
-    if (priority < 0 || priority > 31) {
+    if (priority < 0) {
+        return FALSE;
+    }
+    if (priority > 31) {
         return FALSE;
     }
 

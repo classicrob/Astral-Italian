@@ -21,7 +21,6 @@ void GhostPacket::read(char** output) {
     mCurOffs += length;
 }
 
-// NONMATCHING: local stack placement and redundant initial flags reload.
 u8 GhostPacket::read(GhostPacketData* output) {
     struct {
         u8 frameIndex;

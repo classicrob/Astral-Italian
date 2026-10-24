@@ -358,7 +358,6 @@ static inline MEMiExpHeapHead* GetExpHeapHeadPtrFromHandle_(MEMHeapHandle heap) 
     return (MEMiExpHeapHead*)GetExpHeapHeadPtrFromHeapHead_(heap);
 }
 
-// NONMATCHING: Cached heap/block pointers save an extra GPR; RecycleRegion_ is exact.
 void MEMFreeToExpHeap(MEMHeapHandle heap, void* memBlock) {
     MEMiHeapHead* pHeapHd = heap;
     MEMiExpHeapHead* pExpHeapHd;
@@ -369,10 +368,9 @@ void MEMFreeToExpHeap(MEMHeapHandle heap, void* memBlock) {
         return;
     }
 
+    LockHeap(heap);
     pExpHeapHd = GetExpHeapHeadPtrFromHandle_(pHeapHd);
     pMBHead = GetMBlockHeadPtr_(memBlock);
-
-    LockHeap(heap);
     GetRegionOfMBlock_(&region, pMBHead);
     (void)RemoveMBlock_(&pExpHeapHd->mbUsedList, pMBHead);
     (void)RecycleRegion_(pExpHeapHd, &region);

@@ -107,5 +107,3 @@ void MarioActor::fn_803D9740() {
         this->mMaxHealth = 3;
     }
 }
-
-

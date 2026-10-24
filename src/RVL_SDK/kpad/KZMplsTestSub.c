@@ -56,18 +56,19 @@ void __KMPLS_normalize_directionXYZ(KPADMPLSDirection* direction, f32 minimum) {
             value->z *= inverse;
         }
         {
-            Vec crossX, crossY, crossZ;
+            Vec crossZ, crossY, crossX;
             f32 lengthX, lengthY, lengthZ;
             crossX.x = direction->Y.y * direction->Z.z - direction->Y.z * direction->Z.y;
             crossX.y = direction->Y.z * direction->Z.x - direction->Y.x * direction->Z.z;
             crossX.z = direction->Y.x * direction->Z.y - direction->Y.y * direction->Z.x;
+            lengthX = crossX.z * crossX.z + (crossX.x * crossX.x + crossX.y * crossX.y);
             crossY.x = direction->Z.y * direction->X.z - direction->Z.z * direction->X.y;
             crossY.y = direction->Z.z * direction->X.x - direction->Z.x * direction->X.z;
             crossY.z = direction->Z.x * direction->X.y - direction->Z.y * direction->X.x;
             crossZ.x = direction->X.y * direction->Y.z - direction->X.z * direction->Y.y;
             crossZ.y = direction->X.z * direction->Y.x - direction->X.x * direction->Y.z;
             crossZ.z = direction->X.x * direction->Y.y - direction->X.y * direction->Y.x;
-            lengthX = (f32)sqrt(crossX.z * crossX.z + (crossX.x * crossX.x + crossX.y * crossX.y));
+            lengthX = (f32)sqrt(lengthX);
             {
                 f32 inverse = 1.0f / lengthX;
                 direction->X.x = 0.5f * (direction->X.x + inverse * crossX.x);

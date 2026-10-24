@@ -26,7 +26,7 @@ s32 WPADWriteExtensionRegister(s32 chan, void* data, u16 length, u8 extension, u
             result = WPAD_ERR_BUSY;
         } else {
             result = WPADiSendWriteData(&p_wpd->cmdq, data, length,
-                                       ((extension << 16) | address) | 0x04000000, callback)
+                                       ((extension << 16) + address) | 0x04000000, callback)
                          ? WPAD_ERR_NONE : WPAD_ERR_BUSY;
         }
     }

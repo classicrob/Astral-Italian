@@ -92,7 +92,7 @@ static void resetExtensionCertificate(s32 chan) {
     p_cb->certParamBytes = 0;
 }
 
-NO_INLINE BOOL __wpadCheckCalibration(u8* data, u32 length, u8 checksumType);
+NO_INLINE BOOL __wpadCheckCalibration(u8* data, u8 length, u8 checksumType);
 static inline void initExtension(s32);
 void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len);
 
@@ -430,7 +430,7 @@ void __wpadGetExtConfig(s32 chan, s32 result) {
 }
 
 // NONMATCHING: compiler loop unrolling and register allocation differ; both checksum modes and return values verified.
-NO_INLINE BOOL __wpadCheckCalibration(u8* data, u32 length, u8 checksumType) {
+NO_INLINE BOOL __wpadCheckCalibration(u8* data, u8 length, u8 checksumType) {
     u32 sum = 0;
     BOOL valid = FALSE;
     u8 i;
@@ -438,7 +438,10 @@ NO_INLINE BOOL __wpadCheckCalibration(u8* data, u32 length, u8 checksumType) {
         for (i = 0; i < length; i++) sum += data[i];
         if ((u8)(sum + 0x55) == data[length] && (u8)(sum + 0xAA) == data[length + 1]) valid = TRUE;
     } else {
-        if (__OSCalcCRC32(data, length) == *(u32*)(data + length)) valid = TRUE;
+        u32 expected;
+        u32 actual = __OSCalcCRC32(data, length);
+        expected = *(u32*)(data + length);
+        if (actual == expected) valid = TRUE;
     }
     return valid;
 }
@@ -480,7 +483,10 @@ void __wpadGetExtConfig2(s32 chan, s32 result) {
 
 // NONMATCHING: compiler comparison materialization differs.
 NO_INLINE BOOL __wpadIsExtEncryptMain(u8 type) {
-    return (u8)(type - 1) <= 3 || (u8)(type - 17) <= 1 || type == 20 || (u8)(type - 21) <= 7;
+    if ((u8)(type + 255) <= 3 || (u8)(type + 239) <= 1 || type == 20 || (u8)(type + 235) <= 7) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 extern BOOL __OSInIPL;
@@ -589,12 +595,11 @@ void __wpadGetExtType(s32 chan, s32 result) {
     WPADiSendReadData(cmdq, p_cb->readBuf, 32, 0x04A40020, p_cb->extensionCallback);
 }
 
-// NONMATCHING: compiler loop/register allocation differs.
 void __wpadGetGameInfo(s32 chan, s32 result, u8 index) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     u8* data = p_cb->readBufPtr;
-    u32 sum = 0;
     int i;
+    u32 sum = 0;
     if (result == WPAD_ERR_NONE) {
         for (i = 0; i < 47; i++) sum += data[i];
         if (((WPADMEMGameInfo*)data)->checkSum == (u8)(sum + 0x55)) {
@@ -909,11 +914,13 @@ void __a1_30_data_type(u8 chan, u8* data, WPADStatus* p_status) {
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_31_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADControlBlock* p_cal;
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
-    p_status->accX = (s16)(((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - _wpdcb[chan]->conf.acc_0g.x;
-    p_status->accY = (s16)(((s16)(data[4] << 2) & (s16)0xFFFC) | ((data[2] >> 4) & 2)) - _wpdcb[chan]->conf.acc_0g.y;
-    p_status->accZ = (s16)(((s16)(data[5] << 2) & (s16)0xFFFC) | ((data[2] >> 5) & 2)) - _wpdcb[chan]->conf.acc_0g.z;
+    p_cal = _wpdcb[chan];
+    p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - p_cal->conf.acc_0g.x;
+    p_status->accY = (s16)((s16)((s16)(data[4] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 4) & 2)) - p_cal->conf.acc_0g.y;
+    p_status->accZ = (s16)((s16)((s16)(data[5] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 5) & 2)) - p_cal->conf.acc_0g.z;
 }
 
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
@@ -924,14 +931,15 @@ void __a1_32_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 3, 8);
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_33_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADControlBlock* p_cal;
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
-    p_status->accX = (s16)(((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - _wpdcb[chan]->conf.acc_0g.x;
-    p_status->accY = (s16)(((s16)(data[4] << 2) & (s16)0xFFFC) | ((data[2] >> 4) & 2)) - _wpdcb[chan]->conf.acc_0g.y;
-    p_status->accZ = (s16)(((s16)(data[5] << 2) & (s16)0xFFFC) | ((data[2] >> 5) & 2)) - _wpdcb[chan]->conf.acc_0g.z;
+    p_cal = _wpdcb[chan];
+    p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - p_cal->conf.acc_0g.x;
+    p_status->accY = (s16)((s16)((s16)(data[4] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 4) & 2)) - p_cal->conf.acc_0g.y;
+    p_status->accZ = (s16)((s16)((s16)(data[5] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 5) & 2)) - p_cal->conf.acc_0g.z;
     __parse_dpd_data(chan, &p_status, p_cb->dpdFormat, data + 6, 12);
 }
 
@@ -945,33 +953,38 @@ void __a1_34_data_type(u8 chan, u8* data, WPADStatus* p_status) {
 
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_35_data_type(u8 chan, u8* data, WPADStatus* p_status) {
+    WPADControlBlock* p_cal;
     WPADControlBlock* p_cb = _wpdcb[chan];
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
-    p_status->accX = (s16)(((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - _wpdcb[chan]->conf.acc_0g.x;
-    p_status->accY = (s16)(((s16)(data[4] << 2) & (s16)0xFFFC) | ((data[2] >> 4) & 2)) - _wpdcb[chan]->conf.acc_0g.y;
-    p_status->accZ = (s16)(((s16)(data[5] << 2) & (s16)0xFFFC) | ((data[2] >> 5) & 2)) - _wpdcb[chan]->conf.acc_0g.z;
+    p_cal = _wpdcb[chan];
+    p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - p_cal->conf.acc_0g.x;
+    p_status->accY = (s16)((s16)((s16)(data[4] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 4) & 2)) - p_cal->conf.acc_0g.y;
+    p_status->accZ = (s16)((s16)((s16)(data[5] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 5) & 2)) - p_cal->conf.acc_0g.z;
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 6, 16);
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_36_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADStatus* dpdStatus = p_status;
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
-    __parse_dpd_data(chan, &p_status, p_cb->dpdFormat, data + 3, 10);
+    __parse_dpd_data(chan, &dpdStatus, p_cb->dpdFormat, data + 3, 10);
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 13, 9);
 }
 
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_37_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADStatus* dpdStatus = p_status;
+    WPADControlBlock* p_cal;
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
-    p_status->accX = (s16)(((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - _wpdcb[chan]->conf.acc_0g.x;
-    p_status->accY = (s16)(((s16)(data[4] << 2) & (s16)0xFFFC) | ((data[2] >> 4) & 2)) - _wpdcb[chan]->conf.acc_0g.y;
-    p_status->accZ = (s16)(((s16)(data[5] << 2) & (s16)0xFFFC) | ((data[2] >> 5) & 2)) - _wpdcb[chan]->conf.acc_0g.z;
-    __parse_dpd_data(chan, &p_status, p_cb->dpdFormat, data + 6, 10);
+    p_cal = _wpdcb[chan];
+    p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 5) & 3)) - p_cal->conf.acc_0g.x;
+    p_status->accY = (s16)((s16)((s16)(data[4] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 4) & 2)) - p_cal->conf.acc_0g.y;
+    p_status->accZ = (s16)((s16)((s16)(data[5] << 2) & (s16)0xFFFC) | (s16)((data[2] >> 5) & 2)) - p_cal->conf.acc_0g.z;
+    __parse_dpd_data(chan, &dpdStatus, p_cb->dpdFormat, data + 6, 10);
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 16, 6);
 }
 void __a1_3d_data_type(u8 chan, u8* data, WPADStatus* p_status) {
@@ -1014,7 +1027,7 @@ void __a1_3e_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     if (!p_cb->dpdExtendedReportMask) memset(p_status, 0, WPAD_RX_DATASIZE);
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = 0;
-    p_status->accX = (s16)(((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 6) & 2)) - _wpdcb[chan]->conf.acc_0g.x;
+    p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 6) & 2)) - _wpdcb[chan]->conf.acc_0g.x;
     p_status->accZ |= (s16)(((data[2] << 3) & 0xFF00) | ((data[1] << 1) & 0xC0));
     __parse_dpdex_data(chan, &p_status, 0, data + 4, 0);
     __parse_dpdex_data(chan, &p_status, 1, data + 13, 0);
@@ -1035,7 +1048,7 @@ void __a1_3f_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     if (!p_cb->dpdExtendedReportMask) memset(p_status, 0, WPAD_RX_DATASIZE);
     p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = 0;
-    p_status->accY = (s16)(((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 6) & 2)) - _wpdcb[chan]->conf.acc_0g.y;
+    p_status->accY = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | ((data[1] >> 6) & 2)) - _wpdcb[chan]->conf.acc_0g.y;
     p_status->accZ |= (s16)(((data[2] >> 1) & 0x30) | ((data[1] >> 3) & 0xC));
     __parse_dpdex_data(chan, &p_status, 2, data + 4, 0);
     __parse_dpdex_data(chan, &p_status, 3, data + 13, 0);

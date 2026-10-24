@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Freeze54-format receipts from actual M1 evidence. Any missing/failing gate refuses ALL receipts.
+"""Freeze54-format receipts from actual M1 evidence; required failures refuse ALL receipts.
 
 receipts54m.py CAMPAIGN_DIR OUT_DIR
 Always writes VALIDATION.json and COMPARISON.md alongside the campaign. Only an
-entirely passing, identity-consistent campaign creates OUT_DIR. Candidate tape
-results have their own identity and cannot satisfy frozen54 acceptance.
+identity-consistent campaign with every functional requirement met creates OUT_DIR.
+Only explicitly authorized candidate cold/cadence rows are TIER observations;
+missing or invalid tier measurements still refuse. Candidate results cannot
+satisfy frozen54 acceptance.
 """
 import argparse,json,math,os,re,sys
 from pathlib import Path
@@ -192,6 +194,7 @@ def main():
   lines.append('| '+g['gate']+' | '+SERVER.get(g['gate'],'Derived functional check')+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('M1 tier observation' if not g['required_for_functional_acceptance'] else 'Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
  if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
  lines+=['','Each GX session holds heavy then native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate evidence is labelled separately; it does not change frozen54 gate status.']
+ if candidate_mode:lines+=['The normal-route and normal-boot-ui rows reuse SOL B\'s actual perfm1b runs; their signed hashes are recorded separately and bound to the same original server candidate. Cold and cadence thresholds are tier observations; input latency remains functional.']
  (base/'COMPARISON.md').write_text('\n'.join(lines)+'\n')
  if issues:
   print('receipts54m: REFUSED; no receipt directory written: '+', '.join(issues));return 1

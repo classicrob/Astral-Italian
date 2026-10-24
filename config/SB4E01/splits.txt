@@ -5472,7 +5472,7 @@ Game/MapObj/RisePictureBookPlanet.cpp:
 Game/MapObj/Rock.cpp:
 	.text       start:0x802F2650 end:0x802F4F60
 	.ctors      start:0x80644564 end:0x80644568
-	.data       start:0x806AB2A0 end:0x806AB370
+	.data       start:0x806AB030 end:0x806AB370
 
 Game/MapObj/RockBreakCage.cpp:
 	.text       start:0x802F4F60 end:0x802F5370
@@ -7320,7 +7320,7 @@ Game/Ride/TamakoroTutorial.cpp:
 Game/Ride/Trapeze.cpp:
 	.text       start:0x80448F60 end:0x8044B940
 	.ctors      start:0x80644858 end:0x8064485C
-	.data       start:0x806EEDE0 end:0x806EEF78
+	.data       start:0x806EEBC8 end:0x806EEF78
 	.sbss       start:0x807D5290 end:0x807D52A0
 
 Game/Ride/TubeSlider.cpp:

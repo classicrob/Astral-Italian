@@ -30,20 +30,23 @@ HOME = Path.home()
 ROOT = HOME / "MacioGalaxy2-gamedata/port53/m1g"
 SEED = HOME / "MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
 DISC = HOME / "MacioGalaxy2-gamedata/SB4E01-extracted"
+INIT_OFFSET_LIMIT = 30
+HEAVY = HOME / "MacioGalaxy2-team/slots/m1-heavy.lock"
 ANCHOR_POLICY = {
-    "id": "interactive-and-play-ready-v1",
-    "authority": "PORT ruling 2026-10-24 on non-interactive Starship arrival timing",
-    "interactive": "Strict per-frame comparison in title, FileSelect, galaxy map, scenario selection and gameplay after play-ready.",
-    "arrival": "Feed recorded reads from scene-ready without per-frame state comparison through non-interactive arrival; wait neutrally if recorded arrival reads end first.",
-    "play_ready": "Require stage/scenario/valid/alive/grounded and float32 position bits to match; restore recorded RNG, verify immediate read-back, re-anchor reads to play-ready.",
-    "evidence": "Per-scene scene/play-ready anchors, actual and recorded frames, offsets, exact state and RNG read-back.",
+    "id": "scene-identity",
+    "authority": "PORT ruling 2026-10-24 superseding interactive-and-play-ready-v1",
+    "anchor": "Feed and compare from the first row of each stage/scenario identity, never initialize-End or player-valid.",
+    "comparison": "Compare float32 position bits, stage/scenario/alive/grounded on every row valid in both runs; count one-sided validity rows separately. Pointer buffers remain checked every input loop.",
+    "init_offset_limit_loops": INIT_OFFSET_LIMIT,
+    "play_ready": "Require exact state and natural RNG checkpoint; restore the same seed and verify read-back, without moving the read stream.",
     "normal533_checks": "Unchanged.",
 }
+
 CHECKS = ("scene_chain", "destination_300_consecutive_valid", "no_faults",
           "no_invalid_worldmap_request", "existing_unlocked_file1", "seed_unchanged",
           "binary_unchanged", "no_divergence", "whole_session_replay", "replay_completed",
           "lossless_tape", "tape_unchanged", "game_pointer_buffers_compared",
-          "anchor_policy_applied", "play_ready_state_checks")
+          "anchor_policy_applied", "play_ready_state_checks", "compared_rows_accounted", "init_offsets_within_bound")
 
 
 def sha(path):
@@ -56,6 +59,29 @@ def sha(path):
 
 def tree(root):
     return {str(p.relative_to(root)): sha(p) for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+def accounted(s):
+    keys = ("tape_frames", "rows_aligned", "rows_compared", "both_valid_rows_compared", "both_invalid_rows", "validity_mismatch_rows_skipped")
+    return (all(type(s.get(k)) is int and s[k] >= 0 for k in keys)
+            and s["rows_aligned"] == s["tape_frames"] + 1
+            and s["rows_compared"] + s["validity_mismatch_rows_skipped"] == s["rows_aligned"]
+            and s["both_valid_rows_compared"] + s["both_invalid_rows"] == s["rows_compared"])
+
+
+def init_bounded(s):
+    if (not all(k in s for k in ("init_offset_loops", "recorded_player_valid_scene_loop", "replayed_player_valid_scene_loop"))
+            or type(s.get("init_offset_limit_loops")) is not int or s["init_offset_limit_loops"] != INIT_OFFSET_LIMIT
+            or s.get("init_offset_within_bound") is not True):
+        return False
+    recorded, replayed = s.get("recorded_player_valid_scene_loop"), s.get("replayed_player_valid_scene_loop")
+    if recorded is None and replayed is None:
+        return (s.get("init_offset_loops") is None and s.get("both_valid_rows_compared") == 0
+                and s.get("validity_mismatch_rows_skipped") == 0)
+    return (all(type(v) is int and 0 <= v <= s.get("tape_frames", -1) for v in (recorded, replayed))
+            and type(s.get("init_offset_loops")) is int
+            and s["init_offset_loops"] == replayed - recorded
+            and abs(s["init_offset_loops"]) <= INIT_OFFSET_LIMIT)
 
 
 def evaluate(rows, log, replay):
@@ -75,7 +101,7 @@ def evaluate(rows, log, replay):
     segments = replay.get("segments", [])
     complete = bool(segments) and replay.get("finished") is True and all(
         s.get("started") is True and s.get("completed") is True
-        and s.get("rows_compared") == s.get("tape_frames", -2) + 1 for s in segments)
+        and accounted(s) for s in segments)
     divergence = next((s for s in segments if s.get("diverged")), None)
     checks = {
         "scene_chain": order[:4] == ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy", "IslandFleetGalaxy"],
@@ -89,7 +115,10 @@ def evaluate(rows, log, replay):
         "replay_completed": complete,
         "game_pointer_buffers_compared": bool(segments) and replay.get("mode") == "whole-session" and all(
             s.get("pointer_rows_compared") == s.get("tape_frames", -1) for s in segments),
-        "anchor_policy_applied": replay.get("anchor_policy") == ANCHOR_POLICY["id"],
+        "anchor_policy_applied": replay.get("anchor_policy") == ANCHOR_POLICY["id"] and bool(segments) and all(
+            s.get("anchor") == "scene-identity" and s.get("comparison_anchor") == "scene-identity" for s in segments),
+        "compared_rows_accounted": bool(segments) and all(accounted(s) for s in segments),
+        "init_offsets_within_bound": bool(segments) and all(init_bounded(s) for s in segments),
         "play_ready_state_checks": bool(segments) and all(s.get("play_ready_required") is False or
             (s.get("play_ready_required") is True and
              all((s.get("play_ready_state_check") or {}).get(k) is True for k in ("checked", "passed", "position_bit_exact")) and
@@ -100,7 +129,10 @@ def evaluate(rows, log, replay):
                     "replay_stopped": replay.get("stopped"),
                     "scene_anchors": [{k: s.get(k) for k in ("stage", "scenario", "anchor", "scene_anchor_recorded_frame",
                         "scene_anchor_replay_frame", "scene_anchor_frame_offset", "comparison_anchor",
-                        "play_ready_required", "play_ready_state_check")} for s in segments],
+                        "play_ready_required", "play_ready_state_check", "recorded_player_valid_frame", "replayed_player_valid_frame",
+                        "recorded_player_valid_scene_loop", "replayed_player_valid_scene_loop", "init_offset_loops",
+                        "init_offset_limit_loops", "init_offset_within_bound", "rows_aligned", "rows_compared",
+                        "both_valid_rows_compared", "both_invalid_rows", "validity_mismatch_rows_skipped")} for s in segments],
                     "pointer_evidence": [{k: s.get(k) for k in ("stage", "reads", "pointing_reads", "pointer_rows_compared", "pointer_source",
                         "last_pointer_recorded", "last_pointer_replayed", "last_pointer_valid")} for s in segments]}
 
@@ -158,7 +190,9 @@ def main(argv=None):
     cmd = [str(exe), "--disc", str(DISC), "--user", str(case / "user"), "--replay-tape", str(tape)]
     checks = dict.fromkeys(CHECKS, False)
     result = {"passed": False, "checks": checks, "source": a.source, "build_kind": a.build_kind,
-              "anchor_policy": ANCHOR_POLICY, "gate_script_sha256": sha(Path(__file__)),
+              "anchor_policy": ANCHOR_POLICY["id"], "anchor_policy_details": ANCHOR_POLICY,
+              "locks": {"heavy": str(HEAVY), "heavy_kind": "lockf -k", "order": ["heavy", "native"]},
+              "gate_script_sha256": sha(Path(__file__)),
               "binary_sha256": a.sha256, "tape_exe_sha256": meta.get("exe_sha256"),
               "tape_exe_hash_matches_app": meta.get("exe_sha256") == a.sha256,
               "hash_comparison_gated": False, "tape": str(tape), "case": str(case), "bundle_id": bundle,
@@ -171,6 +205,8 @@ def main(argv=None):
             fcntl.lockf(lock, fcntl.LOCK_EX)
             if shutil.disk_usage(case).free < 50 * 1024 ** 3:
                 raise RuntimeError("less than 50 GiB free")
+            from common import wait_quiet
+            wait_quiet(case / "quiet.json")
             start = time.time()
             (case / "command.json").write_text(json.dumps({**result, "command": cmd, "bound_seconds": a.bound,
                 "environment": {k: v for k, v in env.items() if k.startswith("PETARI_")},
@@ -221,4 +257,9 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    # Acquire heavy before main takes native.lock. The guard is set only in the lockf child and removed before app launch.
+    if os.environ.pop("_M1_TAPE_GATE_HEAVY_HELD", None) != "1":
+        HEAVY.parent.mkdir(parents=True, exist_ok=True)
+        os.execv("/usr/bin/lockf", ["/usr/bin/lockf", "-k", str(HEAVY), "/usr/bin/env", "_M1_TAPE_GATE_HEAVY_HELD=1",
+                                 sys.executable, "-B", str(Path(__file__).resolve()), *sys.argv[1:]])
     sys.exit(main())

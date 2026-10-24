@@ -532,19 +532,25 @@ the Starship, the galaxy map and scenario selection from recorded KPAD reads, in
 jump cut. For a tape originally recorded with a direct launch, supply that same --stage and --scenario; whole-session mode preserves
 that launch instead of inferring one from the first gameplay segment.
 
-The fidelity policy is **interactive-and-play-ready-v1** (PORT ruling, 2026-10-24). Title, FileSelect, the galaxy map and scenario
-selection compare per frame from their scene anchors. A gameplay scene's non-interactive arrival feeds reads from its recorded
-scene-ready seam without comparing cinematic positions per frame: asynchronous initialization can finish partway through an
-already running arrival animation. When the actual scene becomes play-ready, its stage, scenario, validity, alive/grounded state
-and float32 position bits must equal the recorded play-ready state. A mismatch stops replay immediately. The recorded RNG checkpoint
-is restored and immediately read back as a verified checkpoint; the natural seed before restoration is reported separately.
-Reads then re-anchor at recorded play-ready and strict per-frame comparison resumes. If the arrival takes longer, reads are neutral
-after the recorded arrival reads end; if shorter, only the remaining non-interactive arrival reads are skipped.
+The fidelity policy is **scene-identity** (PORT ruling, 2026-10-24, superseding interactive-and-play-ready-v1). Each scene visit
+starts at the first row of its stage/scenario identity, including title, FileSelect and scenario selection. Feeding and comparison
+use that single anchor throughout the visit; asynchronous initialize-End/player-valid markers never move the read stream.
+Every row valid in both runs compares float32 position bits and stage/scenario/alive/grounded state, including arrival cinematics.
+Rows valid on only one side are counted separately and skip only player-state comparison; stage identity and actual WPad pointer
+buffers remain checked. The first player-valid loop is recorded relative to each scene anchor. Its replay-versus-recording offset
+must be within **30 loops**, fixed in both driver and gate. A missing or out-of-bounds initialization fails closed.
 
-The report records both scene and play-ready anchors, their recorded/replayed frames and offsets, the bit-exact state check,
-and the RNG restoration/read-back for each scene. Pointer samples are compared with the game's actual WPad read buffer in every
-compared interactive loop. The normal_tape_gate.py RESULT includes this policy and per-scene evidence; all normal533 route checks
-retain their original meaning. Executable hash equality is reported separately for cross-build tapes.
+At each recorded play-ready checkpoint, the actual play-ready state must match stage, scenario, validity, alive/grounded state and
+float32 position bits. The natural RNG seed must match the recorded checkpoint; the same seed is assigned and immediately read
+back by the replay glue. A missing checkpoint or acknowledgment fails closed. Reads continue in order without pausing or seeking.
+
+The report records scene anchors, first-valid frames and scene-relative init offsets, the fixed bound, all aligned/compared rows,
+both-valid/both-invalid counts, one-sided-validity skips, pointer comparison counts, and exact play-ready state/RNG checks.
+The normal_tape_gate.py RESULT includes anchor_policy=scene-identity and the same per-scene evidence; all normal533 route checks
+retain their original meaning. Executable hash equality is evidence for cross-build tapes and does not decide pass/fail.
+Builds and replays take m1-heavy.lock before native.lock. The normal tape gate acquires heavy through lockf -k itself; callers
+must not acquire that lock again around the gate. Quiet receipts retain real camera load and the PORT CPU-delta rule for idle
+Metal services (two samples 10 seconds apart, less than 0.05 seconds CPU gained).
 
 The launcher keeps only the 20 newest session tapes in ~/MacioGalaxy2-play/tapes (about 150 MB an hour of play); older ones are removed
 when a new session starts. Copy a tape worth keeping (a star get, a bug) to ~/MacioGalaxy2-gamedata/rec-tapes first.

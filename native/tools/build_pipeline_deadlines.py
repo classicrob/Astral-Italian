@@ -82,14 +82,15 @@ def close_manifest(seeds, output, stage, frames):
                    'source_global_sha256': sha(seeds / '__global__.db')}
 
 
-def build(seeds, provenances, output, report, expected_stages=None, *, source_pack, require_cold_confirmation=False):
+def build(seeds, provenances, output, report, expected_stages=None, *, source_pack, require_cold_confirmation=False,
+          fallback_stages=()):
     seeds, output, report = Path(seeds).resolve(), Path(output).resolve(), Path(report).resolve()
     if output.exists() or report.exists() or output == seeds or report.is_relative_to(output):
         raise ValueError('output/report must be new; report must stay outside the packed seed directory')
     source_binding = validate_source(seeds, Path(source_pack))
     output.mkdir(parents=True)
     for path in seeds.glob('*.db'): shutil.copyfile(path, output / path.name)
-    results, frontend, planned, admitted = [], {}, set(), set()
+    results, frontend, planned, admitted, attempts = [], {}, set(), set(), {}
     expected = set(expected_stages) if expected_stages is not None else None
     dedicated_title = False
     build_identity = None
@@ -99,6 +100,7 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
         if data.get('version') != 1 or data.get('recording_only') is not True:
             raise ValueError('unsupported/non-recording provenance')
         dedicated = data.get('mode') == 'no-input-title'
+        tape_driven = data.get('mode') == 'tape-driven'
         dedicated_title |= dedicated
         identity = data['recording_build_metadata']
         if identity.get('seed_pack_sha256') != source_binding['sha256']:
@@ -108,7 +110,8 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
             raise ValueError('invalid recording source/executable/renderer identity')
         if build_identity is not None and identity != build_identity: raise ValueError('recording builds differ across batches')
         build_identity = identity
-        if planned & set(data['stages_planned']): raise ValueError('overlapping recording batches')
+        if admitted & set(data['stages_planned']):
+            raise ValueError('cannot replace an already admitted recording stage')
         planned.update(data['stages_planned'])
         provenance_bindings.append({'path': str(path.resolve()), 'sha256': sha(path),
                                     'recording_build_metadata': data['recording_build_metadata'],
@@ -116,6 +119,8 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
         for result in data['stage_results']:
             stage = result['stage']
             item = {'stage': stage, 'admitted': False, 'provenance': str(path.resolve())}
+            item['previous_failed_attempts'] = attempts.get(stage, []).copy()
+            attempts.setdefault(stage, []).append(str(path.resolve()))
             results.append(item)
             try:
                 if stage == 'Unknown':
@@ -140,8 +145,15 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                     with (folder / 'frames.csv').open() as file: timing = list(csv.DictReader(file))
                     if not timing or any(float(r['pipeline_wait_ms']) != 0 for r in timing) or re.search(r'^\[gx uber wait\]|^\[pop-in\] frame \d+ skipped_draws [1-9]', text, re.M):
                         raise ValueError('raw log/timing proves pipeline wait or pop-in in warm record')
-                    if not dedicated and '[input-script] done after 970 frames' not in text:
+                    if not dedicated and not tape_driven and '[input-script] done after 970 frames' not in text:
                         raise ValueError('perf input script did not complete')
+                    if tape_driven:
+                        if launch.get('mode') != 'tape-driven' or 'PETARI_INPUT_SCRIPT' in launch['environment'] or launch['environment'].get('PETARI_TAPE_PLAY_SESSION') != '1':
+                            raise ValueError('recording did not use the declared whole-session tape')
+                        native_path = folder / 'replay/divergence.json'
+                        if sha(native_path) != arm['replay_report_sha256'] or not all(recording.replay_checks(json.loads(native_path.read_text())).values()):
+                            raise ValueError('raw native tape replay did not pass strictly')
+                        if 'jump cut' in text: raise ValueError('tape-driven recording used a jump cut')
                     if dedicated and ('PETARI_INPUT_SCRIPT' in launch['environment'] or launch.get('mode') != 'no-input-title'):
                         raise ValueError('title observation was not the no-input recording arm')
                     maps.append(all_groups(folder / 'first-use.jsonl'))
@@ -218,9 +230,15 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
     global_unchanged = seedpack.database_rows(str(seeds / '__global__.db')) == seedpack.database_rows(str(output / '__global__.db'))
     required = expected if expected is not None else planned - {'Unknown', 'FileSelect'}
     missing = sorted(required - admitted)
+    permitted = set(fallback_stages)
+    if permitted - planned or permitted & admitted or permitted - required:
+        raise ValueError('explicit fallback must name an attempted, unqualified required stage')
     cold_stages = sorted(r['stage'] for r in results if r['admitted'] and r.get('cold_confirmation_checks'))
-    result = {'version': 1, 'passed': not missing and existing_unchanged and global_unchanged
+    result = {'version': 1, 'passed': not (set(missing) - permitted) and existing_unchanged and global_unchanged
               and (not require_cold_confirmation or bool(cold_stages)),
+              'all_requested_deadlines_qualified': not missing,
+              'explicit_whole_stage_fallbacks': sorted(permitted),
+              'unapproved_missing_stages': sorted(set(missing) - permitted),
               'cold_confirmation_required': require_cold_confirmation, 'cold_confirmed_stages': cold_stages,
               'all_database_rows_unchanged': unchanged, 'all_existing_rows_and_ranks_byte_identical': existing_unchanged,
               'global_rows_unchanged': global_unchanged,
@@ -241,11 +259,12 @@ def main():
     parser.add_argument('--source-pack', required=True, type=Path, help='Exact original pack named by recording BUILD.json')
     parser.add_argument('--disc', required=True, type=Path, help='Enumerate the complete scenario-1 sweep; partial batches cannot pass')
     parser.add_argument('--provenance', required=True, nargs='+', type=Path)
+    parser.add_argument('--fallback-stage', action='append', default=[], help='Explicit authorised whole-stage first-use fallback; original failures remain reported')
     parser.add_argument('--out', required=True, type=Path)
     parser.add_argument('--report', required=True, type=Path)
     args = parser.parse_args()
     result = build(args.seed_dir, args.provenance, args.out, args.report, recording.select(args.disc),
-                   source_pack=args.source_pack, require_cold_confirmation=True)
+                   source_pack=args.source_pack, require_cold_confirmation=True, fallback_stages=args.fallback_stage)
     print(json.dumps({'passed': result['passed'], 'admitted': len(result['admitted_stages']),
                       'missing': result['missing_or_failed_stages'], 'frontend': result['frontend_results']}, indent=2))
     return 0 if result['passed'] else 1

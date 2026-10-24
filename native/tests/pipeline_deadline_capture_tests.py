@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
-from record_pipeline_deadlines import observations, disagreements, seed_identity
+from record_pipeline_deadlines import observations, disagreements, seed_identity, replay_checks
 
 
 class Captures(unittest.TestCase):
@@ -87,6 +87,36 @@ class Captures(unittest.TestCase):
         self.assertEqual(result['renderer_key'], 'a' * 64)
         self.assertEqual(result['identity_seed'], '__global__.db')
         self.assertFalse((seeds / 'StaffRollGalaxy.db').exists())
+
+
+class TapeReplay(unittest.TestCase):
+    def report(self):
+        return {'mode':'whole-session','finished':True,'stopped':False,
+                'anchor_policy':'interactive-and-play-ready-v1','interactive_position_bit_exact':True,
+                'segments':[{'started':True,'completed':True,'diverged':False,'identity_rows_skipped':1,
+                    'rows_compared':10,'tape_frames':10,'pointer_rows_compared':10,'max_position_error':0,
+                    'identity_offset_checked':True,'identity_offset_passed':True,'identity_offset_limit':30,
+                    'identity_frame_offset':1,'play_ready_required':True,
+                    'play_ready_state_check':{'checked':True,'passed':True,'position_bit_exact':True,'rng':{'verified':True}}}]}
+
+    def test_strict_whole_session(self):
+        self.assertTrue(all(replay_checks(self.report()).values()))
+
+    def test_missing_pointer_row_fails(self):
+        data=self.report();data['segments'][0]['pointer_rows_compared']=9
+        self.assertFalse(all(replay_checks(data).values()))
+
+    def test_missing_checkpoint_rng_fails(self):
+        data=self.report();data['segments'][0]['play_ready_state_check']['rng']={}
+        self.assertFalse(all(replay_checks(data).values()))
+
+    def test_boundary_over_bound_fails(self):
+        data=self.report();data['segments'][0]['identity_frame_offset']=31
+        self.assertFalse(all(replay_checks(data).values()))
+
+    def test_position_difference_fails(self):
+        data=self.report();data['segments'][0]['max_position_error']=0.001
+        self.assertFalse(all(replay_checks(data).values()))
 
 
 if __name__ == '__main__': unittest.main()

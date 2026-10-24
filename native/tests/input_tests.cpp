@@ -2878,7 +2878,7 @@ void testLevelEditor() {
         Mods::setEnabled(Mods::Mod::LevelEditor, true);
         // A hold (tilting the remote) is not a tap.
         press(In::Key::Tab);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        rig.frames_(15);
         lift(In::Key::Tab);
         petari_editor_take_input(&in);
         check(in.enabled && in.toggle == 0 && !Editor::capturing(), "holding Tab tilts, it does not toggle");

@@ -28,7 +28,6 @@ extern KPADInsideStatus inside_kpads[4];
 #include <revolution/wpad.h>
 
 #include <algorithm>
-#include <chrono>
 #include <atomic>
 #include <cmath>
 #include <cstdio>
@@ -835,8 +834,8 @@ bool photoInput(Binding input, bool down, bool repeat) {
 // Edit mode; a hold stays the game's (Tab also tilts the remote). From the toggle until the
 // game leaves Edit mode the game gets no input: the editor's panels and camera read Dear
 // ImGui's (the editor UI), and pinch goes to the editor camera here.
-constexpr auto kEditorTap = std::chrono::milliseconds(250);
-std::chrono::steady_clock::time_point gEditorTapStart{};
+constexpr std::uint64_t kEditorTapFrames = 15;  // 250ms at 60Hz, never host elapsed time
+std::uint64_t gEditorTapStart = 0;
 bool gEditorTapArmed = false;
 bool gEditorGameReleased = false;
 
@@ -849,11 +848,11 @@ bool editorInput(Binding input, bool down, bool repeat) {
     if (!repeat) {
         if (boundTo(Action::LevelEditor, input)) {
             if (down) {
-                gEditorTapStart = std::chrono::steady_clock::now();
+                gEditorTapStart = gameFrame();
                 gEditorTapArmed = true;
             } else if (gEditorTapArmed) {
                 gEditorTapArmed = false;
-                if (std::chrono::steady_clock::now() - gEditorTapStart < kEditorTap) {
+                if (gameFrame() - gEditorTapStart < kEditorTapFrames) {
                     // While a field is being typed in, the UI commits it first and toggles after.
                     if (EditorSettings::active() && EditorSettings::typing()) {
                         EditorSettings::deferToggle();

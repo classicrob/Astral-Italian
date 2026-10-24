@@ -7,7 +7,7 @@ from common import *
 STAGES=('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy')
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only',default='platform,promotion,intro,cappy,cold,image,warm,cadence,audio,tape');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only',default='platform,promotion,intro,cappy,cold,image,warm,cadence,audio,tape');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');a=p.parse_args()
  assert re.fullmatch(r'[A-Za-z0-9_-]+',a.label),'safe unique label required'
  assert os.getpriority(os.PRIO_PROCESS,0)==0,'run campaign at nice 0'
  app,meta=prep();base=ROOT/'campaigns'/a.label;base.mkdir(parents=True,exist_ok=False)
@@ -89,6 +89,12 @@ def main():
      assert a.candidate_sha and a.candidate_source, 'candidate app requires explicit SHA and source'
      command('candidate-normal-route',[sys.executable,'-B',HERE/'normal_tape_gate.py',a.candidate_app,a.candidate_sha,a.candidate_source,a.label+'-candidate-normal','--build-kind','server-candidate','--tape',a.tape]+(['--allow-incomplete'] if a.allow_incomplete_tape else []))
      a.tape_result=ROOT/(a.label+'-candidate-normal')/'RESULT.json'
+    if a.candidate_original_app:
+     assert a.candidate_original_sha and a.candidate_source,'candidate original app requires its SHA and source'
+     replay_base=[sys.executable,'-B',HERE/'replay_cases54m.py']
+     identity_args=['--app',a.candidate_original_app,'--sha',a.candidate_original_sha,'--source',a.candidate_source]+(['--allow-incomplete'] if a.allow_incomplete_tape else [])
+     command('candidate-intro',replay_base+['intro',a.label+'-candidate-intro',*identity_args,'--tape',ROOT/'tapes/tape-intro-54-49','--none-tape',ROOT/'tapes/tape-intro-54-none'])
+     command('candidate-pointer',replay_base+['pointer',a.label+'-candidate-pointer',*identity_args,'--tape',ROOT/'tapes/tape-worldmap-54'])
     write(base/'tape-status.json',{'passed':False,'reason':'Frozen54 lacks full-session replay. PORT approved separate server-built candidate tape runs; never merge candidate evidence into frozen54 receipts.','candidate_result':str(a.tape_result) if a.tape_result else None})
     if a.tape_result:
      normal=json.loads(a.tape_result.read_text());write(base/'candidate-normal-boot-ui.json',{'passed':normal.get('acceptance_passed') is True,'build_kind':normal.get('build_kind'),'binary_sha256':normal.get('binary_sha256'),'source':normal.get('source'),'gate':'normal-boot-ui','receipt':str(a.tape_result),'checks':{k:normal.get('checks',{}).get(k) for k in ('scene_chain','existing_unlocked_file1','no_faults','no_divergence','whole_session_replay','replay_completed')},'limits':['Canonical normal-route tape includes ordinary title/FileSelect boot; same actual run proves this prefix. Candidate evidence only.']})

@@ -14,6 +14,7 @@ import argparse
 import contextlib
 import csv
 import fcntl
+import io
 import hashlib
 import json
 import os
@@ -52,7 +53,7 @@ def seed_identity(app, stage):
     directory = app / 'Contents/Resources/pipeline-seeds'
     stage_seed = directory / (stage + '.db')
     identity_seed = stage_seed if stage_seed.is_file() else directory / '__global__.db'
-    with sqlite3.connect(identity_seed.as_uri() + '?mode=ro', uri=True) as db:
+    with contextlib.closing(sqlite3.connect(identity_seed.as_uri() + '?mode=ro', uri=True)) as db:
         renderer = db.execute('SELECT build_key FROM petari_cache_build').fetchone()[0]
     return {'renderer_key': renderer, 'stage_seed_sha256': sha(stage_seed) if stage_seed.is_file() else None,
             'stage_seed_missing': not stage_seed.is_file(), 'identity_seed': identity_seed.name}
@@ -64,6 +65,41 @@ def write(path, value):
 
 def tree(path):
     return {str(p.relative_to(path)): sha(p) for p in sorted(path.rglob('*')) if p.is_file()}
+
+
+def map_observation(rows, stage, frames):
+    if not re.fullmatch(r'WorldMap0[1-8]Galaxy', stage) or type(frames) is not int or frames < 970:
+        raise ValueError('map observation needs a real world map and >=970-frame fixed window')
+    target = [r for r in rows if r['stage'] == stage and r['scenario'] == '1']
+    first = int(target[0]['frame']) if target else None
+    last = int(target[-1]['frame']) if target else None
+    neutral_fields = ('move_x','move_y','jump','spin','crouch','shoot','pointer_valid',
+                      'camera_left','camera_right','camera_center','camera_up','camera_down')
+    return {'stage_identity_route_row': first, 'requested_frames': frames,
+            'requested_end_route_row': first + frames if first is not None else None,
+            'last_target_route_row': last,
+            'observed_route_intervals': last - first if first is not None else 0,
+            'checks': {'target_map_observed': bool(target),
+                       'target_player_valid': any(r['valid'] == '1' for r in target),
+                       'fixed_window_complete': first is not None and last - first >= frames,
+                       'no_scene_departure': first is not None and all(r['stage'] == stage and r['scenario'] == '1' for r in rows if int(r['frame']) >= first),
+                       'no_input': bool(rows) and all(not any(float(r.get(k,0)) for k in neutral_fields) for r in rows)}}
+
+
+def wait_map_window(process, path, stage, frames, timeout):
+    deadline = time.monotonic() + timeout
+    while process.poll() is None:
+        if time.monotonic() >= deadline: raise subprocess.TimeoutExpired('map observation', timeout)
+        if path.exists():
+            # The route writer flushes every60 rows. Ignore an incomplete final
+            # CSV line while polling; preserve and validate ALL rows after quit.
+            text = path.read_text()
+            if '\n' in text:
+                rows = list(csv.DictReader(io.StringIO(text.rsplit('\n',1)[0] + '\n')))
+                status = map_observation(rows, stage, frames)
+                if all(status['checks'].values()): return status
+        time.sleep(.1)
+    raise RuntimeError('map process exited before its fixed observation window')
 
 
 def replay_checks(report):
@@ -222,7 +258,7 @@ def launch(args, stage, name, app=None, cold=False):
         for key, value in (meta.get('replay_env') or {}).items():
             if key != 'PETARI_TEST_RETURN_TO_SHIP': raise ValueError('unsupported recorded scene hook')
             env[key] = str(value)
-    elif not args.title:
+    elif not args.title and not args.map:
         env.update(PETARI_INPUT_SCRIPT=str(script), PETARI_INPUT_SCRIPT_STEADY='60', PETARI_INPUT_SCRIPT_QUIT='1')
     recording = not name.startswith('prime')
     if recording:
@@ -237,30 +273,38 @@ def launch(args, stage, name, app=None, cold=False):
     elif not args.title:
         cmd += ['--stage', stage, '--scenario', '1']
     write(folder / 'launch.json', {'command': cmd, 'environment': {k: v for k, v in env.items()
-          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title or tape else sha(script),
+          if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title or args.map or tape else sha(script),
           'stationary_stage_override': stage in args.stationary_stage,
           'nice': os.getpriority(os.PRIO_PROCESS, 0), 'cold_namespace': cold, 'renderer_key': renderer,
           **identity,
-          'purpose': 'recording only; not performance acceptance', 'mode': 'tape-driven' if tape else 'no-input-title' if args.title else 'direct-stage',
+          'purpose': 'recording only; not performance acceptance', 'mode': 'tape-driven' if tape else 'no-input-title' if args.title else 'no-input-map' if args.map else 'direct-stage',
+          'map_frames': args.map_frames if args.map else None,
           'tape_files_sha256': tape_before if tape else None, 'save_fixture': str(args.tape_user_fixture) if tape else None,
           'fixture_files': fixture_before, 'tape_executable_hash_gated': False,
           'load': os.getloadavg()})
     started = time.monotonic()
     with (folder / 'app.log').open('wb') as log:
         process = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, env=env)
-        timed_out, quit_error = False, None
+        timed_out, quit_error, map_quit_status = False, None, None
         try:
-            if args.title:
-                try:
-                    process.wait(timeout=args.title_seconds)
-                except subprocess.TimeoutExpired:
+            if args.title or args.map:
+                request_quit = False
+                if args.map:
+                    map_quit_status = wait_map_window(process, folder / 'route.csv', stage, args.map_frames, args.seconds)
+                    request_quit = True
+                else:
+                    try:
+                        process.wait(timeout=args.title_seconds)
+                    except subprocess.TimeoutExpired:
+                        request_quit = True
+                if request_quit:
                     with (app / 'Contents/Info.plist').open('rb') as info:
                         bundle = plistlib.load(info)['CFBundleIdentifier']
                     sent = subprocess.run(['/usr/bin/osascript', '-l', 'JavaScript', '-e', QUIT_PID,
                                            str(process.pid), str(app), bundle], capture_output=True, text=True, timeout=30)
                     write(folder / 'orderly-quit.json', {'exit': sent.returncode, 'stdout': sent.stdout,
                                                        'stderr': sent.stderr, 'pid': process.pid, 'bundle_id': bundle})
-                    if sent.returncode != 0: raise RuntimeError('Orderly recording-title quit rejected')
+                    if sent.returncode != 0: raise RuntimeError('Orderly owned recording quit rejected')
                     process.wait(timeout=30)
             else:
                 process.wait(timeout=args.seconds)
@@ -292,8 +336,15 @@ def launch(args, stage, name, app=None, cold=False):
                       tape_unchanged=tape_before == {n: sha(tape / n) for n in tape_before},
                       fixture_unchanged=tree(args.tape_user_fixture) == fixture_before,
                       no_jump_cut='jump cut' not in text)
-    else:
+    elif not args.map:
         checks['script_done'] = args.title or '[input-script] done after 970 frames' in text
+    map_status = None
+    if args.map:
+        route = list(csv.DictReader((folder / 'route.csv').open())) if (folder / 'route.csv').exists() else []
+        map_status = map_observation(route, stage, args.map_frames)
+        sidecar = json.loads((folder / 'route.tape.json').read_text()) if (folder / 'route.tape.json').exists() else {}
+        checks.update(map_status['checks'], orderly_map_quit=quit_error is None and map_quit_status is not None,
+                      map_scene_ready=sidecar.get('complete') is True and any(r['stage'] == stage and r['scenario'] == 1 for r in sidecar.get('ready_seams',[])))
     if args.title:
         route = list(csv.DictReader((folder / 'route.csv').open())) if (folder / 'route.csv').exists() else []
         checks.update(no_quit_error=quit_error is None, title_300seconds=time.monotonic()-started >= 300,
@@ -316,6 +367,13 @@ def launch(args, stage, name, app=None, cold=False):
               **identity,
               'app_log_sha256': sha(folder / 'app.log'), 'capture_sha256': sha(capture) if capture.exists() else None}
     if tape: result.update(replay_checks=native_replay, replay_report_sha256=replay_sha)
+    if args.map:
+        result.update(map_observation=map_status, map_quit_request=map_quit_status,
+                      map_clock='route-csv-seam-frame',
+                      map_quit_policy='970-or-configured seam intervals from map identity; CSV flush every60 rows and orderly-quit latency are retained, never trimmed',
+                      orderly_quit_sha256=sha(folder / 'orderly-quit.json') if (folder / 'orderly-quit.json').exists() else None,
+                      route_csv_sha256=sha(folder / 'route.csv') if (folder / 'route.csv').exists() else None,
+                      route_sidecar_sha256=sha(folder / 'route.tape.json') if (folder / 'route.tape.json').exists() else None)
     write(folder / 'RESULT.json', result)
     return result
 
@@ -328,6 +386,8 @@ def main():
     parser.add_argument('--stationary-stage', action='append', default=[], help='Explicit stage-only camera/jump/spin probe; preserves 970-frame duration')
     parser.add_argument('--title', action='store_true', help='No-input FileSelect title, prime + two >=300s warm recordings')
     parser.add_argument('--title-seconds', type=float, default=315)
+    parser.add_argument('--map', action='store_true', help='Finite no-input map scene observation, default all8 world maps')
+    parser.add_argument('--map-frames', type=int, default=970)
     parser.add_argument('--tape', type=Path, help='Whole-session native KPAD replay instead of the direct-stage script')
     parser.add_argument('--tape-user-fixture', type=Path)
     parser.add_argument('--tape-user-receipt', type=Path)
@@ -343,7 +403,7 @@ def main():
     parser.add_argument('--cold-confirm-stage')
     parser.add_argument('--cold-confirm-app', type=Path)
     args = parser.parse_args()
-    if args.tape and (args.title or args.batch or not args.stage or args.stationary_stage or args.cold_confirm_stage or
+    if args.tape and (args.title or args.map or args.batch or not args.stage or args.stationary_stage or args.cold_confirm_stage or
                       not args.tape_user_fixture or not args.tape_user_receipt):
         parser.error('--tape needs explicit --stage target(s), fixture and receipt; no title/batch/stationary/cold mode')
     if args.tape:
@@ -351,7 +411,10 @@ def main():
         args.tape_user_receipt = args.tape_user_receipt.resolve()
     if args.title and (args.stage or args.batch or args.stationary_stage or args.cold_confirm_stage or args.title_seconds < 300):
         parser.error('--title needs its own batch/output, no --stage/--batch/--cold-confirm-stage; title-seconds>=300')
-    stages = ['FileSelect'] if args.title else select(args.disc, args.stage, args.batch)
+    if args.map and (args.title or args.batch or args.stationary_stage or args.cold_confirm_stage or args.map_frames < 970 or
+                     any(not re.fullmatch(r'WorldMap0[1-8]Galaxy', s) for s in args.stage)):
+        parser.error('--map needs >=970frames and only explicit WorldMap01-08 stages; no title/batch/stationary/cold mode')
+    stages = ['FileSelect'] if args.title else [f'WorldMap0{i}Galaxy' for i in range(1,9)] if args.map and not args.stage else select(args.disc, args.stage, args.batch)
     if any(stage not in stages for stage in args.stationary_stage):
         parser.error('every --stationary-stage must be selected in this run')
     if args.command == 'plan':
@@ -398,8 +461,9 @@ def main():
                   and (cold_diff is None or not cold_diff)}
         results.append(result)
         write(args.out / 'PROVENANCE.json', {'version': 1, 'recording_only': True, 'stages_planned': stages,
-              'stage_results': results, 'script': None if args.title or args.tape else str(SCRIPT), 'script_sha256': None if args.title or args.tape else sha(SCRIPT),
-              'mode': 'tape-driven' if args.tape else 'no-input-title' if args.title else 'direct-stage',
+              'stage_results': results, 'script': None if args.title or args.map or args.tape else str(SCRIPT), 'script_sha256': None if args.title or args.map or args.tape else sha(SCRIPT),
+              'mode': 'tape-driven' if args.tape else 'no-input-title' if args.title else 'no-input-map' if args.map else 'direct-stage',
+              'map_frames': args.map_frames if args.map else None,
               'tape': str(args.tape) if args.tape else None,
               'tape_user_fixture': str(args.tape_user_fixture) if args.tape else None,
               'tape_user_receipt_sha256': sha(args.tape_user_receipt) if args.tape else None,

@@ -988,3 +988,24 @@ Unknown deadline sidecar, even when its later maps agree: Unknown keeps the
 existing first-use order and reports the unqualified bootstrap scope. FileSelect
 and galaxy admission remain independent. Full bootstrap metadata would require
 an explicit owner from the first recording packet; no frame values are inferred.
+
+Explicit v14 recording fallbacks ruled by PORT (2026-10-24):
+
+- `Unknown`: the pre-scene bootstrap packet is outside protocol3's named-scene
+  scope, as above.
+- `PeachCastleGalaxy` scenario1: fresh direct launch waits on the prologue's A
+  prompt; the970-frame gameplay script never starts. No supplied canonical tape
+  visits Peach. The failed240s records remain failures; no sidecar is admitted.
+- `StaffRollGalaxy`: the warm pair agrees, but observed configs
+  `1da6a9c233066e58`, `2d8a4869ed21f579`, `7591dbce38c17c0b` and
+  `a0702df88aaab282` are absent from `__global__.db`. Adding raw global configs
+  is outside this change. No sidecar or guessed config is emitted for credits.
+
+World maps use an explicit `--map` no-input recording arm. The native route's
+first target identity row starts a requested970-seam observation window; after
+the CSV publishes that window, a PID/app/bundle-specific AppleEvent requests an
+orderly quit. The CSV flushes every60 rows, so the receipt records both the
+requested endpoint and the actual observed tail, including quit latency. No
+capture rows are trimmed. Admission requires the actual target map's native
+Game/End ready seam, normal completion, neutral input, no departure, progressing
+recording clock, no warm pipeline waits/pop-in and exact full warm maps.

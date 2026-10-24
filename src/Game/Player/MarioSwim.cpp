@@ -655,6 +655,8 @@ f32 MarioSwim::fn_803F8EF0() {
 
 // NONMATCHING: equivalent input boolean folding, GPR allocation and stack placement.
 void MarioSwim::fn_803F8F60(f32) {
+    f32 angle;
+    f32 old;
     if (_38) {
         _38--;
         return;
@@ -700,8 +702,7 @@ void MarioSwim::fn_803F8F60(f32) {
             yy *= y;
             yy += xx;
             if (yy > 0.2f) {
-                f32 old;
-                f32 angle = JMAAcosRadian(mUpVec.dot(getWorldPadDir()));
+                angle = JMAAcosRadian(mUpVec.dot(getWorldPadDir()));
                 old = mVerticalAngle * (1.0f - fn_803FA2C0());
                 f32 next = angle * fn_803FA2C0();
                 mIsSwimmingAtSurface = false;
@@ -710,11 +711,11 @@ void MarioSwim::fn_803F8F60(f32) {
             }
         }
         if (mIsOnSurface) {
-            f32 angle = mVerticalAngle;
+            angle = mVerticalAngle;
             if (angle > 1.0471976f) mVerticalAngle = angle + cAngleRelaxation * (1.0471976f - angle);
         } else {
             f32 targetAngle = 1.5707964f;
-            f32 angle = mVerticalAngle;
+            angle = mVerticalAngle;
             mVerticalAngle = angle + cAngleRelaxation * (targetAngle - angle);
         }
     angleUpdated:
@@ -3687,7 +3688,9 @@ f32 MarioSwim::fn_80402250() {
 f32 MarioSwim::fn_804022D0() {
     if (mDistToFloor < 300.0f && -mWaterDepth < 100.0f) return cNeutralAngleWait;
     f32 angle = fn_80402250() - cNeutralAngleWait;
-    return cNeutralAngleWait + getStickY() * angle;
+    f32 stick = getStickY();
+    stick *= angle;
+    return cNeutralAngleWait + stick;
 }
 
 f32 MarioSwim::fn_80402370() {

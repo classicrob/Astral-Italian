@@ -5655,9 +5655,7 @@ void Mario::fn_803912D0(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
 
 // NONMATCHING: register allocation and position-reference load scheduling.
 bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
-    f32 angle = marioAcos(-getGravityVec()->dot(normal));
-    angle /= 3.14159f;
-    angle = 180.0f * angle;
+    f32 angle = 180.0f * (marioAcos(-getGravityVec()->dot(normal)) / 3.14159f);
     const TVec3f& position = mPosHolder->mPos;
     TVec3f fromBase(hit->mHitPos);
     fromBase.sub(position);

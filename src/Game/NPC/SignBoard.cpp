@@ -57,7 +57,6 @@ void SignBoard::exeWait() {
     MR::tryTalkNearPlayer(getMsgCtrl());
 }
 
-// NONMATCHING: equivalent base-appear calls share one return block.
 void SignBoard::appear() {
     if (mSupportPlayMode == 0) {
         if (mSupportPlayActive == 0) {
@@ -66,8 +65,10 @@ void SignBoard::appear() {
         if (MR::isDead(this)) {
             MR::tryHitReaction(this, "煙");
         }
+        LiveActor::appear();
+    } else {
+        LiveActor::appear();
     }
-    LiveActor::appear();
 }
 
 void SignBoard::kill() {
@@ -75,14 +76,15 @@ void SignBoard::kill() {
     NPCActor::kill();
 }
 
-// NONMATCHING: equivalent base-dead calls share one return block.
 void SignBoard::makeActorDead() {
     if (mSupportPlayMode == 0 && MR::isValidSwitchAppear(this)) {
         if (!MR::isDead(this) && mSupportPlayActive != 0) {
             MR::tryHitReaction(this, "煙");
         }
+        NPCActor::makeActorDead();
+    } else {
+        NPCActor::makeActorDead();
     }
-    NPCActor::makeActorDead();
 }
 
 bool SignBoard::receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) {

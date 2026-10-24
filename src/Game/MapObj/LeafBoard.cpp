@@ -41,8 +41,8 @@ namespace NrvLeafBoard {
 }
 
 LeafBoard::LeafBoard(const char* pName) : LiveActor(pName) {
-    f32 zero = 0.0f;
     f32 one = 1.0f;
+    f32 zero = 0.0f;
     mRot.x = zero;
     mRot.y = zero;
     mRot.z = zero;

@@ -1085,8 +1085,7 @@ void Tamakoro::updateMarioPose(f32 degree) {
 
 // NONMATCHING: floating-point register allocation differs.
 void Tamakoro::updateMarioOffset() {
-    f32 velocity = mMarioOffsetVelocity - ::sMarioOffsetGravityAccel;
-    velocity *= ::sMarioOffsetFric;
+    f32 velocity = (mMarioOffsetVelocity - ::sMarioOffsetGravityAccel) * ::sMarioOffsetFric;
 
     mMarioOffsetVelocity = velocity;
     mMarioOffset += mMarioOffsetVelocity;

@@ -235,10 +235,9 @@ void StarReturnDemoStarter::exeFlyWaitGrandStar() {
     }
 }
 
-// NONMATCHING: vector operation scheduling
 void StarReturnDemoStarter::exeFall() {
     TVec3f pos;
-    pos.set< f32 >(mTransform.mMtx[0][3], mTransform.mMtx[1][3], mTransform.mMtx[2][3]);
+    mTransform.getTrans(pos);
     if (MR::isFirstStep(this)) {
         MR::startSoundPlayer("SE_PV_DM_ASTRO_RET_LANDING", -1, -1);
         MR::startBckPlayer("Fall", nullptr);
@@ -258,7 +257,7 @@ void StarReturnDemoStarter::exeFall() {
     } else {
         TVec3f velocity;
         velocity.scale(speed, mFallGravity);
-        pos += velocity;
+        pos.add(velocity);
     }
     mTransform.mMtx[0][3] = pos.x;
     mTransform.mMtx[1][3] = pos.y;

@@ -18,8 +18,9 @@ void MorphItemCollection::init(const JMapInfoIter& iter) {
 }
 void MorphItemCollection::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
+    MtxPtr rotation;
     MtxPtr base = getBaseMtx();
-    MtxPtr rotation = MR::tmpMtxRotYDeg(mAngle);
+    rotation = MR::tmpMtxRotYDeg(mAngle);
     PSMTXConcat(getBaseMtx(), rotation, base);
 }
 void MorphItemCollection::exeWait() {

@@ -33,14 +33,7 @@ void CameraPadOrbitCtrl::updateRotation(const TVec3f& up, const TVec3f&, const T
     f32 halfAngle = (mAngle - previous) * 0.5f;
     rotation.toTvec()->scale(sin(halfAngle), up);
     rotation.w = cos(halfAngle);
-    TQuat4f rotated;
-    rotated.x = rotation.y * offset.z - rotation.z * offset.y + rotation.w * offset.x;
-    rotated.y = -rotation.x * offset.z + rotation.z * offset.x + rotation.w * offset.y;
-    rotated.z = rotation.x * offset.y - rotation.y * offset.x + rotation.w * offset.z;
-    rotated.w = -rotation.x * offset.x - rotation.y * offset.y - rotation.z * offset.z;
-    offset.set<f32>(rotated.x * rotation.w + rotated.y * -rotation.z - rotated.z * -rotation.y + rotated.w * -rotation.x,
-                    -rotated.x * -rotation.z + rotated.y * rotation.w + rotated.z * -rotation.x + rotated.w * -rotation.y,
-                    rotated.x * -rotation.y - rotated.y * -rotation.x + rotated.z * rotation.w + rotated.w * -rotation.z);
+    rotation.transform(offset);
     *pos = watch + offset;
 }
 // NONMATCHING: regalloc

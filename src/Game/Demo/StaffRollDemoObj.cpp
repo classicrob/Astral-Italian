@@ -179,7 +179,8 @@ void StaffRollDemoObj::updateActorVisibility() {
         targetIdx = mStep98 == 8 ? 0 : -1;
     }
     for (LiveActor** actor = mActorArray.mArr; actor != mActorArray.mArr + mActorFill; actor++) {
-        if (actor - mActorArray.mArr == targetIdx) {
+        s32 index = actor - mActorArray.mArr;
+        if (index == targetIdx) {
             (*actor)->makeActorAppeared();
         } else {
             (*actor)->makeActorDead();

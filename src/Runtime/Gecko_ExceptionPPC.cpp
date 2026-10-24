@@ -30,8 +30,7 @@ void __unregister_fragment(int id) {
     ProcessInfo* info;
 
     if (id <= 0x1Fu) {
-        info = &fragmentinfo[id];
-        info->exception_info = 0;
+        (info = &fragmentinfo[id])->exception_info = 0;
         info->TOC = 0;
         info->active = 0;
     }

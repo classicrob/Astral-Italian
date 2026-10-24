@@ -30,10 +30,13 @@ void PlayAttackMan::initialize(NPCActor* actor,const JMapInfoIter& iter,bool mes
     caps.setDefault();
     caps.mMessage=message;
     actor->initialize(iter,caps,"ScoreAttackMan",nullptr,nullptr);
-    actor->mParam._18="Turn";
-    actor->mParam._14="Wait";
-    actor->mParam._1C="Talk";
-    actor->mParam._20="Turn";
+    const char* turnAction = "Turn";
+    const char* waitAction = "Wait";
+    const char* talkAction = "Talk";
+    actor->mParam._18=turnAction;
+    actor->mParam._14=waitAction;
+    actor->mParam._1C=talkAction;
+    actor->mParam._20=turnAction;
     actor->setDefaults();
     actor->mSpinAttackRange=450.0f;
 }

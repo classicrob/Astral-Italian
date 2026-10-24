@@ -291,7 +291,10 @@ bool HammerBros::isVulnerable() const {
 }
 
 bool HammerBros::isNormalNerve() const {
-    return isNerve(NRV(Wait)) || isNerve(NRV(Interval)) || isNerve(NRV(Jump)) || isNerve(NRV(Attack)) || isNerve(NRV(Guard)) || isNerve(NRV(FreezeStand));
+    if (isNerve(NRV(Wait)) || isNerve(NRV(Interval)) || isNerve(NRV(Jump)) || isNerve(NRV(Attack)) || isNerve(NRV(Guard)) || isNerve(NRV(FreezeStand))) {
+        return true;
+    }
+    return false;
 }
 
 bool HammerBros::isGuardable() const {

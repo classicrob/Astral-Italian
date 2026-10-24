@@ -152,9 +152,7 @@ void GhostAttackGhost::calcAndSetBaseMtx() {
 // NONMATCHING: temporary address register allocation.
 void GhostAttackGhost::control() {
     if (mFootprint != nullptr && !MR::isDead(mFootprint)) mFootprint->movement();
-    TVec3f delta(mPosition);
-    delta -= mPreviousPosition;
-    mMovementDelta.set(delta);
+    mMovementDelta.set(mPosition - mPreviousPosition);
     mPreviousPosition.set(mPosition);
 }
 bool GhostAttackGhost::tryAttachToHost(HitSensor* sender, HitSensor* receiver) {

@@ -271,12 +271,12 @@ RFLErrcode RFLGetAdditionalInfo(RFLAdditionalInfo* addi, RFLDataSource source,
     RFLErrcode err = RFLiPickupCharInfo(&info, source, db, index);
     if (err == RFLErrcode_Success) {
         copyChar2Additional_(addi, &info);
-        if (sanitizeNames) {
-            u32 i;
-            for (i = 0; i < RFL_NAME_LEN; i++) {
-                if (addi->name[i] != 0 && (addi->name[i] < 0x20 || addi->name[i] == 0x7F)) addi->name[i] = '?';
-                if (addi->creator[i] != 0 && (addi->creator[i] < 0x20 || addi->creator[i] == 0x7F)) addi->creator[i] = '?';
-            }
+    }
+    if (sanitizeNames) {
+        u32 i;
+        for (i = 0; i < RFL_NAME_LEN; i++) {
+            if ((addi->name[i] != 0 && addi->name[i] < 0x20) || addi->name[i] == 0x7F) addi->name[i] = '?';
+            if ((addi->creator[i] != 0 && addi->creator[i] < 0x20) || addi->creator[i] == 0x7F) addi->creator[i] = '?';
         }
     }
     return err;

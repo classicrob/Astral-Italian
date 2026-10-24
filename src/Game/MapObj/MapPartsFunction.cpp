@@ -13,6 +13,8 @@ void MapPartsFunction::init(const JMapInfoIter& rIter) {
 }
 
 bool MapPartsFunction::sendMsgToHost(u32 msg) {
+    HitSensor* pReceiver;
+    LiveActor* host;
     if (mSensorName == nullptr) {
         return false;
     }
@@ -21,9 +23,9 @@ bool MapPartsFunction::sendMsgToHost(u32 msg) {
         return false;
     }
 
-    LiveActor* host = mHost;
-    HitSensor* pSender = host->getSensor(mSensorName);
-    return host->receiveMessage(msg, pSender, host->getSensor(mSensorName));
+    host = mHost;
+    pReceiver = host->getSensor(mSensorName);
+    return host->receiveMessage(msg, host->getSensor(mSensorName), pReceiver);
 }
 
 void MapPartsFunction::movement() {

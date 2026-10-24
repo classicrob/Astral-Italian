@@ -175,7 +175,11 @@ namespace db {
     void DbgPrintBase<CharT>::Flush(int x, int y, int width, int height) {
         Mtx44 projection;
         Mtx position;
-        C_MTXOrtho(projection, y, y + height, x, x + width, 0.0f, 1.0f);
+        f32 left = x;
+        f32 right = x + width;
+        f32 top = y;
+        f32 bottom = y + height;
+        C_MTXOrtho(projection, top, bottom, left, right, 0.0f, 1.0f);
         GXSetProjection(projection, GX_ORTHOGRAPHIC);
         PSMTXIdentity(position);
         GXLoadPosMtxImm(position, GX_PNMTX0);

@@ -84,12 +84,13 @@ void LotusLeaf::exeShake() {
     f32 angularFreq = TWO_PI / mShakePeriod;
     f32 angle = getNerveStep() * angularFreq;
     f32 vel = -mShakeSpeed * MR::cos(angle);
-    mShakePeriod += ::sShakePeriodSlowPitch;
+    f32 period = mShakePeriod + ::sShakePeriodSlowPitch;
     mShakeSpeed *= ::sShakeSpeedAtten;
 
     TVec3f& rVelocity = mVelocity;
     f32 accel = vel - rVelocity.y;
     rVelocity.y = vel;
+    mShakePeriod = period;
 
     if (mPosition.y + mVelocity.y <= mInitPos.y - ::sSinkDepthMax) {
         rVelocity.zero();

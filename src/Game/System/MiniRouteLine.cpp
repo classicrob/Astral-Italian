@@ -168,7 +168,7 @@ void MiniRouteLine::setup(const TVec3f& rFrom, const TVec3f& rTo) {
 // NONMATCHING: target tests the argument with clrlwi. instead of cmpwi
 void MiniRouteLine::setColorChange(u8 flag) {
     mColorChange = flag;
-    if (flag) {
+    if (mColorChange) {
         MR::startBrk(mEffectActor, "TicoBuild");
     } else {
         MR::startBrk(mEffectActor, "Normal");

@@ -107,9 +107,11 @@ namespace DemoFunction {
     }
 
     DemoExecutor* findDemoExecutor(const LiveActor* pActor) {
+        DemoExecutor* executor;
         DemoExecutor* pResult = nullptr;
-        for (s32 i = 0; i < getDemoDirector()->mCastGroupHolder->getObjNum(); i++) {
-            DemoExecutor* executor = static_cast< DemoExecutor* >(getDemoDirector()->mCastGroupHolder->getCastGroup(i));
+        s32 i;
+        for (i = 0; i < getDemoDirector()->mCastGroupHolder->getObjNum(); i++) {
+            executor = static_cast< DemoExecutor* >(getDemoDirector()->mCastGroupHolder->getCastGroup(i));
             if (DemoExecutorFunction::isRegisteredDemoCast(executor, pActor)) {
                 pResult = executor;
             }

@@ -992,9 +992,12 @@ BenefitItemOneUp* MR::createKinokoOneUp() {
 
 // NONMATCHING: matrix-copy registers, load order and stack layout (FP operand/argument order and grouping checked).
 void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
+    TVec3f angle;
+    TVec3f pos;
+
     TPos3f mtx(pMtx);
     MtxPtr m = mtx.toMtxPtr();
-    TVec3f angle;
+
 
     if (m[2][0] - 1.0f >= -3.814697265625e-6f) {
         angle.x = JMath::sAtanTable.atan2_(-m[0][1], m[1][1]);
@@ -1018,7 +1021,6 @@ void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
     rot.scale(57.29578f);
     setRotation(pKinoko, rot);
 
-    TVec3f pos;
     mtx.getTrans(pos);
     setPosition(pKinoko, pos);
 }

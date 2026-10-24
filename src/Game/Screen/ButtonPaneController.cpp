@@ -341,7 +341,6 @@ void ButtonPaneController::exeAppear() {
     setNerveAtAnimStopped(GET_NERVE(ButtonPaneController, ButtonPaneControllerNrvWait));
 }
 
-// NONMATCHING: host/pane loads are scheduled before the off-animation frame selection.
 void ButtonPaneController::exeWait() {
     startAnimAtFirstStep(mWaitAnimName);
     if (mFrameCtrl != nullptr) {
@@ -351,9 +350,7 @@ void ButtonPaneController::exeWait() {
         MR::setPaneAnimRate(mHost, mPaneName, 0.0f, mAnimIndex);
     }
     if (mOffAnimName != nullptr) {
-        f32 frame;
-        if (mIsDisabled) frame = 1.0f;
-        else frame = 0.0f;
+        f32 frame = mIsDisabled ? 1.0f : 0.0f;
         MR::startPaneAnimAndSetFrameAndStop(mHost, mPaneName, mOffAnimName, frame, mOffAnimIndex);
         if (mIsDisabled) return;
     }

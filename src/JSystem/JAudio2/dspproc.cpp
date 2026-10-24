@@ -51,7 +51,8 @@ void DsetupTable(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr
     table[3] = param_3;
     table[4] = param_4;
 #endif
-    OSReport("Table Setup\n");
+    static const char tableSetupMessage[] = "Table Setup\n";
+    OSReport(tableSetupMessage);
 
     flag = TRUE;
     DSPSendCommands2(table, 5, setup_callback);

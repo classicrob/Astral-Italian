@@ -131,10 +131,12 @@ void TicoShopDice::exeRecover() {
         MR::startAction(mGoods1, "Shake");
         MR::startAction(this, "Wait");
         MR::startBva(this, "Small0");
-        mParam._14 = "Wait";
-        mParam._18 = "Wait";
-        mParam._1C = "Talk";
-        mParam._20 = "Talk";
+        const char* waitAction = "Wait";
+        const char* talkAction = "Talk";
+        mParam._14 = waitAction;
+        mParam._18 = waitAction;
+        mParam._1C = talkAction;
+        mParam._20 = talkAction;
         if (!mUseCoins) resetStarPiece();
         setNerve(&NrvTicoShopDice::DelayWait::sInstance);
     }

@@ -105,6 +105,7 @@ bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 
 // NONMATCHING: Commutative FP multiply operand order and FP register allocation differ.
 void AttackRockStateFall::updateLandSensorRadius() {
+    f32 half;
     f32 dist = PSVECDistance(&this->mLandPos, &this->mHost->mPosition);
     AttackRock* pHost = this->mHost;
     f32 fnRadius = pHost->getRockBaseRadius();
@@ -112,7 +113,7 @@ void AttackRockStateFall::updateLandSensorRadius() {
     if (dist < radius) {
         f32 fnBase = pHost->getRockBaseRadius();
         f32 base = fnBase * pHost->mScale.y;
-        f32 half = 0.5f * base;
+        half = 0.5f * base;
         MR::setSensorRadius(this->mHost, "Land", MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->getRockBaseRadius() * pHost->mScale.y, half));
         this->mIsNear = true;
         return;

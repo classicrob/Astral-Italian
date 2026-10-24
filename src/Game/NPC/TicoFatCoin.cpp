@@ -30,7 +30,6 @@ namespace NrvTicoFatCoin {
 
 TicoFatCoin::TicoFatCoin(const char* name) : NPCActor(name), mRequiredCoins(5), mCameraInfo(0), mEatState(0) { mEffectMtx.identity(); mSmokeMtx.identity(); }
 TicoFatCoin::~TicoFatCoin() {}
-// NONMATCHING: register allocation and member-pointer table addressing differ.
 void TicoFatCoin::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("TicoFatCoin");
     caps.setDefault();
@@ -38,10 +37,12 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     caps.mNerveStep = 1;
     caps.mSwitchDead = false;
     initialize(iter, caps, "TicoFatCoin", 0, 0);
-    mParam._14="Wait";
-    mParam._18="Wait";
-    mParam._1C="Talk";
-    mParam._20="Talk";
+    const char* waitAction = "Wait";
+    const char* talkAction = "Talk";
+    mParam._14=waitAction;
+    mParam._18=waitAction;
+    mParam._1C=talkAction;
+    mParam._20=talkAction;
     mSpinAction=cNPCSpinDefault;
     mTrampledAction=cNPCTrampledDefault;
     mPointingAction=cNPCPointingDefault;

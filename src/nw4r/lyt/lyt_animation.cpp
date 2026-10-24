@@ -421,8 +421,8 @@ namespace nw4r {
         }
 
         u32 AnimResource::CalcAnimationNum(Pane* pane, bool recursive) const {
-            const u32* offsets = detail::ConvertOffsToPtr<u32>(mpResBlock, mpResBlock->animContOffsetsOffset);
             u16 count = 0;
+            const u32* offsets = detail::ConvertOffsToPtr<u32>(mpResBlock, mpResBlock->animContOffsetsOffset);
             for (u16 i = 0; i < mpResBlock->animContNum; ++i) {
                 const res::AnimationContent* content = detail::ConvertOffsToPtr<res::AnimationContent>(mpResBlock, offsets[i]);
                 if (content->type == ANIMCONTENTTYPE_PANE) {
@@ -452,30 +452,28 @@ namespace nw4r {
                 for (int i = 0; i < 9; ++i) mAnimMatIdxs[i] = 0;
             }
 
-            void AnimPaneTree::Set(Pane* pane, const AnimResource& animRes) {
-                const res::AnimationBlock* resource = animRes.GetResourceBlock();
+            inline u16 FindAnimContent(const res::AnimationBlock* resource, const char* name, u8 type) {
                 const u32* offsets = ConvertOffsToPtr<u32>(resource, resource->animContOffsetsOffset);
-                u16 paneIndex;
-                u16 count = 0;
-                for (paneIndex = 0; paneIndex < resource->animContNum; ++paneIndex) {
-                    const res::AnimationContent* content = ConvertOffsToPtr<res::AnimationContent>(resource, offsets[paneIndex]);
-                    if (content->type == ANIMCONTENTTYPE_PANE && EqualsMaterialName(content->name, pane->mName)) break;
+                for (u16 i = 0; i < resource->animContNum; ++i) {
+                    const res::AnimationContent* content = ConvertOffsToPtr<res::AnimationContent>(resource, offsets[i]);
+                    if (content->type == type && EqualsMaterialName(content->name, name)) {
+                        return i;
+                    }
                 }
-                if (paneIndex == resource->animContNum) paneIndex = 0xFFFF;
+                return 0xFFFF;
+            }
+
+            void AnimPaneTree::Set(Pane* pane, const AnimResource& animRes) {
+                u16 count = 0;
+                const res::AnimationBlock* resource = animRes.GetResourceBlock();
+                const char* paneName = pane->mName;
+                u16 paneIndex = FindAnimContent(resource, paneName, ANIMCONTENTTYPE_PANE);
                 if (paneIndex != 0xFFFF) ++count;
                 const u8 materialCount = pane->GetMaterialNum();
                 u16 indices[9];
                 for (u8 i = 0; i < materialCount; ++i) {
-                    const char* name = pane->GetMaterial(i)->GetName();
-                    u16 index;
-                    const u32* materialOffsets = ConvertOffsToPtr<u32>(resource, resource->animContOffsetsOffset);
-                    for (index = 0; index < resource->animContNum; ++index) {
-                        const res::AnimationContent* content = ConvertOffsToPtr<res::AnimationContent>(resource, materialOffsets[index]);
-                        if (content->type == ANIMCONTENTTYPE_MATERIAL && EqualsMaterialName(content->name, name)) break;
-                    }
-                    if (index == resource->animContNum) index = 0xFFFF;
-                    indices[i] = index;
-                    if (index != 0xFFFF) ++count;
+                    indices[i] = FindAnimContent(resource, pane->GetMaterial(i)->GetName(), ANIMCONTENTTYPE_MATERIAL);
+                    if (indices[i] != 0xFFFF) ++count;
                 }
                 if (count != 0) {
                     mAnimRes = animRes;
@@ -493,9 +491,7 @@ namespace nw4r {
                 if (mAnimPaneIdx != 0xFFFF) {
                     next = transform->Bind(pane, next, mAnimPaneIdx, true);
                 }
-                const u8 paneMaterialCount = pane->GetMaterialNum();
-                u8 count = mAnimMatCnt;
-                if (count > paneMaterialCount) count = paneMaterialCount;
+                u8 count = ut::Min<u8>(mAnimMatCnt, pane->GetMaterialNum());
                 for (u8 i = 0; i < count; ++i) {
                     if (mAnimMatIdxs[i] != 0xFFFF) {
                         Material* material = pane->GetMaterial(i);

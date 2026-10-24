@@ -287,18 +287,16 @@ void JetTurtle::initAfterPlacement() {
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void JetTurtle::becomeSlowType() {
-    const JetTurtleResourceNames* resources = &sResources;
-    MR::setSensorType(this, resources->bodySensor, 0x13);
-    MR::startBrk(this, resources->colorAnimation);
+    MR::setSensorType(this, sResources.bodySensor, 0x13);
+    MR::startBrk(this, sResources.colorAnimation);
     MR::setBrkFrameAndStop(this, 0.0f);
     mShellType = 0;
 }
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void JetTurtle::becomeFastType() {
-    const JetTurtleResourceNames* resources = &sResources;
-    MR::setSensorType(this, resources->bodySensor, 0x12);
-    MR::startBrk(this, resources->colorAnimation);
+    MR::setSensorType(this, sResources.bodySensor, 0x12);
+    MR::startBrk(this, sResources.colorAnimation);
     MR::setBrkFrameAndStop(this, 1.0f);
     mShellType = 1;
 }
@@ -307,11 +305,10 @@ void JetTurtle::becomeFastType() {
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void JetTurtle::appearAndTryTaken() {
-    const JetTurtleResourceNames* resources = &sResources;
     appear();
     MR::validateHitSensors(this);
     setNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve));
-    MR::tryPlayerPullActor(getSensor(resources->bodySensor));
+    MR::tryPlayerPullActor(getSensor(sResources.bodySensor));
 }
 
 void JetTurtle::control() {
@@ -322,12 +319,11 @@ void JetTurtle::control() {
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void JetTurtle::resetPosition() {
-    const JetTurtleResourceNames* resources = &sResources;
     MR::invalidateClipping(this);
     MR::invalidateHitSensors(this);
     MR::forceDeleteEffectAll(this);
-    MR::stopSound(this, resources->waterLaunchHandle);
-    MR::stopSound(this, resources->landLaunchHandle);
+    MR::stopSound(this, sResources.waterLaunchHandle);
+    MR::stopSound(this, sResources.landLaunchHandle);
     mVelocity.zero();
     mRotation.zero();
     _94 = nullptr;
@@ -1096,7 +1092,6 @@ void JetTurtle::dropByYoshi(const TVec3f& rPos, const TVec3f& rDir) {
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 bool JetTurtle::receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver) {
-    const JetTurtleResourceNames* resources = &sResources;
     bool isYoshiHold = false;
 
     if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
@@ -1108,7 +1103,7 @@ bool JetTurtle::receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     setNerve(GET_NERVE(JetTurtle, JetTurtleNrvThrowing));
-    MR::deleteEffect(this, resources->brakeLampEffect);
+    MR::deleteEffect(this, sResources.brakeLampEffect);
 
     if (MR::isSensorPlayer(pSender)) {
         MR::getPlayerThrowVec(&_9C);
@@ -1215,27 +1210,24 @@ bool JetTurtle::isRestart() const {
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void GoldenTurtle::init(const JMapInfoIter& rIter) {
-    const JetTurtleResourceNames* resources = &sResources;
     init2(rIter, 1);
-    MR::startBtk(this, resources->goldShellModel);
-    MR::setSensorType(this, resources->bodySensor, 0x13);
+    MR::startBtk(this, sResources.goldShellModel);
+    MR::setSensorType(this, sResources.bodySensor, 0x13);
 }
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void GoldenTurtle::resetPosition() {
-    const JetTurtleResourceNames* resources = &sResources;
     JetTurtle::resetPosition();
-    MR::setSensorType(this, resources->bodySensor, 0x13);
+    MR::setSensorType(this, sResources.bodySensor, 0x13);
 }
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void GoldenTurtle::exeThrowing() {
-    const JetTurtleResourceNames* resources = &sResources;
     if (MR::isFirstStep(this)) {
-        MR::setSensorType(this, resources->bodySensor, 0x14);
+        MR::setSensorType(this, sResources.bodySensor, 0x14);
 
         if (mShellType == JETTURTLETYPE_GOLD) {
-            MR::deleteEffect(this, resources->handyGlowEffect);
+            MR::deleteEffect(this, sResources.handyGlowEffect);
         }
     }
 
@@ -1244,9 +1236,8 @@ void GoldenTurtle::exeThrowing() {
 
 // NONMATCHING: resource-table address setup changes registers/scheduling; see REPORT-solA-JetTurtle-final.md.
 void GoldenTurtle::reset(u32 a1) {
-    const JetTurtleResourceNames* resources = &sResources;
     JetTurtle::reset(a1);
-    MR::setSensorType(this, resources->bodySensor, 0x13);
+    MR::setSensorType(this, sResources.bodySensor, 0x13);
 }
 
 JetTurtle::~JetTurtle() {

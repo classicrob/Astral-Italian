@@ -543,8 +543,8 @@ void JASTrack::setOscTable(u32 a, const JASOscillator::Point* point) {
 
 void JASTrack::setOscAdsr(s16 attack, s16 delay, s16 sustain, s16 release, u16 e) {
     memcpy(mOscParam, &sEnvOsc, sizeof(JASOscillator::Data));
-    mOscPoint[0]._2 = attack;
     mOscParam[0].mTable = mOscPoint;
+    mOscPoint[0]._2 = attack;
     mOscPoint[1]._2 = delay;
     mOscPoint[2]._2 = sustain;
     mOscPoint[2]._4 = release;

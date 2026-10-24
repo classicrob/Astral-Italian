@@ -304,7 +304,7 @@ namespace MR {
 
             if (MR::isDataEnable(info, "Binder")) {
                 const char* binder = nullptr;
-                const JMapInfoIter& iter = MR::getCsvDataStrByElement(&binder, info, "InitFunction", "Binder", "Data");
+                const JMapInfoIter iter = MR::getCsvDataStrByElement(&binder, info, "InitFunction", "Binder", "Data");
                 f32 param00 = 0.0f;
                 iter.getValue< f32 >("Param00F32", &param00);
                 f32 param01 = 0.0f;
@@ -321,7 +321,7 @@ namespace MR {
             }
 
             const char* effect = nullptr;
-            const JMapInfoIter& effectIter = MR::getCsvDataStrByElement(&effect, info, "InitFunction", "Effect", "Data");
+            const JMapInfoIter effectIter = MR::getCsvDataStrByElement(&effect, info, "InitFunction", "Effect", "Data");
             if (*effect) {
                 s32 count = 0;
                 effectIter.getValue< s32 >("Param00Int", &count);
@@ -329,7 +329,7 @@ namespace MR {
             }
 
             const char* sound = nullptr;
-            const JMapInfoIter& soundIter = MR::getCsvDataStrByElement(&sound, info, "InitFunction", "Sound", "Data");
+            const JMapInfoIter soundIter = MR::getCsvDataStrByElement(&sound, info, "InitFunction", "Sound", "Data");
             if (*sound && *sound != 'x') {
                 const char* soundName = nullptr;
                 if (*sound != 'o') {
@@ -356,7 +356,7 @@ namespace MR {
             }
 
             const char* clipping = nullptr;
-            const JMapInfoIter& clippingIter = MR::getCsvDataStrByElement(&clipping, info, "InitFunction", "Clipping", "Data");
+            const JMapInfoIter clippingIter = MR::getCsvDataStrByElement(&clipping, info, "InitFunction", "Clipping", "Data");
             f32 clippingRadius = 0.0f;
             clippingIter.getValue< f32 >("Param00F32", &clippingRadius);
             if (!(clippingRadius <= 0.0f)) {
@@ -368,7 +368,7 @@ namespace MR {
 
             if (MR::isDataEnable(info, "GroupClipping")) {
                 const char* groupClipping = nullptr;
-                const JMapInfoIter& groupIter = MR::getCsvDataStrByElement(&groupClipping, info, "InitFunction", "GroupClipping", "Data");
+                const JMapInfoIter groupIter = MR::getCsvDataStrByElement(&groupClipping, info, "InitFunction", "GroupClipping", "Data");
                 s32 param00Int = 0;
                 groupIter.getValue< s32 >("Param00Int", &param00Int);
 
@@ -385,7 +385,7 @@ namespace MR {
 
             if (MR::isDataEnable(info, "StarPointer")) {
                 const char* starPointer = nullptr;
-                const JMapInfoIter& iter = MR::getCsvDataStrByElement(&starPointer, info, "InitFunction", "StarPointer", "Data");
+                const JMapInfoIter iter = MR::getCsvDataStrByElement(&starPointer, info, "InitFunction", "StarPointer", "Data");
                 f32 param00 = 0.0f;
                 iter.getValue< f32 >("Param00F32", &param00);
                 TVec3f vec(0.0f);

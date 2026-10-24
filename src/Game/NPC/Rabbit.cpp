@@ -73,11 +73,17 @@ void Rabbit::init(const JMapInfoIter& rIter) {
     }
     MR::setClippingFar100m(this);
     const char* turn = "TurnSmall";
-    mParam._14 = "Wait";
+    const char* wait = "Wait";
+    const char* talk = "Talk";
+    const char* reaction = "Reaction";
+    const char* pointing = "Pointing";
+    const char* press = "Press";
+    const char* spin = "Spin";
+    mParam._14 = wait;
     mParam._18 = turn;
-    mParam._1C = "Talk";
+    mParam._1C = talk;
     mParam._20 = turn;
-    setDefaults("Reaction", "Pointing", "Press", "Spin");
+    setDefaults(reaction, pointing, press, spin);
     mSpinAttackRange = 450.0f;
     if (mBehavior == Behavior_LongJump) {
         mParam._0 = false;

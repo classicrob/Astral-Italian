@@ -19,7 +19,12 @@ void MoveBlockFunction::calcMoveVec(TVec3f* out) const { if (out) mInitialRotati
 // NONMATCHING: equivalent forward-step temporary register allocation.
 void MoveBlockFunction::setForward(bool forward) {
     mForward = forward;
-    if (mForward) { if (++mStep > mReturnStep) mStep = mReturnStep; }
+    if (mForward) {
+        s32 step = mStep + 1;
+        s32 returnStep = mReturnStep;
+        mStep = step;
+        if (step > returnStep) mStep = returnStep;
+    }
     else { if (--mStep < 0) mStep = 0; }
 }
 // NONMATCHING: equivalent branch layout and rotation temporary register allocation.

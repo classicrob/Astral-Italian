@@ -76,7 +76,12 @@ void JAISe::JAISeCategoryMgr_mixOut_(bool param_0, const JASSoundParams& params,
                     }
                     break;
                 case JASTrack::STATUS_RUN:
-                    inner_.track.pause(isPaused() || activity.isPaused());
+                    JASTrack* track = &inner_.track;
+                    bool paused = false;
+                    if (isPaused() || activity.isPaused()) {
+                        paused = true;
+                    }
+                    track->pause(paused);
                     inner_.track.mute(isMute() || activity.isMute());
                 }
             } else {

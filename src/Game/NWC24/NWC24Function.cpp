@@ -10,10 +10,10 @@ static u32 cWiiMailLimit = 0x61A80U;
 
 namespace {
     bool isLastUpdateToday(s64* pTime) {
+        OSCalendarTime nowTime;
         OSCalendarTime lastTime;
         OSTicksToCalendarTime(GameDataFunction::getSysConfigFileTimeSent(), &lastTime);
         OSTime now = OSGetTime();
-        OSCalendarTime nowTime;
         OSTicksToCalendarTime(now, &nowTime);
         if (pTime != nullptr) {
             *pTime = now;

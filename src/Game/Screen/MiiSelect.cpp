@@ -417,7 +417,7 @@ void MiiSelect::getIconID(FileSelectIconID* pIconID, s32 param2) const {
     } else if (param2 < mFavoriteMiiNum + mMiiNum) {
         pIconID->setMiiIndex(mMiiIndices[param2 - mFavoriteMiiNum]);
     } else {
-        s32 fellowIndex = param2 - mFavoriteMiiNum - mMiiNum;
+        s32 fellowIndex = param2 - (mFavoriteMiiNum + mMiiNum);
         s32 enabledIndex = 0;
         for (int i = 0; i < mFellowAvailableFlags->size(); i++) {
             if (mFellowAvailableFlags->isOn(i)) {

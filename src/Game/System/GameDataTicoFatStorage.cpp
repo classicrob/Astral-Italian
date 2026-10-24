@@ -11,9 +11,11 @@ TicoCoinFeedList::TicoCoinFeedList(s32 capacity) {
 
 // NONMATCHING: regalloc (hash and iterator registers only) (FP order/grouping checked: no FP instructions).
 bool TicoCoinFeedList::contains(const char* pName) const {
-    u16 hash = MR::getHashCode(pName);
-    const u16* p = begin();
-    const u16* pEnd = end();
+    const u16* pEnd;
+    const u16* p;
+    u32 hash = static_cast<u16>(MR::getHashCode(pName));
+    p = begin();
+    pEnd = end();
     while (p != pEnd && *p != hash) {
         ++p;
     }

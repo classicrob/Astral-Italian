@@ -75,7 +75,9 @@ MiniTicoMaster::~MiniTicoMaster() {}
 void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     TVec3f base(mUnk90->getNode(mUnkA4)->mPos);
     TVec3f pos = base + sPlanetOffset;
-    mPosition = pos;
+    mPosition.x = pos.x;
+    mPosition.y = pos.y;
+    mPosition.z = pos.z;
 
     MR::initActor(this, rIter, "MiniTicoMaster", false);
 
@@ -106,8 +108,7 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
 
     mChild->initWithoutIter();
     MR::setPosition(mChild, base);
-    TVec3f childScale(1.0f, 1.0f, 1.0f);
-    MR::setScale(mChild, childScale);
+    MR::setScale(mChild, TVec3f(1.0f, 1.0f, 1.0f));
     initNerve(&NrvMiniTicoMaster::MiniTicoMasterNrvWait::sInstance, 0);
 
     if (mUnk9C >= *mUnk94) {

@@ -152,7 +152,7 @@ void SpinDriverShootPath::calcClippingInfo(TVec3f* pVec, f32* pF1, f32 f2, f32 f
         box.extend(pos);
     }
 
-    TVec3f padding(f3);
+    TVec3f padding(f3, f3, f3);
     box.i.sub(padding);
     box.f.add(padding);
     box.getCenter(pVec);

@@ -249,7 +249,8 @@ static u16 AUDIO_YIELD_BUFFER[4096] ATTRIBUTE_ALIGN(32);
 
 void DspBoot(void (*pCallback)(void*)) {
     DspInitWork();
-    OSReport("Dsp をブートします\n");
+    static const char bootingMessage[] = "Dsp をブートします\n";
+    OSReport(bootingMessage);
     audiotask.priority = 0xf0;
 #ifdef GALAXY_NATIVE
     // Host pointers: no cached-to-physical address arithmetic.
@@ -274,7 +275,8 @@ void DspBoot(void (*pCallback)(void*)) {
     audiotask.req_cb = pCallback;
     DSPInit();
     DSPAddPriorTask(&audiotask);
-    OSReport("Dspブートしました\n");
+    static const char bootedMessage[] = "Dspブートしました\n";
+    OSReport(bootedMessage);
 }
 
 int DSPSendCommands2(u32* pMessages, u32 param_2, void (*pCallback)(u16)) {
@@ -351,7 +353,8 @@ int DspStartWork(u32 param_0, void (*pCallback)(u16)) {
     u32 taskWritePrev = taskwritep;
     u32 writeVal = ((taskWritePrev + 1) & 0xf);
     if (writeVal == taskreadp) {
-        OSReport("DSP-Task Buffer is full ( %d, %d)\n", taskwritep, taskreadp);
+        static const char taskBufferFullMessage[] = "DSP-Task Buffer is full ( %d, %d)\n";
+        OSReport(taskBufferFullMessage, taskwritep, taskreadp);
         return 0;
     }
 
@@ -363,7 +366,8 @@ int DspStartWork(u32 param_0, void (*pCallback)(u16)) {
 
 void DspFinishWork(u16 param_0) {
     if (param_0 != taskwork[taskreadp].field_0x0) {
-        OSReport("Error:: Not finish task\n");
+        static const char taskMismatchMessage[] = "Error:: Not finish task\n";
+        OSReport(taskMismatchMessage);
     } else {
         if (taskwork[taskreadp].field_0x4) {
             taskwork[taskreadp].field_0x4(taskreadp);

@@ -764,7 +764,7 @@ u8 J2DPicture::getUsableTlut(u8 param_0) {
 
                 u8 temp_r0 = name - var_r0;
                 if (temp_r0 < 4) {
-                    var_r8 |= (1 << temp_r0);
+                    var_r8 |= static_cast<u8>(1 << temp_r0);
                 }
             }
         }

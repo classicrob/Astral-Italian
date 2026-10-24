@@ -52,8 +52,7 @@ void WingBlock::initItem(const JMapInfoIter& rIter) {
 void WingBlock::appearItem() {
     switch (mItemType) {
     case 0: {
-        TVec3f dir(mGravity);
-        dir *= -10.0f;
+        TVec3f dir = mGravity.scaleInline(-10.0f);
         MR::appearCoinPopToDirection(this, mPosition, dir, 1);
         break;
     }

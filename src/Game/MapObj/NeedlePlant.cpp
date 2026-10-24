@@ -172,7 +172,9 @@ void NeedlePlant::exeEatPull() {
 
     f32 distance = PSVECDistance(&mTargetPos, &mPosition);
     mUnkA8 = distance;
-    bool far = !MR::isNearPlayer(this, 75.0f + distance);
+    f32 limit = distance;
+    limit += 75.0f;
+    bool far = !MR::isNearPlayer(this, limit);
     if (far) {
         tryAppearDemoObj();
         MR::tryHitReaction(this, "ヨッシー舌引き抜き");

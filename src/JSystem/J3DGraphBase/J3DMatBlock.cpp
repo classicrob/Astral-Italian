@@ -674,18 +674,18 @@ void J3DTevBlock4::load() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        J3DTevOrder* order = &mTevOrder[i];
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
-        J3DTevOrder* nextOrder = &mTevOrder[next];
-        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order->getTevOrderInfo().mTexCoord), GXTexMapID(order->getTevOrderInfo().mTexMap),
-                         GXChannelID(order->getTevOrderInfo().mColorChan), GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord),
-                         GXTexMapID(nextOrder->getTevOrderInfo().mTexMap), GXChannelID(nextOrder->getTevOrderInfo().mColorChan));
+        const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
+                         GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
+                         GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
 
-        loadTexCoordScale(GXTexCoordID(order->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[order->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(order.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[order.mTexMap & 7]);
 
-        loadTexCoordScale(GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[nextOrder->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(nextOrder.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[nextOrder.mTexMap & 7]);
     }
 
     mTevRegOffset = GDGetCurrOffset();
@@ -725,18 +725,18 @@ void J3DTevBlock16::load() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        J3DTevOrder* order = &mTevOrder[i];
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
-        J3DTevOrder* nextOrder = &mTevOrder[next];
-        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order->getTevOrderInfo().mTexCoord), GXTexMapID(order->getTevOrderInfo().mTexMap),
-                         GXChannelID(order->getTevOrderInfo().mColorChan), GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord),
-                         GXTexMapID(nextOrder->getTevOrderInfo().mTexMap), GXChannelID(nextOrder->getTevOrderInfo().mColorChan));
+        const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
+                         GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
+                         GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
 
-        loadTexCoordScale(GXTexCoordID(order->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[order->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(order.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[order.mTexMap & 7]);
 
-        loadTexCoordScale(GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[nextOrder->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(nextOrder.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[nextOrder.mTexMap & 7]);
     }
 
     mTevRegOffset = GDGetCurrOffset();
@@ -809,18 +809,18 @@ void J3DTevBlockPatched::patchTexNoAndTexCoordScale() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        J3DTevOrder* order = &mTevOrder[i];
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
-        J3DTevOrder* nextOrder = &mTevOrder[next];
-        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order->getTevOrderInfo().mTexCoord), GXTexMapID(order->getTevOrderInfo().mTexMap),
-                         GXChannelID(order->getTevOrderInfo().mColorChan), GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord),
-                         GXTexMapID(nextOrder->getTevOrderInfo().mTexMap), GXChannelID(nextOrder->getTevOrderInfo().mColorChan));
+        const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
+                         GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
+                         GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
 
-        loadTexCoordScale(GXTexCoordID(order->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[order->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(order.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[order.mTexMap & 7]);
 
-        loadTexCoordScale(GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[nextOrder->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(nextOrder.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[nextOrder.mTexMap & 7]);
     }
 
     void* end = GDGetCurrPointer();
@@ -973,18 +973,18 @@ void J3DTevBlock4::patchTexNoAndTexCoordScale() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        J3DTevOrder* order = &mTevOrder[i];
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
-        J3DTevOrder* nextOrder = &mTevOrder[next];
-        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order->getTevOrderInfo().mTexCoord), GXTexMapID(order->getTevOrderInfo().mTexMap),
-                         GXChannelID(order->getTevOrderInfo().mColorChan), GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord),
-                         GXTexMapID(nextOrder->getTevOrderInfo().mTexMap), GXChannelID(nextOrder->getTevOrderInfo().mColorChan));
+        const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
+                         GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
+                         GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
 
-        loadTexCoordScale(GXTexCoordID(order->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[order->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(order.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[order.mTexMap & 7]);
 
-        loadTexCoordScale(GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[nextOrder->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(nextOrder.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[nextOrder.mTexMap & 7]);
     }
 
     void* end = GDGetCurrPointer();
@@ -1039,18 +1039,18 @@ void J3DTevBlock16::patchTexNoAndTexCoordScale() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        J3DTevOrder* order = &mTevOrder[i];
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
-        J3DTevOrder* nextOrder = &mTevOrder[next];
-        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order->getTevOrderInfo().mTexCoord), GXTexMapID(order->getTevOrderInfo().mTexMap),
-                         GXChannelID(order->getTevOrderInfo().mColorChan), GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord),
-                         GXTexMapID(nextOrder->getTevOrderInfo().mTexMap), GXChannelID(nextOrder->getTevOrderInfo().mColorChan));
+        const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
+                         GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
+                         GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
 
-        loadTexCoordScale(GXTexCoordID(order->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[order->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(order.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[order.mTexMap & 7]);
 
-        loadTexCoordScale(GXTexCoordID(nextOrder->getTevOrderInfo().mTexCoord & 7),
-                          J3DSys::sTexCoordScaleTable[nextOrder->getTevOrderInfo().mTexMap & 7]);
+        loadTexCoordScale(GXTexCoordID(nextOrder.mTexCoord & 7),
+                          J3DSys::sTexCoordScaleTable[nextOrder.mTexMap & 7]);
     }
 
     void* end = GDGetCurrPointer();

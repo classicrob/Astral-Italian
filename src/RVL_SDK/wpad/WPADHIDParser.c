@@ -832,6 +832,7 @@ void __a1_22_ack(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADControlBlock* p_copy;
     BOOL enabled = OSDisableInterrupts();
+    u8 response;
     s32 result;
     u16 buttons;
     p_copy = _wpdcb[chan];
@@ -843,8 +844,9 @@ void __a1_22_ack(u8 chan, u8* data, WPADStatus* p_status) {
         p_status->dev = p_cb->devType;
         p_status->err = WPAD_ERR_INVALID;
     }
+    response = data[3];
     result = data[4] == 0 ? WPAD_ERR_NONE : WPAD_ERR_TRANSFER;
-    if (data[3] == p_cb->cmdId) {
+    if (p_cb->cmdId == response) {
         if (p_cb->resultCallback) {
             p_cb->resultCallback(chan, result);
             p_cb->resultCallback = NULL;

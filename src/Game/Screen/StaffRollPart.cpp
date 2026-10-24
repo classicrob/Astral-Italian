@@ -202,7 +202,6 @@ bool StaffRollPart::isAllLinesDead() const {
     return true;
 }
 
-// NONMATCHING: begin/it iterator registers are swapped (r30/r31).
 void StaffRollPart::calcTextRect(JGeometry::TBox2<f32>* result) const {
     JGeometry::TBox2<f32> rect;
     StaffRollLine* const* begin;

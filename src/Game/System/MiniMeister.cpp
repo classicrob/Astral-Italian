@@ -109,8 +109,8 @@ s32 MiniMeister::isTalkEnding() const {
 }
 
 void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
-    TVec3f root;
     TVec3f center;
+    TVec3f root;
     MR::extractMtxTrans(MR::getJointMtx(this, "All_Root"), &root);
     MR::extractMtxTrans(MR::getJointMtx(this, "Center"), &center);
     TVec3f offset = root - center;

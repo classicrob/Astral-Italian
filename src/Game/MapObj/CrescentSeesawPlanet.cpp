@@ -48,9 +48,10 @@ void CrescentSeesawPlanet::calcAndSetBaseMtx() {
 }
 // NONMATCHING: scalar register allocation and component-load scheduling differ.
 void CrescentSeesawPlanet::move() {
+    f32 acceleration;
     f32 speed = mAngularVelocity;
     speed *= 0.999f;
-    f32 acceleration = mAngle;
+    acceleration = mAngle;
     acceleration *= -0.0006f;
     f32 damping = speed;
     damping *= -0.012f;

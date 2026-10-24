@@ -4181,7 +4181,6 @@ void Mario::fn_803B1880() {
     }
 }
 
-// NONMATCHING: initial status comparison and temporary register allocation.
 bool Mario::fn_803B18C0() {
     if (fn_803B1B70()) return false;
     bool actorBusy;
@@ -4991,7 +4990,6 @@ void Mario::addTrans(const TVec3f& rShift) {
     }
 }
 
-// NONMATCHING: saved-register allocation; verified holder write and arithmetic.
 void Mario::setTrans(const TVec3f& rShift) {
     const TVec3f& position = mPosHolder->mPos;
     TVec3f reqShift(rShift);

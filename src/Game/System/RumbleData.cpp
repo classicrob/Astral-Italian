@@ -10,8 +10,9 @@ extern RumblePattern sRumblePatterns[13];
 const RumblePattern* RumbleData::getPattern(const char* pName) {
     RumblePattern* pattern;
     u32 hash = MR::getHashCode(pName);
+    RumblePattern* patterns = sRumblePatterns;
     for (u16 i = 0; i < 13; i++) {
-        pattern = &sRumblePatterns[i];
+        pattern = &patterns[i];
         if (hash == pattern->mHash) {
             return pattern;
         }

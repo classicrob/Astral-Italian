@@ -294,8 +294,9 @@ void AudSoundObject::limitVoiceOne(JAISoundID soundID) {
 void AudSoundObject::stopCategorySound(u32 category, u32 time) {
     for (s32 i = 0; i < JAISoundHandles::mNumHandles; i++) {
         JAISound* sound = getSound(i);
-        if (sound != nullptr && sound->getID().getGroupID() == category) {
-            stopSound(sound->getID(), time);
+        if (sound != nullptr) {
+            u32 group = sound->getID().getGroupID();
+            if (group == category) stopSound(sound->getID(), time);
         }
     }
 }

@@ -523,10 +523,11 @@ void ScenarioSelectLayout::appearAllStar(s32 normalScenarioCompleteNum, s32 extr
         }
     }
     for (s32 i = 0; i < extraScenarioCompleteNum; i++) {
+        s32 state;
+        s32 scenarioNo;
         s32 slot = i + 3;
         s32 greenNum = MR::makeCurrentGalaxyStatusAccessor().getGreenStarNum();
-        s32 scenarioNo = i + (MR::getCurrentStagePowerStarNum() - greenNum) + 1;
-        s32 state;
+        scenarioNo = i + (MR::getCurrentStagePowerStarNum() - greenNum) + 1;
         if (MR::hasPowerStarInCurrentStage(scenarioNo)) {
             state = starState;
         } else {

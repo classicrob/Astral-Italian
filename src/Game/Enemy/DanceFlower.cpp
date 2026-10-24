@@ -335,14 +335,13 @@ void DanceFlower::exeAttackSign() {
     }
 }
 
-// NONMATCHING: the rail-turn flag initialization is scheduled before the direction-pointer setup.
 void DanceFlower::exeDanceFlowerAttack() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
     }
     if (MR::isExistRail(this)) {
-        bool moved = false;
         MR::rotateDirectionGravityDegree(this, &mPose->mFront, 0.0f);
+        bool moved = false;
         if (MR::moveCoordAndFollowTransAndCheckPassPointNo(this, 10.0f) >= 0) {
             moved = true;
         }

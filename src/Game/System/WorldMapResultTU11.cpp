@@ -344,9 +344,9 @@ bool WorldMapOwner::isAllNeededForGrandGalaxy() {
 
 // NONMATCHING: the target normalizes startOpenSoundAll() (addic/subfe) into a saved register before updateAll(); ours defers it until after the or (FP order/grouping checked: no FP instructions).
 bool WorldMapOwner::updateParts() {
-    s32 raw = getInfoHolder()->startOpenSoundAll();
-    s32 opened = raw != 0;
-    return (opened | getPointParts()->updateAll()) != 0;
+    bool opened = getInfoHolder()->startOpenSoundAll() != 0;
+    opened |= getPointParts()->updateAll();
+    return opened;
 }
 
 s32 WorldMapOwner::updatePointing() {

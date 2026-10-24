@@ -156,9 +156,10 @@ void AnimScaleController::exeCrush() {
     }
 }
 
-// NONMATCHING: same instructions as target (ps_mul of mScale.xy * mScale.xy, fmuls for z), but CW schedules the mScale.z load before the mScale paired load and uses f1/f2 swapped; instruction order and FPR allocation only
+// NONMATCHING: temporary stores and FP register scheduling differ.
 void MR::updateBaseScale(LiveActor* pActor, AnimScaleController* pController) {
-    TVec3f scale = pController->mScale * pActor->mScale;
+    TVec3f scale(pController->mScale);
+    scale *= pActor->mScale;
     MR::setBaseScale(pActor, scale);
 }
 

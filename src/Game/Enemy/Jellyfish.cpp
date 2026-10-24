@@ -44,7 +44,6 @@ Jellyfish::Jellyfish(const char* pName)
     : LiveActor(pName), mController(), mWaveStep(), mFront(0.0f, 0.0f, 1.0f), mIsConnectedRail(), mRailSpeed(5.0f), mGoalWaitStep(60), mIsLoopRail(), mRailClipPos(0.0f, 0.0f, 0.0f) {
 }
 
-// NONMATCHING: sound temporary and pointing-offset local occupy swapped stack slots.
 void Jellyfish::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
@@ -77,11 +76,7 @@ void Jellyfish::init(const JMapInfoIter& rIter) {
 
     MR::declareCoin(this, 1);
 
-    TVec3f pointingOffset;
-    pointingOffset.x = 0.0f;
-    pointingOffset.y = 0.0f;
-    pointingOffset.z = 0.0f;
-    MR::initStarPointerTarget(this, 100.0f, pointingOffset);
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
 
     mController = new AnimScaleController(nullptr);
     mBindStarPtr = new WalkerStateBindStarPointer(this, mController);

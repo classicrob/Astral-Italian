@@ -2819,7 +2819,8 @@ void MarioActor::updateTeresaAnimation() {
 
         if (mTeresaModel->mPlayer->isRun("基本")) {
             mTeresaModel->_C = MR::clamp(mMario->mJumpVec.length() / 10.0f, 0.0f, 1.0f);
-            f32 inverseWeight = 1.0f - mTeresaModel->_C;
+            f32 inverseWeight = mTeresaModel->_C;
+            inverseWeight = 1.0f - inverseWeight;
             mTeresaModel->mPlayer->changeTrackWeight(0, inverseWeight);
             f32 weight = mTeresaModel->_C;
             mTeresaModel->mPlayer->changeTrackWeight(1, weight);
@@ -11490,8 +11491,8 @@ void MarioActor::fn_803D32F0() {
     J3DModelX* mx;
     const TVec3f* gravity;
     TVec3f axis;
-    AreaObj* area;
     s32 len = 0;
+    AreaObj* area;
     area = MR::getAreaObj("ExtraWallCheckArea", this->_240);
     if (area != nullptr) {
         MR::calcCubeAxisZ(area, &axis);

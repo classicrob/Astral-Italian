@@ -41,7 +41,9 @@ namespace MR {
     // NONMATCHING: register allocation and byte-extension scheduling.
     bool fn_8037F6F0(const TVec3f& input, s8 shift, TVec3Sc* output) {
         f32 factor = getShiftRatio(shift);
-        f32 x = input.x * factor, y = input.y * factor, z = input.z * factor;
+        f32 z;
+        f32 x = input.x * factor, y = input.y * factor;
+        z = input.z * factor;
         s32 iz;
         s32 ix = static_cast<s32>(x), iy = static_cast<s32>(y);
         iz = static_cast<s32>(z);

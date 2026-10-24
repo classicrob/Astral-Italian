@@ -842,7 +842,7 @@ namespace MR {
 
         s32 totalStep = DemoFunction::getDemoPartTotalStepFunction(pName);
         s32 step = DemoFunction::getDemoPartStepFunction(pName);
-        return totalStep - 1 == step;
+        return step == totalStep - 1;
     }
 
     bool isDemoPartLessEqualStep(const char* pName, s32 step) {

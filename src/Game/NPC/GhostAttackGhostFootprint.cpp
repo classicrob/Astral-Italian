@@ -75,7 +75,10 @@ void GhostAttackGhostFootprint::control() {
         mBaseMtx.getTrans(mPosition);
         TVec3f rotation;
         mBaseMtx.getEuler(rotation);
-        mRotation.set<f32>(rotation.x * 57.29578f, rotation.y * 57.29578f, rotation.z * 57.29578f);
+        f32 z = rotation.z;
+        f32 y = rotation.y;
+        f32 x = rotation.x;
+        mRotation.set<f32>(57.29578f * x, 57.29578f * y, 57.29578f * z);
         TVec3f movement(static_cast<GhostAttackGhost*>(mHost)->mMovementDelta);
         mDirection.set((movement + mPreviousMovement) * 0.5f);
         if (MR::normalizeOrZero(&mDirection)) {

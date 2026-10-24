@@ -109,8 +109,12 @@ namespace {
             const char* pRes = pResName;
             s32 worldId = GameDataFunction::getCurrentWorldId();
             const char* pPath = nullptr;
-            if (worldId >= 2 && findReplacementResource(pRes, sWorldSkyResourceTable, 6) != nullptr) {
+            if (worldId < 2) {
+                pPath = nullptr;
+            } else if (findReplacementResource(pRes, sWorldSkyResourceTable, 6) != nullptr) {
                 pPath = sWorldSkyResourceTable[worldId - 2].mTo;
+            } else {
+                pPath = nullptr;
             }
 
             if (pPath == nullptr && GameDataFunction::isOnGameEventFlagStarPieceCounterStop()) {

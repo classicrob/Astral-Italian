@@ -382,7 +382,8 @@ bool PlantSlider::tryReachGoal() {
 // NONMATCHING: matrix-copy helper inlining and register scheduling differ.
 void PlantSlider::updateSlide() {
     f32 gravityComp = MR::clamp(-MR::getRailDirection(this).y, 0.0f, 1.0f);
-    mSlideSpeed = mSlideSpeed * 0.998f + gravityComp * 1.3f;
+    mSlideSpeed *= 0.998f;
+    mSlideSpeed += gravityComp * 1.3f;
     mSlideSpeed = MR::clamp(mSlideSpeed, 5.0f, 23.0f);
     MR::moveCoordAndFollowTrans(this, mSlideSpeed);
     mRailDirection.set(MR::getRailDirection(this));
@@ -400,7 +401,11 @@ void PlantSlider::updateSlide() {
     f32 length = MR::getRailTotalLength(this);
     f32 ease = MR::getEaseOutValue(MR::getRailCoord(this) / length, 0.0f, 1.0f, 1.0f);
     f32 flat = MR::getEaseOutValue(1.0f - __fabsf(MR::getRailDirection(this).y), 0.0f, 1.0f, 1.0f);
-    mRideAccel = mRideAccel * 0.95f - mRideSpeed * 0.005f;
+    f32 dampedAccel = mRideAccel;
+    dampedAccel *= 0.95f;
+    f32 springAccel = mRideSpeed;
+    springAccel *= 0.005f;
+    mRideAccel = dampedAccel - springAccel;
     mRideAccel += ease * (mSlideSpeedFactor * MR::clamp(flat + 0.2f, 0.0f, 1.0f));
     mRideSpeed += mRideAccel;
     updateSpringPoints();

@@ -656,22 +656,25 @@ bool BattanKing::tryAdvanceAttack() {
 
 // NONMATCHING: regalloc
 void BattanKing::spawnPattans() {
+    const TVec3f* gravity;
     s32 count = 0;
     if (mPhase == 0) count = BattanKingParam::sInitialPattanCount;
     if (mPhase == 1) count = 3;
     if (mPhase == 2) count = 5;
-    const TVec3f* gravity = &mGravity;
+    gravity = &mGravity;
     for (s32 i = 0; i < count; i++) {
         PattanHolder* holder = mPattanHolder;
         LiveActor* actor = holder->getDeadActor() ? holder->getDeadActor() : nullptr;
         if (actor == nullptr) break;
         f32 angle = (360.0f * (f32)i) / (f32)count;
-        TVec3f offset(BattanKingVec::sOrigin944);
-        MR::rotateVecDegree(&offset, offset, *gravity, angle);
-        TMtx34f mtx;
-        PSMTXCopy(getBaseMtx(), mtx);
-        MR::addTransMtxLocal(mtx, offset);
-        MR::extractMtxTrans(mtx, &actor->mPosition);
+        {
+            TVec3f offset(BattanKingVec::sOrigin944);
+            MR::rotateVecDegree(&offset, offset, *gravity, angle);
+            TMtx34f mtx;
+            PSMTXCopy(getBaseMtx(), mtx);
+            MR::addTransMtxLocal(mtx, offset);
+            MR::extractMtxTrans(mtx, &actor->mPosition);
+        }
         actor->mGravity = *gravity;
         TVec3f front(mFront);
         MR::calcVecToPlayerH(&front, actor, nullptr);

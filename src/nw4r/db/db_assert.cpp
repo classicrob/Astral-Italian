@@ -134,12 +134,14 @@ namespace nw4r {
                 Console_Printf(sAssertionConsole, "%s:%d Warning:", file, line);
                 Console_Printf(sAssertionConsole, "\n");
                 Console_ShowLatestLine(sAssertionConsole);
-                if (sDispWarningAuto && sAssertionConsole != NULL) {
+                if (sDispWarningAuto) {
                     const u32 time = sWarningTime;
-                    OSAlarm* alarm = GetWarningAlarm_();
-                    OSCancelAlarm(alarm);
-                    Console_SetVisible(sAssertionConsole, true);
-                    if (time != 0) OSSetAlarm(alarm, time, WarningAlarmFunc_);
+                    if (sAssertionConsole != NULL) {
+                        OSAlarm* alarm = GetWarningAlarm_();
+                        OSCancelAlarm(alarm);
+                        Console_SetVisible(sAssertionConsole, true);
+                        if (time != 0) OSSetAlarm(alarm, time, WarningAlarmFunc_);
+                    }
                 }
             } else {
                 OSReport("%s:%d Warning:", file, line);

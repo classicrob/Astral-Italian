@@ -95,14 +95,13 @@ void AttackRockStateHold::kill() {
     mRide->endRide();
 }
 
-// NONMATCHING: Quaternion-copy temporary placement and floating-point scheduling differ.
 void AttackRockStateHold::control() {
     TVec3f dir;
     MR::getKoopaBattleTargetPos(&dir);
+    TVec3f zdir;
     TVec3f toPlayer = mHost->mPosition - dir;
     MR::normalizeOrZero(&dir, toPlayer);
     MR::turnQuatZDirRate(&mHost->mQuat100, mHost->mQuat100, dir, 0.3f);
-    TVec3f zdir;
     TQuat4f quat(mHost->mQuat100);
     quat.getZDir(zdir);
     mRide->setHostZDir(&zdir);

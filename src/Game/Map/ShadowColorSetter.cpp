@@ -17,8 +17,9 @@ void ShadowColorSetter::movement() {
     AreaObj* area = MR::getAreaObj("ShadowColorArea", *MR::getPlayerPos());
     if (mArea != area) {
         if (area != nullptr) {
+            u8 g;
             u8 b = MR::clamp(area->mObjArg2, 0, 255);
-            u8 g = MR::clamp(area->mObjArg1, 0, 255);
+            g = MR::clamp(area->mObjArg1, 0, 255);
             u8 r = MR::clamp(area->mObjArg0, 0, 255);
             mTargetColor.r = r;
             mTargetColor.g = g;

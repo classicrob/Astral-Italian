@@ -15,18 +15,12 @@ CameraSphereTrundle::CameraSphereTrundle(const char* pName) : Camera(pName) {
     mUp.set(0.0f, 0.0f, 0.0f);
 }
 
-// NONMATCHING: matrix evaluation and vector-copy scheduling.
 void CameraSphereTrundle::reset() {
     TVec3f sp20(mOffset);
     mZoneMatrix.mult(sp20, sp20);
 
     TVec3f sp14(mLocalPos);
-    f32 x = sp14.x;
-    f32 y = sp14.y;
-    f32 z = sp14.z;
-    sp14.set< f32 >(x * mZoneMatrix.mMtx[0][0] + y * mZoneMatrix.mMtx[0][1] + z * mZoneMatrix.mMtx[0][2],
-             x * mZoneMatrix.mMtx[1][0] + y * mZoneMatrix.mMtx[1][1] + z * mZoneMatrix.mMtx[1][2],
-             x * mZoneMatrix.mMtx[2][0] + y * mZoneMatrix.mMtx[2][1] + z * mZoneMatrix.mMtx[2][2]);
+    mZoneMatrix.mult33(sp14);
 
     TVec3f sp8 = CameraLocalUtil::getTarget(this)->getPosition() - sp20;
     mFront = sp8;

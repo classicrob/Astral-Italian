@@ -412,7 +412,8 @@ void BossJugem::exeMoveLeft() {
     if (MR::isRailGoingToEnd(this)) {
         MR::reverseRailDirection(this);
     }
-    f32 coord = mRailCoordStart + 1200.0f;
+    const f32 startCoord = mRailCoordStart;
+    f32 coord = startCoord + 1200.0f;
     if (!MR::isRailCoordNotBehind(this, coord)) {
         coord = mRailCoordStart - 1200.0f;
     }
@@ -432,7 +433,8 @@ void BossJugem::exeMoveRight() {
     if (!MR::isRailGoingToEnd(this)) {
         MR::reverseRailDirection(this);
     }
-    f32 coord = mRailCoordStart + 1200.0f;
+    const f32 startCoord = mRailCoordStart;
+    f32 coord = startCoord + 1200.0f;
     if (!MR::isRailCoordNotBehind(this, coord)) {
         coord = mRailCoordStart - 1200.0f;
     }

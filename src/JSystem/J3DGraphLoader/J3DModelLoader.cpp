@@ -415,10 +415,14 @@ void J3DModelLoader::readEnvelop(J3DEnvelopeBlock const* i_block) {
 
 void J3DModelLoader::readDraw(J3DDrawBlock const* i_block) {
     u16 i;
+    const J3DBlockOffset flagOffset = i_block->mpDrawMtxFlag;
+    u16 mtxNum = i_block->mMtxNum;
     J3DModelData* modelData = mpModelData;
-    modelData->getJointTree().mDrawMtxData.mEntryNum = i_block->mMtxNum - mpModelData->getJointTree().mWEvlpMtxNum;
-    modelData->getJointTree().mDrawMtxData.mDrawMtxFlag = JSUConvertOffsetToPtr< u8 >(i_block, i_block->mpDrawMtxFlag);
-    modelData->getJointTree().mDrawMtxData.mDrawMtxIndex = JSUConvertOffsetToPtr< u16 >(i_block, i_block->mpDrawMtxIndex);
+    modelData->getJointTree().mDrawMtxData.mEntryNum = mtxNum - mpModelData->getJointTree().mWEvlpMtxNum;
+    u8* flags = JSUConvertOffsetToPtr< u8 >(i_block, flagOffset);
+    const J3DBlockOffset indexOffset = i_block->mpDrawMtxIndex;
+    modelData->getJointTree().mDrawMtxData.mDrawMtxFlag = flags;
+    modelData->getJointTree().mDrawMtxData.mDrawMtxIndex = JSUConvertOffsetToPtr< u16 >(i_block, indexOffset);
     for (i = 0; i < modelData->getJointTree().mDrawMtxData.mEntryNum; i++) {
         if (modelData->getJointTree().mDrawMtxData.mDrawMtxFlag[i] == 1) {
             break;

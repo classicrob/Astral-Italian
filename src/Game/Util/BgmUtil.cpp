@@ -430,7 +430,9 @@ namespace MR {
     }
 
     void startBossRushBGM() {
-        AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("BGM_EV_BOSSRUSH"), false, -1);
+        const char* name = "BGM_EV_BOSSRUSH";
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+        AudWrap::startStageBgm(id, false, -1);
     }
 
     void startAfterBossRushBGM() {

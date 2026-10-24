@@ -77,7 +77,8 @@ void StrayTico::initSensor() {
 
 void StrayTico::initShadow() {
     MR::initShadowVolumeOval(this, TVec3f(40.0f, 40.0f, 20.0f));
-    MR::setShadowDropPositionAtJoint(this, nullptr, "PowerStarC", TVec3f(0.0f, 0.0f, 0.0f));
+    TVec3f offset(0.0f, 0.0f, 0.0f);
+    MR::setShadowDropPositionAtJoint(this, nullptr, "PowerStarC", offset);
     MR::onCalcShadow(this, nullptr);
 }
 

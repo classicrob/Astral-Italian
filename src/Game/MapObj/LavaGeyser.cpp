@@ -83,7 +83,7 @@ void LavaGeyser::updateHitSensor(HitSensor* pSensor) {
     f32 clampedHeight = MR::clamp(playerHeight, 0.0f, topHeight);
 
     MR::setSensorPos(pSensor, mPosition);
-    *MR::getSensorPos2(pSensor) += mUpDir * clampedHeight;
+    MR::getSensorPos2(pSensor)->add(mUpDir * clampedHeight);
 }
 
 void LavaGeyser::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

@@ -196,7 +196,8 @@ void SandBird::exeCruise() {
         }
     }
 
-    if (!MR::isNearPlayerHorizontal(this, 5000.0f)) {
+    bool far = !MR::isNearPlayerHorizontal(this, 5000.0f);
+    if (far) {
         setNerve(GET_NERVE(SandBird, SandBirdNrvStop));
     }
 }

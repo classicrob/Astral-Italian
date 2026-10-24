@@ -31,7 +31,9 @@ void BossBussunStateDamage::exeDamage() {
     if (MR::isStep(this, 1)) {
         MR::emitEffectHit(mHost, mHost->mPosition, nullptr);
     }
-    MR::vecBlend(&mHost->mPosition, mPosA, mPosB, MR::calcNerveRate(this, 0x28));
+    TVec3f* hostPos = &mHost->mPosition;
+    f32 rate = MR::calcNerveRate(this, 0x28);
+    MR::vecBlend(hostPos, mPosA, mPosB, rate);
     if (MR::isGreaterEqualStep(this, 1) && MR::isLessStep(this, 0x28)) {
         TVec3f axis(0.0f, 1.0f, 0.0f);
         MR::turnVecToVecDegree(&mHost->mFrontDir, mHost->mFrontDir, mPosC, 180.0f, axis);

@@ -3,6 +3,7 @@
 #include "Game/Util/MathUtil.hpp"
 
 void CamTranslatorSphereTrundle::setParam(const CameraParamChunk* pChunk) {
+    CameraSphereTrundle* camera;
     CameraGeneralParam* general = pChunk->mGeneralParam;
 
     TVec3f axis = general->mAxis;
@@ -11,9 +12,10 @@ void CamTranslatorSphereTrundle::setParam(const CameraParamChunk* pChunk) {
     }
     MR::normalize(&axis);
 
-    CameraSphereTrundle* camera = mCamera;
+    camera = mCamera;
+    f32 dist;
     f32 angle = general->mAngleA;
-    f32 dist = general->mDist;
+    dist = general->mDist;
     camera->mOffset.set(general->mWPoint);
     camera->mLocalPos.set(axis);
     camera->mDist = dist;

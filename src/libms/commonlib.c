@@ -15,9 +15,9 @@ void LMSi_AnalyzeMessageHeader(MsbInfo* pInfo) {
 void LMSi_AnalyzeMessageBlocks(MsbInfo* pInfo) {
     s32 i;
     s32 j;
+    s32 offset = sizeof(MsbHeader);
     s32 pos;
     MsbBlock* pBlock;
-    s32 offset = sizeof(MsbHeader);
 
     for (i = 0; i < pInfo->blockCount; i++) {
         pBlock = &pInfo->blocks[i];

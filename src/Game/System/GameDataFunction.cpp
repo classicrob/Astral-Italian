@@ -172,9 +172,8 @@ namespace GameDataFunction {
         makeSomeGalaxyStorage(pGalaxyName)->mFlag |= 0x1;
     }
 
-    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate (FP order/grouping checked: no FP instructions).
     bool isOnGalaxyFlagTicoCoin(const char* pGalaxyName) {
-        return (makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x1) == 1;
+        return static_cast< u8 >(makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x1) == 1;
     }
 
     s32 calcTicoCoinNum() {
@@ -189,9 +188,8 @@ namespace GameDataFunction {
         makeSomeGalaxyStorage(pGalaxyName)->mFlag &= 0xFD;
     }
 
-    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate (FP order/grouping checked: no FP instructions).
     bool isOnGalaxyFlagComet(const char* pGalaxyName) {
-        return (makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x2) == 2;
+        return static_cast< u8 >(makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x2) == 2;
     }
 
 #pragma dont_inline off
@@ -283,9 +281,8 @@ namespace GameDataFunction {
         getCurrentGameDataPlayerStatus()->mFlag &= 0xFE;
     }
 
-    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate (FP order/grouping checked: no FP instructions).
     bool isLuigiPlayer() {
-        return (getCurrentGameDataPlayerStatus()->mFlag & 0x1) == 1;
+        return static_cast< u8 >(getCurrentGameDataPlayerStatus()->mFlag & 0x1) == 1;
     }
 
     void startLuigiIntrusion() {

@@ -119,16 +119,19 @@ void RepeatBlockHistory::push(const RepeatBlockCell& rCell) {
 }
 
 bool RepeatBlockHistory::hasNeighbor(s32 n, s32 dir) const {
-    return mNodes[calcIndex(n)].mNeighbor[dir] != -1;
+    s32 index = calcIndex(n);
+    return mNodes[index].mNeighbor[dir] != -1;
 }
 
 s32 RepeatBlockHistory::getDistance(s32 n, s32 dir) const {
-    return mNodes[calcIndex(n)].mDistance[dir];
+    s32 index = calcIndex(n);
+    return mNodes[index].mDistance[dir];
 }
 
 #pragma dont_inline on
 RepeatBlockHistoryNode* RepeatBlockHistory::getNode(s32 n) const {
-    return &mNodes[calcIndex(n)];
+    s32 index = calcIndex(n);
+    return &mNodes[index];
 }
 
 #pragma dont_inline reset

@@ -108,8 +108,9 @@ GameSequenceNameEntry* GameSequenceNameEntryTable::find(const char* pName) {
     GameSequenceNameEntry entry;
     entry.set(pName, -1, -1);
 
+    GameSequenceNameEntry* pEnd;
     GameSequenceNameEntry* pEntry = mEntries;
-    GameSequenceNameEntry* pEnd = &mEntries[mCount];
+    pEnd = &mEntries[mCount];
     while (pEntry != pEnd && !(*pEntry == entry)) {
         pEntry++;
     }

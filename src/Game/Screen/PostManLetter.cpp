@@ -201,7 +201,6 @@ s32 PostManLetter::getCurrentLetterId() const {
     return *mCurrentLetter;
 }
 
-// NONMATCHING: letter-table index and base use interchanged registers.
 void PostManLetter::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::showScreen(this);
@@ -214,7 +213,8 @@ void PostManLetter::exeAppear() {
     if (MR::isAnimStopped(this, 0)) {
         s32 id = *mCurrentLetter;
         if (isUnreadLetter(id)) {
-            MR::startActionSound(this, cLetterInfo[id].mVoice, -1, -1);
+            const LetterInfo* letter = cLetterInfo + id;
+            MR::startActionSound(this, letter->mVoice, -1, -1);
         }
         mPager->appear();
         setNerve(&NrvPostManLetter::PostManLetterNrvWait::sInstance);

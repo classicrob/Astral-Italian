@@ -312,7 +312,11 @@ void BreakableCage::exeBreak() {
     u32 activateDeadEarly = 1;
     u32 hasImmediateDeadCondition = 0;
 
-    if (mDelayDeadActivate || mItemModel != nullptr || mCageType == static_cast< s32 >(CAGE_FIX) || mCageType == CAGE_TRASH) {
+    if (mDelayDeadActivate || mItemModel != nullptr) {
+        hasImmediateDeadCondition = 1;
+    } else if (mCageType == CAGE_FIX) {
+        hasImmediateDeadCondition = 1;
+    } else if (mCageType == CAGE_TRASH) {
         hasImmediateDeadCondition = 1;
     }
 

@@ -337,11 +337,12 @@ void JPACalcTexIdxReverse(JPAEmitterWorkData* work) {
     work->mpEmtr->mTexAnmIdx = shape->getTexIdx(rem + (div & 1) * (keyNum - rem * 2));
 }
 
-// NONMATCHING: shape and resource pointers use different registers.
 void JPACalcTexIdxReverse(JPAEmitterWorkData* work, JPABaseParticle* param_1) {
+    const JPABaseShapeData* data;
     JPABaseShape* const shape = work->mpRes->getBsp();
-    s32 tick = shape->getTexLoopOfst(param_1->mAnmRandom) + param_1->mAge;
-    int keyNum = (int)shape->getTexAnmKeyNum() - 1;
+    data = shape->mpData;
+    s32 tick = (param_1->mAnmRandom & data->mTexAnmRndmMask) + param_1->mAge;
+    int keyNum = (int)data->mTexAnmNum - 1;
     int div = tick / keyNum;
     int rem = tick % keyNum;
     u8 texIdx = rem + (div & 1) * (keyNum - rem * 2);

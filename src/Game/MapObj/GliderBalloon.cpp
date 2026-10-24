@@ -108,7 +108,8 @@ void GliderBalloon::appearStarPieceTracking() {
         mtx.getZDir(front);
         mtx.getYDir(up);
         TVec3f bias(up);
-        bias.x *= 0.05f; bias.y *= 0.05f; bias.z *= 0.05f;
+        f32 biasScale = 0.05f;
+        bias.x = biasScale * bias.x; bias.y = biasScale * bias.y; bias.z = biasScale * bias.z;
         front += bias;
         if (MR::normalizeOrZero(&front)) mtx.getZDir(front);
         PSVECCrossProduct(&up, &front, &side);

@@ -341,9 +341,10 @@ void StinkBugSmall::control() {
             mGravity.set(mGravity);
         }
 
-        const TVec3f& rGravity = mGravity;
-        const TVec3f& rVelocity = mVelocity;
-        mVelocity.killElement(rVelocity, rGravity);
+        const TVec3f* pGravity;
+        const TVec3f* pVelocity = &mVelocity;
+        pGravity = &mGravity;
+        mVelocity.killElement(*pVelocity, *pGravity);
         mVelocity.scaleAdd(2.0f, mGravity, mVelocity);
         TVec3f a;
         a = mFront;

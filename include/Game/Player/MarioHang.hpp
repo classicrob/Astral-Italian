@@ -39,7 +39,7 @@ public:
     /* 0x14 */ u16 _14;
     /* 0x16 */ u16 _16;
     /* 0x18 */ u16 mHangTimer;
-    /* 0x1A */ u8 _1A;
+    /* 0x1A */ bool _1A;
     /* 0x1B */ u8 _1B;
     /* 0x1C */ u8 _1C;
     /* 0x1D */ u8 _1D;

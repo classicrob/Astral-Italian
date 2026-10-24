@@ -257,13 +257,10 @@ void J3DTexMtx::calcPostTexMtx(const Mtx param_0) {
 
 bool isTexNoReg(void* pDL) {
     u32 command = ((u8*)pDL)[1];
-    bool isTexNo = false;
-    if (command >= 0x80) {
-        if (command <= 0xbb) {
-            isTexNo = true;
-        }
+    if (0x80 <= command && command <= 0xbb) {
+        return true;
     }
-    return isTexNo;
+    return false;
 }
 
 u16 getTexNoReg(void* pDL) {

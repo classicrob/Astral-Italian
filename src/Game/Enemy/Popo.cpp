@@ -734,8 +734,9 @@ void Popo::tryReleaseYoshi() {
 
 // NONMATCHING: order of the initial li for the two flags
 bool Popo::isBlowable() const {
-    bool free = false;
+    bool free;
     bool result = true;
+    free = false;
     if (isNerve(&NrvPopo::PopoNrvWait::sInstance) || isNerve(&NrvPopo::PopoNrvFind::sInstance) || isNerve(&NrvPopo::PopoNrvWalk::sInstance) ||
         isNerve(&NrvPopo::PopoNrvEscape::sInstance) || isNerve(&NrvPopo::PopoNrvStop::sInstance) || isNerve(&NrvPopo::PopoNrvTouch::sInstance) ||
         isNerve(&NrvPopo::PopoNrvStickCancel::sInstance)) {
@@ -749,12 +750,10 @@ bool Popo::isBlowable() const {
 
 // NONMATCHING: f30/f31 allocation
 void Popo::calcBlowVelocity(s32 total, s32 step) {
+    f32 rate = (f32)step / (f32)total;
+    rate *= rate;
     f32 v;
     f32 speed;
-    f32 rate;
-
-    rate = (f32)step / (f32)total;
-    rate = rate * rate;
     speed = MR::vecKillElement(mVelocity, mGravity, &mVelocity);
     mVelocity.add((TVec3f(0.0f) - mVelocity) * rate);
     v = clampVelocity(speed);

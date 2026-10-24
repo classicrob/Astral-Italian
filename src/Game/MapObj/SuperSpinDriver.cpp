@@ -667,7 +667,9 @@ void SuperSpinDriver::exeWait() {
         MR::tryTalkNearPlayer(mTalkCtrl);
     }
 
-    trySwitchOff();
+    if (trySwitchOff()) {
+        return;
+    }
 }
 
 void SuperSpinDriver::exeCapture() {

@@ -369,7 +369,6 @@ void MarioHang::fn_803ED7E0() {
     PSMTXMultVecSR(matrix.toMtxPtr(), &_28, &_34);
 }
 
-// NONMATCHING: boolean normalization of the byte flag.
 bool MarioHang::fn_803ED840() {
     if (_16) {
         _16--;
@@ -417,11 +416,14 @@ void MarioHang::fn_803EDA20() {
     }
 }
 
-// NONMATCHING: equivalent boolean folding.
 bool MarioHang::fn_803EDAC0() {
     bool result = false;
-    if (getPlayer()->_8D4 != nullptr && mWallSensor != getPlayer()->_8D4)
-        result = true;
+    if (getPlayer()->_8D4 != nullptr) {
+        Mario* player = getPlayer();
+        HitSensor* sensor = mWallSensor;
+        if (sensor != player->_8D4)
+            result = true;
+    }
     return result;
 }
 

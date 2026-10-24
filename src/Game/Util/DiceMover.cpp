@@ -345,6 +345,8 @@ void DiceMoverRotationBounds::clear() {
 }
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DiceMoverAccumulator::addCollision(const TVec3f* center, const TVec3f* point, const TVec3f* force, f32 radius) {
+    f32 radialForce;
+    f32 inverseLength;
     f32 inverseRadius = 1.0f / radius;
     f32 magnitude = PSVECMag(force);
     if (0.0f != magnitude) {
@@ -366,10 +368,10 @@ void DiceMoverAccumulator::addCollision(const TVec3f* center, const TVec3f* poin
             DiceMoverUtil::expandBounds(&mVelocityMin, &mVelocityMax, (*force).scaleInline(ratio * ratio));
         }
         f32 rotationScale = 0.999f * inverseRadius;
-        f32 inverseLength = 1.0f / MR::sqrt<f32>(squared);
+        inverseLength = 1.0f / MR::sqrt<f32>(squared);
         TVec3f radial(offset);
         radial.scale(inverseLength);
-        f32 radialForce = radial.dot(*force);
+        radialForce = radial.dot(*force);
         TVec3f tangent(*force - radial * radialForce);
         tangent.scale(rotationScale);
         addRotation(reinterpret_cast<const TPos3f*>(center), &radial, &tangent);

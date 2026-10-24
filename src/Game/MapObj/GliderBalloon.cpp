@@ -92,7 +92,6 @@ void GliderBalloon::exeStarPieceBurst() {
     }
     if (MR::isBtkOneTimeAndStopped(this)) kill();
 }
-// NONMATCHING: temporary vectors occupy different stack slots.
 void GliderBalloon::appearStarPieceTracking() {
     TVec3f up(0.0f), side(0.0f), front(0.0f);
     MR::calcUpVec(&up, this);
@@ -109,7 +108,7 @@ void GliderBalloon::appearStarPieceTracking() {
         mtx.getYDir(up);
         TVec3f bias(up);
         f32 biasScale = 0.05f;
-        bias.x = biasScale * bias.x; bias.y = biasScale * bias.y; bias.z = biasScale * bias.z;
+        bias.x *= biasScale; bias.y *= biasScale; bias.z *= biasScale;
         front += bias;
         if (MR::normalizeOrZero(&front)) mtx.getZDir(front);
         PSVECCrossProduct(&up, &front, &side);

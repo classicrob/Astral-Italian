@@ -93,7 +93,7 @@ void SphereRailDash::exeWait() {
         mStartSpeed = speed;
         f32 acceleration = 2.0f * (endSpeed - speed) / duration;
         mAccelCubic = -acceleration / (2.0f * duration) / 3.0f;
-        mAccelSquare = acceleration * 0.5f;
+        mAccelSquare = acceleration / 2.0f;
         mDuration = duration + (duration - static_cast< s32 >(duration) > 0.0001f ? 1.0f : 0.0f);
 
         if (mDuration < 0) {

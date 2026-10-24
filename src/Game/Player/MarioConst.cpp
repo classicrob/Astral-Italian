@@ -9,18 +9,16 @@ namespace MarioConstBinary {
     void readU16(const u8**, u16*) NO_INLINE;
     void readS16(const u8**, s16*) NO_INLINE;
 
-    // NONMATCHING: equivalent masks on bits known to be zero after byte loads.
     void readF32(const u8** cursor, f32* output) {
         union { u32 bits; f32 value; } word;
-        u32 value = **cursor;
+        word.bits = **cursor;
         ++*cursor;
-        value = (value << 8) | **cursor;
+        word.bits = (word.bits << 8) | **cursor;
         ++*cursor;
-        value = (value << 8) | **cursor;
+        word.bits = (word.bits << 8) | **cursor;
         ++*cursor;
-        value = (value << 8) | **cursor;
+        word.bits = (word.bits << 8) | **cursor;
         ++*cursor;
-        word.bits = value;
         *output = word.value;
     }
 
@@ -32,13 +30,13 @@ namespace MarioConstBinary {
         *output = value;
     }
 
-    // NONMATCHING: equivalent mask on bits known to be zero after byte loads.
     void readS16(const u8** cursor, s16* output) {
-        u32 value = **cursor;
+        union { u16 bits; s16 value; } word;
+        word.bits = **cursor;
         ++*cursor;
-        value = ((value << 8) & 0xFFFFFF) | **cursor;
+        word.bits = (word.bits << 8) | **cursor;
         ++*cursor;
-        *output = value;
+        *output = word.value;
     }
 
 }

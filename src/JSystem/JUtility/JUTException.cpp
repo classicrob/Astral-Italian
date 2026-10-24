@@ -434,7 +434,6 @@ bool JUTException::showMapInfo_subroutine(u32 address, bool begin_with_newline) 
     return false;
 }
 
-// NONMATCHING: compiler combines the equivalent unsigned address-range comparisons.
 void JUTException::showGPRMap(OSContext* context) {
     if (!sConsole) {
         return;
@@ -446,7 +445,7 @@ void JUTException::showGPRMap(OSContext* context) {
     for (int i = 0; i < 31; i++) {
         u32 address = context->gpr[i];
 
-        if (address >= 0x80000000 && address <= 0x83000000 - 1) {
+        if (0x80000000 <= address && address <= 0x83000000 - 1) {
             found_address_register = true;
 
             sConsole->print_f("R%02d: %08XH", i, address);

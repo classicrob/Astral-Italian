@@ -586,10 +586,10 @@ void Wanwan::moveOnRail(f32 speed, f32 rot, bool checkGround) {
     MR::moveCoordAndFollowTrans(this, speed);
     updateRotateX(mRotation.x + rot);
     if (checkGround) {
+        TVec3f hit;
         f32 len = 2.0f * mRadius;
         TVec3f dir(mGravity);
         dir.scale(len);
-        TVec3f hit;
         if (MR::getFirstPolyOnLineToMap(&hit, nullptr, mPosition, dir)) {
             f32 neg = -mRadius;
             TVec3f off(mGravity);

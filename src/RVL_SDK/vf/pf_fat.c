@@ -876,7 +876,7 @@ s32 VFiPFFAT_GetSectorSpecified(PF_FFD* p_ffd, u32 file_sector_index, u32 may_al
         return 10;
     if (!p_ffd->p_hint)
         return 10;
-    if (p_ffd->p_vol->drv_char < 65 || p_ffd->p_vol->drv_char > 90)
+    if (!(65 <= p_ffd->p_vol->drv_char && p_ffd->p_vol->drv_char <= 90))
         return 35;
     if (file_sector_index >= (0xFFFFFFFF >> p_ffd->p_vol->bpb.log2_bytes_per_sector) + 1)
         return 37;
@@ -897,7 +897,7 @@ s32 VFiPFFAT_GetSectorAllocated(PF_FFD* p_ffd, u32 file_sector_index, u32 size, 
         return 10;
     if (!p_ffd->p_hint)
         return 10;
-    if (p_ffd->p_vol->drv_char < 65 || p_ffd->p_vol->drv_char > 90)
+    if (!(65 <= p_ffd->p_vol->drv_char && p_ffd->p_vol->drv_char <= 90))
         return 35;
     if (file_sector_index >= (0xFFFFFFFF >> p_ffd->p_vol->bpb.log2_bytes_per_sector) + 1)
         return 37;
@@ -917,7 +917,7 @@ s32 VFiPFFAT_GetContinuousSector(PF_FFD* p_ffd, u32 file_sector_index, u32 size,
         return 10;
     if (!p_ffd->p_hint)
         return 10;
-    if (p_ffd->p_vol->drv_char < 65 || p_ffd->p_vol->drv_char > 90)
+    if (!(65 <= p_ffd->p_vol->drv_char && p_ffd->p_vol->drv_char <= 90))
         return 35;
     if (file_sector_index >= (0xFFFFFFFF >> p_ffd->p_vol->bpb.log2_bytes_per_sector) + 1)
         return 37;
@@ -956,7 +956,7 @@ s32 VFiPFFAT_CountAllocatedClusters(PF_FFD* p_ffd, u32 size, u32* p_num_alloc_cl
         return 10;
     if (!p_ffd->p_hint)
         return 10;
-    if (p_ffd->p_vol->drv_char < 65 || p_ffd->p_vol->drv_char > 90)
+    if (!(65 <= p_ffd->p_vol->drv_char && p_ffd->p_vol->drv_char <= 90))
         return 35;
     if (*p_ffd->p_start_cluster < 2)
         return 0;
@@ -1298,7 +1298,7 @@ s32 VFiPFFAT_TraceClustersChain(PF_FFD* p_ffd, u32 start_clst, u32 size, u32* p_
         return 10;
     if (!p_ffd->p_hint)
         return 10;
-    if (p_ffd->p_vol->drv_char < 65 || p_ffd->p_vol->drv_char > 90)
+    if (!(65 <= p_ffd->p_vol->drv_char && p_ffd->p_vol->drv_char <= 90))
         return 35;
     if (!p_ffd->p_vol)
         return 10;

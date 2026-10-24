@@ -287,7 +287,7 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
         (prev->err == WPAD_ERR_NONE || prev->err == -7)) {
         BOOL accChanged;
         BOOL dpdChanged;
-        result = IsButtonChanged(curr->button, prev->button);
+        result |= IsButtonChanged(curr->button, prev->button);
         accChanged = IsAnalogChanged(curr->accX, prev->accX, 12) |
                      IsAnalogChanged(curr->accY, prev->accY, 12) |
                      IsAnalogChanged(curr->accZ, prev->accZ, 12);
@@ -1604,12 +1604,11 @@ void WPADRead(s32 chan, void* status) {
     OSRestoreInterrupts(enabled);
 }
 
-// NONMATCHING: compiler loop lowering and register allocation differ.
 void WPADSetAutoSamplingBuf(s32 chan, void* buf, u32 length) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     BOOL enabled = OSDisableInterrupts();
     s8 err = p_cb->status == WPAD_ERR_NO_CONTROLLER ? WPAD_ERR_NO_CONTROLLER : WPAD_ERR_INVALID;
-    int size = __wpadGetReportSize(p_cb->dataFormat);
+    u32 size = __wpadGetReportSize(p_cb->dataFormat);
     int i;
     if (buf) {
         memset(buf, 0, size * length);

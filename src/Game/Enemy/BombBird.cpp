@@ -480,23 +480,21 @@ void BombBird::exeSinkDown() {
     }
 }
 
-// NONMATCHING: The epilogue restores LR and the saved GPR in a different order.
 void BombBird::exeBombBirdBindStarPointer() {
     if (MR::isFirstStep(this)) MR::invalidateClipping(this);
     if (mHeldBomb) {
         mHeldBomb->kill();
         mHeldBomb = nullptr;
     }
-    MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvFlyOnRail));
+    if (MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvFlyOnRail))) return;
 }
-// NONMATCHING: The epilogue restores LR and the saved GPR in a different order.
 void BombBird::exeBombBirdBindStarPointerGround() {
     if (MR::isFirstStep(this)) MR::invalidateClipping(this);
     if (mHeldBomb) {
         mHeldBomb->kill();
         mHeldBomb = nullptr;
     }
-    MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvSwoonEnd));
+    if (MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvSwoonEnd))) return;
 }
 
 bool BombBird::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {

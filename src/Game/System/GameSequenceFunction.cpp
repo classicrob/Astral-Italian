@@ -541,9 +541,10 @@ namespace GameSequenceFunction {
 
     // NONMATCHING: isGot/isAll swap their callee-saved registers (r31/r29) (FP order/grouping checked: no FP instructions).
     bool isClearedAllPowerStarAtResult() {
+        bool isAll;
         bool result = false;
         bool isGot = true;
-        bool isAll = false;
+        isAll = false;
         if (!IN_STAGE_HOLDER->mHasPowerStar && !IN_STAGE_HOLDER->mIsNotGreenStar) {
             isGot = false;
         }

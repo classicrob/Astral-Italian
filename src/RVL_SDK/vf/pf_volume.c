@@ -416,10 +416,7 @@ PF_VOLUME* VFiPFVOL_GetVolumeFromDrvChar(s8 drv_char) {
     s16 vol_idx;
 
     vol_idx = VFipf_toupper(drv_char) - 'A';
-    if (vol_idx < 0) {
-        return 0;
-    }
-    if (vol_idx >= 26) {
+    if (!(0 <= vol_idx && vol_idx < 26)) {
         return 0;
     }
 
@@ -489,7 +486,7 @@ s32 VFiPFVOL_attach(PF_DRV_TBL* p_drv) {
     p_drv->stat = 0;
     p_drv->drive = 0;
 
-    if (VFipf_vol_set.num_attached_drives < 0 || VFipf_vol_set.num_attached_drives >= 26) {
+    if (!(0 <= VFipf_vol_set.num_attached_drives && VFipf_vol_set.num_attached_drives < 26)) {
         VFipf_vol_set.last_error = 4;
         return 4;
     }
@@ -519,7 +516,7 @@ s32 VFiPFVOL_attach(PF_DRV_TBL* p_drv) {
     }
 
     if (drv_char != 0) {
-        if ((drv_char >= 'a' && drv_char <= 'z') || (drv_char >= 'A' && drv_char <= 'Z')) {
+        if (('a' <= drv_char && drv_char <= 'z') || ('A' <= drv_char && drv_char <= 'Z')) {
             vol_idx = VFipf_toupper(drv_char) - 'A';
         } else {
             VFipf_vol_set.last_error = 10;
@@ -534,12 +531,12 @@ s32 VFiPFVOL_attach(PF_DRV_TBL* p_drv) {
                 break;
             }
         }
-        if (vol_idx < 0 || vol_idx >= 26) {
+        if (!(0 <= vol_idx && vol_idx < 26)) {
             VFipf_vol_set.last_error = 4;
             return 4;
         }
     } else {
-        if (vol_idx < 0 || vol_idx >= 26) {
+        if (!(0 <= vol_idx && vol_idx < 26)) {
             VFipf_vol_set.last_error = 18;
             return 18;
         }

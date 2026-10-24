@@ -1676,9 +1676,13 @@ void Yoshi::fn_80410D90() {
             if (strength > 1.0f) strength = 1.0f;
             if (strength < 0.1f) strength = 0.1f;
         }
-        f32 sway = MR::sin(0.1f + 0.09f * static_cast<f32>(getNerveStep()) + 0.01f * mPosition.x);
+        f32 swayAngle = 0.1f + 0.09f * static_cast<f32>(getNerveStep());
+        swayAngle += 0.01f * mPosition.x;
+        f32 sway = MR::sin(swayAngle);
         side.add(mGravity * 0.2f * sway * strength);
-        f32 bob = MR::sin(0.2f + 0.09f * (1.2f * static_cast<f32>(getNerveStep())) + 0.01f * mPosition.y);
+        f32 bobAngle = 0.2f + 0.09f * (1.2f * static_cast<f32>(getNerveStep()));
+        bobAngle += 0.01f * mPosition.y;
+        f32 bob = MR::sin(bobAngle);
         front.add(mGravity * 0.36f * bob * strength);
         TVec3f normal;
         PSVECCrossProduct(&front, &side, &normal);

@@ -972,7 +972,6 @@ bool GliBird::tryDeadWall(const TVec3f& rNormal, HitSensor* pSensor, bool isFire
     return false;
 }
 
-// NONMATCHING: vector-copy scheduling and floating-point operand order differ.
 void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
     if (!mIsWaterEffect) {
         MR::emitEffect(this, "NearWater");
@@ -985,7 +984,8 @@ void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
     }
 
-    f32 lift = 0.01f * depth;
+    f32 lift = depth;
+    lift *= 0.01f;
     mPitchAccel -= sWaterPitchLift + lift;
 
     MtxPtr baseMtx = getBaseMtx();

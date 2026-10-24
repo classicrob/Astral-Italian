@@ -769,7 +769,9 @@ void CocoNutBall::exeFreezeStart() {
     TVec3f gravity;
     gravity.scale(2.0f, mGravity);
     mVelocity.add(gravity);
-    tryToKill(!MR::isNearPlayer(this, 5000.0f));
+    if (tryToKill(!MR::isNearPlayer(this, 5000.0f))) {
+        return;
+    }
 }
 
 void CocoNutBall::exeHitBackToOtaRockTank() {

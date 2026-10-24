@@ -38,8 +38,8 @@ void ShadowVolumeQuakeWave::drawShape() const {
     f32 sinB = MR::sinDegree(_30 + _34);
 
     for (s32 i = 0; i < 0x20; i++) {
-        f32 angle0 = 360.0f * (f32)i * 0.03125f;
-        f32 angle1 = 360.0f * (f32)(i + 1) * 0.03125f;
+        f32 angle0 = (360.0f * (f32)i) / 32.0f;
+        f32 angle1 = (360.0f * (f32)(i + 1)) / 32.0f;
 
         f32 cos0 = MR::cosDegree(angle0);
         f32 sin0 = MR::sinDegree(angle0);

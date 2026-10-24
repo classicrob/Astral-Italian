@@ -47,18 +47,21 @@ J3DMaterialFactory::J3DMaterialFactory(J3DMaterialBlock const& i_block) {
 }
 
 J3DMaterialFactory::J3DMaterialFactory(J3DMaterialDLBlock const& i_block) {
-    const J3DBlockOffset displayListOffset = i_block.mpDisplayListInit;
+    J3DBlockOffset displayListOffset = i_block.mpDisplayListInit;
     mMaterialNum = i_block.mMaterialNum;
     mpMaterialInitData = nullptr;
     J3DDisplayListInit* displayList = JSUConvertOffsetToPtr< J3DDisplayListInit >(&i_block, displayListOffset);
-    const J3DBlockOffset patchingOffset = i_block.mpPatchingInfo;
+    J3DBlockOffset patchingOffset;
     mpDisplayListInit = displayList;
+    patchingOffset = i_block.mpPatchingInfo;
     J3DPatchingInfo* patching = JSUConvertOffsetToPtr< J3DPatchingInfo >(&i_block, patchingOffset);
-    const J3DBlockOffset currentMtxOffset = i_block.mpCurrentMtxInfo;
+    J3DBlockOffset currentMtxOffset;
     mpPatchingInfo = patching;
+    currentMtxOffset = i_block.mpCurrentMtxInfo;
     J3DCurrentMtxInfo* currentMtx = JSUConvertOffsetToPtr< J3DCurrentMtxInfo >(&i_block, currentMtxOffset);
-    const J3DBlockOffset modeOffset = i_block.mpMaterialMode;
+    J3DBlockOffset modeOffset;
     mpCurrentMtxInfo = currentMtx;
+    modeOffset = i_block.mpMaterialMode;
     mpMaterialMode = JSUConvertOffsetToPtr< u8 >(&i_block, modeOffset);
 }
 

@@ -351,8 +351,7 @@ void YoshiTongueAction::fn_8041E680() {
             _60 = true;
         }
     }
-    bool complete = false;
-    if (mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50)) complete = true;
+    bool complete = mYoshi->fn_8040F5F0() || MR::isGreaterEqualStep(this, 50);
     if (complete && _60) {
         mYoshi->mHeadCtrl->fn_8041AB50(1);
         mTongue->fn_8041CC60();

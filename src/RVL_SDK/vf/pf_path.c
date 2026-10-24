@@ -120,7 +120,7 @@ static u16 VFiPFPATH_GetNextCharOfShortName(struct PF_FILE_NAME_ITER* p_name) {
         wc = ((u8)wc << 8) + (u8)c;
     }
 
-    wc = ((u32)wc >= 0x61 && (u32)wc <= 0x7A) ? wc - 0x20 : wc;
+    wc = (0x61 <= (u32)wc && (u32)wc <= 0x7A) ? wc - 0x20 : wc;
     return wc;
 }
 
@@ -135,7 +135,7 @@ static u16 VFiPFPATH_GetNextCharOfLongName(struct PF_FILE_NAME_ITER* p_name) {
     wc = *(u16*)(p_name->buf + p_name->index);
     p_name->index += 2;
 
-    wc = ((u32)wc >= 0x61 && (u32)wc <= 0x7A) ? wc - 0x20 : wc;
+    wc = (0x61 <= (u32)wc && (u32)wc <= 0x7A) ? wc - 0x20 : wc;
 
     if (VFiPFPATH_UNI_ConvertFWchar(wc, &wchar) == 1) {
         wc = wchar;
@@ -197,7 +197,7 @@ u16 VFiPFPATH_GetNextCharOfPattern(struct PF_STR* p_pattern, u32 is_long_name) {
         }
     }
 
-    twc = ((u32)twc >= 0x61 && (u32)twc <= 0x7A) ? twc - 0x20 : twc;
+    twc = (0x61 <= (u32)twc && (u32)twc <= 0x7A) ? twc - 0x20 : twc;
 
     if (is_long_name == 1) {
         if (VFiPFPATH_UNI_ConvertFWchar(twc, &tmp_wc) == 1) {

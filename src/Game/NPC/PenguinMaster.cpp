@@ -66,5 +66,7 @@ void PenguinMaster::exeReaction() {
         MR::startActionSound(this, "SvPenguinOldStarPiece");
     }
 
-    MR::tryStartReactionAndPopNerve(this);
+    if (MR::tryStartReactionAndPopNerve(this)) {
+        return;
+    }
 }

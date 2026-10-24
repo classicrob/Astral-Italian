@@ -48,18 +48,24 @@ u32 LINTMsb(const u32* input) {
     return (count - 1) * 32 + bits;
 }
 
-// NONMATCHING: dead high-word subtraction, saved GPR range and loop-alignment NOP.
 void LINTSub(u32* result, const u32* left, const u32* right) {
-    u32 count = *left;
-    u32* output = result + 1;
-    u32* digit = output;
-    const u32* leftDigits = left + 1;
-    const u32* rightDigits = right + 1;
-    u32 otherCount = *right;
-    u64 borrow = 0;
+    const u32* leftDigits;
+    u32* digit;
+    const u32* rightDigits;
     u32 i;
+    u32 count;
+    u32 otherCount;
+    u32* output;
+    u64 borrow;
+    count = *left;
+    output = result + 1;
+    digit = output;
+    leftDigits = left + 1;
+    rightDigits = right + 1;
+    otherCount = *right;
+    borrow = 0;
     for (i = 0; i < count; i++) {
-        *digit = *leftDigits - borrow;
+        *digit = *leftDigits - (u32)borrow;
         borrow = *digit > 0xFFFFFFFFULL - borrow;
         if (i < otherCount) {
             *digit -= *rightDigits;

@@ -729,8 +729,8 @@ bool Nyoropon::calcJointMatrix(TPos3f* pMtx, const JointControllerInfo& rInfo) {
 bool Nyoropon::updateStretchTransition(s32 step) {
     f32 rate = MR::calcNerveEaseOutRate(this, step);
     mStretch = mStretchStart + ((mStretchGoal - mStretchStart) * rate);
-    if (mStretch >= 1.0f) {
-        mStretch = 1.0f;
+    if (mStretch >= cOne) {
+        mStretch = cOne;
         return true;
     }
     return false;

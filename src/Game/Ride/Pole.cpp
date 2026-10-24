@@ -426,6 +426,8 @@ void Pole::exeBindTurn() {
 
             MR::startBckPlayer("SquarePoleWait", "SquarePoleTurnEnd");
             setNerve(GET_NERVE(Pole, PoleNrvBindTurnEnd));
+        } else {
+            return;
         }
     } else if (!isEnableTurn()) {
         setNerve(GET_NERVE(Pole, PoleNrvBindWait));

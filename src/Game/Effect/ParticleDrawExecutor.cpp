@@ -44,8 +44,8 @@ void ParticleDrawExecutor::draw2D() const {
         JPADrawInfo drawInfo(cameraMtx.toMtxPtr());
 
         f32 width;
-        f32 height = static_cast< s32 >(JUTVideo::getManager()->getEfbHeight()) * 0.5f;
-        width = MR::getScreenWidth() * 0.5f;
+        f32 height = static_cast< s32 >(JUTVideo::getManager()->getEfbHeight()) / 2.0f;
+        width = MR::getScreenWidth() / 2.0f;
 
         Mtx44 projection;
         C_MTXOrtho(projection, -height, height, -width, width, -10000.0f, 10000.0f);

@@ -16,7 +16,10 @@ namespace {
     }
 
     static inline f32 scaledValue(const f32& value, const f32& factor) { return value * factor; }
-    static inline f32 offsetValue(const f32& value, const f32& offset) { return offset + value; }
+    static inline f32 offsetValue(const f32& value, const f32& offset) {
+        f32 radius = value;
+        return offset + radius;
+    }
 
     // Addresses of these constants are stored in the part (mpTurnSpeed / mpBindStep).
     static const f32 sTurnSpeedA = 1.5f;
@@ -234,28 +237,36 @@ void BellyDragonBodyPart::exeExitA() {
 
 // NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BellyDragonBodyPart::exeBindB() {
+    f32 base;
+    f32 ratio;
     TVec3f oldVelocity(mVelocity);
     mVelocity.scale(0.75f);
     MR::addVelocityToGravity(this, sBindBGravity);
     f32 dist = PSVECDistance(mPosition, mPrev->mPosition);
     TVec3f target(mBindMtxB.mMtx[0][3], mBindMtxB.mMtx[1][3], mBindMtxB.mMtx[2][3]);
     TVec3f up(mBindMtxB.mMtx[0][1], mBindMtxB.mMtx[1][1], mBindMtxB.mMtx[2][1]);
-    f32 offsetDist = offsetValue(mRadius, 100.0f) + 200.0f;
+    f32 radius = mRadius;
+    f32 offsetDist = offsetValue(radius, 100.0f) + 200.0f;
     TVec3f offset(up);
     offset.scale(offsetDist);
     target.add(offset);
     target.sub(mPosition);
     MR::normalizeOrZero(&target);
     if (isHead()) {
-        target.scale(dist * 0.05f);
+        f32 speed = dist;
+        speed *= 0.05f;
+        target.scale(speed);
     } else if (isSecond()) {
-        target.scale(dist * 0.015f);
+        f32 speed = dist;
+        speed *= 0.015f;
+        target.scale(speed);
     } else if (isTailSide()) {
-        target.scale(dist * 0.03f);
+        f32 speed = dist;
+        speed *= 0.03f;
+        target.scale(speed);
     } else {
         s32 lastIndex = 0x1F;
-        f32 ratio = (f32)mIndex / (f32)lastIndex;
-        f32 base;
+        ratio = (f32)mIndex / (f32)lastIndex;
         if (mIsAttackable) {
             base = 0.012f;
         } else {
@@ -423,13 +434,11 @@ bool BellyDragonBodyPart::tryBindB() {
     }
     TVec3f target(mBindMtxB.mMtx[0][3], mBindMtxB.mMtx[1][3], mBindMtxB.mMtx[2][3]);
     TVec3f up(mBindMtxB.mMtx[0][1], mBindMtxB.mMtx[1][1], mBindMtxB.mMtx[2][1]);
-    f32 offsetDist = offsetValue(mRadius, 200.0f) + 100.0f;
-    {
-        TVec3f offset(up);
-        offset.scale(offsetDist);
-        target.add(offset);
-    }
-    if (!MR::isNear(this, target, offsetValue(mRadius, 100.0f))) {
+    f32 radius = mRadius;
+    f32 offsetDist = offsetValue(radius, 200.0f) + 100.0f;
+    target.add(up.scaleInline(offsetDist));
+    f32 nearRadius = mRadius;
+    if (!MR::isNear(this, target, offsetValue(nearRadius, 100.0f))) {
         return false;
     }
     bool wasNoBind = MR::isNoBind(this);
@@ -729,12 +738,12 @@ BellyDragonBody::BellyDragonBody(BellyDragon* pHost, TPos3f* pBaseMtx, bool isLv
     mParts = new BellyDragonBodyPart*[mPartNum];
     BellyDragonBodyPart* pPrev = mHead;
     s32 jointIndex = MR::getJointIndex(pHost, "Body00");
-    f32 tailLen = 10.0f;
-    s32 easeLen = 0x10;
     f32 maxRadius = 200.0f;
     f32 minRadius = 100.0f;
     f32 maxScale = 1.0f;
     f32 minScale = 0.6f;
+    f32 tailLen = 10.0f;
+    s32 easeLen = 0x10;
     for (s32 i = 0; i < mPartNum; i++) {
         f32 rate;
         f32 radius = 200.0f;

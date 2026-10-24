@@ -367,13 +367,23 @@ namespace MR {
         if (isTalkStart(talk)) {
             action = selectNPCTalkAction(pActor);
         } else if (isTalkTalking(talk)) {
-            if (isShortTalk(talk) ||
-                (!isNullOrEmptyString(pActor->mParam._20) &&
-                 !isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20)) ||
-                isBckOneTimeAndStopped(pActor)) {
+            if (isShortTalk(talk)) {
                 action = selectNPCTalkAction(pActor);
-            } else if (pActor->mParam._1) {
-                pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10);
+            } else {
+                bool turning;
+                if (isNullOrEmptyString(pActor->mParam._20)) {
+                    turning = false;
+                } else {
+                    turning = false;
+                    if (!isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20)) {
+                        turning = true;
+                    }
+                }
+                if (turning || isBckOneTimeAndStopped(pActor)) {
+                    action = selectNPCTalkAction(pActor);
+                } else if (pActor->mParam._1) {
+                    pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10);
+                }
             }
         } else {
             return tryStartTurnAction(pActor);

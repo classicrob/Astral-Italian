@@ -989,14 +989,14 @@ u32 VFiPFCODE_CP932_isOEMMBchar(s8 cp932, u32 num) {
     switch (num) {
     case 1:
         is_mb = 0;
-        if ((code >= 0x81 && code <= 0x9F) || (code >= 0xE0 && code <= 0xFC)) {
+        if ((0x81 <= code && code <= 0x9F) || (0xE0 <= code && code <= 0xFC)) {
             is_mb = 1;
         }
         return is_mb;
 
     case 2:
         is_mb = 0;
-        if ((code >= 0x40 && code <= 0x7E) || (code >= 0x80 && code <= 0xFC)) {
+        if ((0x40 <= code && code <= 0x7E) || (0x80 <= code && code <= 0xFC)) {
             is_mb = 1;
         }
         return is_mb;

@@ -45,7 +45,7 @@ namespace {
 
 // NONMATCHING: initializing the canonical GXColor emits four byte stores instead of one word store.
 // Evidence: team scratch-objects6/REPORT-solA-FallOutFieldDraw.md (approved 164-byte unit loss).
-FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj("クリップエリア描画[抜き]"), mEdgeIndex(0), mUseTexAlpha(false), mIsEdgeColorOverridden(false) {
+FallOutFieldDraw::FallOutFieldDraw() : NameObj("クリップエリア描画[抜き]"), mEdgeIndex(0), mUseTexAlpha(false), mIsEdgeColorOverridden(false) {
     mEdgeColor.r = 0;
     mEdgeColor.g = 0;
     mEdgeColor.b = 0;

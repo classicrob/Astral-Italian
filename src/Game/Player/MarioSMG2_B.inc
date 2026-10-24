@@ -4183,10 +4183,14 @@ void Mario::fn_803B1880() {
 
 // NONMATCHING: initial status comparison and temporary register allocation.
 bool Mario::fn_803B18C0() {
-    if (getCurrentStatus() == 0x29) return false;
-    if (mActor->_EA4) return false;
-    bool actorBusy = false;
-    if (mActor->_482 || mActor->_481) actorBusy = true;
+    if (fn_803B1B70()) return false;
+    bool actorBusy;
+    {
+        MarioActor* actor = mActor;
+        if (actor->_EA4) return false;
+        actorBusy = false;
+        if (actor->_482 || actor->_481) actorBusy = true;
+    }
     if (actorBusy) return false;
     if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) return false;
     if ((static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit31)) || !(static_cast<u32>(getPlayer()->mMovementStates.mLowBits.mBit30))) return false;
@@ -4989,8 +4993,9 @@ void Mario::addTrans(const TVec3f& rShift) {
 
 // NONMATCHING: saved-register allocation; verified holder write and arithmetic.
 void Mario::setTrans(const TVec3f& rShift) {
+    const TVec3f& position = mPosHolder->mPos;
     TVec3f reqShift(rShift);
-    reqShift -= mPosHolder->mPos;
+    reqShift -= position;
     mPosHolder->fn_80405F90(rShift);
     TVec3f _148shift(_148);
     _148shift -= reqShift;

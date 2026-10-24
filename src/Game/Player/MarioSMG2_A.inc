@@ -979,7 +979,9 @@ void Mario::tryJump() {
     playEffect("共通跳躍");
     stopEffectForce("スピンリング");
     bool squat = checkSquat(true);
-    mMovementStates.mHighWord = (mMovementStates.mHighWord | 0x40000000) & 0xFFBFFFFF & 0xFFFFFF7F;
+    mMovementStates.mHighBits.mBit30 = 1;
+    mMovementStates.mHighBits.mBit22 = 0;
+    mMovementStates.mHighBits.mBit7 = 0;
     mFlags14.mHighBits.mBit28 = 1;
     mMovementStates.mLowBits.mBit20 = 0;
     fn_80399E60(&stickTotal);
@@ -4816,9 +4818,9 @@ void Mario::calcShadowDir(const TVec3f& rInput, TVec3f* pShadowDir) {
     }
 
     TVec3f normal = -*getGravityVec();
-    f32 dot = direction.dot(normal);
-    direction.dot(mHeadVec);
-    if (MR::abs(dot) > MR::abs(direction.dot(_368))) {
+    f32 surfaceDot = MR::abs(direction.dot(_368));
+    f32 gravityDot = MR::abs(direction.dot(normal));
+    if (gravityDot > surfaceDot) {
         normal = _368;
     }
 

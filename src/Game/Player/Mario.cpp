@@ -2894,7 +2894,7 @@ void Mario::update() {
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit16)) && _544 > 1) createAtField(true, 150.0f);
     else createAtField(false, 40.0f);
     _72C = calcDistToCeil(true);
-    if (isPlayerModeYoshi() && getCurrentStatus() == 39) { const u32 flagValue = static_cast<u32>(_72C < 200.0f); mFlags20.mBits.mBit16 = flagValue; }
+    if (isPlayerModeYoshi() && fn_803B1850()) { const u32 flagValue = static_cast<u32>(_72C < 200.0f); mFlags20.mBits.mBit16 = flagValue; }
     else { const u32 flagValue = static_cast<u32>(_72C < 160.0f); mFlags20.mBits.mBit16 = flagValue; }
     if (static_cast<u32>(mFlags20.mBits.mBit16)) {
         if (_4C8->isValid()) damagePolygonCheck(_4C8);
@@ -2912,10 +2912,10 @@ void Mario::update() {
         }
         saveLastSafetyTrans();
         if (isCurrentShadowFloorDangerAction()) {
+            TVec3f projected;
             TVec3f groundToShadow(mShadowPos);
             groundToShadow -= mGroundPos;
             MR::isNearZero(mAirGravityVec, 0.001f);
-            TVec3f projected;
             if (MR::vecKillElement(groundToShadow, mAirGravityVec, &projected) >= 5.0f && groundToShadow.dot(mFrontVec) > 0.0f) {
                 mDrawStates.mBits.mBit21 = 1;
                 groundToShadow.setLength(5.0f);
@@ -3874,7 +3874,9 @@ void Mario::draw() const {
     if ((static_cast<u32>(mDrawStates.mBits.mBit30))) {
         TDDraw::cameraInit3D();
         TDDraw::setup(0, 1, 0);
-        TDDraw::drawCylinder(mPosHolder->mPos, mShadowPos - mActor->_240, 32.0f, 0xffff0010, 0xff000004, 8);
+        const TVec3f& position = mPosHolder->mPos;
+        const TVec3f& actorPosition = mActor->_240;
+        TDDraw::drawCylinder(position, mShadowPos - actorPosition, 32.0f, 0xffff0010, 0xff000004, 8);
         TVec3f diff2A0_31C(mActor->_240 - mShadowPos);
         f32 diffMag = diff2A0_31C.length();
         MR::normalize(&diff2A0_31C);
@@ -5627,8 +5629,9 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
         if (!MR::isNearZero(distance, 0.001f)) {
             delta.setLength(radius - distance);
             f32 penetration = -delta.dot(*mFrontWallTriangle->getNormal(0));
-            f32 amount = 2.0f;
-            if (!(penetration > amount)) amount = 0.0f;
+            f32 amount;
+            if (penetration > 2.0f) amount = 2.0f;
+            else amount = 0.0f;
             TVec3f pushVec(*mFrontWallTriangle->getNormal(0));
             pushVec.scale(amount);
             push(pushVec);
@@ -5652,9 +5655,12 @@ void Mario::fn_803912D0(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
 
 // NONMATCHING: register allocation and position-reference load scheduling.
 bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
-    f32 angle = 180.0f * (marioAcos(-getGravityVec()->dot(normal)) / 3.14159f);
+    f32 angle = marioAcos(-getGravityVec()->dot(normal));
+    angle /= 3.14159f;
+    angle = 180.0f * angle;
+    const TVec3f& position = mPosHolder->mPos;
     TVec3f fromBase(hit->mHitPos);
-    fromBase.sub(mPosHolder->mPos);
+    fromBase.sub(position);
     MR::normalizeOrZero(&fromBase);
     bool result = false;
     bool slip = false;
@@ -6791,7 +6797,9 @@ bool Mario::checkDamage() {
     if (isStatusActive(MarioStatus_Swim)) {
         checkWaterDamage();
         mMovementStates.mHighBits.mBit19 = 0;
-        mFlags14.mLowWord &= 0x7FFFF77FU;
+        mFlags14.mLowBits.mBit31 = 0;
+        mFlags14.mLowBits.mBit11 = 0;
+        mFlags14.mLowBits.mBit7 = 0;
         return false;
     }
 
@@ -7770,8 +7778,9 @@ u32 Mario::moveRelativePositionWall() {
         TVec3f movePos;
         PSMTXMultVec(*tri->getBaseMtx(), relPos, &movePos);
 
+        const TVec3f& position = mPosHolder->mPos;
         TVec3f add(movePos);
-        add -= mPosHolder->mPos;
+        add -= position;
 
         const f32 elem = MR::vecKillElement(add, *tri->getNormal(0), &add);
         if (elem > 0.0f) {

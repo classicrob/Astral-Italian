@@ -209,7 +209,7 @@ void StaffRollPart::calcTextRect(JGeometry::TBox2<f32>* result) const {
     StaffRollLine* const* it = mLines;
     begin = it;
     for (; it != mLines + mLineCount; ++it) {
-        if (begin == it) {
+        if (it == begin) {
             MR::calcTextBoxRectRecursive(&rect, *it, (*it)->getPaneName());
         } else {
             JGeometry::TBox2<f32> part;

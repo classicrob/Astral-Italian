@@ -10,14 +10,17 @@
 
 // NONMATCHING: compiler adds a redundant initial zero-count loop guard.
 MarineSnow::MarineSnow() : mParticleCount(16), mParticlePositions(new (32) TVec3f[mParticleCount]), mCellSize(1000.0f) {
-    for (u32 idx = 0; idx < mParticleCount; idx++) {
+    u32 idx = 0;
+    do {
         TVec3f randVec;
+        f32 y;
         const f32 z = mCellSize * MR::getRandom();
-        const f32 y = mCellSize * MR::getRandom();
+        y = mCellSize * MR::getRandom();
         const f32 x = mCellSize * MR::getRandom();
         randVec.set(x, y, z);
         mParticlePositions[idx] = randVec;
-    }
+        ++idx;
+    } while (idx < mParticleCount);
 
     mFadeStep = 0;
 

@@ -147,8 +147,8 @@ const u8* PadRecorder::decompress(KPADStatus* pOut, const u8* pMask, KPADStatus*
         }
 
         bit++;
-        pLast++;
         pDst++;
+        pLast++;
 
         if (bit == 8) {
             bit = 0;

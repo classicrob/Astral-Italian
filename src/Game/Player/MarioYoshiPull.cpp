@@ -32,19 +32,21 @@ void MarioYoshiPull::fn_804090C0() { mPhase=1;mTimer=0; }
 bool MarioYoshiPull::exePull() {
     TVec3f target;
     mActor->fn_803B9810()->fn_8041FB40(&target);
+    MarioActor* actor = mActor;
     TVec3f direction(target);
-    direction-=mActor->mPosition;
+    direction-=actor->mPosition;
     MR::vecKillElement(direction,getPlayer()->getAirGravityVec(),&direction);
     if(!MR::normalizeOrZero(&direction)) {
         getPlayer()->setFrontVecKeepUp(direction);
         TVec3f input(getWorldPadDir());
         MR::vecKillElement(input,getPlayer()->getAirGravityVec(),&input);
         MR::normalizeOrZero(&input);
+        f32 power;
         f32 dot=direction.dot(input);
         if(dot<0.0f) {
             if(!isAnimationRun("ヨッシー引っ張り歩き")) changeAnimation("ヨッシー引っ張り歩き",static_cast<const char*>(nullptr));
             else MR::startActionSound(mActor->getYoshi(),"Pull",-1,-1,-1);
-            f32 power=YoshiTongueAction::fn_8041FB50();
+            power=YoshiTongueAction::fn_8041FB50();
             addVelocity((direction*dot)*power);
         } else if(!isAnimationRun("ヨッシー引っ張り")) changeAnimation("ヨッシー引っ張り",static_cast<const char*>(nullptr));
     }

@@ -205,9 +205,10 @@ void TalkBalloonShort::open(TalkMessageCtrl* pCtrl) {
     TalkBalloon::open(pCtrl);
     MR::showScreen(this);
     LayoutActor::appear();
+    const wchar_t* message;
     TalkTextFormer* tempFormer = mTextFormer;
 
-    const wchar_t* message = TalkFunction::getMessage(pCtrl);
+    message = TalkFunction::getMessage(pCtrl);
 
     tempFormer->formMessage(message, 0);
     tempFormer->setArg(pCtrl->mTagArg, 0);

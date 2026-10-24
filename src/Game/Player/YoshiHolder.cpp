@@ -26,17 +26,17 @@ bool YoshiTongueTarget::sendLoopTongueMessage() {return sendMessageToCurrentTarg
 void YoshiTongueTarget::sendStartEatenMessage() {sendMessageToCurrentTarget(0xFB);}
 void YoshiTongueTarget::sendReleaseEatenMessage() {sendMessageToCurrentTarget(0xFA);}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-void YoshiTongueTarget::advanceTargetIfMore() {if(mIndex<mCount-1)++mIndex;}
+void YoshiTongueTarget::advanceTargetIfMore() {if(mCount-1>mIndex)++mIndex;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiTongueTarget::cancelTargetAndAdvance() {sendMessageToCurrentTarget(0xFC);++mIndex;}
 bool YoshiTongueTarget::hasMultipleRemainingTargets()const{return mCount-mIndex>1;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::hasCurrentTarget()const{return mIndex<mCount;}
+bool YoshiTongueTarget::hasCurrentTarget()const{return mCount>mIndex;}
 bool YoshiTongueTarget::hasNextTarget()const{return mCount-1>mIndex;}
 bool YoshiTongueTarget::fn_8041C120()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Eat;}
 bool YoshiTongueTarget::fn_8041C140()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Lick;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::fn_8041C170()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Capture||mTargets[mIndex].mType==YoshiLockOnTargetType::CaptureAlternate;}
+bool YoshiTongueTarget::fn_8041C170()const{return static_cast<s32>(mTargets[mIndex].mType)==YoshiLockOnTargetType::Capture||static_cast<s32>(mTargets[mIndex].mType)==YoshiLockOnTargetType::CaptureAlternate;}
 bool YoshiTongueTarget::fn_8041C1B0()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Capture;}
 bool YoshiTongueTarget::fn_8041C1E0()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Pull;}
 bool YoshiTongueTarget::fn_8041C210()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Projectile;}
@@ -97,7 +97,7 @@ s32 fn_8041BD40(){return 0;}s32 fn_8041BD50(){return 1;}s32 fn_8041BD60(){return
 f32 fn_8041BD80(){return 26.0f;}f32 fn_8041BD90(){return 3.5f;}f32 fn_8041BDA0(){return 13.0f;}f32 fn_8041BDB0(){return .65f;}
 f32 fn_8041BDC0(){return 60.0f;}f32 fn_8041BDD0(){return 40.0f;}f32 fn_8041BDE0(){return .999f;}s32 fn_8041BDF0(){return 30;}
 // NONMATCHING: gravity temporary address lifetime, stack slots and registers differ.
-void fn_8041BE00(TVec3f* out){const TVec3f& gravity=*MR::getPlayerGravity();TVec3f gravityPart=gravity*40.0f;const TVec3f& velocity=*MR::getPlayerVelocity();TVec3f velocityPart=velocity*2.0f;TVec3f result(velocityPart);result.sub(gravityPart);out->x=result.x;out->y=result.y;out->z=result.z;}
+void fn_8041BE00(TVec3f* out){TVec3f result = *MR::getPlayerVelocity() * 2.0f - *MR::getPlayerGravity() * 40.0f;out->x=result.x;out->y=result.y;out->z=result.z;}
 }
 namespace MR {bool isPlayerInRushOrDemoOrTalk(){return isPlayerInRush()||isDemoActive()||isSystemTalking();}}
 namespace {s32 sAppearValue=1;}

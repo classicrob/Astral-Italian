@@ -369,7 +369,7 @@ NameObj* SceneObjHolder::newEachObj(int id) {
     case SceneObj_ClipAreaDropHolder:
         return new ClipAreaDropHolder();
     case SceneObj_FallOutFieldDraw:
-        return new FallOutFieldDraw("クリップエリア描画[抜き]");
+        return new FallOutFieldDraw();
     case SceneObj_ClipFieldFillDraw:
         return new ClipFieldFillDraw("クリップエリア描画[塗りつぶし]");
     case SceneObj_LightFruitClipArea:

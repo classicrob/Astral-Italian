@@ -333,10 +333,16 @@ static _GXCompType getFmtType(_GXVtxAttrFmtList* i_fmtList, _GXAttr i_attr) {
 
 void J3DModelLoader::readVertex(J3DVertexBlock const* i_block) {
     J3DVertexData& vertex_data = mpModelData->getVertexData();
-    vertex_data.mVtxAttrFmtList = JSUConvertOffsetToPtr< GXVtxAttrFmtList >(i_block, i_block->mpVtxAttrFmtList);
-    vertex_data.mVtxPosArray = JSUConvertOffsetToPtr< void >(i_block, i_block->mpVtxPosArray);
-    vertex_data.mVtxNrmArray = JSUConvertOffsetToPtr< void >(i_block, i_block->mpVtxNrmArray);
-    vertex_data.mVtxNBTArray = JSUConvertOffsetToPtr< void >(i_block, i_block->mpVtxNBTArray);
+    GXVtxAttrFmtList* attrFmt = JSUConvertOffsetToPtr< GXVtxAttrFmtList >(i_block, i_block->mpVtxAttrFmtList);
+    const J3DBlockOffset posOffset = i_block->mpVtxPosArray;
+    vertex_data.mVtxAttrFmtList = attrFmt;
+    void* pos = JSUConvertOffsetToPtr< void >(i_block, posOffset);
+    const J3DBlockOffset nrmOffset = i_block->mpVtxNrmArray;
+    vertex_data.mVtxPosArray = pos;
+    void* nrm = JSUConvertOffsetToPtr< void >(i_block, nrmOffset);
+    const J3DBlockOffset nbtOffset = i_block->mpVtxNBTArray;
+    vertex_data.mVtxNrmArray = nrm;
+    vertex_data.mVtxNBTArray = JSUConvertOffsetToPtr< void >(i_block, nbtOffset);
     for (int i = 0; i < 2; i++) {
         vertex_data.mVtxColorArray[i] = (GXColor*)JSUConvertOffsetToPtr< void >(i_block, i_block->mpVtxColorArray[i]);
     }
@@ -393,11 +399,18 @@ void J3DModelLoader::readVertex(J3DVertexBlock const* i_block) {
 }
 
 void J3DModelLoader::readEnvelop(J3DEnvelopeBlock const* i_block) {
+    const J3DBlockOffset mixNumOffset = i_block->mpWEvlpMixMtxNum;
     mpModelData->getJointTree().mWEvlpMtxNum = i_block->mWEvlpMtxNum;
-    mpModelData->getJointTree().mWEvlpMixMtxNum = JSUConvertOffsetToPtr< u8 >(i_block, i_block->mpWEvlpMixMtxNum);
-    mpModelData->getJointTree().mWEvlpMixMtxIndex = JSUConvertOffsetToPtr< u16 >(i_block, i_block->mpWEvlpMixIndex);
-    mpModelData->getJointTree().mWEvlpMixWeight = JSUConvertOffsetToPtr< f32 >(i_block, i_block->mpWEvlpMixWeight);
-    mpModelData->getJointTree().mInvJointMtx = JSUConvertOffsetToPtr< Mtx >(i_block, i_block->mpInvJointMtx);
+    u8* mixNum = JSUConvertOffsetToPtr< u8 >(i_block, mixNumOffset);
+    const J3DBlockOffset indexOffset = i_block->mpWEvlpMixIndex;
+    mpModelData->getJointTree().mWEvlpMixMtxNum = mixNum;
+    u16* index = JSUConvertOffsetToPtr< u16 >(i_block, indexOffset);
+    const J3DBlockOffset weightOffset = i_block->mpWEvlpMixWeight;
+    mpModelData->getJointTree().mWEvlpMixMtxIndex = index;
+    f32* weight = JSUConvertOffsetToPtr< f32 >(i_block, weightOffset);
+    const J3DBlockOffset invJointOffset = i_block->mpInvJointMtx;
+    mpModelData->getJointTree().mWEvlpMixWeight = weight;
+    mpModelData->getJointTree().mInvJointMtx = JSUConvertOffsetToPtr< Mtx >(i_block, invJointOffset);
 }
 
 void J3DModelLoader::readDraw(J3DDrawBlock const* i_block) {

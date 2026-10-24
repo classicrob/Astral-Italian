@@ -76,6 +76,14 @@ namespace NrvKoopaJrRobot { KoopaJrRobotNrvIntro KoopaJrRobotNrvIntro::sInstance
 namespace NrvKoopaJrRobot { KoopaJrRobotNrvDemo KoopaJrRobotNrvDemo::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrRobot { KoopaJrRobotNrvDead KoopaJrRobotNrvDead::sInstance ATTRIBUTE_WEAK; }
 
+s32 KoopaJrRobotFunction::getStarPieceCountPerPart() {
+    return 8;
+}
+
+const char* KoopaJrRobotFunction::getDemoName() {
+    return "クッパJrロボットデモ";
+}
+
 KoopaJrRobot::KoopaJrRobot(const char* pName)
     : LiveActor(pName), mChildCount(0), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
       mHeadModel(nullptr), mBody(nullptr), mZAxis(0.0f, 0.0f, 1.0f), mZAxis2(0.0f, 0.0f, 1.0f), _10C(0.0f) {

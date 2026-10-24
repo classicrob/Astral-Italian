@@ -1320,11 +1320,11 @@ Game/Boss/KoopaJrCastleWindHolder.cpp:
 	.ctors      start:0x80643EBC end:0x80643EC0
 
 Game/Boss/KoopaJrCastleWindUp.cpp:
-	.text       start:0x800DA250 end:0x800DA9D0
+	.text       start:0x800DA250 end:0x800DA9B0
 	.ctors      start:0x80643EC0 end:0x80643EC4
 
 Game/Boss/KoopaJrRobot.cpp:
-	.text       start:0x800DA9D0 end:0x800DB790
+	.text       start:0x800DA9B0 end:0x800DB790
 	.ctors      start:0x80643EC4 end:0x80643EC8
 
 Game/Boss/KoopaJrRobotTU01.cpp:

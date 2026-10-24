@@ -118,12 +118,3 @@ bool KoopaJrCastleWindUp::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 }
 
 KoopaJrCastleWindUp::~KoopaJrCastleWindUp() {}
-
-// These two robot constants precede KoopaJrRobot's actor TU in the original split.
-s32 KoopaJrRobotFunction::getStarPieceCountPerPart() {
-    return 8;
-}
-
-const char* KoopaJrRobotFunction::getDemoName() {
-    return "クッパJrロボットデモ";
-}

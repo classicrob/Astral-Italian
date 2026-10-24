@@ -130,9 +130,8 @@ bool MarioSlider::update() {
         return false;
     } else {
         const TVec3f& front=getFrontVec();
-        TVec3f cam=MR::getCamZdir();
         f32 stickY,stickX;
-        if (cam.dot(front)>=0.0f) {stickY=-getStickY();stickX=getStickX();}
+        if (MR::getCamZdir().dot(front)>=0.0f) {stickY=-getStickY();stickX=getStickX();}
         else {stickY=getStickY();stickX=-getStickX();}
         _38 = (stickY * (1.0f - mActor->getConst().getTable()->mSliderBrakeIne)) + (_38 * mActor->mConst->getTable()->mSliderBrakeIne);
         MarioConstTable* tbl = mActor->mConst->getTable();

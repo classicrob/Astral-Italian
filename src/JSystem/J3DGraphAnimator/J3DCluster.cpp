@@ -181,11 +181,12 @@ void J3DDeformer::deform(J3DVertexBuffer* i_buffer, u16 param_1, f32* i_weights)
     if (checkFlag(2)) {
         if (i_buffer->getVertexData()->getVtxPosType() == 4) {
             J3DCluster* cluster = mDeformData->getClusterPointer(param_1);
-            u16 offset = 0;
+            u32 offset = 0;
             J3DClusterKey* clusterKey = NULL;
 
             for (u16 i = 0; i < param_1; i++) {
-                offset += mDeformData->getClusterPointer(i)->mKeyNum + 1;
+                u16 keyCount = mDeformData->getClusterPointer(i)->mKeyNum + 1;
+                offset += keyCount;
             }
 
             clusterKey = mDeformData->getClusterKeyPointer(offset);

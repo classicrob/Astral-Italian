@@ -13,10 +13,13 @@ JPAParticleCallBack::~JPAParticleCallBack() {
 
 // NONMATCHING: RNG extraction and matrix-argument loads are scheduled differently; saved registers differ.
 void JPABaseParticle::init_p(JPAEmitterWorkData* pWork) {
+    JPAExtraShape* esp;
+    JPABaseShape* bsp;
+    JPADynamicsBlock* dyn;
     JPABaseEmitter* emtr = pWork->mpEmtr;
-    JPAExtraShape* esp = pWork->mpRes->mpExtraShape;
-    JPABaseShape* bsp = pWork->mpRes->mpBaseShape;
-    JPADynamicsBlock* dyn = pWork->mpRes->mpDynamicsBlock;
+    esp = pWork->mpRes->mpExtraShape;
+    bsp = pWork->mpRes->mpBaseShape;
+    dyn = pWork->mpRes->mpDynamicsBlock;
 
     mAge = -1;
     mLifeTime = (1.0f - dyn->getLifetimeRndm() * emtr->get_r_f()) * emtr->mLifeTime;

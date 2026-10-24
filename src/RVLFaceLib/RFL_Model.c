@@ -910,14 +910,15 @@ void RFLiInitCharModelRes(RFLiCharModelRes* res, const RFLiCharInfo* info) {
 void RFLiInitShapeRes(RFLiShapeRes* shape) {
     static const u32 csHeader[RFLiPartsShp_Max] = {'nose', 'frhd', 'face', 'hair', 'cap_', 'berd', 'nsln', 'mask', 'glas'};
 
-    void* res;
-    u8* ptr8;
-
     // Not all shapes have texture coordinates
     BOOL skipTxc = shape->part == RFLiPartsShp_Forehead || shape->part == RFLiPartsShp_Hair || shape->part == RFLiPartsShp_Beard ||
                    shape->part == RFLiPartsShp_Nose;
 
-    u32 fileSize = RFLiGetShapeSize(shape->part, shape->file);
+    u32 fileSize;
+    void* res;
+    u8* ptr8;
+
+    fileSize = RFLiGetShapeSize(shape->part, shape->file);
     res = RFLiAlloc32(fileSize);
     RFLiLoadShape(shape->part, shape->file, res);
 #ifdef GALAXY_NATIVE

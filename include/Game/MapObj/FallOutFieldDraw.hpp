@@ -6,8 +6,7 @@
 class FallOutFieldDraw : public NameObj {
 public:
     /// @brief Creates a new `FallOutFieldDraw`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    FallOutFieldDraw(const char* pName);
+    FallOutFieldDraw();
 
     virtual void init(const JMapInfoIter&);
     virtual void movement();

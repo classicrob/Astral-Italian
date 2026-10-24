@@ -29,6 +29,38 @@ def inventory(root):
   values={n:''.join(subprocess.check_output(['/usr/bin/xattr','-p','-x',n,str(p)],text=True).split()).lower() for n in sorted(names)}
   if values:attrs[rel]=values
  return {'files':files,'xattrs':attrs}
+def prepare_m1_fixture():
+ """A normal ditto copy gets this host's provenance; certify that actual copy as the local input.
+ No attributes are removed or rewritten. Each run still compares ALL bytes and ALL attributes.
+ """
+ canonical=HOME/'MacioGalaxy2-gamedata/fixtures/unlocked-242'
+ original=json.loads((canonical/'receipt.json').read_text());before=inventory(canonical/'fixture')
+ assert before=={k:original[k] for k in ('files','xattrs')},'canonical fixture differs from its receipt'
+ package=ROOT/'fixtures/unlocked-242';target=package/'fixture'
+ if not package.exists():
+  package.mkdir(parents=True)
+  subprocess.run(['/usr/bin/ditto','--rsrc','--extattr',str(canonical/'fixture'),str(target)],check=True)
+  local=inventory(target)
+  assert local['files']==before['files'],'local fixture save bytes changed'
+  changes=[]
+  for rel in set(before['xattrs'])|set(local['xattrs']):
+   a=before['xattrs'].get(rel,{});b=local['xattrs'].get(rel,{})
+   for key in set(a)|set(b):
+    if a.get(key)!=b.get(key):
+     assert key=='com.apple.provenance',('non-provenance attribute changed',rel,key)
+     changes.append({'path':rel,'attribute':key,'canonical':a.get(key),'local':b.get(key)})
+  assert inventory(canonical/'fixture')==before,'canonical fixture changed during copy'
+  receipt={'source':original['source'],'fixture':str(target),'complete_save':original['complete_save'],
+           **local,'canonical_fixture':str(canonical/'fixture'),'canonical_receipt_sha256':digest(canonical/'receipt.json')}
+  (package/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+  (package/'PREP.json').write_text(json.dumps({'status':'PREPARED_LOCAL_COPY','canonical_receipt_sha256':digest(canonical/'receipt.json'),
+     'canonical_unchanged':True,'all_file_bytes_identical':True,'non_provenance_xattrs_identical':True,
+     'copy_local_provenance':changes,'note':'Ordinary ditto, no security attributes removed or rewritten. Runtime gate requires exact equality to this verified local template, including provenance.'},indent=2)+'\n')
+ receipt=json.loads((package/'receipt.json').read_text())
+ assert receipt['canonical_receipt_sha256']==digest(canonical/'receipt.json')
+ assert receipt['files']==before['files'] and inventory(target)=={k:receipt[k] for k in ('files','xattrs')}
+ return package
+
 def pointer_pass(out,pid,source,sha):
  # Preserve the reference host-pointer acceptance checks; no AX calls are allowed on M1.
  (out/'pointer-unavailable.json').write_text(json.dumps({'passed':False,'reason':'reference gate requires ordinary host pointer evidence; frozen54 has no whole-session replay; candidate tape validation is separate'})+'\n')
@@ -51,14 +83,15 @@ def main():
  assert args.app==prep()[0], 'only owned perfm1a frozen54 copy is allowed'
  exe=args.app/'Contents/MacOS/Petari';assert digest(exe)==args.sha256
  root=ROOT/'runs'/args.label;root.mkdir(mode=0o700,parents=True)
- fixture_root=HOME/'MacioGalaxy2-gamedata/fixtures/unlocked-242';fixture=fixture_root/'fixture';save=json.loads((fixture_root/'receipt.json').read_text())
+ fixture_root=prepare_m1_fixture();fixture=fixture_root/'fixture';save=json.loads((fixture_root/'receipt.json').read_text())
+ (root/'fixture-lineage.json').write_bytes((fixture_root/'PREP.json').read_bytes())
  assert inventory(fixture)=={k:save[k] for k in ('files','xattrs')}
  # 5.4: the user played the unlocked profile after the fixture was taken (09:07 2026-10-23), so the live save no longer equals the
  # fixture receipt. The FIXTURE (the gate input) must still equal its receipt; the live save's drift is recorded, and the live save is
  # snapshotted here and must be byte-identical at the end (the gate never touches the user's save).
  source_now=inventory(Path(save['source']))
  if source_now!={k:save[k] for k in ('files','xattrs')}:
-  (root/'save-source-drift.json').write_text(json.dumps({'note':'live source save differs from the fixture receipt (user play after the fixture); fixture verified intact','receipt':{k:save[k] for k in ('files','xattrs')},'now':source_now},indent=2)+'\n')
+  (root/'save-source-drift.json').write_text(json.dumps({'note':'live source inventory differs from the verified local fixture; drift is recorded; live source must remain unchanged','receipt':{k:save[k] for k in ('files','xattrs')},'now':source_now},indent=2)+'\n')
  key=json.loads((FROZEN/'BUILD.json').read_text())['renderer_key']
  assert key==args.renderer_key and re.fullmatch('[0-9a-f]{64}',key)
  real=HOME/'Library/Caches/AstralItalian'

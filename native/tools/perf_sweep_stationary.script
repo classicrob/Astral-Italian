@@ -1,0 +1,18 @@
+# Explicit stationary alternative for a stage where the generic walking probe falls off.
+# Same 970-frame observation, camera/jump/spin retained; no translational input.
+90 E
+90 Q
+30
+90
+20 Space
+40
+20 F
+60
+90
+60
+60
+20 Space
+60
+90 E
+90 Right
+60

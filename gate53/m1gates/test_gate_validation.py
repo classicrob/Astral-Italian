@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Safety checks for measurement parsing and fail-closed acceptance; no game launch."""
-import csv,importlib.util,json,sqlite3,subprocess,sys,tempfile,unittest
+import copy,csv,importlib.util,json,sqlite3,subprocess,sys,tempfile,unittest
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 from receipts54m import audio_observation,latency
@@ -47,4 +47,21 @@ class GateValidation(unittest.TestCase):
  def test_latency_extracts_frames_after_read(self):
   samples=latency('[latency] press: 60 ms (frame 88, 2 frames after the read), on screen 70.12 ms\n[latency] press: 60 ms (frame 89, 3 frames after the read), on screen 86.7 ms')
   self.assertEqual(samples,[(2,70.12),(3,86.7)])
+ def test_candidate_arrival_requires_exact_state_and_rng_readback(self):
+  from replay_cases54m import anchor_checks,ANCHOR_POLICY
+  report={'anchor_policy':ANCHOR_POLICY,'segments':[{'stage':'RedBlueExGalaxy','play_ready_required':True,'play_ready_state_check':{'checked':True,'passed':True,'position_bit_exact':True,'rng':{'verified':True}}}]}
+  self.assertTrue(all(anchor_checks(report,'RedBlueExGalaxy').values()))
+  for key in ('checked','passed','position_bit_exact','rng'):
+   bad=copy.deepcopy(report);bad['segments'][0]['play_ready_state_check'][key]=False if key!='rng' else {'verified':False}
+   self.assertFalse(all(anchor_checks(bad,'RedBlueExGalaxy').values()),key)
+  bad=copy.deepcopy(report);bad['segments'][0]['play_ready_required']=False
+  self.assertFalse(all(anchor_checks(bad,'RedBlueExGalaxy').values()))
+ def test_candidate_interactive_map_requires_explicit_policy_and_anchor_kind(self):
+  from replay_cases54m import anchor_checks,ANCHOR_POLICY
+  report={'anchor_policy':ANCHOR_POLICY,'segments':[{'stage':'WorldMap01Galaxy','play_ready_required':False,'play_ready_state_check':None}]}
+  self.assertTrue(all(anchor_checks(report).values()))
+  del report['segments'][0]['play_ready_required'];self.assertFalse(all(anchor_checks(report).values()))
+  self.assertFalse(all(anchor_checks({'segments':[]}).values()))
+  report['segments'][0]['play_ready_required']=False;report['anchor_policy']='legacy-play-ready'
+  self.assertFalse(all(anchor_checks(report).values()))
 if __name__=='__main__':unittest.main()

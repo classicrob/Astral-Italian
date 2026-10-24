@@ -340,9 +340,10 @@ def main(argv=None):
                           rng_seed_matches=sync["rng_seed"] == seg["rng_seed"])
     summary = verdict(results, star_events(route_rows))
     summary["bit_exact"] = all(r["rows_with_any_difference"] == 0 for r in results)
+    summary["rng_checkpoints_matched"] = all(r["rng_seed_matches"] for r in results)
     summary["bit_exact_required"] = a.require_bit_exact
     if a.require_bit_exact:
-        summary["all_segments_matched"] &= summary["bit_exact"]
+        summary["all_segments_matched"] &= summary["bit_exact"] and summary["rng_checkpoints_matched"]
     summary.update(tape=str(sidecar), tape_frames=total, segments=results)
     (a.out / "first-divergence.json").write_text(json.dumps(summary, indent=2) + "\n")
     brief = {k: summary[k] for k in ("all_segments_matched", "first_divergence_segment", "first_divergence", "reached_star", "star_in_recording")}

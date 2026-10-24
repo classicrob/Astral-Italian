@@ -74,6 +74,7 @@ the warm arm still needs at least fifty audio reports with zero underruns.
 The separate item3tier worker sweep is paused before workers8-r1 app launch;
 its three diagnostic arms and first cap2/cap4 runs remain intact. After the
 candidate campaign, run a fresh complete alternating 2,4,8,2,4,8 sweep under
-a new label. Preserve the interrupted cohort as preliminary evidence. Record
+a new label with `tier_cold54m.py LABEL --only sweep --candidate-dir FINAL_CANDIDATE_DIR`.
+Preserve the interrupted frozen54 cohort separately as preliminary evidence. Record
 the actual pool policy: cap8 does not mean eight active workers; the frozen
 M1 logs show four total workers, including two reserved workers.

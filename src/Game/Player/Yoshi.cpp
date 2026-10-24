@@ -802,11 +802,7 @@ void Yoshi::fn_8040DC20() {
             MR::copyJointPos(this, "Center", &center);
             MtxPtr matrix = getBaseMtx();
             TVec3f up(matrix[0][1], matrix[1][1], matrix[2][1]);
-            TVec3f offset(up);
-            offset.scale(50.0f);
-            TVec3f position(center);
-            position.sub(offset);
-            MR::setPosition(this, position);
+            MR::setPosition(this, center - up.scaleInline(50.0f));
             return;
         }
         setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
@@ -1578,10 +1574,7 @@ void Yoshi::fn_80410890() {
         displacement.sub(center);
         TVec3f planar;
         f32 vertical = MR::vecKillElement(displacement, mGravity, &planar);
-        TVec3f offset(mGravity);
-        offset.scale(vertical);
-        TVec3f position(center);
-        position.add(offset);
+        TVec3f position(center + mGravity.scaleInline(vertical));
         WaterInfo unused;
         MR::getWaterAreaObj(mWaterInfo, center);
         if (!mWaterInfo->isInWater()) _144 = false;

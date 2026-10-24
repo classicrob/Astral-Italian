@@ -102,14 +102,14 @@ bool MarioFreeze::update() {
             addVelocity(getGravityVec() * _14);
             _14 += 1.5f;
             if (_14 < 0.0f) {
-                getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+                getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
             }
         } else if (_14 > 0.0f) {
             if (_14 < 8.0f) {
                 _14 = 0.0f;
             } else {
                 _14 = 0.4f * -_14;
-                getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+                getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
                 getPlayer()->setJumpVec(getGravityVec() * _14);
             }
         }

@@ -132,9 +132,14 @@ s32 VFiPFCLUSTER_FreeAppendCluster(PF_FILE* p_file) {
                 if (err)
                     return err;
                 p_file->p_sfd->ffd.last_cluster.num_last_cluster = file_end_cluster;
-                p_file->p_sfd->ffd.last_cluster.max_chain_index =
-                    (p_file->p_sfd->dir_entry.file_size >> (p_vol->bpb.log2_bytes_per_sector + p_vol->bpb.log2_sectors_per_cluster)) +
-                    ((p_file->p_sfd->dir_entry.file_size & ((p_vol->bpb.bytes_per_sector << p_vol->bpb.log2_sectors_per_cluster) - 1)) != 0) - 1;
+                {
+                    u32 file_size;
+                    PF_SFD* sfd = p_file->p_sfd;
+                    file_size = sfd->dir_entry.file_size;
+                    sfd->ffd.last_cluster.max_chain_index =
+                        (file_size >> (p_vol->bpb.log2_bytes_per_sector + p_vol->bpb.log2_sectors_per_cluster)) +
+                        ((file_size & ((p_vol->bpb.bytes_per_sector << p_vol->bpb.log2_sectors_per_cluster) - 1)) != 0) - 1;
+                }
                 chain_index = p_file->p_sfd->ffd.last_cluster.max_chain_index + 1;
             } else {
                 p_file->p_sfd->dir_entry.start_cluster = 0;

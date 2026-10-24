@@ -375,8 +375,7 @@ void Coin::exeMove() {
 
     TVec3f sensorDir;
     if (DrumTrampoline::tryGetGroundNormal(&sensorDir, this, getSensor(nullptr))) {
-        TVec3f kick = sensorDir * 40.0f;
-        MR::setVelocity(this, kick);
+        MR::setVelocity(this, sensorDir * 40.0f);
     }
 
     MR::calcGravityOrZero(this);

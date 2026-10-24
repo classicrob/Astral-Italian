@@ -45,8 +45,8 @@ MarioBlown::MarioBlown(MarioActor* pActor) : MarioState(pActor, MarioStatus_Blow
 
 // NONMATCHING: independent timer initialization order.
 bool MarioBlown::start() {
-    mTimer = 0;
     _14 = 0;
+    mTimer = 0;
     _24 = false;
     _25 = false;
 
@@ -56,9 +56,9 @@ bool MarioBlown::start() {
 
     playEffectTrans("壁ヒット", getPlayer()->getWallPos());
 
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
+    getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
 
     _18 += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightBlown;
     getPlayer()->setJumpVec(_18);
@@ -94,7 +94,7 @@ bool MarioBlown::close() {
     getPlayer()->unlockGroundCheck(this);
 
     if (!_24) {
-        getPlayer()->mMovementStates.mHighWord &= 0xFFFFFDFFU;
+        getPlayer()->mMovementStates.mHighBits.mBit9 = 0;
     }
 
     return true;
@@ -117,8 +117,8 @@ bool MarioBlown::isGrounded() {
 }
 
 void MarioBlown::land() {
-    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-    getPlayer()->mMovementStates.mLowWord |= 0x00040000U;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit18 = 1;
 }
 
 void MarioBlown::applyGroundVelocity() {
@@ -135,13 +135,19 @@ void MarioBlown::limitVelocity() {
 }
 
 // NONMATCHING: literal pool order changes string offsets, preserving all values.
+namespace {
+    char sBlownLandingVoice[] = "吹っ飛び倒れ";
+    char sBlownLandingEffect[] = "共通壁ヒット着地";
+    char sBlownAirAnimation[] = "中ダメージ空中";
+}
+
 bool MarioBlown::updateAir() {
     applyAirVelocity();
     if (mTimer > 300) {
         return false;
     }
     if (mTimer > 120) {
-        changeAnimation("中ダメージ空中");
+        changeAnimation(sBlownAirAnimation);
     }
     if (mTimer > 60) {
         TVec3f horizontal;
@@ -154,13 +160,13 @@ bool MarioBlown::updateAir() {
             land();
         }
         if (getPlayer()->damagePolygonCheck(getPlayer()->getGroundPolygon())) {
-            getPlayer()->mFlags20.mWord |= 0x00000200U;
+            getPlayer()->mFlags20.mBits.mBit9 = 1;
             _24 = true;
             return false;
         }
-        playSound("吹っ飛び倒れ");
+        playSound(sBlownLandingVoice);
         changeAnimation("壁ヒット着地");
-        playEffect("共通壁ヒット着地");
+        playEffect(sBlownLandingEffect);
         MR::vecKillElement(_18, mActor->mAppliedGravityVec, &_18);
         _14 = 1;
         mTimer = 0;

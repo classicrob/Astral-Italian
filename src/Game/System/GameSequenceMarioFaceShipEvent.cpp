@@ -200,6 +200,7 @@ bool GameSequenceMarioFaceShipEvent::isEmpty() {
 
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::makeResultEventList(MarioFaceShipEventList& rList) {
+    bool isLuigiNoEnding;
     rList.mNum = 0;
     for (s32 i = 0; i < MarioFaceShipEventDataHolder::calcAllTalkNum(); i++) {
         MarioFaceShipEventEntry entry;
@@ -236,7 +237,7 @@ void GameSequenceMarioFaceShipEvent::makeResultEventList(MarioFaceShipEventList&
         return;
     }
 
-    bool isLuigiNoEnding = false;
+    isLuigiNoEnding = false;
     if (GameDataFunction::isLuigiPlayer() && !MR::isOnGameEventFlagNormalEnding()) {
         isLuigiNoEnding = true;
     }

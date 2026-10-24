@@ -56,10 +56,9 @@ static inline void NETMemSet_Simple(register void* buf, register unsigned long f
     }
 }
 
-// NONMATCHING: The original-buffer and head-size temporaries swap volatile r8/r9.
 void* NETMemSet(void* buf, int ch, u32 size) {
-    void* originalBuf = buf;
     unsigned long headSize;
+    void* originalBuf = buf;
     unsigned long accBlkSize;
     register unsigned long fill = ch;
 

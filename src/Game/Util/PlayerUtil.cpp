@@ -858,10 +858,11 @@ namespace MR {
     }
 
     void setCameraTargetToPlayer(CameraTargetArg* pTarget) {
-        pTarget->mMarioActor = MarioAccess::getPlayerActor();
+        MarioActor* player = MarioAccess::getPlayerActor();
         pTarget->mTargetObj = nullptr;
         pTarget->mTargetMtx = nullptr;
         pTarget->mLiveActor = nullptr;
+        pTarget->mMarioActor = player;
     }
 
     bool isPlayerDisableFpView() {

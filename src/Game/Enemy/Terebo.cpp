@@ -149,7 +149,8 @@ void Terebo::exeSpinReaction() {
     f32 rate = MR::calcNerveRate(this, (s32)MR::getBckFrameMax(this));
     f32 t = 4.0f * rate * (rate - 1.0f);
     f32 k = 1.0f - t * t;
-    MR::setShadowVolumeSphereRadius(this, nullptr, k * 90.0f);
+    k *= 90.0f;
+    MR::setShadowVolumeSphereRadius(this, nullptr, k);
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Terebo, TereboNrvWait));
     }
@@ -166,7 +167,8 @@ void Terebo::exeTongue() {
     f32 rate = MR::calcNerveRate(this, (s32)MR::getBrkFrameMax(this));
     f32 t = 4.0f * rate * (rate - 1.0f);
     f32 k = 1.0f - t * t;
-    MR::setShadowVolumeSphereRadius(this, nullptr, k * 90.0f);
+    k *= 90.0f;
+    MR::setShadowVolumeSphereRadius(this, nullptr, k);
     if (MR::isGreaterStep(this, MR::getBckFrameMax(this, "SpinReaction"))) {
         setNerve(GET_NERVE(Terebo, TereboNrvWait));
     }
@@ -417,7 +419,7 @@ void TereboGroup::init(const JMapInfoIter& rIter) {
         Terebo* pTerebo = new Terebo("\x83\x65\x83\x8C\x83\x7B\x81\x5B\x81\x69\x83\x4F\x83\x8B\x81\x5B\x83\x76\x8E\x77\x92\xE8\x81\x6A");
         TVec3f pos(0.0f);
         f32 offset;
-        if (spacing != zero) {
+        if (zero != spacing) {
             offset = spacing * (f32)i;
         } else {
             offset = ((f32)i / (f32)count) * MR::getRailTotalLength(this);

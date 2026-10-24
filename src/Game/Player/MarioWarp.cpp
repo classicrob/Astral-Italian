@@ -178,7 +178,7 @@ bool MarioWarp::start() {
     }
 
     if (!_44) {
-        getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
+        getPlayer()->mMovementStates.mHighBits.mBit20 = 1;
     }
 
     if (isPlayerModeYoshi()) {
@@ -192,8 +192,8 @@ bool MarioWarp::start() {
 // NONMATCHING: movement-state bitfield encoding.
 bool MarioWarp::update() {
     if (!_44) {
-        getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
-        getPlayer()->mMovementStates.mHighWord |= 0x20000000U;
+        getPlayer()->mMovementStates.mHighBits.mBit20 = 1;
+        getPlayer()->mMovementStates.mHighBits.mBit29 = 1;
     }
 
     clearVelocity();

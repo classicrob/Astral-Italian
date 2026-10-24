@@ -33,11 +33,11 @@ void ShadowSurfaceBox::draw() const {
     TPos3f modelMtx;
     controller->calcBaseMtx(&base);
     TVec3f side;
-    side.set<f32>(base.mMtx[0][0], base.mMtx[1][0], base.mMtx[2][0]);
+    base.getXDir(side);
     TVec3f up;
-    up.set<f32>(base.mMtx[0][1], base.mMtx[1][1], base.mMtx[2][1]);
+    base.getYDir(up);
     TVec3f front;
-    front.set<f32>(base.mMtx[0][2], base.mMtx[1][2], base.mMtx[2][2]);
+    base.getZDir(front);
     TVec3f normal;
     controller->getProjectionNormal(&normal);
     f32 sideDot = normal.dot(side);
@@ -47,7 +47,8 @@ void ShadowSurfaceBox::draw() const {
     TVec3f position;
 
     if (controller->isFollowHostScale()) {
-        TVec3f scale(controller->getHost()->mScale);
+        const TVec3f* hostScale = &controller->getHost()->mScale;
+        TVec3f scale(*hostScale);
         scale /= 2.0f;
         size *= scale;
     } else {

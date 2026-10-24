@@ -87,9 +87,9 @@ bool MarioDamage::start() {
     }
 
     startPadVib(3);
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
+    getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
     getPlayer()->mMovementStates.mHighWord &= 0xFFFFFFFCU;
     _1C += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightDamage;
     getPlayer()->mJumpVec = _1C;
@@ -179,12 +179,12 @@ bool MarioDamage::fn_803E48F0() {
             mActor->mActionTable1080->testEffect(MR::getSensorHost(this->getSensor(this->getGroundPolygon()))->mName, "ダメージ中跳ねる")) {
             Mario* player = this->getPlayer();
             this->_1C += player->_368 * 20.0f;
-            this->getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-            this->getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+            this->getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+            this->getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
             return true;
         }
 
-        this->getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+        this->getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
         this->playSound("吹っ飛び倒れ");
         this->playEffect("共通ダメージ着地");
         MR::vecKillElement(this->_1C, this->mActor->mAppliedGravityVec, &this->_1C);
@@ -211,7 +211,7 @@ bool MarioDamage::fn_803E48F0() {
 
 bool MarioDamage::fn_803E4BF0() {
     if (!((this->getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-        this->getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+        this->getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
         this->_18 = 0;
         return true;
     }
@@ -236,7 +236,7 @@ bool MarioDamage::fn_803E4BF0() {
 
 bool MarioDamage::fn_803E4D00() {
     if (!((this->getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-        this->getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+        this->getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
         this->_18 = 0;
         return true;
     }
@@ -592,8 +592,8 @@ void MarioFireDance::impact() {
         _14.setLength(0.5f * _14.length());
     }
 
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
     _2C = 30;
 }
 

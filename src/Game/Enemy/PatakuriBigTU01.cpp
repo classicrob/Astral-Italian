@@ -274,8 +274,7 @@ void PatakuriBig::exeBigRail() {
 
     if (!MR::isSameDirection(MR::getRailDirection(this), mGravity, 0.1f)) {
         if (MR::getRailRemainingLength(this) - 30.0f < 100.0f) {
-            TVec3f revDir = -MR::getRailDirection(this);
-            MR::turnVecToVecDegree(&mFront, mFront, revDir, 3.0f, TVec3f(0, 1, 0));
+            MR::turnVecToVecDegree(&mFront, mFront, -MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         } else {
             MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         }

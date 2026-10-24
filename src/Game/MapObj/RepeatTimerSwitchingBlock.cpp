@@ -79,6 +79,12 @@ void RepeatTimerSwitchingBlock::control() {
     }
 }
 
+void RepeatTimerSwitchingBlock::exeChange() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "ChangeOn", -1, -1, -1);
+    }
+}
+
 void RepeatTimerSwitchingBlock::exeWait() {
     if (MR::isFirstStep(this)) {
         if (mIsInverse) {
@@ -281,11 +287,7 @@ inline void NrvRepeatTimerSwitchingBlock::RepeatTimerSwitchingBlockNrvWait::exec
     actor->exeWait();
 }
 
-inline void RepeatTimerSwitchingBlock::exeChange() {
-    if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "ChangeOn", -1, -1, -1);
-    }
-}
+
 
 inline void NrvRepeatTimerSwitchingBlock::RepeatTimerSwitchingBlockNrvChange::execute(Spine* pSpine) const {
     RepeatTimerSwitchingBlock* actor = reinterpret_cast< RepeatTimerSwitchingBlock* >(pSpine->mExecutor);

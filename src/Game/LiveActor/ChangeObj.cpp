@@ -4,7 +4,8 @@
 #include "Game/Util/LiveActorUtil.hpp"
 
 void ChangeObj::changeTRSVGFromOther(const ChangeObj* pOther) {
-    MR::setRotation(mActor, pOther->mActor->mRotation);
+    const TVec3f& rotation = pOther->mActor->mRotation;
+    MR::setRotation(mActor, rotation);
     MR::setScale(mActor, pOther->mActor->mScale);
     mActor->mVelocity.set(pOther->mActor->mVelocity);
     mActor->mGravity.set(pOther->mActor->mGravity);

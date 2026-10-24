@@ -40,11 +40,7 @@ void GameScenePauseControl::exeNormal() {
 }
 
 bool GameScenePauseControl::tryStartPauseMenu() {
-    if (!mScene->permitsStartPauseMenu()) {
-        return false;
-    }
-
-    if (MR::isStageDisablePauseMenu()) {
+    if (!mScene->permitsStartPauseMenu() || MR::isStageDisablePauseMenu()) {
         return false;
     }
 

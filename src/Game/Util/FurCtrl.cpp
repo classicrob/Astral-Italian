@@ -223,8 +223,8 @@ void FurCtrl::setupFur(J3DModel* pModel, ResTIMG* pLength, ResTIMG* pIndirect, R
 }
 
 void FurCtrl::setupFurClone(J3DModel* pModel, FurCtrl* pOther) {
-    mModel = pModel;
     mIsClone = 1;
+    mModel = pModel;
     mLengthMap = pOther->mLengthMap;
     mBodyMap = pOther->mBodyMap;
     mIndirectMap = pOther->mIndirectMap;

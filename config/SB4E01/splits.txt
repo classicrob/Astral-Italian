@@ -986,7 +986,7 @@ Game/Boss/BossStinkBug.cpp:
 
 Game/Boss/BossStinkBugActionBase.cpp:
 	.text       start:0x800A4580 end:0x800A63A0
-	.data       start:0x8066EC34 end:0x8066EC88
+	.data       start:0x8066E990 end:0x8066EC88
 
 Game/Boss/BossStinkBugActionFlyHigh.cpp:
 	.text       start:0x800A63A0 end:0x800A7290
@@ -6736,7 +6736,7 @@ Game/Player/MarioAnimator.cpp:
 	.text       start:0x803DC0F0 end:0x803E1940
 	.ctors      start:0x806447D0 end:0x806447D4
 	.rodata     start:0x8064BDB8 end:0x8064BDC0
-	.data       start:0x806DC164 end:0x806DC3F0
+	.data       start:0x806C8700 end:0x806DC3F0
 	.sdata      start:0x807D0038 end:0x807D0040
 	.sbss       start:0x807D4E60 end:0x807D4E68
 	.sdata2     start:0x807DFE08 end:0x807DFE4C

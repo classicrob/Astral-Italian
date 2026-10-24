@@ -593,10 +593,7 @@ void YoshiTongueAction::fn_8041F3D0() {
     MtxPtr matrix = mYoshi->getBaseMtx();
     TVec3f direction(matrix[0][2], matrix[1][2], matrix[2][2]);
     MR::normalizeOrZero(&direction);
-    TVec3f offset(direction);
-    offset.scale(40.0f);
-    TVec3f target(mouth);
-    target += offset;
+    TVec3f target(mouth + direction.scaleInline(40.0f));
     mTargetPosition.set(target);
     mTongue->mTipPosition.set(mTargetPosition);
     mTongue->fn_8041CCF0();

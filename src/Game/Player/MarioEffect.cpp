@@ -182,7 +182,7 @@ void MarioEffect::doCubeEffect() {
 
     if (((getPlayer()->mFlags14.mLowWord >> 30) & 1U)) {
         playSwingEffect();
-        getPlayer()->mFlags14.mLowWord &= 0xBFFFFFFFU;
+        getPlayer()->mFlags14.mLowBits.mBit30 = 0;
     }
 }
 

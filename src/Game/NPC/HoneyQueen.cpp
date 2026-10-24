@@ -43,8 +43,8 @@ void HoneyQueen::init(const JMapInfoIter& rIter) {
     caps.mMessageOffset.z = 0.0f;
     caps.mSensorJoint = "Center";
     caps.mMakeActor = 0;
+    caps.mYoshiInteraction = false;
     caps.mSensorMax = 2;
-    caps.mYoshiInteraction=false;
     MR::initUseStageSwitchWriteA(this, rIter);
     initialize(rIter, caps, nullptr, nullptr, nullptr);
 

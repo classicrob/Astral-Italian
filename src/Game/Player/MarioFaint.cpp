@@ -68,8 +68,8 @@ bool MarioFaint::update() {
 bool MarioFaint::start() {
     mTimer = 0;
     _16 = 0;
-    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
-    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
 
     if (_18.dot(getPlayer()->mFrontVec) > 0.0f) {
         getPlayer()->setFrontVecKeepUp(_18);

@@ -73,8 +73,8 @@ void CameraParamChunkHolder::sort() {
 
 void CameraParamChunkHolder::loadCameraParameters() {
     for (s32 i = 0; i < MR::getZoneNum(); i++) {
-        void* data;
         s32 size;
+        void* data;
         MR::getStageCameraData(&data, &size, i);
         if (size) loadFile(i, data);
     }

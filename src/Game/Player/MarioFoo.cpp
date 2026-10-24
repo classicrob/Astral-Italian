@@ -142,8 +142,8 @@ bool MarioFoo::start() {
     MR::normalize(&_30);
 
     stopAnimationUpper(nullptr);
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mLowWord &= 0xFFDFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit21 = 0;
     _18 = 0;
     if (checkLvlA()) {
         _12 = 1;
@@ -412,7 +412,7 @@ bool MarioFoo::close() {
     case 3:
         changeAnimation("フーファイター解除");
         getPlayer()->mJumpVec = TVec3f(0.0f, 0.0f, 0.0f);
-        getPlayer()->mFlags14.mHighWord |= 0x40000000U;
+        getPlayer()->mFlags14.mHighBits.mBit30 = 1;
         break;
     }
 
@@ -429,7 +429,7 @@ bool MarioFoo::close() {
     getPlayer()->unlockGroundCheck(this);
     mActor->_F44 = true;
     _54 = 0.0f;
-    getPlayer()->mFlags14.mLowWord |= 0x01000000U;
+    getPlayer()->mFlags14.mLowBits.mBit24 = 1;
     return true;
 }
 
@@ -466,7 +466,7 @@ void MarioFoo::jet() {
         }
 
         _AE = 1;
-        getPlayer()->mFlags20.mWord |= 0x00400000U;
+        getPlayer()->mFlags20.mBits.mBit22 = 1;
     } else if (_14 < 8) {
         _AC++;
         _28 = 0.0f;

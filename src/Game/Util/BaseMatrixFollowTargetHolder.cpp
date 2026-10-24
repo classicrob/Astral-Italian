@@ -45,9 +45,9 @@ bool BaseMatrixFollower::isValid() const {
 }
 
 BaseMatrixFollowTarget::BaseMatrixFollowTarget(const JMapLinkInfo* pInfo) {
-    mLinkInfo = pInfo;
     _30 = nullptr;
     mActor = nullptr;
+    mLinkInfo = pInfo;
     mValidater = nullptr;
     _0.identity();
 }

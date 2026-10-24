@@ -9,7 +9,7 @@ MarioCrush::MarioCrush(MarioActor* pActor) : MarioState(pActor, MarioStatus_Crus
 }
 
 bool MarioCrush::close() {
-    getPlayer()->mMovementStates.mHighWord |= 0x00000008U;
+    getPlayer()->mMovementStates.mHighBits.mBit3 = 1;
     MR::setScale(mActor, 1.0f);
     stopAnimation("しびれ");
     getPlayer()->set41E(120);
@@ -21,7 +21,7 @@ bool MarioCrush::start() {
     startPadVib("マリオ[しびれ]");
     playSound("声しびれ");
 
-    getPlayer()->mMovementStates.mHighWord |= 0x00000008U;
+    getPlayer()->mMovementStates.mHighBits.mBit3 = 1;
     MR::setScale(mActor, 1.0f, 0.2f, 1.0f);
     startPadVib(3);
 

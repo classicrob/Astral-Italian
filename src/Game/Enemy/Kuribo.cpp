@@ -225,13 +225,10 @@ void Kuribo::control() {
         }
     }
 
-    if (!tryDead()) {
-        if (tryPointBind()) {
-            return;
-        } else {
-            if (canKuriboBeEatenByYoshi()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
-        }
+    if (tryDead() || tryPointBind()) {
+        return;
     }
+    if (canKuriboBeEatenByYoshi()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
 }
 
 void Kuribo::calcAndSetBaseMtx() {

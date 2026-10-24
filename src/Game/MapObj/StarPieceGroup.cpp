@@ -226,7 +226,7 @@ void StarPieceGroup::placementAllPiece() {
 // NONMATCHING: single-piece position argument register scheduling differs.
 void StarPieceGroup::placementPieceOnCircle() {
     if (mNumPieces == 1) {
-        MR::setPosition(mPieces[0], mPosition);
+        MR::setPosition(mPieces[0], *getPosition());
         return;
     }
 

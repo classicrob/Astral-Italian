@@ -172,7 +172,7 @@ bool PullTargetDrawer::calcJointBridge(TPos3f* pMtx, const JointControllerInfo&)
     MtxPtr base = mPullTarget->getBaseMtx();
     TVec3f front(base[0][2], base[1][2], base[2][2]);
     TVec3f trans;
-    trans.set< f32 >(pMtx->mMtx[0][3], pMtx->mMtx[1][3], pMtx->mMtx[2][3]);
+    pMtx->getTrans(trans);
     pMtx->setTrans(trans + front * mLength);
     return true;
 }

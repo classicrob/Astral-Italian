@@ -288,10 +288,10 @@ bool MarioSwim::start() {
     mNextAction = EXIT_ACTION_NONE;
     getPlayer()->mFlags14.mLowWord &= ~Mario::MovementStates::DigitalJump;
     if (isPlayerModeYoshi()) {
-        getPlayer()->mFlags14.mHighWord &= 0xFFDFFFFFU;
+        getPlayer()->mFlags14.mHighBits.mBit21 = 0;
         mActor->fn_803B9A30();
         mActor->fn_803B9830()->fn_8041BBA0();
-        getPlayer()->mMovementStates.mLowWord &= 0xFFFFEFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit12 = 0;
     }
     return true;
 }
@@ -370,7 +370,7 @@ bool MarioSwim::fn_803F7D90() {
     }
     if (mRingDash->mTimer && getPlayer()->mVerticalSpeed - mWaterDepth > 200.0f) {
         f32 speed = MR::clamp(mForwardSpeed / mActor->getConst().getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
-        getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
         getPlayer()->mWalkSpeed = speed;
         TVec3f up(mUpVec);
         up.scale(10.0f);
@@ -449,7 +449,7 @@ void MarioSwim::updateColdWaterDamage() {
     if (getPlayer()->isDamaging()) {
         mColdWaterDamageInterval = 120;
     }
-    getPlayer()->mFlags20.mWord |= 0x10000000U;
+    getPlayer()->mFlags20.mBits.mBit28 = 1;
     if (mColdWaterDamageInterval == 0) {
         mColdWaterDamageInterval = 120;
         return;
@@ -522,12 +522,9 @@ bool MarioSwim::fn_803F8490() {
     flowOnWave(cWaveSurfaceOffset + getSurface());
     if (mRingDash->mTimer && getPlayer()->mVerticalSpeed - mWaterDepth > 200.0f) {
         f32 factor = MR::clamp(mForwardSpeed / mActor->mConst->getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
-        getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
         getPlayer()->mWalkSpeed = factor;
-        TVec3f up(mUpVec * 10.0f);
-        TVec3f move(mActor->getLastMove() * 2.0f);
-        TVec3f jump(move);
-        jump.add(up);
+        TVec3f jump(mActor->getLastMove() * 2.0f + mUpVec * 10.0f);
         getPlayer()->tryForcePowerJump(jump, false);
         mNextAction = 2;
         changeAnimationNonStop("リングダッシュ");
@@ -535,7 +532,7 @@ bool MarioSwim::fn_803F8490() {
     }
     if (isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer > 0) {
         f32 factor = MR::clamp(mForwardSpeed / mActor->mConst->getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
-        getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
         getPlayer()->mWalkSpeed = factor;
         getPlayer()->tryJump();
         mNextAction = 2;
@@ -549,8 +546,8 @@ bool MarioSwim::fn_803F8490() {
 bool MarioSwim::fn_803F8750(u32 frames) {
     if (mActor->fn_803BE0C0()) {
         mSurfacePaddleHoldTimer = frames;
-        getPlayer()->mFlags20.mWord |= 0x200000;
-        getPlayer()->mFlags14.mLowWord |= 1;
+        getPlayer()->mFlags20.mBits.mBit21 = 1;
+        getPlayer()->mFlags14.mLowBits.mBit0 = 1;
     }
     bool jump = false;
     if ((!mZSinkTimer || mSpin->isActive()) && (mSurfacePaddleHoldTimer >= frames || _1C)) jump = true;
@@ -558,7 +555,7 @@ bool MarioSwim::fn_803F8750(u32 frames) {
     if (jump) {
         if (mStateTimer > 6) {
             f32 factor = MR::clamp(mForwardSpeed / mActor->mConst->getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
-            getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
+            getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
             getPlayer()->mWalkSpeed = factor;
             getPlayer()->tryJump();
             mNextAction = 2;
@@ -586,12 +583,12 @@ bool MarioSwim::fn_803F8930() {
         changeAnimation("水泳上昇呼吸", static_cast<const char*>(nullptr));
     }
     if (!mSinkTimer) {
-        if ((getPlayer()->mMovementStates.mHighWord & 0x100) || mUpVec.dot(getPlayer()->mHeadVec) > 0.0f) onSurface();
+        if (getPlayer()->mMovementStates.mHighBits.mBit8 || mUpVec.dot(getPlayer()->mHeadVec) > 0.0f) onSurface();
         mActionLockTimer = 0;
     }
     if (mSpin->mSpinDashTimer > 10) {
         f32 factor = MR::clamp(mForwardSpeed / mActor->mConst->getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
-        getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
         getPlayer()->mWalkSpeed = factor;
         TVec3f velocity;
         mActor->getLastMove(&velocity);
@@ -611,13 +608,9 @@ bool MarioSwim::fn_803F8930() {
     }
     if (mRingDash->mTimer && getPlayer()->mVerticalSpeed - mWaterDepth > 200.0f) {
         f32 factor = MR::clamp(mForwardSpeed / mActor->mConst->getTable()->mSwimToWalkSpd, 0.0f, 1.0f);
-        getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
         getPlayer()->mWalkSpeed = factor;
-        TVec3f up(mUpVec * 10.0f);
-        TVec3f move(mActor->getLastMove() * 2.0f);
-        TVec3f jump(move);
-        jump.add(up);
-        getPlayer()->tryForcePowerJump(jump, false);
+        getPlayer()->tryForcePowerJump(mActor->getLastMove() * 2.0f + mUpVec * 10.0f, false);
         mNextAction = 2;
         changeAnimationNonStop("リングダッシュ");
         return false;
@@ -778,8 +771,7 @@ void MarioSwim::fn_803F9350() {
 void MarioSwim::fn_803F95A0(f32 input) {
     if ((!mIsSwimmingAtSurface && (!mIsOnSurface || !isStickOn())) || mJet->mJetTimer) {
         f32 angle = input + mActor->mConst->getTable()->mSwimRotSpeedZStop;
-        TVec3f axis(-mUpVec);
-        MR::rotAxisVecRad(mFrontVec, axis, &mFrontVec, angle * (mStickInputXInertia * mActor->mConst->getTable()->mSwimRotSpeedZ));
+        MR::rotAxisVecRad(mFrontVec, -mUpVec, &mFrontVec, angle * (mStickInputXInertia * mActor->mConst->getTable()->mSwimRotSpeedZ));
         return;
     }
     TVec3f pad(getWorldPadDir());
@@ -894,11 +886,7 @@ void MarioSwim::fn_803F9B90() {
     else
         ratio = timer / 25.0f;
     f32 scale = ratio + (1.0f - ratio) * mActor->getConst().getTable()->mSwimSpdYratio;
-    TVec3f vertical(mUpVec);
-    vertical.scale(verticalSpeed);
-    TVec3f scaled(vertical);
-    scaled.scale(scale);
-    velocity.add(scaled);
+    velocity.add(mUpVec.scaleInline(verticalSpeed).scaleInline(scale));
     addVelocity(velocity);
 }
 
@@ -1882,12 +1870,12 @@ bool MarioSwim::close() {
         f32 stickP = getStickP();
         getPlayer()->mWalkSpeed = stickP;
 
-        getPlayer()->mMovementStates.mLowWord &= 0xFFFFF7FFU;
-        getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+        getPlayer()->mMovementStates.mLowBits.mBit11 = 0;
+        getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
         getPlayer()->updateGroundInfo();
-        getPlayer()->mDrawStates.mWord |= 0x80000000U;
-        getPlayer()->mMovementStates.mLowWord &= 0xFFFFF7FFU;
-        getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+        getPlayer()->mDrawStates.mBits.mBit31 = 1;
+        getPlayer()->mMovementStates.mLowBits.mBit11 = 0;
+        getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
 
         TVec3f groundPos;
         mActor->getGroundPos(&groundPos);
@@ -1946,7 +1934,7 @@ bool MarioSwim::close() {
 
     mRingDash->mBlurOffset = 0.0f;
     if (mJet->mJetTimer != 0) {
-        getPlayer()->mFlags14.mLowWord |= 0x01000000U;
+        getPlayer()->mFlags14.mLowBits.mBit24 = 1;
     }
 
     _18 = 0;
@@ -3275,8 +3263,8 @@ void MarioSwim::doJetJump(u8 type) {
         MR::vecKillElement(mActor->getLastMove(), mUpVec, &jumpDir);
         MR::normalizeOrZero(&jumpDir);
 
-        getPlayer()->mMovementStates.mLowWord &= 0xFBFFFFFFU;
-        getPlayer()->mMovementStates.mHighWord &= 0xFFFEFFFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit26 = 0;
+        getPlayer()->mMovementStates.mHighBits.mBit16 = 0;
         getPlayer()->mWalkSpeed = speedRatio;
 
         TVec3f finalVelocity = jumpDir * horizontalSpeed * horizontalScale + mUpVec * verticalBoost * verticalScale;
@@ -3375,7 +3363,7 @@ void MarioSwim::fn_80401270() {
     _1B = false;
     _1D = false;
     _1E = false;
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
     mActionLockTimer = 0;
     mZSinkTimer = 0;
     mSinkTimer = 0;
@@ -3414,7 +3402,7 @@ void MarioSwim::fn_804014A0() {
 
 void MarioSwim::fn_80401510() {
     if (fn_803FA350() || isPlayerModeYoshi())
-        getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+        getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
     if (fn_803FA3C0() && !isPlayerModeYoshi()) {
         fn_803FA450();
         return;
@@ -3487,8 +3475,8 @@ void MarioSwim::fn_804017C0(bool turn) {
 void MarioSwim::fn_80401850(u32 frames) {
     if (checkLvlA()) {
         if (_9C && (!isAnimationRun("水上一掻き") || !mSurfacePaddleHoldTimer)) mSurfacePaddleHoldTimer++;
-        if ((mWallStickTimer || mJet->mJetTimer || (getPlayer()->mMovementStates.mLowWord & 0x800000)
-            || (getPlayer()->mMovementStates.mHighWord & 0x2000)) && checkTrgA()) {
+        if ((mWallStickTimer || mJet->mJetTimer || (getPlayer()->mMovementStates.mLowBits.mBit23)
+            || (getPlayer()->mMovementStates.mHighBits.mBit13)) && checkTrgA()) {
             mSurfacePaddleHoldTimer = frames;
         }
     } else {
@@ -3868,7 +3856,7 @@ void MarioSwimJet::update(f32 factor) {
             MR::emitEffect(mSwim->mActor->getCarrySensor()->mHost, "BrakeLamp");
             mSwim->playSound("亀ブレーキ");
         }
-        mSwim->getPlayer()->mFlags20.mWord |= 0x00400000U;
+        mSwim->getPlayer()->mFlags20.mBits.mBit22 = 1;
         f32 speed = mSwim->mForwardSpeed;
         if (speed > targetSpeed) {
             speed *= 0.95f;

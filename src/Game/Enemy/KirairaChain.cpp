@@ -104,8 +104,9 @@ void KirairaChain::control() {
             mAccelTimer = MR::getRandom(5L, 10L);
         }
 
+        f32 accelY;
         f32 accelZ = MR::getRandom(-0.3f, 0.3f);
-        f32 accelY = MR::getRandom(-0.3f, 0.3f);
+        accelY = MR::getRandom(-0.3f, 0.3f);
         f32 accelX = MR::getRandom(-0.3f, 0.3f);
         mAccel.set< f32 >(accelX, accelY, accelZ);
     }

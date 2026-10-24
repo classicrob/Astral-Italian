@@ -56,7 +56,8 @@ bool PlayerRacer::updateRacer(const RaceManager* pRaceManager) {
     mPrevPosition.set<f32>(mCurrPosition);
     mCurrPosition.set<f32>(*MR::getPlayerCenterPos());
     TVec3f railPos;
-    MR::calcNearestRailPos(&railPos, pRaceManager->mPlayerRacer, *MR::getPlayerCenterPos());
+    racer = pRaceManager->mPlayerRacer;
+    MR::calcNearestRailPos(&railPos, racer, *MR::getPlayerCenterPos());
     MR::setRailCoord(this, mRailCoord);
     mRailCoord = railCoord;
     TVec3f endPos(0.0f, 0.0f, 0.0f);

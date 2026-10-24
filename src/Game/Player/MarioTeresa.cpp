@@ -93,7 +93,7 @@ bool MarioTeresa::update() {
         _58 = 0;
     }
 
-    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
     _20 = checkHeight();
     _24 = mActor->getConst().getTable()->mTeresaWaitHeight;
     checkAccel();
@@ -164,7 +164,7 @@ f32 MarioTeresa::checkHeight() {
 void MarioTeresa::checkAccel() {
     if (checkTrgA()) {
         if (!_44) {
-            getPlayer()->mFlags20.mWord |= 0x08000000U;
+            getPlayer()->mFlags20.mBits.mBit27 = 1;
         }
 
         _44 = mActor->getConst().getTable()->mTeresaAccelTime;
@@ -177,11 +177,11 @@ void MarioTeresa::checkAccel() {
 
 void MarioTeresa::checkGroundReflect() {
     if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-        getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+        getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
     }
 
     if (!((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && getPlayer()->_3CE) {
-        getPlayer()->mDrawStates.mWord &= 0xFFF7FFFFU;
+        getPlayer()->mDrawStates.mBits.mBit19 = 0;
         getPlayer()->tryJump();
         cutGravityElementFromJumpVec(true);
         f32 vertical = MR::vecKillElement(_34, getAirGravityVec(), &_34);
@@ -304,7 +304,7 @@ void MarioTeresa::procDrop() {
         }
 
         MR::clamp(brake, 0.0f, 1.0f);
-        getPlayer()->mDrawStates.mWord |= 0x00000008U;
+        getPlayer()->mDrawStates.mBits.mBit3 = 1;
     }
 }
 
@@ -378,7 +378,7 @@ void MarioTeresa::checkWind() {
     }
 
     if (!MR::isNearZero(strength)) {
-        getPlayer()->mDrawStates.mWord |= 0x00000001U;
+        getPlayer()->mDrawStates.mBits.mBit0 = 1;
     }
 
     wind.scale(strength);
@@ -388,7 +388,7 @@ void MarioTeresa::checkWind() {
     _28 += wind * 0.1f * 1.5f;
     _34 += wind * 0.2f;
     if (_28.length() > 0.2f) {
-        getPlayer()->mDrawStates.mWord |= 0x00000001U;
+        getPlayer()->mDrawStates.mBits.mBit0 = 1;
     }
 }
 

@@ -65,7 +65,7 @@ bool MarioSideStep::update() {
             if (forward > 0.707f) {
                 getPlayer()->setFrontVecKeepUp(getPlayer()->getWallNorm());
             }
-            getPlayer()->mMovementStates.mLowWord &= 0xFF7FFFFFU;
+            getPlayer()->mMovementStates.mLowBits.mBit23 = 0;
             return false;
         } else {
             side *= (1.0f + 0.25f * forward) * getStickP();

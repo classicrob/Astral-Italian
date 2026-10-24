@@ -500,14 +500,11 @@ void KuriboMini::exeAttackSuccess() {
     MR::turnDirectionToPlayerDegree(this, &mFront, 5.0f);
     calcPassiveMovement();
 
-    if (!tryDeadMap() && !tryPointBind()) {
-        if (tryTrampolineBounce()) {
-            return;
-        } else {
-            if (MR::isGreaterStep(this, 60)) {
-                setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
-            }
-        }
+    if (tryDeadMap() || tryPointBind() || tryTrampolineBounce()) {
+        return;
+    }
+    if (MR::isGreaterStep(this, 60)) {
+        setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
     }
 }
 

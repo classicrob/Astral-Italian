@@ -336,13 +336,13 @@ s32 VFiPFFILE_Cursor_Write_Overwrite(struct PF_VOLUME* p_vol, struct PF_FILE* p_
     u32 num_sector;
     u32 success_size;
 
-    max_writable_size = size;
     *p_size_write = 0;
     err = VFiPFFAT_GetContinuousSector(&p_file->p_sfd->ffd, p_file->cursor.file_sector_index, size, &p_file->cursor.sector, &num_sector);
     if (err) {
         return err;
     }
 
+    max_writable_size = size;
     if (!num_sector || p_file->cursor.sector == -1) {
         VFiPFFILE_Cursor_MoveToEnd(p_file);
         return 28;

@@ -260,7 +260,7 @@ bool MarioRecovery::update() {
         break;
     }
     case 2:
-        getPlayer()->mFlags14.mLowWord |= 0x20000000U;
+        getPlayer()->mFlags14.mLowBits.mBit29 = 1;
         return false;
     case 3:
         if (_16) {
@@ -288,8 +288,8 @@ bool MarioRecovery::update() {
 
 bool MarioRecovery::close() {
     MR::endGlobalEventCamera("引き戻し", -1, true);
-    getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
-    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
     Mario* player = getPlayer();
     player->_420 = 16;
     stopEffectForce("引き戻し泡");

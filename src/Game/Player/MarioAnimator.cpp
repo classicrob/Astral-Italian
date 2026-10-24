@@ -248,6 +248,10 @@ extern XanimeBckTable2 marioRideSingleAnimeTable[];
 extern XanimeBckTable3 marioRideDoubleAnimeTable[];
 extern XanimeBckTable4 marioRideTripleAnimeTable[];
 
+#ifndef GALAXY_NATIVE
+#include "../src/Game/Player/MarioAnimatorTables.inc"
+#endif
+
 MarioAnimator::MarioAnimator(MarioActor* pActor) : mActor(pActor), mExtraAnimationEnabled(false) {
     init();
 }

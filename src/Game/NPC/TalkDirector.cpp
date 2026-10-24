@@ -250,8 +250,8 @@ void TalkDirector::updateMessage() {
 }
 
 void TalkDirector::prepTalk(TalkMessageCtrl* pCtrl, bool arg2, bool arg3, bool arg4) {
-    mForceTalk = arg2;
     mTalkStartedThisFrame = true;
+    mForceTalk = arg2;
     mUsePlayerTalk = arg4;
 
     mDemoType = getDemoType(pCtrl, arg3);

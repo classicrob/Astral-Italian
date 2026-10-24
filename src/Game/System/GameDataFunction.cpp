@@ -205,7 +205,8 @@ namespace GameDataFunction {
             return;
         }
 
-        GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor("DimensionBigCastleGalaxy");
+        const char* galaxyName = "DimensionBigCastleGalaxy";
+        GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(galaxyName);
         if (!accessor.hasPowerStar(1)) {
             return;
         }
@@ -214,7 +215,7 @@ namespace GameDataFunction {
             return;
         }
 
-        GameSequenceFunction::updateGalaxyCometAppearance("DimensionBigCastleGalaxy", true);
+        GameSequenceFunction::updateGalaxyCometAppearance(galaxyName, true);
     }
 
 #pragma dont_inline on
@@ -505,11 +506,12 @@ namespace GameDataFunction {
 
     // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a-rebind).
     s32 tryOnGameEventFlagCoinCounterStop(int num) {
+        const char* eventName21;
         s32 stockedCoinNum = getCurrentGameDataPlayerStatus()->addStockedCoinNum(num);
 
         if (getCurrentGameDataPlayerStatus()->getStockedCoinNum() >= 9999) {
             if (!isOnGameEventFlagCoinCounterStop()) {
-                const char* eventName21 = "\203R\203C\203\223\203J\203E\203\223\203^\201[\203X\203g\203b\203v";
+                eventName21 = "\203R\203C\203\223\203J\203E\203\223\203^\201[\203X\203g\203b\203v";
                 getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName21);
             }
         }
@@ -605,7 +607,8 @@ namespace GameDataFunction {
         s32 eventNum = 0;
 
         for (s32 i = 0; i < 4; i++) {
-            if (static_cast< u16 >(getCurrentGameEventValueChecker()->getIndexedValue("\212\347\230f\220\257\203C\203x\203\223\203g\224\324\215\206", i)) > 0) {
+            s32 eventValue = getCurrentGameEventValueChecker()->getIndexedValue("\212\347\230f\220\257\203C\203x\203\223\203g\224\324\215\206", i);
+            if (eventValue > 0) {
                 eventNum++;
             }
         }
@@ -619,7 +622,8 @@ namespace GameDataFunction {
 
     void tryAddFaceShipEventNo(s32 eventNo) {
         for (s32 i = 0; i < 4; i++) {
-            if (static_cast< u16 >(getCurrentGameEventValueChecker()->getIndexedValue("\212\347\230f\220\257\203C\203x\203\223\203g\224\324\215\206", i)) <= 0) {
+            s32 eventValue = getCurrentGameEventValueChecker()->getIndexedValue("\212\347\230f\220\257\203C\203x\203\223\203g\224\324\215\206", i);
+            if (eventValue <= 0) {
                 getCurrentGameEventValueChecker()->setIndexedValue("\212\347\230f\220\257\203C\203x\203\223\203g\224\324\215\206", i, static_cast< u16 >(eventNo));
                 return;
             }

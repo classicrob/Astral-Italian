@@ -59,8 +59,9 @@ void MiniStarPieceMine::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
+    f32 one;
     f32 zero = 0.0f;
-    f32 one = 1.0f;
+    one = 1.0f;
     for (s32 idx = 0; idx < 8; idx++) {
         TVec3f up(zero, one, zero);
         static_cast<StarPieceTrackingPiece*>(mPieces[idx])->appearScattered(mPosition, up, 10.0f, 100.0f);

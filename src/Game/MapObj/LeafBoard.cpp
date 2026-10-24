@@ -12,9 +12,8 @@ namespace MR {
 bool addVelocityKeepHeightUseShadowAndWater(LiveActor* actor, const char* shadowName, f32 height, f32 accel, f32 maxCorrection) {
     f32 distance = 100000.0f;
     bool inWater = false;
-    TVec3f offset = actor->mGravity * height;
-    TVec3f probe = actor->mPosition + offset;
     TVec3f position;
+    TVec3f probe = actor->mPosition + actor->mGravity * height;
     position.set(probe);
     WaterInfo info;
     if (getWaterAreaObj(&info, position) && getWaterAreaInfo(&info, position, actor->mGravity, false)) {
@@ -102,9 +101,8 @@ void LeafBoard::control() {
 
 // NONMATCHING: target calls out-of-line TVec3 operator+ (__pl) for mPosition + sp8; ours inlines it (shared header inline).
 void LeafBoard::updateWaterShadow() {
-    TVec3f sp8 = mGravity * 500.0f;
-    TVec3f sp14 = mPosition + sp8;
     TVec3f sp20;
+    TVec3f sp14 = mPosition + mGravity * 500.0f;
     sp20.set(sp14);
     mShadowAlpha = 0.0f;
     WaterInfo info;
@@ -249,8 +247,7 @@ void LeafBoard::exeWind() {
         }
     }
     MR::turnVecToVecCos(&mDir, up, dir, turnCos, mGravity, 0.02f);
-    TVec3f sp8 = sp20 * 0.2f;
-    TVec3f sp14 = sp8 * playerProximity;
+    TVec3f sp14 = sp20 * 0.2f * playerProximity;
     MR::addVelocity(this, sp14);
     MR::addVelocityKeepHeightUseShadowAndWater(this, 0, 100.0f, 0.4f, 40.0f);
     MR::attenuateVelocity(this, 0.992f);

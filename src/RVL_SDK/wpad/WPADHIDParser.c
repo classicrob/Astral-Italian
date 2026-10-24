@@ -88,7 +88,7 @@ static void resetExtensionCertificate(s32 chan) {
     memset(p_cb->certParamX, 0, sizeof(p_cb->certParamX));
     memset(p_cb->certParamY, 0, sizeof(p_cb->certParamY));
     memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
-    p_cb->certWork[0] = p_cb->certParamY[0] = p_cb->certParamX[0] = 1;
+    p_cb->certParamX[0] = p_cb->certParamY[0] = p_cb->certWork[0] = 1;
     p_cb->certParamBytes = 0;
 }
 
@@ -316,62 +316,100 @@ NO_INLINE void __wpadGetClConfig(s32 chan, u8* data) {
     }
 }
 
+static inline void __wpadGetMplsConfig(s32 chan, u8* data, u8 slot) {
+    WPADControlBlock* p_cal = _wpdcb[chan];
+    p_cal->extConf.mplsCalibration[slot].axis[0].zero = 5000.0f + (f32)((data[4] << 8) | data[5]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[1].zero = 5000.0f + (f32)((data[0] << 8) | data[1]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[2].zero = 5000.0f + (f32)((data[2] << 8) | data[3]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].referenceRate = data[12] * 6;
+    if (!p_cal->extConf.mplsCalibration[slot].referenceRate) p_cal->extConf.mplsCalibration[slot].referenceRate = 91;
+    p_cal->extConf.mplsCalibration[slot].axis[0].scale = (f32)(s16)((s16)(data[10] << 8) | (s16)data[11]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[1].scale = (f32)(s16)((s16)(data[6] << 8) | (s16)data[7]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[2].scale = (f32)(s16)((s16)(data[8] << 8) | (s16)data[9]) / 10.0f;
+    {
+        f32 scale = p_cal->extConf.mplsCalibration[slot].axis[0].scale;
+        if (scale < 0.0f) scale -= 4000.0f;
+        else scale = 4000.0f + scale;
+        p_cal->extConf.mplsCalibration[slot].axis[0].scale = scale;
+    }
+    {
+        f32 scale = p_cal->extConf.mplsCalibration[slot].axis[1].scale;
+        if (scale < 0.0f) scale -= 4000.0f;
+        else scale = 4000.0f + scale;
+        p_cal->extConf.mplsCalibration[slot].axis[1].scale = scale;
+    }
+    {
+        f32 scale = p_cal->extConf.mplsCalibration[slot].axis[2].scale;
+        if (scale < 0.0f) scale -= 4000.0f;
+        else scale = 4000.0f + scale;
+        p_cal->extConf.mplsCalibration[slot].axis[2].scale = scale;
+    }
+}
+
+static inline void __wpadGetFsConfig(s32 chan, u8* data) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    p_cb->extConf.fs.acc_0g.x = (data[0] << 2) | ((data[3] >> 4) & 3);
+    p_cb->extConf.fs.acc_0g.y = (data[1] << 2) | ((data[3] >> 2) & 3);
+    p_cb->extConf.fs.acc_0g.z = (data[2] << 2) | (data[3] & 3);
+    p_cb->extConf.fs.acc_1g.x = (data[4] << 2) | ((data[7] >> 4) & 3);
+    p_cb->extConf.fs.acc_1g.y = (data[5] << 2) | ((data[7] >> 2) & 3);
+    p_cb->extConf.fs.acc_1g.z = (data[6] << 2) | (data[7] & 3);
+    p_cb->extConf.fs.stick.x_max = (s8)data[8];
+    p_cb->extConf.fs.stick.x_min = (s8)data[9];
+    p_cb->extConf.fs.stick.y_max = (s8)data[11];
+    p_cb->extConf.fs.stick.y_min = (s8)data[12];
+    if (!p_cb->isSetStickOrigin) {
+        p_cb->extConf.fs.stick.x = (s8)data[10];
+        p_cb->extConf.fs.stick.y = (s8)data[13];
+    }
+}
+
 // NONMATCHING: compiler shares repeated calibration paths; target byte decoding, calls and FP operation order retained.
 void __wpadGetExtConfig(s32 chan, s32 result) {
     WPADControlBlock* p_cb = _wpdcb[chan];
-    WPADControlBlock* p_cal;
     u8* data = p_cb->readBufPtr;
-    u8* fsData;
     u8 tagHigh, tagLow;
     if (!p_cb->infos.attach) {
-        _devType[chan] = p_cb->devType = 0;
-        _devMode[chan] = p_cb->devMode = 0;
+        _devType[chan] = 0;
+        p_cb->devType = 0;
+        _devMode[chan] = 0;
+        p_cb->devMode = 0;
         return;
     }
-    if (result == WPAD_ERR_NO_CONTROLLER) {
+    switch (result) {
+    case WPAD_ERR_NO_CONTROLLER:
         p_cb->devType = 253;
         p_cb->extensionPreviousType = 253;
         p_cb->extensionReconnectPending = 0;
-    } else if (result == WPAD_ERR_NONE) p_cb->devType = _devType[chan];
-    else {
+        break;
+    case WPAD_ERR_NONE:
+        p_cb->devType = _devType[chan];
+        break;
+    default:
         p_cb->devType = 252;
         p_cb->extensionPreviousType = 252;
         p_cb->extensionReconnectPending = 0;
+        break;
     }
     p_cb->devMode = _devMode[chan];
-    if (p_cb->devType == 1) {
-        p_cb->extConf.fs.acc_0g.z = p_cb->extConf.fs.acc_0g.y = p_cb->extConf.fs.acc_0g.x = 512;
-        p_cb->extConf.fs.acc_1g.z = p_cb->extConf.fs.acc_1g.y = p_cb->extConf.fs.acc_1g.x = 716;
-        fsData = NULL;
-        if (__wpadCheckCalibration(data, 14, 0)) fsData = data;
-        else if (__wpadCheckCalibration(data + 16, 14, 0)) fsData = data + 16;
-        if (fsData) {
-            p_cal = _wpdcb[chan];
-            p_cal->extConf.fs.acc_0g.x = (fsData[0] << 2) | ((fsData[3] >> 4) & 3);
-            p_cal->extConf.fs.acc_0g.y = (fsData[1] << 2) | ((fsData[3] >> 2) & 3);
-            p_cal->extConf.fs.acc_0g.z = (fsData[2] << 2) | (fsData[3] & 3);
-            p_cal->extConf.fs.acc_1g.x = (fsData[4] << 2) | ((fsData[7] >> 4) & 3);
-            p_cal->extConf.fs.acc_1g.y = (fsData[5] << 2) | ((fsData[7] >> 2) & 3);
-            p_cal->extConf.fs.acc_1g.z = (fsData[6] << 2) | (fsData[7] & 3);
-            p_cal->extConf.fs.stick.x_max = (s8)fsData[8];
-            p_cal->extConf.fs.stick.x_min = (s8)fsData[9];
-            p_cal->extConf.fs.stick.y_max = (s8)fsData[11];
-            p_cal->extConf.fs.stick.y_min = (s8)fsData[12];
-            if (!p_cal->isSetStickOrigin) {
-                p_cal->extConf.fs.stick.x = (s8)fsData[10];
-                p_cal->extConf.fs.stick.y = (s8)fsData[13];
-            }
-        }
-    } else if (p_cb->devType == 2) {
+    switch ((u8)p_cb->devType) {
+    case 1:
+        p_cb->extConf.fs.acc_0g.x = p_cb->extConf.fs.acc_0g.y = p_cb->extConf.fs.acc_0g.z = 512;
+        p_cb->extConf.fs.acc_1g.x = p_cb->extConf.fs.acc_1g.y = p_cb->extConf.fs.acc_1g.z = 716;
+        if (__wpadCheckCalibration(data, 14, 0)) __wpadGetFsConfig(chan, data);
+        else if (__wpadCheckCalibration(data + 16, 14, 0)) __wpadGetFsConfig(chan, data + 16);
+        break;
+    case 2:
         if (__wpadCheckCalibration(data, 14, 0)) __wpadGetClConfig(chan, data);
         else __wpadGetClConfig(chan, data + 16);
-    } else if ((u8)(p_cb->devType - 5) <= 2 || p_cb->devType == 250) {
+        break;
+    case 5: case 6: case 7: case 250:
         p_cb->mplsDiscardReports = 5;
-        p_cb->extConf.mplsCalibration[0].axis[2].zero = p_cb->extConf.mplsCalibration[0].axis[1].zero = p_cb->extConf.mplsCalibration[0].axis[0].zero = 8192.0f;
-        p_cb->extConf.mplsCalibration[0].axis[2].scale = p_cb->extConf.mplsCalibration[0].axis[1].scale = p_cb->extConf.mplsCalibration[0].axis[0].scale = 5333.0f;
+        p_cb->extConf.mplsCalibration[0].axis[0].zero = p_cb->extConf.mplsCalibration[0].axis[1].zero = p_cb->extConf.mplsCalibration[0].axis[2].zero = 8192.0f;
+        p_cb->extConf.mplsCalibration[0].axis[0].scale = p_cb->extConf.mplsCalibration[0].axis[1].scale = p_cb->extConf.mplsCalibration[0].axis[2].scale = 5333.0f;
         p_cb->extConf.mplsCalibration[0].referenceRate = 1200;
-        p_cb->extConf.mplsCalibration[1].axis[2].zero = p_cb->extConf.mplsCalibration[1].axis[1].zero = p_cb->extConf.mplsCalibration[1].axis[0].zero = 8192.0f;
-        p_cb->extConf.mplsCalibration[1].axis[2].scale = p_cb->extConf.mplsCalibration[1].axis[1].scale = p_cb->extConf.mplsCalibration[1].axis[0].scale = 5400.0f;
+        p_cb->extConf.mplsCalibration[1].axis[0].zero = p_cb->extConf.mplsCalibration[1].axis[1].zero = p_cb->extConf.mplsCalibration[1].axis[2].zero = 8192.0f;
+        p_cb->extConf.mplsCalibration[1].axis[0].scale = p_cb->extConf.mplsCalibration[1].axis[1].scale = p_cb->extConf.mplsCalibration[1].axis[2].scale = 5400.0f;
         p_cb->extConf.mplsCalibration[1].referenceRate = 270;
         p_cb->extConf.mplsCalibrationTag = 0xFFFF;
         p_cb->extConf.mplsCalibrationCRC32 = 0xFFFFFFFF;
@@ -381,36 +419,8 @@ void __wpadGetExtConfig(s32 chan, s32 result) {
         data[28] = tagHigh;
         data[29] = tagLow;
         if (__wpadCheckCalibration(data, 28, 1)) {
-            p_cal = _wpdcb[chan];
-            p_cal->extConf.mplsCalibration[0].axis[0].zero = 5000.0f + (f32)((data[4] << 8) | data[5]) / 10.0f;
-            p_cal->extConf.mplsCalibration[0].axis[1].zero = 5000.0f + (f32)((data[0] << 8) | data[1]) / 10.0f;
-            p_cal->extConf.mplsCalibration[0].axis[2].zero = 5000.0f + (f32)((data[2] << 8) | data[3]) / 10.0f;
-            p_cal->extConf.mplsCalibration[0].referenceRate = data[12] * 6;
-            if (!p_cal->extConf.mplsCalibration[0].referenceRate) p_cal->extConf.mplsCalibration[0].referenceRate = 91;
-            p_cal->extConf.mplsCalibration[0].axis[0].scale = (f32)(s16)((data[10] << 8) | data[11]) / 10.0f;
-            p_cal->extConf.mplsCalibration[0].axis[1].scale = (f32)(s16)((data[6] << 8) | data[7]) / 10.0f;
-            p_cal->extConf.mplsCalibration[0].axis[2].scale = (f32)(s16)((data[8] << 8) | data[9]) / 10.0f;
-            if (p_cal->extConf.mplsCalibration[0].axis[0].scale < 0.0f) p_cal->extConf.mplsCalibration[0].axis[0].scale -= 4000.0f;
-            else p_cal->extConf.mplsCalibration[0].axis[0].scale = 4000.0f + p_cal->extConf.mplsCalibration[0].axis[0].scale;
-            if (p_cal->extConf.mplsCalibration[0].axis[1].scale < 0.0f) p_cal->extConf.mplsCalibration[0].axis[1].scale -= 4000.0f;
-            else p_cal->extConf.mplsCalibration[0].axis[1].scale = 4000.0f + p_cal->extConf.mplsCalibration[0].axis[1].scale;
-            if (p_cal->extConf.mplsCalibration[0].axis[2].scale < 0.0f) p_cal->extConf.mplsCalibration[0].axis[2].scale -= 4000.0f;
-            else p_cal->extConf.mplsCalibration[0].axis[2].scale = 4000.0f + p_cal->extConf.mplsCalibration[0].axis[2].scale;
-            p_cal = _wpdcb[chan];
-            p_cal->extConf.mplsCalibration[1].axis[0].zero = 5000.0f + (f32)((data[18] << 8) | data[19]) / 10.0f;
-            p_cal->extConf.mplsCalibration[1].axis[1].zero = 5000.0f + (f32)((data[14] << 8) | data[15]) / 10.0f;
-            p_cal->extConf.mplsCalibration[1].axis[2].zero = 5000.0f + (f32)((data[16] << 8) | data[17]) / 10.0f;
-            p_cal->extConf.mplsCalibration[1].referenceRate = data[26] * 6;
-            if (!p_cal->extConf.mplsCalibration[1].referenceRate) p_cal->extConf.mplsCalibration[1].referenceRate = 91;
-            p_cal->extConf.mplsCalibration[1].axis[0].scale = (f32)(s16)((data[24] << 8) | data[25]) / 10.0f;
-            p_cal->extConf.mplsCalibration[1].axis[1].scale = (f32)(s16)((data[20] << 8) | data[21]) / 10.0f;
-            p_cal->extConf.mplsCalibration[1].axis[2].scale = (f32)(s16)((data[22] << 8) | data[23]) / 10.0f;
-            if (p_cal->extConf.mplsCalibration[1].axis[0].scale < 0.0f) p_cal->extConf.mplsCalibration[1].axis[0].scale -= 4000.0f;
-            else p_cal->extConf.mplsCalibration[1].axis[0].scale = 4000.0f + p_cal->extConf.mplsCalibration[1].axis[0].scale;
-            if (p_cal->extConf.mplsCalibration[1].axis[1].scale < 0.0f) p_cal->extConf.mplsCalibration[1].axis[1].scale -= 4000.0f;
-            else p_cal->extConf.mplsCalibration[1].axis[1].scale = 4000.0f + p_cal->extConf.mplsCalibration[1].axis[1].scale;
-            if (p_cal->extConf.mplsCalibration[1].axis[2].scale < 0.0f) p_cal->extConf.mplsCalibration[1].axis[2].scale -= 4000.0f;
-            else p_cal->extConf.mplsCalibration[1].axis[2].scale = 4000.0f + p_cal->extConf.mplsCalibration[1].axis[2].scale;
+            __wpadGetMplsConfig(chan, data, 0);
+            __wpadGetMplsConfig(chan, data + 14, 1);
             p_cb->extConf.mplsCalibrationTag = (data[13] << 8) | data[27];
             p_cb->extConf.mplsCalibrationCRC32 = __OSCalcCRC32(data, 28);
         }
@@ -424,7 +434,11 @@ void __wpadGetExtConfig(s32 chan, s32 result) {
         if (p_cb->certCachedValidity != 1 && p_cb->extensionIdByte7 >= 14) _devType[chan] = p_cb->devType = 252;
         p_cb->certCachedCalibrationTag = p_cb->extConf.mplsCalibrationTag;
         p_cb->certCachedCalibrationCRC32 = p_cb->extConf.mplsCalibrationCRC32;
-    } else if (p_cb->devType == 3 && p_cb->readLength == 1) return;
+        break;
+    case 3:
+        if (p_cb->readLength == 1) return;
+        break;
+    }
     if (p_cb->extensionCallback) p_cb->extensionCallback(chan, p_cb->devType);
     p_cb->resultCallback = NULL;
 }
@@ -496,103 +510,116 @@ void __wpadGetExtType(s32 chan, s32 result) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADCmdQueue* cmdq = &p_cb->extq;
     u8* data = p_cb->readBuf;
-    if (result != WPAD_ERR_NONE) {
+    if (result == WPAD_ERR_NONE) {
+        if (!p_cb->infos.attach) {
+            _devType[chan] = 0;
+            p_cb->devType = 0;
+            _devMode[chan] = 0;
+            p_cb->devMode = 0;
+            return;
+        }
+        if (!memcmp(data, checkInvalidData, 16) || (data[12] == 0 && data[13] == 0)) {
+            _devType[chan] = 252;
+            _devMode[chan] = 0;
+        } else {
+            _devCmpt[chan] = 0;
+            _devMode[chan] = data[14];
+            switch (data[15]) {
+            case 0: _devType[chan] = 1; break;
+            case 1: _devType[chan] = 2; break;
+            case 2: _devType[chan] = WUDIsLinkedWBC() ? 3 : 251; break;
+            case 16: _devType[chan] = WPADIsEnabledGTR() ? 16 : 251; break;
+            case 17: _devType[chan] = WPADIsEnabledDevice19() ? 19 : 251; break;
+            case 3:
+                if (__OSInIPL) {
+                    _devType[chan] = 2;
+                    _devMode[chan] = 1;
+                    _devCmpt[chan] = 1;
+                } else {
+                    switch (data[10]) {
+                    case 0: _devType[chan] = WPADIsEnabledDRM() ? 17 : 251; break;
+                    case 1: _devType[chan] = WPADIsEnabledTKO() ? 18 : 251; break;
+                    case 3: _devType[chan] = WPADIsEnabledDevice20() ? 20 : 251; break;
+                    case 4: _devType[chan] = WPADIsEnabledRawReports() ? 21 : 251; break;
+                    case 5: _devType[chan] = WPADIsEnabledRawReports() ? 22 : 251; break;
+                    case 6: _devType[chan] = WPADIsEnabledRawReports() ? 23 : 251; break;
+                    case 7: _devType[chan] = WPADIsEnabledRawReports() ? 24 : 251; break;
+                    case 8: _devType[chan] = WPADIsEnabledRawReports() ? 25 : 251; break;
+                    case 9: _devType[chan] = WPADIsEnabledRawReports() ? 26 : 251; break;
+                    case 10: _devType[chan] = WPADIsEnabledRawReports() ? 27 : 251; break;
+                    case 11: _devType[chan] = WPADIsEnabledRawReports() ? 28 : 251; break;
+                    default: _devType[chan] = 251; break;
+                    }
+                }
+                break;
+            case 4:
+                if (WPADIsEnabledTRN()) {
+                    _devType[chan] = 4;
+                    p_cb->trnFormatSelector = 0;
+                } else _devType[chan] = 251;
+                break;
+            case 5:
+                if (data[14] == 4 || data[14] == 5 || data[14] == 7) {
+                    _devType[chan] = 5;
+                } else {
+                    _devType[chan] = 251;
+                }
+                p_cb->mplsPassthroughConfigBusy = 0;
+                p_cb->mplsPassthroughConfigState = 0;
+                p_cb->reservedMplsState = 253;
+                _mplsExtensionType[chan] = data[9];
+                _mplsExtensionSubtype[chan] = data[8];
+                p_cb->mplsInitTicks = 0;
+                break;
+            default: _devType[chan] = 251; break;
+            }
+        }
+        if (_devType[chan] == 2 && (u8)(_devMode[chan] + 255) > 2) _devType[chan] = 252;
+        if (p_cb->extensionReconnectPending && p_cb->extensionPreviousType == _devType[chan]) {
+            if (p_cb->isSetStickOrigin) p_cb->isSetStickOrigin = 1;
+        } else p_cb->isSetStickOrigin = 0;
+        p_cb->extensionPreviousType = _devType[chan];
+        p_cb->extensionReconnectPending = 0;
+        switch (_devType[chan]) {
+        case 251:
+        case 252:
+            p_cb->devType = _devType[chan];
+            p_cb->devMode = _devMode[chan];
+            if (p_cb->extensionCallback) p_cb->extensionCallback(chan, p_cb->devType);
+            return;
+        case 5:
+        case 6:
+        case 7:
+        case 250:
+            resetExtensionCertificate(chan);
+            p_cb->extensionIdByte7 = data[7];
+            break;
+        default:
+            if (__wpadIsExtEncryptMain(_devType[chan])) {
+                p_cb->extEnc = 2;
+                WPADiCreateKey(chan);
+            } else {
+                p_cb->extEnc = 3;
+                WPADiCreateKeyFor3rd(chan);
+            }
+            WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F0, __wpadAbortInitExtension);
+            WPADiSendWriteData(cmdq, p_cb->key, 6, 0x04A40040, __wpadAbortInitExtension);
+            WPADiSendWriteData(cmdq, p_cb->key + 6, 6, 0x04A40046, __wpadAbortInitExtension);
+            WPADiSendWriteData(cmdq, p_cb->key + 12, 4, 0x04A4004C, __wpadAbortInitExtension);
+            if (_devType[chan] == 3) {
+                WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
+                WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
+                WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
+            }
+            break;
+        }
+        WPADiSendReadData(cmdq, p_cb->readBuf, 32, 0x04A40020, p_cb->extensionCallback);
+    } else {
         p_cb->devType = 252;
         p_cb->devMode = 0;
         p_cb->extensionPreviousType = 252;
         p_cb->extensionReconnectPending = 0;
-        return;
     }
-    if (!p_cb->infos.attach) {
-        _devType[chan] = p_cb->devType = 0;
-        _devMode[chan] = p_cb->devMode = 0;
-        return;
-    }
-    if (!memcmp(data, checkInvalidData, 16) || (data[12] == 0 && data[13] == 0)) {
-        _devType[chan] = 252;
-        _devMode[chan] = 0;
-    } else {
-        _devCmpt[chan] = 0;
-        _devMode[chan] = data[14];
-        switch (data[15]) {
-        case 0: _devType[chan] = 1; break;
-        case 1: _devType[chan] = 2; break;
-        case 2: _devType[chan] = WUDIsLinkedWBC() ? 3 : 251; break;
-        case 16: _devType[chan] = WPADIsEnabledGTR() ? 16 : 251; break;
-        case 17: _devType[chan] = WPADIsEnabledDevice19() ? 19 : 251; break;
-        case 3:
-            if (__OSInIPL) {
-                _devType[chan] = 2;
-                _devMode[chan] = 1;
-                _devCmpt[chan] = 1;
-            } else {
-                switch (data[10]) {
-                case 0: _devType[chan] = WPADIsEnabledDRM() ? 17 : 251; break;
-                case 1: _devType[chan] = WPADIsEnabledTKO() ? 18 : 251; break;
-                case 3: _devType[chan] = WPADIsEnabledDevice20() ? 20 : 251; break;
-                case 4: _devType[chan] = WPADIsEnabledRawReports() ? 21 : 251; break;
-                case 5: _devType[chan] = WPADIsEnabledRawReports() ? 22 : 251; break;
-                case 6: _devType[chan] = WPADIsEnabledRawReports() ? 23 : 251; break;
-                case 7: _devType[chan] = WPADIsEnabledRawReports() ? 24 : 251; break;
-                case 8: _devType[chan] = WPADIsEnabledRawReports() ? 25 : 251; break;
-                case 9: _devType[chan] = WPADIsEnabledRawReports() ? 26 : 251; break;
-                case 10: _devType[chan] = WPADIsEnabledRawReports() ? 27 : 251; break;
-                case 11: _devType[chan] = WPADIsEnabledRawReports() ? 28 : 251; break;
-                default: _devType[chan] = 251; break;
-                }
-            }
-            break;
-        case 4:
-            if (WPADIsEnabledTRN()) {
-                _devType[chan] = 4;
-                p_cb->trnFormatSelector = 0;
-            } else _devType[chan] = 251;
-            break;
-        case 5:
-            _devType[chan] = (data[14] == 4 || data[14] == 5 || data[14] == 7) ? 5 : 251;
-            p_cb->mplsPassthroughConfigBusy = 0;
-            p_cb->mplsPassthroughConfigState = 0;
-            p_cb->reservedMplsState = 253;
-            _mplsExtensionType[chan] = data[9];
-            _mplsExtensionSubtype[chan] = data[8];
-            p_cb->mplsInitTicks = 0;
-            break;
-        default: _devType[chan] = 251; break;
-        }
-    }
-    if (_devType[chan] == 2 && (u8)(_devMode[chan] - 1) > 2) _devType[chan] = 252;
-    if (p_cb->extensionReconnectPending && p_cb->extensionPreviousType == _devType[chan]) {
-        if (p_cb->isSetStickOrigin) p_cb->isSetStickOrigin = 1;
-    } else p_cb->isSetStickOrigin = 0;
-    p_cb->extensionPreviousType = _devType[chan];
-    p_cb->extensionReconnectPending = 0;
-    if ((u8)(_devType[chan] - 5) <= 2 || _devType[chan] == 250) {
-        resetExtensionCertificate(chan);
-        p_cb->extensionIdByte7 = data[7];
-    } else if (_devType[chan] == 251 || _devType[chan] == 252) {
-        p_cb->devType = _devType[chan];
-        p_cb->devMode = _devMode[chan];
-        if (p_cb->extensionCallback) p_cb->extensionCallback(chan, p_cb->devType);
-        return;
-    } else {
-        if (__wpadIsExtEncryptMain(_devType[chan])) {
-            p_cb->extEnc = 2;
-            WPADiCreateKey(chan);
-        } else {
-            p_cb->extEnc = 3;
-            WPADiCreateKeyFor3rd(chan);
-        }
-        WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F0, __wpadAbortInitExtension);
-        WPADiSendWriteData(cmdq, p_cb->key, 6, 0x04A40040, __wpadAbortInitExtension);
-        WPADiSendWriteData(cmdq, p_cb->key + 6, 6, 0x04A40046, __wpadAbortInitExtension);
-        WPADiSendWriteData(cmdq, p_cb->key + 12, 4, 0x04A4004C, __wpadAbortInitExtension);
-        if (_devType[chan] == 3) {
-            WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
-            WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
-            WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
-        }
-    }
-    WPADiSendReadData(cmdq, p_cb->readBuf, 32, 0x04A40020, p_cb->extensionCallback);
 }
 
 void __wpadGetGameInfo(s32 chan, s32 result, u8 index) {
@@ -1112,10 +1139,10 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
     }
     if (mode == 4) {
         if ((data[5] & 3) == 2) {
-            MP_REPORT->status = 0x80 | (data[4] & 3) | ((data[3] & 3) << 2);
-            MP_REPORT->rotation[0] = (s16)data[2] | ((data[5] & 0xFC) << 6);
-            MP_REPORT->rotation[1] = (s16)data[0] | ((data[3] & 0xFC) << 6);
-            MP_REPORT->rotation[2] = (s16)data[1] | ((data[4] & 0xFC) << 6);
+            MP_REPORT->status = (data[4] & 3) | ((data[3] & 3) << 2) | 0x80;
+            MP_REPORT->rotation[0] = (s16)data[2] | (s16)((data[5] & 0xFC) << 6);
+            MP_REPORT->rotation[1] = (s16)data[0] | (s16)((data[3] & 0xFC) << 6);
+            MP_REPORT->rotation[2] = (s16)data[1] | (s16)((data[4] & 0xFC) << 6);
         } else {
             (*p_status)->err = WPAD_ERR_CORRUPTED;
         }
@@ -1138,9 +1165,9 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
                 if (p_cb->devType == WPAD_DEV_MPLS_FREESTYLE) {
                     FS_REPORT->fsStickX = data[0];
                     FS_REPORT->fsStickY = data[1];
-                    FS_REPORT->fsAccX = (s16)((((s16)(data[2] << 2) & (s16)~3) | ((data[5] >> 3) & 2)) - p_cb->extConf.fs.acc_0g.x);
-                    FS_REPORT->fsAccY = (s16)((((s16)(data[3] << 2) & (s16)~3) | ((data[5] >> 4) & 2)) - p_cb->extConf.fs.acc_0g.y);
-                    FS_REPORT->fsAccZ = (s16)((((s16)(data[4] << 2) & (s16)~7) | ((data[5] >> 5) & 6)) - p_cb->extConf.fs.acc_0g.z);
+                    FS_REPORT->fsAccX = (s16)((s16)((s16)((s16)(data[2] << 2) & (s16)~3) | (s16)((data[5] >> 3) & 2)) - p_cb->extConf.fs.acc_0g.x);
+                    FS_REPORT->fsAccY = (s16)((s16)((s16)((s16)(data[3] << 2) & (s16)~3) | (s16)((data[5] >> 4) & 2)) - p_cb->extConf.fs.acc_0g.y);
+                    FS_REPORT->fsAccZ = (s16)((s16)((s16)((s16)(data[4] << 2) & (s16)~7) | ((data[5] >> 5) & 6)) - p_cb->extConf.fs.acc_0g.z);
                     (*p_status)->button |= ((~data[5]) << 11) & 0x6000;
                     if (!p_cb->isSetStickOrigin) {
                         p_cb->isSetStickOrigin = 1;
@@ -1158,9 +1185,9 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
                 } else if (p_cb->devType == WPAD_DEV_MPLS_CLASSIC) {
                     CL_REPORT->clLStickX = (data[0] << 4) & 0x3E0;
                     CL_REPORT->clLStickY = (data[1] << 4) & 0x3E0;
-                    CL_REPORT->clRStickX = (s16)((data[2] >> 7) | ((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18)) << 5;
+                    CL_REPORT->clRStickX = (s16)((s16)(data[2] >> 7) | (((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18))) << 5;
                     CL_REPORT->clRStickY = (data[2] & 0x1F) << 5;
-                    CL_REPORT->clTriggerL = (((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
+                    CL_REPORT->clTriggerL = (s16)(((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
                     CL_REPORT->clTriggerR = (data[3] & 0x1F) << 3;
                     CL_REPORT->clButton = ((data[0] & 1) | ((data[1] & 1) << 1) | (data[5] & 0xFC) | ((data[4] & 0xFE) << 8)) ^ 0xFEFF;
                     CL_REPORT->clLStickX -= 512;
@@ -1205,13 +1232,13 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
         } else {
             MP_REPORT->extension = previous->extension;
             (*p_status)->button |= previous->core.button & 0x6000;
-            MP_REPORT->status = 0x80 | (data[4] & 3) | ((data[3] & 3) << 2);
+            MP_REPORT->status = (data[4] & 3) | ((data[3] & 3) << 2) | 0x80;
             if (MP_REPORT->status & 1) {
                 MP_REPORT->status |= previous->status & 0x40;
             }
-            MP_REPORT->rotation[0] = (s16)data[2] | ((data[5] & 0xFC) << 6);
-            MP_REPORT->rotation[1] = (s16)data[0] | ((data[3] & 0xFC) << 6);
-            MP_REPORT->rotation[2] = (s16)data[1] | ((data[4] & 0xFC) << 6);
+            MP_REPORT->rotation[0] = (s16)data[2] | (s16)((data[5] & 0xFC) << 6);
+            MP_REPORT->rotation[1] = (s16)data[0] | (s16)((data[3] & 0xFC) << 6);
+            MP_REPORT->rotation[2] = (s16)data[1] | (s16)((data[4] & 0xFC) << 6);
         }
     } else {
         (*p_status)->err = WPAD_ERR_CORRUPTED;
@@ -1247,7 +1274,11 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
         case 0: p_cb->devType = WPAD_DEV_MPLS_FREESTYLE; break;
         case 1: p_cb->devType = WPAD_DEV_MPLS_CLASSIC; break;
         case 3:
-            p_cb->devType = __OSInIPL ? WPAD_DEV_MPLS_CLASSIC : WPAD_DEV_MPLS_FUTURE;
+            if (__OSInIPL) {
+                p_cb->devType = WPAD_DEV_MPLS_CLASSIC;
+            } else {
+                p_cb->devType = WPAD_DEV_MPLS_FUTURE;
+            }
             break;
         default: p_cb->devType = WPAD_DEV_MPLS_FUTURE; break;
         }
@@ -1265,25 +1296,31 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
 }
 
 // NONMATCHING: compiler shares clamp paths and lowers packed fields differently.
+static inline s16 __wpadClampStick(s16 value, s16 minimum, s16 maximum) {
+    s16 result = value;
+    if (value < minimum) result = minimum;
+    if (value > maximum) result = maximum;
+    return result;
+}
+
 void __parse_cl_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len) {
     WPADControlBlock* p_cb = _wpdcb[chan];
-    s16 x, y;
 #define CL_STATUS ((WPADCLStatus*)*p_status)
     switch (mode) {
     case 2:
-        CL_STATUS->clLStickX = (data[0] << 2) | (data[4] & 3);
-        CL_STATUS->clRStickX = (data[1] << 2) | ((data[4] >> 2) & 3);
-        CL_STATUS->clLStickY = (data[2] << 2) | ((data[4] >> 4) & 3);
-        CL_STATUS->clRStickY = (data[3] << 2) | (data[4] >> 6);
+        CL_STATUS->clLStickX = (s16)((s16)(data[0] << 2) & (s16)0xFFFC) | (data[4] & 3);
+        CL_STATUS->clRStickX = (s16)((s16)(data[1] << 2) & (s16)0xFFFC) | ((data[4] >> 2) & 3);
+        CL_STATUS->clLStickY = (s16)((s16)(data[2] << 2) & (s16)0xFFFC) | ((data[4] >> 4) & 3);
+        CL_STATUS->clRStickY = (s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)(data[4] >> 6);
         CL_STATUS->clTriggerL = data[5];
         CL_STATUS->clTriggerR = len < 9 ? 0 : data[6];
         CL_STATUS->clButton = len < 9 ? 0 : ((data[7] << 8) | data[8]) ^ 0xFFFF;
         break;
     case 3:
-        CL_STATUS->clLStickX = data[0] << 2;
-        CL_STATUS->clRStickX = data[1] << 2;
-        CL_STATUS->clLStickY = data[2] << 2;
-        CL_STATUS->clRStickY = data[3] << 2;
+        CL_STATUS->clLStickX = (s16)data[0] << 2;
+        CL_STATUS->clRStickX = (s16)data[1] << 2;
+        CL_STATUS->clLStickY = (s16)data[2] << 2;
+        CL_STATUS->clRStickY = (s16)data[3] << 2;
         CL_STATUS->clTriggerL = data[4];
         CL_STATUS->clTriggerR = data[5];
         CL_STATUS->clButton = len < 8 ? 0 : ((data[6] << 8) | data[7]) ^ 0xFFFF;
@@ -1291,9 +1328,9 @@ void __parse_cl_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
     default:
         CL_STATUS->clLStickX = (data[0] & 0x3F) << 4;
         CL_STATUS->clLStickY = (data[1] & 0x3F) << 4;
-        CL_STATUS->clRStickX = ((data[2] >> 7) | ((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18)) << 5;
+        CL_STATUS->clRStickX = (s16)((s16)(data[2] >> 7) | (((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18))) << 5;
         CL_STATUS->clRStickY = (data[2] & 0x1F) << 5;
-        CL_STATUS->clTriggerL = (((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
+        CL_STATUS->clTriggerL = (s16)(((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
         CL_STATUS->clTriggerR = (data[3] & 0x1F) << 3;
         CL_STATUS->clButton = ((data[4] << 8) | data[5]) ^ 0xFFFF;
         break;
@@ -1328,30 +1365,16 @@ void __parse_cl_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
             p_cb->extConf.cl.triggerR = 0;
         }
     }
-    x = CL_STATUS->clLStickX - p_cb->extConf.cl.lstk.x;
-    y = CL_STATUS->clLStickY - p_cb->extConf.cl.lstk.y;
     if (p_cb->devType != 19) {
-        if (x < -512) x = -512;
-        if (x > 511) x = 511;
-        if (y < -512) y = -512;
-        if (y > 511) y = 511;
+        CL_STATUS->clLStickX = __wpadClampStick(CL_STATUS->clLStickX - p_cb->extConf.cl.lstk.x, -512, 511);
+        CL_STATUS->clLStickY = __wpadClampStick(CL_STATUS->clLStickY - p_cb->extConf.cl.lstk.y, -512, 511);
     } else {
-        if (x < 0) x = 0;
-        if (x > 1024) x = 1024;
-        if (y < 0) y = 0;
-        if (y > 1024) y = 1024;
+        CL_STATUS->clLStickX = __wpadClampStick(CL_STATUS->clLStickX - p_cb->extConf.cl.lstk.x, 0, 1024);
+        CL_STATUS->clLStickY = __wpadClampStick(CL_STATUS->clLStickY - p_cb->extConf.cl.lstk.y, 0, 1024);
     }
-    CL_STATUS->clLStickX = x;
-    CL_STATUS->clLStickY = y;
     if (p_cb->devType == 2) {
-        x = CL_STATUS->clRStickX - p_cb->extConf.cl.rstk.x;
-        y = CL_STATUS->clRStickY - p_cb->extConf.cl.rstk.y;
-        if (x < -512) x = -512;
-        if (x > 511) x = 511;
-        if (y < -512) y = -512;
-        if (y > 511) y = 511;
-        CL_STATUS->clRStickX = x;
-        CL_STATUS->clRStickY = y;
+        CL_STATUS->clRStickX = __wpadClampStick(CL_STATUS->clRStickX - p_cb->extConf.cl.rstk.x, -512, 511);
+        CL_STATUS->clRStickY = __wpadClampStick(CL_STATUS->clRStickY - p_cb->extConf.cl.rstk.y, -512, 511);
         if (CL_STATUS->clTriggerL > 72) CL_STATUS->clButton |= 0x2000;
         if (CL_STATUS->clTriggerR > 72) CL_STATUS->clButton |= 0x0200;
         CL_STATUS->clTriggerL = 0;
@@ -1371,19 +1394,23 @@ void __parse_vs_data(s32 chan, WPADStatus** p_status, u8 fmt, u8* data, u8 len) 
     WPADControlBlock* p_cb = _wpdcb[chan];
 #define VS_STATUS ((WPADVSStatus*)*p_status)
     VS_STATUS->sample[1].data = data[0];
-    VS_STATUS->sample[1].sample[0] = (data[1] << 2) | (data[6] >> 6);
-    VS_STATUS->sample[1].sample[1] = (data[2] << 2) | ((data[6] >> 4) & 3);
-    VS_STATUS->sample[1].sample[2] = (data[3] << 2) | ((data[6] >> 2) & 3);
-    VS_STATUS->sample[1].sample[3] = (data[4] << 2) | (data[6] & 3);
-    VS_STATUS->sample[1].sample[4] = (data[5] << 2) | (data[7] >> 6);
+    VS_STATUS->sample[1].sample[0] = (u16)(data[1] << 2) | (data[6] >> 6);
+    VS_STATUS->sample[1].sample[1] = ((u16)(data[6] >> 4) & 3) | (u16)(data[2] << 2);
+    VS_STATUS->sample[1].sample[2] = ((u16)(data[6] >> 2) & 3) | (u16)(data[3] << 2);
+    VS_STATUS->sample[1].sample[3] = (u16)(data[4] << 2) | ((u16)data[6] & 3);
+    VS_STATUS->sample[1].sample[4] = (u16)(data[5] << 2) | (data[7] >> 6);
     VS_STATUS->sample[0].data = data[8];
-    VS_STATUS->sample[0].sample[0] = (data[9] << 2) | (data[14] >> 6);
-    VS_STATUS->sample[0].sample[1] = (data[10] << 2) | ((data[14] >> 4) & 3);
-    VS_STATUS->sample[0].sample[2] = (data[11] << 2) | ((data[14] >> 2) & 3);
-    VS_STATUS->sample[0].sample[3] = (data[12] << 2) | (data[14] & 3);
-    VS_STATUS->sample[0].sample[4] = (data[13] << 2) | (data[15] >> 6);
-    VS_STATUS->button = ((data[7] << 4) & 0xF3F0) | ((data[15] >> 2) & 0xF);
-    VS_STATUS->selector = p_cb->trnFormatSelector < 8 ? 0xFF : (data[15] & 3);
+    VS_STATUS->sample[0].sample[0] = (u16)(data[9] << 2) | (data[14] >> 6);
+    VS_STATUS->sample[0].sample[1] = ((u16)(data[14] >> 4) & 3) | (u16)(data[10] << 2);
+    VS_STATUS->sample[0].sample[2] = ((u16)(data[14] >> 2) & 3) | (u16)(data[11] << 2);
+    VS_STATUS->sample[0].sample[3] = (u16)(data[12] << 2) | ((u16)data[14] & 3);
+    VS_STATUS->sample[0].sample[4] = (u16)(data[13] << 2) | (data[15] >> 6);
+    VS_STATUS->button = ((u16)(data[7] << 4) & 0xF3F0) | ((u16)(data[15] >> 2) & 0xF);
+    if (p_cb->trnFormatSelector < 8) {
+        VS_STATUS->selector = 0xFF;
+        return;
+    }
+    VS_STATUS->selector = data[15] & 3;
 #undef VS_STATUS
 }
 
@@ -1393,12 +1420,13 @@ static const u8 checkZeroData[21] = {0};
 // NONMATCHING: compiler shares error and device-dispatch paths differently.
 void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len) {
     WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADStatus* parseStatus = p_status;
     s8 currentError;
     s16 x, y, value;
     u16 i;
-#define FS_REPORT ((WPADFSStatus*)p_status)
-#define RAW_REPORT ((WPADRawStatus*)p_status)
-#define GTR_REPORT ((WPADPercussionStatus*)p_status)
+#define FS_REPORT ((WPADFSStatus*)parseStatus)
+#define RAW_REPORT ((WPADRawStatus*)parseStatus)
+#define GTR_REPORT ((WPADPercussionStatus*)parseStatus)
 
     if (p_cb->extensionDataError == WPAD_ERR_NO_CONTROLLER) {
         p_cb->extensionDataError = p_status->err;
@@ -1409,7 +1437,10 @@ void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len)
     if (p_status->err == WPAD_ERR_NONE) {
         if (memcmp(data, checkZeroData, len) == 0) {
             p_status->err = WPAD_ERR_INVALID;
-        } else if (memcmp(data, checkInvalidData, len) == 0 || !p_cb->infos.attach) {
+        } else if (memcmp(data, checkInvalidData, len) == 0) {
+            p_status->err = WPAD_ERR_CORRUPTED;
+            p_cb->extensionErrorCountdown = 3;
+        } else if (!p_cb->infos.attach) {
             p_status->err = WPAD_ERR_CORRUPTED;
             p_cb->extensionErrorCountdown = 3;
         } else if (p_cb->extensionErrorCountdown != 0) {
@@ -1426,14 +1457,14 @@ void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len)
     if (p_cb->extensionDataError == WPAD_ERR_NONE) {
         p_cb->extensionErrorCountdown = 0;
         WPADiDecode(chan, p_cb->extensionData, p_cb->extensionDataLength, 0);
-        switch (p_cb->devType) {
+        switch ((u32)p_cb->devType) {
         case WPAD_DEV_FREESTYLE:
             FS_REPORT->fsStickX = p_cb->extensionData[0];
             FS_REPORT->fsStickY = p_cb->extensionData[1];
-            FS_REPORT->fsAccX = (s16)((((s16)(p_cb->extensionData[2] << 2) & (s16)~3) | ((p_cb->extensionData[5] >> 2) & 3)) - p_cb->extConf.fs.acc_0g.x);
-            FS_REPORT->fsAccY = (s16)((((s16)(p_cb->extensionData[3] << 2) & (s16)~3) | ((p_cb->extensionData[5] >> 4) & 3)) - p_cb->extConf.fs.acc_0g.y);
-            FS_REPORT->fsAccZ = (s16)((((s16)(p_cb->extensionData[4] << 2) & (s16)~3) | (p_cb->extensionData[5] >> 6)) - p_cb->extConf.fs.acc_0g.z);
-            p_status->button |= ((~p_cb->extensionData[5]) & 3) << 13;
+            FS_REPORT->fsAccX = (s16)((s16)((s16)((s16)(p_cb->extensionData[2] << 2) & (s16)~3) | (s16)((p_cb->extensionData[5] >> 2) & 3)) - p_cb->extConf.fs.acc_0g.x);
+            FS_REPORT->fsAccY = (s16)((s16)((s16)((s16)(p_cb->extensionData[3] << 2) & (s16)~3) | (s16)((p_cb->extensionData[5] >> 4) & 3)) - p_cb->extConf.fs.acc_0g.y);
+            FS_REPORT->fsAccZ = (s16)((s16)((s16)((s16)(p_cb->extensionData[4] << 2) & (s16)~3) | (s16)(p_cb->extensionData[5] >> 6)) - p_cb->extConf.fs.acc_0g.z);
+            parseStatus->button |= ((~p_cb->extensionData[5]) & 3) << 13;
             if (!p_cb->isSetStickOrigin) {
                 p_cb->isSetStickOrigin = 1;
                 p_cb->extConf.fs.stick.x = FS_REPORT->fsStickX;
@@ -1452,26 +1483,28 @@ void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len)
             break;
         case WPAD_DEV_CLASSIC:
         case 17: case 18: case 19: case 20:
-            __parse_cl_data(chan, &p_status, p_cb->devMode, p_cb->extensionData, p_cb->extensionDataLength);
+            __parse_cl_data(chan, &parseStatus, p_cb->devMode, p_cb->extensionData, p_cb->extensionDataLength);
             break;
-        case 21: case 22: case 23: case 24: case 25: case 26: case 27: case 28:
-            for (i = 0; i < p_cb->extensionDataLength; ++i) {
+        case 21: case 22: case 23: case 24: case 25: case 26: case 27: case 28: {
+            s32 length = p_cb->extensionDataLength;
+            for (i = 0; i < length; ++i) {
                 RAW_REPORT->data[i] = p_cb->extensionData[i];
             }
             break;
+        }
         case 16:
             GTR_REPORT->force[0] = p_cb->extensionData[2];
             GTR_REPORT->force[1] = p_cb->extensionData[3];
             GTR_REPORT->button = ((p_cb->extensionData[6] << 8) | p_cb->extensionData[7]) ^ 0xFFFF;
             break;
         case 3:
-            __parse_bl_data(chan, &p_status, p_cb->devMode, p_cb->extensionData, p_cb->extensionDataLength);
+            __parse_bl_data(chan, &parseStatus, p_cb->devMode, p_cb->extensionData, p_cb->extensionDataLength);
             break;
         case 4:
-            __parse_vs_data(chan, &p_status, (u8)p_cb->dataFormat, p_cb->extensionData, p_cb->extensionDataLength);
+            __parse_vs_data(chan, &parseStatus, (u8)p_cb->dataFormat, p_cb->extensionData, p_cb->extensionDataLength);
             break;
         case WPAD_DEV_MPLS: case WPAD_DEV_MPLS_FREESTYLE: case WPAD_DEV_MPLS_CLASSIC: case WPAD_DEV_MPLS_FUTURE:
-            __parse_mp_data(chan, &p_status, p_cb->devMode, p_cb->extensionData, p_cb->extensionDataLength);
+            __parse_mp_data(chan, &parseStatus, p_cb->devMode, p_cb->extensionData, p_cb->extensionDataLength);
             break;
         }
     }

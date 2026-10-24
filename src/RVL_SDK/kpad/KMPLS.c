@@ -12,10 +12,16 @@ static s32 s_rawRange[3][3] = {
     {0x7FFFFF, 0x7FFFFF, 0x7FFFFF}
 };
 
-// NONMATCHING: The compiler merges the two result stores; target uses two return arms. Both write result==0 ? 1 : -1 at state+0xC2.
+// NONMATCHING: Null-check and channel-address scheduling differ; both result stores retain separate return arms.
 void wpad_callback_func(s32 chan, s32 result) {
     if (kmplsWork) {
-        kmplsWork->channels[chan].calibrationResult = result == 0 ? 1 : -1;
+        KMPLSState* state = &kmplsWork->channels[chan];
+        if (result == 0) {
+            state->calibrationResult = 1;
+            return;
+        }
+        state->calibrationResult = -1;
+        return;
     }
 }
 
@@ -276,7 +282,8 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
     u8 adjustZero;
     f32 window;
     f32 speed;
-    const s32* limits;
+    s32 limits[3];
+    s32 minimum[3];
     if (count <= 0 || !kmplsWork) return;
     state = &kmplsWork->channels[chan];
     if (state->calibrating) {
@@ -290,13 +297,18 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
         historyWindow = state->historyWindow;
         speed = state->zeroAdjustSpeed;
     }
-    limits = s_rawRange[state->reportMode];
+    limits[0] = s_rawRange[state->reportMode][0];
+    limits[1] = s_rawRange[state->reportMode][1];
+    limits[2] = s_rawRange[state->reportMode][2];
+    minimum[0] = -limits[0];
+    minimum[1] = -limits[1];
+    minimum[2] = -limits[2];
     threshold[0] = __KMPLS_f2i(window / state->rateScale.x);
     threshold[1] = __KMPLS_f2i(window / state->rateScale.y);
     threshold[2] = __KMPLS_f2i(window / state->rateScale.z);
-    if (threshold[0] == 0) threshold[0] = 1;
-    if (threshold[1] == 0) threshold[1] = 1;
-    if (threshold[2] == 0) threshold[2] = 1;
+    if (threshold[0] == 0) ++threshold[0];
+    if (threshold[1] == 0) ++threshold[1];
+    if (threshold[2] == 0) ++threshold[2];
     state->unstableCount[2] = 0;
     state->unstableCount[1] = 0;
     state->unstableCount[0] = 0;
@@ -308,7 +320,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
         Vec previous;
         s32 stable[3] = {1, 1, 1};
         if (index < 0) index += state->externalLength + 16;
-        if (index >= 16) report = state->externalRing + index - 16;
+        if (index >= 16) report = state->externalRing + (index - 16);
         else report = state->internalRing + index;
         previous = state->previousRate;
         state->previousRate = state->sample.angularVelocity;
@@ -332,7 +344,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 state->history[0][state->historyHead] = raw;
                 sum = raw;
                 difference = raw - __KMPLS_f2i(state->zeroCenter.x);
-                if (difference <= -limits[0] || difference >= limits[0]) {
+                if (difference <= minimum[0] || difference >= limits[0]) {
                     state->rateDifference.x *= kmplsWork->invalidSampleDecay;
                     state->sample.angularVelocity.x += state->rateDifference.x;
                     state->unstableCount[0]++;
@@ -393,7 +405,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 state->history[1][state->historyHead] = raw;
                 sum = raw;
                 difference = raw - __KMPLS_f2i(state->zeroCenter.y);
-                if (difference <= -limits[1] || difference >= limits[1]) {
+                if (difference <= minimum[1] || difference >= limits[1]) {
                     state->rateDifference.y *= kmplsWork->invalidSampleDecay;
                     state->sample.angularVelocity.y += state->rateDifference.y;
                     state->unstableCount[1]++;
@@ -454,7 +466,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 state->history[2][state->historyHead] = raw;
                 sum = raw;
                 difference = raw - __KMPLS_f2i(state->zeroCenter.z);
-                if (difference <= -limits[2] || difference >= limits[2]) {
+                if (difference <= minimum[2] || difference >= limits[2]) {
                     state->rateDifference.z *= kmplsWork->invalidSampleDecay;
                     state->sample.angularVelocity.z += state->rateDifference.z;
                     state->unstableCount[2]++;
@@ -665,7 +677,7 @@ void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
     }
 }
 
-// NONMATCHING: Register/stack allocation and copy scheduling differ; report-mode transition, rate conversion, ordered correction calls, and final 60-byte output copy are retained.
+// NONMATCHING: Initial null-check/address scheduling and literal references differ.
 void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
                const KPADStatus* context, f64 samplePeriod) {
     KMPLSState* state;
@@ -686,9 +698,9 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
         KMPLSState* current = &kmplsWork->channels[chan];
         if (current->reportMode != mode) current->rateConversion[0][0] = 0.0;
         current->reportMode = mode;
-        current->rateScale.x = (f32)(1.0 / ((360.0 / s_rateRange[mode][0]) * s_rawRange[mode][0]));
-        current->rateScale.y = (f32)(1.0 / ((360.0 / s_rateRange[mode][1]) * s_rawRange[mode][1]));
-        current->rateScale.z = (f32)(1.0 / ((360.0 / s_rateRange[mode][2]) * s_rawRange[mode][2]));
+        current->rateScale.x = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][0]) * s_rawRange[current->reportMode][0]));
+        current->rateScale.y = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][1]) * s_rawRange[current->reportMode][1]));
+        current->rateScale.z = (f32)(1.0 / ((360.0 / s_rateRange[current->reportMode][2]) * s_rawRange[current->reportMode][2]));
     }
     if (count > 0 && context && mode != 2) {
         state->samplePeriod = (f32)samplePeriod;
@@ -730,7 +742,9 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
             state->dpdTrust = 0.0f;
         }
     }
-    *result = state->sample;
+    result->angularVelocity = state->sample.angularVelocity;
+    result->angle = state->sample.angle;
+    result->direction = state->sample.direction;
 }
 
 void KMPLSSetSamplingCallback(KMPLSSamplingCallback callback) {

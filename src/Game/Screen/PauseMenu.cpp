@@ -59,6 +59,7 @@ PauseMenu::PauseMenu()
 }
 
 void PauseMenu::init(const JMapInfoIter& iter) {
+    bool hideStage;
     initLayoutManager("PauseMenu", 1);
     MR::createAndAddPaneCtrl(this, "BG", 1);
     MR::createAndAddPaneCtrl(this, "StageInfo", 1);
@@ -92,7 +93,7 @@ void PauseMenu::init(const JMapInfoIter& iter) {
         MR::setFollowPos(&mListButtonPos, this, "ListButton");
         MR::setFollowTypeReplace(this, "ListButton");
     } else MR::hidePaneRecursive(this, "ListButton");
-    bool hideStage = false;
+    hideStage = false;
     if (MR::isStageNoPauseMenuStars() || MR::isStageMarioFaceShipOrWorldMap() || MR::isStageStoryBook()) hideStage = true;
     if (hideStage) {
         MR::hidePaneRecursive(this, "StageInfo");
@@ -181,7 +182,7 @@ void PauseMenu::updateStarPane() {
         end = buffer + MR::makeGalaxyCompletionMark(buffer, 70, accessor.getName(), false);
         MR::makeGalaxyStarList(end, 70 - (end - buffer), accessor.getName(), false, false);
     } else MR::addPictureFontCode(buffer, 0x6E);
-    MR::setTextBoxMessageRecursive(this, "ShaStars", buffer);
+    MR::setTextBoxMessageRecursive(this, "ShaStars", storage);
 }
 
 // NONMATCHING: boolean temporary allocation and literal addressing differ.
@@ -192,8 +193,7 @@ void PauseMenu::startPaneAnimWithoutButton(const char* animation) {
     f32 frame;
     if (isRestrictedStage()) frame = 0.0f;
     else if (isInvalidBackMarioFaceShipOrWorldMap()) {
-        bool noSave = false;
-        if (MR::isStageMarioFaceShipOrWorldMap()) noSave = GameSequenceFunction::isNoSaveMode();
+        bool noSave = MR::isStageMarioFaceShipOrWorldMap() ? GameSequenceFunction::isNoSaveMode() : false;
         frame = noSave ? 4.0f : 1.0f;
     } else frame = mNoPowerStars ? 3.0f : 2.0f;
     MR::startPaneAnimAndSetFrameAndStop(this, "ButtonPosition", "ButtonPosition", frame, 0);

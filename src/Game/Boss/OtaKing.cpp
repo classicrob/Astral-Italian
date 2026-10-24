@@ -839,12 +839,12 @@ void OtaKing::exeAppearDemo() {
         if (MR::isDemoEndWaitCameraInterpolating()) {
             MR::startBckNoInterpole(this, "Wait");
             MR::tryForceDeleteEffectAll(this);
-            PartsModel* pFootR = mFeet[0];
-            MR::startBckNoInterpole(pFootR, "WaitR");
-            MR::tryForceDeleteEffectAll(pFootR);
-            PartsModel* pFootL = mFeet[1];
-            MR::startBckNoInterpole(pFootL, "WaitL");
-            MR::tryForceDeleteEffectAll(pFootL);
+            PartsModel* foot = mFeet[0];
+            MR::startBckNoInterpole(foot, "WaitR");
+            MR::tryForceDeleteEffectAll(foot);
+            foot = mFeet[1];
+            MR::startBckNoInterpole(foot, "WaitL");
+            MR::tryForceDeleteEffectAll(foot);
 
             for (int i = 0; i < ARRAY_SIZE(mLongFeet); i++) {
                 mLongFeet[i]->startWait();

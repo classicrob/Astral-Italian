@@ -12,6 +12,7 @@ GrandGalaxyMapGalaxyHolder::GrandGalaxyMapGalaxyHolder() : mNum(0), mGalaxies(nu
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void GrandGalaxyMapGalaxyHolder::init() {
+    JMapInfo* pParser;
     JMapInfo* parsers[8];
     s32 num = 0;
     for (s32 i = 0; i < 8; i++) {
@@ -24,7 +25,7 @@ void GrandGalaxyMapGalaxyHolder::init() {
     mGalaxies = new GrandGalaxyMapGalaxy*[num];
 
     for (s32 world = 0; world < 8; world++) {
-        JMapInfo* pParser = parsers[world];
+        pParser = parsers[world];
         for (s32 i = 0; i < MR::getCsvDataElementNum(pParser); i++) {
             TVec2f offset;
             const char* pStageName = nullptr;

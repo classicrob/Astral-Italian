@@ -88,9 +88,9 @@ void BellyDragonState::exePlay() {
 
 BellyDragonFire::BellyDragonFire(const char* pName, const char* pModelName, MtxPtr pMtx, s32 count)
     : ShadowVolumeDrawer(pName) {
+    mModelObj = NULL;
     mCount = count;
     mCurrent = 0;
-    mModelObj = NULL;
     mIds = NULL;
     mModelObj = MR::createModelObjMapObjDecoration(pName, pModelName, pMtx);
     mModelObj->makeActorDead();

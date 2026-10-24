@@ -139,7 +139,7 @@ bool MarioSkate::update() {
     }
 
     if (((getPlayer()->mMovementStates.mLowWord >> 15) & 1U)) {
-        getPlayer()->mMovementStates.mLowWord &= 0xFFFF7FFFU;
+        getPlayer()->mMovementStates.mLowBits.mBit15 = 0;
         getPlayer()->_3D2 = 0;
     }
 

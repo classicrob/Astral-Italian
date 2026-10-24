@@ -178,9 +178,9 @@ void FileSelectItem::change(const FileSelectIconID& rID, bool a2) {
     }
 
     deleteCompleteEffect();
-    mIsComplete = a2;
     mUseCopyEffect = 0;
     mIsNew = 0;
+    mIsComplete = a2;
 }
 
 void FileSelectItem::forceChange(const FileSelectIconID& rID, bool a2) {

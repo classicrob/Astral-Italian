@@ -32,7 +32,8 @@ WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor
     mResourceHolder = MR::createAndAddResourceHolder("WiiMessageImage.arc");
     mSysInfoWindow = MR::createSysInfoWindowMiniExecuteWithChildren();
 
-    if (!MR::isStageStaffRoll()) {
+    bool isOutsideStaffRoll = !MR::isStageStaffRoll();
+    if (isOutsideStaffRoll) {
         MR::connectToSceneLayout(mSysInfoWindow);
     }
 

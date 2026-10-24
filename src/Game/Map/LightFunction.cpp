@@ -217,7 +217,7 @@ void LightFunction::loadActorLightInfo(const ActorLightInfo* pInfo) {
     GXColor c = {};
     c.a = alpha;
     TVec3f origin;
-    origin.x = origin.y = origin.z = 0.0f;
+    origin.set(0.0f, 0.0f, 0.0f);
     ::loadLightDiffuse(c, origin, GX_LIGHT2);
     GXSetChanAmbColor(GX_COLOR0A0, GXColor(pInfo->mColor));
 }

@@ -119,8 +119,9 @@ void CoinCounter::updateCounter() {
 // NONMATCHING: displayed count and delay temporary registers.
 void CoinCounter::changeDisplayCount(s32 delta) {
     if (isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
+        s32 displayCount = mCoinDisplayNum;
         mInvalidCountUpFrame = 3;
-        mCoinDisplayNum += delta;
+        mCoinDisplayNum = displayCount + delta;
         MR::startAnim(this, "Flash", 0);
         if (delta > 0) MR::emitEffect(this, "CoinCounterLight");
         mPaneRumbler->start();

@@ -9422,7 +9422,7 @@ inline bool MarioActor::cylinderPushCheck(HitSensor* pSensor, f32 radius, f32 wi
 // NONMATCHING: equivalent flag test instruction and verified pooled literal addresses.
 bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width, f32 height) {
     TVec3f offset(rOffset);
-    if (mMario->mFlags14.mLowWord & (1U << 25)) {
+    if (mMario->mFlags14.mLowBits.mBit25) {
         f32 depth = MR::vecKillElement(offset, mCameraBasisZ, &offset);
         if (depth >= 250.0f || depth <= -250.0f) return false;
     }
@@ -10367,7 +10367,7 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
         _935 = true;
         mMario->stopJump();
         s32 mode = pInfo->_4;
-        mMario->mMovementStates.mHighWord &= 0xDFFFFFFFU;
+        mMario->mMovementStates.mHighBits.mBit29 = 0;
         if (mMario->isStatusActive(MarioStatus_Swim)) {
             switch (mode) {
             case 1:
@@ -10382,22 +10382,22 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
         case 2:
             launched = true;
             mMario->initJumpParam();
-            mMario->mMovementStates.mHighWord |= 0x40000000U;
+            mMario->mMovementStates.mHighBits.mBit30 = 1;
             if (mPlayerMode == PlayerMode_Bee) {
                 mMario->_774 = 60;
             }
 
             mMario->tryForceFreeJump(pInfo->_8);
-            mMario->mMovementStates.mLowWord |= 0x00400000U;
-            mMario->mFlags14.mLowWord |= 0x00040000U;
+            mMario->mMovementStates.mLowBits.mBit22 = 1;
+            mMario->mFlags14.mLowBits.mBit18 = 1;
             if ((pInfo->_20 >> 30) & 1) {
-                mMario->mMovementStates.mHighWord |= 0x00010000U;
+                mMario->mMovementStates.mHighBits.mBit16 = 1;
             } else {
-                mMario->mMovementStates.mHighWord &= 0xFFFEFFFFU;
+                mMario->mMovementStates.mHighBits.mBit16 = 0;
             }
 
             if (pInfo->_20 >> 31) {
-                mMario->mMovementStates.mHighWord |= 0x20000000U;
+                mMario->mMovementStates.mHighBits.mBit29 = 1;
             }
 
             break;
@@ -10409,33 +10409,33 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
 
             mMario->tryForcePowerJump(pInfo->_8, false);
             if ((pInfo->_20 >> 30) & 1) {
-                mMario->mMovementStates.mHighWord |= 0x00010000U;
+                mMario->mMovementStates.mHighBits.mBit16 = 1;
             } else {
-                mMario->mMovementStates.mHighWord &= 0xFFFEFFFFU;
+                mMario->mMovementStates.mHighBits.mBit16 = 0;
             }
 
             if ((pInfo->_20 >> 23) & 1) {
-                mMario->mMovementStates.mHighWord &= 0x7FFFFFFFU;
+                mMario->mMovementStates.mHighBits.mBit31 = 0;
             }
 
             if (pInfo->_20 >> 31) {
-                mMario->mMovementStates.mHighWord |= 0x20000000U;
+                mMario->mMovementStates.mHighBits.mBit29 = 1;
             }
 
             if ((pInfo->_20 >> 24) & 15) {
                 switch ((pInfo->_20 >> 24) & 15) {
                 case 1:
-                    mMario->mMovementStates.mLowWord |= 0x00000010U;
+                    mMario->mMovementStates.mLowBits.mBit4 = 1;
                     mMario->mDamage->setVec(pInfo->_8);
                     break;
                 case 4:
-                    mMario->mFlags14.mLowWord |= Mario::MovementStates::Jumping;
+                    mMario->mFlags14.mLowBits.mBit31 = 1;
                     break;
                 case 2:
-                    mMario->mFlags14.mLowWord |= Mario::MovementStates::Jumping;
+                    mMario->mFlags14.mLowBits.mBit31 = 1;
                     break;
                 case 5:
-                    mMario->mFlags14.mLowWord |= 0x00000800U;
+                    mMario->mFlags14.mLowBits.mBit11 = 1;
                     break;
                 case 6:
                     mMario->doFlipLarge(pInfo->_8);
@@ -10446,21 +10446,21 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
                 }
             }
 
-            mMario->mFlags14.mLowWord |= 0x00040000U;
+            mMario->mFlags14.mLowBits.mBit18 = 1;
             if (selectRebindTimer(_924)) {
                 mLastRushEndFrameE1C = _37C;
             }
 
             break;
         case 1:
-            mMario->mFlags14.mLowWord |= 0x00040000U;
-            mMario->mMovementStates.mHighWord |= 0x40000000U;
+            mMario->mFlags14.mLowBits.mBit18 = 1;
+            mMario->mMovementStates.mHighBits.mBit30 = 1;
             break;
         case 0:
             mMario->stopWalk();
         case 4:
-            mMario->mMovementStates.mLowWord &= 0xFFEFFFFFU;
-            mMario->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+            mMario->mMovementStates.mLowBits.mBit20 = 0;
+            mMario->mMovementStates.mLowBits.mBit31 = 0;
             mMario->_3C0 = 0;
             break;
         }
@@ -10529,8 +10529,8 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
         _F04 = 0;
         if (!((pInfo->_20 >> 24) & 15) && isLandEffectRushSensor(_924) && ((pInfo->_20 >> 30) & 1)) {
             mMario->mMovementStates.mHighWord = (mMario->mMovementStates.mHighWord & 0xFFFFFFFCU) | 0x00000001U;
-            mMario->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-            mMario->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+            mMario->mMovementStates.mLowBits.mBit31 = 1;
+            mMario->mMovementStates.mLowBits.mBit30 = 0;
         } else if (_924->isType(ATYPE_MARIO_LAUNCHER_BIND)) {
             if (!MR::isNearZero(_938)) {
                 mMario->mMovementStates.mHighWord = (mMario->mMovementStates.mHighWord & 0xFFFFFFFCU) | 0x00000001U;
@@ -10539,8 +10539,8 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
         } else if (_924->isType(ATYPE_SCENARIO_STARTER_BIND)) {
             if (pInfo->_4) {
                 mMario->mMovementStates.mHighWord = (mMario->mMovementStates.mHighWord & 0xFFFFFFFCU) | 0x00000002U;
-                mMario->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-                mMario->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+                mMario->mMovementStates.mLowBits.mBit31 = 1;
+                mMario->mMovementStates.mLowBits.mBit30 = 0;
             } else {
                 mMario->changeAnimation("基本");
             }
@@ -10585,7 +10585,7 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
         mMario->_350.zero();
         mMario->_35C.zero();
         if (_938.length() > 200.0f) {
-            mMario->mFlags20.mWord |= 0x00800000U;
+            mMario->mFlags20.mBits.mBit23 = 1;
         }
     }
 }

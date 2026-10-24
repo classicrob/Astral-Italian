@@ -59,8 +59,8 @@ bool MarioWall::start() {
     _20 = 0.0f;
     changeAnimation("壁くっつき");
     startPadVib(0UL);
-    getPlayer()->mMovementStates.mHighWord &= 0xFF7FFFFFU;
-    getPlayer()->mFlags24.mHighWord &= 0xFF7FFFFFU;
+    getPlayer()->mMovementStates.mHighBits.mBit23 = 0;
+    getPlayer()->mFlags24.mHighBits.mBit23 = 0;
     _1D = 0;
     initTriangleJump();
     _1E = 0;
@@ -314,7 +314,7 @@ bool MarioWall::close() {
 
     stopEffect("共通壁手擦り");
     getPlayer()->resetTornado();
-    getPlayer()->mMovementStates.mHighWord &= 0xFFFFFF7FU;
+    getPlayer()->mMovementStates.mHighBits.mBit7 = 0;
     return true;
 }
 
@@ -341,7 +341,7 @@ bool MarioWall::startJump() {
     getPlayer()->tryWallJump(velocity, true);
     playEffect("共通壁ジャンプ");
     _1C = 1;
-    getPlayer()->mMovementStates.mHighWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mHighBits.mBit20 = 0;
     return true;
 }
 
@@ -381,7 +381,7 @@ bool MarioWall::startBackJump(u32 type) {
 
     startPadVib(2);
     _1C = 1;
-    getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
+    getPlayer()->mMovementStates.mHighBits.mBit20 = 1;
     return true;
 }
 

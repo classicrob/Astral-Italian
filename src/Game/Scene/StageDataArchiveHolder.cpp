@@ -184,6 +184,7 @@ StageDataArchive::StageDataArchive(JKRArchive* pArchive, const char*, const char
 
 // NONMATCHING: regalloc (loop variable order) only (FP order/grouping checked: no FP instructions).
 void StageDataArchive::initJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir) {
+    const char* pName;
     s32 count = mArchive->countFile(pDir) - 2;
     s32 num = count > 0 ? count : 0;
 
@@ -191,7 +192,7 @@ void StageDataArchive::initJmpInfo(MR::BothDirList< JMapInfo >* pList, const cha
         JKRArcFinder* pFinder = mArchive->getFirstFile(pDir);
 
         for (s32 i = 0; i < num; i++) {
-            const char* pName = pFinder->mName;
+            pName = pFinder->mName;
 
             if (isNameListed(pName)) {
                 JMapInfo* pInfo = new JMapInfo();

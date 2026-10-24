@@ -20,7 +20,7 @@ void CrescentSeesawPlanet::init(const JMapInfoIter& iter) {
     MR::initActor(this, iter, false);
     MR::makeMtxTR(mInitialMtx, mPosition, mRotation);
     initNerve(&NrvCrescentSeesawPlanet::CrescentSeesawPlanetNrvWait::sInstance);
-    mAxis.set<f32>(mInitialMtx.mMtx[0][2], mInitialMtx.mMtx[1][2], mInitialMtx.mMtx[2][2]);
+    mInitialMtx.getZDir(mAxis);
     makeActorAppeared();
 }
 void CrescentSeesawPlanet::control() {

@@ -97,14 +97,14 @@ void MarioRabbit::impact() {
     }
 
     getPlayer()->stopJump();
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
     getPlayer()->initJumpParam();
     Mario* player = getPlayer();
     player->_42A = 0;
     player->_430 = 0;
-    getPlayer()->mMovementStates.mHighWord &= 0xDFFFFFFFU;
-    getPlayer()->mMovementStates.mHighWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mHighBits.mBit29 = 0;
+    getPlayer()->mMovementStates.mHighBits.mBit20 = 0;
     if (_28) {
         switch (_68) {
         case 0:
@@ -146,14 +146,14 @@ bool MarioRabbit::update() {
         return false;
     }
 
-    getPlayer()->mMovementStates.mHighWord &= 0xFFFF7FFFU;
+    getPlayer()->mMovementStates.mHighBits.mBit15 = 0;
     getPlayer()->checkWallStick();
     if (_69) {
         _69--;
     }
 
     if (!((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-        getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+        getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
     }
 
     if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
@@ -176,7 +176,7 @@ bool MarioRabbit::update() {
             _28 = 0;
             _27 = 0;
             if (!((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
-                getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+                getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
             }
 
             startPadVib(1UL);

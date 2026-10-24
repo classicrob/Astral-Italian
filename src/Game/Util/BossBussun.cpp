@@ -310,6 +310,7 @@ void BossBussun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 }
             } else if (isSleeping()) {
                 if (MR::sendMsgPush(pReceiver, pSender)) {
+                    return;
                 }
             }
         }

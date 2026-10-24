@@ -261,7 +261,7 @@ namespace MarioAccess {
             *pOut = getPlayerActor()->getMario()->mHeadVec;
             return;
         }
-        if (getPlayerActor()->getMario()->mMovementStates.mHighWord & 0x100) {
+        if (getPlayerActor()->getMario()->mMovementStates.mHighBits.mBit8) {
             if (getPlayerActor()->getMario()->isSwimming()) {
                 getPlayerActor()->getMario()->mSwim->fn_80400A40(pOut);
                 return;

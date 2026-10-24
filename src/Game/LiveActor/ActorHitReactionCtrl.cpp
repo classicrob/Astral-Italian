@@ -64,8 +64,9 @@ ActorHitReactionCtrl::ActorHitReactionCtrl(LiveActor* pActor) : mActor(pActor), 
 
 void ActorHitReactionCtrl::reactToHit(const char* pReactionName, const TVec3f* pPos, const HitSensor* pSensorA,
                                       const HitSensor* pSensorB) {
+    ActorHitReactionCtrlEntry* pEntry;
     for (s32 i = 0; i < mEntryNum; i++) {
-        ActorHitReactionCtrlEntry* pEntry = &mEntries[i];
+        pEntry = &mEntries[i];
         if (!MR::isEqualString(pEntry->mReactionName, pReactionName)) {
             continue;
         }

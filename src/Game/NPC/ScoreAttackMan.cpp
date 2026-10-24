@@ -140,7 +140,8 @@ void ScoreAttackMan::exeTalkResult() {
 void ScoreAttackMan::control() {
     NPCActor::control();
     if(mIsInRange && !MR::isStageStateScenarioOpeningCamera() && !MR::isExecScenarioStarter()) {
-        if(!MR::isNearPlayerHorizontal(this,mNearRadius) && MR::tryStartDemoWithoutCinemaFrame(this,sCallDemo)) {
+        bool isFar = !MR::isNearPlayerHorizontal(this, mNearRadius);
+        if(isFar && MR::tryStartDemoWithoutCinemaFrame(this,sCallDemo)) {
             mIsInRange=false;
             tryPullNullNerve();
             MR::resetNode(mTalkCtrl);

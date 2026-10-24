@@ -163,8 +163,10 @@ bool PointPartsHolder::getWorldWarp(s32 pointIndex, WorldMapResultStateWorldWarp
     if (!isWorldWarpPoint(pPart->mType)) {
         return false;
     }
-    pOut->mInt10 = pPart->mParam0;
-    pOut->mInt14 = pPart->mParam1;
+    const s32 param1 = pPart->mParam1;
+    const s32 param0 = pPart->mParam0;
+    pOut->mInt10 = param0;
+    pOut->mInt14 = param1;
     pOut->mInt18 = pointIndex;
     return true;
 }

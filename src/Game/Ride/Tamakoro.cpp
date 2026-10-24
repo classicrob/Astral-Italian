@@ -750,15 +750,11 @@ void Tamakoro::exeBumpWall() {
     updateMarioPose(3.0f);
     updateMarioOffset();
 
-    if (tryJump()) {
+    if (tryJump() || tryBindStarPointer()) {
         return;
     }
-    if (tryBindStarPointer()) {
-        return;
-    } else {
-        if (MR::isGreaterStep(this, 15)) {
-            setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
-        }
+    if (MR::isGreaterStep(this, 15)) {
+        setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
     }
 }
 
@@ -778,15 +774,11 @@ void Tamakoro::exeLand() {
     updateMarioPose(3.0f);
     updateMarioOffset();
 
-    if (tryJump()) {
+    if (tryJump() || tryBindStarPointer()) {
         return;
     }
-    if (tryBindStarPointer()) {
-        return;
-    } else {
-        if (MR::isGreaterStep(this, 15)) {
-            setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
-        }
+    if (MR::isGreaterStep(this, 15)) {
+        setNerve(GET_NERVE(Tamakoro, TamakoroNrvWait));
     }
 }
 

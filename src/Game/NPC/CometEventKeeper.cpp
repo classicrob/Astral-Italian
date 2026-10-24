@@ -10,6 +10,7 @@ CometEventKeeper::CometEventKeeper() : mExecutor(nullptr), mScreenFilter(nullptr
 
 // NONMATCHING: the green-star flag uses r30 instead of r31.
 void CometEventKeeper::init() {
+    s32 green;
     initCometStatus();
     s32 seconds = getTimeLimitFromScenarioData();
     if (seconds) {
@@ -25,7 +26,7 @@ void CometEventKeeper::init() {
         mExecutor->init(seconds);
         mExecutor->stop();
     }
-    s32 green = 0;
+    green = 0;
     if (MR::isProductGameScene() && MR::isPowerStarGreenInCurrentStage()) green = 1;
     if (mCometName || green) {
         mScreenFilter = new GalaxyCometScreenFilter;

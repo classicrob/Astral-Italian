@@ -665,6 +665,7 @@ static BOOL WPADiProcessExtCommand(s32 chan) {
             err = WPADiSendData(chan, cmd);
             if (err == WPAD_ERR_NONE) {
                 WPADiPopCommand(&p_wpd->extq);
+                _extCnt[chan] = 0;
                 return TRUE;
             }
         }
@@ -723,17 +724,32 @@ BOOL WPADiPopCommand(WPADCmdQueue* queue) {
     return TRUE;
 }
 
-static BOOL WPADiProcessCommand(s32 chan) {
+static BOOL WPADiProcessCommand(s32 chan, BOOL sent) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     WPADCommand cmd;
     s32 err;
 
+    if (sent) return TRUE;
     if (WPADiGetCommand(&p_wpd->cmdq, &cmd)) {
         err = WPADiSendData(chan, cmd);
         if (err == WPAD_ERR_NONE) {
             WPADiPopCommand(&p_wpd->cmdq);
             return TRUE;
         }
+    }
+    return FALSE;
+}
+
+static inline BOOL WPADiCheckReconnect(void) {
+    BOOL reconnect = _recFlag;
+    if (reconnect >= 0) {
+        if (--_recCnt <= 0) {
+            BTA_DmSendHciReset();
+            OSCancelAlarm(&_managerAlarm);
+            WUDSetHidRecvCallback(NULL);
+            WUDShutdown(reconnect);
+        }
+        return TRUE;
     }
     return FALSE;
 }
@@ -751,16 +767,7 @@ void WPADiManageHandler(OSAlarm*, OSContext*) {
         }
         return;
     }
-    if (_recFlag >= 0) {
-        BOOL reconnect = _recFlag;
-        if (--_recCnt <= 0) {
-            BTA_DmSendHciReset();
-            OSCancelAlarm(&_managerAlarm);
-            WUDSetHidRecvCallback(NULL);
-            WUDShutdown(reconnect);
-        }
-        return;
-    }
+    if (WPADiCheckReconnect()) return;
     if (_afhCnt == 60000) WPADiAfh();
     if (SCCheckStatus() == 0) {
         WUDUpdateSCSetting();
@@ -779,10 +786,9 @@ void WPADiManageHandler(OSAlarm*, OSContext*) {
             BOOL sent = FALSE;
             if (_extCnt[chan] == 5) {
                 sent = WPADiProcessExtCommand(chan);
-                if (sent) _extCnt[chan] = 0;
             }
             _extCnt[chan] = (u8)(_extCnt[chan] == 5 ? _extCnt[chan] : _extCnt[chan] + 1);
-            sent |= sent ? TRUE : WPADiProcessCommand(chan);
+            sent |= WPADiProcessCommand(chan, sent);
             WPADiRumbleMotor(chan, sent);
             __wpadCalcControllerData(chan);
             __wpadCalcRadioQuality(chan);
@@ -1147,11 +1153,10 @@ s32 __wpadRetrieveChannel(WUDDevInfo* info) {
 
 // NONMATCHING: compiler register allocation and struct-copy scheduling differ.
 static void __wpadConnectionCallback(WUDDevInfo* info, u8 open) {
+    u8 dev_handle = info->devHandle;
     s32 chan = -1;
     WPADControlBlock* p_wpd;
-    BOOL isCmdExist;
     WPADCommand cmd;
-    u8 dev_handle = info->devHandle;
 
     if (open) {
         chan = __wpadRetrieveChannel(info);
@@ -1192,15 +1197,12 @@ static void __wpadConnectionCallback(WUDDevInfo* info, u8 open) {
             } else if (p_wpd->memoryControl.callback) {
                 p_wpd->memoryControl.callback(chan, WPAD_ERR_NO_CONTROLLER);
             }
-            do {
-                isCmdExist = WPADiGetCommand(&p_wpd->cmdq, &cmd);
-                if (isCmdExist) {
-                    if (cmd.callback) {
-                        cmd.callback(chan, WPAD_ERR_NO_CONTROLLER);
-                    }
-                    WPADiPopCommand(&p_wpd->cmdq);
+            while (WPADiGetCommand(&p_wpd->cmdq, &cmd)) {
+                if (cmd.callback) {
+                    cmd.callback(chan, WPAD_ERR_NO_CONTROLLER);
                 }
-            } while (isCmdExist);
+                WPADiPopCommand(&p_wpd->cmdq);
+            }
 
             if (p_wpd->samplingBufs_ptr) {
                 WPADSetAutoSamplingBuf(chan, p_wpd->samplingBufs_ptr, p_wpd->bufLength);

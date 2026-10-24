@@ -32,9 +32,10 @@ void ActionSoundKeeper::startSound(const char* pName, s32 pitch, s32 velocity) {
 }
 
 s32 ActionSoundKeeper::playSounds(s32 mode, const char* pName, s32 pitch, s32 velocity, s32 volume) {
+    ActionSound* sound;
     s32 playCount = 0;
     for (s32 i = 0; i < mSoundCount; i++) {
-        ActionSound* sound = mSounds[i];
+        sound = mSounds[i];
         if (sound->getId() == -1 && MR::isEqualString(sound->getName(), pName)) {
             if (sound->play(mode, pitch, velocity, volume)) {
                 playCount++;

@@ -335,10 +335,10 @@ void InquiryCallback(s32 res, DVDCommandBlock *block) {
     switch (block->state) {
         case 0:
             __OSDeviceCode = (u16)(0x8000 | DriveInfo.deviceCode);
-            break;
+            return;
         default:
             __OSDeviceCode = 1;
-            break;
+            return;
     }
 }
 

@@ -108,8 +108,8 @@ bool MarioStick::start() {
     getPlayer()->setFrontVecKeepSide(-_20);
     _6C = -_20;
     _78 = getPlayer()->mHeadVec;
-    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
     return true;
 }
 
@@ -181,7 +181,7 @@ bool MarioStick::close() {
         changeAnimation(nullptr, "基本");
     }
 
-    getPlayer()->mMovementStates.mHighWord &= 0xFFFFFF7FU;
+    getPlayer()->mMovementStates.mHighBits.mBit7 = 0;
     mActor->_F44 = 1;
     playEffectTrans("ハチ花くっつき", _38);
     return true;

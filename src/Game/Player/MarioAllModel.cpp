@@ -49,8 +49,9 @@ void MarioAllModel::fn_803E7880(s32 index) {
 void MarioAllModel::fn_803E78F0() {
     if (mCurrentModel == 0) return;
     {
+        MtxPtr base;
         J3DModelX* model = mModels[mCurrentModel];
-        MtxPtr base = MR::getJointMtx(mModels[0], "HandL0");
+        base = MR::getJointMtx(mModels[0], "HandL0");
         PSMTXCopy(MR::getJointMtx(model, "HandL0"), base);
     }
     {

@@ -205,8 +205,9 @@ bool StaffRollPart::isAllLinesDead() const {
 // NONMATCHING: begin/it iterator registers are swapped (r30/r31).
 void StaffRollPart::calcTextRect(JGeometry::TBox2<f32>* result) const {
     JGeometry::TBox2<f32> rect;
-    StaffRollLine* const* begin = mLines;
-    StaffRollLine* const* it = begin;
+    StaffRollLine* const* begin;
+    StaffRollLine* const* it = mLines;
+    begin = it;
     for (; it != mLines + mLineCount; ++it) {
         if (begin == it) {
             MR::calcTextBoxRectRecursive(&rect, *it, (*it)->getPaneName());

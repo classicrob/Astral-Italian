@@ -122,7 +122,7 @@ bool MarioHang::start() {
 bool MarioHang::update() {
     _14++;
     mActor->damageDropThrowMemoSensor();
-    getPlayer()->mDrawStates.mWord &= 0xFFDFFFFFU;
+    getPlayer()->mDrawStates.mBits.mBit21 = 0;
     fn_803ED7E0();
     getPlayer()->setFrontVecKeepUp(-_34);
     if (fn_803ED840())
@@ -180,7 +180,7 @@ bool MarioHang::update() {
         }
 
         if (!isAnimationRun(nullptr) || isAnimationTerminate(nullptr)) {
-            getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+            getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
             return false;
         }
 
@@ -227,8 +227,8 @@ bool MarioHang::update() {
             mActor->setBlendMtxTimer(16);
             Mario* pPlayer = getPlayer();
             pPlayer->_3C0 = 0;
-            getPlayer()->mMovementStates.mHighWord &= 0xFFFFBFFFU;
-            getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+            getPlayer()->mMovementStates.mHighBits.mBit14 = 0;
+            getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
             getPlayer()->tryDrop();
             pPlayer = getPlayer();
             pPlayer->_3CA = 120;
@@ -314,7 +314,7 @@ bool MarioHang::close() {
     if (_1A) {
         getPlayer()->tryHangSlipUp();
     } else {
-        getPlayer()->mFlags14.mLowWord |= 0x00010000U;
+        getPlayer()->mFlags14.mLowBits.mBit16 = 1;
     }
 
     mActor->_F44 = 1;

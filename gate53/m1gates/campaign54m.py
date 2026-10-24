@@ -7,11 +7,12 @@ from common import *
 STAGES=('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy')
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');p.add_argument('--wii-proof-log',type=Path);a=p.parse_args()
  assert re.fullmatch(r'[A-Za-z0-9_-]+',a.label),'safe unique label required'
  assert os.getpriority(os.PRIO_PROCESS,0)==0,'run campaign at nice 0'
  candidate_mode=a.server_candidate_dir is not None
  assert not a.require_bounded_identity or candidate_mode
+ assert not a.wii_proof_log or candidate_mode
  if candidate_mode:assert not any((a.candidate_app,a.candidate_sha,a.candidate_source,a.candidate_original_app,a.candidate_original_sha,a.tape_result)),'do not mix legacy tape-only selectors with a full candidate campaign'
  if candidate_mode:
   from candidate_evidence54m import normal_evidence,combine_promotion
@@ -44,6 +45,7 @@ def main():
   if script:args+=['--script',script]
   if candidate_mode:args+=['--candidate-dir',a.server_candidate_dir]
   command(name,args);return ROOT/'runs'/label
+ if a.wii_proof_log:command('candidate-wii-proof',[sys.executable,'-B',HERE/'candidate_wii54m.py',a.server_candidate_dir,base/'candidate-wii-proof.json','--server-log',a.wii_proof_log])
  selected=(a.only or ('platform,tape,promotion,intro,cappy,cold,image,warm,cadence,audio' if candidate_mode else 'platform,promotion,intro,cappy,cold,image,warm,cadence,audio,tape')).split(',')
  for gate in selected:
   try:

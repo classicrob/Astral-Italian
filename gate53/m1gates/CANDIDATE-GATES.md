@@ -46,7 +46,8 @@ inventories remain identical and still match the current protected inputs.
 
 The candidate Wii proof uses PORT's authorized main71353 lineage, zero
 src/include/libs changes after that main, and the fresh candidate build/hash
-plus strict dispatch status log. Create its separate artifact with
+plus strict dispatch status log. Pass campaign `--wii-proof-log LOG` to
+create and record its proof step before GX gates, or create the separate artifact with
 `candidate_wii54m.py CANDIDATE_DIR CAMPAIGN_DIR/candidate-wii-proof.json --server-log LOG`.
 The collector revalidates it and keeps the failed unchanged-since-a23609ca
 comparison as a separate source observation.

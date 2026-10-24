@@ -68,7 +68,7 @@ def arm(args):
     env = {k: v for k, v in os.environ.items() if not k.startswith(('PETARI_', 'ASTRAL_', 'DYLD_', 'THRPROBE_'))}
     env.update(SDL_AUDIO_DRIVER='dummy', PETARI_MODS='none', PETARI_CACHE_DIR=str(cache),
                PETARI_FRAME_CSV=str(out / 'frames.csv'), PETARI_FRAME_STATS='1', PETARI_PIPELINE_DIAG='0',
-               PETARI_ROUTE_RECORD=str(out / 'route.csv'), PETARI_TRACE_BOOT='1',
+               PETARI_ROUTE_RECORD=str(out / 'route.csv'), PETARI_TRACE_BOOT='0',
                PYTHONDONTWRITEBYTECODE='1', LANG='C', LC_ALL='C')
     if not args.baseline:
         env.update(PETARI_TITLE_OBSERVE='1', PETARI_TITLE_OBSERVE_MIN_SECONDS='315')

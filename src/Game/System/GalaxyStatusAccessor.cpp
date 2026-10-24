@@ -102,7 +102,8 @@ s32 GalaxyStatusAccessor::getCometLimitTimer(s32 scenario) const {
     s32 timer;
     bool valid = mScenarioData->getValueU32("CometLimitTimer", scenario, &timer);
     if (valid) {
-        valid = timer != 0;
+        valid = false;
+        if (timer != 0) valid = true;
     }
     return valid ? timer : 0;
 }
@@ -140,7 +141,6 @@ bool GalaxyStatusAccessor::isOwnBronzeStar(s32 scenario) const {
     return GameDataFunction::hasBronzeStar(mScenarioData->mGalaxyName, scenario);
 }
 
-// NONMATCHING: regalloc; equality operands are reversed (FP order/grouping checked: no FP instructions).
 bool GalaxyStatusAccessor::isCompletedNoGreen() const {
     if (mScenarioData->getPowerStarNum() == 0) {
         return false;
@@ -149,7 +149,7 @@ bool GalaxyStatusAccessor::isCompletedNoGreen() const {
         return false;
     }
     s32 total = mScenarioData->getPowerStarNum();
-    return total == getPowerStarNumOwned();
+    return static_cast<u32>(total) - static_cast<u32>(getPowerStarNumOwned()) == 0;
 }
 
 bool GalaxyStatusAccessor::isCompletedWithGreen() const {
@@ -165,10 +165,9 @@ bool GalaxyStatusAccessor::isCompletedWithGreen() const {
     return ownedNormal >= total - getGreenStarNum();
 }
 
-// NONMATCHING: regalloc; equality operands are reversed (FP order/grouping checked: no FP instructions).
 bool GalaxyStatusAccessor::isCompletedGreenStars() const {
     s32 total = getGreenStarNum();
-    return total == getGreenStarNumOwned();
+    return static_cast<u32>(total) - static_cast<u32>(getGreenStarNumOwned()) == 0;
 }
 
 s32 GalaxyStatusAccessor::getPowerStarNumOwnedTotal() const {

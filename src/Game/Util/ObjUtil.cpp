@@ -998,7 +998,6 @@ void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
     TPos3f mtx(pMtx);
     MtxPtr m = mtx.toMtxPtr();
 
-
     if (m[2][0] - 1.0f >= -3.814697265625e-6f) {
         angle.x = JMath::sAtanTable.atan2_(-m[0][1], m[1][1]);
         angle.y = -1.5707964f;

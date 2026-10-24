@@ -18,10 +18,14 @@ void StarPieceClusterRock::init(const JMapInfoIter& iter) {
     if (itemType != -1) mItemType = itemType;
     MR::getJMapInfoArg1NoInit(iter, &mPieceCount);
     if (mItemType == 0) {
+        StarPieceTracking* group;
+        const char* pieceName;
+        s32 i;
         mPieces = new StarPieceTracking("スターピース", mPieceCount);
-        StarPieceTracking* group = mPieces;
-        for (s32 i=0; i<group->mObjNumMax; ++i) {
-            StarPieceTrackingPiece* piece = new StarPieceTrackingPiece("追尾スターピース");
+        group = mPieces;
+        pieceName = "追尾スターピース";
+        for (i=0; i<group->mObjNumMax; ++i) {
+            StarPieceTrackingPiece* piece = new StarPieceTrackingPiece(pieceName);
             piece->initWithoutIter();
             group->registerActor(piece);
         }

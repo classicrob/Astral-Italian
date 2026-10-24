@@ -280,10 +280,10 @@ bool WorldMapAccessPanel::isPlayerNearAccessGround() {
     bool inRange = dist < radius || dist2 < radius2;
 
     // NONMATCHING: branch layout (target emits the isOnGroundPlayer call block before the "return false" block)
-    if (!inRange) {
-        return false;
-    }
-    return MR::isOnGroundPlayer();
+    bool onGround = false;
+    if (inRange)
+        onGround = MR::isOnGroundPlayer();
+    return onGround;
 }
 
 bool WorldMapAccessPanel::isPlayerOutOfRange() {

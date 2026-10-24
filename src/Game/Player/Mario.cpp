@@ -2732,6 +2732,15 @@ void Mario::fn_80388150() {
 }
 
 // NONMATCHING: saved registers and temporary allocation; recovered full collision response.
+namespace {
+    inline bool queryMarioWallPolygon(Mario* mario, TVec3f* hitPos, Triangle* triangle, const TVec3f& origin, const TVec3f& ray) {
+        if (mario->fn_803B2950()) {
+            return MR::getFirstPolyOnLineToDashYoshiStepAndMap(hitPos, triangle, origin, ray);
+        }
+        return MR::getFirstPolyOnLineToMap(hitPos, triangle, origin, ray);
+    }
+}
+
 void Mario::fn_803882A0() {
     s32 rising = 0;
     if (isRising()) {
@@ -2749,13 +2758,7 @@ void Mario::fn_803882A0() {
                     TVec3f projected;
                     f32 depth = MR::vecKillElement(this->mJumpVec, *this->_57C[i]->getNormal(0), &projected);
                     if (depth <= 0.0f) {
-                        TVec3f normal(*this->_57C[i]->getNormal(0));
-                        normal *= depth;
-                        TVec3f half(normal);
-                        half *= 0.5f;
-                        TVec3f result(projected);
-                        result += half;
-                        this->mJumpVec = result;
+                        this->mJumpVec = projected + (*this->_57C[i]->getNormal(0) * depth) * 0.5f;
                     }
                 } else if (MR::diffAngleAbs(*getGravityVec(), this->mJumpVec) < 0.10471976f) {
                     TVec3f tangent;
@@ -2774,21 +2777,14 @@ void Mario::fn_803882A0() {
                     const char* code = MR::getWallCodeString(this->_57C[i]);
                     if (code && strcmp(code, "Fur") == 0) {
                         Triangle hitTriangle;
-                        TVec3f negativeNormal(-*this->_57C[i]->getNormal(0));
-                        TVec3f ray(negativeNormal);
-                        ray *= 300.0f;
                         TVec3f hitPos;
-                        const TVec3f& origin = mActor->_240;
-                        bool hit;
-                        if (fn_803B2950()) {
-                            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &hitTriangle, origin, ray);
-                        } else {
-                            hit = MR::getFirstPolyOnLineToMap(&hitPos, &hitTriangle, origin, ray);
-                        }
+                        bool hit = queryMarioWallPolygon(this, &hitPos, &hitTriangle, mActor->_240,
+                                                         -*this->_57C[i]->getNormal(0) * 300.0f);
                         if (hit) {
                             const char* hitCode = MR::getWallCodeString(&hitTriangle);
                             if (hitCode && strcmp(hitCode, "Fur") == 0) {
-                                mActor->entryWallWalkMode(hitPos, *hitTriangle.getNormal(0));
+                                MarioActor* actor = mActor;
+                                actor->entryWallWalkMode(hitPos, *hitTriangle.getNormal(0));
                             }
                         }
                     }
@@ -3014,11 +3010,19 @@ void Mario::fn_80388DB0() {
             this->_3FE = 0;
         }
         if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
+            bool restrictionsAdded = false;
             if (mCometRestrictions != 0 && mPreviousCometRestrictions == 0) {
+                restrictionsAdded = true;
+            }
+            if (restrictionsAdded) {
                 MR::addCometTimer(3600);
                 MR::pauseCometTimer();
             }
+            bool restrictionsRemoved = false;
             if (mCometRestrictions == 0 && mPreviousCometRestrictions != 0) {
+                restrictionsRemoved = true;
+            }
+            if (restrictionsRemoved) {
                 MR::resumeCometTimer();
             }
         }
@@ -3909,21 +3913,15 @@ void Mario::fn_8038B9F0() {
     MarioState* state = _97C;
     if (state == nullptr) {
         if (isAnimationRun("壁押し")) {
-            TVec3f wallDelta(_4E8);
-            wallDelta -= mPosHolder->mPos;
+            const TVec3f& position = mPosHolder->mPos;
             TVec3f horizontal;
-            MR::vecKillElement(wallDelta, mHeadVec, &horizontal);
+            MR::vecKillElement(_4E8 - position, mHeadVec, &horizontal);
             f32 length = PSVECMag(&horizontal);
-            TVec3f wallOffset(*mFrontWallTriangle->getNormal(0));
-            wallOffset *= length - 35.0f;
-            offset = wallOffset;
+            offset = *mFrontWallTriangle->getNormal(0) * (length - 35.0f);
         }
     } else if (state->mStatusId == MarioStatus_Swim) {
         f32 surfaceOffset = mSwim->mSurfaceOffset;
-        const TVec3f& swimDirection = -*getGravityVec();
-        TVec3f swimOffset(swimDirection);
-        swimOffset *= surfaceOffset;
-        offset += swimOffset;
+        offset += -*getGravityVec() * surfaceOffset;
     }
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit30)) && !(static_cast<u32>(mMovementStates.mLowBits.mBit31))) {
         f32 verticalSpeed = mVerticalSpeed;
@@ -3933,39 +3931,22 @@ void Mario::fn_8038B9F0() {
             MR::normalizeOrZero(&direction);
             if (direction.dot(_368) < 0.1f) {
                 f32 speed = mVerticalSpeed;
-                TVec3f floorOffset(getAirGravityVec());
-                floorOffset *= speed;
-                offset += floorOffset;
+                offset += getAirGravityVec() * speed;
             } else {
-                TVec3f groundDelta(mGroundPos);
-                groundDelta -= mPosHolder->mPos;
+                const TVec3f& position = mPosHolder->mPos;
                 TVec3f horizontal;
-                f32 distance = MR::vecKillElement(groundDelta, *getGravityVec(), &horizontal);
-                TVec3f floorOffset(*getGravityVec());
-                floorOffset *= distance;
-                offset += floorOffset;
+                f32 distance = MR::vecKillElement(mGroundPos - position, *getGravityVec(), &horizontal);
+                offset += *getGravityVec() * distance;
             }
         }
     }
     TVec3f sinkOffset;
     sinkOffset.zero();
     if (mSinkTimer != 0) {
-        TVec3f first(*getGravityVec());
-        first *= static_cast<f32>(mSinkTimer);
-        TVec3f second(first);
-        second *= 0.00390625f;
-        TVec3f third(second);
-        third *= 120.0f;
-        sinkOffset = third;
+        f32 sinkTimer = static_cast<f32>(mSinkTimer);
+        sinkOffset = *getGravityVec() * sinkTimer * 0.00390625f * 120.0f;
         f32 sink = static_cast<f32>(mSinkTimer);
-        const TVec3f& sinkDirection = -_1FC;
-        TVec3f fourth(sinkDirection);
-        fourth *= sink;
-        TVec3f fifth(fourth);
-        fifth *= 0.00390625f;
-        TVec3f sixth(fifth);
-        sixth *= 120.0f;
-        sinkOffset = sixth;
+        sinkOffset = -_1FC * sink * 0.00390625f * 120.0f;
     }
     f32 blendRate = 0.2f;
     if (!isUseSimpleGroundCheck()) {
@@ -3985,9 +3966,7 @@ void Mario::fn_8038B9F0() {
     }
     MR::vecBlend(&_148, _148, offset, blendRate);
     MR::vecBlend(&_154, _154, sinkOffset, 0.2f);
-    TVec3f combined(_148);
-    combined += _154;
-    _13C = combined;
+    _13C = _148 + _154;
 }
 
 bool Mario::isEnableRush() const {
@@ -5322,6 +5301,7 @@ bool Mario::updateBinderInfo() {
 }
 
 f32 Mario::calcDistToCeil(bool saveSensor) {
+    f32 maxDistance = 200.0f;
     f32 offset = 30.0f;
     if (isPlayerModeYoshi()) {
         getCurrentStatus();
@@ -5335,7 +5315,7 @@ f32 Mario::calcDistToCeil(bool saveSensor) {
     MR::isNearZero(mAirGravityVec, 0.001f);
     TVec3f start = mPosHolder->mPos + mAirGravityVec * offset;
     MR::isNearZero(mAirGravityVec, 0.001f);
-    TVec3f ray = -mAirGravityVec * (200.0f + offset);
+    TVec3f ray = -mAirGravityVec * (maxDistance + offset);
     Triangle triangle;
     TVec3f hitPos;
     bool hit;
@@ -5344,12 +5324,15 @@ f32 Mario::calcDistToCeil(bool saveSensor) {
     } else {
         hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, ray);
     }
-    if (!hit || isThroughWall(&triangle)) {
-        return 200.0f;
+    if (!hit) {
+        return maxDistance;
+    }
+    if (isThroughWall(&triangle)) {
+        return maxDistance;
     }
     if (fn_80390210(&triangle)) {
         if ((hitPos - mPosHolder->mPos).dot(*getGravityVec()) >= 0.0f) {
-            return 200.0f;
+            return maxDistance;
         }
     }
     _3B0 = *triangle.getNormal(0);

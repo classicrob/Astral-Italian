@@ -71,7 +71,6 @@ MiniTicoMaster::MiniTicoMaster(WorldMapResultWorld* world, s32 partsIndex, s32* 
 
 MiniTicoMaster::~MiniTicoMaster() {}
 
-// NONMATCHING: scalar/paired vector copy lowering and register/stack layout (FP order/grouping checked).
 void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     TVec3f base(mUnk90->getNode(mUnkA4)->mPos);
     TVec3f pos = base + sPlanetOffset;

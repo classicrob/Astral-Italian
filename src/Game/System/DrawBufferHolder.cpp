@@ -88,11 +88,7 @@ void DrawBufferHolder::findLightInfo(LiveActor* pActor, s32 drawBufferType, s32 
 
 void DrawBufferHolder::entry(s32 drawBufferType) {
     ExecutorList& executeList = mExecuteLists[drawBufferType];
-    void (DrawBufferGroup::*pfn)() = &DrawBufferGroup::entry;
-    DrawBufferGroup** pEnd = executeList.end();
-    for (DrawBufferGroup** it = executeList.begin(); it != pEnd; it++) {
-        ((*it)->*pfn)();
-    }
+    std::for_each(executeList.begin(), executeList.end(), std::mem_func(&DrawBufferGroup::entry));
 }
 
 void DrawBufferHolder::drawOpa(s32 drawBufferType) const {

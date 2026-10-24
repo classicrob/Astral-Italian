@@ -35,7 +35,7 @@ s32 UserFile::getPlayerMissNum() const {
 
 bool UserFile::isComplete() const {
     s32 max = GameDataFunction::getPowerStarNumMax();
-    return mGameDataHolder->calcCurrentPowerStarNum() == max;
+    return static_cast<u32>(max) - static_cast<u32>(mGameDataHolder->calcCurrentPowerStarNum()) == 0;
 }
 
 s32 UserFile::calcNormalPowerStarNum() const {

@@ -972,13 +972,16 @@ void Mario::checkWallRiseAndSlipFront() {
 
 // NONMATCHING: temporary/register allocation; complete SMG2 jump orchestration recovered.
 void Mario::tryJump() {
+    bool stickJump;
     bool mud = false;
+    bool squat;
     TVec3f stickTotal(_190);
     stickTotal += _19C;
-    if ((static_cast<u32>(mMovementStates.mLowBits.mBit31)) || fn_80399D30()) return;
+    if (static_cast<u32>(mMovementStates.mLowBits.mBit31)) return;
+    if (fn_80399D30()) return;
     playEffect("共通跳躍");
     stopEffectForce("スピンリング");
-    bool squat = checkSquat(true);
+    squat = checkSquat(true);
     mMovementStates.mHighBits.mBit30 = 1;
     mMovementStates.mHighBits.mBit22 = 0;
     mMovementStates.mHighBits.mBit7 = 0;
@@ -989,7 +992,7 @@ void Mario::tryJump() {
     if (tryTurnJump()) return;
     checkWallRiseAndSlipFront();
     f32 floorAngle = calcPolygonAngleD(mGroundPolygon);
-    bool stickJump = false;
+    stickJump = false;
     if (!MR::isNearZero(_8F8, 0.001f) && (static_cast<u32>(mMovementStates.mHighBits.mBit28))) stickJump = true;
     if (floorAngle < 15.0f) {
         mMovementStates.mHighBits.mBit28 = 0;
@@ -1022,21 +1025,15 @@ void Mario::tryJump() {
 #endif
     if (fn_803B2530(squat)) return;
     if (static_cast<u32>(mDrawStates.mBits.mBit26)) {
+        f32 walkSpeed;
         f32 speed = fn_803B1CA0();
-        f32 walkSpeed = mWalkSpeed;
-        TVec3f first(_334);
-        first *= walkSpeed;
-        TVec3f second(first);
-        second *= speed;
-        mJumpVec = second;
+        walkSpeed = mWalkSpeed;
+        mJumpVec = _334 * walkSpeed * speed;
     } else {
+        f32 walkSpeed;
         f32 speed = fn_803B1CA0();
-        f32 walkSpeed = mWalkSpeed;
-        TVec3f first(mFrontVec);
-        first *= walkSpeed;
-        TVec3f second(first);
-        second *= speed;
-        mJumpVec = second;
+        walkSpeed = mWalkSpeed;
+        mJumpVec = mFrontVec * walkSpeed * speed;
     }
     mFlags14.mLowBits.mBit8 = 0;
     if (static_cast<u32>(mDrawStates.mBits.mBit20)) {
@@ -1051,7 +1048,8 @@ void Mario::tryJump() {
             if (factor < 0.0f) factor = 0.0f;
             f32 speed = PSVECMag(&mJumpVec);
             f32 bonus = MR::clamp(1.0f - (speed - 4.0f) / 10.0f, 0.0f, 1.0f);
-            enforce = MR::clamp(factor + bonus, 0.0f, 1.0f);
+            factor += bonus;
+            enforce = MR::clamp(factor, 0.0f, 1.0f);
         }
         if (MR::isInAreaObj("EnforceJumpArea", mPosHolder->mPos) && _8D8 == _45C->mSensor) enforce = 1.0f;
         doEnforceJump(enforce);
@@ -1061,19 +1059,15 @@ void Mario::tryJump() {
         MR::vecKillElement(stickTotal, mActor->mAppliedGravityVec, &stickTotal);
         cutGravityElementFromJumpVec(true);
         if (stickTotal.dot(mJumpVec) > 0.0f) {
-            TVec3f extra(stickTotal);
-            extra *= 1.0f;
-            mJumpVec += extra;
+            mJumpVec += stickTotal * 1.0f;
         } else {
-            TVec3f extra(stickTotal);
-            extra *= 0.5f;
-            mJumpVec += extra;
+            mJumpVec += stickTotal * 0.5f;
         }
     }
     if (stickJump) {
-        MR::isNearZero(mAirGravityVec, 0.001f);
+        const TVec3f& airGravity = getAirGravityVec();
         TVec3f projected;
-        JMAVECScaleAdd(&mAirGravityVec, &_368, &projected, -mAirGravityVec.dot(_368));
+        JMAVECScaleAdd(&airGravity, &_368, &projected, -airGravity.dot(_368));
         if (!MR::normalizeOrZero(&projected) && _16C.dot(projected) > 0.0f) {
             mJumpVec += _16C;
             cutGravityElementFromJumpVec(true);
@@ -1081,6 +1075,7 @@ void Mario::tryJump() {
     }
     _340 = 1.0f - mWalkSpeed;
     if (_340 < 0.0f) _340 = 0.0f;
+    f32 height;
     f32 ratio = 1.0f;
     if (fn_803EF7C0() == 0x20) ratio = mActor->mConst->getTable()->mMudFloorJumpWeakRatio;
     if (static_cast<u32>(mFlags20.mBits.mBit20)) ratio = 0.9f;
@@ -1111,14 +1106,10 @@ void Mario::tryJump() {
                    : PetariNative::Odyssey::nextChainIndex(sOdyssey.lastChain, _3CE, odysseySpeed, odysseyDir.dot(sOdyssey.lastDir));
     }
 #endif
-    f32 height = getJumpHeight();
-    TVec3f negativeGravity(-mActor->mAppliedGravityVec);
-    TVec3f scaled(negativeGravity);
-    scaled *= height;
-    TVec3f weakened(scaled);
-    weakened *= ratio;
-    mJumpVec += weakened;
-    mMovementStates.mLowWord = mMovementStates.mLowWord & 0xFFFDFFFF & 0xBFFFFFFF;
+    height = getJumpHeight();
+    mJumpVec += -mActor->mAppliedGravityVec * height * ratio;
+    mMovementStates.mLowBits.mBit17 = 0;
+    mMovementStates.mLowBits.mBit30 = 0;
     if (getPlayerMode() != 4 && fn_803EF7C0() == 0x20) {
         _430 = 3;
         mud = true;
@@ -1206,9 +1197,7 @@ void Mario::tryJump() {
         else playSound("声高飛び込み");
         playSound("ジャンプ踏切");
         if (mStickPos.z < 0.1f) {
-            TVec3f extra(mFrontVec);
-            extra *= 5.0f;
-            mJumpVec += extra;
+            mJumpVec += mFrontVec * 5.0f;
         }
     }
     mMovementStates.mLowBits.mBit26 = 1;
@@ -1699,11 +1688,11 @@ bool Mario::tryTurnJump() {
     if (isPlayerModeYoshi()) MR::startActionSound(mActor->getYoshi(), "JumpHigh", -1, -1, -1);
     else playSound("声後ジャンプ");
 
-    _3D0 = 0;
     mMovementStates.mLowBits.mBit31 = 1;
     mMovementStates.mLowBits.mBit30 = 0;
     mMovementStates.mLowBits.mBit27 = 0;
     mMovementStates.mLowBits.mBit26 = 0;
+    _3D0 = 0;
     mWalkSpeed = 0.0f;
     mFlags14.mLowBits.mBit21 = 0;
     return true;
@@ -1725,7 +1714,7 @@ void Mario::trySquatJump() {
         mJumpVec += stickVec * 1.0f;
     }
 
-    const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
+    const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mFlags14.mLowBits.mBit8 = 0;
@@ -1835,12 +1824,12 @@ void Mario::tryBackJump() {
         playSound("ジャンプ踏切");
     }
 
-    mWalkSpeed = 0.0f;
     mMovementStates.mLowBits.mBit31 = 1;
     _3D0 = 0;
     mMovementStates.mLowBits.mBit30 = 0;
     mMovementStates.mLowBits.mBit27 = 0;
     mMovementStates.mLowBits.mBit26 = 0;
+    mWalkSpeed = 0.0f;
     return;
 }
 

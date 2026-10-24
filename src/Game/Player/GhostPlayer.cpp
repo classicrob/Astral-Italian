@@ -45,7 +45,8 @@ namespace MR {
         f32 x = input.x * factor, y = input.y * factor;
         z = input.z * factor;
         s32 iz;
-        s32 ix = static_cast<s32>(x), iy = static_cast<s32>(y);
+        s32 iy = static_cast<s32>(y);
+        s32 ix = static_cast<s32>(x);
         iz = static_cast<s32>(z);
         output->x = ix;
         output->y = iy;

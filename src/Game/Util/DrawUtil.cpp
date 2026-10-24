@@ -307,7 +307,8 @@ namespace MR {
         fillScreenSetup(color);
         u16 width = getFrameBufferWidth();
         u16 height = getScreenHeight();
-        fillScreenArea(TVec2s(0, 0), TVec2s(width, height));
+        TVec2s minimum(0, 0);
+        fillScreenArea(minimum, TVec2s(width, height));
     }
 
     void setupShadowVolumeDraw() {

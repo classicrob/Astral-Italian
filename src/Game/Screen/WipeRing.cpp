@@ -223,17 +223,25 @@ void WipeRing::appearWithColor() {
 }
 
 // NONMATCHING: target sinks `green = false` to the join and branches on each call result; ours materializes the bool across the calls (register/branch-shape residue only).
-void WipeRing::setColor() {
-    MR::startAnim(this, ::sColorAnimName, 1);
-    bool green = false;
+namespace {
+    inline bool isRingGreenStar() {
     if (MR::isStageMarioFaceShip()) {
         if (GameSequenceFunction::hasStageResultSequence()) {
             s32 starId = GameSequenceFunction::getClearedPowerStarId();
-            green = MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId);
+            if (MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId))
+                return true;
         }
     } else {
-        green = MR::isPowerStarGreenInCurrentStage();
+        if (MR::isPowerStarGreenInCurrentStage())
+            return true;
     }
+    return false;
+    }
+}
+
+void WipeRing::setColor() {
+    MR::startAnim(this, ::sColorAnimName, 1);
+    bool green = isRingGreenStar();
     if (green) {
         MR::setAnimFrameAndStop(this, 1.0f, 1);
     } else {

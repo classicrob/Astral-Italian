@@ -199,7 +199,8 @@ void Meramera::init(const JMapInfoIter& rIter) {
 
     MR::initActor(this, rIter, ::sElementArcName[mElementType], false);
     initEffect();
-    f32 pointerRadius = 55.0f * mScale.x;
+    f32 pointerRadius = mScale.x;
+    pointerRadius *= 55.0f;
     TVec3f starPointerOffset(0.0f, 0.0f, 0.0f);
     MR::initStarPointerTarget(this, pointerRadius, starPointerOffset);
     mHomePosition = mPosition;

@@ -61,11 +61,11 @@ void WorldMapResultStateWorldNews::kill() {
 
 // NONMATCHING: regalloc; equivalent signed range comparison lowering (FP order/grouping checked: no FP instructions).
 bool WorldMapResultStateWorldNews::isIndexInRange() const {
-    bool inRange = false;
+    u32 inRange = 0;
     if (mIndex >= 1 && mIndex <= 5) {
-        inRange = true;
+        inRange = 1;
     }
-    return inRange;
+    return inRange != 0;
 }
 
 bool WorldMapResultStateWorldNews::eventFunc(u32) {

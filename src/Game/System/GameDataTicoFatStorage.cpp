@@ -13,7 +13,7 @@ TicoCoinFeedList::TicoCoinFeedList(s32 capacity) {
 bool TicoCoinFeedList::contains(const char* pName) const {
     const u16* pEnd;
     const u16* p;
-    u32 hash = static_cast<u16>(MR::getHashCode(pName));
+    u16 hash = MR::getHashCode(pName);
     p = begin();
     pEnd = end();
     while (p != pEnd && *p != hash) {

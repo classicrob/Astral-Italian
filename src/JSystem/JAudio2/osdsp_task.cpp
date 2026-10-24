@@ -162,11 +162,13 @@ void DsyncFrame2(u32 param_0, JASDspAddr param_1, JASDspAddr param_2) {
 void DsyncFrame2(u32 param_0, u32 param_1, u32 param_2) {
 #endif
     if (DspRunningStatus != 1) {
-        OSReport("Yield中です\n");
-        sync_stack[0] = param_0;
+        static const char yieldMessage[] = "Yield中です\n";
+        OSReport(yieldMessage);
+        JASDspAddr* stack;
+        *(stack = sync_stack) = param_0;
         sPendingFrameMode = 1;
-        sync_stack[1] = param_1;
-        sync_stack[2] = param_2;
+        stack[1] = param_1;
+        stack[2] = param_2;
         return;
     }
 
@@ -180,12 +182,13 @@ void DsyncFrame3(u32 param_0, JASDspAddr param_1, JASDspAddr param_2, JASDspAddr
 void DsyncFrame3(u32 param_0, u32 param_1, u32 param_2, u32 param_3, u32 param_4) {
 #endif
     if (DspRunningStatus != 1) {
-        sync_stack[0] = param_0;
+        JASDspAddr* stack;
+        *(stack = sync_stack) = param_0;
         sPendingFrameMode = 2;
-        sync_stack[1] = param_1;
-        sync_stack[2] = param_2;
-        sync_stack[3] = param_3;
-        sync_stack[4] = param_4;
+        stack[1] = param_1;
+        stack[2] = param_2;
+        stack[3] = param_3;
+        stack[4] = param_4;
         return;
     }
 

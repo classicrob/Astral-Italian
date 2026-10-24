@@ -170,13 +170,14 @@ bool MarioHang::update() {
             _1C = 1;
         fn_803EDE40();
         playSound("声崖つかまり終了");
-        _12++;
+        _12 = 2;
         return true;
     case 2:
         if (!fn_803EDB30())
             _1C = 1;
         if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-            addVelocity(getFrontVec() * 6.0f);
+            const TVec3f& velocity = getFrontVec() * 6.0f;
+            addVelocity(velocity);
         }
 
         if (!isAnimationRun(nullptr) || isAnimationTerminate(nullptr)) {
@@ -223,7 +224,8 @@ bool MarioHang::update() {
         if (isAnimationRun("崖つかまり開始") && getAnimator()->getFrame() < 20.0f) {
             _1D = 1;
         } else {
-            getPlayer()->addTrans(getPlayer()->mFrontVec * -100.0f);
+            const TVec3f& displacement = getPlayer()->mFrontVec * -100.0f;
+            getPlayer()->addTrans(displacement);
             mActor->setBlendMtxTimer(16);
             Mario* pPlayer = getPlayer();
             pPlayer->_3C0 = 0;

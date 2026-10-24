@@ -85,6 +85,9 @@ void GravityLightRoad::exePlayerFall() {
     }
 
     TVec3f upVec;
+    TVec3f toPlayer;
+    TVec3f fwdVec;
+    TVec3f fwdDir;
     MR::calcUpVec(&upVec, this);
 
     mFallSpeed += 2.0f;
@@ -92,22 +95,20 @@ void GravityLightRoad::exePlayerFall() {
         mFallSpeed = 30.0f;
     }
 
+    f32 fallSpeed = mFallSpeed;
     TVec3f vec(upVec);
-    vec.scale(mFallSpeed);
+    vec.scale(fallSpeed);
     mFallVec.add(vec);
 
     TVec3f negUp = -upVec;
     MR::turnQuatYDirRate(&mQuat, mQuat, negUp, 0.1f);
 
-    TVec3f toPlayer;
     toPlayer.sub(mPosition, *MR::getPlayerPos());
 
     f32 dot = upVec.dot(toPlayer);
-    TVec3f fwdVec;
     fwdVec.scaleAdd(-dot, upVec, toPlayer);
 
     if (!MR::isNearZero(fwdVec, 2.0f)) {
-        TVec3f fwdDir;
         MR::normalize(fwdVec, &fwdDir);
         mFallVec.scaleAdd(2.0f, fwdDir, mFallVec);
     }

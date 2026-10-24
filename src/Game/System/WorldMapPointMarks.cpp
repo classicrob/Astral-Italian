@@ -45,11 +45,12 @@ void WorldMapResultMapData::getLayerRange(s32* pMin, s32* pMax) const {
     *pMax = 0;
     for (s32 i = 0; i < mNum; i++) {
         WorldMapResultNode* pNode = &mNodes[i];
-        if (pNode->mLayer < *pMin) {
-            *pMin = pNode->mLayer;
+        s32 layer = pNode->mLayer;
+        if (layer < *pMin) {
+            *pMin = layer;
         }
-        if (mNodes[i].mLayer > *pMax) {
-            *pMax = mNodes[i].mLayer;
+        if (pNode->mLayer > *pMax) {
+            *pMax = pNode->mLayer;
         }
     }
 }
@@ -63,8 +64,8 @@ void WorldMapResultMapData::load() {
     mNum = num;
     mNodes = new WorldMapResultNode[num];
     for (s32 i = 0; i < mNum; i++) {
-        const char* pValue = nullptr;
         WorldMapResultNode* pNode = &mNodes[i];
+        const char* pValue = nullptr;
         MR::getCsvDataStr(&pValue, pCsv, "Valid", i);
         if (*pValue == 'o') {
             pNode->mIsValid = 1;

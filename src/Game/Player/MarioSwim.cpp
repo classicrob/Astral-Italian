@@ -3684,7 +3684,6 @@ f32 MarioSwim::fn_80402250() {
     return factor * cLimitAngleWait + (1.0f - factor) * cLimitAngleSink;
 }
 
-// NONMATCHING: instruction scheduling, register allocation or equivalent branch folding.
 f32 MarioSwim::fn_804022D0() {
     if (mDistToFloor < 300.0f && -mWaterDepth < 100.0f) return cNeutralAngleWait;
     f32 angle = fn_80402250() - cNeutralAngleWait;

@@ -31,20 +31,25 @@ s32 GameDataPlayerStatus::serialize(u8* pBuffer, u32 size) const {
     BinaryDataContentAccessor accessor(static_cast< u8* >(mHeaderSerializer->getBuffer()));
     u8* pData = pBuffer + headerSize;
 
+    const char* playerLeftName = "mPlayerLeft";
     u8 playerLeft = mPlayerLeft;
-    *static_cast< u8* >(accessor.getPointer("mPlayerLeft", pData)) = playerLeft;
+    *static_cast< u8* >(accessor.getPointer(playerLeftName, pData)) = playerLeft;
 
+    const char* starPieceName = "mStockedStarPieceNum";
     u16 starPiece = mStockedStarPiece;
-    *static_cast< u16* >(accessor.getPointer("mStockedStarPieceNum", pData)) = starPiece;
+    *static_cast< u16* >(accessor.getPointer(starPieceName, pData)) = starPiece;
 
+    const char* coinName = "mStockedCoinNum";
     u16 coin = mStockedCoin;
-    *static_cast< u16* >(accessor.getPointer("mStockedCoinNum", pData)) = coin;
+    *static_cast< u16* >(accessor.getPointer(coinName, pData)) = coin;
 
+    const char* last1upName = "mLast1upCoinNum";
     u16 last1up = mLast1upCoinNum;
-    *static_cast< u16* >(accessor.getPointer("mLast1upCoinNum", pData)) = last1up;
+    *static_cast< u16* >(accessor.getPointer(last1upName, pData)) = last1up;
 
+    const char* flagName = "mFlag";
     u8 flag = mFlag;
-    *static_cast< u8* >(accessor.getPointer("mFlag", pData)) = flag;
+    *static_cast< u8* >(accessor.getPointer(flagName, pData)) = flag;
 
     return headerSize + mHeaderSerializer->getDataSize();
 }
@@ -55,26 +60,31 @@ s32 GameDataPlayerStatus::deserialize(const u8* pBuffer, u32 size) {
 
     u8* pData = const_cast< u8* >(pBuffer) + headerSize;
 
-    void* pPlayerLeft = accessor.getPointer("mPlayerLeft", pData);
+    const char* playerLeftName = "mPlayerLeft";
+    void* pPlayerLeft = accessor.getPointer(playerLeftName, pData);
     mPlayerLeft = pPlayerLeft != nullptr ? *static_cast< u8* >(pPlayerLeft) : 0;
 
-    void* pStarPiece = accessor.getPointer("mStockedStarPieceNum", pData);
+    const char* starPieceName = "mStockedStarPieceNum";
+    void* pStarPiece = accessor.getPointer(starPieceName, pData);
     mStockedStarPiece = pStarPiece != nullptr ? *static_cast< u16* >(pStarPiece) : 0;
 
-    void* pCoin = accessor.getPointer("mStockedCoinNum", pData);
+    const char* coinName = "mStockedCoinNum";
+    void* pCoin = accessor.getPointer(coinName, pData);
     mStockedCoin = pCoin != nullptr ? *static_cast< u16* >(pCoin) : 0;
 
-    void* pLast1up = accessor.getPointer("mLast1upCoinNum", pData);
+    const char* last1upName = "mLast1upCoinNum";
+    void* pLast1up = accessor.getPointer(last1upName, pData);
     mLast1upCoinNum = pLast1up != nullptr ? *static_cast< u16* >(pLast1up) : 0;
 
-    void* pFlag = accessor.getPointer("mFlag", pData);
+    const char* flagName = "mFlag";
+    void* pFlag = accessor.getPointer(flagName, pData);
     mFlag = pFlag != nullptr ? *static_cast< u8* >(pFlag) : 0;
 
-    if (headerSize + mHeaderSerializer->getDataSize() > size) {
-        return 3;
-    }
-
-    return 0;
+    u32 dataSize = headerSize + mHeaderSerializer->getDataSize();
+    s32 result = 3;
+    if (dataSize <= size)
+        result = 0;
+    return result;
 }
 
 void GameDataPlayerStatus::initializeData() {

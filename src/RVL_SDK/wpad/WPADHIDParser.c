@@ -672,18 +672,23 @@ void __wpadValidateReportFormat(u8 chan, u8 report, WPADStatus* status) {
 // NONMATCHING: compiler register allocation and scheduling differ.
 s32 WPADiHIDParser(u8 chan, u8* data) {
     WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADControlBlock* p_buffer;
     WPADStatus* status;
     BOOL enabled;
     s32 result = 0;
     if ((u8)(data[0] - 0x20) <= 0x1F) {
         enabled = OSDisableInterrupts();
-        status = (WPADStatus*)(p_cb->rxBuf + p_cb->rxBufIndex * WPAD_RX_DATASIZE);
+        p_buffer = _wpdcb[chan];
+        status = (WPADStatus*)(p_buffer->rxBuf + p_buffer->rxBufIndex * WPAD_RX_DATASIZE);
         if (data[0] != 0x3E && data[0] != 0x3F) memset(status, 0, WPAD_RX_DATASIZE);
         __wpadValidateReportFormat(chan, data[0], status);
         __a1_input_reports_array[data[0] - 0x20](chan, data, status);
         if (!p_cb->setup) status->err = WPAD_ERR_INVALID;
         status->dev = p_cb->devType;
-        if (data[0] != 0x3E && data[0] != 0x3F) p_cb->rxBufIndex = !p_cb->rxBufIndex;
+        if (data[0] != 0x3E && data[0] != 0x3F) {
+            p_buffer = _wpdcb[chan];
+            p_buffer->rxBufIndex = !p_buffer->rxBufIndex;
+        }
         OSRestoreInterrupts(enabled);
         WPADiExcludeButton(chan);
         WPADiCopyOut(chan);
@@ -696,8 +701,9 @@ void __a1_20_status_report(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADControlBlock* p_copy;
     BOOL attach = p_cb->infos.attach;
+    BOOL enabled;
     WPADExtensionCallback extcb;
-    BOOL enabled = OSDisableInterrupts();
+    enabled = OSDisableInterrupts();
     if (!p_cb->setup) {
         OSRestoreInterrupts(enabled);
         return;

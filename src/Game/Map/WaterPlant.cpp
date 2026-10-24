@@ -174,6 +174,7 @@ WaterPlant::PlantData::PlantData() {
 
 // NONMATCHING: regalloc
 void WaterPlant::initPlantAfterPlacement() {
+    const TVec3f* gravity = &mGravity;
     s32 index = 0;
     TPos3f mtx;
     mtx.identity();
@@ -191,10 +192,10 @@ void WaterPlant::initPlantAfterPlacement() {
                                             randomZ);
 
                 MR::calcGravity(this, *currentPlantPos);
-                TVec3f offset(mGravity);
+                TVec3f offset(*gravity);
                 offset.scale(500.0f);
                 currentPlantPos->sub(offset);
-                if (MR::calcMapHitAlongDirection(*currentPlantPos, currentPlantPos, mGravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
+                if (MR::calcMapHitAlongDirection(*currentPlantPos, currentPlantPos, *gravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
                     break;
                 }
             }

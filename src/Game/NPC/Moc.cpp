@@ -4,6 +4,17 @@
 #include "Game/System/GalaxyStatusAccessor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+namespace {
+    inline bool isAllCometComplete() {
+    ScenarioDataIter scenario=MR::makeBeginScenarioDataIter();
+    while(!scenario.isEnd()) {
+        GalaxyStatusAccessor accessor=scenario.makeAccessor();
+        if(accessor.getPowerStarNum()!=0 && accessor.hasCometScenario() && !accessor.hasPowerStar(accessor.getCometScenarioId()) && MR::getGalaxyStarTotalNum(accessor.getName())==0) return false;
+        scenario.goNext();
+    }
+    return true;
+    }
+}
 namespace NrvMoc {
     class MocNrvWait : public Nerve {
     public:
@@ -24,14 +35,7 @@ void Moc::init(const JMapInfoIter& iter) {
     mSpinAttackRange=450.0f;
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::branchFunc));
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::eventFunc));
-    ScenarioDataIter scenario=MR::makeBeginScenarioDataIter();
-    bool complete=true;
-    while(!scenario.isEnd()) {
-        GalaxyStatusAccessor accessor=scenario.makeAccessor();
-        if(accessor.getPowerStarNum()!=0 && accessor.hasCometScenario() && !accessor.hasPowerStar(accessor.getCometScenarioId()) && MR::getGalaxyStarTotalNum(accessor.getName())==0) { complete=false; break; }
-        scenario.goNext();
-    }
-    mAllCometsComplete=complete;
+    mAllCometsComplete=isAllCometComplete();
     mFaceIndex=0;
     MR::getJMapInfoArg0NoInit(iter,&mFaceIndex);
     char face[64]="FaceA";

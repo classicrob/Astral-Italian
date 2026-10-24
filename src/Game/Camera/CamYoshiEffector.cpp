@@ -15,7 +15,7 @@ void CamYoshiEffector::update(CameraMan* camera) {
 
     const TVec3f& watchPos = CameraLocalUtil::getWatchPos(camera);
     TVec3f direction(CameraLocalUtil::getPos(camera));
-    direction -= watchPos;
+    direction.sub(direction, watchPos);
     f32 distance = direction.length();
     if (MR::normalizeOrZero(&direction)) {
         return;
@@ -24,7 +24,6 @@ void CamYoshiEffector::update(CameraMan* camera) {
     f32 dashHalfFovyTan = MR::tanDegree(32.5f);
     f32 currentHalfFovyTan = MR::tanDegree(0.5f * CameraLocalUtil::getFovy(camera));
     distance = distance * currentHalfFovyTan / dashHalfFovyTan;
-    TVec3f offset = direction * distance;
-    CameraLocalUtil::setPos(camera, CameraLocalUtil::getWatchPos(camera) + offset);
+    CameraLocalUtil::setPos(camera, CameraLocalUtil::getWatchPos(camera) + direction * distance);
     CameraLocalUtil::setFovy(camera, 65.0f);
 }

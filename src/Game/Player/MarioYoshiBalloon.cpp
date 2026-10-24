@@ -292,26 +292,21 @@ void MarioYoshiBalloon::fn_80415030() {
 
 // NONMATCHING: temporary vector stack slots.
 void MarioYoshiBalloon::fn_80415150() {
-    TVec3f offset(getAirGravityVec() * 80.0f);
-    TVec3f position(getTrans());
-    JMathInlineVEC::PSVECSubtract(position, offset, position);
+    TVec3f position = getTrans() - getAirGravityVec() * 80.0f;
     TVec3f normal;
     if (fn_804153C0(&normal, position, 110.0f, 100.0f)) {
-        TVec3f velocity(getVelocity());
         TVec3f horizontal;
+        TVec3f velocity(getVelocity());
         JMAVECScaleAdd(normal, velocity, horizontal, -normal.dot(velocity));
         f32 scale = ((180.0f * normal.angle(getAirGravityVec())) / 3.1415927f - 100.0f) / -100.0f;
         if (scale < 0.0f) scale = 0.0f;
-        TVec3f rebound(velocity);
-        JMathInlineVEC::PSVECSubtract(rebound, horizontal, rebound);
+        TVec3f rebound = velocity - horizontal;
         rebound.scale(scale);
         f32 minimum = 8.0f + 12.0f * scale;
         if (PSVECMag(rebound) < minimum) {
             rebound.set(-normal * minimum);
         }
-        TVec3f result(horizontal);
-        JMathInlineVEC::PSVECSubtract(result, rebound, result);
-        velocity = result;
+        velocity = horizontal - rebound;
         clearVelocity();
         addVelocity(velocity);
         fn_80415390(4);

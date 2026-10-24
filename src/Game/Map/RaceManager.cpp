@@ -80,8 +80,7 @@ namespace NrvRaceManager {
 };  // namespace NrvRaceManager
 
 RaceManager::RaceManager()
-    : LiveActor("レース管理"), mLayout(nullptr), mRacerNum(0), mAudienceNum(0), mRank(0), mBestTime(0), mTime(0), mPlayerRacer(nullptr) {
-    mStartCountdown = nullptr;
+    : LiveActor("レース管理"), mStartCountdown(nullptr), mLayout(nullptr), mRacerNum(0), mAudienceNum(0), mRank(0), mBestTime(0), mTime(0), mPlayerRacer(nullptr) {
     mPlayerRide = nullptr;
     mJudge = nullptr;
 

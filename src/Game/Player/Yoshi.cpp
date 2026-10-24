@@ -1107,9 +1107,8 @@ void Yoshi::fn_8040EE30(const char* animation) {
 // NONMATCHING: cached player/core loads are scheduled differently.
 void Yoshi::fn_8040EE70(const char* animation) {
     if (mUpperAnimationActive && (animation == NULL || mXanimePlayerUpper->isRun(animation))) {
-        XanimePlayer* player = mXanimePlayer;
         u16 joint = MR::getJointIndex(this, "Head");
-        XanimeCore* core = player->getCore();
+        XanimeCore* core = mXanimePlayer->getCore();
         mXanimePlayerUpper->getCore()->freezeCopy(MR::getJ3DModel(this)->getModelData(), core, joint, 8);
         mXanimePlayerUpper->stopAnimation();
         mUpperAnimationActive = false;
@@ -1551,8 +1550,8 @@ void Yoshi::fn_80410570(f32 amount) {
 void Yoshi::fn_804107D0(){mRandomTurn->reset();*mJumpRequested=true;}
 
 bool Yoshi::fn_80410810(TVec3f* slope) const {
-    const TVec3f* normal = mGroundChecker->mGroundHit.mParentTriangle.getNormal(0);
     const TVec3f* gravity = &mGravity;
+    const TVec3f* normal = mGroundChecker->mGroundHit.mParentTriangle.getNormal(0);
     JMAVECScaleAdd(normal, gravity, slope, -normal->dot(*gravity));
     return !MR::normalizeOrZero(slope);
 }
@@ -1885,10 +1884,10 @@ bool Yoshi::fn_80411BF0() {
 }
 
 bool Yoshi::fn_80411CB0() const {
+    TVec3f hit;
     Triangle triangle;
     TVec3f ray(mGravity);
     ray.scale(70.0f);
-    TVec3f hit;
     return MR::getFirstPolyOnLineToMap(&hit, &triangle, _14C, ray);
 }
 
@@ -1954,8 +1953,7 @@ void Yoshi::fn_80411ED0() {
 
 void Yoshi::fn_804121A0(const TVec3f& position, const TVec3f& normal) {
     TPos3f matrix;
-    TVec3f zero(0.0f);
-    MR::makeMtxUpNoSupportPos(&matrix, normal, zero);
+    MR::makeMtxUpNoSupportPos(&matrix, normal, TVec3f(0.0f));
     TVec3f rotation;
     MR::makeRTFromMtxPtr(nullptr, &rotation, matrix.toMtxPtr(), true);
     MultiEmitter* emitter = MR::tryEmitEffect(this, "水波紋");

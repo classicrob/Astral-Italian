@@ -477,18 +477,19 @@ PF_SFD* VFiPFFILE_GetSFD(PF_VOLUME* p_vol, PF_DIR_ENT* p_ent) {
     u32 sfd_num;
     PF_SFD* p_first_free_SFD;
     u32 i;
+    PF_SFD* p_sfd;
 
     sfd_num = 0;
     p_first_free_SFD = 0;
-    for (i = 0; i < 5; ++i) {
-        if ((p_vol->sfds[i].stat & 1) == 0 || ((p_vol->sfds[i].stat & 1) != 0 && ((p_vol->sfds[i].stat == 0) & 2) != 0)) {
+    for (i = 0, p_sfd = p_vol->sfds; i < 5; ++i, ++p_sfd) {
+        if ((p_sfd->stat & 1) == 0 || ((p_sfd->stat & 1) != 0 && ((p_sfd->stat == 0) & 2) != 0)) {
             if (!p_first_free_SFD) {
-                p_first_free_SFD = &p_vol->sfds[i];
+                p_first_free_SFD = p_sfd;
                 sfd_num = i;
             }
         } else {
-            if (p_ent->p_vol == p_vol->sfds[i].dir_entry.p_vol && p_ent->entry_sector == p_vol->sfds[i].dir_entry.entry_sector &&
-                p_ent->entry_offset == p_vol->sfds[i].dir_entry.entry_offset) {
+            if (p_ent->p_vol == p_sfd->dir_entry.p_vol && p_ent->entry_sector == p_sfd->dir_entry.entry_sector &&
+                p_ent->entry_offset == p_sfd->dir_entry.entry_offset) {
                 ++p_vol->sfds[i].num_handlers;
                 return &p_vol->sfds[i];
             }
@@ -1120,11 +1121,10 @@ s32 VFiPFFILE_fread(u8* p_buf, u32 size, u32 count, struct PF_FILE* p_file, u32*
 }
 
 s32 VFiPFFILE_fwrite(u8* p_buf, u32 size, u32 count, PF_FILE* p_file, u32* p_count_written) {
-    int result;
-    PF_VOLUME* p_vol;
-    int v12;
     int err;
+    int result;
     u32 count_written;
+    PF_VOLUME* p_vol;
 
     if (!p_count_written) {
         VFipf_vol_set.last_error = 10;
@@ -1162,14 +1162,13 @@ s32 VFiPFFILE_fwrite(u8* p_buf, u32 size, u32 count, PF_FILE* p_file, u32* p_cou
                     return 10;
                 } else {
                     p_vol->cache.signature = p_file;
-                    v12 = VFiPFFILE_p_fwrite(p_vol, p_buf, size, count, p_file, &count_written);
-                    err = v12;
+                    err = VFiPFFILE_p_fwrite(p_vol, p_buf, size, count, p_file, &count_written);
                     *p_count_written = count_written;
                     p_vol->cache.signature = 0;
-                    if (v12) {
-                        VFipf_vol_set.last_error = v12;
-                        p_file->p_sfd->ffd.p_vol->last_error = v12;
-                        p_file->last_error = v12;
+                    if (err) {
+                        VFipf_vol_set.last_error = err;
+                        p_file->p_sfd->ffd.p_vol->last_error = err;
+                        p_file->last_error = err;
                     }
                     if (count_written) {
                         VFiPFENT_getcurrentDateTimeForEnt(&p_file->p_sfd->dir_entry.modify_date, &p_file->p_sfd->dir_entry.modify_time);

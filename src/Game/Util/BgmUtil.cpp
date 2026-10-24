@@ -387,11 +387,15 @@ namespace MR {
 
     JAISoundHandle* startGliderBGM() {
         if (isEqualStageName("JungleGliderGalaxy")) {
-            return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("MBGM_GLIDER"), false, -1);
+            const char* name = "MBGM_GLIDER";
+            JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+            return AudWrap::startStageBgm(id, false, -1);
         }
 
         if (isEqualStageName("ChallengeGliderGalaxy")) {
-            return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("MBGM_SMG2_GALAXY_28"), false, -1);
+            const char* name = "MBGM_SMG2_GALAXY_28";
+            JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+            return AudWrap::startStageBgm(id, false, -1);
         }
 
         return nullptr;
@@ -414,7 +418,9 @@ namespace MR {
             return nullptr;
         }
 
-        return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("MBGM_MINI_GAME"), false, -1);
+        const char* name = "MBGM_MINI_GAME";
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+        return AudWrap::startStageBgm(id, false, -1);
     }
 
     // NONMATCHING: regalloc/order (target hoists li r31,1 above the first getSceneMgr call) (FP order/grouping checked: no FP instructions).
@@ -436,8 +442,12 @@ namespace MR {
     }
 
     void startAfterBossRushBGM() {
-        if (!isPlayingStageBgmID(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("BGM_EV_BOSSRUSH02"))) {
-            AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("BGM_EV_BOSSRUSH02"), false, -1);
+        const char* playingName = "BGM_EV_BOSSRUSH02";
+        JAISoundID playingId = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(playingName);
+        if (!isPlayingStageBgmID(playingId)) {
+            const char* startName = "BGM_EV_BOSSRUSH02";
+            JAISoundID startId = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(startName);
+            AudWrap::startStageBgm(startId, false, -1);
         }
     }
 
@@ -474,7 +484,9 @@ namespace MR {
     }
 
     void startAppearPlanetJingle() {
-        AudWrap::startSubBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("BGM_JG_APPEAR_PLANET"), false);
+        const char* name = "BGM_JG_APPEAR_PLANET";
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+        AudWrap::startSubBgm(id, false);
     }
 
     bool isUseScenarioSelectMusicZeroStars() {
@@ -543,7 +555,9 @@ namespace MR {
     }
 
     void startFirstAstroStageBgm() {
-        AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("STM_SMG2_FIRST_ASTRO2"), true, -1);
+        const char* name = "STM_SMG2_FIRST_ASTRO2";
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+        AudWrap::startStageBgm(id, true, -1);
     }
 
     void startEmptyNameBGMIfNotUnlocked() {
@@ -567,7 +581,9 @@ namespace MR {
     }
 
     bool isGravityBGMPlaying() {
-        return isPlayingStageBgmID(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("STM_SMG2_GALAXY_03"));
+        const char* name = "STM_SMG2_GALAXY_03";
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name);
+        return isPlayingStageBgmID(id);
     }
 
     // NONMATCHING: regalloc/order (target hoists li r31,1 above the getSceneMgr call) (FP order/grouping checked: no FP instructions).
@@ -598,17 +614,19 @@ namespace MR {
 #include "Game/Scene/SceneObjHolder.hpp"
 namespace MR {
     bool isSandyBossBGMPlaying() {
-        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_SMG2_BOSS_04A");
+        const char* name = "BGM_SMG2_BOSS_04A";
+        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID(name);
         return isPlayingStageBgmID(id);
     }
     bool isPorterBGMPlaying() {
-        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_SMG2_EV_PORTER");
+        const char* name = "BGM_SMG2_EV_PORTER";
+        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID(name);
         return isPlayingStageBgmID(id);
     }
-    // NONMATCHING: name-address setup and hidden-return-pointer setup are scheduled in reverse order (FP order/grouping checked: no FP instructions).
     void startPlayFireMorphBGM() {
         if ((!isExistSceneObj(0x92) || !getExterminationWoodBoxFlagHolder()) && !isSandyBossBGMPlaying()) {
-            JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID("BGM_FIRE_A");
+            const char* name = "BGM_FIRE_A";
+            JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID(name);
             AudWrap::startSubBgm(id, false);
         }
     }

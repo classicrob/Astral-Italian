@@ -21,10 +21,6 @@ void InfernoMarioAppearance::exeJump() {
         mUp.set<f32>(2.0f*(q.x*q.y)-2.0f*(q.w*q.z),(1.0f-2.0f*(q.x*q.x))-2.0f*(q.z*q.z),2.0f*(q.y*q.z)+2.0f*(q.w*q.x));
     }
     f32 height=MR::calcNerveParabolaValue(this,60,0.0f,150.0f);
-    TVec3f offset(mUp);
-    offset *= height;
-    TVec3f position(mStartPos);
-    position += offset;
-    MR::resetPosition(mHost,position);
+    MR::resetPosition(mHost,mStartPos + mUp * height);
     if(MR::isGreaterStep(this,60)) { MR::tryHitReaction(mHost,"登場終了");kill(); }
 }

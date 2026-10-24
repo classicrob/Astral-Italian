@@ -1749,7 +1749,8 @@ void MarioAnimator::fn_803DF8E0() {
 }
 void MarioAnimator::fn_803DF9D0() {
     setYoshiJointMatrix("AllRoot",nullptr);setYoshiJointOffset("Center",TVec3f(0.0f,0.0f,0.0f));
-    getYoshiAnimationPlayer()->mCore->getJointTransform(0)->mWorldTranslationOffset=TVec3f(0.0f,0.0f,0.0f);
+    TVec3f offset(0.0f,0.0f,0.0f);
+    getYoshiAnimationPlayer()->mCore->getJointTransform(0)->mWorldTranslationOffset=offset;
     for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayer->mCore->mJointList[i]=mXanimePlayerExtra->mCore->mJointList[i];
 }
 void MarioAnimator::fn_803DFAC0() {
@@ -1772,7 +1773,9 @@ void MarioAnimator::fn_803DE880() {
     if (MR::isNearZero(side,0.001f)) return;
     TVec3f front;PSVECCrossProduct(&mActor->mMario->_368,&side,&front);MR::normalizeOrZero(&front);
     f32 sideDot=side.dot(mActor->mMario->getAirGravityVec());f32 frontDot=front.dot(mActor->mMario->getAirGravityVec());
-    f32 weights[4]={0.0f,0.0f,0.0f,0.0f};f32 sideBias=0.0f,frontBias=0.0f;
+    f32 weights[4];
+    weights[3]=0.0f;weights[2]=0.0f;weights[1]=0.0f;weights[0]=0.0f;
+    f32 sideBias=0.0f,frontBias=0.0f;
     if (_16==1) sideBias=0.1f;else if (_16==2) frontBias=0.1f;
     f32 absFront=MR::abs(frontDot),absSide=MR::abs(sideDot);
     if (sideBias+absSide>frontBias+absFront) {

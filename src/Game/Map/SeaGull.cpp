@@ -265,7 +265,9 @@ void SeaGullGroup::init(const JMapInfoIter& rIter) {
     }
     if (mIsMarioFace) {
         s32 world = GameDataFunction::getCurrentWorldId();
-        bool enabled = world == 1 || world == 2 || world == 7;
+        u32 enabled;
+        if (world == 1 || world == 2 || world == 7) enabled = 1;
+        else enabled = 0;
         if (!enabled) {
             makeActorDead();
         }

@@ -389,13 +389,10 @@ namespace MR {
 
     // NONMATCHING: equivalent range-check lowering
     bool isSensorRide(const HitSensor* pSensor) {
-        if (pSensor->mType <= 0xB) {
-            return false;
-        }
-        if (pSensor->mType >= 0x16) {
-            return false;
-        }
-        return true;
+        bool result = false;
+        if (pSensor->mType > 0xB && pSensor->mType < 0x16)
+            result = true;
+        return result;
     }
 
     /* ... */
@@ -921,9 +918,11 @@ namespace MR {
 
     // NONMATCHING: equivalent bitset/branch lowering
     bool isMsgPlayerHitAll(u32 msg) {
+        bool result = false;
         u32 index = msg - 1;
-        if (index <= 18 && ((1u << index) & 0x5B5D1) != 0) return true;
-        return false;
+        if (index <= 18 && ((1u << index) & 0x5B5D1) != 0)
+            result = true;
+        return result;
     }
 
     bool isMsgPlayerHitProjectiles(u32 msg) {

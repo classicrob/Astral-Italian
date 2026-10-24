@@ -283,10 +283,16 @@ namespace MR {
         }
 
         if (rVec.z >= 0.0f) {
-            return JMath::sAtanTable.atan2_(rVec.x, rVec.z) * 57.295776f;
+            f32 x = rVec.x;
+            f32 angle = JMath::sAtanTable.atan2_(x, rVec.z);
+            angle *= 57.295776f;
+            return angle;
         }
 
-        return 180.0f - (JMath::sAtanTable.atan2_(rVec.x, -rVec.z) * 57.295776f);
+        f32 x = rVec.x;
+        f32 angle = JMath::sAtanTable.atan2_(x, -rVec.z);
+        angle *= 57.295776f;
+        return 180.0f - angle;
     }
 
     void calcDirectionVec(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo) {

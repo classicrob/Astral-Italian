@@ -2763,7 +2763,6 @@ void MarioActor::runTeresaBaseAnimation() {
     }
 }
 
-// NONMATCHING: model/constant register allocation, load scheduling and verified string-pool offsets.
 void MarioActor::updateTeresaAnimation() {
     bool canChange = true;
     if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
@@ -3481,8 +3480,8 @@ void MarioActor::resetPadSwing() {
     _EFC = 0;
     _F04 = 0;
     _F08 = 0;
-    _F0C = false;
     _F00 = 0;
+    _F0C = false;
     _F1C = 10;
     _F1E = 10;
 }
@@ -5417,7 +5416,7 @@ void MarioActor::updateSwingTimer() {
         Color8 color(80, 128, 200, 0);
         _1AA = 15;
         _1AC = 0.75f;
-        mSwimFogColor = static_cast<GXColor>(color);
+        mSwimFogColor.mGXColor = color.mGXColor;
         mSwimFogDisabled = true;
     }
     if (_946) {
@@ -5978,14 +5977,7 @@ void MarioActor::fn_803C3E40() {
         up.scale(height);
         TVec3f eye(base);
         eye += up;
-        TVec3f dir(front);
-        dir.scale(dist);
-        TVec3f at(base);
-        at += dir;
-        TVec3f tgt(at);
-        tgt += up;
-        TVec3f upv = -mAppliedGravityVec;
-        MR::setProgrammableCameraParam("変身初出カメラ", eye, tgt, upv, true);
+        MR::setProgrammableCameraParam("変身初出カメラ", eye, base + front * dist + up, -mAppliedGravityVec, true);
     }
     this->mFirstTransformCameraLatch666 = 1;
 }
@@ -6676,11 +6668,11 @@ void MarioActor::fn_803C5B30(MtxPtr mtx) {
     }
     case 4:
         f32 angle = static_cast<f32>(this->_390) / 120.0f;
-        angle *= 3.1415927f;
-        angle *= 0.5f;
+        angle = 3.1415927f * angle;
+        angle = 0.5f * angle;
         f32 height = 1.0f - JMACosRadian(angle);
         height = 160.0f * height;
-        height = 0.8f * height;
+        height = height * 0.8f;
         this->_3B0 = 0.2f + height / 160.0f;
         break;
     }
@@ -10336,8 +10328,8 @@ bool MarioActor::isFixJumpRushSensor(const HitSensor* sensor) const {
 
 bool MarioActor::isLandEffectRushSensor(const HitSensor* pSensor) const {
     switch (pSensor->mType) {
-    case ATYPE_MARIO_LAUNCHER_BIND:
     case ATYPE_SPIN_CANNON_BIND:
+    case ATYPE_MARIO_LAUNCHER_BIND:
         return true;
     default:
         return false;
@@ -10760,6 +10752,7 @@ bool MarioActor::fn_803D0F60(HitSensor* s) {
 
 // NONMATCHING: equivalent early guards, saved registers, and verified pooled literals.
 bool MarioActor::tryJumpRush() {
+    const char* effect;
     HitSensor* jumpTarget = getNearestJumpTarget();
     if (jumpTarget == nullptr) return false;
     if (fn_803D11C0()) return false;
@@ -10769,7 +10762,7 @@ bool MarioActor::tryJumpRush() {
         return false;
     }
     if (_468 != 0) {
-        const char* effect = "カメを捨てない";
+        effect = "カメを捨てない";
         if (mActionTable1080->testEffect(MR::getSensorHost(jumpTarget)->mName, effect)) return false;
     }
     if (hasAutoBind && autoBind == 0) {
@@ -11477,7 +11470,6 @@ void MarioActor::calcViewSilhouetteModel() {
     pSimple->viewCalcRef(1, pModel);
 }
 
-// NONMATCHING: saved-register allocation and 0.1/0.9 blend load scheduling only.
 void MarioActor::fn_803D32F0() {
     mWallShadow574->mActive = 0;
     if (this->mGroundReflectionEFC || this->mWaterReflectionEF8 || this->mSphereReflectionEF9) {

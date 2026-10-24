@@ -399,8 +399,9 @@ namespace MR {
 
 #pragma dont_inline on
     bool getJMapInfoGroupID(const JMapInfoIter& rIter, s32* pId) {
+        const char* fieldName = "GroupId";
         *pId = -1;
-        if (!::getJMapInfoArgNoInit(rIter, "GroupId", pId)) {
+        if (!::getJMapInfoArgNoInit(rIter, fieldName, pId)) {
             return MR::getJMapInfoClippingGroupID(rIter, pId);
         }
 

@@ -82,9 +82,16 @@ bool decomposeYoshiModelMtx(const TPos3f& mtx,TVec3f* scale,TVec3f* trans,TQuat4
     TPos3f rot;rot.identity();rot.setXDir(x);rot.setYDir(y);rot.setZDir(z);rot.getQuat(*quat);mtx.getTrans(*trans);return true;
 }
 void setYoshiModelScale(TPos3f* mtx,const TVec3f& scale) {
-    mtx->mMtx[0][0]=scale.x;mtx->mMtx[0][1]=0.0f;mtx->mMtx[0][2]=0.0f;
-    mtx->mMtx[1][0]=0.0f;mtx->mMtx[1][1]=scale.y;mtx->mMtx[1][2]=0.0f;
-    mtx->mMtx[2][0]=0.0f;mtx->mMtx[2][1]=0.0f;mtx->mMtx[2][2]=scale.z;
+    f32 zero = 0.0f;
+    f32 x;
+    f32 y;
+    f32 z;
+    z = scale.z;
+    y = scale.y;
+    x = scale.x;
+    mtx->mMtx[0][0]=x;mtx->mMtx[0][1]=zero;mtx->mMtx[0][2]=zero;
+    mtx->mMtx[1][0]=zero;mtx->mMtx[1][1]=y;mtx->mMtx[1][2]=zero;
+    mtx->mMtx[2][0]=zero;mtx->mMtx[2][1]=zero;mtx->mMtx[2][2]=z;
 }
 void blendYoshiModelMtx(TPos3f* out,const TPos3f& input,f32 rate) {
     TQuat4f quat0;
@@ -155,22 +162,27 @@ bool YoshiModelCtrl::calcSpine(TPos3f* mtx,const JointControllerInfo&) {
     TPos3f rot;rot.makeQuat(quat);mtx->concat(rot,*mtx);mtx->setTrans(trans);return true;
 }
 // NONMATCHING: vector stack slots, floating-point register allocation and scheduling differ.
-void YoshiModelState::calcJoint(TPos3f* mtx,const JointControllerInfo& info) {
-    const J3DTransformInfo& t=info.mJoint->getTransformInfo();TPos3f local;local.identity();
-    TVec3f trans(t.mTranslate.x,t.mTranslate.y,t.mTranslate.z);
-    TVec3f angles(static_cast<f32>(t.mRotation.x)/32768.0f,static_cast<f32>(t.mRotation.y)/32768.0f,static_cast<f32>(t.mRotation.z)/32768.0f);
-    TVec3f scale(t.mScale.x,t.mScale.y,t.mScale.z);
-    double sxResult=sin(angles.x);f32 syArg=angles.y;f32 sx=sxResult;
-    double syResult=sin(syArg);f32 szArg=angles.z;f32 sy=syResult;
-    double szResult=sin(szArg);f32 cxArg=angles.x;f32 sz=szResult;
-    double cxResult=cos(cxArg);f32 cyArg=angles.y;f32 cx=cxResult;
-    double cyResult=cos(cyArg);f32 czArg=angles.z;f32 cy=cyResult;
-    f32 cz=cos(czArg);
+static inline void makeYoshiModelJointMtx(TPos3f& local, const TVec3f& scale, const TVec3f& angles, const TVec3f& trans) {
+    f32 sx, sy, sz, cx, cy, cz;
+    double sxResult=sin(angles.x);f32 syArg=angles.y;sx=sxResult;
+    double syResult=sin(syArg);f32 szArg=angles.z;sy=syResult;
+    double szResult=sin(szArg);f32 cxArg=angles.x;sz=szResult;
+    double cxResult=cos(cxArg);f32 cyArg=angles.y;cx=cxResult;
+    double cyResult=cos(cyArg);f32 czArg=angles.z;cy=cyResult;
+    cz=cos(czArg);
     f32 sxy=sx*sy,cxz=cx*sz,cxc=cx*cz;
     local.mMtx[0][0]=scale.x*(cy*cz);local.mMtx[1][0]=scale.x*(cy*sz);local.mMtx[2][0]=scale.x*-sy;
     local.mMtx[0][1]=scale.y*(sxy*cz-cxz);local.mMtx[1][1]=scale.y*(cxc+sxy*sz);local.mMtx[2][1]=scale.y*(sx*cy);
     local.mMtx[0][2]=scale.z*(cxc*sy+sx*sz);local.mMtx[2][2]=scale.z*(cx*cy);local.mMtx[1][2]=scale.z*(cxz*sy-sx*cz);
     local.setTrans(trans);local.invert(local);
+}
+
+void YoshiModelState::calcJoint(TPos3f* mtx,const JointControllerInfo& info) {
+    const J3DTransformInfo& t=info.mJoint->getTransformInfo();TPos3f local;local.identity();
+    makeYoshiModelJointMtx(local,
+        TVec3f(t.mScale.x,t.mScale.y,t.mScale.z),
+        TVec3f(static_cast<f32>(t.mRotation.x)/32768.0f,static_cast<f32>(t.mRotation.y)/32768.0f,static_cast<f32>(t.mRotation.z)/32768.0f),
+        TVec3f(t.mTranslate.x,t.mTranslate.y,t.mTranslate.z));
     TPos3f base=*mtx;base.concat(local);TPos3f out=*mtx;calc(base,&out);mCtrl->mBlend->calc(mtx,out);
 }
 void YoshiModelTargetState::calcTargetRotation(const TPos3f& input,TQuat4f* quat) {

@@ -75,7 +75,7 @@ void VolumeDrawer::preScaleDrawPass(s32 pass) const {
 
     TVec3f one(1.0f);
     TVec3f diff(one);
-    diff -= scale;
+    diff.sub(scale);
 
     TVec3f out;
     out.mul(LiveActor::mScale, diff);
@@ -94,7 +94,6 @@ void VolumeDrawer::draw() const {
 
     u8 alpha = (u8)(s32)((f32)mColor.a * mScaleRate);
     Color8 color(mColor.r, mColor.g, mColor.b, alpha);
-    GXColor shapeColor = reinterpret_cast< GXColor& >(color);
 
     for (s32 i = 0; i < mDrawPasses; i++) {
         preScaleDrawPass(i);
@@ -103,7 +102,7 @@ void VolumeDrawer::draw() const {
         GXSetAlphaUpdate(1);
         GXSetDstAlpha(1, 0);
         GXSetCullMode(GX_CULL_NONE);
-        GXSetTevColor(GX_TEVREG0, shapeColor);
+        GXSetTevColor(GX_TEVREG0, color);
         if (i == 0) {
             GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
         }
@@ -121,7 +120,7 @@ void VolumeDrawer::draw() const {
         GXSetBlendMode(GX_BM_SUBTRACT, GX_BL_ZERO, GX_BL_ZERO, GX_LO_COPY);
         MR::drawSimpleModel(MR::getJ3DModelData(this));
 
-        GXSetTevColor(GX_TEVREG0, shapeColor);
+        GXSetTevColor(GX_TEVREG0, color);
         GXSetCullMode(GX_CULL_NONE);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_COPY);
         GXSetColorUpdate(1);

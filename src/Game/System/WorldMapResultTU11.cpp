@@ -342,7 +342,7 @@ bool WorldMapOwner::isAllNeededForGrandGalaxy() {
     return getInfoHolder()->isAllCompleted();
 }
 
-// NONMATCHING: the target normalizes startOpenSoundAll() (addic/subfe) into a saved register before updateAll(); ours defers it until after the or (FP order/grouping checked: no FP instructions).
+// NONMATCHING: saved-register allocation and normalization scheduling.
 bool WorldMapOwner::updateParts() {
     bool opened = getInfoHolder()->startOpenSoundAll() != 0;
     opened |= getPointParts()->updateAll();

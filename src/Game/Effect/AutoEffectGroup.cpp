@@ -37,14 +37,15 @@ namespace MR {
             }
         }
 
-        // NONMATCHING: equivalent count-selection branch is materialized with a mask; register allocation differs.
         AutoEffectGroup* createAutoEffectGroup(const char* pName) {
             const ResourceCsvGroupInfo* range = getGameSystemObjHolder3C()->findGroup(pName);
             if (range == nullptr || static_cast<s32>(range->_C) <= 0) return nullptr;
-            s32 count = range != nullptr ? range->_C : 0;
+            s32 count = 0;
+            if (range != nullptr) count = range->_C;
             AutoEffectGroup* group = new AutoEffectGroup(pName, count);
             for (s32 i = 0; i < count; i++) {
-                JMapInfoIter iter(getAutoEffectListBinary(), range->_10 + i);
+                s32 row = range->_10 + i;
+                JMapInfoIter iter(getAutoEffectListBinary(), row);
                 group->add(iter);
             }
             return group;

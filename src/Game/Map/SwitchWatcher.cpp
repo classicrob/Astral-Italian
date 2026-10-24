@@ -2,6 +2,10 @@
 #include "Game/Map/StageSwitch.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util/ObjUtil.hpp"
+#include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#endif
 
 #define Listener_A 1
 #define Listener_B 2
@@ -74,12 +78,7 @@ SwitchWatcherHolder::SwitchWatcherHolder() : NameObj("SwitchWatcherHolder") {
 // https://decomp.me/scratch/BNgz7
 // NONMATCHING: member-pointer stack copies and register allocation differ; listener range and calls match.
 void SwitchWatcherHolder::movement() {
-    void (SwitchWatcher::*func)(void) = &SwitchWatcher::movement;
-
-    SwitchWatcher** end = &mWatchers[mWatcherCount];
-    for (SwitchWatcher** cur = &mWatchers[0]; cur != end; cur++) {
-        (*cur->*func)();
-    }
+    std::for_each(&mWatchers[0], &mWatchers[mWatcherCount], std::mem_func(&SwitchWatcher::movement));
 }
 
 void SwitchWatcherHolder::joinSwitchEventListenerA(const StageSwitchCtrl* pCtrl, SwitchEventListener* pListener) {

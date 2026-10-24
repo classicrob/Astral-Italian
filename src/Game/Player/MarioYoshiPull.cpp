@@ -28,13 +28,12 @@ bool MarioYoshiPull::update() {
     }
 }
 void MarioYoshiPull::fn_804090C0() { mPhase=1;mTimer=0; }
-// NONMATCHING: host-load scheduling and GPR/FP register allocation only.
 bool MarioYoshiPull::exePull() {
     TVec3f target;
     mActor->fn_803B9810()->fn_8041FB40(&target);
     MarioActor* actor = mActor;
     TVec3f direction(target);
-    direction-=actor->mPosition;
+    direction.sub(direction, actor->mPosition);
     MR::vecKillElement(direction,getPlayer()->getAirGravityVec(),&direction);
     if(!MR::normalizeOrZero(&direction)) {
         getPlayer()->setFrontVecKeepUp(direction);

@@ -26,7 +26,6 @@ void BossBussunStateShot::appear() {
     mShotCount = mShotCountMax;
 }
 
-// NONMATCHING: stack slots
 void BossBussunStateShot::exeShotSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "ShotSign");
@@ -40,8 +39,7 @@ void BossBussunStateShot::exeShotSign() {
         TVec3f killed;
         JMAVECScaleAdd(pGravity, pPlayerMove, &killed, -pGravity->dot(*pPlayerMove));
         TVec3f* pLeadTarget = &mHost->mTargetPos;
-        TVec3f lead = killed * (dist / 60.0f);
-        pLeadTarget->add(lead);
+        pLeadTarget->add(killed * (dist / 60.0f));
     }
     TVec3f target(mHost->mTargetPos);
     MR::turnDirectionToTargetDegreeHorizon(mHost, &mHost->mFrontDir, target, 3.0f);

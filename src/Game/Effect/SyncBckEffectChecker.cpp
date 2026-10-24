@@ -68,8 +68,9 @@ bool SyncBckEffectChecker::isDelete(const SyncBckEffectInfo* info) const {
         }
         if (!MR::Effect::isExistSyncBckDeleteFrame(info)) return false;
         f32 end = info->mEndFrame;
+        f32 start = info->mStartFrame;
         bool active = false;
-        if (mPlayer->isFrameInRange(info->mStartFrame, end)) {
+        if (mPlayer->isFrameInRange(start, end)) {
             if (mPlayer->isCurrentBckActive()) active = true;
         }
         return active == false;
@@ -77,8 +78,12 @@ bool SyncBckEffectChecker::isDelete(const SyncBckEffectInfo* info) const {
     if (info->mContinueAnimEnd) {
         const char* name = mPlayer->getCurrentBckName();
         if (!name) return false;
-        if (!info->isRegisteredBck(name)) return mPlayer->isTerminate(name);
-        else return MR::Effect::isExistSyncBckDeleteFrame(info);
+        switch (info->isRegisteredBck(name)) {
+        case false:
+            return mPlayer->isTerminate(name);
+        default:
+            return MR::Effect::isExistSyncBckDeleteFrame(info);
+        }
     }
     if (mIsCreateEnabled) return mCurrentBckName != mPrevBckName || mCurrentAnimName != mPrevAnimName;
     return !mPlayer->isCurrentBckActive();

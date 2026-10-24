@@ -667,14 +667,12 @@ void BattanKing::spawnPattans() {
         LiveActor* actor = holder->getDeadActor() ? holder->getDeadActor() : nullptr;
         if (actor == nullptr) break;
         f32 angle = (360.0f * (f32)i) / (f32)count;
-        {
-            TVec3f offset(BattanKingVec::sOrigin944);
-            MR::rotateVecDegree(&offset, offset, *gravity, angle);
-            TMtx34f mtx;
-            PSMTXCopy(getBaseMtx(), mtx);
-            MR::addTransMtxLocal(mtx, offset);
-            MR::extractMtxTrans(mtx, &actor->mPosition);
-        }
+        TVec3f offset(BattanKingVec::sOrigin944);
+        MR::rotateVecDegree(&offset, offset, *gravity, angle);
+        TMtx34f mtx;
+        PSMTXCopy(getBaseMtx(), mtx);
+        MR::addTransMtxLocal(mtx, offset);
+        MR::extractMtxTrans(mtx, &actor->mPosition);
         actor->mGravity = *gravity;
         TVec3f front(mFront);
         MR::calcVecToPlayerH(&front, actor, nullptr);

@@ -282,9 +282,7 @@ void YoshiTongue::calcAndSetBaseMtx() {
     mPosition.set<f32>(mMouthMtx[0][3], mMouthMtx[1][3], mMouthMtx[2][3]);
     MR::setBaseTRMtx(this, mMouthMtx);
     if (mUseMouthDirection) {
-        TVec3f difference(mTipPosition);
-        difference.sub(mPosition);
-        mTipDirection.set(difference);
+        mTipDirection.set(mTipPosition - mPosition);
         TVec3f mouthGravity;
         TVec3f tipGravity;
         MR::calcGravityVector(this, mPosition, &mouthGravity, nullptr, 0);
@@ -301,7 +299,7 @@ void YoshiTongue::calcAndSetBaseMtx() {
     for (u32 index = 0; index < 4; ++index) {
         TVec3f start;
         TVec3f end;
-        mCurve->fn_8041DA20(&start, ((0.5f + static_cast<f32>(index) * 0.25f) * (mProgress * (static_cast<f32>(index) * 0.25f))) / 1.5f);
+        mCurve->fn_8041DA20(&start, fn_8041D290(mProgress, static_cast<f32>(index) * 0.25f));
         mCurve->fn_8041DA20(&end, fn_8041D290(mProgress, static_cast<f32>(index + 1) * 0.25f));
         TVec3f tangent;
         JMathInlineVEC::PSVECSubtract(&end, &start, &tangent);
@@ -338,7 +336,24 @@ void YoshiTongue::fn_8041CD10(TPos3f* output) const {
     TQuat4f rotation;
     rotation.setRotate(front, direction);
     TPos3f turn;
-    turn.setQuat(rotation);
+    f32 yy = 2.0f * rotation.y * rotation.y;
+    f32 xx = 2.0f * rotation.x * rotation.x;
+    f32 zz = 2.0f * rotation.z * rotation.z;
+    f32 xy = 2.0f * rotation.x * rotation.y;
+    f32 xz = 2.0f * rotation.x * rotation.z;
+    f32 yz = 2.0f * rotation.y * rotation.z;
+    f32 wz = 2.0f * rotation.w * rotation.z;
+    f32 wx = 2.0f * rotation.w * rotation.x;
+    f32 wy = 2.0f * rotation.w * rotation.y;
+    turn.mMtx[0][0] = 1.0f - yy - zz;
+    turn.mMtx[1][1] = 1.0f - xx - zz;
+    turn.mMtx[0][1] = xy - wz;
+    turn.mMtx[1][0] = xy + wz;
+    turn.mMtx[2][2] = 1.0f - xx - yy;
+    turn.mMtx[0][2] = xz + wy;
+    turn.mMtx[2][0] = xz - wy;
+    turn.mMtx[1][2] = yz - wx;
+    turn.mMtx[2][1] = yz + wx;
     output->concat(turn, base);
     output->setTrans(position);
 }

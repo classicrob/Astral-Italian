@@ -837,8 +837,8 @@ CustomTagProcessor::~CustomTagProcessor() {
 
 // NONMATCHING: floating-point registers differ for the rounded scale and size stores.
 void CustomTagProcessor::setFontScale(f64 scale) {
-    f32 width = mFontWidth;
-    f32 height = mFontHeight;
     mFontScale = scale;
+    f32 height = mFontHeight;
+    f32 width = mFontWidth;
     mTextBox->SetFontSize(nw4r::lyt::Size(width * static_cast<f32>(scale), height));
 }

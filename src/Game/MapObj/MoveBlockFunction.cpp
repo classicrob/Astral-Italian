@@ -16,7 +16,6 @@ void MoveBlockFunction::setRotateVec(const TVec3f& vec) { mRotateVec.set<f32>(ve
 void MoveBlockFunction::setMoveStep(s32 step) { if (step < 0) step = 0; mMoveStep = step; }
 void MoveBlockFunction::setReturnStep(s32 step) { if (step < 1) step = 1; mReturnStep = step; }
 void MoveBlockFunction::calcMoveVec(TVec3f* out) const { if (out) mInitialRotation.transform(mMoveVec, *out); }
-// NONMATCHING: equivalent forward-step temporary register allocation.
 void MoveBlockFunction::setForward(bool forward) {
     mForward = forward;
     if (mForward) {

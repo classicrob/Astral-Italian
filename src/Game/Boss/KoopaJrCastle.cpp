@@ -147,8 +147,7 @@ void KoopaJrCastle::exeBattle() {
         MR::startStageBGM("MBGM_SMG2_BOSS_06A", false);
     }
     if (MR::updateActorState(this)) {
-        TVec3f pos(mPosition - mGravity * 1600.0f);
-        MR::requestAppearPowerStar(this, pos);
+        MR::requestAppearPowerStar(this, mPosition - mGravity * 1600.0f);
         TVec3f cam(mStartPos + mGravity * -1000.0f);
         mCameraPos = cam;
         mCapsule->kill();

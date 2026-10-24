@@ -95,9 +95,10 @@ const char* PlayResultInStageHolder::getStageName() const {
 
 void PlayResultInStageHolder::setupStageResult() {
     PlayResultInStageHolder* pHolder = this;
+    const char* pName;
     s32 starNo = pHolder->mClearedPowerStarNum;
     pHolder->mIsStageResult = true;
-    const char* pName = pHolder->mStageName;
+    pName = pHolder->mStageName;
     pHolder->mHasPowerStar = !GameDataFunction::hasPowerStar(pName, starNo);
     if (pHolder->mHasPowerStar) {
         bool isNotGreen = false;
@@ -117,11 +118,11 @@ void PlayResultInStageHolder::setupStageResult() {
     }
     if (pHolder->mPlayTime != 0 && static_cast<u32>(pHolder->mPlayTime) < 0x34BC0U && pHolder->mIsSuperDreamer == false) {
         s32 count = GameDataFunction::getScenarioClearTime(pName, starNo);
+        bool newBest = false;
         if (count != 0 && static_cast<u32>(pHolder->mPlayTime) < static_cast<u32>(count)) {
-            pHolder->mIsNewBestTime = true;
-        } else {
-            pHolder->mIsNewBestTime = false;
+            newBest = true;
         }
+        pHolder->mIsNewBestTime = newBest;
     } else {
         pHolder->mPlayTime = 0;
     }
@@ -251,12 +252,9 @@ void PlayResultInStageHolder::clearPadMode() {
     mPadMode = 0;
 }
 
-// NONMATCHING: regalloc; same element copy and count increment, indexed store selection differs (FP order/grouping checked: no FP instructions).
 void PlayResultStageList::add(const PlayResultStageEntry& rEntry) {
-    PlayResultStageEntry* pDst = &mBase[mCount];
-    mCount++;
-    pDst->mStageName = rEntry.mStageName;
-    pDst->mGalaxyStarTotalNum = rEntry.mGalaxyStarTotalNum;
+    s32 index = mCount++;
+    mBase[index] = rEntry;
 }
 
 PlayResultStageList::~PlayResultStageList() {

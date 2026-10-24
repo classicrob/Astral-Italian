@@ -7,8 +7,12 @@
 
 // NONMATCHING: independent zero stores use the opposite component order.
 MarioWallShadow::MarioWallShadow() : mActive(0) {
-    mPosition.x = mPosition.y = mPosition.z = 0.0f;
-    mNormal.x = mNormal.y = mNormal.z = 0.0f;
+    mPosition.x = 0.0f;
+    mPosition.y = 0.0f;
+    mPosition.z = 0.0f;
+    mNormal.x = 0.0f;
+    mNormal.y = 0.0f;
+    mNormal.z = 0.0f;
     mDistance = 1000.0f;
 }
 

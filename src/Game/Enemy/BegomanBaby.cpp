@@ -307,9 +307,7 @@ void BegomanBaby::exeBlow() {
     }
 }
 
-#pragma push
-#pragma global_optimizer off
-// NONMATCHING: ours allocates a frame pointer (mr r31,r1) and extra stack; cause not found
+// NONMATCHING: stack and saved-register allocation differ.
 void BegomanBaby::exeAfterLaunch() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Fly");
@@ -317,13 +315,7 @@ void BegomanBaby::exeAfterLaunch() {
 
     if (MR::isLessStep(this, 80)) {
         f32 f1 = 5.0f * MR::cos(getNerveStep() * (16 * PI) / 80.0f);
-        TVec3f gravityComp(mGravity);
-        gravityComp.scale(f1);
-        TVec3f faceComp(mFaceVec);
-        faceComp.scale(5.0f);
-        TVec3f newVel(faceComp);
-        newVel -= gravityComp;
-        mVelocity.set(newVel);
+        mVelocity.set(mFaceVec * 5.0f - mGravity * f1);
     } else if (MR::isLessStep(this, 85)) {
         mVelocity.zero();
     } else {
@@ -334,7 +326,6 @@ void BegomanBaby::exeAfterLaunch() {
         setNerve(GET_NERVE(BegomanBaby, HostTypeNrvAfterLaunchOnGround));
     }
 }
-#pragma pop
 
 void BegomanBaby::exeAfterLaunchOnGround() {
     if (MR::isFirstStep(this)) {

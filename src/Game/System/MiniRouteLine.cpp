@@ -165,7 +165,6 @@ void MiniRouteLine::setup(const TVec3f& rFrom, const TVec3f& rTo) {
     MR::setPosition(this, TVec3f(rFrom.x, rFrom.y, rFrom.z));
 }
 
-// NONMATCHING: target tests the argument with clrlwi. instead of cmpwi
 void MiniRouteLine::setColorChange(u8 flag) {
     mColorChange = flag;
     if (mColorChange) {

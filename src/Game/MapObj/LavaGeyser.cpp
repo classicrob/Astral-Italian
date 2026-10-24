@@ -67,7 +67,6 @@ void LavaGeyser::control() {
     }
 }
 
-// NONMATCHING: paired-single vector-add operand registers are reversed.
 void LavaGeyser::updateHitSensor(HitSensor* pSensor) {
     TVec3f cPos = *MR::getPlayerCenterPos();
     cPos -= mPosition;

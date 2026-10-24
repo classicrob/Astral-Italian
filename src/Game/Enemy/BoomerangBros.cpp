@@ -236,13 +236,9 @@ void BoomerangBros::exeStandPressDown() {
         MR::zeroVelocity(this);
     }
     if (MR::isPlayerHipDropFalling()) {
-        const TVec3f* pPlayer = MR::getPlayerPos();
-        TVec3f diff(mPosition);
-        diff -= *pPlayer;
+        TVec3f diff = mPosition - *MR::getPlayerPos();
         MR::vecKillElement(diff, mGravity, &diff);
-        TVec3f pos(*MR::getPlayerPos());
-        pos += diff;
-        MR::setPosition(this, pos);
+        MR::setPosition(this, *MR::getPlayerPos() + diff);
     }
     if (MR::isActionEnd(this)) {
         appearCoin();

@@ -999,18 +999,10 @@ void YoshiTongueAction::fn_80420AC0(TVec3f* output, const TVec3f& target, const 
     polynomial += square;
     f32 arc = 50.0f * (6.7f * polynomial);
     vertical.scale(progress);
-    TVec3f negativeGravity;
-    JGeometry::negateInternal(&gravity.x, &negativeGravity.x);
-    TVec3f offset(negativeGravity);
-    offset.scale(arc);
-    vertical += offset;
+    vertical += -gravity * arc;
     f32 remaining = progress - 1.0f;
     planar.scale(1.0f + -remaining * remaining);
-    TVec3f base(mStartPosition);
-    base += vertical;
-    TVec3f position(base);
-    position += planar;
-    output->set(position);
+    output->set(mStartPosition + vertical + planar);
 }
 
 void YoshiTongueAction::fn_80420C30(TVec3f* position, const TVec3f& target, const TVec3f& gravity, f32 angle) const {
@@ -1088,10 +1080,7 @@ void YoshiTongueAction::fn_804210B0() {
     TVec3f center;
     mTarget->calcCurrentTargetPosition(&center);
     TVec3f gravity(mPlayer->getAirGravityVec());
-    TVec3f offset(mDirection);
-    offset.scale(170.0f);
-    TVec3f position(center);
-    JMathInlineVEC::PSVECSubtract(&position, &offset, &position);
+    TVec3f position(center - mDirection * 170.0f);
     TVec3f direction(position);
     JMathInlineVEC::PSVECSubtract(&direction, &center, &direction);
     MR::normalize(&direction);
@@ -1121,17 +1110,13 @@ bool YoshiTongueAction::fn_80421210() const {
 bool YoshiTongueAction::fn_80421240() {
     TVec3f ground;
     mPlayer->mActor->getGroundPos(&ground);
-    TVec3f offset(mPlayer->mActor->getGravityVec());
-    offset.scale(-75.0f);
-    ground += offset;
+    ground += mPlayer->mActor->getGravityVec() * -75.0f;
     if (!MR::isStarPointerInScreen(0)) {
         mPlayer->mActor->getFrontVec(&_90);
         return false;
     }
-    TVec3f negativeGravity;
-    JGeometry::negateInternal(&mPlayer->mActor->getGravityVec().x, &negativeGravity.x);
     TVec3f target;
-    MR::calcStarPointerPosOnPlane(&target, ground, negativeGravity, 0, false);
+    MR::calcStarPointerPosOnPlane(&target, ground, -mPlayer->mActor->getGravityVec(), 0, false);
     TVec3f start;
     fn_80421830(&start);
     TVec3f direction(target);

@@ -75,7 +75,7 @@ void StarPieceFlower::control() {
         TVec3f rot;
         MR::getStarPieceFlowerRotation(&rot);
         mAngle = rot.y;
-        mAngle = normalizeAngle(rot.y, 0.0f);
+        mAngle = normalizeAngle(mAngle, 0.0f);
     }
 }
 

@@ -94,10 +94,10 @@ void LINTMul(u32* result, const u32* left, const u32* right) {
     for (i = 0; i < otherCount; i++) {
         carry = 0;
         for (j = 0; j < count; j++) {
-            carry += output[i + j];
-            carry += (u64)a[j] * b[i];
-            output[i + j] = carry & 0xFFFFFFFF;
-            carry = (carry >> 32) & 0xFFFFFFFF;
+            u64 sum = carry + output[i + j];
+            sum += (u64)a[j] * b[i];
+            output[i + j] = sum & 0xFFFFFFFF;
+            carry = (sum >> 32) & 0xFFFFFFFF;
         }
         output[i + j] = carry;
     }

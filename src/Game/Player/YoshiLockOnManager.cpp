@@ -37,8 +37,9 @@ void YoshiLockOnManager::init(const JMapInfoIter&) {
     for (u32 index = 0; index<16; ++index) mFree.append(new YoshiLockOnTargetControl());
     MR::connectToScene(this, 0x27, -1, -1, 0x46);
     MR::registerDemoSimpleCastAll(this);
-    mMarkCount = sTargetMax*2;
-    mMarks = new YoshiTargetMark*[sTargetMax*2];
+    s32 targetMax = sTargetMax;
+    mMarkCount = targetMax*2;
+    mMarks = new YoshiTargetMark*[targetMax*2];
     for (s32 index = 0; index<mMarkCount; ++index) {
         mMarks[index] = new YoshiTargetMark("ヨッシーターゲットマーク");
         mMarks[index]->initWithoutIter();

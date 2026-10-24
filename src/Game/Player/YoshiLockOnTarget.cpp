@@ -25,12 +25,14 @@ using namespace YoshiLockOnParams;
 #endif
 
 f32 getYoshiLockOnDistance(s32 type) {
-    if (static_cast<u32>(type - YoshiLockOnTargetType::Capture) <= 1) return sDistance2;
     switch (type) {
     case YoshiLockOnTargetType::Eat:
         return sDistance0;
     case YoshiLockOnTargetType::Lick:
         return sDistance1;
+    case YoshiLockOnTargetType::Capture:
+    case YoshiLockOnTargetType::CaptureAlternate:
+        return sDistance2;
     case YoshiLockOnTargetType::Pull:
         return sDistance4;
     case YoshiLockOnTargetType::Projectile:

@@ -186,13 +186,13 @@ void MiniRouteLineList::load(s32 worldId) {
     if (mNum > 0) {
         for (s32 i = 0; i < mNum; i++) {
             MiniRouteLine* pLine = new MiniRouteLine("ポイントリンク", mWorld);
-            const char* pFlag = "";
-            const char* pColorChange = "";
-            const char* pSubRoute;
             s32 pointA;
             s32 pointB;
-            const char* pCloseStage;
             s32 closeScenario;
+            const char* pCloseStage;
+            const char* pSubRoute;
+            const char* pColorChange = "";
+            const char* pFlag = "";
             MR::getCsvDataS32(&pointA, pCsv, "PointIndexA", i);
             MR::getCsvDataS32(&pointB, pCsv, "PointIndexB", i);
             MR::getCsvDataStrOrNULL(&pCloseStage, pCsv, "CloseStageName", i);

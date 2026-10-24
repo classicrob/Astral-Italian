@@ -86,15 +86,16 @@ CameraTargetObj* CameraWonderPlanet::calc() {
     frontRot.transform(up);
 
     TVec3f offset = pos - watchPos;
-    f32 dist = offset.length();
+    TVec3f* offsetPtr = &offset;
+    f32 dist = offsetPtr->length();
 
     if (dist < mDistMin) {
-        offset.setLength(mDistMin);
+        offsetPtr->setLength(mDistMin);
     } else if (dist > mDistMax) {
-        offset.setLength(mDistMax);
+        offsetPtr->setLength(mDistMax);
     }
 
-    pos.set(watchPos + offset);
+    pos.set(watchPos + *offsetPtr);
     CameraLocalUtil::setPos(this, pos);
     CameraLocalUtil::setWatchPos(this, watchPos);
     CameraLocalUtil::setUpVec(this, up);

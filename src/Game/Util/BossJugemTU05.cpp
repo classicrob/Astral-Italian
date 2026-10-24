@@ -46,19 +46,21 @@ void BossJugemStateThrowAll::appear() {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowAll::exeMove() {
+    BossJugem* host;
     if (MR::isFirstStep(this)) {
         mOriginPos = mHost->mPosition;
         TVec3f railPos(0.0f);
-        MR::calcRailPosAtCoord(&railPos, mHost, 0.5f * MR::getRailTotalLength(mHost));
+        host = mHost;
+        MR::calcRailPosAtCoord(&railPos, host, 0.5f * MR::getRailTotalLength(host));
         TVec3f railDir(0.0f);
-        MR::calcRailDirectionAtCoord(&railDir, mHost, 0.5f * MR::getRailTotalLength(mHost));
+        host = mHost;
+        MR::calcRailDirectionAtCoord(&railDir, host, 0.5f * MR::getRailTotalLength(host));
         TPos3f mtx;
         PSMTXIdentity(mtx.toMtxPtr());
         MR::makeMtxSideUpPos(&mtx, railDir, -mHost->mGravity, railPos);
         MR::addTransMtxLocalZ(mtx.toMtxPtr(), 3000.0f);
         MR::extractMtxTrans(mtx.toMtxPtr(), &mTargetPos);
-        TVec3f diff = mTargetPos - mOriginPos;
-        mMoveFrames = PSVECMag(&diff) / 50.0f;
+        mMoveFrames = (mTargetPos - mOriginPos).length() / 50.0f;
         if (mMoveFrames < 90) {
             mMoveFrames = 90;
         }
@@ -67,8 +69,10 @@ void BossJugemStateThrowAll::exeMove() {
         }
     }
     mHost->turnToPlayer(0.06f);
-    mHost->updateMoveBackAnim(getNerveStep(), mMoveFrames + 60);
-    MR::vecBlend(&mHost->mPosition, mOriginPos, mTargetPos, MR::calcNerveEaseInOutRate(this, mMoveFrames));
+    host = mHost;
+    host->updateMoveBackAnim(getNerveStep(), mMoveFrames + 60);
+    TVec3f* position = &mHost->mPosition;
+    MR::vecBlend(position, mOriginPos, mTargetPos, MR::calcNerveEaseInOutRate(this, mMoveFrames));
     if (MR::isGreaterStep(this, mMoveFrames)) {
         setNerve(&NrvBossJugemStateThrowAll::BossJugemStateThrowAllNrvReady::sInstance);
     }
@@ -114,11 +118,12 @@ void BossJugemStateThrowAll::exeChance() {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowAll::exeMoveBack() {
+    BossJugem* host;
     if (MR::isFirstStep(this)) {
         mOriginPos = mHost->mPosition;
-        MR::calcRailPosAtCoord(&mTargetPos, mHost, MR::getRailCoord(mHost));
-        TVec3f diff = mTargetPos - mOriginPos;
-        mMoveFrames = PSVECMag(&diff) / 50.0f;
+        host = mHost;
+        MR::calcRailPosAtCoord(&mTargetPos, host, MR::getRailCoord(host));
+        mMoveFrames = (mTargetPos - mOriginPos).length() / 50.0f;
         if (mMoveFrames < 90) {
             mMoveFrames = 90;
         }
@@ -127,8 +132,10 @@ void BossJugemStateThrowAll::exeMoveBack() {
         }
     }
     mHost->turnToPlayer(0.06f);
-    mHost->updateMoveAnim(getNerveStep(), mMoveFrames);
-    MR::vecBlend(&mHost->mPosition, mOriginPos, mTargetPos, MR::calcNerveEaseInOutRate(this, mMoveFrames));
+    host = mHost;
+    host->updateMoveAnim(getNerveStep(), mMoveFrames);
+    TVec3f* position = &mHost->mPosition;
+    MR::vecBlend(position, mOriginPos, mTargetPos, MR::calcNerveEaseInOutRate(this, mMoveFrames));
     if (MR::isGreaterStep(this, mMoveFrames)) {
         kill();
     }

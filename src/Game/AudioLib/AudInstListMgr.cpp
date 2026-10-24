@@ -70,17 +70,13 @@ bool AudInstWaveSlot::load(JAUSectionHeap* section, bool tail) {
 }
 // NONMATCHING: equivalent early-return blocks are ordered differently.
 bool AudInstWaveSlot::isLoadDone(JAUSectionHeap* section) {
-    if (mBankId < 0)
-        return true;
-    if (!mLoadRequested)
+    if (mBankId < 0 || !mLoadRequested)
         return true;
     return section->isWaveLoaded(mBankId, mWaveArc);
 }
 // NONMATCHING: equivalent early-return blocks are ordered differently.
 bool AudInstWaveSlot::isRequestLoadDone(JAUSectionHeap* section) {
-    if (mBankId < 0)
-        return true;
-    if (!mLoadRequested)
+    if (mBankId < 0 || !mLoadRequested)
         return true;
     return section->isWaveLoaded(mBankId, mWaveArc);
 }
@@ -145,13 +141,14 @@ void AudInstListMgr::requestSound(const char* name, bool protect) {
     requestSoundWaves(id, protect);
 }
 void AudInstListMgr::requestSoundWaves(JAISoundID id, bool protect) {
+    u8 bank;
     s32 first = findFirstSoundIndex(id);
     for (s32 i = first; i < mNumEntries; ++i) {
         if (mEntries[i].mSoundId > id)
             break;
         if (mEntries[i].mSoundId == id) {
-            u16 bp = mEntries[i].mBankProgNo;
-            u8 bank = bp >> 8;
+            u32 bp = mEntries[i].mBankProgNo;
+            bank = bp >> 8;
             s32 waveBank = AudWrap::getWaveBankIdFromBankId(bank);
             s32 wave = findInstrumentWave(bank, (u8)bp, waveBank);
             if (!AudWrap::isWaveArcExcludedFromSoundRequest(waveBank, wave))

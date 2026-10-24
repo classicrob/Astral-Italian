@@ -290,7 +290,6 @@ void AudSoundObject::limitVoiceOne(JAISoundID soundID) {
 }
 
 
-// NONMATCHING: regalloc; equality comparison operands are reversed.
 void AudSoundObject::stopCategorySound(u32 category, u32 time) {
     for (s32 i = 0; i < JAISoundHandles::mNumHandles; i++) {
         JAISound* sound = getSound(i);

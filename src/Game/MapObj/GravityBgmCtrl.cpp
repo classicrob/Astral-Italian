@@ -31,8 +31,12 @@ void GravityBgmCtrl::init(const JMapInfoIter&) {
     makeActorAppeared();
 }
 bool GravityBgmCtrl::checkGravityDir(const TVec3f& direction) {
-    return MR::isSameDirection(*MR::getPlayerGravity(), direction, 0.01f)
-        && MR::getPlayerGravity()->dot(direction) > 0.0f;
+    if (MR::isSameDirection(*MR::getPlayerGravity(), direction, 0.01f)
+        && MR::getPlayerGravity()->dot(direction) > 0.0f) {
+        return true;
+    } else {
+        return false;
+    }
 }
 void GravityBgmCtrl::exeChangeBack() {
     if (MR::isFirstStep(this)) {

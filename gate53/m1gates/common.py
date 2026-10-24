@@ -59,22 +59,37 @@ def native_lock():
    fcntl.lockf(lock,fcntl.LOCK_UN);fcntl.lockf(heavy,fcntl.LOCK_UN)
 
 def quiet_snapshot():
- processes=subprocess.check_output(['ps','-axo','pid,ppid,ni,%cpu,comm'],text=True).splitlines()[1:]
- return {'load':os.getloadavg(),'metal_compilers':[p for p in processes if 'MTLCompilerService' in p],
+ processes=subprocess.check_output(['ps','-axo','pid,ppid,ni,%cpu,time,comm'],text=True).splitlines()[1:]
+ compilers=[]
+ for row in processes:
+  if 'MTLCompilerService' not in row:continue
+  pid,ppid,nice,cpu,used,command=row.split(None,5)
+  fields=used.split(':');total=0.
+  for field in fields:total=total*60+float(field)
+  compilers.append({'pid':int(pid),'cpu_time':used,'cpu_seconds':total,'command':command})
+ return {'load':os.getloadavg(),'metal_compilers':compilers,
          'top_processes':sorted(processes,key=lambda s:float(s.split()[3]),reverse=True)[:12]}
 
 def wait_quiet(evidence,seconds=900,limit=8):
  """Keep camera load real; never wait for camera PIDs or kill a compiler."""
- start=time.monotonic();samples=[]
+ start=time.monotonic();samples=[];initial=quiet_snapshot();previous=initial
  while True:
+  time.sleep(10)
   sample=quiet_snapshot();sample['elapsed_seconds']=round(time.monotonic()-start,3);samples.append(sample)
-  ready=sample['load'][0]<=limit and sample['load'][1]<=limit and not sample['metal_compilers']
+  old={p['pid']:p for p in previous['metal_compilers']};new={p['pid']:p for p in sample['metal_compilers']}
+  sample['compiler_cpu_deltas']=[{'pid':pid,'before_cpu_seconds':old[pid]['cpu_seconds'] if pid in old else None,
+    'after_cpu_seconds':new[pid]['cpu_seconds'] if pid in new else None,
+    'delta_seconds':new[pid]['cpu_seconds']-old[pid]['cpu_seconds'] if pid in old and pid in new else None,
+    'idle':pid not in new or (pid in old and 0<=new[pid]['cpu_seconds']-old[pid]['cpu_seconds']<.05)} for pid in sorted(old.keys()|new.keys())]
+  ready=sample['load'][0]<=limit and sample['load'][1]<=limit and all(p['idle'] for p in sample['compiler_cpu_deltas'])
   write(evidence,{'quiet':ready,'limit_1min_load':limit,'limit_5min_load':limit,'wait_limit_seconds':seconds,
+        'initial_snapshot':initial,
+        'compiler_policy':'PORT: two CPU-time samples 10s apart; each resident service must gain <0.05s. Never kill.',
         'background_policy':'Front Door camera ffmpeg/python retained as real background load; no process-specific wait.',
         'samples':samples})
   if ready:return sample
   if time.monotonic()-start>=seconds:raise RuntimeError('quiet precondition failed: 1/5-minute load or lingering MTLCompilerService; see '+str(evidence))
-  time.sleep(min(5,max(.1,seconds-(time.monotonic()-start))))
+  previous=sample
 
 def clear_metal():
  base=Path(subprocess.check_output(['/usr/bin/getconf','DARWIN_USER_CACHE_DIR'],text=True).strip())

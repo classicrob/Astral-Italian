@@ -170,7 +170,7 @@ def patch_fast_path(text, here):
             raise ValueError(f'Aurora pipeline fast-path anchor mismatch: {old}')
         return text.replace(old, new)
 
-    text = f'#include "{here / "pipeline_fast_path.hpp"}"\n' + text
+    text = f'#include "{here / "pipeline_fast_path.hpp"}"\n#include "{here / "pipeline_first_use.hpp"}"\n' + text
     old = '''PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
   petari_note_stage_config('''
     text = replace(old, '''static PipelineRef petari_find_pipeline_full(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
@@ -183,6 +183,8 @@ def patch_fast_path(text, here):
 // sample) for the current generation resolves to its runtime key, the same key
 // resolve_pipeline computes, without repeating that bookkeeping.
 PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLayout& layout) {
+  if (PetariFirstUse::capturePath())
+    PetariFirstUse::note(xxh3_hash(config, static_cast<HashType>(ShaderType::GX)), gx::petari_uber_recording_frame());
   const auto petariKey = xxh3_hash(layout.key, xxh3_hash(config, static_cast<HashType>(ShaderType::GX)));
   const auto petariGeneration = PetariFastPipeline::current();
   if (PetariFastPipeline::hit(petariKey, petariGeneration)) {
@@ -216,6 +218,9 @@ PipelineRef find_pipeline(const gx::PipelineConfig& config, const RenderTargetLa
                    'static void petari_stage_reset() {\n',
                    'extern "C" void petari_gx_pipeline_stage_begin(const char* name, const char* seedPath) {\n'):
         text = replace(anchor, anchor + '  const PetariFastPipeline::InvalidateScope petariFastInvalidate;\n')
+    text = replace('      petariActiveStage = stageName;\n',
+                   '      petariActiveStage = stageName;\n      PetariFirstUse::begin(stageName);\n')
+    text += '\nextern "C" void petari_gx_pipeline_first_use_finish() { PetariFirstUse::finish(); }\n'
     anchor = 'extern "C" void petari_gx_pipeline_report() {\n'
     text = replace(anchor, anchor + '  PetariFastPipeline::reportIfChecking();\n')
     from patch_aurora_cache_policy import patch_pipeline

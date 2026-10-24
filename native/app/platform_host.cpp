@@ -28,6 +28,7 @@ extern "C" void petari_game_main(void);          // src/Game/System/GameSystem.c
 extern "C" void petari_attach_vi_renderer(void);  // native/gx/vi_bridge.cpp
 extern "C" void petari_present_install(void);     // native/gx/present/present_host.cpp
 extern "C" bool petari_gx_waiting_for_pipeline();  // native/gx/patch_aurora_pipeline.py
+extern "C" void petari_gx_pipeline_first_use_finish(); // normal-exit capture footer, never the crash path
 
 namespace PetariNative::App::Host {
 
@@ -43,6 +44,7 @@ namespace {
 void leave(const Platform::Power::Exit& exit, void*) {
     TapeRecord::finish(); // the normal power/quit path reaches _Exit, which bypasses atexit
     Seam::reportFrameStats();
+    petari_gx_pipeline_first_use_finish();
     petari_platform_report_diagnostics();
     std::fflush(stdout);
     std::fflush(stderr);

@@ -11,6 +11,19 @@
 namespace PetariNative::Input::Detail {
 
 constexpr double kReportSeconds = 0.005;  // 200 Hz, the Wii Remote report rate
+
+// One KPAD read is one 60 Hz game frame. Retain the remote's 200 Hz waveform
+// without sampling it on a host alarm: 3, 3, 4 reports per three reads.
+struct GameReadClock {
+    std::uint64_t reads = 0;
+    std::uint64_t reports = 0;
+    int step() {
+        const auto target = ++reads * 10 / 3;
+        const int count = static_cast<int>(target - reports);
+        reports = target;
+        return count;
+    }
+};
 constexpr int kCoreGravityCounts = 100;   // WPADGetAccGravityUnit, Wii Remote
 constexpr int kNunchukGravityCounts = 200;  // WPADGetAccGravityUnit, Nunchuk
 constexpr int kStickMin = 15;             // KPAD's Nunchuk stick dead zone (kp_fs_fstick_min)

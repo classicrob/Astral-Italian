@@ -40,6 +40,7 @@
 #include "Game/System/WPadStick.hpp"
 #include "Game/Util/TriggerChecker.hpp"
 #include "petari/input.hpp"
+#include "petari/kpad_record.hpp"
 #include "petari/mods.hpp"
 #include "petari/skip.hpp"
 #include "petari/point_move.hpp"
@@ -103,11 +104,12 @@ struct Rig {
     WPad* pad;
     long frames = 0;
     long reports = 0;
+    In::Clock clock;
 
-    explicit Rig(bool connect = true) {
+    explicit Rig(bool connect = true, In::Clock selectedClock = In::Clock::Manual) : clock(selectedClock) {
         In::resetForTesting();
         PSC::reset();
-        In::setClock(In::Clock::Manual);
+        In::setClock(clock);
         gCallbacks.clear();
         // As WPadHolder's constructor: allocator, KPADInit, pads, callbacks,
         // sensor bar level.
@@ -134,7 +136,7 @@ struct Rig {
     // WPadHolder::update order (KPADRead every channel, then WPad::update).
     s32 frame() {
         const long target = (frames + 1) * 10 / 3;
-        In::pumpReports(static_cast<int>(target - reports));
+        if (clock == In::Clock::Manual) In::pumpReports(static_cast<int>(target - reports));
         reports = target;
         ++frames;
         for (s32 chan = 0; chan < WPAD_MAX_CONTROLLERS; ++chan) {
@@ -1922,10 +1924,48 @@ void testDevice() {
 
 // --- Alarm clock and threads ----------------------------------------------
 
+// The complete SDK sample stream is determined by input-at-read, not elapsed
+// host time or sensor event timestamps. Compare encoded fields, never padding.
+void testGameReadClock() {
+    In::Detail::GameReadClock clock;
+    for (int n = 0; n < 30; ++n)
+        check(clock.step() == (n % 3 == 2 ? 4 : 3), "game read advances fixed 3/3/4 reports");
+    auto stream = [](bool slow) {
+        Rig rig(true, In::Clock::GameRead);
+        std::vector<std::string> output;
+        for (int frame = 0; frame < 100; ++frame) {
+            if (frame == 30) press(In::Key::Space);
+            if (frame == 40) press(In::Key::R);
+            if (frame == 42) { lift(In::Key::R); press(In::Key::F); }
+            if (frame == 44) lift(In::Key::F);
+            if (frame == 60) lift(In::Key::Space);
+            const float accel[3] = {frame >= 65 && frame < 68 ? 30.0f : 0.0f, 9.8f, 0.0f};
+            const float gyro[3] = {0.0f, frame >= 70 && frame < 80 ? 1.0f : 0.0f, 0.0f};
+            const double hostTime = slow ? 1000000.0 + frame * 11.0 : 1.0 + frame / 60.0;
+            In::padSensorEvent(In::PadSensor::Accel, accel, hostTime);
+            In::padSensorEvent(In::PadSensor::Gyro, gyro, hostTime);
+            if (slow) std::this_thread::sleep_for(std::chrono::milliseconds(3));
+            rig.frame();
+            std::string encoded;
+            for (u32 i = 0; i < rig.info[0].mValidStatusCount; ++i) {
+                unsigned char sample[240];
+                check(In::KpadRecord::encodeSample(rig.info[0].mStatusArray[i], sample), "game-read sample encodes losslessly");
+                encoded.append(reinterpret_cast<const char*>(sample), sizeof(sample));
+            }
+            output.push_back(encoded);
+        }
+        return output;
+    };
+    const auto fast = stream(false), slow = stream(true);
+    check(fast == slow, "KPAD sample stream bit-exact across host stalls and different sensor timestamps");
+    In::resetForTesting();
+}
+
 void testAlarmClock() {
     In::resetForTesting();
     PSC::reset();
     gCallbacks.clear();
+    In::setClock(In::Clock::Alarm);
     KPADInit();
     WPADSetConnectCallback(0, connectCallback);
     In::setViewport(In::Viewport::letterbox(1280.0f, 720.0f, 16.0f / 9.0f));
@@ -1970,6 +2010,7 @@ void testAlarmClock() {
 void testCalibrationThreads() {
     In::resetForTesting();
     PSC::reset();
+    In::setClock(In::Clock::Alarm);
     KPADInit();
     In::setViewport(In::Viewport::letterbox(1280.0f, 720.0f, 16.0f / 9.0f));
     In::mouseMoved(640.0f, 180.0f);
@@ -2220,25 +2261,13 @@ void testSkipMachine() {
         check(!m.latched() && m.justEnded() == Skip::End::Gameplay, "gameplay for 10 frames in a row ends the skip");
     }
     {
-        // The user's 1.5 s holds also when the game runs slowly: at 8 frames a
-        // second, 12 held frames (1.5 s) latch.
+        // A host stall never supplies additional held game frames.
         Skip::Machine m;
-        for (int i = 0; i < 11; ++i) m.frame(true, kSkippable, true, 0.125);
-        check(!m.latched() && m.progress() > 0.9f, "8 fps: 11 frames (1.375 s) do not latch");
-        m.frame(true, kSkippable, true, 0.125);
-        check(m.latched(), "8 fps: 12 frames (1.5 s) latch");
-    }
-    {
-        // A stall (a load) counts at most 0.25 s per frame and needs 10 held frames.
-        Skip::Machine m;
-        m.frame(true, kSkippable, true, 3.0);
-        check(!m.latched(), "one 3 s frame does not latch");
-        for (int i = 0; i < 5; ++i) m.frame(true, kSkippable, true, 3.0);
-        check(!m.latched(), "six long frames (1.5 s counted) do not latch");
-        for (int i = 0; i < 3; ++i) m.frame(true, kSkippable, true, 1.0 / 60.0);
-        check(!m.latched(), "nine frames do not latch, however long");
-        m.frame(true, kSkippable, true, 1.0 / 60.0);
-        check(m.latched(), "the tenth held frame past 1.5 s latches");
+        for (int i = 0; i < 12; ++i) m.frame(true, kSkippable, true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        check(!m.latched() && m.holdFrames() == 12, "host time does not advance hold-to-skip");
+        for (int i = 12; i < Skip::kHoldFrames; ++i) m.frame(true, kSkippable, true);
+        check(m.latched(), "exactly90 held game frames latch after a host stall too");
     }
     {
         Skip::Machine m;
@@ -2948,6 +2977,11 @@ void testEditorPick() {
 
 int main(int argc, char** argv) {
     __OSThreadInit();
+    if (argc == 2 && std::strcmp(argv[1], "--game-read-only") == 0) {
+        testGameReadClock();
+        std::printf("native game-read input tests passed (%d checks)\n", checks);
+        return 0;
+    }
 #ifdef PETARI_INPUT_TEST_SDL3
     if (argc == 2 && std::strcmp(argv[1], "--sdl3-only") == 0) {
         testSdl3();
@@ -2962,6 +2996,7 @@ int main(int argc, char** argv) {
         return 0;
     }
     testBindings();
+    testGameReadClock();
     testControlsSummary();
     testConnection();
     testLastDevice();

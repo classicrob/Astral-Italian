@@ -320,12 +320,16 @@ press can neither reopen nor close the menu by itself.
   and not played.
 - `WPADGetSensorBarPosition`, `WPADGetDpdSensitivity`, `WPADGetSpeakerVolume`
   and the motor mode come from the native SC settings at `WPADInit`.
-- Report clock: by default a 5 ms periodic `OSAlarm` on the native scheduler,
-  like WPAD's manage handler. `setClock(Clock::Manual)` before `WPADInit`
-  makes reports come only from `pumpReports(n)`, which the tests use. After
-  a host stall, the periodic alarm skips missed periods rather than bursting.
-  The remote's time then skips too: a press still lasts its minimum
-  reports, but a shake or tilt covers less wall-clock time.
+- Report clock: by default `Clock::GameRead` advances 3/3/4 reports per
+  three 60 Hz KPAD reads. The 200 Hz waveform, pulse lengths and post-A/B
+  delay use simulation time; a host stall advances none of them.
+  `setClock(Clock::Manual)` before `WPADInit` makes reports come only from
+  `pumpReports(n)`, which tests and raw tape replay use. Explicit
+  `Clock::Alarm` remains for device/alarm integration tests.
+- Controller sensors retain their latest physical value; detector windows
+  and gyro integration are evaluated on virtual reports. SDL host timestamps
+  do not advance gameplay input. Mouse coordinates are direct; stick-pointer
+  motion and tilt smoothing also run on virtual reports.
 - Threads: host event functions may be called from any thread. They take a
   host mutex and never the interrupt lock. KPAD's pointer calibration reaches
   the report tick through a copy made when `KPADRead` probes the remote on the

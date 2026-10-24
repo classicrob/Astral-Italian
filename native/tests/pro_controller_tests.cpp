@@ -8,6 +8,8 @@
 #include "petari/mods.hpp"
 #include "petari/point_move.hpp"
 #include "../input/remote_model.hpp"
+#include <revolution/kpad.h>
+#include <revolution/os.h>
 #ifdef PETARI_INPUT_TEST_SDL3
 #include "petari/input_sdl3.hpp"
 #endif
@@ -585,10 +587,15 @@ void testGyro() {
     Mods::resetForTesting();
     In::resetForTesting();
     In::padConnected(true);
+    In::setClock(In::Clock::Manual);
+    KPADInit();
     auto turn = [](float yaw) {
         static double t = 10.0;
         const float data[3] = {0.0f, yaw, 0.0f};
-        for (int i = 0; i < 20; ++i) In::padSensorEvent(In::PadSensor::Gyro, data, t += 0.005);
+        for (int i = 0; i < 20; ++i) {
+            In::padSensorEvent(In::PadSensor::Gyro, data, t += 0.005);
+            In::pumpReports(1);
+        }
     };
     turn(-1.0f);  // yaw right
     check(!In::boundState().pointerValid || In::boundState().pointerX == 0.0f, "Galaxy layout (Gyro=auto): gyro idle");
@@ -613,10 +620,10 @@ void testGyro() {
     // A shake through the host is Pad:Shake, held while shaking.
     const float still[3] = {0.0f, 9.8f, 0.0f}, flick[3] = {30.0f, 9.8f, 0.0f};
     double t = 50.0;
-    for (int i = 0; i < 40; ++i) In::padSensorEvent(In::PadSensor::Accel, still, t += 0.005);
-    for (int i = 0; i < 4; ++i) In::padSensorEvent(In::PadSensor::Accel, flick, t += 0.005);
+    for (int i = 0; i < 40; ++i) { In::padSensorEvent(In::PadSensor::Accel, still, t += 0.005); In::pumpReports(1); }
+    for (int i = 0; i < 4; ++i) { In::padSensorEvent(In::PadSensor::Accel, flick, t += 0.005); In::pumpReports(1); }
     check(In::actionHeld(Action::Shake), "Pro: a shake holds Spin");
-    for (int i = 0; i < 60; ++i) In::padSensorEvent(In::PadSensor::Accel, still, t += 0.005);
+    for (int i = 0; i < 60; ++i) { In::padSensorEvent(In::PadSensor::Accel, still, t += 0.005); In::pumpReports(1); }
     check(!In::actionHeld(Action::Shake), "and lets go");
     In::resetForTesting();
     Mods::resetForTesting();
@@ -624,6 +631,7 @@ void testGyro() {
 }  // namespace
 
 int main() {
+    __OSThreadInit();
     Mods::resetForTesting();
     PetariNative::PointMove::resetForTesting();
     testTables();

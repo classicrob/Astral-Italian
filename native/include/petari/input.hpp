@@ -379,7 +379,8 @@ PadLayout padLayout();
 // Controller motion sensors, as SDL3 reports them: the gyro in radians per second
 // (x pitch up, y yaw left, z roll), the accelerometer in m/s^2. In a Nintendo
 // layout the gyro moves the Star Pointer (PadOptions::gyro) and a shake presses
-// Pad:Shake. seconds: the sample's time (any monotonic clock).
+// Pad:Shake. The latest sensor value is sampled on virtual reports; seconds is
+// retained as host metadata and never advances gameplay's input clock.
 enum class PadSensor : std::uint8_t { Gyro, Accel };
 void padSensorEvent(PadSensor sensor, const float data[3], double seconds);
 // Whether controller rumble should run now: the game's motor (rumbleActive(0))
@@ -450,11 +451,14 @@ void setSpeakerSink(SpeakerSink sink, void* user);
 // --- Report clock ---
 
 enum class Clock : std::uint8_t {
-    Alarm,   // default: a 5 ms periodic OSAlarm, like WPAD's manage handler
+    GameRead, // default: 200 Hz device time advanced by each 60 Hz KPAD read, independent of host speed
+    Alarm,   // explicit device/alarm integration tests only
     Manual,  // reports are produced only by pumpReports (tests, frame-locked hosts)
 };
 // Takes effect at WPADInit, or immediately if WPAD is running.
 void setClock(Clock clock);
+// Channel-0 KPAD reads, for input capture timeouts in simulation frames.
+std::uint64_t gameFrame();
 // Produces count reports, as count * 5 ms of device time. Runs callbacks with
 // interrupts disabled, as the alarm does. Any thread.
 void pumpReports(int count);

@@ -2,11 +2,9 @@
 // Tape replay in the GX app's normal window (docs: native/PLAYTEST.md "Replaying your tape"). A tape (PETARI_TAPE_RECORD,
 // native/app/tape_record.hpp) is replayed the way petari_headless replays it: each segment starts at its own play-ready seam
 // (the headless --sync-play rule), the recorded RNG seed is set there, and the segment's recorded KPAD reads and mod buttons
-// are fed; between segments the reads are neutral. PETARI_TAPE_PLAY_SESSION=1 instead boots normally, anchors title and every
-// Game/End scene visit (including FileSelect and WorldMap), feeds menu reads too, never warps, and stops at the first divergence.
-// Non-interactive arrivals feed recorded reads without per-frame state comparisons, then re-anchor at play-ready with a
-// bit-exact position/grounded/state check and a restored, read-back RNG checkpoint. Interactive comparisons remain strict.
-// Scene construction loops are neutral while waiting for initialize-End; their asynchronous lengths are not replay anchors.
+// are fed; between segments the reads are neutral. PETARI_TAPE_PLAY_SESSION=1 boots normally, anchors feeding and comparison
+// on every stage/scenario identity row, never warps, and compares every both-valid row bit for bit. One-sided validity rows are
+// counted, initialization offsets are bounded to 30 loops, and play-ready requires exact state/RNG without re-anchoring reads.
 // The feeder is the headless Replay (native/app/headless/replay.hpp).
 //
 // Session is game-free (unit-tested by native/tests/tape_play_tests.cpp); the glue that reads the game at the frame seam is
@@ -71,6 +69,9 @@ struct SegmentReport {
     std::string stage;
     int scenario = 0;
     std::uint64_t startRow = 0, frames = 0, rowsCompared = 0;
+    std::uint64_t rowsAligned = 0, bothValidRows = 0, bothInvalidRows = 0, validityRowsSkipped = 0, matchedRows = 0;
+    std::int64_t recordedFirstValid = -1, replayFirstValid = -1;
+    std::uint64_t replayFirstValidFrame = 0;
     bool started = false, completed = false;
     bool diverged = false;
     std::uint64_t firstDivergenceRow = 0;  // segment-relative row k (route row startRow + k)
@@ -137,7 +138,7 @@ private:
         bool valid = false, grounded = false, dead = false;
         float x = 0, y = 0, z = 0;
     };
-    void compare(const SeamState& state, std::uint64_t k, bool bitExact = false);
+    void compare(const SeamState& state, std::uint64_t k);
     Step startPlay(const SeamState& state);
     void inputFailure(const std::string& why, const SeamState& lastObserved);
     Mode mMode;
@@ -157,7 +158,7 @@ private:
     std::size_t mSegIndex = 0;
     std::uint64_t mSegRow = 0, mSeams = 0, mWaitSeams = 0;
     bool mActive = false, mDone = false, mNeedEdge = false, mWarpSent = false;
-    bool mStrict = true, mPendingSeed = false;
+    bool mPendingSeed = false;
     std::string mError;
 };
 

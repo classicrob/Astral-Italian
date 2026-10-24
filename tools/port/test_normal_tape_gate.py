@@ -17,7 +17,10 @@ class VerdictTests(unittest.TestCase):
                      for s in ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy"] + ["IslandFleetGalaxy"] * 300]
         self.replay = dict(mode="whole-session", anchor_policy=gate.ANCHOR_POLICY["id"], finished=True, stopped="", segments=[dict(
             started=True, completed=True, rows_compared=301, tape_frames=300, pointer_rows_compared=300, diverged=False,
-            play_ready_required=False)])
+            play_ready_required=False, anchor="scene-identity", comparison_anchor="scene-identity",
+            rows_aligned=301, both_valid_rows_compared=301, both_invalid_rows=0, validity_mismatch_rows_skipped=0,
+            recorded_player_valid_scene_loop=0, replayed_player_valid_scene_loop=0,
+            init_offset_loops=0, init_offset_limit_loops=30, init_offset_within_bound=True)])
 
     def evaluate(self, log="", report=None):
         return gate.evaluate(self.rows, log, self.replay if report is None else report)[0]
@@ -53,6 +56,38 @@ class VerdictTests(unittest.TestCase):
         self.assertFalse(self.evaluate()["play_ready_state_checks"])
         self.replay["anchor_policy"] = "old-strict-scene-ready"
         self.assertFalse(self.evaluate()["anchor_policy_applied"])
+
+    def test_validity_skips_require_complete_row_accounting(self):
+        segment = self.replay["segments"][0]
+        segment.update(rows_compared=298, both_valid_rows_compared=298, validity_mismatch_rows_skipped=3,
+                       replayed_player_valid_scene_loop=3, init_offset_loops=3)
+        self.assertTrue(all(self.evaluate().values()))
+        for key in ("rows_aligned", "rows_compared", "both_valid_rows_compared", "both_invalid_rows", "validity_mismatch_rows_skipped"):
+            report = copy.deepcopy(self.replay)
+            report["segments"][0][key] += 1
+            self.assertFalse(self.evaluate(report=report)["compared_rows_accounted"])
+            self.assertFalse(self.evaluate(report=report)["replay_completed"])
+
+    def test_init_offset_is_independently_bounded_at_30(self):
+        segment = self.replay["segments"][0]
+        for recorded, replayed, expected in ((0, 30, True), (0, 31, False), (40, 10, True), (40, 9, False)):
+            segment.update(recorded_player_valid_scene_loop=recorded, replayed_player_valid_scene_loop=replayed,
+                           init_offset_loops=replayed-recorded)
+            self.assertEqual(self.evaluate()["init_offsets_within_bound"], expected)
+        segment.update(recorded_player_valid_scene_loop=0, replayed_player_valid_scene_loop=0, init_offset_loops=0)
+        segment["init_offset_limit_loops"] = 31
+        self.assertFalse(self.evaluate()["init_offsets_within_bound"])
+        segment["init_offset_limit_loops"] = 30
+        segment["init_offset_loops"] = 1
+        self.assertFalse(self.evaluate()["init_offsets_within_bound"])
+
+    def test_uninitialized_scene_requires_explicit_nulls_and_no_valid_rows(self):
+        segment = self.replay["segments"][0]
+        segment.update(recorded_player_valid_scene_loop=None, replayed_player_valid_scene_loop=None,
+                       init_offset_loops=None, both_valid_rows_compared=0, both_invalid_rows=301)
+        self.assertTrue(all(self.evaluate().values()))
+        del segment["recorded_player_valid_scene_loop"]
+        self.assertFalse(self.evaluate()["init_offsets_within_bound"])
 
     def test_destination_requires_300_finite_alive_consecutive_rows(self):
         for key, value in [("dead", "1"), ("valid", "0"), ("x", "nan"), ("scenario", "2")]:

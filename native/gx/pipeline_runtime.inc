@@ -81,11 +81,15 @@ static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
 static unsigned petariUberInFlight = 0, petariUberMaxInFlight = 0; // g_pipelineMutex
 static uint64_t petariUberJobsStarted = 0, petariUberDemandSelections = 0;
 static bool petariUberTitleReleased = false; // g_pipelineMutex; reset each boot
+static unsigned petariUberAdmissions = 0; // complete stage maps/jobs before any fallback dispatch
+static uint32_t petari_uber_job_frame(const PetariUberJob&);
+static size_t petari_uber_job_rank(const PetariUberJob&);
 static bool petari_uber_job_eligible(const PetariUberJob& job) {
   return petariUberTitleReleased || !job.key ||
       (job.frontEnd && job.tier == gx::PetariUberTier::Generic);
 }
 static bool petari_uber_worker_ready(unsigned workerIndex) {
+  if (petariUberAdmissions) return false;
   const auto limit = petariUberTitleReleased ? petariActiveWorkers :
       std::min(petariActiveWorkers, kPetariOnDemandWorkers);
   // Keep worker 0 out of fallback compiles even when no draw is queued yet.
@@ -118,10 +122,11 @@ static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& jo
   petariUberMaxInFlight = std::max(petariUberMaxInFlight, ++petariUberInFlight);
   if (PetariPipeline::diagnostics()) {
     std::fprintf(stderr, "[gx fallback dispatch] worker=%u key=%016llx tier=%s priority=%u demand=%u "
-                 "inflight=%u queued=%zu gameplay=%u monotonic_ms=%.3f\n", workerIndex,
+                 "inflight=%u queued=%zu gameplay=%u deadline_frame=%u first_use_rank=%zu monotonic_ms=%.3f\n", workerIndex,
                  static_cast<unsigned long long>(at->key),
                  at->tier == gx::PetariUberTier::Generic ? "generic" : "fast", at->priority,
                  at->demand, petariUberInFlight, petariUberJobs.size(), petariGameplay,
+                 petari_uber_job_frame(*at), petari_uber_job_rank(*at),
                  PetariPipeline::milliseconds(PetariPipeline::Clock::now().time_since_epoch()));
   }
   job = std::move(at->run);
@@ -131,7 +136,10 @@ static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& jo
 static void petari_uber_schedule_known();
 static void petari_uber_schedule_draw(const gx::PipelineConfig&, const RenderTargetLayout&);
 static void petari_uber_schedule_stage(const gx::PipelineConfig&, const RenderTargetLayout&,
-                                       const RenderTargetLayout&, const std::string&);
+                                       const RenderTargetLayout&, const std::string&, bool activate = true);
+static void petari_uber_admit_stage(const std::vector<gx::PipelineConfig>&, const RenderTargetLayout&,
+                                   const RenderTargetLayout&, const std::string&, const std::string&, bool activate = true);
+static void petari_uber_activate_stage(const std::string&); // caller holds g_pipelineMutex
 static void petari_uber_stage_report(const std::string&);
 static void petari_uber_observe_title(bool covered, bool fallbackReady);
 static void petari_uber_async_report();

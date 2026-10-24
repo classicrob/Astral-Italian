@@ -1,6 +1,7 @@
 // Appended to the cache TU, after stage attribution is defined. All queue/state
 // accesses use its existing mutex; callbacks execute outside that mutex.
 #include <set>
+#include "pipeline_deadline_manifest.hpp"
 namespace aurora::gfx {
 struct PetariUberBootState {
   bool started = false, seedsDone = false, cacheDone = false, frontEndScanned = false;
@@ -10,6 +11,7 @@ struct PetariUberBootState {
   std::set<PipelineRef> scheduled, completed, failed, titleKeys;
   std::map<std::string, std::set<PipelineRef>> stageKeys;
   std::map<std::string, std::map<PipelineRef, size_t>> stageOrder;
+  std::map<std::string, std::map<PipelineRef, uint32_t>> stageFrames;
   std::set<PipelineRef> genericKeys, fastKeys;
   std::string activeStage;
   size_t manifestErrors = 0, rejectedConfigs = 0, cancelled = 0;
@@ -60,27 +62,102 @@ static unsigned petari_uber_job_priority(const PetariUberJob& job) { // g_pipeli
   if (generic && (job.frontEnd || job.demand)) return 3;
   return generic ? 4 : 5;
 }
+static std::string petari_uber_order_stage(const PetariUberJob& job) { // caller holds g_pipelineMutex
+  if (job.priority == 1) return petariUberBoot.activeStage;
+  if (job.priority == 3) {
+    // The boot scene precedes title even if one sidecar is unavailable. Shared
+    // keys belong to their earliest scene; each job has an independent tuple.
+    for (const auto* name : {"Unknown", "FileSelect"}) {
+      const auto at = petariUberBoot.stageKeys.find(name);
+      if (at != petariUberBoot.stageKeys.end() && at->second.contains(job.key)) return name;
+    }
+  }
+  return {};
+}
+static uint32_t petari_uber_job_frame(const PetariUberJob& job) { // caller holds g_pipelineMutex
+  const auto stage = petariUberBoot.stageFrames.find(petari_uber_order_stage(job));
+  if (stage == petariUberBoot.stageFrames.end()) return UINT32_MAX;
+  const auto at = stage->second.find(job.key);
+  return at == stage->second.end() ? UINT32_MAX : at->second;
+}
+static size_t petari_uber_job_rank(const PetariUberJob& job) { // caller holds g_pipelineMutex
+  const auto stage = petariUberBoot.stageOrder.find(petari_uber_order_stage(job));
+  if (stage == petariUberBoot.stageOrder.end()) return SIZE_MAX;
+  const auto at = stage->second.find(job.key);
+  return at == stage->second.end() ? SIZE_MAX : at->second;
+}
 static bool petari_uber_job_before(const PetariUberJob& a, const PetariUberJob& b) {
   if (a.priority != b.priority) return a.priority < b.priority;
-  // The stage manifest is already ordered by observed first use. Preserve
-  // the first occurrence of each shared Generic key instead of putting costly
-  // later draws ahead of the first visible frame's simple pipelines.
-  if (a.priority != 1) return false;
+  if (a.priority != 1 && a.priority != 3) return false;
   if (a.tier != b.tier) return a.tier == gx::PetariUberTier::Generic;
   if (a.tier != gx::PetariUberTier::Generic) return false;
-  const auto stage = petariUberBoot.stageOrder.find(petariUberBoot.activeStage);
-  const auto rank = [&](PipelineRef key) -> size_t {
-    if (stage == petariUberBoot.stageOrder.end()) return SIZE_MAX;
-    const auto at = stage->second.find(key);
-    return at == stage->second.end() ? SIZE_MAX : at->second;
-  };
-  return rank(a.key) < rank(b.key);
+  if (a.priority == 3) {
+    const auto ordinal = [](const auto& job) {
+      const auto stage = petari_uber_order_stage(job);
+      return stage == "Unknown" ? 0 : stage == "FileSelect" ? 1 : 2;
+    };
+    if (ordinal(a) != ordinal(b)) return ordinal(a) < ordinal(b);
+  }
+  const auto af = petari_uber_job_frame(a), bf = petari_uber_job_frame(b);
+  if (af != bf) return af < bf;
+  // Longest first only inside one explicitly recorded frame. Unknown frame
+  // values never form a guessed deadline group: retain first-use rank there.
+  if (af != UINT32_MAX) {
+    if (a.hasIndirect != b.hasIndirect) return a.hasIndirect;
+    if (a.tevStages != b.tevStages) return a.tevStages > b.tevStages;
+    if (a.texgenExtent != b.texgenExtent) return a.texgenExtent > b.texgenExtent;
+  }
+  return petari_uber_job_rank(a) < petari_uber_job_rank(b);
 }
 static void petari_uber_push_job(PetariUberJob job) { // caller holds g_pipelineMutex
   job.priority = petari_uber_job_priority(job);
   const auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(),
       [&](const auto& other) { return petari_uber_job_before(job, other); });
   petariUberJobs.insert(at, std::move(job));
+}
+static void petari_uber_reorder_jobs() { // caller holds g_pipelineMutex
+  for (auto& job : petariUberJobs) job.priority = petari_uber_job_priority(job);
+  std::stable_sort(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_before);
+}
+static void petari_uber_activate_stage(const std::string& stage) { // caller holds g_pipelineMutex
+  const auto active = stage == "Unknown" || stage == "FileSelect" ? std::string{} : stage;
+  if (petariUberBoot.activeStage != active) {
+    petariUberBoot.activeStage = active;
+    petari_uber_reorder_jobs();
+  }
+}
+struct PetariUberAdmission {
+  PetariUberAdmission() { std::lock_guard lock{g_pipelineMutex}; ++petariUberAdmissions; }
+  PetariUberAdmission(const PetariUberAdmission&) = delete;
+  PetariUberAdmission& operator=(const PetariUberAdmission&) = delete;
+  ~PetariUberAdmission() {
+    {
+      std::lock_guard lock{g_pipelineMutex};
+      petari_uber_reorder_jobs();
+      --petariUberAdmissions;
+    }
+    g_pipelineQueueCv.notify_all();
+  }
+};
+static void petari_uber_register_stage_keys(const gx::PipelineConfig& config, const RenderTargetLayout& scene,
+                                           const RenderTargetLayout& off, const std::string& stage,
+                                           uint32_t frame = UINT32_MAX) { // caller holds g_pipelineMutex
+  if (std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered")) return;
+  auto& keys = petariUberBoot.stageKeys[stage];
+  auto& order = petariUberBoot.stageOrder[stage];
+  for (const auto& layout : {scene, off}) {
+    const auto pair = gx::petari_uber_keys(config, layout);
+    for (const auto key : {pair.generic, pair.fast}) {
+      keys.insert(key);
+      if (!order.contains(key)) order.emplace(key, order.size());
+      if (frame != UINT32_MAX) {
+        auto& frames = petariUberBoot.stageFrames[stage];
+        const auto at = frames.find(key);
+        if (at == frames.end()) frames.emplace(key, frame);
+        else at->second = std::min(at->second, frame); // one compiled alias can serve several configs
+      }
+    }
+  }
 }
 static void petari_uber_queue_variant(const gx::PipelineConfig& config, const RenderTargetLayout& layout,
                                     unsigned priority = 3, bool title = false,
@@ -141,6 +218,7 @@ static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTarge
     if (!db) {
       std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; return;
     }
+    std::vector<gx::PipelineConfig> configs;
     sqlite3_stmt* stmt = nullptr;
     const auto sql = "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 ORDER BY first_frame_used";
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
@@ -152,7 +230,7 @@ static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTarge
         gx::PipelineConfig config;
         std::memcpy(&config, sqlite3_column_blob(stmt, 0), sizeof(config));
         if (gx::petari_cached_shader_valid(config.shaderConfig, 0))
-          petari_uber_queue_layouts(config, scene, off, priority, priority == 1);
+          configs.push_back(config);
         else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; }
       }
       if (status != SQLITE_DONE && status != SQLITE_ROW) {
@@ -161,13 +239,18 @@ static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTarge
     } else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
     sqlite3_finalize(stmt);
     sqlite3_close(db);
+    if (priority == 1) petari_uber_admit_stage(configs, scene, off, path.stem().string(), path.string(), false);
+    else for (const auto& config : configs) petari_uber_queue_layouts(config, scene, off, priority);
   };
   std::error_code ec;
   // Read the front-end manifests before traversing the complete seed union.
-  for (const auto* name : {"Unknown.db", "FileSelect.db"}) {
-    const auto path = dir / name;
-    if (std::filesystem::exists(path, ec)) scan(path, 1);
-    if (g_pipelineThreadEnd) return;
+  {
+    PetariUberAdmission frontEndAdmission;
+    for (const auto* name : {"Unknown.db", "FileSelect.db"}) {
+      const auto path = dir / name;
+      if (std::filesystem::exists(path, ec)) scan(path, 1);
+      if (g_pipelineThreadEnd) return;
+    }
   }
   {
     std::lock_guard lock{g_pipelineMutex}; petariUberBoot.frontEndScanned = true;
@@ -219,27 +302,55 @@ static void petari_uber_schedule_draw(const gx::PipelineConfig& config, const Re
   petari_uber_queue_pair(config, layout, 1, title);
 }
 static void petari_uber_schedule_stage(const gx::PipelineConfig& config, const RenderTargetLayout& scene,
-                                     const RenderTargetLayout& off, const std::string& stage) {
+                                     const RenderTargetLayout& off, const std::string& stage, bool activate) {
   if (!gx::petari_uber_enabled() || std::strcmp(gx::petari_uber_reason(config.shaderConfig), "covered")) return;
   const bool title = stage == "Unknown" || stage == "FileSelect";
   {
     std::lock_guard lock{g_pipelineMutex};
-    const auto active = title ? std::string{} : stage;
-    if (petariUberBoot.activeStage != active) {
-      petariUberBoot.activeStage = active;
-      for (auto& job : petariUberJobs) job.priority = petari_uber_job_priority(job);
-      std::stable_sort(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_before);
-    }
-    auto& keys = petariUberBoot.stageKeys[stage];
-    for (const auto& layout : {scene, off}) {
-      const auto pair = gx::petari_uber_keys(config, layout);
-      keys.insert(pair.generic); keys.insert(pair.fast);
-      auto& order = petariUberBoot.stageOrder[stage];
-      for (const auto key : {pair.generic, pair.fast})
-        if (!order.contains(key)) order.emplace(key, order.size());
-    }
+    petari_uber_register_stage_keys(config, scene, off, stage);
+    if (activate) petari_uber_activate_stage(stage);
   }
   petari_uber_queue_layouts(config, scene, off, title ? 1 : 2, title);
+}
+static void petari_uber_admit_stage_frames(const std::vector<gx::PipelineConfig>& configs,
+                                          const RenderTargetLayout& scene, const RenderTargetLayout& off,
+                                          const std::string& stage, const std::map<uint64_t, uint32_t>& frames,
+                                          bool activate = true) {
+  if (!gx::petari_uber_enabled()) return;
+  PetariUberAdmission admission;
+  {
+    std::lock_guard lock{g_pipelineMutex};
+    petariUberBoot.stageFrames[stage].clear(); // invalid/missing metadata falls back for the whole stage
+    for (const auto& config : configs) {
+      const auto hash = xxh3_hash(config, static_cast<uint64_t>(ShaderType::GX));
+      const auto at = frames.find(hash);
+      petari_uber_register_stage_keys(config, scene, off, stage, at == frames.end() ? UINT32_MAX : at->second);
+    }
+    // A slow frontend scan cannot take ownership back from a real scene that
+    // has since begun. Likewise a superseded scene load cannot reactivate itself.
+    if (activate && petariActiveStage == stage) petari_uber_activate_stage(stage);
+  }
+  // All aliases and deadlines exist before jobs are admitted. In particular,
+  // a cheap config enumerated first cannot start ahead of a costly config from
+  // the same recorded frame while this batch is still being populated.
+  for (const auto& config : configs) petari_uber_schedule_stage(config, scene, off, stage, false);
+}
+static void petari_uber_admit_stage(const std::vector<gx::PipelineConfig>& configs,
+                                   const RenderTargetLayout& scene, const RenderTargetLayout& off,
+                                   const std::string& stage, const std::string& manifestPath, bool activate) {
+  if (!gx::petari_uber_enabled()) return;
+  PetariDeadlines::Result loaded{false, "manifest-unavailable", {}};
+  if (!manifestPath.empty()) {
+    auto* db = open_pipeline_cache_seed_db(manifestPath);
+    if (db) {
+      auto sidecar = std::filesystem::path(manifestPath); sidecar.replace_extension(".first-use.bin");
+      loaded = PetariDeadlines::loadManifest(db, sidecar, stage);
+      sqlite3_close(db);
+    }
+  }
+  std::fprintf(stderr, "[gx first-use deadlines] stage=%s policy=%s reason=%s configs=%zu\n", stage.c_str(),
+               loaded.valid ? "frame-then-cost" : "first-use-order", loaded.reason.c_str(), loaded.frames.size());
+  petari_uber_admit_stage_frames(configs, scene, off, stage, loaded.frames, activate);
 }
 static void petari_uber_stage_report(const std::string& stage) {
   if (!gx::petari_uber_enabled()) return;
@@ -248,11 +359,12 @@ static void petari_uber_stage_report(const std::string& stage) {
   if (it == petariUberBoot.stageKeys.end()) return;
   const auto pending = std::count_if(it->second.begin(), it->second.end(),
       [](auto key) { return !petariUberBoot.completed.contains(key); });
-  std::fprintf(stderr, "[gx uber async] event=stage_priority stage=%s elapsed_ms=%.3f variants=%zu pending=%zu workers=%u completed=%zu generic_pending=%zu fast_pending=%zu\n",
+  std::fprintf(stderr, "[gx uber async] event=stage_priority stage=%s elapsed_ms=%.3f variants=%zu pending=%zu workers=%u completed=%zu generic_pending=%zu fast_pending=%zu monotonic_ms=%.3f\n",
       stage.c_str(), petari_uber_elapsed(), it->second.size(), size_t(pending), petariActiveWorkers,
       petariUberBoot.completed.size(),
       size_t(std::count_if(it->second.begin(), it->second.end(), [](auto k) { return petariUberBoot.genericKeys.contains(k) && !petariUberBoot.completed.contains(k); })),
-      size_t(std::count_if(it->second.begin(), it->second.end(), [](auto k) { return petariUberBoot.fastKeys.contains(k) && !petariUberBoot.completed.contains(k); })));
+      size_t(std::count_if(it->second.begin(), it->second.end(), [](auto k) { return petariUberBoot.fastKeys.contains(k) && !petariUberBoot.completed.contains(k); })),
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now().time_since_epoch()));
 }
 static bool petari_uber_or_specialized_ready(PipelineRef key) { // caller holds g_pipelineMutex
   if (g_pipelines.contains(key) || g_pipelineThreadEnd) return true;

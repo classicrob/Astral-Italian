@@ -114,5 +114,22 @@ class Build(unittest.TestCase):
         seedpack.expand(pack, str(self.root / 'expanded'))
         self.assertEqual(seedpack.verify(str(self.root / 'out'), str(self.root / 'expanded')), 0)
 
+    def test_equal_unknown_maps_do_not_hide_missing_bootstrap_scope(self):
+        for index in (1,2):
+            path = self.batch / f'A/warm-{index}/first-use.jsonl'
+            rows = [json.loads(line) for line in path.read_text().splitlines()]
+            for row in rows[1:-1]: row['visit'] = 2
+            rows[1:1] = [
+                {'event':'stage_begin','stage':'Unknown','visit':1,'request_packet':5,'origin_frame':6},
+                {'event':'first_use','stage':'Unknown','visit':1,'origin_frame':6,'frame':6,'relative_frame':0,'config':'000000000000000b'}]
+            rows[-1].update(records=3,clock_first_frame=6,clock_transitions=2,lookup_calls=3,stage_requests=2,stage_begins=2)
+            path.write_text(''.join(json.dumps(row)+'\n' for row in rows));self.rehash(index)
+        result = self.run_build()
+        self.assertTrue(result['passed']) # target A remains independently qualified
+        unknown = next(r for r in result['frontend_results'] if r['stage']=='Unknown')
+        self.assertFalse(unknown['admitted'])
+        self.assertFalse(unknown['bootstrap_scope_qualified'])
+        self.assertFalse((self.root / 'out/Unknown.first-use.bin').exists())
+
 
 if __name__ == '__main__': unittest.main()

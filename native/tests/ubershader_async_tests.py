@@ -78,6 +78,10 @@ std::map<PipelineRef,Sample> petariPipelineSamples;
 unsigned petariNormalWorkers=4,petariActiveWorkers=4;
 constexpr unsigned kPetariOnDemandWorkers=2;
 std::string petariActiveStage;
+uint64_t xxh3_hash(const gx::PipelineConfig& c, uint64_t) {
+ return (uint64_t(c.fixed)<<32) | (uint64_t(c.shaderConfig.variant)<<16) |
+     (c.shaderConfig.tevStageCount<<8) | (c.shaderConfig.numIndStages<<4) | c.shaderConfig.texgenExtent;
+}
 sqlite3* open_pipeline_cache_seed_db(const std::string&) { return nullptr; }
 }
 namespace gx {
@@ -202,6 +206,33 @@ int main(int argc,char** argv) {
   gfx::petari_uber_schedule_draw(c,l);
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic)); // active stage stays above other demand
   auto job=take();CHECK(!job); // active-stage work is held until the title release
+ } else if(test=="admission") {
+  gfx::petariUberTitleReleased=true;
+  gfx::petariActiveStage="A";
+  auto expensive=c;expensive.shaderConfig.variant=2;expensive.shaderConfig.numIndStages=1;expensive.shaderConfig.tevStageCount=16;
+  std::map<uint64_t,uint32_t> frames{{gfx::xxh3_hash(c,0),88},{gfx::xxh3_hash(expensive,0),88}};
+  {
+   gfx::PetariUberAdmission outer;
+   gfx::petari_uber_admit_stage_frames({c,expensive},l,l,"A",frames);
+   CHECK(gfx::petariUberAdmissions==1);
+   CHECK(!take()); // no fallback dispatch sees an incomplete outer batch
+   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(expensive,l,gx::PetariUberTier::Generic));
+  }
+  CHECK(gfx::petariUberAdmissions==0);
+  gfx::petari_uber_admit_stage_frames({c},l,l,"FileSelect",{},false);
+  CHECK(gfx::petariUberBoot.activeStage=="A"); // delayed frontend enumeration cannot steal current-stage priority
+  auto run=take();CHECK(run);run();CHECK(gx::genericBuilds==1);
+ } else if(test=="frame_alias") {
+  gfx::petariActiveStage="A";
+  auto alias=c;alias.shaderConfig.tevStageCount=c.shaderConfig.tevStageCount+1; // same fake runtime alias, distinct config
+  std::map<uint64_t,uint32_t> frames{{gfx::xxh3_hash(c,0),90},{gfx::xxh3_hash(alias,0),88}};
+  gfx::petari_uber_admit_stage_frames({c,alias},l,l,"A",frames);
+  auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);
+  CHECK(gfx::petariUberBoot.stageFrames["A"].at(key)==88);
+  CHECK(gfx::petariUberJobs.size()==2); // shared Generic/Fast jobs remain deduplicated
+  gfx::petari_uber_admit_stage({c,alias},l,l,"A","missing.db");
+  CHECK(gfx::petariUberBoot.stageFrames["A"].empty()); // invalid sidecar discards the whole stage frame map
+  CHECK(gfx::petariUberJobs.size()==2);
  } else if(test=="boot") {
   gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
@@ -310,7 +341,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

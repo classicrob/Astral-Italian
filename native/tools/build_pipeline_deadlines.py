@@ -146,6 +146,13 @@ def build(seeds, provenances, output, report, expected_stages=None):
         observations = frontend.get(stage, [])
         item = {'stage': stage, 'admitted': False, 'policy': 'whole-stage c198 first-use fallback unless every warm pair agrees'}
         front_results.append(item)
+        if stage == 'Unknown':
+            # Protocol3 deliberately pins requests to the next whole packet.
+            # Its initial bootstrap packet has no named scene, so equality of
+            # Unknown's later map cannot prove first use across the whole boot.
+            item.update(reason='protocol3 does not cover pre-scene bootstrap GX lookups; whole-boot deadlines unqualified',
+                        bootstrap_scope_qualified=False)
+            continue
         if dedicated_title:
             observations = [o for o in observations if o[3]]
             item['policy'] = 'dedicated no-input title warm pair; incidental shorter direct visits retained in raw provenance'

@@ -279,8 +279,9 @@ void recordRouteFrame(bool background) {
         state.dead = row.dead;
         state.x = row.x; state.y = row.y; state.z = row.z;
         state.playReady = Host::playerInPlay();  // as of the previous seam's update, like the recorder and the headless driver
+        state.initEnd = controller && controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
         const auto step = TapePlay::seam(state);
-        if (step.kind == TapePlay::Step::Kind::Start && system && system->mObjHolder) system->mObjHolder->mRandom.mSeed = step.seed;
+        if (step.kind == TapePlay::Step::Kind::Start && step.restoreSeed && system && system->mObjHolder) system->mObjHolder->mRandom.mSeed = step.seed;
         if (step.kind == TapePlay::Step::Kind::Warp) {
             // A jump cut to the next segment's galaxy: the game's own stage change (what the Level Select warp calls), taken from
             // wherever the game is (the world map included). The name must outlive the move: PlayerLaunch::warpStage.

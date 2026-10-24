@@ -85,7 +85,9 @@ void writeReport() {
 bool configure(const std::string& dir, std::string* error) {
     try {
         gTapeDir = std::filesystem::absolute(dir);
-        gSession = std::make_unique<Session>(gTapeDir);
+        const char* whole = std::getenv("PETARI_TAPE_PLAY_SESSION");
+        gSession = std::make_unique<Session>(gTapeDir, whole && std::string(whole) == "1"
+            ? Session::Mode::WholeSession : Session::Mode::Segments);
     } catch (const std::exception& e) {
         gSession.reset();
         if (error) *error = e.what();
@@ -102,7 +104,7 @@ bool configure(const std::string& dir, std::string* error) {
 }
 
 bool active() { return gSession != nullptr; }
-const SegmentMeta* firstSegment() { return gSession ? &gSession->firstSegment() : nullptr; }
+const SegmentMeta* firstSegment() { return gSession && !gSession->wholeSession() ? &gSession->firstSegment() : nullptr; }
 const Meta* meta() { return gSession ? &gSession->meta() : nullptr; }
 
 Step seam(const SeamState& state) {

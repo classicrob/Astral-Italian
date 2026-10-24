@@ -48,7 +48,11 @@ void writeTape(const fs::path& dir, double wrongX = -1) {
         number(kpd, 1, 4); number(kpd, 0, 4); number(kpd, 0, 4); number(kpd, 1, 4); number(kpd, 1, 4);
         H::Sample sample{};
         sample[0] = 0; sample[1] = 0; sample[2] = static_cast<std::uint8_t>(f >> 8 | 1); sample[3] = static_cast<std::uint8_t>(f);
-        sample[92] = 1; sample[95] = 5;
+        const float pointer = f * 0.01f;
+        std::uint32_t pointerBits;
+        std::memcpy(&pointerBits, &pointer, 4);
+        for (unsigned i = 0; i < 4; ++i) sample[32 + i] = pointerBits >> (24 - 8 * i);
+        sample[92] = 1; sample[94] = 1; sample[95] = 5;
         kpd.write(reinterpret_cast<const char*>(sample.data()), sample.size());
     }
     (void)wrongX;
@@ -140,6 +144,68 @@ int main() {
         bool threw = false;
         try { Session s3(base / "bad"); } catch (const H::ReplayError&) { threw = true; }
         check(threw, "no segment");
+    }
+    {   // A whole session has menu visits with no player and no play-ready segment at all.
+        const auto dir = base / "menus";
+        writeTape(dir);
+        std::ofstream(dir / "route.tape.json") << R"({"complete":true,"seams":20,"segments":[],"ready_seams":[
+            {"row":4,"stage":"FileSelect","scenario":1,"rng_seed":123},
+            {"row":11,"stage":"WorldMap01Galaxy","scenario":1,"rng_seed":456}]})";
+        {
+            std::ofstream csv(dir / "route.csv");
+            csv << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
+            for (unsigned row = 0; row < kRows; ++row)
+                csv << row << ',' << (row < 3 ? "" : row < 10 ? "FileSelect" : "WorldMap01Galaxy")
+                    << ',' << (row == 2 ? -1 : 1) << ",0,0,0,0,0,0,0\n";
+        }
+        const auto menu = [](const char* stage, bool ready) {
+            SeamState s; s.stage = stage; s.scenario = 1; s.initEnd = ready; return s;
+        };
+        Session menus(dir, Session::Mode::WholeSession);
+        check(menus.segmentCount() == 3 && menus.wholeSession(), "whole session plans title and non-play-ready menus");
+        const auto title = menus.seam(menu("", false));
+        check(title.kind == Step::Kind::Start && !title.restoreSeed, "title anchors before play-ready without inventing an RNG checkpoint");
+        for (unsigned frame = 1; frame <= 2; ++frame) {
+            check(hold(menus) == (0x100u | frame), "title input is replayed");
+            auto s = menu("", true); if (frame == 2) s.scenario = -1;
+            menus.seam(s);
+        }
+        for (unsigned i = 0; i < kWarpDelaySeams + 2; ++i)
+            check(menus.seam(menu("FileSelect", false)).kind == Step::Kind::None, "loading waits without warping");
+        check(hold(menus) == 0, "neutral only while constructing a scene");
+        auto step = menus.seam(menu("FileSelect", true));
+        check(step.kind == Step::Kind::Start && step.seed == 123, "FileSelect anchors at initialize-End without play-ready");
+        for (unsigned frame = 5; frame <= 9; ++frame) {
+            check(hold(menus) == (0x100u | frame), "FileSelect reads stay in recorded order");
+            menus.seam(menu("FileSelect", true));
+        }
+        menus.seam(menu("WorldMap01Galaxy", false));
+        step = menus.seam(menu("WorldMap01Galaxy", true));
+        check(step.kind == Step::Kind::Start && step.seed == 456, "map anchors without play-ready");
+        for (unsigned frame = 12; frame <= 19; ++frame) {
+            check(hold(menus) == (0x100u | frame), "map reads are delivered");
+            step = menus.seam(menu("WorldMap01Galaxy", true));
+        }
+        check(step.kind == Step::Kind::Finished && !menus.gaveUp(), "whole menu session finishes");
+        check(menus.report()[0].reads == 2 && menus.report()[1].reads == 5 && menus.report()[2].reads == 8,
+              "all menu input frames counted");
+        check(menus.report()[2].pointingReads == 8 && menus.report()[2].replayedPointer[0] == 19 * 0.01f
+            && menus.report()[2].recordedPointer[0] == menus.report()[2].replayedPointer[0], "map pointer samples delivered exactly");
+        Session bad(dir, Session::Mode::WholeSession);
+        bad.seam(menu("", false));
+        hold(bad);
+        check(bad.seam(menu("WrongScene", true)).kind == Step::Kind::GaveUp, "whole session fails closed at first scene divergence");
+        check(bad.report()[0].firstDivergenceRow == 1 && bad.report()[0].firstReplayStage == "WrongScene",
+              "first divergence retains row and both stages");
+        check(hold(bad) == 0 && bad.error().find("route row 1") != std::string::npos, "failed session stops feeding recorded input");
+        Session wrongRead(dir, Session::Mode::WholeSession);
+        wrongRead.seam(menu("", false));
+        KPADStatus buffer[16] = {};
+        wrongRead.read(0, 16, buffer, nullptr);
+        check(wrongRead.gaveUp() && wrongRead.report()[0].diverged
+              && wrongRead.report()[0].firstDivergenceRow == 1, "input-shape divergence retains absolute frame evidence");
+        check(wrongRead.error().find("recorded frame=0") != std::string::npos
+              && wrongRead.error().find("replayed channel=0 capacity=16") != std::string::npos, "read failure records expected and actual shape");
     }
     fs::remove_all(base);
     std::printf("tape play session checks passed (%d)\n", checks);

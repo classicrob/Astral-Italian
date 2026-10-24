@@ -88,3 +88,22 @@ a new label with `tier_cold54m.py LABEL --only sweep --candidate-dir FINAL_CANDI
 Preserve the interrupted frozen54 cohort separately as preliminary evidence. Record
 the actual pool policy: cap8 does not mean eight active workers; the frozen
 M1 logs show four total workers, including two reserved workers.
+
+PORT-approved latency harness repair (2026-10-24): `latency54m.py LABEL
+--candidate-dir DIR --prior-campaign CAMPAIGN` builds an injected test driver
+under heavy -> native, then measures Fifo/Immediate twice on the unchanged
+candidate perf executable. The injected driver calls the same native `keyEvent`
+API as the built-in test. Its SHA-bound symbol map is checked against exported
+code/data before sending input. It retains host-time random gaps (1000–1600 ms,
+MT19937 seed12345),60ms holds, absolute planned sends and a finite27-send train;
+matching a previous read never shifts the next planned host deadline. Busy or
+unmatched attempts fail without replacement. Movement keeps its original970
+frames with only Space removed; script QUIT is disabled. The driver quits after
+all27 native measurements plus250ms drain. There is no game-frame injection.
+
+`receipts54m.py ... --latency-result RESULT.json` may consume this separately
+bound functional evidence, requiring exactly27 native reports at2frames and a
+matching send/release/read ledger in each of four arms. The original cadence
+arms and initial26/25/25/25 failure are retained, hash-checked and cited. They
+also demonstrate the collision already seen on frozen5.4 (25/26), rather than
+a5.4.1 regression. The cold/cadence tier rows retain their original evidence.

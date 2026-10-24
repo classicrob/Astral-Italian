@@ -60,14 +60,16 @@ def summary(g):
   return str(sum(r['passed'] for r in rs))+'/9; menu p99 '+str(min(r['menu_p99'] for r in rs))+'–'+str(max(r['menu_p99'] for r in rs))+' ms; worst menu '+str(max(float(r['worst_menu_frame']['interval_ms']) for r in rs if r['worst_menu_frame']))+' ms; gameplay stalls '+str(len(stalls))+', worst '+str(max((x[1] for x in stalls),default=0))+' ms; holds >3s '+str(sum(len(r['holds_over3s']) for r in rs))
  if name=='v2-image-pair':return 'mean RGB '+str(d['diff']['mean_abs_rgb'])+'; '+str(len(d['diff']['pairs']))+' pairs; off guard '+str(d['off_guard_lines'])
  if name=='v2-warm-pairs':return '; '.join(st+': p99 delta '+('/'.join(f"{p["p99_delta_ms"]:+.2f}" for p in v['pairs']))+' ms' for st,v in d['stages'].items())
+ if name=='input-latency' and d.get('harness_fix'):return '; '.join(r['case']+': '+str(r['native_reports'])+'/27 presses, frames '+str(r['frames_after_read']) for r in d['runs'])+'; finite wall-time driver; original failed arms retained'
  if name in ('fifo-default-cadence-latency','input-latency'):return '; '.join(r['case']+': late '+str(r['late_present_pct'])+'%, '+str(r['presses'])+' presses, frames '+str(r['frames_after_read']) for r in d['runs'])
  if name=='audio-thread-priority':return '; '.join(r['case']+': '+str(r['underrun_frames'])+' underrun frames / '+str(r['underrun_reports'])+' reports, baton >50ms '+str(r['baton_over50']) for r in d['runs'])
  if name=='wii-proof':return d['reason'] if d.get('proof_kind')=='main-lineage-and-fresh-candidate-wii' else 'Release source lineage rechecked; original Wii build/oracle evidence reused'
  return json.dumps(d,ensure_ascii=False,separators=(',',':'))[:220]
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');p.add_argument('--latency-result',type=Path,help='approved finite WALL-TIME27 driver result; original cadence evidence remains unchanged');a=p.parse_args()
  base=a.campaign.resolve();m=readj(base/'MANIFEST.json');label=m['label'];candidate_mode=m.get('build_kind')=='server-candidate';meta=m['candidate_build'] if candidate_mode else m['frozen'];expected=meta['perf_exe_sha256'];frozen=meta['build_metadata'] if candidate_mode else readj(FROZEN/'BUILD.json');gates=[];issues=[]
+ assert not a.latency_result or candidate_mode
  def gate(name,paths,fn,status,limits=()):
   try:
    detail=fn();ok=detail.pop('passed') is True
@@ -188,8 +190,11 @@ def main():
  gate('fifo-default-cadence-latency',[runpath(f'cadence-{mode}-r{n}')/'RESULT.json' for n in (1,2) for mode in ('fifo','immediate')],cadencecheck,'Fifo late <1%, 27/27 latency presses at 2 frames after read')
  if candidate_mode:
   def inputlatency():
+   if a.latency_result:
+    from latency54m import validate_result
+    return validate_result(a.latency_result,meta)
    result=cadencecheck();return {'passed':all(r['latency_passed'] for r in result['runs']),'runs':result['runs']}
-  gate('input-latency',[runpath(f'cadence-{mode}-r{n}')/'app.log' for n in (1,2) for mode in ('fifo','immediate')],inputlatency,'27/27 input latency presses at two frames after read; cadence threshold is a separate tier row')
+  gate('input-latency',[a.latency_result] if a.latency_result else [runpath(f'cadence-{mode}-r{n}')/'app.log' for n in (1,2) for mode in ('fifo','immediate')],inputlatency,'27/27 input latency presses at two frames after read; cadence threshold is a separate tier row')
  def audiocheck():
   data=[]
   for mode in ('cold','warm'):
@@ -216,7 +221,7 @@ def main():
   except Exception as e:identity=False;issues.append('protected inputs: '+repr(e))
  if not identity:issues.append('selected build identity/priority')
  interrupted=readj(base/'INTERRUPTED.json') if (base/'INTERRUPTED.json').is_file() else None
- validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
+ validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'input_latency_evidence_override':str(a.latency_result) if a.latency_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)
  lines=[('M1 server candidate '+frozen['source'] if candidate_mode else 'M1 frozen 5.4')+' versus server (actual evidence; nice 0 on M1)','',f"Source exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
  if interrupted:lines[0:0]=['Superseded partial campaign: '+interrupted['authority']+'. Remaining measurements were not run; see INTERRUPTED.json.','']
@@ -224,6 +229,7 @@ def main():
   detail=summary(g)
   lines.append('| '+g['gate']+' | '+SERVER.get(g['gate'],'Derived functional check')+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('Preserved older-source comparison' if g['classification']=='source-comparison' else 'M1 tier observation' if g['classification']=='tier' else 'Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
  if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
+ if a.latency_result:lines+=['',f'PORT-approved latency harness fix: {a.latency_result}. Finite27 independent WALL-TIME Space presses with absolute send/release/read ledger; movement script Space removed, original host random gap distribution and60ms holds retained. Predicate remains exactly27/27 at2frames in all4arms. Original26/25/25/25 arms, cadence tier observations and initial refusal are preserved; see VALIDATION-initial-input-latency-failure.json and LATENCY-07223918-EXISTING-LOG-FINDING.json. Frozen5.4 also showed25/26; the collision predates5.4.1.']
  lines+=['','Each GX session holds heavy then native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate evidence is labelled separately; it does not change frozen54 gate status.']
  if candidate_mode:lines+=['The normal-route and normal-boot-ui rows reuse SOL B\'s actual perfm1b runs; their signed hashes are recorded separately and bound to the same original server candidate. Cold and cadence thresholds are tier observations; input latency remains functional.']
  (base/'COMPARISON.md').write_text('\n'.join(lines)+'\n')
